@@ -13,6 +13,7 @@ Code
 ----
 
 .. literalinclude:: ../../example/test-modulefiles/modulefiles/test_dir_and_file
+   :language: tcl
    :caption: test_dir_and_file
 
 

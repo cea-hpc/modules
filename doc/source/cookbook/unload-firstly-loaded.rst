@@ -21,6 +21,7 @@ For older v4 versions, a site-specific configuration script is proposed to
 select firstly loaded module matching name rather lastly loaded.
 
 .. literalinclude:: ../../example/unload-firstly-loaded/siteconfig.tcl
+   :language: tcl
    :caption: siteconfig.tcl
    :lines: 15-20
 
