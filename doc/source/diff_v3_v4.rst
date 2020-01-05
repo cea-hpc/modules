@@ -499,7 +499,7 @@ Modules Specific Tcl Commands
 
 **is-loaded**
 
- Starting with version ``4.1``, **is-loaded** supports being called with no argument passed. In this case, it returns *true* if any modulefile is currently loaded, *false* elsewhere.
+ Starting with version ``4.1``, **is-loaded** supports being called with no argument passed. In this case, it returns *true* if any modulefile is currently loaded, *false* otherwise.
 
  Starting with version ``4.2``, **is-loaded** supports being called with a symbolic modulefile or a modulefile alias passed as argument.
 
