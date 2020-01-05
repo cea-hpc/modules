@@ -206,7 +206,7 @@ switches are accepted:
 
  On **avail** sub-command, display only the default version of each module
  name. Default version is the explicitly set default version or also the
- implicit default version if **config** option *implicit_default* is enabled
+ implicit default version if the configuration option *implicit_default* is enabled
  (see Locating Modulefiles section in the :ref:`modulefile(4)` man page for
  further details on implicit default version).
 
@@ -398,7 +398,7 @@ Module Sub-Commands
  times *directory* has been enabled. When attempting to remove *directory*
  from **MODULEPATH**, reference counter variable **MODULEPATH_modshare**
  is checked and *directory* is removed only if its relative counter is
- equal to 1 or not defined. Elsewhere *directory* is kept and reference
+ equal to 1 or not defined. Otherwise *directory* is kept and reference
  counter is decreased by 1.
 
 .. _refresh:
@@ -500,7 +500,7 @@ Module Sub-Commands
  of this variable will be appended to the *collection* file name.
 
  By default, if loaded modulefile corresponds to the explicitly defined
- default module version, the bare module name is recorded. If **config**
+ default module version, the bare module name is recorded. If the configuration
  option *implicit_default* is enabled, the bare module name is also recorded
  for the implicit default module version. If
  **MODULES_COLLECTION_PIN_VERSION** is set to **1**, module version is always
@@ -533,7 +533,7 @@ Module Sub-Commands
 
  If a module, without a default version explicitly defined, is recorded in a
  *collection* by its bare name: loading this module when restoring the
- collection will fail if **config** option *implicit_default* is disabled.
+ collection will fail if the configuration option *implicit_default* is disabled.
 
 .. _saverm:
 
@@ -681,7 +681,7 @@ Module Sub-Commands
 
  Returns a true value if any of the listed *modulefiles* has been loaded or if
  any *modulefile* is loaded in case no argument is provided. Returns a false
- value elsewhere. See **is-loaded** in the :ref:`modulefile(4)` man page for
+ value otherwise. See **is-loaded** in the :ref:`modulefile(4)` man page for
  further explanation.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
@@ -694,7 +694,7 @@ Module Sub-Commands
 
  Returns a true value if any of the listed *collections* exists or if any
  *collection* exists in case no argument is provided. Returns a false value
- elsewhere. See **is-saved** in the :ref:`modulefile(4)` man page for further
+ otherwise. See **is-saved** in the :ref:`modulefile(4)` man page for further
  explanation.
 
 .. _is-used:
@@ -703,7 +703,7 @@ Module Sub-Commands
 
  Returns a true value if any of the listed *directories* has been enabled in
  **MODULEPATH** or if any *directory* is enabled in case no argument is
- provided. Returns a false value elsewhere. See **is-used** in the
+ provided. Returns a false value otherwise. See **is-used** in the
  :ref:`modulefile(4)` man page for further explanation.
 
 .. _is-avail:
@@ -711,7 +711,7 @@ Module Sub-Commands
 **is-avail** modulefile...
 
  Returns a true value if any of the listed *modulefiles* exists in enabled
- **MODULEPATH**. Returns a false value elsewhere. See **is-avail** in the
+ **MODULEPATH**. Returns a false value otherwise. See **is-avail** in the
  :ref:`modulefile(4)` man page for further explanation.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
@@ -876,7 +876,7 @@ the current value of the **MODULES_COLLECTION_TARGET** environment variable
 EXIT STATUS
 -----------
 
-The **module** command exits with **0** if its execution succeed. Elsewhere
+The **module** command exits with **0** if its execution succeed. Otherwise
 **1** is returned.
 
 
@@ -1027,9 +1027,9 @@ ENVIRONMENT
 **MODULES_COLLECTION_PIN_VERSION**
 
  If set to **1**, register exact version number of modulefiles when saving a
- collection. Elsewhere modulefile version number is omitted if it corresponds
+ collection. Otherwise modulefile version number is omitted if it corresponds
  to the explicitly set default version and also to the implicit default when
- **config** option *implicit_default* is enabled.
+ the configuration option *implicit_default* is enabled.
 
 .. _MODULES_COLLECTION_TARGET:
 
@@ -1045,8 +1045,8 @@ ENVIRONMENT
 
  When a target is set, only the collections made for that target are
  available to the **restore**, **savelist**, **saveshow** and **saverm**
- sub-commands. Saving collection registers the target footprint by suffixing
- the collection filename with ``.$MODULES_COLLECTION_TARGET``. Collection
+ sub-commands. Saving a collection registers the target footprint by suffixing
+ the collection filename with ``.$MODULES_COLLECTION_TARGET``. The collection
  target is not involved when collection is specified as file path on the
  **saveshow**, **restore** and **save** sub-commands.
 
@@ -1124,9 +1124,9 @@ ENVIRONMENT
  specified modules ``mod/1`` and ``mod/1.2`` will match existing  modulefile
  ``mod/1.2.3``.
 
- In case multiple modulefiles match specified module version and a single
- module has to be selected, explicitly set default version is returned if it
- is part of matching modulefiles. Elsewhere implicit default among matching
+ In case multiple modulefiles match the specified module version and a single
+ module has to be selected, the explicitly set default version is returned if it
+ is part of matching modulefiles. Otherwise the implicit default among matching
  modulefiles is returned if defined (see **MODULES_IMPLICIT_DEFAULT** section)
 
  This environment variable supersedes the value of the configuration option
@@ -1390,8 +1390,8 @@ ENVIRONMENT
  workaround is enabled, an alternative *module* alias is defined which fixes
  the history mechanism issue. However the alternative definition of the
  *module* alias weakens shell evaluation of the code produced by modulefiles.
- Characters with special meaning for Tcsh shell (like *{* and *}*) may not be
- used anymore in shell alias definition elsewhere the evaluation of the code
+ Characters with a special meaning for Tcsh shell (like *{* and *}*) may not be
+ used anymore in shell alias definition otherwise the evaluation of the code
  produced by modulefiles will return a syntax error.
 
 .. _LMFILES:

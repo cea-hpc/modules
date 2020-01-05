@@ -155,7 +155,7 @@ the *modulefile* is being loaded.
 **getenv** variable [value]
 
  Returns value of environment *variable*. If *variable* is not defined *value*
- is returned if set *_UNDEFINED_* is returned elsewhere. **getenv** command
+ is returned if set *_UNDEFINED_* is returned otherwise. **getenv** command
  should be preferred over Tcl global variable **env** to query environment
  variables.
 
@@ -208,7 +208,7 @@ the *modulefile* is being loaded.
  *value* has been added to *variable*. This information is stored in
  environment *variable_modshare*. When attempting to remove *value* from
  *variable*, relative reference counter is checked and *value* is removed
- only if counter is equal to 1 or not defined. Elsewhere *value* is kept
+ only if counter is equal to 1 or not defined. Otherwise *value* is kept
  in *variable* and reference counter is decreased by 1.
 
  If *value* corresponds to the concatenation of multiple elements separated by
@@ -365,7 +365,7 @@ the *modulefile* is being loaded.
   **modulecmd.tcl**, which is normally hidden by the **module** alias.
 
   If a *shellname* is given, returns 1 if **modulecmd.tcl**'s current shell
-  is *shellname*, returns 0 elsewhere. *shellname* can be: sh, bash, ksh,
+  is *shellname*, returns 0 otherwise. *shellname* can be: sh, bash, ksh,
   zsh, csh, tcsh, fish, tcl, perl, python, ruby, lisp, cmake, r.
 
  **module-info shelltype** [shelltypename]
@@ -376,7 +376,7 @@ the *modulefile* is being loaded.
   determining the shell syntax of the commands produced by **modulecmd.tcl**.
 
   If a *shelltypename* is given, returns 1 if **modulecmd.tcl**'s current
-  shell type is *shelltypename*, returns 0 elsewhere. *shelltypename*
+  shell type is *shelltypename*, returns 0 otherwise. *shelltypename*
   can be: sh, csh, fish, tcl, perl, python, ruby, lisp, cmake, r.
 
  **module-info alias** name
@@ -422,7 +422,7 @@ the *modulefile* is being loaded.
  The parameter *modulefile* may be either
 
  * a fully or partially qualified *modulefile* with name / version. If
-   name is '.' then the current directory name is assumed to be the module
+   name is ``.`` (dot) then the current directory name is assumed to be the module
    name. (Use this for deep *modulefile* directories.)
 
  * a symbolic *modulefile* name
@@ -606,7 +606,7 @@ directory. If the name does not match any files located in the current
 directory, the search continues through the remaining directories in
 **MODULEPATH**.
 
-Every *.version* and *.modulerc* file found is Tcl interpreted. The
+Every *.version* and *.modulerc* file found is interpreted as Tcl code. The
 difference is that *.version* only applies to the current directory, and the
 *.modulerc* applies to the current directory and all subdirectories. Changes
 made in these files will affect the subsequently interpreted *modulefile*.
@@ -614,7 +614,7 @@ made in these files will affect the subsequently interpreted *modulefile*.
 If no default version may be figured out, an implicit default is selected when
 this behavior is enabled (see **MODULES_IMPLICIT_DEFAULT** in
 :ref:`module(1)`). If disabled, module names should be fully qualified when no
-explicit default is defined for them, elsewhere no default version is found
+explicit default is defined for them, otherwise no default version is found
 and an error is returned. If enabled, then the highest numerically sorted
 *modulefile*, virtual module or module alias under the directory will be used.
 The dictionary comparison method of the **lsort**\ (n) Tcl command is used to
@@ -663,7 +663,7 @@ adapted to the rights the user has been granted. Exception is made when
 trying to directly access a directory or a *modulefile*. In this case,
 the access issue is returned as an error message.
 
-A *modulefile* whose name or element in its name starts with a '.' dot is
+A *modulefile* whose name or element in its name starts with a ``.`` (dot) is
 considered hidden. Hidden *modulefile* is not displayed or taken into account
 except if it is explicitly named. By inheritance, a symbolic version-name
 assigned to a hidden *modulefile* is displayed or taken into account only
