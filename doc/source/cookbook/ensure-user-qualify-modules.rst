@@ -37,6 +37,7 @@ configuration directory (or in the ``modulerc`` file installed in the
 initialization script directory if this location is preferred).
 
 .. literalinclude:: ../../example/ensure-user-qualify-modules/initrc
+   :language: tcl
    :caption: initrc
 
 It may be desired to lock this option, to ensure users do not alter it
@@ -46,6 +47,7 @@ configuration script, users will not be able to change the
 ``implicit_default`` behavior you configure.
 
 .. literalinclude:: ../../example/ensure-user-qualify-modules/siteconfig.tcl
+   :language: tcl
    :caption: siteconfig.tcl
    :lines: 13-17
 

@@ -18,6 +18,7 @@ prior processing the module command itself. The log message sent describes the
 module command called and who called it.
 
 .. literalinclude:: ../../example/log-module-commands/siteconfig.tcl
+   :language: tcl
    :caption: siteconfig.tcl
    :lines: 13-20
 

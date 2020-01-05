@@ -25,6 +25,7 @@ can be parsed to enable on the fly the default modulepaths (with ``module
 use`` Tcl modulefile command).
 
 .. literalinclude:: ../../example/modulepaths-persist-over-sudo/rc
+   :language: tcl
    :caption: Global RC file
 
 **Compatible with Modules v4.1+**

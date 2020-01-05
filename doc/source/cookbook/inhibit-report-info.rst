@@ -22,6 +22,7 @@ For v4.2 versions, a site-specific configuration script is proposed to inhibit
 the output of the info-level messages.
 
 .. literalinclude:: ../../example/inhibit-report-info/siteconfig.tcl
+   :language: tcl
    :caption: siteconfig.tcl
    :lines: 14-23
 

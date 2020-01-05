@@ -20,6 +20,7 @@ that supersedes the definition of the ``module-info name`` command to return
 modulefile basename instead of full pathname.
 
 .. literalinclude:: ../../example/module-info-name-return-basename/siteconfig.tcl
+   :language: tcl
    :caption: siteconfig.tcl
    :lines: 13-27
 
