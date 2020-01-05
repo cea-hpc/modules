@@ -7,7 +7,7 @@ modulefile
 DESCRIPTION
 -----------
 
-*modulefiles* are written in the Tool Command Language, **Tcl**\ (n) and are
+*modulefiles* are written in the Tool Command Language, :manpage:`Tcl(n)` and are
 interpreted by the :file:`modulecmd.tcl` program via the :ref:`module(1)` user
 interface. *modulefiles* can be loaded, unloaded, or switched on-the-fly
 while the user is working; and can be used to implement site policies
@@ -57,7 +57,7 @@ Modules Specific Tcl Commands
 -----------------------------
 
 The Modules Package uses commands which are extensions to the "standard"
-Tool Command Language **Tcl**\ (n) package. Unless otherwise specified, the
+Tool Command Language :manpage:`Tcl(n)` package. Unless otherwise specified, the
 Module commands return the empty string. Some commands behave differently
 when a *modulefile* is loaded or unloaded. The command descriptions assume
 the *modulefile* is being loaded.
@@ -516,11 +516,11 @@ the *modulefile* is being loaded.
 **uname** field
 
  Provide lookup of system information. Most *field* information are retrieved
- from the **tcl_platform** array (see **tclvars**\ (n) man page). Uname will
+ from the **tcl_platform** array (see :manpage:`tclvars(n)` man page). Uname will
  return the string "unknown" if information is unavailable for the *field*.
 
- **uname** will invoke **uname**\ (1) command in order to get the operating
- system version and **domainname**\ (1) to figure out the name of the domain.
+ **uname** will invoke :manpage:`uname(1)` command in order to get the operating
+ system version and :manpage:`domainname(1)` to figure out the name of the domain.
 
  *field* values are:
 
@@ -544,7 +544,7 @@ the *modulefile* is being loaded.
  control look and behavior of X11 applications. The command will attempt
  to read resources from *filename*. If the argument isn't a valid file
  name, then string will be interpreted as a resource. Either *filename*
- or *resource-string* is then passed down to be **xrdb**\ (1) command.
+ or *resource-string* is then passed down to be :manpage:`xrdb(1)` command.
 
  *modulefiles* that use this command, should in most cases contain one or
  more **x-resource** lines, each defining one X11 resource. The **DISPLAY**
@@ -618,7 +618,7 @@ this behavior is enabled (see **MODULES_IMPLICIT_DEFAULT** in
 explicit default is defined for them, otherwise no default version is found
 and an error is returned. If enabled, then the highest numerically sorted
 *modulefile*, virtual module or module alias under the directory will be used.
-The dictionary comparison method of the **lsort**\ (n) Tcl command is used to
+The dictionary comparison method of the :manpage:`lsort(n)` Tcl command is used to
 achieve this sort. If highest numerically sorted element is an alias, search
 continues on its *modulefile* target.
 
@@ -750,8 +750,8 @@ ENVIRONMENT
 SEE ALSO
 --------
 
-:ref:`module(1)`, **Tcl**\ (n), **TclX**\ (n), **xrdb**\ (1), **exec**\
-(n), **uname**\ (1), **domainname**\ (1), **tclvars**\ (n), **lsort**\ (n)
+:ref:`module(1)`, :manpage:`Tcl(n)`, :manpage:`TclX(n)`, :manpage:`xrdb(1)`, :manpage:`exec(n)`,
+:manpage:`uname(1)`, :manpage:`domainname(1)`, :manpage:`tclvars(n)`, :manpage:`lsort(n)`
 
 
 NOTES
