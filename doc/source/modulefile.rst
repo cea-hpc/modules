@@ -574,6 +574,7 @@ Modules Variables
 The **ModulesCurrentModulefile** variable contains the full pathname of
 the *modulefile* being interpreted.
 
+.. _Locating Modulefiles:
 
 Locating Modulefiles
 --------------------
