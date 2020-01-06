@@ -379,7 +379,7 @@ Module Sub-Commands
 **use** [-a|--append] directory...
 
  Prepend one or more *directories* to the :envvar:`MODULEPATH` environment
- variable.  The *--append* flag will append the *directory* to
+ variable.  The ``--append`` flag will append the *directory* to
  :envvar:`MODULEPATH`.
 
  Reference counter environment variable :envvar:`MODULEPATH_modshare<\<VAR\>_modshare>` is
@@ -428,7 +428,7 @@ Module Sub-Commands
 **clear** [-f]
 
  Force the Modules package to believe that no modules are currently loaded. A
- confirmation is requested if command-line switch *-f* (or *--force*) is not
+ confirmation is requested if command-line switch :option:`-f` (or :option:`--force`) is not
  passed. Typed confirmation should equal to *yes* or *y* in order to proceed.
 
 .. _source:
@@ -734,7 +734,7 @@ Module Sub-Commands
  Gets or sets :file:`modulecmd.tcl` options. Reports the currently set value of
  passed option *name* or all existing options if no *name* passed. If a *name*
  and a *value* are provided, the value of option *name* is set to *value*. If
- command-line switch *--reset* is passed in addition to a *name*, overridden
+ command-line switch ``--reset`` is passed in addition to a *name*, overridden
  overridden value for option *name* is cleared.
 
  When a reported option value differs from default value a mention is added
@@ -745,7 +745,7 @@ Module Sub-Commands
  If no value is currently set for an option *name*, the mention *<undef>* is
  reported.
 
- When command-line switch *--dump-state* is passed, current :file:`modulecmd.tcl`
+ When command-line switch ``--dump-state`` is passed, current :file:`modulecmd.tcl`
  state and Modules-related environment variables are reported in addition to
  currently set :file:`modulecmd.tcl` options.
 
@@ -975,10 +975,10 @@ ENVIRONMENT
  load of the switched-to modulefile.
 
  Automated module handling mode enablement is defined in the following order
- of preference: **--auto**/**--no-auto** command line switches,
+ of preference: :option:`--auto`/:option:`--no-auto` command line switches,
  then :envvar:`MODULES_AUTO_HANDLING` environment variable, then the default set in
  :file:`modulecmd.tcl` script configuration. Which means :envvar:`MODULES_AUTO_HANDLING`
- overrides default configuration and **--auto**/**--no-auto** command line
+ overrides default configuration and :option:`--auto`/:option:`--no-auto` command line
  switches override every other ways to enable or disable this mode.
 
 .. envvar:: MODULES_AVAIL_INDEPTH
@@ -993,10 +993,10 @@ ENVIRONMENT
  are excluded.
 
  **avail** sub-command in depth mode enablement is defined in the following
- order of preference: **--indepth**/**--no-indepth** command line switches,
+ order of preference: :option:`--indepth`/:option:`--no-indepth` command line switches,
  then :envvar:`MODULES_AVAIL_INDEPTH` environment variable, then the default set in
  :file:`modulecmd.tcl` script configuration. Which means :envvar:`MODULES_AVAIL_INDEPTH`
- overrides default configuration and **--indepth**/**--no-indepth** command
+ overrides default configuration and :option:`--indepth`/:option:`--no-indepth` command
  line switches override every other ways to enable or disable this mode.
 
 .. envvar:: MODULES_CMD
@@ -1040,11 +1040,11 @@ ENVIRONMENT
  error output channel is attached to a terminal.
 
  Colored output enablement is defined in the following order of preference:
- **--color** command line switch, then :envvar:`MODULES_COLOR` environment variable,
+ :option:`--color` command line switch, then :envvar:`MODULES_COLOR` environment variable,
  then :envvar:`CLICOLOR` and :envvar:`CLICOLOR_FORCE` environment variables, then the
  default set in :file:`modulecmd.tcl` script configuration. Which means
  :envvar:`MODULES_COLOR` overrides default configuration and the
- :envvar:`CLICOLOR`/:envvar:`CLICOLOR_FORCE` variables. **--color** command line switch
+ :envvar:`CLICOLOR`/:envvar:`CLICOLOR_FORCE` variables. :option:`--color` command line switch
  overrides every other ways to enable or disable this mode.
 
  :envvar:`CLICOLOR` and :envvar:`CLICOLOR_FORCE` environment variables are also honored to
@@ -1115,10 +1115,10 @@ ENVIRONMENT
  receive as argument.
 
  Case sensitiveness behavior is defined in the following order of preference:
- **--icase** command line switch, which corresponds to the **always** mode,
+ :option:`--icase` command line switch, which corresponds to the **always** mode,
  then :envvar:`MODULES_ICASE` environment variable, then the default set in
  :file:`modulecmd.tcl` script configuration. Which means :envvar:`MODULES_ICASE`
- overrides default configuration and **--icase** command line switch overrides
+ overrides default configuration and :option:`--icase` command line switch overrides
  every other ways to set case sensitiveness behavior.
 
 .. envvar:: MODULES_IMPLICIT_DEFAULT
@@ -1243,10 +1243,10 @@ ENVIRONMENT
  search query string are returned.
 
  Module search match style is defined in the following order of preference:
- **--starts-with** and **--contains** command line switches, then
+ :option:`--starts-with` and :option:`--contains` command line switches, then
  :envvar:`MODULES_SEARCH_MATCH` environment variable, then the default set in
  :file:`modulecmd.tcl` script configuration. Which means :envvar:`MODULES_SEARCH_MATCH`
- overrides default configuration and **--starts-with**/**--contains** command
+ overrides default configuration and :option:`--starts-with`/:option:`--contains` command
  line switches override every other ways to set search match style.
 
 .. envvar:: MODULES_SET_SHELL_STARTUP
@@ -1311,10 +1311,10 @@ ENVIRONMENT
  * debug: print debugging messages about module command execution.
 
  Module command verbosity is defined in the following order of preference:
- **--silent**, **--verbose** and **--debug** command line switches, then
+ :option:`--silent`, :option:`--verbose` and :option:`--debug` command line switches, then
  :envvar:`MODULES_VERBOSITY` environment variable, then the default set in
  :file:`modulecmd.tcl` script configuration. Which means :envvar:`MODULES_VERBOSITY`
- overrides default configuration and **--silent**/**--verbose**/**--debug**
+ overrides default configuration and :option:`--silent`/:option:`--verbose`/:option:`--debug`
  command line switches overrides every other ways to set verbosity level.
 
 .. envvar:: MODULES_WA_277

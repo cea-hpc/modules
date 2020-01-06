@@ -172,7 +172,7 @@ the *modulefile* is being loaded.
  Append or prepend *value* to environment *variable*. The
  *variable* is a colon, or *delimiter*, separated list such as
  ``PATH=directory:directory:directory``. The default delimiter is a colon
- ':', but an arbitrary one can be given by the *--delim* option. For
+ ':', but an arbitrary one can be given by the ``--delim`` option. For
  example a space can be used instead (which will need to be handled in
  the Tcl specially by enclosing it in " " or { }). A space, however,
  can not be specified by the *--delim=C* form.
@@ -183,7 +183,7 @@ the *modulefile* is being loaded.
  by *_modshare*.
 
  When *value* is already defined in environement *variable*, it is not added
- again except if *--duplicates* option is set.
+ again except if ``--duplicates`` option is set.
 
  If the *variable* is not set, it is created. When a *modulefile* is
  unloaded, **append-path** and **prepend-path** become **remove-path**.
@@ -201,7 +201,7 @@ the *modulefile* is being loaded.
  in *variable* is compared to *value*. If the two match, *value* is removed
  from *variable* if its reference counter is equal to 1 or unknown.
 
- When *--index* option is set, *value* refers to an index in *variable* list.
+ When ``--index`` option is set, *value* refers to an index in *variable* list.
  The string element pointed by this index is set for removal.
 
  Reference counter of *value* in *variable* denotes the number of times
@@ -313,7 +313,7 @@ the *modulefile* is being loaded.
  requires a basic set of applications loaded, then a core *modulefile*
  would contain the necessary **module load** commands.
 
- Command line switches **--auto**, **--no-auto** and **--force** are ignored
+ Command line switches :option:`--auto`, :option:`--no-auto` and :option:`--force` are ignored
  when passed to a **module** command set in a *modulefile*.
 
 .. _module-info:
