@@ -44,12 +44,12 @@ creates the :command:`module` command as either an alias or function and creates
 Modules environment variables.
 
 The :command:`module` alias or function executes the :file:`modulecmd.tcl` program
-located in |emph libexecdir| and has the shell evaluate the command's
+located in |file libexecdir| and has the shell evaluate the command's
 output. The first argument to :file:`modulecmd.tcl` specifies the type of shell.
 
-The initialization scripts are kept in |emph initdir|\ */<shell>* where
+The initialization scripts are kept in |file initdir_shell| where
 *<shell>* is the name of the sourcing shell. For example, a C Shell user
-sources the |emph initdir|\ */csh* script. The sh, csh, tcsh, bash, ksh,
+sources the |file initdir_csh| script. The sh, csh, tcsh, bash, ksh,
 zsh and fish shells are supported by :file:`modulecmd.tcl`. In addition,
 python, perl, ruby, tcl, cmake, r and lisp "shells" are supported which
 writes the environment changes to stdout as python, perl, ruby, tcl, lisp,
@@ -104,10 +104,10 @@ Modulecmd startup
 
 Upon invocation :file:`modulecmd.tcl` sources a site-specific configuration
 script if it exists. The location for this script is
-|emph etcdir|\ */siteconfig.tcl*. An additional siteconfig script may be
+|file etcdir_siteconfig|. An additional siteconfig script may be
 specified with the :envvar:`MODULES_SITECONFIG` environment variable, if allowed by
 :file:`modulecmd.tcl` configuration, and will be loaded if it exists after
-|emph etcdir|\ */siteconfig.tcl*. Siteconfig is a Tcl script that enables to
+|file etcdir_siteconfig|. Siteconfig is a Tcl script that enables to
 supersede any global variable or procedure definition of :file:`modulecmd.tcl`.
 
 Afterward, :file:`modulecmd.tcl` sources rc files which contain global,
@@ -117,7 +117,7 @@ user and *modulefile* specific setups. These files are interpreted as
 Upon invocation of :file:`modulecmd.tcl` module run-command files are sourced
 in the following order:
 
-1. Global RC file as specified by :envvar:`MODULERCFILE` variable or |emph etcdir|\ */rc*.
+1. Global RC file as specified by :envvar:`MODULERCFILE` variable or |file etcdir_rc|.
    If :envvar:`MODULERCFILE` points to a directory, the :file:`modulerc` file in this
    directory is used as global RC file.
 
@@ -896,7 +896,7 @@ ENVIRONMENT
 
  The path that the :command:`module` command searches when looking for
  *modulefiles*. Typically, it is set to the master *modulefiles* directory,
- |emph prefix|\ */modulefiles*, by the initialization script. :envvar:`MODULEPATH`
+ |file modulefilesdir|, by the initialization script. :envvar:`MODULEPATH`
  can be set using **module use** or by the module initialization script
  to search group or personal *modulefile* directories before or after the
  master *modulefile* directory.
@@ -1350,17 +1350,17 @@ ENVIRONMENT
 FILES
 -----
 
-|bold prefix|
+|file prefix|
 
  The :envvar:`MODULESHOME` directory.
 
-|bold etcdir|\ **/siteconfig.tcl**
+|file etcdir_siteconfig|
 
  The site-specific configuration script of :file:`modulecmd.tcl`. An additional
  configuration script could be defined using the :envvar:`MODULES_SITECONFIG`
  environment variable.
 
-|bold etcdir|\ **/rc**
+|file etcdir_rc|
 
  The system-wide modules rc file. The location of this file can be changed
  using the :envvar:`MODULERCFILE` environment variable as described above.
@@ -1373,18 +1373,18 @@ FILES
 
  The user specific collection directory.
 
-|bold modulefilesdir|
+|file modulefilesdir|
 
  The directory for system-wide *modulefiles*. The location of the directory
  can be changed using the :envvar:`MODULEPATH` environment variable as described
  above.
 
-|bold libexecdir|\ **/modulecmd.tcl**
+|file libexecdir_modulecmd|
 
  The *modulefile* interpreter that gets executed upon each invocation
  of :command:`module`.
 
-|bold initdir|\ **/<shell>**
+|file initdir_shell|
 
  The Modules package initialization file sourced into the user's environment.
 
