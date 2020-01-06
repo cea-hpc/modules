@@ -197,21 +197,29 @@ rst_epilog = '\n'
 rst_epilog += '.. |prefix| replace:: %s\n' % prefix
 rst_epilog += '.. |emph prefix| replace:: *%s*\n' % prefix
 rst_epilog += '.. |bold prefix| replace:: **%s**\n' % prefix
+rst_epilog += '.. |file prefix| replace:: :file:`%s`\n' % prefix
 rst_epilog += '.. |bindir| replace:: %s\n' % bindir
 rst_epilog += '.. |emph bindir| replace:: *%s*\n' % bindir
 rst_epilog += '.. |bold bindir| replace:: **%s**\n' % bindir
 rst_epilog += '.. |libexecdir| replace:: %s\n' % libexecdir
 rst_epilog += '.. |emph libexecdir| replace:: *%s*\n' % libexecdir
 rst_epilog += '.. |bold libexecdir| replace:: **%s**\n' % libexecdir
+rst_epilog += '.. |file libexecdir| replace:: :file:`%s`\n' % libexecdir
+rst_epilog += '.. |file libexecdir_modulecmd| replace:: :file:`%s/modulecmd.tcl`\n' % libexecdir
 rst_epilog += '.. |etcdir| replace:: %s\n' % etcdir
 rst_epilog += '.. |emph etcdir| replace:: *%s*\n' % etcdir
 rst_epilog += '.. |bold etcdir| replace:: **%s**\n' % etcdir
+rst_epilog += '.. |file etcdir_rc| replace:: :file:`%s/rc`\n' % etcdir
+rst_epilog += '.. |file etcdir_siteconfig| replace:: :file:`%s/siteconfig.tcl`\n' % etcdir
 rst_epilog += '.. |initdir| replace:: %s\n' % initdir
 rst_epilog += '.. |emph initdir| replace:: *%s*\n' % initdir
 rst_epilog += '.. |bold initdir| replace:: **%s**\n' % initdir
+rst_epilog += '.. |file initdir_shell| replace:: :file:`%s/<shell>`\n' % initdir
+rst_epilog += '.. |file initdir_csh| replace:: :file:`%s/csh`\n' % initdir
 rst_epilog += '.. |modulefilesdir| replace:: %s\n' % modulefilesdir
 rst_epilog += '.. |emph modulefilesdir| replace:: *%s*\n' % modulefilesdir
 rst_epilog += '.. |bold modulefilesdir| replace:: **%s**\n' % modulefilesdir
+rst_epilog += '.. |file modulefilesdir| replace:: :file:`%s`\n' % modulefilesdir
 
 
 # -- Options for manual page output ---------------------------------------
