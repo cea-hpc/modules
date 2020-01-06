@@ -136,54 +136,54 @@ the :command:`module` behavior in case of locating and interpreting *modulefiles
 All switches may be entered either in short or long notation. The following
 switches are accepted:
 
-**--help**, **-h**
+.. option:: --help, -h
 
  Give some helpful usage information, and terminates the command.
 
-**--version**, **-V**
+.. option:: --version, -V
 
  Lists the current version of the :command:`module` command. The command then
  terminates without further processing.
 
-**--debug**, **-D**
+.. option:: --debug, -D
 
  Debug mode. Causes :command:`module` to print debugging messages about its
  progress.
 
-**--verbose**, **-v**
+.. option:: --verbose, -v
 
  Enable verbose messages during :command:`module` command execution.
 
-**--silent**, **-s**
+.. option:: --silent, -s
 
  Turn off error, warning and informational messages. :command:`module` command output
  result is not affected by silent mode.
 
-**--paginate**
+.. option:: --paginate
 
  Pipe all message output into :command:`less` (or if set, to the command referred in :envvar:`MODULES_PAGER` variable) if error
  output stream is a terminal. See also :envvar:`MODULES_PAGER` section.
 
-**--no-pager**
+.. option:: --no-pager
 
  Do not pipe message output into a pager.
 
-**--color**\[=\ *WHEN*\]
+.. option:: --color=<WHEN>
 
  Colorize the output. *WHEN* defaults to *always* or can be *never* or *auto*.
  See also :envvar:`MODULES_COLOR` section.
 
-**--auto**
+.. option:: --auto
 
  On **load**, **unload** and **switch** sub-commands, enable automated module
  handling mode. See also :envvar:`MODULES_AUTO_HANDLING` section.
 
-**--no-auto**
+.. option:: --no-auto
 
  On **load**, **unload** and **switch** sub-commands, disable automated module
  handling mode. See also :envvar:`MODULES_AUTO_HANDLING` section.
 
-**--force**, **-f**
+.. option:: --force, -f
 
  On **load**, **unload** and **switch** sub-commands, by-pass any unsatisfied
  modulefile constraint corresponding to the declared **prereq** and
@@ -194,15 +194,15 @@ switches are accepted:
 
  On **clear** sub-command, skip the confirmation dialog and proceed.
 
-**--terse**, **-t**
+.. option:: --terse, -t
 
  Display **avail**, **list** and **savelist** output in short format.
 
-**--long**, **-l**
+.. option:: --long, -l
 
  Display **avail**, **list** and **savelist** output in long format.
 
-**--default**, **-d**
+.. option:: --default, -d
 
  On **avail** sub-command, display only the default version of each module
  name. Default version is the explicitly set default version or also the
@@ -210,35 +210,35 @@ switches are accepted:
  (see :ref:`Locating Modulefiles` section in the :ref:`modulefile(4)` man page for
  further details on implicit default version).
 
-**--latest**, **-L**
+.. option:: --latest, -L
 
  On **avail** sub-command, display only the highest numerically sorted
  version of each module name (see :ref:`Locating Modulefiles` section in the
  :ref:`modulefile(4)` man page).
 
-**--starts-with**, **-S**
+.. option:: --starts-with, -S
 
  On **avail** sub-command, return modules whose name starts with search query
  string.
 
-**--contains**, **-C**
+.. option:: --contains, -C
 
  On **avail** sub-command, return modules whose fully qualified name contains
  search query string.
 
-**--indepth**
+.. option:: --indepth
 
  On **avail** sub-command, include in search results the matching modulefiles
  and directories and recursively the modulefiles and directories contained in
  these matching directories.
 
-**--no-indepth**
+.. option:: --no-indepth
 
  On **avail** sub-command, limit search results to the matching modulefiles
  and directories found at the depth level expressed by the search query. Thus
  modulefiles contained in directories part of the result are excluded.
 
-**--icase**, **-i**
+.. option:: --icase, -i
 
  Match module specification arguments in a case insensitive manner.
 
