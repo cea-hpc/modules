@@ -327,7 +327,7 @@ the *modulefile* is being loaded.
 
  **module-info type**
 
-  Returns either "C" or "Tcl" to indicate which **module** command is being
+  Returns either "C" or "Tcl" to indicate which :command:`module` command is being
   executed, either the "C" version or the Tcl-only version, to allow the
   *modulefile* writer to handle any differences between the two.
 
@@ -362,7 +362,7 @@ the *modulefile* is being loaded.
 
   Return the current shell under which :file:`modulecmd.tcl` was invoked if
   no *shellname* is given. The current shell is the first parameter of
-  :file:`modulecmd.tcl`, which is normally hidden by the **module** alias.
+  :file:`modulecmd.tcl`, which is normally hidden by the :command:`module` alias.
 
   If a *shellname* is given, returns 1 if :file:`modulecmd.tcl`'s current shell
   is *shellname*, returns 0 otherwise. *shellname* can be: sh, bash, ksh,

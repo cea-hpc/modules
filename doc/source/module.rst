@@ -13,37 +13,37 @@ SYNOPSIS
 DESCRIPTION
 -----------
 
-**module** is a user interface to the Modules package. The Modules
+:command:`module` is a user interface to the Modules package. The Modules
 package provides for the dynamic modification of the user's environment
 via *modulefiles*.
 
 Each *modulefile* contains the information needed to configure the
 shell for an application. Once the Modules package is initialized, the
-environment can be modified on a per-module basis using the **module**
+environment can be modified on a per-module basis using the :command:`module`
 command which interprets *modulefiles*. Typically *modulefiles* instruct
-the **module** command to alter or set shell environment variables such
+the :command:`module` command to alter or set shell environment variables such
 as **PATH**, **MANPATH**, etc. *Modulefiles* may be shared by many users
 on a system and users may have their own set to supplement or replace the
 shared *modulefiles*.
 
 The *modulefiles* are added to and removed from the current environment
 by the user. The environment changes contained in a *modulefile* can be
-summarized through the **module** command as well. If no arguments are
-given, a summary of the **module** usage and *sub-commands* are shown.
+summarized through the :command:`module` command as well. If no arguments are
+given, a summary of the :command:`module` usage and *sub-commands* are shown.
 
-The action for the **module** command to take is described by the
+The action for the :command:`module` command to take is described by the
 *sub-command* and its associated arguments.
 
 
 Package Initialization
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The Modules package and the **module** command are initialized when a
+The Modules package and the :command:`module` command are initialized when a
 shell-specific initialization script is sourced into the shell. The script
-creates the **module** command as either an alias or function and creates
+creates the :command:`module` command as either an alias or function and creates
 Modules environment variables.
 
-The **module** alias or function executes the :file:`modulecmd.tcl` program
+The :command:`module` alias or function executes the :file:`modulecmd.tcl` program
 located in |emph libexecdir| and has the shell evaluate the command's
 output. The first argument to :file:`modulecmd.tcl` specifies the type of shell.
 
@@ -57,7 +57,7 @@ r or cmake code.
 
 Initialization may also be performed by calling the **autoinit** sub-command
 of the :file:`modulecmd.tcl` program. Evaluation into the shell of the result
-of this command defines the **module** alias or function.
+of this command defines the :command:`module` alias or function.
 
 
 Examples of initialization
@@ -129,9 +129,9 @@ in the following order:
 Command line switches
 ^^^^^^^^^^^^^^^^^^^^^
 
-The **module** command accepts command line switches as its first parameter.
+The :command:`module` command accepts command line switches as its first parameter.
 These may be used to control output format of all information displayed and
-the **module** behavior in case of locating and interpreting *modulefiles*.
+the :command:`module` behavior in case of locating and interpreting *modulefiles*.
 
 All switches may be entered either in short or long notation. The following
 switches are accepted:
@@ -142,26 +142,26 @@ switches are accepted:
 
 **--version**, **-V**
 
- Lists the current version of the **module** command. The command then
+ Lists the current version of the :command:`module` command. The command then
  terminates without further processing.
 
 **--debug**, **-D**
 
- Debug mode. Causes **module** to print debugging messages about its
+ Debug mode. Causes :command:`module` to print debugging messages about its
  progress.
 
 **--verbose**, **-v**
 
- Enable verbose messages during **module** command execution.
+ Enable verbose messages during :command:`module` command execution.
 
 **--silent**, **-s**
 
- Turn off error, warning and informational messages. **module** command output
+ Turn off error, warning and informational messages. :command:`module` command output
  result is not affected by silent mode.
 
 **--paginate**
 
- Pipe all message output into *less* (or if set, *$MODULES_PAGER*) if error
+ Pipe all message output into :command:`less` (or if set, *$MODULES_PAGER*) if error
  output stream is a terminal. See also **MODULES_PAGER** section.
 
 **--no-pager**
@@ -876,7 +876,7 @@ the current value of the **MODULES_COLLECTION_TARGET** environment variable
 EXIT STATUS
 -----------
 
-The **module** command exits with **0** if its execution succeed. Otherwise
+The :command:`module` command exits with **0** if its execution succeed. Otherwise
 **1** is returned.
 
 
@@ -901,7 +901,7 @@ ENVIRONMENT
 
 **MODULEPATH**
 
- The path that the **module** command searches when looking for
+ The path that the :command:`module` command searches when looking for
  *modulefiles*. Typically, it is set to the master *modulefiles* directory,
  |emph prefix|\ */modulefiles*, by the initialization script. **MODULEPATH**
  can be set using **module use** or by the module initialization script
@@ -910,7 +910,7 @@ ENVIRONMENT
 
  Path elements registered in the **MODULEPATH** environment variable may
  contain reference to environment variables which are converted to their
- corresponding value by **module** command each time it looks at the
+ corresponding value by :command:`module` command each time it looks at the
  **MODULEPATH** value. If an environment variable referred in a path element
  is not defined, its reference is converted to an empty string.
 
@@ -1051,7 +1051,7 @@ ENVIRONMENT
  **saveshow**, **restore** and **save** sub-commands.
 
  For example, the **MODULES_COLLECTION_TARGET** variable may be set with
- results from commands like **lsb_release**, **hostname**, **dnsdomainname**,
+ results from commands like :command:`lsb_release`, :command:`hostname`, :command:`dnsdomainname`,
  etc.
 
 .. _MODULES_COLOR:
@@ -1193,7 +1193,7 @@ ENVIRONMENT
  loaded modulefile and its alternative names are separated by the ampersand
  character.
 
- This environment variable is intended for **module** command internal use to
+ This environment variable is intended for :command:`module` command internal use to
  get knowledge of the alternative names matching loaded *modulefiles* in order
  to keep environment consistent when conflicts or pre-requirements are set
  over these alternative designations. It also helps to find a match after
@@ -1210,7 +1210,7 @@ ENVIRONMENT
  it declares a conflict with. These loaded modulefiles and conflicting
  modulefile names are separated by the ampersand character.
 
- This environment variable is intended for **module** command internal
+ This environment variable is intended for :command:`module` command internal
  use to get knowledge of the conflicts declared by the loaded *modulefiles*
  in order to keep environment consistent when a conflicting module is asked
  for load afterward.
@@ -1222,7 +1222,7 @@ ENVIRONMENT
  A colon separated list of all loaded *modulefiles* that were not explicitly
  asked for load from the command-line.
 
- This environment variable is intended for **module** command internal
+ This environment variable is intended for :command:`module` command internal
  use to distinguish the *modulefiles* that have been loaded automatically
  from modulefiles that have been asked by users.
 
@@ -1238,7 +1238,7 @@ ENVIRONMENT
  a **prereq** statement is composed of multiple modulefiles, these modulefile
  names are separated by the pipe character.
 
- This environment variable is intended for **module** command internal
+ This environment variable is intended for :command:`module` command internal
  use to get knowledge of the pre-requirement declared by the loaded
  *modulefiles* in order to keep environment consistent when a pre-required
  module is asked for unload afterward.
@@ -1302,8 +1302,8 @@ ENVIRONMENT
 
 **MODULES_SET_SHELL_STARTUP**
 
- If set to **1**, defines when **module** command initializes the shell
- startup file to ensure that the **module** command is still defined in
+ If set to **1**, defines when :command:`module` command initializes the shell
+ startup file to ensure that the :command:`module` command is still defined in
  sub-shells. Setting shell startup file means defining the **ENV** and
  **BASH_ENV** environment variable to the Modules bourne shell initialization
  script. If set to **0**, shell startup file is not defined.
@@ -1453,7 +1453,7 @@ FILES
 |bold libexecdir|\ **/modulecmd.tcl**
 
  The *modulefile* interpreter that gets executed upon each invocation
- of **module**.
+ of :command:`module`.
 
 |bold initdir|\ **/<shell>**
 
