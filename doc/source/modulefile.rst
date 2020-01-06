@@ -29,7 +29,7 @@ has been configured for your installation of the Modules package, you may
 use all the extended commands provided by tclX, too.
 
 A typical *modulefile* is a simple bit of code that set or add entries
-to the **PATH**, **MANPATH**, or other environment variables. A Modulefile is
+to the :envvar:`PATH`, :envvar:`MANPATH`, or other environment variables. A Modulefile is
 evaluated against current :file:`modulecmd.tcl`'s mode which leads to specific
 evaluation results. For instance if the *modulefile* sets a value to an
 environment variable, this variable is set when modulefile is loaded and unset
@@ -272,7 +272,7 @@ the *modulefile* is being loaded.
  provided. If a list contains more than one *collection*, then each member
  acts as a boolean OR operation.
 
- If **MODULES_COLLECTION_TARGET** is set, a suffix equivalent to the value
+ If :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix equivalent to the value
  of this variable is appended to the passed *collection* name. In case no
  *collection* argument is provided, a true value will only be returned if
  a collection matching currently set target exists.
@@ -282,7 +282,7 @@ the *modulefile* is being loaded.
 **is-used** [directory...]
 
  The **is-used** command returns a true value if any of the listed
- *directories* has been enabled in **MODULEPATH** or if any *directory* is
+ *directories* has been enabled in :envvar:`MODULEPATH` or if any *directory* is
  enabled in case no argument is provided. If a list contains more than one
  *directory*, then each member acts as a boolean OR operation.
 
@@ -291,7 +291,7 @@ the *modulefile* is being loaded.
 **is-avail** modulefile...
 
  The **is-avail** command returns a true value if any of the listed
- *modulefiles* exists in enabled **MODULEPATH**. If a list contains more than
+ *modulefiles* exists in enabled :envvar:`MODULEPATH`. If a list contains more than
  one *modulefile*, then each member acts as a boolean OR operation. If an
  argument for **is-avail** is a directory and a *modulefile* exists in the
  directory **is-avail** would return a true value.
@@ -547,7 +547,7 @@ the *modulefile* is being loaded.
  or *resource-string* is then passed down to be :manpage:`xrdb(1)` command.
 
  *modulefiles* that use this command, should in most cases contain one or
- more **x-resource** lines, each defining one X11 resource. The **DISPLAY**
+ more **x-resource** lines, each defining one X11 resource. The :envvar:`DISPLAY`
  environment variable should be properly set and the X11 server should be
  accessible. If **x-resource** can't manipulate the X11 resource database,
  the *modulefile* will exit with an error message.
@@ -579,8 +579,8 @@ the *modulefile* being interpreted.
 Locating Modulefiles
 --------------------
 
-Every directory in **MODULEPATH** is searched to find the
-*modulefile*. A directory in **MODULEPATH** can have an arbitrary number
+Every directory in :envvar:`MODULEPATH` is searched to find the
+*modulefile*. A directory in :envvar:`MODULEPATH` can have an arbitrary number
 of sub-directories. If the user names a *modulefile* to be loaded which
 is actually a directory, the directory is opened and a search begins for
 an actual *modulefile*. First, :file:`modulecmd.tcl` looks for a file with
@@ -605,7 +605,7 @@ refer to a *modulefile* located in a different directory.
 If **ModulesVersion** is a directory, the search begins anew down that
 directory. If the name does not match any files located in the current
 directory, the search continues through the remaining directories in
-**MODULEPATH**.
+:envvar:`MODULEPATH`.
 
 Every :file:`.version` and :file:`.modulerc` file found is interpreted as Tcl code. The
 difference is that :file:`.version` only applies to the current directory, and the
@@ -613,7 +613,7 @@ difference is that :file:`.version` only applies to the current directory, and t
 made in these files will affect the subsequently interpreted *modulefile*.
 
 If no default version may be figured out, an implicit default is selected when
-this behavior is enabled (see **MODULES_IMPLICIT_DEFAULT** in
+this behavior is enabled (see :envvar:`MODULES_IMPLICIT_DEFAULT` in
 :ref:`module(1)`). If disabled, module names should be fully qualified when no
 explicit default is defined for them, otherwise no default version is found
 and an error is returned. If enabled, then the highest numerically sorted
@@ -645,7 +645,7 @@ The equivalent :file:`.modulerc` would look like:
      module-version "./R4" default
 
 If the extended default mechanism is enabled (see
-**MODULES_EXTENDED_DEFAULT** in :ref:`module(1)`) the module version specified
+:envvar:`MODULES_EXTENDED_DEFAULT` in :ref:`module(1)`) the module version specified
 is matched against starting portion of existing module versions, where portion
 is a substring separated from the rest of version string by a ``.`` character.
 
@@ -676,7 +676,7 @@ Advanced module version specifiers
 ----------------------------------
 
 When the advanced module version specifiers mechanism is enabled (see
-**MODULES_ADVANCED_VERSION_SPEC** in :ref:`module(1)`), the specification of
+:envvar:`MODULES_ADVANCED_VERSION_SPEC` in :ref:`module(1)`), the specification of
 modulefile passed on Modules specific Tcl commands changes. After the module
 name a version constraint prefixed by the ``@`` character may be added. It
 could be directly appended to the module name or separated from it with a
@@ -697,7 +697,7 @@ Constraints can be expressed to refine the selection of module version to:
 
 Advanced specification of single version or list of versions may benefit from
 the activation of the extended default mechanism (see
-**MODULES_EXTENDED_DEFAULT** in :ref:`module(1)`) to use an abbreviated
+:envvar:`MODULES_EXTENDED_DEFAULT` in :ref:`module(1)`) to use an abbreviated
 notation like ``@1`` to refer to more precise version numbers like ``1.2.3``.
 Range of versions on its side natively handles abbreviated versions.
 
