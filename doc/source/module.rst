@@ -22,7 +22,7 @@ shell for an application. Once the Modules package is initialized, the
 environment can be modified on a per-module basis using the :command:`module`
 command which interprets *modulefiles*. Typically *modulefiles* instruct
 the :command:`module` command to alter or set shell environment variables such
-as **PATH**, **MANPATH**, etc. *Modulefiles* may be shared by many users
+as :envvar:`PATH`, :envvar:`MANPATH`, etc. *Modulefiles* may be shared by many users
 on a system and users may have their own set to supplement or replace the
 shared *modulefiles*.
 
@@ -105,7 +105,7 @@ Modulecmd startup
 Upon invocation :file:`modulecmd.tcl` sources a site-specific configuration
 script if it exists. The location for this script is
 |emph etcdir|\ */siteconfig.tcl*. An additional siteconfig script may be
-specified with the *$MODULES_SITECONFIG* environment variable, if allowed by
+specified with the :envvar:`MODULES_SITECONFIG` environment variable, if allowed by
 :file:`modulecmd.tcl` configuration, and will be loaded if it exists after
 |emph etcdir|\ */siteconfig.tcl*. Siteconfig is a Tcl script that enables to
 supersede any global variable or procedure definition of :file:`modulecmd.tcl`.
@@ -117,8 +117,8 @@ user and *modulefile* specific setups. These files are interpreted as
 Upon invocation of :file:`modulecmd.tcl` module run-command files are sourced
 in the following order:
 
-1. Global RC file as specified by *$MODULERCFILE* or |emph etcdir|\ */rc*.
-   If *$MODULERCFILE* points to a directory, the :file:`modulerc` file in this
+1. Global RC file as specified by :envvar:`MODULERCFILE` variable or |emph etcdir|\ */rc*.
+   If :envvar:`MODULERCFILE` points to a directory, the :file:`modulerc` file in this
    directory is used as global RC file.
 
 2. User specific module RC file :file:`$HOME/.modulerc`
@@ -161,8 +161,8 @@ switches are accepted:
 
 **--paginate**
 
- Pipe all message output into :command:`less` (or if set, *$MODULES_PAGER*) if error
- output stream is a terminal. See also **MODULES_PAGER** section.
+ Pipe all message output into :command:`less` (or if set, to the command referred in :envvar:`MODULES_PAGER` variable) if error
+ output stream is a terminal. See also :envvar:`MODULES_PAGER` section.
 
 **--no-pager**
 
@@ -171,17 +171,17 @@ switches are accepted:
 **--color**\[=\ *WHEN*\]
 
  Colorize the output. *WHEN* defaults to *always* or can be *never* or *auto*.
- See also **MODULES_COLOR** section.
+ See also :envvar:`MODULES_COLOR` section.
 
 **--auto**
 
  On **load**, **unload** and **switch** sub-commands, enable automated module
- handling mode. See also **MODULES_AUTO_HANDLING** section.
+ handling mode. See also :envvar:`MODULES_AUTO_HANDLING` section.
 
 **--no-auto**
 
  On **load**, **unload** and **switch** sub-commands, disable automated module
- handling mode. See also **MODULES_AUTO_HANDLING** section.
+ handling mode. See also :envvar:`MODULES_AUTO_HANDLING` section.
 
 **--force**, **-f**
 
@@ -336,10 +336,10 @@ Module Sub-Commands
 
 **avail** [-d|-L] [-t|-l] [-S|-C] [--indepth|--no-indepth] [path...]
 
- List all available *modulefiles* in the current **MODULEPATH**. All
- directories in the **MODULEPATH** are recursively searched for files
+ List all available *modulefiles* in the current :envvar:`MODULEPATH`. All
+ directories in the :envvar:`MODULEPATH` are recursively searched for files
  containing the *modulefile* magic cookie. If an argument is given, then
- each directory in the **MODULEPATH** is searched for *modulefiles* whose
+ each directory in the :envvar:`MODULEPATH` is searched for *modulefiles* whose
  pathname, symbolic version-name or alias match the argument. Argument
  may contain wildcard characters. Multiple versions of an application can
  be supported by creating a subdirectory for the application containing
@@ -348,7 +348,7 @@ Module Sub-Commands
  Symbolic version-names and aliases found in the search are displayed in the
  result of this sub-command. Symbolic version-names are displayed next to
  the *modulefile* they are assigned to within parenthesis. Aliases are listed
- in the **MODULEPATH** section where they have been defined. To distinguish
+ in the :envvar:`MODULEPATH` section where they have been defined. To distinguish
  aliases from *modulefiles* a **@** symbol is added within parenthesis
  next to their name. Aliases defined through a global or user specific
  module RC file are listed under the **global/user modulerc** section.
@@ -358,8 +358,8 @@ Module Sub-Commands
  the defined graphical rendition is applied to the relative modulefile. When
  colored output is enabled and a specific graphical rendition is defined for
  module alias, the **@** symbol is omitted. The defined graphical rendition
- applies to the module alias name. See **MODULES_COLOR** and
- **MODULES_COLORS** sections for details on colored output.
+ applies to the module alias name. See :envvar:`MODULES_COLOR` and
+ :envvar:`MODULES_COLORS` sections for details on colored output.
 
  The parameter *path* may also refer to a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
@@ -370,7 +370,7 @@ Module Sub-Commands
 **aliases**
 
  List all available symbolic version-names and aliases in the current
- **MODULEPATH**.  All directories in the **MODULEPATH** are recursively
+ :envvar:`MODULEPATH`.  All directories in the :envvar:`MODULEPATH` are recursively
  searched in the same manner than for the **avail** sub-command. Only the
  symbolic version-names and aliases found in the search are displayed.
 
@@ -378,25 +378,25 @@ Module Sub-Commands
 
 **use** [-a|--append] directory...
 
- Prepend one or more *directories* to the **MODULEPATH** environment
+ Prepend one or more *directories* to the :envvar:`MODULEPATH` environment
  variable.  The *--append* flag will append the *directory* to
- **MODULEPATH**.
+ :envvar:`MODULEPATH`.
 
- Reference counter environment variable **MODULEPATH_modshare** is
+ Reference counter environment variable :envvar:`MODULEPATH_modshare<\<VAR\>_modshare>` is
  also set to increase the number of times *directory* has been added to
- **MODULEPATH**.
+ :envvar:`MODULEPATH`.
 
 .. _unuse:
 
 **unuse** directory...
 
- Remove one or more *directories* from the **MODULEPATH** environment
+ Remove one or more *directories* from the :envvar:`MODULEPATH` environment
  variable if reference counter of these *directories* is equal to 1
  or unknown.
 
- Reference counter of *directory* in **MODULEPATH** denotes the number of
+ Reference counter of *directory* in :envvar:`MODULEPATH` denotes the number of
  times *directory* has been enabled. When attempting to remove *directory*
- from **MODULEPATH**, reference counter variable **MODULEPATH_modshare**
+ from :envvar:`MODULEPATH`, reference counter variable :envvar:`MODULEPATH_modshare<\<VAR\>_modshare>`
  is checked and *directory* is removed only if its relative counter is
  equal to 1 or not defined. Otherwise *directory* is kept and reference
  counter is decreased by 1.
@@ -489,21 +489,21 @@ Module Sub-Commands
 
 **save** [collection]
 
- Record the currently set **MODULEPATH** directory list and the currently
+ Record the currently set :envvar:`MODULEPATH` directory list and the currently
  loaded *modulefiles* in a *collection* file under the user's collection
  directory :file:`$HOME/.module`. If *collection* name is not specified, then
  it is assumed to be the *default* collection. If *collection* is a fully
  qualified path, it is saved at this location rather than under the user's
  collection directory.
 
- If **MODULES_COLLECTION_TARGET** is set, a suffix equivalent to the value
+ If :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix equivalent to the value
  of this variable will be appended to the *collection* file name.
 
  By default, if loaded modulefile corresponds to the explicitly defined
  default module version, the bare module name is recorded. If the configuration
  option *implicit_default* is enabled, the bare module name is also recorded
  for the implicit default module version. If
- **MODULES_COLLECTION_PIN_VERSION** is set to **1**, module version is always
+ :envvar:`MODULES_COLLECTION_PIN_VERSION` is set to **1**, module version is always
  recorded even if it is the default version.
 
  No *collection* is recorded and an error is returned if the loaded
@@ -518,17 +518,17 @@ Module Sub-Commands
  name is not specified, then it is assumed to be the *default* collection. If
  *collection* is a fully qualified path, it is restored from this location
  rather than from a file under the user's collection directory. If
- **MODULES_COLLECTION_TARGET** is set, a suffix equivalent to the value
+ :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix equivalent to the value
  of this variable is appended to the *collection* file name to restore.
 
- When restoring a *collection*, the currently set **MODULEPATH**
+ When restoring a *collection*, the currently set :envvar:`MODULEPATH`
  directory list and the currently loaded *modulefiles* are unused and
- unloaded then used and loaded to exactly match the **MODULEPATH** and
+ unloaded then used and loaded to exactly match the :envvar:`MODULEPATH` and
  loaded *modulefiles* lists saved in this *collection* file. The order
  of the paths and modulefiles set in *collection* is preserved when
  restoring. It means that currently loaded modules are unloaded to get
- the same **LOADEDMODULES** root than collection and currently used module
- paths are unused to get the same **MODULEPATH** root. Then missing module
+ the same :envvar:`LOADEDMODULES` root than collection and currently used module
+ paths are unused to get the same :envvar:`MODULEPATH` root. Then missing module
  paths are used and missing modulefiles are loaded.
 
  If a module, without a default version explicitly defined, is recorded in a
@@ -541,7 +541,7 @@ Module Sub-Commands
 
  Delete the *collection* file under the user's collection directory. If
  *collection* name is not specified, then it is assumed to be the *default*
- collection. If **MODULES_COLLECTION_TARGET** is set, a suffix equivalent to
+ collection. If :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix equivalent to
  the value of this variable will be appended to the *collection* file name.
 
 .. _saveshow:
@@ -551,7 +551,7 @@ Module Sub-Commands
  Display the content of *collection*. If *collection* name is not specified,
  then it is assumed to be the *default* collection. If *collection* is a
  fully qualified path, this location is displayed rather than a collection
- file under the user's collection directory. If **MODULES_COLLECTION_TARGET**
+ file under the user's collection directory. If :envvar:`MODULES_COLLECTION_TARGET`
  is set, a suffix equivalent to the value of this variable will be appended
  to the *collection* file name.
 
@@ -560,7 +560,7 @@ Module Sub-Commands
 **savelist** [-t|-l]
 
  List collections that are currently saved under the user's collection
- directory. If **MODULES_COLLECTION_TARGET** is set, only collections
+ directory. If :envvar:`MODULES_COLLECTION_TARGET` is set, only collections
  matching the target suffix will be displayed.
 
 .. _initadd:
@@ -702,7 +702,7 @@ Module Sub-Commands
 **is-used** [directory...]
 
  Returns a true value if any of the listed *directories* has been enabled in
- **MODULEPATH** or if any *directory* is enabled in case no argument is
+ :envvar:`MODULEPATH` or if any *directory* is enabled in case no argument is
  provided. Returns a false value otherwise. See **is-used** in the
  :ref:`modulefile(4)` man page for further explanation.
 
@@ -711,7 +711,7 @@ Module Sub-Commands
 **is-avail** modulefile...
 
  Returns a true value if any of the listed *modulefiles* exists in enabled
- **MODULEPATH**. Returns a false value otherwise. See **is-avail** in the
+ :envvar:`MODULEPATH`. Returns a false value otherwise. See **is-avail** in the
  :ref:`modulefile(4)` man page for further explanation.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
@@ -753,51 +753,51 @@ Module Sub-Commands
 
  * advanced_version_spec: advanced module version specification to finely
    select modulefiles (defines environment variable
-   **MODULES_ADVANCED_VERSION_SPEC** when set
+   :envvar:`MODULES_ADVANCED_VERSION_SPEC` when set
  * auto_handling: automated module handling mode (defines
-   **MODULES_AUTO_HANDLING**)
+   :envvar:`MODULES_AUTO_HANDLING`)
  * avail_indepth: **avail** sub-command in depth search mode (defines
-   **MODULES_AVAIL_INDEPTH**)
+   :envvar:`MODULES_AVAIL_INDEPTH`)
  * avail_report_dir_sym: display symbolic versions targeting directories on
    **avail** sub-command
  * avail_report_mfile_sym: display symbolic versions targeting modulefiles on
    **avail** sub-command
  * collection_pin_version: register exact modulefile version in collection
-   (defines **MODULES_COLLECTION_PIN_VERSION**)
+   (defines :envvar:`MODULES_COLLECTION_PIN_VERSION`)
  * collection_target: collection target which is valid for current system
-   (defines **MODULES_COLLECTION_TARGET**)
- * color: colored output mode (defines **MODULES_COLOR**)
+   (defines :envvar:`MODULES_COLLECTION_TARGET`)
+ * color: colored output mode (defines :envvar:`MODULES_COLOR`)
  * colors: chosen colors to highlight output items (defines
-   **MODULES_COLORS**)
- * contact: modulefile contact address (defines **MODULECONTACT**)
+   :envvar:`MODULES_COLORS`)
+ * contact: modulefile contact address (defines :envvar:`MODULECONTACT`)
  * extended_default: allow partial module version specification (defines
-   **MODULES_EXTENDED_DEFAULT**)
+   :envvar:`MODULES_EXTENDED_DEFAULT`)
  * extra_siteconfig: additional site-specific configuration script location
-   (defines **MODULES_SITECONFIG**)
+   (defines :envvar:`MODULES_SITECONFIG`)
  * home: location of Modules package master directory (defines
-   **MODULESHOME**)
- * icase: enable case insensitive match (defines **MODULES_ICASE**)
+   :envvar:`MODULESHOME`)
+ * icase: enable case insensitive match (defines :envvar:`MODULES_ICASE`)
  * ignored_dirs: directories ignored when looking for modulefiles
  * implicit_default: set an implicit default version for modules (defines
-   **MODULES_IMPLICIT_DEFAULT**)
+   :envvar:`MODULES_IMPLICIT_DEFAULT`)
  * locked_configs: configuration options that cannot be superseded
- * pager: text viewer to paginate message output (defines **MODULES_PAGER**)
- * rcfile: global run-command file location (defines **MODULERCFILE**)
+ * pager: text viewer to paginate message output (defines :envvar:`MODULES_PAGER`)
+ * rcfile: global run-command file location (defines :envvar:`MODULERCFILE`)
  * run_quarantine: environment variables to indirectly pass to
-   :file:`modulecmd.tcl` (defines **MODULES_RUN_QUARANTINE**)
+   :file:`modulecmd.tcl` (defines :envvar:`MODULES_RUN_QUARANTINE`)
  * silent_shell_debug: disablement of shell debugging property for the module
-   command (defines **MODULES_SILENT_SHELL_DEBUG**)
- * search_match: module search match style (defines **MODULES_SEARCH_MATCH**)
+   command (defines :envvar:`MODULES_SILENT_SHELL_DEBUG`)
+ * search_match: module search match style (defines :envvar:`MODULES_SEARCH_MATCH`)
  * set_shell_startup: ensure module command definition by setting shell
-   startup file (defines **MODULES_SET_SHELL_STARTUP**)
+   startup file (defines :envvar:`MODULES_SET_SHELL_STARTUP`)
  * siteconfig: primary site-specific configuration script location
  * tcl_ext_lib: Modules Tcl extension library location
  * term_background: terminal background color kind (defines
-   **MODULES_TERM_BACKGROUND**)
+   :envvar:`MODULES_TERM_BACKGROUND`)
  * unload_match_order: unload firstly loaded or lastly loaded module matching
-   request (defines **MODULES_UNLOAD_MATCH_ORDER**)
- * verbosity: module command verbosity level (defines **MODULES_VERBOSITY**)
- * wa_277: workaround for Tcsh history issue (defines **MODULES_WA_277**)
+   request (defines :envvar:`MODULES_UNLOAD_MATCH_ORDER`)
+ * verbosity: module command verbosity level (defines :envvar:`MODULES_VERBOSITY`)
+ * wa_277: workaround for Tcsh history issue (defines :envvar:`MODULES_WA_277`)
 
 The options *avail_report_dir_sym*, *avail_report_mfile_sym*, *ignored_dirs*,
 *locked_configs*, *siteconfig* and *tcl_ext_lib* cannot be altered. Moreover
@@ -822,7 +822,7 @@ Advanced module version specifiers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When the advanced module version specifiers mechanism is enabled (see
-**MODULES_ADVANCED_VERSION_SPEC**), the specification of modulefile passed on
+:envvar:`MODULES_ADVANCED_VERSION_SPEC`), the specification of modulefile passed on
 Modules sub-commands changes. After the module name a version constraint
 prefixed by the ``@`` character may be added. It could be directly appended to
 the module name or separated from it with a space character.
@@ -842,7 +842,7 @@ Constraints can be expressed to refine the selection of module version to:
 
 Advanced specification of single version or list of versions may benefit from
 the activation of the extended default mechanism (see
-**MODULES_EXTENDED_DEFAULT**) to use an abbreviated notation like ``@1`` to
+:envvar:`MODULES_EXTENDED_DEFAULT`) to use an abbreviated notation like ``@1`` to
 refer to more precise version numbers like ``1.2.3``. Range of versions on its
 side natively handles abbreviated versions.
 
@@ -869,7 +869,7 @@ default collections are saved under the :file:`$HOME/.module` directory.
 
 Collections may be valid for a given target if they are suffixed. In this
 case these collections can only be restored if their suffix correspond to
-the current value of the **MODULES_COLLECTION_TARGET** environment variable
+the current value of the :envvar:`MODULES_COLLECTION_TARGET` environment variable
 (see the dedicated section of this topic below).
 
 
@@ -896,15 +896,15 @@ ENVIRONMENT
 
  The path that the :command:`module` command searches when looking for
  *modulefiles*. Typically, it is set to the master *modulefiles* directory,
- |emph prefix|\ */modulefiles*, by the initialization script. **MODULEPATH**
+ |emph prefix|\ */modulefiles*, by the initialization script. :envvar:`MODULEPATH`
  can be set using **module use** or by the module initialization script
  to search group or personal *modulefile* directories before or after the
  master *modulefile* directory.
 
- Path elements registered in the **MODULEPATH** environment variable may
+ Path elements registered in the :envvar:`MODULEPATH` environment variable may
  contain reference to environment variables which are converted to their
  corresponding value by :command:`module` command each time it looks at the
- **MODULEPATH** value. If an environment variable referred in a path element
+ :envvar:`MODULEPATH` value. If an environment variable referred in a path element
  is not defined, its reference is converted to an empty string.
 
 .. envvar:: MODULERCFILE
@@ -925,9 +925,9 @@ ENVIRONMENT
  module version specifiers.
 
  Advanced module version specifiers enablement is defined in the following
- order of preference: **MODULES_ADVANCED_VERSION_SPEC** environment variable
+ order of preference: :envvar:`MODULES_ADVANCED_VERSION_SPEC` environment variable
  then the default set in :file:`modulecmd.tcl` script configuration. Which means
- **MODULES_ADVANCED_VERSION_SPEC** overrides default configuration.
+ :envvar:`MODULES_ADVANCED_VERSION_SPEC` overrides default configuration.
 
 .. envvar:: MODULES_AUTO_HANDLING
 
@@ -976,8 +976,8 @@ ENVIRONMENT
 
  Automated module handling mode enablement is defined in the following order
  of preference: **--auto**/**--no-auto** command line switches,
- then **MODULES_AUTO_HANDLING** environment variable, then the default set in
- :file:`modulecmd.tcl` script configuration. Which means **MODULES_AUTO_HANDLING**
+ then :envvar:`MODULES_AUTO_HANDLING` environment variable, then the default set in
+ :file:`modulecmd.tcl` script configuration. Which means :envvar:`MODULES_AUTO_HANDLING`
  overrides default configuration and **--auto**/**--no-auto** command line
  switches override every other ways to enable or disable this mode.
 
@@ -994,8 +994,8 @@ ENVIRONMENT
 
  **avail** sub-command in depth mode enablement is defined in the following
  order of preference: **--indepth**/**--no-indepth** command line switches,
- then **MODULES_AVAIL_INDEPTH** environment variable, then the default set in
- :file:`modulecmd.tcl` script configuration. Which means **MODULES_AVAIL_INDEPTH**
+ then :envvar:`MODULES_AVAIL_INDEPTH` environment variable, then the default set in
+ :file:`modulecmd.tcl` script configuration. Which means :envvar:`MODULES_AVAIL_INDEPTH`
  overrides default configuration and **--indepth**/**--no-indepth** command
  line switches override every other ways to enable or disable this mode.
 
@@ -1017,7 +1017,7 @@ ENVIRONMENT
 
  Collection directory may sometimes be shared on multiple machines which may
  use different modules setup. For instance modules users may access with the
- same **HOME** directory multiple systems using different OS versions. When
+ same :envvar:`HOME` directory multiple systems using different OS versions. When
  it happens a collection made on machine 1 may be erroneous on machine 2.
 
  When a target is set, only the collections made for that target are
@@ -1027,7 +1027,7 @@ ENVIRONMENT
  target is not involved when collection is specified as file path on the
  **saveshow**, **restore** and **save** sub-commands.
 
- For example, the **MODULES_COLLECTION_TARGET** variable may be set with
+ For example, the :envvar:`MODULES_COLLECTION_TARGET` variable may be set with
  results from commands like :command:`lsb_release`, :command:`hostname`, :command:`dnsdomainname`,
  etc.
 
@@ -1040,26 +1040,26 @@ ENVIRONMENT
  error output channel is attached to a terminal.
 
  Colored output enablement is defined in the following order of preference:
- **--color** command line switch, then **MODULES_COLOR** environment variable,
- then **CLICOLOR** and **CLICOLOR_FORCE** environment variables, then the
+ **--color** command line switch, then :envvar:`MODULES_COLOR` environment variable,
+ then :envvar:`CLICOLOR` and :envvar:`CLICOLOR_FORCE` environment variables, then the
  default set in :file:`modulecmd.tcl` script configuration. Which means
- **MODULES_COLOR** overrides default configuration and the
- **CLICOLOR**/**CLICOLOR_FORCE** variables. **--color** command line switch
+ :envvar:`MODULES_COLOR` overrides default configuration and the
+ :envvar:`CLICOLOR`/:envvar:`CLICOLOR_FORCE` variables. **--color** command line switch
  overrides every other ways to enable or disable this mode.
 
- **CLICOLOR** and **CLICOLOR_FORCE** environment variables are also honored to
- define color mode. The *never* mode is set if **CLICOLOR** equals to **0**.
- If **CLICOLOR** is set to another value, it corresponds to the *auto* mode.
- The *always* mode is set if **CLICOLOR_FORCE** is set to a value different
+ :envvar:`CLICOLOR` and :envvar:`CLICOLOR_FORCE` environment variables are also honored to
+ define color mode. The *never* mode is set if :envvar:`CLICOLOR` equals to **0**.
+ If :envvar:`CLICOLOR` is set to another value, it corresponds to the *auto* mode.
+ The *always* mode is set if :envvar:`CLICOLOR_FORCE` is set to a value different
  than **0**. Color mode set with these two variables is superseded by mode set
- with **MODULES_COLOR** environment variable.
+ with :envvar:`MODULES_COLOR` environment variable.
 
 .. envvar:: MODULES_COLORS
 
  Specifies the colors and other attributes used to highlight various parts of
  the output. Its value is a colon-separated list of output items associated to
  a Select Graphic Rendition (SGR) code. It follows the same syntax than
- **LS_COLORS**.
+ :envvar:`LS_COLORS`.
 
  Output items are designated by keys. Items able to be colorized are:
  highlighted element (*hi*), debug information (*db*), tag separator (*se*);
@@ -1080,11 +1080,11 @@ ENVIRONMENT
 
  No graphical rendition will be applied to an output item that could normaly
  be colored but which is not defined in the color set. Thus if
- **MODULES_COLORS** is defined empty, no output will be colored at all.
+ :envvar:`MODULES_COLORS` is defined empty, no output will be colored at all.
 
  The color set is defined for Modules in the following order of preference:
- **MODULES_COLORS** environment variable, then the default set in
- :file:`modulecmd.tcl` script configuration. Which means **MODULES_COLORS**
+ :envvar:`MODULES_COLORS` environment variable, then the default set in
+ :file:`modulecmd.tcl` script configuration. Which means :envvar:`MODULES_COLORS`
  overrides default configuration.
 
 .. envvar:: MODULES_EXTENDED_DEFAULT
@@ -1098,7 +1098,7 @@ ENVIRONMENT
  In case multiple modulefiles match the specified module version and a single
  module has to be selected, the explicitly set default version is returned if it
  is part of matching modulefiles. Otherwise the implicit default among matching
- modulefiles is returned if defined (see **MODULES_IMPLICIT_DEFAULT** section)
+ modulefiles is returned if defined (see :envvar:`MODULES_IMPLICIT_DEFAULT` section)
 
  This environment variable supersedes the value of the configuration option
  *extended_default* set in :file:`modulecmd.tcl` script.
@@ -1107,7 +1107,7 @@ ENVIRONMENT
 
  When module specification are passed as argument to module sub-commands or
  modulefile Tcl commands, defines the case sensitiveness to apply to match
- them. When **MODULES_ICASE** is set to **never**, a case sensitive match is
+ them. When :envvar:`MODULES_ICASE` is set to **never**, a case sensitive match is
  applied in any cases. When set to **search**, a case insensitive match is
  applied to the **avail**, **whatis** and **paths** sub-commands. When set to
  **always**, a case insensitive match is also applied to the other module
@@ -1116,8 +1116,8 @@ ENVIRONMENT
 
  Case sensitiveness behavior is defined in the following order of preference:
  **--icase** command line switch, which corresponds to the **always** mode,
- then **MODULES_ICASE** environment variable, then the default set in
- :file:`modulecmd.tcl` script configuration. Which means **MODULES_ICASE**
+ then :envvar:`MODULES_ICASE` environment variable, then the default set in
+ :file:`modulecmd.tcl` script configuration. Which means :envvar:`MODULES_ICASE`
  overrides default configuration and **--icase** command line switch overrides
  every other ways to set case sensitiveness behavior.
 
@@ -1138,7 +1138,7 @@ ENVIRONMENT
    order.
 
  * automatically loaded by automated module handling mechanisms (see
-   **MODULES_AUTO_HANDLING** section) when declared as module requirement,
+   :envvar:`MODULES_AUTO_HANDLING` section) when declared as module requirement,
    with **prereq** or **module load** modulefile commands.
 
  An error is returned in the above situations if either no explicit or
@@ -1209,17 +1209,17 @@ ENVIRONMENT
  command name or path eventually followed by command-line options.
 
  Paging command and options are defined for Modules in the following order of
- preference: **MODULES_PAGER** environment variable, then the default set in
- :file:`modulecmd.tcl` script configuration. Which means **MODULES_PAGER**
+ preference: :envvar:`MODULES_PAGER` environment variable, then the default set in
+ :file:`modulecmd.tcl` script configuration. Which means :envvar:`MODULES_PAGER`
  overrides default configuration.
 
- If **MODULES_PAGER** variable is set to an empty string or to the value
+ If :envvar:`MODULES_PAGER` variable is set to an empty string or to the value
  *cat*, pager will not be launched.
 
 .. envvar:: MODULES_RUNENV_<VAR>
 
- Value to set to environment variable *<VAR>* for :file:`modulecmd.tcl` run-time
- execution if *<VAR>* is referred in **MODULES_RUN_QUARANTINE**.
+ Value to set to environment variable :envvar:`<VAR>` for :file:`modulecmd.tcl` run-time
+ execution if :envvar:`<VAR>` is referred in :envvar:`MODULES_RUN_QUARANTINE`.
 
 .. envvar:: MODULES_RUN_QUARANTINE
 
@@ -1227,12 +1227,12 @@ ENVIRONMENT
  indirectly to :file:`modulecmd.tcl` to protect its run-time environment from
  side-effect coming from their current definition.
 
- Each variable found in **MODULES_RUN_QUARANTINE** will have its value emptied
- or set to the value of the corresponding **MODULES_RUNENV_<VAR>** variable
+ Each variable found in :envvar:`MODULES_RUN_QUARANTINE` will have its value emptied
+ or set to the value of the corresponding :envvar:`MODULES_RUNENV_<VAR>` variable
  when defining :file:`modulecmd.tcl` run-time environment.
 
  Original values of these environment variables set in quarantine are passed
- to :file:`modulecmd.tcl` via **<VAR>_modquar** variables.
+ to :file:`modulecmd.tcl` via :envvar:`<VAR>_modquar` variables.
 
 .. envvar:: MODULES_SEARCH_MATCH
 
@@ -1244,8 +1244,8 @@ ENVIRONMENT
 
  Module search match style is defined in the following order of preference:
  **--starts-with** and **--contains** command line switches, then
- **MODULES_SEARCH_MATCH** environment variable, then the default set in
- :file:`modulecmd.tcl` script configuration. Which means **MODULES_SEARCH_MATCH**
+ :envvar:`MODULES_SEARCH_MATCH` environment variable, then the default set in
+ :file:`modulecmd.tcl` script configuration. Which means :envvar:`MODULES_SEARCH_MATCH`
  overrides default configuration and **--starts-with**/**--contains** command
  line switches override every other ways to set search match style.
 
@@ -1253,8 +1253,8 @@ ENVIRONMENT
 
  If set to **1**, defines when :command:`module` command initializes the shell
  startup file to ensure that the :command:`module` command is still defined in
- sub-shells. Setting shell startup file means defining the **ENV** and
- **BASH_ENV** environment variable to the Modules bourne shell initialization
+ sub-shells. Setting shell startup file means defining the :envvar:`ENV` and
+ :envvar:`BASH_ENV` environment variable to the Modules bourne shell initialization
  script. If set to **0**, shell startup file is not defined.
 
 .. envvar:: MODULES_SILENT_SHELL_DEBUG
@@ -1277,7 +1277,7 @@ ENVIRONMENT
  Inform Modules of the terminal background color to determine if the color set
  for dark background or the color set for light background should be used to
  color output in case no specific color set is defined with the
- **MODULES_COLORS** variable. Accepted values are **dark** and **light**.
+ :envvar:`MODULES_COLORS` variable. Accepted values are **dark** and **light**.
 
 .. envvar:: MODULES_UNLOAD_MATCH_ORDER
 
@@ -1312,8 +1312,8 @@ ENVIRONMENT
 
  Module command verbosity is defined in the following order of preference:
  **--silent**, **--verbose** and **--debug** command line switches, then
- **MODULES_VERBOSITY** environment variable, then the default set in
- :file:`modulecmd.tcl` script configuration. Which means **MODULES_VERBOSITY**
+ :envvar:`MODULES_VERBOSITY` environment variable, then the default set in
+ :file:`modulecmd.tcl` script configuration. Which means :envvar:`MODULES_VERBOSITY`
  overrides default configuration and **--silent**/**--verbose**/**--debug**
  command line switches overrides every other ways to set verbosity level.
 
@@ -1335,15 +1335,15 @@ ENVIRONMENT
 
 .. envvar:: <VAR>_modquar
 
- Value of environment variable *<VAR>* passed to :file:`modulecmd.tcl` in order
- to restore *<VAR>* to this value once started.
+ Value of environment variable :envvar:`<VAR>` passed to :file:`modulecmd.tcl` in order
+ to restore :envvar:`<VAR>` to this value once started.
 
 .. envvar:: <VAR>_modshare
 
- Reference counter variable for path-like variable *<VAR>*. A colon
+ Reference counter variable for path-like variable :envvar:`<VAR>`. A colon
  separated list containing pairs of elements. A pair is formed by a path
  element followed its usage counter which represents the number of times
- this path has been enabled in variable *<VAR>*. A colon separates the
+ this path has been enabled in variable :envvar:`<VAR>`. A colon separates the
  two parts of the pair.
 
 
@@ -1352,18 +1352,18 @@ FILES
 
 |bold prefix|
 
- The **MODULESHOME** directory.
+ The :envvar:`MODULESHOME` directory.
 
 |bold etcdir|\ **/siteconfig.tcl**
 
  The site-specific configuration script of :file:`modulecmd.tcl`. An additional
- configuration script could be defined using the **MODULES_SITECONFIG**
+ configuration script could be defined using the :envvar:`MODULES_SITECONFIG`
  environment variable.
 
 |bold etcdir|\ **/rc**
 
  The system-wide modules rc file. The location of this file can be changed
- using the **MODULERCFILE** environment variable as described above.
+ using the :envvar:`MODULERCFILE` environment variable as described above.
 
 :file:`$HOME/.modulerc`
 
@@ -1376,7 +1376,7 @@ FILES
 |bold modulefilesdir|
 
  The directory for system-wide *modulefiles*. The location of the directory
- can be changed using the **MODULEPATH** environment variable as described
+ can be changed using the :envvar:`MODULEPATH` environment variable as described
  above.
 
 |bold libexecdir|\ **/modulecmd.tcl**
