@@ -742,7 +742,7 @@ information about the *modulefile*.
 ENVIRONMENT
 -----------
 
-**MODULEPATH**
+.. envvar:: MODULEPATH
 
  Path of directories containing *modulefiles*.
 
