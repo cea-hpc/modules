@@ -65,11 +65,11 @@ the *modulefile* is being loaded.
 .. mfcmd:: break
 
  This is not a Modules-specific command, it's actually part of Tcl, which
- has been overloaded similar to the **continue** and **exit** commands
+ has been overloaded similar to the :mfcmd:`continue` and :mfcmd:`exit` commands
  to have the effect of causing the module not to be listed as loaded and
  not affect other modules being loaded concurrently. All non-environment
  commands within the module will be performed up to this point and processing
- will continue on to the next module on the command line. The **break**
+ will continue on to the next module on the command line. The :mfcmd:`break`
  command will only have this effect if not used within a Tcl loop though.
 
  An example: Suppose that a full selection of *modulefiles* are needed for
@@ -102,16 +102,16 @@ the *modulefile* is being loaded.
 .. mfcmd:: continue
 
  This is not a modules specific command but another overloaded Tcl command
- and is similar to the **break** or **exit** commands except the module
+ and is similar to the :mfcmd:`break` or :mfcmd:`exit` commands except the module
  will be listed as loaded as well as performing any environment or Tcl
  commands up to this point and then continuing on to the next module on
- the command line. The **continue** command will only have this effect if
+ the command line. The :mfcmd:`continue` command will only have this effect if
  not used within a Tcl loop though.
 
 .. mfcmd:: exit [N]
 
  This is not a modules specific command but another overloaded Tcl command
- and is similar to the **break** or **continue** commands. However,
+ and is similar to the :mfcmd:`break` or :mfcmd:`continue` commands. However,
  this command will cause the immediate cessation of this module and any
  additional ones on the command line. This module and the subsequent
  modules will not be listed as loaded. No environment commands will be
@@ -119,16 +119,16 @@ the *modulefile* is being loaded.
 
 .. mfcmd:: setenv variable value
 
- Set environment *variable* to *value*. The **setenv** command will also
+ Set environment *variable* to *value*. The :mfcmd:`setenv` command will also
  change the process' environment. A reference using Tcl's env associative
- array will reference changes made with the **setenv** command. Changes
+ array will reference changes made with the :mfcmd:`setenv` command. Changes
  made using Tcl's *env* associative array will **NOT** change the user's
- environment *variable* like the **setenv** command. An environment change
- made this way will only affect the module parsing process. The **setenv**
+ environment *variable* like the :mfcmd:`setenv` command. An environment change
+ made this way will only affect the module parsing process. The :mfcmd:`setenv`
  command is also useful for changing the environment prior to the **exec**
- or **system** command. When a *modulefile* is unloaded, **setenv** becomes
- **unsetenv**. If the environment *variable* had been defined it will
- be overwritten while loading the *modulefile*. A subsequent **unload**
+ or :mfcmd:`system` command. When a *modulefile* is unloaded, :mfcmd:`setenv` becomes
+ :mfcmd:`unsetenv`. If the environment *variable* had been defined it will
+ be overwritten while loading the *modulefile*. A subsequent :subcmd:`unload`
  will unset the environment *variable* - the previous value cannot be
  restored! (Unless you handle it explicitly ... see below.)
 
@@ -136,18 +136,18 @@ the *modulefile* is being loaded.
 
  Unsets environment *variable*. However, if there is an optional *value*,
  then when unloading a module, it will set *variable* to *value*. The
- **unsetenv** command changes the process' environment like **setenv**.
+ :mfcmd:`unsetenv` command changes the process' environment like :mfcmd:`setenv`.
 
 .. mfcmd:: getenv variable [value]
 
  Returns value of environment *variable*. If *variable* is not defined *value*
- is returned if set *_UNDEFINED_* is returned otherwise. **getenv** command
+ is returned if set *_UNDEFINED_* is returned otherwise. :mfcmd:`getenv` command
  should be preferred over Tcl global variable **env** to query environment
  variables.
 
 .. mfcmd:: append-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
- See **prepend-path**.
+ See :mfcmd:`prepend-path`.
 
 .. mfcmd:: prepend-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
@@ -168,7 +168,7 @@ the *modulefile* is being loaded.
  again except if ``--duplicates`` option is set.
 
  If the *variable* is not set, it is created. When a *modulefile* is
- unloaded, **append-path** and **prepend-path** become **remove-path**.
+ unloaded, :mfcmd:`append-path` and :mfcmd:`prepend-path` become :mfcmd:`remove-path`.
 
  If *value* corresponds to the concatenation of multiple elements separated by
  colon, or *delimiter*, character, each element is treated separately.
@@ -176,7 +176,7 @@ the *modulefile* is being loaded.
 .. mfcmd:: remove-path [-d C|--delim C|--delim=C] [--index] variable value...
 
  Remove *value* from the colon, or *delimiter*, separated list in
- *variable*. See **prepend-path** or **append-path** for further explanation
+ *variable*. See :mfcmd:`prepend-path` or :mfcmd:`append-path` for further explanation
  of using an arbitrary delimiter. Every string between colons, or delimiters,
  in *variable* is compared to *value*. If the two match, *value* is removed
  from *variable* if its reference counter is equal to 1 or unknown.
@@ -196,28 +196,28 @@ the *modulefile* is being loaded.
 
 .. mfcmd:: prereq modulefile...
 
- See **conflict**.
+ See :mfcmd:`conflict`.
 
 .. mfcmd:: conflict modulefile...
 
- **prereq** and **conflict** control whether or not the *modulefile* will
- be loaded. The **prereq** command lists *modulefiles* which must have been
+ :mfcmd:`prereq` and :mfcmd:`conflict` control whether or not the *modulefile* will
+ be loaded. The :mfcmd:`prereq` command lists *modulefiles* which must have been
  previously loaded before the current *modulefile* will be loaded. Similarly,
- the **conflict** command lists *modulefiles* which **conflict** with the
+ the :mfcmd:`conflict` command lists *modulefiles* which :mfcmd:`conflict` with the
  current *modulefile*. If a list contains more than one *modulefile*, then
- each member of the list acts as a Boolean OR operation. Multiple **prereq**
- and **conflict** commands may be used to create a Boolean AND operation. If
+ each member of the list acts as a Boolean OR operation. Multiple :mfcmd:`prereq`
+ and :mfcmd:`conflict` commands may be used to create a Boolean AND operation. If
  one of the requirements have not been satisfied, an error is reported
  and the current *modulefile* makes no changes to the user's environment.
 
- If an argument for **prereq** is a directory and any *modulefile* from
+ If an argument for :mfcmd:`prereq` is a directory and any *modulefile* from
  the directory has been loaded, then the prerequisite is met. For example,
- specifying X11 as a **prereq** means that any version of X11, X11/R4 or
+ specifying X11 as a :mfcmd:`prereq` means that any version of X11, X11/R4 or
  X11/R5, must be loaded before proceeding.
 
- If an argument for **conflict** is a directory and any other *modulefile*
+ If an argument for :mfcmd:`conflict` is a directory and any other *modulefile*
  from that directory has been loaded, then a conflict will occur. For
- example, specifying X11 as a **conflict** will stop X11/R4 and X11/R5
+ example, specifying X11 as a :mfcmd:`conflict` will stop X11/R4 and X11/R5
  from being loaded at the same time.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
@@ -226,12 +226,12 @@ the *modulefile* is being loaded.
 
 .. mfcmd:: is-loaded [modulefile...]
 
- The **is-loaded** command returns a true value if any of the listed
+ The :mfcmd:`is-loaded` command returns a true value if any of the listed
  *modulefiles* has been loaded or if any *modulefile* is loaded in case no
  argument is provided. If a list contains more than one *modulefile*, then
- each member acts as a boolean OR operation. If an argument for **is-loaded**
+ each member acts as a boolean OR operation. If an argument for :mfcmd:`is-loaded`
  is a directory and any *modulefile* from the directory has been loaded
- **is-loaded** would return a true value.
+ :mfcmd:`is-loaded` would return a true value.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
@@ -239,7 +239,7 @@ the *modulefile* is being loaded.
 
 .. mfcmd:: is-saved [collection...]
 
- The **is-saved** command returns a true value if any of the listed
+ The :mfcmd:`is-saved` command returns a true value if any of the listed
  *collections* exists or if any *collection* exists in case no argument is
  provided. If a list contains more than one *collection*, then each member
  acts as a boolean OR operation.
@@ -251,18 +251,18 @@ the *modulefile* is being loaded.
 
 .. mfcmd:: is-used [directory...]
 
- The **is-used** command returns a true value if any of the listed
+ The :mfcmd:`is-used` command returns a true value if any of the listed
  *directories* has been enabled in :envvar:`MODULEPATH` or if any *directory* is
  enabled in case no argument is provided. If a list contains more than one
  *directory*, then each member acts as a boolean OR operation.
 
 .. mfcmd:: is-avail modulefile...
 
- The **is-avail** command returns a true value if any of the listed
+ The :mfcmd:`is-avail` command returns a true value if any of the listed
  *modulefiles* exists in enabled :envvar:`MODULEPATH`. If a list contains more than
  one *modulefile*, then each member acts as a boolean OR operation. If an
- argument for **is-avail** is a directory and a *modulefile* exists in the
- directory **is-avail** would return a true value.
+ argument for :mfcmd:`is-avail` is a directory and a *modulefile* exists in the
+ directory :mfcmd:`is-avail` would return a true value.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
@@ -280,7 +280,7 @@ the *modulefile* is being loaded.
  would contain the necessary ``module load`` commands.
 
  Command line switches :option:`--auto`, :option:`--no-auto` and :option:`--force` are ignored
- when passed to a **module** command set in a *modulefile*.
+ when passed to a :mfcmd:`module` command set in a *modulefile*.
 
 .. mfcmd:: module-info option [info-args]
 
@@ -335,7 +335,7 @@ the *modulefile* is being loaded.
  **module-info shelltype** [shelltypename]
 
   Return the family of the shell under which *modulefile* was invoked if no
-  *shelltypename* is given. As of **module-info shell** this depends on the
+  *shelltypename* is given. As of :mfcmd:`module-info shell` this depends on the
   first parameter of :file:`modulecmd.tcl`. The output reflects a shell type
   determining the shell syntax of the commands produced by :file:`modulecmd.tcl`.
 
@@ -420,7 +420,7 @@ the *modulefile* is being loaded.
 .. mfcmd:: module-whatis string
 
  Defines a string which is displayed in case of the invocation of the
- :subcmd:`module whatis<whatis>` command. There may be more than one **module-whatis**
+ :subcmd:`module whatis<whatis>` command. There may be more than one :mfcmd:`module-whatis`
  line in a *modulefile*. This command takes no actions in case of :subcmd:`load`,
  :subcmd:`display`, etc. invocations of :file:`modulecmd.tcl`.
 
@@ -433,7 +433,7 @@ the *modulefile* is being loaded.
  Sets an alias or function with the name *alias-name* in the user's
  environment to the string *alias-string*. For some shells, aliases are not
  possible and the command has no effect. When a *modulefile* is unloaded,
- **set-alias** becomes **unset-alias**.
+ :mfcmd:`set-alias` becomes :mfcmd:`unset-alias`.
 
 .. mfcmd:: unset-alias alias-name
 
@@ -444,7 +444,7 @@ the *modulefile* is being loaded.
  Creates a function with the name *function-name* in the user's environment
  with the function body *function-string*. For some shells, functions are not
  possible and the command has no effect. When a *modulefile* is unloaded,
- **set-function** becomes **unset-function**.
+ :mfcmd:`set-function` becomes :mfcmd:`unset-function`.
 
 .. mfcmd:: unset-function function-name
 
@@ -463,7 +463,7 @@ the *modulefile* is being loaded.
  from the **tcl_platform** array (see :manpage:`tclvars(n)` man page). Uname will
  return the string "unknown" if information is unavailable for the *field*.
 
- **uname** will invoke :manpage:`uname(1)` command in order to get the operating
+ :mfcmd:`uname` will invoke :manpage:`uname(1)` command in order to get the operating
  system version and :manpage:`domainname(1)` to figure out the name of the domain.
 
  *field* values are:
@@ -489,9 +489,9 @@ the *modulefile* is being loaded.
  or *resource-string* is then passed down to be :manpage:`xrdb(1)` command.
 
  *modulefiles* that use this command, should in most cases contain one or
- more **x-resource** lines, each defining one X11 resource. The :envvar:`DISPLAY`
+ more :mfcmd:`x-resource` lines, each defining one X11 resource. The :envvar:`DISPLAY`
  environment variable should be properly set and the X11 server should be
- accessible. If **x-resource** can't manipulate the X11 resource database,
+ accessible. If :mfcmd:`x-resource` can't manipulate the X11 resource database,
  the *modulefile* will exit with an error message.
 
  Examples:
@@ -528,7 +528,7 @@ is actually a directory, the directory is opened and a search begins for
 an actual *modulefile*. First, :file:`modulecmd.tcl` looks for a file with
 the name :file:`.modulerc` in the directory. If this file exists, its contents
 will be evaluated as if it was a *modulefile* to be loaded. You may place
-**module-version**, **module-alias** and **module-virtual** commands inside
+:mfcmd:`module-version`, :mfcmd:`module-alias` and :mfcmd:`module-virtual` commands inside
 this file.
 
 Additionally, before seeking for :file:`.modulerc` files in the module directory,
