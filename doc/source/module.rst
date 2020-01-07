@@ -186,8 +186,8 @@ switches are accepted:
 .. option:: --force, -f
 
  On :subcmd:`load`, :subcmd:`unload` and :subcmd:`switch` sub-commands, by-pass any unsatisfied
- modulefile constraint corresponding to the declared **prereq** and
- **conflict**. Which means for instance that a *modulefile* will be loaded
+ modulefile constraint corresponding to the declared :mfcmd:`prereq` and
+ :mfcmd:`conflict`. Which means for instance that a *modulefile* will be loaded
  even if it comes in conflict with another loaded *modulefile* or that a
  *modulefile* will be unloaded even if it is required as a prereq by another
  *modulefile*.
@@ -382,8 +382,8 @@ Module Sub-Commands
  Unload then load all loaded *modulefiles*.
 
  No unload then load is performed and an error is returned if the loaded
- *modulefiles* have unsatisfied constraint corresponding to the **prereq**
- and **conflict** they declare.
+ *modulefiles* have unsatisfied constraint corresponding to the :mfcmd:`prereq`
+ and :mfcmd:`conflict` they declare.
 
 .. subcmd:: purge
 
@@ -404,10 +404,10 @@ Module Sub-Commands
 
 .. subcmd:: whatis [modulefile...]
 
- Display the information set up by the **module-whatis** commands inside
+ Display the information set up by the :mfcmd:`module-whatis` commands inside
  the specified *modulefiles*. These specified *modulefiles* may be
  expressed using wildcard characters. If no *modulefile* is specified,
- all **module-whatis** lines will be shown.
+ all :mfcmd:`module-whatis` lines will be shown.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
@@ -423,7 +423,7 @@ Module Sub-Commands
 
 .. subcmd:: search string
 
- Seeks through the **module-whatis** informations of all *modulefiles* for the
+ Seeks through the :mfcmd:`module-whatis` informations of all *modulefiles* for the
  specified *string*. All *module-whatis* informations matching the *string* in
  a case insensitive manner will be displayed. *string* may contain wildcard
  characters.
@@ -457,8 +457,8 @@ Module Sub-Commands
  recorded even if it is the default version.
 
  No *collection* is recorded and an error is returned if the loaded
- *modulefiles* have unsatisfied constraint corresponding to the **prereq**
- and **conflict** they declare.
+ *modulefiles* have unsatisfied constraint corresponding to the :mfcmd:`prereq`
+ and :mfcmd:`conflict` they declare.
 
 .. subcmd:: restore [collection]
 
@@ -580,26 +580,26 @@ Module Sub-Commands
 .. subcmd:: append-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
  Append *value* to environment *variable*. The *variable* is a colon, or
- *delimiter*, separated list. See **append-path** in the :ref:`modulefile(4)`
+ *delimiter*, separated list. See :mfcmd:`append-path` in the :ref:`modulefile(4)`
  man page for further explanation.
 
 .. subcmd:: prepend-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
  Prepend *value* to environment *variable*. The *variable* is a colon, or
- *delimiter*, separated list. See **prepend-path** in the :ref:`modulefile(4)`
+ *delimiter*, separated list. See :mfcmd:`prepend-path` in the :ref:`modulefile(4)`
  man page for further explanation.
 
 .. subcmd:: remove-path [-d C|--delim C|--delim=C] [--index] variable value...
 
  Remove *value* from the colon, or *delimiter*, separated list in environment
- *variable*. See **remove-path** in the :ref:`modulefile(4)` man page for
+ *variable*. See :mfcmd:`remove-path` in the :ref:`modulefile(4)` man page for
  further explanation.
 
 .. subcmd:: is-loaded [modulefile...]
 
  Returns a true value if any of the listed *modulefiles* has been loaded or if
  any *modulefile* is loaded in case no argument is provided. Returns a false
- value otherwise. See **is-loaded** in the :ref:`modulefile(4)` man page for
+ value otherwise. See :mfcmd:`is-loaded` in the :ref:`modulefile(4)` man page for
  further explanation.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
@@ -610,20 +610,20 @@ Module Sub-Commands
 
  Returns a true value if any of the listed *collections* exists or if any
  *collection* exists in case no argument is provided. Returns a false value
- otherwise. See **is-saved** in the :ref:`modulefile(4)` man page for further
+ otherwise. See :mfcmd:`is-saved` in the :ref:`modulefile(4)` man page for further
  explanation.
 
 .. subcmd:: is-used [directory...]
 
  Returns a true value if any of the listed *directories* has been enabled in
  :envvar:`MODULEPATH` or if any *directory* is enabled in case no argument is
- provided. Returns a false value otherwise. See **is-used** in the
+ provided. Returns a false value otherwise. See :mfcmd:`is-used` in the
  :ref:`modulefile(4)` man page for further explanation.
 
 .. subcmd:: is-avail modulefile...
 
  Returns a true value if any of the listed *modulefiles* exists in enabled
- :envvar:`MODULEPATH`. Returns a false value otherwise. See **is-avail** in the
+ :envvar:`MODULEPATH`. Returns a false value otherwise. See :mfcmd:`is-avail` in the
  :ref:`modulefile(4)` man page for further explanation.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
@@ -634,7 +634,7 @@ Module Sub-Commands
 
  Returns the names of currently loaded modules matching passed *modulefile*.
  Returns an empty string if passed *modulefile* does not match any loaded
- modules. See **module-info loaded** in the :ref:`modulefile(4)` man page for
+ modules. See :mfcmd:`module-info loaded<module-info>` in the :ref:`modulefile(4)` man page for
  further explanation.
 
 .. subcmd:: config [--dump-state|name [value]|--reset name]
@@ -846,30 +846,30 @@ ENVIRONMENT
  loading or unloading a *modulefile* to satisfy the constraints it declares.
  When loading a *modulefile*, following actions are triggered:
 
- * Requirement Load: load of the *modulefiles* declared as a **prereq** of
+ * Requirement Load: load of the *modulefiles* declared as a :mfcmd:`prereq` of
    the loading *modulefile*.
 
- * Dependent Reload: reload of the modulefiles declaring a **prereq** onto
-   loaded *modulefile* or declaring a **prereq** onto a *modulefile* part of
+ * Dependent Reload: reload of the modulefiles declaring a :mfcmd:`prereq` onto
+   loaded *modulefile* or declaring a :mfcmd:`prereq` onto a *modulefile* part of
    this reloading batch.
 
  When unloading a *modulefile*, following actions are triggered:
 
  * Dependent Unload: unload of the modulefiles declaring a non-optional
-   **prereq** onto unloaded modulefile or declaring a non-optional **prereq**
-   onto a modulefile part of this unloading batch. A **prereq** modulefile is
-   considered optional if the **prereq** definition order is made of multiple
+   :mfcmd:`prereq` onto unloaded modulefile or declaring a non-optional :mfcmd:`prereq`
+   onto a modulefile part of this unloading batch. A :mfcmd:`prereq` modulefile is
+   considered optional if the :mfcmd:`prereq` definition order is made of multiple
    modulefiles and at least one alternative modulefile is loaded.
 
- * Useless Requirement Unload: unload of the **prereq** modulefiles that have
+ * Useless Requirement Unload: unload of the :mfcmd:`prereq` modulefiles that have
    been automatically loaded for either the unloaded modulefile, an unloaded
    dependent modulefile or a modulefile part of this useless requirement
    unloading batch. Modulefiles are added to this unloading batch only if
    they are not required by any other loaded modulefiles.
 
- * Dependent Reload: reload of the modulefiles declaring a **conflict** or an
-   optional **prereq** onto either the unloaded modulefile, an unloaded
-   dependent or an unloaded useless requirement or declaring a **prereq** onto
+ * Dependent Reload: reload of the modulefiles declaring a :mfcmd:`conflict` or an
+   optional :mfcmd:`prereq` onto either the unloaded modulefile, an unloaded
+   dependent or an unloaded useless requirement or declaring a :mfcmd:`prereq` onto
    a modulefile part of this reloading batch.
 
  In case a loaded *modulefile* has some of its declared constraints
@@ -1047,7 +1047,7 @@ ENVIRONMENT
 
  * automatically loaded by automated module handling mechanisms (see
    :envvar:`MODULES_AUTO_HANDLING` section) when declared as module requirement,
-   with **prereq** or **module load** modulefile commands.
+   with :mfcmd:`prereq` or :mfcmd:`module load<module>` modulefile commands.
 
  An error is returned in the above situations if either no explicit or
  implicit default version is defined.
@@ -1060,7 +1060,7 @@ ENVIRONMENT
 .. envvar:: MODULES_LMALTNAME
 
  A colon separated list of the alternative names set through
- **module-version** and **module-alias** statements corresponding to all
+ :mfcmd:`module-version` and :mfcmd:`module-alias` statements corresponding to all
  loaded *modulefiles*. Each element in this list starts by the name of the
  loaded *modulefile* followed by all alternative names resolving to it. The
  loaded modulefile and its alternative names are separated by the ampersand
@@ -1075,7 +1075,7 @@ ENVIRONMENT
 
 .. envvar:: MODULES_LMCONFLICT
 
- A colon separated list of the **conflict** statements defined by all loaded
+ A colon separated list of the :mfcmd:`conflict` statements defined by all loaded
  *modulefiles*. Each element in this list starts by the name of the loaded
  *modulefile* declaring the conflict followed by the name of all modulefiles
  it declares a conflict with. These loaded modulefiles and conflicting
@@ -1097,12 +1097,12 @@ ENVIRONMENT
 
 .. envvar:: MODULES_LMPREREQ
 
- A colon separated list of the **prereq** statements defined by all loaded
+ A colon separated list of the :mfcmd:`prereq` statements defined by all loaded
  *modulefiles*. Each element in this list starts by the name of the loaded
  *modulefile* declaring the pre-requirement followed by the name of all
  modulefiles it declares a prereq with. These loaded modulefiles and
  pre-required modulefile names are separated by the ampersand character. When
- a **prereq** statement is composed of multiple modulefiles, these modulefile
+ a :mfcmd:`prereq` statement is composed of multiple modulefiles, these modulefile
  names are separated by the pipe character.
 
  This environment variable is intended for :command:`module` command internal
