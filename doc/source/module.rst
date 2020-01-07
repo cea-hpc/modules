@@ -246,9 +246,7 @@ switches are accepted:
 Module Sub-Commands
 ^^^^^^^^^^^^^^^^^^^
 
-.. _help:
-
-**help** [modulefile...]
+.. subcmd:: help [modulefile...]
 
  Print the usage of each sub-command. If an argument is given, print the
  Module-specific help information for the *modulefile*.
@@ -257,15 +255,11 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
-.. _add:
-
-**add** modulefile...
+.. subcmd:: add modulefile...
 
  See **load**.
 
-.. _load:
-
-**load** [--auto|--no-auto] [-f] modulefile...
+.. subcmd:: load [--auto|--no-auto] [-f] modulefile...
 
  Load *modulefile* into the shell environment.
 
@@ -273,15 +267,11 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
-.. _rm:
-
-**rm** modulefile...
+.. subcmd:: rm modulefile...
 
  See **unload**.
 
-.. _unload:
-
-**unload** [--auto|--no-auto] [-f] modulefile...
+.. subcmd:: unload [--auto|--no-auto] [-f] modulefile...
 
  Remove *modulefile* from the shell environment.
 
@@ -289,15 +279,11 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
-.. _swap:
-
-**swap** [modulefile1] modulefile2
+.. subcmd:: swap [modulefile1] modulefile2
 
  See **switch**.
 
-.. _switch:
-
-**switch** [--auto|--no-auto] [-f] [modulefile1] modulefile2
+.. subcmd:: switch [--auto|--no-auto] [-f] [modulefile1] modulefile2
 
  Switch loaded *modulefile1* with *modulefile2*. If *modulefile1* is not
  specified, then it is assumed to be the currently loaded module with the
@@ -307,15 +293,11 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
-.. _show:
-
-**show** modulefile...
+.. subcmd:: show modulefile...
 
  See **display**.
 
-.. _display:
-
-**display** modulefile...
+.. subcmd:: display modulefile...
 
  Display information about one or more *modulefiles*. The display sub-command
  will list the full path of the *modulefile* and the environment changes
@@ -326,15 +308,11 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
-.. _list:
-
-**list** [-t|-l]
+.. subcmd:: list [-t|-l]
 
  List loaded modules.
 
-.. _avail:
-
-**avail** [-d|-L] [-t|-l] [-S|-C] [--indepth|--no-indepth] [path...]
+.. subcmd:: avail [-d|-L] [-t|-l] [-S|-C] [--indepth|--no-indepth] [path...]
 
  List all available *modulefiles* in the current :envvar:`MODULEPATH`. All
  directories in the :envvar:`MODULEPATH` are recursively searched for files
@@ -365,18 +343,14 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
-.. _aliases:
-
-**aliases**
+.. subcmd:: aliases
 
  List all available symbolic version-names and aliases in the current
  :envvar:`MODULEPATH`.  All directories in the :envvar:`MODULEPATH` are recursively
  searched in the same manner than for the **avail** sub-command. Only the
  symbolic version-names and aliases found in the search are displayed.
 
-.. _use:
-
-**use** [-a|--append] directory...
+.. subcmd:: use [-a|--append] directory...
 
  Prepend one or more *directories* to the :envvar:`MODULEPATH` environment
  variable.  The ``--append`` flag will append the *directory* to
@@ -386,9 +360,7 @@ Module Sub-Commands
  also set to increase the number of times *directory* has been added to
  :envvar:`MODULEPATH`.
 
-.. _unuse:
-
-**unuse** directory...
+.. subcmd:: unuse directory...
 
  Remove one or more *directories* from the :envvar:`MODULEPATH` environment
  variable if reference counter of these *directories* is equal to 1
@@ -401,15 +373,11 @@ Module Sub-Commands
  equal to 1 or not defined. Otherwise *directory* is kept and reference
  counter is decreased by 1.
 
-.. _refresh:
-
-**refresh**
+.. subcmd:: refresh
 
  See **reload**.
 
-.. _reload:
-
-**reload**
+.. subcmd:: reload
 
  Unload then load all loaded *modulefiles*.
 
@@ -417,32 +385,24 @@ Module Sub-Commands
  *modulefiles* have unsatisfied constraint corresponding to the **prereq**
  and **conflict** they declare.
 
-.. _purge:
-
-**purge**
+.. subcmd:: purge
 
  Unload all loaded *modulefiles*.
 
-.. _clear:
-
-**clear** [-f]
+.. subcmd:: clear [-f]
 
  Force the Modules package to believe that no modules are currently loaded. A
  confirmation is requested if command-line switch :option:`-f` (or :option:`--force`) is not
  passed. Typed confirmation should equal to *yes* or *y* in order to proceed.
 
-.. _source:
-
-**source** scriptfile...
+.. subcmd:: source scriptfile...
 
  Execute *scriptfile* into the shell environment. *scriptfile* must be written
  with *modulefile* syntax and specified with a fully qualified path. Once
  executed *scriptfile* is not marked loaded in shell environment which differ
  from **load** sub-command.
 
-.. _whatis:
-
-**whatis** [modulefile...]
+.. subcmd:: whatis [modulefile...]
 
  Display the information set up by the **module-whatis** commands inside
  the specified *modulefiles*. These specified *modulefiles* may be
@@ -453,30 +413,22 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
-.. _apropos:
-
-**apropos** string
+.. subcmd:: apropos string
 
  See **search**.
 
-.. _keyword:
-
-**keyword** string
+.. subcmd:: keyword string
 
  See **search**.
 
-.. _search-cmd:
-
-**search** string
+.. subcmd:: search string
 
  Seeks through the **module-whatis** informations of all *modulefiles* for the
  specified *string*. All *module-whatis* informations matching the *string* in
  a case insensitive manner will be displayed. *string* may contain wildcard
  characters.
 
-.. _test:
-
-**test** modulefile...
+.. subcmd:: test modulefile...
 
  Execute and display results of the Module-specific tests for the
  *modulefile*.
@@ -485,9 +437,7 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
-.. _save:
-
-**save** [collection]
+.. subcmd:: save [collection]
 
  Record the currently set :envvar:`MODULEPATH` directory list and the currently
  loaded *modulefiles* in a *collection* file under the user's collection
@@ -510,9 +460,7 @@ Module Sub-Commands
  *modulefiles* have unsatisfied constraint corresponding to the **prereq**
  and **conflict** they declare.
 
-.. _restore:
-
-**restore** [collection]
+.. subcmd:: restore [collection]
 
  Restore the environment state as defined in *collection*. If *collection*
  name is not specified, then it is assumed to be the *default* collection. If
@@ -535,18 +483,14 @@ Module Sub-Commands
  *collection* by its bare name: loading this module when restoring the
  collection will fail if the configuration option *implicit_default* is disabled.
 
-.. _saverm:
-
-**saverm** [collection]
+.. subcmd:: saverm [collection]
 
  Delete the *collection* file under the user's collection directory. If
  *collection* name is not specified, then it is assumed to be the *default*
  collection. If :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix equivalent to
  the value of this variable will be appended to the *collection* file name.
 
-.. _saveshow:
-
-**saveshow** [collection]
+.. subcmd:: saveshow [collection]
 
  Display the content of *collection*. If *collection* name is not specified,
  then it is assumed to be the *default* collection. If *collection* is a
@@ -555,17 +499,13 @@ Module Sub-Commands
  is set, a suffix equivalent to the value of this variable will be appended
  to the *collection* file name.
 
-.. _savelist:
-
-**savelist** [-t|-l]
+.. subcmd:: savelist [-t|-l]
 
  List collections that are currently saved under the user's collection
  directory. If :envvar:`MODULES_COLLECTION_TARGET` is set, only collections
  matching the target suffix will be displayed.
 
-.. _initadd:
-
-**initadd** modulefile...
+.. subcmd:: initadd modulefile...
 
  Add *modulefile* to the shell's initialization file in the user's home
  directory. The startup files checked (in order) are:
@@ -600,40 +540,28 @@ Module Sub-Commands
  the **init** sub-commands to work properly. If the **module load** line is
  found in multiple shell initialization files, all of the lines are changed.
 
-.. _initprepend:
-
-**initprepend** modulefile...
+.. subcmd:: initprepend modulefile...
 
  Does the same as **initadd** but prepends the given modules to the
  beginning of the list.
 
-.. _initrm:
-
-**initrm** modulefile...
+.. subcmd:: initrm modulefile...
 
  Remove *modulefile* from the shell's initialization files.
 
-.. _initswitch:
-
-**initswitch** modulefile1 modulefile2
+.. subcmd:: initswitch modulefile1 modulefile2
 
  Switch *modulefile1* with *modulefile2* in the shell's initialization files.
 
-.. _initlist:
-
-**initlist**
+.. subcmd:: initlist
 
  List all of the *modulefiles* loaded from the shell's initialization file.
 
-.. _initclear:
-
-**initclear**
+.. subcmd:: initclear
 
  Clear all of the *modulefiles* from the shell's initialization files.
 
-.. _path:
-
-**path** modulefile
+.. subcmd:: path modulefile
 
  Print path to *modulefile*.
 
@@ -641,9 +569,7 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
-.. _paths:
-
-**paths** modulefile
+.. subcmd:: paths modulefile
 
  Print path of available *modulefiles* matching argument.
 
@@ -651,33 +577,25 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
-.. _append-path:
-
-**append-path** [-d C|--delim C|--delim=C] [--duplicates] variable value...
+.. subcmd:: append-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
  Append *value* to environment *variable*. The *variable* is a colon, or
  *delimiter*, separated list. See **append-path** in the :ref:`modulefile(4)`
  man page for further explanation.
 
-.. _prepend-path:
-
-**prepend-path** [-d C|--delim C|--delim=C] [--duplicates] variable value...
+.. subcmd:: prepend-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
  Prepend *value* to environment *variable*. The *variable* is a colon, or
  *delimiter*, separated list. See **prepend-path** in the :ref:`modulefile(4)`
  man page for further explanation.
 
-.. _remove-path:
-
-**remove-path** [-d C|--delim C|--delim=C] [--index] variable value...
+.. subcmd:: remove-path [-d C|--delim C|--delim=C] [--index] variable value...
 
  Remove *value* from the colon, or *delimiter*, separated list in environment
  *variable*. See **remove-path** in the :ref:`modulefile(4)` man page for
  further explanation.
 
-.. _is-loaded:
-
-**is-loaded** [modulefile...]
+.. subcmd:: is-loaded [modulefile...]
 
  Returns a true value if any of the listed *modulefiles* has been loaded or if
  any *modulefile* is loaded in case no argument is provided. Returns a false
@@ -688,27 +606,21 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
-.. _is-saved:
-
-**is-saved** [collection...]
+.. subcmd:: is-saved [collection...]
 
  Returns a true value if any of the listed *collections* exists or if any
  *collection* exists in case no argument is provided. Returns a false value
  otherwise. See **is-saved** in the :ref:`modulefile(4)` man page for further
  explanation.
 
-.. _is-used:
-
-**is-used** [directory...]
+.. subcmd:: is-used [directory...]
 
  Returns a true value if any of the listed *directories* has been enabled in
  :envvar:`MODULEPATH` or if any *directory* is enabled in case no argument is
  provided. Returns a false value otherwise. See **is-used** in the
  :ref:`modulefile(4)` man page for further explanation.
 
-.. _is-avail:
-
-**is-avail** modulefile...
+.. subcmd:: is-avail modulefile...
 
  Returns a true value if any of the listed *modulefiles* exists in enabled
  :envvar:`MODULEPATH`. Returns a false value otherwise. See **is-avail** in the
@@ -718,18 +630,14 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
-.. _info-loaded:
-
-**info-loaded** modulefile
+.. subcmd:: info-loaded modulefile
 
  Returns the names of currently loaded modules matching passed *modulefile*.
  Returns an empty string if passed *modulefile* does not match any loaded
  modules. See **module-info loaded** in the :ref:`modulefile(4)` man page for
  further explanation.
 
-.. _config:
-
-**config** [--dump-state|name [value]|--reset name]
+.. subcmd:: config [--dump-state|name [value]|--reset name]
 
  Gets or sets :file:`modulecmd.tcl` options. Reports the currently set value of
  passed option *name* or all existing options if no *name* passed. If a *name*
