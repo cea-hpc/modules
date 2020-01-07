@@ -306,12 +306,12 @@ the *modulefile* is being loaded.
 
  Contains the same *sub-commands* as described in the :ref:`module(1)`
  man page in the Module Sub-Commands section. This command permits a
- *modulefile* to **load** or **unload** other *modulefiles*. No checks are
+ *modulefile* to :subcmd:`load` or :subcmd:`unload` other *modulefiles*. No checks are
  made to ensure that the *modulefile* does not try to load itself. Often
  it is useful to have a single *modulefile* that performs a number of
- **module load** commands. For example, if every user on the system
+ ``module load`` commands. For example, if every user on the system
  requires a basic set of applications loaded, then a core *modulefile*
- would contain the necessary **module load** commands.
+ would contain the necessary ``module load`` commands.
 
  Command line switches :option:`--auto`, :option:`--no-auto` and :option:`--force` are ignored
  when passed to a **module** command set in a *modulefile*.
@@ -464,9 +464,9 @@ the *modulefile* is being loaded.
 **module-whatis** string
 
  Defines a string which is displayed in case of the invocation of the
- **module whatis** command. There may be more than one **module-whatis**
- line in a *modulefile*. This command takes no actions in case of **load**,
- **display**, etc. invocations of :file:`modulecmd.tcl`.
+ :subcmd:`module whatis<whatis>` command. There may be more than one **module-whatis**
+ line in a *modulefile*. This command takes no actions in case of :subcmd:`load`,
+ :subcmd:`display`, etc. invocations of :file:`modulecmd.tcl`.
 
  The *string* parameter has to be enclosed in double-quotes if there's more
  than one word specified. Words are defined to be separated by whitespace
@@ -714,7 +714,7 @@ Modulefile Specific Help
 Users can request help about a specific *modulefile* through the
 :ref:`module(1)` command. The *modulefile* can print helpful information or
 start help oriented programs by defining a **ModulesHelp** subroutine. The
-subroutine will be called when the **module help modulefile** command
+subroutine will be called when the :subcmd:`module help modulefile<help>` command
 is used.
 
 
@@ -724,7 +724,7 @@ Modulefile Specific Test
 Users can request test of a specific *modulefile* through the :ref:`module(1)`
 command. The *modulefile* can perform some sanity checks on its
 definition or on its underlying programs by defining a **ModulesTest**
-subroutine. The subroutine will be called when the **module test modulefile**
+subroutine. The subroutine will be called when the :subcmd:`module test modulefile<test>`
 command is used. The subroutine should return 1 in case of success. If no
 or any other value is returned, test is considered failed.
 
@@ -732,7 +732,7 @@ or any other value is returned, test is considered failed.
 Modulefile Display
 ------------------
 
-The **module display modulefile** command will detail all changes that
+The :subcmd:`module display modulefile<display>` command will detail all changes that
 will be made to the environment. After displaying all of the environment
 changes :file:`modulecmd.tcl` will call the **ModulesDisplay** subroutine. The
 **ModulesDisplay** subroutine is a good place to put additional descriptive

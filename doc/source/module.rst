@@ -55,7 +55,7 @@ python, perl, ruby, tcl, cmake, r and lisp "shells" are supported which
 writes the environment changes to stdout as python, perl, ruby, tcl, lisp,
 r or cmake code.
 
-Initialization may also be performed by calling the **autoinit** sub-command
+Initialization may also be performed by calling the :subcmd:`autoinit` sub-command
 of the :file:`modulecmd.tcl` program. Evaluation into the shell of the result
 of this command defines the :command:`module` alias or function.
 
@@ -92,7 +92,7 @@ Python:
      exec(open('\ |initdir|\ /python.py').read())
      module('load', 'modulefile', 'modulefile', '...')
 
-Bourne Shell (sh) (and derivatives) with **autoinit** sub-command:
+Bourne Shell (sh) (and derivatives) with :subcmd:`autoinit` sub-command:
 
 .. parsed-literal::
 
@@ -175,36 +175,36 @@ switches are accepted:
 
 .. option:: --auto
 
- On **load**, **unload** and **switch** sub-commands, enable automated module
+ On :subcmd:`load`, :subcmd:`unload` and :subcmd:`switch` sub-commands, enable automated module
  handling mode. See also :envvar:`MODULES_AUTO_HANDLING` section.
 
 .. option:: --no-auto
 
- On **load**, **unload** and **switch** sub-commands, disable automated module
+ On :subcmd:`load`, :subcmd:`unload` and :subcmd:`switch` sub-commands, disable automated module
  handling mode. See also :envvar:`MODULES_AUTO_HANDLING` section.
 
 .. option:: --force, -f
 
- On **load**, **unload** and **switch** sub-commands, by-pass any unsatisfied
+ On :subcmd:`load`, :subcmd:`unload` and :subcmd:`switch` sub-commands, by-pass any unsatisfied
  modulefile constraint corresponding to the declared **prereq** and
  **conflict**. Which means for instance that a *modulefile* will be loaded
  even if it comes in conflict with another loaded *modulefile* or that a
  *modulefile* will be unloaded even if it is required as a prereq by another
  *modulefile*.
 
- On **clear** sub-command, skip the confirmation dialog and proceed.
+ On :subcmd:`clear` sub-command, skip the confirmation dialog and proceed.
 
 .. option:: --terse, -t
 
- Display **avail**, **list** and **savelist** output in short format.
+ Display :subcmd:`avail`, :subcmd:`list` and :subcmd:`savelist` output in short format.
 
 .. option:: --long, -l
 
- Display **avail**, **list** and **savelist** output in long format.
+ Display :subcmd:`avail`, :subcmd:`list` and :subcmd:`savelist` output in long format.
 
 .. option:: --default, -d
 
- On **avail** sub-command, display only the default version of each module
+ On :subcmd:`avail` sub-command, display only the default version of each module
  name. Default version is the explicitly set default version or also the
  implicit default version if the configuration option *implicit_default* is enabled
  (see :ref:`Locating Modulefiles` section in the :ref:`modulefile(4)` man page for
@@ -212,29 +212,29 @@ switches are accepted:
 
 .. option:: --latest, -L
 
- On **avail** sub-command, display only the highest numerically sorted
+ On :subcmd:`avail` sub-command, display only the highest numerically sorted
  version of each module name (see :ref:`Locating Modulefiles` section in the
  :ref:`modulefile(4)` man page).
 
 .. option:: --starts-with, -S
 
- On **avail** sub-command, return modules whose name starts with search query
+ On :subcmd:`avail` sub-command, return modules whose name starts with search query
  string.
 
 .. option:: --contains, -C
 
- On **avail** sub-command, return modules whose fully qualified name contains
+ On :subcmd:`avail` sub-command, return modules whose fully qualified name contains
  search query string.
 
 .. option:: --indepth
 
- On **avail** sub-command, include in search results the matching modulefiles
+ On :subcmd:`avail` sub-command, include in search results the matching modulefiles
  and directories and recursively the modulefiles and directories contained in
  these matching directories.
 
 .. option:: --no-indepth
 
- On **avail** sub-command, limit search results to the matching modulefiles
+ On :subcmd:`avail` sub-command, limit search results to the matching modulefiles
  and directories found at the depth level expressed by the search query. Thus
  modulefiles contained in directories part of the result are excluded.
 
@@ -257,7 +257,7 @@ Module Sub-Commands
 
 .. subcmd:: add modulefile...
 
- See **load**.
+ See :subcmd:`load`.
 
 .. subcmd:: load [--auto|--no-auto] [-f] modulefile...
 
@@ -269,7 +269,7 @@ Module Sub-Commands
 
 .. subcmd:: rm modulefile...
 
- See **unload**.
+ See :subcmd:`unload`.
 
 .. subcmd:: unload [--auto|--no-auto] [-f] modulefile...
 
@@ -281,7 +281,7 @@ Module Sub-Commands
 
 .. subcmd:: swap [modulefile1] modulefile2
 
- See **switch**.
+ See :subcmd:`switch`.
 
 .. subcmd:: switch [--auto|--no-auto] [-f] [modulefile1] modulefile2
 
@@ -295,7 +295,7 @@ Module Sub-Commands
 
 .. subcmd:: show modulefile...
 
- See **display**.
+ See :subcmd:`display`.
 
 .. subcmd:: display modulefile...
 
@@ -347,7 +347,7 @@ Module Sub-Commands
 
  List all available symbolic version-names and aliases in the current
  :envvar:`MODULEPATH`.  All directories in the :envvar:`MODULEPATH` are recursively
- searched in the same manner than for the **avail** sub-command. Only the
+ searched in the same manner than for the :subcmd:`avail` sub-command. Only the
  symbolic version-names and aliases found in the search are displayed.
 
 .. subcmd:: use [-a|--append] directory...
@@ -375,7 +375,7 @@ Module Sub-Commands
 
 .. subcmd:: refresh
 
- See **reload**.
+ See :subcmd:`reload`.
 
 .. subcmd:: reload
 
@@ -400,7 +400,7 @@ Module Sub-Commands
  Execute *scriptfile* into the shell environment. *scriptfile* must be written
  with *modulefile* syntax and specified with a fully qualified path. Once
  executed *scriptfile* is not marked loaded in shell environment which differ
- from **load** sub-command.
+ from :subcmd:`load` sub-command.
 
 .. subcmd:: whatis [modulefile...]
 
@@ -415,11 +415,11 @@ Module Sub-Commands
 
 .. subcmd:: apropos string
 
- See **search**.
+ See :subcmd:`search`.
 
 .. subcmd:: keyword string
 
- See **search**.
+ See :subcmd:`search`.
 
 .. subcmd:: search string
 
@@ -534,15 +534,15 @@ Module Sub-Commands
 
   :file:`.modules`, :file:`.config/fish/config.fish`
 
- If a **module load** line is found in any of these files, the *modulefiles*
- are appended to any existing list of *modulefiles*. The **module load**
+ If a ``module load`` line is found in any of these files, the *modulefiles*
+ are appended to any existing list of *modulefiles*. The ``module load``
  line must be located in at least one of the files listed above for any of
- the **init** sub-commands to work properly. If the **module load** line is
+ the :subcmd:`init<initadd>` sub-commands to work properly. If the ``module load`` line is
  found in multiple shell initialization files, all of the lines are changed.
 
 .. subcmd:: initprepend modulefile...
 
- Does the same as **initadd** but prepends the given modules to the
+ Does the same as :subcmd:`initadd` but prepends the given modules to the
  beginning of the list.
 
 .. subcmd:: initrm modulefile...
@@ -664,12 +664,12 @@ Module Sub-Commands
    :envvar:`MODULES_ADVANCED_VERSION_SPEC` when set
  * auto_handling: automated module handling mode (defines
    :envvar:`MODULES_AUTO_HANDLING`)
- * avail_indepth: **avail** sub-command in depth search mode (defines
+ * avail_indepth: :subcmd:`avail` sub-command in depth search mode (defines
    :envvar:`MODULES_AVAIL_INDEPTH`)
  * avail_report_dir_sym: display symbolic versions targeting directories on
-   **avail** sub-command
+   :subcmd:`avail` sub-command
  * avail_report_mfile_sym: display symbolic versions targeting modulefiles on
-   **avail** sub-command
+   :subcmd:`avail` sub-command
  * collection_pin_version: register exact modulefile version in collection
    (defines :envvar:`MODULES_COLLECTION_PIN_VERSION`)
  * collection_target: collection target which is valid for current system
@@ -722,7 +722,7 @@ statements. Thus the effect a *modulefile* will have on the environment
 may change depending upon the current state of the environment.
 
 Environment variables are unset when unloading a *modulefile*. Thus, it is
-possible to **load** a *modulefile* and then **unload** it without having
+possible to :subcmd:`load` a *modulefile* and then :subcmd:`unload` it without having
 the environment variables return to their prior state.
 
 
@@ -764,14 +764,14 @@ comparison.
 Collections
 ^^^^^^^^^^^
 
-Collections describe a sequence of **module use** then **module load**
+Collections describe a sequence of :subcmd:`module use<use>` then :subcmd:`module load<load>`
 commands that are interpreted by :file:`modulecmd.tcl` to set the user
 environment as described by this sequence. When a collection is activated,
-with the **restore** sub-command, module paths and loaded modules are
+with the :subcmd:`restore` sub-command, module paths and loaded modules are
 unused or unloaded if they are not part or if they are not ordered the
 same way as in the collection.
 
-Collections are generated by the **save** sub-command that dumps the current
+Collections are generated by the :subcmd:`save` sub-command that dumps the current
 user environment state in terms of module paths and loaded modules. By
 default collections are saved under the :file:`$HOME/.module` directory.
 
@@ -805,7 +805,7 @@ ENVIRONMENT
  The path that the :command:`module` command searches when looking for
  *modulefiles*. Typically, it is set to the master *modulefiles* directory,
  |file modulefilesdir|, by the initialization script. :envvar:`MODULEPATH`
- can be set using **module use** or by the module initialization script
+ can be set using :subcmd:`module use<use>` or by the module initialization script
  to search group or personal *modulefile* directories before or after the
  master *modulefile* directory.
 
@@ -877,7 +877,7 @@ ENVIRONMENT
  loaded for instance), this loaded *modulefile* is excluded from the automatic
  reload actions described above.
 
- For the specific case of the **switch** sub-command, where a modulefile is
+ For the specific case of the :subcmd:`switch` sub-command, where a modulefile is
  unloaded to then load another modulefile. Dependent modulefiles to Unload are
  merged into the Dependent modulefiles to Reload that are reloaded after the
  load of the switched-to modulefile.
@@ -891,8 +891,8 @@ ENVIRONMENT
 
 .. envvar:: MODULES_AVAIL_INDEPTH
 
- If set to **1**, enable in depth search results for **avail** sub-command. If
- set to **0** disable **avail** sub-command in depth mode. Other values are
+ If set to **1**, enable in depth search results for :subcmd:`avail` sub-command. If
+ set to **0** disable :subcmd:`avail` sub-command in depth mode. Other values are
  ignored.
 
  When in depth mode is enabled, modulefiles and directories contained in
@@ -900,7 +900,7 @@ ENVIRONMENT
  disabled these modulefiles and directories contained in matching directories
  are excluded.
 
- **avail** sub-command in depth mode enablement is defined in the following
+ :subcmd:`avail` sub-command in depth mode enablement is defined in the following
  order of preference: :option:`--indepth`/:option:`--no-indepth` command line switches,
  then :envvar:`MODULES_AVAIL_INDEPTH` environment variable, then the default set in
  :file:`modulecmd.tcl` script configuration. Which means :envvar:`MODULES_AVAIL_INDEPTH`
@@ -929,11 +929,11 @@ ENVIRONMENT
  it happens a collection made on machine 1 may be erroneous on machine 2.
 
  When a target is set, only the collections made for that target are
- available to the **restore**, **savelist**, **saveshow** and **saverm**
+ available to the :subcmd:`restore`, :subcmd:`savelist`, :subcmd:`saveshow` and :subcmd:`saverm`
  sub-commands. Saving a collection registers the target footprint by suffixing
  the collection filename with ``.$MODULES_COLLECTION_TARGET``. The collection
  target is not involved when collection is specified as file path on the
- **saveshow**, **restore** and **save** sub-commands.
+ :subcmd:`saveshow`, :subcmd:`restore` and :subcmd:`save` sub-commands.
 
  For example, the :envvar:`MODULES_COLLECTION_TARGET` variable may be set with
  results from commands like :command:`lsb_release`, :command:`hostname`, :command:`dnsdomainname`,
@@ -1017,7 +1017,7 @@ ENVIRONMENT
  modulefile Tcl commands, defines the case sensitiveness to apply to match
  them. When :envvar:`MODULES_ICASE` is set to **never**, a case sensitive match is
  applied in any cases. When set to **search**, a case insensitive match is
- applied to the **avail**, **whatis** and **paths** sub-commands. When set to
+ applied to the :subcmd:`avail`, :subcmd:`whatis` and :subcmd:`paths` sub-commands. When set to
  **always**, a case insensitive match is also applied to the other module
  sub-commands and modulefile Tcl commands for the module specification they
  receive as argument.
@@ -1039,8 +1039,8 @@ ENVIRONMENT
  be fully qualified (version should be specified in addition to its name) to
  get:
 
- * targeted by module **load**, **switch**, **display**, **help**, **test**
-   and **path** sub-commands.
+ * targeted by module :subcmd:`load`, :subcmd:`switch`, :subcmd:`display`, :subcmd:`help`, :subcmd:`test`
+   and :subcmd:`path` sub-commands.
 
  * restored from a collection, unless already loaded in collection-specified
    order.
@@ -1070,7 +1070,7 @@ ENVIRONMENT
  get knowledge of the alternative names matching loaded *modulefiles* in order
  to keep environment consistent when conflicts or pre-requirements are set
  over these alternative designations. It also helps to find a match after
- *modulefiles* being loaded when **unload**, **is-loaded** or **info-loaded**
+ *modulefiles* being loaded when :subcmd:`unload`, :subcmd:`is-loaded` or :subcmd:`info-loaded`
  actions are run over these names.
 
 .. envvar:: MODULES_LMCONFLICT
@@ -1144,7 +1144,7 @@ ENVIRONMENT
 
 .. envvar:: MODULES_SEARCH_MATCH
 
- When searching for modules with **avail** sub-command, defines the way query
+ When searching for modules with :subcmd:`avail` sub-command, defines the way query
  string should match against available module names. With **starts_with**
  value, returned modules are those whose name begins by search query string.
  When set to **contains**, any modules whose fully qualified name contains
@@ -1213,7 +1213,7 @@ ENVIRONMENT
  * normal: turn on informational messages, like a report of the additional
    module evaluations triggered by loading or unloading modules, aborted
    evaluation issues or a report of each module evaluation occurring during a
-   **restore** or **source** sub-commands.
+   :subcmd:`restore` or :subcmd:`source` sub-commands.
  * verbose: add additional informational messages, like a systematic report of
    the loading or unloading module evaluations.
  * debug: print debugging messages about module command execution.
