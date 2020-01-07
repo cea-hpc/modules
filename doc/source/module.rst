@@ -243,6 +243,8 @@ switches are accepted:
  Match module specification arguments in a case insensitive manner.
 
 
+.. _Module Sub-Commands:
+
 Module Sub-Commands
 ^^^^^^^^^^^^^^^^^^^
 
@@ -1175,7 +1177,7 @@ ENVIRONMENT
 .. envvar:: MODULES_SITECONFIG
 
  Location of a site-specific configuration script to source into
- :file:`modulecmd.tcl`. See also Modulecmd startup section.
+ :file:`modulecmd.tcl`. See also `Modulecmd startup`_ section.
 
  This environment variable is ignored if *extra_siteconfig* has been declared
  locked in *locked_configs* configuration option.

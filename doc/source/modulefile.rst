@@ -271,7 +271,7 @@ the *modulefile* is being loaded.
 .. mfcmd:: module [sub-command] [sub-command-args]
 
  Contains the same *sub-commands* as described in the :ref:`module(1)`
- man page in the Module Sub-Commands section. This command permits a
+ man page in the :ref:`Module Sub-Commands` section. This command permits a
  *modulefile* to :subcmd:`load` or :subcmd:`unload` other *modulefiles*. No checks are
  made to ensure that the *modulefile* does not try to load itself. Often
  it is useful to have a single *modulefile* that performs a number of
@@ -315,7 +315,7 @@ the *modulefile* is being loaded.
  **module-info name**
 
   Return the name of the *modulefile*. This is not the full pathname for
-  *modulefile*. See the Modules Variables section for information on the
+  *modulefile*. See the `Modules Variables`_ section for information on the
   full pathname.
 
  **module-info specified**
