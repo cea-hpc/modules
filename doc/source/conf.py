@@ -239,3 +239,31 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
 ]
+
+
+# -- Extension interface --------------------------------------------------
+
+from sphinx import addnodes
+def parse_cmd_args_node(env, sig, signode):
+    try:
+        cmd, args = sig.strip().split(' ', 1)
+    except ValueError:
+        cmd, args = sig, None
+    # distinguish cmd from its args
+    signode += addnodes.desc_name(cmd, cmd)
+    if args:
+        args = ' ' + args
+        signode += addnodes.desc_addname(args, args)
+    return cmd
+
+# define new directive/role that can be used as .. subcmd::/:subcmd: and
+# .. mfcmd::/:mfcmd:
+def setup(app):
+    app.add_object_type('subcmd', 'subcmd',
+                        objname='module sub-command',
+                        indextemplate='pair: %s; module sub-command',
+                        parse_node=parse_cmd_args_node)
+    app.add_object_type(directivename='mfcmd', rolename='mfcmd',
+                        objname='modulefile command',
+                        indextemplate='%s (modulefile command)',
+                        parse_node=parse_cmd_args_node)
