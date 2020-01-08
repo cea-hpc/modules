@@ -429,6 +429,10 @@ Module Sub-Commands
  searched in the same manner than for the :subcmd:`avail` sub-command. Only the
  symbolic version-names and aliases found in the search are displayed.
 
+ .. only:: html
+
+    .. versionadded:: 4.0
+
 .. subcmd:: use [-a|--append] directory...
 
  Prepend one or more *directories* to the :envvar:`MODULEPATH` environment
@@ -464,6 +468,10 @@ Module Sub-Commands
  *modulefiles* have unsatisfied constraint corresponding to the :mfcmd:`prereq`
  and :mfcmd:`conflict` they declare.
 
+ .. only:: html
+
+    .. versionadded:: 4.0
+
 .. subcmd:: purge
 
  Unload all loaded *modulefiles*.
@@ -474,12 +482,22 @@ Module Sub-Commands
  confirmation is requested if command-line switch :option:`-f` (or :option:`--force`) is not
  passed. Typed confirmation should equal to ``yes`` or ``y`` in order to proceed.
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+       :subcmd:`clear` support was dropped on version `4.0` but reintroduced
+       starting version `4.3`.
+
 .. subcmd:: source scriptfile...
 
  Execute *scriptfile* into the shell environment. *scriptfile* must be written
  with *modulefile* syntax and specified with a fully qualified path. Once
  executed *scriptfile* is not marked loaded in shell environment which differ
  from :subcmd:`load` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 4.0
 
 .. subcmd:: whatis [modulefile...]
 
@@ -507,6 +525,12 @@ Module Sub-Commands
  a case insensitive manner will be displayed. *string* may contain wildcard
  characters.
 
+ .. only:: html
+
+    .. versionadded:: 4.0
+       Prior version `4.0` :mfcmd:`module-whatis` information search was
+       performed with :subcmd:`apropos` or :subcmd:`keyword` sub-commands.
+
 .. subcmd:: test modulefile...
 
  Execute and display results of the Module-specific tests for the
@@ -515,6 +539,10 @@ Module Sub-Commands
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
+
+ .. only:: html
+
+    .. versionadded:: 4.0
 
 .. subcmd:: save [collection]
 
@@ -539,6 +567,10 @@ Module Sub-Commands
  *modulefiles* have unsatisfied constraint corresponding to the :mfcmd:`prereq`
  and :mfcmd:`conflict` they declare.
 
+ .. only:: html
+
+    .. versionadded:: 4.0
+
 .. subcmd:: restore [collection]
 
  Restore the environment state as defined in *collection*. If *collection*
@@ -562,12 +594,20 @@ Module Sub-Commands
  *collection* by its bare name: loading this module when restoring the
  collection will fail if the configuration option ``implicit_default`` is disabled.
 
+ .. only:: html
+
+    .. versionadded:: 4.0
+
 .. subcmd:: saverm [collection]
 
  Delete the *collection* file under the user's collection directory. If
  *collection* name is not specified, then it is assumed to be the *default*
  collection. If :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix equivalent to
  the value of this variable will be appended to the *collection* file name.
+
+ .. only:: html
+
+    .. versionadded:: 4.0
 
 .. subcmd:: saveshow [collection]
 
@@ -578,11 +618,19 @@ Module Sub-Commands
  is set, a suffix equivalent to the value of this variable will be appended
  to the *collection* file name.
 
+ .. only:: html
+
+    .. versionadded:: 4.0
+
 .. subcmd:: savelist [-t|-l]
 
  List collections that are currently saved under the user's collection
  directory. If :envvar:`MODULES_COLLECTION_TARGET` is set, only collections
  matching the target suffix will be displayed.
+
+ .. only:: html
+
+    .. versionadded:: 4.0
 
 .. subcmd:: initadd modulefile...
 
@@ -648,6 +696,10 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+ .. only:: html
+
+    .. versionadded:: 4.0
+
 .. subcmd:: paths modulefile
 
  Print path of available *modulefiles* matching argument.
@@ -656,11 +708,19 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+ .. only:: html
+
+    .. versionadded:: 4.0
+
 .. subcmd:: append-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
  Append *value* to environment *variable*. The *variable* is a colon, or
  *delimiter*, separated list. See :mfcmd:`append-path` in the :ref:`modulefile(4)`
  man page for further explanation.
+
+ .. only:: html
+
+    .. versionadded:: 4.1
 
 .. subcmd:: prepend-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
@@ -668,11 +728,19 @@ Module Sub-Commands
  *delimiter*, separated list. See :mfcmd:`prepend-path` in the :ref:`modulefile(4)`
  man page for further explanation.
 
+ .. only:: html
+
+    .. versionadded:: 4.1
+
 .. subcmd:: remove-path [-d C|--delim C|--delim=C] [--index] variable value...
 
  Remove *value* from the colon, or *delimiter*, separated list in environment
  *variable*. See :mfcmd:`remove-path` in the :ref:`modulefile(4)` man page for
  further explanation.
+
+ .. only:: html
+
+    .. versionadded:: 4.1
 
 .. subcmd:: is-loaded [modulefile...]
 
@@ -685,6 +753,10 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+ .. only:: html
+
+    .. versionadded:: 4.1
+
 .. subcmd:: is-saved [collection...]
 
  Returns a true value if any of the listed *collections* exists or if any
@@ -692,12 +764,20 @@ Module Sub-Commands
  otherwise. See :mfcmd:`is-saved` in the :ref:`modulefile(4)` man page for further
  explanation.
 
+ .. only:: html
+
+    .. versionadded:: 4.1
+
 .. subcmd:: is-used [directory...]
 
  Returns a true value if any of the listed *directories* has been enabled in
  :envvar:`MODULEPATH` or if any *directory* is enabled in case no argument is
  provided. Returns a false value otherwise. See :mfcmd:`is-used` in the
  :ref:`modulefile(4)` man page for further explanation.
+
+ .. only:: html
+
+    .. versionadded:: 4.1
 
 .. subcmd:: is-avail modulefile...
 
@@ -709,12 +789,20 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+ .. only:: html
+
+    .. versionadded:: 4.1
+
 .. subcmd:: info-loaded modulefile
 
  Returns the names of currently loaded modules matching passed *modulefile*.
  Returns an empty string if passed *modulefile* does not match any loaded
  modules. See :mfcmd:`module-info loaded<module-info>` in the :ref:`modulefile(4)` man page for
  further explanation.
+
+ .. only:: html
+
+    .. versionadded:: 4.1
 
 .. subcmd:: config [--dump-state|name [value]|--reset name]
 
@@ -790,6 +878,10 @@ The options ``avail_report_dir_sym``, ``avail_report_mfile_sym``, ``ignored_dirs
 ``locked_configs``, ``siteconfig`` and ``tcl_ext_lib`` cannot be altered. Moreover
 all options referred in ``locked_configs`` value are locked, thus they cannot be
 altered.
+
+ .. only:: html
+
+    .. versionadded:: 4.3
 
 
 Modulefiles
