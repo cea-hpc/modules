@@ -150,38 +150,74 @@ switches are accepted:
  Debug mode. Causes :command:`module` to print debugging messages about its
  progress.
 
+ .. only:: html
+
+    .. versionadded:: 4.0
+
 .. option:: --verbose, -v
 
  Enable verbose messages during :command:`module` command execution.
+
+ .. only:: html
+
+    .. versionadded:: 4.3
+       :option:`--verbose`/:option:`-v` support was dropped on version `4.0`
+       but reintroduced starting version `4.3`.
 
 .. option:: --silent, -s
 
  Turn off error, warning and informational messages. :command:`module` command output
  result is not affected by silent mode.
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+       :option:`--silent`/:option:`-s` support was dropped on version `4.0`
+       but reintroduced starting version `4.3`.
+
 .. option:: --paginate
 
  Pipe all message output into :command:`less` (or if set, to the command referred in :envvar:`MODULES_PAGER` variable) if error
  output stream is a terminal. See also :envvar:`MODULES_PAGER` section.
 
+ .. only:: html
+
+    .. versionadded:: 4.1
+
 .. option:: --no-pager
 
  Do not pipe message output into a pager.
+
+ .. only:: html
+
+    .. versionadded:: 4.1
 
 .. option:: --color=<WHEN>
 
  Colorize the output. *WHEN* defaults to ``always`` or can be ``never`` or ``auto``.
  See also :envvar:`MODULES_COLOR` section.
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. option:: --auto
 
  On :subcmd:`load`, :subcmd:`unload` and :subcmd:`switch` sub-commands, enable automated module
  handling mode. See also :envvar:`MODULES_AUTO_HANDLING` section.
 
+ .. only:: html
+
+    .. versionadded:: 4.2
+
 .. option:: --no-auto
 
  On :subcmd:`load`, :subcmd:`unload` and :subcmd:`switch` sub-commands, disable automated module
  handling mode. See also :envvar:`MODULES_AUTO_HANDLING` section.
+
+ .. only:: html
+
+    .. versionadded:: 4.2
 
 .. option:: --force, -f
 
@@ -193,6 +229,15 @@ switches are accepted:
  *modulefile*.
 
  On :subcmd:`clear` sub-command, skip the confirmation dialog and proceed.
+
+ .. only:: html
+
+    .. versionadded:: 4.3
+       :option:`--force`/:option:`-f` support was dropped on version `4.0`
+       but reintroduced starting version `4.2` with a different meaning:
+       instead of enabling an active dependency resolution mechanism
+       :option:`--force` command line switch now enables to by-pass dependency
+       consistency when loading or unloading a *modulefile*.
 
 .. option:: --terse, -t
 
@@ -210,21 +255,37 @@ switches are accepted:
  (see :ref:`Locating Modulefiles` section in the :ref:`modulefile(4)` man page for
  further details on implicit default version).
 
+ .. only:: html
+
+    .. versionadded:: 4.0
+
 .. option:: --latest, -L
 
  On :subcmd:`avail` sub-command, display only the highest numerically sorted
  version of each module name (see :ref:`Locating Modulefiles` section in the
  :ref:`modulefile(4)` man page).
 
+ .. only:: html
+
+    .. versionadded:: 4.0
+
 .. option:: --starts-with, -S
 
  On :subcmd:`avail` sub-command, return modules whose name starts with search query
  string.
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. option:: --contains, -C
 
  On :subcmd:`avail` sub-command, return modules whose fully qualified name contains
  search query string.
+
+ .. only:: html
+
+    .. versionadded:: 4.3
 
 .. option:: --indepth
 
@@ -232,15 +293,31 @@ switches are accepted:
  and directories and recursively the modulefiles and directories contained in
  these matching directories.
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. option:: --no-indepth
 
  On :subcmd:`avail` sub-command, limit search results to the matching modulefiles
  and directories found at the depth level expressed by the search query. Thus
  modulefiles contained in directories part of the result are excluded.
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. option:: --icase, -i
 
  Match module specification arguments in a case insensitive manner.
+
+ .. only:: html
+
+    .. versionadded:: 4.4
+       :option:`--icase`/:option:`-i` support was dropped on version `4.0`
+       but reintroduced starting version `4.4`. When set, it now applies to
+       search query string and module specificiation on all sub-commands and
+       modulefile Tcl commands.
 
 
 .. _Module Sub-Commands:
