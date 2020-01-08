@@ -249,12 +249,20 @@ the *modulefile* is being loaded.
  *collection* argument is provided, a true value will only be returned if
  a collection matching currently set target exists.
 
+ .. only:: html
+
+    .. versionadded:: 4.1
+
 .. mfcmd:: is-used [directory...]
 
  The :mfcmd:`is-used` command returns a true value if any of the listed
  *directories* has been enabled in :envvar:`MODULEPATH` or if any *directory* is
  enabled in case no argument is provided. If a list contains more than one
  *directory*, then each member acts as a boolean OR operation.
+
+ .. only:: html
+
+    .. versionadded:: 4.1
 
 .. mfcmd:: is-avail modulefile...
 
@@ -267,6 +275,10 @@ the *modulefile* is being loaded.
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
+
+ .. only:: html
+
+    .. versionadded:: 4.1
 
 .. mfcmd:: module [sub-command] [sub-command-args]
 
@@ -311,6 +323,10 @@ the *modulefile* is being loaded.
   Returns ``1`` if :file:`modulecmd.tcl`'s command is *commandname*. *commandname*
   can be: ``load``, ``unload``, ``reload``, ``source``, ``switch``, ``display``, ``avail``, ``aliases``,
   ``list``, ``whatis``, ``search``, ``purge``, ``restore``, ``help`` or ``test``.
+
+  .. only:: html
+
+     .. versionadded:: 4.0
 
  **module-info name**
 
@@ -370,6 +386,10 @@ the *modulefile* is being loaded.
   *modulefiles* from the directory will be returned. The parameter
   *modulefile* may also be a symbolic modulefile name or a modulefile alias.
 
+  .. only:: html
+
+     .. versionadded:: 4.1
+
 .. mfcmd:: module-version modulefile version-name...
 
  Assigns the symbolic *version-name* to the *modulefile*. This command
@@ -417,6 +437,10 @@ the *modulefile* is being loaded.
  The parameter *modulefile* corresponds to the relative or absolute file
  location of a *modulefile*.
 
+ .. only:: html
+
+    .. versionadded:: 4.1
+
 .. mfcmd:: module-whatis string
 
  Defines a string which is displayed in case of the invocation of the
@@ -446,9 +470,17 @@ the *modulefile* is being loaded.
  possible and the command has no effect. When a *modulefile* is unloaded,
  :mfcmd:`set-function` becomes :mfcmd:`unset-function`.
 
+ .. only:: html
+
+    .. versionadded:: 4.2
+
 .. mfcmd:: unset-function function-name
 
  Removes a function with the name *function-name* from the user's environment.
+
+ .. only:: html
+
+    .. versionadded:: 4.2
 
 .. mfcmd:: system string
 
