@@ -62,6 +62,10 @@ the Module commands return the empty string. Some commands behave differently
 when a *modulefile* is loaded or unloaded. The command descriptions assume
 the *modulefile* is being loaded.
 
+.. mfcmd:: append-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
+
+ See :mfcmd:`prepend-path`.
+
 .. mfcmd:: break
 
  This is not a Modules-specific command, it's actually part of Tcl, which
@@ -99,108 +103,6 @@ the *modulefile* is being loaded.
 
  Set the current working directory to *directory*.
 
-.. mfcmd:: continue
-
- This is not a modules specific command but another overloaded Tcl command
- and is similar to the :mfcmd:`break` or :mfcmd:`exit` commands except the
- module will be listed as loaded as well as performing any environment or Tcl
- commands up to this point and then continuing on to the next module on
- the command line. The :mfcmd:`continue` command will only have this effect if
- not used within a Tcl loop though.
-
-.. mfcmd:: exit [N]
-
- This is not a modules specific command but another overloaded Tcl command
- and is similar to the :mfcmd:`break` or :mfcmd:`continue` commands. However,
- this command will cause the immediate cessation of this module and any
- additional ones on the command line. This module and the subsequent
- modules will not be listed as loaded. No environment commands will be
- performed in the current module.
-
-.. mfcmd:: setenv variable value
-
- Set environment *variable* to *value*. The :mfcmd:`setenv` command will also
- change the process' environment. A reference using Tcl's env associative
- array will reference changes made with the :mfcmd:`setenv` command. Changes
- made using Tcl's ``env`` associative array will **NOT** change the user's
- environment *variable* like the :mfcmd:`setenv` command. An environment
- change made this way will only affect the module parsing process. The
- :mfcmd:`setenv` command is also useful for changing the environment prior to
- the ``exec`` or :mfcmd:`system` command. When a *modulefile* is unloaded,
- :mfcmd:`setenv` becomes :mfcmd:`unsetenv`. If the environment *variable* had
- been defined it will be overwritten while loading the *modulefile*. A
- subsequent :subcmd:`unload` will unset the environment *variable* - the
- previous value cannot be restored! (Unless you handle it explicitly ... see
- below.)
-
-.. mfcmd:: unsetenv variable [value]
-
- Unsets environment *variable*. However, if there is an optional *value*,
- then when unloading a module, it will set *variable* to *value*. The
- :mfcmd:`unsetenv` command changes the process' environment like
- :mfcmd:`setenv`.
-
-.. mfcmd:: getenv variable [value]
-
- Returns value of environment *variable*. If *variable* is not defined,
- *value* is returned if set, ``_UNDEFINED_`` is returned otherwise. The
- :mfcmd:`getenv` command should be preferred over the Tcl global variable
- ``env`` to query environment variables.
-
-.. mfcmd:: append-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
-
- See :mfcmd:`prepend-path`.
-
-.. mfcmd:: prepend-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
-
- Append or prepend *value* to environment *variable*. The
- *variable* is a colon, or *delimiter*, separated list such as
- ``PATH=directory:directory:directory``. The default delimiter is a colon
- ``:``, but an arbitrary one can be given by the ``--delim`` option. For
- example a space can be used instead (which will need to be handled in
- the Tcl specially by enclosing it in ``" "`` or ``{ }``). A space, however,
- can not be specified by the ``--delim=C`` form.
-
- A reference counter environment variable is also set to increase the
- number of times *value* has been added to environment *variable*. This
- reference counter environment variable is named by suffixing *variable*
- by ``_modshare``.
-
- When *value* is already defined in environement *variable*, it is not added
- again except if ``--duplicates`` option is set.
-
- If the *variable* is not set, it is created. When a *modulefile* is
- unloaded, :mfcmd:`append-path` and :mfcmd:`prepend-path` become
- :mfcmd:`remove-path`.
-
- If *value* corresponds to the concatenation of multiple elements separated by
- colon, or *delimiter*, character, each element is treated separately.
-
-.. mfcmd:: remove-path [-d C|--delim C|--delim=C] [--index] variable value...
-
- Remove *value* from the colon, or *delimiter*, separated list in
- *variable*. See :mfcmd:`prepend-path` or :mfcmd:`append-path` for further
- explanation of using an arbitrary delimiter. Every string between colons, or
- delimiters, in *variable* is compared to *value*. If the two match, *value*
- is removed from *variable* if its reference counter is equal to 1 or unknown.
-
- When ``--index`` option is set, *value* refers to an index in *variable*
- list. The string element pointed by this index is set for removal.
-
- Reference counter of *value* in *variable* denotes the number of times
- *value* has been added to *variable*. This information is stored in
- environment *variable_modshare*. When attempting to remove *value* from
- *variable*, relative reference counter is checked and *value* is removed
- only if counter is equal to 1 or not defined. Otherwise *value* is kept
- in *variable* and reference counter is decreased by 1.
-
- If *value* corresponds to the concatenation of multiple elements separated by
- colon, or *delimiter*, character, each element is treated separately.
-
-.. mfcmd:: prereq modulefile...
-
- See :mfcmd:`conflict`.
-
 .. mfcmd:: conflict modulefile...
 
  :mfcmd:`prereq` and :mfcmd:`conflict` control whether or not the *modulefile*
@@ -227,6 +129,47 @@ the *modulefile* is being loaded.
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
+
+.. mfcmd:: continue
+
+ This is not a modules specific command but another overloaded Tcl command
+ and is similar to the :mfcmd:`break` or :mfcmd:`exit` commands except the
+ module will be listed as loaded as well as performing any environment or Tcl
+ commands up to this point and then continuing on to the next module on
+ the command line. The :mfcmd:`continue` command will only have this effect if
+ not used within a Tcl loop though.
+
+.. mfcmd:: exit [N]
+
+ This is not a modules specific command but another overloaded Tcl command
+ and is similar to the :mfcmd:`break` or :mfcmd:`continue` commands. However,
+ this command will cause the immediate cessation of this module and any
+ additional ones on the command line. This module and the subsequent
+ modules will not be listed as loaded. No environment commands will be
+ performed in the current module.
+
+.. mfcmd:: getenv variable [value]
+
+ Returns value of environment *variable*. If *variable* is not defined,
+ *value* is returned if set, ``_UNDEFINED_`` is returned otherwise. The
+ :mfcmd:`getenv` command should be preferred over the Tcl global variable
+ ``env`` to query environment variables.
+
+.. mfcmd:: is-avail modulefile...
+
+ The :mfcmd:`is-avail` command returns a true value if any of the listed
+ *modulefiles* exists in enabled :envvar:`MODULEPATH`. If a list contains more
+ than one *modulefile*, then each member acts as a boolean OR operation. If an
+ argument for :mfcmd:`is-avail` is a directory and a *modulefile* exists in
+ the directory :mfcmd:`is-avail` would return a true value.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
+ .. only:: html
+
+    .. versionadded:: 4.1
 
 .. mfcmd:: is-loaded [modulefile...]
 
@@ -268,22 +211,6 @@ the *modulefile* is being loaded.
 
     .. versionadded:: 4.1
 
-.. mfcmd:: is-avail modulefile...
-
- The :mfcmd:`is-avail` command returns a true value if any of the listed
- *modulefiles* exists in enabled :envvar:`MODULEPATH`. If a list contains more
- than one *modulefile*, then each member acts as a boolean OR operation. If an
- argument for :mfcmd:`is-avail` is a directory and a *modulefile* exists in
- the directory :mfcmd:`is-avail` would return a true value.
-
- The parameter *modulefile* may also be a symbolic modulefile name or a
- modulefile alias. It may also leverage a specific syntax to finely select
- module version (see `Advanced module version specifiers`_ section below).
-
- .. only:: html
-
-    .. versionadded:: 4.1
-
 .. mfcmd:: module [sub-command] [sub-command-args]
 
  Contains the same *sub-commands* as described in the :ref:`module(1)`
@@ -298,6 +225,20 @@ the *modulefile* is being loaded.
  Command line switches :option:`--auto`, :option:`--no-auto` and
  :option:`--force` are ignored when passed to a :mfcmd:`module` command set in
  a *modulefile*.
+
+.. mfcmd:: module-alias name modulefile
+
+ Assigns the *modulefile* to the alias *name*. This command should be
+ placed in one of the :file:`modulecmd.tcl` rc files in order to provide
+ shorthand invocations of frequently used *modulefile* names.
+
+ The parameter *modulefile* may be either
+
+ * a fully qualified *modulefile* with name and version
+
+ * a symbolic *modulefile* name
+
+ * another *modulefile* alias
 
 .. mfcmd:: module-info option [info-args]
 
@@ -422,20 +363,6 @@ the *modulefile* is being loaded.
 
  * another *modulefile* alias
 
-.. mfcmd:: module-alias name modulefile
-
- Assigns the *modulefile* to the alias *name*. This command should be
- placed in one of the :file:`modulecmd.tcl` rc files in order to provide
- shorthand invocations of frequently used *modulefile* names.
-
- The parameter *modulefile* may be either
-
- * a fully qualified *modulefile* with name and version
-
- * a symbolic *modulefile* name
-
- * another *modulefile* alias
-
 .. mfcmd:: module-virtual name modulefile
 
  Assigns the *modulefile* to the virtual module *name*. This command should be
@@ -464,16 +391,62 @@ the *modulefile* is being loaded.
  than one word specified. Words are defined to be separated by whitespace
  characters (space, tab, cr).
 
+.. mfcmd:: prepend-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
+
+ Append or prepend *value* to environment *variable*. The
+ *variable* is a colon, or *delimiter*, separated list such as
+ ``PATH=directory:directory:directory``. The default delimiter is a colon
+ ``:``, but an arbitrary one can be given by the ``--delim`` option. For
+ example a space can be used instead (which will need to be handled in
+ the Tcl specially by enclosing it in ``" "`` or ``{ }``). A space, however,
+ can not be specified by the ``--delim=C`` form.
+
+ A reference counter environment variable is also set to increase the
+ number of times *value* has been added to environment *variable*. This
+ reference counter environment variable is named by suffixing *variable*
+ by ``_modshare``.
+
+ When *value* is already defined in environement *variable*, it is not added
+ again except if ``--duplicates`` option is set.
+
+ If the *variable* is not set, it is created. When a *modulefile* is
+ unloaded, :mfcmd:`append-path` and :mfcmd:`prepend-path` become
+ :mfcmd:`remove-path`.
+
+ If *value* corresponds to the concatenation of multiple elements separated by
+ colon, or *delimiter*, character, each element is treated separately.
+
+.. mfcmd:: prereq modulefile...
+
+ See :mfcmd:`conflict`.
+
+.. mfcmd:: remove-path [-d C|--delim C|--delim=C] [--index] variable value...
+
+ Remove *value* from the colon, or *delimiter*, separated list in
+ *variable*. See :mfcmd:`prepend-path` or :mfcmd:`append-path` for further
+ explanation of using an arbitrary delimiter. Every string between colons, or
+ delimiters, in *variable* is compared to *value*. If the two match, *value*
+ is removed from *variable* if its reference counter is equal to 1 or unknown.
+
+ When ``--index`` option is set, *value* refers to an index in *variable*
+ list. The string element pointed by this index is set for removal.
+
+ Reference counter of *value* in *variable* denotes the number of times
+ *value* has been added to *variable*. This information is stored in
+ environment *variable_modshare*. When attempting to remove *value* from
+ *variable*, relative reference counter is checked and *value* is removed
+ only if counter is equal to 1 or not defined. Otherwise *value* is kept
+ in *variable* and reference counter is decreased by 1.
+
+ If *value* corresponds to the concatenation of multiple elements separated by
+ colon, or *delimiter*, character, each element is treated separately.
+
 .. mfcmd:: set-alias alias-name alias-string
 
  Sets an alias or function with the name *alias-name* in the user's
  environment to the string *alias-string*. For some shells, aliases are not
  possible and the command has no effect. When a *modulefile* is unloaded,
  :mfcmd:`set-alias` becomes :mfcmd:`unset-alias`.
-
-.. mfcmd:: unset-alias alias-name
-
- Unsets an alias with the name *alias-name* in the user's environment.
 
 .. mfcmd:: set-function function-name function-string
 
@@ -486,13 +459,21 @@ the *modulefile* is being loaded.
 
     .. versionadded:: 4.2
 
-.. mfcmd:: unset-function function-name
+.. mfcmd:: setenv variable value
 
- Removes a function with the name *function-name* from the user's environment.
-
- .. only:: html
-
-    .. versionadded:: 4.2
+ Set environment *variable* to *value*. The :mfcmd:`setenv` command will also
+ change the process' environment. A reference using Tcl's env associative
+ array will reference changes made with the :mfcmd:`setenv` command. Changes
+ made using Tcl's ``env`` associative array will **NOT** change the user's
+ environment *variable* like the :mfcmd:`setenv` command. An environment
+ change made this way will only affect the module parsing process. The
+ :mfcmd:`setenv` command is also useful for changing the environment prior to
+ the ``exec`` or :mfcmd:`system` command. When a *modulefile* is unloaded,
+ :mfcmd:`setenv` becomes :mfcmd:`unsetenv`. If the environment *variable* had
+ been defined it will be overwritten while loading the *modulefile*. A
+ subsequent :subcmd:`unload` will unset the environment *variable* - the
+ previous value cannot be restored! (Unless you handle it explicitly ... see
+ below.)
 
 .. mfcmd:: system string
 
@@ -525,6 +506,25 @@ the *modulefile* is being loaded.
  * ``version``: the operating system version
 
  * ``machine``: a standard name that identifies the system's hardware
+
+.. mfcmd:: unset-alias alias-name
+
+ Unsets an alias with the name *alias-name* in the user's environment.
+
+.. mfcmd:: unset-function function-name
+
+ Removes a function with the name *function-name* from the user's environment.
+
+ .. only:: html
+
+    .. versionadded:: 4.2
+
+.. mfcmd:: unsetenv variable [value]
+
+ Unsets environment *variable*. However, if there is an optional *value*,
+ then when unloading a module, it will set *variable* to *value*. The
+ :mfcmd:`unsetenv` command changes the process' environment like
+ :mfcmd:`setenv`.
 
 .. mfcmd:: x-resource [resource-string|filename]
 
