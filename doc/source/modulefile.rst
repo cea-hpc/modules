@@ -13,7 +13,7 @@ interface. *modulefiles* can be loaded, unloaded, or switched on-the-fly
 while the user is working; and can be used to implement site policies
 regarding the access and use of applications.
 
-A *modulefile* begins with the magic cookie, '#%Module'. A version number may
+A *modulefile* begins with the magic cookie, ``#%Module``. A version number may
 be placed after this string. The version number is useful as the *modulefile*
 format may change thus it reflects the minimum version of :file:`modulecmd.tcl`
 required to interpret the modulefile. If a version number doesn't exist, then
@@ -122,10 +122,10 @@ the *modulefile* is being loaded.
  Set environment *variable* to *value*. The :mfcmd:`setenv` command will also
  change the process' environment. A reference using Tcl's env associative
  array will reference changes made with the :mfcmd:`setenv` command. Changes
- made using Tcl's *env* associative array will **NOT** change the user's
+ made using Tcl's ``env`` associative array will **NOT** change the user's
  environment *variable* like the :mfcmd:`setenv` command. An environment change
  made this way will only affect the module parsing process. The :mfcmd:`setenv`
- command is also useful for changing the environment prior to the **exec**
+ command is also useful for changing the environment prior to the ``exec``
  or :mfcmd:`system` command. When a *modulefile* is unloaded, :mfcmd:`setenv` becomes
  :mfcmd:`unsetenv`. If the environment *variable* had been defined it will
  be overwritten while loading the *modulefile*. A subsequent :subcmd:`unload`
@@ -140,9 +140,9 @@ the *modulefile* is being loaded.
 
 .. mfcmd:: getenv variable [value]
 
- Returns value of environment *variable*. If *variable* is not defined *value*
- is returned if set *_UNDEFINED_* is returned otherwise. :mfcmd:`getenv` command
- should be preferred over Tcl global variable **env** to query environment
+ Returns value of environment *variable*. If *variable* is not defined, *value*
+ is returned if set, ``_UNDEFINED_`` is returned otherwise. The :mfcmd:`getenv` command
+ should be preferred over the Tcl global variable ``env`` to query environment
  variables.
 
 .. mfcmd:: append-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
@@ -154,15 +154,15 @@ the *modulefile* is being loaded.
  Append or prepend *value* to environment *variable*. The
  *variable* is a colon, or *delimiter*, separated list such as
  ``PATH=directory:directory:directory``. The default delimiter is a colon
- ':', but an arbitrary one can be given by the ``--delim`` option. For
+ ``:``, but an arbitrary one can be given by the ``--delim`` option. For
  example a space can be used instead (which will need to be handled in
- the Tcl specially by enclosing it in " " or { }). A space, however,
- can not be specified by the *--delim=C* form.
+ the Tcl specially by enclosing it in ``" "`` or ``{ }``). A space, however,
+ can not be specified by the ``--delim=C`` form.
 
  A reference counter environment variable is also set to increase the
  number of times *value* has been added to environment *variable*. This
  reference counter environment variable is named by suffixing *variable*
- by *_modshare*.
+ by ``_modshare``.
 
  When *value* is already defined in environement *variable*, it is not added
  again except if ``--duplicates`` option is set.
@@ -291,8 +291,8 @@ the *modulefile* is being loaded.
 
  **module-info type**
 
-  Returns either "C" or "Tcl" to indicate which :command:`module` command is being
-  executed, either the "C" version or the Tcl-only version, to allow the
+  Returns either ``C`` or ``Tcl`` to indicate which :command:`module` command is being
+  executed, either the C version or the Tcl-only version, to allow the
   *modulefile* writer to handle any differences between the two.
 
  **module-info mode** [modetype]
@@ -300,17 +300,17 @@ the *modulefile* is being loaded.
   Returns the current :file:`modulecmd.tcl`'s mode as a string if no *modetype*
   is given.
 
-  Returns 1 if :file:`modulecmd.tcl`'s mode is *modetype*. *modetype* can be:
-  load, unload, remove, switch, display, help, test or whatis.
+  Returns ``1`` if :file:`modulecmd.tcl`'s mode is *modetype*. *modetype* can be:
+  ``load``, ``unload``, ``remove``, ``switch``, ``display``, ``help``, ``test`` or ``whatis``.
 
  **module-info command** [commandname]
 
   Returns the currently running :file:`modulecmd.tcl`'s command as a string
   if no *commandname* is given.
 
-  Returns 1 if :file:`modulecmd.tcl`'s command is *commandname*. *commandname*
-  can be: load, unload, reload, source, switch, display, avail, aliases,
-  list, whatis, search, purge, restore, help or test.
+  Returns ``1`` if :file:`modulecmd.tcl`'s command is *commandname*. *commandname*
+  can be: ``load``, ``unload``, ``reload``, ``source``, ``switch``, ``display``, ``avail``, ``aliases``,
+  ``list``, ``whatis``, ``search``, ``purge``, ``restore``, ``help`` or ``test``.
 
  **module-info name**
 
@@ -328,9 +328,9 @@ the *modulefile* is being loaded.
   no *shellname* is given. The current shell is the first parameter of
   :file:`modulecmd.tcl`, which is normally hidden by the :command:`module` alias.
 
-  If a *shellname* is given, returns 1 if :file:`modulecmd.tcl`'s current shell
-  is *shellname*, returns 0 otherwise. *shellname* can be: sh, bash, ksh,
-  zsh, csh, tcsh, fish, tcl, perl, python, ruby, lisp, cmake, r.
+  If a *shellname* is given, returns ``1`` if :file:`modulecmd.tcl`'s current shell
+  is *shellname*, returns ``0`` otherwise. *shellname* can be: ``sh``, ``bash``, ``ksh``,
+  ``zsh``, ``csh``, ``tcsh``, ``fish``, ``tcl``, ``perl``, ``python``, ``ruby``, ``lisp``, ``cmake``, ``r``.
 
  **module-info shelltype** [shelltypename]
 
@@ -339,9 +339,9 @@ the *modulefile* is being loaded.
   first parameter of :file:`modulecmd.tcl`. The output reflects a shell type
   determining the shell syntax of the commands produced by :file:`modulecmd.tcl`.
 
-  If a *shelltypename* is given, returns 1 if :file:`modulecmd.tcl`'s current
-  shell type is *shelltypename*, returns 0 otherwise. *shelltypename*
-  can be: sh, csh, fish, tcl, perl, python, ruby, lisp, cmake, r.
+  If a *shelltypename* is given, returns ``1`` if :file:`modulecmd.tcl`'s current
+  shell type is *shelltypename*, returns ``0`` otherwise. *shelltypename*
+  can be: ``sh``, ``csh``, ``fish``, ``tcl``, ``perl``, ``python``, ``ruby``, ``lisp``, ``cmake``, ``r``.
 
  **module-info alias** name
 
@@ -460,25 +460,25 @@ the *modulefile* is being loaded.
 .. mfcmd:: uname field
 
  Provide lookup of system information. Most *field* information are retrieved
- from the **tcl_platform** array (see :manpage:`tclvars(n)` man page). Uname will
- return the string "unknown" if information is unavailable for the *field*.
+ from the ``tcl_platform`` array (see the :manpage:`tclvars(n)` man page). Uname will
+ return the string ``unknown`` if information is unavailable for the *field*.
 
- :mfcmd:`uname` will invoke :manpage:`uname(1)` command in order to get the operating
+ :mfcmd:`uname` will invoke the :manpage:`uname(1)` command in order to get the operating
  system version and :manpage:`domainname(1)` to figure out the name of the domain.
 
  *field* values are:
 
- * sysname: the operating system name
+ * ``sysname``: the operating system name
 
- * nodename: the hostname
+ * ``nodename``: the hostname
 
- * domain: the name of the domain
+ * ``domain``: the name of the domain
 
- * release: the operating system release
+ * ``release``: the operating system release
 
- * version: the operating system version
+ * ``version``: the operating system version
 
- * machine: a standard name that identifies the system's hardware
+ * ``machine``: a standard name that identifies the system's hardware
 
 .. mfcmd:: x-resource [resource-string|filename]
 
@@ -496,16 +496,16 @@ the *modulefile* is being loaded.
 
  Examples:
 
- **x-resource** /u2/staff/leif/.xres/Ileaf
+ ``x-resource /u2/staff/leif/.xres/Ileaf``
 
   The content of the *Ileaf* file is merged into the X11 resource database.
 
- **x-resource** [glob ~/.xres/ileaf]
+ ``x-resource [glob ~/.xres/ileaf]``
 
   The Tcl glob function is used to have the *modulefile* read different
   resource files for different users.
 
- **x-resource** {Ileaf.popup.saveUnder: True}
+ ``x-resource {Ileaf.popup.saveUnder: True}``
 
   Merge the Ileaf resource into the X11 resource database.
 
@@ -513,7 +513,7 @@ the *modulefile* is being loaded.
 Modules Variables
 -----------------
 
-The **ModulesCurrentModulefile** variable contains the full pathname of
+The ``ModulesCurrentModulefile`` variable contains the full pathname of
 the *modulefile* being interpreted.
 
 .. _Locating Modulefiles:
@@ -539,12 +539,12 @@ sourced. Otherwise the file :file:`.version` is looked up in the module director
 
 If the :file:`.version` file exists, it is opened and interpreted as Tcl code and
 takes precedence over a :file:`.modulerc` file in the same directory. If the Tcl
-variable **ModulesVersion** is set by the :file:`.version` file, :file:`modulecmd.tcl`
+variable ``ModulesVersion`` is set by the :file:`.version` file, :file:`modulecmd.tcl`
 will use the name as if it specifies a *modulefile* in this directory. This
-will become the default *modulefile* in this case. **ModulesVersion** cannot
+will become the default *modulefile* in this case. ``ModulesVersion`` cannot
 refer to a *modulefile* located in a different directory.
 
-If **ModulesVersion** is a directory, the search begins anew down that
+If ``ModulesVersion`` is a directory, the search begins anew down that
 directory. If the name does not match any files located in the current
 directory, the search continues through the remaining directories in
 :envvar:`MODULEPATH`.
@@ -655,7 +655,7 @@ Modulefile Specific Help
 
 Users can request help about a specific *modulefile* through the
 :ref:`module(1)` command. The *modulefile* can print helpful information or
-start help oriented programs by defining a **ModulesHelp** subroutine. The
+start help oriented programs by defining a ``ModulesHelp`` subroutine. The
 subroutine will be called when the :subcmd:`module help modulefile<help>` command
 is used.
 
@@ -665,7 +665,7 @@ Modulefile Specific Test
 
 Users can request test of a specific *modulefile* through the :ref:`module(1)`
 command. The *modulefile* can perform some sanity checks on its
-definition or on its underlying programs by defining a **ModulesTest**
+definition or on its underlying programs by defining a ``ModulesTest``
 subroutine. The subroutine will be called when the :subcmd:`module test modulefile<test>`
 command is used. The subroutine should return 1 in case of success. If no
 or any other value is returned, test is considered failed.
@@ -676,8 +676,8 @@ Modulefile Display
 
 The :subcmd:`module display modulefile<display>` command will detail all changes that
 will be made to the environment. After displaying all of the environment
-changes :file:`modulecmd.tcl` will call the **ModulesDisplay** subroutine. The
-**ModulesDisplay** subroutine is a good place to put additional descriptive
+changes :file:`modulecmd.tcl` will call the ``ModulesDisplay`` subroutine. The
+``ModulesDisplay`` subroutine is a good place to put additional descriptive
 information about the *modulefile*.
 
 

@@ -170,7 +170,7 @@ switches are accepted:
 
 .. option:: --color=<WHEN>
 
- Colorize the output. *WHEN* defaults to *always* or can be *never* or *auto*.
+ Colorize the output. *WHEN* defaults to ``always`` or can be ``never`` or ``auto``.
  See also :envvar:`MODULES_COLOR` section.
 
 .. option:: --auto
@@ -206,7 +206,7 @@ switches are accepted:
 
  On :subcmd:`avail` sub-command, display only the default version of each module
  name. Default version is the explicitly set default version or also the
- implicit default version if the configuration option *implicit_default* is enabled
+ implicit default version if the configuration option ``implicit_default`` is enabled
  (see :ref:`Locating Modulefiles` section in the :ref:`modulefile(4)` man page for
  further details on implicit default version).
 
@@ -329,15 +329,15 @@ Module Sub-Commands
  result of this sub-command. Symbolic version-names are displayed next to
  the *modulefile* they are assigned to within parenthesis. Aliases are listed
  in the :envvar:`MODULEPATH` section where they have been defined. To distinguish
- aliases from *modulefiles* a **@** symbol is added within parenthesis
+ aliases from *modulefiles* a ``@`` symbol is added within parenthesis
  next to their name. Aliases defined through a global or user specific
  module RC file are listed under the **global/user modulerc** section.
 
  When colored output is enabled and a specific graphical rendition is defined
- for module *default* version, the **default** symbol is omitted and instead
+ for module *default* version, the ``default`` symbol is omitted and instead
  the defined graphical rendition is applied to the relative modulefile. When
  colored output is enabled and a specific graphical rendition is defined for
- module alias, the **@** symbol is omitted. The defined graphical rendition
+ module alias, the ``@`` symbol is omitted. The defined graphical rendition
  applies to the module alias name. See :envvar:`MODULES_COLOR` and
  :envvar:`MODULES_COLORS` sections for details on colored output.
 
@@ -395,7 +395,7 @@ Module Sub-Commands
 
  Force the Modules package to believe that no modules are currently loaded. A
  confirmation is requested if command-line switch :option:`-f` (or :option:`--force`) is not
- passed. Typed confirmation should equal to *yes* or *y* in order to proceed.
+ passed. Typed confirmation should equal to ``yes`` or ``y`` in order to proceed.
 
 .. subcmd:: source scriptfile...
 
@@ -444,18 +444,18 @@ Module Sub-Commands
  Record the currently set :envvar:`MODULEPATH` directory list and the currently
  loaded *modulefiles* in a *collection* file under the user's collection
  directory :file:`$HOME/.module`. If *collection* name is not specified, then
- it is assumed to be the *default* collection. If *collection* is a fully
+ it is assumed to be the ``default`` collection. If *collection* is a fully
  qualified path, it is saved at this location rather than under the user's
  collection directory.
 
  If :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix equivalent to the value
  of this variable will be appended to the *collection* file name.
 
- By default, if loaded modulefile corresponds to the explicitly defined
+ By default, if a loaded modulefile corresponds to the explicitly defined
  default module version, the bare module name is recorded. If the configuration
- option *implicit_default* is enabled, the bare module name is also recorded
+ option ``implicit_default`` is enabled, the bare module name is also recorded
  for the implicit default module version. If
- :envvar:`MODULES_COLLECTION_PIN_VERSION` is set to **1**, module version is always
+ :envvar:`MODULES_COLLECTION_PIN_VERSION` is set to ``1``, module version is always
  recorded even if it is the default version.
 
  No *collection* is recorded and an error is returned if the loaded
@@ -483,7 +483,7 @@ Module Sub-Commands
 
  If a module, without a default version explicitly defined, is recorded in a
  *collection* by its bare name: loading this module when restoring the
- collection will fail if the configuration option *implicit_default* is disabled.
+ collection will fail if the configuration option ``implicit_default`` is disabled.
 
 .. subcmd:: saverm [collection]
 
@@ -645,14 +645,14 @@ Module Sub-Commands
  passed option *name* or all existing options if no *name* passed. If a *name*
  and a *value* are provided, the value of option *name* is set to *value*. If
  command-line switch ``--reset`` is passed in addition to a *name*, overridden
- overridden value for option *name* is cleared.
+ value for option *name* is cleared.
 
  When a reported option value differs from default value a mention is added
  to indicate whether the overridden value is coming from a command-line switch
- (*cmd-line*) or from an environment variable (*env-var*). When a reported
- option value is locked and cannot be altered a (*locked*) mention is added.
+ (``cmd-line``) or from an environment variable (``env-var``). When a reported
+ option value is locked and cannot be altered a (``locked``) mention is added.
 
- If no value is currently set for an option *name*, the mention *<undef>* is
+ If no value is currently set for an option *name*, the mention ``<undef>`` is
  reported.
 
  When command-line switch ``--dump-state`` is passed, current :file:`modulecmd.tcl`
@@ -661,57 +661,57 @@ Module Sub-Commands
 
  Existing option *names* are:
 
- * advanced_version_spec: advanced module version specification to finely
+ * ``advanced_version_spec``: advanced module version specification to finely
    select modulefiles (defines environment variable
    :envvar:`MODULES_ADVANCED_VERSION_SPEC` when set
- * auto_handling: automated module handling mode (defines
+ * ``auto_handling``: automated module handling mode (defines
    :envvar:`MODULES_AUTO_HANDLING`)
- * avail_indepth: :subcmd:`avail` sub-command in depth search mode (defines
+ * ``avail_indepth``: :subcmd:`avail` sub-command in depth search mode (defines
    :envvar:`MODULES_AVAIL_INDEPTH`)
- * avail_report_dir_sym: display symbolic versions targeting directories on
+ * ``avail_report_dir_sym``: display symbolic versions targeting directories on
    :subcmd:`avail` sub-command
- * avail_report_mfile_sym: display symbolic versions targeting modulefiles on
+ * ``avail_report_mfile_sym``: display symbolic versions targeting modulefiles on
    :subcmd:`avail` sub-command
- * collection_pin_version: register exact modulefile version in collection
+ * ``collection_pin_version``: register exact modulefile version in collection
    (defines :envvar:`MODULES_COLLECTION_PIN_VERSION`)
- * collection_target: collection target which is valid for current system
+ * ``collection_target``: collection target which is valid for current system
    (defines :envvar:`MODULES_COLLECTION_TARGET`)
- * color: colored output mode (defines :envvar:`MODULES_COLOR`)
- * colors: chosen colors to highlight output items (defines
+ * ``color``: colored output mode (defines :envvar:`MODULES_COLOR`)
+ * ``colors``: chosen colors to highlight output items (defines
    :envvar:`MODULES_COLORS`)
- * contact: modulefile contact address (defines :envvar:`MODULECONTACT`)
- * extended_default: allow partial module version specification (defines
+ * ``contact``: modulefile contact address (defines :envvar:`MODULECONTACT`)
+ * ``extended_default``: allow partial module version specification (defines
    :envvar:`MODULES_EXTENDED_DEFAULT`)
- * extra_siteconfig: additional site-specific configuration script location
+ * ``extra_siteconfig``: additional site-specific configuration script location
    (defines :envvar:`MODULES_SITECONFIG`)
- * home: location of Modules package master directory (defines
+ * ``home``: location of Modules package master directory (defines
    :envvar:`MODULESHOME`)
- * icase: enable case insensitive match (defines :envvar:`MODULES_ICASE`)
- * ignored_dirs: directories ignored when looking for modulefiles
- * implicit_default: set an implicit default version for modules (defines
+ * ``icase``: enable case insensitive match (defines :envvar:`MODULES_ICASE`)
+ * ``ignored_dirs``: directories ignored when looking for modulefiles
+ * ``implicit_default``: set an implicit default version for modules (defines
    :envvar:`MODULES_IMPLICIT_DEFAULT`)
- * locked_configs: configuration options that cannot be superseded
- * pager: text viewer to paginate message output (defines :envvar:`MODULES_PAGER`)
- * rcfile: global run-command file location (defines :envvar:`MODULERCFILE`)
- * run_quarantine: environment variables to indirectly pass to
+ * ``locked_configs``: configuration options that cannot be superseded
+ * ``pager``: text viewer to paginate message output (defines :envvar:`MODULES_PAGER`)
+ * ``rcfile``: global run-command file location (defines :envvar:`MODULERCFILE`)
+ * ``run_quarantine``: environment variables to indirectly pass to
    :file:`modulecmd.tcl` (defines :envvar:`MODULES_RUN_QUARANTINE`)
- * silent_shell_debug: disablement of shell debugging property for the module
+ * ``silent_shell_debug``: disablement of shell debugging property for the module
    command (defines :envvar:`MODULES_SILENT_SHELL_DEBUG`)
- * search_match: module search match style (defines :envvar:`MODULES_SEARCH_MATCH`)
- * set_shell_startup: ensure module command definition by setting shell
+ * ``search_match``: module search match style (defines :envvar:`MODULES_SEARCH_MATCH`)
+ * ``set_shell_startup``: ensure module command definition by setting shell
    startup file (defines :envvar:`MODULES_SET_SHELL_STARTUP`)
- * siteconfig: primary site-specific configuration script location
- * tcl_ext_lib: Modules Tcl extension library location
- * term_background: terminal background color kind (defines
+ * ``siteconfig``: primary site-specific configuration script location
+ * ``tcl_ext_lib``: Modules Tcl extension library location
+ * ``term_background``: terminal background color kind (defines
    :envvar:`MODULES_TERM_BACKGROUND`)
- * unload_match_order: unload firstly loaded or lastly loaded module matching
+ * ``unload_match_order``: unload firstly loaded or lastly loaded module matching
    request (defines :envvar:`MODULES_UNLOAD_MATCH_ORDER`)
- * verbosity: module command verbosity level (defines :envvar:`MODULES_VERBOSITY`)
- * wa_277: workaround for Tcsh history issue (defines :envvar:`MODULES_WA_277`)
+ * ``verbosity``: module command verbosity level (defines :envvar:`MODULES_VERBOSITY`)
+ * ``wa_277``: workaround for Tcsh history issue (defines :envvar:`MODULES_WA_277`)
 
-The options *avail_report_dir_sym*, *avail_report_mfile_sym*, *ignored_dirs*,
-*locked_configs*, *siteconfig* and *tcl_ext_lib* cannot be altered. Moreover
-all options referred in *locked_configs* value are locked thus they cannot be
+The options ``avail_report_dir_sym``, ``avail_report_mfile_sym``, ``ignored_dirs``,
+``locked_configs``, ``siteconfig`` and ``tcl_ext_lib`` cannot be altered. Moreover
+all options referred in ``locked_configs`` value are locked, thus they cannot be
 altered.
 
 
@@ -786,8 +786,8 @@ the current value of the :envvar:`MODULES_COLLECTION_TARGET` environment variabl
 EXIT STATUS
 -----------
 
-The :command:`module` command exits with **0** if its execution succeed. Otherwise
-**1** is returned.
+The :command:`module` command exits with ``0`` if its execution succeed. Otherwise
+``1`` is returned.
 
 
 ENVIRONMENT
@@ -830,8 +830,8 @@ ENVIRONMENT
 
 .. envvar:: MODULES_ADVANCED_VERSION_SPEC
 
- If set to **1**, enable advanced module version specifiers (see `Advanced
- module version specifiers`_ section). If set to **0**, disable advanced
+ If set to ``1``, enable advanced module version specifiers (see `Advanced
+ module version specifiers`_ section). If set to ``0``, disable advanced
  module version specifiers.
 
  Advanced module version specifiers enablement is defined in the following
@@ -841,7 +841,7 @@ ENVIRONMENT
 
 .. envvar:: MODULES_AUTO_HANDLING
 
- If set to **1**, enable automated module handling mode. If set to **0**
+ If set to ``1``, enable automated module handling mode. If set to ``0``
  disable automated module handling mode. Other values are ignored.
 
  Automated module handling mode consists in additional actions triggered when
@@ -893,8 +893,8 @@ ENVIRONMENT
 
 .. envvar:: MODULES_AVAIL_INDEPTH
 
- If set to **1**, enable in depth search results for :subcmd:`avail` sub-command. If
- set to **0** disable :subcmd:`avail` sub-command in depth mode. Other values are
+ If set to ``1``, enable in depth search results for :subcmd:`avail` sub-command. If
+ set to ``0`` disable :subcmd:`avail` sub-command in depth mode. Other values are
  ignored.
 
  When in depth mode is enabled, modulefiles and directories contained in
@@ -915,10 +915,10 @@ ENVIRONMENT
 
 .. envvar:: MODULES_COLLECTION_PIN_VERSION
 
- If set to **1**, register exact version number of modulefiles when saving a
+ If set to ``1``, register exact version number of modulefiles when saving a
  collection. Otherwise modulefile version number is omitted if it corresponds
  to the explicitly set default version and also to the implicit default when
- the configuration option *implicit_default* is enabled.
+ the configuration option ``implicit_default`` is enabled.
 
 .. envvar:: MODULES_COLLECTION_TARGET
 
@@ -943,10 +943,10 @@ ENVIRONMENT
 
 .. envvar:: MODULES_COLOR
 
- Defines if output should be colored or not. Accepted values are *never*,
- *auto* and *always*.
+ Defines if output should be colored or not. Accepted values are ``never``,
+ ``auto`` and ``always``.
 
- When color mode is set to *auto*, output is colored only if the standard
+ When color mode is set to ``auto``, output is colored only if the standard
  error output channel is attached to a terminal.
 
  Colored output enablement is defined in the following order of preference:
@@ -958,10 +958,10 @@ ENVIRONMENT
  overrides every other ways to enable or disable this mode.
 
  :envvar:`CLICOLOR` and :envvar:`CLICOLOR_FORCE` environment variables are also honored to
- define color mode. The *never* mode is set if :envvar:`CLICOLOR` equals to **0**.
- If :envvar:`CLICOLOR` is set to another value, it corresponds to the *auto* mode.
- The *always* mode is set if :envvar:`CLICOLOR_FORCE` is set to a value different
- than **0**. Color mode set with these two variables is superseded by mode set
+ define color mode. The ``never`` mode is set if :envvar:`CLICOLOR` equals to ``0``.
+ If :envvar:`CLICOLOR` is set to another value, it corresponds to the ``auto`` mode.
+ The ``always`` mode is set if :envvar:`CLICOLOR_FORCE` is set to a value different
+ than ``0``. Color mode set with these two variables is superseded by mode set
  with :envvar:`MODULES_COLOR` environment variable.
 
 .. envvar:: MODULES_COLORS
@@ -972,19 +972,19 @@ ENVIRONMENT
  :envvar:`LS_COLORS`.
 
  Output items are designated by keys. Items able to be colorized are:
- highlighted element (*hi*), debug information (*db*), tag separator (*se*);
- Error (*er*), warning (*wa*), module error (*me*) and info (*in*) message
- prefixes; Modulepath (*mp*), directory (*di*), module alias (*al*), module
- symbolic version (*sy*), module *default* version (*de*) and modulefile
- command (*cm*).
+ highlighted element (``hi``), debug information (``db``), tag separator (``se``);
+ Error (``er``), warning (``wa``), module error (``me``) and info (``in``) message
+ prefixes; Modulepath (``mp``), directory (``di``), module alias (``al``), module
+ symbolic version (``sy``), module ``default`` version (``de``) and modulefile
+ command (``cm``).
 
  See the Select Graphic Rendition (SGR) section in the documentation of the
  text terminal that is used for permitted values and their meaning as
  character attributes. These substring values are integers in decimal
  representation and can be concatenated with semicolons. Modules takes care of
- assembling the result into a complete SGR sequence (**\33[...m**). Common
- values to concatenate include 1 for bold, 4 for underline, 30 to 37 for
- foreground colors and 90 to 97 for 16-color mode foreground colors. See also
+ assembling the result into a complete SGR sequence (``\33[...m``). Common
+ values to concatenate include ``1`` for bold, ``4`` for underline, ``30`` to ``37`` for
+ foreground colors and ``90`` to ``97`` for 16-color mode foreground colors. See also
  https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
  for a complete SGR code reference.
 
@@ -999,7 +999,7 @@ ENVIRONMENT
 
 .. envvar:: MODULES_EXTENDED_DEFAULT
 
- If set to **1**, a specified module version is matched against starting
+ If set to ``1``, a specified module version is matched against starting
  portion of existing module versions, where portion is a substring separated
  from the rest of the version string by a ``.`` character. For example
  specified modules ``mod/1`` and ``mod/1.2`` will match existing  modulefile
@@ -1011,21 +1011,21 @@ ENVIRONMENT
  modulefiles is returned if defined (see :envvar:`MODULES_IMPLICIT_DEFAULT` section)
 
  This environment variable supersedes the value of the configuration option
- *extended_default* set in :file:`modulecmd.tcl` script.
+ ``extended_default`` set in :file:`modulecmd.tcl` script.
 
 .. envvar:: MODULES_ICASE
 
  When module specification are passed as argument to module sub-commands or
  modulefile Tcl commands, defines the case sensitiveness to apply to match
- them. When :envvar:`MODULES_ICASE` is set to **never**, a case sensitive match is
- applied in any cases. When set to **search**, a case insensitive match is
+ them. When :envvar:`MODULES_ICASE` is set to ``never``, a case sensitive match is
+ applied in any cases. When set to ``search``, a case insensitive match is
  applied to the :subcmd:`avail`, :subcmd:`whatis` and :subcmd:`paths` sub-commands. When set to
- **always**, a case insensitive match is also applied to the other module
+ ``always``, a case insensitive match is also applied to the other module
  sub-commands and modulefile Tcl commands for the module specification they
  receive as argument.
 
  Case sensitiveness behavior is defined in the following order of preference:
- :option:`--icase` command line switch, which corresponds to the **always** mode,
+ :option:`--icase` command line switch, which corresponds to the ``always`` mode,
  then :envvar:`MODULES_ICASE` environment variable, then the default set in
  :file:`modulecmd.tcl` script configuration. Which means :envvar:`MODULES_ICASE`
  overrides default configuration and :option:`--icase` command line switch overrides
@@ -1033,7 +1033,7 @@ ENVIRONMENT
 
 .. envvar:: MODULES_IMPLICIT_DEFAULT
 
- Defines (if set to **1**) or not (if set to **0**) an implicit default
+ Defines (if set to ``1``) or not (if set to ``0``) an implicit default
  version for modules without a default version explicitly defined (see
  :ref:`Locating Modulefiles` section in the :ref:`modulefile(4)` man page).
 
@@ -1055,8 +1055,8 @@ ENVIRONMENT
  implicit default version is defined.
 
  This environment variable supersedes the value of the configuration option
- *implicit_default* set in :file:`modulecmd.tcl` script. This environment variable
- is ignored if *implicit_default* has been declared locked in *locked_configs*
+ ``implicit_default`` set in :file:`modulecmd.tcl` script. This environment variable
+ is ignored if ``implicit_default`` has been declared locked in ``locked_configs``
  configuration option.
 
 .. envvar:: MODULES_LMALTNAME
@@ -1102,7 +1102,7 @@ ENVIRONMENT
  A colon separated list of the :mfcmd:`prereq` statements defined by all loaded
  *modulefiles*. Each element in this list starts by the name of the loaded
  *modulefile* declaring the pre-requirement followed by the name of all
- modulefiles it declares a prereq with. These loaded modulefiles and
+ modulefiles it declares a :mfcmd:`prereq` with. These loaded modulefiles and
  pre-required modulefile names are separated by the ampersand character. When
  a :mfcmd:`prereq` statement is composed of multiple modulefiles, these modulefile
  names are separated by the pipe character.
@@ -1124,7 +1124,7 @@ ENVIRONMENT
  overrides default configuration.
 
  If :envvar:`MODULES_PAGER` variable is set to an empty string or to the value
- *cat*, pager will not be launched.
+ ``cat``, pager will not be launched.
 
 .. envvar:: MODULES_RUNENV_<VAR>
 
@@ -1147,9 +1147,9 @@ ENVIRONMENT
 .. envvar:: MODULES_SEARCH_MATCH
 
  When searching for modules with :subcmd:`avail` sub-command, defines the way query
- string should match against available module names. With **starts_with**
+ string should match against available module names. With ``starts_with``
  value, returned modules are those whose name begins by search query string.
- When set to **contains**, any modules whose fully qualified name contains
+ When set to ``contains``, any modules whose fully qualified name contains
  search query string are returned.
 
  Module search match style is defined in the following order of preference:
@@ -1161,15 +1161,15 @@ ENVIRONMENT
 
 .. envvar:: MODULES_SET_SHELL_STARTUP
 
- If set to **1**, defines when :command:`module` command initializes the shell
+ If set to ``1``, defines when :command:`module` command initializes the shell
  startup file to ensure that the :command:`module` command is still defined in
  sub-shells. Setting shell startup file means defining the :envvar:`ENV` and
  :envvar:`BASH_ENV` environment variable to the Modules bourne shell initialization
- script. If set to **0**, shell startup file is not defined.
+ script. If set to ``0``, shell startup file is not defined.
 
 .. envvar:: MODULES_SILENT_SHELL_DEBUG
 
- If set to **1**, disable any *xtrace* or *verbose* debugging property set on
+ If set to ``1``, disable any ``xtrace`` or ``verbose`` debugging property set on
  current shell session for the duration of either the module command or the
  module shell initialization script. Only applies to Bourne Shell (sh) and its
  derivatives.
@@ -1179,25 +1179,25 @@ ENVIRONMENT
  Location of a site-specific configuration script to source into
  :file:`modulecmd.tcl`. See also `Modulecmd startup`_ section.
 
- This environment variable is ignored if *extra_siteconfig* has been declared
- locked in *locked_configs* configuration option.
+ This environment variable is ignored if ``extra_siteconfig`` has been declared
+ locked in ``locked_configs`` configuration option.
 
 .. envvar:: MODULES_TERM_BACKGROUND
 
  Inform Modules of the terminal background color to determine if the color set
  for dark background or the color set for light background should be used to
  color output in case no specific color set is defined with the
- :envvar:`MODULES_COLORS` variable. Accepted values are **dark** and **light**.
+ :envvar:`MODULES_COLORS` variable. Accepted values are ``dark`` and ``light``.
 
 .. envvar:: MODULES_UNLOAD_MATCH_ORDER
 
  When a module unload request matches multiple loaded modules, unload firstly
- loaded module or lastly loaded module. Accepted values are **returnfirst**
- and **returnlast**.
+ loaded module or lastly loaded module. Accepted values are ``returnfirst``
+ and ``returnlast``.
 
 .. envvar:: MODULES_USE_COMPAT_VERSION
 
- If set to **1** prior to Modules package initialization, enable
+ If set to ``1`` prior to Modules package initialization, enable
  Modules compatibility version (3.2 release branch) rather main version
  at initialization scripts running time. Modules package compatibility
  version should be installed along with main version for this environment
@@ -1208,17 +1208,17 @@ ENVIRONMENT
  Defines the verbosity level of the module command. Available verbosity levels
  from the least to the most verbose are:
 
- * silent: turn off error, warning and informational messages but does not
+ * ``silent``: turn off error, warning and informational messages but does not
    affect module command output result.
- * concise: enable error and warning messages but disable informational
+ * ``concise``: enable error and warning messages but disable informational
    messages.
- * normal: turn on informational messages, like a report of the additional
+ * ``normal``: turn on informational messages, like a report of the additional
    module evaluations triggered by loading or unloading modules, aborted
    evaluation issues or a report of each module evaluation occurring during a
    :subcmd:`restore` or :subcmd:`source` sub-commands.
- * verbose: add additional informational messages, like a systematic report of
+ * ``verbose``: add additional informational messages, like a systematic report of
    the loading or unloading module evaluations.
- * debug: print debugging messages about module command execution.
+ * ``debug``: print debugging messages about module command execution.
 
  Module command verbosity is defined in the following order of preference:
  :option:`--silent`, :option:`--verbose` and :option:`--debug` command line switches, then
@@ -1229,13 +1229,13 @@ ENVIRONMENT
 
 .. envvar:: MODULES_WA_277
 
- If set to **1** prior to Modules package initialization, enables workaround
+ If set to ``1`` prior to Modules package initialization, enables workaround
  for Tcsh history issue (see https://github.com/cea-hpc/modules/issues/277).
  This issue leads to erroneous history entries under Tcsh shell. When
  workaround is enabled, an alternative *module* alias is defined which fixes
  the history mechanism issue. However the alternative definition of the
  *module* alias weakens shell evaluation of the code produced by modulefiles.
- Characters with a special meaning for Tcsh shell (like *{* and *}*) may not be
+ Characters with a special meaning for Tcsh shell (like ``{`` and ``}``) may not be
  used anymore in shell alias definition otherwise the evaluation of the code
  produced by modulefiles will return a syntax error.
 
