@@ -971,6 +971,10 @@ ENVIRONMENT
  Email address to contact in case any issue occurs during the interpretation
  of modulefiles.
 
+ .. only:: html
+
+    .. versionadded:: 4.0
+
 .. envvar:: MODULEPATH
 
  The path that the :command:`module` command searches when looking for
@@ -1007,6 +1011,10 @@ ENVIRONMENT
  order of preference: :envvar:`MODULES_ADVANCED_VERSION_SPEC` environment variable
  then the default set in :file:`modulecmd.tcl` script configuration. Which means
  :envvar:`MODULES_ADVANCED_VERSION_SPEC` overrides default configuration.
+
+ .. only:: html
+
+    .. versionadded:: 4.4
 
 .. envvar:: MODULES_AUTO_HANDLING
 
@@ -1060,6 +1068,10 @@ ENVIRONMENT
  overrides default configuration and :option:`--auto`/:option:`--no-auto` command line
  switches override every other ways to enable or disable this mode.
 
+ .. only:: html
+
+    .. versionadded:: 4.2
+
 .. envvar:: MODULES_AVAIL_INDEPTH
 
  If set to ``1``, enable in depth search results for :subcmd:`avail` sub-command. If
@@ -1078,9 +1090,17 @@ ENVIRONMENT
  overrides default configuration and :option:`--indepth`/:option:`--no-indepth` command
  line switches override every other ways to enable or disable this mode.
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. envvar:: MODULES_CMD
 
  The location of the active module command script.
+
+ .. only:: html
+
+    .. versionadded:: 4.1
 
 .. envvar:: MODULES_COLLECTION_PIN_VERSION
 
@@ -1088,6 +1108,10 @@ ENVIRONMENT
  collection. Otherwise modulefile version number is omitted if it corresponds
  to the explicitly set default version and also to the implicit default when
  the configuration option ``implicit_default`` is enabled.
+
+ .. only:: html
+
+    .. versionadded:: 4.1
 
 .. envvar:: MODULES_COLLECTION_TARGET
 
@@ -1109,6 +1133,10 @@ ENVIRONMENT
  For example, the :envvar:`MODULES_COLLECTION_TARGET` variable may be set with
  results from commands like :command:`lsb_release`, :command:`hostname`, :command:`dnsdomainname`,
  etc.
+
+ .. only:: html
+
+    .. versionadded:: 4.0
 
 .. envvar:: MODULES_COLOR
 
@@ -1132,6 +1160,10 @@ ENVIRONMENT
  The ``always`` mode is set if :envvar:`CLICOLOR_FORCE` is set to a value different
  than ``0``. Color mode set with these two variables is superseded by mode set
  with :envvar:`MODULES_COLOR` environment variable.
+
+ .. only:: html
+
+    .. versionadded:: 4.3
 
 .. envvar:: MODULES_COLORS
 
@@ -1166,6 +1198,10 @@ ENVIRONMENT
  :file:`modulecmd.tcl` script configuration. Which means :envvar:`MODULES_COLORS`
  overrides default configuration.
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. envvar:: MODULES_EXTENDED_DEFAULT
 
  If set to ``1``, a specified module version is matched against starting
@@ -1181,6 +1217,10 @@ ENVIRONMENT
 
  This environment variable supersedes the value of the configuration option
  ``extended_default`` set in :file:`modulecmd.tcl` script.
+
+ .. only:: html
+
+    .. versionadded:: 4.4
 
 .. envvar:: MODULES_ICASE
 
@@ -1199,6 +1239,10 @@ ENVIRONMENT
  :file:`modulecmd.tcl` script configuration. Which means :envvar:`MODULES_ICASE`
  overrides default configuration and :option:`--icase` command line switch overrides
  every other ways to set case sensitiveness behavior.
+
+ .. only:: html
+
+    .. versionadded:: 4.4
 
 .. envvar:: MODULES_IMPLICIT_DEFAULT
 
@@ -1228,6 +1272,10 @@ ENVIRONMENT
  is ignored if ``implicit_default`` has been declared locked in ``locked_configs``
  configuration option.
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. envvar:: MODULES_LMALTNAME
 
  A colon separated list of the alternative names set through
@@ -1244,6 +1292,10 @@ ENVIRONMENT
  *modulefiles* being loaded when :subcmd:`unload`, :subcmd:`is-loaded` or :subcmd:`info-loaded`
  actions are run over these names.
 
+ .. only:: html
+
+    .. versionadded:: 4.2
+
 .. envvar:: MODULES_LMCONFLICT
 
  A colon separated list of the :mfcmd:`conflict` statements defined by all loaded
@@ -1257,6 +1309,10 @@ ENVIRONMENT
  in order to keep environment consistent when a conflicting module is asked
  for load afterward.
 
+ .. only:: html
+
+    .. versionadded:: 4.2
+
 .. envvar:: MODULES_LMNOTUASKED
 
  A colon separated list of all loaded *modulefiles* that were not explicitly
@@ -1265,6 +1321,10 @@ ENVIRONMENT
  This environment variable is intended for :command:`module` command internal
  use to distinguish the *modulefiles* that have been loaded automatically
  from modulefiles that have been asked by users.
+
+ .. only:: html
+
+    .. versionadded:: 4.2
 
 .. envvar:: MODULES_LMPREREQ
 
@@ -1281,6 +1341,10 @@ ENVIRONMENT
  *modulefiles* in order to keep environment consistent when a pre-required
  module is asked for unload afterward.
 
+ .. only:: html
+
+    .. versionadded:: 4.2
+
 .. envvar:: MODULES_PAGER
 
  Text viewer for use to paginate message output if error output stream is
@@ -1295,10 +1359,18 @@ ENVIRONMENT
  If :envvar:`MODULES_PAGER` variable is set to an empty string or to the value
  ``cat``, pager will not be launched.
 
+ .. only:: html
+
+    .. versionadded:: 4.1
+
 .. envvar:: MODULES_RUNENV_<VAR>
 
  Value to set to environment variable :envvar:`<VAR>` for :file:`modulecmd.tcl` run-time
  execution if :envvar:`<VAR>` is referred in :envvar:`MODULES_RUN_QUARANTINE`.
+
+ .. only:: html
+
+    .. versionadded:: 4.1
 
 .. envvar:: MODULES_RUN_QUARANTINE
 
@@ -1312,6 +1384,10 @@ ENVIRONMENT
 
  Original values of these environment variables set in quarantine are passed
  to :file:`modulecmd.tcl` via :envvar:`<VAR>_modquar` variables.
+
+ .. only:: html
+
+    .. versionadded:: 4.1
 
 .. envvar:: MODULES_SEARCH_MATCH
 
@@ -1328,6 +1404,10 @@ ENVIRONMENT
  overrides default configuration and :option:`--starts-with`/:option:`--contains` command
  line switches override every other ways to set search match style.
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. envvar:: MODULES_SET_SHELL_STARTUP
 
  If set to ``1``, defines when :command:`module` command initializes the shell
@@ -1336,12 +1416,20 @@ ENVIRONMENT
  :envvar:`BASH_ENV` environment variable to the Modules bourne shell initialization
  script. If set to ``0``, shell startup file is not defined.
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. envvar:: MODULES_SILENT_SHELL_DEBUG
 
  If set to ``1``, disable any ``xtrace`` or ``verbose`` debugging property set on
  current shell session for the duration of either the module command or the
  module shell initialization script. Only applies to Bourne Shell (sh) and its
  derivatives.
+
+ .. only:: html
+
+    .. versionadded:: 4.1
 
 .. envvar:: MODULES_SITECONFIG
 
@@ -1351,6 +1439,10 @@ ENVIRONMENT
  This environment variable is ignored if ``extra_siteconfig`` has been declared
  locked in ``locked_configs`` configuration option.
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. envvar:: MODULES_TERM_BACKGROUND
 
  Inform Modules of the terminal background color to determine if the color set
@@ -1358,11 +1450,19 @@ ENVIRONMENT
  color output in case no specific color set is defined with the
  :envvar:`MODULES_COLORS` variable. Accepted values are ``dark`` and ``light``.
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. envvar:: MODULES_UNLOAD_MATCH_ORDER
 
  When a module unload request matches multiple loaded modules, unload firstly
  loaded module or lastly loaded module. Accepted values are ``returnfirst``
  and ``returnlast``.
+
+ .. only:: html
+
+    .. versionadded:: 4.3
 
 .. envvar:: MODULES_USE_COMPAT_VERSION
 
@@ -1371,6 +1471,10 @@ ENVIRONMENT
  at initialization scripts running time. Modules package compatibility
  version should be installed along with main version for this environment
  variable to have any effect.
+
+ .. only:: html
+
+    .. versionadded:: 4.0
 
 .. envvar:: MODULES_VERBOSITY
 
@@ -1396,6 +1500,10 @@ ENVIRONMENT
  overrides default configuration and :option:`--silent`/:option:`--verbose`/:option:`--debug`
  command line switches overrides every other ways to set verbosity level.
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. envvar:: MODULES_WA_277
 
  If set to ``1`` prior to Modules package initialization, enables workaround
@@ -1408,6 +1516,10 @@ ENVIRONMENT
  used anymore in shell alias definition otherwise the evaluation of the code
  produced by modulefiles will return a syntax error.
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. envvar:: _LMFILES_
 
  A colon separated list of the full pathname for all loaded *modulefiles*.
@@ -1417,6 +1529,10 @@ ENVIRONMENT
  Value of environment variable :envvar:`<VAR>` passed to :file:`modulecmd.tcl` in order
  to restore :envvar:`<VAR>` to this value once started.
 
+ .. only:: html
+
+    .. versionadded:: 4.1
+
 .. envvar:: <VAR>_modshare
 
  Reference counter variable for path-like variable :envvar:`<VAR>`. A colon
@@ -1424,6 +1540,10 @@ ENVIRONMENT
  element followed its usage counter which represents the number of times
  this path has been enabled in variable :envvar:`<VAR>`. A colon separates the
  two parts of the pair.
+
+ .. only:: html
+
+    .. versionadded:: 4.0
 
 
 FILES
