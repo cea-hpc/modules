@@ -140,72 +140,6 @@ interpreting *modulefiles*.
 All switches may be entered either in short or long notation. The following
 switches are accepted:
 
-.. option:: --help, -h
-
- Give some helpful usage information, and terminates the command.
-
-.. option:: --version, -V
-
- Lists the current version of the :command:`module` command. The command then
- terminates without further processing.
-
-.. option:: --debug, -D
-
- Debug mode. Causes :command:`module` to print debugging messages about its
- progress.
-
- .. only:: html
-
-    .. versionadded:: 4.0
-
-.. option:: --verbose, -v
-
- Enable verbose messages during :command:`module` command execution.
-
- .. only:: html
-
-    .. versionadded:: 4.3
-       :option:`--verbose`/:option:`-v` support was dropped on version `4.0`
-       but reintroduced starting version `4.3`.
-
-.. option:: --silent, -s
-
- Turn off error, warning and informational messages. :command:`module` command
- output result is not affected by silent mode.
-
- .. only:: html
-
-    .. versionadded:: 4.3
-       :option:`--silent`/:option:`-s` support was dropped on version `4.0`
-       but reintroduced starting version `4.3`.
-
-.. option:: --paginate
-
- Pipe all message output into :command:`less` (or if set, to the command
- referred in :envvar:`MODULES_PAGER` variable) if error output stream is a
- terminal. See also :envvar:`MODULES_PAGER` section.
-
- .. only:: html
-
-    .. versionadded:: 4.1
-
-.. option:: --no-pager
-
- Do not pipe message output into a pager.
-
- .. only:: html
-
-    .. versionadded:: 4.1
-
-.. option:: --color=<WHEN>
-
- Colorize the output. *WHEN* defaults to ``always`` or can be ``never`` or
- ``auto``. See also :envvar:`MODULES_COLOR` section.
-
- .. only:: html
-
-    .. versionadded:: 4.3
-
 .. option:: --auto
 
  On :subcmd:`load`, :subcmd:`unload` and :subcmd:`switch` sub-commands, enable
@@ -216,15 +150,45 @@ switches are accepted:
 
     .. versionadded:: 4.2
 
-.. option:: --no-auto
+.. option:: --color=<WHEN>
 
- On :subcmd:`load`, :subcmd:`unload` and :subcmd:`switch` sub-commands,
- disable automated module handling mode. See also
- :envvar:`MODULES_AUTO_HANDLING` section.
+ Colorize the output. *WHEN* defaults to ``always`` or can be ``never`` or
+ ``auto``. See also :envvar:`MODULES_COLOR` section.
 
  .. only:: html
 
-    .. versionadded:: 4.2
+    .. versionadded:: 4.3
+
+.. option:: --contains, -C
+
+ On :subcmd:`avail` sub-command, return modules whose fully qualified name
+ contains search query string.
+
+ .. only:: html
+
+    .. versionadded:: 4.3
+
+.. option:: --debug, -D
+
+ Debug mode. Causes :command:`module` to print debugging messages about its
+ progress.
+
+ .. only:: html
+
+    .. versionadded:: 4.0
+
+.. option:: --default, -d
+
+ On :subcmd:`avail` sub-command, display only the default version of each
+ module name. Default version is the explicitly set default version or also
+ the implicit default version if the configuration option ``implicit_default``
+ is enabled (see :ref:`Locating Modulefiles` section in the
+ :ref:`modulefile(4)` man page for further details on implicit default
+ version).
+
+ .. only:: html
+
+    .. versionadded:: 4.0
 
 .. option:: --force, -f
 
@@ -246,77 +210,9 @@ switches are accepted:
        :option:`--force` command line switch now enables to by-pass dependency
        consistency when loading or unloading a *modulefile*.
 
-.. option:: --terse, -t
+.. option:: --help, -h
 
- Display :subcmd:`avail`, :subcmd:`list` and :subcmd:`savelist` output in
- short format.
-
-.. option:: --long, -l
-
- Display :subcmd:`avail`, :subcmd:`list` and :subcmd:`savelist` output in long
- format.
-
-.. option:: --default, -d
-
- On :subcmd:`avail` sub-command, display only the default version of each
- module name. Default version is the explicitly set default version or also
- the implicit default version if the configuration option ``implicit_default``
- is enabled (see :ref:`Locating Modulefiles` section in the
- :ref:`modulefile(4)` man page for further details on implicit default
- version).
-
- .. only:: html
-
-    .. versionadded:: 4.0
-
-.. option:: --latest, -L
-
- On :subcmd:`avail` sub-command, display only the highest numerically sorted
- version of each module name (see :ref:`Locating Modulefiles` section in the
- :ref:`modulefile(4)` man page).
-
- .. only:: html
-
-    .. versionadded:: 4.0
-
-.. option:: --starts-with, -S
-
- On :subcmd:`avail` sub-command, return modules whose name starts with search
- query string.
-
- .. only:: html
-
-    .. versionadded:: 4.3
-
-.. option:: --contains, -C
-
- On :subcmd:`avail` sub-command, return modules whose fully qualified name
- contains search query string.
-
- .. only:: html
-
-    .. versionadded:: 4.3
-
-.. option:: --indepth
-
- On :subcmd:`avail` sub-command, include in search results the matching
- modulefiles and directories and recursively the modulefiles and directories
- contained in these matching directories.
-
- .. only:: html
-
-    .. versionadded:: 4.3
-
-.. option:: --no-indepth
-
- On :subcmd:`avail` sub-command, limit search results to the matching
- modulefiles and directories found at the depth level expressed by the search
- query. Thus modulefiles contained in directories part of the result are
- excluded.
-
- .. only:: html
-
-    .. versionadded:: 4.3
+ Give some helpful usage information, and terminates the command.
 
 .. option:: --icase, -i
 
@@ -330,77 +226,145 @@ switches are accepted:
        search query string and module specificiation on all sub-commands and
        modulefile Tcl commands.
 
+.. option:: --indepth
+
+ On :subcmd:`avail` sub-command, include in search results the matching
+ modulefiles and directories and recursively the modulefiles and directories
+ contained in these matching directories.
+
+ .. only:: html
+
+    .. versionadded:: 4.3
+
+.. option:: --latest, -L
+
+ On :subcmd:`avail` sub-command, display only the highest numerically sorted
+ version of each module name (see :ref:`Locating Modulefiles` section in the
+ :ref:`modulefile(4)` man page).
+
+ .. only:: html
+
+    .. versionadded:: 4.0
+
+.. option:: --long, -l
+
+ Display :subcmd:`avail`, :subcmd:`list` and :subcmd:`savelist` output in long
+ format.
+
+.. option:: --no-auto
+
+ On :subcmd:`load`, :subcmd:`unload` and :subcmd:`switch` sub-commands,
+ disable automated module handling mode. See also
+ :envvar:`MODULES_AUTO_HANDLING` section.
+
+ .. only:: html
+
+    .. versionadded:: 4.2
+
+.. option:: --no-indepth
+
+ On :subcmd:`avail` sub-command, limit search results to the matching
+ modulefiles and directories found at the depth level expressed by the search
+ query. Thus modulefiles contained in directories part of the result are
+ excluded.
+
+ .. only:: html
+
+    .. versionadded:: 4.3
+
+.. option:: --no-pager
+
+ Do not pipe message output into a pager.
+
+ .. only:: html
+
+    .. versionadded:: 4.1
+
+.. option:: --paginate
+
+ Pipe all message output into :command:`less` (or if set, to the command
+ referred in :envvar:`MODULES_PAGER` variable) if error output stream is a
+ terminal. See also :envvar:`MODULES_PAGER` section.
+
+ .. only:: html
+
+    .. versionadded:: 4.1
+
+.. option:: --silent, -s
+
+ Turn off error, warning and informational messages. :command:`module` command
+ output result is not affected by silent mode.
+
+ .. only:: html
+
+    .. versionadded:: 4.3
+       :option:`--silent`/:option:`-s` support was dropped on version `4.0`
+       but reintroduced starting version `4.3`.
+
+.. option:: --starts-with, -S
+
+ On :subcmd:`avail` sub-command, return modules whose name starts with search
+ query string.
+
+ .. only:: html
+
+    .. versionadded:: 4.3
+
+.. option:: --terse, -t
+
+ Display :subcmd:`avail`, :subcmd:`list` and :subcmd:`savelist` output in
+ short format.
+
+.. option:: --verbose, -v
+
+ Enable verbose messages during :command:`module` command execution.
+
+ .. only:: html
+
+    .. versionadded:: 4.3
+       :option:`--verbose`/:option:`-v` support was dropped on version `4.0`
+       but reintroduced starting version `4.3`.
+
+.. option:: --version, -V
+
+ Lists the current version of the :command:`module` command. The command then
+ terminates without further processing.
+
 
 .. _Module Sub-Commands:
 
 Module Sub-Commands
 ^^^^^^^^^^^^^^^^^^^
 
-.. subcmd:: help [modulefile...]
-
- Print the usage of each sub-command. If an argument is given, print the
- Module-specific help information for the *modulefile*.
-
- The parameter *modulefile* may also be a symbolic modulefile name or a
- modulefile alias. It may also leverage a specific syntax to finely select
- module version (see `Advanced module version specifiers`_ section below).
-
 .. subcmd:: add modulefile...
 
  See :subcmd:`load`.
 
-.. subcmd:: load [--auto|--no-auto] [-f] modulefile...
+.. subcmd:: aliases
 
- Load *modulefile* into the shell environment.
+ List all available symbolic version-names and aliases in the current
+ :envvar:`MODULEPATH`.  All directories in the :envvar:`MODULEPATH` are
+ recursively searched in the same manner than for the :subcmd:`avail`
+ sub-command. Only the symbolic version-names and aliases found in the search
+ are displayed.
 
- The parameter *modulefile* may also be a symbolic modulefile name or a
- modulefile alias. It may also leverage a specific syntax to finely select
- module version (see `Advanced module version specifiers`_ section below).
+ .. only:: html
 
-.. subcmd:: rm modulefile...
+    .. versionadded:: 4.0
 
- See :subcmd:`unload`.
+.. subcmd:: append-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
-.. subcmd:: unload [--auto|--no-auto] [-f] modulefile...
+ Append *value* to environment *variable*. The *variable* is a colon, or
+ *delimiter*, separated list. See :mfcmd:`append-path` in the
+ :ref:`modulefile(4)` man page for further explanation.
 
- Remove *modulefile* from the shell environment.
+ .. only:: html
 
- The parameter *modulefile* may also be a symbolic modulefile name or a
- modulefile alias. It may also leverage a specific syntax to finely select
- module version (see `Advanced module version specifiers`_ section below).
+    .. versionadded:: 4.1
 
-.. subcmd:: swap [modulefile1] modulefile2
+.. subcmd:: apropos string
 
- See :subcmd:`switch`.
-
-.. subcmd:: switch [--auto|--no-auto] [-f] [modulefile1] modulefile2
-
- Switch loaded *modulefile1* with *modulefile2*. If *modulefile1* is not
- specified, then it is assumed to be the currently loaded module with the
- same root name as *modulefile2*.
-
- The parameter *modulefile* may also be a symbolic modulefile name or a
- modulefile alias. It may also leverage a specific syntax to finely select
- module version (see `Advanced module version specifiers`_ section below).
-
-.. subcmd:: show modulefile...
-
- See :subcmd:`display`.
-
-.. subcmd:: display modulefile...
-
- Display information about one or more *modulefiles*. The display sub-command
- will list the full path of the *modulefile* and the environment changes
- the *modulefile* will make if loaded. (Note: It will not display any
- environment changes found within conditional statements.)
-
- The parameter *modulefile* may also be a symbolic modulefile name or a
- modulefile alias. It may also leverage a specific syntax to finely select
- module version (see `Advanced module version specifiers`_ section below).
-
-.. subcmd:: list [-t|-l]
-
- List loaded modules.
+ See :subcmd:`search`.
 
 .. subcmd:: avail [-d|-L] [-t|-l] [-S|-C] [--indepth|--no-indepth] [path...]
 
@@ -434,61 +398,6 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
-.. subcmd:: aliases
-
- List all available symbolic version-names and aliases in the current
- :envvar:`MODULEPATH`.  All directories in the :envvar:`MODULEPATH` are
- recursively searched in the same manner than for the :subcmd:`avail`
- sub-command. Only the symbolic version-names and aliases found in the search
- are displayed.
-
- .. only:: html
-
-    .. versionadded:: 4.0
-
-.. subcmd:: use [-a|--append] directory...
-
- Prepend one or more *directories* to the :envvar:`MODULEPATH` environment
- variable.  The ``--append`` flag will append the *directory* to
- :envvar:`MODULEPATH`.
-
- Reference counter environment variable
- :envvar:`MODULEPATH_modshare<\<VAR\>_modshare>` is also set to increase the
- number of times *directory* has been added to :envvar:`MODULEPATH`.
-
-.. subcmd:: unuse directory...
-
- Remove one or more *directories* from the :envvar:`MODULEPATH` environment
- variable if reference counter of these *directories* is equal to 1
- or unknown.
-
- Reference counter of *directory* in :envvar:`MODULEPATH` denotes the number
- of times *directory* has been enabled. When attempting to remove *directory*
- from :envvar:`MODULEPATH`, reference counter variable
- :envvar:`MODULEPATH_modshare<\<VAR\>_modshare>` is checked and *directory* is
- removed only if its relative counter is equal to 1 or not defined. Otherwise
- *directory* is kept and reference counter is decreased by 1.
-
-.. subcmd:: refresh
-
- See :subcmd:`reload`.
-
-.. subcmd:: reload
-
- Unload then load all loaded *modulefiles*.
-
- No unload then load is performed and an error is returned if the loaded
- *modulefiles* have unsatisfied constraint corresponding to the
- :mfcmd:`prereq` and :mfcmd:`conflict` they declare.
-
- .. only:: html
-
-    .. versionadded:: 4.0
-
-.. subcmd:: purge
-
- Unload all loaded *modulefiles*.
-
 .. subcmd:: clear [-f]
 
  Force the Modules package to believe that no modules are currently loaded. A
@@ -501,327 +410,6 @@ Module Sub-Commands
     .. versionadded:: 4.3
        :subcmd:`clear` support was dropped on version `4.0` but reintroduced
        starting version `4.3`.
-
-.. subcmd:: source scriptfile...
-
- Execute *scriptfile* into the shell environment. *scriptfile* must be written
- with *modulefile* syntax and specified with a fully qualified path. Once
- executed *scriptfile* is not marked loaded in shell environment which differ
- from :subcmd:`load` sub-command.
-
- .. only:: html
-
-    .. versionadded:: 4.0
-
-.. subcmd:: whatis [modulefile...]
-
- Display the information set up by the :mfcmd:`module-whatis` commands inside
- the specified *modulefiles*. These specified *modulefiles* may be
- expressed using wildcard characters. If no *modulefile* is specified,
- all :mfcmd:`module-whatis` lines will be shown.
-
- The parameter *modulefile* may also be a symbolic modulefile name or a
- modulefile alias. It may also leverage a specific syntax to finely select
- module version (see `Advanced module version specifiers`_ section below).
-
-.. subcmd:: apropos string
-
- See :subcmd:`search`.
-
-.. subcmd:: keyword string
-
- See :subcmd:`search`.
-
-.. subcmd:: search string
-
- Seeks through the :mfcmd:`module-whatis` informations of all *modulefiles*
- for the specified *string*. All *module-whatis* informations matching the
- *string* in a case insensitive manner will be displayed. *string* may contain
- wildcard characters.
-
- .. only:: html
-
-    .. versionadded:: 4.0
-       Prior version `4.0` :mfcmd:`module-whatis` information search was
-       performed with :subcmd:`apropos` or :subcmd:`keyword` sub-commands.
-
-.. subcmd:: test modulefile...
-
- Execute and display results of the Module-specific tests for the
- *modulefile*.
-
- The parameter *modulefile* may also be a symbolic modulefile name or a
- modulefile alias. It may also leverage a specific syntax to finely select
- module version (see `Advanced module version specifiers`_ section below).
-
- .. only:: html
-
-    .. versionadded:: 4.0
-
-.. subcmd:: save [collection]
-
- Record the currently set :envvar:`MODULEPATH` directory list and the
- currently loaded *modulefiles* in a *collection* file under the user's
- collection directory :file:`$HOME/.module`. If *collection* name is not
- specified, then it is assumed to be the ``default`` collection. If
- *collection* is a fully qualified path, it is saved at this location rather
- than under the user's collection directory.
-
- If :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix equivalent to the
- value of this variable will be appended to the *collection* file name.
-
- By default, if a loaded modulefile corresponds to the explicitly defined
- default module version, the bare module name is recorded. If the
- configuration option ``implicit_default`` is enabled, the bare module name is
- also recorded for the implicit default module version. If
- :envvar:`MODULES_COLLECTION_PIN_VERSION` is set to ``1``, module version is
- always recorded even if it is the default version.
-
- No *collection* is recorded and an error is returned if the loaded
- *modulefiles* have unsatisfied constraint corresponding to the
- :mfcmd:`prereq` and :mfcmd:`conflict` they declare.
-
- .. only:: html
-
-    .. versionadded:: 4.0
-
-.. subcmd:: restore [collection]
-
- Restore the environment state as defined in *collection*. If *collection*
- name is not specified, then it is assumed to be the *default* collection. If
- *collection* is a fully qualified path, it is restored from this location
- rather than from a file under the user's collection directory. If
- :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix equivalent to the value
- of this variable is appended to the *collection* file name to restore.
-
- When restoring a *collection*, the currently set :envvar:`MODULEPATH`
- directory list and the currently loaded *modulefiles* are unused and
- unloaded then used and loaded to exactly match the :envvar:`MODULEPATH` and
- loaded *modulefiles* lists saved in this *collection* file. The order
- of the paths and modulefiles set in *collection* is preserved when
- restoring. It means that currently loaded modules are unloaded to get
- the same :envvar:`LOADEDMODULES` root than collection and currently used
- module paths are unused to get the same :envvar:`MODULEPATH` root. Then
- missing module paths are used and missing modulefiles are loaded.
-
- If a module, without a default version explicitly defined, is recorded in a
- *collection* by its bare name: loading this module when restoring the
- collection will fail if the configuration option ``implicit_default`` is
- disabled.
-
- .. only:: html
-
-    .. versionadded:: 4.0
-
-.. subcmd:: saverm [collection]
-
- Delete the *collection* file under the user's collection directory. If
- *collection* name is not specified, then it is assumed to be the *default*
- collection. If :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix
- equivalent to the value of this variable will be appended to the *collection*
- file name.
-
- .. only:: html
-
-    .. versionadded:: 4.0
-
-.. subcmd:: saveshow [collection]
-
- Display the content of *collection*. If *collection* name is not specified,
- then it is assumed to be the *default* collection. If *collection* is a
- fully qualified path, this location is displayed rather than a collection
- file under the user's collection directory. If
- :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix equivalent to the value
- of this variable will be appended to the *collection* file name.
-
- .. only:: html
-
-    .. versionadded:: 4.0
-
-.. subcmd:: savelist [-t|-l]
-
- List collections that are currently saved under the user's collection
- directory. If :envvar:`MODULES_COLLECTION_TARGET` is set, only collections
- matching the target suffix will be displayed.
-
- .. only:: html
-
-    .. versionadded:: 4.0
-
-.. subcmd:: initadd modulefile...
-
- Add *modulefile* to the shell's initialization file in the user's home
- directory. The startup files checked (in order) are:
-
- C Shell
-
-  :file:`.modules`, :file:`.cshrc`, :file:`.csh_variables` and :file:`.login`
-
- TENEX C Shell
-
-  :file:`.modules`, :file:`.tcshrc`, :file:`.cshrc`, :file:`.csh_variables`
-  and :file:`.login`
-
- Bourne and Korn Shells
-
-  :file:`.modules`, :file:`.profile`
-
- GNU Bourne Again Shell
-
-  :file:`.modules`, :file:`.bash_profile`, :file:`.bash_login`,
-  :file:`.profile` and :file:`.bashrc`
-
- Z Shell
-
-  :file:`.modules`, :file:`.zshrc`, :file:`.zshenv` and :file:`.zlogin`
-
- Friendly Interactive Shell
-
-  :file:`.modules`, :file:`.config/fish/config.fish`
-
- If a ``module load`` line is found in any of these files, the *modulefiles*
- are appended to any existing list of *modulefiles*. The ``module load``
- line must be located in at least one of the files listed above for any of
- the :subcmd:`init<initadd>` sub-commands to work properly. If the
- ``module load`` line is found in multiple shell initialization files, all of
- the lines are changed.
-
-.. subcmd:: initprepend modulefile...
-
- Does the same as :subcmd:`initadd` but prepends the given modules to the
- beginning of the list.
-
-.. subcmd:: initrm modulefile...
-
- Remove *modulefile* from the shell's initialization files.
-
-.. subcmd:: initswitch modulefile1 modulefile2
-
- Switch *modulefile1* with *modulefile2* in the shell's initialization files.
-
-.. subcmd:: initlist
-
- List all of the *modulefiles* loaded from the shell's initialization file.
-
-.. subcmd:: initclear
-
- Clear all of the *modulefiles* from the shell's initialization files.
-
-.. subcmd:: path modulefile
-
- Print path to *modulefile*.
-
- The parameter *modulefile* may also be a symbolic modulefile name or a
- modulefile alias. It may also leverage a specific syntax to finely select
- module version (see `Advanced module version specifiers`_ section below).
-
- .. only:: html
-
-    .. versionadded:: 4.0
-
-.. subcmd:: paths modulefile
-
- Print path of available *modulefiles* matching argument.
-
- The parameter *modulefile* may also be a symbolic modulefile name or a
- modulefile alias. It may also leverage a specific syntax to finely select
- module version (see `Advanced module version specifiers`_ section below).
-
- .. only:: html
-
-    .. versionadded:: 4.0
-
-.. subcmd:: append-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
-
- Append *value* to environment *variable*. The *variable* is a colon, or
- *delimiter*, separated list. See :mfcmd:`append-path` in the
- :ref:`modulefile(4)` man page for further explanation.
-
- .. only:: html
-
-    .. versionadded:: 4.1
-
-.. subcmd:: prepend-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
-
- Prepend *value* to environment *variable*. The *variable* is a colon, or
- *delimiter*, separated list. See :mfcmd:`prepend-path` in the
- :ref:`modulefile(4)` man page for further explanation.
-
- .. only:: html
-
-    .. versionadded:: 4.1
-
-.. subcmd:: remove-path [-d C|--delim C|--delim=C] [--index] variable value...
-
- Remove *value* from the colon, or *delimiter*, separated list in environment
- *variable*. See :mfcmd:`remove-path` in the :ref:`modulefile(4)` man page for
- further explanation.
-
- .. only:: html
-
-    .. versionadded:: 4.1
-
-.. subcmd:: is-loaded [modulefile...]
-
- Returns a true value if any of the listed *modulefiles* has been loaded or if
- any *modulefile* is loaded in case no argument is provided. Returns a false
- value otherwise. See :mfcmd:`is-loaded` in the :ref:`modulefile(4)` man page
- for further explanation.
-
- The parameter *modulefile* may also be a symbolic modulefile name or a
- modulefile alias. It may also leverage a specific syntax to finely select
- module version (see `Advanced module version specifiers`_ section below).
-
- .. only:: html
-
-    .. versionadded:: 4.1
-
-.. subcmd:: is-saved [collection...]
-
- Returns a true value if any of the listed *collections* exists or if any
- *collection* exists in case no argument is provided. Returns a false value
- otherwise. See :mfcmd:`is-saved` in the :ref:`modulefile(4)` man page for
- further explanation.
-
- .. only:: html
-
-    .. versionadded:: 4.1
-
-.. subcmd:: is-used [directory...]
-
- Returns a true value if any of the listed *directories* has been enabled in
- :envvar:`MODULEPATH` or if any *directory* is enabled in case no argument is
- provided. Returns a false value otherwise. See :mfcmd:`is-used` in the
- :ref:`modulefile(4)` man page for further explanation.
-
- .. only:: html
-
-    .. versionadded:: 4.1
-
-.. subcmd:: is-avail modulefile...
-
- Returns a true value if any of the listed *modulefiles* exists in enabled
- :envvar:`MODULEPATH`. Returns a false value otherwise. See :mfcmd:`is-avail`
- in the :ref:`modulefile(4)` man page for further explanation.
-
- The parameter *modulefile* may also be a symbolic modulefile name or a
- modulefile alias. It may also leverage a specific syntax to finely select
- module version (see `Advanced module version specifiers`_ section below).
-
- .. only:: html
-
-    .. versionadded:: 4.1
-
-.. subcmd:: info-loaded modulefile
-
- Returns the names of currently loaded modules matching passed *modulefile*.
- Returns an empty string if passed *modulefile* does not match any loaded
- modules. See :mfcmd:`module-info loaded<module-info>` in the
- :ref:`modulefile(4)` man page for further explanation.
-
- .. only:: html
-
-    .. versionadded:: 4.1
 
 .. subcmd:: config [--dump-state|name [value]|--reset name]
 
@@ -907,6 +495,418 @@ Module Sub-Commands
 
     .. versionadded:: 4.3
 
+.. subcmd:: display modulefile...
+
+ Display information about one or more *modulefiles*. The display sub-command
+ will list the full path of the *modulefile* and the environment changes
+ the *modulefile* will make if loaded. (Note: It will not display any
+ environment changes found within conditional statements.)
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
+.. subcmd:: help [modulefile...]
+
+ Print the usage of each sub-command. If an argument is given, print the
+ Module-specific help information for the *modulefile*.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
+.. subcmd:: info-loaded modulefile
+
+ Returns the names of currently loaded modules matching passed *modulefile*.
+ Returns an empty string if passed *modulefile* does not match any loaded
+ modules. See :mfcmd:`module-info loaded<module-info>` in the
+ :ref:`modulefile(4)` man page for further explanation.
+
+ .. only:: html
+
+    .. versionadded:: 4.1
+
+.. subcmd:: initadd modulefile...
+
+ Add *modulefile* to the shell's initialization file in the user's home
+ directory. The startup files checked (in order) are:
+
+ C Shell
+
+  :file:`.modules`, :file:`.cshrc`, :file:`.csh_variables` and :file:`.login`
+
+ TENEX C Shell
+
+  :file:`.modules`, :file:`.tcshrc`, :file:`.cshrc`, :file:`.csh_variables`
+  and :file:`.login`
+
+ Bourne and Korn Shells
+
+  :file:`.modules`, :file:`.profile`
+
+ GNU Bourne Again Shell
+
+  :file:`.modules`, :file:`.bash_profile`, :file:`.bash_login`,
+  :file:`.profile` and :file:`.bashrc`
+
+ Z Shell
+
+  :file:`.modules`, :file:`.zshrc`, :file:`.zshenv` and :file:`.zlogin`
+
+ Friendly Interactive Shell
+
+  :file:`.modules`, :file:`.config/fish/config.fish`
+
+ If a ``module load`` line is found in any of these files, the *modulefiles*
+ are appended to any existing list of *modulefiles*. The ``module load``
+ line must be located in at least one of the files listed above for any of
+ the :subcmd:`init<initadd>` sub-commands to work properly. If the
+ ``module load`` line is found in multiple shell initialization files, all of
+ the lines are changed.
+
+.. subcmd:: initclear
+
+ Clear all of the *modulefiles* from the shell's initialization files.
+
+.. subcmd:: initlist
+
+ List all of the *modulefiles* loaded from the shell's initialization file.
+
+.. subcmd:: initprepend modulefile...
+
+ Does the same as :subcmd:`initadd` but prepends the given modules to the
+ beginning of the list.
+
+.. subcmd:: initrm modulefile...
+
+ Remove *modulefile* from the shell's initialization files.
+
+.. subcmd:: initswitch modulefile1 modulefile2
+
+ Switch *modulefile1* with *modulefile2* in the shell's initialization files.
+
+.. subcmd:: is-avail modulefile...
+
+ Returns a true value if any of the listed *modulefiles* exists in enabled
+ :envvar:`MODULEPATH`. Returns a false value otherwise. See :mfcmd:`is-avail`
+ in the :ref:`modulefile(4)` man page for further explanation.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
+ .. only:: html
+
+    .. versionadded:: 4.1
+
+.. subcmd:: is-loaded [modulefile...]
+
+ Returns a true value if any of the listed *modulefiles* has been loaded or if
+ any *modulefile* is loaded in case no argument is provided. Returns a false
+ value otherwise. See :mfcmd:`is-loaded` in the :ref:`modulefile(4)` man page
+ for further explanation.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
+ .. only:: html
+
+    .. versionadded:: 4.1
+
+.. subcmd:: is-saved [collection...]
+
+ Returns a true value if any of the listed *collections* exists or if any
+ *collection* exists in case no argument is provided. Returns a false value
+ otherwise. See :mfcmd:`is-saved` in the :ref:`modulefile(4)` man page for
+ further explanation.
+
+ .. only:: html
+
+    .. versionadded:: 4.1
+
+.. subcmd:: is-used [directory...]
+
+ Returns a true value if any of the listed *directories* has been enabled in
+ :envvar:`MODULEPATH` or if any *directory* is enabled in case no argument is
+ provided. Returns a false value otherwise. See :mfcmd:`is-used` in the
+ :ref:`modulefile(4)` man page for further explanation.
+
+ .. only:: html
+
+    .. versionadded:: 4.1
+
+.. subcmd:: keyword string
+
+ See :subcmd:`search`.
+
+.. subcmd:: list [-t|-l]
+
+ List loaded modules.
+
+.. subcmd:: load [--auto|--no-auto] [-f] modulefile...
+
+ Load *modulefile* into the shell environment.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
+.. subcmd:: path modulefile
+
+ Print path to *modulefile*.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
+ .. only:: html
+
+    .. versionadded:: 4.0
+
+.. subcmd:: paths modulefile
+
+ Print path of available *modulefiles* matching argument.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
+ .. only:: html
+
+    .. versionadded:: 4.0
+
+.. subcmd:: prepend-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
+
+ Prepend *value* to environment *variable*. The *variable* is a colon, or
+ *delimiter*, separated list. See :mfcmd:`prepend-path` in the
+ :ref:`modulefile(4)` man page for further explanation.
+
+ .. only:: html
+
+    .. versionadded:: 4.1
+
+.. subcmd:: purge
+
+ Unload all loaded *modulefiles*.
+
+.. subcmd:: refresh
+
+ See :subcmd:`reload`.
+
+.. subcmd:: reload
+
+ Unload then load all loaded *modulefiles*.
+
+ No unload then load is performed and an error is returned if the loaded
+ *modulefiles* have unsatisfied constraint corresponding to the
+ :mfcmd:`prereq` and :mfcmd:`conflict` they declare.
+
+ .. only:: html
+
+    .. versionadded:: 4.0
+
+.. subcmd:: remove-path [-d C|--delim C|--delim=C] [--index] variable value...
+
+ Remove *value* from the colon, or *delimiter*, separated list in environment
+ *variable*. See :mfcmd:`remove-path` in the :ref:`modulefile(4)` man page for
+ further explanation.
+
+ .. only:: html
+
+    .. versionadded:: 4.1
+
+.. subcmd:: restore [collection]
+
+ Restore the environment state as defined in *collection*. If *collection*
+ name is not specified, then it is assumed to be the *default* collection. If
+ *collection* is a fully qualified path, it is restored from this location
+ rather than from a file under the user's collection directory. If
+ :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix equivalent to the value
+ of this variable is appended to the *collection* file name to restore.
+
+ When restoring a *collection*, the currently set :envvar:`MODULEPATH`
+ directory list and the currently loaded *modulefiles* are unused and
+ unloaded then used and loaded to exactly match the :envvar:`MODULEPATH` and
+ loaded *modulefiles* lists saved in this *collection* file. The order
+ of the paths and modulefiles set in *collection* is preserved when
+ restoring. It means that currently loaded modules are unloaded to get
+ the same :envvar:`LOADEDMODULES` root than collection and currently used
+ module paths are unused to get the same :envvar:`MODULEPATH` root. Then
+ missing module paths are used and missing modulefiles are loaded.
+
+ If a module, without a default version explicitly defined, is recorded in a
+ *collection* by its bare name: loading this module when restoring the
+ collection will fail if the configuration option ``implicit_default`` is
+ disabled.
+
+ .. only:: html
+
+    .. versionadded:: 4.0
+
+.. subcmd:: rm modulefile...
+
+ See :subcmd:`unload`.
+
+.. subcmd:: save [collection]
+
+ Record the currently set :envvar:`MODULEPATH` directory list and the
+ currently loaded *modulefiles* in a *collection* file under the user's
+ collection directory :file:`$HOME/.module`. If *collection* name is not
+ specified, then it is assumed to be the ``default`` collection. If
+ *collection* is a fully qualified path, it is saved at this location rather
+ than under the user's collection directory.
+
+ If :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix equivalent to the
+ value of this variable will be appended to the *collection* file name.
+
+ By default, if a loaded modulefile corresponds to the explicitly defined
+ default module version, the bare module name is recorded. If the
+ configuration option ``implicit_default`` is enabled, the bare module name is
+ also recorded for the implicit default module version. If
+ :envvar:`MODULES_COLLECTION_PIN_VERSION` is set to ``1``, module version is
+ always recorded even if it is the default version.
+
+ No *collection* is recorded and an error is returned if the loaded
+ *modulefiles* have unsatisfied constraint corresponding to the
+ :mfcmd:`prereq` and :mfcmd:`conflict` they declare.
+
+ .. only:: html
+
+    .. versionadded:: 4.0
+
+.. subcmd:: savelist [-t|-l]
+
+ List collections that are currently saved under the user's collection
+ directory. If :envvar:`MODULES_COLLECTION_TARGET` is set, only collections
+ matching the target suffix will be displayed.
+
+ .. only:: html
+
+    .. versionadded:: 4.0
+
+.. subcmd:: saverm [collection]
+
+ Delete the *collection* file under the user's collection directory. If
+ *collection* name is not specified, then it is assumed to be the *default*
+ collection. If :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix
+ equivalent to the value of this variable will be appended to the *collection*
+ file name.
+
+ .. only:: html
+
+    .. versionadded:: 4.0
+
+.. subcmd:: saveshow [collection]
+
+ Display the content of *collection*. If *collection* name is not specified,
+ then it is assumed to be the *default* collection. If *collection* is a
+ fully qualified path, this location is displayed rather than a collection
+ file under the user's collection directory. If
+ :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix equivalent to the value
+ of this variable will be appended to the *collection* file name.
+
+ .. only:: html
+
+    .. versionadded:: 4.0
+
+.. subcmd:: search string
+
+ Seeks through the :mfcmd:`module-whatis` informations of all *modulefiles*
+ for the specified *string*. All *module-whatis* informations matching the
+ *string* in a case insensitive manner will be displayed. *string* may contain
+ wildcard characters.
+
+ .. only:: html
+
+    .. versionadded:: 4.0
+       Prior version `4.0` :mfcmd:`module-whatis` information search was
+       performed with :subcmd:`apropos` or :subcmd:`keyword` sub-commands.
+
+.. subcmd:: show modulefile...
+
+ See :subcmd:`display`.
+
+.. subcmd:: source scriptfile...
+
+ Execute *scriptfile* into the shell environment. *scriptfile* must be written
+ with *modulefile* syntax and specified with a fully qualified path. Once
+ executed *scriptfile* is not marked loaded in shell environment which differ
+ from :subcmd:`load` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 4.0
+
+.. subcmd:: swap [modulefile1] modulefile2
+
+ See :subcmd:`switch`.
+
+.. subcmd:: switch [--auto|--no-auto] [-f] [modulefile1] modulefile2
+
+ Switch loaded *modulefile1* with *modulefile2*. If *modulefile1* is not
+ specified, then it is assumed to be the currently loaded module with the
+ same root name as *modulefile2*.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
+.. subcmd:: test modulefile...
+
+ Execute and display results of the Module-specific tests for the
+ *modulefile*.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
+ .. only:: html
+
+    .. versionadded:: 4.0
+
+.. subcmd:: unload [--auto|--no-auto] [-f] modulefile...
+
+ Remove *modulefile* from the shell environment.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
+.. subcmd:: unuse directory...
+
+ Remove one or more *directories* from the :envvar:`MODULEPATH` environment
+ variable if reference counter of these *directories* is equal to 1
+ or unknown.
+
+ Reference counter of *directory* in :envvar:`MODULEPATH` denotes the number
+ of times *directory* has been enabled. When attempting to remove *directory*
+ from :envvar:`MODULEPATH`, reference counter variable
+ :envvar:`MODULEPATH_modshare<\<VAR\>_modshare>` is checked and *directory* is
+ removed only if its relative counter is equal to 1 or not defined. Otherwise
+ *directory* is kept and reference counter is decreased by 1.
+
+.. subcmd:: use [-a|--append] directory...
+
+ Prepend one or more *directories* to the :envvar:`MODULEPATH` environment
+ variable.  The ``--append`` flag will append the *directory* to
+ :envvar:`MODULEPATH`.
+
+ Reference counter environment variable
+ :envvar:`MODULEPATH_modshare<\<VAR\>_modshare>` is also set to increase the
+ number of times *directory* has been added to :envvar:`MODULEPATH`.
+
+.. subcmd:: whatis [modulefile...]
+
+ Display the information set up by the :mfcmd:`module-whatis` commands inside
+ the specified *modulefiles*. These specified *modulefiles* may be
+ expressed using wildcard characters. If no *modulefile* is specified,
+ all :mfcmd:`module-whatis` lines will be shown.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
 
 Modulefiles
 ^^^^^^^^^^^
@@ -986,6 +986,10 @@ Otherwise ``1`` is returned.
 ENVIRONMENT
 -----------
 
+.. envvar:: _LMFILES_
+
+ A colon separated list of the full pathname for all loaded *modulefiles*.
+
 .. envvar:: LOADEDMODULES
 
  A colon separated list of all loaded *modulefiles*.
@@ -1018,12 +1022,6 @@ ENVIRONMENT
 
  The location of a global run-command file containing *modulefile* specific
  setup. See `Modulecmd startup`_ section for detailed information.
-
-.. envvar:: MODULESHOME
-
- The location of the master Modules package file directory containing module
- command initialization scripts, the executable program :file:`modulecmd.tcl`,
- and a directory containing a collection of master *modulefiles*.
 
 .. envvar:: MODULES_ADVANCED_VERSION_SPEC
 
@@ -1397,16 +1395,6 @@ ENVIRONMENT
 
     .. versionadded:: 4.1
 
-.. envvar:: MODULES_RUNENV_<VAR>
-
- Value to set to environment variable :envvar:`<VAR>` for
- :file:`modulecmd.tcl` run-time execution if :envvar:`<VAR>` is referred in
- :envvar:`MODULES_RUN_QUARANTINE`.
-
- .. only:: html
-
-    .. versionadded:: 4.1
-
 .. envvar:: MODULES_RUN_QUARANTINE
 
  A space separated list of environment variable names that should be passed
@@ -1420,6 +1408,16 @@ ENVIRONMENT
 
  Original values of these environment variables set in quarantine are passed
  to :file:`modulecmd.tcl` via :envvar:`<VAR>_modquar` variables.
+
+ .. only:: html
+
+    .. versionadded:: 4.1
+
+.. envvar:: MODULES_RUNENV_<VAR>
+
+ Value to set to environment variable :envvar:`<VAR>` for
+ :file:`modulecmd.tcl` run-time execution if :envvar:`<VAR>` is referred in
+ :envvar:`MODULES_RUN_QUARANTINE`.
 
  .. only:: html
 
@@ -1559,9 +1557,11 @@ ENVIRONMENT
 
     .. versionadded:: 4.3
 
-.. envvar:: _LMFILES_
+.. envvar:: MODULESHOME
 
- A colon separated list of the full pathname for all loaded *modulefiles*.
+ The location of the master Modules package file directory containing module
+ command initialization scripts, the executable program :file:`modulecmd.tcl`,
+ and a directory containing a collection of master *modulefiles*.
 
 .. envvar:: <VAR>_modquar
 
