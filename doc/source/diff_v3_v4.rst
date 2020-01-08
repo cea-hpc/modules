@@ -393,6 +393,8 @@ Modules collections are not supported on compatibility version.
 Environment
 ^^^^^^^^^^^
 
+**MODULECONTACT**
+
 **MODULES_COLLECTION_TARGET**
 
 **MODULES_USE_COMPAT_VERSION**
