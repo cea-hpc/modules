@@ -7,19 +7,19 @@ modulefile
 DESCRIPTION
 -----------
 
-*modulefiles* are written in the Tool Command Language, :manpage:`Tcl(n)` and are
-interpreted by the :file:`modulecmd.tcl` program via the :ref:`module(1)` user
-interface. *modulefiles* can be loaded, unloaded, or switched on-the-fly
+*modulefiles* are written in the Tool Command Language, :manpage:`Tcl(n)` and
+are interpreted by the :file:`modulecmd.tcl` program via the :ref:`module(1)`
+user interface. *modulefiles* can be loaded, unloaded, or switched on-the-fly
 while the user is working; and can be used to implement site policies
 regarding the access and use of applications.
 
-A *modulefile* begins with the magic cookie, ``#%Module``. A version number may
-be placed after this string. The version number is useful as the *modulefile*
-format may change thus it reflects the minimum version of :file:`modulecmd.tcl`
-required to interpret the modulefile. If a version number doesn't exist, then
-:file:`modulecmd.tcl` will assume the *modulefile* is compatible. Files without
-the magic cookie or with a version number greater than the current version of
-:file:`modulecmd.tcl` will not be interpreted.
+A *modulefile* begins with the magic cookie, ``#%Module``. A version number
+may be placed after this string. The version number is useful as the
+*modulefile* format may change thus it reflects the minimum version of
+:file:`modulecmd.tcl` required to interpret the modulefile. If a version
+number doesn't exist, then :file:`modulecmd.tcl` will assume the *modulefile*
+is compatible. Files without the magic cookie or with a version number greater
+than the current version of :file:`modulecmd.tcl` will not be interpreted.
 
 Each *modulefile* contains the changes to a user's environment needed to
 access an application. Tcl is a simple programming language which permits
@@ -29,11 +29,11 @@ has been configured for your installation of the Modules package, you may
 use all the extended commands provided by tclX, too.
 
 A typical *modulefile* is a simple bit of code that set or add entries
-to the :envvar:`PATH`, :envvar:`MANPATH`, or other environment variables. A Modulefile is
-evaluated against current :file:`modulecmd.tcl`'s mode which leads to specific
-evaluation results. For instance if the *modulefile* sets a value to an
-environment variable, this variable is set when modulefile is loaded and unset
-when modulefile is unloaded.
+to the :envvar:`PATH`, :envvar:`MANPATH`, or other environment variables. A
+Modulefile is evaluated against current :file:`modulecmd.tcl`'s mode which
+leads to specific evaluation results. For instance if the *modulefile* sets a
+value to an environment variable, this variable is set when modulefile is
+loaded and unset when modulefile is unloaded.
 
 Tcl has conditional statements that are evaluated when the *modulefile* is
 interpreted. This is very effective for managing path or environment changes
@@ -57,17 +57,17 @@ Modules Specific Tcl Commands
 -----------------------------
 
 The Modules Package uses commands which are extensions to the "standard"
-Tool Command Language :manpage:`Tcl(n)` package. Unless otherwise specified, the
-Module commands return the empty string. Some commands behave differently
+Tool Command Language :manpage:`Tcl(n)` package. Unless otherwise specified,
+the Module commands return the empty string. Some commands behave differently
 when a *modulefile* is loaded or unloaded. The command descriptions assume
 the *modulefile* is being loaded.
 
 .. mfcmd:: break
 
  This is not a Modules-specific command, it's actually part of Tcl, which
- has been overloaded similar to the :mfcmd:`continue` and :mfcmd:`exit` commands
- to have the effect of causing the module not to be listed as loaded and
- not affect other modules being loaded concurrently. All non-environment
+ has been overloaded similar to the :mfcmd:`continue` and :mfcmd:`exit`
+ commands to have the effect of causing the module not to be listed as loaded
+ and not affect other modules being loaded concurrently. All non-environment
  commands within the module will be performed up to this point and processing
  will continue on to the next module on the command line. The :mfcmd:`break`
  command will only have this effect if not used within a Tcl loop though.
@@ -102,8 +102,8 @@ the *modulefile* is being loaded.
 .. mfcmd:: continue
 
  This is not a modules specific command but another overloaded Tcl command
- and is similar to the :mfcmd:`break` or :mfcmd:`exit` commands except the module
- will be listed as loaded as well as performing any environment or Tcl
+ and is similar to the :mfcmd:`break` or :mfcmd:`exit` commands except the
+ module will be listed as loaded as well as performing any environment or Tcl
  commands up to this point and then continuing on to the next module on
  the command line. The :mfcmd:`continue` command will only have this effect if
  not used within a Tcl loop though.
@@ -123,27 +123,29 @@ the *modulefile* is being loaded.
  change the process' environment. A reference using Tcl's env associative
  array will reference changes made with the :mfcmd:`setenv` command. Changes
  made using Tcl's ``env`` associative array will **NOT** change the user's
- environment *variable* like the :mfcmd:`setenv` command. An environment change
- made this way will only affect the module parsing process. The :mfcmd:`setenv`
- command is also useful for changing the environment prior to the ``exec``
- or :mfcmd:`system` command. When a *modulefile* is unloaded, :mfcmd:`setenv` becomes
- :mfcmd:`unsetenv`. If the environment *variable* had been defined it will
- be overwritten while loading the *modulefile*. A subsequent :subcmd:`unload`
- will unset the environment *variable* - the previous value cannot be
- restored! (Unless you handle it explicitly ... see below.)
+ environment *variable* like the :mfcmd:`setenv` command. An environment
+ change made this way will only affect the module parsing process. The
+ :mfcmd:`setenv` command is also useful for changing the environment prior to
+ the ``exec`` or :mfcmd:`system` command. When a *modulefile* is unloaded,
+ :mfcmd:`setenv` becomes :mfcmd:`unsetenv`. If the environment *variable* had
+ been defined it will be overwritten while loading the *modulefile*. A
+ subsequent :subcmd:`unload` will unset the environment *variable* - the
+ previous value cannot be restored! (Unless you handle it explicitly ... see
+ below.)
 
 .. mfcmd:: unsetenv variable [value]
 
  Unsets environment *variable*. However, if there is an optional *value*,
  then when unloading a module, it will set *variable* to *value*. The
- :mfcmd:`unsetenv` command changes the process' environment like :mfcmd:`setenv`.
+ :mfcmd:`unsetenv` command changes the process' environment like
+ :mfcmd:`setenv`.
 
 .. mfcmd:: getenv variable [value]
 
- Returns value of environment *variable*. If *variable* is not defined, *value*
- is returned if set, ``_UNDEFINED_`` is returned otherwise. The :mfcmd:`getenv` command
- should be preferred over the Tcl global variable ``env`` to query environment
- variables.
+ Returns value of environment *variable*. If *variable* is not defined,
+ *value* is returned if set, ``_UNDEFINED_`` is returned otherwise. The
+ :mfcmd:`getenv` command should be preferred over the Tcl global variable
+ ``env`` to query environment variables.
 
 .. mfcmd:: append-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
@@ -168,7 +170,8 @@ the *modulefile* is being loaded.
  again except if ``--duplicates`` option is set.
 
  If the *variable* is not set, it is created. When a *modulefile* is
- unloaded, :mfcmd:`append-path` and :mfcmd:`prepend-path` become :mfcmd:`remove-path`.
+ unloaded, :mfcmd:`append-path` and :mfcmd:`prepend-path` become
+ :mfcmd:`remove-path`.
 
  If *value* corresponds to the concatenation of multiple elements separated by
  colon, or *delimiter*, character, each element is treated separately.
@@ -176,13 +179,13 @@ the *modulefile* is being loaded.
 .. mfcmd:: remove-path [-d C|--delim C|--delim=C] [--index] variable value...
 
  Remove *value* from the colon, or *delimiter*, separated list in
- *variable*. See :mfcmd:`prepend-path` or :mfcmd:`append-path` for further explanation
- of using an arbitrary delimiter. Every string between colons, or delimiters,
- in *variable* is compared to *value*. If the two match, *value* is removed
- from *variable* if its reference counter is equal to 1 or unknown.
+ *variable*. See :mfcmd:`prepend-path` or :mfcmd:`append-path` for further
+ explanation of using an arbitrary delimiter. Every string between colons, or
+ delimiters, in *variable* is compared to *value*. If the two match, *value*
+ is removed from *variable* if its reference counter is equal to 1 or unknown.
 
- When ``--index`` option is set, *value* refers to an index in *variable* list.
- The string element pointed by this index is set for removal.
+ When ``--index`` option is set, *value* refers to an index in *variable*
+ list. The string element pointed by this index is set for removal.
 
  Reference counter of *value* in *variable* denotes the number of times
  *value* has been added to *variable*. This information is stored in
@@ -200,25 +203,26 @@ the *modulefile* is being loaded.
 
 .. mfcmd:: conflict modulefile...
 
- :mfcmd:`prereq` and :mfcmd:`conflict` control whether or not the *modulefile* will
- be loaded. The :mfcmd:`prereq` command lists *modulefiles* which must have been
- previously loaded before the current *modulefile* will be loaded. Similarly,
- the :mfcmd:`conflict` command lists *modulefiles* which :mfcmd:`conflict` with the
- current *modulefile*. If a list contains more than one *modulefile*, then
- each member of the list acts as a Boolean OR operation. Multiple :mfcmd:`prereq`
- and :mfcmd:`conflict` commands may be used to create a Boolean AND operation. If
- one of the requirements have not been satisfied, an error is reported
- and the current *modulefile* makes no changes to the user's environment.
+ :mfcmd:`prereq` and :mfcmd:`conflict` control whether or not the *modulefile*
+ will be loaded. The :mfcmd:`prereq` command lists *modulefiles* which must
+ have been previously loaded before the current *modulefile* will be loaded.
+ Similarly, the :mfcmd:`conflict` command lists *modulefiles* which
+ :mfcmd:`conflict` with the current *modulefile*. If a list contains more than
+ one *modulefile*, then each member of the list acts as a Boolean OR
+ operation. Multiple :mfcmd:`prereq` and :mfcmd:`conflict` commands may be
+ used to create a Boolean AND operation. If one of the requirements have not
+ been satisfied, an error is reported and the current *modulefile* makes no
+ changes to the user's environment.
 
  If an argument for :mfcmd:`prereq` is a directory and any *modulefile* from
  the directory has been loaded, then the prerequisite is met. For example,
  specifying X11 as a :mfcmd:`prereq` means that any version of X11, X11/R4 or
  X11/R5, must be loaded before proceeding.
 
- If an argument for :mfcmd:`conflict` is a directory and any other *modulefile*
- from that directory has been loaded, then a conflict will occur. For
- example, specifying X11 as a :mfcmd:`conflict` will stop X11/R4 and X11/R5
- from being loaded at the same time.
+ If an argument for :mfcmd:`conflict` is a directory and any other
+ *modulefile* from that directory has been loaded, then a conflict will occur.
+ For example, specifying X11 as a :mfcmd:`conflict` will stop X11/R4 and
+ X11/R5 from being loaded at the same time.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
@@ -229,9 +233,9 @@ the *modulefile* is being loaded.
  The :mfcmd:`is-loaded` command returns a true value if any of the listed
  *modulefiles* has been loaded or if any *modulefile* is loaded in case no
  argument is provided. If a list contains more than one *modulefile*, then
- each member acts as a boolean OR operation. If an argument for :mfcmd:`is-loaded`
- is a directory and any *modulefile* from the directory has been loaded
- :mfcmd:`is-loaded` would return a true value.
+ each member acts as a boolean OR operation. If an argument for
+ :mfcmd:`is-loaded` is a directory and any *modulefile* from the directory has
+ been loaded :mfcmd:`is-loaded` would return a true value.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
@@ -244,9 +248,9 @@ the *modulefile* is being loaded.
  provided. If a list contains more than one *collection*, then each member
  acts as a boolean OR operation.
 
- If :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix equivalent to the value
- of this variable is appended to the passed *collection* name. In case no
- *collection* argument is provided, a true value will only be returned if
+ If :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix equivalent to the
+ value of this variable is appended to the passed *collection* name. In case
+ no *collection* argument is provided, a true value will only be returned if
  a collection matching currently set target exists.
 
  .. only:: html
@@ -256,8 +260,8 @@ the *modulefile* is being loaded.
 .. mfcmd:: is-used [directory...]
 
  The :mfcmd:`is-used` command returns a true value if any of the listed
- *directories* has been enabled in :envvar:`MODULEPATH` or if any *directory* is
- enabled in case no argument is provided. If a list contains more than one
+ *directories* has been enabled in :envvar:`MODULEPATH` or if any *directory*
+ is enabled in case no argument is provided. If a list contains more than one
  *directory*, then each member acts as a boolean OR operation.
 
  .. only:: html
@@ -267,10 +271,10 @@ the *modulefile* is being loaded.
 .. mfcmd:: is-avail modulefile...
 
  The :mfcmd:`is-avail` command returns a true value if any of the listed
- *modulefiles* exists in enabled :envvar:`MODULEPATH`. If a list contains more than
- one *modulefile*, then each member acts as a boolean OR operation. If an
- argument for :mfcmd:`is-avail` is a directory and a *modulefile* exists in the
- directory :mfcmd:`is-avail` would return a true value.
+ *modulefiles* exists in enabled :envvar:`MODULEPATH`. If a list contains more
+ than one *modulefile*, then each member acts as a boolean OR operation. If an
+ argument for :mfcmd:`is-avail` is a directory and a *modulefile* exists in
+ the directory :mfcmd:`is-avail` would return a true value.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
@@ -284,45 +288,48 @@ the *modulefile* is being loaded.
 
  Contains the same *sub-commands* as described in the :ref:`module(1)`
  man page in the :ref:`Module Sub-Commands` section. This command permits a
- *modulefile* to :subcmd:`load` or :subcmd:`unload` other *modulefiles*. No checks are
- made to ensure that the *modulefile* does not try to load itself. Often
- it is useful to have a single *modulefile* that performs a number of
+ *modulefile* to :subcmd:`load` or :subcmd:`unload` other *modulefiles*. No
+ checks are made to ensure that the *modulefile* does not try to load itself.
+ Often it is useful to have a single *modulefile* that performs a number of
  ``module load`` commands. For example, if every user on the system
  requires a basic set of applications loaded, then a core *modulefile*
  would contain the necessary ``module load`` commands.
 
- Command line switches :option:`--auto`, :option:`--no-auto` and :option:`--force` are ignored
- when passed to a :mfcmd:`module` command set in a *modulefile*.
+ Command line switches :option:`--auto`, :option:`--no-auto` and
+ :option:`--force` are ignored when passed to a :mfcmd:`module` command set in
+ a *modulefile*.
 
 .. mfcmd:: module-info option [info-args]
 
- Provide information about the :file:`modulecmd.tcl` program's state. Some of the
- information is specific to the internals of :file:`modulecmd.tcl`. *option*
- is the type of information to be provided, and *info-args* are any
+ Provide information about the :file:`modulecmd.tcl` program's state. Some of
+ the information is specific to the internals of :file:`modulecmd.tcl`.
+ *option* is the type of information to be provided, and *info-args* are any
  arguments needed.
 
  **module-info type**
 
-  Returns either ``C`` or ``Tcl`` to indicate which :command:`module` command is being
-  executed, either the C version or the Tcl-only version, to allow the
-  *modulefile* writer to handle any differences between the two.
+  Returns either ``C`` or ``Tcl`` to indicate which :command:`module` command
+  is being  executed, either the C version or the Tcl-only version, to allow
+  the *modulefile* writer to handle any differences between the two.
 
  **module-info mode** [modetype]
 
-  Returns the current :file:`modulecmd.tcl`'s mode as a string if no *modetype*
-  is given.
+  Returns the current :file:`modulecmd.tcl`'s mode as a string if no
+  *modetype* is given.
 
-  Returns ``1`` if :file:`modulecmd.tcl`'s mode is *modetype*. *modetype* can be:
-  ``load``, ``unload``, ``remove``, ``switch``, ``display``, ``help``, ``test`` or ``whatis``.
+  Returns ``1`` if :file:`modulecmd.tcl`'s mode is *modetype*. *modetype* can
+  be: ``load``, ``unload``, ``remove``, ``switch``, ``display``, ``help``,
+  ``test`` or ``whatis``.
 
  **module-info command** [commandname]
 
   Returns the currently running :file:`modulecmd.tcl`'s command as a string
   if no *commandname* is given.
 
-  Returns ``1`` if :file:`modulecmd.tcl`'s command is *commandname*. *commandname*
-  can be: ``load``, ``unload``, ``reload``, ``source``, ``switch``, ``display``, ``avail``, ``aliases``,
-  ``list``, ``whatis``, ``search``, ``purge``, ``restore``, ``help`` or ``test``.
+  Returns ``1`` if :file:`modulecmd.tcl`'s command is *commandname*.
+  *commandname* can be: ``load``, ``unload``, ``reload``, ``source``,
+  ``switch``, ``display``, ``avail``, ``aliases``, ``list``, ``whatis``,
+  ``search``, ``purge``, ``restore``, ``help`` or ``test``.
 
   .. only:: html
 
@@ -342,22 +349,26 @@ the *modulefile* is being loaded.
 
   Return the current shell under which :file:`modulecmd.tcl` was invoked if
   no *shellname* is given. The current shell is the first parameter of
-  :file:`modulecmd.tcl`, which is normally hidden by the :command:`module` alias.
+  :file:`modulecmd.tcl`, which is normally hidden by the :command:`module`
+  alias.
 
-  If a *shellname* is given, returns ``1`` if :file:`modulecmd.tcl`'s current shell
-  is *shellname*, returns ``0`` otherwise. *shellname* can be: ``sh``, ``bash``, ``ksh``,
-  ``zsh``, ``csh``, ``tcsh``, ``fish``, ``tcl``, ``perl``, ``python``, ``ruby``, ``lisp``, ``cmake``, ``r``.
+  If a *shellname* is given, returns ``1`` if :file:`modulecmd.tcl`'s current
+  shell is *shellname*, returns ``0`` otherwise. *shellname* can be: ``sh``,
+  ``bash``, ``ksh``, ``zsh``, ``csh``, ``tcsh``, ``fish``, ``tcl``, ``perl``,
+  ``python``, ``ruby``, ``lisp``, ``cmake``, ``r``.
 
  **module-info shelltype** [shelltypename]
 
   Return the family of the shell under which *modulefile* was invoked if no
-  *shelltypename* is given. As of :mfcmd:`module-info shell` this depends on the
-  first parameter of :file:`modulecmd.tcl`. The output reflects a shell type
-  determining the shell syntax of the commands produced by :file:`modulecmd.tcl`.
+  *shelltypename* is given. As of :mfcmd:`module-info shell` this depends on
+  the first parameter of :file:`modulecmd.tcl`. The output reflects a shell
+  type determining the shell syntax of the commands produced by
+  :file:`modulecmd.tcl`.
 
-  If a *shelltypename* is given, returns ``1`` if :file:`modulecmd.tcl`'s current
-  shell type is *shelltypename*, returns ``0`` otherwise. *shelltypename*
-  can be: ``sh``, ``csh``, ``fish``, ``tcl``, ``perl``, ``python``, ``ruby``, ``lisp``, ``cmake``, ``r``.
+  If a *shelltypename* is given, returns ``1`` if :file:`modulecmd.tcl`'s
+  current shell type is *shelltypename*, returns ``0`` otherwise.
+  *shelltypename* can be: ``sh``, ``csh``, ``fish``, ``tcl``, ``perl``,
+  ``python``, ``ruby``, ``lisp``, ``cmake``, ``r``.
 
  **module-info alias** name
 
@@ -398,14 +409,14 @@ the *modulefile* is being loaded.
 
  The special *version-name* default specifies the default version to be
  used for module commands, if no specific version is given. This replaces
- the definitions made in the :file:`.version` file in former :file:`modulecmd.tcl`
- releases.
+ the definitions made in the :file:`.version` file in former
+ :file:`modulecmd.tcl` releases.
 
  The parameter *modulefile* may be either
 
  * a fully or partially qualified *modulefile* with name / version. If
-   name is ``.`` (dot) then the current directory name is assumed to be the module
-   name. (Use this for deep *modulefile* directories.)
+   name is ``.`` (dot) then the current directory name is assumed to be the
+   module name. (Use this for deep *modulefile* directories.)
 
  * a symbolic *modulefile* name
 
@@ -444,9 +455,10 @@ the *modulefile* is being loaded.
 .. mfcmd:: module-whatis string
 
  Defines a string which is displayed in case of the invocation of the
- :subcmd:`module whatis<whatis>` command. There may be more than one :mfcmd:`module-whatis`
- line in a *modulefile*. This command takes no actions in case of :subcmd:`load`,
- :subcmd:`display`, etc. invocations of :file:`modulecmd.tcl`.
+ :subcmd:`module whatis<whatis>` command. There may be more than one
+ :mfcmd:`module-whatis` line in a *modulefile*. This command takes no actions
+ in case of :subcmd:`load`, :subcmd:`display`, etc. invocations of
+ :file:`modulecmd.tcl`.
 
  The *string* parameter has to be enclosed in double-quotes if there's more
  than one word specified. Words are defined to be separated by whitespace
@@ -486,17 +498,19 @@ the *modulefile* is being loaded.
 
  Run *string* command through shell. On Unix, command is passed to the
  ``/bin/sh`` shell whereas on Windows it is passed to ``cmd.exe``.
- :file:`modulecmd.tcl` redirects stdout to stderr since stdout would be parsed by
- the evaluating shell. The exit status of the executed command is returned.
+ :file:`modulecmd.tcl` redirects stdout to stderr since stdout would be parsed
+ by the evaluating shell. The exit status of the executed command is returned.
 
 .. mfcmd:: uname field
 
  Provide lookup of system information. Most *field* information are retrieved
- from the ``tcl_platform`` array (see the :manpage:`tclvars(n)` man page). Uname will
- return the string ``unknown`` if information is unavailable for the *field*.
+ from the ``tcl_platform`` array (see the :manpage:`tclvars(n)` man page).
+ Uname will return the string ``unknown`` if information is unavailable for
+ the *field*.
 
- :mfcmd:`uname` will invoke the :manpage:`uname(1)` command in order to get the operating
- system version and :manpage:`domainname(1)` to figure out the name of the domain.
+ :mfcmd:`uname` will invoke the :manpage:`uname(1)` command in order to get
+ the operating system version and :manpage:`domainname(1)` to figure out the
+ name of the domain.
 
  *field* values are:
 
@@ -521,10 +535,10 @@ the *modulefile* is being loaded.
  or *resource-string* is then passed down to be :manpage:`xrdb(1)` command.
 
  *modulefiles* that use this command, should in most cases contain one or
- more :mfcmd:`x-resource` lines, each defining one X11 resource. The :envvar:`DISPLAY`
- environment variable should be properly set and the X11 server should be
- accessible. If :mfcmd:`x-resource` can't manipulate the X11 resource database,
- the *modulefile* will exit with an error message.
+ more :mfcmd:`x-resource` lines, each defining one X11 resource. The
+ :envvar:`DISPLAY` environment variable should be properly set and the X11
+ server should be accessible. If :mfcmd:`x-resource` can't manipulate the X11
+ resource database, the *modulefile* will exit with an error message.
 
  Examples:
 
@@ -560,31 +574,34 @@ is actually a directory, the directory is opened and a search begins for
 an actual *modulefile*. First, :file:`modulecmd.tcl` looks for a file with
 the name :file:`.modulerc` in the directory. If this file exists, its contents
 will be evaluated as if it was a *modulefile* to be loaded. You may place
-:mfcmd:`module-version`, :mfcmd:`module-alias` and :mfcmd:`module-virtual` commands inside
-this file.
+:mfcmd:`module-version`, :mfcmd:`module-alias` and :mfcmd:`module-virtual`
+commands inside this file.
 
-Additionally, before seeking for :file:`.modulerc` files in the module directory,
-the global modulerc file and the :file:`.modulerc` file found at the root of the
-modulepath directory are sourced, too. If a named version default now exists
-for the *modulefile* to be loaded, the assigned *modulefile* now will be
-sourced. Otherwise the file :file:`.version` is looked up in the module directory.
+Additionally, before seeking for :file:`.modulerc` files in the module
+directory, the global modulerc file and the :file:`.modulerc` file found at
+the root of the modulepath directory are sourced, too. If a named version
+default now exists for the *modulefile* to be loaded, the assigned
+*modulefile* now will be sourced. Otherwise the file :file:`.version` is
+looked up in the module directory.
 
-If the :file:`.version` file exists, it is opened and interpreted as Tcl code and
-takes precedence over a :file:`.modulerc` file in the same directory. If the Tcl
-variable ``ModulesVersion`` is set by the :file:`.version` file, :file:`modulecmd.tcl`
-will use the name as if it specifies a *modulefile* in this directory. This
-will become the default *modulefile* in this case. ``ModulesVersion`` cannot
-refer to a *modulefile* located in a different directory.
+If the :file:`.version` file exists, it is opened and interpreted as Tcl code
+and takes precedence over a :file:`.modulerc` file in the same directory. If
+the Tcl variable ``ModulesVersion`` is set by the :file:`.version` file,
+:file:`modulecmd.tcl` will use the name as if it specifies a *modulefile* in
+this directory. This will become the default *modulefile* in this case.
+``ModulesVersion`` cannot refer to a *modulefile* located in a different
+directory.
 
 If ``ModulesVersion`` is a directory, the search begins anew down that
 directory. If the name does not match any files located in the current
 directory, the search continues through the remaining directories in
 :envvar:`MODULEPATH`.
 
-Every :file:`.version` and :file:`.modulerc` file found is interpreted as Tcl code. The
-difference is that :file:`.version` only applies to the current directory, and the
-:file:`.modulerc` applies to the current directory and all subdirectories. Changes
-made in these files will affect the subsequently interpreted *modulefile*.
+Every :file:`.version` and :file:`.modulerc` file found is interpreted as Tcl
+code. The difference is that :file:`.version` only applies to the current
+directory, and the :file:`.modulerc` applies to the current directory and all
+subdirectories. Changes made in these files will affect the subsequently
+interpreted *modulefile*.
 
 If no default version may be figured out, an implicit default is selected when
 this behavior is enabled (see :envvar:`MODULES_IMPLICIT_DEFAULT` in
@@ -592,9 +609,9 @@ this behavior is enabled (see :envvar:`MODULES_IMPLICIT_DEFAULT` in
 explicit default is defined for them, otherwise no default version is found
 and an error is returned. If enabled, then the highest numerically sorted
 *modulefile*, virtual module or module alias under the directory will be used.
-The dictionary comparison method of the :manpage:`lsort(n)` Tcl command is used to
-achieve this sort. If highest numerically sorted element is an alias, search
-continues on its *modulefile* target.
+The dictionary comparison method of the :manpage:`lsort(n)` Tcl command is
+used to achieve this sort. If highest numerically sorted element is an alias,
+search continues on its *modulefile* target.
 
 For example, it is possible for a user to have a directory named X11 which
 simply contains a :file:`.version` file specifying which version of X11 is to
@@ -619,9 +636,10 @@ The equivalent :file:`.modulerc` would look like:
      module-version "./R4" default
 
 If the extended default mechanism is enabled (see
-:envvar:`MODULES_EXTENDED_DEFAULT` in :ref:`module(1)`) the module version specified
-is matched against starting portion of existing module versions, where portion
-is a substring separated from the rest of version string by a ``.`` character.
+:envvar:`MODULES_EXTENDED_DEFAULT` in :ref:`module(1)`) the module version
+specified is matched against starting portion of existing module versions,
+where portion is a substring separated from the rest of version string by a
+``.`` character.
 
 If user names a *modulefile* that cannot be found in the first *modulepath*
 directory, *modulefile* will be searched in next *modulepath* directory
@@ -631,10 +649,10 @@ first looking at the *modulefiles* in the *modulepath* where this alias or
 symbol is defined. If not found, resolution looks at the other *modulepaths*
 in their definition order.
 
-When locating *modulefiles*, if a :file:`.modulerc`, a :file:`.version`, a directory
-or a *modulefile* cannot be read during the search it is simply ignored
-with no error message produced. Visibility of *modulefiles* can thus be
-adapted to the rights the user has been granted. Exception is made when
+When locating *modulefiles*, if a :file:`.modulerc`, a :file:`.version`, a
+directory or a *modulefile* cannot be read during the search it is simply
+ignored with no error message produced. Visibility of *modulefiles* can thus
+be adapted to the rights the user has been granted. Exception is made when
 trying to directly access a directory or a *modulefile*. In this case,
 the access issue is returned as an error message.
 
@@ -650,11 +668,11 @@ Advanced module version specifiers
 ----------------------------------
 
 When the advanced module version specifiers mechanism is enabled (see
-:envvar:`MODULES_ADVANCED_VERSION_SPEC` in :ref:`module(1)`), the specification of
-modulefile passed on Modules specific Tcl commands changes. After the module
-name a version constraint prefixed by the ``@`` character may be added. It
-could be directly appended to the module name or separated from it with a
-space character.
+:envvar:`MODULES_ADVANCED_VERSION_SPEC` in :ref:`module(1)`), the
+specification of modulefile passed on Modules specific Tcl commands changes.
+After the module name a version constraint prefixed by the ``@`` character may
+be added. It could be directly appended to the module name or separated from
+it with a space character.
 
 Constraints can be expressed to refine the selection of module version to:
 
@@ -688,8 +706,8 @@ Modulefile Specific Help
 Users can request help about a specific *modulefile* through the
 :ref:`module(1)` command. The *modulefile* can print helpful information or
 start help oriented programs by defining a ``ModulesHelp`` subroutine. The
-subroutine will be called when the :subcmd:`module help modulefile<help>` command
-is used.
+subroutine will be called when the :subcmd:`module help modulefile<help>`
+command is used.
 
 
 Modulefile Specific Test
@@ -698,19 +716,20 @@ Modulefile Specific Test
 Users can request test of a specific *modulefile* through the :ref:`module(1)`
 command. The *modulefile* can perform some sanity checks on its
 definition or on its underlying programs by defining a ``ModulesTest``
-subroutine. The subroutine will be called when the :subcmd:`module test modulefile<test>`
-command is used. The subroutine should return 1 in case of success. If no
-or any other value is returned, test is considered failed.
+subroutine. The subroutine will be called when the
+:subcmd:`module test modulefile<test>` command is used. The subroutine should
+return 1 in case of success. If no or any other value is returned, test is
+considered failed.
 
 
 Modulefile Display
 ------------------
 
-The :subcmd:`module display modulefile<display>` command will detail all changes that
-will be made to the environment. After displaying all of the environment
-changes :file:`modulecmd.tcl` will call the ``ModulesDisplay`` subroutine. The
-``ModulesDisplay`` subroutine is a good place to put additional descriptive
-information about the *modulefile*.
+The :subcmd:`module display modulefile<display>` command will detail all
+changes that will be made to the environment. After displaying all of the
+environment changes :file:`modulecmd.tcl` will call the ``ModulesDisplay``
+subroutine. The ``ModulesDisplay`` subroutine is a good place to put
+additional descriptive information about the *modulefile*.
 
 
 ENVIRONMENT
@@ -724,8 +743,9 @@ ENVIRONMENT
 SEE ALSO
 --------
 
-:ref:`module(1)`, :manpage:`Tcl(n)`, :manpage:`TclX(n)`, :manpage:`xrdb(1)`, :manpage:`exec(n)`,
-:manpage:`uname(1)`, :manpage:`domainname(1)`, :manpage:`tclvars(n)`, :manpage:`lsort(n)`
+:ref:`module(1)`, :manpage:`Tcl(n)`, :manpage:`TclX(n)`, :manpage:`xrdb(1)`,
+:manpage:`exec(n)`, :manpage:`uname(1)`, :manpage:`domainname(1)`,
+:manpage:`tclvars(n)`, :manpage:`lsort(n)`
 
 
 NOTES
