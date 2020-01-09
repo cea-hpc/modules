@@ -6,6 +6,23 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+Modules 4.5.0 (2020-XX-XX)
+--------------------------
+
+* Doc: fix typos and grammar mistakes on :ref:`module(1)`,
+  :ref:`modulefile(4)` and :ref:`diff_v3_v4` documents. (contribution from
+  Colin Marquardt)
+* Doc: update cookbook recipes to highlight code of the Tcl scripts included.
+  (contribution from Colin Marquardt)
+* Doc: improve markup of :ref:`module(1)`, :ref:`modulefile(4)` and
+  :ref:`diff_v3_v4` documents to enable references to module sub-commands,
+  command line switches, environment variables and modulefile Tcl commands.
+  (contribution from Colin Marquardt)
+* Doc: alphabetically sort module sub-commands, command-line switches,
+  environment variables and modulefile Tcl commands in :ref:`module(1)` and
+  :ref:`modulefile(4)` documents.
+
+
 Modules 4.4.1 (2020-01-03)
 --------------------------
 
