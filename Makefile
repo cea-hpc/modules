@@ -282,22 +282,6 @@ ChangeLog:
 README:
 	sed -e '/^\[\!\[.*\].*/d' $@.md > $@
 
-contrib/mtreview: contrib/mtreview.in version.inc
-	$(translate-in-script)
-	chmod +x $@
-
-contrib/mb: contrib/mb.in version.inc contrib/mlprof
-	$(translate-in-script)
-	chmod +x $@
-
-contrib/mlprof: contrib/mlprof.in version.inc
-	$(translate-in-script)
-	chmod +x $@
-
-contrib/playdemo: contrib/playdemo.in version.inc
-	$(translate-in-script)
-	chmod +x $@
-
 contrib/scripts/add.modules: contrib/scripts/add.modules.in
 	$(translate-in-script)
 
@@ -522,10 +506,6 @@ ifeq ($(wildcard .git) $(wildcard CONTRIBUTING.rst),.git CONTRIBUTING.rst)
 	rm -f CONTRIBUTING.txt
 endif
 	rm -f modulecmd.tcl
-	rm -f contrib/mtreview
-	rm -f contrib/mb
-	rm -f contrib/mlprof
-	rm -f contrib/playdemo
 	rm -f $(MODULECMDTEST)
 	rm -f contrib/scripts/add.modules
 	rm -f contrib/scripts/modulecmd
