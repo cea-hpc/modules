@@ -6,10 +6,10 @@
 
 # definitions for code coverage
 NAGELFAR_DLSRC1 := http://downloads.sourceforge.net/nagelfar/
-NAGELFAR_DLSRC2 := https://ftp.openbsd.org/pub/OpenBSD/distfiles/
-NAGELFAR_RELEASE := nagelfar125
+NAGELFAR_DLSRC2 := https://osdn.net/projects/sfnet_nagelfar/downloads/Rel_131/
+NAGELFAR_RELEASE := nagelfar131
 NAGELFAR_DIST := $(NAGELFAR_RELEASE).tar.gz
-NAGELFAR_DISTSUM := 707e3c305437dce1f14103f0bd058fc9
+NAGELFAR_DISTSUM := fbf79ab1a1d85349600f2502a3353bf4
 NAGELFAR := $(NAGELFAR_RELEASE)/nagelfar.tcl
 
 # definition for old Tcl interpreter for coverage testing
