@@ -23,8 +23,8 @@ TCLSH83 := $(TCL_RELEASE83)/unix/tclsh
 MODULECMDTEST := modulecmd-test.tcl
 
 # definitions for enhanced diff tool (to review test results)
-ICDIFF_DLSRC := https://raw.githubusercontent.com/jeffkaufman/icdiff/release-1.9.2/
-ICDIFF_CHECKSUM := 2bf052d9dfb0a46af581fc390c47774a
+ICDIFF_DLSRC := https://raw.githubusercontent.com/jeffkaufman/icdiff/release-1.9.5/
+ICDIFF_CHECKSUM := fd5825ede4c2853ba1747a8931b077c1
 
 # compatibility version-related files
 COMPAT_DIR := compat
