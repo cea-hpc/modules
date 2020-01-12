@@ -336,17 +336,17 @@ script:
   - $CMD_PREFIX ./configure $CONFIGURE_OPTS
   - $CMD_PREFIX make
   - if [ -n "$EXTRA_SCRIPT_PRETEST" ]; then $CMD_PREFIX eval $EXTRA_SCRIPT_PRETEST; fi
-  - travis_wait 18 unbuffer $CMD_PREFIX contrib/mt
+  - travis_wait 18 unbuffer $CMD_PREFIX script/mt
   - if [ -n "$EXTRA_SCRIPT_POSTTEST" ]; then $CMD_PREFIX eval $EXTRA_SCRIPT_POSTTEST; fi
   - $CMD_PREFIX make install
-  - $CMD_PREFIX contrib/mt install
+  - $CMD_PREFIX script/mt install
   - $CMD_PREFIX make uninstall
   - if [ "$OS_NAME" = 'centos' ]; then $CMD_PREFIX make srpm; fi
 
 # report code coverage results
 after_success: |
   [ "$COVERAGE" = 'y' ] &&
-  contrib/nglfar2ccov modulecmd-test.tcl &&
+  script/nglfar2ccov modulecmd-test.tcl &&
   bash <(curl -s https://codecov.io/bash)
 
 after_script: |

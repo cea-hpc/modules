@@ -9,10 +9,6 @@ Brief overview of whats here:
 		you started.
 
 	scripts:
-		createmodule.sh A utliity to help in generating a module file.
-			It attempts to take a .file and duplicate what it does
-			in modules own language.
-
 		resetenv	A utility we use to reset a users environment
 			to match our template user.
 		

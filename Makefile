@@ -35,8 +35,8 @@ ifneq ($(wildcard Makefile.inc),Makefile.inc)
 endif
 include Makefile.inc
 
-INSTALL_PREREQ := modulecmd.tcl ChangeLog README contrib/scripts/add.modules \
-	contrib/scripts/modulecmd
+INSTALL_PREREQ := modulecmd.tcl ChangeLog README script/add.modules \
+	script/modulecmd
 TEST_PREREQ := $(MODULECMDTEST)
 
 ifeq ($(compatversion),y)
@@ -277,15 +277,15 @@ modulecmd.tcl: modulecmd.tcl.in version.inc
 	chmod +x $@
 
 ChangeLog:
-	contrib/gitlog2changelog.py
+	script/gitlog2changelog.py
 
 README:
 	sed -e '/^\[\!\[.*\].*/d' $@.md > $@
 
-contrib/scripts/add.modules: contrib/scripts/add.modules.in
+script/add.modules: script/add.modules.in
 	$(translate-in-script)
 
-contrib/scripts/modulecmd: contrib/scripts/modulecmd.in
+script/modulecmd: script/modulecmd.in
 	$(translate-in-script)
 
 # compatibility version-related rules
@@ -366,13 +366,13 @@ ifeq ($(libtclenvmodules),y)
 	cp lib/libtclenvmodules$(SHLIB_SUFFIX) $(DESTDIR)$(libdir)/libtclenvmodules$(SHLIB_SUFFIX)
 	chmod +x $(DESTDIR)$(libdir)/libtclenvmodules$(SHLIB_SUFFIX)
 endif
-	cp contrib/envml $(DESTDIR)$(bindir)/
+	cp script/envml $(DESTDIR)$(bindir)/
 	chmod +x $(DESTDIR)$(bindir)/envml
-	cp contrib/scripts/add.modules $(DESTDIR)$(bindir)/
+	cp script/add.modules $(DESTDIR)$(bindir)/
 	chmod +x $(DESTDIR)$(bindir)/add.modules
-	cp contrib/scripts/modulecmd $(DESTDIR)$(bindir)/
+	cp script/modulecmd $(DESTDIR)$(bindir)/
 	chmod +x $(DESTDIR)$(bindir)/modulecmd
-	cp contrib/scripts/mkroot $(DESTDIR)$(bindir)/
+	cp script/mkroot $(DESTDIR)$(bindir)/
 	chmod +x $(DESTDIR)$(bindir)/mkroot
 ifneq ($(wildcard $(DESTDIR)$(etcdir)/siteconfig.tcl),$(DESTDIR)$(etcdir)/siteconfig.tcl)
 	cp siteconfig.tcl $(DESTDIR)$(etcdir)/siteconfig.tcl
@@ -487,7 +487,7 @@ clean:
 	rm -f *.log *.sum
 	rm -f $(MODULECMDTEST)_i $(MODULECMDTEST)_log $(MODULECMDTEST)_m
 	rm -rf coverage
-ifeq ($(wildcard .git) $(wildcard contrib/gitlog2changelog.py),.git contrib/gitlog2changelog.py)
+ifeq ($(wildcard .git) $(wildcard script/gitlog2changelog.py),.git script/gitlog2changelog.py)
 	rm -f ChangeLog
 endif
 ifeq ($(wildcard .git) $(wildcard README.md),.git README.md)
@@ -507,8 +507,8 @@ ifeq ($(wildcard .git) $(wildcard CONTRIBUTING.rst),.git CONTRIBUTING.rst)
 endif
 	rm -f modulecmd.tcl
 	rm -f $(MODULECMDTEST)
-	rm -f contrib/scripts/add.modules
-	rm -f contrib/scripts/modulecmd
+	rm -f script/add.modules
+	rm -f script/modulecmd
 	rm -f testsuite/example/.modulespath testsuite/example/modulerc testsuite/example/modulerc-1 testsuite/example/initrc
 	rm -f modules-*.tar modules-*.tar.gz modules-*.tar.bz2
 	rm -f modules-*.srpm

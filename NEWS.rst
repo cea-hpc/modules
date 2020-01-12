@@ -40,6 +40,8 @@ Modules 4.5.0 (2020-XX-XX)
   output in `JSON`_ format. (fix issue #303)
 * Script: remove need to build project management-specific tools
   (``mtreview``, ``mb``, ``mlprof`` and ``playdemo``) prior using them.
+* Script: gather all distributed and maintained scripts in a ``script``
+  directory at the root of the project repository tree.
 
 .. _JSON: https://tools.ietf.org/html/rfc8259
 
