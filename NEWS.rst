@@ -42,6 +42,12 @@ Modules 4.5.0 (2020-XX-XX)
   (``mtreview``, ``mb``, ``mlprof`` and ``playdemo``) prior using them.
 * Script: gather all distributed and maintained scripts in a ``script``
   directory at the root of the project repository tree.
+* Install: provide Windows-specific batch files when ``./configure`` option
+  ``--enable-windows-support`` is set. module command wrapper ``module.cmd``
+  is installed in ``bindir`` and initialization script ``cmd.cmd`` in
+  ``initdir``. Those batch files are relocatable and expect ``modulecmd.tcl``
+  in ``..\libexec`` directory. (fix issue #272 with contribution from Jacques
+  Raphanel)
 
 .. _JSON: https://tools.ietf.org/html/rfc8259
 

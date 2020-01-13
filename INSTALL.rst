@@ -314,6 +314,10 @@ instance ``--disable-set-manpath``):
                       module alias definition. Note that enabling this
                       workaround solves Tcsh history issue but weakens
                       shell evaluation of the code produced by modulefiles.
+--enable-windows-support
+                      Install all required files for Windows platform
+                      (``module`` command batch file and ``cmd.cmd``
+                      initialization script). (default=no)
 
 Optional Packages (the default for each option is displayed within
 parenthesis, to disable an option replace ``with`` by ``without`` for
