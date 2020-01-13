@@ -375,8 +375,8 @@ endif
 	cp script/mkroot $(DESTDIR)$(bindir)/
 	chmod +x $(DESTDIR)$(bindir)/mkroot
 ifeq ($(windowssupport),y)
-	cp windows/*.cmd $(DESTDIR)$(bindir)/
-	chmod +x $(DESTDIR)$(bindir)/*.cmd
+	cp script/module.cmd $(DESTDIR)$(bindir)/
+	chmod +x $(DESTDIR)$(bindir)/module.cmd
 endif
 ifneq ($(wildcard $(DESTDIR)$(etcdir)/siteconfig.tcl),$(DESTDIR)$(etcdir)/siteconfig.tcl)
 	cp siteconfig.tcl $(DESTDIR)$(etcdir)/siteconfig.tcl
