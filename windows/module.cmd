@@ -6,7 +6,7 @@ if "%MODULESHOME%\bin\module.cmd" NEQ "%~dpnx0" goto:initModules
 goto:skipInit
 
 :initModules
-call "%~dp0moduleinit.cmd" %*
+call "%~dp0..\init\cmd.cmd" %*
 
 :skipInit
 set OUTPUT=

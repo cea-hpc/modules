@@ -217,6 +217,9 @@ install: all
 	mkdir -p $(DESTDIR)$(initdir)/ksh-functions
 	mkdir -p $(DESTDIR)$(modulefilesdir)
 	cp $(ALL_SHELLS) $(DESTDIR)$(initdir)/
+ifeq ($(windowssupport),y)
+	cp cmd.cmd $(DESTDIR)$(initdir)/
+endif
 	cp fish_completion $(DESTDIR)$(initdir)/
 	cp -r zsh-functions $(DESTDIR)$(initdir)/
 	cp ksh $(DESTDIR)$(initdir)/ksh-functions/module
@@ -241,6 +244,9 @@ endif
 
 uninstall:
 	rm -f $(addprefix $(DESTDIR)$(initdir)/,$(ALL_SHELLS) fish_completion)
+ifeq ($(windowssupport),y)
+	rm -f $(DESTDIR)$(initdir)/cmd.cmd
+endif
 	rm -f $(DESTDIR)$(initdir)/ksh-functions/module
 	rm -f $(DESTDIR)$(initdir)/ksh-functions/ml
 ifeq ($(compatversion),y)

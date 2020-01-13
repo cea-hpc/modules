@@ -12,7 +12,7 @@ for %%i in ("%~dp0..") do set "MODULESHOME=%%~dpni"
 :skipInit
 
 :: check if module.cmd directory needs to be added to PATH
-if not exist "%~dp0module.cmd" goto:skipModuleInit
+if not exist "%~dp0..\bin\module.cmd" goto:skipModuleInit
 for %%i in (module.cmd) do ( 
     if "x%%~$PATH:i" EQU "x" (
         for %%a in (%~dp0.) do set "PATH=%%~dpnxa;%PATH%"
