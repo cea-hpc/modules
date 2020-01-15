@@ -1,4 +1,5 @@
-.PHONY: install install-testconfig uninstall-testconfig uninstall clean
+.PHONY: dist-win install install-testconfig uninstall-testconfig uninstall \
+	clean
 
 SH_LIKE  = sh ksh bash zsh profile.sh bash_completion
 CSH_LIKE = csh tcsh tcsh_completion profile.csh
@@ -7,6 +8,7 @@ OTHER    = perl.pm python.py ruby.rb lisp tcl fish cmake r.R
 # example modulefiles to install
 EXAMPLE_MODFILES_SRCDIR := ../contrib/modulefiles
 EXAMPLE_MODFILES = dot module-git module-info modules null use.own
+EXAMPLE_WIN_MODFILES = module-git module-info null
 EXAMPLE_TESTCONFIG_MODFILES = null
 
 # source definitions shared across the Makefiles of this project
@@ -195,6 +197,12 @@ $(EXAMPLE_MODFILES_SRCDIR)/modules: $(EXAMPLE_MODFILES_SRCDIR)/modules.in ../ver
 
 $(EXAMPLE_MODFILES_SRCDIR)/version: $(EXAMPLE_MODFILES_SRCDIR)/version.in ../version.inc
 	$(translate-in-script)
+
+dist-win:
+	mkdir $(DIST_WIN_PREFIX)/init
+	cp cmd.cmd $(DIST_WIN_PREFIX)/init/
+	mkdir $(DIST_WIN_PREFIX)/modulefiles
+	cp $(addprefix $(EXAMPLE_MODFILES_SRCDIR)/,$(EXAMPLE_WIN_MODFILES)) $(DIST_WIN_PREFIX)/modulefiles/
 
 # example configs for test rules
 install-testconfig:

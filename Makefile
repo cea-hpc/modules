@@ -2,7 +2,8 @@
 	install-testsiteconfig-1 install-testmodulerc install-testmodulerc-1 \
 	install-testinitrc install-testetcrc install-testmodspath \
 	install-testmodspath-empty uninstall-testconfig uninstall dist dist-tar \
-	dist-gzip dist-bzip2 srpm clean distclean test testinstall testsyntax
+	dist-gzip dist-bzip2 dist-win srpm clean distclean test testinstall \
+	testsyntax
 
 # definitions for code coverage
 NAGELFAR_DLSRC1 := http://downloads.sourceforge.net/nagelfar/
@@ -268,6 +269,7 @@ contrib/rpm/environment-modules.spec: ;
 endif
 
 DIST_PREFIX := modules-$(MODULES_RELEASE)$(MODULES_BUILD)
+DIST_WIN_PREFIX := $(DIST_PREFIX)-win
 
 # avoid shared definitions to be rebuilt by make
 Makefile.inc: ;
@@ -491,6 +493,28 @@ dist-bzip2: dist-tar
 
 dist: dist-gzip
 
+# dist zip ball for Windows platform with all pre-generated relevat files
+dist-win: modulecmd.tcl ChangeLog README version.inc pkgdoc
+	mkdir $(DIST_WIN_PREFIX)
+	mkdir $(DIST_WIN_PREFIX)/libexec
+	cp modulecmd.tcl $(DIST_WIN_PREFIX)/libexec/
+	mkdir $(DIST_WIN_PREFIX)/bin
+	cp script/module.cmd $(DIST_WIN_PREFIX)/bin/
+	cp script/ml.cmd $(DIST_WIN_PREFIX)/bin/
+	mkdir $(DIST_WIN_PREFIX)/doc
+	cp COPYING.GPLv2 $(DIST_WIN_PREFIX)/doc/
+	cp ChangeLog $(DIST_WIN_PREFIX)/doc/
+	cp README $(DIST_WIN_PREFIX)/doc/
+	cp doc/build/MIGRATING.txt $(DIST_WIN_PREFIX)/doc/
+	cp doc/build/INSTALL-win.txt $(DIST_WIN_PREFIX)/doc/
+	cp doc/build/NEWS.txt $(DIST_WIN_PREFIX)/doc/
+	cp doc/build/CONTRIBUTING.txt $(DIST_WIN_PREFIX)/doc/
+	cp doc/build/module.txt $(DIST_WIN_PREFIX)/doc/
+	cp doc/build/modulefile.txt $(DIST_WIN_PREFIX)/doc/
+	$(MAKE) -C init dist-win DIST_WIN_PREFIX=../$(DIST_WIN_PREFIX)
+	zip -r $(DIST_WIN_PREFIX).zip $(DIST_WIN_PREFIX)
+	rm -rf $(DIST_WIN_PREFIX)
+
 srpm: dist-bzip2
 	rpmbuild -ts $(DIST_PREFIX).tar.bz2
 
@@ -525,6 +549,8 @@ endif
 	rm -f script/modulecmd
 	rm -f testsuite/example/.modulespath testsuite/example/modulerc testsuite/example/modulerc-1 testsuite/example/initrc
 	rm -f modules-*.tar modules-*.tar.gz modules-*.tar.bz2
+	rm -rf modules-*-win/
+	rm -f modules-*-win.zip
 	rm -f modules-*.srpm
 	$(MAKE) -C init clean
 ifeq ($(builddoc),y)
