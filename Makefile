@@ -512,6 +512,7 @@ dist-win: modulecmd.tcl ChangeLog README version.inc pkgdoc
 	cp doc/build/module.txt $(DIST_WIN_PREFIX)/doc/
 	cp doc/build/modulefile.txt $(DIST_WIN_PREFIX)/doc/
 	$(MAKE) -C init dist-win DIST_WIN_PREFIX=../$(DIST_WIN_PREFIX)
+	cp INSTALL.bat $(DIST_WIN_PREFIX)/
 	zip -r $(DIST_WIN_PREFIX).zip $(DIST_WIN_PREFIX)
 	rm -rf $(DIST_WIN_PREFIX)
 
