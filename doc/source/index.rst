@@ -69,6 +69,7 @@ automatically configured to the correct architecture.
    :caption: Installation
 
    INSTALL
+   INSTALL-win
    MIGRATING
 
 .. toctree::

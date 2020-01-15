@@ -462,13 +462,14 @@ endif
 dist-tar: ChangeLog README version.inc contrib/rpm/environment-modules.spec pkgdoc
 	git archive --prefix=$(DIST_PREFIX)/ --worktree-attributes \
 		-o $(DIST_PREFIX).tar HEAD
-	cp doc/build/MIGRATING.txt  doc/build/INSTALL.txt doc/build/NEWS.txt \
-		doc/build/CONTRIBUTING.txt ./
+	cp doc/build/MIGRATING.txt  doc/build/INSTALL.txt doc/build/INSTALL-win.txt \
+		doc/build/NEWS.txt doc/build/CONTRIBUTING.txt ./
 	tar -rf $(DIST_PREFIX).tar --transform 's,^,$(DIST_PREFIX)/,' \
 		lib/configure lib/config.h.in ChangeLog README MIGRATING.txt INSTALL.txt \
-		NEWS.txt CONTRIBUTING.txt version.inc doc/build/MIGRATING.txt \
-		doc/build/diff_v3_v4.txt doc/build/INSTALL.txt doc/build/NEWS.txt \
-		doc/build/CONTRIBUTING.txt doc/build/module.1.in doc/build/modulefile.4 \
+		INSTALL-win.txt NEWS.txt CONTRIBUTING.txt version.inc \
+		doc/build/MIGRATING.txt doc/build/diff_v3_v4.txt doc/build/INSTALL.txt \
+		doc/build/INSTALL-win.txt doc/build/NEWS.txt doc/build/CONTRIBUTING.txt \
+		doc/build/module.1.in doc/build/modulefile.4 \
 		contrib/rpm/environment-modules.spec
 ifeq ($(compatversion) $(wildcard $(COMPAT_DIR)),y $(COMPAT_DIR))
 	$(MAKE) -C $(COMPAT_DIR) distdir
@@ -505,6 +506,9 @@ ifeq ($(wildcard .git) $(wildcard MIGRATING.rst),.git MIGRATING.rst)
 endif
 ifeq ($(wildcard .git) $(wildcard INSTALL.rst),.git INSTALL.rst)
 	rm -f INSTALL.txt
+endif
+ifeq ($(wildcard .git) $(wildcard INSTALL-win.rst),.git INSTALL-win.rst)
+	rm -f INSTALL-win.txt
 endif
 ifeq ($(wildcard .git) $(wildcard NEWS.rst),.git NEWS.rst)
 	rm -f NEWS.txt
