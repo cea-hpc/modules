@@ -377,6 +377,8 @@ endif
 ifeq ($(windowssupport),y)
 	cp script/module.cmd $(DESTDIR)$(bindir)/
 	chmod +x $(DESTDIR)$(bindir)/module.cmd
+	cp script/ml.cmd $(DESTDIR)$(bindir)/
+	chmod +x $(DESTDIR)$(bindir)/ml.cmd
 endif
 ifneq ($(wildcard $(DESTDIR)$(etcdir)/siteconfig.tcl),$(DESTDIR)$(etcdir)/siteconfig.tcl)
 	cp siteconfig.tcl $(DESTDIR)$(etcdir)/siteconfig.tcl
@@ -426,6 +428,7 @@ endif
 	rm -f $(DESTDIR)$(bindir)/mkroot
 ifeq ($(windowssupport),y)
 	rm -f $(DESTDIR)$(bindir)/module.cmd
+	rm -f $(DESTDIR)$(bindir)/ml.cmd
 endif
 ifeq ($(vimaddons),y)
 	rm -f $(DESTDIR)$(vimdatadir)/ftdetect/modulefile.vim

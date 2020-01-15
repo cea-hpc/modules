@@ -48,6 +48,8 @@ Modules 4.5.0 (2020-XX-XX)
   ``initdir``. Those batch files are relocatable and expect ``modulecmd.tcl``
   in ``..\libexec`` directory. (fix issue #272 with contribution from Jacques
   Raphanel)
+* Install: add ml command wrapper ``ml.cmd`` and install it i ``bindir`` when
+  ``./configure`` option ``--enable-windows-support`` is set.
 
 .. _JSON: https://tools.ietf.org/html/rfc8259
 
