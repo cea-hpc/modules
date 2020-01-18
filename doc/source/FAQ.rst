@@ -1,5 +1,7 @@
-Frequently Asked Questions on Environment Modules
-=================================================
+.. _FAQ:
+
+Frequently Asked Questions
+==========================
 
 Module command
 --------------

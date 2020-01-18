@@ -66,30 +66,30 @@ automatically configured to the correct architecture.
 .. toctree::
    :hidden:
    :maxdepth: 2
-   :caption: Installation
+   :caption: Basics
 
    INSTALL
    INSTALL-win
    MIGRATING
+   NEWS
+   FAQ
 
 .. toctree::
    :hidden:
    :maxdepth: 2
-   :caption: Man pages
+   :caption: Reference
 
    ml
    module
    modulefile
+   diff_v3_v4
+   cookbook
 
 .. toctree::
    :hidden:
    :maxdepth: 2
-   :caption: Additional information
+   :caption: Contributing
 
-   diff_v3_v4
-   FAQ
-   NEWS
-   cookbook
    CONTRIBUTING
    design
 
