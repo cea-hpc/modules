@@ -9,6 +9,15 @@ environment:
   RUNTESTFLAGS: -v
 
   matrix:
+    - BUILD_PLATFORM: native
+      CMD_DIR: C:\cygwin64\bin
+      TCL_INSTALLER: ActiveTcl-8.6.9.8609.2-MSWin32-x64
+      TCL_DL_URL: http://downloads.activestate.com/ActiveTcl/releases/8.6.9.0/
+      TCLSH_DIR: C:\ActiveTcl\bin
+      JAR_DIR: C:\Program Files\Java\jdk1.8.0\bin
+      DIST_WIN: modules-*-win
+      INST_DIR: C:\Modules
+      MODULE_DIR: C:\Modules\bin
     - BUILD_PLATFORM: msys
       CMD_DIR: C:\msys64\usr\bin
     - BUILD_PLATFORM: cygwin
@@ -20,20 +29,34 @@ install:
   # no availability of R on MSYS2 platform
   - if "%BUILD_PLATFORM%" == "msys" (%CMD_DIR%\bash -lc "pacman --noconfirm --noprogressbar -S tcl dejagnu python ruby cmake zsh tcsh mksh fish gcc autoconf")
   - if "%BUILD_PLATFORM%" == "cygwin" (%CMD_DIR%\bash -lc "/setup-x86_64.exe -qnNdO -P tcl,dejagnu,ruby,cmake,zsh,tcsh,mksh,fish,R,tcl-devel,gcc-core,autoconf")
+  # install Tcl for native test and requirement in Cygwin to build Windows-specific dist zipball
+  - if "%BUILD_PLATFORM%" == "native" (%CMD_DIR%\bash -lc "/setup-x86_64.exe -qnNdO -P tcl,python37,python37-sphinx,zip")
+  - if "%BUILD_PLATFORM%" == "native" (
+      curl -LfsS -o %TCL_INSTALLER%.exe %TCL_DL_URL%/%TCL_INSTALLER%.exe &&
+      %TCL_INSTALLER% /exenoupdates /qn)
 
 build_script:
-  - path %CMD_DIR%;%PATH%
-  - bash -c "./configure --disable-compat-version && make && make install"
+  - path %CMD_DIR%;%JAR_DIR%;%SYSTEMROOT%;%SYSTEMROOT%\system32
+  - IF not "%TCLSH_DIR%" == "" path %TCLSH_DIR%;%PATH%
+  - if not "%BUILD_PLATFORM%" == "native" (bash -c "./configure --disable-compat-version && make && make install")
+  # install from Windows-specific dist zipball for native test
+  - if "%BUILD_PLATFORM%" == "native" (
+      bash -c "./configure --disable-compat-version --disable-libtclenvmodules && make dist-win")
+  - if "%BUILD_PLATFORM%" == "native" (jar xvf %DIST_WIN%.zip && cd %DIST_WIN% && INSTALL.bat %INST_DIR%)
 
 test_script:
-  - path %CMD_DIR%;%PATH%
-  - bash -c "script/mt"
+  - path %CMD_DIR%;%SYSTEMROOT%;%SYSTEMROOT%\system32
+  # manually define module cmd dir as PATH updated by INSTALL.bat is not inherited by test_script
+  - IF not "%TCLSH_DIR%" == "" path %MODULE_DIR%;%TCLSH_DIR%;%PATH%
+  - if not "%BUILD_PLATFORM%" == "native" (bash -c "script/mt")
   - if "%BUILD_PLATFORM%" == "msys" (bash -c "script/mt install")
   # must add /usr/lib/lapack to PATH for /usr/lib/R/library/stats/libs/stats.dll
   - if "%BUILD_PLATFORM%" == "cygwin" (bash -c "PATH=/usr/lib/lapack:$PATH script/mt install")
+  - if "%BUILD_PLATFORM%" == "native" (cd %DIST_WIN% && TESTINSTALL.bat)
 
 after_test:
-  - path %CMD_DIR%;%PATH%
-  - bash -c "make uninstall"
+  - path %CMD_DIR%;%SYSTEMROOT%;%SYSTEMROOT%\system32
+  - if not "%BUILD_PLATFORM%" == "native" (bash -c "make uninstall")
+  - if "%BUILD_PLATFORM%" == "native" (cd %DIST_WIN% && UNINSTALL.bat %INST_DIR%)
 
 # vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
