@@ -48,8 +48,16 @@ Modules 4.5.0 (2020-XX-XX)
   ``initdir``. Those batch files are relocatable and expect ``modulecmd.tcl``
   in ``..\libexec`` directory. (fix issue #272 with contribution from Jacques
   Raphanel)
-* Install: add ml command wrapper ``ml.cmd`` and install it i ``bindir`` when
+* Install: add ml command wrapper ``ml.cmd`` and install it in ``bindir`` when
   ``./configure`` option ``--enable-windows-support`` is set.
+* Doc: improve documentation portal index.
+* Install: add ``dist-win`` target to Makefile in order to build a
+  distribution zipball containing the required files to run Modules on a
+  Windows platform. ``INSTALL.bat`` and ``UNINSTALL.bat`` Windows batch files
+  are introduced and shipped in the zipball to automate installation and basic
+  configuration of Modules on the Windows platform.
+* Doc: update :ref:`INSTALL-win` document to describe how to install Modules
+  with newly provided Windows-specific distribution zipball.
 
 .. _JSON: https://tools.ietf.org/html/rfc8259
 

@@ -94,6 +94,37 @@ set, the output result of these sub-commands is rendered in `JSON`_ format::
 
 .. _JSON: https://tools.ietf.org/html/rfc8259
 
+Improved Windows support
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+A new option to the ``./configure`` script named ``--enable-windows-support``
+is introduced to install additional files relative to the enablement of
+Modules on the Windows platform. When set, this option installs ``module.cmd``
+and ``ml.cmd`` scripts in ``bindir`` and initialization script ``cmd.cmd`` in
+``initdir``. With these tree files the Modules installation may be used from
+either a Unix or a Windows platform.
+
+``module.cmd`` and ``ml.cmd`` scripts respectively provide the ``module`` and
+``ml`` commands for Windows ``cmd`` terminal shell, relying on
+``modulecmd.tcl`` script which was already able to produce shell code for
+this Windows shell. Initialization script ``cmd.cmd`` adds the directory of
+``module.cmd`` and ``ml.cmd`` to ``PATH``.
+
+These Windows-specific files are relocatable: ``module.cmd`` and ``ml.cmd``
+scripts expect to find initialization script ``cmd.cmd`` in the ``init``
+directory next to them (to setup Modules-specific variables in current
+environment) and ``cmd.cmd`` expects ``modulecmd.tcl`` to be found in
+``libexec`` directory and the 2 commands in ``bin`` directory next to it.
+
+Starting from this ``4.5`` release a distribution zipball is published to
+install Modules on Windows. This zip archive ships an install and an uninstall
+scripts (``INSTALL.bat`` and ``UNINSTALL.bat``). The zipball can be built
+locally from Modules sources by running ``make dist-win``.
+
+The :ref:`INSTALL-win` document describes how to install Modules on Windows
+from the distribution zipball.
+
+
 Further reading
 ---------------
 
