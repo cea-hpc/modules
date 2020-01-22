@@ -10,7 +10,11 @@ if [%1]==[] (
 :: remove bin directory from system path
 set "binpath=%installpath%\bin"
 setlocal enableextensions enabledelayedexpansion
-setx /M PATH "!PATH:%binpath%;=!"
+set "NEWPATH=!PATH:%binpath%;=!"
+if not "%NEWPATH%" == "%PATH%" (
+   set "PATH=%NEWPATH%"
+   setx /M PATH "%NEWPATH%"
+)
 if errorlevel 1 ( exit /b 1 )
 
 :: remove installation directory and content
