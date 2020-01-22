@@ -19,7 +19,8 @@ if errorlevel 1 ( exit /b 2 )
 
 :: add bin directory to system path if not done yet
 set "binpath=%installpath%\bin"
-echo %PATH% | find /i "%binpath:"=%">nul || setx /M PATH "%binpath%;%PATH%"
+set FIND=%SYSTEMROOT%\system32\find
+echo %PATH% | %FIND% /i "%binpath:"=%">nul || setx /M PATH "%binpath%;%PATH%"
 if errorlevel 1 ( exit /b 3 )
 
 :: vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
