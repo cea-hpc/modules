@@ -514,6 +514,7 @@ dist-win: modulecmd.tcl ChangeLog README version.inc pkgdoc
 	$(MAKE) -C init dist-win DIST_WIN_PREFIX=../$(DIST_WIN_PREFIX)
 	cp script/INSTALL.bat $(DIST_WIN_PREFIX)/
 	cp script/UNINSTALL.bat $(DIST_WIN_PREFIX)/
+	cp script/TESTINSTALL.bat $(DIST_WIN_PREFIX)/
 	zip -r $(DIST_WIN_PREFIX).zip $(DIST_WIN_PREFIX)
 	rm -rf $(DIST_WIN_PREFIX)
 
