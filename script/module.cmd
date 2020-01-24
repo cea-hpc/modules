@@ -8,3 +8,6 @@ if not defined MODULES_CMD (
 set OUTPUT=
 :: execute each output line in cmd shell
 for /f "tokens=*" %%I in ('call tclsh "%MODULES_CMD%" cmd %*') do %%I
+
+:: quit with error code produced by modulecmd
+if %errorlevel% NEQ 0 (exit /b %errorlevel%)
