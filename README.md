@@ -103,7 +103,7 @@ type:
 
 The following man pages are provided:
 
-    module(1), modulefile(4)
+    module(1), ml(1), modulefile(4)
 
 
 Test suite
