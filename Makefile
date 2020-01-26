@@ -64,6 +64,13 @@ ifeq ($(COVERAGE_OLDTCL),y)
 TEST_PREREQ += tclsh83
 endif
 
+# define rule prereq when target need to be rebuilt when git repository change
+ifeq ($(wildcard .git),.git)
+GIT_REFRESH_PREREQ := .git/index
+else
+GIT_REFRESH_PREREQ := 
+endif
+
 all: initdir $(INSTALL_PREREQ)
 
 # skip doc build if no sphinx-build
@@ -96,20 +103,41 @@ else
 MODULES_BUILD := +$(GIT_CURRENT_BRANCH)$(subst $(GIT_CURRENT_TAG),,$(GIT_CURRENT_DESC))
 endif
 
+else
+# load raw version information
+include version.inc.in
+
+# build short date from full date found in raw data
+ifeq ($(MODULES_BUILD_FDATE),$$Format:%ci$$)
+MODULES_BUILD_DATE := $(shell date '+%Y-%m-%d')
+else
+MODULES_BUILD_DATE := $(firstword $(MODULES_BUILD_FDATE))
+endif
+
+# set a recognizable build number if one found in version.inc.in is raw data
+ifeq ($(MODULES_BUILD_HASH),$$Format:%h$$)
+MODULES_BUILD := +XX-gffffffff
+# or compute it from these information as if working from git repository
+else
+comma := ,
+MODULES_BUILD_REFS := $(subst $(comma),,$(MODULES_BUILD_REFS))
+
+ifeq ($(filter v$(MODULES_RELEASE),$(MODULES_BUILD_REFS)),v$(MODULES_RELEASE))
+MODULES_BUILD :=
+else ifeq ($(filter master,$(MODULES_BUILD_REFS)),master)
+MODULES_BUILD := +XX-g$(MODULES_BUILD_HASH)
+else
+MODULES_BUILD := +$(lastword $(MODULES_BUILD_REFS))-XX-g$(MODULES_BUILD_HASH)
+endif
+endif
+endif
+
 # determine RPM release
 # use last release if we currently sat on tag, append build number to it elsewhere
 MODULES_LAST_RPM_VERSREL := $(shell sed -n '/^%changelog/ {n;s/^\*.* - //p;q;}' \
 	contrib/rpm/environment-modules.spec.in)
 MODULES_LAST_RPM_RELEASE := $(lastword $(subst -, ,$(MODULES_LAST_RPM_VERSREL)))
 MODULES_RPM_RELEASE := $(MODULES_LAST_RPM_RELEASE)$(subst +,.,$(subst -,.,$(MODULES_BUILD)))
-
-else
-# source version definitions shared across the Makefiles of this project
-ifneq ($(wildcard version.inc),version.inc)
-  $(error version.inc is missing)
-endif
-include version.inc
-endif
 
 # define init configs location
 ifeq ($(initconfin),etcdir)
@@ -252,27 +280,20 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@MODULES_BUILD_DATE@|$(MODULES_BUILD_DATE)|g' $< > $@
 endef
 
-ifeq ($(wildcard .git) $(wildcard version.inc.in),.git version.inc.in)
-# rebuild if git repository changed
-version.inc: version.inc.in .git/index
-	$(translate-in-script)
-
-contrib/rpm/environment-modules.spec: contrib/rpm/environment-modules.spec.in .git/index
-	$(translate-in-script)
-
-else
-# avoid shared definitions to be rebuilt by make
-version.inc: ;
-
-# do not rebuild spec file if not in git repository
-contrib/rpm/environment-modules.spec: ;
-endif
-
 DIST_PREFIX := modules-$(MODULES_RELEASE)$(MODULES_BUILD)
 DIST_WIN_PREFIX := $(DIST_PREFIX)-win
 
 # avoid shared definitions to be rebuilt by make
 Makefile.inc: ;
+
+version.inc: version.inc.in $(GIT_REFRESH_PREREQ)
+	$(translate-in-script)
+
+# source version definitions shared across the Makefiles of this project
+include version.inc
+
+contrib/rpm/environment-modules.spec: contrib/rpm/environment-modules.spec.in $(GIT_REFRESH_PREREQ)
+	$(translate-in-script)
 
 modulecmd.tcl: modulecmd.tcl.in version.inc
 	$(translate-in-script)
@@ -464,18 +485,17 @@ endif
 
 # include pre-generated documents not to require documentation build
 # tools when installing from dist tarball
-dist-tar: ChangeLog README version.inc contrib/rpm/environment-modules.spec pkgdoc
+dist-tar: ChangeLog README contrib/rpm/environment-modules.spec pkgdoc
 	git archive --prefix=$(DIST_PREFIX)/ --worktree-attributes \
 		-o $(DIST_PREFIX).tar HEAD
 	cp doc/build/MIGRATING.txt  doc/build/INSTALL.txt doc/build/INSTALL-win.txt \
 		doc/build/NEWS.txt doc/build/CONTRIBUTING.txt ./
 	tar -rf $(DIST_PREFIX).tar --transform 's,^,$(DIST_PREFIX)/,' \
 		lib/configure lib/config.h.in ChangeLog README MIGRATING.txt INSTALL.txt \
-		INSTALL-win.txt NEWS.txt CONTRIBUTING.txt version.inc \
-		doc/build/MIGRATING.txt doc/build/diff_v3_v4.txt doc/build/INSTALL.txt \
-		doc/build/INSTALL-win.txt doc/build/NEWS.txt doc/build/CONTRIBUTING.txt \
-		doc/build/module.1.in doc/build/modulefile.4 \
-		contrib/rpm/environment-modules.spec
+		INSTALL-win.txt NEWS.txt CONTRIBUTING.txt doc/build/MIGRATING.txt \
+		doc/build/diff_v3_v4.txt doc/build/INSTALL.txt doc/build/INSTALL-win.txt \
+		doc/build/NEWS.txt doc/build/CONTRIBUTING.txt doc/build/module.1.in \
+		doc/build/modulefile.4 contrib/rpm/environment-modules.spec
 ifeq ($(compatversion) $(wildcard $(COMPAT_DIR)),y $(COMPAT_DIR))
 	$(MAKE) -C $(COMPAT_DIR) distdir
 	mv $(COMPAT_DIR)/modules-* compatdist
@@ -493,8 +513,8 @@ dist-bzip2: dist-tar
 
 dist: dist-gzip
 
-# dist zip ball for Windows platform with all pre-generated relevat files
-dist-win: modulecmd.tcl ChangeLog README version.inc pkgdoc
+# dist zip ball for Windows platform with all pre-generated relevant files
+dist-win: modulecmd.tcl ChangeLog README pkgdoc
 	mkdir $(DIST_WIN_PREFIX)
 	mkdir $(DIST_WIN_PREFIX)/libexec
 	cp modulecmd.tcl $(DIST_WIN_PREFIX)/libexec/
@@ -559,10 +579,8 @@ endif
 ifeq ($(builddoc),y)
 	$(MAKE) -C doc clean
 endif
-ifeq ($(wildcard .git) $(wildcard version.inc.in),.git version.inc.in)
 	rm -f version.inc
 	rm -f contrib/rpm/environment-modules.spec
-endif
 ifneq ($(wildcard $(COMPAT_DIR)/Makefile),)
 	$(MAKE) -C $(COMPAT_DIR) clean
 endif

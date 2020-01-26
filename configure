@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # CONFIGURE, check requirements then set variables and create Makefiles
-# Copyright (C) 2017 CEA/DAM
+# Copyright (C) 2017-2020 Xavier Delaruelle
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -621,12 +621,24 @@ if [ $defpageropts -eq 1 -a "${pager##*/}" != 'less' ]; then
     echo_warning "As chosen pager is not \`less', default pager options are cleared"
 fi
 
-# fetch modules version from git repository tags
+# fetch modules version from version.inc.in file (which may be raw data to
+# refine or exact values if dist has been built by `git archive`)
+if [ -r ${progdir}/version.inc.in ]; then
+  release=$(sed -n '/^MODULES_RELEASE/{s/.*= //p;q;}' ${progdir}/version.inc.in)
+  build_hash=$(sed -n '/^MODULES_BUILD_HASH/{s/.*= //p;q;}' \
+     ${progdir}/version.inc.in)
+  build_refs=$(sed -n '/^MODULES_BUILD_REFS/{s/.*= //p;q;}' \
+     ${progdir}/version.inc.in)
+  build_refs=${build_refs//,}
+else
+   echo_error "${progdir}/version.inc.in is missing"
+fi
+
+# refine build number if working from git repository
 if [ -d '.git' ]; then
   gitcurtag=$(git describe --tags --abbrev=0)
   gitcurdesc=$(git describe --tags)
   gitcurbranch=$(git rev-parse --abbrev-ref HEAD)
-  release=${gitcurtag#v}
   if [ "$gitcurtag" = "$gitcurdesc" ]; then
      build=''
   elif [ "$gitcurbranch" = 'master' ]; then
@@ -634,10 +646,16 @@ if [ -d '.git' ]; then
   else
      build="+${gitcurbranch}${gitcurdesc#${gitcurtag}}"
   fi
-# elsewhere fetch modules version from version.inc file
-elif [ -r ${progdir}/version.inc ]; then
-  release=$(sed -n '/^MODULES_RELEASE/{s/.*= //p;q;}' ${progdir}/version.inc)
-  build=$(sed -n '/^MODULES_BUILD/{s/.*= //p;q;}' ${progdir}/version.inc)
+# set a recognizable build number if one found in version.inc.in is raw data
+elif [ "$build_hash" = '$Format:%h' ]; then
+   build='+XX-gffffffff'
+# or compute it from these information as if working from git repository
+elif [[ " $build_refs " =~ " v$release " ]]; then
+   build=''
+elif [[ " $build_refs " =~ " master " ]]; then
+   build="+XX-g$build_hash"
+else
+   build="+${build_refs##* }-XX-g$build_hash"
 fi
 VERSION=$release$build
 
