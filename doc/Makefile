@@ -136,4 +136,4 @@ ifeq ($(wildcard $(BUILD_DIR)),$(BUILD_DIR))
 endif
 	rm -f $(SOURCE_DIR)/version.py
 endif
-	rm -f $(BUILD_DIR)/*.1
+	rm -f $(BUILD_DIR)/module.1
