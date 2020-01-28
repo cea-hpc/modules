@@ -500,7 +500,7 @@ dist-tar: ChangeLog README contrib/rpm/environment-modules.spec pkgdoc
 		INSTALL-win.txt NEWS.txt CONTRIBUTING.txt doc/build/MIGRATING.txt \
 		doc/build/diff_v3_v4.txt doc/build/INSTALL.txt doc/build/INSTALL-win.txt \
 		doc/build/NEWS.txt doc/build/CONTRIBUTING.txt doc/build/module.1.in \
-		doc/build/modulefile.4 contrib/rpm/environment-modules.spec
+		doc/build/ml.1 doc/build/modulefile.4 contrib/rpm/environment-modules.spec
 ifeq ($(compatversion) $(wildcard $(COMPAT_DIR)),y $(COMPAT_DIR))
 	$(MAKE) -C $(COMPAT_DIR) distdir
 	mv $(COMPAT_DIR)/modules-* compatdist
