@@ -299,8 +299,13 @@ modulecmd.tcl: modulecmd.tcl.in version.inc
 	$(translate-in-script)
 	chmod +x $@
 
+# generate an empty changelog file if not working from git repository
 ChangeLog:
+ifeq ($(wildcard .git),.git)
 	script/gitlog2changelog.py
+else
+	echo "Please refer to the NEWS document to learn about main changes" >$@
+endif
 
 README:
 	sed -e '/^\[\!\[.*\].*/d' $@.md > $@
@@ -545,7 +550,7 @@ clean:
 	rm -f *.log *.sum
 	rm -f $(MODULECMDTEST)_i $(MODULECMDTEST)_log $(MODULECMDTEST)_m
 	rm -rf coverage
-ifeq ($(wildcard .git) $(wildcard script/gitlog2changelog.py),.git script/gitlog2changelog.py)
+ifeq ($(wildcard .git),.git)
 	rm -f ChangeLog
 endif
 ifeq ($(wildcard .git) $(wildcard README.md),.git README.md)
