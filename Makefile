@@ -438,7 +438,7 @@ else
 endif
 	@echo
 	@echo "NOTICE: Modules installation is complete."
-	@echo "        Please read the 'Configuration' section in INSTALL.txt to learn"
+	@echo "        Please read the 'Configuration' section in INSTALL guide to learn"
 	@echo "        how to adapt your installation and make it fit your needs." >&2
 	@echo
 
@@ -493,11 +493,8 @@ endif
 dist-tar: ChangeLog contrib/rpm/environment-modules.spec pkgdoc
 	git archive --prefix=$(DIST_PREFIX)/ --worktree-attributes \
 		-o $(DIST_PREFIX).tar HEAD
-	cp doc/build/MIGRATING.txt  doc/build/INSTALL.txt doc/build/INSTALL-win.txt \
-		doc/build/NEWS.txt doc/build/CONTRIBUTING.txt ./
 	tar -rf $(DIST_PREFIX).tar --transform 's,^,$(DIST_PREFIX)/,' \
-		lib/configure lib/config.h.in ChangeLog MIGRATING.txt INSTALL.txt \
-		INSTALL-win.txt NEWS.txt CONTRIBUTING.txt doc/build/MIGRATING.txt \
+		lib/configure lib/config.h.in ChangeLog doc/build/MIGRATING.txt \
 		doc/build/diff_v3_v4.txt doc/build/INSTALL.txt doc/build/INSTALL-win.txt \
 		doc/build/NEWS.txt doc/build/CONTRIBUTING.txt doc/build/module.1.in \
 		doc/build/ml.1 doc/build/modulefile.4 contrib/rpm/environment-modules.spec
@@ -553,11 +550,6 @@ clean:
 # do not clean generated docs if not in git repository
 ifeq ($(wildcard .git),.git)
 	rm -f ChangeLog
-	rm -f MIGRATING.txt
-	rm -f INSTALL.txt
-	rm -f INSTALL-win.txt
-	rm -f NEWS.txt
-	rm -f CONTRIBUTING.txt
 endif
 	rm -f modulecmd.tcl
 	rm -f $(MODULECMDTEST)
