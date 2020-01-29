@@ -172,15 +172,15 @@ SourceForge project page:
 Authors
 -------
 
-Current core developers and maintainers are:
+Current core developer and maintainer is:
 
- * Xavier Delaruelle <xavier.delaruelle@cea.fr>
- * R.K. Owen <rk@owen.sj.ca.us>
- * Kent Mein <mein@cs.umn.edu>
+ * Xavier Delaruelle <xavier.delaruelle AT cea.fr>
 
 The following people have notably contributed to Modules and Modules would
 not be what it is without their contributions:
 
+ * R.K. Owen
+ * Kent Mein
  * Mark Lakata
  * Harlan Stenn
  * Leo Butler
