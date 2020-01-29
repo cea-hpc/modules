@@ -590,15 +590,25 @@ else
     RMDIR_IGN_NON_EMPTY='rmdir'
 fi
 
-# if we install from git repository, must have sphinx to build doc and git to
-# fetch current release number
+# if we install from git repository, must have git to fetch current release number
 if [ -d '.git' ]; then
+   check_requirement git
+fi
+
+# if pre-built docs are available, no doc build but install pre-built files
+if [ -e 'doc/build/diff_v3_v4.txt' ] && [ -e 'doc/build/MIGRATING.txt' ] \
+   && [ -e 'doc/build/INSTALL.txt' ] && [ -e 'doc/build/INSTALL-win.txt' ] \
+   && [ -e 'doc/build/NEWS.txt' ] && [ -e 'doc/build/CONTRIBUTING.txt' ] \
+   && [ -e 'doc/build/module.1.in' ] && [ -e 'doc/build/ml.1' ] \
+   && [ -e 'doc/build/modulefile.4' ]; then
+   builddoc=p
+# test sphinx availability otherwise
+else
    # pass even if sphinx not there but no doc will be built
    check_requirement sphinx-build "Install \`sphinx-build' if you want to \
 build the documentation" '' 'sphinx-1.0-build'
    SPHINXBUILD=$reqpath
    [ -z "$reqpath" ] && builddoc=n
-   check_requirement git
 fi
 
 # get tclsh location from standard PATHs or /usr/local/bin

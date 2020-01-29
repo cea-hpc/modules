@@ -74,7 +74,7 @@ endif
 all: initdir $(INSTALL_PREREQ)
 
 # skip doc build if no sphinx-build
-ifeq ($(builddoc),y)
+ifneq ($(builddoc),n)
 all: pkgdoc
 endif
 
@@ -430,7 +430,7 @@ ifeq ($(vimaddons),y)
 	cp  contrib/vim/syntax/modulefile.vim    $(DESTDIR)$(vimdatadir)/syntax
 endif
 	$(MAKE) -C init install DESTDIR=$(DESTDIR)
-ifeq ($(builddoc),y)
+ifneq ($(builddoc),n)
 	$(MAKE) -C doc install DESTDIR=$(DESTDIR)
 else
 	@echo
@@ -472,12 +472,12 @@ ifeq ($(docinstall),y)
 ifeq ($(compatversion),y)
 	rm -f $(addprefix $(DESTDIR)$(docdir)/,ChangeLog-compat NEWS-compat)
 endif
-ifneq ($(builddoc),y)
+ifeq ($(builddoc),n)
 	rmdir $(DESTDIR)$(docdir)
 endif
 endif
 	$(MAKE) -C init uninstall DESTDIR=$(DESTDIR)
-ifeq ($(builddoc),y)
+ifneq ($(builddoc),n)
 	$(MAKE) -C doc uninstall DESTDIR=$(DESTDIR)
 endif
 	rmdir $(DESTDIR)$(libexecdir)
@@ -561,7 +561,7 @@ endif
 	rm -f modules-*-win.zip
 	rm -f modules-*.srpm
 	$(MAKE) -C init clean
-ifeq ($(builddoc),y)
+ifneq ($(builddoc),n)
 	$(MAKE) -C doc clean
 endif
 	rm -f version.inc

@@ -18,7 +18,7 @@ include ../Makefile.inc
 include ../version.inc
 
 # quit if no sphinx-build found at configure time
-ifneq ($(builddoc),y)
+ifeq ($(builddoc),n)
   $(error No 'sphinx-build' command defined, cannot build documentation)
 endif
 
@@ -58,6 +58,9 @@ endef
 # avoid shared definitions to be rebuilt by make
 ../Makefile.inc ../version.inc: ;
 
+# rules to build docs from source are defined if docs are not found pre-built
+# which happens when working from git repository or from a `git archive` dist
+ifneq ($(builddoc),p)
 $(SOURCE_DIR)/version.py: $(SOURCE_DIR)/version.py.in ../version.inc
 	$(translate-in-script)
 
@@ -73,6 +76,7 @@ $(BUILD_DIR)/%.4 $(BUILD_DIR)/%.1: $(SOURCE_DIR)/%.rst $(SOURCE_DIR)/version.py
 $(BUILD_DIR)/module.1.in: $(SOURCE_DIR)/module.rst $(SOURCE_DIR)/version.py
 	$(SPHINXBUILD) $(SPHINXOPTS) -t pathsubs -b man "$(SOURCE_DIR)" "$(BUILD_DIR)"
 	mv $(BUILD_DIR)/module.1 $@
+endif
 
 $(BUILD_DIR)/module.1: $(BUILD_DIR)/module.1.in
 	$(translate-in-script)
