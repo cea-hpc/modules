@@ -58,8 +58,6 @@ endef
 # avoid shared definitions to be rebuilt by make
 ../Makefile.inc ../version.inc: ;
 
-# build doc from source if in git repository
-ifeq ($(wildcard ../.git),../.git)
 $(SOURCE_DIR)/version.py: $(SOURCE_DIR)/version.py.in ../version.inc
 	$(translate-in-script)
 
@@ -69,16 +67,12 @@ $(BUILD_DIR)/%.html: $(SOURCE_DIR)/%.rst $(SOURCE_DIR)/version.py
 $(BUILD_DIR)/%.txt: $(SOURCE_DIR)/%.rst $(SOURCE_DIR)/version.py
 	$(SPHINXBUILD) $(SPHINXOPTS) -b text "$(SOURCE_DIR)" "$(BUILD_DIR)"
 
-$(BUILD_DIR)/%.4: $(SOURCE_DIR)/%.rst $(SOURCE_DIR)/version.py
+$(BUILD_DIR)/%.4 $(BUILD_DIR)/%.1: $(SOURCE_DIR)/%.rst $(SOURCE_DIR)/version.py
 	$(SPHINXBUILD) $(SPHINXOPTS) -t pathsubs -b man "$(SOURCE_DIR)" "$(BUILD_DIR)"
 
-$(BUILD_DIR)/%.1: $(SOURCE_DIR)/%.rst $(SOURCE_DIR)/version.py
-	$(SPHINXBUILD) $(SPHINXOPTS) -t pathsubs -b man "$(SOURCE_DIR)" "$(BUILD_DIR)"
-
-$(BUILD_DIR)/%.1.in: $(SOURCE_DIR)/%.rst $(SOURCE_DIR)/version.py
+$(BUILD_DIR)/module.1.in: $(SOURCE_DIR)/module.rst $(SOURCE_DIR)/version.py
 	$(SPHINXBUILD) $(SPHINXOPTS) -t pathsubs -b man "$(SOURCE_DIR)" "$(BUILD_DIR)"
 	mv $(BUILD_DIR)/module.1 $@
-endif
 
 $(BUILD_DIR)/module.1: $(BUILD_DIR)/module.1.in
 	$(translate-in-script)

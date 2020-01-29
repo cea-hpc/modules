@@ -550,25 +550,14 @@ clean:
 	rm -f *.log *.sum
 	rm -f $(MODULECMDTEST)_i $(MODULECMDTEST)_log $(MODULECMDTEST)_m
 	rm -rf coverage
+# do not clean generated docs if not in git repository
 ifeq ($(wildcard .git),.git)
 	rm -f ChangeLog
-endif
-ifeq ($(wildcard .git) $(wildcard README.md),.git README.md)
 	rm -f README
-endif
-ifeq ($(wildcard .git) $(wildcard MIGRATING.rst),.git MIGRATING.rst)
 	rm -f MIGRATING.txt
-endif
-ifeq ($(wildcard .git) $(wildcard INSTALL.rst),.git INSTALL.rst)
 	rm -f INSTALL.txt
-endif
-ifeq ($(wildcard .git) $(wildcard INSTALL-win.rst),.git INSTALL-win.rst)
 	rm -f INSTALL-win.txt
-endif
-ifeq ($(wildcard .git) $(wildcard NEWS.rst),.git NEWS.rst)
 	rm -f NEWS.txt
-endif
-ifeq ($(wildcard .git) $(wildcard CONTRIBUTING.rst),.git CONTRIBUTING.rst)
 	rm -f CONTRIBUTING.txt
 endif
 	rm -f modulecmd.tcl
