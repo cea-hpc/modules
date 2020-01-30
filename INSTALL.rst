@@ -36,8 +36,9 @@ tools are needed:
 When installing from a distribution tarball, documentation is pre-built and
 scripts to configure Modules Tcl extension library and compatibility version
 builds are already generated. Thus no additional software is required. When
-installing from a clone of the git repository, documentation and scripts to
-prepare for compilation have to be built and the following tools are required:
+installing from a clone of the git repository or from a git archive export,
+documentation and scripts to prepare for compilation have to be built and the
+following tools are required:
 
 * autoconf
 * automake
