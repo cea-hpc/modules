@@ -2617,7 +2617,7 @@ char *xdup(char const *string) {
 
 		/** copy everything upto $ into old buffer **/
 		*dollarptr = '\0';
-		strncpy(oldbuffer, slashptr, MOD_BUFSIZE);
+		strncpy(oldbuffer, slashptr, MOD_BUFSIZE-1);
 		*dollarptr = '$';
 
 		while (dollarptr) {
@@ -2653,7 +2653,7 @@ char *xdup(char const *string) {
 				if (! strcmp(dollarptr + 1 + brace, "$")) {
 					/** put in the process pid **/
 					pid = getpid();
-					sprintf(buffer + blen,"%ld",(long)pid);
+					snprintf(buffer + blen,MOD_BUFSIZE-blen,"%ld",(long)pid);
 				} else {
 					/** get env.var. value **/
 					envvar = getenv(dollarptr + 1 + brace);
