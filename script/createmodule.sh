@@ -45,13 +45,24 @@ fi
 
 #Will print out array assignment list
 printenvarray () {
+  local skip=0
   env | while read x
   do
-    key=${x%%=*}
-    value=`printenv "$key"`
-    if [ $? -eq 0 ]
-    then
-      echo [$key]="'$value'"
+    # start of function definition: skip full definition
+    if [[ "$x" =~ '() {' ]]; then
+      skip=1
+    fi
+    if [ $skip -eq 0 ]; then
+      key=${x%%=*}
+      value=`printenv "$key"`
+      if [ $? -eq 0 ]
+      then
+        echo [$key]="'$value'"
+      fi
+    fi
+    # end of function definition
+    if [ "$x" = '}' ]; then
+      skip=0
     fi
   done
 }
@@ -205,3 +216,4 @@ do
   fi
 done
 ) | sort
+# vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
