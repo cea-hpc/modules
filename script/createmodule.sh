@@ -74,7 +74,7 @@ declare -A env1 env2
 eval env1=(`printenvarray`)
 
 #Source the environment script
-. "$@"
+. "$@" >/dev/null
 
 #Record ending environment
 eval env2=(`printenvarray`)

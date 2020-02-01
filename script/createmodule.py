@@ -46,9 +46,9 @@ def getenv(cmd = ':'):
     env = {}
     if iscmdshell():
         # ':' command not supported by cmd.exe
-        cmd = (cmd if cmd != ':' else '@echo off') + " & set"
+        cmd = (cmd if cmd != ':' else '@echo off') + " >nul & set"
     else:
-        cmd = cmd + ";env"
+        cmd = cmd + " >/dev/null;env"
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     (stdout, stderr) = p.communicate()
     if p.returncode != 0:
