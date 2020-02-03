@@ -87,7 +87,12 @@ if [ $# -gt 0 ]; then
    export RUNTESTFILES="${testfnames[*]}"
 fi
 
-$make icdiff
+# attempt to get enhanced diff tool but disable this retrieval if download
+# tentative fails
+if [ ! -e .noicdiff ]; then
+   $make icdiff || touch .noicdiff
+fi
+
 export RUNTESTFLAGS='-v -v >/dev/null 2>&1'
 $make $target
 ret=$?

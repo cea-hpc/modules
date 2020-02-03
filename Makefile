@@ -5,6 +5,9 @@
 	dist-gzip dist-bzip2 dist-win srpm clean distclean test testinstall \
 	testsyntax
 
+# download command and its options
+WGET := wget --timeout=5 --tries=2
+
 # definitions for code coverage
 NAGELFAR_DLSRC1 := http://downloads.sourceforge.net/nagelfar/
 NAGELFAR_DLSRC2 := https://osdn.net/projects/sfnet_nagelfar/downloads/Rel_131/
@@ -576,7 +579,7 @@ endif
 distclean: clean
 	rm -f Makefile.inc
 	rm -f site.exp
-	rm -f icdiff
+	rm -f icdiff .noicdiff
 	rm -rf $(NAGELFAR_RELEASE)
 	rm -rf $(TCL_RELEASE83)
 	rm -f tclsh83
@@ -630,14 +633,14 @@ testinstall:
 
 # install enhanced diff tool (to review test results)
 icdiff:
-	wget $(ICDIFF_DLSRC)$@ || true
+	$(WGET) $(ICDIFF_DLSRC)$@ || true
 	echo "$(ICDIFF_CHECKSUM)  $@" | md5sum --status -c - || \
 		md5 -c $(ICDIFF_CHECKSUM) $@
 	chmod +x $@
 
 # install old Tcl interpreter (for code coverage purpose)
 tclsh83:
-	wget $(TCL_DLSRC)$(TCL_DIST83) || true
+	$(WGET) $(TCL_DLSRC)$(TCL_DIST83) || true
 	echo "$(TCL_DISTSUM83)  $(TCL_DIST83)" | md5sum --status -c - || \
 		md5 -c $(TCL_DISTSUM83) $@
 	tar xzf $(TCL_DIST83)
@@ -650,9 +653,9 @@ tclsh83:
 # install code coverage tool
 # download from alt. source if correct tarball not retrieved from primary location
 $(NAGELFAR):
-	wget $(NAGELFAR_DLSRC1)$(NAGELFAR_DIST) || true
+	$(WGET) $(NAGELFAR_DLSRC1)$(NAGELFAR_DIST) || true
 	echo "$(NAGELFAR_DISTSUM)  $(NAGELFAR_DIST)" | md5sum --status -c - || \
-		wget -O $(NAGELFAR_DIST) $(NAGELFAR_DLSRC2)$(NAGELFAR_DIST)
+		$(WGET) -O $(NAGELFAR_DIST) $(NAGELFAR_DLSRC2)$(NAGELFAR_DIST)
 	tar xzf $(NAGELFAR_DIST)
 	rm $(NAGELFAR_DIST)
 
