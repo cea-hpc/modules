@@ -572,6 +572,15 @@ for {set i 42} {$i <= 49} {incr i} {
     cross_test_case $i
 }
 
+
+# test default symbol targetting a modulefile version with a whitespace in the name,
+# multiple versions of the module found in several modulepaths
+setenv_var MODULES_AVAIL_INDEPTH 1
+testouterr_cmd sh {avail -t loc_dv10} OK "$modpath1:\nloc_dv10/1.1\n\n$modpath2:\nloc_dv10/1.2"
+testouterr_cmd sh {load loc_dv10} ERR "$err_path'loc_dv10/no default'"
+unsetenv_var MODULES_AVAIL_INDEPTH
+
+
 #
 #  Cleanup
 #
