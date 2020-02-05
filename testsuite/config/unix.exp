@@ -132,7 +132,10 @@ proc modulecmd_xxx_ {command {input noinput}} {
     if {[string first "NOCMDSPLIT" $command] == 0} {
         lappend cmdlist [string range $command 10 end]
     } else {
-        eval lappend cmdlist [split $command { }]
+        # preserve argument including space character
+        foreach cmdelt [split [string map {{\ } {<SPACE>}} $command] { }] {
+            lappend cmdlist [string map {<SPACE> { }} $cmdelt]
+        }
     }
     lappend cmdlist 2> test321.err > test321.out
     if {$input ne {noinput}} {
