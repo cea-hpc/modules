@@ -1301,7 +1301,7 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
       $tracesVN g_modfileRenameCmds $dumpCommandsVN
 
    # reset modulefile-specific variable before each interpretation
-   interp eval $itrp set ::ModulesCurrentModulefile $modfile
+   interp eval $itrp set ::ModulesCurrentModulefile "{$modfile}"
    interp eval $itrp set must_have_cookie $must_have_cookie
 
    set errorVal [interp eval $itrp {
@@ -1455,7 +1455,7 @@ proc execute-modulerc {modfile modname modspec} {
       g_modrcUntrackVars g_modrcProcs g_modrcAliases g_modrcAliasesPassArg\
       g_modrcAliasesTraces g_modrcRenameCmds g_modrcCommands
 
-   interp eval $itrp set ::ModulesCurrentModulefile $modfile
+   interp eval $itrp set ::ModulesCurrentModulefile "{$modfile}"
    interp eval $itrp {set ::ModulesVersion {}}
 
    set errorVal [interp eval $itrp {
@@ -4567,7 +4567,7 @@ proc getLoadedPrereq {mod {serialized 0}} {
 }
 
 proc setLoadedAltname {mod args} {
-   eval appendNoDupToList ::g_loadedModuleAltname($mod) $args
+   eval appendNoDupToList "{::g_loadedModuleAltname($mod)}" $args
 }
 
 proc unsetLoadedAltname {mod} {
@@ -9779,7 +9779,8 @@ proc cmdModuleLoad {context uasked args} {
          }
 
          # register altname of modname prior any conflict check
-         eval setLoadedAltname $modname [getAllModuleResolvedName $modname]
+         eval setLoadedAltname "{$modname}" [getAllModuleResolvedName\
+            $modname]
 
          if {[getConf auto_handling]} {
             # get loaded modules holding a requirement on modname and able to
