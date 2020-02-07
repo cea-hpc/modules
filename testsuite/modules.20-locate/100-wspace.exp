@@ -10,7 +10,8 @@
 #   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
 #
 #   Description:	Testuite testsequence
-#   Command:		display, avail, load, list, unload, whatis, path
+#   Command:		display, avail, load, list, unload, whatis, path,
+#                   purge, reload
 #   Modulefiles:
 #   Sub-Command:
 #
@@ -263,6 +264,76 @@ lappend ans [list unsetpath MODULES_LMALTNAME]
 testouterr_cmd sh {unload space\ yb/dns} $ans {}
 unsetenv_loaded_module
 unsetenv_path_var MODULES_LMALTNAME
+
+# prereq chain with wspace in prereq source or target
+# test ReqLo mechanism
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "space yc/3:spacenc/2:space yc/2"]
+lappend ans [list setpath _LMFILES_ "$mp/space yc/3:$mp/spacenc/2:$mp/space yc/2"]
+lappend ans [list setpath MODULES_LMPREREQ "spacenc/2&space yc/3:space yc/2&spacenc/2"]
+lappend ans [list setpath MODULES_LMCONFLICT "space yc/3&spacenc/3"]
+lappend ans [list setpath MODULES_LMNOTUASKED "space yc/3:spacenc/2"]
+testouterr_cmd_re sh {load --auto space\ yc/2} $ans [msg_top_load "{space yc/2}" {} {{space yc/3} {spacenc/2}} {}]
+# test DepUn mechanism
+setenv_loaded_module [list "space yc/3" "spacenc/2" "space yc/2"] [list "$mp/space yc/3" "$mp/spacenc/2" "$mp/space yc/2"] [list "space yc/3" "spacenc/2"]
+setenv_path_var MODULES_LMCONFLICT "space yc/3&spacenc/3"
+setenv_path_var MODULES_LMPREREQ "spacenc/2&space yc/3:space yc/2&spacenc/2"
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+testouterr_cmd_re sh {unload --auto space\ yc/3} $ans [msg_top_unload "{space yc/3}" {{space yc/2} {spacenc/2}} {} {}]
+# test UReqUn mechanism
+testouterr_cmd_re sh {unload --auto space\ yc/2} $ans [msg_top_unload "{space yc/2}" {} {{spacenc/2} {space yc/3}} {}]
+
+# test purge and reload actions
+testouterr_cmd_re sh {purge} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "space yc/3:spacenc/2:space yc/2"]
+lappend ans [list setpath _LMFILES_ "$mp/space yc/3:$mp/spacenc/2:$mp/space yc/2"]
+lappend ans [list setpath MODULES_LMNOTUASKED "space yc/3:spacenc/2"]
+lappend ans [list setpath MODULES_LMPREREQ "spacenc/2&space yc/3:space yc/2&spacenc/2"]
+lappend ans [list setpath MODULES_LMCONFLICT "space yc/3&spacenc/3"]
+testouterr_cmd_re sh {reload} $ans {}
+unsetenv_path_var MODULES_LMPREREQ
+
+# test conflict
+testouterr_cmd_re sh {load --auto spacenc/3} ERR [msg_load spacenc/3 [err_conflict spacenc/3 space yc/3]]
+setenv_loaded_module [list "spacenc/3"] [list "$mp/spacenc/3"]
+setenv_path_var MODULES_LMCONFLICT "spacenc/3&space yc/3"
+testouterr_cmd_re sh {load --auto space\ yc/3} ERR [msg_load "space yc/3" [err_conflict "space yc/3" spacenc/3]]
+unsetenv_path_var MODULES_LMCONFLICT
+
+# test OR-prereq
+setenv_loaded_module [list "space yc/5"] [list "$mp/space yc/5"]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "space yc/5:spacenc/4"]
+lappend ans [list setpath _LMFILES_ "$mp/space yc/5:$mp/spacenc/4"]
+lappend ans [list setpath MODULES_LMPREREQ "spacenc/4&space yc/4|space yc/5"]
+testouterr_cmd_re sh {load --auto spacenc/4} $ans {}
+setenv_loaded_module [list "space yc/5" "spacenc/4"] [list "$mp/space yc/5" "$mp/spacenc/4"]
+setenv_path_var MODULES_LMPREREQ "spacenc/4&space yc/4|space yc/5"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "space yc/5:space yc/4:spacenc/4"]
+lappend ans [list setpath _LMFILES_ "$mp/space yc/5:$mp/space yc/4:$mp/spacenc/4"]
+lappend ans [list setpath MODULES_LMPREREQ "spacenc/4&space yc/4|space yc/5"]
+testouterr_cmd_re sh {load --auto space\ yc/4} $ans [msg_top_load "{space yc/4}" {} {} spacenc/4]
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+testouterr_cmd_re sh {unload --auto space\ yc/5} $ans [msg_top_unload "{space yc/5}" spacenc/4 {} {}]
+setenv_loaded_module [list "space yc/5" "space yc/4" "spacenc/4"] [list "$mp/space yc/5" "$mp/space yc/4" "$mp/spacenc/4"]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "space yc/5:spacenc/4"]
+lappend ans [list setpath _LMFILES_ "$mp/space yc/5:$mp/spacenc/4"]
+lappend ans [list setpath MODULES_LMPREREQ "spacenc/4&space yc/4|space yc/5"]
+testouterr_cmd_re sh {unload --auto space\ yc/4} $ans [msg_top_unload "{space yc/4}" {} {} spacenc/4]
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMPREREQ
+
 
 #
 # tests of modules without whitespace in modulepath with whitespace
