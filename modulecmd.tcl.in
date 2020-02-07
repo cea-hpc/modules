@@ -3182,7 +3182,7 @@ proc conflict {args} {
    set args [eval parseModuleVersionSpecifier 0 $args]
 
    # register conflict list
-   eval setLoadedConflict $currentModule $args
+   eval setLoadedConflict "{$currentModule}" $args
 
    foreach mod $args {
       # if the conflict module is loading and it does not correspond to
@@ -3191,11 +3191,10 @@ proc conflict {args} {
          [is-loading $mod]}]
       # if the conflicting module is loaded, we cannot either
       if {[is-loaded $mod] || $isloading} {
-         set retisconun [eval isModuleEvaluated conun $currentModule $mod]
+         set retisconun [isModuleEvaluated conun $currentModule $mod]
          # report message on currently evaluated module message block
-         if {![set retiseval [eval isModuleEvaluated any $currentModule\
-            $mod]] || [currentMsgRecordId] ne [topMsgRecordId] ||\
-            !$retisconun} {
+         if {![set retiseval [isModuleEvaluated any $currentModule $mod]] ||\
+            [currentMsgRecordId] ne [topMsgRecordId] || !$retisconun} {
             # more appropriate msg if an eval was attempted or is by-passed
             set msg [expr {$retiseval || [getForce] ? [getConIsLoadedMsg\
                [list $mod] $isloading] : [getErrConflictMsg $currentModule\
@@ -3267,10 +3266,11 @@ proc prereq {args} {
    }
 
    if {![eval is-loaded $args] && ![eval is-loading $args]} {
-      set retisreqlo [eval isModuleEvaluated reqlo $currentModule $args]
+      set retisreqlo [eval isModuleEvaluated reqlo "{$currentModule}" $args]
       # report message on currently evaluated module message block
-      if {![set retiseval [eval isModuleEvaluated any $currentModule $args]]\
-         || [currentMsgRecordId] ne [topMsgRecordId] || !$retisreqlo} {
+      if {![set retiseval [eval isModuleEvaluated any "{$currentModule}"\
+         $args]] || [currentMsgRecordId] ne [topMsgRecordId] ||\
+         !$retisreqlo} {
 
          # more appropriate msg if an evaluation was attempted or is by-passed
          set msg [expr {$retiseval || [getForce] ? [getReqNotLoadedMsg $args]\
@@ -3821,8 +3821,13 @@ proc getLoadedModulePrereqList {} {
       # ignore empty element (1 is meaningless as first elt is loaded mod)
       if {[llength $prelist] > 1} {
          set modpre {}
+         # keep first arg as string and other args as lists
          foreach pre $prelist {
-            lappend modpre [split $pre $::g_sub2_separator]
+            if {[llength $modpre] == 0} {
+               lappend modpre $pre
+            } else {
+               lappend modpre [split $pre $::g_sub2_separator]
+            }
          }
 
          lappend modprelist $modpre
@@ -4467,7 +4472,7 @@ proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}} {
 }
 
 proc setLoadedConflict {mod args} {
-   eval appendNoDupToList ::g_loadedModuleConflict($mod) $args
+   eval appendNoDupToList "{::g_loadedModuleConflict($mod)}" $args
 }
 
 proc unsetLoadedConflict {mod} {
@@ -4537,7 +4542,7 @@ proc doesModuleConflict {mod} {
 }
 
 proc setLoadedPrereq {mod args} {
-   eval appendNoDupToList ::g_loadedModulePrereq($mod) $args
+   eval appendNoDupToList "{::g_loadedModulePrereq($mod)}" $args
 }
 
 proc unsetLoadedPrereq {mod} {
@@ -4687,9 +4692,9 @@ proc setModuleDependency {mod} {
          }
          1 {
             set lmmod [lindex $lmprelist 0]
-            lappend deplist $lmmod
+            lappend deplist [list $lmmod]
             # set 'is depended by' relations
-            lappend ::g_dependHash($lmmod) $mod
+            lappend ::g_dependHash($lmmod) [list $mod]
          }
          default {
             lappend deplist $lmprelist
@@ -4709,9 +4714,9 @@ proc setModuleDependency {mod} {
          }
          1 {
             set lmmod [lindex $lmnpolist 0]
-            lappend depnpolist $lmmod
+            lappend depnpolist [list $lmmod]
             # set 'is depended by' relations
-            lappend ::g_dependNPOHash($lmmod) $mod
+            lappend ::g_dependNPOHash($lmmod) [list $mod]
          }
          default {
             lappend depnpolist $lmnpolist
@@ -4734,7 +4739,8 @@ proc setModuleDependency {mod} {
       if {[doesModuleMatchesName $mod $modpre]} {
          reportDebug "refresh requirements targetting '$modpre'"
          foreach lmmod $::g_unmetDepHash($modpre) {
-            if {[isInList [getDependentLoadedModuleList $lmmod 0 0] $mod]} {
+            if {[isInList [getDependentLoadedModuleList [list $lmmod] 0 0]\
+               $mod]} {
                reportDebug "skip deps refresh for '$lmmod' as dep cycle\
                   detected with '$mod'"
 
@@ -4811,7 +4817,7 @@ proc unsetModuleDependency {mod} {
             if {$manymod} {
                set hashdep [list $mod 1]
             } else {
-               set hashdep $mod
+               set hashdep [list $mod]
             }
             set ::g_dependHash($lmmod) [replaceFromList\
                $::g_dependHash($lmmod) $hashdep]
@@ -4834,7 +4840,7 @@ proc unsetModuleDependency {mod} {
             if {$manymod} {
                set hashdep [list $mod 1]
             } else {
-               set hashdep $mod
+               set hashdep [list $mod]
             }
             set ::g_dependNPOHash($lmmod) [replaceFromList\
                $::g_dependNPOHash($lmmod) $hashdep]
@@ -9819,8 +9825,9 @@ proc cmdModuleLoad {context uasked args} {
          # (module unload) conflicts through its evaluation
          lassign [doesModuleConflict $modname] doescon modconlist\
             moddecconlist
-         set retisconun [eval isModuleEvaluated conun $modname $modconlist]
-         if {![set retiseval [eval isModuleEvaluated any $modname\
+         set retisconun [eval isModuleEvaluated conun "{$modname}"\
+            $modconlist]
+         if {![set retiseval [eval isModuleEvaluated any "{$modname}"\
             $modconlist]] || [currentMsgRecordId] ne [topMsgRecordId] ||\
             !$retisconun} {
             # more appropriate msg if an evaluation was attempted or is
@@ -10006,7 +10013,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       if {[set errCode [catch {
          # error if unloading module violates a registered prereq
          # and auto handling mode is disabled
-         set prereq_list [getDependentLoadedModuleList $modname]
+         set prereq_list [getDependentLoadedModuleList [list $modname]]
          if {[llength $prereq_list] > 0 && (![getConf auto_handling] ||\
             !$auto)} {
             # force mode should not affect if we only look for mods w/o dep
@@ -10026,7 +10033,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                if {$onlyndep} {
                   set errharmless 1
                }
-               knerror [expr {[eval isModuleEvaluated any $modname\
+               knerror [expr {[eval isModuleEvaluated any "{$modname}"\
                   $prereq_list] ? [getDepLoadedMsg $prereq_list] :\
                   [getErrPrereqMsg $modname $prereq_list 0]}]
             }
@@ -10038,8 +10045,9 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
 
             # DepUn: Dependent to Unload (modules actively requiring modname
             # or a module part of this DepUn batch)
-            set depunnpolist [getDependentLoadedModuleList $modname 1 0 1 0]
-            set depunlist [getDependentLoadedModuleList $modname 1 0 0 0]
+            set depunnpolist [getDependentLoadedModuleList [list $modname] 1\
+               0 1 0]
+            set depunlist [getDependentLoadedModuleList [list $modname] 1 0 0 0]
             # look at both regular dependencies or No Particular Order
             # dependencies: use NPO result if situation can be healed with NPO
             # dependencies, which will be part of DepRe list to restore the
@@ -10052,7 +10060,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             # do not check for UReqUn mods coming from DepUn modules as these
             # DepUn modules are reloaded
             if {[info exists swprocessing]} {
-               set urequnqry $modname
+               set urequnqry [list $modname]
             } else {
                set urequnqry [concat $depunlist [list $modname]]
             }
@@ -10155,7 +10163,8 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                      reportWarning "Unload of useless requirement $unmod\
                         failed" 1
                      lassign [getDiffBetweenList $urequnlist\
-                        [getRequiredLoadedModuleList $unmod]] urequnlist
+                        [getRequiredLoadedModuleList [list $unmod]]]\
+                        urequnlist
                   }
                }
             }
