@@ -2,7 +2,7 @@
 	install-testsiteconfig-1 install-testmodulerc install-testmodulerc-1 \
 	install-testinitrc install-testetcrc install-testmodspath \
 	install-testmodspath-empty uninstall-testconfig uninstall dist dist-tar \
-	dist-gzip dist-bzip2 dist-win srpm clean distclean test testinstall \
+	dist-gzip dist-bzip2 dist-win srpm rpm clean distclean test testinstall \
 	testsyntax
 
 # download command and its options
@@ -546,6 +546,9 @@ dist-win: modulecmd.tcl ChangeLog README pkgdoc
 srpm: dist-bzip2
 	rpmbuild -ts $(DIST_PREFIX).tar.bz2
 
+rpm: dist-bzip2
+	rpmbuild -tb $(DIST_PREFIX).tar.bz2
+
 clean:
 	rm -f *.log *.sum
 	rm -f $(MODULECMDTEST)_i $(MODULECMDTEST)_log $(MODULECMDTEST)_m
@@ -562,7 +565,7 @@ endif
 	rm -f modules-*.tar modules-*.tar.gz modules-*.tar.bz2
 	rm -rf modules-*-win/
 	rm -f modules-*-win.zip
-	rm -f modules-*.srpm
+	rm -f environment-modules-*.srpm environment-modules-*.rpm
 	$(MAKE) -C init clean
 ifneq ($(builddoc),n)
 	$(MAKE) -C doc clean

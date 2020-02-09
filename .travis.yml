@@ -230,6 +230,7 @@ matrix:
     - env: OS_NAME=centos OS_VERSION=6 DOCKER_IMAGE=${OS_NAME}:${OS_NAME}${OS_VERSION} CONTAINER=${OS_NAME}${OS_VERSION}
            CMD_PREFIX="docker exec --env RUNTESTFLAGS=-v $CONTAINER"
            CONFIGURE_OPTS='--disable-compat-version'
+           EXTRA_SCRIPT_POSTINST='make srpm'
       sudo: required
       services:
         - docker
@@ -237,6 +238,7 @@ matrix:
     - env: OS_NAME=centos OS_VERSION=7 DOCKER_IMAGE=${OS_NAME}:${OS_NAME}${OS_VERSION} CONTAINER=${OS_NAME}${OS_VERSION}
            CMD_PREFIX="docker exec --env RUNTESTFLAGS=-v $CONTAINER"
            CONFIGURE_OPTS='--disable-compat-version'
+           EXTRA_SCRIPT_POSTINST='make srpm'
       sudo: required
       services:
         - docker
@@ -245,6 +247,7 @@ matrix:
     - env: OS_NAME=centos OS_VERSION=7 DOCKER_IMAGE=${OS_NAME}:${OS_NAME}${OS_VERSION} CONTAINER=${OS_NAME}${OS_VERSION}
            CMD_PREFIX="docker exec --env RUNTESTFLAGS=-v $CONTAINER"
            CONFIGURE_OPTS='--disable-compat-version --disable-libtclenvmodules'
+           EXTRA_SCRIPT_POSTINST='make srpm'
       sudo: required
       services:
         - docker
@@ -253,7 +256,8 @@ matrix:
     - env: OS_NAME=centos OS_VERSION=6 DOCKER_IMAGE=${OS_NAME}:${OS_NAME}${OS_VERSION} CONTAINER=${OS_NAME}${OS_VERSION}
            CMD_PREFIX="docker exec --env RUNTESTFLAGS=-v $CONTAINER xvfb-run"
            CONFIGURE_OPTS='--prefix=/tmp/modules --enable-compat-version --with-loadedmodules=null:dot --with-quarantine-vars=LD_LIBRARY_PATH'
-           EXTRA_PKGS='xorg-x11-server-utils xorg-x11-server-Xvfb automake gettext-devel'
+           EXTRA_PKGS='xorg-x11-server-utils xorg-x11-server-Xvfb automake gettext-devel libX11-devel tclx-devel'
+           EXTRA_SCRIPT_POSTINST='make srpm rpm'
       sudo: required
       services:
         - docker
@@ -261,7 +265,8 @@ matrix:
     - env: OS_NAME=centos OS_VERSION=7 DOCKER_IMAGE=${OS_NAME}:${OS_NAME}${OS_VERSION} CONTAINER=${OS_NAME}${OS_VERSION}
            CMD_PREFIX="docker exec --env RUNTESTFLAGS=-v $CONTAINER xvfb-run"
            CONFIGURE_OPTS='--prefix=/tmp/modules --enable-compat-version --with-loadedmodules=null:dot --with-quarantine-vars=LD_LIBRARY_PATH'
-           EXTRA_PKGS='which xorg-x11-server-utils xorg-x11-server-Xvfb automake gettext-devel'
+           EXTRA_PKGS='which xorg-x11-server-utils xorg-x11-server-Xvfb automake gettext-devel libX11-devel tclx-devel'
+           EXTRA_SCRIPT_POSTINST='make srpm rpm'
       sudo: required
       services:
         - docker
@@ -341,7 +346,7 @@ script:
   - $CMD_PREFIX make install
   - $CMD_PREFIX script/mt install
   - $CMD_PREFIX make uninstall
-  - if [ "$OS_NAME" = 'centos' ]; then $CMD_PREFIX make srpm; fi
+  - if [ -n "$EXTRA_SCRIPT_POSTINST" ]; then $CMD_PREFIX $EXTRA_SCRIPT_POSTINST; fi
 
 # report code coverage results
 after_success: |
