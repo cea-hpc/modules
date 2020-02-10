@@ -40,7 +40,7 @@ endif
 include Makefile.inc
 
 INSTALL_PREREQ := modulecmd.tcl ChangeLog README script/add.modules \
-	script/modulecmd
+	script/createmodule.py script/modulecmd
 TEST_PREREQ := $(MODULECMDTEST)
 
 ifeq ($(compatversion),y)
@@ -415,6 +415,8 @@ endif
 	chmod +x $(DESTDIR)$(bindir)/envml
 	cp script/add.modules $(DESTDIR)$(bindir)/
 	chmod +x $(DESTDIR)$(bindir)/add.modules
+	cp script/createmodule.py $(DESTDIR)$(bindir)/
+	chmod +x $(DESTDIR)$(bindir)/createmodule.py
 	cp script/modulecmd $(DESTDIR)$(bindir)/
 	chmod +x $(DESTDIR)$(bindir)/modulecmd
 	cp script/mkroot $(DESTDIR)$(bindir)/
@@ -469,6 +471,7 @@ ifeq ($(libtclenvmodules),y)
 endif
 	rm -f $(DESTDIR)$(bindir)/envml
 	rm -f $(DESTDIR)$(bindir)/add.modules
+	rm -f $(DESTDIR)$(bindir)/createmodule.py
 	rm -f $(DESTDIR)$(bindir)/modulecmd
 	rm -f $(DESTDIR)$(bindir)/mkroot
 ifeq ($(windowssupport),y)
