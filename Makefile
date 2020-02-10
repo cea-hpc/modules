@@ -319,6 +319,7 @@ README:
 
 script/add.modules: script/add.modules.in
 	$(translate-in-script)
+	chmod +x $@
 
 script/createmodule.py: script/createmodule.py.in
 	$(translate-in-script)
@@ -330,6 +331,7 @@ script/gitlog2changelog.py: script/gitlog2changelog.py.in
 
 script/modulecmd: script/modulecmd.in
 	$(translate-in-script)
+	chmod +x $@
 
 # compatibility version-related rules
 $(COMPAT_DIR)/modulecmd$(EXEEXT) $(COMPAT_DIR)/ChangeLog:
