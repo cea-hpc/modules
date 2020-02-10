@@ -805,6 +805,30 @@ extended TCL (tclX) commands.])
 	AC_DEFINE(HAS_TCLXLIBS)
 fi
 
+dnl --------------------------------------------------------------------
+dnl Find Python interpreter
+dnl --------------------------------------------------------------------
+AC_ARG_WITH(python,
+	AC_HELP_STRING([--with-python=<bin>],[Python interpreter command to use [[python]]]),
+	[python="$withval"], [python="python"])
+# specified python is full path bin or uses env command
+if test x"$python" = x"/usr/bin/env python" || test -x "$python" ; then
+    AC_MSG_CHECKING([for $python])
+    PYTHON="$python"
+    AC_MSG_RESULT([yes])
+# otherwise search for python bin in PATH
+else
+    AC_PATH_PROG([PYTHON],[$python],[])
+fi
+dnl Python is mandatory if installing from git repository to build ChangeLog
+if test -z "$PYTHON" ; then
+    if test -e ChangeLog ; then
+        PYTHON="/usr/bin/env python"
+    else
+        AC_MSG_ERROR([Python command cannot be found, whereas required to build ChangeLog.])
+    fi
+fi
+
 dnl ---------------------------------------------------------------------------
 dnl
 dnl   --with-module-path
@@ -996,6 +1020,7 @@ AC_CONFIG_FILES([Makefile modules.lsm .spec doc/Makefile
 	modulefiles/module-git modulefiles/module-info modulefiles/null
 	modulefiles/use.own modulefiles/dot modulefiles/version
 	])
+AC_CONFIG_FILES([gitlog2changelog.py], [chmod +x gitlog2changelog.py])
 dnl We want these to be recreated for each install
 dnl	init/bash init/csh init/ksh init/perl.pm init/python.py init/sh init/zsh
 AC_CONFIG_COMMANDS([default],[[date > stamp-h]],[[]])
