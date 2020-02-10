@@ -305,6 +305,8 @@ Optional Packages:
   --with-tcl              directory containing the Tcl configuration script
                           tclConfig.sh.
   --with-tclinclude       directory containing the Tcl header files.
+  --with-python=BIN       name or full path of Python interpreter command to
+                          use as shebang for helper scripts [$PYTHON]
 
 Depending on the above configuration options the files are approximately
 placed in the following directory structure:
@@ -547,6 +549,8 @@ for arg in "$@"; do
    --without-tclinclude|--without-tcl-inc)
       compatarglist+="--without-tcl-inc " ;
       libarglist+="--without-tclinclude " ;;
+   --with-python=*|--without-python)
+      pythonbin=$(get_package_value "$arg") ;;
    --with-module-path=*)
       echo_warning "Option \`--with-module-path' ignored, use \`--modulepath' instead" ;;
    -h|--help)
@@ -626,13 +630,27 @@ TCLSH=$reqpath
 # python is mandatory if installing from git repository to build ChangeLog
 if [ -d '.git' ]; then
    missmsg=''
+elif [ -n "$pythonbin" ]; then
+   missmsg="Specified Python command \`$pythonbin' cannot be found"
 else
    missmsg='-'
 fi
-check_requirement $PYTHON "$missmsg" "PATH=$binsearchpath" 'python3' 'python2'
+# only look at --with-python specification if set
+if [ -n "$pythonbin" ]; then
+   check_requirement $pythonbin "$missmsg" "PATH=$binsearchpath"
+else
+   check_requirement $PYTHON "$missmsg" "PATH=$binsearchpath" 'python3' 'python2'
+fi
 # define a generic launching name if command not found at build time
 if [ -z "$reqpath" ]; then
-   PYTHON="/usr/bin/env $PYTHON"
+   # use --with-python specification if set
+   if [ "${pythonbin:0:1}" = '/' ]; then
+      PYTHON="$pythonbin"
+   elif [ -n "$pythonbin" ]; then
+      PYTHON="/usr/bin/env $pythonbin"
+   else
+      PYTHON="/usr/bin/env $PYTHON"
+   fi
 else
    PYTHON=$reqpath
 fi

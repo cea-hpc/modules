@@ -433,3 +433,5 @@ instance ``--without-modulepath``):
                       compile Modules compatibility version or Modules Tcl
                       extension library if these headers cannot be
                       automatically found in default locations.
+--with-python=BIN     Name or full path of Python interpreter command to set
+                      as shebang for helper scripts. (default=\ ``python``)
