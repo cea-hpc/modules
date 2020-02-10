@@ -43,6 +43,7 @@ following tools are required:
 * autoconf
 * automake
 * autopoint
+* python
 * sphinx >= 1.0
 
 

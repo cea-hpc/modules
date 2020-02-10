@@ -26,7 +26,7 @@ prog=${progpath##*/}
 targetlist="${progdir}/Makefile.inc ${progdir}/site.exp"
 
 # argument list
-arglist="TCLSH SPHINXBUILD PS BASENAME RMDIR_IGN_NON_EMPTY VERSION \
+arglist="TCLSH PYTHON SPHINXBUILD PS BASENAME RMDIR_IGN_NON_EMPTY VERSION \
 baseprefix prefix bindir libdir libexecdir etcdir initdir datarootdir mandir \
 docdir vimdatadir modulefilesdir setmanpath appendmanpath setbinpath \
 appendbinpath setdotmodulespath docinstall vimaddons examplemodulefiles \
@@ -76,6 +76,7 @@ loadedmodules=
 quarantinevars=
 binsearchpath=/usr/bin:/bin:/usr/local/bin
 TCLSH=tclsh
+PYTHON=python
 SPHINXBUILD=sphinx-build
 builddoc=y
 gitworktree=y
@@ -356,7 +357,8 @@ check_requirement() {
    if [ -z "$reqpath" ]; then
       if [ -z "$optmesg" ]; then
          echo_error "$req could not be found"
-      else
+      # no message output if message set to '-'
+      elif [ "$optmesg" != '-' ]; then
          echo_warning "$optmesg"
       fi
    fi
@@ -620,6 +622,20 @@ else
    check_requirement $TCLSH '' "PATH=$binsearchpath" 'tclsh8.6' 'tclsh8.5' 'tclsh8.4'
 fi
 TCLSH=$reqpath
+
+# python is mandatory if installing from git repository to build ChangeLog
+if [ -d '.git' ]; then
+   missmsg=''
+else
+   missmsg='-'
+fi
+check_requirement $PYTHON "$missmsg" "PATH=$binsearchpath" 'python3' 'python2'
+# define a generic launching name if command not found at build time
+if [ -z "$reqpath" ]; then
+   PYTHON="/usr/bin/env $PYTHON"
+else
+   PYTHON=$reqpath
+fi
 
 # get location of commands used 'fullpath' in init scripts
 check_requirement 'ps' '' "PATH=$binsearchpath"

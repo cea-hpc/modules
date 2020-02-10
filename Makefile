@@ -254,6 +254,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@VERSION@|$(VERSION)|g' \
 	-e 's|@TCLSHDIR@/tclsh|$(TCLSH)|g' \
 	-e 's|@TCLSH@|$(TCLSH)|g' \
+	-e 's|@PYTHON@|$(PYTHON)|g' \
 	-e 's|@pagercmd@|$(pagercmd)|g' \
 	-e 's|@verbosity@|$(verbosity)|g' \
 	-e 's|@color@|$(setcolor)|g' \
@@ -305,10 +306,11 @@ modulecmd.tcl: modulecmd.tcl.in version.inc
 	chmod +x $@
 
 # generate an empty changelog file if not working from git repository
-ChangeLog:
 ifeq ($(wildcard .git),.git)
+ChangeLog: script/gitlog2changelog.py
 	script/gitlog2changelog.py
 else
+ChangeLog:
 	echo "Please refer to the NEWS document to learn about main changes" >$@
 endif
 
@@ -317,6 +319,14 @@ README:
 
 script/add.modules: script/add.modules.in
 	$(translate-in-script)
+
+script/createmodule.py: script/createmodule.py.in
+	$(translate-in-script)
+	chmod +x $@
+
+script/gitlog2changelog.py: script/gitlog2changelog.py.in
+	$(translate-in-script)
+	chmod +x $@
 
 script/modulecmd: script/modulecmd.in
 	$(translate-in-script)
@@ -562,6 +572,8 @@ endif
 	rm -f modulecmd.tcl
 	rm -f $(MODULECMDTEST)
 	rm -f script/add.modules
+	rm -f script/createmodule.py
+	rm -f script/gitlog2changelog.py
 	rm -f script/modulecmd
 	rm -f testsuite/example/.modulespath testsuite/example/modulerc testsuite/example/modulerc-1 testsuite/example/initrc
 	rm -f modules-*.tar modules-*.tar.gz modules-*.tar.bz2
