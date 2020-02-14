@@ -16,8 +16,7 @@ environment:
       TCLSH_DIR: C:\ActiveTcl\bin
       JAR_DIR: C:\Program Files\Java\jdk1.8.0\bin
       DIST_WIN: modules-*-win
-      INST_DIR: C:\Modules
-      MODULE_DIR: C:\Modules\bin
+      MODULE_DIR: C:\Program Files\Environment Modules\bin
     - BUILD_PLATFORM: msys
       CMD_DIR: C:\msys64\usr\bin
     - BUILD_PLATFORM: cygwin
@@ -42,7 +41,7 @@ build_script:
   # install from Windows-specific dist zipball for native test
   - if "%BUILD_PLATFORM%" == "native" (
       bash -c "./configure --disable-compat-version --disable-libtclenvmodules && make dist-win")
-  - if "%BUILD_PLATFORM%" == "native" (jar xvf %DIST_WIN%.zip && cd %DIST_WIN% && INSTALL.bat %INST_DIR%)
+  - if "%BUILD_PLATFORM%" == "native" (jar xvf %DIST_WIN%.zip && cd %DIST_WIN% && INSTALL.bat)
 
 test_script:
   - path %CMD_DIR%;%SYSTEMROOT%;%SYSTEMROOT%\system32
@@ -57,6 +56,6 @@ test_script:
 after_test:
   - path %CMD_DIR%;%SYSTEMROOT%;%SYSTEMROOT%\system32
   - if not "%BUILD_PLATFORM%" == "native" (bash -c "make uninstall")
-  - if "%BUILD_PLATFORM%" == "native" (cd %DIST_WIN% && UNINSTALL.bat %INST_DIR%)
+  - if "%BUILD_PLATFORM%" == "native" (cd %DIST_WIN% && UNINSTALL.bat)
 
 # vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
