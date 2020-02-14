@@ -8508,6 +8508,10 @@ proc formatCollectionContent {path_list mod_list nuasked_list {sgr 0}} {
 
    # start collection content with modulepaths
    foreach path $path_list {
+      # enclose path if space character found in it
+      if {[string first { } $path] != -1} {
+         set path "{$path}"
+      }
       # 'module use' prepends paths by default so we clarify
       # path order here with --append flag
       append content "$modcmd use --append $path" \n
@@ -8517,6 +8521,10 @@ proc formatCollectionContent {path_list mod_list nuasked_list {sgr 0}} {
    foreach mod $mod_list {
       # mark modules not asked by user to restore the user asked state
       set opt [expr {[isInList $nuasked_list $mod] ? {--notuasked } : {}}]
+      # enclose module if space character found in it
+      if {[string first { } $mod] != -1} {
+         set mod "{$mod}"
+      }
       append content "$modcmd load $opt$mod" \n
    }
 
