@@ -108,6 +108,20 @@ if {![is_config_locked implicit_default]} {
    send_user "\tSkipping advanced_version_spec tests as implicit_default config is locked\n"
 }
 
+# test modulepath and module names containing space
+if {!$is_symlink_supported} {
+    send_user "\tskipping tests over '$testsuite_modpath wspace' modulepath as symbolic links are not supported on filesystem\n"
+} else {
+
+set loadunloadout "Loading space yc/4\nUnloading space yc/4"
+foreach shell $shell_list {
+   testall_cmd $shell "module use \"$testsuite_modpath wspace\"\; module load -v \"space yc/4\"\; module unload -v \"space yc/4\"" {} $loadunloadout 0
+}
+foreach shell $othlang_list {
+   testall_cmd $shell "use,$testsuite_modpath wspace:load,-v,space yc/4:unload,-v,space yc/4" {} $loadunloadout 0
+}
+
+}
 
 #
 #  Clean up variables used in this test case
