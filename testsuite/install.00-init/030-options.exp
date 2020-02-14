@@ -70,6 +70,16 @@ if {$install_setmanpath eq "y" && $install_builddoc ne "n"} {
 }
 
 if {$install_setbinpath eq "y"} {
+   if {[file executable $install_python]} {
+      if {$verbose > 0} {
+         send_user "\tChecking createmodule.py availability\n"
+      }
+      foreach shell $shell_list {
+         testall_cmd_re "$shell" "createmodule.py -h" "^Usage: createmodule.py .*\$" "^\$" 0
+      }
+   } elseif {$verbose > 0} {
+      send_user "\tSkipping createmodule.py availability tests as no python interpreter found\n"
+   }
    if {$verbose > 0} {
       send_user "\tChecking envml availability\n"
    }
@@ -136,6 +146,7 @@ if {$install_setbinpath eq "y"} {
       }
    }
 } elseif {$verbose > 0} {
+   send_user "\tSkipping createmodule.py availability checks\n"
    send_user "\tSkipping envml availability checks\n"
    send_user "\tSkipping modulecmd availability checks\n"
    send_user "\tSkipping other utilities availability checks\n"
