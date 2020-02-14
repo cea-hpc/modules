@@ -8542,10 +8542,11 @@ proc readCollectionContent {collfile colldesc} {
       if {[regexp {module use (.*)$} $fline match patharg] == 1} {
          # paths are appended by default
          set stuff_path append
-         # manage with "split" multiple paths and path options
-         # specified on single line, for instance:
-         # module use --append path1 path2 path3
-         foreach path [split $patharg] {
+         # manage multiple paths and path options specified on single line,
+         # for instance "module use --append path1 path2 path3", with list
+         # representation of patharg (which handles quoted elements containing
+         # space in their name)
+         foreach path $patharg {
             # following path is asked to be appended
             if {($path eq {--append}) || ($path eq {-a})\
                || ($path eq {-append})} {
@@ -8569,13 +8570,12 @@ proc readCollectionContent {collfile colldesc} {
             }
          }
       } elseif {[regexp {module load (.*)$} $fline match modarg] == 1} {
-         # manage multiple modules specified on a single line with "split",
-         # for instance: module load mod1 mod2 mod3
-         set arglist [split $modarg]
+         # manage multiple modules specified on a single line, for instance
+         # "module load mod1 mod2 mod3", with list representation of modarg
          # make a list of modules that were not directly asked by user
-         set cleanlist [lsearch -all -inline -not -exact $arglist\
+         set cleanlist [lsearch -all -inline -not -exact $modarg\
             --notuasked]
-         if {[llength $arglist] != [llength $cleanlist]} {
+         if {[llength $modarg] != [llength $cleanlist]} {
             set nuasked_list [concat $nuasked_list $cleanlist]
          }
          set mod_list [concat $mod_list $cleanlist]
