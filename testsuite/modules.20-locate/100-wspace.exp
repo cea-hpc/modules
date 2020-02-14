@@ -334,6 +334,27 @@ testouterr_cmd_re sh {unload --auto space\ yc/4} $ans [msg_top_unload "{space yc
 unsetenv_loaded_module
 unsetenv_path_var MODULES_LMPREREQ
 
+# ml command tests
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "space ya/2"]
+lappend ans [list setpath _LMFILES_ "$mp/space ya/2"]
+lappend ans [list setpath MODULES_LMALTNAME "space ya/2&space ya/default&space ya"]
+testouterr_cmd_re sh {ml space\ ya} $ans {}
+setenv_loaded_module [list "space ya/2"] [list "$mp/space ya/2"]
+setenv_path_var MODULES_LMALTNAME "space ya/2&space ya/default&space ya"
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMALTNAME]
+testouterr_cmd sh {ml -space\ ya} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "space yc/5"]
+lappend ans [list setpath _LMFILES_ "$mp/space yc/5"]
+lappend ans [list unsetpath MODULES_LMALTNAME]
+testouterr_cmd_re sh {ml -space\ ya space\ yc} $ans {}
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMALTNAME
+
 
 #
 # tests of modules without whitespace in modulepath with whitespace
