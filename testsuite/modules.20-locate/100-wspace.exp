@@ -355,6 +355,18 @@ testouterr_cmd_re sh {ml -space\ ya space\ yc} $ans {}
 unsetenv_loaded_module
 unsetenv_path_var MODULES_LMALTNAME
 
+# implicit_default tests (if config not locked)
+if {![is_config_locked implicit_default]} {
+    setenv_var MODULES_IMPLICIT_DEFAULT 0
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES "space ya/2"]
+    lappend ans [list setpath _LMFILES_ "$mp/space ya/2"]
+    lappend ans [list setpath MODULES_LMALTNAME "space ya/2&space ya/default&space ya"]
+    testouterr_cmd sh {load space\ ya} $ans {}
+    testouterr_cmd sh {load space\ yb} ERR "$err_nodefault'space yb'"
+    setenv_var MODULES_IMPLICIT_DEFAULT 1
+}
+
 
 #
 # tests of modules without whitespace in modulepath with whitespace

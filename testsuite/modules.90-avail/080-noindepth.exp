@@ -243,11 +243,18 @@ if {$install_availindepth eq {y}} {
     testouterr_cmd sh {load mod0 --no-indepth} $ans $ts_noindepth
 }
 
+# test modulepath and module names containing space character
+setenv_var MODULES_AVAIL_INDEPTH 0
+set mp "$modpath wspace"
+setenv_path_var MODULEPATH $mp
+testouterr_cmd sh {avail -t spacen} OK "$mp:\nspacen/\nspacenb/(dw s)\nspacenc/"
+testouterr_cmd sh {avail -t space\ ya} OK "$mp:\nspace ya/"
 
 #
 #  Cleanup
 #
 
+unsetenv_var MODULES_AVAIL_INDEPTH
 # restore MODULEPATH
 setenv_path_var MODULEPATH $modpath
 
