@@ -234,6 +234,17 @@ testoutfile_cmd sh "save $coll11" OK $hometestdotmod/$coll11f $c11cont
 
 
 #
+# test when current environment has modulepath and module names containing space
+#
+
+unsetenv_path_var MODULES_LMPREREQ
+eval setenv_path_var MODULEPATH [split $c15modpath :]
+setenv_loaded_module [split $c15lm :] [split $c15lmf :]
+
+testoutfile_cmd sh "save $coll15" OK $hometestdotmod/$coll15f $c15cont
+
+
+#
 # test unsetting HOME
 #
 
@@ -277,12 +288,9 @@ testouterr_cmd "sh" "save" "ERR" "$error_msgs: Cannot save collection, some modu
 #
 
 # restore environment
-if { $verbose > 0 } {
-    send_user "\tUnset MODULES_COLLECTION_TARGET\n"
-}
-unset env(MODULES_COLLECTION_TARGET)
-setenv_path_var MODULEPATH $modpath
 unsetenv_path_var MODULES_LMCONFLICT
+unsetenv_path_var MODULES_COLLECTION_TARGET
+setenv_path_var MODULEPATH $modpath
 unsetenv_loaded_module
 
 unset baddotmod

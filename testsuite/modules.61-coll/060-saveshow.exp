@@ -121,6 +121,15 @@ testouterr_cmd "ALL" "saveshow" "ERR" "$cbadterrmsg"
 
 
 #
+# test displaying collection with no modulepath and modulefiles loaded as fullpath
+#
+
+unsetenv_path_var MODULES_COLLECTION_TARGET
+testouterr_cmd_re sh "saveshow $coll15fp" OK "$modlin\n$coll15fpre:\n\n$c15contre\n$modlin$"
+testouterr_cmd_re sh "saveshow $coll16fp" OK "$modlin\n$coll16fpre:\n\n$c16contre\n$modlin$"
+
+
+#
 # test unsetting HOME
 #
 
@@ -131,23 +140,18 @@ unset env(HOME)
 
 testouterr_cmd "sh" "saveshow" "ERR" $nohomeerrmsg
 
-
-#
-# Cleanup
-#
-
 # restore default testsuite home
 if { $verbose > 0 } {
     send_user "\tRestore HOME = $ORIG_HOME\n"
 }
 set env(HOME) $ORIG_HOME
-unset ORIG_HOME
 
-# restore environment
-if { $verbose > 0 } {
-    send_user "\tRestore MODULES_COLLECTION_TARGET = ''\n"
-}
-unset env(MODULES_COLLECTION_TARGET)
+
+#
+# Cleanup
+#
+
+unset ORIG_HOME
 
 unset cbadnerrmsg
 unset cbadfperrmsg
