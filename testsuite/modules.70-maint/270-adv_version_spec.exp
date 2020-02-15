@@ -723,6 +723,24 @@ if {$is_filesystem_icase} {
 
 
 #
+# test modulepath and module names containing space
+#
+
+set mp "$modpath wspace"
+setenv_var MODULEPATH $mp
+setenv_var MODULES_EXTENDED_DEFAULT 1
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "space yd/2.10"]
+lappend ans [list setpath _LMFILES_ "$mp/space yd/2.10"]
+testouterr_cmd sh {load space\ yd@2} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.10"]
+lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.10"]
+testouterr_cmd sh {load sp.ce\ y+@2} $ans {}
+
+
+#
 #  Cleanup
 #
 
