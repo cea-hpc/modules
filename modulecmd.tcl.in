@@ -8712,18 +8712,18 @@ proc parseModuleCommandArgs {cmd args} {
 # a global context version specification of modules passed as argument.
 # specification may vary whether it comes from the ml or another command.
 proc parseModuleVersionSpecifier {mlspec args} {
-   if {[getConf advanced_version_spec]} {
-      # skip arg parse if proc was already call with same arg set by an upper
-      # proc. check all args to ensure current arglist does not deviate from
-      # what was previously parsed
-      foreach arg $args {
-         if {![info exists ::g_moduleVersSpec($arg)]} {
-            set need_parse 1
-            break
-         }
+   # skip arg parse if proc was already call with same arg set by an upper
+   # proc. check all args to ensure current arglist does not deviate from
+   # what was previously parsed
+   foreach arg $args {
+      if {![info exists ::g_moduleVersSpec($arg)]} {
+         set need_parse 1
+         break
       }
+   }
 
-      if {[info exists need_parse]} {
+   if {[info exists need_parse]} {
+      if {[getConf advanced_version_spec]} {
          set invalidversspec 0
          set invalidversrange 0
          set mlunload 0
@@ -8836,16 +8836,31 @@ proc parseModuleVersionSpecifier {mlspec args} {
             }
          }
       } else {
-         set arglist $args
-      }
-   } elseif {$mlspec} {
-      set unarglist [list]
-      set arglist [list]
-      foreach arg $args {
-         if {[string index $arg 0] eq {-}} {
-            lappend unarglist [string range $arg 1 end]
-         } else {
-            lappend arglist $arg
+         set unarglist [list]
+         set arglist [list]
+
+         foreach arg $args {
+            if {$mlspec && [string index $arg 0] eq {-}} {
+               set modname [string range $arg 1 end]
+               set mlunload 1
+            } else {
+               set modname $arg
+               set mlunload 0
+            }
+            # keep arg enclosed if composed of several words
+            if {[string first { } $modname] != -1} {
+               set modarg "{$modname}"
+            } else {
+               set modarg $modname
+            }
+            # record spec, especially needed if arg is enclosed
+            setModuleVersSpec $modarg $modname eq {}
+            # append to unload list if ml spec and - prefix used
+            if {$mlunload} {
+               lappend unarglist $modarg
+            } else {
+               lappend arglist $modarg
+            }
          }
       }
    } else {
