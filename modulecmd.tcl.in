@@ -8813,7 +8813,12 @@ proc parseModuleVersionSpecifier {mlspec args} {
             if {$invalidversrange} {
                knerror "Invalid version range '$modspec'"
             }
-            lappend modarglist $arg
+            # keep arg enclosed if composed of several words
+            if {[string first { } $arg] != -1} {
+               lappend modarglist "{$arg}"
+            } else {
+               lappend modarglist $arg
+            }
          }
          # transform last args
          if {[info exists modarglist]} {
