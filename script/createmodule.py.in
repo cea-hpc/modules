@@ -211,10 +211,10 @@ if chdir is not None:
 # Function to format output line with tabs and substituting prefix
 def formatline(item, key, value=None):
     print(item, end=' ')
-    print("\t"*(2-(len(item)+1)/8), end=' ')
+    print("\t"*(2-(len(item)+1)//8), end=' ')
     print(key, end=' ')
     if value is not None:
-        print("\t"*(3-(len(key)+1)/8), end=' ')
+        print("\t"*(3-(len(key)+1)//8), end=' ')
         if prefix is not None:
             # Prefer usage of regular expression to perform a none
             # case-sensitive substitution (cygwin vs cmd.exe)
@@ -227,7 +227,7 @@ def formatline(item, key, value=None):
 
 # Paths first, grouped by variable name
 for sepkey in prependpath.keys():
-    pathkeys = prependpath[sepkey].keys()
+    pathkeys = list(prependpath[sepkey].keys())
     pathkeys.sort()
     for key in pathkeys:
         if sepkey == ":":
@@ -236,7 +236,7 @@ for sepkey in prependpath.keys():
             formatline("prepend-path --delim %s" % sepkey,key,prependpath[sepkey][key])
 
 for sepkey in appendpath.keys():
-    pathkeys = appendpath[sepkey].keys()
+    pathkeys = list(appendpath[sepkey].keys())
     pathkeys.sort()
     for key in pathkeys:
         if sepkey == ":":
