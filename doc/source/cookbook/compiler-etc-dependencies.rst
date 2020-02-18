@@ -80,7 +80,7 @@ Example Software Library
 
 For the purpose of the examples and the playground, we have created
 a fake example software library, rooted at the subdirectory
-``doc/example/compiler-etc-dependencies/fake-sw-root`` beneath where
+``doc/example/compiler-etc-dependencies/dummy-sw-root`` beneath where
 you placed the modules source files.  This software tree is intended
 to represent some of the features you might see in a real software
 tree, which supports various compiler and MPI libraries, and  that has
@@ -188,7 +188,7 @@ More directories under doc/example/compiler-etc-dependencies
 
 The modulefiles for the different strategies do not play well with each
 other, in part because we use the same names for many of the modules
-between strategies.  So in addition to the ``fake-sw-root`` subdirectory,
+between strategies.  So in addition to the ``dummy-sw-root`` subdirectory,
 each strategy has its own modulepath tree subdirectory
 underneath ``doc/example/compiler-etc-dependencies``.  There are some minor
 differences between the modulefiles for the Modulerc-based strategy
@@ -486,8 +486,8 @@ The following shows how this would appear to the user:
 
 Here we note that once a compiler is loaded, the PATH and the other environmental
 variables are set appropriately to point to the bin dir for the particular build of
-openmpi/4.0, as evidenced by the output of our fake mpirun command.  At the end, we attempt
-to load openmpi/4.0 for gnu/8.2.0, and receive an error because our fake SW library does not contain
+openmpi/4.0, as evidenced by the output of our dummy mpirun command.  At the end, we attempt
+to load openmpi/4.0 for gnu/8.2.0, and receive an error because our dummy SW library does not contain
 a matching build.  This is determined from the ``flavours path``; if the
 path does not exist (in this example ``$swroot/openmpi/4.0/1/gnu-8.2.0``) it will
 abort in this fashion.
@@ -810,7 +810,7 @@ built with.
     :literal:
 
 Again, once a compiler is loaded, loading openmpi will set the PATH, etc. for
-the correct build of openmpi, as evidenced by the output of the fake
+the correct build of openmpi, as evidenced by the output of the dummy
 mpirun command.  Notice that the ``module list`` command only shows
 the version of openmpi loaded, and contains no information about what
 compiler it was built with (you just have to assume it matches the loaded
@@ -884,7 +884,7 @@ functionality work properly, as in
 Here we note a deficiency in the switch support as compared to ``Flavours``.  In the last example
 after loading intel/2019 and foo, we have the non-MPI build of foo as expected.  However, upon
 subsequently loading the openmpi module, we still have the non-MPI version of foo loaded, as evidenced
-by the output of the fake foo command.  I.e., the foo package was *not* automatically reloaded, as
+by the output of the dummy foo command.  I.e., the foo package was *not* automatically reloaded, as
 there was no prereq in the foo modulefile on an MPI library (as in the non-MPI build there is no MPI
 library to prereq).  Also note that module list does not really inform one of this fact.
 
@@ -2075,7 +2075,7 @@ The behavior when defaulting is nicer.  Without any compiler or MPI libraries
 Here we note a deficiency in the switch support as compared to ``Flavours``.  In the last example
 after loading intel/2019 and foo, we have the non-MPI build of foo as expected.  However, upon
 subsequently loading the openmpi module, we still have the non-MPI version of foo loaded, as evidenced
-by the output of the fake foo command.  I.e., the foo package was *not* automatically reloaded, as
+by the output of the dummy foo command.  I.e., the foo package was *not* automatically reloaded, as
 there was no prereq in the foo modulefile on an MPI library (as in the non-MPI build there is no MPI
 library to prereq).  Also note that module list does not really inform one of this fact.
 
