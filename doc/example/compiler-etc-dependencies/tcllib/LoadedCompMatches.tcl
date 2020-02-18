@@ -8,9 +8,9 @@
 # If no compiler is loaded, will load if optional boolean parameter
 # $loadIt is set (default unset), and prereq if $requireIt is set, and
 # then return.
-# Option parameters: 
+# Option parameters:
 # requireIt: boolean, default false. If set, require $wanted
-# loadIt: boolean, default false.  If set, load $wanted if no compiler 
+# loadIt: boolean, default false.  If set, load $wanted if no compiler
 #	already loaded
 # modTag: string, defaults go [module-info specified].  Used in error messages
 
@@ -20,12 +20,12 @@ proc LoadedCompilerMatches { wanted {requireIt 0} { loadIt 0 } {modTag {} } } {
    # If no compiler given in $wanted, just return
    if { $wanted eq {} } { return }
 
-   # Get loaded compiler (w/out defaults) 
+   # Get loaded compiler (w/out defaults)
    set loaded [ GetLoadedCompiler 0  0 ]
    # If no compiler is loaded, then require it if asked, and return
    if { $loaded eq {} } {
-      if { $loadIt } { 
-         RequireCompiler $wanted 
+      if { $loadIt } {
+         RequireCompiler $wanted
          if { $requireIt } { prereq $wanted }
       }
       return
@@ -60,16 +60,16 @@ loaded compiler $loaded.
 
    # OK, families match
    # If no version specified in $wanted, we are basically done
-   if { $wantedLen < 2 } { 
+   if { $wantedLen < 2 } {
       if { $requireIt } { prereq $wanted }
-      return 
+      return
    }
 
    # Ensure versions match
    set wantedVer [ lindex $tmpWanted 1 ]
-   if { $loadedVer eq $wantedVer } { 
+   if { $loadedVer eq $wantedVer } {
       if { $requireIt } { prereq $wanted }
-      return 
+      return
    }
    # Versions don't match
    PrintLoadError "

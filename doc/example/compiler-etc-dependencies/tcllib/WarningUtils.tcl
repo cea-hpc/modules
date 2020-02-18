@@ -1,7 +1,7 @@
 ## =======  Utilities for printing warning/error messages,  etc =========
 
 #--------------------------------------------------------------------
-# PrintIfLoading: 
+# PrintIfLoading:
 #
 # Prints supplied text to stderr but only if in "load" mode
 #
