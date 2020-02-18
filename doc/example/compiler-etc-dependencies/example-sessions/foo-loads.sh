@@ -34,12 +34,12 @@ do_cmd foo
 do_cmd module unload foo
 do_cmd module switch $AUTOFLAG intelmpi mvapich/2.3.1
 do_cmd module load foo/2.4
-do_cmd module list 
+do_cmd module list
 do_cmd foo
 do_cmd module unload foo
 do_cmd module switch $AUTOFLAG mvapich openmpi/4.0
 do_cmd module load foo/2.4
-do_cmd module list 
+do_cmd module list
 do_cmd foo
 
 do_cmd module unload foo

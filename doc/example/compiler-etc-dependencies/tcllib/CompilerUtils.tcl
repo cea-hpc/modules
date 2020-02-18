@@ -62,7 +62,7 @@ proc GetKnownCompilerFamilies { } {
 #	requireIt: boolean, default false.  If set, we will prereq the
 #		compiler before returning.
 
-proc GetLoadedCompiler {{pathDefault 0} { useDefault 0} 
+proc GetLoadedCompiler {{pathDefault 0} { useDefault 0}
    {loadIt 0 } { requireIt 0 } } {
    global ModulesCurrentModulefile
    set ctag {}
@@ -90,7 +90,7 @@ proc GetLoadedCompiler {{pathDefault 0} { useDefault 0}
          return $ctag
       }
    }
-         
+
    # Still no compiler, default to GetDefaultCompiler>
    if { $useDefault } {
       set ctag [ GetDefaultCompiler ]

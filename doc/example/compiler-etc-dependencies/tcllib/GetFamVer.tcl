@@ -20,16 +20,16 @@ proc GetPackageFamilyVersion { tag } {
    # Family should always be first
    set family [ lindex $components 0 ]
    if { $compLen < 2 } { return $family }
-         
+
    # First guess, version immediately follows family
    set version [ lindex $components 1 ]
    # Check if it matches known non-version stuff following family
    # Compilers, MPIs, other things branch on
-   set nonVers { gnu gcc pgi intel openmpi ompi intelmpi impi mvapich 
+   set nonVers { gnu gcc pgi intel openmpi ompi intelmpi impi mvapich
       mvapich2 avx avx2 sse4.1 sse3 python perl hdf hdf4 hdf5 }
    set tmp [ lsearch $nonVers $version ]
    if { $tmp > -1 } {
-      # The component immediately following family was NOT a version 
+      # The component immediately following family was NOT a version
       # Use last component as version
       set version [ lindex $components end ]
    }

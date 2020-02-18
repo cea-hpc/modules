@@ -8,13 +8,13 @@
 # If no MPI is loaded, will load if optional boolean parameter
 # $loadIt is set (default unset), and prereq if $requireIt is set, and
 # then return.
-# Option parameters: 
+# Option parameters:
 # requireIt: boolean, default false. If set, will prereq $wanted
 # loadIt: boolean, default false. If set, load $wanted
 #	if no MPI is already loaded
 # noLoadIntel: boolean, passed to RequireMPI.  If set,
 #	will not attempt to load intelmpi variants if compiler is intel
-# forceNoMpi: boolean, default false.  If set and $wanted is 'nompi', 
+# forceNoMpi: boolean, default false.  If set and $wanted is 'nompi',
 #  	insist that no MPI module is loaded
 # modTag: string, defaults go [module-info specified].  Used in error messages
 
@@ -25,7 +25,7 @@ proc LoadedMpiMatches { wanted {requireIt 0} { loadIt 0 } { noLoadIntel 0 }
    # If no MPI given in $wanted, just return
    if { $wanted eq {} } { return }
 
-   # Get loaded MPI, no defaulting to intelmpi 
+   # Get loaded MPI, no defaulting to intelmpi
    set loaded [ GetLoadedMPI 0 ]
 
    # If wanted is nompi, no need to do anything unless forceNoMpi set
@@ -50,7 +50,7 @@ Please unload the MPI library and try again.
    # in edge cases of nompi or intelmpi), prereq it if $requireIt,
    # abd return
    if { $loaded eq {} } {
-      if { $loadIt } { 
+      if { $loadIt } {
          RequireMPI $wanted $noLoadIntel
          if { $requireIt } { prereq $wanted }
       }
@@ -81,16 +81,16 @@ loaded MPI library $loaded.
 
    # OK, families match
    # If no version specified in $wanted, we are basically done
-   if { $wantedLen < 2 } { 
+   if { $wantedLen < 2 } {
       if { $requireIt } { prereq $wanted }
-      return 
+      return
    }
 
    # Ensure versions match
    set wantedVer [ lindex $tmpWanted 1 ]
-   if { $loadedVer eq $wantedVer } { 
+   if { $loadedVer eq $wantedVer } {
       if { $requireIt } { prereq $wanted }
-      return 
+      return
    }
    # Versions don't match
    PrintLoadError "

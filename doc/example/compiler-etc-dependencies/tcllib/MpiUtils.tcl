@@ -6,7 +6,7 @@
 # Does a module load of specified MPI library $mympi
 # Includes special handling if $mympi is nompi or intelmpi (or one of its aliases)
 # If $mympi is nompi, nothing is loaded.
-# If the optional parameter noLoadIntel is set (default false), and if 
+# If the optional parameter noLoadIntel is set (default false), and if
 # $mympi is intelmpi (or intel or impi), then we do not load module if
 # the loaded compiler is intel (as we assume that provides intel MPI as well)
 proc RequireMPI { mympi {noLoadIntel 0} } {
@@ -25,7 +25,7 @@ proc RequireMPI { mympi {noLoadIntel 0} } {
          if { $curComp ne {} } {
             set curCompSplit [ split $curComp / ]
             set curCompBase [ lindex $curCompSplit 0 ]
-            if { $curCompBase eq {intel} } { 
+            if { $curCompBase eq {intel} } {
                # $noLoadIntel is set, requested MPI is intel MPI, and intel compiler loaded
                return
             }
@@ -51,7 +51,7 @@ proc GetKnownMpiFamilies { } {
 # Returns the string for the MPI library we are using (i.e. was previously
 # module loaded), or empty string if nothing loaded (from is-loaded command)
 # E.g., intel/2013.1.117
-# Takes an optional argument, 
+# Takes an optional argument,
 #	useIntel: boolean, default false.  If set, returns 'intelmpi' if
 #		no MPI library is loaded but intel compiler is loaded
 #	forceIt: boolean, default false.  If set, prereq MPI lib before returning.

@@ -34,7 +34,7 @@ case $TMP_STRATEGY in
 	esac
 	;;
    modulerc)
-        #We failed to reload openmpi on switch to intel/2018, no need to 
+        #We failed to reload openmpi on switch to intel/2018, no need to
 	#continue
         ;;
 esac

@@ -7,7 +7,7 @@
 # first one found in the directory of the current modulefile
 # (typically a .modulerc file).  Returns empty string if none
 # of them were found.
-# NOTE: we do NOT check for module magic signature or even that symlink 
+# NOTE: we do NOT check for module magic signature or even that symlink
 # targets exist.
 #
 proc FirstChildModuleInList { modlist } {
@@ -27,8 +27,8 @@ proc FirstChildModuleInList { modlist } {
 #
 # Takes a module path component, and returns true if that path component
 # exists beneath the current level, i.e. in the directory from which
-# this .modulerc file was called.  
-# NOTE: we do NOT check for module magic signature or even that symlink 
+# this .modulerc file was called.
+# NOTE: we do NOT check for module magic signature or even that symlink
 # targets exist.
 proc ChildModuleExists { pathcomponent } {
    global ModulesCurrentModulefile

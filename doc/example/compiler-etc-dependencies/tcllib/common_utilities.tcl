@@ -1,5 +1,5 @@
 #
-# This file is a collection of common utilities (Tcl Procedures) 
+# This file is a collection of common utilities (Tcl Procedures)
 # used by the the cookbook "Compiler, etc. Dependencies"
 # Particularly for the homebrewed flavors and modulerc flavors strategy
 
