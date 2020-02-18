@@ -600,12 +600,18 @@ unset hide_perms
 #
 
 set mp "$modpath wspace"
+if {!$is_symlink_supported} {
+    send_user "\tskipping tests over '$mp' modulepath as symbolic links are not supported on filesystem\n"
+} else {
+
 setenv_var MODULEPATH $mp
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "space yd/2.10"]
 lappend ans [list setpath _LMFILES_ "$mp/space yd/2.10"]
 testouterr_cmd sh {load space\ yd/2} $ans {}
+
+}
 
 
 #

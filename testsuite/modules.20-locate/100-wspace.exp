@@ -373,6 +373,10 @@ if {![is_config_locked implicit_default]} {
 #
 set mp "$modpath wspace"
 set mpre "$modpathre wspace"
+if {!$is_symlink_supported} {
+    send_user "\tskipping tests over '$mp' modulepath as symbolic links are not supported on filesystem\n"
+} else {
+
 setenv_path_var MODULEPATH $mp
 
 # unknown module
@@ -600,6 +604,8 @@ lappend ans [list unsetpath MODULES_LMALTNAME]
 testouterr_cmd sh {unload space\ yb/dns} $ans {}
 unsetenv_loaded_module
 unsetenv_path_var MODULES_LMALTNAME
+
+}
 
 
 #

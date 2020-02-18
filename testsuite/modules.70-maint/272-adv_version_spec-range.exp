@@ -994,6 +994,10 @@ unsetenv_var MODULES_EXTENDED_DEFAULT
 #
 
 set mp "$modpath wspace"
+if {!$is_symlink_supported} {
+    send_user "\tskipping tests over '$mp' modulepath as symbolic links are not supported on filesystem\n"
+} else {
+
 setenv_var MODULEPATH $mp
 setenv_var MODULES_EXTENDED_DEFAULT 1
 
@@ -1032,6 +1036,8 @@ lappend ans [list unsetpath MODULES_LMPREREQ]
 testouterr_cmd sh {unload --auto sp.ce\ y+@:2} $ans [msg_top_unload "{sp.ce y+/2.6}" {space yd/5.0} {} {}]
 unsetenv_loaded_module
 unsetenv_path_var MODULES_LMPREREQ
+
+}
 
 
 #

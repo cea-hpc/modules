@@ -525,6 +525,10 @@ unsetenv_var MODULES_AUTO_HANDLING
 # restore collection where modulepath and module names contain space character
 #
 
+if {!$is_symlink_supported} {
+    send_user "\tskipping tests over '$modpath wspace' modulepath as symbolic links are not supported on filesystem\n"
+} else {
+
 unsetenv_path_var MODULEPATH
 unsetenv_loaded_module
 unsetenv_path_var MODULES_LMPREREQ
@@ -540,6 +544,8 @@ lappend ans [list setpath MODULEPATH $c16modpath]
 lappend ans [list setpath LOADEDMODULES $c16lm]
 lappend ans [list setpath _LMFILES_ $c16lmf]
 testouterr_cmd_re sh "restore $coll16fp" $ans $c16errmsg
+
+}
 
 #
 # Cleanup
