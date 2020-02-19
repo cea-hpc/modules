@@ -1,3 +1,6 @@
+# =========================================================
+# Author: Tom Payerle <payerle@umd.edu>
+
 #--------------------------------------------------------------------
 # LoadedCompilerMatches:
 #
@@ -13,7 +16,6 @@
 # loadIt: boolean, default false.  If set, load $wanted if no compiler
 #	already loaded
 # modTag: string, defaults go [module-info specified].  Used in error messages
-
 proc LoadedCompilerMatches { wanted {requireIt 0} { loadIt 0 } {modTag {} } } {
    # Default modTag
    if { $modTag eq {} } { set modTag [ module-info specified ] }
@@ -79,4 +81,3 @@ Package $modTag does not appear to be built for currently
 loaded compiler $loaded.
 "
 }
-

@@ -1,3 +1,6 @@
+# =========================================================
+# Author: Tom Payerle <payerle@umd.edu>
+
 #--------------------------------------------------------------------
 # LoadedMpiMatches:
 #
@@ -17,7 +20,6 @@
 # forceNoMpi: boolean, default false.  If set and $wanted is 'nompi',
 #  	insist that no MPI module is loaded
 # modTag: string, defaults go [module-info specified].  Used in error messages
-
 proc LoadedMpiMatches { wanted {requireIt 0} { loadIt 0 } { noLoadIntel 0 }
    { forceNoMpi 0 } {modTag {} } } {
    # Default modTag
@@ -100,4 +102,3 @@ Package $modTag does not appear to be built for currently
 loaded MPI library $loaded.
 "
 }
-

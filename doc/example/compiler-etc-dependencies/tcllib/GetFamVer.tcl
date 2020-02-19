@@ -1,3 +1,6 @@
+# =========================================================
+# Author: Tom Payerle <payerle@umd.edu>
+
 #--------------------------------------------------------------------
 # GetPackageFamilyVersion
 #
@@ -7,7 +10,6 @@
 # E.g., for foo/1.1/gcc/8.2.0/openmpi/3.1 would return {foo 1.1}
 # But also handles stuff like foo/gcc/8.2.0/openmpi/3.1/1.1 (returning
 # again {foo 1.1})
-#
 proc GetPackageFamilyVersion { tag } {
    # Return empty list if given empty tag
    if { $tag eq {} } { return {} }

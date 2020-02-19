@@ -1,4 +1,6 @@
-#
+# =========================================================
+# Author: Tom Payerle <payerle@umd.edu>
+
 # This file is a collection of common utilities (Tcl Procedures)
 # used by the the cookbook "Compiler, etc. Dependencies"
 # Particularly for the homebrewed flavors and modulerc flavors strategy
@@ -15,7 +17,6 @@
 #
 # This file assumes the Tcl variable $tcllibdir has been set and
 # points to the location of this directory.
-
 
 source $tcllibdir/WarningUtils.tcl
 source $tcllibdir/LoadedModules.tcl

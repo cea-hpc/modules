@@ -1,4 +1,5 @@
-## =======  Utilities related to which MPI library is loaded, etc =========
+# =======  Utilities related to which MPI library is loaded, etc =========
+# Author: Tom Payerle <payerle@umd.edu>
 
 #--------------------------------------------------------------------
 # RequireMPI:
@@ -75,4 +76,3 @@ proc GetLoadedMPI { { useIntel 0} {forceIt 0} {requireIt 0} } {
    }
    return $mtag
 }
-
