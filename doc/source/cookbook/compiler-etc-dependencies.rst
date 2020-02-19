@@ -196,8 +196,7 @@ depending on whether Environmental Modules 3.x or 4.x is being used,
 so we actually have two trees for that case (modulerc3 and modulerc4).
 
 As there are a fair number of modulefiles, we make use of various tricks
-in the cookbook `Tips for Code Reuse <tips-for-code-reuse_>`__
-to minimize the amount of repeated
+in the cookbook :ref:`tips-for-code-reuse` to minimize the amount of repeated
 code.  In general, the actual modulefiles are small "stubfiles", setting one or a few
 Tcl variables, and then sourcing a ``common`` tcl file which does all the
 real work.   Symlinks are used where possible to avoid duplicating files.
@@ -208,8 +207,7 @@ places in modulepath tree from the ``modrc_common`` directory.
 We also in some cases use Tcl procedures; for the sake of the
 examples these our sourced in the files as needed, but if one were to
 use the strategies needing such in production it would be better to follow
-the suggestions in
-`Expose Procedures and Variables to Modulefiles <expose-procs-to-modulefiles_>`__ and
+the suggestions in :ref:`expose-procs-to-modulefiles` and
 place the required procedures in site config script.
 The various tcl procedures are placed in the ``tcllib`` sub-directory, outside
 of the modulepaths.  These are actually broken up into multiple files
@@ -647,8 +645,7 @@ to query what modules of a given type are loaded and to construct the path to th
 software package accordingly.  To avoid needless (and error prone) repetition of
 code, we collect these into several Tcl procedures of our own.  Ideally, these
 should be placed in a site configuration Tcl file and exposed to modulefiles
-as explained in the cookbook
-`Expose Procedures and Variables to Modulefiles <expose-procs-to-modulefiles_>`__.
+as explained in the cookbook :ref:`expose-procs-to-modulefiles`.
 However, to avoid the need for that in these examples, we instead have placed them
 into a file and use the ``MOD_GIT_ROOTDIR`` to locate and source that file in the
 relevant modulefiles.  (Actually, we have a single tcl file that is sourced both
@@ -760,8 +757,7 @@ below:
 We begin by sourcing the ``common_utilities`` file which defined the previously
 described Tcl procedures.  Normally it is recommended that you put those
 procedures in a site config Tcl script and expose them to the modulefiles
-using the techniques described in the cookbook
-`Expose Procedures and Variables to Modulefiles <expose-procs-to-modulefiles_>`__.
+using the techniques described in the cookbook :ref:`expose-procs-to-modulefiles`.
 Even if you opt against that and decide to source a Tcl file, it is recommended
 to hard code the path.
 
@@ -971,7 +967,7 @@ uses the same Tcl procedures to default the modulefile which will be loaded.
 This implies that there is a distinct modulefile for every build of the package,
 and an immediate consequence is that this strategy has many more modulefiles
 than the others.  We make use of the techniques in the cookbook
-`Tips for Code Reuse <tips-for-code-reuse_>`__ to reduce the total amount of code; the actual modulefiles
+:ref:`tips-for-code-reuse` to reduce the total amount of code; the actual modulefiles
 for each build are typically small stubfiles defining a couple of Tcl variables
 and then sourcing a ``common`` script (unique to each package) which does all
 the real work.
@@ -1001,8 +997,7 @@ of the example for this cookbook this is done based on the MOD_GIT_ROOTDIR
 environmental variable.  If you were to use this in production, it is
 recommended that the Tcl procedures be placed in a site configuration script
 and exposed to modulefiles via the techniques described in the cookbook
-`Expose Procedures and Variables to Modulefiles <expose-procs-to-modulefiles_>`__.
-At the minimum, it is
+:ref:`expose-procs-to-modulefiles`. At the minimum, it is
 recommended to hardcode the path to the ``common_utilities.tcl`` file.
 
 The modulerc script then determines the directory it is in using the
