@@ -1,10 +1,10 @@
-## =======  Utilities for printing warning/error messages,  etc =========
+# =======  Utilities for printing warning/error messages,  etc =========
+# Author: Tom Payerle <payerle@umd.edu>
 
 #--------------------------------------------------------------------
 # PrintIfLoading:
 #
 # Prints supplied text to stderr but only if in "load" mode
-#
 proc PrintIfLoading { args } {
    if [ module-info mode load ] {
       set tmp [ join $args ]
@@ -17,7 +17,6 @@ proc PrintIfLoading { args } {
 #
 # Prints supplied text to stderr as informational message, but only
 # if actually trying to load the module.
-#
 proc PrintLoadInfo { args } {
    set tmp [ join $args ]
    PrintIfLoading "
@@ -30,7 +29,6 @@ proc PrintLoadInfo { args } {
 #
 # Prints supplied text to stderr as warning message, but only
 # if actually trying to load the module.
-#
 proc PrintLoadWarning { args } {
    set tmp [ join $args ]
    PrintIfLoading "
@@ -46,7 +44,6 @@ $tmp
 # PrintLoadError:
 #
 # Like PrintLoadWarning, but as error message and does a "break"
-#
 proc PrintLoadError { args } {
    set tmp [ join $args ]
    PrintIfLoading "
@@ -60,4 +57,3 @@ $tmp
       break
    }
 }
-

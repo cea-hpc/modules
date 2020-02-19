@@ -1,4 +1,5 @@
-## =======  Utilities related to which compiler is loaded, etc =========
+# =======  Utilities related to which compiler is loaded, etc =========
+# Author: Tom Payerle <payerle@umd.edu>
 
 #--------------------------------------------------------------------
 # GetDefaultCompiler:
@@ -61,7 +62,6 @@ proc GetKnownCompilerFamilies { } {
 #		Ignored unless either pathDefault or useDefault is set
 #	requireIt: boolean, default false.  If set, we will prereq the
 #		compiler before returning.
-
 proc GetLoadedCompiler {{pathDefault 0} { useDefault 0}
    {loadIt 0 } { requireIt 0 } } {
    global ModulesCurrentModulefile
@@ -102,4 +102,3 @@ proc GetLoadedCompiler {{pathDefault 0} { useDefault 0}
    #Nothing found, and not defaulting
    return $ctag
 }
-

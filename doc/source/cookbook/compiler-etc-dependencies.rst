@@ -657,8 +657,9 @@ one site config file).
 We discuss the various Tcl procedures here, as they are what provide most of the
 functionality.  We start with the routines for generic loaded modules:
 
-.. include:: ../../example/compiler-etc-dependencies/tcllib/LoadedModules.tcl
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/tcllib/LoadedModules.tcl
+    :language: tcl
+    :lines: 4-
 
 This defines the two Tcl procedures:
 
@@ -671,8 +672,9 @@ The Tcl procedure **GetTagOfModuleLoaded** can be used to find out what version
 of a given package is loaded, and is enough for many packages.  However, for
 compilers, and similar, a bit more is needed.  For compilers:
 
-.. include:: ../../example/compiler-etc-dependencies/tcllib/CompilerUtils.tcl
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/tcllib/CompilerUtils.tcl
+    :language: tcl
+    :lines: 4-
 
 We defined four procedures above:
 
@@ -704,8 +706,9 @@ found before returning.
 
 A similar set of procedures exist for the MPI libraries, namely:
 
-.. include:: ../../example/compiler-etc-dependencies/tcllib/MpiUtils.tcl
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/tcllib/MpiUtils.tcl
+    :language: tcl
+    :lines: 4-
 
 The three procedures here are analogues of the compiler versions:
 
@@ -733,8 +736,9 @@ more closely resemble the other MPI libraries).
 
 We also define some Tcl procedures for generating warning and error messages, namely
 
-.. include:: ../../example/compiler-etc-dependencies/tcllib/WarningUtils.tcl
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/tcllib/WarningUtils.tcl
+    :language: tcl
+    :lines: 4-
 
 These procedures:
 
@@ -1015,8 +1019,9 @@ to it.  For this purpose, we use the Tcl procedure ``FirstChildModuleInList``
 (defined in ``common_utilities.tcl``).  This and a related procedure are
 defined as:
 
-.. include:: ../../example/compiler-etc-dependencies/tcllib/ChildModules.tcl
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/tcllib/ChildModules.tcl
+    :language: tcl
+    :lines: 4-
 
 and basically make use of the Tcl variable ``ModulesCurrentModulefile``.  They
 are limited, however, in that they will not work properly if the module is
@@ -1064,8 +1069,9 @@ apropriate build for the requested package; the modulecmd will default to
 something, but likely not what is wanted.  To facilitate this, we define
 the Tcl procedure ``LoadedCompilerMatches``:
 
-.. include:: ../../example/compiler-etc-dependencies/tcllib/LoadedCompMatches.tcl
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/tcllib/LoadedCompMatches.tcl
+    :language: tcl
+    :lines: 4-
 
 The procedure takes a string for the family and version of the compiler
 that the modulefile expects, and ensures that if a compiler is loaded, they
@@ -1251,8 +1257,9 @@ matches the name of a known package (like a compiler family), it uses
 the last component as the version.  Otherwise, the second component is
 assumed to be the version.  The code is as follows:
 
-.. include:: ../../example/compiler-etc-dependencies/tcllib/GetFamVer.tcl
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/tcllib/GetFamVer.tcl
+    :language: tcl
+    :lines: 4-
 
 Similarly, there are two corresponding .modulerc scripts for defaulting
 the MPI library: one to default the family (e.g. openmpi, mvapich, intelmpi)
@@ -1485,8 +1492,9 @@ is needed to ensure that the compiler and MPI for the modulefile being
 processed are compatible with any which are loaded.  The ``LoadedMpiMatches``
 procedure is defined by:
 
-.. include:: ../../example/compiler-etc-dependencies/tcllib/LoadedMpiMatches.tcl
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/tcllib/LoadedMpiMatches.tcl
+    :language: tcl
+    :lines: 4-
 
 Basically, it determines what if any MPI library was previously module loaded.
 If one was loaded, it ensures the family and version match what was expected,

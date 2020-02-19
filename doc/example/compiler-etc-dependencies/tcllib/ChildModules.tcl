@@ -1,4 +1,5 @@
-## =======  Information re modules beneath current dir =====
+# =======  Information re modules beneath current dir =====
+# Author: Tom Payerle <payerle@umd.edu>
 
 #--------------------------------------------------------------------
 # FirstChildModuleInList
@@ -9,7 +10,6 @@
 # of them were found.
 # NOTE: we do NOT check for module magic signature or even that symlink
 # targets exist.
-#
 proc FirstChildModuleInList { modlist } {
    global ModulesCurrentModulefile
    # Get directory for current modulefile

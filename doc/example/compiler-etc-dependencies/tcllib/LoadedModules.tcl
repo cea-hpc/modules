@@ -1,10 +1,10 @@
-## =======  Generic queries of loaded modules =====
+# =======  Generic queries of loaded modules =====
+# Author: Tom Payerle <payerle@umd.edu>
 
 #--------------------------------------------------------------------
 # GetLoadedModules
 #
 # Returns a tcl list of all modules loaded.  From $ENV{LOADEDMODULES}
-#
 proc GetLoadedModules { } {
    global env
    #Handle case if no modules loaded
@@ -17,13 +17,11 @@ proc GetLoadedModules { } {
    return $loaded
 }
 
-#
 #--------------------------------------------------------------------
 # GetTagOfModuleLoaded(pkg)
 #
 # Looks for a loaded module matching ^$pkg/, and returns the tag matched.
 # Returns {} if no tags matched (i.e. module pkg not loaded)
-#
 proc GetTagOfModuleLoaded { mymodule } {
    set loadedlist [ GetLoadedModules ]
    set regex "^$mymodule/"
@@ -32,5 +30,3 @@ proc GetTagOfModuleLoaded { mymodule } {
    set found [ lindex $loadedlist $fndidx ]
    return $found
 }
-
-
