@@ -94,7 +94,7 @@ dedup() {
   echo $1 | sed -r -e 's,[^/]+/\.\./,,g' -e 's,[^/]+/\.\./,,g' -e "s/\\$sep/\n/g" |
     while read x
     do
-      grep -Fx ${x} $list && continue
+      grep -q -Fx ${x} $list && continue
       if [ -n "$prefix" ]
       then
         echo $x | sed -e s,$prefix,\$prefix,
