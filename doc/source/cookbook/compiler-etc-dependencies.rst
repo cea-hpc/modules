@@ -260,12 +260,11 @@ start of the Examples section for each strategy.
 Flavours Strategy
 -----------------
 
-The Flavours strategy uses the Flavours extension to Tcl Environment
-Modules from Mark Dixon at the University of Leeds. The code is available
-via git, etc. from ``https://sourceforge.net/projects/flavours``. Unlike the
-other strategies discussed, this requires the separate download and installation
-of an extension to Environment Modules.
+The Flavours strategy uses the Flavours_ extension to Environment Modules.
+Unlike the other strategies discussed, this requires the separate download and
+installation of an extension to Environment Modules.
 
+.. _Flavours: https://sourceforge.net/projects/flavours/
 
 Installation and Implementation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -374,7 +373,7 @@ Examples
 We now look at the example modulefiles for flavours. To use the examples,
 you must
 
-#. Have Flavours installed. **NOTE** these examples will NOT work without
+#. Have Flavours_ installed. **NOTE** these examples will NOT work without
    the Flavours installed.
 #. Set (and export) MOD_GIT_ROOTDIR to where you git-cloned the modules source
 #. Do a ``module purge``, and then set your MODULEPATH
@@ -483,7 +482,7 @@ path does not exist (in this example ``$swroot/openmpi/4.0/1/gnu-8.2.0``) it wil
 abort in this fashion.
 
 In the above, we have explicitly unloaded openmpi, switched the compilers, and
-then reloaded openmpi. A nice feature of Flavours is that it can handle the
+then reloaded openmpi. A nice feature of Flavours_ is that it can handle the
 switching out of compilers or other modulefiles which other modulefiles depend on,
 as:
 
@@ -594,7 +593,7 @@ Summary of Flavours
   that it has not been updated for Environment Modules 4.x, my (albeit minimal) experimentation
   indicates that it still works, with the exception of automatic reloading of a module if any of
   the modules it depends on are switched.
-  However, the Flavours package does not appear to be actively supported.
+  However, the Flavours_ package does not appear to be actively supported.
 * The Flavours package (using Environment Modules 3.x) fully supports the ``module switch`` syntax,
   with the switching out of a dependency (e.g. a compiler) causing the reload of all modulefiles depending on it.
   (I have not had success with this using Environment Modules 4.x.)
@@ -620,7 +619,7 @@ Summary of Flavours
 Home-brewed Flavors Strategy
 ----------------------------
 
-Although the "Flavours" extension described above has an elegance about it,
+Although the Flavours_ extension described above has an elegance about it,
 one can achieve much of the same functionality in modulefiles using standard
 Environment Modules and Tcl commands. This can be facilitated by the definition
 of some useful Tcl procedures. For lack of a better name, we will refer to
@@ -1748,7 +1747,9 @@ on which other modules might depend, a new path is added to MODULEPATH
 containing the modulefiles which depend on the newly added module.
 
 This is basically similar to the strategy that is used in the hierarchical
-modulefile approach in Lua Modules (lmod).
+modulefile approach of Lmod_.
+
+.. _Lmod: https://github.com/TACC/Lmod
 
 Implementation
 ^^^^^^^^^^^^^^
@@ -1995,7 +1996,7 @@ automatically loaded when the user logs in.
 The downside of this is that it becomes difficult for an user to know what software
 is available, at least via the module command. I.e., if application foobar is only built
 for a single compiler/MPI combination, it will not show up in module avail unless that
-specific compiler/MPI combination were previously loaded. Lmod adds a ``module spider``
+specific compiler/MPI combination were previously loaded. Lmod_ adds a ``module spider``
 command which allows the user to list all packages installed for any compiler/MPI
 combination, and can be used to also find out which compiler/MPI combinations are needed
 to access a specific modulefile, but Environment Modules does not have a comparable function
