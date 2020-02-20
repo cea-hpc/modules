@@ -1,42 +1,40 @@
-#%Module########################################################################
-##
-## Choose MPI family
-##
-## This check if any MPI lib was previously "module loaded"
-##
-## If no MPI library was previously module loaded (and intel compiler suite
-## was not loaded, see below) and nompiFlag is set (default is set), then
-## if a "nompi" subdirectory exists, we will default to that.
-## If nompiFlag is not set, then we just return w/out setting any default
-## (allowing modulecmd to default on its own.  It is the responsibility
-## and the resulting modulefile to lado/require the MPI lib it needs or err
-## as appropriate).
-##
-## If an MPI library was loaded, then we check for a subdirectory named after
-## the family of the loaded MPI library, and if such exists, default to that.
-## If it does not exist, we return w/out defaulting, allowing modulecmd to
-## default according to its own rules.  The resulting modulefile is responsible
-## for aborting/complaining about the MPI library mismatch.
-##
-## Special handling is needed for intel MPI, as it does not get explicitly
-## loaded if the Intel compiler suite is being used.  So if no MPI library
-## is loaded, we check to see if an Intel compiler was loaded.  If so, we
-## check for an "intelmpi" or similar subdirectory, and if found default to
-## that.  If not found, we proceed as above for the no MPI library case
-## (defaulting to "nompi" if found and nompiFlag set, or just returning w/out
-## defaulting otherwise).
-##
-## Usage:
-## In most cases, can simply symlink .modulerc to this file
-##
-## In more complicated cases, .modulerc can source this file, and can
-## then test the variable _did_default, which will be true if we set
-## a default for modules for the next level, or false otherwise (in which
-## case your .modulerc can set one)
-##
+#%Module
+# Choose MPI family
+#
+# This check if any MPI lib was previously "module loaded"
+#
+# If no MPI library was previously module loaded (and intel compiler suite
+# was not loaded, see below) and nompiFlag is set (default is set), then
+# if a "nompi" subdirectory exists, we will default to that.
+# If nompiFlag is not set, then we just return w/out setting any default
+# (allowing modulecmd to default on its own.  It is the responsibility
+# and the resulting modulefile to lado/require the MPI lib it needs or err
+# as appropriate).
+#
+# If an MPI library was loaded, then we check for a subdirectory named after
+# the family of the loaded MPI library, and if such exists, default to that.
+# If it does not exist, we return w/out defaulting, allowing modulecmd to
+# default according to its own rules.  The resulting modulefile is responsible
+# for aborting/complaining about the MPI library mismatch.
+#
+# Special handling is needed for intel MPI, as it does not get explicitly
+# loaded if the Intel compiler suite is being used.  So if no MPI library
+# is loaded, we check to see if an Intel compiler was loaded.  If so, we
+# check for an "intelmpi" or similar subdirectory, and if found default to
+# that.  If not found, we proceed as above for the no MPI library case
+# (defaulting to "nompi" if found and nompiFlag set, or just returning w/out
+# defaulting otherwise).
+#
+# Usage:
+# In most cases, can simply symlink .modulerc to this file
+#
+# In more complicated cases, .modulerc can source this file, and can
+# then test the variable _did_default, which will be true if we set
+# a default for modules for the next level, or false otherwise (in which
+# case your .modulerc can set one)
 
 # Source some required Tcl procedures here.  Hack for cookbook
-# making use of environmental variable for location.
+# making use of environment variable for location.
 # In production, this should ideally be in a site config file.
 # At minimum, hardcode the path
 set rootdir $::env(MOD_GIT_ROOTDIR)
@@ -92,4 +90,3 @@ if { $mpiFamily eq {} } {
       set _did_default true
    }
 }
-

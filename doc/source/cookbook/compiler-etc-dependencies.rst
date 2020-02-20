@@ -400,14 +400,14 @@ approach relies on seeing what modules have been loaded previously in order to d
 which depend on the CPU vectorization commands supported, we need to add a "dummy" package ``simd``.
 The module definition is quite trivial; a simple stub file like
 
-.. include:: ../../example/compiler-etc-dependencies/flavours/simd/avx
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/flavours/simd/avx
+    :language: tcl
 
 and the main content in the ``common`` file:
 
 
-.. include:: ../../example/compiler-etc-dependencies/flavours/simd/common
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/flavours/simd/common
+    :language: tcl
 
 Basically it just declares a help procedure and whatis text.  This way, an user can
 load the appropriate simd module to control which variant of bar they will get.  The
@@ -448,8 +448,8 @@ With the openmpi and mvapich MPI libraries, things start to get interesting.  Th
 should setup the environment for a different build depending on the compiler loaded.  The
 real work is done in the ``common`` tcl file, as shown below:
 
-.. include:: ../../example/compiler-etc-dependencies/flavours/openmpi/common
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/flavours/openmpi/common
+    :language: tcl
 
 Like the previous cases, the file starts with the Tcl command to load the
 package, followed by the ``flavours init`` command.
@@ -533,8 +533,8 @@ The situation for ``foo`` is more complicated, as it depends both on the compile
 optionally on the MPI library.  But with Flavours, the modulefile is only slightly more
 complicated, e.g. for the common file is:
 
-.. include:: ../../example/compiler-etc-dependencies/flavours/foo/common
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/flavours/foo/common
+    :language: tcl
 
 Basically, the main difference is the addition of the
 line ``flavours prereq -optional -class mpi``.
@@ -577,8 +577,8 @@ Our final example for flavours is the ``bar`` command.  Here in addition to the
 compiler dependency, we have versions for different SIMD vectorization supported.
 Again, the difference in the modulefile is small, e.g.
 
-.. include:: ../../example/compiler-etc-dependencies/flavours/bar/common
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/flavours/bar/common
+    :language: tcl
 
 Basically, the optional ``flavours prereq`` on the mpi class from the ``foo`` package
 is replaced by a (mandatory) ``flavours prereq`` on the ``simd`` dummy package.
@@ -755,8 +755,8 @@ The interesting bit begins with the openmpi and mvapich modulefiles.  These
 both depend on the compiler, we show the main part of the openmpi modulefile
 below:
 
-.. include:: ../../example/compiler-etc-dependencies/homebrewed/openmpi/common
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/homebrewed/openmpi/common
+    :language: tcl
 
 We begin by sourcing the ``common_utilities`` file which defined the previously
 described Tcl procedures.  Normally it is recommended that you put those
@@ -776,8 +776,8 @@ package installation path exists.
 
 The modulefile for ``foo`` is a bit more complex:
 
-.. include:: ../../example/compiler-etc-dependencies/homebrewed/foo/common
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/homebrewed/foo/common
+    :language: tcl
 
 The main difference between this modulefile, depending on both compiler and
 optionally MPI, and the openmpi modilefile above, is that in addition to
@@ -993,8 +993,8 @@ default to the family portion of the compiler (e.g. gcc, intel, or pgi),
 and one for the version.  For the family portion of the compiler,
 we have the file ``modulerc.select_compiler_family`` as below:
 
-.. include:: ../../example/compiler-etc-dependencies/modrc_common/modulerc.select_compiler_family
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/modrc_common/modulerc.select_compiler_family
+    :language: tcl
 
 The file starts by sourcing a set of useful Tcl procedures. For the purpose
 of the example for this cookbook this is done based on the MOD_GIT_ROOTDIR
@@ -1034,8 +1034,8 @@ ChildModuleExists procedure will not see the intel directory.
 
 The ``modulerc.select_compiler_version`` file is similar,
 
-.. include:: ../../example/compiler-etc-dependencies/modrc_common/modulerc.select_compiler_version
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/modrc_common/modulerc.select_compiler_version
+    :language: tcl
 
 Again, we source the ``common_utitilies.tcl`` file and use
 ``ModulesCurrentModulefile`` to get the directory in which the .modulerc
@@ -1091,8 +1091,8 @@ the ``prereq``, causing module loads to fail).
 The resulting modulefile for something depending only on the compiler,
 using mvapich as an example, then would look like:
 
-.. include:: ../../example/compiler-etc-dependencies/modulerc4/mvapich/common
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/modulerc4/mvapich/common
+    :language: tcl
 
 Basically, the modulefile knows what compiler it wants (in the above example,
 that is set by the stubfile and passed as the Tcl variable ``compilerTag`` into the common
@@ -1112,8 +1112,8 @@ modulefile then defines some Tcl variables for the version of mvapich
 and the compiler family/version, and sources the ``common`` file above.
 E.g., for ``mvapich/2.3.1/intel/2019``, the stubfile would look like
 
-.. include:: ../../example/compiler-etc-dependencies/modulerc4/mvapich/2.3.1/intel/2019
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/modulerc4/mvapich/2.3.1/intel/2019
+    :language: tcl
 
 So the mvapich directory in MODULEPATH would have a structure like
 
@@ -1265,8 +1265,8 @@ Similarly, there are two corresponding .modulerc scripts for defaulting
 the MPI library: one to default the family (e.g. openmpi, mvapich, intelmpi)
 and one to default the version.  The family version, shown below:
 
-.. include:: ../../example/compiler-etc-dependencies/modrc_common/modulerc.select_mpi_family
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/modrc_common/modulerc.select_mpi_family
+    :language: tcl
 
 is similar to the corresponding compiler version, but contains additional
 logic to handle the intelmpi case.  We treat intelmpi specially, because in
@@ -1280,8 +1280,8 @@ or modulefile named nompi if it exists.
 The ``modulerc.select_mpi_version`` script is also similar to its compiler
 counterpart,
 
-.. include:: ../../example/compiler-etc-dependencies/modrc_common/modulerc.select_mpi_version
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/modrc_common/modulerc.select_mpi_version
+    :language: tcl
 
 It checks if any MPI library was explicitly loaded, and if so it checks
 if the family of the loaded MPI module matches the name of the parent directory
@@ -1483,8 +1483,8 @@ foo modulefile (see below).
 
 The common code of the modulefile is fairly standard, as shown below
 
-.. include:: ../../example/compiler-etc-dependencies/modulerc4/foo/common
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/modulerc4/foo/common
+    :language: tcl
 
 The main difference from a standard modulefile is the inclusion of the
 invocations of ``LoadedCompilerMatches`` and ``LoadedMpiMatches``.  This
@@ -1588,8 +1588,8 @@ simd specified.
 
 The ``modulerc.default_lowest_simd`` script looks like:
 
-.. include:: ../../example/compiler-etc-dependencies/modrc_common/modulerc.default_lowest_simd
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/modrc_common/modulerc.default_lowest_simd
+    :language: tcl
 
 It will default to the lowest SIMD level, but could easily be adapted to
 do something else.
@@ -1802,8 +1802,8 @@ structure would look like:
 
 A typical common file for the gcc compiler would be something like
 
-.. include:: ../../example/compiler-etc-dependencies/modulepath/Core/gcc/common
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/modulepath/Core/gcc/common
+    :language: tcl
 
 The most interesting aspect is the ``module use`` at the end.  We add
 to MODULEPATH a directory under ``Compiler`` for this specific compiler
@@ -1889,14 +1889,14 @@ then invoke the common file.
 The modulefiles for openmpi are largely similar.  E.g., for gcc/9.1.0 we have a small
 stubfile like the following (for version 4.0)
 
-.. include:: ../../example/compiler-etc-dependencies/modulepath/Compiler/gcc/9.1.0/openmpi/4.0
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/modulepath/Compiler/gcc/9.1.0/openmpi/4.0
+    :language: tcl
 
 which defines the version and compilerTag variables for the OpenMPI version and
 compiler version, and then invokes the common script
 
-.. include:: ../../example/compiler-etc-dependencies/modulepath/Compiler/gcc/9.1.0/openmpi/common
-    :literal:
+.. literalinclude:: ../../example/compiler-etc-dependencies/modulepath/Compiler/gcc/9.1.0/openmpi/common
+    :language: tcl
 
 which does the usual stuff (define a help function, whatis string, and sets assorted environmental
 variables like PATH, LIBRARY_PATH, etc. for using OpenMPI), and then adds another directory
