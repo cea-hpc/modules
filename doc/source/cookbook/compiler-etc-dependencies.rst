@@ -304,13 +304,13 @@ commands:
    But it also does quite a bit more, as is discussed further below.
 *  ``flavours root``: This is used to set the root for where the package is actually
    installed. This is used when generating the ``flavours path``
-*  ``flavours revision``: I believe this is intended to allow for changes in the path format in future
+*  ``flavours revision``: seem intended to allow for changes in the path format in future
    versions of ``flavours``. It is used in constructing the final path to the package.
 *  ``flavours conflict``: This is similar to the standard conflict command, but enhanced
    to recognize the flavours prereqs above.
 *  ``flavours commit``: This should be called after the ``root``, ``revision``, and ``prereq``
    subcommands of ``flavours`` are called, and before any of the ``path`` subcommands.
-   I believe this is responsible for taking all those values to above and constructing the
+   It seems to be responsible for taking all those values to above and constructing the
    path to the package.
 *  ``flavours path``: This returns a string with the path to the specific build of the package.
 *  ``flavours prepend-path``, ``flavour append-path``: These work much like the standard
@@ -589,14 +589,14 @@ Summary of Flavours
 ^^^^^^^^^^^^^^^^^^^
 
 * It is an external extension to Environment Modules, requiring additional installation steps.
-* The git repository appears to have been last updated in 2013; although I believe this means
-  that it has not been updated for Environment Modules 4.x, my (albeit minimal) experimentation
+* The git repository appears to have been last updated in 2013; although which means
+  that it has not been updated for Environment Modules 4.x, a simple experimentation
   indicates that it still works, with the exception of automatic reloading of a module if any of
   the modules it depends on are switched.
   However, the Flavours_ package does not appear to be actively supported.
 * The Flavours package (using Environment Modules 3.x) fully supports the ``module switch`` syntax,
   with the switching out of a dependency (e.g. a compiler) causing the reload of all modulefiles depending on it.
-  (I have not had success with this using Environment Modules 4.x.)
+  (however the test of this feature failed when using Environment Modules 4.x.)
 * The syntax for modulefiles is elegant, and one can easily extend the basic compiler dependency
   modulefile to add additional dependencies. Even for packages/dummy packages that the Flavours
   extension knows nothing about (e.g. simd in the above example).
@@ -2074,7 +2074,7 @@ with the loaded compiler (as no incompatible versions are visible) as seen below
     :literal:
 
 This is better than in the Flavours or Homebrewed-flavors strategies. If one were to use
-this strategy in production, I would recommend having a default compiler module (and maybe even
+this strategy in production, it is recommended to have a default compiler module (and maybe even
 an MPI library, etc) automatically loaded when the user logs in, thereby allowing for a reasonable defaulting
 ability (and more reasonable module avail output).
 
@@ -2144,7 +2144,7 @@ Comparison of Strategies
 
 All of the strategies discussed above have their peculiar strengths and weaknesses.
 The decision of which strategy to use will depend on how these strengths and weaknesses
-impact your design goals. I would advise playing around in the sandbox environments
+impact your design goals. It is advised to play around in the sandbox environments
 a bit, as actual use tends to help make clear which downsides you are willing to accept
 and which you are not.
 
@@ -2302,8 +2302,8 @@ approach has a poor showing (although at least the modules depending on the modu
 out will be unloaded, so the set of loaded modules is consistent).
 
 Note also that this topic shows the most dependence on the version of Environment
-Modules. For the Flavours strategies, I could not get the switching of a module upon which
-other modules depended to work (the wrapper script returned weird errors). The
+Modules. For the Flavours strategies, the switching of a module upon which
+other modules depended does not work (the wrapper script returned weird errors). The
 other strategies all rely on the automatic module handling feature to enable the unload
 and reload of modules which depend on the module being switched out. Thus for 3.x versions
 of Environment Modules (or even 4.x versions w/out automatic module handling enabled),
@@ -2511,9 +2511,9 @@ Conclusions
 
 We have presented four strategies for dealing with modulefiles for packages
 with multiple builds depending on compiler, MPI, and/or other factors. All
-four strategies can deal with the basic requirement of loading of the correct build
-of a package depending on the previously loaded dependencies, or failing with
-a reasonable error message if no such build is available. They all have their
-own strengths and weaknesses beyond that, which I have tried to present objectively.
-I hope this might be of use when you evaluate how to handle this issue at your
-site.
+four strategies can deal with the basic requirement of loading of the correct
+build of a package depending on the previously loaded dependencies, or failing
+with a reasonable error message if no such build is available. They all have
+their own strengths and weaknesses. This document tried to present these
+strategies objectively and has been made to help you to evaluate how to handle
+this issue at your site.
