@@ -32,10 +32,8 @@ proc PrintLoadInfo { args } {
 proc PrintLoadWarning { args } {
    set tmp [ join $args ]
    PrintIfLoading "
-
 WARNING:
 $tmp
-
 
 "
 }
@@ -47,10 +45,8 @@ $tmp
 proc PrintLoadError { args } {
    set tmp [ join $args ]
    PrintIfLoading "
-
 **** ERROR *****:
 $tmp
-
 
 "
    if [ module-info mode load ] {
