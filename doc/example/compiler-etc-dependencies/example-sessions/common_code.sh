@@ -31,7 +31,7 @@ esac
 #Define do_cmd function
 do_cmd()
 {	cmd="$@"
-	echo "$TMP_PROMPT> $cmd"
+	echo "[$TMP_PROMPT]$ $cmd"
 	$cmd
 }
 
@@ -47,10 +47,10 @@ esac
 
 #Define AUTOFLAG to be "" or --auto
 case $TMP_MODVERSION in
-   3.*)
+   3)
 	AUTOFLAG=
 	;;
-   4.*)
+   4)
 	case $TMP_STRATEGY in
 	   flavours)
 		AUTOFLAG=

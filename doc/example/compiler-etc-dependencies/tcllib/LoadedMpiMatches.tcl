@@ -35,14 +35,11 @@ proc LoadedMpiMatches { wanted {requireIt 0} { loadIt 0 } { noLoadIntel 0 }
       if { $forceNoMpi } {
          # Complain if any MPI loaded
          if { $loaded ne {} } {
-            PrintLoadError "
-MPI Mismatch
-
+            PrintLoadError "MPI Mismatch
 You have an MPI library loaded ($loaded), but package $modTag
 really insists that no MPI library be loaded.
 
-Please unload the MPI library and try again.
-"
+Please unload the MPI library and try again."
          }
       }
       return
@@ -73,12 +70,10 @@ Please unload the MPI library and try again.
 
    # Ensure families match
    if { $loadedFam ne $wantedFam } {
-      PrintLoadError "
-MPI Mismatch
+      PrintLoadError "MPI Mismatch
 
 Package $modTag does not appear to be built for currently
-loaded MPI library $loaded.
-"
+loaded MPI library $loaded."
    }
 
    # OK, families match
@@ -95,10 +90,8 @@ loaded MPI library $loaded.
       return
    }
    # Versions don't match
-   PrintLoadError "
-MPI Mismatch
+   PrintLoadError "MPI Mismatch
 
 Package $modTag does not appear to be built for currently
-loaded MPI library $loaded.
-"
+loaded MPI library $loaded."
 }

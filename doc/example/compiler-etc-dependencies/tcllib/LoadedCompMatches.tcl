@@ -52,12 +52,9 @@ proc LoadedCompilerMatches { wanted {requireIt 0} { loadIt 0 } {modTag {} } } {
 
    # Ensure families match
    if { $loadedFam ne $wantedFam } {
-      PrintLoadError "
-Compiler Mismatch
-
+      PrintLoadError "Compiler Mismatch
 Package $modTag does not appear to be built for currently
-loaded compiler $loaded.
-"
+loaded compiler $loaded."
    }
 
    # OK, families match
@@ -74,10 +71,7 @@ loaded compiler $loaded.
       return
    }
    # Versions don't match
-   PrintLoadError "
-Compiler Mismatch
-
+   PrintLoadError "Compiler Mismatch
 Package $modTag does not appear to be built for currently
-loaded compiler $loaded.
-"
+loaded compiler $loaded."
 }
