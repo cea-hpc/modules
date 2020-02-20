@@ -1,6 +1,5 @@
 .. _compiler-etc-dependencies:
 
-================================================
 Handling Compiler and other Package Dependencies
 ================================================
 
@@ -53,7 +52,7 @@ In addition to displaying examples for each strategy in this
 document, we have set up a the test environment as a playground in
 which you can explore.
 
---------
+
 Contents
 --------
 
@@ -65,9 +64,6 @@ Contents
 #. `Comparison of Strategies`_
 
 
-.. _`Overview of Examples`:
-
---------------------
 Overview of Examples
 --------------------
 
@@ -76,7 +72,7 @@ the directory structure under ``doc/example/compiler-etc-dependencies``
 is similarly more complicated.
 
 Example Software Library
-------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 For the purpose of the examples and the playground, we have created
 a fake example software library, rooted at the subdirectory
@@ -167,7 +163,6 @@ The software in the example software library consists of:
     + gcc/8.2.0 and supporting avx
     + gcc/8.2.0 and supporting sse4.1
 
-
 I.e., we have 3 families of compiler suites with 2 different versions each. And
 two MPI families (openmpi and mvapich) with two versions each, with the
 most recent version only built with the latest compiler version of each family,
@@ -184,7 +179,7 @@ the compiler provided by default by the Linux distro used by the system, and
 therefore might potentially be available to users without loading any modules.
 
 More directories under doc/example/compiler-etc-dependencies
-------------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The modulefiles for the different strategies do not play well with each
 other, in part because we use the same names for many of the modules
@@ -225,9 +220,8 @@ are often small. In the example outputs, the Environment Modules
 version and the strategy being employed is indicated in the shell prompt
 (e.g. ``mod3.2.10-flavours`` or ``mod4.3.1 (modulerc)``).
 
-
 Using the playground environments
----------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Although we strive to provide a decent discussion in this cookbook,
 you are encouraged to try things out in the playground in order to
@@ -262,9 +256,7 @@ what needs to be done.
 Some more detail on setting up the playground is given at the
 start of the Examples section for each strategy.
 
-.. _Flavours Strategy:
 
------------------
 Flavours Strategy
 -----------------
 
@@ -274,8 +266,9 @@ via git, etc. from ``https://sourceforge.net/projects/flavours``. Unlike the
 other strategies discussed, this requires the separate download and installation
 of an extension to Environment Modules.
 
+
 Installation and Implementation
--------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 More details can be found at the website for this extension, but to install this
 you basically just need to:
@@ -376,7 +369,7 @@ You either need to install your packages using the above directory schema, or cr
 symlinks linking that scheme to where you actually install the packages.
 
 Examples
---------
+^^^^^^^^
 
 We now look at the example modulefiles for flavours. To use the examples,
 you must
@@ -404,7 +397,6 @@ The module definition is quite trivial; a simple stub file like
     :language: tcl
 
 and the main content in the ``common`` file:
-
 
 .. literalinclude:: ../../example/compiler-etc-dependencies/flavours/simd/common
     :language: tcl
@@ -595,7 +587,7 @@ other environment variables are set appropriately for the requested build; and i
 it does not exist and error is produced.
 
 Summary of Flavours
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 * It is an external extension to Environment Modules, requiring additional installation steps.
 * The git repository appears to have been last updated in 2013; although I believe this means
@@ -625,9 +617,6 @@ Summary of Flavours
   such.
 
 
-.. _Home-brewed Flavors Strategy:
-
-----------------------------
 Home-brewed Flavors Strategy
 ----------------------------
 
@@ -638,7 +627,7 @@ of some useful Tcl procedures. For lack of a better name, we will refer to
 this strategy as "home-brewed flavors".
 
 Implementation
---------------
+^^^^^^^^^^^^^^
 
 This strategy just makes use of standard Environment Modules and Tcl procedures
 to query what modules of a given type are loaded and to construct the path to the
@@ -785,9 +774,8 @@ detecting which compiler is loaded, we call ``GetLoadedMPI`` to determine
 the MPI library which was loaded, and use both of them in constructing the
 prefix to the installed foo.
 
-
 Examples
---------
+^^^^^^^^
 
 We now look at the example modulefiles for the homebrewed flavors strategies.
 To use the examples, you must
@@ -916,7 +904,7 @@ to choose a version of bar which supports the defaults.
     :literal:
 
 Summary of homebrewed flavors strategy
---------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * The automated module handling feature (introduced in Environment Modules
   4.2.0) allows for the switching out of a dependency (e.g. a compiler)
@@ -946,9 +934,6 @@ Summary of homebrewed flavors strategy
   has loaded.
 
 
-.. _Modulerc-based Strategy:
-
------------------------
 Modulerc-based Strategy
 -----------------------
 
@@ -962,7 +947,7 @@ by the user, most notably many, many more modulefiles. Whether this is good
 or bad is a matter of taste.
 
 Implementation
---------------
+^^^^^^^^^^^^^^
 
 Whereas the ``homebrewed flavors`` strategy had the modulefile invoke
 a Tcl procedure to determine which, if any, version of a module like a compiler
@@ -1220,7 +1205,6 @@ directory tree will now look like:
 |      |   | \|- 2.3.1 (symlink to ../../2.3.1/pgi/19.4 stub modulefile)
 |      |   | \|- 2.1 (symlink to ../../2.1/intel/2019 stub modulefile)
 |      |   | \|- 2.3.1 (symlink to ../../2.3.1/intel/2019 stub modulefile)
-
 
 When one attempts to module load mvapich without specifying a version,
 the .modulerc file will default to the family of the loaded compiler (or
@@ -1595,7 +1579,7 @@ It will default to the lowest SIMD level, but could easily be adapted to
 do something else.
 
 Examples
---------
+^^^^^^^^
 
 We now look at the example modulefiles for the modulerc based strategy.
 As noted previously, the best choice of whether to set the ``requireIt`` flag
@@ -1718,7 +1702,7 @@ loaded, an error will occur.
     :literal:
 
 Summary of modulerc strategy
-----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * The modulefiles are fairly standard. The only extra logic needed
   is to ensure that any loaded compiler/MPI or other dependency matches
@@ -1754,9 +1738,7 @@ Summary of modulerc strategy
 * Modules will fail with an error message if user tries to load a package
   which was not built for the values of the dependency packages loaded.
 
-.. _Modulepath-based Strategy:
 
--------------------------
 Modulepath-based Strategy
 -------------------------
 
@@ -1769,7 +1751,7 @@ This is basically similar to the strategy that is used in the hierarchical
 modulefile approach in Lua Modules (lmod).
 
 Implementation
---------------
+^^^^^^^^^^^^^^
 
 The homebrewed flavors and modulerc based strategies were based on
 modifying the modulefiles of modules which depended on other modules.
@@ -1981,7 +1963,7 @@ and could be loaded in either order, the modulefiles for both would need to hand
 adding the CompilerSimd branch depending on whether the other was previously loaded.
 
 Examples
---------
+^^^^^^^^
 
 We now look at the example usage for the modulepath based strategy.
 To use these examples, you must:
@@ -2114,7 +2096,7 @@ latest version of bar consistent with the specification and any previously
 loaded compiler (or default compiler) will be loaded
 
 Summary of modulepath strategy
-------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * It is quite difficult for an user to get an inconsistent environment,
   at least when automatic module handling is used. The modulepaths are
@@ -2156,9 +2138,6 @@ Summary of modulepath strategy
   has loaded.
 
 
-.. _Comparison of Strategies:
-
-------------------------
 Comparison of Strategies
 ------------------------
 
@@ -2188,7 +2167,7 @@ maintained, so the reduced up-front work might be neutralized by the costs of
 self support.
 
 Basic Dependency Handling
--------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 All of the strategies discussed support a basic level of dependency
 handling. If a user attempts to load a package, they get the build of the
@@ -2206,7 +2185,7 @@ All of the strategies discussed meet this criterion, with both 3.x and 4.x versi
 of Environment Modules.
 
 Advanced Dependency Handling (e.g. the module switch subcommand)
-----------------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Things are more complicated when we allow for the modules upon which
 other loaded modules might depend to be changed. This generally involves
@@ -2333,9 +2312,8 @@ pointing to versions built for the old compiler, leading to an inconsistent set 
 modules being loaded. This is particularly bad in the Homebrewed-flavors case, as a module
 load will not even inform one of that fact.
 
-
 Visibility into what packages are available
--------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Another set of criteria to weigh has to do with visibility into the available
 packages. We are interested in
@@ -2422,9 +2400,8 @@ For the Flavours strategy, foo would be built with MPI support, but for the othe
 two, foo would still be the non-MPI build, which is not readily apparent from the
 above output (although possibly could be inferred by the ordering of the modules).
 
-
 Ease of Navigating the Module Tree
-----------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The final criterion to be discussed is the ease of navigating the module tree.
 Ideally, we would like it so that when an user gives a partial modulename the
@@ -2527,7 +2504,7 @@ overhead associated with adding a new naming scheme like that (you add another s
 modulefiles to bar and a new subdirectory tree), this can be done on a per package
 basis and when done judiciously it can be convenient for the users.
 
------------
+
 Conclusions
 -----------
 
