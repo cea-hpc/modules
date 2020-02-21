@@ -273,7 +273,7 @@ you basically just need to:
 #. Rename the standard Environment Modules ``modulecmd`` file (in the ``bin`` subdirectory
    under the installation root) to ``modulecmd.wrapped``. (It is recommended that you do this
    in a copy of your production installation, or better yet, in a new install of the 3.x Environment
-   Modules (as Flavours works best with 3.x))
+   Modules (as Flavours has been developped for Modules 3.x))
 #. Copy the ``modulecmd.wrapper`` file from Flavours to the ``bin`` subdirectory above. Make sure
    the ``modulecmd.wrapper`` file is executable.
 #. Symlink ``modulecmd.wrapper`` to ``modulecmd``
@@ -814,7 +814,7 @@ out. However, starting with Environment Modules ``4.2``, a feature called
 :ref:`Automated module handling <v42-automated-module-handling-mode>` was added. Without this feature, attempting to
 switch out a module upon which other modules depended could be problematic,
 as evidenced in this sequence below (using Environment Modules ``3.2.10`` and
-so without automatic module handling):
+so without automated module handling mode):
 
 .. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules3/ompi-switch.out
     :language: console
@@ -824,11 +824,11 @@ but the openmpi module was not reloaded and the environment is still set for ope
 compiled with the pgi compiler, and that this inconsistency is not readily determined
 from the module list command.
 
-Environment Modules 4.x, even with automatic module handling disabled, is better ---
+Environment Modules 4.x, even with automated module handling disabled, is better ---
 in a command sequence as above the module switch from pgi to intel would fail due to the
 prereq module. However, with the :ref:`Automated module handling <v42-automated-module-handling-mode>`
-enabled (this feature is still *experimental* and disabled by default; we add the ``--auto``
-flag to the module switch command as one way to enable it), things work much better, as evidenced below:
+enabled (this feature is disabled by default but could be enabled on a per-command basis with the ``--auto``
+flag), things work much better, as evidenced below:
 
 .. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4/ompi-switch.out
     :language: console
@@ -865,7 +865,7 @@ The situation is similar for foo:
 Again, one can load a compiler without an MPI library to get the non-MPI version
 of foo, or a compiler and MPI library to get the MPI version. The dummy
 intelmpi modulefile is used to allow one to indicate that the Intel MPI library
-is desired. The automatic module handling can again allow the switch
+is desired. The automated module handling mode can again allow the switch
 functionality work properly, as in
 
 .. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4/foo-switch.out
@@ -924,16 +924,19 @@ Summary of Homebrewed flavors strategy
   MPI library+version, etc.
 * Modules will fail with an error message if user tries to load a package
   which was not built for the values of the dependency packages loaded.
-* In general, a module will fail to load with an error message if any
-  dependent package is not already loaded. However, it has a limited ability
-  for defaulting the compiler, etc. One can also have initialization scripts
-  automatically load the "default" modules.
-* It does not include any mechanism for more intelligent defaulting. I.e., if
+* With :ref:`v42-automated-module-handling-mode`, the dependencies of a module
+  asked for load could automatically be loaded. But it requires that these
+  dependencies are clearly specified with mention of the versions for which
+  a build is available.
+* It does not include a mechanism for more intelligent defaulting. I.e., if
   an user requests to load a package without specifying the version desired,
   the version will be defaulted to the latest version (or whatever
   the ``.modulerc`` file specifies) without regard for which versions
   support the versions of the compiler and other prereq-ed packages the user
   has loaded.
+* Note that future releases of Environment Modules will introduce additional
+  mechanisms to the :ref:`v42-automated-module-handling-mode`, which will
+  improve the user experience on such *Homebrewed flavors* setup.
 
 
 .. _Modulerc-based_strategy:
@@ -1652,7 +1655,7 @@ the automatic module handling will throw an error attempting to reload the
 depend module, resulting in the the dependent modules being unloaded.
 
 Without
-automatic module handling (i.e. for older Environment Modules or without
+automated module handling mode (i.e. for older Environment Modules or without
 the --auto flag), the dependent modules remain loaded and there is inconsistency
 in the loaded modules. But at least module list clearly shows such.
 
@@ -1684,7 +1687,7 @@ present, as in this case, one needs to give the explicit
 
 Again, the ``module switch`` command only succeeds in switching the
 specified module, and does not successfully reload the modules depending
-on the switched module. With automatic module handling, there will be errors
+on the switched module. With automated module handling mode, there will be errors
 reported and the dependent modules will be unloaded; without it the dependent
 modules will not get unloaded, and there will be inconsistent dependencies
 (but at least module list will show such).
@@ -2121,10 +2124,10 @@ Summary of Modulepath-based strategy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * It is quite difficult for an user to get an inconsistent environment,
-  at least when automatic module handling is used. The modulepaths are
+  at least when automated module handling mode is used. The modulepaths are
   managed so that only modulefiles consistent with the previously loaded
   compiler/MPI library are visible.
-* With automatic module handling, the module switch command is very nicely
+* With automated module handling mode, the module switch command is very nicely
   supported.
 * The module command does not lend itself to readily seeing all the packages
   which are installed on the system, nor seeing for which compiler/MPI combinations
@@ -2157,7 +2160,6 @@ Summary of Modulepath-based strategy
   specifying the version desired, the version will be defaulted to the latest
   version *compatible* with the currently loaded compiler and other dependencies.
   This is because the incompatible versions are not visible in the module tree.
-  has loaded.
 
 
 Comparison of Strategies
@@ -2175,7 +2177,7 @@ on the newer 4.x versions of Environment Modules. This difference is most visibl
 in the discussion of features around the module switch command. So in the following
 discussions we will assume Environment Modules version 3.x for the Flavours strategies,
 as that is the version it works best with. For all other strategies, we assume
-Environment Modules version 4.x, with automatic module handling enabled, as these
+Environment Modules version 4.x, with automated module handling mode enabled, as these
 strategies work best in that scenario.
 
 The :ref:`Homebrewed flavors <Homebrewed_flavors_strategy>`,
@@ -2247,7 +2249,7 @@ Modules 4.x) strategies. For the :ref:`Homebrewed flavors <Homebrewed_flavors_st
 :ref:`Modulepath-based <Modulepath-based_strategy>`
 strategies, this relies on the :ref:`Automated module handling <v42-automated-module-handling-mode>` feature (As of
 version ``4``, this is disabled by default. It can be enabled in ``modulecmd.tcl``,
-or by setting the environment variable ``MODULES_AUTO_HANDLING`` to 1, or by adding the ``--auto`` flag
+or by running ``module config auto_handling 1``, or by adding the ``--auto`` flag
 to the modules command.)
 
 For these strategies, swapping out a compiler or other module upon which a loaded
@@ -2270,7 +2272,7 @@ For the :ref:`Modulepath-based_strategy`, the second sequence (loading ``pgi/18.
 actually work, as the modulepath exposed by loading ``pgi/18.4`` only has versions of
 foo that are compatible with ``pgi/18.4``. But the switch command does not work
 as well as would be desired. This is because that as currently implemented, when the
-automatic module handling code does the reload of the module that was unloaded
+automated module handling code does the reload of the module that was unloaded
 due to dependencies, it attempts to reload based on the fully qualified name of the
 module that was loaded, and not based on the (possibly partial) name specified
 when the module was originally loaded. So, after the module load ``intel/2019``,
@@ -2295,7 +2297,7 @@ fail to reload the other module. This is true even in less pathological cases, l
 which succeeds under the other three strategies (as ``foo/2.4`` *is* built for ``pgi/19.4``).
 This is because when foo is initially loaded in the above scenario, the actual modulename
 loaded is ``foo/intel/2019/2.4``. With the switch command, foo gets unloaded, the compilers
-are switched, and the automatic modules handling code tries to reload ``foo/intel/2019/2.4``.
+are switched, and the automated modules handling code tries to reload ``foo/intel/2019/2.4``.
 That modulename clearly depends on ``intel/2019``, not ``pgi/19.4``, and so will fail to load
 (with an error message). The net result is that the compiler gets switched, but any
 modules depending on the compiler (or whatever module being switched) get unloaded
@@ -2325,7 +2327,7 @@ with openmpi support; i.e. Flavours supports the concept of *optional* prerequis
 an optional prerequisite on the MPI libraries, so when openmpi is loaded, any previously loaded modules
 which depend on it (through a regular or optional prerequisite) get reloaded.
 
-All of the other strategies rely on automatic module handling for automatic reloads, and
+All of the other strategies rely on automated module handling mode for automatic reloads, and
 in this case no reload of foo will be initiated as foo does not have
 MPI libraries listed as a prerequisite (otherwise a no MPI version could not be loaded). This is especially
 problematic for the :ref:`Homebrewed flavors <Homebrewed_flavors_strategy>` and
@@ -2345,13 +2347,15 @@ Modules. For the :ref:`Flavours_strategy`, the switching of a module upon which
 other modules depended does not work (the wrapper script returned weird errors). The
 other strategies all rely on the :ref:`Automated module handling <v42-automated-module-handling-mode>` feature to enable the unload
 and reload of modules which depend on the module being switched out. Thus for 3.x versions
-of Environment Modules (or even 4.x versions w/out automatic module handling enabled),
-the switch of a compiler, etc. will only result in the compiler being replaced, and any
+of Environment Modules, the switch of a compiler, etc. will only result in the compiler being replaced, and any
 modules which depend on the compiler will not be reloaded. This means they will still be
 pointing to versions built for the old compiler, leading to an inconsistent set of
 modules being loaded. This is particularly bad in the
 :ref:`Homebrewed flavors <Homebrewed_flavors_strategy>` case, as a module
-load will not even inform one of that fact.
+load will not even inform one of that fact. Even if automated module handling mode is disabled
+on version 4.x of Environment Modules situation is better as loaded environment consistency
+:ref:`is assured<v42-prereq-constraints-consistency>`: the switch of a compiler will be denied
+since a dependent module is detected loaded.
 
 Visibility into what packages are available
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
