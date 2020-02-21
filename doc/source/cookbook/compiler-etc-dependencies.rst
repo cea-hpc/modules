@@ -57,10 +57,10 @@ Contents
 --------
 
 #. `Overview of Examples`_
-#. `Flavours Strategy`_
-#. `Home-brewed Flavors Strategy`_
-#. `Modulerc-based Strategy`_
-#. `Modulepath-based Strategy`_
+#. :ref:`Flavours_strategy`
+#. :ref:`Homebrewed_flavors_strategy`
+#. :ref:`Modulerc-based_strategy`
+#. :ref:`Modulepath-based_strategy`
 #. `Comparison of Strategies`_
 
 
@@ -182,7 +182,7 @@ other, in part because we use the same names for many of the modules
 between strategies. So in addition to the ``dummy-sw-root`` subdirectory,
 each strategy has its own modulepath tree subdirectory
 underneath ``doc/example/compiler-etc-dependencies``. There are some minor
-differences between the modulefiles for the Modulerc-based strategy
+differences between the modulefiles for the :ref:`Modulerc-based_strategy`
 depending on whether Environment Modules 3.x or 4.x is being used,
 so we actually have two trees for that case (``modulerc3`` and ``modulerc4``).
 
@@ -191,7 +191,7 @@ in the cookbook :ref:`tips-for-code-reuse` to minimize the amount of repeated
 code. In general, the actual modulefiles are small "stubfiles", setting one or a few
 Tcl variables, and then sourcing a ``common`` tcl file which does all the
 real work. Symlinks are used where possible to avoid duplicating files.
-The Modulerc-based strategy also uses some complicated ``.modulerc`` files; these
+The :ref:`Modulerc-based_strategy` also uses some complicated ``.modulerc`` files; these
 are fairly generic and to avoid redundancy are symlinked into the appropriate
 places in modulepath tree from the ``modrc_common`` directory.
 
@@ -229,7 +229,7 @@ that if you wish to explore the playground environment that you
 spawn a new shell, do a "module purge", and then set your ``MODULEPATH``
 environment variable appropriately for the specific strategy.
 
-The Flavours strategy, as will be discussed, requires some modifications
+The `Flavours_strategy`, as will be discussed, requires some modifications
 to your Environment Modules installation. It is recommended that
 you you make a copy or new installation (for Flavours, a 3.x install
 works best), and then spawn a new shell and initialize the new Flavours
@@ -252,15 +252,16 @@ what needs to be done.
 Some more detail on setting up the playground is given at the
 start of the Examples section for each strategy.
 
+.. _Flavours_strategy:
 
 Flavours Strategy
 -----------------
 
-The Flavours strategy uses the Flavours_ extension to Environment Modules.
+The Flavours strategy uses the `Flavours extension`_ to Environment Modules.
 Unlike the other strategies discussed, this requires the separate download and
 installation of an extension to Environment Modules.
 
-.. _Flavours: https://sourceforge.net/projects/flavours/
+.. _Flavours extension: https://sourceforge.net/projects/flavours/
 
 Installation and Implementation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -369,7 +370,7 @@ Examples
 We now look at the example modulefiles for flavours. To use the examples,
 you must
 
-#. Have Flavours_ installed. **NOTE** these examples will NOT work without
+#. Have `Flavours extension`_ installed. **NOTE** these examples will NOT work without
    the Flavours installed.
 #. Set (and export) ``MOD_GIT_ROOTDIR`` to where you git-cloned the modules source
 #. Do a ``module purge``, and then set your ``MODULEPATH``
@@ -478,7 +479,7 @@ path does not exist (in this example ``$swroot/openmpi/4.0/1/gnu-8.2.0``) it wil
 abort in this fashion.
 
 In the above, we have explicitly unloaded openmpi, switched the compilers, and
-then reloaded openmpi. A nice feature of Flavours_ is that it can handle the
+then reloaded openmpi. A nice feature of `Flavours <Flavours extension>`_ is that it can handle the
 switching out of compilers or other modulefiles which other modulefiles depend on,
 as:
 
@@ -591,7 +592,7 @@ Summary of Flavours
   that it has not been updated for Environment Modules 4.x, a simple experimentation
   indicates that it still works, with the exception of automatic reloading of a module if any of
   the modules it depends on are switched.
-  However, the Flavours_ package does not appear to be actively supported.
+  However, the `Flavours extension`_ does not appear to be actively supported.
 * The Flavours package (using Environment Modules 3.x) fully supports the ``module switch`` syntax,
   with the switching out of a dependency (e.g. a compiler) causing the reload of all modulefiles depending on it.
   (however the test of this feature failed when using Environment Modules 4.x.)
@@ -614,14 +615,16 @@ Summary of Flavours
   such.
 
 
-Home-brewed Flavors Strategy
-----------------------------
+.. _Homebrewed_flavors_strategy:
 
-Although the Flavours_ extension described above has an elegance about it,
+Homebrewed Flavors Strategy
+---------------------------
+
+Although the `Flavours extension`_ described above has an elegance about it,
 one can achieve much of the same functionality in modulefiles using standard
 Environment Modules and Tcl commands. This can be facilitated by the definition
 of some useful Tcl procedures. For lack of a better name, we will refer to
-this strategy as "home-brewed flavors".
+this strategy as *Homebrewed flavors*.
 
 Implementation
 ^^^^^^^^^^^^^^
@@ -649,7 +652,7 @@ functionality. We start with the routines for generic loaded modules:
 
 This defines the two Tcl procedures:
 
-* **GetLoadedModules** : this returns the list of loaded modules, from the LOADEDMODULES
+* **GetLoadedModules** : this returns the list of loaded modules, from the ``LOADEDMODULES``
 * **GetTagOfModuleLoaded** : this takes as argument the base name of a package,
   and returns the first full spec for the matching package, or an empty
   string if no matching package found.
@@ -703,7 +706,7 @@ The three procedures here are analogues of the compiler versions:
   Also, if the optional parameter ``noLoadIntel`` is set, if the MPI library is ``intelmpi``
   (or a variant of that name) and the loaded compiler in ``intel``, we assume that no
   additional module needs to be loaded. For this strategy, we want to load ``intelmpi``
-  modules, because, just like in the ``Flavours`` strategy, we need to provide dummy
+  modules, because, just like in the :ref:`Flavours_strategy`, we need to provide dummy
   ``intelmpi`` modules to allow one to request the use of the Intel MPI library.
 * **GetKnownMpiFamilies** : this returns a list of known MPI library family names.
   Used in **GetLoadedMPI**
@@ -714,7 +717,7 @@ The three procedures here are analogues of the compiler versions:
   MPI library is loaded but an Intel compiler is loaded.
 
 The modulefiles for the compilers are basically standard; unlike the
-``Flavours`` strategy there is nothing special needed in these. Likewise
+:ref:`Flavours_strategy` there is nothing special needed in these. Likewise
 for the dummy ``simd`` and ``intelmpi`` modules (the latter is only this
 basic because we assume intelmpi is only available if an Intel compiler
 is loaded. If one allowed for intelmpi with other compilers, it would
@@ -774,7 +777,7 @@ prefix to the installed foo.
 Examples
 ^^^^^^^^
 
-We now look at the example modulefiles for the homebrewed flavors strategies.
+We now look at the example modulefiles for the *Homebrewed flavors* strategy.
 To use the examples, you must
 #. Set (and export) ``MOD_GIT_ROOTDIR`` to where you git-cloned the modules source
 #. Do a ``module purge``, and then set your ``MODULEPATH`` to:
@@ -783,8 +786,8 @@ To use the examples, you must
 
    $MOD_GIT_ROOTDIR/doc/example/compiler-etc-dependencies/homebrewed
 
-The ``homebrewed flavors`` strategy behaves much like the ``Flavours``
-strategy in practice. The module avail command,
+The *Homebrewed flavors* strategy behaves much like the :ref:`Flavours_strategy`
+in practice. The module avail command,
 
 .. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4/modavail.out
     :language: console
@@ -805,10 +808,10 @@ compiler). And again we note that if one attempts to load a version
 of openmpi (e.g. ``4.0``) that was not built for the specified compiler (e.g.
 ``gcc/8.2.0``), an error is generated.
 
-Unlike in ``Flavours``, we did not put any code in the modulefiles to cause
+Unlike in :ref:`Flavours_strategy`, we did not put any code in the modulefiles to cause
 dependent modulefiles to be reloaded if a module they depend on gets switched
 out. However, starting with Environment Modules ``4.2``, a feature called
-automated module handling was added. Without this feature, attempting to
+:ref:`Automated module handling <v42-automated-module-handling-mode>` was added. Without this feature, attempting to
 switch out a module upon which other modules depended could be problematic,
 as evidenced in this sequence below (using Environment Modules ``3.2.10`` and
 so without automatic module handling):
@@ -823,9 +826,9 @@ from the module list command.
 
 Environment Modules 4.x, even with automatic module handling disabled, is better ---
 in a command sequence as above the module switch from pgi to intel would fail due to the
-prereq module. However, with the automatic module handling enabled (this feature is
-still *experimental* and disabled by default; we add the ``--auto`` flag to the module
-switch command as one way to enable it), things work much better, as evidenced below:
+prereq module. However, with the :ref:`Automated module handling <v42-automated-module-handling-mode>`
+enabled (this feature is still *experimental* and disabled by default; we add the ``--auto``
+flag to the module switch command as one way to enable it), things work much better, as evidenced below:
 
 .. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4/ompi-switch.out
     :language: console
@@ -868,7 +871,7 @@ functionality work properly, as in
 .. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4/foo-switch.out
     :language: console
 
-Here we note a deficiency in the switch support as compared to ``Flavours``. In the last example
+Here we note a deficiency in the switch support as compared to :ref:`Flavours_strategy`. In the last example
 after loading ``intel/2019`` and foo, we have the non-MPI build of foo as expected. However, upon
 subsequently loading the openmpi module, we still have the non-MPI version of foo loaded, as evidenced
 by the output of the dummy foo command. I.e., the foo package was *not* automatically reloaded, as
@@ -902,10 +905,10 @@ to choose a version of bar which supports the defaults.
 .. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4/bar-defaults.out
     :language: console
 
-Summary of homebrewed flavors strategy
+Summary of Homebrewed flavors strategy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* The automated module handling feature (introduced in Environment Modules
+* The :ref:`Automated module handling <v42-automated-module-handling-mode>` feature (introduced in Environment Modules
   ``4.2``) allows for the switching out of a dependency (e.g. a compiler)
   to cause the reload of all modulefiles depending on it. Without the
   automated module handling (as is default for 4.x, and the only option for
@@ -914,7 +917,7 @@ Summary of homebrewed flavors strategy
 * The various Tcl procedures make
   it somewhat easy to determine which compiler, MPI, etc. modules have been
   loaded and set the paths appropriately. Not as elegant or easy to use
-  as ``Flavours``, but not difficult
+  as :ref:`Flavours_strategy`, but not difficult
 * Like the Flavours package, the module avail output is concise, only e.g.
   giving package name and version rather than listing a separate modulefile
   for each combination of package, version, compiler+version,
@@ -933,12 +936,14 @@ Summary of homebrewed flavors strategy
   has loaded.
 
 
+.. _Modulerc-based_strategy:
+
 Modulerc-based Strategy
 -----------------------
 
 The previous two strategies used additional code in the modulefile to
 determine which compiler, etc. was loaded and adjust the values for
-``PATH``, etc. accordingly. The ``modulerc-based`` strategy instead uses
+``PATH``, etc. accordingly. The *Modulerc-based* strategy instead uses
 ``.modulerc`` files to direct the module command to the proper modulefile
 depending on what compiler, etc. was previously loaded. Because of
 this, there are a number of differences in behavior and what is seen
@@ -948,9 +953,9 @@ or bad is a matter of taste.
 Implementation
 ^^^^^^^^^^^^^^
 
-Whereas the ``homebrewed flavors`` strategy had the modulefile invoke
+Whereas the :ref:`Homebrewed_flavors_strategy` had the modulefile invoke
 a Tcl procedure to determine which, if any, version of a module like a compiler
-was loaded and then adjust paths, the ``modulerc-based`` strategy instead
+was loaded and then adjust paths, the *Modulerc-based* strategy instead
 uses the same Tcl procedures to default the modulefile which will be loaded.
 This implies that there is a distinct modulefile for every build of the package,
 and an immediate consequence is that this strategy has many more modulefiles
@@ -991,7 +996,7 @@ recommended to hardcode the path to the ``common_utilities.tcl`` file.
 The modulerc script then determines the directory it is in using the
 Tcl variable ``ModulesCurrentModulefile``. It then uses the
 ``GetLoadedCompiler`` Tcl procedure (which was discussed in the section
-on the ``homebrewed`` strategy. We then parse the resulting module
+on the :ref:`Homebrewed_flavors_strategy`. We then parse the resulting module
 name into family and version pieces (we will discuss the procedure
 ``GetPackageFamilyVersion`` later; for now suffice to say it takes
 a module name and returns a Tcl list with family and version).
@@ -1585,7 +1590,7 @@ do something else.
 Examples
 ^^^^^^^^
 
-We now look at the example modulefiles for the modulerc based strategy.
+We now look at the example modulefiles for the *Modulerc-based* strategy.
 As noted previously, the best choice of whether to set the ``requireIt`` flag
 to ``LoadedCompilerMatches`` and ``LoadedMPIMatches`` (instructing them to
 to a ``prereq`` on the requesting compiler/MPI module) depends on whether
@@ -1634,8 +1639,9 @@ about what variant of each package is loaded.
 The ``module switch`` command, however, does not work as well as one would
 like. While it indeeds switches the specified module, it does not
 successfully reload the modules which depend on the replaced module, even
-with the automatic module handling feature enabled. As currently implemented,
-the automatic module handling feature attempts to reload dependent modules
+with the :ref:`Automated module handling <v42-automated-module-handling-mode>`
+feature enabled. As currently implemented,
+the automated module handling feature attempts to reload dependent modules
 using the fully qualified module name, and as in this strategy the fully
 qualified modulename includes the information about the module that was switched
 out (e.g. ``pgi/19.4`` in the example below), it will be incompatible with the
@@ -1705,8 +1711,8 @@ loaded, an error will occur.
 .. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4/bar-loads.out
     :language: console
 
-Summary of modulerc strategy
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Summary of Modulerc-based strategy
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * The modulefiles are fairly standard. The only extra logic needed
   is to ensure that any loaded compiler/MPI or other dependency matches
@@ -1728,7 +1734,8 @@ Summary of modulerc strategy
 * The module switch command does not work very well. In
   particular, when one switches out a module on which other modules depend,
   the dependent modules are not successfully reloaded. Even with the
-  automated module handling feature (introduced in ``4.2``), the dependent
+  :ref:`Automated module handling <v42-automated-module-handling-mode>`
+  feature (introduced in ``4.2``), the dependent
   modules are unloaded but do not get reloaded properly since currently
   this feature attempts to reload based on the fully qualified name of the
   loaded module (which includes a dependency on the module switched out),
@@ -1742,6 +1749,8 @@ Summary of modulerc strategy
 * Modules will fail with an error message if user tries to load a package
   which was not built for the values of the dependency packages loaded.
 
+
+.. _Modulepath-based_strategy:
 
 Modulepath-based Strategy
 -------------------------
@@ -1759,9 +1768,10 @@ modulefile approach of Lmod_.
 Implementation
 ^^^^^^^^^^^^^^
 
-The homebrewed flavors and modulerc based strategies were based on
+The :ref:`Homebrewed flavors <Homebrewed_flavors_strategy>` and
+:ref:`Modulerc-based <Modulerc-based_strategy>` strategies were based on
 modifying the modulefiles of modules which depended on other modules.
-The modulepath strategy, in contrast, is based on modifying the
+The *Modulepath-based* strategy, in contrast, is based on modifying the
 modulefiles for modules which other modules might depend on.
 
 To begin with, we set ``MODULEPATH`` to a ``Core`` directory containing
@@ -1977,7 +1987,7 @@ adding the CompilerSimd branch depending on whether the other was previously loa
 Examples
 ^^^^^^^^
 
-We now look at the example usage for the modulepath based strategy.
+We now look at the example usage for the *Modulepath-based* strategy.
 To use these examples, you must:
 
 #. Set (and export) ``MOD_GIT_ROOTDIR`` to where you git-cloned the modules source
@@ -2027,10 +2037,10 @@ simply returns ``Unable to locate a modulefile`` as there is no corresponding mo
 in the current list of MODULEPATHS.
 
 The functionality of the ``module switch`` command depends on version and/or settings
-of Environment Modules. For version 3.x, or 4.x with the automatic module handling
+of Environment Modules. For version 3.x, or 4.x with the :ref:`Automated module handling <v42-automated-module-handling-mode>`
 feature disabled, it does not work well, modules which depend on the switched out module
 are not reloaded, leading to inconsistent environments. But for 4.x versions with
-the automatic module handling feature enabled (as indicated by the --auto after the
+the automated module handling feature enabled (as indicated by the --auto after the
 switch, although that can be made the default), it works as expected. Modules depending
 on the module being switched out get unloaded and reloaded if possible, as shown below:
 
@@ -2061,15 +2071,15 @@ for the intel-compiler and intelmpi dependent modules.
 .. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4/foo-switch.out
     :language: console
 
-Note again the same deficiency in the switch report as the Homebrewed-flavours
-strategy had; in the last case above wherein we loaded foo with ``intel/2019`` loaded
+Note again the same deficiency in the switch report as the :ref:`Homebrewed_flavors_strategy`
+had; in the last case above wherein we loaded foo with ``intel/2019`` loaded
 but no MPI module. As expected, a non-MPI build of foo was loaded. However, when an
 openmpi module is subsequently loaded, foo does not get reloaded and we still have
 the non-MPI build of foo, as evidenced by the output of the foo command. And that
 this fact is not obvious from the module list output.
 
 The behavior when defaulting is nicer. Without any compiler or MPI libraries
-Here we note a deficiency in the switch support as compared to ``Flavours``. In the last example
+Here we note a deficiency in the switch support as compared to :ref:`Flavours <Flavours_strategy>`. In the last example
 after loading ``intel/2019`` and foo, we have the non-MPI build of foo as expected. However, upon
 subsequently loading the openmpi module, we still have the non-MPI version of foo loaded, as evidenced
 by the output of the dummy foo command. I.e., the foo package was *not* automatically reloaded, as
@@ -2084,7 +2094,7 @@ with the loaded compiler (as no incompatible versions are visible) as seen below
 .. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4/foo-defaults.out
     :language: console
 
-This is better than in the Flavours or Homebrewed-flavors strategies. If one were to use
+This is better than in the :ref:`Flavours <Flavours_strategy>` or :ref:`Homebrewed flavors <Homebrewed_flavors_strategy>` strategies. If one were to use
 this strategy in production, it is recommended to have a default compiler module (and maybe even
 an MPI library, etc) automatically loaded when the user logs in, thereby allowing for a reasonable defaulting
 ability (and more reasonable module avail output).
@@ -2107,8 +2117,8 @@ In particular, one case specify ``bar/avx2`` or ``bar/avx`` or ``bar/sse4.1`` an
 latest version of bar consistent with the specification and any previously
 loaded compiler (or default compiler) will be loaded
 
-Summary of modulepath strategy
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Summary of Modulepath-based strategy
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * It is quite difficult for an user to get an inconsistent environment,
   at least when automatic module handling is used. The modulepaths are
@@ -2159,7 +2169,7 @@ impact your design goals. It is advised to play around in the sandbox environmen
 a bit, as actual use tends to help make clear which downsides you are willing to accept
 and which you are not.
 
-With the exception of the Flavours strategy, which works best with Environment Modules
+With the exception of the :ref:`Flavours <Flavours_strategy>`, which works best with Environment Modules
 version 3.x, all of the other strategies work as well or better
 on the newer 4.x versions of Environment Modules. This difference is most visible
 in the discussion of features around the module switch command. So in the following
@@ -2168,12 +2178,13 @@ as that is the version it works best with. For all other strategies, we assume
 Environment Modules version 4.x, with automatic module handling enabled, as these
 strategies work best in that scenario.
 
-The Homebrewed-flavors, Modulerc-based, and Modulepath-based strategies all
+The :ref:`Homebrewed flavors <Homebrewed_flavors_strategy>`,
+:ref:`Modulerc-based <Modulerc-based_strategy>`, and :ref:`Modulepath-based <Modulepath-based_strategy>` strategies all
 require a significant amount of "assembly" in order to get them working for a
 production environment; the example scripts and procedures provided here should
 help significantly, but should not be considered as a polished product. You will
 likely need to customize and extend for your environment. The
-Flavours strategy, on the other hand, has been packaged to present as a finished product
+:ref:`Flavours_strategy`, on the other hand, has been packaged to present as a finished product
 and so requires less "assembly" to get working, but does not appear to be actively
 maintained, so the reduced up-front work might be neutralized by the costs of
 self support.
@@ -2229,10 +2240,12 @@ will cause foo to be reloaded with the new compiler dependency. And ideally
 in this example we would have ``pgi/18.4`` loaded along with the latest version
 of foo compatible with that compiler.
 
-This is handled reasonably well with the Flavours (using Environment Modules
-3.x) and the Homebrewed-flavors and Modulepath-based (both using Environment
-Modules 4.x) strategies. For the Homebrewed-flavors and Modulepath-based
-strategies, this relies on the automatic module handling feature (As of
+This is handled reasonably well with the :ref:`Flavours <Flavours_strategy>` (using Environment Modules
+3.x) and the :ref:`Homebrewed flavors <Homebrewed_flavors_strategy>` and
+:ref:`Modulepath-based <Modulepath-based_strategy>` (both using Environment
+Modules 4.x) strategies. For the :ref:`Homebrewed flavors <Homebrewed_flavors_strategy>` and
+:ref:`Modulepath-based <Modulepath-based_strategy>`
+strategies, this relies on the :ref:`Automated module handling <v42-automated-module-handling-mode>` feature (As of
 version ``4``, this is disabled by default. It can be enabled in ``modulecmd.tcl``,
 or by setting the environment variable ``MODULES_AUTO_HANDLING`` to 1, or by adding the ``--auto`` flag
 to the modules command.)
@@ -2242,18 +2255,18 @@ module depends will cause the the module with a dependency to be unloaded, the
 module being switched being swapped out, and the module that had a dependency being
 reloaded.
 
-Our example sequence above actually exposes a subtle issue. For the Flavours
-and Homebrewed-flavors strategies, the sequence of loading ``pgi/18.4`` followed
+Our example sequence above actually exposes a subtle issue. For the :ref:`Flavours <Flavours_strategy>`
+and :ref:`Homebrewed flavors <Homebrewed_flavors_strategy>` strategies, the sequence of loading ``pgi/18.4`` followed
 by foo (using our example software library) would fail, as foo would be defaulted to
 version ``2.4`` and as there was no build of ``foo/2.4`` for ``pgi/18.4``, the module load foo
 would fail. And indeed, the switch sequence above would not be completely successful
-under either strategy: for the Homebrewed-flavors strategy, the compiler would be
+under either strategy: for the :ref:`Homebrewed_flavors_strategy`, the compiler would be
 swapped out and the reload of foo would fail with an error (so effectively
-equivalent to the second sequence). For the Flavours strategy, it detects that
+equivalent to the second sequence). For the :ref:`Flavours_strategy`, it detects that
 it would be unable to reload foo, and the switch command fails (i.e. the compiler
 remains ``intel/2019``).
 
-For the modulepath strategy, the second sequence (loading ``pgi/18.4`` then foo) would
+For the :ref:`Modulepath-based_strategy`, the second sequence (loading ``pgi/18.4`` then foo) would
 actually work, as the modulepath exposed by loading ``pgi/18.4`` only has versions of
 foo that are compatible with ``pgi/18.4``. But the switch command does not work
 as well as would be desired. This is because that as currently implemented, when the
@@ -2265,11 +2278,11 @@ the module load foo will result in ``foo/2.4`` being loaded. When we switch out 
 for ``pgi/18.4``, foo gets unloaded, but after the compiler swap, it tries to reload
 ``foo/2.4``. As there is no build of ``foo/2.4`` for ``pgi/18.4`` (and thus no modulefile in
 the current modulepath), the module is not found and is unable to be loaded.
-As in the Homebrewed-flavors case, the compiler is switched but foo is left unloaded
+As in the :ref:`Homebrewed flavors <Homebrewed_flavors_strategy>` case, the compiler is switched but foo is left unloaded
 (with an appropriate warning to that effect).
 
-This same issue prevents the automatic module handling feature as currently implemented
-from being very useful with the Modulerc-based. Basically, whenever you have a module
+This same issue prevents the :ref:`Automated module handling <v42-automated-module-handling-mode>` feature as currently implemented
+from being very useful with the :ref:`Modulerc-based <Modulerc-based_strategy>`. Basically, whenever you have a module
 loaded that depends on another module, switching out the module depended upon will
 fail to reload the other module. This is true even in less pathological cases, like:
 
@@ -2287,13 +2300,13 @@ That modulename clearly depends on ``intel/2019``, not ``pgi/19.4``, and so will
 (with an error message). The net result is that the compiler gets switched, but any
 modules depending on the compiler (or whatever module being switched) get unloaded
 (with a warning to that effect). It is hoped that a future version of the
-automatic modules handling feature will have an option to reload the dependent
+:ref:`Automated module handling <v42-automated-module-handling-mode>` feature will have an option to reload the dependent
 modules using the modulename they were loaded with; this should allow for the
-switch command to work well in the Modulerc-based strategy, as well as make
-edges case (like the ``pgi/18.4`` example discussed above) work better with the Modulepath-based
-strategy.
+switch command to work well in the :ref:`Modulerc-based_strategy`, as well as make
+edges case (like the ``pgi/18.4`` example discussed above) work better with the
+:ref:`Modulepath-based_strategy`.
 
-There is another edge case which only the Flavours strategy handles well. Consider a
+There is another edge case which only the :ref:`Flavours_strategy` handles well. Consider a
 scenario like:
 
 .. code-block:: tcl
@@ -2307,7 +2320,7 @@ scenario like:
    foo
    # What build is this, with or without MPI?
 
-With the Flavours strategy, the final foo will be built for ``intel/2019``
+With the :ref:`Flavours_strategy`, the final foo will be built for ``intel/2019``
 with openmpi support; i.e. Flavours supports the concept of *optional* prerequisites, and foo has
 an optional prerequisite on the MPI libraries, so when openmpi is loaded, any previously loaded modules
 which depend on it (through a regular or optional prerequisite) get reloaded.
@@ -2315,25 +2328,29 @@ which depend on it (through a regular or optional prerequisite) get reloaded.
 All of the other strategies rely on automatic module handling for automatic reloads, and
 in this case no reload of foo will be initiated as foo does not have
 MPI libraries listed as a prerequisite (otherwise a no MPI version could not be loaded). This is especially
-problematic for the Homebrewed flavors and Modulepath-based strategies, since it is not easily to
+problematic for the :ref:`Homebrewed flavors <Homebrewed_flavors_strategy>` and
+:ref:`Modulepath-based <Modulepath-based_strategy>` strategies, since it is not easily to
 tell from a module list or similar command which version of foo the environment is set for (for the
-Modulerc-based strategy, the full modulename from module list will indicate that).
+:ref:`Modulerc-based_strategy`, the full modulename from module list will indicate that).
 
-However, despite some potential issues with some edge cases, the Flavours, Homebrewed-flavors, and
-Modulepath-based strategies all handle this challenge well. The Modulerc-based
+However, despite some potential issues with some edge cases, the :ref:`Flavours <Flavours_strategy>`,
+:ref:`Homebrewed flavors <Homebrewed_flavors_strategy>`, and
+:ref:`Modulepath-based <Modulepath-based_strategy>` strategies all handle this challenge well.
+The :ref:`Modulerc-based <Modulerc-based_strategy>`
 approach has a poor showing (although at least the modules depending on the module switched
 out will be unloaded, so the set of loaded modules is consistent).
 
 Note also that this topic shows the most dependence on the version of Environment
-Modules. For the Flavours strategies, the switching of a module upon which
+Modules. For the :ref:`Flavours_strategy`, the switching of a module upon which
 other modules depended does not work (the wrapper script returned weird errors). The
-other strategies all rely on the automatic module handling feature to enable the unload
+other strategies all rely on the :ref:`Automated module handling <v42-automated-module-handling-mode>` feature to enable the unload
 and reload of modules which depend on the module being switched out. Thus for 3.x versions
 of Environment Modules (or even 4.x versions w/out automatic module handling enabled),
 the switch of a compiler, etc. will only result in the compiler being replaced, and any
 modules which depend on the compiler will not be reloaded. This means they will still be
 pointing to versions built for the old compiler, leading to an inconsistent set of
-modules being loaded. This is particularly bad in the Homebrewed-flavors case, as a module
+modules being loaded. This is particularly bad in the
+:ref:`Homebrewed flavors <Homebrewed_flavors_strategy>` case, as a module
 load will not even inform one of that fact.
 
 Visibility into what packages are available
@@ -2350,29 +2367,32 @@ packages. We are interested in
 #. For packages that we have currently loaded, determining which compiler/MPI/etc
    they were built for.
 
-In terms of seeing all of packages that are available, the Flavours and Homebrewed flavors strategies
+In terms of seeing all of packages that are available, the :ref:`Flavours <Flavours_strategy>` and
+:ref:`Homebrewed flavors <Homebrewed_flavors_strategy>` strategies
 are probably the best. The ``module avail`` command will list all modulefiles available, which will
 typically just be a list of packagename/version for each installed version. On a production system
 with many packages installed, even this can be a bit overwhelming to the user.
 
-The ``module avail`` command will also list all modulefiles for every installed package in the Modulerc-based
-strategy, but here every build of every version of every package will have a distinct modulefile. I.e.,
+The ``module avail`` command will also list all modulefiles for every installed package in the
+:ref:`Modulerc-based_strategy`, but here every build of every version of every package will have a distinct modulefile. I.e.,
 you will not just have ``foo/1.1`` and ``foo/2.4`` listings, but ``foo/1.1/gcc/8.2.0/nompi``, ``foo/1.1/gcc/8.2.0/mvapich/2.1``,
 ``foo/1.1/gcc/8.2.0/openmpi/3.1``, ``foo/1.1/intel/2018/nompi``, ``foo/1.1/intel/2018/intelmpi``, etc. modulefiles.
 Actually, the situation is even worse than that, as in this strategy there are often multiple
 modulefiles for the same build in order to ease navigation of the module tree, e.g. we could have
 ``foo/1.1/gcc/8.2.0/nompi`` and ``foo/gcc/8.2.0/nompi/1.1`` representing the same build of the same package.
-Whereas an unqualified ``module avail`` in the Flavours or Homebrewed flavors strategies can be a bit overwhelming
-in a large environment, with the Modulerc-based strategy it can become practically unusable.
+Whereas an unqualified ``module avail`` in the :ref:`Flavours <Flavours_strategy>` or
+:ref:`Homebrewed flavors <Homebrewed_flavors_strategy>` strategies can be a bit overwhelming
+in a large environment, with the :ref:`Modulerc-based_strategy` it can become practically unusable.
 
-While an unqualified ``module avail`` in the Flavours, Homebrewed flavors, and especially Modulerc-based strategies
-can inundate the user with modulenames, the Modulepath-based strategy has the opposite problem. With the Modulepath-based
-strategy, the modulefiles are split across multiple, often multually incompatible, modulepaths, so the module avail
+While an unqualified ``module avail`` in the :ref:`Flavours <Flavours_strategy>`,
+:ref:`Homebrewed flavors <Homebrewed_flavors_strategy>`, and especially :ref:`Modulerc-based <Modulerc-based_strategy>` strategies
+can inundate the user with modulenames, the :ref:`Modulepath-based_strategy` has the opposite problem.
+With the :ref:`Modulepath-based_strategy` strategy, the modulefiles are split across multiple, often multually incompatible, modulepaths, so the module avail
 command will never return a list of all modulefiles installed, only those available given the previously loaded
 compiler/MPI libraries/etc. E.g., if a package foobar is only installed for a particular compiler/MPI combination,
 it will not appear in any module avail listing unless that particular compiler and MPI were previously loaded.
 
-While the number of modulefiles listed in an unqualified ``module avail`` command in the Modulerc-based strategy
+While the number of modulefiles listed in an unqualified ``module avail`` command in the :ref:`Modulerc-based_strategy`
 is unwieldy, if one adds a partial package specification argument, the number of modulefiles returned is greatly
 reduced. This smaller list can provide information about which compilers/MPI/etc. are compatible with
 a specific version of a package. For example, to see the compilers for which ``foo/2.4`` is built, we can
@@ -2386,18 +2406,19 @@ Similary, to see the builds of foo using gcc compilers, one can do something lik
 .. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4/foo-avail2.out
     :language: console
 
-The other strategies do not readily provide that information. The next best case is the Modulepath-based
-strategies, because here at least a module avail will tell you what versions of a package are compatible
-with the currently loaded compiler/MPI/etc, e.g.:
+The other strategies do not readily provide that information. The next best case is the
+:ref:`Modulepath-based_strategy`, because here at least a module avail will tell you what versions
+of a package are compatible with the currently loaded compiler/MPI/etc, e.g.:
 
 .. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4/foo-avail1.out
     :language: console
 
-But the Flavours and Homebrewed-flavors strategies do not readily show what versions of packages are built
+But the :ref:`Flavours <Flavours_strategy>` and :ref:`Homebrewed flavors <Homebrewed_flavors_strategy>`
+strategies do not readily show what versions of packages are built
 for which compilers, etc. You would need to load a compiler/MPI/etc combination, and then try loading
 a particular version of a package.
 
-Lastly, with the Modulerc-based strategy, the module list command explicitly shows information
+Lastly, with the :ref:`Modulerc-based_strategy`, the module list command explicitly shows information
 about the compiler/MPI/etc used to build the loaded modules, as that is part of the full modulename.
 This information is not explicitly visible in the other three strategies, but that is usually not
 a problem. As long as the various user commands result in a set of modules wherein every module depending
@@ -2418,7 +2439,8 @@ section, e.g. if one were to do something like:
    foo
    # What build is this, with or without MPI?
 
-In the above example, for the Flavours, Homebrewed-flavors, and Modulepath-based strategies a
+In the above example, for the :ref:`Flavours <Flavours_strategy>`,
+:ref:`Homebrewed flavors <Homebrewed_flavors_strategy>`, and :ref:`Modulepath-based <Modulepath-based_strategy>` strategies a
 module list at the end would simply list something like:
 
 .. code-block:: shell
@@ -2426,7 +2448,7 @@ module list at the end would simply list something like:
    Currently Loaded Modulefiles:
    1) intel/2019   2) foo/2.4   3) openmpi/4.0
 
-For the Flavours strategy, foo would be built with MPI support, but for the other
+For the :ref:`Flavours_strategy`, foo would be built with MPI support, but for the other
 two, foo would still be the non-MPI build, which is not readily apparent from the
 above output (although possibly could be inferred by the ordering of the modules).
 
@@ -2456,17 +2478,20 @@ things begin to diverge, e.g.:
    module load intel/2018
    module load foo
 
-In this second case, the Flavours and Homebrewed-flavors strategies still default
+In this second case, the :ref:`Flavours <Flavours_strategy>` and
+:ref:`Homebrewed flavors <Homebrewed_flavors_strategy>` strategies still default
 the version of foo to version ``2.4``, despite there being no build of ``foo/2.4`` for ``intel/2018``.
 That is because they do not do intelligent defaulting, and will simply default
 the version of foo to the highest version they see
 even though it is not compatible with the loaded compiler.
-Thus the load of foo will fail for Flavours and Homebrewed-flavors strategies.
-However, for the Modulerc-based and Modulepath-based strategies, the module load of foo
-will successfully load foo version ``1.1`` built for ``intel/2018``. For the Modulepath-based
-strategy, this is because the only foo modules currently visible are compatible with the
+Thus the load of foo will fail for :ref:`Flavours <Flavours_strategy>` and
+:ref:`Homebrewed flavors <Homebrewed_flavors_strategy>` strategies.
+However, for the :ref:`Modulerc-based <Modulerc-based_strategy>` and
+:ref:`Modulepath-based <Modulepath-based_strategy>` strategies, the module load of foo
+will successfully load foo version ``1.1`` built for ``intel/2018``. For the :ref:`Modulepath-based_strategy`,
+this is because the only foo modules currently visible are compatible with the
 loaded ``intel/2018`` compiler, and it simply defaults to the highest version seen. For
-the Modulerc-based strategy, the ``.modulerc`` file directly under foo directs it down the
+the :ref:`Modulerc-based_strategy`, the ``.modulerc`` file directly under foo directs it down the
 subdirectory for the intel compiler family, which has a ``.modulerc`` defaulting to the 2018 subdirectory
 (as the currently loaded compiler version), which has a ``.modulerc`` defaulting to the nompi
 subdirectory (the MPI family as no MPI library was loaded). At this point, there is not
@@ -2474,19 +2499,21 @@ another ``.modulerc`` file, so the latest version will be defaulted to, and
 ``foo/intel/2018/nompi/1.1`` module will be loaded.
 
 The situation is analogous when there are chained dependencies (e.g. compiler and MPI
-libraries); the Flavours and Homebrewed-flavors strategies will default to the latest
+libraries); the :ref:`Flavours <Flavours_strategy>` and :ref:`Homebrewed flavors <Homebrewed_flavors_strategy>`
+strategies will default to the latest
 version of the package they know about, regardless of whether it is compatible with the
 loaded environment. If it is compatible, it will be loaded and all is well, if not the
 load command will fail with an error message. Not horrible; the set of loaded modules is
 still consistent, but not terribly user-friendly either.
 
-For the Modulerc-based and Modulepath-based strategies, the latest build compatible with
-the various dependencies will be loaded (or if no build is compatible, the load will fail
-with an appropriate error).
+For the :ref:`Modulerc-based <Modulerc-based_strategy>` and :ref:`Modulepath-based <Modulepath-based_strategy>`
+strategies, the latest build compatible with the various dependencies will be loaded (or if no build is
+compatible, the load will fail with an appropriate error).
 
-For the Flavours, Homebrewed-flavors, and Modulepath-based strategies, typically modulenames
+For the :ref:`Flavours <Flavours_strategy>`, :ref:`Homebrewed flavors <Homebrewed_flavors_strategy>`,
+and :ref:`Modulepath-based <Modulepath-based_strategy>` strategies, typically modulenames
 only consist of the package name and version components, so generally only partial modulenames
-seen are packages without a version. The Modulerc-based strategy has much longer modulenames,
+seen are packages without a version. The :ref:`Modulerc-based_strategy` has much longer modulenames,
 and therefore a greater variety of partial modulenames, which can allow for interesting
 possibilities. For example, one could do ``module load foo/pgi``, which (assuming no compiler
 was previously loaded), would load the latest version of foo built with the latest version of
@@ -2518,16 +2545,17 @@ descended component by component, it works if you jump in in the middle as well
 
 But a more interesting case is when there are somewhat disjoint options on the builds.
 Consider the case of the bar package from the examples, which in addition to the compiler
-and builds supporting different SIMD levels. For the Flavours and Homebrewed-flavors
+and builds supporting different SIMD levels. For the :ref:`Flavours <Flavours_strategy>` and
+:ref:`Homebrewed flavors <Homebrewed_flavors_strategy>`
 strategies, we handled this with a pseudo-simd package and modules. This worked, and allowed
 for one to select a build that matched both compiler and SIMD level, but you likely need to
 manually select a bar version compatible with both of these, as these strategies will not
 do intelligent defaulting of versions.
 
-For the Modulepath-based strategy, we added the SIMD label as a final component to the
+For the :ref:`Modulepath-based_strategy`, we added the SIMD label as a final component to the
 modulename, but the defaulting was somewhat simple (e.g. alway default to lowest SIMD).
 
-With the Modulerc-based strategy, we added an additional naming scheme for the bar modulefiles,
+With the :ref:`Modulerc-based_strategy`, we added an additional naming scheme for the bar modulefiles,
 so they can start with bar/BARVERSION, or bar/COMPILER_FAMILY, or bar/SIMD_LEVEL. This not
 only makes it easier to view which versions of bar for which compilers are built with support
 for a given SIMD level (e.g. module avail bar/avx2), but also one can do something like:
