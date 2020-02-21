@@ -377,7 +377,7 @@ you must
 
 We start with the ``module avail`` command:
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/flavours/modules4.3.1/modavail.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/flavours/modules4/modavail.out
     :language: console
 
 We note that we only see the package names and versions; e.g. ``foo/2.4``, without any mention
@@ -466,7 +466,7 @@ the same as a standard Modules command:
 
 The following shows how this would appear to the user:
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/flavours/modules4.3.1/ompi-loads1.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/flavours/modules4/ompi-loads1.out
     :language: console
 
 Here we note that once a compiler is loaded, the ``PATH`` and the other environment
@@ -482,7 +482,7 @@ then reloaded openmpi. A nice feature of Flavours_ is that it can handle the
 switching out of compilers or other modulefiles which other modulefiles depend on,
 as:
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/flavours/modules3.2.10/ompi-switch.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/flavours/modules3/ompi-switch.out
     :language: console
 
 Note that when we switched between the pgi and intel compilers above, Flavours
@@ -505,7 +505,7 @@ set of modules was still consistent.
 We also note that if we attempt to load openmpi without having previously loading a compiler,
 we will get an error:
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/flavours/modules4.3.1/ompi-defaults.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/flavours/modules4/ompi-defaults.out
     :language: console
 
 In particular, there is no support for a "default" compiler; if e.g. you wished to make the
@@ -537,7 +537,7 @@ evaluate to ``$swroot/foo/2.4/1/gnu-9.1.0``.
 
 We show how it works below:
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/flavours/modules4.3.1/foo-loads.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/flavours/modules4/foo-loads.out
     :language: console
 
 So basically, if the user loads a compiler, the
@@ -552,7 +552,7 @@ The 3.x version of Environment Modules supports using the switch command on
 either the compiler or MPI library, and will result in reloading of foo and the MPI
 library.
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/flavours/modules3.2.10/foo-switch.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/flavours/modules3/foo-switch.out
     :language: console
 
 In particular note the final case, wherein we load ``intel/2019`` then foo, and get the
@@ -575,7 +575,7 @@ We note that Flavours package knows nothing about our ``simd`` dummy package unt
 we add it as a prereq for bar. (This is in contrast to the compiler and mpi classes).
 Usage would be like:
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/flavours/modules4.3.1/bar-loads.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/flavours/modules4/bar-loads.out
     :language: console
 
 Here we note that as both the compiler and simd prereqs are non-optional, it complains
@@ -786,14 +786,14 @@ To use the examples, you must
 The ``homebrewed flavors`` strategy behaves much like the ``Flavours``
 strategy in practice. The module avail command,
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4.3.1/modavail.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4/modavail.out
     :language: console
 
 looks basically the same, showing the a concise listing of packages and
 versions without information on the compilers and MPI libraries they were
 built with.
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4.3.1/ompi-loads1.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4/ompi-loads1.out
     :language: console
 
 Again, once a compiler is loaded, loading openmpi will set the ``PATH``, etc. for
@@ -807,13 +807,13 @@ of openmpi (e.g. ``4.0``) that was not built for the specified compiler (e.g.
 
 Unlike in ``Flavours``, we did not put any code in the modulefiles to cause
 dependent modulefiles to be reloaded if a module they depend on gets switched
-out. However, starting with Environment Modules ``4.2.0``, a feature called
+out. However, starting with Environment Modules ``4.2``, a feature called
 automated module handling was added. Without this feature, attempting to
 switch out a module upon which other modules depended could be problematic,
 as evidenced in this sequence below (using Environment Modules ``3.2.10`` and
 so without automatic module handling):
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules3.2.10/ompi-switch.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules3/ompi-switch.out
     :language: console
 
 Here we note that we were able to switch out the pgi compiler for the intel compiler,
@@ -827,7 +827,7 @@ prereq module. However, with the automatic module handling enabled (this feature
 still *experimental* and disabled by default; we add the ``--auto`` flag to the module
 switch command as one way to enable it), things work much better, as evidenced below:
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4.3.1/ompi-switch.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4/ompi-switch.out
     :language: console
 
 When we switch out the pgi compiler for the ``intel/2019`` compiler, the openmpi
@@ -847,7 +847,7 @@ We note that the modulefile is able to
 default the compiler, so when we attempt to load openmpi without having
 previously loaded a compiler, as in
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4.3.1/ompi-defaults.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4/ompi-defaults.out
     :language: console
 
 it will default to the default compiler, ``gcc/8.2.0``. Note however, that if
@@ -856,7 +856,7 @@ and fail to load as there is no build of ``openmpi/4.0`` for ``gcc/8.2.0``.
 
 The situation is similar for foo:
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4.3.1/foo-loads.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4/foo-loads.out
     :language: console
 
 Again, one can load a compiler without an MPI library to get the non-MPI version
@@ -865,7 +865,7 @@ intelmpi modulefile is used to allow one to indicate that the Intel MPI library
 is desired. The automatic module handling can again allow the switch
 functionality work properly, as in
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4.3.1/foo-switch.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4/foo-switch.out
     :language: console
 
 Here we note a deficiency in the switch support as compared to ``Flavours``. In the last example
@@ -875,7 +875,7 @@ by the output of the dummy foo command. I.e., the foo package was *not* automati
 there was no prereq in the foo modulefile on an MPI library (as in the non-MPI build there is no MPI
 library to prereq). Also note that module list does not really inform one of this fact.
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4.3.1/foo-defaults.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4/foo-defaults.out
     :language: console
 
 Above, we see once more that the compiler can be defaulted, but that the
@@ -886,27 +886,27 @@ The situation with bar is basically the same; with a compiler and simd
 module loaded, the environment for the appropriate build of bar is loaded
 when you module load bar.
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4.3.1/bar-loads.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4/bar-loads.out
     :language: console
 
 And an error is generated if there is no build for that combination of
 compiler and simd. The automatic handling of modules again allows the
 switch command to work as expected:
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4.3.1/bar-switch.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4/bar-switch.out
     :language: console
 
 and both the simd level and compiler can be defaulted, but one still has
 to choose a version of bar which supports the defaults.
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4.3.1/bar-defaults.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/homebrewed/modules4/bar-defaults.out
     :language: console
 
 Summary of homebrewed flavors strategy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * The automated module handling feature (introduced in Environment Modules
-  ``4.2.0``) allows for the switching out of a dependency (e.g. a compiler)
+  ``4.2``) allows for the switching out of a dependency (e.g. a compiler)
   to cause the reload of all modulefiles depending on it. Without the
   automated module handling (as is default for 4.x, and the only option for
   3.x), the switching of a compiler only changes the compiler and leaves the
@@ -1603,7 +1603,7 @@ version of Environment Modules is being used, namely:
 As with the previous cases, we start with a ``module avail`` command, and here
 we see the first big difference:
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4.3.1/modavail.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4/modavail.out
     :language: console
 
 Unlike the previous cases wherein only package names and versions were shown
@@ -1622,7 +1622,7 @@ presentation of more rather than less information.
 The standard functionality of selecting the correct build of a package
 based on the loaded compiler, e.g.
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4.3.1/ompi-loads1.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4/ompi-loads1.out
     :language: console
 
 works as expected (and fails with the expected error when one attempts to
@@ -1650,12 +1650,12 @@ automatic module handling (i.e. for older Environment Modules or without
 the --auto flag), the dependent modules remain loaded and there is inconsistency
 in the loaded modules. But at least module list clearly shows such.
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4.3.1/ompi-switch.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4/ompi-switch.out
     :language: console
 
 The defaulting of modules is more successful, however, as seen below:
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4.3.1/ompi-defaults.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4/ompi-defaults.out
     :language: console
 
 Here it not only defaults to the default compiler, but if one tries to load
@@ -1664,7 +1664,7 @@ compatible with the loaded compiler.
 
 The situation is similar for foo:
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4.3.1/foo-loads.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4/foo-loads.out
     :language: console
 
 As expected, the correct version of foo is loaded depending on the previously
@@ -1683,12 +1683,12 @@ reported and the dependent modules will be unloaded; without it the dependent
 modules will not get unloaded, and there will be inconsistent dependencies
 (but at least module list will show such).
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4.3.1/foo-switch.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4/foo-switch.out
     :language: console
 
 The defaulting of modules works relatively well, as shown below:
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4.3.1/foo-defaults.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4/foo-defaults.out
     :language: console
 
 If one attempts to load foo without specifying a version or having previously loaded a compiler
@@ -1702,7 +1702,7 @@ appending ``/avx``, etc. to the bar package name. As with previous strategies,
 if one attempts to load a simd variant which was not built for the compiler
 loaded, an error will occur.
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4.3.1/bar-loads.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4/bar-loads.out
     :language: console
 
 Summary of modulerc strategy
@@ -1728,7 +1728,7 @@ Summary of modulerc strategy
 * The module switch command does not work very well. In
   particular, when one switches out a module on which other modules depend,
   the dependent modules are not successfully reloaded. Even with the
-  automated module handling feature (introduced in ``4.2.0``), the dependent
+  automated module handling feature (introduced in ``4.2``), the dependent
   modules are unloaded but do not get reloaded properly since currently
   this feature attempts to reload based on the fully qualified name of the
   loaded module (which includes a dependency on the module switched out),
@@ -1990,7 +1990,7 @@ that do not depend on compiler or MPI library, and that should be available from
 As with the previous cases, we start with a ``module avail`` command, and here
 we see the first big difference:
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4.3.1/modavail.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4/modavail.out
     :language: console
 
 When we first do a ``module avail``, we only see the modulefiles for the compilers.
@@ -2018,7 +2018,7 @@ in a web page or other documentation area which can be frequently updated.
 The standard functionality of selecting the correct build of a package
 based on the loaded compiler, e.g.
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4.3.1/ompi-loads1.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4/ompi-loads1.out
     :language: console
 
 works as expected. As shown in the last command above, when requesting a module not
@@ -2034,14 +2034,14 @@ the automatic module handling feature enabled (as indicated by the --auto after 
 switch, although that can be made the default), it works as expected. Modules depending
 on the module being switched out get unloaded and reloaded if possible, as shown below:
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4.3.1/ompi-switch.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4/ompi-switch.out
     :language: console
 
 The modulefiles themselves basically have no support for defaulting a compiler; the modulefiles for
 the various MPI libraries are simply not even available until a modulefile for a compiler is loaded, as
 seen below:
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4.3.1/ompi-defaults.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4/ompi-defaults.out
     :language: console
 
 However, this could be somewhat mitigated by having the modulefile for the default compiler automatically
@@ -2049,7 +2049,7 @@ loaded for the user upon login (e.g. in their dot files).
 
 The situation is similar for foo:
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4.3.1/foo-loads.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4/foo-loads.out
     :language: console
 
 As expected, the correct version of foo is loaded depending on the previously
@@ -2058,7 +2058,7 @@ to indicate when we wish to use Intel MPI libraries, even though they are enable
 by the ``intel`` module. The ``intelmpi`` modulefile basically just adds the modulepath
 for the intel-compiler and intelmpi dependent modules.
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4.3.1/foo-switch.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4/foo-switch.out
     :language: console
 
 Note again the same deficiency in the switch report as the Homebrewed-flavours
@@ -2081,7 +2081,7 @@ most modulefiles are not even visible/available. However, once a compiler is loa
 load a module without specifying the version will end up loading the latest version compatible
 with the loaded compiler (as no incompatible versions are visible) as seen below:
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4.3.1/foo-defaults.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4/foo-defaults.out
     :language: console
 
 This is better than in the Flavours or Homebrewed-flavors strategies. If one were to use
@@ -2095,12 +2095,12 @@ appending ``/avx``, etc. to the bar package name. As with previous strategies,
 if one attempts to load a simd variant which was not built for the compiler
 loaded, an error will occur.
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4.3.1/bar-loads.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4/bar-loads.out
     :language: console
 
 Defaulting is handled well, as shown
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4.3.1/bar-defaults.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4/bar-defaults.out
     :language: console
 
 In particular, one case specify ``bar/avx2`` or ``bar/avx`` or ``bar/sse4.1`` and the
@@ -2233,7 +2233,7 @@ This is handled reasonably well with the Flavours (using Environment Modules
 3.x) and the Homebrewed-flavors and Modulepath-based (both using Environment
 Modules 4.x) strategies. For the Homebrewed-flavors and Modulepath-based
 strategies, this relies on the automatic module handling feature (As of
-version ``4.3.1``, this is disabled by default. It can be enabled in ``modulecmd.tcl``,
+version ``4``, this is disabled by default. It can be enabled in ``modulecmd.tcl``,
 or by setting the environment variable ``MODULES_AUTO_HANDLING`` to 1, or by adding the ``--auto`` flag
 to the modules command.)
 
@@ -2378,19 +2378,19 @@ reduced. This smaller list can provide information about which compilers/MPI/etc
 a specific version of a package. For example, to see the compilers for which ``foo/2.4`` is built, we can
 do something like:
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4.3.1/foo-avail1.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4/foo-avail1.out
     :language: console
 
 Similary, to see the builds of foo using gcc compilers, one can do something like:
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4.3.1/foo-avail2.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4/foo-avail2.out
     :language: console
 
 The other strategies do not readily provide that information. The next best case is the Modulepath-based
 strategies, because here at least a module avail will tell you what versions of a package are compatible
 with the currently loaded compiler/MPI/etc, e.g.:
 
-.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4.3.1/foo-avail1.out
+.. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulepath/modules4/foo-avail1.out
     :language: console
 
 But the Flavours and Homebrewed-flavors strategies do not readily show what versions of packages are built
