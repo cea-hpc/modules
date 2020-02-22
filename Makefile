@@ -574,6 +574,7 @@ clean:
 ifeq ($(wildcard .git),.git)
 	rm -f ChangeLog
 endif
+	rm -f README
 	rm -f modulecmd.tcl
 	rm -f $(MODULECMDTEST)
 	rm -f script/add.modules
