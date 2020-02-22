@@ -1,5 +1,5 @@
 #
-# Bash commandline completion (bash 3.0 and above)
+# Bash commandline completion
 #
 _module_comgen_words_and_files() {
     local k=0
@@ -7,7 +7,8 @@ _module_comgen_words_and_files() {
     # do not append space to word completed if it is a directory (ends with /)
     for val in $(compgen -W "$1" -- "$2"); do
         if [ !$setnospace -a "${val: -1:1}" = '/' ]; then
-            compopt -o nospace
+            # Bash >=4.0 is required for compopt
+            type compopt &>/dev/null && compopt -o nospace
             setnospace=0
         fi
         COMPREPLY[k++]="$val"
