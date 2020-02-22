@@ -35,7 +35,7 @@ endif
 
 ALL_SHELLS = $(SH_LIKE) $(CSH_LIKE) $(OTHER)
 
-all: $(ALL_SHELLS) modulerc $(EXAMPLE_MODFILES_SRCDIR)/modules
+all: $(ALL_SHELLS) modulerc zsh-functions/_module $(EXAMPLE_MODFILES_SRCDIR)/modules
 ifeq ($(versioning),y)
 all: $(EXAMPLE_MODFILES_SRCDIR)/version
 endif
@@ -162,6 +162,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@SHELLNAME@|$@|g' \
 	-e 's|@VERSIONING@|$(setversioning)|g' \
 	-e 's|@VERSION@|$(VERSION)|g' \
+	-e 's|@SED_ERE@|$(SED_ERE)|g' \
 	-e 's|@PS@|$(PS)|g' \
 	-e 's|@BASENAME@|$(BASENAME)|g' \
 	-e 's|@TCLSH@|$(TCLSH)|g' $< > $@
@@ -223,13 +224,14 @@ uninstall-testconfig:
 install: all
 	mkdir -p $(DESTDIR)$(initdir)
 	mkdir -p $(DESTDIR)$(initdir)/ksh-functions
+	mkdir -p $(DESTDIR)$(initdir)/zsh-functions
 	mkdir -p $(DESTDIR)$(modulefilesdir)
 	cp $(ALL_SHELLS) $(DESTDIR)$(initdir)/
 ifeq ($(windowssupport),y)
 	cp cmd.cmd $(DESTDIR)$(initdir)/
 endif
 	cp fish_completion $(DESTDIR)$(initdir)/
-	cp -r zsh-functions $(DESTDIR)$(initdir)/
+	cp zsh-functions/_module $(DESTDIR)$(initdir)/zsh-functions/
 	cp ksh $(DESTDIR)$(initdir)/ksh-functions/module
 	cp ksh $(DESTDIR)$(initdir)/ksh-functions/ml
 ifeq ($(compatversion),y)
@@ -275,7 +277,7 @@ ifeq ($(versioning),y)
 endif
 
 clean:
-	rm -f $(ALL_SHELLS) modulerc .modulespath $(EXAMPLE_MODFILES_SRCDIR)/modules
+	rm -f $(ALL_SHELLS) modulerc zsh-functions/_module .modulespath $(EXAMPLE_MODFILES_SRCDIR)/modules
 ifeq ($(versioning),y)
 	rm -f $(EXAMPLE_MODFILES_SRCDIR)/version
 endif

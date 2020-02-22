@@ -26,16 +26,16 @@ prog=${progpath##*/}
 targetlist="${progdir}/Makefile.inc ${progdir}/site.exp"
 
 # argument list
-arglist="TCLSH PYTHON SPHINXBUILD PS BASENAME RMDIR_IGN_NON_EMPTY VERSION \
-baseprefix prefix bindir libdir libexecdir etcdir initdir datarootdir mandir \
-docdir vimdatadir modulefilesdir setmanpath appendmanpath setbinpath \
-appendbinpath setdotmodulespath docinstall vimaddons examplemodulefiles \
-builddoc gitworktree usemanpath compatversion EXEEXT libtclenvmodules \
-SHLIB_SUFFIX versioning silentshdbgsupport setshellstartup quarantinesupport \
-autohandling availindepth implicitdefault extendeddefault moduleshome \
-initconfin pager pageropts verbosity color darkbgcolors lightbgcolors termbg \
-lockedconfigs icase unloadmatchorder searchmatch modulepath loadedmodules \
-quarantinevars wa277 advversspec ml windowssupport"
+arglist="TCLSH PYTHON SPHINXBUILD PS BASENAME RMDIR_IGN_NON_EMPTY SED_ERE \
+VERSION baseprefix prefix bindir libdir libexecdir etcdir initdir \
+datarootdir mandir docdir vimdatadir modulefilesdir setmanpath appendmanpath \
+setbinpath appendbinpath setdotmodulespath docinstall vimaddons \
+examplemodulefiles builddoc gitworktree usemanpath compatversion EXEEXT \
+libtclenvmodules SHLIB_SUFFIX versioning silentshdbgsupport setshellstartup \
+quarantinesupport autohandling availindepth implicitdefault extendeddefault \
+moduleshome initconfin pager pageropts verbosity color darkbgcolors \
+lightbgcolors termbg lockedconfigs icase unloadmatchorder searchmatch \
+modulepath loadedmodules quarantinevars wa277 advversspec ml windowssupport"
 compatarglist=
 libarglist=
 
@@ -84,6 +84,7 @@ usemanpath=y
 PS=ps
 BASENAME=basename
 RMDIR_IGN_NON_EMPTY=rmdir
+SED_ERE='sed -E'
 VERSION=
 initconfin=initdir
 pager=less
@@ -594,6 +595,11 @@ if [ "$kernelname" = 'Linux' ]; then
     RMDIR_IGN_NON_EMPTY='rmdir --ignore-fail-on-non-empty'
 else
     RMDIR_IGN_NON_EMPTY='rmdir'
+fi
+
+# sed -E option may not be availble, use -r option otherwise
+if [ "$(echo foo | $SED_ERE 's|foo|bar|' 2>/dev/null)" != 'bar' ]; then
+   SED_ERE='sed -r'
 fi
 
 # if we install from git repository, must have git to fetch current release number
