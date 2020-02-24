@@ -1194,20 +1194,23 @@ ENVIRONMENT
 
  Colored output enablement is defined in the following order of preference:
  :option:`--color` command line switch, then :envvar:`MODULES_COLOR`
- environment variable, then :envvar:`CLICOLOR` and :envvar:`CLICOLOR_FORCE`
- environment variables, then the default set in :file:`modulecmd.tcl` script
- configuration. Which means :envvar:`MODULES_COLOR` overrides default
- configuration and the :envvar:`CLICOLOR`/:envvar:`CLICOLOR_FORCE` variables.
+ environment variable, then :envvar:`NO_COLOR`, :envvar:`CLICOLOR` and
+ :envvar:`CLICOLOR_FORCE` environment variables, then the default set in
+ :file:`modulecmd.tcl` script configuration. Which means
+ :envvar:`MODULES_COLOR` overrides default configuration and the
+ :envvar:`NO_COLOR` and :envvar:`CLICOLOR`/:envvar:`CLICOLOR_FORCE` variables.
  :option:`--color` command line switch overrides every other ways to enable or
  disable this mode.
 
- :envvar:`CLICOLOR` and :envvar:`CLICOLOR_FORCE` environment variables are
- also honored to define color mode. The ``never`` mode is set if
+ :envvar:`NO_COLOR`, :envvar:`CLICOLOR` and :envvar:`CLICOLOR_FORCE`
+ environment variables are also honored to define color mode. The ``never``
+ mode is set if :envvar:`NO_COLOR` is defined (regardless of its value) or if
  :envvar:`CLICOLOR` equals to ``0``. If :envvar:`CLICOLOR` is set to another
  value, it corresponds to the ``auto`` mode. The ``always`` mode is set if
- :envvar:`CLICOLOR_FORCE` is set to a value different than ``0``. Color mode
- set with these two variables is superseded by mode set with
- :envvar:`MODULES_COLOR` environment variable.
+ :envvar:`CLICOLOR_FORCE` is set to a value different than ``0``.
+ :envvar:`NO_COLOR` variable prevails over :envvar:`CLICOLOR` and
+ :envvar:`CLICOLOR_FORCE`. Color mode set with these three variables is
+ superseded by mode set with :envvar:`MODULES_COLOR` environment variable.
 
  .. only:: html
 

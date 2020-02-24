@@ -184,6 +184,16 @@ if {$install_color eq {y}} {
 }
 
 # environment variable or/and command-line switch override
+setenv_var NO_COLOR 0
+color_test_case {} 0 $sgr
+setenv_var NO_COLOR 1
+color_test_case {} 0 $sgr
+setenv_var NO_COLOR {}
+color_test_case {} 0 $sgr
+setenv_var NO_COLOR foo
+color_test_case {} 0 $sgr
+unsetenv_var NO_COLOR
+
 setenv_var CLICOLOR 0
 color_test_case {} 0 $sgr
 setenv_var CLICOLOR 1
@@ -201,6 +211,21 @@ color_test_case {--color=auto} 1 $sgr
 color_test_case {--color=never} 0 $sgr
 unsetenv_var CLICOLOR_FORCE
 
+# NO_COLOR prevails over CLICOLOR and CLICOLOR_FORCE
+setenv_var NO_COLOR 1
+setenv_var CLICOLOR 0
+color_test_case {} 0 $sgr
+setenv_var CLICOLOR 1
+color_test_case {} 0 $sgr
+setenv_var CLICOLOR_FORCE 0
+color_test_case {} 0 $sgr
+setenv_var CLICOLOR_FORCE 1
+color_test_case {} 0 $sgr
+unsetenv_var CLICOLOR
+color_test_case {} 0 $sgr
+unsetenv_var CLICOLOR_FORCE
+unsetenv_var NO_COLOR
+
 setenv_var MODULES_COLOR always
 color_test_case {} 2 $sgr
 color_test_case {--color} 2 $sgr
@@ -211,6 +236,10 @@ color_test_case {--color=never} 0 $sgr
 setenv_var CLICOLOR 0
 color_test_case {} 2 $sgr
 unsetenv_var CLICOLOR
+
+setenv_var NO_COLOR 1
+color_test_case {} 2 $sgr
+unsetenv_var NO_COLOR
 
 setenv_var MODULES_COLOR auto
 color_test_case {} 1 $sgr
@@ -229,6 +258,10 @@ color_test_case {--color=never} 0 $sgr
 setenv_var CLICOLOR 1
 color_test_case {} 0 $sgr
 unsetenv_var CLICOLOR
+
+setenv_var NO_COLOR 1
+color_test_case {} 0 $sgr
+unsetenv_var NO_COLOR
 
 setenv_var CLICOLOR_FORCE 1
 color_test_case {} 0 $sgr
