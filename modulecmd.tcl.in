@@ -556,6 +556,11 @@ proc __reportError {message {recordtop 0} {severity ERROR} {sgrkey er}\
    }
 }
 
+# throw known error (call error with 'known error' code)
+proc knerror {message} {
+   error $message {} MODULES_ERR_KNOWN
+}
+
 # save message if report is not yet initialized
 proc reportErrorAndExit {message} {
    lappend ::errreport_buffer [list reportErrorAndExit $message]
@@ -1643,7 +1648,7 @@ proc module-info {what {more {}}} {
          return [getLoadedMatchingName $mod returnall]
       }
       default {
-         error "module-info $what not supported"
+         knerror "module-info $what not supported"
          return {}
       }
    }
@@ -2048,7 +2053,7 @@ proc module {command args} {
    }
    # raise error if supplied command is not known
    if {!$cmdvalid} {
-      error "${msgprefix}Invalid command '$command'$tryhelpmsg"
+      knerror "${msgprefix}Invalid command '$command'$tryhelpmsg"
    }
 
    # parse options, do that globally to ignore options not related to a given
@@ -2068,14 +2073,14 @@ proc module {command args} {
          path - paths - autoinit - help - prepend-path - append-path -\
          remove-path - is-loaded - is-saved - is-used - is-avail -\
          info-loaded - clear {
-            error "${msgprefix}Command '$command' not supported$tryhelpmsg"
+            knerror "${msgprefix}Command '$command' not supported$tryhelpmsg"
          }
       }
       # other commands can only be called from modulefile evaluated from
       # command acting as top-level context (source and autoinit)
       if {([getEvalModuleStackDepth] > 1 || [notInList [list source autoinit]\
          [currentCommandName]]) && $command eq {config}} {
-         error "${msgprefix}Command '$command' not supported$tryhelpmsg"
+         knerror "${msgprefix}Command '$command' not supported$tryhelpmsg"
       }
    }
 
@@ -2125,7 +2130,7 @@ proc module {command args} {
       }
    }
    if {[info exists argnberr]} {
-      error "Unexpected number of args for '$command' command$tryhelpmsg"
+      knerror "Unexpected number of args for '$command' command$tryhelpmsg"
    }
 
    # define if modfile should always be fully read even for validity check
@@ -2409,7 +2414,7 @@ proc module {command args} {
 proc ml {args} {
    # ml cannot be called within modulefile, top level only
    if {[getEvalModuleStackDepth] > 0} {
-      error {Command 'ml' not supported}
+      knerror {Command 'ml' not supported}
    }
 
    # filter out all known options from argument list to guess command name
@@ -2636,7 +2641,7 @@ proc putsModfileCmd {itrp args} {
    # raise error if bad argument number detected, do this here rather in _puts
    # not to confuse people with an error reported by an internal name (_puts)
    if {[info exists wrongNumArgs]} {
-      error {wrong # args: should be "puts ?-nonewline? ?channelId? string"}
+      knerror {wrong # args: should be "puts ?-nonewline? ?channelId? string"}
    # defer puts if it targets stdout (see renderSettings)
    } elseif {[info exists deferPuts]} {
       lappend ::g_stdoutPuts $args
@@ -2888,7 +2893,7 @@ proc parsePathCommandArgs {cmd args} {
                set delim [string range $arg 8 end]
             }
             -* {
-               error "invalid option '$arg' for $cmd"
+               knerror "invalid option '$arg' for $cmd"
             }
             default {
                if {$next_is_delim} {
@@ -2906,15 +2911,15 @@ proc parsePathCommandArgs {cmd args} {
    if {![info exists delim]} {
       set delim [getPathSeparator]
    } elseif {$delim eq {}} {
-      error "$cmd should get a non-empty path delimiter"
+      knerror "$cmd should get a non-empty path delimiter"
    }
    if {![info exists var]} {
-      error "$cmd should get an environment variable name"
+      knerror "$cmd should get an environment variable name"
    } elseif {$var eq {}} {
-      error "$cmd should get a valid environment variable name"
+      knerror "$cmd should get a valid environment variable name"
    }
    if {![info exists val_raw_list]} {
-      error "$cmd should get a value for environment variable $var"
+      knerror "$cmd should get a value for environment variable $var"
    }
 
    # set list of value to add
@@ -2922,7 +2927,7 @@ proc parsePathCommandArgs {cmd args} {
    foreach val $val_raw_list {
       # check passed indexes are numbers
       if {$idx_val && ![string is integer -strict $val]} {
-         error "$cmd should get valid number as index value"
+         knerror "$cmd should get valid number as index value"
       }
 
       switch -- $val \
@@ -2931,7 +2936,7 @@ proc parsePathCommandArgs {cmd args} {
             lappend val_list {}
          } \
          $delim {
-            error "$cmd cannot handle path equals to separator string"
+            knerror "$cmd cannot handle path equals to separator string"
          } \
          default {
             # split passed value with delimiter
@@ -3146,7 +3151,7 @@ proc prereq {args} {
             popReportHoldId
             lappend holdidlist $curholdid report
             eval releaseHeldReport $holdidlist
-            error $errorMsg
+            knerror $errorMsg
          }
          popReportHoldId
 
@@ -3272,7 +3277,7 @@ proc uname {what} {
             set result [runCommand uname -v]
          }
          default {
-            error "uname $what not supported"
+            knerror "uname $what not supported"
          }
       }
       set ::unameCache($what) $result
@@ -8637,7 +8642,7 @@ proc parseModuleVersionSpecifier {mlspec args} {
                         lappend arglist $modarg
                      }
                   } elseif {$modspec ne {}} {
-                     error "No module name defined in argument '$modarg'"
+                     knerror "No module name defined in argument '$modarg'"
                   }
                   unset modarglist
                }
@@ -8697,10 +8702,10 @@ proc parseModuleVersionSpecifier {mlspec args} {
                set versspec $modspec
             }
             if {$invalidversspec} {
-               error "Invalid version specifier '$modspec'"
+               knerror "Invalid version specifier '$modspec'"
             }
             if {$invalidversrange} {
-               error "Invalid version range '$modspec'"
+               knerror "Invalid version range '$modspec'"
             }
             lappend modarglist $arg
          }
@@ -8717,7 +8722,7 @@ proc parseModuleVersionSpecifier {mlspec args} {
                   lappend arglist $modarg
                }
             } elseif {$modspec ne {}} {
-               error "No module name defined in argument '$modarg'"
+               knerror "No module name defined in argument '$modarg'"
             }
          }
       } else {
@@ -8845,7 +8850,7 @@ proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {}} {context\
             reportWarning $errMsg 1
          # stop if one unload fails unless force mode enabled
          } else {
-            error $errMsg
+            knerror $errMsg
          }
       }
    }
@@ -8872,7 +8877,7 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist {force 0} {errmsgtpl {}}\
             reportWarning $errMsg 1
          # stop if one load fails unless force mode enabled
          } else {
-            error $errMsg
+            knerror $errMsg
          }
       }
    }
@@ -9764,10 +9769,10 @@ proc cmdModuleLoad {context uasked args} {
                   reportError $conmsg
                }
                # raise conun-specific msg to top level if attempted
-               error [getErrConUnMsg $moddecconlist]
+               knerror [getErrConUnMsg $moddecconlist]
             } else {
                set errlocalreport 1
-               error $conmsg
+               knerror $conmsg
             }
          }
 
@@ -9928,7 +9933,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                if {$onlyndep} {
                   set errharmless 1
                }
-               error [expr {[eval isModuleEvaluated any $modname\
+               knerror [expr {[eval isModuleEvaluated any $modname\
                   $prereq_list] ? [getDepLoadedMsg $prereq_list] :\
                   [getErrPrereqMsg $modname $prereq_list 0]}]
             }
@@ -9998,7 +10003,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                      if {[getForce] || $force} {
                         reportWarning $errMsg 1
                      } else {
-                        error $errMsg
+                        knerror $errMsg
                      }
                   }
                }
