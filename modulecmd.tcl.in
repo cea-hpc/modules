@@ -565,7 +565,7 @@ proc reportErrorAndExit {message} {
 proc __reportErrorAndExit {message} {
    raiseErrorCount
    renderFalse
-   error $message
+   error $message {} MODULES_ERR_RENDERED
 }
 
 proc reportInternalBug {message modfile} {
@@ -11055,14 +11055,17 @@ if {[catch {
    pushModuleFile {}
 
    # eval needed to pass otherargv as list to module proc
-   if {[catch {eval $execcmdlist} errMsg]} {
-      reportErrorAndExit $errMsg
-   }
+   eval $execcmdlist
 } errMsg ]} {
    # re-enable error report in case it was previously inhibited
    reenableErrorReport
    # remove any message record id to render next error
    clearAllMsgRecordId
+   # render error if not done yet
+   if {$errorCode ne {MODULES_ERR_RENDERED}} {
+      raiseErrorCount
+      renderFalse
+   }
    reportError $errMsg
    # init error report here in case the error raised before the regular init
    initErrorReport
