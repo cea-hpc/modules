@@ -124,6 +124,28 @@ if { $verbose > 0 } {
 unset env(TESTSUITE_ENABLE_SITECONFIG_BROKEN)
 
 
+# test siteconfig that breaks modulecmd.tcl code
+setenv_var TESTSUITE_ENABLE_SITECONFIG_BROKEN2 1
+set ans [list]
+lappend ans "$error_msgs: invalid command name \"unk_foo\""
+lappend ans {      while executing}
+lappend ans {  "unk_foo"}
+lappend ans {      (procedure "pushModuleFile" line 2)}
+lappend ans {      invoked from within}
+lappend ans {  "pushModuleFile {}"}
+lappend ans {  Please report this issue at https://github.com/cea-hpc/modules/issues}
+testouterr_cmd sh {foo} ERR [join $ans \n]
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_BROKEN2
+setenv_var TESTSUITE_ENABLE_SITECONFIG_BROKEN3 1
+set ans [list]
+lappend ans "$error_msgs: invalid command name \"pushModuleFile\""
+lappend ans {      while executing}
+lappend ans {  "pushModuleFile {}"}
+lappend ans {  Please report this issue at https://github.com/cea-hpc/modules/issues}
+testouterr_cmd sh {foo} ERR [join $ans \n]
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_BROKEN3
+
+
 # test siteconfig file raising error
 # test parseAccessIssue with custom error code by the way
 if { $verbose > 0 } {
