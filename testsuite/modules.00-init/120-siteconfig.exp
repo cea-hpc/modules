@@ -96,7 +96,25 @@ set env(TESTSUITE_ENABLE_SITECONFIG_BROKEN) 1
 
 set ans [list]
 lappend ans "$error_msgs: Site configuration source failed"
-lappend ans "  invalid command name \"unk_foo\""
+lappend ans {  invalid command name "unk_foo"}
+lappend ans {      while executing}
+lappend ans {  "unk_foo"}
+if {[info exists env(COVERAGE)]} {
+    lappend ans "      invoked from within
+  \"if {\[info exists env(TESTSUITE_ENABLE_SITECONFIG)\]} \{
+  
+  # force stderr terminal attachement state
+  proc isStderrTty {} {
+     return 1
+  }
+  
+  # enable debug m...\"
+      (file \"$siteconfig_file\" line 2)
+      invoked from within
+  \"::_instrument_::source $siteconfig_file\"
+      (\"uplevel\" body line 1)"
+}
+lappend ans "      (file \"$siteconfig_file\")"
 testouterr_cmd "sh" "-V" "ERR" [join $ans "\n"]
 
 # restore environment
@@ -115,7 +133,25 @@ set env(TESTSUITE_ENABLE_SITECONFIG_ACCESSERR) 1
 
 set ans [list]
 lappend ans "$error_msgs: Site configuration source failed"
-lappend ans "  Cannot access 'foo'"
+lappend ans {  Cannot access 'foo'}
+lappend ans {      while executing}
+lappend ans {  "error [parseAccessIssue "foo"]"}
+if {[info exists env(COVERAGE)]} {
+    lappend ans "      invoked from within
+  \"if {\[info exists env(TESTSUITE_ENABLE_SITECONFIG)\]} \{
+  
+  # force stderr terminal attachement state
+  proc isStderrTty {} {
+     return 1
+  }
+  
+  # enable debug m...\"
+      (file \"$siteconfig_file\" line 2)
+      invoked from within
+  \"::_instrument_::source $siteconfig_file\"
+      (\"uplevel\" body line 1)"
+}
+lappend ans "      (file \"$siteconfig_file\")"
 testouterr_cmd "sh" "-V" "ERR" [join $ans "\n"]
 
 # restore environment
@@ -285,7 +321,29 @@ unsetenv_var TESTSUITE_ENABLE_SITECONFIG_NOEXTRASITECONFIG
 # test tcl ext lib load on an incompatible interp if available
 if {[info exists tclextlib_file] && [file executable ./tclsh83]} {
     setenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBLOAD83 1
-    testouterr_cmd sh -V ERR "$error_msgs: Site configuration source failed\n  version conflict for package \"Tcl\": have 8.3, need 8.4"
+    set ans [list]
+    lappend ans "$error_msgs: Site configuration source failed"
+    lappend ans {  version conflict for package "Tcl": have 8.3, need 8.4}
+    lappend ans {      while executing}
+    lappend ans {  "exec ./tclsh83 << "load [getConf tcl_ext_lib] Envmodules""}
+    if {[info exists env(COVERAGE)]} {
+        lappend ans "      invoked from within
+  \"if {\[info exists env(TESTSUITE_ENABLE_SITECONFIG)\]} \{
+  
+  # force stderr terminal attachement state
+  proc isStderrTty {} {
+     return 1
+  }
+  
+  # enable debug m...\"
+      (file \"$siteconfig_file\" line 2)
+      invoked from within
+  \"::_instrument_::source $siteconfig_file\"
+      (\"uplevel\" body line 1)"
+    }
+    lappend ans "      (file \"$siteconfig_file\")"
+
+    testouterr_cmd sh -V ERR [join $ans "\n"]
     # restore environment
     unsetenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBLOAD83
 } elseif {$verbose > 0} {

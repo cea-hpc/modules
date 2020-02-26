@@ -155,7 +155,11 @@ proc sourceSiteConfig {} {
       if {[file readable $siteconfig]} {
          reportDebug "Source site configuration ($siteconfig)"
          if {[catch {uplevel 1 source $siteconfig} errMsg]} {
-            reportErrorAndExit "Site configuration source failed\n$errMsg"
+            set errMsg "Site configuration source failed\n"
+            # issue line number is lost due to uplevel use
+            append errMsg [formatErrStackTrace $::errorInfo 0 3 append\
+               $siteconfig]
+            reportErrorAndExit $errMsg
          }
          if {$siteconfig eq [getConf siteconfig]} {
             set ::g_siteconfig_loaded 1
@@ -707,6 +711,35 @@ proc isReportFormat {format} {
 proc recordMessage {message {recordtop 0}} {
    lappend ::g_msgRecord([expr {$recordtop ? [topMsgRecordId] :\
       [currentMsgRecordId]}]) $message
+}
+
+# filter and format error stack trace to only report useful content
+proc formatErrStackTrace {errmsg nbfiltstart nbfiltend appendloc loc} {
+   set headstr "\n    while executing\n"
+   set splitstr "\n    invoked from within\n"
+   set aftheadidx [expr {[string length $headstr] + [string first $headstr\
+      $errmsg]}]
+
+   # filter beginning of stack
+   for {set i 0} {$i < $nbfiltstart} {incr i} {
+      set errmsg [string replace $errmsg $aftheadidx [string first $splitstr\
+         $errmsg]]
+   }
+   # filter end of stack
+   for {set i 0} {$i < $nbfiltend} {incr i} {
+      set errmsg [string replace $errmsg [string last $splitstr\
+         $errmsg] end]
+   }
+   # replace error location at end of stack
+   if {$appendloc eq {replace}} {
+      set lastnl [string last "\n" $errmsg]
+      set errmsg [string replace $errmsg $lastnl [expr {$lastnl + [string\
+         length "    (\"eval\" body line"]}] "\n    (file \"$loc\" line"]
+   # add error location at end of stack
+   } else {
+      append errmsg "\n    (file \"$loc\")"
+   }
+   return $errmsg
 }
 
 # Select Graphic Rendition of a string with passed sgr key (if color enabled)
