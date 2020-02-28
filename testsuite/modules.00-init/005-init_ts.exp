@@ -194,6 +194,24 @@ proc moderr_minverreq {modfile minver} {
     return "$::moderr_msgs: Modulefile requires at least Modules version $minver\n  In '$modfile'\n$::err_contact"
 }
 
+proc msg_moderr {msg cmdline modfile linenum {pad {}} {procname {}} {contact {}}} {
+    set linefile [expr {$procname ne {} ? {} : " line $linenum"}]
+    set errcontact [expr {$contact eq {} ? $::err_contactns : "Please contact <$contact>"}]
+    set res "$::moderr_msgs: $msg
+$pad    while executing
+$pad\"$cmdline\""
+    if {$procname ne {}} {
+        append res "
+$pad    (procedure \"$procname\" line $linenum)
+$pad    invoked from within
+$pad\"$procname\""
+    }
+    append res "
+$pad    (file \"$modfile\"$linefile)
+$pad$errcontact"
+    return $res
+}
+
 proc if_implicitdefault {then {else {}}} {
     return [expr {$::install_implicitdefault eq {y} ? $then : $else}]
 }
@@ -489,7 +507,7 @@ set domainname_warn "$error_msgs: Command 'domainname' cannot be found"
 
 # escape regexp chars in string
 proc escre {str} {
-    return [regsub -all "\(\[.+?\]\)" $str {\\\1}]
+    return [regsub -all "\(\[().+?\]\)" $str {\\\1}]
 }
 
 #

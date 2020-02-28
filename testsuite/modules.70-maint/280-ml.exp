@@ -167,7 +167,7 @@ testouterr_cmd sh {ml foo @1.2} ERR "$err_path'@1.2'"
 unsetenv_var MODULES_ADVANCED_VERSION_SPEC
 
 # ml is not a modulefile command
-testouterr_cmd sh {load mlinmod} ERR [msg_load mlinmod "$moderr_msgs: invalid command name \"ml\"\nIn '$mp/mlinmod'\n$err_contactns"]
+testouterr_cmd sh {load mlinmod} ERR [msg_load mlinmod [msg_moderr {invalid command name "ml"} {ml extdfl -advvers} $mp/mlinmod 2]]
 
 # load only command
 set ans [list]
@@ -239,13 +239,15 @@ testouterr_cmd sh {ml -foo/1 bar/0.1} ERR [msg_load bar/0.1 $err_evalabort]
 
 # bad command error handling checks
 setenv_loaded_module [list foo/0.2] [list $mp/foo/0.2]
-testouterr_cmd sh {ml -foo/0.2} ERR [msg_unload foo/0.2 "$moderr_msgs: invalid command name \"badcmd\"\nIn '$mp/foo/0.2'\n$err_contactns"]
-testouterr_cmd sh {ml -foo/0.2 -foo/1} ERR [msg_unload foo/0.2 "$moderr_msgs: invalid command name \"badcmd\"\nIn '$mp/foo/0.2'\n$err_contactns"]
-testouterr_cmd sh {ml -foo/0.2 bar/1} ERR [msg_unload foo/0.2 "$moderr_msgs: invalid command name \"badcmd\"\nIn '$mp/foo/0.2'\n$err_contactns"]
-testouterr_cmd sh {ml bar/0.2} ERR [msg_load bar/0.2 "$moderr_msgs: invalid command name \"badcmd\"\nIn '$mp/bar/0.2'\n$err_contactns"]
-testouterr_cmd sh {ml bar/0.2 bar/1} ERR [msg_load bar/0.2 "$moderr_msgs: invalid command name \"badcmd\"\nIn '$mp/bar/0.2'\n$err_contactns"]
-testouterr_cmd sh {ml bar/1 bar/0.2} ERR [msg_load bar/0.2 "$moderr_msgs: invalid command name \"badcmd\"\nIn '$mp/bar/0.2'\n$err_contactns"]
-testouterr_cmd sh {ml -foo/1 bar/0.2} ERR [msg_load bar/0.2 "$moderr_msgs: invalid command name \"badcmd\"\nIn '$mp/bar/0.2'\n$err_contactns"]
+set tserr [msg_moderr {invalid command name "badcmd"} {badcmd} $mp/foo/0.2 2]
+testouterr_cmd sh {ml -foo/0.2} ERR [msg_unload foo/0.2 $tserr]
+testouterr_cmd sh {ml -foo/0.2 -foo/1} ERR [msg_unload foo/0.2 $tserr]
+testouterr_cmd sh {ml -foo/0.2 bar/1} ERR [msg_unload foo/0.2 $tserr]
+set tserr [msg_moderr {invalid command name "badcmd"} {badcmd} $mp/bar/0.2 2]
+testouterr_cmd sh {ml bar/0.2} ERR [msg_load bar/0.2 $tserr]
+testouterr_cmd sh {ml bar/0.2 bar/1} ERR [msg_load bar/0.2 $tserr]
+testouterr_cmd sh {ml bar/1 bar/0.2} ERR [msg_load bar/0.2 $tserr]
+testouterr_cmd sh {ml -foo/1 bar/0.2} ERR [msg_load bar/0.2 $tserr]
 
 
 #

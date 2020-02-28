@@ -216,7 +216,7 @@ testouterr_cmd "sh" "load $unknonw" "ERR" $out_interr
 #
 set badmod "bad"
 set out_interr "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modpath/$badmod/.modulerc'\n$err_contact"
-append out_interr \n\n[msg_load $badmod/before "$moderr_msgs: invalid command name \"bad-command\"\nIn '$modpath/$badmod/before'\n$err_contactns"]
+append out_interr \n\n[msg_load $badmod/before [msg_moderr {invalid command name "bad-command"} {bad-command} $modpath/$badmod/before 26]]
 
 # ensure load tests have implicit default enabled
 # skip tests if implicit_default option could not be overridden
@@ -228,7 +228,7 @@ unsetenv_var MODULES_IMPLICIT_DEFAULT
 
 # try with other full path name forms (./ and ../)
 set badmod "$reldmodpath/bad/before"
-set out_interr [msg_load $modpath/bad/before "$moderr_msgs: invalid command name \"bad-command\"\nIn '$modpath/bad/before'\n$err_contactns"]
+set out_interr [msg_load $modpath/bad/before [msg_moderr {invalid command name "bad-command"} {bad-command} $modpath/bad/before 26]]
 testouterr_cmd "sh" "load $badmod" "ERR" $out_interr
 set badmod "$relddmodpath/bad/before"
 testouterr_cmd "sh" "load $badmod" "ERR" $out_interr
