@@ -2705,7 +2705,10 @@ proc putsModfileCmd {itrp args} {
    # pass to real puts command if not related to stdout and do that in modfile
    # interpreter context to get access to eventual specific channel
    } else {
-      $itrp eval _puts $args
+      # re-throw error as a known error for accurate stack trace print
+      if {[catch {$itrp eval _puts $args} errMsg]} {
+         knerror $errMsg MODULES_ERR_CUSTOM
+      }
    }
 }
 
