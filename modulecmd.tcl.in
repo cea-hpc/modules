@@ -1379,7 +1379,8 @@ proc execute-modulerc {modfile modname modspec} {
          module-alias module-virtual module-virtual module nop module-info\
          module-info module-trace nop module-verbosity nop module-user nop\
          module-log nop reportInternalBug reportInternalBug setModulesVersion\
-         setModulesVersion readModuleContent readModuleContent]
+         setModulesVersion readModuleContent readModuleContent\
+         formatErrStackTrace formatErrStackTrace]
 
       # alias commands where an argument should be passed
       array set ::g_modrcAliasesPassArg [list]
@@ -1427,7 +1428,22 @@ proc execute-modulerc {modfile modname modspec} {
       }
       info script $::ModulesCurrentModulefile
       if [catch {eval $modcontent} errorMsg] {
-         reportInternalBug $errorMsg $::ModulesCurrentModulefile
+         # format stack trace depending on error knowledge
+         if {[string equal -length 12 $errorCode MODULES_ERR_]} {
+            reportInternalBug $errorMsg $::ModulesCurrentModulefile
+         } else {
+            # remove last stack element to hide internal eval command
+            if {[string first {"eval $modcontent"} $::errorInfo end-18]\
+               != -1} {
+               set nbfiltend 1
+               set appendloc replace
+            } else {
+               set nbfiltend 0
+               set appendloc append
+            }
+            reportInternalBug [formatErrStackTrace $::errorInfo 0\
+               $nbfiltend $appendloc $::ModulesCurrentModulefile]
+         }
          return 1
       } else {
          # pass ModulesVersion value to master interp
