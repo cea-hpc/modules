@@ -577,8 +577,10 @@ proc __reportErrorAndExit {message} {
    error $message {} MODULES_ERR_RENDERED
 }
 
-proc reportInternalBug {message modfile} {
-   append message "\nIn '$modfile'"
+proc reportInternalBug {message {modfile {}}} {
+   if {$modfile ne {}} {
+      append message "\nIn '$modfile'"
+   }
    append message "\nPlease contact <[getConf contact]>"
    reportError $message 0 {Module ERROR} me
 }
@@ -1134,7 +1136,8 @@ proc initModfileModeAliases {mode aliasesVN aliasesPassArgVN tracesVN} {
          reportCmdTrace reportInternalBug reportInternalBug reportWarning\
          reportWarning reportError reportError raiseErrorCount\
          raiseErrorCount report report isVerbosityLevel isVerbosityLevel\
-         isWin isWin puts putsModfileCmd readModuleContent readModuleContent]
+         isWin isWin puts putsModfileCmd readModuleContent readModuleContent\
+         formatErrStackTrace formatErrStackTrace]
 
       # list of alias commands whose target procedure is adapted according to
       # the evaluation mode
@@ -1319,7 +1322,22 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
             reportError $errorMsg
             return 1
          } else {
-            reportInternalBug $errorMsg $::ModulesCurrentModulefile
+            # format stack trace depending on error knowledge
+            if {[string equal -length 12 $errorCode MODULES_ERR_]} {
+               reportInternalBug $errorMsg $::ModulesCurrentModulefile
+            } else {
+               # remove last stack element to hide internal eval command
+               if {[string first {"eval $modcontent"} $::errorInfo end-18]\
+                  != -1} {
+                  set nbfiltend 1
+                  set appendloc replace
+               } else {
+                  set nbfiltend 0
+                  set appendloc append
+               }
+               reportInternalBug [formatErrStackTrace $::errorInfo 0\
+                  $nbfiltend $appendloc $::ModulesCurrentModulefile]
+            }
             return 1
          }
       } else {
