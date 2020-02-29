@@ -1,0 +1,186 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2020/02/29
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:
+#   Sub-Command:    load, source, help, display, test
+#
+#   Comment:	%C{
+#           Check error stack trace printed during failed evaluation
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.2
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+# load tests
+
+set custom {    (procedure "good-command" line 2)
+    invoked from within
+"good-command"}
+set tserr [msg_load bad3/bodyproc [msg_moderr {invalid command name "bad-command"} bad-command $mp/bad3/bodyproc 6 {} {} {} $custom]]
+testouterr_cmd sh "load bad3/bodyproc" ERR $tserr
+
+set custom "    (procedure \"good-command\" line 2)
+    invoked from within
+\"good-command\"
+    (file \"$mp/bad3/.bodycommon\" line 5)
+    invoked from within
+\"source \$env(TESTSUITEDIR)/modulefiles.2/bad3/.bodycommon\""
+set tserr [msg_load bad3/bodysource [msg_moderr {invalid command name "bad-command"} bad-command $mp/bad3/bodysource 2 {} {} {} $custom]]
+testouterr_cmd sh "load bad3/bodysource" ERR $tserr
+
+# error in modulerc
+setenv_var BADRC3_CASE 1
+set custom {    (procedure "good-command" line 2)
+    invoked from within
+"good-command"}
+set tserr [msg_moderr {invalid command name "bad-command"} bad-command $mp/badrc3/.modulerc 13 {  } {} {} $custom]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES badrc3/1]
+lappend ans [list setpath _LMFILES_ $mp/badrc3/1]
+lappend ans [list ERR]
+testouterr_cmd sh {load badrc3/1} $ans $tserr
+
+setenv_var BADRC3_CASE 2
+set custom "    (procedure \"good-command\" line 2)
+    invoked from within
+\"good-command\"
+    (file \"$mp/bad3/.bodycommon\" line 5)
+    invoked from within
+\"source \$env(TESTSUITEDIR)/modulefiles.2/bad3/.bodycommon\""
+set tserr [msg_moderr {invalid command name "bad-command"} bad-command $mp/badrc3/.modulerc 16 {  } {} {} $custom]
+testouterr_cmd sh {load badrc3/1} $ans $tserr
+unsetenv_var BADRC3_CASE
+
+
+# source tests
+
+set custom {    (procedure "good-command" line 2)
+    invoked from within
+"good-command"}
+set tserr [msg_moderr {invalid command name "bad-command"} bad-command $mp/bad3/bodyproc 6 {  } {} {} $custom]
+testouterr_cmd sh "source $mp/bad3/bodyproc" ERR $tserr
+
+set custom "    (procedure \"good-command\" line 2)
+    invoked from within
+\"good-command\"
+    (file \"$mp/bad3/.bodycommon\" line 5)
+    invoked from within
+\"source \$env(TESTSUITEDIR)/modulefiles.2/bad3/.bodycommon\""
+set tserr [msg_moderr {invalid command name "bad-command"} bad-command $mp/bad3/bodysource 2 {  } {} {} $custom]
+testouterr_cmd sh "source $mp/bad3/bodysource" ERR $tserr
+
+# display tests
+
+set custom {    (procedure "good-command" line 2)
+    invoked from within
+"good-command"
+    (procedure "ModulesDisplay" line 2)
+    invoked from within
+"ModulesDisplay"}
+set tserr "$modlin
+$mpre/bad3/procproc:
+
+[escre [msg_moderr {invalid command name \"bad-command\"} bad-command $mp/bad3/procproc {} {  } {} {} $custom]]
+$modlin"
+testouterr_cmd_re sh {display bad3/procproc} ERR $tserr
+
+set custom "    (procedure \"good-command\" line 2)
+    invoked from within
+\"good-command\"
+    (procedure \"ModulesDisplay\" line 2)
+    invoked from within
+\"ModulesDisplay\""
+set tserr "$modlin
+$mpre/bad3/procsource:
+
+[escre [msg_moderr {invalid command name \"bad-command\"} bad-command $mp/bad3/procsource {} {  } {} {} $custom]]
+$modlin"
+testouterr_cmd_re sh {display bad3/procsource} ERR $tserr
+
+
+# help tests
+
+set custom {    (procedure "good-command" line 2)
+    invoked from within
+"good-command"
+    (procedure "ModulesHelp" line 2)
+    invoked from within
+"ModulesHelp"}
+set tserr "$modlin
+Module Specific Help for $mpre/bad3/procproc:
+
+[escre [msg_moderr {invalid command name \"bad-command\"} bad-command $mp/bad3/procproc {} {  } {} {} $custom]]
+$modlin"
+testouterr_cmd_re sh {help bad3/procproc} ERR $tserr
+
+set custom "    (procedure \"good-command\" line 2)
+    invoked from within
+\"good-command\"
+    (procedure \"ModulesHelp\" line 2)
+    invoked from within
+\"ModulesHelp\""
+set tserr "$modlin
+Module Specific Help for $mpre/bad3/procsource:
+
+[escre [msg_moderr {invalid command name \"bad-command\"} bad-command $mp/bad3/procsource {} {  } {} {} $custom]]
+$modlin"
+testouterr_cmd_re sh {help bad3/procsource} ERR $tserr
+
+
+# test tests
+
+set custom {    (procedure "good-command" line 2)
+    invoked from within
+"good-command"
+    (procedure "ModulesTest" line 2)
+    invoked from within
+"ModulesTest"}
+set tserr "$modlin
+Module Specific Test for $mpre/bad3/procproc:
+
+[escre [msg_moderr {invalid command name \"bad-command\"} bad-command $mp/bad3/procproc {} {  } {} {} $custom]]
+$modlin"
+testouterr_cmd_re sh {test bad3/procproc} ERR $tserr
+
+set custom "    (procedure \"good-command\" line 2)
+    invoked from within
+\"good-command\"
+    (procedure \"ModulesTest\" line 2)
+    invoked from within
+\"ModulesTest\""
+set tserr "$modlin
+Module Specific Test for $mpre/bad3/procsource:
+
+[escre [msg_moderr {invalid command name \"bad-command\"} bad-command $mp/bad3/procsource {} {  } {} {} $custom]]
+$modlin"
+testouterr_cmd_re sh {test bad3/procsource} ERR $tserr
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+unsetenv_loaded_module
+setenv_path_var MODULEPATH $modpath
+
+unset mp
+unset mpre
+unset ans
+unset tserr
+unset custom
