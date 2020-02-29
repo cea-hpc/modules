@@ -40,7 +40,12 @@ arg_into_modaction() {
     # split module action from its argument
     local action="${1/=/ }"
     # split multiple arguments
-    action="${action//&/ }"
+    if [ "${action//;/ }" == "${action}" ]; then
+        action="${action//&/ }"
+    else
+        # enable arg split over ';' to enable same behavior than envml.cmd
+        action="${action//;/ }"
+    fi
 
     case "$action" in
         purge*|restore*|unload*|switch*|load*) echo "$action"  ;;
