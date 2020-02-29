@@ -550,7 +550,7 @@ proc __reportError {message {recordtop 0} {severity ERROR} {sgrkey er}\
          if {[isReportFormat json]} {
             lappend ::g_report_erralist $severity $message
          } else {
-            report $msgsgr
+            report $msgsgr 0 0 1
          }
       }
    }
@@ -569,10 +569,9 @@ proc __reportErrorAndExit {message} {
 }
 
 proc reportInternalBug {message modfile} {
-   # change line padding depending on output-kind
-   set pad [expr {[currentMsgRecordId] ne {} ? {} : {  }}]
-   reportError "$message\n${pad}In '$modfile'\n${pad}Please contact\
-      <[getConf contact]>" 0 {Module ERROR} me
+   append message "\nIn '$modfile'"
+   append message "\nPlease contact <[getConf contact]>"
+   reportError $message 0 {Module ERROR} me
 }
 
 proc reportInfo {message {title INFO}} {
@@ -721,16 +720,16 @@ proc sgr {sgrkey str} {
 }
 
 # save message if report is not yet initialized
-proc report {message {nonewline 0} {immed 0}} {
-   lappend ::errreport_buffer [list report $message $nonewline $immed]
+proc report {message {nonewline 0} {immed 0} {padnl 0}} {
+   lappend ::errreport_buffer [list report $message $nonewline $immed $padnl]
 }
 
 # regular procedure to use once error report is initialized
-proc __report {message {nonewline 0} {immed 0}} {
+proc __report {message {nonewline 0} {immed 0} {padnl 0}} {
    # hold or print output
    if {!$immed && [isReportHeld]} {
       lappend ::g_holdReport([currentReportHoldId]) [list report $message\
-         $nonewline]
+         $nonewline $immed $padnl]
    } else {
       if {![info exists ::g_already_report]} {
          set ::g_already_report 1
@@ -746,6 +745,19 @@ proc __report {message {nonewline 0} {immed 0}} {
       } elseif {[info exists ::g_report_sep_next]} {
          unset ::g_report_sep_next
          report [expr {[isReportFormat json] ? {,} : {}}]
+      }
+      # prefix msg lines after first one with 2 spaces
+      if {$padnl} {
+         set first 1
+         foreach line [split $message \n] {
+            if {$first} {
+               set first 0
+            } else {
+               append padmsg "\n  "
+            }
+            append padmsg $line
+         }
+         set message $padmsg
       }
 
       # protect from issue with fd, just ignore it
@@ -6142,8 +6154,8 @@ proc cacheCurrentModules {} {
 
          reportDebug "$i loaded"
       } else {
-         reportErrorAndExit "Loaded environment state is inconsistent\n \
-            LOADEDMODULES=$modlist\n  _LMFILES_=$modfilelist"
+         reportErrorAndExit "Loaded environment state is\
+            inconsistent\nLOADEDMODULES=$modlist\n_LMFILES_=$modfilelist"
       }
    }
 }
