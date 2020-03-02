@@ -719,13 +719,28 @@ proc recordMessage {message {recordtop 0}} {
 proc formatErrStackTrace {errmsg nbfiltstart nbfiltend appendloc loc} {
    set headstr "\n    while executing\n"
    set splitstr "\n    invoked from within\n"
+   set splitstrlen [string length $splitstr]
    set aftheadidx [expr {[string length $headstr] + [string first $headstr\
       $errmsg]}]
 
+   # convert idx into number of element of filter
+   if {[string equal -length 4 $nbfiltstart end-]} {
+      # count number of elements in error message
+      set splitidx 0
+      set msgnbelt 1
+      while {$splitidx != -1} {
+         if {[set splitidx [string first $splitstr $errmsg $splitidx]] != -1} {
+            incr splitidx
+            incr msgnbelt
+         }
+      }
+      set nbfiltstart [expr {$msgnbelt - [string range $nbfiltstart 4 end]}]
+   }
+
    # filter beginning of stack
    for {set i 0} {$i < $nbfiltstart} {incr i} {
-      set errmsg [string replace $errmsg $aftheadidx [string first $splitstr\
-         $errmsg]]
+      set errmsg [string replace $errmsg $aftheadidx [expr {[string first\
+         $splitstr $errmsg] + $splitstrlen - 1}]]
    }
    # filter end of stack
    for {set i 0} {$i < $nbfiltend} {incr i} {
@@ -1322,19 +1337,22 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
             reportError $errorMsg
             return 1
          } else {
+            # remove last stack element to hide internal eval command
+            if {[string first {"eval $modcontent"} $::errorInfo end-18]\
+               != -1} {
+               set nbfiltend 1
+               set appendloc replace
+            } else {
+               set nbfiltend 0
+               set appendloc append
+            }
             # format stack trace depending on error knowledge
             if {[string equal -length 12 $errorCode MODULES_ERR_]} {
-               reportInternalBug $errorMsg $::ModulesCurrentModulefile
+               # only keep second to last element in stack to hide
+               # modulecmd.tcl internals
+               reportInternalBug [formatErrStackTrace $::errorInfo end-2\
+                  $nbfiltend $appendloc $::ModulesCurrentModulefile]
             } else {
-               # remove last stack element to hide internal eval command
-               if {[string first {"eval $modcontent"} $::errorInfo end-18]\
-                  != -1} {
-                  set nbfiltend 1
-                  set appendloc replace
-               } else {
-                  set nbfiltend 0
-                  set appendloc append
-               }
                reportInternalBug [formatErrStackTrace $::errorInfo 0\
                   $nbfiltend $appendloc $::ModulesCurrentModulefile]
             }
