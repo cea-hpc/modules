@@ -89,7 +89,13 @@ lappend ans [list setpath _LMFILES_ "$modulefile/cache"]
 test_cmd_re "csh" "load $module/cache" $ans
 
 # bad uname subcommand
-testouterr_cmd "csh" "load $module/unk" "ERR" [msg_load $module/unk "$moderr_msgs: uname unk not supported\nIn '$modulefile/unk'\n$err_contactns"]
+set custom {uname unk}
+if {[cmpversion $tclsh_version 8.6] == -1} {
+append custom {"
+    invoked from within
+"setenv testsuite "[uname unk]"}
+}
+testouterr_cmd "csh" "load $module/unk" "ERR" [msg_load $module/unk [msg_moderr {uname unk not supported} $custom $modulefile/unk 26]]
 
 # setup an empty path
 set ORIG_PATH $env(PATH)
@@ -125,6 +131,7 @@ if { $verbose > 0 } {
 set env(PATH) $ORIG_PATH
 unset ORIG_PATH
 
+unset custom
 unset ans
 
 unset modulefile

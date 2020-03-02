@@ -94,7 +94,7 @@ set modulefile "$modpath/$module"
 # different behavior than C-version: on Tcl-version removing a bare colon
 # to a path produces an error since this colon cannot be distinguished
 # from the colon used for path separator
-set ts_err "$moderr_msgs: unload-path cannot handle path equals to separator string\nIn '$modulefile'\n$err_contactns"
+set ts_err [msg_moderr {unload-path cannot handle path equals to separator string} "prepend-path\tPATH\t\t:" $modulefile 25]
 
 set ts_path ":"
 set new_path "$ts_path:$old_path"
@@ -151,7 +151,7 @@ test_cmd_re "ALL" "unload $module" $ans
 set module "prepend/0.3"
 set modulefile "$modpath/$module"
 setenv_loaded_module $module $modulefile
-set ts_err "$moderr_msgs: unload-path should get an environment variable name\nIn '$modulefile'\n$err_contactns"
+set ts_err [msg_moderr {unload-path should get an environment variable name} {prepend-path } $modulefile 24]
 testouterr_cmd "sh" "unload $module" "ERR" [msg_unload $module $ts_err]
 
 #
@@ -161,7 +161,7 @@ testouterr_cmd "sh" "unload $module" "ERR" [msg_unload $module $ts_err]
 set module "prepend/0.4"
 set modulefile "$modpath/$module"
 setenv_loaded_module $module $modulefile
-set ts_err "$moderr_msgs: unload-path should get a value for environment variable PATH\nIn '$modulefile'\n$err_contactns"
+set ts_err [msg_moderr {unload-path should get a value for environment variable PATH} {prepend-path PATH} $modulefile 24]
 testouterr_cmd "sh" "unload $module" "ERR" [msg_unload $module $ts_err]
 
 #
@@ -171,7 +171,7 @@ testouterr_cmd "sh" "unload $module" "ERR" [msg_unload $module $ts_err]
 set module "prepend/0.5"
 set modulefile "$modpath/$module"
 setenv_loaded_module $module $modulefile
-set ts_err "$moderr_msgs: unload-path should get a valid environment variable name\nIn '$modulefile'\n$err_contactns"
+set ts_err [msg_moderr {unload-path should get a valid environment variable name} {prepend-path {}} $modulefile 24]
 testouterr_cmd "sh" "unload $module" "ERR" [msg_unload $module $ts_err]
 
 #

@@ -66,7 +66,7 @@ test_cmd_re "ALL" "unload $module" $ans
 set module "prepend/1.3"
 set modulefile "$modpath/$module"
 setenv_loaded_module $module $modulefile
-set ts_err "$moderr_msgs: unload-path should get an environment variable name\nIn '$modulefile'\n$err_contactns"
+set ts_err [msg_moderr {unload-path should get an environment variable name} {prepend-path -d : } $modulefile 24]
 testouterr_cmd "sh" "unload $module" "ERR" [msg_unload $module $ts_err]
 
 #
@@ -76,7 +76,7 @@ testouterr_cmd "sh" "unload $module" "ERR" [msg_unload $module $ts_err]
 set module "prepend/1.4"
 set modulefile "$modpath/$module"
 setenv_loaded_module $module $modulefile
-set ts_err "$moderr_msgs: unload-path should get a value for environment variable PATH\nIn '$modulefile'\n$err_contactns"
+set ts_err [msg_moderr {unload-path should get a value for environment variable PATH} {prepend-path -d : PATH} $modulefile 24]
 testouterr_cmd "sh" "unload $module" "ERR" [msg_unload $module $ts_err]
 
 #
@@ -86,7 +86,7 @@ testouterr_cmd "sh" "unload $module" "ERR" [msg_unload $module $ts_err]
 set module "prepend/1.5"
 set modulefile "$modpath/$module"
 setenv_loaded_module $module $modulefile
-set ts_err "$moderr_msgs: unload-path should get a valid environment variable name\nIn '$modulefile'\n$err_contactns"
+set ts_err [msg_moderr {unload-path should get a valid environment variable name} {prepend-path -d : {}} $modulefile 24]
 testouterr_cmd "sh" "unload $module" "ERR" [msg_unload $module $ts_err]
 
 #
@@ -96,7 +96,7 @@ testouterr_cmd "sh" "unload $module" "ERR" [msg_unload $module $ts_err]
 set module "prepend/1.6"
 set modulefile "$modpath/$module"
 setenv_loaded_module $module $modulefile
-set ts_err "$moderr_msgs: unload-path should get a non-empty path delimiter\nIn '$modulefile'\n$err_contactns"
+set ts_err [msg_moderr {unload-path should get a non-empty path delimiter} {prepend-path --delim= PATH /path/to} $modulefile 24]
 testouterr_cmd "sh" "unload $module" "ERR" [msg_unload $module $ts_err]
 
 #
@@ -135,7 +135,7 @@ testouterr_cmd_re "sh" "unload $module" $ans ""
 set module prepend/8.0
 set modulefile $modpath/$module
 setenv_loaded_module $module $modulefile
-set ts_err "$moderr_msgs: invalid option '-delim=,' for unload-path\nIn '$modulefile'\n$err_contactns"
+set ts_err [msg_moderr {invalid option '-delim=,' for unload-path} {prepend-path -delim=, FOO bar} $modulefile 2]
 testouterr_cmd sh "unload $module" ERR [msg_unload $module $ts_err]
 
 #

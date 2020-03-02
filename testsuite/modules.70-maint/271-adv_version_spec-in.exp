@@ -742,9 +742,9 @@ unsetenv_loaded_module
 unsetenv_path_var MODULES_LMALTNAME
 
 # bad specification in modulefile
-testouterr_cmd sh {load --auto advvers5@2.0} ERR [msg_load advvers5/2.0 "$moderr_msgs: No module name defined in argument '@1,2'\nIn '$mp/advvers5/2.0'\n$err_contactns"]
-testouterr_cmd sh {load --auto advvers5@2.1} ERR [msg_load advvers5/2.1 "$moderr_msgs: No module name defined in argument '@1,2'\nIn '$mp/advvers5/2.1'\n$err_contactns"]
-testouterr_cmd sh {load --auto advvers5@2.2} ERR [msg_load advvers5/2.2 "$moderr_msgs: No module name defined in argument '@1,2'\nIn '$mp/advvers5/2.2'\n$err_contactns"]
+testouterr_cmd sh {load --auto advvers5@2.0} ERR [msg_load advvers5/2.0 [msg_moderr {No module name defined in argument '@1,2'} {prereq @1,2} $mp/advvers5/2.0 2]]
+testouterr_cmd sh {load --auto advvers5@2.1} ERR [msg_load advvers5/2.1 [msg_moderr {No module name defined in argument '@1,2'} {conflict @1,2} $mp/advvers5/2.1 2]]
+testouterr_cmd sh {load --auto advvers5@2.2} ERR [msg_load advvers5/2.2 [msg_moderr {No module name defined in argument '@1,2'} {is-loaded @1,2} $mp/advvers5/2.2 2]]
 
 # test other sub-cmd concerned by context
 setenv_loaded_module [list advvers5/3.0] [list $mp/advvers5/3.0]
@@ -768,12 +768,12 @@ lappend ans [list setpath MODULES_LMCONFLICT "advvers5/8.1.2&unknown @1.3.1,1.4.
 testouterr_cmd sh {load --auto advvers5@8.1.2} $ans {}
 
 # test mod@deep/vers
-testouterr_cmd sh {load --auto advvers5@8.2.1} ERR [msg_load advvers5/8.2.1 "Module $err_specvers'deep/1,deep/2'\nIn '$mp/advvers5/8.2.1'\n$err_contactns"]
-testouterr_cmd sh {load --auto advvers5@8.2.2} ERR [msg_load advvers5/8.2.2 "Module $err_specvers'deep/1,deep/2'\nIn '$mp/advvers5/8.2.2'\n$err_contactns"]
+testouterr_cmd sh {load --auto advvers5@8.2.1} ERR [msg_load advvers5/8.2.1 [msg_moderr {Invalid version specifier 'deep/1,deep/2'} {prereq advvers@deep/1,deep/2} $mp/advvers5/8.2.1 2]]
+testouterr_cmd sh {load --auto advvers5@8.2.2} ERR [msg_load advvers5/8.2.2 [msg_moderr {Invalid version specifier 'deep/1,deep/2'} {conflict advvers @deep/1,deep/2} $mp/advvers5/8.2.2 2]]
 
 setenv_loaded_module [list advvers/deep/1/1.2] [list $mp/advvers/deep/1/1.2]
-testouterr_cmd sh {load --auto advvers5@8.2.1} ERR [msg_load advvers5/8.2.1 "Module $err_specvers'deep/1,deep/2'\nIn '$mp/advvers5/8.2.1'\n$err_contactns"]
-testouterr_cmd sh {load --auto advvers5@8.2.2} ERR [msg_load advvers5/8.2.2 "Module $err_specvers'deep/1,deep/2'\nIn '$mp/advvers5/8.2.2'\n$err_contactns"]
+testouterr_cmd sh {load --auto advvers5@8.2.1} ERR [msg_load advvers5/8.2.1 [msg_moderr {Invalid version specifier 'deep/1,deep/2'} {prereq advvers@deep/1,deep/2} $mp/advvers5/8.2.1 2]]
+testouterr_cmd sh {load --auto advvers5@8.2.2} ERR [msg_load advvers5/8.2.2 [msg_moderr {Invalid version specifier 'deep/1,deep/2'} {conflict advvers @deep/1,deep/2} $mp/advvers5/8.2.2 2]]
 unsetenv_loaded_module
 
 # test mod@vers where a modulefile mod@vers exist

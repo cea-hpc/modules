@@ -81,16 +81,23 @@ testouterr_cmd_re "ALL" "display $module" $ans "$modlin\n$modulefilere:\n\nseten
 #  The tests with bad puts statements
 #
 
-set wrongarg_msg "$moderr_msgs: wrong # args: should be \"puts ?-nonewline? ?channelId? string\""
-set wrongarg_msg_re "$moderr_msgs: wrong # args: should be \"puts \\?-nonewline\\? \\?channelId\\? string\""
+set custom {puts foo bar bad args}
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    append custom "\"
+    invoked from within
+\"if \{\[module-info mode \"load\"\] || \[module-info mode \"display\"\]\} \{
+    puts foo bar bad args
+\}"
+    set linenum 27
+} else {
+    set linenum 28
+}
 
 set module "puts/3"
 set modulefile "$modpath/$module"
 set modulefilere "$modpathre/$module"
-set bad_puts "$wrongarg_msg\nIn '$modulefile'\n$err_contactns"
-set bad_putsdi "$wrongarg_msg_re
-  In '$modulefilere'
-$err_contact"
+set bad_puts [msg_moderr {wrong # args: should be "puts ?-nonewline? ?channelId? string"} $custom $modulefile $linenum]
+set bad_putsdi [escre [msg_moderr {wrong # args: should be "puts ?-nonewline? ?channelId? string"} $custom $modulefile $linenum {  }]]
 
 # test loading
 testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $bad_puts]
@@ -98,14 +105,24 @@ testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $bad_puts]
 # test displaying
 testouterr_cmd_re "sh" "display $module" "ERR" "$modlin\n$modulefilere:\n\n$bad_putsdi\n$modlin"
 
+
+set custom {puts foo bar}
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    append custom "\"
+    invoked from within
+\"if \{\[module-info mode \"load\"\] || \[module-info mode \"display\"\]\} \{
+    puts foo bar
+\}"
+    set linenum 27
+} else {
+    set linenum 28
+}
 
 set module "puts/4"
 set modulefile "$modpath/$module"
 set modulefilere "$modpathre/$module"
-set bad_puts "$moderr_msgs: can not find channel named \"foo\"\nIn '$modulefile'\n$err_contactns"
-set bad_putsdi "$moderr_msgs: can not find channel named \"foo\"
-  In '$modulefilere'
-$err_contact"
+set bad_puts [msg_moderr {can not find channel named "foo"} $custom $modulefile $linenum]
+set bad_putsdi [escre [msg_moderr {can not find channel named "foo"} $custom $modulefile $linenum {  }]]
 
 # test loading
 testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $bad_puts]
@@ -113,14 +130,24 @@ testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $bad_puts]
 # test displaying
 testouterr_cmd_re "sh" "display $module" "ERR" "$modlin\n$modulefilere:\n\n$bad_putsdi\n$modlin"
 
+
+set custom {puts -nonewline foo bar}
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    append custom "\"
+    invoked from within
+\"if \{\[module-info mode \"load\"\] || \[module-info mode \"display\"\]\} \{
+    puts -nonewline foo bar
+\}"
+    set linenum 27
+} else {
+    set linenum 28
+}
 
 set module "puts/5"
 set modulefile "$modpath/$module"
 set modulefilere "$modpathre/$module"
-set bad_puts "$moderr_msgs: can not find channel named \"foo\"\nIn '$modulefile'\n$err_contactns"
-set bad_putsdi "$moderr_msgs: can not find channel named \"foo\"
-  In '$modulefilere'
-$err_contact"
+set bad_puts [msg_moderr {can not find channel named "foo"} $custom $modulefile $linenum]
+set bad_putsdi [escre [msg_moderr {can not find channel named "foo"} $custom $modulefile $linenum {  }]]
 
 # test loading
 testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $bad_puts]
@@ -128,14 +155,24 @@ testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $bad_puts]
 # test displaying
 testouterr_cmd_re "sh" "display $module" "ERR" "$modlin\n$modulefilere:\n\n$bad_putsdi\n$modlin"
 
+
+set custom {puts}
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    append custom "\"
+    invoked from within
+\"if \{\[module-info mode \"load\"\] || \[module-info mode \"display\"\]\} \{
+    puts
+\}"
+    set linenum 27
+} else {
+    set linenum 28
+}
 
 set module "puts/6"
 set modulefile "$modpath/$module"
 set modulefilere "$modpathre/$module"
-set bad_puts "$wrongarg_msg\nIn '$modulefile'\n$err_contactns"
-set bad_putsdi "$wrongarg_msg_re
-  In '$modulefilere'
-$err_contact"
+set bad_puts [msg_moderr {wrong # args: should be "puts ?-nonewline? ?channelId? string"} $custom $modulefile $linenum]
+set bad_putsdi [escre [msg_moderr {wrong # args: should be "puts ?-nonewline? ?channelId? string"} $custom $modulefile $linenum {  }]]
 
 # test loading
 testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $bad_puts]
@@ -144,13 +181,23 @@ testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $bad_puts]
 testouterr_cmd_re "sh" "display $module" "ERR" "$modlin\n$modulefilere:\n\n$bad_putsdi\n$modlin"
 
 
+set custom {puts -badarg stdbad texterr2}
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    append custom "\"
+    invoked from within
+\"if \{\[module-info mode \"load\"\] || \[module-info mode \"display\"\]\} \{
+    puts -badarg stdbad texterr2
+\}"
+    set linenum 27
+} else {
+    set linenum 28
+}
+
 set module "puts/7"
 set modulefile "$modpath/$module"
 set modulefilere "$modpathre/$module"
-set bad_puts "$wrongarg_msg\nIn '$modulefile'\n$err_contactns"
-set bad_putsdi "$wrongarg_msg_re
-  In '$modulefilere'
-$err_contact"
+set bad_puts [msg_moderr {wrong # args: should be "puts ?-nonewline? ?channelId? string"} $custom $modulefile $linenum]
+set bad_putsdi [escre [msg_moderr {wrong # args: should be "puts ?-nonewline? ?channelId? string"} $custom $modulefile $linenum {  }]]
 
 # test loading
 testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $bad_puts]
@@ -219,6 +266,8 @@ unset ans
 
 unset tserr
 
+unset custom
+unset linenum
 unset bad_puts
 unset bad_putsdi
 
@@ -227,6 +276,3 @@ unset fname
 unset module
 unset modulefile
 unset modulefilere
-
-unset wrongarg_msg
-unset wrongarg_msg_re

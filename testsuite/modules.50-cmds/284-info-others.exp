@@ -37,8 +37,6 @@ set modulefilere "$modpathre/$module"
 
 set trace_msg "trace: "
 set tracepat_msg "tracepat: "
-set bad_msg "$moderr_msgs: module-info bad not supported\nIn '$modulefile'\n$err_contactns"
-set bad_msgre "$moderr_msgs: module-info bad not supported\n  In '$modulefilere'\n$err_contact"
 
 
 #
@@ -46,16 +44,32 @@ set bad_msgre "$moderr_msgs: module-info bad not supported\n  In '$modulefilere'
 #
 
 # test loading
+set custom {module-info bad}
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    append custom "\"
+    invoked from within
+\"if \{ \[module-info mode load\] \} \{
+    puts stderr \"trace: \[module-info trace\]\"
+    puts stderr \"tracepat: \[module-info tracepat\]\"
+    puts stderr \"\[mod..."
+    set linenum 47
+} else {
+    set linenum 50
+}
+set bad_msg [msg_moderr {module-info bad not supported} $custom $modulefile $linenum]
 testouterr_cmd "sh" "load $module" "ERR" $trace_msg\n$tracepat_msg\n\n[msg_load $module $bad_msg]
 
 # test displaying
-testouterr_cmd_re "sh" "display $module" "ERR" "$modlin\n$modulefilere:\n\n$trace_msg\n$tracepat_msg\n$bad_msgre\n$modlin"
+set bad_msg [escre [msg_moderr {module-info bad not supported} {module-info bad} $modulefile 4 {  } ModulesDisplay]]
+testouterr_cmd_re "sh" "display $module" "ERR" "$modlin\n$modulefilere:\n\n$trace_msg\n$tracepat_msg\n$bad_msg\n$modlin"
 
 # test help
-testouterr_cmd_re "sh" "help $module" "ERR" "$modlin\nModule Specific Help for $modulefilere:\n\n$trace_msg\n$tracepat_msg\n$bad_msgre\n$modlin"
+set bad_msg [escre [msg_moderr {module-info bad not supported} {module-info bad} $modulefile 4 {  } ModulesHelp]]
+testouterr_cmd_re "sh" "help $module" "ERR" "$modlin\nModule Specific Help for $modulefilere:\n\n$trace_msg\n$tracepat_msg\n$bad_msg\n$modlin"
 
 # test test
-testouterr_cmd_re "sh" "test $module" "ERR" "$modlin\nModule Specific Test for $modulefilere:\n\n$trace_msg\n$tracepat_msg\n$bad_msgre\n$modlin"
+set bad_msg [escre [msg_moderr {module-info bad not supported} {module-info bad} $modulefile 4 {  } ModulesTest]]
+testouterr_cmd_re "sh" "test $module" "ERR" "$modlin\nModule Specific Test for $modulefilere:\n\n$trace_msg\n$tracepat_msg\n$bad_msg\n$modlin"
 
 
 #
@@ -69,4 +83,4 @@ unset module
 unset trace_msg
 unset tracepat_msg
 unset bad_msg
-unset bad_msgre
+unset custom
