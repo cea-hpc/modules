@@ -38,13 +38,30 @@ if { $verbose > 0 } {
 }
 set env(MODULECONTACT) $contact
 
+if {[cmpversion $tclsh_version 8.5] == -1} {
+    set custom {    (procedure "ModulesDisplay" line 2)
+    invoked from within
+"ModulesDisplay"
+    ("display" arm line 3)
+    invoked from within
+"switch -- [module-info mode] \{
+            help \{
+               if \{[info procs ModulesHelp] eq \{ModulesHelp\}\} \{
+                  ModulesHelp
+      ..."}
+} else {
+    set custom {    (procedure "ModulesDisplay" line 2)
+    invoked from within
+"ModulesDisplay"}
+}
+
 set module "bad2"
 set out_interr "$modlin
 $modpathre/$module/proc:
 
 setenv\t\ttestsuite yes
 module-whatis\t{erroneous module test}
-[escre [msg_moderr {invalid command name "bad-command"} bad-command $modpath/$module/proc 2 {  } ModulesDisplay $contact]]
+[escre [msg_moderr {invalid command name "bad-command"} bad-command $modpath/$module/proc {} {  } {} $contact $custom]]
 $modlin"
 
 
@@ -64,5 +81,7 @@ unsetenv_var MODULES_IMPLICIT_DEFAULT
 unset out_interr
 unset module
 unset contact
+
+unset custom
 
 }

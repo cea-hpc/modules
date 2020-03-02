@@ -61,9 +61,18 @@ lappend ans [list ERR]
 testouterr_cmd sh {load foo/1} $ans "$error_msgs: Invalid modulename '/1' found\n$error_msgs: Invalid modulename '/2' found\n$error_msgs: Invalid modulename '/3' found"
 
 # test badly written modulepath rc file
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom "    invoked from within
+\"if {\[info exists ::env(TS_BAD_COMMAND_TEST)\]} {
+    badcommand
+}\""
+    set tserr [msg_moderr {invalid command name "badcommand"} {badcommand} $mp/.modulerc 4 {  } {} {} $custom]
+} else {
+    set tserr [msg_moderr {invalid command name "badcommand"} {badcommand} $mp/.modulerc 5 {  }]
+}
 unsetenv_var TS_BAD_SHORTHAND_VERSION
 setenv_var TS_BAD_COMMAND_TEST 1
-testouterr_cmd sh {load bar/top} ERR [msg_moderr {invalid command name "badcommand"} {badcommand} $mp/.modulerc 5 {  }]\n$err_path'bar/top'
+testouterr_cmd sh {load bar/top} ERR $tserr\n$err_path'bar/top'
 
 
 #
@@ -76,4 +85,5 @@ setenv_path_var MODULEPATH $modpath
 
 unset ans
 unset mp
-
+unset tserr
+unset custom

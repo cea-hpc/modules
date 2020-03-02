@@ -75,6 +75,22 @@ Module Specific Help for $modpathre/$module_2/before:
 [escre [msg_moderr {invalid command name "bad-command"} bad-command $modpath/$module_2/before 26 {  }]]
 $modlin"
 
+if {[cmpversion $tclsh_version 8.5] == -1} {
+    set custom {    (procedure "ModulesHelp" line 2)
+    invoked from within
+"ModulesHelp"
+    ("help" arm line 3)
+    invoked from within
+"switch -- [module-info mode] \{
+            help \{
+               if \{[info procs ModulesHelp] eq \{ModulesHelp\}\} \{
+                  ModulesHelp
+      ..."}
+} else {
+    set custom {    (procedure "ModulesHelp" line 2)
+    invoked from within
+"ModulesHelp"}
+}
 set module_3 "bad2"
 set modulefile_3 "$modpath/$module_3/proc"
 set modulefile_3_reld "$reldmodpath/$module_3/proc"
@@ -82,7 +98,7 @@ set modulefile_3_reldd "$relddmodpath/$module_3/proc"
 set out_interr_3 "$modlin
 Module Specific Help for $modpathre/$module_3/proc:
 
-[escre [msg_moderr {invalid command name "bad-command"} bad-command $modpath/$module_3/proc 2 {  } ModulesHelp]]
+[escre [msg_moderr {invalid command name "bad-command"} bad-command $modpath/$module_3/proc {} {  } {} {} $custom]]
 $modlin"
 
 set module_4 "NonExistant"
@@ -155,5 +171,7 @@ unset out_interr_3
 
 unset module_4
 unset out_err_4
+
+unset custom
 
 }

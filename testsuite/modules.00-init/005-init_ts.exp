@@ -512,7 +512,32 @@ set domainname_warn "$error_msgs: Command 'domainname' cannot be found"
 
 # escape regexp chars in string
 proc escre {str} {
-    return [regsub -all "\(\[().+?\]\)" $str {\\\1}]
+    return [regsub -all {([.?()+\[\]])} $str {\\\1}]
+}
+
+# Dictionary-style string comparison
+# Use dictionary sort of lsort proc to compare two strings in the "string
+# compare" fashion (returning -1, 0 or 1). Tcl dictionary-style comparison
+# enables to compare software versions (ex: "1.10" is greater than "1.8")
+proc cmpversion {str1 str2} {
+   if {$str1 eq $str2} {
+      return 0
+   # put both strings in a list, then lsort it and get first element
+   } elseif {[lindex [lsort -dictionary [list $str1 $str2]] 0] eq $str1} {
+      return -1
+   } else {
+      return 1
+   }
+}
+
+# fetch tclsh version used to adapt tests producing different output depending on this version
+default_tclsh
+catch {set tclsh_version [exec $TCLSH << {puts [info tclversion]}]} errMsg
+if {[info exists tclsh_version]} {
+    send_user "\ttclsh version is $tclsh_version\n"
+} else {
+    set tclsh_version 8.6
+    send_user "\tFail to detect tclsh version. Fallback to $tclsh_version version\n$errMsg"
 }
 
 #

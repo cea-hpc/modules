@@ -149,12 +149,29 @@ module-version\tfoo foo bar blah
 module-whatis\t{Some checks for TEST and DISPLAY}
 $modlin"
 
+
+if {[cmpversion $tclsh_version 8.5] == -1} {
+    set custom {    (procedure "ModulesDisplay" line 2)
+    invoked from within
+"ModulesDisplay"
+    ("display" arm line 3)
+    invoked from within
+"switch -- [module-info mode] \{
+            help \{
+               if \{[info procs ModulesHelp] eq \{ModulesHelp\}\} \{
+                  ModulesHelp
+      ..."}
+} else {
+    set custom {    (procedure "ModulesDisplay" line 2)
+    invoked from within
+"ModulesDisplay"}
+}
 set out_interr_5 "$modlin
 $modpathre/$module_5/proc:
 
 setenv\t\ttestsuite yes
 module-whatis\t{erroneous module test}
-[escre [msg_moderr {invalid command name "bad-command"} bad-command $modpath/$module_5/proc 2 {  } ModulesDisplay]]
+[escre [msg_moderr {invalid command name "bad-command"} bad-command $modpath/$module_5/proc {} {  } {} {} $custom]]
 $modlin"
 
 set out_err_6 "------------------------------------------------------------
@@ -284,6 +301,7 @@ unset out_debug_pat
 unset out_pat_4
 unset out_interr_5
 unset out_err_6
+unset custom
 
 unset module_1
 unset modulefile_1
