@@ -1446,19 +1446,21 @@ proc execute-modulerc {modfile modname modspec} {
       }
       info script $::ModulesCurrentModulefile
       if [catch {eval $modcontent} errorMsg] {
+         # remove last stack element to hide internal eval command
+         if {[string first {"eval $modcontent"} $::errorInfo end-18] != -1} {
+            set nbfiltend 1
+            set appendloc replace
+         } else {
+            set nbfiltend 0
+            set appendloc append
+         }
          # format stack trace depending on error knowledge
          if {[string equal -length 12 $errorCode MODULES_ERR_]} {
-            reportInternalBug $errorMsg $::ModulesCurrentModulefile
+            # only keep second to last element in stack to hide
+            # modulecmd.tcl internals
+            reportInternalBug [formatErrStackTrace $::errorInfo end-2\
+               $nbfiltend $appendloc $::ModulesCurrentModulefile]
          } else {
-            # remove last stack element to hide internal eval command
-            if {[string first {"eval $modcontent"} $::errorInfo end-18]\
-               != -1} {
-               set nbfiltend 1
-               set appendloc replace
-            } else {
-               set nbfiltend 0
-               set appendloc append
-            }
             reportInternalBug [formatErrStackTrace $::errorInfo 0\
                $nbfiltend $appendloc $::ModulesCurrentModulefile]
          }
