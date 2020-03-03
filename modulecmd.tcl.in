@@ -157,8 +157,7 @@ proc sourceSiteConfig {} {
          if {[catch {uplevel 1 source $siteconfig} errMsg]} {
             set errMsg "Site configuration source failed\n"
             # issue line number is lost due to uplevel use
-            append errMsg [formatErrStackTrace $::errorInfo 0 3 append\
-               $siteconfig]
+            append errMsg [formatErrStackTrace $::errorInfo $siteconfig {} 3]
             reportErrorAndExit $errMsg
          }
          if {$siteconfig eq [getConf siteconfig]} {
@@ -716,46 +715,70 @@ proc recordMessage {message {recordtop 0}} {
 }
 
 # filter and format error stack trace to only report useful content
-proc formatErrStackTrace {errmsg nbfiltstart nbfiltend appendloc loc} {
+proc formatErrStackTrace {errmsg loc {cmdlist {}} {nbfiltend 0}} {
    set headstr "\n    while executing\n"
    set splitstr "\n    invoked from within\n"
    set splitstrlen [string length $splitstr]
    set aftheadidx [expr {[string length $headstr] + [string first $headstr\
       $errmsg]}]
 
-   # convert idx into number of element of filter
-   if {[string equal -length 4 $nbfiltstart end-]} {
-      # count number of elements in error message
-      set splitidx 0
-      set msgnbelt 1
-      while {$splitidx != -1} {
-         if {[set splitidx [string first $splitstr $errmsg $splitidx]] != -1} {
-            incr splitidx
-            incr msgnbelt
-         }
-      }
-      set nbfiltstart [expr {$msgnbelt - [string range $nbfiltstart 4 end]}]
+   # get name of invalid command name to maintain it in error stack trace
+   if {[string equal -length 22 {invalid command name "} $errmsg]} {
+      set unkcmd [lindex [split [string range $errmsg 0 $aftheadidx] {"}] 1]
+   } else {
+      set unkcmd {}
    }
 
-   # filter beginning of stack
-   for {set i 0} {$i < $nbfiltstart} {incr i} {
-      set errmsg [string replace $errmsg $aftheadidx [expr {[string first\
-         $splitstr $errmsg] + $splitstrlen - 1}]]
+   # get list of modulecmd.tcl internal procedure to filter out from stack
+   lassign [getDiffBetweenList [concat [info commands] [info procs]]\
+      $cmdlist] filtercmdlist keepcmdlist
+
+   # filter out modulecmd internal references at beginning of stack
+   set internals 1
+   while {$internals} {
+      # fetch erroneous command and its caller
+      set stackelt [string range $errmsg $aftheadidx [string first\
+         $splitstr $errmsg $aftheadidx]]
+      lassign [split [lindex [split $stackelt {"}] 1]] cmd1 cmd2
+      set cmdcaller [lindex [split [string range $stackelt [string last\
+         {(procedure } $stackelt] end] {"}] 1]
+      if {$cmd1 eq {eval}} {
+         set cmd1 $cmd2
+      }
+
+      # filter out stack element refering to or called by an unknown procedure
+      # (ie. a modulecmd.tcl internal procedure)
+      if {[string index $cmd1 0] ne {$} && $cmd1 ne $unkcmd && ([isInList\
+         $filtercmdlist $cmdcaller] || [isInList $filtercmdlist $cmd1])} {
+         set errmsg [string replace $errmsg $aftheadidx [expr {[string first\
+            $splitstr $errmsg] + $splitstrlen - 1}]]
+      } else {
+         set internals 0
+      }
    }
+
    # filter end of stack
    for {set i 0} {$i < $nbfiltend} {incr i} {
       set errmsg [string replace $errmsg [string last $splitstr\
          $errmsg] end]
    }
-   # replace error location at end of stack
-   if {$appendloc eq {replace}} {
-      set lastnl [string last "\n" $errmsg]
+
+   # filter out modulecmd internal references at end of stack
+   set beffootidx [string last $splitstr $errmsg]
+   set stackelt [string range $errmsg $beffootidx end]
+   set cmd [lindex [split $stackelt {"}] 1]
+
+   if {$cmd eq {eval $modcontent}} {
+      set errmsg [string replace $errmsg $beffootidx end]
+      # replace error location at end of stack
+      set lastnl [string last \n $errmsg]
       set errmsg [string replace $errmsg $lastnl [expr {$lastnl + [string\
          length "    (\"eval\" body line"]}] "\n    (file \"$loc\" line"]
-   # add error location at end of stack
    } else {
+      # add error location at end of stack
       append errmsg "\n    (file \"$loc\")"
    }
+
    return $errmsg
 }
 
@@ -1337,25 +1360,10 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
             reportError $errorMsg
             return 1
          } else {
-            # remove last stack element to hide internal eval command
-            if {[string first {"eval $modcontent"} $::errorInfo end-18]\
-               != -1} {
-               set nbfiltend 1
-               set appendloc replace
-            } else {
-               set nbfiltend 0
-               set appendloc append
-            }
-            # format stack trace depending on error knowledge
-            if {[string equal -length 12 $errorCode MODULES_ERR_]} {
-               # only keep second to last element in stack to hide
-               # modulecmd.tcl internals
-               reportInternalBug [formatErrStackTrace $::errorInfo end-2\
-                  $nbfiltend $appendloc $::ModulesCurrentModulefile]
-            } else {
-               reportInternalBug [formatErrStackTrace $::errorInfo 0\
-                  $nbfiltend $appendloc $::ModulesCurrentModulefile]
-            }
+            # format stack trace to report modulefile information only
+            reportInternalBug [formatErrStackTrace $::errorInfo\
+               $::ModulesCurrentModulefile [concat [info procs] [info\
+               commands]]]
             return 1
          }
       } else {
@@ -1446,24 +1454,9 @@ proc execute-modulerc {modfile modname modspec} {
       }
       info script $::ModulesCurrentModulefile
       if [catch {eval $modcontent} errorMsg] {
-         # remove last stack element to hide internal eval command
-         if {[string first {"eval $modcontent"} $::errorInfo end-18] != -1} {
-            set nbfiltend 1
-            set appendloc replace
-         } else {
-            set nbfiltend 0
-            set appendloc append
-         }
-         # format stack trace depending on error knowledge
-         if {[string equal -length 12 $errorCode MODULES_ERR_]} {
-            # only keep second to last element in stack to hide
-            # modulecmd.tcl internals
-            reportInternalBug [formatErrStackTrace $::errorInfo end-2\
-               $nbfiltend $appendloc $::ModulesCurrentModulefile]
-         } else {
-            reportInternalBug [formatErrStackTrace $::errorInfo 0\
-               $nbfiltend $appendloc $::ModulesCurrentModulefile]
-         }
+         # format stack trace to report modulerc information only
+         reportInternalBug [formatErrStackTrace $::errorInfo\
+            $::ModulesCurrentModulefile [concat [info procs] [info commands]]]
          return 1
       } else {
          # pass ModulesVersion value to master interp
