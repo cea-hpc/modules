@@ -57,7 +57,18 @@ lappend ans [list setpath _LMFILES_ $modulefile3]
 testouterr_cmd_re "sh" "load $module3" $ans ""
 
 # test empty file name
-set errsource [msg_moderr {File name empty} {module source {}} $modulefile4 27]
+if {[cmpversion $tclsh_version 8.5] == -1} {
+    set custom "switch -- \$command \{
+      load \{
+         # ignore flag used in collection to track non-user asked state
+         set args \[replaceFromList \$args --n...\"
+    (procedure \"module\" line 104)
+    invoked from within
+\"module source \{\}"
+} else {
+    set custom {module source {}}
+}
+set errsource [msg_moderr {File name empty} $custom $modulefile4 27]
 testouterr_cmd "sh" "load $module4" "ERR" [msg_load $module4 $errsource]
 
 # display test
@@ -103,11 +114,33 @@ testouterr_cmd_re "sh" "unload $module3" $ans ""
 # test empty file name
 setenv_loaded_module $module4 $modulefile4
 
-set errsource [msg_moderr {File name empty} {module source {}} $modulefile4 27]
+if {[cmpversion $tclsh_version 8.5] == -1} {
+    set custom "switch -- \$command \{
+      load \{
+         # ignore flag used in collection to track non-user asked state
+         set args \[replaceFromList \$args --n...\"
+    (procedure \"module\" line 104)
+    invoked from within
+\"module source \{\}"
+} else {
+    set custom {module source {}}
+}
+set errsource [msg_moderr {File name empty} $custom $modulefile4 27]
 testouterr_cmd "sh" "unload $module4" "ERR" [msg_unload $module4 $errsource]
 
 # load test with source command targeting bad file
-set errsource [msg_moderr {File unknown/1.0 does not exist} {module source unknown/1.0} $modulefile2 27]
+if {[cmpversion $tclsh_version 8.5] == -1} {
+    set custom "switch -- \$command \{
+      load \{
+         # ignore flag used in collection to track non-user asked state
+         set args \[replaceFromList \$args --n...\"
+    (procedure \"module\" line 104)
+    invoked from within
+\"module source unknown/1.0"
+} else {
+    set custom {module source unknown/1.0}
+}
+set errsource [msg_moderr {File unknown/1.0 does not exist} $custom $modulefile2 27]
 testouterr_cmd "sh" "load $module2" "ERR" [msg_load $module2 $errsource]
 
 # unload test with bad sourced file
@@ -132,6 +165,7 @@ unset path
 unset pathnew
 unset dispout
 unset errsource
+unset custom
 unset modulefile
 unset modulefilere
 unset module

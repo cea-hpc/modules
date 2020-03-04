@@ -21,6 +21,17 @@
 #
 ##############################################################################
 
+
+if {[cmpversion $tclsh_version 8.5] == -1} {
+    set custom "switch -- \$command \{
+         path - paths - autoinit - help - prepend-path - append-path - remove-path - is-loaded - is-saved - is-used - is-avail - ...\"
+    (procedure \"module\" line 36)
+    invoked from within
+\""
+} else {
+    set custom {}
+}
+
 foreach subcmd [list append-path prepend-path remove-path autoinit help is-loaded is-saved is-used is-avail path paths info-loaded clear config] {
     set module "modbad/$subcmd"
     set modulefile "$modpath/$module"
@@ -37,7 +48,11 @@ foreach subcmd [list append-path prepend-path remove-path autoinit help is-loade
             set subcmdargs ""
         }
     }
-    set moderr [msg_moderr "module: Command '$subcmd' not supported" "module $subcmd$subcmdargs" $modulefile 27]
+    if {$subcmd eq {config}} {
+        set moderr [msg_moderr "module: Command '$subcmd' not supported" "module $subcmd$subcmdargs" $modulefile 27]
+    } else {
+        set moderr [msg_moderr "module: Command '$subcmd' not supported" "${custom}module $subcmd$subcmdargs" $modulefile 27]
+    }
 
     testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $moderr]
     # no subcommand check on display, so no error
@@ -55,8 +70,7 @@ testouterr_cmd_re "sh" "display $module" "OK" "$modlin\n$modulefilere:\n\nmodule
 set module "modbad/empty"
 set modulefile "$modpath/$module"
 set modulefilere "$modpathre/$module"
-set moderr "$moderr_msgs: module: Command 'help' not supported\nIn '$modulefile'\n$err_contactns"
-set moderr [msg_moderr {module: Command 'help' not supported} {module {}} $modulefile 27]
+set moderr [msg_moderr {module: Command 'help' not supported} "${custom}module {}" $modulefile 27]
 
 testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $moderr]
 testouterr_cmd_re "sh" "display $module" "OK" "$modlin\n$modulefilere:\n\nmodule\t\t{}\nmodule\t\thelp\n$modlin"
