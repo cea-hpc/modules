@@ -183,10 +183,12 @@ do
         fi
       fi
     else
-      #Unhandled
-      echo "Unhandled change of $key" 1>&2
-      echo "Before <${env1[$key]}>" 1>&2
-      echo "After  <${env2[$key]}>" 1>&2
+      if [ -n "$prefix" ]
+      then
+        echo -e "setenv\t\t${key}\t${env2[$key]}" | sed -e s,$prefix,\$prefix,g
+      else
+        echo -e "setenv\t\t${key}\t${env2[$key]}"
+      fi
     fi
   fi
   #Delete keys we have handled
