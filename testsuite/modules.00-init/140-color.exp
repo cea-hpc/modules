@@ -335,8 +335,7 @@ lappend tserr "$error_msgs: Site configuration source failed"
 lappend tserr {  invalid command name "unk_foo"}
 lappend tserr {      while executing}
 lappend tserr {  "unk_foo"}
-if {[info exists env(COVERAGE)]} {
-    lappend tserr "      invoked from within
+lappend tserr "      invoked from within
   \"if {\\\[info exists env\\(TESTSUITE_ENABLE_SITECONFIG\\)\\\]} \{
   
   # force stderr terminal attachement state
@@ -345,12 +344,16 @@ if {[info exists env(COVERAGE)]} {
   }
   
   # enable debug m...\"
-      \\(file \"$siteconfig_file\" line 2\\)
-      invoked from within
+      \\(file \"$siteconfig_file\" line 2\\)"
+if {[info exists env(COVERAGE)]} {
+    lappend tserr "      invoked from within
   \"::_instrument_::source $siteconfig_file\"
-      \\(\"uplevel\" body line 1\\)"
+      \\(\"uplevel\" body line 1\\)
+      invoked from within
+  \"uplevel 1 \\\$args\"
+      \\(procedure \"source\" line 16\\)
+      \\(file \"$siteconfig_file\"\\)"
 }
-lappend tserr "      \\(file \"$siteconfig_file\"\\)"
 colorset_test_case {--color -V} [list er $error_msgs] [join $tserr \n]
 unsetenv_var TESTSUITE_ENABLE_SITECONFIG_BROKEN
 }
