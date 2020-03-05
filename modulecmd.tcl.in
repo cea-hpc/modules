@@ -157,7 +157,7 @@ proc sourceSiteConfig {} {
          if {[catch {uplevel 1 source $siteconfig} errMsg]} {
             set errMsg "Site configuration source failed\n"
             # issue line number is lost due to uplevel use
-            append errMsg [formatErrStackTrace $::errorInfo $siteconfig {} 3]
+            append errMsg [formatErrStackTrace $::errorInfo $siteconfig {}]
             reportErrorAndExit $errMsg
          }
          if {$siteconfig eq [getConf siteconfig]} {
@@ -715,7 +715,7 @@ proc recordMessage {message {recordtop 0}} {
 }
 
 # filter and format error stack trace to only report useful content
-proc formatErrStackTrace {errmsg loc {cmdlist {}} {nbfiltend 0}} {
+proc formatErrStackTrace {errmsg loc {cmdlist {}}} {
    set headstr "\n    while executing\n"
    set splitstr "\n    invoked from within\n"
    set splitstrlen [string length $splitstr]
@@ -730,8 +730,17 @@ proc formatErrStackTrace {errmsg loc {cmdlist {}} {nbfiltend 0}} {
    }
 
    # get list of modulecmd.tcl internal procedure to filter out from stack
-   lassign [getDiffBetweenList [concat [info commands] [info procs]]\
-      $cmdlist] filtercmdlist keepcmdlist
+   # skip this when no interp command list is provided
+   if {[llength $cmdlist] > 0} {
+      lassign [getDiffBetweenList [concat [info commands] [info procs]]\
+         $cmdlist] filtercmdlist keepcmdlist
+   } else {
+      set filtercmdlist {}
+   }
+
+   # define commands to filter out from bottom of stack
+   set filtercmdendlist [list {eval $modcontent} "source $loc" {uplevel 1\
+      source $siteconfig}]
 
    # filter out modulecmd internal references at beginning of stack
    set internals 1
@@ -757,24 +766,27 @@ proc formatErrStackTrace {errmsg loc {cmdlist {}} {nbfiltend 0}} {
       }
    }
 
-   # filter end of stack
-   for {set i 0} {$i < $nbfiltend} {incr i} {
-      set errmsg [string replace $errmsg [string last $splitstr\
-         $errmsg] end]
+   # filter out modulecmd internal references at end of stack
+   set internals 1
+   while {$internals} {
+      set beffootidx [string last $splitstr $errmsg]
+      set stackelt [string range $errmsg $beffootidx end]
+      set cmd [lindex [split $stackelt {"}] 1]
+
+      if {[isInList $filtercmdendlist $cmd]} {
+         set errmsg [string replace $errmsg $beffootidx end]
+      } else {
+         set internals 0
+      }
    }
 
-   # filter out modulecmd internal references at end of stack
-   set beffootidx [string last $splitstr $errmsg]
-   set stackelt [string range $errmsg $beffootidx end]
-   set cmd [lindex [split $stackelt {"}] 1]
-
-   if {$cmd eq {eval $modcontent}} {
-      set errmsg [string replace $errmsg $beffootidx end]
-      # replace error location at end of stack
-      set lastnl [string last \n $errmsg]
+   # replace error location at end of stack
+   set lastnl [string last \n $errmsg]
+   set lastline [string range $errmsg [expr {$lastnl + 1}] end]
+   if {[string match {    ("eval" body line*} $lastline]} {
       set errmsg [string replace $errmsg $lastnl [expr {$lastnl + [string\
          length "    (\"eval\" body line"]}] "\n    (file \"$loc\" line"]
-   } else {
+   } elseif {![string match {    (file *} $lastline]} {
       # add error location at end of stack
       append errmsg "\n    (file \"$loc\")"
    }
