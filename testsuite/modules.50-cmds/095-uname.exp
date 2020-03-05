@@ -96,17 +96,11 @@ append custom {"
 "setenv testsuite "[uname unk]"}
 }
 if {[cmpversion $tclsh_version 8.5] == -1} {
-    set custom "switch -- \$what \{
-         sysname \{
-            set result \$::tcl_platform(os)
-         \}
-         machine \{
-            set result \$::tcl_platform(m...\"
-    (procedure \"uname\" line 7)
-    invoked from within
-\"$custom"
+    set custom [string map {<EXTMATCH> (.*)+} [escre [msg_moderr {uname unk not supported} "<EXTMATCH>$custom" $modulefile/unk 26]]]
+    testouterr_cmd_re "csh" "load $module/unk" "ERR" [msg_load $module/unk $custom]
+} else {
+    testouterr_cmd "csh" "load $module/unk" "ERR" [msg_load $module/unk [msg_moderr {uname unk not supported} $custom $modulefile/unk 26]]
 }
-testouterr_cmd "csh" "load $module/unk" "ERR" [msg_load $module/unk [msg_moderr {uname unk not supported} $custom $modulefile/unk 26]]
 
 # setup an empty path
 set ORIG_PATH $env(PATH)

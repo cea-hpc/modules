@@ -57,19 +57,12 @@ lappend ans [list setpath _LMFILES_ $modulefile3]
 testouterr_cmd_re "sh" "load $module3" $ans ""
 
 # test empty file name
+set custom {module source {}}
 if {[cmpversion $tclsh_version 8.5] == -1} {
-    set custom "switch -- \$command \{
-      load \{
-         # ignore flag used in collection to track non-user asked state
-         set args \[replaceFromList \$args --n...\"
-    (procedure \"module\" line 104)
-    invoked from within
-\"module source \{\}"
-} else {
-    set custom {module source {}}
+    set custom "<EXTMATCH>$custom"
 }
 set errsource [msg_moderr $msg_filenameempty $custom $modulefile4 27]
-testouterr_cmd "sh" "load $module4" "ERR" [msg_load $module4 $errsource]
+testouterr_cmd_re "sh" "load $module4" "ERR" [string map {<EXTMATCH> (.*)+} [escre [msg_load $module4 $errsource]]]
 
 # display test
 set dispout "module\t\tsource $modpathre/setenv/1.0 $modpathre/append/2.2"
@@ -114,39 +107,25 @@ testouterr_cmd_re "sh" "unload $module3" $ans ""
 # test empty file name
 setenv_loaded_module $module4 $modulefile4
 
+set custom {module source {}}
 if {[cmpversion $tclsh_version 8.5] == -1} {
-    set custom "switch -- \$command \{
-      load \{
-         # ignore flag used in collection to track non-user asked state
-         set args \[replaceFromList \$args --n...\"
-    (procedure \"module\" line 104)
-    invoked from within
-\"module source \{\}"
-} else {
-    set custom {module source {}}
+    set custom "<EXTMATCH>$custom"
 }
 set errsource [msg_moderr $msg_filenameempty $custom $modulefile4 27]
-testouterr_cmd "sh" "unload $module4" "ERR" [msg_unload $module4 $errsource]
+testouterr_cmd_re "sh" "unload $module4" "ERR" [string map {<EXTMATCH> (.*)+} [escre [msg_unload $module4 $errsource]]]
 
 # load test with source command targeting bad file
+set custom {module source unknown/1.0}
 if {[cmpversion $tclsh_version 8.5] == -1} {
-    set custom "switch -- \$command \{
-      load \{
-         # ignore flag used in collection to track non-user asked state
-         set args \[replaceFromList \$args --n...\"
-    (procedure \"module\" line 104)
-    invoked from within
-\"module source unknown/1.0"
-} else {
-    set custom {module source unknown/1.0}
+    set custom "<EXTMATCH>$custom"
 }
 set errsource [msg_moderr {File unknown/1.0 does not exist} $custom $modulefile2 27]
-testouterr_cmd "sh" "load $module2" "ERR" [msg_load $module2 $errsource]
+testouterr_cmd_re "sh" "load $module2" "ERR" [string map {<EXTMATCH> (.*)+} [escre [msg_load $module2 $errsource]]]
 
 # unload test with bad sourced file
 setenv_loaded_module $module2 $modulefile2
 
-testouterr_cmd "sh" "unload $module2" "ERR" [msg_unload $module2 $errsource]
+testouterr_cmd_re "sh" "unload $module2" "ERR" [string map {<EXTMATCH> (.*)+} [escre [msg_unload $module2 $errsource]]]
 
 
 #

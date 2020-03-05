@@ -52,21 +52,14 @@ set missing_test "$warn_msgs: Unable to find ModulesTest in "
 set fail_test "Test result: FAIL"
 set ok_test "Test result: PASS"
 
-if {[cmpversion $tclsh_version 8.5] == -1} {
-    set custom {    (procedure "ModulesTest" line 2)
-    invoked from within
-"ModulesTest"
-    ("test" arm line 3)
-    invoked from within
-"switch -- [module-info mode] \{
-            help \{
-               if \{[info procs ModulesHelp] eq \{ModulesHelp\}\} \{
-                  ModulesHelp
-      ..."}
-} else {
-    set custom {    (procedure "ModulesTest" line 2)
+set custom {    (procedure "ModulesTest" line 2)
     invoked from within
 "ModulesTest"}
+if {[cmpversion $tclsh_version 8.5] == -1} {
+    append custom {<EXTMATCH>}
+    set mod5_interr [string map {<EXTMATCH> (.*)+} [escre [msg_moderr "$msg_invcmdname \"bad-command\"" bad-command $modulefile5nore/proc {} {  } {} {} $custom]]]
+} else {
+    set mod5_interr [escre [msg_moderr "$msg_invcmdname \"bad-command\"" bad-command $modulefile5nore/proc {} {  } {} {} $custom]]
 }
 set mod4_interr "[escre [msg_moderr "$msg_invcmdname \"bad-command\"" bad-command $modulefile4nore/.modulerc 28 {  }]]
 $modlin
@@ -74,7 +67,6 @@ $lin_test$modulefile4/before:
 
 [escre [msg_moderr "$msg_invcmdname \"bad-command\"" bad-command $modulefile4nore/before 26 {  }]]
 $modlin"
-set mod5_interr [escre [msg_moderr "$msg_invcmdname \"bad-command\"" bad-command $modulefile5nore/proc {} {  } {} {} $custom]]
 
 set module6 "NonExistant"
 set mod6_err "$err_path'$module6'"

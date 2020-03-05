@@ -87,7 +87,15 @@ if {[info exists insmodrcdata] && [info exists exmodrcdata] && $exmodrcdata eq $
 } elseif {[info exists insmodrcdata] && [info exists exinitrcdata] && $exinitrcdata eq $insmodrcdata} {
     set initrc_exinstalled 1
 }
-set tserr_initrc_exinstalled "load m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n$err_path'unk'\n$moderr_msgs: Collection unk cannot be found\n  In '$modrcre'\n$err_contact"
+
+set custom {module restore unk}
+if {[cmpversion $tclsh_version 8.5] == -1} {
+    set custom [string map {<EXTMATCH> (.*)+} [escre [msg_moderr {Collection unk cannot be found} "<EXTMATCH>$custom" $modrc 11 {  }]]]
+} else {
+    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 11 {  }]]
+}
+
+set tserr_initrc_exinstalled "load m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n$err_path'unk'\n$custom"
 
 # check if stderr terminal attachement state is forced
 set is_stderr_tty [siteconfig_isStderrTty]
@@ -936,6 +944,9 @@ unset shell
 unset ans
 if {[info exists tserr]} {
     unset tserr
+}
+if {[info exists custom]} {
+    unset custom
 }
 
 unset err_lisp

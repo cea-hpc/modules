@@ -81,23 +81,21 @@ foreach cmd [list use unuse] {
     testouterr_cmd "sh" "load $module/$cmd" $ans [msg_load $module/$cmd $err_emptydirname]
 }
 
-if {[cmpversion $tclsh_version 8.5] == -1} {
-    set custom "switch -- \$command \{
-      load \{
-         # ignore flag used in collection to track non-user asked state
-         set args \[replaceFromList \$args --n...\"
-    (procedure \"module\" line 104)
-    invoked from within
-\""
-} else {
-    set custom {}
-}
-
 # or error is reported as modulefile error rather global error
 foreach cmd [list save restore saveshow saverm] {
-    testouterr_cmd "sh" "load $module/$cmd" "ERR" [msg_load $module/$cmd [msg_moderr $msg_collnameempty "${custom}module $cmd {}" $modulepath/$module/$cmd 27]]
+    if {[cmpversion $tclsh_version 8.5] == -1} {
+        set custom [string map {<EXTMATCH> (.*)+} [escre [msg_moderr $msg_collnameempty "<EXTMATCH>module $cmd {}" $modulepath/$module/$cmd 27]]]
+        testouterr_cmd_re "sh" "load $module/$cmd" "ERR" [msg_load $module/$cmd $custom]
+    } else {
+        testouterr_cmd "sh" "load $module/$cmd" "ERR" [msg_load $module/$cmd [msg_moderr $msg_collnameempty "module $cmd {}" $modulepath/$module/$cmd 27]]
+    }
 }
-testouterr_cmd "sh" "load $module/source" "ERR" [msg_load $module/source [msg_moderr $msg_filenameempty "${custom}module source {}" $modulepath/$module/source 27]]
+if {[cmpversion $tclsh_version 8.5] == -1} {
+    set custom [string map {<EXTMATCH> (.*)+} [escre [msg_moderr $msg_filenameempty "<EXTMATCH>module source {}" $modulepath/$module/source 27]]]
+    testouterr_cmd_re "sh" "load $module/source" "ERR" [msg_load $module/source $custom]
+} else {
+    testouterr_cmd "sh" "load $module/source" "ERR" [msg_load $module/source [msg_moderr $msg_filenameempty "module source {}" $modulepath/$module/source 27]]
+}
 
 # empty string currently understood like wildcard
 foreach cmd [list whatis apropos] {
@@ -163,11 +161,21 @@ foreach cmd [list use unuse] {
 # or error is reported as modulefile error rather global error
 foreach cmd [list save restore saveshow saverm] {
     setenv_loaded_module "$module/$cmd" "$modulepath/$module/$cmd"
-    testouterr_cmd "sh" "unload $module/$cmd" "ERR" [msg_unload $module/$cmd [msg_moderr $msg_collnameempty "${custom}module $cmd {}" $modulepath/$module/$cmd 27]]
+    if {[cmpversion $tclsh_version 8.5] == -1} {
+        set custom [string map {<EXTMATCH> (.*)+} [escre [msg_moderr $msg_collnameempty "<EXTMATCH>module $cmd {}" $modulepath/$module/$cmd 27]]]
+        testouterr_cmd_re "sh" "unload $module/$cmd" "ERR" [msg_unload $module/$cmd $custom]
+    } else {
+        testouterr_cmd "sh" "unload $module/$cmd" "ERR" [msg_unload $module/$cmd [msg_moderr $msg_collnameempty "module $cmd {}" $modulepath/$module/$cmd 27]]
+    }
 }
 setenv_loaded_module "$module/source" "$modulepath/$module/source"
 set env(_LMFILES_) "$modulepath/$module/source"
-testouterr_cmd "sh" "unload $module/source" "ERR" [msg_unload $module/source [msg_moderr $msg_filenameempty "${custom}module source {}" $modulepath/$module/source 27]]
+if {[cmpversion $tclsh_version 8.5] == -1} {
+    set custom [string map {<EXTMATCH> (.*)+} [escre [msg_moderr $msg_filenameempty "<EXTMATCH>module source {}" $modulepath/$module/source 27]]]
+    testouterr_cmd_re "sh" "unload $module/source" "ERR" [msg_unload $module/source $custom]
+} else {
+    testouterr_cmd "sh" "unload $module/source" "ERR" [msg_unload $module/source [msg_moderr $msg_filenameempty "module source {}" $modulepath/$module/source 27]]
+}
 
 # empty string currently understood like wildcard
 foreach cmd [list whatis apropos] {
@@ -280,7 +288,9 @@ unset modulepathre
 unset ans
 unset cmd
 
-unset custom
+if {[info exists custom]} {
+    unset custom
+}
 
 # remove procs
 rename display_stderr_content {}

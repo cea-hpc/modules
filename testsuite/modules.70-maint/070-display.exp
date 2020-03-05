@@ -150,28 +150,21 @@ module-whatis\t{Some checks for TEST and DISPLAY}
 $modlin"
 
 
-if {[cmpversion $tclsh_version 8.5] == -1} {
-    set custom {    (procedure "ModulesDisplay" line 2)
-    invoked from within
-"ModulesDisplay"
-    ("display" arm line 3)
-    invoked from within
-"switch -- [module-info mode] \{
-            help \{
-               if \{[info procs ModulesHelp] eq \{ModulesHelp\}\} \{
-                  ModulesHelp
-      ..."}
-} else {
-    set custom {    (procedure "ModulesDisplay" line 2)
+set custom {    (procedure "ModulesDisplay" line 2)
     invoked from within
 "ModulesDisplay"}
+if {[cmpversion $tclsh_version 8.5] == -1} {
+    append custom {<EXTMATCH>}
+    set custom [string map {<EXTMATCH> (.*)+} [escre [msg_moderr "$msg_invcmdname \"bad-command\"" bad-command $modpath/$module_5/proc {} {  } {} {} $custom]]]
+} else {
+    set custom [escre [msg_moderr "$msg_invcmdname \"bad-command\"" bad-command $modpath/$module_5/proc {} {  } {} {} $custom]]
 }
 set out_interr_5 "$modlin
 $modpathre/$module_5/proc:
 
 setenv\t\ttestsuite yes
 module-whatis\t{erroneous module test}
-[escre [msg_moderr "$msg_invcmdname \"bad-command\"" bad-command $modpath/$module_5/proc {} {  } {} {} $custom]]
+$custom
 $modlin"
 
 set out_err_6 "------------------------------------------------------------
