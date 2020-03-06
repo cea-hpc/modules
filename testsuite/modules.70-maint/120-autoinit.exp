@@ -24,6 +24,8 @@
 #  Test variables
 #
 
+set tclshlocre "$install_tclsh\[0-9\.\]*"
+
 set path_list {}
 foreach elt [file split [file join [pwd] $MODULECMD]] {
     if {$elt ne "."} {
@@ -168,30 +170,30 @@ set func_end "\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs$end_silentdbg\\s*return \
 
 if {$install_quarantinesupport eq y} {
 set func_modcmd_sh "\\s*if \\\[ -n \"\\\${_mlre:-}\" \\\]; then
-\\s*eval `eval \\\${_mlre}$install_tclsh $modulecmd_pathre sh '\"\\$\\@\"'`;
+\\s*eval `eval \\\${_mlre}$tclshlocre $modulecmd_pathre sh '\"\\$\\@\"'`;
 \\s*else
-\\s*eval `$install_tclsh $modulecmd_pathre sh \"\\$\\@\"`;
+\\s*eval `$tclshlocre $modulecmd_pathre sh \"\\$\\@\"`;
 \\s*fi;"
 set func_modcmd_bash "\\s*if \\\[ -n \"\\\${_mlre:-}\" \\\]; then
-\\s*eval `eval \\\${_mlre}$install_tclsh $modulecmd_pathre bash '\"\\$\\@\"'`;
+\\s*eval `eval \\\${_mlre}$tclshlocre $modulecmd_pathre bash '\"\\$\\@\"'`;
 \\s*else
-\\s*eval `$install_tclsh $modulecmd_pathre bash \"\\$\\@\"`;
+\\s*eval `$tclshlocre $modulecmd_pathre bash \"\\$\\@\"`;
 \\s*fi;"
 set func_modcmd_ksh "\\s*if \\\[ -n \"\\\${_mlre:-}\" \\\]; then
-\\s*eval `eval \\\${_mlre}$install_tclsh $modulecmd_pathre ksh '\"\\$\\@\"'`;
+\\s*eval `eval \\\${_mlre}$tclshlocre $modulecmd_pathre ksh '\"\\$\\@\"'`;
 \\s*else
-\\s*eval `$install_tclsh $modulecmd_pathre ksh \"\\$\\@\"`;
+\\s*eval `$tclshlocre $modulecmd_pathre ksh \"\\$\\@\"`;
 \\s*fi;"
 set func_modcmd_zsh "\\s*if \\\[ -n \"\\\${_mlre:-}\" \\\]; then
-\\s*eval `eval \\\${=_mlre}$install_tclsh $modulecmd_pathre zsh '\"\\$\\@\"'`;
+\\s*eval `eval \\\${=_mlre}$tclshlocre $modulecmd_pathre zsh '\"\\$\\@\"'`;
 \\s*else
-\\s*eval `$install_tclsh $modulecmd_pathre zsh \"\\$\\@\"`;
+\\s*eval `$tclshlocre $modulecmd_pathre zsh \"\\$\\@\"`;
 \\s*fi;"
 } else {
-set func_modcmd_sh "\\s*eval `$install_tclsh $modulecmd_pathre sh \"\\$\\@\"`;"
-set func_modcmd_bash "\\s*eval `$install_tclsh $modulecmd_pathre bash \"\\$\\@\"`;"
-set func_modcmd_ksh "\\s*eval `$install_tclsh $modulecmd_pathre ksh \"\\$\\@\"`;"
-set func_modcmd_zsh "\\s*eval `$install_tclsh $modulecmd_pathre zsh \"\\$\\@\"`;"
+set func_modcmd_sh "\\s*eval `$tclshlocre $modulecmd_pathre sh \"\\$\\@\"`;"
+set func_modcmd_bash "\\s*eval `$tclshlocre $modulecmd_pathre bash \"\\$\\@\"`;"
+set func_modcmd_ksh "\\s*eval `$tclshlocre $modulecmd_pathre ksh \"\\$\\@\"`;"
+set func_modcmd_zsh "\\s*eval `$tclshlocre $modulecmd_pathre zsh \"\\$\\@\"`;"
 }
 
 if {$is_stderr_tty} {
@@ -208,8 +210,8 @@ set func_sh "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh$func_modcmd_sh\n
 set func_bash "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh$func_modcmd_bash\n$func_end\n};$add_func_sh"
 set func_ksh "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh$func_modcmd_ksh\n$func_end\n};$add_func_sh"
 set func_zsh "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_zsh$func_modcmd_zsh\n$func_end\n};$add_func_sh"
-set eval_cmd_csh [expr {$install_wa277 eq {y} ? "eval `$install_tclsh $modulecmd_pathre csh \\\\!\\*`" : "eval \"`$install_tclsh $modulecmd_pathre csh \\\\!\\*:q`\""}]
-set eval_cmd_tcsh [expr {$install_wa277 eq {y} ? "eval `$install_tclsh $modulecmd_pathre tcsh \\\\!\\*`" : "eval \"`$install_tclsh $modulecmd_pathre tcsh \\\\!\\*:q`\""}]
+set eval_cmd_csh [expr {$install_wa277 eq {y} ? "eval `$tclshlocre $modulecmd_pathre csh \\\\!\\*`" : "eval \"`$tclshlocre $modulecmd_pathre csh \\\\!\\*:q`\""}]
+set eval_cmd_tcsh [expr {$install_wa277 eq {y} ? "eval `$tclshlocre $modulecmd_pathre tcsh \\\\!\\*`" : "eval \"`$tclshlocre $modulecmd_pathre tcsh \\\\!\\*:q`\""}]
 set func_csh "if \\\( \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'set _histchars = \\\$histchars; unset histchars; set _prompt=\\\$prompt:q; set prompt=\"\"; $eval_cmd_csh; set _exit=\"\\\$status\"; set histchars = \\\$_histchars; unset _histchars; set prompt=\\\$_prompt:q; unset _prompt; test 0 = \\\$_exit' ;
 if \\\( \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\) alias module 'set _histchars = \\\$histchars; unset histchars; $eval_cmd_csh; set _exit=\"\\\$status\"; set histchars = \\\$_histchars; unset _histchars; test 0 = \\\$_exit' ;
 if \\\( \\\! \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'set _prompt=\\\$prompt:q; set prompt=\"\"; $eval_cmd_csh; set _exit=\"\\\$status\"; set prompt=\\\$_prompt:q; unset _prompt; test 0 = \\\$_exit' ;
@@ -234,7 +236,7 @@ set func_fish "function $func_name
 \\s*if \\\[ -n \"\\\$_mlre\" \\\]
 \\s*set _mlre \"env \\\$_mlre\"
 \\s*end
-\\s*eval \\\$_mlre $install_tclsh $modulecmd_pathre fish \\\(string escape -- \\\$argv\\\) \\\| source -
+\\s*eval \\\$_mlre $tclshlocre $modulecmd_pathre fish \\\(string escape -- \\\$argv\\\) \\\| source -
 end$add_func_fish"
 set func_tcl "proc module {args} {
 \\s*set _mlre {};
@@ -253,7 +255,7 @@ set func_tcl "proc module {args} {
 \\s*}
 \\s*}
 \\s*set _mlstatus 1;
-\\s*catch {eval exec \\\$_mlre \"$install_tclsh\" \"$modulecmd_pathre\" \"tcl\" \\\$args 2>@stderr} script
+\\s*catch {eval exec \\\$_mlre \"$tclshlocre\" \"$modulecmd_pathre\" \"tcl\" \\\$args 2>@stderr} script
 \\s*eval \\\$script;
 \\s*return \\\$_mlstatus
 }"
@@ -278,7 +280,7 @@ set func_perl "sub module {
 \\s*\\\$args = '\"' \\\. join\\\('\" \"', \\\@_\\\) \\\. '\"';
 \\s*}
 \\s*my \\\$_mlstatus = 1;
-\\s*eval `\\\${_mlre}$install_tclsh $modulecmd_pathre perl \\\$args`;
+\\s*eval `\\\${_mlre}$tclshlocre $modulecmd_pathre perl \\\$args`;
 \\s*return \\\$_mlstatus;
 }"
 set func_python "import re, subprocess
@@ -295,7 +297,7 @@ def module\\\(\\*arguments\\\):
 \\s*else:
 \\s*_mlre\\\[_mlv\\\] = ''
 \\s*ns = {}
-\\s*exec\\\(subprocess\\.Popen\\\(\\\['$install_tclsh', '$modulecmd_pathre', 'python'\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE, env=_mlre\\\)\\.communicate\\\(\\\)\\\[0\\\], ns\\\)
+\\s*exec\\\(subprocess\\.Popen\\\(\\\['$tclshlocre', '$modulecmd_pathre', 'python'\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE, env=_mlre\\\)\\.communicate\\\(\\\)\\\[0\\\], ns\\\)
 \\s*if '_mlstatus' in ns:
 \\s*_mlstatus = ns\\\['_mlstatus'\\\]
 \\s*else:
@@ -327,7 +329,7 @@ set func_ruby "class ENVModule
 \\s*args = \"\\\\\"#{args.join\\\('\" \"'\\\)}\\\\\"\"
 \\s*end
 \\s*_mlstatus = true
-\\s*eval `#{_mlre}$install_tclsh $modulecmd_pathre ruby #{args}`
+\\s*eval `#{_mlre}$tclshlocre $modulecmd_pathre ruby #{args}`
 \\s*return _mlstatus
 \\s*end"
 set func_cmake "function\\\(module\\\)
@@ -353,19 +355,19 @@ set func_cmake "function\\\(module\\\)
 \\s*OUTPUT_VARIABLE tempfile_name
 \\s*OUTPUT_STRIP_TRAILING_WHITESPACE\\\)
 \\s*if\\\(\\\${ARGC} EQUAL 1\\\)
-\\s*execute_process\\\(COMMAND \\\${_mlre} $install_tclsh $modulecmd_pathre cmake \"\\\${ARGV0}\"
+\\s*execute_process\\\(COMMAND \\\${_mlre} $tclshlocre $modulecmd_pathre cmake \"\\\${ARGV0}\"
 \\s*OUTPUT_FILE \\\${tempfile_name}\\\)
 \\s*elseif\\\(\\\${ARGC} EQUAL 2\\\)
-\\s*execute_process\\\(COMMAND \\\${_mlre} $install_tclsh $modulecmd_pathre cmake \"\\\${ARGV0}\" \"\\\${ARGV1}\"
+\\s*execute_process\\\(COMMAND \\\${_mlre} $tclshlocre $modulecmd_pathre cmake \"\\\${ARGV0}\" \"\\\${ARGV1}\"
 \\s*OUTPUT_FILE \\\${tempfile_name}\\\)
 \\s*elseif\\\(\\\${ARGC} EQUAL 3\\\)
-\\s*execute_process\\\(COMMAND \\\${_mlre} $install_tclsh $modulecmd_pathre cmake \"\\\${ARGV0}\" \"\\\${ARGV1}\" \"\\\${ARGV2}\"
+\\s*execute_process\\\(COMMAND \\\${_mlre} $tclshlocre $modulecmd_pathre cmake \"\\\${ARGV0}\" \"\\\${ARGV1}\" \"\\\${ARGV2}\"
 \\s*OUTPUT_FILE \\\${tempfile_name}\\\)
 \\s*elseif\\\(\\\${ARGC} EQUAL 4\\\)
-\\s*execute_process\\\(COMMAND \\\${_mlre} $install_tclsh $modulecmd_pathre cmake \"\\\${ARGV0}\" \"\\\${ARGV1}\" \"\\\${ARGV2}\" \"\\\${ARGV3}\"
+\\s*execute_process\\\(COMMAND \\\${_mlre} $tclshlocre $modulecmd_pathre cmake \"\\\${ARGV0}\" \"\\\${ARGV1}\" \"\\\${ARGV2}\" \"\\\${ARGV3}\"
 \\s*OUTPUT_FILE \\\${tempfile_name}\\\)
 \\s*else\\\(\\\)
-\\s*execute_process\\\(COMMAND \\\${_mlre} $install_tclsh $modulecmd_pathre cmake \\\${ARGV}
+\\s*execute_process\\\(COMMAND \\\${_mlre} $tclshlocre $modulecmd_pathre cmake \\\${ARGV}
 \\s*OUTPUT_FILE \\\${tempfile_name}\\\)
 \\s*endif\\\(\\\)
 \\s*if\\\(EXISTS \\\${tempfile_name}\\\)
@@ -393,7 +395,7 @@ set func_r "module <- function\\\(...\\\){
 \\s*arglist <- as.list\\\(match.call\\\(\\\)\\\)
 \\s*arglist\\\[1\\\] <- 'r'
 \\s*args <- paste0\\\('\"', paste0\\\(arglist, collapse='\" \"'\\\), '\"'\\\)
-\\s*cmd <- paste\\\(mlre, '$install_tclsh', '$modulecmd_pathre', args, sep=' '\\\)
+\\s*cmd <- paste\\\(mlre, '$tclshlocre', '$modulecmd_pathre', args, sep=' '\\\)
 \\s*mlstatus <- TRUE
 \\s*hndl <- pipe\\\(cmd\\\)
 \\s*eval\\\(expr = parse\\\(file=hndl\\\)\\\)
@@ -402,11 +404,11 @@ set func_r "module <- function\\\(...\\\){
 }"
 } else {
 set func_fish "function $func_name
-\\s*eval $install_tclsh $modulecmd_pathre fish \\\(string escape -- \\\$argv\\\) \\\| source -
+\\s*eval $tclshlocre $modulecmd_pathre fish \\\(string escape -- \\\$argv\\\) \\\| source -
 end$add_func_fish"
 set func_tcl "proc module {args} {
 \\s*set _mlstatus 1;
-\\s*catch {eval exec \"$install_tclsh\" \"$modulecmd_pathre\" \"tcl\" \\\$args 2>@stderr} script
+\\s*catch {eval exec \"$tclshlocre\" \"$modulecmd_pathre\" \"tcl\" \\\$args 2>@stderr} script
 \\s*eval \\\$script;
 \\s*return \\\$_mlstatus
 }"
@@ -416,13 +418,13 @@ set func_perl "sub module {
 \\s*\\\$args = '\"' \\\. join\\\('\" \"', \\\@_\\\) \\\. '\"';
 \\s*}
 \\s*my \\\$_mlstatus = 1;
-\\s*eval `$install_tclsh $modulecmd_pathre perl \\\$args`;
+\\s*eval `$tclshlocre $modulecmd_pathre perl \\\$args`;
 \\s*return \\\$_mlstatus;
 }"
 set func_python "import re, subprocess
 def module\\\(\\*arguments\\\):
 \\s*ns = {}
-\\s*exec\\\(subprocess\\.Popen\\\(\\\['$install_tclsh', '$modulecmd_pathre', 'python'\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE\\\)\\.communicate\\\(\\\)\\\[0\\\], ns\\\)
+\\s*exec\\\(subprocess\\.Popen\\\(\\\['$tclshlocre', '$modulecmd_pathre', 'python'\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE\\\)\\.communicate\\\(\\\)\\\[0\\\], ns\\\)
 \\s*if '_mlstatus' in ns:
 \\s*_mlstatus = ns\\\['_mlstatus'\\\]
 \\s*else:
@@ -439,7 +441,7 @@ set func_ruby "class ENVModule
 \\s*args = \"\\\\\"#{args.join\\\('\" \"'\\\)}\\\\\"\"
 \\s*end
 \\s*_mlstatus = true
-\\s*eval `$install_tclsh $modulecmd_pathre ruby #{args}`
+\\s*eval `$tclshlocre $modulecmd_pathre ruby #{args}`
 \\s*return _mlstatus
 \\s*end"
 set func_cmake "function\\\(module\\\)
@@ -449,19 +451,19 @@ set func_cmake "function\\\(module\\\)
 \\s*OUTPUT_VARIABLE tempfile_name
 \\s*OUTPUT_STRIP_TRAILING_WHITESPACE\\\)
 \\s*if\\\(\\\${ARGC} EQUAL 1\\\)
-\\s*execute_process\\\(COMMAND $install_tclsh $modulecmd_pathre cmake \"\\\${ARGV0}\"
+\\s*execute_process\\\(COMMAND $tclshlocre $modulecmd_pathre cmake \"\\\${ARGV0}\"
 \\s*OUTPUT_FILE \\\${tempfile_name}\\\)
 \\s*elseif\\\(\\\${ARGC} EQUAL 2\\\)
-\\s*execute_process\\\(COMMAND $install_tclsh $modulecmd_pathre cmake \"\\\${ARGV0}\" \"\\\${ARGV1}\"
+\\s*execute_process\\\(COMMAND $tclshlocre $modulecmd_pathre cmake \"\\\${ARGV0}\" \"\\\${ARGV1}\"
 \\s*OUTPUT_FILE \\\${tempfile_name}\\\)
 \\s*elseif\\\(\\\${ARGC} EQUAL 3\\\)
-\\s*execute_process\\\(COMMAND $install_tclsh $modulecmd_pathre cmake \"\\\${ARGV0}\" \"\\\${ARGV1}\" \"\\\${ARGV2}\"
+\\s*execute_process\\\(COMMAND $tclshlocre $modulecmd_pathre cmake \"\\\${ARGV0}\" \"\\\${ARGV1}\" \"\\\${ARGV2}\"
 \\s*OUTPUT_FILE \\\${tempfile_name}\\\)
 \\s*elseif\\\(\\\${ARGC} EQUAL 4\\\)
-\\s*execute_process\\\(COMMAND $install_tclsh $modulecmd_pathre cmake \"\\\${ARGV0}\" \"\\\${ARGV1}\" \"\\\${ARGV2}\" \"\\\${ARGV3}\"
+\\s*execute_process\\\(COMMAND $tclshlocre $modulecmd_pathre cmake \"\\\${ARGV0}\" \"\\\${ARGV1}\" \"\\\${ARGV2}\" \"\\\${ARGV3}\"
 \\s*OUTPUT_FILE \\\${tempfile_name}\\\)
 \\s*else\\\(\\\)
-\\s*execute_process\\\(COMMAND $install_tclsh $modulecmd_pathre cmake \\\${ARGV}
+\\s*execute_process\\\(COMMAND $tclshlocre $modulecmd_pathre cmake \\\${ARGV}
 \\s*OUTPUT_FILE \\\${tempfile_name}\\\)
 \\s*endif\\\(\\\)
 \\s*if\\\(EXISTS \\\${tempfile_name}\\\)
@@ -474,7 +476,7 @@ set func_r "module <- function\\\(...\\\){
 \\s*arglist <- as.list\\\(match.call\\\(\\\)\\\)
 \\s*arglist\\\[1\\\] <- 'r'
 \\s*args <- paste0\\\('\"', paste0\\\(arglist, collapse='\" \"'\\\), '\"'\\\)
-\\s*cmd <- paste\\\('$install_tclsh', '$modulecmd_pathre', args, sep=' '\\\)
+\\s*cmd <- paste\\\('$tclshlocre', '$modulecmd_pathre', args, sep=' '\\\)
 \\s*mlstatus <- TRUE
 \\s*hndl <- pipe\\\(cmd\\\)
 \\s*eval\\\(expr = parse\\\(file=hndl\\\)\\\)
@@ -948,6 +950,8 @@ if {[info exists tserr]} {
 if {[info exists custom]} {
     unset custom
 }
+
+unset tclshlocre
 
 unset err_lisp
 unset err_cmd
