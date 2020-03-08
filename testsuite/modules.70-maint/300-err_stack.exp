@@ -43,6 +43,51 @@ set custom "    (procedure \"good-command\" line 2)
 set tserr [msg_load bad3/bodysource [msg_moderr "$msg_invcmdname \"bad-command\"" bad-command $mp/bad3/bodysource 2 {} {} {} $custom]]
 testouterr_cmd sh "load bad3/bodysource" ERR $tserr
 
+# error in conditional block
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom "
+    invoked from within
+\"if \{\$i == 1 \} \{
+    bad-command
+\}\""
+    set linenum 3
+} else {
+    set custom {}
+    set linenum 4
+}
+set tserr [msg_load bad3/bodyif [msg_moderr "$msg_invcmdname \"bad-command\"" bad-command $mp/bad3/bodyif $linenum {} {} {} $custom]]
+testouterr_cmd sh "load bad3/bodyif" ERR $tserr
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom "
+    (\"for\" body line 2)
+    invoked from within
+\"for \{set i 0\} \{\$i<10\} \{incr i\} \{
+    bad-command
+\}\""
+    set linenum 2
+} else {
+    set custom {}
+    set linenum 3
+}
+set tserr [msg_load bad3/bodyfor [msg_moderr "$msg_invcmdname \"bad-command\"" bad-command $mp/bad3/bodyfor $linenum {} {} {} $custom]]
+testouterr_cmd sh "load bad3/bodyfor" ERR $tserr
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom "
+    (\"while\" body line 2)
+    invoked from within
+\"while \{\$i == 1\} \{
+    bad-command
+\}\""
+    set linenum 3
+} else {
+    set custom {}
+    set linenum 4
+}
+set tserr [msg_load bad3/bodywhile [msg_moderr "$msg_invcmdname \"bad-command\"" bad-command $mp/bad3/bodywhile $linenum {} {} {} $custom]]
+testouterr_cmd sh "load bad3/bodywhile" ERR $tserr
+
+
+
 # error in modulerc
 setenv_var BADRC3_CASE 1
 set custom {    (procedure "good-command" line 2)
@@ -96,6 +141,33 @@ if {[cmpversion $tclsh_version 8.6] == -1} {
     set tserr [msg_moderr "$msg_invcmdname \"bad-command\"" bad-command $mp/badrc3/.modulerc 16 {  } {} {} $custom]
 }
 testouterr_cmd sh {load badrc3/1} $ans $tserr
+
+setenv_var BADRC3_CASE 3
+if {[cmpversion $tclsh_version 8.5] == -1} {
+    set linenum 8
+    set tserr [string map {<EXTMATCH> (.*)+} [escre [msg_moderr {module-info bad not supported} "<EXTMATCH>module-info bad<EXTMATCH>" $mp/badrc3/.modulerc $linenum {  }]]]
+    testouterr_cmd_re sh {load badrc3/1} $ans $tserr
+} else {
+    if {[cmpversion $tclsh_version 8.6] == -1} {
+        set custom "    (\"3\" arm line 2)
+    invoked from within
+\"switch -- \$case \{
+1 \{
+    proc good-command \{\} \{
+        bad-command
+    \}
+    good-command
+\}
+2 \{
+    source \$env(TESTSUITEDIR)/modulefiles.2/bad3/.bo...\""
+        set linenum 8
+    } else {
+        set custom {}
+        set linenum 19
+    }
+    set tserr [msg_moderr {module-info bad not supported} "module-info bad" $mp/badrc3/.modulerc $linenum {  } {} {} $custom]
+    testouterr_cmd sh {load badrc3/1} $ans $tserr
+}
 unsetenv_var BADRC3_CASE
 
 
@@ -238,6 +310,27 @@ $custom
 $modlin"
 testouterr_cmd_re sh {test bad3/procsource} ERR $tserr
 
+# wrongly call a legit modulefile command from a modulefile procedure
+set custom "$moderr_msgs: wrong # args: should be \"setenv var val\"
+    invoked from within
+\"setenv\"
+    (procedure \"my-proc\" line 2)
+    invoked from within
+\"my-proc\"
+    (file \"$mp/bad3/proc2\" line 6)
+Please contact <root@localhost>"
+set tserr [msg_load bad3/proc2 $custom]
+testouterr_cmd sh {load bad3/proc2} ERR $tserr
+
+# try to reach a modulecmd.tcl internal procedure from a modulefile evaluation
+# "unknown command"-error will preserve internal command name reference in error stack
+set custom {
+    (procedure "my-proc" line 2)
+    invoked from within
+"my-proc"}
+set tserr [msg_load bad3/proc3 [msg_moderr {invalid command name "getModshareVarName"} {getModshareVarName} $mp/bad3/proc3 6 {} {} {} $custom]]
+testouterr_cmd sh {load bad3/proc3} ERR $tserr
+
 
 #
 #  Cleanup
@@ -252,3 +345,4 @@ unset mpre
 unset ans
 unset tserr
 unset custom
+unset linenum

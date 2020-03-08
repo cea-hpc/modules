@@ -436,6 +436,29 @@ lappend ans $vers_reportre
 testouterr_cmd_re sh -V OK [join $ans \n]
 unsetenv_var TESTSUITE_ENABLE_SITECONFIG_REDEFONTHEFLYPROCS
 
+# specific tests to improve formatErrStackTrace proc coverage
+setenv_var TESTSUITE_ENABLE_SITECONFIG_FORMATERRSTACKTRACE 1
+set ans [list]
+lappend ans {error message
+    while executing
+foo call
+    invoked from within
+foo
+    \(file "foo"\)}
+lappend ans $vers_reportre
+testouterr_cmd_re sh -V OK [join $ans \n]
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_FORMATERRSTACKTRACE
+
+# produce an unknown error in a modulecmd.tcl procedure during a modulefile evaluation
+setenv_var TESTSUITE_ENABLE_SITECONFIG_UNKINTERRDURINGMODEVAL 1
+set ans [msg_moderr {invalid command name "foo"} {foo} $modpath/setenv/1.0 30 {} {} {} {    (procedure "getModshareVarName" line 2)
+    invoked from within
+"getModshareVarName $var"
+    (procedure "setenv" line 5)
+    invoked from within
+"setenv testsuite "yes""}]
+testouterr_cmd sh {load setenv/1.0} ERR [msg_load setenv/1.0 $ans]
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_UNKINTERRDURINGMODEVAL
 
 #
 #  Clean up variables used in this test case
