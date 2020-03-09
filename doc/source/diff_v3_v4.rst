@@ -9,6 +9,7 @@ First part the of the document covers the features that are missing or that beha
 
 Regarding missing features, this document only lists their name or the command line argument related to them. Please refer to the :ref:`module(1)` and the :ref:`modulefile(4)` man pages of the compatibility or main version to learn the details about these features.
 
+Last but not least, the numerous bugs or limitations spotted on Modules ``3.2`` across the years have been fixed in Modules ``4.0``. The list of reported issues that have been solved are available on `the project code forge <https://github.com/cea-hpc/modules/milestone/1?closed=1>`_.
 
 Features missing or with different behavior than compatibility version
 ----------------------------------------------------------------------
