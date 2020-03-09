@@ -124,6 +124,34 @@ locally from Modules sources by running ``make dist-win``.
 The :ref:`INSTALL-win` document describes how to install Modules on Windows
 from the distribution zipball.
 
+Error stack trace
+^^^^^^^^^^^^^^^^^
+
+Error messages will now embed a stack trace for unknown errors to help
+localize the root cause of issues. This change applies to modulefile
+evaluation::
+
+    Loading foo/1.2
+      Module ERROR: add-path cannot handle path equals to separator string
+            while executing
+        "append-path PATH :"
+            (file "/path/to/modulefiles/foo/1.2" line 24)
+        Please contact <root@localhost>
+
+A stack trace is also returned when an unknown error occurs in
+``modulecmd.tcl`` script, which facilitates issue report and analysis::
+
+    $ module load bar
+    ERROR: invalid command name "badcommand"
+          while executing
+      "badcommand"
+          (procedure "module" line 14)
+          invoked from within
+      "module load bar"
+          ("eval" body line 1)
+          invoked from within
+      "eval $execcmdlist"
+      Please report this issue at https://github.com/cea-hpc/modules/issues
 
 Further reading
 ---------------
