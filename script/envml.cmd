@@ -45,8 +45,10 @@ if "%kind_of_arg%" equ "cmd" (
     set cmdarglist=%maycmdarglist% %cmdarglist%
 )
 
-:: check module function is defined
-WHERE /Q module.cmd 2> NUL || call %~dp0..\init\profile.cmd
+:: initialize Modules if not already done
+if not defined MODULES_CMD (
+   call "%~dp0..\init\cmd.cmd"
+)
 
 :: load all required modules
 call :load_mod "%modarglist%"
