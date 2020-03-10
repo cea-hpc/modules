@@ -10,7 +10,12 @@ if errorlevel 1 (
 )
 where /Q ml.cmd
 if errorlevel 1 (
-    echo "'module' command not found"
+    echo "'ml' command not found"
+    exit /b 1
+)
+where /Q envml.cmd
+if errorlevel 1 (
+    echo "'envml' command not found"
     exit /b 1
 )
 
