@@ -426,6 +426,8 @@ ifeq ($(windowssupport),y)
 	chmod +x $(DESTDIR)$(bindir)/module.cmd
 	cp script/ml.cmd $(DESTDIR)$(bindir)/
 	chmod +x $(DESTDIR)$(bindir)/ml.cmd
+	cp script/envml.cmd $(DESTDIR)$(bindir)/
+	chmod +x $(DESTDIR)$(bindir)/envml.cmd
 endif
 ifneq ($(wildcard $(DESTDIR)$(etcdir)/siteconfig.tcl),$(DESTDIR)$(etcdir)/siteconfig.tcl)
 	cp siteconfig.tcl $(DESTDIR)$(etcdir)/siteconfig.tcl
@@ -477,6 +479,7 @@ endif
 ifeq ($(windowssupport),y)
 	rm -f $(DESTDIR)$(bindir)/module.cmd
 	rm -f $(DESTDIR)$(bindir)/ml.cmd
+	rm -f $(DESTDIR)$(bindir)/envml.cmd
 endif
 ifeq ($(vimaddons),y)
 	rm -f $(DESTDIR)$(vimdatadir)/ftdetect/modulefile.vim
@@ -543,6 +546,7 @@ dist-win: modulecmd.tcl ChangeLog README pkgdoc
 	mkdir $(DIST_WIN_PREFIX)/bin
 	cp script/module.cmd $(DIST_WIN_PREFIX)/bin/
 	cp script/ml.cmd $(DIST_WIN_PREFIX)/bin/
+	cp script/envml.cmd $(DIST_WIN_PREFIX)/bin/
 	mkdir $(DIST_WIN_PREFIX)/doc
 	cp COPYING.GPLv2 $(DIST_WIN_PREFIX)/doc/
 	cp ChangeLog $(DIST_WIN_PREFIX)/doc/

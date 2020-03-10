@@ -50,6 +50,9 @@ Next release (2020-XX-XX)
   Raphanel)
 * Install: add ml command wrapper ``ml.cmd`` and install it in ``bindir`` when
   ``./configure`` option ``--enable-windows-support`` is set.
+* Install: introduce envml command wrapper ``envml.cmd`` for Windows ``cmd``
+  shell and install it in ``bindir`` when ``./configure`` option
+  ``--enable-windows-support`` is set. (contribution from Jacques Raphanel)
 * Doc: improve documentation portal index.
 * Install: add ``dist-win`` target to Makefile in order to build a
   distribution zipball containing the required files to run Modules on a
