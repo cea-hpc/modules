@@ -1537,17 +1537,10 @@ static	int	output_unset_alias(	const char	*alias,
      **/
     } else if( !strcmp( shell_derelict, "sh")) {
 
-        if( !strcmp( shell_name, "sh")) {
-	    if (bourne_alias) {
-		fprintf(aliasfile, "unalias %s%c", alias, alias_separator);
-	    } else if (bourne_funcs) {
-        	fprintf(aliasfile,"unset -f %s%c", alias, alias_separator);
-	    } /* else do nothing */
-	/**
-	 **  BASH
-	 **/
-        } else if( !strcmp( shell_name, "bash")) {
-
+	if( (!strcmp( shell_name, "sh") && bourne_alias)
+		||  (!strcmp( shell_name, "bash") && is_interactive())
+		||  !strcmp( shell_name, "zsh" )
+		||  !strcmp( shell_name, "ksh")) {
             /**
              **  If we have what the old value should have been, then look to
              **  see if it was a function or an alias because bash spits out an
@@ -1584,31 +1577,38 @@ static	int	output_unset_alias(	const char	*alias,
 
             } else {	/** No value known (any more?) **/
 
-                /**
-                 **  We'll assume it was a function because the unalias command
-                 **  in bash produces an error.  It's possible that the alias
-                 **  will not be cleared properly here because it was an
-                 **  unset-alias command.
-                 **/
-                fprintf( aliasfile, "unset -f %s%c", alias, alias_separator);
+		/** We want to make sure to get remove the alias/function,
+		 ** but avoid generating commands which might throw an error!
+		 ** How exactly this can be done depends on the used shell
+		 **/
+		if( !strcmp( shell_name, "zsh")) {
+		    /** zsh has "-m" for pattern matching, which won't complain
+		     ** about non-existing functions/aliases
+		     **/
+		    fprintf( aliasfile, "unset -fm %s%c", alias, alias_separator);
+		    fprintf( aliasfile, "unhash -am %s%c", alias, alias_separator);
+		} else if( !strcmp( shell_name, "ksh")) {
+		    /** ksh doesn't complain about unsetting non-existing
+		     ** functions/aliases, so we can try both
+		     **/
+		    fprintf( aliasfile, "unset -f %s%c", alias, alias_separator);
+		    fprintf( aliasfile, "unalias %s%c", alias, alias_separator);
+		} else {
+		    /** bash will complain about unsetting a non-existing alias,
+		     ** so we just try to unset the function.
+		     ** "sh" can be any Bourne-compatible shell, and will on most
+		     ** systems be bash in POSIX-mode, so let's handle it the same
+		     **/
+		    fprintf( aliasfile, "unset -f %s%c", alias, alias_separator);
+		}
+
             }
 
-	/**
-	 **  ZSH or KSH
-	 **  Put out both because we it could be either a function or an
-	 **  alias.  This will catch both.
-	 **/
-
-        } else if( !strcmp( shell_name, "zsh")){
-
-            fprintf(aliasfile, "unalias %s%c", alias, alias_separator);
-
-        } else if( !strcmp( shell_name, "ksh")) {
-
-            fprintf(aliasfile, "unalias %s%c", alias, alias_separator);
+        } else if( ((!strcmp( shell_name, "sh")) && bourne_funcs)
+        || (!strcmp( shell_name, "bash") && !is_interactive())) {
             fprintf(aliasfile, "unset -f %s%c", alias, alias_separator);
 
-        } /** if( bash, zsh, ksh) **/
+        } /** if (shell supports aliases) **/
 
 	/** ??? Unknown derelict ??? **/
 
