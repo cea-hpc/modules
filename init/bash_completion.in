@@ -175,89 +175,92 @@ _module() {
     esac
 }
 
-_ml() {
-    local cur="$2" prev="$3" cmds opts
+# define completion for ml command if command exists
+if $(type -t ml >/dev/null); then
+    _ml() {
+        local cur="$2" prev="$3" cmds opts
 
-    COMPREPLY=()
+        COMPREPLY=()
 
-    cmds="add apropos aliases avail append-path clear config del display help\
-        initadd initclear initlist initprepend initrm is-loaded is-saved\
-        is-used is-avail info-loaded keyword list load path paths purge\
-        prepend-path refresh reload restore rm remove remove-path save\
-        savelist saveshow saverm search show source swap switch test unload\
-        unuse use whatis"
+        cmds="add apropos aliases avail append-path clear config del display help\
+            initadd initclear initlist initprepend initrm is-loaded is-saved\
+            is-used is-avail info-loaded keyword list load path paths purge\
+            prepend-path refresh reload restore rm remove remove-path save\
+            savelist saveshow saverm search show source swap switch test unload\
+            unuse use whatis"
 
-    opts="-D -h -s -v -V --debug --help --silent --verbose --version\
-        --paginate --no-pager --color --color="
-    load_opts="--auto --no-auto --force -f -i --icase"
-    list_opts="-j -l -t --json --long --terse"
-    clear_opts="--force -f"
-    path_opts="-d --delim --duplicates"
-    rm_path_opts="-d --delim --index"
-    avail_opts="-C -d -j -i -L -l -S -t --contains --default --icase --json\
-        --latest --long --starts-with --terse --indepth --no-indepth"
-    mfile_opts="-i --icase"
-    search_opts="-j --json"
-    whatis_opts="-i -j --icase --json"
-    config_opts="--dump-state --reset advanced_version_spec auto_handling\
-        avail_indepth collection_pin_version collection_target color colors\
-        contact extended_default extra_siteconfig home icase implicit_default\
-        locked_configs ml pager rcfile run_quarantine search_match\
-        set_shell_startup silent_shell_debug term_background\
-        unload_match_order verbosity wa_277"
+        opts="-D -h -s -v -V --debug --help --silent --verbose --version\
+            --paginate --no-pager --color --color="
+        load_opts="--auto --no-auto --force -f -i --icase"
+        list_opts="-j -l -t --json --long --terse"
+        clear_opts="--force -f"
+        path_opts="-d --delim --duplicates"
+        rm_path_opts="-d --delim --index"
+        avail_opts="-C -d -j -i -L -l -S -t --contains --default --icase --json\
+            --latest --long --starts-with --terse --indepth --no-indepth"
+        mfile_opts="-i --icase"
+        search_opts="-j --json"
+        whatis_opts="-i -j --icase --json"
+        config_opts="--dump-state --reset advanced_version_spec auto_handling\
+            avail_indepth collection_pin_version collection_target color colors\
+            contact extended_default extra_siteconfig home icase implicit_default\
+            locked_configs ml pager rcfile run_quarantine search_match\
+            set_shell_startup silent_shell_debug term_background\
+            unload_match_order verbosity wa_277"
 
-    case "$prev" in
-    add|load)       _module_comgen_words_and_files "$load_opts $(_module_not_yet_loaded $cur)" "$cur";;
-    avail)          _module_comgen_words_and_files "$avail_opts $(_module_avail $cur)" "$cur";;
-    list|savelist)  COMPREPLY=( $(compgen -W "$list_opts" -- "$cur") );;
-    clear)  COMPREPLY=( $(compgen -W "$clear_opts" -- "$cur") );;
-    restore|save|saveshow|saverm|is-saved)
-                    COMPREPLY=( $(compgen -W "$(_module_savelist)" -- "$cur") );;
-    rm|del|remove|unload|switch|swap)
-                    COMPREPLY=( $(compgen -W "$load_opts ${LOADEDMODULES//:/ }" -- "$cur") );;
-    unuse|is-used)  COMPREPLY=( $(IFS=: compgen -W "${MODULEPATH}" -- "$cur") );;
-    use|-a|--append)   ;;               # let readline handle the completion
-    display|help|show|test|path|paths|is-loaded|is-avail|info-loaded)
-                    _module_comgen_words_and_files "$mfile_opts $(_module_avail $cur)" "$cur";;
-    whatis)
-                    _module_comgen_words_and_files "$whatis_opts $(_module_avail $cur)" "$cur";;
-    apropos|keyword|search)
-                    COMPREPLY=( $(compgen -W "$search_opts" -- "$cur") );;
-    config|--reset) COMPREPLY=( $(compgen -W "$config_opts" -- "$cur") );;
-    -h|--help|-V|--version|aliases|apropos|keyword|purge|refresh|reload|search|source)
-                    ;;
-    append-path|prepend-path)
-                    COMPREPLY=( $(compgen -W "$path_opts" -- "$cur") );;
-    remove-path)
-                    COMPREPLY=( $(compgen -W "$rm_path_opts" -- "$cur") );;
-    initadd|initclear|initlist|initprepend|initrm)
-                    ;;
-    *)  if test $COMP_CWORD -gt 2
-        then
-            _module_long_arg_list "$cur"
-        else
-            case "$cur" in
-            # The mappings below are optional abbreviations for convenience
-            ls)     COMPREPLY="list";;      # map ls -> list
-            sw*)    COMPREPLY="switch";;
+        case "$prev" in
+        add|load)       _module_comgen_words_and_files "$load_opts $(_module_not_yet_loaded $cur)" "$cur";;
+        avail)          _module_comgen_words_and_files "$avail_opts $(_module_avail $cur)" "$cur";;
+        list|savelist)  COMPREPLY=( $(compgen -W "$list_opts" -- "$cur") );;
+        clear)  COMPREPLY=( $(compgen -W "$clear_opts" -- "$cur") );;
+        restore|save|saveshow|saverm|is-saved)
+                        COMPREPLY=( $(compgen -W "$(_module_savelist)" -- "$cur") );;
+        rm|del|remove|unload|switch|swap)
+                        COMPREPLY=( $(compgen -W "$load_opts ${LOADEDMODULES//:/ }" -- "$cur") );;
+        unuse|is-used)  COMPREPLY=( $(IFS=: compgen -W "${MODULEPATH}" -- "$cur") );;
+        use|-a|--append)   ;;               # let readline handle the completion
+        display|help|show|test|path|paths|is-loaded|is-avail|info-loaded)
+                        _module_comgen_words_and_files "$mfile_opts $(_module_avail $cur)" "$cur";;
+        whatis)
+                        _module_comgen_words_and_files "$whatis_opts $(_module_avail $cur)" "$cur";;
+        apropos|keyword|search)
+                        COMPREPLY=( $(compgen -W "$search_opts" -- "$cur") );;
+        config|--reset) COMPREPLY=( $(compgen -W "$config_opts" -- "$cur") );;
+        -h|--help|-V|--version|aliases|apropos|keyword|purge|refresh|reload|search|source)
+                        ;;
+        append-path|prepend-path)
+                        COMPREPLY=( $(compgen -W "$path_opts" -- "$cur") );;
+        remove-path)
+                        COMPREPLY=( $(compgen -W "$rm_path_opts" -- "$cur") );;
+        initadd|initclear|initlist|initprepend|initrm)
+                        ;;
+        *)  if test $COMP_CWORD -gt 2
+            then
+                _module_long_arg_list "$cur"
+            else
+                case "$cur" in
+                # The mappings below are optional abbreviations for convenience
+                ls)     COMPREPLY="list";;      # map ls -> list
+                sw*)    COMPREPLY="switch";;
 
-            -*)     COMPREPLY=( $(compgen -W "$opts" -- "$cur") )
-                    loaded_modules=""
-                    for i in ${LOADEDMODULES//:/ }; do
-                        loaded_modules+="-${i}"
-                    done
-                    COMPREPLY=( "${COMPREPLY[@]}" $(compgen -W "$load_opts $loaded_modules" -- "$cur") );;
-            *)       _module_comgen_words_and_files "$load_opts $(_module_not_yet_loaded $cur)" "$cur"
-                    COMPREPLY=( "${COMPREPLY[@]}" $(compgen -W "$opts $cmds" -- "$cur") )
-                    loaded_modules=""
-                    for i in ${LOADEDMODULES//:/ }; do
-                        loaded_modules+="-${i}"
-                    done
-                    COMPREPLY=( "${COMPREPLY[@]}" $(compgen -W "$load_opts $loaded_modules" -- "$cur") );;
-            esac
-        fi;;
-    esac
-}
+                -*)     COMPREPLY=( $(compgen -W "$opts" -- "$cur") )
+                        loaded_modules=""
+                        for i in ${LOADEDMODULES//:/ }; do
+                            loaded_modules+="-${i}"
+                        done
+                        COMPREPLY=( "${COMPREPLY[@]}" $(compgen -W "$load_opts $loaded_modules" -- "$cur") );;
+                *)       _module_comgen_words_and_files "$load_opts $(_module_not_yet_loaded $cur)" "$cur"
+                        COMPREPLY=( "${COMPREPLY[@]}" $(compgen -W "$opts $cmds" -- "$cur") )
+                        loaded_modules=""
+                        for i in ${LOADEDMODULES//:/ }; do
+                            loaded_modules+="-${i}"
+                        done
+                        COMPREPLY=( "${COMPREPLY[@]}" $(compgen -W "$load_opts $loaded_modules" -- "$cur") );;
+                esac
+            fi;;
+        esac
+    }
+    complete -o default -F _ml ml
+fi
 @compatversion@fi
 complete -o default -F _module module
-complete -o default -F _ml ml
