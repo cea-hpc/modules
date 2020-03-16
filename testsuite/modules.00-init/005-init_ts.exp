@@ -549,6 +549,39 @@ if {[info exists tclsh_version]} {
     send_user "\tFail to detect tclsh version. Fallback to $tclsh_version version\n$errMsg"
 }
 
+# create test modulefiles on the fly as those files finishing by a space character cannot
+# be recorded in git repository (checkout will fail on Windows platform)
+proc create_endspace_test_modulefiles {} {
+   set mp $::modpath.2
+   set module {space y }
+
+   file mkdir $mp/$module
+
+   set fid [open $mp/$module/.modulerc w]
+   puts $fid {#%Module
+module-version {space y /1 } {n }
+module-version {space y /2.2} default
+module-alias {space y /a } {space y /1 }
+module-virtual {space y /v } {./1 }}
+   close $fid
+
+   foreach f [list {1 } 2.2 2.5 2.7 2.10] {
+      set fid [open $mp/$module/$f w]
+      puts $fid {#%Module
+module-whatis [module-info name]}
+      close $fid
+   }
+}
+
+proc delete_endspace_test_modulefiles {} {
+   set mp $::modpath.2
+   set module {space y }
+   foreach f [list .modulerc {1 } 2.2 2.5 2.7 2.10] {
+      file delete $mp/$module/$f
+   }
+   file delete $mp/$module
+}
+
 #
 #  Set up the config-file variable if possible
 #

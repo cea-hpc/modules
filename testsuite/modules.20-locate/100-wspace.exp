@@ -607,6 +607,152 @@ unsetenv_path_var MODULES_LMALTNAME
 
 }
 
+#
+# tests of modules finishing with whitespace in modulepath finishing by a whitespace
+#
+set mp "$modpath wspac "
+set mpre "$modpathre wspac "
+if {!$is_symlink_supported} {
+    send_user "\tskipping tests over '$mp' modulepath as symbolic links are not supported on filesystem\n"
+} else {
+
+# generate modulefiles that cannot be recorded in git repository
+create_endspace_test_modulefiles
+
+# create modulepath finishing by space on the file (it crashes git checkout on Windows if saved in repo)
+file link -symbolic $mp modulefiles.2
+setenv_path_var MODULEPATH $mp
+
+# unknown module
+testouterr_cmd sh {avail -t un\ k} OK {}
+testouterr_cmd sh {whatis un\ k} ERR "$err_path'un k'"
+testouterr_cmd sh {load un\ k} ERR "$err_path'un k'"
+testouterr_cmd sh {path un\ k} OK "$err_path'un k'"
+testouterr_cmd sh {display un\ k} ERR "$err_path'un k'"
+
+# add another modulepath
+set ans [list]
+lappend ans [list setpath MODULEPATH "$modpath:$mp"]
+testouterr_cmd_re sh "use $modpath" $ans {}
+set ans [list]
+lappend ans [list unsetpath MODULEPATH]
+testouterr_cmd sh "unuse $modpath\\ wspac\\ " $ans {}
+
+# module whose name and target finish with space character
+testouterr_cmd sh {avail -t space\ y\ /1\ } OK "$mp:\nspace y /1 (n )"
+testouterr_cmd_re sh {whatis space\ y\ /1\ } OK "$modlin $mpre $modlin\n\\s+space y /1 : space y /1 "
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "space y /1 "]
+lappend ans [list setpath _LMFILES_ "$mp/space y /1 "]
+lappend ans [list setpath MODULES_LMALTNAME "space y /1 &space y /n &space y /a "]
+testouterr_cmd sh {load space\ y\ /1\ } $ans {}
+testouterr_cmd sh {path space\ y\ /1\ } [list [list text "$mp/space y /1 "]] {}
+testouterr_cmd_re sh {display space\ y\ /1\ } OK "$modlin\n$mpre/space y /1 :\n\nmodule-whatis\t{space y /1 }\n$modlin"
+setenv_loaded_module [list "space\ y\ /1 "] [list "$mp/space y /1 "]
+setenv_path_var MODULES_LMALTNAME "space y /1 &space y /n &space y /a "
+testouterr_cmd sh {list} OK "$cur_loaded\n 1) space y /1 (n )  "
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMALTNAME]
+testouterr_cmd sh {unload space\ y\ /1\ } $ans {}
+# add another module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "space y /1 :space y /2.2"]
+lappend ans [list setpath _LMFILES_ "$mp/space y /1 :$mp/space y /2.2"]
+lappend ans [list setpath MODULES_LMALTNAME "space y /1 &space y /n &space y /a :space y /2.2&space y /default&space y "]
+testouterr_cmd_re sh {load space\ y\ /2.2} $ans {}
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMALTNAME
+
+# alias whose name and target finish with space character
+testouterr_cmd sh {avail -t space\ y\ /a\ } OK "$mp:\nspace y /a (@)"
+testouterr_cmd_re sh {whatis space\ y\ /a\ } OK "$modlin $mpre $modlin\n\\s+space y /1 : space y /1 "
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "space y /1 "]
+lappend ans [list setpath _LMFILES_ "$mp/space y /1 "]
+lappend ans [list setpath MODULES_LMALTNAME "space y /1 &space y /n &space y /a "]
+testouterr_cmd sh {load space\ y\ /a\ } $ans {}
+testouterr_cmd sh {path space\ y\ /a\ } [list [list text "$mp/space y /1 "]] {}
+testouterr_cmd_re sh {display space\ y\ /a\ } OK "$modlin\n$mpre/space y /1 :\n\nmodule-whatis\t{space y /1 }\n$modlin"
+setenv_loaded_module [list "space y /1 "] [list "$mp/space y /1 "]
+setenv_path_var MODULES_LMALTNAME "space y /1 &space y /n &space y /a "
+testouterr_cmd sh {list} OK "$cur_loaded\n 1) space y /1 (n )  "
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMALTNAME]
+testouterr_cmd sh {unload space\ y\ /a\ } $ans {}
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMALTNAME
+
+# symbolic version whose name and target finish with space character
+testouterr_cmd sh {avail -t space\ y\ /n\ } OK "$mp:\nspace y /1 (n )"
+testouterr_cmd_re sh {whatis space\ y\ /n\ } OK "$modlin $mpre $modlin\n\\s+space y /1 : space y /1 "
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "space y /1 "]
+lappend ans [list setpath _LMFILES_ "$mp/space y /1 "]
+lappend ans [list setpath MODULES_LMALTNAME "space y /1 &space y /n &space y /a "]
+testouterr_cmd sh {load space\ y\ /n\ } $ans {}
+testouterr_cmd sh {path space\ y\ /n\ } [list [list text "$mp/space y /1 "]] {}
+testouterr_cmd_re sh {display space\ y\ /n\ } OK "$modlin\n$mpre/space y /1 :\n\nmodule-whatis\t{space y /1 }\n$modlin"
+setenv_loaded_module [list "space y /1 "] [list "$mp/space y /1 "]
+setenv_path_var MODULES_LMALTNAME "space y /1 &space y /n &space y /a "
+testouterr_cmd sh {list} OK "$cur_loaded\n 1) space y /1 (n )  "
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMALTNAME]
+testouterr_cmd sh {unload space\ y\ /n\ } $ans {}
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMALTNAME
+
+# default version
+testouterr_cmd sh {avail -t space\ y\ /default} OK "$mp:\nspace y /2.2(default)"
+testouterr_cmd_re sh {whatis space\ y\ /default} OK "$modlin $mpre $modlin\n\\s+space y /2.2: space y /2.2"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "space y /2.2"]
+lappend ans [list setpath _LMFILES_ "$mp/space y /2.2"]
+lappend ans [list setpath MODULES_LMALTNAME "space y /2.2&space y /default&space y "]
+testouterr_cmd sh {load space\ y\ } $ans {}
+testouterr_cmd sh {path space\ y\ } [list [list text "$mp/space y /2.2"]] {}
+testouterr_cmd_re sh {display space\ y\ } OK "$modlin\n$mpre/space y /2.2:\n\nmodule-whatis\t{space y /2.2}\n$modlin"
+setenv_loaded_module [list "space y /2.2"] [list "$mp/space y /2.2"]
+setenv_path_var MODULES_LMALTNAME "space y /2.2&space y /default&space y "
+testouterr_cmd sh {list} OK "$cur_loaded\n 1) space y /2.2(default)  "
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMALTNAME]
+testouterr_cmd sh {unload space\ y\ } $ans {}
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMALTNAME
+
+# virtual module whose name and target finish with space character
+testouterr_cmd sh {avail -t space\ y\ /v\ } OK "$mp:\nspace y /v "
+testouterr_cmd_re sh {whatis space\ y\ /v\ } OK "$modlin $mpre $modlin\n\\s+space y /v : space y /v "
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "space y /v "]
+lappend ans [list setpath _LMFILES_ "$mp/space y /1 "]
+testouterr_cmd sh {load space\ y\ /v\ } $ans {}
+testouterr_cmd sh {path space\ y\ /v\ } [list [list text "$mp/space y /1 "]] {}
+testouterr_cmd_re sh {display space\ y\ /v\ } OK "$modlin\n$mpre/space y /1 :\n\nmodule-whatis\t{space y /v }\n$modlin"
+setenv_loaded_module [list "space y /v "] [list "$mp/space y /1 "]
+testouterr_cmd sh {list} OK "$cur_loaded\n 1) space y /v   "
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd sh {unload space\ y\ /v\ } $ans {}
+unsetenv_loaded_module
+
+# delete modulepath link created for the test
+file delete $mp
+
+# delete generated modulefiles
+delete_endspace_test_modulefiles
+
+}
+
 
 #
 #  Cleanup
