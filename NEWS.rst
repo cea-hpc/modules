@@ -132,6 +132,12 @@ Next release (2020-XX-XX)
 * Script: introduce ``envml.cmd`` script for Windows platform providing
   similar behavior than ``envml`` Bash script. (contribution from Jacques
   Raphanel)
+* Init: add Bash shell completion for the ``ml`` command. (contribution from
+  Adrien Cotte)
+* Fix Fish shell stderr redirection for newer Fish versions. (fix issue #325)
+* Correctly handle modulefiles and modulepaths containing a space character in
+  their name whether they are used from the command-line, in collections,
+  within modulefiles or from loaded environment definitions.
 
 .. _JSON: https://tools.ietf.org/html/rfc8259
 
