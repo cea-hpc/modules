@@ -7489,6 +7489,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
 
    set icase [isIcase]
 
+   set wild [expr {[isInList $search wild] ? 1 : 0}]
+
    # check search query string corresponds to directory
    set querydir [string trimright $modqe *]
    set isquerydir [expr {[string index $querydir end] eq {/}}]
@@ -7507,7 +7509,6 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
       # to translate an alias or a version (2) retrieving all elements first
       # to then look at fully qualified file names containing searched string
       set parentlist [split $modqe /]
-      set wild [expr {[isInList $search wild] ? 1 : 0}]
 
       if {$contains} {
          set findmod *
@@ -7534,149 +7535,66 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
          $fetch_hidden]
    }
 
+   # Phase #1: consolidate every kind of entries (directory, modulefile,
+   # symbolic version, alias and virtual module) in found_list
+
    # define module name and version comparison procs
-   defineModMatchAtDepthProc $indepth $querydepth $mtest
-   defineModEqProc $icase [getConf extended_default]
    defineModEqStaticProc $icase [getConf extended_default] $mod
 
-   array set dir_list {}
-   array set mod_list {}
+   array set err_list {}
+
    foreach elt [lsort [array names found_list]] {
-      set elt_type [lindex $found_list($elt) 0]
-      if {$elt_type eq {modulerc}} {
-         if {![info exists g_rcfilesSourced($dir/$elt)]} {
-            execute-modulerc $dir/$elt $elt $elt
-            # Keep track of already sourced rc files not to run them again
-            set g_rcfilesSourced($dir/$elt) 1
-         }
-      # add other entry kind to the result list
-      # also add dirname to results if query name finishes with trailing slash
-      } elseif {($wild && [doesModMatchAtDepth $elt]) || (!$wild\
-         && ([modEqStatic $elt match /*] || [modEqStatic $elt match])) ||\
-         ($isquerydir && $elt_type eq {directory} && [modEq $querydir $elt\
-         match 0])} {
-         set mod_list($elt) $found_list($elt)
-         # list dirs to rework their definition at the end
-         if {$elt_type eq {directory}} {
-            set dir_list($elt) 1
-         # track directory elements to recompose directory entries later on in
-         # case they are not part of the result (but needed for filtering
-         # occurring upstream)
-         } elseif {$ext_filter} {
-            set direlt $elt
-            while {[set pardir [file dirname $direlt]] ne {.}} {
-               if {![info exists mod_list($pardir)]} {
-                  lappend misdir_list($pardir) [file tail $direlt]
-               }
-               set direlt $pardir
+      switch -- [lindex $found_list($elt) 0] {
+         modulerc {
+            # process rc files them remove them from found_list
+            if {![info exists g_rcfilesSourced($dir/$elt)]} {
+               execute-modulerc $dir/$elt $elt $elt
+               # Keep track of already sourced rc files not to run them again
+               set g_rcfilesSourced($dir/$elt) 1
             }
+            unset found_list($elt)
+         }
+         directory - modulefile {
+         }
+         default {
+            # flag entries with error
+            set err_list($elt) 1
          }
       }
    }
 
-   # recompose directory entries if they have been filtered out above
-   # by search query but some modulefiles stored in them have been matched
-   foreach misdir [array names misdir_list] {
-      if {![info exists mod_list($misdir)]} {
-         set mod_list($misdir) [concat [list directory] $misdir_list($misdir)]
-         set dir_list($misdir) 1
-      }
-   }
-
-   # add versions found when parsing .version or .modulerc files in this
+   # add all versions found when parsing .version or .modulerc files in this
    # directory (skip versions not registered from this directory except if
-   # global or user rc definitions should be included)) if they match passed
-   # $mod (as for regular modulefiles)
-   foreach vers [modMatchAtDepth [array names g_moduleVersion]] {
+   # global or user rc definitions should be included))
+   foreach vers [array names g_moduleVersion] {
       set versmod $g_moduleVersion($vers)
       if {($dir ne {} && [string first $dir/ $g_sourceVersion($vers)] == 0)\
          || ($add_rc_defs && [info exists g_rcVersion($vers)])} {
-         set mod_list($vers) [list version $versmod]
-      }
-      # no reference add to parent directory structure as versions are virtual
+         set found_list($vers) [list version $versmod]
 
-      # add the target of symbolic versions found when parsing .version or
-      # .modulerc files if these symbols match passed $mod (as for regular
-      # modulefiles). modulefile target of these version symbol should have
-      # been found previously to be added
-      if {![info exists mod_list($versmod)]} {
-         # exception made to hidden modulefile target which should not be
-         # found previously as not searched (except if we already look for
-         # hidden modules). in case symbolic version matches passed $mod
-         # look for this hidden target
-         if {[modEqStatic $vers] && !$fetch_hidden && [isModuleHidden\
-            $versmod]} {
+         # look for hidden target if not searched yet and if symbolic version
+         # matches passed $mod
+         if {![info exists found_list($versmod)] && [modEqStatic $vers] &&\
+            !$fetch_hidden && [isModuleHidden $versmod]} {
             array set found_list [findModules $dir $versmod 0 $fetch_mtime 1]
-         }
-
-         # symbolic version targets a modulefile most of the time
-         if {[info exists found_list($versmod)]} {
-            set mod_list($versmod) $found_list($versmod)
-            # in case target is a directory add its content to the result list
-            if {[lindex $found_list($versmod) 0] eq {directory}} {
-               set dir_list($versmod) 1
-               foreach elt [array names found_list] {
-                  if {![info exists mod_list($elt)] && [modEq $versmod/* $elt\
-                     match 0]} {
-                     set mod_list($elt) $found_list($elt)
-                     # list dirs to rework their definition at the end
-                     if {[lindex $found_list($elt) 0] eq {directory}} {
-                        set dir_list($elt) 1
-                     }
-                  }
-               }
-            }
-         # but sometimes they may target an alias
-         } elseif {[info exists g_moduleAlias($versmod)]} {
-            lappend matching_versalias $versmod
-         # or a virtual module
-         } elseif {[info exists g_moduleVirtual($versmod)]} {
-            lappend matching_versvirt $versmod
          }
       }
    }
 
    # add aliases found when parsing .version or .modulerc files in this
    # directory (skip aliases not registered from this directory except if
-   # global or user rc definitions should be included) if they match passed
-   # $mod (as for regular modulefiles) or if a symbolic versions targeting
-   # alias match passed $mod
-   set matching_alias [modMatchAtDepth [array names g_moduleAlias]]
-   if {[info exists matching_versalias]} {
-      eval appendNoDupToList matching_alias $matching_versalias
-   }
-   foreach alias $matching_alias {
+   # global or user rc definitions should be included)
+   foreach alias [array names g_moduleAlias] {
       if {($dir ne {} && [string first $dir/ $g_sourceAlias($alias)] == 0)\
          || ($add_rc_defs && [info exists g_rcAlias($alias)])} {
-         set mod_list($alias) [list alias $g_moduleAlias($alias)]
-
-         # in case alias overwrites a directory definition
-         if {[info exists dir_list($alias)]} {
-             unset dir_list($alias)
-         }
-
-         # add reference to this alias version in parent structure
-         set parentname [file dirname $alias]
-         if {[info exists mod_list($parentname)]} {
-            lappend mod_list($parentname) [file tail $alias]
-         } else {
-            # add reference to orphan list if dir does not exist may be added
-            # below if dir is virtually set by a virtual deep module
-            lappend orphan_list($parentname) [file tail $alias]
-         }
+         set found_list($alias) [list alias $g_moduleAlias($alias)]
       }
    }
 
    # add virtual mods found when parsing .version or .modulerc files in this
    # directory (skip virtual mods not registered from this directory except if
-   # global or user rc definitions should be included) if they match passed
-   # $mod (as for regular modulefiles) or if a symbolic versions targeting
-   # virtual mod match passed $mod
-   set matching_virtual [modMatchAtDepth [array names g_moduleVirtual]]
-   if {[info exists matching_versvirt]} {
-      eval appendNoDupToList matching_virtual $matching_versvirt
-   }
-   foreach virt $matching_virtual {
+   # global or user rc definitions should be included)
+   foreach virt [array names g_moduleVirtual] {
       if {($dir ne {} && [string first $dir/ $g_sourceVirtual($virt)] == 0)\
          || ($add_rc_defs && [info exists g_rcVirtual($virt)])} {
          lassign [checkValidModule $g_moduleVirtual($virt)] check_valid\
@@ -7686,128 +7604,174 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
                set mtime [expr {$fetch_mtime ? [getFileMtime\
                   $g_moduleVirtual($virt)] : {}}]
                # set mtime at index 1 like a modulefile entry
-               set mod_list($virt) [list virtual $mtime\
+               set found_list($virt) [list virtual $mtime\
                   $g_moduleVirtual($virt)]
-
-               set parentname [file dirname $virt]
-               # create an entry in result list for parent directory if it
-               # matches query or required an upstream filtering processing
-               set add_ref_to_parent [expr {$ext_filter ||\
-                  [doesModMatchAtDepth $parentname]}]
             }
             default {
                # register check error and relative message to get it in
-               # case of direct access of this module element, but no
-               # registering in parent directory structure as element
-               # is not valid
-               set mod_list($virt) [list $check_valid $check_msg\
+               # case of direct access of this module element
+               set found_list($virt) [list $check_valid $check_msg\
                   $g_moduleVirtual($virt)]
-
-               # no reference to parent list
-               set add_ref_to_parent 0
-            }
-         }
-
-         # in case virtual mod overwrites a directory definition
-         if {[info exists dir_list($virt)]} {
-             unset dir_list($virt)
-         }
-
-         # add reference to this virtual mod in parent structure
-         if {$add_ref_to_parent} {
-            set elt [file tail $virt]
-
-            # initialize virtual parent structure if it does not exist
-            if {![info exists mod_list($parentname)]} {
-               # loop until reaching an existing or a top entry
-               while {![info exists mod_list($parentname)]\
-                  && $parentname ne {.}} {
-                  # create virtual directory entry
-                  set mod_list($parentname) [list directory $elt]
-                  set dir_list($parentname) 1
-
-                  set elt [file tail $parentname]
-                  set parentname [file dirname $parentname]
-               }
-               # add reference to reached existing entry
-               if {[info exists mod_list($parentname)]} {
-                  lappend mod_list($parentname) $elt
-               }
-            } else {
-               lappend mod_list($parentname) $elt
+               set err_list($virt) 1
             }
          }
       }
    }
 
-   # integrate aliases defined in orphan directories if these dirs have been
-   # virtually created by a virtual module reference
-   foreach dir [array names orphan_list] {
-      if {[info exists mod_list($dir)]} {
-         set mod_list($dir) [concat $mod_list($dir) $orphan_list($dir)]
+   # Phase #2: filter-out dynamically hidden or expired elements
+
+   # Phase #3: elaborate directory content with default element selection
+
+   array set dir_list {}
+
+   # build list of elements contained in each directory
+   foreach elt [array names found_list] {
+      # add a ref to element in its parent directory unless element has error
+      # or search of hidden files is disabled and element is an hidden file
+      # then recursively add parent element until reaching top directory
+      if {![info exists err_list($elt)] && ($fetch_hidden || ![isModuleHidden\
+         $elt])} {
+         set direlt $elt
+         while {[set pardir [file dirname $direlt]] ne {.}} {
+            lappend dir_list($pardir) [file tail $direlt]
+            set direlt $pardir
+         }
       }
    }
 
-   # work on directories integrated in the result list by registering
-   # default element in this dir and list of all child elements dictionary
-   # sorted, so last element in dir is also last element in this list
-   # this treatment happen at the end to find all directory entries in
-   # result list (alias and virtual included)
-   foreach dir [lsort [array names dir_list]] {
-      set elt_list [lsort -dictionary [lrange $mod_list($dir) 1 end]]
-      # remove dir from list if it is empty
-      if {[llength $elt_list] == 0} {
-         unset mod_list($dir)
-         # rework upper directories content if registered
-         while {[set par_dir [file dirname $dir]] ne {.}\
-            && [info exists mod_list($par_dir)]} {
-            set dir_name [file tail $dir]
-            set dir $par_dir
-            # quit if something has overwritten the directory definition
-            if {[lindex $mod_list($dir) 0] ne {directory}} {
-               break
+   # determine default element for each directory and record sorted elt list
+   # unless if an alias or a virtual module has overwritten directory entry
+   foreach elt [array names dir_list] {
+      if {![info exists found_list($elt)] || [lindex $found_list($elt) 0] eq\
+         {directory}} {
+         set dir_list($elt) [lsort -dictionary $dir_list($elt)]
+         # get default element: explicitely defined default (whether it exists
+         # or is in error) or implicit default if enabled
+         if {[info exists g_resolvedPath($elt)]} {
+            set dfl [file tail $g_resolvedPath($elt)]
+         } elseif {$implicitdfl} {
+            set dfl [lindex $dir_list($elt) end]
+         } else {
+            set dfl {}
+         }
+         # record directory properties
+         set found_list($elt) [concat [list directory $dfl] $dir_list($elt)]
+      }
+   }
+
+   # Phase #4: filter results to keep those matching search query
+
+   # define module name and version comparison procs
+   defineModMatchAtDepthProc $indepth $querydepth $mtest
+   defineModEqProc $icase [getConf extended_default]
+   defineModEqStaticProc $icase [getConf extended_default] $mod
+
+   array set mod_list {}
+
+   # keep element matching query (also add directory to result if query name
+   # finishes with trailing slash)
+   foreach elt [array names found_list] {
+      set elt_type [lindex $found_list($elt) 0]
+      if {(($wild && [doesModMatchAtDepth $elt]) || (!$wild && ([modEqStatic\
+         $elt match /*] || [modEqStatic $elt match])) || ($isquerydir &&\
+         $elt_type eq {directory} && [modEq $querydir $elt match 0])) &&\
+         ![info exists mod_list($elt)]} {
+         if {$elt_type eq {directory}} {
+            # add matching directory to the result list, its entries will be
+            # computed in a second time and directory will be dropped if it
+            # has no entry in the end
+            set mod_list($elt) [list directory]
+            # add dir to the filter dir list to enable its removal in next
+            # step if dir is empty
+            if {![info exists fdir_list($elt)]} {
+               set fdir_list($elt) {}
             }
-            # get upper dir content without empty dir (as dir_list is sorted
-            # parent dir information have already been consolidated)
-            set elt_list [lsearch -all -inline -not -exact [lrange\
-               $mod_list($dir) 2 end] $dir_name]
-            # remove also parent dir if it becomes empty
-            if {[llength $elt_list] == 0} {
-               unset mod_list($dir)
-            } else {
-               # change default if empty dir was default
-               set dfl_elt [lindex $mod_list($dir) 1]
-               if {$dfl_elt eq $dir_name} {
-                  # by last element if implicit default is enabled
-                  if {$implicitdfl} {
-                     set dfl_elt [lindex $elt_list end]
-                  } else {
-                     set dfl_elt {}
+         } else {
+            set mod_list($elt) $found_list($elt)
+         }
+
+         # version may matches query but not its target, so it should be in
+         # this case manually added to result (if it exists)
+         if {$elt_type eq {version}} {
+            set versmod [lindex $mod_list($elt) 1]
+            # add target to directory structure, not version
+            if {![info exists mod_list($versmod)] && [info exists\
+               found_list($versmod)]} {
+               set direlt $versmod
+               set mod_list($versmod) $found_list($versmod)
+               # version target is directory: recursively add its content
+               if {[lindex $mod_list($versmod) 0] eq {directory}} {
+                  foreach eltb [array names found_list] {
+                     if {![info exists mod_list($eltb)] && ![info exists\
+                        err_list($eltb)] && [modEq $versmod/* $eltb match 0]} {
+                        set mod_list($eltb) $found_list($eltb)
+                        lappend fdir_list([file dirname $eltb]) [file tail $eltb]
+                     }
+                  }
+                  # add dir to the filter dir list to enable its removal in
+                  # next step if dir is empty
+                  if {![info exists fdir_list($versmod)]} {
+                     set fdir_list($versmod) {}
                   }
                }
-               set mod_list($dir) [concat [list directory $dfl_elt]\
-                  $elt_list]
-               # no need to update upper directory as this one persists
-               break
+            } else {
+               # skip directory structure add
+               set direlt .
             }
-         }
-      } else {
-         # get default element (defined or implicit if enabled)
-         # ignore explicit default if it does not match query
-         if {[info exists g_resolvedPath($dir)] && [doesModMatchAtDepth\
-            $g_resolvedPath($dir)]} {
-            set dfl_elt [file tail $g_resolvedPath($dir)]
-         } elseif {$implicitdfl} {
-            set dfl_elt [lindex $elt_list end]
+         # skip adding element to directory content if in error
+         } elseif {[info exists err_list($elt)]} {
+            set direlt .
          } else {
-            set dfl_elt {}
+            set direlt $elt
          }
-         set mod_list($dir) [concat [list directory $dfl_elt] $elt_list]
+
+         # track directory content, as directory are also reported to their
+         # parent directory the directory structure is also tracked
+         if {[set pardir [file dirname $direlt]] ne {.}} {
+            lappend fdir_list($pardir) [file tail $direlt]
+         }
       }
    }
 
-   # now all modulefiles are settled (regular, symbol, alias, virtual) only
-   # keep those found at search query depth level if 'noindepth' mode asked
+   # determine default element for each directory and record sorted element
+   # list unless directory entry has been overwritten by a different module
+   # kind or unless only matching directory should be part of result
+   foreach elt [lsort -decreasing [array names fdir_list]] {
+      if {[lindex $found_list($elt) 0] eq {directory} && ([info exists\
+         mod_list($elt)] || $ext_filter)} {
+         set fdir_list($elt) [lsort -dictionary $fdir_list($elt)]
+         # get default element: explicitely defined default if included in
+         # result or not found or implicit default if enabled
+         if {[info exists g_resolvedPath($elt)] && ([info exists\
+            mod_list($g_resolvedPath($elt))] || ![info exists\
+            found_list($g_resolvedPath($elt))])} {
+            set dfl [file tail $g_resolvedPath($elt)]
+         } elseif {$implicitdfl} {
+            set dfl [lindex $fdir_list($elt) end]
+         } else {
+            set dfl {}
+         }
+         # remove empty dirs except if required for an upstream filter
+         if {[llength $fdir_list($elt)] == 0} {
+            if {[info exists mod_list($elt)]} {
+               unset mod_list($elt)
+            }
+            # remove unset dir reference in parent directory. parent dir
+            # will be treated after unset dir (due to decreasing sort) if it
+            # needs to get in turn unset
+            if {[set pardir [file dirname $elt]] ne {.}} {
+               set fdir_list($pardir) [replaceFromList $fdir_list($pardir)\
+                  [file tail $elt]]
+            }
+         } else {
+            # record directory properties
+            set mod_list($elt) [concat [list directory $dfl] $fdir_list($elt)]
+         }
+      }
+   }
+
+   # now all matching modulefiles are settled, only keep those found at search
+   # query depth level if 'noindepth' mode asked
    if {!$indepth} {
       # remove entries with more filename path separator than query pattern
       foreach elt [array names mod_list] {
@@ -10335,8 +10299,8 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
       # look if aliases have been defined in the global or user-specific
       # modulerc and display them if any in a dedicated list
       lassign [listModules {} $mod $show_mtime $show_filter [concat\
-         $search_filter [list $search_match rc_alias_only]]] display_list\
-         len_list max_len
+         $search_filter [list $search_match rc_alias_only wild]]]\
+         display_list len_list max_len
       if {[llength $display_list] > 0 && $show_mtime && !$theader_shown} {
          set theader_shown 1
          eval displayTableHeader $theader_cols
