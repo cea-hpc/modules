@@ -48,12 +48,8 @@ testouterr_cmd sh {avail nocase/ --json} OK "{\"$mp\": {
 \"nocase/regular\": { \"name\": \"nocase/regular\", \"type\": \"modulefile\", \"symbols\": \[\], \"pathname\": \"$mp/nocase/regular\"},
 \"nocase/deep/2\": { \"name\": \"nocase/deep/2\", \"type\": \"modulefile\", \"symbols\": \[\], \"pathname\": \"$mp/nocase/deep/2\"}
 }}"
-testouterr_cmd sh {whatis nocase/ --json} OK "{\"$mp\": {
-\"nocase/1\": { \"name\": \"nocase/1\", \"whatis\": \[ \"nocase/1\" \]},
-\"nocase/deep/2\": { \"name\": \"nocase/deep/2\", \"whatis\": \[ \"nocase/deep/2\" \]},
-\"nocase/deep/3\": { \"name\": \"nocase/deep/3\", \"whatis\": \[ \"nocase/deep/3\" \]},
-\"nocase/virt\": { \"name\": \"nocase/virt\", \"whatis\": \[ \"nocase/virt\" \]}
-}}"
+# non-wild search like whatis will not get a match
+testouterr_cmd sh {whatis nocase/ --json} ERR "{\"errors\": \[\n{ \"severity\": \"ERROR\", \"message\": \[ \"Unable to locate a modulefile for 'nocase/'\" \] } \]\n}"
 # newline in result comes from a modulefile that directly puts to stderr during its search evaluation
 testouterr_cmd sh {search nocase/ --json} ERR "{\n\"$mp\": {
 \"nocase/1\": { \"name\": \"nocase/1\", \"whatis\": \[ \"nocase/1\" \]},
@@ -164,8 +160,8 @@ testouterr_cmd sh {avail -j -C *foo} OK "{\"global/user modulerc\": {
 },
 \"$mp\": {
 \"foo/1\": { \"name\": \"foo/1\", \"type\": \"modulefile\", \"symbols\": \[\], \"pathname\": \"$mp/foo/1\"},
-\"foo/2\": { \"name\": \"foo/2\", \"type\": \"modulefile\", \"symbols\": \[\], \"pathname\": \"$mp/foo/2\"},
 \"nanfoo/1\": { \"name\": \"nanfoo/1\", \"type\": \"modulefile\", \"symbols\": \[ \"nan\" \], \"pathname\": \"$mp/nanfoo/1\"},
+\"foo/2\": { \"name\": \"foo/2\", \"type\": \"modulefile\", \"symbols\": \[\], \"pathname\": \"$mp/foo/2\"},
 \"extdfl7/10foo\": { \"name\": \"extdfl7/10foo\", \"type\": \"modulefile\", \"symbols\": \[\], \"pathname\": \"$mp/extdfl7/10foo\"},
 \"foo/0.1\": { \"name\": \"foo/0.1\", \"type\": \"modulefile\", \"symbols\": \[\], \"pathname\": \"$mp/foo/0.1\"},
 \"foo/0.2\": { \"name\": \"foo/0.2\", \"type\": \"modulefile\", \"symbols\": \[\], \"pathname\": \"$mp/foo/0.2\"}
@@ -237,11 +233,11 @@ if {$is_file_perms_editable && $tcl_platform(user) ne {root} && !$is_locked_dir_
 	change_file_perms $mp/icASE/1 ugo-rx
 	change_file_perms $mp/icase/1 ugo-rx
 	testouterr_cmd sh {whatis --json -i ICASE/1} ERR "{\"errors\": \[
-{ \"severity\": \"ERROR\", \"message\": \[ \"Permission denied on '$mp/icase/1'\" \] },
-{ \"severity\": \"ERROR\", \"message\": \[ \"Permission denied on '$mp/icASE/1'\" \] },
 { \"severity\": \"ERROR\", \"message\": \[ \"Permission denied on '$mp/iCaSe/1'\" \] },
-{ \"severity\": \"ERROR\", \"message\": \[ \"Permission denied on '$mp/IcAsE/1'\" \] },
-{ \"severity\": \"ERROR\", \"message\": \[ \"Permission denied on '$mp/ICASE/1'\" \] } \]
+{ \"severity\": \"ERROR\", \"message\": \[ \"Permission denied on '$mp/icase/1'\" \] },
+{ \"severity\": \"ERROR\", \"message\": \[ \"Permission denied on '$mp/ICASE/1'\" \] },
+{ \"severity\": \"ERROR\", \"message\": \[ \"Permission denied on '$mp/icASE/1'\" \] },
+{ \"severity\": \"ERROR\", \"message\": \[ \"Permission denied on '$mp/IcAsE/1'\" \] } \]
 }"
 	testouterr_cmd sh {whatis --json -i -s ICASE/1} ERR "{}"
 	restore_file_perms $mp/IcAsE/1

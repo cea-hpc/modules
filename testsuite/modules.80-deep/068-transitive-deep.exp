@@ -110,8 +110,10 @@ set module_10 "$module_9"
 set modalt_10 $modalt_9
 set modulefile_10 "$modulefile_9"
 set modulefilere_10 "$modulefilere_9"
-set modavail_10 [if_implicitdefault "modtr/dir4/\\s+fld\\s+\n$module_9\\s+$datetime_re" "modtr/dir4/\\s+fld\\s+"]
+set modavail_10 [if_implicitdefault "modtr/dir4/\\s+fld\\s+\nmodtr/dir4/al7 -> modtr/dir5/subdir/mod5.0\\s*madj\\s+\nmodtr/dir4/al8 -> modtr/dir5/sfld\\s+dadj\\s+\n$module_9\\s+$datetime_re" "modtr/dir4/\\s+fld\\s+"]
 set nodefault_10 $nodefault_9
+set extrawhatis_10 "\n\\s*modtr/dir5/subdir/mod5.0: modtr/dir5/subdir/mod5.0"
+set extrapaths_10 "$modpath/modtr/dir5/subdir/mod5.0"
 
 # alias set on sub-directory
 set modsym_11 "modtr/al6"
@@ -429,6 +431,16 @@ for {set i 1} {$i <= 38} {incr i} {
     } else {
         set nodefault {}
     }
+    if {[info exists "extrawhatis_${i}"]} {
+        set extrawhatis [set "extrawhatis_${i}"]
+    } else {
+        set extrawhatis {}
+    }
+    if {[info exists "extrapaths_${i}"]} {
+        set extrapaths [set "extrapaths_${i}"]
+    } else {
+        set extrapaths {}
+    }
 
     # setup clean environment
     unsetenv_loaded_module
@@ -445,7 +457,7 @@ for {set i 1} {$i <= 38} {incr i} {
     set displayerr "$modwarnnl$disp_pre$modulefilere:\n\n$disp_wi$module$disp_post"
     set helperr "$modwarnnl$help_pre$modulefilere$help_post"
     set testerr "$modwarnnl$test_pre$modulefilere$test_post"
-    set whatiserr "$whatis_pre$module: $module"
+    set whatiserr "$whatis_pre$module: $module$extrawhatis"
 
     if {$nodefault eq {}} {
         testouterr_cmd "sh" "load $modsym" $ans "$modwarn"
@@ -464,6 +476,9 @@ for {set i 1} {$i <= 38} {incr i} {
 
     set ans [list]
     lappend ans [list text $modulefile]
+    if {$extrapaths ne {}} {
+        lappend ans [list text $extrapaths]
+    }
     testouterr_cmd "sh" "paths $modsym" $ans "$modwarn"
 
     # setup environment for unload action
@@ -535,6 +550,12 @@ for {set i 1} {$i <= 38} {incr i} {
     if {[info exists "nodefault_${i}"]} {
         unset "nodefault_${i}"
     }
+    if {[info exists "extrawhatis_${i}"]} {
+        unset "extrawhatis_${i}"
+    }
+    if {[info exists "extrapaths_${i}"]} {
+        unset "extrapaths_${i}"
+    }
 }
 
 unset displayerr
@@ -556,3 +577,5 @@ unset modwarnnl
 unset modforcewarn
 unset nodefaultwarn
 unset nodefault
+unset extrawhatis
+unset extrapaths
