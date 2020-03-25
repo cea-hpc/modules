@@ -14,7 +14,7 @@ Configuration
     - in case ``implicit_default`` is disabled
 
         - means a ``default`` symbol or a ``latest`` symbol should be found defined to respectively make use of the ``@default`` or ``@latest`` specifiers
-        - an error is elsewhere raised
+        - an error is otherwise raised
 
 
 Specification
@@ -36,4 +36,10 @@ Specification
 
 - ``default`` or ``latest`` version specifiers cannot be employed in version range
 
-    - elsewhere an error is raised
+    - otherwise an error is raised
+
+- When a ``default`` or ``latest`` modulefile exists
+
+    - ``@default`` or respectively ``@latest`` will resolve to the existing modulefile
+    - no automatic symbol will be recorded in this case as ``default`` or ``latest`` are regular versions
+
