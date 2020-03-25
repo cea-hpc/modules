@@ -6773,45 +6773,27 @@ proc __getFilesInDirectory {dir fetch_hidden fetch_dotversion} {
    return $dir_list
 }
 
-# Filter-out modules whose name does not match query at expected depth level
-# when indepth search is disabled. Define procedure on the fly to adapt its
+# Check a module name does match query at expected depth level when indepth
+# search is disabled. Define procedure on the fly to adapt its
 # code to indepth configuration option and querydepth and test mode params.
-# Also define here the doesModMatchAtDepth procedure, an optimized version of
-# modMatchAtDepth than only takes one module as argument and returns its
-# result as a boolean value.
-proc defineModMatchAtDepthProc {indepth querydepth test} {
+proc defineDoesModMatchAtDepthProc {indepth querydepth test} {
    set procprops $indepth:$querydepth:$test
 
    # define proc if not done yet or if it was defined for another context
-   if {[info procs modMatchAtDepth] eq {} || $::g_modMatchAtDepth_procprops\
-      ne $procprops} {
-      if {[info exists ::g_modMatchAtDepth_procprops]} {
-         rename ::modMatchAtDepth {}
+   if {[info procs doesModMatchAtDepth] eq {} ||\
+      $::g_doesModMatchAtDepth_procprops ne $procprops} {
+      if {[info exists ::g_doesModMatchAtDepth_procprops]} {
          rename ::doesModMatchAtDepth {}
       }
-      set ::g_modMatchAtDepth_procprops $procprops
+      set ::g_doesModMatchAtDepth_procprops $procprops
 
-      # define optimized procedures
+      # define optimized procedure
       if {$indepth} {
-         set cmpmodvar mod
-         set cmpmodset {}
-         set doesbody "return \[modEqStatic \$mod $test *\]"
+         set atdepth {$mod}
       } else {
-         set cmpmodvar cmpmod
          set atdepth "\[join \[lrange \[split \$mod /\] 0 $querydepth\] /\]"
-         set cmpmodset "\nset cmpmod $atdepth"
-         set doesbody "return \[modEqStatic $atdepth $test *\]"
       }
-      set procbody "
-         set reslist \[list\]
-         foreach mod \$modlist {$cmpmodset
-            if {\[modEqStatic \$$cmpmodvar $test *\]} {
-               lappend reslist \$mod
-            }
-         }
-         return \$reslist"
-      proc modMatchAtDepth {modlist} $procbody
-      proc doesModMatchAtDepth {mod} $doesbody
+      proc doesModMatchAtDepth {mod} "return \[modEqStatic $atdepth $test *\]"
    }
 }
 
@@ -7662,7 +7644,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
    # Phase #4: filter results to keep those matching search query
 
    # define module name and version comparison procs
-   defineModMatchAtDepthProc $indepth $querydepth $mtest
+   defineDoesModMatchAtDepthProc $indepth $querydepth $mtest
    defineModEqProc $icase [getConf extended_default]
    defineModEqStaticProc $icase [getConf extended_default] $mod
 
