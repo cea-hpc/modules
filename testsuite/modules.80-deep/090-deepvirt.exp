@@ -1,0 +1,246 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.80-deep/%M%
+#   Revision:		%I%
+#   First Edition:	2020/03/26
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        load, unload, avail, whatis
+#   Modulefiles:	deepvirt
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test the correct resolution of aliases, symbolic versions and
+#           virtual modules defined in deep directories that do not exist
+#		}C%
+#
+##############################################################################
+
+# ensure avail -t tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+# ensure regular avail search match is set for these tests
+setenv_var MODULES_SEARCH_MATCH starts_with
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+set mp $env(TESTSUITEDIR)/modulefiles.2
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+if {[info exists env(MODULERCFILE)]} {
+    set saverc $env(MODULERCFILE)
+}
+setenv_var MODULERCFILE $env(TESTSUITEDIR)/etc/modulerc.deepvirt
+setenv_path_var MODULEPATH $mp
+
+
+# avail tests
+
+set tserr "$mp:
+deepvirt1/dir1/1.0(@)
+deepvirt1/dir2/1.0
+deepvirt1/dir3/1.0(@)
+deepvirt1/dir3/2.0
+deepvirt1/dir4/1.0
+deepvirt1/dir4/2.0(@)
+deepvirt1/dir5/1.0(default:@)
+deepvirt1/dir5/2.0(sym)
+deepvirt1/dir6/1.0(sym:@)
+deepvirt1/dir6/2.0(default)
+deepvirt1/dir7/(sym)
+deepvirt1/dir7/1.0(@)
+deepvirt1/dir7/2.0"
+testouterr_cmd sh {avail -t deepvirt1} OK $tserr
+set tserr "$mp:
+deepvirt2/dir6/1.0(sym:@)
+deepvirt2/dir6/2.0(default)"
+testouterr_cmd sh {avail -t deepvirt2} OK $tserr
+set tserr "global/user modulerc:
+deepvirt3/dir6/1.0(sym:@)
+deepvirt3/dir6/2.0(default)"
+testouterr_cmd sh {avail -t deepvirt3} OK $tserr
+
+set tserr "$mp:
+deepvirt1/dir1/1.0(@)"
+testouterr_cmd sh {avail -t deepvirt1/dir1} OK $tserr
+
+set tserr "$mp:
+deepvirt1/dir2/1.0"
+testouterr_cmd sh {avail -t deepvirt1/dir2} OK $tserr
+
+set tserr "$mp:
+deepvirt1/dir3/1.0(@)
+deepvirt1/dir3/2.0"
+testouterr_cmd sh {avail -t deepvirt1/dir3} OK $tserr
+
+set tserr "$mp:
+deepvirt1/dir4/1.0
+deepvirt1/dir4/2.0(@)"
+testouterr_cmd sh {avail -t deepvirt1/dir4} OK $tserr
+
+set tserr "$mp:
+deepvirt1/dir5/1.0(default:@)
+deepvirt1/dir5/2.0(sym)"
+testouterr_cmd sh {avail -t deepvirt1/dir5} OK $tserr
+
+set tserr "$mp:
+deepvirt1/dir6/1.0(sym:@)
+deepvirt1/dir6/2.0(default)"
+testouterr_cmd sh {avail -t deepvirt1/dir6} OK $tserr
+
+set tserr "$mp:
+deepvirt1/dir7/(sym)
+deepvirt1/dir7/1.0(@)
+deepvirt1/dir7/2.0"
+testouterr_cmd sh {avail -t deepvirt1/dir7} OK $tserr
+
+# no-indepth tests
+set tserr "$mp:
+deepvirt1/dir1/
+deepvirt1/dir2/
+deepvirt1/dir3/
+deepvirt1/dir4/
+deepvirt1/dir5/
+deepvirt1/dir6/
+deepvirt1/dir7/(sym)"
+testouterr_cmd sh {avail -t --no-indepth deepvirt1/} OK $tserr
+set tserr "$mp:
+deepvirt1/dir7/(sym)"
+testouterr_cmd sh {avail -t --no-indepth deepvirt1/dir7} OK $tserr
+set tserr "$mp:
+deepvirt1/dir7/1.0(@)
+deepvirt1/dir7/2.0"
+testouterr_cmd sh {avail -t --no-indepth deepvirt1/dir7/} OK $tserr
+
+# latest tests
+set tserr "$mp:
+deepvirt1/dir1/1.0(@)
+deepvirt1/dir2/1.0
+deepvirt1/dir3/2.0
+deepvirt1/dir4/2.0(@)
+deepvirt1/dir5/2.0(sym)
+deepvirt1/dir6/2.0(default)
+deepvirt1/dir7/2.0"
+testouterr_cmd sh {avail -t -L deepvirt1/} OK $tserr
+set tserr "$mp:
+deepvirt1/dir4/2.0(@)"
+testouterr_cmd sh {avail -t -L deepvirt1/dir4} OK $tserr
+set tserr "$mp:
+deepvirt2/dir6/2.0(default)"
+testouterr_cmd sh {avail -t -L deepvirt2/} OK $tserr
+set tserr "global/user modulerc:
+deepvirt3/dir6/2.0(default)"
+testouterr_cmd sh {avail -t -L deepvirt3/} OK $tserr
+
+# default tests
+set tserr "$mp:
+deepvirt1/dir1/1.0(@)
+deepvirt1/dir2/1.0
+deepvirt1/dir3/2.0
+deepvirt1/dir4/2.0(@)
+deepvirt1/dir5/1.0(default:@)
+deepvirt1/dir6/2.0(default)
+deepvirt1/dir7/2.0"
+testouterr_cmd sh {avail -t -d deepvirt1/} OK $tserr
+set tserr "$mp:
+deepvirt1/dir4/2.0(@)"
+testouterr_cmd sh {avail -t -d deepvirt1/dir4} OK $tserr
+set tserr "$mp:
+deepvirt2/dir6/2.0(default)"
+testouterr_cmd sh {avail -t -d deepvirt2/} OK $tserr
+set tserr "global/user modulerc:
+deepvirt3/dir6/2.0(default)"
+testouterr_cmd sh {avail -t -d deepvirt3/} OK $tserr
+
+
+# whatis tests
+set tserr "$modlin $mpre $modlin
+\\s+deepvirt1/dir2/1.0: deepvirt1/dir2/1.0
+\\s+deepvirt1/dir3/2.0: deepvirt1/dir3/2.0
+\\s+deepvirt1/dir4/1.0: deepvirt1/dir4/1.0
+\\s+deepvirt1/dir5/2.0: deepvirt1/dir5/2.0
+\\s+deepvirt1/dir6/2.0: deepvirt1/dir6/2.0
+\\s+deepvirt1/dir7/2.0: deepvirt1/dir7/2.0
+\\s+quux/1: quux/1"
+testouterr_cmd_re sh {whatis deepvirt1} OK $tserr
+set tserr "$modlin $mpre $modlin
+\\s+deepvirt2/dir6/2.0: deepvirt2/dir6/2.0
+\\s+quux/1: quux/1"
+testouterr_cmd_re sh {whatis deepvirt2/dir6} OK $tserr
+set tserr "$modlin $mpre $modlin
+\\s+deepvirt3/dir6/2.0: deepvirt3/dir6/2.0
+\\s+quux/1: quux/1"
+testouterr_cmd_re sh {whatis deepvirt3/dir6} OK $tserr
+
+
+# load tests
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "deepvirt1/dir7/2.0"]
+lappend ans [list setpath _LMFILES_ "$mp/quux/1"]
+lappend ans [list setpath MODULES_LMALTNAME "deepvirt1/dir7/2.0&deepvirt1/sym"]
+testouterr_cmd sh {load deepvirt1} $ans {}
+testouterr_cmd sh {load deepvirt1/sym} $ans {}
+testouterr_cmd sh {load deepvirt1/dir7} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "deepvirt2/dir6/2.0"]
+lappend ans [list setpath _LMFILES_ "$mp/quux/1"]
+lappend ans [list setpath MODULES_LMALTNAME "deepvirt2/dir6/2.0&deepvirt2/dir6/default&deepvirt2/dir6"]
+testouterr_cmd sh {load deepvirt2} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "deepvirt3/dir6/2.0"]
+lappend ans [list setpath _LMFILES_ "$mp/quux/1"]
+lappend ans [list setpath MODULES_LMALTNAME "deepvirt3/dir6/2.0&deepvirt3/dir6/default&deepvirt3/dir6"]
+testouterr_cmd sh {load deepvirt3} $ans {}
+
+
+# unload tests
+setenv_loaded_module [list deepvirt1/dir7/2.0] [list $mp/quux/1]
+setenv_path_var MODULES_LMALTNAME deepvirt1/dir7/2.0&deepvirt1/sym
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMALTNAME]
+testouterr_cmd sh {unload deepvirt1} $ans {}
+testouterr_cmd sh {unload deepvirt1/sym} $ans {}
+testouterr_cmd sh {unload deepvirt1/dir7} $ans {}
+
+setenv_loaded_module [list deepvirt2/dir6/2.0] [list $mp/quux/1]
+setenv_path_var MODULES_LMALTNAME deepvirt2/dir6/2.0&deepvirt2/dir6/default&deepvirt2/dir6
+testouterr_cmd sh {unload deepvirt2} $ans {}
+
+setenv_loaded_module [list deepvirt3/dir6/2.0] [list $mp/quux/1]
+setenv_path_var MODULES_LMALTNAME deepvirt3/dir6/2.0&deepvirt3/dir6/default&deepvirt3/dir6
+testouterr_cmd sh {unload deepvirt3} $ans {}
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+unsetenv_var MODULES_LMALTNAME
+unsetenv_loaded_module
+unsetenv_var MODULES_IMPLICIT_DEFAULT
+unsetenv_var MODULES_SEARCH_MATCH
+unsetenv_var MODULES_AVAIL_INDEPTH
+setenv_path_var MODULEPATH $modpath
+if {[info exists saverc]} {
+    setenv_var MODULERCFILE $saverc
+} else {
+    unsetenv_var MODULERCFILE
+}
+
+unset mp
+unset mpre
+unset saverc
+unset ans
+unset tserr
