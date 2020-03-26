@@ -822,6 +822,52 @@ proc _test_err {test_shell cmd answer} {
 	}
 }
 
+proc _test_err_json {test_shell cmd answer} {
+	global comp_error
+	global verbose
+    set errdiff 0
+
+    set comp_error_list [split $comp_error \n]
+    set answer_list [split $answer \n]
+
+    # compare start and end structure of the document
+    if {[lindex $comp_error_list 0] ne [lindex $answer_list 0]} {
+        set errdiff 1
+    }
+    if {[lindex $comp_error_list end] ne [lindex $answer_list end]} {
+        set errdiff 1
+    }
+    # sort document core content to compare it
+    set comp_last_entry [lindex $comp_error_list end-1]
+    set answer_last_entry [lindex $answer_list end-1]
+    if {[string range $comp_last_entry end-2 end] ne [string range\
+        $answer_last_entry end-2 end]} {
+        set errdiff 1
+    }
+    set comp_last_entry [string replace $comp_last_entry end-1 end ,]
+    set answer_last_entry [string replace $answer_last_entry end-1 end ,]
+    set comp_error_list [lreplace $comp_error_list end-1 end-1 $comp_last_entry]
+    set answer_list [lreplace $answer_list end-1 end-1 $answer_last_entry]
+
+    set comp_error_sort [join [lsort $comp_error_list] \n]
+    set answer_sort [join [lsort $answer_list] \n]
+
+    if {$comp_error_sort ne $answer_sort} {
+        set errdiff 1
+    }
+
+	if {$errdiff} {
+		fail "$cmd ($test_shell)"
+		set ol [string length $comp_error_sort]
+		set oe [string length $answer_sort]
+		send_user "ERR\[$ol\]: '$comp_error_sort'#>\n"
+		send_user "EXP\[$oe\]: '$answer_sort'#>\n"
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
 proc _test_err_re {test_shell cmd answer} {
 	global comp_error
 	global verbose
@@ -1058,6 +1104,25 @@ proc testouterr_cmd {test_shell cmd answer anserr} {
         _test_sub $test_shell "$cmd"
         if { [ _test_out $test_shell "$cmd" "$answer" ]
         &&   [ _test_err $test_shell "$cmd" "$anserr" ] } {
+            _test_ok $test_shell "$cmd"
+        }
+    }
+}
+
+#
+# Test procedure for full text matching with the stdout and json stderr
+#
+
+proc testouterrjson_cmd {test_shell cmd answer anserr} {
+    if {$test_shell eq "ALL"} {
+        global supported_shells
+        foreach shell $supported_shells {
+            testouterrjson_cmd $shell $cmd $answer $anserr
+        }
+    } else {
+        _test_sub $test_shell "$cmd"
+        if { [ _test_out $test_shell "$cmd" "$answer" ]
+        &&   [ _test_err_json $test_shell "$cmd" "$anserr" ] } {
             _test_ok $test_shell "$cmd"
         }
     }
