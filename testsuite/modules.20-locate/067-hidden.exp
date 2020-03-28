@@ -98,15 +98,15 @@ set modulefilere_10 "$modpathre/$module_10"
 set modavail_10 "$module_10\\s+$datetime_re"
 
 # hidden module is set default
-set modsym_11 "loc_rc010"
-set module_11 "$modsym_11/.1.0"
+set modsym_11 loc_rc010
+set module_11 $modsym_11/.1.0
 set modalt_11 loc_rc010/default&loc_rc010
 set modulefile_11 "$modpath/$module_11"
 set modulefilere_11 "$modpathre/$module_11"
-# does not appear on avail command, but appear on whatis and paths
+# does not appear on avail command, but appear on whatis and paths (every hidden modules targeted by non-hidden symbol)
 set modavail_11 "$modsym_11/2.0\\s+$datetime_re"
-set modwhatis_11 "\\s+$module_11: $module_11\n\\s+$modsym_11/2.0: $modsym_11/2.0"
-set modpaths_11 [list $modulefile_11 $modpath/$modsym_11/2.0]
+set modwhatis_11 "\\s+$module_11: $module_11\n\\s+$modsym_11/2.0: $modsym_11/2.0\n\\s*$modsym_11/subdir/.subdir/3.0: $modsym_11/subdir/.subdir/3.0"
+set modpaths_11 [list $modulefile_11 $modpath/$modsym_11/2.0 $modpath/$modsym_11/subdir/.subdir/3.0]
 
 # hidden virtual version
 set modsym_12 loc_rcv1/.hidvirt
@@ -142,6 +142,23 @@ set modulefile_15 $modpath/$module_15
 set modulefilere_15 $modpathre/$module_15
 set modavail_15 "$modsym_15 -> $module_15\\s+"
 
+# regular module in an hidden directory (hidden directory targeted by non-hidden symbol)
+set modsym_16 loc_rc010/subdir
+set module_16 loc_rc010/subdir/.subdir/3.0
+set modalt_16 $modsym_16/default&$modsym_16
+set modulefile_16 $modpath/$module_16
+set modulefilere_16 $modpathre/$module_16
+set modavail_16 {}
+set nodefault_16 "$err_nodefault'$modsym_16/.subdir'"
+
+# regular module in an hidden directory (hidden directory targeted by hidden symbol)
+set modsym_17 loc_rc010/subdir/.hidsub
+set module_17 loc_rc010/subdir/.hidsub/3.0
+set modulefile_17 $modpath/$module_17
+set modulefilere_17 $modpathre/$module_17
+set modavail_17 "$module_17\\s+$datetime_re"
+set nodefault_17 "$err_nodefault'$modsym_17'"
+
 
 set help_pre "$modlin\nModule Specific Help for "
 set help_post ":\n\n$modlin"
@@ -159,7 +176,7 @@ set whatis_pre "$modlin $modpathre $modlin\n"
 #  The tests
 #
 
-for {set i 1} {$i <= 15} {incr i} {
+for {set i 1} {$i <= 17} {incr i} {
     set modsym [set "modsym_${i}"]
     set module [set "module_${i}"]
     if {[info exists "modalt_${i}"]} {
@@ -173,7 +190,7 @@ for {set i 1} {$i <= 15} {incr i} {
     if {[info exists "modwhatis_${i}"]} {
         set modwhatis [set "modwhatis_${i}"]
     } else {
-        set modwhatis "\\s+$module: $module"
+        set modwhatis "\\s*$module: $module"
     }
     set ans_paths [list]
     if {[info exists "modpaths_${i}"]} {
@@ -298,7 +315,7 @@ unset displayerr
 unset helperr
 unset testerr
 
-for {set i 1} {$i <= 15} {incr i} {
+for {set i 1} {$i <= 17} {incr i} {
     unset "modsym_${i}"
     unset "module_${i}"
     if {[info exists "modalt_${i}"]} {
