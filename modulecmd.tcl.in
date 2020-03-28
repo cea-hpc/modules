@@ -10244,13 +10244,20 @@ proc cmdModuleAliases {} {
 
    set display_list {}
    foreach name [lsort -dictionary [array names ::g_moduleAlias]] {
-      lappend display_list "[sgr al $name] -> $::g_moduleAlias($name)"
+      # exclude hidden aliases from result
+      if {![isModuleHidden $name]} {
+         lappend display_list "[sgr al $name] -> $::g_moduleAlias($name)"
+      }
    }
    displayElementList Aliases hi sepline 1 0 $display_list
 
    set display_list {}
    foreach name [lsort -dictionary [array names ::g_moduleVersion]] {
-      lappend display_list "[sgr sy $name] -> $::g_moduleVersion($name)"
+      # exclude hidden versions or versions targeting an hidden module
+      if {![isModuleHidden $name] && ![isModuleHidden\
+         $::g_moduleVersion($name)]} {
+         lappend display_list "[sgr sy $name] -> $::g_moduleVersion($name)"
+      }
    }
    displayElementList Versions hi sepline 1 0 $display_list
 }
