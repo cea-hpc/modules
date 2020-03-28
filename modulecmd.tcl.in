@@ -7595,14 +7595,20 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
    # Phase #3: elaborate directory content with default element selection
 
    array set dir_list {}
+   array set hid_list {}
 
    # build list of elements contained in each directory
    foreach elt [array names found_list] {
+      # track hidden entries
+      if {[string index [file tail $elt] 0] eq {.}} {
+         set hid_list($elt) 1
+      }
+
       # add a ref to element in its parent directory unless element has error
       # or search of hidden files is disabled and element is an hidden file
       # then recursively add parent element until reaching top directory
-      if {![info exists err_list($elt)] && ($fetch_hidden || ![isModuleHidden\
-         $elt])} {
+      if {![info exists err_list($elt)] && ($fetch_hidden || ![info exists\
+         hid_list($elt)])} {
          set direlt $elt
          while {[set pardir [file dirname $direlt]] ne {.}} {
             lappend dir_list($pardir) [file tail $direlt]
@@ -7639,14 +7645,16 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
 
    array set mod_list {}
 
-   # keep element matching query (also add directory to result if query name
-   # finishes with trailing slash)
+   # keep element matching query, also add directory to result if query name
+   # finishes with trailing slash, and only keep hidden elements if they
+   # should be included in the results or if they fully match query
    foreach elt [array names found_list] {
       set elt_type [lindex $found_list($elt) 0]
       if {(($wild && [doesModMatchAtDepth $elt]) || (!$wild && ([modEqStatic\
          $elt match /*] || [modEqStatic $elt match])) || ($isquerydir &&\
          $elt_type eq {directory} && [modEq $querydir $elt match 0])) &&\
-         ![info exists mod_list($elt)]} {
+         ($fetch_hidden || ![info exists hid_list($elt)] || [modEqStatic\
+         $elt]) && ![info exists mod_list($elt)]} {
          if {$elt_type eq {directory}} {
             # add matching directory to the result list, its entries will be
             # computed in a second time and directory will be dropped if it
@@ -7689,8 +7697,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
                # skip directory structure add
                set direlt .
             }
-         # skip adding element to directory content if in error
-         } elseif {[info exists err_list($elt)]} {
+         # skip adding element to directory content if in error or hidden
+         } elseif {[info exists err_list($elt)] || [info exists\
+            hid_list($elt)]} {
             set direlt .
          } else {
             set direlt $elt
