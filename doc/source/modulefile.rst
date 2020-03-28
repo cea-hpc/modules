@@ -656,12 +656,16 @@ be adapted to the rights the user has been granted. Exception is made when
 trying to directly access a directory or a *modulefile*. In this case,
 the access issue is returned as an error message.
 
-A *modulefile* whose name or element in its name starts with a ``.`` (dot) is
-considered hidden. Hidden *modulefile* is not displayed or taken into account
-except if it is explicitly named. By inheritance, a symbolic version-name
-assigned to a hidden *modulefile* is displayed or taken into account only
-if explicitly named. Module alias targeting a hidden *modulefile* appears
-like any other module alias.
+A *modulefile*, virtual module, module alias or symbolic version whose name or
+element in their name starts with a ``.`` (dot) are considered hidden. Hidden
+*modulefile*, virtual module, module alias or symbolic version are not
+displayed or taken into account except if they are explicitly named. By
+inheritance, a symbolic version-name assigned to a hidden *modulefile*,
+virtual module or module alias is displayed or taken into account only
+if explicitly named. Non-hidden module alias targeting a hidden *modulefile*
+appears like any other non-hidden module alias. Finally, a hidden symbolic
+version targeting a non-hidden module will be displayed along its non-hidden
+target.
 
 
 Advanced module version specifiers
