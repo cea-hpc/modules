@@ -263,6 +263,14 @@ lappend ans [list setpath LOADEDMODULES $module_26]
 lappend ans [list setpath _LMFILES_ $modulefile_26]
 test_cmd "csh" "load $module_26" $ans
 
+# symbol pointing to directory only containing directories which in turns contain
+# either not a module or a module in error (not incompatible for this module version)
+testouterr_cmd sh {avail loc_rc010/foo} OK {}
+testouterr_cmd sh {load loc_rc010/foo} ERR $err_path'loc_rc010/dir'
+testouterr_cmd sh {avail loc_rc010/bar} OK {}
+testouterr_cmd sh {load loc_rc010/bar} ERR [moderr_minverreq $modpath/loc_rc010/wrong 99]
+
+
 #
 #  Cleanup
 #

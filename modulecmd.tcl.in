@@ -7680,36 +7680,45 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
          # this case manually added to result (if it exists)
          if {$elt_type eq {version}} {
             set versmod [lindex $mod_list($elt) 1]
-            # add target to directory structure, not version
-            if {![info exists mod_list($versmod)]} {
-               if {[info exists found_list($versmod)]} {
-                  set direlt $versmod
-                  set mod_list($versmod) $found_list($versmod)
-                  # version target is directory: recursively add its content
-                  if {[lindex $mod_list($versmod) 0] eq {directory}} {
-                     foreach eltb [array names found_list] {
-                        if {![info exists mod_list($eltb)] && ![info exists\
-                           err_list($eltb)] && [modEq $versmod/* $eltb match\
-                           0]} {
-                           set mod_list($eltb) $found_list($eltb)
-                           lappend fdir_list([file dirname $eltb]) [file tail\
-                              $eltb]
+            # add target to dir struct (not version) if not already recorded
+            set direlt .
+
+            # recursively add targets to result (process directory content if
+            # target is a directory
+            set tgt_list [list $versmod]
+            for {set i 0} {$i < [llength $tgt_list]} {incr i} {
+               set tgt [lindex $tgt_list $i]
+
+               if {![info exists mod_list($tgt)]} {
+                  if {[info exists found_list($tgt)]} {
+                     set mod_list($tgt) $found_list($tgt)
+                     # version target is directory: recursively add content
+                     if {[lindex $mod_list($tgt) 0] eq {directory}} {
+                        foreach direlt $dir_list($tgt) {
+                           lappend tgt_list $tgt/$direlt
+                        }
+                        # add dir to the filter dir list to enable its removal
+                        # in next step if dir is empty
+                        if {![info exists fdir_list($tgt)]} {
+                           set fdir_list($tgt) {}
                         }
                      }
-                     # add dir to the filter dir list to enable its removal in
-                     # next step if dir is empty
-                     if {![info exists fdir_list($versmod)]} {
-                        set fdir_list($versmod) {}
+                  }
+
+                  # record target in dir struct if part of found elts or not
+                  # searched (this to avoid dir removal if no other elt in it)
+                  # but should not be in error or hidden
+                  if {([info exists found_list($tgt)] || [info exists\
+                     hversmod_nosearch($tgt)]) && ![info exists\
+                     err_list($tgt)] && ![info exists hid_list($tgt)]} {
+                     if {$i == 0} {
+                        set direlt $tgt
+                     } else {
+                        lappend fdir_list([file dirname $tgt]) [file tail\
+                           $tgt]
                      }
                   }
-               # add target even if not part of found_list but not searched to
-               # avoid directory withdrawn if no other element in it
-               } elseif {[info exists hversmod_nosearch($versmod)]} {
-                  set direlt $versmod
                }
-            } else {
-               # skip directory structure add
-               set direlt .
             }
          # skip adding element to directory content if in error or hidden
          } elseif {[info exists err_list($elt)] || [info exists\
