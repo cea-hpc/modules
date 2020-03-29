@@ -7651,6 +7651,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
    defineModEqStaticProc $icase [getConf extended_default] $mod
 
    array set mod_list {}
+   array set fdir_list {}
 
    # keep element matching query, also add directory to result if query name
    # finishes with trailing slash, and only keep hidden elements if they
@@ -7754,11 +7755,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
          } else {
             set dfl {}
          }
-         # remove empty dirs except if required for an upstream filter
+         # remove empty dirs
          if {[llength $fdir_list($elt)] == 0} {
-            if {[info exists mod_list($elt)]} {
                unset mod_list($elt)
-            }
             # remove unset dir reference in parent directory. parent dir
             # will be treated after unset dir (due to decreasing sort) if it
             # needs to get in turn unset
