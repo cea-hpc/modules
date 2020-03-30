@@ -7515,6 +7515,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
 
    array set err_list {}
    array set hversmod_nosearch {}
+   array set dflvers_nosearch {}
 
    foreach elt [lsort [array names found_list]] {
       switch -- [lindex $found_list($elt) 0] {
@@ -7555,6 +7556,10 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
             } else {
                # record hidden target not searched
                set hversmod_nosearch($versmod) 1
+               # record default version target has not been searched
+               if {[file tail $vers] eq {default}} {
+                  set dflvers_nosearch($vers) $versmod
+               }
             }
          }
       }
@@ -7611,14 +7616,21 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
          set hid_list($elt) 1
       }
 
-      # add a ref to element in its parent directory unless element has error
-      # or search of hidden files is disabled and element is an hidden file
-      # then recursively add parent element until reaching top directory
-      if {![info exists err_list($elt)] && ($fetch_hidden || ![info exists\
-         hid_list($elt)])} {
+      # add a ref to element in its parent directory unless element has error,
+      # is a symbolic version (whose target has been searched if default) or
+      # search of hidden files is disabled and element is an hidden file then
+      # recursively add parent element until reaching top directory
+      if {![info exists err_list($elt)] && ([lindex $found_list($elt) 0] ne\
+         {version} || [info exists dflvers_nosearch($elt)]) && ($fetch_hidden\
+         || ![info exists hid_list($elt)])} {
+         # change to default version target if this target has not been
+         # searched to ensure definition of directory
+         if {[info exists dflvers_nosearch($elt)]} {
+            set elt $dflvers_nosearch($elt)
+         }
          set direlt $elt
          while {[set pardir [file dirname $direlt]] ne {.}} {
-            lappend dir_list($pardir) [file tail $direlt]
+            appendNoDupToList dir_list($pardir) [file tail $direlt]
             set direlt $pardir
          }
       }
