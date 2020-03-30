@@ -1871,7 +1871,8 @@ proc getModuleNameVersion {{name {}} {name_relative_tocur 0}} {
 # can be used thereafter to get in one query the actual modulefile behind
 # a virtual name. Also consolidate a global array that in the same manner
 # list all the symbols held by modulefiles.
-proc setModuleResolution {mod target {symver {}} {override_res_path 1}} {
+proc setModuleResolution {mod target {symver {}} {override_res_path 1}\
+   {auto_symver 0}} {
    global g_moduleResolved g_resolvedHash g_resolvedPath g_symbolHash
 
    # find end-point module and register step-by-step path to get to it
@@ -1893,18 +1894,21 @@ proc setModuleResolution {mod target {symver {}} {override_res_path 1}} {
       lassign [getModuleNameVersion $mod] modfull modname
    }
 
-   # change default symbol owner if previously given
-   if {$symver eq {default}} {
+   # change default symbol owner if previously given; auto symbol are defined
+   # only if no default is pre-existing
+   if {$symver eq {default} && !$auto_symver} {
       # alternative name "modname" is set when mod = "modname/default" both
       # names will be registered to be known for queries and resolution defs
       set modalt $modname
 
       if {[info exists g_moduleResolved($mod)]} {
          set prev $g_moduleResolved($mod)
-         # no test needed, there must be a "default" in $prev symbol list
-         set idx [lsearch -exact $g_symbolHash($prev) default]
-         reportDebug "remove symbol 'default' from '$prev'"
-         set g_symbolHash($prev) [lreplace $g_symbolHash($prev) $idx $idx]
+         # there may not be a default in case of auto symbol
+         if {[info exists g_symbolHash($prev)] && [set idx [lsearch -exact\
+            $g_symbolHash($prev) default]] != -1} {
+            reportDebug "remove symbol 'default' from '$prev'"
+            set g_symbolHash($prev) [lreplace $g_symbolHash($prev) $idx $idx]
+         }
       }
    }
 
@@ -1948,13 +1952,17 @@ proc setModuleResolution {mod target {symver {}} {override_res_path 1}} {
       lappend g_resolvedHash($res) $relmod
    }
 
-   # register and propagate symbols to the resolution path
+   # register and propagate symbols to the resolution path, execption made for
+   # auto symbol which are stored separately and not propagated
    if {[info exists g_symbolHash($mod)]} {
       set sym_list $g_symbolHash($mod)
    } else {
       set sym_list {}
    }
-   if {$symver ne {}} {
+   if {$symver ne {} && $auto_symver} {
+      reportDebug "define auto symbolic version '$mod' targeting $target"
+      set ::g_autoSymbol($mod) $target
+   } elseif {$symver ne {} && !$auto_symver} {
       # merge symbol definitions in case of alternative name
       if {[info exists modalt] && [info exists g_symbolHash($modalt)]} {
          set sym_list [lsort -dictionary -unique [concat $sym_list\
@@ -7459,6 +7467,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
    # set a default if none defined on directory entries
    set implicitdfl [getConf implicit_default]
 
+   # automatically define latest and default sym for all modules
+   set autosymbol [expr {$implicitdfl && [getConf advanced_version_spec]}]
+
    # match passed name against any part of avail module names
    set contains [expr {[isInList $search contains] ? 1 : 0}]
    set mtest [expr {$contains ? {matchin} : {match}}]
@@ -7616,6 +7627,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
 
    array set dir_list {}
    array set hid_list {}
+   array set autosym_list {}
 
    # build list of elements contained in each directory
    foreach elt [array names found_list] {
@@ -7660,6 +7672,22 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
          }
          # record directory properties
          set found_list($elt) [concat [list directory $dfl] $dir_list($elt)]
+
+         # automatically define symbols for all modules if these names do not
+         # exist yet
+         if {$autosymbol} {
+            if {![info exists found_list($elt/default)]} {
+               set found_list($elt/default) [list version $elt/$dfl]
+               set autosym_list($elt/default) 1
+               setModuleResolution $elt/default $elt/$dfl default 1 1
+            }
+            if {![info exists found_list($elt/latest)]} {
+               set lat [lindex $dir_list($elt) end]
+               set found_list($elt/latest) [list version $elt/$lat]
+               set autosym_list($elt/latest) 1
+               setModuleResolution $elt/latest $elt/$lat latest 1 1
+            }
+         }
       }
    }
 
@@ -7675,15 +7703,18 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
    array set keep_list {}
 
    # keep element matching query, also add directory to result if query name
-   # finishes with trailing slash, and only keep hidden elements if they
-   # should be included in the results or if they fully match query
+   # finishes with trailing slash; only keep hidden elements if they should be
+   # included in the results or if they fully match query; only keep auto syms
+   # if fully matched or version not specified in query
    foreach elt [array names found_list] {
       set elt_type [lindex $found_list($elt) 0]
       if {(($wild && [doesModMatchAtDepth $elt]) || (!$wild && ([modEqStatic\
          $elt match /*] || [modEqStatic $elt match])) || ($isquerydir &&\
          $elt_type eq {directory} && [modEq $querydir $elt match 0])) &&\
          ($fetch_hidden || ![info exists hid_list($elt)] || [modEqStatic\
-         $elt]) && ![info exists mod_list($elt)]} {
+         $elt]) && (![info exists autosym_list($elt)] || ([countChar $elt /]\
+         != $querydepth && !$contains) || [modEqStatic $elt]) && ![info\
+         exists mod_list($elt)]} {
          if {$elt_type eq {directory}} {
             # add matching directory to the result list, its entries will be
             # computed in a second time and directory will be dropped if it
