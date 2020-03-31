@@ -7429,16 +7429,16 @@ proc findModules {dir mod depthlvl fetch_mtime fetch_hidden} {
 }
 
 proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
-   {ext_filter 0}} {
+   {filter {}}} {
    global g_sourceAlias g_sourceVersion g_sourceVirtual g_resolvedPath
    global g_rcAlias g_moduleAlias g_rcVersion g_moduleVersion
    global g_rcVirtual g_moduleVirtual g_rcfilesSourced
 
    reportDebug "get '$mod' in $dir (fetch_mtime=$fetch_mtime, search=$search,\
-      fetch_hidden=$fetch_hidden, ext_filter=$ext_filter)"
+      fetch_hidden=$fetch_hidden, filter=$filter)"
 
    # generated search id (for cache search/save) by compacting given args
-   set searchid $dir:$mod:$fetch_mtime:$search:$fetch_hidden:$ext_filter
+   set searchid $dir:$mod:$fetch_mtime:$search:$fetch_hidden:$filter
 
    # look at memory cache for a compatible result
    if {[info exists ::g_gotModulesMemCache($searchid)]} {
@@ -7462,6 +7462,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
    set icase [isIcase]
 
    set wild [expr {[isInList $search wild] ? 1 : 0}]
+
+   # will only keep default or latest elements in the end
+   set keeping [expr {$filter ne {}}]
 
    # check search query string corresponds to directory
    set querydir [string trimright $modqe *]
@@ -7664,6 +7667,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
 
    array set mod_list {}
    array set fdir_list {}
+   array set keep_list {}
 
    # keep element matching query, also add directory to result if query name
    # finishes with trailing slash, and only keep hidden elements if they
@@ -7745,6 +7749,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
          # parent directory the directory structure is also tracked
          if {[set pardir [file dirname $direlt]] ne {.}} {
             lappend fdir_list($pardir) [file tail $direlt]
+         # track top level entries that will be kept if result is filtered
+         } elseif {$keeping && $direlt ne {.} && $elt_type ne {directory}} {
+            set keep_list($elt) 1
          }
       }
    }
@@ -7754,7 +7761,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
    # kind or unless only matching directory should be part of result
    foreach elt [lsort -decreasing [array names fdir_list]] {
       if {[lindex $found_list($elt) 0] eq {directory} && ([info exists\
-         mod_list($elt)] || $ext_filter)} {
+         mod_list($elt)] || $keeping)} {
          set fdir_list($elt) [lsort -dictionary $fdir_list($elt)]
          # get default element: explicitely defined default if included in
          # result or not found or implicit default if enabled
@@ -7769,7 +7776,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
          }
          # remove empty dirs
          if {[llength $fdir_list($elt)] == 0} {
-               unset mod_list($elt)
+            unset mod_list($elt)
+            unset fdir_list($elt)
             # remove unset dir reference in parent directory. parent dir
             # will be treated after unset dir (due to decreasing sort) if it
             # needs to get in turn unset
@@ -7780,6 +7788,26 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
          } else {
             # record directory properties
             set mod_list($elt) [concat [list directory $dfl] $fdir_list($elt)]
+
+            # list elements to keep for filtering step
+            if {$keeping} {
+               if {$filter eq {onlylatest}} {
+                  set keepelt $elt/[lindex $fdir_list($elt) end]
+               } elseif {$dfl ne {}} {
+                  set keepelt $elt/$dfl
+               } else {
+                  set keepelt {}
+               }
+
+               # keep directory if its element depth is deeper than query
+               if {!$indepth && [countChar $keepelt /] > $querydepth} {
+                  set keep_list($elt) 1
+               # otherwise only keep existing modules (not directories)
+               } elseif {[info exists mod_list($keepelt)] && [lindex\
+                  $mod_list($keepelt) 0] ne {directory}} {
+                  set keep_list($keepelt) 1
+               }
+            }
          }
       }
    }
@@ -7790,6 +7818,15 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
       # remove entries with more filename path separator than query pattern
       foreach elt [array names mod_list] {
          if {[countChar $elt /] > $querydepth} {
+            unset mod_list($elt)
+         }
+      }
+   }
+
+   # if result should be filtered, only keep marked elements
+   if {$keeping} {
+      foreach elt [array names mod_list] {
+         if {![info exists keep_list($elt)]} {
             unset mod_list($elt)
          }
       }
@@ -7940,16 +7977,9 @@ proc listModules {dir mod show_mtime filter search} {
    set querydir [string range $querydir 0 end-1]
    set querydepth [countChar $modqe /]
 
-   # no filtering when in depth disabled and query targets modulepath root
-   set filtering [expr {$filter ne {} && ($indepth || [string first / $modqe]\
-      != -1)}]
-
    # get module list
    # process full dir content but do not exit when err raised from a modulerc.
-   # when filtering, ask to get directory even if it does not match search
-   # query in order to get its content structure with details on default and
-   # latest elements which are required information for the result to display.
-   array set mod_list [getModules $dir $mod $show_mtime $search 0 $filtering]
+   array set mod_list [getModules $dir $mod $show_mtime $search 0 $filter]
 
    # output is JSON format
    set json [isReportFormat json]
@@ -7963,44 +7993,8 @@ proc listModules {dir mod show_mtime filter search} {
       set elt_type [lindex $mod_list($elt) 0]
 
       set add_to_clean_list 1
-      if {$filtering} {
-         # only analyze directories or modulefile at the root in case of
-         # result filtering. depending on filter kind the selection of the
-         # modulefile to display will be made using the definition
-         # information of its upper directory
-         if {$elt_type eq {directory}} {
-            switch -- $filter {
-               onlydefaults {
-                  set elt_vers [lindex $mod_list($elt) 1]
-               }
-               onlylatest {
-                  set elt_vers [lindex $mod_list($elt) end]
-               }
-            }
-            # switch to selected modulefile to display
-            append elt /$elt_vers
-            # verify it exists elsewhere skip result for this directory (also
-            # help to skip directories without explicit default set and
-            # disabled implicit default)
-            if {![info exists mod_list($elt)]} {
-               continue
-            }
-            set elt_type [lindex $mod_list($elt) 0]
-            # skip if directory selected, will be looked at in a next round
-            # except if no-indepth search and dir matches search depth level
-            if {$elt_type eq {directory} && ($indepth || [countChar $elt /]\
-               != $querydepth)} {
-               set add_to_clean_list 0
-            }
-         } elseif {[file dirname $elt] ne {.}} {
-            set add_to_clean_list 0
-         }
-
-         if {$add_to_clean_list} {
-            set tag_list [getVersAliasList $elt]
-         }
-      } else {
-         set tag_list [getVersAliasList $elt]
+      set tag_list [getVersAliasList $elt]
+      if {$filter eq {}} {
          # do not add a dir if it does not hold tags and depth mode is enabled
          # or if search query corresponds to dir: only its content is relevant
          # but add it if in no-indepth mode and if it matches query depth
