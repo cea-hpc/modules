@@ -14,7 +14,7 @@ Configuration
     - in case ``implicit_default`` is disabled
 
         - means a ``default`` symbol or a ``latest`` symbol should be found defined to respectively make use of the ``@default`` or ``@latest`` specifiers
-        - an error is otherwise raised
+        - a not found error is otherwise raised, as specified version does not exist
 
 
 Specification
@@ -38,8 +38,33 @@ Specification
 
     - otherwise an error is raised
 
+- ``default`` or ``latest`` version specifiers can also be specified with the traditionnal ``mod/version`` syntax
+
+    - for instance ``mod/default`` or ``mod/latest``
+
 - When a ``default`` or ``latest`` modulefile exists
 
     - ``@default`` or respectively ``@latest`` will resolve to the existing modulefile
     - no automatic symbol will be recorded in this case as ``default`` or ``latest`` are regular versions
 
+- To be included in module search result, the version specifiers should fully match search query or search query should not target a specific module version
+
+    - the automatically defined symbolic versions are included in results for queries like ``mod@latest`` or ``mod``
+    - but not for queries like ``mod@la``, ``mod@def``, ``mod@lat*``, ``mod@def??lt``
+
+- Automatically defined ``default`` and ``latest`` version specifiers are not displayed to avoid overloading output:
+
+    - on ``module list`` output
+    - on ``module avail`` output
+    - those two sub-commands only display symbolic versions manually defined
+
+- Alternative module names deduced from the automatically defined version specifiers need to be tracked
+
+    - in loaded environment for each targeted module loaded
+    - to keep track loaded module is default or latest version
+    - thus keeping ability to answer queries like ``is-loaded mod@latest`` from further modulefile evaluation or module command-line
+    - this information is kept in the ``MODULES_LMALTNAME`` environment variable, along other alternative names
+    - Auto symbols in this variable are recorded with a ``as|`` prefix to distinguish them from other alternative names
+
+        - for instance ``mod/1.2&mod/regular_symbol&as|mod/latest``
+        - it helps to filter auto symbols from regular symbols that need to be displayed
