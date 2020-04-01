@@ -33,10 +33,15 @@ set use	"load use 1.1/version"
 # The tests ...
 #
 
+if {[is_conf_enabled advversspec implicitdefault]} {
+    set autosym :1.1/version&as|1.1/default&as|1.1/latest
+} else {
+    set autosym {}
+}
 lappend ans [list setpath MODULEPATH "$newpath:$oldpath"]
 lappend ans [list setpath LOADEDMODULES "use/1.0:1.1/version"]
 lappend ans [list setpath _LMFILES_ "$oldpath/use/1.0:$newpath/1.1/version"]
-lappend ans [list setpath MODULES_LMALTNAME "use/1.0&use/default&use"]
+lappend ans [list setpath MODULES_LMALTNAME "use/1.0&use/default&use$autosym"]
 lappend ans [list set TESTSUITE "1.1"]
 test_cmd_re "ALL" "$use" $ans
 
@@ -44,6 +49,7 @@ test_cmd_re "ALL" "$use" $ans
 # Cleanup
 #
 
+unset autosym
 unset oldpath
 unset newpath
 unset use

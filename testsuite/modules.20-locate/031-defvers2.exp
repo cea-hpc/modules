@@ -38,7 +38,11 @@ set modavail_1 "$module_1\\s+default\\s+$datetime_re"
 set modsym_2 "loc_dv7/default"
 set module_2 "loc_dv7/2.0/1.0"
 # default symbol is set over the parent directory, will be inherited in alternative names
-set modalt_2 "loc_dv7/default&loc_dv7"
+if {[is_conf_enabled advversspec implicitdefault]} {
+    set modalt_2 "loc_dv7/default&loc_dv7&as|loc_dv7/2.0/default&as|loc_dv7/2.0/latest"
+} else {
+    set modalt_2 "loc_dv7/default&loc_dv7"
+}
 set modulefile_2 "$modpath/$module_2"
 set modulefilere_2 "$modpathre/$module_2"
 # symbol set on directory, so directory appear on avail
@@ -67,6 +71,12 @@ set modsym_5 "loc_dv1/default"
 # non existant module
 set modsym_6 "loc_xx/default"
 
+# modsym_5 will automatically get a default if advanced_vers_spec and implicit_default enabled
+if {[is_conf_enabled advversspec implicitdefault]} {
+    set modsym_err_list [list $modsym_6]
+} else {
+    set modsym_err_list [list $modsym_5 $modsym_6]
+}
 
 set help_pre "$modlin\nModule Specific Help for "
 set help_mid ":\n\nWARNING: Unable to find ModulesHelp in "
@@ -136,7 +146,7 @@ for {set i 1} {$i <= 4} {incr i} {
 }
 
 # test on erroneous modules
-foreach modsym [list $modsym_5 $modsym_6] {
+foreach modsym $modsym_err_list {
     set locate_msg "$err_path'$modsym'"
     testouterr_cmd "sh" "load $modsym" "ERR" "$locate_msg"
     testouterr_cmd "sh" "display $modsym" "ERR" "$locate_msg"
@@ -191,6 +201,7 @@ for {set i 1} {$i <= 4} {incr i} {
 
 unset modsym_5
 unset modsym_6
+unset modsym_err_list
 
 unset ans
 unset locate_msg

@@ -48,16 +48,24 @@ set modulefile_4 "$modpath/$module_4"
 set modulefilere_4 "$modpathre/$module_4"
 
 set module_5 "loc_rc7/0.9"
-set modalt_5 loc_rc7/bar
+if {[is_conf_enabled advversspec implicitdefault]} {
+    set modalt_5 loc_rc7/bar&as|loc_rc7/default&as|loc_rc7/latest
+} else {
+    set modalt_5 loc_rc7/bar
+}
 set modulefile_5 "$modpath/$module_5"
 set modulefilere_5 "$modpathre/$module_5"
 
 set module_6 "loc_rc2/2.0"
+set modalt_6 as|loc_rc2/default&as|loc_rc2/latest
 set modulefile_6 "$modpath/$module_6"
 set modulefilere_6 "$modpathre/$module_6"
 
 set module_7 "loc_rc6/1.2"
 set modalt_7 loc_rc6/1&loc_rc6/bar&loc_rc6/default&loc_rc6&dirmodalias&loc_rc6/new
+if {[is_conf_enabled advversspec implicitdefault]} {
+    append modalt_7 &as|loc_rc6/latest
+}
 set modulefile_7 "$modpath/$module_7"
 set modulefilere_7 "$modpathre/$module_7"
 
@@ -71,6 +79,9 @@ set modulefilere_9 "$modpathre/$module_9"
 
 set module_10 "loc_rcv1/1.2"
 set modalt_10 loc_rcv1/1&loc_rcv1/bar&loc_rcv1/default&loc_rcv1&loc_rcv1/new
+if {[is_conf_enabled advversspec implicitdefault]} {
+    append modalt_10 &as|loc_rcv1/latest
+}
 set modulefile_10 "$modpath/loc_rcv1/.common"
 set modulefilere_10 "$modpathre/loc_rcv1/.common"
 
@@ -160,6 +171,9 @@ set ans [list]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath LOADEDMODULES $module_6]
 lappend ans [list setpath _LMFILES_ $modulefile_6]
+if {[is_conf_enabled advversspec implicitdefault]} {
+    lappend ans [list setpath MODULES_LMALTNAME $module_6&$modalt_6]
+}
 test_cmd "csh" "load loc_rc2" [if_implicitdefault $ans ERR]
 testouterr_cmd_re "sh" "display loc_rc2" [if_implicitdefault OK ERR] [if_implicitdefault $disp_6 "$err_nodefault'loc_rc2'"]
 
@@ -278,6 +292,7 @@ unset module_5
 
 unset modulefile_6
 unset modulefilere_6
+unset modalt_6
 unset module_6
 
 unset modulefile_7

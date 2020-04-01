@@ -105,9 +105,18 @@ test_cmd "csh" "load $module_6" $ans
 
 set ans [list]
 lappend ans [list set ts1 "loc_sym"]
-lappend ans [list set ts2 "loc_sym/default"]
+# an auto default symbol is set when querying all loc_sym
+if {[is_conf_enabled advversspec implicitdefault]} {
+    lappend ans [list set ts2 "loc_sym/version26"]
+} else {
+    lappend ans [list set ts2 "loc_sym/default"]
+}
 lappend ans [list set ts3 "loc_sym/1.0"]
-lappend ans [list set ts4 "loc_sym/1.0"]
+if {[is_conf_enabled advversspec implicitdefault]} {
+    lappend ans [list set ts4 "loc_sym/version26"]
+} else {
+    lappend ans [list set ts4 "loc_sym/1.0"]
+}
 lappend ans [list setpath LOADEDMODULES $module_7]
 lappend ans [list setpath _LMFILES_ $modulefile_7]
 test_cmd "csh" "load $module_7" $ans
@@ -121,9 +130,17 @@ test_cmd "csh" "load $module_8" $ans
 
 set ans [list]
 lappend ans [list set ts1 "loc_sym"]
-lappend ans [list set ts2 "loc_sym/default"]
+if {[is_conf_enabled advversspec implicitdefault]} {
+    lappend ans [list set ts2 "loc_sym/version26"]
+} else {
+    lappend ans [list set ts2 "loc_sym/default"]
+}
 lappend ans [list set ts3 "loc_sym/10"]
-lappend ans [list set ts4 "loc_sym/10"]
+if {[is_conf_enabled advversspec implicitdefault]} {
+    lappend ans [list set ts4 "loc_sym/version26"]
+} else {
+    lappend ans [list set ts4 "loc_sym/10"]
+}
 lappend ans [list setpath LOADEDMODULES $module_9]
 lappend ans [list setpath _LMFILES_ $modulefile_9]
 test_cmd "csh" "load $module_9" $ans

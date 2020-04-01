@@ -129,6 +129,7 @@ setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 set ans [list]
 lappend ans [list setpath LOADEDMODULES foo/2]
 lappend ans [list setpath _LMFILES_ $mp/foo/2]
+lappend ans [list setpath MODULES_LMALTNAME foo/2&as|foo/default&as|foo/latest]
 testouterr_cmd sh {ml foo@2:3 -bar@1:2} $ans {}
 testouterr_cmd sh {ml foo @2} $ans {}
 testouterr_cmd sh {ml -foo @2} OK {}
@@ -141,11 +142,13 @@ testouterr_cmd sh {ml -foo @1} OK {}
 set ans [list]
 lappend ans [list setpath LOADEDMODULES foo/2:foo/1:baz/2]
 lappend ans [list setpath _LMFILES_ $mp/foo/2:$mp/foo/1:$mp/baz/2]
+lappend ans [list setpath MODULES_LMALTNAME baz/2&as|baz/default&as|baz/latest]
 testouterr_cmd_re sh {ml foo @1 -bar@2 baz -qux @1:3} $ans {}
 setenv_loaded_module [list foo/1 bar/2 qux/1] [list $mp/foo/1 $mp/bar/2 $mp/qux/1]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES foo/1:baz/2]
 lappend ans [list setpath _LMFILES_ $mp/foo/1:$mp/baz/2]
+lappend ans [list setpath MODULES_LMALTNAME baz/2&as|baz/default&as|baz/latest]
 testouterr_cmd_re sh {ml foo @1 -bar@2 baz -qux @1:3} $ans {}
 unsetenv_loaded_module
 
@@ -173,10 +176,16 @@ testouterr_cmd sh {load mlinmod} ERR [msg_load mlinmod [msg_moderr "$msg_invcmdn
 set ans [list]
 lappend ans [list setpath LOADEDMODULES bar/2]
 lappend ans [list setpath _LMFILES_ $mp/bar/2]
+if {[is_conf_enabled advversspec]} {
+    lappend ans [list setpath MODULES_LMALTNAME bar/2&as|bar/default&as|bar/latest]
+}
 testouterr_cmd sh {ml -v bar} $ans [msg_load bar/2]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES bar/2:foo/1]
 lappend ans [list setpath _LMFILES_ $mp/bar/2:$mp/foo/1]
+if {[is_conf_enabled advversspec]} {
+    lappend ans [list setpath MODULES_LMALTNAME bar/2&as|bar/default&as|bar/latest]
+}
 testouterr_cmd_re sh {ml bar foo/1 -v} $ans [msg_load bar/2]\n[msg_load foo/1]
 
 # unload only command
@@ -197,17 +206,26 @@ setenv_loaded_module [list foo/1] [list $mp/foo/1]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES bar/2:baz/2]
 lappend ans [list setpath _LMFILES_ $mp/bar/2:$mp/baz/2]
+if {[is_conf_enabled advversspec]} {
+    lappend ans [list setpath MODULES_LMALTNAME bar/2&as|bar/default&as|bar/latest:baz/2&as|baz/default&as|baz/latest]
+}
 testouterr_cmd_re sh {ml bar -foo/1 -v baz} $ans [msg_unload foo/1]\n[msg_load bar/2]\n[msg_load baz/2]
 testouterr_cmd_re sh {ml -v -foo/1 bar baz} $ans [msg_unload foo/1]\n[msg_load bar/2]\n[msg_load baz/2]
 testouterr_cmd_re sh {ml -v bar baz -foo/1} $ans [msg_unload foo/1]\n[msg_load bar/2]\n[msg_load baz/2]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES baz/2:bar/2]
 lappend ans [list setpath _LMFILES_ $mp/baz/2:$mp/bar/2]
+if {[is_conf_enabled advversspec]} {
+    lappend ans [list setpath MODULES_LMALTNAME baz/2&as|baz/default&as|baz/latest:bar/2&as|bar/default&as|bar/latest]
+}
 testouterr_cmd_re sh {ml -v baz bar -foo/1} $ans [msg_unload foo/1]\n[msg_load baz/2]\n[msg_load bar/2]
 setenv_loaded_module [list foo/1 qux/2] [list $mp/foo/1 $mp/qux/2]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES bar/2:baz/2]
 lappend ans [list setpath _LMFILES_ $mp/bar/2:$mp/baz/2]
+if {[is_conf_enabled advversspec]} {
+    lappend ans [list setpath MODULES_LMALTNAME bar/2&as|bar/default&as|bar/latest:baz/2&as|baz/default&as|baz/latest]
+}
 testouterr_cmd_re sh {ml --verbose bar -qux baz -foo/1} $ans [msg_unload qux/2]\n[msg_unload foo/1]\n[msg_load bar/2]\n[msg_load baz/2]
 
 # module not found error handling checks
@@ -221,6 +239,9 @@ testouterr_cmd sh {ml -foo/1 -foo/12} $ans {}
 set ans [list]
 lappend ans [list setpath LOADEDMODULES foo/1:bar/2]
 lappend ans [list setpath _LMFILES_ $mp/foo/1:$mp/bar/2]
+if {[is_conf_enabled advversspec]} {
+    lappend ans [list setpath MODULES_LMALTNAME bar/2&as|bar/default&as|bar/latest]
+}
 testouterr_cmd_re sh {ml -foo/12 bar} $ans {}
 testouterr_cmd sh {ml bar/12} ERR $err_path'bar/12'
 testouterr_cmd sh {ml bar/12 bar/2} ERR $err_path'bar/12'

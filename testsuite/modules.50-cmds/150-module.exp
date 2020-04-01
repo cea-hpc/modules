@@ -99,6 +99,9 @@ lappend ans [list setpath LOADEDMODULES "$module:$module_1"]
 lappend ans [list setpath _LMFILES_ "$modulefile:$modulefile_1"]
 lappend ans [list setpath MODULES_LMPREREQ $module_1&$module]
 lappend ans [list setpath MODULES_LMNOTUASKED $module]
+if {[is_conf_enabled advversspec implicitdefault]} {
+    lappend ans [list setpath MODULES_LMALTNAME $module&as|setenv/default&as|setenv/latest]
+}
 
 test_cmd_re "csh" "load $module_1" $ans
 
@@ -112,6 +115,9 @@ lappend ans [list setpath LOADEDMODULES "$module:$module_2:$module_3:$module_4"]
 lappend ans [list setpath _LMFILES_ "$modulefile:$modulefile_2:$modulefile_3:$modulefile_4"]
 lappend ans [list setpath MODULES_LMPREREQ "$module_3&trace:$module_4&setenv&trace&$module_3"]
 lappend ans [list setpath MODULES_LMNOTUASKED "$module:$module_2:$module_3"]
+if {[is_conf_enabled advversspec implicitdefault]} {
+    lappend ans [list setpath MODULES_LMALTNAME $module&as|setenv/default&as|setenv/latest:$module_2&as|trace/default&as|trace/latest]
+}
 
 test_cmd_re "csh" "load $module_4" [if_implicitdefault $ans ERR]
 

@@ -121,6 +121,7 @@ testouterr_cmd sh {load extdfl @1.2<2} ERR "$err_path'extdfl @1.2<2'"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES extdfl/2.0.1]
 lappend ans [list setpath _LMFILES_ $mp/extdfl/2.0.1]
+lappend ans [list setpath MODULES_LMALTNAME extdfl/2.0.1&as|extdfl/latest]
 testouterr_cmd sh {load extdfl @1.3.7:2.0.1} $ans {}
 testouterr_cmd sh {load extdfl @1.3.7:2.0} $ans {}
 testouterr_cmd sh {load extdfl @1.3.7:} $ans {}
@@ -132,16 +133,19 @@ testouterr_cmd sh {load extdfl/1 @:1.2.3} ERR "$err_path'extdfl/1 @:1.2.3'"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES extdfl/2.0.1:extdfl/1.4.5]
 lappend ans [list setpath _LMFILES_ $mp/extdfl/2.0.1:$mp/extdfl/1.4.5]
+lappend ans [list setpath MODULES_LMALTNAME extdfl/2.0.1&as|extdfl/latest]
 testouterr_cmd_re sh {load extdfl@:1.3.7 @1.3.7: extdfl@1.3.7:1.4.5} $ans {}
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES extdfl/2.0.1:extdfl2/3.1.7]
 lappend ans [list setpath _LMFILES_ $mp/extdfl/2.0.1:$mp/extdfl2/3.1.7]
+lappend ans [list setpath MODULES_LMALTNAME extdfl/2.0.1&as|extdfl/latest]
 testouterr_cmd_re sh {load extdfl@1.3.7: extdfl2@3.0:3.1} $ans {}
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES extdfl/2.0.1:extdfl2/3.10.2]
 lappend ans [list setpath _LMFILES_ $mp/extdfl/2.0.1:$mp/extdfl2/3.10.2]
+lappend ans [list setpath MODULES_LMALTNAME extdfl/2.0.1&as|extdfl/latest:extdfl2/3.10.2&as|extdfl2/default&as|extdfl2/latest]
 testouterr_cmd_re sh {load extdfl@1.1.10,1.3.7 @2: extdfl2 @3:} $ans {}
 
 # unconventional spec
@@ -284,7 +288,7 @@ testouterr_cmd sh "load $mp/extdfl2/3.1.7 @11:12" ERR "$err_file'$mp/extdfl2/3.1
 set ans [list]
 lappend ans [list setpath LOADEDMODULES extdfl3/1.1/3]
 lappend ans [list setpath _LMFILES_ $mp/extdfl3/1.1/3]
-lappend ans [list setpath MODULES_LMALTNAME extdfl3/1.1/3&extdfl3/1.2&extdfl3/1.00&extdfl3/1.3/3]
+lappend ans [list setpath MODULES_LMALTNAME extdfl3/1.1/3&extdfl3/1.2&extdfl3/1.00&extdfl3/1.3/3&as|extdfl3/1.1/default&as|extdfl3/1.1/latest]
 testouterr_cmd sh {load extdfl3@:1.1} $ans {}
 testouterr_cmd sh {unload extdfl2@:3.1.7} OK {}
 set ans [list]
@@ -300,6 +304,7 @@ testouterr_cmd sh "load $mp/extdfl2 @:3.1.7" ERR "$err_file'$mp/extdfl2 @:3.1.7'
 set ans [list]
 lappend ans [list setpath LOADEDMODULES extdfl2/3.1.7:extdfl2/3.10.2]
 lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl2/3.10.2]
+lappend ans [list setpath MODULES_LMALTNAME extdfl2/3.10.2&as|extdfl2/default&as|extdfl2/latest]
 testouterr_cmd_re sh {load extdfl2@3.1.7:} $ans {}
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
@@ -318,6 +323,7 @@ testouterr_cmd_re sh {load extdfl@:1.4.5} $ans {}
 set ans [list]
 lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:extdfl/2.0.1]
 lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl/2.0.1]
+lappend ans [list setpath MODULES_LMALTNAME extdfl/2.0.1&as|extdfl/latest]
 testouterr_cmd_re sh {load extdfl@1.3.7:} $ans {}
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
@@ -340,6 +346,7 @@ setenv_loaded_module [list $mp/extdfl2/3.1.7] [list $mp/extdfl2/3.1.7]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES extdfl3/1.3/4]
 lappend ans [list setpath _LMFILES_ $mp/extdfl3/1.3/4]
+lappend ans [list setpath MODULES_LMALTNAME extdfl3/1.3/4&as|extdfl3/default&as|extdfl3/latest&as|extdfl3/1.3/default&as|extdfl3/1.3/latest]
 testouterr_cmd sh {switch extdfl2@3.0.0.0: extdfl3@0.9:} $ans {}
 unsetenv_loaded_module
 
@@ -401,6 +408,7 @@ setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 set ans [list]
 lappend ans [list setpath LOADEDMODULES extdfl/2.0.1]
 lappend ans [list setpath _LMFILES_ $mp/extdfl/2.0.1]
+lappend ans [list setpath MODULES_LMALTNAME extdfl/2.0.1&as|extdfl/latest]
 testouterr_cmd sh {load extdfl@1.4:} $ans {}
 setenv_var MODULES_EXTENDED_DEFAULT 1
 testouterr_cmd sh {load extdfl@1.4:} $ans {}
@@ -438,12 +446,14 @@ if {$is_filesystem_icase} {
     set ans [list]
     lappend ans [list setpath LOADEDMODULES icase3/1.2]
     lappend ans [list setpath _LMFILES_ $mp/icase3/1.2]
+    lappend ans [list setpath MODULES_LMALTNAME icase3/1.2&as|icase3/default&as|icase3/latest]
     testouterr_cmd sh {load -i icase3@1.1:1.4} $ans {}
     testouterr_cmd sh {load -i ICase3@:1.4} $ans {}
     testouterr_cmd sh {load -i icase3@:1.4} $ans {}
     set ans [list]
     lappend ans [list setpath LOADEDMODULES iCaSe3/1.4]
     lappend ans [list setpath _LMFILES_ $mp/iCaSe3/1.4]
+    lappend ans [list setpath MODULES_LMALTNAME iCaSe3/1.4&as|iCaSe3/default&as|iCaSe3/latest]
     testouterr_cmd sh {load -i iCaSe3@1.1:} $ans {}
     setenv_var MODULES_EXTENDED_DEFAULT 1
     testouterr_cmd sh {load -i iCaSe3@1.1:} $ans {}
@@ -451,6 +461,7 @@ if {$is_filesystem_icase} {
     set ans [list]
     lappend ans [list setpath LOADEDMODULES icase3/1.2]
     lappend ans [list setpath _LMFILES_ $mp/icase3/1.2]
+    lappend ans [list setpath MODULES_LMALTNAME icase3/1.2&as|icase3/default&as|icase3/latest]
     testouterr_cmd sh {load -i ICase3@1.2:} $ans {}
     testouterr_cmd sh {load -i ICase3@1:2} $ans {}
     unsetenv_var MODULES_EXTENDED_DEFAULT
@@ -653,6 +664,7 @@ lappend ans [list setpath LOADEDMODULES extdfl7/10a:advvers6/3.2]
 lappend ans [list setpath _LMFILES_ $mp/extdfl7/10a:$mp/advvers6/3.2]
 lappend ans [list setpath MODULES_LMPREREQ "advvers6/3.2&extdfl7@<11"]
 lappend ans [list setpath MODULES_LMNOTUASKED extdfl7/10a]
+lappend ans [list setpath MODULES_LMALTNAME advvers6/3.2&as|advvers6/default&as|advvers6/latest]
 testouterr_cmd_re sh {load --auto advvers6@3.2} $ans [msg_top_load advvers6/3.2 {} extdfl7/10a {}]
 
 
@@ -977,6 +989,7 @@ testouterr_cmd_re sh {load --no-auto advvers10/7} $ans {}
 lappend ans [list setpath LOADEDMODULES advvers9/3:advvers10/8]
 lappend ans [list setpath _LMFILES_ $mp/advvers9/3:$mp/advvers10/8]
 lappend ans [list setpath MODULES_LMPREREQ advvers10/8&advvers9@1<3]
+lappend ans [list setpath MODULES_LMALTNAME advvers10/8&as|advvers10/default&as|advvers10/latest]
 testouterr_cmd_re sh {load --auto advvers10/8} $ans {}
 testouterr_cmd_re sh {load --no-auto advvers10/8} $ans {}
 unsetenv_loaded_module
