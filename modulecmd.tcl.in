@@ -2036,7 +2036,7 @@ proc setModuleResolution {mod target {symver {}} {override_res_path 1}\
 }
 
 # retrieve all names that resolve to passed mod
-proc getAllModuleResolvedName {mod} {
+proc getAllModuleResolvedName {mod {flag_autosym 0}} {
    set namelist {}
    set resmodlist {}
    set icase [isIcase]
@@ -2063,7 +2063,12 @@ proc getAllModuleResolvedName {mod} {
             if {[modEq $modelt $mod eqstart] || $::g_moduleResolved($resmod)\
                eq $mod || [lindex [getPathToModule\
                $::g_moduleResolved($resmod) {} 0] 1] eq $mod} {
-               appendNoDupToList namelist $resmod
+               # prefix automatically generated symbols with 'as|' if asked
+               if {$flag_autosym && [info exists ::g_autoSymbol($resmod)]} {
+                  appendNoDupToList namelist as|$resmod
+               } else {
+                  appendNoDupToList namelist $resmod
+               }
 
                unset modroot
                foreach reselt [split [file dirname $resmod] /] {
@@ -4580,12 +4585,22 @@ proc getLoadedPrereq {mod {serialized 0}} {
 }
 
 proc setLoadedAltname {mod args} {
-   eval appendNoDupToList "{::g_loadedModuleAltname($mod)}" $args
+   foreach arg $args {
+      if {[string range $arg 0 2] eq {as|}} {
+         appendNoDupToList ::g_loadedModuleAutoAltname($mod) [string range\
+            $arg 3 end]
+      } else {
+         appendNoDupToList ::g_loadedModuleAltname($mod) $arg
+      }
+   }
 }
 
 proc unsetLoadedAltname {mod} {
    if {[info exists ::g_loadedModuleAltname($mod)]} {
       unset ::g_loadedModuleAltname($mod)
+   }
+   if {[info exists ::g_loadedModuleAutoAltname($mod)]} {
+      unset ::g_loadedModuleAutoAltname($mod)
    }
 }
 
@@ -4593,13 +4608,23 @@ proc getLoadedAltname {mod {serialized 0}} {
    set ret {}
 
    if {[info exists ::g_loadedModuleAltname($mod)]} {
+      set ret $::g_loadedModuleAltname($mod)
+   }
+   if {[info exists ::g_loadedModuleAutoAltname($mod)]} {
       if {$serialized} {
-         # get altname info as a string that can be registered in an env var
-         set ret [join [concat [list $mod] $::g_loadedModuleAltname($mod)]\
-            $::g_sub1_separator]
+         # add a 'as|' prefix to each auto sym to distinguish them when
+         # serialized
+         foreach altname $::g_loadedModuleAutoAltname($mod) {
+            lappend ret as|$altname
+         }
       } else {
-         set ret $::g_loadedModuleAltname($mod)
+         set ret [concat $ret $::g_loadedModuleAutoAltname($mod)]
       }
+   }
+
+   if {$ret ne {} && $serialized} {
+      # get altname info as a string that can be registered in an env var
+      set ret [join [concat [list $mod] $ret] $::g_sub1_separator]
    }
 
    return $ret
@@ -5296,9 +5321,9 @@ proc pushSettings {} {
       g_stateFunctions g_Functions g_newXResources g_delXResources\
       g_loadedModules g_loadedModuleFiles g_loadedModuleUasked\
       g_loadedModuleConflict g_loadedModulePrereq g_loadedModuleAltname\
-      g_moduleDepend g_dependHash g_moduleNPODepend g_dependNPOHash\
-      g_prereqViolation g_prereqNPOViolation g_conflictViolation\
-      g_moduleUnmetDep g_unmetDepHash g_moduleEval} {
+      g_loadedModuleAutoAltname g_moduleDepend g_dependHash g_moduleNPODepend\
+      g_dependNPOHash g_prereqViolation g_prereqNPOViolation\
+      g_conflictViolation g_moduleUnmetDep g_unmetDepHash g_moduleEval} {
       eval "lappend ::g_SAVE_$var \[array get ::$var\]"
    }
    # save non-array variable and indication if it was set
@@ -5319,9 +5344,9 @@ proc popSettings {} {
       g_changeDir g_stdoutPuts g_return_text\
       g_loadedModules g_loadedModuleFiles g_loadedModuleUasked\
       g_loadedModuleConflict g_loadedModulePrereq g_loadedModuleAltname\
-      g_moduleDepend g_dependHash g_moduleNPODepend g_dependNPOHash\
-      g_prereqViolation g_prereqNPOViolation g_conflictViolation\
-      g_moduleUnmetDep g_unmetDepHash g_moduleEval} {
+      g_loadedModuleAutoAltname g_moduleDepend g_dependHash g_moduleNPODepend\
+      g_dependNPOHash g_prereqViolation g_prereqNPOViolation\
+      g_conflictViolation g_moduleUnmetDep g_unmetDepHash g_moduleEval} {
       eval "set ::g_SAVE_$var \[lrange \$::g_SAVE_$var 0 end-1\]"
    }
    reportDebug "previously saved settings flushed (#$flushedid)"
@@ -5332,9 +5357,9 @@ proc restoreSettings {} {
       g_stateFunctions g_Functions g_newXResources g_delXResources\
       g_loadedModules g_loadedModuleFiles g_loadedModuleUasked\
       g_loadedModuleConflict g_loadedModulePrereq g_loadedModuleAltname\
-      g_moduleDepend g_dependHash g_moduleNPODepend g_dependNPOHash\
-      g_prereqViolation g_prereqNPOViolation g_conflictViolation\
-      g_moduleUnmetDep g_unmetDepHash g_moduleEval} {
+      g_loadedModuleAutoAltname g_moduleDepend g_dependHash g_moduleNPODepend\
+      g_dependNPOHash g_prereqViolation g_prereqNPOViolation\
+      g_conflictViolation g_moduleUnmetDep g_unmetDepHash g_moduleEval} {
       # clear current $var arrays
       if {[info exists ::$var]} {
          eval "unset ::$var; array set ::$var {}"
@@ -9800,7 +9825,7 @@ proc cmdModuleLoad {context uasked args} {
 
          # register altname of modname prior any conflict check
          eval setLoadedAltname "{$modname}" [getAllModuleResolvedName\
-            $modname]
+            $modname 1]
 
          if {[getConf auto_handling]} {
             # get loaded modules holding a requirement on modname and able to
