@@ -138,6 +138,36 @@ Next release (2020-XX-XX)
 * Correctly handle modulefiles and modulepaths containing a space character in
   their name whether they are used from the command-line, in collections,
   within modulefiles or from loaded environment definitions.
+* Doc: add *Default and latest version specifiers* design note.
+* An ``avail`` search over a symbolic version targeting a directory now
+  correctly returns the special modules (alias and virtual module) lying in
+  this directory. (fix issue #327)
+* ``whatis`` and ``paths`` searches only return special modules (symbolic
+  version, alias and virtual modules) that fully match search query, not
+  those that partially match it. (fix issue #328)
+* alias and virtual module whose name mention a directory that does not
+  exists are correctly handled. (fix issue #168)
+* Hide special modules (aliases, symbolic versions and virtual modules)
+  whose version name starts with a dot character (``.``) from ``avail``,
+  ``whatis`` and ``paths`` searches if their query does not fully match
+  special module name. (fix issue #329)
+* Filter-out from the output of the ``aliases`` sub-command all hidden
+  aliases, symbolic versions or hidden modules targeted by a non-hidden
+  symbolic version. (fix issue #330)
+* Enable resolution of default module in module sub-directory when this
+  default symbol targets a hidden directory (whose name starts with a dot
+  character). (fix issue #331)
+* Doc: clarify hidden module location in :ref:`modulefile(4)` man page.
+* Install: define ``LD_PRELOAD`` as quarantine var along with
+  ``LD_LIBRARY_PATH`` in RPM specfile.
+* When ``implicit_default`` and ``advanced_version_spec`` configuration are
+  enabled, automatically define a ``default`` and ``latest`` symbolic version
+  for each module name (at each module depth for deep modules) if those
+  version names does not already exist. (fix issue #210)
+* Once a module is loaded, the automatically defined symbols associated to it
+  are recorded in loaded environment in the ``MODULES_LMALTNAME`` environment
+  variable. They are distinguished from the other alternative names applying
+  to the module by a ``as|`` prefix, which qualifies their *auto symbol* type.
 
 .. _JSON: https://tools.ietf.org/html/rfc8259
 
