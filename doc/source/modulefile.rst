@@ -641,6 +641,12 @@ specified is matched against starting portion of existing module versions,
 where portion is a substring separated from the rest of version string by a
 ``.`` character.
 
+When the implicit default mechanism and the `Advanced module version
+specifiers`_ are both enabled, a ``default`` and ``latest`` symbolic versions
+are automatically defined for each module name (also at each directory level
+in case of deep *modulefile*). Unless a symbolic version, alias, or regular
+module version already exists for these version names.
+
 If user names a *modulefile* that cannot be found in the first *modulepath*
 directory, *modulefile* will be searched in next *modulepath* directory
 and so on until a matching *modulefile* is found. If search goes through
@@ -702,6 +708,15 @@ versions, the version major element should corresponds to a number. For
 instance ``10a``, ``1.2.3``, ``1.foo`` are versions valid for range
 comparison whereas ``default`` or ``foo.2`` versions are invalid for range
 comparison.
+
+If the implicit default mechanism is also enabled (see
+:envvar:`MODULES_IMPLICIT_DEFAULT` in :ref:`module(1)`), a ``default`` and
+``latest`` symbolic versions are automatically defined for each module name
+(also at each directory level for deep *modulefiles*). These automatic version
+symbols are defined unless a symbolic version, alias, or regular module
+version already exists for these ``default`` or ``latest`` version names.
+Using the ``mod@latest`` (or ``mod/latest``) syntax ensures highest available
+version will be selected.
 
 
 Modulefile Specific Help

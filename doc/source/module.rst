@@ -972,6 +972,15 @@ instance ``10a``, ``1.2.3``, ``1.foo`` are versions valid for range
 comparison whereas ``default`` or ``foo.2`` versions are invalid for range
 comparison.
 
+If the implicit default mechanism is also enabled (see
+:envvar:`MODULES_IMPLICIT_DEFAULT`), a ``default`` and ``latest`` symbolic
+versions are automatically defined for each module name (also at each
+directory level for deep *modulefiles*). These automatic version symbols are
+defined unless a symbolic version, alias, or regular module version already
+exists for these ``default`` or ``latest`` version names. Using the
+``mod@latest`` (or ``mod/latest``) syntax ensures highest available version
+will be selected.
+
 
 Collections
 ^^^^^^^^^^^
