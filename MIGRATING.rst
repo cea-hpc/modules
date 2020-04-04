@@ -153,10 +153,27 @@ A stack trace is also returned when an unknown error occurs in
       "eval $execcmdlist"
       Please report this issue at https://github.com/cea-hpc/modules/issues
 
+Automatic default and latest symbolic versions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When the implicit default mechanism and the `Advanced module version
+specifiers`_ are both enabled, a ``default`` and a ``latest`` symbolic
+versions are automatically defined for each module name.
+
+This new feature gives the ability to select the highest version available for
+a module, without knowing beforehand this version name::
+
+    $ module load -v foo@latest
+    Loading foo/1.10
+
+The symbolic versions are automatically defined unless a symbolic version, an
+alias or a regular module version already exists for these ``default`` or
+``latest`` version names.
+
 Further reading
 ---------------
 
-To get a complete list of the changes between Modules v4.3 and v4.4,
+To get a complete list of the changes between Modules v4.4 and v4.5,
 please read the :ref:`NEWS` document.
 
 
