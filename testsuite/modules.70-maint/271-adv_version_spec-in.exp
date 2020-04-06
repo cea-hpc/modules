@@ -872,7 +872,24 @@ lappend ans [list setpath _LMFILES_ $mp/advvers9/3:$mp/advvers10/4]
 lappend ans [list setpath MODULES_LMPREREQ advvers10/4&advvers9@1,3]
 testouterr_cmd_re sh {load --auto advvers10/4} $ans {}
 testouterr_cmd_re sh {load --no-auto advvers10/4} $ans {}
+unsetenv_loaded_module
 
+
+# test with list of symbolic versions
+set ans [list]
+lappend ans [list setpath LOADEDMODULES autosym6/latest]
+lappend ans [list setpath _LMFILES_ $mp/autosym6/2]
+testouterr_cmd sh {load autosym6@latest,zzz} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES autosym6/2]
+lappend ans [list setpath _LMFILES_ $mp/autosym6/2]
+lappend ans [list setpath MODULES_LMALTNAME autosym6/2&autosym6/yyy]
+testouterr_cmd sh {load autosym6@yyy,zzz} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES autosym3/1]
+lappend ans [list setpath _LMFILES_ $mp/autosym3/1]
+lappend ans [list setpath MODULES_LMALTNAME autosym3/1&autosym3/default&autosym3]
+testouterr_cmd sh {load autosym3@default,latest} $ans {}
 
 
 #

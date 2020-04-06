@@ -168,6 +168,9 @@ Next release (2020-XX-XX)
   are recorded in loaded environment in the ``MODULES_LMALTNAME`` environment
   variable. They are distinguished from the other alternative names applying
   to the module by a ``as|`` prefix, which qualifies their *auto symbol* type.
+* When an advanced version specifier list contains symbolic version
+  references, fix resolving to honor default version if part of the specified
+  list. (fix issue #334)
 
 .. _JSON: https://tools.ietf.org/html/rfc8259
 

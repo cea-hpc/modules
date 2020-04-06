@@ -6446,10 +6446,18 @@ proc getEqArrayKeyProcImpdfl {arrname name} {
          if {[info exists arr($pname)]} {
             set dfl $pname/[lindex $arr($pname) 1]
          }
-         if {[info exists dfl] && [isInList $mlist $dfl]} {
+         # resolve symbolic version entries
+         foreach elt $mlist {
+            if {[lindex $arr($elt) 0] eq {version}} {
+               lappend mrlist [lindex $arr($elt) 1]
+            } else {
+               lappend mrlist $elt
+            }
+         }
+         if {[info exists dfl] && [isInList $mrlist $dfl]} {
             set match $dfl
          } else {
-            set match [lindex [lsort -dictionary $mlist] end]
+            set match [lindex [lsort -dictionary $mrlist] end]
          }
       }
    }
@@ -6483,7 +6491,15 @@ proc getEqArrayKeyProc {arrname name} {
          if {[info exists arr($pname)]} {
             set dfl $pname/[lindex $arr($pname) 1]
          }
-         if {[info exists dfl] && [isInList $mlist $dfl]} {
+         # resolve symbolic version entries
+         foreach elt $mlist {
+            if {[lindex $arr($elt) 0] eq {version}} {
+               lappend mrlist [lindex $arr($elt) 1]
+            } else {
+               lappend mrlist $elt
+            }
+         }
+         if {[info exists dfl] && [isInList $mrlist $dfl]} {
             set match $dfl
          } else {
             # raise error as no default part of result
