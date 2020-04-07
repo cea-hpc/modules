@@ -6,7 +6,7 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
-Next release (2020-XX-XX)
+Modules 4.5.0 (2020-04-07)
 --------------------------
 
 * Doc: fix typos and grammar mistakes on :ref:`module(1)`,
