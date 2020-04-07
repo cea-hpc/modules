@@ -1,8 +1,8 @@
 task:
   freebsd_instance:
     matrix:
-      image: freebsd-11-2-release-amd64
-      image: freebsd-12-0-release-amd64
+      image_family: freebsd-11-3-snap
+      image_family: freebsd-12-1-snap
   env:
     RUNTESTFLAGS: -v
   # need to supersede Cirrus CI-specific git clone with a regular git client
@@ -15,7 +15,7 @@ task:
         git fetch origin pull/$CIRRUS_PR/head:pull/$CIRRUS_PR;
       fi
     - git reset --hard $CIRRUS_CHANGE_IN_REPO
-  install_script: pkg install -y bash wget gmake dejagnu py37-sphinx tcl86 tcl-wrapper autoconf automake gettext ksh93 zsh fish perl5 python37 ruby cmake R readline openmp
+  install_script: pkg install -y bash wget gmake dejagnu py37-sphinx tcl86 tcl-wrapper autoconf automake gettext ksh93 zsh fish perl5 python37 ruby cmake R readline
   build_script: ./configure --without-tclx --with-tcl-ver=8.6 && gmake && gmake install
   test_script:
     - script/mt
