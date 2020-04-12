@@ -1,0 +1,199 @@
+#!/usr/bin/env tclsh
+#
+# MPUB, publish new release and update website
+# Copyright (C) 2020 Xavier Delaruelle
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+##########################################################################
+
+proc sgr {sgrcode str} {
+   return "\033\[${sgrcode}m$str\033\[0m"
+}
+
+proc logadd {str} {
+   puts $::logfid $str
+}
+
+proc reportInfo {str} {
+   logadd "--- $str"
+   puts [sgr 2 $str]
+}
+
+proc reportError {str} {
+   logadd "### ERROR: $str"
+   puts "[sgr {1;31} ERROR]: $str"
+}
+
+proc runcmd {args} {
+   reportInfo "Running command: $args"
+   eval exec >@$::logfid $args
+}
+
+proc ignoreexp {errmsg expmsg} {
+   if {![string equal $expmsg $errmsg]} {
+      error $errmsg
+   }
+}
+
+
+# surround whole code to catch error and quit properly
+if {[catch {
+
+set exitcode 0
+set dlurl http://downloads.sourceforge.net/modules
+set cwd [pwd]
+
+# define and open log file
+set logfile mpub.out
+set logfid [open $logfile w]
+
+# ensure head sit on a tag
+set reltag [exec git describe --tags --exact-match]
+reportInfo "Found release tag '$reltag'"
+if {[regexp {^v(\d+.\d+.\d+)$} $reltag match relver]} {
+   reportInfo "Extract release version number '$relver'"
+} else {
+   error "git tag '$reltag' is not a valid release tag"
+}
+
+# get previous version for website update
+set prevtag [exec git describe --tags --abbrev=0 HEAD^]
+reportInfo "Found previous release tag '$prevtag'"
+if {[regexp {^v(\d+.\d+.\d+)$} $prevtag match prevver]} {
+   reportInfo "Extract previous release version number '$prevver'"
+} else {
+   error "git tag '$prevtag' is not a valid release tag"
+}
+
+# check mrel status
+if {[file exists mpub.ok]} {
+   reportInfo {Found 'mrel' successful state}
+} else {
+   reportError {'mrel' must be run prior 'mpub'}
+}
+
+# get name of GitHub remote repository
+if {![info exists env(MREL_GITHUB_REMOTE)]} {
+   puts -nonewline "GitHub remote: "
+   flush stdout
+   gets stdin env(MREL_GITHUB_REMOTE)
+}
+set ghremote $env(MREL_GITHUB_REMOTE)
+reportInfo "GitHub remote set to '$ghremote'"
+
+# get name of SourceForge remote repository
+if {![info exists env(MREL_SOURCEFORGE_REMOTE)]} {
+   puts -nonewline "SourceForge remote: "
+   flush stdout
+   gets stdin env(MREL_SOURCEFORGE_REMOTE)
+}
+set sfremote $env(MREL_SOURCEFORGE_REMOTE)
+reportInfo "SourceForge remote set to '$sfremote'"
+
+set distgz modules-$relver.tar.gz
+set distbz modules-$relver.tar.bz2
+set distwin modules-$relver-win.zip
+
+
+# Phase 1: push to git repositories
+# ---------------------------------------------------------
+
+runcmd 2>@$logfid git push $sfremote c-3.2
+runcmd 2>@$logfid git push $sfremote master
+runcmd 2>@$logfid git push $sfremote $reltag
+
+runcmd 2>@$logfid git push $ghremote c-3.2
+runcmd 2>@$logfid git push $ghremote master
+runcmd 2>@$logfid git push $ghremote $reltag
+
+
+# Phase 2: publish release dists
+# ---------------------------------------------------------
+
+set fid [open mpubbatch w]
+puts $fid "cd /home/frs/project/modules/Modules
+mkdir modules-$relver
+cd modules-$relver
+put doc/build/NEWS.txt
+put doc/build/MIGRATING.txt
+put $distgz
+put $distbz
+put $distwin"
+close $fid
+runcmd sftp -o BatchMode=yes -b mpubbatch frs.sourceforge.net
+file delete mpubbatch
+
+
+# Phase 3: verify uploaded dists
+# ---------------------------------------------------------
+
+file mkdir dlcheck
+cd dlcheck
+runcmd 2>@$logfid wget -O $distgz $dlurl/$distgz
+runcmd 2>@$logfid wget -O $distbz $dlurl/$distbz
+runcmd 2>@$logfid wget -O $distwin $dlurl/$distwin
+runcmd md5sum --check ../mpub.ok
+
+file delete $distgz $distbz $distwin
+cd ..
+file delete dlcheck
+
+
+# Phase 4: update website
+# ---------------------------------------------------------
+
+if {[catch {runcmd make distclean} errmsg]} {
+   # skip error if things have already been cleaned up
+   ignoreexp $errmsg {Makefile:38: *** Makefile.inc is missing, please run\
+      './configure'.  Stop.}
+}
+runcmd 2>@$logfid git checkout gh-pages
+
+# update index.html
+set fid [open index.html r]
+set index [read $fid]
+close $fid
+set fid [open index.html w]
+puts -nonewline $fid [string map [list modules-$prevver modules-$relver\
+   "Download ($prevtag)" "Download ($reltag)"] $index]
+close $fid
+runcmd 2>@$logfid git commit -m "release of version $relver" index.html
+runcmd 2>@$logfid git push $ghremote gh-pages
+
+# upload new page
+set fid [open mpubbatch w]
+puts $fid "cd /home/project-web/modules/htdocs/
+put index.html"
+close $fid
+runcmd sftp -o BatchMode=yes -b mpubbatch web.sourceforge.net
+file delete mpubbatch
+
+runcmd 2>@$logfid git checkout master
+
+
+# everythings done, clean file transmitted by mrel
+file delete mpub.ok
+
+
+# exit in error if any occurred
+} errmsg]} {
+   reportError $errmsg
+   set exitcode 1
+}
+
+close $logfid
+exit $exitcode
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent syntax=tcl:
