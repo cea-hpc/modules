@@ -455,11 +455,11 @@ ifneq ($(builddoc),n)
 	$(MAKE) -C doc install DESTDIR=$(DESTDIR)
 else
 	@echo
-	@echo "WARNING: Documentation not built nor installed"
+	@echo "WARNING: Documentation not built nor installed" >&2
 endif
 	@echo
-	@echo "NOTICE: Modules installation is complete."
-	@echo "        Please read the 'Configuration' section in INSTALL guide to learn"
+	@echo "NOTICE: Modules installation is complete." >&2
+	@echo "        Please read the 'Configuration' section in INSTALL guide to learn" >&2
 	@echo "        how to adapt your installation and make it fit your needs." >&2
 	@echo
 
