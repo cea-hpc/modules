@@ -30,7 +30,6 @@ set g_autoInit 0
 set g_inhibit_interp 0 ;# Modulefile interpretation disabled if == 1
 set g_inhibit_errreport 0 ;# Non-critical error reporting disabled if == 1
 set CSH_LIMIT 4000 ;# Workaround for commandline limits in csh
-set reportfd stderr ;# File descriptor to use to report messages
 
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
@@ -47,6 +46,7 @@ array set g_state_defs [list\
    path_separator {<undef> initStatePathSeparator}\
    rc_loaded {<undef>}\
    report_format {plain}\
+   reportfd {stderr}\
    siteconfig_loaded {0}\
    shell {<undef>}\
    shelltype {<undef>}\
@@ -901,9 +901,9 @@ proc __report {message {nonewline 0} {immed 0} {padnl 0}} {
       # protect from issue with fd, just ignore it
       catch {
          if {$nonewline} {
-            puts -nonewline $::reportfd $message
+            puts -nonewline [getState reportfd] $message
          } else {
-            puts $::reportfd $message
+            puts [getState reportfd] $message
          }
       }
    }
@@ -1044,9 +1044,9 @@ proc cleanupAndExit {code} {
    }
 
    # close pager if enabled
-   if {$::reportfd ne {stderr}} {
-      catch {flush $::reportfd}
-      catch {close $::reportfd}
+   if {[isStateDefined reportfd] && ![isStateEqual reportfd stderr]} {
+      catch {flush [getState reportfd]}
+      catch {close [getState reportfd]}
    }
 
    exit $code
@@ -1096,8 +1096,9 @@ proc initPager {} {
 # start pager pipe process with defined configuration
 proc startPager {} {
    if {[catch {
-      set ::reportfd [open "|[getConf pager] >@stderr 2>@stderr" w]
-      fconfigure $::reportfd -buffering line -blocking 1 -buffersize 65536
+      setState reportfd [open "|[getConf pager] >@stderr 2>@stderr" w]
+      fconfigure [getState reportfd] -buffering line -blocking 1 -buffersize\
+         65536
    } errMsg]} {
       reportWarning $errMsg
    }
@@ -10833,7 +10834,7 @@ proc cmdModuleClear {{doit {}}} {
       # ask for it if stdin is attached to a terminal
       if {![catch {fconfigure stdin -mode}]} {
          report "Are you sure you want to clear all loaded modules!? \[n\] " 1
-         flush $::reportfd
+         flush [getState reportfd]
       }
       # fetch stdin content even if not attached to terminal in case some
       # content has been piped to this channel
