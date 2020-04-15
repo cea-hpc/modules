@@ -31,7 +31,6 @@ set g_inhibit_interp 0 ;# Modulefile interpretation disabled if == 1
 set g_inhibit_errreport 0 ;# Non-critical error reporting disabled if == 1
 set CSH_LIMIT 4000 ;# Workaround for commandline limits in csh
 set reportfd stderr ;# File descriptor to use to report messages
-set g_report_format plain ;# Output report format
 
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
@@ -47,6 +46,7 @@ array set g_state_defs [list\
    paginate {<undef>}\
    path_separator {<undef> initStatePathSeparator}\
    rc_loaded {<undef>}\
+   report_format {plain}\
    siteconfig_loaded {0}\
    shell {<undef>}\
    shelltype {<undef>}\
@@ -600,7 +600,7 @@ proc __reportError {message {recordtop 0} {severity ERROR} {sgrkey er}\
       # skip message report if silent
       } elseif {[isVerbosityLevel concise]} {
          # save error messages to render them all together in JSON format
-         if {[isReportFormat json]} {
+         if {[isStateEqual report_format json]} {
             lappend ::g_report_erralist $severity $message
          } else {
             report $msgsgr 0 0 1
@@ -754,10 +754,6 @@ proc __reportSeparateNextContent {} {
    }
 }
 
-proc isReportFormat {format} {
-   return [expr {$::g_report_format eq $format}]
-}
-
 # save message for block rendering
 proc recordMessage {message {recordtop 0}} {
    lappend ::g_msgRecord([expr {$recordtop ? [topMsgRecordId] :\
@@ -880,13 +876,13 @@ proc __report {message {nonewline 0} {immed 0} {padnl 0}} {
             startPager
          }
          # startup content in case of structured output format
-         if {[isReportFormat json]} {
+         if {[isStateEqual report_format json]} {
             report \{ 1
          }
       # produce blank line prior message if asked to
       } elseif {[info exists ::g_report_sep_next]} {
          unset ::g_report_sep_next
-         report [expr {[isReportFormat json] ? {,} : {}}]
+         report [expr {[isStateEqual report_format json] ? {,} : {}}]
       }
       # prefix msg lines after first one with 2 spaces
       if {$padnl} {
@@ -1027,7 +1023,7 @@ proc releaseHeldReport {args} {
 # exit in a clean manner by closing interaction with external components
 proc cleanupAndExit {code} {
    # finish output document if json format enabled
-   if {[isReportFormat json]} {
+   if {[isStateEqual report_format json]} {
       # render error messages all together
       if {[info exists ::g_report_erralist]} {
          # ignite report first to get eventual error message from report
@@ -8157,7 +8153,7 @@ proc listModules {dir mod show_mtime filter search} {
    array set mod_list [getModules $dir $mod $show_mtime $search 0 $filter]
 
    # output is JSON format
-   set json [isReportFormat json]
+   set json [isStateEqual report_format json]
 
    # prepare results for display
    set alias_colored [expr {[sgr al {}] ne {}}]
@@ -8308,7 +8304,7 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx\
       return
    }
    # output is JSON format
-   set json [isReportFormat json]
+   set json [isStateEqual report_format json]
 
    # display header if any provided
    if {$header ne {noheader}} {
@@ -8778,7 +8774,7 @@ proc parseModuleCommandArgs {cmd args} {
          -j - --json {
             # enable json output only on supported command
             if {[isInList [list avail savelist list search whatis] $cmd]} {
-               set ::g_report_format json
+               setState report_format json
                set show_oneperline 0
                set show_mtime 0
             }
@@ -8786,12 +8782,12 @@ proc parseModuleCommandArgs {cmd args} {
          -t - --terse {
             set show_oneperline 1
             set show_mtime 0
-            set ::g_report_format plain
+            setState report_format plain
          }
          -l - --long {
             set show_mtime 1
             set show_oneperline 0
-            set ::g_report_format plain
+            setState report_format plain
          }
          -d - --default {
             # in case of *-path command, -d means --delim
@@ -9142,7 +9138,7 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist {force 0} {errmsgtpl {}}\
 #
 proc cmdModuleList {show_oneperline show_mtime} {
    set loadedmodlist [getLoadedModuleList]
-   set json [isReportFormat json]
+   set json [isStateEqual report_format json]
 
    if {[llength $loadedmodlist] == 0} {
       if {!$json} {
@@ -9324,7 +9320,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    # to mix with valid search results
    inhibitErrorReport
 
-   set json [isReportFormat json]
+   set json [isStateEqual report_format json]
 
    defineModEqProc [isIcase] [getConf extended_default]
 
@@ -9781,7 +9777,7 @@ proc cmdModuleSavelist {show_oneperline show_mtime} {
       set targetdesc {}
    }
 
-   set json [isReportFormat json]
+   set json [isStateEqual report_format json]
 
    reportDebug "list collections for target \"$colltarget\""
 
