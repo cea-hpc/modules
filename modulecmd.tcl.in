@@ -36,6 +36,7 @@ set g_report_format plain ;# Output report format
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
 array set g_state_defs [list\
+   shell {<undef>}\
    shelltype {<undef>}\
    subcmd {<undef>}\
    subcmd_args {<undef>}\
@@ -1776,9 +1777,9 @@ proc module-info {what {more {}}} {
       }
       shell {
          if {$more ne {}} {
-            return [expr {$::g_shell eq $more}]
+            return [expr {[getState shell] eq $more}]
          } else {
-            return $::g_shell
+            return [getState shell]
          }
       }
       flags {
@@ -5529,7 +5530,7 @@ proc renderSettings {} {
                csh {
                   set val [charEscaped $::env($var)]
                   # csh barfs on long env vars
-                  if {$::g_shell eq {csh} && [string length $val] >\
+                  if {[getState shell] eq {csh} && [string length $val] >\
                      $::CSH_LIMIT} {
                      if {$var eq {PATH}} {
                         reportWarning "PATH exceeds $::CSH_LIMIT characters,\
@@ -5967,8 +5968,8 @@ proc renderAutoinit {} {
          set post_pr {set prompt=$_prompt:q; unset _prompt;}
          # apply workaround for Tcsh history if set
          set eval_cmd [expr {[getConf wa_277] ? "eval `$tclshbin $::argv0\
-            $::g_shell \\!*`;" :  "eval \"`$tclshbin $::argv0 $::g_shell\
-            \\!*:q`\";"}]
+            [getState shell] \\!*`;" :  "eval \"`$tclshbin $::argv0 [getState\
+            shell] \\!*:q`\";"}]
          set pre_ex {set _exit="$status";}
          set post_ex {test 0 = $_exit}
 
@@ -5992,7 +5993,7 @@ alias ml 'module ml \!*' ;}
          # these variables that should have been local are unset at the end
 
          # on zsh, word splitting should be enabled explicitly
-         set wsplit [expr {$::g_shell eq {zsh} ? {=} : {}}]
+         set wsplit [expr {[getState shell] eq {zsh} ? {=} : {}}]
          # only redirect module from stderr to stdout when session is
          # attached to a terminal to avoid breaking non-terminal session
          # (scp, sftp, etc)
@@ -6030,12 +6031,12 @@ alias ml 'module ml \!*' ;}
 @quarantinesupport@   done;
 @quarantinesupport@   if [ -n "${_mlre:-}" ]; then}
 @quarantinesupport@         append fdef "\n      eval `eval \${${wsplit}_mlre}$tclshbin $::argv0\
-@quarantinesupport@$::g_shell '\"\$@\"'`;
+@quarantinesupport@[getState shell] '\"\$@\"'`;
 @quarantinesupport@   else
-@quarantinesupport@      eval `$tclshbin $::argv0 $::g_shell \"\$@\"`;
+@quarantinesupport@      eval `$tclshbin $::argv0 [getState shell] \"\$@\"`;
 @quarantinesupport@   fi;"
 @notquarantinesupport@         append fdef "
-@notquarantinesupport@   eval `$tclshbin $::argv0 $::g_shell \"\$@\"`;"
+@notquarantinesupport@   eval `$tclshbin $::argv0 [getState shell] \"\$@\"`;"
          append fdef {
    _mlstatus=$?;}
 @quarantinesupport@         append fdef {
@@ -6079,9 +6080,9 @@ ml() { module ml "$@"; };}
 @quarantinesupport@   end}
          # use "| source -" rather than "eval" to be able
          # to redirect stderr after stdout being evaluated
-@quarantinesupport@         append fdef "\n   eval \$_mlre $tclshbin $::argv0 $::g_shell\
+@quarantinesupport@         append fdef "\n   eval \$_mlre $tclshbin $::argv0 [getState shell]\
             (string escape -- \$argv) | source -\n"
-@notquarantinesupport@         append fdef "   eval $tclshbin $::argv0 $::g_shell\
+@notquarantinesupport@         append fdef "   eval $tclshbin $::argv0 [getState shell]\
             (string escape -- \$argv) | source -\n"
          if {[isStderrTty]} {
             append fdef {end
@@ -6120,9 +6121,9 @@ end}
       append fdef {
    set _mlstatus 1;}
 @quarantinesupport@         append fdef "\n   catch {eval exec \$_mlre \"$tclshbin\"\
-            \"$::argv0\" \"$::g_shell\" \$args 2>@stderr} script\n"
+            \"$::argv0\" \"[getState shell]\" \$args 2>@stderr} script\n"
 @notquarantinesupport@         append fdef "\n   catch {eval exec \"$tclshbin\"\
-            \"$::argv0\" \"$::g_shell\" \$args 2>@stderr} script\n"
+            \"$::argv0\" \"[getState shell]\" \$args 2>@stderr} script\n"
          append fdef {   eval $script;
    return $_mlstatus}
          append fdef "\n}"
@@ -10683,7 +10684,7 @@ proc cmdModuleInit {args} {
    set files(zsh) [list .modules .zshrc .zshenv .zlogin]
 
    # Process startup files for this shell
-   set current_files $files($::g_shell)
+   set current_files $files([getState shell])
    foreach filename $current_files {
       if {$notdone} {
          set filepath $::env(HOME)
@@ -10710,7 +10711,7 @@ proc cmdModuleInit {args} {
                   switch -- $init_cmd {
                      list {
                         if {![info exists notheader]} {
-                           report "$::g_shell initialization file\
+                           report "[getState shell] initialization file\
                               \$HOME/$filename loads modules:"
                            set notheader 0
                         }
@@ -10782,7 +10783,7 @@ proc cmdModuleInit {args} {
    # quit in error if command was not performed due to no match
    if {$nomatch && $init_cmd ne {list}} {
       reportErrorAndExit "Cannot find a 'module load' command in any of the\
-         '$::g_shell' startup files"
+         '[getState shell]' startup files"
    }
 }
 
@@ -10980,8 +10981,7 @@ proc cmdModuleConfig {dump_state args} {
             path_separator [getPathSeparator]\
             rc_loaded [expr {[info exists ::g_rc_loaded] ? $::g_rc_loaded :\
                {<undef>}}]\
-            siteconfig_loaded [info exists ::g_siteconfig_loaded]\
-            shell $::g_shell]
+            siteconfig_loaded [info exists ::g_siteconfig_loaded]]
 
          foreach state [array names ::g_state_defs] {
             set stateval($state) [getState $state <undef>]
@@ -11162,8 +11162,8 @@ if {[catch {
    sourceSiteConfig
 
    # Parse shell
-   set g_shell [lindex $argv 0]
-   switch -- $g_shell {
+   setState shell [lindex $argv 0]
+   switch -- [getState shell] {
       sh - bash - ksh - zsh {
          setState shelltype sh
       }
@@ -11171,10 +11171,10 @@ if {[catch {
          setState shelltype csh
       }
       fish - cmd - tcl - perl - python - ruby - lisp - cmake - r {
-         setState shelltype $g_shell
+         setState shelltype [getState shell]
       }
       default {
-         reportErrorAndExit "Unknown shell type \'($g_shell)\'"
+         reportErrorAndExit "Unknown shell type \'([getState shell])\'"
       }
    }
 
