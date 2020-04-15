@@ -36,6 +36,7 @@ set g_report_format plain ;# Output report format
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
 array set g_state_defs [list\
+   term_columns {<undef> initStateTermColumns}\
 ]
 
 # Configuration option properties (superseding environment variable, default
@@ -265,27 +266,22 @@ proc isStderrTty {} {
 }
 
 # Provide columns number for output formatting
-proc getTtyColumns {} {
-   if {![info exists ::g_tty_columns]} {
-      # determine col number from tty capabilites
-      # tty info query depends on running OS
-      switch -- $::tcl_platform(os) {
-         SunOS {
-            catch {regexp {columns = (\d+);} [exec stty] match cols} errMsg
-         }
-         {Windows NT} {
-            catch {regexp {Columns:\s+(\d+)} [exec mode] match cols} errMsg
-         }
-         default {
-            catch {set cols [lindex [exec stty size] 1]} errMsg
-         }
+proc initStateTermColumns {} {
+   # determine col number from tty capabilites
+   # tty info query depends on running OS
+   switch -- $::tcl_platform(os) {
+      SunOS {
+         catch {regexp {columns = (\d+);} [exec stty] match cols} errMsg
       }
-      # default size if tty cols cannot be found
-      set ::g_tty_columns [expr {![info exists cols] || $cols eq {0} ? 80 :\
-         $cols}]
+      {Windows NT} {
+         catch {regexp {Columns:\s+(\d+)} [exec mode] match cols} errMsg
+      }
+      default {
+         catch {set cols [lindex [exec stty size] 1]} errMsg
+      }
    }
-
-   return $::g_tty_columns
+   # default size if tty cols cannot be found
+   return [expr {![info exists cols] || $cols eq {0} ? 80 : $cols}]
 }
 
 # Get force mode
@@ -684,7 +680,7 @@ proc reportMsgRecord {header} {
    if {[info exists ::g_msgRecord($recid)]} {
       # skip message report if silent
       if {[isVerbosityLevel concise]} {
-         set tty_cols [getTtyColumns]
+         set tty_cols [getState term_columns]
          set padding {  }
 
          set dispmsg $header
@@ -8280,7 +8276,7 @@ proc displayTableHeader {sgrkey args} {
 }
 
 proc displaySeparatorLine {{title {}} {sgrkey {}}} {
-   set tty_cols [getTtyColumns]
+   set tty_cols [getState term_columns]
    if {$title eq {}} {
       # adapt length if screen width is very small
       set max_rep 67
@@ -8359,7 +8355,7 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx\
          lappend elt_len [incr len $elt_suffix_len]
       }
 
-      set tty_cols [getTtyColumns]
+      set tty_cols [getState term_columns]
       # find valid grid by starting with non-optimized solution where each
       # column length is equal to the length of the biggest element to display
       set cur_cols [expr {int(($tty_cols - $elt_prefix_len) / $max_len)}]
@@ -10984,8 +10980,7 @@ proc cmdModuleConfig {dump_state args} {
             subcmd $::command\
             subcmd_args $::otherargv\
             tcl_ext_lib_loaded [info exists ::g_tclextlib_loaded]\
-            tcl_version [info patchlevel]\
-            term_columns [getTtyColumns]]
+            tcl_version [info patchlevel]]
 
          foreach state [array names ::g_state_defs] {
             set stateval($state) [getState $state <undef>]
