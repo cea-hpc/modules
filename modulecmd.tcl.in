@@ -36,6 +36,7 @@ set g_report_format plain ;# Output report format
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
 array set g_state_defs [list\
+   cmdline {<undef>}\
    extra_siteconfig_loaded {0}\
    force {0}\
    is_stderr_tty {<undef> initStateIsStderrTty}\
@@ -10958,17 +10959,11 @@ proc cmdModuleConfig {dump_state args} {
       if {$dump_state} {
          displayTableHeader hi {State name} 24 {Value} 54
          # define each attribute/fetched state value pair
-         set state_list [list\
-            cmdline "$::argv0 $::argv"]
-
          foreach state [array names ::g_state_defs] {
             set stateval($state) [getState $state <undef>]
          }
 
          unset displist
-         foreach {var val} $state_list {
-            append displist [format {%-25s %s} $var $val] \n
-         }
          foreach state [lsort [array names stateval]] {
             append displist [format {%-25s %s} $state $stateval($state)] \n
          }
@@ -11122,7 +11117,7 @@ if {[catch {
    # made during argument parse to wait for potential paging to be setup
    set show_help 0
    set show_version 0
-   reportDebug "CALLING $argv0 $argv"
+   setState cmdline "$argv0 $argv"
 
    # Load extension library if enabled
    @libtclenvmodules@if {[file readable [getConf tcl_ext_lib]]} {
