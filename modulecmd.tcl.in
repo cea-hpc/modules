@@ -36,6 +36,7 @@ set g_report_format plain ;# Output report format
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
 array set g_state_defs [list\
+   rc_loaded {<undef>}\
    siteconfig_loaded {0}\
    shell {<undef>}\
    shelltype {<undef>}\
@@ -5399,7 +5400,7 @@ proc runModulerc {} {
       if {[file readable $rc]} {
          reportDebug "Executing $rc"
          cmdModuleSource $rc
-         lappend ::g_rc_loaded $rc
+         lappendState rc_loaded $rc
       }
    }
 
@@ -10979,9 +10980,7 @@ proc cmdModuleConfig {dump_state args} {
             os "[uname sysname] [uname release]"\
             pager_started $::start_pager\
             paginate $::use_pager\
-            path_separator [getPathSeparator]\
-            rc_loaded [expr {[info exists ::g_rc_loaded] ? $::g_rc_loaded :\
-               {<undef>}}]]
+            path_separator [getPathSeparator]]
 
          foreach state [array names ::g_state_defs] {
             set stateval($state) [getState $state <undef>]
