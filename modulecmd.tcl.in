@@ -29,7 +29,6 @@ set g_return_false 0 ;# False value is rendered if == 1
 set g_autoInit 0
 set g_inhibit_interp 0 ;# Modulefile interpretation disabled if == 1
 set g_inhibit_errreport 0 ;# Non-critical error reporting disabled if == 1
-set CSH_LIMIT 4000 ;# Workaround for commandline limits in csh
 
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
@@ -70,6 +69,7 @@ array set g_config_defs [list\
    collection_target {MODULES_COLLECTION_TARGET <undef> 0}\
    color {MODULES_COLOR @color@ 0 {never auto always} {0 1 2} initConfColor}\
    colors {MODULES_COLORS {} 0 {} {} initConfColors}\
+   csh_limit {{} 4000 0}\
    extra_siteconfig {MODULES_SITECONFIG <undef> 1 {}}\
    home {MODULESHOME @moduleshome@ 0}\
    icase {MODULES_ICASE @icase@ 0 {never search always}}\
@@ -5519,17 +5519,18 @@ proc renderSettings {} {
                   set val [charEscaped $::env($var)]
                   # csh barfs on long env vars
                   if {[getState shell] eq {csh} && [string length $val] >\
-                     $::CSH_LIMIT} {
+                     [getConf csh_limit]} {
                      if {$var eq {PATH}} {
-                        reportWarning "PATH exceeds $::CSH_LIMIT characters,\
-                           truncating and appending /usr/bin:/bin ..."
-                        set val [string range $val 0 [expr {$::CSH_LIMIT\
-                           - 1}]]:/usr/bin:/bin
+                        reportWarning "PATH exceeds [getConf csh_limit]\
+                           characters, truncating and appending\
+                           /usr/bin:/bin ..."
+                        set val [string range $val 0 [expr {[getConf\
+                           csh_limit] - 1}]]:/usr/bin:/bin
                      } else {
-                         reportWarning "$var exceeds $::CSH_LIMIT characters,\
-                            truncating..."
-                         set val [string range $val 0 [expr {$::CSH_LIMIT\
-                            - 1}]]
+                        reportWarning "$var exceeds [getConf csh_limit]\
+                           characters, truncating..."
+                         set val [string range $val 0 [expr {[getConf\
+                           csh_limit]  - 1}]]
                      }
                   }
                   puts stdout "setenv $var $val;"
