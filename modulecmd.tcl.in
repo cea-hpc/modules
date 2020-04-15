@@ -33,6 +33,11 @@ set CSH_LIMIT 4000 ;# Workaround for commandline limits in csh
 set reportfd stderr ;# File descriptor to use to report messages
 set g_report_format plain ;# Output report format
 
+# Runtime state properties (default value, proc to call to initialize state
+# value?)
+array set g_state_defs [list\
+]
+
 # Configuration option properties (superseding environment variable, default
 # value, is configuration lockable to default value, valid value list?,
 # internal value representation?, proc to call to initialize option value
@@ -71,6 +76,62 @@ array set g_config_defs [list\
       debug}}\
    wa_277 {MODULES_WA_277 @wa277@ 0 {0 1}}\
 ]
+
+# Get state value
+proc getState {state {valifundef {}}} {
+   if {![info exists ::g_states($state)]} {
+      # fetch state properties (including its default value)
+      lassign $::g_state_defs($state) value initproclist
+
+      # call specific proc to initialize state if any
+      if {$initproclist ne {}} {
+         set value [eval $initproclist]
+      # overriden value coming the command-line
+      } elseif {[info exists ::asked_$state]} {
+         set value [set ::asked_$state]
+      }
+
+      # return passed value if undefined and no value record
+      if {$value eq {<undef>}} {
+         set value $valifundef
+      } else {
+         setState $state $value
+      }
+      return $value
+   } else {
+      return $::g_states($state)
+   }
+}
+
+# Clear state
+proc unsetState {state} {
+   unset ::g_states($state)
+   reportDebug "$state unset"
+}
+
+# Set state value
+proc setState {state value} {
+   set ::g_states($state) $value
+   reportDebug "$state set to '$value'"
+}
+
+# Append each passed value to the existing state value list
+proc lappendState {state args} {
+   # retrieve current value through getState to initialize it if still undef
+   set value [getState $state]
+   eval appendNoDupToList value $args
+   setState $state $value
+}
+
+# Check if state has been defined
+proc isStateDefined {state} {
+   return [info exists ::g_states($state)]
+}
+
+# Check if state equals passed value
+proc isStateEqual {state value} {
+   return [expr {[getState $state] eq $value}]
+}
 
 proc isConfigLocked {option} {
    return [expr {[lsearch -exact [getConf locked_configs] $option] != -1}]
@@ -10926,9 +10987,16 @@ proc cmdModuleConfig {dump_state args} {
             tcl_version [info patchlevel]\
             term_columns [getTtyColumns]]
 
+         foreach state [array names ::g_state_defs] {
+            set stateval($state) [getState $state <undef>]
+         }
+
          unset displist
          foreach {var val} $state_list {
             append displist [format {%-25s %s} $var $val] \n
+         }
+         foreach state [lsort [array names stateval]] {
+            append displist [format {%-25s %s} $state $stateval($state)] \n
          }
          report $displist 1
          reportSeparateNextContent
