@@ -36,6 +36,7 @@ set g_report_format plain ;# Output report format
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
 array set g_state_defs [list\
+   tcl_ext_lib_loaded {0}\
    tcl_version [list [info patchlevel]]\
    term_columns {<undef> initStateTermColumns}\
 ]
@@ -10979,8 +10980,7 @@ proc cmdModuleConfig {dump_state args} {
             shell $::g_shell\
             shelltype $::g_shellType\
             subcmd $::command\
-            subcmd_args $::otherargv\
-            tcl_ext_lib_loaded [info exists ::g_tclextlib_loaded]]
+            subcmd_args $::otherargv]
 
          foreach state [array names ::g_state_defs] {
             set stateval($state) [getState $state <undef>]
@@ -11151,7 +11151,7 @@ if {[catch {
    @libtclenvmodules@if {[file readable [getConf tcl_ext_lib]]} {
    @libtclenvmodules@   reportDebug "Load Tcl extension library ([getConf tcl_ext_lib])"
    @libtclenvmodules@   load [file normalize [getConf tcl_ext_lib]] Envmodules
-   @libtclenvmodules@   set g_tclextlib_loaded 1
+   @libtclenvmodules@   setState tcl_ext_lib_loaded 1
    @libtclenvmodules@}
    # use fallback procs if extension library is not loaded
    if {[info commands readFile] eq {}} {
