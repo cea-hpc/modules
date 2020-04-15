@@ -36,6 +36,7 @@ set g_report_format plain ;# Output report format
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
 array set g_state_defs [list\
+   shelltype {<undef>}\
    subcmd {<undef>}\
    subcmd_args {<undef>}\
    tcl_ext_lib_loaded {0}\
@@ -433,7 +434,7 @@ proc renderFalse {} {
 
    if {[info exists ::g_false_rendered]} {
       reportDebug {false already rendered}
-   } elseif {[info exists ::g_shellType]} {
+   } elseif {[isStateDefined shelltype]} {
       # setup flag to render only once
       set ::g_false_rendered 1
 
@@ -442,7 +443,7 @@ proc renderFalse {} {
       # modulecmd.tcl to return in turns a boolean status. Except for python
       # and cmake, the value assigned to variable is also returned as the
       # entire rendering status
-      switch -- $::g_shellType {
+      switch -- [getState shelltype] {
          sh - csh - fish {
             # no need to set a variable on real shells as last statement
             # result can easily be checked
@@ -483,7 +484,7 @@ proc renderTrue {} {
    # will be looked at in the shell module function calling modulecmd.tcl to
    # return in turns a boolean status. Except for python and cmake, the
    # value assigned to variable is also returned as the full rendering status
-   switch -- $::g_shellType {
+   switch -- [getState shelltype] {
       sh - csh - fish {
          # no need to set a variable on real shells as last statement
          # result can easily be checked
@@ -522,7 +523,7 @@ proc renderText {text} {
    # render a text value most of the time through a variable assignement that
    # will be looked at in the shell module function calling modulecmd.tcl to
    # return in turns a string value.
-   switch -- $::g_shellType {
+   switch -- [getState shelltype] {
       sh - csh - fish {
          foreach word $text {
             # no need to set a variable on real shells, echoing text will make
@@ -1787,9 +1788,9 @@ proc module-info {what {more {}}} {
       }
       shelltype {
          if {$more ne {}} {
-            return [expr {$::g_shellType eq $more}]
+            return [expr {[getState shelltype] eq $more}]
          } else {
-            return $::g_shellType
+            return [getState shelltype]
          }
       }
       user {
@@ -5506,7 +5507,7 @@ proc renderSettings {} {
       [array size g_stateFunctions] > 0 || [array size g_delXResources] > 0\
       || [info exists ::g_changeDir] || [info exists ::g_stdoutPuts] ||\
       [info exists ::g_return_text]} {
-      switch -- $::g_shellType {
+      switch -- [getState shelltype] {
          python {
             puts stdout {import os}
          }
@@ -5524,7 +5525,7 @@ proc renderSettings {} {
    foreach var [array names g_stateEnvVars] {
       switch -- $g_stateEnvVars($var) {
          new {
-            switch -- $::g_shellType {
+            switch -- [getState shelltype] {
                csh {
                   set val [charEscaped $::env($var)]
                   # csh barfs on long env vars
@@ -5593,7 +5594,7 @@ proc renderSettings {} {
             }
          }
          del {
-            switch -- $::g_shellType {
+            switch -- [getState shelltype] {
                csh {
                   puts stdout "unsetenv $var;"
                }
@@ -5638,13 +5639,13 @@ proc renderSettings {} {
          new {
             set val $::g_Aliases($var)
             # convert $n in !!:n and $* in !* on csh (like on compat version)
-            if {$::g_shellType eq {csh}} {
+            if {[getState shelltype] eq {csh}} {
                regsub -all {([^\\]|^)\$([0-9]+)} $val {\1!!:\2} val
                regsub -all {([^\\]|^)\$\*} $val {\1!*} val
             }
             # unescape \$ after now csh-specific conversion is over
             regsub -all {\\\$} $val {$} val
-            switch -- $::g_shellType {
+            switch -- [getState shelltype] {
                csh {
                   set val [charEscaped $val]
                   puts stdout "alias $var $val;"
@@ -5663,7 +5664,7 @@ proc renderSettings {} {
             }
          }
          del {
-            switch -- $::g_shellType {
+            switch -- [getState shelltype] {
                csh {
                   puts stdout "unalias $var;"
                }
@@ -5685,7 +5686,7 @@ proc renderSettings {} {
          new {
             # trim function body to smoothly add a finishing ;
             set val [string trim $::g_Functions($funcname) "; \t\n\r"]
-            switch -- $::g_shellType {
+            switch -- [getState shelltype] {
                sh {
                   puts stdout "$funcname () { $val; }; export $funcname;"
                }
@@ -5695,7 +5696,7 @@ proc renderSettings {} {
             }
          }
          del {
-            switch -- $::g_shellType {
+            switch -- [getState shelltype] {
                sh {
                   puts stdout "unset -f $funcname;"
                }
@@ -5709,7 +5710,7 @@ proc renderSettings {} {
 
    # preliminaries for x-resources stuff
    if {[array size g_newXResources] > 0 || [array size g_delXResources] > 0} {
-      switch -- $::g_shellType {
+      switch -- [getState shelltype] {
          python {
             puts stdout {import subprocess}
          }
@@ -5727,7 +5728,7 @@ proc renderSettings {} {
          set val $g_newXResources($var)
          # empty val means that var is a file to parse
          if {$val eq {}} {
-            switch -- $::g_shellType {
+            switch -- [getState shelltype] {
                sh - csh - fish {
                   puts stdout "$xrdb -merge $var;"
                }
@@ -5759,7 +5760,7 @@ proc renderSettings {} {
                }
             }
          } else {
-            switch -- $::g_shellType {
+            switch -- [getState shelltype] {
                sh - csh - fish {
                   set var [charEscaped $var \"]
                   set val [charEscaped $val \"]
@@ -5831,7 +5832,7 @@ proc renderSettings {} {
 
       # xresource strings are unset by emptying their value since there
       # is no command of xrdb that can properly remove one property
-      switch -- $::g_shellType {
+      switch -- [getState shelltype] {
          sh - csh - fish {
             foreach var $xres_to_del {
                puts stdout "echo \"$var:\" | $xrdb -merge;"
@@ -5891,7 +5892,7 @@ proc renderSettings {} {
    }
 
    if {[info exists ::g_changeDir]} {
-      switch -- $::g_shellType {
+      switch -- [getState shelltype] {
          sh - csh - fish {
             puts stdout "cd '$::g_changeDir';"
          }
@@ -5958,7 +5959,7 @@ proc renderAutoinit {} {
    # ensure script path is absolute
    set ::argv0 [getAbsolutePath $::argv0]
 
-   switch -- $::g_shellType {
+   switch -- [getState shelltype] {
       csh {
          set pre_hi {set _histchars = $histchars; unset histchars;}
          set post_hi {set histchars = $_histchars; unset _histchars;}
@@ -10653,7 +10654,7 @@ proc cmdModuleAutoinit {} {
 
    # define Modules init script as shell startup file
    if {[getConf set_shell_startup] && [isInList [list sh csh fish]\
-      $::g_shellType]} {
+      [getState shelltype]]} {
       # setup ENV variables to get module defined in sub-shells (works for
       # 'sh' and 'ksh' in interactive mode and 'sh' (zsh-compat), 'bash' and
       # 'ksh' (zsh-compat) in non-interactive mode.
@@ -10980,8 +10981,7 @@ proc cmdModuleConfig {dump_state args} {
             rc_loaded [expr {[info exists ::g_rc_loaded] ? $::g_rc_loaded :\
                {<undef>}}]\
             siteconfig_loaded [info exists ::g_siteconfig_loaded]\
-            shell $::g_shell\
-            shelltype $::g_shellType]
+            shell $::g_shell]
 
          foreach state [array names ::g_state_defs] {
             set stateval($state) [getState $state <undef>]
@@ -11165,13 +11165,13 @@ if {[catch {
    set g_shell [lindex $argv 0]
    switch -- $g_shell {
       sh - bash - ksh - zsh {
-         set g_shellType sh
+         setState shelltype sh
       }
       csh - tcsh {
-         set g_shellType csh
+         setState shelltype csh
       }
       fish - cmd - tcl - perl - python - ruby - lisp - cmake - r {
-         set g_shellType $g_shell
+         setState shelltype $g_shell
       }
       default {
          reportErrorAndExit "Unknown shell type \'($g_shell)\'"
@@ -11301,7 +11301,7 @@ if {[catch {
    initErrorReport
 
    # put back quarantine variables in env, if quarantine mechanism supported
-   @quarantinesupport@if {[getConf run_quarantine] ne {} && $g_shellType ne {csh}} {
+   @quarantinesupport@if {[getConf run_quarantine] ne {} && [getState shelltype] ne {csh}} {
    @quarantinesupport@   foreach var [split [getConf run_quarantine]] {
    @quarantinesupport@      # check variable name is valid
    @quarantinesupport@      if {[regexp {^[A-Za-z_][A-Za-z0-9_]*$} $var]} {
