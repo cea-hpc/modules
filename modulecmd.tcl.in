@@ -36,6 +36,7 @@ set g_report_format plain ;# Output report format
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
 array set g_state_defs [list\
+   subcmd {<undef>}\
    subcmd_args {<undef>}\
    tcl_ext_lib_loaded {0}\
    tcl_version [list [info patchlevel]]\
@@ -1090,8 +1091,8 @@ proc initPager {} {
    }
 
    # some module command may also turn off pager
-   if {$::command eq {clear} || ($::command eq {ml} && [lindex $::otherargv\
-      0] eq {clear})} {
+   if {[getState subcmd] eq {clear} || ([getState subcmd] eq {ml} && [lindex\
+      [getState subcmd_args] 0] eq {clear})} {
       set ::use_pager 0
    }
 
@@ -1101,8 +1102,9 @@ proc initPager {} {
       reportDebug "start pager (asked_use_pager=$asked, cmd='$pager')"
       set ::start_pager 1
    } else {
-      reportDebug "no pager start (is_tty=$is_tty, mod_cmd='$::command',\
-         use_pager=$::use_pager, asked_use_pager=$asked, cmd='$pager')"
+      reportDebug "no pager start (is_tty=$is_tty, mod_cmd='[getState\
+         subcmd]', use_pager=$::use_pager, asked_use_pager=$asked,\
+         cmd='$pager')"
       set ::start_pager 0
    }
 }
@@ -10979,8 +10981,7 @@ proc cmdModuleConfig {dump_state args} {
                {<undef>}}]\
             siteconfig_loaded [info exists ::g_siteconfig_loaded]\
             shell $::g_shell\
-            shelltype $::g_shellType\
-            subcmd $::command]
+            shelltype $::g_shellType]
 
          foreach state [array names ::g_state_defs] {
             set stateval($state) [getState $state <undef>]
@@ -11143,8 +11144,6 @@ if {[catch {
    # made during argument parse to wait for potential paging to be setup
    set show_help 0
    set show_version 0
-   set command {}
-   set otherargv {}
    reportDebug "CALLING $argv0 $argv"
 
    # Load extension library if enabled
@@ -11180,6 +11179,7 @@ if {[catch {
    }
 
    # extract options and command switches from other args
+   set otherargv {}
    set extraargv {}
    set ddelimarg 0
    # split first arg if multi-word string detected for compat with previous
@@ -11287,14 +11287,14 @@ if {[catch {
       }
    }
 
-   set command [lindex $otherargv 0]
+   setState subcmd [lindex $otherargv 0]
    set otherargv [concat [lreplace $otherargv 0 0] $extraargv]
    setState subcmd_args $otherargv
    # call ml frontend if it is asked command
-   if {$command eq {ml}} {
+   if {[getState subcmd] eq {ml}} {
       set execcmdlist [concat [list ml] $otherargv]
    } else {
-      set execcmdlist [concat [list module $command] $otherargv]
+      set execcmdlist [concat [list module [getState subcmd]] $otherargv]
    }
 
    # now options are known initialize error report (start pager if enabled)
@@ -11326,7 +11326,7 @@ if {[catch {
    @quarantinesupport@}
 
    if {$show_help} {
-      if {$command eq {ml}} {
+      if {[getState subcmd] eq {ml}} {
          cmdMlHelp
       } else {
          cmdModuleHelp
