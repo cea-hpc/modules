@@ -36,6 +36,7 @@ set g_report_format plain ;# Output report format
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
 array set g_state_defs [list\
+   extra_siteconfig_loaded {0}\
    force {0}\
    is_stderr_tty {<undef> initStateIsStderrTty}\
    is_win {<undef> initStateIsWin}\
@@ -241,7 +242,7 @@ proc sourceSiteConfig {} {
          if {$siteconfig eq [getConf siteconfig]} {
             setState siteconfig_loaded 1
          } else {
-            set ::g_extra_siteconfig_loaded 1
+            setState extra_siteconfig_loaded 1
          }
       }
       # check on extra_siteconfig after initial siteconfig loaded in case
@@ -10958,8 +10959,7 @@ proc cmdModuleConfig {dump_state args} {
          displayTableHeader hi {State name} 24 {Value} 54
          # define each attribute/fetched state value pair
          set state_list [list\
-            cmdline "$::argv0 $::argv"\
-            extra_siteconfig_loaded [info exists ::g_extra_siteconfig_loaded]]
+            cmdline "$::argv0 $::argv"]
 
          foreach state [array names ::g_state_defs] {
             set stateval($state) [getState $state <undef>]
