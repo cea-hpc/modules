@@ -36,6 +36,7 @@ set g_report_format plain ;# Output report format
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
 array set g_state_defs [list\
+   is_win {<undef> initStateIsWin}\
    machine [list $::tcl_platform(machine)]\
    os [list "$::tcl_platform(os) $::tcl_platform(osVersion)"]\
    pager_started {<undef>}\
@@ -251,13 +252,13 @@ proc sourceSiteConfig {} {
 }
 
 # Used to tell if a machine is running Windows or not
-proc isWin {} {
+proc initStateIsWin {} {
    return [expr {$::tcl_platform(platform) eq {windows}}]
 }
 
 # Get default path separator
 proc initStatePathSeparator {} {
-   return [expr {[isWin] ? {;} : {:}}]
+   return [expr {[getState is_win] ? {;} : {:}}]
 }
 
 # Sub level separator to serialize a second level of info in env var
@@ -1261,8 +1262,9 @@ proc interp-sync-env {op var {val {}}} {
             set {
                # no value pre-check on Windows platform as an empty value set
                # means unsetting variable which lead querying value to error
-               if {[isWin] || ![interp eval $itrp [list info exists $envvar]]\
-                  || [interp eval $itrp [list set $envvar]] ne $val} {
+               if {[getState is_win] || ![interp eval $itrp [list info exists\
+                  $envvar]] || [interp eval $itrp [list set $envvar]] ne\
+                  $val} {
                   interp eval $itrp [list set $envvar $val]
                }
             }
@@ -1290,8 +1292,8 @@ proc initModfileModeAliases {mode aliasesVN aliasesPassArgVN tracesVN} {
          reportCmdTrace reportInternalBug reportInternalBug reportWarning\
          reportWarning reportError reportError raiseErrorCount\
          raiseErrorCount report report isVerbosityLevel isVerbosityLevel\
-         isWin isWin puts putsModfileCmd readModuleContent readModuleContent\
-         formatErrStackTrace formatErrStackTrace]
+         isWin initStateIsWin puts putsModfileCmd readModuleContent\
+         readModuleContent formatErrStackTrace formatErrStackTrace]
 
       # list of alias commands whose target procedure is adapted according to
       # the evaluation mode
@@ -3505,7 +3507,7 @@ proc system {args} {
    switch -- $mode {
       load - unload {
          # run through the appropriate shell
-         if {[isWin]} {
+         if {[getState is_win]} {
             set shell cmd.exe
             set shellarg /c
          } else {
@@ -10979,8 +10981,7 @@ proc cmdModuleConfig {dump_state args} {
             cmdline "$::argv0 $::argv"\
             extra_siteconfig_loaded [info exists ::g_extra_siteconfig_loaded]\
             force [getForce]\
-            is_stderr_tty [isStderrTty]\
-            is_win [isWin]]
+            is_stderr_tty [isStderrTty]]
 
          foreach state [array names ::g_state_defs] {
             set stateval($state) [getState $state <undef>]
