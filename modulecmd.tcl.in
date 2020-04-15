@@ -36,6 +36,7 @@ set g_report_format plain ;# Output report format
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
 array set g_state_defs [list\
+   siteconfig_loaded {0}\
    shell {<undef>}\
    shelltype {<undef>}\
    subcmd {<undef>}\
@@ -229,7 +230,7 @@ proc sourceSiteConfig {} {
             reportErrorAndExit $errMsg
          }
          if {$siteconfig eq [getConf siteconfig]} {
-            set ::g_siteconfig_loaded 1
+            setState siteconfig_loaded 1
          } else {
             set ::g_extra_siteconfig_loaded 1
          }
@@ -10980,8 +10981,7 @@ proc cmdModuleConfig {dump_state args} {
             paginate $::use_pager\
             path_separator [getPathSeparator]\
             rc_loaded [expr {[info exists ::g_rc_loaded] ? $::g_rc_loaded :\
-               {<undef>}}]\
-            siteconfig_loaded [info exists ::g_siteconfig_loaded]]
+               {<undef>}}]]
 
          foreach state [array names ::g_state_defs] {
             set stateval($state) [getState $state <undef>]
