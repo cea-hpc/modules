@@ -21,16 +21,12 @@
 ##########################################################################
 
 
-#
-# Some Global Variables.....
-#
-set error_count 0 ;# Start with 0 errors
-
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
 array set g_state_defs [list\
    autoinit {0}\
    cmdline {<undef>}\
+   error_count {0}\
    extra_siteconfig_loaded {0}\
    force {0}\
    inhibit_errreport {0}\
@@ -414,7 +410,7 @@ proc isIcase {} {
 
 
 proc raiseErrorCount {} {
-   incr ::error_count
+   setState error_count [expr {[getState error_count] + 1}]
 }
 
 proc renderFalse {} {
@@ -5916,8 +5912,8 @@ proc renderSettings {} {
    if {[info exists ::g_return_text]} {
       reportDebug {text value should be returned.}
       renderText $::g_return_text
-   } elseif {$::error_count > 0} {
-      reportDebug "$::error_count error(s) detected."
+   } elseif {[getState error_count] > 0} {
+      reportDebug "[getState error_count] error(s) detected."
       renderFalse
    } elseif {[getState return_false]} {
       reportDebug {false value should be returned.}
