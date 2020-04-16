@@ -49,6 +49,7 @@ array set g_state_defs [list\
    path_separator {<undef> initStatePathSeparator}\
    rc_loaded {<undef>}\
    report_format {plain}\
+   report_sep_next {<undef>}\
    reportfd {stderr}\
    return_false {0}\
    shell {<undef>}\
@@ -750,7 +751,7 @@ proc __reportSeparateNextContent {} {
       lappend ::g_holdReport([currentReportHoldId]) [list\
          reportSeparateNextContent]
    } else {
-      set ::g_report_sep_next 1
+      setState report_sep_next 1
    }
 }
 
@@ -880,8 +881,8 @@ proc __report {message {nonewline 0} {immed 0} {padnl 0}} {
             report \{ 1
          }
       # produce blank line prior message if asked to
-      } elseif {[info exists ::g_report_sep_next]} {
-         unset ::g_report_sep_next
+      } elseif {[isStateDefined report_sep_next]} {
+         unsetState report_sep_next
          report [expr {[isStateEqual report_format json] ? {,} : {}}]
       }
       # prefix msg lines after first one with 2 spaces
@@ -1029,8 +1030,8 @@ proc cleanupAndExit {code} {
          report "[join $dispmsglist ,] \]"
       }
       # inhibit next content separator if output is ending
-      if {[info exists ::g_report_sep_next]} {
-         unset ::g_report_sep_next
+      if {[isStateDefined report_sep_next]} {
+         unsetState report_sep_next
       }
       report \}
    }
