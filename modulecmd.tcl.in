@@ -25,7 +25,6 @@
 # Some Global Variables.....
 #
 set error_count 0 ;# Start with 0 errors
-set g_return_false 0 ;# False value is rendered if == 1
 
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
@@ -46,6 +45,7 @@ array set g_state_defs [list\
    rc_loaded {<undef>}\
    report_format {plain}\
    reportfd {stderr}\
+   return_false {0}\
    siteconfig_loaded {0}\
    shell {<undef>}\
    shelltype {<undef>}\
@@ -5919,7 +5919,7 @@ proc renderSettings {} {
    } elseif {$::error_count > 0} {
       reportDebug "$::error_count error(s) detected."
       renderFalse
-   } elseif {$::g_return_false} {
+   } elseif {[getState return_false]} {
       reportDebug {false value should be returned.}
       renderFalse
    } elseif {$has_rendered} {
@@ -10786,7 +10786,7 @@ proc cmdModuleResurface {cmd args} {
          default {
             if {$res == 0} {
                # render false if command returned false
-               set ::g_return_false 1
+               setState return_false 1
             }
          }
       }
