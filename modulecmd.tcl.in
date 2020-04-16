@@ -36,6 +36,7 @@ array set g_state_defs [list\
    is_stderr_tty {<undef> initStateIsStderrTty}\
    is_win {<undef> initStateIsWin}\
    kernelversion {<undef> {runCommand uname -v}}\
+   lm_info_cached {0}\
    machine [list $::tcl_platform(machine)]\
    nodename {<undef> {runCommand uname -n}}\
    os [list $::tcl_platform(os)]\
@@ -6322,8 +6323,8 @@ ml <- function(...){
 proc cacheCurrentModules {} {
    # parse loaded modules information only once, global arrays are updated
    # afterwards when module commands update loaded modules state
-   if {![info exists ::g_lm_info_cached]} {
-      set ::g_lm_info_cached 1
+   if {![isStateDefined lm_info_cached]} {
+      setState lm_info_cached 1
       # mark specific as well as generic modules as loaded
       set i 0
       set modfilelist [getLoadedModuleFileList]
