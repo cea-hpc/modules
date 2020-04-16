@@ -27,6 +27,7 @@ array set g_state_defs [list\
    autoinit {0}\
    cmdline {<undef>}\
    cwd {<undef>}\
+   domainname {<undef> {runCommand domainname}}\
    error_count {0}\
    extra_siteconfig_loaded {0}\
    force {0}\
@@ -34,8 +35,11 @@ array set g_state_defs [list\
    inhibit_interp {0}\
    is_stderr_tty {<undef> initStateIsStderrTty}\
    is_win {<undef> initStateIsWin}\
+   kernelversion {<undef> {runCommand uname -v}}\
    machine [list $::tcl_platform(machine)]\
-   os [list "$::tcl_platform(os) $::tcl_platform(osVersion)"]\
+   nodename {<undef> {runCommand uname -n}}\
+   os [list $::tcl_platform(os)]\
+   osversion [list $::tcl_platform(osVersion)]\
    pager_started {<undef>}\
    paginate {<undef>}\
    path_separator {<undef> initStatePathSeparator}\
@@ -3425,38 +3429,17 @@ proc x-resource {resource {value {}}} {
 }
 
 proc uname {what} {
-   set result {}
-
    reportDebug $what
 
-   if {! [info exists ::unameCache($what)]} {
-      switch -- $what {
-         sysname {
-            set result $::tcl_platform(os)
-         }
-         machine {
-            set result $::tcl_platform(machine)
-         }
-         nodename - node {
-            set result [runCommand uname -n]
-         }
-         release {
-            set result $::tcl_platform(osVersion)
-         }
-         domain {
-            set result [runCommand domainname]
-         }
-         version {
-            set result [runCommand uname -v]
-         }
-         default {
-            knerror "uname $what not supported"
-         }
-      }
-      set ::unameCache($what) $result
-   }
-
-   return $::unameCache($what)
+   return [switch -- $what {
+      sysname {getState os}
+      machine {getState machine}
+      nodename - node {getState nodename}
+      release {getState osversion}
+      domain {getState domainname}
+      version {getState kernelversion}
+      default {knerror "uname $what not supported"}
+   }]
 }
 
 # run shell command
