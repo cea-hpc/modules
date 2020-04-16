@@ -28,7 +28,6 @@ set error_count 0 ;# Start with 0 errors
 set g_return_false 0 ;# False value is rendered if == 1
 set g_autoInit 0
 set g_inhibit_interp 0 ;# Modulefile interpretation disabled if == 1
-set g_inhibit_errreport 0 ;# Non-critical error reporting disabled if == 1
 
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
@@ -36,6 +35,7 @@ array set g_state_defs [list\
    cmdline {<undef>}\
    extra_siteconfig_loaded {0}\
    force {0}\
+   inhibit_errreport {0}\
    is_stderr_tty {<undef> initStateIsStderrTty}\
    is_win {<undef> initStateIsWin}\
    machine [list $::tcl_platform(machine)]\
@@ -589,7 +589,7 @@ proc __reportError {message {recordtop 0} {severity ERROR} {sgrkey er}\
    {raisecnt 1}} {
    # if report disabled, also disable error raise to get a coherent
    # behavior (if no message printed, no error code change)
-   if {!$::g_inhibit_errreport} {
+   if {![getState inhibit_errreport]} {
       if {$raisecnt} {
          raiseErrorCount
       }
@@ -955,16 +955,8 @@ proc reportVersion {} {
 # disable error reporting (non-critical report only) unless debug enabled
 proc inhibitErrorReport {} {
    if {![isVerbosityLevel debug]} {
-      set ::g_inhibit_errreport 1
+      setState inhibit_errreport 1
    }
-}
-
-proc reenableErrorReport {} {
-   set ::g_inhibit_errreport 0
-}
-
-proc isErrorReportInhibited {} {
-   return $::g_inhibit_errreport
 }
 
 # init error report and output buffered messages
@@ -3545,7 +3537,7 @@ proc is-avail {args} {
 
    # disable error reporting to avoid modulefile errors
    # to pollute result. Only if not already inhibited
-   set alreadyinhibit [isErrorReportInhibited]
+   set alreadyinhibit [getState inhibit_errreport]
    if {!$alreadyinhibit} {
       inhibitErrorReport
    }
@@ -3560,7 +3552,7 @@ proc is-avail {args} {
 
    # re-enable only is it was disabled from this procedure
    if {!$alreadyinhibit} {
-      reenableErrorReport
+      setState inhibit_errreport 0
    }
    return $ret
 }
@@ -9477,7 +9469,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    }
    popMode
 
-   reenableErrorReport
+   setState inhibit_errreport 0
 
    # report errors if a modulefile was searched but not found
    if {$mod ne {} && !$foundmod} {
@@ -10422,7 +10414,7 @@ proc cmdModuleAliases {} {
       getModules $dir {} 0 {}
    }
 
-   reenableErrorReport
+   setState inhibit_errreport 0
 
    set display_list {}
    foreach name [lsort -dictionary [array names ::g_moduleAlias]] {
@@ -10495,7 +10487,7 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
       }
    }
 
-   reenableErrorReport
+   setState inhibit_errreport 0
 }
 
 proc cmdModuleUse {args} {
@@ -11316,7 +11308,7 @@ if {[catch {
    eval $execcmdlist
 } errMsg ]} {
    # re-enable error report in case it was previously inhibited
-   reenableErrorReport
+   setState inhibit_errreport 0
    # remove any message record id to render next error
    clearAllMsgRecordId
    # render error if not done yet
