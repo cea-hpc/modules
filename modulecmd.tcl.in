@@ -26,11 +26,11 @@
 #
 set error_count 0 ;# Start with 0 errors
 set g_return_false 0 ;# False value is rendered if == 1
-set g_autoInit 0
 
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
 array set g_state_defs [list\
+   autoinit {0}\
    cmdline {<undef>}\
    extra_siteconfig_loaded {0}\
    force {0}\
@@ -5480,7 +5480,7 @@ proc renderSettings {} {
    fconfigure stdout -translation lf
 
    # preliminaries if there is stuff to render
-   if {$::g_autoInit || [array size g_stateEnvVars] > 0 ||\
+   if {[getState autoinit] || [array size g_stateEnvVars] > 0 ||\
       [array size g_stateAliases] > 0 || [array size g_newXResources] > 0 ||\
       [array size g_stateFunctions] > 0 || [array size g_delXResources] > 0\
       || [info exists ::g_changeDir] || [info exists ::g_stdoutPuts] ||\
@@ -5495,7 +5495,7 @@ proc renderSettings {} {
       set has_rendered 0
    }
 
-   if {$::g_autoInit} {
+   if {[getState autoinit]} {
       renderAutoinit
    }
 
@@ -10580,7 +10580,7 @@ proc cmdModuleAutoinit {} {
    reportDebug called.
 
    # flag to make renderSettings define the module command
-   set ::g_autoInit 1
+   setState autoinit 1
 
    # initialize env variables around module command
    pushMode load
