@@ -43,9 +43,10 @@ array set g_state_defs [list\
    report_format {plain}\
    reportfd {stderr}\
    return_false {0}\
-   siteconfig_loaded {0}\
    shell {<undef>}\
    shelltype {<undef>}\
+   siteconfig_loaded {0}\
+   sub1_separator {&}\
    subcmd {<undef>}\
    subcmd_args {<undef>}\
    tcl_ext_lib_loaded {0}\
@@ -262,8 +263,6 @@ proc initStatePathSeparator {} {
    return [expr {[getState is_win] ? {;} : {:}}]
 }
 
-# Sub level separator to serialize a second level of info in env var
-set ::g_sub1_separator &
 # Sub sub level separator to serialize a third level of info in env var
 set ::g_sub2_separator |
 
@@ -3885,10 +3884,12 @@ proc getLoadedModuleFileList {} {
 # return list of loaded module declared conflict by parsing MODULES_LMCONFLICT
 proc getLoadedModuleConflictList {} {
    set modconlist [list]
+   # get sub level separator that serialize second level of info in env var
+   set sub1sep [getState sub1_separator]
    foreach modconser [split [get-env MODULES_LMCONFLICT] [getState\
       path_separator]] {
       # recover range specifier ':' from its serialized form '<'
-      set conlist [split [string map {< :} $modconser] $::g_sub1_separator]
+      set conlist [split [string map {< :} $modconser] $sub1sep]
       # ignore empty element (1 is meaningless as first elt is loaded mod)
       if {[llength $conlist] > 1} {
          lappend modconlist $conlist
@@ -3900,10 +3901,11 @@ proc getLoadedModuleConflictList {} {
 # return list of loaded module declared prereq by parsing MODULES_LMPREREQ
 proc getLoadedModulePrereqList {} {
    set modprelist [list]
+   set sub1sep [getState sub1_separator]
    foreach modpreser [split [get-env MODULES_LMPREREQ] [getState\
       path_separator]] {
       # recover range specifier ':' from its serialized form '<'
-      set prelist [split [string map {< :} $modpreser] $::g_sub1_separator]
+      set prelist [split [string map {< :} $modpreser] $sub1sep]
       # ignore empty element (1 is meaningless as first elt is loaded mod)
       if {[llength $prelist] > 1} {
          set modpre {}
@@ -3938,9 +3940,10 @@ proc getLoadedModuleNotUserAskedList {} {
 # return list of loaded module declared altnames by parsing MODULES_LMALTNAME
 proc getLoadedModuleAltnameList {} {
    set modaltlist [list]
+   set sub1sep [getState sub1_separator]
    foreach modaltser [split [get-env MODULES_LMALTNAME] [getState\
       path_separator]] {
-      set altlist [split $modaltser $::g_sub1_separator]
+      set altlist [split $modaltser $sub1sep]
       # ignore empty element (1 is meaningless as first elt is loaded mod)
       if {[llength $altlist] > 1} {
          lappend modaltlist $altlist
@@ -4577,7 +4580,7 @@ proc getLoadedConflict {mod {serialized 0}} {
          # get conflict info as a string that can be registered in an env var
          # translate range specifier ':' into '<' to distinguish from path sep
          set ret [string map {: <} [join [concat [list $mod]\
-            $::g_loadedModuleConflict($mod)] $::g_sub1_separator]]
+            $::g_loadedModuleConflict($mod)] [getState sub1_separator]]]
       } else {
          set ret $::g_loadedModuleConflict($mod)
       }
@@ -4650,7 +4653,7 @@ proc getLoadedPrereq {mod {serialized 0}} {
          }
          # translate range specifier ':' into '<' to distinguish from path sep
          set ret [string map {: <} [join [concat [list $mod] $modpre]\
-            $::g_sub1_separator]]
+            [getState sub1_separator]]]
       } else {
          set ret $::g_loadedModulePrereq($mod)
       }
@@ -4699,7 +4702,7 @@ proc getLoadedAltname {mod {serialized 0}} {
 
    if {$ret ne {} && $serialized} {
       # get altname info as a string that can be registered in an env var
-      set ret [join [concat [list $mod] $ret] $::g_sub1_separator]
+      set ret [join [concat [list $mod] $ret] [getState sub1_separator]]
    }
 
    return $ret
