@@ -24,6 +24,7 @@
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
 array set g_state_defs [list\
+   already_report {0}\
    autoinit {0}\
    cmdline {<undef>}\
    cwd {<undef>}\
@@ -867,8 +868,8 @@ proc __report {message {nonewline 0} {immed 0} {padnl 0}} {
       lappend ::g_holdReport([currentReportHoldId]) [list report $message\
          $nonewline $immed $padnl]
    } else {
-      if {![info exists ::g_already_report]} {
-         set ::g_already_report 1
+      if {![isStateDefined already_report]} {
+         setState already_report 1
          # start pager at first call and only if enabled
          if {[getState pager_started]} {
             startPager

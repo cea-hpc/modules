@@ -122,8 +122,8 @@ Coding conventions
 * Variable names: ``nocaseatall``
 * Curly brace and square bracket placement::
 
-   if {![info exists ::g_already_report]} {
-      set ::g_already_report 1
+   if {![isStateDefined already_report]} {
+      setState already_report 1
    }
 
 .. _Tcl minimal escaping style: https://wiki.tcl-lang.org/page/Tcl+Minimal+Escaping+Style
