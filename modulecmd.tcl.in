@@ -30,6 +30,7 @@ array set g_state_defs [list\
    domainname {<undef> {runCommand domainname}}\
    error_count {0}\
    extra_siteconfig_loaded {0}\
+   false_rendered {0}\
    force {0}\
    inhibit_errreport {0}\
    inhibit_interp {0}\
@@ -417,13 +418,11 @@ proc raiseErrorCount {} {
 }
 
 proc renderFalse {} {
-   reportDebug called.
-
-   if {[info exists ::g_false_rendered]} {
+   if {[isStateDefined false_rendered]} {
       reportDebug {false already rendered}
    } elseif {[isStateDefined shelltype]} {
       # setup flag to render only once
-      set ::g_false_rendered 1
+      setState false_rendered 1
 
       # render a false value most of the time through a variable assignement
       # that will be looked at in the shell module function calling
