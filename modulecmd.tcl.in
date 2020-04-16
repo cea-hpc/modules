@@ -47,6 +47,7 @@ array set g_state_defs [list\
    shelltype {<undef>}\
    siteconfig_loaded {0}\
    sub1_separator {&}\
+   sub2_separator {|}\
    subcmd {<undef>}\
    subcmd_args {<undef>}\
    tcl_ext_lib_loaded {0}\
@@ -262,9 +263,6 @@ proc initStateIsWin {} {
 proc initStatePathSeparator {} {
    return [expr {[getState is_win] ? {;} : {:}}]
 }
-
-# Sub sub level separator to serialize a third level of info in env var
-set ::g_sub2_separator |
 
 # Detect if terminal is attached to stderr message channel
 proc initStateIsStderrTty {} {
@@ -3902,6 +3900,8 @@ proc getLoadedModuleConflictList {} {
 proc getLoadedModulePrereqList {} {
    set modprelist [list]
    set sub1sep [getState sub1_separator]
+   # get sub sub level separator that serialize third level of info in env var
+   set sub2sep [getState sub2_separator]
    foreach modpreser [split [get-env MODULES_LMPREREQ] [getState\
       path_separator]] {
       # recover range specifier ':' from its serialized form '<'
@@ -3914,7 +3914,7 @@ proc getLoadedModulePrereqList {} {
             if {[llength $modpre] == 0} {
                lappend modpre $pre
             } else {
-               lappend modpre [split $pre $::g_sub2_separator]
+               lappend modpre [split $pre $sub2sep]
             }
          }
 
@@ -4645,11 +4645,12 @@ proc unsetLoadedPrereq {mod} {
 proc getLoadedPrereq {mod {serialized 0}} {
    set ret {}
 
+   set sub2sep [getState sub2_separator]
    if {[info exists ::g_loadedModulePrereq($mod)]} {
       if {$serialized} {
          # get prereq info as a string that can be registered in an env var
          foreach pre $::g_loadedModulePrereq($mod) {
-            lappend modpre [join $pre $::g_sub2_separator]
+            lappend modpre [join $pre $sub2sep]
          }
          # translate range specifier ':' into '<' to distinguish from path sep
          set ret [string map {: <} [join [concat [list $mod] $modpre]\
