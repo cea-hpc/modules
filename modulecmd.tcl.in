@@ -36,6 +36,7 @@ set g_report_format plain ;# Output report format
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
 array set g_state_defs [list\
+   path_separator {<undef> initStatePathSeparator}\
    rc_loaded {<undef>}\
    siteconfig_loaded {0}\
    shell {<undef>}\
@@ -251,12 +252,8 @@ proc isWin {} {
 }
 
 # Get default path separator
-proc getPathSeparator {} {
-   if {![info exists ::g_def_separator]} {
-      set ::g_def_separator [expr {[isWin] ? {;} : {:}}]
-   }
-
-   return $::g_def_separator
+proc initStatePathSeparator {} {
+   return [expr {[isWin] ? {;} : {:}}]
 }
 
 # Sub level separator to serialize a second level of info in env var
@@ -2877,7 +2874,7 @@ proc getReferenceCountArray {var separator} {
    set sharevar [getModshareVarName $var]
    array set refcount {}
    if {[info exists ::env($sharevar)]} {
-      set modsharelist [psplit $::env($sharevar) [getPathSeparator]]
+      set modsharelist [psplit $::env($sharevar) [getState path_separator]]
       # ignore environment ref count variable if malformed
       if {([llength $modsharelist] % 2) == 0} {
          array set refcount $modsharelist
@@ -3022,7 +3019,7 @@ proc unload-path {args} {
 
    set sharevar [getModshareVarName $var]
    if {[array size countarr] > 0} {
-      set-env $sharevar [pjoin [array get countarr] [getPathSeparator]]
+      set-env $sharevar [pjoin [array get countarr] [getState path_separator]]
    } else {
       unset-env $sharevar 1
    }
@@ -3064,7 +3061,7 @@ proc add-path {pos args} {
    }
 
    set-env $var $val
-   set-env $sharevar [pjoin [array get countarr] [getPathSeparator]]
+   set-env $sharevar [pjoin [array get countarr] [getState path_separator]]
 
    return {}
 }
@@ -3120,7 +3117,7 @@ proc parsePathCommandArgs {cmd args} {
 
    # adapt with default value or raise error if some arguments are missing
    if {![info exists delim]} {
-      set delim [getPathSeparator]
+      set delim [getState path_separator]
    } elseif {$delim eq {}} {
       knerror "$cmd should get a non-empty path delimiter"
    }
@@ -3893,7 +3890,7 @@ proc getUnloadingModuleList {} {
 # return list of loaded modules by parsing LOADEDMODULES env variable
 proc getLoadedModuleList {{filter_empty 1}} {
    set modlist [list]
-   foreach mod [split [get-env LOADEDMODULES] [getPathSeparator]] {
+   foreach mod [split [get-env LOADEDMODULES] [getState path_separator]] {
       # ignore empty element
       if {$mod ne {} || !$filter_empty} {
          lappend modlist $mod
@@ -3905,7 +3902,7 @@ proc getLoadedModuleList {{filter_empty 1}} {
 # return list of loaded module files by parsing _LMFILES_ env variable
 proc getLoadedModuleFileList {} {
    set modfilelist [list]
-   foreach modfile [split [get-env _LMFILES_] [getPathSeparator]] {
+   foreach modfile [split [get-env _LMFILES_] [getState path_separator]] {
       # ignore empty element
       if {$modfile ne {}} {
          lappend modfilelist $modfile
@@ -3917,7 +3914,8 @@ proc getLoadedModuleFileList {} {
 # return list of loaded module declared conflict by parsing MODULES_LMCONFLICT
 proc getLoadedModuleConflictList {} {
    set modconlist [list]
-   foreach modconser [split [get-env MODULES_LMCONFLICT] [getPathSeparator]] {
+   foreach modconser [split [get-env MODULES_LMCONFLICT] [getState\
+      path_separator]] {
       # recover range specifier ':' from its serialized form '<'
       set conlist [split [string map {< :} $modconser] $::g_sub1_separator]
       # ignore empty element (1 is meaningless as first elt is loaded mod)
@@ -3931,7 +3929,8 @@ proc getLoadedModuleConflictList {} {
 # return list of loaded module declared prereq by parsing MODULES_LMPREREQ
 proc getLoadedModulePrereqList {} {
    set modprelist [list]
-   foreach modpreser [split [get-env MODULES_LMPREREQ] [getPathSeparator]] {
+   foreach modpreser [split [get-env MODULES_LMPREREQ] [getState\
+      path_separator]] {
       # recover range specifier ':' from its serialized form '<'
       set prelist [split [string map {< :} $modpreser] $::g_sub1_separator]
       # ignore empty element (1 is meaningless as first elt is loaded mod)
@@ -3955,7 +3954,8 @@ proc getLoadedModulePrereqList {} {
 # return list of loaded module asked by user by parsing MODULES_LMNOTUASKED
 proc getLoadedModuleNotUserAskedList {} {
    set nuaskedlist [list]
-   foreach mod [split [get-env MODULES_LMNOTUASKED] [getPathSeparator]] {
+   foreach mod [split [get-env MODULES_LMNOTUASKED] [getState\
+      path_separator]] {
       # ignore empty element
       if {$mod ne {}} {
          lappend nuaskedlist $mod
@@ -3967,7 +3967,8 @@ proc getLoadedModuleNotUserAskedList {} {
 # return list of loaded module declared altnames by parsing MODULES_LMALTNAME
 proc getLoadedModuleAltnameList {} {
    set modaltlist [list]
-   foreach modaltser [split [get-env MODULES_LMALTNAME] [getPathSeparator]] {
+   foreach modaltser [split [get-env MODULES_LMALTNAME] [getState\
+      path_separator]] {
       set altlist [split $modaltser $::g_sub1_separator]
       # ignore empty element (1 is meaningless as first elt is loaded mod)
       if {[llength $altlist] > 1} {
@@ -4044,7 +4045,7 @@ proc sortModulePerLoadedAndDepOrder {modlist {nporeq 0} {loading 0}} {
 proc getModulePathList {{behavior returnempty} {resolv_var 1} {set_abs 1}} {
    if {[info exists ::env(MODULEPATH)]} {
       set modpathlist [list]
-      foreach modpath [split $::env(MODULEPATH) [getPathSeparator]] {
+      foreach modpath [split $::env(MODULEPATH) [getState path_separator]] {
          # ignore empty element
          if {$modpath ne {}} {
             if {$resolv_var} {
@@ -10979,8 +10980,7 @@ proc cmdModuleConfig {dump_state args} {
             machine [uname machine]\
             os "[uname sysname] [uname release]"\
             pager_started $::start_pager\
-            paginate $::use_pager\
-            path_separator [getPathSeparator]]
+            paginate $::use_pager]
 
          foreach state [array names ::g_state_defs] {
             set stateval($state) [getState $state <undef>]
