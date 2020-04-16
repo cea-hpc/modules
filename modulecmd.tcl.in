@@ -44,8 +44,7 @@ array set g_state_defs [list\
    nodename {<undef> {runCommand uname -n}}\
    os [list $::tcl_platform(os)]\
    osversion [list $::tcl_platform(osVersion)]\
-   pager_started {<undef>}\
-   paginate {<undef>}\
+   paginate {<undef> initStatePaginate}\
    path_separator {<undef> initStatePathSeparator}\
    rc_loaded {<undef>}\
    report_format {plain}\
@@ -276,6 +275,28 @@ proc initStatePathSeparator {} {
 # Detect if terminal is attached to stderr message channel
 proc initStateIsStderrTty {} {
    return [expr {![catch {fconfigure stderr -mode}]}]
+}
+
+# Determine if pagination need to be started
+proc initStatePaginate {} {
+   set pager [getConf pager]
+   # empty or 'cat' pager command means no-pager
+   set no_cmds [list {} cat]
+   # default pager enablement depends on pager command value
+   set paginate [notInList $no_cmds [file tail [lindex $pager 0]]]
+
+   # asked enablement could only nullify a previous asked disablement as it
+   # requires a valid pager command configuration, which by default enables
+   # pagination; some module command may also turn off pager; also if error
+   # stream is not attached to a terminal
+   if {$paginate && (([info exists ::asked_paginate] && !$::asked_paginate)\
+      || [getState subcmd] eq {clear} || ([getState subcmd] eq {ml} &&\
+      [lindex [getState subcmd_args] 0] eq {clear}) || ![getState\
+      is_stderr_tty])} {
+      set paginate 0
+   }
+
+   return $paginate
 }
 
 # Provide columns number for output formatting
@@ -873,7 +894,7 @@ proc __report {message {nonewline 0} {immed 0} {padnl 0}} {
       if {![isStateDefined already_report]} {
          setState already_report 1
          # start pager at first call and only if enabled
-         if {[getState pager_started]} {
+         if {[getState paginate]} {
             startPager
          }
          # startup content in case of structured output format
@@ -966,7 +987,7 @@ proc initErrorReport {} {
    if {![isStateDefined init_error_report]} {
       setState init_error_report 1
       # determine message paging configuration and enablement
-      initPager
+      getState paginate
 
       # ask for color init now as debug mode has already fire lines to render
       # and we want them to be reported first (not the color init lines)
@@ -992,7 +1013,8 @@ proc initErrorReport {} {
       rename ::report {}
       rename ::__report ::report
 
-      # now error report is init output every message saved in buffer
+      # now error report is init output every message saved in buffer; first
+      # message will trigger message paging startup
       foreach errreport $::errreport_buffer {
          eval $errreport
       }
@@ -1043,47 +1065,6 @@ proc cleanupAndExit {code} {
    }
 
    exit $code
-}
-
-# init configuration for output paging to prepare for startup
-proc initPager {} {
-   set pager [getConf pager]
-   # empty or 'cat' pager command means no-pager
-   set no_cmds [list {} cat]
-   # default pager enablement depends on pager command value
-   setState paginate [notInList $no_cmds [file tail [lindex $pager 0]]]
-   set init_use_pager [notInList $no_cmds [file tail [lindex\
-      $::g_config_defs(pager) 1]]]
-
-   # paging may have been enabled or disabled from the command-line
-   if {[info exists ::asked_use_pager]} {
-      # asked enablement could only nullify a previous asked disablement
-      # as it requires a valid pager command configuration, which by default
-      # enables pagination
-      if {!$::asked_use_pager && [getState paginate]} {
-         setState paginate 0
-      }
-      set asked $::asked_use_pager
-   } else {
-      set asked -
-   }
-
-   # some module command may also turn off pager
-   if {[getState subcmd] eq {clear} || ([getState subcmd] eq {ml} && [lindex\
-      [getState subcmd_args] 0] eq {clear})} {
-      setState paginate 0
-   }
-
-   # start paging if enabled and if error stream is attached to a terminal
-   if {[getState is_stderr_tty] && [getState paginate]} {
-      reportDebug "start pager (asked_use_pager=$asked, cmd='$pager')"
-      setState pager_started 1
-   } else {
-      reportDebug "no pager start (is_tty=[getState is_stderr_tty],\
-         mod_cmd='[getState subcmd]', use_pager=[getState paginate],\
-         asked_use_pager=$asked, cmd='$pager')"
-      setState pager_started 0
-   }
 }
 
 # start pager pipe process with defined configuration
@@ -11154,10 +11135,10 @@ if {[catch {
                set show_version 1
             }
             --paginate {
-               set asked_use_pager 1
+               set asked_paginate 1
             }
             --no-pager {
-               set asked_use_pager 0
+               set asked_paginate 0
             }
             --auto {
                set asked_auto_handling 1
