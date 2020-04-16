@@ -24,7 +24,6 @@
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
 array set g_state_defs [list\
-   already_report {0}\
    autoinit {0}\
    cmdline {<undef>}\
    cwd {<undef>}\
@@ -49,7 +48,7 @@ array set g_state_defs [list\
    rc_loaded {<undef>}\
    report_format {plain}\
    report_sep_next {<undef>}\
-   reportfd {stderr}\
+   reportfd {stderr initStateReportfd}\
    return_false {0}\
    shell {<undef>}\
    shelltype {<undef>}\
@@ -297,6 +296,32 @@ proc initStatePaginate {} {
    }
 
    return $paginate
+}
+
+# start pager pipe process with defined configuration
+proc initStateReportfd {} {
+   # get default value
+   lassign $::g_state_defs(reportfd) reportfd
+
+   # start pager at first call and only if enabled
+   if {[getState paginate]} {
+      if {[catch {
+         set reportfd [open "|[getConf pager] >@stderr 2>@stderr" w]
+         fconfigure $reportfd -buffering line -blocking 1 -buffersize 65536
+      } errMsg]} {
+         # silently set reportfd to its fallback value to process warn msg
+         set ::g_states(reportfd) $reportfd
+         reportWarning $errMsg
+      }
+   }
+
+   # startup content in case of structured output format (puts here rather
+   # calling report proc to avoid infinite reportfd init loop
+   if {[isStateEqual report_format json]} {
+      puts -nonewline $reportfd \{
+   }
+
+   return $reportfd
 }
 
 # Provide columns number for output formatting
@@ -891,18 +916,8 @@ proc __report {message {nonewline 0} {immed 0} {padnl 0}} {
       lappend ::g_holdReport([currentReportHoldId]) [list report $message\
          $nonewline $immed $padnl]
    } else {
-      if {![isStateDefined already_report]} {
-         setState already_report 1
-         # start pager at first call and only if enabled
-         if {[getState paginate]} {
-            startPager
-         }
-         # startup content in case of structured output format
-         if {[isStateEqual report_format json]} {
-            report \{ 1
-         }
       # produce blank line prior message if asked to
-      } elseif {[isStateDefined report_sep_next]} {
+      if {[isStateDefined reportfd] && [isStateDefined report_sep_next]} {
          unsetState report_sep_next
          report [expr {[isStateEqual report_format json] ? {,} : {}}]
       }
@@ -986,13 +1001,17 @@ proc initErrorReport {} {
    # ensure init is done only once
    if {![isStateDefined init_error_report]} {
       setState init_error_report 1
-      # determine message paging configuration and enablement
-      getState paginate
 
       # ask for color init now as debug mode has already fire lines to render
       # and we want them to be reported first (not the color init lines)
       if {[isVerbosityLevel debug]} {
          getConf color
+      }
+
+      # trigger pager start if something needs to be printed, to guaranty
+      # reportDebug calls during pager start are processed in buffer mode
+      if {[isVerbosityLevel debug]} {
+         getState reportfd
       }
 
       # replace report procedures used to bufferize messages until error
@@ -1014,7 +1033,8 @@ proc initErrorReport {} {
       rename ::__report ::report
 
       # now error report is init output every message saved in buffer; first
-      # message will trigger message paging startup
+      # message will trigger message paging configuration and startup unless
+      # already done if debug mode enabled
       foreach errreport $::errreport_buffer {
          eval $errreport
       }
@@ -1065,17 +1085,6 @@ proc cleanupAndExit {code} {
    }
 
    exit $code
-}
-
-# start pager pipe process with defined configuration
-proc startPager {} {
-   if {[catch {
-      setState reportfd [open "|[getConf pager] >@stderr 2>@stderr" w]
-      fconfigure [getState reportfd] -buffering line -blocking 1 -buffersize\
-         65536
-   } errMsg]} {
-      reportWarning $errMsg
-   }
 }
 
 # helper procedures to format various messages
