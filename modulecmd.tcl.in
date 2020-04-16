@@ -27,7 +27,6 @@
 set error_count 0 ;# Start with 0 errors
 set g_return_false 0 ;# False value is rendered if == 1
 set g_autoInit 0
-set g_inhibit_interp 0 ;# Modulefile interpretation disabled if == 1
 
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
@@ -36,6 +35,7 @@ array set g_state_defs [list\
    extra_siteconfig_loaded {0}\
    force {0}\
    inhibit_errreport {0}\
+   inhibit_interp {0}\
    is_stderr_tty {<undef> initStateIsStderrTty}\
    is_win {<undef> initStateIsWin}\
    machine [list $::tcl_platform(machine)]\
@@ -1326,7 +1326,7 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    pushDebugMsgPrefix [getEvalModuleStackDepth] $mode $modname
 
    # skip modulefile if interpretation has been inhibited
-   if {$::g_inhibit_interp} {
+   if {[getState inhibit_interp]} {
       reportDebug "skipping $modfile"
       return 1
    }
@@ -2761,13 +2761,10 @@ proc chdir {dir} {
 # superseed exit command to handle it if called within a modulefile
 # rather than exiting the whole process
 proc exitModfileCmd {{code 0}} {
-   set mode [currentMode]
-
    reportDebug ($code)
 
-   if {$mode eq {load}} {
-      reportDebug {Inhibit next modulefile interpretations}
-      set ::g_inhibit_interp 1
+   if {[currentMode] eq {load}} {
+      setState inhibit_interp 1
    }
 
    # break to gently end interpretation of current modulefile
