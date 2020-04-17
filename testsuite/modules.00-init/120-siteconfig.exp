@@ -21,31 +21,43 @@
 
 proc test_getSiteConfig {siteconfig isvalid islocked} {
     set siteconfigre [regsub -all "\(\[.+?\]\)" $siteconfig {\\\1}]
-    set siteconfigdbg [expr {$isvalid && !$islocked ? "DEBUG sourceSiteConfig: Source site configuration \\($siteconfigre\\)\\n" : {}}]
+    set siteconfigdbg [expr {$isvalid && !$islocked ? "DEBUG sourceSiteConfig: Source site configuration \\($siteconfigre\\)\\nDEBUG setState: extra_siteconfig_loaded set to '1'\\n" : {}}]
     set getextrasiteconfigre [expr {!$islocked ? $siteconfigre : {}}]
-    set mainconfigdbg [expr {[file readable $::siteconfig_file] ? "DEBUG sourceSiteConfig: Source site configuration \\($::siteconfig_filere\\)\\n" : {}}]
+    if {[info exists ::env(TESTSUITE_ENABLE_SITECONFIG_NOEXTRASITECONFIG)]} {
+        set mainconfigdbg [expr {[file readable $::siteconfig_file] ? "DEBUG sourceSiteConfig: Source site configuration \\($::siteconfig_filere\\)\\n" : {}}]
+    } else {
+        set mainconfigdbg [expr {[file readable $::siteconfig_file] ? "DEBUG sourceSiteConfig: Source site configuration \\($::siteconfig_filere\\)\\nDEBUG setState: siteconfig_loaded set to '1'\\n" : {}}]
+    }
 
     set ans [list]
     if {$isvalid && !$islocked} {
         lappend ans "someUserProc"
     }
-    lappend ans "DEBUG CALLING $::MODULECMD sh --no-pager -D -V"
+    lappend ans "DEBUG setState: cmdline set to '$::MODULECMD sh --no-pager -D -V'"
     if {$::install_libtclenvmodules ne {n}} {
-        lappend ans "DEBUG setConf: tcl_ext_lib set to '$::tclextlib_file'(\\nDEBUG Load Tcl extension library \\(.+\\))?"
+        lappend ans "DEBUG setConf: tcl_ext_lib set to '$::tclextlib_file'(\\nDEBUG Load Tcl extension library \\(.+\\))?(\\nDEBUG setState: tcl_ext_lib_loaded set to '1')?"
     }
     lappend ans "DEBUG setConf: siteconfig set to '$::siteconfig_filere'"
     lappend ans "${mainconfigdbg}DEBUG setConf: locked_configs set to '$::install_lockedconfigs'"
     if {[info exists ::env(TESTSUITE_ENABLE_SITECONFIG_NOEXTRASITECONFIG)]} {
         lappend ans "DEBUG setConf: locked_configs set to 'extra_siteconfig'"
+        lappend ans "DEBUG setState: siteconfig_loaded set to '1'"
     } elseif {!$islocked} {
         lappend ans "DEBUG setConf: extra_siteconfig set to '$getextrasiteconfigre'"
     }
-    lappend ans "${siteconfigdbg}DEBUG setConf: pager set to '$::install_pagercmd'"
-    lappend ans "DEBUG initPager: no pager start \\(is_tty=$::is_stderr_tty, mod_cmd='', use_pager=0, asked_use_pager=0, cmd='$::install_pagercmd'\\)"
+    lappend ans "${siteconfigdbg}DEBUG setState: shell set to 'sh'"
+    lappend ans "DEBUG setState: shelltype set to 'sh'"
+    lappend ans "DEBUG setState: subcmd set to ''"
+    lappend ans "DEBUG setState: subcmd_args set to ''"
+    lappend ans "DEBUG setState: init_error_report set to '1'"
     lappend ans "DEBUG setConf: verbosity set to 'debug'"
     lappend ans "DEBUG setConf: term_background set to '$::install_termbg'"
     lappend ans "(DEBUG initConfColors: Ignore invalid default.*\\n)?DEBUG setConf: colors set to '.*'"
     lappend ans "DEBUG setConf: color set to '0'"
+    lappend ans "DEBUG setConf: pager set to '$::install_pagercmd'"
+    lappend ans "DEBUG setState: paginate set to '0'"
+    lappend ans "DEBUG setState: report_format set to 'plain'"
+    lappend ans "DEBUG setState: reportfd set to 'stderr'"
     lappend ans $::vers_reportre
 
     setenv_var MODULES_SITECONFIG $siteconfig
@@ -63,17 +75,26 @@ if {$is_stderr_tty} {
 setenv_var TESTSUITE_ENABLE_SITECONFIG_DEBUG 1
 
 set ans [list]
-lappend ans "DEBUG CALLING $MODULECMD sh -V"
-lappend ans "DEBUG setConf: tcl_ext_lib set to '$tclextlib_file'(\\nDEBUG Load Tcl extension library \\(.+\\))?"
+lappend ans "DEBUG setState: cmdline set to '$MODULECMD sh -V'"
+lappend ans "DEBUG setConf: tcl_ext_lib set to '$tclextlib_file'(\\nDEBUG Load Tcl extension library \\(.+\\))?(\\nDEBUG setState: tcl_ext_lib_loaded set to '1')?"
 lappend ans "DEBUG setConf: siteconfig set to '$siteconfig_filere'"
 lappend ans "DEBUG sourceSiteConfig: Source site configuration \\($siteconfig_filere\\)"
+lappend ans "DEBUG setState: siteconfig_loaded set to '1'"
 lappend ans "DEBUG setConf: locked_configs set to '$install_lockedconfigs'"
-lappend ans "DEBUG setConf: pager set to '$install_pagercmd'"
-lappend ans "DEBUG initPager: start pager \\(asked_use_pager=-, cmd='$install_pagercmd'\\)"
+lappend ans "DEBUG setState: shell set to 'sh'"
+lappend ans "DEBUG setState: shelltype set to 'sh'"
+lappend ans "DEBUG setState: subcmd set to ''"
+lappend ans "DEBUG setState: subcmd_args set to ''"
+lappend ans "DEBUG setState: init_error_report set to '1'"
 lappend ans "DEBUG setConf: verbosity set to 'debug'"
 lappend ans "DEBUG setConf: term_background set to '$install_termbg'"
 lappend ans "(DEBUG initConfColors: Ignore invalid default.*\\n)?DEBUG setConf: colors set to '.*'"
 lappend ans "DEBUG setConf: color set to '0'"
+lappend ans "DEBUG setConf: pager set to '$install_pagercmd'"
+lappend ans "DEBUG setState: is_stderr_tty set to '1'"
+lappend ans "DEBUG setState: paginate set to '1'"
+lappend ans "DEBUG setState: report_format set to 'plain'"
+lappend ans "DEBUG setState: reportfd set to 'file\\d'"
 lappend ans $vers_reportre
 testouterr_cmd_re "sh" "-V" "" [join $ans "\n"]
 

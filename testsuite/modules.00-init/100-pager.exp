@@ -46,28 +46,39 @@ proc pager_test_case {modarg use asked cmd opts} {
     }
 
     set ans [list]
-    # check command exist if specified full path
-    if {$is_stderr_tty && $use && [string index $cmd 0] eq "/" && ![file exists $cmd]} {
-        lappend ans "$warn_msgs: couldn't execute \"$cmd\": no such file or directory"
-    }
 
-    lappend ans "DEBUG CALLING $MODULECMD sh -V -D${modarg}"
+    lappend ans "DEBUG setState: cmdline set to '$MODULECMD sh -V -D${modarg}'"
     if {$::install_libtclenvmodules ne {n}} {
-        lappend ans "DEBUG setConf: tcl_ext_lib set to '$::tclextlib_file'(\\nDEBUG Load Tcl extension library \\(.+\\))?"
+        lappend ans "DEBUG setConf: tcl_ext_lib set to '$::tclextlib_file'(\\nDEBUG Load Tcl extension library \\(.+\\))?(\\nDEBUG setState: tcl_ext_lib_loaded set to '1')?"
     }
-    lappend ans "DEBUG setConf: siteconfig set to '$siteconfig_filere'(\\nDEBUG sourceSiteConfig: Source site configuration \\($siteconfig_filere\\))?"
+    lappend ans "DEBUG setConf: siteconfig set to '$siteconfig_filere'(\\nDEBUG sourceSiteConfig: Source site configuration \\($siteconfig_filere\\))?(\\nDEBUG setState: siteconfig_loaded set to '1')?"
     lappend ans "DEBUG setConf: locked_configs set to '$::install_lockedconfigs'"
-    lappend ans "DEBUG setConf: pager set to '$pager_cmd'"
-
-    if {$is_stderr_tty && $use} {
-        lappend ans "DEBUG initPager: start pager \\(asked_use_pager=$asked, cmd='$pager_cmd'\\)"
-    } else {
-        lappend ans "DEBUG initPager: no pager start \\(is_tty=$is_stderr_tty, mod_cmd='', use_pager=$use, asked_use_pager=$asked, cmd='$pager_cmd'\\)"
-    }
+    lappend ans "DEBUG setState: shell set to 'sh'"
+    lappend ans "DEBUG setState: shelltype set to 'sh'"
+    lappend ans "DEBUG setState: subcmd set to ''"
+    lappend ans "DEBUG setState: subcmd_args set to ''"
+    lappend ans "DEBUG setState: init_error_report set to '1'"
     lappend ans "DEBUG setConf: verbosity set to 'debug'"
     lappend ans "DEBUG setConf: term_background set to '$install_termbg'"
     lappend ans "(DEBUG initConfColors: Ignore invalid default.*\\n)?DEBUG setConf: colors set to '.*'"
     lappend ans "DEBUG setConf: color set to '0'"
+    lappend ans "DEBUG setConf: pager set to '$pager_cmd'"
+    if {$use} {
+        lappend ans "DEBUG setState: is_stderr_tty set to '$is_stderr_tty'"
+    }
+    lappend ans "DEBUG setState: paginate set to '[expr {$is_stderr_tty && $use}]'"
+    # check command exist if specified full path
+    if {$is_stderr_tty && $use && [string index $cmd 0] eq "/" && ![file exists $cmd]} {
+        lappend ans "DEBUG setState: inhibit_errreport set to '0'"
+        lappend ans "$warn_msgs: couldn't execute \"$cmd\": no such file or directory"
+        set reportfd stderr
+    } elseif {$is_stderr_tty && $use} {
+        set reportfd file\\d
+    } else {
+        set reportfd stderr
+    }
+    lappend ans "DEBUG setState: report_format set to 'plain'"
+    lappend ans "DEBUG setState: reportfd set to '$reportfd'"
     lappend ans $::vers_reportre
 
     testouterr_cmd_re "sh" "-V -D$modarg" "" [join $ans "\n"]
@@ -267,13 +278,23 @@ set module "info/command"
 set modulefile "$modpath/$module"
 lappend ans [list setpath LOADEDMODULES $module]
 lappend ans [list setpath _LMFILES_ $modulefile]
-lappend anserr "DEBUG CALLING $MODULECMD sh load $module -D"
-lappend anserr "DEBUG setConf: tcl_ext_lib set to '$tclextlib_file'(\\nDEBUG Load Tcl extension library \\(.+\\))?"
+lappend anserr "DEBUG setState: cmdline set to '$MODULECMD sh load $module -D'"
+lappend anserr "DEBUG setConf: tcl_ext_lib set to '$tclextlib_file'(\\nDEBUG Load Tcl extension library \\(.+\\))?(\\nDEBUG setState: tcl_ext_lib_loaded set to '1')?"
 lappend anserr "DEBUG setConf: siteconfig set to '$siteconfig_filere'"
 lappend anserr "DEBUG sourceSiteConfig: Source site configuration \\($siteconfig_filere\\)"
+lappend anserr "DEBUG setState: siteconfig_loaded set to '1'"
 lappend anserr "DEBUG setConf: locked_configs set to '$install_lockedconfigs'"
+lappend anserr "DEBUG setState: shell set to 'sh'"
+lappend anserr "DEBUG setState: shelltype set to 'sh'"
+lappend anserr "DEBUG setState: subcmd set to 'load'"
+lappend anserr "DEBUG setState: subcmd_args set to '$module'"
+lappend anserr "DEBUG setState: init_error_report set to '1'"
+lappend anserr "(DEBUG .*)+"
 lappend anserr "DEBUG setConf: pager set to '$install_pagercmd'"
-lappend anserr "DEBUG initPager: start pager \\(asked_use_pager=-, cmd='$install_pagercmd'\\)"
+lappend anserr "DEBUG setState: is_stderr_tty set to '1'"
+lappend anserr "DEBUG setState: paginate set to '1'"
+lappend anserr "DEBUG setState: report_format set to 'plain'"
+lappend anserr "DEBUG setState: reportfd set to 'file\\d'"
 lappend anserr "(DEBUG .*)+"
 lappend anserr "load"
 lappend anserr "(DEBUG .*)+"
