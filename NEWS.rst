@@ -6,6 +6,17 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+Next release (2020-XX-XX)
+--------------------------
+
+* Rework internal state handling to gather all state definitions in a global
+  array and use the same initialization and retrieval procedure, named
+  ``getState``, for all these states.
+* Add the ``setState``, ``unsetState``, ``lappendState``, ``isStateDefined``
+  and ``isStateEqual`` procedures to provide unified ways to set or check the
+  value of state.
+
+
 Modules 4.5.1 (2020-06-01)
 --------------------------
 
