@@ -103,14 +103,22 @@ array set g_config_defs [list\
 ]
 
 # Get state value
-proc getState {state {valifundef {}}} {
+proc getState {state {valifundef {}} {catchinitproc 0}} {
    if {![info exists ::g_states($state)]} {
       # fetch state properties (including its default value)
       lassign $::g_state_defs($state) value initproclist
 
       # call specific proc to initialize state if any
       if {$initproclist ne {}} {
-         set value [eval $initproclist]
+         # catch init procedure error and report it as warning, so default
+         # value will get set for state
+         if {$catchinitproc} {
+            if {[catch {set value [eval $initproclist]} errMsg]} {
+               reportWarning $errMsg
+            }
+         } else {
+            set value [eval $initproclist]
+         }
       # overriden value coming the command-line
       } elseif {[info exists ::asked_$state]} {
          set value [set ::asked_$state]
@@ -10924,7 +10932,7 @@ proc cmdModuleConfig {dump_state args} {
          displayTableHeader hi {State name} 24 {Value} 54
          # define each attribute/fetched state value pair
          foreach state [array names ::g_state_defs] {
-            set stateval($state) [getState $state <undef>]
+            set stateval($state) [getState $state <undef> 1]
          }
 
          unset displist

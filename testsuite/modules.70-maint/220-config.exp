@@ -254,7 +254,11 @@ foreach param [lsort [array names configset]] {
         }
     }
 }
+
 append tserr "\n\n$state_header"
+if {[auto_execok uname] eq {} || [auto_execok domainname] eq {}} {
+    append tserr "(\nWARNING: Command '\\S+' cannot be found)+"
+}
 foreach param $statelist {
     append tserr "\n$param\\s+.*"
 }
@@ -267,6 +271,36 @@ foreach envvar [lsort -unique $envvar_list] {
     append tserr "\n[regsub -all {([\\${}*?()+\[\]])} $envvar {\\\1}]\\s+[regsub -all {([\\${}*?()+\[\]])} $env($envvar) {\\\1}]"
 }
 testouterr_cmd_re sh {config --dump-state} OK $tserr
+
+# provoke uname and domainname errors
+set ORIG_PATH $env(PATH)
+setenv_var PATH {}
+set tserr "$vers_reportre\n\n$config_header"
+foreach param [lsort [array names configset]] {
+    if {[info exists configlockable($param)] && [is_config_locked $param]} {
+        append tserr "\n$param\\s+$configdfl($param) \\(locked\\)"
+    } else {
+        append tserr "\n$param\\s+$configset($param)"
+        if {[info exists configvar($param)] || $param eq {runenv_foo}} {
+            append tserr " \\(env-var\\)"
+        }
+    }
+}
+append tserr "\n\n$state_header"
+append tserr "(\nWARNING: Command '\\S+' cannot be found)+"
+foreach param $statelist {
+    append tserr "\n$param\\s+.*"
+}
+append tserr "\n\n$envvar_header"
+set envvar_list [list]
+foreach var [list LOADEDMODULES _LMFILES_ MODULE* *_modshare *_modquar *_module*] {
+    set envvar_list [concat $envvar_list [array names env -glob $var]]
+}
+foreach envvar [lsort -unique $envvar_list] {
+    append tserr "\n[regsub -all {([\\${}*?()+\[\]])} $envvar {\\\1}]\\s+[regsub -all {([\\${}*?()+\[\]])} $env($envvar) {\\\1}]"
+}
+testouterr_cmd_re sh {config --dump-state} OK $tserr
+setenv_var PATH $ORIG_PATH
 
 # report current state with some module loaded
 setenv_loaded_module [list trace/all_on prereq/full] [list $modpath/trace/all_on $modpath/prereq/full] [list trace/all_on]
@@ -283,6 +317,9 @@ foreach param [lsort [array names configset]] {
     }
 }
 append tserr "\n\n$state_header"
+if {[auto_execok uname] eq {} || [auto_execok domainname] eq {}} {
+    append tserr "(\nWARNING: Command '\\S+' cannot be found)+"
+}
 foreach param $statelist {
     append tserr "\n$param\\s+.*"
 }
@@ -339,6 +376,7 @@ unset statelist
 unset valid_darkbgcolors
 unset valid_lightbgcolors
 
+unset ORIG_PATH
 unset tserr
 unset param
 unset envvar
