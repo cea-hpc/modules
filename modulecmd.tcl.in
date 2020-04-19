@@ -2253,7 +2253,7 @@ proc module {command args} {
       switch -- $command {
          path - paths - autoinit - help - prepend-path - append-path -\
          remove-path - is-loaded - is-saved - is-used - is-avail -\
-         info-loaded - clear {
+         info-loaded - clear - sh-to-mod {
             knerror "${msgprefix}Command '$command' not supported$tryhelpmsg"
          }
       }
@@ -2299,7 +2299,7 @@ proc module {command args} {
             set argnberr 1
          }
       }
-      prepend-path - append-path - remove-path {
+      prepend-path - append-path - remove-path - sh-to-mod {
          if {[llength $args] < 2} {
             set argnberr 1
          }
@@ -2566,6 +2566,9 @@ proc module {command args} {
       }
       config {
          eval cmdModuleConfig $dump_state $args
+      }
+      sh-to-mod {
+         eval cmdModuleShToMod $args
       }
       help {
          eval cmdModuleHelp $args
@@ -8729,7 +8732,8 @@ proc parseModuleCommandName {command defaultcmd} {
       display avail aliases path paths list whatis search purge save restore\
       saverm saveshow savelist initadd initprepend initswitch initrm initlist\
       initclear autoinit clear config help test prepend-path append-path\
-      remove-path is-loaded is-saved is-used is-avail info-loaded] $command]
+      remove-path is-loaded is-saved is-used is-avail info-loaded sh-to-mod]\
+      $command]
 
    return [list $command $cmdvalid $cmdempty]
 }
@@ -10959,6 +10963,10 @@ proc cmdModuleConfig {dump_state args} {
    }
 }
 
+proc cmdModuleShToMod {args} {
+
+}
+
 proc cmdMlHelp {} {
    reportVersion
    report {Usage: ml [options] [command] [args ...]
@@ -11047,6 +11055,8 @@ Other commands:
   clear           [-f]              Reset Modules-specific runtime information
   source          scriptfile [...]  Execute scriptfile(s)
   config [--dump-state|name [val]]  Display or set Modules configuration
+  sh-to-mod       shell shellscript [arg ...]
+                                    Make modulefile from script env changes
 
 Switches:
   -t | --terse    Display output in terse format
