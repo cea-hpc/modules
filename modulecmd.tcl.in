@@ -3535,6 +3535,180 @@ proc is-avail {args} {
    return $ret
 }
 
+# execute script with args through shell and convert environment changes into
+# corresponding modulefile commands
+proc sh-to-mod {shell script args} {
+   set modcontent [list]
+   set pathsep [getState path_separator]
+   set sep {%ModulesShToMod%}
+   set ignvarlist [list OLDPWD PWD]
+   set shdesc [concat [list $script] $args]
+
+   # define shell command to run to source script and analyze the environment
+   # changes it performs
+   switch -- [file tail $shell] {
+      bash {
+         set command "export -p; echo $sep; declare -f; echo $sep; alias;\
+            echo $sep; pwd; echo $sep; . $script $args; echo $sep; export -p;\
+            echo $sep; declare -f; echo $sep; alias; echo $sep; pwd"
+         set varre {declare -x (\S+?)="(.*?)"$}
+         set funcre {(\S+?) \(\)\s?\n{\s?\n(.+?)\n}$}
+         set aliasre {alias (\S+?)='(.*?)'$}
+         set varvalmap [list {\"} {"} \\\\ \\]
+         set alvalmap [list {'\''} ']
+      }
+      default {
+         knerror "Shell '$shell' not supported"
+      }
+   }
+
+   if {![file exists $script]} {
+      knerror "Script '$script' cannot be found"
+   }
+
+   set shellpath [getCommandPath $shell]
+   if {$shellpath eq {}} {
+      knerror "Shell '$shell' cannot be found"
+   }
+
+   reportDebug "running '$shellpath -c \"$command\"'"
+   set output [exec $shellpath -c $command]
+
+   # extract each output sections
+   set idx 0
+   foreach varout {varbefout funcbefout aliasbefout cwdbefout scriptout\
+      varaftout funcaftout aliasaftout cwdaftout} {
+      if {[set sepidx [string first $sep $output $idx]] == -1} {
+         set $varout [string trimright [string range $output $idx end] \n]
+         if {$varout ne {cwdaftout}} {
+            knerror "Unexpected output when sourcing '$shdesc' in shell\
+               '$shell'"
+         }
+      } else {
+         set $varout [string trimright [string range $output $idx [expr\
+            {$sepidx - 1}]] \n]
+         set idx [expr {$sepidx + [string length $sep] + 1}]
+      }
+   }
+   if {$sepidx != -1} {
+      knerror "Unexpected output when sourcing '$shdesc' in shell '$shell'"
+   }
+
+   # extract environment variable information
+   foreach {out arr} [list varbefout varbef varaftout varaft] {
+      foreach {match name value} [regexp -all -inline -lineanchor $varre [set\
+         $out]] {
+         # convert shell-specific escaping
+         set ${arr}($name) [string map $varvalmap $value]
+      }
+   }
+   # extract function information
+   foreach {out arr} [list funcbefout funcbef funcaftout funcaft] {
+      foreach {match name value} [regexp -all -inline -lineanchor $funcre\
+         [set $out]] {
+         # no specific escaping to convert for functions
+         set ${arr}($name) $value
+      }
+   }
+   # extract alias information
+   foreach {out arr} [list aliasbefout aliasbef aliasaftout aliasaft] {
+      foreach {match name value} [regexp -all -inline -lineanchor $aliasre\
+         [set $out]] {
+         set ${arr}($name) [string map $alvalmap $value]
+      }
+   }
+
+   # check environment variable change
+   lassign [getDiffBetweenArray varbef varaft] notaft diff notbef
+   foreach name $notaft {
+      if {[notInList $ignvarlist $name]} {
+         lappend modcontent [list unsetenv $name]
+      }
+   }
+   foreach name $diff {
+      if {[notInList $ignvarlist $name]} {
+         # new value is totally different
+         if {[set idx [string first $varbef($name) $varaft($name)]] == -1} {
+            lappend modcontent [list setenv $name $varaft($name)]
+         } else {
+            # content should be prepended
+            if {$idx > 0} {
+               set modcmd [list prepend-path]
+               # check from the end to get the largest chunk to prepend
+               set idx [string last $varbef($name) $varaft($name)]
+               # get delimiter from char found between new and existing value
+               set delim [string index $varaft($name) [expr {$idx - 1}]]
+               if {$delim ne $pathsep} {
+                  lappend modcmd -d $delim
+               }
+               lappend modcmd $name
+               set vallist [split [string range $varaft($name) 0 [expr {$idx\
+                  - 2}]] $delim]
+               # an empty element is added
+               if {[llength $vallist] == 0} {
+                  lappend vallist {}
+               }
+               lappend modcontent [concat $modcmd $vallist]
+            }
+            # content should be appended
+            if {($idx + [string length $varbef($name)]) < [string length\
+               $varaft($name)]} {
+               set modcmd [list append-path]
+               set delim [string index $varaft($name) [expr {$idx + [string\
+                  length $varbef($name)]}]]
+               if {$delim ne $pathsep} {
+                  lappend modcmd -d $delim
+               }
+               lappend modcmd $name
+               set vallist [split [string range $varaft($name) [expr {$idx +\
+                  [string length $varbef($name)] + 1}] end] $delim]
+               if {[llength $vallist] == 0} {
+                  lappend vallist {}
+               }
+               lappend modcontent [concat $modcmd $vallist]
+            }
+         }
+      }
+   }
+   foreach name $notbef {
+      if {[notInList $ignvarlist $name]} {
+         if {[string first $pathsep $varaft($name)] == -1} {
+            lappend modcontent [list setenv $name $varaft($name)]
+         } else {
+            # define a path-like variable if path separator found in it
+            lappend modcontent [concat [list prepend-path $name] [split\
+               $varaft($name) $pathsep]]
+         }
+      }
+   }
+   # check function change
+   lassign [getDiffBetweenArray funcbef funcaft] notaft diff notbef
+   foreach name $notaft {
+      lappend modcontent [list unset-function $name]
+   }
+   foreach name [concat $diff $notbef] {
+      lappend modcontent [list set-function $name \n$funcaft($name)]
+   }
+   # check alias change
+   lassign [getDiffBetweenArray aliasbef aliasaft] notaft diff notbef
+   foreach name $notaft {
+      lappend modcontent [list unset-alias $name]
+   }
+   foreach name [concat $diff $notbef] {
+      lappend modcontent [list set-alias $name $aliasaft($name)]
+   }
+   # check current working directory change
+   if {$cwdbefout ne $cwdaftout} {
+      lappend modcontent [list chdir $cwdaftout]
+   }
+
+   # sort result to ensure consistent output whatever the evaluation shell
+   set modcontent [lsort -dictionary $modcontent]
+
+   reportDebug "resulting env changes '$modcontent'"
+   return $modcontent
+}
+
 ########################################################################
 # internal module procedures
 #
@@ -6737,6 +6911,35 @@ proc getDiffBetweenList {list1 list2} {
    }
 
    return [list $res1 $res2]
+}
+
+# return elements from arr1 not in arr2, elements from arr1 in arr2 but with a
+# different value and elements from arr2 not in arr1
+proc getDiffBetweenArray {arrname1 arrname2} {
+   upvar $arrname1 arr1
+   upvar $arrname2 arr2
+   set notin2 [list]
+   set diff [list]
+   set notin1 [list]
+
+   foreach name [array names arr1] {
+      # element in arr1 not in arr2
+      if {![info exists arr2($name)]} {
+         lappend notin2 $name
+      # element present in both arrays but with a different value
+      } elseif {$arr1($name) ne $arr2($name)} {
+         lappend diff $name
+      }
+   }
+
+   foreach name [array names arr2] {
+      # element in arr2 not in arr1
+      if {![info exists arr1($name)]} {
+         lappend notin1 $name
+      }
+   }
+
+   return [list $notin2 $diff $notin1]
 }
 
 proc parseAccessIssue {modfile} {
@@ -10964,7 +11167,16 @@ proc cmdModuleConfig {dump_state args} {
 }
 
 proc cmdModuleShToMod {args} {
+   set scriptargs [lassign $args shell script]
 
+   # evaluate script and get the environment changes it performs translated
+   # into modulefile commands
+   set modcontent [eval sh-to-mod $args]
+
+   # output resulting modulefile
+   if {[llength $modcontent] > 0} {
+      report "#%Module\n[join $modcontent \n]"
+   }
 }
 
 proc cmdMlHelp {} {
