@@ -968,19 +968,14 @@ proc reportIssue {issuetype issuemsg {issuefile {}}} {
 
 # report defined command (used in display evaluation mode)
 proc reportCmd {cmd args} {
-   set extratab [expr {[string length $cmd] < 8 ? "\t" : {}}]
-   # only brace empty arguments or those containing whitespace
-   set cmdargs {}
-   foreach cmdarg $args {
-      if {$cmdargs ne {}} {
-         append cmdargs { }
-      }
-      if {$cmdarg eq {} || [string first { } $cmdarg] > -1} {
-         append cmdargs "{$cmdarg}"
-      } else {
-         append cmdargs $cmdarg
-      }
+   # use Tcl native string representation of list
+   if {$cmd eq {-nativeargrep}} {
+      set cmd [lindex $args 0]
+      set cmdargs [lrange $args 1 end]
+   } else {
+      set cmdargs [listTo tcl $args 0]
    }
+   set extratab [expr {[string length $cmd] < 8 ? "\t" : {}}]
    report [sgr cm $cmd]$extratab\t$cmdargs
 
    # empty string returns if command result is another command input
@@ -3549,8 +3544,9 @@ proc sh-to-mod {shell script args} {
    switch -- [file tail $shell] {
       bash {
          set command "export -p; echo $sep; declare -f; echo $sep; alias;\
-            echo $sep; pwd; echo $sep; . $script $args; echo $sep; export -p;\
-            echo $sep; declare -f; echo $sep; alias; echo $sep; pwd"
+            echo $sep; pwd; echo $sep; . [listTo shell $shdesc]; echo $sep;\
+            export -p; echo $sep; declare -f; echo $sep; alias; echo $sep;\
+            pwd"
          set varre {declare -x (\S+?)="(.*?)"$}
          set funcre {(\S+?) \(\)\s?\n{\s?\n(.+?)\n}$}
          set aliasre {alias (\S+?)='(.*?)'$}
@@ -6569,6 +6565,31 @@ proc charEscaped {str {charlist { \\\t\{\}|<>!;#^$&*?"'`()}}} {
 
 proc charUnescaped {str {charlist { \\\t\{\}|<>!;#^$&*?"'`()}}} {
    return [regsub -all "\\\\\(\[$charlist\]\)" $str {\1}]
+}
+
+proc strTo {lang str {esc 1}} {
+   switch -- $lang {
+      tcl { set enco \{; set encc \}}
+      shell { set enco '; set encc '}
+   }
+   # escape all special characters
+   if {$esc} {
+      set str [charEscaped $str]
+   }
+   # enclose if empty or if contain a space character unless already escaped
+   if {$str eq {} || (!$esc && [regexp {\s} $str])} {
+      set str "$enco$str$encc"
+   }
+   return $str
+}
+
+proc listTo {lang lst {esc 1}} {
+   set lout [list]
+   # transform each list element
+   foreach str $lst {
+      lappend lout [strTo $lang $str $esc]
+   }
+   return [join $lout { }]
 }
 
 # find command path and remember it
@@ -11175,7 +11196,11 @@ proc cmdModuleShToMod {args} {
 
    # output resulting modulefile
    if {[llength $modcontent] > 0} {
-      report "#%Module\n[join $modcontent \n]"
+      report "#%Module"
+      # format each command with tabs and colors if enabled
+      foreach modcmd $modcontent {
+         eval reportCmd -nativeargrep $modcmd
+      }
    }
 }
 
