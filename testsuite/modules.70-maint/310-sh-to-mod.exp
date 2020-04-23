@@ -1,0 +1,240 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2020/04/22
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:
+#   Sub-Command:    sh-to-mod
+#
+#   Comment:	%C{
+#           Check 'sh-to-mod' sub-command
+#		}C%
+#
+##############################################################################
+
+proc testouterr_shtomod {sh cmdline out err} {
+    if {$sh eq {ALL}} {
+        set shlist $::shtomod_avail_shells
+    } else {
+        set shlist [list $sh]
+    }
+    foreach sh $shlist {
+        set tserr [string map [list {<SHELL>} $sh] $err]
+        testouterr_cmd sh "sh-to-mod $sh $cmdline" $out $tserr
+    }
+}
+
+set shtomod_supported_shells [list bash]
+set testscriptsh testsuite/example/sh-to-mod.sh
+set testscriptshws [string map {- { }} $testscriptsh]
+
+# what are the installed shells
+set shtomod_avail_shells [list]
+foreach sh $shtomod_supported_shells {
+    # whatever pathname used, bash will always set SHELL=/bin/bash unless on MSYS
+    if {$sh eq {bash} && [file executable /bin/bash] && ![string match "MSYS_NT*" $tcl_platform(os)]} {
+        set shbin /bin/bash
+    } else {
+        set shbin [lindex [auto_execok $sh] 0]
+    }
+    if {$shbin ne {}} {
+        lappend shtomod_avail_shells $sh
+        set shell_pathname($sh) $shbin
+    }
+}
+
+# get a default shell for tests
+set onesh [lindex $shtomod_avail_shells 0]
+set oneshbin $shell_pathname($onesh)
+
+# clean environment from variables used in tests
+foreach var [array names -glob FOO*] {
+    unsetenv_var $var
+}
+
+# expected script env changes
+set tsvarpre "prepend-path\tFOOPATH /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path\tFOOPATHCB /path/to/dir1 /path/to/d\\{r2 /path/to/dir3
+prepend-path\tFOOPATHEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3"
+set tsvar "setenv\t\tFOO value
+setenv\t\tFOOCB va\\{ue
+setenv\t\tFOOEM {}
+setenv\t\tFOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}
+setenv\t\tFOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }
+setenv\t\tFOOSP {value }"
+set tsfunc_bash "set-function\tfunccb \\n\\ \\ \\ \\ echo\\ f\\{o
+set-function\tfuncfoo {
+    echo foo}
+set-function\tfuncnl {
+    echo foo;
+    echo bar}
+set-function\tfuncsp {
+    echo f\\\"o;
+    echo b\\\\\\\"r;
+    echo f\\'o}"
+set tsalias_bash "set-alias\talcb echo\\ f\\{o
+set-alias\talem {}
+set-alias\talfoo {echo \$(grep \"report .Modules \" ../../modulecmd.tcl | tr -d \\\\ 2>/dev/null | awk '\{print \$3\}')}
+set-alias\talsp {echo f\\\"o; echo b\\\\\\\"r; echo f\\'o}"
+set tscwd "chdir\t\t$env(TESTSUITEDIR)/modulefiles.2"
+
+
+# test unknown shell
+testouterr_shtomod unk $testscriptsh ERR "$error_msgs: Shell 'unk' not supported"
+
+# bad arg number has been checked in 00/071
+
+# test unknown script
+testouterr_shtomod $onesh /path/to/unk ERR "$error_msgs: Script '/path/to/unk' cannot be found"
+
+# test full script output
+if {[info exists shell_pathname(bash)]} {
+    testouterr_shtomod bash $testscriptsh OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_bash\n$tsfunc_bash\n$tsvar"
+}
+# remove progressively all kind of changes
+setenv_var TESTSUITE_SHTOMOD_NOVAR 1
+setenv_var TESTSUITE_SHTOMOD_NOPATH 1
+if {[info exists shell_pathname(bash)]} {
+    testouterr_shtomod bash $testscriptsh OK "#%Module\n$tscwd\n$tsalias_bash\n$tsfunc_bash"
+}
+setenv_var TESTSUITE_SHTOMOD_NOFUNC 1
+if {[info exists shell_pathname(bash)]} {
+    testouterr_shtomod bash $testscriptsh OK "#%Module\n$tscwd\n$tsalias_bash"
+}
+setenv_var TESTSUITE_SHTOMOD_NOALIAS 1
+testouterr_shtomod ALL $testscriptsh OK "#%Module\n$tscwd"
+setenv_var TESTSUITE_SHTOMOD_NOCD 1
+testouterr_shtomod ALL $testscriptsh OK {}
+
+# check used shell
+setenv_var TESTSUITE_SHTOMOD_SHELLVAR 1
+testouterr_shtomod $onesh $testscriptsh OK "#%Module\nsetenv\t\tFOOSHELL $oneshbin"
+testouterr_shtomod $oneshbin $testscriptsh OK "#%Module\nsetenv\t\tFOOSHELL $oneshbin"
+if {$is_symlink_supported} {
+    file link -symbolic testsuite/$onesh $oneshbin
+    testouterr_shtomod testsuite/bin/../$onesh $testscriptsh OK "#%Module\nsetenv\t\tFOOSHELL $oneshbin"
+    file delete testsuite/$onesh
+}
+set ORIG_PATH $env(PATH)
+setenv_var PATH {}
+testouterr_shtomod $onesh $testscriptsh ERR "$error_msgs: Shell '$onesh' cannot be found"
+setenv_var PATH $ORIG_PATH
+
+# check if script contains a space character in its name
+file copy $testscriptsh $testscriptshws
+testouterr_shtomod $onesh [string map {{ } {\ }} $testscriptshws] OK "#%Module\nsetenv\t\tFOOSHELL $oneshbin"
+file delete $testscriptshws
+unsetenv_var TESTSUITE_SHTOMOD_SHELLVAR
+
+# check passed argument
+unsetenv_var TESTSUITE_SHTOMOD_NOVAR
+testouterr_shtomod ALL "$testscriptsh val value\\  val{ue" OK "#%Module
+setenv\t\tFOO value
+setenv\t\tFOOARG1 val
+setenv\t\tFOOARG2 {value }
+setenv\t\tFOOARG3 val\\{ue
+setenv\t\tFOOCB va\\{ue
+setenv\t\tFOOEM {}
+setenv\t\tFOOSP {value }"
+testouterr_shtomod ALL "$testscriptsh v'l val\"e val\\\"e " OK "#%Module
+setenv\t\tFOO value
+setenv\t\tFOOARG1 v'l
+setenv\t\tFOOARG2 val\\\"e
+setenv\t\tFOOARG3 {val\\\"e}
+setenv\t\tFOOARG4 {}
+setenv\t\tFOOCB va\\{ue
+setenv\t\tFOOEM {}
+setenv\t\tFOOSP {value }"
+
+# set an environment variable containing a newline char to see if it distrub parsing
+setenv_var TESTSUITE_FOONL "foo\nbar"
+testouterr_shtomod ALL "$testscriptsh v'l val\"e val\\\"e " OK "#%Module
+setenv\t\tFOO value
+setenv\t\tFOOARG1 v'l
+setenv\t\tFOOARG2 val\\\"e
+setenv\t\tFOOARG3 {val\\\"e}
+setenv\t\tFOOARG4 {}
+setenv\t\tFOOCB va\\{ue
+setenv\t\tFOOEM {}
+setenv\t\tFOOSP {value }"
+unsetenv_var TESTSUITE_FOONL
+setenv_var TESTSUITE_SHTOMOD_NOVAR 1
+
+#FIXME test append/prepend...
+
+
+unsetenv_var TESTSUITE_SHTOMOD_NOVAR
+unsetenv_var TESTSUITE_SHTOMOD_NOPATH
+unsetenv_var TESTSUITE_SHTOMOD_NOCD
+
+# output using same delimiter as sh-to-mod sub-command
+setenv_var TESTSUITE_SHTOMOD_FUZZYOUT1 1
+testouterr_shtomod ALL $testscriptsh ERR "$error_msgs: Unexpected output when sourcing '$testscriptsh' in shell '<SHELL>'"
+unsetenv_var TESTSUITE_SHTOMOD_FUZZYOUT1
+setenv_var TESTSUITE_SHTOMOD_FUZZYOUT2 1
+testouterr_shtomod ALL $testscriptsh ERR "$error_msgs: Unexpected output when sourcing '$testscriptsh' in shell '<SHELL>'"
+testouterr_shtomod ALL "$testscriptsh val\\ ue" ERR "$error_msgs: Unexpected output when sourcing '$testscriptsh {val ue}' in shell '<SHELL>'"
+unsetenv_var TESTSUITE_SHTOMOD_FUZZYOUT2
+
+
+# test script with error (exit 1)
+setenv_var TESTSUITE_SHTOMOD_EXIT1 1
+testouterr_shtomod ALL $testscriptsh ERR "$error_msgs: Script '$testscriptsh' exited abnormally"
+# and message on stderr
+setenv_var TESTSUITE_SHTOMOD_ERRMSG 1
+testouterr_shtomod ALL $testscriptsh ERR "$error_msgs: Script '$testscriptsh' exited abnormally\n    with following output\n  error message"
+
+# script output on stderr but no error
+unsetenv_var TESTSUITE_SHTOMOD_EXIT1
+testouterr_shtomod ALL $testscriptsh OK "#%Module\n$tscwd\n$tsvarpre\n$tsvar"
+# and message on stdout
+setenv_var TESTSUITE_SHTOMOD_OUTMSG 1
+testouterr_shtomod ALL $testscriptsh OK "#%Module\n$tscwd\n$tsvarpre\n$tsvar"
+
+# script output on stdout but no error
+unsetenv_var TESTSUITE_SHTOMOD_ERRMSG
+testouterr_shtomod ALL $testscriptsh OK "#%Module\n$tscwd\n$tsvarpre\n$tsvar"
+# script output on stdout and error
+setenv_var TESTSUITE_SHTOMOD_EXIT1 1
+testouterr_shtomod ALL $testscriptsh ERR "$error_msgs: Script '$testscriptsh' exited abnormally\n    with following output\n  output message"
+# and message on stderr
+setenv_var TESTSUITE_SHTOMOD_ERRMSG 1
+testouterr_shtomod ALL $testscriptsh ERR "$error_msgs: Script '$testscriptsh' exited abnormally\n    with following output\n  output message\n  error message"
+
+
+#
+#  Cleanup
+#
+
+unsetenv_var TESTSUITE_SHTOMOD_NOFUNC
+unsetenv_var TESTSUITE_SHTOMOD_NOALIAS
+unsetenv_var TESTSUITE_SHTOMOD_EXIT1
+unsetenv_var TESTSUITE_SHTOMOD_OUTMSG
+unsetenv_var TESTSUITE_SHTOMOD_ERRMSG
+
+unset shtomod_supported_shells
+unset testscriptsh
+unset testscriptshws
+
+unset shtomod_avail_shells
+unset sh
+unset shbin
+unset shell_pathname
+unset onesh
+unset oneshbin
+
+unset ORIG_PATH
+
+unset tsvar
+unset tsvarpre
+unset tsfunc_bash
+unset tsalias_bash
+unset tscwd
