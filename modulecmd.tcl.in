@@ -3538,15 +3538,16 @@ proc sh-to-mod {shell script args} {
    set sep {%ModulesShToMod%}
    set ignvarlist [list OLDPWD PWD]
    set shdesc [concat [list $script] $args]
+   set sherr 0
 
    # define shell command to run to source script and analyze the environment
    # changes it performs
    switch -- [file tail $shell] {
       bash {
          set command "export -p; echo $sep; declare -f; echo $sep; alias;\
-            echo $sep; pwd; echo $sep; . [listTo shell $shdesc]; echo $sep;\
-            export -p; echo $sep; declare -f; echo $sep; alias; echo $sep;\
-            pwd"
+            echo $sep; pwd; echo $sep; . [listTo shell $shdesc] 2>&1; echo\
+            $sep; export -p; echo $sep; declare -f; echo $sep; alias; echo\
+            $sep; pwd"
          set varre {declare -x (\S+?)="(.*?)"$}
          set funcre {(\S+?) \(\)\s?\n{\s?\n(.+?)\n}$}
          set aliasre {alias (\S+?)='(.*?)'$}
@@ -3568,7 +3569,9 @@ proc sh-to-mod {shell script args} {
    }
 
    reportDebug "running '$shellpath -c \"$command\"'"
-   set output [exec $shellpath -c $command]
+   if {[catch {set output [exec $shellpath -c $command]} output]} {
+      set sherr 1
+   }
 
    # extract each output sections
    set idx 0
@@ -3576,7 +3579,7 @@ proc sh-to-mod {shell script args} {
       varaftout funcaftout aliasaftout cwdaftout} {
       if {[set sepidx [string first $sep $output $idx]] == -1} {
          set $varout [string trimright [string range $output $idx end] \n]
-         if {$varout ne {cwdaftout}} {
+         if {$varout ne {cwdaftout} && !$sherr} {
             knerror "Unexpected output when sourcing '$shdesc' in shell\
                '$shell'"
          }
@@ -3585,9 +3588,24 @@ proc sh-to-mod {shell script args} {
             {$sepidx - 1}]] \n]
          set idx [expr {$sepidx + [string length $sep] + 1}]
       }
+      # remove expected Tcl error message
+      if {$sherr && $varout eq {scriptout} && [set erridx [string\
+         last {child process exited abnormally} [set $varout]]] != -1} {
+         set $varout [string range [set $varout] 0 [expr {$erridx - 2}]]
+      }
    }
-   if {$sepidx != -1} {
+   if {$sepidx != -1 && !$sherr} {
       knerror "Unexpected output when sourcing '$shdesc' in shell '$shell'"
+   }
+
+   reportDebug "script output is '$scriptout'"
+   if {$sherr} {
+      # throw error if script had an issue, send script output along if any
+      set errmsg "Script '$script' exited abnormally"
+      if {$scriptout ne {}} {
+         append errmsg "\n  with following output\n$scriptout"
+      }
+      knerror $errmsg
    }
 
    # extract environment variable information
