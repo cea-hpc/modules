@@ -32,7 +32,7 @@ proc testouterr_shtomod {sh cmdline out err} {
     }
 }
 
-set shtomod_supported_shells [list bash zsh]
+set shtomod_supported_shells [list bash ksh zsh]
 set testscriptsh testsuite/example/sh-to-mod.sh
 set testscriptshws [string map {- { }} $testscriptsh]
 
@@ -80,6 +80,19 @@ set-function\tfuncsp {
     echo f\\\"o;
     echo b\\\\\\\"r;
     echo f\\'o}"
+set tsfunc_ksh "set-function\tfunccb \\n\\ \\ \\ \\ \\ \\ echo\\ f\\{o\\n\\ \\ \\ 
+set-function\tfuncfoo {
+      echo foo
+   }
+set-function\tfuncnl {
+      echo foo
+      echo bar
+   }
+set-function\tfuncsp {
+      echo f\\\"o
+      echo b\\\\\\\"r
+      echo f\\'o
+   }"
 set tsfunc_zsh "set-function\tfunccb \\n\\techo\\ f\\{o
 set-function\tfuncfoo {
 \techo foo}
@@ -94,6 +107,7 @@ set tsalias_bash "set-alias\talcb echo\\ f\\{o
 set-alias\talem {}
 set-alias\talfoo {echo \$(grep \"report .Modules \" ../../modulecmd.tcl | tr -d \\\\ 2>/dev/null | awk '\{print \$3\}')}
 set-alias\talsp {echo f\\\"o; echo b\\\\\\\"r; echo f\\'o}"
+set tsalias_ksh $tsalias_bash
 set tsalias_zsh $tsalias_bash
 set tscwd "chdir\t\t$env(TESTSUITEDIR)/modulefiles.2"
 
@@ -110,6 +124,9 @@ testouterr_shtomod $onesh /path/to/unk ERR "$error_msgs: Script '/path/to/unk' c
 if {[info exists shell_pathname(bash)]} {
     testouterr_shtomod bash $testscriptsh OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_bash\n$tsfunc_bash\n$tsvar"
 }
+if {[info exists shell_pathname(ksh)]} {
+    testouterr_shtomod ksh $testscriptsh OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_ksh\n$tsfunc_ksh\n$tsvar"
+}
 if {[info exists shell_pathname(zsh)]} {
     testouterr_shtomod zsh $testscriptsh OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_zsh\n$tsfunc_zsh\n$tsvar"
 }
@@ -119,12 +136,18 @@ setenv_var TESTSUITE_SHTOMOD_NOPATH 1
 if {[info exists shell_pathname(bash)]} {
     testouterr_shtomod bash $testscriptsh OK "#%Module\n$tscwd\n$tsalias_bash\n$tsfunc_bash"
 }
+if {[info exists shell_pathname(ksh)]} {
+    testouterr_shtomod ksh $testscriptsh OK "#%Module\n$tscwd\n$tsalias_ksh\n$tsfunc_ksh"
+}
 if {[info exists shell_pathname(zsh)]} {
     testouterr_shtomod zsh $testscriptsh OK "#%Module\n$tscwd\n$tsalias_zsh\n$tsfunc_zsh"
 }
 setenv_var TESTSUITE_SHTOMOD_NOFUNC 1
 if {[info exists shell_pathname(bash)]} {
     testouterr_shtomod bash $testscriptsh OK "#%Module\n$tscwd\n$tsalias_bash"
+}
+if {[info exists shell_pathname(ksh)]} {
+    testouterr_shtomod ksh $testscriptsh OK "#%Module\n$tscwd\n$tsalias_ksh"
 }
 if {[info exists shell_pathname(zsh)]} {
     testouterr_shtomod zsh $testscriptsh OK "#%Module\n$tscwd\n$tsalias_zsh"
@@ -256,7 +279,9 @@ unset ORIG_PATH
 unset tsvar
 unset tsvarpre
 unset tsfunc_bash
+unset tsfunc_ksh
 unset tsfunc_zsh
 unset tsalias_bash
+unset tsalias_ksh
 unset tsalias_zsh
 unset tscwd
