@@ -3554,6 +3554,17 @@ proc sh-to-mod {shell script args} {
          set varvalmap [list {\"} {"} \\\\ \\]
          set alvalmap [list {'\''} ']
       }
+      zsh {
+         set command "typeset -x; echo $sep; declare -f; echo $sep; alias;\
+            echo $sep; pwd; echo $sep; . [listTo shell $shdesc] 2>&1; echo\
+            $sep; typeset -x; echo $sep; declare -f; echo $sep; alias; echo\
+            $sep; pwd"
+         set varre {(\S+?)=\$?'?(.*?)'?$}
+         set funcre {(\S+?) \(\) {\n(.+?)\n}$}
+         set aliasre {(\S+?)=\$?'?(.*?)'?$}
+         set varvalmap [list {'\''} ']
+         set alvalmap [list {'\''} ']
+      }
       default {
          knerror "Shell '$shell' not supported"
       }

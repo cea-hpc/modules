@@ -32,7 +32,7 @@ proc testouterr_shtomod {sh cmdline out err} {
     }
 }
 
-set shtomod_supported_shells [list bash]
+set shtomod_supported_shells [list bash zsh]
 set testscriptsh testsuite/example/sh-to-mod.sh
 set testscriptshws [string map {- { }} $testscriptsh]
 
@@ -80,10 +80,21 @@ set-function\tfuncsp {
     echo f\\\"o;
     echo b\\\\\\\"r;
     echo f\\'o}"
+set tsfunc_zsh "set-function\tfunccb \\n\\techo\\ f\\{o
+set-function\tfuncfoo {
+\techo foo}
+set-function\tfuncnl {
+\techo foo
+\techo bar}
+set-function\tfuncsp {
+\techo f\\\"o
+\techo b\\\\\\\"r
+\techo f\\'o}"
 set tsalias_bash "set-alias\talcb echo\\ f\\{o
 set-alias\talem {}
 set-alias\talfoo {echo \$(grep \"report .Modules \" ../../modulecmd.tcl | tr -d \\\\ 2>/dev/null | awk '\{print \$3\}')}
 set-alias\talsp {echo f\\\"o; echo b\\\\\\\"r; echo f\\'o}"
+set tsalias_zsh $tsalias_bash
 set tscwd "chdir\t\t$env(TESTSUITEDIR)/modulefiles.2"
 
 
@@ -99,15 +110,24 @@ testouterr_shtomod $onesh /path/to/unk ERR "$error_msgs: Script '/path/to/unk' c
 if {[info exists shell_pathname(bash)]} {
     testouterr_shtomod bash $testscriptsh OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_bash\n$tsfunc_bash\n$tsvar"
 }
+if {[info exists shell_pathname(zsh)]} {
+    testouterr_shtomod zsh $testscriptsh OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_zsh\n$tsfunc_zsh\n$tsvar"
+}
 # remove progressively all kind of changes
 setenv_var TESTSUITE_SHTOMOD_NOVAR 1
 setenv_var TESTSUITE_SHTOMOD_NOPATH 1
 if {[info exists shell_pathname(bash)]} {
     testouterr_shtomod bash $testscriptsh OK "#%Module\n$tscwd\n$tsalias_bash\n$tsfunc_bash"
 }
+if {[info exists shell_pathname(zsh)]} {
+    testouterr_shtomod zsh $testscriptsh OK "#%Module\n$tscwd\n$tsalias_zsh\n$tsfunc_zsh"
+}
 setenv_var TESTSUITE_SHTOMOD_NOFUNC 1
 if {[info exists shell_pathname(bash)]} {
     testouterr_shtomod bash $testscriptsh OK "#%Module\n$tscwd\n$tsalias_bash"
+}
+if {[info exists shell_pathname(zsh)]} {
+    testouterr_shtomod zsh $testscriptsh OK "#%Module\n$tscwd\n$tsalias_zsh"
 }
 setenv_var TESTSUITE_SHTOMOD_NOALIAS 1
 testouterr_shtomod ALL $testscriptsh OK "#%Module\n$tscwd"
@@ -236,5 +256,7 @@ unset ORIG_PATH
 unset tsvar
 unset tsvarpre
 unset tsfunc_bash
+unset tsfunc_zsh
 unset tsalias_bash
+unset tsalias_zsh
 unset tscwd
