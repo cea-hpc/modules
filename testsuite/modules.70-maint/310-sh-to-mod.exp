@@ -32,7 +32,7 @@ proc testouterr_shtomod {sh cmdline out err} {
     }
 }
 
-set shtomod_supported_shells [list bash ksh zsh]
+set shtomod_supported_shells [list bash ksh zsh sh]
 set testscriptsh testsuite/example/sh-to-mod.sh
 set testscriptshws [string map {- { }} $testscriptsh]
 
@@ -103,12 +103,14 @@ set-function\tfuncsp {
 \techo f\\\"o
 \techo b\\\\\\\"r
 \techo f\\'o}"
+set tsfunc_sh $tsfunc_bash
 set tsalias_bash "set-alias\talcb echo\\ f\\{o
 set-alias\talem {}
 set-alias\talfoo {echo \$(grep \"report .Modules \" ../../modulecmd.tcl | tr -d \\\\ 2>/dev/null | awk '\{print \$3\}')}
 set-alias\talsp {echo f\\\"o; echo b\\\\\\\"r; echo f\\'o}"
 set tsalias_ksh $tsalias_bash
 set tsalias_zsh $tsalias_bash
+set tsalias_sh $tsalias_bash
 set tscwd "chdir\t\t$env(TESTSUITEDIR)/modulefiles.2"
 
 
@@ -121,6 +123,9 @@ testouterr_shtomod unk $testscriptsh ERR "$error_msgs: Shell 'unk' not supported
 testouterr_shtomod $onesh /path/to/unk ERR "$error_msgs: Script '/path/to/unk' cannot be found"
 
 # test full script output
+if {[info exists shell_pathname(sh)]} {
+    testouterr_shtomod sh $testscriptsh OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_sh\n$tsfunc_sh\n$tsvar"
+}
 if {[info exists shell_pathname(bash)]} {
     testouterr_shtomod bash $testscriptsh OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_bash\n$tsfunc_bash\n$tsvar"
 }
@@ -133,6 +138,9 @@ if {[info exists shell_pathname(zsh)]} {
 # remove progressively all kind of changes
 setenv_var TESTSUITE_SHTOMOD_NOVAR 1
 setenv_var TESTSUITE_SHTOMOD_NOPATH 1
+if {[info exists shell_pathname(sh)]} {
+    testouterr_shtomod sh $testscriptsh OK "#%Module\n$tscwd\n$tsalias_sh\n$tsfunc_sh"
+}
 if {[info exists shell_pathname(bash)]} {
     testouterr_shtomod bash $testscriptsh OK "#%Module\n$tscwd\n$tsalias_bash\n$tsfunc_bash"
 }
@@ -143,6 +151,9 @@ if {[info exists shell_pathname(zsh)]} {
     testouterr_shtomod zsh $testscriptsh OK "#%Module\n$tscwd\n$tsalias_zsh\n$tsfunc_zsh"
 }
 setenv_var TESTSUITE_SHTOMOD_NOFUNC 1
+if {[info exists shell_pathname(sh)]} {
+    testouterr_shtomod sh $testscriptsh OK "#%Module\n$tscwd\n$tsalias_sh"
+}
 if {[info exists shell_pathname(bash)]} {
     testouterr_shtomod bash $testscriptsh OK "#%Module\n$tscwd\n$tsalias_bash"
 }
@@ -278,9 +289,11 @@ unset ORIG_PATH
 
 unset tsvar
 unset tsvarpre
+unset tsfunc_sh
 unset tsfunc_bash
 unset tsfunc_ksh
 unset tsfunc_zsh
+unset tsalias_sh
 unset tsalias_bash
 unset tsalias_ksh
 unset tsalias_zsh
