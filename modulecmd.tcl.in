@@ -3536,17 +3536,18 @@ proc sh-to-mod {shell script args} {
    set modcontent [list]
    set pathsep [getState path_separator]
    set sep {%ModulesShToMod%}
-   set ignvarlist [list OLDPWD PWD]
+   set ignvarlist [list OLDPWD PWD _]
    set shdesc [concat [list $script] $args]
    set sherr 0
 
    # define shell command to run to source script and analyze the environment
    # changes it performs
    switch -- [file tail $shell] {
-      sh {
+      dash - sh {
          # declare is not supported by dash but functions cannot be retrieved
          # anyway, so keep using declare and throw errors out to avoid overall
-         # execution error
+         # execution error. dash does not pass arguments to sourced script but
+         # it does not raise error if arguments are set
          set command "export -p; echo $sep; declare -f 2>/dev/null; echo\
             $sep; alias; echo $sep; pwd; echo $sep; . [listTo shell $shdesc]\
             2>&1; echo $sep; export -p; echo $sep; declare -f 2>/dev/null;\
@@ -3555,7 +3556,7 @@ proc sh-to-mod {shell script args} {
          set funcre {(\S+?) \(\)\s?\n?{\s?\n(.+?)\n}$}
          set aliasre {(\S+?)='(.*?)'$}
          set varvalmap [list {\"} {"} \\\\ \\]
-         set alvalmap [list {'\''} ']
+         set alvalmap [list {'\''} ' {'"'"'} ']
       }
       bash {
          set command "export -p; echo $sep; declare -f; echo $sep; alias;\
