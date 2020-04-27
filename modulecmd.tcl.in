@@ -3536,7 +3536,7 @@ proc sh-to-mod {shell script args} {
    set modcontent [list]
    set pathsep [getState path_separator]
    set sep {%ModulesShToMod%}
-   set ignvarlist [list OLDPWD PWD _]
+   set ignvarlist [list OLDPWD PWD _ _AST_FEATURES]
    set shdesc [concat [list $script] $args]
    set sherr 0
 
@@ -3569,7 +3569,7 @@ proc sh-to-mod {shell script args} {
          set varvalmap [list {\"} {"} \\\\ \\]
          set alvalmap [list {'\''} ']
       }
-      ksh {
+      ksh - ksh93 {
          set command "typeset -x; echo $sep; typeset +f | while read f; do\
             typeset -f \${f%\\(\\)}; echo; done; echo $sep; alias; echo $sep;\
             pwd; echo $sep; . [listTo shell $shdesc] 2>&1; echo $sep; typeset\
