@@ -20,21 +20,31 @@
 #
 ##############################################################################
 
-proc testouterr_shtomod {sh cmdline out err} {
+proc testouterr_shtomod {sh cmdline out err {script {}}} {
     if {$sh eq {ALL}} {
         set shlist $::shtomod_avail_shells
     } else {
         set shlist [list $sh]
     }
+    if {$cmdline ne {}} {
+        set cmdline " $cmdline"
+    }
+    set shscript $script
     foreach sh $shlist {
-        set tserr [string map [list {<SHELL>} $sh] $err]
-        testouterr_cmd sh "sh-to-mod $sh $cmdline" $out $tserr
+        if {$script eq {}} {
+            set shscript $::testscript($sh)
+        }
+        set tserr [string map [list {<SHELL>} $sh {<SCRIPTSH>} $shscript] $err]
+        testouterr_cmd sh "sh-to-mod $sh $shscript$cmdline" $out $tserr
     }
 }
 
 set shtomod_supported_shells [list bash ksh zsh sh dash ksh93]
 set testscriptsh testsuite/example/sh-to-mod.sh
 set testscriptshws [string map {- { }} $testscriptsh]
+
+array set testscript [list bash $testscriptsh ksh $testscriptsh\
+    zsh $testscriptsh sh $testscriptsh dash $testscriptsh ksh93 $testscriptsh]
 
 # what are the installed shells
 set shtomod_avail_shells [list]
@@ -116,106 +126,106 @@ set tscwd "chdir\t\t$env(TESTSUITEDIR)/modulefiles.2"
 
 
 # test unknown shell
-testouterr_shtomod unk $testscriptsh ERR "$error_msgs: Shell 'unk' not supported"
+testouterr_shtomod unk {} ERR "$error_msgs: Shell 'unk' not supported" $testscriptsh
 
 # bad arg number has been checked in 00/071
 
 # test unknown script
-testouterr_shtomod $onesh /path/to/unk ERR "$error_msgs: Script '/path/to/unk' cannot be found"
+testouterr_shtomod $onesh {} ERR "$error_msgs: Script '/path/to/unk' cannot be found" /path/to/unk
 
 # test full script output
 if {[info exists shell_pathname(sh)]} {
     if {$sh_kind eq {dash}} {
-        testouterr_shtomod sh $testscriptsh OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_dash\n$tsvar"
+        testouterr_shtomod sh {} OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_dash\n$tsvar"
     } else {
-        testouterr_shtomod sh $testscriptsh OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_sh\n$tsfunc_sh\n$tsvar"
+        testouterr_shtomod sh {} OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_sh\n$tsfunc_sh\n$tsvar"
     }
 }
 if {[info exists shell_pathname(dash)]} {
-    testouterr_shtomod dash $testscriptsh OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_dash\n$tsvar"
+    testouterr_shtomod dash {} OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_dash\n$tsvar"
 }
 if {[info exists shell_pathname(bash)]} {
-    testouterr_shtomod bash $testscriptsh OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_bash\n$tsfunc_bash\n$tsvar"
+    testouterr_shtomod bash {} OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_bash\n$tsfunc_bash\n$tsvar"
 }
 if {[info exists shell_pathname(ksh)]} {
-    testouterr_shtomod ksh $testscriptsh OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_ksh\n$tsfunc_ksh\n$tsvar"
+    testouterr_shtomod ksh {} OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_ksh\n$tsfunc_ksh\n$tsvar"
 }
 if {[info exists shell_pathname(ksh93)]} {
-    testouterr_shtomod ksh93 $testscriptsh OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_ksh\n$tsfunc_ksh\n$tsvar"
+    testouterr_shtomod ksh93 {} OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_ksh\n$tsfunc_ksh\n$tsvar"
 }
 if {[info exists shell_pathname(zsh)]} {
-    testouterr_shtomod zsh $testscriptsh OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_zsh\n$tsfunc_zsh\n$tsvar"
+    testouterr_shtomod zsh {} OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_zsh\n$tsfunc_zsh\n$tsvar"
 }
 # remove progressively all kind of changes
 setenv_var TESTSUITE_SHTOMOD_NOVAR 1
 setenv_var TESTSUITE_SHTOMOD_NOPATH 1
 if {[info exists shell_pathname(sh)]} {
     if {$sh_kind eq {dash}} {
-        testouterr_shtomod sh $testscriptsh OK "#%Module\n$tscwd\n$tsalias_dash"
+        testouterr_shtomod sh {} OK "#%Module\n$tscwd\n$tsalias_dash"
     } else {
-        testouterr_shtomod sh $testscriptsh OK "#%Module\n$tscwd\n$tsalias_sh\n$tsfunc_sh"
+        testouterr_shtomod sh {} OK "#%Module\n$tscwd\n$tsalias_sh\n$tsfunc_sh"
     }
 }
 if {[info exists shell_pathname(dash)]} {
-    testouterr_shtomod dash $testscriptsh OK "#%Module\n$tscwd\n$tsalias_dash"
+    testouterr_shtomod dash {} OK "#%Module\n$tscwd\n$tsalias_dash"
 }
 if {[info exists shell_pathname(bash)]} {
-    testouterr_shtomod bash $testscriptsh OK "#%Module\n$tscwd\n$tsalias_bash\n$tsfunc_bash"
+    testouterr_shtomod bash {} OK "#%Module\n$tscwd\n$tsalias_bash\n$tsfunc_bash"
 }
 if {[info exists shell_pathname(ksh)]} {
-    testouterr_shtomod ksh $testscriptsh OK "#%Module\n$tscwd\n$tsalias_ksh\n$tsfunc_ksh"
+    testouterr_shtomod ksh {} OK "#%Module\n$tscwd\n$tsalias_ksh\n$tsfunc_ksh"
 }
 if {[info exists shell_pathname(ksh93)]} {
-    testouterr_shtomod ksh93 $testscriptsh OK "#%Module\n$tscwd\n$tsalias_ksh\n$tsfunc_ksh"
+    testouterr_shtomod ksh93 {} OK "#%Module\n$tscwd\n$tsalias_ksh\n$tsfunc_ksh"
 }
 if {[info exists shell_pathname(zsh)]} {
-    testouterr_shtomod zsh $testscriptsh OK "#%Module\n$tscwd\n$tsalias_zsh\n$tsfunc_zsh"
+    testouterr_shtomod zsh {} OK "#%Module\n$tscwd\n$tsalias_zsh\n$tsfunc_zsh"
 }
 setenv_var TESTSUITE_SHTOMOD_NOFUNC 1
 if {[info exists shell_pathname(sh)]} {
     if {$sh_kind eq {dash}} {
-        testouterr_shtomod sh $testscriptsh OK "#%Module\n$tscwd\n$tsalias_dash"
+        testouterr_shtomod sh {} OK "#%Module\n$tscwd\n$tsalias_dash"
     } else {
-        testouterr_shtomod sh $testscriptsh OK "#%Module\n$tscwd\n$tsalias_sh"
+        testouterr_shtomod sh {} OK "#%Module\n$tscwd\n$tsalias_sh"
     }
 }
 if {[info exists shell_pathname(dash)]} {
-    testouterr_shtomod dash $testscriptsh OK "#%Module\n$tscwd\n$tsalias_dash"
+    testouterr_shtomod dash {} OK "#%Module\n$tscwd\n$tsalias_dash"
 }
 if {[info exists shell_pathname(bash)]} {
-    testouterr_shtomod bash $testscriptsh OK "#%Module\n$tscwd\n$tsalias_bash"
+    testouterr_shtomod bash {} OK "#%Module\n$tscwd\n$tsalias_bash"
 }
 if {[info exists shell_pathname(ksh)]} {
-    testouterr_shtomod ksh $testscriptsh OK "#%Module\n$tscwd\n$tsalias_ksh"
+    testouterr_shtomod ksh {} OK "#%Module\n$tscwd\n$tsalias_ksh"
 }
 if {[info exists shell_pathname(ksh93)]} {
-    testouterr_shtomod ksh93 $testscriptsh OK "#%Module\n$tscwd\n$tsalias_ksh"
+    testouterr_shtomod ksh93 {} OK "#%Module\n$tscwd\n$tsalias_ksh"
 }
 if {[info exists shell_pathname(zsh)]} {
-    testouterr_shtomod zsh $testscriptsh OK "#%Module\n$tscwd\n$tsalias_zsh"
+    testouterr_shtomod zsh {} OK "#%Module\n$tscwd\n$tsalias_zsh"
 }
 setenv_var TESTSUITE_SHTOMOD_NOALIAS 1
-testouterr_shtomod ALL $testscriptsh OK "#%Module\n$tscwd"
+testouterr_shtomod ALL {} OK "#%Module\n$tscwd"
 setenv_var TESTSUITE_SHTOMOD_NOCD 1
-testouterr_shtomod ALL $testscriptsh OK {}
+testouterr_shtomod ALL {} OK {}
 
 # check used shell
 setenv_var TESTSUITE_SHTOMOD_SHELLVAR 1
-testouterr_shtomod $onesh $testscriptsh OK "#%Module\nsetenv\t\tFOOSHELL $oneshbin"
-testouterr_shtomod $oneshbin $testscriptsh OK "#%Module\nsetenv\t\tFOOSHELL $oneshbin"
+testouterr_shtomod $onesh {} OK "#%Module\nsetenv\t\tFOOSHELL $oneshbin"
+testouterr_shtomod $oneshbin {} OK "#%Module\nsetenv\t\tFOOSHELL $oneshbin" $testscriptsh
 if {$is_symlink_supported} {
     file link -symbolic testsuite/$onesh $oneshbin
-    testouterr_shtomod testsuite/bin/../$onesh $testscriptsh OK "#%Module\nsetenv\t\tFOOSHELL $oneshbin"
+    testouterr_shtomod testsuite/bin/../$onesh {} OK "#%Module\nsetenv\t\tFOOSHELL $oneshbin" $testscriptsh
     file delete testsuite/$onesh
 }
 set ORIG_PATH $env(PATH)
 setenv_var PATH {}
-testouterr_shtomod $onesh $testscriptsh ERR "$error_msgs: Shell '$onesh' cannot be found"
+testouterr_shtomod $onesh {} ERR "$error_msgs: Shell '$onesh' cannot be found"
 setenv_var PATH $ORIG_PATH
 
 # check if script contains a space character in its name
 file copy $testscriptsh $testscriptshws
-testouterr_shtomod $onesh [string map {{ } {\ }} $testscriptshws] OK "#%Module\nsetenv\t\tFOOSHELL $oneshbin"
+testouterr_shtomod $onesh {} OK "#%Module\nsetenv\t\tFOOSHELL $oneshbin" [string map {{ } {\ }} $testscriptshws]
 file delete $testscriptshws
 unsetenv_var TESTSUITE_SHTOMOD_SHELLVAR
 
@@ -237,25 +247,25 @@ setenv\t\tFOOSP {value }"
 if {[info exists shell_pathname(sh)]} {
     if {$sh_kind eq {dash}} {
         # dash does not take into account arguments passed to sourced script
-        testouterr_shtomod sh "$testscriptsh val value\\  val\{ue" OK $tserr_noarg
+        testouterr_shtomod sh "val value\\  val\{ue" OK $tserr_noarg
     } else {
-        testouterr_shtomod sh "$testscriptsh val value\\  val\{ue" OK $tserr
+        testouterr_shtomod sh "val value\\  val\{ue" OK $tserr
     }
 }
 if {[info exists shell_pathname(dash)]} {
-    testouterr_shtomod dash "$testscriptsh val value\\  val\{ue" OK $tserr_noarg
+    testouterr_shtomod dash "val value\\  val\{ue" OK $tserr_noarg
 }
 if {[info exists shell_pathname(bash)]} {
-    testouterr_shtomod bash "$testscriptsh val value\\  val\{ue" OK $tserr
+    testouterr_shtomod bash "val value\\  val\{ue" OK $tserr
 }
 if {[info exists shell_pathname(ksh)]} {
-    testouterr_shtomod ksh "$testscriptsh val value\\  val\{ue" OK $tserr
+    testouterr_shtomod ksh "val value\\  val\{ue" OK $tserr
 }
 if {[info exists shell_pathname(ksh93)]} {
-    testouterr_shtomod ksh93 "$testscriptsh val value\\  val\{ue" OK $tserr
+    testouterr_shtomod ksh93 "val value\\  val\{ue" OK $tserr
 }
 if {[info exists shell_pathname(zsh)]} {
-    testouterr_shtomod zsh "$testscriptsh val value\\  val\{ue" OK $tserr
+    testouterr_shtomod zsh "val value\\  val\{ue" OK $tserr
 }
 set tserr "#%Module
 setenv\t\tFOO value
@@ -268,25 +278,25 @@ setenv\t\tFOOEM {}
 setenv\t\tFOOSP {value }"
 if {[info exists shell_pathname(sh)]} {
     if {$sh_kind eq {dash}} {
-        testouterr_shtomod sh "$testscriptsh v'l val\"e val\\\"e " OK $tserr_noarg
+        testouterr_shtomod sh "v'l val\"e val\\\"e " OK $tserr_noarg
     } else {
-        testouterr_shtomod sh "$testscriptsh v'l val\"e val\\\"e " OK $tserr
+        testouterr_shtomod sh "v'l val\"e val\\\"e " OK $tserr
     }
 }
 if {[info exists shell_pathname(dash)]} {
-    testouterr_shtomod dash "$testscriptsh v'l val\"e val\\\"e " OK $tserr_noarg
+    testouterr_shtomod dash "v'l val\"e val\\\"e " OK $tserr_noarg
 }
 if {[info exists shell_pathname(bash)]} {
-    testouterr_shtomod bash "$testscriptsh v'l val\"e val\\\"e " OK $tserr
+    testouterr_shtomod bash "v'l val\"e val\\\"e " OK $tserr
 }
 if {[info exists shell_pathname(ksh)]} {
-    testouterr_shtomod ksh "$testscriptsh v'l val\"e val\\\"e " OK $tserr
+    testouterr_shtomod ksh "v'l val\"e val\\\"e " OK $tserr
 }
 if {[info exists shell_pathname(ksh93)]} {
-    testouterr_shtomod ksh93 "$testscriptsh v'l val\"e val\\\"e " OK $tserr
+    testouterr_shtomod ksh93 "v'l val\"e val\\\"e " OK $tserr
 }
 if {[info exists shell_pathname(zsh)]} {
-    testouterr_shtomod zsh "$testscriptsh v'l val\"e val\\\"e " OK $tserr
+    testouterr_shtomod zsh "v'l val\"e val\\\"e " OK $tserr
 }
 
 # set an environment variable containing a newline char to see if it distrub parsing
@@ -302,25 +312,25 @@ setenv\t\tFOOEM {}
 setenv\t\tFOOSP {value }"
 if {[info exists shell_pathname(sh)]} {
     if {$sh_kind eq {dash}} {
-        testouterr_shtomod sh "$testscriptsh v'l val\"e val\\\"e " OK $tserr_noarg
+        testouterr_shtomod sh "v'l val\"e val\\\"e " OK $tserr_noarg
     } else {
-        testouterr_shtomod sh "$testscriptsh v'l val\"e val\\\"e " OK $tserr
+        testouterr_shtomod sh "v'l val\"e val\\\"e " OK $tserr
     }
 }
 if {[info exists shell_pathname(dash)]} {
-    testouterr_shtomod dash "$testscriptsh v'l val\"e val\\\"e " OK $tserr_noarg
+    testouterr_shtomod dash "v'l val\"e val\\\"e " OK $tserr_noarg
 }
 if {[info exists shell_pathname(bash)]} {
-    testouterr_shtomod bash "$testscriptsh v'l val\"e val\\\"e " OK $tserr
+    testouterr_shtomod bash "v'l val\"e val\\\"e " OK $tserr
 }
 if {[info exists shell_pathname(ksh)]} {
-    testouterr_shtomod ksh "$testscriptsh v'l val\"e val\\\"e " OK $tserr
+    testouterr_shtomod ksh "v'l val\"e val\\\"e " OK $tserr
 }
 if {[info exists shell_pathname(ksh93)]} {
-    testouterr_shtomod ksh93 "$testscriptsh v'l val\"e val\\\"e " OK $tserr
+    testouterr_shtomod ksh93 "v'l val\"e val\\\"e " OK $tserr
 }
 if {[info exists shell_pathname(zsh)]} {
-    testouterr_shtomod zsh "$testscriptsh v'l val\"e val\\\"e " OK $tserr
+    testouterr_shtomod zsh "v'l val\"e val\\\"e " OK $tserr
 }
 unsetenv_var TESTSUITE_FOONL
 setenv_var TESTSUITE_SHTOMOD_NOVAR 1
@@ -334,37 +344,37 @@ unsetenv_var TESTSUITE_SHTOMOD_NOCD
 
 # output using same delimiter as sh-to-mod sub-command
 setenv_var TESTSUITE_SHTOMOD_FUZZYOUT1 1
-testouterr_shtomod ALL $testscriptsh ERR "$error_msgs: Unexpected output when sourcing '$testscriptsh' in shell '<SHELL>'"
+testouterr_shtomod ALL {} ERR "$error_msgs: Unexpected output when sourcing '<SCRIPTSH>' in shell '<SHELL>'"
 unsetenv_var TESTSUITE_SHTOMOD_FUZZYOUT1
 setenv_var TESTSUITE_SHTOMOD_FUZZYOUT2 1
-testouterr_shtomod ALL $testscriptsh ERR "$error_msgs: Unexpected output when sourcing '$testscriptsh' in shell '<SHELL>'"
-testouterr_shtomod ALL "$testscriptsh val\\ ue" ERR "$error_msgs: Unexpected output when sourcing '$testscriptsh {val ue}' in shell '<SHELL>'"
+testouterr_shtomod ALL {} ERR "$error_msgs: Unexpected output when sourcing '<SCRIPTSH>' in shell '<SHELL>'"
+testouterr_shtomod ALL "val\\ ue" ERR "$error_msgs: Unexpected output when sourcing '<SCRIPTSH> {val ue}' in shell '<SHELL>'"
 unsetenv_var TESTSUITE_SHTOMOD_FUZZYOUT2
 
 
 # test script with error (exit 1)
 setenv_var TESTSUITE_SHTOMOD_EXIT1 1
-testouterr_shtomod ALL $testscriptsh ERR "$error_msgs: Script '$testscriptsh' exited abnormally"
+testouterr_shtomod ALL {} ERR "$error_msgs: Script '<SCRIPTSH>' exited abnormally"
 # and message on stderr
 setenv_var TESTSUITE_SHTOMOD_ERRMSG 1
-testouterr_shtomod ALL $testscriptsh ERR "$error_msgs: Script '$testscriptsh' exited abnormally\n    with following output\n  error message"
+testouterr_shtomod ALL {} ERR "$error_msgs: Script '<SCRIPTSH>' exited abnormally\n    with following output\n  error message"
 
 # script output on stderr but no error
 unsetenv_var TESTSUITE_SHTOMOD_EXIT1
-testouterr_shtomod ALL $testscriptsh OK "#%Module\n$tscwd\n$tsvarpre\n$tsvar"
+testouterr_shtomod ALL {} OK "#%Module\n$tscwd\n$tsvarpre\n$tsvar"
 # and message on stdout
 setenv_var TESTSUITE_SHTOMOD_OUTMSG 1
-testouterr_shtomod ALL $testscriptsh OK "#%Module\n$tscwd\n$tsvarpre\n$tsvar"
+testouterr_shtomod ALL {} OK "#%Module\n$tscwd\n$tsvarpre\n$tsvar"
 
 # script output on stdout but no error
 unsetenv_var TESTSUITE_SHTOMOD_ERRMSG
-testouterr_shtomod ALL $testscriptsh OK "#%Module\n$tscwd\n$tsvarpre\n$tsvar"
+testouterr_shtomod ALL {} OK "#%Module\n$tscwd\n$tsvarpre\n$tsvar"
 # script output on stdout and error
 setenv_var TESTSUITE_SHTOMOD_EXIT1 1
-testouterr_shtomod ALL $testscriptsh ERR "$error_msgs: Script '$testscriptsh' exited abnormally\n    with following output\n  output message"
+testouterr_shtomod ALL {} ERR "$error_msgs: Script '<SCRIPTSH>' exited abnormally\n    with following output\n  output message"
 # and message on stderr
 setenv_var TESTSUITE_SHTOMOD_ERRMSG 1
-testouterr_shtomod ALL $testscriptsh ERR "$error_msgs: Script '$testscriptsh' exited abnormally\n    with following output\n  output message\n  error message"
+testouterr_shtomod ALL {} ERR "$error_msgs: Script '<SCRIPTSH>' exited abnormally\n    with following output\n  output message\n  error message"
 
 
 #
@@ -380,6 +390,7 @@ unsetenv_var TESTSUITE_SHTOMOD_ERRMSG
 unset shtomod_supported_shells
 unset testscriptsh
 unset testscriptshws
+unset testscript
 
 unset shtomod_avail_shells
 unset sh
