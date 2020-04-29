@@ -3592,6 +3592,32 @@ proc sh-to-mod {shell script args} {
          set varvalmap [list {'\''} ']
          set alvalmap [list {'\''} ']
       }
+      fish {
+         # exclude builtins and fish-specific functions from search to reduce
+         # the number of functions to parse
+         set getfunc {set funcout (string match -r -v $funcfilter (functions\
+            -n) | while read f; functions $f; end);}
+         set command "set -xgL; echo '$sep'; set funcfilter (string join '|'\
+            (string replace \\\[ \\\\\\\[ (builtin -n)))\\|fish\\.\\*;\
+            $getfunc; string split \$funcout; echo '$sep'; string split\
+            \$funcout; echo '$sep'; pwd; echo '$sep'; source [listTo shell\
+            $shdesc] 2>&1; or exit \$status; echo '$sep'; set -xgL; echo\
+            '$sep'; $getfunc; string split \$funcout; echo '$sep'; string\
+            split \$funcout; echo '$sep'; pwd"
+         set varre {^(\S+?\M) ?'?(.*?)'?$}
+         # exclude alias from function list
+         set funcre {^function (\S+?)(?: [^\n]*?--description\
+            (?!'?alias)[^\n]+)?\n(.+?)\nend$}
+         # fetch aliases from available functions
+         set aliasre {^function (\S+?) [^\n]*?--description\
+            '?alias[^\n]+\n\s*(.+?)\nend$}
+         # translate back fish-specific code
+         set varvalmap [list {'  '} : {\'} ' {\"} \" \\\\ \\]
+         set alvalmap [list { $argv;} {}]
+
+         # fish builtins change LS_COLORS variable
+         lappend ignvarlist LS_COLORS
+      }
       default {
          knerror "Shell '$shell' not supported"
       }

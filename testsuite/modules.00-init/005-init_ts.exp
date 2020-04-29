@@ -446,6 +446,12 @@ if {[info exists csrutil_enabled]} {
     set sip_enabled 0
 }
 
+# grab fish shell version to check if greater or equal to 3.1
+if {[set fishbin [lindex [auto_execok fish] 0]] ne {}} {
+   regexp {version (.+)$} [exec $fishbin --version] match fish_version
+   set fish_version_ge31 [expr {[lindex [lsort -dictionary [list $fish_version 3.1.0]] 0] eq {3.1.0}}]
+}
+
 # locate siteconfig file
 set siteconfig_file "$install_etcdir/siteconfig.tcl"
 set siteconfig_filere [regsub -all "\(\[.+?\]\)" $siteconfig_file {\\\1}]

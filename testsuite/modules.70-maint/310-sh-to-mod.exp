@@ -39,12 +39,14 @@ proc testouterr_shtomod {sh cmdline out err {script {}}} {
     }
 }
 
-set shtomod_supported_shells [list bash ksh zsh sh dash ksh93]
+set shtomod_supported_shells [list bash ksh zsh sh dash ksh93 fish]
 set testscriptsh testsuite/example/sh-to-mod.sh
+set testscriptfish testsuite/example/sh-to-mod.fish
 set testscriptshws [string map {- { }} $testscriptsh]
 
 array set testscript [list bash $testscriptsh ksh $testscriptsh\
-    zsh $testscriptsh sh $testscriptsh dash $testscriptsh ksh93 $testscriptsh]
+    zsh $testscriptsh sh $testscriptsh dash $testscriptsh ksh93 $testscriptsh\
+    fish $testscriptfish]
 
 # what are the installed shells
 set shtomod_avail_shells [list]
@@ -114,6 +116,18 @@ set-function\tfuncsp {
 \techo b\\\\\\\"r
 \techo f\\'o}"
 set tsfunc_sh $tsfunc_bash
+set funcstart_fish [expr {[info exists fish_version_ge31] && $fish_version_ge31 ? {      } : "\t"}]
+set tsfunc_fish "set-function\tfunccb {
+${funcstart_fish}echo f\\{o}
+set-function\tfuncfoo {
+${funcstart_fish}echo foo}
+set-function\tfuncnl {
+${funcstart_fish}echo foo
+      echo bar}
+set-function\tfuncsp {
+${funcstart_fish}echo f\\\"o
+      echo b\\\\\\\"r
+      echo f\\'o}"
 set tsalias_bash "set-alias\talcb echo\\ f\\{o
 set-alias\talem {}
 set-alias\talfoo {echo \$(grep \"report .Modules \" ../../modulecmd.tcl | tr -d \\\\ 2>/dev/null | awk '\{print \$3\}')}
@@ -122,6 +136,9 @@ set tsalias_ksh $tsalias_bash
 set tsalias_zsh $tsalias_bash
 set tsalias_sh $tsalias_bash
 set tsalias_dash $tsalias_bash
+set tsalias_fish "set-alias\talcb {echo f\\{o}
+set-alias\talfoo {echo \(grep \"report .Modules \" ../../modulecmd.tcl | tr -d \\\\ 2>/dev/null | awk \'\{print \$3\}\')}
+set-alias\talsp {echo f\\\"o; echo b\\\\\\\"r; echo f\\'o}"
 set tscwd "chdir\t\t$env(TESTSUITEDIR)/modulefiles.2"
 
 
@@ -156,6 +173,9 @@ if {[info exists shell_pathname(ksh93)]} {
 if {[info exists shell_pathname(zsh)]} {
     testouterr_shtomod zsh {} OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_zsh\n$tsfunc_zsh\n$tsvar"
 }
+if {[info exists shell_pathname(fish)]} {
+    testouterr_shtomod fish {} OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_fish\n$tsfunc_fish\n$tsvar"
+}
 # remove progressively all kind of changes
 setenv_var TESTSUITE_SHTOMOD_NOVAR 1
 setenv_var TESTSUITE_SHTOMOD_NOPATH 1
@@ -181,6 +201,9 @@ if {[info exists shell_pathname(ksh93)]} {
 if {[info exists shell_pathname(zsh)]} {
     testouterr_shtomod zsh {} OK "#%Module\n$tscwd\n$tsalias_zsh\n$tsfunc_zsh"
 }
+if {[info exists shell_pathname(fish)]} {
+    testouterr_shtomod fish {} OK "#%Module\n$tscwd\n$tsalias_fish\n$tsfunc_fish"
+}
 setenv_var TESTSUITE_SHTOMOD_NOFUNC 1
 if {[info exists shell_pathname(sh)]} {
     if {$sh_kind eq {dash}} {
@@ -203,6 +226,9 @@ if {[info exists shell_pathname(ksh93)]} {
 }
 if {[info exists shell_pathname(zsh)]} {
     testouterr_shtomod zsh {} OK "#%Module\n$tscwd\n$tsalias_zsh"
+}
+if {[info exists shell_pathname(fish)]} {
+    testouterr_shtomod fish {} OK "#%Module\n$tscwd\n$tsalias_fish"
 }
 setenv_var TESTSUITE_SHTOMOD_NOALIAS 1
 testouterr_shtomod ALL {} OK "#%Module\n$tscwd"
@@ -267,6 +293,9 @@ if {[info exists shell_pathname(ksh93)]} {
 if {[info exists shell_pathname(zsh)]} {
     testouterr_shtomod zsh "val value\\  val\{ue" OK $tserr
 }
+if {[info exists shell_pathname(fish)]} {
+    testouterr_shtomod fish "val value\\  val\{ue" OK $tserr
+}
 set tserr "#%Module
 setenv\t\tFOO value
 setenv\t\tFOOARG1 v'l
@@ -297,6 +326,9 @@ if {[info exists shell_pathname(ksh93)]} {
 }
 if {[info exists shell_pathname(zsh)]} {
     testouterr_shtomod zsh "v'l val\"e val\\\"e " OK $tserr
+}
+if {[info exists shell_pathname(fish)]} {
+    testouterr_shtomod fish "v'l val\"e val\\\"e " OK $tserr
 }
 
 # set an environment variable containing a newline char to see if it distrub parsing
@@ -331,6 +363,9 @@ if {[info exists shell_pathname(ksh93)]} {
 }
 if {[info exists shell_pathname(zsh)]} {
     testouterr_shtomod zsh "v'l val\"e val\\\"e " OK $tserr
+}
+if {[info exists shell_pathname(fish)]} {
+    testouterr_shtomod fish "v'l val\"e val\\\"e " OK $tserr
 }
 unsetenv_var TESTSUITE_FOONL
 setenv_var TESTSUITE_SHTOMOD_NOVAR 1
@@ -390,6 +425,7 @@ unsetenv_var TESTSUITE_SHTOMOD_ERRMSG
 unset shtomod_supported_shells
 unset testscriptsh
 unset testscriptshws
+unset testscriptfish
 unset testscript
 
 unset shtomod_avail_shells
@@ -410,9 +446,12 @@ unset tsfunc_sh
 unset tsfunc_bash
 unset tsfunc_ksh
 unset tsfunc_zsh
+unset tsfunc_fish
 unset tsalias_sh
 unset tsalias_dash
 unset tsalias_bash
 unset tsalias_ksh
 unset tsalias_zsh
+unset tsalias_fish
+unset funcstart_fish
 unset tscwd

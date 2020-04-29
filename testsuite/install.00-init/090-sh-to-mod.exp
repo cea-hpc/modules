@@ -19,9 +19,10 @@
 #
 ##############################################################################
 
-set shtomod_supported_shells [list sh bash ksh zsh dash ksh93]
-set shtomod_supported_fshells [list sh bash ksh zsh]
+set shtomod_supported_shells [list sh bash ksh zsh dash ksh93 fish]
+set shtomod_supported_fshells [list sh bash ksh zsh fish]
 set testscriptsh testsuite/example/sh-to-mod.sh
+set testscriptfish testsuite/example/sh-to-mod.fish
 set testscriptshargs "v\\\'l val\\\"e val\\\\\\\"e \"\""
 
 # what are the installed shells
@@ -58,7 +59,16 @@ append tsout_dash "Release\nf{o\nf\"o\nb\\\"r\nf'o"
 foreach sh $shtomod_avail_shells {
     # test modulefile definition also cope with other shells
     foreach fsh $shtomod_avail_fshells {
-        if {$sh eq {dash} || ($sh eq {sh} && $sh_kind eq {dash})} {
+        if {$fsh eq {fish} || $sh eq {fish}} {
+           # no shell mix for fish, as a function or alias defined for a sh shell will not work on fish
+           if {$fsh eq {fish} && $sh eq {fish}} {
+              if {!$fish_version_ge31} {
+                 send_user "\tSkipping sh-to-mod test from fish shell as output redirection of an evaluated test command does not work on Fish <3.1\n"
+              } else {
+                 testall_cmd $fsh "module sh-to-mod $sh $testscriptfish $testscriptshargs 2>shtomod\; module load ./shtomod\; $testshenvcmds" $tsout {} 0
+              }
+           }
+        } elseif {$sh eq {dash} || ($sh eq {sh} && $sh_kind eq {dash})} {
            testall_cmd $fsh "module sh-to-mod $sh $testscriptsh $testscriptshargs 2>shtomod\; module load ./shtomod\; $testshenvcmds_dash" $tsout_dash {} 0
         } else {
            testall_cmd $fsh "module sh-to-mod $sh $testscriptsh $testscriptshargs 2>shtomod\; module load ./shtomod\; $testshenvcmds" $tsout {} 0
@@ -81,8 +91,10 @@ unset shtomod_supported_fshells
 unset shtomod_avail_shells
 unset shtomod_avail_fshells
 unset testscriptsh
+unset testscriptfish
 unset testscriptshargs
 unset testshenvcmds
+unset testshenvcmds_dash
 unset tsout
 unset tsout_dash
 
