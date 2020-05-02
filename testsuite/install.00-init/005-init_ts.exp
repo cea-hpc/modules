@@ -282,6 +282,11 @@ if {[info exists shell_path(fish)]} {
    set fish_version_ge31 [expr {[lindex [lsort -dictionary [list $fish_version 3.1.0]] 0] eq {3.1.0}}]
 }
 
+# find ksh flavor
+if {[set kshbin [lindex [auto_execok ksh] 0]] ne {}} {
+   set ksh_is_mksh [expr {[string first MIRBSD [exec $kshbin -c "echo \$KSH_VERSION"]] != -1}]
+}
+
 # check if symbolic link registered in git repository have been effectively
 # created as symbolic link to determine if they are supported on filesystem
 set is_symlink_supported [file isdirectory $env(TESTSUITEDIR)/modulefiles/symlink]
