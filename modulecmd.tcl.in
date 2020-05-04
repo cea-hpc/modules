@@ -3539,6 +3539,7 @@ proc sh-to-mod {shell script args} {
    set ignvarlist [list OLDPWD PWD _ _AST_FEATURES]
    set shdesc [concat [list $script] $args]
    set sherr 0
+   set shellopts [list]
 
    # define shell command to run to source script and analyze the environment
    # changes it performs
@@ -3568,6 +3569,7 @@ proc sh-to-mod {shell script args} {
          set aliasre {alias (\S+?)='(.*?)'$}
          set varvalmap [list {\"} {"} \\\\ \\]
          set alvalmap [list {'\''} ']
+         lappend shellopts --noprofile --norc
       }
       ksh - ksh93 {
          set command "typeset -x; echo $sep; typeset +f | while read f; do\
@@ -3600,6 +3602,7 @@ proc sh-to-mod {shell script args} {
          set aliasre {(\S+?)\t(.*?)$}
          set varvalmap [list]
          set alvalmap [list]
+         lappend shellopts -f
       }
       fish {
          # exclude builtins and fish-specific functions from search to reduce
@@ -3640,9 +3643,10 @@ proc sh-to-mod {shell script args} {
    if {$shellpath eq {}} {
       knerror "Shell '$shell' cannot be found"
    }
+   set shellexec [concat [list $shellpath] $shellopts [list -c $command]]
 
-   reportDebug "running '$shellpath -c \"$command\"'"
-   if {[catch {set output [exec $shellpath -c $command]} output]} {
+   reportDebug "running '$shellexec'"
+   if {[catch {set output [eval exec $shellexec]} output]} {
       set sherr 1
    }
 
