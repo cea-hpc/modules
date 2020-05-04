@@ -3592,6 +3592,15 @@ proc sh-to-mod {shell script args} {
          set varvalmap [list {'\''} ']
          set alvalmap [list {'\''} ']
       }
+      csh - tcsh {
+         set command "setenv; echo $sep; echo $sep; alias; echo $sep; pwd;\
+            echo $sep; source [listTo shell $shdesc] >& /dev/stdout; echo\
+            $sep; setenv; echo $sep; echo $sep; alias; echo $sep; pwd"
+         set varre {(\S+?)=(.*?)$}
+         set aliasre {(\S+?)\t(.*?)$}
+         set varvalmap [list]
+         set alvalmap [list]
+      }
       fish {
          # exclude builtins and fish-specific functions from search to reduce
          # the number of functions to parse
@@ -3680,12 +3689,14 @@ proc sh-to-mod {shell script args} {
          set ${arr}($name) [string map $varvalmap $value]
       }
    }
-   # extract function information
-   foreach {out arr} [list funcbefout funcbef funcaftout funcaft] {
-      foreach {match name value} [regexp -all -inline -lineanchor $funcre\
-         [set $out]] {
-         # no specific escaping to convert for functions
-         set ${arr}($name) $value
+   # extract function information if function supported by shell
+   if {[info exists funcre]} {
+      foreach {out arr} [list funcbefout funcbef funcaftout funcaft] {
+         foreach {match name value} [regexp -all -inline -lineanchor $funcre\
+            [set $out]] {
+            # no specific escaping to convert for functions
+            set ${arr}($name) $value
+         }
       }
    }
    # extract alias information
