@@ -1,7 +1,7 @@
 # example shell script to test 'sh-to-mod' sub-command
 
 if [ "${TESTSUITE_SHTOMOD_SHELLVAR:+x}" = 'x' ]; then
-   export FOOSHELL=$SHELL
+   export FOOSHELL=$BASH
 fi
 
 if [ "${TESTSUITE_SHTOMOD_NOVAR:-x}" = 'x' ]; then

@@ -52,12 +52,7 @@ array set testscript [list bash $testscriptsh ksh $testscriptsh\
 # what are the installed shells
 set shtomod_avail_shells [list]
 foreach sh $shtomod_supported_shells {
-    # whatever pathname used, bash will always set SHELL=/bin/bash unless on MSYS
-    if {$sh eq {bash} && [file executable /bin/bash] && ![string match "MSYS_NT*" $tcl_platform(os)]} {
-        set shbin /bin/bash
-    } else {
-        set shbin [lindex [auto_execok $sh] 0]
-    }
+    set shbin [lindex [auto_execok $sh] 0]
     # mksh flavor of ksh is not supported
     if {$shbin ne {} && ($sh ne {ksh} || !$ksh_is_mksh)} {
         lappend shtomod_avail_shells $sh
@@ -265,8 +260,10 @@ testouterr_shtomod $onesh {} OK "#%Module\nsetenv\t\tFOOSHELL $oneshbin"
 testouterr_shtomod $oneshbin {} OK "#%Module\nsetenv\t\tFOOSHELL $oneshbin" $testscriptsh
 if {$is_symlink_supported} {
     file link -symbolic testsuite/$onesh $oneshbin
-    testouterr_shtomod testsuite/bin/../$onesh {} OK "#%Module\nsetenv\t\tFOOSHELL $oneshbin" $testscriptsh
+    set oneshspecialpath [file join [pwd] testsuite/bin/../$onesh]
+    testouterr_shtomod $oneshspecialpath {} OK "#%Module\nsetenv\t\tFOOSHELL $oneshspecialpath" $testscriptsh
     file delete testsuite/$onesh
+    unset oneshspecialpath
 }
 set ORIG_PATH $env(PATH)
 setenv_var PATH {}
