@@ -54,7 +54,8 @@ set shtomod_avail_shells [list]
 foreach sh $shtomod_supported_shells {
     set shbin [lindex [auto_execok $sh] 0]
     # mksh flavor of ksh is not supported
-    if {$shbin ne {} && ($sh ne {ksh} || !$ksh_is_mksh)} {
+    # sh from FreeBSD is not supported too
+    if {$shbin ne {} && ($sh ne {ksh} || !$ksh_is_mksh) && ($sh ne {sh} || $tcl_platform(os) ne {FreeBSD})} {
         lappend shtomod_avail_shells $sh
         set shell_pathname($sh) $shbin
     }
