@@ -1028,7 +1028,8 @@ proc initPager {} {
    }
 
    # some module command may also turn off pager
-   if {$::command eq {clear}} {
+   if {$::command eq {clear} || ($::command eq {ml} && [lindex $::otherargv\
+      0] eq {clear})} {
       set ::use_pager 0
    }
 
@@ -11032,6 +11033,7 @@ if {[catch {
    set show_help 0
    set show_version 0
    set command {}
+   set otherargv {}
    reportDebug "CALLING $argv0 $argv"
 
    # Load extension library if enabled
@@ -11067,7 +11069,6 @@ if {[catch {
    }
 
    # extract options and command switches from other args
-   set otherargv {}
    set extraargv {}
    set ddelimarg 0
    # split first arg if multi-word string detected for compat with previous
