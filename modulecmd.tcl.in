@@ -5354,7 +5354,7 @@ proc popSettings {} {
 }
 
 proc restoreSettings {} {
-   foreach var {env g_clearedEnvVars g_Aliases g_stateEnvVars g_stateAliases\
+   foreach var {g_clearedEnvVars g_Aliases g_stateEnvVars g_stateAliases\
       g_stateFunctions g_Functions g_newXResources g_delXResources\
       g_loadedModules g_loadedModuleFiles g_loadedModuleUasked\
       g_loadedModuleConflict g_loadedModulePrereq g_loadedModuleAltname\
@@ -5366,6 +5366,18 @@ proc restoreSettings {} {
          eval "unset ::$var; array set ::$var {}"
       }
       eval "array set ::$var \[lindex \$::g_SAVE_$var end\]"
+   }
+   # specific restore mechanism for ::env as unsetting this array will make
+   # Tcl stop monitoring env accesses and not update env variables anymore
+   set envvarlist [list]
+   foreach {var val} [lindex $::g_SAVE_env end] {
+      lappend envvarlist $var
+      set ::env($var) $val
+   }
+   foreach var [array names ::env] {
+      if {[notInList $envvarlist $var]} {
+         unset ::env($var)
+      }
    }
    # restore non-array variable if it was set
    foreach var {g_changeDir g_stdoutPuts g_return_text} {

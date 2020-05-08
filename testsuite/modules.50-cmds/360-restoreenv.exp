@@ -10,7 +10,7 @@
 #   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
 #
 #   Description:	Testuite testsequence
-#   Command:        load, unload
+#   Command:        load, unload, restore
 #   Modulefiles:    restoreenv
 #   Sub-Command:    setenv, unsetenv, set-alias, unset-alias, chdir,
 #                   puts, x-resource
@@ -161,6 +161,23 @@ lappend ans [list ERR]
 testouterr_cmd_re "sh" "unload $module/2 $module/1" $ans [msg_unload $module/2 $err_evalabort]
 
 unset env(TSBREAK2)
+
+
+# test context restore when break occurs on an unload phase then an environment variable is used in multiple modulefiles for their load
+setenv_loaded_module [list $module/0.1 $module/0.2] [list $modulepath/$module/0.1 $modulepath/$module/0.2] [list $modulepath/$module/0.1]
+testouterr_cmd sh {save ./testcoll} {} {}
+setenv_loaded_module [list $module/2] [list $modulepath/$module/2]
+setenv_var TSBREAK2 1
+set ans [list]
+lappend ans [list set ts01a ok]
+lappend ans [list set ts01b ok]
+lappend ans [list set ts02 ok]
+lappend ans [list setpath LOADEDMODULES $module/2:$module/0.1:$module/0.2]
+lappend ans [list setpath _LMFILES_ $modulepath/$module/2:$modulepath/$module/0.1:$modulepath/$module/0.2]
+lappend ans [list ERR]
+testouterr_cmd_re sh {restore ./testcoll} $ans [msg_unload $module/2 $err_evalabort]\n\n[msg_load $module/0.1]\n[msg_load $module/0.2]
+unsetenv_var TSBREAK2
+file delete testcoll
 
 
 #
