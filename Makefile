@@ -2,8 +2,8 @@
 	install-testsiteconfig-1 install-testmodulerc install-testmodulerc-1 \
 	install-testinitrc install-testetcrc install-testmodspath \
 	install-testmodspath-empty uninstall-testconfig uninstall dist dist-tar \
-	dist-gzip dist-bzip2 dist-win srpm rpm clean distclean test testinstall \
-	testsyntax
+	dist-gzip dist-bzip2 dist-win srpm rpm clean distclean test-deps test \
+	testinstall testsyntax
 
 # download command and its options
 WGET := wget --timeout=5 --tries=2
@@ -638,6 +638,9 @@ endif
 ifeq ($(COVERAGE),y)
 export MODULECMD = $(MODULECMDTEST)_i
 endif
+
+# specific target to build test dependencies
+test-deps: $(TEST_PREREQ)
 
 # if coverage enabled create markup file for better read coverage result
 test: $(TEST_PREREQ)
