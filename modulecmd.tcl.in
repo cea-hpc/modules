@@ -1129,7 +1129,7 @@ proc get-env {var {valifunset {}}} {
 proc set-env {var val} {
    set mode [currentMode]
    reportDebug "$var=$val"
-   set ::env($var) $val
+   interp-sync-env set $var $val
 
    # variable is not cleared anymore if set again
    if {[info exists ::g_clearedEnvVars($var)]} {
@@ -1143,7 +1143,7 @@ proc set-env {var val} {
 }
 
 proc reset-to-unset-env {var {val {}}} {
-   set ::env($var) $val
+   interp-sync-env set $var $val
    # set var as cleared if val is empty
    if {$val eq {}} {
       set ::g_clearedEnvVars($var) 1
@@ -1161,7 +1161,7 @@ proc unset-env {var {internal 0} {val {}}} {
       reset-to-unset-env $var $val
    # internal variables (like ref counter var) are purely unset if they exists
    } elseif {[info exists ::env($var)]} {
-      unset ::env($var)
+      interp-sync-env unset $var
       set intwasset 1
    }
 
@@ -1170,6 +1170,40 @@ proc unset-env {var {internal 0} {val {}}} {
    if {($mode eq {load} || $mode eq {unload}) && (!$internal ||\
       [info exists intwasset])} {
       set ::g_stateEnvVars($var) del
+   }
+}
+
+# synchronize environment variable change over all started sub interpreters
+proc interp-sync-env {op var {val {}}} {
+   set envvar ::env($var)
+
+   # apply operation to main interpreter
+   switch -- $op {
+      set { set $envvar $val }
+      unset { unset $envvar }
+   }
+
+   # apply operation to each sub-interpreters if not found autosynced
+   if {[llength [interp slaves]] > 0} {
+      reportDebug "$op var='$envvar', val='$val' on interp(s) [interp slaves]"
+
+      foreach itrp [interp slaves] {
+         switch -- $op {
+            set {
+               # no value pre-check on Windows platform as an empty value set
+               # means unsetting variable which lead querying value to error
+               if {[isWin] || ![interp eval $itrp [list info exists $envvar]]\
+                  || [interp eval $itrp [list set $envvar]] ne $val} {
+                  interp eval $itrp [list set $envvar $val]
+               }
+            }
+            unset {
+               if {[interp eval $itrp [list info exists $envvar]]} {
+                  interp eval $itrp [list unset $envvar]
+               }
+            }
+         }
+      }
    }
 }
 
@@ -5372,11 +5406,11 @@ proc restoreSettings {} {
    set envvarlist [list]
    foreach {var val} [lindex $::g_SAVE_env end] {
       lappend envvarlist $var
-      set ::env($var) $val
+      interp-sync-env set $var $val
    }
    foreach var [array names ::env] {
       if {[notInList $envvarlist $var]} {
-         unset ::env($var)
+         interp-sync-env unset $var
       }
    }
    # restore non-array variable if it was set
