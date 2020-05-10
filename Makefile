@@ -6,11 +6,10 @@
 	testinstall testsyntax
 
 # download command and its options
-WGET := wget --timeout=5 --tries=2
+WGET := wget --retry-connrefused --waitretry=20 --timeout=20 --tries=3
 
 # definitions for code coverage
 NAGELFAR_DLSRC1 := http://downloads.sourceforge.net/nagelfar/
-NAGELFAR_DLSRC2 := https://osdn.net/projects/sfnet_nagelfar/downloads/Rel_131/
 NAGELFAR_RELEASE := nagelfar131
 NAGELFAR_DIST := $(NAGELFAR_RELEASE).tar.gz
 NAGELFAR_DISTSUM := fbf79ab1a1d85349600f2502a3353bf4
@@ -672,7 +671,7 @@ icdiff:
 tclsh83:
 	$(WGET) $(TCL_DLSRC)$(TCL_DIST83) || true
 	echo "$(TCL_DISTSUM83)  $(TCL_DIST83)" | md5sum --status -c - || \
-		md5 -c $(TCL_DISTSUM83) $@
+		md5 -c $(TCL_DISTSUM83) $@ || (rm -f $(TCL_DIST83) && false)
 	tar xzf $(TCL_DIST83)
 	cd $(TCL_RELEASE83)/unix && bash configure --disable-shared && make
 	echo '#!/bin/bash' >$@
@@ -685,7 +684,7 @@ tclsh83:
 $(NAGELFAR):
 	$(WGET) $(NAGELFAR_DLSRC1)$(NAGELFAR_DIST) || true
 	echo "$(NAGELFAR_DISTSUM)  $(NAGELFAR_DIST)" | md5sum --status -c - || \
-		$(WGET) -O $(NAGELFAR_DIST) $(NAGELFAR_DLSRC2)$(NAGELFAR_DIST)
+		(rm -f $(NAGELFAR_DIST) && false)
 	tar xzf $(NAGELFAR_DIST)
 	rm $(NAGELFAR_DIST)
 
