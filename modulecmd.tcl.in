@@ -98,7 +98,7 @@ array set g_config_defs [list\
    search_match {MODULES_SEARCH_MATCH @searchmatch@ 0 {starts_with contains}}\
    set_shell_startup {MODULES_SET_SHELL_STARTUP @setshellstartup@ 0 {0 1}}\
    verbosity {MODULES_VERBOSITY @verbosity@ 0 {silent concise normal verbose\
-      debug}}\
+      debug trace}}\
    wa_277 {MODULES_WA_277 @wa277@ 0 {0 1}}\
 ]
 
@@ -696,6 +696,16 @@ proc reportInfo {message {title INFO}} {
    }
 }
 
+# trace procedure execution start
+proc reportTraceExecEnter {cmdstring op} {
+   # display active interp details if not the main one
+   set prefix [currentDebugMsgPrefix]
+   if {[info level] > 1} {
+      append prefix "[lindex [info level -1] 0]: "
+   }
+   report [sgr db "TRACE $prefix$cmdstring"] 0 1
+}
+
 # is currently active message record id at top level
 proc isMsgRecordIdTop {} {
    return [expr {[llength $::g_msgRecordIdStack] eq 1}]
@@ -1034,6 +1044,20 @@ proc initErrorReport {} {
       rename ::__reportSeparateNextContent ::reportSeparateNextContent
       rename ::report {}
       rename ::__report ::report
+
+      # trace each procedure call
+      if {[isVerbosityLevel trace]} {
+         # exclude core procedure from tracing
+         set excl_prc_list [list report reportDebug currentDebugMsgPrefix\
+            reportTraceExecEnter isInList notInList getState setState\
+            lappendState unsetState isStateDefined isStateEqual sgr getConf\
+            setConf unsetConf lappendConf]
+         foreach prc [info procs] {
+            if {[notInList $excl_prc_list $prc]} {
+               trace add execution $prc enter reportTraceExecEnter
+            }
+         }
+      }
 
       # now error report is init output every message saved in buffer; first
       # message will trigger message paging configuration and startup unless
@@ -11419,6 +11443,7 @@ Switches:
 Options:
   -h | --help     This usage info
   -V | --version  Module version
+  -T | --trace    Enable trace and debug messages
   -D | --debug    Enable debug messages
   -v | --verbose  Enable verbose messages
   -s | --silent   Turn off error, warning and informational messages
@@ -11488,6 +11513,9 @@ if {[catch {
          unset ignore_next_arg
       } else {
          switch -glob -- $arg {
+            -T - --trace {
+               set asked_verbosity trace
+            }
             -D - --debug {
                set asked_verbosity debug
             }
