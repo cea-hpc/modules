@@ -224,6 +224,15 @@ foreach verbosity [list silent concise normal verbose] {
 unsetenv_path_var MODULES_LMPREREQ
 unsetenv_loaded_module
 
+# test 'trace' verbosity
+set tserr "((DEBUG|TRACE) .*)+
+$no_loaded
+((DEBUG|TRACE) .*)+"
+testouterr_cmd_re sh {-T list} OK $tserr
+testouterr_cmd_re sh {list --trace} OK $tserr
+setenv_var MODULES_VERBOSITY trace
+testouterr_cmd_re sh {list} OK $tserr
+
 # test MODULES_VERBOSITY set to an invalid value
 setenv_var MODULES_VERBOSITY foo
 set ans [list]
