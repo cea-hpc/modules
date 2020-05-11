@@ -1449,12 +1449,13 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
          } elseif {$errorMsg eq {invoked "break" outside of a loop}\
             || ($errorMsg eq {} && (![info exists ::errorInfo]\
             || $::errorInfo eq {}))} {
-            raiseErrorCount
             unset errorMsg
             # report load/unload evaluation break if verbosity level >= normal
             if {([module-info mode load] || [module-info mode unload]) &&\
                [isVerbosityLevel normal]} {
                reportError {Module evaluation aborted}
+            } else {
+               raiseErrorCount
             }
             return 1
          } elseif {$errorCode eq {MODULES_ERR_SUBFAILED}} {
