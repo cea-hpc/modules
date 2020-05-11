@@ -316,6 +316,10 @@ Command line switches
 
  These command line switches appeared on version ``4.5`` and are not supported on compatibility version.
 
+:option:`--trace`, :option:`-T`
+
+ These command line switches appeared on version ``4.6`` and are not supported on compatibility version.
+
 
 Module Sub-Commands
 ^^^^^^^^^^^^^^^^^^^

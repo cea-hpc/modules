@@ -330,6 +330,15 @@ switches are accepted:
  Display :subcmd:`avail`, :subcmd:`list` and :subcmd:`savelist` output in
  short format.
 
+.. option:: --trace, -T
+
+ Trace mode. Report each :file:`modulecmd.tcl` procedure calls in addition to
+ printing debug messages.
+
+ .. only:: html
+
+    .. versionadded:: 4.6
+
 .. option:: --verbose, -v
 
  Enable verbose messages during :command:`module` command execution.
@@ -1593,14 +1602,17 @@ ENVIRONMENT
  * ``verbose``: add additional informational messages, like a systematic
    report of the loading or unloading module evaluations.
  * ``debug``: print debugging messages about module command execution.
+ * ``trace``: trace :file:`modulecmd.tcl` procedure calls in addition to
+   printing debug messages.
 
  Module command verbosity is defined in the following order of preference:
- :option:`--silent`, :option:`--verbose` and :option:`--debug` command line
- switches, then :envvar:`MODULES_VERBOSITY` environment variable, then the
- default set in :file:`modulecmd.tcl` script configuration. Which means
- :envvar:`MODULES_VERBOSITY` overrides default configuration and
- :option:`--silent`/:option:`--verbose`/:option:`--debug` command line
- switches overrides every other ways to set verbosity level.
+ :option:`--silent`, :option:`--verbose`, :option:`--debug` and
+ :option:`--trace` command line switches, then :envvar:`MODULES_VERBOSITY`
+ environment variable, then the default set in :file:`modulecmd.tcl` script
+ configuration. Which means :envvar:`MODULES_VERBOSITY` overrides default
+ configuration and
+ :option:`--silent`/:option:`--verbose`/:option:`--debug`/:option:`--trace`
+ command line switches overrides every other ways to set verbosity level.
 
  .. only:: html
 

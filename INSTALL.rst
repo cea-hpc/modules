@@ -346,8 +346,8 @@ instance ``--without-modulepath``):
                       (default=\ ``-eFKRX``)
 --with-verbosity=VALUE
                       Specify default message verbosity. accepted values are
-                      ``silent``, ``concise``, ``normal``, ``verbose`` and
-                      ``debug``. (default=\ ``normal``)
+                      ``silent``, ``concise``, ``normal``, ``verbose``,
+                      ``debug`` and ``trace``. (default=\ ``normal``)
 --with-dark-background-colors=SGRLIST
                       Default color set to apply if terminal background color
                       is defined to ``dark``. SGRLIST follows the same syntax
