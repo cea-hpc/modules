@@ -3720,8 +3720,10 @@ proc sh-to-mod {shell script args} {
    }
    foreach name $diff {
       if {[notInList $ignvarlist $name]} {
-         # new value is totally different
-         if {[set idx [string first $varbef($name) $varaft($name)]] == -1} {
+         # new value is totally different (also consider a bare ':' as a
+         # totally different value to avoid erroneous matches)
+         if {$varbef($name) eq $pathsep || [set idx [string first\
+            $varbef($name) $varaft($name)]] == -1} {
             lappend modcontent [list setenv $name $varaft($name)]
          } else {
             # content should be prepended
@@ -3735,8 +3737,10 @@ proc sh-to-mod {shell script args} {
                   lappend modcmd -d $delim
                }
                lappend modcmd $name
-               set vallist [split [string range $varaft($name) 0 [expr {$idx\
-                  - 2}]] $delim]
+               # split value and remove duplicate entries
+               set vallist [list]
+               eval appendNoDupToList vallist [split [string range\
+                  $varaft($name) 0 [expr {$idx - 2}]] $delim]
                # an empty element is added
                if {[llength $vallist] == 0} {
                   lappend vallist {}
@@ -3753,8 +3757,10 @@ proc sh-to-mod {shell script args} {
                   lappend modcmd -d $delim
                }
                lappend modcmd $name
-               set vallist [split [string range $varaft($name) [expr {$idx +\
-                  [string length $varbef($name)] + 1}] end] $delim]
+               set vallist [list]
+               eval appendNoDupToList vallist [split [string range\
+                  $varaft($name) [expr {$idx + [string length $varbef($name)]\
+                  + 1}] end] $delim]
                if {[llength $vallist] == 0} {
                   lappend vallist {}
                }
@@ -3769,8 +3775,10 @@ proc sh-to-mod {shell script args} {
             lappend modcontent [list setenv $name $varaft($name)]
          } else {
             # define a path-like variable if path separator found in it
-            lappend modcontent [concat [list prepend-path $name] [split\
-               $varaft($name) $pathsep]]
+            # split value and remove duplicate entries
+            set vallist [list]
+            eval appendNoDupToList vallist [split $varaft($name) $pathsep]
+            lappend modcontent [concat [list prepend-path $name] $vallist]
          }
       }
    }
