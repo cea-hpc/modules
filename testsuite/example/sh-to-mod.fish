@@ -24,6 +24,14 @@ if not set -q TESTSUITE_SHTOMOD_NOPATH
    set -xg FOOPATHCB /path/to/dir1 /path/to/d\{r2 /path/to/dir3
 end
 
+if set -q TESTSUITE_SHTOMOD_PATHDUP
+   set -xg FOOPATHDUP "/path/to/dir1:/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir3:/path/to dir4:/path/to/dir3"
+   set -xg FOOPATHDUPEM :/path/to/dir1:/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir3::/path/to/dir3
+   set -xg FOOPATHDUPSP "/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to:dir4 /path/to/dir3"
+   set -xg FOOPATHDUPSPEM "/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to/dir3 "
+   set -xg FOOPATHDUPMIX ":/path/to/dir1:/path/to/dir1 /path/to/dir2 /path/to/dir1:/path/to/dir3:/path/to/dir3:"
+end
+
 if set -q TESTSUITE_SHTOMOD_FUZZYOUT1
    echo '%ModulesShToMod%'
 end

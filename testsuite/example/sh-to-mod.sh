@@ -25,6 +25,14 @@ if [ "${TESTSUITE_SHTOMOD_NOPATH:-x}" = 'x' ]; then
    export FOOPATHCB=/path/to/dir1:/path/to/d{r2:/path/to/dir3
 fi
 
+if [ "${TESTSUITE_SHTOMOD_PATHDUP:+x}" = 'x' ]; then
+   export FOOPATHDUP="/path/to/dir1:/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir3:/path/to dir4:/path/to/dir3"
+   export FOOPATHDUPEM=:/path/to/dir1:/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir3::/path/to/dir3
+   export FOOPATHDUPSP="/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to:dir4 /path/to/dir3"
+   export FOOPATHDUPSPEM="/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to/dir3 "
+   export FOOPATHDUPMIX=":/path/to/dir1:/path/to/dir1 /path/to/dir2 /path/to/dir1:/path/to/dir3:/path/to/dir3:"
+fi
+
 if [ "${TESTSUITE_SHTOMOD_FUZZYOUT1:+x}" = 'x' ]; then
    echo %ModulesShToMod%
 fi

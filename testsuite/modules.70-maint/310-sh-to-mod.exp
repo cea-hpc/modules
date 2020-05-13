@@ -410,9 +410,167 @@ if {[info exists shell_pathname(tcsh)]} {
 unsetenv_var TESTSUITE_FOONL
 setenv_var TESTSUITE_SHTOMOD_NOVAR 1
 
-#FIXME test append/prepend...
+
+# path-specific tests
+unsetenv_var TESTSUITE_SHTOMOD_NOPATH
+setenv_var FOOPATH /path/to/dir1:/path/to/dir2:/path/to/dir3
+setenv_var FOOPATHEM :/path/to/dir1:/path/to/dir2:/path/to/dir3
+setenv_var FOOPATHSP "/path/to/dir1 /path/to/dir2 /path/to/dir3"
+setenv_var FOOPATHSPEM "/path/to/dir1 /path/to/dir2 /path/to/dir3 "
+setenv_var FOOPATHCB /path/to/dir1:/path/to/d{r2:/path/to/dir3
+testouterr_shtomod ALL {} OK {}
+setenv_var FOOPATH /path/to/dir2
+setenv_var FOOPATHEM /path/to/dir2
+setenv_var FOOPATHSP /path/to/dir2
+setenv_var FOOPATHSPEM /path/to/dir2
+setenv_var FOOPATHCB /path/to/d{r2
+set tserr "#%Module
+append-path\t-d { } FOOPATHSP /path/to/dir3
+append-path\t-d { } FOOPATHSPEM /path/to/dir3 {}
+append-path\tFOOPATH /path/to/dir3
+append-path\tFOOPATHCB /path/to/dir3
+append-path\tFOOPATHEM /path/to/dir3
+prepend-path\t-d { } FOOPATHSP /path/to/dir1
+prepend-path\t-d { } FOOPATHSPEM /path/to/dir1
+prepend-path\tFOOPATH /path/to/dir1
+prepend-path\tFOOPATHCB /path/to/dir1
+prepend-path\tFOOPATHEM {} /path/to/dir1"
+testouterr_shtomod ALL {} OK $tserr
+setenv_var FOOPATH "/path/to/dir2:/path"
+setenv_var FOOPATHEM "/path/to/dir2:/path"
+setenv_var FOOPATHSP "/path/to/dir2 /path"
+setenv_var FOOPATHSPEM "/path/to/dir2 /path"
+setenv_var FOOPATHCB "/path/to/d{r2:/path"
+set tserr "#%Module
+append-path\t-d / FOOPATH to dir3
+append-path\t-d / FOOPATHCB to dir3
+append-path\t-d / FOOPATHEM to dir3
+append-path\t-d / FOOPATHSP to dir3
+append-path\t-d / FOOPATHSPEM to {dir3 }
+prepend-path\t-d { } FOOPATHSP /path/to/dir1
+prepend-path\t-d { } FOOPATHSPEM /path/to/dir1
+prepend-path\tFOOPATH /path/to/dir1
+prepend-path\tFOOPATHCB /path/to/dir1
+prepend-path\tFOOPATHEM {} /path/to/dir1"
+testouterr_shtomod ALL {} OK $tserr
+unsetenv_var FOOPATH
+unsetenv_var FOOPATHEM
+unsetenv_var FOOPATHSP
+unsetenv_var FOOPATHSPEM
+unsetenv_var FOOPATHCB
+
+# path dedup tests
+setenv_var TESTSUITE_SHTOMOD_NOPATH 1
+setenv_var TESTSUITE_SHTOMOD_PATHDUP 1
+
+# no prior value
+set tserr "#%Module
+prepend-path\tFOOPATHDUP /path/to/dir1 /path/to/dir2 /path/to/dir3 {/path/to dir4}
+prepend-path\tFOOPATHDUPEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path\tFOOPATHDUPMIX {} /path/to/dir1 {/path/to/dir1 /path/to/dir2 /path/to/dir1} /path/to/dir3
+prepend-path\tFOOPATHDUPSP {/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to} {dir4 /path/to/dir3}
+setenv\t\tFOOPATHDUPSPEM {/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to/dir3 }"
+testouterr_shtomod ALL {} OK $tserr
+
+# totally different value
+setenv_var FOOPATHDUP /path/to/dir5
+setenv_var FOOPATHDUPEM :/path/to/dir5
+setenv_var FOOPATHDUPMIX "/path/to/dir5: "
+setenv_var FOOPATHDUPSP "/path/to/dir5 /path/to/dir3"
+setenv_var FOOPATHDUPSPEM "/path/to/dir5 "
+set tserr "#%Module
+setenv\t\tFOOPATHDUP {/path/to/dir1:/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir3:/path/to dir4:/path/to/dir3}
+setenv\t\tFOOPATHDUPEM :/path/to/dir1:/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir3::/path/to/dir3
+setenv\t\tFOOPATHDUPMIX {:/path/to/dir1:/path/to/dir1 /path/to/dir2 /path/to/dir1:/path/to/dir3:/path/to/dir3:}
+setenv\t\tFOOPATHDUPSP {/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to:dir4 /path/to/dir3}
+setenv\t\tFOOPATHDUPSPEM {/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to/dir3 }"
+testouterr_shtomod ALL {} OK $tserr
+
+# single path prior value
+setenv_var FOOPATHDUP /path/to/dir2
+setenv_var FOOPATHDUPEM /path/to/dir2
+setenv_var FOOPATHDUPMIX /path/to/dir2
+setenv_var FOOPATHDUPSP /path/to/dir2
+setenv_var FOOPATHDUPSPEM /path/to/dir2
+set tserr "#%Module
+append-path\t-d { } FOOPATHDUPMIX /path/to/dir1:/path/to/dir3:/path/to/dir3:
+append-path\t-d { } FOOPATHDUPSP /path/to/dir1 /path/to/dir3 /path/to:dir4
+append-path\t-d { } FOOPATHDUPSPEM /path/to/dir1 /path/to/dir3 {}
+append-path\tFOOPATHDUP /path/to/dir1 /path/to/dir3 {/path/to dir4}
+append-path\tFOOPATHDUPEM /path/to/dir1 /path/to/dir3 {}
+prepend-path\t-d { } FOOPATHDUPMIX :/path/to/dir1:/path/to/dir1
+prepend-path\t-d { } FOOPATHDUPSP /path/to/dir1
+prepend-path\t-d { } FOOPATHDUPSPEM /path/to/dir1
+prepend-path\tFOOPATHDUP /path/to/dir1
+prepend-path\tFOOPATHDUPEM {} /path/to/dir1"
+testouterr_shtomod ALL {} OK $tserr
+
+# multiple paths as prior value
+setenv_var FOOPATHDUP /path/to/dir2:/path/to/dir1
+setenv_var FOOPATHDUPEM /path/to/dir2:/path/to/dir1
+setenv_var FOOPATHDUPMIX "/path/to/dir2 /path/to/dir1"
+setenv_var FOOPATHDUPSP "/path/to/dir2 /path/to/dir1"
+setenv_var FOOPATHDUPSPEM "/path/to/dir2 /path/to/dir1"
+set tserr "#%Module
+append-path\t-d { } FOOPATHDUPSP /path/to/dir3 /path/to:dir4
+append-path\t-d { } FOOPATHDUPSPEM /path/to/dir3 {}
+append-path\tFOOPATHDUP /path/to/dir3 {/path/to dir4}
+append-path\tFOOPATHDUPEM /path/to/dir3 {}
+append-path\tFOOPATHDUPMIX /path/to/dir3 {}
+prepend-path\t-d { } FOOPATHDUPMIX :/path/to/dir1:/path/to/dir1
+prepend-path\t-d { } FOOPATHDUPSP /path/to/dir1
+prepend-path\t-d { } FOOPATHDUPSPEM /path/to/dir1
+prepend-path\tFOOPATHDUP /path/to/dir1
+prepend-path\tFOOPATHDUPEM {} /path/to/dir1"
+testouterr_shtomod ALL {} OK $tserr
+
+# ambigous prior value
+setenv_var FOOPATHDUP /path/to/dir1
+setenv_var FOOPATHDUPEM :
+setenv_var FOOPATHDUPMIX :
+setenv_var FOOPATHDUPSP /path/to/dir1
+setenv_var FOOPATHDUPSPEM { }
+set tserr "#%Module
+append-path\t-d { } FOOPATHDUPSP /path/to/dir1 /path/to/dir2 /path/to/dir3 /path/to:dir4
+append-path\tFOOPATHDUP /path/to/dir1 /path/to/dir2 /path/to/dir3 {/path/to dir4}
+prepend-path\t-d 3 FOOPATHDUPSPEM {/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir} { /path/to/dir}
+setenv\t\tFOOPATHDUPEM :/path/to/dir1:/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir3::/path/to/dir3
+setenv\t\tFOOPATHDUPMIX {:/path/to/dir1:/path/to/dir1 /path/to/dir2 /path/to/dir1:/path/to/dir3:/path/to/dir3:}"
+testouterr_shtomod ALL {} OK $tserr
+
+# ambigous prior value (#2)
+setenv_var FOOPATHDUP /path/to/dir1
+setenv_var FOOPATHDUPEM {}
+setenv_var FOOPATHDUPMIX {}
+setenv_var FOOPATHDUPSP /path/to/dir1
+setenv_var FOOPATHDUPSPEM {}
+set tserr "#%Module
+append-path\t-d { } FOOPATHDUPSP /path/to/dir1 /path/to/dir2 /path/to/dir3 /path/to:dir4
+append-path\tFOOPATHDUP /path/to/dir1 /path/to/dir2 /path/to/dir3 {/path/to dir4}
+setenv\t\tFOOPATHDUPEM :/path/to/dir1:/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir3::/path/to/dir3
+setenv\t\tFOOPATHDUPMIX {:/path/to/dir1:/path/to/dir1 /path/to/dir2 /path/to/dir1:/path/to/dir3:/path/to/dir3:}
+setenv\t\tFOOPATHDUPSPEM {/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to/dir3 }"
+testouterr_shtomod ALL {} OK $tserr
+
+# ambigous prior value (#3)
+setenv_var FOOPATHDUP /path/to/dir1
+setenv_var FOOPATHDUPEM /path/to/dir1:/path/to/dir3:
+setenv_var FOOPATHDUPMIX "/path/to/dir1 /path/to/dir2"
+setenv_var FOOPATHDUPSP {/path/to:dir4}
+setenv_var FOOPATHDUPSPEM {/path/to/dir3 }
+set tserr "#%Module
+append-path\t-d { } FOOPATHDUPMIX /path/to/dir1:/path/to/dir3:/path/to/dir3:
+append-path\t-d { } FOOPATHDUPSP /path/to/dir3
+append-path\tFOOPATHDUP /path/to/dir1 /path/to/dir2 /path/to/dir3 {/path/to dir4}
+append-path\tFOOPATHDUPEM /path/to/dir3
+prepend-path\t-d { } FOOPATHDUPSP /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path\t-d { } FOOPATHDUPSPEM /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path\tFOOPATHDUPEM {} /path/to/dir1 /path/to/dir2
+prepend-path\tFOOPATHDUPMIX {} /path/to/dir1"
+testouterr_shtomod ALL {} OK $tserr
 
 
+unsetenv_var TESTSUITE_SHTOMOD_PATHDUP
 unsetenv_var TESTSUITE_SHTOMOD_NOVAR
 unsetenv_var TESTSUITE_SHTOMOD_NOPATH
 unsetenv_var TESTSUITE_SHTOMOD_NOCD

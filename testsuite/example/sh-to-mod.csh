@@ -25,6 +25,14 @@ if ( ! $?TESTSUITE_SHTOMOD_NOPATH ) then
    setenv FOOPATHCB /path/to/dir1:/path/to/d\{r2:/path/to/dir3
 endif
 
+if ( $?TESTSUITE_SHTOMOD_PATHDUP ) then
+   setenv FOOPATHDUP "/path/to/dir1:/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir3:/path/to dir4:/path/to/dir3"
+   setenv FOOPATHDUPEM :/path/to/dir1:/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir3::/path/to/dir3
+   setenv FOOPATHDUPSP "/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to:dir4 /path/to/dir3"
+   setenv FOOPATHDUPSPEM "/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to/dir3 "
+   setenv FOOPATHDUPMIX ":/path/to/dir1:/path/to/dir1 /path/to/dir2 /path/to/dir1:/path/to/dir3:/path/to/dir3:"
+endif
+
 if ( $?TESTSUITE_SHTOMOD_FUZZYOUT1 ) then
    echo '%ModulesShToMod%'
 endif
