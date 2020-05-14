@@ -54,15 +54,17 @@ if {[info exists tclextlib_file]} {
     # replace Tcl extension library by a non lib file
     file rename $tclextlib_file $tclextlib_file.orig
     file copy lib/envmodules.c $tclextlib_file
+    set tclextlib_file_abs_re [regsub -all "\(\[.+?\]\)" [file normalize $tclextlib_file] {\\\1}]
     if {$tcl_platform(os) eq {Darwin}} {
-        set tserr "$error_msgs: dlopen\\\($tclextlib_file,.*"
+        set tserr "$error_msgs: dlopen\\\($tclextlib_file_abs_re,.*"
     } else {
-        set tserr "$error_msgs: couldn't load file \"$tclextlib_file\":.*"
+        set tserr "$error_msgs: couldn't load file \"$tclextlib_file_abs_re\":.*"
     }
     testouterr_cmd_re sh {-V} {} $tserr
     file delete $tclextlib_file
     file rename $tclextlib_file.orig $tclextlib_file
     unset tserr
+    unset tclextlib_file_abs_re
 }
 
 # restrict read access to site-specific configuration script
