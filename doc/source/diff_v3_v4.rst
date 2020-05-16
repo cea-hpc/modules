@@ -375,6 +375,10 @@ Starting with version ``4.1``, :command:`module` function for all scripting lang
 
  This module sub-command appeared on version ``4.3`` and is not supported on compatibility version.
  
+:subcmd:`sh-to-mod`
+
+ This module sub-command appeared on version ``4.6`` and is not supported on compatibility version.
+ 
 :subcmd:`avail`
 
 :subcmd:`whatis`

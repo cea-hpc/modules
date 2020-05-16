@@ -840,6 +840,25 @@ Module Sub-Commands
        Prior version `4.0` :mfcmd:`module-whatis` information search was
        performed with :subcmd:`apropos` or :subcmd:`keyword` sub-commands.
 
+.. subcmd:: sh-to-mod shell script [arg...]
+
+ Evaluate with *shell* the designated *script* with defined *arguments* to
+ find out the environment changes it does. Environment prior and after
+ *script* evaluation are compared to determine these changes. They are
+ translated into *modulefile* commands to output the modulefile content
+ equivalent to the evaluation of shell script.
+
+ Changes on environment variables, shell aliases, shell functions and current
+ working directory are tracked.
+
+ *Shell* could be specified as a command name or a fully qualified pathname.
+ The following shells are supported: sh, dash, csh, tcsh, bash, ksh, ksh93,
+ zsh and fish.
+
+ .. only:: html
+
+    .. versionadded:: 4.6
+
 .. subcmd:: show modulefile...
 
  See :subcmd:`display`.
