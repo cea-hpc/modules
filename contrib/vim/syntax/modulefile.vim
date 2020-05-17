@@ -33,6 +33,7 @@ syn match modCommand "\v<module-(alias|info|log|trace|user|verbosity|version|vir
 syn match modCommand "\v<(un)?set-(alias|function)>"
 syn match modCommand "\v<(un)?setenv>"
 syn match modCommand "\v<getenv>"
+syn match modCommand "\v<source-sh>"
 syn match modCommand "\v<(system|uname|x-resource)>"
 
 syn match modCommand "\v<is-(loaded|saved|used|avail)>"
