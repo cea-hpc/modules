@@ -8,6 +8,59 @@ Modules. It provides an overview of the new features and changed behaviors
 that will be encountered when upgrading.
 
 
+Migrating from v4.5 to v4.6 (not yet released)
+==============================================
+
+This new version is backward-compatible with v4.5 and primarily fixes bugs and
+adds new features.
+
+New features
+------------
+
+Version 4.6 introduces new functionalities that are described in this section.
+
+sh-to-mod sub-command
+^^^^^^^^^^^^^^^^^^^^^
+
+The ``sh-to-mod`` sub-command is added to output as a modulefile content the
+environment changes done by the evaluation of a shell script passed as
+argument. ``sh-to-mod`` is especially useful for software providing a shell
+script for their enablement in shell session: it can convert these scripts
+into modulefiles.
+
+Say for instance, a *foo* software has been installed and it provides a
+``foo-setup.sh`` script to activate *foo* software in user environment::
+
+    $ cat /path/to/foo-1.2/foo-setup.sh
+    #!/bin/sh
+    export FOOENV="$1"
+    export PATH=/path/to/foo-1.2/bin:$PATH
+    alias foo='foobin -q -l'
+
+Calling ``module sh-to-mod`` on this shell script outputs the environment
+changes it performs as a modulefile content::
+
+    $ module sh-to-mod sh /path/to/foo-1.2/foo-setup.sh arg1
+    #%Module
+    prepend-path    PATH /path/to/foo-1.2/bin
+    set-alias       foo {foobin -q -l}
+    setenv          FOOENV arg1
+
+Changes on environment variables, shell aliases, shell functions and current
+working directory are tracked. The following shells are supported: *sh*,
+*dash*, *csh*, *tcsh*, *bash*, *ksh*, *ksh93*, *zsh* and *fish*.
+
+``sh-to-mod`` acts as a full replacement for the standalone
+``createmodule.sh`` and ``createmodule.py`` scripts. However those two scripts
+are currently still provided for compatibility purpose.
+
+Further reading
+---------------
+
+To get a complete list of the changes between Modules v4.4 and v4.5,
+please read the :ref:`NEWS` document.
+
+
 Migrating from v4.4 to v4.5
 ===========================
 

@@ -6,8 +6,8 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
-Next release (2020-XX-XX)
---------------------------
+Modules 4.6.0 (not yet released)
+--------------------------------
 
 * Rework internal state handling to gather all state definitions in a global
   array and use the same initialization and retrieval procedure, named
@@ -15,6 +15,12 @@ Next release (2020-XX-XX)
 * Add the ``setState``, ``unsetState``, ``lappendState``, ``isStateDefined``
   and ``isStateEqual`` procedures to provide unified ways to set or check the
   value of state.
+* Introduce the ``sh-to-mod`` sub-command, to evaluate shell script and
+  determine the environment changes it does. Corresponding modulefile
+  content is outputted as a result. Changes on environment variables, shell
+  aliases, shell functions and current working directory are tracked. The
+  following shells are supported: sh, dash, csh, tcsh, bash, ksh, ksh93, zsh
+  and fish.
 
 
 Modules 4.5.1 (2020-06-01)
