@@ -3837,7 +3837,15 @@ proc sh-to-mod {shell script args} {
 }
 
 proc source-sh {shell script args} {
+   # evaluate script and get the environment changes it performs translated
+   # into modulefile commands
+   set shtomodargs [concat [list $shell $script] $args]
+   set modcontent [eval sh-to-mod $shtomodargs]
 
+   # evaluate resulting modulefile commands
+   foreach modcmd $modcontent {
+      eval $modcmd
+   }
 }
 
 # undo source-sh in unload mode
