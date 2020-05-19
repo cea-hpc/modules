@@ -3842,6 +3842,10 @@ proc source-sh {shell script args} {
    set shtomodargs [concat [list $shell $script] $args]
    set modcontent [eval sh-to-mod $shtomodargs]
 
+   # register resulting modulefile commands
+   setLoadedSourceSh [currentModuleName] [concat [list $shtomodargs]\
+      $modcontent]
+
    # evaluate resulting modulefile commands
    foreach modcmd $modcontent {
       eval $modcmd
@@ -4181,6 +4185,33 @@ proc getLoadedModuleFileList {} {
       }
    }
    return $modfilelist
+}
+
+# return list of declared source-sh by loaded module by parsing
+# MODULES_LMSOURCESH
+proc getLoadedModuleSourceShList {} {
+   set modsrcshlist [list]
+   set sub1sep [getState sub1_separator]
+   set sub2sep [getState sub2_separator]
+   foreach modsrcshser [split [get-env MODULES_LMSOURCESH] [getState\
+      path_separator]] {
+      set srcshlist [split $modsrcshser $sub1sep]
+      # ignore empty element (1 is meaningless as first elt is loaded mod)
+      if {[llength $srcshlist] > 1} {
+         set modsrcsh {}
+         # keep first arg as string and other args as lists
+         foreach srcsh $srcshlist {
+            if {[llength $modsrcsh] == 0} {
+               lappend modsrcsh $srcsh
+            } else {
+               lappend modsrcsh [split $srcsh $sub2sep]
+            }
+         }
+
+         lappend modsrcshlist $modsrcsh
+      }
+   }
+   return $modsrcshlist
 }
 
 # return list of loaded module declared conflict by parsing MODULES_LMCONFLICT
@@ -4863,6 +4894,55 @@ proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}} {
    }
 
    reportDebug "'$ret' matches '$name'"
+   return $ret
+}
+
+proc setLoadedSourceSh {mod args} {
+   foreach arg $args {
+      # each arg is a list with source-sh call string at index 0 and resulting
+      # modulefile commands at all later index positions
+      set shtomodargs [lindex $arg 0]
+      set modcontent [lrange $arg 1 end]
+      if {![info exists ::g_loadedModuleSourceSh($mod)] || [notInList\
+         $::g_loadedModuleSourceSh($mod) $shtomodargs]} {
+         # filter alias or function definition not to record them
+         set filtmodcont [list]
+         foreach modcmdlist $modcontent {
+            set modcmd [lindex $modcmdlist 0]
+            if {$modcmd eq {set-alias} || $modcmd eq {set-function}} {
+               # set an empty body to make valid unset-* call
+               lappend filtmodcont [concat [lrange $modcmdlist 0 1] [list {}]]
+            } else {
+               lappend filtmodcont $modcmdlist
+            }
+         }
+         lappend ::g_loadedModuleSourceSh($mod) $shtomodargs $filtmodcont
+      }
+   }
+}
+
+proc unsetLoadedSourceSh {mod} {
+   if {[info exists ::g_loadedModuleSourceSh($mod)]} {
+      unset ::g_loadedModuleSourceSh($mod)
+   }
+}
+
+proc getLoadedSourceSh {mod {serialized 0}} {
+   set ret {}
+
+   set sub2sep [getState sub2_separator]
+   if {[info exists ::g_loadedModuleSourceSh($mod)]} {
+      if {$serialized} {
+         foreach {shtomodargs modcontent} $::g_loadedModuleSourceSh($mod) {
+            lappend modsrcsh $shtomodargs$sub2sep[join $modcontent $sub2sep]
+         }
+         set ret [join [concat [list $mod] $modsrcsh] [getState\
+            sub1_separator]]
+      } else {
+         set ret $::g_loadedModuleSourceSh($mod)
+      }
+   }
+
    return $ret
 }
 
@@ -6655,6 +6735,11 @@ proc cacheCurrentModules {} {
          # cache declared alternative names of loaded modules
          foreach modalt [getLoadedModuleAltnameList] {
             eval setLoadedAltname $modalt
+         }
+
+         # cache declared source-sh of loaded modules
+         foreach modsrcsh [getLoadedModuleSourceShList] {
+            eval setLoadedSourceSh $modsrcsh
          }
 
          # cache declared conflict of loaded modules
@@ -10388,6 +10473,11 @@ proc cmdModuleLoad {context uasked args} {
          # update cache arrays
          setLoadedModule $modname $modfile $uasked
 
+         # register declared source-sh in environment
+         if {[set modsrcsh [getLoadedSourceSh $modname 1]] ne {}} {
+            add-path append MODULES_LMSOURCESH $modsrcsh
+         }
+
          # register declared conflict in environment
          if {[set modcon [getLoadedConflict $modname 1]] ne {}} {
             add-path append MODULES_LMCONFLICT $modcon
@@ -10636,6 +10726,12 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          }
          # update cache arrays
          unsetLoadedModule $modname $modfile
+
+         # unregister declared source-sh
+         if {[set modsrcsh [getLoadedSourceSh $modname 1]] ne {}} {
+            unload-path MODULES_LMSOURCESH $modsrcsh
+         }
+         unsetLoadedSourceSh $modname
 
          # unregister declared conflict
          if {[set modcon [getLoadedConflict $modname 1]] ne {}} {
