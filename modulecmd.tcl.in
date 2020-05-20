@@ -3854,6 +3854,23 @@ proc source-sh {shell script args} {
 
 # undo source-sh in unload mode
 proc source-sh-un {shell script args} {
+   set shtomodargs [concat [list $shell $script] $args]
+   set modsrcsh [getLoadedSourceSh [currentModuleName]]
+
+   # find commands resulting from source-sh evaluation recorded in env
+   if {[set idx [lsearch -exact $modsrcsh $shtomodargs]] != -1 } {
+      set modcontent [lindex $modsrcsh [expr {$idx + 1}]]
+   } else {
+      set modcontent {}
+   }
+
+   # get name of current module unload Tcl interp
+   set itrp __modfile_[currentMode]_[getEvalModuleStackDepth]
+
+   # evaluate each recorded command in unload Tcl interp to get them reversed
+   foreach modcmd $modcontent {
+      interp eval $itrp $modcmd
+   }
 }
 
 ########################################################################
