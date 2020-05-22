@@ -4208,23 +4208,26 @@ proc getLoadedModuleFileList {} {
 # MODULES_LMSOURCESH
 proc getLoadedModuleSourceShList {} {
    set modsrcshlist [list]
+   set pathsep [getState path_separator]
    set sub1sep [getState sub1_separator]
    set sub2sep [getState sub2_separator]
-   foreach modsrcshser [split [get-env MODULES_LMSOURCESH] [getState\
-      path_separator]] {
+   set unsermap [list <EnvModEscPS> $pathsep <EnvModEscS1> $sub1sep\
+      <EnvModEscS2> $sub2sep]
+
+   foreach modsrcshser [split [get-env MODULES_LMSOURCESH] $pathsep] {
       set srcshlist [split $modsrcshser $sub1sep]
       # ignore empty element (1 is meaningless as first elt is loaded mod)
       if {[llength $srcshlist] > 1} {
          set modsrcsh {}
          # keep first arg as string and other args as lists
          foreach srcsh $srcshlist {
+            # unescape delimiter chars used in content
             if {[llength $modsrcsh] == 0} {
-               lappend modsrcsh $srcsh
+               lappend modsrcsh [string map $unsermap $srcsh]
             } else {
-               lappend modsrcsh [split $srcsh $sub2sep]
+               lappend modsrcsh [string map $unsermap [split $srcsh $sub2sep]]
             }
          }
-
          lappend modsrcshlist $modsrcsh
       }
    }
@@ -4947,14 +4950,22 @@ proc unsetLoadedSourceSh {mod} {
 proc getLoadedSourceSh {mod {serialized 0}} {
    set ret {}
 
+   set pathsep [getState path_separator]
+   set sub1sep [getState sub1_separator]
    set sub2sep [getState sub2_separator]
+   set sermap [list $pathsep <EnvModEscPS> $sub1sep <EnvModEscS1>\
+      $sub2sep <EnvModEscS2>]
+
    if {[info exists ::g_loadedModuleSourceSh($mod)]} {
       if {$serialized} {
          foreach {shtomodargs modcontent} $::g_loadedModuleSourceSh($mod) {
-            lappend modsrcsh $shtomodargs$sub2sep[join $modcontent $sub2sep]
+            # escape delimiter chars if used in content
+            set shtomodargsser [string map $sermap $shtomodargs]
+            set modcontentser [string map $sermap $modcontent]
+            lappend modsrcsh $shtomodargsser$sub2sep[join $modcontentser\
+               $sub2sep]
          }
-         set ret [join [concat [list $mod] $modsrcsh] [getState\
-            sub1_separator]]
+         set ret [join [concat [list $mod] $modsrcsh] $sub1sep]
       } else {
          set ret $::g_loadedModuleSourceSh($mod)
       }
