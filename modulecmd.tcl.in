@@ -1306,7 +1306,7 @@ remove-path    {remove-path    remove-path-un remove-path    remove-path    remo
 set-alias      {set-alias      set-alias-un   reportCmd      nop            nop            nop           }
 set-function   {set-function   set-function-un reportCmd     nop            nop            nop           }
 setenv         {setenv         setenv-un      setenv         setenv         setenv         setenv-wh     }
-source-sh      {source-sh      source-sh-un   reportCmd      nop            nop            nop           }
+source-sh      {source-sh      source-sh-un   source-sh-di   nop            nop            nop           }
 system         {system         system         reportCmd      nop            nop            nop           }
 unset-alias    {unset-alias    nop            reportCmd      nop            nop            nop           }
 unset-function {unset-function nop            reportCmd      nop            nop            nop           }
@@ -1330,8 +1330,8 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
       if {$aliastarget eq {reportCmd} || $aliastarget eq {nimp}} {
          set aliasesPassArg($alias) $alias
       # associate a trace command if per-mode alias command is not reportCmd
-      # in display mode
-      } elseif {$mode eq {display}} {
+      # in display mode (except for source-sh)
+      } elseif {$mode eq {display} && $alias ne {source-sh}} {
          set traces($alias) reportCmdTrace
       }
    }
@@ -3885,6 +3885,66 @@ proc source-sh-un {shell script args} {
    set itrp __modfile_[currentMode]_[getEvalModuleStackDepth]
 
    # evaluate each recorded command in unload Tcl interp to get them reversed
+   foreach modcmd $modcontent {
+      interp eval $itrp $modcmd
+   }
+}
+
+# report underlying modulefile cmds in display mode
+proc source-sh-di {shell script args} {
+   set shtomodargs [concat [list $shell $script] $args]
+
+   # if module loaded, get as much content from environment as possible
+   if {[is-loaded [currentModuleName]]} {
+      set modsrcsh [getLoadedSourceSh [currentModuleName]]
+
+      # find commands resulting from source-sh evaluation recorded in env
+      if {[set idx [lsearch -exact $modsrcsh $shtomodargs]] != -1 } {
+         set reccontent [lindex $modsrcsh [expr {$idx + 1}]]
+      } else {
+         set reccontent {}
+      }
+
+      # need to evaluate script to get alias and function definition
+      eval execShAndGetEnv $shtomodargs
+
+      set modcontent {}
+      foreach cmd $reccontent {
+         # build modulefile content to show with recorded elements in env
+         # and alias/function definition obtained by reevaluating script
+         switch -- [lindex $cmd 0] {
+            set-alias {
+               set alname [lindex $cmd 1]
+               if {[info exists aliasaft($alname)]} {
+                  set albody $aliasaft($alname)
+               } else {
+                  set albody {}
+               }
+               lappend modcontent [list set-alias $alname $albody]
+            }
+            set-function {
+               set fnname [lindex $cmd 1]
+               if {[info exists funcaft($fnname)]} {
+                  set fnbody \n$funcaft($fnname)
+               } else {
+                  set fnbody {}
+               }
+               lappend modcontent [list set-function $fnname $fnbody]
+            }
+            default {
+               lappend modcontent $cmd
+            }
+         }
+      }
+   # not loaded, so get full content from script evaluation
+   } else {
+      set modcontent [eval sh-to-mod $shtomodargs]
+   }
+
+   # get name of current module unload Tcl interp
+   set itrp __modfile_[currentMode]_[getEvalModuleStackDepth]
+
+   # evaluate each recorded command in display Tcl interp to get them printed
    foreach modcmd $modcontent {
       interp eval $itrp $modcmd
    }
