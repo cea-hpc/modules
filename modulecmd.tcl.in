@@ -3556,16 +3556,14 @@ proc is-avail {args} {
    return $ret
 }
 
-# execute script with args through shell and convert environment changes into
-# corresponding modulefile commands
-proc sh-to-mod {shell script args} {
-   set modcontent [list]
-   set pathsep [getState path_separator]
+proc execShAndGetEnv {shell script args} {
    set sep {%ModulesShToMod%}
-   set ignvarlist [list OLDPWD PWD _ _AST_FEATURES PS1]
    set shdesc [concat [list $script] $args]
    set sherr 0
    set shellopts [list]
+
+   upvar ignvarlist ignvarlist
+   set ignvarlist [list OLDPWD PWD _ _AST_FEATURES PS1]
 
    # define shell command to run to source script and analyze the environment
    # changes it performs
@@ -3676,6 +3674,9 @@ proc sh-to-mod {shell script args} {
       set sherr 1
    }
 
+   # link result variables to calling context
+   upvar cwdbefout cwdbefout cwdaftout cwdaftout
+
    # extract each output sections
    set idx 0
    foreach varout {varbefout funcbefout aliasbefout cwdbefout scriptout\
@@ -3711,6 +3712,11 @@ proc sh-to-mod {shell script args} {
       knerror $errmsg
    }
 
+   # link result variables to calling context
+   upvar varbef varbef varaft varaft
+   upvar funcbef funcbef funcaft funcaft
+   upvar aliasbef aliasbef aliasaft aliasaft
+
    # extract environment variable information
    foreach {out arr} [list varbefout varbef varaftout varaft] {
       foreach {match name value} [regexp -all -inline -lineanchor $varre [set\
@@ -3736,6 +3742,17 @@ proc sh-to-mod {shell script args} {
          set ${arr}($name) [string map $alvalmap $value]
       }
    }
+}
+
+# execute script with args through shell and convert environment changes into
+# corresponding modulefile commands
+proc sh-to-mod {args} {
+   set modcontent [list]
+   set pathsep [getState path_separator]
+
+   # evaluate script and retrieve environment before and after evaluation
+   # procedure will set result variables in current context
+   eval execShAndGetEnv $args
 
    # check environment variable change
    lassign [getDiffBetweenArray varbef varaft] notaft diff notbef
