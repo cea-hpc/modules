@@ -297,7 +297,8 @@ testouterr_cmd_re sh {whatis source-sh} OK "$modlin $mpre $modlin
 \\s*source-sh/4.0: source-sh/4.0
 \\s*source-sh/4.1: source-sh/4.1
 \\s*source-sh/4.2: source-sh/4.2
-\\s*source-sh/4.3: source-sh/4.3"
+\\s*source-sh/4.3: source-sh/4.3
+\\s*source-sh/6.0: source-sh/6.0"
 
 # test 'help' sub-command when some modules are loaded
 testouterr_cmd_re sh {help source-sh/1} OK "$modlin
@@ -736,6 +737,78 @@ lappend ans [list set MODULES_LMSOURCESH source-sh/5.1\&bash\ testsuite/example/
 lappend ans [list set MODULES_LMSOURCESH_modshare source-sh/5.1\&bash\ testsuite/example/sh-to-mod.sh\ arg1\ arg2\|setenv\ FOO\ value\|setenv\ FOOARG1\ arg1\|setenv\ FOOARG2\ arg2\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOSP\ \{value\ \}\&sh\ testsuite/example/mini-sh-to-mod.sh\|prepend-path\ FOOPATH\ /path/to/mini\ \{\}\|set-alias\ almini\ \{\}\|setenv\ FOOMINI\ value:1]
 lappend ans [list alias almini echo\ mini]
 testouterr_cmd sh {load source-sh/5.1} $ans {}
+
+
+#
+# variable definition relying on a variable defined in sourced script
+#
+
+set tserr "-------------------------------------------------------------------
+$mp/source-sh/6.0:
+
+prepend-path	FOOPATH /path/to/mini {}
+set-alias	almini {echo mini}
+setenv		FOOMINI value
+setenv		TS1 \$FOOMINI
+setenv		TS2 value
+module-whatis	source-sh/6.0
+-------------------------------------------------------------------"
+testouterr_cmd sh {display source-sh/6.0} OK $tserr
+set tserr "-------------------------------------------------------------------
+Module Specific Help for $mp/source-sh/6.0:
+
+Module ERROR: no such variable
+      (read trace on \"env(FOOMINI)\")
+      invoked from within
+  \"setenv TS2 \$env(FOOMINI)\"
+      (file \"$mp/source-sh/6.0\" line 4)
+  $err_contactns
+-------------------------------------------------------------------"
+testouterr_cmd sh {help source-sh/6.0} ERR $tserr
+set tserr "-------------------------------------------------------------------
+Module Specific Test for $mp/source-sh/6.0:
+
+Module ERROR: no such variable
+      (read trace on \"env(FOOMINI)\")
+      invoked from within
+  \"setenv TS2 \$env(FOOMINI)\"
+      (file \"$mp/source-sh/6.0\" line 4)
+  $err_contactns
+-------------------------------------------------------------------"
+testouterr_cmd sh {test source-sh/6.0} ERR $tserr
+testouterr_cmd sh {whatis source-sh/6.0} OK {}
+
+# try evaluation with variable pre-defined
+setenv_var FOOMINI value
+
+set tserr "-------------------------------------------------------------------
+$mp/source-sh/6.0:
+
+prepend-path	FOOPATH /path/to/mini {}
+set-alias	almini {echo mini}
+setenv		TS1 \$FOOMINI
+setenv		TS2 value
+module-whatis	source-sh/6.0
+-------------------------------------------------------------------"
+testouterr_cmd sh {display source-sh/6.0} OK $tserr
+set tserr "-------------------------------------------------------------------
+Module Specific Help for $mp/source-sh/6.0:
+
+$warn_msgs: Unable to find ModulesHelp in $mp/source-sh/6.0.
+-------------------------------------------------------------------"
+testouterr_cmd sh {help source-sh/6.0} OK $tserr
+set tserr "-------------------------------------------------------------------
+Module Specific Test for $mp/source-sh/6.0:
+
+$warn_msgs: Unable to find ModulesTest in $mp/source-sh/6.0.
+-------------------------------------------------------------------"
+testouterr_cmd sh {test source-sh/6.0} OK $tserr
+
+set tserr "$modlin $mpre $modlin
+\\s*source-sh/6.0: source-sh/6.0"
+testouterr_cmd_re sh {whatis source-sh/6.0} OK $tserr
+
+unsetenv_var FOOMINI
 
 
 #
