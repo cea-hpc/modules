@@ -719,8 +719,10 @@ proc formatErrStackTrace {errmsg loc {cmdlist {}}} {
    set headstr "\n    while executing\n"
    set splitstr "\n    invoked from within\n"
    set splitstrlen [string length $splitstr]
-   set aftheadidx [expr {[string length $headstr] + [string first $headstr\
-      $errmsg]}]
+   set aftheadidx [string first $headstr $errmsg]
+   if {$aftheadidx != -1} {
+      incr aftheadidx [string length $headstr]
+   }
 
    # get name of invalid command name to maintain it in error stack trace
    if {[string equal -length 22 {invalid command name "} $errmsg]} {
@@ -744,7 +746,7 @@ proc formatErrStackTrace {errmsg loc {cmdlist {}}} {
 
    # filter out modulecmd internal references at beginning of stack
    set internals 1
-   while {$internals} {
+   while {$internals && $aftheadidx != -1} {
       # fetch erroneous command and its caller
       set stackelt [string range $errmsg $aftheadidx [string first\
          $splitstr $errmsg $aftheadidx]]
