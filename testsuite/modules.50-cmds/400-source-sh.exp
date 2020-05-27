@@ -324,18 +324,135 @@ $warn_msgs: Unable to find ModulesTest in $mpre/source-sh/4.3.
 $modlin"
 
 # test 'display' sub-command when some modules are loaded
-testouterr_cmd_re sh {display source-sh/1} OK "$modlin
-$mpre/source-sh/1:
+set tserr_disp1 "-------------------------------------------------------------------
+$mp/source-sh/1:
 
-source-sh\tbash testsuite/example/sh-to-mod.sh
+chdir\t\t$mp
+prepend-path\tFOOPATH /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path\tFOOPATHCB /path/to/dir1 /path/to/d\{r2 /path/to/dir3
+prepend-path\tFOOPATHDUP /path/to/dir1 /path/to/dir2 /path/to/dir3 {/path/to dir4}
+prepend-path\tFOOPATHDUPEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path\tFOOPATHDUPMIX {} /path/to/dir1 {/path/to/dir1 /path/to/dir2 /path/to/dir1} /path/to/dir3
+prepend-path\tFOOPATHDUPSP {/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to} {dir4 /path/to/dir3}
+prepend-path\tFOOPATHEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3
+set-alias\talcb {echo\ f\{o}
+set-alias\talem {}
+set-alias\talfoo {echo \$(grep \"report .Modules \" ../../modulecmd.tcl | tr -d \\\\ 2>/dev/null | awk '\{print \$3\}')}
+set-alias\talsp {echo f\\\"o; echo b\\\\\\\"r; echo f\\'o}
+set-function\tfunccb {
+    echo f\{o}
+set-function\tfuncfoo {
+    echo foo}
+set-function\tfuncnl {
+    echo foo;
+    echo bar}
+set-function\tfuncsp {
+    echo f\\\"o;
+    echo b\\\\\\\"r;
+    echo f\\'o}
+setenv\t\tFOO value
+setenv\t\tFOOCB va\{ue
+setenv\t\tFOOEM {}
+setenv\t\tFOOPATHDUPSPEM {/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to/dir3 }
+setenv\t\tFOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}
+setenv\t\tFOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }
+setenv\t\tFOOSP {value }
 module-whatis\tsource-sh/1
-$modlin"
-testouterr_cmd_re sh {display source-sh/4.3} OK "$modlin
-$mpre/source-sh/4.3:
+-------------------------------------------------------------------"
+testouterr_cmd sh {display source-sh/1} OK $tserr_disp1
+set tserr_disp2 "-------------------------------------------------------------------
+$mp/source-sh/4.3:
 
-source-sh\tsh testsuite/example/unk-to-mod.sh
-module-whatis\tsource-sh/4.3
-$modlin"
+[msg_moderr {Script 'testsuite/example/unk-to-mod.sh' cannot be found} {source-sh sh testsuite/example/unk-to-mod.sh} $mp/source-sh/4.3 2 {  }]
+-------------------------------------------------------------------"
+testouterr_cmd sh {display source-sh/4.3} ERR $tserr_disp2
+set tserr_disp3 "-------------------------------------------------------------------
+$mp/source-sh/5.0:
+
+append-path	FOOPATHDUPMIX /path/to/dir3 {}
+chdir		$mp
+set-alias\talcb {echo\ f\{o}
+set-alias\talem {}
+set-alias\talfoo {echo \$(grep \"report .Modules \" ../../modulecmd.tcl | tr -d \\\\ 2>/dev/null | awk '\{print \$3\}')}
+set-alias\talsp {echo f\\\"o; echo b\\\\\\\"r; echo f\\'o}
+set-function\tfunccb {
+    echo f\{o}
+set-function\tfuncfoo {
+    echo foo}
+set-function\tfuncnl {
+    echo foo;
+    echo bar}
+set-function\tfuncsp {
+    echo f\\\"o;
+    echo b\\\\\\\"r;
+    echo f\\'o}
+prepend-path	FOOPATH /path/to/mini
+set-alias	almini {echo mini}
+append-path	FOOPATHDUPMIX /path/to/dir3 {}
+chdir		$mp
+set-alias\talcb {echo\ f\{o}
+set-alias\talem {}
+set-alias\talfoo {echo \$(grep \"report .Modules \" ../../modulecmd.tcl | tr -d \\\\ 2>/dev/null | awk '\{print \$3\}')}
+set-alias\talsp {echo f\\\"o; echo b\\\\\\\"r; echo f\\'o}
+set-function\tfunccb {
+    echo f\{o}
+set-function\tfuncfoo {
+    echo foo}
+set-function\tfuncnl {
+    echo foo;
+    echo bar}
+set-function\tfuncsp {
+    echo f\\\"o;
+    echo b\\\\\\\"r;
+    echo f\\'o}
+setenv		FOOARG1 arg1
+setenv		FOOPATH /path/to/dir1:/path/to/dir2:/path/to/dir3
+-------------------------------------------------------------------"
+testouterr_cmd sh {display source-sh/5.0} OK $tserr_disp3
+set tserr_disp4 "-------------------------------------------------------------------
+$mp/source-sh/5.1:
+
+append-path	FOOPATHDUPMIX /path/to/dir3 {}
+chdir		$mp
+set-alias\talcb {echo\ f\{o}
+set-alias\talem {}
+set-alias\talfoo {echo \$(grep \"report .Modules \" ../../modulecmd.tcl | tr -d \\\\ 2>/dev/null | awk '\{print \$3\}')}
+set-alias\talsp {echo f\\\"o; echo b\\\\\\\"r; echo f\\'o}
+set-function\tfunccb {
+    echo f\{o}
+set-function\tfuncfoo {
+    echo foo}
+set-function\tfuncnl {
+    echo foo;
+    echo bar}
+set-function\tfuncsp {
+    echo f\\\"o;
+    echo b\\\\\\\"r;
+    echo f\\'o}
+setenv		FOOARG1 arg1
+setenv		FOOARG2 arg2
+prepend-path	FOOPATH /path/to/mini
+set-alias	almini {echo mini}
+append-path	FOOPATHDUPMIX /path/to/dir3 {}
+chdir		$mp
+set-alias\talcb {echo\ f\{o}
+set-alias\talem {}
+set-alias\talfoo {echo \$(grep \"report .Modules \" ../../modulecmd.tcl | tr -d \\\\ 2>/dev/null | awk '\{print \$3\}')}
+set-alias\talsp {echo f\\\"o; echo b\\\\\\\"r; echo f\\'o}
+set-function\tfunccb {
+    echo f\{o}
+set-function\tfuncfoo {
+    echo foo}
+set-function\tfuncnl {
+    echo foo;
+    echo bar}
+set-function\tfuncsp {
+    echo f\\\"o;
+    echo b\\\\\\\"r;
+    echo f\\'o}
+setenv		FOOPATH /path/to/dir1:/path/to/dir2:/path/to/dir3
+-------------------------------------------------------------------"
+testouterr_cmd sh {display source-sh/5.1} OK $tserr_disp4
 
 
 unsetenv_loaded_module
@@ -391,18 +508,127 @@ $warn_msgs: Unable to find ModulesTest in $mpre/source-sh/4.3.
 $modlin"
 
 # test 'display' sub-command when no module loaded
-testouterr_cmd_re sh {display source-sh/1} OK "$modlin
-$mpre/source-sh/1:
+testouterr_cmd sh {display source-sh/1} OK $tserr_disp1
+testouterr_cmd sh {display source-sh/4.3} ERR $tserr_disp2
+set tserr_disp3 "-------------------------------------------------------------------
+$mp/source-sh/5.0:
 
-source-sh\tbash testsuite/example/sh-to-mod.sh
-module-whatis\tsource-sh/1
-$modlin"
-testouterr_cmd_re sh {display source-sh/4.3} OK "$modlin
-$mpre/source-sh/4.3:
+chdir		$mp
+prepend-path	FOOPATH /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path	FOOPATHCB /path/to/dir1 /path/to/d{r2 /path/to/dir3
+prepend-path	FOOPATHDUP /path/to/dir1 /path/to/dir2 /path/to/dir3 {/path/to dir4}
+prepend-path	FOOPATHDUPEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path	FOOPATHDUPMIX {} /path/to/dir1 {/path/to/dir1 /path/to/dir2 /path/to/dir1} /path/to/dir3
+prepend-path	FOOPATHDUPSP {/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to} {dir4 /path/to/dir3}
+prepend-path	FOOPATHEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3
+set-alias\talcb {echo\ f\{o}
+set-alias\talem {}
+set-alias\talfoo {echo \$(grep \"report .Modules \" ../../modulecmd.tcl | tr -d \\\\ 2>/dev/null | awk '\{print \$3\}')}
+set-alias\talsp {echo f\\\"o; echo b\\\\\\\"r; echo f\\'o}
+set-function\tfunccb {
+    echo f\{o}
+set-function\tfuncfoo {
+    echo foo}
+set-function\tfuncnl {
+    echo foo;
+    echo bar}
+set-function\tfuncsp {
+    echo f\\\"o;
+    echo b\\\\\\\"r;
+    echo f\\'o}
+setenv		FOO value
+setenv		FOOCB va{ue
+setenv		FOOEM {}
+setenv		FOOPATHDUPSPEM {/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to/dir3 }
+setenv		FOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}
+setenv		FOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }
+setenv		FOOSP {value }
+prepend-path	FOOPATH /path/to/mini
+set-alias	almini {echo mini}
+setenv		FOOMINI value
+append-path	FOOPATHDUPMIX /path/to/dir3 {}
+chdir		$mp
+set-alias\talcb {echo\ f\{o}
+set-alias\talem {}
+set-alias\talfoo {echo \$(grep \"report .Modules \" ../../modulecmd.tcl | tr -d \\\\ 2>/dev/null | awk '\{print \$3\}')}
+set-alias\talsp {echo f\\\"o; echo b\\\\\\\"r; echo f\\'o}
+set-function\tfunccb {
+    echo f\{o}
+set-function\tfuncfoo {
+    echo foo}
+set-function\tfuncnl {
+    echo foo;
+    echo bar}
+set-function\tfuncsp {
+    echo f\\\"o;
+    echo b\\\\\\\"r;
+    echo f\\'o}
+setenv		FOOARG1 arg1
+setenv		FOOPATH /path/to/dir1:/path/to/dir2:/path/to/dir3
+setenv		FOOPATHDUP {/path/to/dir1:/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir3:/path/to dir4:/path/to/dir3}
+setenv		FOOPATHDUPEM :/path/to/dir1:/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir3::/path/to/dir3
+-------------------------------------------------------------------"
+testouterr_cmd sh {display source-sh/5.0} OK $tserr_disp3
+set tserr_disp4 "-------------------------------------------------------------------
+$mp/source-sh/5.1:
 
-source-sh\tsh testsuite/example/unk-to-mod.sh
-module-whatis\tsource-sh/4.3
-$modlin"
+chdir		$mp
+prepend-path	FOOPATH /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path	FOOPATHCB /path/to/dir1 /path/to/d{r2 /path/to/dir3
+prepend-path	FOOPATHDUP /path/to/dir1 /path/to/dir2 /path/to/dir3 {/path/to dir4}
+prepend-path	FOOPATHDUPEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path	FOOPATHDUPMIX {} /path/to/dir1 {/path/to/dir1 /path/to/dir2 /path/to/dir1} /path/to/dir3
+prepend-path	FOOPATHDUPSP {/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to} {dir4 /path/to/dir3}
+prepend-path	FOOPATHEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3
+set-alias\talcb {echo\ f\{o}
+set-alias\talem {}
+set-alias\talfoo {echo \$(grep \"report .Modules \" ../../modulecmd.tcl | tr -d \\\\ 2>/dev/null | awk '\{print \$3\}')}
+set-alias\talsp {echo f\\\"o; echo b\\\\\\\"r; echo f\\'o}
+set-function\tfunccb {
+    echo f\{o}
+set-function\tfuncfoo {
+    echo foo}
+set-function\tfuncnl {
+    echo foo;
+    echo bar}
+set-function\tfuncsp {
+    echo f\\\"o;
+    echo b\\\\\\\"r;
+    echo f\\'o}
+setenv		FOO value
+setenv		FOOARG1 arg1
+setenv		FOOARG2 arg2
+setenv		FOOCB va{ue
+setenv		FOOEM {}
+setenv		FOOPATHDUPSPEM {/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to/dir3 }
+setenv		FOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}
+setenv		FOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }
+setenv		FOOSP {value }
+prepend-path	FOOPATH /path/to/mini
+set-alias	almini {echo mini}
+setenv		FOOMINI value
+append-path	FOOPATHDUPMIX /path/to/dir3 {}
+chdir		$mp
+set-alias\talcb {echo\ f\{o}
+set-alias\talem {}
+set-alias\talfoo {echo \$(grep \"report .Modules \" ../../modulecmd.tcl | tr -d \\\\ 2>/dev/null | awk '\{print \$3\}')}
+set-alias\talsp {echo f\\\"o; echo b\\\\\\\"r; echo f\\'o}
+set-function\tfunccb {
+    echo f\{o}
+set-function\tfuncfoo {
+    echo foo}
+set-function\tfuncnl {
+    echo foo;
+    echo bar}
+set-function\tfuncsp {
+    echo f\\\"o;
+    echo b\\\\\\\"r;
+    echo f\\'o}
+setenv		FOOPATH /path/to/dir1:/path/to/dir2:/path/to/dir3
+setenv		FOOPATHDUP {/path/to/dir1:/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir3:/path/to dir4:/path/to/dir3}
+setenv		FOOPATHDUPEM :/path/to/dir1:/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir3::/path/to/dir3
+-------------------------------------------------------------------"
+testouterr_cmd sh {display source-sh/5.1} OK $tserr_disp4
 
 #
 # erroneous call or script
@@ -682,6 +908,23 @@ set tserr "$moderr_msgs: invalid command name \"set-foo\"
 $err_contactns"
 testouterr_cmd sh {unload source-sh/5.0} ERR [msg_unload source-sh/5.0 $tserr]
 
+# alias and function defined in MODULES_LMSOURCESH but not in script when modulefile is displayed
+setenv_path_var MODULES_LMSOURCESH source-sh/5.0\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ FOO\ value\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOSP\ \{value\ \}\&sh\ testsuite/example/mini-sh-to-mod.sh\|prepend-path\ FOOPATH\ /path/to/mini\ \{\}\|set-alias\ almini\ \{\}\|setenv\ FOOMINI\ value\&sh\ testsuite/example/sh-to-mod.sh\ arg1\|setenv\ FOOARG1\ arg1|set-alias\ alunk\ \{\}\|set-function\ funcunk\ \{\}
+set tserr_disp3 "-------------------------------------------------------------------
+$mp/source-sh/5.0:
+
+setenv		FOO value
+setenv		FOOCB va{ue
+setenv		FOOEM {}
+setenv		FOOSP {value }
+prepend-path	FOOPATH /path/to/mini {}
+set-alias	almini {echo mini}
+setenv		FOOMINI value
+setenv		FOOARG1 arg1
+set-alias	alunk {}
+set-function	funcunk {}
+-------------------------------------------------------------------"
+testouterr_cmd sh {display source-sh/5.0} OK $tserr_disp3
 
 unsetenv_loaded_module
 unsetenv_path_var MODULES_LMSOURCESH
@@ -779,3 +1022,7 @@ unset mp
 unset mpre
 unset ans
 unset tserr
+unset tserr_disp1
+unset tserr_disp2
+unset tserr_disp3
+unset tserr_disp4
