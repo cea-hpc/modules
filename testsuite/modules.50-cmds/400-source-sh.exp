@@ -636,13 +636,20 @@ testouterr_cmd sh {display source-sh/5.1} OK $tserr_disp4
 #
 
 # test bad source-sh call
-set tserr "$moderr_msgs: wrong # args: should be \"source-sh shell script ?arg ...?\"
+if {[cmpversion $tclsh_version 8.5] == -1} {
+    set msgtcl args
+} elseif {[cmpversion $tclsh_version 8.6] == -1} {
+    set msgtcl ...
+} else {
+    set msgtcl {?arg ...?}
+}
+set tserr "$moderr_msgs: wrong # args: should be \"source-sh shell script $msgtcl\"
     invoked from within
 \"source-sh sh\"
     (file \"$mp/source-sh/4.0\" line 2)
 $err_contactns"
 testouterr_cmd sh {load source-sh/4.0} ERR [msg_load source-sh/4.0 $tserr]
-set tserr "$moderr_msgs: wrong # args: should be \"source-sh shell script ?arg ...?\"
+set tserr "$moderr_msgs: wrong # args: should be \"source-sh shell script $msgtcl\"
     invoked from within
 \"source-sh\"
     (file \"$mp/source-sh/4.1\" line 2)
@@ -754,12 +761,18 @@ setenv		TS2 value
 module-whatis	source-sh/6.0
 -------------------------------------------------------------------"
 testouterr_cmd sh {display source-sh/6.0} OK $tserr
+if {[cmpversion $tclsh_version 8.5] == -1} {
+    set msgtcl "can't read \"env(FOOMINI)\": no such variable
+      while executing"
+} else {
+    set msgtcl "no such variable
+      (read trace on \"env(FOOMINI)\")
+      invoked from within"
+}
 set tserr "-------------------------------------------------------------------
 Module Specific Help for $mp/source-sh/6.0:
 
-Module ERROR: no such variable
-      (read trace on \"env(FOOMINI)\")
-      invoked from within
+Module ERROR: $msgtcl
   \"setenv TS2 \$env(FOOMINI)\"
       (file \"$mp/source-sh/6.0\" line 4)
   $err_contactns
@@ -768,9 +781,7 @@ testouterr_cmd sh {help source-sh/6.0} ERR $tserr
 set tserr "-------------------------------------------------------------------
 Module Specific Test for $mp/source-sh/6.0:
 
-Module ERROR: no such variable
-      (read trace on \"env(FOOMINI)\")
-      invoked from within
+Module ERROR: $msgtcl
   \"setenv TS2 \$env(FOOMINI)\"
       (file \"$mp/source-sh/6.0\" line 4)
   $err_contactns
@@ -941,7 +952,8 @@ testouterr_cmd sh {unload source-sh/5.0} $ans {}
 
 # bad modulefile command call in MODULES_LMSOURCESH (missing alias name and body args)
 setenv_path_var MODULES_LMSOURCESH source-sh/5.0\&bash\ testsuite/example/sh-to-mod.sh\&sh\ testsuite/example/mini-sh-to-mod.sh\|prepend-path\ FOOPATH\ /path/to/mini\ \{\}\|set-alias\|setenv\ FOOMINI\ value\&sh\ testsuite/example/sh-to-mod.sh\ arg1\|setenv\ FOOARG1\ arg1
-set tserr "$moderr_msgs: wrong # args: should be \"set-alias alias what\"
+set msgtcl [expr {[cmpversion $tclsh_version 8.5] == -1 ? {-un} : {}}]
+set tserr "$moderr_msgs: wrong # args: should be \"set-alias$msgtcl alias what\"
     invoked from within
 \"set-alias {}\"
     invoked from within
@@ -955,7 +967,7 @@ testouterr_cmd sh {unload source-sh/5.0} ERR [msg_unload source-sh/5.0 $tserr]
 
 # bad modulefile command call in MODULES_LMSOURCESH (missing variable value arg)
 setenv_path_var MODULES_LMSOURCESH source-sh/5.0\&bash\ testsuite/example/sh-to-mod.sh\&sh\ testsuite/example/mini-sh-to-mod.sh\|prepend-path\ FOOPATH\ /path/to/mini\ \{\}\|set-alias\ almini\ \{\}\|setenv\ FOOMINI\ value\&sh\ testsuite/example/sh-to-mod.sh\ arg1\|setenv\ FOOARG1
-set tserr "$moderr_msgs: wrong # args: should be \"setenv var val\"
+set tserr "$moderr_msgs: wrong # args: should be \"setenv$msgtcl var val\"
     invoked from within
 \"setenv FOOARG1\"
     invoked from within
@@ -1099,3 +1111,4 @@ unset tserr_disp1
 unset tserr_disp2
 unset tserr_disp3
 unset tserr_disp4
+unset msgtcl
