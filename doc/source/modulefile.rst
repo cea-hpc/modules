@@ -475,6 +475,30 @@ the *modulefile* is being loaded.
  previous value cannot be restored! (Unless you handle it explicitly ... see
  below.)
 
+.. mfcmd:: source-sh shell script [arg...]
+
+ Evaluate with *shell* the designated *script* with defined *arguments* to
+ find out the environment changes it does. Those changes obtained by comparing
+ environment prior and after *script* evaluation are then translated into
+ corresponding *modulefile* commands, which are then applied during modulefile
+ evaluation as if they were directly written in it.
+
+ When modulefile is unloaded, environment changes done are reserved by
+ evaluating in the ``unload`` context the resulting modulefile commands, which
+ were recorded in the :envvar:`MODULES_LMSOURCESH` environment variable at
+ ``load`` time.
+
+ Changes on environment variables, shell aliases, shell functions and current
+ working directory are tracked.
+
+ *Shell* could be specified as a command name or a fully qualified pathname.
+ The following shells are supported: sh, dash, csh, tcsh, bash, ksh, ksh93,
+ zsh and fish.
+
+ .. only:: html
+
+    .. versionadded:: 4.6
+
 .. mfcmd:: system string
 
  Run *string* command through shell. On Unix, command is passed to the

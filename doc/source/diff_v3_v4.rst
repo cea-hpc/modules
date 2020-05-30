@@ -479,7 +479,11 @@ Environment
 
 :envvar:`MODULES_ML``
 
- These environment variables appeared on version ``4.5`` and are not supported on compatibility version.
+ This environment variable appeared on version ``4.5`` and is not supported on compatibility version.
+
+:envvar:`MODULES_LMSOURCESH``
+
+ This environment variable appeared on version ``4.6`` and is not supported on compatibility version.
 
 
 Modules Specific Tcl Commands
@@ -540,3 +544,7 @@ Modules Specific Tcl Commands
 :mfcmd:`unset-function`
 
  These Modules-specific Tcl commands appeared on version ``4.2`` and are not supported on compatibility version.
+
+:mfcmd:`source-sh`
+
+ This Modules-specific Tcl command appeared on version ``4.6`` and is not supported on compatibility version.

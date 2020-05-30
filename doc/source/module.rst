@@ -1436,6 +1436,29 @@ ENVIRONMENT
 
     .. versionadded:: 4.2
 
+.. envvar:: MODULES_LMSOURCESH
+
+ A colon separated list of the :mfcmd:`source-sh` statements defined by all
+ loaded *modulefiles*. Each element in this list starts by the name of the
+ loaded *modulefile* declaring the environment changes made by the evaluation
+ of :mfcmd:`source-sh` scripts. This name is followed by each
+ :mfcmd:`source-sh` statement call and corresponding result achieved in
+ modulefile. The loaded modulefile name and each :mfcmd:`source-sh` statement
+ description are separated by the ampersand character. The :mfcmd:`source-sh`
+ statement call and each resulting modulefile command (corresponding to the
+ environment changes done by sourced script) are separated by the pipe
+ character.
+
+ This environment variable is intended for :command:`module` command internal
+ use to get knowledge of the modulefile commands applied for each
+ :mfcmd:`source-sh` command when loading the modulefile. In order to reverse
+ these modulefile commands when modulefile is unloaded to undo the environment
+ changes.
+
+ .. only:: html
+
+    .. versionadded:: 4.6
+
 .. envvar:: MODULES_ML
 
  If set to ``1``, define :command:`ml` command when initializing Modules (see
