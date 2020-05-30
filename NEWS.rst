@@ -25,6 +25,15 @@ Modules 4.6.0 (not yet released)
   internal procedures in addition to debug messages. Trace mode can be enabled
   by setting the ``verbosity`` config to the ``trace`` value or by using the
   ``-T``/``--trace`` command-line switches.
+* Introduce the ``source-sh`` modulefile command, to evaluate shell script and
+  apply resulting environment changes through modulefile commands. When a
+  modulefile using ``source-sh`` modulefile command is loaded, the modulefile
+  commands resulting from shell script evaluation are recorded in the
+  ``MODULES_LMSOURCESH`` environment variable to be able to undo these
+  environment changes when modulefile is unloaded and to report the modulefile
+  commands used when modulefile is displayed. The same kind of environment
+  changes than the ``sh-to-mod`` sub-command are tracked. The same list of
+  shells than ``sh-to-mod`` sub-command are supported.
 
 
 Modules 4.5.1 (2020-06-01)

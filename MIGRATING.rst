@@ -54,6 +54,62 @@ working directory are tracked. The following shells are supported: *sh*,
 ``createmodule.sh`` and ``createmodule.py`` scripts. However those two scripts
 are currently still provided for compatibility purpose.
 
+source-sh modulefile command
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``source-sh`` modulefile command is introduced to source environment
+changes done by the evaluation of a shell script passed as argument. With
+newly introduced ``sh-to-mod`` sub-command resulting environment changes done
+by script are output as modulefile commands. ``source-sh`` applies those
+modulefile commands as if they were directly written in loading modulefile.
+
+``source-sh`` is useful for software providing a shell script for their
+enablement. If you want to enable such software with ``module`` yet using
+shell script provided by software for this task, just write a modulefile
+using ``source-sh`` command to call the shell script.
+
+Keeping the same example used to describe ``sh-to-mod`` sub-command: *foo*
+software provides a ``foo-setup.sh`` script for its activation. Create a
+modulefile ``foo/1.2`` that calls this script::
+
+    $ cat /path/to/modulefiles/foo/1.2
+    #%Module
+    source-sh sh /path/to/foo-1.2/foo-setup.sh arg1
+
+Displaying this modulefile indicates the environment changes done by script::
+
+    $ module display foo/1.2
+    -------------------------------------------------------------------
+    /path/to/modulefiles/foo/1.2:
+
+    prepend-path    PATH /path/to/foo-1.2/bin
+    set-alias       foo {foobin -q -l}
+    setenv          FOOENV arg1
+    -------------------------------------------------------------------
+
+Loading the modulefile applies the environment changes seen above::
+
+    $ module load -v foo/1.2
+    Loading foo/1.2
+    $ echo $FOOENV
+    arg1
+    $ alias foo
+    alias foo='foobin -q -l'
+
+Track of these changes is kept in user environment to be able to undo them
+when modulefile is unloaded::
+
+    $ module unload -v foo/1.2
+    Unloading foo/1.2
+    $ echo $FOOENV
+    
+    $ alias foo
+    bash: alias: foo: not found
+
+Changes on environment variables, shell aliases, shell functions and current
+working directory are tracked. The following shells are supported: *sh*,
+*dash*, *csh*, *tcsh*, *bash*, *ksh*, *ksh93*, *zsh* and *fish*.
+
 Further reading
 ---------------
 
