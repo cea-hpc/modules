@@ -6,6 +6,32 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+Modules 4.5.1 (2020-06-01)
+--------------------------
+
+* Install: consistently output Makefile warning messages on stderr.
+* Script: add the ``mrel`` script, that automates build of the Modules release
+  files and performs tests over these distribution files to guaranty their
+  correctness.
+* Script: add the ``mpub`` script, that automates Modules new release
+  publishing over git repositories and websites.
+* Install: remove project-specific tools from git repository export thus from
+  release distribution files.
+* Disable pager when ``clear`` sub-command is called from ``ml`` shortcut
+  command. (fix issue #338)
+* In case a modulefile evaluation fails, environment context prior this failed
+  evaluation is restored. Fix environment variable restoration mechanism to
+  keep the link that monitors and updates environment variable array ``env``
+  in every Tcl sub-interpreters. (fix issue #340)
+* Ensure environment variable change at the Tcl interpreter level is
+  propagated to every sub-interpreters used to evaluate modulefiles or
+  modulercs. (fix issue #342)
+* Use absolute path to load Modules Tcl extension library. (fix issue #344
+  with contribution from Roy Storey)
+* Fix formatting of error stack trace not to look for internal commands to
+  withdraw if start-up stack pattern cannot be matched.
+
+
 Modules 4.5.0 (2020-04-07)
 --------------------------
 
