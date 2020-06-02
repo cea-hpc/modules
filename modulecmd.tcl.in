@@ -60,6 +60,7 @@ array set g_state_defs [list\
    tcl_ext_lib_loaded {0}\
    tcl_version [list [info patchlevel]]\
    term_columns {<undef> initStateTermColumns}\
+   usergroups {<undef> initStateUsergroups}\
    username {<undef> initStateUsername}\
 ]
 
@@ -350,6 +351,18 @@ proc initStateTermColumns {} {
    }
    # default size if tty cols cannot be found
    return [expr {![info exists cols] || $cols eq {0} ? 80 : $cols}]
+}
+
+# Get all groups of user running modulecmd.tcl process
+proc __initStateUsergroups {} {
+   # ensure groups including space in their name (found on Cygwin/MSYS
+   # platforms) are correctly set as list element
+   if {[catch {
+      return [split [string range [runCommand id -G -n -z] 0 end-1] \0]
+   } errMsg]} {
+      # fallback if '-z' option is not supported
+      return [runCommand id -G -n]
+   }
 }
 
 # Get name of user running modulecmd.tcl process
@@ -11710,6 +11723,7 @@ if {[catch {
    if {[info commands readFile] eq {}} {
       rename ::__readFile ::readFile
       rename ::__getFilesInDirectory ::getFilesInDirectory
+      rename ::__initStateUsergroups ::initStateUsergroups
       rename ::__initStateUsername ::initStateUsername
    }
 
