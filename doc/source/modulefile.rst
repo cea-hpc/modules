@@ -335,6 +335,36 @@ the *modulefile* is being loaded.
   is being  executed, either the C version or the Tcl-only version, to allow
   the *modulefile* writer to handle any differences between the two.
 
+ **module-info usergroups** [name]
+
+  Returns all the groups the user currently running :file:`modulecmd.tcl` is
+  member of as a list of strings if no *name* is given.
+
+  Returns ``1`` if one of the group current user running :file:`modulecmd.tcl`
+  is member of is *name*. Returns ``0`` otherwise.
+
+  If the Modules Tcl extension library is disabled, the :manpage:`id(1)`
+  command is invoked to fetch groups of current user.
+
+  .. only:: html
+
+     .. versionadded:: 4.6
+
+ **module-info username** [name]
+
+  Returns the username of the user currently running :file:`modulecmd.tcl` as
+  a string if no *name* is given.
+
+  Returns ``1`` if username of current user running :file:`modulecmd.tcl` is
+  *name*. Returns ``0`` otherwise.
+
+  If the Modules Tcl extension library is disabled, the :manpage:`id(1)`
+  command is invoked to fetch username of current user.
+
+  .. only:: html
+
+     .. versionadded:: 4.6
+
  **module-info version** modulefile
 
   Returns the physical module name and version of the passed symbolic
@@ -787,7 +817,7 @@ SEE ALSO
 --------
 
 :ref:`module(1)`, :ref:`ml(1)`, :manpage:`Tcl(n)`, :manpage:`TclX(n)`,
-:manpage:`xrdb(1)`, :manpage:`exec(n)`, :manpage:`uname(1)`,
+:manpage:`id(1)`, :manpage:`xrdb(1)`, :manpage:`exec(n)`, :manpage:`uname(1)`,
 :manpage:`domainname(1)`, :manpage:`tclvars(n)`, :manpage:`lsort(n)`
 
 
