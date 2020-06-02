@@ -60,6 +60,7 @@ array set g_state_defs [list\
    tcl_ext_lib_loaded {0}\
    tcl_version [list [info patchlevel]]\
    term_columns {<undef> initStateTermColumns}\
+   username {<undef> initStateUsername}\
 ]
 
 # Configuration option properties (superseding environment variable, default
@@ -349,6 +350,11 @@ proc initStateTermColumns {} {
    }
    # default size if tty cols cannot be found
    return [expr {![info exists cols] || $cols eq {0} ? 80 : $cols}]
+}
+
+# Get name of user running modulecmd.tcl process
+proc __initStateUsername {} {
+   return [runCommand id -u -n]
 }
 
 # Initialize Select Graphic Rendition table
@@ -11697,6 +11703,7 @@ if {[catch {
    if {[info commands readFile] eq {}} {
       rename ::__readFile ::readFile
       rename ::__getFilesInDirectory ::getFilesInDirectory
+      rename ::__initStateUsername ::initStateUsername
    }
 
    # source site configuration script if any
