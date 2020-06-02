@@ -247,20 +247,10 @@ the *modulefile* is being loaded.
  *option* is the type of information to be provided, and *info-args* are any
  arguments needed.
 
- **module-info type**
+ **module-info alias** name
 
-  Returns either ``C`` or ``Tcl`` to indicate which :command:`module` command
-  is being  executed, either the C version or the Tcl-only version, to allow
-  the *modulefile* writer to handle any differences between the two.
-
- **module-info mode** [modetype]
-
-  Returns the current :file:`modulecmd.tcl`'s mode as a string if no
-  *modetype* is given.
-
-  Returns ``1`` if :file:`modulecmd.tcl`'s mode is *modetype*. *modetype* can
-  be: ``load``, ``unload``, ``remove``, ``switch``, ``display``, ``help``,
-  ``test`` or ``whatis``.
+  Returns the full *modulefile* name to which the *modulefile* alias *name*
+  is assigned
 
  **module-info command** [commandname]
 
@@ -276,15 +266,32 @@ the *modulefile* is being loaded.
 
      .. versionadded:: 4.0
 
+ **module-info loaded** modulefile
+
+  Returns the names of currently loaded modules matching passed *modulefile*.
+  The parameter *modulefile* might either be a fully qualified *modulefile*
+  with name and version or just a directory which in case all loaded
+  *modulefiles* from the directory will be returned. The parameter
+  *modulefile* may also be a symbolic modulefile name or a modulefile alias.
+
+  .. only:: html
+
+     .. versionadded:: 4.1
+
+ **module-info mode** [modetype]
+
+  Returns the current :file:`modulecmd.tcl`'s mode as a string if no
+  *modetype* is given.
+
+  Returns ``1`` if :file:`modulecmd.tcl`'s mode is *modetype*. *modetype* can
+  be: ``load``, ``unload``, ``remove``, ``switch``, ``display``, ``help``,
+  ``test`` or ``whatis``.
+
  **module-info name**
 
   Return the name of the *modulefile*. This is not the full pathname for
   *modulefile*. See the `Modules Variables`_ section for information on the
   full pathname.
-
- **module-info specified**
-
-  Return the name of the *modulefile* specified on the command line.
 
  **module-info shell** [shellname]
 
@@ -311,17 +318,9 @@ the *modulefile* is being loaded.
   *shelltypename* can be: ``sh``, ``csh``, ``fish``, ``tcl``, ``perl``,
   ``python``, ``ruby``, ``lisp``, ``cmake``, ``r``.
 
- **module-info alias** name
+ **module-info specified**
 
-  Returns the full *modulefile* name to which the *modulefile* alias *name*
-  is assigned
-
- **module-info version** modulefile
-
-  Returns the physical module name and version of the passed symbolic
-  version *modulefile*.  The parameter *modulefile* might either be a full
-  qualified *modulefile* with name and version, another symbolic *modulefile*
-  name or a *modulefile* alias.
+  Return the name of the *modulefile* specified on the command line.
 
  **module-info symbols** modulefile
 
@@ -330,17 +329,18 @@ the *modulefile* is being loaded.
   *modulefile* with name and version, another symbolic *modulefile* name
   or a *modulefile* alias.
 
- **module-info loaded** modulefile
+ **module-info type**
 
-  Returns the names of currently loaded modules matching passed *modulefile*.
-  The parameter *modulefile* might either be a fully qualified *modulefile*
-  with name and version or just a directory which in case all loaded
-  *modulefiles* from the directory will be returned. The parameter
-  *modulefile* may also be a symbolic modulefile name or a modulefile alias.
+  Returns either ``C`` or ``Tcl`` to indicate which :command:`module` command
+  is being  executed, either the C version or the Tcl-only version, to allow
+  the *modulefile* writer to handle any differences between the two.
 
-  .. only:: html
+ **module-info version** modulefile
 
-     .. versionadded:: 4.1
+  Returns the physical module name and version of the passed symbolic
+  version *modulefile*.  The parameter *modulefile* might either be a full
+  qualified *modulefile* with name and version, another symbolic *modulefile*
+  name or a *modulefile* alias.
 
 .. mfcmd:: module-version modulefile version-name...
 
