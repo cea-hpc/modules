@@ -18,7 +18,7 @@ TEA_LOAD_TCLCONFIG
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS([fcntl.h unistd.h errno.h limits.h sys/types.h dirent.h])
+AC_CHECK_HEADERS([fcntl.h unistd.h errno.h limits.h sys/types.h pwd.h dirent.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SSIZE_T

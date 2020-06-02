@@ -1,7 +1,7 @@
 /*************************************************************************
  *
  * ENVMODULES.H, Modules Tcl extension library
- * Copyright (C) 2018-2019 Xavier Delaruelle
+ * Copyright (C) 2018-2020 Xavier Delaruelle
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,9 @@ MODULE_SCOPE int Envmodules_ReadFileObjCmd (ClientData dummy,
    Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
 
 MODULE_SCOPE int Envmodules_GetFilesInDirectoryObjCmd (ClientData dummy,
+   Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
+
+MODULE_SCOPE int Envmodules_InitStateUsernameObjCmd (ClientData dummy,
    Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
 
 /* Only the _Init function is exported. */

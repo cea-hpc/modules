@@ -1,7 +1,7 @@
 /*************************************************************************
  *
  * ENVMODULES.C, Modules Tcl extension library
- * Copyright (C) 2018-2019 Xavier Delaruelle
+ * Copyright (C) 2018-2020 Xavier Delaruelle
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 #include <limits.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <pwd.h>
 #include <string.h>
 #include "config.h"
 #include "envmodules.h"
@@ -259,6 +260,61 @@ Envmodules_ReadFileObjCmd(
 
 /*----------------------------------------------------------------------
  *
+ * Envmodules_InitStateUsernameObjCmd --
+ *
+ *	 This function is invoked to return the username of user running
+ *	 current process.
+ *
+ * Results:
+ *	 A standard Tcl result.
+ *
+ * Side effects:
+ *	 None.
+ *
+ *---------------------------------------------------------------------*/
+
+int
+Envmodules_InitStateUsernameObjCmd(
+   ClientData dummy,       /* Not used. */
+   Tcl_Interp *interp,     /* Current interpreter. */
+   int objc,               /* Number of arguments. */
+   Tcl_Obj *const objv[])  /* Argument objects. */
+{
+   uid_t uid;
+   struct passwd *pwd;
+   char uidstr[16];
+   Tcl_Obj *res;
+
+   /* Get current user id */
+   uid = getuid();
+
+   /* Fetch corresponding passwd entry */
+   if ((pwd = getpwuid(uid)) == NULL) {
+      Tcl_SetErrno(errno);
+      sprintf (uidstr, "%d", uid);
+#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
+      Tcl_AppendResult(interp, "couldn't find name for user id \"", uidstr,
+         "\": ", Tcl_PosixError(interp), (char *) NULL);
+#else
+      Tcl_SetObjResult(interp,
+         Tcl_ObjPrintf("couldn't find name for user id \"%s\": %s", uidstr,
+         Tcl_PosixError(interp)));
+#endif
+      return TCL_ERROR;
+   }
+
+   /* Set username as result */
+   res = Tcl_NewObj();
+   Tcl_IncrRefCount(res);
+   Tcl_AppendToObj(res, pwd->pw_name, strlen(pwd->pw_name));
+
+   Tcl_SetObjResult(interp, res);
+   Tcl_DecrRefCount(res);
+   return TCL_OK;
+}
+
+/*----------------------------------------------------------------------
+ *
  * Envmodules_Init --
  *
  *  Initialize the Modules commands.
@@ -285,6 +341,9 @@ Envmodules_Init(
       (ClientData) NULL, (Tcl_CmdDeleteProc*) NULL);
    Tcl_CreateObjCommand(interp, "getFilesInDirectory",
       Envmodules_GetFilesInDirectoryObjCmd, (ClientData) NULL,
+      (Tcl_CmdDeleteProc*) NULL);
+   Tcl_CreateObjCommand(interp, "initStateUsername",
+      Envmodules_InitStateUsernameObjCmd, (ClientData) NULL,
       (Tcl_CmdDeleteProc*) NULL);
 
    /* Provide the Envmodules package */
