@@ -1856,17 +1856,25 @@ proc module-info {what {more {}}} {
          return [getLoadedMatchingName $mod returnall]
       }
       usergroups {
-         if {$more ne {}} {
-            return [isInList [getState usergroups] $more]
+         if {[getState is_win]} {
+            knerror "module-info usergroups not supported on Windows platform"
          } else {
-            return [getState usergroups]
+            if {$more ne {}} {
+               return [isInList [getState usergroups] $more]
+            } else {
+               return [getState usergroups]
+            }
          }
       }
       username {
-         if {$more ne {}} {
-            return [expr {[getState username] eq $more}]
+         if {[getState is_win]} {
+            knerror "module-info username not supported on Windows platform"
          } else {
-            return [getState username]
+            if {$more ne {}} {
+               return [expr {[getState username] eq $more}]
+            } else {
+               return [getState username]
+            }
          }
       }
       default {
