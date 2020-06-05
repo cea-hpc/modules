@@ -1,0 +1,98 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2020/06/05
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:    module-info username
+#   Sub-Command:    *
+#
+#   Comment:	%C{
+#           Check 'module-info username' modulefile command
+#		}C%
+#
+##############################################################################
+
+# ensure auto symbolic versions are not set for these tests
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+
+set mp $modpath.2
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+
+# modulefile usage
+set ans [list]
+lappend ans [list set TS1 $username]
+lappend ans [list set TS2 1]
+lappend ans [list set TS3 0]
+lappend ans [list setpath LOADEDMODULES info/username]
+lappend ans [list setpath _LMFILES_ $mp/info/username]
+testouterr_cmd sh {load info/username} $ans {}
+
+set tserr "$modlin
+$mpre/info/username:
+
+setenv\t\tTS1 $username
+setenv\t\tTS2 1
+setenv\t\tTS3 0
+$modlin"
+testouterr_cmd_re sh {show info/username} OK $tserr
+
+# modulerc usage
+testouterr_cmd sh "is-avail info/$username" ERR {}
+setenv_var TESTSUITE_INFO_USER_IN_RC 1
+testouterr_cmd sh "is-avail info/$username" OK {}
+testouterr_cmd_re sh "show info/$username" OK $tserr
+unsetenv_var TESTSUITE_INFO_USER_IN_RC
+
+
+# make `id` command unavailable
+set ORIG_PATH $env(PATH)
+setenv_var PATH {}
+if {$install_libtclenvmodules eq {y}} {
+    testouterr_cmd sh {load info/username} $ans {}
+} else {
+    # impact on modulefile
+    set tserr [msg_load info/username "$error_msgs: Command 'id' cannot be found"]
+    testouterr_cmd sh {load info/username} ERR $tserr
+
+    # impact on modulerc
+    setenv_var TESTSUITE_INFO_USER_IN_RC 1
+    testouterr_cmd sh "is-avail info/$username" ERR {}
+    set tserr [msg_moderr {Command 'id' cannot be found} {eval $initproclist"
+      (procedure "getState" line 15)
+      invoked from within
+  "getState username"
+      (procedure "module-info" line 112)
+      invoked from within
+  "module-info username} $mp/info/.modulerc 4 {  }]\n$err_path'info/$username'
+    testouterr_cmd sh "show info/$username" ERR $tserr
+
+    unsetenv_var TESTSUITE_INFO_USER_IN_RC
+}
+setenv_var PATH $ORIG_PATH
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+setenv_path_var MODULEPATH $modpath
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+
+unset mp
+unset mpre
+unset ans
+unset tserr
+unset ORIG_PATH
