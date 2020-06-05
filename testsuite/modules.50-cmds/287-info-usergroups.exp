@@ -84,6 +84,23 @@ if {$install_libtclenvmodules eq {y}} {
 setenv_var PATH $ORIG_PATH
 
 
+# fake Windows platform if expected siteconfig file is installed
+if {[siteconfig_isStderrTty]} {
+# fake Windows platform with a cmd.exe tool to execute system commands
+setenv_var TESTSUITE_ENABLE_SITECONFIG_WINDOWS_PLATFORM 1
+
+set tserr [msg_load info/usergroups [msg_moderr {module-info usergroups not supported on Windows platform} {module-info usergroups} $mp/info/usergroups 2 {}]]
+testouterr_cmd sh {load info/usergroups} ERR $tserr
+
+setenv_var TESTSUITE_INFO_GROUP_IN_RC 1
+set tserr [msg_moderr {module-info usergroups not supported on Windows platform} {module-info usergroups} $mp/info/.modulerc 7 {  }]\n$err_path'info/$userfgroup'
+testouterr_cmd sh "load info/$userfgroup" ERR $tserr
+unsetenv_var TESTSUITE_INFO_GROUP_IN_RC
+
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_WINDOWS_PLATFORM
+}
+
+
 #
 #  Cleanup
 #
