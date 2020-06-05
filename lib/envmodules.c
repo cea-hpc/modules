@@ -25,6 +25,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <pwd.h>
+#include <grp.h>
 #include <string.h>
 #include "config.h"
 #include "envmodules.h"
@@ -315,6 +316,111 @@ Envmodules_InitStateUsernameObjCmd(
 
 /*----------------------------------------------------------------------
  *
+ * Envmodules_InitStateUsergroupsObjCmd --
+ *
+ *	 This function is invoked to return all the groups the user running
+ *	 current process is member of.
+ *
+ * Results:
+ *	 A standard Tcl result.
+ *
+ * Side effects:
+ *	 None.
+ *
+ *---------------------------------------------------------------------*/
+
+int
+Envmodules_InitStateUsergroupsObjCmd(
+   ClientData dummy,       /* Not used. */
+   Tcl_Interp *interp,     /* Current interpreter. */
+   int objc,               /* Number of arguments. */
+   Tcl_Obj *const objv[])  /* Argument objects. */
+{
+   int maxgroups;
+   GETGROUPS_T *groups;
+   int ngroups = 0;
+   int egid_in_groups = 0;
+   GETGROUPS_T egid;
+   int i;
+   struct group *grp;
+   char gidstr[16];
+   Tcl_Obj *lres;
+
+   /* Get actually configured number of groups */
+#if defined(HAVE_SYSCONF) && defined(_SC_NGROUPS_MAX)
+   maxgroups = sysconf(_SC_NGROUPS_MAX);
+#else
+#  if defined(NGROUPS_MAX)
+   maxgroups = NGROUPS_MAX;
+#  else
+   maxgroups = DEFAULT_MAXGROUPS;
+#  endif
+#endif
+
+   /* Fetch supplementary group list unless getgroups not supported */
+   groups = (GETGROUPS_T *) ckalloc(maxgroups * sizeof(GETGROUPS_T));
+
+#if defined (HAVE_GETGROUPS)
+   if ((ngroups = getgroups(maxgroups, groups)) == -1) {
+      Tcl_SetErrno(errno);
+#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
+      Tcl_AppendResult(interp, "couldn't get supplementary groups: ",
+         Tcl_PosixError(interp), (char *) NULL);
+#else
+      Tcl_SetObjResult(interp,
+         Tcl_ObjPrintf("couldn't get supplementary groups: %s",
+         Tcl_PosixError(interp)));
+#endif
+      ckfree((char *) groups);
+      return TCL_ERROR;
+   }
+#endif
+
+   /* Add primary group if not part of getgroups result (or if getgroups
+    * function is not available) */
+   egid = getegid();
+   for (i = 0; i < ngroups; i++) {
+      if (egid == groups[i]) {
+         egid_in_groups = 1;
+         break;
+      }
+   }
+   if (egid_in_groups == 0) {
+      groups[ngroups] = egid;
+      ngroups++;
+   }
+
+   /* Add group name of primary gid and each supplementatry gid to result
+    * list */
+   lres = Tcl_NewObj();
+   Tcl_IncrRefCount(lres);
+   for (i = 0; i < ngroups; i++) {
+      if ((grp = getgrgid(groups[i])) == NULL) {
+         Tcl_SetErrno(errno);
+         sprintf(gidstr, "%d", groups[i]);
+#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
+         Tcl_AppendResult(interp, "couldn't find name for group id \"",
+            gidstr, "\": ", Tcl_PosixError(interp), (char *) NULL);
+#else
+         Tcl_SetObjResult(interp,
+            Tcl_ObjPrintf("couldn't find name for group id \"%s\": %s",
+            gidstr, Tcl_PosixError(interp)));
+#endif
+         ckfree((char *) groups);
+         return TCL_ERROR;
+      }
+      Tcl_ListObjAppendElement(interp, lres, Tcl_NewStringObj(grp->gr_name,
+         -1));
+   }
+
+   Tcl_SetObjResult(interp, lres);
+   Tcl_DecrRefCount(lres);
+   ckfree((char *) groups);
+   return TCL_OK;
+}
+
+/*----------------------------------------------------------------------
+ *
  * Envmodules_Init --
  *
  *  Initialize the Modules commands.
@@ -344,6 +450,9 @@ Envmodules_Init(
       (Tcl_CmdDeleteProc*) NULL);
    Tcl_CreateObjCommand(interp, "initStateUsername",
       Envmodules_InitStateUsernameObjCmd, (ClientData) NULL,
+      (Tcl_CmdDeleteProc*) NULL);
+   Tcl_CreateObjCommand(interp, "initStateUsergroups",
+      Envmodules_InitStateUsergroupsObjCmd, (ClientData) NULL,
       (Tcl_CmdDeleteProc*) NULL);
 
    /* Provide the Envmodules package */

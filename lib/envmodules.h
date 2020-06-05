@@ -25,6 +25,7 @@
 
 #define READ_BUFFER_SIZE 4096
 #define FIRSTLINE_LENGTH 32
+#define DEFAULT_MAXGROUPS 32
 
 /* Prototypes of internal functions. */
 MODULE_SCOPE int Envmodules_ReadFileObjCmd (ClientData dummy,
@@ -34,6 +35,9 @@ MODULE_SCOPE int Envmodules_GetFilesInDirectoryObjCmd (ClientData dummy,
    Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
 
 MODULE_SCOPE int Envmodules_InitStateUsernameObjCmd (ClientData dummy,
+   Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
+
+MODULE_SCOPE int Envmodules_InitStateUsergroupsObjCmd (ClientData dummy,
    Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
 
 /* Only the _Init function is exported. */

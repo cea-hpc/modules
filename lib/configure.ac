@@ -18,12 +18,14 @@ TEA_LOAD_TCLCONFIG
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS([fcntl.h unistd.h errno.h limits.h sys/types.h pwd.h dirent.h])
+AC_CHECK_HEADERS([fcntl.h unistd.h errno.h limits.h sys/types.h pwd.h grp.h dirent.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SSIZE_T
 
 # Checks for library functions.
+AC_FUNC_GETGROUPS
+AC_CHECK_FUNC(sysconf, AC_DEFINE(HAVE_SYSCONF, 1, [Define to 1 if you have the sysconf function]))
 
 # TEA-specific setup
 TEA_SETUP_COMPILER
