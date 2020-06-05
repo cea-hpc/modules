@@ -550,9 +550,18 @@ if {$xrdb eq ""} {
 set domainname [auto_execok domainname]
 set domainname_warn "$error_msgs: Command 'domainname' cannot be found"
 
-# get current username
+# get current username and groups
 set username [exec id -u -n]
 send_user "\tCurrent username is '$username'\n"
+if {[catch {
+    # correctly split groups in case some contain a space character (like on Cygwin/MSYS platforms)
+    set usergroups [lsort [split [string range [exec id -G -n -z] 0 end-1] \0]]
+} errMsg]} {
+    # fallback to a more generic groups retrieval (in case '-z' option not supported on id)
+    set usergroups [lsort [exec id -G -n]]
+}
+send_user "\tGroups of current user are '$usergroups'\n"
+set userfgroup [lindex $usergroups 0]
 
 # escape regexp chars in string
 proc escre {str} {

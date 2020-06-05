@@ -1,0 +1,100 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2020/06/05
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:    module-info usergroups
+#   Sub-Command:    *
+#
+#   Comment:	%C{
+#           Check 'module-info usergroups' modulefile command
+#		}C%
+#
+##############################################################################
+
+# ensure auto symbolic versions are not set for these tests
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+
+set mp $modpath.2
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+
+# modulefile usage
+set ans [list]
+lappend ans [list set TS1 $usergroups]
+lappend ans [list set TS2 1]
+lappend ans [list set TS3 0]
+lappend ans [list setpath LOADEDMODULES info/usergroups]
+lappend ans [list setpath _LMFILES_ $mp/info/usergroups]
+testouterr_cmd sh {load info/usergroups} $ans {}
+
+set usergroups_disp [expr {[llength $usergroups] > 1 ? [regsub -all "\(\[{}\]\)" "{$usergroups}" {\\\1}] : $usergroups}]
+set tserr "$modlin
+$mpre/info/usergroups:
+
+setenv\t\tTS1 $usergroups_disp
+setenv\t\tTS2 1
+setenv\t\tTS3 0
+$modlin"
+testouterr_cmd_re sh {show info/usergroups} OK $tserr
+
+# modulerc usage
+testouterr_cmd sh "is-avail info/$userfgroup" ERR {}
+setenv_var TESTSUITE_INFO_GROUP_IN_RC 1
+testouterr_cmd sh "is-avail info/$userfgroup" OK {}
+testouterr_cmd_re sh "show info/$userfgroup" OK $tserr
+unsetenv_var TESTSUITE_INFO_GROUP_IN_RC
+
+
+# make `id` command unavailable
+set ORIG_PATH $env(PATH)
+setenv_var PATH {}
+if {$install_libtclenvmodules eq {y}} {
+    testouterr_cmd sh {load info/usergroups} $ans {}
+} else {
+    # impact on modulefile
+    set tserr [msg_load info/usergroups "$error_msgs: Command 'id' cannot be found"]
+    testouterr_cmd sh {load info/usergroups} ERR $tserr
+
+    # impact on modulerc
+    setenv_var TESTSUITE_INFO_GROUP_IN_RC 1
+    testouterr_cmd sh "is-avail info/$userfgroup" ERR {}
+    set tserr [msg_moderr {Command 'id' cannot be found} {eval $initproclist"
+      (procedure "getState" line 15)
+      invoked from within
+  "getState usergroups"
+      (procedure "module-info" line 101)
+      invoked from within
+  "module-info usergroups} $mp/info/.modulerc 7 {  }]\n$err_path'info/$userfgroup'
+    testouterr_cmd sh "show info/$userfgroup" ERR $tserr
+
+    unsetenv_var TESTSUITE_INFO_GROUP_IN_RC
+}
+setenv_var PATH $ORIG_PATH
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+setenv_path_var MODULEPATH $modpath
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+
+unset mp
+unset mpre
+unset ans
+unset tserr
+unset ORIG_PATH
+unset usergroups_disp
