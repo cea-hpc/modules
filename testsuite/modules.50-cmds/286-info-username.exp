@@ -69,14 +69,57 @@ if {$install_libtclenvmodules eq {y}} {
     # impact on modulerc
     setenv_var TESTSUITE_INFO_USER_IN_RC 1
     testouterr_cmd sh "is-avail info/$username" ERR {}
-    set tserr [msg_moderr {Command 'id' cannot be found} {eval $initproclist"
+
+    switch -- $tclsh_version {
+    8.4 {
+        if {[info exists env(COVERAGE)]} {
+            set extramsg "  mode \{incr ::_instrument_::log(<EXTMATCH>);
+  if \{\$more ne \{\}\} \{incr ::_instrument_::log(<EXTMATCH>...\""
+        } else {
+            set extramsg "        mode \{
+           if \{\$more ne \{\}\} \{
+              set command \[currentCommandName\]
+              return \[expr \{\$mode eq \$more || (\$...\""
+        }
+        set tserr [string map {<EXTMATCH> (.*)+} [escre [msg_moderr {Command 'id' cannot be found} "eval \$initproclist\"
+      (procedure \"getState\" line 15)
+      invoked from within
+  \"getState username\"
+      (\"username\" arm line 8)
+      invoked from within
+  \"switch -- \$what \{
+$extramsg
+      (procedure \"module-info\" line 6)
+      invoked from within
+  \"module-info username\"
+      invoked from within
+  \"if \{\[info exists env(TESTSUITE_INFO_USER_IN_RC)\]\} \{
+      module-virtual info/\[module-info username\] ./username
+  \}" $mp/info/.modulerc 3 {  }]\n$err_path'info/$username']]
+    }
+    8.5 {
+        set tserr [escre [msg_moderr {Command 'id' cannot be found} {eval $initproclist"
       (procedure "getState" line 15)
       invoked from within
   "getState username"
       (procedure "module-info" line 112)
       invoked from within
-  "module-info username} $mp/info/.modulerc 4 {  }]\n$err_path'info/$username'
-    testouterr_cmd sh "show info/$username" ERR $tserr
+  "module-info username"
+      invoked from within
+  "if {[info exists env(TESTSUITE_INFO_USER_IN_RC)]} {
+      module-virtual info/[module-info username] ./username
+  }} $mp/info/.modulerc 3 {  }]\n$err_path'info/$username']
+    }
+    default {
+        set tserr [escre [msg_moderr {Command 'id' cannot be found} {eval $initproclist"
+      (procedure "getState" line 15)
+      invoked from within
+  "getState username"
+      (procedure "module-info" line 112)
+      invoked from within
+  "module-info username} $mp/info/.modulerc 4 {  }]\n$err_path'info/$username']
+    }}
+    testouterr_cmd_re sh "show info/$username" ERR $tserr
 
     unsetenv_var TESTSUITE_INFO_USER_IN_RC
 }
@@ -88,12 +131,70 @@ if {[siteconfig_isStderrTty]} {
 # fake Windows platform with a cmd.exe tool to execute system commands
 setenv_var TESTSUITE_ENABLE_SITECONFIG_WINDOWS_PLATFORM 1
 
-set tserr [msg_load info/username [msg_moderr {module-info username not supported on Windows platform} {module-info username} $mp/info/username 2 {}]]
-testouterr_cmd sh {load info/username} ERR $tserr
+switch -- $tclsh_version {
+8.4 {
+    if {[info exists env(COVERAGE)]} {
+        set extramsg "mode \{incr ::_instrument_::log(<EXTMATCH>);
+if \{\$more ne \{\}\} \{incr ::_instrument_::log(<EXTMATCH>...\""
+    } else {
+        set extramsg "      mode \{
+         if \{\$more ne \{\}\} \{
+            set command \[currentCommandName\]
+            return \[expr \{\$mode eq \$more || (\$...\""
+    }
+    set tserr [string map {<EXTMATCH> (.*)+} [escre [msg_load info/username [msg_moderr {module-info username not supported on Windows platform} "switch -- \$what \{
+$extramsg
+    (procedure \"module-info\" line 6)
+    invoked from within
+\"module-info username\"
+    invoked from within
+\"set user \[module-info username\]" $mp/info/username 2 {}]]]]
+}
+8.5 {
+    set tserr [escre [msg_load info/username [msg_moderr {module-info username not supported on Windows platform} {module-info username"
+    invoked from within
+"set user [module-info username]} $mp/info/username 2 {}]]]
+}
+default {
+    set tserr [escre [msg_load info/username [msg_moderr {module-info username not supported on Windows platform} {module-info username} $mp/info/username 2 {}]]]
+}}
+testouterr_cmd_re sh {load info/username} ERR $tserr
 
 setenv_var TESTSUITE_INFO_USER_IN_RC 1
-set tserr [msg_moderr {module-info username not supported on Windows platform} {module-info username} $mp/info/.modulerc 4 {  }]\n$err_path'info/$username'
-testouterr_cmd sh "load info/$username" ERR $tserr
+
+switch -- $tclsh_version {
+8.4 {
+    if {[info exists env(COVERAGE)]} {
+        set extramsg "  mode \{incr ::_instrument_::log(<EXTMATCH>);
+  if \{\$more ne \{\}\} \{incr ::_instrument_::log(<EXTMATCH>...\""
+    } else {
+        set extramsg "        mode \{
+           if \{\$more ne \{\}\} \{
+              set command \[currentCommandName\]
+              return \[expr \{\$mode eq \$more || (\$...\""
+    }
+    set tserr [string map {<EXTMATCH> (.*)+} [escre [msg_moderr {module-info username not supported on Windows platform} "switch -- \$what \{
+$extramsg
+      (procedure \"module-info\" line 6)
+      invoked from within
+  \"module-info username\"
+      invoked from within
+  \"if \{\[info exists env(TESTSUITE_INFO_USER_IN_RC)\]\} \{
+      module-virtual info/\[module-info username\] ./username
+  \}" $mp/info/.modulerc 3 {  }]\n$err_path'info/$username']]
+}
+8.5 {
+    set tserr [escre [msg_moderr {module-info username not supported on Windows platform} {module-info username"
+      invoked from within
+  "if {[info exists env(TESTSUITE_INFO_USER_IN_RC)]} {
+      module-virtual info/[module-info username] ./username
+  }} $mp/info/.modulerc 3 {  }]\n$err_path'info/$username']
+}
+default {
+    set tserr [escre [msg_moderr {module-info username not supported on Windows platform} {module-info username} $mp/info/.modulerc 4 {  }]\n$err_path'info/$username']
+}}
+
+testouterr_cmd_re sh "load info/$username" ERR $tserr
 unsetenv_var TESTSUITE_INFO_USER_IN_RC
 
 unsetenv_var TESTSUITE_ENABLE_SITECONFIG_WINDOWS_PLATFORM
@@ -113,3 +214,6 @@ unset mpre
 unset ans
 unset tserr
 unset ORIG_PATH
+if {[info exists extramsg]} {
+    unset extramsg
+}
