@@ -55,7 +55,8 @@ TEST_PREREQ += lib/libtclenvmodules$(SHLIB_SUFFIX)
 ifeq ($(COVERAGE),y)
 TEST_PREREQ += lib/libtestutil-closedir$(SHLIB_SUFFIX) \
 	lib/libtestutil-getpwuid$(SHLIB_SUFFIX) \
-	lib/libtestutil-getgroups$(SHLIB_SUFFIX)
+	lib/libtestutil-getgroups$(SHLIB_SUFFIX) \
+	lib/libtestutil-getgrgid$(SHLIB_SUFFIX)
 endif
 endif
 
@@ -349,6 +350,9 @@ lib/libtestutil-getpwuid$(SHLIB_SUFFIX):
 	$(MAKE) -C lib $(@F)
 
 lib/libtestutil-getgroups$(SHLIB_SUFFIX):
+	$(MAKE) -C lib $(@F)
+
+lib/libtestutil-getgrgid$(SHLIB_SUFFIX):
 	$(MAKE) -C lib $(@F)
 
 # example configs for test rules
