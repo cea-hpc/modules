@@ -22,11 +22,11 @@ Version 4.6 introduces new functionalities that are described in this section.
 sh-to-mod sub-command
 ^^^^^^^^^^^^^^^^^^^^^
 
-The ``sh-to-mod`` sub-command is added to output as a modulefile content the
-environment changes done by the evaluation of a shell script passed as
-argument. ``sh-to-mod`` is especially useful for software providing a shell
-script for their enablement in shell session: it can convert these scripts
-into modulefiles.
+The :subcmd:`sh-to-mod` sub-command is added to output as a modulefile content
+the environment changes done by the evaluation of a shell script passed as
+argument. :subcmd:`sh-to-mod` is especially useful for software providing a
+shell script for their enablement in shell session: it can convert these
+scripts into modulefiles.
 
 Say for instance, a *foo* software has been installed and it provides a
 ``foo-setup.sh`` script to activate *foo* software in user environment::
@@ -50,26 +50,27 @@ Changes on environment variables, shell aliases, shell functions and current
 working directory are tracked. The following shells are supported: *sh*,
 *dash*, *csh*, *tcsh*, *bash*, *ksh*, *ksh93*, *zsh* and *fish*.
 
-``sh-to-mod`` acts as a full replacement for the standalone
-``createmodule.sh`` and ``createmodule.py`` scripts. However those two scripts
-are currently still provided for compatibility purpose.
+:subcmd:`sh-to-mod` acts as a full replacement for the standalone
+:command:`createmodule.sh` and :command:`createmodule.py` scripts. However
+those two scripts are currently still provided for compatibility purpose.
 
 source-sh modulefile command
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ``source-sh`` modulefile command is introduced to source environment
+The :mfcmd:`source-sh` modulefile command is introduced to source environment
 changes done by the evaluation of a shell script passed as argument. With
-newly introduced ``sh-to-mod`` sub-command resulting environment changes done
-by script are output as modulefile commands. ``source-sh`` applies those
-modulefile commands as if they were directly written in loading modulefile.
+newly introduced :subcmd:`sh-to-mod` sub-command resulting environment changes
+done by script are output as modulefile commands. :mfcmd:`source-sh` applies
+those modulefile commands as if they were directly written in loading
+modulefile.
 
-``source-sh`` is useful for software providing a shell script for their
-enablement. If you want to enable such software with ``module`` yet using
-shell script provided by software for this task, just write a modulefile
-using ``source-sh`` command to call the shell script.
+:mfcmd:`source-sh` is useful for software providing a shell script for their
+enablement. If you want to enable such software with :command:`module` yet
+using shell script provided by software for this task, just write a modulefile
+using :mfcmd:`source-sh` command to call the shell script.
 
-Keeping the same example used to describe ``sh-to-mod`` sub-command: *foo*
-software provides a ``foo-setup.sh`` script for its activation. Create a
+Keeping the same example used to describe :subcmd:`sh-to-mod` sub-command:
+*foo* software provides a ``foo-setup.sh`` script for its activation. Create a
 modulefile ``foo/1.2`` that calls this script::
 
     $ cat /path/to/modulefiles/foo/1.2

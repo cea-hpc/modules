@@ -15,48 +15,55 @@ Modules 4.6.0 (not yet released)
 * Add the ``setState``, ``unsetState``, ``lappendState``, ``isStateDefined``
   and ``isStateEqual`` procedures to provide unified ways to set or check the
   value of state.
-* Introduce the ``sh-to-mod`` sub-command, to evaluate shell script and
+* Introduce the :subcmd:`sh-to-mod` sub-command, to evaluate shell script and
   determine the environment changes it does. Corresponding modulefile
   content is outputted as a result. Changes on environment variables, shell
   aliases, shell functions and current working directory are tracked. The
   following shells are supported: sh, dash, csh, tcsh, bash, ksh, ksh93, zsh
   and fish.
-* Add the ``trace`` verbosity level, to report each call of ``modulecmd.tcl``
-  internal procedures in addition to debug messages. Trace mode can be enabled
-  by setting the ``verbosity`` config to the ``trace`` value or by using the
-  ``-T``/``--trace`` command-line switches.
-* Introduce the ``source-sh`` modulefile command, to evaluate shell script and
-  apply resulting environment changes through modulefile commands. When a
-  modulefile using ``source-sh`` modulefile command is loaded, the modulefile
-  commands resulting from shell script evaluation are recorded in the
-  ``MODULES_LMSOURCESH`` environment variable to be able to undo these
-  environment changes when modulefile is unloaded and to report the modulefile
-  commands used when modulefile is displayed. The same kind of environment
-  changes than the ``sh-to-mod`` sub-command are tracked. The same list of
-  shells than ``sh-to-mod`` sub-command are supported. (fix issue #346)
+* Add the ``trace`` verbosity level, to report each call of
+  :file:`modulecmd.tcl` internal procedures in addition to debug messages.
+  Trace mode can be enabled by setting the ``verbosity`` config to the
+  ``trace`` value or by using the :option:`-T`/:option:`--trace` command-line
+  switches.
+* Introduce the :mfcmd:`source-sh` modulefile command, to evaluate shell
+  script and apply resulting environment changes through modulefile commands.
+  When a modulefile using :mfcmd:`source-sh` modulefile command is loaded, the
+  modulefile commands resulting from shell script evaluation are recorded in
+  the :envvar:`MODULES_LMSOURCESH` environment variable to be able to undo
+  these environment changes when modulefile is unloaded and to report the
+  modulefile commands used when modulefile is displayed. The same kind of
+  environment changes than the :subcmd:`sh-to-mod` sub-command are tracked.
+  The same list of shells than :subcmd:`sh-to-mod` sub-command are supported.
+  (fix issue #346)
 * Doc: add *Source shell script in modulefile* cookbook recipe.
 * Doc: embed new Modules logo on website, online README and documentation
   portal.
-* Install: adapt ``configure`` script to pass to the ``configure`` script of
-  Modules compatibility version only a subset of the options it supports (most
-  commonly used options).
-* Install: raise an error when an unknown option is passed to ``configure``
-  script rather silently ignore it. (fix issue #348)
+* Install: adapt :file:`configure` script to pass to the :file:`configure`
+  script of Modules compatibility version only a subset of the options it
+  supports (most commonly used options).
+* Install: raise an error when an unknown option is passed to
+  :file:`configure` script rather silently ignore it. (fix issue #348)
 * Install: enable the definition of installation directory options of
-  ``configure`` script with the ``--option value`` syntax in addition to the
-  ``--option=value`` syntax. (fix issue #348)
+  :file:`configure` script with the ``--option value`` syntax in addition to
+  the ``--option=value`` syntax. (fix issue #348)
 * Install: disable by default the build of Modules compatibility version. From
   now on, option ``--enable-compat-version`` has to be set to trigger this
   build.
-* Doc: alphabetically sort sub-commands of ``module-info`` modulefile Tcl
+* Doc: alphabetically sort sub-commands of :mfcmd:`module-info` modulefile Tcl
   command in :ref:`modulefile(4)` document.
-* Script: clean previously built environment-modules RPMs in ``mrel``.
-* Introduce ``module-info username`` modulefile command to get the username of
-  the user currently running ``modulecmd.tcl`` or to test a string passed as
-  argument corresponds to this username.
-* Introduce ``module-info usergroups`` modulefile command to get all the
-  groups of the user currently running ``modulecmd.tcl`` or to test a string
-  passed as argument corresponds to one of these groups.
+* Script: clean previously built environment-modules RPMs in :command:`mrel`.
+* Introduce the ``username`` sub-command to the :mfcmd:`module-info`
+  modulefile command to get the username of the user currently running
+  :file:`modulecmd.tcl` or to test a string passed as argument corresponds to
+  this username.
+* Introduce the ``usergroups`` sub-command to the :mfcmd:`module-info`
+  modulefile command to get all the groups of the user currently running
+  :file:`modulecmd.tcl` or to test a string passed as argument corresponds to
+  one of these groups.
+* Doc: improve markup of :ref:`NEWS` and :ref:`MIGRATING` documents starting
+  from this 4.6 version to enable references to module sub-commands, command
+  line switches, environment variables and modulefile Tcl commands.
 
 
 Modules 4.5.1 (2020-06-01)
