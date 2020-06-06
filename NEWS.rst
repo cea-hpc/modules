@@ -33,7 +33,7 @@ Modules 4.6.0 (not yet released)
   environment changes when modulefile is unloaded and to report the modulefile
   commands used when modulefile is displayed. The same kind of environment
   changes than the ``sh-to-mod`` sub-command are tracked. The same list of
-  shells than ``sh-to-mod`` sub-command are supported.
+  shells than ``sh-to-mod`` sub-command are supported. (fix issue #346)
 * Doc: add *Source shell script in modulefile* cookbook recipe.
 * Doc: embed new Modules logo on website, online README and documentation
   portal.
@@ -48,6 +48,15 @@ Modules 4.6.0 (not yet released)
 * Install: disable by default the build of Modules compatibility version. From
   now on, option ``--enable-compat-version`` has to be set to trigger this
   build.
+* Doc: alphabetically sort sub-commands of ``module-info`` modulefile Tcl
+  command in :ref:`modulefile(4)` document.
+* Script: clean previously built environment-modules RPMs in ``mrel``.
+* Introduce ``module-info username`` modulefile command to get the username of
+  the user currently running ``modulecmd.tcl`` or to test a string passed as
+  argument corresponds to this username.
+* Introduce ``module-info usergroups`` modulefile command to get all the
+  groups of the user currently running ``modulecmd.tcl`` or to test a string
+  passed as argument corresponds to one of these groups.
 
 
 Modules 4.5.1 (2020-06-01)
