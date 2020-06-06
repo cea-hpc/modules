@@ -53,7 +53,8 @@ ifeq ($(libtclenvmodules),y)
 INSTALL_PREREQ += lib/libtclenvmodules$(SHLIB_SUFFIX)
 TEST_PREREQ += lib/libtclenvmodules$(SHLIB_SUFFIX)
 ifeq ($(COVERAGE),y)
-TEST_PREREQ += lib/libtestutil-closedir$(SHLIB_SUFFIX)
+TEST_PREREQ += lib/libtestutil-closedir$(SHLIB_SUFFIX) \
+	lib/libtestutil-getpwuid$(SHLIB_SUFFIX)
 endif
 endif
 
@@ -341,6 +342,9 @@ lib/libtclenvmodules$(SHLIB_SUFFIX):
 	$(MAKE) -C lib $(@F)
 
 lib/libtestutil-closedir$(SHLIB_SUFFIX):
+	$(MAKE) -C lib $(@F)
+
+lib/libtestutil-getpwuid$(SHLIB_SUFFIX):
 	$(MAKE) -C lib $(@F)
 
 # example configs for test rules
