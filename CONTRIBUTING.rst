@@ -54,6 +54,8 @@ Start coding
 * Create a branch to identify the issue or feature you would like to work on
 * Using your favorite editor, make your changes, `committing as you go`_.
 * Comply to the `coding conventions of this project <coding-conventions_>`_.
+* Your Tcl code has to be compatible with Tcl version 8.4 and above (see
+  `Tcl 8.4 commands reference`_)
 * Include tests that cover any code changes you make. Make sure the test fails
   without your patch.
 * `Run the tests <running-the-tests_>`_ and `verify coverage <running-test-coverage_>`_.
@@ -61,6 +63,7 @@ Start coding
 
 .. _committing as you go: https://dont-be-afraid-to-commit.readthedocs.io/en/latest/git/commandlinegit.html#commit-your-changes
 .. _create a pull request: https://help.github.com/articles/creating-a-pull-request/
+.. _Tcl 8.4 commands reference: https://www.tcl.tk/man/tcl8.4/TclCmd/contents.htm
 
 .. _running-the-tests:
 
