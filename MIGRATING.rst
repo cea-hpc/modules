@@ -111,10 +111,36 @@ Changes on environment variables, shell aliases, shell functions and current
 working directory are tracked. The following shells are supported: *sh*,
 *dash*, *csh*, *tcsh*, *bash*, *ksh*, *ksh93*, *zsh* and *fish*.
 
+Querying user's name and groups membership
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Two new sub-commands are introduced for the :mfcmd:`module-info` modulefile
+command: ``username`` and ``usergroups``. They respectively fetch the name of
+the user currently running :file:`modulecmd.tcl` or the name of all the groups
+this user is member of.
+
+These two new modulefile commands can help to adapt code to specific users or
+groups. Like for instance to instantiate a modulefile for each group the user
+is member of::
+
+    $ cat /path/to/modulefiles/foo/.modulerc
+    #%Module
+    foreach grp [module-info usergroups] {
+        module-virtual foo/$grp .common
+    }
+    $ id -G -n
+    grp1 grp2 grp3
+    $ module avail
+    --------------- /path/to/modulefiles ---------------
+    foo/grp1  foo/grp2  foo/grp3
+
+``username`` and ``usergroups`` sub-commands of :mfcmd:`module-info`
+modulefile command are only supported on Unix platform.
+
 Further reading
 ---------------
 
-To get a complete list of the changes between Modules v4.4 and v4.5,
+To get a complete list of the changes between Modules v4.5 and v4.6,
 please read the :ref:`NEWS` document.
 
 
