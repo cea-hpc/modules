@@ -1345,6 +1345,7 @@ module-user    {nimp           nimp           reportCmd      nop            nop 
 module-verbosity {nimp         nimp           reportCmd      nop            nop            nop           }
 module-version {module-version module-version module-version module-version module-version module-version}
 module-virtual {module-virtual module-virtual module-virtual module-virtual module-virtual module-virtual}
+module-hide    {module-hide    module-hide    module-hide    module-hide    module-hide    module-hide   }
 module-whatis  {nop            nop            reportCmd      nop            nop            module-whatis }
 prepend-path   {prepend-path   remove-path    prepend-path   prepend-path   prepend-path   edit-path-wh  }
 prereq         {prereq         nop            reportCmd      nop            nop            nop           }
@@ -1557,11 +1558,12 @@ proc execute-modulerc {modfile modname modspec} {
       # list interpreter alias commands to define
       array set ::g_modrcAliases [list uname uname system system chdir\
          nop is-loaded is-loaded module-version module-version module-alias\
-         module-alias module-virtual module-virtual module nop module-info\
-         module-info module-trace nop module-verbosity nop module-user nop\
-         module-log nop reportInternalBug reportInternalBug setModulesVersion\
-         setModulesVersion readModuleContent readModuleContent\
-         formatErrStackTrace formatErrStackTrace]
+         module-alias module-virtual module-virtual module-hide module-hide\
+         module nop module-info module-info module-trace nop module-verbosity\
+         nop module-user nop module-log nop reportInternalBug\
+         reportInternalBug setModulesVersion setModulesVersion\
+         readModuleContent readModuleContent formatErrStackTrace\
+         formatErrStackTrace]
 
       # alias commands where an argument should be passed
       array set ::g_modrcAliasesPassArg [list]
@@ -2299,6 +2301,19 @@ proc module-virtual {args} {
    set ::g_sourceVirtual($mod) $::ModulesCurrentModulefile
 
    return {}
+}
+
+proc module-hide {args} {
+   set modarglist $args
+
+   if {[llength $modarglist] == 0} {
+      knerror {No module specified in argument}
+   }
+   # record each hide spec after parsing them
+   foreach modarg [eval parseModuleVersionSpecifier 0 $modarglist] {
+      reportDebug "Record hidden module specification '$modarg'"
+      set ::g_moduleHide($modarg) 1
+   }
 }
 
 proc module {command args} {
