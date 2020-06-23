@@ -8310,7 +8310,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
       set depthlvl [expr {$indepth ? 0 : [llength $parentlist]}]
 
       array set found_list [findModules $dir $findmod $depthlvl $fetch_mtime\
-         $fetch_hidden]
+         1]
    }
 
    # Phase #1: consolidate every kind of entries (directory, modulefile,
@@ -8320,8 +8320,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
    defineModEqStaticProc $icase [getConf extended_default] $mod
 
    array set err_list {}
-   array set hversmod_nosearch {}
-   array set dflvers_nosearch {}
+   array set hversmod_list {}
 
    foreach elt [lsort [array names found_list]] {
       switch -- [lindex $found_list($elt) 0] {
@@ -8352,21 +8351,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
          || ($add_rc_defs && [info exists g_rcVersion($vers)])} {
          set found_list($vers) [list version $versmod]
 
-         # look for hidden target if not searched yet and if symbolic version
-         # matches passed $mod
-         if {![info exists found_list($versmod)] && !$fetch_hidden &&\
-            [isModuleHidden $versmod]} {
-            if {[modEqStatic $vers]} {
-               array set found_list [findModules $dir $versmod 0\
-                  $fetch_mtime 1]
-            } else {
-               # record hidden target not searched
-               set hversmod_nosearch($versmod) 1
-               # record default version target has not been searched
-               if {[file tail $vers] eq {default}} {
-                  set dflvers_nosearch($vers) $versmod
-               }
-            }
+         # flag hidden symbol target when symbol matches query
+         if {[isModuleHidden $versmod] && [modEqStatic $vers]} {
+            set hversmod_list($versmod) 1
          }
       }
    }
@@ -8410,31 +8397,35 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
 
    # Phase #2: filter-out dynamically hidden or expired elements
 
+   # define module name and version comparison procs
+   defineModStartNbProc $icase
+   defineModEqProc $icase [getConf extended_default]
+
+   # remove hidden elements unless if they are (or their symbols) targeted by
+   # search query
+   foreach elt [array names found_list] {
+      if {[isModuleHidden $elt] && ![info exists hversmod_list($elt)]} {
+         set i [modStartNb $elt $mod]
+         # exclude hidden elt if remaining part after query match is hidden
+         if {$i == 0 || [isModuleHidden [join [lrange [file split $elt] $i\
+            end] /]]} {
+            unset found_list($elt)
+         }
+      }
+   }
+
    # Phase #3: elaborate directory content with default element selection
 
    array set dir_list {}
-   array set hid_list {}
    array set autosym_list {}
 
    # build list of elements contained in each directory
    foreach elt [array names found_list] {
-      # track hidden entries
-      if {[string index [file tail $elt] 0] eq {.}} {
-         set hid_list($elt) 1
-      }
-
-      # add a ref to element in its parent directory unless element has error,
-      # is a symbolic version (whose target has been searched if default) or
-      # search of hidden files is disabled and element is an hidden file then
-      # recursively add parent element until reaching top directory
-      if {![info exists err_list($elt)] && ([lindex $found_list($elt) 0] ne\
-         {version} || [info exists dflvers_nosearch($elt)]) && ($fetch_hidden\
-         || ![info exists hid_list($elt)])} {
-         # change to default version target if this target has not been
-         # searched to ensure definition of directory
-         if {[info exists dflvers_nosearch($elt)]} {
-            set elt $dflvers_nosearch($elt)
-         }
+      # add a ref to element in its parent directory unless element has error
+      # or is a symbolic version then recursively add parent element until
+      # reaching top directory
+      if {![info exists err_list($elt)] && [lindex $found_list($elt) 0] ne\
+         {version}} {
          set direlt $elt
          while {[set pardir [file dirname $direlt]] ne {.}} {
             appendNoDupToList dir_list($pardir) [file tail $direlt]
@@ -8482,7 +8473,6 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
 
    # define module name and version comparison procs
    defineDoesModMatchAtDepthProc $indepth $querydepth $mtest
-   defineModEqProc $icase [getConf extended_default]
    defineModEqStaticProc $icase [getConf extended_default] $mod
 
    array set mod_list {}
@@ -8491,17 +8481,15 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
 
    # keep element matching query, add directory of element matching query,
    # also add directory to result if query name finishes with trailing slash;
-   # only keep hidden elements if they should be included in the results or if
-   # they fully match query; only keep auto syms if fully matched or version
-   # not specified in query
+   # only keep auto syms if fully matched or version not specified in query;
+   # (hidden elements have been filtered on phase 2)
    foreach elt [array names found_list] {
       set elt_type [lindex $found_list($elt) 0]
       if {(($wild && [doesModMatchAtDepth $elt]) || (!$wild && ([modEqStatic\
          $elt match /*] || [modEqStatic $elt match] || ($hasmoddir &&\
          $elt_type eq {directory} && [modEq $moddir $elt]))) || ($isquerydir\
          && $elt_type eq {directory} && [modEq $querydir $elt match 0])) &&\
-         ($fetch_hidden || ![info exists hid_list($elt)] || [modEqStatic\
-         $elt]) && (![info exists autosym_list($elt)] || ([countChar $elt /]\
+         (![info exists autosym_list($elt)] || ([countChar $elt /]\
          != $querydepth && !$contains) || [modEqStatic $elt]) && ![info\
          exists mod_list($elt)]} {
          if {$elt_type eq {directory}} {
@@ -8547,12 +8535,19 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
                      }
                   }
 
-                  # record target in dir struct if part of found elts or not
-                  # searched (this to avoid dir removal if no other elt in it)
-                  # but should not be in error or hidden
-                  if {([info exists found_list($tgt)] || [info exists\
-                     hversmod_nosearch($tgt)]) && ![info exists\
-                     err_list($tgt)] && ![info exists hid_list($tgt)]} {
+                  # record target in dir struct if part of found elts or if
+                  # hidden but should not be in error
+                  set pardir [file dirname $tgt]
+                  if {([info exists found_list($tgt)] || ($pardir ne {.} &&\
+                     ![info exists found_list($pardir)] && [isModuleHidden\
+                     $tgt])) && ![info exists err_list($tgt)]} {
+                     # create parent directory if it does not exist
+                     if {$pardir ne {.} && ![info exists\
+                        found_list($pardir)]} {
+                        set found_list($pardir) [list directory]
+                        set mod_list($pardir) [list directory]
+                     }
+
                      if {$i == 0} {
                         set direlt $tgt
                      } else {
@@ -8562,9 +8557,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
                   }
                }
             }
-         # skip adding element to directory content if in error or hidden
-         } elseif {[info exists err_list($elt)] || [info exists\
-            hid_list($elt)]} {
+         # skip adding element to directory content if in error
+         } elseif {[info exists err_list($elt)]} {
             set direlt .
          } else {
             set direlt $elt
