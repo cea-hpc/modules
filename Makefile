@@ -314,7 +314,7 @@ ChangeLog:
 endif
 
 README:
-	sed -e '/^\[\!\[.*\].*/d' $@.md > $@
+	sed -e '1,9d' $@.md > $@
 
 script/add.modules: script/add.modules.in
 	$(translate-in-script)
