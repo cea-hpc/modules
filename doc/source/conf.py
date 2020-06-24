@@ -118,7 +118,7 @@ todo_include_todos = False
 #
 os_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if os_rtd:
-    html_theme = 'default'
+    html_theme = 'sphinx_rtd_theme'
 else:
     html_theme = 'bizstyle'
 
