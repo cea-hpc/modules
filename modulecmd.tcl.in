@@ -8248,6 +8248,10 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
    set querydir [string range $querydir 0 end-1]
    set querydepth [countChar $modqe /]
 
+   # get directory relative to module name
+   set moddir [getModuleNameFromVersSpec $mod]
+   set hasmoddir [expr {$moddir ne {.}}]
+
    # if search for global or user rc alias only, no dir lookup is performed
    # and aliases from g_rcAlias are returned
    if {[isInList $search rc_alias_only]} {
@@ -8462,15 +8466,17 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
    array set fdir_list {}
    array set keep_list {}
 
-   # keep element matching query, also add directory to result if query name
-   # finishes with trailing slash; only keep hidden elements if they should be
-   # included in the results or if they fully match query; only keep auto syms
-   # if fully matched or version not specified in query
+   # keep element matching query, add directory of element matching query,
+   # also add directory to result if query name finishes with trailing slash;
+   # only keep hidden elements if they should be included in the results or if
+   # they fully match query; only keep auto syms if fully matched or version
+   # not specified in query
    foreach elt [array names found_list] {
       set elt_type [lindex $found_list($elt) 0]
       if {(($wild && [doesModMatchAtDepth $elt]) || (!$wild && ([modEqStatic\
-         $elt match /*] || [modEqStatic $elt match])) || ($isquerydir &&\
-         $elt_type eq {directory} && [modEq $querydir $elt match 0])) &&\
+         $elt match /*] || [modEqStatic $elt match] || ($hasmoddir &&\
+         $elt_type eq {directory} && [modEq $moddir $elt]))) || ($isquerydir\
+         && $elt_type eq {directory} && [modEq $querydir $elt match 0])) &&\
          ($fetch_hidden || ![info exists hid_list($elt)] || [modEqStatic\
          $elt]) && (![info exists autosym_list($elt)] || ([countChar $elt /]\
          != $querydepth && !$contains) || [modEqStatic $elt]) && ![info\
