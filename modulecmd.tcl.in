@@ -4544,14 +4544,6 @@ proc getModulePathList {{behavior returnempty} {resolv_var 1} {set_abs 1}} {
    }
 }
 
-# test if two modules share the same root name
-proc isSameModuleRoot {mod1 mod2} {
-   set mod1split [split $mod1 /]
-   set mod2split [split $mod2 /]
-
-   return [expr {[lindex $mod1split 0] eq [lindex $mod2split 0]}]
-}
-
 # test if one module name from module specification is hidden
 proc isModuleSpecHidden {modspec} {
    set ret 0
@@ -4628,24 +4620,17 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
          set dir_list [replaceFromList $dir_list $dir]
       }
 
-      # extract one module name from query
-      set modqe [getOneModuleFromVersSpec $mod]
-
       set icase [isIcase]
       defineGetEqArrayKeyProc $icase [getConf extended_default] [getConf\
          implicit_default]
-      set modroot [lindex [split $modqe /] 0]
       # determine if we need to get hidden modules
       set fetch_hidden [isModuleSpecHidden $mod]
 
       # Now search for $mod in module paths
       foreach dir $dir_list {
-         # get list of modules related to the root of searched module to get
-         # in one call a complete list of any module kind (file, alias, etc)
-         # related to search to be able to then determine in this proc the
-         # correct module to return without restarting new searches
+         # get list of modules corresponding to searched query
          array unset mod_list
-         array set mod_list [getModules $dir $modroot 0 rc_defs_included\
+         array set mod_list [getModules $dir $mod 0 rc_defs_included\
             $fetch_hidden]
 
          set prevmod {}
@@ -4659,17 +4644,11 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
                switch -- [lindex $mod_list($mod) 0] {
                   alias - version {
                      set newmod [resolveModuleVersionOrAlias $mod $icase]
-                     # continue search on newmod if module from same root and
-                     # not hidden (if hidden search disabled) as mod_list
-                     # already contains everything related to this root module
-                     if {[isSameModuleRoot $mod $newmod] && ($fetch_hidden ||\
-                        ![isModuleHidden $newmod])} {
+                     if {[info exists mod_list($newmod)]} {
                         set mod $newmod
-                        # indicate an alias or a symbol was solved
-                        set mod_res $newmod
-                     # elsewhere restart search on new modulename, constrained
-                     # to specified dir if set
                      } else {
+                        # restart search on new modulename, constrained to
+                        # specified dir if set, if not found in current res
                         return [getPathToModule $newmod $indir $report_issue]
                      }
                   }
@@ -4707,12 +4686,6 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
          # elsewhere go to next path
          if {[info exists retlist]} {
             break
-         # found nothing after solving a matching alias or symbol
-         } elseif {$mod_res eq $mod} {
-            lappend excdir $dir
-            # look for this name in the other module paths, so restart
-            # directory search from first dir in list to ensure precedence
-            return [getPathToModule $mod $indir $report_issue no $excdir]
          }
       }
    }
