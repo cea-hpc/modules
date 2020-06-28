@@ -7762,13 +7762,24 @@ proc defineModEqStaticProc {icase extdfl modspec} {
       # define optimized procedure
       lassign [getModuleVersSpec $modspec] pmod pmodname cmpspec versspec\
          pmodnamere pmodescglob
+      # trim dup trailing / char and adapt pmod suffix if it starts with /
+      if {[string index $pmod end] eq {/}} {
+         set pmod [string trimright $pmod /]/
+         set endwslash 1
+      } else {
+         set endwslash 0
+      }
       set nocasearg [expr {$icase ? {-nocase } : {}}]
       set pmodnameslen [string length $pmodname/]
       if {$pmod ne {} || $modspec eq {}} {
          set procbody "
             set pmod {$pmod}
             if {\$psuf ne {}} {
-               append pmod \$psuf
+               if {$endwslash && \[string index \$psuf 0\] eq {/}} {
+                  append pmod \[string range \$psuf 1 end\]
+               } else {
+                  append pmod \$psuf
+               }
             }
             if {\$test eq {eqstart}} {
                set ret \[string equal $nocasearg-length \[string length\
@@ -7854,10 +7865,21 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {psuf {}}} {
    } else {
       set pmod $pattern
    }
+   # trim dup trailing / char and adapt pmod suffix if it starts with /
+   if {[string index $pmod end] eq {/}} {
+      set pmod [string trimright $pmod /]/
+      set endwslash 1
+   } else {
+      set endwslash 0
+   }
    # specified module can be translated in a simple mod name/vers or is empty
    if {$pmod ne {} || $pattern eq {}} {
       if {$psuf ne {}} {
-         append pmod $psuf
+         if {$endwslash && [string index $psuf 0] eq {/}} {
+            append pmod [string range $psuf 1 end]
+         } else {
+            append pmod $psuf
+         }
       }
       if {$test eq {eqstart}} {
          set ret [string equal -length [string length $pmod/] $pmod/ $mod/]
@@ -7900,9 +7922,19 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {psuf {}}} {
    } else {
       set pmod $pattern
    }
+   if {[string index $pmod end] eq {/}} {
+      set pmod [string trimright $pmod /]/
+      set endwslash 1
+   } else {
+      set endwslash 0
+   }
    if {$pmod ne {} || $pattern eq {}} {
       if {$psuf ne {}} {
-         append pmod $psuf
+         if {$endwslash && [string index $psuf 0] eq {/}} {
+            append pmod [string range $psuf 1 end]
+         } else {
+            append pmod $psuf
+         }
       }
       if {$test eq {eqstart}} {
          set ret [string equal -nocase -length [string length $pmod/] $pmod/\
@@ -7946,9 +7978,19 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {psuf {}}} {
    } else {
       set pmod $pattern
    }
+   if {[string index $pmod end] eq {/}} {
+      set pmod [string trimright $pmod /]/
+      set endwslash 1
+   } else {
+      set endwslash 0
+   }
    if {$pmod ne {} || $pattern eq {}} {
       if {$psuf ne {}} {
-         append pmod $psuf
+         if {$endwslash && [string index $psuf 0] eq {/}} {
+            append pmod [string range $psuf 1 end]
+         } else {
+            append pmod $psuf
+         }
       }
       if {$test eq {eqstart}} {
          set ret [string equal -length [string length $pmod/] $pmod/ $mod/]
@@ -8000,9 +8042,19 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {psuf {}}} {
    } else {
       set pmod $pattern
    }
+   if {[string index $pmod end] eq {/}} {
+      set pmod [string trimright $pmod /]/
+      set endwslash 1
+   } else {
+      set endwslash 0
+   }
    if {$pmod ne {} || $pattern eq {}} {
       if {$psuf ne {}} {
-         append pmod $psuf
+         if {$endwslash && [string index $psuf 0] eq {/}} {
+            append pmod [string range $psuf 1 end]
+         } else {
+            append pmod $psuf
+         }
       }
       if {$test eq {eqstart}} {
          set ret [string equal -nocase -length [string length $pmod/] $pmod/\

@@ -48,8 +48,13 @@ testouterr_cmd sh {avail nocase/ --json} OK "{\"$mp\": {
 \"nocase/regular\": { \"name\": \"nocase/regular\", \"type\": \"modulefile\", \"symbols\": \[\], \"pathname\": \"$mp/nocase/regular\"},
 \"nocase/deep/2\": { \"name\": \"nocase/deep/2\", \"type\": \"modulefile\", \"symbols\": \[\], \"pathname\": \"$mp/nocase/deep/2\"}
 }}"
-# non-wild search like whatis will not get a match
-testouterr_cmd sh {whatis nocase/ --json} ERR "{\"errors\": \[\n{ \"severity\": \"ERROR\", \"message\": \[ \"Unable to locate a modulefile for 'nocase/'\" \] } \]\n}"
+testouterr_cmd sh {whatis nocase/ --json} OK "{\"$mp\": {
+\"nocase/1\": { \"name\": \"nocase/1\", \"whatis\": \[ \"nocase/1\" \]},
+\"nocase/deep/2\": { \"name\": \"nocase/deep/2\", \"whatis\": \[ \"nocase/deep/2\" \]},
+\"nocase/deep/3\": { \"name\": \"nocase/deep/3\", \"whatis\": \[ \"nocase/deep/3\" \]},
+\"nocase/regular\": { \"name\": \"nocase/regular\", \"whatis\": \[ \"nocase/regular\" \]},
+\"nocase/virt\": { \"name\": \"nocase/virt\", \"whatis\": \[ \"nocase/virt\" \]}
+}}"
 # newline in result comes from a modulefile that directly puts to stderr during its search evaluation
 testouterr_cmd sh {search nocase/ --json} ERR "{\n\"$mp\": {
 \"nocase/1\": { \"name\": \"nocase/1\", \"whatis\": \[ \"nocase/1\" \]},
