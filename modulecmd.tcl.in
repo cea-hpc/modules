@@ -8083,12 +8083,12 @@ proc findModulesInMemCache {searchid} {
 }
 
 # finds all module-related files matching mod in the module path dir
-proc findModules {dir mod depthlvl fetch_mtime fetch_hidden} {
+proc findModules {dir mod depthlvl fetch_mtime} {
    reportDebug "finding '$mod' in $dir (depthlvl=$depthlvl,\
-      fetch_mtime=$fetch_mtime, fetch_hidden=$fetch_hidden)"
+      fetch_mtime=$fetch_mtime)"
 
    # generated search id (for cache search/save) by compacting given args
-   set searchid $dir:$mod:$depthlvl:$fetch_mtime:$fetch_hidden
+   set searchid $dir:$mod:$depthlvl:$fetch_mtime
 
    # look at memory cache for a compatible result
    lassign [findModulesInMemCache $searchid] cache_searchid cache_list
@@ -8105,7 +8105,7 @@ proc findModules {dir mod depthlvl fetch_mtime fetch_hidden} {
       # use catch protection to handle non-readable and non-existent dir
       if {[catch {
          set full_list {}
-         foreach {fpelt hid} [getFilesInDirectory $dir $fetch_hidden 0] {
+         foreach {fpelt hid} [getFilesInDirectory $dir 1 0] {
             set elt [file tail $fpelt]
             # include any .modulerc file found at the modulepath root
             if {$elt eq {.modulerc} || $mod eq {} || [modEqStatic $elt\
@@ -8134,7 +8134,7 @@ proc findModules {dir mod depthlvl fetch_mtime fetch_hidden} {
       if {[file isdirectory $element]} {
          if {![info exists ignored_dirs($tail)]} {
             if {[catch {
-               set elt_list [getFilesInDirectory $element $fetch_hidden 1]
+               set elt_list [getFilesInDirectory $element 1 1]
             } errMsg]} {
                set mod_list($modulename) [list accesserr [parseAccessIssue\
                   $element] $element]
@@ -8177,8 +8177,7 @@ proc findModules {dir mod depthlvl fetch_mtime fetch_hidden} {
                            $element]
 
                         # a valid modfile has been found in directory
-                        if {!$fetch_hidden || ![info exists\
-                           hidden_list($element)]} {
+                        if {![info exists hidden_list($element)]} {
                            set modfile_indir($parentname) 1
                         }
                      }
@@ -8288,8 +8287,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
       # if no indepth mode search, pass the depth level of the search query
       set depthlvl [expr {$indepth ? 0 : [llength $parentlist]}]
 
-      array set found_list [findModules $dir $findmod $depthlvl $fetch_mtime\
-         1]
+      array set found_list [findModules $dir $findmod $depthlvl $fetch_mtime]
    }
 
    # Phase #1: consolidate every kind of entries (directory, modulefile,
