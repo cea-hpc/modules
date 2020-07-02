@@ -4544,18 +4544,6 @@ proc getModulePathList {{behavior returnempty} {resolv_var 1} {set_abs 1}} {
    }
 }
 
-# test if one module name from module specification is hidden
-proc isModuleSpecHidden {modspec} {
-   set ret 0
-   foreach mod [getAllModulesFromVersSpec $modspec] {
-      if {[isModuleHidden $mod]} {
-         set ret 1
-         break
-      }
-   }
-   return $ret
-}
-
 # test if one element in module name has a leading "dot" making this module
 # a hidden module
 proc isModuleHidden {mod} {
@@ -4623,15 +4611,12 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
       set icase [isIcase]
       defineGetEqArrayKeyProc $icase [getConf extended_default] [getConf\
          implicit_default]
-      # determine if we need to get hidden modules
-      set fetch_hidden [isModuleSpecHidden $mod]
 
       # Now search for $mod in module paths
       foreach dir $dir_list {
          # get list of modules corresponding to searched query
          array unset mod_list
-         array set mod_list [getModules $dir $mod 0 rc_defs_included\
-            $fetch_hidden]
+         array set mod_list [getModules $dir $mod 0 rc_defs_included]
 
          set prevmod {}
          set mod_res {}
@@ -4660,9 +4645,8 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
                      } else {
                         # Move to default element in directory
                         set mod $mod/[lindex $mod_list($mod) 1]
-                        # restart search if default element is hidden and
-                        # hidden elements were not searched
-                        if {!$fetch_hidden && [isModuleHidden $mod]} {
+                        # restart search if default element is hidden
+                        if {[isModuleHidden $mod]} {
                            return [getPathToModule $mod $indir $report_issue]
                         }
                      }
@@ -8223,17 +8207,16 @@ proc findModules {dir mod depthlvl fetch_mtime fetch_hidden} {
    return $found_list
 }
 
-proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
-   {filter {}}} {
+proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    global g_sourceAlias g_sourceVersion g_sourceVirtual g_resolvedPath
    global g_rcAlias g_moduleAlias g_rcVersion g_moduleVersion
    global g_rcVirtual g_moduleVirtual g_rcfilesSourced
 
    reportDebug "get '$mod' in $dir (fetch_mtime=$fetch_mtime, search=$search,\
-      fetch_hidden=$fetch_hidden, filter=$filter)"
+      filter=$filter)"
 
    # generated search id (for cache search/save) by compacting given args
-   set searchid $dir:$mod:$fetch_mtime:$search:$fetch_hidden:$filter
+   set searchid $dir:$mod:$fetch_mtime:$search:$filter
 
    # look at memory cache for a compatible result
    if {[info exists ::g_gotModulesMemCache($searchid)]} {
@@ -8301,10 +8284,6 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
 
       # add alias/version definitions from global or user rc to result
       set add_rc_defs [expr {[isInList $search rc_defs_included] ? 1 : 0}]
-      if {!$fetch_hidden} {
-         set fetch_hidden [isModuleSpecHidden $mod]
-         reportDebug "is '$mod' requiring hidden search ($fetch_hidden)"
-      }
 
       # if no indepth mode search, pass the depth level of the search query
       set depthlvl [expr {$indepth ? 0 : [llength $parentlist]}]
@@ -8792,7 +8771,7 @@ proc listModules {dir mod show_mtime filter search} {
 
    # get module list
    # process full dir content but do not exit when err raised from a modulerc.
-   array set mod_list [getModules $dir $mod $show_mtime $search 0 $filter]
+   array set mod_list [getModules $dir $mod $show_mtime $search $filter]
 
    # output is JSON format
    set json [isStateEqual report_format json]
