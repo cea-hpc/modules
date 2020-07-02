@@ -64,7 +64,6 @@ Envmodules_GetFilesInDirectoryObjCmd(
    int objc,               /* Number of arguments. */
    Tcl_Obj *const objv[])  /* Argument objects. */
 {
-   int fetch_hidden;
    int fetch_dotversion;
    const char *dir;
    int dirlen;
@@ -73,22 +72,18 @@ Envmodules_GetFilesInDirectoryObjCmd(
    struct dirent *direntry;
    int have_modulerc = 0;
    int have_version = 0;
+   int is_hidden;
    char path[PATH_MAX];
 
    /* Parse arguments. */
-   if (objc == 4) {
-      /* fetch_hidden */
-      if (Tcl_GetBooleanFromObj(interp, objv[2], &fetch_hidden) != TCL_OK) {
-         Tcl_SetErrorCode(interp, "TCL", "VALUE", "BOOLEAN", NULL);
-         return TCL_ERROR;
-      }
+   if (objc == 3) {
       /* fetch_dotversion */
-      if (Tcl_GetBooleanFromObj(interp, objv[3], &fetch_dotversion)!=TCL_OK) {
+      if (Tcl_GetBooleanFromObj(interp, objv[2], &fetch_dotversion)!=TCL_OK) {
          Tcl_SetErrorCode(interp, "TCL", "VALUE", "BOOLEAN", NULL);
          return TCL_ERROR;
       }
    } else {
-      Tcl_WrongNumArgs(interp, 1, objv, "dir fetch_hidden fetch_dotversion");
+      Tcl_WrongNumArgs(interp, 1, objv, "dir fetch_dotversion");
       return TCL_ERROR;
    }
 
@@ -124,15 +119,10 @@ Envmodules_GetFilesInDirectoryObjCmd(
          if (fetch_dotversion && !access(path, R_OK)) {
             have_version = 1;
          }
-      } else if (direntry->d_name[0] == '.') {
-         /* add hidden file if enabled */
-         if (fetch_hidden) {
-            Tcl_ListObjAppendElement(interp, ltmp, Tcl_NewStringObj(path, -1));
-            Tcl_ListObjAppendElement(interp, ltmp, Tcl_NewIntObj(1));
-         }
       } else {
          Tcl_ListObjAppendElement(interp, ltmp, Tcl_NewStringObj(path, -1));
-         Tcl_ListObjAppendElement(interp, ltmp, Tcl_NewIntObj(0));
+         is_hidden = (direntry->d_name[0] == '.') ? 1 : 0;
+         Tcl_ListObjAppendElement(interp, ltmp, Tcl_NewIntObj(is_hidden));
       }
    }
    /* Do not treat error happening during read to send list of valid files. */

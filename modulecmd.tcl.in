@@ -7453,11 +7453,10 @@ proc doesModuleHaveTag {mod} {
 
 # get list of elements located in a directory passed as argument. a flag is
 # set after each element to know if it is considered hidden or not. a
-# fetch_hidden argument is there to control search of hidden elements. a
 # fetch_dotversion argument controls whether .version file should be looked at
 # in directory .proc will be used as a fallback to command provided by
 # extension library
-proc __getFilesInDirectory {dir fetch_hidden fetch_dotversion} {
+proc __getFilesInDirectory {dir fetch_dotversion} {
    set dir_list [list]
 
    # try then catch any issue rather than test before trying
@@ -7474,25 +7473,22 @@ proc __getFilesInDirectory {dir fetch_hidden fetch_dotversion} {
    }
 
    # Add each element in the current directory to the list
-   if {[file readable $dir/.modulerc]} {
-      lappend dir_list $dir/.modulerc 0
-   }
-   if {$fetch_dotversion && [file readable $dir/.version]} {
-      lappend dir_list $dir/.version 0
-   }
    foreach elt $elt_list {
       lappend dir_list $elt 0
    }
 
-   # search for hidden files if asked
-   if {$fetch_hidden} {
-      foreach elt [glob -nocomplain -types hidden -directory\
-         $dir -tails *] {
-         switch -- $elt {
-            .modulerc - .version - . - .. { }
-            default {
-               lappend dir_list $dir/$elt 1
+   # search for hidden files
+   foreach elt [glob -nocomplain -types hidden -directory $dir -tails *] {
+      switch -- $elt {
+         . - .. { }
+         .modulerc - .version {
+            if {($fetch_dotversion || $elt ne {.version}) && [file readable\
+               $dir/$elt]} {
+               lappend dir_list $dir/$elt 0
             }
+         }
+         default {
+            lappend dir_list $dir/$elt 1
          }
       }
    }
@@ -8105,7 +8101,7 @@ proc findModules {dir mod depthlvl fetch_mtime} {
       # use catch protection to handle non-readable and non-existent dir
       if {[catch {
          set full_list {}
-         foreach {fpelt hid} [getFilesInDirectory $dir 1 0] {
+         foreach {fpelt hid} [getFilesInDirectory $dir 0] {
             set elt [file tail $fpelt]
             # include any .modulerc file found at the modulepath root
             if {$elt eq {.modulerc} || $mod eq {} || [modEqStatic $elt\
@@ -8134,7 +8130,7 @@ proc findModules {dir mod depthlvl fetch_mtime} {
       if {[file isdirectory $element]} {
          if {![info exists ignored_dirs($tail)]} {
             if {[catch {
-               set elt_list [getFilesInDirectory $element 1 1]
+               set elt_list [getFilesInDirectory $element 1]
             } errMsg]} {
                set mod_list($modulename) [list accesserr [parseAccessIssue\
                   $element] $element]

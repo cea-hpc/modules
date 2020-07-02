@@ -75,6 +75,8 @@ Modules 4.6.0 (not yet released)
   mechanism in :file:`modulecmd.tcl` to look at an alternative location to
   find the Modules Tcl extension library in case this library cannot be found
   at its main location.
+* Lib: remove *fetch_hidden* argument from ``getFilesInDirectory`` procedure
+  of Modules Tcl extension library.
 
 .. _GNU configuration recommendations: https://www.gnu.org/prep/standards/html_node/Configuration.html
 
