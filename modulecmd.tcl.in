@@ -4559,15 +4559,35 @@ proc getModulePathList {{behavior returnempty} {resolv_var 1} {set_abs 1}} {
    }
 }
 
-# test if one element in module name has a leading "dot" making this module
-# a hidden module
-proc isModuleHidden {mod} {
+proc isModuleDotHidden {mod} {
    foreach elt [split $mod /] {
       if {[string index $elt 0] eq {.}} {
          return 1
       }
    }
    return 0
+}
+
+proc isModuleDeclHidden {mod} {
+   # look if mod matches one of the hidden module specifications if any
+   if {[array size ::g_moduleHide] > 0} {
+      foreach hmodspec [array names ::g_moduleHide] {
+         if {[modEq $hmodspec $mod eqstart]} {
+            return 1
+         }
+      }
+   }
+   return 0
+}
+
+# test if one element in module name has a leading "dot" making this module
+# a hidden module or has been declared hidden with modulefile commands
+proc isModuleHidden {mod} {
+   set ret [isModuleDotHidden $mod]
+   if {!$ret} {
+      set ret [isModuleDeclHidden $mod]
+   }
+   return $ret
 }
 
 # check if module name is specified as a full pathname (not a name relative
