@@ -8370,7 +8370,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    defineModEqStaticProc $icase [getConf extended_default] $mod
 
    array set err_list {}
-   array set hversmod_list {}
+   array set versmod_list {}
 
    foreach elt [lsort [array names found_list]] {
       switch -- [lindex $found_list($elt) 0] {
@@ -8401,10 +8401,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
          || ($add_rc_defs && [info exists g_rcVersion($vers)])} {
          set found_list($vers) [list version $versmod]
 
-         # flag hidden symbol target when symbol matches query
-         if {[isModuleHidden $versmod] && [modEqStatic $vers]} {
-            set hversmod_list($versmod) 1
-         }
+         # build module symbol list
+         lappend versmod_list($versmod) $vers
       }
    }
 
@@ -8451,16 +8449,25 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    defineModStartNbProc $icase
    defineModEqProc $icase [getConf extended_default]
 
-   # remove hidden elements unless if they are (or their symbols) targeted by
-   # search query
+   # remove hidden elements unless they are (or their symbols) targeted by
+   # search query. dot hidden elt are excluded if part after query match is
+   # hidden and declared hidden elt are excluded unless it matches query
    foreach elt [array names found_list] {
-      # exclude dot hidden element if part after query match is hidden, or
-      # exclude declared hidden element unless it matches query
-      if {![info exists hversmod_list($elt)] && (([isModuleDotHidden $elt] &&\
-         ([set i [modStartNb $elt $mod]] == 0 || [isModuleDotHidden [join\
-         [lrange [file split $elt] $i end] /]])) || ([isModuleDeclHidden\
-         $elt] && ![modEq $mod $elt eqspec]))} {
-         unset found_list($elt)
+      if {([isModuleDotHidden $elt] && ([set i [modStartNb $elt $mod]] == 0\
+         || [isModuleDotHidden [join [lrange [file split $elt] $i end] /]]))\
+         || ([isModuleDeclHidden $elt] && ![modEq $mod $elt eqspec])} {
+         set remhid 1
+         if {[info exists versmod_list($elt)]} {
+            foreach eltsym $versmod_list($elt) {
+               if {[modEqStatic $eltsym]} {
+                  set remhid 0
+                  break
+               }
+            }
+         }
+         if {$remhid} {
+            unset found_list($elt)
+         }
       }
    }
 
