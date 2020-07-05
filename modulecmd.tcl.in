@@ -8454,13 +8454,13 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    # remove hidden elements unless if they are (or their symbols) targeted by
    # search query
    foreach elt [array names found_list] {
-      if {[isModuleHidden $elt] && ![info exists hversmod_list($elt)]} {
-         set i [modStartNb $elt $mod]
-         # exclude hidden elt if remaining part after query match is hidden
-         if {$i == 0 || [isModuleHidden [join [lrange [file split $elt] $i\
-            end] /]]} {
-            unset found_list($elt)
-         }
+      # exclude dot hidden element if part after query match is hidden, or
+      # exclude declared hidden element unless it matches query
+      if {![info exists hversmod_list($elt)] && (([isModuleDotHidden $elt] &&\
+         ([set i [modStartNb $elt $mod]] == 0 || [isModuleDotHidden [join\
+         [lrange [file split $elt] $i end] /]])) || ([isModuleDeclHidden\
+         $elt] && ![modEq $mod $elt eqspec]))} {
+         unset found_list($elt)
       }
    }
 
