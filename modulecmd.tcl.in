@@ -7874,8 +7874,18 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {psuf {}}} {
          if {$test eq {matchin}} {
             set test match
             set pmod *$pmod
+         } elseif {$test eq {eqspec}} {
+            set test equal
          }
          set ret [string $test $pmod $mod]
+      }
+   } elseif {$test eq {eqspec}} {
+      # test equality against all version described in spec (list or range
+      # boundaries), trspec is considered enabled and psuf empty
+      foreach pmod [getAllModulesFromVersSpec $pattern] {
+         if {[set ret [string equal $pmod $mod]]} {
+            break
+         }
       }
    } else {
       # contains test
@@ -7930,8 +7940,18 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {psuf {}}} {
          if {$test eq {matchin}} {
             set test match
             set pmod *$pmod
+         } elseif {$test eq {eqspec}} {
+            set test equal
          }
          set ret [string $test -nocase $pmod $mod]
+      }
+   } elseif {$test eq {eqspec}} {
+      # test equality against all version described in spec (list or range
+      # boundaries), trspec is considered enabled and psuf empty
+      foreach pmod [getAllModulesFromVersSpec $pattern] {
+         if {[set ret [string equal -nocase $pmod $mod]]} {
+            break
+         }
       }
    } else {
       # contains test
@@ -7985,17 +8005,28 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {psuf {}}} {
          if {$test eq {matchin}} {
             set test match
             set pmod *$pmod
+         } elseif {$test eq {eqspec}} {
+            set test equal
+            set eqspec 1
          }
          set ret [string $test $pmod $mod]
       }
-      # try the extended default match if not root module
-      if {!$ret && [string first / $pmod] != -1} {
+      # try the extended default match if not root module and not eqspec test
+      if {![info exists eqspec] && !$ret && [string first / $pmod] != -1} {
          if {$test eq {match}} {
             set pmodextdfl $pmod.*
          } else {
             set pmodextdfl $pmodescglob.*
          }
          set ret [string match $pmodextdfl $mod]
+      }
+   } elseif {$test eq {eqspec}} {
+      # test equality against all version described in spec (list or range
+      # boundaries), trspec is considered enabled and psuf empty
+      foreach pmod [getAllModulesFromVersSpec $pattern] {
+         if {[set ret [string equal $pmod $mod]]} {
+            break
+         }
       }
    } else {
       # contains test
@@ -8050,17 +8081,28 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {psuf {}}} {
          if {$test eq {matchin}} {
             set test match
             set pmod *$pmod
+         } elseif {$test eq {eqspec}} {
+            set test equal
+            set eqspec 1
          }
          set ret [string $test -nocase $pmod $mod]
       }
-      # try the extended default match if not root module
-      if {!$ret && [string first / $pmod] != -1} {
+      # try the extended default match if not root module and not eqspec test
+      if {![info exists eqspec] && !$ret && [string first / $pmod] != -1} {
          if {$test eq {match}} {
             set pmodextdfl $pmod.*
          } else {
             set pmodextdfl $pmodescglob.*
          }
          set ret [string match -nocase $pmodextdfl $mod]
+      }
+   } elseif {$test eq {eqspec}} {
+      # test equality against all version described in spec (list or range
+      # boundaries), trspec is considered enabled and psuf empty
+      foreach pmod [getAllModulesFromVersSpec $pattern] {
+         if {[set ret [string equal -nocase $pmod $mod]]} {
+            break
+         }
       }
    } else {
       # contains test
