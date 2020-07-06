@@ -10024,7 +10024,8 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
 
    set json [isStateEqual report_format json]
 
-   defineModEqProc [isIcase] [getConf extended_default]
+   set icase [isIcase]
+   defineModEqProc $icase [getConf extended_default]
 
    lappend searchmod rc_defs_included
    if {$mod eq {}} {
@@ -10056,7 +10057,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
                set interp_list($elt) [lindex $mod_list($elt) 2]
                set full_list($elt) 1
             }
-            alias - version {
+            alias {
                # resolve alias target
                set elt_target [lindex $mod_list($elt) 1]
                if {![info exists full_list($elt_target)]} {
@@ -10077,6 +10078,18 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
                         set err_list($modname) [list $issuetype $issuemsg]
                      }
                   }
+               }
+            }
+            version {
+               # report error of version target if matching query
+               set elt_target [getArrayKey mod_list [lindex $mod_list($elt) 1]\
+                  $icase]
+               if {[info exists mod_list($elt_target)] && [isInList [list\
+                  invalid accesserr] [lindex $mod_list($elt_target) 0]] &&\
+                  [modEq $mod $elt]} {
+                  set err_list($elt_target) $mod_list($elt_target)
+               } elseif {![info exists mod_list($elt_target)]} {
+                  set extra_search($elt_target) [list $dir [modEq $mod $elt]]
                }
             }
             invalid - accesserr {

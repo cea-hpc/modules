@@ -106,9 +106,9 @@ set module_11 $modsym_11/.1.0
 set modalt_11 loc_rc010/default&loc_rc010
 set modulefile_11 "$modpath/$module_11"
 set modulefilere_11 "$modpathre/$module_11"
-# does not appear on avail command, but appear on whatis and paths (every hidden modules targeted by non-hidden symbol)
 set modavail_11 "$modsym_11/2.0\\s+$datetime_re"
-set modwhatis_11 "\\s+$module_11: $module_11\n\\s+$modsym_11/2.0: $modsym_11/2.0\n\\s*$modsym_11/subdir/.subdir/3.0: $modsym_11/subdir/.subdir/3.0"
+set modwhatis_11 "\\s+$modsym_11/2.0: $modsym_11/2.0"
+# does not appear on avail/whatis commands, but appear on paths (every hidden modules targeted by non-hidden symbol)
 set modpaths_11 [list $modulefile_11 $modpath/$modsym_11/2.0 $modpath/$modsym_11/subdir/.subdir/3.0]
 
 # hidden virtual version
@@ -150,7 +150,9 @@ set modalt_16 $modsym_16/default&$modsym_16
 set modulefile_16 $modpath/$module_16
 set modulefilere_16 $modpathre/$module_16
 set modavail_16 {}
+set modwhatis_16 {}
 set nodefault_16 "$err_nodefault'$modsym_16/.subdir'"
+set moderrwh_16 "$err_path'$modsym_16'"
 
 # regular module in an hidden directory (hidden directory targeted by hidden symbol)
 set modsym_17 loc_rc010/subdir/.hidsub
@@ -198,6 +200,11 @@ for {set i 1} {$i <= 17} {incr i} {
         lappend ans_paths [list text [set "modpaths_${i}"]]
     } else {
         lappend ans_paths [list text $modulefile]
+    }
+    if {[info exists "moderrwh_${i}"]} {
+        set moderrwh [set "moderrwh_${i}"]
+    } elseif {[info exists moderrwh]} {
+        unset moderrwh
     }
     if {[info exists "moderr_${i}"]} {
         set moderr [set "moderr_${i}"]
@@ -251,7 +258,7 @@ for {set i 1} {$i <= 17} {incr i} {
         testouterr_cmd_re "sh" "avail -l $modsym" "OK" "$avail_pre\n$modavail"
     }
     if {$modwhatis eq ""} {
-        testouterr_cmd "sh" "whatis $modsym" "ERR" "$moderr"
+        testouterr_cmd "sh" "whatis $modsym" "ERR" [expr {[info exists moderrwh] ? $moderrwh : $moderr}]
     } else {
         testouterr_cmd_re "sh" "whatis $modsym" "OK" "$whatis_pre$modwhatis"
     }
@@ -335,6 +342,9 @@ for {set i 1} {$i <= 17} {incr i} {
     if {[info exists "moderr_${i}"]} {
         unset "moderr_${i}"
     }
+    if {[info exists "moderrwh_${i}"]} {
+        unset "moderrwh_${i}"
+    }
     if {[info exists "nodefault_${i}"]} {
         unset "nodefault_${i}"
     }
@@ -355,4 +365,7 @@ unset modwhatis
 unset nodefault
 if {[info exists moderr]} {
     unset moderr
+}
+if {[info exists moderrwh]} {
+    unset moderrwh
 }
