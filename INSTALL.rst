@@ -254,7 +254,7 @@ instance ``--disable-set-manpath``):
                       also enables switching capabilities from initialization
                       script between the two installed version of Modules (by
                       setting-up the ``switchml`` shell function or alias).
-                      (default=yes)
+                      (default=no)
 --enable-libtclenvmodules
                       Build and install the Modules Tcl extension library
                       which provides optimized Tcl commands for the

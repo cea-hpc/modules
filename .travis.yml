@@ -16,7 +16,7 @@ jobs:
     # 3 package variants on major Tcl releases mixed with 2 install variants
     # run tests in code coverage mode on first installation variant
     # for each Tcl releases
-    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.4 --disable-compat-version --disable-libtclenvmodules --prefix=/tmp/modules' COVERAGE='y'
+    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.4 --disable-libtclenvmodules --prefix=/tmp/modules' COVERAGE='y'
            EXTRA_SCRIPT_PRETEST='make install-testmodulerc install-testetcrc install-testmodspath-empty' EXTRA_SCRIPT_POSTTEST='make uninstall-testconfig'
       addons:
         apt:
@@ -38,7 +38,7 @@ jobs:
             - cmake3
             - r-base-core
     # install configuration file before test to trigger specific behaviors on initialization parts
-    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.5 --disable-compat-version --disable-libtclenvmodules --enable-versioning --prefix=/tmp/modules --without-pager --enable-dotmodulespath' COVERAGE='y'
+    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.5 --disable-libtclenvmodules --enable-versioning --prefix=/tmp/modules --without-pager --enable-dotmodulespath' COVERAGE='y'
            EXTRA_SCRIPT_PRETEST='make install-testmodulerc install-testsiteconfig install-testmodspath' EXTRA_SCRIPT_POSTTEST='make uninstall-testconfig'
       addons:
         apt:
@@ -61,7 +61,7 @@ jobs:
             - r-base-core
     # also enable a display on this test case to validate x-resource behavior
     # check auto handling feature on this test configuration
-    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.6 --disable-compat-version --disable-libtclenvmodules --prefix=/tmp/modules --with-pager=more --with-pager-opts=-X --enable-auto-handling' COVERAGE='y'
+    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.6 --disable-libtclenvmodules --prefix=/tmp/modules --with-pager=more --with-pager-opts=-X --enable-auto-handling' COVERAGE='y'
       before_script:
         - export DISPLAY=:99.0
         - sh -e /etc/init.d/xvfb start
@@ -173,7 +173,7 @@ jobs:
     # install specific siteconfig file before test to trigger specific behaviors
     # content of this specific siteconfig is activated by defining a TESTSUITE_ENABLE_SITECONFIG env var
     # siteconfig is deactivated for testinstall suite, will be handled locally in this test suite
-    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.6 --prefix=/tmp/modules --disable-compat-version' COVERAGE='y' COVERAGE_OLDTCL='y'
+    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.6 --prefix=/tmp/modules' COVERAGE='y' COVERAGE_OLDTCL='y'
            EXTRA_SCRIPT_PRETEST='make install-testsiteconfig-1 && export TESTSUITE_ENABLE_SITECONFIG=1'
            EXTRA_SCRIPT_POSTTEST='unset TESTSUITE_ENABLE_SITECONFIG'
       addons:
@@ -199,7 +199,7 @@ jobs:
             - gcc
             - autoconf
             - tcl8.6-dev
-    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.4 --prefix=/tmp/modules --disable-compat-version --with-tcl=/usr/lib/tcl8.4' COVERAGE='y'
+    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.4 --prefix=/tmp/modules --with-tcl=/usr/lib/tcl8.4' COVERAGE='y'
            EXTRA_SCRIPT_PRETEST='make install-testsiteconfig-1 && export TESTSUITE_ENABLE_SITECONFIG=1'
            EXTRA_SCRIPT_POSTTEST='unset TESTSUITE_ENABLE_SITECONFIG'
       addons:
@@ -229,7 +229,7 @@ jobs:
     # CentOS tests
     - env: OS_NAME=centos OS_VERSION=7 DOCKER_IMAGE=${OS_NAME}:${OS_NAME}${OS_VERSION} CONTAINER=${OS_NAME}${OS_VERSION}
            CMD_PREFIX="docker exec --env RUNTESTFLAGS=-v $CONTAINER"
-           CONFIGURE_OPTS='--disable-compat-version'
+           CONFIGURE_OPTS=''
            EXTRA_SCRIPT_POSTINST='make srpm'
       services:
         - docker
@@ -237,7 +237,7 @@ jobs:
     # same configuration than above with Tcl extension lib disabled to compare performances over a loaded system
     - env: OS_NAME=centos OS_VERSION=7 DOCKER_IMAGE=${OS_NAME}:${OS_NAME}${OS_VERSION} CONTAINER=${OS_NAME}${OS_VERSION}
            CMD_PREFIX="docker exec --env RUNTESTFLAGS=-v $CONTAINER"
-           CONFIGURE_OPTS='--disable-compat-version --disable-libtclenvmodules'
+           CONFIGURE_OPTS='--disable-libtclenvmodules'
            EXTRA_SCRIPT_POSTINST='make srpm'
       services:
         - docker
@@ -270,7 +270,7 @@ jobs:
     # openSUSE
     - env: OS_NAME=opensuse OS_VERSION=leap DOCKER_IMAGE=${OS_NAME}/${OS_VERSION} CONTAINER=${OS_VERSION}
            CMD_PREFIX="docker exec --env RUNTESTFLAGS=-v $CONTAINER"
-           CONFIGURE_OPTS='--disable-compat-version --enable-versioning'
+           CONFIGURE_OPTS='--enable-versioning'
       services:
         - docker
 
@@ -283,7 +283,7 @@ jobs:
         - docker
 
     # OSX tests
-    - env: CONFIGURE_OPTS='--prefix=/tmp/modules --disable-compat-version --disable-libtclenvmodules' COVERAGE='y'
+    - env: CONFIGURE_OPTS='--prefix=/tmp/modules --disable-libtclenvmodules' COVERAGE='y'
       os: osx
 
     # need to specify where to find tclConfig.sh on newer xcode release
