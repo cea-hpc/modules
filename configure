@@ -404,29 +404,58 @@ get_package_value() {
 
 # parse arguments
 for arg in "$@"; do
+   # set argument value defined with "--arg val" form
+   if [ -n "${nextargisval+x}" ]; then
+      declare $nextargisval=$arg
+      unset nextargisval
+      continue
+   fi
+
    case "$arg" in
    --prefix=*)
       prefix="${arg#*=}" ;;
+   --prefix)
+      nextargisval=prefix ;;
    --bindir=*)
       bindir="${arg#*=}" ;;
+   --bindir)
+      nextargisval=bindir ;;
    --libdir=*)
       libdir="${arg#*=}" ;;
+   --libdir)
+      nextargisval=libdir ;;
    --libexecdir=*)
       libexecdir="${arg#*=}" ;;
+   --libexecdir)
+      nextargisval=libexecdir ;;
    --etcdir=*)
       etcdir="${arg#*=}" ;;
+   --etcdir)
+      nextargisval=etcdir ;;
    --initdir=*)
       initdir="${arg#*=}" ;;
+   --initdir)
+      nextargisval=initdir ;;
    --datarootdir=*)
       datarootdir="${arg#*=}" ;;
+   --datarootdir)
+      nextargisval=datarootdir ;;
    --mandir=*)
       mandir="${arg#*=}" ;;
+   --mandir)
+      nextargisval=mandir ;;
    --docdir=*)
       docdir="${arg#*=}" ;;
+   --docdir)
+      nextargisval=docdir ;;
    --vimdatadir=*)
       vimdatadir="${arg#*=}" ;;
+   --vimdatadir)
+      nextargisval=vimdatadir ;;
    --modulefilesdir=*)
       modulefilesdir="${arg#*=}" ;;
+   --modulefilesdir)
+      nextargisval=modulefilesdir ;;
    --enable-set-manpath*|--disable-set-manpath)
       setmanpath=$(get_feature_value "$arg") ;;
    --enable-append-manpath*|--disable-append-manpath)
