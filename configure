@@ -120,7 +120,12 @@ compatbranch='c-3.2'
 
 # print message on stderr then exit
 echo_error() {
-   echo -e "ERROR: $1" >&2
+   if [ $# -eq 2 ] && [ $2 -eq 1 ]; then
+      local tryhelp="\n  Try \`$progpath --help' for more information"
+   else
+      local tryhelp=''
+   fi
+   echo -e "ERROR: $1$tryhelp" >&2
    exit 1
 }
 
@@ -564,6 +569,8 @@ for arg in "$@"; do
    --with-x|--without-x)
       # pass argument supported by compat version to its ./configure script
       compatarglist+="$arg " ;;
+   *)
+      echo_error "Unrecognized option \`$arg'" 1;;
    esac
 done
 
