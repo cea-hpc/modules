@@ -34,6 +34,20 @@ Modules 4.6.0 (not yet released)
   commands used when modulefile is displayed. The same kind of environment
   changes than the ``sh-to-mod`` sub-command are tracked. The same list of
   shells than ``sh-to-mod`` sub-command are supported.
+* Doc: add *Source shell script in modulefile* cookbook recipe.
+* Doc: embed new Modules logo on website, online README and documentation
+  portal.
+* Install: adapt ``configure`` script to pass to the ``configure`` script of
+  Modules compatibility version only a subset of the options it supports (most
+  commonly used options).
+* Install: raise an error when an unknown option is passed to ``configure``
+  script rather silently ignore it. (fix issue #348)
+* Install: enable the definition of installation directory options of
+  ``configure`` script with the ``--option value`` syntax in addition to the
+  ``--option=value`` syntax. (fix issue #348)
+* Install: disable by default the build of Modules compatibility version. From
+  now on, option ``--enable-compat-version`` has to be set to trigger this
+  build.
 
 
 Modules 4.5.1 (2020-06-01)
