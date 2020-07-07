@@ -29,6 +29,12 @@ if {$install_quarantinevars ne ""} {
 set ans [list]
 set ansr [list]
 
+# if test set LD_PRELOAD to a non-existent lib, ld will shout error
+if {[lsearch -exact $install_quarlist LD_PRELOAD] != -1} {
+   lappend ans "(ERROR: ld.so: object 'foo'.*)*"
+   lappend ansr "(ERROR: ld.so: object 'foo'.*)*"
+}
+
 set quar [join $install_quarlist " "]
 if { $verbose > 0 } {
    send_user "\tAlready configured MODULES_RUN_QUARANTINE = '$quar'\n"
@@ -70,7 +76,7 @@ foreach shell $shell_list {
          }
       }
       default {
-         testall_cmd "$shell" "module source $modfile" "" [join $ans "\n"] 0
+         testall_cmd_re "$shell" "module source $modfile" "" [join $ans "\n"] 0
       }
    }
 }
@@ -81,7 +87,7 @@ foreach shell $othlang_list {
          testall_cmd_re "$shell" "source,$modfile" "" [join $ansr "\n"] 0
       }
       default {
-         testall_cmd "$shell" "source,$modfile" "" [join $ans "\n"] 0
+         testall_cmd_re "$shell" "source,$modfile" "" [join $ans "\n"] 0
       }
    }
 }
@@ -89,6 +95,10 @@ foreach shell $othlang_list {
 #
 #  Clean up variables used in this test case
 #
+
+foreach vname $install_quarlist {
+   unset env($vname)
+}
 
 if {[info exists vname]} {
    unset vname
