@@ -2419,8 +2419,8 @@ proc module {command args} {
    }
 
    # define if modfile should always be fully read even for validity check
-   pushAlwaysReadFullFile [expr {[isInList [list path paths list avail\
-      aliases] $command]} ? 0 : 1]
+   pushAlwaysReadFullFile [expr {![isInList [list path paths list avail\
+      aliases] $command]}]
    pushCommandName $command
 
    if {$topcall} {
@@ -5481,7 +5481,7 @@ proc setModuleDependency {mod} {
 # update dependency chain when unloading module
 proc unsetModuleDependency {mod} {
    foreach lmmodlist $::g_moduleDepend($mod) {
-      set manymod [expr {[llength $lmmodlist] > 1 ? 1 : 0}]
+      set manymod [expr {[llength $lmmodlist] > 1}]
 
       # unset 'is depended by' mod relations
       foreach lmmod $lmmodlist {
@@ -5504,7 +5504,7 @@ proc unsetModuleDependency {mod} {
    unset ::g_moduleDepend($mod)
 
    foreach lmmodlist $::g_moduleNPODepend($mod) {
-      set manymod [expr {[llength $lmmodlist] > 1 ? 1 : 0}]
+      set manymod [expr {[llength $lmmodlist] > 1}]
 
       # unset 'is depended by' mod relations
       foreach lmmod $lmmodlist {
@@ -6466,7 +6466,7 @@ proc renderSettings {} {
       foreach putsArgs $::g_stdoutPuts {
          eval puts $putsArgs
          # check if a finishing newline will be needed after content sent
-         set needPutsNl [expr {[lindex $putsArgs 0] eq {-nonewline} ? 1 : 0}]
+         set needPutsNl [expr {[lindex $putsArgs 0] eq {-nonewline}}]
       }
       if {$needPutsNl} {
          puts stdout {}
@@ -8302,7 +8302,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    set modqe [getOneModuleFromVersSpec $mod]
 
    # perform an in depth search or not
-   set indepth [expr {[isInList $search noindepth] ? 0 : 1}]
+   set indepth [expr {![isInList $search noindepth]}]
 
    # set a default if none defined on directory entries
    set implicitdfl [getConf implicit_default]
@@ -8311,12 +8311,12 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    set autosymbol [expr {$implicitdfl && [getConf advanced_version_spec]}]
 
    # match passed name against any part of avail module names
-   set contains [expr {[isInList $search contains] ? 1 : 0}]
+   set contains [isInList $search contains]
    set mtest [expr {$contains ? {matchin} : {match}}]
 
    set icase [isIcase]
 
-   set wild [expr {[isInList $search wild] ? 1 : 0}]
+   set wild [isInList $search wild]
 
    # will only keep default or latest elts in the end or remove plain dirs
    set filtering [expr {$filter eq {noplaindir}}]
@@ -8360,7 +8360,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
       }
 
       # add alias/version definitions from global or user rc to result
-      set add_rc_defs [expr {[isInList $search rc_defs_included] ? 1 : 0}]
+      set add_rc_defs [isInList $search rc_defs_included]
 
       # if no indepth mode search, pass the depth level of the search query
       set depthlvl [expr {$indepth ? 0 : [llength $parentlist]}]
