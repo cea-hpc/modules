@@ -4651,7 +4651,8 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
       foreach dir $dir_list {
          # get list of modules corresponding to searched query
          array unset mod_list
-         array set mod_list [getModules $dir $mod 0 rc_defs_included]
+         array set mod_list [getModules $dir $mod 0 [list rc_defs_included\
+            resolve]]
 
          set prevmod {}
          set mod_res {}
@@ -4680,8 +4681,9 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
                      } else {
                         # Move to default element in directory
                         set mod $mod/[lindex $mod_list($mod) 1]
-                        # restart search if default element is hidden
-                        if {[isModuleHidden $mod]} {
+                        # restart search if default element is an hidden dir
+                        if {![info exists mod_list($mod)] && [isModuleHidden\
+                           $mod]} {
                            return [getPathToModule $mod $indir $report_issue]
                         }
                      }
@@ -8330,6 +8332,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    set moddir [getModuleNameFromVersSpec $mod]
    set hasmoddir [expr {$moddir ne {.}}]
 
+   # are result entries gathered in a resolution context ?
+   set resctx [isInList $search resolve]
+
    # if search for global or user rc alias only, no dir lookup is performed
    # and aliases from g_rcAlias are returned
    if {[isInList $search rc_alias_only]} {
@@ -8459,7 +8464,10 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
          set remhid 1
          if {[info exists versmod_list($elt)]} {
             foreach eltsym $versmod_list($elt) {
-               if {[modEqStatic $eltsym]} {
+               # keep hidden elt if one of its symbol matches query (bare
+               # module name query matches default symbol on resolve context)
+               if {[modEqStatic $eltsym] || ($resctx && "$mod/default" eq\
+                  $eltsym)} {
                   set remhid 0
                   break
                }
