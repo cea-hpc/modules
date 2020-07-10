@@ -7478,10 +7478,14 @@ proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}\
 # If given module maps to default or other symbolic versions, a list of
 # those versions is returned. This takes module/version as an argument.
 proc getVersAliasList {mod} {
+   set tag_list {}
    if {[info exists ::g_symbolHash($mod)]} {
       set tag_list $::g_symbolHash($mod)
-   } else {
-      set tag_list {}
+      # withdraw hidden symbol from list
+      if {[info exists ::g_hiddenSymHash($mod)]} {
+         lassign [getDiffBetweenList $tag_list $::g_hiddenSymHash($mod)]\
+            tag_list
+      }
    }
 
    reportDebug "'$mod' has tag list '$tag_list'"
@@ -7489,7 +7493,10 @@ proc getVersAliasList {mod} {
 }
 
 proc doesModuleHaveTag {mod} {
-   return [expr {[info exists ::g_symbolHash($mod)]}]
+   # is there any non-hidden symbol for mod
+   return [expr {[info exists ::g_symbolHash($mod)] && (![info exists\
+      ::g_hiddenSymHash($mod)] || [llength [lindex [getDiffBetweenList\
+      $::g_symbolHash($mod) $::g_hiddenSymHash($mod)] 0]] > 0)}]
 }
 
 # get list of elements located in a directory passed as argument. a flag is
@@ -8478,6 +8485,11 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
             }
          }
          if {$remhid} {
+            # record hidden symbol, not to display it in listModules
+            if {[lindex $found_list($elt) 0] eq {version}} {
+               lappend ::g_hiddenSymHash([lindex $found_list($elt) 1]) [file\
+                  tail $elt]
+            }
             unset found_list($elt)
          }
       }
