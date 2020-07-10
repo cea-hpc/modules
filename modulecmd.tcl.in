@@ -2203,7 +2203,7 @@ proc setModuleResolution {mod target {symver {}} {override_res_path 1}\
 }
 
 # retrieve all names that resolve to passed mod
-proc getAllModuleResolvedName {mod {flag_autosym 0}} {
+proc getAllModuleResolvedName {mod {flag_autosym 0} {modspec {}}} {
    set namelist {}
    set resmodlist {}
    set icase [isIcase]
@@ -2227,9 +2227,13 @@ proc getAllModuleResolvedName {mod {flag_autosym 0}} {
             # if modelt is not a parent directory of mod, check its resolution
             # points to mod (directly for alias/sym or indirectly for dir
             # whose default version bridge resolution toward mod)
-            if {[modEq $modelt $mod eqstart] || $::g_moduleResolved($resmod)\
-               eq $mod || [lindex [getPathToModule\
-               $::g_moduleResolved($resmod) {} 0] 1] eq $mod} {
+            # if modspec arg is set, exclude hidden entries not explicitly
+            # matching modspec
+            if {($modspec eq {} || ![isModuleHidden $resmod] || [modEq\
+               $modspec $resmod eqspec]) && ([modEq $modelt $mod eqstart] ||\
+               $::g_moduleResolved($resmod) eq $mod || [lindex\
+               [getPathToModule $::g_moduleResolved($resmod) {} 0] 1] eq\
+               $mod)} {
                # prefix automatically generated symbols with 'as|' if asked
                if {$flag_autosym && [info exists ::g_autoSymbol($resmod)]} {
                   appendNoDupToList namelist as|$resmod
@@ -10664,7 +10668,7 @@ proc cmdModuleLoad {context uasked args} {
 
          # register altname of modname prior any conflict check
          eval setLoadedAltname "{$modname}" [getAllModuleResolvedName\
-            $modname 1]
+            $modname 1 $mod]
 
          if {[getConf auto_handling]} {
             # get loaded modules holding a requirement on modname and able to
