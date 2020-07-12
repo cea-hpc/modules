@@ -8353,6 +8353,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    # get directory relative to module name
    set moddir [getModuleNameFromVersSpec $mod]
    set hasmoddir [expr {$moddir ne {.}}]
+   set modroot [lindex [split $modqe /] 0]
 
    # are result entries gathered in a resolution context ?
    set resctx [isInList $search resolve]
@@ -8551,9 +8552,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
          # record directory properties
          set found_list($elt) [concat [list directory $dfl] $dir_list($elt)]
 
-         # automatically define symbols for all modules if these names do not
-         # exist yet
-         if {$autosymbol} {
+         # automatically define symbols for all modules matching query if
+         # these names do not exist yet
+         if {$autosymbol && (!$hasmoddir || [modEq $modroot $elt eqstart])} {
             if {![info exists found_list($elt/default)]} {
                set found_list($elt/default) [list version $elt/$dfl]
                set autosym_list($elt/default) 1
