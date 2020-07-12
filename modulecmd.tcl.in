@@ -8476,13 +8476,21 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
          if {[info exists versmod_list($elt)]} {
             foreach eltsym $versmod_list($elt) {
                # keep hidden elt if one of its symbol matches query (bare
-               # module name query matches default symbol on resolve context)
-               if {[modEqStatic $eltsym] || ($resctx && "$mod/default" eq\
-                  $eltsym)} {
+               # module name query matches default symbol on resolve context
+               # or if onlydefaults filter is applied)
+               if {[modEqStatic $eltsym] || (($resctx || $filter eq\
+                  {onlydefaults}) && "$mod/default" eq $eltsym)} {
                   set remhid 0
                   break
                }
             }
+         }
+         # if onlydefaults filter applied consider 'default' symbols are
+         # explicitely specified
+         if {$remhid && $filter eq {onlydefaults} && [lindex\
+            $found_list($elt) 0] eq {version} && [file tail $elt] eq\
+            {default}} {
+            set remhid 0
          }
          if {$remhid} {
             # record hidden symbol, not to display it in listModules
