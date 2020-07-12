@@ -2228,6 +2228,11 @@ proc getAllModuleResolvedName {mod {flag_autosym 0} {modspec {}}} {
             # symbol is hidden
             set resmoddfl [expr {[lsearch -exact $resmodlist $resmod] != -1 ?\
                "$resmod/default" : {}}]
+            # if alternative name corresponds to default symbol and is hidden
+            # test if query matches bare module name
+            set resmodpar [expr {[file tail $resmod] eq {default} ? [file\
+               dirname $resmod] : {}}]
+
             # if modelt is not a parent directory of mod, check its resolution
             # points to mod (directly for alias/sym or indirectly for dir
             # whose default version bridge resolution toward mod)
@@ -2235,10 +2240,11 @@ proc getAllModuleResolvedName {mod {flag_autosym 0} {modspec {}}} {
             # matching modspec
             if {($modspec eq {} || (![isModuleHidden $resmod] && ($resmoddfl\
                eq {} || ![isModuleHidden $resmoddfl])) || [modEq $modspec\
-               $resmod eqspec]) && ([modEq $modelt $mod eqstart] ||\
-               $::g_moduleResolved($resmod) eq $mod || [lindex\
-               [getPathToModule $::g_moduleResolved($resmod) {} 0] 1] eq\
-               $mod)} {
+               $resmod eqspec] || ($resmoddfl ne {} && [modEq $modspec\
+               $resmoddfl eqspec]) || ($resmodpar ne {} && [modEq $modspec\
+               $resmodpar eqspec])) && ([modEq $modelt $mod eqstart] ||\
+               $::g_moduleResolved($resmod) eq $mod || $mod eq [lindex\
+               [getPathToModule $::g_moduleResolved($resmod) {} 0] 1])} {
                # prefix automatically generated symbols with 'as|' if asked
                if {$flag_autosym && [info exists ::g_autoSymbol($resmod)]} {
                   appendNoDupToList namelist as|$resmod
@@ -8490,11 +8496,11 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
                }
             }
          }
-         # if onlydefaults filter applied consider 'default' symbols are
-         # explicitely specified
-         if {$remhid && $filter eq {onlydefaults} && [lindex\
-            $found_list($elt) 0] eq {version} && [file tail $elt] eq\
-            {default}} {
+         # consider 'default' symbols are explicitely specified if
+         # onlydefaults filter applied or resolving bare module name
+         if {$remhid && [lindex $found_list($elt) 0] eq {version} && [file\
+            tail $elt] eq {default} && ($filter eq {onlydefaults} || ($resctx\
+            && "$mod/default" eq $elt))} {
             set remhid 0
          }
          if {$remhid} {
