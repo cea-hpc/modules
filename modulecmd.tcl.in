@@ -2224,13 +2224,18 @@ proc getAllModuleResolvedName {mod {flag_autosym 0} {modspec {}}} {
       set modelt [getArrayKey ::g_resolvedHash [lindex $resmodlist $i] $icase]
       if {[info exists ::g_resolvedHash($modelt)]} {
          foreach resmod $::g_resolvedHash($modelt) {
+            # if alternative name corresponds to one root name test if default
+            # symbol is hidden
+            set resmoddfl [expr {[lsearch -exact $resmodlist $resmod] != -1 ?\
+               "$resmod/default" : {}}]
             # if modelt is not a parent directory of mod, check its resolution
             # points to mod (directly for alias/sym or indirectly for dir
             # whose default version bridge resolution toward mod)
             # if modspec arg is set, exclude hidden entries not explicitly
             # matching modspec
-            if {($modspec eq {} || ![isModuleHidden $resmod] || [modEq\
-               $modspec $resmod eqspec]) && ([modEq $modelt $mod eqstart] ||\
+            if {($modspec eq {} || (![isModuleHidden $resmod] && ($resmoddfl\
+               eq {} || ![isModuleHidden $resmoddfl])) || [modEq $modspec\
+               $resmod eqspec]) && ([modEq $modelt $mod eqstart] ||\
                $::g_moduleResolved($resmod) eq $mod || [lindex\
                [getPathToModule $::g_moduleResolved($resmod) {} 0] 1] eq\
                $mod)} {
