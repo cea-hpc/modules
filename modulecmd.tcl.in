@@ -2173,6 +2173,12 @@ proc setModuleResolution {mod target {symver {}} {override_res_path 1}\
                reportDebug "module-version $modvers = $modres"
                set ::g_moduleVersion($modvers) $modres
                set ::g_sourceVersion($modvers) $::ModulesCurrentModulefile
+               # record eventual missing resolution
+               if {![info exists g_moduleResolved($modvers)]} {
+                  set g_moduleResolved($modvers) $modres
+                  reportDebug "$modvers resolved to $modres"
+                  lappend g_resolvedHash($modres) $modvers
+               }
             }
          # as we change of module name a proper resolution call should be
          # made (see below) and will handle the rest of the resolution path
