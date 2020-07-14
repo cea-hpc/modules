@@ -1021,6 +1021,297 @@ testouterr_cmd_re sh {whatis hide2@default} OK "$tserr\n\\s+hide2/1.5: hide2/1.5
 testouterr_cmd_re sh {whatis hide2@latest} OK "$tserr\n\\s+hide2/1.5: hide2/1.5"
 unsetenv_var TESTSUITE_HIDE2_SET14
 
+# declare 'hide2' globally hidden
+setenv_var TESTSUITE_HIDE2_SET15 1
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide2/1.0]
+lappend ans [list setpath _LMFILES_ $mp/hide2/1.0]
+set ans4 [list]
+lappend ans4 [list setpath LOADEDMODULES hide2/1.5:hide2/1.0:hidereq/3.0]
+lappend ans4 [list setpath _LMFILES_ $mp/hide2/1.0:$mp/hide2/1.0:$mp/hidereq/3.0]
+lappend ans4 [list setpath MODULES_LMPREREQ hidereq/3.0&hide2/1.5&hide2/1.1]
+lappend ans4 [list setpath MODULES_LMNOTUASKED hide2/1.5:hide2/1.0]
+lappend ans4 [list setpath MODULES_LMALTNAME hide2/1.0&hide2/1.1]
+testouterr_cmd sh {load hide2} ERR $err_path'hide2'
+testouterr_cmd sh {load hide2/1.0} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide2/1.0]
+lappend ans [list setpath _LMFILES_ $mp/hide2/1.0]
+lappend ans [list setpath MODULES_LMALTNAME hide2/1.0&hide2/1.1]
+testouterr_cmd sh {load hide2/1.1} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide2/1.0]
+lappend ans [list setpath _LMFILES_ $mp/hide2/1.0]
+lappend ans [list setpath MODULES_LMALTNAME hide2/1.0&hide2/1.2]
+testouterr_cmd sh {load hide2/1.2} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide2/1.0]
+lappend ans [list setpath _LMFILES_ $mp/hide2/1.0]
+lappend ans [list setpath MODULES_LMALTNAME hide2/1.0&hide2/1.3]
+testouterr_cmd sh {load hide2/1.3} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide2/1.0]
+lappend ans [list setpath _LMFILES_ $mp/hide2/1.0]
+lappend ans [list setpath MODULES_LMALTNAME hide2/1.0&hide2/1.4]
+testouterr_cmd sh {load hide2/1.4} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide2/1.5]
+lappend ans [list setpath _LMFILES_ $mp/hide2/1.0]
+testouterr_cmd sh {load hide2/1.5} $ans {}
+testouterr_cmd sh {load hide2@default} ERR $err_path'hide2@default'
+testouterr_cmd sh {load hide2@latest} ERR $err_path'hide2@latest'
+testouterr_cmd_re sh {load --auto hidereq/3.0} $ans4 [msg_top_load hidereq/3.0 {} {hide2/1.5 hide2/1.0} {}]
+# only hide2 elements declared prior module-hide rule are visible
+testouterr_cmd sh {avail -t hide2} OK "global/user modulerc:\nhide2/1.3(@)"
+testouterr_cmd sh {avail -t hide2/1.0} OK $mp:\nhide2/1.0(1.4)
+testouterr_cmd sh {avail -t hide2/1.1} OK $mp:\nhide2/1.1(@)
+testouterr_cmd sh {avail -t hide2/1.2} OK $mp:\nhide2/1.0(1.2:1.4)
+testouterr_cmd sh {avail -t hide2/1.3} OK "global/user modulerc:\nhide2/1.3(@)"
+testouterr_cmd sh {avail -t hide2/1.4} OK {}
+testouterr_cmd sh {avail -t hide2/1.5} OK $mp:\nhide2/1.5
+testouterr_cmd sh {avail -t hide2@default} OK "global/user modulerc:\nhide2/1.3(@)"
+testouterr_cmd sh {avail -t hide2@latest} OK "global/user modulerc:\nhide2/1.3(@)"
+testouterr_cmd sh {avail -t -d hide2} OK "global/user modulerc:\nhide2/1.3(@)"
+testouterr_cmd sh {avail -t -L hide2} OK "global/user modulerc:\nhide2/1.3(@)"
+set tserr "$modlin $mpre $modlin"
+testouterr_cmd_re sh {whatis hide2} ERR $err_path'hide2'
+testouterr_cmd_re sh {whatis hide2/1.0} OK "$tserr\n\\s+hide2/1.0: hide2/1.0"
+testouterr_cmd_re sh {whatis hide2/1.1} OK "$tserr\n\\s+hide2/1.0: hide2/1.0"
+testouterr_cmd_re sh {whatis hide2/1.2} OK "$tserr\n\\s+hide2/1.0: hide2/1.0"
+testouterr_cmd_re sh {whatis hide2/1.3} OK "$tserr\n\\s+hide2/1.0: hide2/1.0"
+testouterr_cmd_re sh {whatis hide2/1.4} OK "$tserr\n\\s+hide2/1.0: hide2/1.0"
+testouterr_cmd_re sh {whatis hide2/1.5} OK "$tserr\n\\s+hide2/1.5: hide2/1.5"
+testouterr_cmd_re sh {whatis hide2@default} ERR $err_path'hide2@default'
+testouterr_cmd_re sh {whatis hide2@latest} ERR $err_path'hide2@latest'
+unsetenv_var TESTSUITE_HIDE2_SET15
+
+
+setenv_var TESTSUITE_HIDE3_SET1 1
+testouterr_cmd sh {load hide3} ERR $err_path'hide3/sub1'
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/4.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/4.0]
+# hide3/sub2/default is used to resolve hide3/al1>hide3/sub2 into hide3/al1>hide3/sub2/4.0 but not recorded in the alternative names
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/4.0&hide3/al1]
+testouterr_cmd sh {load hide3/al1} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/5.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/5.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/5.0&hide3/al2]
+testouterr_cmd sh {load hide3/al2} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/4.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/4.0]
+# hide3/sub2/default is used to resolve hide3/sym>hide3/sub2 into hide3/sym>hide3/sub2/4.0 but not recorded in the alternative names
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/4.0&hide3/sym]
+testouterr_cmd sh {load hide3/sym} $ans {}
+testouterr_cmd sh {load hide3/sub1} ERR $err_path'hide3/sub1'
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/4.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/4.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/4.0&hide3/sub2/default&hide3/sub2]
+testouterr_cmd sh {load hide3/sub2} $ans {}
+testouterr_cmd sh {load hide3@latest} ERR $err_path'hide3@latest'
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/4.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/4.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/4.0&hide3/sub2/sym]
+testouterr_cmd sh {load hide3/sub2@sym} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub1/3.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub1/3.0]
+testouterr_cmd sh {load hide3/sub1@3.0} $ans {}
+testouterr_cmd sh {avail -t hide3} OK {}
+testouterr_cmd sh {avail -t hide3/sym} OK {}
+testouterr_cmd sh {avail -t hide3/al2} OK "$mp:\nhide3/al2(@)"
+testouterr_cmd sh {avail -t hide3/sub1} OK {}
+testouterr_cmd sh {avail -t hide3/sub2} OK {}
+testouterr_cmd sh {avail -t hide3@latest} OK {}
+testouterr_cmd sh {avail -t hide3/sub1/2.0} OK "$mp:\nhide3/sub1/2.0"
+testouterr_cmd sh {avail -t hide3/sub2@new} OK "$mp:\nhide3/sub2/5.0(new)"
+testouterr_cmd_re sh {whatis hide3} ERR $err_path'hide3'
+testouterr_cmd_re sh {whatis hide3/sym} ERR $err_path'hide3/sub2'
+testouterr_cmd_re sh {whatis hide3/al2} OK "$tserr\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
+testouterr_cmd_re sh {whatis hide3/sub1} ERR $err_path'hide3/sub1'
+testouterr_cmd_re sh {whatis hide3/sub2} ERR $err_path'hide3/sub2'
+unsetenv_var TESTSUITE_HIDE3_SET1
+
+setenv_var TESTSUITE_HIDE3_SET2 1
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub1/3.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub1/3.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub1/3.0&hide3/default&hide3&as|hide3/latest&as|hide3/sub1/default&as|hide3/sub1/latest]
+testouterr_cmd sh {load hide3} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/4.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/4.0]
+# hide3/sub2/default is used to resolve hide3/al1>hide3/sub2 into hide3/al1>hide3/sub2/4.0 but not recorded in the alternative names
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/4.0&hide3/al1&hide3/sym&as|hide3/latest]
+testouterr_cmd sh {load hide3/al1} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/5.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/5.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/5.0&hide3/al2]
+testouterr_cmd sh {load hide3/al2} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/4.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/4.0]
+# hide3/sub2/default is used to resolve hide3/sym>hide3/sub2 into hide3/sym>hide3/sub2/4.0 but not recorded in the alternative names
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/4.0&hide3/al1&hide3/sym&as|hide3/latest]
+testouterr_cmd sh {load hide3/sym} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub1/3.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub1/3.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub1/3.0&hide3/default&hide3&as|hide3/latest&as|hide3/sub1/default&as|hide3/sub1/latest]
+testouterr_cmd sh {load hide3/sub1} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/4.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/4.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/4.0&hide3/sub2/default&hide3/sub2&hide3/al1&hide3/sym&as|hide3/latest]
+testouterr_cmd sh {load hide3/sub2} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub1/3.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub1/3.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub1/3.0&hide3/default&hide3&as|hide3/latest&as|hide3/sub1/default&as|hide3/sub1/latest]
+testouterr_cmd sh {load hide3@latest} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/4.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/4.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/4.0&hide3/al1&hide3/sym&hide3/sub2/sym&as|hide3/latest]
+testouterr_cmd sh {load hide3/sub2@sym} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub1/3.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub1/3.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub1/3.0&hide3/default&hide3&as|hide3/latest&as|hide3/sub1/default&as|hide3/sub1/latest]
+testouterr_cmd sh {load hide3/sub1@3.0} $ans {}
+testouterr_cmd sh {avail -t hide3} OK "$mp:\nhide3/1.0\nhide3/al1(@)\nhide3/al2(@)\nhide3/sub1/(default)\nhide3/sub1/2.0\nhide3/sub1/3.0"
+testouterr_cmd sh {avail -t hide3/sym} OK {}
+testouterr_cmd sh {avail -t hide3/al2} OK "$mp:\nhide3/al2(@)"
+testouterr_cmd sh {avail -t hide3/sub1} OK "$mp:\nhide3/sub1/(default)\nhide3/sub1/2.0\nhide3/sub1/3.0"
+testouterr_cmd sh {avail -t hide3/sub2} OK {}
+testouterr_cmd sh {avail -t hide3@latest} OK "$mp:\nhide3/sub1/(default)\nhide3/sub1/2.0\nhide3/sub1/3.0"
+testouterr_cmd sh {avail -t hide3/sub1/2.0} OK "$mp:\nhide3/sub1/2.0"
+testouterr_cmd sh {avail -t hide3/sub2@new} OK "$mp:\nhide3/sub2/5.0(new)"
+testouterr_cmd_re sh {whatis hide3} OK "$tserr\n\\s+hide3/1.0: hide3/1.0\n\\s+hide3/sub1/2.0: hide3/sub1/2.0\n\\s+hide3/sub1/3.0: hide3/sub1/3.0\n\\s+hide3/sub2/4.0: hide3/sub2/4.0\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
+testouterr_cmd_re sh {whatis hide3/sym} ERR $err_path'hide3/sub2'
+testouterr_cmd_re sh {whatis hide3/al2} OK "$tserr\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
+testouterr_cmd_re sh {whatis hide3/sub1} OK "$tserr\n\\s+hide3/sub1/2.0: hide3/sub1/2.0\n\\s+hide3/sub1/3.0: hide3/sub1/3.0"
+testouterr_cmd_re sh {whatis hide3/sub2} ERR $err_path'hide3/sub2'
+unsetenv_var TESTSUITE_HIDE3_SET2
+
+setenv_var TESTSUITE_HIDE3_SET3 1
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub1/3.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub1/3.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub1/3.0&hide3/default&hide3&as|hide3/sub1/default&as|hide3/sub1/latest]
+testouterr_cmd sh {load hide3} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/4.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/4.0]
+# transitively set 'sym' symbol is not affected by hide of 'hide3/sym'
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/4.0&hide3/sub2/default&hide3/sub2&hide3/al1&hide3/sub2/sym&as|hide3/latest]
+testouterr_cmd sh {load hide3/al1} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/5.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/5.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/5.0&hide3/al2&hide3/sub2/new&as|hide3/sub2/latest]
+testouterr_cmd sh {load hide3/al2} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/4.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/4.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/4.0&hide3/sub2/default&hide3/sub2&hide3/al1&hide3/sym&hide3/sub2/sym&as|hide3/latest]
+testouterr_cmd sh {load hide3/sym} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub1/3.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub1/3.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub1/3.0&hide3/default&hide3&as|hide3/sub1/default&as|hide3/sub1/latest]
+testouterr_cmd sh {load hide3/sub1} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/4.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/4.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/4.0&hide3/sub2/default&hide3/sub2&hide3/al1&hide3/sub2/sym&as|hide3/latest]
+testouterr_cmd sh {load hide3/sub2} $ans {}
+testouterr_cmd sh {load hide3@latest} $ans {}
+testouterr_cmd sh {load hide3/sub2@sym} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub1/3.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub1/3.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub1/3.0&hide3/default&hide3&as|hide3/sub1/default&as|hide3/sub1/latest]
+testouterr_cmd sh {load hide3/sub1@3.0} $ans {}
+testouterr_cmd sh {avail -t hide3} OK "$mp:\nhide3/1.0\nhide3/al1(@)\nhide3/al2(@)\nhide3/sub1/(default)\nhide3/sub1/2.0\nhide3/sub1/3.0\nhide3/sub2/4.0(default:sym)\nhide3/sub2/5.0(new)"
+testouterr_cmd sh {avail -t hide3/sym} OK "$mp:\nhide3/sub2/(sym)\nhide3/sub2/4.0(default:sym)\nhide3/sub2/5.0(new)"
+testouterr_cmd sh {avail -t hide3/al2} OK "$mp:\nhide3/al2(@)"
+testouterr_cmd sh {avail -t hide3/sub1} OK "$mp:\nhide3/sub1/(default)\nhide3/sub1/2.0\nhide3/sub1/3.0"
+testouterr_cmd sh {avail -t hide3/sub2} OK "$mp:\nhide3/sub2/4.0(default:sym)\nhide3/sub2/5.0(new)"
+testouterr_cmd sh {avail -t hide3@latest} OK "$mp:\nhide3/sub2/4.0(default:sym)\nhide3/sub2/5.0(new)"
+testouterr_cmd sh {avail -t hide3/sub1/2.0} OK "$mp:\nhide3/sub1/2.0"
+testouterr_cmd sh {avail -t hide3/sub2@new} OK "$mp:\nhide3/sub2/5.0(new)"
+testouterr_cmd_re sh {whatis hide3} OK "$tserr\n\\s+hide3/1.0: hide3/1.0\n\\s+hide3/sub1/2.0: hide3/sub1/2.0\n\\s+hide3/sub1/3.0: hide3/sub1/3.0\n\\s+hide3/sub2/4.0: hide3/sub2/4.0\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
+testouterr_cmd_re sh {whatis hide3/sym} OK "$tserr\n\\s+hide3/sub2/4.0: hide3/sub2/4.0\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
+testouterr_cmd_re sh {whatis hide3/al2} OK "$tserr\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
+testouterr_cmd_re sh {whatis hide3/sub1} OK "$tserr\n\\s+hide3/sub1/2.0: hide3/sub1/2.0\n\\s+hide3/sub1/3.0: hide3/sub1/3.0"
+testouterr_cmd_re sh {whatis hide3/sub2} OK "$tserr\n\\s+hide3/sub2/4.0: hide3/sub2/4.0\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
+unsetenv_var TESTSUITE_HIDE3_SET3
+
+setenv_var TESTSUITE_HIDE3_SET4 1
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub1/3.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub1/3.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub1/3.0&hide3/default&hide3&as|hide3/sub1/default&as|hide3/sub1/latest]
+testouterr_cmd sh {load hide3} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/4.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/4.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/4.0&hide3/al1&hide3/sym&hide3/sub2/sym&as|hide3/latest]
+testouterr_cmd sh {load hide3/al1} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/5.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/5.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/5.0&hide3/al2&hide3/sub2/new&as|hide3/sub2/latest]
+testouterr_cmd sh {load hide3/al2} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/4.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/4.0]
+# hide3/sub2/default is used to resolve hide3/sym>hide3/sub2 into hide3/sym>hide3/sub2/4.0 but not recorded in the alternative names
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/4.0&hide3/al1&hide3/sym&hide3/sub2/sym&as|hide3/latest]
+testouterr_cmd sh {load hide3/sym} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub1/3.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub1/3.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub1/3.0&hide3/default&hide3&as|hide3/sub1/default&as|hide3/sub1/latest]
+testouterr_cmd sh {load hide3/sub1} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/4.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/4.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/4.0&hide3/sub2/default&hide3/sub2&hide3/al1&hide3/sym&hide3/sub2/sym&as|hide3/latest]
+testouterr_cmd sh {load hide3/sub2} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/4.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/4.0]
+# hide3/sub2/default is used to resolve hide3/sym>hide3/sub2 into hide3/sym>hide3/sub2/4.0 but not recorded in the alternative names
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/4.0&hide3/al1&hide3/sym&hide3/sub2/sym&as|hide3/latest]
+testouterr_cmd sh {load hide3@latest} $ans {}
+testouterr_cmd sh {load hide3/sub2@sym} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub1/3.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub1/3.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub1/3.0&hide3/default&hide3&as|hide3/sub1/default&as|hide3/sub1/latest]
+testouterr_cmd sh {load hide3/sub1@3.0} $ans {}
+testouterr_cmd sh {avail -t hide3} OK "$mp:\nhide3/1.0\nhide3/al1(@)\nhide3/al2(@)\nhide3/sub1/(default)\nhide3/sub1/3.0\nhide3/sub2/(sym)\nhide3/sub2/4.0(sym)\nhide3/sub2/5.0(new)"
+testouterr_cmd sh {avail -t hide3/sym} OK "$mp:\nhide3/sub2/(sym)\nhide3/sub2/4.0(sym)\nhide3/sub2/5.0(new)"
+testouterr_cmd sh {avail -t hide3/al2} OK "$mp:\nhide3/al2(@)"
+testouterr_cmd sh {avail -t hide3/sub1} OK "$mp:\nhide3/sub1/(default)\nhide3/sub1/3.0"
+testouterr_cmd sh {avail -t hide3/sub2} OK "$mp:\nhide3/sub2/(sym)\nhide3/sub2/4.0(sym)\nhide3/sub2/5.0(new)"
+testouterr_cmd sh {avail -t hide3@latest} OK "$mp:\nhide3/sub2/(sym)\nhide3/sub2/4.0(sym)\nhide3/sub2/5.0(new)"
+testouterr_cmd sh {avail -t hide3/sub1/2.0} OK "$mp:\nhide3/sub1/2.0"
+testouterr_cmd sh {avail -t hide3/sub2@new} OK "$mp:\nhide3/sub2/5.0(new)"
+testouterr_cmd_re sh {whatis hide3} OK "$tserr\n\\s+hide3/1.0: hide3/1.0\n\\s+hide3/sub1/3.0: hide3/sub1/3.0\n\\s+hide3/sub2/4.0: hide3/sub2/4.0\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
+testouterr_cmd_re sh {whatis hide3/sym} OK "$tserr\n\\s+hide3/sub2/4.0: hide3/sub2/4.0\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
+testouterr_cmd_re sh {whatis hide3/al2} OK "$tserr\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
+testouterr_cmd_re sh {whatis hide3/sub1} OK "$tserr\n\\s+hide3/sub1/3.0: hide3/sub1/3.0"
+testouterr_cmd_re sh {whatis hide3/sub2} OK "$tserr\n\\s+hide3/sub2/4.0: hide3/sub2/4.0\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
+unsetenv_var TESTSUITE_HIDE3_SET4
+
 
 # hidden symbol on list sub-command
 setenv_var TESTSUITE_HIDE2_SET3 1
