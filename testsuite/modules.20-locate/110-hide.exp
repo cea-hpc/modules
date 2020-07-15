@@ -1313,19 +1313,75 @@ testouterr_cmd_re sh {whatis hide3/sub2} OK "$tserr\n\\s+hide3/sub2/4.0: hide3/s
 unsetenv_var TESTSUITE_HIDE3_SET4
 
 
-# hidden symbol on list sub-command
-setenv_var TESTSUITE_HIDE2_SET3 1
+# hidden symbol/module over loaded environment
 setenv_loaded_module [list hide2/1.0] [list $mp/hide2/1.0]
 setenv_path_var MODULES_LMALTNAME hide2/1.0&hide2/1.3&hide2/1.4&hide2/1.1
+
+setenv_var TESTSUITE_HIDE2_SET3 1
 # hidden symbols not reported even if recorded in env as a specific resolution of each
 # loaded module is currently done
 testouterr_cmd sh {list -t} OK $cur_loaded\nhide2/1.0
 setenv_path_var MODULES_LMALTNAME hide2/1.0&hide2/1.3&hide2/1.4&hide2/1.1&hide2/1.2
 testouterr_cmd sh {list -t} OK $cur_loaded\nhide2/1.0
+setenv_path_var MODULES_LMALTNAME hide2/1.0&hide2/1.3&hide2/1.4&hide2/1.1
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMALTNAME]
+testouterr_cmd sh {purge} $ans {}
+testouterr_cmd sh {unload hide2} $ans {}
+# will not find 1.2 symbol as not part of loaded definition
+testouterr_cmd sh {unload hide2/1.2} OK {}
+testouterr_cmd sh {unload hide2/1.1} $ans {}
+testouterr_cmd sh {unload hide2/1.0} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide2/1.0]
+lappend ans [list setpath _LMFILES_ $mp/hide2/1.0]
+lappend ans [list setpath MODULES_LMALTNAME hide2/1.0&hide2/1.3&hide2/1.4&hide2/1.1]
+testouterr_cmd sh {reload} $ans {}
+# below reload is loosing hide2/1.2 hidden symbol as hide2/1.0 is reloaded by this hide2/1.0 name and not hide2/1.2
+setenv_path_var MODULES_LMALTNAME hide2/1.0&hide2/1.3&hide2/1.4&hide2/1.1&hide2/1.2
+testouterr_cmd sh {reload} $ans {}
+unsetenv_var TESTSUITE_HIDE2_SET3
+
+setenv_var TESTSUITE_HIDE2_SET1 1
+testouterr_cmd sh {list -t} OK $cur_loaded\nhide2/1.0
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMALTNAME]
+testouterr_cmd sh {purge} $ans {}
+testouterr_cmd sh {unload hide2} $ans {}
+testouterr_cmd sh {unload hide2/1.2} $ans {}
+testouterr_cmd sh {unload hide2/1.1} $ans {}
+testouterr_cmd sh {unload hide2/1.0} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide2/1.0]
+lappend ans [list setpath _LMFILES_ $mp/hide2/1.0]
+lappend ans [list setpath MODULES_LMALTNAME hide2/1.0&hide2/1.3&hide2/1.4&hide2/1.1&hide2/1.2]
+testouterr_cmd sh {reload} $ans {}
+unsetenv_var TESTSUITE_HIDE2_SET1
+
+setenv_var TESTSUITE_HIDE2_SET15 1
+unsetenv_path_var MODULES_LMALTNAME
+testouterr_cmd sh {list -t} OK $cur_loaded\nhide2/1.0
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd sh {purge} $ans {}
+testouterr_cmd sh {unload hide2} $ans {}
+# will not find 1.2 symbol nor 1.1 alias as not part of loaded definition
+testouterr_cmd sh {unload hide2/1.2} OK {}
+testouterr_cmd sh {unload hide2/1.1} OK {}
+testouterr_cmd sh {unload hide2/1.0} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide2/1.0]
+lappend ans [list setpath _LMFILES_ $mp/hide2/1.0]
+testouterr_cmd sh {reload} $ans {}
+unsetenv_var TESTSUITE_HIDE2_SET15
 
 unsetenv_loaded_module
 unsetenv_path_var MODULES_LMALTNAME
-unsetenv_var TESTSUITE_HIDE2_SET3
 
 
 # module-hide effect on is-avail used in modulefile
