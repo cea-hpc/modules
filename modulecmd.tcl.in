@@ -2244,13 +2244,13 @@ proc getAllModuleResolvedName {mod {flag_autosym 0} {modspec {}}} {
             # whose default version bridge resolution toward mod)
             # if modspec arg is set, exclude hidden entries not explicitly
             # matching modspec
-            if {($modspec eq {} || (![isModuleHidden $resmod] && ($resmoddfl\
-               eq {} || ![isModuleHidden $resmoddfl])) || [modEq $modspec\
-               $resmod eqspec] || ($resmoddfl ne {} && [modEq $modspec\
-               $resmoddfl eqspec]) || ($resmodpar ne {} && [modEq $modspec\
-               $resmodpar eqspec])) && ([modEq $modelt $mod eqstart] ||\
-               $::g_moduleResolved($resmod) eq $mod || $mod eq [lindex\
-               [getPathToModule $::g_moduleResolved($resmod) {} 0] 1])} {
+            if {($modspec eq {} || (![isModuleHidden $resmod $modspec] &&\
+               ($resmoddfl eq {} || ![isModuleHidden $resmoddfl $modspec]))\
+               || [modEq $modspec $resmod eqspec] || ($resmodpar ne {} &&\
+               [modEq $modspec $resmodpar eqspec])) && ([modEq $modelt $mod\
+               eqstart] || $::g_moduleResolved($resmod) eq $mod || $mod eq\
+               [lindex [getPathToModule $::g_moduleResolved($resmod) {} 0]\
+               1])} {
                # prefix automatically generated symbols with 'as|' if asked
                if {$flag_autosym && [info exists ::g_autoSymbol($resmod)]} {
                   appendNoDupToList namelist as|$resmod
@@ -4603,14 +4603,16 @@ proc isModuleDeclHidden {mod} {
    return 0
 }
 
-# test if one element in module name has a leading "dot" making this module
-# a hidden module or has been declared hidden with modulefile commands
-proc isModuleHidden {mod} {
-   set ret [isModuleDotHidden $mod]
-   if {!$ret} {
-      set ret [isModuleDeclHidden $mod]
-   }
-   return $ret
+# test if mod is declared hidden or has one element in its name starting with
+# dot character. such mod is considered hidden unless it matches modspec
+# search query
+proc isModuleHidden {mod {modspec {}}} {
+   # dot hidden elt are excluded if part after search query match is hidden
+   # and declared hidden elt are excluded unless it matches query
+   return [expr {([isModuleDotHidden $mod] && ([set i [modStartNb $mod\
+      $modspec]] == 0 || [isModuleDotHidden [join [lrange [file split $mod]\
+      $i end] /]])) || ([isModuleDeclHidden $mod] && ![modEq $modspec $mod\
+      eqspec])}]
 }
 
 # check if module name is specified as a full pathname (not a name relative
@@ -4671,6 +4673,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
          implicit_default]
 
       # Now search for $mod in module paths
+      set modspec $mod
       foreach dir $dir_list {
          # get list of modules corresponding to searched query
          array unset mod_list
@@ -4706,7 +4709,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
                         set mod $mod/[lindex $mod_list($mod) 1]
                         # restart search if default element is an hidden dir
                         if {![info exists mod_list($mod)] && [isModuleHidden\
-                           $mod]} {
+                           $mod $modspec]} {
                            return [getPathToModule $mod $indir $report_issue]
                         }
                      }
@@ -8484,12 +8487,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    defineModEqStaticProc $icase [getConf extended_default] $mod
 
    # remove hidden elements unless they are (or their symbols) targeted by
-   # search query. dot hidden elt are excluded if part after query match is
-   # hidden and declared hidden elt are excluded unless it matches query
+   # search query.
    foreach elt [array names found_list] {
-      if {([isModuleDotHidden $elt] && ([set i [modStartNb $elt $mod]] == 0\
-         || [isModuleDotHidden [join [lrange [file split $elt] $i end] /]]))\
-         || ([isModuleDeclHidden $elt] && ![modEq $mod $elt eqspec])} {
+      if {[isModuleHidden $elt $mod]} {
          set remhid 1
          if {[info exists versmod_list($elt)]} {
             foreach eltsym $versmod_list($elt) {
@@ -8648,7 +8648,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
                   set pardir [file dirname $tgt]
                   if {([info exists found_list($tgt)] || ($pardir ne {.} &&\
                      ![info exists found_list($pardir)] && [isModuleHidden\
-                     $tgt])) && ![info exists err_list($tgt)]} {
+                     $tgt $mod])) && ![info exists err_list($tgt)]} {
                      # create parent directory if it does not exist
                      if {$pardir ne {.} && ![info exists\
                         found_list($pardir)]} {
