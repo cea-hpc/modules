@@ -4609,12 +4609,22 @@ proc getModuleHidingLevel {mod} {
 # dot character. such mod is considered hidden unless it matches modspec
 # search query
 proc isModuleHidden {mod {modspec {}}} {
-   # dot hidden elt are excluded if part after search query match is hidden
-   # and declared hidden elt are excluded unless it matches query
-   return [expr {([isModuleDotHidden $mod] && ([set i [modStartNb $mod\
-      $modspec]] == 0 || [isModuleDotHidden [join [lrange [file split $mod]\
-      $i end] /]])) || ([getModuleHidingLevel $mod] > -1 && ![modEq $modspec\
-      $mod eqspec])}]
+   set testid $mod:$modspec
+   # returned saved result if already tested
+   if {[info exists ::g_isModuleHiddenMemCache($testid)]} {
+      return $::g_isModuleHiddenMemCache($testid)
+   } else {
+      # dot hidden elt are excluded if part after search query match is hidden
+      # and declared hidden elt are excluded unless it matches query
+      set ret [expr {([isModuleDotHidden $mod] && ([set i [modStartNb $mod\
+         $modspec]] == 0 || [isModuleDotHidden [join [lrange [file split\
+         $mod] $i end] /]])) || ([getModuleHidingLevel $mod] > -1 && ![modEq\
+         $modspec $mod eqspec])}]
+      # cache test result
+      set ::g_isModuleHiddenMemCache($testid) $ret
+
+      return $ret
+   }
 }
 
 # check if module name is specified as a full pathname (not a name relative
