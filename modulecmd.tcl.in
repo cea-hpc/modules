@@ -2325,10 +2325,22 @@ proc module-virtual {args} {
 }
 
 proc module-hide {args} {
-   set modarglist $args
    set hidinglvl 1
 
-   if {[llength $modarglist] == 0} {
+   # parse argument list
+   foreach arg $args {
+      switch -- $arg {
+         --soft {
+            # soften level of camouflage
+            set hidinglvl 0
+         }
+         default {
+            lappend modarglist $arg
+         }
+      }
+   }
+
+   if {![info exists modarglist]} {
       knerror {No module specified in argument}
    }
    # record each hide spec after parsing them
@@ -4618,8 +4630,9 @@ proc isModuleHidden {mod {modspec {}}} {
       # and declared hidden elt are excluded unless it matches query
       set ret [expr {([isModuleDotHidden $mod] && ([set i [modStartNb $mod\
          $modspec]] == 0 || [isModuleDotHidden [join [lrange [file split\
-         $mod] $i end] /]])) || ([getModuleHidingLevel $mod] > -1 && ![modEq\
-         $modspec $mod eqspec])}]
+         $mod] $i end] /]])) || ([set hidlvl [getModuleHidingLevel $mod]] >\
+         -1 && (($hidlvl == 0 && [modStartNb $mod $modspec] == 0) || ($hidlvl\
+         > 0 && ![modEq $modspec $mod eqspec])))}]
       # cache test result
       set ::g_isModuleHiddenMemCache($testid) $ret
 
