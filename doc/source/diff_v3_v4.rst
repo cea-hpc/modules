@@ -314,9 +314,11 @@ Command line switches
 
 :option:`--json`, :option:`-j`
 
- These command line switches appeared on version ``4.5`` and are not supported on compatibility version.
+ This command line switch appeared on version ``4.5`` and is not supported on compatibility version.
 
 :option:`--trace`, :option:`-T`
+
+:option:`--all`, :option:`-a`
 
  These command line switches appeared on version ``4.6`` and are not supported on compatibility version.
 
@@ -552,5 +554,9 @@ Modules Specific Tcl Commands
  These Modules-specific Tcl commands appeared on version ``4.2`` and are not supported on compatibility version.
 
 :mfcmd:`source-sh`
+
+:mfcmd:`module-hide`
+
+:mfcmd:`module-forbid`
 
  This Modules-specific Tcl command appeared on version ``4.6`` and is not supported on compatibility version.
