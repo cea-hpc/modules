@@ -480,7 +480,7 @@ Module Sub-Commands
    :envvar:`MODULES_EXTENDED_DEFAULT`)
  * ``extra_siteconfig``: additional site-specific configuration script
    location (defines :envvar:`MODULES_SITECONFIG`)
- * ``home``: location of Modules package master directory (defines
+ * ``home``: location of Modules package main directory (defines
    :envvar:`MODULESHOME`)
  * ``icase``: enable case insensitive match (defines :envvar:`MODULES_ICASE`)
  * ``ignored_dirs``: directories ignored when looking for modulefiles
@@ -1062,11 +1062,11 @@ ENVIRONMENT
 .. envvar:: MODULEPATH
 
  The path that the :command:`module` command searches when looking for
- *modulefiles*. Typically, it is set to the master *modulefiles* directory,
+ *modulefiles*. Typically, it is set to the main *modulefiles* directory,
  |file modulefilesdir|, by the initialization script. :envvar:`MODULEPATH`
  can be set using :subcmd:`module use<use>` or by the module initialization
  script to search group or personal *modulefile* directories before or after
- the master *modulefile* directory.
+ the main *modulefile* directory.
 
  Path elements registered in the :envvar:`MODULEPATH` environment variable may
  contain reference to environment variables which are converted to their
@@ -1659,9 +1659,9 @@ ENVIRONMENT
 
 .. envvar:: MODULESHOME
 
- The location of the master Modules package file directory containing module
+ The location of the main Modules package file directory containing module
  command initialization scripts, the executable program :file:`modulecmd.tcl`,
- and a directory containing a collection of master *modulefiles*.
+ and a directory containing a collection of main *modulefiles*.
 
 .. envvar:: <VAR>_modquar
 

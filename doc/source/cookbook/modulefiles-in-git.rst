@@ -47,7 +47,7 @@ default.
 
 After this, any time a user wants to edit the Modulefiles, he works in
 his local git repo. After editing, testing, and commiting to the local
-git repo, ``git push`` updates the master repo, which (assuming the
+git repo, ``git push`` updates the main repository, which (assuming the
 user knows the password for user ``modules``) automatically updates
 ``/home/modules/modulefiles``.
 

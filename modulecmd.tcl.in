@@ -1165,7 +1165,7 @@ proc getConIsLoadedMsg {conlist {loading 0}} {
 }
 
 ########################################################################
-# Use a slave TCL interpreter to execute modulefiles
+# Use a subordinate Tcl interpreter to execute modulefiles
 #
 
 # dummy proc to disable modulefile commands on some evaluation modes
@@ -1568,7 +1568,7 @@ proc execute-modulerc {modfile modname modspec} {
             $::ModulesCurrentModulefile [concat [info procs] [info commands]]]
          return 1
       } else {
-         # pass ModulesVersion value to master interp
+         # pass ModulesVersion value to main interp
          if {[info exists ::ModulesVersion]} {
             setModulesVersion $::ModulesVersion
          }
@@ -1598,7 +1598,7 @@ proc execute-modulerc {modfile modname modspec} {
 }
 
 # Save list of the defined procedure and the global variables with their
-# associated values set in slave interpreter passed as argument. Global
+# associated values set in sub interpreter passed as argument. Global
 # structures are used to save these information and the name of these
 # structures are provided as argument.
 proc dumpInterpState {itrp dumpVarsVN dumpArrayVarsVN untrackVarsVN\
@@ -1629,7 +1629,7 @@ proc dumpInterpState {itrp dumpVarsVN dumpArrayVarsVN untrackVarsVN\
    reportDebug "saving for $itrpkind proc list [array names dumpProcs]"
 }
 
-# Define commands to be known by slave interpreter.
+# Define commands to be known by sub interpreter.
 proc initInterpCommands {itrp fresh aliasesVN aliasesPassArgVN tracesVN\
    renameCmdsVN} {
    upvar #0 $aliasesVN aliases
@@ -1666,7 +1666,7 @@ proc initInterpCommands {itrp fresh aliasesVN aliasesPassArgVN tracesVN\
    }
 }
 
-# Restore initial setup of slave interpreter passed as argument based on
+# Restore initial setup of sub interpreter passed as argument based on
 # global structure previously filled with initial list of defined procedure
 # and values of global variable.
 proc resetInterpState {itrp fresh dumpVarsVN dumpArrayVarsVN untrackVarsVN\
@@ -2794,7 +2794,7 @@ proc exitModfileCmd {{code 0}} {
    return -code break
 }
 
-# enables slave interp to return ModulesVersion value to the master interp
+# enables sub interp to return ModulesVersion value to the main interp
 proc setModulesVersion {val} {
    set ::ModulesVersion $val
 }

@@ -329,7 +329,7 @@ instance ``--without-modulepath``):
                       List of paths to look at when searching the location of
                       tools required to build and configure Modules
                       (default=\ ``/usr/bin:/bin:/usr/local/bin``)
---with-moduleshome    Location of the master Modules package file directory
+--with-moduleshome    Location of the main Modules package file directory
                       (default=\ ``PREFIX``)
 --with-initconf-in=VALUE
                       Location where to install Modules initialization
