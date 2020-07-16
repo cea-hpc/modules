@@ -2326,14 +2326,16 @@ proc module-virtual {args} {
 
 proc module-hide {args} {
    set modarglist $args
+   set hidinglvl 1
 
    if {[llength $modarglist] == 0} {
       knerror {No module specified in argument}
    }
    # record each hide spec after parsing them
    foreach modarg [eval parseModuleVersionSpecifier 0 $modarglist] {
-      reportDebug "Record hidden module specification '$modarg'"
-      set ::g_moduleHide($modarg) 1
+      reportDebug "Record hidden module specification '$modarg'\
+         (hidinglvl=$hidinglvl)"
+      set ::g_moduleHide($modarg) $hidinglvl
    }
 }
 
@@ -4591,16 +4593,16 @@ proc isModuleDotHidden {mod} {
    return 0
 }
 
-proc isModuleDeclHidden {mod} {
+proc getModuleHidingLevel {mod} {
    # look if mod matches one of the hidden module specifications if any
    if {[array size ::g_moduleHide] > 0} {
       foreach hmodspec [array names ::g_moduleHide] {
          if {[modEq $hmodspec $mod eqstart]} {
-            return 1
+            return $::g_moduleHide($hmodspec)
          }
       }
    }
-   return 0
+   return -1
 }
 
 # test if mod is declared hidden or has one element in its name starting with
@@ -4611,8 +4613,8 @@ proc isModuleHidden {mod {modspec {}}} {
    # and declared hidden elt are excluded unless it matches query
    return [expr {([isModuleDotHidden $mod] && ([set i [modStartNb $mod\
       $modspec]] == 0 || [isModuleDotHidden [join [lrange [file split $mod]\
-      $i end] /]])) || ([isModuleDeclHidden $mod] && ![modEq $modspec $mod\
-      eqspec])}]
+      $i end] /]])) || ([getModuleHidingLevel $mod] > -1 && ![modEq $modspec\
+      $mod eqspec])}]
 }
 
 # check if module name is specified as a full pathname (not a name relative
