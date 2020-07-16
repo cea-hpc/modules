@@ -9569,6 +9569,14 @@ proc parseModuleCommandArgs {cmd args} {
             set show_oneperline 0
             setState report_format plain
          }
+         -a - --all {
+            # include hidden modules only on a limited set of command
+            if {[isInList [list avail aliases is-avail search whatis] $cmd]} {
+               setState hiding_threshold 2
+            } else {
+               lappend otherargs $arg
+            }
+         }
          -d - --default {
             # in case of *-path command, -d means --delim
             if {$arg eq {-d} && [string match *-path $cmd]} {
@@ -11849,14 +11857,14 @@ Loading / Unloading commands:
 
 Listing / Searching commands:
   list            [-t|-l|-j]        List loaded modules
-  avail   [-d|-L] [-t|-l|-j] [-S|-C] [--indepth|--no-indepth] [mod ...]
+  avail   [-d|-L] [-t|-l|-j] [-a] [-S|-C] [--indepth|--no-indepth] [mod ...]
                                     List all or matching available modules
-  aliases                           List all module aliases
-  whatis  [-j]    [modulefile ...]  Print whatis information of modulefile(s)
-  apropos | keyword | search [-j] str
+  aliases         [-a]              List all module aliases
+  whatis [-a] [-j] [modulefile ...] Print whatis information of modulefile(s)
+  apropos | keyword | search [-a] [-j] str
                                     Search all name and whatis containing str
   is-loaded       [modulefile ...]  Test if any of the modulefile(s) are loaded
-  is-avail        modulefile [...]  Is any of the modulefile(s) available
+  is-avail   [-a] modulefile [...]  Is any of the modulefile(s) available
   info-loaded     modulefile        Get full name of matching loaded module(s)
 
 Collection of modules handling commands:
@@ -11899,13 +11907,14 @@ Switches:
   -t | --terse    Display output in terse format
   -l | --long     Display output in long format
   -j | --json     Display output in JSON format
+  -a | --all      Include hidden modules in search
   -d | --default  Only show default versions available
   -L | --latest   Only show latest versions available
   -S | --starts-with
                   Search modules whose name begins with query string
   -C | --contains Search modules whose name contains query string
   -i | --icase    Case insensitive match
-  -a | --append   Append directory to MODULEPATH
+  -a | --append   Append directory to MODULEPATH (on 'use' sub-command)
   -p | --prepend  Prepend directory to MODULEPATH
   --auto          Enable automated module handling mode
   --no-auto       Disable automated module handling mode
@@ -12042,9 +12051,10 @@ if {[catch {
                   lappend extraargv $arg
                }
             }
-            -a - --append - -append - -p - --prepend - -prepend - --delim -\
-            -delim - --delim=* - -delim=* - --duplicates - --index -\
-            --notuasked - --indepth - --no-indepth - --dump-state - --reset {
+            -a - --append - -append - --all - -p - --prepend - -prepend -\
+            --delim - -delim - --delim=* - -delim=* - --duplicates - --index\
+            - --notuasked - --indepth - --no-indepth - --dump-state -\
+            --reset {
                # command-specific switches interpreted later on
                lappend otherargv $arg
             }
