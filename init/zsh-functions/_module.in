@@ -177,6 +177,7 @@ _module() {
                   '(-l --long)'{-l,--long}'[Display output in long format]' \
                   '(-t --terse)'{-t,--terse}'[Display output in terse format]' \
                   '(-j --json)'{-j,--json}'[Display output in JSON format]' \
+                  '(-a --all)'{-a,--all}'[Include hidden modules in search]' \
                   '(-d --default)'{-d,--default}'[Only show default versions available]' \
                   '(-L --latest)'{-L,--latest}'[Only show latest versions available]' \
                   '(-i --icase)'{-i,--icase}'[Case insensitive match]' \
@@ -185,6 +186,10 @@ _module() {
                   '--indepth[Perform recursive avail search]' \
                   '--no-indepth[Perform non-recursive avail search]' \
                   "*::modulefile:{_module_avail_mods $cur}" && ret=0
+               ;;
+            (aliases)
+               _arguments \
+                  '(-a --all)'{-a,--all}'[Include hidden modules in search]' && ret=0
                ;;
             (list|savelist)
                local -a opts; opts=(
@@ -232,20 +237,28 @@ _module() {
                   '(-p --prepend)'{-p,--prepend}'[Prepend directory to MODULEPATH]' \
                   '*:modulepath:_files -/' && ret=0
                ;;
-            (display|help|show|test|path|paths|is-loaded|is-avail|info-loaded)
+            (display|help|show|test|path|paths|is-loaded|info-loaded)
                _arguments \
                   '(-i --icase)'{-i,--icase}'[Case insensitive match]' \
+                  "*::modulefile:{_module_avail_mods $cur}" && ret=0
+               ;;
+            (is-avail)
+               _arguments \
+                  '(-i --icase)'{-i,--icase}'[Case insensitive match]' \
+                  '(-a --all)'{-a,--all}'[Include hidden modules in search]' \
                   "*::modulefile:{_module_avail_mods $cur}" && ret=0
                ;;
             (whatis)
                _arguments \
                   '(-i --icase)'{-i,--icase}'[Case insensitive match]' \
                   '(-j --json)'{-j,--json}'[Display output in JSON format]' \
+                  '(-a --all)'{-a,--all}'[Include hidden modules in search]' \
                   "*::modulefile:{_module_avail_mods $cur}" && ret=0
                ;;
             (apropos|keyword|search)
                _arguments \
                   '(-j --json)'{-j,--json}'[Display output in JSON format]' \
+                  '(-a --all)'{-a,--all}'[Include hidden modules in search]' \
                   && ret=0
                ;;
             (append-path|prepend-path)
