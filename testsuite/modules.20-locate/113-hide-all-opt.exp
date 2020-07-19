@@ -1,0 +1,168 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.20-locate/%M%
+#   Revision:		%I%
+#   First Edition:	2020/07/19
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		avail, load, list, aliases, whatis, is-avail
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test --all/-a option which unhides modules
+#		}C%
+#
+##############################################################################
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure avail tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+# ensure regular avail search match is set for these tests
+setenv_var MODULES_SEARCH_MATCH starts_with
+
+# ensure extended default and advanced version specifiers are enabled for these tests
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_var MODULES_EXTENDED_DEFAULT 1
+
+set mp $modpath.2
+set mpre $modpathre.2
+setenv_path_var MODULEPATH $mp
+
+if {[info exists env(MODULERCFILE)]} {
+    set ORIG_MODULERCFILE $env(MODULERCFILE)
+}
+setenv_var MODULERCFILE $env(TESTSUITEDIR)/etc/modulerc.hide
+
+setenv_var TESTSUITE_HIDE_SET1 1
+setenv_var TESTSUITE_HIDE2_SET15 1
+setenv_var TESTSUITE_HIDE3_SET1 1
+
+# option cannot be set prior sub-command
+testouterr_cmd sh {-a avail -t hide3/sym} ERR "$error_msgs: Invalid command '-a'\n$err_typehelp"
+
+# no effect on selection context
+testouterr_cmd sh {load -a hide2} ERR $err_path'-a'\n$err_path'hide2'
+testouterr_cmd sh {load hide2@default --all} ERR $err_path'hide2@default'\n$err_path'--all'
+
+# test on avail
+testouterr_cmd sh {avail -a -t hide1@2:4} OK $mp:\nhide1/2.0\nhide1/2.1\nhide1/2.2\nhide1/3.0\nhide1/3.1(default)\nhide1/3.2\nhide1/4.0
+testouterr_cmd sh {avail -t --all hide1@3,4} OK $mp:\nhide1/3.0\nhide1/3.1(default)\nhide1/3.2\nhide1/4.0
+testouterr_cmd sh {avail -t -a hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.0(1.2:1.4)\nhide2/1.1(@)\nhide2/1.5"
+testouterr_cmd sh {avail --all -t hide3} OK "$mp:\nhide3/1.0\nhide3/al1(@)\nhide3/al2(@)\nhide3/sub1/(default)\nhide3/sub1/2.0\nhide3/sub1/3.0\nhide3/sub2/(sym)\nhide3/sub2/4.0(default:sym)\nhide3/sub2/5.0(new)"
+testouterr_cmd sh {avail -a -t hide3/sym} OK "$mp:\nhide3/sub2/(sym)\nhide3/sub2/4.0(default:sym)\nhide3/sub2/5.0(new)"
+testouterr_cmd sh {avail --all -t hide3/al2} OK "$mp:\nhide3/al2(@)"
+testouterr_cmd sh {avail -t hide3/sub2 -a} OK "$mp:\nhide3/sub2/(sym)\nhide3/sub2/4.0(default:sym)\nhide3/sub2/5.0(new)"
+
+# test on whatis
+set tserr "$modlin $mpre $modlin"
+testouterr_cmd_re sh {whatis -a hide3} OK "$tserr\n\\s+hide3/1.0: hide3/1.0\n\\s+hide3/sub1/2.0: hide3/sub1/2.0\n\\s+hide3/sub1/3.0: hide3/sub1/3.0\n\\s+hide3/sub2/4.0: hide3/sub2/4.0\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
+testouterr_cmd_re sh {whatis --all hide3/sym} OK "$tserr\n\\s+hide3/sub2/4.0: hide3/sub2/4.0\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
+testouterr_cmd_re sh {whatis hide1@3,4 -a} OK "$tserr\n\\s+hide1/3.0: hide1/3.0\n\\s+hide1/3.1: hide1/3.1\n\\s+hide1/3.2: hide1/3.2\n\\s+hide1/4.0: hide1/4.0"
+
+# test on search
+# result starts by an extra newline, which may be caused by the errors caught when evaluating all modules
+testouterr_cmd_re sh {search -a hide3} ERR "\n$tserr\n\\s+hide3/1.0: hide3/1.0\n\\s+hide3/sub1/2.0: hide3/sub1/2.0\n\\s+hide3/sub1/3.0: hide3/sub1/3.0\n\\s+hide3/sub2/4.0: hide3/sub2/4.0\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
+
+# test on is-avail
+testouterr_cmd sh {is-avail -a hide3} OK {}
+
+# test aliases
+testouterr_cmd_re sh {aliases -a} OK "$modlin Aliases $modlin
+(.*)+
+hide2/1.1 -> hide2/1.0
+hide2/1.3 -> hide2/1.0
+hide3/al1 -> hide3/sub2
+hide3/al2 -> hide3/sub2/5.0
+(.*)+
+
+$modlin Versions $modlin
+(.*)+
+hide1/default -> hide1/3.1
+hide2/1.2 -> hide2/1.0
+hide2/1.4 -> hide2/1.0
+hide3/default -> hide3/sub1
+hide3/sub2/default -> hide3/sub2/4.0
+hide3/sub2/new -> hide3/sub2/5.0
+hide3/sub2/sym -> hide3/sub2/4.0
+hide3/sym -> hide3/sub2
+(.*)+"
+
+# test through 'ml' command
+testouterr_cmd sh {ml avail -a -t hide1@2:4} OK $mp:\nhide1/2.0\nhide1/2.1\nhide1/2.2\nhide1/3.0\nhide1/3.1(default)\nhide1/3.2\nhide1/4.0
+testouterr_cmd_re sh {ml whatis -a hide3} OK "$tserr\n\\s+hide3/1.0: hide3/1.0\n\\s+hide3/sub1/2.0: hide3/sub1/2.0\n\\s+hide3/sub1/3.0: hide3/sub1/3.0\n\\s+hide3/sub2/4.0: hide3/sub2/4.0\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
+
+# test with dot named modules
+# see also tests overs testsuite/modulefiles in 90/070
+testouterr_cmd_re sh {avail -a -t} OK "(.*)+
+$mpre:
+(.*)+
+extdfl/.1.3.3
+extdfl/.1.3.4
+(.*)+
+nocase/.hidden
+(.*)+"
+testouterr_cmd sh {avail -a -t -C /.} OK "$mp:
+extdfl/.1.3.3
+extdfl/.1.3.4
+nocase/.hidden"
+
+# cannot test access if cannot change file permission
+if {!$is_file_perms_editable} {
+    send_user "\tskipping access tests as file permissions cannot be changed\n"
+# cannot test access if superuser privileges are in use
+} elseif {$tcl_platform(user) eq "root"} {
+    send_user "\tskipping access tests as tests are run by superuser\n"
+# cannot test access if restricted file permissions have no effect
+} elseif {$is_locked_dir_file_readable && $is_locked_file_readable} {
+    send_user "\tskipping access tests as locked files or directories are still readable\n"
+} else {
+
+# test with modules whose access is restricted
+change_file_perms $mp/hide3/sub2/4.0 ugo-rx
+change_file_perms $mp/hide3/sub1 ugo-rx
+change_file_perms $mp/hide1 ugo-rx
+testouterr_cmd sh {avail -a -t hide1} OK {}
+testouterr_cmd sh {avail -a -t hide1@2:4} OK {}
+testouterr_cmd sh {avail --all -t hide3} OK "$mp:\nhide3/1.0\nhide3/al1(@)\nhide3/al2(@)\nhide3/sub2/(sym)\nhide3/sub2/5.0(new)"
+testouterr_cmd sh {avail --all -t hide3/sub2@default} OK {}
+restore_file_perms $mp/hide3/sub2/4.0
+restore_file_perms $mp/hide3/sub1
+restore_file_perms $mp/hide1
+
+}
+
+
+#
+#  Cleanup
+#
+
+unsetenv_var TESTSUITE_HIDE_SET1
+unsetenv_var TESTSUITE_HIDE2_SET15
+unsetenv_var TESTSUITE_HIDE3_SET1
+
+# restore environment
+setenv_path_var MODULEPATH $modpath
+if {[info exists ORIG_MODULERCFILE]} {
+    setenv_var MODULERCFILE $ORIG_MODULERCFILE
+    unset ORIG_MODULERCFILE
+} else {
+    unsetenv_var MODULERCFILE
+}
+unsetenv_var MODULES_AVAIL_INDEPTH
+unsetenv_var MODULES_IMPLICIT_DEFAULT
+unsetenv_var MODULES_SEARCH_MATCH
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+unsetenv_var MODULES_EXTENDED_DEFAULT
+
+unset mp
+unset mpre
+unset tserr
