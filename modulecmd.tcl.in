@@ -10240,7 +10240,7 @@ proc parseModuleCommandArgs {topcall cmd args} {
          }
          --all {
             # include hidden modules only on a limited set of command
-            if {[isInList [list avail aliases search whatis ml] $cmd]} {
+            if {[isInList [list avail aliases search whatis ml list] $cmd]} {
                setState hiding_threshold 2
             } else {
                lappend otherargs $arg
@@ -10251,7 +10251,8 @@ proc parseModuleCommandArgs {topcall cmd args} {
             # one of the search/listing sub-commands
             if {$cmd eq {use}} {
                set addpath_pos append
-            } elseif {[isInList [list avail aliases search whatis ml] $cmd]} {
+            } elseif {[isInList [list avail aliases search whatis ml list]\
+               $cmd]} {
                setState hiding_threshold 2
             } else {
                lappend otherargs $arg
@@ -10635,17 +10636,28 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist {force 0} {errmsgtpl {}}\
 # command line commands
 #
 proc cmdModuleList {show_oneperline show_mtime} {
-   set loadedmodlist [getLoadedModuleList]
    set json [isStateEqual report_format json]
+
+   # load tags from loaded modules
+   cacheCurrentModules
+
+   # filter-out hidden loaded modules unless all module should be seen
+   if {[getState hiding_threshold] > 1} {
+      set loadedmodlist [getLoadedModuleList]
+   } else {
+      set loadedmodlist [list]
+      foreach mod [getLoadedModuleList] {
+         if {![isModuleTagged $mod hidden-loaded 1]} {
+            lappend loadedmodlist $mod
+         }
+      }
+   }
 
    if {[llength $loadedmodlist] == 0} {
       if {!$json} {
          report {No Modulefiles Currently Loaded.}
       }
    } else {
-      # load tags from loaded modules
-      cacheCurrentModules
-
       # prepare list of tag abbreviations that can be substituted and list of
       # tags whose name should be colored
       getConf tag_abbrev
