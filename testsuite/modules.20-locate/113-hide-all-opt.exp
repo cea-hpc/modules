@@ -96,9 +96,29 @@ hide3/sub2/sym -> hide3/sub2/4.0
 hide3/sym -> hide3/sub2
 (.*)+"
 
+# test on list
+# only hidden modules are loaded
+setenv_loaded_module [list hide3/1.0 hide3/sub1/3.0] [list $mp/hide3/1.0 $mp/hide3/sub1/3.0]
+setenv_path_var MODULES_LMTAG hide3/1.0&hidden-loaded:hide3/sub1/3.0&hidden-loaded
+testouterr_cmd_re sh {list -t -a} OK $cur_loaded\nhide3/1.0\nhide3/sub1/3.0
+# mix of loaded and visible modules loaded
+setenv_loaded_module [list hide3/1.0 hide3/sub1/3.0] [list $mp/hide3/1.0 $mp/hide3/sub1/3.0]
+setenv_path_var MODULES_LMTAG hide3/1.0&hidden-loaded
+testouterr_cmd_re sh {list -t --all} OK $cur_loaded\nhide3/1.0\nhide3/sub1/3.0
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMTAG
+
+
 # test through 'ml' command
 testouterr_cmd sh {ml avail -a -t hide1@2:4} OK "$mp:\nhide1/2.0\nhide1/2.1\nhide1/2.2\nhide1/3.0\nhide1/3.1(default) <H>\nhide1/3.2\nhide1/4.0"
 testouterr_cmd_re sh {ml whatis -a hide3} OK "$tserr\n\\s+hide3/1.0: hide3/1.0\n\\s+hide3/sub1/2.0: hide3/sub1/2.0\n\\s+hide3/sub1/3.0: hide3/sub1/3.0\n\\s+hide3/sub2/4.0: hide3/sub2/4.0\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
+setenv_loaded_module [list hide3/1.0 hide3/sub1/3.0] [list $mp/hide3/1.0 $mp/hide3/sub1/3.0]
+setenv_path_var MODULES_LMTAG hide3/1.0&hidden-loaded:hide3/sub1/3.0&hidden-loaded
+testouterr_cmd_re sh {ml -a -t} OK $cur_loaded\nhide3/1.0\nhide3/sub1/3.0
+testouterr_cmd_re sh {ml list -a -t} OK $cur_loaded\nhide3/1.0\nhide3/sub1/3.0
+testouterr_cmd_re sh {ml --all -t} OK $cur_loaded\nhide3/1.0\nhide3/sub1/3.0
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMTAG
 
 # test with dot named modules
 # see also tests overs testsuite/modulefiles in 90/070
