@@ -2380,7 +2380,8 @@ proc module {command args} {
    # parse options, do that globally to ignore options not related to a given
    # module sub-command (exclude them from arg list)
    lassign [eval parseModuleCommandArgs $command $args] show_oneperline\
-      show_mtime show_filter search_filter search_match dump_state args
+      show_mtime show_filter search_filter search_match dump_state\
+      addpath_pos args
 
    # parse module version specification
    if {[isInList [list avail paths whatis load unload switch help test\
@@ -2561,7 +2562,7 @@ proc module {command args} {
       }
       use {
          if {$topcall || $mode eq {load}} {
-            eval cmdModuleUse $args
+            eval cmdModuleUse $addpath_pos $args
          } else {
             eval cmdModuleUnuse $args
          }
@@ -2744,7 +2745,8 @@ proc ml {args} {
    # filter out all known options from argument list to guess command name
    # without them in the way
    lassign [eval parseModuleCommandArgs ml $args] show_oneperline\
-      show_mtime show_filter search_filter search_match dump_state fargs
+      show_mtime show_filter search_filter search_match dump_state\
+      addpath_pos fargs
 
    # determine if first argument is a known module sub-command
    lassign [parseModuleCommandName [lindex $fargs 0] list] command cmdvalid\
@@ -9546,6 +9548,7 @@ proc parseModuleCommandArgs {cmd args} {
    set search_filter [expr {[getConf avail_indepth] ? {} : {noindepth}}]
    set search_match [getConf search_match]
    set dump_state 0
+   set addpath_pos prepend
    set otherargs {}
 
    # parse argument list
@@ -9569,9 +9572,36 @@ proc parseModuleCommandArgs {cmd args} {
             set show_oneperline 0
             setState report_format plain
          }
-         -a - --all {
+         --append - -append {
+            if {$cmd eq {use}} {
+               set addpath_pos append
+            } else {
+               lappend otherargs $arg
+            }
+         }
+         -p - --prepend - -prepend {
+            if {$cmd eq {use}} {
+               set addpath_pos prepend
+            } else {
+               lappend otherargs $arg
+            }
+         }
+         --all {
             # include hidden modules only on a limited set of command
-            if {[isInList [list avail aliases is-avail search whatis] $cmd]} {
+            if {[isInList [list avail aliases is-avail search whatis ml]\
+               $cmd]} {
+               setState hiding_threshold 2
+            } else {
+               lappend otherargs $arg
+            }
+         }
+         -a {
+            # -a option has a different meaning whether sub-command is use or
+            # one of the search/listing sub-commands
+            if {$cmd eq {use}} {
+               set addpath_pos append
+            } elseif {[isInList [list avail aliases is-avail search whatis\
+               ml] $cmd]} {
                setState hiding_threshold 2
             } else {
                lappend otherargs $arg
@@ -9615,9 +9645,10 @@ proc parseModuleCommandArgs {cmd args} {
 
    reportDebug "(show_oneperline=$show_oneperline, show_mtime=$show_mtime,\
       show_filter=$show_filter, search_filter=$search_filter,\
-      search_match=$search_match, dump_state=$dump_state, otherargs=$otherargs)"
+      search_match=$search_match, dump_state=$dump_state,\
+      addpath_pos=$addpath_pos, otherargs=$otherargs)"
    return [list $show_oneperline $show_mtime $show_filter $search_filter\
-      $search_match $dump_state $otherargs]
+      $search_match $dump_state $addpath_pos $otherargs]
 }
 
 # when advanced_version_spec option is enabled, parse argument list to set in
@@ -10505,7 +10536,7 @@ proc cmdModuleRestore {{coll default}} {
    if {[llength $path_to_use] > 0} {
       # always append path here to guaranty the order
       # computed above in the movement lists
-      eval cmdModuleUse --append $path_to_use
+      eval cmdModuleUse append $path_to_use
    }
 
    # load modules one by one with user asked state preserved
@@ -11308,40 +11339,28 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
    setState inhibit_errreport 0
 }
 
-proc cmdModuleUse {args} {
+proc cmdModuleUse {pos args} {
    reportDebug $args
 
    if {$args eq {}} {
       showModulePath
    } else {
-      set pos prepend
       foreach path $args {
-         switch -- $path {
-            -a - --append - -append {
-               set pos append
+         if {$path eq {}} {
+            reportError {Directory name empty}
+         } else {
+            # tranform given path in an absolute path to avoid dependency to
+            # the current work directory. except if this path starts with a
+            # variable reference
+            if {[string index $path 0] ne {$}} {
+               set path [getAbsolutePath $path]
             }
-            -p - --prepend - -prepend {
-               set pos prepend
-            }
-            {} {
-               reportError {Directory name empty}
-            }
-            default {
-               # tranform given path in an absolute path to avoid dependency
-               # to the current work directory. except if this path starts
-               # with a variable reference
-               if {[string index $path 0] ne {$}} {
-                  set path [getAbsolutePath $path]
-               }
-               if {[file isdirectory [resolvStringWithEnv $path]]} {
-                  pushMode load
-                  catch {
-                     add-path $pos MODULEPATH $path
-                  }
-                  popMode
-               } else {
-                  reportError "Directory '$path' not found"
-               }
+            if {[file isdirectory [resolvStringWithEnv $path]]} {
+               pushMode load
+               catch {add-path $pos MODULEPATH $path}
+               popMode
+            } else {
+               reportError "Directory '$path' not found"
             }
          }
       }
@@ -11426,7 +11445,7 @@ proc cmdModuleAutoinit {} {
          foreach fline $fdata {
             if {[regexp {^\s*(.*?)\s*(#.*|)$} $fline match patharg] == 1\
                && $patharg ne {}} {
-               eval cmdModuleUse --append [split $patharg :]
+               eval cmdModuleUse append [split $patharg :]
             }
          }
       }
