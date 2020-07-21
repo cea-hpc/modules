@@ -52,6 +52,9 @@ testouterr_cmd sh {-a avail -t hide3/sym} ERR "$error_msgs: Invalid command '-a'
 # no effect on selection context
 testouterr_cmd sh {load -a hide2} ERR $err_path'-a'\n$err_path'hide2'
 testouterr_cmd sh {load hide2@default --all} ERR $err_path'hide2@default'\n$err_path'--all'
+# no effect on is-avail
+testouterr_cmd sh {is-avail -a hide3} ERR {}
+testouterr_cmd sh {is-avail hide3 --all} ERR {}
 
 # test on avail
 testouterr_cmd sh {avail -a -t hide1@2:4} OK $mp:\nhide1/2.0\nhide1/2.1\nhide1/2.2\nhide1/3.0\nhide1/3.1(default)\nhide1/3.2\nhide1/4.0
@@ -71,9 +74,6 @@ testouterr_cmd_re sh {whatis hide1@3,4 -a} OK "$tserr\n\\s+hide1/3.0: hide1/3.0\
 # test on search
 # result starts by an extra newline, which may be caused by the errors caught when evaluating all modules
 testouterr_cmd_re sh {search -a hide3} ERR "\n$tserr\n\\s+hide3/1.0: hide3/1.0\n\\s+hide3/sub1/2.0: hide3/sub1/2.0\n\\s+hide3/sub1/3.0: hide3/sub1/3.0\n\\s+hide3/sub2/4.0: hide3/sub2/4.0\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
-
-# test on is-avail
-testouterr_cmd sh {is-avail -a hide3} OK {}
 
 # test aliases
 testouterr_cmd_re sh {aliases -a} OK "$modlin Aliases $modlin

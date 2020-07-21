@@ -112,7 +112,9 @@ Specification
             - is excluded from ``module avail mod@:2`` result, even if default symbol targets it
             - is included in ``module avail mod@1.0,2.0`` result
 
-    - Included in module resolution result if ``--all`` option of ``avail``, ``is-avail``, ``whatis``, ``search`` and ``aliases`` sub-commands is set
+    - Included in module resolution result if ``--all`` option of ``avail``, ``whatis``, ``search`` and ``aliases`` sub-commands is set
+
+        - ``--all`` option does not apply to ``is-avail`` sub-command to make it coherent with ``load`` sub-command (eg. a ``is-avail mod`` returning true implies ``load mod`` effectively loading a module)
 
     - Visibility of a module targeted by a ``module-hide`` command acts similarly than for a file whose name is prefixed by a dot character on Unix platform
 
