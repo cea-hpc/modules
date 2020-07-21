@@ -37,6 +37,7 @@ Specification
 - Tags inherited from module state:
 
     - ``hidden``: module not visible, not reported by default in ``avail`` result (tag acquired through ``module-hide``)
+    - ``hidden-loaded``: loaded module not reported by default in ``list`` result (tag acquired through ``module-hide --hidden-loaded``)
     - ``forbidden``: module that cannot be loaded (tag acquired through ``module-forbid``)
     - ``nearly-forbidden``: module that soon cannot be loaded (tag acquired through ``module-forbid``)
     - ``loaded``: loaded module
@@ -46,7 +47,6 @@ Specification
 
     - ``sticky``: loaded module cannot be unloaded unless forced
     - ``super-sticky``: loaded module cannot be unloaded even if forced
-    - ``hidden-loaded``: loaded module not reported by default in ``list`` result
 
 - Tags inherited from module state cannot be set with ``module-tag`` command
 
@@ -212,7 +212,10 @@ Abbreviations
 
 - The ``tag_abbrev`` configuration defines the abbreviations to apply to each tag
 
-    - Set by default at configure time to ``auto-loaded=aL:loaded=L:hidden=H:forbidden=F:nearly-forbidden=nF``
+    - Set by default at configure time to ``auto-loaded=aL:loaded=L:hidden=H:hidden-loaded=H:forbidden=F:nearly-forbidden=nF``
+
+        - Note that by default, *hidden* and *hidden-loaded* tags share the same abbreviation, as they operate on separate contexts (respectively avail and list contexts)
+
     - Configuration value consists in a ``key=val`` pair value, each key pair are separated by a ``:`` character
 
         - Follow the same syntax than ``colors`` configuration

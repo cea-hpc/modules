@@ -171,11 +171,32 @@ Specification
 
         - Visibility of a module targeted by a ``module-hide --hard`` command acts like if no modulefile exists on filesystem
 
-    - If ``--hide-once-loaded`` option is set on ``module-hide``, hiding also applies to specified modules once they are loaded
+    - If ``--hidden-loaded`` option is set on ``module-hide``, hiding also applies to specified modules once they are loaded
 
         - Hidden once loaded modules do not appear on ``module list``
-        - Unless ``--all`` option is set on ``list`` sub-command
-        - When those modules are loaded, they are recorded in ``MODULES_LMHIDDEN`` environment variable to keep track of their hidden status
+
+            - Unless ``--all`` option is set on ``list`` sub-command
+
+        - Hidden once loaded modules load or unload is not reported
+
+            - If this evaluation has been triggered automatically
+
+                - By an *automated module handling mechanism* for instance
+                - Which means user has not explicitely asked the module load or unload
+
+            - And was automatically loaded, in case of an automatic unload
+
+                - Which means the automatic unload of an hidden loaded module will be reported if it was manually loaded
+
+            - And if ``verbosity`` level is lower than ``verbose2`` level
+            - And if no issue occurs during hidden module evaluation
+            - Switch of hidden modules is not reported
+
+                - If both switched-off and switched-on modules are set hidden
+                - If switched-off module were automatically loaded
+                - And if the switch evaluation has been automatically triggered
+
+        - When those modules are loaded, a ``hidden-loaded`` tag is applied to them and recorded in ``MODULES_LMTAG`` environment variable to keep track of their hidden status
         - Hidden once loaded status does not affect ``is-loaded``: these modules will always be reported if they match ``is-loaded`` queries
 
 - ``module-forbid`` disallow evaluation of specified modules
@@ -199,7 +220,7 @@ Specification
 
 - ``module-hide`` accepts options that change its behavior:
 
-    - ``--hide-once-loaded``: hides module from loaded module list
+    - ``--hidden-loaded``: hides module from loaded module list
     - ``--soft``: lightweight module hide
     - ``--hard``: highest hiding level
     - ``--not-user``: specify a list of users unaffected by hide mechanism
@@ -224,7 +245,7 @@ Specification
     - Disclose: ``module-hide --hard --before``
     - HideNotOfInt: ``module-hide --soft``
     - HideDep: ``module-hide --soft``
-    - HideDepOnceLoaded: ``module-hide --soft --hide-once-loaded``
+    - HideDepOnceLoaded: ``module-hide --soft --hidden-loaded``
 
 - ``module-hide`` and ``module-forbid`` accept the specification of several modules
 
@@ -302,7 +323,7 @@ Specification
 
     - definition with the highest hiding level wins
     - which means the most restrictive call wins
-    - a ``--hide-once-loaded`` status set is kept even if corresponding ``module-hide`` call is not the highest one
+    - a ``--hidden-loaded`` status set is kept even if corresponding ``module-hide`` call is not the highest one
     - the multiple definitions can come accross different modulerc files (global, modulepath or modulefile rc levels)
 
 - Module specification passed as argument to ``module-hide`` and ``module-forbid`` are matched exactly against available modules
