@@ -1,0 +1,353 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2020/07/22
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload, switch
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Check hidden loaded modules are not reported accross
+#           information messages
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.deps
+set mpre $modpathre.deps
+setenv_path_var MODULEPATH $mp
+
+setenv_var MODULERCFILE $env(TESTSUITEDIR)/etc/modulerc.hide-deps
+
+setenv_var TESTSUITE_MODULE_SILENT 1
+setenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET1 1
+
+#
+# basic single module evaluation
+# hidden loaded modules are always reported as they are specified by user
+#
+
+# load
+set ans [list]
+lappend ans [list setpath LOADEDMODULES h1]
+lappend ans [list setpath _LMFILES_ $mp/h1]
+lappend ans [list setpath MODULES_LMTAG h1&hidden-loaded]
+testouterr_cmd_re sh {load -v h1} $ans [msg_load h1]
+
+# unload
+setenv_loaded_module [list h1] [list $mp/h1]
+setenv_path_var MODULES_LMTAG h1&hidden-loaded
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMTAG]
+testouterr_cmd_re sh {unload -v h1} $ans [msg_unload h1]
+
+# switch (one module hidden)
+set ans [list]
+lappend ans [list setpath LOADEDMODULES h10]
+lappend ans [list setpath _LMFILES_ $mp/h10]
+lappend ans [list unsetpath MODULES_LMTAG]
+testouterr_cmd_re sh {switch -v h1 h10} $ans [msg_unload h1]\n[msg_load h10]\n[msg_switch h1 h10]
+# switch (both modules hidden)
+set ans [list]
+lappend ans [list setpath LOADEDMODULES h3]
+lappend ans [list setpath _LMFILES_ $mp/h3]
+lappend ans [list setpath MODULES_LMTAG h3&hidden-loaded]
+testouterr_cmd_re sh {switch -v h1 h3} $ans [msg_unload h1]\n[msg_load h3]\n[msg_switch h1 h3]
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMTAG
+
+
+#
+# multiple module evaluations
+#
+
+# purge
+setenv_loaded_module [list h1 h2 h3 h4] [list $mp/h1 $mp/h2 $mp/h3 $mp/h4] [list h1 h2]
+setenv_path_var MODULES_LMTAG h1&hidden-loaded:h3&hidden-loaded
+setenv_path_var MODULES_LMPREREQ h2&h1:h4&h1&h2|h3
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMTAG]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+testouterr_cmd_re sh {purge -v} $ans [msg_unload h4]\n[msg_unload h3]\n[msg_unload h2]
+
+# reload
+set ans [list]
+lappend ans [list setpath LOADEDMODULES h1:h2:h3:h4]
+lappend ans [list setpath _LMFILES_ $mp/h1:$mp/h2:$mp/h3:$mp/h4]
+lappend ans [list setpath MODULES_LMPREREQ h2&h1:h4&h1&h2|h3]
+lappend ans [list setpath MODULES_LMTAG h1&hidden-loaded:h3&hidden-loaded]
+lappend ans [list setpath MODULES_LMNOTUASKED h1:h2]
+testouterr_cmd_re sh {reload -v} $ans [msg_unload h4]\n[msg_unload h3]\n[msg_unload h2]\n[msg_load h2]\n[msg_load h3]\n[msg_load h4]
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMTAG
+
+
+#
+# automated module evaluation
+# hidden loaded modules are not reported when their evaluation is automatically triggered
+#
+
+# reqlo
+set ans [list]
+lappend ans [list setpath LOADEDMODULES h1:h2:h4]
+lappend ans [list setpath _LMFILES_ $mp/h1:$mp/h2:$mp/h4]
+lappend ans [list setpath MODULES_LMNOTUASKED h1:h2]
+lappend ans [list setpath MODULES_LMPREREQ h2&h1:h4&h1&h2|h3]
+lappend ans [list setpath MODULES_LMTAG h1&hidden-loaded]
+testouterr_cmd_re sh {load -v --auto h4} $ans [msg_load h2]\n\n[msg_top_load h4 {} h2 {}]
+
+# urequn
+setenv_loaded_module [list h1 h2 h4] [list $mp/h1 $mp/h2 $mp/h4] [list h1 h2]
+setenv_path_var MODULES_LMTAG h1&hidden-loaded
+setenv_path_var MODULES_LMPREREQ h2&h1:h4&h1&h2|h3
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list unsetpath MODULES_LMTAG]
+testouterr_cmd_re sh {unload -v --auto h4} $ans [msg_unload h2]\n\n[msg_top_unload h4 {} h2 {}]
+
+# depun
+# specified module is hidden (should be reported)
+testouterr_cmd_re sh {unload -v --auto h1} $ans [msg_unload h4]\n[msg_unload h2]\n\n[msg_top_unload h1 {h4 h2} {} {}]
+# depun module is hidden and was not automatically loaded (should be reported)
+setenv_path_var MODULES_LMTAG h1&hidden-loaded:h4&hidden-loaded
+setenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET2 1
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMTAG]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+testouterr_cmd_re sh {unload -v --auto h2} $ans [msg_unload h4]\n\n[msg_top_unload h2 h4 {} {}]
+# depun module is hidden and was automatically loaded (should not be reported)
+setenv_path_var MODULES_LMNOTUASKED h1:h2:h4
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list unsetpath MODULES_LMTAG]
+testouterr_cmd_re sh {unload -v --auto h2} $ans [msg_unload h2]
+
+# depre (on load)
+# depun module is hidden and was automatically loaded (should not be reported)
+set ans [list]
+lappend ans [list setpath LOADEDMODULES h1:h2:h3:h4]
+lappend ans [list setpath _LMFILES_ $mp/h1:$mp/h2:$mp/h3:$mp/h4]
+lappend ans [list setpath MODULES_LMNOTUASKED h1:h2:h4]
+lappend ans [list setpath MODULES_LMPREREQ h2&h1:h4&h1&h2|h3]
+lappend ans [list setpath MODULES_LMTAG h1&hidden-loaded:h3&hidden-loaded:h4&hidden-loaded]
+testouterr_cmd_re sh {load -v --auto h3} $ans [msg_load h3]
+# depun module is hidden and was not automatically loaded (should be reported)
+setenv_path_var MODULES_LMNOTUASKED h1:h2
+set ans [list]
+lappend ans [list setpath LOADEDMODULES h1:h2:h3:h4]
+lappend ans [list setpath _LMFILES_ $mp/h1:$mp/h2:$mp/h3:$mp/h4]
+lappend ans [list setpath MODULES_LMPREREQ h2&h1:h4&h1&h2|h3]
+lappend ans [list setpath MODULES_LMTAG h1&hidden-loaded:h3&hidden-loaded:h4&hidden-loaded]
+testouterr_cmd_re sh {load -v --auto h3} $ans [msg_unload h4]\n[msg_load h4]\n\n[msg_top_load h3 {} {} h4]
+
+# depre (on unload)
+# depun module is hidden and was automatically loaded (should not be reported)
+setenv_loaded_module [list h1 h2 h3 h4] [list $mp/h1 $mp/h2 $mp/h3 $mp/h4] [list h1 h2 h4]
+setenv_path_var MODULES_LMTAG h1&hidden-loaded:h3&hidden-loaded:h4&hidden-loaded
+set ans [list]
+lappend ans [list setpath LOADEDMODULES h1:h2:h4]
+lappend ans [list setpath _LMFILES_ $mp/h1:$mp/h2:$mp/h4]
+lappend ans [list setpath MODULES_LMPREREQ h2&h1:h4&h1&h2|h3]
+lappend ans [list setpath MODULES_LMNOTUASKED h1:h2:h4]
+lappend ans [list setpath MODULES_LMTAG h1&hidden-loaded:h4&hidden-loaded]
+testouterr_cmd_re sh {unload -v --auto h3} $ans [msg_unload h3]
+# depun module is hidden and was not automatically loaded (should be reported)
+setenv_path_var MODULES_LMNOTUASKED h1:h2
+set ans [list]
+lappend ans [list setpath LOADEDMODULES h1:h2:h4]
+lappend ans [list setpath _LMFILES_ $mp/h1:$mp/h2:$mp/h4]
+lappend ans [list setpath MODULES_LMPREREQ h2&h1:h4&h1&h2|h3]
+lappend ans [list setpath MODULES_LMTAG h1&hidden-loaded:h4&hidden-loaded]
+testouterr_cmd_re sh {unload -v --auto h3} $ans [msg_unload h4]\n[msg_load h4]\n\n[msg_top_unload h3 {} {} h4]
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMTAG
+
+
+# intermediate reqlo module is hidden but not last one
+unsetenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET1
+unsetenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET2
+setenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET3 1
+set ans [list]
+lappend ans [list setpath LOADEDMODULES h20:h21:h22]
+lappend ans [list setpath _LMFILES_ $mp/h20:$mp/h21:$mp/h22]
+lappend ans [list setpath MODULES_LMNOTUASKED h20:h21]
+lappend ans [list setpath MODULES_LMPREREQ h21&h20:h22&h21]
+lappend ans [list setpath MODULES_LMTAG h21&hidden-loaded]
+testouterr_cmd_re sh {load -v --auto h22} $ans [msg_load h20]\n\n[msg_top_load h22 {} h20 {}]
+setenv_loaded_module [list h20 h21 h22] [list $mp/h20 $mp/h21 $mp/h2] [list h20 h21]
+setenv_path_var MODULES_LMTAG h21&hidden-loaded
+setenv_path_var MODULES_LMPREREQ h21&h20:h22&h21
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list unsetpath MODULES_LMTAG]
+testouterr_cmd_re sh {unload -v --auto h22} $ans [msg_unload h20]\n\n[msg_top_unload h22 {} h20 {}]
+testouterr_cmd_re sh {unload -v --auto h20} $ans [msg_unload h22]\n\n[msg_top_unload h20 h22 {} {}]
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMTAG
+
+
+# test module switch triggered in modulefile
+unsetenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET3
+setenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET4 1
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swb:swc]
+lappend ans [list setpath _LMFILES_ $mp/swb:$mp/swc]
+lappend ans [list setpath MODULES_LMNOTUASKED swb]
+lappend ans [list setpath MODULES_LMTAG swb&hidden-loaded]
+lappend ans [list setpath MODULES_LMPREREQ swc&swb]
+lappend ans [list setpath MODULES_LMCONFLICT swc&swa]
+# see switch report however swa was not loaded
+testouterr_cmd_re sh {load -v --auto swc} $ans [msg_switch swa swb]\n[msg_load swc]
+# set swa loaded
+setenv_loaded_module [list swa] [list $mp/swa]
+testouterr_cmd_re sh {load -v --auto swc} $ans [msg_unload swa]\n[msg_switch swa swb]\n\n[msg_top_load swc swa {} {}]
+# set swa loaded and hidden
+setenv_loaded_module [list swa] [list $mp/swa]
+setenv_path_var MODULES_LMTAG swa&hidden-loaded
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ swc&swb]
+lappend ans [list setpath LOADEDMODULES swb:swc]
+lappend ans [list setpath _LMFILES_ $mp/swb:$mp/swc]
+lappend ans [list setpath MODULES_LMTAG swb&hidden-loaded]
+lappend ans [list setpath MODULES_LMCONFLICT swc&swa]
+lappend ans [list setpath MODULES_LMNOTUASKED swb]
+testouterr_cmd_re sh {load -v --auto swc} $ans [msg_unload swa]\n[msg_switch swa swb]\n\n[msg_top_load swc swa {} {}]
+# set swa automatically loaded and hidden
+setenv_loaded_module [list swa] [list $mp/swa] [list swa]
+setenv_path_var MODULES_LMTAG swa&hidden-loaded
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ swc&swb]
+lappend ans [list setpath MODULES_LMNOTUASKED swb]
+lappend ans [list setpath LOADEDMODULES swb:swc]
+lappend ans [list setpath _LMFILES_ $mp/swb:$mp/swc]
+lappend ans [list setpath MODULES_LMTAG swb&hidden-loaded]
+lappend ans [list setpath MODULES_LMCONFLICT swc&swa]
+testouterr_cmd_re sh {load -v --auto swc} $ans [msg_load swc]
+unsetenv_loaded_module
+unsetenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET4
+unsetenv_path_var MODULES_LMTAG
+
+
+#
+# automated module evaluation with errors
+# hidden loaded modules should be reported when their evaluation encounters errors
+#
+
+setenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET5 1
+testouterr_cmd sh {load -v --auto rah} ERR [msg_load rae]\n\n[msg_load raf $err_evalabort]\n\n[msg_load rag [err_reqmis raf]]\n\n[msg_load rah [err_reqlo raf] [err_reqlo rag]]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES rag:rah]
+lappend ans [list setpath _LMFILES_ $mp/rag:$mp/rah]
+lappend ans [list setpath MODULES_LMPREREQ rag&raf:rah&rag]
+lappend ans [list setpath MODULES_LMNOTUASKED rag]
+lappend ans [list setpath MODULES_LMTAG rag&hidden-loaded]
+lappend ans [list ERR]
+testouterr_cmd_re sh {load --force -v --auto rah} $ans [msg_load rae]\n\n[msg_load raf $err_evalabort]\n\n[msg_load rag [err_reqmisf raf]]\n\n[msg_top_load rah {} rag {} [err_reqlof raf]]
+
+setenv_loaded_module [list rae raf rag rah] [list $mp/rae $mp/raf $mp/rag $mp/rah] [list rae raf rag]
+setenv_path_var MODULES_LMTAG raf&hidden-loaded:rag&hidden-loaded
+setenv_path_var MODULES_LMPREREQ rah&rag:raf&rae:rag&raf
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ raf&rae]
+lappend ans [list setpath MODULES_LMTAG raf&hidden-loaded]
+lappend ans [list setpath MODULES_LMNOTUASKED rae:raf]
+lappend ans [list setpath _LMFILES_ $mp/rae:$mp/raf]
+lappend ans [list setpath LOADEDMODULES rae:raf]
+lappend ans [list ERR]
+testouterr_cmd_re sh {unload -v --auto rah} $ans [msg_unload raf $err_evalabort]\n\n[msg_unload rah [err_urequn raf]]
+testouterr_cmd_re sh {unload --force -v --auto rah} $ans [msg_unload raf $err_evalabort]\n\n[msg_unload rah [err_urequn raf]]
+
+testouterr_cmd_re sh {unload -v --auto rae} ERR [msg_unload rah]\n\n[msg_unload raf $err_evalabort]\n\n[msg_unload rae [err_depun raf]]
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ raf&rae]
+lappend ans [list setpath MODULES_LMTAG raf&hidden-loaded]
+lappend ans [list setpath MODULES_LMNOTUASKED raf]
+lappend ans [list setpath _LMFILES_ $mp/raf]
+lappend ans [list setpath LOADEDMODULES raf]
+lappend ans [list ERR]
+testouterr_cmd_re sh {unload --force -v --auto rae} $ans [msg_unload rah]\n\n[msg_unload raf $err_evalabort]\n\n[msg_top_unload rae {rah} {} {} [err_depunf raf]]
+
+setenv_loaded_module [list rae raf rag rah] [list $mp/rae $mp/raf $mp/rag $mp/rah] [list rae rag]
+setenv_path_var MODULES_LMTAG raf&hidden-loaded:rag&hidden-loaded
+testouterr_cmd_re sh {unload -v --auto rae} ERR [msg_unload rah]\n\n[msg_unload raf $err_evalabort]\n\n[msg_unload rae [err_depun raf]]
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ raf&rae]
+lappend ans [list setpath MODULES_LMTAG raf&hidden-loaded]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list setpath _LMFILES_ $mp/raf]
+lappend ans [list setpath LOADEDMODULES raf]
+lappend ans [list ERR]
+testouterr_cmd_re sh {unload --force -v --auto rae} $ans [msg_unload rah]\n\n[msg_unload raf $err_evalabort]\n\n[msg_top_unload rae {rah} {} {} [err_depunf raf]]
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET5
+unsetenv_path_var MODULES_LMTAG
+
+# test error occurring during a module switch in modulefile
+setenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET6 1
+setenv_loaded_module [list swa] [list $mp/swa] [list swa]
+setenv_path_var MODULES_LMTAG swa&hidden-loaded
+testouterr_cmd_re sh {load -v --auto swj} ERR [msg_load ra $err_evalabort]\n\n[msg_switch swa ra]\n\n[msg_load swj [err_swon ra] [err_reqlo ra]]
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ swj&ra]
+lappend ans [list unsetpath MODULES_LMTAG]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list setpath MODULES_LMCONFLICT swj&swa]
+lappend ans [list setpath _LMFILES_ $mp/swj]
+lappend ans [list setpath LOADEDMODULES swj]
+lappend ans [list ERR]
+testouterr_cmd_re sh {load --force -v --auto swj} $ans [msg_load ra $err_evalabort]\n\n[msg_switch swa ra]\n\n[msg_load swj [err_swon ra] [err_reqlof ra]]
+unsetenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET6
+
+# conflict issue
+setenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET7 1
+setenv_loaded_module [list h33] [list $mp/h33]
+unsetenv_path_var MODULES_LMTAG
+setenv_path_var MODULES_LMCONFLICT h33&h31
+testouterr_cmd_re sh {load -v --auto h32} ERR [msg_load h30]\n\n[msg_load h31 [err_conflict h31 h33]]\n\n[msg_load h32 [err_reqlo h31]]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES h33:h30:h31:h32]
+lappend ans [list setpath _LMFILES_ $mp/h33:$mp/h30:$mp/h31:$mp/h32]
+lappend ans [list setpath MODULES_LMPREREQ h31&h30:h32&h31]
+lappend ans [list setpath MODULES_LMNOTUASKED h30:h31]
+lappend ans [list setpath MODULES_LMTAG h31&hidden-loaded]
+testouterr_cmd_re sh {load --force -v --auto h32} $ans [msg_load h30]\n\n[msg_load h31 [err_conlof h33]]\n\n[msg_top_load h32 {} {h30 h31} {}]
+unsetenv_path_var MODULES_LMCONFLICT
+unsetenv_loaded_module
+unsetenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET7
+unsetenv_path_var MODULES_LMTAG
+
+
+#
+#  Cleanup
+#
+
+reset_test_env

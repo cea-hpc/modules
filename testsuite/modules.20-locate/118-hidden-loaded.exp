@@ -173,8 +173,42 @@ lappend ans [list setpath MODULES_LMTAG hide3/1.0&hidden-loaded]
 testouterr_cmd_re sh {load hide3/1.0 hidereq/4.1} $ans $no_loaded
 
 
-# ensure hidden state is recovered after a collection restore
-testouterr_cmd_re sh {restore testsuite/home/coll-hide-once-loaded} $ans "$no_loaded\nLoading hidereq/4.1"
+# ensure hidden state is recovered and hidden mod load is not reported if automatically triggered
+# on collection restore
+testouterr_cmd_re sh {restore testsuite/home/coll-hide-once-loaded} $ans "Loading hide3/1.0\n$no_loaded\nLoading hidereq/4.1"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/1.0:hidereq/4.1]
+lappend ans [list setpath _LMFILES_ $mp/hide3/1.0:$mp/hidereq/4.1]
+lappend ans [list setpath MODULES_LMNOTUASKED hide3/1.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/1.0&as|hide3/default&as|hide3/latest]
+lappend ans [list setpath MODULES_LMTAG hide3/1.0&hidden-loaded]
+testouterr_cmd_re sh {restore testsuite/home/coll-hide-once-loaded-nuasked} $ans "$no_loaded\nLoading hidereq/4.1"
+setenv_var MODULES_VERBOSITY verbose
+testouterr_cmd_re sh {restore testsuite/home/coll-hide-once-loaded-nuasked} $ans "$no_loaded\nLoading hidereq/4.1"
+setenv_var MODULES_VERBOSITY normal
+
+# on scriptfile source
+# work on scriptfile located in current dir to cope with the relative path definition set in it
+file copy testsuite/home/coll-hide-once-loaded coll-hide-once-loaded
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/1.0:hidereq/4.1]
+lappend ans [list setpath _LMFILES_ $mp/hide3/1.0:$mp/hidereq/4.1]
+lappend ans [list setpath MODULEPATH $mp]
+lappend ans [list setpath MODULES_LMALTNAME hide3/1.0&as|hide3/default&as|hide3/latest]
+lappend ans [list setpath MODULES_LMTAG hide3/1.0&hidden-loaded]
+testouterr_cmd_re sh {source coll-hide-once-loaded} $ans "Loading hide3/1.0\n$no_loaded\nLoading hidereq/4.1"
+file delete coll-hide-once-loaded
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/1.0:hidereq/4.2]
+lappend ans [list setpath _LMFILES_ $mp/hide3/1.0:$mp/hidereq/4.2]
+lappend ans [list setpath MODULES_LMPREREQ hidereq/4.2&hide3/1.0]
+lappend ans [list setpath MODULES_LMNOTUASKED hide3/1.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/1.0&as|hide3/default&as|hide3/latest]
+lappend ans [list setpath MODULES_LMTAG hide3/1.0&hidden-loaded]
+testouterr_cmd_re sh {source testsuite/modulefiles.2/hidereq/4.3} $ans "Loading hidereq/4.2"
+setenv_var MODULES_VERBOSITY verbose
+testouterr_cmd_re sh {source testsuite/modulefiles.2/hidereq/4.3} $ans "Loading hidereq/4.2"
+setenv_var MODULES_VERBOSITY normal
 
 
 #
