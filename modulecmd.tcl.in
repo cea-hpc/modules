@@ -884,10 +884,11 @@ proc reportModuleEval {} {
 }
 
 # render messages related to current record id under an header block
-proc reportMsgRecord {header} {
+proc reportMsgRecord {header {hidden 0}} {
    set recid [currentState msgrecordid]
    if {[info exists ::g_msgRecord($recid)]} {
-      # skip message report if silent
+      # skip message report if silent (report even if hidden as soon as msgs
+      # are associated to hidden module evaluation)
       if {[isVerbosityLevel concise]} {
          set tty_cols [getState term_columns]
          set padding {  }
@@ -948,8 +949,10 @@ proc reportMsgRecord {header} {
    # report header if no other specific msg to output in verbose mode or in
    # normal verbosity mode if currently processing a cmd which triggers
    # multiple module evaluations that cannot be guessed by the user
-   } elseif {[isVerbosityLevel verbose] || ([isVerbosityLevel normal] && (\
-      [ongoingCommandName restore] || [ongoingCommandName source]))} {
+   # if hidden flag is enabled report only if verbosity >= debug
+   } elseif {(!$hidden && ([isVerbosityLevel verbose] || ([isVerbosityLevel\
+      normal] && ([ongoingCommandName restore] || [ongoingCommandName\
+      source])))) || ($hidden && [isVerbosityLevel debug])} {
       report $header
    }
 }
@@ -11098,8 +11101,11 @@ proc cmdModuleSwitch {uasked old {new {}}} {
       reportModuleEval
    }
 
-   # report all recorded sumup messages for this evaluation
-   reportMsgRecord "Switching from [sgr hi $old] to [sgr hi $new]"
+   # report all recorded sumup messages for this evaluation unless both old
+   # and new modules are set hidden, old was auto loaded and this switch is
+   # done by a modfile
+   reportMsgRecord "Switching from [sgr hi $old] to [sgr hi $new]" [expr\
+      {$oldhidden && !$olduasked && $newhidden && !$uasked}]
    popMsgRecordId
    if {$inhibit_req_rec} {
       lpopState inhibit_req_record
@@ -11440,7 +11446,10 @@ proc cmdModuleLoad {context uasked args} {
          if {![isMsgRecordIdTop]} {
             set context reqlo
          }
+         upvar newhidden hidden
       }
+      # loading module is visible by default
+      set hidden 0
 
       # record evaluation attempt on specified module name
       registerModuleEvalAttempt $context $mod
@@ -11585,6 +11594,9 @@ proc cmdModuleLoad {context uasked args} {
             }
          }
 
+         # loading visibility depends on hidden-loaded tag
+         set hidden [isModuleTagged $modname hidden-loaded 1]
+
          add-path append LOADEDMODULES $modname
          # allow duplicate modfile entries for virtual modules
          add-path append --duplicates _LMFILES_ $modfile
@@ -11634,6 +11646,8 @@ proc cmdModuleLoad {context uasked args} {
          # report a summary of automated evaluations if no error
          reportModuleEval
       } errMsg]] != 0 && $errCode != 4} {
+         # in case of error report module info even if set hidden
+         set hidden 0
          if {$errMsg ne {}} {
             reportError $errMsg [expr {![info exists errlocalreport]}]
          }
@@ -11656,7 +11670,8 @@ proc cmdModuleLoad {context uasked args} {
       # report all recorded messages for this evaluation except if module were
       # already loaded
       if {$errCode != 4} {
-         reportMsgRecord "Loading [sgr hi $modname]"
+         reportMsgRecord "Loading [sgr hi $modname]" [expr {$hidden &&\
+            !$uasked}]
       }
       popMsgRecordId
    }
@@ -11679,7 +11694,12 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          if {![isMsgRecordIdTop]} {
             set context conun
          }
+         upvar oldhidden hidden
+         upvar olduasked uasked
       }
+      # unloading module is visible by default
+      set hidden 0
+      set uasked 1
 
       # record evaluation attempt on specified module name
       registerModuleEvalAttempt $context $mod
@@ -11838,13 +11858,16 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             break
          }
 
+         # unloading visibility depends on hidden-loaded tag
+         set hidden [isModuleTagged $modname hidden-loaded 1]
+
          # get module position in loaded list to remove corresponding loaded
          # modulefile (entry at same position in _LMFILES_)
          # need the unfiltered loaded module list to get correct index
          set lmidx [lsearch -exact [getLoadedModuleList 0] $modname]
          unload-path LOADEDMODULES $modname
          unload-path --index _LMFILES_ $lmidx
-         if {![isModuleUserAsked $modname]} {
+         if {![set uasked [isModuleUserAsked $modname]]} {
             unload-path MODULES_LMNOTUASKED $modname
          }
          # update cache arrays
@@ -11911,6 +11934,8 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          # report a summary of automated evaluations if no error
          reportModuleEval
       } errMsg]] != 0 && $errCode != 4} {
+         # in case of error report module info even if set hidden
+         set hidden 0
          if {$errMsg ne {}} {
             reportError $errMsg [expr {![info exists errlocalreport]}]
          }
@@ -11931,8 +11956,10 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       }
       popSettings
 
-      # report all recorded messages for this evaluation
-      reportMsgRecord "Unloading [sgr hi $modname]"
+      # report all recorded messages for this evaluation (hide evaluation if
+      # loaded mod is set hidden, has been automatically loaded and unloaded)
+      reportMsgRecord "Unloading [sgr hi $modname]" [expr {$hidden &&\
+         !$uasked && [depthState evalid] != 1}]
       popMsgRecordId
    }
    lpopState mode
