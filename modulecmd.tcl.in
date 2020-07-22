@@ -875,7 +875,17 @@ proc reportModuleEval {} {
          set modlist [lassign $contextevallist context]
          # skip context with no description title
          if {[info exists contexttitle($context)]} {
-            reportInfo [join $modlist] $contexttitle($context)
+            # exclude hidden modules from report unless an high level of
+            # verbosity is set
+            if {[info exists ::g_moduleHiddenEval($evalid:$context)] &&\
+               ![isVerbosityLevel debug]} {
+               lassign [getDiffBetweenList $modlist\
+                  $::g_moduleHiddenEval($evalid:$context)] modlist
+            }
+
+            if {[llength $modlist] > 0} {
+               reportInfo [join $modlist] $contexttitle($context)
+            }
          }
       }
       # purge list in case same evaluation is re-done afterward
@@ -977,6 +987,11 @@ proc __reportSeparateNextContent {} {
 proc recordMessage {message {recordtop 0}} {
    lappend ::g_msgRecord([expr {$recordtop ? [topState msgrecordid] :\
       [currentState msgrecordid]}]) $message
+}
+
+# check if some msg have been recorded for current evaluation
+proc isMsgRecorded {} {
+   return [info exists ::g_msgRecord([currentState msgrecordid])]
 }
 
 # filter and format error stack trace to only report useful content
@@ -4683,6 +4698,12 @@ proc registerModuleEval {context mod {unset 0} {failedcontext {}}} {
    }
 }
 
+# record that module evaluation is set hidden
+proc registerModuleEvalHidden {context mod} {
+   set evalid [topState evalid]
+   lappend ::g_moduleHiddenEval($evalid:$context) $mod
+}
+
 # get context of currently evaluated module
 proc currentModuleEvalContext {} {
    return [lindex $::g_moduleEvalAttempt([currentState modulename]) end]
@@ -6638,7 +6659,7 @@ proc pushSettings {} {
       g_loadedModuleAutoAltname g_loadedModuleAliasAltname g_moduleDepend\
       g_dependHash g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
-      g_unmetDepHash g_moduleEval} {
+      g_unmetDepHash g_moduleEval g_moduleHiddenEval} {
       eval "lappend ::g_SAVE_$var \[array get ::$var\]"
    }
    # save non-array variable and indication if it was set
@@ -6662,7 +6683,7 @@ proc popSettings {} {
       g_loadedModuleAutoAltname g_loadedModuleAliasAltname g_moduleDepend\
       g_dependHash g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
-      g_unmetDepHash g_moduleEval} {
+      g_unmetDepHash g_moduleEval g_moduleHiddenEval} {
       eval "set ::g_SAVE_$var \[lrange \$::g_SAVE_$var 0 end-1\]"
    }
    reportDebug "previously saved settings flushed (#$flushedid)"
@@ -6676,7 +6697,7 @@ proc restoreSettings {} {
       g_loadedModuleAutoAltname g_loadedModuleAliasAltname g_moduleDepend\
       g_dependHash g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
-      g_unmetDepHash g_moduleEval} {
+      g_unmetDepHash g_moduleEval g_moduleHiddenEval} {
       # clear current $var arrays
       if {[info exists ::$var]} {
          eval "unset ::$var; array set ::$var {}"
@@ -11643,6 +11664,12 @@ proc cmdModuleLoad {context uasked args} {
                [getState force] {Reload of dependent _MOD_ failed} depre
          }
 
+         # consider evaluation hidden if hidden loaded module is auto loaded
+         # and no specific messages are recorded for this evaluation
+         if {$hidden && !$uasked && ![isMsgRecorded]} {
+            registerModuleEvalHidden $context $modname
+         }
+
          # report a summary of automated evaluations if no error
          reportModuleEval
       } errMsg]] != 0 && $errCode != 4} {
@@ -11929,6 +11956,12 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                reloadModuleListLoadPhase deprelist [array get isuasked]\
                   [getState force] {Reload of dependent _MOD_ failed} depre
             }
+         }
+
+         # consider evaluation hidden if hidden loaded module was auto loaded
+         # and no specific messages are recorded for this evaluation
+         if {$hidden && !$uasked && ![isMsgRecorded]} {
+            registerModuleEvalHidden $context $modname
          }
 
          # report a summary of automated evaluations if no error
