@@ -64,6 +64,10 @@ Modules 4.6.0 (not yet released)
 * Doc: improve markup of :ref:`NEWS` and :ref:`MIGRATING` documents starting
   from this 4.6 version to enable references to module sub-commands, command
   line switches, environment variables and modulefile Tcl commands.
+* Use inclusive terminology to eliminate *master* and *slave* terms as much as
+  possible from code source and documentation.
+* Doc: use a versioned magic cookie in examples that demonstrate new
+  modulefile features. (fix issue #349)
 
 
 Modules 4.5.1 (2020-06-01)
