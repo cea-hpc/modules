@@ -89,7 +89,7 @@ Instead of transforming shell script in modulefile, a modulefile using
 evaluation time may be written::
 
     $ cat <<EOF >modulefiles/foo/1.2
-    #%Module
+    #%Module4.6
     source-sh bash example/source-script-in-modulefile/foo-1.2/foo-setup.sh arg1
     EOF
 

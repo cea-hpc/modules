@@ -74,7 +74,7 @@ Keeping the same example used to describe :subcmd:`sh-to-mod` sub-command:
 modulefile ``foo/1.2`` that calls this script::
 
     $ cat /path/to/modulefiles/foo/1.2
-    #%Module
+    #%Module4.6
     source-sh sh /path/to/foo-1.2/foo-setup.sh arg1
 
 Displaying this modulefile indicates the environment changes done by script::
@@ -124,7 +124,7 @@ groups. Like for instance to instantiate a modulefile for each group the user
 is member of::
 
     $ cat /path/to/modulefiles/foo/.modulerc
-    #%Module
+    #%Module4.6
     foreach grp [module-info usergroups] {
         module-virtual foo/$grp .common
     }
