@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# createmodule.sh - Takes the name of a environment init script and 
+# createmodule.sh - Takes the name of a environment init script and
 # produces a modulefile that duplicates the changes made by the init script
 #
 # Copyright (C) 2010-2012 by Orion E. Poplawski <orion@cora.nwra.com>
@@ -40,7 +40,7 @@ done
 if [ ! -r "$1" ]
 then
   echo "ERROR: Cannot read $1" 1>&2
-  exit 1 
+  exit 1
 fi
 
 #Will print out array assignment list
@@ -104,8 +104,8 @@ dedup() {
       echo $x >> $list
     done | tr '\n' $sep | sed -e "s/\\$sep\$//"
   rm $list
-} 
-    
+}
+
 #Keys that changed
 for key in "${!env1[@]}"
 do
