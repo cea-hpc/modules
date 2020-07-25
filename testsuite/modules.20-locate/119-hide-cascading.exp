@@ -1,0 +1,91 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.20-locate/%M%
+#   Revision:		%I%
+#   First Edition:	2020/07/25
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, avail
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test cascading effect of cumulative module-hide/module-forbid
+#           statements
+#		}C%
+#
+##############################################################################
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure avail tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+# ensure regular avail search match is set for these tests
+setenv_var MODULES_SEARCH_MATCH starts_with
+
+# ensure extended default and advanced version specifiers are enabled for these tests
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_var MODULES_EXTENDED_DEFAULT 1
+
+set mp $modpath.2
+set mpre $modpathre.2
+setenv_path_var MODULEPATH $mp
+
+if {[info exists env(MODULERCFILE)]} {
+    set ORIG_MODULERCFILE $env(MODULERCFILE)
+}
+setenv_var MODULERCFILE $env(TESTSUITEDIR)/etc/modulerc.hide
+
+
+setenv_var TESTSUITE_HIDE1_CASC_SET1 1
+testouterr_cmd sh {avail -t hide1@4:} OK {}
+testouterr_cmd sh {load hide1@4:} ERR $err_path'hide1@4:'
+unsetenv_var TESTSUITE_HIDE1_CASC_SET1
+
+setenv_var TESTSUITE_HIDE1_CASC_SET2 1
+testouterr_cmd sh {avail -t hide1@4:} OK {}
+testouterr_cmd sh {load hide1@4:} ERR $err_path'hide1@4:'
+unsetenv_var TESTSUITE_HIDE1_CASC_SET2
+
+setenv_var TESTSUITE_HIDE1_CASC_SET3 1
+testouterr_cmd sh {avail -t hide1@4:} OK $mp:\nhide1/4.0
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide1/4.0]
+lappend ans [list setpath _LMFILES_ $mp/hide1/4.0]
+lappend ans [list setpath MODULES_LMALTNAME hide1/4.0&as|hide1/latest]
+testouterr_cmd sh {load hide1@4:} $ans {}
+unsetenv_var TESTSUITE_HIDE1_CASC_SET3
+
+setenv_var TESTSUITE_HIDE1_CASC_SET4 1
+testouterr_cmd sh {avail -t hide1@4:} OK $mp:\nhide1/4.0
+testouterr_cmd sh {load hide1@4:} $ans {}
+unsetenv_var TESTSUITE_HIDE1_CASC_SET4
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+setenv_path_var MODULEPATH $modpath
+if {[info exists ORIG_MODULERCFILE]} {
+    setenv_var MODULERCFILE $ORIG_MODULERCFILE
+    unset ORIG_MODULERCFILE
+} else {
+    unsetenv_var MODULERCFILE
+}
+unsetenv_var MODULES_AVAIL_INDEPTH
+unsetenv_var MODULES_IMPLICIT_DEFAULT
+unsetenv_var MODULES_SEARCH_MATCH
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+unsetenv_var MODULES_EXTENDED_DEFAULT
+
+unset mp
+unset mpre
