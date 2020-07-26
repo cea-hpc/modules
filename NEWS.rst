@@ -68,6 +68,9 @@ Modules 4.6.0 (not yet released)
   possible from code source and documentation.
 * Doc: use a versioned magic cookie in examples that demonstrate new
   modulefile features. (fix issue #349)
+* Clearly separate quarantine variable definition from tclsh binary on
+  :file:`modulecmd.tcl` evaluated command call in ``_module_raw`` function for
+  *sh*, *bash*, *ksh* and *zsh* shells. (fix issue #350)
 
 
 Modules 4.5.1 (2020-06-01)
