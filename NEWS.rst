@@ -26,6 +26,7 @@ Modules 4.6.0 (not yet released)
   Trace mode can be enabled by setting the ``verbosity`` config to the
   ``trace`` value or by using the :option:`-T`/:option:`--trace` command-line
   switches.
+* Doc: add *Source shell script in modulefile* design notes.
 * Introduce the :mfcmd:`source-sh` modulefile command, to evaluate shell
   script and apply resulting environment changes through modulefile commands.
   When a modulefile using :mfcmd:`source-sh` modulefile command is loaded, the
@@ -77,6 +78,44 @@ Modules 4.6.0 (not yet released)
   at its main location.
 * Lib: remove *fetch_hidden* argument from ``getFilesInDirectory`` procedure
   of Modules Tcl extension library.
+* Doc: add *Hide or forbid modulefile* design notes.
+* Add the :mfcmd:`module-hide` modulefile command, to dynamically hide
+  modulefile, module alias or symbolic version matching passed specification.
+  When hidden, a modulefile, an alias or a symbolic version is not reported
+  nor selected unless referred by its exact name, like for module whose name
+  or version starts with a dot character. :mfcmd:`module-hide` supports the
+  advanced module version specifiers. (fix issue #202)
+* Do not report among :subcmd:`whatis` search result the modulefiles with
+  version name prefixed by a dot character and targeted by a symbolic version
+  unless if they are precisely searched.
+* When a loading module has hidden alternative names (hidden due to their
+  name or version starting with a dot character or because they match a
+  :mfcmd:`module-hide` statement), these alternative names are not recorded in
+  environment unless they have been used in query to select loading module.
+* On :subcmd:`avail` sub-command, remove hidden symbolic versions from the
+  list to display along modulefile or directory they target, unless these
+  symbols are used in query to search modules.
+* When the :option:`--default` filter of :subcmd:`avail` sub-command is set,
+  unhide all the *default* symbolic versions or modules targeted by these
+  symbols.
+* Define the *default* and *latest* automatic symbolic versions only if
+  relative module name matches search query to ensure all elements for this
+  module have been processed prior assigning the symbols.
+* In case a symbolic version is transitively applied toward a modulefile, like
+  for instance when this symbol is first set onto a directory, record the
+  resolution of each transitively applied symbol. By doing so, a module
+  :subcmd:`load` tentative using the transitively applied symbolic version
+  will now correctly resolve to the modulefile targeted by symbol.
+* Fix use of the advanced version specifiers in arguments to the
+  :mfcmd:`is-avail` modulefile command.
+* Add option ``--soft`` to the :mfcmd:`module-hide` modulefile command to
+  introduce a soften level of camouflage: modules targeted by such hide
+  directive are made visible as soon as their root name is part of search
+  query.
+* Introduce the :option:`--all`/:option:`-a` option for :subcmd:`avail`,
+  :subcmd:`aliases`, :subcmd:`whatis` and :subcmd:`search` sub-commands, to
+  include in the search process all hidden modulefiles, module aliases or
+  symbolic versions.
 
 .. _GNU configuration recommendations: https://www.gnu.org/prep/standards/html_node/Configuration.html
 
