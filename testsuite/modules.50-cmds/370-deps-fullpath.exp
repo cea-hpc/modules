@@ -1,0 +1,117 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2020/07/29
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        load, unload
+#   Modulefiles:
+#   Sub-Command:    prereq, conflict
+#
+#   Comment:	%C{
+#           Test resolution of modulefile dependencies when module are
+#           loaded with their full pathname.
+#		}C%
+#
+##############################################################################
+
+# disable auto_handling with environment variable
+setenv_var MODULES_AUTO_HANDLING 0
+
+set mp "$modpath.deps"
+set mpre "$modpathre.deps"
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+
+# reflexive conflict
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $mp/c]
+lappend ans [list setpath _LMFILES_ $mp/c]
+lappend ans [list setpath MODULES_LMCONFLICT $mp/c&c]
+testouterr_cmd sh "load $mp/c" $ans {}
+testouterr_cmd sh "load --auto $mp/c" $ans {}
+
+setenv_loaded_module [list c] [list $mp/c]
+setenv_path_var MODULES_LMCONFLICT c&c
+set ans [list]
+lappend ans [list setpath LOADEDMODULES c:$mp/b]
+lappend ans [list setpath _LMFILES_ $mp/c:$mp/b]
+lappend ans [list setpath MODULES_LMPREREQ $mp/b&c]
+testouterr_cmd_re sh "load $mp/b" $ans {}
+
+setenv_loaded_module [list $mp/c] [list $mp/c]
+setenv_path_var MODULES_LMCONFLICT $mp/c&c
+testouterr_cmd_re sh "load c" OK {}
+
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+testouterr_cmd_re sh "unload c" $ans {}
+testouterr_cmd_re sh "unload $mp/c" $ans {}
+testouterr_cmd_re sh "unload --auto c" $ans {}
+testouterr_cmd_re sh "unload --auto $mp/c" $ans {}
+
+# requirement
+setenv_loaded_module [list $mp/c] [list $mp/c]
+setenv_path_var MODULES_LMCONFLICT $mp/c&c
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $mp/c:b]
+lappend ans [list setpath _LMFILES_ $mp/c:$mp/b]
+lappend ans [list setpath MODULES_LMPREREQ b&c]
+testouterr_cmd_re sh "load b" $ans {}
+testouterr_cmd_re sh "load --auto b" $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $mp/c:$mp/b]
+lappend ans [list setpath _LMFILES_ $mp/c:$mp/b]
+lappend ans [list setpath MODULES_LMPREREQ $mp/b&c]
+testouterr_cmd_re sh "load $mp/b" $ans {}
+testouterr_cmd_re sh "load --auto $mp/b" $ans {}
+
+# conflict
+setenv_loaded_module [list $mp/c:$mp/b] [list $mp/c:$mp/b]
+setenv_path_var MODULES_LMCONFLICT $mp/c&c
+setenv_path_var MODULES_LMPREREQ $mp/b&c
+testouterr_cmd_re sh "load a" ERR [msg_load a [err_conflict a b]]
+testouterr_cmd_re sh "load --auto a" ERR [msg_load a [err_conflict a b]]
+testouterr_cmd_re sh "load $mp/a" ERR [msg_load $mpre/a [err_conflict $mpre/a b]]
+testouterr_cmd_re sh "load --auto $mp/a" ERR [msg_load $mpre/a [err_conflict $mpre/a b]]
+
+# force conflict
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $mp/c:$mp/b:a]
+lappend ans [list setpath _LMFILES_ $mp/c:$mp/b:$mp/a]
+lappend ans [list setpath MODULES_LMCONFLICT $mp/c&c:a&b]
+testouterr_cmd_re sh "load --force a" $ans [msg_load a [err_conlof b]]
+testouterr_cmd_re sh "load --auto --force a" $ans [msg_load a [err_conlof b]]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $mp/c:$mp/b:$mp/a]
+lappend ans [list setpath _LMFILES_ $mp/c:$mp/b:$mp/a]
+lappend ans [list setpath MODULES_LMCONFLICT $mp/c&c:$mp/a&b]
+testouterr_cmd_re sh "load --force $mp/a" $ans [msg_load $mpre/a [err_conlof b]]
+testouterr_cmd_re sh "load --auto --force $mp/a" $ans [msg_load $mpre/a [err_conlof b]]
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+setenv_path_var MODULEPATH $modpath
+unsetenv_path_var MODULES_LMCONFLICT
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_loaded_module
+
+unsetenv_var MODULES_AUTO_HANDLING
+
+unset mp
+unset mpre
+unset ans
