@@ -3227,6 +3227,10 @@ proc is-loading {args} {
 proc conflict {args} {
    reportDebug $args
    set currentModule [currentModuleName]
+   # get module short name if loaded by its full pathname
+   if {[set isfullpath [isModuleFullPath $currentModule]]} {
+      set currentSModule [findModuleNameFromModulefile $currentModule]
+   }
    defineModEqProc [isIcase] [getConf extended_default]
 
    # parse module version specification
@@ -3239,6 +3243,7 @@ proc conflict {args} {
       # if the conflict module is loading and it does not correspond to
       # currently evaluated module, we cannot proceed
       set isloading [expr {![doesModuleMatchesName $currentModule $mod] &&\
+         (!$isfullpath || ![doesModuleMatchesName $currentSModule $mod]) &&\
          [is-loading $mod]}]
       # if the conflicting module is loaded, we cannot either
       if {[is-loaded $mod] || $isloading} {
@@ -4554,16 +4559,21 @@ proc doesModuleConflict {mod} {
    set modconlist {}
    set moddecconlist {}
    defineModEqProc [isIcase] [getConf extended_default]
+   # get module short name if loaded by its full pathname
+   if {[set isfullpath [isModuleFullPath $mod]]} {
+      set smod [findModuleNameFromModulefile $mod]
+   }
 
    # check if any loaded module has declared a conflict
    foreach modcon [array names ::g_loadedModuleConflict] {
       # look if some loaded or loading modules correspond to conflict defined
       # by mod
-      if {$modcon eq $mod} {
+      if {$modcon eq $mod || ($isfullpath && $modcon eq $smod)} {
          foreach withmod $::g_loadedModuleConflict($modcon) {
             # skip own reflexive conflict (look at mod main and alternative
             # names) and those already known
-            if {![doesModuleMatchesName $mod $withmod] && ([set lmmodlist\
+            if {![doesModuleMatchesName $mod $withmod] && (!$isfullpath ||\
+               ![doesModuleMatchesName $smod $withmod]) && ([set lmmodlist\
                [getLoadedMatchingName $withmod returnall]] ne {} || [set\
                lmmodlist [getLoadedMatchingName $withmod returnall 1]] ne {})} {
                # multiple loaded module may match conflict declared name
@@ -4578,7 +4588,8 @@ proc doesModuleConflict {mod} {
       } elseif {[notInList $modconlist $modcon]} {
          foreach withmod $::g_loadedModuleConflict($modcon) {
             # check if mod or one of its alt name match conflict
-            if {[doesModuleMatchesName $mod $withmod]} {
+            if {[doesModuleMatchesName $mod $withmod] || ($isfullpath &&\
+               [doesModuleMatchesName $smod $withmod])} {
                lappend modconlist $modcon
                lappend moddecconlist $modcon
                set does 1
