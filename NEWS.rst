@@ -39,20 +39,9 @@ Modules 4.6.0 (not yet released)
 * Doc: add *Source shell script in modulefile* cookbook recipe.
 * Doc: embed new Modules logo on website, online README and documentation
   portal.
-* Install: adapt :file:`configure` script to pass to the :file:`configure`
-  script of Modules compatibility version only a subset of the options it
-  supports (most commonly used options).
-* Install: raise an error when an unknown option is passed to
-  :file:`configure` script rather silently ignore it. (fix issue #348)
-* Install: enable the definition of installation directory options of
-  :file:`configure` script with the ``--option value`` syntax in addition to
-  the ``--option=value`` syntax. (fix issue #348)
 * Install: disable by default the build of Modules compatibility version. From
   now on, option ``--enable-compat-version`` has to be set to trigger this
   build.
-* Doc: alphabetically sort sub-commands of :mfcmd:`module-info` modulefile Tcl
-  command in :ref:`modulefile(4)` document.
-* Script: clean previously built environment-modules RPMs in :command:`mrel`.
 * Introduce the ``username`` sub-command to the :mfcmd:`module-info`
   modulefile command to get the username of the user currently running
   :file:`modulecmd.tcl` or to test a string passed as argument corresponds to
@@ -68,9 +57,38 @@ Modules 4.6.0 (not yet released)
   possible from code source and documentation.
 * Doc: use a versioned magic cookie in examples that demonstrate new
   modulefile features. (fix issue #349)
+
+
+Modules 4.5.2 (2020-07-30)
+--------------------------
+
+* Init: :subcmd:`list` and :subcmd:`source` sub-commands do not take available
+  modules as argument in fish completion script.
+* Init: fix option list for :subcmd:`search` sub-command in bash completion
+  script.
+* Fix double error counter increase when modulefile evaluation breaks.
+* Install: adapt :file:`configure` script to pass to the :file:`configure`
+  script of Modules compatibility version only a subset of the options it
+  supports (most commonly used options).
+* Install: raise an error when an unknown option is passed to
+  :file:`configure` script rather silently ignore it. (fix issue #348)
+* Install: enable the definition of installation directory options of
+  :file:`configure` script with the ``--option value`` syntax in addition to
+  the ``--option=value`` syntax. (fix issue #348)
+* Doc: alphabetically sort sub-commands of :mfcmd:`module-info` modulefile Tcl
+  command in :ref:`modulefile(4)` document.
+* Script: clean previously built environment-modules RPMs in :command:`mrel`.
 * Clearly separate quarantine variable definition from tclsh binary on
   :file:`modulecmd.tcl` evaluated command call in ``_module_raw`` function for
   *sh*, *bash*, *ksh* and *zsh* shells. (fix issue #350)
+* Doc: clarify in documentation index that Environment Modules should not be
+  confused with language-specific modules. (contribution from Rob Hurt)
+* Adapt conflict detection tests to ensure a module loaded by its full
+  pathname will not detect itself as a conflict when declaring a reflexive
+  conflict. (fix issue #352)
+* Adapt the :command:`mrel` and :command:`mpub` commands to produce new
+  Modules release from a *vZ.Y.x* git branch rather than from the repository
+  main branch.
 
 
 Modules 4.5.1 (2020-06-01)
