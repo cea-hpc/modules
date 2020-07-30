@@ -59,6 +59,14 @@ set cwd [pwd]
 set logfile mpub.out
 set logfid [open $logfile w]
 
+# get current branch
+set relbranch [exec git branch --show-current]
+if {[regexp {^(master|v\d+.\d+.x)$} $relbranch]} {
+   reportInfo "Found branch '$relbranch'"
+} else {
+   error "git branch '$relbranch' is not a valid release branch"
+}
+
 # ensure head sit on a tag
 set reltag [exec git describe --tags --exact-match]
 reportInfo "Found release tag '$reltag'"
@@ -111,11 +119,11 @@ set distwin modules-$relver-win.zip
 # ---------------------------------------------------------
 
 runcmd 2>@$logfid git push $sfremote c-3.2
-runcmd 2>@$logfid git push $sfremote master
+runcmd 2>@$logfid git push $sfremote $relbranch
 runcmd 2>@$logfid git push $sfremote $reltag
 
 runcmd 2>@$logfid git push $ghremote c-3.2
-runcmd 2>@$logfid git push $ghremote master
+runcmd 2>@$logfid git push $ghremote $relbranch
 runcmd 2>@$logfid git push $ghremote $reltag
 
 
@@ -180,7 +188,7 @@ close $fid
 runcmd sftp -o BatchMode=yes -b mpubbatch web.sourceforge.net
 file delete mpubbatch
 
-runcmd 2>@$logfid git checkout master
+runcmd 2>@$logfid git checkout $relbranch
 
 
 # everythings done, clean file transmitted by mrel
