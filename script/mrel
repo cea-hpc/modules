@@ -82,6 +82,14 @@ set cwd [pwd]
 set logfile mrel.out
 set logfid [open $logfile w]
 
+# get current branch
+set relbranch [exec git branch --show-current]
+if {[regexp {^(master|v\d+.\d+.x)$} $relbranch]} {
+   reportInfo "Found branch '$relbranch'"
+} else {
+   error "git branch '$relbranch' is not a valid release branch"
+}
+
 # ensure head sit on a tag
 set reltag [exec git describe --tags --exact-match]
 reportInfo "Found release tag '$reltag'"
@@ -130,8 +138,8 @@ if {![info exists env(MREL_GITHUB_TEST_REMOTE)]} {
 set gh_test_remote $env(MREL_GITHUB_TEST_REMOTE)
 reportInfo "GitHub test remote set to '$gh_test_remote'"
 set ghremtgt [lindex [split [exec git remote get-url $gh_test_remote] :.] 2]
-set ghstatusurl https://api.github.com/repos/$ghremtgt/commits/master/status
-set ghtgturl https://github.com/$ghremtgt/commit/master
+set ghstatusurl https://api.github.com/repos/$ghremtgt/commits/$relbranch/status
+set ghtgturl https://github.com/$ghremtgt/commit/$relbranch
 set ghcloneurl https://github.com/$ghremtgt.git
 set ghexporturl https://github.com/$ghremtgt/archive/$reltag.tar.gz
 
@@ -237,7 +245,7 @@ quitorcont
 # ---------------------------------------------------------
 
 runcmd 2>@$logfid git push --force $gh_test_remote c-3.2
-runcmd 2>@$logfid git push --force $gh_test_remote master
+runcmd 2>@$logfid git push --force $gh_test_remote $relbranch
 runcmd 2>@$logfid git push --force $gh_test_remote $reltag
 # see Phase 7 for CI result check
 
@@ -283,6 +291,7 @@ cd /tmp/mods+test-clone
 runcmd 2>@$logfid git clone $ghcloneurl
 cd modules
 reportInfo "Moved into '[pwd]' directory"
+runcmd 2>@$logfid git checkout $relbranch
 runcmd 2>@$logfid ./configure
 runcmd make
 runcmd 2>@$logfid script/mt
