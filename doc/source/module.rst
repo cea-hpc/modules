@@ -146,6 +146,15 @@ interpreting *modulefiles*.
 All switches may be entered either in short or long notation. The following
 switches are accepted:
 
+.. option:: --all, -a
+
+ Include hidden modules in search performed with :subcmd:`avail`,
+ :subcmd:`aliases`, :subcmd:`search` or :subcmd:`whatis` sub-commands.
+
+ .. only:: html
+
+    .. versionadded:: 4.6
+
 .. option:: --auto
 
  On :subcmd:`load`, :subcmd:`unload` and :subcmd:`switch` sub-commands, enable
@@ -364,7 +373,7 @@ Module Sub-Commands
 
  See :subcmd:`load`.
 
-.. subcmd:: aliases
+.. subcmd:: aliases [-a]
 
  List all available symbolic version-names and aliases in the current
  :envvar:`MODULEPATH`.  All directories in the :envvar:`MODULEPATH` are
@@ -386,11 +395,11 @@ Module Sub-Commands
 
     .. versionadded:: 4.1
 
-.. subcmd:: apropos [-j] string
+.. subcmd:: apropos [-a] [-j] string
 
  See :subcmd:`search`.
 
-.. subcmd:: avail [-d|-L] [-t|-l|-j] [-S|-C] [--indepth|--no-indepth] [path...]
+.. subcmd:: avail [-d|-L] [-t|-l|-j] [-a] [-S|-C] [--indepth|--no-indepth] [path...]
 
  List all available *modulefiles* in the current :envvar:`MODULEPATH`. All
  directories in the :envvar:`MODULEPATH` are recursively searched for files
@@ -662,7 +671,7 @@ Module Sub-Commands
 
     .. versionadded:: 4.1
 
-.. subcmd:: keyword [-j] string
+.. subcmd:: keyword [-a] [-j] string
 
  See :subcmd:`search`.
 
@@ -836,7 +845,7 @@ Module Sub-Commands
 
     .. versionadded:: 4.0
 
-.. subcmd:: search [-j] string
+.. subcmd:: search [-a] [-j] string
 
  Seeks through the :mfcmd:`module-whatis` informations of all *modulefiles*
  for the specified *string*. All *module-whatis* informations matching the
@@ -941,7 +950,7 @@ Module Sub-Commands
  :envvar:`MODULEPATH_modshare<\<VAR\>_modshare>` is also set to increase the
  number of times *directory* has been added to :envvar:`MODULEPATH`.
 
-.. subcmd:: whatis [-j] [modulefile...]
+.. subcmd:: whatis [-a] [-j] [modulefile...]
 
  Display the information set up by the :mfcmd:`module-whatis` commands inside
  the specified *modulefiles*. These specified *modulefiles* may be
