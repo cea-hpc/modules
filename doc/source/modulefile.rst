@@ -240,6 +240,40 @@ the *modulefile* is being loaded.
 
  * another *modulefile* alias
 
+.. mfcmd:: module-hide [--soft] modulefile...
+
+ Hide *modulefile* to exclude it from available module search or module
+ selection unless query refers to *modulefile* by its exact name. This command
+ should be placed in one of the :file:`modulecmd.tcl` rc files.
+
+ When ``--soft`` option is set, *modulefile* is also set hidden, but hiding is
+ disabled when search or selection query's root name matches module's root
+ name. This soft hiding mode enables to hide modulefiles from bare module
+ availability listing yet keeping the ability to select such module for load
+ with the regular resolution mechanism (i.e., no need to use module exact name
+ to select it)
+
+ If the :option:`--all` is set on :subcmd:`avail`, :subcmd:`aliases`,
+ :subcmd:`whatis` or :subcmd:`search` sub-commands, hiding is disabled thus
+ hidden modulefiles are included in module search. :option:`--all` option does
+ not apply to *module selection* sub-commands like :subcmd:`load`. Thus in
+ such context a hidden module should always be referred by its exact full name
+ (e.g., ``foo/1.2.3`` not ``foo``) unless if it has been hidden in ``--soft``
+ mode.
+
+ If several :mfcmd:`module-hide` commands target the same *modulefile*, the
+ strongest hiding level is retained which means if both a regular and a
+ ``--soft`` hiding command match a given module, regular hiding mode is
+ considered.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
+ .. only:: html
+
+    .. versionadded:: 4.6
+
 .. mfcmd:: module-info option [info-args]
 
  Provide information about the :file:`modulecmd.tcl` program's state. Some of
@@ -716,17 +750,35 @@ be adapted to the rights the user has been granted. Exception is made when
 trying to directly access a directory or a *modulefile*. In this case,
 the access issue is returned as an error message.
 
-A *modulefile*, virtual module, module alias or symbolic version whose name or
-element in their name starts with a ``.`` (dot) are considered hidden. Hidden
-*modulefile*, virtual module, module alias or symbolic version are not
-displayed or taken into account except if they are explicitly named. By
-inheritance, a symbolic version-name assigned to a hidden *modulefile*,
-virtual module or module alias is displayed or taken into account only
-if explicitly named. Non-hidden module alias targeting a hidden *modulefile*
-appears like any other non-hidden module alias. Finally, a hidden symbolic
-version targeting a non-hidden module will be displayed along its non-hidden
-target.
+Depending on their name or the use of specific modulefile command,
+*modulefile*, virtual module, module alias or symbolic version may be set
+hidden which impacts available modules search or module selection processes
+(see `Hiding modulefiles`_ section below).
 
+.. _Hiding modulefiles:
+
+Hiding modulefiles
+------------------
+
+A *modulefile*, virtual module, module alias or symbolic version whose name or
+element in their name starts with a dot character (``.``) or who are targeted
+by a :mfcmd:`module-hide` command are considered hidden. Hidden modules are
+not displayed or taken into account except if they are explicitly named (e.g.,
+``foo/1.2.3`` or ``foo/.2.0`` not ``foo``). If module has been hidden with the
+``--soft`` option of the :mfcmd:`module-hide` command set, it is not
+considered hidden if the root name of the query to search it matches module
+root name (e.g., searching ``foo`` will return a ``foo/1.2.3`` modulefile
+targeted by a ``module-hide --soft`` command).
+
+A symbolic version-name assigned to a hidden module is displayed or taken into
+account only if explicitly named. Non-hidden module alias targeting a hidden
+*modulefile* appears like any other non-hidden module alias. Finally, a hidden
+symbolic version targeting a non-hidden module is display or taken into
+account only if explicitly named to refer to its non-hidden target.
+
+If the :option:`--all` is set on :subcmd:`avail`, :subcmd:`aliases`,
+:subcmd:`whatis` or :subcmd:`search` sub-commands, hidden modules are taken
+into account in search.
 
 Advanced module version specifiers
 ----------------------------------
