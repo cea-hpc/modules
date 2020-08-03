@@ -2330,28 +2330,47 @@ proc module-hide {args} {
 
    # parse argument list
    foreach arg $args {
-      switch -- $arg {
-         --soft {
-            # soften level of camouflage
-            set hidinglvl 0
+      if {[info exists nextargisval]} {
+         set $nextargisval $arg
+         unset nextargisval
+      } else {
+         switch -- $arg {
+            --allow-user {
+               set nextargisval userlist
+            }
+            --soft {
+               # soften level of camouflage
+               set hidinglvl 0
+            }
+            default {
+               lappend modarglist $arg
+            }
          }
-         default {
-            lappend modarglist $arg
-         }
+         set prevarg $arg
       }
    }
 
+   if {[info exists nextargisval]} {
+      knerror "Missing value for '$prevarg' option"
+   }
    if {![info exists modarglist]} {
       knerror {No module specified in argument}
    }
-   # record each hide spec after parsing them
-   foreach modarg [eval parseModuleVersionSpecifier 0 $modarglist] {
-      # skip record if an higher hiding level is already set
-      if {![info exists ::g_moduleHide($modarg)] || $hidinglvl >\
-         $::g_moduleHide($modarg)} {
-         reportDebug "Record hidden module specification '$modarg'\
-            (hidinglvl=$hidinglvl)"
-         set ::g_moduleHide($modarg) $hidinglvl
+
+   set alloweduser [expr {[info exists userlist] && [isInList $userlist\
+      [getState username]]}]
+
+   # skip hide spec record if it does not apply for current user
+   if {!$alloweduser} {
+      # record each hide spec after parsing them
+      foreach modarg [eval parseModuleVersionSpecifier 0 $modarglist] {
+         # skip record if an higher hiding level is already set
+         if {![info exists ::g_moduleHide($modarg)] || $hidinglvl >\
+            $::g_moduleHide($modarg)} {
+            reportDebug "Record hidden module specification '$modarg'\
+               (hidinglvl=$hidinglvl)"
+            set ::g_moduleHide($modarg) $hidinglvl
+         }
       }
    }
 }
