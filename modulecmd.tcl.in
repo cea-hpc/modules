@@ -2335,6 +2335,9 @@ proc module-hide {args} {
          unset nextargisval
       } else {
          switch -- $arg {
+            --allow-group {
+               set nextargisval grouplist
+            }
             --allow-user {
                set nextargisval userlist
             }
@@ -2359,9 +2362,11 @@ proc module-hide {args} {
 
    set alloweduser [expr {[info exists userlist] && [isInList $userlist\
       [getState username]]}]
+   set allowedgroup [expr {[info exists grouplist] && [isIntBetweenList\
+      $grouplist [getState usergroups]]}]
 
    # skip hide spec record if it does not apply for current user
-   if {!$alloweduser} {
+   if {!$alloweduser && !$allowedgroup} {
       # record each hide spec after parsing them
       foreach modarg [eval parseModuleVersionSpecifier 0 $modarglist] {
          # skip record if an higher hiding level is already set
@@ -7402,6 +7407,16 @@ proc replaceFromList {list1 item {item2 {}}} {
     }
 
     return $list1
+}
+
+# test if 2 lists have at least one element in common
+proc isIntBetweenList {list1 list2} {
+   foreach elt $list1 {
+      if {[isInList $list2 $elt]} {
+         return 1
+      }
+   }
+   return 0
 }
 
 # returns elements from list1 not part of list2 and elements from list2 not
