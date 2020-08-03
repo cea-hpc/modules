@@ -29,7 +29,9 @@ shell script for their enablement in shell session: it can convert these
 scripts into modulefiles.
 
 Say for instance, a *foo* software has been installed and it provides a
-``foo-setup.sh`` script to activate *foo* software in user environment::
+``foo-setup.sh`` script to activate *foo* software in user environment:
+
+.. code-block:: console
 
     $ cat /path/to/foo-1.2/foo-setup.sh
     #!/bin/sh
@@ -38,7 +40,9 @@ Say for instance, a *foo* software has been installed and it provides a
     alias foo='foobin -q -l'
 
 Calling ``module sh-to-mod`` on this shell script outputs the environment
-changes it performs as a modulefile content::
+changes it performs as a modulefile content:
+
+.. code-block:: console
 
     $ module sh-to-mod sh /path/to/foo-1.2/foo-setup.sh arg1
     #%Module
@@ -71,13 +75,17 @@ using :mfcmd:`source-sh` command to call the shell script.
 
 Keeping the same example used to describe :subcmd:`sh-to-mod` sub-command:
 *foo* software provides a ``foo-setup.sh`` script for its activation. Create a
-modulefile ``foo/1.2`` that calls this script::
+modulefile ``foo/1.2`` that calls this script:
+
+.. code-block:: console
 
     $ cat /path/to/modulefiles/foo/1.2
     #%Module4.6
     source-sh sh /path/to/foo-1.2/foo-setup.sh arg1
 
-Displaying this modulefile indicates the environment changes done by script::
+Displaying this modulefile indicates the environment changes done by script:
+
+.. code-block:: console
 
     $ module display foo/1.2
     -------------------------------------------------------------------
@@ -88,7 +96,9 @@ Displaying this modulefile indicates the environment changes done by script::
     setenv          FOOENV arg1
     -------------------------------------------------------------------
 
-Loading the modulefile applies the environment changes seen above::
+Loading the modulefile applies the environment changes seen above:
+
+.. code-block:: console
 
     $ module load -v foo/1.2
     Loading foo/1.2
@@ -98,7 +108,9 @@ Loading the modulefile applies the environment changes seen above::
     alias foo='foobin -q -l'
 
 Track of these changes is kept in user environment to be able to undo them
-when modulefile is unloaded::
+when modulefile is unloaded:
+
+.. code-block:: console
 
     $ module unload -v foo/1.2
     Unloading foo/1.2
@@ -121,7 +133,9 @@ this user is member of.
 
 These two new modulefile commands can help to adapt code to specific users or
 groups. Like for instance to instantiate a modulefile for each group the user
-is member of::
+is member of:
+
+.. code-block:: console
 
     $ cat /path/to/modulefiles/foo/.modulerc
     #%Module4.6
@@ -142,7 +156,9 @@ Hiding modules
 
 The newly introduced :mfcmd:`module-hide` modulefile command enables to
 dynamically hide modulefiles, module aliases or symbolic versions specified to
-it::
+it:
+
+.. code-block:: console
 
     $ cat /path/to/modulefiles/bar/.modulerc
     #%Module4.6
@@ -161,7 +177,9 @@ leverage the `Advanced module version specifiers`_ syntax as shown in the
 above example.
 
 Hidden modules are excluded from available module search or module selection
-unless query refers to hidden module by its exact name::
+unless query refers to hidden module by its exact name:
+
+.. code-block:: console
 
     $ ml av
     --------------- /path/to/modulefiles ---------------
@@ -175,7 +193,9 @@ unless query refers to hidden module by its exact name::
     bar/1.0(old)
 
 :mfcmd:`module-hide` command accepts a ``--soft`` option to apply a lighter of
-hiding to modules::
+hiding to modules:
+
+.. code-block:: console
 
     $ cat /path/to/modulefiles/qux/.modulerc
     #%Module4.6
@@ -184,7 +204,9 @@ hiding to modules::
 
 The soft hiding mode enables to hide modules from full availability listing
 yet keeping the ability to select such module for load without having to use
-module exact name::
+module exact name:
+
+.. code-block:: console
 
     $ ml av
     --------------- /path/to/modulefiles ---------------
@@ -197,7 +219,9 @@ module exact name::
 
 Hidden modules can be included in available module searches if option
 :option:`--all`/:option:`-a` is set on :subcmd:`avail`, :subcmd:`aliases`,
-:subcmd:`whatis` or :subcmd:`search` sub-commands::
+:subcmd:`whatis` or :subcmd:`search` sub-commands:
+
+.. code-block:: console
 
     $ ml av -a
     --------------- /path/to/modulefiles ---------------
