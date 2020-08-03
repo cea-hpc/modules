@@ -116,8 +116,10 @@ Modules 4.6.0 (not yet released)
   :subcmd:`aliases`, :subcmd:`whatis` and :subcmd:`search` sub-commands, to
   include in the search process all hidden modulefiles, module aliases or
   symbolic versions.
-* Add ``--allow-user`` option to :mfcmd:`module-hide` modulefile command to
-  ignore hiding definition if current user is part of specified username list.
+* Add ``--allow-user`` and ``--allow-group`` options to :mfcmd:`module-hide`
+  modulefile command to ignore hiding definition if current user is
+  respectively part of specified username list or member of one of specified
+  group list.
 
 .. _GNU configuration recommendations: https://www.gnu.org/prep/standards/html_node/Configuration.html
 
