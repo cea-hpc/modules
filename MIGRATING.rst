@@ -137,6 +137,73 @@ is member of::
 ``username`` and ``usergroups`` sub-commands of :mfcmd:`module-info`
 modulefile command are only supported on Unix platform.
 
+Hiding modules
+^^^^^^^^^^^^^^
+
+The newly introduced :mfcmd:`module-hide` modulefile command enables to
+dynamically hide modulefiles, module aliases or symbolic versions specified to
+it::
+
+    $ cat /path/to/modulefiles/bar/.modulerc
+    #%Module4.6
+    module-version bar/1.0 old
+    # hide 'old' symbolic version
+    module-hide bar/old
+    # hide all version 2 and above
+    module-hide bar@2:
+    $ cat /path/to/modulefiles/.modulerc
+    #%Module4.6
+    # hide all versions of foo module
+    module-hide foo
+
+:mfcmd:`module-hide` commands should be placed in module rc files and can
+leverage the `Advanced module version specifiers`_ syntax as shown in the
+above example.
+
+Hidden modules are excluded from available module search or module selection
+unless query refers to hidden module by its exact name::
+
+    $ ml av
+    --------------- /path/to/modulefiles ---------------
+    bar/1.0  bar/2.0
+    $ module load -v foo
+    ERROR: Unable to locate a modulefile for 'foo'
+    $ module load -v foo/1.0
+    Loading foo/1.0
+    $ module avail bar/old
+    --------------- /path/to/modulefiles ---------------
+    bar/1.0(old)
+
+:mfcmd:`module-hide` command accepts a ``--soft`` option to apply a lighter of
+hiding to modules::
+
+    $ cat /path/to/modulefiles/qux/.modulerc
+    #%Module4.6
+    # softly hide all qux modules
+    module-hide --soft qux
+
+The soft hiding mode enables to hide modules from full availability listing
+yet keeping the ability to select such module for load without having to use
+module exact name::
+
+    $ ml av
+    --------------- /path/to/modulefiles ---------------
+    bar/1.0  bar/2.0
+    $ ml av qux
+    --------------- /path/to/modulefiles ---------------
+    qux/1.0  qux/2.0
+    $ module load -v qux
+    Loading qux/2.0
+
+Hidden modules can be included in available module searches if option
+:option:`--all`/:option:`-a` is set on :subcmd:`avail`, :subcmd:`aliases`,
+:subcmd:`whatis` or :subcmd:`search` sub-commands::
+
+    $ ml av -a
+    --------------- /path/to/modulefiles ---------------
+    bar/1.0(old)  foo/1.0  qux/1.0
+    bar/2.0       foo/2.0  qux/2.0
+
 Further reading
 ---------------
 
