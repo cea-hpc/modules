@@ -202,6 +202,26 @@ hiding to modules:
     # softly hide all qux modules
     module-hide --soft qux
 
+Some users or groups can be set unaffected by hiding mechanism with
+``--allow-user`` or ``--allow-group`` options:
+
+.. code-block:: console
+
+    $ cat /path/to/modulefiles/quuz/.modulerc
+    #%Module4.6
+    # hiding does not apply to grp1 and grp2 groups
+    module-hide --allow-group {grp1 grp2} quuz
+
+.. code-block:: console
+
+    $ id --groups --name
+    grp1 grp7
+    $ ml av quuz
+    --------------- /path/to/modulefiles ---------------
+    quuz/1.0  quuz/2.0
+    $ ml -v quuz
+    Loading quuz/2.0
+
 The soft hiding mode enables to hide modules from full availability listing
 yet keeping the ability to select such module for load without having to use
 module exact name:
@@ -225,8 +245,8 @@ Hidden modules can be included in available module searches if option
 
     $ ml av -a
     --------------- /path/to/modulefiles ---------------
-    bar/1.0(old)  foo/1.0  qux/1.0
-    bar/2.0       foo/2.0  qux/2.0
+    bar/1.0(old)  foo/1.0  quuz/1.0  qux/1.0
+    bar/2.0       foo/2.0  quuz/2.0  qux/2.0
 
 Further reading
 ---------------
