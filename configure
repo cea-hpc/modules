@@ -409,6 +409,11 @@ for arg in "$@"; do
       declare $nextargisval=$arg
       unset nextargisval
       continue
+   # set compat argument value defined with "--arg val" form
+   elif [ -n "${nextargiscompatarg+x}" ]; then
+      compatarglist+="$arg "
+      unset nextargiscompatarg
+      continue
    fi
 
    case "$arg" in
@@ -592,10 +597,16 @@ for arg in "$@"; do
       echo_usage
       exit 0
       ;;
+   --build|--host|--target)
+      # pass argument supported by compat version to its ./configure script
+      compatarglist+="$arg " ;
+      # and set next arg should also be send to compat version script
+      nextargiscompatarg=y ;;
    --with-tcl-lib=*|--without-tcl-lib|--with-tcl-ver=*|--without-tcl-ver|\
    --with-tclx=*|--without-tclx|--with-tclx-ver=*|--without-tclx-ver|\
    --with-tclx-lib=*|--without-tclx-lib|--with-tclx-inc=*|--without-tclx-inc|\
-   --with-x|--without-x)
+   --with-x|--without-x|--build=*|--host=*|--target=*|\
+   --enable-dependency-tracking*|--disable-dependency-tracking)
       # pass argument supported by compat version to its ./configure script
       compatarglist+="$arg " ;;
    *)
