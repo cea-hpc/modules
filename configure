@@ -414,6 +414,10 @@ for arg in "$@"; do
       compatarglist+="$arg "
       unset nextargiscompatarg
       continue
+   # current arg should be skipped
+   elif [ -n "${nextargisign+x}" ]; then
+      unset nextargisign
+      continue
    fi
 
    case "$arg" in
@@ -609,6 +613,20 @@ for arg in "$@"; do
    --enable-dependency-tracking*|--disable-dependency-tracking)
       # pass argument supported by compat version to its ./configure script
       compatarglist+="$arg " ;;
+   --program-prefix|--program-suffix|--program-transform-name|--exec-prefix|\
+   --sbindir|--sysconfdir|--datadir|--includedir|--localstatedir|\
+   --sharedstatedir|--infodir|--runstatedir|--oldincludedir|--localedir|\
+   --htmldir|--dvidir|--pdfdir|--psdir)
+      # ignore standard configure option and value which has no meaning here
+      echo_warning "Option \`$arg' ignored" ;
+      nextargisign=y ;;
+   --program-prefix=*|--program-suffix=*|--program-transform-name=*|\
+   --exec-prefix=*|--sbindir=*|--sysconfdir=*|--datadir=*|--includedir=*|\
+   --localstatedir=*|--sharedstatedir=*|--infodir=*|--runstatedir=*|\
+   --oldincludedir=*|--localedir=*|--htmldir=*|--dvidir=*|--pdfdir=*|\
+   --psdir=*)
+      # ignore standard configure option which has no meaning here
+      echo_warning "Option \`$arg' ignored" ;;
    *)
       echo_error "Unrecognized option \`$arg'" 1;;
    esac
