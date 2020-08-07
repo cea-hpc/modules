@@ -409,10 +409,11 @@ for arg in "$@"; do
       declare $nextargisval=$arg
       unset nextargisval
       continue
-   # set compat argument value defined with "--arg val" form
-   elif [ -n "${nextargiscompatarg+x}" ]; then
+   # set compat and lib argument value defined with "--arg val" form
+   elif [ -n "${nextargiscompatlibarg+x}" ]; then
       compatarglist+="$arg "
-      unset nextargiscompatarg
+      libarglist+="$arg " ;
+      unset nextargiscompatlibarg
       continue
    # current arg should be skipped
    elif [ -n "${nextargisign+x}" ]; then
@@ -602,15 +603,22 @@ for arg in "$@"; do
       exit 0
       ;;
    --build|--host|--target)
-      # pass argument supported by compat version to its ./configure script
+      # pass argument supported by compat version anb lib to their ./configure
+      # script
       compatarglist+="$arg " ;
-      # and set next arg should also be send to compat version script
-      nextargiscompatarg=y ;;
+      libarglist+="$arg " ;
+      # and set next arg should also be send to compat version and lib scripts
+      nextargiscompatlibarg=y ;;
+   --build=*|--host=*|--target=*)
+      # pass argument supported by compat version anb lib to their ./configure
+      # script
+      compatarglist+="$arg " ;
+      libarglist+="$arg " ;;
    --with-tcl-lib=*|--without-tcl-lib|--with-tcl-ver=*|--without-tcl-ver|\
    --with-tclx=*|--without-tclx|--with-tclx-ver=*|--without-tclx-ver|\
    --with-tclx-lib=*|--without-tclx-lib|--with-tclx-inc=*|--without-tclx-inc|\
-   --with-x|--without-x|--build=*|--host=*|--target=*|\
-   --enable-dependency-tracking*|--disable-dependency-tracking)
+   --with-x|--without-x|--enable-dependency-tracking*|\
+   --disable-dependency-tracking)
       # pass argument supported by compat version to its ./configure script
       compatarglist+="$arg " ;;
    --program-prefix|--program-suffix|--program-transform-name|--exec-prefix|\
