@@ -120,11 +120,20 @@ This package provides Environment Modules compatibility version (3.2).
             --with-initconf-in=etcdir \
             --with-modulepath=%{_datadir}/Modules/modulefiles:%{_sysconfdir}/modulefiles:%{_datadir}/modulefiles \
             --with-quarantine-vars='LD_LIBRARY_PATH LD_PRELOAD'
-make %{?_smp_mflags}
+
+%if 0%{?fedora} >= 22 || 0%{?rhel} >= 7
+    %make_build
+%else
+    make %{?_smp_mflags}
+%endif
 
 
 %install
-make install DESTDIR=%{buildroot}
+%if 0%{?fedora} >= 22 || 0%{?rhel} >= 7
+    %make_install
+%else
+    make install DESTDIR=%{buildroot}
+%endif
 
 mkdir -p %{buildroot}%{_sysconfdir}/modulefiles
 mkdir -p %{buildroot}%{_datadir}/modulefiles
