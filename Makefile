@@ -591,10 +591,19 @@ dist-win: modulecmd.tcl ChangeLog README pkgdoc
 	zip -r $(DIST_WIN_PREFIX).zip $(DIST_WIN_PREFIX)
 	rm -rf $(DIST_WIN_PREFIX)
 
+# srpm and rpm can only be built with compat sources included
 srpm: dist-bzip2
+ifeq ($(compatversion),n)
+	$(error Compatibility version sources are missing, please run './configure\
+		--enable-compat-version')
+endif
 	rpmbuild -ts $(DIST_PREFIX).tar.bz2
 
 rpm: dist-bzip2
+ifeq ($(compatversion),n)
+	$(error Compatibility version sources are missing, please run './configure\
+		--enable-compat-version')
+endif
 	rpmbuild -tb $(DIST_PREFIX).tar.bz2
 
 clean:
