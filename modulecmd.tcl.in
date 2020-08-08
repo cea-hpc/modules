@@ -89,7 +89,7 @@ array set g_config_defs [list\
    run_quarantine {MODULES_RUN_QUARANTINE <undef> 0}\
    silent_shell_debug {MODULES_SILENT_SHELL_DEBUG <undef> 0 {0 1}}\
    siteconfig {{} @etcdir@/siteconfig.tcl 0}\
-   tcl_ext_lib {{} @libdir@/libtclenvmodules@SHLIB_SUFFIX@ 0}\
+   tcl_ext_lib {{} {} 0 {} {} initConfTclExtLib}\
    term_background {MODULES_TERM_BACKGROUND @termbg@ 0 {dark light}}\
    unload_match_order {MODULES_UNLOAD_MATCH_ORDER @unloadmatchorder@ 0\
       {returnlast returnfirst}}\
@@ -468,6 +468,33 @@ proc initConfColor {envvar value validvallist intvallist} {
    getConf colors
 
    return $value
+}
+
+# Initialize tcl_ext_lib configuration value
+proc initConfTclExtLib {envvar value validvallist intvallist} {
+   set libfile libtclenvmodules@SHLIB_SUFFIX@
+
+   # determine lib directory
+   @notmultilibsupport@set libdir @libdir@
+   @multilibsupport@switch -- [getState machine] {
+   @multilibsupport@   x86_64 - aarch64 - ppc64le - s390x {
+   @multilibsupport@      set libdirmain @libdir64@
+   @multilibsupport@      set libdiralt @libdir32@
+   @multilibsupport@   }
+   @multilibsupport@   default {
+   @multilibsupport@      set libdirmain @libdir32@
+   @multilibsupport@      set libdiralt @libdir64@
+   @multilibsupport@   }
+   @multilibsupport@}
+   @multilibsupport@# use alternative arch lib if available and not main one
+   @multilibsupport@if {![file exists [file join $libdirmain $libfile]] && [file exists [file\
+   @multilibsupport@   join $libdiralt $libfile]]} {
+   @multilibsupport@   set libdir $libdiralt
+   @multilibsupport@} else {
+   @multilibsupport@   set libdir $libdirmain
+   @multilibsupport@}
+
+   return [file join $libdir $libfile]
 }
 
 # Is currently set verbosity level is equal or higher than level passed as arg

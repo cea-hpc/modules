@@ -31,11 +31,12 @@ VERSION baseprefix prefix bindir libdir libexecdir etcdir initdir \
 datarootdir mandir docdir vimdatadir modulefilesdir setmanpath appendmanpath \
 setbinpath appendbinpath setdotmodulespath docinstall vimaddons \
 examplemodulefiles builddoc gitworktree usemanpath compatversion EXEEXT \
-libtclenvmodules SHLIB_SUFFIX versioning silentshdbgsupport setshellstartup \
-quarantinesupport autohandling availindepth implicitdefault extendeddefault \
-moduleshome initconfin pager pageropts verbosity color darkbgcolors \
-lightbgcolors termbg lockedconfigs icase unloadmatchorder searchmatch \
-modulepath loadedmodules quarantinevars wa277 advversspec ml windowssupport"
+libtclenvmodules SHLIB_SUFFIX multilibsupport libdir64 libdir32 versioning \
+silentshdbgsupport setshellstartup quarantinesupport autohandling \
+availindepth implicitdefault extendeddefault moduleshome initconfin pager \
+pageropts verbosity color darkbgcolors lightbgcolors termbg lockedconfigs \
+icase unloadmatchorder searchmatch modulepath loadedmodules quarantinevars \
+wa277 advversspec ml windowssupport"
 compatarglist=
 libarglist=
 
@@ -61,6 +62,9 @@ compatversion=n
 EXEEXT=
 libtclenvmodules=y
 SHLIB_SUFFIX='.so'
+multilibsupport=n
+libdir64=undefined
+libdir32=undefined
 versioning=n
 silentshdbgsupport=y
 setshellstartup=y
@@ -193,6 +197,10 @@ Optional Features:
   --enable-libtclenvmodules
                           build and install the Modules Tcl extension library
                           and enable its load in modulecmd.tcl [yes]
+  --enable-multilib-support
+                          support multilib systems by looking at an alternative
+                          location where to find the Modules Tcl extension
+                          library depending on current machine architecture.
   --enable-versioning     append modules version to installation prefix and
                           deploy a \`versions' modulepath, shared between all
                           versioning enabled Modules installation, containing
@@ -491,6 +499,8 @@ for arg in "$@"; do
       defcompatversion=0 ;;
    --enable-libtclenvmodules*|--disable-libtclenvmodules)
       libtclenvmodules=$(get_feature_value "$arg") ;;
+   --enable-multilib-support*|--disable-multilib-support)
+      multilibsupport=$(get_feature_value "$arg") ;;
    --enable-versioning*|--disable-versioning)
       versioning=$(get_feature_value "$arg") ;;
    --enable-silent-shell-debug-support*|--disable-silent-shell-debug-support)
@@ -843,6 +853,18 @@ fi
 # default modulepath based on MODULE_VERSION if versioning enabled
 [ -z "$modulepath" -a "$versioning" = 'y' ] && modulepath=${modulefilesdir/#$prefix/$baseprefix\/\$MODULE_VERSION}
 [ -z "$modulepath" ] && modulepath=$modulefilesdir
+
+# define libdir64 and libdir32 based on libdir if multilib support enabled
+if [ "$multilibsupport" = 'y' ]; then
+   case "$libdir" in
+      *64)
+         libdir64=$libdir ;
+         libdir32=${libdir%64} ;;
+      *)
+         libdir64=${libdir}64 ;
+         libdir32=$libdir ;;
+   esac
+fi
 
 # check feature requirements are met
 if [ "$setdotmodulespath" = 'y' -a -n "$loadedmodules" ]; then

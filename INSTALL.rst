@@ -259,6 +259,11 @@ instance ``--disable-set-manpath``):
                       Build and install the Modules Tcl extension library
                       which provides optimized Tcl commands for the
                       modulecmd.tcl script.
+--enable-multilib-support
+                      Support multilib systems by looking in modulecmd.tcl at
+                      an alternative location where to find the Modules Tcl
+                      extension library depending on current machine
+                      architecture.
 --enable-versioning   Append Modules version to installation prefix and deploy
                       a ``versions`` modulepath shared between all versioning
                       enabled Modules installation. A modulefile corresponding

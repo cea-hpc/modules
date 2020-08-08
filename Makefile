@@ -185,6 +185,16 @@ else
   setlibtclenvmodules := \#
 endif
 
+ifeq ($(multilibsupport),y)
+  setmultilibsupport :=
+  setnotmultilibsupport := \#
+  sedexprlibdir := -e 's|@libdir64@|$(libdir64)|g' -e 's|@libdir32@|$(libdir32)|g'
+else
+  setmultilibsupport := \#
+  setnotmultilibsupport :=
+  sedexprlibdir := -e 's|@libdir@|$(libdir)|g'
+endif
+
 ifneq ($(pageropts),)
   pagercmd := $(pager) $(pageropts)
 else
@@ -248,7 +258,7 @@ endif
 define translate-in-script
 sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@baseprefix@|$(baseprefix)|g' \
-	-e 's|@libdir@|$(libdir)|g' \
+	$(sedexprlibdir) \
 	-e 's|@libexecdir@|$(libexecdir)|g' \
 	-e 's|@initdir@|$(initdir)|g' \
 	-e 's|@etcdir@|$(etcdir)|g' \
@@ -281,6 +291,8 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@notquarantinesupport@|$(setnotquarantinesupport)|g' \
 	-e 's|@libtclenvmodules@|$(setlibtclenvmodules)|g' \
 	-e 's|@SHLIB_SUFFIX@|$(SHLIB_SUFFIX)|g' \
+	-e 's|@multilibsupport@|$(setmultilibsupport)|g' \
+	-e 's|@notmultilibsupport@|$(setnotmultilibsupport)|g' \
 	-e 's|@VERSIONING@|$(setversioning)|g' \
 	-e 's|@NOTVERSIONING@|$(setnotversioning)|g' \
 	-e 's|@MODULES_RELEASE@|$(MODULES_RELEASE)|g' \
@@ -643,7 +655,11 @@ endif
 # make specific modulecmd script for test to check built extension lib
 # if coverage asked, instrument script and clear previous coverage log
 $(MODULECMDTEST): modulecmd.tcl
+ifeq ($(multilibsupport),y)
+	sed -e 's|$(libdir64)|lib|' -e 's|$(libdir32)|lib|' $< > $@
+else
 	sed -e 's|$(libdir)|lib|' $< > $@
+endif
 ifeq ($(COVERAGE),y)
 	rm -f $(MODULECMDTEST)_log
 	$(NAGELFAR) -instrument $@
