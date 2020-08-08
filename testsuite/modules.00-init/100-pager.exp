@@ -49,6 +49,9 @@ proc pager_test_case {modarg use asked cmd opts} {
 
     lappend ans "DEBUG setState: cmdline set to '$MODULECMD sh -V -D${modarg}'"
     if {$::install_libtclenvmodules ne {n}} {
+        if {$::install_multilibsupport eq {y}} {
+            lappend ans "DEBUG setState: machine set to '$::tcl_platform(machine)'"
+        }
         lappend ans "DEBUG setConf: tcl_ext_lib set to '$::tclextlib_file'(\\nDEBUG Load Tcl extension library \\(.+\\))?(\\nDEBUG setState: tcl_ext_lib_loaded set to '1')?"
     }
     lappend ans "DEBUG setConf: siteconfig set to '$siteconfig_filere'(\\nDEBUG sourceSiteConfig: Source site configuration \\($siteconfig_filere\\))?(\\nDEBUG setState: siteconfig_loaded set to '1')?"
@@ -279,6 +282,9 @@ set modulefile "$modpath/$module"
 lappend ans [list setpath LOADEDMODULES $module]
 lappend ans [list setpath _LMFILES_ $modulefile]
 lappend anserr "DEBUG setState: cmdline set to '$MODULECMD sh load $module -D'"
+if {$::install_multilibsupport eq {y}} {
+    lappend ans "DEBUG setState: machine set to '$::tcl_platform(machine)'"
+}
 lappend anserr "DEBUG setConf: tcl_ext_lib set to '$tclextlib_file'(\\nDEBUG Load Tcl extension library \\(.+\\))?(\\nDEBUG setState: tcl_ext_lib_loaded set to '1')?"
 lappend anserr "DEBUG setConf: siteconfig set to '$siteconfig_filere'"
 lappend anserr "DEBUG sourceSiteConfig: Source site configuration \\($siteconfig_filere\\)"

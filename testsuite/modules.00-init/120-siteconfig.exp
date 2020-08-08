@@ -35,6 +35,9 @@ proc test_getSiteConfig {siteconfig isvalid islocked} {
     }
     lappend ans "DEBUG setState: cmdline set to '$::MODULECMD sh --no-pager -D -V'"
     if {$::install_libtclenvmodules ne {n}} {
+        if {$::install_multilibsupport eq {y}} {
+            lappend ans "DEBUG setState: machine set to '$::tcl_platform(machine)'"
+        }
         lappend ans "DEBUG setConf: tcl_ext_lib set to '$::tclextlib_file'(\\nDEBUG Load Tcl extension library \\(.+\\))?(\\nDEBUG setState: tcl_ext_lib_loaded set to '1')?"
     }
     lappend ans "DEBUG setConf: siteconfig set to '$::siteconfig_filere'"
@@ -76,6 +79,9 @@ setenv_var TESTSUITE_ENABLE_SITECONFIG_DEBUG 1
 
 set ans [list]
 lappend ans "DEBUG setState: cmdline set to '$MODULECMD sh -V'"
+if {$::install_multilibsupport eq {y}} {
+    lappend ans "DEBUG setState: machine set to '$::tcl_platform(machine)'"
+}
 lappend ans "DEBUG setConf: tcl_ext_lib set to '$tclextlib_file'(\\nDEBUG Load Tcl extension library \\(.+\\))?(\\nDEBUG setState: tcl_ext_lib_loaded set to '1')?"
 lappend ans "DEBUG setConf: siteconfig set to '$siteconfig_filere'"
 lappend ans "DEBUG sourceSiteConfig: Source site configuration \\($siteconfig_filere\\)"
