@@ -27,8 +27,19 @@
 #include <pwd.h>
 #include <grp.h>
 #include <string.h>
+#include <stdlib.h>
 #include "config.h"
 #include "envmodules.h"
+
+
+/*	Utility function to compare 2 integers for qsort function. */
+int
+__Envmodules_IntCmp(
+   const void* i,
+   const void* j)
+{
+   return (i > j) - (i < j);
+}
 
 /*----------------------------------------------------------------------
  *
@@ -341,7 +352,7 @@ Envmodules_InitStateUsergroupsObjCmd(
    int ngroups = 0;
    int egid_in_groups = 0;
    GETGROUPS_T egid;
-   int i;
+   int i, j;
    struct group *grp;
    char gidstr[16];
    Tcl_Obj *lres;
@@ -375,6 +386,19 @@ Envmodules_InitStateUsergroupsObjCmd(
       return TCL_ERROR;
    }
 #endif
+
+   /* Sort then remove duplicates from getgroups result */
+   if (ngroups > 1) {
+      qsort(groups, ngroups, sizeof(GETGROUPS_T), __Envmodules_IntCmp);
+      j = 0;
+      for (i = 1; i < ngroups; i++) {
+         if (groups[i] != groups[j]) {
+            j++;
+            groups[j] = groups[i];
+         }
+      }
+      ngroups = j + 1;
+   }
 
    /* Add primary group if not part of getgroups result (or if getgroups
     * function is not available) */
