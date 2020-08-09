@@ -485,6 +485,21 @@ if {[info exists 0getgroupslib_file]} {
     send_user "\tSkip tcl ext lib erroneous procedure calls as ext lib is not available\n"
 }
 
+# test tcl ext lib procedures against a duplicate entries in result getgroups call
+if {[info exists dupgetgroupslib_file]} {
+    setenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBDUPGETGROUPS 1
+    setenv_var LD_PRELOAD $dupgetgroupslib_file
+    set ans [list]
+    lappend ans [exec id -g -n]
+    lappend ans $vers_reportre
+    testouterr_cmd_re sh -V OK [join $ans \n]
+
+    unsetenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBDUPGETGROUPS
+    unsetenv_var LD_PRELOAD
+} elseif {$verbose > 0} {
+    send_user "\tSkip tcl ext lib erroneous procedure calls as ext lib is not available\n"
+}
+
 # test tcl ext lib procedures against a failed getgrgid call
 if {[info exists getgrgidlib_file]} {
     setenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBFAILEDGETGRGID 1

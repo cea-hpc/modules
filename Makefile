@@ -57,6 +57,7 @@ TEST_PREREQ += lib/libtestutil-closedir$(SHLIB_SUFFIX) \
 	lib/libtestutil-getpwuid$(SHLIB_SUFFIX) \
 	lib/libtestutil-getgroups$(SHLIB_SUFFIX) \
 	lib/libtestutil-0getgroups$(SHLIB_SUFFIX) \
+	lib/libtestutil-dupgetgroups$(SHLIB_SUFFIX) \
 	lib/libtestutil-getgrgid$(SHLIB_SUFFIX)
 endif
 endif
@@ -366,6 +367,9 @@ lib/libtestutil-getgroups$(SHLIB_SUFFIX):
 	$(MAKE) -C lib $(@F)
 
 lib/libtestutil-0getgroups$(SHLIB_SUFFIX):
+	$(MAKE) -C lib $(@F)
+
+lib/libtestutil-dupgetgroups$(SHLIB_SUFFIX):
 	$(MAKE) -C lib $(@F)
 
 lib/libtestutil-getgrgid$(SHLIB_SUFFIX):
