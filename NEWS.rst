@@ -57,6 +57,26 @@ Modules 4.6.0 (not yet released)
   possible from code source and documentation.
 * Doc: use a versioned magic cookie in examples that demonstrate new
   modulefile features. (fix issue #349)
+* Install: take into account the ``--build``, ``--host``, ``--target``,
+  ``--enable-dependency-tracking`` and ``--disable-dependency-tracking``
+  configure options to transmit them to the :file:`configure` scripts of
+  Modules Tcl extension library and Modules compatibility version. (fix issue
+  #354)
+* Install: ignore some regular options of an Autoconf :file:`configure` script
+  that are useless for this project but usually implied in build macros (like
+  RPM ``%configure`` macro).
+* Install: ignore unsupported ``--enable-*`` and ``--with-*`` options on
+  :file:`configure` script rather raise an error and add support to define
+  environment variable and build system type as :file:`configure` script
+  arguments to comply with `GNU configuration recommendations`_.
+* Install: fix :file:`modulecmd` pre-alternatives check in RPM spec file.
+* Install: use ``%make_build`` and ``%make_install`` macros in RPM spec file.
+* Introduce the ``--enable-multilib-support`` configure option to add
+  mechanism in :file:`modulecmd.tcl` to look at an alternative location to
+  find the Modules Tcl extension library in case this library cannot be found
+  at its main location.
+
+.. _GNU configuration recommendations: https://www.gnu.org/prep/standards/html_node/Configuration.html
 
 
 Modules 4.5.2 (2020-07-30)
