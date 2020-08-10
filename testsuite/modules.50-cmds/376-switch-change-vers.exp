@@ -1,0 +1,318 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2020/08/10
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        load
+#   Modulefiles:
+#   Sub-Command:    module switch
+#
+#   Comment:	%C{
+#           Test automatic resolution of modulefile dependencies defined
+#           through 'module switch' command in modulefiles where swaped-off
+#           module spec matches swaped-on module
+#		}C%
+#
+##############################################################################
+
+# CAUTION: it is not recommended to use the `switch` sub-command in
+# modulefiles as this command is intended for the command-line for a 2in1
+# operation. Could be removed from the modulefile scope in a future
+# release. Use `module unload` and `module load` commands in modulefiles
+# instead.
+
+# skip tests if implicit_default option could not be overridden
+if {[is_config_locked implicit_default]} {
+    send_user "\tskipping tests as implicit_default could not be overridden\n"
+} else {
+
+set mp $modpath.deps
+set mpre $modpathre.deps
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+# ensure load tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+# ensure advanced version specifiers are enabled for these tests
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+
+# module switch swaa swaa/3.8
+setenv_var TESTSUITE_SWAA_SWITCH_SET1 1
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swaa/3.8:swab]
+lappend ans [list setpath _LMFILES_ $mp/swaa/3.8:$mp/swab]
+lappend ans [list setpath MODULES_LMPREREQ swab&swaa/3.8]
+lappend ans [list setpath MODULES_LMNOTUASKED swaa/3.8]
+lappend ans [list setpath MODULES_LMALTNAME swaa/3.8&as|swaa/default&as|swaa/latest]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab {} swaa/3.8 {}]
+
+setenv_loaded_module [list swaa/1.2] [list $mp/swaa/1.2]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab swaa/1.2 swaa/3.8 {}]
+unsetenv_var TESTSUITE_SWAA_SWITCH_SET1
+
+# ensure extended default is enabled for the remaining tests
+setenv_var MODULES_EXTENDED_DEFAULT 1
+
+# module switch swaa swaa@3
+setenv_var TESTSUITE_SWAA_SWITCH_SET2 1
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swaa/3.8:swab]
+lappend ans [list setpath _LMFILES_ $mp/swaa/3.8:$mp/swab]
+lappend ans [list setpath MODULES_LMPREREQ swab&swaa@3]
+lappend ans [list setpath MODULES_LMNOTUASKED swaa/3.8]
+lappend ans [list setpath MODULES_LMALTNAME swaa/3.8&as|swaa/default&as|swaa/latest]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab {} swaa/3.8 {}]
+
+setenv_loaded_module [list swaa/1.2] [list $mp/swaa/1.2]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab swaa/1.2 swaa/3.8 {}]
+unsetenv_var TESTSUITE_SWAA_SWITCH_SET2
+
+# module switch swaa@3 swaa@3.2:
+setenv_var TESTSUITE_SWAA_SWITCH_SET3 1
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swaa/3.8:swab]
+lappend ans [list setpath _LMFILES_ $mp/swaa/3.8:$mp/swab]
+lappend ans [list setpath MODULES_LMPREREQ swab&swaa@3.2<]
+lappend ans [list setpath MODULES_LMNOTUASKED swaa/3.8]
+lappend ans [list setpath MODULES_LMALTNAME swaa/3.8&as|swaa/default&as|swaa/latest]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab {} swaa/3.8 {}]
+
+setenv_loaded_module [list swaa/3.2] [list $mp/swaa/3.2]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab swaa/3.2 swaa/3.8 {}]
+unsetenv_var TESTSUITE_SWAA_SWITCH_SET3
+
+# module switch swaa@1 swaa@3.2:
+setenv_var TESTSUITE_SWAA_SWITCH_SET4 1
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swaa/3.8:swab]
+lappend ans [list setpath _LMFILES_ $mp/swaa/3.8:$mp/swab]
+lappend ans [list setpath MODULES_LMALTNAME swaa/3.8&as|swaa/default&as|swaa/latest]
+lappend ans [list setpath MODULES_LMPREREQ swab&swaa@3.2<]
+lappend ans [list setpath MODULES_LMCONFLICT swab&swaa@1]
+lappend ans [list setpath MODULES_LMNOTUASKED swaa/3.8]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab {} swaa/3.8 {}]
+
+setenv_loaded_module [list swaa/1.2] [list $mp/swaa/1.2]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab swaa/1.2 swaa/3.8 {}]
+unsetenv_var TESTSUITE_SWAA_SWITCH_SET4
+
+# module switch swaa/1 swaa@3.2:
+setenv_var TESTSUITE_SWAA_SWITCH_SET5 1
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swaa/3.8:swab]
+lappend ans [list setpath _LMFILES_ $mp/swaa/3.8:$mp/swab]
+lappend ans [list setpath MODULES_LMALTNAME swaa/3.8&as|swaa/default&as|swaa/latest]
+lappend ans [list setpath MODULES_LMPREREQ swab&swaa@3.2<]
+lappend ans [list setpath MODULES_LMCONFLICT swab&swaa/1]
+lappend ans [list setpath MODULES_LMNOTUASKED swaa/3.8]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab {} swaa/3.8 {}]
+
+setenv_loaded_module [list swaa/1.2] [list $mp/swaa/1.2]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab swaa/1.2 swaa/3.8 {}]
+unsetenv_var TESTSUITE_SWAA_SWITCH_SET5
+
+# module switch swaa@1 swaa@3.8
+setenv_var TESTSUITE_SWAA_SWITCH_SET6 1
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swaa/3.8:swab]
+lappend ans [list setpath _LMFILES_ $mp/swaa/3.8:$mp/swab]
+lappend ans [list setpath MODULES_LMALTNAME swaa/3.8&as|swaa/default&as|swaa/latest]
+lappend ans [list setpath MODULES_LMPREREQ swab&swaa@3.8]
+lappend ans [list setpath MODULES_LMCONFLICT swab&swaa@1]
+lappend ans [list setpath MODULES_LMNOTUASKED swaa/3.8]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab {} swaa/3.8 {}]
+
+setenv_loaded_module [list swaa/1.2] [list $mp/swaa/1.2]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab swaa/1.2 swaa/3.8 {}]
+unsetenv_var TESTSUITE_SWAA_SWITCH_SET6
+
+# module switch swaa@1 swaa/3.8
+setenv_var TESTSUITE_SWAA_SWITCH_SET7 1
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swaa/3.8:swab]
+lappend ans [list setpath _LMFILES_ $mp/swaa/3.8:$mp/swab]
+lappend ans [list setpath MODULES_LMALTNAME swaa/3.8&as|swaa/default&as|swaa/latest]
+lappend ans [list setpath MODULES_LMPREREQ swab&swaa/3.8]
+lappend ans [list setpath MODULES_LMCONFLICT swab&swaa@1]
+lappend ans [list setpath MODULES_LMNOTUASKED swaa/3.8]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab {} swaa/3.8 {}]
+
+setenv_loaded_module [list swaa/1.2] [list $mp/swaa/1.2]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab swaa/1.2 swaa/3.8 {}]
+unsetenv_var TESTSUITE_SWAA_SWITCH_SET7
+
+# module switch swaa@1: swaa@3.8
+setenv_var TESTSUITE_SWAA_SWITCH_SET8 1
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swaa/3.8:swab]
+lappend ans [list setpath _LMFILES_ $mp/swaa/3.8:$mp/swab]
+lappend ans [list setpath MODULES_LMPREREQ swab&swaa@3.8]
+lappend ans [list setpath MODULES_LMNOTUASKED swaa/3.8]
+lappend ans [list setpath MODULES_LMALTNAME swaa/3.8&as|swaa/default&as|swaa/latest]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab {} swaa/3.8 {}]
+
+setenv_loaded_module [list swaa/3.0] [list $mp/swaa/3.0]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab swaa/3.0 swaa/3.8 {}]
+unsetenv_var TESTSUITE_SWAA_SWITCH_SET8
+
+# module switch swaa@2 swaa@3
+setenv_var TESTSUITE_SWAA_SWITCH_SET9 1
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swaa/3.8:swab]
+lappend ans [list setpath _LMFILES_ $mp/swaa/3.8:$mp/swab]
+lappend ans [list setpath MODULES_LMALTNAME swaa/3.8&as|swaa/default&as|swaa/latest]
+lappend ans [list setpath MODULES_LMPREREQ swab&swaa@3]
+lappend ans [list setpath MODULES_LMCONFLICT swab&swaa@2]
+lappend ans [list setpath MODULES_LMNOTUASKED swaa/3.8]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab {} swaa/3.8 {}]
+
+setenv_loaded_module [list swaa/2/0] [list $mp/swaa/2/0]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab swaa/2/0 swaa/3.8 {}]
+unsetenv_var TESTSUITE_SWAA_SWITCH_SET9
+
+# module switch swaa/2@:6 swaa@3
+setenv_var TESTSUITE_SWAA_SWITCH_SET10 1
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swaa/3.8:swab]
+lappend ans [list setpath _LMFILES_ $mp/swaa/3.8:$mp/swab]
+lappend ans [list setpath MODULES_LMALTNAME swaa/3.8&as|swaa/default&as|swaa/latest]
+lappend ans [list setpath MODULES_LMPREREQ swab&swaa@3]
+lappend ans [list setpath MODULES_LMCONFLICT swab&swaa/2@<6]
+lappend ans [list setpath MODULES_LMNOTUASKED swaa/3.8]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab {} swaa/3.8 {}]
+
+setenv_loaded_module [list swaa/2/2] [list $mp/swaa/2/2]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab swaa/2/2 swaa/3.8 {}]
+unsetenv_var TESTSUITE_SWAA_SWITCH_SET10
+
+# module switch swaa/2@0,8 swaa/3
+setenv_var TESTSUITE_SWAA_SWITCH_SET11 1
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swaa/3.8:swab]
+lappend ans [list setpath _LMFILES_ $mp/swaa/3.8:$mp/swab]
+lappend ans [list setpath MODULES_LMALTNAME swaa/3.8&as|swaa/default&as|swaa/latest]
+lappend ans [list setpath MODULES_LMPREREQ swab&swaa/3]
+lappend ans [list setpath MODULES_LMCONFLICT swab&swaa/2@0,8]
+lappend ans [list setpath MODULES_LMNOTUASKED swaa/3.8]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab {} swaa/3.8 {}]
+
+setenv_loaded_module [list swaa/2/8] [list $mp/swaa/2/8]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab swaa/2/8 swaa/3.8 {}]
+unsetenv_var TESTSUITE_SWAA_SWITCH_SET11
+
+# module switch swaa@1 swaa@2
+setenv_var TESTSUITE_SWAA_SWITCH_SET12 1
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swaa/2/8:swab]
+lappend ans [list setpath _LMFILES_ $mp/swaa/2/8:$mp/swab]
+lappend ans [list setpath MODULES_LMALTNAME swaa/2/8&as|swaa/2/default&as|swaa/2/latest]
+lappend ans [list setpath MODULES_LMPREREQ swab&swaa@2]
+lappend ans [list setpath MODULES_LMCONFLICT swab&swaa@1]
+lappend ans [list setpath MODULES_LMNOTUASKED swaa/2/8]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab {} swaa/2/8 {}]
+
+setenv_loaded_module [list swaa/1.2] [list $mp/swaa/1.2]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab swaa/1.2 swaa/2/8 {}]
+unsetenv_var TESTSUITE_SWAA_SWITCH_SET12
+
+# module switch swaa@1 swaa/2@6:
+setenv_var TESTSUITE_SWAA_SWITCH_SET13 1
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swaa/2/8:swab]
+lappend ans [list setpath _LMFILES_ $mp/swaa/2/8:$mp/swab]
+lappend ans [list setpath MODULES_LMALTNAME swaa/2/8&as|swaa/2/default&as|swaa/2/latest]
+lappend ans [list setpath MODULES_LMPREREQ swab&swaa/2@6<]
+lappend ans [list setpath MODULES_LMCONFLICT swab&swaa@1]
+lappend ans [list setpath MODULES_LMNOTUASKED swaa/2/8]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab {} swaa/2/8 {}]
+
+setenv_loaded_module [list swaa/1.2] [list $mp/swaa/1.2]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab swaa/1.2 swaa/2/8 {}]
+unsetenv_var TESTSUITE_SWAA_SWITCH_SET13
+
+# module switch swaa/2@0,8 swaa
+setenv_var TESTSUITE_SWAA_SWITCH_SET14 1
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swaa/3.8:swab]
+lappend ans [list setpath _LMFILES_ $mp/swaa/3.8:$mp/swab]
+lappend ans [list setpath MODULES_LMALTNAME swaa/3.8&as|swaa/default&as|swaa/latest]
+lappend ans [list setpath MODULES_LMPREREQ swab&swaa]
+lappend ans [list setpath MODULES_LMCONFLICT swab&swaa/2@0,8]
+lappend ans [list setpath MODULES_LMNOTUASKED swaa/3.8]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab {} swaa/3.8 {}]
+
+setenv_loaded_module [list swaa/2/0] [list $mp/swaa/2/0]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab swaa/2/0 swaa/3.8 {}]
+unsetenv_var TESTSUITE_SWAA_SWITCH_SET14
+
+# module switch swaa/2@6: swaa@2
+setenv_var TESTSUITE_SWAA_SWITCH_SET15 1
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swaa/2/8:swab]
+lappend ans [list setpath _LMFILES_ $mp/swaa/2/8:$mp/swab]
+lappend ans [list setpath MODULES_LMPREREQ swab&swaa@2]
+lappend ans [list setpath MODULES_LMNOTUASKED swaa/2/8]
+lappend ans [list setpath MODULES_LMALTNAME swaa/2/8&as|swaa/2/default&as|swaa/2/latest]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab {} swaa/2/8 {}]
+
+setenv_loaded_module [list swaa/2/8] [list $mp/swaa/2/8]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab swaa/2/8 swaa/2/8 {}]
+unsetenv_var TESTSUITE_SWAA_SWITCH_SET15
+
+# module switch swaa/2@6: swaa/2@:6
+setenv_var TESTSUITE_SWAA_SWITCH_SET16 1
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swaa/2/2:swab]
+lappend ans [list setpath _LMFILES_ $mp/swaa/2/2:$mp/swab]
+lappend ans [list setpath MODULES_LMPREREQ swab&swaa/2@<6]
+lappend ans [list setpath MODULES_LMNOTUASKED swaa/2/2]
+lappend ans [list setpath MODULES_LMCONFLICT swab&swaa/2@6<]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab {} swaa/2/2 {}]
+
+setenv_loaded_module [list swaa/2/8] [list $mp/swaa/2/8]
+testouterr_cmd_re sh {load swab} $ans [msg_top_load swab swaa/2/8 swaa/2/2 {}]
+unsetenv_var TESTSUITE_SWAA_SWITCH_SET16
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+unsetenv_loaded_module
+setenv_path_var MODULEPATH $modpath
+unsetenv_var MODULES_IMPLICIT_DEFAULT
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+unsetenv_var MODULES_EXTENDED_DEFAULT
+
+unset mp
+unset mpre
+unset ans
+
+}
