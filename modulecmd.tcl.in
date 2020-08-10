@@ -9482,11 +9482,16 @@ proc cmdModuleSwitch {uasked old {new {}}} {
    # mentionned on this module switch command set in a modulefile
    set orig_auto_handling [getConf auto_handling]
    if {!$uasked && $argold ne {}} {
-      # temporarily disable auto handling just to record deps, not to try to
-      # load or unload them (already tried)
-      setConf auto_handling 0
-      catch {conflict $argold}
-      setConf auto_handling $orig_auto_handling
+      # skip conflict declaration if old spec matches new as in this case
+      # switch means *replace loaded version of mod by this specific version*
+      lassign [getPathToModule $new] newmodfile newmod
+      if {$newmod eq {} || ![modEq $argold $newmod eqstart]} {
+         # temporarily disable auto handling just to record deps, not to try
+         # to load or unload them (already tried)
+         setConf auto_handling 0
+         catch {conflict $argold}
+         setConf auto_handling $orig_auto_handling
+      }
    }
 
    # attempt load and depre reload only if unload succeed
