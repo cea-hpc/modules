@@ -189,7 +189,7 @@ Specification
     - ``--hide-once-loaded``: hides module from loaded module list
     - ``--soft``: lightweight module hide
     - ``--not-user``: specify a list of users unaffected by hide mechanism
-    - ``--allow-group``: specify a list of groups whose member are unaffected by hide mechanism
+    - ``--not-group``: specify a list of groups whose member are unaffected by hide mechanism
     - ``--before``: enables hide mechanism until a given date
     - ``--after``: enables hide mechanism after a given date
 
@@ -197,7 +197,7 @@ Specification
 
     - ``--visible``: disables the hidden property of the command which means module is normally included in resolution
     - ``--not-user``: specify a list of users unaffected by forbid mechanism
-    - ``--allow-group``: specify a list of groups whose member are unaffected by forbid mechanism
+    - ``--not-group``: specify a list of groups whose member are unaffected by forbid mechanism
     - ``--before``: enables forbid mechanism until a given date
     - ``--after``: enables forbid mechanism after a given date
 
@@ -223,7 +223,7 @@ Specification
 
             - Unless on very specific cases, where a global rc file defines these hidden/forbidden commands for the full path modules
 
-- ``--not-user`` and ``--allow-group`` specification is only supported on Unix platform
+- ``--not-user`` and ``--not-group`` specification is only supported on Unix platform
 
     - Error is rendered if these 2 options are used on Windows platform
 

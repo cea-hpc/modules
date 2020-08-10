@@ -203,14 +203,14 @@ hiding to modules:
     module-hide --soft qux
 
 Some users or groups can be set unaffected by hiding mechanism with
-``--not-user`` or ``--allow-group`` options:
+``--not-user`` or ``--not-group`` options:
 
 .. code-block:: console
 
     $ cat /path/to/modulefiles/quuz/.modulerc
     #%Module4.6
     # hiding does not apply to grp1 and grp2 groups
-    module-hide --allow-group {grp1 grp2} quuz
+    module-hide --not-group {grp1 grp2} quuz
 
 .. code-block:: console
 

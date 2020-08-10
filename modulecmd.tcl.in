@@ -2335,7 +2335,7 @@ proc module-hide {args} {
          unset nextargisval
       } else {
          switch -- $arg {
-            --allow-group {
+            --not-group {
                set nextargisval grouplist
             }
             --not-user {
@@ -2362,11 +2362,11 @@ proc module-hide {args} {
 
    set notuser [expr {[info exists userlist] && [isInList $userlist\
       [getState username]]}]
-   set allowedgroup [expr {[info exists grouplist] && [isIntBetweenList\
+   set notgroup [expr {[info exists grouplist] && [isIntBetweenList\
       $grouplist [getState usergroups]]}]
 
    # skip hide spec record if it does not apply for current user
-   if {!$notuser && !$allowedgroup} {
+   if {!$notuser && !$notgroup} {
       # record each hide spec after parsing them
       foreach modarg [eval parseModuleVersionSpecifier 0 $modarglist] {
          # skip record if an higher hiding level is already set
