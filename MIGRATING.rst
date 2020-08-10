@@ -203,7 +203,7 @@ hiding to modules:
     module-hide --soft qux
 
 Some users or groups can be set unaffected by hiding mechanism with
-``--allow-user`` or ``--allow-group`` options:
+``--not-user`` or ``--allow-group`` options:
 
 .. code-block:: console
 

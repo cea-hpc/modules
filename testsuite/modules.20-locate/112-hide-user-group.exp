@@ -16,7 +16,7 @@
 #   Sub-Command:
 #
 #   Comment:	%C{
-#           Disable hiding with '--allow-user' or '--allow-group' options of
+#           Disable hiding with '--not-user' or '--allow-group' options of
 #           'module-hide' command
 #		}C%
 #
@@ -53,7 +53,7 @@ lappend ans [list setpath MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
 set tserr1 $mp:\nhide1/5.0
 set tserr2 $err_path'hide1@5:'
 
-# test --allow-user option
+# test --not-user option
 setenv_var TESTSUITE_HIDE_ALLOW_USER_SET1 1
 testouterr_cmd sh {load hide1@5:} $ans {}
 testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
@@ -121,7 +121,7 @@ testouterr_cmd sh {load hide1@5:} ERR $tserr2
 testouterr_cmd sh {avail -t hide1@5:} OK {}
 unsetenv_var TESTSUITE_HIDE_ALLOW_GROUP_SET7
 
-# test cumulative use of --allow-user and --allow-group options
+# test cumulative use of --not-user and --allow-group options
 setenv_var TESTSUITE_HIDE_ALLOW_USER_GROUP_SET1 1
 testouterr_cmd sh {load hide1@5:} $ans {}
 testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
@@ -164,14 +164,14 @@ set tserr2 [msg_moderr {No module specified in argument} {module-hide --allow-gr
 if {[cmpversion $tclsh_version 8.6] == -1} {
     set custom "    invoked from within
 \"if \{\[info exists env(TESTSUITE_HIDE_ALLOW_USER_GROUP_ERR_SET2)\]\} \{
-    module-hide --allow-group hide1/5.0 --allow-user
+    module-hide --allow-group hide1/5.0 --not-user
 \}\""
     set linenum 94
 } else {
     set custom {}
     set linenum 95
 }
-set tserr3 [msg_moderr {Missing value for '--allow-user' option} {module-hide --allow-group hide1/5.0 --allow-user} $mp/hide1/.modulerc $linenum {  } {} {} $custom]
+set tserr3 [msg_moderr {Missing value for '--not-user' option} {module-hide --allow-group hide1/5.0 --not-user} $mp/hide1/.modulerc $linenum {  } {} {} $custom]
 
 if {[cmpversion $tclsh_version 8.6] == -1} {
     set custom "    invoked from within
@@ -185,7 +185,7 @@ if {[cmpversion $tclsh_version 8.6] == -1} {
 }
 set tserr4 [msg_moderr {Missing value for '--allow-group' option} {module-hide --allow-group} $mp/hide1/.modulerc $linenum {  } {} {} $custom]
 
-# test erroneous specification of --allow-user and --allow-group options
+# test erroneous specification of --not-user and --allow-group options
 setenv_var TESTSUITE_HIDE_ALLOW_USER_GROUP_ERR_SET1 1
 testouterr_cmd sh {load hide1@5:} $ans $tserr2
 testouterr_cmd sh {avail -t hide1@5:} OK $tserr1

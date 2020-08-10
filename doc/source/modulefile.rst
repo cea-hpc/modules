@@ -240,7 +240,7 @@ the *modulefile* is being loaded.
 
  * another *modulefile* alias
 
-.. mfcmd:: module-hide [--soft] [--allow-user {user...}] [--allow-group {group...}] modulefile...
+.. mfcmd:: module-hide [--soft] [--not-user {user...}] [--allow-group {group...}] modulefile...
 
  Hide *modulefile* to exclude it from available module search or module
  selection unless query refers to *modulefile* by its exact name. This command
@@ -253,12 +253,12 @@ the *modulefile* is being loaded.
  with the regular resolution mechanism (i.e., no need to use module exact name
  to select it)
 
- If ``--allow-user`` option is set, hiding is not applied if the username of
- the user currently running :file:`modulecmd.tcl` is part of the list of
- username specified. Following the same approach, if ``--allow-group`` option
- is set, hiding is not applied if current user is member of one the group
- specified. When both options are set, hiding is not applied if a match is
- found for ``--allow-user`` or ``--allow-group``.
+ If ``--not-user`` option is set, hiding is not applied if the username of the
+ user currently running :file:`modulecmd.tcl` is part of the list of username
+ specified. Following the same approach, if ``--allow-group`` option is set,
+ hiding is not applied if current user is member of one the group specified.
+ When both options are set, hiding is not applied if a match is found for
+ ``--not-user`` or ``--allow-group``.
 
  If the :option:`--all` is set on :subcmd:`avail`, :subcmd:`aliases`,
  :subcmd:`whatis` or :subcmd:`search` sub-commands, hiding is disabled thus
