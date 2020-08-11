@@ -2325,8 +2325,9 @@ proc module-virtual {args} {
    return {}
 }
 
-proc module-hide {args} {
-   set hidinglvl 1
+# parse application critera arguments and determine if command applies
+proc parseApplicationCriteriaArgs {args} {
+   set otherargs {}
 
    # parse argument list
    foreach arg $args {
@@ -2336,17 +2337,13 @@ proc module-hide {args} {
       } else {
          switch -- $arg {
             --not-group {
-               set nextargisval grouplist
+               set nextargisval notgrouplist
             }
             --not-user {
-               set nextargisval userlist
-            }
-            --soft {
-               # soften level of camouflage
-               set hidinglvl 0
+               set nextargisval notuserlist
             }
             default {
-               lappend modarglist $arg
+               lappend otherargs $arg
             }
          }
          set prevarg $arg
@@ -2356,17 +2353,45 @@ proc module-hide {args} {
    if {[info exists nextargisval]} {
       knerror "Missing value for '$prevarg' option"
    }
+
+   # does it apply to current user?
+   set notuser [expr {[info exists notuserlist] && [isInList $notuserlist\
+      [getState username]]}]
+   set notgroup [expr {[info exists notgrouplist] && [isIntBetweenList\
+      $notgrouplist [getState usergroups]]}]
+
+   # are criteria met
+   set apply [expr {!$notuser && !$notgroup}]
+
+   return [list $apply $otherargs]
+}
+
+proc module-hide {args} {
+   set hidinglvl 1
+
+   # parse application criteria arguments to determine if command apply
+   lassign [eval parseApplicationCriteriaArgs $args] apply otherargs
+
+   # parse remaining argument list, do it even if command does not apply to
+   # raise any command specification error
+   foreach arg $otherargs {
+      switch -- $arg {
+         --soft {
+            # soften level of camouflage
+            set hidinglvl 0
+         }
+         default {
+            lappend modarglist $arg
+         }
+      }
+   }
+
    if {![info exists modarglist]} {
       knerror {No module specified in argument}
    }
 
-   set notuser [expr {[info exists userlist] && [isInList $userlist\
-      [getState username]]}]
-   set notgroup [expr {[info exists grouplist] && [isIntBetweenList\
-      $grouplist [getState usergroups]]}]
-
-   # skip hide spec record if it does not apply for current user
-   if {!$notuser && !$notgroup} {
+   # skip hide spec record if application criteria are not met
+   if {$apply} {
       # record each hide spec after parsing them
       foreach modarg [eval parseModuleVersionSpecifier 0 $modarglist] {
          # skip record if an higher hiding level is already set
