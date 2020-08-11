@@ -120,6 +120,12 @@ Modules 4.6.0 (not yet released)
   modulefile command to ignore hiding definition if current user is
   respectively part of specified username list or member of one of specified
   group list.
+* When :mfcmd:`module switch<module>` command is used in modulefile, do not
+  state when processing it a conflict over switched-off module if its
+  specification on the ``module switch`` command also matches switched-on
+  module's specification. Allow this way the replacement of any loaded version
+  of a module for a specific one required by currently loading module. (fix
+  issue #355)
 
 .. _GNU configuration recommendations: https://www.gnu.org/prep/standards/html_node/Configuration.html
 
