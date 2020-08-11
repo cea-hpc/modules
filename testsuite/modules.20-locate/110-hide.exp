@@ -85,6 +85,55 @@ set tserr [msg_moderr {No module name defined in argument '@:1.2'} {module-hide 
 testouterr_cmd sh {load hide1@3.10:4.20} $ans $tserr
 unsetenv_var TESTSUITE_HIDE_ERR2
 
+setenv_var TESTSUITE_HIDE_ERR3 1
+testouterr_cmd sh {avail -t hide1@3.10:4.20} OK $mp:\nhide1/4.0
+set tserr "$modlin $mpre $modlin\n\\s*hide1/4.0: hide1/4.0"
+testouterr_cmd_re sh {whatis hide1@3.10:4.20} OK $tserr
+set errmsg {module-hide -foo hide2}
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    if {[cmpversion $tclsh_version 8.5] == -1} {
+        set errmsg "switch -glob -- \$arg \{<EXTMATCH>...\"
+      (procedure \"module-hide\" line 10)
+      invoked from within
+  \"$errmsg"
+    }
+    set custom "    invoked from within
+\"if \{\[info exists env(TESTSUITE_HIDE_ERR3)\]\} \{
+    module-hide -foo hide2
+\}\""
+    set linenum 11
+} else {
+    set custom {}
+    set linenum 12
+}
+set tserr [string map {<EXTMATCH> (.*)+} [escre [msg_moderr {Invalid option '-foo'} $errmsg $mp/hide1/.modulerc $linenum {  } {} {} $custom]]]
+testouterr_cmd_re sh {load hide1@3.10:4.20} $ans $tserr
+unsetenv_var TESTSUITE_HIDE_ERR3
+
+setenv_var TESTSUITE_HIDE_ERR4 1
+testouterr_cmd sh {avail -t hide1@3.10:4.20} OK $mp:\nhide1/4.0
+set tserr "$modlin $mpre $modlin\n\\s*hide1/4.0: hide1/4.0"
+testouterr_cmd_re sh {whatis hide1@3.10:4.20} OK $tserr
+set errmsg {module-hide --foo hide2}
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    if {[cmpversion $tclsh_version 8.5] == -1} {
+        set errmsg "switch -glob -- \$arg \{<EXTMATCH>...\"
+      (procedure \"module-hide\" line 10)
+      invoked from within
+  \"$errmsg"
+    }
+    set custom "    invoked from within
+\"if \{\[info exists env(TESTSUITE_HIDE_ERR4)\]\} \{
+    module-hide --foo hide2
+\}\""
+    set linenum 14
+} else {
+    set custom {}
+    set linenum 15
+}
+set tserr [string map {<EXTMATCH> (.*)+} [escre [msg_moderr {Invalid option '--foo'} $errmsg $mp/hide1/.modulerc $linenum {  } {} {} $custom]]]
+testouterr_cmd_re sh {load hide1@3.10:4.20} $ans $tserr
+unsetenv_var TESTSUITE_HIDE_ERR4
 
 # wildcard characters are treated literally
 setenv_var TESTSUITE_HIDE_WILDCARD1 1
@@ -1421,3 +1470,4 @@ unset tserr
 
 unset custom
 unset linenum
+unset errmsg
