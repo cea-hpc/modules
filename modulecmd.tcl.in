@@ -2394,13 +2394,7 @@ proc module-hide {args} {
    if {$apply} {
       # record each hide spec after parsing them
       foreach modarg [eval parseModuleVersionSpecifier 0 $modarglist] {
-         # skip record if an higher hiding level is already set
-         if {![info exists ::g_moduleHide($modarg)] || $hidinglvl >\
-            $::g_moduleHide($modarg)} {
-            reportDebug "Record hidden module specification '$modarg'\
-               (hidinglvl=$hidinglvl)"
-            set ::g_moduleHide($modarg) $hidinglvl
-         }
+         setModspecHidingLevel $modarg $hidinglvl
       }
    }
 }
@@ -4673,6 +4667,15 @@ proc getModuleHidingLevel {mod} {
       }
    }
    return $ret
+}
+
+proc setModspecHidingLevel {modspec lvl} {
+   # skip record if an higher hiding level is already set
+   if {![info exists ::g_moduleHide($modspec)] || $lvl >\
+      $::g_moduleHide($modspec)} {
+      reportDebug "Record hidden module specification '$modspec' (lvl=$lvl)"
+      set ::g_moduleHide($modspec) $lvl
+   }
 }
 
 # test if mod is declared hidden or has one element in its name starting with
