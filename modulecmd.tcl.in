@@ -1346,6 +1346,7 @@ module-user    {nimp           nimp           reportCmd      nop            nop 
 module-verbosity {nimp         nimp           reportCmd      nop            nop            nop           }
 module-version {module-version module-version module-version module-version module-version module-version}
 module-virtual {module-virtual module-virtual module-virtual module-virtual module-virtual module-virtual}
+module-forbid  {module-forbid  module-forbid  module-forbid  module-forbid  module-forbid  module-forbid }
 module-hide    {module-hide    module-hide    module-hide    module-hide    module-hide    module-hide   }
 module-whatis  {nop            nop            reportCmd      nop            nop            module-whatis }
 prepend-path   {prepend-path   remove-path    prepend-path   prepend-path   prepend-path   edit-path-wh  }
@@ -1559,12 +1560,12 @@ proc execute-modulerc {modfile modname modspec} {
       # list interpreter alias commands to define
       array set ::g_modrcAliases [list uname uname system system chdir\
          nop is-loaded is-loaded module-version module-version module-alias\
-         module-alias module-virtual module-virtual module-hide module-hide\
-         module nop module-info module-info module-trace nop module-verbosity\
-         nop module-user nop module-log nop reportInternalBug\
-         reportInternalBug setModulesVersion setModulesVersion\
-         readModuleContent readModuleContent formatErrStackTrace\
-         formatErrStackTrace]
+         module-alias module-virtual module-virtual module-forbid\
+         module-forbid module-hide module-hide module nop module-info\
+         module-info module-trace nop module-verbosity nop module-user nop\
+         module-log nop reportInternalBug reportInternalBug setModulesVersion\
+         setModulesVersion readModuleContent readModuleContent\
+         formatErrStackTrace formatErrStackTrace]
 
       # alias commands where an argument should be passed
       array set ::g_modrcAliasesPassArg [list]
@@ -2364,6 +2365,38 @@ proc parseApplicationCriteriaArgs {args} {
    set apply [expr {!$notuser && !$notgroup}]
 
    return [list $apply $otherargs]
+}
+
+proc module-forbid {args} {
+   set hidinglvl 2
+
+   # parse application criteria arguments to determine if command apply
+   lassign [eval parseApplicationCriteriaArgs $args] apply otherargs
+
+   # parse remaining argument list, do it even if command does not apply to
+   # raise any command specification error
+   foreach arg $otherargs {
+      switch -glob -- $arg {
+         -* {
+            knerror "Invalid option '$arg'"
+         }
+         default {
+            lappend modarglist $arg
+         }
+      }
+   }
+
+   if {![info exists modarglist]} {
+      knerror {No module specified in argument}
+   }
+
+   # skip record if application criteria are not met
+   if {$apply} {
+      # record each hide spec after parsing them
+      foreach modarg [eval parseModuleVersionSpecifier 0 $modarglist] {
+         setModspecHidingLevel $modarg $hidinglvl
+      }
+   }
 }
 
 proc module-hide {args} {
