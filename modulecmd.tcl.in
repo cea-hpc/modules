@@ -4717,10 +4717,12 @@ proc setModspecHidingLevel {modspec lvl} {
 }
 
 # test if mod is declared hidden or has one element in its name starting with
-# dot character. such mod is considered hidden unless it matches modspec
-# search query or unless their hiding level is smaller than hiding threshold
-proc isModuleHidden {mod {modspec {}}} {
-   set testid $mod:$modspec
+# dot character. such mod is considered hidden unless its hiding level is
+# below 2 (not forbidden) and it matches modspec search query or unless its
+# hiding level is smaller than hiding threshold. when retlvl option is enabled
+# hiding level of mod is returned
+proc isModuleHidden {mod {modspec {}} {retlvl 0}} {
+   set testid $mod:$modspec:$retlvl
    # returned saved result if already tested
    if {[info exists ::g_isModuleHiddenMemCache($testid)]} {
       return $::g_isModuleHiddenMemCache($testid)
@@ -4733,8 +4735,18 @@ proc isModuleHidden {mod {modspec {}}} {
          < 1 && ([set i [modStartNb $mod $modspec]] == 0 ||\
          [isModuleDotHidden [join [lrange [file split $mod] $i end] /]])) ||\
          ([set hidlvl [getModuleHidingLevel $mod]] >= [getState\
-         hiding_threshold] && (($hidlvl == 0 && [modStartNb $mod $modspec] ==\
-         0) || ($hidlvl > 0 && ![modEq $modspec $mod eqspec])))}]
+         hiding_threshold] && ($hidlvl > 1 || ($hidlvl == 0 && [modStartNb\
+         $mod $modspec] == 0) || ($hidlvl == 1 && ![modEq $modspec $mod\
+         eqspec])))}]
+      # set hiding level as result to return
+      if {$ret && $retlvl && [info exists hidlvl] && $hidlvl > 0} {
+         set ret $hidlvl
+         # send hint that forbidden module does not matches query by
+         # increasing hiding level
+         if {$hidlvl > 1 && ![modEq $modspec $mod eqspec]} {
+            incr ret
+         }
+      }
       # cache test result
       set ::g_isModuleHiddenMemCache($testid) $ret
 
@@ -8626,16 +8638,25 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    # remove hidden elements unless they are (or their symbols) targeted by
    # search query.
    foreach elt [array names found_list] {
-      if {[isModuleHidden $elt $mod]} {
+      if {[set hidlvl [isModuleHidden $elt $mod 1]] > 0} {
          set remhid 1
+         # transform forbidden module in error entry if it specifically
+         # matches search query
+         set accesserr [expr {$hidlvl == 2 ? 1 : 0}]
+
          if {[info exists versmod_list($elt)]} {
             foreach eltsym $versmod_list($elt) {
                # keep hidden elt if one of its symbol matches query (bare
-               # module name query matches default symbol on resolve context
-               # or if onlydefaults filter is applied)
+               # module name query matches default symbol on resolve
+               # context or if onlydefaults filter is applied)
                if {[modEqStatic $eltsym] || (($resctx || $filter eq\
                   {onlydefaults}) && "$mod/default" eq $eltsym)} {
-                  set remhid 0
+                  # if elt is forbidden, transform it in access error entry
+                  if {$hidlvl > 1} {
+                     set accesserr 1
+                  } else {
+                     set remhid 0
+                  }
                   break
                }
             }
@@ -8645,7 +8666,12 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
          if {$remhid && [lindex $found_list($elt) 0] eq {version} && [file\
             tail $elt] eq {default} && ($filter eq {onlydefaults} || ($resctx\
             && "$mod/default" eq $elt))} {
-            set remhid 0
+            # if elt is forbidden, transform it in access error entry
+            if {$hidlvl > 1} {
+               set accesserr 1
+            } else {
+               set remhid 0
+            }
          }
          if {$remhid} {
             # record hidden symbol, not to display it in listModules
@@ -8653,7 +8679,14 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
                lappend ::g_hiddenSymHash([lindex $found_list($elt) 1]) [file\
                   tail $elt]
             }
-            unset found_list($elt)
+            if {$accesserr} {
+               # transform element entry in an access denied error
+               set found_list($elt) [list accesserr "Access to module '$elt'\
+                  is denied"]
+               set err_list($elt) 1
+            } else {
+               unset found_list($elt)
+            }
          }
       }
    }
