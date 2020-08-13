@@ -4345,9 +4345,11 @@ proc isModuleEvaluated {context exclmod args} {
    foreach evalmod [lsearch -all -inline -not [array names\
       ::g_moduleEvalAttempt] $exclmod] {
       set evalmatch 0
-      # test arguments against all names of evaluated module
-      foreach mod [concat [list $evalmod] [getAllModuleResolvedName\
-         $evalmod]] {
+      # test arguments against all names of evaluated module (translate
+      # eventual modspec in evalmod into module names, in case module
+      # evaluation stopped prior module name setup)
+      foreach mod [concat [getAllModulesFromVersSpec $evalmod]\
+         [getAllModuleResolvedName $evalmod]] {
          foreach name $args {
             if {[modEq $name $mod eqstart]} {
                set evalmatch 1
