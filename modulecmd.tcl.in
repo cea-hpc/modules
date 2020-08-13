@@ -2335,13 +2335,27 @@ proc parseApplicationCriteriaArgs {args} {
       if {[info exists nextargisval]} {
          set $nextargisval $arg
          unset nextargisval
+      } elseif {[info exists nextargisign]} {
+         unset nextargisign
       } else {
          switch -- $arg {
             --not-group {
-               set nextargisval notgrouplist
+               if {[getState is_win]} {
+                  reportWarning "Option '--not-group' is ignored on Windows\
+                     platform"
+                  set nextargisign 1
+               } else {
+                  set nextargisval notgrouplist
+               }
             }
             --not-user {
-               set nextargisval notuserlist
+               if {[getState is_win]} {
+                  reportWarning "Option '--not-user' is ignored on Windows\
+                     platform"
+                  set nextargisign 1
+               } else {
+                  set nextargisval notuserlist
+               }
             }
             default {
                lappend otherargs $arg
