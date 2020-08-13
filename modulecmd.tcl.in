@@ -8717,8 +8717,10 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
       if {![info exists found_list($elt)]} {
          set dir_list($elt) [lsort -dictionary $dir_list($elt)]
          # get default element: explicitely defined default (whether it exists
-         # or is in error) or implicit default if enabled
-         if {[info exists g_resolvedPath($elt)]} {
+         # or is in error) or implicit default if enabled (skip defined
+         # default if this symbol is forbidden
+         if {[info exists g_resolvedPath($elt)] && ![info exists\
+            err_list($elt/default)]} {
             set dfl [file tail $g_resolvedPath($elt)]
          } elseif {$implicitdfl} {
             set dfl [lindex $dir_list($elt) end]
@@ -8861,10 +8863,12 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
          mod_list($elt)] || $keeping)} {
          set fdir_list($elt) [lsort -dictionary $fdir_list($elt)]
          # get default element: explicitely defined default if included in
-         # result or not found or implicit default if enabled
+         # result or not found or implicit default if enabled (skip defined
+         # default if this symbol is forbidden)
          if {[info exists g_resolvedPath($elt)] && ([info exists\
             mod_list($g_resolvedPath($elt))] || ![info exists\
-            found_list($g_resolvedPath($elt))])} {
+            found_list($g_resolvedPath($elt))]) && ![info exists\
+            err_list($elt/default)]} {
             set dfl [file tail $g_resolvedPath($elt)]
          } elseif {$implicitdfl} {
             set dfl [lindex $fdir_list($elt) end]
