@@ -25,6 +25,7 @@
 # value?)
 array set g_state_defs [list\
    autoinit {0}\
+   clock_seconds {<undef> initStateClockSeconds}\
    cmdline {<undef>}\
    cwd {<undef>}\
    domainname {<undef> {runCommand domainname}}\
@@ -60,6 +61,7 @@ array set g_state_defs [list\
    subcmd_args {<undef>}\
    tcl_ext_lib_loaded {0}\
    tcl_version [list [info patchlevel]]\
+   tcl_version_lt85 {<undef> initStateTclVersionLt85}\
    term_columns {<undef> initStateTermColumns}\
    usergroups {<undef> initStateUsergroups}\
    username {<undef> initStateUsername}\
@@ -369,6 +371,16 @@ proc __initStateUsergroups {} {
 # Get name of user running modulecmd.tcl process
 proc __initStateUsername {} {
    return [runCommand id -u -n]
+}
+
+# Get Epoch time (number of seconds elapsed since Unix epoch)
+proc initStateClockSeconds {} {
+   return [clock seconds]
+}
+
+# Know if Tcl version is below 8.5.0
+proc initStateTclVersionLt85 {} {
+   return [expr {[compareVersion [getState tcl_version] 8.5.0] == -1}]
 }
 
 # Initialize Select Graphic Rendition table
