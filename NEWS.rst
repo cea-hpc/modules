@@ -85,19 +85,28 @@ Modules 4.6.0 (not yet released)
   nor selected unless referred by its exact name, like for module whose name
   or version starts with a dot character. :mfcmd:`module-hide` supports the
   advanced module version specifiers. (fix issue #202)
+* Add the :mfcmd:`module-forbid` modulefile command, to dynamically forbid use
+  of modulefile, module alias or symbolic version matching passed
+  specification. When forbidden, a modulefile, an alias or a symbolic version
+  is not reported nor selected even if it is referred by its exact name.
+  Forbidden modules are strictly hidden and an access error is obtained when
+  trying to evaluate them, like for modulefiles with restrictive file
+  permissions. :mfcmd:`module-forbid` supports the advanced module version
+  specifiers. (fix issue #202)
 * Do not report among :subcmd:`whatis` search result the modulefiles with
   version name prefixed by a dot character and targeted by a symbolic version
   unless if they are precisely searched.
 * When a loading module has hidden alternative names (hidden due to their
   name or version starting with a dot character or because they match a
-  :mfcmd:`module-hide` statement), these alternative names are not recorded in
-  environment unless they have been used in query to select loading module.
+  :mfcmd:`module-hide` or :mfcmd:`module-forbid` statement), these alternative
+  names are not recorded in environment unless they have been used in query to
+  select loading module.
 * On :subcmd:`avail` sub-command, remove hidden symbolic versions from the
   list to display along modulefile or directory they target, unless these
   symbols are used in query to search modules.
 * When the :option:`--default` filter of :subcmd:`avail` sub-command is set,
   unhide all the *default* symbolic versions or modules targeted by these
-  symbols.
+  symbols unless if they are forbidden.
 * Define the *default* and *latest* automatic symbolic versions only if
   relative module name matches search query to ensure all elements for this
   module have been processed prior assigning the symbols.
@@ -115,11 +124,12 @@ Modules 4.6.0 (not yet released)
 * Introduce the :option:`--all`/:option:`-a` option for :subcmd:`avail`,
   :subcmd:`aliases`, :subcmd:`whatis` and :subcmd:`search` sub-commands, to
   include in the search process all hidden modulefiles, module aliases or
-  symbolic versions.
-* Add ``--not-user`` and ``--not-group`` options to :mfcmd:`module-hide`
-  modulefile command to ignore hiding definition if current user is
-  respectively part of specified username list or member of one of specified
-  group list.
+  symbolic versions. Forbidden modules stay hidden even if
+  :option:`--all`/:option:`-a` option is used.
+* Add ``--not-user`` and ``--not-group`` options to :mfcmd:`module-hide` and
+  :mfcmd:`module-forbid` modulefile commands to ignore hiding or forbidding
+  definition if current user is respectively part of specified username list
+  or member of one of specified group list.
 * When :mfcmd:`module switch<module>` command is used in modulefile, do not
   state when processing it a conflict over switched-off module if its
   specification on the ``module switch`` command also matches switched-on
