@@ -240,6 +240,37 @@ the *modulefile* is being loaded.
 
  * another *modulefile* alias
 
+.. mfcmd:: module-forbid [--not-user {user...}] [--not-group {group...}] modulefile...
+
+ Forbid *modulefile* to exclude it from available module search or module
+ selection even if query refers to *modulefile* by its exact name. An error is
+ obtained when a module evaluation query precisely refers to a forbidden
+ module. This command should be placed in one of the :file:`modulecmd.tcl` rc
+ files.
+
+ If ``--not-user`` option is set, forbidding is not applied if the username of
+ the user currently running :file:`modulecmd.tcl` is part of the list of
+ username specified. Following the same approach, if ``--not-group`` option is
+ set, forbidding is not applied if current user is member of one the group
+ specified. When both options are set, forbidding is not applied if a match is
+ found for ``--not-user`` or ``--not-group``.
+
+ The :option:`--all` option set on :subcmd:`avail`, :subcmd:`aliases`,
+ :subcmd:`whatis` or :subcmd:`search` sub-commands does not unveil forbidden
+ modules.
+
+ If a :mfcmd:`module-hide` and a :mfcmd:`module-forbid` commands target the
+ same *modulefile*, the strongest hiding level is retained which means module
+ is considered forbidden.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
+ .. only:: html
+
+    .. versionadded:: 4.6
+
 .. mfcmd:: module-hide [--soft] [--not-user {user...}] [--not-group {group...}] modulefile...
 
  Hide *modulefile* to exclude it from available module search or module
@@ -260,7 +291,7 @@ the *modulefile* is being loaded.
  When both options are set, hiding is not applied if a match is found for
  ``--not-user`` or ``--not-group``.
 
- If the :option:`--all` is set on :subcmd:`avail`, :subcmd:`aliases`,
+ If the :option:`--all` option is set on :subcmd:`avail`, :subcmd:`aliases`,
  :subcmd:`whatis` or :subcmd:`search` sub-commands, hiding is disabled thus
  hidden modulefiles are included in module search. :option:`--all` option does
  not apply to *module selection* sub-commands like :subcmd:`load`. Thus in
@@ -271,7 +302,8 @@ the *modulefile* is being loaded.
  If several :mfcmd:`module-hide` commands target the same *modulefile*, the
  strongest hiding level is retained which means if both a regular and a
  ``--soft`` hiding command match a given module, regular hiding mode is
- considered.
+ considered. A :mfcmd:`module-forbid` command wins over a :mfcmd:`module-hide`
+ command thus targeted module is considered forbidden.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
@@ -757,10 +789,10 @@ be adapted to the rights the user has been granted. Exception is made when
 trying to directly access a directory or a *modulefile*. In this case,
 the access issue is returned as an error message.
 
-Depending on their name or the use of specific modulefile command,
-*modulefile*, virtual module, module alias or symbolic version may be set
-hidden which impacts available modules search or module selection processes
-(see `Hiding modulefiles`_ section below).
+Depending on their name, their file permissions or the use of specific
+modulefile commands, *modulefile*, virtual module, module alias or symbolic
+version may be set hidden or forbidden which impacts available modules search
+or module selection processes (see `Hiding modulefiles`_ section below).
 
 .. _Hiding modulefiles:
 
@@ -777,15 +809,23 @@ considered hidden if the root name of the query to search it matches module
 root name (e.g., searching ``foo`` will return a ``foo/1.2.3`` modulefile
 targeted by a ``module-hide --soft`` command).
 
+A *modulefile*, virtual module, module alias or symbolic version who are
+targeted by a :mfcmd:`module-forbid` command or whose file access permissions
+are restricted are considered forbidden. Forbidden modules are not displayed
+or taken into account even if they are explicitly named.
+
 A symbolic version-name assigned to a hidden module is displayed or taken into
 account only if explicitly named. Non-hidden module alias targeting a hidden
 *modulefile* appears like any other non-hidden module alias. Finally, a hidden
-symbolic version targeting a non-hidden module is display or taken into
+symbolic version targeting a non-hidden module is displayed or taken into
 account only if explicitly named to refer to its non-hidden target.
+
+When explicitly naming a forbidden *modulefile*, virtual module, module alias
+or symbolic version to select it for evaluation, an access error is raised.
 
 If the :option:`--all` is set on :subcmd:`avail`, :subcmd:`aliases`,
 :subcmd:`whatis` or :subcmd:`search` sub-commands, hidden modules are taken
-into account in search.
+into account in search. Forbidden modules are unaffected by this option.
 
 Advanced module version specifiers
 ----------------------------------

@@ -150,6 +150,7 @@ switches are accepted:
 
  Include hidden modules in search performed with :subcmd:`avail`,
  :subcmd:`aliases`, :subcmd:`search` or :subcmd:`whatis` sub-commands.
+ Forbidden modules are not affected by this option.
 
  .. only:: html
 
