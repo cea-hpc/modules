@@ -174,7 +174,7 @@ Specification
             - is excluded from ``module load mod`` result, even if default symbol targets it
             - is excluded from ``module load mod/1`` result, even if default symbol targets it
             - is excluded from ``module load mod@:2`` result, even if default symbol targets it
-            - is included in ``module load mod@1.0,2.0`` result
+            - is included in ``module load mod@1.0,2.0`` result, but in the end *mod/2.0* is preferred as *mod/1.0* is set in error
             - is included/excluded the same way for ``prereq`` and ``conflict`` sub-commands than ``load`` sub-command
             - is matched by ``is-loaded`` and ``info-loaded`` sub-commands querying it once loaded
             - is excluded from any ``avail`` query result
