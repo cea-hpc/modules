@@ -241,6 +241,21 @@ testouterr_cmd sh {avail -t hide1@5.0} OK {}
 unsetenv_var TESTSUITE_HIDE1_CASC4_SET10
 
 
+# dot named module targetted by module-forbid statement
+# module-forbid wins over dot hiding
+setenv_var TESTSUITE_HIDE4_CASC2_SET1 1
+testouterr_cmd sh {avail hide4} OK {}
+testouterr_cmd sh {avail -t hide4/.1.0} OK {}
+testouterr_cmd sh {load hide4} ERR $err_path'hide4'
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide4/.1.0]
+lappend ans [list setpath _LMFILES_ $mp/hide4/.1.0]
+testouterr_cmd sh {load hide4/.1.0} ERR [err_accessdenied hide4/.1.0]
+testouterr_cmd sh {whatis hide4} ERR $err_path'hide4'
+testouterr_cmd_re sh {whatis hide4/.1.0} ERR [err_accessdenied hide4/.1.0]
+unsetenv_var TESTSUITE_HIDE4_CASC2_SET1
+
+
 #
 #  Cleanup
 #
