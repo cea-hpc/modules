@@ -240,13 +240,21 @@ the *modulefile* is being loaded.
 
  * another *modulefile* alias
 
-.. mfcmd:: module-forbid [--not-user {user...}] [--not-group {group...}] modulefile...
+.. mfcmd:: module-forbid [--after datetime] [--before datetime] [--not-user {user...}] [--not-group {group...}] modulefile...
 
  Forbid *modulefile* to exclude it from available module search or module
  selection even if query refers to *modulefile* by its exact name. An error is
  obtained when a module evaluation query precisely refers to a forbidden
  module. This command should be placed in one of the :file:`modulecmd.tcl` rc
  files.
+
+ If ``--after`` option is set, forbidding is only effective after specified
+ date time. Following the same principle, if ``--before`` option is set,
+ forbidding is only effective before specified date time. Accepted date time
+ format is ``YYYY-MM-DD[THH:MM]``. If no time (``HH:MM``) is specified,
+ ``00:00`` is assumed. ``--after`` and ``--before`` options are not supported
+ on Tcl versions prior to 8.5.
+
 
  If ``--not-user`` option is set, forbidding is not applied if the username of
  the user currently running :file:`modulecmd.tcl` is part of the list of
@@ -271,7 +279,7 @@ the *modulefile* is being loaded.
 
     .. versionadded:: 4.6
 
-.. mfcmd:: module-hide [--soft] [--not-user {user...}] [--not-group {group...}] modulefile...
+.. mfcmd:: module-hide [--soft] [--after datetime] [--before datetime] [--not-user {user...}] [--not-group {group...}] modulefile...
 
  Hide *modulefile* to exclude it from available module search or module
  selection unless query refers to *modulefile* by its exact name. This command
@@ -283,6 +291,13 @@ the *modulefile* is being loaded.
  availability listing yet keeping the ability to select such module for load
  with the regular resolution mechanism (i.e., no need to use module exact name
  to select it)
+
+ If ``--after`` option is set, hiding is only effective after specified date
+ time. Following the same principle, if ``--before`` option is set, hiding is
+ only effective before specified date time. Accepted date time format is
+ ``YYYY-MM-DD[THH:MM]``. If no time (``HH:MM``) is specified, ``00:00`` is
+ assumed. ``--after`` and ``--before`` options are not supported on Tcl
+ versions prior to 8.5.
 
  If ``--not-user`` option is set, hiding is not applied if the username of the
  user currently running :file:`modulecmd.tcl` is part of the list of username
