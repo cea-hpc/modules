@@ -1,0 +1,324 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.20-locate/%M%
+#   Revision:		%I%
+#   First Edition:	2020/08/15
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		avail, load
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Disable hiding with '--before' or '--after' options of
+#           'module-hide' command
+#		}C%
+#
+##############################################################################
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure avail tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+# ensure regular avail search match is set for these tests
+setenv_var MODULES_SEARCH_MATCH starts_with
+
+# ensure extended default and advanced version specifiers are enabled for these tests
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_var MODULES_EXTENDED_DEFAULT 1
+
+set mp $modpath.2
+set mpre $modpathre.2
+setenv_path_var MODULEPATH $mp
+
+if {[info exists env(MODULERCFILE)]} {
+    set ORIG_MODULERCFILE $env(MODULERCFILE)
+}
+setenv_var MODULERCFILE $env(TESTSUITEDIR)/etc/modulerc.hide
+
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide1/5.0]
+lappend ans [list setpath _LMFILES_ $mp/hide1/5.0]
+lappend ans [list setpath MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
+
+set ans2 [list]
+lappend ans2 [list setpath LOADEDMODULES hide1/5.0]
+lappend ans2 [list setpath _LMFILES_ $mp/hide1/5.0]
+lappend ans2 [list setpath MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
+lappend ans2 [list ERR]
+
+set tserr1 $mp:\nhide1/5.0
+set tserr2 $err_path'hide1@5:'
+
+if {[cmpversion $tclsh_version 8.5] == -1} {
+
+# test --before option
+setenv_var TESTSUITE_HIDE_BEFORE_SET1 1
+set custom "    invoked from within
+\"if \{\[info exists env(TESTSUITE_HIDE_BEFORE_SET1)\]\} \{
+    module-hide --before 2020-01-01 hide1/5.0
+\}\""
+set linenum 261
+set tserr3 [escre [msg_moderr {Option '--before' not supported on Tcl<8.5} {module-hide --before 2020-01-01 hide1/5.0} $mp/hide1/.modulerc $linenum {  } {} {} $custom]]
+
+testouterr_cmd_re sh {load hide1@5:} $ans2 $tserr3
+testouterr_cmd sh {avail -t hide1@5:} OK $mp:\nhide1/5.0
+unsetenv_var TESTSUITE_HIDE_BEFORE_SET1
+
+# test --after option
+setenv_var TESTSUITE_HIDE_AFTER_SET1 1
+set custom "    invoked from within
+\"if \{\[info exists env(TESTSUITE_HIDE_AFTER_SET1)\]\} \{
+    module-hide --after 2082-04-28T02:49 hide1/5.0
+\}\""
+set linenum 288
+set tserr3 [escre [msg_moderr {Option '--after' not supported on Tcl<8.5} {module-hide --after 2082-04-28T02:49 hide1/5.0} $mp/hide1/.modulerc $linenum {  } {} {} $custom]]
+
+testouterr_cmd_re sh {load hide1@5:} $ans2 $tserr3
+testouterr_cmd sh {avail -t hide1@5:} OK $mp:\nhide1/5.0
+unsetenv_var TESTSUITE_HIDE_AFTER_SET1
+
+} else {
+
+# test --before option
+setenv_var TESTSUITE_HIDE_BEFORE_SET1 1
+testouterr_cmd sh {load hide1@5:} $ans {}
+testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
+unsetenv_var TESTSUITE_HIDE_BEFORE_SET1
+
+setenv_var TESTSUITE_HIDE_BEFORE_SET2 1
+testouterr_cmd sh {load hide1@5:} ERR $tserr2
+testouterr_cmd sh {avail -t hide1@5:} OK {}
+unsetenv_var TESTSUITE_HIDE_BEFORE_SET2
+
+setenv_var TESTSUITE_HIDE_BEFORE_SET3 1
+testouterr_cmd sh {load hide1@5:} $ans {}
+testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
+unsetenv_var TESTSUITE_HIDE_BEFORE_SET3
+
+setenv_var TESTSUITE_HIDE_BEFORE_SET4 1
+testouterr_cmd sh {load hide1@5:} ERR $tserr2
+testouterr_cmd sh {avail -t hide1@5:} OK {}
+unsetenv_var TESTSUITE_HIDE_BEFORE_SET4
+
+setenv_var TESTSUITE_HIDE_BEFORE_SET5 1
+testouterr_cmd sh {load hide1@5:} $ans {}
+testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
+unsetenv_var TESTSUITE_HIDE_BEFORE_SET5
+
+setenv_var TESTSUITE_HIDE_BEFORE_SET6 1
+testouterr_cmd sh {load hide1@5:} $ans {}
+testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
+unsetenv_var TESTSUITE_HIDE_BEFORE_SET6
+
+# test --after option
+setenv_var TESTSUITE_HIDE_AFTER_SET1 1
+testouterr_cmd sh {load hide1@5:} $ans {}
+testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
+unsetenv_var TESTSUITE_HIDE_AFTER_SET1
+
+setenv_var TESTSUITE_HIDE_AFTER_SET2 1
+testouterr_cmd sh {load hide1@5:} ERR $tserr2
+testouterr_cmd sh {avail -t hide1@5:} OK {}
+unsetenv_var TESTSUITE_HIDE_AFTER_SET2
+
+setenv_var TESTSUITE_HIDE_AFTER_SET3 1
+testouterr_cmd sh {load hide1@5:} $ans {}
+testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
+unsetenv_var TESTSUITE_HIDE_AFTER_SET3
+
+setenv_var TESTSUITE_HIDE_AFTER_SET4 1
+testouterr_cmd sh {load hide1@5:} ERR $tserr2
+testouterr_cmd sh {avail -t hide1@5:} OK {}
+unsetenv_var TESTSUITE_HIDE_AFTER_SET4
+
+setenv_var TESTSUITE_HIDE_AFTER_SET5 1
+testouterr_cmd sh {load hide1@5:} $ans {}
+testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
+unsetenv_var TESTSUITE_HIDE_AFTER_SET5
+
+setenv_var TESTSUITE_HIDE_AFTER_SET6 1
+testouterr_cmd sh {load hide1@5:} $ans {}
+testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
+unsetenv_var TESTSUITE_HIDE_AFTER_SET6
+
+setenv_var TESTSUITE_HIDE_AFTER_SET7 1
+testouterr_cmd sh {load hide1@5:} ERR $tserr2
+testouterr_cmd sh {avail -t hide1@5:} OK {}
+unsetenv_var TESTSUITE_HIDE_AFTER_SET7
+
+# test cumulative use of --before and --after options
+setenv_var TESTSUITE_HIDE_BEFORE_AFTER_SET1 1
+testouterr_cmd sh {load hide1@5:} ERR $tserr2
+testouterr_cmd sh {avail -t hide1@5:} OK {}
+unsetenv_var TESTSUITE_HIDE_BEFORE_AFTER_SET1
+
+setenv_var TESTSUITE_HIDE_BEFORE_AFTER_SET2 1
+testouterr_cmd sh {load hide1@5:} ERR $tserr2
+testouterr_cmd sh {avail -t hide1@5:} OK {}
+unsetenv_var TESTSUITE_HIDE_BEFORE_AFTER_SET2
+
+setenv_var TESTSUITE_HIDE_BEFORE_AFTER_SET3 1
+testouterr_cmd sh {load hide1@5:} ERR $tserr2
+testouterr_cmd sh {avail -t hide1@5:} OK {}
+unsetenv_var TESTSUITE_HIDE_BEFORE_AFTER_SET3
+
+setenv_var TESTSUITE_HIDE_BEFORE_AFTER_SET4 1
+testouterr_cmd sh {load hide1@5:} $ans {}
+testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
+unsetenv_var TESTSUITE_HIDE_BEFORE_AFTER_SET4
+
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide1/5.0]
+lappend ans [list setpath _LMFILES_ $mp/hide1/5.0]
+lappend ans [list setpath MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
+lappend ans [list ERR]
+
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom "    invoked from within
+\"if \{\[info exists env(TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET1)\]\} \{
+    module-hide --after hide1/5.0
+\}\""
+    set linenum 337
+} else {
+    set custom {}
+    set linenum 338
+}
+set tserr2 [msg_moderr {Incorrect --after value 'hide1/5.0' (valid date time format is 'YYYY-MM-DD[THH:MM]')} {module-hide --after hide1/5.0} $mp/hide1/.modulerc $linenum {  } {} {} $custom]
+
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom "    invoked from within
+\"if \{\[info exists env(TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET2)\]\} \{
+    module-hide --before hide1/5.0 --after
+\}\""
+    set linenum 340
+} else {
+    set custom {}
+    set linenum 341
+}
+set tserr3 [msg_moderr {Incorrect --before value 'hide1/5.0' (valid date time format is 'YYYY-MM-DD[THH:MM]')} {module-hide --before hide1/5.0 --after} $mp/hide1/.modulerc $linenum {  } {} {} $custom]
+
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom "    invoked from within
+\"if \{\[info exists env(TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET3)\]\} \{
+    module-hide --after
+\}\""
+    set linenum 343
+} else {
+    set custom {}
+    set linenum 344
+}
+set tserr4 [msg_moderr {Missing value for '--after' option} {module-hide --after} $mp/hide1/.modulerc $linenum {  } {} {} $custom]
+
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom "    invoked from within
+\"if \{\[info exists env(TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET4)\]\} \{
+    module-hide --after 2020-06-12T23 hide1/5.0
+\}\""
+    set linenum 346
+} else {
+    set custom {}
+    set linenum 347
+}
+set tserr5 [msg_moderr {Incorrect --after value '2020-06-12T23' (valid date time format is 'YYYY-MM-DD[THH:MM]')} {module-hide --after 2020-06-12T23 hide1/5.0} $mp/hide1/.modulerc $linenum {  } {} {} $custom]
+
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom "    invoked from within
+\"if \{\[info exists env(TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET5)\]\} \{
+    module-hide --before 2099 hide1/5.0
+\}\""
+    set linenum 349
+} else {
+    set custom {}
+    set linenum 350
+}
+set tserr6 [msg_moderr {Incorrect --before value '2099' (valid date time format is 'YYYY-MM-DD[THH:MM]')} {module-hide --before 2099 hide1/5.0} $mp/hide1/.modulerc $linenum {  } {} {} $custom]
+
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom "    invoked from within
+\"if \{\[info exists env(TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET6)\]\} \{
+    module-hide --after 2020-06-01T10:20:53 hide1/5.0
+\}\""
+    set linenum 352
+} else {
+    set custom {}
+    set linenum 353
+}
+set tserr7 [msg_moderr {Incorrect --after value '2020-06-01T10:20:53' (valid date time format is 'YYYY-MM-DD[THH:MM]')} {module-hide --after 2020-06-01T10:20:53 hide1/5.0} $mp/hide1/.modulerc $linenum {  } {} {} $custom]
+
+# test erroneous specification of --before and --after options
+setenv_var TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET1 1
+testouterr_cmd sh {load hide1@5:} $ans $tserr2
+testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
+unsetenv_var TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET1
+
+setenv_var TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET2 1
+testouterr_cmd sh {load hide1@5:} $ans $tserr3
+testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
+unsetenv_var TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET2
+
+setenv_var TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET3 1
+testouterr_cmd sh {load hide1@5:} $ans $tserr4
+testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
+unsetenv_var TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET3
+
+setenv_var TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET4 1
+testouterr_cmd sh {load hide1@5:} $ans $tserr5
+testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
+unsetenv_var TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET4
+
+setenv_var TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET5 1
+testouterr_cmd sh {load hide1@5:} $ans $tserr6
+testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
+unsetenv_var TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET5
+
+setenv_var TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET6 1
+testouterr_cmd sh {load hide1@5:} $ans $tserr7
+testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
+unsetenv_var TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET6
+
+}
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+setenv_path_var MODULEPATH $modpath
+if {[info exists ORIG_MODULERCFILE]} {
+    setenv_var MODULERCFILE $ORIG_MODULERCFILE
+    unset ORIG_MODULERCFILE
+} else {
+    unsetenv_var MODULERCFILE
+}
+unsetenv_var MODULES_AVAIL_INDEPTH
+unsetenv_var MODULES_IMPLICIT_DEFAULT
+unsetenv_var MODULES_SEARCH_MATCH
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+unsetenv_var MODULES_EXTENDED_DEFAULT
+
+unset mp
+unset mpre
+unset ans
+unset ans2
+unset tserr1
+unset tserr2
+unset tserr3
+if {[info exists tserr4]} {
+    unset tserr4
+    unset tserr5
+    unset tserr6
+    unset tserr7
+}
+unset custom
+unset linenum

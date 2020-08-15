@@ -256,3 +256,100 @@ if {[info exists env(TESTSUITE_FORBID_ALLOW_USER_GROUP_ERR_SET2)]} {
     module-forbid --not-group hide1/5.0 --not-user
 }
 
+
+# 20/114 module-hide --before tests
+if {[info exists env(TESTSUITE_HIDE_BEFORE_SET1)]} {
+    module-hide --before 2020-01-01 hide1/5.0
+}
+if {[info exists env(TESTSUITE_HIDE_BEFORE_SET2)]} {
+    module-hide --before 2099-10-20T23:54 hide1/5.0
+}
+if {[info exists env(TESTSUITE_HIDE_BEFORE_SET3)]} {
+    # ending now
+    set now [clock format [clock seconds] -format %Y-%m-%dT%H:%M]
+    module-hide --before $now hide1/5.0
+}
+if {[info exists env(TESTSUITE_HIDE_BEFORE_SET4)]} {
+    # until tomorrow
+    set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
+    module-hide --before $tomorrow hide1/5.0
+}
+if {[info exists env(TESTSUITE_HIDE_BEFORE_SET5)]} {
+    # ending today
+    set today [clock format [clock seconds] -format %Y-%m-%d]
+    module-hide --before $today hide1/5.0
+}
+if {[info exists env(TESTSUITE_HIDE_BEFORE_SET6)]} {
+    # ending yesterday
+    set yesterday [clock format [expr {[clock seconds]-86400}] -format %Y-%m-%d]
+    module-hide --before 2073-06-20T09:02 --before $yesterday hide1/5.0
+}
+# 20/114 module-hide --after tests
+if {[info exists env(TESTSUITE_HIDE_AFTER_SET1)]} {
+    module-hide --after 2082-04-28T02:49 hide1/5.0
+}
+if {[info exists env(TESTSUITE_HIDE_AFTER_SET2)]} {
+    # since yesterday
+    set yesterday [clock format [expr {[clock seconds]-86400}] -format %Y-%m-%d]
+    module-hide --after $yesterday hide1/5.0
+}
+if {[info exists env(TESTSUITE_HIDE_AFTER_SET3)]} {
+    module-hide --after 2078-11-05T08:35 hide1/5.0
+}
+if {[info exists env(TESTSUITE_HIDE_AFTER_SET4)]} {
+    # starting today
+    set today [clock format [clock seconds] -format %Y-%m-%d]
+    module-hide --after $today hide1/5.0
+}
+if {[info exists env(TESTSUITE_HIDE_AFTER_SET5)]} {
+    module-hide --after 2099-09-12T13:14 hide1/5.0
+}
+if {[info exists env(TESTSUITE_HIDE_AFTER_SET6)]} {
+    # starting tomorrow
+    set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
+    module-hide --after $tomorrow hide1/5.0
+}
+if {[info exists env(TESTSUITE_HIDE_AFTER_SET7)]} {
+    # starting now
+    set now [clock format [clock seconds] -format %Y-%m-%dT%H:%M]
+    module-hide --after 2090-02-04T22:16 --after $now hide1@5.0
+}
+# 20/114 module-hide --before and --after tests
+if {[info exists env(TESTSUITE_HIDE_BEFORE_AFTER_SET1)]} {
+    set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
+    module-hide --before $tomorrow --after $tomorrow hide1/5.0
+}
+if {[info exists env(TESTSUITE_HIDE_BEFORE_AFTER_SET2)]} {
+    set yesterday [clock format [expr {[clock seconds]-86400}] -format %Y-%m-%d]
+    module-hide --before $yesterday --after $yesterday hide1/5.0
+}
+if {[info exists env(TESTSUITE_HIDE_BEFORE_AFTER_SET3)]} {
+    set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
+    set yesterday [clock format [expr {[clock seconds]-86400}] -format %Y-%m-%d]
+    module-hide --before $tomorrow --after $yesterday hide1/5.0
+}
+if {[info exists env(TESTSUITE_HIDE_BEFORE_AFTER_SET4)]} {
+    set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
+    set yesterday [clock format [expr {[clock seconds]-86400}] -format %Y-%m-%d]
+    module-hide --before $yesterday --after $tomorrow hide1/5.0
+}
+# 20/114 module-hide erroneous --before and --after usage
+if {[info exists env(TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET1)]} {
+    module-hide --after hide1/5.0
+}
+if {[info exists env(TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET2)]} {
+    module-hide --before hide1/5.0 --after
+}
+if {[info exists env(TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET3)]} {
+    module-hide --after
+}
+if {[info exists env(TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET4)]} {
+    module-hide --after 2020-06-12T23 hide1/5.0
+}
+if {[info exists env(TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET5)]} {
+    module-hide --before 2099 hide1/5.0
+}
+if {[info exists env(TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET6)]} {
+    module-hide --after 2020-06-01T10:20:53 hide1/5.0
+}
+
