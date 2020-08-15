@@ -231,13 +231,25 @@ Specification
 
 - ``--before`` and ``--after`` are also supported by ``module-hide`` to phase-out modules prior forbidden them
 
-- ``--before`` and ``--after`` accept a date as value
+- ``--before`` and ``--after`` accept a date time as value
 
-    - FIXME: specify date format
+    - Accepted date time format is ``YYYY-MM-DD[THH:MM]``
+    - If no time value is specified (just a date like ``2020-08-01``), *00:00* is assumed
+
+        - So `2020-08-01`` is translated into ``2020-08-01T00:00``
+
+    - An error is raised if submitted date time value does not match accepted date time format
+
     - if both ``--before`` and ``--after`` options are set and *before* date is greater than *after* date
 
         - targeted module is always hidden/forbidden
         - no error is returned
+
+- ``--before`` and ``--after`` options are not supported on Tcl version below 8.5
+
+    - Prior 8.5, ``clock scan`` command does not have a ``-format`` option
+    - This option is required to support defined date time format
+    - An error is raised when ``--before`` or ``--after`` options are used over a Tcl version below 8.5
 
 - ``module-hide`` and ``module-forbid`` are intended to be used in modulerc files
 
