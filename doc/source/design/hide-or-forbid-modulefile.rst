@@ -225,8 +225,9 @@ Specification
 
 - ``--not-user`` and ``--not-group`` specification is only supported on Unix platform
 
-    - These 2 options are ignored when used on Windows platform and a warning message is rendered
-    - This way hiding applies otherwise as modulerc evaluation error are ignored on ``avail`` sub-command some hidden entries would be disclosed
+    - These 2 options raise an error when used on Windows platform
+    - In which case relative ``module-hide`` or ``module-forbid`` command is made ineffective as well as remaining content of the modulerc script hosting them
+    - Error message is clearly seen when trying to load related modules and indicate where to find the erroneous command
 
 - ``--before`` and ``--after`` are also supported by ``module-hide`` to phase-out modules prior forbidden them
 
