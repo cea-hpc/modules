@@ -2338,6 +2338,22 @@ proc module-virtual {args} {
    return {}
 }
 
+# Parse date time argument value and translate it into epoch time
+proc parseDateTimeArg {opt datetime} {
+   if {[regexp {^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2})?$} $datetime match\
+      timespec]} {
+      # time specification is optional
+      if {$timespec eq {}} {
+         append datetime T00:00
+      }
+      # return corresponding epoch time
+      return [clock scan $datetime -format %Y-%m-%dT%H:%M]
+   } else {
+      knerror "Incorrect $opt value '$datetime' (valid date time format is\
+         'YYYY-MM-DD\[THH:MM\]')"
+   }
+}
+
 # parse application critera arguments and determine if command applies
 proc parseApplicationCriteriaArgs {args} {
    set otherargs {}
@@ -2347,10 +2363,22 @@ proc parseApplicationCriteriaArgs {args} {
       if {[info exists nextargisval]} {
          set $nextargisval $arg
          unset nextargisval
+      } elseif {[info exists nextargisdatetime]} {
+         # get epoch time from date time argument value
+         set $nextargisdatetime [parseDateTimeArg $prevarg $arg]
+         unset nextargisdatetime
       } elseif {[info exists nextargisign]} {
          unset nextargisign
       } else {
          switch -- $arg {
+            --after - --before {
+               if {[getState tcl_version_lt85]} {
+                  knerror "Option '$arg' not supported on Tcl<8.5"
+                  set nextargisign 1
+               } else {
+                  set nextargisdatetime [string trimleft $arg -]
+               }
+            }
             --not-group {
                if {[getState is_win]} {
                   reportWarning "Option '--not-group' is ignored on Windows\
@@ -2377,7 +2405,7 @@ proc parseApplicationCriteriaArgs {args} {
       }
    }
 
-   if {[info exists nextargisval]} {
+   if {[info exists nextargisval] || [info exists nextargisdatetime]} {
       knerror "Missing value for '$prevarg' option"
    }
 
@@ -2387,8 +2415,15 @@ proc parseApplicationCriteriaArgs {args} {
    set notgroup [expr {[info exists notgrouplist] && [isIntBetweenList\
       $notgrouplist [getState usergroups]]}]
 
+   # does it apply currently?
+   set isbefore [expr {[info exists before] && [getState clock_seconds] <=\
+      $before}]
+   set isafter [expr {[info exists after] && [getState clock_seconds] >=\
+      $after}]
+
    # are criteria met
-   set apply [expr {!$notuser && !$notgroup}]
+   set apply [expr {!$notuser && !$notgroup && ($isbefore || $isafter ||\
+      (![info exists before] && ![info exists after]))}]
 
    return [list $apply $otherargs]
 }
