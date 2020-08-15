@@ -136,6 +136,10 @@ Modules 4.6.0 (not yet released)
   module's specification. Allow this way the replacement of any loaded version
   of a module for a specific one required by currently loading module. (fix
   issue #355)
+* Add ``--before`` and ``--after`` options to :mfcmd:`module-hide` and
+  :mfcmd:`module-forbid` modulefile commands to ignore hiding or forbidding
+  definition respectively after and before a specified date time. Accepted
+  date time format is ``YYYY-MM-DD[THH:MM]``.
 
 .. _GNU configuration recommendations: https://www.gnu.org/prep/standards/html_node/Configuration.html
 
