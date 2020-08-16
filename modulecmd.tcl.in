@@ -4768,36 +4768,39 @@ proc setModspecHidingLevel {modspec lvl} {
 }
 
 # test if mod is declared hidden or has one element in its name starting with
-# dot character. such mod is considered hidden unless its hiding level is
-# below 2 (not forbidden) and it matches modspec search query or unless its
-# hiding level is smaller than hiding threshold. when retlvl option is enabled
-# hiding level of mod is returned
-proc isModuleHidden {mod {modspec {}} {retlvl 0}} {
-   set testid $mod:$modspec:$retlvl
+# dot character. mod is considered hidden depending on their hiding level,
+# current search query and hiding threshold. when retdetails option is
+# enabled, mod hiding level and query match hind are also returned
+proc isModuleHidden {mod {modspec {}} {retdetails 0}} {
+   set testid $mod:$modspec:$retdetails
    # returned saved result if already tested
    if {[info exists ::g_isModuleHiddenMemCache($testid)]} {
       return $::g_isModuleHiddenMemCache($testid)
    } else {
-      # dot hidden elt are excluded if part after search query match is hidden
-      # and declared hidden elt are excluded unless it matches query. both
-      # kind are not considered hidden if their hiding level is smaller than
-      # hiding threshold
-      set ret [expr {([isModuleDotHidden $mod] && [getState hiding_threshold]\
-         < 1 && ([set i [modStartNb $mod $modspec]] == 0 ||\
-         [isModuleDotHidden [join [lrange [file split $mod] $i end] /]])) ||\
-         ([set hidlvl [getModuleHidingLevel $mod]] >= [getState\
-         hiding_threshold] && ($hidlvl > 1 || ($hidlvl == 0 && [modStartNb\
-         $mod $modspec] == 0) || ($hidlvl == 1 && ![modEq $modspec $mod\
-         eqspec])))}]
-      # set hiding level as result to return
-      if {$ret && $retlvl && [info exists hidlvl] && $hidlvl > 0} {
-         set ret $hidlvl
-         # send hint that forbidden module does not matches query by
-         # increasing hiding level
-         if {$hidlvl > 1 && ![modEq $modspec $mod eqspec]} {
-            incr ret
-         }
+      if {[set hidlvl [getModuleHidingLevel $mod]] >= [getState\
+         hiding_threshold]} {
+         # soft hidden mods are considered matched if their root name matches
+         # search query, other kind of hidden most must fuly matches query
+         set hidmatch [expr {$hidlvl == 0 ? [expr {[modStartNb $mod $modspec]\
+            > 0}] : [modEq $modspec $mod eqspec]}]
+      } else {
+         set hidlvl -1
+         set hidmatch 0
       }
+      if {$hidlvl < 1 && [isModuleDotHidden $mod] && [getState\
+         hiding_threshold] < 1} {
+         set hidlvl 1
+         # dot hidden are considered matched if remaining string part after
+         # search query is not dot hidden
+         set hidmatch [expr {[set i [modStartNb $mod $modspec]] > 0 &&\
+            ![isModuleDotHidden [join [lrange [file split $mod] $i end] /]]}]
+      }
+      # hidden if hiding level greater or equal hiding threshold and not
+      # matched or if matched hard hiding level are kept hidden
+      set ishid [expr {$hidlvl != -1 && (!$hidmatch || $hidlvl > 1)}]
+
+      set ret [expr {$retdetails ? [list $hidlvl $hidmatch $ishid] : $ishid}]
+
       # cache test result
       set ::g_isModuleHiddenMemCache($testid) $ret
 
@@ -8689,49 +8692,37 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    # remove hidden elements unless they are (or their symbols) targeted by
    # search query.
    foreach elt [array names found_list] {
-      if {[set hidlvl [isModuleHidden $elt $mod 1]] > 0} {
-         set remhid 1
-         # transform forbidden module in error entry if it specifically
-         # matches search query
-         set accesserr [expr {$hidlvl == 2 ? 1 : 0}]
-
-         if {[info exists versmod_list($elt)]} {
+      if {[lassign [isModuleHidden $elt $mod 1] hidlvl hidmatch]} {
+         # is there a symbol that matches query (bare module name query
+         # matches default symbol on resolve context or if onlydefaults filter
+         # is applied)
+         if {!$hidmatch && [info exists versmod_list($elt)]} {
             foreach eltsym $versmod_list($elt) {
-               # keep hidden elt if one of its symbol matches query (bare
-               # module name query matches default symbol on resolve
-               # context or if onlydefaults filter is applied)
                if {[modEqStatic $eltsym] || (($resctx || $filter eq\
                   {onlydefaults}) && "$mod/default" eq $eltsym)} {
-                  # if elt is forbidden, transform it in access error entry
-                  if {$hidlvl > 1} {
-                     set accesserr 1
-                  } else {
-                     set remhid 0
-                  }
+                  set hidmatch 1
                   break
                }
             }
          }
          # consider 'default' symbols are explicitely specified if
          # onlydefaults filter applied or resolving bare module name
-         if {$remhid && [lindex $found_list($elt) 0] eq {version} && [file\
+         if {!$hidmatch && [lindex $found_list($elt) 0] eq {version} && [file\
             tail $elt] eq {default} && ($filter eq {onlydefaults} || ($resctx\
             && "$mod/default" eq $elt))} {
-            # if elt is forbidden, transform it in access error entry
-            if {$hidlvl > 1} {
-               set accesserr 1
-            } else {
-               set remhid 0
-            }
+            set hidmatch 1
          }
-         if {$remhid} {
+
+         # not hidden if matched unless if hard hiding apply
+         if {!$hidmatch || $hidlvl > 1} {
             # record hidden symbol, not to display it in listModules
             if {[lindex $found_list($elt) 0] eq {version}} {
                lappend ::g_hiddenSymHash([lindex $found_list($elt) 1]) [file\
                   tail $elt]
             }
-            if {$accesserr} {
-               # transform element entry in an access denied error
+            # transform forbidden module in error entry if it specifically
+            # matches search query
+            if {$hidlvl == 2 && $hidmatch} {
                set found_list($elt) [list accesserr "Access to module '$elt'\
                   is denied"]
                set err_list($elt) 1
