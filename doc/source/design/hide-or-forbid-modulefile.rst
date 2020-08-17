@@ -273,6 +273,11 @@ Specification
     - Auto symbols are applied to this version if it is selected specifically (for instance loaded by its full name)
     - Auto symbols are applied to another version when hidden latest is not selected specifically, even if specified with *@latest* auto symbol
 
+- Auto-symbols cannot be set hidden
+
+    - When a defined ``default`` or ``latest`` symbol is set hidden, it is replaced by a ``default`` or ``latest`` auto-symbol targetting highest available module version
+    - Targeting an auto-symbol with a ``module-hide`` command, will have no effect
+
 - When module specification of ``module-hide`` or ``module-forbid`` targets:
 
     - A symbolic version

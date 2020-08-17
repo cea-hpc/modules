@@ -2257,14 +2257,15 @@ proc getAllModuleResolvedName {mod {flag_autosym 0} {modspec {}}} {
             # points to mod (directly for alias/sym or indirectly for dir
             # whose default version bridge resolution toward mod)
             # if modspec arg is set, exclude hidden entries not explicitly
-            # matching modspec
-            if {($modspec eq {} || (![isModuleHidden $resmod $modspec] &&\
-               ($resmoddfl eq {} || ![isModuleHidden $resmoddfl $modspec]))\
-               || [modEq $modspec $resmod eqspec] || ($resmodpar ne {} &&\
-               [modEq $modspec $resmodpar eqspec])) && ([modEq $modelt $mod\
-               eqstart] || $::g_moduleResolved($resmod) eq $mod || $mod eq\
-               [lindex [getPathToModule $::g_moduleResolved($resmod) {} 0]\
-               1])} {
+            # matching modspec. auto symbols cannot be hidden
+            if {($modspec eq {} || ([info exists ::g_autoSymbol($resmod)] &&\
+               $::g_autoSymbol($resmod) eq $mod) || (![isModuleHidden $resmod\
+               $modspec] && ($resmoddfl eq {} || ![isModuleHidden $resmoddfl\
+               $modspec])) || [modEq $modspec $resmod eqspec] || ($resmodpar\
+               ne {} && [modEq $modspec $resmodpar eqspec])) && ([modEq\
+               $modelt $mod eqstart] || $::g_moduleResolved($resmod) eq $mod\
+               || $mod eq [lindex [getPathToModule\
+               $::g_moduleResolved($resmod) {} 0] 1])} {
                # prefix automatically generated symbols with 'as|' if asked
                if {$flag_autosym && [info exists ::g_autoSymbol($resmod)]} {
                   appendNoDupToList namelist as|$resmod
@@ -8777,17 +8778,24 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
          set found_list($elt) [concat [list directory $dfl] $dir_list($elt)]
 
          # automatically define symbols for all modules matching query if
-         # these names do not exist yet
+         # these names do not exist yet or if in error, in which case only
+         # auto symbol resolution is set
          if {$autosymbol && (!$hasmoddir || [modEq $modroot $elt eqstart])} {
-            if {![info exists found_list($elt/default)]} {
-               set found_list($elt/default) [list version $elt/$dfl]
-               set autosym_list($elt/default) 1
+            if {![info exists found_list($elt/default)] || [info exists\
+               err_list($elt/default)]} {
+               if {![info exists found_list($elt/default)]} {
+                  set found_list($elt/default) [list version $elt/$dfl]
+                  set autosym_list($elt/default) 1
+               }
                setModuleResolution $elt/default $elt/$dfl default 1 1
             }
-            if {![info exists found_list($elt/latest)]} {
+            if {![info exists found_list($elt/latest)] || [info exists\
+               err_list($elt/latest)]} {
                set lat [lindex $dir_list($elt) end]
-               set found_list($elt/latest) [list version $elt/$lat]
-               set autosym_list($elt/latest) 1
+               if {![info exists found_list($elt/latest)]} {
+                  set found_list($elt/latest) [list version $elt/$lat]
+                  set autosym_list($elt/latest) 1
+               }
                setModuleResolution $elt/latest $elt/$lat latest 1 1
             }
          }
