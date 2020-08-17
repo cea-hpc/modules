@@ -99,14 +99,15 @@ Modules 4.6.0 (not yet released)
 * When a loading module has hidden alternative names (hidden due to their
   name or version starting with a dot character or because they match a
   :mfcmd:`module-hide` or :mfcmd:`module-forbid` statement), these alternative
-  names are not recorded in environment unless they have been used in query to
-  select loading module.
+  names are not recorded in environment unless if they are not hard-hidden or
+  forbidden and if they have been used in query to select loading module.
 * On :subcmd:`avail` sub-command, remove hidden symbolic versions from the
   list to display along modulefile or directory they target, unless these
-  symbols are used in query to search modules.
+  symbols are not hard-hidden or forbidden and are used in query to search
+  modules.
 * When the :option:`--default` filter of :subcmd:`avail` sub-command is set,
   unhide all the *default* symbolic versions or modules targeted by these
-  symbols unless if they are forbidden.
+  symbols unless if they are hard-hidden or forbidden.
 * Define the *default* and *latest* automatic symbolic versions only if
   relative module name matches search query to ensure all elements for this
   module have been processed prior assigning the symbols.
@@ -121,10 +122,13 @@ Modules 4.6.0 (not yet released)
   introduce a soften level of camouflage: modules targeted by such hide
   directive are made visible as soon as their root name is part of search
   query.
+* Add option ``--hard`` to the :mfcmd:`module-hide` modulefile command to
+  introduce a hardened level of camouflage: modules targeted by such hide
+  directive keep being hidden even if they are fully matched by search query.
 * Introduce the :option:`--all`/:option:`-a` option for :subcmd:`avail`,
   :subcmd:`aliases`, :subcmd:`whatis` and :subcmd:`search` sub-commands, to
   include in the search process all hidden modulefiles, module aliases or
-  symbolic versions. Forbidden modules stay hidden even if
+  symbolic versions. Hard-hidden and forbidden modules stay hidden even if
   :option:`--all`/:option:`-a` option is used.
 * Add ``--not-user`` and ``--not-group`` options to :mfcmd:`module-hide` and
   :mfcmd:`module-forbid` modulefile commands to ignore hiding or forbidding

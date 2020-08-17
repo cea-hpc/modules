@@ -279,7 +279,7 @@ the *modulefile* is being loaded.
 
     .. versionadded:: 4.6
 
-.. mfcmd:: module-hide [--soft] [--after datetime] [--before datetime] [--not-user {user...}] [--not-group {group...}] modulefile...
+.. mfcmd:: module-hide [--soft|--hard] [--after datetime] [--before datetime] [--not-user {user...}] [--not-group {group...}] modulefile...
 
  Hide *modulefile* to exclude it from available module search or module
  selection unless query refers to *modulefile* by its exact name. This command
@@ -291,6 +291,10 @@ the *modulefile* is being loaded.
  availability listing yet keeping the ability to select such module for load
  with the regular resolution mechanism (i.e., no need to use module exact name
  to select it)
+
+ When ``--hard`` option is set, *modulefile* is also set hidden and stays
+ hidden even if search or selection query refers to *modulefile* by its exact
+ name.
 
  If ``--after`` option is set, hiding is only effective after specified date
  time. Following the same principle, if ``--before`` option is set, hiding is
@@ -308,17 +312,21 @@ the *modulefile* is being loaded.
 
  If the :option:`--all` option is set on :subcmd:`avail`, :subcmd:`aliases`,
  :subcmd:`whatis` or :subcmd:`search` sub-commands, hiding is disabled thus
- hidden modulefiles are included in module search. :option:`--all` option does
- not apply to *module selection* sub-commands like :subcmd:`load`. Thus in
- such context a hidden module should always be referred by its exact full name
- (e.g., ``foo/1.2.3`` not ``foo``) unless if it has been hidden in ``--soft``
- mode.
+ hidden modulefiles are included in module search. Hard-hidden modules (i.e.,
+ declared hidden with ``--hard`` option) are not affected by :option:`--all`
+ and stay hidden even if option is set. :option:`--all` option does not apply
+ to *module selection* sub-commands like :subcmd:`load`. Thus in such context
+ a hidden module should always be referred by its exact full name (e.g.,
+ ``foo/1.2.3`` not ``foo``) unless if it has been hidden in ``--soft`` mode. A
+ hard-hidden module cannot be unveiled or selected in any case.
 
  If several :mfcmd:`module-hide` commands target the same *modulefile*, the
- strongest hiding level is retained which means if both a regular and a
+ strongest hiding level is retained which means if both a regular, a
  ``--soft`` hiding command match a given module, regular hiding mode is
- considered. A :mfcmd:`module-forbid` command wins over a :mfcmd:`module-hide`
- command thus targeted module is considered forbidden.
+ considered. If both a regular and a ``--hard`` hiding command match a given
+ module, hard hiding mode is retained. A :mfcmd:`module-forbid` command wins
+ over a :mfcmd:`module-hide` command thus targeted module is considered
+ forbidden.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
@@ -822,7 +830,10 @@ not displayed or taken into account except if they are explicitly named (e.g.,
 ``--soft`` option of the :mfcmd:`module-hide` command set, it is not
 considered hidden if the root name of the query to search it matches module
 root name (e.g., searching ``foo`` will return a ``foo/1.2.3`` modulefile
-targeted by a ``module-hide --soft`` command).
+targeted by a ``module-hide --soft`` command). If module has been hidden with
+the ``--hard`` option of the :mfcmd:`module-hide` command set, it is always
+considered hidden thus it is never displayed nor taken into account even if
+it is explicitly named.
 
 A *modulefile*, virtual module, module alias or symbolic version who are
 targeted by a :mfcmd:`module-forbid` command or whose file access permissions
@@ -830,17 +841,19 @@ are restricted are considered forbidden. Forbidden modules are not displayed
 or taken into account even if they are explicitly named.
 
 A symbolic version-name assigned to a hidden module is displayed or taken into
-account only if explicitly named. Non-hidden module alias targeting a hidden
-*modulefile* appears like any other non-hidden module alias. Finally, a hidden
-symbolic version targeting a non-hidden module is displayed or taken into
-account only if explicitly named to refer to its non-hidden target.
+account only if explicitly named and if module is not hard-hidden. Non-hidden
+module alias targeting a hidden *modulefile* appears like any other non-hidden
+module alias. Finally, a hidden symbolic version targeting a non-hidden module
+is displayed or taken into account only if not hard-hidden and explicitly
+named to refer to its non-hidden target.
 
 When explicitly naming a forbidden *modulefile*, virtual module, module alias
 or symbolic version to select it for evaluation, an access error is raised.
 
 If the :option:`--all` is set on :subcmd:`avail`, :subcmd:`aliases`,
 :subcmd:`whatis` or :subcmd:`search` sub-commands, hidden modules are taken
-into account in search. Forbidden modules are unaffected by this option.
+into account in search. Hard-hidden and forbidden modules are unaffected by
+this option.
 
 Advanced module version specifiers
 ----------------------------------
