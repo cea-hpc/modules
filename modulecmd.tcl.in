@@ -2420,8 +2420,6 @@ proc parseApplicationCriteriaArgs {args} {
 }
 
 proc module-forbid {args} {
-   set hidinglvl 2
-
    # parse application criteria arguments to determine if command apply
    lassign [eval parseApplicationCriteriaArgs $args] apply otherargs
 
@@ -2446,7 +2444,7 @@ proc module-forbid {args} {
    if {$apply} {
       # record each hide spec after parsing them
       foreach modarg [eval parseModuleVersionSpecifier 0 $modarglist] {
-         setModspecHidingLevel $modarg $hidinglvl
+         setModspecTag $modarg forbidden
       }
    }
 }
@@ -2463,7 +2461,7 @@ proc module-hide {args} {
       switch -glob -- $arg {
          --hard {
             # hardened stealth
-            set hidinglvl 3
+            set hidinglvl 2
          }
          --soft {
             # soften level of camouflage
@@ -8752,7 +8750,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
             }
             # transform forbidden module in error entry if it specifically
             # matches search query
-            if {$hidlvl == 2 && $hidmatch} {
+            if {$hidlvl == 2 && $hidmatch && [isModuleTagged $elt\
+               forbidden]} {
                set found_list($elt) [list accesserr "Access to module '$elt'\
                   is denied"]
                set err_list($elt) 1
