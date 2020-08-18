@@ -8523,9 +8523,9 @@ proc findModules {dir mod depthlvl fetch_mtime} {
 }
 
 proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
-   global g_sourceAlias g_sourceVersion g_sourceVirtual g_resolvedPath\
-      g_rcAlias g_moduleAlias g_rcVersion g_moduleVersion g_rcVirtual\
-      g_moduleVirtual g_rcfilesSourced
+   global g_sourceAlias g_sourceVersion g_sourceVirtual g_rcAlias\
+      g_moduleAlias g_rcVersion g_moduleVersion g_rcVirtual g_moduleVirtual\
+      g_rcfilesSourced
 
    reportDebug "get '$mod' in $dir (fetch_mtime=$fetch_mtime, search=$search,\
       filter=$filter)"
@@ -8764,11 +8764,10 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
       if {![info exists found_list($elt)]} {
          set dir_list($elt) [lsort -dictionary $dir_list($elt)]
          # get default element: explicitely defined default (whether it exists
-         # or is in error) or implicit default if enabled (skip defined
-         # default if this symbol is forbidden
-         if {[info exists g_resolvedPath($elt)] && ![info exists\
-            err_list($elt/default)]} {
-            set dfl [file tail $g_resolvedPath($elt)]
+         # or is in error) or implicit default if enabled
+         if {[info exists found_list($elt/default)] && [lindex\
+            $found_list($elt/default) 0] eq {version}} {
+            set dfl [file tail [lindex $found_list($elt/default) 1]]
          } elseif {$implicitdfl} {
             set dfl [lindex $dir_list($elt) end]
          } else {
@@ -8917,13 +8916,12 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
          mod_list($elt)] || $keeping)} {
          set fdir_list($elt) [lsort -dictionary $fdir_list($elt)]
          # get default element: explicitely defined default if included in
-         # result or not found or implicit default if enabled (skip defined
-         # default if this symbol is forbidden)
-         if {[info exists g_resolvedPath($elt)] && ([info exists\
-            mod_list($g_resolvedPath($elt))] || ![info exists\
-            found_list($g_resolvedPath($elt))]) && ![info exists\
-            err_list($elt/default)]} {
-            set dfl [file tail $g_resolvedPath($elt)]
+         # result or not found or implicit default if enabled
+         if {[info exists found_list($elt/default)] && [lindex\
+            $found_list($elt/default) 0] eq {version} && ([info exists\
+            mod_list([set versmod [lindex $found_list($elt/default) 1]])] ||\
+            ![info exists found_list($versmod)])} {
+            set dfl [file tail $versmod]
          } elseif {$implicitdfl} {
             set dfl [lindex $fdir_list($elt) end]
          } else {
