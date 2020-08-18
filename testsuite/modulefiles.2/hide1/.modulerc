@@ -170,17 +170,20 @@ if {[info exists env(TESTSUITE_HIDE1_CASC3_SET8)]} {
 
 if {[info exists env(TESTSUITE_HIDE1_CASC4_SET1)]} {
     module-forbid hide1/5.0
+    module-hide --hard hide1/5.0
 }
 if {[info exists env(TESTSUITE_HIDE1_CASC4_SET2)]} {
     module-hide hide1/5.0
 }
 if {[info exists env(TESTSUITE_HIDE1_CASC4_SET3)]} {
+    module-hide --hard hide1/5.0
     module-forbid hide1/5.0
 }
 if {[info exists env(TESTSUITE_HIDE1_CASC4_SET4)]} {
     module-hide --soft hide1/5.0
 }
 if {[info exists env(TESTSUITE_HIDE1_CASC4_SET5)]} {
+    module-hide --hard --not-group [module-info usergroups] hide1/5.0
     module-forbid --not-group [module-info usergroups] hide1/5.0
 }
 if {[info exists env(TESTSUITE_HIDE1_CASC4_SET6)]} {
@@ -188,11 +191,14 @@ if {[info exists env(TESTSUITE_HIDE1_CASC4_SET6)]} {
 }
 if {[info exists env(TESTSUITE_HIDE1_CASC4_SET7)]} {
     module-forbid hide1
+    module-hide --hard hide1
 }
 if {[info exists env(TESTSUITE_HIDE1_CASC4_SET8)]} {
     module-forbid hide1/5.0
+    module-hide --hard hide1/5.0
 }
 if {[info exists env(TESTSUITE_HIDE1_CASC4_SET9)]} {
+    module-hide --hard hide1/5.0
     module-forbid hide1/5.0
 }
 if {[info exists env(TESTSUITE_HIDE1_CASC4_SET10)]} {
@@ -225,35 +231,44 @@ if {[info exists env(TESTSUITE_FORBID_WILDCARD3)]} {
 
 if {[info exists env(TESTSUITE_FORBID_SET1)]} {
     module-forbid hide1@1.0,3.1
+    module-hide --hard hide1@1.0,3.1
 }
 if {[info exists env(TESTSUITE_FORBID_SET2)]} {
     module-forbid hide1@5: hide1/4.0
+    module-hide --hard hide1@5: hide1/4.0
 }
 
 
 # 20/117 module-forbid --not-user tests
 if {[info exists env(TESTSUITE_FORBID_ALLOW_USER_SET1)]} {
     module-forbid --not-user [module-info username] hide1/5.0
+    module-hide --hard --not-user [module-info username] hide1/5.0
 }
 if {[info exists env(TESTSUITE_FORBID_ALLOW_USER_SET2)]} {
     module-forbid --not-user unknown hide1/5.0
+    module-hide --hard --not-user unknown hide1/5.0
 }
 # 20/117 module-forbid --not-group tests
 if {[info exists env(TESTSUITE_FORBID_ALLOW_GROUP_SET4)]} {
+    module-hide --hard --not-group [list unknown1 unknown2 unknown3] hide1/5.0
     module-forbid --not-group [list unknown1 unknown2 unknown3] hide1/5.0
 }
 if {[info exists env(TESTSUITE_FORBID_ALLOW_GROUP_SET5)]} {
     module-forbid --not-group [list unknown1 unknown2 [lindex [module-info usergroups] end] unknown3] hide1/5.0
+    module-hide --hard --not-group [list unknown1 unknown2 [lindex [module-info usergroups] end] unknown3] hide1/5.0
 }
 # 20/117 module-forbid --not-group and --not-user tests
 if {[info exists env(TESTSUITE_FORBID_ALLOW_USER_GROUP_SET1)]} {
+    module-hide --hard --not-user {unknown1 unknown2} --not-group [concat [list unknown1 unknown2 ] [module-info usergroups]] hide1/5.0
     module-forbid --not-user {unknown1 unknown2} --not-group [concat [list unknown1 unknown2 ] [module-info usergroups]] hide1/5.0
 }
 if {[info exists env(TESTSUITE_FORBID_ALLOW_USER_GROUP_SET3)]} {
     module-forbid --not-group {unknown1 unknown2} --not-user {unknown1 unknown2 unknown3} hide1/5.0
+    module-hide --hard --not-group {unknown1 unknown2} --not-user {unknown1 unknown2 unknown3} hide1/5.0
 }
 if {[info exists env(TESTSUITE_FORBID_ALLOW_USER_GROUP_ERR_SET2)]} {
     module-forbid --not-group hide1/5.0 --not-user
+    module-hide --hard --not-group hide1/5.0 --not-user
 }
 
 
@@ -357,8 +372,10 @@ if {[info exists env(TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET6)]} {
 # 20/116 module-forbid --before tests
 if {[info exists env(TESTSUITE_FORBID_BEFORE_SET1)]} {
     module-forbid --before 2020-01-01 hide1/5.0
+    module-hide --hard --before 2020-01-01 hide1/5.0
 }
 if {[info exists env(TESTSUITE_FORBID_BEFORE_SET2)]} {
+    module-hide --hard --before 2099-10-20T23:54 hide1/5.0
     module-forbid --before 2099-10-20T23:54 hide1/5.0
 }
 # 20/116 module-forbid --after tests
@@ -366,22 +383,27 @@ if {[info exists env(TESTSUITE_FORBID_AFTER_SET4)]} {
     # starting today
     set today [clock format [clock seconds] -format %Y-%m-%d]
     module-forbid --after $today hide1/5.0
+    module-hide --hard --after $today hide1/5.0
 }
 if {[info exists env(TESTSUITE_FORBID_AFTER_SET5)]} {
     module-forbid --after 2099-09-12T13:14 hide1/5.0
+    module-hide --hard --after 2099-09-12T13:14 hide1/5.0
 }
 # 20/116 module-forbid --before and --after tests
 if {[info exists env(TESTSUITE_FORBID_BEFORE_AFTER_SET1)]} {
     set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
+    module-hide --hard --before $tomorrow --after $tomorrow hide1/5.0
     module-forbid --before $tomorrow --after $tomorrow hide1/5.0
 }
 if {[info exists env(TESTSUITE_FORBID_BEFORE_AFTER_SET3)]} {
     set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
     set yesterday [clock format [expr {[clock seconds]-86400}] -format %Y-%m-%d]
     module-forbid --before $tomorrow --after $yesterday hide1/5.0
+    module-hide --hard --before $tomorrow --after $yesterday hide1/5.0
 }
 if {[info exists env(TESTSUITE_FORBID_BEFORE_AFTER_ERR_SET2)]} {
     module-forbid --before hide1/5.0 --after
+    module-hide --hard --before hide1/5.0 --after
 }
 
 
@@ -414,25 +436,30 @@ if {[info exists env(TESTSUITE_HIDE1_CASC5_SET5)]} {
 if {[info exists env(TESTSUITE_HIDE1_CASC6_SET1)]} {
     set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
     module-forbid --not-user {unknown1 unknown2} --not-group [module-info usergroups] --before $tomorrow hide1/5.0
+    module-hide --hard --not-user {unknown1 unknown2} --not-group [module-info usergroups] --before $tomorrow hide1/5.0
 }
 if {[info exists env(TESTSUITE_HIDE1_CASC6_SET2)]} {
     set yesterday [clock format [expr {[clock seconds]-86400}] -format %Y-%m-%d]
+    module-hide --hard --not-user [module-info username] --not-group {unknown1 unknown2} --after $yesterday hide1/5.0
     module-forbid --not-user [module-info username] --not-group {unknown1 unknown2} --after $yesterday hide1/5.0
 }
 if {[info exists env(TESTSUITE_HIDE1_CASC6_SET3)]} {
     set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
     set yesterday [clock format [expr {[clock seconds]-86400}] -format %Y-%m-%d]
+    module-hide --hard --not-user {unknown1 unknown2} --not-group {unknown1 unknown2} --before $yesterday --after $tomorrow hide1/5.0
     module-forbid --not-user {unknown1 unknown2} --not-group {unknown1 unknown2} --before $yesterday --after $tomorrow hide1/5.0
 }
 if {[info exists env(TESTSUITE_HIDE1_CASC6_SET4)]} {
     set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
     set yesterday [clock format [expr {[clock seconds]-86400}] -format %Y-%m-%d]
     module-forbid --not-user {unknown1 unknown2} --not-group {unknown1 unknown2} --before $tomorrow --after $yesterday hide1/5.0
+    module-hide --hard --not-user {unknown1 unknown2} --not-group {unknown1 unknown2} --before $tomorrow --after $yesterday hide1/5.0
 }
 if {[info exists env(TESTSUITE_HIDE1_CASC6_SET5)]} {
     set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
     set yesterday [clock format [expr {[clock seconds]-86400}] -format %Y-%m-%d]
     module-forbid --not-user [module-info username] --not-group {unknown1 unknown2} --before $tomorrow --after $yesterday hide1/5.0
+    module-hide --hard --not-user [module-info username] --not-group {unknown1 unknown2} --before $tomorrow --after $yesterday hide1/5.0
 }
 
 
