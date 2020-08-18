@@ -76,7 +76,7 @@ Specification
 
 - ``module-hide`` removes visibility of specified modules
 
-    - ``module-hide`` acts when modules are searched (``avail``, ``whatis`` and ``search`` sub-commands)
+    - ``module-hide`` acts when modules are searched (``avail``, ``whatis`` and ``search`` sub-commands) or selected (``load``, ``unload``, ``display``, etc sub-commands)
 
     - Visibility is however enabled if hidden module is specifically searched
 
@@ -84,6 +84,7 @@ Specification
         - But hidden module *mod/1.0* is excluded from result if *mod@:2.0* or *mod@1:* are specified
         - And is also excluded from result if *mod* or *mod/** are specified when *mod/1.0* is set default
         - Unless if search is made to select one module since in this context a *mod* search query is equivalent to *mod/default*
+        - Hard-hidden modules are not disclosed even if specifically searched
 
     - Excluded from module resolution result
 
@@ -116,7 +117,7 @@ Specification
 
         - ``--all`` option does not apply to ``is-avail`` sub-command to make it coherent with ``load`` sub-command (eg. a ``is-avail mod`` returning true implies ``load mod`` effectively loading a module)
 
-    - Visibility of a module targeted by a ``module-hide`` command acts similarly than for a file whose name is prefixed by a dot character on Unix platform
+    - Visibility of a module targeted by a ``module-hide`` command, with regular hiding level defined, acts similarly than for a file whose name is prefixed by a dot character on Unix platform
 
     - If ``--soft`` option is set on ``module-hide`` command, module hiding is weakened
 
@@ -143,6 +144,32 @@ Specification
             - is included in ``module avail mod`` result
             - is included in ``module avail mod@:2`` result
             - is included in ``module avail mod@1.0,2.0`` result
+
+    - If ``--hard`` option is set on ``module-hide`` command, hiding is hardened and designated modules are never unveiled
+
+        - Designated modules are strictly hidden, also referred as *hard-hidden*
+
+            - ``--all`` option of ``avail`` sub-command cannot unveil them
+
+        - Excluded from module resolution result, which means it is always excluded from resolution on following context:
+
+            - :ref:`module_version_specification_to_select_one_module`
+            - :ref:`module_version_specification_to_check_compatibility`
+            - :ref:`module_version_specification_to_return_all_matching_modules`
+
+        - For example, the hard-hidden module *mod/1.0*
+
+            - is excluded from ``module load mod/1.0`` result
+            - is excluded from ``module load mod`` result, even if default symbol targets it
+            - is excluded from ``module load mod/1`` result, even if default symbol targets it
+            - is excluded from ``module load mod@:2`` result, even if default symbol targets it
+            - is excluded from ``module load mod@1.0,2.0`` result
+            - is included/excluded the same way for ``prereq`` and ``conflict`` sub-commands than ``load`` sub-command
+            - is matched by ``is-loaded`` and ``info-loaded`` sub-commands querying it once loaded
+            - is excluded from any ``avail`` query result
+            - is included/excluded the same way for ``whatis`` sub-command than ``avail`` sub-command
+
+        - Visibility of a module targeted by a ``module-hide --hard`` command acts like if no modulefile exists on filesystem
 
     - If ``--hide-once-loaded`` option is set on ``module-hide``, hiding also applies to specified modules once they are loaded
 
@@ -188,6 +215,7 @@ Specification
 
     - ``--hide-once-loaded``: hides module from loaded module list
     - ``--soft``: lightweight module hide
+    - ``--hard``: highest hiding level
     - ``--not-user``: specify a list of users unaffected by hide mechanism
     - ``--not-group``: specify a list of groups whose member are unaffected by hide mechanism
     - ``--before``: enables hide mechanism until a given date
@@ -203,7 +231,7 @@ Specification
 
 - Each use case expressed above are covered by following command:
 
-    - RestrictUsage: ``module-forbid``
+    - RestrictUsage: ``module-hide --hard``
     - AllowOnceCleared: ``module-forbid --visible``
     - Expire: ``module-forbid --after``
     - Disclose: ``module-forbid --before``
@@ -265,7 +293,7 @@ Specification
 
 - Module specification passed as argument to ``module-hide`` and ``module-forbid`` are matched exactly against available modules
 
-    - Exception made to the *extended_default* and *icase* variables
+    - Exception made when *extended_default* or *icase* mechanisms are enabled
     - Which means wildcard characters like *\** or *?* are treated literally
 
 - Auto symbols (*@default* and *@latest*) are adapted when a *latest* version is hidden
@@ -293,32 +321,33 @@ Specification
     - A modulefile targeted by either symbolic version or alias
 
         - This modulefile is hidden and all symbolic versions targeting it
-        - Aliases targeting modulefile stays visible (thus resolving alias in *load* or *whatis* contexts make hidden modulefile target visible)
+        - Aliases targeting modulefile stays visible (thus resolving alias in *load* or *whatis* contexts make hidden modulefile target visible unless if set hard-hidden)
 
 - Hidden alias or symbolic version should not appear in the list of alternative names of loaded modules
 
-    - Unless this alias or symbolic version were used to designate the module to load
+    - Unless this alias or symbolic version is not hard-hidden and is used to designate the module to load
     - When ``default`` symbolic version is set hidden
 
         - also remove parent module name from the list of alternative names
-        - if resolution query corresponds to parent module name, unhide ``default`` symbol
+        - if resolution query corresponds to parent module name, unhide ``default`` symbol unless if hard-hidden
 
 - On ``avail`` sub-command
 
     - Hidden symbolic versions are not reported along module they target
 
-        - Unless for symbols specifically designated in search query
+        - Unless for non-hard-hidden symbols specifically designated in search query
 
     - A ``--default`` filtered search considers search query matches ``default`` symbol
 
-        - So ``default`` symbolic version will appear in result even if hidden
+        - So ``default`` symbolic version will appear in result unless if hard-hidden
 
 - Different hiding level are considered
 
     - *-1*: module is not hidden
     - *0*: soft hiding (applied with ``module-hide --soft``)
     - *1*: regular hiding (applied with dot name module or default ``module-hide`` command)
-    - *2*: hard hiding (applied with ``module-forbid``)
+    - *2*: forbidding (applied with ``module-forbid``)
+    - *3*: hard hiding (applied with ``module-hide --hard``)
 
 - Hiding threshold
 
