@@ -847,6 +847,13 @@ module alias. Finally, a hidden symbolic version targeting a non-hidden module
 is displayed or taken into account only if not hard-hidden and explicitly
 named to refer to its non-hidden target.
 
+The automatic version symbols (e.g., ``default`` and ``latest``) are
+unaffected by hiding. Moreover when a regular ``default`` or ``latest``
+version is set hidden, the corresponding automatic version symbol takes the
+left spot. For instance, if ``foo/default`` which targets ``foo/1.2.3`` is set
+hard-hidden, the ``default`` automatic version symbol will be set onto
+``foo/2.1.3``, the highest available version of ``foo``.
+
 When explicitly naming a forbidden *modulefile*, virtual module, module alias
 or symbolic version to select it for evaluation, an access error is raised.
 
