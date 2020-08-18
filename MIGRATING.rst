@@ -202,6 +202,37 @@ hiding to modules:
     # softly hide all qux modules
     module-hide --soft qux
 
+The soft hiding mode enables to hide modules from full availability listing
+yet keeping the ability to select such module for load without having to use
+module exact name:
+
+.. code-block:: console
+
+    $ ml av
+    --------------- /path/to/modulefiles ---------------
+    bar/1.0  bar/2.0
+    $ ml av qux
+    --------------- /path/to/modulefiles ---------------
+    qux/1.0  qux/2.0
+    $ module load -v qux
+    Loading qux/2.0
+
+Alternatively, a ``--hard`` option can be set on :mfcmd:`module-hide` command
+to ensure designated modules do not unveil even if referred by their exact
+name:
+
+.. code-block:: console
+
+    $ cat /path/to/modulefiles/qux/.modulerc
+    #%Module4.6
+    # softly hide all qux modules
+    module-hide --soft qux
+    # set highest version of qux hard hidden
+    module-hide --hard qux/3.0
+    $ ml av qux/3.0
+    $ ml qux/3.0
+    ERROR: Unable to locate a modulefile for 'qux/3.0'
+
 Some users or groups can be set unaffected by hiding mechanism with
 ``--not-user`` or ``--not-group`` options:
 
@@ -221,21 +252,6 @@ Some users or groups can be set unaffected by hiding mechanism with
     quuz/1.0  quuz/2.0
     $ ml -v quuz
     Loading quuz/2.0
-
-The soft hiding mode enables to hide modules from full availability listing
-yet keeping the ability to select such module for load without having to use
-module exact name:
-
-.. code-block:: console
-
-    $ ml av
-    --------------- /path/to/modulefiles ---------------
-    bar/1.0  bar/2.0
-    $ ml av qux
-    --------------- /path/to/modulefiles ---------------
-    qux/1.0  qux/2.0
-    $ module load -v qux
-    Loading qux/2.0
 
 Hidden modules can be included in available module searches if option
 :option:`--all`/:option:`-a` is set on :subcmd:`avail`, :subcmd:`aliases`,
