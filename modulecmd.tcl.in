@@ -4740,6 +4740,31 @@ proc getModulePathList {{behavior returnempty} {resolv_var 1} {set_abs 1}} {
    }
 }
 
+proc setModspecTag {modspec tag} {
+   reportDebug "Set tag '$tag' on module specification '$modspec'"
+   lappend ::g_moduleTag($modspec) $tag
+}
+
+proc getModuleTag {mod} {
+   set taglist [list]
+   # look if mod matches some module specifications if any
+   if {[array size ::g_moduleTag] > 0} {
+      if {[info procs modEq] eq {}} {
+         defineModEqProc [isIcase] [getConf extended_default]
+      }
+      foreach hmodspec [array names ::g_moduleTag] {
+         if {[modEq $hmodspec $mod eqstart]} {
+            eval appendNoDupToList taglist $::g_moduleTag($hmodspec)
+         }
+      }
+   }
+   return $taglist
+}
+
+proc isModuleTagged {mod tag} {
+   return [isInList [getModuleTag $mod] $tag]
+}
+
 proc isModuleDotHidden {mod} {
    foreach elt [split $mod /] {
       if {[string index $elt 0] eq {.}} {
