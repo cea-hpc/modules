@@ -315,6 +315,78 @@ testouterr_cmd_re sh {whatis hide4/.1.0} ERR [err_accessdenied hide4/.1.0]
 unsetenv_var TESTSUITE_HIDE4_CASC2_SET1
 
 
+# module-hide --hard cascading tests
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide1/5.0]
+lappend ans [list setpath _LMFILES_ $mp/hide1/5.0]
+lappend ans [list setpath MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
+
+setenv_var TESTSUITE_HIDE1_CASC7_SET1 1
+testouterr_cmd sh {load hide1@5:} ERR $err_path'hide1@5:'
+testouterr_cmd sh {load hide1@5.0} ERR [err_unablelocate hide1@5.0]
+testouterr_cmd sh {avail -t hide1@5:} OK {}
+testouterr_cmd sh {avail -t hide1@5.0} OK {}
+unsetenv_var TESTSUITE_HIDE1_CASC7_SET1
+
+setenv_var TESTSUITE_HIDE1_CASC7_SET2 1
+testouterr_cmd sh {load hide1@5:} ERR $err_path'hide1@5:'
+testouterr_cmd sh {load hide1@5.0} ERR [err_unablelocate hide1@5.0]
+testouterr_cmd sh {avail -t hide1@5:} OK {}
+testouterr_cmd sh {avail -t hide1@5.0} OK {}
+unsetenv_var TESTSUITE_HIDE1_CASC7_SET2
+
+setenv_var TESTSUITE_HIDE1_CASC7_SET3 1
+testouterr_cmd sh {load hide1@5.0} ERR [err_unablelocate hide1@5.0]
+testouterr_cmd sh {avail -t hide1@5.0} OK {}
+unsetenv_var TESTSUITE_HIDE1_CASC7_SET3
+
+setenv_var TESTSUITE_HIDE1_CASC7_SET4 1
+testouterr_cmd sh {load hide1@5.0} ERR [err_unablelocate hide1@5.0]
+testouterr_cmd sh {avail -t hide1@5.0} OK {}
+unsetenv_var TESTSUITE_HIDE1_CASC7_SET4
+
+setenv_var TESTSUITE_HIDE1_CASC7_SET5 1
+testouterr_cmd sh {load hide1@5.0} $ans {}
+testouterr_cmd sh {avail -t hide1@5.0} OK $mp:\nhide1/5.0
+unsetenv_var TESTSUITE_HIDE1_CASC7_SET5
+
+setenv_var TESTSUITE_HIDE1_CASC7_SET6 1
+testouterr_cmd sh {load hide1@5.0} $ans {}
+testouterr_cmd sh {avail -t hide1@5.0} OK $mp:\nhide1/5.0
+unsetenv_var TESTSUITE_HIDE1_CASC7_SET6
+
+setenv_var TESTSUITE_HIDE1_CASC7_SET7 1
+testouterr_cmd sh {load hide1@5.0} ERR [err_unablelocate hide1@5.0]
+testouterr_cmd sh {avail -t hide1@5.0} OK {}
+unsetenv_var TESTSUITE_HIDE1_CASC7_SET7
+
+setenv_var TESTSUITE_HIDE1_CASC7_SET8 1
+testouterr_cmd sh {load hide1@5.0} ERR [err_unablelocate hide1@5.0]
+testouterr_cmd sh {avail -t hide1@5.0} OK {}
+unsetenv_var TESTSUITE_HIDE1_CASC7_SET8
+
+setenv_var TESTSUITE_HIDE1_CASC7_SET9 1
+testouterr_cmd sh {load hide1@5.0} ERR [err_unablelocate hide1@5.0]
+testouterr_cmd sh {avail -t hide1@5.0} OK {}
+unsetenv_var TESTSUITE_HIDE1_CASC7_SET9
+
+setenv_var TESTSUITE_HIDE1_CASC7_SET10 1
+testouterr_cmd sh {load hide1@5.0} ERR [err_unablelocate hide1@5.0]
+testouterr_cmd sh {avail -t hide1@5.0} OK {}
+unsetenv_var TESTSUITE_HIDE1_CASC7_SET10
+
+# dot named module targetted by module-hide --hard statement
+# module-hide --hard wins over dot hiding
+setenv_var TESTSUITE_HIDE4_CASC3_SET1 1
+testouterr_cmd sh {avail hide4} OK {}
+testouterr_cmd sh {avail -t hide4/.1.0} OK {}
+testouterr_cmd sh {load hide4} ERR $err_path'hide4'
+testouterr_cmd sh {load hide4/.1.0} ERR [err_unablelocate hide4/.1.0]
+testouterr_cmd sh {whatis hide4} ERR $err_path'hide4'
+testouterr_cmd_re sh {whatis hide4/.1.0} ERR [err_unablelocate hide4/.1.0]
+unsetenv_var TESTSUITE_HIDE4_CASC3_SET1
+
+
 #
 #  Cleanup
 #
