@@ -85,29 +85,27 @@ Modules 4.6.0 (not yet released)
   nor selected unless referred by its exact name, like for module whose name
   or version starts with a dot character. :mfcmd:`module-hide` supports the
   advanced module version specifiers. (fix issue #202)
-* Add the :mfcmd:`module-forbid` modulefile command, to dynamically forbid use
-  of modulefile, module alias or symbolic version matching passed
-  specification. When forbidden, a modulefile, an alias or a symbolic version
-  is not reported nor selected even if it is referred by its exact name.
-  Forbidden modules are strictly hidden and an access error is obtained when
-  trying to evaluate them, like for modulefiles with restrictive file
-  permissions. :mfcmd:`module-forbid` supports the advanced module version
-  specifiers. (fix issue #202)
+* Add option ``--soft`` to the :mfcmd:`module-hide` modulefile command to
+  introduce a soften level of camouflage: modules targeted by such hide
+  directive are made visible as soon as their root name is part of search
+  query.
+* Add option ``--hard`` to the :mfcmd:`module-hide` modulefile command to
+  introduce a hardened level of camouflage: modules targeted by such hide
+  directive keep being hidden even if they are fully matched by search query.
 * Do not report among :subcmd:`whatis` search result the modulefiles with
   version name prefixed by a dot character and targeted by a symbolic version
   unless if they are precisely searched.
 * When a loading module has hidden alternative names (hidden due to their
   name or version starting with a dot character or because they match a
-  :mfcmd:`module-hide` or :mfcmd:`module-forbid` statement), these alternative
-  names are not recorded in environment unless if they are not hard-hidden or
-  forbidden and if they have been used in query to select loading module.
+  :mfcmd:`module-hide` statement), these alternative names are not recorded in
+  environment unless if they are not hard-hidden and if they have been used in
+  query to select loading module.
 * On :subcmd:`avail` sub-command, remove hidden symbolic versions from the
   list to display along modulefile or directory they target, unless these
-  symbols are not hard-hidden or forbidden and are used in query to search
-  modules.
+  symbols are not hard-hidden and are used in query to search modules.
 * When the :option:`--default` filter of :subcmd:`avail` sub-command is set,
   unhide all the *default* symbolic versions or modules targeted by these
-  symbols unless if they are hard-hidden or forbidden.
+  symbols unless if they are hard-hidden.
 * Define the *default* and *latest* automatic symbolic versions only if
   relative module name matches search query to ensure all elements for this
   module have been processed prior assigning the symbols.
@@ -118,18 +116,16 @@ Modules 4.6.0 (not yet released)
   will now correctly resolve to the modulefile targeted by symbol.
 * Fix use of the advanced version specifiers in arguments to the
   :mfcmd:`is-avail` modulefile command.
-* Add option ``--soft`` to the :mfcmd:`module-hide` modulefile command to
-  introduce a soften level of camouflage: modules targeted by such hide
-  directive are made visible as soon as their root name is part of search
-  query.
-* Add option ``--hard`` to the :mfcmd:`module-hide` modulefile command to
-  introduce a hardened level of camouflage: modules targeted by such hide
-  directive keep being hidden even if they are fully matched by search query.
 * Introduce the :option:`--all`/:option:`-a` option for :subcmd:`avail`,
   :subcmd:`aliases`, :subcmd:`whatis` and :subcmd:`search` sub-commands, to
   include in the search process all hidden modulefiles, module aliases or
-  symbolic versions. Hard-hidden and forbidden modules stay hidden even if
+  symbolic versions. Hard-hidden modules stay hidden even if
   :option:`--all`/:option:`-a` option is used.
+* Add the :mfcmd:`module-forbid` modulefile command, to dynamically forbid
+  evaluation of modulefile matching passed specification. When forbidden, a
+  module cannot be loaded and an access error is obtained when trying to
+  evaluate them. :mfcmd:`module-forbid` supports the advanced module version
+  specifiers.
 * Add ``--not-user`` and ``--not-group`` options to :mfcmd:`module-hide` and
   :mfcmd:`module-forbid` modulefile commands to ignore hiding or forbidding
   definition if current user is respectively part of specified username list
