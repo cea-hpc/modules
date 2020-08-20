@@ -178,38 +178,24 @@ Specification
         - When those modules are loaded, they are recorded in ``MODULES_LMHIDDEN`` environment variable to keep track of their hidden status
         - Hidden once loaded status does not affect ``is-loaded``: these modules will always be reported if they match ``is-loaded`` queries
 
-- ``module-forbid`` bans specified modules
+- ``module-forbid`` disallow evaluation of specified modules
 
-    - They are strictly hidden
+    - It does not imply hiding, but can be of course coupled with ``module-hide`` calls
+    - Evaluation of targeted modules is forbidden
 
-        - ``--all`` option of ``avail`` sub-command cannot unveil them
+        - Error is rendered prior evaluation when trying to *load*, *display*, *help*, *test*, *path*, *whatis* them
+        - Note that for *whatis* evaluation mode, an error is reported only if a module is referred by its exact name which is not the case on ``search`` sub-command as no module is specified, just a keyword to search
+        - No error occurs when unloading a module that were set forbidden after it was loaded by user
 
-    - Excluded from module resolution result
+    - As it impacts module evaluation, ``module-forbid`` is only effective when it targets modulefiles or virtual modules
 
-        - Unless precisely specified on the following selection contexts:
+        - Module alias or symbolic version are not impacted by ``module-forbid`` directives
+        - Even if they match some ``module-forbid`` statements, they are still resolved to their target and these targets do not inherit the *forbidden* tag set on their alias, symbol.
+        - When a ``module-forbid`` command targets a directory, this directory is still resolved to its target, but the target inherits the *forbidden* tag as it matches the name specified on ``module-forbid`` command
 
-            - :ref:`module_version_specification_to_select_one_module`
-            - :ref:`module_version_specification_to_check_compatibility`
+    - When combined with a ``module-hide --hard`` command, designated modules is unveiled if referred by its exact name and set in error
 
-        - Which means it is always excluded from resolution on following context:
-
-            - :ref:`module_version_specification_to_return_all_matching_modules`
-
-        - For example, the forbidden module *mod/1.0*
-
-            - is included in ``module load mod/1.0`` result
-            - is excluded from ``module load mod`` result, even if default symbol targets it
-            - is excluded from ``module load mod/1`` result, even if default symbol targets it
-            - is excluded from ``module load mod@:2`` result, even if default symbol targets it
-            - is included in ``module load mod@1.0,2.0`` result, but in the end *mod/2.0* is preferred as *mod/1.0* is set in error
-            - is included/excluded the same way for ``prereq`` and ``conflict`` sub-commands than ``load`` sub-command
-            - is matched by ``is-loaded`` and ``info-loaded`` sub-commands querying it once loaded
-            - is excluded from any ``avail`` query result
-            - is included/excluded the same way for ``whatis`` sub-command than ``avail`` sub-command
-
-    - Error is rendered when trying to load them
-
-    - Visibility of a module targeted by a ``module-forbid`` command acts the same than for a modulefile with no read permission granted on filesystem
+        - Thus an error is obtained when trying to reach module instead of not finding it (which is the regular behavior for hard-hidden modules)
 
 - ``module-hide`` accepts options that change its behavior:
 
@@ -223,7 +209,6 @@ Specification
 
 - ``module-forbid`` accepts options that change its behavior:
 
-    - ``--visible``: disables the hidden property of the command which means module is normally included in resolution
     - ``--not-user``: specify a list of users unaffected by forbid mechanism
     - ``--not-group``: specify a list of groups whose member are unaffected by forbid mechanism
     - ``--before``: enables forbid mechanism until a given date
@@ -232,9 +217,9 @@ Specification
 - Each use case expressed above are covered by following command:
 
     - RestrictUsage: ``module-hide --hard``
-    - AllowOnceCleared: ``module-forbid --visible``
-    - Expire: ``module-forbid --after``
-    - Disclose: ``module-forbid --before``
+    - AllowOnceCleared: ``module-forbid``
+    - Expire: ``module-forbid --after`` + ``module-hide --hard --after``
+    - Disclose: ``module-hide --hard --before``
     - HideNotOfInt: ``module-hide --soft``
     - HideDep: ``module-hide --soft``
     - HideDepOnceLoaded: ``module-hide --soft --hide-once-loaded``
@@ -257,7 +242,7 @@ Specification
     - In which case relative ``module-hide`` or ``module-forbid`` command is made ineffective as well as remaining content of the modulerc script hosting them
     - Error message is clearly seen when trying to load related modules and indicate where to find the erroneous command
 
-- ``--before`` and ``--after`` are also supported by ``module-hide`` to phase-out modules prior forbidden them
+- ``--before`` and ``--after`` are also supported by ``module-hide`` to phase-out modules prior to forbid their evaluation
 
 - ``--before`` and ``--after`` accept a date time as value
 
@@ -284,7 +269,7 @@ Specification
     - as they impact modulefile resolution
     - they also need to be enabled in modulefile context as global/user rc files are evaluated as modulefile, not modulerc
 
-- several ``module-hide`` or ``module-forbid`` calls for the same module will supersede each other
+- several ``module-hide`` calls for the same module will supersede each other
 
     - definition with the highest hiding level wins
     - which means the most restrictive call wins
@@ -306,7 +291,7 @@ Specification
     - When a defined ``default`` or ``latest`` symbol is set hidden, it is replaced by a ``default`` or ``latest`` auto-symbol targetting highest available module version
     - Targeting an auto-symbol with a ``module-hide`` command, will have no effect
 
-- When module specification of ``module-hide`` or ``module-forbid`` targets:
+- When module specification of ``module-hide`` targets:
 
     - A symbolic version
 
@@ -346,8 +331,7 @@ Specification
     - *-1*: module is not hidden
     - *0*: soft hiding (applied with ``module-hide --soft``)
     - *1*: regular hiding (applied with dot name module or default ``module-hide`` command)
-    - *2*: forbidding (applied with ``module-forbid``)
-    - *3*: hard hiding (applied with ``module-hide --hard``)
+    - *2*: hard hiding (applied with ``module-hide --hard``)
 
 - Hiding threshold
 
