@@ -4962,6 +4962,10 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
    if {![info exists retlist]} {
       set retlist [list {} $mod none "Unable to locate a modulefile for\
          '$mod'"]
+   # update result if forbidden
+   } elseif {[isModuleTagged [lindex $retlist 1] forbidden]} {
+      set retlist [list {} [lindex $retlist 1] accesserr "Access to module\
+         '[lindex $retlist 1]' is denied"]
    }
    if {[lindex $retlist 0] ne {}} {
       reportDebug "found '[lindex $retlist 0]' as '[lindex $retlist 1]'"
@@ -10382,14 +10386,30 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
       foreach elt [array names mod_list] {
          switch -- [lindex $mod_list($elt) 0] {
             modulefile {
-               set interp_list($elt) $dir/$elt
-               # register module name in a global list (shared across
-               # modulepaths) to get hints when solving aliases/version
-               set full_list($elt) 1
+               if {[isModuleTagged $elt forbidden]} {
+                  # register any error occuring on element matching search
+                  if {[modEq $mod $elt]} {
+                     set err_list($elt) [list accesserr "Access to module\
+                        '$elt' is denied"]
+                  }
+               } else {
+                  set interp_list($elt) $dir/$elt
+                  # register module name in a global list (shared across
+                  # modulepaths) to get hints when solving aliases/version
+                  set full_list($elt) 1
+               }
             }
             virtual {
-               set interp_list($elt) [lindex $mod_list($elt) 2]
-               set full_list($elt) 1
+               if {[isModuleTagged $elt forbidden]} {
+                  # register any error occuring on element matching search
+                  if {[modEq $mod $elt]} {
+                     set err_list($elt) [list accesserr "Access to module\
+                        '$elt' is denied"]
+                  }
+               } else {
+                  set interp_list($elt) [lindex $mod_list($elt) 2]
+                  set full_list($elt) 1
+               }
             }
             alias {
                # resolve alias target
