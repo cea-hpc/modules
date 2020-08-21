@@ -63,13 +63,12 @@ set tserr3 [err_accessdenied hide1/5.0]
 # test --not-user option
 setenv_var TESTSUITE_FORBID_ALLOW_USER_SET1 1
 testouterr_cmd sh {load hide1@5:} $ans {}
-testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
 unsetenv_var TESTSUITE_FORBID_ALLOW_USER_SET1
 
 setenv_var TESTSUITE_FORBID_ALLOW_USER_SET2 1
-testouterr_cmd sh {load hide1@5:} ERR $tserr2
+testouterr_cmd sh {load hide1@5:} ERR $tserr3
 testouterr_cmd sh {load hide1/5.0} ERR $tserr3
-testouterr_cmd sh {avail -t hide1@5:} OK {}
+testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
 # fake Windows platform if expected siteconfig file is installed
 if {[siteconfig_isStderrTty]} {
     setenv_var TESTSUITE_ENABLE_SITECONFIG_WINDOWS_PLATFORM 1
@@ -79,10 +78,10 @@ if {[siteconfig_isStderrTty]} {
 \"if \{\[info exists env(TESTSUITE_FORBID_ALLOW_USER_SET2)\]\} \{
     module-forbid --not-user unknown hide1/5.0
 \}\""
-        set linenum 247
+        set linenum 224
     } else {
         set custom {}
-        set linenum 248
+        set linenum 225
     }
     set tserr4 [escre [msg_moderr {Option '--not-user' not supported on Windows platform} {module-forbid --not-user unknown hide1/5.0} $mp/hide1/.modulerc $linenum {  } {} {} $custom]]
 
@@ -94,12 +93,6 @@ unsetenv_var TESTSUITE_FORBID_ALLOW_USER_SET2
 
 
 # test --not-group option
-setenv_var TESTSUITE_FORBID_ALLOW_GROUP_SET4 1
-testouterr_cmd sh {load hide1@5:} ERR $tserr2
-testouterr_cmd sh {load hide1/5.0} ERR $tserr3
-testouterr_cmd sh {avail -t hide1@5:} OK {}
-unsetenv_var TESTSUITE_FORBID_ALLOW_GROUP_SET4
-
 setenv_var TESTSUITE_FORBID_ALLOW_GROUP_SET5 1
 testouterr_cmd sh {load hide1@5:} $ans {}
 testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
@@ -108,15 +101,8 @@ unsetenv_var TESTSUITE_FORBID_ALLOW_GROUP_SET5
 
 # test cumulative use of --not-user and --not-group options
 setenv_var TESTSUITE_FORBID_ALLOW_USER_GROUP_SET1 1
-testouterr_cmd sh {load hide1@5:} $ans {}
-testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
+testouterr_cmd sh {load hide1@5.0} $ans {}
 unsetenv_var TESTSUITE_FORBID_ALLOW_USER_GROUP_SET1
-
-setenv_var TESTSUITE_FORBID_ALLOW_USER_GROUP_SET3 1
-testouterr_cmd sh {load hide1@5:} ERR $tserr2
-testouterr_cmd sh {load hide1/5.0} ERR $tserr3
-testouterr_cmd sh {avail -t hide1@5:} OK {}
-unsetenv_var TESTSUITE_FORBID_ALLOW_USER_GROUP_SET3
 
 
 set ans [list]
@@ -129,11 +115,11 @@ if {[cmpversion $tclsh_version 8.6] == -1} {
     set custom "    invoked from within
 \"if \{\[info exists env(TESTSUITE_FORBID_ALLOW_USER_GROUP_ERR_SET2)\]\} \{
     module-forbid --not-group hide1/5.0 --not-user
-    module-hide --hard --not-g...\""
-    set linenum 269
+\}\""
+    set linenum 236
 } else {
     set custom {}
-    set linenum 270
+    set linenum 237
 }
 set tserr3 [msg_moderr {Missing value for '--not-user' option} {module-forbid --not-group hide1/5.0 --not-user} $mp/hide1/.modulerc $linenum {  } {} {} $custom]
 

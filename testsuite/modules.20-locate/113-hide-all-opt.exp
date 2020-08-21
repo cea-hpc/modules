@@ -142,13 +142,87 @@ restore_file_perms $mp/hide1
 }
 
 
+unsetenv_var TESTSUITE_HIDE_SET1
+unsetenv_var TESTSUITE_HIDE2_SET15
+unsetenv_var TESTSUITE_HIDE3_SET1
+
+
+# test with module-hide --hard commands
+setenv_var TESTSUITE_HIDE_HARD_SET1 1
+setenv_var TESTSUITE_HIDE2_HARD_SET15 1
+setenv_var TESTSUITE_HIDE3_HARD_SET1 1
+
+# no effect on selection context
+testouterr_cmd sh {load -a hide2} ERR $err_path'-a'\n$err_path'hide2'
+# no effect on is-avail
+testouterr_cmd sh {is-avail -a hide3} ERR {}
+
+# test on avail
+testouterr_cmd sh {avail -a -t hide1@2:4} OK $mp:\nhide1/2.0\nhide1/2.1\nhide1/2.2\nhide1/3.0\nhide1/3.2\nhide1/4.0
+testouterr_cmd sh {avail -t -a hide2} OK "global/user modulerc:\nhide2/1.3(@)"
+testouterr_cmd sh {avail -a -t hide3/sym} OK {}
+
+# test on whatis
+set tserr "$modlin $mpre $modlin"
+testouterr_cmd_re sh {whatis -a hide3} ERR $err_path'hide3'
+testouterr_cmd_re sh {whatis --all hide3/sym} ERR [err_unablelocate hide3/sym]
+testouterr_cmd_re sh {whatis hide1@3,4 -a} OK "$tserr\n\\s+hide1/3.0: hide1/3.0\n\\s+hide1/3.2: hide1/3.2\n\\s+hide1/4.0: hide1/4.0"
+
+# test on search
+# result starts by an extra newline, which may be caused by the errors caught when evaluating all modules
+testouterr_cmd_re sh {search -a hide3} ERR {}
+
+# test aliases
+testouterr_cmd_re sh {aliases -a} OK "$modlin Aliases $modlin
+(.*)+
+nocase/alias -> nocase/1
+nocase/ialias -> Nocase/Virt
+(.*)+
+
+$modlin Versions $modlin
+(.*)+
+extdfl7/8.2 -> extdfl7/7
+nanfoo/nan -> nanfoo/1
+(.*)+"
+
+# test through 'ml' command
+testouterr_cmd sh {ml avail -a -t hide1@2:4} OK $mp:\nhide1/2.0\nhide1/2.1\nhide1/2.2\nhide1/3.0\nhide1/3.2\nhide1/4.0
+testouterr_cmd_re sh {ml whatis -a hide3} ERR $err_path'hide3'
+
+# test with dot named module declared forbidden
+setenv_var TESTSUITE_HIDE4_CASC2_SET1 1
+testouterr_cmd sh {avail -a -t -C /.} OK "$mp:
+extdfl/.1.3.3
+extdfl/.1.3.4
+nocase/.hidden"
+unsetenv_var TESTSUITE_HIDE4_CASC2_SET1
+
+# cannot test access if cannot change file permission
+if {!$is_file_perms_editable} {
+    send_user "\tskipping access tests as file permissions cannot be changed\n"
+# cannot test access if superuser privileges are in use
+} elseif {$tcl_platform(user) eq "root"} {
+    send_user "\tskipping access tests as tests are run by superuser\n"
+# cannot test access if restricted file permissions have no effect
+} elseif {$is_locked_dir_file_readable && $is_locked_file_readable} {
+    send_user "\tskipping access tests as locked files or directories are still readable\n"
+} else {
+
+# test with modules whose access is restricted
+change_file_perms $mp/hide1 ugo-rx
+testouterr_cmd sh {avail -a -t hide1@2:4} OK {}
+restore_file_perms $mp/hide1
+
+}
+
+
 #
 #  Cleanup
 #
 
-unsetenv_var TESTSUITE_HIDE_SET1
-unsetenv_var TESTSUITE_HIDE2_SET15
-unsetenv_var TESTSUITE_HIDE3_SET1
+unsetenv_var TESTSUITE_HIDE_HARD_SET1
+unsetenv_var TESTSUITE_HIDE2_HARD_SET15
+unsetenv_var TESTSUITE_HIDE3_HARD_SET1
 
 # restore environment
 setenv_path_var MODULEPATH $modpath

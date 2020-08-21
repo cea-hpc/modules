@@ -59,10 +59,10 @@ if {[cmpversion $tclsh_version 8.6] == -1} {
 \"if \{\[info exists env(TESTSUITE_FORBID_ERR1)\]\} \{
     module-forbid
 \}\""
-    set linenum 209
+    set linenum 187
 } else {
     set custom {}
-    set linenum 210
+    set linenum 188
 }
 set tserr [msg_moderr {No module specified in argument} {module-forbid} $mp/hide1/.modulerc $linenum {  } {} {} $custom]
 testouterr_cmd sh {load hide1@3.10:4.20} $ans $tserr
@@ -77,10 +77,10 @@ if {[cmpversion $tclsh_version 8.6] == -1} {
 \"if \{\[info exists env(TESTSUITE_FORBID_ERR2)\]\} \{
     module-forbid @:1.2
 \}\""
-    set linenum 212
+    set linenum 190
 } else {
     set custom {}
-    set linenum 213
+    set linenum 191
 }
 set tserr [msg_moderr {No module name defined in argument '@:1.2'} {module-forbid @:1.2} $mp/hide1/.modulerc $linenum {  } {} {} $custom]
 testouterr_cmd sh {load hide1@3.10:4.20} $ans $tserr
@@ -102,10 +102,10 @@ if {[cmpversion $tclsh_version 8.6] == -1} {
 \"if \{\[info exists env(TESTSUITE_FORBID_ERR3)\]\} \{
     module-forbid -foo hide2
 \}\""
-    set linenum 215
+    set linenum 193
 } else {
     set custom {}
-    set linenum 216
+    set linenum 194
 }
 set tserr [string map {<EXTMATCH> (.*)+} [escre [msg_moderr {Invalid option '-foo'} $errmsg $mp/hide1/.modulerc $linenum {  } {} {} $custom]]]
 testouterr_cmd_re sh {load hide1@3.10:4.20} $ans $tserr
@@ -127,10 +127,10 @@ if {[cmpversion $tclsh_version 8.6] == -1} {
 \"if \{\[info exists env(TESTSUITE_FORBID_ERR4)\]\} \{
     module-forbid --foo hide2
 \}\""
-    set linenum 218
+    set linenum 196
 } else {
     set custom {}
-    set linenum 219
+    set linenum 197
 }
 set tserr [string map {<EXTMATCH> (.*)+} [escre [msg_moderr {Invalid option '--foo'} $errmsg $mp/hide1/.modulerc $linenum {  } {} {} $custom]]]
 testouterr_cmd_re sh {load hide1@3.10:4.20} $ans $tserr
@@ -383,160 +383,6 @@ testouterr_cmd_re sh {whatis hide2/1.0} OK "$tserr\n\\s+hide2/1.0: hide2/1.0"
 testouterr_cmd_re sh {whatis hide2/1.2} ERR [err_accessdenied hide2/1.2]
 unsetenv_var TESTSUITE_FORBID2_SET3
 
-setenv_var TESTSUITE_FORBID2_SET4 1
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide2/1.0]
-lappend ans [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans [list setpath MODULES_LMALTNAME hide2/1.0&hide2/1.4&hide2/1.1&hide2/1.2]
-set ans2 [list]
-lappend ans2 [list setpath LOADEDMODULES hide2/1.5]
-lappend ans2 [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans2 [list setpath MODULES_LMALTNAME hide2/1.5&as|hide2/default&as|hide2/latest]
-testouterr_cmd sh {load hide2} $ans2 {}
-testouterr_cmd sh {load hide2/1.0} $ans {}
-testouterr_cmd sh {load hide2/1.3} ERR [err_accessdenied hide2/1.3]
-# hide2/1.3 is still visible as declared forbidden in a later modulepath
-testouterr_cmd sh {avail -t hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.0(1.2:1.4)\nhide2/1.1(@)\nhide2/1.5"
-testouterr_cmd sh {avail -t hide2/1.0} OK $mp:\nhide2/1.0(1.2:1.4)
-testouterr_cmd sh {avail -t hide2/1.3} OK "global/user modulerc:\nhide2/1.3(@)"
-set tserr "$modlin $mpre $modlin"
-testouterr_cmd_re sh {whatis hide2} OK "$tserr\n\\s+hide2/1.0: hide2/1.0\n\\s+hide2/1.5: hide2/1.5"
-testouterr_cmd_re sh {whatis hide2/1.0} OK "$tserr\n\\s+hide2/1.0: hide2/1.0"
-testouterr_cmd_re sh {whatis hide2/1.3} ERR [err_accessdenied hide2/1.3]
-unsetenv_var TESTSUITE_FORBID2_SET4
-
-setenv_var TESTSUITE_FORBID2_SET5 1
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide2/1.0]
-lappend ans [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans [list setpath MODULES_LMALTNAME hide2/1.0&hide2/1.3&hide2/1.1&hide2/1.2]
-set ans2 [list]
-lappend ans2 [list setpath LOADEDMODULES hide2/1.5]
-lappend ans2 [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans2 [list setpath MODULES_LMALTNAME hide2/1.5&as|hide2/default&as|hide2/latest]
-testouterr_cmd sh {load hide2} $ans2 {}
-testouterr_cmd sh {load hide2/1.0} $ans {}
-testouterr_cmd sh {load hide2/1.4} ERR [err_accessdenied hide2/1.4]
-# hide2/1.4 is still visible as declared forbidden in a later modulepath
-testouterr_cmd sh {avail -t hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.0(1.2:1.4)\nhide2/1.1(@)\nhide2/1.5"
-testouterr_cmd sh {avail -t hide2/1.0} OK $mp:\nhide2/1.0(1.2:1.4)
-testouterr_cmd sh {avail -t hide2/1.4} OK {}
-set tserr "$modlin $mpre $modlin"
-testouterr_cmd_re sh {whatis hide2} OK "$tserr\n\\s+hide2/1.0: hide2/1.0\n\\s+hide2/1.5: hide2/1.5"
-testouterr_cmd_re sh {whatis hide2/1.0} OK "$tserr\n\\s+hide2/1.0: hide2/1.0"
-testouterr_cmd_re sh {whatis hide2/1.4} ERR [err_accessdenied hide2/1.4]
-unsetenv_var TESTSUITE_FORBID2_SET5
-
-setenv_var TESTSUITE_FORBID2_SET6 1
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide2/1.0]
-lappend ans [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans [list setpath MODULES_LMALTNAME hide2/1.0&hide2/1.3&hide2/1.4&hide2/1.1&hide2/1.2&as|hide2/default&as|hide2/latest]
-testouterr_cmd sh {load hide2} $ans {}
-testouterr_cmd sh {load hide2/1.0} $ans {}
-testouterr_cmd sh {load hide2/1.5} ERR [err_accessdenied hide2/1.5]
-testouterr_cmd sh {load hide2@default} $ans {}
-testouterr_cmd sh {load hide2@latest} $ans {}
-testouterr_cmd_re sh {load --auto hidereq/3.0} ERR [msg_load hidereq/3.0 [err_accessdenied hide2/1.5] [err_reqlo hide2/1.5]]
-testouterr_cmd sh {avail -t hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.0(1.2:1.4)\nhide2/1.1(@)"
-testouterr_cmd sh {avail -t hide2/1.0} OK $mp:\nhide2/1.0(1.2:1.4)
-testouterr_cmd sh {avail -t hide2/1.5} OK {}
-# symbolic version does not count when looking for a default or latest (highest modulefile or alias is used)
-testouterr_cmd sh {avail -t hide2@default} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.1(@)"
-testouterr_cmd sh {avail -t hide2@latest} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.1(@)"
-set tserr "$modlin $mpre $modlin"
-testouterr_cmd_re sh {whatis hide2} OK "$tserr\n\\s+hide2/1.0: hide2/1.0"
-testouterr_cmd_re sh {whatis hide2/1.0} OK "$tserr\n\\s+hide2/1.0: hide2/1.0"
-testouterr_cmd_re sh {whatis hide2/1.5} ERR [err_accessdenied hide2/1.5]
-testouterr_cmd_re sh {whatis hide2@default} OK "$tserr\n\\s+hide2/1.0: hide2/1.0"
-testouterr_cmd_re sh {whatis hide2@latest} OK "$tserr\n\\s+hide2/1.0: hide2/1.0"
-unsetenv_var TESTSUITE_FORBID2_SET6
-
-setenv_var TESTSUITE_FORBID2_SET7 1
-set ans2 [list]
-lappend ans2 [list setpath LOADEDMODULES hide2/1.5]
-lappend ans2 [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans2 [list setpath MODULES_LMALTNAME hide2/1.5&as|hide2/default&as|hide2/latest]
-testouterr_cmd sh {load hide2} $ans2 {}
-testouterr_cmd sh {load hide2/1.0} ERR [err_accessdenied hide2/1.0]
-set ans3 [list]
-lappend ans3 [list setpath LOADEDMODULES hide2/1.0]
-lappend ans3 [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans3 [list setpath MODULES_LMALTNAME hide2/1.0&hide2/1.4&hide2/1.1&hide2/1.2]
-testouterr_cmd sh {load hide2/1.1} ERR [err_accessdenied hide2/1.1]
-testouterr_cmd sh {load hide2/1.2} ERR [err_accessdenied hide2/1.0]
-set ans3 [list]
-lappend ans3 [list setpath LOADEDMODULES hide2/1.0]
-lappend ans3 [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans3 [list setpath MODULES_LMALTNAME hide2/1.0&hide2/1.3&hide2/1.4&hide2/1.2]
-testouterr_cmd sh {load hide2/1.3} ERR [err_accessdenied hide2/1.3]
-testouterr_cmd sh {load hide2/1.4} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd_re sh {load --auto hidereq/3.0} ERR [msg_load hidereq/3.0 [err_accessdenied hide2/1.1] [err_reqlo hide2/1.1]]
-testouterr_cmd sh {avail -t hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
-testouterr_cmd sh {avail -t hide2/1.0} OK {}
-testouterr_cmd sh {avail -t hide2/1.1} OK {}
-testouterr_cmd sh {avail -t hide2/1.2} OK {}
-testouterr_cmd sh {avail -t hide2/1.3} OK "global/user modulerc:\nhide2/1.3(@)"
-testouterr_cmd sh {avail -t hide2/1.4} OK {}
-set tserr "$modlin $mpre $modlin"
-testouterr_cmd_re sh {whatis hide2} OK "$tserr\n\\s+hide2/1.5: hide2/1.5"
-testouterr_cmd_re sh {whatis hide2/1.0} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd_re sh {whatis hide2/1.1} ERR [err_accessdenied hide2/1.1]
-testouterr_cmd_re sh {whatis hide2/1.2} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd_re sh {whatis hide2/1.3} ERR [err_accessdenied hide2/1.3]
-testouterr_cmd_re sh {whatis hide2/1.4} ERR [err_accessdenied hide2/1.0]
-unsetenv_var TESTSUITE_FORBID2_SET7
-
-setenv_var TESTSUITE_FORBID2_SET8 1
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide2/1.0]
-lappend ans [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans [list setpath MODULES_LMALTNAME hide2/1.0&hide2/1.1&hide2/1.2]
-set ans2 [list]
-lappend ans2 [list setpath LOADEDMODULES hide2/1.5]
-lappend ans2 [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans2 [list setpath MODULES_LMALTNAME hide2/1.5&as|hide2/default&as|hide2/latest]
-testouterr_cmd sh {load hide2} $ans2 {}
-testouterr_cmd sh {load hide2/1.0} $ans {}
-testouterr_cmd sh {load hide2/1.3} ERR [err_accessdenied hide2/1.3]
-testouterr_cmd sh {load hide2/1.4} ERR [err_accessdenied hide2/1.4]
-testouterr_cmd sh {avail -t hide2} OK "$mp:\nhide2/1.0(1.2)\nhide2/1.1(@)\nhide2/1.5"
-testouterr_cmd sh {avail -t hide2/1.0} OK $mp:\nhide2/1.0(1.2)
-testouterr_cmd sh {avail -t hide2/1.3} OK {}
-testouterr_cmd sh {avail -t hide2/1.4} OK {}
-set tserr "$modlin $mpre $modlin"
-testouterr_cmd_re sh {whatis hide2} OK "$tserr\n\\s+hide2/1.0: hide2/1.0\n\\s+hide2/1.5: hide2/1.5"
-testouterr_cmd_re sh {whatis hide2/1.0} OK "$tserr\n\\s+hide2/1.0: hide2/1.0"
-testouterr_cmd_re sh {whatis hide2/1.3} ERR [err_accessdenied hide2/1.3]
-testouterr_cmd_re sh {whatis hide2/1.4} ERR [err_accessdenied hide2/1.4]
-unsetenv_var TESTSUITE_FORBID2_SET8
-
-setenv_var TESTSUITE_FORBID2_SET9 1
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide2/1.0]
-lappend ans [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans [list setpath MODULES_LMALTNAME hide2/1.0&hide2/1.3&hide2/1.4&hide2/1.2&hide2/1.6]
-set ans2 [list]
-lappend ans2 [list setpath LOADEDMODULES hide2/1.5]
-lappend ans2 [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans2 [list setpath MODULES_LMALTNAME hide2/1.5&as|hide2/default&as|hide2/latest]
-testouterr_cmd sh {load hide2} $ans2 {}
-testouterr_cmd sh {load hide2/1.0} $ans {}
-testouterr_cmd sh {load hide2/1.1} ERR [err_accessdenied hide2/1.1]
-# hide2/1.1 alias is forbidden, but transitive set of 1.6 symbol to hide2/1.0 is still effective
-testouterr_cmd sh {load hide2/1.6} $ans {}
-testouterr_cmd sh {avail -t hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.0(1.2:1.4:1.6)\nhide2/1.5"
-testouterr_cmd sh {avail -t hide2/1.0} OK $mp:\nhide2/1.0(1.2:1.4:1.6)
-testouterr_cmd sh {avail -t hide2/1.1} OK {}
-# hide2/1.1 alias is forbidden so only the transitive set of 1.6 symbol to hide2/1.0 will be reported
-testouterr_cmd sh {avail -t hide2/1.6} OK $mp:\nhide2/1.0(1.2:1.4:1.6)
-set tserr "$modlin $mpre $modlin"
-testouterr_cmd_re sh {whatis hide2} OK "$tserr\n\\s+hide2/1.0: hide2/1.0\n\\s+hide2/1.5: hide2/1.5"
-testouterr_cmd_re sh {whatis hide2/1.0} OK "$tserr\n\\s+hide2/1.0: hide2/1.0"
-testouterr_cmd_re sh {whatis hide2/1.1} ERR [err_accessdenied hide2/1.1]
-testouterr_cmd_re sh {whatis hide2/1.6} OK "$tserr\n\\s+hide2/1.0: hide2/1.0"
-unsetenv_var TESTSUITE_FORBID2_SET9
-
 setenv_var TESTSUITE_FORBID2_SET10 1
 set ans [list]
 lappend ans [list setpath LOADEDMODULES hide2/1.0]
@@ -573,191 +419,6 @@ testouterr_cmd_re sh {whatis hide2@default} ERR [err_accessdenied hide2/default]
 testouterr_cmd_re sh {whatis hide2@latest} OK "$tserr\n\\s+hide2/1.5: hide2/1.5"
 unsetenv_var TESTSUITE_FORBID2_SET10
 
-setenv_var TESTSUITE_FORBID2_SET11 1
-set ans2 [list]
-lappend ans2 [list setpath LOADEDMODULES hide2/1.5]
-lappend ans2 [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans2 [list setpath MODULES_LMALTNAME hide2/1.5&as|hide2/latest]
-testouterr_cmd sh {load hide2} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd sh {load hide2/1.0} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd sh {load hide2/1.1} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd sh {load hide2/1.2} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd sh {load hide2/1.3} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd sh {load hide2/1.4} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd sh {load hide2/1.5} $ans2 {}
-testouterr_cmd sh {load hide2@default} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd sh {load hide2@latest} $ans2 {}
-testouterr_cmd_re sh {load --auto hidereq/3.0} ERR [msg_load hidereq/3.0 [err_accessdenied hide2/1.0] [err_reqlo hide2/1.1]]
-testouterr_cmd sh {avail -t hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.1(@)\nhide2/1.5"
-testouterr_cmd sh {avail -t hide2/1.0} OK {}
-testouterr_cmd sh {avail -t hide2/1.1} OK $mp:\nhide2/1.1(@)
-testouterr_cmd sh {avail -t hide2/1.2} OK {}
-testouterr_cmd sh {avail -t hide2/1.3} OK "global/user modulerc:\nhide2/1.3(@)"
-testouterr_cmd sh {avail -t hide2/1.4} OK {}
-testouterr_cmd sh {avail -t hide2/1.5} OK $mp:\nhide2/1.5
-testouterr_cmd sh {avail -t hide2@default} OK "global/user modulerc:\nhide2/1.3(@)"
-testouterr_cmd sh {avail -t hide2@latest} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
-testouterr_cmd sh {avail -t -d hide2} OK "global/user modulerc:\nhide2/1.3(@)"
-testouterr_cmd sh {avail -t -L hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
-set tserr "$modlin $mpre $modlin"
-testouterr_cmd_re sh {whatis hide2} OK "$tserr\n\\s+hide2/1.5: hide2/1.5"
-testouterr_cmd_re sh {whatis hide2/1.0} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd_re sh {whatis hide2/1.1} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd_re sh {whatis hide2/1.2} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd_re sh {whatis hide2/1.3} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd_re sh {whatis hide2/1.4} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd_re sh {whatis hide2/1.5} OK "$tserr\n\\s+hide2/1.5: hide2/1.5"
-testouterr_cmd_re sh {whatis hide2@default} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd_re sh {whatis hide2@latest} OK "$tserr\n\\s+hide2/1.5: hide2/1.5"
-unsetenv_var TESTSUITE_FORBID2_SET11
-
-setenv_var TESTSUITE_FORBID2_SET12 1
-set ans2 [list]
-lappend ans2 [list setpath LOADEDMODULES hide2/1.5]
-lappend ans2 [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans2 [list setpath MODULES_LMALTNAME hide2/1.5&as|hide2/default&as|hide2/latest]
-testouterr_cmd sh {load hide2} $ans2 {}
-testouterr_cmd sh {load hide2/1.0} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd sh {load hide2/1.1} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd sh {load hide2/1.2} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd sh {load hide2/1.3} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd sh {load hide2/1.4} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd sh {load hide2/1.5} $ans2 {}
-testouterr_cmd sh {load hide2@default} ERR [err_accessdenied hide2/default]
-testouterr_cmd sh {load hide2@latest} $ans2 {}
-testouterr_cmd_re sh {load --auto hidereq/3.0} ERR [msg_load hidereq/3.0 [err_accessdenied hide2/1.0] [err_reqlo hide2/1.1]]
-testouterr_cmd sh {avail -t hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.1(@)\nhide2/1.5"
-testouterr_cmd sh {avail -t hide2/1.0} OK {}
-testouterr_cmd sh {avail -t hide2/1.1} OK $mp:\nhide2/1.1(@)
-testouterr_cmd sh {avail -t hide2/1.2} OK {}
-testouterr_cmd sh {avail -t hide2/1.3} OK "global/user modulerc:\nhide2/1.3(@)"
-testouterr_cmd sh {avail -t hide2/1.4} OK {}
-testouterr_cmd sh {avail -t hide2/1.5} OK $mp:\nhide2/1.5
-testouterr_cmd sh {avail -t hide2@default} OK "global/user modulerc:\nhide2/1.3(@)"
-testouterr_cmd sh {avail -t hide2@latest} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
-testouterr_cmd sh {avail -t -d hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
-testouterr_cmd sh {avail -t -L hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
-set tserr "$modlin $mpre $modlin"
-testouterr_cmd_re sh {whatis hide2} OK "$tserr\n\\s+hide2/1.5: hide2/1.5"
-testouterr_cmd_re sh {whatis hide2/1.0} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd_re sh {whatis hide2/1.1} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd_re sh {whatis hide2/1.2} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd_re sh {whatis hide2/1.3} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd_re sh {whatis hide2/1.4} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd_re sh {whatis hide2/1.5} OK "$tserr\n\\s+hide2/1.5: hide2/1.5"
-testouterr_cmd_re sh {whatis hide2@default} ERR [err_accessdenied hide2/default]
-testouterr_cmd_re sh {whatis hide2@latest} OK "$tserr\n\\s+hide2/1.5: hide2/1.5"
-unsetenv_var TESTSUITE_FORBID2_SET12
-
-setenv_var TESTSUITE_FORBID2_SET13 1
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide2/1.0]
-lappend ans [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans [list setpath MODULES_LMALTNAME hide2/1.0&hide2/1.3&hide2/1.4&hide2/1.1&hide2/1.2]
-set ans3 [list]
-lappend ans3 [list setpath LOADEDMODULES hide2/1.5]
-lappend ans3 [list setpath _LMFILES_ $mp/hide2/1.0]
-# latest auto-symbol cannot be set hidden
-lappend ans3 [list setpath MODULES_LMALTNAME hide2/1.5&as|hide2/default&as|hide2/latest]
-set ans4 [list]
-lappend ans4 [list setpath LOADEDMODULES hide2/1.5:hide2/1.0:hidereq/3.0]
-lappend ans4 [list setpath _LMFILES_ $mp/hide2/1.0:$mp/hide2/1.0:$mp/hidereq/3.0]
-lappend ans4 [list setpath MODULES_LMPREREQ hidereq/3.0&hide2/1.5&hide2/1.1]
-lappend ans4 [list setpath MODULES_LMNOTUASKED hide2/1.5:hide2/1.0]
-lappend ans4 [list setpath MODULES_LMALTNAME hide2/1.5&as|hide2/default&as|hide2/latest:hide2/1.0&hide2/1.3&hide2/1.4&hide2/1.1&hide2/1.2]
-testouterr_cmd sh {load hide2} $ans3 {}
-testouterr_cmd sh {load hide2/1.0} $ans {}
-testouterr_cmd sh {load hide2/1.5} $ans3 {}
-testouterr_cmd sh {load hide2@default} $ans3 {}
-testouterr_cmd sh {load hide2@latest} $ans3 {}
-testouterr_cmd_re sh {load --auto hidereq/3.0} $ans4 [msg_top_load hidereq/3.0 {} {hide2/1.5 hide2/1.0} {}]
-testouterr_cmd sh {avail -t hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.0(1.2:1.4)\nhide2/1.1(@)\nhide2/1.5"
-testouterr_cmd sh {avail -t hide2/1.0} OK $mp:\nhide2/1.0(1.2:1.4)
-testouterr_cmd sh {avail -t hide2/1.5} OK $mp:\nhide2/1.5
-testouterr_cmd sh {avail -t hide2@default} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
-testouterr_cmd sh {avail -t hide2@latest} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
-testouterr_cmd sh {avail -t -d hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
-testouterr_cmd sh {avail -t -L hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
-set tserr "$modlin $mpre $modlin"
-testouterr_cmd_re sh {whatis hide2} OK "$tserr\n\\s+hide2/1.0: hide2/1.0\n\\s+hide2/1.5: hide2/1.5"
-testouterr_cmd_re sh {whatis hide2/1.0} OK "$tserr\n\\s+hide2/1.0: hide2/1.0"
-testouterr_cmd_re sh {whatis hide2/1.5} OK "$tserr\n\\s+hide2/1.5: hide2/1.5"
-testouterr_cmd_re sh {whatis hide2@default} OK "$tserr\n\\s+hide2/1.5: hide2/1.5"
-testouterr_cmd_re sh {whatis hide2@latest} OK "$tserr\n\\s+hide2/1.5: hide2/1.5"
-unsetenv_var TESTSUITE_FORBID2_SET13
-
-setenv_var TESTSUITE_FORBID2_SET14 1
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide2/1.0]
-lappend ans [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans [list setpath MODULES_LMALTNAME hide2/1.0&hide2/1.3&hide2/1.4&hide2/1.1&hide2/1.2]
-set ans2 [list]
-lappend ans2 [list setpath LOADEDMODULES hide2/1.5]
-lappend ans2 [list setpath _LMFILES_ $mp/hide2/1.0]
-# default and latest auto-symbol cannot be set hidden
-lappend ans2 [list setpath MODULES_LMALTNAME hide2/1.5&as|hide2/default&as|hide2/latest]
-set ans4 [list]
-lappend ans4 [list setpath LOADEDMODULES hide2/1.5:hide2/1.0:hidereq/3.0]
-lappend ans4 [list setpath _LMFILES_ $mp/hide2/1.0:$mp/hide2/1.0:$mp/hidereq/3.0]
-lappend ans4 [list setpath MODULES_LMPREREQ hidereq/3.0&hide2/1.5&hide2/1.1]
-lappend ans4 [list setpath MODULES_LMNOTUASKED hide2/1.5:hide2/1.0]
-lappend ans4 [list setpath MODULES_LMALTNAME hide2/1.5&as|hide2/default&as|hide2/latest:hide2/1.0&hide2/1.3&hide2/1.4&hide2/1.1&hide2/1.2]
-testouterr_cmd sh {load hide2} $ans2 {}
-testouterr_cmd sh {load hide2/1.0} $ans {}
-testouterr_cmd sh {load hide2/1.5} $ans2 {}
-testouterr_cmd sh {load hide2@default} $ans2 {}
-testouterr_cmd sh {load hide2@latest} $ans2 {}
-testouterr_cmd_re sh {load --auto hidereq/3.0} $ans4 [msg_top_load hidereq/3.0 {} {hide2/1.5 hide2/1.0} {}]
-testouterr_cmd sh {avail -t hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.0(1.2:1.4)\nhide2/1.1(@)\nhide2/1.5"
-testouterr_cmd sh {avail -t hide2/1.0} OK $mp:\nhide2/1.0(1.2:1.4)
-testouterr_cmd sh {avail -t hide2/1.5} OK $mp:\nhide2/1.5
-testouterr_cmd sh {avail -t hide2@default} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
-testouterr_cmd sh {avail -t hide2@latest} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
-testouterr_cmd sh {avail -t -d hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
-testouterr_cmd sh {avail -t -L hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
-set tserr "$modlin $mpre $modlin"
-testouterr_cmd_re sh {whatis hide2} OK "$tserr\n\\s+hide2/1.0: hide2/1.0\n\\s+hide2/1.5: hide2/1.5"
-testouterr_cmd_re sh {whatis hide2/1.0} OK "$tserr\n\\s+hide2/1.0: hide2/1.0"
-testouterr_cmd_re sh {whatis hide2/1.5} OK "$tserr\n\\s+hide2/1.5: hide2/1.5"
-testouterr_cmd_re sh {whatis hide2@default} OK "$tserr\n\\s+hide2/1.5: hide2/1.5"
-testouterr_cmd_re sh {whatis hide2@latest} OK "$tserr\n\\s+hide2/1.5: hide2/1.5"
-unsetenv_var TESTSUITE_FORBID2_SET14
-
-# declare 'hide2' globally hidden
-setenv_var TESTSUITE_FORBID2_SET15 1
-testouterr_cmd sh {load hide2} ERR $err_path'hide2'
-testouterr_cmd sh {load hide2/1.0} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd sh {load hide2/1.1} ERR [err_accessdenied hide2/1.1]
-testouterr_cmd sh {load hide2/1.2} ERR [err_accessdenied hide2/1.2]
-testouterr_cmd sh {load hide2/1.3} ERR [err_accessdenied hide2/1.3]
-testouterr_cmd sh {load hide2/1.4} ERR [err_accessdenied hide2/1.4]
-testouterr_cmd sh {load hide2/1.5} ERR [err_accessdenied hide2/1.5]
-testouterr_cmd sh {load hide2@default} ERR $err_path'hide2@default'
-testouterr_cmd sh {load hide2@latest} ERR $err_path'hide2@latest'
-testouterr_cmd_re sh {load --auto hidereq/3.0} ERR [msg_load hidereq/3.0 [err_accessdenied hide2/1.5] [err_reqlo hide2/1.5]]
-# only hide2 elements declared prior module-forbid rule are visible
-testouterr_cmd sh {avail -t hide2} OK "global/user modulerc:\nhide2/1.3(@)"
-testouterr_cmd sh {avail -t hide2/1.0} OK {}
-testouterr_cmd sh {avail -t hide2/1.1} OK {}
-testouterr_cmd sh {avail -t hide2/1.2} OK {}
-testouterr_cmd sh {avail -t hide2/1.3} OK "global/user modulerc:\nhide2/1.3(@)"
-testouterr_cmd sh {avail -t hide2/1.4} OK {}
-testouterr_cmd sh {avail -t hide2/1.5} OK {}
-testouterr_cmd sh {avail -t hide2@default} OK "global/user modulerc:\nhide2/1.3(@)"
-testouterr_cmd sh {avail -t hide2@latest} OK "global/user modulerc:\nhide2/1.3(@)"
-testouterr_cmd sh {avail -t -d hide2} OK "global/user modulerc:\nhide2/1.3(@)"
-testouterr_cmd sh {avail -t -L hide2} OK "global/user modulerc:\nhide2/1.3(@)"
-set tserr "$modlin $mpre $modlin"
-testouterr_cmd_re sh {whatis hide2} ERR $err_path'hide2'
-testouterr_cmd_re sh {whatis hide2/1.0} ERR [err_accessdenied hide2/1.0]
-testouterr_cmd_re sh {whatis hide2/1.1} ERR [err_accessdenied hide2/1.1]
-testouterr_cmd_re sh {whatis hide2/1.2} ERR [err_accessdenied hide2/1.2]
-testouterr_cmd_re sh {whatis hide2/1.3} ERR [err_accessdenied hide2/1.3]
-testouterr_cmd_re sh {whatis hide2/1.4} ERR [err_accessdenied hide2/1.4]
-testouterr_cmd_re sh {whatis hide2/1.5} ERR [err_accessdenied hide2/1.5]
-testouterr_cmd_re sh {whatis hide2@default} ERR $err_path'hide2@default'
-testouterr_cmd_re sh {whatis hide2@latest} ERR $err_path'hide2@latest'
-unsetenv_var TESTSUITE_FORBID2_SET15
 
 
 setenv_var TESTSUITE_FORBID3_SET1 1
@@ -783,229 +444,6 @@ testouterr_cmd_re sh {whatis hide3/sym} ERR [err_accessdenied hide3/sym]
 testouterr_cmd_re sh {whatis hide3/al2} ERR [err_accessdenied hide3/al2]
 testouterr_cmd_re sh {whatis hide3/sub1} ERR $err_path'hide3/sub1'
 testouterr_cmd_re sh {whatis hide3/sub2} ERR $err_path'hide3/sub2'
-unsetenv_var TESTSUITE_FORBID3_SET1
-
-setenv_var TESTSUITE_FORBID3_SET2 1
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub1/3.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub1/3.0]
-lappend ans [list setpath MODULES_LMALTNAME hide3/sub1/3.0&hide3/default&hide3&as|hide3/latest&as|hide3/sub1/default&as|hide3/sub1/latest]
-testouterr_cmd sh {load hide3} $ans {}
-testouterr_cmd sh {load hide3/al1} ERR [err_accessdenied hide3/sub2/4.0]
-testouterr_cmd sh {load hide3/al2} ERR [err_accessdenied hide3/sub2/5.0]
-testouterr_cmd sh {load hide3/sym} ERR [err_accessdenied hide3/sub2/4.0]
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub1/3.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub1/3.0]
-lappend ans [list setpath MODULES_LMALTNAME hide3/sub1/3.0&hide3/default&hide3&as|hide3/latest&as|hide3/sub1/default&as|hide3/sub1/latest]
-testouterr_cmd sh {load hide3/sub1} $ans {}
-testouterr_cmd sh {load hide3/sub2} ERR $err_path'hide3/sub2'
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub1/3.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub1/3.0]
-lappend ans [list setpath MODULES_LMALTNAME hide3/sub1/3.0&hide3/default&hide3&as|hide3/latest&as|hide3/sub1/default&as|hide3/sub1/latest]
-testouterr_cmd sh {load hide3@latest} $ans {}
-testouterr_cmd sh {load hide3/sub2@sym} ERR [err_accessdenied hide3/sub2/sym]
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub1/3.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub1/3.0]
-lappend ans [list setpath MODULES_LMALTNAME hide3/sub1/3.0&hide3/default&hide3&as|hide3/latest&as|hide3/sub1/default&as|hide3/sub1/latest]
-testouterr_cmd sh {load hide3/sub1@3.0} $ans {}
-testouterr_cmd sh {avail -t hide3} OK "$mp:\nhide3/1.0\nhide3/al1(@)\nhide3/al2(@)\nhide3/sub1/(default)\nhide3/sub1/2.0\nhide3/sub1/3.0"
-testouterr_cmd sh {avail -t hide3/sym} OK {}
-testouterr_cmd sh {avail -t hide3/al2} OK "$mp:\nhide3/al2(@)"
-testouterr_cmd sh {avail -t hide3/sub1} OK "$mp:\nhide3/sub1/(default)\nhide3/sub1/2.0\nhide3/sub1/3.0"
-testouterr_cmd sh {avail -t hide3/sub2} OK {}
-testouterr_cmd sh {avail -t hide3@latest} OK "$mp:\nhide3/sub1/(default)\nhide3/sub1/2.0\nhide3/sub1/3.0"
-testouterr_cmd sh {avail -t hide3/sub1/2.0} OK "$mp:\nhide3/sub1/2.0"
-testouterr_cmd sh {avail -t hide3/sub2@new} OK {}
-testouterr_cmd_re sh {whatis hide3} OK "$tserr\n\\s+hide3/1.0: hide3/1.0\n\\s+hide3/sub1/2.0: hide3/sub1/2.0\n\\s+hide3/sub1/3.0: hide3/sub1/3.0"
-testouterr_cmd_re sh {whatis hide3/sym} ERR $err_path'hide3/sub2'
-testouterr_cmd_re sh {whatis hide3/al2} ERR [err_accessdenied hide3/sub2/5.0]
-testouterr_cmd_re sh {whatis hide3/sub1} OK "$tserr\n\\s+hide3/sub1/2.0: hide3/sub1/2.0\n\\s+hide3/sub1/3.0: hide3/sub1/3.0"
-testouterr_cmd_re sh {whatis hide3/sub2} ERR $err_path'hide3/sub2'
-unsetenv_var TESTSUITE_FORBID3_SET2
-
-setenv_var TESTSUITE_FORBID3_SET3 1
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub1/3.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub1/3.0]
-lappend ans [list setpath MODULES_LMALTNAME hide3/sub1/3.0&hide3/default&hide3&as|hide3/sub1/default&as|hide3/sub1/latest]
-testouterr_cmd sh {load hide3} $ans {}
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub2/4.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/4.0]
-# transitively set 'sym' symbol is not affected by forbid of 'hide3/sym'
-lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/4.0&hide3/sub2/default&hide3/sub2&hide3/al1&hide3/sub2/sym&as|hide3/latest]
-testouterr_cmd sh {load hide3/al1} $ans {}
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub2/5.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/5.0]
-lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/5.0&hide3/al2&hide3/sub2/new&as|hide3/sub2/latest]
-testouterr_cmd sh {load hide3/al2} $ans {}
-testouterr_cmd sh {load hide3/sym} ERR [err_accessdenied hide3/sym]
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub1/3.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub1/3.0]
-lappend ans [list setpath MODULES_LMALTNAME hide3/sub1/3.0&hide3/default&hide3&as|hide3/sub1/default&as|hide3/sub1/latest]
-testouterr_cmd sh {load hide3/sub1} $ans {}
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub2/4.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/4.0]
-lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/4.0&hide3/sub2/default&hide3/sub2&hide3/al1&hide3/sub2/sym&as|hide3/latest]
-testouterr_cmd sh {load hide3/sub2} $ans {}
-testouterr_cmd sh {load hide3@latest} $ans {}
-testouterr_cmd sh {load hide3/sub2@sym} $ans {}
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub1/3.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub1/3.0]
-lappend ans [list setpath MODULES_LMALTNAME hide3/sub1/3.0&hide3/default&hide3&as|hide3/sub1/default&as|hide3/sub1/latest]
-testouterr_cmd sh {load hide3/sub1@3.0} $ans {}
-testouterr_cmd sh {avail -t hide3} OK "$mp:\nhide3/1.0\nhide3/al1(@)\nhide3/al2(@)\nhide3/sub1/(default)\nhide3/sub1/2.0\nhide3/sub1/3.0\nhide3/sub2/4.0(default:sym)\nhide3/sub2/5.0(new)"
-testouterr_cmd sh {avail -t hide3/sym} OK {}
-testouterr_cmd sh {avail -t hide3/al2} OK "$mp:\nhide3/al2(@)"
-testouterr_cmd sh {avail -t hide3/sub1} OK "$mp:\nhide3/sub1/(default)\nhide3/sub1/2.0\nhide3/sub1/3.0"
-testouterr_cmd sh {avail -t hide3/sub2} OK "$mp:\nhide3/sub2/4.0(default:sym)\nhide3/sub2/5.0(new)"
-testouterr_cmd sh {avail -t hide3@latest} OK "$mp:\nhide3/sub2/4.0(default:sym)\nhide3/sub2/5.0(new)"
-testouterr_cmd sh {avail -t hide3/sub1/2.0} OK "$mp:\nhide3/sub1/2.0"
-testouterr_cmd sh {avail -t hide3/sub2@new} OK "$mp:\nhide3/sub2/5.0(new)"
-testouterr_cmd_re sh {whatis hide3} OK "$tserr\n\\s+hide3/1.0: hide3/1.0\n\\s+hide3/sub1/2.0: hide3/sub1/2.0\n\\s+hide3/sub1/3.0: hide3/sub1/3.0\n\\s+hide3/sub2/4.0: hide3/sub2/4.0\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
-testouterr_cmd_re sh {whatis hide3/sym} ERR [err_accessdenied hide3/sym]
-testouterr_cmd_re sh {whatis hide3/al2} OK "$tserr\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
-testouterr_cmd_re sh {whatis hide3/sub1} OK "$tserr\n\\s+hide3/sub1/2.0: hide3/sub1/2.0\n\\s+hide3/sub1/3.0: hide3/sub1/3.0"
-testouterr_cmd_re sh {whatis hide3/sub2} OK "$tserr\n\\s+hide3/sub2/4.0: hide3/sub2/4.0\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
-unsetenv_var TESTSUITE_FORBID3_SET3
-
-setenv_var TESTSUITE_FORBID3_SET4 1
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub1/3.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub1/3.0]
-lappend ans [list setpath MODULES_LMALTNAME hide3/sub1/3.0&hide3/default&hide3&as|hide3/sub1/default&as|hide3/sub1/latest]
-testouterr_cmd sh {load hide3} $ans {}
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub2/4.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/4.0]
-lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/4.0&hide3/al1&hide3/sym&hide3/sub2/sym&as|hide3/latest]
-testouterr_cmd sh {load hide3/al1} $ans {}
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub2/5.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/5.0]
-lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/5.0&hide3/al2&hide3/sub2/new&as|hide3/sub2/default&as|hide3/sub2/latest]
-testouterr_cmd sh {load hide3/al2} $ans {}
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub2/4.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/4.0]
-# hide3/sub2/default is used to resolve hide3/sym>hide3/sub2 into hide3/sym>hide3/sub2/4.0 but not recorded in the alternative names
-lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/4.0&hide3/al1&hide3/sym&hide3/sub2/sym&as|hide3/latest]
-testouterr_cmd sh {load hide3/sym} $ans {}
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub1/3.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub1/3.0]
-lappend ans [list setpath MODULES_LMALTNAME hide3/sub1/3.0&hide3/default&hide3&as|hide3/sub1/default&as|hide3/sub1/latest]
-testouterr_cmd sh {load hide3/sub1} $ans {}
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub2/5.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/5.0]
-lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/5.0&hide3/al2&hide3/sub2/new&as|hide3/sub2/default&as|hide3/sub2/latest]
-testouterr_cmd sh {load hide3/sub2} $ans {}
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub2/4.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/4.0]
-# hide3/sub2/default is used to resolve hide3/sym>hide3/sub2 into hide3/sym>hide3/sub2/4.0 but not recorded in the alternative names
-lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/4.0&hide3/al1&hide3/sym&hide3/sub2/sym&as|hide3/latest]
-testouterr_cmd sh {load hide3@latest} $ans {}
-testouterr_cmd sh {load hide3/sub2@sym} $ans {}
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub1/3.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub1/3.0]
-lappend ans [list setpath MODULES_LMALTNAME hide3/sub1/3.0&hide3/default&hide3&as|hide3/sub1/default&as|hide3/sub1/latest]
-testouterr_cmd sh {load hide3/sub1@3.0} $ans {}
-testouterr_cmd sh {avail -t hide3} OK "$mp:\nhide3/1.0\nhide3/al1(@)\nhide3/al2(@)\nhide3/sub1/(default)\nhide3/sub1/3.0\nhide3/sub2/(sym)\nhide3/sub2/4.0(sym)\nhide3/sub2/5.0(new)"
-testouterr_cmd sh {avail -t hide3/sym} OK "$mp:\nhide3/sub2/(sym)\nhide3/sub2/4.0(sym)\nhide3/sub2/5.0(new)"
-testouterr_cmd sh {avail -t hide3/al2} OK "$mp:\nhide3/al2(@)"
-testouterr_cmd sh {avail -t hide3/sub1} OK "$mp:\nhide3/sub1/(default)\nhide3/sub1/3.0"
-testouterr_cmd sh {avail -t hide3/sub2} OK "$mp:\nhide3/sub2/(sym)\nhide3/sub2/4.0(sym)\nhide3/sub2/5.0(new)"
-testouterr_cmd sh {avail -t hide3@latest} OK "$mp:\nhide3/sub2/(sym)\nhide3/sub2/4.0(sym)\nhide3/sub2/5.0(new)"
-testouterr_cmd sh {avail -t hide3/sub1/2.0} OK {}
-testouterr_cmd sh {avail -t hide3/sub2@new} OK "$mp:\nhide3/sub2/5.0(new)"
-testouterr_cmd_re sh {whatis hide3} OK "$tserr\n\\s+hide3/1.0: hide3/1.0\n\\s+hide3/sub1/3.0: hide3/sub1/3.0\n\\s+hide3/sub2/4.0: hide3/sub2/4.0\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
-testouterr_cmd_re sh {whatis hide3/sym} OK "$tserr\n\\s+hide3/sub2/4.0: hide3/sub2/4.0\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
-testouterr_cmd_re sh {whatis hide3/al2} OK "$tserr\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
-testouterr_cmd_re sh {whatis hide3/sub1} OK "$tserr\n\\s+hide3/sub1/3.0: hide3/sub1/3.0"
-testouterr_cmd_re sh {whatis hide3/sub2} OK "$tserr\n\\s+hide3/sub2/4.0: hide3/sub2/4.0\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
-unsetenv_var TESTSUITE_FORBID3_SET4
-
-
-# forbidden symbol/module over loaded environment
-setenv_loaded_module [list hide2/1.0] [list $mp/hide2/1.0]
-setenv_path_var MODULES_LMALTNAME hide2/1.0&hide2/1.3&hide2/1.4&hide2/1.1
-
-setenv_var TESTSUITE_FORBID2_SET3 1
-# forbidden symbols not reported even if recorded in env as a specific resolution of each
-# loaded module is currently done
-testouterr_cmd sh {list -t} OK $cur_loaded\nhide2/1.0
-setenv_path_var MODULES_LMALTNAME hide2/1.0&hide2/1.3&hide2/1.4&hide2/1.1&hide2/1.2
-testouterr_cmd sh {list -t} OK $cur_loaded\nhide2/1.0
-setenv_path_var MODULES_LMALTNAME hide2/1.0&hide2/1.3&hide2/1.4&hide2/1.1
-set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath MODULES_LMALTNAME]
-testouterr_cmd sh {purge} $ans {}
-testouterr_cmd sh {unload hide2} $ans {}
-# will not find 1.2 symbol as not part of loaded definition
-testouterr_cmd sh {unload hide2/1.2} OK {}
-testouterr_cmd sh {unload hide2/1.1} $ans {}
-testouterr_cmd sh {unload hide2/1.0} $ans {}
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hide2/1.0]
-lappend ans [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans [list setpath MODULES_LMALTNAME hide2/1.0&hide2/1.3&hide2/1.4&hide2/1.1]
-testouterr_cmd sh {reload} $ans {}
-# below reload is loosing hide2/1.2 forbidden symbol as hide2/1.0 is reloaded by this hide2/1.0 name and not hide2/1.2
-setenv_path_var MODULES_LMALTNAME hide2/1.0&hide2/1.3&hide2/1.4&hide2/1.1&hide2/1.2
-testouterr_cmd sh {reload} $ans {}
-unsetenv_var TESTSUITE_FORBID2_SET3
-
-setenv_var TESTSUITE_FORBID2_SET1 1
-testouterr_cmd sh {list -t} OK $cur_loaded\nhide2/1.0
-set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath MODULES_LMALTNAME]
-testouterr_cmd sh {purge} $ans {}
-testouterr_cmd sh {unload hide2} $ans {}
-testouterr_cmd sh {unload hide2/1.2} $ans {}
-testouterr_cmd sh {unload hide2/1.1} $ans {}
-testouterr_cmd sh {unload hide2/1.0} $ans {}
-testouterr_cmd sh {reload} ERR [err_accessdenied hide2/1.0]
-unsetenv_var TESTSUITE_FORBID2_SET1
-
-setenv_var TESTSUITE_FORBID2_SET15 1
-unsetenv_path_var MODULES_LMALTNAME
-testouterr_cmd sh {list -t} OK $cur_loaded\nhide2/1.0
-set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-testouterr_cmd sh {purge} $ans {}
-testouterr_cmd sh {unload hide2} $ans {}
-# will not find 1.2 symbol nor 1.1 alias as not part of loaded definition
-testouterr_cmd sh {unload hide2/1.2} OK {}
-testouterr_cmd sh {unload hide2/1.1} OK {}
-testouterr_cmd sh {unload hide2/1.0} $ans {}
-testouterr_cmd sh {reload} ERR [err_accessdenied hide2/1.0]
-unsetenv_var TESTSUITE_FORBID2_SET15
-
-unsetenv_loaded_module
-unsetenv_path_var MODULES_LMALTNAME
-
-
-# module-forbid effect on is-avail used in modulefile
-setenv_var TESTSUITE_FORBID3_SET1 1
-set ans [list]
-lappend ans [list setpath LOADEDMODULES hidereq/4.0]
-lappend ans [list setpath _LMFILES_ $mp/hidereq/4.0]
-testouterr_cmd sh {load hidereq/4.0} $ans "0\n0\n0\n0\n0\n0\n0\n0\n0"
 unsetenv_var TESTSUITE_FORBID3_SET1
 
 

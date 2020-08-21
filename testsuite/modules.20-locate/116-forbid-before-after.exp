@@ -56,7 +56,6 @@ lappend ans2 [list setpath MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
 lappend ans2 [list ERR]
 
 set tserr1 $mp:\nhide1/5.0
-set tserr2 $err_path'hide1@5:'
 set tserr3 [err_accessdenied hide1/5.0]
 
 if {[cmpversion $tclsh_version 8.5] == -1} {
@@ -66,8 +65,8 @@ setenv_var TESTSUITE_FORBID_BEFORE_SET1 1
 set custom "    invoked from within
 \"if \{\[info exists env(TESTSUITE_FORBID_BEFORE_SET1)\]\} \{
     module-forbid --before 2020-01-01 hide1/5.0
-    module-hide --hard --before 2020-01-01 hide...\""
-set linenum 373
+\}\""
+set linenum 339
 set tserr3 [escre [msg_moderr {Option '--before' not supported on Tcl<8.5} {module-forbid --before 2020-01-01 hide1/5.0} $mp/hide1/.modulerc $linenum {  } {} {} $custom]]
 
 testouterr_cmd_re sh {load hide1@5:} $ans2 $tserr3
@@ -79,8 +78,8 @@ setenv_var TESTSUITE_FORBID_AFTER_SET5 1
 set custom "    invoked from within
 \"if \{\[info exists env(TESTSUITE_FORBID_AFTER_SET5)\]\} \{
     module-forbid --after 2099-09-12T13:14 hide1/5.0
-    module-hide --hard --after 2099-09-12T1...\""
-set linenum 388
+\}\""
+set linenum 347
 set tserr3 [escre [msg_moderr {Option '--after' not supported on Tcl<8.5} {module-forbid --after 2099-09-12T13:14 hide1/5.0} $mp/hide1/.modulerc $linenum {  } {} {} $custom]]
 
 testouterr_cmd_re sh {load hide1@5:} $ans2 $tserr3
@@ -97,35 +96,21 @@ testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
 unsetenv_var TESTSUITE_FORBID_BEFORE_SET1
 
 setenv_var TESTSUITE_FORBID_BEFORE_SET2 1
-testouterr_cmd sh {load hide1@5:} ERR $tserr2
 testouterr_cmd sh {load hide1/5.0} ERR $tserr3
 testouterr_cmd sh {avail -t hide1@5:} OK {}
 unsetenv_var TESTSUITE_FORBID_BEFORE_SET2
 
 
 # test --after option
-setenv_var TESTSUITE_FORBID_AFTER_SET4 1
-testouterr_cmd sh {load hide1@5:} ERR $tserr2
-testouterr_cmd sh {load hide1/5.0} ERR $tserr3
-testouterr_cmd sh {avail -t hide1@5:} OK {}
-unsetenv_var TESTSUITE_FORBID_AFTER_SET4
-
 setenv_var TESTSUITE_FORBID_AFTER_SET5 1
 testouterr_cmd sh {load hide1@5:} $ans {}
-testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
 unsetenv_var TESTSUITE_FORBID_AFTER_SET5
 
 
 # test cumulative use of --before and --after options
-setenv_var TESTSUITE_FORBID_BEFORE_AFTER_SET1 1
-testouterr_cmd sh {load hide1@5:} ERR $tserr2
-testouterr_cmd sh {avail -t hide1@5:} OK {}
-unsetenv_var TESTSUITE_FORBID_BEFORE_AFTER_SET1
-
 setenv_var TESTSUITE_FORBID_BEFORE_AFTER_SET3 1
-testouterr_cmd sh {load hide1@5:} ERR $tserr2
+testouterr_cmd sh {load hide1@5:} ERR $tserr3
 testouterr_cmd sh {load hide1/5.0} ERR $tserr3
-testouterr_cmd sh {avail -t hide1@5:} OK {}
 unsetenv_var TESTSUITE_FORBID_BEFORE_AFTER_SET3
 
 
@@ -139,11 +124,11 @@ if {[cmpversion $tclsh_version 8.6] == -1} {
     set custom "    invoked from within
 \"if \{\[info exists env(TESTSUITE_FORBID_BEFORE_AFTER_ERR_SET2)\]\} \{
     module-forbid --before hide1/5.0 --after
-    module-hide --hard --before hide1/5....\""
-    set linenum 404
+\}\""
+    set linenum 356
 } else {
     set custom {}
-    set linenum 405
+    set linenum 357
 }
 set tserr3 [msg_moderr {Incorrect --before value 'hide1/5.0' (valid date time format is 'YYYY-MM-DD[THH:MM]')} {module-forbid --before hide1/5.0 --after} $mp/hide1/.modulerc $linenum {  } {} {} $custom]
 
@@ -179,7 +164,6 @@ unset mpre
 unset ans
 unset ans2
 unset tserr1
-unset tserr2
 unset tserr3
 unset custom
 unset linenum
