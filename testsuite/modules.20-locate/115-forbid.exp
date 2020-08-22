@@ -447,6 +447,227 @@ testouterr_cmd_re sh {whatis hide3/sub2} ERR $err_path'hide3/sub2'
 unsetenv_var TESTSUITE_FORBID3_SET1
 
 
+# module-forbid tests over different kind of elements
+# and coupled to different kind of module-hide command
+setenv_var TESTSUITE_FORBID3_SET2 1
+setenv_var TESTSUITE_FORBID2_SET20 1
+# load
+testouterr_cmd sh {load hide2/1.5} ERR [err_accessdenied hide2/1.5]
+testouterr_cmd sh {load hide3/1.0} ERR [err_accessdenied hide3/1.0]
+testouterr_cmd sh {load hide3/sub1} ERR [err_accessdenied hide3/sub1/3.0]
+testouterr_cmd sh {load hide3/sub1/3.0} ERR [err_accessdenied hide3/sub1/3.0]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/5.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/5.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/5.0&hide3/al2&hide3/sub2/new&as|hide3/sub2/latest]
+testouterr_cmd sh {load hide3/al2} $ans {}
+testouterr_cmd sh {load hide3/sub2/new} $ans {}
+testouterr_cmd sh {load hide3/sub2/5.0} $ans {}
+# avail
+testouterr_cmd sh {avail -t hide2/1.5} OK $mp:\nhide2/1.5
+testouterr_cmd sh {avail -t hide3/1.0} OK $mp:\nhide3/1.0
+testouterr_cmd sh {avail -t hide3/sub1} OK $mp:\nhide3/sub1/(default)\nhide3/sub1/2.0\nhide3/sub1/3.0
+testouterr_cmd sh {avail -t hide3/sub1/3.0} OK $mp:\nhide3/sub1/3.0
+testouterr_cmd sh {avail -t hide3/al2} OK $mp:\nhide3/al2(@)
+testouterr_cmd sh {avail -t hide3/sub2/new} OK $mp:\nhide3/sub2/5.0(new)
+testouterr_cmd sh {avail -t hide3/sub2/5.0} OK $mp:\nhide3/sub2/5.0(new)
+# search
+testouterr_cmd sh {search hide2/1.5} ERR {}
+testouterr_cmd sh {search hide3/1.0} ERR {}
+testouterr_cmd sh {search hide3/sub1} ERR {}
+testouterr_cmd sh {search hide3/sub1/3.0} ERR {}
+set tserr2 "$modlin $mpre $modlin\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
+testouterr_cmd_re sh {search hide3/sub2/5.0} ERR \n$tserr2
+# whatis
+testouterr_cmd sh {whatis hide2/1.5} ERR [err_accessdenied hide2/1.5]
+testouterr_cmd sh {whatis hide3/1.0} ERR [err_accessdenied hide3/1.0]
+testouterr_cmd sh {whatis hide3/sub1} ERR [err_unablelocate hide3/sub1]
+testouterr_cmd sh {whatis hide3/sub1/3.0} ERR [err_accessdenied hide3/sub1/3.0]
+testouterr_cmd_re sh {whatis hide3/al2} OK $tserr2
+testouterr_cmd_re sh {whatis hide3/sub2/new} OK $tserr2
+testouterr_cmd_re sh {whatis hide3/sub2/5.0} OK $tserr2
+# display
+testouterr_cmd sh {display hide2/1.5} ERR [err_accessdenied hide2/1.5]
+testouterr_cmd sh {display hide3/1.0} ERR [err_accessdenied hide3/1.0]
+testouterr_cmd sh {display hide3/sub1} ERR [err_accessdenied hide3/sub1/3.0]
+testouterr_cmd sh {display hide3/sub1/3.0} ERR [err_accessdenied hide3/sub1/3.0]
+testouterr_cmd_re sh {display hide3/al2} OK .*$mpre/hide3/sub2/5.0.*
+testouterr_cmd_re sh {display hide3/sub2/new} OK .*$mpre/hide3/sub2/5.0.*
+testouterr_cmd_re sh {display hide3/sub2/5.0} OK .*$mpre/hide3/sub2/5.0.*
+# path
+testouterr_cmd sh {path hide2/1.5} OK [err_accessdenied hide2/1.5]
+testouterr_cmd sh {path hide3/1.0} OK [err_accessdenied hide3/1.0]
+testouterr_cmd sh {path hide3/sub1} OK [err_accessdenied hide3/sub1/3.0]
+testouterr_cmd sh {path hide3/sub1/3.0} OK [err_accessdenied hide3/sub1/3.0]
+set ans2 [list [list text $mp/hide3/sub2/5.0]]
+testouterr_cmd sh {path hide3/al2} $ans2 {}
+testouterr_cmd sh {path hide3/sub2/new} $ans2 {}
+testouterr_cmd sh {path hide3/sub2/5.0} $ans2 {}
+# paths
+testouterr_cmd sh {paths hide2/1.5} [list [list text $mp/hide2/1.0]] {}
+testouterr_cmd sh {paths hide3/1.0} [list [list text $mp/hide3/1.0]] {}
+testouterr_cmd sh {paths hide3/sub1} [list [list text $mp/hide3/sub1/2.0] [list text $mp/hide3/sub1/3.0]] {}
+testouterr_cmd sh {paths hide3/sub1/3.0} [list [list text $mp/hide3/sub1/3.0]] {}
+testouterr_cmd sh {paths hide3/al2} $ans2 {}
+testouterr_cmd sh {paths hide3/sub2/new} $ans2 {}
+testouterr_cmd sh {paths hide3/sub2/5.0} $ans2 {}
+unsetenv_var TESTSUITE_FORBID2_SET20
+unsetenv_var TESTSUITE_FORBID3_SET2
+
+setenv_var TESTSUITE_FORBID3_SET3 1
+setenv_var TESTSUITE_FORBID2_SET21 1
+# load
+testouterr_cmd sh {load hide2/1.5} ERR [err_accessdenied hide2/1.5]
+testouterr_cmd sh {load hide3/1.0} ERR [err_accessdenied hide3/1.0]
+testouterr_cmd sh {load hide3/sub1} ERR [err_accessdenied hide3/sub1/3.0]
+testouterr_cmd sh {load hide3/sub1/3.0} ERR [err_accessdenied hide3/sub1/3.0]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/5.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/5.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/5.0&hide3/al2&hide3/sub2/new&as|hide3/sub2/latest]
+testouterr_cmd sh {load hide3/al2} $ans {}
+testouterr_cmd sh {load hide3/sub2/new} $ans {}
+testouterr_cmd sh {load hide3/sub2/5.0} $ans {}
+# avail
+testouterr_cmd sh {avail -t hide2/1.5} OK $mp:\nhide2/1.5
+testouterr_cmd sh {avail -t hide3/1.0} OK $mp:\nhide3/1.0
+testouterr_cmd sh {avail -t hide3/sub1} OK $mp:\nhide3/sub1/(default)\nhide3/sub1/2.0\nhide3/sub1/3.0
+testouterr_cmd sh {avail -t hide3/sub1/3.0} OK $mp:\nhide3/sub1/3.0
+testouterr_cmd sh {avail -t hide3/al2} OK $mp:\nhide3/al2(@)
+testouterr_cmd sh {avail -t hide3/sub2/new} OK $mp:\nhide3/sub2/5.0(new)
+testouterr_cmd sh {avail -t hide3/sub2/5.0} OK $mp:\nhide3/sub2/5.0(new)
+# search
+testouterr_cmd sh {search hide2/1.5} ERR {}
+testouterr_cmd sh {search hide3/1.0} ERR {}
+testouterr_cmd sh {search hide3/sub1} ERR {}
+testouterr_cmd sh {search hide3/sub1/3.0} ERR {}
+set tserr2 "$modlin $mpre $modlin\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
+testouterr_cmd_re sh {search hide3/sub2/5.0} ERR \n$tserr2
+# whatis
+testouterr_cmd sh {whatis hide2/1.5} ERR [err_accessdenied hide2/1.5]
+testouterr_cmd sh {whatis hide3/1.0} ERR [err_accessdenied hide3/1.0]
+testouterr_cmd sh {whatis hide3/sub1} ERR [err_unablelocate hide3/sub1]
+testouterr_cmd sh {whatis hide3/sub1/3.0} ERR [err_accessdenied hide3/sub1/3.0]
+testouterr_cmd_re sh {whatis hide3/al2} OK $tserr2
+testouterr_cmd_re sh {whatis hide3/sub2/new} OK $tserr2
+testouterr_cmd_re sh {whatis hide3/sub2/5.0} OK $tserr2
+# display
+testouterr_cmd sh {display hide2/1.5} ERR [err_accessdenied hide2/1.5]
+testouterr_cmd sh {display hide3/1.0} ERR [err_accessdenied hide3/1.0]
+testouterr_cmd sh {display hide3/sub1} ERR [err_accessdenied hide3/sub1/3.0]
+testouterr_cmd sh {display hide3/sub1/3.0} ERR [err_accessdenied hide3/sub1/3.0]
+testouterr_cmd_re sh {display hide3/al2} OK .*$mpre/hide3/sub2/5.0.*
+testouterr_cmd_re sh {display hide3/sub2/new} OK .*$mpre/hide3/sub2/5.0.*
+testouterr_cmd_re sh {display hide3/sub2/5.0} OK .*$mpre/hide3/sub2/5.0.*
+# path
+testouterr_cmd sh {path hide2/1.5} OK [err_accessdenied hide2/1.5]
+testouterr_cmd sh {path hide3/1.0} OK [err_accessdenied hide3/1.0]
+testouterr_cmd sh {path hide3/sub1} OK [err_accessdenied hide3/sub1/3.0]
+testouterr_cmd sh {path hide3/sub1/3.0} OK [err_accessdenied hide3/sub1/3.0]
+set ans2 [list [list text $mp/hide3/sub2/5.0]]
+testouterr_cmd sh {path hide3/al2} $ans2 {}
+testouterr_cmd sh {path hide3/sub2/new} $ans2 {}
+testouterr_cmd sh {path hide3/sub2/5.0} $ans2 {}
+# paths
+testouterr_cmd sh {paths hide2/1.5} [list [list text $mp/hide2/1.0]] {}
+testouterr_cmd sh {paths hide3/1.0} [list [list text $mp/hide3/1.0]] {}
+testouterr_cmd sh {paths hide3/sub1} [list [list text $mp/hide3/sub1/2.0] [list text $mp/hide3/sub1/3.0]] {}
+testouterr_cmd sh {paths hide3/sub1/3.0} [list [list text $mp/hide3/sub1/3.0]] {}
+testouterr_cmd sh {paths hide3/al2} $ans2 {}
+testouterr_cmd sh {paths hide3/sub2/new} $ans2 {}
+testouterr_cmd sh {paths hide3/sub2/5.0} $ans2 {}
+unsetenv_var TESTSUITE_FORBID2_SET21
+unsetenv_var TESTSUITE_FORBID3_SET3
+
+setenv_var TESTSUITE_FORBID3_SET4 1
+setenv_var TESTSUITE_FORBID2_SET22 1
+# load
+testouterr_cmd sh {load hide2/1.5} ERR [err_accessdenied hide2/1.5]
+testouterr_cmd sh {load hide3/1.0} ERR [err_accessdenied hide3/1.0]
+testouterr_cmd sh {load hide3/sub1} ERR [err_unablelocate hide3/sub1]
+testouterr_cmd sh {load hide3/sub1/3.0} ERR [err_accessdenied hide3/sub1/3.0]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/5.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/5.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/5.0&hide3/al2&as|hide3/sub2/latest]
+testouterr_cmd sh {load hide3/al2} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/5.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/5.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/5.0&as|hide3/sub2/latest]
+testouterr_cmd sh {load hide3/sub2/5.0} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide3/sub2/5.0]
+lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/5.0]
+lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/5.0&hide3/sub2/new&as|hide3/sub2/latest]
+testouterr_cmd sh {load hide3/sub2/new} $ans {}
+# avail
+testouterr_cmd sh {avail -t hide2/1.5} OK $mp:\nhide2/1.5
+testouterr_cmd sh {avail -t hide3/1.0} OK $mp:\nhide3/1.0
+testouterr_cmd sh {avail -t hide3/sub1} OK {}
+testouterr_cmd sh {avail -t hide3/sub1/3.0} OK $mp:\nhide3/sub1/3.0
+testouterr_cmd sh {avail -t hide3/al2} OK $mp:\nhide3/al2(@)
+testouterr_cmd sh {avail -t hide3/sub2/new} OK $mp:\nhide3/sub2/5.0(new)
+testouterr_cmd sh {avail -t hide3/sub2/5.0} OK $mp:\nhide3/sub2/5.0
+# search
+testouterr_cmd sh {search hide2/1.5} ERR {}
+testouterr_cmd sh {search hide3/1.0} ERR {}
+testouterr_cmd sh {search hide3/sub1} ERR {}
+testouterr_cmd sh {search hide3/sub1/3.0} ERR {}
+set tserr2 "$modlin $mpre $modlin\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
+testouterr_cmd_re sh {search hide3/sub2/5.0} ERR \n$tserr2
+# whatis
+testouterr_cmd sh {whatis hide2/1.5} ERR [err_accessdenied hide2/1.5]
+testouterr_cmd sh {whatis hide3/1.0} ERR [err_accessdenied hide3/1.0]
+testouterr_cmd sh {whatis hide3/sub1} ERR [err_unablelocate hide3/sub1]
+testouterr_cmd sh {whatis hide3/sub1/3.0} ERR [err_accessdenied hide3/sub1/3.0]
+testouterr_cmd_re sh {whatis hide3/al2} OK $tserr2
+testouterr_cmd_re sh {whatis hide3/sub2/new} OK $tserr2
+testouterr_cmd_re sh {whatis hide3/sub2/5.0} OK $tserr2
+# display
+testouterr_cmd sh {display hide2/1.5} ERR [err_accessdenied hide2/1.5]
+testouterr_cmd sh {display hide3/1.0} ERR [err_accessdenied hide3/1.0]
+testouterr_cmd sh {display hide3/sub1} ERR [err_unablelocate hide3/sub1]
+testouterr_cmd sh {display hide3/sub1/3.0} ERR [err_accessdenied hide3/sub1/3.0]
+testouterr_cmd_re sh {display hide3/al2} OK .*$mpre/hide3/sub2/5.0.*
+testouterr_cmd_re sh {display hide3/sub2/new} OK .*$mpre/hide3/sub2/5.0.*
+testouterr_cmd_re sh {display hide3/sub2/5.0} OK .*$mpre/hide3/sub2/5.0.*
+# path
+testouterr_cmd sh {path hide2/1.5} OK [err_accessdenied hide2/1.5]
+testouterr_cmd sh {path hide3/1.0} OK [err_accessdenied hide3/1.0]
+testouterr_cmd sh {path hide3/sub1} OK [err_unablelocate hide3/sub1]
+testouterr_cmd sh {path hide3/sub1/3.0} OK [err_accessdenied hide3/sub1/3.0]
+set ans2 [list [list text $mp/hide3/sub2/5.0]]
+testouterr_cmd sh {path hide3/al2} $ans2 {}
+testouterr_cmd sh {path hide3/sub2/new} $ans2 {}
+testouterr_cmd sh {path hide3/sub2/5.0} $ans2 {}
+# paths
+testouterr_cmd sh {paths hide2/1.5} [list [list text $mp/hide2/1.0]] {}
+testouterr_cmd sh {paths hide3/1.0} [list [list text $mp/hide3/1.0]] {}
+testouterr_cmd sh {paths hide3/sub1} {} {}
+testouterr_cmd sh {paths hide3/sub1/3.0} [list [list text $mp/hide3/sub1/3.0]] {}
+testouterr_cmd sh {paths hide3/al2} $ans2 {}
+testouterr_cmd sh {paths hide3/sub2/new} $ans2 {}
+testouterr_cmd sh {paths hide3/sub2/5.0} $ans2 {}
+unsetenv_var TESTSUITE_FORBID2_SET22
+unsetenv_var TESTSUITE_FORBID3_SET4
+
+
+# test over loaded environment
+setenv_var TESTSUITE_FORBID3_SET2 1
+setenv_loaded_module [list hide3/1.0] [list $mp/hide3/1.0]
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd sh {unload hide3/1.0} $ans {}
+testouterr_cmd sh {list -t} OK $cur_loaded\nhide3/1.0
+setenv_loaded_module [list hide3/sub1/3.0] [list $mp/hide3/sub1/3.0]
+testouterr_cmd sh {unload hide3/sub1} $ans {}
+testouterr_cmd sh {list -t} OK $cur_loaded\nhide3/sub1/3.0
+unsetenv_loaded_module
+unsetenv_var TESTSUITE_FORBID3_SET2
+
+
 #
 #  Cleanup
 #
@@ -472,6 +693,7 @@ unset ans2
 unset ans3
 unset ans4
 unset tserr
+unset tserr2
 
 unset custom
 unset linenum
