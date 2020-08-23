@@ -94,7 +94,7 @@ set errmsg {module-forbid -foo hide2}
 if {[cmpversion $tclsh_version 8.6] == -1} {
     if {[cmpversion $tclsh_version 8.5] == -1} {
         set errmsg "switch -glob -- \$arg \{<EXTMATCH>...\"
-      (procedure \"module-forbid\" line 8)
+      (procedure \"module-forbid\" line 12)
       invoked from within
   \"$errmsg"
     }
@@ -119,7 +119,7 @@ set errmsg {module-forbid --foo hide2}
 if {[cmpversion $tclsh_version 8.6] == -1} {
     if {[cmpversion $tclsh_version 8.5] == -1} {
         set errmsg "switch -glob -- \$arg \{<EXTMATCH>...\"
-      (procedure \"module-forbid\" line 8)
+      (procedure \"module-forbid\" line 12)
       invoked from within
   \"$errmsg"
     }
@@ -666,6 +666,64 @@ testouterr_cmd sh {unload hide3/sub1} $ans {}
 testouterr_cmd sh {list -t} OK $cur_loaded\nhide3/sub1/3.0
 unsetenv_loaded_module
 unsetenv_var TESTSUITE_FORBID3_SET2
+
+
+# test --message option
+setenv_var TESTSUITE_FORBID1_MSG_SET1 1
+testouterr_cmd sh {load hide1/5.0} ERR [err_accessdenied hide1/5.0 {Lorem ipsum dolor sit amet, consectetur adipiscing elit.}]
+testouterr_cmd sh {whatis hide1/5.0} ERR [err_accessdenied hide1/5.0 {Lorem ipsum dolor sit amet, consectetur adipiscing elit.}]
+unsetenv_var TESTSUITE_FORBID1_MSG_SET1
+setenv_var TESTSUITE_FORBID1_MSG_SET2 1
+testouterr_cmd sh {load hide1/5.0} ERR [err_accessdenied hide1/5.0 {Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat. Duis semper.}]
+unsetenv_var TESTSUITE_FORBID1_MSG_SET2
+setenv_var TESTSUITE_FORBID1_MSG_SET3 1
+testouterr_cmd sh {load hide1/5.0} ERR [err_accessdenied hide1/5.0 "Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n  Sed non risus. Suspendisse lectus tortor, dignissim sit amet,\n  adipiscing nec, ultricies sed, dolor.\n    Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi."]
+unsetenv_var TESTSUITE_FORBID1_MSG_SET3
+setenv_var TESTSUITE_FORBID1_MSG_SET4 1
+testouterr_cmd sh {load hide1/5.0} ERR [err_accessdenied hide1/5.0 {Lorem ipsum dolor sit amet, consectetur adipiscing elit.}]
+unsetenv_var TESTSUITE_FORBID1_MSG_SET4
+setenv_var TESTSUITE_FORBID1_MSG_SET5 1
+testouterr_cmd sh {load hide1/5.0} ERR [err_accessdenied hide1/5.0]
+unsetenv_var TESTSUITE_FORBID1_MSG_SET5
+setenv_var TESTSUITE_FORBID1_MSG_SET6 1
+testouterr_cmd sh {load hide1/5.0} ERR [err_accessdenied hide1/5.0 {Lorem ipsum dolor sit amet, consectetur adipiscing elit.}]
+unsetenv_var TESTSUITE_FORBID1_MSG_SET6
+setenv_var TESTSUITE_FORBID1_MSG_SET7 1
+testouterr_cmd sh {load hide1/5.0} ERR [err_accessdenied hide1/5.0]
+unsetenv_var TESTSUITE_FORBID1_MSG_SET7
+setenv_var TESTSUITE_FORBID1_MSG_SET8 1
+testouterr_cmd sh {load hide1/5.0} ERR [err_accessdenied hide1/5.0]
+unsetenv_var TESTSUITE_FORBID1_MSG_SET8
+setenv_var TESTSUITE_FORBID1_MSG_SET9 1
+testouterr_cmd sh {load hide1/5.0} ERR [err_accessdenied hide1/5.0 {Lorem ipsum dolor sit amet, consectetur adipiscing elit.}]
+unsetenv_var TESTSUITE_FORBID1_MSG_SET9
+setenv_var TESTSUITE_FORBID1_MSG_SET10 1
+testouterr_cmd sh {load hide1/5.0} ERR [err_accessdenied hide1/5.0 {Lorem ipsum dolor sit amet, consectetur adipiscing elit.}]
+unsetenv_var TESTSUITE_FORBID1_MSG_SET10
+
+# module-forbid specification errors
+setenv_var TESTSUITE_FORBID1_MSG_ERR1 1
+testouterr_cmd sh {avail -t hide1/5.0} OK $mp:\nhide1/5.0
+set tserr "$modlin $mpre $modlin\n\\s*hide1/5.0: hide1/5.0"
+testouterr_cmd_re sh {whatis hide1@5.0} OK $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide1/5.0]
+lappend ans [list setpath _LMFILES_ $mp/hide1/5.0]
+lappend ans [list setpath MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
+lappend ans [list ERR]
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom "    invoked from within
+\"if \{\[info exists env(TESTSUITE_FORBID1_MSG_ERR1)\]\} \{
+    module-forbid hide1/5.0 --message
+\}\""
+    set linenum 496
+} else {
+    set custom {}
+    set linenum 497
+}
+set tserr [msg_moderr {Missing value for '--message' option} {module-forbid hide1/5.0 --message} $mp/hide1/.modulerc $linenum {  } {} {} $custom]
+testouterr_cmd sh {load hide1/5.0} $ans $tserr
+unsetenv_var TESTSUITE_FORBID1_MSG_ERR1
 
 
 #
