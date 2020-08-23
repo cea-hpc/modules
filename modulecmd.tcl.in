@@ -4742,9 +4742,10 @@ proc getModulePathList {{behavior returnempty} {resolv_var 1} {set_abs 1}} {
    }
 }
 
-proc setModspecTag {modspec tag} {
-   reportDebug "Set tag '$tag' on module specification '$modspec'"
-   lappend ::g_moduleTag($modspec) $tag
+proc setModspecTag {modspec tag {props {}}} {
+   reportDebug "Set tag '$tag' with properties '$props' on module\
+      specification '$modspec'"
+   lappend ::g_moduleTag($modspec) $tag $props
 }
 
 proc getModuleTag {mod} {
@@ -4756,7 +4757,7 @@ proc getModuleTag {mod} {
       }
       foreach hmodspec [array names ::g_moduleTag] {
          if {[modEq $hmodspec $mod eqstart]} {
-            eval appendNoDupToList taglist $::g_moduleTag($hmodspec)
+            eval lappend taglist $::g_moduleTag($hmodspec)
          }
       }
    }
@@ -4764,7 +4765,23 @@ proc getModuleTag {mod} {
 }
 
 proc isModuleTagged {mod tag} {
-   return [isInList [getModuleTag $mod] $tag]
+   array set tags [getModuleTag $mod]
+
+   return [info exists tags($tag)]
+}
+
+proc getModuleTagProp {mod tag prop} {
+   set ret {}
+   array set tags [getModuleTag $mod]
+
+   if {[info exists tags($tag)]} {
+      array set props $tags($tag)
+      if {[info exists props($prop)]} {
+         set ret $props($prop)
+      }
+   }
+
+   return $ret
 }
 
 proc isModuleDotHidden {mod} {
