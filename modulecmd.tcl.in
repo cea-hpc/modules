@@ -1224,7 +1224,12 @@ proc getConIsLoadedMsg {conlist {loading 0}} {
 }
 
 proc getForbiddenMsg {mod} {
-   return "Access to module '$mod' is denied"
+   set msg "Access to module '$mod' is denied"
+   set extramsg [getModuleTagProp $mod forbidden message]
+   if {$extramsg ne {}} {
+      append msg \n$extramsg
+   }
+   return $msg
 }
 
 ########################################################################
@@ -2430,14 +2435,27 @@ proc module-forbid {args} {
    # parse remaining argument list, do it even if command does not apply to
    # raise any command specification error
    foreach arg $otherargs {
-      switch -glob -- $arg {
-         -* {
-            knerror "Invalid option '$arg'"
+      if {[info exists nextargisval]} {
+         set $nextargisval $arg
+         unset nextargisval
+      } else {
+         switch -glob -- $arg {
+            --message {
+               set nextargisval message
+            }
+            -* {
+               knerror "Invalid option '$arg'"
+            }
+            default {
+               lappend modarglist $arg
+            }
          }
-         default {
-            lappend modarglist $arg
-         }
+         set prevarg $arg
       }
+   }
+
+   if {[info exists nextargisval]} {
+      knerror "Missing value for '$prevarg' option"
    }
 
    if {![info exists modarglist]} {
@@ -2446,9 +2464,14 @@ proc module-forbid {args} {
 
    # skip record if application criteria are not met
    if {$apply} {
+      set proplist {}
+      if {[info exists message]} {
+         lappend proplist message $message
+      }
+
       # record each hide spec after parsing them
       foreach modarg [eval parseModuleVersionSpecifier 0 $modarglist] {
-         setModspecTag $modarg forbidden
+         setModspecTag $modarg forbidden $proplist
       }
    }
 }
