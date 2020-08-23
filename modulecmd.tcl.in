@@ -1223,6 +1223,10 @@ proc getConIsLoadedMsg {conlist {loading 0}} {
    return "Conflicting '[join $conlist {' and '}]' $is $loaded"
 }
 
+proc getForbiddenMsg {mod} {
+   return "Access to module '$mod' is denied"
+}
+
 ########################################################################
 # Use a subordinate Tcl interpreter to execute modulefiles
 #
@@ -4964,8 +4968,8 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
          '$mod'"]
    # update result if forbidden
    } elseif {[isModuleTagged [lindex $retlist 1] forbidden]} {
-      set retlist [list {} [lindex $retlist 1] accesserr "Access to module\
-         '[lindex $retlist 1]' is denied"]
+      set retlist [list {} [lindex $retlist 1] accesserr [getForbiddenMsg\
+         [lindex $retlist 1]]]
    }
    if {[lindex $retlist 0] ne {}} {
       reportDebug "found '[lindex $retlist 0]' as '[lindex $retlist 1]'"
@@ -8756,8 +8760,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
             # matches search query
             if {$hidlvl == 2 && $hidmatch && [isModuleTagged $elt\
                forbidden]} {
-               set found_list($elt) [list accesserr "Access to module '$elt'\
-                  is denied"]
+               set found_list($elt) [list accesserr [getForbiddenMsg $elt]]
                set err_list($elt) 1
             } else {
                unset found_list($elt)
@@ -10389,8 +10392,8 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
                if {[isModuleTagged $elt forbidden]} {
                   # register any error occuring on element matching search
                   if {[modEq $mod $elt]} {
-                     set err_list($elt) [list accesserr "Access to module\
-                        '$elt' is denied"]
+                     set err_list($elt) [list accesserr [getForbiddenMsg\
+                        $elt]]
                   }
                } else {
                   set interp_list($elt) $dir/$elt
@@ -10403,8 +10406,8 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
                if {[isModuleTagged $elt forbidden]} {
                   # register any error occuring on element matching search
                   if {[modEq $mod $elt]} {
-                     set err_list($elt) [list accesserr "Access to module\
-                        '$elt' is denied"]
+                     set err_list($elt) [list accesserr [getForbiddenMsg\
+                        $elt]]
                   }
                } else {
                   set interp_list($elt) [lindex $mod_list($elt) 2]
