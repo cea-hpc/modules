@@ -240,7 +240,7 @@ the *modulefile* is being loaded.
 
  * another *modulefile* alias
 
-.. mfcmd:: module-forbid [--after datetime] [--before datetime] [--not-user {user...}] [--not-group {group...}] modulefile...
+.. mfcmd:: module-forbid [--after datetime] [--before datetime] [--not-user {user...}] [--not-group {group...}] [--message {text message}] modulefile...
 
  Forbid use of *modulefile*. An error is obtained when trying to evaluate a
  forbidden module. This command should be placed in one of the
@@ -259,6 +259,9 @@ the *modulefile* is being loaded.
  set, forbidding is not applied if current user is member of one the group
  specified. When both options are set, forbidding is not applied if a match is
  found for ``--not-user`` or ``--not-group``.
+
+ Error message returned when trying to evaluate a forbidden module can be
+ supplemented with the *text message* set through ``--message`` option.
 
  If a :mfcmd:`module-forbid` command applies to a *modulefile* also targeted
  by a :mfcmd:`module-hide --hard<module-hide>` command, this module is

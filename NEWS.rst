@@ -140,6 +140,9 @@ Modules 4.6.0 (not yet released)
   :mfcmd:`module-forbid` modulefile commands to ignore hiding or forbidding
   definition respectively after and before a specified date time. Accepted
   date time format is ``YYYY-MM-DD[THH:MM]``.
+* Add ``--message`` option to :mfcmd:`module-forbid` modulefile command to
+  supplement the error message obtained when trying to evaluate a forbidden
+  module.
 
 .. _GNU configuration recommendations: https://www.gnu.org/prep/standards/html_node/Configuration.html
 
