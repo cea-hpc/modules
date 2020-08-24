@@ -213,6 +213,7 @@ Specification
     - ``--not-group``: specify a list of groups whose member are unaffected by forbid mechanism
     - ``--before``: enables forbid mechanism until a given date
     - ``--after``: enables forbid mechanism after a given date
+    - ``--message``: supplements error message obtained when trying to evaluate a forbidden module with given text message
 
 - Each use case expressed above are covered by following command:
 
@@ -263,6 +264,14 @@ Specification
     - Prior 8.5, ``clock scan`` command does not have a ``-format`` option
     - This option is required to support defined date time format
     - An error is raised when ``--before`` or ``--after`` options are used over a Tcl version below 8.5
+
+- ``--message`` option adds additional text to the *access denied* error message
+
+    - Newline set in text message are preserved, which could help to control text output format
+    - Message content is set along forbidden module specification
+
+        - Message recorded for matching module specification will be printed
+        - Message recorded on other matching specification will be ignored, only message from retained matching specificaton is printed
 
 - ``module-hide`` and ``module-forbid`` are intended to be used in modulerc files
 
