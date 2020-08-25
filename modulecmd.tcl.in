@@ -191,8 +191,11 @@ proc getConf {option {valifundef {}}} {
             # overriden value coming from environment
             if {$envvar ne {} && [info exists ::env($envvar)]} {
                # ignore non-valid values
-               if {[llength $validvallist] == 0 || [isInList $validvallist\
-                  $::env($envvar)]} {
+               if {[switch -- [llength $validvallist] {
+                  0 {expr {1 == 1}}
+                  1 {string is $validvallist -strict $::env($envvar)}
+                  default {isInList $validvallist $::env($envvar)}
+               }]} {
                   set value $::env($envvar)
                }
             }
