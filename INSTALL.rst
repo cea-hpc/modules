@@ -402,6 +402,10 @@ instance ``--without-modulepath``):
                       they receive as argument (when set to ``always``). Case
                       insensitive match is disabled when this option is set to
                       ``never``. (default=\ ``never``)
+--with-nearly-forbidden-days=VALUE
+                      Define the number of days a module is considered nearly
+                      forbidden prior reaching its expiry date.
+                      (default=\ ``14``)
 --with-modulepath=PATHLIST
                       Default path list to setup as the default modulepaths.
                       Each path in this list should be separated by ``:``.

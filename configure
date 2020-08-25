@@ -36,7 +36,7 @@ silentshdbgsupport setshellstartup quarantinesupport autohandling \
 availindepth implicitdefault extendeddefault moduleshome initconfin pager \
 pageropts verbosity color darkbgcolors lightbgcolors termbg lockedconfigs \
 icase unloadmatchorder searchmatch modulepath loadedmodules quarantinevars \
-wa277 advversspec ml windowssupport"
+wa277 advversspec ml windowssupport nearlyforbiddendays"
 compatarglist=
 libarglist=
 
@@ -117,6 +117,7 @@ modulefilesdir=
 moduleshome=
 modulepath=
 windowssupport=n
+nearlyforbiddendays=14
 
 # git branch to use to build compat version
 compatbranch='c-3.2'
@@ -300,6 +301,9 @@ Optional Packages:
                           (\`search'), on all sub-commands and modulefile Tcl
                           commands (\`always') or disable case insensitive
                           match (\`never') [$icase]
+  --with-nearly-forbidden-days=VALUE
+                          define the number of days a module is considered
+                          nearly forbidden prior reaching its expiry date [$nearlyforbiddendays]
   --with-modulepath=PATHLIST
                           default modulepaths to set in default configuration
                           file to be enabled (each path in PATHLIST should
@@ -585,6 +589,11 @@ for arg in "$@"; do
       allowedval=" never search always " ;
       if [ "${allowedval// $icase /}" = "$allowedval" ]; then
          echo_error "Bad value for option \`--with-icase', allowed values are:$allowedval"
+      fi ;;
+   --with-nearly-forbidden-days*|--without-nearly-forbidden-days)
+      nearlyforbiddendays=$(get_package_value "$arg") ;
+      if [ -z "$nearlyforbiddendays" ] || ! [ "$nearlyforbiddendays" -eq "$nearlyforbiddendays" ] 2>/dev/null; then
+         echo_error "Bad value for option \`--with-nearly-forbidden-days', value should be an integer"
       fi ;;
    --with-modulepath=*|--without-modulepath)
       modulepath=$(get_package_value "$arg") ;;
