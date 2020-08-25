@@ -57,6 +57,7 @@ array set configdfl [list\
     implicit_default          [expr {$install_implicitdefault eq {y}}]\
     locked_configs            $install_lockedconfigs\
     ml                        [expr {$install_ml eq {y}}]\
+    nearly_forbidden_days     $install_nearlyforbiddendays\
     pager                     "$install_pagercmd"\
     rcfile                    <undef>\
     run_quarantine            <undef>\
@@ -86,6 +87,7 @@ array set configvar [list\
     icase                     MODULES_ICASE\
     implicit_default          MODULES_IMPLICIT_DEFAULT\
     ml                        MODULES_ML\
+    nearly_forbidden_days     MODULES_NEARLY_FORBIDDEN_DAYS\
     pager                     MODULES_PAGER\
     rcfile                    MODULERCFILE\
     run_quarantine            MODULES_RUN_QUARANTINE\
@@ -108,6 +110,7 @@ array set configvalid [list\
     icase                     {never search always}\
     implicit_default          {0 1}\
     ml                        {0 1}\
+    nearly_forbidden_days     integer\
     search_match              {starts_with contains}\
     set_shell_startup         {0 1}\
     silent_shell_debug        {0 1}\
@@ -153,10 +156,19 @@ foreach param [array names configdfl] {
 
 # set parameter that could be altered and whose value is checked
 foreach param [array names configvalid] {
-    # valid value tests
-    foreach val $configvalid($param) {
-        set ans [list [list set $configvar($param) $val]]
-        testouterr_cmd_re sh "config $param $val" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
+    if {[llength $$configvalid($param)] == 1} {
+        # valid value tests
+        foreach val $configvalid($param) {
+            set ans [list [list set $configvar($param) $val]]
+            testouterr_cmd_re sh "config $param $val" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
+        }
+    } else {
+        if {$configvalid($param) eq {integer}} {
+            set ans [list [list set $configvar($param) 0]]
+            testouterr_cmd_re sh "config $param 0" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
+            set ans [list [list set $configvar($param) 54]]
+            testouterr_cmd_re sh "config $param 54" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
+        }
     }
     # invalid value test
     testouterr_cmd_re sh "config $param foo" ERR [if_configlocked $param [err_conflocked $param] "$error_msgs: Valid values for configuration option '$param' are: $configvalid($param)"]
@@ -193,7 +205,9 @@ foreach param [array names configvar] {
     } elseif {$param eq {pager}} {
         set val $configdfl(pager)
     } elseif {[info exists configvalid($param)]} {
-        if {$param eq {verbosity}} {
+        if {$configvalid($param) eq {integer}} {
+            set val 5
+        } elseif {$param eq {verbosity}} {
             set val [lindex $configvalid($param) 1]
         } else {
             set val [lindex $configvalid($param) 0]
