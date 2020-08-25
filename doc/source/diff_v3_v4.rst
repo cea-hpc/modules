@@ -485,7 +485,9 @@ Environment
 
 :envvar:`MODULES_LMSOURCESH``
 
- This environment variable appeared on version ``4.6`` and is not supported on compatibility version.
+:envvar:`MODULES_NEARLY_FORBIDDEN_DAYS``
+
+ These environment variables appeared on version ``4.6`` and are not supported on compatibility version.
 
 
 Modules Specific Tcl Commands

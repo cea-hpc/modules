@@ -499,6 +499,9 @@ Module Sub-Commands
  * ``locked_configs``: configuration options that cannot be superseded
  * ``ml``: define :command:`ml` command at initialization time (defines
    :envvar:`MODULES_ML`)
+ * ``nearly_forbidden_days``: set the number of days a module should be
+   considered *nearly forbidden* prior reaching its expiry date (defines
+   :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS`)
  * ``pager``: text viewer to paginate message output (defines
    :envvar:`MODULES_PAGER`)
  * ``rcfile``: global run-command file location (defines
@@ -1483,6 +1486,23 @@ ENVIRONMENT
  .. only:: html
 
     .. versionadded:: 4.5
+
+.. envvar:: MODULES_NEARLY_FORBIDDEN_DAYS
+
+ Number of days a module is considered *nearly forbidden* prior reaching its
+ expiry date set by :mfcmd:`module-forbid` modulefile command. When a *nearly
+ forbidden* module is evaluated a warning message is issued to inform module
+ will soon be forbidden. If set to ``0``, modules will never be considered
+ *nearly forbidden*. Accepted values are integers.
+
+ This configuration is defined in the following order of preference:
+ :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS` environment variable then the default
+ set in :file:`modulecmd.tcl` script configuration. Which means
+ :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS` overrides default configuration.
+
+ .. only:: html
+
+    .. versionadded:: 4.6
 
 .. envvar:: MODULES_PAGER
 

@@ -263,6 +263,14 @@ the *modulefile* is being loaded.
  Error message returned when trying to evaluate a forbidden module can be
  supplemented with the *text message* set through ``--message`` option.
 
+ If ``--after`` option is set, modules are considered *nearly forbidden*
+ during a number of days defined by the ``nearly_forbidden_days``
+ :file:`modulecmd.tcl` configuration option
+ (see :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS`), prior reaching the expiry
+ date fixed by ``--after`` option. When a *nearly forbidden* module is
+ evaluated a warning message is issued to inform module will soon be
+ forbidden.
+
  If a :mfcmd:`module-forbid` command applies to a *modulefile* also targeted
  by a :mfcmd:`module-hide --hard<module-hide>` command, this module is
  unveiled when precisely named to return an access error.
