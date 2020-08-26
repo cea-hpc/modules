@@ -240,7 +240,7 @@ the *modulefile* is being loaded.
 
  * another *modulefile* alias
 
-.. mfcmd:: module-forbid [--after datetime] [--before datetime] [--not-user {user...}] [--not-group {group...}] [--message {text message}] modulefile...
+.. mfcmd:: module-forbid [--after datetime] [--before datetime] [--not-user {user...}] [--not-group {group...}] [--message {text message}] [--nearly-message {text message}] modulefile...
 
  Forbid use of *modulefile*. An error is obtained when trying to evaluate a
  forbidden module. This command should be placed in one of the
@@ -269,7 +269,8 @@ the *modulefile* is being loaded.
  (see :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS`), prior reaching the expiry
  date fixed by ``--after`` option. When a *nearly forbidden* module is
  evaluated a warning message is issued to inform module will soon be
- forbidden.
+ forbidden. This warning message can be supplemented with the *text message*
+ set through ``--nearly-message`` option.
 
  If a :mfcmd:`module-forbid` command applies to a *modulefile* also targeted
  by a :mfcmd:`module-hide --hard<module-hide>` command, this module is
