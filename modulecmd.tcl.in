@@ -1237,6 +1237,12 @@ proc getForbiddenMsg {mod} {
    return $msg
 }
 
+proc getNearlyForbiddenMsg {mod} {
+   set after [getModuleTagProp $mod nearly-forbidden after]
+   set msg "Access to module will be denied starting '$after'"
+   return $msg
+}
+
 ########################################################################
 # Use a subordinate Tcl interpreter to execute modulefiles
 #
@@ -1426,6 +1432,11 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    }
 
    reportDebug "sourcing $modfile"
+
+   # inform that access to module will be soon denied
+   if {[isModuleTagged $modname nearly-forbidden]} {
+      reportWarning [getNearlyForbiddenMsg $modname]
+   }
 
    if {![info exists ::g_modfileUntrackVars]} {
       # list variable that should not be tracked for saving
