@@ -143,6 +143,20 @@ Modules 4.6.0 (not yet released)
 * Add ``--message`` option to :mfcmd:`module-forbid` modulefile command to
   supplement the error message obtained when trying to evaluate a forbidden
   module.
+* When a module that will soon be forbidden (as the date limit specified on
+  the ``--after`` option of a matching :mfcmd:`module-forbid` command is near)
+  is evaluated, warn user this module access will soon be denied.
+* The range of time the above warning appears can be controlled with the
+  ``nearly_forbidden_days`` configuration option, whose value equals to the
+  number of days prior the module starts to be forbidden. This configuration
+  is set to ``14`` (days) by default and this value can be controlled at
+  :file:`configure` time with ``--with-nearly-forbidden-days`` option. When
+  the ``nearly_forbidden_days`` configuration is set through the
+  :subcmd:`config` sub-command, the :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS`
+  environment variable is set.
+* Add ``--nearly-message`` option to :mfcmd:`module-forbid` modulefile command
+  to supplement the warning message obtained when evaluating a nearly
+  forbidden module.
 
 .. _GNU configuration recommendations: https://www.gnu.org/prep/standards/html_node/Configuration.html
 
