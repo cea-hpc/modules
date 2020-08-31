@@ -58,20 +58,6 @@ Modules 4.6.0 (not yet released)
   possible from code source and documentation.
 * Doc: use a versioned magic cookie in examples that demonstrate new
   modulefile features. (fix issue #349)
-* Install: take into account the ``--build``, ``--host``, ``--target``,
-  ``--enable-dependency-tracking`` and ``--disable-dependency-tracking``
-  configure options to transmit them to the :file:`configure` scripts of
-  Modules Tcl extension library and Modules compatibility version. (fix issue
-  #354)
-* Install: ignore some regular options of an Autoconf :file:`configure` script
-  that are useless for this project but usually implied in build macros (like
-  RPM ``%configure`` macro).
-* Install: ignore unsupported ``--enable-*`` and ``--with-*`` options on
-  :file:`configure` script rather raise an error and add support to define
-  environment variable and build system type as :file:`configure` script
-  arguments to comply with `GNU configuration recommendations`_.
-* Install: fix :file:`modulecmd` pre-alternatives check in RPM spec file.
-* Install: use ``%make_build`` and ``%make_install`` macros in RPM spec file.
 * Introduce the ``--enable-multilib-support`` configure option to add
   mechanism in :file:`modulecmd.tcl` to look at an alternative location to
   find the Modules Tcl extension library in case this library cannot be found
@@ -130,12 +116,6 @@ Modules 4.6.0 (not yet released)
   :mfcmd:`module-forbid` modulefile commands to ignore hiding or forbidding
   definition if current user is respectively part of specified username list
   or member of one of specified group list.
-* When :mfcmd:`module switch<module>` command is used in modulefile, do not
-  state when processing it a conflict over switched-off module if its
-  specification on the ``module switch`` command also matches switched-on
-  module's specification. Allow this way the replacement of any loaded version
-  of a module for a specific one required by currently loading module. (fix
-  issue #355)
 * Add ``--before`` and ``--after`` options to :mfcmd:`module-hide` and
   :mfcmd:`module-forbid` modulefile commands to ignore hiding or forbidding
   definition respectively after and before a specified date time. Accepted
@@ -157,6 +137,33 @@ Modules 4.6.0 (not yet released)
 * Add ``--nearly-message`` option to :mfcmd:`module-forbid` modulefile command
   to supplement the warning message obtained when evaluating a nearly
   forbidden module.
+
+
+Modules 4.5.3 (2020-08-31)
+--------------------------
+
+* Install: take into account the ``--build``, ``--host``, ``--target``,
+  ``--enable-dependency-tracking`` and ``--disable-dependency-tracking``
+  configure options to transmit them to the :file:`configure` scripts of
+  Modules Tcl extension library and Modules compatibility version. (fix issue
+  #354)
+* Install: ignore some regular options of an Autoconf :file:`configure` script
+  that are useless for this project but usually implied in build macros (like
+  RPM ``%configure`` macro).
+* Install: ignore unsupported ``--enable-*`` and ``--with-*`` options on
+  :file:`configure` script rather raise an error and add support to define
+  environment variable and build system type as :file:`configure` script
+  arguments to comply with `GNU configuration recommendations`_.
+* Install: fix :file:`modulecmd` pre-alternatives check in RPM spec file.
+* Install: use ``%make_build`` and ``%make_install`` macros in RPM spec file.
+* When :mfcmd:`module switch<module>` command is used in modulefile, do not
+  state when processing it a conflict over switched-off module if its
+  specification on the ``module switch`` command also matches switched-on
+  module's specification. Allow this way the replacement of any loaded version
+  of a module for a specific one required by currently loading module. (fix
+  issue #355)
+* Correctly report failed attempts to load module requirements expressed with
+  advanced version specifiers. (fix issue #356)
 
 .. _GNU configuration recommendations: https://www.gnu.org/prep/standards/html_node/Configuration.html
 
