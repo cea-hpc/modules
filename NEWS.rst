@@ -6,6 +6,35 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+Modules 4.5.3 (2020-08-31)
+--------------------------
+
+* Install: take into account the ``--build``, ``--host``, ``--target``,
+  ``--enable-dependency-tracking`` and ``--disable-dependency-tracking``
+  configure options to transmit them to the :file:`configure` scripts of
+  Modules Tcl extension library and Modules compatibility version. (fix issue
+  #354)
+* Install: ignore some regular options of an Autoconf :file:`configure` script
+  that are useless for this project but usually implied in build macros (like
+  RPM ``%configure`` macro).
+* Install: ignore unsupported ``--enable-*`` and ``--with-*`` options on
+  :file:`configure` script rather raise an error and add support to define
+  environment variable and build system type as :file:`configure` script
+  arguments to comply with `GNU configuration recommendations`_.
+* Install: fix :file:`modulecmd` pre-alternatives check in RPM spec file.
+* Install: use ``%make_build`` and ``%make_install`` macros in RPM spec file.
+* When :mfcmd:`module switch<module>` command is used in modulefile, do not
+  state when processing it a conflict over switched-off module if its
+  specification on the ``module switch`` command also matches switched-on
+  module's specification. Allow this way the replacement of any loaded version
+  of a module for a specific one required by currently loading module. (fix
+  issue #355)
+* Correctly report failed attempts to load module requirements expressed with
+  advanced version specifiers. (fix issue #356)
+
+.. _GNU configuration recommendations: https://www.gnu.org/prep/standards/html_node/Configuration.html
+
+
 Modules 4.5.2 (2020-07-30)
 --------------------------
 
