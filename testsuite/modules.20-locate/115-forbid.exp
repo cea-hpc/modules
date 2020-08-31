@@ -728,6 +728,13 @@ unsetenv_var TESTSUITE_FORBID1_MSG_ERR1
 
 if {[cmpversion $tclsh_version 8.5] > -1} {
 
+# help old dejagnu version to load `msgcat` cmd, which is needed when computing timezone information on clock cmd
+set msgcatlib [glob -nocomplain /usr/share/tcl8/8.5/msgcat-*.tm]
+if {[info procs msgcat] eq {} && [file exists $msgcatlib]} {
+    source $msgcatlib
+}
+unset msgcatlib
+
 # test nearly forbidden warning
 setenv_var TESTSUITE_FORBID1_NEARLY_SET1 1
 set ans [list]
