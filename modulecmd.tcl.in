@@ -673,20 +673,29 @@ proc renderText {text} {
 
 # save message when report is not currently initialized as we do not
 # know yet if debug mode is enabled or not
-proc reportDebug {message {showcaller 1}} {
-   # display caller name as prefix
-   set prefix [expr {$showcaller && [info level] > 1 ? "[lindex [info level\
-      -1] 0]: " : {}}]
-   lappend ::errreport_buffer [list reportDebug $prefix$message 0]
+proc reportDebug {message {showcaller 1} {caller _undef_}} {
+   # get caller name
+   if {$caller eq {_undef_} && $showcaller} {
+      if {[info level] > 1} {
+         set caller [lindex [info level -1] 0]
+      } else {
+         set caller {}
+      }
+   }
+   lappend ::errreport_buffer [list reportDebug $message $showcaller $caller]
 }
 
 # regular procedure to use once error report is initialized
-proc __reportDebug {message {showcaller 1}} {
+proc __reportDebug {message {showcaller 1} {caller _undef_}} {
    # display active interp details if not the main one
    set prefix [currentDebugMsgPrefix]
    # display caller name as prefix
-   if {$showcaller && [info level] > 1} {
-      append prefix "[lindex [info level -1] 0]: "
+   if {$showcaller && $caller ne {} && ($caller ne {_undef_} || [info level]\
+      > 1)} {
+      if {$caller eq {_undef_}} {
+         set caller [lindex [info level -1] 0]
+      }
+      append prefix "$caller: "
    }
    report [sgr db "DEBUG $prefix$message"] 0 1
 }
