@@ -184,10 +184,11 @@ switches are accepted:
 
     .. versionadded:: 4.3
 
-.. option:: --debug, -D
+.. option:: --debug, -D, -DD
 
  Debug mode. Causes :command:`module` to print debugging messages about its
- progress.
+ progress. Multiple :option:`-D` options increase the debug verbosity.  The
+ maximum is 2.
 
  .. only:: html
 
@@ -1655,7 +1656,7 @@ ENVIRONMENT
  * ``verbose``: add additional informational messages, like a systematic
    report of the loading or unloading module evaluations.
  * ``debug``: print debugging messages about module command execution.
- * ``trace``: trace :file:`modulecmd.tcl` procedure calls in addition to
+ * ``debug2``: report :file:`modulecmd.tcl` procedure calls in addition to
    printing debug messages.
 
  Module command verbosity is defined in the following order of preference:

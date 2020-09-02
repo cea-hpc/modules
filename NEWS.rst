@@ -21,11 +21,6 @@ Modules 4.6.0 (not yet released)
   aliases, shell functions and current working directory are tracked. The
   following shells are supported: sh, dash, csh, tcsh, bash, ksh, ksh93, zsh
   and fish.
-* Add the ``trace`` verbosity level, to report each call of
-  :file:`modulecmd.tcl` internal procedures in addition to debug messages.
-  Trace mode can be enabled by setting the ``verbosity`` config to the
-  ``trace`` value or by using the :option:`-T`/:option:`--trace` command-line
-  switches.
 * Doc: add *Source shell script in modulefile* design notes.
 * Introduce the :mfcmd:`source-sh` modulefile command, to evaluate shell
   script and apply resulting environment changes through modulefile commands.
@@ -137,6 +132,10 @@ Modules 4.6.0 (not yet released)
 * Add ``--nearly-message`` option to :mfcmd:`module-forbid` modulefile command
   to supplement the warning message obtained when evaluating a nearly
   forbidden module.
+* Add the ``debug2`` verbosity level, to report each call of
+  :file:`modulecmd.tcl` internal procedures in addition to debug messages.
+  Debug2 mode can be enabled by setting the ``verbosity`` config to the
+  ``debug2`` value or by using the :option:`-D` command-line switch twice.
 
 
 Modules 4.5.3 (2020-08-31)
