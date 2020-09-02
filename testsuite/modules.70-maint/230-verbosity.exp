@@ -224,14 +224,35 @@ foreach verbosity [list silent concise normal verbose] {
 unsetenv_path_var MODULES_LMPREREQ
 unsetenv_loaded_module
 
-# test 'trace' verbosity
-set tserr "((DEBUG|TRACE) .*)+
+# test 'debug2' verbosity
+set tserr "(DEBUG .*)+
+DEBUG module list
+DEBUG module: currentMode
+DEBUG module: cmd='list', args=''
+(DEBUG .*)+
 $no_loaded
-((DEBUG|TRACE) .*)+"
-testouterr_cmd_re sh {-T list} OK $tserr
-testouterr_cmd_re sh {list --trace} OK $tserr
-setenv_var MODULES_VERBOSITY trace
+(DEBUG .*)+"
+set tserr2 "(DEBUG .*)+
+DEBUG setState: .*
+DEBUG module: cmd='list', args=''
+(DEBUG .*)+
+$no_loaded
+(DEBUG .*)+"
+testouterr_cmd_re sh {-D -D list} OK $tserr
+testouterr_cmd_re sh {-D list -D} OK $tserr
+testouterr_cmd_re sh {-D -D -D list} OK $tserr
+testouterr_cmd_re sh {--debug -D list} OK $tserr
+testouterr_cmd_re sh {--debug -D --debug list} OK $tserr
+testouterr_cmd_re sh {list --debug --debug} OK $tserr
+testouterr_cmd_re sh {-D -s -D -D list} OK $tserr
+testouterr_cmd_re sh {-DD list} OK $tserr
+testouterr_cmd_re sh {-D -s -D list} OK $tserr2
+setenv_var MODULES_VERBOSITY debug2
 testouterr_cmd_re sh {list} OK $tserr
+testouterr_cmd_re sh {list -D} OK $tserr2
+testouterr_cmd_re sh {-D list -D} OK $tserr2
+setenv_var MODULES_VERBOSITY debug
+testouterr_cmd_re sh {-D list} OK $tserr2
 
 # test MODULES_VERBOSITY set to an invalid value
 setenv_var MODULES_VERBOSITY foo
