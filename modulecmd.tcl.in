@@ -105,7 +105,7 @@ array set g_config_defs [list\
    search_match {MODULES_SEARCH_MATCH @searchmatch@ 0 {starts_with contains}}\
    set_shell_startup {MODULES_SET_SHELL_STARTUP @setshellstartup@ 0 {0 1}}\
    verbosity {MODULES_VERBOSITY @verbosity@ 0 {silent concise normal verbose\
-      debug trace}}\
+      debug debug2}}\
    wa_277 {MODULES_WA_277 @wa277@ 0 {0 1}}\
 ]
 
@@ -771,12 +771,8 @@ proc reportInfo {message {title INFO}} {
 
 # trace procedure execution start
 proc reportTraceExecEnter {cmdstring op} {
-   # display active interp details if not the main one
-   set prefix [currentDebugMsgPrefix]
-   if {[info level] > 1} {
-      append prefix "[lindex [info level -1] 0]: "
-   }
-   report [sgr db "TRACE $prefix$cmdstring"] 0 1
+   set caller [expr {[info level] > 1 ? [lindex [info level -1] 0] : {}}]
+   reportDebug $cmdstring 1 $caller
 }
 
 # is currently active message record id at top level
@@ -1119,7 +1115,7 @@ proc initErrorReport {} {
       rename ::__report ::report
 
       # trace each procedure call
-      if {[isVerbosityLevel trace]} {
+      if {[isVerbosityLevel debug2]} {
          # exclude core procedure from tracing
          set excl_prc_list [list report reportDebug currentDebugMsgPrefix\
             reportTraceExecEnter isInList notInList getState setState\
@@ -12353,8 +12349,10 @@ if {[catch {
             -T - --trace {
                set asked_verbosity trace
             }
-            -D - --debug {
-               set asked_verbosity debug
+            -D - -DD - --debug {
+               set asked_verbosity [expr {$arg eq {-DD} || ([info exists\
+                  asked_verbosity] && [isInList {debug debug2}\
+                  $asked_verbosity]) ? {debug2} : {debug}}]
             }
             -s - --silent {
                set asked_verbosity silent
