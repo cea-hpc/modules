@@ -352,7 +352,7 @@ instance ``--without-modulepath``):
 --with-verbosity=VALUE
                       Specify default message verbosity. accepted values are
                       ``silent``, ``concise``, ``normal``, ``verbose``,
-                      ``debug``, ``debug2`` and ``trace``.
+                      ``trace``, ``debug`` and ``debug2``.
                       (default=\ ``normal``)
 --with-dark-background-colors=SGRLIST
                       Default color set to apply if terminal background color
@@ -362,19 +362,20 @@ instance ``--without-modulepath``):
                       (SGR) code. Elements in SGRLIST are separated by ``:``.
                       Output items are designated by keys. Items able to be
                       colorized are: highlighted element (``hi``), debug
-                      information (``db``), tag separator (``se``); Error
-                      (``er``), warning (``wa``), module error (``me``) and
-                      info (``in``) message prefixes; Modulepath (``mp``),
-                      directory (``di``), module alias (``al``), module
-                      symbolic version (``sy``) and module ``default`` version
-                      (``de``). For a complete SGR code reference, see
+                      information (``db``), trace information (``tr``) tag
+                      separator (``se``); Error (``er``), warning (``wa``),
+                      module error (``me``) and info (``in``) message
+                      prefixes; Modulepath (``mp``), directory (``di``),
+                      module alias (``al``), module symbolic version (``sy``)
+                      and module ``default`` version (``de``). For a complete
+                      SGR code reference, see
                       https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters.
-                      (default=\ ``hi=1:db=2:se=2:er=91:wa=93:me=95:in=94:mp=1;94:di=94:al=96:sy=95:de=4:cm=92``)
+                      (default=\ ``hi=1:db=2:tr=2:se=2:er=91:wa=93:me=95:in=94:mp=1;94:di=94:al=96:sy=95:de=4:cm=92``)
 --with-light-background-colors=SGRLIST
                       Default color set to apply if terminal background color
                       is defined to ``light``. Expect the same syntax than
                       described for ``--with-dark-background-colors``.
-                      (default=\ ``hi=1:db=2:se=2:er=31:wa=33:me=35:in=34:mp=1;34:di=34:al=36:sy=35:de=4:cm=32``)
+                      (default=\ ``hi=1:db=2:tr=2:se=2:er=31:wa=33:me=35:in=34:mp=1;34:di=34:al=36:sy=35:de=4:cm=32``)
 --with-terminal-background=VALUE
                       The terminal background color that determines the color
                       set to apply by default between the ``dark`` background

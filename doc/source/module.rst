@@ -343,8 +343,8 @@ switches are accepted:
 
 .. option:: --trace, -T
 
- Trace mode. Report each :file:`modulecmd.tcl` procedure calls in addition to
- printing debug messages.
+ Trace mode. Report details on module searches, resolutions, selections and
+ evaluations in addition to printing verbose messages.
 
  .. only:: html
 
@@ -1275,11 +1275,11 @@ ENVIRONMENT
  :envvar:`LS_COLORS`.
 
  Output items are designated by keys. Items able to be colorized are:
- highlighted element (``hi``), debug information (``db``), tag separator
- (``se``); Error (``er``), warning (``wa``), module error (``me``) and info
- (``in``) message prefixes; Modulepath (``mp``), directory (``di``), module
- alias (``al``), module symbolic version (``sy``), module ``default`` version
- (``de``) and modulefile command (``cm``).
+ highlighted element (``hi``), debug information (``db``), trace information
+ (``tr``), tag separator (``se``); Error (``er``), warning (``wa``), module
+ error (``me``) and info (``in``) message prefixes; Modulepath (``mp``),
+ directory (``di``), module alias (``al``), module symbolic version (``sy``),
+ module ``default`` version (``de``) and modulefile command (``cm``).
 
  See the Select Graphic Rendition (SGR) section in the documentation of the
  text terminal that is used for permitted values and their meaning as
@@ -1655,6 +1655,8 @@ ENVIRONMENT
    :subcmd:`restore` or :subcmd:`source` sub-commands.
  * ``verbose``: add additional informational messages, like a systematic
    report of the loading or unloading module evaluations.
+ * ``trace``: provide details on module searches, resolutions, selections and
+   evaluations.
  * ``debug``: print debugging messages about module command execution.
  * ``debug2``: report :file:`modulecmd.tcl` procedure calls in addition to
    printing debug messages.
