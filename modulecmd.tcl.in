@@ -105,7 +105,7 @@ array set g_config_defs [list\
    search_match {MODULES_SEARCH_MATCH @searchmatch@ 0 {starts_with contains}}\
    set_shell_startup {MODULES_SET_SHELL_STARTUP @setshellstartup@ 0 {0 1}}\
    verbosity {MODULES_VERBOSITY @verbosity@ 0 {silent concise normal verbose\
-      debug debug2}}\
+      trace debug debug2}}\
    wa_277 {MODULES_WA_277 @wa277@ 0 {0 1}}\
 ]
 
@@ -769,6 +769,13 @@ proc reportInfo {message {title INFO}} {
    }
 }
 
+proc reportTrace {message {title TRACE}} {
+   if {[isVerbosityLevel trace]} {
+      # use reportError for conveniance but there is no error here
+      reportError [sgr db $message] 0 $title db 0
+   }
+}
+
 # trace procedure execution start
 proc reportTraceExecEnter {cmdstring op} {
    set caller [expr {[info level] > 1 ? [lindex [info level -1] 0] : {}}]
@@ -1073,7 +1080,7 @@ proc reportVersion {} {
 
 # disable error reporting (non-critical report only) unless debug enabled
 proc inhibitErrorReport {} {
-   if {![isVerbosityLevel debug]} {
+   if {![isVerbosityLevel trace]} {
       setState inhibit_errreport 1
    }
 }
@@ -1440,7 +1447,7 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
       return 1
    }
 
-   reportDebug "sourcing $modfile"
+   reportTrace "'$modfile' as '$modname'" {Evaluate modulefile}
 
    # inform that access to module will be soon denied
    if {[isModuleTagged $modname nearly-forbidden]} {
@@ -1624,7 +1631,7 @@ proc execute-modulerc {modfile modname modspec} {
    # cascaded interpretations a specific interpreter per level
    set itrp __modrc_[getEvalModuleStackDepth]
 
-   reportDebug "sourcing $modfile"
+   reportTrace '$modfile' {Evaluate modulerc}
    # create modulerc interpreter at first interpretation
    if {![interp exists $itrp]} {
       reportDebug "creating interp $itrp"
@@ -5059,7 +5066,8 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
          [lindex $retlist 1]]]
    }
    if {[lindex $retlist 0] ne {}} {
-      reportDebug "found '[lindex $retlist 0]' as '[lindex $retlist 1]'"
+      reportTrace "'[lindex $retlist 1]' ([lindex $retlist 0]) matching\
+         '$mod'" {Select module}
    # no error if we look at loaded modules and passed mod not found loaded
    } elseif {[lindex $retlist 2] ne {notloaded} && $report_issue} {
       eval reportIssue [lrange $retlist 2 4]
@@ -7305,7 +7313,7 @@ proc resolveModuleVersionOrAlias {name icase} {
       set ret $name
    }
 
-   reportDebug "'$name' resolved to '$ret'"
+   reportTrace "'$name' into '$ret'" Resolve
    return $ret
 }
 
@@ -9109,7 +9117,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
       }
    }
 
-   reportDebug "got [array names mod_list]"
+   reportTrace "{[array names mod_list]} matching '$mod' in '$dir'" {Get\
+      modules}
 
    # cache search results
    reportDebug "create cache entry '$searchid'"
@@ -12274,8 +12283,8 @@ Switches:
 Options:
   -h | --help     This usage info
   -V | --version  Module version
-  -T | --trace    Enable trace and debug messages
   -D | --debug    Enable debug messages
+  -T | --trace    Enable trace messages
   -v | --verbose  Enable verbose messages
   -s | --silent   Turn off error, warning and informational messages
   --paginate      Pipe mesg output into a pager if stream attached to terminal
