@@ -234,7 +234,7 @@ name:
     ERROR: Unable to locate a modulefile for 'qux/3.0'
 
 Some users or groups can be set unaffected by hiding mechanism with
-``--not-user`` or ``--not-group`` options:
+the ``--not-user`` or ``--not-group`` options:
 
 .. code-block:: console
 
@@ -253,16 +253,38 @@ Some users or groups can be set unaffected by hiding mechanism with
     $ ml -v quuz
     Loading quuz/2.0
 
+Hiding mechanism can also be set effective only before or after a given date
+time with the ``--before`` and ``--after`` options. Accepted date time format
+is ``YYYY-MM-DD[THH:MM]``.
+
+.. code-block:: console
+
+    $ cat /path/to/modulefiles/fum/.modulerc
+    #%Module4.6
+    # hide only before a given date
+    module-hide --hard --before 2020-09-01T12:00 fum/1.0
+    # hide only after a given date
+    module-hide --hard --after 2020-09-01 fum/2.0
+
+.. code-block:: console
+
+    $ date
+    Fri 04 Sep 2020 06:21:48 AM CEST
+    $ ml av fum
+    --------------- /path/to/modulefiles ---------------
+    fum/1.0
+
 Hidden modules can be included in available module searches if option
 :option:`--all`/:option:`-a` is set on :subcmd:`avail`, :subcmd:`aliases`,
-:subcmd:`whatis` or :subcmd:`search` sub-commands:
+:subcmd:`whatis` or :subcmd:`search` sub-commands. Hard hidden modules are
+unaffected by this option and stay hidden.
 
 .. code-block:: console
 
     $ ml av -a
     --------------- /path/to/modulefiles ---------------
-    bar/1.0(old)  foo/1.0  quuz/1.0  qux/1.0
-    bar/2.0       foo/2.0  quuz/2.0  qux/2.0
+    bar/1.0(old)  foo/1.0  fum/1.0   quuz/2.0  qux/2.0
+    bar/2.0       foo/2.0  quuz/1.0  qux/1.0
 
 Further reading
 ---------------
