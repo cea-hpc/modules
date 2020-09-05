@@ -136,6 +136,8 @@ Modules 4.6.0 (not yet released)
   :file:`modulecmd.tcl` internal procedures in addition to debug messages.
   Debug2 mode can be enabled by setting the ``verbosity`` config to the
   ``debug2`` value or by using the :option:`-D` command-line switch twice.
+* Install: look for ``make`` rather ``gmake`` on MinGW and build library with
+  a ``.dll`` extension on this platform.
 
 
 Modules 4.5.3 (2020-08-31)
