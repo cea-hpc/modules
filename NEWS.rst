@@ -138,6 +138,12 @@ Modules 4.6.0 (not yet released)
   ``debug2`` value or by using the :option:`-D` command-line switch twice.
 * Install: look for ``make`` rather ``gmake`` on MinGW and build library with
   a ``.dll`` extension on this platform.
+* Add the ``trace`` verbosity level, to report details on module searches,
+  resolutions, selections and evaluations. Trace mode can be enabled by
+  setting the ``verbosity`` config to the ``trace`` value or by using the
+  :option:`-T`/:option:`--trace` command-line switches.
+* Introduce the ``tr`` key in the color palette to specifically render trace
+  messages. Default value for ``tr`` key is ``2`` (decreased intensity).
 
 
 Modules 4.5.3 (2020-08-31)
