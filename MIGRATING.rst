@@ -286,6 +286,31 @@ unaffected by this option and stay hidden.
     bar/1.0(old)  foo/1.0  fum/1.0   quuz/2.0  qux/2.0
     bar/2.0       foo/2.0  quuz/1.0  qux/1.0
 
+Tracing module execution
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``trace`` verbosity is introduced between the ``verbose`` and ``debug``
+levels to report details on module searches, resolutions, selections and
+evaluations. Trace mode can be enabled by setting the ``verbosity`` config to
+the ``trace`` value or by using the :option:`-T`/:option:`--trace`
+command-line switches.
+
+To specifically render trace messages, the ``tr`` key is added to the color
+palette with a default value of ``2`` (decreased intensity).
+
+.. code-block:: console
+
+    $ ml -T foo
+    Evaluate modulerc: '/path/to/modulefiles/.modulerc'
+    Get modules: {foo} matching 'foo' in '/path/to/modulefiles'
+    Resolve: 'foo' into 'bar'
+    Get modules: {bar bar/1.0} matching 'bar' in '/path/to/modulefiles'
+    Select module: 'bar/1.0' (/path/to/modulefiles/bar/1.0) matching 'bar/1.0'
+
+    Loading bar/1.0
+      Evaluate modulefile: '/path/to/modulefiles/bar/1.0' as 'bar/1.0'
+
+
 Further reading
 ---------------
 
