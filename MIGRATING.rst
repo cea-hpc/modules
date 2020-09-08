@@ -286,6 +286,68 @@ unaffected by this option and stay hidden.
     bar/1.0(old)  foo/1.0  fum/1.0   quuz/2.0  qux/2.0
     bar/2.0       foo/2.0  quuz/1.0  qux/1.0
 
+Forbidding use of modules
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The :mfcmd:`module-forbid` modulefile command is added to dynamically forbid
+the evaluation of modulefiles it specifies. When forbidden, a module cannot be
+loaded and an access error is returned when an attempt is made to evaluate it.
+
+.. code-block:: console
+
+    $ cat /path/to/modulefiles/foo/.modulerc
+    #%Module4.6
+    module-forbid foo@1:
+    $ ml foo/1.0
+    ERROR: Access to module 'foo/1.0' is denied
+    $ ml
+    No Modulefiles Currently Loaded.
+
+:mfcmd:`module-forbid` statements can be coupled with :mfcmd:`module-hide`
+statements to hide modules in addition to forbid their use.
+:mfcmd:`module-forbid` supports the ``--not-user``, ``--not-group``,
+``--before`` and ``--after`` options to still allow some users or forbid
+modules before or after a given date time.
+
+An additionnal error message can be defined with the ``--message`` option
+to guide for instance users when they try to evaluate a forbidden module:
+
+.. code-block:: console
+
+    $ cat /path/to/modulefiles/bar/.modulerc
+    #%Module4.6
+    module-forbid --message {Software bar/1.0 is decommissioned, please now use\
+        bar/2.0} --after 2020-09-01 bar/1.0
+    $ ml bar/1.0
+    ERROR: Access to module 'bar/1.0' is denied
+      Software bar/1.0 is decommissioned, please now use bar/2.0
+
+When an evaluated module will soon be forbidden, a message is returned to the
+user to warn him/her of the near limit. An additionnal warning message can
+also be defined here with the ``--nearly-message`` option to guide users.
+
+.. code-block:: console
+
+    $ cat /path/to/modulefiles/qux/.modulerc
+    #%Module4.6
+    module-forbid --nearly-message {Version 1.0 will soon expire, please now use\
+        version 2.0} --after 2020-09-15 qux/1.0
+    $ date
+    Tue 08 Sep 2020 06:49:43 AM CEST
+    $ ml qux/1.0
+    Loading qux/1.0
+      WARNING: Access to module will be denied starting '2020-09-15'
+        Version 1.0 will soon expire, please now use version 2.0
+
+The range of time the *nearly forbidden* warning appears can be controlled
+with the ``nearly_forbidden_days`` configuration option, whose value equals to
+the number of days prior the module starts to be forbidden. This configuration
+is set to ``14`` (days) by default and this value can be controlled at
+:file:`configure` time with ``--with-nearly-forbidden-days`` option. When the
+``nearly_forbidden_days`` configuration is set through the :subcmd:`config`
+sub-command, the :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS` environment variable
+is set.
+
 Tracing module execution
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
