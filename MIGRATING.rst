@@ -309,7 +309,7 @@ statements to hide modules in addition to forbid their use.
 ``--before`` and ``--after`` options to still allow some users or forbid
 modules before or after a given date time.
 
-An additionnal error message can be defined with the ``--message`` option
+An additional error message can be defined with the ``--message`` option
 to guide for instance users when they try to evaluate a forbidden module:
 
 .. code-block:: console
@@ -323,7 +323,7 @@ to guide for instance users when they try to evaluate a forbidden module:
       Software bar/1.0 is decommissioned, please now use bar/2.0
 
 When an evaluated module will soon be forbidden, a message is returned to the
-user to warn him/her of the near limit. An additionnal warning message can
+user to warn him/her of the near limit. An additional warning message can
 also be defined here with the ``--nearly-message`` option to guide users.
 
 .. code-block:: console
