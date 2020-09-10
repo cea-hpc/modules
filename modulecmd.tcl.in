@@ -1283,16 +1283,24 @@ proc get-env {var {valifunset {}}} {
 proc set-env {var val} {
    set mode [currentMode]
    reportDebug "$var=$val"
-   interp-sync-env set $var $val
 
-   # variable is not cleared anymore if set again
-   if {[info exists ::g_clearedEnvVars($var)]} {
-      unset ::g_clearedEnvVars($var)
-   }
+   # an empty string value means unsetting variable on Windows platform, so
+   # call unset-env to ensure variable will not be seen defined yet raising
+   # an error when trying to access it
+   if {[getState is_win] && $val eq {}} {
+      unset-env $var
+   } else {
+      interp-sync-env set $var $val
 
-   # propagate variable setup to shell environment on load and unload mode
-   if {$mode eq {load} || $mode eq {unload}} {
-      set ::g_stateEnvVars($var) new
+      # variable is not cleared anymore if set again
+      if {[info exists ::g_clearedEnvVars($var)]} {
+         unset ::g_clearedEnvVars($var)
+      }
+
+      # propagate variable setup to shell environment on load and unload mode
+      if {$mode eq {load} || $mode eq {unload}} {
+         set ::g_stateEnvVars($var) new
+      }
    }
 }
 
