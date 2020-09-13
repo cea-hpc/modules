@@ -8549,6 +8549,9 @@ proc findModules {dir mod depthlvl fetch_mtime} {
 
    defineModEqStaticProc [isIcase] [getConf extended_default] $mod
 
+   # every entries are requested
+   set findall [expr {$mod eq {} || $mod eq {*}}]
+
    # skip search in top dir if directly looking to a deep element, which means
    # findModules has already been called and top dir has already been analyzed
    if {[file dirname $mod] eq {.}} {
@@ -8558,8 +8561,7 @@ proc findModules {dir mod depthlvl fetch_mtime} {
          foreach {fpelt hid} [getFilesInDirectory $dir 0] {
             set elt [file tail $fpelt]
             # include any .modulerc file found at the modulepath root
-            if {$elt eq {.modulerc} || $mod eq {} || [modEqStatic $elt\
-               match]} {
+            if {$elt eq {.modulerc} || $findall || [modEqStatic $elt match]} {
                lappend full_list $fpelt
             }
          }
@@ -8706,7 +8708,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    # get directory relative to module name
    set moddir [getModuleNameFromVersSpec $mod]
    set hasmoddir [expr {$moddir ne {.}}]
-   set modroot [lindex [split $modqe /] 0]
+   set modroot [lindex [file split $modqe] 0]
 
    # are result entries gathered in a resolution context ?
    set resctx [isInList $search resolve]
@@ -8717,20 +8719,16 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
       set add_rc_defs 1
       array set found_list {}
    } else {
-      # find modules by (1) searching with first path element if mod is a deep
-      # modulefile (elt1/etl2/vers) in order to catch all .modulerc and
-      # .version files of module-related parent directories in case we need
-      # to translate an alias or a version (2) retrieving all elements first
-      # to then look at fully qualified file names containing searched string
-      set parentlist [split $modqe /]
+      # find modules by searching mod root name in order to catch all module
+      # related entries to correctly computed auto symbols afterward
 
       if {$contains} {
          set findmod *
       } else {
-         set findmod [lindex $parentlist 0]
-         # if searched mod is an empty or flat element append wildcard character
-         # to match anything starting with mod
-         if {$wild && [llength $parentlist] <= 1} {
+         set findmod $modroot
+         # if searched mod is an empty or flat element append wildcard
+         # character to match anything starting with mod
+         if {$wild && !$hasmoddir && [string index $findmod end] ne {*}} {
             append findmod *
          }
       }
@@ -8739,7 +8737,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
       set add_rc_defs [isInList $search rc_defs_included]
 
       # if no indepth mode search, pass the depth level of the search query
-      set depthlvl [expr {$indepth ? 0 : [llength $parentlist]}]
+      set depthlvl [expr {$indepth ? 0 : [expr {$querydepth + 1}]}]
 
       array set found_list [findModules $dir $findmod $depthlvl $fetch_mtime]
    }
