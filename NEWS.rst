@@ -144,6 +144,9 @@ Modules 4.6.0 (not yet released)
   :option:`-T`/:option:`--trace` command-line switches.
 * Introduce the ``tr`` key in the color palette to specifically render trace
   messages. Default value for ``tr`` key is ``2`` (decreased intensity).
+* When trying to set an environment variable to an empty value on the Windows
+  platform, unset this environment variable instead to cope with the
+  underlying OS behavior.
 
 
 Modules 4.5.3 (2020-08-31)
