@@ -6,7 +6,7 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
-Modules 4.6.0 (not yet released)
+Modules 4.6.0 (2020-09-16)
 --------------------------------
 
 * Rework internal state handling to gather all state definitions in a global

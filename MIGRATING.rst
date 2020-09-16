@@ -8,8 +8,8 @@ Modules. It provides an overview of the new features and changed behaviors
 that will be encountered when upgrading.
 
 
-Migrating from v4.5 to v4.6 (not yet released)
-==============================================
+Migrating from v4.5 to v4.6
+===========================
 
 This new version is backward-compatible with v4.5 and primarily fixes bugs and
 adds new features.
