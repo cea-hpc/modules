@@ -40,6 +40,9 @@ MODULE_SCOPE int Envmodules_InitStateUsernameObjCmd (ClientData dummy,
 MODULE_SCOPE int Envmodules_InitStateUsergroupsObjCmd (ClientData dummy,
    Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
 
+MODULE_SCOPE int Envmodules_InitStateClockSecondsObjCmd (ClientData dummy,
+   Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
+
 /* Only the _Init function is exported. */
 extern DLLEXPORT int Envmodules_Init (Tcl_Interp *interp);
 

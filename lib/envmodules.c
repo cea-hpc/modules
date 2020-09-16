@@ -28,6 +28,7 @@
 #include <grp.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 #include "config.h"
 #include "envmodules.h"
 
@@ -435,6 +436,47 @@ Envmodules_InitStateUsergroupsObjCmd(
 
 /*----------------------------------------------------------------------
  *
+ * Envmodules_InitStateClockSecondsObjCmd --
+ *
+ *	 This function is invoked to return current Epoch time.
+ *
+ * Results:
+ *	 A standard Tcl result.
+ *
+ * Side effects:
+ *	 None.
+ *
+ *---------------------------------------------------------------------*/
+
+int
+Envmodules_InitStateClockSecondsObjCmd(
+   ClientData dummy,       /* Not used. */
+   Tcl_Interp *interp,     /* Current interpreter. */
+   int objc,               /* Number of arguments. */
+   Tcl_Obj *const objv[])  /* Argument objects. */
+{
+   time_t now;
+
+   /* Fetch current Epoch time */
+   if ((now = time(NULL)) == -1) {
+      Tcl_SetErrno(errno);
+#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
+      Tcl_AppendResult(interp, "couldn't get Epoch time: ",
+         Tcl_PosixError(interp), (char *) NULL);
+#else
+      Tcl_SetObjResult(interp, Tcl_ObjPrintf("couldn't get Epoch time: %s",
+         Tcl_PosixError(interp)));
+#endif
+      return TCL_ERROR;
+   }
+
+   /* Set fetched time as result */
+   Tcl_SetObjResult(interp, Tcl_NewWideIntObj((Tcl_WideInt) now));
+   return TCL_OK;
+}
+
+/*----------------------------------------------------------------------
+ *
  * Envmodules_Init --
  *
  *  Initialize the Modules commands.
@@ -467,6 +509,9 @@ Envmodules_Init(
       (Tcl_CmdDeleteProc*) NULL);
    Tcl_CreateObjCommand(interp, "initStateUsergroups",
       Envmodules_InitStateUsergroupsObjCmd, (ClientData) NULL,
+      (Tcl_CmdDeleteProc*) NULL);
+   Tcl_CreateObjCommand(interp, "initStateClockSeconds",
+      Envmodules_InitStateClockSecondsObjCmd, (ClientData) NULL,
       (Tcl_CmdDeleteProc*) NULL);
 
    /* Provide the Envmodules package */
