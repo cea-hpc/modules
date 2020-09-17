@@ -18,6 +18,8 @@
  *
  ************************************************************************/
 
+#define _XOPEN_SOURCE
+
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -477,6 +479,99 @@ Envmodules_InitStateClockSecondsObjCmd(
 
 /*----------------------------------------------------------------------
  *
+ * Envmodules_ParseDateTimeArgObjCmd --
+ *
+ *	 This function is invoked to parse date time argument value and
+ *	 translate it into Epoch time.
+ *
+ * Results:
+ *	 A standard Tcl result.
+ *
+ * Side effects:
+ *	 None.
+ *
+ *---------------------------------------------------------------------*/
+
+int
+Envmodules_ParseDateTimeArgObjCmd(
+   ClientData dummy,       /* Not used. */
+   Tcl_Interp *interp,     /* Current interpreter. */
+   int objc,               /* Number of arguments. */
+   Tcl_Obj *const objv[])  /* Argument objects. */
+{
+   const char *opt;
+   int optlen;
+   const char *datetime;
+   int datetimelen;
+   char dt[17];
+   int valid_dt = 0;
+   struct tm tm;
+   time_t epoch;
+
+   /* Parse arguments. */
+   if (objc != 3) {
+      Tcl_WrongNumArgs(interp, 1, objv, "opt datetime");
+      return TCL_ERROR;
+   }
+   opt = Tcl_GetStringFromObj(objv[1], &optlen);
+   datetime = Tcl_GetStringFromObj(objv[2], &datetimelen);
+
+   /* Normalize transmitted datetime */
+   switch (datetimelen) {
+      case 16:
+         strncpy(dt, datetime, 16);
+         dt[16] = '\0';
+         valid_dt = 1;
+         break;
+      case 10:
+         strncpy(dt, datetime, 10);
+         dt[10] = '\0';
+         strcat(dt, "T00:00");
+         valid_dt = 1;
+         break;
+   }
+
+   /* Break down datetime into a time struct */
+   memset(&tm, 0, sizeof(struct tm));
+   tm.tm_isdst = -1;
+   if (valid_dt && (strptime(dt, "%Y-%m-%dT%H:%M", &tm) == NULL)) {
+      valid_dt = 0;
+   }
+
+   /* Raise error if datetime format is invalid */
+   if (valid_dt == 0) {
+#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
+      Tcl_AppendResult(interp, "Incorrect ", opt, " value '", datetime,
+         "' (valid date time format is 'YYYY-MM-DD[THH:MM]')", (char *) NULL);
+#else
+      Tcl_SetObjResult(interp, Tcl_ObjPrintf(
+         "Incorrect %s value '%s' (valid date time format is 'YYYY-MM-DD[THH:MM]')",
+         opt, datetime));
+#endif
+      Tcl_SetErrorCode(interp, "MODULES_ERR_KNOWN", NULL);
+      return TCL_ERROR;
+   }
+
+   /* Convert string date in Epoch time */
+   if ((epoch = mktime(&tm)) == -1) {
+      Tcl_SetErrno(errno);
+#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
+      Tcl_AppendResult(interp, "couldn't convert to Epoch time: ",
+         Tcl_PosixError(interp), (char *) NULL);
+#else
+      Tcl_SetObjResult(interp, Tcl_ObjPrintf(
+         "couldn't convert to Epoch time: %s", Tcl_PosixError(interp)));
+#endif
+      return TCL_ERROR;
+   }
+
+   /* Set converted Epoch time as result */
+   Tcl_SetObjResult(interp, Tcl_NewWideIntObj((Tcl_WideInt) epoch));
+   return TCL_OK;
+}
+
+/*----------------------------------------------------------------------
+ *
  * Envmodules_Init --
  *
  *  Initialize the Modules commands.
@@ -512,6 +607,9 @@ Envmodules_Init(
       (Tcl_CmdDeleteProc*) NULL);
    Tcl_CreateObjCommand(interp, "initStateClockSeconds",
       Envmodules_InitStateClockSecondsObjCmd, (ClientData) NULL,
+      (Tcl_CmdDeleteProc*) NULL);
+   Tcl_CreateObjCommand(interp, "parseDateTimeArg",
+      Envmodules_ParseDateTimeArgObjCmd, (ClientData) NULL,
       (Tcl_CmdDeleteProc*) NULL);
 
    /* Provide the Envmodules package */
