@@ -8503,25 +8503,20 @@ proc findModules {dir mod depthlvl fetch_mtime} {
    # every entries are requested
    set findall [expr {$mod eq {} || $mod eq {*}}]
 
-   # skip search in top dir if directly looking to a deep element, which means
-   # findModules has already been called and top dir has already been analyzed
-   if {[file dirname $mod] eq {.}} {
-      # use catch protection to handle non-readable and non-existent dir
-      if {[catch {
-         set full_list {}
-         foreach {fpelt hid} [getFilesInDirectory $dir 0] {
-            set elt [file tail $fpelt]
-            # include any .modulerc file found at the modulepath root
-            if {$elt eq {.modulerc} || $findall || [modEqStatic $elt match]} {
-               lappend full_list $fpelt
-            }
+   # use catch protection to handle non-readable and non-existent dir
+   if {[catch {
+      set full_list {}
+      foreach {fpelt hid} [getFilesInDirectory $dir 0] {
+         set elt [file tail $fpelt]
+         # include any .modulerc file found at the modulepath root
+         if {$elt eq {.modulerc} || $findall || [modEqStatic $elt match]} {
+            lappend full_list $fpelt
          }
-      }]} {
-         return {}
       }
-   } else {
-      lappend full_list [file join $dir $mod]
+   }]} {
+      return {}
    }
+
    foreach igndir [getConf ignored_dirs] {
       set ignored_dirs($igndir) 1
    }
