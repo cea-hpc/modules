@@ -2418,14 +2418,11 @@ proc parseApplicationCriteriaArgs {nearsec args} {
          # get epoch time from date time argument value
          set $nextargisdatetime [parseDateTimeArg $prevarg $arg]
          unset nextargisdatetime
-      } elseif {[info exists nextargisign]} {
-         unset nextargisign
       } else {
          switch -- $arg {
             --after - --before {
                if {[getState tcl_version_lt85]} {
                   knerror "Option '$arg' not supported on Tcl<8.5"
-                  set nextargisign 1
                } else {
                   set nextargisdatetime [string trimleft $arg -]
                }
@@ -2433,7 +2430,6 @@ proc parseApplicationCriteriaArgs {nearsec args} {
             --not-group - --not-user {
                if {[getState is_win]} {
                   knerror "Option '$arg' not supported on Windows platform"
-                  set nextargisign 1
                } else {
                   set nextargisval not[string range $arg 6 end]list
                }
