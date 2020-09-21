@@ -18,6 +18,7 @@
  *
  ************************************************************************/
 
+#define _ISOC99_SOURCE
 #define _XOPEN_SOURCE
 
 #include <unistd.h>
@@ -30,6 +31,7 @@
 #include <grp.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <time.h>
 #include "config.h"
 #include "envmodules.h"
