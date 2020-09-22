@@ -83,4 +83,16 @@ if [ "${TESTSUITE_SHTOMOD_EXIT1:+x}" = 'x' ]; then
    exit 1
 fi
 
+if [ "${TESTSUITE_SHTOMOD_UNSETENV:+x}" = 'x' ]; then
+   unset TESTSUITE_SHTOMOD_UNSETENV
+fi
+
+if [ "${TESTSUITE_SHTOMOD_EMPTYAPPEND:+x}" = 'x' ]; then
+   TESTSUITE_SHTOMOD_EMPTYAPPEND=$TESTSUITE_SHTOMOD_EMPTYAPPEND:
+fi
+
+if [ "${TESTSUITE_SHTOMOD_EMPTYPREPEND:+x}" = 'x' ]; then
+   TESTSUITE_SHTOMOD_EMPTYPREPEND=:$TESTSUITE_SHTOMOD_EMPTYPREPEND
+fi
+
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

@@ -69,4 +69,16 @@ if ( $?TESTSUITE_SHTOMOD_EXIT1 ) then
    exec false
 endif
 
+if ( $?TESTSUITE_SHTOMOD_UNSETENV ) then
+   unsetenv TESTSUITE_SHTOMOD_UNSETENV
+endif
+
+if ( $?TESTSUITE_SHTOMOD_EMPTYAPPEND ) then
+   setenv TESTSUITE_SHTOMOD_EMPTYAPPEND ${TESTSUITE_SHTOMOD_EMPTYAPPEND}:
+endif
+
+if ( $?TESTSUITE_SHTOMOD_EMPTYPREPEND ) then
+   setenv TESTSUITE_SHTOMOD_EMPTYPREPEND :$TESTSUITE_SHTOMOD_EMPTYPREPEND
+endif
+
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
