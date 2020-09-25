@@ -678,7 +678,11 @@ endif
 # if coverage asked, instrument script and clear previous coverage log
 $(MODULECMDTEST): modulecmd.tcl
 ifeq ($(multilibsupport),y)
+ifeq ($(COVERAGE_MULTILIB),y)
+	sed -e 's|$(libdir64)|lib64|' -e 's|$(libdir32)|lib|' $< > $@
+else
 	sed -e 's|$(libdir64)|lib|' -e 's|$(libdir32)|lib|' $< > $@
+endif
 else
 	sed -e 's|$(libdir)|lib|' $< > $@
 endif

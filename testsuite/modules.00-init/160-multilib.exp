@@ -1,0 +1,59 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.00-init/%M%
+#   Revision:		%I%
+#   First Edition:	2020/09/25
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check multilib support
+#		}C%
+#
+##############################################################################
+
+# test use of alternative architecture tcl ext lib load
+if {[info exists env(COVERAGE_MULTILIB)]} {
+
+set ans [list]
+lappend ans {(.*)+}
+lappend ans "DEBUG setConf: tcl_ext_lib set to '$tclextlib_file'"
+lappend ans "DEBUG Load Tcl extension library \\($tclextlib_file\\)"
+lappend ans {DEBUG setState: tcl_ext_lib_loaded set to '1'}
+lappend ans {(.*)+}
+lappend ans $vers_reportre
+testouterr_cmd_re sh {-D -V} OK [join $ans \n]
+
+file mkdir lib64
+set tclextlib_alt_file [string map {lib/ lib64/} $tclextlib_file]
+file copy $tclextlib_file $tclextlib_alt_file
+set ans [list]
+lappend ans {(.*)+}
+lappend ans "DEBUG setConf: tcl_ext_lib set to '$tclextlib_alt_file'"
+lappend ans "DEBUG Load Tcl extension library \\($tclextlib_alt_file\\)"
+lappend ans {DEBUG setState: tcl_ext_lib_loaded set to '1'}
+lappend ans {(.*)+}
+lappend ans $vers_reportre
+testouterr_cmd_re sh {-D -V} OK [join $ans \n]
+
+file delete $tclextlib_alt_file
+file delete lib64
+
+#
+#  Clean up variables used in this test case
+#
+
+unset ans
+
+} elseif {$verbose > 0} {
+    send_user "\tSkip multilib support tests\n"
+}
+
+
