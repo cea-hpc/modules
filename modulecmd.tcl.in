@@ -8654,7 +8654,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    # get directory relative to module name
    set moddir [getModuleNameFromVersSpec $mod]
    set hasmoddir [expr {$moddir ne {.}}]
-   set modroot [lindex [file split $modqe] 0]
+   set modroot [getModuleRootFromVersSpec $mod]
 
    # are result entries gathered in a resolution context ?
    set resctx [isInList $search resolve]
@@ -10090,6 +10090,9 @@ proc parseModuleVersionSpecifier {mlspec args} {
 }
 
 proc setModuleVersSpec {modarg modname cmpspec versspec} {
+   # save module root name
+   set modroot [lindex [file split $modname] 0]
+   # save module single designation if any and module name
    if {$versspec eq {}} {
       set mod $modname
       set modname [file dirname $modname]
@@ -10112,10 +10115,10 @@ proc setModuleVersSpec {modarg modname cmpspec versspec} {
    set modescglob [string map {* \\* ? \\?} $mod]
 
    reportDebug "Set module '$mod' (escglob '$modescglob'),  module name\
-      '$modname' (re '$modnamere'), version cmp '$cmpspec' and version(s)\
-      '$versspec' for argument '$modarg'"
+      '$modname' (re '$modnamere'), module root '$modroot', version cmp\
+      '$cmpspec' and version(s) '$versspec' for argument '$modarg'"
    set ::g_moduleVersSpec($modarg) [list $mod $modname $cmpspec $versspec\
-      $modnamere $modescglob]
+      $modnamere $modescglob $modroot]
 }
 
 proc getModuleVersSpec {modarg} {
@@ -10123,7 +10126,7 @@ proc getModuleVersSpec {modarg} {
       return $::g_moduleVersSpec($modarg)
    } else {
       return [list $modarg [file dirname $modarg] {} {} {} [string map {* \\*\
-         ? \\?} $modarg]]
+         ? \\?} $modarg] [lindex [file split $modarg] 0]]
    }
 }
 
@@ -10135,6 +10138,16 @@ proc getModuleNameFromVersSpec {modarg} {
       set modname [file dirname $modarg]
    }
    return $modname
+}
+
+# get module root name from module name and version spec if parsed
+proc getModuleRootFromVersSpec {modarg} {
+   if {[info exists ::g_moduleVersSpec($modarg)]} {
+      set modroot [lindex $::g_moduleVersSpec($modarg) 6]
+   } else {
+      set modroot [lindex [file split $modarg] 0]
+   }
+   return $modroot
 }
 
 # translate module name version spec to return all modules mentionned
