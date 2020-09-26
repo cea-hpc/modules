@@ -4870,17 +4870,18 @@ proc isModuleDotHidden {mod} {
 }
 
 proc getModuleHidingLevel {mod} {
-   set ret -1
-   # look if mod matches one of the hidden module specifications if any
-   if {[array size ::g_moduleHide] > 0} {
-      foreach hmodspec [array names ::g_moduleHide] {
-         if {$::g_moduleHide($hmodspec) > $ret && [modEq $hmodspec $mod\
-            eqstart]} {
-            set ret $::g_moduleHide($hmodspec)
+   set modroot [lindex [file split $mod] 0]
+   # look if mod matches one of the hidden module specs applying to mod root
+   if {[info exists ::g_moduleHideRoot($modroot)]} {
+      for {set lvl 2} {$lvl > -1} {incr lvl -1} {
+         foreach hmodspec [lindex $::g_moduleHideRoot($modroot) $lvl] {
+            if {[modEq $hmodspec $mod eqstart]} {
+               return $lvl
+            }
          }
       }
    }
-   return $ret
+   return -1
 }
 
 proc setModspecHidingLevel {modspec lvl} {
@@ -4889,6 +4890,17 @@ proc setModspecHidingLevel {modspec lvl} {
       $::g_moduleHide($modspec)} {
       reportDebug "Record hidden module specification '$modspec' (lvl=$lvl)"
       set ::g_moduleHide($modspec) $lvl
+
+      # record hidden mod spec for mod root to optimize search
+      set modroot [getModuleRootFromVersSpec $modspec]
+      if {![info exists ::g_moduleHideRoot($modroot)]} {
+         set ::g_moduleHideRoot($modroot) [list [list] [list] [list]]
+      }
+      # record in list corresponding to hidden level to search from strongest
+      # to weakest hidden level
+      set hiderootlvllist [lindex $::g_moduleHideRoot($modroot) $lvl]
+      lappend hiderootlvllist $modspec
+      lset ::g_moduleHideRoot($modroot) $lvl $hiderootlvllist
    }
 }
 
