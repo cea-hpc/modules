@@ -8668,6 +8668,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    set hasmoddir [expr {$moddir ne {.}}]
    set modroot [getModuleRootFromVersSpec $mod]
 
+   set earlyfilter [expr {!$contains && !$wild && $modroot eq [string\
+      map {* {} ? {}} $modroot]}]
+
    # are result entries gathered in a resolution context ?
    set resctx [isInList $search resolve]
 
@@ -8787,6 +8790,10 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    # remove hidden elements unless they are (or their symbols) targeted by
    # search query.
    foreach elt [array names found_list] {
+      if {$earlyfilter && ![modEq $modroot $elt eqstart]} {
+         unset found_list($elt)
+         continue
+      }
       if {[lassign [isModuleHidden $elt $mod 1] hidlvl hidmatch]} {
          # is there a symbol that matches query (bare module name query
          # matches default symbol on resolve context or if onlydefaults filter
