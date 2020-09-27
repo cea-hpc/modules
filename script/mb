@@ -80,9 +80,24 @@ proc runtest {mode test} {
 }
 
 # fetch args
-switch -- [lindex $argv 0] {
-   profile { set mode profile }
-   default { set mode bench }
+foreach arg $argv {
+   switch -- $arg {
+      profile {
+         set mode profile
+      }
+      help - avail - avail2 - avail3 - whatis - whatis2 - whatis3 - apropos -\
+         load - list - unload {
+         lappend testlist $arg
+      }
+   }
+}
+# use default values if not set on command-line
+if {![info exists mode]} {
+   set mode bench
+}
+if {![info exists testlist]} {
+   set testlist [list help avail avail2 avail3 whatis whatis2 whatis3 apropos\
+      load list unload]
 }
 
 # fetch information from git repository to save workspace and get available
@@ -167,7 +182,6 @@ catch {unset env(MODULEPATH_modshare)}
 
 # define bench tests and their arguments and environment
 set modpath $curdir/testsuite/modulefiles
-set testlist [list help avail avail2 avail3 whatis whatis2 whatis3 apropos load list unload]
 array set testsubcmdlist [list avail2 avail avail3 avail whatis2 whatis whatis3 whatis]
 array set testarglist [list avail2 load whatis2 load load load/all unload load/all]
 array set testenvlist [list avail [list MODULEPATH $modpath.deep:$modpath.deps] load [list MODULEPATH $modpath] list [list MODULEPATH $modpath LOADEDMODULES load/10:load/11:load/12:load/13:load/14:load/15:load/16:load/17:load/18:load/19:load/20:load/21:load/22:load/23:load/24:load/25:load/26:load/27:load/28:load/29:load/30:load/all _LMFILES_ $modpath/load/10:$modpath/load/11:$modpath/load/12:$modpath/load/13:$modpath/load/14:$modpath/load/15:$modpath/load/16:$modpath/load/17:$modpath/load/18:$modpath/load/19:$modpath/load/20:$modpath/load/21:$modpath/load/22:$modpath/load/23:$modpath/load/24:$modpath/load/25:$modpath/load/26:$modpath/load/27:$modpath/load/28:$modpath/load/29:$modpath/load/30:$modpath/load/all MODULES_LMALTNAME load/all&load/default&load]]
