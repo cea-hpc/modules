@@ -4821,34 +4821,63 @@ proc getModulePathList {{behavior returnempty} {resolv_var 1} {set_abs 1}} {
 proc setModspecTag {modspec tag {props {}}} {
    reportDebug "Set tag '$tag' with properties '$props' on module\
       specification '$modspec'"
-   lappend ::g_moduleTag($modspec) $tag $props
+
+   # record tag list for mod root to optimize search
+   set modroot [getModuleRootFromVersSpec $modspec]
+   if {![info exists ::g_moduleTagRoot($modroot)]} {
+      lappend ::g_moduleTagRoot($modroot) $tag
+      set idx 0
+      set new 1
+   } else {
+      set idx [lsearch -exact $::g_moduleTagRoot($modroot) $tag]
+      if {$idx == -1} {
+         set idx [llength $::g_moduleTagRoot($modroot)]
+         lappend ::g_moduleTagRoot($modroot) $tag
+         set new 1
+      }
+   }
+
+   # then record mod spec and props at idx defined for tag. new spec are
+   # appended and firstly matching spec is returned with its props on search
+   if {[info exists new]} {
+      lappend ::g_moduleTagRootSpec($modroot) [list $modspec $props]
+   } else {
+      set tagrootlist [lindex $::g_moduleTagRootSpec($modroot) $idx]
+      lappend tagrootlist $modspec $props
+      lset ::g_moduleTagRootSpec($modroot) $idx $tagrootlist
+   }
 }
 
-proc getModuleTag {mod} {
-   set taglist [list]
-   # look if mod matches some module specifications if any
-   if {[array size ::g_moduleTag] > 0} {
-      if {[info procs modEq] eq {}} {
-         defineModEqProc [isIcase] [getConf extended_default]
-      }
-      foreach hmodspec [array names ::g_moduleTag] {
-         if {[modEq $hmodspec $mod eqstart]} {
-            eval lappend taglist $::g_moduleTag($hmodspec)
+proc getModuleTag {mod tag} {
+   set modroot [lindex [file split $mod] 0]
+   # look if mod matches one of the module specs applying to mod root
+   if {[info exists ::g_moduleTagRoot($modroot)]} {
+      set idx [lsearch -exact $::g_moduleTagRoot($modroot) $tag]
+      if {$idx == -1} {
+         return {}
+      } else {
+         if {[info procs modEq] eq {}} {
+            defineModEqProc [isIcase] [getConf extended_default]
+         }
+         foreach {tmodspec tprops} [lindex $::g_moduleTagRootSpec($modroot)\
+            $idx] {
+            # first matching module spec wins with its properties
+            if {[modEq $tmodspec $mod eqstart]} {
+               return [list $tag $tprops]
+            }
          }
       }
    }
-   return $taglist
+   return {}
 }
 
 proc isModuleTagged {mod tag} {
-   array set tags [getModuleTag $mod]
-
-   return [info exists tags($tag)]
+   return [expr {[llength [getModuleTag $mod $tag]] != 0}]
 }
 
 proc getModuleTagProp {mod tag prop} {
    set ret {}
-   array set tags [getModuleTag $mod]
+   array set tags [getModuleTag $mod $tag]
 
    if {[info exists tags($tag)]} {
       array set props $tags($tag)
