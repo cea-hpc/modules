@@ -273,6 +273,7 @@ Specification
 
         - Message recorded for matching module specification will be printed
         - Message recorded on other matching specification will be ignored, only message from retained matching specificaton is printed
+        - Firstly evaluated ``module-forbid`` command that matches module specification is retained with its message property
 
 - a module matching a ``module-forbid`` statement whose ``--after`` limit is close is considered *nearly forbidden*
 
@@ -290,6 +291,7 @@ Specification
 
         - Message recorded for matching module specification will be printed
         - Message recorded on other matching specification will be ignored, only message from retained matching specificaton is printed
+        - Firstly evaluated ``module-forbid`` command that matches module specification is retained with its message property
 
 - ``module-hide`` and ``module-forbid`` are intended to be used in modulerc files
 
