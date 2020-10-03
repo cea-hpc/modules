@@ -566,3 +566,17 @@ Modules Specific Tcl Commands
 :mfcmd:`module-forbid`
 
  These Modules-specific Tcl commands appeared on version ``4.6`` and are not supported on compatibility version.
+
+:mfcmd:`versioncmp`
+
+ This Modules-specific Tcl command appeared on version ``4.7`` and is not supported on compatibility version.
+
+
+Modules Variables
+^^^^^^^^^^^^^^^^^
+
+:mfvar:`ModuleTool`
+
+:mfvar:`ModuleToolVersion`
+
+ These Modules-specific Tcl variables appeared on version ``4.7`` and are not supported on compatibility version.
