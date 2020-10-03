@@ -271,8 +271,8 @@ def parse_cmd_args_node(env, sig, signode):
         signode += addnodes.desc_addname(args, args)
     return cmd
 
-# define new directive/role that can be used as .. subcmd::/:subcmd: and
-# .. mfcmd::/:mfcmd:
+# define new directive/role that can be used as .. subcmd::/:subcmd:,
+# .. mfcmd::/:mfcmd: and .. mfvar::/:mfvar:
 def setup(app):
     app.add_object_type('subcmd', 'subcmd',
                         objname='module sub-command',
@@ -281,4 +281,8 @@ def setup(app):
     app.add_object_type(directivename='mfcmd', rolename='mfcmd',
                         objname='modulefile command',
                         indextemplate='%s (modulefile command)',
+                        parse_node=parse_cmd_args_node)
+    app.add_object_type(directivename='mfvar', rolename='mfvar',
+                        objname='modulefile variable',
+                        indextemplate='%s (modulefile variable)',
                         parse_node=parse_cmd_args_node)

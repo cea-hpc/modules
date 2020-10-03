@@ -728,8 +728,10 @@ the *modulefile* is being loaded.
 Modules Variables
 -----------------
 
-The ``ModulesCurrentModulefile`` variable contains the full pathname of
-the *modulefile* being interpreted.
+.. mfvar:: ModulesCurrentModulefile
+
+ The :mfvar:`ModulesCurrentModulefile` variable contains the full pathname of
+ the *modulefile* being interpreted.
 
 .. _Locating Modulefiles:
 
