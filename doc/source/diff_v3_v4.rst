@@ -563,4 +563,4 @@ Modules Specific Tcl Commands
 
 :mfcmd:`module-forbid`
 
- This Modules-specific Tcl command appeared on version ``4.6`` and is not supported on compatibility version.
+ These Modules-specific Tcl commands appeared on version ``4.6`` and are not supported on compatibility version.
