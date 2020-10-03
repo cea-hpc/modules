@@ -8,6 +8,40 @@ Modules. It provides an overview of the new features and changed behaviors
 that will be encountered when upgrading.
 
 
+From v4.6 to v4.7 (not yet released)
+====================================
+
+This new version is backward-compatible with v4.6 and primarily fixes bugs and
+adds new features. Version 4.7 introduces new functionalities that are
+described in this section. See the :ref:`4.7 release notes<4.7 release notes>`
+for a complete list of the changes between Modules v4.6 and v4.7.
+
+Determining module implementation and version
+---------------------------------------------
+
+New Modules variables are introduced to determine during the evaluation of a
+modulefile or a modulerc what *module* implementation is currently in use. The
+:mfvar:`ModuleTool` variable corresponds to the name of the *module*
+implementation and is set to ``Modules`` for this project. The
+:mfvar:`ModuleToolVersion` variable corresponds to the version number of the
+implementation (e.g. ``4.7.0``).
+
+With these new variables it is possible to precisely know what *module*
+command is in use then adapt modulefile code to handle a specific behavior or
+leverage a new feature.
+
+The modulefile command :mfcmd:`versioncmp` is also introduced to provide a
+simple way to compare two version strings and return if first version string
+is less than, equal to or greater than second one.
+
+.. code-block:: tcl
+
+    if {[info exists ModuleTool] && $ModuleTool eq {Modules}
+        && [versioncmp $ModuleToolVersion 4.7] >= 0} {
+        # here some code specific for Modules 4.7 and later versions
+    }
+
+
 From v4.5 to v4.6
 =================
 
