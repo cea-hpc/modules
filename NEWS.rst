@@ -6,6 +6,19 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+.. _4.7 release notes:
+
+Modules 4.7.0 (not yet released)
+--------------------------------
+
+* Doc: simplify TOC of :ref:`MIGRATING` document
+* Add the :mfvar:`ModuleTool` and :mfvar:`ModuleToolVersion` Modules
+  variables to determine during modulefile or modulerc evaluation the name and
+  version of the *module* implementation currently in use.
+* Introduce the :mfcmd:`versioncmp` modulefile command to compare two version
+  strings passed as argument.
+
+
 .. _4.6 release notes:
 
 Modules 4.6.1 (2020-11-14)
