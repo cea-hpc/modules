@@ -6,6 +6,8 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+.. _4.6 release notes:
+
 Modules 4.6.0 (2020-09-16)
 --------------------------
 
@@ -148,6 +150,8 @@ Modules 4.6.0 (2020-09-16)
   platform, unset this environment variable instead to cope with the
   underlying OS behavior.
 
+
+.. _4.5 release notes:
 
 Modules 4.5.3 (2020-08-31)
 --------------------------
@@ -405,6 +409,8 @@ Modules 4.5.0 (2020-04-07)
 .. _JSON: https://tools.ietf.org/html/rfc8259
 
 
+.. _4.4 release notes:
+
 Modules 4.4.1 (2020-01-03)
 --------------------------
 
@@ -510,6 +516,8 @@ Modules 4.4.0 (2019-11-17)
 
 .. _Spack: https://github.com/spack/spack
 
+
+.. _4.3 release notes:
 
 Modules 4.3.1 (2019-09-21)
 --------------------------
@@ -758,6 +766,8 @@ Modules 4.3.0 (2019-07-26)
 * Also honor the ``CLICOLOR`` and ``CLICOLOR_FORCE`` environment variables to
   define color mode. (fix issue #279)
 
+
+.. _4.2 release notes:
 
 Modules 4.2.5 (2019-07-08)
 --------------------------
@@ -1179,6 +1189,8 @@ Modules 4.2.0 (2018-10-18)
   contribution from Ben Bowers)
 
 
+.. _4.1 release notes:
+
 Modules 4.1.4 (2018-08-20)
 --------------------------
 
@@ -1451,6 +1463,8 @@ Modules 4.1.0 (2018-01-15)
   interpreted modulefile as the current working directory to solve the
   relative paths.
 
+
+.. _4.0 release notes:
 
 Modules 4.0.0 (2017-10-16)
 --------------------------
