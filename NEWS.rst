@@ -7,7 +7,7 @@ This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
 Modules 4.6.0 (2020-09-16)
---------------------------------
+--------------------------
 
 * Rework internal state handling to gather all state definitions in a global
   array and use the same initialization and retrieval procedure, named
@@ -852,7 +852,7 @@ Modules 4.2.4 (2019-04-26)
   ``:`` if found empty. (improve fix for issue #224)
 * Doc: provide a short installation guideline in README file. (fix issue #230)
 
- 
+
 Modules 4.2.3 (2019-03-23)
 --------------------------
 
@@ -973,7 +973,7 @@ Modules 4.2.1 (2018-11-11)
   *zsh*, *tcsh* and *fish* shell completions.
 * Adapt ``system`` modulefile Tcl command to execute the command passed as
   argument through shell, like it is performed on compatibility version. (fix
-  issue#205) 
+  issue#205)
 * Correctly filter modulefile search memory cache entries when using a full
   search result to search later on a specific modulefile.
 * Prefix debug messages by information on the current modulefile or modulerc
