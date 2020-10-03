@@ -695,6 +695,16 @@ the *modulefile* is being loaded.
  :mfcmd:`unsetenv` command changes the process' environment like
  :mfcmd:`setenv`.
 
+.. mfcmd:: versioncmp version1 version2
+
+ Compare version string *version1* against version string *version2*. Returns
+ ``-1``, ``0`` or ``1`` respectively if *version1* is less than, equal to or
+ greater than *version2*.
+
+ .. only:: html
+
+    .. versionadded:: 4.7
+
 .. mfcmd:: x-resource [resource-string|filename]
 
  Merge resources into the X11 resource database. The resources are used to
