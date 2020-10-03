@@ -8,19 +8,16 @@ Modules. It provides an overview of the new features and changed behaviors
 that will be encountered when upgrading.
 
 
-Migrating from v4.5 to v4.6
-===========================
+From v4.5 to v4.6
+=================
 
 This new version is backward-compatible with v4.5 and primarily fixes bugs and
-adds new features.
-
-New features
-------------
-
-Version 4.6 introduces new functionalities that are described in this section.
+adds new features. Version 4.6 introduces new functionalities that are
+described in this section. See the :ref:`4.6 release notes<4.6 release notes>`
+for a complete list of the changes between Modules v4.5 and v4.6.
 
 sh-to-mod sub-command
-^^^^^^^^^^^^^^^^^^^^^
+---------------------
 
 The :subcmd:`sh-to-mod` sub-command is added to output as a modulefile content
 the environment changes done by the evaluation of a shell script passed as
@@ -59,7 +56,7 @@ working directory are tracked. The following shells are supported: *sh*,
 those two scripts are currently still provided for compatibility purpose.
 
 source-sh modulefile command
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------
 
 The :mfcmd:`source-sh` modulefile command is introduced to source environment
 changes done by the evaluation of a shell script passed as argument. With
@@ -124,7 +121,7 @@ working directory are tracked. The following shells are supported: *sh*,
 *dash*, *csh*, *tcsh*, *bash*, *ksh*, *ksh93*, *zsh* and *fish*.
 
 Querying user's name and groups membership
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------------
 
 Two new sub-commands are introduced for the :mfcmd:`module-info` modulefile
 command: ``username`` and ``usergroups``. They respectively fetch the name of
@@ -152,7 +149,7 @@ is member of:
 modulefile command are only supported on Unix platform.
 
 Hiding modules
-^^^^^^^^^^^^^^
+--------------
 
 The newly introduced :mfcmd:`module-hide` modulefile command enables to
 dynamically hide modulefiles, module aliases or symbolic versions specified to
@@ -287,7 +284,7 @@ unaffected by this option and stay hidden.
     bar/2.0       foo/2.0  quuz/1.0  qux/1.0
 
 Forbidding use of modules
-^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------
 
 The :mfcmd:`module-forbid` modulefile command is added to dynamically forbid
 the evaluation of modulefiles it specifies. When forbidden, a module cannot be
@@ -349,7 +346,7 @@ sub-command, the :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS` environment variable
 is set.
 
 Tracing module execution
-^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------
 
 The ``trace`` verbosity is introduced between the ``verbose`` and ``debug``
 levels to report details on module searches, resolutions, selections and
@@ -373,26 +370,16 @@ palette with a default value of ``2`` (decreased intensity).
       Evaluate modulefile: '/path/to/modulefiles/bar/1.0' as 'bar/1.0'
 
 
-Further reading
----------------
-
-To get a complete list of the changes between Modules v4.5 and v4.6,
-please read the :ref:`NEWS` document.
-
-
-Migrating from v4.4 to v4.5
-===========================
+From v4.4 to v4.5
+=================
 
 This new version is backward-compatible with v4.4 and primarily fixes bugs and
-adds new features.
-
-New features
-------------
-
-Version 4.5 introduces new functionalities that are described in this section.
+adds new features. Version 4.5 introduces new functionalities that are
+described in this section. See the :ref:`4.5 release notes<4.5 release notes>`
+for a complete list of the changes between Modules v4.4 and v4.5.
 
 ml command
-^^^^^^^^^^
+----------
 
 The ``ml`` command is added to Modules. ``ml`` is a frontend to the ``module``
 command that reduces the number of characters to type to trigger module
@@ -427,7 +414,7 @@ a similar user experience whatever the module implementation used.
 .. _Lmod: https://github.com/TACC/Lmod
 
 JSON format output
-^^^^^^^^^^^^^^^^^^
+------------------
 
 The ``-j`` and ``--json`` command line switches are added for the ``avail``,
 ``list``, ``savelist``, ``whatis`` and ``search`` module sub-commands. When
@@ -467,7 +454,7 @@ set, the output result of these sub-commands is rendered in `JSON`_ format::
 .. _JSON: https://tools.ietf.org/html/rfc8259
 
 Improved Windows support
-^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------
 
 A new option to the ``./configure`` script named ``--enable-windows-support``
 is introduced to install additional files relative to the enablement of
@@ -497,7 +484,7 @@ The :ref:`INSTALL-win` document describes how to install Modules on Windows
 from the distribution zipball.
 
 Error stack trace
-^^^^^^^^^^^^^^^^^
+-----------------
 
 Error messages will now embed a stack trace for unknown errors to help
 localize the root cause of issues. This change applies to modulefile
@@ -526,7 +513,7 @@ A stack trace is also returned when an unknown error occurs in
       Please report this issue at https://github.com/cea-hpc/modules/issues
 
 Automatic default and latest symbolic versions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------------------------
 
 When the implicit default mechanism and the `Advanced module version
 specifiers`_ are both enabled, a ``default`` and a ``latest`` symbolic
@@ -542,18 +529,14 @@ The symbolic versions are automatically defined unless a symbolic version, an
 alias or a regular module version already exists for these ``default`` or
 ``latest`` version names.
 
-Further reading
----------------
 
-To get a complete list of the changes between Modules v4.4 and v4.5,
-please read the :ref:`NEWS` document.
-
-
-Migrating from v4.3 to v4.4
-===========================
+From v4.3 to v4.4
+=================
 
 This new version is backward-compatible with v4.3 and primarily fixes bugs and
-adds new features.
+adds new features. Version 4.4 introduces new functionalities that are
+described in this section. See the :ref:`4.4 release notes<4.4 release notes>`
+for a complete list of the changes between Modules v4.3 and v4.4.
 
 .. warning:: Modules configuration option handling has been reworked
    internally to provide a unified way for all options to get initialized,
@@ -561,13 +544,8 @@ adds new features.
    reviewed to make use of the new ``getConf``, ``setConf``, ``unsetConf``
    and ``lappendConf`` procedures to manipulate configuration options.
 
-New features
-------------
-
-Version 4.4 introduces new functionalities that are described in this section.
-
 Specify modules in a case insensitive manner
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------------
 
 The ability to match module name in a case insensitive manner has been added.
 This feature can be enabled at different level with the following values set
@@ -596,7 +574,7 @@ other icase configurations. When this command-line switch is passed, ``icase``
 mode equals ``always``.
 
 Extended default
-^^^^^^^^^^^^^^^^
+----------------
 
 The extended default mechanism has been introduced to help selecting a module
 when only the first numbers in its version are specified. Starting portion of
@@ -659,7 +637,7 @@ Extended default activation can be controlled at configure time with the
 the **config** sub-command with the ``extended_default`` option.
 
 Advanced module version specifiers
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------------
 
 The ability to specify finer constraints on module version has been added to
 Modules. It enables to filter the module selection to a given version list or
@@ -750,26 +728,17 @@ superseded with the ``MODULES_ADVANCED_VERSION_SPEC`` environment variable,
 which could be set through the **config** sub-command with the
 ``advanced_version_spec`` option.
 
-Further reading
----------------
 
-To get a complete list of the changes between Modules v4.3 and v4.4,
-please read the :ref:`NEWS` document.
-
-
-Migrating from v4.2 to v4.3
-===========================
+From v4.2 to v4.3
+=================
 
 This new version is backward-compatible with v4.2 and primarily fixes bugs and
-adds new features.
-
-New features
-------------
-
-Version 4.3 introduces new functionalities that are described in this section.
+adds new features. Version 4.3 introduces new functionalities that are
+described in this section. See the :ref:`4.3 release notes<4.3 release notes>`
+for a complete list of the changes between Modules v4.2 and v4.3.
 
 Modulepath rc file
-^^^^^^^^^^^^^^^^^^
+------------------
 
 A ``.modulerc`` file found at the root of an enabled modulepath directory is
 now evaluated when modulepath is walked through to locate modulefiles. This
@@ -779,7 +748,7 @@ kind of module alias would not be found unless if it is defined at the
 modulepath global scope.
 
 Further I/O operations optimization
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------
 
 Additional work has been performed to save a significant number of filesystem
 I/O operations made to search and evaluate modulefiles.
@@ -810,7 +779,7 @@ pass. Moreover ``.modulerc`` and ``.version`` read access is tested only if
 these files are found in the directory.
 
 Colored output
-^^^^^^^^^^^^^^
+--------------
 
 The ability to graphically enhance some part of the produced output has been
 added to improve readability. Among others, error, warning and info message
@@ -868,7 +837,7 @@ than ``0``. Color mode set with these two variables is superseded by mode set
 with ``MODULES_COLOR`` environment variable.
 
 Configure modulecmd with config sub-command
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------------
 
 The **config** sub-command has been added to ``module`` to help getting or
 setting the **modulecmd.tcl** options. With no additional command-line
@@ -906,7 +875,7 @@ script and Modules-related environment variables. Providing the output of the
 project will help to analyze the situation.
 
 Control module command verbosity
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------
 
 The ability to control message verbosity has been added so ``module`` command
 can be configured whether it should display more or less information.
@@ -934,7 +903,7 @@ verbosity configuration to respectively set module command silent, verbose or
 in debug mode.
 
 Other new sub-commands, command-line switches and environment variables
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------------------------------------
 
 * The **avail** sub-command gets two new command-line switches: **--indepth**
   and **--no-indepth**. These options control whether search results should
@@ -1018,28 +987,18 @@ Other new sub-commands, command-line switches and environment variables
   modulefiles will return a syntax error.
 
 
-Further reading
----------------
-
-To get a complete list of the changes between Modules v4.2 and v4.3,
-please read the :ref:`NEWS` document.
-
-
-Migrating from v4.1 to v4.2
-===========================
+From v4.1 to v4.2
+=================
 
 This new version is backward-compatible with v4.1 and primarily fixes bugs and
-adds new features.
-
-New features
-------------
-
-Version 4.2 introduces new functionalities that are described in this section.
+adds new features. Version 4.2 introduces new functionalities that are
+described in this section. See the :ref:`4.2 release notes<4.2 release notes>`
+for a complete list of the changes between Modules v4.1 and v4.2.
 
 .. _v42-conflict-constraints-consistency:
 
 Modulefile conflict constraints consistency
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------------
 
 With the **conflict** modulefile command, a given modulefile can list the
 other modulefiles it conflicts with. To load this modulefile, the modulefiles
@@ -1093,7 +1052,7 @@ solved, modulefile load will be discarded.
 .. _v42-prereq-constraints-consistency:
 
 Modulefile prereq constraints consistency
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------
 
 With the **prereq** modulefile command, a given modulefile can list the
 other modulefiles it pre-requires. To load this modulefile, the modulefiles it
@@ -1138,7 +1097,7 @@ constraints of the loaded modulefiles in an environment variable called
 .. _v42-by-passing-module-constraints:
 
 By-passing module defined constraints
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------
 
 The ability to by-pass a **conflict** or a **prereq** constraint defined by
 modulefiles is introduced with the ``--force`` command line switch (``-f`` for
@@ -1182,7 +1141,7 @@ constraints corresponding to the **prereq** and **conflict** they declare, the
 .. _v42-automated-module-handling-mode:
 
 Automated module handling mode
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------
 
 An automatic management of the dependencies between modulefiles has been added
 and it is called *automated module handling mode*. This new mode consists in
@@ -1250,7 +1209,7 @@ actions will be refined over the next feature releases.
 .. _v42-consistency-module-load-unload-commands:
 
 Consistency of module load/unload commands in modulefile
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------------------------
 
 With the **module load** modulefile command, a given modulefile can
 automatically load a modulefile it pre-requires. Similarly with the **module
@@ -1310,7 +1269,7 @@ Modules version now that consistency is checked:
 .. _v42-alias-symbolic-name-consistency:
 
 Modulefile alias and symbolic modulefile name consistency
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------------------------------
 
 With the **module-alias** and **module-version** modulefile commands,
 alternative names can be given to a modulefile. When these names are used to
@@ -1359,7 +1318,7 @@ names of the loaded modulefiles in an environment variable called
 .. _v42-variable-change-through-modulefile-evaluation:
 
 Environment variable change through modulefile evaluation context
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------------------------------
 
 All environment variable edition commands (``setenv``, ``unsetenv``,
 ``append-path``, ``prepend-path`` and ``remove-path``) have been updated to:
@@ -1382,7 +1341,7 @@ save performances on this global evaluation mode.
 .. _v42-versioned-magic-cookie:
 
 Express Modules compatibility of modulefile with versioned magic cookie
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------------------------------------
 
 Any modulefile should start with the ``#%Module`` magic cookie and sometimes
 a version number may be placed right after this string. Until now this
@@ -1401,7 +1360,7 @@ set.
 .. _v42-module-message-report:
 
 Improved module message report
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------
 
 Module sub-commands like ``load``, ``unload`` or ``switch``, may perform
 multiple load or unload modulefile evaluations in a row. Also these kind of
@@ -1428,34 +1387,24 @@ the process::
       Loading requirement: bar/4.5
 
 New modulefile commands
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
 2 new modulefile Tcl commands have been introduced:
 
 * **set-function**: define a shell function on sh-kind and fish shells.
 * **unset-function**: unset a shell function on sh-kind and fish shells.
 
-Further reading
----------------
 
-To get a complete list of the changes between Modules v4.1 and v4.2,
-please read the :ref:`NEWS` document.
-
-
-Migrating from v4.0 to v4.1
-===========================
+From v4.0 to v4.1
+=================
 
 This new version is backward-compatible with v4.0 and primarily fixes bugs and
-adds new features.
-
-New features
-------------
-
-Version 4.1 introduces a bunch of new functionalities. These major new
-features are described in this section.
+adds new features. Version 4.1 introduces new functionalities that are
+described in this section. See the :ref:`4.1 release notes<4.1 release notes>`
+for a complete list of the changes between Modules v4.0 and v4.1.
 
 Virtual modules
-^^^^^^^^^^^^^^^
+---------------
 
 A virtual module stands for a module name associated to a modulefile. The
 modulefile is the script interpreted when loading or unloading the virtual
@@ -1471,7 +1420,7 @@ With this feature it is now possible to dynamically define modulefiles
 depending on the context.
 
 Extend module command with site-specific Tcl code
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------------------
 
 ``module`` command can now be extended with site-specific Tcl
 code. ``modulecmd.tcl`` now looks at a **siteconfig.tcl** file in an
@@ -1485,7 +1434,7 @@ sub-command can for instance be redefined to make it fit local needs
 without having to touch the main ``modulecmd.tcl``.
 
 Quarantine mechanism to protect module execution
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------------------
 
 To protect the module command run-time environment from side effect
 coming from the current environment definition a quarantine mechanism
@@ -1510,7 +1459,7 @@ Quarantine mechanism is available for all supported shells except ``csh``
 and ``tcsh``.
 
 Pager support
-^^^^^^^^^^^^^
+-------------
 
 The informational messages Modules sends on the *stderr* channel may
 sometimes be quite long. This is especially the case for the avail
@@ -1530,7 +1479,7 @@ variables or command-line switches (``--no-pager``, ``--paginate``).
    effects coming from the system general pager configuration.
 
 Module function to return value in scripting languages
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------------------------
 
 On Tcl, Perl, Python, Ruby, CMake and R scripting shells, module function
 was not returning value and until now an occurred error led to raising a
@@ -1548,7 +1497,7 @@ instance in Python::
       # failure
 
 New modulefile commands
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
 4 new modulefile Tcl commands have been introduced:
 
@@ -1571,7 +1520,7 @@ If no loaded modulefile matches the ``module-info loaded`` query, an empty
 string is returned.
 
 New module sub-commands
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
 Modulefile-specific commands are sometimes wished to be used outside of a
 modulefile context. Especially for the commands managing path variables
@@ -1599,15 +1548,9 @@ of the ``module-info loaded`` modulefile command::
     $ module info-loaded app
     app/0.8
 
-Further reading
----------------
 
-To get a complete list of the changes between Modules v4.0 and v4.1,
-please read the :ref:`NEWS` document.
-
-
-Migrating from v3.2 to v4.0
-===========================
+From v3.2 to v4.0
+=================
 
 Major evolution occurs with this v4.0 release as the traditional *module*
 command implemented in C is replaced by the native Tcl version. This full
