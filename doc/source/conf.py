@@ -234,6 +234,7 @@ rst_epilog += '.. |modulefilesdir| replace:: %s\n' % modulefilesdir
 rst_epilog += '.. |emph modulefilesdir| replace:: *%s*\n' % modulefilesdir
 rst_epilog += '.. |bold modulefilesdir| replace:: **%s**\n' % modulefilesdir
 rst_epilog += '.. |file modulefilesdir| replace:: :file:`%s`\n' % modulefilesdir
+rst_epilog += '.. |code version| replace:: ``%s``\n' % version
 
 
 # -- Options for manual page output ---------------------------------------

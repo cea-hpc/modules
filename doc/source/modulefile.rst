@@ -733,6 +733,26 @@ Modules Variables
  The :mfvar:`ModulesCurrentModulefile` variable contains the full pathname of
  the *modulefile* being interpreted.
 
+.. mfvar:: ModuleTool
+
+ The :mfvar:`ModuleTool` variable contains the name of the *module*
+ implementation currently in use. The value of this variable is set to
+ ``Modules`` for this implementation.
+
+ .. only:: html
+
+    .. versionadded:: 4.7
+
+.. mfvar:: ModuleToolVersion
+
+ The :mfvar:`ModuleToolVersion` variable contains the version of the *module*
+ implementation currently in use. The value of this variable is set to
+ |code version| for this version of Modules.
+
+ .. only:: html
+
+    .. versionadded:: 4.7
+
 .. _Locating Modulefiles:
 
 Locating Modulefiles
