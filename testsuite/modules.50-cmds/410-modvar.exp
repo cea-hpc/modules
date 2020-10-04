@@ -1,0 +1,82 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2020/10/04
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:    mfvar
+#   Sub-Command:    load, display, avail
+#
+#   Comment:	%C{
+#           Test modules variable set for modulefile and modulerc
+#           evaluation.
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+setenv_path_var MODULES_ADVANCED_VERSION_SPEC 0
+
+
+#
+# ModuleTool/ModuleToolVersion
+#
+
+# check var availability in modulerc context
+testouterr_cmd sh "avail -t mfvar/Modules/$install_release" OK "$mp:\nmfvar/Modules/$install_release"
+
+# check var availability in modulefile context
+set ans [list]
+lappend ans [list set MODTOOL Modules]
+lappend ans [list set MODTOOLVERS $install_release]
+lappend ans [list setpath LOADEDMODULES mfvar/2.0]
+lappend ans [list setpath _LMFILES_ $mp/mfvar/2.0]
+testouterr_cmd sh {load mfvar/2.0} $ans {}
+
+testouterr_cmd_re sh {show mfvar/2.0} OK "$modlin
+$mpre/mfvar/2.0:
+
+setenv\t\tMODTOOL Modules
+setenv\t\tMODTOOLVERS $install_release
+$modlin"
+
+# cascade evaluation to ensure variable values are not poisoned
+set ans [list]
+lappend ans [list set MODTOOL Modules]
+lappend ans [list set MODTOOLVERS $install_release]
+lappend ans [list setpath LOADEDMODULES mfvar/Modules/$install_release:mfvar/2.0]
+lappend ans [list setpath _LMFILES_ $mp/mfvar/2.0:$mp/mfvar/2.0]
+testouterr_cmd_re sh "load mfvar/Modules/$install_release mfvar/2.0" $ans {}
+
+set ans [list]
+lappend ans [list set MODTOOL Modules]
+lappend ans [list set MODTOOLVERS $install_release]
+lappend ans [list setpath LOADEDMODULES mfvar/2.0:mfvar/1.0]
+lappend ans [list setpath _LMFILES_ $mp/mfvar/2.0:$mp/mfvar/1.0]
+lappend ans [list setpath MODULES_LMNOTUASKED mfvar/2.0]
+lappend ans [list setpath MODULES_LMPREREQ mfvar/1.0&mfvar/2.0]
+testouterr_cmd_re sh {load --auto mfvar/1.0} $ans [msg_top_load mfvar/1.0 {} mfvar/2.0 {}]
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+setenv_path_var MODULEPATH $modpath
+unsetenv_path_var MODULES_ADVANCED_VERSION_SPEC
+
+unset mp
+unset mpre
+unset ans
