@@ -1,9 +1,9 @@
 .PHONY: doc pkgdoc initdir install install-testsiteconfig \
 	install-testsiteconfig-1 install-testmodulerc install-testmodulerc-1 \
 	install-testinitrc install-testetcrc install-testmodspath \
-	install-testmodspath-empty uninstall-testconfig uninstall dist dist-tar \
-	dist-gzip dist-bzip2 dist-win srpm rpm clean distclean test-deps test \
-	testinstall testsyntax
+	install-testmodspath-empty install-testmodspath-wild \
+	uninstall-testconfig uninstall dist dist-tar dist-gzip dist-bzip2 \
+	dist-win srpm rpm clean distclean test-deps test testinstall testsyntax
 
 # download command and its options
 WGET := wget --retry-connrefused --waitretry=20 --timeout=20 --tries=3
@@ -388,6 +388,9 @@ lib/libtestutil-mktime$(SHLIB_SUFFIX):
 testsuite/example/.modulespath: testsuite/example/.modulespath.in
 	$(translate-in-script)
 
+testsuite/example/.modulespath-wild: testsuite/example/.modulespath-wild.in
+	$(translate-in-script)
+
 testsuite/example/modulerc: testsuite/example/modulerc.in
 	$(translate-in-script)
 
@@ -426,6 +429,10 @@ install-testmodspath: testsuite/example/.modulespath
 	cp $^ $(DESTDIR)$(modulespath)
 
 install-testmodspath-empty: testsuite/example/.modulespath-empty
+	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
+	cp $^ $(DESTDIR)$(modulespath)
+
+install-testmodspath-wild: testsuite/example/.modulespath-wild
 	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
 	cp $^ $(DESTDIR)$(modulespath)
 
@@ -634,7 +641,7 @@ endif
 	rm -f script/createmodule.py
 	rm -f script/gitlog2changelog.py
 	rm -f script/modulecmd
-	rm -f testsuite/example/.modulespath testsuite/example/modulerc testsuite/example/modulerc-1 testsuite/example/initrc
+	rm -f testsuite/example/.modulespath testsuite/example/.modulespath-wild testsuite/example/modulerc testsuite/example/modulerc-1 testsuite/example/initrc
 	rm -f modules-*.tar modules-*.tar.gz modules-*.tar.bz2
 	rm -rf modules-*-win/
 	rm -f modules-*-win.zip

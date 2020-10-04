@@ -42,9 +42,15 @@ artifacts_template: &ARTIFACTS_TEMPLATE
 build_install_test_template: &BUILD_INSTALL_TEST_TEMPLATE
   build_script:
     - $MAKE
-  test_script:
-    - $MAKE test-deps
-    - script/mt
+  test_script: |
+    if [ -n "$TEST_SPECIFIC_CONFIG" ]; then
+      $MAKE $TEST_SPECIFIC_CONFIG
+    fi
+    $MAKE test-deps
+    script/mt
+    if [ -n "$TEST_SPECIFIC_CONFIG" ]; then
+      $MAKE uninstall-testconfig
+    fi
   install_script:
     - $MAKE install
   testinstall_script:
@@ -55,9 +61,15 @@ build_install_test_template: &BUILD_INSTALL_TEST_TEMPLATE
 build_install_xvfbtest_template: &BUILD_INSTALL_XVBFTEST_TEMPLATE
   build_script:
     - $MAKE
-  test_script:
-    - $MAKE test-deps
-    - xvfb-run script/mt
+  test_script: |
+    if [ -n "$TEST_SPECIFIC_CONFIG" ]; then
+      $MAKE $TEST_SPECIFIC_CONFIG
+    fi
+    $MAKE test-deps
+    xvfb-run script/mt
+    if [ -n "$TEST_SPECIFIC_CONFIG" ]; then
+      $MAKE uninstall-testconfig
+    fi
   install_script:
     - $MAKE install
   testinstall_script:
@@ -107,6 +119,7 @@ task:
     LANGUAGE: C
     LANG: C
     LC_ALL: C
+    TEST_SPECIFIC_CONFIG: install-testmodspath-wild
   container:
     image: ubuntu:bionic
     cpu: 1
