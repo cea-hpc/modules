@@ -17,6 +17,8 @@ Modules 4.7.0 (not yet released)
   version of the *module* implementation currently in use.
 * Introduce the :mfcmd:`versioncmp` modulefile command to compare two version
   strings passed as argument.
+* Enable the use of wildcard character to designate multiple directories at
+  once in modulespath configuration file. (fix issue #125)
 
 
 .. _4.6 release notes:
