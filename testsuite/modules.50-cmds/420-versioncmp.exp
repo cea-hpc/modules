@@ -1,0 +1,50 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2020/10/04
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:    versioncmp
+#   Sub-Command:    load
+#
+#   Comment:	%C{
+#           Test modulefile command 'versioncmp' during modulefile
+#           and modulerc evaluation.
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+setenv_path_var MODULES_ADVANCED_VERSION_SPEC 0
+
+
+# multiple tests of 'versioncmp' command are shipped in versioncmp/.modulerc
+# and versioncmp/1.0
+set ans [list]
+lappend ans [list setpath LOADEDMODULES versioncmp/1.0]
+lappend ans [list setpath _LMFILES_ $mp/versioncmp/1.0]
+testouterr_cmd sh {load versioncmp/1.0} $ans {}
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+setenv_path_var MODULEPATH $modpath
+unsetenv_path_var MODULES_ADVANCED_VERSION_SPEC
+
+unset mp
+unset mpre
+unset ans
