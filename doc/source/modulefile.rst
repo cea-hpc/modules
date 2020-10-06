@@ -240,11 +240,20 @@ the *modulefile* is being loaded.
 
  * another *modulefile* alias
 
-.. mfcmd:: module-forbid [--after datetime] [--before datetime] [--not-user {user...}] [--not-group {group...}] [--message {text message}] [--nearly-message {text message}] modulefile...
+.. mfcmd:: module-forbid [options] modulefile...
 
  Forbid use of *modulefile*. An error is obtained when trying to evaluate a
  forbidden module. This command should be placed in one of the
  :file:`modulecmd.tcl` rc files.
+
+ :mfcmd:`module-forbid` command accepts the following options:
+
+ * ``--after datetime``
+ * ``--before datetime``
+ * ``--not-user {user...}``
+ * ``--not-group {group...}``
+ * ``--message {text message}``
+ * ``--nearly-message {text message}``
 
  If ``--after`` option is set, forbidding is only effective after specified
  date time. Following the same principle, if ``--before`` option is set,
@@ -283,11 +292,19 @@ the *modulefile* is being loaded.
 
     .. versionadded:: 4.6
 
-.. mfcmd:: module-hide [--soft|--hard] [--after datetime] [--before datetime] [--not-user {user...}] [--not-group {group...}] modulefile...
+.. mfcmd:: module-hide [options] modulefile...
 
  Hide *modulefile* to exclude it from available module search or module
  selection unless query refers to *modulefile* by its exact name. This command
  should be placed in one of the :file:`modulecmd.tcl` rc files.
+
+ :mfcmd:`module-hide` command accepts the following options:
+
+ * ``--soft|--hard``
+ * ``--after datetime``
+ * ``--before datetime``
+ * ``--not-user {user...}``
+ * ``--not-group {group...}``
 
  When ``--soft`` option is set, *modulefile* is also set hidden, but hiding is
  disabled when search or selection query's root name matches module's root
