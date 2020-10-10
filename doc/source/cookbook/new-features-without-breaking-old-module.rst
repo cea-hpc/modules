@@ -32,6 +32,26 @@ command) it is possible to test if a new feature is available prior using it.
 
 **Compatible with Modules v3.2+**
 
+Starting version 4.7 of Modules, two new Tcl variables are introduced in the
+modulefile and modulerc evaluation context: ``ModuleTool`` and
+``ModuleToolVersion``. These two variables help to determine respectively
+what is the module implementation running and what is its version. With this
+knowledge it is possible to adapt modulefile and modulerc code to cope with a
+behavior changing over module versions or with different behaviors between
+different module implementation. The Tcl modulefile command ``versioncmp`` has
+been added along to help comparing software version number (e.g. ``4.10`` is
+newer than ``4.7``).
+
+Starting its version ``8.4.8``, the Lmod_ project also supports the
+``ModuleTool`` and ``ModuleToolVersion`` variables and the ``versioncmp``
+modulefile command. It enables having modulefiles compatible with both module
+implementations without restricting yourself from using the advanced features
+from both projects.
+
+.. _Lmod: https://github.com/TACC/Lmod
+
+**Compatible with Modules v4.7+**
+
 Usage example
 -------------
 
@@ -66,3 +86,29 @@ Modules 4.6 or newer version::
    /path/to/example/new-features-without-breaking-old-module/modulefiles:
    foo/1.2
 
+Now take a look at *bar* module which provides a version for each Unix group
+the current user is member of. User group membership can be retrieved with the
+``usergroups`` sub-command of ``module-info`` starting Modules version 4.6.
+With older version of Modules, the external command ``groups`` has to be used
+to get this information. By using the ``ModuleTool`` and ``ModuleToolVersion``
+Tcl variables it will be possible to determine if ``usergroups`` sub-command
+is available on ``module-info``.
+
+.. literalinclude:: ../../example/new-features-without-breaking-old-module/modulefiles/bar/.modulerc
+   :language: tcl
+   :caption: bar/.modulerc
+
+Querying available *bar* module versions should match the list of groups of
+current user::
+
+   $ groups
+   grp1 grp2
+   $ module avail -t bar
+   /path/to/example/new-features-without-breaking-old-module/modulefiles:
+   bar/grp1
+   bar/grp2
+
+.. note::
+
+   As the new Tcl variables are introduced in Modules 4.7, the use of the new
+   ``uergroups`` sub-command will only be triggered starting Modules 4.7.
