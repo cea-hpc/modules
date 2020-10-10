@@ -41,6 +41,10 @@ is less than, equal to or greater than second one.
         # here some code specific for Modules 4.7 and later versions
     }
 
+The :mfvar:`ModuleTool` and :mfvar:`ModuleToolVersion` variables and the
+:mfcmd:`versioncmp` modulefile command are supported by the `Lmod`_ project
+starting version ``8.4.8``.
+
 
 From v4.5 to v4.6
 =================
