@@ -33,7 +33,13 @@ setenv_var MODULES_ADVANCED_VERSION_SPEC 0
 
 
 proc altname_test_case {mod args} {
-    set defnamelist [concat [list $mod] $args]
+    set defaltlist [concat [list $mod] $args]
+    foreach name $defaltlist {
+        if {[string range $name 0 2] eq {al|}} {
+            set name [string range $name 3 end]
+        }
+        lappend defnamelist $name
+    }
     # determine all names that can be tested
     set testnamelist [list]
     foreach name $defnamelist {
@@ -52,7 +58,7 @@ proc altname_test_case {mod args} {
     set ans [list]
     lappend ans [list setpath LOADEDMODULES $mod]
     lappend ans [list setpath _LMFILES_ $::mp/$mod]
-    lappend ans [list setpath MODULES_LMALTNAME [join $defnamelist &]]
+    lappend ans [list setpath MODULES_LMALTNAME [join $defaltlist &]]
 
     foreach name $defnamelist {
         testouterr_cmd "sh" "load $name" $ans ""
@@ -64,7 +70,7 @@ proc altname_test_case {mod args} {
 
     # setup environment with targeted module loaded
     setenv_loaded_module [list $mod] [list $::mp/$mod]
-    setenv_path_var MODULES_LMALTNAME [join $defnamelist &]
+    setenv_path_var MODULES_LMALTNAME [join $defaltlist &]
 
     set ans [list]
     lappend ans [list unsetpath LOADEDMODULES]
@@ -82,14 +88,14 @@ proc altname_test_case {mod args} {
     # restore environment with no loaded module
     unsetenv_loaded_module
     unsetenv_path_var MODULES_LMALTNAME
-} 
+}
 
-altname_test_case alt/1 foo alt/sym
-altname_test_case alt/dir/2 altfoo
-altname_test_case alt/dir/3 alt/bar
-altname_test_case alt/dir/4 altbar/4
+altname_test_case alt/1 alt/sym al|foo
+altname_test_case alt/dir/2 al|altfoo
+altname_test_case alt/dir/3 al|alt/bar
+altname_test_case alt/dir/4 al|altbar/4
 altname_test_case alt/dir/5 alt/dir/sym2
-altname_test_case alt/dir/6 alt/dir/al alt/dir/default alt/dir
+altname_test_case alt/dir/6 alt/dir/default alt/dir al|alt/dir/al
 
 
 # alias defined in a different module dir, alias will not be found thus registered
@@ -97,7 +103,7 @@ altname_test_case alt/dir/6 alt/dir/al alt/dir/default alt/dir
 set ans [list]
 lappend ans [list setpath LOADEDMODULES alt2/1]
 lappend ans [list setpath _LMFILES_ $mp/alt2/1]
-lappend ans [list setpath MODULES_LMALTNAME alt2/1&alt/ext]
+lappend ans [list setpath MODULES_LMALTNAME alt2/1&al|alt/ext]
 testouterr_cmd "sh" "load alt/ext" $ans ""
 set ans [list]
 lappend ans [list setpath LOADEDMODULES alt2/1]
@@ -105,7 +111,7 @@ lappend ans [list setpath _LMFILES_ $mp/alt2/1]
 testouterr_cmd "sh" "load alt2/1" $ans ""
 
 setenv_loaded_module [list alt2/1] [list $mp/alt2/1]
-setenv_path_var MODULES_LMALTNAME alt2/1&alt/ext
+setenv_path_var MODULES_LMALTNAME alt2/1&al|alt/ext
 
 set ans [list [list text alt2/1]]
 foreach name [list alt2/1 alt/ext] {
@@ -141,13 +147,13 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES alt/dir/2:alt/1:i1]
 lappend ans [list setpath _LMFILES_ $mp/alt/dir/2:$mp/alt/1:$mp/i1]
 lappend ans [list setpath MODULES_LMNOTUASKED alt/dir/2:alt/1]
-lappend ans [list setpath MODULES_LMALTNAME alt/dir/2&altfoo:alt/1&foo&alt/sym]
+lappend ans [list setpath MODULES_LMALTNAME alt/dir/2&al|altfoo:alt/1&alt/sym&al|foo]
 lappend ans [list setpath MODULES_LMPREREQ i1&altfoo&alt/sym]
 testouterr_cmd_re "sh" "load i1" $ans [msg_top_load i1 {} [list alt/dir/2 alt/1] {}]
 
 # load module whereas its alias-named prereq and its symbolic-version-named prereq are loaded
-setenv_loaded_module [list alt/dir/2 alt/1] [list $mp/alt/dir/2 $mp/alt/1] 
-setenv_path_var MODULES_LMALTNAME alt/dir/2&altfoo alt/1&foo&alt/sym
+setenv_loaded_module [list alt/dir/2 alt/1] [list $mp/alt/dir/2 $mp/alt/1]
+setenv_path_var MODULES_LMALTNAME alt/dir/2&al|altfoo alt/1&alt/sym&al|foo
 set ans [list]
 lappend ans [list setpath LOADEDMODULES alt/dir/2:alt/1:i1]
 lappend ans [list setpath _LMFILES_ $mp/alt/dir/2:$mp/alt/1:$mp/i1]
@@ -156,12 +162,12 @@ testouterr_cmd_re "sh" "load i1" $ans ""
 
 # load alternative-named prereq after its dependent module
 setenv_loaded_module [list alt/dir/2 i1] [list $mp/alt/dir/2 $mp/i1]
-setenv_path_var MODULES_LMALTNAME alt/dir/2&altfoo
+setenv_path_var MODULES_LMALTNAME alt/dir/2&al|altfoo
 setenv_path_var MODULES_LMPREREQ i1&altfoo&alt/sym
 set ans [list]
 lappend ans [list setpath LOADEDMODULES alt/dir/2:alt/1:i1]
 lappend ans [list setpath _LMFILES_ $mp/alt/dir/2:$mp/alt/1:$mp/i1]
-lappend ans [list setpath MODULES_LMALTNAME alt/dir/2&altfoo:alt/1&foo&alt/sym]
+lappend ans [list setpath MODULES_LMALTNAME alt/dir/2&al|altfoo:alt/1&alt/sym&al|foo]
 lappend ans [list setpath MODULES_LMPREREQ i1&altfoo&alt/sym]
 testouterr_cmd_re "sh" "load alt/sym" $ans [msg_top_load alt/1 {} {} i1]
 testouterr_cmd_re "sh" "load alt/1" $ans [msg_top_load alt/1 {} {} i1]
@@ -178,7 +184,7 @@ testouterr_cmd "sh" "unload i1" $ans ""
 
 # unload module whereas its alias-named prereq and its symbolic-version-named prereq are loaded
 setenv_loaded_module [list alt/dir/2 alt/1 i1] [list $mp/alt/dir/2 $mp/alt/1 $mp/i1] [list alt/dir/2 alt/1]
-setenv_path_var MODULES_LMALTNAME alt/dir/2&altfoo alt/1&foo&alt/sym
+setenv_path_var MODULES_LMALTNAME alt/dir/2&al|altfoo alt/1&alt/sym&al|foo
 setenv_path_var MODULES_LMPREREQ i1&altfoo&alt/sym
 
 set ans [list]
@@ -207,8 +213,8 @@ lappend ans [list setpath MODULES_LMCONFLICT i2&altfoo&alt/sym]
 testouterr_cmd_re "sh" "load i2" $ans ""
 
 # load module whereas its alias-named conflict and its symbolic-version-named conflict are loaded
-setenv_loaded_module [list alt/dir/2 alt/1] [list $mp/alt/dir/2 $mp/alt/1] 
-setenv_path_var MODULES_LMALTNAME alt/dir/2&altfoo alt/1&foo&alt/sym
+setenv_loaded_module [list alt/dir/2 alt/1] [list $mp/alt/dir/2 $mp/alt/1]
+setenv_path_var MODULES_LMALTNAME alt/dir/2&al|altfoo alt/1&alt/sym&al|foo
 testouterr_cmd_re "sh" "load i2" ERR [msg_load i2 [err_conflict i2 altfoo]]
 
 # load module whose alterative name conflicts with an already loaded module
@@ -227,12 +233,12 @@ testouterr_cmd "sh" "unload i2" $ans ""
 
 # unload module whereas its alias-named conflict and its symbolic-version-named conflict are loaded
 setenv_loaded_module [list alt/dir/2 alt/1 i2] [list $mp/alt/dir/2 $mp/alt/1 $mp/i2]
-setenv_path_var MODULES_LMALTNAME alt/dir/2&altfoo alt/1&foo&alt/sym
+setenv_path_var MODULES_LMALTNAME alt/dir/2&al|altfoo alt/1&alt/sym&al|foo
 setenv_path_var MODULES_LMCONFLICT i2&altfoo&alt/sym
 set ans [list]
 lappend ans [list setpath LOADEDMODULES alt/dir/2:alt/1]
 lappend ans [list setpath _LMFILES_ $mp/alt/dir/2:$mp/alt/1]
-lappend ans [list setpath MODULES_LMALTNAME alt/dir/2&altfoo:alt/1&foo&alt/sym]
+lappend ans [list setpath MODULES_LMALTNAME alt/dir/2&al|altfoo:alt/1&alt/sym&al|foo]
 lappend ans [list unsetpath MODULES_LMCONFLICT]
 testouterr_cmd_re "sh" "unload i2" $ans [msg_top_unload i2 {} {} [list alt/dir/2 alt/1]]
 
@@ -240,14 +246,14 @@ testouterr_cmd_re "sh" "unload i2" $ans [msg_top_unload i2 {} {} [list alt/dir/2
 set ans [list]
 lappend ans [list setpath LOADEDMODULES alt/1:i2]
 lappend ans [list setpath _LMFILES_ $mp/alt/1:$mp/i2]
-lappend ans [list setpath MODULES_LMALTNAME alt/1&foo&alt/sym]
+lappend ans [list setpath MODULES_LMALTNAME alt/1&alt/sym&al|foo]
 testouterr_cmd_re "sh" "unload altfoo" $ans ""
 
 # unload symbolic-version-named conflict
 set ans [list]
 lappend ans [list setpath LOADEDMODULES alt/dir/2:i2]
 lappend ans [list setpath _LMFILES_ $mp/alt/dir/2:$mp/i2]
-lappend ans [list setpath MODULES_LMALTNAME alt/dir/2&altfoo]
+lappend ans [list setpath MODULES_LMALTNAME alt/dir/2&al|altfoo]
 testouterr_cmd_re "sh" "unload alt/sym" $ans ""
 
 # unload both conflicts
@@ -276,12 +282,12 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES i5/1]
 lappend ans [list setpath _LMFILES_ $mp/i5/1]
 lappend ans [list setpath MODULES_LMCONFLICT i5/1&irefcon]
-lappend ans [list setpath MODULES_LMALTNAME i5/1&irefcon]
+lappend ans [list setpath MODULES_LMALTNAME i5/1&al|irefcon]
 testouterr_cmd_re "sh" "load i5/1" $ans ""
 set ans [list]
 lappend ans [list setpath _LMFILES_ $mp/i5/1]
 lappend ans [list setpath LOADEDMODULES i5/1]
-lappend ans [list setpath MODULES_LMALTNAME i5/1&irefcon]
+lappend ans [list setpath MODULES_LMALTNAME i5/1&al|irefcon]
 lappend ans [list setpath MODULES_LMCONFLICT i5/1&irefcon]
 lappend ans [list ERR]
 testouterr_cmd_re "sh" "load i5/1 i5/2" $ans [msg_load i5/2 [err_conlo irefcon]]
@@ -293,11 +299,11 @@ lappend ans [list setpath LOADEDMODULES alt/dir/2:i6]
 lappend ans [list setpath _LMFILES_ $mp/alt/dir/2:$mp/i6]
 lappend ans [list setpath MODULES_LMPREREQ i6&altfoo]
 lappend ans [list setpath MODULES_LMNOTUASKED alt/dir/2]
-lappend ans [list setpath MODULES_LMALTNAME alt/dir/2&altfoo]
+lappend ans [list setpath MODULES_LMALTNAME alt/dir/2&al|altfoo]
 testouterr_cmd_re sh {load i6} $ans [msg_top_load i6 {} alt/dir/2 {}]
 
 setenv_loaded_module [list alt/dir/2 i6] [list $mp/alt/dir/2 $mp/i6] [list alt/dir/2]
-setenv_path_var MODULES_LMALTNAME alt/dir/2&altfoo
+setenv_path_var MODULES_LMALTNAME alt/dir/2&al|altfoo
 setenv_path_var MODULES_LMPREREQ i6&altfoo
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
@@ -309,7 +315,7 @@ testouterr_cmd_re sh {unload alt/dir/2} $ans [msg_top_unload alt/dir/2 i6 {} {}]
 
 # 'module unload' set on an alternative name
 setenv_loaded_module [list alt/dir/2] [list $mp/alt/dir/2]
-setenv_path_var MODULES_LMALTNAME alt/dir/2&altfoo
+setenv_path_var MODULES_LMALTNAME alt/dir/2&al|altfoo
 unsetenv_path_var MODULES_LMPREREQ
 set ans [list]
 lappend ans [list setpath LOADEDMODULES i7]
@@ -332,12 +338,12 @@ unsetenv_loaded_module
 set ans [list]
 lappend ans [list setpath LOADEDMODULES alt/dir/2]
 lappend ans [list setpath _LMFILES_ $mp/alt/dir/2]
-lappend ans [list setpath MODULES_LMALTNAME $badelt:alt/dir/2&altfoo]
+lappend ans [list setpath MODULES_LMALTNAME $badelt:alt/dir/2&al|altfoo]
 testouterr_cmd_re sh {load alt/dir/2} $ans {}
 testouterr_cmd_re sh {load altfoo} $ans {}
 
 setenv_loaded_module [list alt/dir/2] [list $mp/alt/dir/2]
-setenv_path_var MODULES_LMALTNAME $badelt:alt/dir/2&altfoo
+setenv_path_var MODULES_LMALTNAME $badelt:alt/dir/2&al|altfoo
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
@@ -352,11 +358,11 @@ testouterr_cmd_re sh {unload altfoo} $ans {}
 testouterr_cmd sh {load extloaded} ERR "$err_path'extloaded'"
 
 setenv_loaded_module [list alt2/1] [list $mp/alt2/1]
-setenv_path_var MODULES_LMALTNAME alt2/1&alt/ext
+setenv_path_var MODULES_LMALTNAME alt2/1&al|alt/ext
 set ans [list]
 lappend ans [list setpath LOADEDMODULES alt2/1:alt/9]
 lappend ans [list setpath _LMFILES_ $mp/alt2/1:$mp/alt/9]
-lappend ans [list setpath MODULES_LMALTNAME alt2/1&alt/ext:alt/9&extloaded]
+lappend ans [list setpath MODULES_LMALTNAME alt2/1&al|alt/ext:alt/9&al|extloaded]
 testouterr_cmd_re sh {load extloaded} $ans {}
 
 
