@@ -1390,6 +1390,11 @@ ENVIRONMENT
  loaded modulefile and its alternative names are separated by the ampersand
  character.
 
+ Each alternative name stored in :envvar:`MODULES_LMALTNAME` is prefixed by
+ the ``al|`` string if it corresponds to a module alias or prefixed by the
+ ``as|`` string if it corresponds to an automatic version symbol. These
+ prefixes help to distinguish the different kind of alternative name.
+
  This environment variable is intended for :command:`module` command internal
  use to get knowledge of the alternative names matching loaded *modulefiles*
  in order to keep environment consistent when conflicts or pre-requirements
