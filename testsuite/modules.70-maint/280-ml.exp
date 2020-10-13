@@ -66,11 +66,13 @@ testouterr_cmd sh {ml extdfl} $ans {}
 
 # basic tests over a loaded module
 setenv_loaded_module [list extdfl/1.3.1] [list $mp/extdfl/1.3.1]
+setenv_path_var MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl
 testouterr_cmd sh {ml} OK "$cur_loaded\n 1) extdfl/1.3.1(default)  "
 testouterr_cmd sh {ml extdfl} OK {}
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMALTNAME]
 testouterr_cmd sh {ml -extdfl} $ans {}
 testouterr_cmd sh {ml -extdfl/1.3.1} $ans {}
 
@@ -86,6 +88,7 @@ lappend ans [list setpath MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
 testouterr_cmd_re sh {ml extdfl -t} $ans {}
 testouterr_cmd_re sh {ml -f extdfl -t} $ans {}
 unsetenv_loaded_module
+unsetenv_path_var MODULES_LMALTNAME
 
 # abbreviated sub-command name should be consistent
 set ans [list]
