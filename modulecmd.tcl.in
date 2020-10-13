@@ -5664,13 +5664,15 @@ proc unsetLoadedAltname {mod} {
    }
 }
 
-proc getLoadedAltname {mod {serialized 0}} {
+proc getLoadedAltname {mod {serialized 0} {typelist {sym alias autosym}}} {
    set ret {}
 
-   if {[info exists ::g_loadedModuleAltname($mod)]} {
+   if {[info exists ::g_loadedModuleAltname($mod)] && [isInList $typelist\
+      sym]} {
       set ret $::g_loadedModuleAltname($mod)
    }
-   if {[info exists ::g_loadedModuleAliasAltname($mod)]} {
+   if {[info exists ::g_loadedModuleAliasAltname($mod)] && [isInList\
+      $typelist alias]} {
       if {$serialized} {
          # add a 'al|' prefix to each alias to distinguish them when
          # serialized
@@ -5681,7 +5683,8 @@ proc getLoadedAltname {mod {serialized 0}} {
          set ret [concat $ret $::g_loadedModuleAliasAltname($mod)]
       }
    }
-   if {[info exists ::g_loadedModuleAutoAltname($mod)]} {
+   if {[info exists ::g_loadedModuleAutoAltname($mod)] && [isInList $typelist\
+      autosym]} {
       if {$serialized} {
          # add a 'as|' prefix to each auto sym to distinguish them when
          # serialized
@@ -10335,23 +10338,17 @@ proc cmdModuleList {show_oneperline show_mtime} {
             lappend display_list $mod
          } else {
             set modfile [getModulefileFromLoadedModule $mod]
-            # skip rc find and execution if mod is registered as full path
-            if {[isModuleFullPath $mod]} {
-               set tag_list {}
-            # or if loaded module is a virtual module
-            } elseif {[isModuleVirtual $mod $modfile]} {
-               set tag_list {}
-            } else {
-               # call getModules to find and execute rc files for this mod
-               set dir [getModulepathFromModuleName $modfile $mod]
-               array set mod_list [getModules $dir $mod $show_mtime]
-               # fetch info only if mod found
-               if {[info exists mod_list($mod)]} {
-                  set tag_list [getVersAliasList $mod]
-               } else {
-                  set tag_list {}
+
+            # fetch symbols from loaded environment information
+            set modname [file dirname $mod]
+            set tag_list {}
+            foreach altname [getLoadedAltname $mod 0 sym] {
+               # skip non-symbol entry
+               if {$altname ne $modname} {
+                  lappend tag_list [file tail $altname]
                }
             }
+            set tag_list [lsort -dictionary $tag_list]
 
             if {$json} {
                set dispsgr [formatListEltToJsonDisplay $mod type s modulefile\
