@@ -10337,11 +10337,9 @@ proc cmdModuleList {show_oneperline show_mtime} {
             set modfile [getModulefileFromLoadedModule $mod]
             # skip rc find and execution if mod is registered as full path
             if {[isModuleFullPath $mod]} {
-               set mtime [getFileMtime $mod]
                set tag_list {}
             # or if loaded module is a virtual module
             } elseif {[isModuleVirtual $mod $modfile]} {
-               set mtime [getFileMtime $modfile]
                set tag_list {}
             } else {
                # call getModules to find and execute rc files for this mod
@@ -10349,7 +10347,6 @@ proc cmdModuleList {show_oneperline show_mtime} {
                array set mod_list [getModules $dir $mod $show_mtime]
                # fetch info only if mod found
                if {[info exists mod_list($mod)]} {
-                  set mtime [lindex $mod_list($mod) 1]
                   set tag_list [getVersAliasList $mod]
                } else {
                   set tag_list {}
@@ -10360,13 +10357,8 @@ proc cmdModuleList {show_oneperline show_mtime} {
                set dispsgr [formatListEltToJsonDisplay $mod type s modulefile\
                   symbols a $tag_list pathname s $modfile]
             } elseif {$show_mtime} {
-               if {[info exists mtime]} {
-                  set clock_mtime [clock format $mtime -format\
-                     {%Y/%m/%d %H:%M:%S}]
-                  unset mtime
-               } else {
-                  set clock_mtime {}
-               }
+               set clock_mtime [expr {[file exists $modfile] ? [clock format\
+                  [getFileMtime $modfile] -format {%Y/%m/%d %H:%M:%S}] : {}}]
 
                # add to display file modification time in addition to tags
                lassign [formatListEltToLongDisplay $mod {} {} $tag_list sy\
