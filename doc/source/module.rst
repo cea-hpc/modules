@@ -1402,6 +1402,10 @@ ENVIRONMENT
  after *modulefiles* being loaded when :subcmd:`unload`, :subcmd:`is-loaded`
  or :subcmd:`info-loaded` actions are run over these names.
 
+ Starting version 4.7 of Modules, :envvar:`MODULES_LMALTNAME` is also used on
+ :subcmd:`list` sub-command to report the symbolic versions associated with
+ the loaded modules.
+
  .. only:: html
 
     .. versionadded:: 4.2
