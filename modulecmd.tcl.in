@@ -92,6 +92,7 @@ array set g_config_defs [list\
    pager {MODULES_PAGER {@pagercmd@} 0}\
    rcfile {MODULERCFILE <undef> 0}\
    run_quarantine {MODULES_RUN_QUARANTINE <undef> 0}\
+   shells_with_ksh_fpath {MODULES_SHELLS_WITH_KSH_FPATH {} 0}\
    silent_shell_debug {MODULES_SILENT_SHELL_DEBUG <undef> 0 {0 1}}\
    siteconfig {{} @etcdir@/siteconfig.tcl 0}\
    tcl_ext_lib {{} {} 0 {} {} initConfTclExtLib}\
@@ -11855,8 +11856,10 @@ proc cmdModuleAutoinit {} {
    setenv MODULESHOME [getConf home]
 
    # append dir where to find module function for ksh (to get it defined in
-   # interactive and non-interactive sub-shells)
-   if {[getState shell] eq {ksh}} {
+   # interactive and non-interactive sub-shells). also applies for shells
+   # listed in shells_with_ksh_fpath conf
+   if {[isInList [concat [getConf shells_with_ksh_fpath] [list ksh]]\
+      [getState shell]]} {
       append-path FPATH @initdir@/ksh-functions
    }
 
