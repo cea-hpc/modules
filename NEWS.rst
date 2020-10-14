@@ -19,6 +19,14 @@ Modules 4.7.0 (not yet released)
   strings passed as argument.
 * Enable the use of wildcard character to designate multiple directories at
   once in modulespath configuration file. (fix issue #125)
+* Distinguish aliases from symbolic versions in :envvar:`MODULES_LMALTNAME`
+  environment variable. Prefix these alias entries with the ``al|`` string.
+* Fetch modulefile modification time only if required by :subcmd:`list`
+  sub-command display format.
+* Use symbolic versions recorded in environment, with
+  :envvar:`MODULES_LMALTNAME` variable, to report the symbols applying to
+  loaded modules on :subcmd:`list` sub-command. Modulerc files are not
+  evaluated anymore when performing a module list.
 
 
 .. _4.6 release notes:
