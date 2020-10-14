@@ -11854,6 +11854,12 @@ proc cmdModuleAutoinit {} {
    # default MODULESHOME
    setenv MODULESHOME [getConf home]
 
+   # append dir where to find module function for ksh (to get it defined in
+   # interactive and non-interactive sub-shells)
+   if {[getState shell] eq {ksh}} {
+      append-path FPATH @initdir/ksh-functions
+   }
+
    # define Modules init script as shell startup file
    if {[getConf set_shell_startup] && [isInList [list sh csh fish]\
       [getState shelltype]]} {
