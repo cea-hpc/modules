@@ -559,17 +559,33 @@ foreach set_shell_startup [list {} 0 1] {
                     lappend ans [list set MODULES_CMD $modulecmd_path]
                     if {[is_real_shell $shell] && ($env(MODULES_SET_SHELL_STARTUP) eq {1} || ($env(MODULES_SET_SHELL_STARTUP) ne {0} && $install_setshellstartup eq {y}))} {
                         lappend ans [list set ENV $install_initdir/profile.sh]
+                        if {$shell eq {ksh}} {
+                            lappend ans [list set FPATH_modshare $install_initdir/ksh-functions:1]
+                        }
                         lappend ans [list set BASH_ENV $install_initdir/bash]
+                    } elseif {$shell eq {ksh}} {
+                        lappend ans [list set FPATH_modshare $install_initdir/ksh-functions:1]
                     }
                     lappend ans [list set MODULESHOME $moduleshome]
+                    if {$shell eq {ksh}} {
+                        lappend ans [list set FPATH $install_initdir/ksh-functions]
+                    }
                     lappend ans [list set MODULE_VERSION "(.*)"]
                 } else {
                     lappend ans [list set MODULES_CMD $modulecmd_path]
                     if {[is_real_shell $shell] && ($env(MODULES_SET_SHELL_STARTUP) eq {1} || ($env(MODULES_SET_SHELL_STARTUP) ne {0} && $install_setshellstartup eq {y}))} {
                         lappend ans [list set ENV $install_initdir/profile.sh]
+                        if {$shell eq {ksh}} {
+                            lappend ans [list set FPATH_modshare $install_initdir/ksh-functions:1]
+                        }
                         lappend ans [list set BASH_ENV $install_initdir/bash]
+                    } elseif {$shell eq {ksh}} {
+                        lappend ans [list set FPATH_modshare $install_initdir/ksh-functions:1]
                     }
                     lappend ans [list set MODULESHOME $moduleshome]
+                    if {$shell eq {ksh}} {
+                        lappend ans [list set FPATH $install_initdir/ksh-functions]
+                    }
                 }
 
                 test_cmd_re $shell "autoinit" $ans
@@ -635,10 +651,20 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                     lappend ans [list set MODULES_CMD $modulecmd_path]
                     if {[is_real_shell $shell] && $install_setshellstartup eq {y}} {
                         lappend ans [list set ENV $install_initdir/profile.sh]
+                        if {$shell eq {ksh}} {
+                            lappend ans [list set FPATH_modshare $install_initdir/ksh-functions:1]
+                        }
                         lappend ans [list set BASH_ENV $install_initdir/bash]
+                    } else {
+                        if {$shell eq {ksh}} {
+                            lappend ans [list set FPATH_modshare $install_initdir/ksh-functions:1]
+                        }
                     }
                     lappend ans [list set MODULESHOME $moduleshome]
                     lappend ans [list set LOADEDMODULES ""]
+                    if {$shell eq {ksh}} {
+                        lappend ans [list set FPATH $install_initdir/ksh-functions]
+                    }
                     lappend ans [list set MODULEPATH ""]
                     if {$install_versioning eq "y"} {
                         lappend ans [list set MODULE_VERSION "(.*)"]
@@ -651,12 +677,18 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                     if {[is_real_shell $shell] && $install_setshellstartup eq {y}} {
                         lappend ans [list set ENV $install_initdir/profile.sh]
                     }
+                    if {$shell eq {ksh}} {
+                        lappend ans [list set FPATH_modshare $install_initdir/ksh-functions:1]
+                    }
                     lappend ans [list set MODULEPATH_modshare "(.*)"]
                     if {[is_real_shell $shell] && $install_setshellstartup eq {y}} {
                         lappend ans [list set BASH_ENV $install_initdir/bash]
                     }
                     lappend ans [list set MODULESHOME $moduleshome]
                     lappend ans [list set LOADEDMODULES ""]
+                    if {$shell eq {ksh}} {
+                        lappend ans [list set FPATH $install_initdir/ksh-functions]
+                    }
                     lappend ans [list set MODULEPATH "$install_modulepath:$install_prefix/test/modulefiles:$install_prefix/test/etc"]
                     if {$install_versioning eq "y"} {
                         lappend ans [list set MODULE_VERSION "(.*)"]
@@ -711,10 +743,16 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                         lappend ans [list set MODULESHOME $moduleshome]
                         lappend ans [list set LOADEDMODULES "m1:m3:space yc/4"]
                         lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4"]
+                        if {$shell eq {ksh}} {
+                            lappend ans [list set FPATH $install_initdir/ksh-functions]
+                        }
                         if {$install_versioning eq "y"} {
                             lappend ans [list set MODULE_VERSION "(.*)"]
                         }
                         lappend ans [list set MODULES_CMD $modulecmd_path]
+                        if {$shell eq {ksh}} {
+                            lappend ans [list set FPATH_modshare $install_initdir/ksh-functions:1]
+                        }
                         if {[is_real_shell $shell] && $install_setshellstartup eq {y}} {
                             lappend ans [list set BASH_ENV $install_initdir/bash]
                         }
