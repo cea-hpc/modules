@@ -715,20 +715,27 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                         lappend ans [list set MODULE_VERSION "(.*)"]
                     }
                 } elseif {!$insmodspath && $modrc1_exinstalled} {
-                    lappend ans [list set _LMFILES__modshare "$install_modulefilesdir/null:1"]
-                    lappend ans [list set LOADEDMODULES_modshare "null:1"]
                     if {$install_versioning eq "y"} {
                         lappend ans [list set MODULE_VERSION_STACK "(.*)"]
                     }
-                    lappend ans [list set MODULES_CMD $modulecmd_path]
-                    lappend ans [list set MODULEPATH_modshare "$install_modulepath:1"]
-                    lappend ans [list set MODULES_ML 0]
-                    lappend ans [list set MODULES_SET_SHELL_STARTUP 0]
-                    lappend ans [list set MODULES_AUTO_HANDLING 0]
-                    lappend ans [list set _LMFILES_ "$install_modulefilesdir/null"]
-                    lappend ans [list set MODULESHOME $moduleshome]
                     lappend ans [list set LOADEDMODULES "null"]
+                    lappend ans [list set MODULESHOME $install_initdir]
+                    lappend ans [list set _LMFILES_ "$install_modulefilesdir/null"]
+                    if {$shell eq {ksh} || $shell eq {sh} || $shell eq {bash}} {
+                        lappend ans [list set FPATH $install_initdir/ksh-functions]
+                    }
+                    lappend ans [list set MODULES_CMD $modulecmd_path]
+                    if {$shell eq {ksh} || $shell eq {sh} || $shell eq {bash}} {
+                        lappend ans [list set FPATH_modshare $install_initdir/ksh-functions:1]
+                    }
+                    lappend ans [list set MODULES_AUTO_HANDLING 0]
+                    lappend ans [list set MODULES_ML 0]
                     lappend ans [list set MODULEPATH "$install_modulepath"]
+                    lappend ans [list set LOADEDMODULES_modshare "null:1"]
+                    lappend ans [list set _LMFILES__modshare "$install_modulefilesdir/null:1"]
+                    lappend ans [list set MODULES_SET_SHELL_STARTUP 0]
+                    lappend ans [list set MODULES_SHELLS_WITH_KSH_FPATH "sh bash"]
+                    lappend ans [list set MODULEPATH_modshare "$install_modulepath:1"]
                     if {$install_versioning eq "y"} {
                         lappend ans [list set MODULE_VERSION "(.*)"]
                     }
