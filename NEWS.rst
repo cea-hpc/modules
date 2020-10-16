@@ -27,6 +27,15 @@ Modules 4.7.0 (not yet released)
   :envvar:`MODULES_LMALTNAME` variable, to report the symbols applying to
   loaded modules on :subcmd:`list` sub-command. Modulerc files are not
   evaluated anymore when performing a module list.
+* Move the definition of the :envvar:`FPATH` environment variable for Modules
+  initialization on ksh shell from the initialization script of this shell to
+  the resulting output of the :subcmd:`autoinit` sub-command.
+* Introduce the ``shells_with_ksh_fpath`` configuration option to define a
+  list of shell where to ensure that any ksh sub-shell will get the module
+  function defined by use of the :envvar:`FPATH` environment variable. When
+  the ``shells_with_ksh_fpath`` option is set through the :subcmd:`config`
+  sub-command, the :envvar:`MODULES_SHELLS_WITH_KSH_FPATH` environment
+  variable is set.
 
 
 .. _4.6 release notes:
