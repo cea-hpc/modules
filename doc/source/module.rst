@@ -515,6 +515,9 @@ Module Sub-Commands
    :envvar:`MODULES_SEARCH_MATCH`)
  * ``set_shell_startup``: ensure module command definition by setting shell
    startup file (defines :envvar:`MODULES_SET_SHELL_STARTUP`)
+ * ``shells_with_ksh_fpath``: ensure module command is defined in ksh when it
+   is started as a sub-shell from the listed shells (defines
+   :envvar:`MODULES_SHELLS_WITH_KSH_FPATH`)
  * ``siteconfig``: primary site-specific configuration script location
  * ``tcl_ext_lib``: Modules Tcl extension library location
  * ``term_background``: terminal background color kind (defines
@@ -1591,6 +1594,18 @@ ENVIRONMENT
  .. only:: html
 
     .. versionadded:: 4.3
+
+.. envvar:: MODULES_SHELLS_WITH_KSH_FPATH
+
+ A list of shell on which the :envvar:`FPATH` environment variable should be
+ defined at initialization time to point to the :file:`ksh-functions`
+ directory where the ksh initialization script for module command is located.
+ It enables for the listed shells to get module function defined when starting
+ ksh as sub-shell from there.
+
+ .. only:: html
+
+    .. versionadded:: 4.7
 
 .. envvar:: MODULES_SILENT_SHELL_DEBUG
 
