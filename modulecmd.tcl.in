@@ -36,6 +36,7 @@ array set g_state_defs [list\
    hiding_threshold {0}\
    inhibit_errreport {0}\
    inhibit_interp {0}\
+   inhibit_req_record {<undef>}\
    init_error_report {0}\
    is_stderr_tty {<undef> initStateIsStderrTty}\
    is_win {<undef> initStateIsWin}\
@@ -2666,6 +2667,10 @@ proc module {command args} {
          [currentCommandName]]) && $command eq {config}} {
          knerror "${msgprefix}Command '$command' not supported$tryhelpmsg"
       }
+      # no requirement should be recorded this module load/unload/switch cmd
+      if {$not_req || ![getConf implicit_requirement]} {
+         lappendState inhibit_req_record [currentEvalId]
+      }
    }
 
    # argument number check
@@ -2989,6 +2994,10 @@ proc module {command args} {
    }
    popCommandName
    popAlwaysReadFullFile
+
+   if {!$topcall && ($not_req || ![getConf implicit_requirement])} {
+      lpopState inhibit_req_record
+   }
 
    # if called from top level render settings if any
    if {$topcall} {
@@ -3673,8 +3682,10 @@ proc conflict {args} {
    # parse module version specification
    set args [eval parseModuleVersionSpecifier 0 $args]
 
-   # register conflict list
-   eval setLoadedConflict "{$currentModule}" $args
+   # register conflict list unless record inhibited for current iterp context
+   if {[currentState inhibit_req_record] != [currentEvalId]} {
+      eval setLoadedConflict "{$currentModule}" $args
+   }
 
    foreach mod $args {
       # if the conflict module is loading and it does not correspond to
@@ -3716,7 +3727,10 @@ proc prereq {args} {
    set args [eval parseModuleVersionSpecifier 0 $args]
 
    # register prereq list (sets of optional prereq are registered as list)
-   setLoadedPrereq $currentModule $args
+   # unless record inhibited for current iterp context
+   if {[currentState inhibit_req_record] != [currentEvalId]} {
+      setLoadedPrereq $currentModule $args
+   }
 
    # if dependency resolving is enabled try to load prereq
    if {[getConf auto_handling] && ![eval is-loaded $args] && ![eval\
