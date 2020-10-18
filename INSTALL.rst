@@ -287,6 +287,11 @@ instance ``--disable-set-manpath``):
                       modulefiles handling actions, like loading the
                       pre-requisites of a modulefile when loading this
                       modulefile. (default=no)
+--enable-implicit-requirement
+                      Implicitly define a prereq or a conflict requirement
+                      toward modules specified respectively on ``module load``
+                      or ``module unload`` commands in modulefile.
+                      (default=yes)
 --enable-avail-indepth
                       When performing an ``avail`` sub-command, include in
                       search results the matching modulefiles and directories
