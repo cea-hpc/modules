@@ -495,7 +495,9 @@ Environment
 
 :envvar:`MODULES_SHELLS_WITH_KSH_FPATH`
 
- This environment variable appeared on version ``4.7`` and is not supported on compatibility version.
+:envvar:`MODULES_IMPLICIT_REQUIREMENT`
+
+ These environment variables appeared on version ``4.7`` and are not supported on compatibility version.
 
 
 Modules Specific Tcl Commands
