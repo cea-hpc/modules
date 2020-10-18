@@ -2631,9 +2631,9 @@ proc module {command args} {
 
    # parse options, do that globally to ignore options not related to a given
    # module sub-command (exclude them from arg list)
-   lassign [eval parseModuleCommandArgs $command $args] show_oneperline\
-      show_mtime show_filter search_filter search_match dump_state\
-      addpath_pos args
+   lassign [eval parseModuleCommandArgs $topcall $command $args]\
+      show_oneperline show_mtime show_filter search_filter search_match\
+      dump_state addpath_pos not_req args
 
    # parse module version specification
    if {[isInList [list avail paths whatis load unload switch help test\
@@ -2991,9 +2991,9 @@ proc module {command args} {
 proc ml {args} {
    # filter out all known options from argument list to guess command name
    # without them in the way
-   lassign [eval parseModuleCommandArgs ml $args] show_oneperline\
+   lassign [eval parseModuleCommandArgs 1 ml $args] show_oneperline\
       show_mtime show_filter search_filter search_match dump_state\
-      addpath_pos fargs
+      addpath_pos not_req fargs
 
    # determine if first argument is a known module sub-command
    lassign [parseModuleCommandName [lindex $fargs 0] list] command cmdvalid\
@@ -9898,7 +9898,7 @@ proc parseModuleCommandName {command defaultcmd} {
 }
 
 # analyze arg list passed to a module cmd to set options
-proc parseModuleCommandArgs {cmd args} {
+proc parseModuleCommandArgs {topcall cmd args} {
    set show_oneperline 0
    set show_mtime 0
    set show_filter {}
@@ -9906,6 +9906,7 @@ proc parseModuleCommandArgs {cmd args} {
    set search_match [getConf search_match]
    set dump_state 0
    set addpath_pos prepend
+   set not_req 0
    set otherargs {}
 
    # parse argument list
@@ -9992,6 +9993,13 @@ proc parseModuleCommandArgs {cmd args} {
          --auto - --no-auto - -f - --force {
             reportWarning "Unsupported option '$arg'"
          }
+         --not-req {
+            if {!$topcall && [isInList [list load unload switch] $cmd]} {
+               set not_req 1
+            } else {
+               reportWarning "Unsupported option '$arg'"
+            }
+         }
          default {
             lappend otherargs $arg
          }
@@ -10001,9 +10009,9 @@ proc parseModuleCommandArgs {cmd args} {
    reportDebug "(show_oneperline=$show_oneperline, show_mtime=$show_mtime,\
       show_filter=$show_filter, search_filter=$search_filter,\
       search_match=$search_match, dump_state=$dump_state,\
-      addpath_pos=$addpath_pos, otherargs=$otherargs)"
+      addpath_pos=$addpath_pos, not_req=$not_req, otherargs=$otherargs)"
    return [list $show_oneperline $show_mtime $show_filter $search_filter\
-      $search_match $dump_state $addpath_pos $otherargs]
+      $search_match $dump_state $addpath_pos $not_req $otherargs]
 }
 
 # when advanced_version_spec option is enabled, parse argument list to set in
