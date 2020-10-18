@@ -216,6 +216,12 @@ else
   setautohandling := 0
 endif
 
+ifeq ($(implicitrequirement),y)
+  setimplicitrequirement := 1
+else
+  setimplicitrequirement := 0
+endif
+
 ifeq ($(availindepth),y)
   setavailindepth := 1
 else
@@ -287,6 +293,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@icase@|$(icase)|g' \
 	-e 's|@nearlyforbiddendays@|$(nearlyforbiddendays)|g' \
 	-e 's|@autohandling@|$(setautohandling)|g' \
+	-e 's|@implicitrequirement@|$(setimplicitrequirement)|g' \
 	-e 's|@availindepth@|$(setavailindepth)|g' \
 	-e 's|@silentshdbgsupport@|$(setsilentshdbgsupport)|g' \
 	-e 's|@ml@|$(setml)|g' \
