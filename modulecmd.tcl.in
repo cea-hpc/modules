@@ -10744,10 +10744,17 @@ proc cmdModuleSwitch {uasked old {new {}}} {
 
    reportDebug "old='$old' new='$new' (uasked=$uasked)"
 
+   # extend requirement recording inhibition to switch subcontext
+   set inhibit_req_rec [expr {[currentState inhibit_req_record] ==\
+      [currentEvalId]}]
+
    # record sumup messages from underlying unload/load actions under the same
    # switch message record id to report (evaluation messages still go under
    # their respective unload/load block
    pushMsgRecordId switch-$old-$new-[getEvalModuleStackDepth]
+   if {$inhibit_req_rec} {
+      lappendState inhibit_req_record [currentEvalId]
+   }
 
    set ret [cmdModuleUnload swunload $unload_match 1 0 0 0 $old]
 
@@ -10789,6 +10796,9 @@ proc cmdModuleSwitch {uasked old {new {}}} {
    # report all recorded sumup messages for this evaluation
    reportMsgRecord "Switching from [sgr hi $old] to [sgr hi $new]"
    popMsgRecordId
+   if {$inhibit_req_rec} {
+      lpopState inhibit_req_record
+   }
 
    # register modulefile to load as prereq when called from modulefile
    if {!$uasked && !$ret && $argnew ne {}} {
