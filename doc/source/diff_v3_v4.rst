@@ -513,6 +513,8 @@ Modules Specific Tcl Commands
  
  In case of ``module load`` command specifying multiple *modulefiles*, when mode is set to ``unload`` these *modulefiles* will be unloaded in the reverse order to ensure correct handling of prerequisites.
 
+ Starting with version ``4.7``, the ``load``, ``unload`` and ``switch`` sub-commands support the ``--not-req`` option to avoid recording a prereq or a conflict requirement toward specified modules.
+
 :mfcmd:`module-info`
  
  **module-info command**
