@@ -481,13 +481,13 @@ Environment
 
  These environment variables appeared on version ``4.4`` and are not supported on compatibility version.
 
-:envvar:`MODULES_ML``
+:envvar:`MODULES_ML`
 
  This environment variable appeared on version ``4.5`` and is not supported on compatibility version.
 
-:envvar:`MODULES_LMSOURCESH``
+:envvar:`MODULES_LMSOURCESH`
 
-:envvar:`MODULES_NEARLY_FORBIDDEN_DAYS``
+:envvar:`MODULES_NEARLY_FORBIDDEN_DAYS`
 
  These environment variables appeared on version ``4.6`` and are not supported on compatibility version.
 
