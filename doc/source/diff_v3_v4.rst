@@ -165,6 +165,8 @@ On compatibility version, paths composing the :envvar:`MODULEPATH` environment v
 Modules Specific Tcl Commands
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+On version 4 the characters that have a special meaning when rendered in shells are escaped when used in value to set environment variables, shell alias or shell functions. Thus it is possible to set environment elements with value containing these special characters (like backticks). On version 3 these special characters were evaluated by shell when recording the environment changes implied by modulefile evaluation.
+
 :mfcmd:`append-path`
 
 :mfcmd:`prepend-path`
