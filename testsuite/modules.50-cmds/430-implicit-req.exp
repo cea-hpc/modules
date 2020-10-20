@@ -1,0 +1,517 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2020/10/19
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:    impreq, foo, bar
+#   Sub-Command:    load, unload, switch, reload, purge
+#
+#   Comment:	%C{
+#           Test implicit_requirement configuration disablement.
+#		}C%
+#
+##############################################################################
+
+# ensure avail -t tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+# ensure last matching element is returned when unloading modules
+setenv_var MODULES_UNLOAD_MATCH_ORDER returnlast
+
+# ensure auto symbolic versions are not set for these tests
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+
+set mp $modpath.3
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+
+#
+# module load test
+#
+
+set ans1 [list]
+lappend ans1 [list setpath LOADEDMODULES foo/2.0:impreq/load]
+lappend ans1 [list setpath _LMFILES_ $mp/foo/2.0:$mp/impreq/load]
+lappend ans1 [list setpath MODULES_LMPREREQ impreq/load&foo]
+lappend ans1 [list setpath MODULES_LMNOTUASKED foo/2.0]
+
+set ans0 [list]
+lappend ans0 [list setpath LOADEDMODULES foo/2.0:impreq/load]
+lappend ans0 [list setpath _LMFILES_ $mp/foo/2.0:$mp/impreq/load]
+lappend ans0 [list setpath MODULES_LMNOTUASKED foo/2.0]
+
+set tserr [msg_top_load impreq/load {} foo/2.0 {}]
+
+# test default implicit_requirement configuration
+unsetenv_var MODULES_IMPLICIT_REQUIREMENT
+if {$install_implicitrequirement eq {y}} {
+    testouterr_cmd_re sh {load impreq/load} $ans1 $tserr
+} else {
+    testouterr_cmd_re sh {load impreq/load} $ans0 $tserr
+}
+# option enabled
+setenv_var MODULES_IMPLICIT_REQUIREMENT 1
+testouterr_cmd_re sh {load impreq/load} $ans1 $tserr
+# option disabled
+setenv_var MODULES_IMPLICIT_REQUIREMENT 0
+testouterr_cmd_re sh {load impreq/load} $ans0 $tserr
+testouterr_cmd_re sh {load --no-auto impreq/load} $ans0 $tserr
+testouterr_cmd_re sh {load --auto impreq/load} $ans0 $tserr
+
+# module to load already loaded
+setenv_loaded_module [list foo/2.0] [list $mp/foo/2.0]
+set ans0 [list]
+lappend ans0 [list setpath LOADEDMODULES foo/2.0:impreq/load]
+lappend ans0 [list setpath _LMFILES_ $mp/foo/2.0:$mp/impreq/load]
+set tserr {}
+testouterr_cmd_re sh {load --no-auto impreq/load} $ans0 $tserr
+testouterr_cmd_re sh {load --auto impreq/load} $ans0 $tserr
+unsetenv_loaded_module
+
+# multiple load on single command
+set ans0 [list]
+lappend ans0 [list setpath LOADEDMODULES foo/2.0:bar/2.0:impreq/loadmul]
+lappend ans0 [list setpath _LMFILES_ $mp/foo/2.0:$mp/bar/2.0:$mp/impreq/loadmul]
+lappend ans0 [list setpath MODULES_LMNOTUASKED foo/2.0:bar/2.0]
+set tserr [msg_top_load impreq/loadmul {} [list foo/2.0 bar/2.0] {}]
+testouterr_cmd_re sh {load --no-auto impreq/loadmul} $ans0 $tserr
+testouterr_cmd_re sh {load --auto impreq/loadmul} $ans0 $tserr
+
+# unloading tests
+setenv_loaded_module [list foo/2.0 impreq/load] [list $mp/foo/2.0 $mp/impreq/load]
+setenv_path_var MODULES_LMNOTUASKED foo/2.0
+
+# UReqUn
+set tserr [msg_top_unload impreq/load {} foo/2.0 {}]
+set ans0 [list]
+lappend ans0 [list unsetpath LOADEDMODULES]
+lappend ans0 [list unsetpath _LMFILES_]
+lappend ans0 [list unsetpath MODULES_LMNOTUASKED]
+testouterr_cmd_re sh {unload --auto impreq/load} $ans0 $tserr
+testouterr_cmd_re sh {unload --no-auto impreq/load} $ans0 $tserr
+
+# no auto-loaded flag, no unload
+unsetenv_path_var MODULES_LMNOTUASKED
+set ans0 [list]
+lappend ans0 [list setpath LOADEDMODULES foo/2.0]
+lappend ans0 [list setpath _LMFILES_ $mp/foo/2.0]
+set tserr {}
+testouterr_cmd_re sh {unload --auto impreq/load} $ans0 $tserr
+testouterr_cmd_re sh {unload --no-auto impreq/load} $ans0 $tserr
+
+# DepUn (not triggered as requirement not recorded)
+setenv_path_var MODULES_LMNOTUASKED foo/2.0
+set ans0 [list]
+lappend ans0 [list setpath LOADEDMODULES impreq/load]
+lappend ans0 [list setpath _LMFILES_ $mp/impreq/load]
+lappend ans0 [list unsetpath MODULES_LMNOTUASKED]
+set tserr {}
+testouterr_cmd_re sh {unload foo/2.0} $ans0 $tserr
+
+# multiple load on single command
+setenv_loaded_module [list foo/2.0 bar/2.0 impreq/loadmul] [list $mp/foo/2.0 $mp/bar/2.0 $mp/impreq/loadmul]
+setenv_path_var MODULES_LMNOTUASKED foo/2.0:bar/2.0
+set tserr [msg_top_unload impreq/loadmul {} [list bar/2.0 foo/2.0] {}]
+set ans0 [list]
+lappend ans0 [list unsetpath LOADEDMODULES]
+lappend ans0 [list unsetpath _LMFILES_]
+lappend ans0 [list unsetpath MODULES_LMNOTUASKED]
+testouterr_cmd_re sh {unload --auto impreq/loadmul} $ans0 $tserr
+testouterr_cmd_re sh {unload --no-auto impreq/loadmul} $ans0 $tserr
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMNOTUASKED
+
+
+#
+# module unload tests
+#
+
+set ans1 [list]
+lappend ans1 [list setpath LOADEDMODULES impreq/unload]
+lappend ans1 [list setpath _LMFILES_ $mp/impreq/unload]
+lappend ans1 [list setpath MODULES_LMCONFLICT impreq/unload&foo]
+
+set ans0 [list]
+lappend ans0 [list setpath LOADEDMODULES impreq/unload]
+lappend ans0 [list setpath _LMFILES_ $mp/impreq/unload]
+
+set tserr {}
+
+# test default implicit_requirement configuration
+unsetenv_var MODULES_IMPLICIT_REQUIREMENT
+if {$install_implicitrequirement eq {y}} {
+    testouterr_cmd_re sh {load impreq/unload} $ans1 $tserr
+} else {
+    testouterr_cmd_re sh {load impreq/unload} $ans0 $tserr
+}
+# option enabled
+setenv_var MODULES_IMPLICIT_REQUIREMENT 1
+testouterr_cmd_re sh {load impreq/unload} $ans1 $tserr
+# option disabled
+setenv_var MODULES_IMPLICIT_REQUIREMENT 0
+testouterr_cmd_re sh {load impreq/unload} $ans0 $tserr
+testouterr_cmd_re sh {load --auto impreq/unload} $ans0 $tserr
+testouterr_cmd_re sh {load --no-auto impreq/unload} $ans0 $tserr
+
+# with module to unload loaded
+setenv_loaded_module [list foo/2.0] [list $mp/foo/2.0]
+set ans0 [list]
+lappend ans0 [list setpath LOADEDMODULES impreq/unload]
+lappend ans0 [list setpath _LMFILES_ $mp/impreq/unload]
+set tserr [msg_top_load impreq/unload [list foo/2.0] {} {}]
+testouterr_cmd_re sh {load --auto impreq/unload} $ans0 $tserr
+testouterr_cmd_re sh {load --no-auto impreq/unload} $ans0 $tserr
+
+# multiple unload on same command
+unsetenv_loaded_module
+set ans0 [list]
+lappend ans0 [list setpath LOADEDMODULES impreq/unloadmul]
+lappend ans0 [list setpath _LMFILES_ $mp/impreq/unloadmul]
+set tserr {}
+testouterr_cmd_re sh {load --no-auto impreq/unloadmul} $ans0 $tserr
+testouterr_cmd_re sh {load --auto impreq/unloadmul} $ans0 $tserr
+
+# with module to unload loaded
+setenv_loaded_module [list foo/2.0 bar/2.0] [list $mp/foo/2.0 $mp/bar/2.0]
+set ans0 [list]
+lappend ans0 [list setpath LOADEDMODULES impreq/unloadmul]
+lappend ans0 [list setpath _LMFILES_ $mp/impreq/unloadmul]
+set tserr [msg_top_load impreq/unloadmul [list foo/2.0 bar/2.0] {} {}]
+testouterr_cmd_re sh {load --auto impreq/unloadmul} $ans0 $tserr
+testouterr_cmd_re sh {load --no-auto impreq/unloadmul} $ans0 $tserr
+unsetenv_loaded_module
+
+
+#
+# module switch tests
+#
+
+# 1-arg form
+set ans1 [list]
+lappend ans1 [list setpath LOADEDMODULES foo/2.0:impreq/switch1]
+lappend ans1 [list setpath _LMFILES_ $mp/foo/2.0:$mp/impreq/switch1]
+lappend ans1 [list setpath MODULES_LMPREREQ impreq/switch1&foo/2.0]
+lappend ans1 [list setpath MODULES_LMNOTUASKED foo/2.0]
+
+set ans0 [list]
+lappend ans0 [list setpath LOADEDMODULES foo/2.0:impreq/switch1]
+lappend ans0 [list setpath _LMFILES_ $mp/foo/2.0:$mp/impreq/switch1]
+lappend ans0 [list setpath MODULES_LMNOTUASKED foo/2.0]
+
+set tserr [msg_top_load impreq/switch1 {} foo/2.0 {}]
+
+# test default implicit_requirement configuration
+unsetenv_var MODULES_IMPLICIT_REQUIREMENT
+if {$install_implicitrequirement eq {y}} {
+    testouterr_cmd_re sh {load impreq/switch1} $ans1 $tserr
+} else {
+    testouterr_cmd_re sh {load impreq/switch1} $ans0 $tserr
+}
+# option enabled
+setenv_var MODULES_IMPLICIT_REQUIREMENT 1
+testouterr_cmd_re sh {load impreq/switch1} $ans1 $tserr
+# option disabled
+setenv_var MODULES_IMPLICIT_REQUIREMENT 0
+testouterr_cmd_re sh {load impreq/switch1} $ans0 $tserr
+testouterr_cmd_re sh {load --auto impreq/switch1} $ans0 $tserr
+testouterr_cmd_re sh {load --no-auto impreq/switch1} $ans0 $tserr
+
+# with module to unload loaded
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+set tserr [msg_top_load impreq/switch1 foo/1.0 foo/2.0 {}]
+testouterr_cmd_re sh {load --auto impreq/switch1} $ans0 $tserr
+testouterr_cmd_re sh {load --no-auto impreq/switch1} $ans0 $tserr
+unsetenv_loaded_module
+
+# with module to load loaded
+setenv_loaded_module [list foo/2.0] [list $mp/foo/2.0]
+set tserr [msg_top_load impreq/switch1 foo/2.0 foo/2.0 {}]
+testouterr_cmd_re sh {load --auto impreq/switch1} $ans0 $tserr
+testouterr_cmd_re sh {load --no-auto impreq/switch1} $ans0 $tserr
+unsetenv_loaded_module
+
+# 2-args form
+set ans1 [list]
+lappend ans1 [list setpath LOADEDMODULES foo/2.0:impreq/switch2]
+lappend ans1 [list setpath _LMFILES_ $mp/foo/2.0:$mp/impreq/switch2]
+lappend ans1 [list setpath MODULES_LMPREREQ impreq/switch2&foo/2.0]
+lappend ans1 [list setpath MODULES_LMNOTUASKED foo/2.0]
+lappend ans1 [list setpath MODULES_LMCONFLICT impreq/switch2&bar]
+
+set ans0 [list]
+lappend ans0 [list setpath LOADEDMODULES foo/2.0:impreq/switch2]
+lappend ans0 [list setpath _LMFILES_ $mp/foo/2.0:$mp/impreq/switch2]
+lappend ans0 [list setpath MODULES_LMNOTUASKED foo/2.0]
+
+set tserr [msg_top_load impreq/switch2 {} foo/2.0 {}]
+
+# test default implicit_requirement configuration
+unsetenv_var MODULES_IMPLICIT_REQUIREMENT
+if {$install_implicitrequirement eq {y}} {
+    testouterr_cmd_re sh {load impreq/switch2} $ans1 $tserr
+} else {
+    testouterr_cmd_re sh {load impreq/switch2} $ans0 $tserr
+}
+# option enabled
+setenv_var MODULES_IMPLICIT_REQUIREMENT 1
+testouterr_cmd_re sh {load impreq/switch2} $ans1 $tserr
+# option disabled
+setenv_var MODULES_IMPLICIT_REQUIREMENT 0
+testouterr_cmd_re sh {load impreq/switch2} $ans0 $tserr
+testouterr_cmd_re sh {load --auto impreq/switch2} $ans0 $tserr
+testouterr_cmd_re sh {load --no-auto impreq/switch2} $ans0 $tserr
+
+# with module to unload loaded
+setenv_loaded_module [list bar/1.0] [list $mp/bar/1.0]
+set tserr [msg_top_load impreq/switch2 bar/1.0 foo/2.0 {}]
+testouterr_cmd_re sh {load --auto impreq/switch2} $ans0 $tserr
+testouterr_cmd_re sh {load --no-auto impreq/switch2} $ans0 $tserr
+unsetenv_loaded_module
+
+# unloading tests
+setenv_loaded_module [list foo/2.0 impreq/switch2] [list $mp/foo/2.0 $mp/impreq/switch2]
+setenv_path_var MODULES_LMNOTUASKED foo/2.0
+set tserr [msg_top_unload impreq/switch2 {} foo/2.0 {}]
+set ans0 [list]
+lappend ans0 [list unsetpath LOADEDMODULES]
+lappend ans0 [list unsetpath _LMFILES_]
+lappend ans0 [list unsetpath MODULES_LMNOTUASKED]
+testouterr_cmd_re sh {unload --auto impreq/switch2} $ans0 $tserr
+testouterr_cmd_re sh {unload --no-auto impreq/switch2} $ans0 $tserr
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMNOTUASKED
+
+
+#
+# mix
+#
+
+setenv_loaded_module [list bar/2.0] [list $mp/bar/2.0]
+set ans0 [list]
+lappend ans0 [list setpath LOADEDMODULES foo/2.0:baz/2.0:impreq/mix]
+lappend ans0 [list setpath _LMFILES_ $mp/foo/2.0:$mp/baz/2.0:$mp/impreq/mix]
+lappend ans0 [list setpath MODULES_LMNOTUASKED foo/2.0:baz/2.0]
+set tserr [msg_top_load impreq/mix bar/2.0 {} {} {Loading requirement: foo/2.0 baz/2.0}]
+testouterr_cmd_re sh {load --no-auto impreq/mix} $ans0 $tserr
+unsetenv_loaded_module
+
+
+#
+# loaded or unloaded modules themselves load or unload modules
+#
+
+set ans0 [list]
+lappend ans0 [list setpath LOADEDMODULES foo/1.0:foo/0.prereq:impreq/loadsubp]
+lappend ans0 [list setpath _LMFILES_ $mp/foo/1.0:$mp/foo/0.prereq:$mp/impreq/loadsubp]
+lappend ans0 [list setpath MODULES_LMPREREQ foo/0.prereq&foo/1.0]
+lappend ans0 [list setpath MODULES_LMNOTUASKED foo/1.0:foo/0.prereq]
+set tserr [msg_top_load impreq/loadsubp {} [list foo/1.0 foo/0.prereq] {}]
+testouterr_cmd_re sh {load --auto impreq/loadsubp} $ans0 $tserr
+
+set ans0 [list]
+lappend ans0 [list setpath LOADEDMODULES foo/1.0:foo/0.load:impreq/loadsubm]
+lappend ans0 [list setpath _LMFILES_ $mp/foo/1.0:$mp/foo/0.load:$mp/impreq/loadsubm]
+lappend ans0 [list setpath MODULES_LMNOTUASKED foo/1.0:foo/0.load]
+set tserr [msg_top_load impreq/loadsubm {} [list foo/1.0 foo/0.load] {}]
+testouterr_cmd_re sh {load --auto impreq/loadsubm} $ans0 $tserr
+testouterr_cmd_re sh {load --no-auto impreq/loadsubm} $ans0 $tserr
+
+setenv_loaded_module [list foo/1.0 foo/0.prereq impreq/loadsubp] [list $mp/foo/1.0 $mp/foo/0.prereq $mp/impreq/loadsubp]
+setenv_path_var MODULES_LMNOTUASKED foo/1.0:foo/0.prereq
+setenv_path_var MODULES_LMPREREQ foo/0.prereq&foo/1.0
+set tserr [msg_top_unload impreq/loadsubp {} [list foo/0.prereq foo/1.0] {}]
+set ans0 [list]
+lappend ans0 [list unsetpath LOADEDMODULES]
+lappend ans0 [list unsetpath _LMFILES_]
+lappend ans0 [list unsetpath MODULES_LMPREREQ]
+lappend ans0 [list unsetpath MODULES_LMNOTUASKED]
+testouterr_cmd_re sh {unload --auto impreq/loadsubp} $ans0 $tserr
+
+setenv_loaded_module [list foo/1.0 foo/0.load impreq/loadsubm] [list $mp/foo/1.0 $mp/foo/0.load $mp/impreq/loadsubm]
+setenv_path_var MODULES_LMNOTUASKED foo/1.0:foo/0.load
+unsetenv_path_var MODULES_LMPREREQ
+set tserr [msg_top_unload impreq/loadsubm {} [list foo/0.load foo/1.0] {}]
+set ans0 [list]
+lappend ans0 [list unsetpath LOADEDMODULES]
+lappend ans0 [list unsetpath _LMFILES_]
+lappend ans0 [list unsetpath MODULES_LMNOTUASKED]
+testouterr_cmd_re sh {unload --no-auto impreq/loadsubm} $ans0 $tserr
+
+setenv_loaded_module [list foo/1.0 foo/0.prereq] [list $mp/foo/1.0 $mp/foo/0.prereq]
+setenv_path_var MODULES_LMNOTUASKED foo/1.0
+setenv_path_var MODULES_LMPREREQ foo/0.prereq&foo/1.0
+# auto-loaded requirement of foo/0.prereq is not auto unloaded when foo/0.prereq is
+# unloaded by impreq/unload load
+set ans0 [list]
+lappend ans0 [list setpath LOADEDMODULES foo/1.0:impreq/unload]
+lappend ans0 [list setpath _LMFILES_ $mp/foo/1.0:$mp/impreq/unload]
+lappend ans0 [list unsetpath MODULES_LMPREREQ]
+set tserr [msg_top_load impreq/unload foo/0.prereq {} {}]
+testouterr_cmd_re sh {load --auto impreq/unload} $ans0 $tserr
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMNOTUASKED
+unsetenv_path_var MODULES_LMPREREQ
+
+set ans0 [list]
+lappend ans0 [list setpath LOADEDMODULES foo/1.0:foo/0.prereq:impreq/switchsubp]
+lappend ans0 [list setpath _LMFILES_ $mp/foo/1.0:$mp/foo/0.prereq:$mp/impreq/switchsubp]
+lappend ans0 [list setpath MODULES_LMPREREQ foo/0.prereq&foo/1.0]
+lappend ans0 [list setpath MODULES_LMNOTUASKED foo/1.0:foo/0.prereq]
+set tserr [msg_top_load impreq/switchsubp {} [list foo/1.0 foo/0.prereq] {}]
+testouterr_cmd_re sh {load --auto impreq/switchsubp} $ans0 $tserr
+
+set ans0 [list]
+lappend ans0 [list setpath LOADEDMODULES foo/1.0:foo/0.load:impreq/switchsubm]
+lappend ans0 [list setpath _LMFILES_ $mp/foo/1.0:$mp/foo/0.load:$mp/impreq/switchsubm]
+lappend ans0 [list setpath MODULES_LMNOTUASKED foo/1.0:foo/0.load]
+set tserr [msg_top_load impreq/switchsubm {} [list foo/1.0 foo/0.load] {}]
+testouterr_cmd_re sh {load --auto impreq/switchsubm} $ans0 $tserr
+testouterr_cmd_re sh {load --no-auto impreq/switchsubm} $ans0 $tserr
+
+setenv_loaded_module [list foo/1.0 foo/0.prereq impreq/switchsubp] [list $mp/foo/1.0 $mp/foo/0.prereq $mp/impreq/switchsubp]
+setenv_path_var MODULES_LMNOTUASKED foo/1.0:foo/0.prereq
+setenv_path_var MODULES_LMPREREQ foo/0.prereq&foo/1.0
+set ans0 [list]
+lappend ans0 [list unsetpath LOADEDMODULES]
+lappend ans0 [list unsetpath _LMFILES_]
+lappend ans0 [list unsetpath MODULES_LMPREREQ]
+lappend ans0 [list unsetpath MODULES_LMNOTUASKED]
+set tserr [msg_top_unload impreq/switchsubp {} [list foo/0.prereq foo/1.0] {}]
+testouterr_cmd_re sh {unload --auto impreq/switchsubp} $ans0 $tserr
+
+setenv_loaded_module [list foo/1.0 foo/0.load impreq/switchsubm] [list $mp/foo/1.0 $mp/foo/0.load $mp/impreq/switchsubm]
+setenv_path_var MODULES_LMNOTUASKED foo/1.0:foo/0.load
+unsetenv_path_var MODULES_LMPREREQ
+set ans0 [list]
+lappend ans0 [list unsetpath LOADEDMODULES]
+lappend ans0 [list unsetpath _LMFILES_]
+lappend ans0 [list unsetpath MODULES_LMNOTUASKED]
+set tserr [msg_top_unload impreq/switchsubm {} [list foo/0.load foo/1.0] {}]
+testouterr_cmd_re sh {unload --no-auto impreq/switchsubm} $ans0 $tserr
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMNOTUASKED
+
+
+#
+# loaded or unloaded modules do not exist or have error
+#
+
+set tserr [msg_load foo/0.err [msg_moderr {invalid command name "foo"} foo $mp/foo/0.err 2]]\n\n[msg_load impreq/loaderr [err_reqlo foo/0.err]]
+testouterr_cmd sh {load --no-auto impreq/loaderr} ERR $tserr
+
+setenv_loaded_module [list foo/0.err] [list $mp/foo/0.err]
+set tserr [msg_unload foo/0.err [msg_moderr {invalid command name "foo"} foo $mp/foo/0.err 2]]
+testouterr_cmd sh {load --no-auto impreq/unloaderr} ERR $tserr
+
+unsetenv_loaded_module
+set tserr [msg_load foo/0.err [msg_moderr {invalid command name "foo"} foo $mp/foo/0.err 2]]\n\n[msg_load impreq/switch1err [err_swon foo/0.err] [err_reqlo foo/0.err]]
+testouterr_cmd sh {load --no-auto impreq/switch1err} ERR $tserr
+
+set tserr [msg_load impreq/loadunk [err_unablelocate foo/0.unk] [err_reqlo foo/0.unk]]
+testouterr_cmd sh {load --no-auto impreq/loadunk} ERR $tserr
+
+set tserr [msg_switch foo/0.unk foo/0.unk [err_unablelocate foo/0.unk]]\n\n[msg_load impreq/switch1unk [err_reqlo foo/0.unk]]
+testouterr_cmd sh {load --no-auto impreq/switch1unk} ERR $tserr
+
+
+#
+# purge/reload/restore
+#
+
+setenv_loaded_module [list foo/1.0 foo/0.load impreq/loadsubm foo/2.0 impreq/switch2] [list $mp/foo/1.0 $mp/foo/0.load $mp/impreq/loadsubm $mp/foo/2.0 $mp/impreq/switch2]
+setenv_path_var MODULES_LMNOTUASKED foo/1.0:foo/0.load:foo/2.0
+
+set ans0 [list]
+lappend ans0 [list unsetpath LOADEDMODULES]
+lappend ans0 [list unsetpath _LMFILES_]
+lappend ans0 [list unsetpath MODULES_LMNOTUASKED]
+set tserr {}
+testouterr_cmd_re sh {purge} $ans0 $tserr
+
+set ans0 [list]
+lappend ans0 [list setpath LOADEDMODULES foo/1.0:foo/0.load:impreq/loadsubm:foo/2.0:impreq/switch2]
+lappend ans0 [list setpath _LMFILES_ $mp/foo/1.0:$mp/foo/0.load:$mp/impreq/loadsubm:$mp/foo/2.0:$mp/impreq/switch2]
+lappend ans0 [list setpath MODULES_LMNOTUASKED foo/1.0:foo/0.load:foo/2.0]
+testouterr_cmd_re sh {reload} $ans0 $tserr
+
+testouterr_cmd_re sh {save ./testcoll} OK {}
+
+unsetenv_path_var MODULES_LMNOTUASKED
+unsetenv_loaded_module
+
+set tserr [msg_load foo/1.0]\n[msg_load foo/0.load]\n[msg_load impreq/loadsubm]\n[msg_load foo/2.0]\n[msg_switch bar foo/2.0]\n[msg_load impreq/switch2]
+testouterr_cmd_re sh {restore ./testcoll} $ans0 $tserr
+
+file delete ./testcoll
+
+
+#
+# module with implicit requirement dependency of another module
+#
+
+# ReqLo
+set ans0 [list]
+lappend ans0 [list setpath LOADEDMODULES foo/2.0:impreq/load:impreq/prereq]
+lappend ans0 [list setpath _LMFILES_ $mp/foo/2.0:$mp/impreq/load:$mp/impreq/prereq]
+lappend ans0 [list setpath MODULES_LMPREREQ impreq/prereq&impreq/load]
+lappend ans0 [list setpath MODULES_LMNOTUASKED foo/2.0:impreq/load]
+set tserr [msg_top_load impreq/prereq {} [list foo/2.0 impreq/load] {}]
+testouterr_cmd_re sh {load --auto impreq/prereq} $ans0 $tserr
+
+# UreqUn
+setenv_loaded_module [list foo/2.0 impreq/load impreq/prereq] [list $mp/foo/2.0 $mp/impreq/load $mp/impreq/prereq]
+setenv_path_var MODULES_LMPREREQ impreq/prereq&impreq/load
+setenv_path_var MODULES_LMNOTUASKED foo/2.0:impreq/load
+set ans0 [list]
+lappend ans0 [list unsetpath LOADEDMODULES]
+lappend ans0 [list unsetpath _LMFILES_]
+lappend ans0 [list unsetpath MODULES_LMPREREQ]
+lappend ans0 [list unsetpath MODULES_LMNOTUASKED]
+set tserr [msg_top_unload impreq/prereq {} [list impreq/load foo/2.0] {}]
+testouterr_cmd_re sh {unload --auto impreq/prereq} $ans0 $tserr
+
+# DepUn
+set ans0 [list]
+lappend ans0 [list unsetpath LOADEDMODULES]
+lappend ans0 [list unsetpath _LMFILES_]
+lappend ans0 [list unsetpath MODULES_LMPREREQ]
+lappend ans0 [list unsetpath MODULES_LMNOTUASKED]
+set tserr [msg_top_unload impreq/load impreq/prereq foo/2.0 {}]
+testouterr_cmd_re sh {unload --auto impreq/load} $ans0 $tserr
+
+# DepRe
+# no common use case to sketch
+
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMNOTUASKED
+unsetenv_loaded_module
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+unsetenv_var MODULES_IMPLICIT_DEFAULT
+unsetenv_var MODULES_UNLOAD_MATCH_ORDER
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+setenv_path_var MODULEPATH $modpath
+setenv_var MODULES_IMPLICIT_REQUIREMENT 1
+
+unset mp
+unset mpre
+unset ans0
+unset ans1
+unset tserr
