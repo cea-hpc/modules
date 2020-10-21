@@ -2770,10 +2770,11 @@ proc module {command args} {
                   prereq $arg
                }
             # mods unload is handled via UReqUn mechanism when auto enabled
-            # also unloads are triggered by ongoing reload, purge or
-            # restore commands
-            } elseif {![getConf auto_handling] && [notInList [list purge\
-               reload restore] [aboveCommandName]]} {
+            # (unless if implicit_requirement has been inhibited) also unloads
+            # are triggered by ongoing reload, purge or restore commands
+            } elseif {(![getConf auto_handling] || [getState\
+               inhibit_req_record] eq [currentEvalId]) && [notInList [list\
+               purge reload restore] [aboveCommandName]]} {
                # on unload mode, unload mods in reverse order, if loaded
                # prior this mod, if not user asked and not required by
                # other loaded mods
@@ -2874,10 +2875,12 @@ proc module {command args} {
                   # 'module unload' for an unload evaluation: nothing done
                   # for switched-off module and unload of switched-on
                   # module. If auto handling is enabled switched-on module
-                  # is handled via UReqUn mechanism. Also unloads are
+                  # is handled via UReqUn mechanism (unless if
+                  # implicit_requirement has been inhibited). Also unloads are
                   # triggered by ongoing reload, purge or restore commands
-                  if {![getConf auto_handling] && $swlomod ne {} &&\
-                     [notInList [list purge reload restore]\
+                  if {(![getConf auto_handling] || [getState\
+                     inhibit_req_record] eq [currentEvalId]) && $swlomod ne\
+                     {} && [notInList [list purge reload restore]\
                      [aboveCommandName]]} {
                      # unload mod if it was loaded prior this mod, not user
                      # asked and not required by another loaded module
