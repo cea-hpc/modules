@@ -211,7 +211,7 @@ the *modulefile* is being loaded.
 
     .. versionadded:: 4.1
 
-.. mfcmd:: module [sub-command] [sub-command-args]
+.. mfcmd:: module [sub-command] [sub-command-options] [sub-command-args]
 
  Contains the same *sub-commands* as described in the :ref:`module(1)`
  man page in the :ref:`Module Sub-Commands` section. This command permits a
@@ -221,6 +221,10 @@ the *modulefile* is being loaded.
  ``module load`` commands. For example, if every user on the system
  requires a basic set of applications loaded, then a core *modulefile*
  would contain the necessary ``module load`` commands.
+
+ The ``--not-req`` option may be set for the ``load``, ``unload`` and
+ ``switch`` sub-commands to inhibit the definition of an implicit prereq or
+ conflict requirement onto specified modules.
 
  Command line switches :option:`--auto`, :option:`--no-auto` and
  :option:`--force` are ignored when passed to a :mfcmd:`module` command set in
