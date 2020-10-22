@@ -24,6 +24,7 @@
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
 array set g_state_defs [list\
+   always_read_full_file {<undef>}\
    autoinit {0}\
    clock_seconds {<undef> initStateClockSeconds}\
    cmdline {<undef>}\
@@ -2729,8 +2730,8 @@ proc module {command args} {
    }
 
    # define if modfile should always be fully read even for validity check
-   pushAlwaysReadFullFile [expr {![isInList [list path paths list avail\
-      aliases] $command]}]
+   lappendState always_read_full_file [expr {![isInList [list path paths list\
+      avail aliases] $command]}]
    pushCommandName $command
 
    if {$topcall} {
@@ -3002,7 +3003,7 @@ proc module {command args} {
       }
    }
    popCommandName
-   popAlwaysReadFullFile
+   lpopState always_read_full_file
 
    if {!$topcall && ($not_req || ![getConf implicit_requirement])} {
       lpopState inhibit_req_record
@@ -3051,7 +3052,7 @@ proc ml {args} {
       lassign [eval parseModuleVersionSpecifier 1 $fargs] modunlist modlolist
 
       # define if modfile should always be fully read even for validity check
-      pushAlwaysReadFullFile 1
+      lappendState always_read_full_file 1
       pushCommandName ml
 
       # Find and execute any global rc file found
@@ -3076,7 +3077,7 @@ proc ml {args} {
       popSettings
 
       popCommandName
-      popAlwaysReadFullFile
+      lpopState always_read_full_file
 
       renderSettings
    }
@@ -4614,25 +4615,6 @@ proc isModuleEvalFailed {context mod} {
       }
    }
    return $ret
-}
-
-# stack of flag defining whether a modfile should be always fully read or not
-# even for validity check, which is useful in case a file need to be read
-# multiple times as a full read will make file content cached thus file will
-# be read only once
-set g_alwaysReadFullFileStack {}
-
-proc currentAlwaysReadFullFile {} {
-   return [lindex $::g_alwaysReadFullFileStack end]
-}
-
-proc pushAlwaysReadFullFile {alwaysReadFullFile} {
-   lappend ::g_alwaysReadFullFileStack $alwaysReadFullFile
-}
-
-proc popAlwaysReadFullFile {} {
-   set ::g_alwaysReadFullFileStack [lrange $::g_alwaysReadFullFileStack 0\
-      end-1]
 }
 
 # return list of currently loading modules in stack
@@ -7889,12 +7871,12 @@ proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}\
          # only read beginning of file if just checking validity and not
          # asked to always fully read files
          set fdata [readFile $modfile [expr {$only_check_validity &&\
-            ![currentAlwaysReadFullFile]}]]
+            ![currentState always_read_full_file]}]]
          # extract magic cookie (first word of modulefile)
          set fh [string trimright [lindex [split [string range $fdata 0 32]]\
             0] #]
          # cache full file read to minimize file operations
-         if {!$only_check_validity || [currentAlwaysReadFullFile]} {
+         if {!$only_check_validity || [currentState always_read_full_file]} {
             set ::g_modfileContent($modfile) [list $fh $fdata]
          }
       }
