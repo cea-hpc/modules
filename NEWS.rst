@@ -49,6 +49,8 @@ Modules 4.7.0 (not yet released)
 * Add the ``--not-req`` option to the :mfcmd:`module` modulefile command to
   inhibit for its ``load`` and ``unload`` sub-commands the definition of a
   prereq or conflict requirement onto specified modules.
+* Add the ``lpopState`` and ``currentState`` procedures to respectively remove
+  or return the last entry from the list of values of a given state.
 
 
 .. _4.6 release notes:
