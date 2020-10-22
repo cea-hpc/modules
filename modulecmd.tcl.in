@@ -44,6 +44,7 @@ array set g_state_defs [list\
    kernelversion {<undef> {runCommand uname -v}}\
    lm_info_cached {0}\
    machine [list $::tcl_platform(machine)]\
+   mode {<undef>}\
    nodename {<undef> {runCommand uname -n}}\
    os [list $::tcl_platform(os)]\
    osversion [list $::tcl_platform(osVersion)]\
@@ -1302,7 +1303,7 @@ proc get-env {var {valifunset {}}} {
 }
 
 proc set-env {var val} {
-   set mode [currentMode]
+   set mode [currentState mode]
    reportDebug "$var=$val"
 
    # an empty string value means unsetting variable on Windows platform, so
@@ -1334,7 +1335,7 @@ proc reset-to-unset-env {var {val {}}} {
 }
 
 proc unset-env {var {internal 0} {val {}}} {
-   set mode [currentMode]
+   set mode [currentState mode]
    reportDebug "$var (internal=$internal, val=$val)"
 
    # clear value instead of unset it not to break variable later reference
@@ -1467,7 +1468,7 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    pushModuleFile $modfile
    pushModuleName $modname
    pushSpecifiedName $modspec
-   set mode [currentMode]
+   set mode [currentState mode]
    pushDebugMsgPrefix [getEvalModuleStackDepth] $mode $modname
 
    # skip modulefile if interpretation has been inhibited
@@ -1899,7 +1900,7 @@ proc versioncmp {str1 str2} {
 }
 
 proc module-info {what {more {}}} {
-   set mode [currentMode]
+   set mode [currentState mode]
 
    reportDebug "$what $more"
 
@@ -2623,7 +2624,7 @@ proc module-hide {args} {
 }
 
 proc module {command args} {
-   set mode [currentMode]
+   set mode [currentState mode]
    reportDebug "cmd='$command', args='$args'"
 
    # guess if called from top level
@@ -3136,7 +3137,7 @@ proc setenv-wh {var args} {
 proc getenv {var {valifundef _UNDEFINED_}} {
    reportDebug "var='$var', valifundef='$valifundef'"
 
-   if {[currentMode] ne {display}} {
+   if {[currentState mode] ne {display}} {
       return [get-env $var $valifundef]
    } else {
       return "\$$var"
@@ -3183,7 +3184,7 @@ proc chdir {dir} {
 proc exitModfileCmd {{code 0}} {
    reportDebug ($code)
 
-   if {[currentMode] eq {load}} {
+   if {[currentState mode] eq {load}} {
       setState inhibit_interp 1
    }
 
@@ -3851,7 +3852,7 @@ proc x-resource {resource {value {}}} {
 
    # if a resource does hold an empty value in g_newXResources or
    # g_delXResources arrays, it means this is a resource file to parse
-   if {[currentMode] eq {load}} {
+   if {[currentState mode] eq {load}} {
       set ::g_newXResources($resource) $value
    } else {
       set ::g_delXResources($resource) $value
@@ -3878,7 +3879,7 @@ proc uname {what} {
 proc system {args} {
    reportDebug $args
 
-   set mode [currentMode]
+   set mode [currentState mode]
    set status {}
 
    switch -- $mode {
@@ -4291,7 +4292,7 @@ proc source-sh-un {shell script args} {
    }
 
    # get name of current module unload Tcl interp
-   set itrp __modfile_[currentMode]_[getEvalModuleStackDepth]
+   set itrp __modfile_[currentState mode]_[getEvalModuleStackDepth]
 
    # evaluate each recorded command in unload Tcl interp to get them reversed
    foreach modcmd $modcontent {
@@ -4351,7 +4352,7 @@ proc source-sh-di {shell script args} {
    }
 
    # get name of current module unload Tcl interp
-   set itrp __modfile_[currentMode]_[getEvalModuleStackDepth]
+   set itrp __modfile_[currentState mode]_[getEvalModuleStackDepth]
 
    # evaluate each recorded command in display Tcl interp to get them printed
    foreach modcmd $modcontent {
@@ -4362,20 +4363,6 @@ proc source-sh-di {shell script args} {
 ########################################################################
 # internal module procedures
 #
-set g_modeStack {}
-
-proc currentMode {} {
-   return [lindex $::g_modeStack end]
-}
-
-proc pushMode {mode} {
-   lappend ::g_modeStack $mode
-}
-
-proc popMode {} {
-   set ::g_modeStack [lrange $::g_modeStack 0 end-1]
-}
-
 set g_moduleNameStack {}
 
 proc currentModuleName {} {
@@ -4621,7 +4608,7 @@ proc isModuleEvalFailed {context mod} {
 proc getLoadingModuleList {} {
    set modlist [list]
    for {set i 0} {$i < [llength $::g_moduleNameStack]} {incr i 1} {
-      if {[lindex $::g_modeStack $i] eq {load}} {
+      if {[lindex [getState mode] $i] eq {load}} {
          lappend modlist [lindex $::g_moduleNameStack $i]
       }
    }
@@ -4632,7 +4619,7 @@ proc getLoadingModuleList {} {
 proc getLoadingModuleFileList {} {
    set modlist [list]
    for {set i 0} {$i < [llength $::g_moduleFileStack]} {incr i 1} {
-      if {[lindex $::g_modeStack $i] eq {load}} {
+      if {[lindex [getState mode] $i] eq {load}} {
          lappend modlist [lindex $::g_moduleFileStack $i]
       }
    }
@@ -4643,7 +4630,7 @@ proc getLoadingModuleFileList {} {
 proc getUnloadingModuleList {} {
    set modlist [list]
    for {set i 0} {$i < [llength $::g_moduleNameStack]} {incr i 1} {
-      if {[lindex $::g_modeStack $i] eq {unload}} {
+      if {[lindex [getState mode] $i] eq {unload}} {
          lappend modlist [lindex $::g_moduleNameStack $i]
       }
    }
@@ -10420,7 +10407,7 @@ proc cmdModuleList {show_oneperline show_mtime} {
 proc cmdModuleDisplay {args} {
    reportDebug "displaying $args"
 
-   pushMode display
+   lappendState mode display
    set first_report 1
    foreach mod $args {
       lassign [getPathToModule $mod] modfile modname
@@ -10435,7 +10422,7 @@ proc cmdModuleDisplay {args} {
          displaySeparatorLine
       }
    }
-   popMode
+   lpopState mode
 }
 
 proc cmdModulePaths {mod} {
@@ -10526,7 +10513,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
       lappend searchmod wild
    }
    set foundmod 0
-   pushMode whatis
+   lappendState mode whatis
    set dir_list [getModulePathList exiterronundef]
    foreach dir $dir_list {
       array unset mod_list
@@ -10698,7 +10685,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
          displayElementList $dir mp sepline 1 0 $display_list
       }
    }
-   popMode
+   lpopState mode
 
    setState inhibit_errreport 0
 
@@ -11080,13 +11067,13 @@ proc cmdModuleSource {args} {
       if {$fpath eq {}} {
          reportErrorAndExit {File name empty}
       } elseif {[file exists $absfpath]} {
-         pushMode load
+         lappendState mode load
          # relax constraint of having a magic cookie at the start of the
          # modulefile to execute as sourced files may need more flexibility
          # as they may be managed outside of the modulefile environment like
          # the initialization modulerc file
          execute-modulefile $absfpath $absfpath $absfpath 0
-         popMode
+         lpopState mode
       } else {
          reportErrorAndExit "File $fpath does not exist"
       }
@@ -11100,13 +11087,13 @@ proc cmdModuleUnsource {args} {
       if {$fpath eq {}} {
          reportErrorAndExit {File name empty}
       } elseif {[file exists $absfpath]} {
-         pushMode unload
+         lappendState mode unload
          # relax constraint of having a magic cookie at the start of the
          # modulefile to execute as sourced files may need more flexibility
          # as they may be managed outside of the modulefile environment like
          # the initialization modulerc file
          execute-modulefile $absfpath $absfpath $absfpath 0
-         popMode
+         lpopState mode
       } else {
          reportErrorAndExit "File $fpath does not exist"
       }
@@ -11117,7 +11104,7 @@ proc cmdModuleLoad {context uasked args} {
    reportDebug "loading $args (context=$context, uasked=$uasked)"
 
    set ret 0
-   pushMode load
+   lappendState mode load
    foreach mod $args {
       # if a switch action is ongoing...
       if {$context eq {swload}} {
@@ -11341,7 +11328,7 @@ proc cmdModuleLoad {context uasked args} {
       }
       popMsgRecordId
    }
-   popMode
+   lpopState mode
 
    return $ret
 }
@@ -11351,7 +11338,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       force=$force, onlyureq=$onlyureq, onlyndep=$onlyndep)"
 
    set ret 0
-   pushMode unload
+   lappendState mode unload
    foreach mod $args {
       # if a switch action is ongoing...
       if {$context eq {swunload}} {
@@ -11611,7 +11598,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       reportMsgRecord "Unloading [sgr hi $modname]"
       popMsgRecordId
    }
-   popMode
+   lpopState mode
 
    return $ret
 }
@@ -11764,9 +11751,9 @@ proc cmdModuleUse {pos args} {
                set path [getAbsolutePath $path]
             }
             if {[file isdirectory [resolvStringWithEnv $path]]} {
-               pushMode load
+               lappendState mode load
                catch {add-path $pos MODULEPATH $path}
-               popMode
+               lpopState mode
             } else {
                reportError "Directory '$path' not found"
             }
@@ -11808,11 +11795,11 @@ proc cmdModuleUnuse {args} {
          }
 
          if {$unusepath ne {}} {
-            pushMode unload
+            lappendState mode unload
             catch {
                unload-path MODULEPATH $unusepath
             }
-            popMode
+            lpopState mode
 
             # refresh path list after unload
             set modpathlist [getModulePathList returnempty 0 0]
@@ -11831,7 +11818,7 @@ proc cmdModuleAutoinit {} {
    setState autoinit 1
 
    # initialize env variables around module command
-   pushMode load
+   lappendState mode load
 
    # register command location
    setenv MODULES_CMD [getAbsolutePath $::argv0]
@@ -11908,7 +11895,7 @@ proc cmdModuleAutoinit {} {
       setenv BASH_ENV @initdir@/bash
    }
 
-   popMode
+   lpopState mode
 }
 
 proc cmdModuleInit {args} {
@@ -12037,7 +12024,7 @@ proc cmdModuleInit {args} {
 proc cmdModuleResurface {cmd args} {
    reportDebug "cmd='$cmd', args='$args'"
 
-   pushMode load
+   lappendState mode load
    pushCommandName $cmd
 
    # run modulefile command and get its result
@@ -12060,13 +12047,13 @@ proc cmdModuleResurface {cmd args} {
    }
 
    popCommandName
-   popMode
+   lpopState mode
 }
 
 proc cmdModuleTest {args} {
    reportDebug "testing $args"
 
-   pushMode test
+   lappendState mode test
    set first_report 1
    foreach mod $args {
       lassign [getPathToModule $mod] modfile modname
@@ -12081,7 +12068,7 @@ proc cmdModuleTest {args} {
          displaySeparatorLine
       }
    }
-   popMode
+   lpopState mode
 }
 
 proc cmdModuleClear {{doit {}}} {
@@ -12108,11 +12095,11 @@ proc cmdModuleClear {{doit {}}} {
          [array names ::env -glob MODULES_MODSHARE_*]]
 
       # unset all Modules runtime variables
-      pushMode load
+      lappendState mode load
       foreach var $vartoclear {
          unset-env $var
       }
-      popMode
+      lpopState mode
    } else {
       reportInfo "Modules runtime information were not cleared"
    }
@@ -12172,18 +12159,18 @@ proc cmdModuleConfig {dump_state args} {
          reportErrorAndExit "Configuration option '$name' is locked"
       } elseif {$nameunset} {
          # unset configuration variable
-         pushMode load
+         lappendState mode load
          unsetenv $confvar($name)
-         popMode
+         lpopState mode
       } elseif {[llength $confvalid($name)] > 0 && [notInList\
          $confvalid($name) $value]} {
          reportErrorAndExit "Valid values for configuration option '$name'\
             are: $confvalid($name)"
       } else {
          # effectively set configuration variable
-         pushMode load
+         lappendState mode load
          setenv $confvar($name) $value
-         popMode
+         lpopState mode
       }
       # clear cached value for config if any
       unsetConf $name
@@ -12273,7 +12260,7 @@ See 'module --help' to get available commands and options.}
 }
 
 proc cmdModuleHelp {args} {
-   pushMode help
+   lappendState mode help
    set first_report 1
    foreach arg $args {
       lassign [getPathToModule $arg] modfile modname
@@ -12289,7 +12276,7 @@ proc cmdModuleHelp {args} {
          displaySeparatorLine
       }
    }
-   popMode
+   lpopState mode
    if {[llength $args] == 0} {
       reportVersion
       report {Usage: module [options] [command] [args ...]
