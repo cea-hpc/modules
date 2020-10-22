@@ -497,6 +497,9 @@ Module Sub-Commands
  * ``ignored_dirs``: directories ignored when looking for modulefiles
  * ``implicit_default``: set an implicit default version for modules (defines
    :envvar:`MODULES_IMPLICIT_DEFAULT`)
+ * ``implicit_requirement``: implicitly define a requirement onto modules
+   specified on :mfcmd:`module` commands in modulefile (defines
+   :envvar:`MODULES_IMPLICIT_REQUIREMENT`)
  * ``locked_configs``: configuration options that cannot be superseded
  * ``ml``: define :command:`ml` command at initialization time (defines
    :envvar:`MODULES_ML`)
@@ -1383,6 +1386,25 @@ ENVIRONMENT
  .. only:: html
 
     .. versionadded:: 4.3
+
+.. envvar:: MODULES_IMPLICIT_REQUIREMENT
+
+ Defines (if set to ``1``) or not (if set to ``0``) an implicit prereq or
+ conflict requirement onto modules specified respectively on
+ :mfcmd:`module load<module>` or :mfcmd:`module unload<module>` commands in
+ modulefile. When enabled an implicit conflict requirement onto switched-off
+ module and a prereq requirement onto switched-on module are also defined for
+ :mfcmd:`module switch <module>` commands used in modulefile.
+
+ This environment variable supersedes the value of the configuration option
+ ``implicit_requirement`` set in :file:`modulecmd.tcl` script.
+ :envvar:`MODULES_IMPLICIT_REQUIREMENT` is in turn superseded by the
+ ``--not-req`` option that applies to a :mfcmd:`module` command in a
+ modulefile.
+
+ .. only:: html
+
+    .. versionadded:: 4.7
 
 .. envvar:: MODULES_LMALTNAME
 
