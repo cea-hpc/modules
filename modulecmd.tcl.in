@@ -45,6 +45,7 @@ array set g_state_defs [list\
    lm_info_cached {0}\
    machine [list $::tcl_platform(machine)]\
    mode {<undef>}\
+   modulename {<undef>}\
    nodename {<undef> {runCommand uname -n}}\
    os [list $::tcl_platform(os)]\
    osversion [list $::tcl_platform(osVersion)]\
@@ -1466,7 +1467,7 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
 
 proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    pushModuleFile $modfile
-   pushModuleName $modname
+   lappendState modulename $modname
    pushSpecifiedName $modspec
    set mode [currentState mode]
    pushDebugMsgPrefix [getEvalModuleStackDepth] $mode $modname
@@ -1620,7 +1621,7 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    reportDebug "exiting $modfile"
    popDebugMsgPrefix
    popSpecifiedName
-   popModuleName
+   lpopState modulename
    popModuleFile
 
    return $errorVal
@@ -1631,7 +1632,7 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
 proc execute-modulerc {modfile modname modspec} {
    pushModuleFile $modfile
    # push name to be found by module-alias and version
-   pushModuleName $modname
+   lappendState modulename $modname
    pushSpecifiedName $modspec
    set ::ModulesVersion {}
    pushDebugMsgPrefix [getEvalModuleStackDepth] $modname
@@ -1733,7 +1734,7 @@ proc execute-modulerc {modfile modname modspec} {
 
    popDebugMsgPrefix
    popSpecifiedName
-   popModuleName
+   lpopState modulename
    popModuleFile
 
    return $::ModulesVersion
@@ -1923,7 +1924,7 @@ proc module-info {what {more {}}} {
          }
       }
       name {
-         return [currentModuleName]
+         return [currentState modulename]
       }
       specified {
          return [currentSpecifiedName]
@@ -2100,7 +2101,7 @@ proc findModulepathFromModulefile {modfile} {
 # current modulefile directory (useful for module-version and module-alias
 # for instance).
 proc getModuleNameVersion {{name {}} {name_relative_tocur 0}} {
-   set curmod [currentModuleName]
+   set curmod [currentState modulename]
    set curmodname [file dirname $curmod]
    set curmodversion [file tail $curmod]
 
@@ -2787,7 +2788,7 @@ proc module {command args} {
                # prior this mod, if not user asked and not required by
                # other loaded mods
                set modlist [getLoadedModuleList]
-               set modidx [lsearch -exact $modlist [currentModuleName]]
+               set modidx [lsearch -exact $modlist [currentState modulename]]
                if {$modidx != 0} {
                   set priormodlist [lrange $modlist 0 $modidx]
                   foreach arg [lreverse $args] {
@@ -2893,7 +2894,8 @@ proc module {command args} {
                      # unload mod if it was loaded prior this mod, not user
                      # asked and not required by another loaded module
                      set modlist [getLoadedModuleList]
-                     set modidx [lsearch -exact $modlist [currentModuleName]]
+                     set modidx [lsearch -exact $modlist [currentState\
+                        modulename]]
                      if {$modidx != 0} {
                         set priormodlist [lrange $modlist 0 $modidx]
                         if {[set unmod [getLoadedMatchingName $swlomod {} 0\
@@ -3173,7 +3175,7 @@ proc chdir {dir} {
    } else {
       # report issue but does not treat it as an error to have the
       # same behavior as C-version
-      reportWarning "Cannot chdir to '$dir' for '[currentModuleName]'"
+      reportWarning "Cannot chdir to '$dir' for '[currentState modulename]'"
    }
 
    return {}
@@ -3683,7 +3685,7 @@ proc is-loading {args} {
 
 proc conflict {args} {
    reportDebug $args
-   set currentModule [currentModuleName]
+   set currentModule [currentState modulename]
    # get module short name if loaded by its full pathname
    if {[set isfullpath [isModuleFullPath $currentModule]]} {
       set currentSModule [findModuleNameFromModulefile $currentModule]
@@ -3732,7 +3734,7 @@ proc conflict {args} {
 
 proc prereq {args} {
    reportDebug $args
-   set currentModule [currentModuleName]
+   set currentModule [currentState modulename]
 
    # parse module version specification
    set args [eval parseModuleVersionSpecifier 0 $args]
@@ -4270,7 +4272,7 @@ proc source-sh {shell script args} {
    set modcontent [eval sh-to-mod $shtomodargs]
 
    # register resulting modulefile commands
-   setLoadedSourceSh [currentModuleName] [concat [list $shtomodargs]\
+   setLoadedSourceSh [currentState modulename] [concat [list $shtomodargs]\
       $modcontent]
 
    # evaluate resulting modulefile commands
@@ -4282,7 +4284,7 @@ proc source-sh {shell script args} {
 # undo source-sh in unload mode
 proc source-sh-un {shell script args} {
    set shtomodargs [concat [list $shell $script] $args]
-   set modsrcsh [getLoadedSourceSh [currentModuleName]]
+   set modsrcsh [getLoadedSourceSh [currentState modulename]]
 
    # find commands resulting from source-sh evaluation recorded in env
    if {[set idx [lsearch -exact $modsrcsh $shtomodargs]] != -1 } {
@@ -4305,8 +4307,8 @@ proc source-sh-di {shell script args} {
    set shtomodargs [concat [list $shell $script] $args]
 
    # if module loaded, get as much content from environment as possible
-   if {[is-loaded [currentModuleName]]} {
-      set modsrcsh [getLoadedSourceSh [currentModuleName]]
+   if {[is-loaded [currentState modulename]]} {
+      set modsrcsh [getLoadedSourceSh [currentState modulename]]
 
       # find commands resulting from source-sh evaluation recorded in env
       if {[set idx [lsearch -exact $modsrcsh $shtomodargs]] != -1 } {
@@ -4363,23 +4365,10 @@ proc source-sh-di {shell script args} {
 ########################################################################
 # internal module procedures
 #
-set g_moduleNameStack {}
-
-proc currentModuleName {} {
-   return [lindex $::g_moduleNameStack end]
-}
-
-proc pushModuleName {moduleName} {
-   lappend ::g_moduleNameStack $moduleName
-}
-
-proc popModuleName {} {
-   set ::g_moduleNameStack [lrange $::g_moduleNameStack 0 end-1]
-}
 
 # get number of either modulefile/modulerc currently being evaluated
 proc getEvalModuleStackDepth {} {
-   return [llength $::g_moduleNameStack]
+   return [llength [getState modulename]]
 }
 
 set g_moduleFileStack {}
@@ -4542,7 +4531,7 @@ proc registerModuleEval {context mod {unset 0} {failedcontext {}}} {
 
 # get context of currently evaluated module
 proc currentModuleEvalContext {} {
-   return [lindex $::g_moduleEvalAttempt([currentModuleName]) end]
+   return [lindex $::g_moduleEvalAttempt([currentState modulename]) end]
 }
 
 # record module evaluation attempt and corresponding context
@@ -4607,9 +4596,9 @@ proc isModuleEvalFailed {context mod} {
 # return list of currently loading modules in stack
 proc getLoadingModuleList {} {
    set modlist [list]
-   for {set i 0} {$i < [llength $::g_moduleNameStack]} {incr i 1} {
+   for {set i 0} {$i < [llength [getState modulename]]} {incr i 1} {
       if {[lindex [getState mode] $i] eq {load}} {
-         lappend modlist [lindex $::g_moduleNameStack $i]
+         lappend modlist [lindex [getState modulename] $i]
       }
    }
    return $modlist
@@ -4629,9 +4618,9 @@ proc getLoadingModuleFileList {} {
 # return list of currently unloading modules in stack
 proc getUnloadingModuleList {} {
    set modlist [list]
-   for {set i 0} {$i < [llength $::g_moduleNameStack]} {incr i 1} {
+   for {set i 0} {$i < [llength [getState modulename]]} {incr i 1} {
       if {[lindex [getState mode] $i] eq {unload}} {
-         lappend modlist [lindex $::g_moduleNameStack $i]
+         lappend modlist [lindex [getState modulename] $i]
       }
    }
    return $modlist
