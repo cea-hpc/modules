@@ -36,6 +36,19 @@ Modules 4.7.0 (not yet released)
   the ``shells_with_ksh_fpath`` option is set through the :subcmd:`config`
   sub-command, the :envvar:`MODULES_SHELLS_WITH_KSH_FPATH` environment
   variable is set.
+* Add the ``implicit_requirement`` configuration option to control whether a
+  prereq or a conflict requirement should be implicitly set onto modules
+  respectively specified on :mfcmd:`module load<module>` or
+  :mfcmd:`module unload<module>` commands in modulefile. Default value for
+  this option could be set at configure time with the
+  ``--enable-implicit-requirement`` option (enabled by default). This value
+  could be superseded by setting up the ``implicit_requirement`` option with
+  :subcmd:`config` sub-command. Which sets the
+  :envvar:`MODULES_IMPLICIT_REQUIREMENT` environment variable. (fix issue
+  #260)
+* Add the ``--not-req`` option to the :mfcmd:`module` modulefile command to
+  inhibit for its ``load`` and ``unload`` sub-commands the definition of a
+  prereq or conflict requirement onto specified modules.
 
 
 .. _4.6 release notes:
