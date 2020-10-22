@@ -45,6 +45,7 @@ array set g_state_defs [list\
    lm_info_cached {0}\
    machine [list $::tcl_platform(machine)]\
    mode {<undef>}\
+   modulefile {<undef>}\
    modulename {<undef>}\
    nodename {<undef> {runCommand uname -n}}\
    os [list $::tcl_platform(os)]\
@@ -1466,7 +1467,7 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
 }
 
 proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
-   pushModuleFile $modfile
+   lappendState modulefile $modfile
    lappendState modulename $modname
    pushSpecifiedName $modspec
    set mode [currentState mode]
@@ -1622,7 +1623,7 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    popDebugMsgPrefix
    popSpecifiedName
    lpopState modulename
-   popModuleFile
+   lpopState modulefile
 
    return $errorVal
 }
@@ -1630,7 +1631,7 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
 # Smaller subset than main module load... This function runs modulerc and
 # .version files
 proc execute-modulerc {modfile modname modspec} {
-   pushModuleFile $modfile
+   lappendState modulefile $modfile
    # push name to be found by module-alias and version
    lappendState modulename $modname
    pushSpecifiedName $modspec
@@ -1735,7 +1736,7 @@ proc execute-modulerc {modfile modname modspec} {
    popDebugMsgPrefix
    popSpecifiedName
    lpopState modulename
-   popModuleFile
+   lpopState modulefile
 
    return $::ModulesVersion
 }
@@ -4371,18 +4372,6 @@ proc getEvalModuleStackDepth {} {
    return [llength [getState modulename]]
 }
 
-set g_moduleFileStack {}
-
-proc pushModuleFile {modfile} {
-   lappend ::g_moduleFileStack $modfile
-   set ::ModulesCurrentModulefile $modfile
-}
-
-proc popModuleFile {} {
-   set ::g_moduleFileStack [lrange $::g_moduleFileStack 0 end-1]
-   set ::ModulesCurrentModulefile [lindex $::g_moduleFileStack end]
-}
-
 set g_specifiedNameStack {}
 
 proc currentSpecifiedName {} {
@@ -4607,9 +4596,9 @@ proc getLoadingModuleList {} {
 # return list of currently loading modulefiles in stack
 proc getLoadingModuleFileList {} {
    set modlist [list]
-   for {set i 0} {$i < [llength $::g_moduleFileStack]} {incr i 1} {
+   for {set i 0} {$i < [llength [getState modulefile]]} {incr i 1} {
       if {[lindex [getState mode] $i] eq {load}} {
-         lappend modlist [lindex $::g_moduleFileStack $i]
+         lappend modlist [lindex [getState modulefile] $i]
       }
    }
    return $modlist
@@ -12573,7 +12562,7 @@ if {[catch {
    }
 
    # no modulefile is currently being interpreted
-   pushModuleFile {}
+   lappendState modulefile {}
 
    # eval needed to pass otherargv as list to module proc
    eval $execcmdlist
