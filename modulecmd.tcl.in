@@ -24,52 +24,33 @@
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
 array set g_state_defs [list\
-   always_read_full_file {<undef>}\
    autoinit {0}\
    clock_seconds {<undef> initStateClockSeconds}\
-   cmdline {<undef>}\
-   commandname {<undef>}\
-   cwd {<undef>}\
    domainname {<undef> {runCommand domainname}}\
-   debug_msg_prefix {<undef>}\
    error_count {0}\
-   evalid {<undef>}\
    extra_siteconfig_loaded {0}\
    false_rendered {0}\
    force {0}\
    hiding_threshold {0}\
    inhibit_errreport {0}\
    inhibit_interp {0}\
-   inhibit_req_record {<undef>}\
    init_error_report {0}\
    is_stderr_tty {<undef> initStateIsStderrTty}\
    is_win {<undef> initStateIsWin}\
    kernelversion {<undef> {runCommand uname -v}}\
    lm_info_cached {0}\
    machine [list $::tcl_platform(machine)]\
-   mode {<undef>}\
-   modulefile {<undef>}\
-   modulename {<undef>}\
-   msgrecordid {<undef>}\
    nodename {<undef> {runCommand uname -n}}\
    os [list $::tcl_platform(os)]\
    osversion [list $::tcl_platform(osVersion)]\
    paginate {<undef> initStatePaginate}\
    path_separator {<undef> initStatePathSeparator}\
-   rc_loaded {<undef>}\
    report_format {plain}\
-   report_sep_next {<undef>}\
    reportfd {stderr initStateReportfd}\
-   reportholdid {<undef>}\
    return_false {0}\
-   shell {<undef>}\
-   shelltype {<undef>}\
    siteconfig_loaded {0}\
-   specifiedname {<undef>}\
    sub1_separator {&}\
    sub2_separator {|}\
-   subcmd {<undef>}\
-   subcmd_args {<undef>}\
    tcl_ext_lib_loaded {0}\
    tcl_version [list [info patchlevel]]\
    tcl_version_lt85 {<undef> initStateTclVersionLt85}\
@@ -126,8 +107,13 @@ array set g_config_defs [list\
 # Get state value
 proc getState {state {valifundef {}} {catchinitproc 0}} {
    if {![info exists ::g_states($state)]} {
-      # fetch state properties (including its default value)
-      lassign $::g_state_defs($state) value initproclist
+      # fetch state properties (including its default value) if defined
+      if {[info exists ::g_state_defs($state)]} {
+         lassign $::g_state_defs($state) value initproclist
+      } else {
+         set value <undef>
+         set initproclist {}
+      }
 
       # call specific proc to initialize state if any
       if {$initproclist ne {}} {
