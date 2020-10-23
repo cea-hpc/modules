@@ -1489,7 +1489,7 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    lappendState specifiedname $modspec
    set mode [currentState mode]
    lappendState debug_msg_prefix\
-      "\[#[getEvalModuleStackDepth]:$mode:$modname\] "
+      "\[#[depthState modulename]:$mode:$modname\] "
 
    # skip modulefile if interpretation has been inhibited
    if {[getState inhibit_interp]} {
@@ -1514,7 +1514,7 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    }
    # dedicate an interpreter per mode and per level of interpretation to have
    # a dedicated interpreter in case of cascaded multi-mode interpretations
-   set itrp __modfile_${mode}_[getEvalModuleStackDepth]
+   set itrp __modfile_${mode}_[depthState modulename]
 
    # evaluation mode-specific configuration
    set dumpCommandsVN g_modfile${mode}Commands
@@ -1654,7 +1654,7 @@ proc execute-modulerc {modfile modname modspec} {
    lappendState modulename $modname
    lappendState specifiedname $modspec
    set ::ModulesVersion {}
-   lappendState debug_msg_prefix "\[#[getEvalModuleStackDepth]:$modname\] "
+   lappendState debug_msg_prefix "\[#[depthState modulename]:$modname\] "
 
    if {![info exists ::g_modrcUntrackVars]} {
       # list variable that should not be tracked for saving
@@ -1684,7 +1684,7 @@ proc execute-modulerc {modfile modname modspec} {
 
    # dedicate an interpreter per level of interpretation to have in case of
    # cascaded interpretations a specific interpreter per level
-   set itrp __modrc_[getEvalModuleStackDepth]
+   set itrp __modrc_[depthState modulename]
 
    reportTrace '$modfile' {Evaluate modulerc}
    # create modulerc interpreter at first interpretation
@@ -2648,7 +2648,7 @@ proc module {command args} {
    reportDebug "cmd='$command', args='$args'"
 
    # guess if called from top level
-   set topcall [expr {[getEvalModuleStackDepth] == 0}]
+   set topcall [expr {[depthState modulename] == 0}]
    set tryhelpmsg [expr {$topcall ? "\nTry 'module --help' for more\
       information." : {}}]
    if {$topcall} {
@@ -2691,7 +2691,7 @@ proc module {command args} {
       }
       # other commands can only be called from modulefile evaluated from
       # command acting as top-level context (source and autoinit)
-      if {([getEvalModuleStackDepth] > 1 || [notInList [list source autoinit]\
+      if {([depthState modulename] > 1 || [notInList [list source autoinit]\
          [currentState commandname]]) && $command eq {config}} {
          knerror "${msgprefix}Command '$command' not supported$tryhelpmsg"
       }
@@ -2770,7 +2770,7 @@ proc module {command args} {
             set ret 0
             # if top command is source, consider module load commands made
             # within sourced file evaluation as top load command
-            if {$topcall || ([getEvalModuleStackDepth] == 1 && (
+            if {$topcall || ([depthState modulename] == 1 && (
                [aboveCommandName] eq {source} || [aboveCommandName] eq\
                {autoinit}))} {
                set ret [eval cmdModuleLoad load 1 $args]
@@ -2830,7 +2830,7 @@ proc module {command args} {
       unload {
          # if top command is source, consider module load commands made
          # within sourced file evaluation as top load command
-         if {$topcall || ([getEvalModuleStackDepth] == 1 && (
+         if {$topcall || ([depthState modulename] == 1 && (
             [aboveCommandName] eq {source} || [aboveCommandName] eq\
             {autoinit}))} {
             set ret [eval cmdModuleUnload unload match 1 0 0 0 $args]
@@ -2876,7 +2876,7 @@ proc module {command args} {
       }
       switch {
          # pass 'user asked state' to switch procedure
-         set uasked [expr {$topcall || ([getEvalModuleStackDepth] == 1 &&\
+         set uasked [expr {$topcall || ([depthState modulename] == 1 &&\
             ([aboveCommandName] eq {source} || [aboveCommandName] eq\
             {autoinit}))}]
          if {$uasked} {
@@ -4314,7 +4314,7 @@ proc source-sh-un {shell script args} {
    }
 
    # get name of current module unload Tcl interp
-   set itrp __modfile_[currentState mode]_[getEvalModuleStackDepth]
+   set itrp __modfile_[currentState mode]_[depthState modulename]
 
    # evaluate each recorded command in unload Tcl interp to get them reversed
    foreach modcmd $modcontent {
@@ -4374,7 +4374,7 @@ proc source-sh-di {shell script args} {
    }
 
    # get name of current module unload Tcl interp
-   set itrp __modfile_[currentState mode]_[getEvalModuleStackDepth]
+   set itrp __modfile_[currentState mode]_[depthState modulename]
 
    # evaluate each recorded command in display Tcl interp to get them printed
    foreach modcmd $modcontent {
@@ -4385,11 +4385,6 @@ proc source-sh-di {shell script args} {
 ########################################################################
 # internal module procedures
 #
-
-# get number of either modulefile/modulerc currently being evaluated
-proc getEvalModuleStackDepth {} {
-   return [llength [getState modulename]]
-}
 
 proc aboveCommandName {} {
    return [lindex [getState commandname] end-1]
@@ -10652,7 +10647,7 @@ proc cmdModuleSwitch {uasked old {new {}}} {
    # record sumup messages from underlying unload/load actions under the same
    # switch message record id to report (evaluation messages still go under
    # their respective unload/load block
-   pushMsgRecordId switch-$old-$new-[getEvalModuleStackDepth]
+   pushMsgRecordId switch-$old-$new-[depthState modulename]
    if {$inhibit_req_rec} {
       lappendState inhibit_req_record [currentState evalid]
    }
@@ -10802,7 +10797,7 @@ proc cmdModuleRestore {{coll default}} {
       path_to_unuse path_to_use
 
    # create an eval id to track successful/failed module evaluations
-   pushMsgRecordId restore-$coll-[getEvalModuleStackDepth] 0
+   pushMsgRecordId restore-$coll-[depthState modulename] 0
 
    # unload modules one by one (no dependency auto unload)
    if {[llength $mod_to_unload] > 0} {
@@ -11067,7 +11062,7 @@ proc cmdModuleLoad {context uasked args} {
       }
 
       # set a unique id to record messages related to this evaluation.
-      set msgrecid load-$modname-[getEvalModuleStackDepth]
+      set msgrecid load-$modname-[depthState modulename]
       pushMsgRecordId $msgrecid
 
       # record evaluation attempt on actual module name
@@ -11312,7 +11307,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          uplevel 1 set old $modname
       }
       # set a unique id to record messages related to this evaluation.
-      set msgrecid unload-$modname-[getEvalModuleStackDepth]
+      set msgrecid unload-$modname-[depthState modulename]
       pushMsgRecordId $msgrecid
 
       # record evaluation attempt on actual module name
@@ -11530,7 +11525,7 @@ proc cmdModulePurge {} {
    reportDebug called.
 
    # create an eval id to track successful/failed module evaluations
-   pushMsgRecordId purge-[getEvalModuleStackDepth] 0
+   pushMsgRecordId purge-[depthState modulename] 0
 
    # unload one by one to ensure same behavior whatever auto_handling state
    # force it to handle loaded modules in violation state
@@ -11549,7 +11544,7 @@ proc cmdModuleReload {args} {
    reportDebug "reloading $lmlist"
 
    # create an eval id to track successful/failed module evaluations
-   pushMsgRecordId reload-[getEvalModuleStackDepth] 0
+   pushMsgRecordId reload-[depthState modulename] 0
 
    # no reload of all loaded modules attempt if constraints are violated
    if {[llength $args] == 0 && ![areModuleConstraintsSatisfied]} {
