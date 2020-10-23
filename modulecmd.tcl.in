@@ -33,6 +33,7 @@ array set g_state_defs [list\
    domainname {<undef> {runCommand domainname}}\
    debug_msg_prefix {<undef>}\
    error_count {0}\
+   evalid {<undef>}\
    extra_siteconfig_loaded {0}\
    false_rendered {0}\
    force {0}\
@@ -825,7 +826,7 @@ proc isMsgRecordIdTop {} {
 # record messages on the eventual additional module evaluations that have
 # occurred during the current evaluation
 proc reportModuleEval {} {
-   set evalid [currentEvalId]
+   set evalid [currentState evalid]
    array set contexttitle {conun {Unloading conflict} reqlo {Loading\
       requirement} depre {Reloading dependent} depun {Unloading dependent}\
       urequn {Unloading useless requirement}}
@@ -2691,7 +2692,7 @@ proc module {command args} {
       }
       # no requirement should be recorded this module load/unload/switch cmd
       if {$not_req || ![getConf implicit_requirement]} {
-         lappendState inhibit_req_record [currentEvalId]
+         lappendState inhibit_req_record [currentState evalid]
       }
    }
 
@@ -2795,8 +2796,8 @@ proc module {command args} {
             # (unless if implicit_requirement has been inhibited) also unloads
             # are triggered by ongoing reload, purge or restore commands
             } elseif {(![getConf auto_handling] || [getState\
-               inhibit_req_record] eq [currentEvalId]) && [notInList [list\
-               purge reload restore] [aboveCommandName]]} {
+               inhibit_req_record] eq [currentState evalid]) && [notInList\
+               [list purge reload restore] [aboveCommandName]]} {
                # on unload mode, unload mods in reverse order, if loaded
                # prior this mod, if not user asked and not required by
                # other loaded mods
@@ -2901,8 +2902,8 @@ proc module {command args} {
                   # implicit_requirement has been inhibited). Also unloads are
                   # triggered by ongoing reload, purge or restore commands
                   if {(![getConf auto_handling] || [getState\
-                     inhibit_req_record] eq [currentEvalId]) && $swlomod ne\
-                     {} && [notInList [list purge reload restore]\
+                     inhibit_req_record] eq [currentState evalid]) &&\
+                     $swlomod ne {} && [notInList [list purge reload restore]\
                      [aboveCommandName]]} {
                      # unload mod if it was loaded prior this mod, not user
                      # asked and not required by another loaded module
@@ -3709,7 +3710,7 @@ proc conflict {args} {
    set args [eval parseModuleVersionSpecifier 0 $args]
 
    # register conflict list unless record inhibited for current iterp context
-   if {[currentState inhibit_req_record] != [currentEvalId]} {
+   if {[currentState inhibit_req_record] != [currentState evalid]} {
       eval setLoadedConflict "{$currentModule}" $args
    }
 
@@ -3755,7 +3756,7 @@ proc prereq {args} {
 
    # register prereq list (sets of optional prereq are registered as list)
    # unless record inhibited for current iterp context
-   if {[currentState inhibit_req_record] != [currentEvalId]} {
+   if {[currentState inhibit_req_record] != [currentState evalid]} {
       setLoadedPrereq $currentModule $args
    }
 
@@ -4398,32 +4399,24 @@ proc isReportHeld {} {
 }
 
 # stack of message recording/eval unique identifiers
-set g_evalIdStack {}
-
-proc currentEvalId {} {
-   return [lindex $::g_evalIdStack end]
-}
-
-proc topEvalId {} {
-   return [lindex $::g_evalIdStack 0]
-}
-
 proc pushMsgRecordId {recid {setmsgid 1}} {
-   lappend ::g_evalIdStack $recid
+   lappendState evalid $recid
    if {$setmsgid} {
       lappendState msgrecordid $recid
    }
 }
 
 proc popMsgRecordId {{setmsgid 1}} {
-   set ::g_evalIdStack [lrange $::g_evalIdStack 0 end-1]
+   lpopState evalid
    if {$setmsgid} {
       lpopState msgrecordid
    }
 }
 
 proc clearAllMsgRecordId {} {
-   set ::g_evalIdStack {}
+   if {[isStateDefined evalid]} {
+      unsetState evalid
+   }
    if {[isStateDefined msgrecordid]} {
       unsetState msgrecordid
    }
@@ -4432,7 +4425,7 @@ proc clearAllMsgRecordId {} {
 # gather for the current top evaluation the information on all evaluations
 # happening under its umbrella
 proc registerModuleEval {context mod {unset 0} {failedcontext {}}} {
-   set evalid [topEvalId]
+   set evalid [topState evalid]
    set contextset 0
 
    # add mod to existing evaluation context list
@@ -4517,7 +4510,7 @@ proc isModuleEvaluated {context exclmod args} {
 # was passed mod already evaluated for context and failed
 proc isModuleEvalFailed {context mod} {
    set ret 0
-   set evalid [topEvalId]
+   set evalid [topState evalid]
    if {[info exists ::g_moduleFailedEval($evalid)]} {
       foreach {curcon curmod} $::g_moduleFailedEval($evalid) {
          if {$context eq $curcon && $mod eq $curmod} {
@@ -10649,14 +10642,14 @@ proc cmdModuleSwitch {uasked old {new {}}} {
 
    # extend requirement recording inhibition to switch subcontext
    set inhibit_req_rec [expr {[currentState inhibit_req_record] ==\
-      [currentEvalId]}]
+      [currentState evalid]}]
 
    # record sumup messages from underlying unload/load actions under the same
    # switch message record id to report (evaluation messages still go under
    # their respective unload/load block
    pushMsgRecordId switch-$old-$new-[getEvalModuleStackDepth]
    if {$inhibit_req_rec} {
-      lappendState inhibit_req_record [currentEvalId]
+      lappendState inhibit_req_record [currentState evalid]
    }
 
    set ret [cmdModuleUnload swunload $unload_match 1 0 0 0 $old]
