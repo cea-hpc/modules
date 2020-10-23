@@ -2114,7 +2114,7 @@ proc getModuleNameVersion {{name {}} {name_relative_tocur 0}} {
    } elseif {$curmod ne {} && [regexp {^\.?\/(.*)$} $name match version]} {
       # if we cannot distinguish a module name, raise error when shorthand
       # version notation is used
-      if {$::ModulesCurrentModulefile ne $curmod && $curmod ne {.modulerc}} {
+      if {[currentState modulefile] ne $curmod && $curmod ne {.modulerc}} {
          # name is the name of current module directory
          set name $curmodname
       } else {
@@ -2283,7 +2283,7 @@ proc setModuleResolution {mod target {symver {}} {override_res_path 1}\
                set modvers $modresname/$symelt
                reportDebug "module-version $modvers = $modres"
                set ::g_moduleVersion($modvers) $modres
-               set ::g_sourceVersion($modvers) $::ModulesCurrentModulefile
+               set ::g_sourceVersion($modvers) [currentState modulefile]
                # record eventual missing resolution
                if {![info exists g_moduleResolved($modvers)]} {
                   set g_moduleResolved($modvers) $modres
@@ -2421,7 +2421,7 @@ proc module-alias {args} {
 
    if {[setModuleResolution $alias $mod]} {
       set ::g_moduleAlias($alias) $mod
-      set ::g_sourceAlias($alias) $::ModulesCurrentModulefile
+      set ::g_sourceAlias($alias) [currentState modulefile]
    }
 
    return {}
@@ -2434,7 +2434,7 @@ proc module-virtual {args} {
    reportDebug "$mod = $modfile"
 
    set ::g_moduleVirtual($mod) $modfile
-   set ::g_sourceVirtual($mod) $::ModulesCurrentModulefile
+   set ::g_sourceVirtual($mod) [currentState modulefile]
 
    return {}
 }
@@ -7438,8 +7438,8 @@ proc runCommand {cmd args} {
 
 proc getAbsolutePath {path} {
    # currently executing a modulefile or rc, so get the directory of this file
-   if {$::ModulesCurrentModulefile ne {}} {
-      set curdir [file dirname $::ModulesCurrentModulefile]
+   if {[currentState modulefile] ne {}} {
+      set curdir [file dirname [currentState modulefile]]
    # elsewhere get module command current working directory
    } else {
       # register pwd at first call
