@@ -31,6 +31,7 @@ array set g_state_defs [list\
    commandname {<undef>}\
    cwd {<undef>}\
    domainname {<undef> {runCommand domainname}}\
+   debug_msg_prefix {<undef>}\
    error_count {0}\
    extra_siteconfig_loaded {0}\
    false_rendered {0}\
@@ -716,7 +717,7 @@ proc reportDebug {message {showcaller 1} {caller _undef_}} {
 # regular procedure to use once error report is initialized
 proc __reportDebug {message {showcaller 1} {caller _undef_}} {
    # display active interp details if not the main one
-   set prefix [currentDebugMsgPrefix]
+   set prefix [currentState debug_msg_prefix]
    # display caller name as prefix
    if {$showcaller && $caller ne {} && ($caller ne {_undef_} || [info level]\
       > 1)} {
@@ -1152,10 +1153,10 @@ proc initErrorReport {} {
       # trace each procedure call
       if {[isVerbosityLevel debug2]} {
          # exclude core procedure from tracing
-         set excl_prc_list [list report reportDebug currentDebugMsgPrefix\
-            reportTraceExecEnter isInList notInList getState setState\
-            lappendState unsetState isStateDefined isStateEqual sgr getConf\
-            setConf unsetConf lappendConf]
+         set excl_prc_list [list report reportDebug reportTraceExecEnter\
+            isInList notInList getState setState lappendState unsetState\
+            isStateDefined isStateEqual sgr getConf setConf unsetConf\
+            lappendConf]
          foreach prc [info procs] {
             if {[notInList $excl_prc_list $prc]} {
                trace add execution $prc enter reportTraceExecEnter
@@ -1475,7 +1476,8 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    lappendState modulename $modname
    lappendState specifiedname $modspec
    set mode [currentState mode]
-   pushDebugMsgPrefix [getEvalModuleStackDepth] $mode $modname
+   lappendState debug_msg_prefix\
+      "\[#[getEvalModuleStackDepth]:$mode:$modname\] "
 
    # skip modulefile if interpretation has been inhibited
    if {[getState inhibit_interp]} {
@@ -1624,7 +1626,7 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    }]
 
    reportDebug "exiting $modfile"
-   popDebugMsgPrefix
+   lpopState debug_msg_prefix
    lpopState specifiedname
    lpopState modulename
    lpopState modulefile
@@ -1640,7 +1642,7 @@ proc execute-modulerc {modfile modname modspec} {
    lappendState modulename $modname
    lappendState specifiedname $modspec
    set ::ModulesVersion {}
-   pushDebugMsgPrefix [getEvalModuleStackDepth] $modname
+   lappendState debug_msg_prefix "\[#[getEvalModuleStackDepth]:$modname\] "
 
    if {![info exists ::g_modrcUntrackVars]} {
       # list variable that should not be tracked for saving
@@ -1737,7 +1739,7 @@ proc execute-modulerc {modfile modname modspec} {
       }
    }
 
-   popDebugMsgPrefix
+   lpopState debug_msg_prefix
    lpopState specifiedname
    lpopState modulename
    lpopState modulefile
@@ -4425,21 +4427,6 @@ proc popMsgRecordId {{setmsgid 1}} {
 proc clearAllMsgRecordId {} {
    set ::g_evalIdStack {}
    set ::g_msgRecordIdStack {}
-}
-
-# stack of prefixes clarifying debug message entries
-set g_debugMsgPrefixStack {}
-
-proc currentDebugMsgPrefix {} {
-   return [lindex $::g_debugMsgPrefixStack end]
-}
-
-proc pushDebugMsgPrefix {args} {
-   lappend ::g_debugMsgPrefixStack "\[#[join $args :]\] "
-}
-
-proc popDebugMsgPrefix {} {
-   set ::g_debugMsgPrefixStack [lrange $::g_debugMsgPrefixStack 0 end-1]
 }
 
 # gather for the current top evaluation the information on all evaluations
