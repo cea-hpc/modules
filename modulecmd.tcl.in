@@ -161,10 +161,16 @@ proc setState {state value} {
 
 # Append each passed value to the existing state value list
 proc lappendState {state args} {
-   # retrieve current value through getState to initialize it if still undef
-   set value [getState $state]
-   eval appendNoDupToList value $args
-   setState $state $value
+   if {$state eq {-nodup}} {
+      set state [lindex $args 0]
+      # retrieve current val through getState to initialize it if still undef
+      set value [getState $state]
+      eval appendNoDupToList value [lrange $args 1 end]
+      setState $state $value
+   } else {
+      eval lappend ::g_states($state) $args
+      reportDebug "$state appended with '$args'"
+   }
 }
 
 # Remove last element from state value list
