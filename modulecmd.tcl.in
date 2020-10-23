@@ -28,6 +28,7 @@ array set g_state_defs [list\
    autoinit {0}\
    clock_seconds {<undef> initStateClockSeconds}\
    cmdline {<undef>}\
+   commandname {<undef>}\
    cwd {<undef>}\
    domainname {<undef> {runCommand domainname}}\
    error_count {0}\
@@ -552,7 +553,8 @@ proc isIcase {} {
    # depending on current sub-command, list values that equal to a case
    # insensitive match enablement
    lappend enabledValList always
-   if {[isInList [list avail whatis search paths] [currentCommandName]]} {
+   if {[isInList [list avail whatis search paths] [currentState\
+      commandname]]} {
       lappend enabledValList search
    }
    return [isInList $enabledValList [getConf icase]]
@@ -1910,7 +1912,7 @@ proc module-info {what {more {}}} {
    switch -- $what {
       mode {
          if {$more ne {}} {
-            set command [currentCommandName]
+            set command [currentState commandname]
             return [expr {$mode eq $more || ($more eq {remove} && $mode eq \
                {unload}) || ($more eq {switch} && $command eq {switch})}]
          } else {
@@ -1918,7 +1920,7 @@ proc module-info {what {more {}}} {
          }
       }
       command {
-         set command [currentCommandName]
+         set command [currentState commandname]
          if {$more eq {}} {
             return $command
          } else {
@@ -2675,7 +2677,7 @@ proc module {command args} {
       # other commands can only be called from modulefile evaluated from
       # command acting as top-level context (source and autoinit)
       if {([getEvalModuleStackDepth] > 1 || [notInList [list source autoinit]\
-         [currentCommandName]]) && $command eq {config}} {
+         [currentState commandname]]) && $command eq {config}} {
          knerror "${msgprefix}Command '$command' not supported$tryhelpmsg"
       }
       # no requirement should be recorded this module load/unload/switch cmd
@@ -2736,7 +2738,7 @@ proc module {command args} {
    # define if modfile should always be fully read even for validity check
    lappendState always_read_full_file [expr {![isInList [list path paths list\
       avail aliases] $command]}]
-   pushCommandName $command
+   lappendState commandname $command
 
    if {$topcall} {
       # Find and execute any global rc file found
@@ -3007,7 +3009,7 @@ proc module {command args} {
          eval cmdModuleResurface module-info loaded $args
       }
    }
-   popCommandName
+   lpopState commandname
    lpopState always_read_full_file
 
    if {!$topcall && ($not_req || ![getConf implicit_requirement])} {
@@ -3058,7 +3060,7 @@ proc ml {args} {
 
       # define if modfile should always be fully read even for validity check
       lappendState always_read_full_file 1
-      pushCommandName ml
+      lappendState commandname ml
 
       # Find and execute any global rc file found
       runModulerc
@@ -3081,7 +3083,7 @@ proc ml {args} {
       }
       popSettings
 
-      popCommandName
+      lpopState commandname
       lpopState always_read_full_file
 
       renderSettings
@@ -4373,26 +4375,12 @@ proc getEvalModuleStackDepth {} {
    return [llength [getState modulename]]
 }
 
-set g_commandNameStack {}
-
-proc currentCommandName {} {
-   return [lindex $::g_commandNameStack end]
-}
-
 proc aboveCommandName {} {
-   return [lindex $::g_commandNameStack end-1]
-}
-
-proc pushCommandName {commandName} {
-   lappend ::g_commandNameStack $commandName
-}
-
-proc popCommandName {} {
-   set ::g_commandNameStack [lrange $::g_commandNameStack 0 end-1]
+   return [lindex [getState commandname] end-1]
 }
 
 proc ongoingCommandName {commandName} {
-   return [expr {[lsearch -exact $::g_commandNameStack $commandName] != -1}]
+   return [expr {[lsearch -exact [getState commandname] $commandName] != -1}]
 }
 
 # stack of report holder unique identifiers
@@ -11990,7 +11978,7 @@ proc cmdModuleResurface {cmd args} {
    reportDebug "cmd='$cmd', args='$args'"
 
    lappendState mode load
-   pushCommandName $cmd
+   lappendState commandname $cmd
 
    # run modulefile command and get its result
    if {[catch {eval $cmd $args} res]} {
@@ -12011,7 +11999,7 @@ proc cmdModuleResurface {cmd args} {
       }
    }
 
-   popCommandName
+   lpopState commandname
    lpopState mode
 }
 
