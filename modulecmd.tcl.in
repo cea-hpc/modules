@@ -825,7 +825,7 @@ proc reportTraceExecEnter {cmdstring op} {
 
 # is currently active message record id at top level
 proc isMsgRecordIdTop {} {
-   return [expr {[llength [getState msgrecordid]] eq 1}]
+   return [expr {[depthState msgrecordid] eq 1}]
 }
 
 # record messages on the eventual additional module evaluations that have
@@ -4395,7 +4395,7 @@ proc ongoingCommandName {commandName} {
 }
 
 proc isReportHeld {} {
-   return [expr {[llength [getState reportholdid]] > 0}]
+   return [expr {[depthState reportholdid] > 0}]
 }
 
 # stack of message recording/eval unique identifiers
@@ -4525,7 +4525,7 @@ proc isModuleEvalFailed {context mod} {
 # return list of currently loading modules in stack
 proc getLoadingModuleList {} {
    set modlist [list]
-   for {set i 0} {$i < [llength [getState modulename]]} {incr i 1} {
+   for {set i 0} {$i < [depthState modulename]} {incr i 1} {
       if {[lindex [getState mode] $i] eq {load}} {
          lappend modlist [lindex [getState modulename] $i]
       }
@@ -4536,7 +4536,7 @@ proc getLoadingModuleList {} {
 # return list of currently loading modulefiles in stack
 proc getLoadingModuleFileList {} {
    set modlist [list]
-   for {set i 0} {$i < [llength [getState modulefile]]} {incr i 1} {
+   for {set i 0} {$i < [depthState modulefile]} {incr i 1} {
       if {[lindex [getState mode] $i] eq {load}} {
          lappend modlist [lindex [getState modulefile] $i]
       }
@@ -4547,7 +4547,7 @@ proc getLoadingModuleFileList {} {
 # return list of currently unloading modules in stack
 proc getUnloadingModuleList {} {
    set modlist [list]
-   for {set i 0} {$i < [llength [getState modulename]]} {incr i 1} {
+   for {set i 0} {$i < [depthState modulename]} {incr i 1} {
       if {[lindex [getState mode] $i] eq {unload}} {
          lappend modlist [lindex [getState modulename] $i]
       }
