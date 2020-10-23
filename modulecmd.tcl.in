@@ -928,7 +928,7 @@ proc reportSeparateNextContent {} {
 # regular procedure to use once error report is initialized
 proc __reportSeparateNextContent {} {
    # hold or apply
-   if {[isReportHeld]} {
+   if {[depthState reportholdid] > 0} {
       lappend ::g_holdReport([currentState reportholdid]) [list\
          reportSeparateNextContent]
    } else {
@@ -1047,7 +1047,7 @@ proc report {message {nonewline 0} {immed 0} {padnl 0}} {
 # regular procedure to use once error report is initialized
 proc __report {message {nonewline 0} {immed 0} {padnl 0}} {
    # hold or print output
-   if {!$immed && [isReportHeld]} {
+   if {!$immed && [depthState reportholdid] > 0} {
       lappend ::g_holdReport([currentState reportholdid]) [list report\
          $message $nonewline $immed $padnl]
    } else {
@@ -4392,10 +4392,6 @@ proc aboveCommandName {} {
 
 proc ongoingCommandName {commandName} {
    return [expr {[lsearch -exact [getState commandname] $commandName] != -1}]
-}
-
-proc isReportHeld {} {
-   return [expr {[depthState reportholdid] > 0}]
 }
 
 # stack of message recording/eval unique identifiers
