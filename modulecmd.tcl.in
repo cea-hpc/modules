@@ -60,6 +60,7 @@ array set g_state_defs [list\
    shell {<undef>}\
    shelltype {<undef>}\
    siteconfig_loaded {0}\
+   specifiedname {<undef>}\
    sub1_separator {&}\
    sub2_separator {|}\
    subcmd {<undef>}\
@@ -1469,7 +1470,7 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
 proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    lappendState modulefile $modfile
    lappendState modulename $modname
-   pushSpecifiedName $modspec
+   lappendState specifiedname $modspec
    set mode [currentState mode]
    pushDebugMsgPrefix [getEvalModuleStackDepth] $mode $modname
 
@@ -1621,7 +1622,7 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
 
    reportDebug "exiting $modfile"
    popDebugMsgPrefix
-   popSpecifiedName
+   lpopState specifiedname
    lpopState modulename
    lpopState modulefile
 
@@ -1634,7 +1635,7 @@ proc execute-modulerc {modfile modname modspec} {
    lappendState modulefile $modfile
    # push name to be found by module-alias and version
    lappendState modulename $modname
-   pushSpecifiedName $modspec
+   lappendState specifiedname $modspec
    set ::ModulesVersion {}
    pushDebugMsgPrefix [getEvalModuleStackDepth] $modname
 
@@ -1734,7 +1735,7 @@ proc execute-modulerc {modfile modname modspec} {
    }
 
    popDebugMsgPrefix
-   popSpecifiedName
+   lpopState specifiedname
    lpopState modulename
    lpopState modulefile
 
@@ -1928,7 +1929,7 @@ proc module-info {what {more {}}} {
          return [currentState modulename]
       }
       specified {
-         return [currentSpecifiedName]
+         return [currentState specifiedname]
       }
       shell {
          if {$more ne {}} {
@@ -4370,20 +4371,6 @@ proc source-sh-di {shell script args} {
 # get number of either modulefile/modulerc currently being evaluated
 proc getEvalModuleStackDepth {} {
    return [llength [getState modulename]]
-}
-
-set g_specifiedNameStack {}
-
-proc currentSpecifiedName {} {
-   return [lindex $::g_specifiedNameStack end]
-}
-
-proc pushSpecifiedName {specifiedName} {
-   lappend ::g_specifiedNameStack $specifiedName
-}
-
-proc popSpecifiedName {} {
-   set ::g_specifiedNameStack [lrange $::g_specifiedNameStack 0 end-1]
 }
 
 set g_commandNameStack {}
