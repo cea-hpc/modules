@@ -4821,6 +4821,33 @@ proc getModuleTagProp {mod tag prop} {
    return $ret
 }
 
+# Gather all tags applying to a given module
+proc collectModuleTags {mod} {
+   set modroot [lindex [file split $mod] 0]
+   # look if mod matches one of the module specs applying to mod root
+   if {[info exists ::g_moduleTagRoot($modroot)]} {
+      for {set i 0} {$i < [llength $::g_moduleTagRoot($modroot)]} {incr i} {
+         set tag [lindex $::g_moduleTagRoot($modroot) $i]
+         # skip already known tag
+         if {![info exists ::g_tagHash($mod)] || [notInList\
+            $::g_tagHash($mod) $tag]} {
+            foreach {tmodspec tprops} [lindex\
+               $::g_moduleTagRootSpec($modroot) $i] {
+               # add tag if one modspec matches mod
+               if {[modEq $tmodspec $mod eqstart]} {
+                  setModuleTag $mod $tag
+                  break
+               }
+            }
+         }
+      }
+   }
+}
+
+proc setModuleTag {mod args} {
+   eval lappend "{::g_tagHash($mod)}" $args
+}
+
 proc isModuleDotHidden {mod} {
    foreach elt [split $mod /] {
       if {[string index $elt 0] eq {.}} {
@@ -9048,6 +9075,17 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
       foreach elt [array names mod_list] {
          if {![info exists keep_list($elt)]} {
             unset mod_list($elt)
+         }
+      }
+   }
+
+   # Phase #5: consolidate tags set for retained modules
+
+   foreach elt [array names mod_list] {
+      switch -- [lindex $mod_list($elt) 0] {
+         alias - modulefile - virtual {
+            # gather all tags applying to elt
+            collectModuleTags $elt
          }
       }
    }
