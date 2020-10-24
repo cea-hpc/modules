@@ -9079,26 +9079,23 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
          set sym_list [lreplace $sym_list $defidx $defidx]
          set dispsgr [sgr de $dispsgr]
       }
+   }
+   append dispsgr $eltsuffix
 
-      # format remaining sym list
-      if {[llength $sym_list] > 0} {
-         append disp "([join $sym_list :])"
-         set symssgr [sgr se (]
-         foreach sym $sym_list {
-            if {![info exists colonsgr]} {
-               set colonsgr [sgr se :]
-            } else {
-               append symssgr $colonsgr
-            }
-            append symssgr [sgr $symsgr $sym]
+   # format remaining sym list
+   if {$show_syms && [llength $sym_list] > 0} {
+      append disp "([join $sym_list :])"
+      set symssgr [sgr se (]
+      foreach sym $sym_list {
+         if {![info exists colonsgr]} {
+            set colonsgr [sgr se :]
+         } else {
+            append symssgr $colonsgr
          }
-         append symssgr [sgr se )]
-         append dispsgr $eltsuffix$symssgr
-      } else {
-         append dispsgr $eltsuffix
+         append symssgr [sgr $symsgr $sym]
       }
-   } else {
-      append dispsgr $eltsuffix
+      append symssgr [sgr se )]
+      append dispsgr $symssgr
    }
    return [list $disp $dispsgr]
 }
