@@ -4848,6 +4848,13 @@ proc setModuleTag {mod args} {
    eval lappend "{::g_tagHash($mod)}" $args
 }
 
+proc getTagList {mod} {
+   set tag_list [expr {[info exists ::g_tagHash($mod)] ? [lsort -dictionary\
+      $::g_tagHash($mod)] : {}}]
+   reportDebug "'$mod' has tag list '$tag_list'"
+   return $tag_list
+}
+
 proc isModuleDotHidden {mod} {
    foreach elt [split $mod /] {
       if {[string index $elt 0] eq {.}} {
@@ -9103,7 +9110,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
 
 # format an element with its syms for display in a list
 proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
-   sgrdef {matchmap {}}} {
+   sgrdef tag_list tagsgr show_tags {matchmap {}}} {
    set disp $elt$eltsuffix
    # hightlight matching substring
    if {$matchmap ne {}} {
@@ -9135,6 +9142,23 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
       append symssgr [sgr se )]
       append dispsgr $symssgr
    }
+
+   # format tag list if any
+   if {$show_tags && [llength $tag_list] > 0} {
+      append disp " <[join $tag_list ,]>"
+      set tagssgr " [sgr se <]"
+      foreach tag $tag_list {
+         if {![info exists commasgr]} {
+            set commasgr [sgr se ,]
+         } else {
+            append tagssgr $commasgr
+         }
+         append tagssgr [sgr $tagsgr $tag]
+      }
+      append tagssgr [sgr se >]
+      append dispsgr $tagssgr
+   }
+
    return [list $disp $dispsgr]
 }
 
@@ -9235,6 +9259,7 @@ proc listModules {dir mod show_mtime filter search} {
    set clean_list {}
    foreach elt [array names mod_list] {
       set sym_list [getVersAliasList $elt]
+      set tag_list [getTagList $elt]
       set dispsgr {}
       # ignore "version" entries as symbolic version are treated
       # along to their relative modulefile not independently
@@ -9249,13 +9274,15 @@ proc listModules {dir mod show_mtime filter search} {
                   $default_colored $matchmap] disp dispsgr
             } else {
                lassign [formatListEltToDisplay $elt di / $sym_list sy\
-                  $flag_default_dir $default_colored $matchmap] disp dispsgr
+                  $flag_default_dir $default_colored {} {} 0 $matchmap] disp\
+                  dispsgr
             }
          }
          modulefile - virtual {
             if {$json} {
                set dispsgr [formatListEltToJsonDisplay $elt type s modulefile\
-                  symbols a $sym_list pathname s [lindex $mod_list($elt) 2]]
+                  symbols a $sym_list tags a $tag_list pathname s [lindex\
+                  $mod_list($elt) 2]]
             } elseif {$show_mtime} {
                # add to display file modification time in addition
                # to potential syms
@@ -9264,13 +9291,15 @@ proc listModules {dir mod show_mtime filter search} {
                   %H:%M:%S}] $default_colored $matchmap] disp dispsgr
             } else {
                lassign [formatListEltToDisplay $elt {} {} $sym_list sy\
-                  $flag_default_mf $default_colored $matchmap] disp dispsgr
+                  $flag_default_mf $default_colored $tag_list {} 1 $matchmap]\
+                  disp dispsgr
             }
          }
          alias {
             if {$json} {
                set dispsgr [formatListEltToJsonDisplay $elt type s alias\
-                  symbols a $sym_list target s [lindex $mod_list($elt) 1]]
+                  symbols a $sym_list tags a $tag_list target s [lindex\
+                  $mod_list($elt) 1]]
             } elseif {$show_mtime} {
                lassign [formatListEltToLongDisplay $elt al " -> [lindex\
                   $mod_list($elt) 1]" $sym_list sy {} $default_colored\
@@ -9281,7 +9310,8 @@ proc listModules {dir mod show_mtime filter search} {
                   lappend sym_list @
                }
                lassign [formatListEltToDisplay $elt al {} $sym_list sy\
-                  $flag_default_mf $default_colored $matchmap] disp dispsgr
+                  $flag_default_mf $default_colored $tag_list {} 1 $matchmap]\
+                  disp dispsgr
             }
          }
       }
