@@ -1981,15 +1981,15 @@ proc module-info {what {more {}}} {
       }
       symbols {
          lassign [getModuleNameVersion $more 1] mod modname modversion
-         set tag_list [getVersAliasList $mod]
+         set sym_list [getVersAliasList $mod]
          # if querying special symbol "default" but nothing found registered
          # on it, look at symbol registered on bare module name in case there
          # are symbols registered on it but no default symbol set yet to link
          # to them
-         if {[llength $tag_list] == 0 && $modversion eq {default}} {
-            set tag_list [getVersAliasList $modname]
+         if {[llength $sym_list] == 0 && $modversion eq {default}} {
+            set sym_list [getVersAliasList $modname]
          }
-         return [join $tag_list :]
+         return [join $sym_list :]
       }
       version {
          lassign [getModuleNameVersion $more 1] mod
@@ -7812,18 +7812,18 @@ proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}\
 # If given module maps to default or other symbolic versions, a list of
 # those versions is returned. This takes module/version as an argument.
 proc getVersAliasList {mod} {
-   set tag_list {}
+   set sym_list {}
    if {[info exists ::g_symbolHash($mod)]} {
-      set tag_list $::g_symbolHash($mod)
+      set sym_list $::g_symbolHash($mod)
       # withdraw hidden symbol from list
       if {[info exists ::g_hiddenSymHash($mod)]} {
-         lassign [getDiffBetweenList $tag_list $::g_hiddenSymHash($mod)]\
-            tag_list
+         lassign [getDiffBetweenList $sym_list $::g_hiddenSymHash($mod)]\
+            sym_list
       }
    }
 
-   reportDebug "'$mod' has tag list '$tag_list'"
-   return $tag_list
+   reportDebug "'$mod' has symbolic version list '$sym_list'"
+   return $sym_list
 }
 
 proc doesModuleHaveSym {mod} {
@@ -9021,7 +9021,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
                   $mod_list($keepelt) 0] ne {directory}} {
                   set keep_list($keepelt) 1
                }
-            # when noplaindir filtering, only keep dirs with tags when indepth
+            # when noplaindir filtering, only keep dirs with syms when indepth
             # enabled or if correponds to query depth when indepth disabled
             } elseif {$filtering && $filter eq {noplaindir} &&\
                (($indepth && ![doesModuleHaveSym $elt]) || (!$indepth &&\
@@ -9063,8 +9063,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    return $got_list
 }
 
-# format an element with its tags for display in a list
-proc formatListEltToDisplay {elt eltsgr eltsuffix tag_list tagsgr show_tags\
+# format an element with its syms for display in a list
+proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
    sgrdef {matchmap {}}} {
    set disp $elt$eltsuffix
    # hightlight matching substring
@@ -9073,27 +9073,27 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix tag_list tagsgr show_tags\
    } else {
       set dispsgr [sgr $eltsgr $elt]
    }
-   if {$show_tags} {
-      # display default tag graphically over element name
-      if {[set defidx [lsearch -exact $tag_list default]] != -1 && $sgrdef} {
-         set tag_list [lreplace $tag_list $defidx $defidx]
+   if {$show_syms} {
+      # display default sym graphically over element name
+      if {[set defidx [lsearch -exact $sym_list default]] != -1 && $sgrdef} {
+         set sym_list [lreplace $sym_list $defidx $defidx]
          set dispsgr [sgr de $dispsgr]
       }
 
-      # format remaining tag list
-      if {[llength $tag_list] > 0} {
-         append disp "([join $tag_list :])"
-         set tagssgr [sgr se (]
-         foreach tag $tag_list {
+      # format remaining sym list
+      if {[llength $sym_list] > 0} {
+         append disp "([join $sym_list :])"
+         set symssgr [sgr se (]
+         foreach sym $sym_list {
             if {![info exists colonsgr]} {
                set colonsgr [sgr se :]
             } else {
-               append tagssgr $colonsgr
+               append symssgr $colonsgr
             }
-            append tagssgr [sgr $tagsgr $tag]
+            append symssgr [sgr $symsgr $sym]
          }
-         append tagssgr [sgr se )]
-         append dispsgr $eltsuffix$tagssgr
+         append symssgr [sgr se )]
+         append dispsgr $eltsuffix$symssgr
       } else {
          append dispsgr $eltsuffix
       }
@@ -9103,8 +9103,8 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix tag_list tagsgr show_tags\
    return [list $disp $dispsgr]
 }
 
-# format an element with its tags for a long/detailled display in a list
-proc formatListEltToLongDisplay {elt eltsgr eltsuffix tag_list tagsgr mtime\
+# format an element with its syms for a long/detailled display in a list
+proc formatListEltToLongDisplay {elt eltsgr eltsuffix sym_list symsgr mtime\
    sgrdef {matchmap {}}} {
    set disp $elt$eltsuffix
    set displen [string length $disp]
@@ -9114,30 +9114,30 @@ proc formatListEltToLongDisplay {elt eltsgr eltsuffix tag_list tagsgr mtime\
    } else {
       set dispsgr [sgr $eltsgr $elt]
    }
-   # display default tag graphically over element name
-   if {[set defidx [lsearch -exact $tag_list default]] != -1 && $sgrdef} {
-      set tag_list [lreplace $tag_list $defidx $defidx]
+   # display default sym graphically over element name
+   if {[set defidx [lsearch -exact $sym_list default]] != -1 && $sgrdef} {
+      set sym_list [lreplace $sym_list $defidx $defidx]
       set dispsgr [sgr de $dispsgr]
    }
-   # format remaining tag list
-   if {[llength $tag_list] > 0} {
-      set tagslen [string length [join $tag_list :]]
-      foreach tag $tag_list {
+   # format remaining sym list
+   if {[llength $sym_list] > 0} {
+      set symslen [string length [join $sym_list :]]
+      foreach sym $sym_list {
          if {![info exists colonsgr]} {
             set colonsgr [sgr se :]
          } else {
-            append tagssgr $colonsgr
+            append symssgr $colonsgr
          }
-         append tagssgr [sgr $tagsgr $tag]
+         append symssgr [sgr $symsgr $sym]
       }
    } else {
-      set tagssgr {}
-      set tagslen 0
+      set symssgr {}
+      set symslen 0
    }
    set nbws1 [expr {40 - $displen}]
-   set nbws2 [expr {20 - $tagslen + [expr {$nbws1 < 0 ? $nbws1 : 0}]}]
+   set nbws2 [expr {20 - $symslen + [expr {$nbws1 < 0 ? $nbws1 : 0}]}]
    return [list $disp $dispsgr$eltsuffix[string repeat { }\
-      $nbws1]$tagssgr[string repeat { } $nbws2]$mtime]
+      $nbws1]$symssgr[string repeat { } $nbws2]$mtime]
 }
 
 proc formatArrayValToJson {vallist} {
@@ -9145,7 +9145,7 @@ proc formatArrayValToJson {vallist} {
       : {[]}}]
 }
 
-# format an element with its tags for a json display in a list
+# format an element with its syms for a json display in a list
 proc formatListEltToJsonDisplay {elt args} {
    set disp "\"$elt\": \{ \"name\": \"$elt\""
    foreach {key vtype val} $args {
@@ -9199,7 +9199,7 @@ proc listModules {dir mod show_mtime filter search} {
    set matchmap [prepareMapToHightlightSubstr $mod]
    set clean_list {}
    foreach elt [array names mod_list] {
-      set tag_list [getVersAliasList $elt]
+      set sym_list [getVersAliasList $elt]
       set dispsgr {}
       # ignore "version" entries as symbolic version are treated
       # along to their relative modulefile not independently
@@ -9207,45 +9207,45 @@ proc listModules {dir mod show_mtime filter search} {
          directory {
             if {$json} {
                set dispsgr [formatListEltToJsonDisplay $elt type s directory\
-                  symbols a $tag_list]
+                  symbols a $sym_list]
             } elseif {$show_mtime} {
                # append / char after name to clearly indicate this is a dir
-               lassign [formatListEltToLongDisplay $elt di / $tag_list sy {}\
+               lassign [formatListEltToLongDisplay $elt di / $sym_list sy {}\
                   $default_colored $matchmap] disp dispsgr
             } else {
-               lassign [formatListEltToDisplay $elt di / $tag_list sy\
+               lassign [formatListEltToDisplay $elt di / $sym_list sy\
                   $flag_default_dir $default_colored $matchmap] disp dispsgr
             }
          }
          modulefile - virtual {
             if {$json} {
                set dispsgr [formatListEltToJsonDisplay $elt type s modulefile\
-                  symbols a $tag_list pathname s [lindex $mod_list($elt) 2]]
+                  symbols a $sym_list pathname s [lindex $mod_list($elt) 2]]
             } elseif {$show_mtime} {
                # add to display file modification time in addition
-               # to potential tags
-               lassign [formatListEltToLongDisplay $elt {} {} $tag_list sy\
+               # to potential syms
+               lassign [formatListEltToLongDisplay $elt {} {} $sym_list sy\
                   [clock format [lindex $mod_list($elt) 1] -format {%Y/%m/%d\
                   %H:%M:%S}] $default_colored $matchmap] disp dispsgr
             } else {
-               lassign [formatListEltToDisplay $elt {} {} $tag_list sy\
+               lassign [formatListEltToDisplay $elt {} {} $sym_list sy\
                   $flag_default_mf $default_colored $matchmap] disp dispsgr
             }
          }
          alias {
             if {$json} {
                set dispsgr [formatListEltToJsonDisplay $elt type s alias\
-                  symbols a $tag_list target s [lindex $mod_list($elt) 1]]
+                  symbols a $sym_list target s [lindex $mod_list($elt) 1]]
             } elseif {$show_mtime} {
                lassign [formatListEltToLongDisplay $elt al " -> [lindex\
-                  $mod_list($elt) 1]" $tag_list sy {} $default_colored\
+                  $mod_list($elt) 1]" $sym_list sy {} $default_colored\
                   $matchmap] disp dispsgr
             } else {
-               # add a '@' tag to indicate elt is an alias if not colored
+               # add a '@' sym to indicate elt is an alias if not colored
                if {!$alias_colored} {
-                  lappend tag_list @
+                  lappend sym_list @
                }
-               lassign [formatListEltToDisplay $elt al {} $tag_list sy\
+               lassign [formatListEltToDisplay $elt al {} $sym_list sy\
                   $flag_default_mf $default_colored $matchmap] disp dispsgr
             }
          }
@@ -10261,27 +10261,27 @@ proc cmdModuleList {show_oneperline show_mtime} {
 
             # fetch symbols from loaded environment information
             set modname [file dirname $mod]
-            set tag_list {}
+            set sym_list {}
             foreach altname [getLoadedAltname $mod 0 sym] {
                # skip non-symbol entry
                if {$altname ne $modname} {
-                  lappend tag_list [file tail $altname]
+                  lappend sym_list [file tail $altname]
                }
             }
-            set tag_list [lsort -dictionary $tag_list]
+            set sym_list [lsort -dictionary $sym_list]
 
             if {$json} {
                set dispsgr [formatListEltToJsonDisplay $mod type s modulefile\
-                  symbols a $tag_list pathname s $modfile]
+                  symbols a $sym_list pathname s $modfile]
             } elseif {$show_mtime} {
                set clock_mtime [expr {[file exists $modfile] ? [clock format\
                   [getFileMtime $modfile] -format {%Y/%m/%d %H:%M:%S}] : {}}]
 
-               # add to display file modification time in addition to tags
-               lassign [formatListEltToLongDisplay $mod {} {} $tag_list sy\
+               # add to display file modification time in addition to syms
+               lassign [formatListEltToLongDisplay $mod {} {} $sym_list sy\
                   $clock_mtime $default_colored] disp dispsgr
             } else {
-               lassign [formatListEltToDisplay $mod {} {} $tag_list sy 1\
+               lassign [formatListEltToDisplay $mod {} {} $sym_list sy 1\
                   $default_colored] disp dispsgr
                lappend len_list [set len [string length $disp]]
                if {$len > $max_len} {
@@ -11603,7 +11603,7 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
       set hstyle sepline
    }
 
-   # set a default filter (do not print dirs with no tag) if none set
+   # set a default filter (do not print dirs with no sym) if none set
    if {$show_filter eq {}} {
       set show_filter noplaindir
    }
