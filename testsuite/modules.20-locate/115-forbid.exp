@@ -738,6 +738,7 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES hide1/5.0]
 lappend ans [list setpath _LMFILES_ $mp/hide1/5.0]
 lappend ans [list setpath MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
+lappend ans [list setpath MODULES_LMTAG hide1/5.0&nearly-forbidden]
 set ans2 [list]
 lappend ans2 [list unsetpath LOADEDMODULES]
 lappend ans2 [list unsetpath _LMFILES_]
@@ -754,6 +755,10 @@ setenv_loaded_module [list hide1/5.0] [list $mp/hide1/5.0]
 testouterr_cmd sh {unload hide1/5.0} $ans2 {}
 unsetenv_loaded_module
 setenv_var MODULES_NEARLY_FORBIDDEN_DAYS 0
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide1/5.0]
+lappend ans [list setpath _LMFILES_ $mp/hide1/5.0]
+lappend ans [list setpath MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
 testouterr_cmd sh {load hide1/5.0} $ans {}
 testouterr_cmd_re sh {display hide1/5.0} OK "$modlin\n$mpre/hide1/5.0:\n\nmodule-whatis\thide1/5.0\n$modlin"
 testouterr_cmd_re sh {whatis hide1/5.0} OK "$modlin $mpre $modlin\n\\s+hide1/5.0: hide1/5.0"
@@ -766,6 +771,11 @@ unsetenv_var TESTSUITE_FORBID1_NEARLY_SET1
 setenv_var MODULES_NEARLY_FORBIDDEN_DAYS 5
 set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%dT%H:%M]
 setenv_var TESTSUITE_FORBID1_NEARLY_SET2 $tomorrow
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hide1/5.0]
+lappend ans [list setpath _LMFILES_ $mp/hide1/5.0]
+lappend ans [list setpath MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
+lappend ans [list setpath MODULES_LMTAG hide1/5.0&nearly-forbidden]
 testouterr_cmd sh {load hide1/5.0} $ans [msg_load hide1/5.0 [err_accessnearlydenied $tomorrow]]
 unsetenv_var TESTSUITE_FORBID1_NEARLY_SET2
 

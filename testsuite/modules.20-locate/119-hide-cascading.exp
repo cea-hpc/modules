@@ -250,7 +250,12 @@ testouterr_cmd sh {avail -t hide1@5.0} OK $mp:\nhide1/5.0
 unsetenv_var TESTSUITE_HIDE1_CASC6_SET2
 
 setenv_var TESTSUITE_HIDE1_CASC6_SET3 1
-testouterr_cmd sh {load hide1@5.0} $ans [msg_load hide1/5.0 [err_accessnearlydenied [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]]]
+set ans2 [list]
+lappend ans2 [list setpath LOADEDMODULES hide1/5.0]
+lappend ans2 [list setpath _LMFILES_ $mp/hide1/5.0]
+lappend ans2 [list setpath MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
+lappend ans2 [list setpath MODULES_LMTAG hide1/5.0&nearly-forbidden]
+testouterr_cmd sh {load hide1@5.0} $ans2 [msg_load hide1/5.0 [err_accessnearlydenied [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]]]
 testouterr_cmd sh {avail -t hide1@5.0} OK "$mp:\nhide1/5.0 <nearly-forbidden>"
 unsetenv_var TESTSUITE_HIDE1_CASC6_SET3
 
