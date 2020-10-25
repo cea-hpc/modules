@@ -9096,15 +9096,17 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
 
    # Phase #5: consolidate tags set for retained modules
 
-   # load tags from loaded modules in the global structure prior collecting
-   # tags found during this getModules evaluation
-   cacheCurrentModules 0
+   if {[currentState commandname] eq {avail}} {
+      # load tags from loaded modules in the global structure prior collecting
+      # tags found during this getModules evaluation
+      cacheCurrentModules 0
 
-   foreach elt [array names mod_list] {
-      switch -- [lindex $mod_list($elt) 0] {
-         alias - modulefile - virtual {
-            # gather all tags applying to elt
-            collectModuleTags $elt
+      foreach elt [array names mod_list] {
+         switch -- [lindex $mod_list($elt) 0] {
+            alias - modulefile - virtual {
+               # gather all tags applying to elt
+               collectModuleTags $elt
+            }
          }
       }
    }
