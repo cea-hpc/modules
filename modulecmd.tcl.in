@@ -4663,6 +4663,21 @@ proc getLoadedModuleAltnameList {} {
    return $modaltlist
 }
 
+# return list of loaded module declared tags by parsing MODULES_LMTAG
+proc getLoadedModuleTagList {} {
+   set modtaglist [list]
+   set sub1sep [getState sub1_separator]
+   foreach modtagser [split [get-env MODULES_LMTAG] [getState\
+      path_separator]] {
+      set taglist [split $modtagser $sub1sep]
+      # ignore empty element (1 is meaningless as first elt is loaded mod)
+      if {[llength $taglist] > 1} {
+         lappend modtaglist $taglist
+      }
+   }
+   return $modtaglist
+}
+
 # sort passed module list following both loaded and dependency orders
 proc sortModulePerLoadedAndDepOrder {modlist {nporeq 0} {loading 0}} {
    # sort per loaded order
@@ -4848,11 +4863,27 @@ proc setModuleTag {mod args} {
    eval lappend "{::g_tagHash($mod)}" $args
 }
 
-proc getTagList {mod} {
-   set tag_list [expr {[info exists ::g_tagHash($mod)] ? [lsort -dictionary\
-      $::g_tagHash($mod)] : {}}]
-   reportDebug "'$mod' has tag list '$tag_list'"
-   return $tag_list
+proc getTagList {mod {serialized 0}} {
+   if {[info exists ::g_tagHash($mod)]} {
+      if {$serialized} {
+         # get tag info as a string that can be registered in an env var
+         # remove loaded and auto-loaded tags from the list to register in env
+         lassign [getDiffBetweenList $::g_tagHash($mod) [list loaded\
+            auto-loaded]] tag_list
+         if {[llength $tag_list] > 0} {
+            set ret [join [concat [list $mod] $tag_list] [getState\
+               sub1_separator]]
+         } else {
+            set ret {}
+         }
+      } else {
+         set ret [lsort -dictionary $::g_tagHash($mod)]
+         reportDebug "'$mod' has tag list '$ret'"
+      }
+   } else {
+      set ret {}
+   }
+   return $ret
 }
 
 proc isModuleDotHidden {mod} {
@@ -7288,6 +7319,11 @@ proc cacheCurrentModules {{exitonerr 1}} {
       set nuaskedlist [getLoadedModuleNotUserAskedList]
 
       if {[llength $modlist] == [llength $modfilelist]} {
+         # cache declared tags of loaded modules
+         foreach modtag [getLoadedModuleTagList] {
+            eval setModuleTag $modtag
+         }
+
          # cache declared alternative names of loaded modules
          foreach modalt [getLoadedModuleAltnameList] {
             eval setLoadedAltname $modalt
@@ -11180,6 +11216,9 @@ proc cmdModuleLoad {context uasked args} {
             }
          }
 
+         # gather all tags of loading module
+         collectModuleTags $modname
+
          if {[execute-modulefile $modfile $modname $mod]} {
             break
          }
@@ -11274,6 +11313,11 @@ proc cmdModuleLoad {context uasked args} {
          # declare the alternative names of this module
          if {[set modalt [getLoadedAltname $modname 1]] ne {}} {
             add-path append MODULES_LMALTNAME $modalt
+         }
+
+         # declare the tags of this module
+         if {[set modtag [getTagList $modname 1]] ne {}} {
+            add-path append MODULES_LMTAG $modtag
          }
 
          # Load phase of dependent module reloading. These modules can adapt
@@ -11527,6 +11571,11 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             unload-path MODULES_LMALTNAME [getLoadedAltname $modname 1]
          }
          unsetLoadedAltname $modname
+
+         # unset tags declared for this module
+         if {[set modtag [getTagList $modname 1]] ne {}} {
+            unload-path MODULES_LMTAG $modtag
+         }
 
          if {[getConf auto_handling] && $auto} {
             # UReqUn modules unload now DepUn+main mods are unloaded
@@ -12074,7 +12123,8 @@ proc cmdModuleClear {{doit {}}} {
    # should be confirmed or forced to proceed
    if {[string equal -nocase -length 1 $doit y] || [getState force]} {
       set vartoclear [list LOADEDMODULES MODULES_LMALTNAME MODULES_LMCONFLICT\
-         MODULES_LMNOTUASKED MODULES_LMPREREQ MODULES_LMSOURCESH _LMFILES_]
+         MODULES_LMNOTUASKED MODULES_LMPREREQ MODULES_LMSOURCESH\
+         MODULES_LMTAG _LMFILES_]
 
       # add any reference counter variable to the list to unset
       set vartoclear [concat $vartoclear [array names ::env -glob *_modshare]\
