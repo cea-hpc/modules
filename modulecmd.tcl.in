@@ -8759,12 +8759,11 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    }
 
    # add all versions found when parsing .version or .modulerc files in this
-   # directory (skip versions not registered from this directory except if
-   # global or user rc definitions should be included))
+   # directory or in global or user rc definitions
    foreach vers [array names g_moduleVersion] {
       set versmod $g_moduleVersion($vers)
       if {($dir ne {} && [string first $dir/ $g_sourceVersion($vers)] == 0)\
-         || ($add_rc_defs && [info exists g_rcVersion($vers)])} {
+         || [info exists g_rcVersion($vers)]} {
          set found_list($vers) [list version $versmod]
 
          # build module symbol list
