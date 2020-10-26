@@ -1,0 +1,104 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2020/10/26
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:    tag
+#   Sub-Command:    load, unload
+#
+#   Comment:	%C{
+#           Test tag mechanism
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+# ensure we get nearly-forbidden notices
+setenv_var MODULES_NEARLY_FORBIDDEN_DAYS 2
+
+
+# skip tests on tcl versions where --after option of module-forbid is not supported
+if {[cmpversion $tclsh_version 8.5] > -1} {
+
+#
+# load tests
+#
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tag/4.0]
+lappend ans [list setpath _LMFILES_ $mp/tag/4.0]
+lappend ans [list setpath MODULES_LMTAG tag/4.0&nearly-forbidden]
+set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
+set tserr [msg_load tag/4.0 [err_accessnearlydenied $tomorrow]]
+testouterr_cmd sh {load tag/4.0} $ans $tserr
+
+# with empty element in variable
+setenv_path_var MODULES_LMTAG {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tag/4.0]
+lappend ans [list setpath _LMFILES_ $mp/tag/4.0]
+lappend ans [list setpath MODULES_LMTAG :tag/4.0&nearly-forbidden]
+testouterr_cmd_re sh {load tag/4.0} $ans $tserr
+
+setenv_loaded_module [list tag/2.0] [list $mp/tag/1.0]
+setenv_path_var MODULES_LMTAG tag/2.0&forbidden
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tag/2.0:tag/4.0]
+lappend ans [list setpath _LMFILES_ $mp/tag/1.0:$mp/tag/4.0]
+lappend ans [list setpath MODULES_LMTAG tag/2.0&forbidden:tag/4.0&nearly-forbidden]
+testouterr_cmd_re sh {load tag/4.0} $ans $tserr
+
+
+#
+# unload tests
+#
+
+setenv_loaded_module [list tag/4.0] [list $mp/tag/4.0]
+setenv_path_var MODULES_LMTAG tag/4.0&nearly-forbidden
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMTAG]
+testouterr_cmd sh {unload tag/4.0} $ans {}
+
+setenv_path_var MODULES_LMTAG tag/4.0&nearly-forbidden&othertag
+testouterr_cmd sh {unload tag/4.0} $ans {}
+
+setenv_loaded_module [list tag/4.0 tag/2.0] [list $mp/tag/4.0 $mp/tag/1.0]
+setenv_path_var MODULES_LMTAG tag/4.0&nearly-forbidden&othertag:tag/2.0&forbidden
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tag/2.0]
+lappend ans [list setpath _LMFILES_ $mp/tag/1.0]
+lappend ans [list setpath MODULES_LMTAG tag/2.0&forbidden]
+testouterr_cmd sh {unload tag/4.0} $ans {}
+
+# with empty element in variable
+setenv_loaded_module [list tag/4.0] [list $mp/tag/4.0]
+setenv_path_var MODULES_LMTAG :tag/4.0&nearly-forbidden
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list setpath MODULES_LMTAG {}]
+testouterr_cmd sh {unload tag/4.0} $ans {}
+
+}
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
