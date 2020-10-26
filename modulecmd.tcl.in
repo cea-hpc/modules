@@ -10364,6 +10364,9 @@ proc cmdModuleList {show_oneperline show_mtime} {
          report {No Modulefiles Currently Loaded.}
       }
    } else {
+      # load tags from loaded modules
+      cacheCurrentModules
+
       set display_list {}
       set default_colored [expr {[sgr de {}] ne {}}]
       set len_list {}
@@ -10384,10 +10387,12 @@ proc cmdModuleList {show_oneperline show_mtime} {
                }
             }
             set sym_list [lsort -dictionary $sym_list]
+            # fetch tags but clear obvious 'loaded' tag
+            set tag_list [replaceFromList [getTagList $mod] loaded]
 
             if {$json} {
                set dispsgr [formatListEltToJsonDisplay $mod type s modulefile\
-                  symbols a $sym_list pathname s $modfile]
+                  symbols a $sym_list tags a $tag_list pathname s $modfile]
             } elseif {$show_mtime} {
                set clock_mtime [expr {[file exists $modfile] ? [clock format\
                   [getFileMtime $modfile] -format {%Y/%m/%d %H:%M:%S}] : {}}]
@@ -10397,7 +10402,7 @@ proc cmdModuleList {show_oneperline show_mtime} {
                   $clock_mtime $default_colored] disp dispsgr
             } else {
                lassign [formatListEltToDisplay $mod {} {} $sym_list sy 1\
-                  $default_colored] disp dispsgr
+                  $default_colored $tag_list {} 1] disp dispsgr
                lappend len_list [set len [string length $disp]]
                if {$len > $max_len} {
                   set max_len $len
