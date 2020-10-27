@@ -26,9 +26,15 @@ set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
 # setup specific environment
 setenv_path_var MODULEPATH $mp
 
+# ensure avail tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
 # ensure we get nearly-forbidden notices
 setenv_var MODULES_NEARLY_FORBIDDEN_DAYS 2
 
+#
+# primary tests with 'nearly-forbidden' tag
+#
 
 # skip tests on tcl versions where --after option of module-forbid is not supported
 if {[cmpversion $tclsh_version 8.5] > -1} {
@@ -120,7 +126,88 @@ set tserr "{\"tag/4.0\": { \"name\": \"tag/4.0\", \"type\": \"modulefile\", \"sy
 \"tag/2.0\": { \"name\": \"tag/2.0\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[ \"forbidden\" \], \"pathname\": \"$mp/tag/1.0\"}}"
 testouterr_cmd sh {list -j} OK $tserr
 
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMTAG
+unset tomorrow
+
 }
+
+#
+# 'forbidden' tag test is covered by 20/115
+# by definition this tag should not be seen on 'list' output as module cannot be loaded
+#
+
+#
+# test loaded/auto-loaded tags
+#
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/2.0:impreq/load:impreq/prereq]
+lappend ans [list setpath _LMFILES_ $mp/foo/2.0:$mp/impreq/load:$mp/impreq/prereq]
+lappend ans [list setpath MODULES_LMPREREQ impreq/load&foo:impreq/prereq&impreq/load]
+lappend ans [list setpath MODULES_LMNOTUASKED foo/2.0:impreq/load]
+if {$install_advversspec eq {y}} {
+    lappend ans [list setpath MODULES_LMALTNAME foo/2.0&as|foo/default&as|foo/latest]
+}
+testouterr_cmd_re sh {load --auto impreq/prereq} $ans [msg_top_load impreq/prereq {} [list foo/2.0 impreq/load] {}]
+
+setenv_loaded_module [list foo/2.0 impreq/load impreq/prereq] [list $mp/foo/2.0 $mp/impreq/load $mp/impreq/prereq] [list foo/2.0 impreq/load]
+setenv_path_var MODULES_LMPREREQ impreq/load&foo:impreq/prereq&impreq/load
+setenv_path_var MODULES_LMNOTUASKED foo/2.0:impreq/load
+
+testouterr_cmd sh {list} OK "$cur_loaded
+ 1) foo/2.0 <auto-loaded>   2) impreq/load <auto-loaded>   3) impreq/prereq  "
+
+set tserr "{\"foo/2.0\": { \"name\": \"foo/2.0\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[ \"auto-loaded\" \], \"pathname\": \"$mp/foo/2.0\"},
+\"impreq/load\": { \"name\": \"impreq/load\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[ \"auto-loaded\" \], \"pathname\": \"$mp/impreq/load\"},
+\"impreq/prereq\": { \"name\": \"impreq/prereq\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/impreq/prereq\"}}"
+testouterr_cmd sh {list -j} OK $tserr
+
+set tserr "$modlin $mpre $modlin
+foo/2.0 <auto-loaded>  "
+testouterr_cmd_re sh {avail foo/2.0} OK $tserr
+
+set tserr "$modlin $mpre $modlin
+impreq/load <auto-loaded>  .*"
+testouterr_cmd_re sh {avail impreq/load} OK $tserr
+
+set tserr "$modlin $mpre $modlin
+impreq/prereq <loaded>  "
+testouterr_cmd_re sh {avail impreq/prereq} OK $tserr
+
+# set an additional tag
+setenv_path_var MODULES_LMTAG foo/2.0&othertag
+
+set test_cols 120
+if {![info exists term_cols]} {
+    # skip tests if current terminal witdh is unknown
+    send_user "\tskipping terminal width-specific tests\n"
+# set a specific terminal width
+} elseif {[catch {exec stty cols $test_cols}] || [getTtyCols] ne $test_cols} {
+    send_user "\tskipping terminal width-specific tests, cannot set width\n"
+} else {
+
+testouterr_cmd sh {list} OK "$cur_loaded
+ 1) foo/2.0 <auto-loaded,othertag>   2) impreq/load <auto-loaded>   3) impreq/prereq  "
+
+# restore terminal width
+exec stty cols $term_cols
+
+}
+
+set tserr "{\"foo/2.0\": { \"name\": \"foo/2.0\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[ \"auto-loaded\", \"othertag\" \], \"pathname\": \"$mp/foo/2.0\"},
+\"impreq/load\": { \"name\": \"impreq/load\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[ \"auto-loaded\" \], \"pathname\": \"$mp/impreq/load\"},
+\"impreq/prereq\": { \"name\": \"impreq/prereq\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/impreq/prereq\"}}"
+testouterr_cmd sh {list -j} OK $tserr
+
+set tserr "$modlin $mpre $modlin
+foo/2.0 <auto-loaded,othertag>  "
+testouterr_cmd_re sh {avail foo/2.0} OK $tserr
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMNOTUASKED
+unsetenv_path_var MODULES_LMTAG
 
 
 #
