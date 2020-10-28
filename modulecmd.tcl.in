@@ -4867,9 +4867,9 @@ proc getTagList {mod {serialized 0}} {
    if {[info exists ::g_tagHash($mod)]} {
       if {$serialized} {
          # get tag info as a string that can be registered in an env var
-         # remove loaded and auto-loaded tags from the list to register in env
+         # remove loaded/auto-loaded/hidden tags from the list to register
          lassign [getDiffBetweenList $::g_tagHash($mod) [list loaded\
-            auto-loaded]] tag_list
+            auto-loaded hidden]] tag_list
          if {[llength $tag_list] > 0} {
             set ret [join [concat [list $mod] $tag_list] [getState\
                sub1_separator]]
@@ -4935,17 +4935,17 @@ proc setModspecHidingLevel {modspec lvl} {
 # current search query and hiding threshold. when retdetails option is
 # enabled, mod hiding level and query match hind are also returned
 proc isModuleHidden {mod {modspec {}} {retdetails 0}} {
-   if {[set hidlvl [getModuleHidingLevel $mod]] >= [getState\
-      hiding_threshold]} {
+   set defhidlvl [set hidlvl [getModuleHidingLevel $mod]]
+   if {$hidlvl >= [getState hiding_threshold]} {
       # soft hidden mods are considered matched if their root name matches
-      # search query, other kind of hidden most must fuly matches query
+      # search query, other kind of hidden mods must fully matches query
       set hidmatch [expr {$hidlvl == 0 ? [expr {[modStartNb $mod $modspec]\
          > 0}] : [modEq $modspec $mod eqspec]}]
    } else {
       set hidlvl -1
       set hidmatch 0
    }
-   if {$hidlvl < 1 && [isModuleDotHidden $mod] && [getState\
+   if {$hidlvl < 1 && [set isdot [isModuleDotHidden $mod]] && [getState\
       hiding_threshold] < 1} {
       set hidlvl 1
       # dot hidden are considered matched if remaining string part after
@@ -4957,7 +4957,11 @@ proc isModuleHidden {mod {modspec {}} {retdetails 0}} {
    # matched or if matched hard hiding level are kept hidden
    set ishid [expr {$hidlvl != -1 && (!$hidmatch || $hidlvl > 1)}]
 
-   set ret [expr {$retdetails ? [list $hidlvl $hidmatch $ishid] : $ishid}]
+   # is module hidden by definition (whatever hiding threshold or match)
+   set hidbydef [expr {$defhidlvl > 0 || ([info exists isdot] && $isdot)}]
+
+   set ret [expr {$retdetails ? [list $hidlvl $hidmatch $hidbydef $ishid]\
+      : $ishid}]
 
    return $ret
 }
@@ -8836,7 +8840,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
          unset found_list($elt)
          continue
       }
-      if {[lassign [isModuleHidden $elt $mod 1] hidlvl hidmatch]} {
+      if {[lassign [isModuleHidden $elt $mod 1] hidlvl hidmatch hidbydef]} {
          # is there a symbol that matches query (bare module name query
          # matches default symbol on resolve context or if onlydefaults filter
          # is applied)
@@ -8874,6 +8878,10 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
                unset found_list($elt)
             }
          }
+      }
+      # apply hidden tag if an hidden definition apply to module
+      if {$hidbydef} {
+         setModuleTag $elt hidden
       }
    }
 
