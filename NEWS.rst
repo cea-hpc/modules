@@ -51,6 +51,12 @@ Modules 4.7.0 (not yet released)
   prereq or conflict requirement onto specified modules.
 * Add the ``lpopState`` and ``currentState`` procedures to respectively remove
   or return the last entry from the list of values of a given state.
+* Add the ``topState`` and ``depthState`` procedures to respectively return
+  the first element from or the number of elements in the list of values of a
+  given state.
+* Remove the pre-definition of runtime states with no specific property. These
+  basic states are defined on-the-fly which implied they are not reported on a
+  :subcmd:`module config --dump-state<config>` command unless if instanciated.
 
 
 .. _4.6 release notes:
