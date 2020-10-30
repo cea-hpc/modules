@@ -448,6 +448,18 @@ the *modulefile* is being loaded.
   *modulefile* with name and version, another symbolic *modulefile* name
   or a *modulefile* alias.
 
+ **module-info tags** [tag]
+
+  Returns all tags assigned to currently evaluated *modulefile* as a list of
+  strings if no *tag* name is given
+
+  Returns ``1`` if one of the tags applying to currently evaluated
+  *modulefile* is *tag*. Returns ``0`` otherwise.
+
+  .. only:: html
+
+     .. versionadded:: 4.7
+
  **module-info type**
 
   Returns either ``C`` or ``Tcl`` to indicate which :command:`module` command
