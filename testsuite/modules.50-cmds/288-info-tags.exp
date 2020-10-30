@@ -1,0 +1,145 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2020/10/30
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:    module-info tags
+#   Sub-Command:    *
+#
+#   Comment:	%C{
+#           Check 'module-info tags' modulefile command
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+
+# modulefile usage
+set ans [list]
+lappend ans [list set TS1 {}]
+lappend ans [list set TS2 0]
+lappend ans [list set TS3 0]
+lappend ans [list set TS4 0]
+lappend ans [list set TS5 0]
+lappend ans [list setpath LOADEDMODULES info/tags]
+lappend ans [list setpath _LMFILES_ $mp/info/tags]
+testouterr_cmd sh {load info/tags} $ans {}
+
+set tserr "$modlin
+$mpre/info/tags:
+
+setenv\t\tTS1 {}
+setenv\t\tTS2 0
+setenv\t\tTS3 0
+setenv\t\tTS4 0
+setenv\t\tTS5 0
+$modlin"
+testouterr_cmd_re sh {show info/tags} OK $tserr
+
+# skip tests on tcl versions where --after option of module-forbid is not supported
+if {[cmpversion $tclsh_version 8.5] > -1} {
+
+setenv_var TESTSUITE_INFO_TAGS_NEARLY_FORBIDDEN 1
+set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
+
+set ans [list]
+lappend ans [list set TS1 nearly-forbidden]
+lappend ans [list set TS2 0]
+lappend ans [list set TS3 0]
+lappend ans [list set TS4 0]
+lappend ans [list set TS5 1]
+lappend ans [list setpath LOADEDMODULES info/tags]
+lappend ans [list setpath _LMFILES_ $mp/info/tags]
+lappend ans [list setpath MODULES_LMTAG info/tags&nearly-forbidden]
+set tserr [msg_load info/tags [err_accessnearlydenied $tomorrow]]
+testouterr_cmd sh {load info/tags} $ans $tserr
+
+set tserr "$modlin
+$mpre/info/tags:
+
+[err_accessnearlydenied $tomorrow]
+setenv\t\tTS1 nearly-forbidden
+setenv\t\tTS2 0
+setenv\t\tTS3 0
+setenv\t\tTS4 0
+setenv\t\tTS5 1
+$modlin"
+testouterr_cmd_re sh {show info/tags} OK $tserr
+
+unsetenv_var TESTSUITE_INFO_TAGS_NEARLY_FORBIDDEN
+unset tomorrow
+
+}
+
+
+# test with module loaded
+setenv_loaded_module [list info/tags] [list $mp/info/tags] [list info/tags]
+setenv_path_var MODULES_LMTAG info/tags&nearly-forbidden&foo
+
+set tserr "$modlin
+$mpre/info/tags:
+
+setenv\t\tTS1 {auto-loaded foo nearly-forbidden}
+setenv\t\tTS2 1
+setenv\t\tTS3 0
+setenv\t\tTS4 1
+setenv\t\tTS5 1
+$modlin"
+testouterr_cmd_re sh {show info/tags} OK $tserr
+
+
+# unload test
+set ans [list]
+lappend ans [list unset TS1]
+lappend ans [list unset TS2]
+lappend ans [list unset TS3]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMTAG]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list unset TS4]
+lappend ans [list unset TS5]
+set tserr {TAGS=auto-loaded foo nearly-forbidden}
+testouterr_cmd_re sh {unload info/tags} $ans $tserr
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMTAG
+
+
+# modulerc usage
+setenv_var TESTSUITE_INFO_USER_IN_RC 1
+testouterr_cmd sh "is-avail info/tags" OK {TAGS=}
+
+set tserr "TAGS=
+$modlin
+$mpre/info/tags:
+
+setenv\t\tTS1 {}
+setenv\t\tTS2 0
+setenv\t\tTS3 0
+setenv\t\tTS4 0
+setenv\t\tTS5 0
+$modlin"
+testouterr_cmd_re sh "show info/tags" OK $tserr
+
+unsetenv_var TESTSUITE_INFO_USER_IN_RC
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
