@@ -531,6 +531,10 @@ Modules Specific Tcl Commands
 
   These :mfcmd:`module-info` options appeared on version ``4.6`` and are not supported on compatibility version.
 
+ **module-info tags**
+
+  This :mfcmd:`module-info` options appeared on version ``4.7`` and is not supported on compatibility version.
+
 :mfcmd:`append-path`
 
  Starting with version ``4.1``, :mfcmd:`append-path` handles being called with multiple *value* arguments and option ``--duplicates`` is added.
