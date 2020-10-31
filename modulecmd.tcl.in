@@ -7273,7 +7273,7 @@ ml <- function(...){
    puts stdout $fdef
 }
 
-proc cacheCurrentModules {} {
+proc cacheCurrentModules {{exitonerr 1}} {
    # parse loaded modules information only once, global arrays are updated
    # afterwards when module commands update loaded modules state
    if {![isStateDefined lm_info_cached]} {
@@ -7324,7 +7324,9 @@ proc cacheCurrentModules {} {
 
          reportDebug "$i loaded"
       } else {
-         reportErrorAndExit "Loaded environment state is\
+         set errproc [expr {$exitonerr ? {reportErrorAndExit} :\
+            {reportError}}]
+         $errproc "Loaded environment state is\
             inconsistent\nLOADEDMODULES=$modlist\n_LMFILES_=$modfilelist"
       }
    }
