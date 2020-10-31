@@ -581,7 +581,9 @@ Modules Specific Tcl Commands
 
 :mfcmd:`versioncmp`
 
- This Modules-specific Tcl command appeared on version ``4.7`` and is not supported on compatibility version.
+:mfcmd:`module-tag`
+
+ These Modules-specific Tcl commands appeared on version ``4.7`` and are not supported on compatibility version.
 
 
 Modules Variables
