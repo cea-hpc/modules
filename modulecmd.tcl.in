@@ -1431,6 +1431,7 @@ module-version {module-version module-version module-version module-version modu
 module-virtual {module-virtual module-virtual module-virtual module-virtual module-virtual module-virtual}
 module-forbid  {module-forbid  module-forbid  module-forbid  module-forbid  module-forbid  module-forbid }
 module-hide    {module-hide    module-hide    module-hide    module-hide    module-hide    module-hide   }
+module-tag     {module-tag     module-tag     module-tag     module-tag     module-tag     module-tag    }
 module-whatis  {nop            nop            reportCmd      nop            nop            module-whatis }
 prepend-path   {prepend-path   remove-path    prepend-path   prepend-path   prepend-path   edit-path-wh  }
 prereq         {prereq         nop            reportCmd      nop            nop            nop           }
@@ -1655,11 +1656,11 @@ proc execute-modulerc {modfile modname modspec} {
          versioncmp chdir nop is-loaded is-loaded module-version\
          module-version module-alias module-alias module-virtual\
          module-virtual module-forbid module-forbid module-hide module-hide\
-         module nop module-info module-info module-trace nop module-verbosity\
-         nop module-user nop module-log nop reportInternalBug\
-         reportInternalBug setModulesVersion setModulesVersion\
-         readModuleContent readModuleContent formatErrStackTrace\
-         formatErrStackTrace]
+         module-tag module-tag module nop module-info module-info\
+         module-trace nop module-verbosity nop module-user nop module-log nop\
+         reportInternalBug reportInternalBug setModulesVersion\
+         setModulesVersion readModuleContent readModuleContent\
+         formatErrStackTrace formatErrStackTrace]
 
       # alias commands where an argument should be passed
       array set ::g_modrcAliasesPassArg [list]
@@ -2635,6 +2636,44 @@ proc module-hide {args} {
       # record each hide spec after parsing them
       foreach modarg [eval parseModuleVersionSpecifier 0 $modarglist] {
          setModspecHidingLevel $modarg $hidinglvl
+      }
+   }
+}
+
+proc module-tag {args} {
+   # parse application criteria arguments to determine if command apply
+   lassign [eval parseApplicationCriteriaArgs 0 0 $args] apply isnearly after\
+      otherargs
+
+   # parse remaining argument list, do it even if command does not apply to
+   # raise any command specification error
+   foreach arg $otherargs {
+      switch -glob -- $arg {
+         -* {
+            knerror "Invalid option '$arg'"
+         }
+         default {
+            if {![info exists tag]} {
+               set tag $arg
+            } else {
+               lappend modarglist $arg
+            }
+         }
+      }
+   }
+
+   if {![info exists tag]} {
+      knerror {No tag specified in argument}
+   }
+   if {![info exists modarglist]} {
+      knerror {No module specified in argument}
+   }
+
+   # skip tag record if application criteria are not met
+   if {$apply} {
+      # record each hide spec after parsing them
+      foreach modarg [eval parseModuleVersionSpecifier 0 $modarglist] {
+         setModspecTag $modarg $tag
       }
    }
 }
