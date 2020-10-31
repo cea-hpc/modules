@@ -1470,7 +1470,8 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
    }
 }
 
-proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
+proc execute-modulefile {modfile modname modspec {must_have_cookie 1}\
+   {fetch_tags 1}} {
    lappendState modulefile $modfile
    lappendState modulename $modname
    lappendState specifiedname $modspec
@@ -1485,6 +1486,12 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    }
 
    reportTrace "'$modfile' as '$modname'" {Evaluate modulefile}
+
+   # gather all tags of evaluated modulefile
+   if {$fetch_tags} {
+      cacheCurrentModules 0
+      collectModuleTags $modname
+   }
 
    # inform that access to module will be soon denied
    if {[isModuleTagged $modname nearly-forbidden]} {
@@ -11156,7 +11163,7 @@ proc cmdModuleSource {args} {
          # modulefile to execute as sourced files may need more flexibility
          # as they may be managed outside of the modulefile environment like
          # the initialization modulerc file
-         execute-modulefile $absfpath $absfpath $absfpath 0
+         execute-modulefile $absfpath $absfpath $absfpath 0 0
          lpopState mode
       } else {
          reportErrorAndExit "File $fpath does not exist"
@@ -11176,7 +11183,7 @@ proc cmdModuleUnsource {args} {
          # modulefile to execute as sourced files may need more flexibility
          # as they may be managed outside of the modulefile environment like
          # the initialization modulerc file
-         execute-modulefile $absfpath $absfpath $absfpath 0
+         execute-modulefile $absfpath $absfpath $absfpath 0 0
          lpopState mode
       } else {
          reportErrorAndExit "File $fpath does not exist"
@@ -11277,9 +11284,6 @@ proc cmdModuleLoad {context uasked args} {
                }
             }
          }
-
-         # gather all tags of loading module
-         collectModuleTags $modname
 
          if {[execute-modulefile $modfile $modname $mod]} {
             break
