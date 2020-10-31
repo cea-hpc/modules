@@ -2467,7 +2467,7 @@ proc __parseDateTimeArg {opt datetime} {
 }
 
 # parse application critera arguments and determine if command applies
-proc parseApplicationCriteriaArgs {nearsec args} {
+proc parseApplicationCriteriaArgs {aftbef nearsec args} {
    set otherargs {}
 
    # parse argument list
@@ -2483,7 +2483,10 @@ proc parseApplicationCriteriaArgs {nearsec args} {
       } else {
          switch -- $arg {
             --after - --before {
-               if {[getState tcl_version_lt85]} {
+               # treat --after/--before as regular content if disabled
+               if {!$aftbef} {
+                  lappend otherargs $arg
+               } elseif {[getState tcl_version_lt85]} {
                   knerror "Option '$arg' not supported on Tcl<8.5"
                } else {
                   set nextargisdatetime [string trimleft $arg -]
@@ -2536,7 +2539,7 @@ proc parseApplicationCriteriaArgs {nearsec args} {
 
 proc module-forbid {args} {
    # parse application criteria arguments to determine if command apply
-   lassign [eval parseApplicationCriteriaArgs [expr {[getConf\
+   lassign [eval parseApplicationCriteriaArgs 1 [expr {[getConf\
       nearly_forbidden_days] * 86400}] $args] apply isnearly after otherargs
 
    # parse remaining argument list, do it even if command does not apply to
@@ -2599,7 +2602,7 @@ proc module-hide {args} {
    set hidinglvl 1
 
    # parse application criteria arguments to determine if command apply
-   lassign [eval parseApplicationCriteriaArgs 0 $args] apply isnearly after\
+   lassign [eval parseApplicationCriteriaArgs 1 0 $args] apply isnearly after\
       otherargs
 
    # parse remaining argument list, do it even if command does not apply to
