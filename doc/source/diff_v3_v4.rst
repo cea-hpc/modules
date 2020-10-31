@@ -497,6 +497,8 @@ Environment
 
 :envvar:`MODULES_IMPLICIT_REQUIREMENT`
 
+:envvar:`MODULES_LMTAG`
+
  These environment variables appeared on version ``4.7`` and are not supported on compatibility version.
 
 
