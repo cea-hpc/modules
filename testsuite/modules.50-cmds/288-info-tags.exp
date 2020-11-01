@@ -119,6 +119,36 @@ unsetenv_loaded_module
 unsetenv_path_var MODULES_LMTAG
 
 
+# test on other evaluation contexts
+setenv_var TESTSUITE_INFO_TAGS_REPORT 1
+
+set tserr "$modlin
+Module Specific Help for $mpre/info/tags2:
+
+TAGS=bar foo
+$warn_msgs: Unable to find ModulesHelp in $mpre/info/tags2.
+$modlin"
+testouterr_cmd_re sh {help info/tags2} OK $tserr
+
+set tserr "$modlin
+Module Specific Test for $mpre/info/tags2:
+
+TAGS=bar foo
+$warn_msgs: Unable to find ModulesTest in $mpre/info/tags2.
+$modlin"
+testouterr_cmd_re sh {test info/tags2} OK $tserr
+
+set tserr "TAGS=bar foo\n$modlin $mpre $modlin\n\\s+info/tags2: info/tags2 \\(bar foo\\)"
+testouterr_cmd_re sh {whatis info/tags2} OK $tserr
+testouterr_cmd_re sh {search info/tags2} OK $tserr
+
+set tserr "TAGS="
+testouterr_cmd_re sh "source $mp/info/tags2" OK $tserr
+
+unsetenv_var TESTSUITE_INFO_TAGS_REPORT
+
+
+
 # modulerc usage
 setenv_var TESTSUITE_INFO_USER_IN_RC 1
 testouterr_cmd sh "is-avail info/tags" OK {TAGS=}
