@@ -1512,6 +1512,25 @@ ENVIRONMENT
 
     .. versionadded:: 4.6
 
+.. envvar:: MODULES_LMTAG
+
+ A colon separated list of the tags corresponding to all loaded *modulefiles*
+ that have been set through :mfcmd:`module-tag` statements or from other
+ modulefile statements like :mfcmd:`module-forbid` (that may apply the
+ `nearly-forbidden` tag in specific situation). Each element in this list
+ starts by the name of the loaded *modulefile* followed by all tags applying
+ to it. The loaded modulefile and its tags are separated by the ampersand
+ character.
+
+ This environment variable is intended for :command:`module` command internal
+ use to get knowledge of the tags applying to loaded *modulefiles* in order
+ to report these tags on subcmd:`list` sub-command output or to apply specific
+ behavior when unloading *modulefile*.
+
+ .. only:: html
+
+    .. versionadded:: 4.7
+
 .. envvar:: MODULES_ML
 
  If set to ``1``, define :command:`ml` command when initializing Modules (see
