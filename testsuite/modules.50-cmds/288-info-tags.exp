@@ -84,6 +84,32 @@ unset tomorrow
 
 }
 
+# test with tag set with module-tag
+setenv_var TESTSUITE_INFO_TAGS_SET_MODULE_TAG 1
+set ans [list]
+lappend ans [list set TS1 foo]
+lappend ans [list set TS2 1]
+lappend ans [list set TS3 0]
+lappend ans [list set TS4 0]
+lappend ans [list set TS5 0]
+lappend ans [list setpath LOADEDMODULES info/tags]
+lappend ans [list setpath _LMFILES_ $mp/info/tags]
+lappend ans [list setpath MODULES_LMTAG info/tags&foo]
+testouterr_cmd sh {load info/tags} $ans {}
+
+set tserr "$modlin
+$mpre/info/tags:
+
+setenv\t\tTS1 foo
+setenv\t\tTS2 1
+setenv\t\tTS3 0
+setenv\t\tTS4 0
+setenv\t\tTS5 0
+$modlin"
+testouterr_cmd_re sh {show info/tags} OK $tserr
+
+unsetenv_var TESTSUITE_INFO_TAGS_SET_MODULE_TAG
+
 
 # test with module loaded
 setenv_loaded_module [list info/tags] [list $mp/info/tags] [list info/tags]

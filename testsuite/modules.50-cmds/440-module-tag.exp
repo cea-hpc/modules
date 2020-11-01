@@ -1,0 +1,280 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2020/11/01
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:    tag
+#   Sub-Command:    *
+#
+#   Comment:	%C{
+#           Check 'module-tag' modulefile command
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+
+#
+# test erroneous module-tag usages
+#
+
+setenv_var TESTSUITE_MODULE_TAG_ERR1 1
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tag/5.0]
+lappend ans [list setpath _LMFILES_ $mp/tag/5.0]
+lappend ans [list ERR]
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom "    invoked from within
+\"if \{\[info exists env(TESTSUITE_MODULE_TAG_ERR1)\]\} \{
+    module-tag
+\}\""
+    set linenum 11
+} else {
+    set custom {}
+    set linenum 12
+}
+set tserr [msg_moderr {No tag specified in argument} {module-tag} $mp/tag/.modulerc $linenum {  } {} {} $custom]
+testouterr_cmd sh {load tag/5.0} $ans $tserr
+unsetenv_var TESTSUITE_MODULE_TAG_ERR1
+
+setenv_var TESTSUITE_MODULE_TAG_ERR2 1
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom "    invoked from within
+\"if \{\[info exists env(TESTSUITE_MODULE_TAG_ERR2)\]\} \{
+    module-tag foo
+\}\""
+    set linenum 14
+} else {
+    set custom {}
+    set linenum 15
+}
+set tserr [msg_moderr {No module specified in argument} {module-tag foo} $mp/tag/.modulerc $linenum {  } {} {} $custom]
+testouterr_cmd sh {load tag/5.0} $ans $tserr
+unsetenv_var TESTSUITE_MODULE_TAG_ERR2
+
+setenv_var TESTSUITE_MODULE_TAG_ERR3 1
+set errmsg {module-tag --foo foo tag/5.0}
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom "    invoked from within
+\"if \{\[info exists env(TESTSUITE_MODULE_TAG_ERR3)\]\} \{
+    $errmsg
+\}\""
+    if {[cmpversion $tclsh_version 8.5] == -1} {
+        set errmsg "switch -glob -- \$arg \{<EXTMATCH>...\"
+      (procedure \"module-tag\" line 8)
+      invoked from within
+  \"$errmsg"
+    }
+    set linenum 17
+} else {
+    set custom {}
+    set linenum 18
+}
+set tserr [string map {<EXTMATCH> (.*)+} [escre [msg_moderr {Invalid option '--foo'} $errmsg $mp/tag/.modulerc $linenum {  } {} {} $custom]]]
+testouterr_cmd_re sh {load tag/5.0} $ans $tserr
+unsetenv_var TESTSUITE_MODULE_TAG_ERR3
+
+setenv_var TESTSUITE_MODULE_TAG_ERR4 1
+set errmsg {module-tag --before 2020-11-01 foo tag/5.0}
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom "    invoked from within
+\"if \{\[info exists env(TESTSUITE_MODULE_TAG_ERR4)\]\} \{
+    $errmsg
+\}\""
+    if {[cmpversion $tclsh_version 8.5] == -1} {
+        set errmsg "switch -glob -- \$arg \{<EXTMATCH>...\"
+      (procedure \"module-tag\" line 8)
+      invoked from within
+  \"$errmsg"
+    }
+    set linenum 20
+} else {
+    set custom {}
+    set linenum 21
+}
+set tserr [string map {<EXTMATCH> (.*)+} [escre [msg_moderr {Invalid option '--before'} $errmsg $mp/tag/.modulerc $linenum {  } {} {} $custom]]]
+testouterr_cmd_re sh {load tag/5.0} $ans $tserr
+unsetenv_var TESTSUITE_MODULE_TAG_ERR4
+
+setenv_var TESTSUITE_MODULE_TAG_ERR5 1
+set errmsg {module-tag --after 2020-11-01 foo tag/5.0}
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom "    invoked from within
+\"if \{\[info exists env(TESTSUITE_MODULE_TAG_ERR5)\]\} \{
+    $errmsg
+\}\""
+    if {[cmpversion $tclsh_version 8.5] == -1} {
+        set errmsg "switch -glob -- \$arg \{<EXTMATCH>...\"
+      (procedure \"module-tag\" line 8)
+      invoked from within
+  \"$errmsg"
+    }
+    set linenum 23
+} else {
+    set custom {}
+    set linenum 24
+}
+set tserr [string map {<EXTMATCH> (.*)+} [escre [msg_moderr {Invalid option '--after'} $errmsg $mp/tag/.modulerc $linenum {  } {} {} $custom]]]
+testouterr_cmd_re sh {load tag/5.0} $ans $tserr
+unsetenv_var TESTSUITE_MODULE_TAG_ERR5
+
+# same error rendering than module-tag/module-forbid, so rely on tests made for
+# these two modulefile commands to check contexts other than load
+
+
+#
+# regular usages
+#
+
+setenv_var TESTSUITE_MODULE_TAG_SET1 1
+set tserr "$modlin $mpre $modlin
+tag/7.0  "
+testouterr_cmd_re sh {avail tag/7.0} OK $tserr
+set tserr "$modlin $mpre $modlin
+tag/5.0 <foo>  "
+testouterr_cmd_re sh {avail tag/5.0} OK $tserr
+set tserr "$modlin $mpre $modlin
+tag/6.0 <foo>  "
+testouterr_cmd_re sh {avail tag/6.0} OK $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tag/5.0]
+lappend ans [list setpath _LMFILES_ $mp/tag/5.0]
+lappend ans [list setpath MODULES_LMTAG tag/5.0&foo]
+testouterr_cmd sh {load tag/5.0} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tag/6.0]
+lappend ans [list setpath _LMFILES_ $mp/tag/6.0]
+lappend ans [list setpath MODULES_LMTAG tag/6.0&foo]
+testouterr_cmd sh {load tag/6.0} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tag/7.0]
+lappend ans [list setpath _LMFILES_ $mp/tag/7.0]
+testouterr_cmd sh {load tag/7.0} $ans {}
+unsetenv_var TESTSUITE_MODULE_TAG_SET1
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+setenv_var TESTSUITE_MODULE_TAG_SET2 1
+set tserr "$mp:
+tag/5.0 <foo>
+tag/6.0 <foo>
+tag/7.0"
+testouterr_cmd sh {avail -t tag@5:7} OK $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tag/5.0]
+lappend ans [list setpath _LMFILES_ $mp/tag/5.0]
+lappend ans [list setpath MODULES_LMTAG tag/5.0&foo]
+testouterr_cmd sh {load tag/5.0} $ans {}
+unsetenv_var TESTSUITE_MODULE_TAG_SET2
+
+setenv_var TESTSUITE_MODULE_TAG_SET3 1
+testouterr_cmd sh {avail -t tag@5:7} OK $tserr
+testouterr_cmd sh {load tag/5.0} $ans {}
+unsetenv_var TESTSUITE_MODULE_TAG_SET3
+
+setenv_var TESTSUITE_MODULE_TAG_SET4 1
+set tserr "$mp:
+tag/5.0 <BaR,foo>
+tag/6.0 <BaR,foo>
+tag/7.0"
+testouterr_cmd sh {avail -t tag@5:7} OK $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tag/5.0]
+lappend ans [list setpath _LMFILES_ $mp/tag/5.0]
+lappend ans [list setpath MODULES_LMTAG tag/5.0&foo&BaR]
+testouterr_cmd sh {load tag/5.0} $ans {}
+unsetenv_var TESTSUITE_MODULE_TAG_SET4
+
+setenv_var TESTSUITE_MODULE_TAG_SET5 1
+set tserr "$mp:
+tag/5.0
+tag/6.0
+tag/7.0"
+testouterr_cmd sh {avail -t tag@5:7} OK $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tag/5.0]
+lappend ans [list setpath _LMFILES_ $mp/tag/5.0]
+testouterr_cmd sh {load tag/5.0} $ans {}
+unsetenv_var TESTSUITE_MODULE_TAG_SET5
+
+setenv_var TESTSUITE_MODULE_TAG_SET6 1
+set tserr "$mp:
+tag/5.0 <foo>
+tag/6.0 <foo>
+tag/7.0"
+testouterr_cmd sh {avail -t tag@5:7} OK $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tag/5.0]
+lappend ans [list setpath _LMFILES_ $mp/tag/5.0]
+lappend ans [list setpath MODULES_LMTAG tag/5.0&foo]
+testouterr_cmd sh {load tag/5.0} $ans {}
+unsetenv_var TESTSUITE_MODULE_TAG_SET6
+
+setenv_var TESTSUITE_MODULE_TAG_SET7 1
+set tserr "$mp:
+tag/5.0
+tag/6.0
+tag/7.0"
+testouterr_cmd sh {avail -t tag@5:7} OK $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tag/5.0]
+lappend ans [list setpath _LMFILES_ $mp/tag/5.0]
+testouterr_cmd sh {load tag/5.0} $ans {}
+unsetenv_var TESTSUITE_MODULE_TAG_SET7
+
+setenv_var TESTSUITE_MODULE_TAG_SET8 1
+set tserr "$mp:
+tag/5.0 <foo>
+tag/6.0 <foo>
+tag/7.0"
+testouterr_cmd sh {avail -t tag@5:7} OK $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tag/5.0]
+lappend ans [list setpath _LMFILES_ $mp/tag/5.0]
+lappend ans [list setpath MODULES_LMTAG tag/5.0&foo]
+testouterr_cmd sh {load tag/5.0} $ans {}
+unsetenv_var TESTSUITE_MODULE_TAG_SET8
+
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+
+# use module-tag in modulefile
+set tserr "$mp:
+tag/7.0"
+testouterr_cmd sh {avail -t tag/7.0} OK $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tag/7.0]
+lappend ans [list setpath _LMFILES_ $mp/tag/7.0]
+testouterr_cmd sh {load tag/7.0} $ans {}
+
+
+# definition in global rc file
+setenv_var MODULERCFILE $env(TESTSUITEDIR)/etc/modulerc.tag
+set tserr "$mp:
+tag/5.0 <barrc,foorc>"
+testouterr_cmd sh {avail -t tag/5.0} OK $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tag/5.0]
+lappend ans [list setpath _LMFILES_ $mp/tag/5.0]
+lappend ans [list setpath MODULES_LMTAG tag/5.0&foorc&barrc]
+testouterr_cmd sh {load tag/5.0} $ans {}
+setenv_var MODULERCFILE $ORIG_MODULERCFILE
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
