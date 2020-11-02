@@ -289,6 +289,11 @@ the *modulefile* is being loaded.
  by a :mfcmd:`module-hide --hard<module-hide>` command, this module is
  unveiled when precisely named to return an access error.
 
+ Forbidden modules included in the result of an :subcmd:`avail` sub-command
+ are reported with a ``forbidden`` tag applied to them. Nearly forbidden
+ modules included in the result of an :subcmd:`avail` or a :subcmd:`list`
+ sub-command are reported with a ``nearly-forbidden`` tag applied to them.
+
  The parameter *modulefile* may leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
@@ -350,6 +355,9 @@ the *modulefile* is being loaded.
  ``--soft`` hiding command match a given module, regular hiding mode is
  considered. If both a regular and a ``--hard`` hiding command match a given
  module, hard hiding mode is retained.
+
+ Hidden modules included in the result of an :subcmd:`avail` sub-command are
+ reported with a ``hidden`` tag applied to them.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
