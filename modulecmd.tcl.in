@@ -1494,7 +1494,7 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}\
    }
 
    # inform that access to module will be soon denied
-   if {[isModuleTagged $modname nearly-forbidden]} {
+   if {$mode ne {unload} && [isModuleTagged $modname nearly-forbidden 1]} {
       reportWarning [getNearlyForbiddenMsg $modname]
    }
 
@@ -4874,8 +4874,13 @@ proc getModuleTag {mod tag} {
    return {}
 }
 
-proc isModuleTagged {mod tag} {
-   return [expr {[llength [getModuleTag $mod $tag]] != 0}]
+proc isModuleTagged {mod tag {collected 0}} {
+   # retrieve tag information from collected tags or raw info
+   if {$collected} {
+      return [isInList [getTagList $mod] $tag]
+   } else {
+      return [expr {[llength [getModuleTag $mod $tag]] != 0}]
+   }
 }
 
 proc getModuleTagProp {mod tag prop} {
