@@ -60,6 +60,26 @@ Modules 4.7.0 (not yet released)
 * Introduce the ``loaded`` symbolic version among advanced version specifiers
   (e.g. ``foo@loaded``) to designate the currently loaded version of specified
   module. (fix issue #366)
+* Doc: add *Module tags* design notes.
+* Report tags applying to the modules returned by the :subcmd:`avail`
+  sub-command. Adapt the regular, terse and JSON output styles to report these
+  tags along the module they are attached to (enclosed in ``<>``). Reported
+  tags currently are states that apply to modules: ``auto-loaded``,
+  ``forbidden``, ``hidden``, ``loaded``  and ``nearly-forbidden``.
+* Record tags applying to each loaded module in the :envvar:`MODULES_LMTAG`
+  environment variable to make this information persist after module being
+  loaded.
+* Report tags applying to the loaded modules returned by the :subcmd:`list`
+  sub-command. Adapt the regular and JSON output styles to report these tags
+  along the module they are attached to (enclosed in ``<>``). Reported tags
+  currently are states applying to loaded modules: ``auto-loaded`` and
+  ``nearly-forbidden``.
+* Introduce the :mfcmd:`module-info tags<module-info>` modulefile command to
+  query the tags that apply to the currently evaluated modulefile.
+* Add the :mfcmd:`module-tag` modulefile command to associate tag to
+  designated modulefile. Those tags are reported on :subcmd:`avail` and
+  :subcmd:`list` sub-commands along the module they are attached to.
+  :mfcmd:`module-tag` supports the advanced module version specifier syntax.
 
 
 .. _4.6 release notes:
