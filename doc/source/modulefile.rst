@@ -503,6 +503,34 @@ the *modulefile* is being loaded.
   qualified *modulefile* with name and version, another symbolic *modulefile*
   name or a *modulefile* alias.
 
+.. mfcmd:: module-tag [options] tag modulefile...
+
+ Associate *tag* to designated *modulefile*. This tag information will be
+ reported along *modulefile* on :subcmd:`avail` and subcmd:`list`
+ sub-commands. See the :mfcmd:`module-info tags<module-info>` modulefile
+ command to query tag information during *modulefile* evaluation. This command
+ should be placed in one of the :file:`modulecmd.tcl` rc files.
+
+ :mfcmd:`module-tag` command accepts the following options:
+
+ * ``--not-user {user...}``
+ * ``--not-group {group...}``
+
+ If ``--not-user`` option is set, the tag is not applied if the username of
+ the user currently running :file:`modulecmd.tcl` is part of the list of
+ username specified. Following the same approach, if ``--not-group`` option is
+ set, the tag is not applied if current user is member of one the group
+ specified. When both options are set, the tag is not applied if a match is
+ found for ``--not-user`` or ``--not-group``.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
+ .. only:: html
+
+    .. versionadded:: 4.7
+
 .. mfcmd:: module-version modulefile version-name...
 
  Assigns the symbolic *version-name* to the *modulefile*. This command
