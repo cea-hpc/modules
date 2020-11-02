@@ -1,13 +1,13 @@
-task:
-  freebsd_instance:
-    matrix:
-      image_family: freebsd-11-3-snap
-      image_family: freebsd-12-1-snap
+regular_task_template: &REGULAR_TASK_TEMPLATE
   env:
     RUNTESTFLAGS: -v
   # need to supersede Cirrus CI-specific git clone with a regular git client
   clone_script:
-    - pkg install -y git
+    - if [ "$CIRRUS_OS" = 'darwin' ]; then
+        brew install git;
+      elif [ "$CIRRUS_OS" = 'freebsd' ]; then
+        pkg install -y git;
+      fi
     - if [ -z "$CIRRUS_PR" ]; then
         git clone --depth=320 --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR;
       else
@@ -15,11 +15,38 @@ task:
         git fetch origin pull/$CIRRUS_PR/head:pull/$CIRRUS_PR;
       fi
     - git reset --hard $CIRRUS_CHANGE_IN_REPO
+
+
+task:
+  << : *REGULAR_TASK_TEMPLATE
+  freebsd_instance:
+    matrix:
+      image_family: freebsd-11-3-snap
+      image_family: freebsd-12-1-snap
   install_script: pkg install -y bash wget gmake dejagnu py37-sphinx tcl86 tcl-wrapper autoconf automake gettext ksh93 zsh fish perl5 python37 ruby cmake R readline
   build_script: ./configure --enable-compat-version --without-tclx --with-tcl-ver=8.6 && gmake && gmake install
   test_script:
     - script/mt --base64-failed-log
     - script/mt --base64-failed-log install
   uninstall_script: gmake uninstall
+
+task:
+  << : *REGULAR_TASK_TEMPLATE
+  env:
+    COVERAGE: y
+  osx_instance:
+    image: catalina-xcode
+  install_script: brew install md5sha1sum expect dejagnu grep fish
+  build_script:
+    # need to specify where to find tclConfig.sh on newer xcode release
+    - ./configure --prefix=/tmp/modules --with-loadedmodules=null:dot --with-tcl=/Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/Tcl.framework/Versions/8.5
+    - make
+    - make test-deps
+    - make install
+  test_script:
+    - script/mt --base64-failed-log
+    - script/mt --base64-failed-log install
+    - script/nglfar2ccov modulecmd-test.tcl && bash <(curl -s https://codecov.io/bash)
+  uninstall_script: make uninstall
 
 # vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
