@@ -226,24 +226,6 @@ jobs:
             - autoconf
             - tcl8.4-dev
 
-    # CentOS tests
-    # also enable a display on this test case to validate x-resource behavior
-    - env: OS_NAME=centos OS_VERSION=7 DOCKER_IMAGE=${OS_NAME}:${OS_NAME}${OS_VERSION} CONTAINER=${OS_NAME}${OS_VERSION}
-           CMD_PREFIX="docker exec --env RUNTESTFLAGS=-v $CONTAINER xvfb-run"
-           CONFIGURE_OPTS='--prefix=/tmp/modules --enable-compat-version --with-loadedmodules=null:dot' CONFIGURE_OPTS_EXTRA='--with-quarantine-vars=LD_LIBRARY_PATH LD_PRELOAD'
-           EXTRA_PKGS='which xorg-x11-server-utils xorg-x11-server-Xvfb automake gettext-devel libX11-devel tclx-devel'
-           EXTRA_SCRIPT_POSTINST='make srpm rpm'
-      services:
-        - docker
-
-    - env: OS_NAME=centos OS_VERSION=8 DOCKER_IMAGE=${OS_NAME}:${OS_NAME}${OS_VERSION} CONTAINER=${OS_NAME}${OS_VERSION}
-           CMD_PREFIX="docker exec --env RUNTESTFLAGS=-v $CONTAINER xvfb-run"
-           CONFIGURE_OPTS='--prefix=/tmp/modules --enable-compat-version --with-loadedmodules=null:dot' CONFIGURE_OPTS_EXTRA='--with-quarantine-vars=LD_LIBRARY_PATH LD_PRELOAD'
-           EXTRA_PKGS='which xorg-x11-server-utils xorg-x11-server-Xvfb automake gettext-devel libX11-devel'
-           EXTRA_SCRIPT_POSTINST='make srpm rpm'
-      services:
-        - docker
-
     # openSUSE
     - env: OS_NAME=opensuse OS_VERSION=leap DOCKER_IMAGE=${OS_NAME}/${OS_VERSION} CONTAINER=${OS_VERSION}
            CMD_PREFIX="docker exec --env RUNTESTFLAGS=-v $CONTAINER"
@@ -274,13 +256,6 @@ before_install: |
     docker pull $DOCKER_IMAGE &&
     docker run --name $CONTAINER --detach --rm -i -t -w /modules -e TRAVIS='true' $DOCKER_IMAGE /bin/bash
     case "${OS_NAME}" in
-      centos)
-        if [ $OS_VERSION -eq 8 ]; then PYTHON_PKG='python36' SPHINX_PKG='python3-sphinx'; else PYTHON_PKG='python' SPHINX_PKG='python-sphinx'; fi
-        if [ $OS_VERSION -eq 8 ]; then docker exec $CONTAINER sed -i 's|enabled=0|enabled=1|' /etc/yum.repos.d/CentOS-PowerTools.repo; fi
-        docker exec $CONTAINER yum install -y epel-release &&
-        docker exec $CONTAINER yum install -y tcsh zsh ksh tcl perl $PYTHON_PKG ruby cmake R-core make wget perl $SPHINX_PKG git dejagnu man-db rpm-build bzip2 autoconf gcc tcl-devel $EXTRA_PKGS &&
-        docker exec $CONTAINER wget -O /etc/yum.repos.d/shells_fish_release_2.repo http://download.opensuse.org/repositories/shells:fish:release:2/CentOS_${OS_VERSION}/shells:fish:release:2.repo &&
-        docker exec $CONTAINER yum install -y fish ;;
       opensuse)
         docker exec $CONTAINER zypper install -y tcsh zsh ksh fish tcl perl python ruby cmake R-core R-core-packages make wget python-Sphinx git dejagnu man net-tools autoconf gcc tcl-devel $EXTRA_PKGS ;;
     esac

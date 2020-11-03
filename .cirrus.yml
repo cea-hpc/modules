@@ -2,19 +2,21 @@ regular_task_template: &REGULAR_TASK_TEMPLATE
   env:
     RUNTESTFLAGS: -v
   # need to supersede Cirrus CI-specific git clone with a regular git client
-  clone_script:
-    - if [ "$CIRRUS_OS" = 'darwin' ]; then
-        brew install git;
-      elif [ "$CIRRUS_OS" = 'freebsd' ]; then
-        pkg install -y git;
-      fi
-    - if [ -z "$CIRRUS_PR" ]; then
-        git clone --depth=320 --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR;
-      else
-        git clone --depth=320 https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR;
-        git fetch origin pull/$CIRRUS_PR/head:pull/$CIRRUS_PR;
-      fi
-    - git reset --hard $CIRRUS_CHANGE_IN_REPO
+  clone_script: |
+    if [ "$CIRRUS_OS" = 'darwin' ]; then
+      brew install git
+    elif [ "$CIRRUS_OS" = 'freebsd' ]; then
+      pkg install -y git
+    else
+      yum install -y git
+    fi
+    if [ -z "$CIRRUS_PR" ]; then
+      git clone --depth=320 --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
+    else
+      git clone --depth=320 https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
+      git fetch origin pull/$CIRRUS_PR/head:pull/$CIRRUS_PR
+    fi
+    git reset --hard $CIRRUS_CHANGE_IN_REPO
 
 
 task:
@@ -47,6 +49,47 @@ task:
     - script/mt --base64-failed-log
     - script/mt --base64-failed-log install
     - script/nglfar2ccov modulecmd-test.tcl && bash <(curl -s https://codecov.io/bash)
+  uninstall_script: make uninstall
+
+task:
+  << : *REGULAR_TASK_TEMPLATE
+  container:
+    matrix:
+      image: centos:centos7
+      image: centos:centos8
+    cpu: 1
+    memory: 2G
+  install_script: |
+    . /etc/os-release
+    if [ $VERSION_ID -eq 8 ]; then
+      sed -i 's|enabled=0|enabled=1|' /etc/yum.repos.d/CentOS-PowerTools.repo
+    fi
+    if [ $VERSION_ID -eq 8 ]; then
+      PYTHON_PKG='python36'
+      SPHINX_PKG='python3-sphinx'
+      TCLXDEV_PKG=''
+    else
+      PYTHON_PKG='python'
+      SPHINX_PKG='python-sphinx'
+      TCLXDEV_PKG='tclx-devel'
+    fi
+    yum install -y epel-release
+    yum install -y tcsh zsh ksh tcl perl $PYTHON_PKG ruby cmake R-core make wget perl $SPHINX_PKG git dejagnu man-db rpm-build bzip2 autoconf gcc tcl-devel
+    yum install -y which xorg-x11-server-utils xorg-x11-server-Xvfb automake gettext-devel libX11-devel $TCLXDEV_PKG
+    if [ $VERSION_ID -lt 8 ]; then
+      wget -O /etc/yum.repos.d/shells_fish_release_2.repo http://download.opensuse.org/repositories/shells:fish:release:2/CentOS_${VERSION_ID}/shells:fish:release:2.repo
+    fi
+    yum install -y fish
+  build_script:
+    - ./configure --enable-compat-version --with-loadedmodules=null:dot --with-quarantine-vars='LD_LIBRARY_PATH LD_PRELOAD'
+    - make
+    - make test-deps
+    - make install
+  # also enable a display on this test case to validate x-resource behavior
+  test_script:
+    - xvfb-run script/mt --base64-failed-log
+    - xvfb-run script/mt --base64-failed-log install
+    - xvfb-run make srpm rpm
   uninstall_script: make uninstall
 
 # vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
