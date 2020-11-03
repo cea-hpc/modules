@@ -7,6 +7,8 @@ regular_task_template: &REGULAR_TASK_TEMPLATE
       brew install git
     elif [ "$CIRRUS_OS" = 'freebsd' ]; then
       pkg install -y git
+    elif [ -n "$(command -v zypper)" ]; then
+      zypper install -y git
     else
       yum install -y git
     fi
@@ -92,6 +94,27 @@ task:
     - xvfb-run script/mt --base64-failed-log
     - xvfb-run script/mt --base64-failed-log install
     - xvfb-run make srpm rpm
+  uninstall_script: make uninstall
+
+task:
+  << : *REGULAR_TASK_TEMPLATE
+  container:
+    matrix:
+      image: opensuse/leap
+    cpu: 1
+    memory: 2G
+  install_script: |
+    zypper install -y tcsh zsh ksh fish tcl perl python ruby cmake R-core R-core-packages make wget python-Sphinx git dejagnu man net-tools autoconf gcc tcl-devel
+    zypper install -y which xrdb xvfb-run automake gettext-tools
+  build_script:
+    - ./configure --enable-compat-version --enable-versioning --with-loadedmodules=null:dot --with-quarantine-vars='LD_LIBRARY_PATH LD_PRELOAD'
+    - make
+    - make test-deps
+    - make install
+  # also enable a display on this test case to validate x-resource behavior
+  test_script:
+    - xvfb-run script/mt --base64-failed-log
+    - xvfb-run script/mt --base64-failed-log install
   uninstall_script: make uninstall
 
 # vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

@@ -226,21 +226,6 @@ jobs:
             - autoconf
             - tcl8.4-dev
 
-    # openSUSE
-    - env: OS_NAME=opensuse OS_VERSION=leap DOCKER_IMAGE=${OS_NAME}/${OS_VERSION} CONTAINER=${OS_VERSION}
-           CMD_PREFIX="docker exec --env RUNTESTFLAGS=-v $CONTAINER"
-           CONFIGURE_OPTS='--enable-versioning'
-      services:
-        - docker
-
-    # also enable a display on this test case to validate x-resource behavior
-    - env: OS_NAME=opensuse OS_VERSION=leap DOCKER_IMAGE=${OS_NAME}/${OS_VERSION} CONTAINER=${OS_VERSION}
-           CMD_PREFIX="docker exec --env RUNTESTFLAGS=-v $CONTAINER xvfb-run"
-           CONFIGURE_OPTS='--prefix=/tmp/modules --enable-compat-version --enable-versioning --with-loadedmodules=null:dot' CONFIGURE_OPTS_EXTRA='--with-quarantine-vars=LD_LIBRARY_PATH LD_PRELOAD'
-           EXTRA_PKGS='which xrdb xvfb-run automake gettext-tools'
-      services:
-        - docker
-
 
 env:
   global:
@@ -249,20 +234,6 @@ env:
     - EXTRA_PKGS=''
 
 install: true
-
-before_install: |
-  if [ -n "$DOCKER_IMAGE" ]; then
-    sudo apt-get install -y expect-dev
-    docker pull $DOCKER_IMAGE &&
-    docker run --name $CONTAINER --detach --rm -i -t -w /modules -e TRAVIS='true' $DOCKER_IMAGE /bin/bash
-    case "${OS_NAME}" in
-      opensuse)
-        docker exec $CONTAINER zypper install -y tcsh zsh ksh fish tcl perl python ruby cmake R-core R-core-packages make wget python-Sphinx git dejagnu man net-tools autoconf gcc tcl-devel $EXTRA_PKGS ;;
-    esac
-    docker cp ./. $CONTAINER:modules
-  else
-    true
-  fi
 
 # optionally change dir to launch tests from path containing specific chars
 before_script: |
@@ -292,7 +263,3 @@ after_success: |
   [ "$COVERAGE" = 'y' ] &&
   script/nglfar2ccov modulecmd-test.tcl &&
   bash <(curl -s https://codecov.io/bash)
-
-after_script: |
-  [ -n "$DOCKER_IMAGE" ] &&
-  docker stop $CONTAINER
