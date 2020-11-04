@@ -9,6 +9,9 @@ regular_task_template: &REGULAR_TASK_TEMPLATE
       pkg install -y git
     elif [ -n "$(command -v zypper)" ]; then
       zypper install -y git
+    elif [ -n "$(command -v apt-get)" ]; then
+      apt-get update
+      apt-get -y install git
     else
       yum install -y git
     fi
@@ -16,6 +19,9 @@ regular_task_template: &REGULAR_TASK_TEMPLATE
       git clone --depth=320 --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
     else
       git clone --depth=320 https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
+    fi
+    cd $CIRRUS_WORKING_DIR
+    if [ -n "$CIRRUS_PR" ]; then
       git fetch origin pull/$CIRRUS_PR/head:pull/$CIRRUS_PR
     fi
     git reset --hard $CIRRUS_CHANGE_IN_REPO
@@ -53,6 +59,37 @@ task:
     - script/mt --base64-failed-log
     - script/mt --base64-failed-log install
     - script/nglfar2ccov modulecmd-test.tcl && bash <(curl -s https://codecov.io/bash)
+  uninstall_script: make uninstall
+
+task:
+  << : *REGULAR_TASK_TEMPLATE
+  # change dir to launch tests from path containing specific chars
+  env:
+    CIRRUS_WORKING_DIR: /tmp/modules-1.2.3+branch_name-91-g6dd3db49
+    DEBIAN_FRONTEND: noninteractive
+    LANGUAGE: C
+    LANG: C
+    LC_ALL: C
+  container:
+    image: ubuntu:bionic
+    cpu: 1
+    memory: 2G
+  install_script: |
+    apt-get update
+    apt-get -y install wget expect-dev dejagnu python-sphinx bash tcsh ksh zsh fish tcl tcl8.6 perl python ruby cmake r-base-core
+    # libtclenvmodules and compatibility version build requirements
+    apt-get -y install gcc autoconf tcl8.6-dev
+    # compatibility version-specific build requirements
+    apt-get -y install automake autopoint
+  build_script:
+    - ./configure --with-tclsh=tclsh8.6 --prefix /tmp/modules --enable-compat-version --with-tcl=/usr/lib/tcl8.6 --with-tcl-ver=8.6 --without-tclx --enable-append-manpath --enable-append-binpath --with-bin-search-path=/usr/bin:/bin --disable-silent-shell-debug-support --enable-windows-support --with-loadedmodules=null:dot --with-quarantine-vars=LD_LIBRARY_PATH --enable-color --with-dark-background-colors='hi=1:se=2:er=91:wa=93:mp=1;94:di=94:al=96:sy=95' --enable-foo FOO=bar
+    - make
+    - make test-deps
+    - make install
+  # also enable a display on this test case to validate x-resource behavior
+  test_script:
+    - script/mt --base64-failed-log
+    - script/mt --base64-failed-log install
   uninstall_script: make uninstall
 
 task:
