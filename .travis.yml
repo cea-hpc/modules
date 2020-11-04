@@ -202,23 +202,20 @@ jobs:
 env:
   global:
     - RUNTESTFLAGS='-v'
-    - CMD_PREFIX=''
-    - EXTRA_PKGS=''
 
 install: true
 
 script:
-  - if [ -z "$CONFIGURE_OPTS_EXTRA" ]; then $CMD_PREFIX ./configure $CONFIGURE_OPTS; fi
-  - if [ -n "$CONFIGURE_OPTS_EXTRA" ]; then $CMD_PREFIX ./configure $CONFIGURE_OPTS "$CONFIGURE_OPTS_EXTRA"; fi
-  - $CMD_PREFIX make
-  - if [ -n "$EXTRA_SCRIPT_PRETEST" ]; then $CMD_PREFIX eval $EXTRA_SCRIPT_PRETEST; fi
-  - travis_retry $CMD_PREFIX make test-deps
-  - travis_wait 30 unbuffer $CMD_PREFIX script/mt --base64-failed-log
-  - if [ -n "$EXTRA_SCRIPT_POSTTEST" ]; then $CMD_PREFIX eval $EXTRA_SCRIPT_POSTTEST; fi
-  - $CMD_PREFIX make install
-  - $CMD_PREFIX script/mt --base64-failed-log install
-  - $CMD_PREFIX make uninstall
-  - if [ -n "$EXTRA_SCRIPT_POSTINST" ]; then $CMD_PREFIX $EXTRA_SCRIPT_POSTINST; fi
+  - ./configure $CONFIGURE_OPTS
+  - make
+  - if [ -n "$EXTRA_SCRIPT_PRETEST" ]; then eval $EXTRA_SCRIPT_PRETEST; fi
+  - travis_retry make test-deps
+  - travis_wait 30 unbuffer script/mt --base64-failed-log
+  - if [ -n "$EXTRA_SCRIPT_POSTTEST" ]; then eval $EXTRA_SCRIPT_POSTTEST; fi
+  - make install
+  - script/mt --base64-failed-log install
+  - make uninstall
+  - if [ -n "$EXTRA_SCRIPT_POSTINST" ]; then $EXTRA_SCRIPT_POSTINST; fi
 
 # report code coverage results
 after_success: |
