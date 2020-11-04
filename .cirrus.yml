@@ -26,6 +26,18 @@ regular_task_template: &REGULAR_TASK_TEMPLATE
     fi
     git reset --hard $CIRRUS_CHANGE_IN_REPO
 
+artifacts_template: &ARTIFACTS_TEMPLATE
+  always:
+    compatlog_artifacts:
+      path: compat/modules.log
+      type: text/plain
+    log_artifacts:
+      path: modules.log
+      type: text/plain
+    installlog_artifacts:
+      path: install.log
+      type: text/plain
+
 
 task:
   << : *REGULAR_TASK_TEMPLATE
@@ -38,9 +50,10 @@ task:
   install_script: pkg install -y bash wget gmake dejagnu py37-sphinx tcl86 tcl-wrapper autoconf automake gettext ksh93 zsh fish perl5 python37 ruby cmake R readline
   build_script: ./configure --enable-compat-version --without-tclx --with-tcl-ver=8.6 && gmake && gmake install
   test_script:
-    - script/mt --base64-failed-log
-    - script/mt --base64-failed-log install
+    - script/mt
+    - script/mt install
   uninstall_script: gmake uninstall
+  << : *ARTIFACTS_TEMPLATE
 
 task:
   << : *REGULAR_TASK_TEMPLATE
@@ -56,10 +69,11 @@ task:
     - make test-deps
     - make install
   test_script:
-    - script/mt --base64-failed-log
-    - script/mt --base64-failed-log install
+    - script/mt
+    - script/mt install
     - script/nglfar2ccov modulecmd-test.tcl && bash <(curl -s https://codecov.io/bash)
   uninstall_script: make uninstall
+  << : *ARTIFACTS_TEMPLATE
 
 task:
   << : *REGULAR_TASK_TEMPLATE
@@ -88,9 +102,10 @@ task:
     - make install
   # also enable a display on this test case to validate x-resource behavior
   test_script:
-    - script/mt --base64-failed-log
-    - script/mt --base64-failed-log install
+    - script/mt
+    - script/mt install
   uninstall_script: make uninstall
+  << : *ARTIFACTS_TEMPLATE
 
 task:
   << : *REGULAR_TASK_TEMPLATE
@@ -128,10 +143,11 @@ task:
     - make install
   # also enable a display on this test case to validate x-resource behavior
   test_script:
-    - xvfb-run script/mt --base64-failed-log
-    - xvfb-run script/mt --base64-failed-log install
+    - xvfb-run script/mt
+    - xvfb-run script/mt install
     - xvfb-run make srpm rpm
   uninstall_script: make uninstall
+  << : *ARTIFACTS_TEMPLATE
 
 task:
   << : *REGULAR_TASK_TEMPLATE
@@ -150,8 +166,9 @@ task:
     - make install
   # also enable a display on this test case to validate x-resource behavior
   test_script:
-    - xvfb-run script/mt --base64-failed-log
-    - xvfb-run script/mt --base64-failed-log install
+    - xvfb-run script/mt
+    - xvfb-run script/mt install
   uninstall_script: make uninstall
+  << : *ARTIFACTS_TEMPLATE
 
 # vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
