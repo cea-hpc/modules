@@ -36,6 +36,18 @@ artifacts_template: &ARTIFACTS_TEMPLATE
       path: install.log
       type: text/plain
 
+tests_template: &TESTS_TEMPLATE
+  test_script:
+    - script/mt
+  testinstall_script:
+    - script/mt install
+
+xvfbtests_template: &XVFBTESTS_TEMPLATE
+  test_script:
+    - xvfb-run script/mt
+  testinstall_script:
+    - xvfb-run script/mt install
+
 
 task:
   << : *CLONE_TEMPLATE
@@ -47,9 +59,7 @@ task:
     memory: 2G
   install_script: pkg install -y bash wget gmake dejagnu py37-sphinx tcl86 tcl-wrapper autoconf automake gettext ksh93 zsh fish perl5 python37 ruby cmake R readline
   build_script: ./configure --enable-compat-version --without-tclx --with-tcl-ver=8.6 && gmake && gmake install
-  test_script:
-    - script/mt
-    - script/mt install
+  << : *TESTS_TEMPLATE
   uninstall_script: gmake uninstall
   << : *ARTIFACTS_TEMPLATE
 
@@ -66,10 +76,10 @@ task:
     - make
     - make test-deps
     - make install
-  test_script:
-    - script/mt
-    - script/mt install
-    - script/nglfar2ccov modulecmd-test.tcl && bash <(curl -s https://codecov.io/bash)
+  << : *TESTS_TEMPLATE
+  coverage_script:
+    - script/nglfar2ccov modulecmd-test.tcl
+    - bash <(curl -s https://codecov.io/bash)
   uninstall_script: make uninstall
   << : *ARTIFACTS_TEMPLATE
 
@@ -98,10 +108,7 @@ task:
     - make
     - make test-deps
     - make install
-  # also enable a display on this test case to validate x-resource behavior
-  test_script:
-    - script/mt
-    - script/mt install
+  << : *TESTS_TEMPLATE
   uninstall_script: make uninstall
   << : *ARTIFACTS_TEMPLATE
 
@@ -140,9 +147,8 @@ task:
     - make test-deps
     - make install
   # also enable a display on this test case to validate x-resource behavior
-  test_script:
-    - xvfb-run script/mt
-    - xvfb-run script/mt install
+  << : *XVFBTESTS_TEMPLATE
+  rpm_script:
     - xvfb-run make srpm rpm
   uninstall_script: make uninstall
   << : *ARTIFACTS_TEMPLATE
@@ -163,9 +169,7 @@ task:
     - make test-deps
     - make install
   # also enable a display on this test case to validate x-resource behavior
-  test_script:
-    - xvfb-run script/mt
-    - xvfb-run script/mt install
+  << : *XVFBTESTS_TEMPLATE
   uninstall_script: make uninstall
   << : *ARTIFACTS_TEMPLATE
 
