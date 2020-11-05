@@ -1,8 +1,8 @@
 # <img src="https://raw.githubusercontent.com/cea-hpc/modules/master/doc/img/modules_red.svg" height="180" alt="Modules"/>
 
-[![Linux/OS X Build Status](https://travis-ci.org/cea-hpc/modules.svg?branch=master)](https://travis-ci.org/cea-hpc/modules)
+[![Linux Build Status](https://travis-ci.org/cea-hpc/modules.svg?branch=master)](https://travis-ci.org/cea-hpc/modules)
 [![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/cea-hpc/modules?svg=true&branch=master)](https://ci.appveyor.com/project/xdelaruelle/modules-a6nha/branch/master)
-[![FreeBSD Build Status](https://api.cirrus-ci.com/github/cea-hpc/modules.svg)](https://cirrus-ci.com/github/cea-hpc/modules)
+[![FreeBSD/OS X/Linux Build Status](https://api.cirrus-ci.com/github/cea-hpc/modules.svg)](https://cirrus-ci.com/github/cea-hpc/modules)
 [![Coverage Status](https://codecov.io/gh/cea-hpc/modules/branch/master/graph/badge.svg)](https://codecov.io/gh/cea-hpc/modules)
 [![Documentation Status](https://readthedocs.org/projects/modules/badge/?version=latest)](https://modules.readthedocs.io/en/latest/?badge=latest)
 [![Packaging status](https://repology.org/badge/tiny-repos/environment-modules.svg)](https://repology.org/metapackage/environment-modules/versions)
