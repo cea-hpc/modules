@@ -1,6 +1,4 @@
-regular_task_template: &REGULAR_TASK_TEMPLATE
-  env:
-    RUNTESTFLAGS: -v
+clone_template: &CLONE_TEMPLATE
   # need to supersede Cirrus CI-specific git clone with a regular git client
   clone_script: |
     if [ "$CIRRUS_OS" = 'darwin' ]; then
@@ -40,7 +38,7 @@ artifacts_template: &ARTIFACTS_TEMPLATE
 
 
 task:
-  << : *REGULAR_TASK_TEMPLATE
+  << : *CLONE_TEMPLATE
   freebsd_instance:
     matrix:
       image_family: freebsd-11-3-snap
@@ -56,7 +54,7 @@ task:
   << : *ARTIFACTS_TEMPLATE
 
 task:
-  << : *REGULAR_TASK_TEMPLATE
+  << : *CLONE_TEMPLATE
   env:
     COVERAGE: y
   osx_instance:
@@ -76,7 +74,7 @@ task:
   << : *ARTIFACTS_TEMPLATE
 
 task:
-  << : *REGULAR_TASK_TEMPLATE
+  << : *CLONE_TEMPLATE
   # change dir to launch tests from path containing specific chars
   env:
     CIRRUS_WORKING_DIR: /tmp/modules-1.2.3+branch_name-91-g6dd3db49
@@ -108,7 +106,7 @@ task:
   << : *ARTIFACTS_TEMPLATE
 
 task:
-  << : *REGULAR_TASK_TEMPLATE
+  << : *CLONE_TEMPLATE
   container:
     matrix:
       image: centos:centos7
@@ -150,7 +148,7 @@ task:
   << : *ARTIFACTS_TEMPLATE
 
 task:
-  << : *REGULAR_TASK_TEMPLATE
+  << : *CLONE_TEMPLATE
   container:
     matrix:
       image: opensuse/leap
