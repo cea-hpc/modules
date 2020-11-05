@@ -13,55 +13,10 @@ dist: xenial
 
 jobs:
   include:
-    # 3 package variants on major Tcl releases mixed with 2 install variants
-    # run tests in code coverage mode on first installation variant
-    # for each Tcl releases
-    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.4 --disable-libtclenvmodules --prefix=/tmp/modules' COVERAGE='y'
-           EXTRA_SCRIPT_PRETEST='make install-testmodulerc install-testetcrc install-testmodspath-empty' EXTRA_SCRIPT_POSTTEST='make uninstall-testconfig'
-      addons:
-        apt:
-          sources:
-            - sourceline: 'ppa:fish-shell/release-2'
-          packages:
-            - expect-dev
-            - dejagnu
-            - python-sphinx
-            - bash
-            - tcsh
-            - ksh
-            - zsh
-            - fish
-            - tcl8.4
-            - perl
-            - python
-            - ruby
-            - cmake
-            - r-base-core
-    # install configuration file before test to trigger specific behaviors on initialization parts
-    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.5 --disable-libtclenvmodules --enable-versioning --prefix=/tmp/modules --without-pager --enable-dotmodulespath' COVERAGE='y'
-           EXTRA_SCRIPT_PRETEST='make install-testmodulerc install-testsiteconfig install-testmodspath' EXTRA_SCRIPT_POSTTEST='make uninstall-testconfig'
-      addons:
-        apt:
-          sources:
-            - sourceline: 'ppa:fish-shell/release-2'
-          packages:
-            - expect-dev
-            - dejagnu
-            - python-sphinx
-            - bash
-            - tcsh
-            - ksh
-            - zsh
-            - fish
-            - tcl8.5
-            - perl
-            - python
-            - ruby
-            - cmake
-            - r-base-core
     # also enable a display on this test case to validate x-resource behavior
     # check auto handling feature on this test configuration
     - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.6 --disable-libtclenvmodules --prefix=/tmp/modules --with-pager=more --with-pager-opts=-X --enable-auto-handling' COVERAGE='y'
+           EXTRA_SCRIPT_PRETEST='make install-testmodulerc install-testetcrc install-testmodspath-empty' EXTRA_SCRIPT_POSTTEST='make uninstall-testconfig'
       services:
         - xvfb
       before_script:
@@ -86,7 +41,7 @@ jobs:
             - cmake
             - r-base-core
 
-    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.4 --prefix=/tmp/modules --enable-compat-version --with-tcl=/usr/lib/tcl8.4 --enable-versioning --disable-silent-shell-debug-support --disable-set-shell-startup --disable-quarantine-support --with-initconf-in=etcdir --with-loadedmodules=null:dot --without-pager --disable-avail-indepth --with-terminal-background=light --with-unload-match-order=returnfirst --disable-implicit-default --with-search-match=contains --with-locked-configs=extra_siteconfig' COVERAGE='y'
+    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.4 --prefix=/tmp/modules --disable-libtclenvmodules --enable-compat-version --with-tcl=/usr/lib/tcl8.4 --enable-versioning --disable-silent-shell-debug-support --disable-set-shell-startup --disable-quarantine-support --with-initconf-in=etcdir --with-loadedmodules=null:dot --without-pager --disable-avail-indepth --with-terminal-background=light --with-unload-match-order=returnfirst --disable-implicit-default --with-search-match=contains --with-locked-configs=extra_siteconfig' COVERAGE='y'
            EXTRA_SCRIPT_PRETEST='make install-testinitrc install-testsiteconfig' EXTRA_SCRIPT_POSTTEST='make uninstall-testconfig'
       addons:
         apt:
@@ -114,7 +69,7 @@ jobs:
             # compatibility version-specific build requirements
             - automake
             - autopoint
-    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.5 --prefix=/tmp/modules --enable-compat-version --with-tcl=/usr/lib/tcl8.5 --disable-quarantine-support --with-loadedmodules=null:dot --with-pager=more --with-dark-background-colors=hi --with-locked-configs=implicit_default --enable-wa-277 --enable-advanced-version-spec --disable-ml' COVERAGE='y'
+    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.5 --prefix=/tmp/modules --enable-compat-version --with-tcl=/usr/lib/tcl8.5 --disable-quarantine-support --enable-dotmodulespath --with-pager=more --with-dark-background-colors=hi --with-locked-configs=implicit_default --enable-wa-277 --enable-advanced-version-spec --disable-ml' COVERAGE='y'
            EXTRA_SCRIPT_PRETEST='make install-testmodulerc-1 install-testetcrc install-testmodspath' EXTRA_SCRIPT_POSTTEST='make uninstall-testconfig'
       addons:
         apt:
