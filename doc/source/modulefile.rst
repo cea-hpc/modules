@@ -959,10 +959,8 @@ additional descriptive information about the *modulefile*.
 ENVIRONMENT
 -----------
 
-.. envvar:: MODULEPATH
-
- Path of directories containing *modulefiles*.
-
+See the :ref:`ENVIRONMENT<module ENVIRONMENT>` section in the
+:ref:`module(1)` man page.
 
 SEE ALSO
 --------
