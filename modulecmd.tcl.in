@@ -10083,6 +10083,15 @@ proc parseModuleVersionSpecifier {mlspec args} {
 }
 
 proc setModuleVersSpec {modarg modname cmpspec versspec} {
+   # translate @loaded version into currently loaded mod matching modname
+   if {$cmpspec eq {eq} && $versspec eq {loaded}} {
+      if {[set lmmod [getLoadedMatchingName $modname]] ne {}} {
+         set modname [file dirname $lmmod]
+         set versspec [file tail $lmmod]
+      } else {
+         knerror "No loaded version found for '$modname' module"
+      }
+   }
    # save module root name
    set modroot [lindex [file split $modname] 0]
    # save module single designation if any and module name
