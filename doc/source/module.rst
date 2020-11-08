@@ -1029,6 +1029,11 @@ exists for these ``default`` or ``latest`` version names. Using the
 ``mod@latest`` (or ``mod/latest``) syntax ensures highest available version
 will be selected.
 
+The symbolic version ``loaded`` may be used over loaded module name to
+designate the loaded version of the module. This version symbol should be
+specified using the ``@`` prefix notation (e.g. ``foo@loaded``). An error is
+returned if no version of designated module is currently loaded.
+
 
 Collections
 ^^^^^^^^^^^
