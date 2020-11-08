@@ -1,0 +1,255 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2020/11/07
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test automatic symbol 'loaded' applied to loaded module
+#		}C%
+#
+##############################################################################
+
+# ensure tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+set mp "$modpath.3"
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+# advanced version specifiers need to be enabled
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+
+#
+# test '@loaded' when no matching module loaded
+#
+
+testouterr_cmd sh {load foo@loaded} ERR [err_noloaded foo]
+testouterr_cmd sh {unload foo@loaded} ERR [err_noloaded foo]
+testouterr_cmd sh {switch foo@loaded} ERR [err_noloaded foo]
+testouterr_cmd sh {display foo@loaded} ERR [err_noloaded foo]
+testouterr_cmd sh {help foo@loaded} ERR [err_noloaded foo]
+testouterr_cmd sh {test foo@loaded} ERR [err_noloaded foo]
+testouterr_cmd sh {avail -t foo@loaded} ERR [err_noloaded foo]
+testouterr_cmd sh {whatis foo@loaded} ERR [err_noloaded foo]
+testouterr_cmd sh {path foo@loaded} ERR [err_noloaded foo]
+testouterr_cmd sh {paths foo@loaded} ERR [err_noloaded foo]
+testouterr_cmd sh {is-loaded foo@loaded} ERR [err_noloaded foo]
+testouterr_cmd sh {is-avail foo@loaded} ERR [err_noloaded foo]
+# info-loaded does not support advanced version spec
+testouterr_cmd sh {info-loaded foo@loaded} OK {}
+
+
+#
+# test '@loaded' when matching module loaded
+#
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+
+testouterr_cmd sh {load foo@loaded} OK {}
+
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd sh {unload foo@loaded} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/1.0]
+lappend ans [list setpath _LMFILES_ $mp/foo/1.0]
+testouterr_cmd sh {switch foo@loaded} $ans {}
+
+set tserr "$modlin
+$mpre/foo/1.0:
+
+module-whatis\tfoo/1.0
+$modlin"
+testouterr_cmd_re sh {display foo@loaded} OK $tserr
+set tserr "$modlin
+Module Specific Help for $mpre/foo/1.0:
+
+WARNING: Unable to find ModulesHelp in $mpre/foo/1.0.
+$modlin"
+testouterr_cmd_re sh {help foo@loaded} OK $tserr
+set tserr "$modlin
+Module Specific Test for $mpre/foo/1.0:
+
+WARNING: Unable to find ModulesTest in $mpre/foo/1.0.
+$modlin"
+testouterr_cmd_re sh {test foo@loaded} OK $tserr
+
+set tserr "$mp:\nfoo/1.0"
+testouterr_cmd sh {avail -t foo@loaded} OK $tserr
+set tserr "$modlin $mpre $modlin\n\\s+foo/1.0: foo/1.0"
+testouterr_cmd_re sh {whatis foo@loaded} OK $tserr
+
+set ans [list]
+lappend ans [list text $mp/foo/1.0]
+testouterr_cmd sh {path foo@loaded} $ans {}
+testouterr_cmd sh {paths foo@loaded} $ans {}
+testouterr_cmd sh {is-loaded foo@loaded} OK {}
+testouterr_cmd sh {is-avail foo@loaded} OK {}
+# info-loaded does not support advanced version spec
+testouterr_cmd sh {info-loaded foo@loaded} OK {}
+
+
+#
+# test '@loaded' when advanced_version_spec is disabled
+#
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+
+# no matching module loaded
+unsetenv_loaded_module
+testouterr_cmd_re sh {display foo@loaded} ERR [err_unablelocate foo@loaded]
+
+# matching module loaded
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+testouterr_cmd_re sh {display foo@loaded} ERR [err_unablelocate foo@loaded]
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+
+#
+# test '/loaded'
+#
+
+# when module is loaded and advanced_version_spec enabled
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+testouterr_cmd_re sh {display foo/loaded} ERR [err_unablelocate foo/loaded]
+
+# when module is loaded and advanced_version_spec disabled
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+testouterr_cmd_re sh {display foo/loaded} ERR [err_unablelocate foo/loaded]
+
+# when module is not loaded and advanced_version_spec enabled
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+unsetenv_loaded_module
+testouterr_cmd_re sh {display foo/loaded} ERR [err_unablelocate foo/loaded]
+
+# when module is not loaded and advanced_version_spec disabled
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+testouterr_cmd_re sh {display foo/loaded} ERR [err_unablelocate foo/loaded]
+
+
+#
+# test with ml
+#
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+testouterr_cmd_re sh {ml display foo@loaded} ERR [err_noloaded foo]
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+set tserr "$modlin
+$mpre/foo/1.0:
+
+module-whatis\tfoo/1.0
+$modlin"
+testouterr_cmd_re sh {ml display foo@loaded} OK $tserr
+
+
+#
+# test version list specification
+#
+
+testouterr_cmd_re sh {display foo@3.0,loaded} ERR [err_unablelocate foo@3.0,loaded]
+set tserr "$modlin
+$mpre/foo/2.0:
+
+module-whatis\tfoo/2.0
+$modlin"
+testouterr_cmd_re sh {display foo@2.0,loaded} OK $tserr
+unsetenv_loaded_module
+
+
+#
+# usage in modulefile
+#
+
+set tserr [msg_moderr {No loaded version found for 'foo' module} {prereq foo@loaded} $mp/advvers/1.0 2]
+testouterr_cmd sh {load --auto advvers/1.0} ERR [msg_load advvers/1.0 $tserr]
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/1.0:advvers/1.0]
+lappend ans [list setpath _LMFILES_ $mp/foo/1.0:$mp/advvers/1.0]
+lappend ans [list setpath MODULES_LMPREREQ advvers/1.0&foo@loaded]
+lappend ans [list setpath MODULES_LMALTNAME advvers/1.0&as|advvers/default&as|advvers/latest]
+testouterr_cmd_re sh {load --auto advvers/1.0} $ans {}
+
+
+#
+# test unload_match_order
+#
+
+setenv_var MODULES_UNLOAD_MATCH_ORDER returnlast
+setenv_loaded_module [list foo/2.0 foo/1.0] [list $mp/foo/2.0 $mp/foo/1.0]
+set tserr "$modlin
+$mpre/foo/1.0:
+
+module-whatis\tfoo/1.0
+$modlin"
+testouterr_cmd_re sh {display foo@loaded} OK $tserr
+
+setenv_var MODULES_UNLOAD_MATCH_ORDER returnfirst
+set tserr "$modlin
+$mpre/foo/2.0:
+
+module-whatis\tfoo/2.0
+$modlin"
+testouterr_cmd_re sh {display foo@loaded} OK $tserr
+
+unsetenv_loaded_module
+unsetenv_var MODULES_UNLOAD_MATCH_ORDER
+
+
+#
+# test over deep modules
+#
+
+setenv_path_var MODULEPATH $modpath.deep
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+testouterr_cmd sh {display plain/dir1@loaded} ERR [err_noloaded plain/dir1]
+testouterr_cmd sh {display plain@loaded} ERR [err_noloaded plain]
+testouterr_cmd sh {display plain/dir2@loaded} ERR [err_noloaded plain/dir2]
+
+setenv_loaded_module [list plain/dir1/1.0] [list $modpath.deep/plain/dir1/1.0]
+set tserr "$modlin
+$modpathre.deep/plain/dir1/1.0:
+
+module-whatis\tplain/dir1/1.0
+conflict\tplain/dir1
+setenv\t\tTEST plain/dir1/1.0
+$modlin"
+testouterr_cmd_re sh {display plain/dir1@loaded} OK $tserr
+testouterr_cmd_re sh {display plain@loaded} OK $tserr
+testouterr_cmd sh {display plain/dir2@loaded} ERR [err_noloaded plain/dir2]
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+unsetenv_loaded_module
+setenv_path_var MODULEPATH $modpath
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+unsetenv_var MODULES_IMPLICIT_DEFAULT
+
+unset mp
+unset mpre
+unset ans
+unset tserr
