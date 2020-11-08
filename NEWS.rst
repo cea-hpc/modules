@@ -57,6 +57,9 @@ Modules 4.7.0 (not yet released)
 * Remove the pre-definition of runtime states with no specific property. These
   basic states are defined on-the-fly which implied they are not reported on a
   :subcmd:`module config --dump-state<config>` command unless if instanciated.
+* Introduce the ``loaded`` symbolic version among advanced version specifiers
+  (e.g. ``foo@loaded``) to designate the currently loaded version of specified
+  module. (fix issue #366)
 
 
 .. _4.6 release notes:

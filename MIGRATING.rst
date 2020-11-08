@@ -45,6 +45,28 @@ The :mfvar:`ModuleTool` and :mfvar:`ModuleToolVersion` variables and the
 :mfcmd:`versioncmp` modulefile command are supported by the `Lmod`_ project
 starting version ``8.4.8``.
 
+Symbolic version to designate module loaded version
+---------------------------------------------------
+
+When the `Advanced module version specifiers`_ is enabled, the ``loaded``
+symbolic version may be used to designate the currently loaded version of
+specified module.
+
+.. code-block:: console
+
+    $ ml display foo@loaded
+    -------------------------------------------------------------------
+    /path/to/modulefiles/foo/1.0:
+    
+    module-whatis   foo/1.0
+    -------------------------------------------------------------------
+
+If no version of specified module can be found loaded, an error is returned.
+
+.. code-block:: console
+
+    $ ml display foo@loaded
+    ERROR: No loaded version found for 'foo' module
 
 From v4.5 to v4.6
 =================
