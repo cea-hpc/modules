@@ -1,3 +1,6 @@
+env:
+  MAKE: make
+
 clone_template: &CLONE_TEMPLATE
   # need to supersede Cirrus CI-specific git clone with a regular git client
   clone_script: |
@@ -38,33 +41,35 @@ artifacts_template: &ARTIFACTS_TEMPLATE
 
 build_install_test_template: &BUILD_INSTALL_TEST_TEMPLATE
   build_script:
-    - gmake
+    - $MAKE
   test_script:
-    - gmake test-deps
+    - $MAKE test-deps
     - script/mt
   install_script:
-    - gmake install
+    - $MAKE install
   testinstall_script:
     - script/mt install
   uninstall_script:
-    - gmake uninstall
+    - $MAKE uninstall
 
 build_install_xvfbtest_template: &BUILD_INSTALL_XVBFTEST_TEMPLATE
   build_script:
-    - gmake
+    - $MAKE
   test_script:
-    - gmake test-deps
+    - $MAKE test-deps
     - xvfb-run script/mt
   install_script:
-    - gmake install
+    - $MAKE install
   testinstall_script:
     - xvfb-run script/mt install
   uninstall_script:
-    - gmake uninstall
+    - $MAKE uninstall
 
 
 task:
   << : *CLONE_TEMPLATE
+  env:
+    MAKE: gmake
   freebsd_instance:
     matrix:
       image_family: freebsd-11-3-snap
