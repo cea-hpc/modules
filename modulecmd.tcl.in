@@ -4938,40 +4938,31 @@ proc setModspecHidingLevel {modspec lvl} {
 # current search query and hiding threshold. when retdetails option is
 # enabled, mod hiding level and query match hind are also returned
 proc isModuleHidden {mod {modspec {}} {retdetails 0}} {
-   set testid $mod:$modspec:$retdetails
-   # returned saved result if already tested
-   if {[info exists ::g_isModuleHiddenMemCache($testid)]} {
-      return $::g_isModuleHiddenMemCache($testid)
+   if {[set hidlvl [getModuleHidingLevel $mod]] >= [getState\
+      hiding_threshold]} {
+      # soft hidden mods are considered matched if their root name matches
+      # search query, other kind of hidden most must fuly matches query
+      set hidmatch [expr {$hidlvl == 0 ? [expr {[modStartNb $mod $modspec]\
+         > 0}] : [modEq $modspec $mod eqspec]}]
    } else {
-      if {[set hidlvl [getModuleHidingLevel $mod]] >= [getState\
-         hiding_threshold]} {
-         # soft hidden mods are considered matched if their root name matches
-         # search query, other kind of hidden most must fuly matches query
-         set hidmatch [expr {$hidlvl == 0 ? [expr {[modStartNb $mod $modspec]\
-            > 0}] : [modEq $modspec $mod eqspec]}]
-      } else {
-         set hidlvl -1
-         set hidmatch 0
-      }
-      if {$hidlvl < 1 && [isModuleDotHidden $mod] && [getState\
-         hiding_threshold] < 1} {
-         set hidlvl 1
-         # dot hidden are considered matched if remaining string part after
-         # search query is not dot hidden
-         set hidmatch [expr {[set i [modStartNb $mod $modspec]] > 0 &&\
-            ![isModuleDotHidden [join [lrange [file split $mod] $i end] /]]}]
-      }
-      # hidden if hiding level greater or equal hiding threshold and not
-      # matched or if matched hard hiding level are kept hidden
-      set ishid [expr {$hidlvl != -1 && (!$hidmatch || $hidlvl > 1)}]
-
-      set ret [expr {$retdetails ? [list $hidlvl $hidmatch $ishid] : $ishid}]
-
-      # cache test result
-      set ::g_isModuleHiddenMemCache($testid) $ret
-
-      return $ret
+      set hidlvl -1
+      set hidmatch 0
    }
+   if {$hidlvl < 1 && [isModuleDotHidden $mod] && [getState\
+      hiding_threshold] < 1} {
+      set hidlvl 1
+      # dot hidden are considered matched if remaining string part after
+      # search query is not dot hidden
+      set hidmatch [expr {[set i [modStartNb $mod $modspec]] > 0 &&\
+         ![isModuleDotHidden [join [lrange [file split $mod] $i end] /]]}]
+   }
+   # hidden if hiding level greater or equal hiding threshold and not
+   # matched or if matched hard hiding level are kept hidden
+   set ishid [expr {$hidlvl != -1 && (!$hidmatch || $hidlvl > 1)}]
+
+   set ret [expr {$retdetails ? [list $hidlvl $hidmatch $ishid] : $ishid}]
+
+   return $ret
 }
 
 # check if module name is specified as a full pathname (not a name relative
