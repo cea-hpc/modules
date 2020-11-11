@@ -784,14 +784,14 @@ setenv_path_var MODULES_LMPREREQ rce&rcd:rcd&rcc:rcc&rcb:rcb&rca
 unsetenv_path_var MODULES_LMCONFLICT
 
 set ans [list]
-lappend ans [list setpath MODULES_LMPREREQ rcc&rcb]
-lappend ans [list setpath _LMFILES_ $mp/rcc]
-lappend ans [list setpath LOADEDMODULES rcc]
-lappend ans [list setpath MODULES_LMNOTUASKED rcc]
+lappend ans [list setpath MODULES_LMPREREQ rcc&rcb:rcb&rca]
+lappend ans [list setpath _LMFILES_ $mp/rca:$mp/rcb:$mp/rcc]
+lappend ans [list setpath LOADEDMODULES rca:rcb:rcc]
+lappend ans [list setpath MODULES_LMNOTUASKED rca:rcb:rcc]
 lappend ans [list ERR]
-set tserr [list {unload rce} {unload rcd} {unload rcc} \n[msg_unload rcc $err_evalabort]\n {unload rcb} {unload rca}]
+set tserr [list {unload rce} {unload rcd} {unload rcc} \n[msg_unload rcc $err_evalabort]\n\n[msg_unload rcb [err_deplo rcc]]\n\n[msg_unload rca [err_deplo rcb]]]
 testouterr_cmd_re sh {purge} $ans [join $tserr \n]
-# adding --force argument does not change a thing
+# adding --force argument does not change a thing currently
 testouterr_cmd_re sh {purge --force} $ans [join $tserr \n]
 
 
