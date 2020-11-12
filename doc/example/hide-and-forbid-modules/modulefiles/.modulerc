@@ -1,0 +1,30 @@
+#%Module
+
+# hide modules only loaded as dependency
+module-hide --soft deplibA deplibB
+
+# hide modules not from user's scientific field
+module-hide --soft --not-group bio bioappA bioappB
+module-hide --soft --not-group chem chemappA chemappB
+
+# forbid use of modules unless software user agreement is signed
+set msg {User agreement for ChemAppA application must be validated to use it
+1. Please connect to https://ChemAppA.example.org
+2. Read the Term of Use and sign it
+3. Send back this signed agreement to our service desk}
+module-forbid --not-group chemappA --message $msg chemappA
+
+# fully hide and forbid modules unless user owns a license token
+module-hide --hard --not-group appB appB
+set msg {Access is restricted to owners of license token}
+module-forbid --not-group appB --message $msg appB
+
+# test new version of chemappB prior general availability
+module-hide --before 2020-11-18 --not-group pilot chemappB/2.0
+
+# decommission of old version of appA
+set nearmsg {appA/1.0 will be decommissioned, please use appA/2.0}
+set msg {appA/1.0 is decommissioned, please use appA/2.0}
+module-hide --hard --after 2020-11-18 --not-group eol appA/1.0
+module-forbid --after 2020-11-18 --not-group eol \
+   --nearly-message $nearmsg --message $msg appA/1.0
