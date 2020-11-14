@@ -8,6 +8,42 @@ documents those changes that are of interest to users and admins.
 
 .. _4.6 release notes:
 
+Modules 4.6.1 (2020-11-14)
+--------------------------
+
+* Lib: implement ``initStateClockSeconds`` as a Tcl command in
+  libtclenvmodules to provide an optimized way to retrieve current Epoch time.
+* Lib: implement ``parseDateTimeArg`` as a Tcl command in libtclenvmodules to
+  provide an optimized way to convert a datetime string into an Epoch time.
+* When full module specification is equal to ``@``, raise an error as no
+  module name is provided. (fix issue #362)
+* Optimize internal recording of hidden module and tag specification when
+  parsing modulerc files in order to reduce the time taken to test if a given
+  module is hidden or if a given tag applies to it.
+* Script: add the ability to select the benchmark test to perform on
+  :command:`mb` utility.
+* Doc: add *Use new features without breaking old module command* cookbook
+  recipe
+* Doc: rework option description for :mfcmd:`module-hide` and
+  :mfcmd:`module-forbid` commands in :ref:`modulefile(4)` document.
+* Doc: describe in :ref:`diff_v3_v4` document that shell special characters
+  like backticks are escaped when used in values starting Modules 4.0. (fix
+  issue #365)
+* Doc: make the ENVIRONMENT section from :ref:`modulefile(4)` man page point
+  to the ENVIRONMENT section of :ref:`module(1)` man page.
+* Fix :subcmd:`clear` sub-command to unset the :envvar:`MODULES_LMSOURCESH`
+  environment variable. (fix issue #367)
+* Correctly return on :subcmd:`avail` sub-command a symbolic version defined
+  in a global RC file when specifically searched. (fix issue #368)
+* Fix module hiding resolution for symbolic versions defined in a global RC
+  file when :mfcmd:`module-hide` statements are set in the modulepath where
+  the modulefiles targeted by these symbols are located. (fix issue #369)
+* When a module fails to unload during a :subcmd:`purge` sub-command, preserve
+  loaded the modules it requires to keep environment consistent. (fix issue
+  #370)
+* Doc: add *Hide and forbid modules* cookbook recipe.
+
+
 Modules 4.6.0 (2020-09-16)
 --------------------------
 
