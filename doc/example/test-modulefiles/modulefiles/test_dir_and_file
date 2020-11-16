@@ -1,39 +1,39 @@
-#%Module1.0 # -*- mode: tcl; -*-
+#%Module4.0 # -*- mode: tcl; -*-
 
 proc ModulesTest { } {
     set retcode 1  ;# default: 1 meaning PASS
 
     puts stderr "Running ModulesTest for directory existence..."
-    if { [file isdirectory $::env(TESTDIR)] } {
-        puts stderr "Is a directory: $::env(TESTDIR)"
+    if { [file isdirectory [getenv TESTDIR]] } {
+        puts stderr "Is a directory: [getenv TESTDIR]"
     } else {
-        puts stderr "ERROR: Is not a directory: $::env(TESTDIR)"
+        puts stderr "ERROR: Is not a directory: [getenv TESTDIR]"
         set retcode 0
     }
     puts stderr "Running ModulesTest for directory existence...done"
 
     puts stderr "Running ModulesTest for directory permissions..."
-    set cmd { cd $::env(TESTDIR) }
+    set cmd { cd [getenv TESTDIR] }
     if { [catch $cmd errmsg] } {
-        puts stderr "ERROR: Was not able to enter directory $::env(TESTDIR): ${errmsg}"
+        puts stderr "ERROR: Was not able to enter directory [getenv TESTDIR]: ${errmsg}"
         set retcode 0
     } else {
-        puts stderr "Was able to enter directory $::env(TESTDIR)"
+        puts stderr "Was able to enter directory [getenv TESTDIR]"
     }
     puts stderr "Running ModulesTest for directory permissions...done"
 
     puts stderr "Running ModulesTest for file creation..."
-    set cmd { open $::env(TESTFILE) w }
+    set cmd { open [getenv TESTFILE] w }
     if { [catch $cmd errmsg] } {
-        puts stderr "ERROR: Was not able to create file $::env(TESTFILE): ${errmsg}"
+        puts stderr "ERROR: Was not able to create file [getenv TESTFILE]: ${errmsg}"
         set retcode 0
     } else {
-        puts stderr "Was able to create file $::env(TESTFILE)"
+        puts stderr "Was able to create file [getenv TESTFILE]"
     }
     puts stderr "Running ModulesTest for file creation...done"
 
     return $retcode
 }
 
-setenv TESTDIR  /tmp/$::env(USER)/testdir
-setenv TESTFILE $::env(TESTDIR)/testfile
+setenv TESTDIR  /tmp/[getenv USER]/testdir
+setenv TESTFILE [getenv TESTDIR]/testfile
