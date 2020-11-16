@@ -499,6 +499,8 @@ Environment
 
 :envvar:`MODULES_LMTAG`
 
+:envvar:`MODULES_TAG_ABBREV`
+
  These environment variables appeared on version ``4.7`` and are not supported on compatibility version.
 
 
