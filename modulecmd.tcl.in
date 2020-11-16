@@ -4982,6 +4982,21 @@ proc getTagList {mod {serialized 0}} {
    return $ret
 }
 
+proc abbrevTagList {taglist} {
+   set ret [list]
+   foreach tag $taglist {
+      if {[info exists ::g_tagAbbrev($tag)]} {
+         # empty string abbrev means no tag report
+         if {$::g_tagAbbrev($tag) ne {}} {
+            lappend ret $::g_tagAbbrev($tag)
+         }
+      } else {
+         lappend ret $tag
+      }
+   }
+   return [lsort -dictionary $ret]
+}
+
 proc isModuleDotHidden {mod} {
    foreach elt [split $mod /] {
       if {[string index $elt 0] eq {.}} {
@@ -9406,6 +9421,9 @@ proc listModules {dir mod show_mtime filter search} {
    # output is JSON format
    set json [isStateEqual report_format json]
 
+   # prepare list of tag abbreviations that can be substituted
+   getConf tag_abbrev
+
    # prepare results for display
    set alias_colored [expr {[sgr al {}] ne {}}]
    set default_colored [expr {[sgr de {}] ne {}}]
@@ -9414,6 +9432,10 @@ proc listModules {dir mod show_mtime filter search} {
    foreach elt [array names mod_list] {
       set sym_list [getVersAliasList $elt]
       set tag_list [getTagList $elt]
+      # abbrieviate tags unless for json output
+      if {!$json} {
+         set tag_list [abbrevTagList $tag_list]
+      }
       set dispsgr {}
       # ignore "version" entries as symbolic version are treated
       # along to their relative modulefile not independently
@@ -10471,6 +10493,9 @@ proc cmdModuleList {show_oneperline show_mtime} {
       # load tags from loaded modules
       cacheCurrentModules
 
+      # prepare list of tag abbreviations that can be substituted
+      getConf tag_abbrev
+
       set display_list {}
       set default_colored [expr {[sgr de {}] ne {}}]
       set len_list {}
@@ -10493,6 +10518,10 @@ proc cmdModuleList {show_oneperline show_mtime} {
             set sym_list [lsort -dictionary $sym_list]
             # fetch tags but clear obvious 'loaded' tag
             set tag_list [replaceFromList [getTagList $mod] loaded]
+            # abbrieviate tags unless for json output
+            if {!$json} {
+               set tag_list [abbrevTagList $tag_list]
+            }
 
             if {$json} {
                set dispsgr [formatListEltToJsonDisplay $mod type s modulefile\
