@@ -292,6 +292,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@wa277@|$(setwa277)|g' \
 	-e 's|@icase@|$(icase)|g' \
 	-e 's|@nearlyforbiddendays@|$(nearlyforbiddendays)|g' \
+	-e 's|@tagabbrev@|$(tagabbrev)|g' \
 	-e 's|@autohandling@|$(setautohandling)|g' \
 	-e 's|@implicitrequirement@|$(setimplicitrequirement)|g' \
 	-e 's|@availindepth@|$(setavailindepth)|g' \

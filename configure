@@ -36,7 +36,8 @@ silentshdbgsupport setshellstartup quarantinesupport autohandling \
 availindepth implicitdefault extendeddefault moduleshome initconfin pager \
 pageropts verbosity color darkbgcolors lightbgcolors termbg lockedconfigs \
 icase unloadmatchorder searchmatch modulepath loadedmodules quarantinevars \
-wa277 advversspec ml windowssupport nearlyforbiddendays implicitrequirement"
+wa277 advversspec ml windowssupport nearlyforbiddendays implicitrequirement \
+tagabbrev"
 compatarglist=
 libarglist=
 
@@ -120,6 +121,7 @@ moduleshome=
 modulepath=
 windowssupport=n
 nearlyforbiddendays=14
+tagabbrev='auto-loaded=aL:loaded=L:hidden=H:forbidden=F:nearly-forbidden=nF'
 
 # git branch to use to build compat version
 compatbranch='c-3.2'
@@ -310,6 +312,12 @@ Optional Packages:
   --with-nearly-forbidden-days=VALUE
                           define the number of days a module is considered
                           nearly forbidden prior reaching its expiry date [$nearlyforbiddendays]
+  --with-tag-abbrev=ABBRVLIST
+                          define the abbreviation to use when reporting each
+                          module tag. Each element in ABBRVLIST is a tag name
+                          associated to an abbreviation string (elements in
+                          ABBRVLIST are separated by \`:')
+                          [$tagabbrev]
   --with-modulepath=PATHLIST
                           default modulepaths to set in default configuration
                           file to be enabled (each path in PATHLIST should
@@ -603,6 +611,8 @@ for arg in "$@"; do
       if [ -z "$nearlyforbiddendays" ] || ! [ "$nearlyforbiddendays" -eq "$nearlyforbiddendays" ] 2>/dev/null; then
          echo_error "Bad value for option \`--with-nearly-forbidden-days', value should be an integer"
       fi ;;
+   --with-tag-abbrev*|--without-tag-abbrev)
+      tagabbrev=$(get_package_value "$arg") ;;
    --with-modulepath=*|--without-modulepath)
       modulepath=$(get_package_value "$arg") ;;
    --with-loadedmodules=*|--without-loadedmodules)

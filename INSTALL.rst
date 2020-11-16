@@ -413,6 +413,12 @@ instance ``--without-modulepath``):
                       Define the number of days a module is considered nearly
                       forbidden prior reaching its expiry date.
                       (default=\ ``14``)
+--with-tag-abbrev=ABBRVLIST
+                      Define the abbreviation to use when reporting each
+                      module tag. Each element in ABBRVLIST is a tag name
+                      associated to an abbreviation string (elements in
+                      ABBRVLIST are separated by ``:``).
+                      (default=\ ``auto-loaded=aL:loaded=L:hidden=H:forbidden=F:nearly-forbidden=nF``)
 --with-modulepath=PATHLIST
                       Default path list to setup as the default modulepaths.
                       Each path in this list should be separated by ``:``.

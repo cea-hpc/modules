@@ -89,6 +89,7 @@ array set g_config_defs [list\
    shells_with_ksh_fpath {MODULES_SHELLS_WITH_KSH_FPATH {} 0}\
    silent_shell_debug {MODULES_SILENT_SHELL_DEBUG <undef> 0 {0 1}}\
    siteconfig {{} @etcdir@/siteconfig.tcl 0}\
+   tag_abbrev {MODULES_TAG_ABBREV {@tagabbrev@} 0 {} {} initConfTagAbbrev}\
    tcl_ext_lib {{} {} 0 {} {} initConfTclExtLib}\
    term_background {MODULES_TERM_BACKGROUND @termbg@ 0 {dark light}}\
    unload_match_order {MODULES_UNLOAD_MATCH_ORDER @unloadmatchorder@ 0\
@@ -539,6 +540,36 @@ proc initConfTclExtLib {envvar value validvallist intvallist} {
    @multilibsupport@}
 
    return [file join $libdir $libfile]
+}
+
+# Initialize module tag abbreviation table
+proc initConfTagAbbrev {envvar value validvallist intvallist} {
+   # overriden value coming from environment
+   if {[info exists ::env($envvar)]} {
+      if {[catch {
+         # try to set the tag-abbreviation mapping table
+         array set ::g_tagAbbrev [split $::env($envvar) {:=}]
+         set value $::env($envvar)
+      } errMsg ]} {
+         reportWarning "Ignore invalid value set in $envvar ($::env($envvar))"
+         array unset ::g_tagAbbrev
+      }
+   }
+
+   # test default value
+   if {![array exists ::g_tagAbbrev]} {
+      if {[catch {
+         array set ::g_tagAbbrev [split $value {:=}]
+      } errMsg ]} {
+         reportWarning "Ignore invalid default value for 'tag_abbrev' config\
+            ($value)"
+         array unset ::g_tagAbbrev
+         # define an empty list if no valid value set
+         set value {}
+      }
+   }
+
+   return $value
 }
 
 # Is currently set verbosity level is equal or higher than level passed as arg
