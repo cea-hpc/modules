@@ -26,14 +26,17 @@ set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
 # setup specific environment
 setenv_path_var MODULEPATH $mp
 
+# ensure default tag abbreviation is defined
+setenv_var MODULES_TAG_ABBREV {auto-loaded=aL:loaded=L:hidden=H:forbidden=F:nearly-forbidden=nF}
+
 # test with regular modulefile
 set tserr "$modlin $mpre $modlin
-tag/1.0 <forbidden>  "
+tag/1.0 <F>  "
 testouterr_cmd_re sh {avail tag/1.0} OK $tserr
 
 # terse output
 set tserr "$mp:
-tag/1.0 <forbidden>"
+tag/1.0 <F>"
 testouterr_cmd sh {avail -t tag/1.0} OK $tserr
 
 # long output
@@ -49,7 +52,7 @@ testouterr_cmd sh {avail -j tag/1.0} OK $tserr
 
 setenv_loaded_module [list tag/1.0] [list $mp/tag/1.0]
 set tserr "$modlin $mpre $modlin
-tag/1.0 <forbidden:loaded>  "
+tag/1.0 <F:L>  "
 testouterr_cmd_re sh {avail tag/1.0} OK $tserr
 
 set tserr "{\"$mp\": {
@@ -59,7 +62,7 @@ testouterr_cmd sh {avail -j tag/1.0} OK $tserr
 
 setenv_loaded_module [list tag/1.0] [list $mp/tag/1.0] [list tag/1.0]
 set tserr "$modlin $mpre $modlin
-tag/1.0 <auto-loaded:forbidden>  "
+tag/1.0 <aL:F>  "
 testouterr_cmd_re sh {avail tag/1.0} OK $tserr
 
 set tserr "{\"$mp\": {
@@ -70,7 +73,7 @@ testouterr_cmd sh {avail -j tag/1.0} OK $tserr
 # test with virtual module
 unsetenv_loaded_module
 set tserr "$modlin $mpre $modlin
-tag/2.0 <forbidden>  "
+tag/2.0 <F>  "
 testouterr_cmd_re sh {avail tag/2.0} OK $tserr
 
 set tserr "{\"$mp\": {
@@ -80,7 +83,7 @@ testouterr_cmd sh {avail -j tag/2.0} OK $tserr
 
 setenv_loaded_module [list tag/2.0] [list $mp/tag/1.0]
 set tserr "$modlin $mpre $modlin
-tag/2.0 <forbidden:loaded>  "
+tag/2.0 <F:L>  "
 testouterr_cmd_re sh {avail tag/2.0} OK $tserr
 
 set tserr "{\"$mp\": {
@@ -90,7 +93,7 @@ testouterr_cmd sh {avail -j tag/2.0} OK $tserr
 
 setenv_loaded_module [list tag/2.0] [list $mp/tag/1.0] [list tag/2.0]
 set tserr "$modlin $mpre $modlin
-tag/2.0 <auto-loaded:forbidden>  "
+tag/2.0 <aL:F>  "
 testouterr_cmd_re sh {avail tag/2.0} OK $tserr
 
 set tserr "{\"$mp\": {
@@ -101,7 +104,7 @@ testouterr_cmd sh {avail -j tag/2.0} OK $tserr
 # test with module alias
 unsetenv_loaded_module
 set tserr "$modlin $mpre $modlin
-tag/3.0\\(@\\) <forbidden>  "
+tag/3.0\\(@\\) <F>  "
 testouterr_cmd_re sh {avail tag/3.0} OK $tserr
 
 set tserr "{\"$mp\": {
@@ -112,7 +115,7 @@ testouterr_cmd sh {avail -j tag/3.0} OK $tserr
 setenv_loaded_module [list tag/1.0] [list $mp/tag/1.0]
 setenv_path_var MODULES_LMALTNAME tag/1.0&al|tag/3.0
 set tserr "$modlin $mpre $modlin
-tag/3.0\\(@\\) <forbidden>  "
+tag/3.0\\(@\\) <F>  "
 testouterr_cmd_re sh {avail tag/3.0} OK $tserr
 
 set tserr "{\"$mp\": {
@@ -122,7 +125,7 @@ testouterr_cmd sh {avail -j tag/3.0} OK $tserr
 
 setenv_loaded_module [list tag/1.0] [list $mp/tag/1.0] [list tag/1.0]
 set tserr "$modlin $mpre $modlin
-tag/3.0\\(@\\) <forbidden>  "
+tag/3.0\\(@\\) <F>  "
 testouterr_cmd_re sh {avail tag/3.0} OK $tserr
 
 set tserr "{\"$mp\": {

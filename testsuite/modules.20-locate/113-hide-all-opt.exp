@@ -33,6 +33,9 @@ setenv_var MODULES_SEARCH_MATCH starts_with
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 setenv_var MODULES_EXTENDED_DEFAULT 1
 
+# ensure default tag abbreviation is defined
+setenv_var MODULES_TAG_ABBREV {auto-loaded=aL:loaded=L:hidden=H:forbidden=F:nearly-forbidden=nF}
+
 set mp $modpath.2
 set mpre $modpathre.2
 setenv_path_var MODULEPATH $mp
@@ -54,13 +57,13 @@ testouterr_cmd sh {is-avail -a hide3} ERR {}
 testouterr_cmd sh {is-avail hide3 --all} ERR {}
 
 # test on avail
-testouterr_cmd sh {avail -a -t hide1@2:4} OK "$mp:\nhide1/2.0\nhide1/2.1\nhide1/2.2\nhide1/3.0\nhide1/3.1(default) <hidden>\nhide1/3.2\nhide1/4.0"
-testouterr_cmd sh {avail -t --all hide1@3,4} OK "$mp:\nhide1/3.0\nhide1/3.1(default) <hidden>\nhide1/3.2\nhide1/4.0"
-testouterr_cmd sh {avail -t -a hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.0(1.2:1.4) <hidden>\nhide2/1.1(@) <hidden>\nhide2/1.5 <hidden>"
-testouterr_cmd sh {avail --all -t hide3} OK "$mp:\nhide3/1.0 <hidden>\nhide3/al1(@) <hidden>\nhide3/al2(@) <hidden>\nhide3/sub1/(default)\nhide3/sub1/2.0 <hidden>\nhide3/sub1/3.0 <hidden>\nhide3/sub2/(sym)\nhide3/sub2/4.0(default:sym) <hidden>\nhide3/sub2/5.0(new) <hidden>"
-testouterr_cmd sh {avail -a -t hide3/sym} OK "$mp:\nhide3/sub2/(sym)\nhide3/sub2/4.0(default:sym) <hidden>\nhide3/sub2/5.0(new) <hidden>"
-testouterr_cmd sh {avail --all -t hide3/al2} OK "$mp:\nhide3/al2(@) <hidden>"
-testouterr_cmd sh {avail -t hide3/sub2 -a} OK "$mp:\nhide3/sub2/(sym)\nhide3/sub2/4.0(default:sym) <hidden>\nhide3/sub2/5.0(new) <hidden>"
+testouterr_cmd sh {avail -a -t hide1@2:4} OK "$mp:\nhide1/2.0\nhide1/2.1\nhide1/2.2\nhide1/3.0\nhide1/3.1(default) <H>\nhide1/3.2\nhide1/4.0"
+testouterr_cmd sh {avail -t --all hide1@3,4} OK "$mp:\nhide1/3.0\nhide1/3.1(default) <H>\nhide1/3.2\nhide1/4.0"
+testouterr_cmd sh {avail -t -a hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.0(1.2:1.4) <H>\nhide2/1.1(@) <H>\nhide2/1.5 <H>"
+testouterr_cmd sh {avail --all -t hide3} OK "$mp:\nhide3/1.0 <H>\nhide3/al1(@) <H>\nhide3/al2(@) <H>\nhide3/sub1/(default)\nhide3/sub1/2.0 <H>\nhide3/sub1/3.0 <H>\nhide3/sub2/(sym)\nhide3/sub2/4.0(default:sym) <H>\nhide3/sub2/5.0(new) <H>"
+testouterr_cmd sh {avail -a -t hide3/sym} OK "$mp:\nhide3/sub2/(sym)\nhide3/sub2/4.0(default:sym) <H>\nhide3/sub2/5.0(new) <H>"
+testouterr_cmd sh {avail --all -t hide3/al2} OK "$mp:\nhide3/al2(@) <H>"
+testouterr_cmd sh {avail -t hide3/sub2 -a} OK "$mp:\nhide3/sub2/(sym)\nhide3/sub2/4.0(default:sym) <H>\nhide3/sub2/5.0(new) <H>"
 
 # test on whatis
 set tserr "$modlin $mpre $modlin"
@@ -94,7 +97,7 @@ hide3/sym -> hide3/sub2
 (.*)+"
 
 # test through 'ml' command
-testouterr_cmd sh {ml avail -a -t hide1@2:4} OK "$mp:\nhide1/2.0\nhide1/2.1\nhide1/2.2\nhide1/3.0\nhide1/3.1(default) <hidden>\nhide1/3.2\nhide1/4.0"
+testouterr_cmd sh {ml avail -a -t hide1@2:4} OK "$mp:\nhide1/2.0\nhide1/2.1\nhide1/2.2\nhide1/3.0\nhide1/3.1(default) <H>\nhide1/3.2\nhide1/4.0"
 testouterr_cmd_re sh {ml whatis -a hide3} OK "$tserr\n\\s+hide3/1.0: hide3/1.0\n\\s+hide3/sub1/2.0: hide3/sub1/2.0\n\\s+hide3/sub1/3.0: hide3/sub1/3.0\n\\s+hide3/sub2/4.0: hide3/sub2/4.0\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
 
 # test with dot named modules
@@ -102,16 +105,16 @@ testouterr_cmd_re sh {ml whatis -a hide3} OK "$tserr\n\\s+hide3/1.0: hide3/1.0\n
 testouterr_cmd_re sh {avail -a -t} OK "(.*)+
 $mpre:
 (.*)+
-extdfl/.1.3.3 <hidden>
-extdfl/.1.3.4 <hidden>
+extdfl/.1.3.3 <H>
+extdfl/.1.3.4 <H>
 (.*)+
-nocase/.hidden <hidden>
+nocase/.hidden <H>
 (.*)+"
 testouterr_cmd sh {avail -a -t -C /.} OK "$mp:
-extdfl/.1.3.3 <hidden>
-extdfl/.1.3.4 <hidden>
-hide4/.1.0 <hidden>
-nocase/.hidden <hidden>"
+extdfl/.1.3.3 <H>
+extdfl/.1.3.4 <H>
+hide4/.1.0 <H>
+nocase/.hidden <H>"
 
 # cannot test access if cannot change file permission
 if {!$is_file_perms_editable} {
@@ -130,7 +133,7 @@ change_file_perms $mp/hide3/sub1 ugo-rx
 change_file_perms $mp/hide1 ugo-rx
 testouterr_cmd sh {avail -a -t hide1} OK {}
 testouterr_cmd sh {avail -a -t hide1@2:4} OK {}
-testouterr_cmd sh {avail --all -t hide3} OK "$mp:\nhide3/1.0 <hidden>\nhide3/al1(@) <hidden>\nhide3/al2(@) <hidden>\nhide3/sub2/(sym)\nhide3/sub2/5.0(new) <hidden>"
+testouterr_cmd sh {avail --all -t hide3} OK "$mp:\nhide3/1.0 <H>\nhide3/al1(@) <H>\nhide3/al2(@) <H>\nhide3/sub2/(sym)\nhide3/sub2/5.0(new) <H>"
 testouterr_cmd sh {avail --all -t hide3/sub2@default} OK {}
 restore_file_perms $mp/hide3/sub2/4.0
 restore_file_perms $mp/hide3/sub1
@@ -189,9 +192,9 @@ testouterr_cmd_re sh {ml whatis -a hide3} ERR $err_path'hide3'
 # test with dot named module declared forbidden
 setenv_var TESTSUITE_HIDE4_CASC2_SET1 1
 testouterr_cmd sh {avail -a -t -C /.} OK "$mp:
-extdfl/.1.3.3 <hidden>
-extdfl/.1.3.4 <hidden>
-nocase/.hidden <hidden>"
+extdfl/.1.3.3 <H>
+extdfl/.1.3.4 <H>
+nocase/.hidden <H>"
 unsetenv_var TESTSUITE_HIDE4_CASC2_SET1
 
 # cannot test access if cannot change file permission

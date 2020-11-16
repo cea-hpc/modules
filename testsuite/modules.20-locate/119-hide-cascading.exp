@@ -34,6 +34,9 @@ setenv_var MODULES_SEARCH_MATCH starts_with
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 setenv_var MODULES_EXTENDED_DEFAULT 1
 
+# ensure default tag abbreviation is defined
+setenv_var MODULES_TAG_ABBREV {auto-loaded=aL:loaded=L:hidden=H:forbidden=F:nearly-forbidden=nF}
+
 set mp $modpath.2
 set mpre $modpathre.2
 setenv_path_var MODULEPATH $mp
@@ -70,7 +73,7 @@ unsetenv_var TESTSUITE_HIDE1_CASC_SET4
 # dot hiding wins over module-hide statements (module should always be precisely specified)
 setenv_var TESTSUITE_HIDE4_CASC_SET1 1
 testouterr_cmd sh {avail hide4} OK {}
-testouterr_cmd sh {avail -t hide4/.1.0} OK "$mp:\nhide4/.1.0 <hidden>"
+testouterr_cmd sh {avail -t hide4/.1.0} OK "$mp:\nhide4/.1.0 <H>"
 testouterr_cmd sh {load hide4} ERR $err_path'hide4'
 set ans [list]
 lappend ans [list setpath LOADEDMODULES hide4/.1.0]
@@ -83,7 +86,7 @@ unsetenv_var TESTSUITE_HIDE4_CASC_SET1
 
 setenv_var TESTSUITE_HIDE4_CASC_SET2 1
 testouterr_cmd sh {avail hide4} OK {}
-testouterr_cmd sh {avail -t hide4/.1.0} OK "$mp:\nhide4/.1.0 <hidden>"
+testouterr_cmd sh {avail -t hide4/.1.0} OK "$mp:\nhide4/.1.0 <H>"
 testouterr_cmd sh {load hide4} ERR $err_path'hide4'
 set ans [list]
 lappend ans [list setpath LOADEDMODULES hide4/.1.0]
@@ -200,7 +203,7 @@ unsetenv_var TESTSUITE_HIDE1_CASC4_SET2
 
 setenv_var TESTSUITE_HIDE1_CASC4_SET6 1
 testouterr_cmd sh {load hide1@5.0} $ans {}
-testouterr_cmd sh {avail -t hide1@5.0} OK "$mp:\nhide1/5.0 <hidden>"
+testouterr_cmd sh {avail -t hide1@5.0} OK "$mp:\nhide1/5.0 <H>"
 unsetenv_var TESTSUITE_HIDE1_CASC4_SET6
 
 setenv_var TESTSUITE_HIDE1_CASC4_SET7 1
@@ -256,7 +259,7 @@ lappend ans2 [list setpath _LMFILES_ $mp/hide1/5.0]
 lappend ans2 [list setpath MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
 lappend ans2 [list setpath MODULES_LMTAG hide1/5.0&nearly-forbidden]
 testouterr_cmd sh {load hide1@5.0} $ans2 [msg_load hide1/5.0 [err_accessnearlydenied [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]]]
-testouterr_cmd sh {avail -t hide1@5.0} OK "$mp:\nhide1/5.0 <nearly-forbidden>"
+testouterr_cmd sh {avail -t hide1@5.0} OK "$mp:\nhide1/5.0 <nF>"
 unsetenv_var TESTSUITE_HIDE1_CASC6_SET3
 
 setenv_var TESTSUITE_HIDE1_CASC6_SET4 1
@@ -319,12 +322,12 @@ unsetenv_var TESTSUITE_HIDE1_CASC7_SET4
 
 setenv_var TESTSUITE_HIDE1_CASC7_SET5 1
 testouterr_cmd sh {load hide1@5.0} $ans {}
-testouterr_cmd sh {avail -t hide1@5.0} OK "$mp:\nhide1/5.0 <hidden>"
+testouterr_cmd sh {avail -t hide1@5.0} OK "$mp:\nhide1/5.0 <H>"
 unsetenv_var TESTSUITE_HIDE1_CASC7_SET5
 
 setenv_var TESTSUITE_HIDE1_CASC7_SET6 1
 testouterr_cmd sh {load hide1@5.0} $ans {}
-testouterr_cmd sh {avail -t hide1@5.0} OK "$mp:\nhide1/5.0 <hidden>"
+testouterr_cmd sh {avail -t hide1@5.0} OK "$mp:\nhide1/5.0 <H>"
 unsetenv_var TESTSUITE_HIDE1_CASC7_SET6
 
 setenv_var TESTSUITE_HIDE1_CASC7_SET7 1

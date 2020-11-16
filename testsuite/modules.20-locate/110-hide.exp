@@ -34,6 +34,9 @@ setenv_var MODULES_SEARCH_MATCH starts_with
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 setenv_var MODULES_EXTENDED_DEFAULT 1
 
+# ensure default tag abbreviation is defined
+setenv_var MODULES_TAG_ABBREV {auto-loaded=aL:loaded=L:hidden=H:forbidden=F:nearly-forbidden=nF}
+
 set mp $modpath.2
 set mpre $modpathre.2
 setenv_path_var MODULEPATH $mp
@@ -185,9 +188,9 @@ testouterr_cmd sh {load hide1@2:4} $ans {}
 testouterr_cmd sh {load hide1@3,4} $ans {}
 
 # see hide1/1.0
-testouterr_cmd sh {avail -t hide1@1.0} OK "$mp:\nhide1/1.0 <hidden>"
+testouterr_cmd sh {avail -t hide1@1.0} OK "$mp:\nhide1/1.0 <H>"
 # see hide1/3.1
-testouterr_cmd sh {avail -t hide1/3.1} OK "$mp:\nhide1/3.1(default) <hidden>"
+testouterr_cmd sh {avail -t hide1/3.1} OK "$mp:\nhide1/3.1(default) <H>"
 # see everything except hide1@1.0,3.1
 testouterr_cmd sh {avail -t hide1} OK $mp:\nhide1/2.0\nhide1/2.1\nhide1/2.2\nhide1/3.0\nhide1/3.2\nhide1/4.0\nhide1/5.0
 # see everything except hide1/3.1
@@ -195,7 +198,7 @@ testouterr_cmd sh {avail -t hide1@2:4} OK $mp:\nhide1/2.0\nhide1/2.1\nhide1/2.2\
 # see everything except hide1/3.1
 testouterr_cmd sh {avail -t hide1@3,4} OK $mp:\nhide1/3.0\nhide1/3.2\nhide1/4.0
 # see hide1@3.1,4.0
-testouterr_cmd sh {avail -t hide1@3.1,4.0} OK "$mp:\nhide1/3.1(default) <hidden>\nhide1/4.0"
+testouterr_cmd sh {avail -t hide1@3.1,4.0} OK "$mp:\nhide1/3.1(default) <H>\nhide1/4.0"
 
 # same result expected than avail
 set tserr "$modlin $mpre $modlin"
@@ -287,11 +290,11 @@ testouterr_cmd sh {avail -t hide1@5} OK {}
 # see nothing
 testouterr_cmd sh {avail -t hide1@4:} OK {}
 # see hide1@4.0
-testouterr_cmd sh {avail -t hide1@4.0:} OK "$mp:\nhide1/4.0 <hidden>"
+testouterr_cmd sh {avail -t hide1@4.0:} OK "$mp:\nhide1/4.0 <H>"
 # see hide1@2.0,2.1,2.2
 testouterr_cmd sh {avail -t hide1@2,5} OK $mp:\nhide1/2.0\nhide1/2.1\nhide1/2.2
 # see hide1@2.2,5.0
-testouterr_cmd sh {avail -t hide1@2.2,5.0} OK "$mp:\nhide1/2.2\nhide1/5.0 <hidden>"
+testouterr_cmd sh {avail -t hide1@2.2,5.0} OK "$mp:\nhide1/2.2\nhide1/5.0 <H>"
 
 # same result expected than avail
 set tserr "$modlin $mpre $modlin"
@@ -382,11 +385,11 @@ testouterr_cmd sh {load hide2@default} $ans2 {}
 testouterr_cmd sh {load hide2@latest} $ans2 {}
 testouterr_cmd_re sh {load --auto hidereq/3.0} $ans4 [msg_top_load hidereq/3.0 {} {hide2/1.5 hide2/1.0} {}]
 testouterr_cmd sh {avail -t hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.1(@)\nhide2/1.5"
-testouterr_cmd sh {avail -t hide2/1.0} OK "$mp:\nhide2/1.0(1.2:1.4) <hidden>"
+testouterr_cmd sh {avail -t hide2/1.0} OK "$mp:\nhide2/1.0(1.2:1.4) <H>"
 testouterr_cmd sh {avail -t hide2/1.1} OK $mp:\nhide2/1.1(@)
-testouterr_cmd sh {avail -t hide2/1.2} OK "$mp:\nhide2/1.0(1.2:1.4) <hidden>"
+testouterr_cmd sh {avail -t hide2/1.2} OK "$mp:\nhide2/1.0(1.2:1.4) <H>"
 testouterr_cmd sh {avail -t hide2/1.3} OK "global/user modulerc:\nhide2/1.3(@)"
-testouterr_cmd sh {avail -t hide2/1.4} OK "$mp:\nhide2/1.0(1.2:1.4) <hidden>"
+testouterr_cmd sh {avail -t hide2/1.4} OK "$mp:\nhide2/1.0(1.2:1.4) <H>"
 testouterr_cmd sh {avail -t hide2/1.5} OK $mp:\nhide2/1.5
 testouterr_cmd sh {avail -t hide2@default} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
 testouterr_cmd sh {avail -t hide2@latest} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
@@ -429,7 +432,7 @@ testouterr_cmd sh {load hide2@latest} $ans2 {}
 testouterr_cmd_re sh {load --auto hidereq/3.0} $ans4 [msg_top_load hidereq/3.0 {} {hide2/1.5 hide2/1.0} {}]
 testouterr_cmd sh {avail -t hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.0(1.2:1.4)\nhide2/1.5"
 testouterr_cmd sh {avail -t hide2/1.0} OK $mp:\nhide2/1.0(1.2:1.4)
-testouterr_cmd sh {avail -t hide2/1.1} OK "$mp:\nhide2/1.1(@) <hidden>"
+testouterr_cmd sh {avail -t hide2/1.1} OK "$mp:\nhide2/1.1(@) <H>"
 testouterr_cmd sh {avail -t hide2/1.2} OK $mp:\nhide2/1.0(1.2:1.4)
 testouterr_cmd sh {avail -t hide2/1.3} OK "global/user modulerc:\nhide2/1.3(@)"
 testouterr_cmd sh {avail -t hide2/1.4} OK $mp:\nhide2/1.0(1.2:1.4)
@@ -630,7 +633,7 @@ testouterr_cmd sh {avail -t hide2/1.1} OK $mp:\nhide2/1.1(@)
 testouterr_cmd sh {avail -t hide2/1.2} OK $mp:\nhide2/1.0(1.2:1.4)
 testouterr_cmd sh {avail -t hide2/1.3} OK "global/user modulerc:\nhide2/1.3(@)"
 testouterr_cmd sh {avail -t hide2/1.4} OK $mp:\nhide2/1.0(1.2:1.4)
-testouterr_cmd sh {avail -t hide2/1.5} OK "$mp:\nhide2/1.5 <hidden>"
+testouterr_cmd sh {avail -t hide2/1.5} OK "$mp:\nhide2/1.5 <H>"
 # symbolic version does not count when looking for a default or latest (highest modulefile or alias is used)
 testouterr_cmd sh {avail -t hide2@default} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.1(@)"
 testouterr_cmd sh {avail -t hide2@latest} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.1(@)"
@@ -680,11 +683,11 @@ testouterr_cmd sh {load hide2@default} $ans2 {}
 testouterr_cmd sh {load hide2@latest} $ans2 {}
 testouterr_cmd_re sh {load --auto hidereq/3.0} $ans4 [msg_top_load hidereq/3.0 {} {hide2/1.5 hide2/1.0} {}]
 testouterr_cmd sh {avail -t hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
-testouterr_cmd sh {avail -t hide2/1.0} OK "$mp:\nhide2/1.0(1.2:1.4) <hidden>"
-testouterr_cmd sh {avail -t hide2/1.1} OK "$mp:\nhide2/1.1(@) <hidden>"
-testouterr_cmd sh {avail -t hide2/1.2} OK "$mp:\nhide2/1.0(1.2:1.4) <hidden>"
+testouterr_cmd sh {avail -t hide2/1.0} OK "$mp:\nhide2/1.0(1.2:1.4) <H>"
+testouterr_cmd sh {avail -t hide2/1.1} OK "$mp:\nhide2/1.1(@) <H>"
+testouterr_cmd sh {avail -t hide2/1.2} OK "$mp:\nhide2/1.0(1.2:1.4) <H>"
 testouterr_cmd sh {avail -t hide2/1.3} OK "global/user modulerc:\nhide2/1.3(@)"
-testouterr_cmd sh {avail -t hide2/1.4} OK "$mp:\nhide2/1.0(1.2:1.4) <hidden>"
+testouterr_cmd sh {avail -t hide2/1.4} OK "$mp:\nhide2/1.0(1.2:1.4) <H>"
 testouterr_cmd sh {avail -t hide2/1.5} OK $mp:\nhide2/1.5
 testouterr_cmd sh {avail -t hide2@default} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
 testouterr_cmd sh {avail -t hide2@latest} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
@@ -737,7 +740,7 @@ testouterr_cmd sh {avail -t hide2} OK "$mp:\nhide2/1.0(1.2)\nhide2/1.1(@)\nhide2
 testouterr_cmd sh {avail -t hide2/1.0} OK $mp:\nhide2/1.0(1.2)
 testouterr_cmd sh {avail -t hide2/1.1} OK $mp:\nhide2/1.1(@)
 testouterr_cmd sh {avail -t hide2/1.2} OK $mp:\nhide2/1.0(1.2)
-testouterr_cmd sh {avail -t hide2/1.3} OK "global/user modulerc:\nhide2/1.3(@) <hidden>"
+testouterr_cmd sh {avail -t hide2/1.3} OK "global/user modulerc:\nhide2/1.3(@) <H>"
 testouterr_cmd sh {avail -t hide2/1.4} OK $mp:\nhide2/1.0(1.2:1.4)
 testouterr_cmd sh {avail -t hide2/1.5} OK $mp:\nhide2/1.5
 testouterr_cmd sh {avail -t hide2@default} OK "$mp:\nhide2/1.5"
@@ -785,7 +788,7 @@ testouterr_cmd sh {load hide2@latest} $ans2 {}
 testouterr_cmd_re sh {load --auto hidereq/3.0} $ans4 [msg_top_load hidereq/3.0 {} {hide2/1.5 hide2/1.0} {}]
 testouterr_cmd sh {avail -t hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.0(1.2:1.4:1.6)\nhide2/1.5"
 testouterr_cmd sh {avail -t hide2/1.0} OK $mp:\nhide2/1.0(1.2:1.4:1.6)
-testouterr_cmd sh {avail -t hide2/1.1} OK "$mp:\nhide2/1.1(1.6:@) <hidden>"
+testouterr_cmd sh {avail -t hide2/1.1} OK "$mp:\nhide2/1.1(1.6:@) <H>"
 testouterr_cmd sh {avail -t hide2/1.2} OK $mp:\nhide2/1.0(1.2:1.4:1.6)
 testouterr_cmd sh {avail -t hide2/1.3} OK "global/user modulerc:\nhide2/1.3(@)"
 testouterr_cmd sh {avail -t hide2/1.4} OK $mp:\nhide2/1.0(1.2:1.4:1.6)
@@ -886,15 +889,15 @@ testouterr_cmd sh {load hide2@default} $ans {}
 testouterr_cmd sh {load hide2@latest} $ans2 {}
 testouterr_cmd_re sh {load --auto hidereq/3.0} $ans4 [msg_top_load hidereq/3.0 {} {hide2/1.5 hide2/1.0} {}]
 testouterr_cmd sh {avail -t hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.1(@)\nhide2/1.5"
-testouterr_cmd sh {avail -t hide2/1.0} OK "$mp:\nhide2/1.0(1.2:1.4:default) <hidden>"
+testouterr_cmd sh {avail -t hide2/1.0} OK "$mp:\nhide2/1.0(1.2:1.4:default) <H>"
 testouterr_cmd sh {avail -t hide2/1.1} OK $mp:\nhide2/1.1(@)
-testouterr_cmd sh {avail -t hide2/1.2} OK "$mp:\nhide2/1.0(1.2:1.4:default) <hidden>"
+testouterr_cmd sh {avail -t hide2/1.2} OK "$mp:\nhide2/1.0(1.2:1.4:default) <H>"
 testouterr_cmd sh {avail -t hide2/1.3} OK "global/user modulerc:\nhide2/1.3(@)"
-testouterr_cmd sh {avail -t hide2/1.4} OK "$mp:\nhide2/1.0(1.2:1.4:default) <hidden>"
+testouterr_cmd sh {avail -t hide2/1.4} OK "$mp:\nhide2/1.0(1.2:1.4:default) <H>"
 testouterr_cmd sh {avail -t hide2/1.5} OK $mp:\nhide2/1.5
-testouterr_cmd sh {avail -t hide2@default} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.0(1.2:1.4:default) <hidden>"
+testouterr_cmd sh {avail -t hide2@default} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.0(1.2:1.4:default) <H>"
 testouterr_cmd sh {avail -t hide2@latest} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
-testouterr_cmd sh {avail -t -d hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.0(1.2:1.4:default) <hidden>"
+testouterr_cmd sh {avail -t -d hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.0(1.2:1.4:default) <H>"
 testouterr_cmd sh {avail -t -L hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
 set tserr "$modlin $mpre $modlin"
 testouterr_cmd_re sh {whatis hide2} OK "$tserr\n\\s+hide2/1.0: hide2/1.0\n\\s+hide2/1.5: hide2/1.5"
@@ -938,15 +941,15 @@ testouterr_cmd sh {load hide2@default} $ans3 {}
 testouterr_cmd sh {load hide2@latest} $ans2 {}
 testouterr_cmd_re sh {load --auto hidereq/3.0} $ans4 [msg_top_load hidereq/3.0 {} {hide2/1.5 hide2/1.0} {}]
 testouterr_cmd sh {avail -t hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.1(@)\nhide2/1.5"
-testouterr_cmd sh {avail -t hide2/1.0} OK "$mp:\nhide2/1.0(1.2:1.4) <hidden>"
+testouterr_cmd sh {avail -t hide2/1.0} OK "$mp:\nhide2/1.0(1.2:1.4) <H>"
 testouterr_cmd sh {avail -t hide2/1.1} OK $mp:\nhide2/1.1(@)
-testouterr_cmd sh {avail -t hide2/1.2} OK "$mp:\nhide2/1.0(1.2:1.4) <hidden>"
+testouterr_cmd sh {avail -t hide2/1.2} OK "$mp:\nhide2/1.0(1.2:1.4) <H>"
 testouterr_cmd sh {avail -t hide2/1.3} OK "global/user modulerc:\nhide2/1.3(@)"
-testouterr_cmd sh {avail -t hide2/1.4} OK "$mp:\nhide2/1.0(1.2:1.4) <hidden>"
+testouterr_cmd sh {avail -t hide2/1.4} OK "$mp:\nhide2/1.0(1.2:1.4) <H>"
 testouterr_cmd sh {avail -t hide2/1.5} OK $mp:\nhide2/1.5
-testouterr_cmd sh {avail -t hide2@default} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.0(1.2:1.4:default) <hidden>"
+testouterr_cmd sh {avail -t hide2@default} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.0(1.2:1.4:default) <H>"
 testouterr_cmd sh {avail -t hide2@latest} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
-testouterr_cmd sh {avail -t -d hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.0(1.2:1.4:default) <hidden>"
+testouterr_cmd sh {avail -t -d hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.0(1.2:1.4:default) <H>"
 testouterr_cmd sh {avail -t -L hide2} OK "global/user modulerc:\nhide2/1.3(@)\n\n$mp:\nhide2/1.5"
 set tserr "$modlin $mpre $modlin"
 testouterr_cmd_re sh {whatis hide2} OK "$tserr\n\\s+hide2/1.0: hide2/1.0\n\\s+hide2/1.5: hide2/1.5"
@@ -1103,12 +1106,12 @@ testouterr_cmd sh {load hide2@default} ERR $err_path'hide2@default'
 testouterr_cmd sh {load hide2@latest} ERR $err_path'hide2@latest'
 testouterr_cmd_re sh {load --auto hidereq/3.0} $ans4 [msg_top_load hidereq/3.0 {} {hide2/1.5 hide2/1.0} {}]
 testouterr_cmd sh {avail -t hide2} OK "global/user modulerc:\nhide2/1.3(@)"
-testouterr_cmd sh {avail -t hide2/1.0} OK "$mp:\nhide2/1.0 <hidden>"
-testouterr_cmd sh {avail -t hide2/1.1} OK "$mp:\nhide2/1.1(@) <hidden>"
-testouterr_cmd sh {avail -t hide2/1.2} OK "$mp:\nhide2/1.0(1.2) <hidden>"
+testouterr_cmd sh {avail -t hide2/1.0} OK "$mp:\nhide2/1.0 <H>"
+testouterr_cmd sh {avail -t hide2/1.1} OK "$mp:\nhide2/1.1(@) <H>"
+testouterr_cmd sh {avail -t hide2/1.2} OK "$mp:\nhide2/1.0(1.2) <H>"
 testouterr_cmd sh {avail -t hide2/1.3} OK "global/user modulerc:\nhide2/1.3(@)"
-testouterr_cmd sh {avail -t hide2/1.4} OK "$mp:\nhide2/1.0(1.4) <hidden>"
-testouterr_cmd sh {avail -t hide2/1.5} OK "$mp:\nhide2/1.5 <hidden>"
+testouterr_cmd sh {avail -t hide2/1.4} OK "$mp:\nhide2/1.0(1.4) <H>"
+testouterr_cmd sh {avail -t hide2/1.5} OK "$mp:\nhide2/1.5 <H>"
 testouterr_cmd sh {avail -t hide2@default} OK "global/user modulerc:\nhide2/1.3(@)"
 testouterr_cmd sh {avail -t hide2@latest} OK "global/user modulerc:\nhide2/1.3(@)"
 testouterr_cmd sh {avail -t -d hide2} OK "global/user modulerc:\nhide2/1.3(@)"
@@ -1164,12 +1167,12 @@ lappend ans [list setpath MODULES_LMALTNAME hide3/sub1/3.0&as|hide3/sub1/default
 testouterr_cmd sh {load hide3/sub1@3.0} $ans {}
 testouterr_cmd sh {avail -t hide3} OK {}
 testouterr_cmd sh {avail -t hide3/sym} OK {}
-testouterr_cmd sh {avail -t hide3/al2} OK "$mp:\nhide3/al2(@) <hidden>"
+testouterr_cmd sh {avail -t hide3/al2} OK "$mp:\nhide3/al2(@) <H>"
 testouterr_cmd sh {avail -t hide3/sub1} OK {}
 testouterr_cmd sh {avail -t hide3/sub2} OK {}
 testouterr_cmd sh {avail -t hide3@latest} OK {}
-testouterr_cmd sh {avail -t hide3/sub1/2.0} OK "$mp:\nhide3/sub1/2.0 <hidden>"
-testouterr_cmd sh {avail -t hide3/sub2@new} OK "$mp:\nhide3/sub2/5.0(new) <hidden>"
+testouterr_cmd sh {avail -t hide3/sub1/2.0} OK "$mp:\nhide3/sub1/2.0 <H>"
+testouterr_cmd sh {avail -t hide3/sub2@new} OK "$mp:\nhide3/sub2/5.0(new) <H>"
 testouterr_cmd_re sh {whatis hide3} ERR $err_path'hide3'
 testouterr_cmd_re sh {whatis hide3/sym} ERR $err_path'hide3/sub2'
 testouterr_cmd_re sh {whatis hide3/al2} OK "$tserr\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
@@ -1234,7 +1237,7 @@ testouterr_cmd sh {avail -t hide3/sub1} OK "$mp:\nhide3/sub1/(default)\nhide3/su
 testouterr_cmd sh {avail -t hide3/sub2} OK {}
 testouterr_cmd sh {avail -t hide3@latest} OK "$mp:\nhide3/sub1/(default)\nhide3/sub1/2.0\nhide3/sub1/3.0"
 testouterr_cmd sh {avail -t hide3/sub1/2.0} OK "$mp:\nhide3/sub1/2.0"
-testouterr_cmd sh {avail -t hide3/sub2@new} OK "$mp:\nhide3/sub2/5.0(new) <hidden>"
+testouterr_cmd sh {avail -t hide3/sub2@new} OK "$mp:\nhide3/sub2/5.0(new) <H>"
 testouterr_cmd_re sh {whatis hide3} OK "$tserr\n\\s+hide3/1.0: hide3/1.0\n\\s+hide3/sub1/2.0: hide3/sub1/2.0\n\\s+hide3/sub1/3.0: hide3/sub1/3.0\n\\s+hide3/sub2/4.0: hide3/sub2/4.0\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
 testouterr_cmd_re sh {whatis hide3/sym} ERR $err_path'hide3/sub2'
 testouterr_cmd_re sh {whatis hide3/al2} OK "$tserr\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
@@ -1346,7 +1349,7 @@ testouterr_cmd sh {avail -t hide3/al2} OK "$mp:\nhide3/al2(@)"
 testouterr_cmd sh {avail -t hide3/sub1} OK "$mp:\nhide3/sub1/(default)\nhide3/sub1/3.0"
 testouterr_cmd sh {avail -t hide3/sub2} OK "$mp:\nhide3/sub2/(sym)\nhide3/sub2/4.0(sym)\nhide3/sub2/5.0(new)"
 testouterr_cmd sh {avail -t hide3@latest} OK "$mp:\nhide3/sub2/(sym)\nhide3/sub2/4.0(sym)\nhide3/sub2/5.0(new)"
-testouterr_cmd sh {avail -t hide3/sub1/2.0} OK "$mp:\nhide3/sub1/2.0 <hidden>"
+testouterr_cmd sh {avail -t hide3/sub1/2.0} OK "$mp:\nhide3/sub1/2.0 <H>"
 testouterr_cmd sh {avail -t hide3/sub2@new} OK "$mp:\nhide3/sub2/5.0(new)"
 testouterr_cmd_re sh {whatis hide3} OK "$tserr\n\\s+hide3/1.0: hide3/1.0\n\\s+hide3/sub1/3.0: hide3/sub1/3.0\n\\s+hide3/sub2/4.0: hide3/sub2/4.0\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
 testouterr_cmd_re sh {whatis hide3/sym} OK "$tserr\n\\s+hide3/sub2/4.0: hide3/sub2/4.0\n\\s+hide3/sub2/5.0: hide3/sub2/5.0"
@@ -1441,29 +1444,29 @@ unsetenv_var TESTSUITE_HIDE3_SET1
 # improve eqspec coverage in modEq procedure
 setenv_var TESTSUITE_HIDE_SET2 1
 setenv_var MODULES_EXTENDED_DEFAULT 0
-testouterr_cmd sh {avail -t hide1/4.0} OK "$mp:\nhide1/4.0 <hidden>"
+testouterr_cmd sh {avail -t hide1/4.0} OK "$mp:\nhide1/4.0 <H>"
 testouterr_cmd sh {avail -t hiDE1/4.0} OK {}
 testouterr_cmd sh {avail -t hide1/4} OK {}
 testouterr_cmd sh {avail -t hiDE1/4} OK {}
-testouterr_cmd sh {avail -t hide1@4.0,5.0} OK "$mp:\nhide1/4.0 <hidden>\nhide1/5.0 <hidden>"
+testouterr_cmd sh {avail -t hide1@4.0,5.0} OK "$mp:\nhide1/4.0 <H>\nhide1/5.0 <H>"
 testouterr_cmd sh {avail -t hiDE1@4.0,5.0} OK {}
 testouterr_cmd sh {avail -t hide1@4,5} OK {}
 testouterr_cmd sh {avail -t hiDE1@4,5} OK {}
-testouterr_cmd sh {avail -i -t hide1/4.0} OK "$mp:\nhide1/4.0 <hidden>"
-testouterr_cmd sh {avail -i -t hiDE1/4.0} OK "$mp:\nhide1/4.0 <hidden>"
+testouterr_cmd sh {avail -i -t hide1/4.0} OK "$mp:\nhide1/4.0 <H>"
+testouterr_cmd sh {avail -i -t hiDE1/4.0} OK "$mp:\nhide1/4.0 <H>"
 testouterr_cmd sh {avail -i -t hide1/4} OK {}
 testouterr_cmd sh {avail -i -t hiDE1/4} OK {}
-testouterr_cmd sh {avail -i -t hide1@4.0,5.0} OK "$mp:\nhide1/4.0 <hidden>\nhide1/5.0 <hidden>"
-testouterr_cmd sh {avail -i -t hiDE1@4.0,5.0} OK "$mp:\nhide1/4.0 <hidden>\nhide1/5.0 <hidden>"
+testouterr_cmd sh {avail -i -t hide1@4.0,5.0} OK "$mp:\nhide1/4.0 <H>\nhide1/5.0 <H>"
+testouterr_cmd sh {avail -i -t hiDE1@4.0,5.0} OK "$mp:\nhide1/4.0 <H>\nhide1/5.0 <H>"
 testouterr_cmd sh {avail -i -t hide1@4,5} OK {}
 testouterr_cmd sh {avail -i -t hiDE1@4,5} OK {}
 setenv_var MODULES_EXTENDED_DEFAULT 1
-testouterr_cmd sh {avail -i -t hide1/4.0} OK "$mp:\nhide1/4.0 <hidden>"
-testouterr_cmd sh {avail -i -t hiDE1/4.0} OK "$mp:\nhide1/4.0 <hidden>"
+testouterr_cmd sh {avail -i -t hide1/4.0} OK "$mp:\nhide1/4.0 <H>"
+testouterr_cmd sh {avail -i -t hiDE1/4.0} OK "$mp:\nhide1/4.0 <H>"
 testouterr_cmd sh {avail -i -t hide1/4} OK {}
 testouterr_cmd sh {avail -i -t hiDE1/4} OK {}
-testouterr_cmd sh {avail -i -t hide1@4.0,5.0} OK "$mp:\nhide1/4.0 <hidden>\nhide1/5.0 <hidden>"
-testouterr_cmd sh {avail -i -t hiDE1@4.0,5.0} OK "$mp:\nhide1/4.0 <hidden>\nhide1/5.0 <hidden>"
+testouterr_cmd sh {avail -i -t hide1@4.0,5.0} OK "$mp:\nhide1/4.0 <H>\nhide1/5.0 <H>"
+testouterr_cmd sh {avail -i -t hiDE1@4.0,5.0} OK "$mp:\nhide1/4.0 <H>\nhide1/5.0 <H>"
 testouterr_cmd sh {avail -i -t hide1@4,5} OK {}
 testouterr_cmd sh {avail -i -t hiDE1@4,5} OK {}
 testouterr_cmd sh {avail -i -t hiDE1/} OK $mp:\nhide1/1.0\nhide1/2.0\nhide1/2.1\nhide1/2.2\nhide1/3.0\nhide1/3.1(default)\nhide1/3.2

@@ -35,6 +35,9 @@ setenv_var MODULES_SEARCH_MATCH starts_with
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 setenv_var MODULES_EXTENDED_DEFAULT 1
 
+# ensure default tag abbreviation is defined
+setenv_var MODULES_TAG_ABBREV {auto-loaded=aL:loaded=L:hidden=H:forbidden=F:nearly-forbidden=nF}
+
 set mp $modpath.2
 set mpre $modpathre.2
 setenv_path_var MODULEPATH $mp
@@ -461,11 +464,11 @@ testouterr_cmd sh {load hide3/al2} $ans {}
 testouterr_cmd sh {load hide3/sub2/new} $ans {}
 testouterr_cmd sh {load hide3/sub2/5.0} $ans {}
 # avail
-testouterr_cmd sh {avail -t hide2/1.5} OK "$mp:\nhide2/1.5 <forbidden>"
-testouterr_cmd sh {avail -t hide3/1.0} OK "$mp:\nhide3/1.0 <forbidden>"
-testouterr_cmd sh {avail -t hide3/sub1} OK "$mp:\nhide3/sub1/(default)\nhide3/sub1/2.0 <forbidden>\nhide3/sub1/3.0 <forbidden>"
-testouterr_cmd sh {avail -t hide3/sub1/3.0} OK "$mp:\nhide3/sub1/3.0 <forbidden>"
-testouterr_cmd sh {avail -t hide3/al2} OK "$mp:\nhide3/al2(@) <forbidden>"
+testouterr_cmd sh {avail -t hide2/1.5} OK "$mp:\nhide2/1.5 <F>"
+testouterr_cmd sh {avail -t hide3/1.0} OK "$mp:\nhide3/1.0 <F>"
+testouterr_cmd sh {avail -t hide3/sub1} OK "$mp:\nhide3/sub1/(default)\nhide3/sub1/2.0 <F>\nhide3/sub1/3.0 <F>"
+testouterr_cmd sh {avail -t hide3/sub1/3.0} OK "$mp:\nhide3/sub1/3.0 <F>"
+testouterr_cmd sh {avail -t hide3/al2} OK "$mp:\nhide3/al2(@) <F>"
 testouterr_cmd sh {avail -t hide3/sub2/new} OK $mp:\nhide3/sub2/5.0(new)
 testouterr_cmd sh {avail -t hide3/sub2/5.0} OK $mp:\nhide3/sub2/5.0(new)
 # search
@@ -526,11 +529,11 @@ testouterr_cmd sh {load hide3/al2} $ans {}
 testouterr_cmd sh {load hide3/sub2/new} $ans {}
 testouterr_cmd sh {load hide3/sub2/5.0} $ans {}
 # avail
-testouterr_cmd sh {avail -t hide2/1.5} OK "$mp:\nhide2/1.5 <forbidden>"
-testouterr_cmd sh {avail -t hide3/1.0} OK "$mp:\nhide3/1.0 <forbidden>"
-testouterr_cmd sh {avail -t hide3/sub1} OK "$mp:\nhide3/sub1/(default)\nhide3/sub1/2.0 <forbidden>\nhide3/sub1/3.0 <forbidden>"
-testouterr_cmd sh {avail -t hide3/sub1/3.0} OK "$mp:\nhide3/sub1/3.0 <forbidden>"
-testouterr_cmd sh {avail -t hide3/al2} OK "$mp:\nhide3/al2(@) <forbidden>"
+testouterr_cmd sh {avail -t hide2/1.5} OK "$mp:\nhide2/1.5 <F>"
+testouterr_cmd sh {avail -t hide3/1.0} OK "$mp:\nhide3/1.0 <F>"
+testouterr_cmd sh {avail -t hide3/sub1} OK "$mp:\nhide3/sub1/(default)\nhide3/sub1/2.0 <F>\nhide3/sub1/3.0 <F>"
+testouterr_cmd sh {avail -t hide3/sub1/3.0} OK "$mp:\nhide3/sub1/3.0 <F>"
+testouterr_cmd sh {avail -t hide3/al2} OK "$mp:\nhide3/al2(@) <F>"
 testouterr_cmd sh {avail -t hide3/sub2/new} OK $mp:\nhide3/sub2/5.0(new)
 testouterr_cmd sh {avail -t hide3/sub2/5.0} OK $mp:\nhide3/sub2/5.0(new)
 # search
@@ -599,11 +602,11 @@ lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/5.0]
 lappend ans [list setpath MODULES_LMALTNAME hide3/sub2/5.0&hide3/sub2/new&as|hide3/sub2/latest]
 testouterr_cmd sh {load hide3/sub2/new} $ans {}
 # avail
-testouterr_cmd sh {avail -t hide2/1.5} OK "$mp:\nhide2/1.5 <forbidden:hidden>"
-testouterr_cmd sh {avail -t hide3/1.0} OK "$mp:\nhide3/1.0 <forbidden:hidden>"
+testouterr_cmd sh {avail -t hide2/1.5} OK "$mp:\nhide2/1.5 <F:H>"
+testouterr_cmd sh {avail -t hide3/1.0} OK "$mp:\nhide3/1.0 <F:H>"
 testouterr_cmd sh {avail -t hide3/sub1} OK {}
-testouterr_cmd sh {avail -t hide3/sub1/3.0} OK "$mp:\nhide3/sub1/3.0 <forbidden:hidden>"
-testouterr_cmd sh {avail -t hide3/al2} OK "$mp:\nhide3/al2(@) <forbidden:hidden>"
+testouterr_cmd sh {avail -t hide3/sub1/3.0} OK "$mp:\nhide3/sub1/3.0 <F:H>"
+testouterr_cmd sh {avail -t hide3/al2} OK "$mp:\nhide3/al2(@) <F:H>"
 testouterr_cmd sh {avail -t hide3/sub2/new} OK $mp:\nhide3/sub2/5.0(new)
 testouterr_cmd sh {avail -t hide3/sub2/5.0} OK $mp:\nhide3/sub2/5.0
 # search
@@ -750,7 +753,7 @@ setenv_var MODULES_NEARLY_FORBIDDEN_DAYS 1
 testouterr_cmd sh {load hide1/5.0} $ans [msg_load hide1/5.0 [err_accessnearlydenied $tomorrow]]
 testouterr_cmd_re sh {display hide1/5.0} OK "$modlin\n$mpre/hide1/5.0:\n\n[err_accessnearlydenied $tomorrow]\nmodule-whatis\thide1/5.0\n$modlin"
 testouterr_cmd_re sh {whatis hide1/5.0} OK "$modlin $mpre $modlin\n\\s+hide1/5.0: hide1/5.0"
-testouterr_cmd sh {avail -t hide1/5.0} OK "$mp:\nhide1/5.0 <nearly-forbidden>"
+testouterr_cmd sh {avail -t hide1/5.0} OK "$mp:\nhide1/5.0 <nF>"
 setenv_loaded_module [list hide1/5.0] [list $mp/hide1/5.0]
 testouterr_cmd sh {unload hide1/5.0} $ans2 {}
 unsetenv_loaded_module

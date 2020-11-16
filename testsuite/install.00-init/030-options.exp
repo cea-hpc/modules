@@ -30,7 +30,7 @@ foreach mod [list dot module-git module-info modules null use.own] {
    }
    append mod_examples $mod
    if {[lsearch -exact [split $install_loadedmodulesre :] $mod] != -1} {
-      append mod_examples { <loaded>}
+      append mod_examples { <L>}
    }
 }
 set lm_list [split $install_loadedmodulesre ":"]
@@ -213,12 +213,14 @@ if {$install_examplemodulefiles eq "y" && $modfilesdir_in_modpath} {
    if {$verbose > 0} {
       send_user "\tChecking example modulefiles installation\n"
    }
+   set env(MODULES_TAG_ABBREV) {loaded=L}
    foreach shell $shell_list {
       testall_cmd_re "$shell" "module avail -t" {} "$moddir_header\n$mod_examples" 0
    }
    foreach shell $othlang_list {
       testall_cmd_re "$shell" "avail,-t" {} "$moddir_header\n$mod_examples" 0
    }
+   unset env(MODULES_TAG_ABBREV)
    # check version-specific modulefile, related to versioning installation mode
    if {$install_versioning eq "y"} {
       foreach shell $shell_list {
