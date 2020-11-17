@@ -188,11 +188,6 @@ Reporting
 
     - ``hidden-loaded``: correspond to hiding module from loaded list, not from available list
 
-- The ``auto-loaded`` tag is reported on ``avail`` output but will use by default the same acronym than ``loaded`` tag
-
-    - To apply same report for both kind of loaded modules by default
-    - It is up to the site to decide if it wants to distinguish the output of the 2 kinds
-
 - Some tags are not reported on ``list`` output:
 
     - ``loaded``: as every modules reported on ``list`` are loaded
@@ -209,6 +204,36 @@ Reporting
 - Default ``--long`` report does not contain tag information
 
     - Not to exceed the 80-column output limit by default
+
+Abbreviations
+"""""""""""""
+
+- Tag abbreviations are used to translate tag names when reporting them on ``avail`` or ``list`` sub-command output
+
+- The ``tag_abbrev`` configuration defines the abbreviations to apply to each tag
+
+    - Set by default at configure time to ``auto-loaded=aL:loaded=L:hidden=H:forbidden=F:nearly-forbidden=nF``
+    - Configuration value consists in a ``key=val`` pair value, each key pair are separated by a ``:`` character
+
+        - Follow the same syntax than ``colors`` configuration
+
+    - If an existing tag name is not part of the configuration, it means no abbreviation applies to it
+
+    - If a tag name has an empty string abbreviation defined it is not reported
+
+        - Unless if there is an SGR color configuration defined for this tag
+
+    - The ``MODULES_TAG_ABBREV`` environment variable is used to set a specific value for ``tag_abbrev`` configuration
+
+        - If ``MODULES_TAG_ABBREV`` is set to an empty string, no tag abbreviation applies
+
+- In case default value or environment value of ``tag_abbrev`` is badly set
+
+    - a warning message is returned
+    - value is ignored
+    - if nor the environment nor the default value is correct then no abbreviation applies to tag
+
+- Tags are not translated to their defined abbreviation in JSON output format
 
 Querying
 ^^^^^^^^
