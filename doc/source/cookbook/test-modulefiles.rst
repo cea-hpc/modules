@@ -5,7 +5,7 @@ Testing Modulefiles
 
 The following is an example for a ``ModulesTest`` subroutine of a Modulefile and its output.
 It checks whether the :file:`TESTDIR` is a directory, checks that it can enter it,
-and whether a file:file:`TESTFILE` can successfully be created there.
+and whether a file :file:`TESTFILE` can successfully be created there.
 
 This code gets executed when you use the :subcmd:`module test modulefile<test>` command.
 
