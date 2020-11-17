@@ -1,0 +1,176 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2020/11/17
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:    tag
+#   Sub-Command:    load, unload, list
+#
+#   Comment:	%C{
+#           Test tag_abbrev mechanism
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+# ensure advanced version specifiers are enabled as we use
+# tag definition using this syntax
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+
+# activate module-tag definitions over tag modulefiles
+setenv_var TESTSUITE_MODULE_TAG_SET4 1
+
+# abbrev applied on specific tag, no abbrev for loaded tag
+setenv_var MODULES_TAG_ABBREV bar=B:foo=F
+set tserr "$mp:
+tag/5.0 <BaR:F>
+tag/6.0 <BaR:F>
+tag/7.0"
+testouterr_cmd sh {avail -t tag@5:7} OK $tserr
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tag/5.0]
+lappend ans [list setpath _LMFILES_ $mp/tag/5.0]
+lappend ans [list setpath MODULES_LMTAG tag/5.0&foo&BaR]
+testouterr_cmd sh {load tag/5.0} $ans {}
+
+# test with tag/5.0 loaded
+setenv_loaded_module [list tag/5.0] [list $mp/tag/5.0]
+setenv_path_var MODULES_LMTAG tag/5.0&foo&BaR
+set tserr "$mp:
+tag/5.0 <BaR:F:loaded>"
+testouterr_cmd sh {avail -t tag/5.0} OK $tserr
+
+testouterr_cmd sh {list} OK "$cur_loaded
+ 1) tag/5.0 <BaR:F>  "
+
+
+# abbrev set for loaded tag, abbrev set on an icase tag
+setenv_var MODULES_TAG_ABBREV BaR=B:foo=F:loaded=aL
+
+set tserr "$mp:
+tag/5.0 <aL:B:F>"
+testouterr_cmd sh {avail -t tag/5.0} OK $tserr
+
+testouterr_cmd sh {list} OK "$cur_loaded
+ 1) tag/5.0 <B:F>  "
+
+
+# abbrev disabled for custom and loaded tag
+setenv_var MODULES_TAG_ABBREV BaR=B:foo=:loaded=
+
+set tserr "$mp:
+tag/5.0 <B>"
+testouterr_cmd sh {avail -t tag/5.0} OK $tserr
+
+testouterr_cmd sh {list} OK "$cur_loaded
+ 1) tag/5.0 <B>  "
+
+
+# all abbrev disabled
+setenv_var MODULES_TAG_ABBREV BaR=:foo=:loaded=
+
+set tserr "$mp:
+tag/5.0"
+testouterr_cmd sh {avail -t tag/5.0} OK $tserr
+
+testouterr_cmd sh {list} OK "$cur_loaded
+ 1) tag/5.0  "
+
+
+# all abbrev disabled with MODULES_TAG_ABBREV defined empty
+setenv_var MODULES_TAG_ABBREV {}
+
+set tserr "$mp:
+tag/5.0 <BaR:foo:loaded>"
+testouterr_cmd sh {avail -t tag/5.0} OK $tserr
+
+testouterr_cmd sh {list} OK "$cur_loaded
+ 1) tag/5.0 <BaR:foo>  "
+
+
+# abbrev including space character
+setenv_var MODULES_TAG_ABBREV {foo=f o:loaded= l:BaR:r }
+
+set tserr "$mp:
+tag/5.0 < l:f o:r >"
+testouterr_cmd sh {avail -t tag/5.0} OK $tserr
+
+testouterr_cmd sh {list} OK "$cur_loaded
+ 1) tag/5.0 <f o:r >  "
+
+
+# badly set MODULES_TAG_ABBREV
+setenv_var MODULES_TAG_ABBREV {foo:loaded=L}
+
+unsetenv_loaded_module
+set tserr "$mp:
+tag/5.0 <BaR:foo>"
+testouterr_cmd sh {avail -t tag/5.0} OK $tserr
+
+setenv_loaded_module [list tag/5.0] [list $mp/tag/5.0]
+testouterr_cmd sh {list} OK "$warn_msgs: Ignore invalid value set in MODULES_TAG_ABBREV (foo:loaded=L)
+$cur_loaded
+ 1) tag/5.0 <BaR:foo>  "
+
+
+# badly set MODULES_TAG_ABBREV (2)
+setenv_var MODULES_TAG_ABBREV {:loaded=L}
+
+unsetenv_loaded_module
+set tserr "$mp:
+tag/5.0 <BaR:foo>"
+testouterr_cmd sh {avail -t tag/5.0} OK $tserr
+
+setenv_loaded_module [list tag/5.0] [list $mp/tag/5.0]
+testouterr_cmd sh {list} OK "$warn_msgs: Ignore invalid value set in MODULES_TAG_ABBREV (:loaded=L)
+$cur_loaded
+ 1) tag/5.0 <BaR:foo>  "
+
+
+# check excepted siteconfig file is installed
+set is_stderr_tty [siteconfig_isStderrTty]
+if {$is_stderr_tty} {
+
+setenv_var TESTSUITE_ENABLE_SITECONFIG_BADTAGABBREVDFLVALUE 1
+unsetenv_var MODULES_TAG_ABBREV
+testouterr_cmd sh {list} OK "$warn_msgs: Ignore invalid default value for 'tag_abbrev' config (loaded)
+$cur_loaded
+ 1) tag/5.0 <BaR:foo>  "
+
+setenv_var MODULES_TAG_ABBREV {loaded=L}
+testouterr_cmd sh {list} OK "$cur_loaded
+ 1) tag/5.0 <BaR:foo>  "
+
+setenv_var MODULES_TAG_ABBREV {:loaded=L}
+testouterr_cmd sh {list} OK "$warn_msgs: Ignore invalid value set in MODULES_TAG_ABBREV (:loaded=L)
+$warn_msgs: Ignore invalid default value for 'tag_abbrev' config (loaded)
+$cur_loaded
+ 1) tag/5.0 <BaR:foo>  "
+
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_BADTAGABBREVDFLVALUE
+
+}
+
+unsetenv_var TESTSUITE_MODULE_TAG_SET4
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
