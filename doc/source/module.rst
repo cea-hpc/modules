@@ -522,6 +522,8 @@ Module Sub-Commands
    is started as a sub-shell from the listed shells (defines
    :envvar:`MODULES_SHELLS_WITH_KSH_FPATH`)
  * ``siteconfig``: primary site-specific configuration script location
+ * ``tag_abbrev``: abbreviations to use to report module tags (defines
+   :envvar:`MODULES_TAG_ABBREV`)
  * ``tcl_ext_lib``: Modules Tcl extension library location
  * ``term_background``: terminal background color kind (defines
    :envvar:`MODULES_TERM_BACKGROUND`)
@@ -1675,6 +1677,24 @@ ENVIRONMENT
  .. only:: html
 
     .. versionadded:: 4.3
+
+.. envvar:: MODULES_TAG_ABBREV
+
+ Specifies the abbreviation strings used to report module tags. Its value is a
+ colon-separated list of module tag names associated to an abbreviation string
+ (e.g. *tagname=abbrev*).
+
+ If a tag is associated to an empty string abbreviation, this tag will not be
+ reported. In case the whole :envvar:`MODULES_TAG_ABBREV` environment variable
+ is set to an empty string, tags are reported but not abbreviated.
+
+ The tag abbreviation definition set in :envvar:`MODULES_TAG_ABBREV`
+ environment variable supersedes the default configuration set in
+ :file:`modulecmd.tcl` script.
+
+ .. only:: html
+
+    .. versionadded:: 4.7
 
 .. envvar:: MODULES_TERM_BACKGROUND
 
