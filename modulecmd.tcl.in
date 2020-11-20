@@ -9279,7 +9279,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
 
 # format an element with its syms for display in a list
 proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
-   sgrdef tag_list tagsgr show_tags {matchmap {}}} {
+   sgrdef tag_list show_tags {matchmap {}}} {
    set disp $elt$eltsuffix
    # hightlight matching substring
    if {$matchmap ne {}} {
@@ -9322,7 +9322,7 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
          } else {
             append tagssgr $commasgr
          }
-         append tagssgr [sgr $tagsgr $tag]
+         append tagssgr $tag
       }
       append tagssgr [sgr se >]
       append dispsgr $tagssgr
@@ -9450,7 +9450,7 @@ proc listModules {dir mod show_mtime filter search} {
                   $default_colored $matchmap] disp dispsgr
             } else {
                lassign [formatListEltToDisplay $elt di / $sym_list sy\
-                  $flag_default_dir $default_colored {} {} 0 $matchmap] disp\
+                  $flag_default_dir $default_colored {} 0 $matchmap] disp\
                   dispsgr
             }
          }
@@ -9467,7 +9467,7 @@ proc listModules {dir mod show_mtime filter search} {
                   %H:%M:%S}] $default_colored $matchmap] disp dispsgr
             } else {
                lassign [formatListEltToDisplay $elt {} {} $sym_list sy\
-                  $flag_default_mf $default_colored $tag_list {} 1 $matchmap]\
+                  $flag_default_mf $default_colored $tag_list 1 $matchmap]\
                   disp dispsgr
             }
          }
@@ -9486,7 +9486,7 @@ proc listModules {dir mod show_mtime filter search} {
                   lappend sym_list @
                }
                lassign [formatListEltToDisplay $elt al {} $sym_list sy\
-                  $flag_default_mf $default_colored $tag_list {} 1 $matchmap]\
+                  $flag_default_mf $default_colored $tag_list 1 $matchmap]\
                   disp dispsgr
             }
          }
@@ -10535,7 +10535,7 @@ proc cmdModuleList {show_oneperline show_mtime} {
                   $clock_mtime $default_colored] disp dispsgr
             } else {
                lassign [formatListEltToDisplay $mod {} {} $sym_list sy 1\
-                  $default_colored $tag_list {} 1] disp dispsgr
+                  $default_colored $tag_list 1] disp dispsgr
                lappend len_list [set len [string length $disp]]
                if {$len > $max_len} {
                   set max_len $len
