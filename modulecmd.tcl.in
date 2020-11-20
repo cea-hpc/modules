@@ -1041,17 +1041,25 @@ proc formatErrStackTrace {errmsg loc {cmdlist {}}} {
    return $errmsg
 }
 
-# Select Graphic Rendition of a string with passed sgr key (if color enabled)
-proc sgr {sgrkey str} {
-   if {[getConf color] && [info exists ::g_colors($sgrkey)]} {
-      set sgrset $::g_colors($sgrkey)
-      # if render bold or faint just reset that attribute, not all
-      if {$sgrset == 1 || $sgrset == 2} {
-         set sgrreset 22
-      } else {
-         set sgrreset 0
+# Select Graphic Rendition of a string with passed sgr keys (if color enabled)
+proc sgr {keylist str} {
+   if {[getConf color]} {
+      set sgrreset 22
+      foreach sgrkey $keylist {
+         if {[info exists ::g_colors($sgrkey)]} {
+            if {[info exists sgrset]} {
+               append sgrset {;}
+            }
+            append sgrset $::g_colors($sgrkey)
+            # if render bold or faint just reset that attribute, not all
+            if {$sgrreset != 0 && $sgrset != 1 && $sgrset != 2} {
+               set sgrreset 0
+            }
+         }
       }
-      set str "\033\[${sgrset}m$str\033\[${sgrreset}m"
+      if {[info exists sgrset]} {
+         set str "\033\[${sgrset}m$str\033\[${sgrreset}m"
+      }
    }
    return $str
 }
