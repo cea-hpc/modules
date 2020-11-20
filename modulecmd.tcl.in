@@ -1042,8 +1042,11 @@ proc formatErrStackTrace {errmsg loc {cmdlist {}}} {
 }
 
 # Select Graphic Rendition of a string with passed sgr keys (if color enabled)
-proc sgr {keylist str {himatchmap {}}} {
+proc sgr {keylist str {himatchmap {}} {othkeylist {}}} {
    if {[getConf color]} {
+      if {[llength $othkeylist] == 1} {
+         lappend keylist [lindex $othkeylist 0]
+      }
       # hightlight matching substring
       if {[llength $himatchmap] > 0} {
          set str [string map $himatchmap $str]
@@ -1066,6 +1069,25 @@ proc sgr {keylist str {himatchmap {}}} {
       }
    }
    return $str
+}
+
+# Sort keys to return those matching defined sgr keys in a list and the other
+# elements in another list
+proc getSgrkeysFromList {keylist} {
+   set sgrkeylist {}
+   if {[getConf color]} {
+      set otherlist {}
+      foreach key $keylist {
+         if {[info exists ::g_colors($key)]} {
+            lappend sgrkeylist $key
+         } else {
+            lappend otherlist $key
+         }
+      }
+   } else {
+      set otherlist $keylist
+   }
+   return [list $sgrkeylist $otherlist]
 }
 
 # save message if report is not yet initialized
@@ -9292,6 +9314,12 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
 # format an element with its syms for display in a list
 proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
    sgrdef tag_list show_tags {himatchmap {}}} {
+   # fetch sgr codes from tags to apply directly on main element
+   if {$show_tags && [llength $tag_list] > 0} {
+      lassign [getSgrkeysFromList $tag_list] tagsgrlist tag_list
+   } else {
+      set tagsgrlist {}
+   }
    # display default sym graphically over element name
    if {$show_syms} {
       if {[set defidx [lsearch -exact $sym_list default]] != -1 && $sgrdef} {
@@ -9302,7 +9330,7 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
 
    set disp $elt$eltsuffix
    lappend eltsgrlist $eltsgr
-   set dispsgr [sgr $eltsgrlist $elt $himatchmap]$eltsuffix
+   set dispsgr [sgr $eltsgrlist $elt $himatchmap $tagsgrlist]$eltsuffix
 
    # format remaining sym list
    if {$show_syms && [llength $sym_list] > 0} {
@@ -9320,7 +9348,7 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
       append dispsgr $symssgr
    }
 
-   # format tag list if any
+   # format tag list if any remaining
    if {$show_tags && [llength $tag_list] > 0} {
       append disp " <[join $tag_list :]>"
       set tagssgr " [sgr se <]"
