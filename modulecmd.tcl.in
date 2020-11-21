@@ -1042,8 +1042,12 @@ proc formatErrStackTrace {errmsg loc {cmdlist {}}} {
 }
 
 # Select Graphic Rendition of a string with passed sgr keys (if color enabled)
-proc sgr {keylist str} {
+proc sgr {keylist str {himatchmap {}}} {
    if {[getConf color]} {
+      # hightlight matching substring
+      if {[llength $himatchmap] > 0} {
+         set str [string map $himatchmap $str]
+      }
       set sgrreset 22
       foreach sgrkey $keylist {
          if {[info exists ::g_colors($sgrkey)]} {
@@ -9287,7 +9291,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
 
 # format an element with its syms for display in a list
 proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
-   sgrdef tag_list show_tags {matchmap {}}} {
+   sgrdef tag_list show_tags {himatchmap {}}} {
    # display default sym graphically over element name
    if {$show_syms} {
       if {[set defidx [lsearch -exact $sym_list default]] != -1 && $sgrdef} {
@@ -9296,16 +9300,9 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
       }
    }
 
-   lappend eltsgrlist $eltsgr
-   # hightlight matching substring
-   if {$matchmap ne {}} {
-      set dispsgr [sgr $eltsgrlist [string map $matchmap $elt]]
-   } else {
-      set dispsgr [sgr $eltsgrlist $elt]
-   }
-
    set disp $elt$eltsuffix
-   append dispsgr $eltsuffix
+   lappend eltsgrlist $eltsgr
+   set dispsgr [sgr $eltsgrlist $elt $himatchmap]$eltsuffix
 
    # format remaining sym list
    if {$show_syms && [llength $sym_list] > 0} {
@@ -9344,7 +9341,7 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
 
 # format an element with its syms for a long/detailled display in a list
 proc formatListEltToLongDisplay {elt eltsgr eltsuffix sym_list symsgr mtime\
-   sgrdef {matchmap {}}} {
+   sgrdef {himatchmap {}}} {
    set disp $elt$eltsuffix
    set displen [string length $disp]
    # display default sym graphically over element name
@@ -9353,12 +9350,7 @@ proc formatListEltToLongDisplay {elt eltsgr eltsuffix sym_list symsgr mtime\
       lappend eltsgrlist de
    }
    lappend eltsgrlist $eltsgr
-   # hightlight matching substring
-   if {$matchmap ne {}} {
-      set dispsgr [sgr $eltsgrlist [string map $matchmap $elt]]
-   } else {
-      set dispsgr [sgr $eltsgrlist $elt]
-   }
+   set dispsgr [sgr $eltsgrlist $elt $himatchmap]$eltsuffix
    # format remaining sym list
    if {[llength $sym_list] > 0} {
       set symslen [string length [join $sym_list :]]
@@ -9376,8 +9368,8 @@ proc formatListEltToLongDisplay {elt eltsgr eltsuffix sym_list symsgr mtime\
    }
    set nbws1 [expr {40 - $displen}]
    set nbws2 [expr {20 - $symslen + [expr {$nbws1 < 0 ? $nbws1 : 0}]}]
-   return [list $disp $dispsgr$eltsuffix[string repeat { }\
-      $nbws1]$symssgr[string repeat { } $nbws2]$mtime]
+   return [list $disp $dispsgr[string repeat { } $nbws1]$symssgr[string\
+      repeat { } $nbws2]$mtime]
 }
 
 proc formatArrayValToJson {vallist} {
@@ -9439,7 +9431,7 @@ proc listModules {dir mod show_mtime filter search} {
    # prepare results for display
    set alias_colored [expr {[sgr al {}] ne {}}]
    set default_colored [expr {[sgr de {}] ne {}}]
-   set matchmap [prepareMapToHightlightSubstr $mod]
+   set himatchmap [prepareMapToHightlightSubstr $mod]
    set clean_list {}
    foreach elt [array names mod_list] {
       set sym_list [getVersAliasList $elt]
@@ -9459,10 +9451,10 @@ proc listModules {dir mod show_mtime filter search} {
             } elseif {$show_mtime} {
                # append / char after name to clearly indicate this is a dir
                lassign [formatListEltToLongDisplay $elt di / $sym_list sy {}\
-                  $default_colored $matchmap] disp dispsgr
+                  $default_colored $himatchmap] disp dispsgr
             } else {
                lassign [formatListEltToDisplay $elt di / $sym_list sy\
-                  $flag_default_dir $default_colored {} 0 $matchmap] disp\
+                  $flag_default_dir $default_colored {} 0 $himatchmap] disp\
                   dispsgr
             }
          }
@@ -9476,10 +9468,10 @@ proc listModules {dir mod show_mtime filter search} {
                # to potential syms
                lassign [formatListEltToLongDisplay $elt {} {} $sym_list sy\
                   [clock format [lindex $mod_list($elt) 1] -format {%Y/%m/%d\
-                  %H:%M:%S}] $default_colored $matchmap] disp dispsgr
+                  %H:%M:%S}] $default_colored $himatchmap] disp dispsgr
             } else {
                lassign [formatListEltToDisplay $elt {} {} $sym_list sy\
-                  $flag_default_mf $default_colored $tag_list 1 $matchmap]\
+                  $flag_default_mf $default_colored $tag_list 1 $himatchmap]\
                   disp dispsgr
             }
          }
@@ -9491,14 +9483,14 @@ proc listModules {dir mod show_mtime filter search} {
             } elseif {$show_mtime} {
                lassign [formatListEltToLongDisplay $elt al " -> [lindex\
                   $mod_list($elt) 1]" $sym_list sy {} $default_colored\
-                  $matchmap] disp dispsgr
+                  $himatchmap] disp dispsgr
             } else {
                # add a '@' sym to indicate elt is an alias if not colored
                if {!$alias_colored} {
                   lappend sym_list @
                }
                lassign [formatListEltToDisplay $elt al {} $sym_list sy\
-                  $flag_default_mf $default_colored $tag_list 1 $matchmap]\
+                  $flag_default_mf $default_colored $tag_list 1 $himatchmap]\
                   disp dispsgr
             }
          }
