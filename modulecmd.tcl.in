@@ -9288,20 +9288,23 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
 # format an element with its syms for display in a list
 proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
    sgrdef tag_list show_tags {matchmap {}}} {
-   set disp $elt$eltsuffix
-   # hightlight matching substring
-   if {$matchmap ne {}} {
-      set dispsgr [sgr $eltsgr [string map $matchmap $elt]]
-   } else {
-      set dispsgr [sgr $eltsgr $elt]
-   }
+   # display default sym graphically over element name
    if {$show_syms} {
-      # display default sym graphically over element name
       if {[set defidx [lsearch -exact $sym_list default]] != -1 && $sgrdef} {
          set sym_list [lreplace $sym_list $defidx $defidx]
-         set dispsgr [sgr de $dispsgr]
+         lappend eltsgrlist de
       }
    }
+
+   lappend eltsgrlist $eltsgr
+   # hightlight matching substring
+   if {$matchmap ne {}} {
+      set dispsgr [sgr $eltsgrlist [string map $matchmap $elt]]
+   } else {
+      set dispsgr [sgr $eltsgrlist $elt]
+   }
+
+   set disp $elt$eltsuffix
    append dispsgr $eltsuffix
 
    # format remaining sym list
@@ -9344,16 +9347,17 @@ proc formatListEltToLongDisplay {elt eltsgr eltsuffix sym_list symsgr mtime\
    sgrdef {matchmap {}}} {
    set disp $elt$eltsuffix
    set displen [string length $disp]
-   # hightlight matching substring
-   if {$matchmap ne {}} {
-      set dispsgr [sgr $eltsgr [string map $matchmap $elt]]
-   } else {
-      set dispsgr [sgr $eltsgr $elt]
-   }
    # display default sym graphically over element name
    if {[set defidx [lsearch -exact $sym_list default]] != -1 && $sgrdef} {
       set sym_list [lreplace $sym_list $defidx $defidx]
-      set dispsgr [sgr de $dispsgr]
+      lappend eltsgrlist de
+   }
+   lappend eltsgrlist $eltsgr
+   # hightlight matching substring
+   if {$matchmap ne {}} {
+      set dispsgr [sgr $eltsgrlist [string map $matchmap $elt]]
+   } else {
+      set dispsgr [sgr $eltsgrlist $elt]
    }
    # format remaining sym list
    if {[llength $sym_list] > 0} {
