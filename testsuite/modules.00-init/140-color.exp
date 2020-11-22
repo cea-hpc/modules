@@ -465,6 +465,13 @@ unsetenv_path_var MODULES_LMALTNAME
 colorset_test_case {saveshow testsuite/home/.module/infocmd} [list cm module] ".*module use --append .*\nmodule load info/command.*"
 colorset_test_case {display setenv/1.0} [list cm setenv] ".*setenv\t\ttestsuite yes.*"
 
+# test cumulated sgr codes
+setenv_var MODULES_COLORS {hi=1:db=2:tr=2:se=2:er=91:wa=93:me=95:in=94:mp=1;94:di=94:al=96:de=4}
+testerr_cmd_re sh {avail -t loc_dv7/2} ".*\033\\\[4;94m\033\\\[1mloc_dv7/2\033\\\[22m.0\033\\\[0m/\n\033\\\[1mloc_dv7/2\033\\\[22m.0/1.0"
+testerr_cmd_re sh {avail -t loc_tr/a} ".*\033\\\[4;96m\033\\\[1mloc_tr/a\033\\\[22ml2\033\\\[0m.*"
+unsetenv_var MODULES_COLORS
+
+
 #
 # block output rendering
 #
