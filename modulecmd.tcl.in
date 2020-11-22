@@ -1044,13 +1044,6 @@ proc formatErrStackTrace {errmsg loc {cmdlist {}}} {
 # Select Graphic Rendition of a string with passed sgr keys (if color enabled)
 proc sgr {keylist str {himatchmap {}} {othkeylist {}}} {
    if {[getConf color]} {
-      if {[llength $othkeylist] == 1} {
-         lappend keylist [lindex $othkeylist 0]
-      }
-      # hightlight matching substring
-      if {[llength $himatchmap] > 0} {
-         set str [string map $himatchmap $str]
-      }
       set sgrreset 22
       foreach sgrkey $keylist {
          if {[info exists ::g_colors($sgrkey)]} {
@@ -1064,8 +1057,103 @@ proc sgr {keylist str {himatchmap {}} {othkeylist {}}} {
             }
          }
       }
-      if {[info exists sgrset]} {
-         set str "\033\[${sgrset}m$str\033\[${sgrreset}m"
+      if {[llength $othkeylist] == 0} {
+         # hightlight matching substring
+         if {[llength $himatchmap] > 0} {
+            set str [string map $himatchmap $str]
+         }
+         if {[info exists sgrset]} {
+            set str "\033\[${sgrset}m$str\033\[${sgrreset}m"
+         }
+      } else {
+         if {![info exists sgrset]} {
+            set sgrset {}
+         } else {
+            append sgrset {;}
+         }
+         # determine each chunk where the other sgr keys apply
+         set tagsgrlen [expr {int(ceil([string length $str]/[llength\
+            $othkeylist]))}]
+         for {set i 0} {$i < [llength $othkeylist]} {incr i} {
+            set idx [expr {$i*$tagsgrlen}]
+            lappend sgridxlist $idx $::g_colors([lindex $othkeylist $i])
+         }
+         # determine each chunk where the highlight applies
+         set hiidxlist {}
+         foreach {mstr sgrmstr} $himatchmap {
+            set idx 0
+            while {$idx != -1} {
+               if {[set idx [string first $mstr $str $idx]] != -1} {
+                  lappend hiidxlist $idx
+                  incr idx [string length $mstr]
+                  # add highlight end index unless if end of string
+                  if {$idx < [string length $str]} {
+                     lappend hiidxlist $idx
+                  }
+               }
+            }
+            # no need to look at next match string if this one was found
+            if {[llength $hiidxlist] > 0} {
+               break
+            }
+         }
+
+         # mix other sgr chunks with highlighted chunks to define sgr codes
+         set i 0
+         set j 0
+         set sgridx [lindex $sgridxlist 0]
+         set hiidx [lindex $hiidxlist 0]
+         set hicur 0
+         set sgrcur {}
+         set sgrrst {0;}
+         while {$i < [llength $sgridxlist] || $j < [llength $hiidxlist]} {
+            set sgrcode {}
+            set cursgridx $sgridx
+            # sgr chunk change
+            if {$sgridx ne {} && ($hiidx eq {} || $sgridx <= $hiidx)} {
+               incr i
+               set sgrcur $sgrset[lindex $sgridxlist $i]
+               set idx $sgridx
+               if {$idx != 0} {
+                  append sgrcode $sgrrst
+               }
+               append sgrcode $sgrcur
+               incr i
+               set sgridx [lindex $sgridxlist $i]
+            }
+            # highlight change
+            if {$hiidx ne {} && ($cursgridx eq {} || $hiidx <= $cursgridx)} {
+               set idx $hiidx
+               set hicur [expr {!$hicur}]
+               if {$hicur} {
+                  if {$sgrcode ne {}} {
+                     append sgrcode {;}
+                  }
+                  append sgrcode $::g_colors(hi)
+               # restore current sgr set to only clear highlight
+               } elseif {$sgrcode eq {}} {
+                  append sgrcode $sgrrst $sgrcur
+               }
+               incr j
+               set hiidx [lindex $hiidxlist $j]
+            } elseif {$hicur} {
+               append sgrcode {;} $::g_colors(hi)
+            }
+            lappend fullsgridxlist $idx $sgrcode
+         }
+         # reset sgr at end of string
+         lappend fullsgridxlist [string length $str] 0
+
+         # apply defined sgr codes to the string
+         set stridx 0
+         foreach {sgridx sgrcode} $fullsgridxlist {
+            if {$sgridx != 0} {
+               append sgrstr [string range $str $stridx [expr {$sgridx-1}]]
+            }
+            append sgrstr "\033\[${sgrcode}m"
+            set stridx $sgridx
+         }
+         set str $sgrstr
       }
    }
    return $str
