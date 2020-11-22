@@ -235,6 +235,42 @@ Abbreviations
 
 - Tags are not translated to their defined abbreviation in JSON output format
 
+SGR
+"""
+
+- If a tag name or tag abbreviation has an SGR code defined in the color list, this SGR code is applied to the module name this tag refer to
+
+    - Tag name or abbreviation is not reported by itself in this case
+    - As it is now represented by the SGR applied to module name
+    - If an abbreviation exists for a tag, SGR code should be defined for this abbreviation in color list
+
+        - An SGR code set for tag full name does not apply on the abbreviation of this tag
+
+- If multiple tags apply to the same modules and have an SGR code defined for them in the color list
+
+    - All these SGR codes are rendered one after the other over the module name
+    - For instance if 2 tags apply, the first one will be rendered over the first half of the module name, the second tag over the second half of
+
+- Tags use by default background color change to stand out
+
+    - As module kind (alias, directory, etc) is mainly represented with foreground color change by default,
+
+- In case if there are more tags to graphically render than character in module name
+
+    - The remaining tags are reported by there name or abbreviation and SGR applies over this name or abbreviation
+
+- The ``MODULES_TAG_COLOR_NAME`` environment variable is used to define the tags whose name (or abbreviation if set) should be reported
+
+    - Their name does not vanish if a SGR code is defined in the color list for them
+    - Their SGR code is not rendered over the module name
+    - Instead the SGR is applied to the reported tag name (or tag abbreviation if set)
+    - ``MODULES_TAG_COLOR_NAME`` is bound to the ``tag_color_name`` configuration
+    - ``MODULES_TAG_COLOR_NAME`` contains the list of tag name (or abbreviation), each tag separated with colon character (``:``)
+    - If an abbreviation is defined for a tag and one want it to be reported by itself not rendered over module name
+
+        - This abbreviation should be set in ``MODULES_TAG_COLOR_NAME``
+        - Not the full tag name this abbreviation refers to
+
 Querying
 ^^^^^^^^
 
