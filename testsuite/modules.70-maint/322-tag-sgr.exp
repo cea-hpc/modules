@@ -1,0 +1,208 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2020/11/22
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:    tag
+#   Sub-Command:    avail, list
+#
+#   Comment:	%C{
+#           Test tag report rendering with SGR
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+# ensure advanced version specifiers are enabled
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+# ensure regular avail search match is set for these tests
+setenv_var MODULES_SEARCH_MATCH starts_with
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure color is enabled to test sgr
+setenv_var MODULES_COLOR always
+
+
+#
+# 'list' sub-command
+#
+
+setenv_loaded_module [list tag/5.0] [list $mp/tag/5.0] [list tag/5.0]
+setenv_path_var MODULES_LMTAG tag/5.0&foo&BaR
+setenv_var MODULES_TAG_ABBREV auto-loaded=aL:foo=O
+setenv_var MODULES_COLORS {aL=100}
+
+testerr_cmd_re sh {list} "$cur_loaded
+ 1\\) [sgr 100]tag/5.0[sgr 0] <BaR:O>  "
+
+setenv_var MODULES_COLORS {auto-loaded=100}
+testerr_cmd_re sh {list} "$cur_loaded
+ 1\\) tag/5.0 <aL:BaR:O>  "
+
+setenv_var MODULES_TAG_ABBREV foo=O
+testerr_cmd_re sh {list} "$cur_loaded
+ 1\\) [sgr 100]tag/5.0[sgr 0] <BaR:O>  "
+
+setenv_var MODULES_TAG_ABBREV auto-loaded=aL:foo=O
+setenv_var MODULES_COLORS {aL=100:O=102}
+testerr_cmd_re sh {list} "$cur_loaded
+ 1\\) [sgr 100]tag[sgr {0;102}]/5.0[sgr 0] <BaR>  "
+
+setenv_var MODULES_COLORS {aL=100:O=102:BaR=103}
+testerr_cmd_re sh {list} "$cur_loaded
+ 1\\) [sgr 100]ta[sgr {0;103}]g/[sgr {0;102}]5.0[sgr 0]  "
+
+
+#
+# 'avail' sub-command
+#
+
+unsetenv_path_var MODULES_LMTAG
+setenv_var MODULES_COLORS {aL=100:al=96:hi=1:de=4:F=41}
+setenv_var MODULES_TAG_ABBREV auto-loaded=aL:forbidden=F:hidden=H
+testerr_cmd_re sh {avail -t} ".*[sgr 41]tag/1.0[sgr 0]
+.*[sgr {96;41}]tag/3.0[sgr 0]
+.*[sgr 100]tag/5.0[sgr 0]\n.*"
+testerr_cmd_re sh {avail -T -t ta} ".*[sgr {41;1}]ta[sgr {0;41}]g/1.0[sgr 0]
+.*[sgr {96;41;1}]ta[sgr {0;96;41}]g/3.0[sgr 0]
+.*[sgr {100;1}]ta[sgr {0;100}]g/5.0[sgr 0]\n.*"
+setenv_var MODULES_COLORS {aL=100:al=96:de=4:F=41}
+testerr_cmd_re sh {avail -t ta} ".*[sgr 41]tag/1.0[sgr 0]
+.*[sgr {96;41}]tag/3.0[sgr 0]
+.*[sgr 100]tag/5.0[sgr 0]\n.*"
+
+setenv_var TESTSUITE_MODULE_TAG_SET9 1
+setenv_var MODULES_COLORS {aL=100:al=96:hi=1:de=4:F=41:H=2}
+testerr_cmd_re sh {avail -t} ".*[sgr {4;41}]tag/1.0[sgr 0]
+.*[sgr {4;96;41}]tag/3.0[sgr 0] <bar:foo>
+.*[sgr 100]tag/5.0[sgr 0] <bar:foo>\n.*"
+testerr_cmd_re sh {avail -t ta} ".*[sgr {4;41;1}]ta[sgr {0;4;41}]g/1.0[sgr 0]
+.*[sgr {4;96;41;1}]ta[sgr {0;4;96;41}]g/3.0[sgr 0] <bar:foo>
+.*[sgr {100;1}]ta[sgr {0;100}]g/5.0[sgr 0] <bar:foo>\n.*"
+testerr_cmd_re sh {avail -t -a} ".*[sgr {4;41}]tag/1.0[sgr 0]
+.*[sgr {4;96;41}]tag/3.0[sgr 0] <bar:foo>
+.*[sgr 100]tag/5.0[sgr 0] <bar:foo>
+.*[sgr 2]tag/6.0[sgr 0] <bar:foo>\n.*"
+testerr_cmd_re sh {avail -t -a ta} ".*[sgr {4;41;1}]ta[sgr {0;4;41}]g/1.0[sgr 0]
+.*[sgr {4;96;41;1}]ta[sgr {0;4;96;41}]g/3.0[sgr 0] <bar:foo>
+.*[sgr {100;1}]ta[sgr {0;100}]g/5.0[sgr 0] <bar:foo>
+.*[sgr {2;1}]ta[sgr {0;2}]g/6.0[sgr 0] <bar:foo>\n.*"
+
+setenv_var MODULES_COLORS {aL=100:al=96:hi=1:de=4:F=41:H=2:bar=43}
+setenv_var MODULES_TAG_ABBREV auto-loaded=aL:forbidden=F:bar=B
+testerr_cmd_re sh {avail -t} ".*[sgr {4;41}]tag/1.0[sgr 0]
+.*[sgr {4;96;41}]tag/3.0[sgr 0] <B:foo>
+.*[sgr 100]tag/5.0[sgr 0] <B:foo>\n.*"
+
+setenv_var MODULES_COLORS {aL=100:al=96:hi=1:de=4:F=41:H=2:B=43}
+setenv_var MODULES_TAG_ABBREV auto-loaded=aL:forbidden=F:hidden=H:bar=B
+testerr_cmd_re sh {avail -t} ".*[sgr {4;41}]tag/1.0[sgr 0]
+.*[sgr {4;96;43}]tag[sgr {0;4;96;41}]/3.0[sgr 0] <foo>
+.*[sgr 100]tag[sgr {0;43}]/5.0[sgr 0] <foo>\n.*"
+testerr_cmd_re sh {avail -t ta} ".*[sgr {4;41;1}]ta[sgr {0;4;41}]g/1.0[sgr 0]
+.*[sgr {4;96;43;1}]ta[sgr {0;4;96;43}]g[sgr {0;4;96;41}]/3.0[sgr 0] <foo>
+.*[sgr {100;1}]ta[sgr {0;100}]g[sgr {0;43}]/5.0[sgr 0] <foo>\n.*"
+testerr_cmd_re sh {avail -t -a} ".*[sgr {4;41}]tag/1.0[sgr 0]
+.*[sgr {4;96;43}]tag[sgr {0;4;96;41}]/3.0[sgr 0] <foo>
+.*[sgr 100]tag[sgr {0;43}]/5.0[sgr 0] <foo>
+.*[sgr 43]tag[sgr {0;2}]/6.0[sgr 0] <foo>\n.*"
+testerr_cmd_re sh {avail -t -a ta} ".*[sgr {4;41;1}]ta[sgr {0;4;41}]g/1.0[sgr 0]
+.*[sgr {4;96;43;1}]ta[sgr {0;4;96;43}]g[sgr {0;4;96;41}]/3.0[sgr 0] <foo>
+.*[sgr {100;1}]ta[sgr {0;100}]g[sgr {0;43}]/5.0[sgr 0] <foo>
+.*[sgr {43;1}]ta[sgr {0;43}]g[sgr {0;2}]/6.0[sgr 0] <foo>\n.*"
+
+testerr_cmd_re sh {avail -t -a tag} ".*[sgr {4;41;1}]tag[sgr {0;4;41}]/1.0[sgr 0]
+.*[sgr {4;96;43;1}]tag[sgr {0;4;96;41}]/3.0[sgr 0] <foo>
+.*[sgr {100;1}]tag[sgr {0;43}]/5.0[sgr 0] <foo>
+.*[sgr {43;1}]tag[sgr {0;2}]/6.0[sgr 0] <foo>\n.*"
+
+testerr_cmd_re sh {avail -t -a tag/} ".*[sgr {4;41;1}]tag/[sgr {0;4;41}]1.0[sgr 0]
+.*[sgr {4;96;43;1}]tag[sgr {0;4;96;41;1}]/[sgr {0;4;96;41}]3.0[sgr 0] <foo>
+.*[sgr {100;1}]tag[sgr {0;43;1}]/[sgr {0;43}]5.0[sgr 0] <foo>
+.*[sgr {43;1}]tag[sgr {0;2;1}]/[sgr {0;2}]6.0[sgr 0] <foo>\n.*"
+
+testerr_cmd_re sh {avail -t -a tag/1.0} ".*[sgr {4;41;1}]tag/1.0[sgr 0]"
+testerr_cmd_re sh {avail -t -a tag/3.0} ".*[sgr {4;96;43;1}]tag[sgr {0;4;96;41;1}]/3.0[sgr 0] <foo>"
+testerr_cmd_re sh {avail -t -a tag/5.0} ".*[sgr {100;1}]tag[sgr {0;43;1}]/5.0[sgr 0] <foo>"
+testerr_cmd_re sh {avail -t -a tag/6.0} ".*[sgr {43;1}]tag[sgr {0;2;1}]/6.0[sgr 0] <foo>"
+
+# highlight search query specifying multiple versions (mod@vers1,vers2)
+testerr_cmd_re sh {avail -t -a tag@3,5} ".*[sgr {4;96;43;1}]tag[sgr {0;4;96;41;1}]/3[sgr {0;4;96;41}].0[sgr 0] <foo>
+.*[sgr {100;1}]tag[sgr {0;43;1}]/5[sgr {0;43}].0[sgr 0] <foo>"
+testerr_cmd_re sh {avail -t -a tag@3.0,5.0} ".*[sgr {4;96;43;1}]tag[sgr {0;4;96;41;1}]/3.0[sgr 0] <foo>
+.*[sgr {100;1}]tag[sgr {0;43;1}]/5.0[sgr 0] <foo>"
+
+
+unsetenv_var TESTSUITE_MODULE_TAG_SET9
+setenv_var TESTSUITE_MODULE_TAG_SET10 1
+setenv_var MODULES_COLORS {aL=100:al=96:hi=1:de=4:A=41:B=42:C=43:D=44:E=45:F=46:G=47:H=101:I=102:J=103}
+
+# short module name with many tags applying to it (1 tag per character in name)
+testerr_cmd_re sh {avail -t} ".*[sgr {41}]t[sgr {0;42}]a[sgr {0;43}]g[sgr {0;44}]/[sgr {0;45}]t[sgr {0;46}]a[sgr {0;47}]g[sgr {0;101}]t[sgr {0;102}]a[sgr {0;103}]g[sgr {0}].*"
+# with single character match highlighted
+testerr_cmd_re sh {avail -t t} ".*[sgr {41;1}]t[sgr {0;42}]a[sgr {0;43}]g[sgr {0;44}]/[sgr {0;45;1}]t[sgr {0;46}]a[sgr {0;47}]g[sgr {0;101;1}]t[sgr {0;102}]a[sgr {0;103}]g[sgr {0}].*"
+# with several characters match highlighted
+testerr_cmd_re sh {avail -t ta}  ".*[sgr {41;1}]t[sgr {0;42;1}]a[sgr {0;43}]g[sgr {0;44}]/[sgr {0;45;1}]t[sgr {0;46;1}]a[sgr {0;47}]g[sgr {0;101;1}]t[sgr {0;102;1}]a[sgr {0;103}]g[sgr {0}].*"
+# with one tag applying to module
+setenv_var MODULES_COLORS {aL=100:al=96:hi=1:de=4:A=41}
+testerr_cmd_re sh {avail -T -t t} ".*[sgr {41;1}]t[sgr {0;41}]ag/[sgr {1}]t[sgr {0;41}]ag[sgr {1}]t[sgr {0;41}]ag[sgr 0] <B:C:D:E:F:G:H:I:J>.*"
+testerr_cmd_re sh {avail -t ta} ".*[sgr {41;1}]ta[sgr {0;41}]g/[sgr {1}]ta[sgr {0;41}]g[sgr {1}]ta[sgr {0;41}]g[sgr 0] <B:C:D:E:F:G:H:I:J>.*"
+# search query matching several chunks of module name
+# with multiple tags applying to module
+setenv_var MODULES_COLORS {aL=100:al=96:hi=1:de=4:A=41:B=42:C=43}
+testerr_cmd_re sh {avail -t t} ".*[sgr {41;1}]t[sgr {0;41}]ag[sgr {0;42}]/[sgr {1}]t[sgr {0;42}]a[sgr {0;43}]g[sgr {1}]t[sgr {0;43}]ag[sgr 0].*"
+testerr_cmd_re sh {avail -t ta} ".*[sgr {41;1}]ta[sgr {0;41}]g[sgr {0;42}]/[sgr {1}]ta[sgr {0;43}]g[sgr {1}]ta[sgr {0;43}]g[sgr 0].*"
+
+
+# replay above tests but with no specific rendition of highlighted elements
+setenv_var MODULES_COLORS {aL=100:al=96:de=4:F=41:H=2:B=43}
+setenv_var TESTSUITE_MODULE_TAG_SET9 1
+# highlight search query specifying multiple versions (mod@vers1,vers2)
+testerr_cmd_re sh {avail -t -a tag@3,5} ".*[sgr {4;96;43}]tag[sgr {0;4;96;41}]/3.0[sgr 0] <foo>
+.*[sgr {100}]tag[sgr {0;43}]/5.0[sgr 0] <foo>"
+testerr_cmd_re sh {avail -t -a tag@3.0,5.0} ".*[sgr {4;96;43}]tag[sgr {0;4;96;41}]/3.0[sgr 0] <foo>
+.*[sgr {100}]tag[sgr {0;43}]/5.0[sgr 0] <foo>"
+unsetenv_var TESTSUITE_MODULE_TAG_SET9
+
+# short module name with many tags applying to it (1 tag per character in name)
+setenv_var TESTSUITE_MODULE_TAG_SET10 1
+setenv_var MODULES_COLORS {aL=100:al=96:de=4:A=41:B=42:C=43:D=44:E=45:F=46:G=47:H=101:I=102:J=103}
+testerr_cmd_re sh {avail -t} ".*[sgr {41}]t[sgr {0;42}]a[sgr {0;43}]g[sgr {0;44}]/[sgr {0;45}]t[sgr {0;46}]a[sgr {0;47}]g[sgr {0;101}]t[sgr {0;102}]a[sgr {0;103}]g[sgr {0}].*"
+# with single character match highlighted
+testerr_cmd_re sh {avail -t t} ".*[sgr {41}]t[sgr {0;42}]a[sgr {0;43}]g[sgr {0;44}]/[sgr {0;45}]t[sgr {0;46}]a[sgr {0;47}]g[sgr {0;101}]t[sgr {0;102}]a[sgr {0;103}]g[sgr {0}].*"
+# with several characters match highlighted
+testerr_cmd_re sh {avail -t ta}  ".*[sgr {41}]t[sgr {0;42}]a[sgr {0;43}]g[sgr {0;44}]/[sgr {0;45}]t[sgr {0;46}]a[sgr {0;47}]g[sgr {0;101}]t[sgr {0;102}]a[sgr {0;103}]g[sgr {0}].*"
+# with one tag applying to module
+setenv_var MODULES_COLORS {aL=100:al=96:de=4:A=41}
+testerr_cmd_re sh {avail -T -t t} ".*[sgr {41}]tag/tagtag[sgr 0] <B:C:D:E:F:G:H:I:J>.*"
+testerr_cmd_re sh {avail -t ta} ".*[sgr {41}]tag/tagtag[sgr 0] <B:C:D:E:F:G:H:I:J>.*"
+# search query matching several chunks of module name
+# with multiple tags applying to module
+setenv_var MODULES_COLORS {aL=100:al=96:de=4:A=41:B=42:C=43}
+testerr_cmd_re sh {avail -t t} ".*[sgr {41}]tag[sgr {0;42}]/ta[sgr {0;43}]gtag[sgr 0].*"
+testerr_cmd_re sh {avail -t ta} ".*[sgr {41}]tag[sgr {0;42}]/ta[sgr {0;43}]gtag[sgr 0].*"
+
+unsetenv_var TESTSUITE_MODULE_TAG_SET10
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
