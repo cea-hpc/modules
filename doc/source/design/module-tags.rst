@@ -48,6 +48,10 @@ Specification
     - ``super-sticky``: loaded module cannot be unloaded even if forced
     - ``hidden-loaded``: loaded module not reported by default in ``list`` result
 
+- Tags inherited from module state cannot be set with ``module-tag`` command
+
+    - An error is otherwise thrown
+
 - Modules project may introduce in the future new tags inherited from new states or new specific behaviors
 
     - These new tags will supersede tags set by users using the same naming
