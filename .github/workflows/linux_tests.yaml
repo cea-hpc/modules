@@ -1,0 +1,266 @@
+name: linux-tests
+
+on:
+  push:
+    branches-ignore:
+      - c-master
+      - c-3.2
+  pull_request:
+
+jobs:
+  tcl86-nolibtclenvmodules:
+    runs-on: ubuntu-18.04
+    env:
+      CONFIGURE_OPTS: --with-tclsh=tclsh8.6 --disable-libtclenvmodules --prefix=/tmp/modules --with-pager=more --with-pager-opts=-X --enable-auto-handling
+      COVERAGE: y
+      EXTRA_SCRIPT_PRETEST: make install-testmodulerc install-testetcrc install-testmodspath-empty
+      EXTRA_SCRIPT_POSTTEST: make uninstall-testconfig
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install system packages
+        run: |
+          sudo apt-get -y update
+          sudo apt-get install -y expect-dev dejagnu python-sphinx bash tcsh ksh zsh fish tcl8.6 perl python ruby cmake r-base-core
+          # add package to run tests in an X-enabled environment
+          sudo apt-get install -y xvfb
+          # need to fix gems on bionic to avoid warning messages that broke output checks
+          sudo gem update --system 3.0.8
+      - name: Build Modules
+        run: |
+          ./configure $CONFIGURE_OPTS
+          make
+      - name: Test Modules build
+        run: |
+          eval $EXTRA_SCRIPT_PRETEST
+          make test-deps
+          xvfb-run script/mt
+          eval $EXTRA_SCRIPT_POSTTEST
+      - name: Install Modules
+        run: |
+          make install
+      - name: Test Modules installation
+        run: |
+          xvfb-run script/mt install
+          script/nglfar2ccov modulecmd-test.tcl
+      - name: Uninstall Modules
+        run: |
+          make uninstall
+      - uses: codecov/codecov-action@v1
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: testsuite-logs-${{ github.job }}
+          path: |
+            compat/modules.log
+            modules.log
+            install.log
+          retention-days: 5
+
+  tcl84-nolibtclenvmodules:
+    runs-on: ubuntu-16.04
+    env:
+      CONFIGURE_OPTS: --with-tclsh=tclsh8.4 --prefix=/tmp/modules --disable-libtclenvmodules --enable-compat-version --with-tcl=/usr/lib/tcl8.4 --enable-versioning --disable-silent-shell-debug-support --disable-set-shell-startup --disable-quarantine-support --with-initconf-in=etcdir --with-loadedmodules=null:dot --without-pager --disable-avail-indepth --with-terminal-background=light --with-unload-match-order=returnfirst --disable-implicit-default --with-search-match=contains --with-locked-configs=extra_siteconfig
+      COVERAGE: y
+      EXTRA_SCRIPT_PRETEST: make install-testinitrc install-testsiteconfig
+      EXTRA_SCRIPT_POSTTEST: make uninstall-testconfig
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install system packages
+        run: |
+          sudo apt-get -y update
+          sudo apt-get install -y expect-dev dejagnu python-sphinx bash tcsh ksh zsh tcl8.4 perl python ruby cmake r-base-core
+          # libtclenvmodules and compatibility version build requirements
+          sudo apt-get install -y gcc autoconf tcl8.4-dev 
+          # compatibility version-specific build requirements
+          sudo apt-get install -y automake autopoint 
+          # need to fix gems on xenial to avoid warning messages that broke output checks
+          sudo gem update --system 3.0.8
+      - name: Build Modules
+        run: |
+          ./configure $CONFIGURE_OPTS
+          make
+      - name: Test Modules build
+        run: |
+          eval $EXTRA_SCRIPT_PRETEST
+          make test-deps
+          script/mt
+          eval $EXTRA_SCRIPT_POSTTEST
+      - name: Install Modules
+        run: |
+          make install
+      - name: Test Modules installation
+        run: |
+          script/mt install
+          script/nglfar2ccov modulecmd-test.tcl
+      - name: Uninstall Modules
+        run: |
+          make uninstall
+      - uses: codecov/codecov-action@v1
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: testsuite-logs-${{ github.job }}
+          path: |
+            compat/modules.log
+            modules.log
+            install.log
+          retention-days: 5
+
+  tcl85:
+    runs-on: ubuntu-18.04
+    env:
+      CONFIGURE_OPTS: --with-tclsh=tclsh8.5 --prefix=/tmp/modules --enable-compat-version --with-tcl=/usr/lib/tcl8.5 --disable-quarantine-support --enable-dotmodulespath --with-pager=more --with-dark-background-colors=hi --with-locked-configs=implicit_default --enable-wa-277 --enable-advanced-version-spec --disable-ml --disable-implicit-requirement
+      COVERAGE: y
+      EXTRA_SCRIPT_PRETEST: make install-testmodulerc-1 install-testetcrc install-testmodspath
+      EXTRA_SCRIPT_POSTTEST: make uninstall-testconfig
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install system packages
+        run: |
+          sudo apt-get -y update
+          sudo apt-get install -y expect-dev dejagnu python-sphinx bash tcsh ksh zsh fish tcl8.5 perl python ruby cmake r-base-core
+          # libtclenvmodules and compatibility version build requirements
+          sudo apt-get install -y gcc autoconf tcl8.5-dev 
+          # compatibility version-specific build requirements
+          sudo apt-get install -y automake autopoint 
+          # need to fix gems on bionic to avoid warning messages that broke output checks
+          sudo gem update --system 3.0.8
+      - name: Build Modules
+        run: |
+          ./configure $CONFIGURE_OPTS
+          make
+      - name: Test Modules build
+        run: |
+          eval $EXTRA_SCRIPT_PRETEST
+          make test-deps
+          script/mt
+          eval $EXTRA_SCRIPT_POSTTEST
+      - name: Install Modules
+        run: |
+          make install
+      - name: Test Modules installation
+        run: |
+          script/mt install
+          script/nglfar2ccov modulecmd-test.tcl
+      - name: Uninstall Modules
+        run: |
+          make uninstall
+      - uses: codecov/codecov-action@v1
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: testsuite-logs-${{ github.job }}
+          path: |
+            compat/modules.log
+            modules.log
+            install.log
+          retention-days: 5
+
+  tcl86:
+    runs-on: ubuntu-18.04
+    env:
+      CONFIGURE_OPTS: --with-tclsh=tclsh8.6 --prefix=/tmp/modules --libdir=/tmp/modules/lib64 --enable-multilib-support
+      COVERAGE: y
+      COVERAGE_OLDTCL: y
+      COVERAGE_MULTILIB: y
+      EXTRA_SCRIPT_PRETEST: make install-testsiteconfig-1 && export TESTSUITE_ENABLE_SITECONFIG=1
+      EXTRA_SCRIPT_POSTTEST: unset TESTSUITE_ENABLE_SITECONFIG
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install system packages
+        run: |
+          sudo apt-get -y update
+          sudo apt-get install -y expect-dev dejagnu python-sphinx bash tcsh ksh zsh fish tcl8.6 perl python ruby cmake r-base-core
+          # libtclenvmodules build requirements
+          sudo apt-get install -y gcc autoconf tcl8.6-dev 
+          # need to fix gems on bionic to avoid warning messages that broke output checks
+          sudo gem update --system 3.0.8
+      - name: Build Modules
+        run: |
+          ./configure $CONFIGURE_OPTS
+          make
+      - name: Test Modules build
+        run: |
+          eval $EXTRA_SCRIPT_PRETEST
+          make test-deps
+          script/mt
+          eval $EXTRA_SCRIPT_POSTTEST
+      - name: Install Modules
+        run: |
+          make install
+      - name: Test Modules installation
+        run: |
+          script/mt install
+          script/nglfar2ccov modulecmd-test.tcl
+      - name: Uninstall Modules
+        run: |
+          make uninstall
+      - uses: codecov/codecov-action@v1
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: testsuite-logs-${{ github.job }}
+          path: |
+            compat/modules.log
+            modules.log
+            install.log
+          retention-days: 5
+
+  tcl84:
+    runs-on: ubuntu-16.04
+    env:
+      CONFIGURE_OPTS: --with-tclsh=tclsh8.4 --prefix=/tmp/modules --with-tcl=/usr/lib/tcl8.4
+      COVERAGE: y
+      EXTRA_SCRIPT_PRETEST: make install-testsiteconfig-1 && export TESTSUITE_ENABLE_SITECONFIG=1
+      EXTRA_SCRIPT_POSTTEST: unset TESTSUITE_ENABLE_SITECONFIG
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install system packages
+        run: |
+          sudo apt-get -y update
+          sudo apt-get install -y expect-dev dejagnu python-sphinx bash tcsh ksh zsh tcl8.4 perl python ruby cmake r-base-core
+          # libtclenvmodules build requirements
+          sudo apt-get install -y gcc autoconf tcl8.4-dev 
+          # need to fix gems on xenial to avoid warning messages that broke output checks
+          sudo gem update --system 3.0.8
+      - name: Build Modules
+        run: |
+          ./configure $CONFIGURE_OPTS
+          make
+      - name: Test Modules build
+        run: |
+          eval $EXTRA_SCRIPT_PRETEST
+          make test-deps
+          script/mt
+          eval $EXTRA_SCRIPT_POSTTEST
+      - name: Install Modules
+        run: |
+          make install
+      - name: Test Modules installation
+        run: |
+          script/mt install
+          script/nglfar2ccov modulecmd-test.tcl
+      - name: Uninstall Modules
+        run: |
+          make uninstall
+      - uses: codecov/codecov-action@v1
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: testsuite-logs-${{ github.job }}
+          path: |
+            compat/modules.log
+            modules.log
+            install.log
+          retention-days: 5
+
