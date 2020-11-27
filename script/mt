@@ -38,13 +38,6 @@ else
    make=make
 fi
 
-# handle script option
-b64failedlog=0
-if [ $# -gt 0 ] && [ "$1" = "--base64-failed-log" ]; then
-   b64failedlog=1
-   shift
-fi
-
 # make target
 target=test
 testserie=modules
@@ -112,26 +105,6 @@ for log in compat/$testserie.log $testserie.log; do
       retreview+=$?
    fi
 done
-
-# testsuite failed but no failure found by mtreview or output of failed log
-# is required (by --base64-failed-log option)
-if [ $ret -ne 0 ] && ( [ $retreview -eq 0 ] || [ $b64failedlog -eq 1 ] ); then
-   for log in compat/$testserie.log $testserie.log; do
-      # output full log content as review did not found the issue
-      if [ -e $log ]; then
-         echo -n  "=== $log "
-         printf '=%.0s' {1..60}
-         echo
-         if [ $b64failedlog -eq 0 ]; then
-            cat $log
-         else
-            gzip --stdout $log | base64
-         fi
-         printf '=%.0s' {1..76}
-         echo
-      fi
-   done
-fi
 
 # testsuite ok but mtreview failed to run
 if [ $ret -eq 0 ] && [ $retreview -ne 0 ]; then
