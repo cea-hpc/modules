@@ -276,7 +276,7 @@ available for *appA* and this new version fixes a lot of issues that were
 encountered with version 1.0. Decommission date for ``appA/1.0`` is planned on
 November 18th.
 
-.. code-block::
+.. code-block:: none
 
     # decommission of old version of appA
     set nearmsg {appA/1.0 will be decommissioned, please use appA/2.0}
