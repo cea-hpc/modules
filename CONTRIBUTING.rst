@@ -74,12 +74,12 @@ Run the basic test suite with::
 
    make test
 
-This only runs the tests for the current environment. `Cirrus CI`_,
-`Travis-CI`_ and `AppVeyor`_ will run the full suite when you submit your pull
+This only runs the tests for the current environment. `GitHub Actions`_,
+`Cirrus CI`_ and `AppVeyor`_ will run the full suite when you submit your pull
 request.
 
+.. _GitHub Actions: https://github.com/cea-hpc/modules/actions
 .. _Cirrus CI: https://cirrus-ci.com/github/cea-hpc/modules
-.. _Travis-CI: https://travis-ci.org/cea-hpc/modules/
 .. _AppVeyor: https://ci.appveyor.com/project/xdelaruelle/modules-a6nha
 
 .. _running-test-coverage:
