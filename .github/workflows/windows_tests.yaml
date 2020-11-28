@@ -1,0 +1,145 @@
+name: windows-tests
+
+on:
+  push:
+    branches-ignore:
+      - c-master
+      - c-3.2
+  pull_request:
+
+jobs:
+  native:
+    runs-on: windows-2019
+    env:
+      CYGWIN_BASH: C:\tools\cygwin\bin\bash
+      TCL_INSTALLER: SetupTcl-8.6.10-x64_Bawt-1.2.1
+      TCL_DL_URL: http://www.bawt.tcl3d.org/download/Tcl-Pure
+      TCLSH_DIR: C:\Tcl\bin
+      DIST_WIN: modules-*-win
+      MODULE_DIR: C:\Program Files\Environment Modules\bin
+    steps:
+      - name: Configure Git autocrlf
+        shell: bash
+        run: git config --global core.autocrlf input
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install system packages
+        shell: cmd
+        run: |
+          choco install make sed git autoconf automake libtool tcl python37 python37-sphinx zip --source cygwin
+      - name: Install Tcl under Windows
+        shell: cmd
+        run: |
+          curl -LfsS -o %TCL_INSTALLER%.exe %TCL_DL_URL%/%TCL_INSTALLER%.exe
+          %TCL_INSTALLER% /verysilent
+      - name: Build Modules dist
+        run: |
+          & $env:CYGWIN_BASH -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure --disable-libtclenvmodules --with-python=/cygdrive/c/hostedtoolcache/windows/Python/3.9.0/x64/python && make dist-win'
+      - name: Install Modules
+        shell: cmd
+        run: |
+          jar xvf %DIST_WIN%.zip
+          cd %DIST_WIN%
+          INSTALL.bat
+      - name: Test Modules installation
+        shell: cmd
+        run: |
+          :: manually define module cmd dir as PATH updated by INSTALL.bat
+          :: is not inherited by test_script
+          if not "%TCLSH_DIR%" == "" path %MODULE_DIR%;%TCLSH_DIR%;%PATH%
+          cd %DIST_WIN%
+          TESTINSTALL.bat
+      - name: Uninstall Modules
+        shell: cmd
+        run: |
+          cd %DIST_WIN%
+          UNINSTALL.bat
+
+  cygwin:
+    runs-on: windows-2019
+    env:
+      CYGWIN_BASH: C:\tools\cygwin\bin\bash
+    steps:
+      - name: Configure Git autocrlf
+        shell: bash
+        run: git config --global core.autocrlf input
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install system packages
+        run: |
+          choco install make sed git autoconf automake libtool tcl dejagnu python37 python37-sphinx ruby zsh tcsh mksh fish cmake R tcl-devel gcc-core wget --source cygwin
+          & $env:CYGWIN_BASH -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ln -s python3.7 /usr/bin/python'
+      - name: Build Modules
+        run: |
+          & $env:CYGWIN_BASH -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure && make'
+      - name: Test Modules build
+        run: |
+          & $env:CYGWIN_BASH -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && script/mt'
+      - name: Install Modules
+        run: |
+          & $env:CYGWIN_BASH -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && make install'
+      - name: Test Modules installation
+        run: |
+          & $env:CYGWIN_BASH -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && script/mt install'
+      - name: Uninstall Modules
+        run: |
+          & $env:CYGWIN_BASH -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && make uninstall'
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: testsuite-logs-${{ github.job }}
+          path: |
+            compat/modules.log
+            modules.log
+            install.log
+          retention-days: 5
+
+  msys:
+    runs-on: windows-2019
+    steps:
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MSYS
+          update: true
+      - name: Configure Git autocrlf
+        shell: bash
+        run: git config --global core.autocrlf input
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install system packages
+        shell: msys2 {0}
+        run: |
+          pacman --noconfirm --noprogressbar -S tcl dejagnu python ruby cmake zsh tcsh mksh fish gcc autoconf make git wget
+      - name: Build Modules
+        shell: msys2 {0}
+        run: |
+          ./configure
+          make
+      - name: Test Modules build
+        shell: msys2 {0}
+        run: |
+          script/mt
+      - name: Install Modules
+        shell: msys2 {0}
+        run: |
+          make install
+      - name: Test Modules installation
+        shell: msys2 {0}
+        run: |
+          script/mt install
+      - name: Uninstall Modules
+        shell: msys2 {0}
+        run: |
+          make uninstall
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: testsuite-logs-${{ github.job }}
+          path: |
+            compat/modules.log
+            modules.log
+            install.log
+          retention-days: 5
