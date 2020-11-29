@@ -108,6 +108,106 @@ proc modulecmd_exit {} {
 # has to be installed in order to scan both 
 #
 
+# alternative method to collect stdout and stderr from command execution (on
+# Tcl>=8.6 and if Thread package is available): use channel pipe and threads
+# instead of saving these outputs in file
+if {[lindex [lsort -dictionary [list 8.6 [info tclversion]]] 1] eq [info tclversion]\
+    && ![catch {package require Thread} errmsg]} {
+
+package require Thread
+
+proc readpipe {p1 p2 varname} {
+    append ::$varname [read $p1]
+    if {[eof $p1]} {
+        close $p1
+        if {$p2 ni [chan names]} {
+            set ::endpipe ok
+        }
+    }
+}
+
+set tid [thread::create]
+
+thread::send $tid {
+    proc docmd {cmdlist out err} {
+        lappend cmdlist >@ $out 2>@ $err &
+        if [catch {
+            eval $cmdlist
+        } ] {
+            set ret [lindex $::errorCode 2]
+        } else {
+            set ret 0
+        }
+        close $out
+        close $err
+
+        return $ret
+    }
+}
+
+proc modulecmd_xxx_ {command {input noinput}} {
+	global MODULECMD
+	global TCLSH
+	global verbose
+	global shell
+	global comp_output
+	global comp_error
+	global comp_exit
+	global errorCode
+	global no_verbose
+
+    if {[info exists ::endpipe]} {
+        unset ::endpipe
+    }
+
+	if ![info exists command] then {
+	  unresolved "internal testsuite error: no module command specified"
+	}
+
+	default_shell
+	default_modulecmd
+	default_tclsh
+
+    set cmdlist [list exec $TCLSH $MODULECMD $shell]
+    # check if asked not to split passed command line
+    if {[string first "NOCMDSPLIT" $command] == 0} {
+        lappend cmdlist [string range $command 10 end]
+    } else {
+        # preserve argument including space character
+        foreach cmdelt [split [string map {{\ } {<SPACE>}} $command] { }] {
+            lappend cmdlist [string map {<SPACE> { }} $cmdelt]
+        }
+    }
+    if {$input ne {noinput}} {
+        lappend cmdlist << $input
+    }
+
+	if { ! $no_verbose && $verbose > 1 } {
+        send_user "starting [lrange $cmdlist 1 end]\n"
+	}
+
+    # create pipes
+    lassign [chan pipe] rdstdout wrstdout
+    lassign [chan pipe] rdstderr wrstderr
+
+    # affect them to the thread
+    thread::transfer $::tid $wrstdout
+    thread::transfer $::tid $wrstderr
+
+    # run command in separate thread
+    set comp_exit [thread::send $::tid [list docmd $cmdlist $wrstdout $wrstderr]]
+
+    # fetch output asynchronously
+    fileevent $rdstdout readable [list readpipe $rdstdout $rdstderr comp_output]
+    fconfigure $rdstdout -blocking 0
+    fileevent $rdstderr readable [list readpipe $rdstderr $rdstdout comp_error]
+    fconfigure $rdstderr -blocking 0
+
+    vwait endpipe
+}
+
+} else {
+
 proc modulecmd_xxx_ {command {input noinput}} {
 	global MODULECMD
 	global TCLSH
@@ -167,6 +267,8 @@ proc modulecmd_xxx_ {command {input noinput}} {
 	} comp_output
 	catch { close $outfile }
 	catch { file delete test321.out }
+}
+
 }
 
 proc modulecmd_start {command {input noinput}} {
