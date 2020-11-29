@@ -109,12 +109,12 @@ foreach cmd [list whatis apropos] {
     lappend ans [list set LOADEDMODULES "$module/$cmd"]
     # other evaluated modulefiles lead to an error result on stdout
     lappend ans [list ERR]
-    testouterr_cmd_re "sh" "load $module/$cmd" $ans {^.+$}
+    testouterr_cmd_re "sh" "load $module/$cmd" $ans {.+}
 }
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module/avail"]
 lappend ans [list setpath _LMFILES_ "$modulepath/$module/avail"]
-testouterr_cmd_re "sh" "load $module/avail" $ans "^.+$"
+testouterr_cmd_re "sh" "load $module/avail" $ans ".+"
 
 
 #
@@ -190,13 +190,13 @@ foreach cmd [list whatis apropos] {
     lappend ans [list unset LOADEDMODULES]
     # other evaluated modulefiles lead to an error result on stdout
     lappend ans [list ERR]
-    testouterr_cmd_re "sh" "unload $module/$cmd" $ans {^.+$}
+    testouterr_cmd_re "sh" "unload $module/$cmd" $ans {.+}
 }
 setenv_loaded_module "$module/avail" "$modulepath/$module/avail"
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
-testouterr_cmd_re "sh" "unload $module/avail" $ans "^.+$"
+testouterr_cmd_re "sh" "unload $module/avail" $ans ".+"
 
 # restore environment
 unsetenv_loaded_module
