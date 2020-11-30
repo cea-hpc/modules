@@ -109,12 +109,8 @@ proc modulecmd_exit {} {
 #
 
 # alternative method to collect stdout and stderr from command execution (on
-# Tcl>=8.6 and if Thread package is available): use channel pipe and threads
-# instead of saving these outputs in file
-if {[lindex [lsort -dictionary [list 8.6 [info tclversion]]] 1] eq [info tclversion]\
-    && ![catch {package require Thread} errmsg]} {
-
-package require Thread
+# Tcl>=8.6): use channel pipe instead of saving these outputs in file
+if {[lindex [lsort -dictionary [list 8.6 [info tclversion]]] 1] eq [info tclversion]} {
 
 proc readpipe {p1 p2 varname} {
     append ::$varname [read $p1]
@@ -123,25 +119,6 @@ proc readpipe {p1 p2 varname} {
         if {$p2 ni [chan names]} {
             set ::endpipe ok
         }
-    }
-}
-
-set tid [thread::create]
-
-thread::send $tid {
-    proc docmd {cmdlist out err} {
-        lappend cmdlist >@ $out 2>@ $err &
-        if [catch {
-            eval $cmdlist
-        } ] {
-            set ret [lindex $::errorCode 2]
-        } else {
-            set ret 0
-        }
-        close $out
-        close $err
-
-        return $ret
     }
 }
 
@@ -190,18 +167,23 @@ proc modulecmd_xxx_ {command {input noinput}} {
     lassign [chan pipe] rdstdout wrstdout
     lassign [chan pipe] rdstderr wrstderr
 
-    # affect them to the thread
-    thread::transfer $::tid $wrstdout
-    thread::transfer $::tid $wrstderr
-
-    # run command in separate thread
-    set comp_exit [thread::send $::tid [list docmd $cmdlist $wrstdout $wrstderr]]
-
     # fetch output asynchronously
     fileevent $rdstdout readable [list readpipe $rdstdout $rdstderr comp_output]
     fconfigure $rdstdout -blocking 0
     fileevent $rdstderr readable [list readpipe $rdstderr $rdstdout comp_error]
     fconfigure $rdstderr -blocking 0
+
+    # run command in separate thread
+    lappend cmdlist >@ $wrstdout 2>@ $wrstderr &
+    if [catch {
+        eval $cmdlist
+    } ] {
+        set comp_exit [lindex $::errorCode 2]
+    } else {
+        set comp_exit 0
+    }
+    close $wrstdout
+    close $wrstderr
 
     vwait endpipe
 }
