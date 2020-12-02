@@ -1,7 +1,7 @@
 # <img src="https://raw.githubusercontent.com/cea-hpc/modules/master/doc/img/modules_red.svg" height="180" alt="Modules"/>
 
 [![Linux Build Status](https://github.com/cea-hpc/modules/workflows/linux-tests/badge.svg)](https://github.com/cea-hpc/modules/actions?query=workflow:linux-tests)
-[![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/cea-hpc/modules?svg=true&branch=master)](https://ci.appveyor.com/project/xdelaruelle/modules-a6nha/branch/master)
+[![Windows Build Status](https://github.com/cea-hpc/modules/workflows/windows-tests/badge.svg)](https://github.com/cea-hpc/modules/actions?query=workflow:windows-tests)
 [![FreeBSD/OS X/Linux Build Status](https://api.cirrus-ci.com/github/cea-hpc/modules.svg)](https://cirrus-ci.com/github/cea-hpc/modules)
 [![Coverage Status](https://codecov.io/gh/cea-hpc/modules/branch/master/graph/badge.svg)](https://codecov.io/gh/cea-hpc/modules)
 [![Documentation Status](https://readthedocs.org/projects/modules/badge/?version=latest)](https://modules.readthedocs.io/en/latest/?badge=latest)
