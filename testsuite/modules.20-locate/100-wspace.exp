@@ -615,15 +615,14 @@ unsetenv_path_var MODULES_LMALTNAME
 #
 set mp "$modpath wspac "
 set mpre "$modpathre wspac "
-if {!$is_symlink_supported} {
+# create modulepath finishing by space on the file (it crashes git checkout on Windows if saved in repo)
+if {!$is_symlink_supported || [catch {file link -symbolic $mp modulefiles.2}]} {
     send_user "\tskipping tests over '$mp' modulepath as symbolic links are not supported on filesystem\n"
 } else {
 
 # generate modulefiles that cannot be recorded in git repository
 create_endspace_test_modulefiles
 
-# create modulepath finishing by space on the file (it crashes git checkout on Windows if saved in repo)
-file link -symbolic $mp modulefiles.2
 setenv_path_var MODULEPATH $mp
 
 # unknown module
