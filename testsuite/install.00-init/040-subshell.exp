@@ -42,7 +42,7 @@ if {$tcl_platform(os) eq "SunOS"} {
    set sh_nf "eval: module: not found"
    set sh_nf_ml "eval: ml: not found"
 } else {
-   set sh_nf "module: not found"
+   set sh_nf "(.*: )?module: not found"
    set sh_nf_ml "ml: not found"
 }
 
@@ -59,8 +59,8 @@ foreach shell $shell_list {
    # No module command propagation available for some shells
    switch -- $shell {
       zsh {
-         testall_cmd_re "$shell" "module --version" "^\$" "$zsh_nf\$" 127
-         testall_cmd_re "$shell" "module foo" "^\$" "$zsh_nf\$" 127
+         testall_cmd_re "$shell" "module --version" "^\$" ".*$zsh_nf\$" 127
+         testall_cmd_re "$shell" "module foo" "^\$" ".*$zsh_nf\$" 127
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\$" 252
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\$" 123
          if {$install_ml eq {y}} {
@@ -125,8 +125,8 @@ foreach shell $shell_list {
    # No module command propagation available for some shells
    switch -- $shell {
       zsh {
-         testall_cmd_re "$shell" "module --version" "^\$" "$zsh_nf\$" 127
-         testall_cmd_re "$shell" "module foo" "^\$" "$zsh_nf\$" 127
+         testall_cmd_re "$shell" "module --version" "^\$" ".*$zsh_nf\$" 127
+         testall_cmd_re "$shell" "module foo" "^\$" ".*$zsh_nf\$" 127
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\$" 252
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\$" 123
          if {$install_ml eq {y}} {

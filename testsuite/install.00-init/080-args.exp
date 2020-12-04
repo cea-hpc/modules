@@ -81,27 +81,39 @@ foreach shell $shell_list {
 }
 
 foreach shell $othlang_list {
-   testall_cmd_re "$shell" "use," "" $err_emptydir 1
-   testall_cmd_re "$shell" "load," "" $err_emptymod 1
+   switch -- $shell {
+      r {
+         set postmsg "\nError: \nExecution halted"
+      }
+      cmake {
+         set postmsg "\nCMake Error at testsuite/bin/install_test_cmake:115 \\\(message\\\):\n\n"
+      }
+      default {
+         set postmsg {}
+      }
+   }
+
+   testall_cmd_re "$shell" "use," "" $err_emptydir$postmsg 1
+   testall_cmd_re "$shell" "load," "" $err_emptymod$postmsg 1
    # langs swallow " differently
    switch -- $shell {
       {perl} - {ruby} - {r} {
-         testall_cmd_re "$shell" "load,\"\"" "" $err_emptymod 1
+         testall_cmd_re "$shell" "load,\"\"" "" $err_emptymod$postmsg 1
       }
       default {
-         testall_cmd_re "$shell" "load,\"\"" "" $err_locatemod6 1
+         testall_cmd_re "$shell" "load,\"\"" "" $err_locatemod6$postmsg 1
       }
    }
-   testall_cmd_re "$shell" "load,''" "" $err_locatemod7 1
-   testall_cmd_re "$shell" "load,foo bar" "" $err_locatemod 1
-   testall_cmd_re "$shell" "load,foo\\ bar" "" $err_locatemod2 1
+   testall_cmd_re "$shell" "load,''" "" $err_locatemod7$postmsg 1
+   testall_cmd_re "$shell" "load,foo bar" "" $err_locatemod$postmsg 1
+   testall_cmd_re "$shell" "load,foo\\ bar" "" $err_locatemod2$postmsg 1
    # langs swallow \$ differently
    switch -- $shell {
       {tcl} - {python} - {cmake} {
-         testall_cmd_re "$shell" "load,\\\$foo" "" $err_locatemod5 1
+         testall_cmd_re "$shell" "load,\\\$foo" "" $err_locatemod5$postmsg 1
       }
       default {
-         testall_cmd_re "$shell" "load,\\\$foo" "" $err_locatemod4 1
+         testall_cmd_re "$shell" "load,\\\$foo" "" $err_locatemod4$postmsg 1
       }
    }
    testall_cmd_re "$shell" "NOARG" "" $usage_msg 0
@@ -110,7 +122,16 @@ foreach shell $othlang_list {
    }
    testall_cmd_re "$shell" "" "" $usage_msg 0
    testall_cmd_re "$shell" "," "" $usage_msg 0
-   testall_cmd_re "$shell" "append-path,-d, ,FOO,/path/to/dir2:source,$modfile" "" "$foo /path/to/dir2" 0
+
+   switch -- $shell {
+      cmake {
+         set premsg "(CMake Warning .*\n)?"
+      }
+      default {
+         set premsg {}
+      }
+   }
+   testall_cmd_re "$shell" "append-path,-d, ,FOO,/path/to/dir2:source,$modfile" "" "$premsg$foo /path/to/dir2" 0
    # langs swallow \$ differently
    switch -- $shell {
       {tcl} - {python} {
@@ -137,6 +158,9 @@ unset env(BAR)
 unset env(MODULES_RUN_QUARANTINE)
 
 unset modfile
+
+catch {unset premsg}
+catch {unset postmsg}
 
 unset err_emptymod
 unset err_emptydir

@@ -64,6 +64,13 @@ foreach vname [lsort $install_quarlist] {
    }
 }
 
+# if test set LD_PRELOAD to a non-existent lib, ld will shout error
+if {[lsearch -exact $install_quarlist LD_PRELOAD] != -1} {
+   set postmsg "(\nERROR: ld.so: object 'foo'.*)*"
+} else {
+   set postmsg {}
+}
+
 #
 # The tests
 #
@@ -75,6 +82,9 @@ foreach shell $shell_list {
             send_user "\tskip test for $shell, no quarantine support\n"
          }
       }
+      fish {
+         testall_cmd_re "$shell" "module source $modfile" "" [join $ans "\n"]$postmsg 0
+      }
       default {
          testall_cmd_re "$shell" "module source $modfile" "" [join $ans "\n"] 0
       }
@@ -84,7 +94,7 @@ foreach shell $othlang_list {
    switch -- $shell {
       {r} {
          # specific result for R as LD_LIBRARY_PATH value is altered by R on the way
-         testall_cmd_re "$shell" "source,$modfile" "" [join $ansr "\n"] 0
+         testall_cmd_re "$shell" "source,$modfile" "" [join $ansr "\n"]$postmsg 0
       }
       default {
          testall_cmd_re "$shell" "source,$modfile" "" [join $ans "\n"] 0
@@ -103,6 +113,8 @@ foreach vname $install_quarlist {
 if {[info exists vname]} {
    unset vname
 }
+
+unset postmsg
 
 # if quarantine has not been configured at build time, check the
 # whole mechanism in various conditions
