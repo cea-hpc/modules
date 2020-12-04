@@ -59,11 +59,11 @@ if {$install_setmanpath eq "y" && $install_builddoc ne "n"} {
    }
    foreach shell $shell_list {
       if {$install_compatversion eq "y"} {
-         testall_cmd_re "$shell" "man -w modulefile-compat" "^$install_mandirre/man4/modulefile-compat.*\$" "^\$" 0
-         testall_cmd_re "$shell" "man -w module-compat" "^$install_mandirre/man1/module-compat.*\$" "^\$" 0
+         testall_cmd_re "$shell" "man -w modulefile-compat" "$install_mandirre/man4/modulefile-compat.*" {} 0
+         testall_cmd_re "$shell" "man -w module-compat" "$install_mandirre/man1/module-compat.*" {} 0
       }
-      testall_cmd_re "$shell" "man -w modulefile" "^$install_mandirre/man4/modulefile.*\$" "^\$" 0
-      testall_cmd_re "$shell" "man -w module" "^$install_mandirre/man1/module.*\$" "^\$" 0
+      testall_cmd_re "$shell" "man -w modulefile" "$install_mandirre/man4/modulefile.*" {} 0
+      testall_cmd_re "$shell" "man -w module" "$install_mandirre/man1/module.*" {} 0
    }
 } elseif {$verbose > 0} {
    send_user "\tSkipping man pages availability checks\n"
@@ -75,7 +75,7 @@ if {$install_setbinpath eq "y"} {
          send_user "\tChecking createmodule.py availability\n"
       }
       foreach shell $shell_list {
-         testall_cmd_re "$shell" "createmodule.py -h" "^Usage: createmodule.py .*\$" "^\$" 0
+         testall_cmd_re "$shell" "createmodule.py -h" "Usage: createmodule.py .*" {} 0
       }
    } elseif {$verbose > 0} {
       send_user "\tSkipping createmodule.py availability tests as no python interpreter found\n"
@@ -84,7 +84,7 @@ if {$install_setbinpath eq "y"} {
       send_user "\tChecking envml availability\n"
    }
    foreach shell $shell_list {
-      testall_cmd_re "$shell" "envml -h" "^Usage:.*/envml .*\$" "^\$" 0
+      testall_cmd_re "$shell" "envml -h" "Usage:.*/envml .*" {} 0
    }
    if {$install_examplemodulefiles eq "y" && $install_loadedmodules eq "" \
       && $modfilesdir_in_modpath} {
@@ -102,9 +102,9 @@ if {$install_setbinpath eq "y"} {
    }
    foreach shell $shell_list {
       if {$shell eq "basheu"} {
-         testall_cmd_re "$shell" "modulecmd bash --version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
+         testall_cmd_re "$shell" "modulecmd bash --version" {} "Modules Release \\S+ (\\S+)" 0
       } else {
-         testall_cmd_re "$shell" "modulecmd $shell --version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
+         testall_cmd_re "$shell" "modulecmd $shell --version" {} "Modules Release \\S+ (\\S+)" 0
       }
    }
    if {$install_compatversion eq "y"} {
@@ -117,9 +117,9 @@ if {$install_setbinpath eq "y"} {
          # compat version does not support Fish shell
          if {$shell ne "fish"} {
             if {$shell eq "basheu"} {
-               testall_cmd_re "$shell" "modulecmd bash --version" " test 0 = 1;" "^${compat_warn_setvar}VERSION=\\S+.*\$" 1
+               testall_cmd_re "$shell" "modulecmd bash --version" " test 0 = 1;" "${compat_warn_setvar}VERSION=\\S+.*" 1
             } else {
-               testall_cmd_re "$shell" "modulecmd $shell --version" " test 0 = 1;" "^${compat_warn_setvar}VERSION=\\S+.*\$" 1
+               testall_cmd_re "$shell" "modulecmd $shell --version" " test 0 = 1;" "${compat_warn_setvar}VERSION=\\S+.*" 1
             }
          }
       }
@@ -159,10 +159,10 @@ if {$install_compatversion eq "y"} {
    foreach shell $shell_list {
       switch -- $shell {
          sh - bash - ksh - zsh {
-            testall_cmd_re "$shell" "type switchml" "^switchml is a.*\$" "^\$" 0
+            testall_cmd_re "$shell" "type switchml" "switchml is a.*" {} 0
          }
          csh - tcsh {
-            testall_cmd_re "$shell" "alias switchml" "^.+\$" "^\$" 0
+            testall_cmd_re "$shell" "alias switchml" ".+" {} 0
          }
       }
    }
@@ -172,14 +172,14 @@ if {$install_compatversion eq "y"} {
    }
    foreach shell $shell_list {
       if {$shell ne "fish"} {
-         testall_cmd_re "$shell" "module --version; switchml; switchml; module --version;" "^$swcompat_msg\n$swmain_msg\$" "^$version_msg\n$version_msg\$" 0
+         testall_cmd_re "$shell" "module --version; switchml; switchml; module --version;" "$swcompat_msg\n$swmain_msg" "$version_msg\n$version_msg" 0
       }
    }
    # set module compat version as default
    set env(MODULES_USE_COMPAT_VERSION) 1
    foreach shell $shell_list {
       if {$shell ne "fish"} {
-         testall_cmd_re "$shell" "switchml; module --version; switchml; switchml; module --version;" "^$swmain_msg\n$swcompat_msg\n$swmain_msg\$" "^$version_msg\n$version_msg\$" 0
+         testall_cmd_re "$shell" "switchml; module --version; switchml; switchml; module --version;" "$swmain_msg\n$swcompat_msg\n$swmain_msg" "$version_msg\n$version_msg" 0
       }
    }
    unset env(MODULES_USE_COMPAT_VERSION)
@@ -192,10 +192,10 @@ if {$install_modulepath ne ""} {
       send_user "\tChecking default modulepath setup\n"
    }
    foreach shell $shell_list {
-      testall_cmd_re "$shell" "module use" "^\$" "^$use_desc\n\\s+[join $modpath_listre {\n\\s+}]\$" 0
+      testall_cmd_re "$shell" "module use" {} "$use_desc\n\\s+[join $modpath_listre {\n\\s+}]" 0
    }
    foreach shell $othlang_list {
-      testall_cmd_re "$shell" "use" "^\$" "^$use_desc\n\\s+[join $modpath_listre {\n\\s+}]\$" 0
+      testall_cmd_re "$shell" "use" {} "$use_desc\n\\s+[join $modpath_listre {\n\\s+}]" 0
    }
 } elseif {$verbose > 0} {
    send_user "\tSkipping default modulepath checks\n"
@@ -206,18 +206,18 @@ if {$install_examplemodulefiles eq "y" && $modfilesdir_in_modpath} {
       send_user "\tChecking example modulefiles installation\n"
    }
    foreach shell $shell_list {
-      testall_cmd_re "$shell" "module avail -t" "^\$" "$moddir_header\n$mod_examples" 0
+      testall_cmd_re "$shell" "module avail -t" {} "$moddir_header\n$mod_examples" 0
    }
    foreach shell $othlang_list {
-      testall_cmd_re "$shell" "avail,-t" "^\$" "$moddir_header\n$mod_examples" 0
+      testall_cmd_re "$shell" "avail,-t" {} "$moddir_header\n$mod_examples" 0
    }
    # check version-specific modulefile, related to versioning installation mode
    if {$install_versioning eq "y"} {
       foreach shell $shell_list {
-         testall_cmd_re "$shell" "module load modules; module avail -t $install_version" "^\$" "^$versdir_header\n$install_versionre\$" 0
+         testall_cmd_re "$shell" "module load modules; module avail -t $install_version" {} "$versdir_header\n$install_versionre" 0
       }
       foreach shell $othlang_list {
-         testall_cmd_re "$shell" "load,modules:avail,-t,$install_version" "^\$" "^$versdir_header\n$install_versionre\$" 0
+         testall_cmd_re "$shell" "load,modules:avail,-t,$install_version" {} "$versdir_header\n$install_versionre" 0
       }
    }
 } elseif {$verbose > 0} {
@@ -229,10 +229,10 @@ if {$install_loadedmodules ne ""} {
       send_user "\tChecking default loaded modules setup\n"
    }
    foreach shell $shell_list {
-      testall_cmd_re "$shell" "module list -t" "^\$" "^$cur_loaded\n[join $lm_list {.*\n}]\$" 0
+      testall_cmd_re "$shell" "module list -t" {} "$cur_loaded\n[join $lm_list {.*\n}]" 0
    }
    foreach shell $othlang_list {
-      testall_cmd_re "$shell" "list,-t" "^\$" "^$cur_loaded\n[join $lm_list {.*\n}]\$" 0
+      testall_cmd_re "$shell" "list,-t" {} "$cur_loaded\n[join $lm_list {.*\n}]" 0
    }
 } elseif {$verbose > 0} {
    send_user "\tSkipping default loaded modules checks\n"
@@ -254,7 +254,7 @@ foreach shell $shell_sh_family {
    } else {
       set shell_opts($shell) "-xv"
    }
-   testall_cmd_re "$shell" "module --version" "^\$" ".*Modules Release \\S+ (\\S+).*" 0
+   testall_cmd_re "$shell" "module --version" {} ".*Modules Release \\S+ (\\S+).*" 0
    if {[info exists shell_opts_save]} {
       set shell_opts($shell) $shell_opts_save
       unset shell_opts_save
@@ -275,7 +275,7 @@ foreach shell $shell_sh_family {
    } else {
       set shell_opts($shell) "-xv"
    }
-   testall_cmd_re "$shell" "module --version" "^\$" ".*Modules Release \\S+ (\\S+).*" 0
+   testall_cmd_re "$shell" "module --version" {} ".*Modules Release \\S+ (\\S+).*" 0
    if {[info exists shell_opts_save]} {
       set shell_opts($shell) $shell_opts_save
       unset shell_opts_save

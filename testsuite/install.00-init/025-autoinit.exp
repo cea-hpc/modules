@@ -32,7 +32,7 @@ if {$verbose > 0} {
 }
 
 foreach shell $shell_list {
-   testall_cmd_re "autoinit:$shell" "module --version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
+   testall_cmd_re "autoinit:$shell" "module --version" {} "Modules Release \\S+ (\\S+)" 0
    testall_cmd "autoinit:$shell" "module foo" "" "$bad_cmd\n$type_help" 1
    testall_cmd "autoinit:$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "" "$cur_loaded\nnull" 0
    testall_cmd "autoinit:$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "" "$no_loaded" 0
@@ -40,7 +40,7 @@ foreach shell $shell_list {
 
 if {$install_ml eq {y}} {
    foreach shell $shell_list {
-      testall_cmd_re "autoinit:$shell" "ml --version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
+      testall_cmd_re "autoinit:$shell" "ml --version" {} "Modules Release \\S+ (\\S+)" 0
       testall_cmd "autoinit:$shell" "ml foo" "" "$error_msgs: Unable to locate a modulefile for 'foo'" 1
       testall_cmd "autoinit:$shell" "ml use $contrib_modpath\; ml purge\; ml null\; ml list -t" "" "$cur_loaded\nnull" 0
       testall_cmd "autoinit:$shell" "ml use $contrib_modpath\; ml purge\; ml null\; ml -null\; ml" "" "$no_loaded" 0

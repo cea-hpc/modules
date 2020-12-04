@@ -34,7 +34,7 @@ if {$verbose > 0} {
 }
 
 foreach shell $shell_list {
-   testall_cmd_re "$shell" "ml --version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
+   testall_cmd_re "$shell" "ml --version" {} "Modules Release \\S+ (\\S+)" 0
    testall_cmd "$shell" "ml foo" "" "$bad_cmd" 1
    testall_cmd "$shell" "ml use $contrib_modpath\; ml purge\; ml null\; ml list -t" "" "$cur_loaded\nnull" 0
    testall_cmd "$shell" "ml use $contrib_modpath\; ml purge\; ml null\; ml -null\; ml" "" "$no_loaded" 0
@@ -59,8 +59,8 @@ if {[find_bin grep] ne "" && [find_bin tr] ne "" && [find_bin awk] ne ""} {
 }
 
 foreach shell $othlang_list {
-   testall_cmd_re "$shell" "ml:--version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
-   testall_cmd_re "$shell" "ml:foo" "^\$" "$bad_cmd.*" 1
+   testall_cmd_re "$shell" "ml:--version" {} "Modules Release \\S+ (\\S+)" 0
+   testall_cmd_re "$shell" "ml:foo" {} "$bad_cmd.*" 1
    testall_cmd "$shell" "ml:use,$contrib_modpath:purge:null:list,-t" "" "$cur_loaded\nnull" 0
    testall_cmd "$shell" "ml:use,$contrib_modpath:purge:null:-null:list,-t" "" "$no_loaded" 0
    testall_cmd_re "$shell" "ml:is-loaded,unk" "" ".*" 1
