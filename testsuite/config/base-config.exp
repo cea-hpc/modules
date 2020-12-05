@@ -1,0 +1,1244 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		config/%M%
+#   Revision:		%I%
+#   First Edition:	2020/12/05
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite initialization
+#   Command:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Initialization of the testsuite. Definition of
+#			globally used start procedures for the test
+#			target.
+#		}C%
+#
+##############################################################################
+
+#
+# some tests only apply if the configure option is enabled or not
+#   look at ./modulecmd --version for examples
+#   (e.g. version_test("XXX=undef") returns 0 or 1 if the string is found)
+# 	if { [ version_test "XXX=1" ] } {
+#	} else {
+#	}
+#
+proc version_test {which} {
+	global comp_output
+	global comp_error
+	global verbose
+
+	if { $verbose > 1 } {
+		send_user "   ...  version_test($which)\n"
+	}
+	set comp_output ""
+	set comp_error ""
+
+	if { ![info exists which] } {
+		unresolved "version_test ($which) internal error"
+	}
+
+	modulecmd__ "--version"
+
+	if { ![regexp -- ".*$which.*" $comp_error] } {
+		if { $verbose > 1 } {
+			send_user "version_test: 0\n"
+		}
+		return 0
+	} else {
+		if { $verbose > 1 } {
+			send_user "version_test: 1\n"
+		}
+		return 1
+	}
+}
+
+#
+# Shell conversion code subprocedures
+#
+
+proc shell_err {test_shell {nb_err 1} {re_mode 0}} {
+    if {$re_mode} {
+        set esc "\\"
+        set nb "\\d"
+    } else {
+        set esc ""
+        set nb $nb_err
+    }
+
+    switch -- $test_shell {
+        {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
+           set answer "test 0 = 1;"
+        }
+        {tcl} {
+            set answer "set _mlstatus 0;"
+        }
+        {cmd} {
+            set answer "set errorlevel=1"
+        }
+        {perl} {
+            set answer "{ no strict 'vars'; ${esc}\$_mlstatus = 0; }"
+        }
+        {python} {
+            set answer "_mlstatus = False"
+        }
+        {ruby} {
+            set answer "_mlstatus = false"
+        }
+        {lisp} {
+            set answer "nil"
+        }
+        {cmake} {
+            set answer "set${esc}(_mlstatus FALSE${esc})"
+        }
+        {r} {
+            set answer "mlstatus <- FALSE"
+        }
+        default {
+            set answer ""
+        }
+    }
+
+    return $answer
+}
+
+proc shell_ok {test_shell {re_mode 0}} {
+    if {$re_mode} {
+        set esc "\\"
+    } else {
+        set esc ""
+    }
+
+    switch -- $test_shell {
+        {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
+            set answer "test 0;"
+        }
+        {tcl} {
+            set answer "set _mlstatus 1;"
+        }
+        {cmd} {
+            set answer "set errorlevel=0"
+        }
+        {python} {
+            set answer "_mlstatus = True"
+        }
+        {ruby} {
+            set answer "_mlstatus = true"
+        }
+        {perl} {
+            set answer "{ no strict 'vars'; ${esc}\$_mlstatus = 1; }"
+        }
+        {lisp} {
+            set answer "t"
+        }
+        {cmake} {
+            set answer "set${esc}(_mlstatus TRUE${esc})"
+        }
+        {r} {
+            set answer "mlstatus <- TRUE"
+        }
+        default {
+            set answer ""
+        }
+    }
+
+    return $answer
+}
+
+proc shell_text {test_shell val {re_mode 0}} {
+    if {$re_mode} {
+        set esc "\\"
+    } else {
+        set esc ""
+    }
+
+    switch -- $test_shell {
+        {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
+            foreach word $val {
+                if {[info exists answer]} {
+                    append answer "\n"
+                }
+                append answer "echo '$word';"
+            }
+            if {![info exists answer]} {
+                set answer ""
+            }
+        }
+        {tcl} {
+            set answer "set _mlstatus \"$val\";"
+        }
+        {cmd} {
+            foreach word $val {
+                if {[info exists answer]} {
+                    append answer "\n"
+                }
+                append answer "echo $word"
+            }
+            if {![info exists answer]} {
+                set answer ""
+            }
+        }
+        {python} {
+            set answer "_mlstatus = '$val'"
+        }
+        {ruby} {
+            set answer "_mlstatus = '$val'"
+        }
+        {perl} {
+            set answer "{ no strict 'vars'; ${esc}\$_mlstatus = '$val'; }"
+        }
+        {lisp} {
+            set answer "${esc}(message \"$val\"${esc})"
+        }
+        {cmake} {
+            set answer "set${esc}(_mlstatus \"$val\"${esc})"
+        }
+        {r} {
+            set answer "mlstatus <- '$val'"
+        }
+        default {
+            set answer ""
+        }
+    }
+
+    return $answer
+}
+
+proc shell_val {test_shell val {re_mode 0}} {
+    if {$re_mode} {
+        set esc "\\"
+    } else {
+        set esc ""
+    }
+
+    if {$val ne "(.*)"} {
+        switch -- $test_shell {
+            {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
+                set val [regsub -all {([\\"'$|<>{}`*? ()!&;])} $val {\\\1}]
+            }
+            {lisp} - {cmake} {
+                set val [regsub -all {(["])} $val {\\\1}]
+            }
+            {perl} - {python} - {ruby} {
+                set val [regsub -all {(['])} $val {\\\1}]
+            }
+            {r} {
+                set val [regsub -all {([\\'])} $val {\\\1}]
+            }
+        }
+
+        if {$re_mode} {
+            # over escape regexp-special characters
+            set val [regsub -all {([$.+?\\()&|])} $val {\\\1}]
+        }
+    }
+
+    return $val
+}
+
+proc shell_set {test_shell var val {re_mode 0} {escval 1}} {
+    if {$re_mode} {
+        set esc "\\"
+    } else {
+        set esc ""
+    }
+
+    if {$escval} {
+        set val [shell_val $test_shell $val $re_mode]
+    }
+
+    switch -- $test_shell {
+        {sh} - {bash} - {ksh} - {zsh} {
+            set answer "$var=$val; export $var;"
+        }
+        {csh} - {tcsh} {
+            set answer "setenv $var $val;"
+        }
+        {fish} {
+            if {$var eq "PATH"} {
+                regsub -all ":" $val " " val
+            }
+            set answer "set -xg $var $val;"
+        }
+        {tcl} {
+            set answer "set ::env${esc}($var${esc}) ${esc}{$val${esc}};"
+        }
+        {cmd} {
+            set answer "set $var=$val"
+        }
+        {perl} {
+            set answer "${esc}\$ENV{'$var'} = '$val';"
+        }
+        {python} {
+            set answer "os.environ${esc}\['$var'${esc}\] = '$val'"
+        }
+        {ruby} {
+            set answer "ENV${esc}\['$var'${esc}\] = '$val'"
+        }
+        {lisp} {
+            set answer "${esc}(setenv \"$var\" \"$val\"${esc})"
+        }
+        {cmake} {
+            set answer "set${esc}(ENV{$var} \"$val\"${esc})"
+        }
+        {r} {
+            set answer "Sys.setenv${esc}('$var'='$val'${esc})"
+        }
+        default {
+            set answer ""
+        }
+    }
+
+    return $answer
+}
+
+proc shell_unset {test_shell var {re_mode 0}} {
+    if {$re_mode} {
+        set esc "\\"
+    } else {
+        set esc ""
+    }
+
+    switch -- $test_shell {
+        {sh} - {bash} - {ksh} - {zsh} {
+            set answer "unset $var;"
+        }
+        {csh} - {tcsh} {
+            set answer "unsetenv $var;"
+        }
+        {fish} {
+            set answer "set -e $var;"
+        }
+        {tcl} {
+            set answer "catch {unset ::env${esc}($var${esc})};"
+        }
+        {cmd} {
+            set answer "set $var="
+        }
+        {perl} {
+            set answer "delete ${esc}\$ENV{'$var'};"
+        }
+        {python} {
+            set answer "os.environ${esc}\['$var'${esc}\] = ''\n"
+            append answer "del os.environ${esc}\['$var'${esc}\]"
+        }
+        {ruby} {
+            set answer "ENV${esc}\['$var'${esc}\] = nil"
+        }
+        {lisp} {
+            set answer "${esc}(setenv \"$var\" nil${esc})"
+        }
+        {cmake} {
+            set answer "unset${esc}(ENV{$var}${esc})"
+        }
+        {r} {
+            set answer "Sys.unsetenv${esc}('$var'${esc})"
+        }
+        default {
+            set answer ""
+        }
+    }
+
+    return $answer
+}
+
+proc shell_alias {test_shell var val {re_mode 0} {escval 1}} {
+    if {$re_mode} {
+        set esc "\\"
+    } else {
+        set esc ""
+    }
+
+    if {$escval} {
+        set val [shell_val $test_shell $val $re_mode]
+    }
+
+    switch -- $test_shell {
+        {sh} - {bash} - {ksh} - {zsh} {
+            set answer "alias $var=$val;"
+        }
+        {csh} - {tcsh} - {fish} {
+            set answer "alias $var $val;"
+        }
+        {cmd} {
+            set answer "doskey $var=$val"
+        }
+        default {
+            set answer ""
+        }
+    }
+
+    return $answer
+}
+
+proc shell_unalias {test_shell var {re_mode 0}} {
+    if {$re_mode} {
+        set esc "\\"
+    } else {
+        set esc ""
+    }
+
+    switch -- $test_shell {
+        {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} {
+            set answer "unalias $var;"
+        }
+        {fish} {
+            set answer "functions -e $var;"
+        }
+        {cmd} {
+            set answer "doskey $var="
+        }
+        default {
+            set answer ""
+        }
+    }
+
+    return $answer
+}
+
+proc shell_chdir {test_shell val {re_mode 0}} {
+    if {$re_mode} {
+        set esc "\\"
+    } else {
+        set esc ""
+    }
+
+    switch -- $test_shell {
+        {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
+            set answer "cd '$val';"
+        }
+        {tcl} {
+            set answer "cd \"$val\";"
+        }
+        {cmd} {
+            set answer "cd $val"
+        }
+        {perl} {
+            set answer "chdir '$val';"
+        }
+        {python} {
+            set answer "os.chdir${esc}('$val'${esc})"
+        }
+        {ruby} {
+            set answer "Dir.chdir${esc}('$val'${esc})"
+        }
+        {lisp} {
+            set answer "${esc}(shell-command-to-string \"cd '$val'\"${esc})"
+        }
+        {r} {
+            set answer "setwd${esc}('$val'${esc})"
+        }
+        default {
+            set answer ""
+        }
+    }
+
+    return $answer
+}
+
+proc shell_xres {test_shell var val {re_mode 0}} {
+    if {$re_mode} {
+        set esc "\\"
+    } else {
+        set esc ""
+    }
+    set xrdb [auto_execok xrdb]
+
+    switch -- $test_shell {
+        {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
+            if {$val ne ""} {
+                set answer "echo \"$var: $val\" ${esc}| $xrdb -merge;"
+            } else {
+                set answer "$xrdb -merge $var;"
+            }
+        }
+        {tcl} {
+            if {$val ne ""} {
+                set answer "set XRDBPIPE ${esc}\[open \"${esc}|$xrdb -merge\" r${esc}+${esc}\];\n"
+                append answer "puts ${esc}\$XRDBPIPE \"$var: $val\";\n"
+                append answer "close ${esc}\$XRDBPIPE;\n"
+                append answer "unset XRDBPIPE;"
+            } else {
+                set answer "exec $xrdb -merge $var;"
+            }
+        }
+        {perl} {
+            if {$val ne ""} {
+                set answer "open${esc}(XRDBPIPE, \"${esc}|$xrdb -merge\"${esc});\n"
+                append answer "print XRDBPIPE \"$var: $val${esc}\\n\";\n"
+                append answer "close XRDBPIPE;"
+            } else {
+                set answer "system${esc}(\"$xrdb -merge $var\"${esc});"
+            }
+        }
+        {python} {
+            if {$val ne ""} {
+                set answer "subprocess.Popen${esc}(${esc}\['$xrdb', '-merge'${esc}\], stdin=subprocess.PIPE${esc}).communicate${esc}(input=\'$var: $val${esc}\\n\'${esc})"
+            } else {
+                set answer "subprocess.Popen${esc}(${esc}\['$xrdb', '-merge', '$var'${esc}\]${esc})"
+            }
+        }
+        {ruby} {
+            if {$val ne ""} {
+                set answer "Open3.popen2${esc}('$xrdb -merge'${esc}) {${esc}|i,o,t${esc}| i.puts '$var: $val'}"
+            } else {
+                set answer "Open3.popen2${esc}('$xrdb -merge $var'${esc})"
+            }
+        }
+        {lisp} {
+            if {$val ne ""} {
+                set answer "${esc}(shell-command-to-string \"echo $var: $val ${esc}| $xrdb -merge\"${esc})"
+            } else {
+                set answer "${esc}(shell-command-to-string \"$xrdb -merge $var\"${esc})"
+            }
+        }
+        {cmake} {
+            if {$val ne ""} {
+                set answer "execute_process${esc}(COMMAND echo \"$var: $val\" COMMAND $xrdb -merge${esc})"
+            } else {
+                set answer "execute_process${esc}(COMMAND $xrdb -merge $var${esc})"
+            }
+        }
+        {r} {
+            if {$val ne ""} {
+                set answer "system${esc}('$xrdb -merge', input='$var: $val'${esc})"
+            } else {
+                set answer "system${esc}('$xrdb -merge $var'${esc})"
+            }
+        }
+        default {
+            set answer ""
+        }
+    }
+
+    return $answer
+}
+
+proc shell_unxres {test_shell var {re_mode 0}} {
+    if {$re_mode} {
+        set esc "\\"
+    } else {
+        set esc ""
+    }
+    set xrdb [auto_execok xrdb]
+
+    switch -- $test_shell {
+        {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
+            set answer "echo \"$var:\" ${esc}| $xrdb -merge;"
+        }
+        {tcl} {
+            set answer "set XRDBPIPE ${esc}\[open \"${esc}|$xrdb -merge\" r${esc}+${esc}\];\n"
+            append answer "puts ${esc}\$XRDBPIPE \"$var:\";\n"
+            append answer "close ${esc}\$XRDBPIPE;\n"
+            append answer "unset XRDBPIPE;"
+        }
+        {perl} {
+            set answer "open${esc}(XRDBPIPE, \"${esc}|$xrdb -merge\"${esc});\n"
+            append answer "print XRDBPIPE \"$var:${esc}\\n\";\n"
+            append answer "close XRDBPIPE;"
+        }
+        {python} {
+            set answer "subprocess.Popen${esc}(${esc}\['$xrdb', '-merge'${esc}\], stdin=subprocess.PIPE${esc}).communicate${esc}(input=\'$var:${esc}\\n\'${esc})"
+        }
+        {ruby} {
+            set answer "Open3.popen2${esc}('$xrdb -merge'${esc}) {${esc}|i,o,t${esc}| i.puts '$var:'}"
+        }
+        {lisp} {
+            set answer "${esc}(shell-command-to-string \"echo $var: ${esc}| $xrdb -merge\"${esc})"
+        }
+        {cmake} {
+            set answer "execute_process${esc}(COMMAND echo \"$var:\" COMMAND $xrdb -merge${esc})"
+        }
+        {r} {
+            set answer "system${esc}('$xrdb -merge', input='$var:'${esc})"
+        }
+        default {
+            set answer ""
+        }
+    }
+
+    return $answer
+}
+
+
+proc shell_out {test_shell out_list {re_mode 0}} {
+    set answer_list {}
+    set fixed_list {}
+    array set envvar {}
+    array set envalias {}
+    array set envxres {}
+    array set envunxres {}
+    array set autovar {}
+    set status_set 0
+
+    foreach out $out_list {
+        lassign $out cmd var val extra
+        switch -- $cmd {
+            {set} {
+                if {$extra eq "noescval"} {
+                    set escval 0
+                } else {
+                    set escval 1
+                }
+                set envvar($var) [shell_set $test_shell $var $val $re_mode $escval]
+                lappend answer_list $envvar($var)
+
+                # automatic specification of ref counter var is removed if set
+                if {[info exists autovar($var)]} {
+                    unset autovar($var)
+                }
+            }
+            {setpath} {
+                set envvar($var) [shell_set $test_shell $var $val $re_mode]
+                lappend answer_list $envvar($var)
+
+                # automatically set ref counter variable if not specified
+                set sharevar "${var}_modshare"
+                if {![info exists envvar($sharevar)]} {
+                    if {$re_mode} {
+                        set envvar($sharevar) [shell_set $test_shell $sharevar "(.*)" $re_mode]
+                    } else {
+                        # set a default value when not in re mode
+                        set envvar($sharevar) [shell_set $test_shell $sharevar "$val:1" $re_mode]
+                    }
+                    set autovar($sharevar) 1
+                }
+            }
+            {unset} {
+                set envvar($var) [shell_unset $test_shell $var $re_mode]
+                lappend answer_list $envvar($var)
+
+                # automatic specification of ref counter var is removed if set
+                if {[info exists autovar($var)]} {
+                    unset autovar($var)
+                }
+            }
+            {unsetpath} {
+                set envvar($var) [shell_unset $test_shell $var $re_mode]
+                lappend answer_list $envvar($var)
+
+                # automatically set ref counter variable if not specified
+                set sharevar "${var}_modshare"
+                if {![info exists envvar($sharevar)]} {
+                    set envvar($sharevar) [shell_unset $test_shell $sharevar $re_mode]
+                    set autovar($sharevar) 1
+                }
+            }
+            {alias} {
+                set ret [shell_alias $test_shell $var $val $re_mode]
+                if {$ret ne ""} {
+                    set envalias($var) $ret
+                    lappend answer_list $ret
+                }
+            }
+            {unalias} {
+                set ret [shell_unalias $test_shell $var $re_mode]
+                 if {$ret ne ""} {
+                    set envalias($var) $ret
+                    lappend answer_list $ret
+                }
+            }
+            {chdir} {
+                set ret [shell_chdir $test_shell $var $re_mode]
+                if {$ret ne ""} {
+                    lappend fixed_list $ret
+                    lappend answer_list $ret
+                }
+            }
+            {xres} {
+                set ret [shell_xres $test_shell $var $val $re_mode]
+                if {$ret ne ""} {
+                    set envxres($var) $ret
+                    lappend answer_list $ret
+                }
+            }
+            {unxres} {
+                set ret [shell_unxres $test_shell $var $re_mode]
+                 if {$ret ne ""} {
+                    # add element with xres filename as array key for
+                    # correct sorting when rendering
+                    if {$val ne ""} {
+                        if {[info exists envunxres($val)]} {
+                            set ret "\n$ret"
+                        }
+                        append envunxres($val) $ret
+                    } else {
+                        set envunxres($var) $ret
+                    }
+                    lappend answer_list $ret
+                }
+            }
+            {text} {
+                lappend fixed_list [shell_text $test_shell $var $re_mode]
+                lappend answer_list [lindex $fixed_list end]
+                set status_set 1
+            }
+            {OK} {
+                lappend fixed_list [shell_ok $test_shell $re_mode]
+                lappend answer_list [lindex $fixed_list end]
+                set status_set 1
+            }
+            {ERR} {
+                lappend fixed_list [shell_err $test_shell 1 $re_mode]
+                lappend answer_list [lindex $fixed_list end]
+                set status_set 1
+            }
+            {ERR2} {
+                lappend fixed_list [shell_err $test_shell 2 $re_mode]
+                lappend answer_list [lindex $fixed_list end]
+                set status_set 1
+            }
+            {out} {
+                lappend fixed_list [join [lrange $out 1 end]]
+                lappend answer_list [lindex $fixed_list end]
+            }
+            default {
+                lappend fixed_list [join $out]
+                lappend answer_list [lindex $fixed_list end]
+            }
+        }
+    }
+
+    # specific order if var have been automatically set
+    if {[array size autovar] > 0 || [array size envxres] > 0 ||\
+        [array size envunxres] > 0} {
+        set answer_list {}
+        foreach var [array names envvar] {
+            lappend answer_list $envvar($var)
+        }
+        foreach var [array names envalias] {
+            lappend answer_list $envalias($var)
+        }
+        if {[array size envxres] > 0 || [array size envunxres] > 0} {
+            switch -- $test_shell {
+                {python} {
+                    lappend answer_list "import subprocess"
+                }
+                {ruby} {
+                    lappend answer_list "require 'open3'"
+                }
+            }
+        }
+        foreach var [array names envxres] {
+            lappend answer_list $envxres($var)
+        }
+        foreach var [array names envunxres] {
+            lappend answer_list $envunxres($var)
+        }
+        set answer_list [concat $answer_list $fixed_list]
+    }
+
+
+    if {$test_shell eq "python"} {
+        set answer_list [concat [list "import os"] $answer_list]
+    }
+
+    # add automatic status if any for shell
+    if {!$status_set && [llength $answer_list] > 0} {
+        lappend answer_list [shell_ok $test_shell $re_mode]
+    }
+
+    set answer [join $answer_list "\n"]
+
+    return $answer
+}
+
+proc is_shell_out_list {answer} {
+    set ret 0
+
+    if {[string is list $answer]} {
+        foreach item $answer {
+            if {[llength $item] > 1} {
+                switch -- [lindex $item 0] {
+                    {set} - {setpath} - {unset} - {unsetpath} - {alias} \
+                        - {unalias} - {out} - {text} {
+                        set ret 1
+                        break
+                    }
+                }
+            }
+        }
+    }
+
+    return $ret
+}
+
+#
+# Test subprocedures
+#
+
+proc _test_err {test_shell cmd answer} {
+	global comp_error
+	global verbose
+
+    # newline is expected at end of answer
+    if {$answer ne {} && $answer ne "\n"} {
+        append answer \n
+    }
+	if { $comp_error != "$answer" } {
+		fail "$cmd ($test_shell)"
+		set ol [string length $comp_error]
+		set oe [string length $answer]
+		send_user "ERR\[$ol\]: '$comp_error'#>\n"
+		send_user "EXP\[$oe\]: '$answer'#>\n"
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
+proc _test_err_json {test_shell cmd answer} {
+	global comp_error
+	global verbose
+    set errdiff 0
+
+    # newline is expected at end of answer
+    if {$answer ne {}} {
+        append answer \n
+    }
+
+    set comp_error_list [split $comp_error \n]
+    set answer_list [split $answer \n]
+
+    # compare start and end structure of the document
+    if {[lindex $comp_error_list 0] ne [lindex $answer_list 0]} {
+        set errdiff 1
+    }
+    if {[lindex $comp_error_list end] ne [lindex $answer_list end]} {
+        set errdiff 1
+    }
+    # sort document core content to compare it
+    set comp_last_entry [lindex $comp_error_list end-2]
+    set answer_last_entry [lindex $answer_list end-2]
+    if {[string range $comp_last_entry end-2 end] ne [string range\
+        $answer_last_entry end-2 end]} {
+        set errdiff 1
+    }
+    set comp_last_entry [string replace $comp_last_entry end-1 end ,]
+    set answer_last_entry [string replace $answer_last_entry end-1 end ,]
+    set comp_error_list [lreplace $comp_error_list end-2 end-2 $comp_last_entry]
+    set answer_list [lreplace $answer_list end-2 end-2 $answer_last_entry]
+
+    set comp_error_sort [join [lsort $comp_error_list] \n]
+    set answer_sort [join [lsort $answer_list] \n]
+
+    if {$comp_error_sort ne $answer_sort} {
+        set errdiff 1
+    }
+
+	if {$errdiff} {
+		fail "$cmd ($test_shell)"
+		set ol [string length $comp_error_sort]
+		set oe [string length $answer_sort]
+		send_user "ERR\[$ol\]: '$comp_error_sort'#>\n"
+		send_user "EXP\[$oe\]: '$answer_sort'#>\n"
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
+proc _test_err_re {test_shell cmd answer force_nl} {
+	global comp_error
+	global verbose
+
+    # newline is expected at end of answer unless empty or specific regexp set
+    if {$force_nl || ($answer ne {} && $answer ne "\n" && $answer ne "^\$" &&\
+        $answer ne {.*} && ([string index $answer 0] ne {(} || [string index\
+        $answer end] ne {)}))} {
+        append answer \n
+    }
+    set answer "^$answer\$"
+	if { ![regexp -- $answer $comp_error] } {
+		fail "$cmd ($test_shell)"
+		set ol [string length $comp_error]
+		set oe [string length $answer]
+		send_user "ERR\[$ol\]: '$comp_error'#>\n"
+		send_user "EXP\[$oe\]: '$answer'#>\n"
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
+proc _test_out {test_shell cmd answer} {
+	global comp_output
+	global verbose
+
+    if {[is_shell_out_list $answer]} {
+        set answer [shell_out $test_shell $answer]
+    } elseif {$answer eq "ERR"} {
+        set answer [shell_err $test_shell]
+    } elseif {$answer eq "ERR2"} {
+        set answer [shell_err $test_shell 2]
+    } elseif {$answer eq "OK"} {
+        # just OK means no output
+        set answer ""
+    }
+    # newline is expected at end of answer
+    if {$answer ne {} && $answer ne "\n"} {
+        append answer \n
+    }
+
+	if { $comp_output != "$answer" } {
+		fail "$cmd ($test_shell)"
+		set ol [string length $comp_output]
+		set oe [string length $answer]
+		send_user "OUT\[$ol\]: '$comp_output'#>\n"
+		send_user "EXP\[$oe\]: '$answer'#>\n"
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
+proc _test_out_re {test_shell cmd answer} {
+	global comp_output
+	global verbose
+
+    if {[is_shell_out_list $answer]} {
+        set answer [shell_out $test_shell $answer 1]
+    } elseif {$answer eq "ERR"} {
+        set answer [shell_err $test_shell 1 1]
+    } elseif {$answer eq "ERR2"} {
+        set answer [shell_err $test_shell 2 1]
+    } elseif {$answer eq "OK"} {
+        # just OK means no output
+        set answer ""
+    }
+    # newline is expected at end of answer
+    if {$answer ne {} && $answer ne "\n" && $answer ne "^\$" && [string index\
+        $answer end] ne "\$"} {
+        append answer \n
+    }
+
+    set answer "^$answer\$"
+	if { ![regexp -- $answer $comp_output] } {
+		fail "$cmd ($test_shell)"
+		set ol [string length $comp_output]
+		set oe [string length $answer]
+		send_user "OUT\[$ol\]: '$comp_output'#>\n"
+		send_user "EXP\[$oe\]: '$answer'#>\n"
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
+proc _test_file {test_shell cmd filepath answer} {
+	global verbose
+
+    catch {
+        set fd [open $filepath]
+        read -nonewline $fd
+    } comp_file
+    catch { close $fd }
+
+	if { $comp_file != "$answer" } {
+		fail "$cmd ($test_shell)"
+		set ol [string length $comp_file]
+		set oe [string length $answer]
+		send_user "FILE\[$ol\]: '$comp_file'#>\n"
+		send_user "EXP\[$oe\]: '$answer'#>\n"
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
+proc _test_exit {test_shell cmd exitval} {
+	global comp_exit
+	global verbose
+
+	if { $comp_exit != "$exitval" } {
+		fail "$cmd ($test_shell)"
+		send_user "EXIT: '$comp_exit'#>\n"
+		send_user "EXP: '$exitval'#>\n"
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
+proc _test_ok {test_shell cmd} {
+	pass "$cmd ($test_shell)"
+}
+
+#
+# Test procedure for matching with regular expressions
+#
+
+proc test_cmd_re {test_shell cmd answer} {
+    if {$test_shell eq "ALL"} {
+        global supported_shells
+        foreach shell $supported_shells {
+            test_cmd_re $shell $cmd $answer
+        }
+    } else {
+        _test_sub $test_shell "$cmd"
+        if { [ _test_out_re $test_shell "$cmd" "$answer" ] } {
+            _test_ok $test_shell "$cmd"
+        }
+    }
+}
+
+#
+#  Test procedure for full text matching
+#
+
+proc test_cmd {test_shell cmd answer {exitval 0}} {
+    if {$test_shell eq "ALL"} {
+        global supported_shells
+        foreach shell $supported_shells {
+            test_cmd $shell $cmd $answer $exitval
+        }
+    } else {
+        _test_sub $test_shell "$cmd"
+        if { [ _test_out $test_shell "$cmd" "$answer" ]
+        &&   [ _test_exit $test_shell "$cmd" "$exitval" ] } {
+            _test_ok $test_shell "$cmd"
+        }
+    }
+}
+
+#
+# Test procedure for matching with regular expressions in the error output
+#
+
+proc testerr_cmd_re {test_shell cmd answer {force_nl 0}} {
+     if {$test_shell eq "ALL"} {
+        global supported_shells
+        foreach shell $supported_shells {
+            testerr_cmd_re $shell $cmd $answer
+        }
+    } else {
+        _test_sub $test_shell "$cmd"
+        if { [_test_err_re $test_shell $cmd $answer $force_nl] } {
+            _test_ok $test_shell "$cmd"
+        }
+    }
+}
+
+#
+# Test procedure for matching with regular expressions in the stderr/stdout
+#
+
+proc testall_cmd_re {test_shell cmd answer anserr exitval {force_nl 0}} {
+
+    _test_sub $test_shell "$cmd"
+    if { [ _test_out_re $test_shell "$cmd" "$answer" ]
+    &&   [ _test_err_re $test_shell "$cmd" "$anserr" $force_nl ]
+    &&   [ _test_exit $test_shell "$cmd" "$exitval" ] } {
+        _test_ok $test_shell "$cmd"
+    }
+}
+
+proc testouterr_cmd_re {test_shell cmd answer anserr {force_nl 0}} {
+    if {$test_shell eq "ALL"} {
+        global supported_shells
+        foreach shell $supported_shells {
+            testouterr_cmd_re $shell $cmd $answer $anserr
+        }
+    } else {
+        _test_sub $test_shell "$cmd"
+        if { [ _test_out_re $test_shell "$cmd" "$answer" ]
+        && [_test_err_re $test_shell $cmd $anserr $force_nl] } {
+            _test_ok $test_shell "$cmd"
+        }
+    }
+}
+
+#
+#  Test procedure for full text matching in the error output
+#
+
+proc testerr_cmd {test_shell cmd answer} {
+    if {$test_shell eq "ALL"} {
+        global supported_shells
+        foreach shell $supported_shells {
+            testerr_cmd $shell $cmd $answer
+        }
+    } else {
+        _test_sub $test_shell "$cmd"
+        if { [ _test_err $test_shell "$cmd" "$answer" ] } {
+            _test_ok $test_shell "$cmd"
+        }
+    }
+}
+
+#
+# Test procedure for full text matching with the stderr/stdout and text passed to stdin
+#
+
+proc testinouterr_cmd {test_shell cmd input answer anserr} {
+    if {$test_shell eq "ALL"} {
+        global supported_shells
+        foreach shell $supported_shells {
+            testinouterr_cmd $shell $cmd $input $answer $anserr
+        }
+    } else {
+        _test_sub $test_shell "$cmd" $input
+        if { [ _test_out $test_shell "$cmd << $input" "$answer" ]
+        &&   [ _test_err $test_shell "$cmd << $input" "$anserr" ] } {
+            _test_ok $test_shell "$cmd << $input"
+        }
+    }
+}
+
+#
+# Test procedure for full text matching with the stderr/stdout
+#
+
+proc testall_cmd {test_shell cmd answer anserr exitval} {
+
+    _test_sub $test_shell "$cmd"
+    if { [ _test_out $test_shell "$cmd" "$answer" ]
+    &&   [ _test_err $test_shell "$cmd" "$anserr" ]
+    &&   [ _test_exit $test_shell "$cmd" "$exitval" ] } {
+        _test_ok $test_shell "$cmd"
+    }
+}
+
+proc testouterr_cmd {test_shell cmd answer anserr} {
+    if {$test_shell eq "ALL"} {
+        global supported_shells
+        foreach shell $supported_shells {
+            testouterr_cmd $shell $cmd $answer $anserr
+        }
+    } else {
+        _test_sub $test_shell "$cmd"
+        if { [ _test_out $test_shell "$cmd" "$answer" ]
+        &&   [ _test_err $test_shell "$cmd" "$anserr" ] } {
+            _test_ok $test_shell "$cmd"
+        }
+    }
+}
+
+#
+# Test procedure for full text matching with the stdout and json stderr
+#
+
+proc testouterrjson_cmd {test_shell cmd answer anserr} {
+    if {$test_shell eq "ALL"} {
+        global supported_shells
+        foreach shell $supported_shells {
+            testouterrjson_cmd $shell $cmd $answer $anserr
+        }
+    } else {
+        _test_sub $test_shell "$cmd"
+        if { [ _test_out $test_shell "$cmd" "$answer" ]
+        &&   [ _test_err_json $test_shell "$cmd" "$anserr" ] } {
+            _test_ok $test_shell "$cmd"
+        }
+    }
+}
+
+#
+# Test procedure for full text matching with stdout and specified file
+#
+
+proc testoutfile_cmd {test_shell cmd answer filepath ansfile} {
+    if {$test_shell eq "ALL"} {
+        global supported_shells
+        foreach shell $supported_shells {
+            testoutfile_cmd $shell $cmd $answer $filepath $ansfile
+        }
+    } else {
+        _test_sub $test_shell "$cmd"
+        if { [ _test_out $test_shell "$cmd" "$answer" ]
+        &&   [ _test_file $test_shell "$cmd" "$filepath" "$ansfile" ] } {
+            _test_ok $test_shell "$cmd"
+        }
+    }
+}
+
+#
+# Change and restore file permissions to trigger specific behaviors
+#
+
+proc change_file_perms {name perms} {
+    global verbose file_orig_perms
+
+    # backup original file permission to restore them later
+    set file_orig_perms($name) [file attributes $name -permissions]
+
+    if { $verbose > 0 } {
+        send_user "\tChange permissions of file $name ($perms)\n"
+    }
+
+    # lock file by removing read and execution perms
+    file attributes $name -permissions $perms
+}
+
+proc restore_file_perms {name} {
+    global verbose file_orig_perms
+
+    if { $verbose > 0 } {
+        send_user "\tRestore permissions of file $name ($file_orig_perms($name))\n"
+    }
+
+    # restore file original permissions
+    file attributes $name -permissions $file_orig_perms($name)
+}
+
+#
+# Change environment setup in consistent way
+#
+
+proc unsetenv_var {var} {
+    if {[info exists ::env($var)]} {
+        if { $::verbose > 0 } {
+            send_user "\tUnset $var\n"
+        }
+        unset ::env($var)
+    }
+}
+
+proc unsetenv_path_var {var} {
+    unsetenv_var $var
+    # unset reference counter variable
+    unsetenv_var "${var}_modshare"
+}
+
+proc setenv_var {var val} {
+    if { $::verbose > 0 } {
+        send_user "\tSetup $var = '$val'\n"
+    }
+    set ::env($var) $val
+}
+
+proc setenv_path_var {var args} {
+    setenv_var $var [join $args ":"]
+    # set reference counter variable
+    array set refcnt {}
+    foreach arg $args {
+        if {![info exist refcnt($arg)]} {
+            set refcnt($arg) 1
+        } else {
+            incr refcnt($arg)
+        }
+    }
+    setenv_var "${var}_modshare" [join [array get refcnt] ":"]
+}
+
+proc unsetenv_loaded_module {} {
+    unsetenv_path_var _LMFILES_
+    unsetenv_path_var LOADEDMODULES
+    unsetenv_path_var MODULES_LMNOTUASKED
+}
+
+proc setenv_loaded_module {modlist modfilelist {notaskedmodlist {}}} {
+    eval setenv_path_var _LMFILES_ $modfilelist
+    eval setenv_path_var LOADEDMODULES $modlist
+    if {$notaskedmodlist ne {}} {
+        eval setenv_path_var MODULES_LMNOTUASKED $notaskedmodlist
+    } else {
+        unsetenv_path_var MODULES_LMNOTUASKED
+    }
+}
