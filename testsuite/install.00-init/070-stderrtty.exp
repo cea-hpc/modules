@@ -71,12 +71,25 @@ foreach shell $othlang_list {
    testall_cmd_re "$shell" "foo" "" "$bad_cmd\n$type_help.*" 1
    testall_cmd "$shell" "use,$contrib_modpath:purge:load,null:list,-t" "" "$cur_loaded\nnull" 0
    testall_cmd "$shell" "use,$contrib_modpath:purge:load,null:unload,null:list,-t" "" "$no_loaded" 0
-   testall_cmd_re "$shell" "is-loaded,unk" "" ".*" 1
+   switch -- $shell {
+      cmake - r {
+         testall_cmd_re "$shell" "is-loaded,unk" "" ".*" 1
+      }
+      default {
+         testall_cmd_re "$shell" "is-loaded,unk" "" "" 1
+      }
+   }
    testall_cmd "$shell" "use,$contrib_modpath:load,null:is-loaded,null" "" "" 0
-   if {$shell eq {r}} {
-      testall_cmd "$shell" "info-loaded,unk" "\[1\] \"\"" {} 0
-   } else {
-      testall_cmd "$shell" "info-loaded,unk" "" "" 0
+   switch -- $shell {
+      r {
+         testall_cmd "$shell" "info-loaded,unk" "\[1\] \"\"" {} 0
+      }
+      python - ruby {
+         testall_cmd "$shell" "info-loaded,unk" "\n" "" 0
+      }
+      default {
+         testall_cmd "$shell" "info-loaded,unk" "" "" 0
+      }
    }
 
    switch -- $shell {
