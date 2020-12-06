@@ -1242,3 +1242,100 @@ proc setenv_loaded_module {modlist modfilelist {notaskedmodlist {}}} {
         unsetenv_path_var MODULES_LMNOTUASKED
     }
 }
+
+# when saving variable ignore internal variable used to perform tests
+array set skipped_var [list runtests 1 subdir 1 errorInfo 1 test_counts 1\
+    errorCode 1 comp_error 1 dir 1 test_name 1 comp_output 1 comp_exit 1\
+    autoinit_mode 1 endpipe 1 saved_var 1 saved_array_var 1 saved_env_var 1\
+    env 1 skipped_var 1 auto_execs 1 shell 1]
+
+# save name and value for any global variables
+proc save_test_env {} {
+    # reset dump structs
+    foreach var [list saved_var saved_array_var saved_env_var] {
+        global $var
+        if {[info exists $var]} {
+            array unset $var
+        }
+    }
+
+    global env skipped_var
+
+    foreach var [info globals] {
+        if {![info exists skipped_var($var)]} {
+            if {[array exists ::$var]} {
+                set saved_var($var) [array get ::$var]
+                set saved_array_var($var) 1
+            } else {
+                set saved_var($var) [set ::$var]
+            }
+        }
+    }
+    send_user "\tSaved test variables: [array names saved_var]\n"
+    array set saved_env_var [array get ::env]
+    send_user "\tSaved test environment variables: [array names\
+        saved_env_var]\n"
+}
+
+# restore test environment to its initial saved sate
+proc reset_test_env {} {
+    global saved_var saved_array_var saved_env_var env skipped_var
+
+    # reset Tcl global variables
+    foreach var [info globals] {
+        if {![info exists skipped_var($var)]} {
+            # temp variables should be unset
+            if {![info exists saved_var($var)]} {
+                lappend unset_list $var
+                unset ::$var
+            # initial value should be restored if changed
+            } elseif {![info exists saved_array_var($var)]} {
+                if {$saved_var($var) ne [set ::$var]} {
+                    lappend restore_list $var
+                    set ::$var $saved_var($var)
+                }
+            } else {
+                if {$saved_var($var) ne [array get ::$var]} {
+                    lappend restore_list $var
+                    array set ::$var $saved_var($var)
+                }
+            }
+        }
+    }
+    # unset saved variables should be restored
+    foreach var [array names saved_var] {
+        if {![info exists ::$var]} {
+            lappend restore_list $var
+            set ::$var $saved_var($var)
+        }
+    }
+
+    if {[info exists unset_list]} {
+        send_user "\tUnset temp variables: $unset_list\n"
+    }
+    if {[info exists restore_list]} {
+        send_user "\tRestore test variable initial values: $restore_list\n"
+    }
+
+    # reset environment variables
+    foreach var [array names env] {
+        # temp variables should be unset
+        if {![info exists saved_env_var($var)]} {
+            send_user "\tUnset $var\n"
+            unset env($var)
+        # initial value should be restored if changed
+        } else {
+            if {$saved_env_var($var) ne $env($var)} {
+                send_user "\tSetup $var = '$saved_env_var($var)'\n"
+                set env($var) $saved_env_var($var)
+            }
+        }
+    }
+    # unset saved variables should be restored
+    foreach var [array names saved_env_var] {
+        if {![info exists env($var)]} {
+            send_user "\tSetup $var = '$saved_env_var($var)'\n"
+            set env($var) $saved_env_var($var)
+        }
+    }
+}
