@@ -147,9 +147,6 @@ testouterr_cmd sh {whatis --json NaN} OK "{\"$mp\": {
 }}"
 
 # result from multiple paths (including "global/user modulerc")
-if {[info exists env(MODULERCFILE)]} {
-    set saverc $env(MODULERCFILE)
-}
 setenv_var MODULERCFILE $env(TESTSUITEDIR)/etc/rc
 setenv_path_var MODULEPATH $modpath:$mp
 testouterrjson_cmd sh {avail -j -C *foo} OK "{\"global/user modulerc\": {
@@ -183,11 +180,7 @@ testouterr_cmd sh {whatis -j *foo} ERR "{\"$modpath\": {
 \"nanfoo/1\": { \"name\": \"nanfoo/1\", \"whatis\": \[\]}
 }}"
 
-if {[info exists saverc]} {
-    setenv_var MODULERCFILE $saverc
-} else {
-    unsetenv_var MODULERCFILE
-}
+setenv_var MODULERCFILE $ORIG_MODULERCFILE
 setenv_path_var MODULEPATH $mp
 
 # no MODULEPATH defined
@@ -291,6 +284,3 @@ unset mp
 unset mpre
 unset ans
 unset tserr
-if {[info exists saverc]} {
-    unset saverc
-}

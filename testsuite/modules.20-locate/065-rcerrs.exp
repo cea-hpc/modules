@@ -31,14 +31,6 @@ set warn_src "$warn_msgs: Error sourcing file '$env(TESTSUITEDIR)/etc/bad'\n"
 set err_loc "$err_path'loc_sym/foobar'"
 
 #
-#  Save the former rc file setup
-#
-
-if { [info exists env(MODULERCFILE) ] } {
-    set save_rc $env(MODULERCFILE)
-}
-
-#
 #  The tests
 #
 
@@ -51,12 +43,7 @@ testouterr_cmd "csh" "load loc_sym/foobar" "ERR" "$prob_name$err_loc"
 #  Restore the former rc file setup
 #
 
-if { [info exists save_rc ] } {
-    set env(MODULERCFILE) $save_rc
-    unset save_rc
-} else {
-    unset env(MODULERCFILE)
-}
+set env(MODULERCFILE) $ORIG_MODULERCFILE
 
 #
 #  Cleanup

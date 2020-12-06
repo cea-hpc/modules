@@ -58,11 +58,6 @@ set tsa2_csh "$header2$alias2 -> $alias2target\\s+$alias2vers\\s+"
 set tsa3_csh "$header1$module2/$mod2vers1\\s+\[0-9\/]{10} \[0-9:]{8}\n$module2/$mod2alias1 -> $module2/$mod2vers2\\s+\n$module2/$mod2vers2\\s+$mod2sym1:$mod2sym2\\s+\[0-9\/]{10} \[0-9:]{8}\n$module2/$mod2alias2 -> $module2/$mod2vers2\\s+"
 set tsv1_csh "$header1$module2/$mod2vers2\\s+$mod2sym1:$mod2sym2\\s+\[0-9\/]{10} \[0-9:]{8}"
 
-# save the former rc file setup
-if {[info exists env(MODULERCFILE)]} {
-    set save_rc $env(MODULERCFILE)
-}
-
 
 #
 #  test on regular modulefile
@@ -116,12 +111,7 @@ testouterr_cmd_re csh "avail -l $module" OK $ts_csh
 #
 
 # restore the former rc file setup
-if {[info exists save_rc]} {
-    set env(MODULERCFILE) $save_rc
-    unset save_rc
-} else {
-    unset env(MODULERCFILE)
-}
+set env(MODULERCFILE) $ORIG_MODULERCFILE
 
 unsetenv_var MODULES_AVAIL_INDEPTH
 unsetenv_var MODULES_SEARCH_MATCH

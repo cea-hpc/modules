@@ -34,9 +34,6 @@ set mp $env(TESTSUITEDIR)/modulefiles.2
 set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
 
 # setup specific environment
-if {[info exists env(MODULERCFILE)]} {
-    set saverc $env(MODULERCFILE)
-}
 setenv_var MODULERCFILE $env(TESTSUITEDIR)/etc/modulerc.deepvirt
 setenv_path_var MODULEPATH $mp
 
@@ -245,14 +242,9 @@ unsetenv_var MODULES_IMPLICIT_DEFAULT
 unsetenv_var MODULES_SEARCH_MATCH
 unsetenv_var MODULES_AVAIL_INDEPTH
 setenv_path_var MODULEPATH $modpath
-if {[info exists saverc]} {
-    setenv_var MODULERCFILE $saverc
-} else {
-    unsetenv_var MODULERCFILE
-}
+setenv_var MODULERCFILE $ORIG_MODULERCFILE
 
 unset mp
 unset mpre
-unset saverc
 unset ans
 unset tserr

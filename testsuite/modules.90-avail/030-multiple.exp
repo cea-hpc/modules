@@ -61,11 +61,6 @@ set module7 "modalias/1.0"
 set header "$modlin $modpathre $modlin\n"
 set header2 "$modlin global/user modulerc $modlin\n"
 
-# save the former rc file setup
-if {[info exists env(MODULERCFILE)]} {
-    set save_rc $env(MODULERCFILE)
-}
-
 
 #
 #  tests on a module with single symbol
@@ -148,12 +143,7 @@ testouterr_cmd_re "csh" "avail $module7 $module7" "OK" "$ts_csh\n$ts_csh"
 #
 
 # restore the former rc file setup
-if {[info exists save_rc]} {
-    set env(MODULERCFILE) $save_rc
-    unset save_rc
-} else {
-    unset env(MODULERCFILE)
-}
+set env(MODULERCFILE) $ORIG_MODULERCFILE
 
 # restore former modulepath setup
 setenv_path_var MODULEPATH $modpath
