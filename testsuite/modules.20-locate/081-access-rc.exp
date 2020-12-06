@@ -49,9 +49,6 @@ set hide_perms "ugo-rx"
 if { [info exists env(MODULERCFILE) ] } {
     set save_rc $env(MODULERCFILE)
 }
-if { [info exists env(HOME) ] } {
-    set save_home $env(HOME)
-}
 
 
 #
@@ -82,7 +79,7 @@ change_file_perms $homemodrc $hide_perms
 set env(HOME) $homedir
 testouterr_cmd "sh" "load loc_sym/sym_home" "ERR" "$locate2_msg"
 testouterr_cmd "sh" "display loc_sym/sym_home" "ERR" "$locate2_msg"
-set env(HOME) $save_home
+set env(HOME) $ORIG_HOME
 
 restore_file_perms $homemodrc
 
@@ -163,12 +160,6 @@ if { [info exists save_rc ] } {
     unset save_rc
 } else {
     unset env(MODULERCFILE)
-}
-if { [info exists save_home ] } {
-    set env(HOME) $save_home
-    unset save_home
-} else {
-    unset env(HOME)
 }
 
 #
