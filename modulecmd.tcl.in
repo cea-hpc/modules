@@ -1159,14 +1159,15 @@ proc sgr {keylist str {himatchmap {}} {othkeylist {}}} {
    return $str
 }
 
-# Sort keys to return those matching defined sgr keys in a list and the other
-# elements in another list
-proc getSgrkeysFromList {keylist} {
+# Sort keys to return those matching defined sgr keys in a list up to a given
+# maxnb number and the other elements in another list
+proc getSgrkeysFromList {keylist maxnb} {
    set sgrkeylist {}
    if {[getConf color]} {
       set otherlist {}
       foreach key $keylist {
-         if {[info exists ::g_colors($key)]} {
+         if {[info exists ::g_colors($key)] && [llength $sgrkeylist] <\
+            $maxnb} {
             lappend sgrkeylist $key
          } else {
             lappend otherlist $key
@@ -9404,7 +9405,10 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
    sgrdef tag_list show_tags {himatchmap {}}} {
    # fetch sgr codes from tags to apply directly on main element
    if {$show_tags && [llength $tag_list] > 0} {
-      lassign [getSgrkeysFromList $tag_list] tagsgrlist tag_list
+      # if more codes than character in elt, additionnal codes apply to the
+      # side tag list
+      lassign [getSgrkeysFromList $tag_list [string length $elt]] tagsgrlist\
+         tag_list
    } else {
       set tagsgrlist {}
    }
@@ -9446,7 +9450,8 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
          } else {
             append tagssgr $commasgr
          }
-         append tagssgr $tag
+         # try to sgr in case a code apply to the tag
+         append tagssgr [sgr $tag $tag]
       }
       append tagssgr [sgr se >]
       append dispsgr $tagssgr
