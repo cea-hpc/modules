@@ -524,6 +524,8 @@ Module Sub-Commands
  * ``siteconfig``: primary site-specific configuration script location
  * ``tag_abbrev``: abbreviations to use to report module tags (defines
    :envvar:`MODULES_TAG_ABBREV`)
+ * ``tag_color_name``: tags whose name should be colored instead of module
+   name (defines :envvar:`MODULES_TAG_COLOR_NAME`)
  * ``tcl_ext_lib``: Modules Tcl extension library location
  * ``term_background``: terminal background color kind (defines
    :envvar:`MODULES_TERM_BACKGROUND`)
@@ -1691,6 +1693,26 @@ ENVIRONMENT
  The tag abbreviation definition set in :envvar:`MODULES_TAG_ABBREV`
  environment variable supersedes the default configuration set in
  :file:`modulecmd.tcl` script.
+
+ .. only:: html
+
+    .. versionadded:: 4.7
+
+.. envvar:: MODULES_TAG_COLOR_NAME
+
+ Specifies the tag names or abbreviations whose graphical rendering should be
+ applied over themselves instead of being applied over the name of the module
+ they are attached to. Value of :envvar:`MODULES_TAG_COLOR_NAME` is a
+ colon-separated list of module tag names or abbreviation strings.
+
+ When a select graphic rendition is defined for a tag name or a tag
+ abbreviation string, it is applied over the module name associated with the
+ tag and tag name or abbreviation is not displayed. When listed in
+ :envvar:`MODULES_TAG_COLOR_NAME` environment variable, a tag name or
+ abbreviation is displayed and select graphic rendition is applied over it.
+
+ The definition set in :envvar:`MODULES_TAG_COLOR_NAME` environment variable
+ supersedes the default configuration set in :file:`modulecmd.tcl` script.
 
  .. only:: html
 
