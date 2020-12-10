@@ -501,6 +501,8 @@ Environment
 
 :envvar:`MODULES_TAG_ABBREV`
 
+:envvar:`MODULES_TAG_COLOR_NAME`
+
  These environment variables appeared on version ``4.7`` and are not supported on compatibility version.
 
 
