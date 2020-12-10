@@ -1177,14 +1177,15 @@ proc sgr {keylist str {himatchmap {}} {othkeylist {}}} {
 }
 
 # Sort keys to return those matching defined sgr keys in a list up to a given
-# maxnb number and the other elements in another list
+# maxnb number and if tag not set to be displayed by its name. Other elements
+# are returned in another list
 proc getSgrkeysFromList {keylist maxnb} {
    set sgrkeylist {}
    if {[getConf color]} {
       set otherlist {}
       foreach key $keylist {
-         if {[info exists ::g_colors($key)] && [llength $sgrkeylist] <\
-            $maxnb} {
+         if {[info exists ::g_colors($key)] && ![info exists\
+            ::g_tagColorName($key)] && [llength $sgrkeylist] < $maxnb} {
             lappend sgrkeylist $key
          } else {
             lappend otherlist $key
@@ -9563,8 +9564,10 @@ proc listModules {dir mod show_mtime filter search} {
    # output is JSON format
    set json [isStateEqual report_format json]
 
-   # prepare list of tag abbreviations that can be substituted
+   # prepare list of tag abbreviations that can be substituted and list of
+   # tags whose name should be colored
    getConf tag_abbrev
+   getConf tag_color_name
 
    # prepare results for display
    set alias_colored [expr {[sgr al {}] ne {}}]
@@ -10635,8 +10638,10 @@ proc cmdModuleList {show_oneperline show_mtime} {
       # load tags from loaded modules
       cacheCurrentModules
 
-      # prepare list of tag abbreviations that can be substituted
+      # prepare list of tag abbreviations that can be substituted and list of
+      # tags whose name should be colored
       getConf tag_abbrev
+      getConf tag_color_name
 
       set display_list {}
       set default_colored [expr {[sgr de {}] ne {}}]
