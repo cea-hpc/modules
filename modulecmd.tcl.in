@@ -90,6 +90,8 @@ array set g_config_defs [list\
    silent_shell_debug {MODULES_SILENT_SHELL_DEBUG <undef> 0 {0 1}}\
    siteconfig {{} @etcdir@/siteconfig.tcl 0}\
    tag_abbrev {MODULES_TAG_ABBREV {@tagabbrev@} 0 {} {} initConfTagAbbrev}\
+   tag_color_name {MODULES_TAG_COLOR_NAME {@tagcolorname@} 0 {} {}\
+      initConfTagColorName}\
    tcl_ext_lib {{} {} 0 {} {} initConfTclExtLib}\
    term_background {MODULES_TERM_BACKGROUND @termbg@ 0 {dark light}}\
    unload_match_order {MODULES_UNLOAD_MATCH_ORDER @unloadmatchorder@ 0\
@@ -567,6 +569,21 @@ proc initConfTagAbbrev {envvar value validvallist intvallist} {
          # define an empty list if no valid value set
          set value {}
       }
+   }
+
+   return $value
+}
+
+# Initialize module tag color name table
+proc initConfTagColorName {envvar value validvallist intvallist} {
+   # overriden value coming from environment
+   if {[info exists ::env($envvar)]} {
+      set value $::env($envvar)
+   }
+
+   # set table for efficient search
+   foreach tag [split $value :] {
+      set ::g_tagColorName($tag) 1
    }
 
    return $value

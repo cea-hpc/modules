@@ -419,6 +419,12 @@ instance ``--without-modulepath``):
                       associated to an abbreviation string (elements in
                       ABBRVLIST are separated by ``:``).
                       (default=\ ``auto-loaded=aL:loaded=L:hidden=H:forbidden=F:nearly-forbidden=nF``)
+--with-tag-color-name=TAGLIST
+                      Define the tags whose graphical rendering should be
+                      applied over their name instead of over the name of the
+                      module they are attached to. Each element in TAGLIST is
+                      a tag name or abbreviation (elements in TAGLIST are
+                      separated by ``:``). (default=)
 --with-modulepath=PATHLIST
                       Default path list to setup as the default modulepaths.
                       Each path in this list should be separated by ``:``.

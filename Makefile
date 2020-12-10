@@ -293,6 +293,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@icase@|$(icase)|g' \
 	-e 's|@nearlyforbiddendays@|$(nearlyforbiddendays)|g' \
 	-e 's|@tagabbrev@|$(tagabbrev)|g' \
+	-e 's|@tagcolorname@|$(tagcolorname)|g' \
 	-e 's|@autohandling@|$(setautohandling)|g' \
 	-e 's|@implicitrequirement@|$(setimplicitrequirement)|g' \
 	-e 's|@availindepth@|$(setavailindepth)|g' \
