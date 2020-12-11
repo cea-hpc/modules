@@ -219,6 +219,39 @@ setenv_var MODULES_COLORS {aL=100:al=96:de=4:A=41:B=42:C=43:D=44:E=45:FoOo=46:G=
 testerr_cmd_re sh {avail -t} ".*[sgr {41}]t[sgr {0;42}]a[sgr {0;43}]g[sgr {0;44}]/[sgr {0;45}]t[sgr {0;46}]a[sgr {0;47}]g[sgr {0;101}]t[sgr {0;102}]a[sgr {0;103}]g[sgr {0}] <[sgr {104}]KaR[sgr {0}]:[sgr {105}]LoO[sgr {0}]>.*"
 unsetenv_var TESTSUITE_MODULE_TAG_SET12
 
+# test MODULES_TAG_COLOR_NAME with many tags applying to module
+setenv_var TESTSUITE_MODULE_TAG_SET10 1
+setenv_var MODULES_COLORS {aL=100:al=96:de=4:A=41:B=42:C=43:D=44:E=45:F=46:G=47:H=101:I=102:J=103}
+unsetenv_var MODULES_TAG_ABBREV
+setenv_var MODULES_TAG_COLOR_NAME D
+testerr_cmd_re sh {avail -t} ".*[sgr {41}]t[sgr {0;42}]a[sgr {0;43}]g[sgr {0;45}]/[sgr {0;46}]t[sgr {0;47}]a[sgr {0;101}]g[sgr {0;102}]t[sgr {0;103}]ag[sgr {0}] <[sgr {44}]D[sgr {0}]>.*"
+setenv_var MODULES_TAG_COLOR_NAME D:H
+testerr_cmd_re sh {avail -t} ".*[sgr {41}]t[sgr {0;42}]a[sgr {0;43}]g[sgr {0;45}]/[sgr {0;46}]t[sgr {0;47}]a[sgr {0;102}]g[sgr {0;103}]tag[sgr {0}] <[sgr {44}]D[sgr {0}]:[sgr {101}]H[sgr {0}]>.*"
+setenv_var MODULES_TAG_COLOR_NAME D
+setenv_var MODULES_TAG_ABBREV auto-loaded=aL:forbidden=F:hidden=H:bar=B:K=KaR:F=FoOo
+testerr_cmd_re sh {avail -t} ".*[sgr {41}]t[sgr {0;42}]a[sgr {0;43}]g[sgr {0;45}]/[sgr {0;47}]t[sgr {0;101}]a[sgr {0;102}]g[sgr {0;103}]tag[sgr {0}] <[sgr {44}]D[sgr {0}]:FoOo>.*"
+setenv_var MODULES_COLORS {aL=100:al=96:de=4:A=41:B=42:C=43:D=44:E=45:F=46:G=47:H=101:I=102:J=103:FoOo=46}
+setenv_var MODULES_TAG_COLOR_NAME D:FoOo
+testerr_cmd_re sh {avail -t} ".*[sgr {41}]t[sgr {0;42}]a[sgr {0;43}]g[sgr {0;45}]/[sgr {0;47}]t[sgr {0;101}]a[sgr {0;102}]g[sgr {0;103}]tag[sgr {0}] <[sgr {44}]D[sgr {0}]:[sgr {46}]FoOo[sgr {0}]>.*"
+unsetenv_var TESTSUITE_MODULE_TAG_SET10
+
+# test MODULES_TAG_COLOR_NAME with more tags applying to module than character in name (1 more)
+setenv_var TESTSUITE_MODULE_TAG_SET11 1
+setenv_var MODULES_TAG_COLOR_NAME D
+setenv_var MODULES_COLORS {aL=100:al=96:de=4:A=41:B=42:C=43:D=44:E=45:F=46:G=47:H=101:I=102:J=103:K=104}
+setenv_var MODULES_TAG_ABBREV auto-loaded=aL:forbidden=F:hidden=H:bar=B
+testerr_cmd_re sh {avail -t} ".*[sgr {41}]t[sgr {0;42}]a[sgr {0;43}]g[sgr {0;45}]/[sgr {0;46}]t[sgr {0;47}]a[sgr {0;101}]g[sgr {0;102}]t[sgr {0;103}]a[sgr {0;104}]g[sgr {0}] <[sgr {44}]D[sgr {0}]>.*"
+setenv_var MODULES_TAG_COLOR_NAME D:I
+testerr_cmd_re sh {avail -t} ".*[sgr {41}]t[sgr {0;42}]a[sgr {0;43}]g[sgr {0;45}]/[sgr {0;46}]t[sgr {0;47}]a[sgr {0;101}]g[sgr {0;103}]t[sgr {0;104}]ag[sgr {0}] <[sgr {44}]D[sgr {0}]:[sgr {102}]I[sgr {0}]>.*"
+setenv_var MODULES_TAG_COLOR_NAME I:D
+testerr_cmd_re sh {avail -t} ".*[sgr {41}]t[sgr {0;42}]a[sgr {0;43}]g[sgr {0;45}]/[sgr {0;46}]t[sgr {0;47}]a[sgr {0;101}]g[sgr {0;103}]t[sgr {0;104}]ag[sgr {0}] <[sgr {44}]D[sgr {0}]:[sgr {102}]I[sgr {0}]>.*"
+setenv_var MODULES_TAG_ABBREV auto-loaded=aL:forbidden=F:hidden=H:bar=B:I=IiI
+testerr_cmd_re sh {avail -t} ".*[sgr {41}]t[sgr {0;42}]a[sgr {0;43}]g[sgr {0;45}]/[sgr {0;46}]t[sgr {0;47}]a[sgr {0;101}]g[sgr {0;103}]t[sgr {0;104}]ag[sgr {0}] <[sgr {44}]D[sgr {0}]:IiI>.*"
+setenv_var MODULES_COLORS {aL=100:al=96:de=4:A=41:B=42:C=43:D=44:E=45:F=46:G=47:H=101:I=102:J=103:K=104:IiI=102}
+setenv_var MODULES_TAG_COLOR_NAME I:D:IiI
+testerr_cmd_re sh {avail -t} ".*[sgr {41}]t[sgr {0;42}]a[sgr {0;43}]g[sgr {0;45}]/[sgr {0;46}]t[sgr {0;47}]a[sgr {0;101}]g[sgr {0;103}]t[sgr {0;104}]ag[sgr {0}] <[sgr {44}]D[sgr {0}]:[sgr {102}]IiI[sgr {0}]>.*"
+unsetenv_var TESTSUITE_MODULE_TAG_SET11
+
 
 #
 #  Cleanup
