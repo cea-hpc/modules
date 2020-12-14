@@ -2780,6 +2780,7 @@ proc module-forbid {args} {
 
 proc module-hide {args} {
    set hidinglvl 1
+   set hiddenloaded 0
 
    # parse application criteria arguments to determine if command apply
    lassign [eval parseApplicationCriteriaArgs 1 0 $args] apply isnearly after\
@@ -2796,6 +2797,10 @@ proc module-hide {args} {
          --soft {
             # soften level of camouflage
             set hidinglvl 0
+         }
+         --hidden-loaded {
+            # module should stay hidden once being loaded
+            set hiddenloaded 1
          }
          -* {
             knerror "Invalid option '$arg'"
@@ -2815,6 +2820,9 @@ proc module-hide {args} {
       # record each hide spec after parsing them
       foreach modarg [eval parseModuleVersionSpecifier 0 $modarglist] {
          setModspecHidingLevel $modarg $hidinglvl
+         if {$hiddenloaded} {
+            setModspecTag $modarg hidden-loaded
+         }
       }
    }
 }
