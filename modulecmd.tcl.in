@@ -9608,7 +9608,8 @@ proc listModules {dir mod show_mtime filter search} {
    set clean_list {}
    foreach elt [array names mod_list] {
       set sym_list [getVersAliasList $elt]
-      set tag_list [getTagList $elt]
+      # fetch tags but clear 'hidden-loaded' which applies to list
+      set tag_list [replaceFromList [getTagList $elt] hidden-loaded]
       # abbrieviate tags unless for json output
       if {!$json} {
          set tag_list [abbrevTagList $tag_list]
