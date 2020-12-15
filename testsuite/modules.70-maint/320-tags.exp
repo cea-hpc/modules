@@ -108,8 +108,8 @@ testouterr_cmd sh {unload tag/4.0} $ans {}
 # list tests
 #
 
-setenv_loaded_module [list tag/4.0 tag/2.0] [list $mp/tag/4.0 $mp/tag/1.0]
-setenv_path_var MODULES_LMTAG tag/4.0&nearly-forbidden&othertag:tag/2.0&forbidden
+setenv_loaded_module [list tag/4.0 tag/2.0 tag/5.0] [list $mp/tag/4.0 $mp/tag/1.0 $mp/tag/5.0]
+setenv_path_var MODULES_LMTAG tag/4.0&nearly-forbidden&othertag:tag/2.0&forbidden:tag/5.0&hidden-loaded
 testouterr_cmd sh {list} OK "$cur_loaded
  1) tag/4.0 <nF:othertag>   2) tag/2.0 <F>  "
 
@@ -128,6 +128,15 @@ testouterr_cmd_re sh {list -l} OK $tserr
 set tserr "{\"tag/4.0\": { \"name\": \"tag/4.0\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[ \"nearly-forbidden\", \"othertag\" \], \"pathname\": \"$mp/tag/4.0\"},
 \"tag/2.0\": { \"name\": \"tag/2.0\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[ \"forbidden\" \], \"pathname\": \"$mp/tag/1.0\"}}"
 testouterr_cmd sh {list -j} OK $tserr
+
+# display hidden entries
+testouterr_cmd sh {list -a} OK "$cur_loaded
+ 1) tag/4.0 <nF:othertag>   2) tag/2.0 <F>   3) tag/5.0 <H>  "
+
+set tserr "{\"tag/4.0\": { \"name\": \"tag/4.0\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[ \"nearly-forbidden\", \"othertag\" \], \"pathname\": \"$mp/tag/4.0\"},
+\"tag/2.0\": { \"name\": \"tag/2.0\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[ \"forbidden\" \], \"pathname\": \"$mp/tag/1.0\"},
+\"tag/5.0\": { \"name\": \"tag/5.0\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[ \"hidden-loaded\" \], \"pathname\": \"$mp/tag/5.0\"}}"
+testouterr_cmd sh {list -j --all} OK $tserr
 
 unsetenv_loaded_module
 unsetenv_path_var MODULES_LMTAG

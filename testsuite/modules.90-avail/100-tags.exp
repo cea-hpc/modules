@@ -133,6 +133,18 @@ set tserr "{\"$mp\": {
 }}"
 testouterr_cmd sh {avail -j tag/3.0} OK $tserr
 
+# test hidden-loaded tag that should not be reported on avail
+setenv_var MODULES_TAG_ABBREV {auto-loaded=aL:loaded=L:hidden=H:hidden-loaded=Hl:forbidden=F:nearly-forbidden=nF}
+setenv_var TESTSUITE_MODULE_TAG_SET13 1
+set tserr "$modlin $mpre $modlin
+tag/5.0  "
+testouterr_cmd_re sh {avail tag/5.0} OK $tserr
+unsetenv_var TESTSUITE_MODULE_TAG_SET13
+setenv_var TESTSUITE_MODULE_TAG_SET14 1
+set tserr "$modlin $mpre $modlin
+tag/5.0 <H>  "
+testouterr_cmd_re sh {avail tag/5.0} OK $tserr
+unsetenv_var TESTSUITE_MODULE_TAG_SET14
 
 #
 #  Cleanup
