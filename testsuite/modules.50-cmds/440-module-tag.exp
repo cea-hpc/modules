@@ -215,6 +215,22 @@ set tserr [msg_moderr {'hidden' is a reserved tag name and cannot be set} $errms
 testouterr_cmd sh {load tag/5.0} $ans $tserr
 unsetenv_var TESTSUITE_MODULE_TAG_ERR10
 
+setenv_var TESTSUITE_MODULE_TAG_ERR11 1
+set errmsg {module-tag hidden-loaded tag/5.0}
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom "    invoked from within
+\"if \{\[info exists env(TESTSUITE_MODULE_TAG_ERR11)\]\} \{
+    $errmsg
+\}\""
+    set linenum 41
+} else {
+    set custom {}
+    set linenum 42
+}
+set tserr [msg_moderr {'hidden-loaded' is a reserved tag name and cannot be set} $errmsg $mp/tag/.modulerc $linenum {  } {} {} $custom]
+testouterr_cmd sh {load tag/5.0} $ans $tserr
+unsetenv_var TESTSUITE_MODULE_TAG_ERR11
+
 #
 # regular usages
 #
