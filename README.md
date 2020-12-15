@@ -144,7 +144,7 @@ shell function enables to swap from one module flavor to another.
 If you are moving from Modules 3.2 to 4.0 or later, please look at the
 MIGRATING document. It provides an outlook of what has changed between the 2
 versions. Both v3.2 and >=v4.0 are quite similar and transition to the new
-major version should be smooth. Slights differences may however be noticed
+major version should be smooth. Slight differences may however be noticed
 in a few use-cases and the migration guide provides details about them.
 
 
