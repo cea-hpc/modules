@@ -149,8 +149,8 @@ switches are accepted:
 .. option:: --all, -a
 
  Include hidden modules in search performed with :subcmd:`avail`,
- :subcmd:`aliases`, :subcmd:`search` or :subcmd:`whatis` sub-commands.
- Hard-hidden modules are not affected by this option.
+ :subcmd:`aliases`, :subcmd:`list`, :subcmd:`search` or :subcmd:`whatis`
+ sub-commands. Hard-hidden modules are not affected by this option.
 
  .. only:: html
 

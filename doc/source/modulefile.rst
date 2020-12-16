@@ -310,6 +310,7 @@ the *modulefile* is being loaded.
  :mfcmd:`module-hide` command accepts the following options:
 
  * ``--soft|--hard``
+ * ``--hidden-loaded``
  * ``--after datetime``
  * ``--before datetime``
  * ``--not-user {user...}``
@@ -325,6 +326,14 @@ the *modulefile* is being loaded.
  When ``--hard`` option is set, *modulefile* is also set hidden and stays
  hidden even if search or selection query refers to *modulefile* by its exact
  name.
+
+ When ``--hidden-loaded`` option is set, hidden state also applies to the
+ *modulefile* when it is loaded. Hidden loaded modules do not appear on
+ :subcmd:`list` sub-command output, unless :option:`--all` option is set.
+ Their loading or unloading informational messages are not reported unless the
+ :envvar:`verbosity of Modules<MODULES_VERBOSITY>` is set to a level higher
+ than ``verbose``. Hidden loaded modules are detected in any cases by state
+ query commands like :mfcmd:`is-loaded`.
 
  If ``--after`` option is set, hiding is only effective after specified date
  time. Following the same principle, if ``--before`` option is set, hiding is
@@ -354,10 +363,17 @@ the *modulefile* is being loaded.
  strongest hiding level is retained which means if both a regular, a
  ``--soft`` hiding command match a given module, regular hiding mode is
  considered. If both a regular and a ``--hard`` hiding command match a given
- module, hard hiding mode is retained.
+ module, hard hiding mode is retained. A set ``--hidden-loaded`` option is
+ retained even if the :mfcmd:`module-hide` statement on which it is declared
+ is superseded by a stronger :mfcmd:`module-hide` statement with no
+ ``--hidden-loaded`` option set.
 
  Hidden modules included in the result of an :subcmd:`avail` sub-command are
  reported with a ``hidden`` tag applied to them.
+
+ Hidden loaded modules included in the result of a :subcmd:`list` sub-command
+ are reported with a ``hidden-loaded`` tag applied to them. This tag is not
+ reported on :subcmd:`avail` sub-command context.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
@@ -366,6 +382,9 @@ the *modulefile* is being loaded.
  .. only:: html
 
     .. versionadded:: 4.6
+
+    .. versionchanged:: 4.7
+       Option ``--hidden-loaded`` added.
 
 .. mfcmd:: module-info option [info-args]
 
