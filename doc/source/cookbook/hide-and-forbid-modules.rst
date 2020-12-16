@@ -28,6 +28,11 @@ forbid specified modulefiles.
 
 **Compatible with Modules v4.6+**
 
+.. note::
+
+   Modules v4.7+ is required to use the ``--hidden-loaded`` option of
+   :mfcmd:`module-hide` command.
+
 Usage examples
 --------------
 
@@ -67,7 +72,8 @@ modulepath's :file:`.modulerc` file
 .. code-block:: tcl
 
     # hide modules only loaded as dependency
-    module-hide --soft deplibA deplibB
+    module-hide --soft deplibA
+    module-hide --soft --hidden-loaded deplibB
 
 As a result ``deplibA`` and ``deplibB`` are not returned anymore on a global
 :subcmd:`avail` sub-command::
@@ -84,6 +90,28 @@ requiring them::
     $ module load appA
     Loading appA/2.0
       Loading requirement: deplibA/2.0
+
+In some cases it is desirable to hide such dependency modules also when they
+are loaded. This could be achieved by using the ``--hidden-loaded`` option of
+the :mfcmd:`module-hide` command. Hidden loaded modules do not appear by
+default on :subcmd:`list` sub-command output unless :option:`--all` is set.
+Queries like :subcmd:`is-loaded` still detect such modules as loaded even if
+hidden. In addition loading or unloading informational messages related to
+these modules are not reported unless a :envvar:`verbosity
+mode<MODULES_VERBOSITY>` higher than ``verbose`` is configured.
+
+.. code-block:: console
+
+    $ module load appB
+    $ module list
+    Currently Loaded Modulefiles:
+     1) appB/2.0  
+    $ module list --all
+    Currently Loaded Modulefiles:
+     1) deplibB/2.0   2) appB/2.0
+    $ module is-loaded deplibB
+    $ echo $?
+    0
 
 Going further, among scientific applications some are only useful for a given
 scientific field. A site may provide many software covering many scientific
@@ -184,18 +212,18 @@ Some applications may be restricted to a limited set of users. For instance
 because such application should not be disclosed or because it requires a
 license that is paid only by a few users.
 
-In our example, the ``appB`` application works with token-based licenses. The
+In our example, the ``appC`` application works with token-based licenses. The
 only users that can use this software are those that have paid for a license
 token. Other users should not access nor even see the availability of this
-application. Users that have bought a license token are added to the ``appB``
+application. Users that have bought a license token are added to the ``appC``
 Unix group.
 
 .. code-block:: tcl
 
     # fully hide and forbid modules unless user owns a license token
-    module-hide --hard --not-group appB appB
+    module-hide --hard --not-group appC appC
     set msg {Access is restricted to owners of license token}
-    module-forbid --not-group appB --message $msg appB
+    module-forbid --not-group appC --message $msg appC
 
 The above statements have been added in modulepath's :file:`.modulerc` file.
 The :mfcmd:`module-hide --hard<module-hide>` command is used to completely
@@ -205,20 +233,20 @@ remove visibility for non-authorized users.
 
     $ module avail
     -- ../example/hide-and-forbid-modules/modulefiles --
-    appA/1.0  chemappA/1.0  chemappB/1.0
-    appA/2.0  chemappA/2.0  chemappB/2.0
-    $ module avail appB
-    $ module load appB
-    ERROR: Unable to locate a modulefile for 'appB'
+    appA/1.0  appB/1.0  chemappA/1.0  chemappB/1.0
+    appA/2.0  appB/2.0  chemappA/2.0  chemappB/2.0
+    $ module avail appC
+    $ module load appC
+    ERROR: Unable to locate a modulefile for 'appC'
 
-The :mfcmd:`module-forbid` statement added for ``appB`` helps to get a clear
+The :mfcmd:`module-forbid` statement added for ``appC`` helps to get a clear
 error message for the non-authorized users that are aware of the existence of
 the module name and version (instead of getting a modulefile location error).
 
 .. code-block:: console
 
-    $ module load appB/2.0
-    ERROR: Access to module 'appB/2.0' is denied
+    $ module load appC/2.0
+    ERROR: Access to module 'appC/2.0' is denied
       Access is restricted to owners of license token
 
 Alternatively such restrictions on modulefiles can be achieved by adapting
@@ -227,8 +255,8 @@ file permission mode instead of adding statements in modulepath's
 
 .. code-block:: console
 
-    $ chmod 640 ../example/hide-and-forbid-modules/modulefiles/appB/*
-    $ chgrp appB ../example/hide-and-forbid-modules/modulefiles/appB/*
+    $ chmod 640 ../example/hide-and-forbid-modules/modulefiles/appC/*
+    $ chgrp appC ../example/hide-and-forbid-modules/modulefiles/appC/*
 
 However restricting file permission mode does not enable to authorize several
 Unix groups or users to access those modulefiles or to have specific error
