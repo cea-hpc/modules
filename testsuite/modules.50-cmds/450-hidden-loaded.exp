@@ -109,6 +109,8 @@ lappend ans [list setpath MODULES_LMNOTUASKED h1:h2]
 lappend ans [list setpath MODULES_LMPREREQ h2&h1:h4&h1&h2|h3]
 lappend ans [list setpath MODULES_LMTAG h1&hidden-loaded]
 testouterr_cmd_re sh {load -v --auto h4} $ans [msg_load h2]\n\n[msg_top_load h4 {} h2 {}]
+# unless verbose2 level activated
+testouterr_cmd_re sh {load -v -v --auto h4} $ans [msg_load h1]\n[msg_load h2]\n\n[msg_top_load h4 {} {h1 h2} {}]
 
 # urequn
 setenv_loaded_module [list h1 h2 h4] [list $mp/h1 $mp/h2 $mp/h4] [list h1 h2]
@@ -121,6 +123,8 @@ lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list unsetpath MODULES_LMNOTUASKED]
 lappend ans [list unsetpath MODULES_LMTAG]
 testouterr_cmd_re sh {unload -v --auto h4} $ans [msg_unload h2]\n\n[msg_top_unload h4 {} h2 {}]
+# unless verbose2 level activated
+testouterr_cmd_re sh {unload -vv --auto h4} $ans [msg_unload h2]\n[msg_unload h1]\n\n[msg_top_unload h4 {} {h2 h1} {}]
 
 # depun
 # specified module is hidden (should be reported)
@@ -144,6 +148,8 @@ lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list unsetpath MODULES_LMNOTUASKED]
 lappend ans [list unsetpath MODULES_LMTAG]
 testouterr_cmd_re sh {unload -v --auto h2} $ans [msg_unload h2]
+# unless verbose2 level activated
+testouterr_cmd_re sh {-v unload -v --auto h2} $ans [msg_unload h4]\n[msg_unload h1]\n\n[msg_top_unload h2 h4 h1 {}]
 
 # depre (on load)
 # depun module is hidden and was automatically loaded (should not be reported)
@@ -162,6 +168,7 @@ lappend ans [list setpath _LMFILES_ $mp/h1:$mp/h2:$mp/h3:$mp/h4]
 lappend ans [list setpath MODULES_LMPREREQ h2&h1:h4&h1&h2|h3]
 lappend ans [list setpath MODULES_LMTAG h1&hidden-loaded:h3&hidden-loaded:h4&hidden-loaded]
 testouterr_cmd_re sh {load -v --auto h3} $ans [msg_unload h4]\n[msg_load h4]\n\n[msg_top_load h3 {} {} h4]
+testouterr_cmd_re sh {load -v --auto -v h3} $ans [msg_unload h4]\n[msg_load h4]\n\n[msg_top_load h3 {} {} h4]
 
 # depre (on unload)
 # depun module is hidden and was automatically loaded (should not be reported)
@@ -271,6 +278,7 @@ lappend ans [list setpath MODULES_LMNOTUASKED rag]
 lappend ans [list setpath MODULES_LMTAG rag&hidden-loaded]
 lappend ans [list ERR]
 testouterr_cmd_re sh {load --force -v --auto rah} $ans [msg_load rae]\n\n[msg_load raf $err_evalabort]\n\n[msg_load rag [err_reqmisf raf]]\n\n[msg_top_load rah {} rag {} [err_reqlof raf]]
+testouterr_cmd_re sh {load --force -vv --auto rah} $ans [msg_load rae]\n\n[msg_load raf $err_evalabort]\n\n[msg_load rag [err_reqmisf raf]]\n\n[msg_top_load rah {} rag {} [err_reqlof raf]]
 
 setenv_loaded_module [list rae raf rag rah] [list $mp/rae $mp/raf $mp/rag $mp/rah] [list rae raf rag]
 setenv_path_var MODULES_LMTAG raf&hidden-loaded:rag&hidden-loaded
@@ -340,6 +348,7 @@ lappend ans [list setpath MODULES_LMPREREQ h31&h30:h32&h31]
 lappend ans [list setpath MODULES_LMNOTUASKED h30:h31]
 lappend ans [list setpath MODULES_LMTAG h31&hidden-loaded]
 testouterr_cmd_re sh {load --force -v --auto h32} $ans [msg_load h30]\n\n[msg_load h31 [err_conlof h33]]\n\n[msg_top_load h32 {} {h30 h31} {}]
+testouterr_cmd_re sh {load --force -vv --auto h32} $ans [msg_load h30]\n\n[msg_load h31 [err_conlof h33]]\n\n[msg_top_load h32 {} {h30 h31} {}]
 unsetenv_path_var MODULES_LMCONFLICT
 unsetenv_loaded_module
 unsetenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET7

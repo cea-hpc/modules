@@ -47,7 +47,7 @@ testouterr_cmd_re sh {load module/meta} $ans [msg_load trace/all_on $err_trace]\
 testouterr_cmd_re sh {load -v module/meta} $ans [msg_load setenv/1.0]\n\n[msg_load trace/all_on $err_trace]\n\n[msg_load prereq/module]\n\n[msg_top_load module/meta {} {setenv/1.0 trace/all_on prereq/module} {}]
 
 # for the other tests, just set the MODULES_VERBOSITY variable to selected verbosity level
-foreach verbosity [list silent concise normal verbose] {
+foreach verbosity [list silent concise normal verbose verbose2] {
     setenv_var MODULES_VERBOSITY $verbosity
 
     testouterr_cmd_re sh {display setenv/1.0} OK "$modlin\n$modpathre/setenv/1.0:\n\nsetenv\t\ttestsuite yes\n$modlin"
@@ -81,7 +81,7 @@ foreach verbosity [list silent concise normal verbose] {
     lappend ans [list set testsuite yes]
     lappend ans [list setpath LOADEDMODULES setenv/1.0]
     lappend ans [list setpath _LMFILES_ $modpath/setenv/1.0]
-    set tserr [expr {$verbosity eq {verbose} ? [msg_load setenv/1.0] : {}}]
+    set tserr [expr {$verbosity eq {verbose} || $verbosity eq {verbose2} ? [msg_load setenv/1.0] : {}}]
     testouterr_cmd sh {load setenv/1.0} $ans $tserr
 
     set tserr [expr {$verbosity eq {silent} ? {} : "$err_path'unknown'"}]
@@ -110,7 +110,7 @@ foreach verbosity [list silent concise normal verbose] {
         set tserr {}
     } elseif {$verbosity eq {concise} || $verbosity eq {normal}} {
         set tserr texterr1\ntexterr2texterr3
-    } elseif {$verbosity eq {verbose}} {
+    } elseif {$verbosity eq {verbose} || $verbosity eq {verbose2}} {
         set tserr texterr1\ntexterr2texterr3\n[msg_load puts/1]
     }
     testouterr_cmd_re sh {load puts/1} $ans $tserr
@@ -124,7 +124,7 @@ foreach verbosity [list silent concise normal verbose] {
         set tserr {}
     } elseif {$verbosity eq {concise}} {
         set tserr [msg_load trace/all_on $err_trace]
-    } elseif {$verbosity eq {normal} || $verbosity eq {verbose}} {
+    } elseif {$verbosity eq {normal} || $verbosity eq {verbose} || $verbosity eq {verbose2}} {
         set tserr [msg_load setenv/1.0]\n\n[msg_load trace/all_on $err_trace]\n\n[msg_load prereq/module]
     }
     testouterr_cmd_re sh "source $modpath/module/meta" $ans $tserr
@@ -144,7 +144,7 @@ foreach verbosity [list silent concise normal verbose] {
         set tserr {}
     } elseif {$verbosity eq {concise}} {
         set tserr {load coll/a}
-    } elseif {$verbosity eq {normal} || $verbosity eq {verbose}} {
+    } elseif {$verbosity eq {normal} || $verbosity eq {verbose} || $verbosity eq {verbose2}} {
         set tserr "[msg_load loc_rc1/1.0]\n[msg_load load/15]\n[msg_load verssort/1.10]\nload coll/a\n[msg_load coll/a]\n[msg_load loc_dv2/1.0]"
     }
     testouterr_cmd_re sh "restore $coll" $ans $tserr
@@ -156,7 +156,7 @@ foreach verbosity [list silent concise normal verbose] {
 setenv_loaded_module [list setenv/1.0 trace/all_on prereq/module module/meta] [list $modpath/setenv/1.0 $modpath/trace/all_on $modpath/prereq/module $modpath/module/meta] [list setenv/1.0 trace/all_on prereq/module]
 setenv_path_var MODULES_LMPREREQ prereq/module&trace module/meta&setenv&trace&prereq/module
 
-foreach verbosity [list silent concise normal verbose] {
+foreach verbosity [list silent concise normal verbose verbose2] {
     setenv_var MODULES_VERBOSITY $verbosity
     testouterr_cmd sh {is-loaded setenv/1.0} OK {}
     testouterr_cmd sh {is-loaded setenv/2.0} ERR {}
@@ -174,7 +174,7 @@ foreach verbosity [list silent concise normal verbose] {
         set tserr {}
     } elseif {$verbosity eq {normal}} {
         set tserr [msg_top_switch setenv/1.0 setenv/0.6 {} {} {} {} module/meta]
-    } elseif {$verbosity eq {verbose}} {
+    } elseif {$verbosity eq {verbose} || $verbosity eq {verbose2}} {
         set tserr [msg_unload module/meta]\n[msg_unload setenv/1.0]\n[msg_load setenv/0.6]\n[msg_load module/meta]\n\n[msg_top_switch setenv/1.0 setenv/0.6 {} {} {} {} module/meta]
     }
     testouterr_cmd_re sh {switch --auto setenv/0.6} $ans $tserr
@@ -191,7 +191,7 @@ foreach verbosity [list silent concise normal verbose] {
         set tserr [msg_unload trace/all_on $err_trace]
     } elseif {$verbosity eq {normal}} {
         set tserr [msg_unload trace/all_on $err_trace]\n\n[msg_top_unload module/meta {} {prereq/module trace/all_on setenv/1.0} {}]
-    } elseif {$verbosity eq {verbose}} {
+    } elseif {$verbosity eq {verbose} || $verbosity eq {verbose2}} {
         set tserr [msg_unload prereq/module]\n\n[msg_unload trace/all_on $err_trace]\n\n[msg_unload setenv/1.0]\n\n[msg_top_unload module/meta {} {prereq/module trace/all_on setenv/1.0} {}]
     }
     testouterr_cmd_re sh {unload --auto module/meta} $ans $tserr
@@ -200,7 +200,7 @@ foreach verbosity [list silent concise normal verbose] {
         set tserr {}
     } elseif {$verbosity eq {concise} || $verbosity eq {normal}} {
         set tserr [msg_unload trace/all_on $err_trace]
-    } elseif {$verbosity eq {verbose}} {
+    } elseif {$verbosity eq {verbose} || $verbosity eq {verbose2}} {
         set tserr [msg_unload module/meta]\n[msg_unload prereq/module]\n\n[msg_unload trace/all_on $err_trace]\n\n[msg_unload setenv/1.0]
     }
     testouterr_cmd_re sh {purge} $ans $tserr
@@ -215,7 +215,7 @@ foreach verbosity [list silent concise normal verbose] {
         set tserr {}
     } elseif {$verbosity eq {concise} || $verbosity eq {normal}} {
         set tserr [msg_unload trace/all_on $err_trace]\n\n[msg_load trace/all_on $err_trace]
-    } elseif {$verbosity eq {verbose}} {
+    } elseif {$verbosity eq {verbose} || $verbosity eq {verbose2}} {
         set tserr [msg_unload module/meta]\n[msg_unload prereq/module]\n\n[msg_unload trace/all_on $err_trace]\n\n[msg_unload setenv/1.0]\n[msg_load setenv/1.0]\n\n[msg_load trace/all_on $err_trace]\n\n[msg_load prereq/module]\n[msg_load module/meta]
     }
     testouterr_cmd_re sh {reload} $ans $tserr
@@ -280,7 +280,7 @@ set ans [list]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath LOADEDMODULES setenv/1.0]
 lappend ans [list setpath _LMFILES_ $modpath/setenv/1.0]
-set tserr [expr {$install_verbosity eq {verbose} ? [msg_load setenv/1.0] : {}}]
+set tserr [expr {$install_verbosity eq {verbose} || $install_verbosity eq {verbose2} ? [msg_load setenv/1.0] : {}}]
 testouterr_cmd sh {load setenv/1.0} $ans $tserr
 set tserr [expr {$install_verbosity eq {silent} ? {} : "$err_path'unknown'"}]
 testouterr_cmd sh {load unknown} ERR $tserr
