@@ -326,6 +326,10 @@ Command line switches
 
  These command line switches appeared on version ``4.6`` and are not supported on compatibility version.
 
+:option:`-vv`
+
+ This command line switche appeared on version ``4.7`` and is not supported on compatibility version.
+
 
 Module Sub-Commands
 ^^^^^^^^^^^^^^^^^^^

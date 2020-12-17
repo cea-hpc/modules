@@ -357,7 +357,7 @@ instance ``--without-modulepath``):
 --with-verbosity=VALUE
                       Specify default message verbosity. accepted values are
                       ``silent``, ``concise``, ``normal``, ``verbose``,
-                      ``trace``, ``debug`` and ``debug2``.
+                      ``verbose2``, ``trace``, ``debug`` and ``debug2``.
                       (default=\ ``normal``)
 --with-dark-background-colors=SGRLIST
                       Default color set to apply if terminal background color

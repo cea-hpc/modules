@@ -353,15 +353,19 @@ switches are accepted:
 
     .. versionadded:: 4.6
 
-.. option:: --verbose, -v
+.. option:: --verbose, -v, -vv
 
- Enable verbose messages during :command:`module` command execution.
+ Enable verbose messages during :command:`module` command execution. Multiple
+ :option:`-v` options increase the verbosity level. The maximum is 2.
 
  .. only:: html
 
     .. versionadded:: 4.3
        :option:`--verbose`/:option:`-v` support was dropped on version `4.0`
        but reintroduced starting version `4.3`.
+
+    .. versionchanged:: 4.7
+       Option form :option:`-vv` added
 
 .. option:: --version, -V
 
@@ -1770,6 +1774,8 @@ ENVIRONMENT
    :subcmd:`restore` or :subcmd:`source` sub-commands.
  * ``verbose``: add additional informational messages, like a systematic
    report of the loading or unloading module evaluations.
+ * ``verbose2``: report loading or unloading module evaluations of
+   hidden-loaded modules.
  * ``trace``: provide details on module searches, resolutions, selections and
    evaluations.
  * ``debug``: print debugging messages about module command execution.
@@ -1791,6 +1797,9 @@ ENVIRONMENT
 
     .. versionchanged:: 4.6
        Verbosity levels ``trace`` and ``debug2`` added
+
+    .. versionchanged:: 4.7
+       Verbosity level ``verbose2`` added
 
 .. envvar:: MODULES_WA_277
 
