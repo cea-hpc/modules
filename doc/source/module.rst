@@ -194,6 +194,9 @@ switches are accepted:
 
     .. versionadded:: 4.0
 
+    .. versionchanged:: 4.6
+       Option form :option:`-DD` added
+
 .. option:: --default, -d
 
  On :subcmd:`avail` sub-command, display only the default version of each
@@ -1785,6 +1788,9 @@ ENVIRONMENT
  .. only:: html
 
     .. versionadded:: 4.3
+
+    .. versionchanged:: 4.6
+       Verbosity levels ``trace`` and ``debug2`` added
 
 .. envvar:: MODULES_WA_277
 
