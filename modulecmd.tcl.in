@@ -103,7 +103,7 @@ array set g_config_defs [list\
    search_match {MODULES_SEARCH_MATCH @searchmatch@ 0 {starts_with contains}}\
    set_shell_startup {MODULES_SET_SHELL_STARTUP @setshellstartup@ 0 {0 1}}\
    verbosity {MODULES_VERBOSITY @verbosity@ 0 {silent concise normal verbose\
-      trace debug debug2}}\
+      verbose2 trace debug debug2}}\
    wa_277 {MODULES_WA_277 @wa277@ 0 {0 1}}\
 ]
 
@@ -878,7 +878,7 @@ proc reportModuleEval {} {
             # exclude hidden modules from report unless an high level of
             # verbosity is set
             if {[info exists ::g_moduleHiddenEval($evalid:$context)] &&\
-               ![isVerbosityLevel debug]} {
+               ![isVerbosityLevel verbose2]} {
                lassign [getDiffBetweenList $modlist\
                   $::g_moduleHiddenEval($evalid:$context)] modlist
             }
@@ -959,10 +959,10 @@ proc reportMsgRecord {header {hidden 0}} {
    # report header if no other specific msg to output in verbose mode or in
    # normal verbosity mode if currently processing a cmd which triggers
    # multiple module evaluations that cannot be guessed by the user
-   # if hidden flag is enabled report only if verbosity >= debug
+   # if hidden flag is enabled report only if verbosity >= verbose2
    } elseif {(!$hidden && ([isVerbosityLevel verbose] || ([isVerbosityLevel\
       normal] && ([ongoingCommandName restore] || [ongoingCommandName\
-      source])))) || ($hidden && [isVerbosityLevel debug])} {
+      source])))) || ($hidden && [isVerbosityLevel verbose2])} {
       report $header
    }
 }
@@ -12840,8 +12840,10 @@ if {[catch {
             -s - --silent {
                set asked_verbosity silent
             }
-            -v - --verbose {
-               set asked_verbosity verbose
+            -v - -vv - --verbose {
+               set asked_verbosity [expr {$arg eq {-vv} || ([info exists\
+                  asked_verbosity] && [isInList {verbose verbose2}\
+                  $asked_verbosity]) ? {verbose2} : {verbose}}]
             }
             --help - -h {
                set show_help 1
