@@ -282,124 +282,63 @@ Starting with version ``4.1``, :file:`modulecmd.tcl` sources upon invocation a s
 Command line switches
 ^^^^^^^^^^^^^^^^^^^^^
 
-:option:`--debug`, :option:`-D`
+The following command line switches appeared on new version of Modules are not supported on compatibility version.
 
-:option:`--default`, :option:`-d`
-
-:option:`--latest`, :option:`-L`
- 
- These command line switches are not supported on compatibility version.
- 
-:option:`--paginate`
-
-:option:`--no-pager`
-
- These command line switches appeared on version ``4.1`` and are not supported on compatibility version.
-
-:option:`--auto`
-
-:option:`--no-auto`
-
- These command line switches appeared on version ``4.2`` and are not supported on compatibility version.
-
-:option:`--indepth`
-
-:option:`--no-indepth`
-
-:option:`--color`
-
-:option:`--starts-with`, :option:`-S`
-
-:option:`--contains`, :option:`-C`
-
- These command line switches appeared on version ``4.3`` and are not supported on compatibility version.
-
-:option:`--json`, :option:`-j`
-
- This command line switch appeared on version ``4.5`` and is not supported on compatibility version.
-
-:option:`--trace`, :option:`-T`
-
-:option:`--all`, :option:`-a`
-
-:option:`-DD`
-
- These command line switches appeared on version ``4.6`` and are not supported on compatibility version.
-
-:option:`-vv`
-
- This command line switche appeared on version ``4.7`` and is not supported on compatibility version.
++------------+-----------------------------------------------------------------+
+| Introduced | New command line switches                                       |
+| in version |                                                                 |
++============+=================================================================+
+| 4.0        | :option:`--debug`, :option:`-D`, :option:`--default`,           |
+|            | :option:`-d`, :option:`--latest`, :option:`-L`                  |
++------------+-----------------------------------------------------------------+
+| 4.1        | :option:`--paginate`, :option:`--no-pager`                      |
++------------+-----------------------------------------------------------------+
+| 4.2        | :option:`--auto`, :option:`--no-auto`                           |
++------------+-----------------------------------------------------------------+
+| 4.3        | :option:`--indepth`, :option:`--no-indepth`, :option:`--color`, |
+|            | :option:`--starts-with`, :option:`-S`, :option:`--contains`,    |
+|            | :option:`-C`                                                    |
++------------+-----------------------------------------------------------------+
+| 4.5        | :option:`--json`, :option:`-j`                                  |
++------------+-----------------------------------------------------------------+
+| 4.6        | :option:`--trace`, :option:`-T`, :option:`--all`, :option:`-a`, |
+|            | :option:`-DD`                                                   |
++------------+-----------------------------------------------------------------+
+| 4.7        | :option:`-vv`                                                   |
++------------+-----------------------------------------------------------------+
 
 
 Module Sub-Commands
 ^^^^^^^^^^^^^^^^^^^
 
+The following module sub-commands appeared on new version of Modules are not supported on compatibility version.
+
++------------+-----------------------------------------------------------------+
+| Introduced | New module sub-commands                                         |
+| in version |                                                                 |
++============+=================================================================+
+| 4.0        | :subcmd:`reload`, :subcmd:`source`, :subcmd:`search`,           |
+|            | :subcmd:`save`, :subcmd:`restore`, :subcmd:`saverm`,            |
+|            | :subcmd:`saveshow`, :subcmd:`savelist`, :subcmd:`path`,         |
+|            | :subcmd:`paths`, :subcmd:`autoinit`, :subcmd:`aliases`,         |
+|            | :subcmd:`test`                                                  |
++------------+-----------------------------------------------------------------+
+| 4.1        | :subcmd:`append-path`, :subcmd:`prepend-path`,                  |
+|            | :subcmd:`remove-path`, :subcmd:`is-loaded`, :subcmd:`is-saved`  |
+|            | :subcmd:`is-used`, :subcmd:`is-avail`, :subcmd:`info-loaded`    |
++------------+-----------------------------------------------------------------+
+| 4.3        | :subcmd:`config`                                                |
++------------+-----------------------------------------------------------------+
+| 4.6        | :subcmd:`sh-to-mod`                                             |
++------------+-----------------------------------------------------------------+
+
 All module sub-commands will return a non-zero exit code in case of error whereas on compatibility version issues that occurred do not lead to an exit of the :command:`module` command with a non-zero code.
 
 Starting with version ``4.1``, :command:`module` function for all scripting languages, like Perl or Python, always returns a value. In case of error, a *false* boolean value is returned instead of raising a fatal exception. For module sub-commands returning a text value, the module function will actually return this value. In all other cases a *true* boolean value is returned.
 
-
-:subcmd:`reload`
-
-:subcmd:`source`
-
-:subcmd:`search`
-
-:subcmd:`save`
-
-:subcmd:`restore`
-
-:subcmd:`saverm`
-
-:subcmd:`saveshow`
-
-:subcmd:`savelist`
-
-:subcmd:`path`
-
-:subcmd:`paths`
-
-:subcmd:`autoinit`
-
-:subcmd:`aliases`
-
-:subcmd:`test`
+:subcmd:`avail`, :subcmd:`whatis` and :subcmd:`apropos`
  
- These module sub-commands are not supported on compatibility version.
-
-:subcmd:`append-path`
-
-:subcmd:`prepend-path`
-
-:subcmd:`remove-path`
-
-:subcmd:`is-loaded`
-
-:subcmd:`is-saved`
-
-:subcmd:`is-used`
-
-:subcmd:`is-avail`
-
-:subcmd:`info-loaded`
-
- These module sub-commands appeared on version ``4.1`` and are not supported on compatibility version.
-
-:subcmd:`config`
-
- This module sub-command appeared on version ``4.3`` and is not supported on compatibility version.
- 
-:subcmd:`sh-to-mod`
-
- This module sub-command appeared on version ``4.6`` and is not supported on compatibility version.
- 
-:subcmd:`avail`
-
-:subcmd:`whatis`
-
-:subcmd:`apropos`
- 
- Non-critical errors are not displayed on these sub-commands. Only valid results are returned.
+ Non-critical errors are not displayed on :subcmd:`avail`, :subcmd:`whatis` and :subcmd:`apropos` sub-commands. Only valid results are returned.
  
  Module aliases are included in the result of these sub-commands. They are displayed in the module path section where they are defined or in a *global/user modulerc* section for aliases set in user's or global modulerc file. A ``@`` symbol is added in parenthesis next to their name to distinguish them from *modulefiles*.
  
@@ -417,105 +356,72 @@ Modules collections are not supported on compatibility version.
 Environment
 ^^^^^^^^^^^
 
-:envvar:`MODULECONTACT`
+The following environment variables appeared on new version of Modules are not supported on compatibility version.
 
-:envvar:`MODULES_COLLECTION_TARGET`
-
-:envvar:`MODULES_USE_COMPAT_VERSION`
-
-:envvar:`<VAR>_modshare`
-
- These environment variables are not supported on compatibility version.
-
-:envvar:`MODULES_CMD`
-
-:envvar:`MODULES_COLLECTION_PIN_VERSION`
-
-:envvar:`MODULES_PAGER`
-
-:envvar:`MODULES_RUNENV_\<VAR\>`
-
-:envvar:`MODULES_RUN_QUARANTINE`
-
-:envvar:`MODULES_SILENT_SHELL_DEBUG`
-
-:envvar:`<VAR>_modquar`
-
- These environment variables appeared on version ``4.1`` and are not supported on compatibility version.
-
-:envvar:`MODULES_AUTO_HANDLING`
-
-:envvar:`MODULES_LMALTNAME`
-
-:envvar:`MODULES_LMCONFLICT`
-
-:envvar:`MODULES_LMNOTUASKED`
-
-:envvar:`MODULES_LMPREREQ`
-
- These environment variables appeared on version ``4.2`` and are not supported on compatibility version.
-
-:envvar:`MODULES_AVAIL_INDEPTH`
-
-:envvar:`MODULES_COLOR`
-
-:envvar:`MODULES_COLORS`
-
-:envvar:`MODULES_IMPLICIT_DEFAULT`
-
-:envvar:`MODULES_SEARCH_MATCH`
-
-:envvar:`MODULES_SET_SHELL_STARTUP`
-
-:envvar:`MODULES_SITECONFIG`
-
-:envvar:`MODULES_TERM_BACKGROUND`
-
-:envvar:`MODULES_UNLOAD_MATCH_ORDER`
-
-:envvar:`MODULES_VERBOSITY`
-
-:envvar:`MODULES_WA_277`
-
- These environment variables appeared on version ``4.3`` and are not supported on compatibility version.
-
-:envvar:`MODULES_ADVANCED_VERSION_SPEC`
-
-:envvar:`MODULES_EXTENDED_DEFAULT`
-
-:envvar:`MODULES_ICASE`
-
- These environment variables appeared on version ``4.4`` and are not supported on compatibility version.
-
-:envvar:`MODULES_ML`
-
- This environment variable appeared on version ``4.5`` and is not supported on compatibility version.
-
-:envvar:`MODULES_LMSOURCESH`
-
-:envvar:`MODULES_NEARLY_FORBIDDEN_DAYS`
-
- These environment variables appeared on version ``4.6`` and are not supported on compatibility version.
-
-:envvar:`MODULES_SHELLS_WITH_KSH_FPATH`
-
-:envvar:`MODULES_IMPLICIT_REQUIREMENT`
-
-:envvar:`MODULES_LMTAG`
-
-:envvar:`MODULES_TAG_ABBREV`
-
-:envvar:`MODULES_TAG_COLOR_NAME`
-
- These environment variables appeared on version ``4.7`` and are not supported on compatibility version.
++------------+-----------------------------------------------------------------+
+| Introduced | New environment variables                                       |
+| in version |                                                                 |
++============+=================================================================+
+| 4.0        | :envvar:`MODULECONTACT`, :envvar:`MODULES_COLLECTION_TARGET`,   |
+|            | :envvar:`MODULES_USE_COMPAT_VERSION`, :envvar:`<VAR>_modshare`  |
++------------+-----------------------------------------------------------------+
+| 4.1        | :envvar:`MODULES_CMD`, :envvar:`MODULES_COLLECTION_PIN_VERSION`,|
+|            | :envvar:`MODULES_PAGER`, :envvar:`MODULES_RUNENV_\<VAR\>`,      |
+|            | :envvar:`MODULES_RUN_QUARANTINE`,                               |
+|            | :envvar:`MODULES_SILENT_SHELL_DEBUG`, :envvar:`<VAR>_modquar`   |
++------------+-----------------------------------------------------------------+
+| 4.2        | :envvar:`MODULES_AUTO_HANDLING`, :envvar:`MODULES_LMALTNAME`,   |
+|            | :envvar:`MODULES_LMCONFLICT`, :envvar:`MODULES_LMNOTUASKED`,    |
+|            | :envvar:`MODULES_LMPREREQ`                                      |
++------------+-----------------------------------------------------------------+
+| 4.3        | :envvar:`MODULES_AVAIL_INDEPTH`, :envvar:`MODULES_COLOR`,       |
+|            | :envvar:`MODULES_COLORS`, :envvar:`MODULES_IMPLICIT_DEFAULT`,   |
+|            | :envvar:`MODULES_SEARCH_MATCH`,                                 |
+|            | :envvar:`MODULES_SET_SHELL_STARTUP`,                            |
+|            | :envvar:`MODULES_SITECONFIG`, :envvar:`MODULES_TERM_BACKGROUND`,|
+|            | :envvar:`MODULES_UNLOAD_MATCH_ORDER`,                           |
+|            | :envvar:`MODULES_VERBOSITY`, :envvar:`MODULES_WA_277`           |
++------------+-----------------------------------------------------------------+
+| 4.4        | :envvar:`MODULES_ADVANCED_VERSION_SPEC`,                        |
+|            | :envvar:`MODULES_EXTENDED_DEFAULT`, :envvar:`MODULES_ICASE`     |
++------------+-----------------------------------------------------------------+
+| 4.5        | :envvar:`MODULES_ML`                                            |
++------------+-----------------------------------------------------------------+
+| 4.6        | :envvar:`MODULES_LMSOURCESH`,                                   |
+|            | :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS`                         |
++------------+-----------------------------------------------------------------+
+| 4.7        | :envvar:`MODULES_SHELLS_WITH_KSH_FPATH`,                        |
+|            | :envvar:`MODULES_IMPLICIT_REQUIREMENT`, :envvar:`MODULES_LMTAG`,|
+|            | :envvar:`MODULES_TAG_ABBREV`, :envvar:`MODULES_TAG_COLOR_NAME`  |
++------------+-----------------------------------------------------------------+
 
 
 Modules Specific Tcl Commands
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:mfcmd:`conflict`
+The following modulefile Tcl commands appeared on new version of Modules are not supported on compatibility version.
 
-:mfcmd:`prereq`
++------------+-----------------------------------------------------------------+
+| Introduced | New modulefile Tcl commands                                     |
+| in version |                                                                 |
++============+=================================================================+
+| 4.0        | :mfcmd:`module-info command<module-info>`                       |
++------------+-----------------------------------------------------------------+
+| 4.1        | :mfcmd:`module-info loaded<module-info>`, :mfcmd:`is-saved`,    |
+|            | :mfcmd:`is-used`, :mfcmd:`is-avail`, :mfcmd:`module-virtual`    |
++------------+-----------------------------------------------------------------+
+| 4.2        | :mfcmd:`set-function`, :mfcmd:`unset-function`                  |
++------------+-----------------------------------------------------------------+
+| 4.6        | :mfcmd:`source-sh`, :mfcmd:`module-hide`,                       |
+|            | :mfcmd:`module-forbid`,                                         |
+|            | :mfcmd:`module-info usergroups<module-info>`,                   |
+|            | :mfcmd:`module-info username<module-info>`                      |
++------------+-----------------------------------------------------------------+
+| 4.7        | :mfcmd:`versioncmp`, :mfcmd:`module-tag`,                       |
+|            | :mfcmd:`module-info tags<module-info>`                          |
++------------+-----------------------------------------------------------------+
+
+:mfcmd:`conflict` and :mfcmd:`prereq`
 
  Starting with version ``4.2``, these Modules-specific Tcl commands support being called with a symbolic modulefile or a modulefile alias passed as argument.
 
@@ -525,33 +431,9 @@ Modules Specific Tcl Commands
 
  Starting with version ``4.7``, the ``load``, ``unload`` and ``switch`` sub-commands support the ``--not-req`` option to avoid recording a prereq or a conflict requirement toward specified modules.
 
-:mfcmd:`module-info`
- 
- **module-info command**
-  
-  This :mfcmd:`module-info` option is not supported on compatibility version.
+:mfcmd:`append-path` and :mfcmd:`prepend-path`
 
- **module-info loaded**
-  
-  This :mfcmd:`module-info` option appeared on version ``4.1`` and is not supported on compatibility version.
-
- **module-info usergroups**
-
- **module-info username**
-
-  These :mfcmd:`module-info` options appeared on version ``4.6`` and are not supported on compatibility version.
-
- **module-info tags**
-
-  This :mfcmd:`module-info` options appeared on version ``4.7`` and is not supported on compatibility version.
-
-:mfcmd:`append-path`
-
- Starting with version ``4.1``, :mfcmd:`append-path` handles being called with multiple *value* arguments and option ``--duplicates`` is added.
-
-:mfcmd:`prepend-path`
-
- Starting with version ``4.1``, :mfcmd:`prepend-path` handles being called with multiple *value* arguments and option ``--duplicates`` is added.
+ Starting with version ``4.1``, both commands handle being called with multiple *value* arguments and option ``--duplicates`` is added.
 
 :mfcmd:`remove-path`
 
@@ -565,42 +447,15 @@ Modules Specific Tcl Commands
 
  This Modules-specific Tcl command was not enabled for *modulerc* evaluation starting Modules version ``4.0`` but it has been reintroduced starting version ``4.2.1``.
 
-:mfcmd:`is-saved`
-
-:mfcmd:`is-used`
-
-:mfcmd:`is-avail`
-
-:mfcmd:`module-virtual`
-
- These Modules-specific Tcl commands appeared on version ``4.1`` and are not supported on compatibility version.
-
-:mfcmd:`set-function`
-
-:mfcmd:`unset-function`
-
- These Modules-specific Tcl commands appeared on version ``4.2`` and are not supported on compatibility version.
-
-:mfcmd:`source-sh`
-
-:mfcmd:`module-hide`
-
-:mfcmd:`module-forbid`
-
- These Modules-specific Tcl commands appeared on version ``4.6`` and are not supported on compatibility version.
-
-:mfcmd:`versioncmp`
-
-:mfcmd:`module-tag`
-
- These Modules-specific Tcl commands appeared on version ``4.7`` and are not supported on compatibility version.
-
 
 Modules Variables
 ^^^^^^^^^^^^^^^^^
 
-:mfvar:`ModuleTool`
+The following Modules-specific Tcl variables appeared on new version of Modules are not supported on compatibility version.
 
-:mfvar:`ModuleToolVersion`
-
- These Modules-specific Tcl variables appeared on version ``4.7`` and are not supported on compatibility version.
++------------+-----------------------------------------------------------------+
+| Introduced | New Modules-specific Tcl variables                              |
+| in version |                                                                 |
++============+=================================================================+
+| 4.7        | :mfvar:`ModuleTool`, :mfvar:`ModuleToolVersion`                 |
++------------+-----------------------------------------------------------------+
