@@ -1476,6 +1476,14 @@ proc getNearlyForbiddenMsg {mod} {
    return $msg
 }
 
+proc getStickyUnloadMsg {mod} {
+   return "Unload of sticky module '$mod' skipped"
+}
+
+proc getStickyForcedUnloadMsg {mod} {
+   return "Unload of sticky module '$mod' forced"
+}
+
 ########################################################################
 # Use a subordinate Tcl interpreter to execute modulefiles
 #
@@ -1686,6 +1694,18 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}\
    # inform that access to module will be soon denied
    if {$mode ne {unload} && [isModuleTagged $modname nearly-forbidden 1]} {
       reportWarning [getNearlyForbiddenMsg $modname]
+   # fail unload attempt if module is sticky, unless if forced
+   } elseif {$mode eq {unload} && [isModuleTagged $modname sticky 1]} {
+      if {[getState force]} {
+         reportWarning [getStickyForcedUnloadMsg $modname]
+      } else {
+         # restore changed states prior raising error
+         lpopState debug_msg_prefix
+         lpopState specifiedname
+         lpopState modulename
+         lpopState modulefile
+         knerror [getStickyUnloadMsg $modname]
+      }
    }
 
    if {![info exists ::g_modfileUntrackVars]} {
