@@ -25,9 +25,9 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install system packages
-        shell: cmd
         run: |
           choco install make sed git autoconf automake libtool tcl python37 python37-sphinx zip --source cygwin
+          & $env:CYGWIN_BASH -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ln -s python3.7 /usr/bin/python'
       - name: Install Tcl under Windows
         shell: cmd
         run: |
@@ -35,7 +35,7 @@ jobs:
           %TCL_INSTALLER% /verysilent
       - name: Build Modules dist
         run: |
-          & $env:CYGWIN_BASH -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure --disable-libtclenvmodules --with-python=/cygdrive/c/hostedtoolcache/windows/Python/3.9.0/x64/python && make dist-win'
+          & $env:CYGWIN_BASH -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure --disable-libtclenvmodules && make dist-win'
       - name: Install Modules
         shell: cmd
         run: |
