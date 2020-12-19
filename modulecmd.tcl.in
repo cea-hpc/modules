@@ -1694,8 +1694,9 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}\
    # inform that access to module will be soon denied
    if {$mode ne {unload} && [isModuleTagged $modname nearly-forbidden 1]} {
       reportWarning [getNearlyForbiddenMsg $modname]
-   # fail unload attempt if module is sticky, unless if forced
-   } elseif {$mode eq {unload} && [isModuleTagged $modname sticky 1]} {
+   # fail unload attempt if module is sticky, unless if forced or reloading
+   } elseif {$mode eq {unload} && [isModuleTagged $modname sticky 1] &&\
+      [currentState reloading_mod] ne $modname} {
       if {[getState force]} {
          reportWarning [getStickyForcedUnloadMsg $modname]
       } else {
@@ -10629,6 +10630,8 @@ proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {}} {context\
    upvar $lmname lmlist
    # unload one by one to ensure same behavior whatever auto_handling state
    foreach mod [lreverse $lmlist] {
+      # record hint that mod will be reloaded
+      lappendState reloading_mod $mod
       # save user asked state before it vanishes
       set isuasked($mod) [isModuleUserAsked $mod]
       # force unload even if requiring mods are not part of the unload list
@@ -10643,9 +10646,11 @@ proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {}} {context\
             reportWarning $errMsg 1
          # stop if one unload fails unless force mode enabled
          } else {
+            lpopState reloading_mod
             knerror $errMsg
          }
       }
+      lpopState reloading_mod
    }
    return [array get isuasked]
 }
@@ -11257,8 +11262,18 @@ proc cmdModuleRestore {{coll default}} {
    pushMsgRecordId restore-$coll-[depthState modulename] 0
 
    # unload modules one by one (no dependency auto unload)
-   if {[llength $mod_to_unload] > 0} {
-      eval cmdModuleUnload unload match 0 0 0 0 [lreverse $mod_to_unload]
+   foreach mod [lreverse $mod_to_unload] {
+      if {[isInList $mod_to_load $mod]} {
+         # record that mod will be reloaded to enable unload of sticky modules
+         lappendState reloading_mod $mod
+         set mod_reload 1
+      } else {
+         set mod_reload 0
+      }
+      cmdModuleUnload unload match 0 0 0 0 $mod
+      if {$mod_reload} {
+         lpopState reloading_mod
+      }
    }
    # unuse paths
    if {[llength $path_to_unuse] > 0} {
