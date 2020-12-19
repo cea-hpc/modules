@@ -45,8 +45,8 @@ Specification
 
 - Tags set with ``module-tag`` associated to a specific behavior:
 
-    - ``sticky``: loaded module cannot be unloaded unless forced
-    - ``super-sticky``: loaded module cannot be unloaded even if forced
+    - ``sticky``: loaded module cannot be unloaded unless forced or reloaded
+    - ``super-sticky``: loaded module cannot be unloaded even if forced, it stills can be unloaded if reloaded afterward
 
 - Tags inherited from module state cannot be set with ``module-tag`` command
 
@@ -212,7 +212,7 @@ Abbreviations
 
 - The ``tag_abbrev`` configuration defines the abbreviations to apply to each tag
 
-    - Set by default at configure time to ``auto-loaded=aL:loaded=L:hidden=H:hidden-loaded=H:forbidden=F:nearly-forbidden=nF``
+    - Set by default at configure time to ``auto-loaded=aL:loaded=L:hidden=H:hidden-loaded=H:forbidden=F:nearly-forbidden=nF:sticky=S:super-sticky=sS``
 
         - Note that by default, *hidden* and *hidden-loaded* tags share the same abbreviation, as they operate on separate contexts (respectively avail and list contexts)
 
