@@ -1480,6 +1480,10 @@ proc getStickyUnloadMsg {mod} {
    return "Unload of sticky module '$mod' skipped"
 }
 
+proc getSuperStickyUnloadMsg {mod} {
+   return "Unload of super-sticky module '$mod' skipped"
+}
+
 proc getStickyForcedUnloadMsg {mod} {
    return "Unload of sticky module '$mod' forced"
 }
@@ -1695,17 +1699,26 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}\
    if {$mode ne {unload} && [isModuleTagged $modname nearly-forbidden 1]} {
       reportWarning [getNearlyForbiddenMsg $modname]
    # fail unload attempt if module is sticky, unless if forced or reloading
-   } elseif {$mode eq {unload} && [isModuleTagged $modname sticky 1] &&\
-      [currentState reloading_mod] ne $modname} {
-      if {[getState force]} {
-         reportWarning [getStickyForcedUnloadMsg $modname]
-      } else {
+   # also fail unload if mod is super-sticky even if forced, unless reloading
+   } elseif {$mode eq {unload} && [currentState reloading_mod] ne $modname} {
+      if {[isModuleTagged $modname super-sticky 1]} {
          # restore changed states prior raising error
          lpopState debug_msg_prefix
          lpopState specifiedname
          lpopState modulename
          lpopState modulefile
-         knerror [getStickyUnloadMsg $modname]
+         knerror [getSuperStickyUnloadMsg $modname]
+      } elseif {[isModuleTagged $modname sticky 1]} {
+         if {[getState force]} {
+            reportWarning [getStickyForcedUnloadMsg $modname]
+         } else {
+            # restore changed states prior raising error
+            lpopState debug_msg_prefix
+            lpopState specifiedname
+            lpopState modulename
+            lpopState modulefile
+            knerror [getStickyUnloadMsg $modname]
+         }
       }
    }
 
