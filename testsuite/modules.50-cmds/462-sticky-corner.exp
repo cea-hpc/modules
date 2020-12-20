@@ -1,0 +1,70 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2020/12/20
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Check sticky/super-sticky modules that should not be unloaded
+#           unless reloaded
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+# disable advanced version specifiers not to get auto symbols in the way
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+
+# ensure avail tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+
+# test mod that is declared both sticky and super-sticky
+set anslo [list]
+lappend anslo [list setpath LOADEDMODULES sticky/2.0]
+lappend anslo [list setpath _LMFILES_ $mp/sticky/2.0]
+lappend anslo [list setpath MODULES_LMTAG sticky/2.0&sticky&super-sticky]
+testouterr_cmd_re sh {load sticky/2.0} $anslo {}
+
+setenv_loaded_module [list sticky/2.0] [list $mp/sticky/2.0]
+setenv_path_var MODULES_LMTAG sticky/2.0&sticky&super-sticky
+
+testouterr_cmd_re sh {unload sticky/2.0} ERR [msg_unload sticky/2.0 [err_superstickyunload sticky/2.0]]
+testouterr_cmd_re sh {unload -f sticky/2.0} ERR [msg_unload sticky/2.0 [err_superstickyunload sticky/2.0]]
+
+# test when persistent info is cleared
+unsetenv_path_var MODULES_LMTAG
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd_re sh {unload sticky/2.0} $ans {}
+
+setenv_loaded_module [list sticky/3.0] [list $mp/sticky/3.0]
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd_re sh {unload sticky/3.0} $ans {}
+
+# persistent info cleared but break in modulefile
+setenv_var TESTSUITE_STICKY_BREAK 1
+testouterr_cmd_re sh {unload sticky/3.0} ERR [msg_unload sticky/3.0 $err_evalabort]
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
