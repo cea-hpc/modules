@@ -1,0 +1,90 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2020/12/21
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:
+#   Sub-Command:    load, unload
+#
+#   Comment:	%C{
+#           Test verbose2-specific messages
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+
+# module already loaded
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+set tserr [msg_unload sticky/1.0 [err_stickyunload sticky/1.0]]
+testouterr_cmd sh {load -vv foo/1.0} OK [msg_load foo/1.0 [info_alreadyloaded foo/1.0]]
+
+# module already unloaded
+unsetenv_loaded_module
+testouterr_cmd sh {unload -vv foo/1.0} OK [msg_unload foo/1.0 [info_notloaded foo/1.0]]
+
+# module unexistent
+testouterr_cmd sh {unload -vv foo/99.9} OK [msg_unload foo/99.9 [info_notloaded foo/99.9]]
+
+# switch from already unloaded module to not yet loaded module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES bar/1.0]
+lappend ans [list setpath _LMFILES_ $mp/bar/1.0]
+set tserr [msg_unload foo/1.0 [info_notloaded foo/1.0]]\n\n[msg_load bar/1.0]\n[msg_switch foo/1.0 bar/1.0]
+testouterr_cmd sh {switch -vv foo/1.0 bar/1.0} $ans $tserr
+
+# switch from loaded module to already loaded module
+setenv_loaded_module [list foo/1.0 bar/1.0] [list $mp/foo/1.0 $mp/bar/1.0]
+set tserr [msg_unload foo/1.0]\n\n[msg_load bar/1.0 [info_alreadyloaded bar/1.0]]\n\n[msg_switch foo/1.0 bar/1.0]
+testouterr_cmd sh {switch -vv foo/1.0 bar/1.0} $ans $tserr
+
+# switch from already unloaded module to already loaded module
+setenv_loaded_module [list bar/1.0] [list $mp/bar/1.0]
+set tserr [msg_unload foo/1.0 [info_notloaded foo/1.0]]\n\n[msg_load bar/1.0 [info_alreadyloaded bar/1.0]]\n\n[msg_switch foo/1.0 bar/1.0]
+testouterr_cmd sh {switch -vv foo/1.0 bar/1.0} OK $tserr
+
+# switch from unexistent module to already loaded module
+set tserr [msg_unload foo/99.9 [info_notloaded foo/99.9]]\n\n[msg_load bar/1.0 [info_alreadyloaded bar/1.0]]\n\n[msg_switch foo/99.9 bar/1.0]
+testouterr_cmd sh {switch -vv foo/99.9 bar/1.0} OK $tserr
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+
+# prereq of an already loaded module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/1.0:foo/0.prereq]
+lappend ans [list setpath _LMFILES_ $mp/foo/1.0:$mp/foo/0.prereq]
+lappend ans [list setpath MODULES_LMPREREQ foo/0.prereq&foo/1.0]
+testouterr_cmd_re sh {load -vv --auto foo/0.prereq} $ans [msg_load foo/0.prereq]
+
+# module load of an already loaded module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/1.0:foo/0.load]
+lappend ans [list setpath _LMFILES_ $mp/foo/1.0:$mp/foo/0.load]
+lappend ans [list setpath MODULES_LMPREREQ foo/0.load&foo/1.0]
+testouterr_cmd_re sh {load -vv --auto foo/0.load} $ans [msg_load foo/0.load]
+
+# module unload of an already unloaded module
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES impreq/unload]
+lappend ans [list setpath _LMFILES_ $mp/impreq/unload]
+lappend ans [list setpath MODULES_LMCONFLICT impreq/unload&foo]
+testouterr_cmd_re sh {load -vv --auto impreq/unload} $ans [msg_unload foo [info_notloaded foo]]\n\n[msg_load impreq/unload]
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
