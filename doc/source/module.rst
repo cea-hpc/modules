@@ -1775,7 +1775,8 @@ ENVIRONMENT
  * ``verbose``: add additional informational messages, like a systematic
    report of the loading or unloading module evaluations.
  * ``verbose2``: report loading or unloading module evaluations of
-   hidden-loaded modules.
+   hidden-loaded modules, report if loading module is already loaded or if
+   unloading module is not loaded.
  * ``trace``: provide details on module searches, resolutions, selections and
    evaluations.
  * ``debug``: print debugging messages about module command execution.

@@ -11568,6 +11568,11 @@ proc cmdModuleLoad {context uasked args} {
       if {[set errCode [catch {
          if {[isModuleLoaded $modname] || [isModuleLoading $modname]} {
             reportDebug "$modname ($modfile) already loaded/loading"
+            # report module is already loaded if verbose2 or higher level
+            if {[isModuleLoaded $modname] && [isVerbosityLevel verbose2]} {
+               reportInfo "Module '$modname' is already loaded"
+               reportMsgRecord "Loading [sgr hi $modname]"
+            }
             # exit treatment but no need to restore settings
             continue
          }
@@ -11785,6 +11790,13 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          # no error return if module is not loaded
          if {$errkind eq {notloaded}} {
             reportDebug "$modname is not loaded"
+            # report module is not loaded if verbose2 or higher level
+            if {[isVerbosityLevel verbose2]} {
+               set msgrecid unload-$modname-[depthState modulename]
+               pushMsgRecordId $msgrecid
+               reportInfo "Module '$modname' is not loaded"
+               reportMsgRecord "Unloading [sgr hi $modname]"
+            }
          } else {
             set ret 1
          }
