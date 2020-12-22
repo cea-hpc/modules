@@ -173,6 +173,148 @@ lappend ans [list ERR]
 testouterr_cmd_re sh {switch --auto bar/2.0 bar/1.0} $ans [msg_switch bar/2.0 bar/1.0 [err_superstickyunload sticky/1.0] [err_urequn sticky/1.0]]
 testouterr_cmd_re sh {switch -f --auto bar/2.0 bar/1.0} $ans [msg_switch bar/2.0 bar/1.0 [err_superstickyunload sticky/1.0] [err_urequn sticky/1.0]]
 
+# test when stickyness is defined over generic module name
+unsetenv_var TESTSUITE_STICKY_DEP
+setenv_var TESTSUITE_STICKY_GENERIC 1
+setenv_loaded_module [list sticky/1.0] [list $mp/sticky/1.0]
+setenv_path_var MODULES_LMTAG sticky/1.0&super-sticky
+unsetenv_path_var MODULES_LMPREREQ
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES sticky/2.0:foo/2.0]
+lappend ans [list setpath _LMFILES_ $mp/sticky/2.0:$mp/foo/2.0]
+lappend ans [list setpath MODULES_LMTAG sticky/2.0&super-sticky]
+set tserr [msg_unload sticky/1.0]\n[msg_load sticky/2.0]\n[msg_load foo/2.0]
+testouterr_cmd_re sh {restore testsuite/home/coll-sticky-4} $ans $tserr
+testouterr_cmd_re sh {restore -f testsuite/home/coll-sticky-4} $ans $tserr
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES sticky/4.0:foo/2.0]
+lappend ans [list setpath _LMFILES_ $mp/sticky/4.0:$mp/foo/2.0]
+lappend ans [list setpath MODULES_LMTAG sticky/4.0&super-sticky]
+set tserr [msg_unload sticky/1.0]\n[msg_load sticky/4.0]\n[msg_load foo/2.0]
+testouterr_cmd_re sh {restore testsuite/home/coll-sticky-5} $ans $tserr
+testouterr_cmd_re sh {restore -f testsuite/home/coll-sticky-5} $ans $tserr
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES sticky/2.0]
+lappend ans [list setpath _LMFILES_ $mp/sticky/2.0]
+lappend ans [list setpath MODULES_LMTAG sticky/2.0&super-sticky]
+testouterr_cmd_re sh {switch sticky/2.0} $ans {}
+testouterr_cmd_re sh {switch sticky sticky/2.0} $ans {}
+testouterr_cmd_re sh {switch -f sticky sticky/2.0} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES sticky/4.0]
+lappend ans [list setpath _LMFILES_ $mp/sticky/4.0]
+lappend ans [list setpath MODULES_LMTAG sticky/4.0&super-sticky]
+testouterr_cmd_re sh {switch sticky} $ans {}
+testouterr_cmd_re sh {switch sticky sticky} $ans {}
+testouterr_cmd_re sh {switch -f sticky sticky} $ans {}
+
+set tserr [msg_switch sticky/1.0 foo [err_superstickyunload sticky/1.0]]
+testouterr_cmd_re sh {switch sticky foo} ERR $tserr
+testouterr_cmd_re sh {switch -f sticky foo} ERR $tserr
+
+# test when stickyness is defined over generic module name with deep module
+setenv_var TESTSUITE_STICKY_GENERIC 1
+setenv_loaded_module [list stickysub/dir1/1.0] [list $mp/stickysub/dir1/1.0]
+setenv_path_var MODULES_LMTAG stickysub/dir1/1.0&super-sticky
+
+set ans1 [list]
+lappend ans1 [list setpath LOADEDMODULES stickysub/dir1/2.0]
+lappend ans1 [list setpath _LMFILES_ $mp/stickysub/dir1/2.0]
+lappend ans1 [list setpath MODULES_LMTAG stickysub/dir1/2.0&super-sticky]
+testouterr_cmd_re sh {switch stickysub/dir1/2.0} $ans1 {}
+testouterr_cmd_re sh {switch stickysub stickysub/dir1/2.0} $ans1 {}
+testouterr_cmd_re sh {switch stickysub/dir1 stickysub/dir1/2.0} $ans1 {}
+
+set ans2 [list]
+lappend ans2 [list setpath LOADEDMODULES stickysub/dir2/3.0]
+lappend ans2 [list setpath _LMFILES_ $mp/stickysub/dir2/3.0]
+lappend ans2 [list setpath MODULES_LMTAG stickysub/dir2/3.0&super-sticky]
+testouterr_cmd_re sh {switch stickysub/dir2/3.0} $ans2 {}
+
+set ans3 [list]
+lappend ans3 [list setpath LOADEDMODULES stickysub/dir2/4.0]
+lappend ans3 [list setpath _LMFILES_ $mp/stickysub/dir2/4.0]
+lappend ans3 [list setpath MODULES_LMTAG stickysub/dir2/4.0&super-sticky]
+testouterr_cmd_re sh {switch stickysub} $ans3 {}
+testouterr_cmd_re sh {switch stickysub/dir2} $ans3 {}
+
+setenv_var TESTSUITE_STICKY_GENERIC 2
+testouterr_cmd_re sh {switch stickysub/dir1/2.0} $ans1 {}
+testouterr_cmd_re sh {switch stickysub/dir1} $ans1 {}
+
+set tserr [msg_switch stickysub/dir1/1.0 stickysub [err_superstickyunload stickysub/dir1/1.0]]
+testouterr_cmd_re sh {switch stickysub} ERR $tserr
+testouterr_cmd_re sh {switch -f stickysub} ERR $tserr
+set tserr [msg_switch stickysub/dir1/1.0 stickysub/dir2 [err_superstickyunload stickysub/dir1/1.0]]
+testouterr_cmd_re sh {switch stickysub/dir2} ERR $tserr
+testouterr_cmd_re sh {switch -f stickysub/dir2} ERR $tserr
+set tserr [msg_switch stickysub/dir1/1.0 stickysub/dir2/4.0 [err_superstickyunload stickysub/dir1/1.0]]
+testouterr_cmd_re sh {switch stickysub/dir2/4.0} ERR $tserr
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES stickysub/dir1/1.0:stickysub/dir2/4.0:foo/2.0]
+lappend ans [list setpath _LMFILES_ $mp/stickysub/dir1/1.0:$mp/stickysub/dir2/4.0:$mp/foo/2.0]
+lappend ans [list ERR]
+set tserr [msg_unload stickysub/dir1/1.0 [err_superstickyunload stickysub/dir1/1.0]]\n\n[msg_load stickysub/dir2/4.0]\n[msg_load foo/2.0]
+testouterr_cmd_re sh {restore testsuite/home/coll-sticky-6} $ans $tserr
+testouterr_cmd_re sh {restore -f testsuite/home/coll-sticky-6} $ans $tserr
+
+setenv_var TESTSUITE_STICKY_GENERIC 3
+set tserr [msg_switch stickysub/dir1/1.0 stickysub [err_superstickyunload stickysub/dir1/1.0]]
+testouterr_cmd_re sh {switch stickysub} ERR $tserr
+testouterr_cmd_re sh {switch -f stickysub} ERR $tserr
+
+set tserr [msg_switch stickysub/dir1/1.0 stickysub/dir1/2.0 [err_superstickyunload stickysub/dir1/1.0]]
+testouterr_cmd_re sh {switch stickysub/dir1/2.0} ERR $tserr
+testouterr_cmd_re sh {switch -f stickysub/dir1/2.0} ERR $tserr
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES stickysub/dir1/1.0:stickysub/dir2/4.0:foo/2.0]
+lappend ans [list setpath _LMFILES_ $mp/stickysub/dir1/1.0:$mp/stickysub/dir2/4.0:$mp/foo/2.0]
+lappend ans [list ERR]
+set tserr [msg_unload stickysub/dir1/1.0 [err_superstickyunload stickysub/dir1/1.0]]\n\n[msg_load stickysub/dir2/4.0]\n[msg_load foo/2.0]
+testouterr_cmd_re sh {restore testsuite/home/coll-sticky-6} $ans $tserr
+testouterr_cmd_re sh {restore -f testsuite/home/coll-sticky-6} $ans $tserr
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_var TESTSUITE_STICKY_GENERIC 4
+set tserr [msg_switch stickysub/dir1/1.0 stickysub/dir1/2.0 [err_superstickyunload stickysub/dir1/1.0]]
+testouterr_cmd_re sh {switch stickysub/dir1/2.0} ERR $tserr
+testouterr_cmd_re sh {switch -f stickysub/dir1/2.0} ERR $tserr
+set tserr [msg_switch stickysub/dir1/1.0 stickysub/dir1 [err_superstickyunload stickysub/dir1/1.0]]
+testouterr_cmd_re sh {switch stickysub/dir1} ERR $tserr
+testouterr_cmd_re sh {switch -f stickysub/dir1} ERR $tserr
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES stickysub/dir1/1.0:stickysub/dir2/4.0:foo/2.0]
+lappend ans [list setpath _LMFILES_ $mp/stickysub/dir1/1.0:$mp/stickysub/dir2/4.0:$mp/foo/2.0]
+lappend ans [list setpath MODULES_LMALTNAME stickysub/dir2/4.0&as|stickysub/default&as|stickysub/latest&as|stickysub/dir2/default&as|stickysub/dir2/latest:foo/2.0&as|foo/default&as|foo/latest]
+lappend ans [list ERR]
+set tserr [msg_unload stickysub/dir1/1.0 [err_superstickyunload stickysub/dir1/1.0]]\n\n[msg_load stickysub/dir2/4.0]\n[msg_load foo/2.0]
+testouterr_cmd_re sh {restore testsuite/home/coll-sticky-6} $ans $tserr
+testouterr_cmd_re sh {restore -f testsuite/home/coll-sticky-6} $ans $tserr
+
+setenv_var TESTSUITE_STICKY_GENERIC 5
+set tserr [msg_switch stickysub/dir1/1.0 stickysub/dir1/2.0 [err_superstickyunload stickysub/dir1/1.0]]
+testouterr_cmd_re sh {switch stickysub/dir1/2.0} ERR $tserr
+testouterr_cmd_re sh {switch -f stickysub/dir1/2.0} ERR $tserr
+set tserr [msg_switch stickysub/dir1/1.0 stickysub/dir1 [err_superstickyunload stickysub/dir1/1.0]]
+testouterr_cmd_re sh {switch stickysub/dir1} ERR $tserr
+testouterr_cmd_re sh {switch -f stickysub/dir1} ERR $tserr
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES stickysub/dir1/1.0:stickysub/dir2/4.0:foo/2.0]
+lappend ans [list setpath _LMFILES_ $mp/stickysub/dir1/1.0:$mp/stickysub/dir2/4.0:$mp/foo/2.0]
+lappend ans [list setpath MODULES_LMALTNAME stickysub/dir2/4.0&as|stickysub/default&as|stickysub/latest&as|stickysub/dir2/default&as|stickysub/dir2/latest:foo/2.0&as|foo/default&as|foo/latest]
+lappend ans [list ERR]
+set tserr [msg_unload stickysub/dir1/1.0 [err_superstickyunload stickysub/dir1/1.0]]\n\n[msg_load stickysub/dir2/4.0]\n[msg_load foo/2.0]
+testouterr_cmd_re sh {restore testsuite/home/coll-sticky-6} $ans $tserr
+testouterr_cmd_re sh {restore -f testsuite/home/coll-sticky-6} $ans $tserr
+
 
 #
 #  Cleanup
