@@ -10695,6 +10695,50 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist {force 0} {errmsgtpl {}}\
    setConf auto_handling 1
 }
 
+# test if loaded module 'mod' is sticky and if stickyness definition applies
+# to one of the reloading module
+proc isStickynessReloading {mod reloading_modlist {tag sticky}} {
+   set res 0
+   if {[isModuleTagged $mod $tag 1]} {
+      # evalute the module-tag commands that are related to mod
+      set dir [getModulepathFromModuleName [getModulefileFromLoadedModule\
+         $mod] $mod]
+      getModules $dir $mod 0 [list rc_defs_included]
+
+      # if tag specifically applies to fully qualified module, exact same
+      # module should be found in reload list
+      if {[isModuleTagged $mod $tag 0 equal]} {
+         set res [isInList $reloading_modlist $mod]
+         reportDebug "stickyness ($tag) applies to '$mod', is reloading=$res"
+      } else {
+         # find most restrictive sticky tag definition
+         set modprev $mod
+         while {[set modpar [file  dirname $modprev]] ne {.}} {
+            if {![isModuleTagged $modpar $tag]} {
+               set stickypar $modprev
+               break
+            }
+            set modprev $modpar
+         }
+         if {![info exists stickypar]} {
+            set stickypar $modprev
+         }
+         # check if a loading mod satisfies sticky rules
+         foreach modlo $reloading_modlist {
+            if {[modEq $stickypar $modlo eqstart]} {
+               # found match
+               set res 1
+               break
+            }
+         }
+         reportDebug "stickyness ($tag) applies to '$stickypar', is\
+            reloading=$res"
+      }
+   }
+
+   return $res
+}
+
 ########################################################################
 # command line commands
 #
@@ -11124,7 +11168,17 @@ proc cmdModuleSwitch {uasked old {new {}}} {
       lappendState inhibit_req_record [currentState evalid]
    }
 
+   # enable unload of sticky mod if stickyness is preserved on swapped-on mod
+   # need to resolve swapped-off module here to get stickyness details
+   lassign [getPathToModule $old {} 0 $unload_match] modfile oldmod
+   set mod_reload [isStickynessReloading $oldmod $new]
+   if {$mod_reload} {
+      lappendState reloading_mod $oldmod
+   }
    set ret [cmdModuleUnload swunload $unload_match 1 0 0 0 $old]
+   if {$mod_reload} {
+      lpopState reloading_mod
+   }
 
    # register modulefile to unload as conflict if an unload module is
    # mentionned on this module switch command set in a modulefile
@@ -11246,6 +11300,9 @@ proc cmdModuleRestore {{coll default}} {
    # forcibly enable implicit_default to restore colls saved in this mode
    setConf implicit_default 1
 
+   # load tags from loaded modules
+   cacheCurrentModules
+
    # fetch what is currently loaded
    set curr_path_list [getModulePathList returnempty 0]
    # get current loaded module list in simplified and raw versions
@@ -11276,12 +11333,9 @@ proc cmdModuleRestore {{coll default}} {
 
    # unload modules one by one (no dependency auto unload)
    foreach mod [lreverse $mod_to_unload] {
-      if {[isInList $mod_to_load $mod]} {
-         # record that mod will be reloaded to enable unload of sticky modules
+      set mod_reload [isStickynessReloading $mod $mod_to_load]
+      if {$mod_reload} {
          lappendState reloading_mod $mod
-         set mod_reload 1
-      } else {
-         set mod_reload 0
       }
       cmdModuleUnload unload match 0 0 0 0 $mod
       if {$mod_reload} {
