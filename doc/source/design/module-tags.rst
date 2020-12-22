@@ -45,8 +45,8 @@ Specification
 
 - Tags set with ``module-tag`` associated to a specific behavior:
 
-    - ``sticky``: loaded module cannot be unloaded unless forced or reloaded
-    - ``super-sticky``: loaded module cannot be unloaded even if forced, it stills can be unloaded if reloaded afterward
+    - ``sticky``: loaded module cannot be unloaded unless forced or reloaded (see :ref:`sticky-modules`)
+    - ``super-sticky``: loaded module cannot be unloaded even if forced, it stills can be unloaded if reloaded afterward (see :ref:`sticky-modules`)
 
 - Tags inherited from module state cannot be set with ``module-tag`` command
 
