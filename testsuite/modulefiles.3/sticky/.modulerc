@@ -1,21 +1,38 @@
 #%Module
+if {![info exists env(TESTSUITE_SUPER_STICKY)]} {
+    set tag sticky
+} else {
+    set tag super-sticky
+}
+
+
 if {![info exists env(TESTSUITE_STICKY_GENERIC)]} {
 
-if {![info exists env(TESTSUITE_SUPER_STICKY)]} {
-    module-tag sticky sticky/1.0
-} else {
-    module-tag super-sticky sticky/1.0
-}
-
-module-tag sticky sticky/2.0
-module-tag super-sticky sticky/2.0 sticky/3.0
+    module-tag $tag sticky/1.0
+    module-tag sticky sticky/2.0
+    module-tag super-sticky sticky/2.0 sticky/3.0
 
 } else {
 
-if {![info exists env(TESTSUITE_SUPER_STICKY)]} {
-    module-tag sticky sticky
-} else {
-    module-tag super-sticky sticky
-}
+    switch -- $env(TESTSUITE_STICKY_GENERIC) {
+        1 {
+            module-tag $tag sticky
+        }
+        2 {
+            module-tag $tag sticky/1.0 sticky
+        }
+        3 {
+            module-tag super-sticky sticky
+            module-tag sticky sticky/1.0
+        }
+        4 {
+            module-tag sticky sticky
+            module-tag super-sticky sticky/1.0
+        }
+        5 {
+            module-tag sticky sticky
+            module-tag super-sticky sticky
+        }
+    }
 
 }
