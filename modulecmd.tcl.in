@@ -5093,7 +5093,7 @@ proc setModspecTag {modspec tag {props {}}} {
    }
 }
 
-proc getModuleTag {mod tag} {
+proc getModuleTag {mod tag {cmp eqstart}} {
    set modroot [lindex [file split $mod] 0]
    # look if mod matches one of the module specs applying to mod root
    if {[info exists ::g_moduleTagRoot($modroot)]} {
@@ -5107,7 +5107,7 @@ proc getModuleTag {mod tag} {
          foreach {tmodspec tprops} [lindex $::g_moduleTagRootSpec($modroot)\
             $idx] {
             # first matching module spec wins with its properties
-            if {[modEq $tmodspec $mod eqstart]} {
+            if {[modEq $tmodspec $mod $cmp]} {
                return [list $tag $tprops]
             }
          }
@@ -5116,12 +5116,12 @@ proc getModuleTag {mod tag} {
    return {}
 }
 
-proc isModuleTagged {mod tag {collected 0}} {
+proc isModuleTagged {mod tag {collected 0} {cmp eqstart}} {
    # retrieve tag information from collected tags or raw info
    if {$collected} {
       return [isInList [getTagList $mod] $tag]
    } else {
-      return [expr {[llength [getModuleTag $mod $tag]] != 0}]
+      return [expr {[llength [getModuleTag $mod $tag $cmp]] != 0}]
    }
 }
 
