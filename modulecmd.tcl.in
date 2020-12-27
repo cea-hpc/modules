@@ -1700,15 +1700,17 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}\
       reportWarning [getNearlyForbiddenMsg $modname]
    # fail unload attempt if module is sticky, unless if forced or reloading
    # also fail unload if mod is super-sticky even if forced, unless reloading
-   } elseif {$mode eq {unload} && [currentState reloading_mod] ne $modname} {
-      if {[isModuleTagged $modname super-sticky 1]} {
+   } elseif {$mode eq {unload}} {
+      if {[isModuleTagged $modname super-sticky 1] && [currentState\
+         reloading_supersticky] ne $modname} {
          # restore changed states prior raising error
          lpopState debug_msg_prefix
          lpopState specifiedname
          lpopState modulename
          lpopState modulefile
          knerror [getSuperStickyUnloadMsg $modname]
-      } elseif {[isModuleTagged $modname sticky 1]} {
+      } elseif {[isModuleTagged $modname sticky 1] && [currentState\
+         reloading_sticky] ne $modname} {
          if {[getState force]} {
             reportWarning [getStickyForcedUnloadMsg $modname]
          } else {
@@ -10643,8 +10645,9 @@ proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {}} {context\
    upvar $lmname lmlist
    # unload one by one to ensure same behavior whatever auto_handling state
    foreach mod [lreverse $lmlist] {
-      # record hint that mod will be reloaded
-      lappendState reloading_mod $mod
+      # record hint that mod will be reloaded (useful in case mod is sticky)
+      lappendState reloading_sticky $mod
+      lappendState reloading_supersticky $mod
       # save user asked state before it vanishes
       set isuasked($mod) [isModuleUserAsked $mod]
       # force unload even if requiring mods are not part of the unload list
@@ -10659,11 +10662,13 @@ proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {}} {context\
             reportWarning $errMsg 1
          # stop if one unload fails unless force mode enabled
          } else {
-            lpopState reloading_mod
+            lpopState reloading_sticky
+            lpopState reloading_supersticky
             knerror $errMsg
          }
       }
-      lpopState reloading_mod
+      lpopState reloading_sticky
+      lpopState reloading_supersticky
    }
    return [array get isuasked]
 }
@@ -11171,13 +11176,19 @@ proc cmdModuleSwitch {uasked old {new {}}} {
    # enable unload of sticky mod if stickyness is preserved on swapped-on mod
    # need to resolve swapped-off module here to get stickyness details
    lassign [getPathToModule $old {} 0 $unload_match] modfile oldmod
-   set mod_reload [isStickynessReloading $oldmod $new]
-   if {$mod_reload} {
-      lappendState reloading_mod $oldmod
+   if {[set sticky_reload [isStickynessReloading $oldmod $new]]} {
+      lappendState reloading_sticky $oldmod
+   }
+   if {[set supersticky_reload [isStickynessReloading $oldmod $new\
+      super-sticky]]} {
+      lappendState reloading_supersticky $oldmod
    }
    set ret [cmdModuleUnload swunload $unload_match 1 0 0 0 $old]
-   if {$mod_reload} {
-      lpopState reloading_mod
+   if {$sticky_reload} {
+      lpopState reloading_sticky
+   }
+   if {$supersticky_reload} {
+      lpopState reloading_supersticky
    }
 
    # register modulefile to unload as conflict if an unload module is
@@ -11333,13 +11344,19 @@ proc cmdModuleRestore {{coll default}} {
 
    # unload modules one by one (no dependency auto unload)
    foreach mod [lreverse $mod_to_unload] {
-      set mod_reload [isStickynessReloading $mod $mod_to_load]
-      if {$mod_reload} {
-         lappendState reloading_mod $mod
+      if {[set sticky_reload [isStickynessReloading $mod $mod_to_load]]} {
+         lappendState reloading_sticky $mod
+      }
+      if {[set supersticky_reload [isStickynessReloading $mod $mod_to_load\
+         super-sticky]]} {
+         lappendState reloading_supersticky $mod
       }
       cmdModuleUnload unload match 0 0 0 0 $mod
-      if {$mod_reload} {
-         lpopState reloading_mod
+      if {$sticky_reload} {
+         lpopState reloading_sticky
+      }
+      if {$supersticky_reload} {
+         lpopState reloading_supersticky
       }
    }
    # unuse paths
