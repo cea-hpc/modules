@@ -315,6 +315,37 @@ set tserr [msg_unload stickysub/dir1/1.0 [err_superstickyunload stickysub/dir1/1
 testouterr_cmd_re sh {restore testsuite/home/coll-sticky-6} $ans $tserr
 testouterr_cmd_re sh {restore -f testsuite/home/coll-sticky-6} $ans $tserr
 
+# test purge and reload when sticky module has a dependency
+unsetenv_var TESTSUITE_STICKY_GENERIC
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+setenv_var TESTSUITE_STICKY_DEP 1
+setenv_loaded_module [list foo/2.0 sticky/1.0 bar/2.0] [list $mp/foo/2.0 $mp/sticky/1.0 $mp/bar/2.0]
+setenv_path_var MODULES_LMTAG sticky/1.0&super-sticky
+setenv_path_var MODULES_LMPREREQ sticky/1.0&foo|baz:bar/2.0&sticky/1.0
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/2.0:sticky/1.0:bar/2.0]
+lappend ans [list setpath _LMFILES_ $mp/foo/2.0:$mp/sticky/1.0:$mp/bar/2.0]
+lappend ans [list setpath MODULES_LMTAG sticky/1.0&super-sticky]
+lappend ans [list setpath MODULES_LMPREREQ sticky/1.0&foo|baz:bar/2.0&sticky/1.0]
+testouterr_cmd_re sh {reload} $ans {}
+testouterr_cmd_re sh {reload -f} $ans {}
+
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ sticky/1.0&foo|baz]
+lappend ans [list setpath _LMFILES_ $mp/foo/2.0:$mp/sticky/1.0]
+lappend ans [list setpath LOADEDMODULES foo/2.0:sticky/1.0]
+lappend ans [list ERR]
+set tserr [msg_unload sticky/1.0 [err_superstickyunload sticky/1.0]]\n\n[msg_unload foo/2.0 [err_deplo sticky/1.0]]
+testouterr_cmd_re sh {purge} $ans $tserr
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ sticky/1.0&foo|baz]
+lappend ans [list setpath _LMFILES_ $mp/sticky/1.0]
+lappend ans [list setpath LOADEDMODULES sticky/1.0]
+lappend ans [list ERR]
+set tserr [msg_unload sticky/1.0 [err_superstickyunload sticky/1.0]]\n\n[msg_unload foo/2.0 [err_deplof sticky/1.0]]
+testouterr_cmd_re sh {purge -f} $ans $tserr
+
 
 #
 #  Cleanup

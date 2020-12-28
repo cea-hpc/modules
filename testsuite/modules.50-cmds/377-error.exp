@@ -791,7 +791,15 @@ lappend ans [list setpath MODULES_LMNOTUASKED rca:rcb:rcc]
 lappend ans [list ERR]
 set tserr [list {unload rce} {unload rcd} {unload rcc} \n[msg_unload rcc $err_evalabort]\n\n[msg_unload rcb [err_deplo rcc]]\n\n[msg_unload rca [err_deplo rcb]]]
 testouterr_cmd_re sh {purge} $ans [join $tserr \n]
-# adding --force argument does not change a thing currently
+
+# adding --force argument unload dependent module
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ rcc&rcb]
+lappend ans [list setpath _LMFILES_ $mp/rcc]
+lappend ans [list setpath LOADEDMODULES rcc]
+lappend ans [list setpath MODULES_LMNOTUASKED rcc]
+lappend ans [list ERR]
+set tserr [list {unload rce} {unload rcd} {unload rcc} \n[msg_unload rcc $err_evalabort]\n {unload rcb} \n[msg_unload rcb [err_deplof rcc]]\n {unload rca}]
 testouterr_cmd_re sh {purge --force} $ans [join $tserr \n]
 
 
