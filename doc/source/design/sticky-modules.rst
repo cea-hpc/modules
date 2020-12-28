@@ -42,6 +42,11 @@ Specification
         - it means stickyness applies to the module version
         - thus these versions targetted specifically with ``module-tag`` cannot be swapped by another version from same module
 
+- When a super-sticky module depends on a non-super-sticky module
+
+    - If a forced ``purge`` command occurs, the dependent module will be unloaded
+    - Which let the super-sticky module with a missing dependency
+
 Current limitations
 -------------------
 

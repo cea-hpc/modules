@@ -11916,10 +11916,11 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             !$auto)} {
             # force mode should not affect if we only look for mods w/o dep
             if {([getState force] || $force) && !$onlyndep} {
-               # in case unload is called for a DepRe mechanism or a purge do
-               # not warn about prereq violation enforced as it is due to the
-               # dependent module which is already in a violation state
-               if {$auto || !$force} {
+               # in case unload is called for a DepRe mechanism do not warn
+               # about prereq violation enforced as it is due to the dependent
+               # module which is already in a violation state
+               # warn in case of a purge
+               if {$auto || !$force || [currentState commandname] eq {purge}} {
                   reportWarning [getDepLoadedMsg $prereq_list]
                }
             } else {
@@ -12140,7 +12141,10 @@ proc cmdModulePurge {} {
 
    # unload one by one to ensure same behavior whatever auto_handling state
    # force it to handle loaded modules in violation state
-   eval cmdModuleUnload unload match 0 1 0 1 [lreverse [getLoadedModuleList]]
+   # remove dependent modules if force mode enabled
+   set onlyndep [expr {![getState force]}]
+   eval cmdModuleUnload unload match 0 1 0 $onlyndep [lreverse\
+      [getLoadedModuleList]]
 
    popMsgRecordId 0
 }
