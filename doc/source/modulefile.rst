@@ -554,6 +554,11 @@ the *modulefile* is being loaded.
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+ Tags inherited from other modulefile commands or module states cannot be set
+ with :mfcmd:`module-tag`. Otherwise an error is returned. Those special tags
+ are: ``auto-loaded``, ``forbidden``, ``hidden``, ``hidden-loaded``,
+ ``loaded`` and ``nearly-forbidden``.
+
  .. only:: html
 
     .. versionadded:: 4.7
