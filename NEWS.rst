@@ -81,6 +81,17 @@ Modules 4.7.0 (not yet released)
   designated modulefile. Those tags are reported on :subcmd:`avail` and
   :subcmd:`list` sub-commands along the module they are attached to.
   :mfcmd:`module-tag` supports the advanced module version specifier syntax.
+* Add the ``tag_abbrev`` configuration option to define abbreviated strings
+  for module tags and use these abbreviations instead of tag names when
+  reporting tags on :subcmd:`avail` and :subcmd:`list` command results.
+  Default value for this option could be set at configure time with the
+  ``--with-tag-abbrev`` option. By default the following abbreviations are
+  set: ``aL`` for *auto-loaded*, ``F`` for *forbidden*, ``H`` for *hidden*,
+  ``H`` for *hidden-loaded*, ``L`` for *loaded*, ``nF`` for
+  *nearly-forbidden*, ``S`` for *sticky*, ``sS`` for *super-sticky*. This
+  value could be superseded by setting up the ``tag_abbrev`` option with
+  :subcmd:`config` sub-command. Which sets the :envvar:`MODULES_TAG_ABBREV`
+  environment variable.
 
 
 .. _4.6 release notes:
