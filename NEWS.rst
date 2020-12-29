@@ -65,15 +65,16 @@ Modules 4.7.0 (not yet released)
   sub-command. Adapt the regular, terse and JSON output styles to report these
   tags along the module they are attached to (enclosed in ``<>``). Reported
   tags currently are states that apply to modules: ``auto-loaded``,
-  ``forbidden``, ``hidden``, ``loaded``  and ``nearly-forbidden``.
+  ``forbidden``, ``hidden``, ``loaded``, ``nearly-forbidden``, ``sticky`` and
+  ``super-sticky``.
 * Record tags applying to each loaded module in the :envvar:`MODULES_LMTAG`
   environment variable to make this information persist after module being
   loaded.
 * Report tags applying to the loaded modules returned by the :subcmd:`list`
   sub-command. Adapt the regular and JSON output styles to report these tags
   along the module they are attached to (enclosed in ``<>``). Reported tags
-  currently are states applying to loaded modules: ``auto-loaded`` and
-  ``nearly-forbidden``.
+  currently are states applying to loaded modules: ``auto-loaded``,
+  ``hidden-loaded``, ``nearly-forbidden``, ``sticky`` and ``super-sticky``.
 * Introduce the :mfcmd:`module-info tags<module-info>` modulefile command to
   query the tags that apply to the currently evaluated modulefile.
 * Add the :mfcmd:`module-tag` modulefile command to associate tag to
