@@ -436,6 +436,10 @@ Module Sub-Commands
  applies to the module alias name. See :envvar:`MODULES_COLOR` and
  :envvar:`MODULES_COLORS` sections for details on colored output.
 
+ Module tags applying to the available *modulefiles* returned by the
+ :subcmd:`avail` sub-command are reported along the module name they are
+ associated to (see `Module tags`_ section).
+
  The parameter *path* may also refer to a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
@@ -701,9 +705,16 @@ Module Sub-Commands
 
  List loaded modules.
 
+ Module tags applying to the loaded modules are reported along the module name
+ they are associated to (see `Module tags`_ section).
+
 .. subcmd:: load [--auto|--no-auto] [-f] modulefile...
 
  Load *modulefile* into the shell environment.
+
+ Once loaded, the ``loaded`` module tag is associated to the loaded module. If
+ module has been automatically loaded by another module, the ``auto-loaded``
+ tag is associated instead (see `Module tags`_ section).
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
@@ -1046,6 +1057,77 @@ specified using the ``@`` prefix notation (e.g. ``foo@loaded``). An error is
 returned if no version of designated module is currently loaded.
 
 
+.. _Module tags:
+
+Module tags
+^^^^^^^^^^^
+
+Module tags are piece of information that can be associated to individual
+modulefiles. Tags could be purely informational or may lead to specific
+behaviors.
+
+Module tags may be inherited from the module state set by a modulefile command
+or consequence of a module action. The inherited tags are:
+
+* ``auto-loaded``: module has been automatically loaded by another module
+* ``forbidden``: module has been set *forbidden* through the use of the
+  :mfcmd:`module-forbid` command and thus this module cannot be loaded.
+* ``hidden``: module has been set *hidden* through the use of the
+  :mfcmd:`module-hide` command and thus it is not reported by default among
+  the result of an :subcmd:`avail` sub-command.
+* ``hidden-loaded``: module has been set *hidden once loaded* through the use
+  of the :mfcmd:`module-hide --hidden-loaded<module-hide>` command thus it is
+  not reported bu default among the result of a :subcmd:`list` sub-command.
+* ``loaded``: module is currently loaded
+* ``nearly-forbidden``: module will soon be *forbidden*, which has been set
+  through the use of the :mfcmd:`module-forbid` command. Thus this module
+  will soon not be able to load anymore.
+
+Tags may also be associated to modules by using the :mfcmd:`module-tag`
+modulefile command. Among tags that could be set this way, some have a special
+meaning:
+
+* ``sticky``: module once loaded cannot be unloaded unless forced or reloaded
+* ``super-sticky``: module once loaded cannot be unloaded unless reloaded,
+  module cannot be unloaded even if forced
+
+Module tags are reported along the module they are associated to on
+:subcmd:`avail` and :subcmd:`list` sub-command results. Tags could be reported
+either:
+
+* along the module name, all tags set within angle brackets, each tag
+  separated from the others with a colon character (e.g.,
+  ``foo/1.2 <tag1:tag2>``).
+* graphically rendered over the module name for each tag associated to a
+  Select Graphic Rendition (SGR) code in the color palette (see
+  :envvar:`MODULES_COLORS`)
+
+When an abbreviated string is associated to a tag name (see
+:envvar:`MODULES_TAG_ABBREV`), this abbreviation is used to report tag along
+the module name or the tag is graphically rendered over the module name if a
+SGR code is associated with tag abbreviation in the color palette. With an
+abbreviation set, the SGR code associated to the tag full name is ignored thus
+an SGR code should be associated to the abbreviation to get a graphical
+rendering of tag. If the abbreviation associated to a tag corresponds to the
+empty string, tag is not reported.
+
+Graphical rendering is made over the tag name or abbreviation instead of over
+the module name for each tag name or abbreviation set in the
+:envvar:`MODULES_TAG_COLOR_NAME` environment variable.
+
+When several tags have to be rendered graphically over the same module name,
+each tag is rendered over a sub-part of the module name. In case more tags
+need to be rendered than the total number of characters in the module name,
+the remaining tags are graphically rendered over the tag name instead of over
+the module name.
+
+When the JSON output mode is enabled (with :option:`--json`), tags are
+reported by their name under the ``tags`` attribute. Tag abbreviation and
+color rendering do not apply on JSON output.
+
+Module tags cannot be used in search query to designate a modulefile.
+
+
 Collections
 ^^^^^^^^^^^
 
@@ -1303,6 +1385,15 @@ ENVIRONMENT
  directory (``di``), module alias (``al``), module symbolic version (``sy``),
  module ``default`` version (``de``) and modulefile command (``cm``).
 
+ `Module tags`_ can also be colorized. The key to set in the color palette to
+ get a graphical rendering of a tag is the tag name or the tag abbreviation if
+ one is defined for tag. The SGR code applied to a tag name is ignored if an
+ abbreviation is set for this tag thus the SGR code should be defined for this
+ abbreviation to get a graphical rendering. Each basic tag has by default a
+ key set in the color palette, based on its abbreviated string: auto-loaded
+ (``aL``), forbidden (``F``), hidden and hidden-loaded (``H``), loaded
+ (``L``), nearly-forbidden (``nF``), sticky (``S``) and super-sticky (``sS``).
+
  See the Select Graphic Rendition (SGR) section in the documentation of the
  text terminal that is used for permitted values and their meaning as
  character attributes. These substring values are integers in decimal
@@ -1528,10 +1619,10 @@ ENVIRONMENT
  A colon separated list of the tags corresponding to all loaded *modulefiles*
  that have been set through :mfcmd:`module-tag` statements or from other
  modulefile statements like :mfcmd:`module-forbid` (that may apply the
- `nearly-forbidden` tag in specific situation). Each element in this list
- starts by the name of the loaded *modulefile* followed by all tags applying
- to it. The loaded modulefile and its tags are separated by the ampersand
- character.
+ `nearly-forbidden` tag in specific situation) (see `Module tags`_ section).
+ Each element in this list starts by the name of the loaded *modulefile*
+ followed by all tags applying to it. The loaded modulefile and its tags are
+ separated by the ampersand character.
 
  This environment variable is intended for :command:`module` command internal
  use to get knowledge of the tags applying to loaded *modulefiles* in order
@@ -1689,9 +1780,9 @@ ENVIRONMENT
 
 .. envvar:: MODULES_TAG_ABBREV
 
- Specifies the abbreviation strings used to report module tags. Its value is a
- colon-separated list of module tag names associated to an abbreviation string
- (e.g. *tagname=abbrev*).
+ Specifies the abbreviation strings used to report module tags (see `Module
+ tags`_ section). Its value is a colon-separated list of module tag names
+ associated to an abbreviation string (e.g. *tagname=abbrev*).
 
  If a tag is associated to an empty string abbreviation, this tag will not be
  reported. In case the whole :envvar:`MODULES_TAG_ABBREV` environment variable
@@ -1710,7 +1801,8 @@ ENVIRONMENT
  Specifies the tag names or abbreviations whose graphical rendering should be
  applied over themselves instead of being applied over the name of the module
  they are attached to. Value of :envvar:`MODULES_TAG_COLOR_NAME` is a
- colon-separated list of module tag names or abbreviation strings.
+ colon-separated list of module tag names or abbreviation strings (see `Module
+ tags`_ section).
 
  When a select graphic rendition is defined for a tag name or a tag
  abbreviation string, it is applied over the module name associated with the

@@ -292,7 +292,8 @@ the *modulefile* is being loaded.
  Forbidden modules included in the result of an :subcmd:`avail` sub-command
  are reported with a ``forbidden`` tag applied to them. Nearly forbidden
  modules included in the result of an :subcmd:`avail` or a :subcmd:`list`
- sub-command are reported with a ``nearly-forbidden`` tag applied to them.
+ sub-command are reported with a ``nearly-forbidden`` tag applied to them. See
+ :ref:`Module tags` section in :ref:`module(1)`.
 
  The parameter *modulefile* may leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
@@ -369,11 +370,11 @@ the *modulefile* is being loaded.
  ``--hidden-loaded`` option set.
 
  Hidden modules included in the result of an :subcmd:`avail` sub-command are
- reported with a ``hidden`` tag applied to them.
-
- Hidden loaded modules included in the result of a :subcmd:`list` sub-command
- are reported with a ``hidden-loaded`` tag applied to them. This tag is not
- reported on :subcmd:`avail` sub-command context.
+ reported with a ``hidden`` tag applied to them. Hidden loaded modules
+ included in the result of a :subcmd:`list` sub-command are reported with a
+ ``hidden-loaded`` tag applied to them. This tag is not reported on
+ :subcmd:`avail` sub-command context. See :ref:`Module tags` section in
+ :ref:`module(1)`.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
@@ -478,7 +479,8 @@ the *modulefile* is being loaded.
  **module-info tags** [tag]
 
   Returns all tags assigned to currently evaluated *modulefile* as a list of
-  strings if no *tag* name is given
+  strings if no *tag* name is given (see :ref:`Module tags` section in
+  :ref:`module(1)`)
 
   Returns ``1`` if one of the tags applying to currently evaluated
   *modulefile* is *tag*. Returns ``0`` otherwise.
@@ -533,10 +535,12 @@ the *modulefile* is being loaded.
 .. mfcmd:: module-tag [options] tag modulefile...
 
  Associate *tag* to designated *modulefile*. This tag information will be
- reported along *modulefile* on :subcmd:`avail` and subcmd:`list`
- sub-commands. See the :mfcmd:`module-info tags<module-info>` modulefile
- command to query tag information during *modulefile* evaluation. This command
- should be placed in one of the :file:`modulecmd.tcl` rc files.
+ reported along *modulefile* on :subcmd:`avail` and :subcmd:`list`
+ sub-commands (see :ref:`Module tags` section in :ref:`module(1)`). Tag
+ information can be queried during *modulefile* evaluation with the
+ :mfcmd:`module-info tags<module-info>` modulefile command.
+ :mfcmd:`module-tag` commands should be placed in one of the
+ :file:`modulecmd.tcl` rc files.
 
  :mfcmd:`module-tag` command accepts the following options:
 
