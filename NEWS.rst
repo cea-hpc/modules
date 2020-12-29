@@ -92,6 +92,22 @@ Modules 4.7.0 (not yet released)
   value could be superseded by setting up the ``tag_abbrev`` option with
   :subcmd:`config` sub-command. Which sets the :envvar:`MODULES_TAG_ABBREV`
   environment variable.
+* A Select Graphic Rendition (SGR) code can be associated to module tag names
+  or abbreviation strings in the color palette to graphically render these
+  tags over the module name they are associated to. The default light and dark
+  color palettes have been updated to set a color code for all basic module
+  tags. When a color code is set for a tag, it is then graphically rendered
+  over the module names and not reported along module name by its tag name or
+  abbreviation. When multiple colored tags apply to a given module, each tag
+  is graphically rendered over a sub-part of the module name.
+* Add the ``tag_color_name`` configuration option to designate module tags
+  whose graphical rendering should be applied to their own name or
+  abbreviation rather than over the module name they are attached to.
+  Default value for this option could be set at configure time with the
+  ``--with-tag-color-name`` option (empty by default). This value could be
+  superseded by setting up the ``tag_color_name`` option with :subcmd:`config`
+  sub-command. Which sets the :envvar:`MODULES_TAG_COLOR_NAME` environment
+  variable.
 
 
 .. _4.6 release notes:
