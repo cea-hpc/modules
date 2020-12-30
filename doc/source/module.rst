@@ -1088,8 +1088,9 @@ modulefile command. Among tags that could be set this way, some have a special
 meaning:
 
 * ``sticky``: module once loaded cannot be unloaded unless forced or reloaded
+  (see `Sticky modules`_ section)
 * ``super-sticky``: module once loaded cannot be unloaded unless reloaded,
-  module cannot be unloaded even if forced
+  module cannot be unloaded even if forced (see `Sticky modules`_ section)
 
 Module tags are reported along the module they are associated to on
 :subcmd:`avail` and :subcmd:`list` sub-command results. Tags could be reported
@@ -1126,6 +1127,32 @@ reported by their name under the ``tags`` attribute. Tag abbreviation and
 color rendering do not apply on JSON output.
 
 Module tags cannot be used in search query to designate a modulefile.
+
+
+.. _Sticky modules:
+
+Sticky modules
+^^^^^^^^^^^^^^
+
+Modules are said *sticky* when they cannot be unloaded (they stick to the
+loaded environment). Two kind of stickyness can be distinguished:
+
+* ``sticky`` module: cannot be unloaded unless if the unload is forced or if
+  the module is reloaded after being unloaded
+* ``super-sticky`` module: cannot be unloaded unless if the module is reloaded
+  after being unloaded; super-sticky modules cannot be unloaded even if the
+  unload is forced.
+
+Modules are designated sticky by associating them the ``sticky`` or the
+``super-sticky`` :ref:`module tag<Module tags>` with the :mfcmd:`module-tag`
+modulefile command.
+
+When stickyness is defined over the generic module name (and not over a
+specific module version, a version list or a version range), sticky or
+super-sticky module can be swapped by another version of module. For instance
+if the ``sticky`` tag is defined over *foo* module, loaded module *foo/1.2*
+can be swapped by *foo/2.0*. Such stickyness definition means one version of
+module should stay loaded whatever version it is.
 
 
 Collections

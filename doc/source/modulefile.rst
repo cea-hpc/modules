@@ -563,6 +563,9 @@ the *modulefile* is being loaded.
  are: ``auto-loaded``, ``forbidden``, ``hidden``, ``hidden-loaded``,
  ``loaded`` and ``nearly-forbidden``.
 
+ When *tag* equals ``sticky`` or ``super-sticky``, designated *modulefile* are
+ defined :ref:`Sticky modules`.
+
  .. only:: html
 
     .. versionadded:: 4.7
