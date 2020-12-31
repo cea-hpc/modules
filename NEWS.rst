@@ -108,6 +108,26 @@ Modules 4.7.0 (not yet released)
   superseded by setting up the ``tag_color_name`` option with :subcmd:`config`
   sub-command. Which sets the :envvar:`MODULES_TAG_COLOR_NAME` environment
   variable.
+* Add the ``--hidden-loaded`` option to the :mfcmd:`module-hide` modulefile
+  command that indicates module should be hidden once loaded. When set, the
+  ``hidden-loaded`` module tag applies to module specification set on
+  :mfcmd:`module-hide` command.
+* Do not report on :subcmd:`list` sub-command results the loaded modules
+  associated with the ``hidden-loaded`` tag, unless if the :option:`--all`
+  option is set.
+* Doc: add an ``hidden-loaded`` example in the *Hide and forbid modules*
+  cookbook recipe.
+* Introduce the ``verbose2`` verbosity level between ``verbose`` and ``trace``
+  levels. Verbose2 mode can be enabled by setting the ``verbosity`` config to
+  the ``verbose2`` value or by using the :option:`-v` command-line switch
+  twice.
+* Do not report the load, unload or switch of modules set ``hidden-loaded`` if
+  these modules have been loaded, unloaded or switched automatically. Unless
+  the verbosity mode is set to ``verbose2`` or any higher level or if any
+  specific messages have to be reported for these module evaluations.
+* Report when trying to load a module which is already loaded or when trying
+  to unload a module which is not loaded in case the verbosity mode is set to
+  ``verbose2`` or any higher level. (fix issue #187)
 
 
 .. _4.6 release notes:
