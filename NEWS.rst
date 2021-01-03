@@ -128,6 +128,19 @@ Modules 4.7.0 (not yet released)
 * Report when trying to load a module which is already loaded or when trying
   to unload a module which is not loaded in case the verbosity mode is set to
   ``verbose2`` or any higher level. (fix issue #187)
+* Doc: improve readability of version 4 improvements in :ref:`diff_v3_v4`
+  document.
+* Introduce stickyness: module tagged ``sticky`` with :mfcmd:`module-tag`
+  command cannot be unloaded unless if the unload is forced or if the module
+  is reloaded. (fix issue #269)
+* Introduce super-stickyness: module tagged ``super-sticky`` with
+  :mfcmd:`module-tag` command cannot be unloaded even if the unload is forced
+  unless if the module is reloaded. (fix issue #269)
+* Allow swap of sticky or super-sticky modules by another modulefile version
+  if stickyness definition applies to module parent name. E.g., *foo/1.0* can
+  be swapped by *foo/2.0* if sticky tag applies to *foo*.
+* When forcing purge with a :subcmd:`purge --force<purge>` sub-command, also
+  unload the modules that are depended by unloadable modules.
 
 
 .. _4.6 release notes:
