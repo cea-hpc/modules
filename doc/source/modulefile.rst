@@ -990,9 +990,17 @@ left spot. For instance, if ``foo/default`` which targets ``foo/1.2.3`` is set
 hard-hidden, the ``default`` automatic version symbol will be set onto
 ``foo/2.1.3``, the highest available version of ``foo``.
 
+When loading a *modulefile* or a virtual module targeted by a
+:mfcmd:`module-hide --hidden-loaded<module-hide>` command, this module
+inherits the ``hidden-loaded`` tag. Hidden loaded modules are not reported
+among :subcmd:`list` sub-command results.
+
 If the :option:`--all` is set on :subcmd:`avail`, :subcmd:`aliases`,
 :subcmd:`whatis` or :subcmd:`search` sub-commands, hidden modules are taken
 into account in search. Hard-hidden modules are unaffected by this option.
+
+If the :option:`--all` is set on :subcmd:`list` sub-command, hidden loaded
+modules are included in result output.
 
 Advanced module version specifiers
 ----------------------------------
