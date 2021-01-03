@@ -84,10 +84,10 @@ Some explanation, step by step:
    ``make distclean``.
 
 A default installation process like described above will install Modules
-under ``/usr/local/Modules``. You can change this with the ``--prefix``
+under ``/usr/local/Modules``. You can change this with the :instopt:`--prefix`
 option. By default, ``/usr/local/Modules/modulefiles`` will be setup as
-the default directory containing modulefiles. ``--modulefilesdir`` option
-enables to change this directory location. For example::
+the default directory containing modulefiles. :instopt:`--modulefilesdir`
+option enables to change this directory location. For example::
 
     $ ./configure --prefix=/usr/share/Modules \
                   --modulefilesdir=/etc/modulefiles
@@ -134,10 +134,11 @@ necessarily mandatory as it depends of the kind of setup you want to achieve.
    a login shell or not and if they are launched in interactive mode or not.
 
 3. Define module paths to enable by default. Edit ``modulerc`` configuration
-   file or ``.modulespath`` if you have chosen ``--enable-dotmodulespath`` at
-   configure time. If you have set ``--with-initconf-in`` to ``etcdir`` to
-   install these Modules initialization configurations in the configuration
-   directory designated by the ``--etcdir`` option, these configuration files
+   file or ``.modulespath`` if you have chosen
+   :instopt:`--enable-dotmodulespath` at configure time. If you have set
+   :instopt:`--with-initconf-in` to ``etcdir`` to install these Modules
+   initialization configurations in the configuration directory designated by
+   the :instopt:`--etcdir` option, these configuration files
    are respectively named ``initrc`` and ``modulespath``. If you use
    ``.modulespath`` (or ``modulespath``) configuration file, add one line
    mentioning each modulefile directory::
@@ -236,42 +237,43 @@ is displayed within brakets):
 
 Optional Features (the default for each option is displayed within
 parenthesis, to disable an option replace ``enable`` by ``disable`` for
-instance ``--disable-set-manpath``):
+instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 
 .. instopt:: --enable-set-manpath
 
- Prepend man page directory defined by the ``--mandir`` option to the MANPATH
- environment variable in the shell initialization scripts. (default=yes)
+ Prepend man page directory defined by the :instopt:`--mandir` option to the
+ MANPATH environment variable in the shell initialization scripts.
+ (default=yes)
 
 .. instopt:: --enable-append-manpath
 
  Append rather prepend man page directory to the MANPATH environment variable
- when the ``--enable-set-manpath`` option is enabled. (default=no)
+ when the :instopt:`--enable-set-manpath` option is enabled. (default=no)
 
 .. instopt:: --enable-set-binpath
 
- Prepend binary directory defined by the ``--bindir`` option to the PATH
- environment variable in the shell initialization scripts. (default=yes)
+ Prepend binary directory defined by the :instopt:`--bindir` option to the
+ PATH environment variable in the shell initialization scripts. (default=yes)
 
 .. instopt:: --enable-append-binpath
 
  Append rather prepend binary directory to the PATH environment variable when
- the ``--enable-set-binpath`` option is enabled. (default=no)
+ the :instopt:`--enable-set-binpath` option is enabled. (default=no)
 
 .. instopt:: --enable-dotmodulespath, --enable-modulespath
 
- Set the module paths defined by ``--with-modulepath`` option in a
+ Set the module paths defined by :instopt:`--with-modulepath` option in a
  ``.modulespath`` file (following C version fashion) within the initialization
- directory defined by the ``--initdir`` option rather than within the
- ``modulerc`` file. Or respectively, if option ``--with-initconf-in`` has been
- set to ``etcdir``, in a ``modulespath`` file within the configuration
- directory defined by the ``--etcdir`` option rather than within the
- ``initrc`` file. (default=no)
+ directory defined by the :instopt:`--initdir` option rather than within the
+ ``modulerc`` file. Or respectively, if option :instopt:`--with-initconf-in`
+ has been set to ``etcdir``, in a ``modulespath`` file within the
+ configuration directory defined by the :instopt:`--etcdir` option rather than
+ within the ``initrc`` file. (default=no)
 
 .. instopt:: --enable-doc-install
 
  Install the documentation files in the documentation directory defined with
- the ``--docdir`` option. This feature has no impact on manual pages
+ the :instopt:`--docdir` option. This feature has no impact on manual pages
  installation. Disabling documentation file installation is useful in case of
  installation process handled via a package manager which handles by itself
  the installation of this kind of documents. (default=yes)
@@ -279,12 +281,12 @@ instance ``--disable-set-manpath``):
 .. instopt:: --enable-vim-addons
 
  Install the Vim addon files in the Vim addons directory defined with the
- ``--vimdatadir`` option. (default=yes)
+ :instopt:`--vimdatadir` option. (default=yes)
 
 .. instopt:: --enable-example-modulefiles
 
  Install some modulefiles provided as example in the system modulefiles
- directory defined with the ``modulefilesdir`` option. (default=yes)
+ directory defined with the :instopt:`--modulefilesdir` option. (default=yes)
 
 .. instopt:: --enable-compat-version
 
@@ -392,7 +394,7 @@ instance ``--disable-set-manpath``):
 
 Optional Packages (the default for each option is displayed within
 parenthesis, to disable an option replace ``with`` by ``without`` for
-instance ``--without-modulepath``):
+instance :instopt:`--without-modulepath<--with-modulepath>`):
 
 .. instopt:: --with-bin-search-path=PATHLIST
 
@@ -447,7 +449,7 @@ instance ``--without-modulepath``):
 
  Default color set to apply if terminal background color is defined to
  ``light``. Expect the same syntax than described for
- ``--with-dark-background-colors``.
+ :instopt:`--with-dark-background-colors`.
  (default=\ ``hi=1:db=2:tr=2:se=2:er=31:wa=33:me=35:in=34:mp=1;34:di=34:al=36:sy=35:de=4:cm=32``)
 
 .. instopt:: --with-terminal-background=VALUE
@@ -507,9 +509,9 @@ instance ``--without-modulepath``):
  Default path list to setup as the default modulepaths.  Each path in this
  list should be separated by ``:``.  Defined value is registered in the
  ``modulerc`` or ``.modulespath`` configuration file, depending on the
- ``--enable-dotmodulespath`` option. These files are respectively called
- ``initrc`` and ``modulespath`` if ``--with-initconf-in`` is set to
- ``etcdir``. The path list value is read at initialization time to populate
+ :instopt:`--enable-dotmodulespath` option. These files are respectively
+ called ``initrc`` and ``modulespath`` if :instopt:`--with-initconf-in` is set
+ to ``etcdir``. The path list value is read at initialization time to populate
  the MODULEPATH environment variable. By default, this modulepath is composed
  of the directory set for the system modulefiles
  (default=\ ``PREFIX/modulefiles`` or
@@ -521,7 +523,7 @@ instance ``--without-modulepath``):
  Default modulefiles to load at Modules initialization time. Each modulefile
  in this list should be separated by ``:``. Defined value is registered in the
  ``modulerc`` configuration file or in the ``initrc`` file if
- ``--with-initconf-in`` is set to ``etcdir``.  (default=no)
+ :instopt:`--with-initconf-in` is set to ``etcdir``.  (default=no)
 
 .. instopt:: --with-quarantine-vars=<VARNAME[=VALUE] ...>
 

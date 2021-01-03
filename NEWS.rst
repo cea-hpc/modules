@@ -41,9 +41,9 @@ Modules 4.7.0 (not yet released)
   respectively specified on :mfcmd:`module load<module>` or
   :mfcmd:`module unload<module>` commands in modulefile. Default value for
   this option could be set at configure time with the
-  ``--enable-implicit-requirement`` option (enabled by default). This value
-  could be superseded by setting up the ``implicit_requirement`` option with
-  :subcmd:`config` sub-command. Which sets the
+  :instopt:`--enable-implicit-requirement` option (enabled by default). This
+  value could be superseded by setting up the ``implicit_requirement`` option
+  with :subcmd:`config` sub-command. Which sets the
   :envvar:`MODULES_IMPLICIT_REQUIREMENT` environment variable. (fix issue
   #260)
 * Add the ``--not-req`` option to the :mfcmd:`module` modulefile command to
@@ -85,9 +85,9 @@ Modules 4.7.0 (not yet released)
   for module tags and use these abbreviations instead of tag names when
   reporting tags on :subcmd:`avail` and :subcmd:`list` command results.
   Default value for this option could be set at configure time with the
-  ``--with-tag-abbrev`` option. By default the following abbreviations are
-  set: ``aL`` for *auto-loaded*, ``F`` for *forbidden*, ``H`` for *hidden*,
-  ``H`` for *hidden-loaded*, ``L`` for *loaded*, ``nF`` for
+  :instopt:`--with-tag-abbrev` option. By default the following abbreviations
+  are set: ``aL`` for *auto-loaded*, ``F`` for *forbidden*, ``H`` for
+  *hidden*, ``H`` for *hidden-loaded*, ``L`` for *loaded*, ``nF`` for
   *nearly-forbidden*, ``S`` for *sticky*, ``sS`` for *super-sticky*. This
   value could be superseded by setting up the ``tag_abbrev`` option with
   :subcmd:`config` sub-command. Which sets the :envvar:`MODULES_TAG_ABBREV`
@@ -104,10 +104,10 @@ Modules 4.7.0 (not yet released)
   whose graphical rendering should be applied to their own name or
   abbreviation rather than over the module name they are attached to.
   Default value for this option could be set at configure time with the
-  ``--with-tag-color-name`` option (empty by default). This value could be
-  superseded by setting up the ``tag_color_name`` option with :subcmd:`config`
-  sub-command. Which sets the :envvar:`MODULES_TAG_COLOR_NAME` environment
-  variable.
+  :instopt:`--with-tag-color-name` option (empty by default). This value could
+  be superseded by setting up the ``tag_color_name`` option with
+  :subcmd:`config` sub-command. Which sets the
+  :envvar:`MODULES_TAG_COLOR_NAME` environment variable.
 * Add the ``--hidden-loaded`` option to the :mfcmd:`module-hide` modulefile
   command that indicates module should be hidden once loaded. When set, the
   ``hidden-loaded`` module tag applies to module specification set on
@@ -211,8 +211,8 @@ Modules 4.6.0 (2020-09-16)
 * Doc: embed new Modules logo on website, online README and documentation
   portal.
 * Install: disable by default the build of Modules compatibility version. From
-  now on, option ``--enable-compat-version`` has to be set to trigger this
-  build.
+  now on, option :instopt:`--enable-compat-version` has to be set to trigger
+  this build.
 * Introduce the ``username`` sub-command to the :mfcmd:`module-info`
   modulefile command to get the username of the user currently running
   :file:`modulecmd.tcl` or to test a string passed as argument corresponds to
@@ -228,7 +228,7 @@ Modules 4.6.0 (2020-09-16)
   possible from code source and documentation.
 * Doc: use a versioned magic cookie in examples that demonstrate new
   modulefile features. (fix issue #349)
-* Introduce the ``--enable-multilib-support`` configure option to add
+* Introduce the :instopt:`--enable-multilib-support` configure option to add
   mechanism in :file:`modulecmd.tcl` to look at an alternative location to
   find the Modules Tcl extension library in case this library cannot be found
   at its main location.
@@ -300,8 +300,8 @@ Modules 4.6.0 (2020-09-16)
   ``nearly_forbidden_days`` configuration option, whose value equals to the
   number of days prior the module starts to be forbidden. This configuration
   is set to ``14`` (days) by default and this value can be controlled at
-  :file:`configure` time with ``--with-nearly-forbidden-days`` option. When
-  the ``nearly_forbidden_days`` configuration is set through the
+  :file:`configure` time with :instopt:`--with-nearly-forbidden-days` option.
+  When the ``nearly_forbidden_days`` configuration is set through the
   :subcmd:`config` sub-command, the :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS`
   environment variable is set.
 * Add ``--nearly-message`` option to :mfcmd:`module-forbid` modulefile command
@@ -435,9 +435,9 @@ Modules 4.5.0 (2020-04-07)
   modules to either load or unload can be combined on a single command. ``ml``
   accepts all command-line switches and sub-commands accepted by ``module``
   command. ``ml`` command is defined by default. Its definition can be
-  controlled at ``./configure`` time with ``--enable-ml`` option or later on
-  with ``ml`` configuration option (which defines ``MODULES_ML`` environment
-  variable when set).
+  controlled at ``./configure`` time with :instopt:`--enable-ml` option or
+  later on with ``ml`` configuration option (which defines ``MODULES_ML``
+  environment variable when set).
 * Fix module sub-command abbreviation match to ensure passed abbreviated
   form fully match sub-command, not only its minimal abbreviated form. As an
   example, ``lod`` or ``loda`` do not match anymore the ``load``
@@ -450,16 +450,17 @@ Modules 4.5.0 (2020-04-07)
 * Script: gather all distributed and maintained scripts in a ``script``
   directory at the root of the project repository tree.
 * Install: provide Windows-specific batch files when ``./configure`` option
-  ``--enable-windows-support`` is set. module command wrapper ``module.cmd``
-  is installed in ``bindir`` and initialization script ``cmd.cmd`` in
-  ``initdir``. Those batch files are relocatable and expect ``modulecmd.tcl``
-  in ``..\libexec`` directory. (fix issue #272 with contribution from Jacques
-  Raphanel)
+  :instopt:`--enable-windows-support` is set. module command wrapper
+  ``module.cmd`` is installed in ``bindir`` and initialization script
+  ``cmd.cmd`` in ``initdir``. Those batch files are relocatable and expect
+  ``modulecmd.tcl`` in ``..\libexec`` directory. (fix issue #272 with
+  contribution from Jacques Raphanel)
 * Install: add ml command wrapper ``ml.cmd`` and install it in ``bindir`` when
-  ``./configure`` option ``--enable-windows-support`` is set.
+  ``./configure`` option :instopt:`--enable-windows-support` is set.
 * Install: introduce envml command wrapper ``envml.cmd`` for Windows ``cmd``
   shell and install it in ``bindir`` when ``./configure`` option
-  ``--enable-windows-support`` is set. (contribution from Jacques Raphanel)
+  :instopt:`--enable-windows-support` is set. (contribution from Jacques
+  Raphanel)
 * Doc: improve documentation portal index.
 * Install: add ``dist-win`` target to Makefile in order to build a
   distribution zipball containing the required files to run Modules on a
@@ -487,9 +488,9 @@ Modules 4.5.0 (2020-04-07)
   ``gitlog2changelog.py``. If ``python`` command is not found, ``python3``
   then ``python2`` are searched.
 * Install: enable to pass a specific Python interpreter command name or
-  location at configure step with ``--with-python`` option. Specified command
-  name or location should be found on build system only if building from git
-  repository.
+  location at configure step with :instopt:`--with-python` option. Specified
+  command name or location should be found on build system only if building
+  from git repository.
 * Install: build ``createmodule.py`` script and install it in ``bindir``.
 * Install: update RPM spec file to explicitly define Python interpreter
   location.

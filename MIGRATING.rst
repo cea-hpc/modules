@@ -400,10 +400,10 @@ The range of time the *nearly forbidden* warning appears can be controlled
 with the ``nearly_forbidden_days`` configuration option, whose value equals to
 the number of days prior the module starts to be forbidden. This configuration
 is set to ``14`` (days) by default and this value can be controlled at
-:file:`configure` time with ``--with-nearly-forbidden-days`` option. When the
-``nearly_forbidden_days`` configuration is set through the :subcmd:`config`
-sub-command, the :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS` environment variable
-is set.
+:file:`configure` time with :instopt:`--with-nearly-forbidden-days` option.
+When the ``nearly_forbidden_days`` configuration is set through the
+:subcmd:`config` sub-command, the :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS`
+environment variable is set.
 
 Tracing module execution
 ------------------------
@@ -516,12 +516,13 @@ set, the output result of these sub-commands is rendered in `JSON`_ format::
 Improved Windows support
 ------------------------
 
-A new option to the ``./configure`` script named ``--enable-windows-support``
-is introduced to install additional files relative to the enablement of
-Modules on the Windows platform. When set, this option installs
-``module.cmd``, ``ml.cmd`` and ``envml.cmd`` scripts in ``bindir`` and
-initialization script ``cmd.cmd`` in ``initdir``. With these four files the
-Modules installation may be used from either a Unix or a Windows platform.
+A new option to the ``./configure`` script named
+:instopt:`--enable-windows-support` is introduced to install additional files
+relative to the enablement of Modules on the Windows platform. When set, this
+option installs ``module.cmd``, ``ml.cmd`` and ``envml.cmd`` scripts in
+``bindir`` and initialization script ``cmd.cmd`` in ``initdir``. With these
+four files the Modules installation may be used from either a Unix or a
+Windows platform.
 
 ``module.cmd``, ``ml.cmd`` and ``envml.cmd`` scripts respectively provide the
 ``module``, ``ml`` and ``envml`` commands for Windows ``cmd`` terminal shell,
