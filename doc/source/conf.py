@@ -119,6 +119,13 @@ todo_include_todos = False
 os_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if os_rtd:
     html_theme = 'sphinx_rtd_theme'
+
+    # override wide tables in RTD theme
+    html_context = {
+        'css_files': [
+            '_static/rtd_theme_overrides.css',
+            ],
+         }
 else:
     html_theme = 'bizstyle'
 
@@ -145,7 +152,7 @@ html_favicon = '../img/favicon.ico'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-#html_static_path = ['_static']
+html_static_path = ['_static']
 
 # ensure quotes and dashes are preserved and not converted to lang-specific
 # entities (fix issue#250). done by disabling `html_use_smartypants` on Sphinx
