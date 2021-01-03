@@ -279,6 +279,22 @@ def parse_cmd_args_node(env, sig, signode):
         signode += addnodes.desc_addname(args, args)
     return cmd
 
+def parse_opt_args_node(env, sig, signode):
+    if (sig.strip().find('=') != -1):
+        sep = '='
+    else:
+        sep = ', '
+    try:
+        opt, args = sig.strip().split(sep, 1)
+    except ValueError:
+        opt, args = sig, None
+    # distinguish opt from its args
+    signode += addnodes.desc_name(opt, opt)
+    if args:
+        args = sep + args
+        signode += addnodes.desc_addname(args, args)
+    return opt
+
 # define new directive/role that can be used as .. subcmd::/:subcmd:,
 # .. mfcmd::/:mfcmd: and .. mfvar::/:mfvar:
 def setup(app):
@@ -294,3 +310,8 @@ def setup(app):
                         objname='modulefile variable',
                         indextemplate='%s (modulefile variable)',
                         parse_node=parse_cmd_args_node)
+    app.add_object_type('instopt', 'instopt',
+                        objname='installation option',
+                        indextemplate='pair: %s; installation option',
+                        parse_node=parse_opt_args_node)
+

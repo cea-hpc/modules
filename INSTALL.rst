@@ -185,281 +185,364 @@ options by typing ``./configure --help``.
 Fine tuning of the installation directories (the default value for each option
 is displayed within brakets):
 
---prefix=PREFIX       Installation root directory [``/usr/local/Modules``]
---bindir=DIR          Directory for executables reachable by users
-                      [``PREFIX/bin``]
---libdir=DIR          Directory for object code libraries like
-                      libtclenvmodules.so [``PREFIX/lib``]
---libexecdir=DIR      Directory for executables called by other executables
-                      like modulecmd.tcl [``PREFIX/libexec``]
---etcdir=DIR          Directory for the executable configuration scripts
-                      [``PREFIX/etc``]
---initdir=DIR         Directory for the per-shell environment initialization
-                      scripts [``PREFIX/init``]
---datarootdir=DIR     Base directory to set the man and doc directories
-                      [``PREFIX/share``]
---mandir=DIR          Directory to host man pages [``DATAROOTDIR/man``]
---docdir=DIR          Directory to host documentation other than man
-                      pages like README, license file, etc
-                      [``DATAROOTDIR/doc``]
---vimdatadir=DIR      Directory to host Vim addon files
-                      [``DATAROOTDIR/vim/vimfiles``]
---modulefilesdir=DIR  Directory of main modulefiles also called system
-                      modulefiles [``PREFIX/modulefiles``]
+.. instopt:: --prefix=PREFIX
+
+ Installation root directory [``/usr/local/Modules``]
+
+.. instopt:: --bindir=DIR
+
+ Directory for executables reachable by users [``PREFIX/bin``]
+
+.. instopt:: --libdir=DIR
+
+ Directory for object code libraries like libtclenvmodules.so [``PREFIX/lib``]
+
+.. instopt:: --libexecdir=DIR
+
+ Directory for executables called by other executables like modulecmd.tcl
+ [``PREFIX/libexec``]
+
+.. instopt:: --etcdir=DIR
+
+ Directory for the executable configuration scripts
+ [``PREFIX/etc``]
+
+.. instopt:: --initdir=DIR
+
+ Directory for the per-shell environment initialization scripts
+ [``PREFIX/init``]
+
+.. instopt:: --datarootdir=DIR
+
+ Base directory to set the man and doc directories [``PREFIX/share``]
+
+.. instopt:: --mandir=DIR
+
+ Directory to host man pages [``DATAROOTDIR/man``]
+
+.. instopt:: --docdir=DIR
+
+ Directory to host documentation other than man pages like README, license
+ file, etc [``DATAROOTDIR/doc``]
+
+.. instopt:: --vimdatadir=DIR
+
+ Directory to host Vim addon files [``DATAROOTDIR/vim/vimfiles``]
+
+.. instopt:: --modulefilesdir=DIR
+
+ Directory of main modulefiles also called system modulefiles
+ [``PREFIX/modulefiles``]
 
 Optional Features (the default for each option is displayed within
 parenthesis, to disable an option replace ``enable`` by ``disable`` for
 instance ``--disable-set-manpath``):
 
---enable-set-manpath  Prepend man page directory defined by the ``--mandir``
-                      option to the MANPATH environment variable in the shell
-                      initialization scripts. (default=yes)
---enable-append-manpath
-                      Append rather prepend man page directory to the MANPATH
-                      environment variable when the ``--enable-set-manpath``
-                      option is enabled. (default=no)
---enable-set-binpath  Prepend binary directory defined by the ``--bindir``
-                      option to the PATH environment variable in the shell
-                      initialization scripts. (default=yes)
---enable-append-binpath
-                      Append rather prepend binary directory to the PATH
-                      environment variable when the ``--enable-set-binpath``
-                      option is enabled. (default=no)
---enable-dotmodulespath, --enable-modulespath
-                      Set the module paths defined by ``--with-modulepath``
-                      option in a ``.modulespath`` file (following C version
-                      fashion) within the initialization directory defined by
-                      the ``--initdir`` option rather than within the
-                      ``modulerc`` file. Or respectively, if option
-                      ``--with-initconf-in`` has been set to ``etcdir``, in a
-                      ``modulespath`` file within the configuration directory
-                      defined by the ``--etcdir`` option rather than within
-                      the ``initrc`` file. (default=no)
---enable-doc-install  Install the documentation files in the documentation
-                      directory defined with the ``--docdir`` option. This
-                      feature has no impact on manual pages installation.
-                      Disabling documentation file installation is useful in
-                      case of installation process handled via a package
-                      manager which handles by itself the installation of
-                      this kind of documents. (default=yes)
---enable-vim-addons   Install the Vim addon files in the Vim addons directory
-                      defined with the ``--vimdatadir`` option. (default=yes)
---enable-example-modulefiles
-                      Install some modulefiles provided as example in the
-                      system modulefiles directory defined with the
-                      ``modulefilesdir`` option. (default=yes)
---enable-compat-version
-                      Build and install the Modules compatibility (C) version
-                      in addition to the main released version. This feature
-                      also enables switching capabilities from initialization
-                      script between the two installed version of Modules (by
-                      setting-up the ``switchml`` shell function or alias).
-                      (default=no)
---enable-libtclenvmodules
-                      Build and install the Modules Tcl extension library
-                      which provides optimized Tcl commands for the
-                      modulecmd.tcl script.
---enable-multilib-support
-                      Support multilib systems by looking in modulecmd.tcl at
-                      an alternative location where to find the Modules Tcl
-                      extension library depending on current machine
-                      architecture.
---enable-versioning   Append Modules version to installation prefix and deploy
-                      a ``versions`` modulepath shared between all versioning
-                      enabled Modules installation. A modulefile corresponding
-                      to Modules version is added to the shared modulepath and
-                      enables to switch from one Modules version to another.
-                      (default=no)
---enable-silent-shell-debug-support
-                      Generate code in module function definition and
-                      initialization scripts to add support for silencing
-                      shell debugging properties (default=yes)
---enable-set-shell-startup
-                      Set when module function is defined the shell startup
-                      file to ensure that the module function is still defined
-                      in sub-shells. (default=yes)
---enable-quarantine-support
-                      Generate code in module function definition and
-                      initialization scripts to add support for the
-                      environment variable quarantine mechanism (default=yes)
---enable-auto-handling
-                      Set modulecmd.tcl to automatically apply automated
-                      modulefiles handling actions, like loading the
-                      pre-requisites of a modulefile when loading this
-                      modulefile. (default=no)
---enable-implicit-requirement
-                      Implicitly define a prereq or a conflict requirement
-                      toward modules specified respectively on ``module load``
-                      or ``module unload`` commands in modulefile.
-                      (default=yes)
---enable-avail-indepth
-                      When performing an ``avail`` sub-command, include in
-                      search results the matching modulefiles and directories
-                      and recursively the modulefiles and directories
-                      contained in these matching directories when enabled or
-                      limit search results to the matching modulefiles and
-                      directories found at the depth level expressed by the
-                      search query if disabled. (default=yes)
---enable-implicit-default
-                      Define an implicit default version, for modules with
-                      none explicitly defined, to select when the name of the
-                      module to evaluate is passed without the mention of a
-                      specific version. When this option is disabled the name
-                      of the module passed for evaluation should be fully
-                      qualified elsewhere an error is returned. (default=yes)
---enable-extended-default
-                      Allow to specify module versions by their starting part,
-                      i.e. substring separated from the rest of the version
-                      string by a ``.`` character. (default=no)
---enable-advanced-version-spec
-                      Activate the advanced module version specifiers which
-                      enables to finely select module versions by specifying
-                      after the module name a version constraint prefixed by
-                      the ``@`` character. (default=no)
---enable-ml           Define the ``ml`` command, a handy frontend to the
-                      module command, when Modules initializes. (default=yes)
---enable-color        Control if output should be colored by default or not.
-                      A value of ``yes`` equals to the ``auto`` color mode.
-                      ``no`` equals to the ``never`` color mode. (default=no)
---enable-wa-277       Activate workaround for issue #277 related to Tcsh
-                      history mechanism which does not cope well with default
-                      module alias definition. Note that enabling this
-                      workaround solves Tcsh history issue but weakens
-                      shell evaluation of the code produced by modulefiles.
---enable-windows-support
-                      Install all required files for Windows platform
-                      (``module``, ``ml`` and ``envml`` command batch file and
-                      ``cmd.cmd`` initialization script). (default=no)
+.. instopt:: --enable-set-manpath
+
+ Prepend man page directory defined by the ``--mandir`` option to the MANPATH
+ environment variable in the shell initialization scripts. (default=yes)
+
+.. instopt:: --enable-append-manpath
+
+ Append rather prepend man page directory to the MANPATH environment variable
+ when the ``--enable-set-manpath`` option is enabled. (default=no)
+
+.. instopt:: --enable-set-binpath
+
+ Prepend binary directory defined by the ``--bindir`` option to the PATH
+ environment variable in the shell initialization scripts. (default=yes)
+
+.. instopt:: --enable-append-binpath
+
+ Append rather prepend binary directory to the PATH environment variable when
+ the ``--enable-set-binpath`` option is enabled. (default=no)
+
+.. instopt:: --enable-dotmodulespath, --enable-modulespath
+
+ Set the module paths defined by ``--with-modulepath`` option in a
+ ``.modulespath`` file (following C version fashion) within the initialization
+ directory defined by the ``--initdir`` option rather than within the
+ ``modulerc`` file. Or respectively, if option ``--with-initconf-in`` has been
+ set to ``etcdir``, in a ``modulespath`` file within the configuration
+ directory defined by the ``--etcdir`` option rather than within the
+ ``initrc`` file. (default=no)
+
+.. instopt:: --enable-doc-install
+
+ Install the documentation files in the documentation directory defined with
+ the ``--docdir`` option. This feature has no impact on manual pages
+ installation. Disabling documentation file installation is useful in case of
+ installation process handled via a package manager which handles by itself
+ the installation of this kind of documents. (default=yes)
+
+.. instopt:: --enable-vim-addons
+
+ Install the Vim addon files in the Vim addons directory defined with the
+ ``--vimdatadir`` option. (default=yes)
+
+.. instopt:: --enable-example-modulefiles
+
+ Install some modulefiles provided as example in the system modulefiles
+ directory defined with the ``modulefilesdir`` option. (default=yes)
+
+.. instopt:: --enable-compat-version
+
+ Build and install the Modules compatibility (C) version in addition to the
+ main released version. This feature also enables switching capabilities from
+ initialization script between the two installed version of Modules (by
+ setting-up the ``switchml`` shell function or alias).  (default=no)
+
+.. instopt:: --enable-libtclenvmodules
+
+ Build and install the Modules Tcl extension library which provides optimized
+ Tcl commands for the modulecmd.tcl script.
+
+.. instopt:: --enable-multilib-support
+
+ Support multilib systems by looking in modulecmd.tcl at an alternative
+ location where to find the Modules Tcl extension library depending on current
+ machine architecture.
+
+.. instopt:: --enable-versioning
+
+ Append Modules version to installation prefix and deploy a ``versions``
+ modulepath shared between all versioning enabled Modules installation. A
+ modulefile corresponding to Modules version is added to the shared modulepath
+ and enables to switch from one Modules version to another.  (default=no)
+
+.. instopt:: --enable-silent-shell-debug-support
+
+ Generate code in module function definition and initialization scripts to add
+ support for silencing shell debugging properties (default=yes)
+
+.. instopt:: --enable-set-shell-startup
+
+ Set when module function is defined the shell startup file to ensure that the
+ module function is still defined in sub-shells. (default=yes)
+
+.. instopt:: --enable-quarantine-support
+
+ Generate code in module function definition and initialization scripts to add
+ support for the environment variable quarantine mechanism (default=yes)
+
+.. instopt:: --enable-auto-handling
+
+ Set modulecmd.tcl to automatically apply automated modulefiles handling
+ actions, like loading the pre-requisites of a modulefile when loading this
+ modulefile. (default=no)
+
+.. instopt:: --enable-implicit-requirement
+
+ Implicitly define a prereq or a conflict requirement toward modules specified
+ respectively on ``module load`` or ``module unload`` commands in modulefile.
+ (default=yes)
+
+.. instopt:: --enable-avail-indepth
+
+ When performing an ``avail`` sub-command, include in search results the
+ matching modulefiles and directories and recursively the modulefiles and
+ directories contained in these matching directories when enabled or limit
+ search results to the matching modulefiles and directories found at the depth
+ level expressed by the search query if disabled. (default=yes)
+
+.. instopt:: --enable-implicit-default
+
+ Define an implicit default version, for modules with none explicitly defined,
+ to select when the name of the module to evaluate is passed without the
+ mention of a specific version. When this option is disabled the name of the
+ module passed for evaluation should be fully qualified elsewhere an error is
+ returned. (default=yes)
+
+.. instopt:: --enable-extended-default
+
+ Allow to specify module versions by their starting part, i.e. substring
+ separated from the rest of the version string by a ``.`` character.
+ (default=no)
+
+.. instopt:: --enable-advanced-version-spec
+
+ Activate the advanced module version specifiers which enables to finely
+ select module versions by specifying after the module name a version
+ constraint prefixed by the ``@`` character. (default=no)
+
+.. instopt:: --enable-ml
+
+ Define the ``ml`` command, a handy frontend to the module command, when
+ Modules initializes. (default=yes)
+
+.. instopt:: --enable-color
+
+ Control if output should be colored by default or not.  A value of ``yes``
+ equals to the ``auto`` color mode.  ``no`` equals to the ``never`` color
+ mode. (default=no)
+
+.. instopt:: --enable-wa-277
+
+ Activate workaround for issue #277 related to Tcsh history mechanism which
+ does not cope well with default module alias definition. Note that enabling
+ this workaround solves Tcsh history issue but weakens shell evaluation of the
+ code produced by modulefiles.
+
+.. instopt:: --enable-windows-support
+
+ Install all required files for Windows platform (``module``, ``ml`` and
+ ``envml`` command batch file and ``cmd.cmd`` initialization script).
+ (default=no)
 
 Optional Packages (the default for each option is displayed within
 parenthesis, to disable an option replace ``with`` by ``without`` for
 instance ``--without-modulepath``):
 
---with-bin-search-path=PATHLIST
-                      List of paths to look at when searching the location of
-                      tools required to build and configure Modules
-                      (default=\ ``/usr/bin:/bin:/usr/local/bin``)
---with-moduleshome    Location of the main Modules package file directory
-                      (default=\ ``PREFIX``)
---with-initconf-in=VALUE
-                      Location where to install Modules initialization
-                      configuration files. Either ``initdir`` or ``etcdir``
-                      (default=\ ``initdir``)
---with-tclsh=BIN      Name or full path of Tcl interpreter shell
-                      (default=\ ``tclsh``)
---with-pager=BIN      Name or full path of default pager program to use to
-                      paginate informational message output (can be superseded
-                      at run-time by environment variable)
-                      (default=\ ``less``)
---with-pager-opts=OPTLIST
-                      Settings to apply to default pager program
-                      (default=\ ``-eFKRX``)
---with-verbosity=VALUE
-                      Specify default message verbosity. accepted values are
-                      ``silent``, ``concise``, ``normal``, ``verbose``,
-                      ``verbose2``, ``trace``, ``debug`` and ``debug2``.
-                      (default=\ ``normal``)
---with-dark-background-colors=SGRLIST
-                      Default color set to apply if terminal background color
-                      is defined to ``dark``. SGRLIST follows the same syntax
-                      than used in ``LS_COLORS``. Each element in SGRLIST is
-                      an output item associated to a Select Graphic Rendition
-                      (SGR) code. Elements in SGRLIST are separated by ``:``.
-                      Output items are designated by keys. Items able to be
-                      colorized are: highlighted element (``hi``), debug
-                      information (``db``), trace information (``tr``) tag
-                      separator (``se``); Error (``er``), warning (``wa``),
-                      module error (``me``) and info (``in``) message
-                      prefixes; Modulepath (``mp``), directory (``di``),
-                      module alias (``al``), module symbolic version (``sy``)
-                      and module ``default`` version (``de``). For a complete
-                      SGR code reference, see
-                      https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters.
-                      (default=\ ``hi=1:db=2:tr=2:se=2:er=91:wa=93:me=95:in=94:mp=1;94:di=94:al=96:sy=95:de=4:cm=92``)
---with-light-background-colors=SGRLIST
-                      Default color set to apply if terminal background color
-                      is defined to ``light``. Expect the same syntax than
-                      described for ``--with-dark-background-colors``.
-                      (default=\ ``hi=1:db=2:tr=2:se=2:er=31:wa=33:me=35:in=34:mp=1;34:di=34:al=36:sy=35:de=4:cm=32``)
---with-terminal-background=VALUE
-                      The terminal background color that determines the color
-                      set to apply by default between the ``dark`` background
-                      colors or the ``light`` background colors
-                      (default=\ ``dark``)
---with-locked-configs=CONFIGLIST
-                      Ignore environment variable superseding value for the
-                      listed configuration options. Accepted option names
-                      in CONFIGLIST are ``extra_siteconfig`` and
-                      ``implicit_default`` (each option name should be separated
-                      by whitespace character). (default=no)
---with-unload-match-order=VALUE
-                      When unloading a module if multiple loaded modules match
-                      the request, unload module loaded first
-                      (``returnfirst``) or module loaded last (``returnlast``)
-                      (default=\ ``returnlast``)
---with-search-match=VALUE
-                      When searching for a module with ``avail`` sub-command,
-                      match query string against module name start
-                      (``starts_with``) or any part of module name string
-                      (``contains``). (default=\ ``starts_with``)
---with-icase=VALUE    Apply a case insensitive match to module specification
-                      on ``avail``, ``whatis`` and ``paths`` sub-commands
-                      (when set to ``search``) or on all module sub-commands
-                      and modulefile Tcl commands for the module specification
-                      they receive as argument (when set to ``always``). Case
-                      insensitive match is disabled when this option is set to
-                      ``never``. (default=\ ``never``)
---with-nearly-forbidden-days=VALUE
-                      Define the number of days a module is considered nearly
-                      forbidden prior reaching its expiry date.
-                      (default=\ ``14``)
---with-tag-abbrev=ABBRVLIST
-                      Define the abbreviation to use when reporting each
-                      module tag. Each element in ABBRVLIST is a tag name
-                      associated to an abbreviation string (elements in
-                      ABBRVLIST are separated by ``:``).
-                      (default=\ ``auto-loaded=aL:loaded=L:hidden=H:forbidden=F:nearly-forbidden=nF``)
---with-tag-color-name=TAGLIST
-                      Define the tags whose graphical rendering should be
-                      applied over their name instead of over the name of the
-                      module they are attached to. Each element in TAGLIST is
-                      a tag name or abbreviation (elements in TAGLIST are
-                      separated by ``:``). (default=)
---with-modulepath=PATHLIST
-                      Default path list to setup as the default modulepaths.
-                      Each path in this list should be separated by ``:``.
-                      Defined value is registered in the ``modulerc`` or
-                      ``.modulespath`` configuration file, depending on the
-                      ``--enable-dotmodulespath`` option. These files are
-                      respectively called ``initrc`` and ``modulespath`` if
-                      ``--with-initconf-in`` is set to ``etcdir``. The path
-                      list value is read at initialization time to populate
-                      the MODULEPATH environment variable. By default, this
-                      modulepath is composed of the directory set for the
-                      system modulefiles (default=\ ``PREFIX/modulefiles`` or
-                      ``BASEPREFIX/$MODULE_VERSION/modulefiles`` if versioning
-                      installation mode enabled)
---with-loadedmodules=MODLIST
-                      Default modulefiles to load at Modules initialization
-                      time. Each modulefile in this list should be separated
-                      by ``:``. Defined value is registered in the
-                      ``modulerc`` configuration file or in the ``initrc``
-                      file if ``--with-initconf-in`` is set to ``etcdir``.
-                      (default=no)
---with-quarantine-vars=<VARNAME[=VALUE] ...>
-                      Environment variables to put in quarantine when running
-                      the module command to ensure it a sane execution
-                      environment (each variable should be separated by space
-                      character). A value can eventually be set to a
-                      quarantine variable instead of emptying it. (default=no)
---with-tcl            Directory containing the Tcl configuration script
-                      ``tclConfig.sh``. Useful to compile Modules
-                      compatibility version or Modules Tcl extension library
-                      if this file cannot be automatically found in default
-                      locations.
---with-tclinclude     Directory containing the Tcl header files. Useful to
-                      compile Modules compatibility version or Modules Tcl
-                      extension library if these headers cannot be
-                      automatically found in default locations.
---with-python=BIN     Name or full path of Python interpreter command to set
-                      as shebang for helper scripts. (default=\ ``python``)
+.. instopt:: --with-bin-search-path=PATHLIST
+
+ List of paths to look at when searching the location of tools required to
+ build and configure Modules (default=\ ``/usr/bin:/bin:/usr/local/bin``)
+
+.. instopt:: --with-moduleshome
+
+  Location of the main Modules package file directory (default=\ ``PREFIX``)
+
+.. instopt:: --with-initconf-in=VALUE
+
+ Location where to install Modules initialization configuration files. Either
+ ``initdir`` or ``etcdir`` (default=\ ``initdir``)
+
+.. instopt:: --with-tclsh=BIN
+
+ Name or full path of Tcl interpreter shell (default=\ ``tclsh``)
+
+.. instopt:: --with-pager=BIN
+
+ Name or full path of default pager program to use to paginate informational
+ message output (can be superseded at run-time by environment variable)
+ (default=\ ``less``)
+
+.. instopt:: --with-pager-opts=OPTLIST
+
+ Settings to apply to default pager program (default=\ ``-eFKRX``)
+
+.. instopt:: --with-verbosity=VALUE
+
+ Specify default message verbosity. accepted values are ``silent``,
+ ``concise``, ``normal``, ``verbose``, ``verbose2``, ``trace``, ``debug`` and
+ ``debug2``.  (default=\ ``normal``)
+
+.. instopt:: --with-dark-background-colors=SGRLIST
+
+ Default color set to apply if terminal background color is defined to
+ ``dark``. SGRLIST follows the same syntax than used in ``LS_COLORS``. Each
+ element in SGRLIST is an output item associated to a Select Graphic Rendition
+ (SGR) code. Elements in SGRLIST are separated by ``:``.  Output items are
+ designated by keys. Items able to be colorized are: highlighted element
+ (``hi``), debug information (``db``), trace information (``tr``) tag
+ separator (``se``); Error (``er``), warning (``wa``), module error (``me``)
+ and info (``in``) message prefixes; Modulepath (``mp``), directory (``di``),
+ module alias (``al``), module symbolic version (``sy``) and module
+ ``default`` version (``de``). For a complete SGR code reference, see
+ https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters.
+ (default=\ ``hi=1:db=2:tr=2:se=2:er=91:wa=93:me=95:in=94:mp=1;94:di=94:al=96:sy=95:de=4:cm=92``)
+
+.. instopt:: --with-light-background-colors=SGRLIST
+
+ Default color set to apply if terminal background color is defined to
+ ``light``. Expect the same syntax than described for
+ ``--with-dark-background-colors``.
+ (default=\ ``hi=1:db=2:tr=2:se=2:er=31:wa=33:me=35:in=34:mp=1;34:di=34:al=36:sy=35:de=4:cm=32``)
+
+.. instopt:: --with-terminal-background=VALUE
+
+ The terminal background color that determines the color set to apply by
+ default between the ``dark`` background colors or the ``light`` background
+ colors (default=\ ``dark``)
+
+.. instopt:: --with-locked-configs=CONFIGLIST
+
+ Ignore environment variable superseding value for the listed configuration
+ options. Accepted option names in CONFIGLIST are ``extra_siteconfig`` and
+ ``implicit_default`` (each option name should be separated by whitespace
+ character). (default=no)
+
+.. instopt:: --with-unload-match-order=VALUE
+
+ When unloading a module if multiple loaded modules match the request, unload
+ module loaded first (``returnfirst``) or module loaded last (``returnlast``)
+ (default=\ ``returnlast``)
+
+.. instopt:: --with-search-match=VALUE
+
+ When searching for a module with ``avail`` sub-command, match query string
+ against module name start (``starts_with``) or any part of module name string
+ (``contains``). (default=\ ``starts_with``)
+
+.. instopt:: --with-icase=VALUE
+
+ Apply a case insensitive match to module specification on ``avail``,
+ ``whatis`` and ``paths`` sub-commands (when set to ``search``) or on all
+ module sub-commands and modulefile Tcl commands for the module specification
+ they receive as argument (when set to ``always``). Case insensitive match is
+ disabled when this option is set to ``never``. (default=\ ``never``)
+
+.. instopt:: --with-nearly-forbidden-days=VALUE
+
+ Define the number of days a module is considered nearly forbidden prior
+ reaching its expiry date.  (default=\ ``14``)
+
+.. instopt:: --with-tag-abbrev=ABBRVLIST
+
+ Define the abbreviation to use when reporting each module tag. Each element
+ in ABBRVLIST is a tag name associated to an abbreviation string (elements in
+ ABBRVLIST are separated by ``:``).
+ (default=\ ``auto-loaded=aL:loaded=L:hidden=H:forbidden=F:nearly-forbidden=nF``)
+
+.. instopt:: --with-tag-color-name=TAGLIST
+
+ Define the tags whose graphical rendering should be applied over their name
+ instead of over the name of the module they are attached to. Each element in
+ TAGLIST is a tag name or abbreviation (elements in TAGLIST are separated by
+ ``:``). (default=)
+
+.. instopt:: --with-modulepath=PATHLIST
+
+ Default path list to setup as the default modulepaths.  Each path in this
+ list should be separated by ``:``.  Defined value is registered in the
+ ``modulerc`` or ``.modulespath`` configuration file, depending on the
+ ``--enable-dotmodulespath`` option. These files are respectively called
+ ``initrc`` and ``modulespath`` if ``--with-initconf-in`` is set to
+ ``etcdir``. The path list value is read at initialization time to populate
+ the MODULEPATH environment variable. By default, this modulepath is composed
+ of the directory set for the system modulefiles
+ (default=\ ``PREFIX/modulefiles`` or
+ ``BASEPREFIX/$MODULE_VERSION/modulefiles`` if versioning installation mode
+ enabled)
+
+.. instopt:: --with-loadedmodules=MODLIST
+
+ Default modulefiles to load at Modules initialization time. Each modulefile
+ in this list should be separated by ``:``. Defined value is registered in the
+ ``modulerc`` configuration file or in the ``initrc`` file if
+ ``--with-initconf-in`` is set to ``etcdir``.  (default=no)
+
+.. instopt:: --with-quarantine-vars=<VARNAME[=VALUE] ...>
+
+ Environment variables to put in quarantine when running the module command to
+ ensure it a sane execution environment (each variable should be separated by
+ space character). A value can eventually be set to a quarantine variable
+ instead of emptying it. (default=no)
+
+.. instopt:: --with-tcl
+
+ Directory containing the Tcl configuration script ``tclConfig.sh``. Useful to
+ compile Modules compatibility version or Modules Tcl extension library if
+ this file cannot be automatically found in default locations.
+
+.. instopt:: --with-tclinclude
+
+ Directory containing the Tcl header files. Useful to compile Modules
+ compatibility version or Modules Tcl extension library if these headers
+ cannot be automatically found in default locations.
+
+.. instopt:: --with-python=BIN
+
+ Name or full path of Python interpreter command to set as shebang for helper
+ scripts. (default=\ ``python``)
