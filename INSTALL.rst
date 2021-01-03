@@ -337,12 +337,12 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 .. instopt:: --enable-implicit-requirement
 
  Implicitly define a prereq or a conflict requirement toward modules specified
- respectively on ``module load`` or ``module unload`` commands in modulefile.
- (default=yes)
+ respectively on :mfcmd:`module load<module>` or :mfcmd:`module
+ unload<module>` commands in modulefile. (default=yes)
 
 .. instopt:: --enable-avail-indepth
 
- When performing an ``avail`` sub-command, include in search results the
+ When performing an :subcmd:`avail` sub-command, include in search results the
  matching modulefiles and directories and recursively the modulefiles and
  directories contained in these matching directories when enabled or limit
  search results to the matching modulefiles and directories found at the depth
@@ -370,8 +370,8 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 
 .. instopt:: --enable-ml
 
- Define the ``ml`` command, a handy frontend to the module command, when
- Modules initializes. (default=yes)
+ Define the :command:`ml` command, a handy frontend to the module command,
+ when Modules initializes. (default=yes)
 
 .. instopt:: --enable-color
 
@@ -388,9 +388,9 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 
 .. instopt:: --enable-windows-support
 
- Install all required files for Windows platform (``module``, ``ml`` and
- ``envml`` command batch file and ``cmd.cmd`` initialization script).
- (default=no)
+ Install all required files for Windows platform (:command:`module`,
+ :command:`ml` and :command:`envml` command batch file and ``cmd.cmd``
+ initialization script). (default=no)
 
 Optional Packages (the default for each option is displayed within
 parenthesis, to disable an option replace ``with`` by ``without`` for
@@ -473,17 +473,18 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
 .. instopt:: --with-search-match=VALUE
 
- When searching for a module with ``avail`` sub-command, match query string
- against module name start (``starts_with``) or any part of module name string
- (``contains``). (default=\ ``starts_with``)
+ When searching for a module with :subcmd:`avail` sub-command, match query
+ string against module name start (``starts_with``) or any part of module name
+ string (``contains``). (default=\ ``starts_with``)
 
 .. instopt:: --with-icase=VALUE
 
- Apply a case insensitive match to module specification on ``avail``,
- ``whatis`` and ``paths`` sub-commands (when set to ``search``) or on all
- module sub-commands and modulefile Tcl commands for the module specification
- they receive as argument (when set to ``always``). Case insensitive match is
- disabled when this option is set to ``never``. (default=\ ``never``)
+ Apply a case insensitive match to module specification on :subcmd:`avail`,
+ :subcmd:`whatis` and :subcmd:`paths` sub-commands (when set to ``search``) or
+ on all module sub-commands and modulefile Tcl commands for the module
+ specification they receive as argument (when set to ``always``). Case
+ insensitive match is disabled when this option is set to ``never``.
+ (default=\ ``never``)
 
 .. instopt:: --with-nearly-forbidden-days=VALUE
 
