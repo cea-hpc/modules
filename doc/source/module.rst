@@ -754,9 +754,12 @@ Module Sub-Commands
 
     .. versionadded:: 4.1
 
-.. subcmd:: purge
+.. subcmd:: purge [-f]
 
  Unload all loaded *modulefiles*.
+
+ When the :option:`--force` option is set, also unload modulefiles that are
+ depended by unloadable modules.
 
 .. subcmd:: refresh
 
