@@ -208,6 +208,10 @@ is displayed within brakets):
  Directory for the executable configuration scripts
  [``PREFIX/etc``]
 
+ .. only:: html
+
+    .. versionadded:: 4.1
+
 .. instopt:: --initdir=DIR
 
  Directory for the per-shell environment initialization scripts
@@ -230,10 +234,18 @@ is displayed within brakets):
 
  Directory to host Vim addon files [``DATAROOTDIR/vim/vimfiles``]
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. instopt:: --modulefilesdir=DIR
 
  Directory of main modulefiles also called system modulefiles
  [``PREFIX/modulefiles``]
+
+ .. only:: html
+
+    .. versionadded:: 4.0
 
 Optional Features (the default for each option is displayed within
 parenthesis, to disable an option replace ``enable`` by ``disable`` for
@@ -245,20 +257,36 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  MANPATH environment variable in the shell initialization scripts.
  (default=yes)
 
+ .. only:: html
+
+    .. versionadded:: 4.0
+
 .. instopt:: --enable-append-manpath
 
  Append rather prepend man page directory to the MANPATH environment variable
  when the :instopt:`--enable-set-manpath` option is enabled. (default=no)
+
+ .. only:: html
+
+    .. versionadded:: 4.2
 
 .. instopt:: --enable-set-binpath
 
  Prepend binary directory defined by the :instopt:`--bindir` option to the
  PATH environment variable in the shell initialization scripts. (default=yes)
 
+ .. only:: html
+
+    .. versionadded:: 4.0
+
 .. instopt:: --enable-append-binpath
 
  Append rather prepend binary directory to the PATH environment variable when
  the :instopt:`--enable-set-binpath` option is enabled. (default=no)
+
+ .. only:: html
+
+    .. versionadded:: 4.2
 
 .. instopt:: --enable-dotmodulespath, --enable-modulespath
 
@@ -270,6 +298,13 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  configuration directory defined by the :instopt:`--etcdir` option rather than
  within the ``initrc`` file. (default=no)
 
+ .. only:: html
+
+    .. versionadded:: 4.0
+
+    .. versionchanged:: 4.3
+       Option ``--enable-modulespath`` added
+
 .. instopt:: --enable-doc-install
 
  Install the documentation files in the documentation directory defined with
@@ -278,15 +313,27 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  installation process handled via a package manager which handles by itself
  the installation of this kind of documents. (default=yes)
 
+ .. only:: html
+
+    .. versionadded:: 4.0
+
 .. instopt:: --enable-vim-addons
 
  Install the Vim addon files in the Vim addons directory defined with the
  :instopt:`--vimdatadir` option. (default=yes)
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. instopt:: --enable-example-modulefiles
 
  Install some modulefiles provided as example in the system modulefiles
  directory defined with the :instopt:`--modulefilesdir` option. (default=yes)
+
+ .. only:: html
+
+    .. versionadded:: 4.0
 
 .. instopt:: --enable-compat-version
 
@@ -295,16 +342,28 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  initialization script between the two installed version of Modules (by
  setting-up the ``switchml`` shell function or alias).  (default=no)
 
+ .. only:: html
+
+    .. versionadded:: 4.0
+
 .. instopt:: --enable-libtclenvmodules
 
  Build and install the Modules Tcl extension library which provides optimized
  Tcl commands for the modulecmd.tcl script.
+
+ .. only:: html
+
+    .. versionadded:: 4.3
 
 .. instopt:: --enable-multilib-support
 
  Support multilib systems by looking in modulecmd.tcl at an alternative
  location where to find the Modules Tcl extension library depending on current
  machine architecture.
+
+ .. only:: html
+
+    .. versionadded:: 4.6
 
 .. instopt:: --enable-versioning
 
@@ -318,15 +377,27 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  Generate code in module function definition and initialization scripts to add
  support for silencing shell debugging properties (default=yes)
 
+ .. only:: html
+
+    .. versionadded:: 4.2
+
 .. instopt:: --enable-set-shell-startup
 
  Set when module function is defined the shell startup file to ensure that the
  module function is still defined in sub-shells. (default=yes)
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. instopt:: --enable-quarantine-support
 
  Generate code in module function definition and initialization scripts to add
  support for the environment variable quarantine mechanism (default=yes)
+
+ .. only:: html
+
+    .. versionadded:: 4.2
 
 .. instopt:: --enable-auto-handling
 
@@ -334,11 +405,19 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  actions, like loading the pre-requisites of a modulefile when loading this
  modulefile. (default=no)
 
+ .. only:: html
+
+    .. versionadded:: 4.2
+
 .. instopt:: --enable-implicit-requirement
 
  Implicitly define a prereq or a conflict requirement toward modules specified
  respectively on :mfcmd:`module load<module>` or :mfcmd:`module
  unload<module>` commands in modulefile. (default=yes)
+
+ .. only:: html
+
+    .. versionadded:: 4.7
 
 .. instopt:: --enable-avail-indepth
 
@@ -348,6 +427,10 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  search results to the matching modulefiles and directories found at the depth
  level expressed by the search query if disabled. (default=yes)
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. instopt:: --enable-implicit-default
 
  Define an implicit default version, for modules with none explicitly defined,
@@ -356,11 +439,19 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  module passed for evaluation should be fully qualified elsewhere an error is
  returned. (default=yes)
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. instopt:: --enable-extended-default
 
  Allow to specify module versions by their starting part, i.e. substring
  separated from the rest of the version string by a ``.`` character.
  (default=no)
+
+ .. only:: html
+
+    .. versionadded:: 4.4
 
 .. instopt:: --enable-advanced-version-spec
 
@@ -368,16 +459,28 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  select module versions by specifying after the module name a version
  constraint prefixed by the ``@`` character. (default=no)
 
+ .. only:: html
+
+    .. versionadded:: 4.4
+
 .. instopt:: --enable-ml
 
  Define the :command:`ml` command, a handy frontend to the module command,
  when Modules initializes. (default=yes)
+
+ .. only:: html
+
+    .. versionadded:: 4.5
 
 .. instopt:: --enable-color
 
  Control if output should be colored by default or not.  A value of ``yes``
  equals to the ``auto`` color mode.  ``no`` equals to the ``never`` color
  mode. (default=no)
+
+ .. only:: html
+
+    .. versionadded:: 4.3
 
 .. instopt:: --enable-wa-277
 
@@ -386,11 +489,19 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  this workaround solves Tcsh history issue but weakens shell evaluation of the
  code produced by modulefiles.
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. instopt:: --enable-windows-support
 
  Install all required files for Windows platform (:command:`module`,
  :command:`ml` and :command:`envml` command batch file and ``cmd.cmd``
  initialization script). (default=no)
+
+ .. only:: html
+
+    .. versionadded:: 4.5
 
 Optional Packages (the default for each option is displayed within
 parenthesis, to disable an option replace ``with`` by ``without`` for
@@ -401,18 +512,34 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  List of paths to look at when searching the location of tools required to
  build and configure Modules (default=\ ``/usr/bin:/bin:/usr/local/bin``)
 
+ .. only:: html
+
+    .. versionadded:: 4.2
+
 .. instopt:: --with-moduleshome
 
-  Location of the main Modules package file directory (default=\ ``PREFIX``)
+ Location of the main Modules package file directory (default=\ ``PREFIX``)
+
+ .. only:: html
+
+    .. versionadded:: 4.4
 
 .. instopt:: --with-initconf-in=VALUE
 
  Location where to install Modules initialization configuration files. Either
  ``initdir`` or ``etcdir`` (default=\ ``initdir``)
 
+ .. only:: html
+
+    .. versionadded:: 4.1
+
 .. instopt:: --with-tclsh=BIN
 
  Name or full path of Tcl interpreter shell (default=\ ``tclsh``)
+
+ .. only:: html
+
+    .. versionadded:: 4.0
 
 .. instopt:: --with-pager=BIN
 
@@ -420,15 +547,27 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  message output (can be superseded at run-time by environment variable)
  (default=\ ``less``)
 
+ .. only:: html
+
+    .. versionadded:: 4.1
+
 .. instopt:: --with-pager-opts=OPTLIST
 
  Settings to apply to default pager program (default=\ ``-eFKRX``)
+
+ .. only:: html
+
+    .. versionadded:: 4.1
 
 .. instopt:: --with-verbosity=VALUE
 
  Specify default message verbosity. accepted values are ``silent``,
  ``concise``, ``normal``, ``verbose``, ``verbose2``, ``trace``, ``debug`` and
  ``debug2``.  (default=\ ``normal``)
+
+ .. only:: html
+
+    .. versionadded:: 4.3
 
 .. instopt:: --with-dark-background-colors=SGRLIST
 
@@ -445,6 +584,10 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters.
  (default=\ ``hi=1:db=2:tr=2:se=2:er=91:wa=93:me=95:in=94:mp=1;94:di=94:al=96:sy=95:de=4:cm=92``)
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. instopt:: --with-light-background-colors=SGRLIST
 
  Default color set to apply if terminal background color is defined to
@@ -452,11 +595,19 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  :instopt:`--with-dark-background-colors`.
  (default=\ ``hi=1:db=2:tr=2:se=2:er=31:wa=33:me=35:in=34:mp=1;34:di=34:al=36:sy=35:de=4:cm=32``)
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. instopt:: --with-terminal-background=VALUE
 
  The terminal background color that determines the color set to apply by
  default between the ``dark`` background colors or the ``light`` background
  colors (default=\ ``dark``)
+
+ .. only:: html
+
+    .. versionadded:: 4.3
 
 .. instopt:: --with-locked-configs=CONFIGLIST
 
@@ -465,17 +616,29 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  ``implicit_default`` (each option name should be separated by whitespace
  character). (default=no)
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. instopt:: --with-unload-match-order=VALUE
 
  When unloading a module if multiple loaded modules match the request, unload
  module loaded first (``returnfirst``) or module loaded last (``returnlast``)
  (default=\ ``returnlast``)
 
+ .. only:: html
+
+    .. versionadded:: 4.3
+
 .. instopt:: --with-search-match=VALUE
 
  When searching for a module with :subcmd:`avail` sub-command, match query
  string against module name start (``starts_with``) or any part of module name
  string (``contains``). (default=\ ``starts_with``)
+
+ .. only:: html
+
+    .. versionadded:: 4.3
 
 .. instopt:: --with-icase=VALUE
 
@@ -486,10 +649,18 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  insensitive match is disabled when this option is set to ``never``.
  (default=\ ``never``)
 
+ .. only:: html
+
+    .. versionadded:: 4.4
+
 .. instopt:: --with-nearly-forbidden-days=VALUE
 
  Define the number of days a module is considered nearly forbidden prior
  reaching its expiry date.  (default=\ ``14``)
+
+ .. only:: html
+
+    .. versionadded:: 4.6
 
 .. instopt:: --with-tag-abbrev=ABBRVLIST
 
@@ -498,12 +669,20 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  ABBRVLIST are separated by ``:``).
  (default=\ ``auto-loaded=aL:loaded=L:hidden=H:forbidden=F:nearly-forbidden=nF``)
 
+ .. only:: html
+
+    .. versionadded:: 4.7
+
 .. instopt:: --with-tag-color-name=TAGLIST
 
  Define the tags whose graphical rendering should be applied over their name
  instead of over the name of the module they are attached to. Each element in
  TAGLIST is a tag name or abbreviation (elements in TAGLIST are separated by
  ``:``). (default=)
+
+ .. only:: html
+
+    .. versionadded:: 4.7
 
 .. instopt:: --with-modulepath=PATHLIST
 
@@ -519,6 +698,10 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  ``BASEPREFIX/$MODULE_VERSION/modulefiles`` if versioning installation mode
  enabled)
 
+ .. only:: html
+
+    .. versionadded:: 4.0
+
 .. instopt:: --with-loadedmodules=MODLIST
 
  Default modulefiles to load at Modules initialization time. Each modulefile
@@ -526,12 +709,20 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  ``modulerc`` configuration file or in the ``initrc`` file if
  :instopt:`--with-initconf-in` is set to ``etcdir``.  (default=no)
 
+ .. only:: html
+
+    .. versionadded:: 4.0
+
 .. instopt:: --with-quarantine-vars=<VARNAME[=VALUE] ...>
 
  Environment variables to put in quarantine when running the module command to
  ensure it a sane execution environment (each variable should be separated by
  space character). A value can eventually be set to a quarantine variable
  instead of emptying it. (default=no)
+
+ .. only:: html
+
+    .. versionadded:: 4.1
 
 .. instopt:: --with-tcl
 
@@ -549,3 +740,7 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
  Name or full path of Python interpreter command to set as shebang for helper
  scripts. (default=\ ``python``)
+
+ .. only:: html
+
+    .. versionadded:: 4.5
