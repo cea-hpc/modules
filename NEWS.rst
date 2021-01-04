@@ -1237,7 +1237,7 @@ Modules 4.2.0 (2018-10-18)
   so it can be queried during their evaluation.
 * Rename ``_moduleraw`` shell function in ``_module_raw`` to use a common
   ``_module_`` prefix for all module-related internal shell functions.
-* Install: add ``--enable-append-binpath`` and ``--enable-append-binpath``
+* Install: add ``--enable-append-binpath`` and ``--enable-append-manpath``
   configure options to append rather prepend the bin or man directory when
   adding them to the relative environment variable.
 * Doc: clarify documentation for module usage on scripting language like Perl
