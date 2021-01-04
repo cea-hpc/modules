@@ -314,4 +314,7 @@ def setup(app):
                         objname='installation option',
                         indextemplate='pair: %s; installation option',
                         parse_node=parse_opt_args_node)
+    app.add_object_type('mconfig', 'mconfig',
+                        objname='module configuration option',
+                        indextemplate='pair: %s; module configuration option')
 

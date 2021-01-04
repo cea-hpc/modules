@@ -479,78 +479,181 @@ Module Sub-Commands
 
  Existing option *names* are:
 
- * ``advanced_version_spec``: advanced module version specification to finely
-   select modulefiles (defines environment variable
-   :envvar:`MODULES_ADVANCED_VERSION_SPEC` when set
- * ``auto_handling``: automated module handling mode (defines
-   :envvar:`MODULES_AUTO_HANDLING`)
- * ``avail_indepth``: :subcmd:`avail` sub-command in depth search mode
-   (defines :envvar:`MODULES_AVAIL_INDEPTH`)
- * ``avail_report_dir_sym``: display symbolic versions targeting directories
-   on :subcmd:`avail` sub-command
- * ``avail_report_mfile_sym``: display symbolic versions targeting modulefiles
-   on :subcmd:`avail` sub-command
- * ``collection_pin_version``: register exact modulefile version in collection
-   (defines :envvar:`MODULES_COLLECTION_PIN_VERSION`)
- * ``collection_target``: collection target which is valid for current system
-   (defines :envvar:`MODULES_COLLECTION_TARGET`)
- * ``color``: colored output mode (defines :envvar:`MODULES_COLOR`)
- * ``colors``: chosen colors to highlight output items (defines
-   :envvar:`MODULES_COLORS`)
- * ``contact``: modulefile contact address (defines :envvar:`MODULECONTACT`)
- * ``extended_default``: allow partial module version specification (defines
-   :envvar:`MODULES_EXTENDED_DEFAULT`)
- * ``extra_siteconfig``: additional site-specific configuration script
-   location (defines :envvar:`MODULES_SITECONFIG`)
- * ``home``: location of Modules package main directory (defines
-   :envvar:`MODULESHOME`)
- * ``icase``: enable case insensitive match (defines :envvar:`MODULES_ICASE`)
- * ``ignored_dirs``: directories ignored when looking for modulefiles
- * ``implicit_default``: set an implicit default version for modules (defines
-   :envvar:`MODULES_IMPLICIT_DEFAULT`)
- * ``implicit_requirement``: implicitly define a requirement onto modules
-   specified on :mfcmd:`module` commands in modulefile (defines
-   :envvar:`MODULES_IMPLICIT_REQUIREMENT`)
- * ``locked_configs``: configuration options that cannot be superseded
- * ``ml``: define :command:`ml` command at initialization time (defines
-   :envvar:`MODULES_ML`)
- * ``nearly_forbidden_days``: set the number of days a module should be
-   considered *nearly forbidden* prior reaching its expiry date (defines
-   :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS`)
- * ``pager``: text viewer to paginate message output (defines
-   :envvar:`MODULES_PAGER`)
- * ``rcfile``: global run-command file location (defines
-   :envvar:`MODULERCFILE`)
- * ``run_quarantine``: environment variables to indirectly pass to
-   :file:`modulecmd.tcl` (defines :envvar:`MODULES_RUN_QUARANTINE`)
- * ``silent_shell_debug``: disablement of shell debugging property for the
-   module command (defines :envvar:`MODULES_SILENT_SHELL_DEBUG`)
- * ``search_match``: module search match style (defines
-   :envvar:`MODULES_SEARCH_MATCH`)
- * ``set_shell_startup``: ensure module command definition by setting shell
-   startup file (defines :envvar:`MODULES_SET_SHELL_STARTUP`)
- * ``shells_with_ksh_fpath``: ensure module command is defined in ksh when it
-   is started as a sub-shell from the listed shells (defines
-   :envvar:`MODULES_SHELLS_WITH_KSH_FPATH`)
- * ``siteconfig``: primary site-specific configuration script location
- * ``tag_abbrev``: abbreviations to use to report module tags (defines
-   :envvar:`MODULES_TAG_ABBREV`)
- * ``tag_color_name``: tags whose name should be colored instead of module
-   name (defines :envvar:`MODULES_TAG_COLOR_NAME`)
- * ``tcl_ext_lib``: Modules Tcl extension library location
- * ``term_background``: terminal background color kind (defines
-   :envvar:`MODULES_TERM_BACKGROUND`)
- * ``unload_match_order``: unload firstly loaded or lastly loaded module
-   matching request (defines :envvar:`MODULES_UNLOAD_MATCH_ORDER`)
- * ``verbosity``: module command verbosity level (defines
-   :envvar:`MODULES_VERBOSITY`)
- * ``wa_277``: workaround for Tcsh history issue (defines
-   :envvar:`MODULES_WA_277`)
+ .. mconfig:: advanced_version_spec
 
- The options ``avail_report_dir_sym``, ``avail_report_mfile_sym``,
- ``ignored_dirs``, ``locked_configs``, ``siteconfig`` and ``tcl_ext_lib``
- cannot be altered. Moreover all options referred in ``locked_configs`` value
- are locked, thus they cannot be altered.
+  Advanced module version specification to finely select modulefiles. Defines
+  environment variable :envvar:`MODULES_ADVANCED_VERSION_SPEC` when set.
+
+ .. mconfig:: auto_handling
+
+  Automated module handling mode. Defines :envvar:`MODULES_AUTO_HANDLING`.
+
+ .. mconfig:: avail_indepth
+
+  :subcmd:`avail` sub-command in depth search mode. Defines
+  :envvar:`MODULES_AVAIL_INDEPTH`.
+
+ .. mconfig:: avail_report_dir_sym
+
+  Display symbolic versions targeting directories on :subcmd:`avail`
+  sub-command.
+
+  The value of this option cannot be altered.
+
+ .. mconfig:: avail_report_mfile_sym
+
+  Display symbolic versions targeting modulefiles on :subcmd:`avail`
+  sub-command.
+
+  The value of this option cannot be altered.
+
+ .. mconfig:: collection_pin_version
+
+  Register exact modulefile version in collection. Defines
+  :envvar:`MODULES_COLLECTION_PIN_VERSION`.
+
+ .. mconfig:: collection_target
+
+  Collection target which is valid for current system. Defines
+  :envvar:`MODULES_COLLECTION_TARGET`.
+
+ .. mconfig:: color
+
+  Colored output mode. Defines :envvar:`MODULES_COLOR`.
+
+ .. mconfig:: colors
+
+  Chosen colors to highlight output items. Defines
+  :envvar:`MODULES_COLORS`.
+
+ .. mconfig:: contact
+
+  Modulefile contact address. Defines :envvar:`MODULECONTACT`.
+
+ .. mconfig:: extended_default
+
+  Allow partial module version specification. Defines
+  :envvar:`MODULES_EXTENDED_DEFAULT`.
+
+ .. mconfig:: extra_siteconfig
+
+  Additional site-specific configuration script location. Defines
+  :envvar:`MODULES_SITECONFIG`.
+
+ .. mconfig:: home
+
+  Location of Modules package main directory. Defines
+  :envvar:`MODULESHOME`.
+
+ .. mconfig:: icase
+
+  Enable case insensitive match. Defines :envvar:`MODULES_ICASE`.
+
+ .. mconfig:: ignored_dirs
+
+  Directories ignored when looking for modulefiles.
+
+  The value of this option cannot be altered.
+
+ .. mconfig:: implicit_default
+
+  Set an implicit default version for modules. Defines
+  :envvar:`MODULES_IMPLICIT_DEFAULT`.
+
+ .. mconfig:: implicit_requirement
+
+  Implicitly define a requirement onto modules specified on :mfcmd:`module`
+  commands in modulefile. Defines :envvar:`MODULES_IMPLICIT_REQUIREMENT`.
+
+ .. mconfig:: locked_configs
+
+  Configuration options that cannot be superseded. All options referred in
+  :mconfig:`locked_configs` value are locked, thus their value cannot be
+  altered.
+
+  The value of this option cannot be altered.
+
+ .. mconfig:: ml
+
+  Define :command:`ml` command at initialization time. Defines
+  :envvar:`MODULES_ML`.
+
+ .. mconfig:: nearly_forbidden_days
+
+  Set the number of days a module should be considered *nearly forbidden*
+  prior reaching its expiry date. Defines
+  :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS`.
+
+ .. mconfig:: pager
+
+  Text viewer to paginate message output. Defines :envvar:`MODULES_PAGER`.
+
+ .. mconfig:: rcfile
+
+  Global run-command file location. Defines :envvar:`MODULERCFILE`.
+
+ .. mconfig:: run_quarantine
+
+  Environment variables to indirectly pass to :file:`modulecmd.tcl`. Defines
+  :envvar:`MODULES_RUN_QUARANTINE`.
+
+ .. mconfig:: silent_shell_debug
+
+  Disablement of shell debugging property for the module command. Defines
+  :envvar:`MODULES_SILENT_SHELL_DEBUG`.
+
+ .. mconfig:: search_match
+
+  Module search match style. Defines :envvar:`MODULES_SEARCH_MATCH`.
+
+ .. mconfig:: set_shell_startup
+
+  Ensure module command definition by setting shell startup file. Defines
+  :envvar:`MODULES_SET_SHELL_STARTUP`.
+
+ .. mconfig:: shells_with_ksh_fpath
+
+  Ensure module command is defined in ksh when it is started as a sub-shell
+  from the listed shells. Defines :envvar:`MODULES_SHELLS_WITH_KSH_FPATH`.
+
+ .. mconfig:: siteconfig
+
+  Primary site-specific configuration script location.
+
+  The value of this option cannot be altered.
+
+ .. mconfig:: tag_abbrev
+
+  Abbreviations to use to report module tags. Defines
+  :envvar:`MODULES_TAG_ABBREV`.
+
+ .. mconfig:: tag_color_name
+
+  Tags whose name should be colored instead of module name. Defines
+  :envvar:`MODULES_TAG_COLOR_NAME`.
+
+ .. mconfig:: tcl_ext_lib
+
+  Modules Tcl extension library location.
+
+  The value of this option cannot be altered.
+
+ .. mconfig:: term_background
+
+  Terminal background color kind. Defines :envvar:`MODULES_TERM_BACKGROUND`.
+
+ .. mconfig:: unload_match_order
+
+  Unload firstly loaded or lastly loaded module matching request. Defines
+  :envvar:`MODULES_UNLOAD_MATCH_ORDER`.
+
+ .. mconfig:: verbosity
+
+  Module command verbosity level. Defines :envvar:`MODULES_VERBOSITY`.
+
+ .. mconfig:: wa_277
+
+  Workaround for Tcsh history issue. Defines :envvar:`MODULES_WA_277`.
 
  .. only:: html
 
