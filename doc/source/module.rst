@@ -484,6 +484,10 @@ Module Sub-Commands
   Advanced module version specification to finely select modulefiles. Defines
   environment variable :envvar:`MODULES_ADVANCED_VERSION_SPEC` when set.
 
+  .. only:: html
+
+     .. versionadded:: 4.4
+
  .. mconfig:: auto_handling
 
   Automated module handling mode. Defines :envvar:`MODULES_AUTO_HANDLING`.
@@ -535,6 +539,10 @@ Module Sub-Commands
   Allow partial module version specification. Defines
   :envvar:`MODULES_EXTENDED_DEFAULT`.
 
+  .. only:: html
+
+     .. versionadded:: 4.4
+
  .. mconfig:: extra_siteconfig
 
   Additional site-specific configuration script location. Defines
@@ -545,9 +553,17 @@ Module Sub-Commands
   Location of Modules package main directory. Defines
   :envvar:`MODULESHOME`.
 
+  .. only:: html
+
+     .. versionadded:: 4.4
+
  .. mconfig:: icase
 
   Enable case insensitive match. Defines :envvar:`MODULES_ICASE`.
+
+  .. only:: html
+
+     .. versionadded:: 4.4
 
  .. mconfig:: ignored_dirs
 
@@ -565,6 +581,10 @@ Module Sub-Commands
   Implicitly define a requirement onto modules specified on :mfcmd:`module`
   commands in modulefile. Defines :envvar:`MODULES_IMPLICIT_REQUIREMENT`.
 
+  .. only:: html
+
+     .. versionadded:: 4.7
+
  .. mconfig:: locked_configs
 
   Configuration options that cannot be superseded. All options referred in
@@ -578,11 +598,19 @@ Module Sub-Commands
   Define :command:`ml` command at initialization time. Defines
   :envvar:`MODULES_ML`.
 
+  .. only:: html
+
+     .. versionadded:: 4.5
+
  .. mconfig:: nearly_forbidden_days
 
   Set the number of days a module should be considered *nearly forbidden*
   prior reaching its expiry date. Defines
   :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS`.
+
+  .. only:: html
+
+     .. versionadded:: 4.6
 
  .. mconfig:: pager
 
@@ -616,6 +644,10 @@ Module Sub-Commands
   Ensure module command is defined in ksh when it is started as a sub-shell
   from the listed shells. Defines :envvar:`MODULES_SHELLS_WITH_KSH_FPATH`.
 
+  .. only:: html
+
+     .. versionadded:: 4.7
+
  .. mconfig:: siteconfig
 
   Primary site-specific configuration script location.
@@ -627,10 +659,18 @@ Module Sub-Commands
   Abbreviations to use to report module tags. Defines
   :envvar:`MODULES_TAG_ABBREV`.
 
+  .. only:: html
+
+     .. versionadded:: 4.7
+
  .. mconfig:: tag_color_name
 
   Tags whose name should be colored instead of module name. Defines
   :envvar:`MODULES_TAG_COLOR_NAME`.
+
+  .. only:: html
+
+     .. versionadded:: 4.7
 
  .. mconfig:: tcl_ext_lib
 
