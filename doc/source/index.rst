@@ -77,6 +77,14 @@ automatically configured to the correct architecture.
    MIGRATING
    NEWS
    FAQ
+   diff_v3_v4
+
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+   :caption: Examples
+
+   cookbook
 
 .. toctree::
    :hidden:
@@ -86,13 +94,11 @@ automatically configured to the correct architecture.
    ml
    module
    modulefile
-   diff_v3_v4
-   cookbook
 
 .. toctree::
    :hidden:
    :maxdepth: 2
-   :caption: Contributing
+   :caption: Development
 
    CONTRIBUTING
    design
