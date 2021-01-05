@@ -201,10 +201,10 @@ switches are accepted:
 
  On :subcmd:`avail` sub-command, display only the default version of each
  module name. Default version is the explicitly set default version or also
- the implicit default version if the configuration option ``implicit_default``
- is enabled (see :ref:`Locating Modulefiles` section in the
- :ref:`modulefile(4)` man page for further details on implicit default
- version).
+ the implicit default version if the configuration option
+ :mconfig:`implicit_default` is enabled (see :ref:`Locating Modulefiles`
+ section in the :ref:`modulefile(4)` man page for further details on implicit
+ default version).
 
  .. only:: html
 
@@ -951,8 +951,8 @@ Module Sub-Commands
 
  If a module, without a default version explicitly defined, is recorded in a
  *collection* by its bare name: loading this module when restoring the
- collection will fail if the configuration option ``implicit_default`` is
- disabled.
+ collection will fail if the configuration option :mconfig:`implicit_default`
+ is disabled.
 
  .. only:: html
 
@@ -976,8 +976,8 @@ Module Sub-Commands
 
  By default, if a loaded modulefile corresponds to the explicitly defined
  default module version, the bare module name is recorded. If the
- configuration option ``implicit_default`` is enabled, the bare module name is
- also recorded for the implicit default module version. If
+ configuration option :mconfig:`implicit_default` is enabled, the bare module
+ name is also recorded for the implicit default module version. If
  :envvar:`MODULES_COLLECTION_PIN_VERSION` is set to ``1``, module version is
  always recorded even if it is the default version.
 
@@ -1480,7 +1480,7 @@ ENVIRONMENT
  If set to ``1``, register exact version number of modulefiles when saving a
  collection. Otherwise modulefile version number is omitted if it corresponds
  to the explicitly set default version and also to the implicit default when
- the configuration option ``implicit_default`` is enabled.
+ the configuration option :mconfig:`implicit_default` is enabled.
 
  .. only:: html
 
@@ -1605,7 +1605,7 @@ ENVIRONMENT
  :envvar:`MODULES_IMPLICIT_DEFAULT` section)
 
  This environment variable supersedes the value of the configuration option
- ``extended_default`` set in :file:`modulecmd.tcl` script.
+ :mconfig:`extended_default` set in :file:`modulecmd.tcl` script.
 
  .. only:: html
 
@@ -1659,9 +1659,9 @@ ENVIRONMENT
  implicit default version is defined.
 
  This environment variable supersedes the value of the configuration option
- ``implicit_default`` set in :file:`modulecmd.tcl` script. This environment
- variable is ignored if ``implicit_default`` has been declared locked in
- ``locked_configs`` configuration option.
+ :mconfig:`implicit_default` set in :file:`modulecmd.tcl` script. This
+ environment variable is ignored if :mconfig:`implicit_default` has been
+ declared locked in :mconfig:`locked_configs` configuration option.
 
  .. only:: html
 
@@ -1677,7 +1677,7 @@ ENVIRONMENT
  :mfcmd:`module switch <module>` commands used in modulefile.
 
  This environment variable supersedes the value of the configuration option
- ``implicit_requirement`` set in :file:`modulecmd.tcl` script.
+ :mconfig:`implicit_requirement` set in :file:`modulecmd.tcl` script.
  :envvar:`MODULES_IMPLICIT_REQUIREMENT` is in turn superseded by the
  ``--not-req`` option that applies to a :mfcmd:`module` command in a
  modulefile.
@@ -1944,8 +1944,8 @@ ENVIRONMENT
  Location of a site-specific configuration script to source into
  :file:`modulecmd.tcl`. See also `Modulecmd startup`_ section.
 
- This environment variable is ignored if ``extra_siteconfig`` has been
- declared locked in ``locked_configs`` configuration option.
+ This environment variable is ignored if :mconfig:`extra_siteconfig` has been
+ declared locked in :mconfig:`locked_configs` configuration option.
 
  .. only:: html
 

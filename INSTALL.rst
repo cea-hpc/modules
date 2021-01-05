@@ -612,9 +612,9 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 .. instopt:: --with-locked-configs=CONFIGLIST
 
  Ignore environment variable superseding value for the listed configuration
- options. Accepted option names in CONFIGLIST are ``extra_siteconfig`` and
- ``implicit_default`` (each option name should be separated by whitespace
- character). (default=no)
+ options. Accepted option names in CONFIGLIST are :mconfig:`extra_siteconfig`
+ and :mconfig:`implicit_default` (each option name should be separated by
+ whitespace character). (default=no)
 
  .. only:: html
 

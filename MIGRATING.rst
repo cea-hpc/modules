@@ -525,11 +525,12 @@ also be defined here with the ``--nearly-message`` option to guide users.
         Version 1.0 will soon expire, please now use version 2.0
 
 The range of time the *nearly forbidden* warning appears can be controlled
-with the ``nearly_forbidden_days`` configuration option, whose value equals to
-the number of days prior the module starts to be forbidden. This configuration
-is set to ``14`` (days) by default and this value can be controlled at
-:file:`configure` time with :instopt:`--with-nearly-forbidden-days` option.
-When the ``nearly_forbidden_days`` configuration is set through the
+with the :mconfig:`nearly_forbidden_days` configuration option, whose value
+equals to the number of days prior the module starts to be forbidden. This
+configuration is set to ``14`` (days) by default and this value can be
+controlled at :file:`configure` time with
+:instopt:`--with-nearly-forbidden-days` option. When the
+:mconfig:`nearly_forbidden_days` configuration is set through the
 :subcmd:`config` sub-command, the :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS`
 environment variable is set.
 
@@ -538,8 +539,8 @@ Tracing module execution
 
 The ``trace`` verbosity is introduced between the ``verbose`` and ``debug``
 levels to report details on module searches, resolutions, selections and
-evaluations. Trace mode can be enabled by setting the ``verbosity`` config to
-the ``trace`` value or by using the :option:`-T`/:option:`--trace`
+evaluations. Trace mode can be enabled by setting the :mconfig:`verbosity`
+config to the ``trace`` value or by using the :option:`-T`/:option:`--trace`
 command-line switches.
 
 To specifically render trace messages, the ``tr`` key is added to the color

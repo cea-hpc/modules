@@ -30,20 +30,20 @@ Modules 4.7.0 (not yet released)
 * Move the definition of the :envvar:`FPATH` environment variable for Modules
   initialization on ksh shell from the initialization script of this shell to
   the resulting output of the :subcmd:`autoinit` sub-command.
-* Introduce the ``shells_with_ksh_fpath`` configuration option to define a
-  list of shell where to ensure that any ksh sub-shell will get the module
-  function defined by use of the :envvar:`FPATH` environment variable. When
-  the ``shells_with_ksh_fpath`` option is set through the :subcmd:`config`
-  sub-command, the :envvar:`MODULES_SHELLS_WITH_KSH_FPATH` environment
-  variable is set.
-* Add the ``implicit_requirement`` configuration option to control whether a
-  prereq or a conflict requirement should be implicitly set onto modules
-  respectively specified on :mfcmd:`module load<module>` or
+* Introduce the :mconfig:`shells_with_ksh_fpath` configuration option to
+  define a list of shell where to ensure that any ksh sub-shell will get the
+  module function defined by use of the :envvar:`FPATH` environment variable.
+  When the :mconfig:`shells_with_ksh_fpath` option is set through the
+  :subcmd:`config` sub-command, the :envvar:`MODULES_SHELLS_WITH_KSH_FPATH`
+  environment variable is set.
+* Add the :mconfig:`implicit_requirement` configuration option to control
+  whether a prereq or a conflict requirement should be implicitly set onto
+  modules respectively specified on :mfcmd:`module load<module>` or
   :mfcmd:`module unload<module>` commands in modulefile. Default value for
   this option could be set at configure time with the
   :instopt:`--enable-implicit-requirement` option (enabled by default). This
-  value could be superseded by setting up the ``implicit_requirement`` option
-  with :subcmd:`config` sub-command. Which sets the
+  value could be superseded by setting up the :mconfig:`implicit_requirement`
+  option with :subcmd:`config` sub-command. Which sets the
   :envvar:`MODULES_IMPLICIT_REQUIREMENT` environment variable. (fix issue
   #260)
 * Add the ``--not-req`` option to the :mfcmd:`module` modulefile command to
@@ -81,17 +81,17 @@ Modules 4.7.0 (not yet released)
   designated modulefile. Those tags are reported on :subcmd:`avail` and
   :subcmd:`list` sub-commands along the module they are attached to.
   :mfcmd:`module-tag` supports the advanced module version specifier syntax.
-* Add the ``tag_abbrev`` configuration option to define abbreviated strings
-  for module tags and use these abbreviations instead of tag names when
-  reporting tags on :subcmd:`avail` and :subcmd:`list` command results.
+* Add the :mconfig:`tag_abbrev` configuration option to define abbreviated
+  strings for module tags and use these abbreviations instead of tag names
+  when reporting tags on :subcmd:`avail` and :subcmd:`list` command results.
   Default value for this option could be set at configure time with the
   :instopt:`--with-tag-abbrev` option. By default the following abbreviations
   are set: ``aL`` for *auto-loaded*, ``F`` for *forbidden*, ``H`` for
   *hidden*, ``H`` for *hidden-loaded*, ``L`` for *loaded*, ``nF`` for
   *nearly-forbidden*, ``S`` for *sticky*, ``sS`` for *super-sticky*. This
-  value could be superseded by setting up the ``tag_abbrev`` option with
-  :subcmd:`config` sub-command. Which sets the :envvar:`MODULES_TAG_ABBREV`
-  environment variable.
+  value could be superseded by setting up the :mconfig:`tag_abbrev` option
+  with :subcmd:`config` sub-command. Which sets the
+  :envvar:`MODULES_TAG_ABBREV` environment variable.
 * A Select Graphic Rendition (SGR) code can be associated to module tag names
   or abbreviation strings in the color palette to graphically render these
   tags over the module name they are associated to. The default light and dark
@@ -100,12 +100,12 @@ Modules 4.7.0 (not yet released)
   over the module names and not reported along module name by its tag name or
   abbreviation. When multiple colored tags apply to a given module, each tag
   is graphically rendered over a sub-part of the module name.
-* Add the ``tag_color_name`` configuration option to designate module tags
-  whose graphical rendering should be applied to their own name or
+* Add the :mconfig:`tag_color_name` configuration option to designate module
+  tags whose graphical rendering should be applied to their own name or
   abbreviation rather than over the module name they are attached to.
   Default value for this option could be set at configure time with the
   :instopt:`--with-tag-color-name` option (empty by default). This value could
-  be superseded by setting up the ``tag_color_name`` option with
+  be superseded by setting up the :mconfig:`tag_color_name` option with
   :subcmd:`config` sub-command. Which sets the
   :envvar:`MODULES_TAG_COLOR_NAME` environment variable.
 * Add the ``--hidden-loaded`` option to the :mfcmd:`module-hide` modulefile
@@ -118,9 +118,9 @@ Modules 4.7.0 (not yet released)
 * Doc: add an ``hidden-loaded`` example in the *Hide and forbid modules*
   cookbook recipe.
 * Introduce the ``verbose2`` verbosity level between ``verbose`` and ``trace``
-  levels. Verbose2 mode can be enabled by setting the ``verbosity`` config to
-  the ``verbose2`` value or by using the :option:`-v` command-line switch
-  twice.
+  levels. Verbose2 mode can be enabled by setting the :mconfig:`verbosity`
+  config to the ``verbose2`` value or by using the :option:`-v` command-line
+  switch twice.
 * Do not report the load, unload or switch of modules set ``hidden-loaded`` if
   these modules have been loaded, unloaded or switched automatically. Unless
   the verbosity mode is set to ``verbose2`` or any higher level or if any
@@ -297,11 +297,12 @@ Modules 4.6.0 (2020-09-16)
   the ``--after`` option of a matching :mfcmd:`module-forbid` command is near)
   is evaluated, warn user this module access will soon be denied.
 * The range of time the above warning appears can be controlled with the
-  ``nearly_forbidden_days`` configuration option, whose value equals to the
-  number of days prior the module starts to be forbidden. This configuration
-  is set to ``14`` (days) by default and this value can be controlled at
-  :file:`configure` time with :instopt:`--with-nearly-forbidden-days` option.
-  When the ``nearly_forbidden_days`` configuration is set through the
+  :mconfig:`nearly_forbidden_days` configuration option, whose value equals to
+  the number of days prior the module starts to be forbidden. This
+  configuration is set to ``14`` (days) by default and this value can be
+  controlled at :file:`configure` time with
+  :instopt:`--with-nearly-forbidden-days` option. When the
+  :mconfig:`nearly_forbidden_days` configuration is set through the
   :subcmd:`config` sub-command, the :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS`
   environment variable is set.
 * Add ``--nearly-message`` option to :mfcmd:`module-forbid` modulefile command
@@ -309,7 +310,7 @@ Modules 4.6.0 (2020-09-16)
   forbidden module.
 * Add the ``debug2`` verbosity level, to report each call of
   :file:`modulecmd.tcl` internal procedures in addition to debug messages.
-  Debug2 mode can be enabled by setting the ``verbosity`` config to the
+  Debug2 mode can be enabled by setting the :mconfig:`verbosity` config to the
   ``debug2`` value or by using the :option:`-D` command-line switch twice.
 * Install: look for ``make`` rather ``gmake`` on MinGW and build library with
   a ``.dll`` extension on this platform.
@@ -436,8 +437,8 @@ Modules 4.5.0 (2020-04-07)
   accepts all command-line switches and sub-commands accepted by ``module``
   command. ``ml`` command is defined by default. Its definition can be
   controlled at ``./configure`` time with :instopt:`--enable-ml` option or
-  later on with ``ml`` configuration option (which defines ``MODULES_ML``
-  environment variable when set).
+  later on with :mconfig:`ml` configuration option (which defines
+  ``MODULES_ML`` environment variable when set).
 * Fix module sub-command abbreviation match to ensure passed abbreviated
   form fully match sub-command, not only its minimal abbreviated form. As an
   example, ``lod`` or ``loda`` do not match anymore the ``load``
@@ -568,10 +569,10 @@ Modules 4.5.0 (2020-04-07)
 * Doc: clarify hidden module location in :ref:`modulefile(4)` man page.
 * Install: define ``LD_PRELOAD`` as quarantine var along with
   ``LD_LIBRARY_PATH`` in RPM specfile.
-* When ``implicit_default`` and ``advanced_version_spec`` configuration are
-  enabled, automatically define a ``default`` and ``latest`` symbolic version
-  for each module name (at each module depth for deep modules) if those
-  version names does not already exist. (fix issue #210)
+* When :mconfig:`implicit_default` and :mconfig:`advanced_version_spec`
+  configuration are enabled, automatically define a ``default`` and ``latest``
+  symbolic version for each module name (at each module depth for deep
+  modules) if those version names does not already exist. (fix issue #210)
 * Once a module is loaded, the automatically defined symbols associated to it
   are recorded in loaded environment in the ``MODULES_LMALTNAME`` environment
   variable. They are distinguished from the other alternative names applying

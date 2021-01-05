@@ -277,7 +277,7 @@ the *modulefile* is being loaded.
  supplemented with the *text message* set through ``--message`` option.
 
  If ``--after`` option is set, modules are considered *nearly forbidden*
- during a number of days defined by the ``nearly_forbidden_days``
+ during a number of days defined by the :mconfig:`nearly_forbidden_days`
  :file:`modulecmd.tcl` configuration option
  (see :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS`), prior reaching the expiry
  date fixed by ``--after`` option. When a *nearly forbidden* module is
