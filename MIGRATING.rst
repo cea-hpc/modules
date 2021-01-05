@@ -119,6 +119,82 @@ load or unload, the new verbosity level ``verbose2`` can be used (with
     Loading foo/1.0
       Loading requirement: bar/1.0
 
+Stiky modules
+-------------
+
+Module stickyness is introduced, in a similar fashion than on the `Lmod`_
+project, to allow to glue modules to the loaded environment. A sticky module
+cannot be unloaded, unless if the unload action is forced or if the module
+reloads after being unloaded.
+
+A modulefile is declared *sticky* by applying it the ``sticky`` tag with the
+:mfcmd:`module-tag` modulefile command.
+
+.. code-block:: console
+
+    $ cat mp/foo/.modulerc
+    #%Module4.7
+    module-tag sticky foo/1.0
+    $ ml
+    Currently Loaded Modulefiles:
+     1) foo/1.0 <S>
+    $ ml -foo
+    Unloading foo/1.0
+      ERROR: Unload of sticky module 'foo/1.0' skipped
+    $ ml
+    Currently Loaded Modulefiles:
+     1) foo/1.0 <S>
+    $ ml --force -foo
+    Unloading foo/1.0
+      WARNING: Unload of sticky module 'foo/1.0' forced
+    $ ml
+    No Modulefiles Currently Loaded.
+
+
+Modulefile can also be defined ``super-sticky`` by applying the corresponding
+module tag. *Super-sticky* module cannot be unloaded even if the unload action
+is forced. It can only be unloaded if the module reloads afterward.
+
+.. code-block:: console
+
+    $ cat mp/bar/.modulerc
+    #%Module4.7
+    module-tag super-sticky bar/1.0
+    $ ml
+    Currently Loaded Modulefiles:
+     1) bar/1.0 <sS>
+    $ ml purge
+    Unloading bar/1.0
+      ERROR: Unload of super-sticky module 'bar/1.0' skipped
+    $ ml purge -f
+    Unloading bar/1.0
+      ERROR: Unload of super-sticky module 'bar/1.0' skipped
+    $ ml
+    Currently Loaded Modulefiles:
+     1) bar/1.0 <sS>
+
+Modulefiles targeted by a ``sticky`` or a ``super-sticky`` tag are colored on
+:subcmd:`avail` and :subcmd:`list` sub-command outputs to indicate such tag
+applies. If colored output is disabled a tag abbreviation is reported along
+module designation (respectively ``S`` and ``sS``).
+
+In case the stickyness applies to the generic module name (and does not target
+a specific module version or version-set), one version of the sticky or
+super-sticty module can be swapped by another version of this same module:
+
+.. code-block:: console
+
+    $ cat mp/baz/.modulerc
+    #%Module4.7
+    module-tag sticky baz
+    $ ml
+    Currently Loaded Modulefiles:
+     1) baz/2.0 <S>
+    $ ml switch baz/1.0
+    $ ml
+    Currently Loaded Modulefiles:
+     1) baz/1.0 <S>
+
 
 From v4.5 to v4.6
 =================
