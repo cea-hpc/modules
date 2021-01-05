@@ -68,6 +68,58 @@ If no version of specified module can be found loaded, an error is returned.
     $ ml display foo@loaded
     ERROR: No loaded version found for 'foo' module
 
+Hiding loaded modules
+---------------------
+
+The ``--hidden-loaded`` option has been added to the :mfcmd:`module-hide`
+modulefile command and it indicates that designated hidden modules remain
+hidden after being loaded.
+
+.. code-block:: console
+
+    $ cat /path/to/modulefiles/foo/1.0
+    #%Module
+    module load bar
+    $ cat /path/to/modulefiles/bar/.modulerc
+    #%Module4.7
+    module-hide --soft --hidden-loaded bar
+
+In this example, *foo* depends on *bar* which is set soft hidden and hidden
+once loaded. As a consequence, automated load of *bar* module will not be
+reported and *bar/1.0* will not appear in loaded module list by default:
+
+.. code-block:: console
+
+    $ ml foo
+    $ ml
+    Currently Loaded Modulefiles:
+     1) foo/1.0
+
+However *bar/1.0* is loaded. Hidden loaded modules can be unveiled with the
+:option:`--all`/:option:`-a` option set on the :subcmd:`list` sub-command.
+``hidden-loaded`` tag (abbreviated by default to ``H``) applies to such
+modules.
+
+.. code-block:: console
+
+    $ ml -a
+    Currently Loaded Modulefiles:
+     1) bar/1.0 <aL:H>   2) foo/1.0
+
+To also get the informational messages about hidden loaded module automated
+load or unload, the new verbosity level ``verbose2`` can be used (with
+:option:`-vv` option for instance):
+
+.. code-block:: console
+
+    $ ml purge
+    $ ml -vv foo
+    Loading bar/1.0
+
+    Loading foo/1.0
+      Loading requirement: bar/1.0
+
+
 From v4.5 to v4.6
 =================
 
