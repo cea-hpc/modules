@@ -644,6 +644,11 @@ the *modulefile* is being loaded.
  If *value* corresponds to the concatenation of multiple elements separated by
  colon, or *delimiter*, character, each element is treated separately.
 
+ .. only:: html
+
+    .. versionchanged:: 4.1
+       Option ``--duplicates`` added
+
 .. mfcmd:: prereq modulefile...
 
  See :mfcmd:`conflict`.
@@ -668,6 +673,11 @@ the *modulefile* is being loaded.
 
  If *value* corresponds to the concatenation of multiple elements separated by
  colon, or *delimiter*, character, each element is treated separately.
+
+ .. only:: html
+
+    .. versionchanged:: 4.1
+       Option ``--index`` added
 
 .. mfcmd:: set-alias alias-name alias-string
 

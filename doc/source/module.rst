@@ -394,6 +394,9 @@ Module Sub-Commands
 
     .. versionadded:: 4.0
 
+    .. versionchanged:: 4.6
+       Option :option:`--all`/:option:`-a` added
+
 .. subcmd:: append-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
  Append *value* to environment *variable*. The *variable* is a colon, or
@@ -443,6 +446,23 @@ Module Sub-Commands
  The parameter *path* may also refer to a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
+
+ .. only:: html
+
+    .. versionchanged:: 4.0
+       Options :option:`--default`/:option:`-d`,
+       :option:`--latest`/:option:`-L` added
+
+    .. versionchanged:: 4.3
+       Options :option:`--starts-with`/:option:`-S`,
+       :option:`--contains`/:option:`-C`, :option:`--indepth`,
+       :option:`--no-indepth` added
+
+    .. versionchanged:: 4.5
+       Option :option:`--json`/:option:`-j` added
+
+    .. versionchanged:: 4.6
+       Option :option:`--all`/:option:`-a` added
 
 .. subcmd:: clear [-f]
 
@@ -851,6 +871,14 @@ Module Sub-Commands
  Module tags applying to the loaded modules are reported along the module name
  they are associated to (see `Module tags`_ section).
 
+ .. only:: html
+
+    .. versionchanged:: 4.5
+       Option :option:`--json`/:option:`-j` added
+
+    .. versionchanged:: 4.7
+       Option :option:`--all`/:option:`-a` added
+
 .. subcmd:: load [--auto|--no-auto] [-f] modulefile...
 
  Load *modulefile* into the shell environment.
@@ -862,6 +890,12 @@ Module Sub-Commands
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
+
+ .. only:: html
+
+    .. versionchanged:: 4.2
+       Options :option:`--auto`, :option:`--no-auto`,
+       :option:`--force`/:option:`-f` added
 
 .. subcmd:: path modulefile
 
@@ -903,6 +937,11 @@ Module Sub-Commands
 
  When the :option:`--force` option is set, also unload modulefiles that are
  depended by unloadable modules.
+
+ .. only:: html
+
+    .. versionchanged:: 4.7
+       Option :option:`--force`/:option:`-f` added
 
 .. subcmd:: refresh
 
@@ -999,6 +1038,9 @@ Module Sub-Commands
 
     .. versionadded:: 4.0
 
+    .. versionchanged:: 4.5
+       Option :option:`--json`/:option:`-j` added
+
 .. subcmd:: saverm [collection]
 
  Delete the *collection* file under the user's collection directory. If
@@ -1036,6 +1078,12 @@ Module Sub-Commands
     .. versionadded:: 4.0
        Prior version `4.0` :mfcmd:`module-whatis` information search was
        performed with :subcmd:`apropos` or :subcmd:`keyword` sub-commands.
+
+    .. versionchanged:: 4.5
+       Option :option:`--json`/:option:`-j` added
+
+    .. versionchanged:: 4.6
+       Option :option:`--all`/:option:`-a` added
 
 .. subcmd:: sh-to-mod shell script [arg...]
 
@@ -1085,6 +1133,12 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+ .. only:: html
+
+    .. versionchanged:: 4.2
+       Options :option:`--auto`, :option:`--no-auto`,
+       :option:`--force`/:option:`-f` added
+
 .. subcmd:: test modulefile...
 
  Execute and display results of the Module-specific tests for the
@@ -1105,6 +1159,12 @@ Module Sub-Commands
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
+
+ .. only:: html
+
+    .. versionchanged:: 4.2
+       Options :option:`--auto`, :option:`--no-auto`,
+       :option:`--force`/:option:`-f` added
 
 .. subcmd:: unuse directory...
 
@@ -1139,6 +1199,14 @@ Module Sub-Commands
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
+
+ .. only:: html
+
+    .. versionchanged:: 4.5
+       Option :option:`--json`/:option:`-j` added
+
+    .. versionchanged:: 4.6
+       Option :option:`--all`/:option:`-a` added
 
 
 Modulefiles
