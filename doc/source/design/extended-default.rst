@@ -6,7 +6,7 @@ Extended default
 Configuration
 -------------
 
-- introduce ``extended_default`` option name
+- introduce :mconfig:`extended_default` option name
 - off by default in v4 as previously soft/1 was an error
 - on by default in v5, option could even disappear
 - set as a separate option than *advanced_version_spec*
@@ -40,7 +40,7 @@ Specification
 
     - e.g. *foo.2*
 
-- If ``implicit_default`` is disabled
+- If :mconfig:`implicit_default` is disabled
 
     - it makes ``extended_default`` inoperant if queried version does not include a defined default
     - even if only one modulefile matches query

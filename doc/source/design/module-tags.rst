@@ -11,7 +11,7 @@ Configuration
 Specification
 -------------
 
-- Introduce one new modulefile command to set tags on modulefiles: ``module-tag``
+- Introduce one new modulefile command to set tags on modulefiles: :mconfig:`module-tag`
 
     - A tag is a piece of information associated to individual modulefiles
     - That is reported along module name on ``avail`` or ``list`` sub-command results
@@ -36,9 +36,9 @@ Specification
 
 - Tags inherited from module state:
 
-    - ``hidden``: module not visible, not reported by default in ``avail`` result (tag acquired through ``module-hide``)
+    - ``hidden``: module not visible, not reported by default in ``avail`` result (tag acquired through :mfcmd:`module-hide`)
     - ``hidden-loaded``: loaded module not reported by default in ``list`` result (tag acquired through ``module-hide --hidden-loaded``)
-    - ``forbidden``: module that cannot be loaded (tag acquired through ``module-forbid``)
+    - ``forbidden``: module that cannot be loaded (tag acquired through :mfcmd:`module-forbid`)
     - ``nearly-forbidden``: module that soon cannot be loaded (tag acquired through ``module-forbid``)
     - ``loaded``: loaded module
     - ``auto-loaded``: module automatically loaded by another module
@@ -92,7 +92,7 @@ Defining
 Persistency
 ^^^^^^^^^^^
 
-- The ``MODULES_LMTAG`` environment variable holds all tag information applying to loaded modules
+- The :envvar:`MODULES_LMTAG` environment variable holds all tag information applying to loaded modules
 
     - Following the same syntax scheme than ``MODULES_LMCONFLICT``
     - For instance ``module/vers&tag&tag:module2&tag``
@@ -210,7 +210,7 @@ Abbreviations
 
 - Tag abbreviations are used to translate tag names when reporting them on ``avail`` or ``list`` sub-command output
 
-- The ``tag_abbrev`` configuration defines the abbreviations to apply to each tag
+- The :mconfig:`tag_abbrev` configuration defines the abbreviations to apply to each tag
 
     - Set by default at configure time to ``auto-loaded=aL:loaded=L:hidden=H:hidden-loaded=H:forbidden=F:nearly-forbidden=nF:sticky=S:super-sticky=sS``
 
@@ -226,7 +226,7 @@ Abbreviations
 
         - Unless if there is an SGR color configuration defined for this tag
 
-    - The ``MODULES_TAG_ABBREV`` environment variable is used to set a specific value for ``tag_abbrev`` configuration
+    - The :envvar:`MODULES_TAG_ABBREV` environment variable is used to set a specific value for ``tag_abbrev`` configuration
 
         - If ``MODULES_TAG_ABBREV`` is set to an empty string, no tag abbreviation applies
 
@@ -262,12 +262,12 @@ SGR
 
     - The remaining tags are reported by there name or abbreviation and SGR applies over this name or abbreviation
 
-- The ``MODULES_TAG_COLOR_NAME`` environment variable is used to define the tags whose name (or abbreviation if set) should be reported
+- The :envvar:`MODULES_TAG_COLOR_NAME` environment variable is used to define the tags whose name (or abbreviation if set) should be reported
 
     - Their name does not vanish if a SGR code is defined in the color list for them
     - Their SGR code is not rendered over the module name
     - Instead the SGR is applied to the reported tag name (or tag abbreviation if set)
-    - ``MODULES_TAG_COLOR_NAME`` is bound to the ``tag_color_name`` configuration
+    - ``MODULES_TAG_COLOR_NAME`` is bound to the :mconfig:`tag_color_name` configuration
     - ``MODULES_TAG_COLOR_NAME`` contains the list of tag name (or abbreviation), each tag separated with colon character (``:``)
     - If an abbreviation is defined for a tag and one want it to be reported by itself not rendered over module name
 
@@ -277,7 +277,7 @@ SGR
 Querying
 ^^^^^^^^
 
-- The ``tags`` sub-command of ``module-info`` modulefile command enables modulefile to know what tags apply to itself
+- The ``tags`` sub-command of :mfcmd:`module-info` modulefile command enables modulefile to know what tags apply to itself
 
     - ``module-info tags`` returns a list of all the tags applying to currently evaluated module
     - an empty list is returned when called from a modulerc evaluation context or if no tag applies to current modulefile

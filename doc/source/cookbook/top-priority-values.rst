@@ -8,10 +8,10 @@ wanted that among those modulefiles one should have the priority over the
 others and the value it sets should persist even if another modulefile
 loaded after attempts to alter the variable.
 
-When using the ``setenv`` modulefile command, a *top priority value* should
-persist over later setenv tries. On ``append-path`` modulefile command,
-this top priority value should stay last position and for ``prepend-path``
-modulefile command, value should stay first position.
+When using the :mfcmd:`setenv` modulefile command, a *top priority value*
+should persist over later setenv tries. On :mfcmd:`append-path` modulefile
+command, this top priority value should stay last position and for
+:mfcmd:`prepend-path` modulefile command, value should stay first position.
 
 Implementation
 --------------

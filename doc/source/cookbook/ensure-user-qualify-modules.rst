@@ -22,13 +22,14 @@ situation.
 Implementation
 --------------
 
-Starting version 4.3 of Modules, a new option called ``implicit_default`` is
-introduced. When enabled (which means configuration option is set to 1) if a
-module is specified by its generic name an implicit default is automatically
-defined (latest version) if no explicit default is defined. When
-``implicit_default`` configuration option is disabled (when set to 0), no
-implicit default is computed and an error is returned to user in case module
-has been specified by its generic name but no default version has been set.
+Starting version 4.3 of Modules, a new option called
+:mconfig:`implicit_default` is introduced. When enabled (which means
+configuration option is set to 1) if a module is specified by its generic name
+an implicit default is automatically defined (latest version) if no explicit
+default is defined. When ``implicit_default`` configuration option is disabled
+(when set to 0), no implicit default is computed and an error is returned to
+user in case module has been specified by its generic name but no default
+version has been set.
 
 So to ensure user fully qualify the modules they use, this
 ``implicit_default`` configuration option should be disabled. It could be
@@ -41,8 +42,8 @@ initialization script directory if this location is preferred).
    :caption: initrc
 
 It may be desired to lock this option, to ensure users do not alter it
-afterward. The ``lock_configs`` configuration option fills this need. By
-setting this option and the ``implicit_default`` in a site-specific
+afterward. The :mconfig:`locked_configs` configuration option fills this need.
+By setting this option and the ``implicit_default`` in a site-specific
 configuration script, users will not be able to change the
 ``implicit_default`` behavior you configure.
 

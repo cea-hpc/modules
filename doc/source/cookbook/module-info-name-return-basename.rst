@@ -3,21 +3,22 @@
 Return file basename on module-info name for full path modulefile
 =================================================================
 
-When module name is specified as a full pathname, the ``module-info name``
-command used in modulefile was returning the file basename on Modules
-compatibility version. Starting version 4 of Modules, the full pathname is
-returned when module is specified this way as once loaded this module is
-identified by its full pathname. This recipe describes a way to get back
-the behavior of Modules compatibility version for the ``module-info name``
-modulefile command.
+When module name is specified as a full pathname, the
+:mfcmd:`module-info name<module-info>` command used in modulefile was
+returning the file basename on Modules compatibility version. Starting version
+4 of Modules, the full pathname is returned when module is specified this way
+as once loaded this module is identified by its full pathname. This recipe
+describes a way to get back the behavior of Modules compatibility version for
+the ``module-info name`` modulefile command.
 
 Implementation
 --------------
 
-Return file basename on ``module-info name`` for modules specified as full
-path modulefile is implemented  by the use of a site-specific configuration
-that supersedes the definition of the ``module-info name`` command to return
-modulefile basename instead of full pathname.
+Return file basename on :mfcmd:`module-info name<module-info>` for modules
+specified as full path modulefile is implemented  by the use of a
+site-specific configuration that supersedes the definition of the
+:mfcmd:`module-info name<module-info>` command to return modulefile basename
+instead of full pathname.
 
 .. literalinclude:: ../../example/module-info-name-return-basename/siteconfig.tcl
    :language: tcl
@@ -58,7 +59,7 @@ Usage example
 -------------
 
 With an ``info/name`` modulefile that sets an environment variable with the
-result of the ``module-info name`` modulefile command:
+result of the :mfcmd:`module-info name<module-info>` modulefile command:
 
 .. literalinclude:: ../../example/module-info-name-return-basename/modulefiles/info/name
    :caption: info/name

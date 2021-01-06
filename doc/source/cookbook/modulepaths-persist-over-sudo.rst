@@ -6,9 +6,9 @@ Make defined modulepaths persist over sudo
 When running a command as another user with ``sudo``, current user environment
 is most of the time flushed for security concerns. As a result, if one would
 like to use the ``modulecmd.tcl`` script in such context, an error is returned
-as ``modulecmd.tcl`` does not find modulepath defined (``MODULEPATH`` variable
-is not set). Following recipe describes how to ensure the default modulepaths
-are set every time the ``modulecmd.tcl`` script is run.
+as ``modulecmd.tcl`` does not find modulepath defined (:envvar:`MODULEPATH`
+variable is not set). Following recipe describes how to ensure the default
+modulepaths are set every time the ``modulecmd.tcl`` script is run.
 
 Implementation
 --------------
@@ -19,7 +19,7 @@ modulefiles.
 
 To ensure modulepaths are always defined, a check could be added in this
 global RC file to verify at least one modulepath is set (thanks to the
-``is-used`` Tcl modulefile command). If no modulepath is found set, the
+:mfcmd:`is-used` Tcl modulefile command). If no modulepath is found set, the
 ``.modulespath`` configuration file, which contains the default modulepaths,
 can be parsed to enable on the fly the default modulepaths (with ``module
 use`` Tcl modulefile command).
@@ -46,8 +46,8 @@ setup.
 Usage example
 -------------
 
-Without the proposed RC file installed, ``MODULEPATH`` environment variable
-is lost through the ``sudo`` call::
+Without the proposed RC file installed, :envvar:`MODULEPATH` environment
+variable is lost through the ``sudo`` call::
 
    $ sudo $MODULES_CMD bash avail >/dev/null
    ERROR: No module path defined

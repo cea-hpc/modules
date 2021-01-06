@@ -15,7 +15,7 @@ Specification
 - Execute a shell script and include the environment changes it performs in modulefile
 
     - Environment changes done by shell script are gathered and evaluated in modulefile context through corresponding modulefile commands
-    - Goal is to get the same environment after loading a modulefile using a ``source-sh`` than if shell script targeted by the ``source-sh`` where directly sourced in shell session
+    - Goal is to get the same environment after loading a modulefile using a :mfcmd:`source-sh` than if shell script targeted by the ``source-sh`` where directly sourced in shell session
 
 - Environment changes tracked are (all environment elements ``module`` can handle):
 
@@ -49,7 +49,7 @@ Specification
 
     - To keep track of environment changes made by ``source-sh`` script evaluation
     - In order to undo these changes when unloading modulefile and report corresponding modulefile commands when displaying modulefile
-    - Environment variable ``MODULES_LMSOURCESH`` is used for this need
+    - Environment variable :envvar:`MODULES_LMSOURCESH` is used for this need
 
         - Using following syntax: ``mod&shell script arg|cmd|cmd|...&shell script|cmd:mod&shell script arg|cmd``
         - Example value: ``foo/1&sh /tmp/source.sh|append-path PATH /tmp|cd /tmp``
@@ -129,7 +129,7 @@ Specification
     - ``sh-to-mod`` procedure handles the evaluation of the targeted script and comparison of the environment prior and after this comparison
     - ``sh-to-mod`` returns as a result the list of modulefile commands describing the environment changes made by the analyzed script
 
-- ``sh-to-mod`` is a module sub-command, calling the ``sh-to-mod`` procedure and outputting resulting modulefile commands
+- :subcmd:`sh-to-mod` is a module sub-command, calling the ``sh-to-mod`` procedure and outputting resulting modulefile commands
 
     - with a ``#%Module`` header
     - to enable users to convert the environment changes made by script in modulefiles

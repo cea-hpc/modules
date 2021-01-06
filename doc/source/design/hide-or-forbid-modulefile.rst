@@ -72,7 +72,7 @@ Use cases
 Specification
 -------------
 
-- 2 new modulefile commands are introduced for the needs described above: ``module-hide`` and ``module-forbid``
+- 2 new modulefile commands are introduced for the needs described above: :mfcmd:`module-hide` and :mfcmd:`module-forbid`
 
 - ``module-hide`` removes visibility of specified modules
 
@@ -113,7 +113,7 @@ Specification
             - is excluded from ``module avail mod@:2`` result, even if default symbol targets it
             - is included in ``module avail mod@1.0,2.0`` result
 
-    - Included in module resolution result if ``--all`` option of ``avail``, ``whatis``, ``search`` and ``aliases`` sub-commands is set
+    - Included in module resolution result if :option:`--all` option of ``avail``, ``whatis``, ``search`` and ``aliases`` sub-commands is set
 
         - ``--all`` option does not apply to ``is-avail`` sub-command to make it coherent with ``load`` sub-command (eg. a ``is-avail mod`` returning true implies ``load mod`` effectively loading a module)
 
@@ -196,7 +196,7 @@ Specification
                 - If switched-off module were automatically loaded
                 - And if the switch evaluation has been automatically triggered
 
-        - When those modules are loaded, a ``hidden-loaded`` tag is applied to them and recorded in ``MODULES_LMTAG`` environment variable to keep track of their hidden status
+        - When those modules are loaded, a ``hidden-loaded`` tag is applied to them and recorded in :envvar:`MODULES_LMTAG` environment variable to keep track of their hidden status
         - Hidden once loaded status does not affect ``is-loaded``: these modules will always be reported if they match ``is-loaded`` queries
 
 - ``module-forbid`` disallow evaluation of specified modules
@@ -272,7 +272,7 @@ Specification
     - Accepted date time format is ``YYYY-MM-DD[THH:MM]``
     - If no time value is specified (just a date like ``2020-08-01``), *00:00* is assumed
 
-        - So `2020-08-01`` is translated into ``2020-08-01T00:00``
+        - So ``2020-08-01`` is translated into ``2020-08-01T00:00``
 
     - An error is raised if submitted date time value does not match accepted date time format
 
@@ -300,9 +300,9 @@ Specification
 
     - ``nearly-forbidden`` tag applies to such module
     - matched ``module-forbid`` statement should of course not be disabled for current user of group due to ``--not-user`` or ``--not-group`` option values
-    - the *near* range is defined by the ``nearly_forbidden_days`` configuration, which equals to ``14`` (14 days) by default
+    - the *near* range is defined by the :mconfig:`nearly_forbidden_days` configuration, which equals to ``14`` (14 days) by default
     - this configuration accepts an integer value which represents a number of days prior forbiding starts to be effective for module
-    - ``nearly_forbidden_days`` configuration can be set at configure time with ``--with-nearly-forbidden-days`` option or afterward with the ``config`` sub-command (which sets the ``MODULES_NEARLY_FORBIDDEN_DAYS`` environment variable)
+    - ``nearly_forbidden_days`` configuration can be set at configure time with :instopt:`--with-nearly-forbidden-days` option or afterward with the ``config`` sub-command (which sets the :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS` environment variable)
     - when evaluating a *nearly-forbidden* module, a warning message is reported to indicate that module access will soon be denied
 
 - ``--nearly-message`` option adds additional text to the *access will be denied* warning message
@@ -372,7 +372,7 @@ Specification
 
         - Unless for non-hard-hidden symbols specifically designated in search query
 
-    - A ``--default`` filtered search considers search query matches ``default`` symbol
+    - A :option:`--default` filtered search considers search query matches ``default`` symbol
 
         - So ``default`` symbolic version will appear in result unless if hard-hidden
 

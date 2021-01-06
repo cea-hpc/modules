@@ -6,9 +6,9 @@ Insensitive case
 Configuration
 -------------
 
-- Introduce the ``icase`` option name
+- Introduce the :mconfig:`icase` option name
 
-    - Which is made persistent through the ``MODULES_ICASE`` environment variable
+    - Which is made persistent through the :envvar:`MODULES_ICASE` environment variable
     - Many people asked for separate options as applying an icase approach to a module loading context is not seen desired by everybody whereas it is in an module search context
     - Defined levels of enablement are:
 
@@ -21,7 +21,7 @@ Configuration
         - ``never`` in v4 not to change existing behaviors
         - ``search`` in v5 as it seems to be a general improvement for everybody
 
-    - A command-line switch ``--icase`` (short form ``-i``) is added
+    - A command-line switch :option:`--icase` (short form :option:`-i`) is added
 
         - Was there in Modules 3 (for search sub-command only)
         - When set, equals to an ``always`` icase mode
@@ -78,7 +78,7 @@ Specification
 Corner cases
 ------------
 
-- When looking for the best match among loaded modules to select one module to unload, lastly loaded module, or firstly loaded module depending on ``unload_match_order`` configuration, will be returned
+- When looking for the best match among loaded modules to select one module to unload, lastly loaded module, or firstly loaded module depending on :mconfig:`unload_match_order` configuration, will be returned
 
     - When insensitive case is enabled, last or first icase match will be returned even if an exact match is present among the loaded module list
     - This behavior has an impact in case multiple available modules correspond to the same insensitive case string

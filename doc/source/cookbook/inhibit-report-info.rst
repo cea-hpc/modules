@@ -11,10 +11,10 @@ sometimes and here is a proposed way to inhibit them.
 Implementation
 --------------
 
-Starting version v4.3, a ``verbosity`` configuration option is introduced to
-increase or decrease the variety of the messages produced by the ``module``
-command. To inhibit the output of the info-level messages, the ``concise``
-verbosity level should be selected::
+Starting version v4.3, a :mconfig:`verbosity` configuration option is
+introduced to increase or decrease the variety of the messages produced by the
+``module`` command. To inhibit the output of the info-level messages, the
+``concise`` verbosity level should be selected::
 
    $ module config verbosity concise
 

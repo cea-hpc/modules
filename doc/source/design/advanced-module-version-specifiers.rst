@@ -6,17 +6,17 @@ Advanced module version specifiers
 Configuration
 -------------
 
-- Introduce ``advanced_version_spec`` option name
+- Introduce :mconfig:`advanced_version_spec` option name
 
     - off by default in v4 as previously *soft@1* could be a module name
     - on by default in v5
-    - in case ``extended_default`` is disabled
+    - in case :mconfig:`extended_default` is disabled
 
         - means short-hand notation cannot be used
 
             - for soft/1.1 query soft@1 returns nothing
 
-    - in case ``implicit_default`` is disabled
+    - in case :mconfig:`implicit_default` is disabled
 
         - means a default should be found over version range or list in selection context
 
@@ -112,7 +112,7 @@ Specification
     - version selection is performed same way for *@vers* than for */vers*
     - described in extended default design
 
-- when ``icase`` is enabled for selection context and multiple directories match module name
+- when :mconfig:`icase` is enabled for selection context and multiple directories match module name
 
     - for instance query is *ICase@1.1,1.2,1.4* and following modules exist: *ICASE/1.1*, *icase/1.2*, *iCaSe/1.3* and *iCaSe/1.4*
     - as no *ICase* directory exists, and a version in highest directory *icase* matches query (*1.2*), *icase/1.2* is returned
@@ -199,7 +199,7 @@ Specification
 
 - impact of advanced version specifier implementation over code
 
-    - question especially over ``auto_handling`` code like conflict and prereq handling
+    - question especially over :mconfig:`auto_handling` code like conflict and prereq handling
     - it should not impact triggers and actions
     - but consist in an overall change of procedures comparing queries against loaded environment
 

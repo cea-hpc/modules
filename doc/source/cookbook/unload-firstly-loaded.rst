@@ -11,8 +11,8 @@ restore the behavior of the v3 version.
 Implementation
 --------------
 
-Starting version v4.3, an ``unload_match_order`` configuration option is
-introduced to control whether firstly loaded module or lastly loaded module
+Starting version v4.3, an :mconfig:`unload_match_order` configuration option
+is introduced to control whether firstly loaded module or lastly loaded module
 should be selected for the unload. To select firstly loaded module::
 
    $ module config unload_match_order returnfirst

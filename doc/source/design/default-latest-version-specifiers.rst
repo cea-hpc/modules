@@ -6,7 +6,7 @@ Default and latest version specifiers
 Configuration
 -------------
 
-- Rely on ``advanced_version_spec`` option
+- Rely on :mconfig:`advanced_version_spec` option
 
     - No need for an extra configuration option
     - When option is on it automatically enables use of these two new version specifiers
@@ -63,7 +63,7 @@ Specification
     - in loaded environment for each targeted module loaded
     - to keep track loaded module is default or latest version
     - thus keeping ability to answer queries like ``is-loaded mod@latest`` from further modulefile evaluation or module command-line
-    - this information is kept in the ``MODULES_LMALTNAME`` environment variable, along other alternative names
+    - this information is kept in the :envvar:`MODULES_LMALTNAME` environment variable, along other alternative names
     - Auto symbols in this variable are recorded with a ``as|`` prefix to distinguish them from other alternative names
 
         - for instance ``mod/1.2&mod/regular_symbol&as|mod/latest``

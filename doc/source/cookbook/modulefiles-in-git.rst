@@ -41,8 +41,8 @@ Principles of Operation
 First we create a git repo for the Modulefiles.
 
 Then we install a Modulefile named ``localmodules`` that, when loaded,
-switches ``MODULEPATH`` to a locally-created git clone of the
-Modulefiles. When unloaded, it switches ``MODULEPATH`` back to the
+switches :envvar:`MODULEPATH` to a locally-created git clone of the
+Modulefiles. When unloaded, it switches :envvar:`MODULEPATH` back to the
 default.
 
 After this, any time a user wants to edit the Modulefiles, he works in

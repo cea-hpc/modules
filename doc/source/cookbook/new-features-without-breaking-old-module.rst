@@ -33,20 +33,20 @@ command) it is possible to test if a new feature is available prior using it.
 **Compatible with Modules v3.2+**
 
 Starting version 4.7 of Modules, two new Tcl variables are introduced in the
-modulefile and modulerc evaluation context: ``ModuleTool`` and
-``ModuleToolVersion``. These two variables help to determine respectively
+modulefile and modulerc evaluation context: :mfvar:`ModuleTool` and
+:mfvar:`ModuleToolVersion`. These two variables help to determine respectively
 what is the module implementation running and what is its version. With this
 knowledge it is possible to adapt modulefile and modulerc code to cope with a
 behavior changing over module versions or with different behaviors between
-different module implementation. The Tcl modulefile command ``versioncmp`` has
-been added along to help comparing software version number (e.g. ``4.10`` is
-newer than ``4.7``).
+different module implementation. The Tcl modulefile command
+:mfcmd:`versioncmp` has been added along to help comparing software version
+number (e.g. ``4.10`` is newer than ``4.7``).
 
 Starting its version ``8.4.8``, the Lmod_ project also supports the
-``ModuleTool`` and ``ModuleToolVersion`` variables and the ``versioncmp``
-modulefile command. It enables having modulefiles compatible with both module
-implementations without restricting yourself from using the advanced features
-from both projects.
+:mfvar:`ModuleTool` and :mfvar:`ModuleToolVersion` variables and the
+:mfcmd:`versioncmp` modulefile command. It enables having modulefiles
+compatible with both module implementations without restricting yourself from
+using the advanced features from both projects.
 
 .. _Lmod: https://github.com/TACC/Lmod
 
@@ -57,8 +57,8 @@ Usage example
 
 For this recipe, a *foo* module is available in version *1.1* and *1.2*.
 Version *1.1* is outdated and it has been decided to hide and forbid it
-starting October 2020. For that, the new ``module-hide`` and ``module-forbid``
-modulefile commands introduced in Modules 4.6 are used.
+starting October 2020. For that, the new :mfcmd:`module-hide` and
+:mfcmd:`module-forbid` modulefile commands introduced in Modules 4.6 are used.
 
 Enable the modulepath where the example modulefiles are located::
 
@@ -88,11 +88,11 @@ Modules 4.6 or newer version::
 
 Now take a look at *bar* module which provides a version for each Unix group
 the current user is member of. User group membership can be retrieved with the
-``usergroups`` sub-command of ``module-info`` starting Modules version 4.6.
-With older version of Modules, the external command ``groups`` has to be used
-to get this information. By using the ``ModuleTool`` and ``ModuleToolVersion``
-Tcl variables it will be possible to determine if ``usergroups`` sub-command
-is available on ``module-info``.
+``usergroups`` sub-command of :mfcmd:`module-info` starting Modules version
+4.6. With older version of Modules, the external command ``groups`` has to be
+used to get this information. By using the :mfvar:`ModuleTool` and
+:mfvar:`ModuleToolVersion` Tcl variables it will be possible to determine
+if ``usergroups`` sub-command is available on ``module-info``.
 
 .. literalinclude:: ../../example/new-features-without-breaking-old-module/modulefiles/bar/.modulerc
    :language: tcl
