@@ -844,7 +844,7 @@ Module Sub-Commands
 
  See :subcmd:`search`.
 
-.. subcmd:: list [-t|-l|-j]
+.. subcmd:: list [-a] [-t|-l|-j]
 
  List loaded modules.
 
