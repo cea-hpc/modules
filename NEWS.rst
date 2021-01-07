@@ -141,6 +141,16 @@ Modules 4.7.0 (not yet released)
   be swapped by *foo/2.0* if sticky tag applies to *foo*.
 * When forcing purge with a :subcmd:`purge --force<purge>` sub-command, also
   unload the modules that are depended by unloadable modules.
+* Doc: improve readability of Modules installation configuration in
+  :ref:`INSTALL` document and enable hypertext reference to these elements.
+* Doc: improve readability of module command configuration option in
+  :ref:`module(1)` document and enable hypertext reference to these elements.
+* Doc: describe in HTML documentation when installation options, module
+  command configuration options and options of modulefile command or module
+  sub-command were introduced.
+* Doc: update HTML documentation Table Of Content.
+* Doc: improve markup of module sub-commands, modulefile commands,
+  installation option, module configuration option across documentation.
 
 
 .. _4.6 release notes:
