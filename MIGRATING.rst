@@ -119,8 +119,8 @@ load or unload, the new verbosity level ``verbose2`` can be used (with
     Loading foo/1.0
       Loading requirement: bar/1.0
 
-Stiky modules
--------------
+Sticky modules
+--------------
 
 Module stickyness is introduced, in a similar fashion than on the `Lmod`_
 project, to allow to glue modules to the loaded environment. A sticky module
