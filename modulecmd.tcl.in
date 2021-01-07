@@ -104,6 +104,7 @@ array set g_config_defs [list\
       initConfTagColorName}\
    tcl_ext_lib {{} {} 0 {} {} initConfTclExtLib}\
    term_background {MODULES_TERM_BACKGROUND @termbg@ 0 {dark light}}\
+   term_width {MODULES_TERM_WIDTH 0 0}\
    unload_match_order {MODULES_UNLOAD_MATCH_ORDER @unloadmatchorder@ 0\
       {returnlast returnfirst}}\
    implicit_default {MODULES_IMPLICIT_DEFAULT @implicitdefault@ 1 {0 1}}\
@@ -402,21 +403,25 @@ proc initStateReportfd {} {
 
 # Provide columns number for output formatting
 proc initStateTermColumns {} {
-   # determine col number from tty capabilites
-   # tty info query depends on running OS
-   switch -- $::tcl_platform(os) {
-      SunOS {
-         catch {regexp {columns = (\d+);} [exec stty] match cols} errMsg
+   set cols [getConf term_width]
+   if {$cols == 0} {
+      # determine col number from tty capabilites
+      # tty info query depends on running OS
+      switch -- $::tcl_platform(os) {
+         SunOS {
+            catch {regexp {columns = (\d+);} [exec stty] match cols} errMsg
+         }
+         {Windows NT} {
+            catch {regexp {Columns:\s+(\d+)} [exec mode] match cols} errMsg
+         }
+         default {
+            catch {set cols [lindex [exec stty size] 1]} errMsg
+         }
       }
-      {Windows NT} {
-         catch {regexp {Columns:\s+(\d+)} [exec mode] match cols} errMsg
-      }
-      default {
-         catch {set cols [lindex [exec stty size] 1]} errMsg
-      }
+      # default size if tty cols cannot be found
+      set cols [expr {![info exists cols] || $cols eq {0} ? 80 : $cols}]
    }
-   # default size if tty cols cannot be found
-   return [expr {![info exists cols] || $cols eq {0} ? 80 : $cols}]
+   return $cols
 }
 
 # Get all groups of user running modulecmd.tcl process
@@ -13249,7 +13254,9 @@ Options:
   --paginate      Pipe mesg output into a pager if stream attached to terminal
   --no-pager      Do not pipe message output into a pager
   --color[=WHEN]  Colorize the output; WHEN can be 'always' (default if
-                  omitted), 'auto' or 'never'}
+                  omitted), 'auto' or 'never'
+  -w COLS | --width=COLS
+                  Set output width to COLS columns.}
    }
 }
 
@@ -13317,6 +13324,9 @@ if {[catch {
       } elseif {[info exists nextargisextraargv]} {
          lappend extraargv $arg
          unset nextargisextraargv
+      } elseif {[info exists nextargisval]} {
+         set $nextargisval $arg
+         unset nextargisval
       } else {
          switch -glob -- $arg {
             -T - --trace {
@@ -13368,6 +13378,15 @@ if {[catch {
                # add with next arg to the command-specific switches
                lappend extraargv $arg
                set nextargisextraargv 1
+            }
+            --width* {
+               set asked_term_width [string range $arg 8 end]
+               if {$asked_term_width eq {}} {
+                  set asked_term_width 0
+               }
+            }
+            -w {
+               set nextargisval asked_term_width
             }
             -t - --terse - -l - --long - --default - -L - --latest - -S -\
             --starts-with - -C - --contains - -j - --json - --output=* {
