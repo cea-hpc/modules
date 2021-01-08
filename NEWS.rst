@@ -151,6 +151,7 @@ Modules 4.7.0 (not yet released)
 * Doc: update HTML documentation Table Of Content.
 * Doc: improve markup of module sub-commands, modulefile commands,
   installation option, module configuration option across documentation.
+* Doc: colorize terminal output examples in :ref:`MIGRATING` document.
 
 
 .. _4.6 release notes:

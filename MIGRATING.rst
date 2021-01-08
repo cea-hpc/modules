@@ -52,21 +52,21 @@ When the `Advanced module version specifiers`_ is enabled, the ``loaded``
 symbolic version may be used to designate the currently loaded version of
 specified module.
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ ml display foo@loaded
+    :ps:`$` ml display :noparse:`foo@loaded`
     -------------------------------------------------------------------
-    /path/to/modulefiles/foo/1.0:
+    :sgrhi:`/path/to/modulefiles/foo/1.0`:
     
-    module-whatis   foo/1.0
+    :sgrcm:`module-whatis`   foo/1.0
     -------------------------------------------------------------------
 
 If no version of specified module can be found loaded, an error is returned.
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ ml display foo@loaded
-    ERROR: No loaded version found for 'foo' module
+    :ps:`$` ml display :noparse:`foo@loaded`
+    :sgrer:`ERROR`: No loaded version found for 'foo' module
 
 Hiding loaded modules
 ---------------------
@@ -75,12 +75,12 @@ The ``--hidden-loaded`` option has been added to the :mfcmd:`module-hide`
 modulefile command and it indicates that designated hidden modules remain
 hidden after being loaded.
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ cat /path/to/modulefiles/foo/1.0
+    :ps:`$` cat /path/to/modulefiles/foo/1.0
     #%Module
     module load bar
-    $ cat /path/to/modulefiles/bar/.modulerc
+    :ps:`$` cat /path/to/modulefiles/bar/.modulerc
     #%Module4.7
     module-hide --soft --hidden-loaded bar
 
@@ -88,36 +88,36 @@ In this example, *foo* depends on *bar* which is set soft hidden and hidden
 once loaded. As a consequence, automated load of *bar* module will not be
 reported and *bar/1.0* will not appear in loaded module list by default:
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ ml foo
-    $ ml
+    :ps:`$` ml foo
+    :ps:`$` ml
     Currently Loaded Modulefiles:
      1) foo/1.0
 
 However *bar/1.0* is loaded. Hidden loaded modules can be unveiled with the
 :option:`--all`/:option:`-a` option set on the :subcmd:`list` sub-command.
-``hidden-loaded`` tag (abbreviated by default to ``H``) applies to such
-modules.
+``hidden-loaded`` tag (abbreviated by default to ``H`` when colored output is
+disabled) applies to such modules.
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ ml -a
+    :ps:`$` ml -a
     Currently Loaded Modulefiles:
-     1) bar/1.0 <aL:H>   2) foo/1.0
+     1) :sgral:`bar`:sgrh:`/1.0`   2) foo/1.0
 
 To also get the informational messages about hidden loaded module automated
 load or unload, the new verbosity level ``verbose2`` can be used (with
 :option:`-vv` option for instance):
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ ml purge
-    $ ml -vv foo
+    :ps:`$` ml purge
+    :ps:`$` ml -vv foo
     Loading bar/1.0
 
-    Loading foo/1.0
-      Loading requirement: bar/1.0
+    Loading :sgrhi:`foo/1.0`
+      :sgrin:`Loading requirement`: bar/1.0
 
 Sticky modules
 --------------
@@ -130,24 +130,24 @@ reloads after being unloaded.
 A modulefile is declared *sticky* by applying it the ``sticky`` tag with the
 :mfcmd:`module-tag` modulefile command.
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ cat mp/foo/.modulerc
+    :ps:`$` cat mp/foo/.modulerc
     #%Module4.7
     module-tag sticky foo/1.0
-    $ ml
+    :ps:`$` ml
     Currently Loaded Modulefiles:
-     1) foo/1.0 <S>
-    $ ml -foo
-    Unloading foo/1.0
-      ERROR: Unload of sticky module 'foo/1.0' skipped
-    $ ml
+     1) :sgrs:`foo/1.0`
+    :ps:`$` ml -foo
+    Unloading :sgrhi:`foo/1.0`
+      :sgrer:`ERROR`: Unload of sticky module 'foo/1.0' skipped
+    :ps:`$` ml
     Currently Loaded Modulefiles:
-     1) foo/1.0 <S>
-    $ ml --force -foo
-    Unloading foo/1.0
-      WARNING: Unload of sticky module 'foo/1.0' forced
-    $ ml
+     1) :sgrs:`foo/1.0`
+    :ps:`$` ml --force -foo
+    Unloading :sgrhi:`foo/1.0`
+      :sgrwa:`WARNING`: Unload of sticky module 'foo/1.0' forced
+    :ps:`$` ml
     No Modulefiles Currently Loaded.
 
 
@@ -155,23 +155,23 @@ Modulefile can also be defined ``super-sticky`` by applying the corresponding
 module tag. *Super-sticky* module cannot be unloaded even if the unload action
 is forced. It can only be unloaded if the module reloads afterward.
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ cat mp/bar/.modulerc
+    :ps:`$` cat mp/bar/.modulerc
     #%Module4.7
     module-tag super-sticky bar/1.0
-    $ ml
+    :ps:`$` ml
     Currently Loaded Modulefiles:
-     1) bar/1.0 <sS>
-    $ ml purge
-    Unloading bar/1.0
-      ERROR: Unload of super-sticky module 'bar/1.0' skipped
-    $ ml purge -f
-    Unloading bar/1.0
-      ERROR: Unload of super-sticky module 'bar/1.0' skipped
-    $ ml
+     1) :sgrss:`bar/1.0`
+    :ps:`$` ml purge
+    Unloading :sgrhi:`bar/1.0`
+      :sgrer:`ERROR`: Unload of super-sticky module 'bar/1.0' skipped
+    :ps:`$` ml purge -f
+    Unloading :sgrhi:`bar/1.0`
+      :sgrer:`ERROR`: Unload of super-sticky module 'bar/1.0' skipped
+    :ps:`$` ml
     Currently Loaded Modulefiles:
-     1) bar/1.0 <sS>
+     1) :sgrss:`bar/1.0`
 
 Modulefiles targeted by a ``sticky`` or a ``super-sticky`` tag are colored on
 :subcmd:`avail` and :subcmd:`list` sub-command outputs to indicate such tag
@@ -182,18 +182,18 @@ In case the stickyness applies to the generic module name (and does not target
 a specific module version or version-set), one version of the sticky or
 super-sticty module can be swapped by another version of this same module:
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ cat mp/baz/.modulerc
+    :ps:`$` cat mp/baz/.modulerc
     #%Module4.7
     module-tag sticky baz
-    $ ml
+    :ps:`$` ml
     Currently Loaded Modulefiles:
-     1) baz/2.0 <S>
-    $ ml switch baz/1.0
-    $ ml
+     1) :sgrs:`baz/2.0`
+    :ps:`$` ml switch baz/1.0
+    :ps:`$` ml
     Currently Loaded Modulefiles:
-     1) baz/1.0 <S>
+     1) :sgrs:`baz/1.0`
 
 
 From v4.5 to v4.6
@@ -216,9 +216,9 @@ scripts into modulefiles.
 Say for instance, a *foo* software has been installed and it provides a
 ``foo-setup.sh`` script to activate *foo* software in user environment:
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ cat /path/to/foo-1.2/foo-setup.sh
+    :ps:`$` cat /path/to/foo-1.2/foo-setup.sh
     #!/bin/sh
     export FOOENV="$1"
     export PATH=/path/to/foo-1.2/bin:$PATH
@@ -227,9 +227,9 @@ Say for instance, a *foo* software has been installed and it provides a
 Calling ``module sh-to-mod`` on this shell script outputs the environment
 changes it performs as a modulefile content:
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ module sh-to-mod sh /path/to/foo-1.2/foo-setup.sh arg1
+    :ps:`$` module sh-to-mod sh /path/to/foo-1.2/foo-setup.sh arg1
     #%Module
     prepend-path    PATH /path/to/foo-1.2/bin
     set-alias       foo {foobin -q -l}
@@ -262,46 +262,46 @@ Keeping the same example used to describe :subcmd:`sh-to-mod` sub-command:
 *foo* software provides a ``foo-setup.sh`` script for its activation. Create a
 modulefile ``foo/1.2`` that calls this script:
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ cat /path/to/modulefiles/foo/1.2
+    :ps:`$` cat /path/to/modulefiles/foo/1.2
     #%Module4.6
     source-sh sh /path/to/foo-1.2/foo-setup.sh arg1
 
 Displaying this modulefile indicates the environment changes done by script:
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ module display foo/1.2
+    :ps:`$` module display foo/1.2
     -------------------------------------------------------------------
-    /path/to/modulefiles/foo/1.2:
+    :sgrhi:`/path/to/modulefiles/foo/1.2`:
 
-    prepend-path    PATH /path/to/foo-1.2/bin
-    set-alias       foo {foobin -q -l}
-    setenv          FOOENV arg1
+    :sgrcm:`prepend-path`    PATH /path/to/foo-1.2/bin
+    :sgrcm:`set-alias`       foo {foobin -q -l}
+    :sgrcm:`setenv`          FOOENV arg1
     -------------------------------------------------------------------
 
 Loading the modulefile applies the environment changes seen above:
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ module load -v foo/1.2
-    Loading foo/1.2
-    $ echo $FOOENV
+    :ps:`$` module load -v foo/1.2
+    Loading :sgrhi:`foo/1.2`
+    :ps:`$` echo $FOOENV
     arg1
-    $ alias foo
+    :ps:`$` alias foo
     alias foo='foobin -q -l'
 
 Track of these changes is kept in user environment to be able to undo them
 when modulefile is unloaded:
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ module unload -v foo/1.2
-    Unloading foo/1.2
-    $ echo $FOOENV
+    :ps:`$` module unload -v foo/1.2
+    Unloading :sgrhi:`foo/1.2`
+    :ps:`$` echo $FOOENV
     
-    $ alias foo
+    :ps:`$` alias foo
     bash: alias: foo: not found
 
 Changes on environment variables, shell aliases, shell functions and current
@@ -320,17 +320,17 @@ These two new modulefile commands can help to adapt code to specific users or
 groups. Like for instance to instantiate a modulefile for each group the user
 is member of:
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ cat /path/to/modulefiles/foo/.modulerc
+    :ps:`$` cat /path/to/modulefiles/foo/.modulerc
     #%Module4.6
     foreach grp [module-info usergroups] {
         module-virtual foo/$grp .common
     }
-    $ id -G -n
+    :ps:`$` id -G -n
     grp1 grp2 grp3
-    $ module avail
-    --------------- /path/to/modulefiles ---------------
+    :ps:`$` module avail
+    --------------- :sgrdi:`/path/to/modulefiles` ---------------
     foo/grp1  foo/grp2  foo/grp3
 
 ``username`` and ``usergroups`` sub-commands of :mfcmd:`module-info`
@@ -343,16 +343,16 @@ The newly introduced :mfcmd:`module-hide` modulefile command enables to
 dynamically hide modulefiles, module aliases or symbolic versions specified to
 it:
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ cat /path/to/modulefiles/bar/.modulerc
+    :ps:`$` cat /path/to/modulefiles/bar/.modulerc
     #%Module4.6
     module-version bar/1.0 old
     # hide 'old' symbolic version
     module-hide bar/old
     # hide all version 2 and above
     module-hide bar@2:
-    $ cat /path/to/modulefiles/.modulerc
+    :ps:`$` cat /path/to/modulefiles/.modulerc
     #%Module4.6
     # hide all versions of foo module
     module-hide foo
@@ -364,25 +364,25 @@ above example.
 Hidden modules are excluded from available module search or module selection
 unless query refers to hidden module by its exact name:
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ ml av
-    --------------- /path/to/modulefiles ---------------
+    :ps:`$` ml av
+    --------------- :sgrdi:`/path/to/modulefiles` ---------------
     bar/1.0  bar/2.0
-    $ module load -v foo
-    ERROR: Unable to locate a modulefile for 'foo'
-    $ module load -v foo/1.0
+    :ps:`$` module load -v foo
+    :sgrer:`ERROR`: Unable to locate a modulefile for 'foo'
+    :ps:`$` module load -v foo/1.0
     Loading foo/1.0
-    $ module avail bar/old
-    --------------- /path/to/modulefiles ---------------
-    bar/1.0(old)
+    :ps:`$` module avail bar/old
+    --------------- :sgrdi:`/path/to/modulefiles` ---------------
+    bar/1.0\ :sgrse:`(`:sgrsy:`old`:sgrse:`)`
 
 :mfcmd:`module-hide` command accepts a ``--soft`` option to apply a lighter of
 hiding to modules:
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ cat /path/to/modulefiles/qux/.modulerc
+    :ps:`$` cat /path/to/modulefiles/qux/.modulerc
     #%Module4.6
     # softly hide all qux modules
     module-hide --soft qux
@@ -391,72 +391,72 @@ The soft hiding mode enables to hide modules from full availability listing
 yet keeping the ability to select such module for load without having to use
 module exact name:
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ ml av
-    --------------- /path/to/modulefiles ---------------
+    :ps:`$` ml av
+    --------------- :sgrdi:`/path/to/modulefiles` ---------------
     bar/1.0  bar/2.0
-    $ ml av qux
-    --------------- /path/to/modulefiles ---------------
+    :ps:`$` ml av qux
+    --------------- :sgrdi:`/path/to/modulefiles` ---------------
     qux/1.0  qux/2.0
-    $ module load -v qux
-    Loading qux/2.0
+    :ps:`$` module load -v qux
+    Loading :sgrhi:`qux/2.0`
 
 Alternatively, a ``--hard`` option can be set on :mfcmd:`module-hide` command
 to ensure designated modules do not unveil even if referred by their exact
 name:
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ cat /path/to/modulefiles/qux/.modulerc
+    :ps:`$` cat /path/to/modulefiles/qux/.modulerc
     #%Module4.6
     # softly hide all qux modules
     module-hide --soft qux
     # set highest version of qux hard hidden
     module-hide --hard qux/3.0
-    $ ml av qux/3.0
-    $ ml qux/3.0
-    ERROR: Unable to locate a modulefile for 'qux/3.0'
+    :ps:`$` ml av qux/3.0
+    :ps:`$` ml qux/3.0
+    :sgrer:`ERROR`: Unable to locate a modulefile for 'qux/3.0'
 
 Some users or groups can be set unaffected by hiding mechanism with
 the ``--not-user`` or ``--not-group`` options:
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ cat /path/to/modulefiles/quuz/.modulerc
+    :ps:`$` cat /path/to/modulefiles/quuz/.modulerc
     #%Module4.6
     # hiding does not apply to grp1 and grp2 groups
     module-hide --not-group {grp1 grp2} quuz
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ id --groups --name
+    :ps:`$` id --groups --name
     grp1 grp7
-    $ ml av quuz
-    --------------- /path/to/modulefiles ---------------
+    :ps:`$` ml av quuz
+    --------------- :sgrdi:`/path/to/modulefiles` ---------------
     quuz/1.0  quuz/2.0
-    $ ml -v quuz
-    Loading quuz/2.0
+    :ps:`$` ml -v quuz
+    Loading :sgrhi:`quuz/2.0`
 
 Hiding mechanism can also be set effective only before or after a given date
 time with the ``--before`` and ``--after`` options. Accepted date time format
 is ``YYYY-MM-DD[THH:MM]``.
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ cat /path/to/modulefiles/fum/.modulerc
+    :ps:`$` cat /path/to/modulefiles/fum/.modulerc
     #%Module4.6
     # hide only before a given date
     module-hide --hard --before 2020-09-01T12:00 fum/1.0
     # hide only after a given date
     module-hide --hard --after 2020-09-01 fum/2.0
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ date
+    :ps:`$` date
     Fri 04 Sep 2020 06:21:48 AM CEST
-    $ ml av fum
-    --------------- /path/to/modulefiles ---------------
+    :ps:`$` ml av fum
+    --------------- :sgrdi:`/path/to/modulefiles` ---------------
     fum/1.0
 
 Hidden modules can be included in available module searches if option
@@ -464,11 +464,11 @@ Hidden modules can be included in available module searches if option
 :subcmd:`whatis` or :subcmd:`search` sub-commands. Hard hidden modules are
 unaffected by this option and stay hidden.
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ ml av -a
-    --------------- /path/to/modulefiles ---------------
-    bar/1.0(old)  foo/1.0  fum/1.0   quuz/2.0  qux/2.0
+    :ps:`$` ml av -a
+    --------------- :sgrdi:`/path/to/modulefiles` ---------------
+    bar/1.0\ :sgrse:`(`:sgrsy:`old`:sgrse:`)`  foo/1.0  fum/1.0   quuz/2.0  qux/2.0
     bar/2.0       foo/2.0  quuz/1.0  qux/1.0
 
 Forbidding use of modules
@@ -478,14 +478,14 @@ The :mfcmd:`module-forbid` modulefile command is added to dynamically forbid
 the evaluation of modulefiles it specifies. When forbidden, a module cannot be
 loaded and an access error is returned when an attempt is made to evaluate it.
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ cat /path/to/modulefiles/foo/.modulerc
+    :ps:`$` cat /path/to/modulefiles/foo/.modulerc
     #%Module4.6
     module-forbid foo@1:
-    $ ml foo/1.0
-    ERROR: Access to module 'foo/1.0' is denied
-    $ ml
+    :ps:`$` ml foo/1.0
+    :sgrer:`ERROR`: Access to module 'foo/1.0' is denied
+    :ps:`$` ml
     No Modulefiles Currently Loaded.
 
 :mfcmd:`module-forbid` statements can be coupled with :mfcmd:`module-hide`
@@ -497,31 +497,31 @@ modules before or after a given date time.
 An additional error message can be defined with the ``--message`` option
 to guide for instance users when they try to evaluate a forbidden module:
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ cat /path/to/modulefiles/bar/.modulerc
+    :ps:`$` cat /path/to/modulefiles/bar/.modulerc
     #%Module4.6
-    module-forbid --message {Software bar/1.0 is decommissioned, please now use\
+    module-forbid --message {Software bar/1.0 is decommissioned, please now use\\
         bar/2.0} --after 2020-09-01 bar/1.0
-    $ ml bar/1.0
-    ERROR: Access to module 'bar/1.0' is denied
+    :ps:`$` ml bar/1.0
+    :sgrer:`ERROR`: Access to module 'bar/1.0' is denied
       Software bar/1.0 is decommissioned, please now use bar/2.0
 
 When an evaluated module will soon be forbidden, a message is returned to the
 user to warn him/her of the near limit. An additional warning message can
 also be defined here with the ``--nearly-message`` option to guide users.
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ cat /path/to/modulefiles/qux/.modulerc
+    :ps:`$` cat /path/to/modulefiles/qux/.modulerc
     #%Module4.6
-    module-forbid --nearly-message {Version 1.0 will soon expire, please now use\
+    module-forbid --nearly-message {Version 1.0 will soon expire, please now use\\
         version 2.0} --after 2020-09-15 qux/1.0
-    $ date
+    :ps:`$` date
     Tue 08 Sep 2020 06:49:43 AM CEST
-    $ ml qux/1.0
-    Loading qux/1.0
-      WARNING: Access to module will be denied starting '2020-09-15'
+    :ps:`$` ml qux/1.0
+    Loading :sgrhi:`qux/1.0`
+      :sgrwa:`WARNING`: Access to module will be denied starting '2020-09-15'
         Version 1.0 will soon expire, please now use version 2.0
 
 The range of time the *nearly forbidden* warning appears can be controlled
@@ -546,17 +546,17 @@ command-line switches.
 To specifically render trace messages, the ``tr`` key is added to the color
 palette with a default value of ``2`` (decreased intensity).
 
-.. code-block:: console
+.. parsed-literal::
 
-    $ ml -T foo
-    Evaluate modulerc: '/path/to/modulefiles/.modulerc'
-    Get modules: {foo} matching 'foo' in '/path/to/modulefiles'
-    Resolve: 'foo' into 'bar'
-    Get modules: {bar bar/1.0} matching 'bar' in '/path/to/modulefiles'
-    Select module: 'bar/1.0' (/path/to/modulefiles/bar/1.0) matching 'bar/1.0'
+    :ps:`$` ml -T foo
+    :sgrtr:`Evaluate modulerc: '/path/to/modulefiles/.modulerc'`
+    :sgrtr:`Get modules: {foo} matching 'foo' in '/path/to/modulefiles'`
+    :sgrtr:`Resolve: 'foo' into 'bar'`
+    :sgrtr:`Get modules: {bar bar/1.0} matching 'bar' in '/path/to/modulefiles'`
+    :sgrtr:`Select module: 'bar/1.0' (/path/to/modulefiles/bar/1.0) matching 'bar/1.0'`
 
-    Loading bar/1.0
-      Evaluate modulefile: '/path/to/modulefiles/bar/1.0' as 'bar/1.0'
+    Loading :sgrhi:`bar/1.0`
+      :sgrtr:`Evaluate modulefile: '/path/to/modulefiles/bar/1.0' as 'bar/1.0'`
 
 
 From v4.4 to v4.5
@@ -576,23 +576,27 @@ actions.
 
 With no argument provided ``ml`` is equivalent to ``module list``, ``ml foo``
 corresponds to ``module load foo`` and ``ml -foo`` means ``module unload
-foo``::
+foo``:
 
-    $ ml foo
-    $ ml
+.. parsed-literal::
+
+    :ps:`$` ml foo
+    :ps:`$` ml
     Currently Loaded Modulefiles:
      1) foo/2
-    $ ml -foo
-    $ ml
+    :ps:`$` ml -foo
+    :ps:`$` ml
     No Modulefiles Currently Loaded.
 
 Multiple modules to either load or unload can be combined on a single command.
 The unloads are first processed then the loads.
 
 ``ml`` accepts all command-line switches and sub-commands accepted by
-``module`` command::
+``module`` command:
 
-    $ ml avail -t foo
+.. parsed-literal::
+
+    :ps:`$` ml avail -t foo
     foo/1
     foo/2
 
@@ -607,9 +611,11 @@ JSON format output
 
 The ``-j`` and ``--json`` command line switches are added for the ``avail``,
 ``list``, ``savelist``, ``whatis`` and ``search`` module sub-commands. When
-set, the output result of these sub-commands is rendered in `JSON`_ format::
+set, the output result of these sub-commands is rendered in `JSON`_ format:
 
-    $ module avail --json bar | python -mjson.tool
+.. parsed-literal::
+
+    :ps:`$` module avail --json bar | python -mjson.tool
     {
         "/path/to/modulefiles": {
             "bar/2.3": {
@@ -628,7 +634,7 @@ set, the output result of these sub-commands is rendered in `JSON`_ format::
             }
         }
     }
-    $ ml whatis -j foo/1.2.3 | python -mjson.tool
+    :ps:`$` ml whatis -j foo/1.2.3 | python -mjson.tool
     {
         "/path/to/modulefiles": {
             "foo/1.2.3": {
@@ -678,20 +684,24 @@ Error stack trace
 
 Error messages will now embed a stack trace for unknown errors to help
 localize the root cause of issues. This change applies to modulefile
-evaluation::
+evaluation:
 
-    Loading foo/1.2
-      Module ERROR: add-path cannot handle path equals to separator string
+.. parsed-literal::
+
+    Loading :sgrhi:`foo/1.2`
+      :sgrme:`Module ERROR`: add-path cannot handle path equals to separator string
             while executing
         "append-path PATH :"
             (file "/path/to/modulefiles/foo/1.2" line 24)
-        Please contact <root@localhost>
+        Please contact <:noparse:`root@localhost`>
 
 A stack trace is also returned when an unknown error occurs in
-``modulecmd.tcl`` script, which facilitates issue report and analysis::
+``modulecmd.tcl`` script, which facilitates issue report and analysis:
 
-    $ module load bar
-    ERROR: invalid command name "badcommand"
+.. parsed-literal::
+
+    :ps:`$` module load bar
+    :sgrer:`ERROR`: invalid command name "badcommand"
           while executing
       "badcommand"
           (procedure "module" line 14)
@@ -700,7 +710,7 @@ A stack trace is also returned when an unknown error occurs in
           ("eval" body line 1)
           invoked from within
       "eval $execcmdlist"
-      Please report this issue at https://github.com/cea-hpc/modules/issues
+      Please report this issue at :noparse:`https://github.com/cea-hpc/modules/issues`
 
 Automatic default and latest symbolic versions
 ----------------------------------------------
@@ -710,9 +720,11 @@ specifiers`_ are both enabled, a ``default`` and a ``latest`` symbolic
 versions are automatically defined for each module name.
 
 This new feature gives the ability to select the highest version available for
-a module, without knowing beforehand this version name::
+a module, without knowing beforehand this version name:
 
-    $ module load -v foo@latest
+.. parsed-literal::
+
+    :ps:`$` module load -v :noparse:`foo@latest`
     Loading foo/1.10
 
 The symbolic versions are automatically defined unless a symbolic version, an
@@ -749,11 +761,13 @@ to the ``icase`` configuration option:
   specification they receive as argument.
 
 It can help for instance to load a module without knowing the case used to
-name its relative modulefile::
+name its relative modulefile:
 
-    $ module config icase always
-    $ module load -v mysoftware
-    Loading MySoftware/1.0
+.. parsed-literal::
+
+    :ps:`$` module config icase always
+    :ps:`$` module load -v mysoftware
+    Loading :sgrhi:`MySoftware/1.0`
 
 Insensitive case match activation can be controlled at configure time with
 the ``--with-icase`` option, which could be passed any of the above activation
@@ -773,53 +787,61 @@ character, could be used to refer to a more precise version number.
 
 This mechanism is activated through the new configuration option
 ``extended_default``. It enables to refer to a module named ``foo/1.2.3`` as
-``foo/1.2`` or ``foo/1``::
+``foo/1.2`` or ``foo/1``:
 
-    $ module config extended_default 1
-    $ module load -v foo/1
-    Loading foo/1.2.3
+.. parsed-literal::
+
+    :ps:`$` module config extended_default 1
+    :ps:`$` module load -v foo/1
+    Loading :sgrhi:`foo/1.2.3`
 
 When multiple versions match partial version specified and only one module
 should be selected, the default version (whether implicitly or explicitly
 defined) among matches is returned. The following example shows that
 ``foo/1.1.1``, the *foo* module default version, is selected when it matches
 query. Elsewhere the highest version (also called the latest version or the
-implicit default) among matching modules is returned::
+implicit default) among matching modules is returned:
 
-    $ module av foo
-    --------------- /path/to/modulefiles ---------------
-    foo/1.1.1(default)  foo/1.2.1  foo/1.10
+.. parsed-literal::
+
+    :ps:`$` module av foo
+    --------------- :sgrdi:`/path/to/modulefiles` ---------------
+    foo/1.1.1\ :sgrse:`(`:sgrsy:`default`:sgrse:`)`  foo/1.2.1  foo/1.10
     foo/1.1.10          foo/1.2.3
-    $ module load -v foo/1.1
-    Loading foo/1.1.1
-    $ module purge
-    $ module load -v foo/1.2
-    Loading foo/1.2.3
-    $ module purge
-    $ module load -v foo/1
-    Loading foo/1.1.1
+    :ps:`$` module load -v foo/1.1
+    Loading :sgrhi:`foo/1.1.1`
+    :ps:`$` module purge
+    :ps:`$` module load -v foo/1.2
+    Loading :sgrhi:`foo/1.2.3`
+    :ps:`$` module purge
+    :ps:`$` module load -v foo/1
+    Loading :sgrhi:`foo/1.1.1`
 
 In case ``implicit_default`` option is disabled and no explicit default is
-found among matches, an error is returned::
+found among matches, an error is returned:
 
-    $ module config implicit_default 0
-    $ module load -v foo/1.2
-    ERROR: No default version defined for 'foo/1.2'
+.. parsed-literal::
+
+    :ps:`$` module config implicit_default 0
+    :ps:`$` module load -v foo/1.2
+    :sgrer:`ERROR`: No default version defined for 'foo/1.2'
 
 When it is enabled, extended default applies everywhere a module could be
 specified, which means it could be used with any module sub-command or any
 modulefile Tcl command receiving a module specification as argument. It may
-help for instance to declare dependencies between modules::
+help for instance to declare dependencies between modules:
 
-    $ module show bar/3
-    ----------------------------------------------------------
-    /path/to/modulefiles/bar/3.4:
+.. parsed-literal::
 
-    prereq		foo/1.2
+    :ps:`$` module show bar/3
     ----------------------------------------------------------
-    $ module load --auto bar/3
-    Loading bar/3.4
-      Loading requirement: foo/1.2.3
+    :sgrhi:`/path/to/modulefiles/bar/3.4`:
+
+    :sgrcm:`prereq`		foo/1.2
+    ----------------------------------------------------------
+    :ps:`$` module load --auto bar/3
+    Loading :sgrhi:`bar/3.4`
+      :sgrin:`Loading requirement`: foo/1.2.3
 
 Extended default activation can be controlled at configure time with the
 ``--enable-extended-default`` option. This option could be superseded with the
@@ -860,57 +882,67 @@ selection of module version to:
   ``1.3`` versions
 
 This new feature enables for instance to list available versions of module
-``foo`` higher or equal to ``1.2``::
+``foo`` higher or equal to ``1.2``:
 
-    $ module config advanced_version_spec 1
-    $ module av foo
-    --------------- /path/to/modulefiles ---------------
-    foo/1.1.1(default)  foo/1.2.1  foo/1.10
+.. parsed-literal::
+
+    :ps:`$` module config advanced_version_spec 1
+    :ps:`$` module av foo
+    --------------- :sgrdi:`/path/to/modulefiles` ---------------
+    foo/1.1.1\ :sgrse:`(`:sgrsy:`default`:sgrse:`)`  foo/1.2.1  foo/1.10
     foo/1.1.10          foo/1.2.3
-    $ module av foo@1.2:
-    --------------- /path/to/modulefiles ---------------
+    :ps:`$` module av :noparse:`foo@1.2:`
+    --------------- :sgrdi:`/path/to/modulefiles` ---------------
     foo/1.2.1  foo/1.2.3  foo/1.10
 
 Then choose to load for instance a version higher than or equal to ``1.2`` and
 less than or equal to ``1.3``. Default version is selected if it corresponds
 to a version included in the range, elsewhere the highest version (also called
-latest version or implicit default) is selected::
+latest version or implicit default) is selected:
 
-    $ module load -v foo@1.2:1.3
-    Loading foo/1.2.3
+.. parsed-literal::
+
+    :ps:`$` module load -v :noparse:`foo@1.2:1.3`
+    Loading :sgrhi:`foo/1.2.3`
 
 In case ``implicit_default`` option is disabled and no explicit default is
-found among version specifier matches, an error is returned::
+found among version specifier matches, an error is returned:
 
-    $ module config implicit_default 0
-    $ module load -v foo@1.2:1.3
-    ERROR: No default version defined for 'foo@1.2:1.3'
+.. parsed-literal::
+
+    :ps:`$` module config implicit_default 0
+    :ps:`$` module load -v :noparse:`foo@1.2:1.3`
+    :sgrer:`ERROR`: No default version defined for ':noparse:`foo@1.2:1.3`'
 
 When advanced module version specifier is enabled, it applies everywhere a
 module could be specified, which means it could be used with any module
 sub-command or any modulefile Tcl command receiving a module specification
 as argument. It may help for instance to declare smoother dependencies between
-modules::
+modules:
 
-    $ module show bar@:2
-    ----------------------------------------------------------
-    /path/to/modulefiles/bar/2.3:
+.. parsed-literal::
 
-    prereq          foo@1.1.10,1.2.1
+    :ps:`$` module show bar@:2
     ----------------------------------------------------------
-    $ module load --auto bar@:2
-    Loading bar/2.3
-      Loading requirement: foo/1.2.1
+    :sgrhi:`/path/to/modulefiles/bar/2.3`:
+
+    :sgrcm:`prereq`          :noparse:`foo@1.1.10,1.2.1`
+    ----------------------------------------------------------
+    :ps:`$` module load --auto bar@:2
+    Loading :sgrhi:`bar/2.3`
+      :sgrin:`Loading requirement`: foo/1.2.1
 
 Advanced specification of single version or list of versions may benefit from
 the activation of the `Extended default`_ mechanism (range of versions
-natively handles abbreviated versions)::
+natively handles abbreviated versions):
 
-    $ module config extended_default 1
-    $ module load -v foo@1.2
-    Loading foo/1.2.3
-    $ module unload -v foo @1.2,1.5
-    Unloading foo/1.2.3
+.. parsed-literal::
+
+    :ps:`$` module config extended_default 1
+    :ps:`$` module load -v :noparse:`foo@1.2`
+    Loading :sgrhi:`foo/1.2.3`
+    :ps:`$` module unload -v foo @1.2,1.5
+    Unloading :sgrhi:`foo/1.2.3`
 
 Advanced module version specifier activation can be controlled at configure
 time with the ``--enable-advanced-version-spec`` option. This option could be
@@ -1009,9 +1041,11 @@ module symbolic version (``sy``), module ``default`` version (``de``) and
 modulefile command (``cm``).
 
 For instance the default color set for a terminal with dark background is
-defined to::
+defined to:
 
-    hi=1:db=2:se=2:er=91:wa=93:me=95:in=94:mp=1;94:di=94:al=96:sy=95:de=4:cm=92
+.. parsed-literal::
+
+    :noparse:`hi=1:db=2:se=2:er=91:wa=93:me=95:in=94:mp=1;94:di=94:al=96:sy=95:de=4:cm=92`
 
 When colored output is enabled and a specific graphical rendition is defined
 for module *default* version, the ``default`` symbol is omitted and instead
@@ -1041,10 +1075,12 @@ complete reference on existing configuration options.
 Most of the options can be altered by passing the option name and a value to
 the sub-command. Setting an option by this mean overrides its default value,
 set at installation time in **modulecmd.tcl** script, by defining the
-environment variable which supersedes this default.::
+environment variable which supersedes this default.:
 
-    $ module config auto_handling 1
-    $ module config auto_handling
+.. parsed-literal::
+
+    :ps:`$` module config auto_handling 1
+    :ps:`$` module config auto_handling
     Modules Release 4.3.0 (2019-07-26)
     
     - Config. name ---------.- Value (set by if default overridden) ---------------
@@ -1196,29 +1232,33 @@ it conflicts with cannot be loaded.
 
 This constraint was until now satisfied when loading the modulefile declaring
 the **conflict** but it vanished as soon as this modulefile was loaded. In the
-following example ``a`` modulefile declares a conflict with ``b``::
+following example ``a`` modulefile declares a conflict with ``b``:
 
-    $ module load b a
+.. parsed-literal::
+
+    :ps:`$` module load b a
     WARNING: a cannot be loaded due to a conflict.
     HINT: Might try "module unload b" first.
-    $ module list
+    :ps:`$` module list
     Currently Loaded Modulefiles:
      1) b
-    $ module purge
-    $ module load a b
-    $ module list
+    :ps:`$` module purge
+    :ps:`$` module load a b
+    :ps:`$` module list
     Currently Loaded Modulefiles:
      1) a   2) b
 
 Consistency of the declared **conflict** is now ensured to satisfy this
 constraint even after the load of the modulefile declaring it. This is
 achieved by keeping track of the conflict constraints of the loaded
-modulefiles in an environment variable called ``MODULES_LMCONFLICT``::
+modulefiles in an environment variable called ``MODULES_LMCONFLICT``:
 
-    $ module load a b
+.. parsed-literal::
+
+    :ps:`$` module load a b
     ERROR: WARNING: b cannot be loaded due to a conflict.
     HINT: Might try "module unload a" first.
-    $ module list
+    :ps:`$` module list
     Currently Loaded Modulefiles:
      1) a
 
@@ -1251,19 +1291,21 @@ pre-requires must be loaded prior its own load.
 This constraint was until now satisfied when loading the modulefile declaring
 the **prereq** but, as for the declared **conflict**, it vanished as soon as
 this modulefile was loaded. In the following example ``c`` modulefile declares
-a prereq on ``a``::
+a prereq on ``a``:
 
-    $ module load c
+.. parsed-literal::
+
+    :ps:`$` module load c
     WARNING: c cannot be loaded due to missing prereq.
     HINT: the following module must be loaded first: a
-    $ module list
+    :ps:`$` module list
     No Modulefiles Currently Loaded.
-    $ module load a c
-    $ module list
+    :ps:`$` module load a c
+    :ps:`$` module list
     Currently Loaded Modulefiles:
      1) a   2) c
-    $ module unload a
-    $ module list
+    :ps:`$` module unload a
+    :ps:`$` module list
     Currently Loaded Modulefiles:
      1) c
 
@@ -1271,16 +1313,18 @@ Consistency of the declared **prereq** is now ensured to satisfy this
 constraint even after the load of the modulefile declaring it. This is
 achieved, like for the conflict consistency, by keeping track of the prereq
 constraints of the loaded modulefiles in an environment variable called
-``MODULES_LMPREREQ``::
+``MODULES_LMPREREQ``:
 
-    $ module load a c
-    $ module list
+.. parsed-literal::
+
+    :ps:`$` module load a c
+    :ps:`$` module list
     Currently Loaded Modulefiles:
      1) a   2) c
-    $ module unload a
+    :ps:`$` module unload a
     ERROR: WARNING: a cannot be unloaded due to a prereq.
     HINT: Might try "module unload c" first.
-    $ module list
+    :ps:`$` module list
     Currently Loaded Modulefiles:
      1) a   2) c
 
@@ -1296,31 +1340,35 @@ short notation) for the **load**, **unload** and **switch** sub-commands.
 With this new command line switch, a given modulefile is loaded even if it
 conflicts with other loaded modulefiles or even if the modulefiles it
 pre-requires are not loaded. Some example reusing the same modulefiles ``a``,
-``b`` and ``c`` than above::
+``b`` and ``c`` than above:
 
-    $ module load b
-    $ module load --force a
+.. parsed-literal::
+
+    :ps:`$` module load b
+    :ps:`$` module load --force a
     WARNING: a conflicts with b
-    $ module list
+    :ps:`$` module list
     Currently Loaded Modulefiles:
      1) b   2) a
-    $ module purge
-    $ module load --force c
+    :ps:`$` module purge
+    :ps:`$` module load --force c
     WARNING: c requires a loaded
-    $ module list
+    :ps:`$` module list
     Currently Loaded Modulefiles:
      1) c
 
 ``--force`` also enables to unload a modulefile required by another loaded
-modulefiles::
+modulefiles:
 
-    $ module load a c
-    $ module list
+.. parsed-literal::
+
+    :ps:`$` module load a c
+    :ps:`$` module list
     Currently Loaded Modulefiles:
      1) a   2) c
-    $ module unload --force a
+    :ps:`$` module unload --force a
     WARNING: a is required by c
-    $ module list
+    :ps:`$` module list
     Currently Loaded Modulefiles:
      1) c
 
@@ -1472,15 +1520,17 @@ the **load** and **unload** actions and also for the querying sub-commands
 vanishes once the modulefile it resolves to is loaded. As a consequence there
 was no consistency over these alternative designations. In the following
 example ``f`` modulefile declares a conflict on ``e`` alias which resolves to
-``d`` modulefile::
+``d`` modulefile:
 
-    $ module load e
-    $ module list
+.. parsed-literal::
+
+    :ps:`$` module load e
+    :ps:`$` module list
     Currently Loaded Modulefiles:
      1) d
-    $ module info-loaded e
-    $ module load f
-    $ module list
+    :ps:`$` module info-loaded e
+    :ps:`$` module load f
+    :ps:`$` module list
     Currently Loaded Modulefiles:
      1) d   2) f
 
@@ -1490,18 +1540,20 @@ and **module-version** commands is now ensured to enable modulefile commands
 alternative designations as argument. This consistency is achieved, like for
 the conflict and prereq consistencies, by keeping track of the alternative
 names of the loaded modulefiles in an environment variable called
-``MODULES_LMALTNAME``::
+``MODULES_LMALTNAME``:
 
-    $ module load e
-    $ module list
+.. parsed-literal::
+
+    :ps:`$` module load e
+    :ps:`$` module list
     Currently Loaded Modulefiles:
      1) d
-    $ module info-loaded e
+    :ps:`$` module info-loaded e
     d
-    $ module load f
+    :ps:`$` module load f
     WARNING: f cannot be loaded due to a conflict.
     HINT: Might try "module unload e" first.
-    $ module list
+    :ps:`$` module list
     Currently Loaded Modulefiles:
      1) d
 
@@ -1560,9 +1612,11 @@ when for instance a modulefile contains a ``module load`` command.
 To improve the readability of the module messages produced relatively to
 a load or an unload evaluation, these messages are now stacked under a
 *Loading* or an *Unloading* message block that gathers all the messages
-produced for a given modulefile evaluation::
+produced for a given modulefile evaluation:
 
-    $ module load --no-auto foo
+.. parsed-literal::
+
+    :ps:`$` module load --no-auto foo
     Loading foo/1.2
       ERROR: foo/1.2 cannot be loaded due to missing prereq.
         HINT: the following module must be loaded first: bar/4.5
@@ -1570,9 +1624,11 @@ produced for a given modulefile evaluation::
 In addition, foreground ``load``, ``unload``, ``switch`` and ``restore``
 actions (ie. asked on the command-line) now report a summary of the
 additional load and unload evaluations that were eventually triggered in
-the process::
+the process:
 
-    $ module load --auto foo
+.. parsed-literal::
+
+    :ps:`$` module load --auto foo
     Loading foo/1.2
       Loading requirement: bar/4.5
 
@@ -1732,10 +1788,12 @@ The ``is-loaded`` sub-command returns a boolean value. Small Python example::
       print 'app not loaded'
 
 ``info-loaded`` returns a string value and is the sub-command counterpart
-of the ``module-info loaded`` modulefile command::
+of the ``module-info loaded`` modulefile command:
 
-    $ module load app/0.8
-    $ module info-loaded app
+.. parsed-literal::
+
+    :ps:`$` module load app/0.8
+    :ps:`$` module info-loaded app
     app/0.8
 
 
