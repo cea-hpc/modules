@@ -119,15 +119,24 @@ todo_include_todos = False
 os_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if os_rtd:
     html_theme = 'sphinx_rtd_theme'
-
     # override wide tables in RTD theme
+    # colorize terminal output
     html_context = {
         'css_files': [
             '_static/rtd_theme_overrides.css',
+            '_static/rtd_literal_block.css',
+            '_static/terminal_output.css',
             ],
          }
 else:
     html_theme = 'bizstyle'
+    # colorize terminal output
+    html_context = {
+        'css_files': [
+            '_static/literal_block.css',
+            '_static/terminal_output.css',
+            ],
+         }
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -242,6 +251,30 @@ rst_epilog += '.. |emph modulefilesdir| replace:: *%s*\n' % modulefilesdir
 rst_epilog += '.. |bold modulefilesdir| replace:: **%s**\n' % modulefilesdir
 rst_epilog += '.. |file modulefilesdir| replace:: :file:`%s`\n' % modulefilesdir
 rst_epilog += '.. |code version| replace:: ``%s``\n' % version
+
+# define roles used to color text in parsed-literal to render output like in terminal
+rst_epilog += """.. role:: noparse
+.. role:: ps
+.. role:: sgrhi
+.. role:: sgrer
+.. role:: sgrwa
+.. role:: sgrin
+.. role:: sgrtr
+.. role:: sgrse
+.. role:: sgrcm
+.. role:: sgrme
+.. role:: sgrmp
+.. role:: sgrdi
+.. role:: sgrali
+.. role:: sgrsy
+.. role:: sgrde
+.. role:: sgrh
+.. role:: sgral
+.. role:: sgrl
+.. role:: sgrf
+.. role:: sgrnf
+.. role:: sgrs
+.. role:: sgrss"""
 
 
 # -- Options for manual page output ---------------------------------------
