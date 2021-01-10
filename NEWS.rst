@@ -152,6 +152,8 @@ Modules 4.7.0 (not yet released)
 * Doc: improve markup of module sub-commands, modulefile commands,
   installation option, module configuration option across documentation.
 * Doc: colorize terminal output examples in :ref:`MIGRATING` document.
+* Abort modulefile read if first file content chunk does not start with the
+  ``#%Module`` magic cookie. (fix issue #375)
 
 
 .. _4.6 release notes:
