@@ -1,0 +1,115 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2021/01/10
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:    foo
+#   Sub-Command:    avail, load
+#
+#   Comment:	%C{
+#           Test read of large files (several MB)
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+# ensure avail tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure regular avail search match is set for these tests
+setenv_var MODULES_SEARCH_MATCH starts_with
+
+# ensure icase match is disabled
+setenv_var MODULES_ICASE never
+
+# ensure auto symbolic versions are not set for these tests
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+
+# generate large content
+set fid [open $env(TESTSUITEDIR)/example/siteconfig.tcl-1 r]
+set fdata [read $fid]
+close $fid
+append fdata \n
+set largecontent [string repeat $fdata 1000]
+append largecontent {module-whatis [module-info name]}
+
+# generate two temporary modulefile from large data
+set moddir $mp/tmp
+set modfile1 $moddir/1.0
+set modfile2 $moddir/2.0
+file mkdir $moddir
+set fid [open $modfile1 w]
+puts $fid {#%Module}
+puts $fid $largecontent
+close $fid
+set fid [open $modfile2 w]
+puts $fid $largecontent
+close $fid
+
+# test available
+testouterr_cmd sh {avail -t tmp} OK "$mp:\ntmp/1.0"
+testouterr_cmd sh {avail -t tmp/1.0} OK "$mp:\ntmp/1.0"
+testouterr_cmd sh {avail -t tmp/2.0} OK {}
+
+# test load
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tmp/1.0]
+lappend ans [list setpath _LMFILES_ $modfile1]
+testouterr_cmd sh {load tmp} $ans {}
+testouterr_cmd sh {load tmp/1.0} $ans {}
+set tserr $err_magic'$modfile2'\n$err_contact
+testouterr_cmd sh {load tmp/2.0} ERR $tserr
+
+# test show
+set tserr2 "$modlin
+$mpre/tmp/1.0:
+
+module-whatis\ttmp/1.0
+$modlin"
+testouterr_cmd_re sh {display tmp/1.0} OK $tserr2
+testouterr_cmd sh {display tmp/2.0} ERR $tserr
+
+unsetenv_path_var MODULEPATH
+# test direct load
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $modfile1]
+lappend ans [list setpath _LMFILES_ $modfile1]
+testouterr_cmd sh "load $modfile1" $ans {}
+testouterr_cmd sh "load $modfile2" ERR $tserr
+
+# test direct show
+set tserr2 "$modlin
+$mpre/tmp/1.0:
+
+module-whatis\t$mpre/tmp/1.0
+$modlin"
+testouterr_cmd_re sh "display $modfile1" OK $tserr2
+testouterr_cmd sh "display $modfile2" ERR $tserr
+
+
+#
+#  Cleanup
+#
+
+# clean temp files
+file delete $modfile1
+file delete $modfile2
+file delete $moddir
+
+reset_test_env
