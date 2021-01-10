@@ -1,7 +1,7 @@
 /*************************************************************************
  *
  * ENVMODULES.C, Modules Tcl extension library
- * Copyright (C) 2018-2020 Xavier Delaruelle
+ * Copyright (C) 2018-2021 Xavier Delaruelle
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -194,24 +194,37 @@ Envmodules_ReadFileObjCmd(
    Tcl_Obj *const objv[])  /* Argument objects. */
 {
    int firstline;
+   int must_have_cookie;
    const char *filename;
    int filenamelen;
    int fid;
+   int firstread;
    ssize_t len;
    char buf[READ_BUFFER_SIZE];
    Tcl_Obj *res;
 
    /* Parse arguments. */
-   if (objc == 2) {
-      firstline = 0;
-   } else if (objc == 3) {
+   if (objc < 2 || objc > 4) {
+      Tcl_WrongNumArgs(interp, 1, objv,
+         "filename ?firstline? ?must_have_cookie?");
+      return TCL_ERROR;
+   }
+   if (objc > 2) {
       if (Tcl_GetBooleanFromObj(interp, objv[2], &firstline) != TCL_OK) {
          Tcl_SetErrorCode(interp, "TCL", "VALUE", "BOOLEAN", NULL);
          return TCL_ERROR;
       }
    } else {
-      Tcl_WrongNumArgs(interp, 1, objv, "filename ?firstline?");
-      return TCL_ERROR;
+      firstline = 0;
+   }
+   if (objc > 3) {
+      if (Tcl_GetBooleanFromObj(interp, objv[3], &must_have_cookie) !=
+         TCL_OK) {
+         Tcl_SetErrorCode(interp, "TCL", "VALUE", "BOOLEAN", NULL);
+         return TCL_ERROR;
+      }
+   } else {
+      must_have_cookie = 0;
    }
 
    filename = Tcl_GetStringFromObj(objv[1], &filenamelen);
@@ -238,8 +251,18 @@ Envmodules_ReadFileObjCmd(
          Tcl_AppendToObj(res, buf, len);
       }
    } else {
+      firstread = 1;
       while ((len = read(fid, buf, READ_BUFFER_SIZE)) > 0) {
          Tcl_AppendToObj(res, buf, len);
+         /* Stop reading if magic cookie is mandatory but not found at the
+          * beginning of file. */
+         if (firstread == 1) {
+            firstread = 0;
+            if (must_have_cookie == 1 && strncmp(buf, MODULES_MAGIC_COOKIE, 8)
+               != 0) {
+               break;
+            }
+         }
       }
    }
    /* Error during read. */
