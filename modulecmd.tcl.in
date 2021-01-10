@@ -8137,9 +8137,20 @@ proc getFileMtime {fpath} {
 
 # define proc that will be used as fallback to command provided by extension
 # library in case this library is not loaded
-proc __readFile {filename {firstline 0}} {
+proc __readFile {filename {firstline 0} {must_have_cookie 0}} {
    set fid [open $filename r]
-   set fdata [if {$firstline} {gets $fid} {read $fid}]
+   if {$firstline} {
+      set fdata [gets $fid]
+   } else {
+      # read a first data chunk and check if magic cookie is there if
+      # mandatory. skip read of any additional content if mandatory cookie is
+      # not found
+      set fdata [read $fid 4096]
+      if {![eof $fid] && (!$must_have_cookie || [string equal -length 8\
+         $fdata {#%Module}])} {
+         append fdata [read $fid]
+      }
+   }
    close $fid
    return $fdata
 }
@@ -8155,9 +8166,10 @@ proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}\
          lassign $::g_modfileContent($modfile) fh fdata
       } else {
          # only read beginning of file if just checking validity and not
-         # asked to always fully read files
+         # asked to always fully read files. when full file should be read
+         # cookie is checked if asked to avoid to fully read non modfile
          set fdata [readFile $modfile [expr {$only_check_validity &&\
-            ![currentState always_read_full_file]}]]
+            ![currentState always_read_full_file]}] $must_have_cookie]
          # extract magic cookie (first word of modulefile)
          set fh [string trimright [lindex [split [string range $fdata 0 32]]\
             0] #]
