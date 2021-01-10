@@ -27,7 +27,10 @@ if { $verbose > 0 } {
 
 # clear testsuite-related variables
 foreach var [array names env -glob TESTSUITE_*] {
-    unsetenv_var $var
+    # preserve variable externally set to configure testsuite run
+    if {$var ne {TESTSUITE_ENABLE_SITECONFIG}} {
+        unsetenv_var $var
+    }
 }
 
 catch {unset env(MODULEPATH)}
