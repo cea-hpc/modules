@@ -68,6 +68,121 @@ If no version of specified module can be found loaded, an error is returned.
     :ps:`$` ml display :noparse:`foo@loaded`
     :sgrer:`ERROR`: No loaded version found for 'foo' module
 
+Module tags
+-----------
+
+Module tags are piece of information that can be associated to individual
+modulefiles. Tags could be purely informational or may lead to specific
+behaviors.
+
+Module tags may be inherited from the module state set by a modulefile command
+or consequence of a module action. Tags may also be associated to modules by
+using the new :mfcmd:`module-tag` modulefile command.
+
+Module tags are reported along the module they are associated to on
+:subcmd:`avail` and :subcmd:`list` sub-command results. Tags could be reported
+either:
+
+* along the module name, all tags set within angle brackets, each tag
+  separated from the others with a colon character (e.g.,
+  ``foo/1.2 <tag1:tag2>``).
+
+.. parsed-literal::
+
+    :ps:`$` cat /path/to/modulefiles/foo/.modulerc
+    #%Module
+    module-tag mytag foo
+    module-tag othertag foo/1.0
+    :ps:`$` ml av
+    --------------- :sgrdi:`/path/to/modulefiles` ---------------
+    foo/1.0 <mytag:othertag>  foo/2.0 <mytag>
+    :ps:`$` ml foo/1.0
+    :ps:`$` ml
+    Currently Loaded Modulefiles:
+     1) foo/1.0 <mytag:othertag>
+
+* graphically rendered over the module name for each tag associated to a
+  Select Graphic Rendition (SGR) code in the color palette (see
+  :envvar:`MODULES_COLORS`)
+
+.. parsed-literal::
+
+    :ps:`$` # set SGR code to report 'mytag' with blue background color
+    :ps:`$` ml config colors "hi=1:di=94:L=90;47:mytag=102"
+    :ps:`$` ml av
+    --------------- :sgrdi:`/path/to/modulefiles` ---------------
+    :sgrl:`foo`:sgrss:`/1.0` <othertag>  :sgrss:`foo/2.0`
+    :ps:`$` ml
+    Currently Loaded Modulefiles:
+     1) :sgrl:`foo`:sgrss:`/1.0` <othertag>
+
+The :mconfig:`tag_abbrev` configuration option is available to define
+abbreviated strings for module tags and then use these abbreviations instead
+of tag names when reporting tags on :subcmd:`avail` and :subcmd:`list` command
+results.
+
+.. parsed-literal::
+
+    :ps:`$` # add abbreviation for 'othertag' tag
+    :ps:`$` ml config tag_abbrev loaded=L:othertag=oT
+    :ps:`$` ml av
+    --------------- :sgrdi:`/path/to/modulefiles` ---------------
+    :sgrl:`foo`:sgrss:`/1.0` <oT>  :sgrss:`foo/2.0`
+    :ps:`$` ml
+    Currently Loaded Modulefiles:
+     1) :sgrl:`foo`:sgrss:`/1.0` <oT>
+
+When a SGR code is set for a tag in the color palette, this graphical
+rendition is applied by default over the module name and the tag name or its
+abbreviation is not displayed. If tag name or abbreviation is added to the
+:mconfig:`tag_color_name` configuration option, graphical rendering is applied
+to the tag name or abbreviation rather than over the module name they are
+attached to.
+
+.. parsed-literal::
+
+    :ps:`$` # add SGR code for 'oT' tag and set rendition over tag name
+    :ps:`$` ml config colors "hi=1:di=94:L=90;47:mytag=44:oT=41"
+    :ps:`$` ml config tag_color_name oT
+    :ps:`$` ml av
+    --------------- :sgrdi:`/path/to/modulefiles` ---------------
+    :sgrl:`foo`:sgrss:`/1.0` <:sgrf:`oT`>  :sgrss:`foo/2.0`
+    :ps:`$` ml
+    Currently Loaded Modulefiles:
+     1) :sgrl:`foo`:sgrss:`/1.0` <:sgrf:`oT`>
+
+Tags inherited from module state, consequence of a module action or set by
+using :mfcmd:`module-tag` but that have a special meaning currently are:
+
++------------------+-------------------------+-----------------------+-------+----------------------+
+| Tag              | Description             | Set with              | Abbr. | Color                |
+|                  |                         |                       |       |                      |
++==================+=========================+=======================+=======+======================+
+| auto-loaded      | Module has been loaded  | Inherited             | aL    | .. parsed-literal::  |
+|                  | automatically           |                       |       |     :sgral:`mod/1.0` |
++------------------+-------------------------+-----------------------+-------+----------------------+
+| forbidden        | Module cannot be loaded | Inherited from        | F     | .. parsed-literal::  |
+|                  |                         | :mfcmd:`module-forbid`|       |     :sgrf:`mod/1.0`  |
++------------------+-------------------------+-----------------------+-------+----------------------+
+| hidden           | Module is not visible   | Inherited from        | H     | .. parsed-literal::  |
+|                  | on :subcmd:`avail`      | :mfcmd:`module-hide`  |       |     :sgrh:`mod/1.0`  |
++------------------+-------------------------+-----------------------+-------+----------------------+
+| hidden-loaded    | See `Hiding loaded      | Inherited from        | H     | .. parsed-literal::  |
+|                  | modules`_               | :mfcmd:`module-hide`  |       |     :sgrh:`mod/1.0`  |
++------------------+-------------------------+-----------------------+-------+----------------------+
+| loaded           | Module is currently     | Inherited             | L     | .. parsed-literal::  |
+|                  | loaded                  |                       |       |     :sgrl:`mod/1.0`  |
++------------------+-------------------------+-----------------------+-------+----------------------+
+| nearly-forbidden | Module will soon not be | Inherited from        | nL    | .. parsed-literal::  |
+|                  | able to load anymore    | :mfcmd:`module-forbid`|       |     :sgrnf:`mod/1.0` |
++------------------+-------------------------+-----------------------+-------+----------------------+
+| sticky           | See `Sticky modules`_   | :mfcmd:`module-tag`   | S     | .. parsed-literal::  |
+|                  |                         |                       |       |     :sgrs:`mod/1.0`  |
++------------------+-------------------------+-----------------------+-------+----------------------+
+| super-sticky     | See `Sticky modules`_   | :mfcmd:`module-tag`   | sS    | .. parsed-literal::  |
+|                  |                         |                       |       |     :sgrss:`mod/1.0` |
++------------------+-------------------------+-----------------------+-------+----------------------+
+
 Hiding loaded modules
 ---------------------
 
