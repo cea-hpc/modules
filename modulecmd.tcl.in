@@ -1096,6 +1096,12 @@ proc formatErrStackTrace {errmsg loc {cmdlist {}}} {
    return $errmsg
 }
 
+# Test if color is enabled and passed sgrkey is defined and not null
+proc isSgrkeyColored {sgrkey} {
+   return [expr {[getConf color] && [info exists ::g_colors($sgrkey)] &&\
+      $::g_colors($sgrkey) ne {}}]
+}
+
 # Select Graphic Rendition of a string with passed sgr keys (if color enabled)
 proc sgr {keylist str {himatchmap {}} {othkeylist {}}} {
    if {[getConf color]} {
@@ -9683,8 +9689,8 @@ proc listModules {dir mod show_mtime filter search} {
    getConf tag_color_name
 
    # prepare results for display
-   set alias_colored [expr {[sgr al {}] ne {}}]
-   set default_colored [expr {[sgr de {}] ne {}}]
+   set alias_colored [isSgrkeyColored al]
+   set default_colored [isSgrkeyColored de]
    set himatchmap [prepareMapToHightlightSubstr $mod]
    set clean_list {}
    foreach elt [array names mod_list] {
@@ -10821,7 +10827,7 @@ proc cmdModuleList {show_oneperline show_mtime} {
       getConf tag_color_name
 
       set display_list {}
-      set default_colored [expr {[sgr de {}] ne {}}]
+      set default_colored [isSgrkeyColored de]
       set len_list {}
       set max_len 0
       foreach mod $loadedmodlist {
