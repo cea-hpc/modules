@@ -10006,6 +10006,91 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx\
    reportSeparateNextContent
 }
 
+# Report an output key to help understand what the SGR used on this output
+# correspond to
+proc displayKey {} {
+   array set skipsgr [list hi 1 db 1 tr 1 se 1 er 1 wa 1 me 1 in 1 cm 1]
+   array set typesgr [list mp modulepath di [list directory <SGR>/ 10] al\
+      module-alias sy [list {symbolic-version} [sgr se (]<SGR>[sgr se )] 18]\
+      de [list {default-version}]]
+
+   set display_list {}
+   set len_list {}
+   foreach key [array names ::g_used_colors] {
+      # sgr key matches a basic modulefile type
+      if {[info exists typesgr($key)]} {
+         # the way to describe key is already defined
+         if {[llength $typesgr($key)] > 1} {
+            lassign $typesgr($key) desc desctmp len
+            set desc [string map [list <SGR> [sgr $key $desc]] $desctmp]
+         } else {
+            set desc [lindex $typesgr($key) 0]
+         }
+         if {$key eq {sy} && [info exists ::g_used_sym_nocolor]} {
+            unset ::g_used_sym_nocolor
+         }
+      # key is a tag abbreviation
+      } elseif {[info exists ::g_abbrevTag($key)]} {
+         set desc $::g_abbrevTag($key)
+      # if not part of the ignored list, this key corresponds to a tag name
+      } elseif {![info exists skipsgr($key)]} {
+         set desc $key
+      }
+      if {[info exists desc]} {
+         # define key description
+         if {![info exists len]} {
+            set len [string length $desc]
+            set desc [sgr $key $desc]
+         }
+         lappend display_list $desc
+         lappend len_list $len
+         unset desc
+         unset len
+      }
+   }
+
+   # add key for alias if '@' put in parentheses
+   if {[info exists ::g_used_alias_nocolor]} {
+      lappend display_list "[sgr se (]@[sgr se )]=module-alias"
+      lappend len_list 9
+   }
+   # add key for symbolic version if any put in parentheses but no color
+   if {[info exists ::g_used_sym_nocolor]} {
+      lappend display_list "[sgr se (]symbolic-version[sgr se )]"
+      lappend len_list 18
+   }
+
+   # add key for module tag if any put in angle brackets
+   if {[array exists ::g_used_tags]} {
+      lappend display_list "[sgr se <]module-tag[sgr se >]"
+      lappend len_list 12
+   }
+   # report translation of each uncolored tag abbreviation that have been used
+   foreach tag [array names ::g_used_tags] {
+      if {![info exists ::g_used_colors($tag)] && [info exists\
+         ::g_abbrevTag($tag)]} {
+         lappend display_list [sgr se <]$tag[sgr se >]=$::g_abbrevTag($tag)
+         lappend len_list [expr {[string length $tag] + [string length\
+            $::g_abbrevTag($tag)] + 3}]
+      }
+   }
+
+   # find largest element
+   set max_len 0
+   foreach len $len_list {
+      if {$len > $max_len} {
+         set max_len $len
+      }
+   }
+
+   if {[llength $display_list] > 0} {
+      # display header
+      report Key:
+      # display key content
+      displayElementList noheader {} {} 0 0 $display_list $len_list $max_len
+   }
+}
+
 # Return conf value and from where an eventual def value has been overridden
 proc displayConfig {val env_var {asked 0} {trans {}} {locked 0}} {
    array set transarr $trans
@@ -10900,6 +10985,12 @@ proc cmdModuleList {show_oneperline show_mtime} {
 
       displayElementList noheader {} {} $one_per_line $display_idx\
          $display_list $len_list $max_len
+
+      # display output key
+      if {!$show_mtime && !$show_oneperline && ![isStateEqual report_format\
+         json]} {
+         displayKey
+      }
    }
 }
 
@@ -12322,6 +12413,12 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
          displayElementList $dir mp $hstyle $one_per_line 0 $display_list\
             $len_list $max_len
       }
+   }
+
+   # display output key
+   if {!$show_mtime && !$show_oneperline && ![isStateEqual report_format\
+      json]} {
+      displayKey
    }
 
    setState inhibit_errreport 0
