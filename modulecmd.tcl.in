@@ -571,6 +571,26 @@ proc initConfTagAbbrev {envvar value validvallist intvallist} {
       }
    }
 
+   # build abbrev:tagname array
+   foreach {tag abbrev} [array get ::g_tagAbbrev] {
+      # skip tags not relevant for current command, that share their
+      # abbreviation with another tag
+      switch -- $tag {
+         hidden-loaded {
+            set setabbrevtag [expr {[currentState commandname] eq {list}}]
+         }
+         hidden {
+            set setabbrevtag [expr {[currentState commandname] eq {avail}}]
+         }
+         default {
+            set setabbrevtag 1
+         }
+      }
+      if {$setabbrevtag} {
+         set ::g_abbrevTag($abbrev) $tag
+      }
+   }
+
    return $value
 }
 
