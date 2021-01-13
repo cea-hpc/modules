@@ -1102,6 +1102,10 @@ proc sgr {keylist str {himatchmap {}} {othkeylist {}}} {
       set sgrreset 22
       foreach sgrkey $keylist {
          if {[info exists ::g_colors($sgrkey)]} {
+            # track color key that have been used
+            if {![info exists ::g_used_colors($sgrkey)]} {
+               set ::g_used_colors($sgrkey) 1
+            }
             if {[info exists sgrset]} {
                append sgrset {;}
             }
@@ -1131,7 +1135,12 @@ proc sgr {keylist str {himatchmap {}} {othkeylist {}}} {
             $othkeylist]))}]
          for {set i 0} {$i < [llength $othkeylist]} {incr i} {
             set idx [expr {$i*$tagsgrlen}]
-            lappend sgridxlist $idx $::g_colors([lindex $othkeylist $i])
+            set sgrkey [lindex $othkeylist $i]
+            lappend sgridxlist $idx $::g_colors($sgrkey)
+            # track color key that have been used
+            if {![info exists ::g_used_colors($sgrkey)]} {
+               set ::g_used_colors($sgrkey) 1
+            }
          }
          # determine each chunk where the highlight applies
          set hiidxlist {}
