@@ -154,6 +154,9 @@ Modules 4.7.0 (not yet released)
 * Doc: colorize terminal output examples in :ref:`MIGRATING` document.
 * Abort modulefile read if first file content chunk does not start with the
   ``#%Module`` magic cookie. (fix issue #375)
+* Install: add installation option :instopt:`--enable-new-features` that
+  enables all at once the installation options that are disabled by default
+  due to the substantial behavior changes they imply.
 
 
 .. _4.6 release notes:

@@ -503,6 +503,19 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 
     .. versionadded:: 4.5
 
+.. instopt:: --enable-new-features
+
+ Enable all new features that are disabled by default due to the substantial
+ behavior changes they imply on Modules 4. This option is equivalent to the
+ cumulative use of :instopt:`--enable-auto-handling`,
+ :instopt:`--enable-color`, :instopt:`--with-icase=search<--with-icase>`,
+ :instopt:`--enable-extended-default` and
+ :instopt:`--enable-advanced-version-spec`. (default=no)
+
+ .. only:: html
+
+    .. versionadded:: 4.7
+
 Optional Packages (the default for each option is displayed within
 parenthesis, to disable an option replace ``with`` by ``without`` for
 instance :instopt:`--without-modulepath<--with-modulepath>`):
