@@ -170,7 +170,7 @@ Reporting
         - which supersedes ``MODULES_LIST_OUTPUT`` environment variable if set
         - and default ``list_output`` configuration value
 
-- Adding ``legend`` to the list of values of the ``avail_output`` or ``list_output`` configuration options prints a legend to explain output
+- Adding ``key`` to the list of values of the ``avail_output`` or ``list_output`` configuration options prints a legend to explain output
 
     - Meaning of ``()`` or ``<>`` is explained
     - Default version is colored specifically
@@ -178,6 +178,11 @@ Reporting
     - Every tag colored specifically
     - Legend entries only concern elements that can be found in reported output
     - Legend entries are not reported on JSON output mode
+
+- Output key is enabled by default on ``avail`` and ``list`` sub-command output
+
+    - Key is reported at the end of the output
+    - No key section is reported if no element need to be described (no color, no symbol, no tag, etc)
 
 - Adding ``autosym`` to the list values of:
 
