@@ -40,6 +40,12 @@ setenv_var MODULES_AVAIL_INDEPTH 1
 set test_cols_small 25
 set test_cols_othos 120
 
+set ts_key "Key:
+(@)=module-alias  (symbolic-version)  "
+set ts_key_small "Key:
+(@)=module-alias           
+(symbolic-version)  "
+
 set len  [string length $modpath]
 set lrep [expr {($test_cols - $len - 2)/2}]
 set rrep [expr {$test_cols - $len - 2 - $lrep}]
@@ -1197,7 +1203,7 @@ modload/dir2/1.0     modtr/dir4/al8    modvirt/dir0/sub1/4.0     trmod/al1      
 #  test
 #
 
-testouterr_cmd "sh" "avail" "OK" "$ts_sh"
+testouterr_cmd "sh" "avail" "OK" "$ts_sh\n\n$ts_key"
 
 # test JSON output over a global result
 testouterrjson_cmd sh {avail --json} OK $ts_sh_json
@@ -1205,13 +1211,13 @@ testouterrjson_cmd sh {avail --all --json} OK $ts_sh_all_json
 
 # setup MODULEPATH with a trailing slash and an empty dir element
 setenv_path_var MODULEPATH {} "$modpath/"
-testouterr_cmd "sh" "avail" "OK" "$ts_sh"
+testouterr_cmd "sh" "avail" "OK" "$ts_sh\n\n$ts_key"
 
 
 # test with a small terminal width
 exec stty cols $test_cols_small
 setenv_path_var MODULEPATH "$modpath.deep"
-testouterr_cmd "sh" "avail" "OK" "$ts_sh_small"
+testouterr_cmd "sh" "avail" "OK" "$ts_sh_small\n\n$ts_key_small"
 
 
 # check excepted siteconfig file is installed

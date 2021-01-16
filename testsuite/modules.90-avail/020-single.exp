@@ -35,6 +35,11 @@ set module3 "loc_rc1"
 set version3 "1.0"
 set symbol3 "foo"
 
+set key_al "Key:
+\\(@\\)=module-alias  "
+set key_sym "Key:
+\\(symbolic-version\\)  "
+
 #
 #  Check this only fo the /bin/csh
 #
@@ -57,14 +62,14 @@ testouterr_cmd_re "csh" "av $module" "OK" "$ts_csh\\s+"
 #
 
 set ts_csh "$header$module2/$alias2\\(@\\)"
-testouterr_cmd_re "csh" "avail $module2/$alias2" "OK" "$ts_csh\\s+"
+testouterr_cmd_re "csh" "avail $module2/$alias2" "OK" "$ts_csh\\s+\n\n$key_al"
 
 #
 #  Test avail on a symbolic version
 #
 
 set ts_csh "$header$module3/$version3\\($symbol3\\)"
-testouterr_cmd_re "csh" "avail $module3/$symbol3" "OK" "$ts_csh\\s+"
+testouterr_cmd_re "csh" "avail $module3/$symbol3" "OK" "$ts_csh\\s+\n\n$key_sym"
 
 #
 # test when loaded environment is inconsistent
@@ -73,7 +78,7 @@ testouterr_cmd_re "csh" "avail $module3/$symbol3" "OK" "$ts_csh\\s+"
 setenv_loaded_module [list foo bar] "/path/to/foo"
 
 # should not affect result
-testouterr_cmd_re "csh" "avail $module3/$symbol3" "OK" "$ts_csh\\s+"
+testouterr_cmd_re "csh" "avail $module3/$symbol3" "OK" "$ts_csh\\s+\n\n$key_sym"
 
 
 #
