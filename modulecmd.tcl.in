@@ -9559,6 +9559,11 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
 
    # format remaining sym list
    if {$show_syms && [llength $sym_list] > 0} {
+      # track if a symbol has been reported excluding sym for alias '@'
+      if {![info exists ::g_used_sym_nocolor] && ([llength $sym_list] > 1 ||
+         [lindex $sym_list 0] ne {@})} {
+         set ::g_used_sym_nocolor 1
+      }
       append disp "([join $sym_list :])"
       set symssgr [sgr se (]
       foreach sym $sym_list {
