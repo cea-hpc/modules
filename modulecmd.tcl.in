@@ -12894,6 +12894,12 @@ proc cmdModuleConfig {dump_state args} {
          foreach state [array names ::g_state_defs] {
             set stateval($state) [getState $state <undef> 1]
          }
+         # also get dynamic states (with no prior definition)
+         foreach state [array names ::g_states] {
+            if {![info exists stateval($state)]} {
+               set stateval($state) [getState $state]
+            }
+         }
 
          unset displist
          foreach state [lsort [array names stateval]] {
