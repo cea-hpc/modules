@@ -157,6 +157,9 @@ Modules 4.7.0 (not yet released)
 * Install: add installation option :instopt:`--enable-new-features` that
   enables all at once the installation options that are disabled by default
   due to the substantial behavior changes they imply.
+* Add a *Key* section at the end of :subcmd:`avail` and :subcmd:`list`
+  sub-commands to explain the meaning of graphical renditions or of elements
+  set in parentheses or chevrons along module name.
 
 
 .. _4.6 release notes:

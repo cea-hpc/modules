@@ -310,6 +310,24 @@ super-sticty module can be swapped by another version of this same module:
     Currently Loaded Modulefiles:
      1) :sgrs:`baz/1.0`
 
+Explaining avail/list output
+----------------------------
+
+A *Key* section is added at the end of the :subcmd:`avail` and :subcmd:`list`
+sub-commands output to give hints on the meaning of the graphical rendition
+applied to elements or what the elements set in parentheses or chevrons along
+module name stand for.
+
+.. parsed-literal::
+
+    :ps:`$` ml av
+    ------------------ :sgrdi:`/path/to/modulefiles` ------------------
+    :sgrs:`foo`:sgrl:`/1.0` <oT>  :sgrde:`foo/2.0`  :sgrali:`foo/3.0`
+
+    Key:
+    :sgrl:`loaded`      :sgrde:`default-version`  :sgrs:`sticky`        <oT>=othertag
+    :sgrdi:`modulepath`  :sgrali:`module-alias`     <module-tag>
+
 
 From v4.5 to v4.6
 =================
