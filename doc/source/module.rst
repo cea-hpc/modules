@@ -443,6 +443,11 @@ Module Sub-Commands
  :subcmd:`avail` sub-command are reported along the module name they are
  associated to (see `Module tags`_ section).
 
+ A *Key* section is added at the end of the output in case some elements are
+ reported in parentheses or chevrons along module name or if some graphical
+ rendition is made over some outputed elements. This *Key* section gives hints
+ on the meaning of such elements.
+
  The parameter *path* may also refer to a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
@@ -463,6 +468,9 @@ Module Sub-Commands
 
     .. versionchanged:: 4.6
        Option :option:`--all`/:option:`-a` added
+
+    .. versionchanged:: 4.7
+       *Key* section added at end of output
 
 .. subcmd:: clear [-f]
 
@@ -871,6 +879,11 @@ Module Sub-Commands
  Module tags applying to the loaded modules are reported along the module name
  they are associated to (see `Module tags`_ section).
 
+ A *Key* section is added at the end of the output in case some elements are
+ reported in parentheses or chevrons along module name or if some graphical
+ rendition is made over some outputed elements. This *Key* section gives hints
+ on the meaning of such elements.
+
  .. only:: html
 
     .. versionchanged:: 4.5
@@ -878,6 +891,9 @@ Module Sub-Commands
 
     .. versionchanged:: 4.7
        Option :option:`--all`/:option:`-a` added
+
+    .. versionchanged:: 4.7
+       *Key* section added at end of output
 
 .. subcmd:: load [--auto|--no-auto] [-f] modulefile...
 
