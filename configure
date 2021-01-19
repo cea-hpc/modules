@@ -38,7 +38,8 @@ availindepth implicitdefault extendeddefault moduleshome initconfin pager \
 pageropts verbosity color darkbgcolors lightbgcolors termbg lockedconfigs \
 icase unloadmatchorder searchmatch modulepath loadedmodules quarantinevars \
 wa277 advversspec ml windowssupport nearlyforbiddendays implicitrequirement \
-tagabbrev tagcolorname mcookieversioncheck"
+tagabbrev tagcolorname mcookieversioncheck availoutput availterseoutput \
+listoutput listterseoutput"
 compatarglist=
 libarglist=
 
@@ -125,6 +126,10 @@ nearlyforbiddendays=14
 tagabbrev='auto-loaded=aL:loaded=L:hidden=H:hidden-loaded=H:forbidden=F:nearly-forbidden=nF:sticky=S:super-sticky=sS'
 tagcolorname=
 mcookieversioncheck=y
+availoutput='modulepath:alias:dirwsym:sym:tag:key'
+availterseoutput='modulepath:alias:dirwsym:sym:tag'
+listoutput='header:idx:sym:tag:key'
+listterseoutput='header'
 
 # git branch to use to build compat version
 compatbranch='c-3.2'
@@ -335,8 +340,30 @@ Optional Packages:
                           applied over their name instead of over the name of
                           the module they are attached to. Each element in
                           TAGLIST is a tag name or abbreviation (elements in
-                          TAGLIST are separated by \`:')
-                          [$tagcolorname]
+                          TAGLIST are separated by \`:') [$tagcolorname]
+  --with-avail-output=LIST
+                          specify content to report on avail sub-command
+                          regular output. elements accepted in LIST are:
+                          \`modulepath', \`alias', \`dirwsym', \`sym', \`tag'
+                          and \`key' (elements in LIST are separated by \`:')
+                          [$availoutput]
+  --with-avail-terse-output=LIST
+                          specify content to report on avail sub-command
+                          terse output. elements accepted in LIST are:
+                          \`modulepath', \`alias', \`dirwsym', \`sym', \`tag'
+                          and \`key' (elements in LIST are separated by \`:')
+                          [$availterseoutput]
+  --with-list-output=LIST
+                          specify content to report on list sub-command
+                          regular output. elements accepted in LIST are:
+                          \`header', \`idx', \`sym', \`tag' and \`key'
+                          (elements in LIST are separated by \`:')
+                          [$listoutput]
+  --with-list-terse-output=LIST
+                          specify content to report on list sub-command terse
+                          output. elements accepted in LIST are: \`header',
+                          \`idx', \`sym', \`tag' and \`key' (elements in LIST
+                          are separated by \`:') [$listterseoutput]
   --with-modulepath=PATHLIST
                           default modulepaths to set in default configuration
                           file to be enabled (each path in PATHLIST should
@@ -435,15 +462,17 @@ get_feature_value() {
 # parse optional argument to find package is set or disabled
 get_package_value() {
    typeset val="${1#*=}"
+   typeset valifunset="$2"
 
+   # use fallback value 'valifunset' when no specific value given
    if [ "${1//--with-/}" != "$1" ]; then
-      if [ "$val" = 'no' ]; then
-        echo ''
+      if [ "$val" = 'no' ] || [ "$val" = "$1" ]; then
+        echo "$valifunset"
       else
         echo "$val"
       fi
    else
-      echo ''
+      echo "$valifunset"
    fi
 }
 
@@ -646,6 +675,50 @@ for arg in "$@"; do
       tagabbrev=$(get_package_value "$arg") ;;
    --with-tag-color-name*|--without-tag-color-name)
       tagcolorname=$(get_package_value "$arg") ;;
+   --with-avail-output*|--without-avail-output)
+      availoutput=$(get_package_value "$arg" "$availoutput") ;
+      allowedval=" modulepath alias dirwsym sym tag key " ;
+      ORIG_IFS=$IFS ;
+      IFS=: ;
+      for val in $availoutput; do
+         if [ "${allowedval// $val /}" = "$allowedval" ]; then
+            echo_error "Bad value '$val' set in option \`--with-avail-output', values allowed in list are:$allowedval"
+         fi ;
+      done ;
+      IFS=$ORIG_IFS ;;
+   --with-avail-terse-output*|--without-avail-terse-output)
+      availterseoutput=$(get_package_value "$arg" "$availterseoutput") ;
+      allowedval=" modulepath alias dirwsym sym tag key " ;
+      ORIG_IFS=$IFS ;
+      IFS=: ;
+      for val in $availterseoutput; do
+         if [ "${allowedval// $val /}" = "$allowedval" ]; then
+            echo_error "Bad value '$val' set in option \`--with-avail-terse-output', values allowed in list are:$allowedval"
+         fi ;
+      done ;
+      IFS=$ORIG_IFS ;;
+   --with-list-output*|--without-list-output)
+      listoutput=$(get_package_value "$arg" "$listoutput") ;
+      allowedval=" header idx sym tag key " ;
+      ORIG_IFS=$IFS ;
+      IFS=: ;
+      for val in $listoutput; do
+         if [ "${allowedval// $val /}" = "$allowedval" ]; then
+            echo_error "Bad value '$val' set in option \`--with-list-output', values allowed in list are:$allowedval"
+         fi ;
+      done ;
+      IFS=$ORIG_IFS ;;
+   --with-list-terse-output*|--without-list-terse-output)
+      listterseoutput=$(get_package_value "$arg" "$listterseoutput") ;
+      allowedval=" header idx sym tag key " ;
+      ORIG_IFS=$IFS ;
+      IFS=: ;
+      for val in $listterseoutput; do
+         if [ "${allowedval// $val /}" = "$allowedval" ]; then
+            echo_error "Bad value '$val' set in option \`--with-list-terse-output', values allowed in list are:$allowedval"
+         fi ;
+      done ;
+      IFS=$ORIG_IFS ;;
    --with-modulepath=*|--without-modulepath)
       modulepath=$(get_package_value "$arg") ;;
    --with-loadedmodules=*|--without-loadedmodules)

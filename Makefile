@@ -300,6 +300,10 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@nearlyforbiddendays@|$(nearlyforbiddendays)|g' \
 	-e 's|@tagabbrev@|$(tagabbrev)|g' \
 	-e 's|@tagcolorname@|$(tagcolorname)|g' \
+	-e 's|@availoutput@|$(availoutput)|g' \
+	-e 's|@availterseoutput@|$(availterseoutput)|g' \
+	-e 's|@listoutput@|$(listoutput)|g' \
+	-e 's|@listterseoutput@|$(listterseoutput)|g' \
 	-e 's|@autohandling@|$(setautohandling)|g' \
 	-e 's|@implicitrequirement@|$(setimplicitrequirement)|g' \
 	-e 's|@availindepth@|$(setavailindepth)|g' \
