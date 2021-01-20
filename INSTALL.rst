@@ -708,6 +708,54 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
     .. versionadded:: 4.7
 
+.. instopt:: --with-avail-output=LIST
+
+ Specify the content to report on avail sub-command regular output in addition
+ to the available module names. Elements accepted in LIST are: ``modulepath``,
+ ``alias``, ``dirwsym``,``sym``, ``tag`` and ``key`` (elements in LIST are
+ separated by ``:``). The order of the elements in LIST does not matter.
+ (default=\ ``modulepath:alias:dirwsym:sym:tag:key``)
+
+ .. only:: html
+
+    .. versionadded:: 4.7
+
+.. instopt:: --with-avail-terse-output=LIST
+
+ Specify the content to report on avail sub-command terse output in addition
+ addition to the available module names. Elements accepted in LIST are:
+ ``modulepath``, ``alias``, ``dirwsym``,``sym``, ``tag`` and ``key`` (elements
+ in LIST are separated by ``:``). The order of the elements in LIST does not
+ matter. (default=\ ``modulepath:alias:dirwsym:sym:tag``)
+
+ .. only:: html
+
+    .. versionadded:: 4.7
+
+.. instopt:: --with-list-output=LIST
+
+ Specify the content to report on list sub-command regular output in addition
+ to the loaded module names. Elements accepted in LIST are: ``header``,
+ ``idx``, ``sym``, ``tag`` and ``key`` (elements in LIST are separated by
+ ``:``). The order of the elements in LIST does not matter.
+ (default=\ ``header:idx:sym:tag:key``)
+
+ .. only:: html
+
+    .. versionadded:: 4.7
+
+.. instopt:: --with-list-terse-output=LIST
+
+ Specify the content to report on list sub-command terse output in addition
+ to the loaded module names. Elements accepted in LIST are: ``header``,
+ ``idx``, ``sym``, ``tag`` and ``key`` (elements in LIST are separated by
+ ``:``). The order of the elements in LIST does not matter.
+ (default=\ ``header``)
+
+ .. only:: html
+
+    .. versionadded:: 4.7
+
 .. instopt:: --with-modulepath=PATHLIST
 
  Default path list to setup as the default modulepaths.  Each path in this
