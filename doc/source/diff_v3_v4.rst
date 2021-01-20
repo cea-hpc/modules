@@ -304,7 +304,7 @@ The following command line switches appeared on new version of Modules are not s
 | 4.6        | :option:`--trace`, :option:`-T`, :option:`--all`, :option:`-a`, |
 |            | :option:`-DD`                                                   |
 +------------+-----------------------------------------------------------------+
-| 4.7        | :option:`-vv`                                                   |
+| 4.7        | :option:`-vv`, :option:`--output`, :option:`-o`                 |
 +------------+-----------------------------------------------------------------+
 
 
@@ -394,6 +394,10 @@ The following environment variables appeared on new version of Modules are not s
 |            | :envvar:`MODULES_IMPLICIT_REQUIREMENT`, :envvar:`MODULES_LMTAG`,|
 |            | :envvar:`MODULES_TAG_ABBREV`, :envvar:`MODULES_TAG_COLOR_NAME`, |
 |            | :envvar:`MODULES_MCOOKIE_VERSION_CHECK`                         |
+|            | :envvar:`MODULES_AVAIL_OUTPUT`,                                 |
+|            | :envvar:`MODULES_AVAIL_TERSE_OUTPUT`,                           |
+|            | :envvar:`MODULES_LIST_OUTPUT`,                                  |
+|            | :envvar:`MODULES_LIST_TERSE_OUTPUT`,                            |
 +------------+-----------------------------------------------------------------+
 
 
