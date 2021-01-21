@@ -2997,7 +2997,7 @@ proc module {command args} {
 
    # parse options, do that globally to ignore options not related to a given
    # module sub-command (exclude them from arg list)
-   lassign [eval parseModuleCommandArgs $topcall $command $args]\
+   lassign [eval parseModuleCommandArgs $topcall $command 0 $args]\
       show_oneperline show_mtime show_filter search_filter search_match\
       dump_state addpath_pos not_req args
 
@@ -3369,7 +3369,7 @@ proc module {command args} {
 proc ml {args} {
    # filter out all known options from argument list to guess command name
    # without them in the way
-   lassign [eval parseModuleCommandArgs 1 ml $args] show_oneperline\
+   lassign [eval parseModuleCommandArgs 1 ml 1 $args] show_oneperline\
       show_mtime show_filter search_filter search_match dump_state\
       addpath_pos not_req fargs
 
@@ -3393,12 +3393,16 @@ proc ml {args} {
    if {$cmdvalid} {
       eval module $command $margs
    } else {
-      # no need to look for option arguments as they have already been parsed
-      # in main procedure (error has already been raised for badly written
-      # argument like '-' or '--')
-
       # parse specified module and get list of mods to unload and mods to load
       lassign [eval parseModuleVersionSpecifier 1 $fargs] modunlist modlolist
+
+      # main procedure has already raised error for badly written argument
+      # like '-' or '--', but we need here to replay module-specific argument
+      # parsing to raise error if some arg are not allowed on unload/load cmd
+      set mlcmd [expr {[llength $modunlist] > 0 ? {unload} : {load}}]
+      lassign [eval parseModuleCommandArgs 1 $mlcmd 0 $args] show_oneperline\
+         show_mtime show_filter search_filter search_match dump_state\
+         addpath_pos not_req fargs
 
       # define if modfile should always be fully read even for validity check
       lappendState always_read_full_file 1
@@ -10418,7 +10422,7 @@ proc parseModuleCommandName {command defaultcmd} {
 }
 
 # analyze arg list passed to a module cmd to set options
-proc parseModuleCommandArgs {topcall cmd args} {
+proc parseModuleCommandArgs {topcall cmd ignerr args} {
    set show_oneperline 0
    set show_mtime 0
    set show_filter {}
@@ -10431,100 +10435,135 @@ proc parseModuleCommandArgs {topcall cmd args} {
 
    # parse argument list
    foreach arg $args {
-      switch -glob -- $arg {
-         -j - --json {
-            # enable json output only on supported command
-            if {[isInList [list avail savelist list search whatis] $cmd]} {
-               setState report_format json
-               set show_oneperline 0
+      if {[info exists nextargisval]} {
+         set $nextargisval $arg
+         unset nextargisval
+      } elseif {[info exists ignore_next_arg]} {
+         unset ignore_next_arg
+      } else {
+         switch -glob -- $arg {
+            -j - --json {
+               # enable json output only on supported command
+               if {[isInList [list avail savelist list search whatis] $cmd]} {
+                  setState report_format json
+                  set show_oneperline 0
+                  set show_mtime 0
+               }
+            }
+            -t - --terse {
+               set show_oneperline 1
                set show_mtime 0
+               setState report_format plain
             }
-         }
-         -t - --terse {
-            set show_oneperline 1
-            set show_mtime 0
-            setState report_format plain
-         }
-         -l - --long {
-            set show_mtime 1
-            set show_oneperline 0
-            setState report_format plain
-         }
-         --append - -append {
-            if {$cmd eq {use}} {
-               set addpath_pos append
-            } else {
-               lappend otherargs $arg
+            -l - --long {
+               set show_mtime 1
+               set show_oneperline 0
+               setState report_format plain
             }
-         }
-         -p - --prepend - -prepend {
-            if {$cmd eq {use}} {
-               set addpath_pos prepend
-            } else {
-               lappend otherargs $arg
+            -o {
+               # option is only valid for specific sub-commands
+               if {[isInList [list avail list] $cmd]} {
+                  set nextargisval asked_output
+               } else {
+                  if {!$ignerr} {
+                     knerror "Unsupported option '$arg' on $cmd sub-command"
+                  }
+                  set ignore_next_arg 1
+               }
             }
-         }
-         --all {
-            # include hidden modules only on a limited set of command
-            if {[isInList [list avail aliases search whatis ml list] $cmd]} {
-               setState hiding_threshold 2
-            } else {
-               lappend otherargs $arg
+            --output=* {
+               # option is only valid for specific sub-commands
+               if {[isInList [list avail list] $cmd]} {
+                  set asked_output [string range $arg 9 end]
+               } elseif {!$ignerr} {
+                  knerror "Unsupported option '--output' on $cmd sub-command"
+               }
             }
-         }
-         -a {
-            # -a option has a different meaning whether sub-command is use or
-            # one of the search/listing sub-commands
-            if {$cmd eq {use}} {
-               set addpath_pos append
-            } elseif {[isInList [list avail aliases search whatis ml list]\
-               $cmd]} {
-               setState hiding_threshold 2
-            } else {
-               lappend otherargs $arg
+            --append - -append {
+               if {$cmd eq {use}} {
+                  set addpath_pos append
+               } else {
+                  lappend otherargs $arg
+               }
             }
-         }
-         -d - --default {
-            # in case of *-path command, -d means --delim
-            if {$arg eq {-d} && [string match *-path $cmd]} {
-               lappend otherargs $arg
-            } else {
-               set show_filter onlydefaults
+            -p - --prepend - -prepend {
+               if {$cmd eq {use}} {
+                  set addpath_pos prepend
+               } else {
+                  lappend otherargs $arg
+               }
             }
-         }
-         -L - --latest {
-            set show_filter onlylatest
-         }
-         -C - --contains {
-            set search_match contains
-         }
-         -S - --starts-with {
-            set search_match starts_with
-         }
-         --indepth {
-            # empty value means 'in depth' as it is default behavior
-            set search_filter {}
-         }
-         --no-indepth {
-            set search_filter noindepth
-         }
-         --dump-state {
-            set dump_state 1
-         }
-         --auto - --no-auto - -f - --force {
-            reportWarning "Unsupported option '$arg'"
-         }
-         --not-req {
-            if {!$topcall && [isInList [list load unload switch] $cmd]} {
-               set not_req 1
-            } else {
+            --all {
+               # include hidden modules only on a limited set of command
+               if {[isInList [list avail aliases search whatis ml list]\
+                  $cmd]} {
+                  setState hiding_threshold 2
+               } else {
+                  lappend otherargs $arg
+               }
+            }
+            -a {
+               # -a option has a different meaning whether sub-command is use
+               # or one of the search/listing sub-commands
+               if {$cmd eq {use}} {
+                  set addpath_pos append
+               } elseif {[isInList [list avail aliases search whatis ml list]\
+                  $cmd]} {
+                  setState hiding_threshold 2
+               } else {
+                  lappend otherargs $arg
+               }
+            }
+            -d - --default {
+               # in case of *-path command, -d means --delim
+               if {$arg eq {-d} && [string match *-path $cmd]} {
+                  lappend otherargs $arg
+               } else {
+                  set show_filter onlydefaults
+               }
+            }
+            -L - --latest {
+               set show_filter onlylatest
+            }
+            -C - --contains {
+               set search_match contains
+            }
+            -S - --starts-with {
+               set search_match starts_with
+            }
+            --indepth {
+               # empty value means 'in depth' as it is default behavior
+               set search_filter {}
+            }
+            --no-indepth {
+               set search_filter noindepth
+            }
+            --dump-state {
+               set dump_state 1
+            }
+            --auto - --no-auto - -f - --force {
                reportWarning "Unsupported option '$arg'"
             }
+            --not-req {
+               if {!$topcall && [isInList [list load unload switch] $cmd]} {
+                  set not_req 1
+               } else {
+                  reportWarning "Unsupported option '$arg'"
+               }
+            }
+            --output {
+               knerror "Missing value for '$arg' option"
+            }
+            default {
+               lappend otherargs $arg
+            }
          }
-         default {
-            lappend otherargs $arg
-         }
+         set prevarg $arg
       }
+   }
+
+   if {[info exists nextargisval]} {
+      knerror "Missing value for '$prevarg' option"
    }
 
    reportDebug "(show_oneperline=$show_oneperline, show_mtime=$show_mtime,\
@@ -13060,6 +13099,10 @@ Switches:
   -t | --terse    Display output in terse format
   -l | --long     Display output in long format
   -j | --json     Display output in JSON format
+  -o LIST | --output=LIST
+                  Define elements to output on 'avail' or 'list' sub-commands
+                  in addition to module names (LIST is made of items like
+                  'sym', 'tag' or 'key' separated by ':')
   -a | --all      Include hidden modules in search
   -d | --default  Only show default versions available
   -L | --latest   Only show latest versions available
@@ -13148,6 +13191,9 @@ if {[catch {
    foreach arg $argtoparse {
       if {[info exists ignore_next_arg]} {
          unset ignore_next_arg
+      } elseif {[info exists nextargisextraargv]} {
+         lappend extraargv $arg
+         unset nextargisextraargv
       } else {
          switch -glob -- $arg {
             -T - --trace {
@@ -13195,8 +13241,13 @@ if {[catch {
                   unset asked_color
                }
             }
+            -o {
+               # add with next arg to the command-specific switches
+               lappend extraargv $arg
+               set nextargisextraargv 1
+            }
             -t - --terse - -l - --long - --default - -L - --latest - -S -\
-            --starts-with - -C - --contains - -j - --json {
+            --starts-with - -C - --contains - -j - --json - --output=* {
                # command-specific switches that can for compatibility be
                # passed before the command name, so add them to a specific
                # arg list to ensure command name as first position argument
@@ -13234,6 +13285,10 @@ if {[catch {
                # also ignore argument value
                set ignore_next_arg 1
             }
+            --output {
+               reportErrorAndExit "Missing value for '$arg' option\nTry\
+                  'module --help' for more information."
+            }
             {-} - {--} - {--*} {
                reportErrorAndExit "Invalid option '$arg'\nTry 'module --help'\
                   for more information."
@@ -13251,7 +13306,13 @@ if {[catch {
                lappend otherargv $arg
             }
          }
+         set prevarg $arg
       }
+   }
+
+   if {[info exists nextargisextraargv]} {
+      reportErrorAndExit "Missing value for '$prevarg' option\nTry 'module\
+         --help' for more information."
    }
 
    setState subcmd [lindex $otherargv 0]
