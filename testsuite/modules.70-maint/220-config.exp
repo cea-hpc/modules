@@ -28,6 +28,10 @@ unsetenv_var MODULES_IMPLICIT_REQUIREMENT
 unsetenv_var MODULERCFILE
 unsetenv_var MODULES_TAG_COLOR_NAME
 unsetenv_var MODULES_MCOOKIE_VERSION_CHECK
+unsetenv_var MODULES_AVAIL_OUTPUT
+unsetenv_var MODULES_AVAIL_TERSE_OUTPUT
+unsetenv_var MODULES_LIST_OUTPUT
+unsetenv_var MODULES_LIST_TERSE_OUTPUT
 if {[info exists env(MODULES_ICASE)]} {
     set saved_icase $env(MODULES_ICASE)
     unsetenv_var MODULES_ICASE
@@ -44,8 +48,10 @@ array set configdfl [list\
     advanced_version_spec     [expr {$install_advversspec eq {y}}]\
     auto_handling             [expr {$install_autohandling eq {y}}]\
     avail_indepth             [expr {$install_availindepth eq {y}}]\
+    avail_output              $install_availoutput\
     avail_report_dir_sym      1\
     avail_report_mfile_sym    1\
+    avail_terse_output        $install_availterseoutput\
     csh_limit                 4000\
     collection_pin_version    0\
     collection_target         <undef>\
@@ -59,6 +65,8 @@ array set configdfl [list\
     ignored_dirs              {CVS RCS SCCS .svn .git .SYNC .sos}\
     implicit_default          [expr {$install_implicitdefault eq {y}}]\
     implicit_requirement      [expr {$install_implicitrequirement eq {y}}]\
+    list_output               $install_listoutput\
+    list_terse_output         $install_listterseoutput\
     locked_configs            $install_lockedconfigs\
     mcookie_version_check     [expr {$install_mcookieversioncheck eq {y}}]\
     ml                        [expr {$install_ml eq {y}}]\
@@ -84,6 +92,8 @@ array set configvar [list\
     advanced_version_spec     MODULES_ADVANCED_VERSION_SPEC\
     auto_handling             MODULES_AUTO_HANDLING\
     avail_indepth             MODULES_AVAIL_INDEPTH\
+    avail_output              MODULES_AVAIL_OUTPUT\
+    avail_terse_output        MODULES_AVAIL_TERSE_OUTPUT\
     collection_pin_version    MODULES_COLLECTION_PIN_VERSION\
     collection_target         MODULES_COLLECTION_TARGET\
     color                     MODULES_COLOR\
@@ -95,6 +105,8 @@ array set configvar [list\
     icase                     MODULES_ICASE\
     implicit_default          MODULES_IMPLICIT_DEFAULT\
     implicit_requirement      MODULES_IMPLICIT_REQUIREMENT\
+    list_output               MODULES_LIST_OUTPUT\
+    list_terse_output         MODULES_LIST_TERSE_OUTPUT\
     mcookie_version_check     MODULES_MCOOKIE_VERSION_CHECK\
     ml                        MODULES_ML\
     nearly_forbidden_days     MODULES_NEARLY_FORBIDDEN_DAYS\
@@ -117,12 +129,16 @@ array set configvalid [list\
     advanced_version_spec     {0 1}\
     auto_handling             {0 1}\
     avail_indepth             {0 1}\
+    avail_output              {modulepath alias dirwsym sym tag key}\
+    avail_terse_output        {modulepath alias dirwsym sym tag key}\
     collection_pin_version    {0 1}\
     color                     {never auto always}\
     extended_default          {0 1}\
     icase                     {never search always}\
     implicit_default          {0 1}\
     implicit_requirement      {0 1}\
+    list_output               {header idx sym tag key}\
+    list_terse_output         {header idx sym tag key}\
     mcookie_version_check     {0 1}\
     ml                        {0 1}\
     nearly_forbidden_days     integer\
@@ -133,6 +149,13 @@ array set configvalid [list\
     unload_match_order        {returnlast returnfirst}\
     verbosity                 {silent concise normal verbose verbose2 trace debug debug2}\
     wa_277                    {0 1}\
+]
+
+array set configvalidkind [list\
+    avail_output              eltlist\
+    avail_terse_output        eltlist\
+    list_output               eltlist\
+    list_terse_output         eltlist\
 ]
 
 array set configlockable [list\
@@ -171,25 +194,44 @@ foreach param [array names configdfl] {
 
 # set parameter that could be altered and whose value is checked
 foreach param [array names configvalid] {
-    switch -- $configvalid($param) {
-        integer {
-            if {$configvalid($param) eq {integer}} {
-                set ans [list [list set $configvar($param) 0]]
-                testouterr_cmd_re sh "config $param 0" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
-                set ans [list [list set $configvar($param) 54]]
-                testouterr_cmd_re sh "config $param 54" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
-            }
-        }
-        default {
-            # valid value tests
-            foreach val $configvalid($param) {
+    if {[info exists configvalidkind($param)]} {
+        switch -- $configvalidkind($param) {
+            eltlist {
+                set val [join [lrange $configvalid($param) 0 end-2] :]
                 set ans [list [list set $configvar($param) $val]]
                 testouterr_cmd_re sh "config $param $val" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
+
+                # invalid value test
+                set tserr [if_configlocked $param [err_conflocked $param] "$error_msgs: Invalid element in value list for config. option '$param'\n  Allowed elements are: $configvalid($param) (separated by ':')"]
+                testouterr_cmd sh "config $param foo" ERR $tserr
+                # badly separated value list
+                set val [join [lrange $configvalid($param) 0 end-2] ,]
+                testouterr_cmd sh "config $param $val" ERR $tserr
+                set val [join [lrange $configvalid($param) 0 end-2] {\ }]
+                testouterr_cmd sh "config $param $val" ERR $tserr
             }
         }
+    } else {
+        switch -- $configvalid($param) {
+            integer {
+                if {$configvalid($param) eq {integer}} {
+                    set ans [list [list set $configvar($param) 0]]
+                    testouterr_cmd_re sh "config $param 0" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
+                    set ans [list [list set $configvar($param) 54]]
+                    testouterr_cmd_re sh "config $param 54" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
+                }
+            }
+            default {
+                # valid value tests
+                foreach val $configvalid($param) {
+                    set ans [list [list set $configvar($param) $val]]
+                    testouterr_cmd_re sh "config $param $val" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
+                }
+            }
+        }
+        # invalid value test
+        testouterr_cmd_re sh "config $param foo" ERR [if_configlocked $param [err_conflocked $param] "$error_msgs: Valid values for configuration option '$param' are: $configvalid($param)"]
     }
-    # invalid value test
-    testouterr_cmd_re sh "config $param foo" ERR [if_configlocked $param [err_conflocked $param] "$error_msgs: Valid values for configuration option '$param' are: $configvalid($param)"]
     # reset to default
     set ans [list [list unset $configvar($param)]]
     testouterr_cmd_re sh "config --reset $param" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
