@@ -1,0 +1,102 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2021/01/22
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:    foo
+#   Sub-Command:    avail
+#
+#   Comment:	%C{
+#           Test output customization on avail sub-command
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+# ensure advanced version specifiers are enabled
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+
+# ensure regular avail search match is set for these tests
+setenv_var MODULES_SEARCH_MATCH starts_with
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+
+# enable a symbolic version for foo/1.0 module
+setenv_var TESTSUITE_AVAIL_OUTPUT_FOO_SYM 1
+
+
+#
+# -o/--output options test
+#
+
+set tserr_avail_foo "foo/1.0\\(bar\\)  "
+testouterr_cmd_re sh {avail -o sym foo/1.0} OK $tserr_avail_foo
+testouterr_cmd sh {avail foo -o} ERR "$error_msgs: Missing value for '-o' option\n$err_typehelp"
+testouterr_cmd_re sh {avail --output=sym foo/1.0} OK $tserr_avail_foo
+testouterr_cmd sh {avail --output foo} ERR "$error_msgs: Missing value for '--output' option\n$err_typehelp"
+testouterr_cmd sh {--output avail foo} ERR "$error_msgs: Missing value for '--output' option\n$err_typehelp"
+
+# test with ml shortcut command
+testouterr_cmd_re sh {ml av -o sym foo/1.0} OK $tserr_avail_foo
+testouterr_cmd sh {ml av -o} ERR "$error_msgs: Missing value for '-o' option\n$err_typehelp"
+testouterr_cmd_re sh {ml --output=sym av foo/1.0} OK $tserr_avail_foo
+testouterr_cmd sh {--output ml av foo} ERR "$error_msgs: Missing value for '--output' option\n$err_typehelp"
+
+# test on a sub-command that does not support these options
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/1.0]
+lappend ans [list setpath _LMFILES_ $mp/foo/1.0]
+
+testouterr_cmd sh {load --output foo/1.0} ERR "$error_msgs: Missing value for '--output' option\n$err_typehelp"
+testouterr_cmd sh {load foo/1.0 -o} ERR "$error_msgs: Missing value for '-o' option\n$err_typehelp"
+testouterr_cmd sh {load --output=sym foo/1.0} ERR "$error_msgs: Unsupported option '--output' on load sub-command"
+testouterr_cmd sh {load -o sym foo/1.0} ERR "$error_msgs: Unsupported option '-o' on load sub-command"
+testouterr_cmd sh {ml --output=sym foo/1.0} ERR "$error_msgs: Unsupported option '--output' on load sub-command"
+testouterr_cmd sh {ml -o sym foo/1.0} ERR "$error_msgs: Unsupported option '-o' on load sub-command"
+
+# test usage in modulefile
+set ans [list]
+lappend ans [list setpath LOADEDMODULES output/1.0]
+lappend ans [list setpath _LMFILES_ $mp/output/1.0]
+
+setenv_var TESTSUITE_OUTPUT_INMODFILE 1
+testouterr_cmd_re sh {load output/1.0} $ans $tserr_avail_foo
+setenv_var TESTSUITE_OUTPUT_INMODFILE 2
+testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Missing value for '-o' option} {module avail foo/1.0 -o} $mp/output/1.0 6]]
+setenv_var TESTSUITE_OUTPUT_INMODFILE 3
+testouterr_cmd_re sh {load output/1.0} $ans $tserr_avail_foo
+setenv_var TESTSUITE_OUTPUT_INMODFILE 4
+testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Missing value for '--output' option} {module avail --output foo/1.0} $mp/output/1.0 8]]
+
+setenv_var TESTSUITE_OUTPUT_INMODFILE 5
+testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Unsupported option '-o' on unload sub-command} {module unload --not-req -o sym bar} $mp/output/1.0 10]]
+setenv_var TESTSUITE_OUTPUT_INMODFILE 6
+testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Unsupported option '-o' on unload sub-command} {module unload --not-req bar -o} $mp/output/1.0 11]]
+setenv_var TESTSUITE_OUTPUT_INMODFILE 7
+testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Unsupported option '--output' on unload sub-command} {module unload --not-req --output=sym bar} $mp/output/1.0 12]]
+setenv_var TESTSUITE_OUTPUT_INMODFILE 8
+testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Missing value for '--output' option} {module unload --not-req --output bar} $mp/output/1.0 13]]
+
+unsetenv_var TESTSUITE_OUTPUT_INMODFILE
+
+
+#
+#  Cleanup
+#
+
+reset_test_env

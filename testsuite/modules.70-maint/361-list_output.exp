@@ -1,0 +1,81 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2021/01/22
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:    foo
+#   Sub-Command:    list
+#
+#   Comment:	%C{
+#           Test output customization on list sub-command
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+# ensure advanced version specifiers are enabled
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+
+# ensure regular avail search match is set for these tests
+setenv_var MODULES_SEARCH_MATCH starts_with
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+
+#
+# -o/--output options test
+#
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+setenv_path_var MODULES_LMALTNAME foo/1.0&foo/bar
+
+set tserr_list_foo "foo/1.0(bar)  "
+testouterr_cmd sh {list -o sym} OK $tserr_list_foo
+testouterr_cmd sh {list -o} ERR "$error_msgs: Missing value for '-o' option\n$err_typehelp"
+testouterr_cmd sh {list --output=sym} OK $tserr_list_foo
+testouterr_cmd sh {list --output} ERR "$error_msgs: Missing value for '--output' option\n$err_typehelp"
+testouterr_cmd sh {--output list} ERR "$error_msgs: Missing value for '--output' option\n$err_typehelp"
+
+# test with ml shortcut command
+testouterr_cmd sh {ml -o sym} OK $tserr_list_foo
+testouterr_cmd sh {ml -o} ERR "$error_msgs: Missing value for '-o' option\n$err_typehelp"
+testouterr_cmd sh {ml --output=sym} OK $tserr_list_foo
+testouterr_cmd sh {--output ml} ERR "$error_msgs: Missing value for '--output' option\n$err_typehelp"
+
+# test usage in modulefile
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/1.0:output/1.0]
+lappend ans [list setpath _LMFILES_ $mp/foo/1.0:$mp/output/1.0]
+set tserr_list_foo "foo/1.0\\(bar\\)  "
+
+setenv_var TESTSUITE_OUTPUT_INMODFILE 9
+testouterr_cmd_re sh {load output/1.0} $ans $tserr_list_foo
+setenv_var TESTSUITE_OUTPUT_INMODFILE 10
+testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Missing value for '-o' option} {module list -o} $mp/output/1.0 18]]
+setenv_var TESTSUITE_OUTPUT_INMODFILE 11
+testouterr_cmd_re sh {load output/1.0} $ans $tserr_list_foo
+setenv_var TESTSUITE_OUTPUT_INMODFILE 12
+testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Missing value for '--output' option} {module list --output} $mp/output/1.0 20]]
+
+unsetenv_var TESTSUITE_OUTPUT_INMODFILE
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
