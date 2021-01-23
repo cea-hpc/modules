@@ -45,17 +45,30 @@ setenv_var TESTSUITE_AVAIL_OUTPUT_FOO_SYM 1
 #
 
 set tserr_avail_foo "foo/1.0\\(bar\\)  "
+set tserr_avail_terse_foo "foo/1.0\\(bar\\)"
 testouterr_cmd_re sh {avail -o sym foo/1.0} OK $tserr_avail_foo
 testouterr_cmd sh {avail foo -o} ERR "$error_msgs: Missing value for '-o' option\n$err_typehelp"
 testouterr_cmd_re sh {avail --output=sym foo/1.0} OK $tserr_avail_foo
 testouterr_cmd sh {avail --output foo} ERR "$error_msgs: Missing value for '--output' option\n$err_typehelp"
 testouterr_cmd sh {--output avail foo} ERR "$error_msgs: Missing value for '--output' option\n$err_typehelp"
 
+# mix with --terse/--long/--json
+testouterr_cmd_re sh {avail -o sym --terse foo/1.0} OK $tserr_avail_terse_foo
+testouterr_cmd_re sh {avail -t --output=sym foo/1.0} OK $tserr_avail_terse_foo
+testouterr_cmd sh {avail -j --output=sym foo/1.0} ERR "{\"errors\": \[\n{ \"severity\": \"ERROR\", \"message\": \[ \"Unsupported option '--output' on json output mode\" \] } \]\n}"
+testouterr_cmd sh {avail -o sym -l foo/1.0} ERR "$error_msgs: Unsupported option '-o' on long output mode"
+testouterr_cmd sh {avail --long --output=sym foo/1.0} ERR "$error_msgs: Unsupported option '--output' on long output mode"
+testouterr_cmd sh {avail -j --output=sym foo/1.0} ERR "{\"errors\": \[\n{ \"severity\": \"ERROR\", \"message\": \[ \"Unsupported option '--output' on json output mode\" \] } \]\n}"
+testouterr_cmd sh {avail -o sym --json foo/1.0} ERR "{\"errors\": \[\n{ \"severity\": \"ERROR\", \"message\": \[ \"Unsupported option '-o' on json output mode\" \] } \]\n}"
+testouterr_cmd sh {avail -o sym --long -j foo/1.0} ERR "{\"errors\": \[\n{ \"severity\": \"ERROR\", \"message\": \[ \"Unsupported option '-o' on json output mode\" \] } \]\n}"
+
 # test with ml shortcut command
 testouterr_cmd_re sh {ml av -o sym foo/1.0} OK $tserr_avail_foo
 testouterr_cmd sh {ml av -o} ERR "$error_msgs: Missing value for '-o' option\n$err_typehelp"
 testouterr_cmd_re sh {ml --output=sym av foo/1.0} OK $tserr_avail_foo
 testouterr_cmd sh {--output ml av foo} ERR "$error_msgs: Missing value for '--output' option\n$err_typehelp"
+testouterr_cmd sh {ml av --long --output=sym foo/1.0} ERR "$error_msgs: Unsupported option '--output' on long output mode"
+testouterr_cmd sh {--json ml av -o sym foo/1.0} ERR "{\"errors\": \[\n{ \"severity\": \"ERROR\", \"message\": \[ \"Unsupported option '-o' on json output mode\" \] } \]\n}"
 
 # test on a sub-command that does not support these options
 set ans [list]
@@ -66,8 +79,10 @@ testouterr_cmd sh {load --output foo/1.0} ERR "$error_msgs: Missing value for '-
 testouterr_cmd sh {load foo/1.0 -o} ERR "$error_msgs: Missing value for '-o' option\n$err_typehelp"
 testouterr_cmd sh {load --output=sym foo/1.0} ERR "$error_msgs: Unsupported option '--output' on load sub-command"
 testouterr_cmd sh {load -o sym foo/1.0} ERR "$error_msgs: Unsupported option '-o' on load sub-command"
+testouterr_cmd sh {load -o sym --long foo/1.0} ERR "$error_msgs: Unsupported option '-o' on load sub-command"
 testouterr_cmd sh {ml --output=sym foo/1.0} ERR "$error_msgs: Unsupported option '--output' on load sub-command"
 testouterr_cmd sh {ml -o sym foo/1.0} ERR "$error_msgs: Unsupported option '-o' on load sub-command"
+testouterr_cmd sh {ml -o sym -j foo/1.0} ERR "$error_msgs: Unsupported option '-o' on load sub-command"
 
 # test usage in modulefile
 set ans [list]
@@ -82,15 +97,19 @@ setenv_var TESTSUITE_OUTPUT_INMODFILE 3
 testouterr_cmd_re sh {load output/1.0} $ans $tserr_avail_foo
 setenv_var TESTSUITE_OUTPUT_INMODFILE 4
 testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Missing value for '--output' option} {module avail --output foo/1.0} $mp/output/1.0 8]]
-
 setenv_var TESTSUITE_OUTPUT_INMODFILE 5
-testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Unsupported option '-o' on unload sub-command} {module unload --not-req -o sym bar} $mp/output/1.0 10]]
+testouterr_cmd_re sh {load output/1.0} $ans $tserr_avail_terse_foo
 setenv_var TESTSUITE_OUTPUT_INMODFILE 6
-testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Unsupported option '-o' on unload sub-command} {module unload --not-req bar -o} $mp/output/1.0 11]]
+testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Unsupported option '-o' on long output mode} {module avail --long -o sym foo/1.0} $mp/output/1.0 10]]
+
 setenv_var TESTSUITE_OUTPUT_INMODFILE 7
-testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Unsupported option '--output' on unload sub-command} {module unload --not-req --output=sym bar} $mp/output/1.0 12]]
+testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Unsupported option '-o' on unload sub-command} {module unload --not-req -o sym bar} $mp/output/1.0 12]]
 setenv_var TESTSUITE_OUTPUT_INMODFILE 8
-testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Missing value for '--output' option} {module unload --not-req --output bar} $mp/output/1.0 13]]
+testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Unsupported option '-o' on unload sub-command} {module unload --not-req bar -o} $mp/output/1.0 13]]
+setenv_var TESTSUITE_OUTPUT_INMODFILE 9
+testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Unsupported option '--output' on unload sub-command} {module unload --not-req --output=sym bar} $mp/output/1.0 14]]
+setenv_var TESTSUITE_OUTPUT_INMODFILE 10
+testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Missing value for '--output' option} {module unload --not-req --output bar} $mp/output/1.0 15]]
 
 unsetenv_var TESTSUITE_OUTPUT_INMODFILE
 

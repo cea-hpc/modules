@@ -44,32 +44,45 @@ setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
 setenv_path_var MODULES_LMALTNAME foo/1.0&foo/bar
 
 set tserr_list_foo "foo/1.0(bar)  "
+set tserr_list_terse_foo "foo/1.0(bar)"
 testouterr_cmd sh {list -o sym} OK $tserr_list_foo
 testouterr_cmd sh {list -o} ERR "$error_msgs: Missing value for '-o' option\n$err_typehelp"
 testouterr_cmd sh {list --output=sym} OK $tserr_list_foo
 testouterr_cmd sh {list --output} ERR "$error_msgs: Missing value for '--output' option\n$err_typehelp"
 testouterr_cmd sh {--output list} ERR "$error_msgs: Missing value for '--output' option\n$err_typehelp"
 
+# mix with --terse/--long/--json
+testouterr_cmd sh {list -o sym --terse} OK $tserr_list_terse_foo
+testouterr_cmd sh {list --long --output=sym} ERR "$error_msgs: Unsupported option '--output' on long output mode"
+testouterr_cmd sh {list -j --output=sym} ERR "{\"errors\": \[\n{ \"severity\": \"ERROR\", \"message\": \[ \"Unsupported option '--output' on json output mode\" \] } \]\n}"
+
 # test with ml shortcut command
 testouterr_cmd sh {ml -o sym} OK $tserr_list_foo
 testouterr_cmd sh {ml -o} ERR "$error_msgs: Missing value for '-o' option\n$err_typehelp"
 testouterr_cmd sh {ml --output=sym} OK $tserr_list_foo
 testouterr_cmd sh {--output ml} ERR "$error_msgs: Missing value for '--output' option\n$err_typehelp"
+testouterr_cmd sh {ml -l --output=sym} ERR "$error_msgs: Unsupported option '--output' on long output mode"
+testouterr_cmd sh {ml -o sym --json} ERR "{\"errors\": \[\n{ \"severity\": \"ERROR\", \"message\": \[ \"Unsupported option '-o' on json output mode\" \] } \]\n}"
 
 # test usage in modulefile
 set ans [list]
 lappend ans [list setpath LOADEDMODULES foo/1.0:output/1.0]
 lappend ans [list setpath _LMFILES_ $mp/foo/1.0:$mp/output/1.0]
 set tserr_list_foo "foo/1.0\\(bar\\)  "
+set tserr_list_terse_foo "foo/1.0\\(bar\\)"
 
-setenv_var TESTSUITE_OUTPUT_INMODFILE 9
-testouterr_cmd_re sh {load output/1.0} $ans $tserr_list_foo
-setenv_var TESTSUITE_OUTPUT_INMODFILE 10
-testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Missing value for '-o' option} {module list -o} $mp/output/1.0 18]]
 setenv_var TESTSUITE_OUTPUT_INMODFILE 11
 testouterr_cmd_re sh {load output/1.0} $ans $tserr_list_foo
 setenv_var TESTSUITE_OUTPUT_INMODFILE 12
+testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Missing value for '-o' option} {module list -o} $mp/output/1.0 18]]
+setenv_var TESTSUITE_OUTPUT_INMODFILE 13
+testouterr_cmd_re sh {load output/1.0} $ans $tserr_list_foo
+setenv_var TESTSUITE_OUTPUT_INMODFILE 14
 testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Missing value for '--output' option} {module list --output} $mp/output/1.0 20]]
+setenv_var TESTSUITE_OUTPUT_INMODFILE 15
+testouterr_cmd_re sh {load output/1.0} $ans $tserr_list_terse_foo
+setenv_var TESTSUITE_OUTPUT_INMODFILE 16
+testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Unsupported option '-o' on long output mode} {module list -o sym -l} $mp/output/1.0 22]]
 
 unsetenv_var TESTSUITE_OUTPUT_INMODFILE
 
