@@ -10464,6 +10464,7 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
                # option is only valid for specific sub-commands
                if {[isInList [list avail list] $cmd]} {
                   set nextargisval asked_output
+                  set output_arg -o
                } else {
                   if {!$ignerr} {
                      knerror "Unsupported option '$arg' on $cmd sub-command"
@@ -10475,6 +10476,7 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
                # option is only valid for specific sub-commands
                if {[isInList [list avail list] $cmd]} {
                   set asked_output [string range $arg 9 end]
+                  set output_arg --output
                } elseif {!$ignerr} {
                   knerror "Unsupported option '--output' on $cmd sub-command"
                }
@@ -10564,6 +10566,13 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
 
    if {[info exists nextargisval]} {
       knerror "Missing value for '$prevarg' option"
+   }
+
+   if {[info exists asked_output]} {
+      if {[isInList [list long json] [getState report_format]]} {
+         knerror "Unsupported option '$output_arg' on [getState\
+            report_format] output mode"
+      }
    }
 
    reportDebug "(show_oneperline=$show_oneperline, show_mtime=$show_mtime,\
