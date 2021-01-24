@@ -19,7 +19,9 @@ may be placed after this string. The version number is useful as the
 :file:`modulecmd.tcl` required to interpret the modulefile. If a version
 number doesn't exist, then :file:`modulecmd.tcl` will assume the *modulefile*
 is compatible. Files without the magic cookie or with a version number greater
-than the current version of :file:`modulecmd.tcl` will not be interpreted.
+than the current version of :file:`modulecmd.tcl` will not be interpreted. If
+the :mconfig:`mcookie_version_check` configuration is disabled the version
+number set is not checked.
 
 Each *modulefile* contains the changes to a user's environment needed to
 access an application. Tcl is a simple programming language which permits

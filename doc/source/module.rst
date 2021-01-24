@@ -621,6 +621,16 @@ Module Sub-Commands
 
   The value of this option cannot be altered.
 
+ .. mconfig:: mcookie_version_check
+
+  Defines if the version set in the Modules magic cookie used in modulefile
+  should be checked against the version of :file:`modulecmd.tcl` to determine
+  if the modulefile could be evaluated or not.
+
+  .. only:: html
+
+     .. versionadded:: 4.7
+
  .. mconfig:: ml
 
   Define :command:`ml` command at initialization time. Defines
@@ -1885,6 +1895,16 @@ ENVIRONMENT
  use to get knowledge of the tags applying to loaded *modulefiles* in order
  to report these tags on subcmd:`list` sub-command output or to apply specific
  behavior when unloading *modulefile*.
+
+ .. only:: html
+
+    .. versionadded:: 4.7
+
+.. envvar:: MODULES_MCOOKIE_VERSION_CHECK
+
+ If set to ``1``, the version set in the Modules magic cookie in modulefile
+ is checked against the current version of :file:`modulecmd.tcl` to determine
+ if the modulefile can be evaluated.
 
  .. only:: html
 
