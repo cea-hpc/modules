@@ -392,7 +392,8 @@ The following environment variables appeared on new version of Modules are not s
 +------------+-----------------------------------------------------------------+
 | 4.7        | :envvar:`MODULES_SHELLS_WITH_KSH_FPATH`,                        |
 |            | :envvar:`MODULES_IMPLICIT_REQUIREMENT`, :envvar:`MODULES_LMTAG`,|
-|            | :envvar:`MODULES_TAG_ABBREV`, :envvar:`MODULES_TAG_COLOR_NAME`  |
+|            | :envvar:`MODULES_TAG_ABBREV`, :envvar:`MODULES_TAG_COLOR_NAME`, |
+|            | :envvar:`MODULES_MCOOKIE_VERSION_CHECK`                         |
 +------------+-----------------------------------------------------------------+
 
 

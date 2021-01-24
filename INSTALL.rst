@@ -516,6 +516,17 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 
     .. versionadded:: 4.7
 
+.. instopt:: --enable-mcookie-version-check
+
+ Enable check of the version specified right after Modules magic cookie
+ (``#%Module``) in modulefiles, which defines the minimal version of the
+ Modules tool to use in order to evaluate the modulefile. (default=yes)
+
+ .. only:: html
+
+    .. versionadded:: 4.7
+
+
 Optional Packages (the default for each option is displayed within
 parenthesis, to disable an option replace ``with`` by ``without`` for
 instance :instopt:`--without-modulepath<--with-modulepath>`):
