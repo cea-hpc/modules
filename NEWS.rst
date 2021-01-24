@@ -162,6 +162,13 @@ Modules 4.7.0 (not yet released)
   set in parentheses or chevrons along module name.
 * Fix output of :subcmd:`avail` and :subcmd:`list` sub-commands on very small
   termminal width. (fix issue #378)
+* Add :mconfig:`mcookie_version_check` configuration to define if version set
+  in modulefile magic cookie should be checked against :command:`module`
+  current version to determine if modulefile can be evaluated. The new
+  configuration, which is enabled by default, can be set at installation time
+  with configure option :instopt:`--enable-mcookie-version-check` or can be
+  superseded later on with the :envvar:`MODULES_MCOOKIE_VERSION_CHECK`
+  environment variable. (fix issue #377)
 
 
 .. _4.6 release notes:
