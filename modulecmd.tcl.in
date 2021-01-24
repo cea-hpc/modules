@@ -80,6 +80,8 @@ array set g_config_defs [list\
    implicit_requirement {MODULES_IMPLICIT_REQUIREMENT @implicitrequirement@ 0\
       {0 1}}\
    locked_configs {{} {@lockedconfigs@} 0}\
+   mcookie_version_check {MODULES_MCOOKIE_VERSION_CHECK\
+      @mcookieversioncheck@ 0 {0 1}}\
    ml {MODULES_ML @ml@ 0 {0 1}}\
    nearly_forbidden_days {MODULES_NEARLY_FORBIDDEN_DAYS @nearlyforbiddendays@\
       0 integer}\
@@ -8233,7 +8235,8 @@ proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}\
          }
       # check if min version requirement is met if magic cookie is mandatory
       } elseif {$must_have_cookie && [string length $fh] > 8 &&\
-         [versioncmp {@MODULES_RELEASE@} [string range $fh 8 end]] <0} {
+         [getConf mcookie_version_check] && [versioncmp {@MODULES_RELEASE@}\
+         [string range $fh 8 end]] <0} {
          set msg "Modulefile requires at least Modules version [string range\
             $fh 8 end]"
          if {$only_check_validity} {

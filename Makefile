@@ -258,6 +258,12 @@ else
   setsetshellstartup := 0
 endif
 
+ifeq ($(mcookieversioncheck),y)
+  setmcookieversioncheck := 1
+else
+  setmcookieversioncheck := 0
+endif
+
 ifeq ($(wa277),y)
   setwa277 := 1
 else
@@ -300,6 +306,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@silentshdbgsupport@|$(setsilentshdbgsupport)|g' \
 	-e 's|@ml@|$(setml)|g' \
 	-e 's|@setshellstartup@|$(setsetshellstartup)|g' \
+	-e 's|@mcookieversioncheck@|$(setmcookieversioncheck)|g' \
 	-e 's|@quarantinesupport@|$(setquarantinesupport)|g' \
 	-e 's|@notquarantinesupport@|$(setnotquarantinesupport)|g' \
 	-e 's|@libtclenvmodules@|$(setlibtclenvmodules)|g' \
