@@ -160,6 +160,8 @@ Modules 4.7.0 (not yet released)
 * Add a *Key* section at the end of :subcmd:`avail` and :subcmd:`list`
   sub-commands to explain the meaning of graphical renditions or of elements
   set in parentheses or chevrons along module name.
+* Fix output of :subcmd:`avail` and :subcmd:`list` sub-commands on very small
+  termminal width. (fix issue #378)
 
 
 .. _4.6 release notes:
