@@ -23,6 +23,9 @@
 # ensure auto symbolic versions are not set for these tests
 setenv_var MODULES_ADVANCED_VERSION_SPEC 0
 
+# ensure version check is enabled
+setenv_var MODULES_MCOOKIE_VERSION_CHECK 1
+
 # get Modules release number
 set sepidx [string first + $install_version]
 if {$sepidx != -1} {
@@ -115,6 +118,16 @@ foreach mod [list mcookie mcookierc] resmod [list mcookie/4 mcookierc/5] tserr [
     set anspa [list [list text $modpath/$resmod]]
     testouterr_cmd "sh" "path $mod" [if_implicitdefault $anspa [list [list text {}]]] $tserr[if_implicitdefault {} [expr {$tserr ne {} ? "\n" : {}}]$err_nodefault'$mod']
 }
+
+# test with version check disabled
+setenv_var MODULES_MCOOKIE_VERSION_CHECK 0
+set ans [list]
+lappend ans [list setpath LOADEDMODULES mcookie/1]
+lappend ans [list setpath _LMFILES_ $modpath/mcookie/1]
+testouterr_cmd sh {load mcookie/1} $ans {}
+testouterr_cmd sh {avail -t mcookie/1} {} $modpath:\nmcookie/1
+testouterr_cmd sh {path mcookie/1} [list [list text $modpath/mcookie/1]] {}
+
 
 #
 #  Cleanup
