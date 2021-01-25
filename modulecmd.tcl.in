@@ -61,15 +61,18 @@ array set g_state_defs [list\
 
 # Configuration option properties (superseding environment variable, default
 # value, is configuration lockable to default value, valid value list?,
-# internal value representation?, proc to call to initialize option value
+# internal value representation?, proc to call to initialize option value,
+# valid value list kind
 array set g_config_defs [list\
    contact {MODULECONTACT root@localhost 0}\
    auto_handling {MODULES_AUTO_HANDLING @autohandling@ 0 {0 1}}\
    avail_indepth {MODULES_AVAIL_INDEPTH @availindepth@ 0 {0 1}}\
    avail_report_dir_sym {{} 1 0}\
    avail_report_mfile_sym {{} 1 0}\
-   avail_output {MODULES_AVAIL_OUTPUT {@availoutput@} 0}\
-   avail_terse_output {MODULES_AVAIL_TERSE_OUTPUT {@availterseoutput@} 0}\
+   avail_output {MODULES_AVAIL_OUTPUT {@availoutput@} 0 {modulepath alias\
+      dirwsym sym tag key} {} {} eltlist}\
+   avail_terse_output {MODULES_AVAIL_TERSE_OUTPUT {@availterseoutput@} 0\
+      {modulepath alias dirwsym sym tag key} {} {} eltlist}\
    collection_pin_version {MODULES_COLLECTION_PIN_VERSION 0 0 {0 1}}\
    collection_target {MODULES_COLLECTION_TARGET <undef> 0}\
    color {MODULES_COLOR @color@ 0 {never auto always} {0 1 2} initConfColor}\
@@ -81,8 +84,10 @@ array set g_config_defs [list\
    ignored_dirs {{} {CVS RCS SCCS .svn .git .SYNC .sos} 0}\
    implicit_requirement {MODULES_IMPLICIT_REQUIREMENT @implicitrequirement@ 0\
       {0 1}}\
-   list_output {MODULES_LIST_OUTPUT {@listoutput@} 0}\
-   list_terse_output {MODULES_LIST_TERSE_OUTPUT {@listterseoutput@} 0}\
+   list_output {MODULES_LIST_OUTPUT {@listoutput@} 0 {header idx sym tag\
+      key} {} {} eltlist}\
+   list_terse_output {MODULES_LIST_TERSE_OUTPUT {@listterseoutput@} 0 {header\
+      idx sym tag key} {} {} eltlist}\
    locked_configs {{} {@lockedconfigs@} 0}\
    mcookie_version_check {MODULES_MCOOKIE_VERSION_CHECK\
       @mcookieversioncheck@ 0 {0 1}}\
@@ -217,7 +222,7 @@ proc getConf {option {valifundef {}}} {
    if {![info exists ::g_configs($option)]} {
       # fetch option properties (including its default value)
       lassign $::g_config_defs($option) envvar value islockable validvallist\
-         intvallist initproc
+         intvallist initproc validvallistkind
 
       # ensure option is not locked before superseding its default value
       if {!$islockable || ![isConfigLocked $option]} {
@@ -227,17 +232,28 @@ proc getConf {option {valifundef {}}} {
          } else {
             # overriden value coming from environment
             if {$envvar ne {} && [info exists ::env($envvar)]} {
-               # ignore non-valid values
-               if {[switch -- [llength $validvallist] {
-                  0 {expr {1 == 1}}
-                  1 {string is $validvallist -strict $::env($envvar)}
-                  default {isInList $validvallist $::env($envvar)}
-               }]} {
-                  set value $::env($envvar)
+               switch -- $validvallistkind {
+                  eltlist {
+                     # ignore non-valid values
+                     if {![isDiffBetweenList [split $::env($envvar) :]\
+                        $validvallist]} {
+                        set value $::env($envvar)
+                     }
+                  }
+                  {} {
+                     # ignore non-valid values
+                     if {[switch -- [llength $validvallist] {
+                        0 {expr {1 == 1}}
+                        1 {string is $validvallist -strict $::env($envvar)}
+                        default {isInList $validvallist $::env($envvar)}
+                     }]} {
+                        set value $::env($envvar)
+                     }
+                  }
                }
             }
 
-            # overriden value coming the command-line
+            # overriden value coming the command-line (already validated)
             if {[info exists ::asked_$option]} {
                set value [set ::asked_$option]
             }
@@ -8115,6 +8131,16 @@ proc isIntBetweenList {list1 list2} {
    return 0
 }
 
+# test if 2 lists have at least one element in diff
+proc isDiffBetweenList {list1 list2} {
+   foreach elt $list1 {
+      if {[notInList $list2 $elt]} {
+         return 1
+      }
+   }
+   return 0
+}
+
 # returns elements from list1 not part of list2 and elements from list2 not
 # part of list1
 proc getDiffBetweenList {list1 list2} {
@@ -10572,6 +10598,25 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
       if {[isInList [list long json] [getState report_format]]} {
          knerror "Unsupported option '$output_arg' on [getState\
             report_format] output mode"
+      } else {
+         # get config name relative to current sub-command and output format
+         set outputconf $cmd
+         if {[getState report_format] ne {regular}} {
+            append outputconf _[getState report_format]
+         }
+         append outputconf _output
+
+         # check option value is coherent with current sub-command
+         if {[isDiffBetweenList [split $asked_output :] [lindex\
+            $::g_config_defs($outputconf) 3]]} {
+            if {!$ignerr} {
+               knerror "Invalid element in value list for '$output_arg'\
+                  option on $cmd sub-command\nAllowed elements are: [lindex\
+                  $::g_config_defs($outputconf) 3] (separated by ':')"
+            }
+         } else {
+            set ::asked_$outputconf $asked_output
+         }
       }
    }
 
@@ -12890,7 +12935,8 @@ proc cmdModuleConfig {dump_state args} {
 
    foreach option [array names ::g_config_defs] {
       lassign $::g_config_defs($option) confvar($option) defval\
-         conflockable($option) confvalid($option) vtrans
+         conflockable($option) confvalid($option) vtrans initproc\
+         confvalidkind($option)
       set confval($option) [getConf $option <undef>]
       set confvtrans($option) {}
       for {set i 0} {$i < [llength $vtrans]} {incr i} {
@@ -12908,6 +12954,7 @@ proc cmdModuleConfig {dump_state args} {
       set confvalid($runenvconf) {}
       set conflockable($runenvconf) {}
       set confvtrans($runenvconf) {}
+      set confvalidkind($runenvconf) {}
    }
 
    if {[info exists name] && ![info exists confval($name)]} {
@@ -12923,12 +12970,32 @@ proc cmdModuleConfig {dump_state args} {
          lappendState mode load
          unsetenv $confvar($name)
          lpopState mode
-      } elseif {([llength $confvalid($name)] == 1 && ![string is\
-         $confvalid($name) -strict $value]) || ([llength $confvalid($name)] >\
-         1 && [notInList $confvalid($name) $value])} {
-         reportErrorAndExit "Valid values for configuration option '$name'\
-            are: $confvalid($name)"
+      } elseif {[llength $confvalid($name)] > 0} {
+         if {$confvalidkind($name) eq {eltlist}} {
+            # check each element in value list
+            if {[isDiffBetweenList [split $value :] $confvalid($name)]} {
+               reportErrorAndExit "Invalid element in value list for\
+                  config. option '$name'\nAllowed elements are:\
+                  $confvalid($name) (separated by ':')"
+            } else {
+               set validval 1
+            }
+         } else {
+            if {([llength $confvalid($name)] == 1 && ![string is\
+               $confvalid($name) -strict $value]) || ([llength\
+               $confvalid($name)] > 1 && [notInList $confvalid($name)\
+               $value])} {
+               reportErrorAndExit "Valid values for configuration option\
+                  '$name' are: $confvalid($name)"
+            } else {
+               set validval 1
+            }
+         }
       } else {
+         set validval 1
+      }
+
+      if {[info exists validval]} {
          # effectively set configuration variable
          lappendState mode load
          setenv $confvar($name) $value
