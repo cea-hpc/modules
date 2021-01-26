@@ -71,18 +71,37 @@ lappend ans [list setpath _LMFILES_ $mp/foo/1.0:$mp/output/1.0]
 set tserr_list_foo "foo/1.0\\(bar\\)  "
 set tserr_list_terse_foo "foo/1.0\\(bar\\)"
 
-setenv_var TESTSUITE_OUTPUT_INMODFILE 11
-testouterr_cmd_re sh {load output/1.0} $ans $tserr_list_foo
-setenv_var TESTSUITE_OUTPUT_INMODFILE 12
-testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Missing value for '-o' option} {module list -o} $mp/output/1.0 18]]
-setenv_var TESTSUITE_OUTPUT_INMODFILE 13
-testouterr_cmd_re sh {load output/1.0} $ans $tserr_list_foo
-setenv_var TESTSUITE_OUTPUT_INMODFILE 14
-testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Missing value for '--output' option} {module list --output} $mp/output/1.0 20]]
-setenv_var TESTSUITE_OUTPUT_INMODFILE 15
-testouterr_cmd_re sh {load output/1.0} $ans $tserr_list_terse_foo
-setenv_var TESTSUITE_OUTPUT_INMODFILE 16
-testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Unsupported option '-o' on long output mode} {module list -o sym -l} $mp/output/1.0 22]]
+if {[cmpversion $tclsh_version 8.6] == -1} {
+
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 11
+    testouterr_cmd_re sh {load output/1.0} $ans $tserr_list_foo
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 12
+    testouterr_cmd_re sh {load output/1.0} ERR [escre [msg_load output/1.0 [msg_moderr {Missing value for '-o' option} {module list -o<EXM>} $mp/output/1.0 3]]]
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 13
+    testouterr_cmd_re sh {load output/1.0} $ans $tserr_list_foo
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 14
+    testouterr_cmd_re sh {load output/1.0} ERR [escre [msg_load output/1.0 [msg_moderr {Missing value for '--output' option} {module list --output<EXM>} $mp/output/1.0 3]]]
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 15
+    testouterr_cmd_re sh {load output/1.0} $ans $tserr_list_terse_foo
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 16
+    testouterr_cmd_re sh {load output/1.0} ERR [escre [msg_load output/1.0 [msg_moderr {Unsupported option '-o' on long output mode} {module list -o sym -l<EXM>} $mp/output/1.0 3]]]
+
+} else {
+
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 11
+    testouterr_cmd_re sh {load output/1.0} $ans $tserr_list_foo
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 12
+    testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Missing value for '-o' option} {module list -o} $mp/output/1.0 18]]
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 13
+    testouterr_cmd_re sh {load output/1.0} $ans $tserr_list_foo
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 14
+    testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Missing value for '--output' option} {module list --output} $mp/output/1.0 20]]
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 15
+    testouterr_cmd_re sh {load output/1.0} $ans $tserr_list_terse_foo
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 16
+    testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Unsupported option '-o' on long output mode} {module list -o sym -l} $mp/output/1.0 22]]
+
+}
 
 unsetenv_var TESTSUITE_OUTPUT_INMODFILE
 

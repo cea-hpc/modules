@@ -89,27 +89,55 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES output/1.0]
 lappend ans [list setpath _LMFILES_ $mp/output/1.0]
 
-setenv_var TESTSUITE_OUTPUT_INMODFILE 1
-testouterr_cmd_re sh {load output/1.0} $ans $tserr_avail_foo
-setenv_var TESTSUITE_OUTPUT_INMODFILE 2
-testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Missing value for '-o' option} {module avail foo/1.0 -o} $mp/output/1.0 6]]
-setenv_var TESTSUITE_OUTPUT_INMODFILE 3
-testouterr_cmd_re sh {load output/1.0} $ans $tserr_avail_foo
-setenv_var TESTSUITE_OUTPUT_INMODFILE 4
-testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Missing value for '--output' option} {module avail --output foo/1.0} $mp/output/1.0 8]]
-setenv_var TESTSUITE_OUTPUT_INMODFILE 5
-testouterr_cmd_re sh {load output/1.0} $ans $tserr_avail_terse_foo
-setenv_var TESTSUITE_OUTPUT_INMODFILE 6
-testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Unsupported option '-o' on long output mode} {module avail --long -o sym foo/1.0} $mp/output/1.0 10]]
+if {[cmpversion $tclsh_version 8.6] == -1} {
 
-setenv_var TESTSUITE_OUTPUT_INMODFILE 7
-testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Unsupported option '-o' on unload sub-command} {module unload --not-req -o sym bar} $mp/output/1.0 12]]
-setenv_var TESTSUITE_OUTPUT_INMODFILE 8
-testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Unsupported option '-o' on unload sub-command} {module unload --not-req bar -o} $mp/output/1.0 13]]
-setenv_var TESTSUITE_OUTPUT_INMODFILE 9
-testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Unsupported option '--output' on unload sub-command} {module unload --not-req --output=sym bar} $mp/output/1.0 14]]
-setenv_var TESTSUITE_OUTPUT_INMODFILE 10
-testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Missing value for '--output' option} {module unload --not-req --output bar} $mp/output/1.0 15]]
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 1
+    testouterr_cmd_re sh {load output/1.0} $ans $tserr_avail_foo
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 2
+    testouterr_cmd_re sh {load output/1.0} ERR [escre [msg_load output/1.0 [msg_moderr {Missing value for '-o' option} {module avail foo/1.0 -o<EXM>} $mp/output/1.0 3]]]
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 3
+    testouterr_cmd_re sh {load output/1.0} $ans $tserr_avail_foo
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 4
+    testouterr_cmd_re sh {load output/1.0} ERR [escre [msg_load output/1.0 [msg_moderr {Missing value for '--output' option} {module avail --output foo/1.0<EXM>} $mp/output/1.0 3]]]
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 5
+    testouterr_cmd_re sh {load output/1.0} $ans $tserr_avail_terse_foo
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 6
+    testouterr_cmd_re sh {load output/1.0} ERR [escre [msg_load output/1.0 [msg_moderr {Unsupported option '-o' on long output mode} {module avail --long -o sym foo/1.0<EXM>} $mp/output/1.0 3]]]
+
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 7
+    testouterr_cmd_re sh {load output/1.0} ERR [escre [msg_load output/1.0 [msg_moderr {Unsupported option '-o' on unload sub-command} {module unload --not-req -o sym bar<EXM>} $mp/output/1.0 3]]]
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 8
+    testouterr_cmd_re sh {load output/1.0} ERR [escre [msg_load output/1.0 [msg_moderr {Unsupported option '-o' on unload sub-command} {module unload --not-req bar -o<EXM>} $mp/output/1.0 3]]]
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 9
+    testouterr_cmd_re sh {load output/1.0} ERR [escre [msg_load output/1.0 [msg_moderr {Unsupported option '--output' on unload sub-command} {module unload --not-req --output=sym bar<EXM>} $mp/output/1.0 3]]]
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 10
+    testouterr_cmd_re sh {load output/1.0} ERR [escre [msg_load output/1.0 [msg_moderr {Missing value for '--output' option} {module unload --not-req --output bar<EXM>} $mp/output/1.0 3]]]
+
+} else {
+
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 1
+    testouterr_cmd_re sh {load output/1.0} $ans $tserr_avail_foo
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 2
+    testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Missing value for '-o' option} {module avail foo/1.0 -o} $mp/output/1.0 6]]
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 3
+    testouterr_cmd_re sh {load output/1.0} $ans $tserr_avail_foo
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 4
+    testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Missing value for '--output' option} {module avail --output foo/1.0} $mp/output/1.0 8]]
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 5
+    testouterr_cmd_re sh {load output/1.0} $ans $tserr_avail_terse_foo
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 6
+    testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Unsupported option '-o' on long output mode} {module avail --long -o sym foo/1.0} $mp/output/1.0 10]]
+
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 7
+    testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Unsupported option '-o' on unload sub-command} {module unload --not-req -o sym bar} $mp/output/1.0 12]]
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 8
+    testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Unsupported option '-o' on unload sub-command} {module unload --not-req bar -o} $mp/output/1.0 13]]
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 9
+    testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Unsupported option '--output' on unload sub-command} {module unload --not-req --output=sym bar} $mp/output/1.0 14]]
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 10
+    testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Missing value for '--output' option} {module unload --not-req --output bar} $mp/output/1.0 15]]
+
+}
 
 unsetenv_var TESTSUITE_OUTPUT_INMODFILE
 
