@@ -169,6 +169,8 @@ Modules 4.7.0 (not yet released)
   with configure option :instopt:`--enable-mcookie-version-check` or can be
   superseded later on with the :envvar:`MODULES_MCOOKIE_VERSION_CHECK`
   environment variable. (fix issue #377)
+* Fix output of modulefile evaluation error stack trace on very small terminal
+  width. (fix issue #379)
 
 
 .. _4.6 release notes:

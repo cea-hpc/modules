@@ -930,6 +930,8 @@ proc reportMsgRecord {header {hidden 0}} {
             # split lines if too large for terminal
             set first 1
             set max_idx [expr {$tty_cols - [string length $padding]}]
+            # max expr function is not supported in Tcl8.4 and earlier
+            if {$max_idx < 1} {set max_idx 1}
             set linelist [list]
             foreach line [split $msg \n] {
                set lineadd {}
@@ -951,10 +953,14 @@ proc reportMsgRecord {header {hidden 0}} {
                   } else {
                      set lineadd $line
                   }
-                  lappend linelist $lineadd
+                  # skip empty line
+                  if {$lineadd ne { }} {
+                     lappend linelist $lineadd
+                  }
                   if {$first} {
                      set first 0
                      incr max_idx -[string length $padding]
+                     if {$max_idx < 1} {set max_idx 1}
                   }
                }
             }
