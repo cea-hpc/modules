@@ -625,7 +625,8 @@ Module Sub-Commands
 
   Defines if the version set in the Modules magic cookie used in modulefile
   should be checked against the version of :file:`modulecmd.tcl` to determine
-  if the modulefile could be evaluated or not.
+  if the modulefile could be evaluated or not. Defines
+  :envvar:`MODULES_MCOOKIE_VERSION_CHECK`.
 
   .. only:: html
 
