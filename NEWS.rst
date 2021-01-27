@@ -171,6 +171,8 @@ Modules 4.7.0 (not yet released)
   environment variable. (fix issue #377)
 * Fix output of modulefile evaluation error stack trace on very small terminal
   width. (fix issue #379)
+* Correct :subcmd:`config` sub-command to set :mconfig:`nearly_forbidden_days`
+  configuration. (fix issue #380)
 
 
 .. _4.6 release notes:

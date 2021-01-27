@@ -171,18 +171,21 @@ foreach param [array names configdfl] {
 
 # set parameter that could be altered and whose value is checked
 foreach param [array names configvalid] {
-    if {[llength $$configvalid($param)] == 1} {
-        # valid value tests
-        foreach val $configvalid($param) {
-            set ans [list [list set $configvar($param) $val]]
-            testouterr_cmd_re sh "config $param $val" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
+    switch -- $configvalid($param) {
+        integer {
+            if {$configvalid($param) eq {integer}} {
+                set ans [list [list set $configvar($param) 0]]
+                testouterr_cmd_re sh "config $param 0" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
+                set ans [list [list set $configvar($param) 54]]
+                testouterr_cmd_re sh "config $param 54" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
+            }
         }
-    } else {
-        if {$configvalid($param) eq {integer}} {
-            set ans [list [list set $configvar($param) 0]]
-            testouterr_cmd_re sh "config $param 0" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
-            set ans [list [list set $configvar($param) 54]]
-            testouterr_cmd_re sh "config $param 54" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
+        default {
+            # valid value tests
+            foreach val $configvalid($param) {
+                set ans [list [list set $configvar($param) $val]]
+                testouterr_cmd_re sh "config $param $val" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
+            }
         }
     }
     # invalid value test

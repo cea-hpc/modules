@@ -12864,8 +12864,9 @@ proc cmdModuleConfig {dump_state args} {
          lappendState mode load
          unsetenv $confvar($name)
          lpopState mode
-      } elseif {[llength $confvalid($name)] > 0 && [notInList\
-         $confvalid($name) $value]} {
+      } elseif {([llength $confvalid($name)] == 1 && ![string is\
+         $confvalid($name) -strict $value]) || ([llength $confvalid($name)] >\
+         1 && [notInList $confvalid($name) $value])} {
          reportErrorAndExit "Valid values for configuration option '$name'\
             are: $confvalid($name)"
       } else {
