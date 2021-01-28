@@ -64,6 +64,25 @@ testouterr_cmd sh {--output ml} ERR "$error_msgs: Missing value for '--output' o
 testouterr_cmd sh {ml -l --output=sym} ERR "$error_msgs: Unsupported option '--output' on long output mode"
 testouterr_cmd sh {ml -o sym --json} ERR "{\"errors\": \[\n{ \"severity\": \"ERROR\", \"message\": \[ \"Unsupported option '-o' on json output mode\" \] } \]\n}"
 
+# invalid value set
+set tserr_invalid_output_val "$error_msgs: Invalid element in value list for '--output' option on list sub-command
+  Allowed elements are: header idx sym tag key (separated by ':')"
+set tserr_invalid_o_val "$error_msgs: Invalid element in value list for '-o' option on list sub-command
+  Allowed elements are: header idx sym tag key (separated by ':')"
+testouterr_cmd sh {list --output=foo} ERR $tserr_invalid_output_val
+testouterr_cmd sh {list --output=sym,alias} ERR $tserr_invalid_output_val
+testouterr_cmd sh {list --output="sym alias"} ERR $tserr_invalid_output_val
+testouterr_cmd sh {list -o foo} ERR $tserr_invalid_o_val
+testouterr_cmd sh {list -o sym,alias} ERR $tserr_invalid_o_val
+testouterr_cmd sh {list -o "sym alias"} ERR $tserr_invalid_o_val
+testouterr_cmd sh {list -o foo -l} ERR "$error_msgs: Unsupported option '-o' on long output mode"
+testouterr_cmd sh {ml -o foo} ERR $tserr_invalid_o_val
+
+# test value accepted on 'avail' but not on list
+testouterr_cmd sh {list -o modulepath} ERR $tserr_invalid_o_val
+testouterr_cmd sh {list --output=alias} ERR $tserr_invalid_output_val
+testouterr_cmd sh {list --output=dirwsym:key} ERR $tserr_invalid_output_val
+
 # test usage in modulefile
 set ans [list]
 lappend ans [list setpath LOADEDMODULES foo/1.0:output/1.0]
@@ -86,6 +105,11 @@ if {[cmpversion $tclsh_version 8.6] == -1} {
     setenv_var TESTSUITE_OUTPUT_INMODFILE 16
     testouterr_cmd_re sh {load output/1.0} ERR [escre [msg_load output/1.0 [msg_moderr {Unsupported option '-o' on long output mode} {module list -o sym -l<EXM>} $mp/output/1.0 3]]]
 
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 22
+    testouterr_cmd_re sh {load output/1.0} ERR [escre [msg_load output/1.0 [msg_moderr "Invalid element in value list for '--output' option on list sub-command\nAllowed elements are: header idx sym tag key (separated by ':')" {module list --output=modulepath<EXM>} $mp/output/1.0 3]]]
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 23
+    testouterr_cmd_re sh {load output/1.0} ERR [escre [msg_load output/1.0 [msg_moderr "Invalid element in value list for '-o' option on list sub-command\nAllowed elements are: header idx sym tag key (separated by ':')" {module list -o sym,alias<EXM>} $mp/output/1.0 3]]]
+
 } else {
 
     setenv_var TESTSUITE_OUTPUT_INMODFILE 11
@@ -100,6 +124,11 @@ if {[cmpversion $tclsh_version 8.6] == -1} {
     testouterr_cmd_re sh {load output/1.0} $ans $tserr_list_terse_foo
     setenv_var TESTSUITE_OUTPUT_INMODFILE 16
     testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Unsupported option '-o' on long output mode} {module list -o sym -l} $mp/output/1.0 22]]
+
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 22
+    testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr "Invalid element in value list for '--output' option on list sub-command\nAllowed elements are: header idx sym tag key (separated by ':')" {module list --output=modulepath} $mp/output/1.0 26]]
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 23
+    testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr "Invalid element in value list for '-o' option on list sub-command\nAllowed elements are: header idx sym tag key (separated by ':')" {module list -o sym,alias} $mp/output/1.0 27]]
 
 }
 

@@ -84,6 +84,25 @@ testouterr_cmd sh {ml --output=sym foo/1.0} ERR "$error_msgs: Unsupported option
 testouterr_cmd sh {ml -o sym foo/1.0} ERR "$error_msgs: Unsupported option '-o' on load sub-command"
 testouterr_cmd sh {ml -o sym -j foo/1.0} ERR "$error_msgs: Unsupported option '-o' on load sub-command"
 
+# invalid value set
+set tserr_invalid_output_val "$error_msgs: Invalid element in value list for '--output' option on avail sub-command
+  Allowed elements are: modulepath alias dirwsym sym tag key (separated by ':')"
+set tserr_invalid_o_val "$error_msgs: Invalid element in value list for '-o' option on avail sub-command
+  Allowed elements are: modulepath alias dirwsym sym tag key (separated by ':')"
+testouterr_cmd sh {avail --output=foo foo} ERR $tserr_invalid_output_val
+testouterr_cmd sh {avail --output=sym,alias foo} ERR $tserr_invalid_output_val
+testouterr_cmd sh {avail --output="sym alias" foo} ERR $tserr_invalid_output_val
+testouterr_cmd sh {avail -o foo foo} ERR $tserr_invalid_o_val
+testouterr_cmd sh {avail -o sym,alias foo} ERR $tserr_invalid_o_val
+testouterr_cmd sh {avail -o "sym alias" foo} ERR $tserr_invalid_o_val
+testouterr_cmd sh {avail -o foo -l foo/1.0} ERR "$error_msgs: Unsupported option '-o' on long output mode"
+testouterr_cmd sh {ml -o foo av foo} ERR $tserr_invalid_o_val
+
+# test value accepted on 'list' but not on avail
+testouterr_cmd sh {avail -o header foo} ERR $tserr_invalid_o_val
+testouterr_cmd sh {avail --output=idx foo} ERR $tserr_invalid_output_val
+testouterr_cmd sh {avail --output=header:key foo} ERR $tserr_invalid_output_val
+
 # test usage in modulefile
 set ans [list]
 lappend ans [list setpath LOADEDMODULES output/1.0]
@@ -113,6 +132,11 @@ if {[cmpversion $tclsh_version 8.6] == -1} {
     setenv_var TESTSUITE_OUTPUT_INMODFILE 10
     testouterr_cmd_re sh {load output/1.0} ERR [escre [msg_load output/1.0 [msg_moderr {Missing value for '--output' option} {module unload --not-req --output bar<EXM>} $mp/output/1.0 3]]]
 
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 20
+    testouterr_cmd_re sh {load output/1.0} ERR [escre [msg_load output/1.0 [msg_moderr "Invalid element in value list for '--output' option on avail sub-command\nAllowed elements are: modulepath alias dirwsym sym tag key (separated by ':')" {module avail --output=header foo/1.0<EXM>} $mp/output/1.0 3]]]
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 21
+    testouterr_cmd_re sh {load output/1.0} ERR [escre [msg_load output/1.0 [msg_moderr "Invalid element in value list for '-o' option on avail sub-command\nAllowed elements are: modulepath alias dirwsym sym tag key (separated by ':')" {module avail -o sym,alias foo/1.0<EXM>} $mp/output/1.0 3]]]
+
 } else {
 
     setenv_var TESTSUITE_OUTPUT_INMODFILE 1
@@ -137,6 +161,10 @@ if {[cmpversion $tclsh_version 8.6] == -1} {
     setenv_var TESTSUITE_OUTPUT_INMODFILE 10
     testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr {Missing value for '--output' option} {module unload --not-req --output bar} $mp/output/1.0 15]]
 
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 20
+    testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr "Invalid element in value list for '--output' option on avail sub-command\nAllowed elements are: modulepath alias dirwsym sym tag key (separated by ':')" {module avail --output=header foo/1.0} $mp/output/1.0 24]]
+    setenv_var TESTSUITE_OUTPUT_INMODFILE 21
+    testouterr_cmd sh {load output/1.0} ERR [msg_load output/1.0 [msg_moderr "Invalid element in value list for '-o' option on avail sub-command\nAllowed elements are: modulepath alias dirwsym sym tag key (separated by ':')" {module avail -o sym,alias foo/1.0} $mp/output/1.0 25]]
 }
 
 unsetenv_var TESTSUITE_OUTPUT_INMODFILE
