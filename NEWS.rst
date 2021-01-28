@@ -170,7 +170,7 @@ Modules 4.7.0 (not yet released)
   superseded later on with the :envvar:`MODULES_MCOOKIE_VERSION_CHECK`
   environment variable. (fix issue #377)
 * Fix output of modulefile evaluation error stack trace on very small terminal
-  width. (fix issue #379)
+  width. (fix issues #379 and #381)
 * Correct :subcmd:`config` sub-command to set :mconfig:`nearly_forbidden_days`
   configuration. (fix issue #380)
 
