@@ -171,6 +171,35 @@ unsetenv_var TESTSUITE_OUTPUT_INMODFILE
 
 
 #
+# MODULES_AVAIL_OUTPUT/MODULES_AVAIL_TERSE_OUTPUT tests
+#
+
+setenv_var MODULES_AVAIL_OUTPUT modulepath
+setenv_var MODULES_AVAIL_TERSE_OUTPUT modulepath
+
+testouterr_cmd_re sh {avail foo/1.0} OK "$modlin $mpre $modlin\nfoo/1.0  "
+testouterr_cmd_re sh {avail -t foo/1.0} OK "$mpre:\nfoo/1.0"
+
+# no impact on -l/-j
+set tserr_avail_long "- Package/Alias $modlin.- Versions $modlin.- Last mod. $modlin\n$mpre:\nfoo/1.0\\s+bar\\s+\[0-9:\/ ]*"
+testouterr_cmd_re sh {avail -l foo/1.0} OK $tserr_avail_long
+set tserr_avail_json "{\"$mp\": {
+\"foo/1.0\": { \"name\": \"foo/1.0\", \"type\": \"modulefile\", \"symbols\": \[ \"bar\" \], \"tags\": \[\], \"pathname\": \"$mp/foo/1.0\"}
+}}"
+testouterr_cmd sh {avail -j foo/1.0} OK $tserr_avail_json
+
+# invalid value set (ignored)
+setenv_var MODULES_AVAIL_OUTPUT foo
+setenv_var MODULES_AVAIL_TERSE_OUTPUT foo
+
+testouterr_cmd_re sh {avail foo/1.0} OK "$modlin $mpre $modlin\n$tserr_avail_foo\n\nKey:\n\\(symbolic-version\\)  "
+testouterr_cmd_re sh {avail -t foo/1.0} OK $mpre:\n$tserr_avail_terse_foo
+testouterr_cmd_re sh {avail -o sym foo/1.0} OK $tserr_avail_foo
+testouterr_cmd_re sh {avail -t --output=sym foo/1.0} OK $tserr_avail_terse_foo
+testouterr_cmd sh {avail -o foo foo/1.0} ERR $tserr_invalid_o_val
+
+
+#
 #  Cleanup
 #
 

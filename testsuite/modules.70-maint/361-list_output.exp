@@ -136,6 +136,33 @@ unsetenv_var TESTSUITE_OUTPUT_INMODFILE
 
 
 #
+# MODULES_LIST_OUTPUT/MODULES_LIST_TERSE_OUTPUT tests
+#
+
+setenv_var MODULES_LIST_OUTPUT header
+setenv_var MODULES_LIST_TERSE_OUTPUT header
+
+testouterr_cmd_re sh {list} OK "$cur_loaded\nfoo/1.0  "
+testouterr_cmd sh {list -t} OK $cur_loaded\nfoo/1.0
+
+# no impact on -l/-j
+set tserr_list_long "- Package $modlin.- Versions $modlin.- Last mod. $modlin\n$cur_loaded\nfoo/1.0\\s+bar\\s+\[0-9:\/ ]*"
+testouterr_cmd_re sh {list -l} OK $tserr_list_long
+set tserr_list_json "{\"foo/1.0\": { \"name\": \"foo/1.0\", \"type\": \"modulefile\", \"symbols\": \[ \"bar\" \], \"tags\": \[\], \"pathname\": \"$mp/foo/1.0\"}}"
+testouterr_cmd sh {list -j} OK $tserr_list_json
+
+# invalid value set (ignored)
+setenv_var MODULES_LIST_OUTPUT foo
+setenv_var MODULES_LIST_TERSE_OUTPUT foo
+
+testouterr_cmd_re sh {list} OK "$cur_loaded\n 1\\) $tserr_list_foo\n\nKey:\n\\(symbolic-version\\)  "
+testouterr_cmd sh {list -t} OK $cur_loaded\nfoo/1.0
+testouterr_cmd_re sh {list -o sym} OK $tserr_list_foo
+testouterr_cmd_re sh {list -t --output=sym} OK $tserr_list_terse_foo
+testouterr_cmd sh {list -o foo} ERR $tserr_invalid_o_val
+
+
+#
 #  Cleanup
 #
 
