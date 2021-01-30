@@ -1438,6 +1438,37 @@ proc releaseHeldReport {args} {
    }
 }
 
+# check if element passed as argument (corresponding to a kind of information)
+# should be part of output content
+proc isEltInReport {elt} {
+   # get config name relative to current sub-command and output format
+   set conf [currentState commandname]
+   if {[getState report_format] ne {regular}} {
+      append conf _[getState report_format]
+   }
+   append conf _output
+   set arrname ::g_$conf
+
+   if {[info exists ::g_config_defs($conf)]} {
+      # build value cache if it does not exist yet
+      if {![array exists $arrname]} {
+         array set $arrname {}
+         foreach confelt [split [getConf $conf] :] {
+            set ${arrname}($confelt) 1
+         }
+      }
+
+      # check if elt is marked to be included in output
+      set ret [info exists ${arrname}($elt)]
+   } else {
+      # always return ok in case no config option corresponds to the current
+      # module sub-command and output format
+      set ret 1
+   }
+
+   return $ret
+}
+
 # exit in a clean manner by closing interaction with external components
 proc cleanupAndExit {code} {
    # finish output document if json format enabled
