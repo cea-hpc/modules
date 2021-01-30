@@ -163,6 +163,38 @@ testouterr_cmd sh {list -o foo} ERR $tserr_invalid_o_val
 
 
 #
+# header test
+#
+
+testouterr_cmd sh {list -t --output=header} OK $cur_loaded\nfoo/1.0
+testouterr_cmd sh {list -o header} OK "$cur_loaded\nfoo/1.0  "
+
+unsetenv_loaded_module
+testouterr_cmd sh {list -o header} OK $no_loaded
+testouterr_cmd sh {list --output=header} OK $no_loaded
+setenv_var MODULES_LIST_OUTPUT header
+testouterr_cmd sh {list} OK $no_loaded
+setenv_var MODULES_LIST_TERSE_OUTPUT header
+testouterr_cmd sh {list -t} OK $no_loaded
+setenv_var MODULES_LIST_OUTPUT {}
+testouterr_cmd sh {list} OK {}
+setenv_var MODULES_LIST_TERSE_OUTPUT {}
+testouterr_cmd sh {list -t} OK {}
+unsetenv_var MODULES_LIST_OUTPUT
+unsetenv_var MODULES_LIST_TERSE_OUTPUT
+testouterr_cmd sh {list -o } OK {}
+testouterr_cmd sh {list --output=} OK {}
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+
+testouterr_cmd sh {list -t --output=sym:header} OK $cur_loaded\nfoo/1.0(bar)
+setenv_var MODULES_LIST_OUTPUT sym:header
+testouterr_cmd sh {list} OK "$cur_loaded\nfoo/1.0(bar)  "
+
+unsetenv_var MODULES_LIST_OUTPUT
+
+
+#
 #  Cleanup
 #
 
