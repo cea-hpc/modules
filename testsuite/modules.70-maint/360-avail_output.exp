@@ -200,6 +200,17 @@ testouterr_cmd sh {avail -o foo foo/1.0} ERR $tserr_invalid_o_val
 
 
 #
+# key test
+#
+
+testouterr_cmd_re sh {avail -o modulepath:key:sym foo/1.0} OK "$modlin $mpre $modlin\n$tserr_avail_foo\n\nKey:\n\\(symbolic-version\\)  "
+testouterr_cmd_re sh {avail -t --output=modulepath:sym:key foo/1.0} OK "$mpre:\n$tserr_avail_terse_foo\n\nKey:\n\\(symbolic-version\\)  "
+setenv_var MODULES_AVAIL_OUTPUT modulepath:key:sym
+testouterr_cmd_re sh {avail foo/1.0} OK "$modlin $mpre $modlin\n$tserr_avail_foo\n\nKey:\n\\(symbolic-version\\)  "
+unsetenv_var MODULES_AVAIL_OUTPUT
+
+
+#
 #  Cleanup
 #
 
