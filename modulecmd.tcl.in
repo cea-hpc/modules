@@ -67,8 +67,6 @@ array set g_config_defs [list\
    contact {MODULECONTACT root@localhost 0}\
    auto_handling {MODULES_AUTO_HANDLING @autohandling@ 0 {0 1}}\
    avail_indepth {MODULES_AVAIL_INDEPTH @availindepth@ 0 {0 1}}\
-   avail_report_dir_sym {{} 1 0}\
-   avail_report_mfile_sym {{} 1 0}\
    avail_output {MODULES_AVAIL_OUTPUT {@availoutput@} 0 {modulepath alias\
       dirwsym sym tag key} {} {} eltlist}\
    avail_terse_output {MODULES_AVAIL_TERSE_OUTPUT {@availterseoutput@} 0\
@@ -9754,9 +9752,6 @@ proc prepareMapToHightlightSubstr {substr} {
 
 # Finds all module versions for mod in the module path dir
 proc listModules {dir mod show_mtime filter search} {
-   set flag_default_dir [getConf avail_report_dir_sym] ;# Report default dirs
-   set flag_default_mf [getConf avail_report_mfile_sym] ;# Report modfile syms
-
    reportDebug "get '$mod' in $dir (show_mtime=$show_mtime, filter=$filter,\
       search=$search)"
 
@@ -9766,6 +9761,9 @@ proc listModules {dir mod show_mtime filter search} {
 
    # output is JSON format
    set json [isStateEqual report_format json]
+
+   # elements to include in output
+   set report_sym [isEltInReport sym]
 
    # prepare list of tag abbreviations that can be substituted and list of
    # tags whose name should be colored
@@ -9799,8 +9797,7 @@ proc listModules {dir mod show_mtime filter search} {
                   $default_colored $himatchmap] disp dispsgr
             } else {
                lassign [formatListEltToDisplay $elt di / $sym_list sy\
-                  $flag_default_dir $default_colored {} 0 $himatchmap] disp\
-                  dispsgr
+                  $report_sym $default_colored {} 0 $himatchmap] disp dispsgr
             }
          }
          modulefile - virtual {
@@ -9816,8 +9813,8 @@ proc listModules {dir mod show_mtime filter search} {
                   %H:%M:%S}] $default_colored $himatchmap] disp dispsgr
             } else {
                lassign [formatListEltToDisplay $elt {} {} $sym_list sy\
-                  $flag_default_mf $default_colored $tag_list 1 $himatchmap]\
-                  disp dispsgr
+                  $report_sym $default_colored $tag_list 1 $himatchmap] disp\
+                  dispsgr
             }
          }
          alias {
@@ -9839,8 +9836,8 @@ proc listModules {dir mod show_mtime filter search} {
                   }
                }
                lassign [formatListEltToDisplay $elt al {} $sym_list sy\
-                  $flag_default_mf $default_colored $tag_list 1 $himatchmap]\
-                  disp dispsgr
+                  $report_sym $default_colored $tag_list 1 $himatchmap] disp\
+                  dispsgr
             }
          }
       }
@@ -11059,6 +11056,9 @@ proc cmdModuleList {show_oneperline show_mtime} {
          report {No Modulefiles Currently Loaded.}
       }
    } else {
+      # elements to include in output
+      set report_sym [isEltInReport sym]
+
       # prepare list of tag abbreviations that can be substituted and list of
       # tags whose name should be colored
       getConf tag_abbrev
@@ -11069,48 +11069,44 @@ proc cmdModuleList {show_oneperline show_mtime} {
       set len_list {}
       set max_len 0
       foreach mod $loadedmodlist {
-         if {$show_oneperline} {
-            lappend display_list $mod
-         } else {
-            set modfile [getModulefileFromLoadedModule $mod]
+         set modfile [getModulefileFromLoadedModule $mod]
 
-            # fetch symbols from loaded environment information
-            set modname [file dirname $mod]
-            set sym_list {}
-            foreach altname [getLoadedAltname $mod 0 sym] {
-               # skip non-symbol entry
-               if {$altname ne $modname} {
-                  lappend sym_list [file tail $altname]
-               }
+         # fetch symbols from loaded environment information
+         set modname [file dirname $mod]
+         set sym_list {}
+         foreach altname [getLoadedAltname $mod 0 sym] {
+            # skip non-symbol entry
+            if {$altname ne $modname} {
+               lappend sym_list [file tail $altname]
             }
-            set sym_list [lsort -dictionary $sym_list]
-            # fetch tags but clear obvious 'loaded' tag
-            set tag_list [replaceFromList [getTagList $mod] loaded]
-            # abbrieviate tags unless for json output
-            if {!$json} {
-               set tag_list [abbrevTagList $tag_list]
-            }
-
-            if {$json} {
-               set dispsgr [formatListEltToJsonDisplay $mod type s modulefile\
-                  symbols a $sym_list tags a $tag_list pathname s $modfile]
-            } elseif {$show_mtime} {
-               set clock_mtime [expr {[file exists $modfile] ? [clock format\
-                  [getFileMtime $modfile] -format {%Y/%m/%d %H:%M:%S}] : {}}]
-
-               # add to display file modification time in addition to syms
-               lassign [formatListEltToLongDisplay $mod {} {} $sym_list sy\
-                  $clock_mtime $default_colored] disp dispsgr
-            } else {
-               lassign [formatListEltToDisplay $mod {} {} $sym_list sy 1\
-                  $default_colored $tag_list 1] disp dispsgr
-               lappend len_list [set len [string length $disp]]
-               if {$len > $max_len} {
-                  set max_len $len
-               }
-            }
-            lappend display_list $dispsgr
          }
+         set sym_list [lsort -dictionary $sym_list]
+         # fetch tags but clear obvious 'loaded' tag
+         set tag_list [replaceFromList [getTagList $mod] loaded]
+         # abbrieviate tags unless for json output
+         if {!$json} {
+            set tag_list [abbrevTagList $tag_list]
+         }
+
+         if {$json} {
+            set dispsgr [formatListEltToJsonDisplay $mod type s modulefile\
+               symbols a $sym_list tags a $tag_list pathname s $modfile]
+         } elseif {$show_mtime} {
+            set clock_mtime [expr {[file exists $modfile] ? [clock format\
+               [getFileMtime $modfile] -format {%Y/%m/%d %H:%M:%S}] : {}}]
+
+            # add to display file modification time in addition to syms
+            lassign [formatListEltToLongDisplay $mod {} {} $sym_list sy\
+               $clock_mtime $default_colored] disp dispsgr
+         } else {
+            lassign [formatListEltToDisplay $mod {} {} $sym_list sy\
+               $report_sym $default_colored $tag_list 1] disp dispsgr
+            lappend len_list [set len [string length $disp]]
+            if {$len > $max_len} {
+               set max_len $len
+            }
+         }
+         lappend display_list $dispsgr
       }
 
       if {!$json} {
