@@ -9397,6 +9397,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    # define module name and version comparison procs
    defineDoesModMatchAtDepthProc $indepth $querydepth $mtest
 
+   # element to include in output
+   set report_dirwsym [isEltInReport dirwsym]
+
    array set mod_list {}
    array set fdir_list {}
    array set keep_list {}
@@ -9554,8 +9557,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
             # when noplaindir filtering, only keep dirs with syms when indepth
             # enabled or if correponds to query depth when indepth disabled
             } elseif {$filtering && $filter eq {noplaindir} &&\
-               (($indepth && ![doesModuleHaveSym $elt]) || (!$indepth &&\
-               [countChar $elt /] != $querydepth))} {
+               (($indepth && (!$report_dirwsym || ![doesModuleHaveSym $elt]))\
+               || (!$indepth && [countChar $elt /] != $querydepth))} {
                unset mod_list($elt)
             }
          }
