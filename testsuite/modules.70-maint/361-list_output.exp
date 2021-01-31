@@ -225,6 +225,19 @@ unsetenv_var MODULES_LIST_OUTPUT
 
 
 #
+# tag test
+#
+
+setenv_path_var MODULES_LMTAG foo/1.0&baz
+testouterr_cmd sh {list --output=tag:idx} OK " 1) foo/1.0 <baz>  "
+testouterr_cmd sh {list -t -o key:tag:header} OK "$cur_loaded\nfoo/1.0 <baz>\n\nKey:\n<module-tag>  "
+setenv_var MODULES_LIST_TERSE_OUTPUT idx:tag
+testouterr_cmd sh {list -t} OK " 1) foo/1.0 <baz> "
+unsetenv_var MODULES_LIST_TERSE_OUTPUT
+unsetenv_path_var MODULES_LMTAG
+
+
+#
 #  Cleanup
 #
 

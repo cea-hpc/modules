@@ -222,6 +222,19 @@ unsetenv_var MODULES_AVAIL_OUTPUT
 
 
 #
+# tag test
+#
+
+setenv_var TESTSUITE_AVAIL_OUTPUT_FOO_TAG 1
+testouterr_cmd_re sh {avail -o modulepath:key:tag foo/1.0} OK "$modlin $mpre $modlin\nfoo/1.0 <baz>  \n\nKey:\n<module-tag>  "
+testouterr_cmd_re sh {avail -t --output=tag:modulepath foo/1.0} OK "$mpre:\nfoo/1.0 <baz>"
+setenv_var MODULES_AVAIL_OUTPUT modulepath:tag:sym:key
+testouterr_cmd_re sh {avail foo/1.0} OK "$modlin $mpre $modlin\nfoo/1.0\\(bar\\) <baz>  \n\nKey:\n\\(symbolic-version\\)  <module-tag>  "
+unsetenv_var MODULES_AVAIL_OUTPUT
+unsetenv_var TESTSUITE_AVAIL_OUTPUT_FOO_TAG
+
+
+#
 #  Cleanup
 #
 
