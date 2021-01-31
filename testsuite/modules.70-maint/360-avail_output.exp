@@ -235,6 +235,26 @@ unsetenv_var TESTSUITE_AVAIL_OUTPUT_FOO_TAG
 
 
 #
+# alias test
+#
+
+set mp $modpath.2
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+setenv_path_var MODULEPATH $mp
+
+testouterr_cmd_re sh {avail -t --output=tag:modulepath hide2} OK "$mpre:\nhide2/1.0\nhide2/1.5"
+testouterr_cmd_re sh {avail -t --output=tag:modulepath hide2/1.1} OK {}
+testouterr_cmd_re sh {avail -o tag:modulepath hide2/1.1} OK {}
+setenv_var MODULES_AVAIL_OUTPUT modulepath:alias
+testouterr_cmd_re sh {avail hide2} OK "$modlin $mpre $modlin\nhide2/1.0  hide2/1.1  hide2/1.5  "
+unsetenv_var MODULES_AVAIL_OUTPUT
+setenv_var MODULES_AVAIL_TERSE_OUTPUT modulepath:alias
+testouterr_cmd_re sh {avail -t hide2} OK "$mpre:\nhide2/1.0\nhide2/1.1\nhide2/1.5"
+testouterr_cmd_re sh {avail -t hide2@1.1:1.2} OK {}
+unsetenv_var MODULES_AVAIL_TERSE_OUTPUT
+
+
+#
 #  Cleanup
 #
 
