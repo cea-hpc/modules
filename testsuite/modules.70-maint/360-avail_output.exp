@@ -255,6 +255,19 @@ unsetenv_var MODULES_AVAIL_TERSE_OUTPUT
 
 
 #
+# dirwsym test
+#
+
+testouterr_cmd_re sh {avail -o modulepath hide3/sub2} OK "$modlin $mpre $modlin\nhide3/sub2/4.0  hide3/sub2/5.0  "
+testouterr_cmd_re sh {avail --output=sym:modulepath hide3/sub2} OK "$modlin $mpre $modlin\nhide3/sub2/4.0\\(default:sym\\)  hide3/sub2/5.0\\(new\\)  "
+testouterr_cmd_re sh {avail -t -o modulepath:dirwsym hide3/sub2} OK "$mpre:\nhide3/sub2/\nhide3/sub2/4.0\nhide3/sub2/5.0"
+testouterr_cmd_re sh {avail -t --output=modulepath:sym:dirwsym hide3/sub2} OK "$mpre:\nhide3/sub2/\\(sym\\)\nhide3/sub2/4.0\\(default:sym\\)\nhide3/sub2/5.0\\(new\\)"
+setenv_var MODULES_AVAIL_TERSE_OUTPUT modulepath:dirwsym:sym
+testouterr_cmd_re sh {avail -t hide3/sub2} OK "$mpre:\nhide3/sub2/\\(sym\\)\nhide3/sub2/4.0\\(default:sym\\)\nhide3/sub2/5.0\\(new\\)"
+unsetenv_var MODULES_AVAIL_TERSE_OUTPUT
+
+
+#
 #  Cleanup
 #
 
