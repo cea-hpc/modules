@@ -238,6 +238,14 @@ proc getConf {option {valifundef {}}} {
                         set value $::env($envvar)
                      }
                   }
+                  intbe {
+                     # ignore non-valid values
+                     if {[string is integer -strict $::env($envvar)] &&\
+                        $::env($envvar) >= [lindex $validvallist 0] &&\
+                        $::env($envvar) <= [lindex $validvallist 1]} {
+                        set value $::env($envvar)
+                     }
+                  }
                   {} {
                      # ignore non-valid values
                      if {[switch -- [llength $validvallist] {
@@ -13002,24 +13010,39 @@ proc cmdModuleConfig {dump_state args} {
          unsetenv $confvar($name)
          lpopState mode
       } elseif {[llength $confvalid($name)] > 0} {
-         if {$confvalidkind($name) eq {eltlist}} {
-            # check each element in value list
-            if {[isDiffBetweenList [split $value :] $confvalid($name)]} {
-               reportErrorAndExit "Invalid element in value list for\
-                  config. option '$name'\nAllowed elements are:\
-                  $confvalid($name) (separated by ':')"
-            } else {
-               set validval 1
+         switch -- $confvalidkind($name) {
+            eltlist {
+               # check each element in value list
+               if {[isDiffBetweenList [split $value :] $confvalid($name)]} {
+                  reportErrorAndExit "Invalid element in value list for\
+                     config. option '$name'\nAllowed elements are:\
+                     $confvalid($name) (separated by ':')"
+               } else {
+                  set validval 1
+               }
             }
-         } else {
-            if {([llength $confvalid($name)] == 1 && ![string is\
-               $confvalid($name) -strict $value]) || ([llength\
-               $confvalid($name)] > 1 && [notInList $confvalid($name)\
-               $value])} {
-               reportErrorAndExit "Valid values for configuration option\
-                  '$name' are: $confvalid($name)"
-            } else {
-               set validval 1
+            intbe {
+               if {[string is integer -strict $value] && $value >= [lindex\
+                  $confvalid($name) 0] && $value <= [lindex $confvalid($name)\
+                  1]} {
+                  set validval 1
+               } else {
+                  reportErrorAndExit "Invalid value for configuration option\
+                     '$name'\nValue should be an integer comprised between\
+                     [lindex $confvalid($name) 0] and [lindex\
+                     $confvalid($name) 1]"
+               }
+            }
+            {} {
+               if {([llength $confvalid($name)] == 1 && ![string is\
+                  $confvalid($name) -strict $value]) || ([llength\
+                  $confvalid($name)] > 1 && [notInList $confvalid($name)\
+                  $value])} {
+                  reportErrorAndExit "Valid values for configuration option\
+                     '$name' are: $confvalid($name)"
+               } else {
+                  set validval 1
+               }
             }
          }
       } else {
