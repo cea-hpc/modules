@@ -139,7 +139,7 @@ array set configvalid [list\
     list_terse_output         {header idx sym tag key}\
     mcookie_version_check     {0 1}\
     ml                        {0 1}\
-    nearly_forbidden_days     integer\
+    nearly_forbidden_days     {0 365}\
     search_match              {starts_with contains}\
     set_shell_startup         {0 1}\
     silent_shell_debug        {0 1}\
@@ -154,6 +154,7 @@ array set configvalidkind [list\
     avail_terse_output        eltlist\
     list_output               eltlist\
     list_terse_output         eltlist\
+    nearly_forbidden_days     intbe\
 ]
 
 array set configlockable [list\
@@ -207,6 +208,24 @@ foreach param [array names configvalid] {
                 testouterr_cmd sh "config $param $val" ERR $tserr
                 set val [join [lrange $configvalid($param) 0 end-2] {\ }]
                 testouterr_cmd sh "config $param $val" ERR $tserr
+            }
+            intbe {
+                set lowerbound [lindex $configvalid($param) 0]
+                set upperbound [lindex $configvalid($param) 1]
+
+                set ans [list [list set $configvar($param) $lowerbound]]
+                testouterr_cmd_re sh "config $param $lowerbound" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
+                set ans [list [list set $configvar($param) $upperbound]]
+                testouterr_cmd_re sh "config $param $upperbound" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
+                set val [expr {$lowerbound + 10}]
+                set ans [list [list set $configvar($param) $val]]
+                testouterr_cmd_re sh "config $param $val" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
+
+                # invalid value test
+                set tserr [if_configlocked $param [err_conflocked $param] "$error_msgs: Invalid value for configuration option '$param'\n  Value should be an integer comprised between $lowerbound and $upperbound"]
+                testouterr_cmd_re sh "config $param -10" ERR "$error_msgs: Invalid option '-10'\n$err_typehelp"
+                testouterr_cmd_re sh "config $param [expr {$upperbound + 10}]" ERR $tserr
+                testouterr_cmd_re sh "config $param foo" ERR $tserr
             }
         }
     } else {
