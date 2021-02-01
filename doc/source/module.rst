@@ -1932,7 +1932,7 @@ ENVIRONMENT
  expiry date set by :mfcmd:`module-forbid` modulefile command. When a *nearly
  forbidden* module is evaluated a warning message is issued to inform module
  will soon be forbidden. If set to ``0``, modules will never be considered
- *nearly forbidden*. Accepted values are integers.
+ *nearly forbidden*. Accepted values are integers comprised between 0 and 365.
 
  This configuration is defined in the following order of preference:
  :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS` environment variable then the default
