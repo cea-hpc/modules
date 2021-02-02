@@ -680,7 +680,8 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 .. instopt:: --with-nearly-forbidden-days=VALUE
 
  Define the number of days a module is considered nearly forbidden prior
- reaching its expiry date.  (default=\ ``14``)
+ reaching its expiry date. VALUE should be an integer comprised between 0 and
+ 365. (default=\ ``14``)
 
  .. only:: html
 
