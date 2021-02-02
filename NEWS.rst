@@ -190,6 +190,8 @@ Modules 4.7.0 (not yet released)
 * Restrict the value accepted by :mconfig:`nearly_forbidden_days`
   configuration and :instopt:`--with-nearly-forbidden-days` installation
   option to integers comprised between 0 and 365.
+* Install: color *ERROR* and *WARNING* message headers produced by
+  file:`configure` script if output is sent to a terminal.
 
 
 .. _4.6 release notes:

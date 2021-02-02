@@ -135,6 +135,28 @@ listterseoutput='header'
 compatbranch='c-3.2'
 
 
+# check if output/error channels are attached to terminal
+for i in 1 2; do
+   if [ -t $i ]; then
+      fdisterm[$i]=1
+   else
+      fdisterm[$i]=0
+   fi
+done
+
+# apply SGR code to message if output channel is attached to terminal
+sgr() {
+   local fd=$1
+   local code=$2
+   local msg=$3
+   if [ ${fdisterm[$fd]} -eq 1 ]; then
+      local out="\033[${code}m${msg}\033[0m"
+   else
+      local out=$msg
+   fi
+   echo $out
+}
+
 # print message on stderr then exit
 echo_error() {
    if [ $# -eq 2 ] && [ $2 -eq 1 ]; then
@@ -142,13 +164,13 @@ echo_error() {
    else
       local tryhelp=''
    fi
-   echo -e "ERROR: $1$tryhelp" >&2
+   echo -e "$(sgr 2 31 ERROR): $1$tryhelp" >&2
    exit 1
 }
 
 # print message on stderr then exit
 echo_warning() {
-   echo -e "WARNING: $1"
+   echo -e "$(sgr 1 33 WARNING): $1"
 }
 
 
