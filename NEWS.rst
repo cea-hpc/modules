@@ -192,6 +192,8 @@ Modules 4.7.0 (not yet released)
   option to integers comprised between 0 and 365.
 * Install: color *ERROR* and *WARNING* message headers produced by
   file:`configure` script if output is sent to a terminal.
+* Install: split error messages produced by file:`configure` script over an
+  additional line when too long.
 
 
 .. _4.6 release notes:

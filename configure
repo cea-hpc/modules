@@ -159,12 +159,19 @@ sgr() {
 
 # print message on stderr then exit
 echo_error() {
-   if [ $# -eq 2 ] && [ $2 -eq 1 ]; then
-      local tryhelp="\n  Try \`$progpath --help' for more information"
-   else
-      local tryhelp=''
-   fi
-   echo -e "$(sgr 2 31 ERROR): $1$tryhelp" >&2
+   local firstln=1
+   while [ $# -gt 0 ]; do
+      if [ $firstln -eq 1 ]; then
+         local msg="$(sgr 2 31 ERROR): $1"
+         firstln=0
+      elif [ "$1" = 'tryhelp' ]; then
+         msg="${msg}\n  Try \`$progpath --help' for more information"
+      else
+         msg="${msg}\n  $1"
+      fi
+      shift
+   done
+   echo -e "${msg}" >&2
    exit 1
 }
 
@@ -625,7 +632,8 @@ for arg in "$@"; do
       initconfin=$(get_package_value "$arg") ;
       allowedval=" initdir etcdir " ;
       if [ "${allowedval// $initconfin /}" = "$allowedval" ]; then
-         echo_error "Bad value for option \`--with-initconf-in', allowed values are:$allowedval"
+         echo_error "Bad value for option \`--with-initconf-in'"\
+            "Allowed values are:$allowedval"
       fi ;;
    --with-tclsh=*|--without-tclsh)
       tclshbin=$(get_package_value "$arg") ;;
@@ -638,7 +646,8 @@ for arg in "$@"; do
       verbosity=$(get_package_value "$arg")
       allowedval=" silent concise normal verbose trace debug debug2 " ;
       if [ "${allowedval// $verbosity /}" = "$allowedval" ]; then
-         echo_error "Bad value for option \`--with-verbosity', allowed values are:$allowedval"
+         echo_error "Bad value for option \`--with-verbosity'"\
+            "Allowed values are:$allowedval"
       fi ;;
    --enable-color*|--disable-color)
       color=$(get_feature_value "$arg") ;;
@@ -660,39 +669,45 @@ for arg in "$@"; do
       termbg=$(get_package_value "$arg") ;
       allowedval=" dark light " ;
       if [ "${allowedval// $termbg /}" = "$allowedval" ]; then
-         echo_error "Bad value for option \`--with-terminal-background', allowed values are:$allowedval"
+         echo_error "Bad value for option \`--with-terminal-background'"\
+            "Allowed values are:$allowedval"
       fi ;;
    --with-locked-configs*|--disable-locked-configs)
       lockedconfigs=$(get_package_value "$arg") ;
       allowedval=" extra_siteconfig implicit_default " ;
       for val in $lockedconfigs; do
          if [ "${allowedval// $val /}" = "$allowedval" ]; then
-            echo_error "Bad value for option \`--with-locked-configs', allowed values are:$allowedval"
+            echo_error "Bad value for option \`--with-locked-configs'"\
+               "Allowed values are:$allowedval"
          fi ;
       done ;;
    --with-unload-match-order*|--without-unload-match-order)
       unloadmatchorder=$(get_package_value "$arg") ;
       allowedval=" returnlast returnfirst " ;
       if [ "${allowedval// $unloadmatchorder /}" = "$allowedval" ]; then
-         echo_error "Bad value for option \`--with-unload-match-order', allowed values are:$allowedval"
+         echo_error "Bad value for option \`--with-unload-match-order'"\
+            "Allowed values are:$allowedval"
       fi ;;
    --with-search-match*|--without-search-match)
       searchmatch=$(get_package_value "$arg") ;
       allowedval=" starts_with contains " ;
       if [ "${allowedval// $searchmatch /}" = "$allowedval" ]; then
-         echo_error "Bad value for option \`--with-search-match', allowed values are:$allowedval"
+         echo_error "Bad value for option \`--with-search-match'"\
+            "Allowed values are:$allowedval"
       fi ;;
    --with-icase*|--without-icase)
       icase=$(get_package_value "$arg") ;
       allowedval=" never search always " ;
       if [ "${allowedval// $icase /}" = "$allowedval" ]; then
-         echo_error "Bad value for option \`--with-icase', allowed values are:$allowedval"
+         echo_error "Bad value for option \`--with-icase'"\
+            "Allowed values are:$allowedval"
       fi ;;
    --with-nearly-forbidden-days*|--without-nearly-forbidden-days)
       nearlyforbiddendays=$(get_package_value "$arg") ;
       if [ -z "$nearlyforbiddendays" ] || ! [ "$nearlyforbiddendays" -eq "$nearlyforbiddendays" ] 2>/dev/null\
          || ! [ "$nearlyforbiddendays" -ge 0 ] || ! [ "$nearlyforbiddendays" -le 365 ]; then
-         echo_error "Bad value for option \`--with-nearly-forbidden-days', value should be an integer comprised between 0 and 365"
+         echo_error "Bad value for option \`--with-nearly-forbidden-days'"\
+            "Value should be an integer comprised between 0 and 365"
       fi ;;
    --with-tag-abbrev*|--without-tag-abbrev)
       tagabbrev=$(get_package_value "$arg") ;;
@@ -705,7 +720,8 @@ for arg in "$@"; do
       IFS=: ;
       for val in $availoutput; do
          if [ "${allowedval// $val /}" = "$allowedval" ]; then
-            echo_error "Bad value '$val' set in option \`--with-avail-output', values allowed in list are:$allowedval"
+            echo_error "Bad value '$val' set in option \`--with-avail-output'"\
+               "Values allowed in list are:$allowedval"
          fi ;
       done ;
       IFS=$ORIG_IFS ;;
@@ -716,7 +732,8 @@ for arg in "$@"; do
       IFS=: ;
       for val in $availterseoutput; do
          if [ "${allowedval// $val /}" = "$allowedval" ]; then
-            echo_error "Bad value '$val' set in option \`--with-avail-terse-output', values allowed in list are:$allowedval"
+            echo_error "Bad value '$val' set in option \`--with-avail-terse-output'"\
+               "Values allowed in list are:$allowedval"
          fi ;
       done ;
       IFS=$ORIG_IFS ;;
@@ -727,7 +744,8 @@ for arg in "$@"; do
       IFS=: ;
       for val in $listoutput; do
          if [ "${allowedval// $val /}" = "$allowedval" ]; then
-            echo_error "Bad value '$val' set in option \`--with-list-output', values allowed in list are:$allowedval"
+            echo_error "Bad value '$val' set in option \`--with-list-output'"\
+               "Values allowed in list are:$allowedval"
          fi ;
       done ;
       IFS=$ORIG_IFS ;;
@@ -738,7 +756,8 @@ for arg in "$@"; do
       IFS=: ;
       for val in $listterseoutput; do
          if [ "${allowedval// $val /}" = "$allowedval" ]; then
-            echo_error "Bad value '$val' set in option \`--with-list-terse-output', values allowed in list are:$allowedval"
+            echo_error "Bad value '$val' set in option \`--with-list-terse-output'"\
+               "Values allowed in list are:$allowedval"
          fi ;
       done ;
       IFS=$ORIG_IFS ;;
@@ -807,7 +826,7 @@ for arg in "$@"; do
       # (https://www.gnu.org/prep/standards/html_node/Configuration.html)
       echo_warning "Option \`$arg' ignored" ;;
    -*)
-      echo_error "Unrecognized option \`$arg'" 1;;
+      echo_error "Unrecognized option \`$arg'" tryhelp;;
    *=*)
       echo -e "Export \`$arg' in environment" ;
       export $arg ;;
