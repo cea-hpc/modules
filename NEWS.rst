@@ -188,7 +188,8 @@ Modules 4.7.0 (not yet released)
 * Install: do not flag documentation as pre-built if :file:`configure` script
   is ran another time after building docs.
 * Restrict the value accepted by :mconfig:`nearly_forbidden_days`
-  configuration to integers comprised between 0 and 365.
+  configuration and :instopt:`--with-nearly-forbidden-days` installation
+  option to integers comprised between 0 and 365.
 
 
 .. _4.6 release notes:
