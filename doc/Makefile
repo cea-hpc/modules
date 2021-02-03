@@ -31,17 +31,21 @@ txt: $(BUILD_DIR)/diff_v3_v4.txt $(BUILD_DIR)/MIGRATING.txt \
 	$(BUILD_DIR)/INSTALL.txt $(BUILD_DIR)/INSTALL-win.txt \
 	$(BUILD_DIR)/NEWS.txt $(BUILD_DIR)/CONTRIBUTING.txt
 
+ifneq ($(builddoc),p)
 html: $(BUILD_DIR)/module.html $(BUILD_DIR)/ml.html \
 	$(BUILD_DIR)/modulefile.html $(BUILD_DIR)/diff_v3_v4.html \
 	$(BUILD_DIR)/MIGRATING.html $(BUILD_DIR)/INSTALL.html \
 	$(BUILD_DIR)/INSTALL-win.html $(BUILD_DIR)/NEWS.html \
 	$(BUILD_DIR)/CONTRIBUTING.html
+endif
 
 all: man txt
 
 # enable HTML pages build only from git repository
 ifeq ($(wildcard ../.git),../.git)
+ifneq ($(builddoc),p)
 all: html
+endif
 endif
 
 define translate-in-script
