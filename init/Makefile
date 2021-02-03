@@ -133,6 +133,22 @@ quarvarsre += $(foreach vv,$(quarantinevars),$(call runenvvarre,$(firstword\
 quarvarsre += s/@.*RUNENV_VAR.*@//;'
 endif
 
+# define variables for shell completion
+comp_cmds := add apropos aliases avail append-path clear config del display help initadd initclear initlist initprepend initrm is-loaded is-saved is-used is-avail info-loaded keyword list load path paths purge prepend-path refresh reload restore rm remove remove-path save savelist saveshow saverm search show sh-to-mod source swap switch test unload unuse use whatis
+comp_opts := -D -h -s -T -v -V --debug --help --silent --trace --verbose --version --paginate --no-pager --color --color=
+comp_load_opts := --auto --no-auto --force -f --icase -i
+comp_list_opts := -j -l -t --json --long --terse
+comp_clear_opts := --force -f
+comp_avail_opts := -a -C -d -i -j -L -l -S -t --all --contains --default --icase --json --latest --long --starts-with --terse --indepth --no-indepth
+comp_mfile_opts := -i --icase
+comp_whatis_opts := -a -i -j --all --icase --json
+comp_search_opts := -a -j --all --json
+comp_aliases_opts := -a --all
+comp_isavail_opts := -a -i --all --icase
+comp_path_opts := -d --delim --duplicates
+comp_rm_path_opts := -d --delim --index
+comp_config_opts := --dump-state --reset advanced_version_spec auto_handling avail_indepth collection_pin_version collection_target color colors contact extended_default extra_siteconfig home icase implicit_default implicit_requirement locked_configs mcookie_version_check ml nearly_forbidden_days pager rcfile run_quarantine search_match set_shell_startup shells_with_ksh_fpath silent_shell_debug tag_abbrev tag_color_name term_background unload_match_order verbosity wa_277
+
 define translate-in-script
 sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@baseprefix@|$(baseprefix)|g' \
@@ -142,6 +158,20 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@modulefilesdir@|$(modulefilesdir)|g' \
 	-e 's|@bindir@|$(bindir)|g' \
 	-e 's|@mandir@|$(mandir)|g' \
+	-e 's|@comp_cmds@|$(comp_cmds)|g' \
+	-e 's|@comp_opts@|$(comp_opts)|g' \
+	-e 's|@comp_load_opts@|$(comp_load_opts)|g' \
+	-e 's|@comp_list_opts@|$(comp_list_opts)|g' \
+	-e 's|@comp_clear_opts@|$(comp_clear_opts)|g' \
+	-e 's|@comp_avail_opts@|$(comp_avail_opts)|g' \
+	-e 's|@comp_mfile_opts@|$(comp_mfile_opts)|g' \
+	-e 's|@comp_whatis_opts@|$(comp_whatis_opts)|g' \
+	-e 's|@comp_search_opts@|$(comp_search_opts)|g' \
+	-e 's|@comp_aliases_opts@|$(comp_aliases_opts)|g' \
+	-e 's|@comp_isavail_opts@|$(comp_isavail_opts)|g' \
+	-e 's|@comp_path_opts@|$(comp_path_opts)|g' \
+	-e 's|@comp_rm_path_opts@|$(comp_rm_path_opts)|g' \
+	-e 's|@comp_config_opts@|$(comp_config_opts)|g' \
 	-e '$(setmanpathre)' \
 	-e '$(appendmanpathre)' \
 	-e '$(prependmanpathre)' \

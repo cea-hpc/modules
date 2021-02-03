@@ -37,48 +37,32 @@ alias _module_not_yet_loaded '\\
 
 alias _module_modulepath 'echo ${MODULEPATH} | sed '"'"'s/:/\n/g;'"'"' '
 
-set module_cmds = "add apropos aliases avail append-path clear config del display help initadd initclear initlist initprepend initrm is-loaded is-saved is-used is-avail info-loaded keyword list load path paths purge prepend-path refresh reload restore rm remove remove-path save savelist saveshow saverm search show sh-to-mod source swap switch test unload unuse use whatis"
-
-set module_opts = "-D -h -s -T -v -V --debug --help --silent --trace --verbose --version --paginate --no-pager --color --color="
-set module_load_opts = "--auto --no-auto --force -f --icase -i"
-set module_list_opts = "-j -l -t --json --long --terse"
-set module_clear_opts = "--force -f"
-set module_avail_opts = "-a -C -d -i -j -L -l -S -t --all --contains --default --icase --json --latest --long --starts-with --terse --indepth --no-indepth"
-set module_mfile_opts = "-i --icase"
-set module_whatis_opts = "-a -i -j --all --icase --json"
-set module_search_opts = "-a -j --all --json"
-set module_aliases_opts = "-a --all"
-set module_isavail_opts = "-a -i --all --icase"
-set module_path_opts = "-d --delim --duplicates"
-set module_rm_path_opts = "-d --delim --index"
-set module_config_opts = "--dump-state --reset advanced_version_spec auto_handling avail_indepth collection_pin_version collection_target color colors contact extended_default extra_siteconfig home icase implicit_default implicit_requirement locked_configs mcookie_version_check ml nearly_forbidden_days pager rcfile run_quarantine search_match set_shell_startup shells_with_ksh_fpath silent_shell_debug tag_abbrev tag_color_name term_background unload_match_order verbosity wa_277"
-
 complete module 'n/help/`_module_avail`/' \
-        'n/add/`_module_not_yet_loaded; echo ${module_load_opts}`/' \
-        'n/load/`_module_not_yet_loaded; echo ${module_load_opts}`/' \
-        'n/rm/`_module_loaded; echo ${module_load_opts}`/' \
-        'n/del/`_module_loaded; echo ${module_load_opts}`/' \
-        'n/remove/`_module_loaded; echo ${module_load_opts}`/' \
-        'n/unload/`_module_loaded; echo ${module_load_opts}`/' \
-        'n/swap/`_module_loaded; echo ${module_load_opts}`/' \
-        'N/swap/`_module_not_yet_loaded; echo ${module_load_opts}`/' \
-        'n/switch/`_module_loaded; echo ${module_load_opts}`/' \
-        'N/switch/`_module_not_yet_loaded; echo ${module_load_opts}`/' \
-        'n/show/`_module_avail; echo ${module_mfile_opts}`/' \
-        'n/display/`_module_avail; echo ${module_mfile_opts}`/' \
-        'n/test/`_module_avail; echo ${module_mfile_opts}`/' \
-        "n/list/(${module_list_opts})/" \
-        'n/avail/`_module_avail; echo ${module_avail_opts}`/' \
-        'n/is-avail/`_module_avail; echo ${module_isavail_opts}`/' \
-        'n/is-loaded/`_module_avail; echo ${module_mfile_opts}`/' \
-        'n/info-loaded/`_module_avail; echo ${module_mfile_opts}`/' \
+        'n/add/`_module_not_yet_loaded; echo "@comp_load_opts@"`/' \
+        'n/load/`_module_not_yet_loaded; echo "@comp_load_opts@"`/' \
+        'n/rm/`_module_loaded; echo "@comp_load_opts@"`/' \
+        'n/del/`_module_loaded; echo "@comp_load_opts@"`/' \
+        'n/remove/`_module_loaded; echo "@comp_load_opts@"`/' \
+        'n/unload/`_module_loaded; echo "@comp_load_opts@"`/' \
+        'n/swap/`_module_loaded; echo "@comp_load_opts@"`/' \
+        'N/swap/`_module_not_yet_loaded; echo "@comp_load_opts@"`/' \
+        'n/switch/`_module_loaded; echo "@comp_load_opts@"`/' \
+        'N/switch/`_module_not_yet_loaded; echo "@comp_load_opts@"`/' \
+        'n/show/`_module_avail; echo "@comp_mfile_opts@"`/' \
+        'n/display/`_module_avail; echo "@comp_mfile_opts@"`/' \
+        'n/test/`_module_avail; echo "@comp_mfile_opts@"`/' \
+        "n/list/(@comp_list_opts@)/" \
+        'n/avail/`_module_avail; echo "@comp_avail_opts@"`/' \
+        'n/is-avail/`_module_avail; echo "@comp_isavail_opts@"`/' \
+        'n/is-loaded/`_module_avail; echo "@comp_mfile_opts@"`/' \
+        'n/info-loaded/`_module_avail; echo "@comp_mfile_opts@"`/' \
         'n/restore/`_module_savelist`/' \
-        "n/savelist/(${module_list_opts})/" \
+        "n/savelist/(@comp_list_opts@)/" \
         'n/saveshow/`_module_savelist`/' \
         'n/saverm/`_module_savelist`/' \
         'n/save/`_module_savelist`/' \
         'n/is-saved/`_module_savelist`/' \
-        "n/aliases/(${module_aliases_opts})/" \
+        "n/aliases/(@comp_aliases_opts@)/" \
         'n/use/d/' \
         'N/use/d/' \
         'n/unuse/`_module_modulepath`/' \
@@ -86,12 +70,12 @@ complete module 'n/help/`_module_avail`/' \
         'n/purge/n/' \
         'n/refresh/n/' \
         'n/reload/n/' \
-        'n/whatis/`_module_avail; echo ${module_whatis_opts}`/' \
-        "n/apropos/(${module_search_opts})/" \
-        "n/search/(${module_search_opts})/" \
-        "n/keyword/(${module_search_opts})/" \
-        'n/paths/`_module_avail; echo ${module_mfile_opts}`/' \
-        'n/path/`_module_avail; echo ${module_mfile_opts}`/' \
+        'n/whatis/`_module_avail; echo "@comp_whatis_opts@"`/' \
+        "n/apropos/(@comp_search_opts@)/" \
+        "n/search/(@comp_search_opts@)/" \
+        "n/keyword/(@comp_search_opts@)/" \
+        'n/paths/`_module_avail; echo "@comp_mfile_opts@"`/' \
+        'n/path/`_module_avail; echo "@comp_mfile_opts@"`/' \
         'n/sh-to-mod/n/' \
         'n/source/n/' \
         'n/initadd/n/' \
@@ -99,17 +83,16 @@ complete module 'n/help/`_module_avail`/' \
         'n/initrm/n/' \
         'n/initlist/n/' \
         'n/initclear/n/' \
-        "n/append-path/(${module_path_opts})/" \
-        "n/prepend-path/(${module_path_opts})/" \
-        "n/remove-path/(${module_rm_path_opts})/" \
-        "n/clear/(${module_clear_opts})/" \
-        "n/config/(${module_config_opts})/" \
-        "n/--reset/(${module_config_opts})/" \
+        "n/append-path/(@comp_path_opts@)/" \
+        "n/prepend-path/(@comp_path_opts@)/" \
+        "n/remove-path/(@comp_rm_path_opts@)/" \
+        "n/clear/(@comp_clear_opts@)/" \
+        "n/config/(@comp_config_opts@)/" \
+        "n/--reset/(@comp_config_opts@)/" \
         'n/-h/n/' \
         'n/--help/n/' \
         'n/-V/n/' \
         'n/--version/n/' \
         'C/sw*/(switch)/' \
-        "p/1/(${module_cmds} ${module_opts})/" \
-        "n/-*/(${module_cmds})/" 
-
+        "p/1/(@comp_cmds@ @comp_opts@)/" \
+        "n/-*/(@comp_cmds@)/"
