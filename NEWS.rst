@@ -173,6 +173,9 @@ Modules 4.7.0 (not yet released)
   width. (fix issues #379 and #381)
 * Correct :subcmd:`config` sub-command to set :mconfig:`nearly_forbidden_days`
   configuration. (fix issue #380)
+* Init: reduce usage of helper variables in :file:`bash_completion` and
+  :file:`tcsh_completion` that are showing up in the output of the shell's
+  ``set`` command. (fix issue #382 with contribution from Colin Marquardt)
 
 
 .. _4.6 release notes:
