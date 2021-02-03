@@ -2029,6 +2029,9 @@ ENVIRONMENT
  It enables for the listed shells to get module function defined when starting
  ksh as sub-shell from there.
 
+ Accepted values are a list of shell among *sh*, *bash*, *csh*, *tcsh* and
+ *fish* separated by colon character (``:``).
+
  .. only:: html
 
     .. versionadded:: 4.7

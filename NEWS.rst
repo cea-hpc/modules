@@ -35,7 +35,8 @@ Modules 4.7.0 (not yet released)
   module function defined by use of the :envvar:`FPATH` environment variable.
   When the :mconfig:`shells_with_ksh_fpath` option is set through the
   :subcmd:`config` sub-command, the :envvar:`MODULES_SHELLS_WITH_KSH_FPATH`
-  environment variable is set.
+  environment variable is set. Accepted values are a list of shell among *sh*,
+  *bash*, *csh*, *tcsh* and *fish* separated by colon character (``:``).
 * Add the :mconfig:`implicit_requirement` configuration option to control
   whether a prereq or a conflict requirement should be implicitly set onto
   modules respectively specified on :mfcmd:`module load<module>` or
