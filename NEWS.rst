@@ -176,6 +176,8 @@ Modules 4.7.0 (not yet released)
 * Init: reduce usage of helper variables in :file:`bash_completion` and
   :file:`tcsh_completion` that are showing up in the output of the shell's
   ``set`` command. (fix issue #382 with contribution from Colin Marquardt)
+* Consider modulepath starting with a reference to an environment variable as
+  absolute. (fix issue #376)
 
 
 .. _4.6 release notes:

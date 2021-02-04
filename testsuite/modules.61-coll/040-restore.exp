@@ -43,6 +43,7 @@ set c13errmsg $cderrmsg
 set c14errmsg "unload m2\nUnloading m2\nload m3\nLoading m3"
 set c15errmsg "Loading $c15mod1\nLoading $c15mod2\nLoading $c15mod3"
 set c16errmsg "Loading $c16mod1\nLoading $c16mod2\nLoading $c16mod3\nLoading $c16mod4\nLoading $c16mod5"
+set c17errmsg "Loading $c17mod1\nLoading $c17mod2"
 
 # set HOME to location containing collections
 if { $verbose > 0 } {
@@ -547,6 +548,22 @@ lappend ans [list setpath MODULES_LMALTNAME $c16lmalt]
 testouterr_cmd_re sh "restore $coll16fp" $ans $c16errmsg
 
 }
+
+#
+# restore collection where modulepath start with a variable reference
+#
+
+set ans [list]
+lappend ans [list set testsuite "yes"]
+lappend ans [list setpath MODULEPATH $c17modpath]
+lappend ans [list setpath LOADEDMODULES $c17lm]
+lappend ans [list setpath _LMFILES_ $c17lmf]
+lappend ans [list setpath MODULES_LMALTNAME loc_rc1/1.0&loc_rc1/foo]
+lappend ans [list set t15 t15]
+lappend ans [list unset mload]
+testouterr_cmd_re sh "restore $coll17fp" $ans $c17errmsg
+
+
 
 #
 # Cleanup
