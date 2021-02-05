@@ -62,6 +62,51 @@ testouterr_cmd_re "sh" "display loc_sym/sym_home" "OK" "$disp_1"
 
 set env(HOME) $ORIG_HOME
 
+
+#
+# Test user rc file trying to load a module
+#
+
+setenv_var TESTSUITE_USERRC_LOAD 1
+
+set mp $modpath.3
+setenv_path_var MODULEPATH $mp
+setenv_var HOME $env(TESTSUITEDIR)/home.2
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/1.0:bar/1.0]
+lappend ans [list setpath _LMFILES_ $mp/foo/1.0:$mp/bar/1.0]
+
+testouterr_cmd_re sh {load bar/1.0} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/1.0]
+lappend ans [list setpath _LMFILES_ $mp/foo/1.0]
+
+set tserr $modlin\n[escre $mp]/bar/1.0:\n\nmodule-whatis\tbar/1.0\n$modlin
+testouterr_cmd_re sh {display bar/1.0} $ans $tserr
+
+setenv_var TESTSUITE_USERRC_LOAD 2
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/1.0:foo/0.load:bar/1.0]
+lappend ans [list setpath _LMFILES_ $mp/foo/1.0:$mp/foo/0.load:$mp/bar/1.0]
+lappend ans [list setpath MODULES_LMNOTUASKED foo/1.0]
+lappend ans [list setpath MODULES_LMPREREQ foo/0.load&foo/1.0]
+
+set tserr [msg_top_load foo/0.load {} foo/1.0 {}]
+testouterr_cmd_re sh {load bar/1.0} $ans $tserr
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/1.0:foo/0.load]
+lappend ans [list setpath _LMFILES_ $mp/foo/1.0:$mp/foo/0.load]
+lappend ans [list setpath MODULES_LMNOTUASKED foo/1.0]
+lappend ans [list setpath MODULES_LMPREREQ foo/0.load&foo/1.0]
+
+append tserr \n\n$modlin\n[escre $mp]/bar/1.0:\n\nmodule-whatis\tbar/1.0\n$modlin
+testouterr_cmd_re sh {display bar/1.0} $ans $tserr
+
+
 #
 #  Cleanup
 #

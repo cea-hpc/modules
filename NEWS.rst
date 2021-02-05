@@ -178,6 +178,9 @@ Modules 4.7.0 (not yet released)
   ``set`` command. (fix issue #382 with contribution from Colin Marquardt)
 * Consider modulepath starting with a reference to an environment variable as
   absolute. (fix issue #376)
+* Consider the :subcmd:`module load<load>` performed in the user or the global
+  RC file like load commands issued from initialization RC file. (fix issue
+  #372)
 
 
 .. _4.6 release notes:

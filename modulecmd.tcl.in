@@ -3095,7 +3095,7 @@ proc module {command args} {
             # within sourced file evaluation as top load command
             if {$topcall || ([depthState modulename] == 1 && (
                [aboveCommandName] eq {source} || [aboveCommandName] eq\
-               {autoinit}))} {
+               {autoinit} || [isStateDefined rc_running]))} {
                set ret [eval cmdModuleLoad load 1 $args]
             } elseif {$mode eq {load}} {
                # load here if no auto mode, done through prereq elsewhere
@@ -3155,7 +3155,7 @@ proc module {command args} {
          # within sourced file evaluation as top load command
          if {$topcall || ([depthState modulename] == 1 && (
             [aboveCommandName] eq {source} || [aboveCommandName] eq\
-            {autoinit}))} {
+            {autoinit} || [isStateDefined rc_running]))} {
             set ret [eval cmdModuleUnload unload match 1 0 0 0 $args]
          } elseif {$mode eq {load}} {
             # unload mods only on load mode, nothing done on unload mode as
@@ -3201,7 +3201,7 @@ proc module {command args} {
          # pass 'user asked state' to switch procedure
          set uasked [expr {$topcall || ([depthState modulename] == 1 &&\
             ([aboveCommandName] eq {source} || [aboveCommandName] eq\
-            {autoinit}))}]
+            {autoinit} || [isStateDefined rc_running]))}]
          if {$uasked} {
             eval cmdModuleSwitch $uasked $args
          } else {
@@ -6707,6 +6707,7 @@ proc runModulerc {} {
       lappend rclist $::env(HOME)/.modulerc
    }
 
+   setState rc_running 1
    foreach rc $rclist {
       if {[file readable $rc]} {
          reportDebug "Executing $rc"
@@ -6714,6 +6715,7 @@ proc runModulerc {} {
          lappendState rc_loaded $rc
       }
    }
+   unsetState rc_running
 
    # identify alias or symbolic version set in these global RC files to be
    # able to include them or not in output or resolution processes
@@ -12574,7 +12576,9 @@ proc cmdModuleAutoinit {} {
       set initrc [expr {[file exists @etcdir@/initrc] ? {@etcdir@/initrc} :\
          {@initdir@/modulerc}}]
       if {[file exists $initrc]} {
+         setState rc_running 1
          cmdModuleSource $initrc
+         unsetState rc_running
       }
    }
 
