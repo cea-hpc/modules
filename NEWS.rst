@@ -181,6 +181,12 @@ Modules 4.7.0 (not yet released)
 * Consider the :subcmd:`module load<load>` performed in the user or the global
   RC file like load commands issued from initialization RC file. (fix issue
   #372)
+* Install: have :file:`configure` script assume the ``.`` dot directory when
+  invoked without the prepended ``./``. (contribution from R.K. Owen)
+* Install: disable the Makefile rules to build the HTML documentation in case
+  if the documentation is found pre-built in the dist archive.
+* Install: do not flag documentation as pre-built if :file:`configure` script
+  is ran another time after building docs.
 
 
 .. _4.6 release notes:
