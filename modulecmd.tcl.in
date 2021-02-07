@@ -12534,6 +12534,9 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
       set show_filter noplaindir
    }
 
+   # elements to include in output
+   set report_modulepath [isEltInReport modulepath]
+
    # consolidate search filters
    lappend search_filter $search_match wild
    set search_rc_filter $search_filter
@@ -12550,26 +12553,47 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
       array set mod_list [getModules {} $mod $show_mtime $search_rc_filter\
          $show_filter]
 
-      lassign [listModules $mod $show_mtime] display_list len_list max_len
-      if {[llength $display_list] > 0 && $show_mtime && !$theader_shown} {
-         set theader_shown 1
-         eval displayTableHeader $theader_cols
-      }
-      displayElementList {global/user modulerc} hi $hstyle $one_per_line 0\
-         $display_list $len_list $max_len
-
-      foreach dir [getModulePathList exiterronundef] {
-         array unset mod_list
-         # get module list (process full dir content and do not exit when err
-         # is raised from a modulerc)
-         array set mod_list [getModules $dir $mod $show_mtime $search_filter\
-            $show_filter]
+      if {$report_modulepath} {
          lassign [listModules $mod $show_mtime] display_list len_list max_len
          if {[llength $display_list] > 0 && $show_mtime && !$theader_shown} {
             set theader_shown 1
             eval displayTableHeader $theader_cols
          }
-         displayElementList $dir mp $hstyle $one_per_line 0 $display_list\
+         displayElementList {global/user modulerc} hi $hstyle $one_per_line 0\
+            $display_list $len_list $max_len
+      }
+
+      foreach dir [getModulePathList exiterronundef] {
+         if {$report_modulepath} {
+            array unset mod_list
+            # get module list (process full dir content and do not exit when
+            # err is raised from a modulerc)
+            array set mod_list [getModules $dir $mod $show_mtime\
+               $search_filter $show_filter]
+            lassign [listModules $mod $show_mtime] display_list len_list\
+               max_len
+            if {[llength $display_list] > 0 && $show_mtime &&\
+               !$theader_shown} {
+               set theader_shown 1
+               eval displayTableHeader $theader_cols
+            }
+            displayElementList $dir mp $hstyle $one_per_line 0 $display_list\
+               $len_list $max_len
+         } else {
+            # add result if not already added from an upper priority modpath
+            foreach {elt props} [getModules $dir $mod $show_mtime\
+               $search_filter $show_filter] {
+               if {![info exists mod_list($elt)]} {
+                  set mod_list($elt) $props
+               }
+            }
+         }
+      }
+
+      # no report by modulepath, mix all aggregated results
+      if {!$report_modulepath} {
+         lassign [listModules $mod $show_mtime] display_list len_list max_len
+         displayElementList noheader {} {} $one_per_line 0 $display_list\
             $len_list $max_len
       }
    }
