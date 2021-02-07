@@ -9763,8 +9763,8 @@ proc prepareMapToHightlightSubstr {substr} {
 }
 
 # Format list of modules obtained from a getModules call in upper context
-proc reportModules {mod header hsgrkey hstyle show_mtime one_per_line\
-   theader_cols} {
+proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
+   one_per_line theader_cols excluded_tag} {
    # link to the result module list obtained in caller context
    upvar mod_list mod_list
 
@@ -9788,8 +9788,8 @@ proc reportModules {mod header hsgrkey hstyle show_mtime one_per_line\
    set clean_list {}
    foreach elt [array names mod_list] {
       set sym_list [getVersAliasList $elt]
-      # fetch tags but clear 'hidden-loaded' which applies to list
-      set tag_list [replaceFromList [getTagList $elt] hidden-loaded]
+      # fetch tags but clear excluded tag
+      set tag_list [replaceFromList [getTagList $elt] $excluded_tag]
       # abbrieviate tags unless for json output
       if {!$json} {
          set tag_list [abbrevTagList $tag_list]
@@ -9890,7 +9890,7 @@ proc reportModules {mod header hsgrkey hstyle show_mtime one_per_line\
    }
 
    # output formatted elements
-   displayElementList $header $hsgrkey $hstyle $one_per_line 0\
+   displayElementList $header $hsgrkey $hstyle $one_per_line $show_idx\
       $display_list $len_list $max_len
 }
 
@@ -12563,8 +12563,8 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
          $show_filter]
 
       if {$report_modulepath} {
-         reportModules $mod {global/user modulerc} hi $hstyle $show_mtime\
-            $one_per_line $theader_cols
+         reportModules $mod {global/user modulerc} hi $hstyle $show_mtime 0\
+            $one_per_line $theader_cols hidden-loaded
       }
 
       foreach dir [getModulePathList exiterronundef] {
@@ -12574,8 +12574,8 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
             # err is raised from a modulerc)
             array set mod_list [getModules $dir $mod $show_mtime\
                $search_filter $show_filter]
-            reportModules $mod $dir mp $hstyle $show_mtime $one_per_line\
-               $theader_cols
+            reportModules $mod $dir mp $hstyle $show_mtime 0 $one_per_line\
+               $theader_cols hidden-loaded
          } else {
             # add result if not already added from an upper priority modpath
             foreach {elt props} [getModules $dir $mod $show_mtime\
@@ -12589,8 +12589,8 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
 
       # no report by modulepath, mix all aggregated results
       if {!$report_modulepath} {
-         reportModules $mod noheader {} {} $show_mtime $one_per_line\
-            $theader_cols
+         reportModules $mod noheader {} {} $show_mtime 0 $one_per_line\
+            $theader_cols hidden-loaded
       }
    }
 
