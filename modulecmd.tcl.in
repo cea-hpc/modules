@@ -12538,6 +12538,11 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
       set show_filter noplaindir
    }
 
+   # consolidate search filters
+   lappend search_filter $search_match wild
+   set search_rc_filter $search_filter
+   lappend search_rc_filter rc_alias_only
+
    # disable error reporting to avoid modulefile errors
    # to mix with avail results
    inhibitErrorReport
@@ -12545,9 +12550,8 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
    foreach mod $args {
       # look if aliases have been defined in the global or user-specific
       # modulerc and display them if any in a dedicated list
-      lassign [listModules {} $mod $show_mtime $show_filter [concat\
-         $search_filter [list $search_match rc_alias_only wild]]]\
-         display_list len_list max_len
+      lassign [listModules {} $mod $show_mtime $show_filter\
+         $search_rc_filter] display_list len_list max_len
       if {[llength $display_list] > 0 && $show_mtime && !$theader_shown} {
          set theader_shown 1
          eval displayTableHeader $theader_cols
@@ -12556,9 +12560,8 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
          $display_list $len_list $max_len
 
       foreach dir [getModulePathList exiterronundef] {
-         lassign [listModules $dir $mod $show_mtime $show_filter [concat\
-            $search_filter [list $search_match wild]]] display_list len_list\
-            max_len
+         lassign [listModules $dir $mod $show_mtime $show_filter\
+            $search_filter] display_list len_list max_len
          if {[llength $display_list] > 0 && $show_mtime && !$theader_shown} {
             set theader_shown 1
             eval displayTableHeader $theader_cols
