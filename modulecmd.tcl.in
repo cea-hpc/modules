@@ -9764,7 +9764,7 @@ proc prepareMapToHightlightSubstr {substr} {
 
 # Format list of modules obtained from a getModules call in upper context
 proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
-   one_per_line theader_cols excluded_tag} {
+   one_per_line theader_cols excluded_tag {mod_list_order {}}} {
    # link to the result module list obtained in caller context
    upvar mod_list mod_list
 
@@ -9786,7 +9786,10 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
    set default_colored [isSgrkeyColored de]
    set himatchmap [prepareMapToHightlightSubstr $mod]
    set clean_list {}
-   foreach elt [array names mod_list] {
+
+   # treat elements in specified order if any
+   foreach elt [if {[llength $mod_list_order] == 0} {array names mod_list}\
+      {set mod_list_order}] {
       set sym_list [getVersAliasList $elt]
       # fetch tags but clear excluded tag
       set tag_list [replaceFromList [getTagList $elt] $excluded_tag]
@@ -9817,11 +9820,13 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
                   symbols a $sym_list tags a $tag_list pathname s [lindex\
                   $mod_list($elt) 2]]
             } elseif {$show_mtime} {
+               set clock_mtime [expr {[lindex $mod_list($elt) 1] ne {} ?\
+                  [clock format [lindex $mod_list($elt) 1] -format {%Y/%m/%d\
+                  %H:%M:%S}] : {}}]
                # add to display file modification time in addition
                # to potential syms
                lassign [formatListEltToLongDisplay $elt {} {} $sym_list sy\
-                  [clock format [lindex $mod_list($elt) 1] -format {%Y/%m/%d\
-                  %H:%M:%S}] $default_colored $himatchmap] disp dispsgr
+                  $clock_mtime $default_colored $himatchmap] disp dispsgr
             } else {
                lassign [formatListEltToDisplay $elt {} {} $sym_list sy\
                   $report_sym $default_colored $tag_list $report_tag\
@@ -9871,8 +9876,11 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
       }
    } else {
       set display_list {}
-      # always dictionary-sort results
-      foreach disp [lsort -dictionary $clean_list] {
+      # dictionary-sort results unless if output order is specified
+      if {[llength $mod_list_order] == 0} {
+         set clean_list [lsort -dictionary $clean_list]
+      }
+      foreach disp $clean_list {
          # compute display element length list on sorted result
          lappend display_list $sgrmap($disp)
          lappend len_list [set len [string length $disp]]
@@ -11075,21 +11083,12 @@ proc cmdModuleList {show_oneperline show_mtime} {
          report {No Modulefiles Currently Loaded.}
       }
    } else {
-      # elements to include in output
-      set report_sym [isEltInReport sym]
-      set report_tag [isEltInReport tag]
-
-      # prepare list of tag abbreviations that can be substituted and list of
-      # tags whose name should be colored
-      getConf tag_abbrev
-      getConf tag_color_name
-
-      set display_list {}
-      set default_colored [isSgrkeyColored de]
-      set len_list {}
-      set max_len 0
+      # build mod_list array with loaded modules
       foreach mod $loadedmodlist {
          set modfile [getModulefileFromLoadedModule $mod]
+         set mtime [expr {$show_mtime && [file exists $modfile] ?\
+            [getFileMtime $modfile] : {}}]
+         set mod_list($mod) [list modulefile $mtime $modfile]
 
          # fetch symbols from loaded environment information
          set modname [file dirname $mod]
@@ -11100,53 +11099,20 @@ proc cmdModuleList {show_oneperline show_mtime} {
                lappend sym_list [file tail $altname]
             }
          }
-         set sym_list [lsort -dictionary $sym_list]
-         # fetch tags but clear obvious 'loaded' tag
-         set tag_list [replaceFromList [getTagList $mod] loaded]
-         # abbrieviate tags unless for json output
-         if {!$json} {
-            set tag_list [abbrevTagList $tag_list]
-         }
-
-         if {$json} {
-            set dispsgr [formatListEltToJsonDisplay $mod type s modulefile\
-               symbols a $sym_list tags a $tag_list pathname s $modfile]
-         } elseif {$show_mtime} {
-            set clock_mtime [expr {[file exists $modfile] ? [clock format\
-               [getFileMtime $modfile] -format {%Y/%m/%d %H:%M:%S}] : {}}]
-
-            # add to display file modification time in addition to syms
-            lassign [formatListEltToLongDisplay $mod {} {} $sym_list sy\
-               $clock_mtime $default_colored] disp dispsgr
-         } else {
-            lassign [formatListEltToDisplay $mod {} {} $sym_list sy\
-               $report_sym $default_colored $tag_list $report_tag] disp\
-               dispsgr
-            lappend len_list [set len [string length $disp]]
-            if {$len > $max_len} {
-               set max_len $len
-            }
-         }
-         lappend display_list $dispsgr
+         set ::g_symbolHash($mod) [lsort -dictionary $sym_list]
       }
 
-      if {!$json} {
-         if {$show_mtime} {
-            displayTableHeader hi Package 39 Versions 19 {Last mod.} 19
-         }
-         if {[isEltInReport header]} {
-            report {Currently Loaded Modulefiles:}
-         }
-      }
       set one_per_line [expr {$show_mtime || $show_oneperline}]
-      set display_idx [expr {!$show_mtime && [isEltInReport idx]}]
+      set show_idx [expr {!$show_mtime && [isEltInReport idx]}]
+      set header [expr {!$json && [isEltInReport header] ? {Currently Loaded\
+         Modulefiles} : {noheader}}]
+      set theader_cols [list hi Package 39 Versions 19 {Last mod.} 19]
 
-      displayElementList noheader {} {} $one_per_line $display_idx\
-         $display_list $len_list $max_len
+      reportModules {} $header {} terse $show_mtime $show_idx $one_per_line\
+         $theader_cols loaded $loadedmodlist
 
       # display output key
-      if {!$show_mtime && ![isStateEqual report_format json] &&\
-         [isEltInReport key]} {
+      if {!$show_mtime && !$json && [isEltInReport key]} {
          displayKey
       }
    }
