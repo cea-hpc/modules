@@ -9762,14 +9762,10 @@ proc prepareMapToHightlightSubstr {substr} {
    return $maplist
 }
 
-# Finds all module versions for mod in the module path dir
-proc listModules {dir mod show_mtime filter search} {
-   reportDebug "get '$mod' in $dir (show_mtime=$show_mtime, filter=$filter,\
-      search=$search)"
-
-   # get module list
-   # process full dir content but do not exit when err raised from a modulerc.
-   array set mod_list [getModules $dir $mod $show_mtime $search $filter]
+# Format list of modules obtained from a getModules call in upper context
+proc listModules {mod show_mtime} {
+   # link to the result module list obtained in caller context
+   upvar mod_list mod_list
 
    # output is JSON format
    set json [isStateEqual report_format json]
@@ -12548,10 +12544,13 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
    inhibitErrorReport
 
    foreach mod $args {
+      array unset mod_list
       # look if aliases have been defined in the global or user-specific
       # modulerc and display them if any in a dedicated list
-      lassign [listModules {} $mod $show_mtime $show_filter\
-         $search_rc_filter] display_list len_list max_len
+      array set mod_list [getModules {} $mod $show_mtime $search_rc_filter\
+         $show_filter]
+
+      lassign [listModules $mod $show_mtime] display_list len_list max_len
       if {[llength $display_list] > 0 && $show_mtime && !$theader_shown} {
          set theader_shown 1
          eval displayTableHeader $theader_cols
@@ -12560,8 +12559,12 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
          $display_list $len_list $max_len
 
       foreach dir [getModulePathList exiterronundef] {
-         lassign [listModules $dir $mod $show_mtime $show_filter\
-            $search_filter] display_list len_list max_len
+         array unset mod_list
+         # get module list (process full dir content and do not exit when err
+         # is raised from a modulerc)
+         array set mod_list [getModules $dir $mod $show_mtime $search_filter\
+            $show_filter]
+         lassign [listModules $mod $show_mtime] display_list len_list max_len
          if {[llength $display_list] > 0 && $show_mtime && !$theader_shown} {
             set theader_shown 1
             eval displayTableHeader $theader_cols
