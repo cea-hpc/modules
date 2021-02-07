@@ -9763,7 +9763,8 @@ proc prepareMapToHightlightSubstr {substr} {
 }
 
 # Format list of modules obtained from a getModules call in upper context
-proc listModules {mod show_mtime} {
+proc reportModules {mod header hsgrkey hstyle show_mtime one_per_line\
+   theader_cols} {
    # link to the result module list obtained in caller context
    upvar mod_list mod_list
 
@@ -9881,8 +9882,16 @@ proc listModules {mod show_mtime} {
       }
    }
 
-   reportDebug "Returning $display_list"
-   return [list $display_list $len_list $max_len]
+   # output table header if needed and not yet done
+   if {[llength $display_list] > 0 && $show_mtime && ![isStateDefined\
+      theader_shown]} {
+      setState theader_shown 1
+      eval displayTableHeader $theader_cols
+   }
+
+   # output formatted elements
+   displayElementList $header $hsgrkey $hstyle $one_per_line 0\
+      $display_list $len_list $max_len
 }
 
 proc showModulePath {} {
@@ -12522,11 +12531,11 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
    if {$show_mtime || $show_oneperline} {
       set one_per_line 1
       set hstyle terse
-      set theader_shown 0
       set theader_cols [list hi Package/Alias 39 Versions 19 {Last mod.} 19]
    } else {
       set one_per_line 0
       set hstyle sepline
+      set theader_cols {}
    }
 
    # set a default filter (do not print dirs with no sym) if none set
@@ -12554,13 +12563,8 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
          $show_filter]
 
       if {$report_modulepath} {
-         lassign [listModules $mod $show_mtime] display_list len_list max_len
-         if {[llength $display_list] > 0 && $show_mtime && !$theader_shown} {
-            set theader_shown 1
-            eval displayTableHeader $theader_cols
-         }
-         displayElementList {global/user modulerc} hi $hstyle $one_per_line 0\
-            $display_list $len_list $max_len
+         reportModules $mod {global/user modulerc} hi $hstyle $show_mtime\
+            $one_per_line $theader_cols
       }
 
       foreach dir [getModulePathList exiterronundef] {
@@ -12570,15 +12574,8 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
             # err is raised from a modulerc)
             array set mod_list [getModules $dir $mod $show_mtime\
                $search_filter $show_filter]
-            lassign [listModules $mod $show_mtime] display_list len_list\
-               max_len
-            if {[llength $display_list] > 0 && $show_mtime &&\
-               !$theader_shown} {
-               set theader_shown 1
-               eval displayTableHeader $theader_cols
-            }
-            displayElementList $dir mp $hstyle $one_per_line 0 $display_list\
-               $len_list $max_len
+            reportModules $mod $dir mp $hstyle $show_mtime $one_per_line\
+               $theader_cols
          } else {
             # add result if not already added from an upper priority modpath
             foreach {elt props} [getModules $dir $mod $show_mtime\
@@ -12592,9 +12589,8 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
 
       # no report by modulepath, mix all aggregated results
       if {!$report_modulepath} {
-         lassign [listModules $mod $show_mtime] display_list len_list max_len
-         displayElementList noheader {} {} $one_per_line 0 $display_list\
-            $len_list $max_len
+         reportModules $mod noheader {} {} $show_mtime $one_per_line\
+            $theader_cols
       }
    }
 
