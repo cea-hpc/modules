@@ -137,9 +137,9 @@ endif
 comp_cmds := add apropos aliases avail append-path clear config del display help initadd initclear initlist initprepend initrm is-loaded is-saved is-used is-avail info-loaded keyword list load path paths purge prepend-path refresh reload restore rm remove remove-path save savelist saveshow saverm search show sh-to-mod source swap switch test unload unuse use whatis
 comp_opts := -D -h -s -T -v -V --debug --help --silent --trace --verbose --version --paginate --no-pager --color --color=
 comp_load_opts := --auto --no-auto --force -f --icase -i
-comp_list_opts := -j -l -t --json --long --terse
+comp_list_opts := -j -l -o -t --json --long --output --output= --terse
 comp_clear_opts := --force -f
-comp_avail_opts := -a -C -d -i -j -L -l -S -t --all --contains --default --icase --json --latest --long --starts-with --terse --indepth --no-indepth
+comp_avail_opts := -a -C -d -i -j -L -l -o -S -t --all --contains --default --icase --json --latest --long --output --output= --starts-with --terse --indepth --no-indepth
 comp_mfile_opts := -i --icase
 comp_whatis_opts := -a -i -j --all --icase --json
 comp_search_opts := -a -j --all --json
