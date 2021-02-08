@@ -268,6 +268,83 @@ unsetenv_var MODULES_AVAIL_TERSE_OUTPUT
 
 
 #
+# modulepath test
+#
+
+setenv_path_var MODULEPATH $modpath.path1:$modpath.path2
+
+set test_cols 100
+if {![info exists term_cols]} {
+    # skip tests if current terminal witdh is unknown
+    send_user "\tskipping terminal width-specific tests\n"
+# set a specific terminal width
+} elseif {[catch {exec stty cols $test_cols}] || [getTtyCols] ne $test_cols} {
+    send_user "\tskipping terminal width-specific tests, cannot set width\n"
+} else {
+    testouterr_cmd sh {avail -o sym:tag} OK "cross/1.0             dcross/dir2/1.0(craft)   lcross/1   lcross/11          vcross/4.0  
+cross/3.0(bef)        dvcross/4.0              lcross/2   loc_dv10/1.1       vcross/6.0  
+cross/4.0             dvcross/dir1/1.0(bef)    lcross/4   loc_dv10/1.2       
+cross/6.0             dvcross/dir1/2.0         lcross/5   novercross         
+dcross/4.0            dvcross/dir2/1.0(craft)  lcross/6   othcross/1.0(bef)  
+dcross/dir1/1.0(bef)  fodcross/2.7.13          lcross/7   vcross/1.0         
+dcross/dir1/2.0       fodcross/2.7.13/sub-13   lcross/10  vcross/3.0(bef)    "
+
+    testouterr_cmd sh {avail -t -o sym:tag} OK "cross/1.0
+cross/3.0(bef)
+cross/4.0
+cross/6.0
+dcross/4.0
+dcross/dir1/1.0(bef)
+dcross/dir1/2.0
+dcross/dir2/1.0(craft)
+dvcross/4.0
+dvcross/dir1/1.0(bef)
+dvcross/dir1/2.0
+dvcross/dir2/1.0(craft)
+fodcross/2.7.13
+fodcross/2.7.13/sub-13
+lcross/1
+lcross/2
+lcross/4
+lcross/5
+lcross/6
+lcross/7
+lcross/10
+lcross/11
+loc_dv10/1.1
+loc_dv10/1.2
+novercross
+othcross/1.0(bef)
+vcross/1.0
+vcross/3.0(bef)
+vcross/4.0
+vcross/6.0"
+
+    # restore terminal width
+    exec stty cols $term_cols
+}
+
+# tags or symbols applying to a lower priority module with same name are still reported
+setenv_path_var MODULEPATH $modpath.2:$modpath.3
+setenv_path_var MODULES_AVAIL_OUTPUT sym:tag
+setenv_path_var MODULES_AVAIL_TERSE_OUTPUT sym:tag
+testouterr_cmd sh {avail foo/0} OK "foo/0.1  foo/0.2(sym) <tag>  foo/0.err  foo/0.load  foo/0.prereq  "
+testouterr_cmd sh {avail -t foo/0} OK "foo/0.1
+foo/0.2(sym) <tag>
+foo/0.err
+foo/0.load
+foo/0.prereq"
+
+setenv_path_var MODULEPATH $modpath.3:$modpath.2
+testouterr_cmd sh {avail foo/0} OK "foo/0.1  foo/0.2(sym) <tag>  foo/0.err  foo/0.load  foo/0.prereq  "
+testouterr_cmd sh {avail -t foo/0} OK "foo/0.1
+foo/0.2(sym) <tag>
+foo/0.err
+foo/0.load
+foo/0.prereq"
+
+
+#
 #  Cleanup
 #
 
