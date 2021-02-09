@@ -104,7 +104,7 @@ array set g_config_defs [list\
       initConfTagColorName}\
    tcl_ext_lib {{} {} 0 {} {} initConfTclExtLib}\
    term_background {MODULES_TERM_BACKGROUND @termbg@ 0 {dark light}}\
-   term_width {MODULES_TERM_WIDTH 0 0}\
+   term_width {MODULES_TERM_WIDTH 0 0 {0 1000} {} {} intbe}\
    unload_match_order {MODULES_UNLOAD_MATCH_ORDER @unloadmatchorder@ 0\
       {returnlast returnfirst}}\
    implicit_default {MODULES_IMPLICIT_DEFAULT @implicitdefault@ 1 {0 1}}\
@@ -13381,12 +13381,14 @@ if {[catch {
             }
             --width* {
                set asked_term_width [string range $arg 8 end]
+               set  term_width_arg --width
                if {$asked_term_width eq {}} {
                   set asked_term_width 0
                }
             }
             -w {
                set nextargisval asked_term_width
+               set  term_width_arg -w
             }
             -t - --terse - -l - --long - --default - -L - --latest - -S -\
             --starts-with - -C - --contains - -j - --json - --output=* {
@@ -13455,6 +13457,18 @@ if {[catch {
    if {[info exists nextargisextraargv]} {
       reportErrorAndExit "Missing value for '$prevarg' option\nTry 'module\
          --help' for more information."
+   }
+   if {[info exists asked_term_width]} {
+      set rangewidth [lindex $::g_config_defs(term_width) 3]
+      if {[string is integer -strict $::asked_term_width] && \
+         $::asked_term_width >= [lindex $rangewidth 0] &&\
+         $::asked_term_width <= [lindex $rangewidth 1]} {
+         set validval 1
+      } else {
+         reportErrorAndExit "Invalid value for option\
+            '$term_width_arg'\nValue should be an integer comprised between\
+            [lindex $rangewidth 0] and [lindex $rangewidth 1]"
+      }
    }
 
    setState subcmd [lindex $otherargv 0]
