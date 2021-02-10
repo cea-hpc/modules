@@ -28,6 +28,12 @@ ifneq ($(loadedmodules),)
     $(subst :, ,$(loadedmodules)))
 endif
 
+# setup summary echo rules unless silent mode set
+ECHO_DIR_PREFIX = init/
+ifneq ($(findstring s,$(MAKEFLAGS)),s)
+ECHO_GEN = @echo ' ' GEN $(ECHO_DIR_PREFIX)$@;
+endif
+
 ifeq ($(compatversion),y)
 SH_LIKE += profile-compat.sh
 CSH_LIKE += profile-compat.csh
@@ -150,6 +156,7 @@ comp_rm_path_opts := -d --delim --index
 comp_config_opts := --dump-state --reset advanced_version_spec auto_handling avail_indepth avail_output avail_terse_output collection_pin_version collection_target color colors contact extended_default extra_siteconfig home icase implicit_default implicit_requirement list_output list_terse_output locked_configs mcookie_version_check ml nearly_forbidden_days pager rcfile run_quarantine search_match set_shell_startup shells_with_ksh_fpath silent_shell_debug tag_abbrev tag_color_name term_background unload_match_order verbosity wa_277
 
 define translate-in-script
+$(ECHO_GEN)
 sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@baseprefix@|$(baseprefix)|g' \
 	-e 's|@libexecdir@|$(libexecdir)|g' \
@@ -311,3 +318,13 @@ clean:
 ifeq ($(versioning),y)
 	rm -f $(EXAMPLE_MODFILES_SRCDIR)/version
 endif
+
+# quiet all commands unless verbose mode set
+ifeq ($(VERBOSE),1)
+V = 1
+endif
+# let verbose by default the install/clean/test and other specific non-build targets
+$(V).SILENT: sh ksh bash zsh csh tcsh fish perl.pm python.py ruby.rb lisp tcl cmake \
+	r.R bash_completion tcsh_completion zsh-functions/_module profile.sh profile.csh \
+	profile-compat.sh profile-compat.csh .modulespath modulerc \
+	$(EXAMPLE_MODFILES_SRCDIR)/modules $(EXAMPLE_MODFILES_SRCDIR)/version

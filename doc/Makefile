@@ -22,6 +22,16 @@ ifeq ($(builddoc),n)
   $(error No 'sphinx-build' command defined, cannot build documentation)
 endif
 
+# setup summary echo rules unless silent mode set
+ECHO_DIR_PREFIX = doc/
+ifneq ($(findstring s,$(MAKEFLAGS)),s)
+ECHO_GEN = @echo ' ' GEN $(ECHO_DIR_PREFIX)$@;
+ECHO_GEN2 = @echo ' ' GEN
+else
+# disable echo rules followed by a string
+ECHO_GEN2 = \#
+endif
+
 ALL_RST := $(wildcard $(SOURCE_DIR)/*.rst $(SOURCE_DIR)/cookbook/*.rst\
 	$(SOURCE_DIR)/design/*.rst)
 ALL_TXT := $(patsubst $(SOURCE_DIR)/%,$(BUILD_DIR)/%,$(patsubst %.rst,%.txt,$(ALL_RST)))
@@ -53,6 +63,7 @@ endif
 endif
 
 define translate-in-script
+$(ECHO_GEN)
 sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@libexecdir@|$(libexecdir)|g' \
 	-e 's|@etcdir@|$(etcdir)|g' \
@@ -73,12 +84,17 @@ $(SOURCE_DIR)/version.py: $(SOURCE_DIR)/version.py.in ../version.inc
 	$(translate-in-script)
 
 $(BUILD_DIR)/%.html: $(SOURCE_DIR)/%.rst $(SOURCE_DIR)/version.py
+	$(ECHO_GEN2) $(ECHO_DIR_PREFIX)$(BUILD_DIR)/*.html
 	$(SPHINXBUILD) $(SPHINXOPTS) -b html "$(SOURCE_DIR)" "$(BUILD_DIR)"
 
 $(BUILD_DIR)/%.txt: $(SOURCE_DIR)/%.rst $(SOURCE_DIR)/version.py
+	$(ECHO_GEN2) $(ECHO_DIR_PREFIX)$(BUILD_DIR)/*.txt
 	$(SPHINXBUILD) $(SPHINXOPTS) -b text "$(SOURCE_DIR)" "$(BUILD_DIR)"
 
 $(BUILD_DIR)/module.1.in $(BUILD_DIR)/modulefile.4 $(BUILD_DIR)/ml.1: $(ALL_RST) $(SOURCE_DIR)/version.py
+	$(ECHO_GEN2) $(ECHO_DIR_PREFIX)$(BUILD_DIR)/ml.1
+	$(ECHO_GEN2) $(ECHO_DIR_PREFIX)$(BUILD_DIR)/module.1.in
+	$(ECHO_GEN2) $(ECHO_DIR_PREFIX)$(BUILD_DIR)/modulefile.4
 	$(SPHINXBUILD) $(SPHINXOPTS) -t pathsubs -b man "$(SOURCE_DIR)" "$(BUILD_DIR)"
 	$(if $(findstring module.1.in,$@),mv $(BUILD_DIR)/module.1 $@)
 endif
@@ -88,6 +104,7 @@ $(BUILD_DIR)/module.1: $(BUILD_DIR)/module.1.in
 
 # compatibility version-related rules
 $(COMPAT_MAN_DIR)/module.1 $(COMPAT_MAN_DIR)/modulefile.4:
+	$(ECHO_GEN)
 	$(MAKE) -C $(COMPAT_MAN_DIR) $(@F)
 
 install: man txt
@@ -140,3 +157,11 @@ endif
 	rm -f $(SOURCE_DIR)/version.py
 endif
 	rm -f $(BUILD_DIR)/module.1
+
+# quiet all commands unless verbose mode set
+ifeq ($(VERBOSE),1)
+V = 1
+endif
+# let verbose by default the install/clean/test and other specific non-build targets
+$(V).SILENT: $(SOURCE_DIR)/version.py $(ALL_HTML) $(ALL_TXT) $(BUILD_DIR)/module.1.in \
+	$(ALL_MAN) $(COMPAT_MAN_DIR)/module.1 $(COMPAT_MAN_DIR)/modulefile.4

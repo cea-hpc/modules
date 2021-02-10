@@ -80,6 +80,15 @@ else
 GIT_REFRESH_PREREQ := 
 endif
 
+# setup summary echo rules unless silent mode set
+ifneq ($(findstring s,$(MAKEFLAGS)),s)
+ECHO_GEN = @echo ' ' GEN $@;
+ECHO_GEN2 = @echo ' ' GEN
+else
+# disable echo rules followed by a string
+ECHO_GEN2 = \#
+endif
+
 all: initdir $(INSTALL_PREREQ)
 
 # skip doc build if no sphinx-build
@@ -88,13 +97,13 @@ all: pkgdoc
 endif
 
 initdir: version.inc
-	$(MAKE) -C init all
+	$(MAKE) --no-print-directory -C init all
 
 pkgdoc: version.inc
-	$(MAKE) -C doc man txt
+	$(MAKE) --no-print-directory -C doc man txt
 
 doc: version.inc
-	$(MAKE) -C doc all
+	$(MAKE) --no-print-directory -C doc all
 
 # build version.inc shared definitions from git repository info
 ifeq ($(wildcard .git) $(wildcard version.inc.in),.git version.inc.in)
@@ -271,6 +280,7 @@ else
 endif
 
 define translate-in-script
+$(ECHO_GEN)
 sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@baseprefix@|$(baseprefix)|g' \
 	$(sedexprlibdir) \
@@ -347,13 +357,16 @@ modulecmd.tcl: modulecmd.tcl.in version.inc
 # generate an empty changelog file if not working from git repository
 ifeq ($(wildcard .git),.git)
 ChangeLog: script/gitlog2changelog.py
+	$(ECHO_GEN)
 	script/gitlog2changelog.py
 else
 ChangeLog:
+	$(ECHO_GEN)
 	echo "Please refer to the NEWS document to learn about main changes" >$@
 endif
 
 README:
+	$(ECHO_GEN)
 	sed -e '1,9d' $@.md > $@
 
 script/add.modules: script/add.modules.in
@@ -374,6 +387,7 @@ script/modulecmd: script/modulecmd.in
 
 # compatibility version-related rules
 $(COMPAT_DIR)/modulecmd$(EXEEXT) $(COMPAT_DIR)/ChangeLog:
+	$(ECHO_GEN)
 	$(MAKE) -C $(COMPAT_DIR) $(@F)
 
 # Tcl extension library-related rules
@@ -581,6 +595,7 @@ endif
 # include pre-generated documents not to require documentation build
 # tools when installing from dist tarball
 dist-tar: ChangeLog contrib/rpm/environment-modules.spec pkgdoc
+	$(ECHO_GEN2) $(DIST_PREFIX).tar
 	git archive --prefix=$(DIST_PREFIX)/ --worktree-attributes \
 		-o $(DIST_PREFIX).tar HEAD
 	tar -rf $(DIST_PREFIX).tar --transform 's,^,$(DIST_PREFIX)/,' \
@@ -598,15 +613,18 @@ ifeq ($(compatversion) $(wildcard $(COMPAT_DIR)),y $(COMPAT_DIR))
 endif
 
 dist-gzip: dist-tar
+	$(ECHO_GEN2) $(DIST_PREFIX).tar.gz
 	gzip -f -9 $(DIST_PREFIX).tar
 
 dist-bzip2: dist-tar
+	$(ECHO_GEN2) $(DIST_PREFIX).tar.bz2
 	bzip2 -f $(DIST_PREFIX).tar
 
 dist: dist-gzip
 
 # dist zip ball for Windows platform with all pre-generated relevant files
 dist-win: modulecmd.tcl ChangeLog README pkgdoc
+	$(ECHO_GEN2) $(DIST_WIN_PREFIX).zip
 	mkdir $(DIST_WIN_PREFIX)
 	mkdir $(DIST_WIN_PREFIX)/libexec
 	cp modulecmd.tcl $(DIST_WIN_PREFIX)/libexec/
@@ -704,6 +722,7 @@ endif
 # make specific modulecmd script for test to check built extension lib
 # if coverage asked, instrument script and clear previous coverage log
 $(MODULECMDTEST): modulecmd.tcl
+	$(ECHO_GEN)
 ifeq ($(multilibsupport),y)
 ifeq ($(COVERAGE_MULTILIB),y)
 	sed -e 's|$(libdir64)|lib64|' -e 's|$(libdir32)|lib|' $< > $@
@@ -775,3 +794,20 @@ $(NAGELFAR):
 
 testsyntax: $(MODULECMDTEST) $(NAGELFAR)
 	$(NAGELFAR) -len 78 $<
+
+# quiet build targets unless verbose mode set
+ifeq ($(VERBOSE),1)
+V = 1
+endif
+# let verbose by default the install/clean/test and other specific non-build targets
+$(V).SILENT: initdir pkgdoc doc version.inc contrib/rpm/environment-modules.spec \
+	modulecmd.tcl ChangeLog README script/add.modules script/createmodule.py \
+	script/gitlog2changelog.py script/modulecmd $(COMPAT_DIR)/modulecmd$(EXEEXT) \
+	$(COMPAT_DIR)/ChangeLog lib/libtclenvmodules$(SHLIB_SUFFIX) \
+	lib/libtestutil-closedir$(SHLIB_SUFFIX) lib/libtestutil-getpwuid$(SHLIB_SUFFIX) \
+	lib/libtestutil-getgroups$(SHLIB_SUFFIX) lib/libtestutil-0getgroups$(SHLIB_SUFFIX) \
+	lib/libtestutil-dupgetgroups$(SHLIB_SUFFIX) lib/libtestutil-getgrgid$(SHLIB_SUFFIX) \
+	lib/libtestutil-time$(SHLIB_SUFFIX) lib/libtestutil-mktime$(SHLIB_SUFFIX) \
+	testsuite/example/.modulespath testsuite/example/.modulespath-wild \
+	testsuite/example/modulerc testsuite/example/modulerc-1 testsuite/example/initrc \
+	dist-tar dist-gzip dist-bzip2 dist-win $(MODULECMDTEST)
