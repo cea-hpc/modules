@@ -388,35 +388,35 @@ script/modulecmd: script/modulecmd.in
 # compatibility version-related rules
 $(COMPAT_DIR)/modulecmd$(EXEEXT) $(COMPAT_DIR)/ChangeLog:
 	$(ECHO_GEN)
-	$(MAKE) -C $(COMPAT_DIR) $(@F)
+	$(MAKE) --no-print-directory -C $(COMPAT_DIR) $(@F)
 
 # Tcl extension library-related rules
 lib/libtclenvmodules$(SHLIB_SUFFIX):
-	$(MAKE) -C lib $(@F)
+	$(MAKE) --no-print-directory -C lib $(@F)
 
 lib/libtestutil-closedir$(SHLIB_SUFFIX):
-	$(MAKE) -C lib $(@F)
+	$(MAKE) --no-print-directory -C lib $(@F)
 
 lib/libtestutil-getpwuid$(SHLIB_SUFFIX):
-	$(MAKE) -C lib $(@F)
+	$(MAKE) --no-print-directory -C lib $(@F)
 
 lib/libtestutil-getgroups$(SHLIB_SUFFIX):
-	$(MAKE) -C lib $(@F)
+	$(MAKE) --no-print-directory -C lib $(@F)
 
 lib/libtestutil-0getgroups$(SHLIB_SUFFIX):
-	$(MAKE) -C lib $(@F)
+	$(MAKE) --no-print-directory -C lib $(@F)
 
 lib/libtestutil-dupgetgroups$(SHLIB_SUFFIX):
-	$(MAKE) -C lib $(@F)
+	$(MAKE) --no-print-directory -C lib $(@F)
 
 lib/libtestutil-getgrgid$(SHLIB_SUFFIX):
-	$(MAKE) -C lib $(@F)
+	$(MAKE) --no-print-directory -C lib $(@F)
 
 lib/libtestutil-time$(SHLIB_SUFFIX):
-	$(MAKE) -C lib $(@F)
+	$(MAKE) --no-print-directory -C lib $(@F)
 
 lib/libtestutil-mktime$(SHLIB_SUFFIX):
-	$(MAKE) -C lib $(@F)
+	$(MAKE) --no-print-directory -C lib $(@F)
 
 # example configs for test rules
 testsuite/example/.modulespath: testsuite/example/.modulespath.in
@@ -604,7 +604,7 @@ dist-tar: ChangeLog contrib/rpm/environment-modules.spec pkgdoc
 		doc/build/NEWS.txt doc/build/CONTRIBUTING.txt doc/build/module.1.in \
 		doc/build/ml.1 doc/build/modulefile.4 contrib/rpm/environment-modules.spec
 ifeq ($(compatversion) $(wildcard $(COMPAT_DIR)),y $(COMPAT_DIR))
-	$(MAKE) -C $(COMPAT_DIR) distdir
+	$(MAKE) --no-print-directory -C $(COMPAT_DIR) distdir
 	mv $(COMPAT_DIR)/modules-* compatdist
 	tar -cf compatdist.tar --transform 's,^compatdist,$(DIST_PREFIX)/compat,' compatdist
 	tar --concatenate -f $(DIST_PREFIX).tar compatdist.tar
@@ -642,7 +642,7 @@ dist-win: modulecmd.tcl ChangeLog README pkgdoc
 	cp doc/build/CONTRIBUTING.txt $(DIST_WIN_PREFIX)/doc/
 	cp doc/build/module.txt $(DIST_WIN_PREFIX)/doc/
 	cp doc/build/modulefile.txt $(DIST_WIN_PREFIX)/doc/
-	$(MAKE) -C init dist-win DIST_WIN_PREFIX=../$(DIST_WIN_PREFIX)
+	$(MAKE) --no-print-directory -C init dist-win DIST_WIN_PREFIX=../$(DIST_WIN_PREFIX)
 	cp script/INSTALL.bat $(DIST_WIN_PREFIX)/
 	cp script/UNINSTALL.bat $(DIST_WIN_PREFIX)/
 	cp script/TESTINSTALL.bat $(DIST_WIN_PREFIX)/
