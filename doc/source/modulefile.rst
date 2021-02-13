@@ -457,9 +457,9 @@ the *modulefile* is being loaded.
  **module-info shelltype** [shelltypename]
 
   Return the family of the shell under which *modulefile* was invoked if no
-  *shelltypename* is given. As of :mfcmd:`module-info shell` this depends on
-  the first parameter of :file:`modulecmd.tcl`. The output reflects a shell
-  type determining the shell syntax of the commands produced by
+  *shelltypename* is given. As of :mfcmd:`module-info shell<module-info>` this
+  depends on the first parameter of :file:`modulecmd.tcl`. The output reflects
+  a shell type determining the shell syntax of the commands produced by
   :file:`modulecmd.tcl`.
 
   If a *shelltypename* is given, returns ``1`` if :file:`modulecmd.tcl`'s
