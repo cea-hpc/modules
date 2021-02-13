@@ -22,21 +22,25 @@ ifeq ($(builddoc),n)
   $(error No 'sphinx-build' command defined, cannot build documentation)
 endif
 
-man: $(BUILD_DIR)/module.1 $(BUILD_DIR)/ml.1 $(BUILD_DIR)/modulefile.4
+ALL_RST := $(wildcard $(SOURCE_DIR)/*.rst $(SOURCE_DIR)/cookbook/*.rst\
+	$(SOURCE_DIR)/design/*.rst)
+ALL_TXT := $(patsubst $(SOURCE_DIR)/%,$(BUILD_DIR)/%,$(patsubst %.rst,%.txt,$(ALL_RST)))
+ALL_HTML := $(patsubst $(SOURCE_DIR)/%,$(BUILD_DIR)/%,$(patsubst %.rst,%.html,$(ALL_RST)))
+ALL_MAN := $(BUILD_DIR)/module.1 $(BUILD_DIR)/ml.1 $(BUILD_DIR)/modulefile.4
+
+man: $(ALL_MAN)
 ifeq ($(compatversion),y)
 man: $(COMPAT_MAN_DIR)/module.1 $(COMPAT_MAN_DIR)/modulefile.4
 endif
 
+ifneq ($(builddoc),p)
+txt: $(ALL_TXT)
+html: $(ALL_HTML)
+else
+# limit txt targets to documents that have been prebuilt
 txt: $(BUILD_DIR)/diff_v3_v4.txt $(BUILD_DIR)/MIGRATING.txt \
 	$(BUILD_DIR)/INSTALL.txt $(BUILD_DIR)/INSTALL-win.txt \
 	$(BUILD_DIR)/NEWS.txt $(BUILD_DIR)/CONTRIBUTING.txt
-
-ifneq ($(builddoc),p)
-html: $(BUILD_DIR)/module.html $(BUILD_DIR)/ml.html \
-	$(BUILD_DIR)/modulefile.html $(BUILD_DIR)/diff_v3_v4.html \
-	$(BUILD_DIR)/MIGRATING.html $(BUILD_DIR)/INSTALL.html \
-	$(BUILD_DIR)/INSTALL-win.html $(BUILD_DIR)/NEWS.html \
-	$(BUILD_DIR)/CONTRIBUTING.html
 endif
 
 all: man txt
@@ -74,12 +78,9 @@ $(BUILD_DIR)/%.html: $(SOURCE_DIR)/%.rst $(SOURCE_DIR)/version.py
 $(BUILD_DIR)/%.txt: $(SOURCE_DIR)/%.rst $(SOURCE_DIR)/version.py
 	$(SPHINXBUILD) $(SPHINXOPTS) -b text "$(SOURCE_DIR)" "$(BUILD_DIR)"
 
-$(BUILD_DIR)/%.4 $(BUILD_DIR)/%.1: $(SOURCE_DIR)/%.rst $(SOURCE_DIR)/version.py
+$(BUILD_DIR)/module.1.in $(BUILD_DIR)/modulefile.4 $(BUILD_DIR)/ml.1: $(ALL_RST) $(SOURCE_DIR)/version.py
 	$(SPHINXBUILD) $(SPHINXOPTS) -t pathsubs -b man "$(SOURCE_DIR)" "$(BUILD_DIR)"
-
-$(BUILD_DIR)/module.1.in: $(SOURCE_DIR)/module.rst $(SOURCE_DIR)/version.py
-	$(SPHINXBUILD) $(SPHINXOPTS) -t pathsubs -b man "$(SOURCE_DIR)" "$(BUILD_DIR)"
-	mv $(BUILD_DIR)/module.1 $@
+	$(if $(findstring module.1.in,$@),mv $(BUILD_DIR)/module.1 $@)
 endif
 
 $(BUILD_DIR)/module.1: $(BUILD_DIR)/module.1.in
