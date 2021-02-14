@@ -1,5 +1,7 @@
 .PHONY: install uninstall clean
 
+.NOTPARALLEL:
+
 SOURCE_DIR := source
 BUILD_DIR := build
 
