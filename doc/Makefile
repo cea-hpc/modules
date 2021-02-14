@@ -110,7 +110,7 @@ $(BUILD_DIR)/module.1: $(BUILD_DIR)/module.1.in
 # compatibility version-related rules
 $(COMPAT_MAN_DIR)/module.1 $(COMPAT_MAN_DIR)/modulefile.4:
 	$(ECHO_GEN)
-	$(MAKE) --no-print-directory -C $(COMPAT_MAN_DIR) $(@F)
+	$(MAKE) -s --no-print-directory -C $(COMPAT_MAN_DIR) $(@F)
 
 install: man txt
 	mkdir -p $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man4

@@ -390,7 +390,7 @@ script/modulecmd: script/modulecmd.in
 # compatibility version-related rules
 $(COMPAT_DIR)/modulecmd$(EXEEXT) $(COMPAT_DIR)/ChangeLog:
 	$(ECHO_GEN)
-	$(MAKE) --no-print-directory -C $(COMPAT_DIR) $(@F)
+	$(MAKE) -s --no-print-directory -C $(COMPAT_DIR) $(@F)
 
 # Tcl extension library-related rules
 lib/libtclenvmodules$(SHLIB_SUFFIX):
@@ -606,7 +606,7 @@ dist-tar: ChangeLog contrib/rpm/environment-modules.spec pkgdoc
 		doc/build/NEWS.txt doc/build/CONTRIBUTING.txt doc/build/module.1.in \
 		doc/build/ml.1 doc/build/modulefile.4 contrib/rpm/environment-modules.spec
 ifeq ($(compatversion) $(wildcard $(COMPAT_DIR)),y $(COMPAT_DIR))
-	$(MAKE) --no-print-directory -C $(COMPAT_DIR) distdir
+	$(MAKE) -s --no-print-directory -C $(COMPAT_DIR) distdir
 	mv $(COMPAT_DIR)/modules-* compatdist
 	tar -cf compatdist.tar --transform 's,^compatdist,$(DIST_PREFIX)/compat,' compatdist
 	tar --concatenate -f $(DIST_PREFIX).tar compatdist.tar
