@@ -1,8 +1,8 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.63])
-AC_INIT([Envmodules], [1.3.0], [modules-interest@lists.sourceforge.net], , http://modules.sf.net)
+AC_PREREQ([2.69])
+AC_INIT([Envmodules],[1.3.0],[modules-interest@lists.sourceforge.net],[],[http://modules.sf.net])
 AC_CONFIG_SRCDIR([envmodules.c])
 AC_CONFIG_HEADERS([config.h])
 
