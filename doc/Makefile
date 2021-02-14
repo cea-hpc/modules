@@ -63,7 +63,9 @@ endif
 	$(MAKE) --no-print-directory -C .. version.inc
 
 # source version definitions shared across the Makefiles of this project
+ifeq ($(findstring clean,$(MAKECMDGOALS)),)
 include ../version.inc
+endif
 
 define translate-in-script
 $(ECHO_GEN)
