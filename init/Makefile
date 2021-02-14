@@ -17,9 +17,6 @@ ifneq ($(wildcard ../Makefile.inc),../Makefile.inc)
 endif
 include ../Makefile.inc
 
-# source version definitions shared across the Makefiles of this project
-include ../version.inc
-
 # generate 'module use' commands to put in modulerc from modulepath
 modulerc := $(addprefix \\\nmodule use --append {,$(subst :,} ,$(modulepath)}))
 # generate 'module load' commands to put in modulerc from loadedmodules
@@ -51,6 +48,12 @@ ifeq ($(setdotmodulespath),y)
   # module path then modulerc will be ignored
 all: .modulespath
 endif
+
+../version.inc:
+	$(MAKE) --no-print-directory -C .. version.inc
+
+# source version definitions shared across the Makefiles of this project
+include ../version.inc
 
 # define init configs location
 ifeq ($(initconfin),etcdir)
@@ -206,7 +209,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 endef
 
 # avoid shared definitions to be rebuilt by make
-../Makefile.inc ../version.inc: ;
+../Makefile.inc: ;
 
 %: %.in
 	$(translate-in-script)
@@ -324,7 +327,7 @@ ifeq ($(VERBOSE),1)
 V = 1
 endif
 # let verbose by default the install/clean/test and other specific non-build targets
-$(V).SILENT: sh ksh bash zsh csh tcsh fish perl.pm python.py ruby.rb lisp tcl cmake \
-	r.R bash_completion tcsh_completion zsh-functions/_module profile.sh profile.csh \
-	profile-compat.sh profile-compat.csh .modulespath modulerc \
-	$(EXAMPLE_MODFILES_SRCDIR)/modules $(EXAMPLE_MODFILES_SRCDIR)/version
+$(V).SILENT: ../version.inc sh ksh bash zsh csh tcsh fish perl.pm python.py ruby.rb \
+	lisp tcl cmake r.R bash_completion tcsh_completion zsh-functions/_module \
+	profile.sh profile.csh profile-compat.sh profile-compat.csh .modulespath \
+	modulerc $(EXAMPLE_MODFILES_SRCDIR)/modules $(EXAMPLE_MODFILES_SRCDIR)/version

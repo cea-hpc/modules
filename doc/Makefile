@@ -14,9 +14,6 @@ ifneq ($(wildcard ../Makefile.inc),../Makefile.inc)
 endif
 include ../Makefile.inc
 
-# source version definitions shared across the Makefiles of this project
-include ../version.inc
-
 # quit if no sphinx-build found at configure time
 ifeq ($(builddoc),n)
   $(error No 'sphinx-build' command defined, cannot build documentation)
@@ -62,6 +59,12 @@ all: html
 endif
 endif
 
+../version.inc:
+	$(MAKE) --no-print-directory -C .. version.inc
+
+# source version definitions shared across the Makefiles of this project
+include ../version.inc
+
 define translate-in-script
 $(ECHO_GEN)
 sed -e 's|@prefix@|$(prefix)|g' \
@@ -75,7 +78,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 endef
 
 # avoid shared definitions to be rebuilt by make
-../Makefile.inc ../version.inc: ;
+../Makefile.inc: ;
 
 # rules to build docs from source are defined if docs are not found pre-built
 # which happens when working from git repository or from a `git archive` dist
@@ -163,5 +166,6 @@ ifeq ($(VERBOSE),1)
 V = 1
 endif
 # let verbose by default the install/clean/test and other specific non-build targets
-$(V).SILENT: $(SOURCE_DIR)/version.py $(ALL_HTML) $(ALL_TXT) $(BUILD_DIR)/module.1.in \
-	$(ALL_MAN) $(COMPAT_MAN_DIR)/module.1 $(COMPAT_MAN_DIR)/modulefile.4
+$(V).SILENT: ../version.inc $(SOURCE_DIR)/version.py $(ALL_HTML) $(ALL_TXT) \
+	$(BUILD_DIR)/module.1.in $(ALL_MAN) $(COMPAT_MAN_DIR)/module.1 \
+	$(COMPAT_MAN_DIR)/modulefile.4
