@@ -35,6 +35,15 @@ ALL_TXT := $(patsubst $(SOURCE_DIR)/%,$(BUILD_DIR)/%,$(patsubst %.rst,%.txt,$(AL
 ALL_HTML := $(patsubst $(SOURCE_DIR)/%,$(BUILD_DIR)/%,$(patsubst %.rst,%.html,$(ALL_RST)))
 ALL_MAN := $(BUILD_DIR)/module.1 $(BUILD_DIR)/ml.1 $(BUILD_DIR)/modulefile.4
 
+all: man txt
+
+# enable HTML pages build only from git repository
+ifeq ($(wildcard ../.git),../.git)
+ifneq ($(builddoc),p)
+all: html
+endif
+endif
+
 man: $(ALL_MAN)
 ifeq ($(compatversion),y)
 man: $(COMPAT_MAN_DIR)/module.1 $(COMPAT_MAN_DIR)/modulefile.4
@@ -48,15 +57,6 @@ else
 txt: $(BUILD_DIR)/diff_v3_v4.txt $(BUILD_DIR)/MIGRATING.txt \
 	$(BUILD_DIR)/INSTALL.txt $(BUILD_DIR)/INSTALL-win.txt \
 	$(BUILD_DIR)/NEWS.txt $(BUILD_DIR)/CONTRIBUTING.txt
-endif
-
-all: man txt
-
-# enable HTML pages build only from git repository
-ifeq ($(wildcard ../.git),../.git)
-ifneq ($(builddoc),p)
-all: html
-endif
 endif
 
 ../version.inc:
