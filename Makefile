@@ -147,7 +147,7 @@ MODULES_BUILD := +XX-g$(MODULES_BUILD_HASH)
 else ifeq ($(MODULES_BUILD_REFS),%D)
 MODULES_BUILD := +XX-g$(MODULES_BUILD_HASH)
 else
-MODULES_BUILD := +$(subst origin/,,$(lastword $(MODULES_BUILD_REFS)))-XX-g$(MODULES_BUILD_HASH)
+MODULES_BUILD := +$(notdir $(lastword $(MODULES_BUILD_REFS)))-XX-g$(MODULES_BUILD_HASH)
 endif
 endif
 endif
