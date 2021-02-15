@@ -346,7 +346,7 @@ version.inc: version.inc.in $(GIT_REFRESH_PREREQ)
 
 # source version definitions shared across the Makefiles of this project
 ifeq ($(findstring clean,$(MAKECMDGOALS)),)
-include version.inc
+-include version.inc
 endif
 
 contrib/rpm/environment-modules.spec: contrib/rpm/environment-modules.spec.in $(GIT_REFRESH_PREREQ)

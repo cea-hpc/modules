@@ -66,7 +66,7 @@ endif
 
 # source version definitions shared across the Makefiles of this project
 ifeq ($(findstring clean,$(MAKECMDGOALS)),)
-include ../version.inc
+-include ../version.inc
 endif
 
 define translate-in-script
