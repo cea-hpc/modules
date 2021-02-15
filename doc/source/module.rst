@@ -395,6 +395,15 @@ switches are accepted:
  Lists the current version of the :command:`module` command. The command then
  terminates without further processing.
 
+.. option:: --width=COLS, -w COLS
+
+ Set the width of the output to *COLS* columns. See also
+ :envvar:`MODULES_TERM_WIDTH` section.
+
+ .. only:: html
+
+    .. versionadded:: 4.7
+
 
 .. _Module Sub-Commands:
 
@@ -769,6 +778,14 @@ Module Sub-Commands
  .. mconfig:: term_background
 
   Terminal background color kind. Defines :envvar:`MODULES_TERM_BACKGROUND`.
+
+ .. mconfig:: term_width
+
+  Set the width of the output. Defines :envvar:`MODULES_TERM_WIDTH`.
+
+  .. only:: html
+
+     .. versionadded:: 4.7
 
  .. mconfig:: unload_match_order
 
@@ -2271,6 +2288,25 @@ ENVIRONMENT
  .. only:: html
 
     .. versionadded:: 4.3
+
+.. envvar:: MODULES_TERM_WIDTH
+
+ Specifies the number of columns of the output. If set to ``0``, the output
+ width will be the full terminal width, which is automatically detected by
+ the module command. Accepted values are integers comprised between 0 and
+ 1000.
+
+ This configuration is defined in the following order of preference:
+ :option:`--width` or :option:`-w` command line switches, then
+ :envvar:`MODULES_TERM_WIDTH` environment variable, then the default set in
+ :file:`modulecmd.tcl` script configuration. Which means
+ :envvar:`MODULES_TERM_WIDTH` overrides default configuration.
+ :option:`--width` or :option:`-w` command line switches override every other
+ configuration.
+
+ .. only:: html
+
+    .. versionadded:: 4.7
 
 .. envvar:: MODULES_UNLOAD_MATCH_ORDER
 
