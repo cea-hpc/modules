@@ -525,20 +525,6 @@ Module Sub-Commands
   :subcmd:`avail` sub-command in depth search mode. Defines
   :envvar:`MODULES_AVAIL_INDEPTH`.
 
- .. mconfig:: avail_report_dir_sym
-
-  Display symbolic versions targeting directories on :subcmd:`avail`
-  sub-command.
-
-  The value of this option cannot be altered.
-
- .. mconfig:: avail_report_mfile_sym
-
-  Display symbolic versions targeting modulefiles on :subcmd:`avail`
-  sub-command.
-
-  The value of this option cannot be altered.
-
  .. mconfig:: collection_pin_version
 
   Register exact modulefile version in collection. Defines
