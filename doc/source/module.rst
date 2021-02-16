@@ -525,6 +525,24 @@ Module Sub-Commands
   :subcmd:`avail` sub-command in depth search mode. Defines
   :envvar:`MODULES_AVAIL_INDEPTH`.
 
+ .. mconfig:: avail_output
+
+  Content to report in addition to module names on :subcmd:`avail` sub-command
+  regular output mode. Defines :envvar:`MODULES_AVAIL_OUTPUT`.
+
+  .. only:: html
+
+     .. versionadded:: 4.7
+
+ .. mconfig:: avail_terse_output
+
+  Content to report in addition to module names on :subcmd:`avail` sub-command
+  terse output mode. Defines :envvar:`MODULES_AVAIL_TERSE_OUTPUT`.
+
+  .. only:: html
+
+     .. versionadded:: 4.7
+
  .. mconfig:: collection_pin_version
 
   Register exact modulefile version in collection. Defines
@@ -594,6 +612,24 @@ Module Sub-Commands
 
   Implicitly define a requirement onto modules specified on :mfcmd:`module`
   commands in modulefile. Defines :envvar:`MODULES_IMPLICIT_REQUIREMENT`.
+
+  .. only:: html
+
+     .. versionadded:: 4.7
+
+ .. mconfig:: list_output
+
+  Content to report in addition to module names on :subcmd:`list` sub-command
+  regular output mode. Defines :envvar:`MODULES_LIST_OUTPUT`.
+
+  .. only:: html
+
+     .. versionadded:: 4.7
+
+ .. mconfig:: list_terse_output
+
+  Content to report in addition to module names on :subcmd:`list` sub-command
+  terse output mode. Defines :envvar:`MODULES_LIST_TERSE_OUTPUT`.
 
   .. only:: html
 
@@ -1548,6 +1584,63 @@ ENVIRONMENT
 
     .. versionadded:: 4.3
 
+.. envvar:: MODULES_AVAIL_OUTPUT
+
+ A colon separated list of the elements to report in addition to module names
+ on :subcmd:`avail` sub-command regular output mode.
+
+ Accepted elements that can be set in value list are:
+
+ * ``alias``: module aliases.
+ * ``dirwsym``: directories associated with symbolic versions.
+ * ``key``: legend appended at the end of the output to explain it.
+ * ``modulepath``: modulepath names set as header prior the list of available
+   modules found in them.
+ * ``sym``: symbolic versions associated with available modules.
+ * ``tag``: tags associated with available modules.
+
+ The order of the elements in the list does not matter. Module names are the
+ only content reported when *LIST* is set to an empty value.
+
+ In case the ``modulepath`` element is missing from value list, the available
+ modules from global/user rc and all enabled modulepaths are reported as a
+ single list.
+
+ :subcmd:`avail` sub-command regular output content is defined in the
+ following order of preference: :option:`--output`/:option:`-o` command line
+ switches, then :envvar:`MODULES_AVAIL_OUTPUT` environment variable, then the
+ default set in :file:`modulecmd.tcl` script configuration. Which means
+ :envvar:`MODULES_AVAIL_OUTPUT` overrides default configuration and
+ :option:`--output`/:option:`-o` command line switches override every other
+ ways to configure regular output content.
+
+ .. only:: html
+
+    .. versionadded:: 4.7
+
+.. envvar:: MODULES_AVAIL_TERSE_OUTPUT
+
+ A colon separated list of the elements to report in addition to module names
+ on :subcmd:`avail` sub-command terse output mode.
+
+ See :envvar:`MODULES_AVAIL_OUTPUT` to get the accepted elements that can be
+ set in value list.
+
+ The order of the elements in the list does not matter. Module names are the
+ only content reported when *LIST* is set to an empty value.
+
+ :subcmd:`avail` sub-command terse output content is defined in the following
+ order of preference: :option:`--output`/:option:`-o` command line switches,
+ then :envvar:`MODULES_AVAIL_TERSE_OUTPUT` environment variable, then the
+ default set in :file:`modulecmd.tcl` script configuration. Which means
+ :envvar:`MODULES_AVAIL_TERSE_OUTPUT` overrides default configuration and
+ :option:`--output`/:option:`-o` command line switches override every other
+ ways to configure terse output content.
+
+ .. only:: html
+
+    .. versionadded:: 4.7
+
 .. envvar:: MODULES_CMD
 
  The location of the active module command script.
@@ -1762,6 +1855,58 @@ ENVIRONMENT
  :envvar:`MODULES_IMPLICIT_REQUIREMENT` is in turn superseded by the
  ``--not-req`` option that applies to a :mfcmd:`module` command in a
  modulefile.
+
+ .. only:: html
+
+    .. versionadded:: 4.7
+
+.. envvar:: MODULES_LIST_OUTPUT
+
+ A colon separated list of the elements to report in addition to module names
+ on :subcmd:`list` sub-command regular output mode.
+
+ Accepted elements that can be set in value list are:
+
+ * ``header``: sentence to introduce the list of loaded modules or to state
+   that no modules are loaded currently.
+ * ``idx``: index position of each loaded module.
+ * ``key``: legend appended at the end of the output to explain it.
+ * ``sym``: symbolic versions associated with loaded modules.
+ * ``tag``: tags associated with loaded modules.
+
+ The order of the elements in the list does not matter. Module names are the
+ only content reported when *LIST* is set to an empty value.
+
+ :subcmd:`list` sub-command regular output content is defined in the following
+ order of preference: :option:`--output`/:option:`-o` command line switches,
+ then :envvar:`MODULES_LIST_OUTPUT` environment variable, then the default set
+ in :file:`modulecmd.tcl` script configuration. Which means
+ :envvar:`MODULES_LIST_OUTPUT` overrides default configuration and
+ :option:`--output`/:option:`-o` command line switches override every other
+ ways to configure regular output content.
+
+ .. only:: html
+
+    .. versionadded:: 4.7
+
+.. envvar:: MODULES_LIST_TERSE_OUTPUT
+
+ A colon separated list of the elements to report in addition to module names
+ on :subcmd:`list` sub-command terse output mode.
+
+ See :envvar:`MODULES_LIST_OUTPUT` to get the accepted elements that can be
+ set in value list.
+
+ The order of the elements in the list does not matter. Module names are the
+ only content reported when *LIST* is set to an empty value.
+
+ :subcmd:`list` sub-command regular output content is defined in the following
+ order of preference: :option:`--output`/:option:`-o` command line switches,
+ then :envvar:`MODULES_LIST_TERSE_OUTPUT` environment variable, then the
+ default set in :file:`modulecmd.tcl` script configuration. Which means
+ :envvar:`MODULES_LIST_TERSE_OUTPUT` overrides default configuration and
+ :option:`--output`/:option:`-o` command line switches override every other
+ ways to configure regular output content.
 
  .. only:: html
 
