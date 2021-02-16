@@ -1106,79 +1106,6 @@ version/dir2/2.0/rc1(default)
 version/dir2/2.0/rc2                                  
 version/dir2/3.0                                      "
 
-set ts_sh_noflag "- $modpath.deep -
-badmodvers/dir1/2.0       
-badmodvers/foo            
-dir2/1.0                  
-dir2/3.0                  
-modalias/1.0              
-modalias/3.0              
-modalias/dir1/1.0         
-modalias/dir1/2.0         
-modalias/dir2/2.0         
-modalias/dir2/3.0         
-moddalias                 
-moddalias/dir1/1          
-moddef/dir2/1.0           
-moddef/dir2/2.0           
-modload/dir2/1.0          
-modload/dir2/3.0          
-modsym/dir1/1.0           
-modsym/dir2/2.0           
-modtr/3.0                 
-modtr/al1                 
-modtr/al4                 
-modtr/al5                 
-modtr/al6                 
-modtr/dir1/1.0            
-modtr/dir2/2.0            
-modtr/dir3/al2            
-modtr/dir3/al3            
-modtr/dir4/               
-modtr/dir4/al7            
-modtr/dir4/al8            
-modtr/dir4/mod4.0         
-modtr/dir5/subdir/        
-modtr/dir5/subdir/mod5.0  
-modulerc/dir1/            
-modulerc/dir1/1.0         
-modulerc/dir1/2.0         
-modulerc/dir2/            
-modulerc/dir2/1.0/        
-modulerc/dir2/1.0/rc1     
-modulerc/dir2/1.0/rc2     
-modulerc/dir2/2.0         
-modulerc/dir2/3.0         
-modvirt/1.0               
-modvirt/3.0               
-modvirt/dir0/sub1/4.0     
-modvirt/dir0/sub1/5.0     
-modvirt/dir0/sub1/6.0     
-modvirt/dir1/1.0          
-modvirt/dir1/2.0          
-modvirt/dir2/2.0          
-modvirt/dir2/3.0          
-plain/dir1/1.0            
-plain/dir1/2.0            
-plain/dir2/1.0            
-plain/dir2/2.0            
-tr2mod/al1                
-tr2mod/al5                
-tr2mod/dir3/al2           
-trmod/                    
-trmod/al1                 
-trmod/al5                 
-trmod/dir3/               
-trmod/dir3/al2            
-version/dir1/             
-version/dir1/1.0          
-version/dir1/2.0          
-version/dir2/1.0          
-version/dir2/2.0/         
-version/dir2/2.0/rc1      
-version/dir2/2.0/rc2      
-version/dir2/3.0          "
-
 set len  [string length $modpath.deep]
 set lrep [expr {($test_cols_othos - $len - 2)/2}]
 set rrep [expr {$test_cols_othos - $len - 2 - $lrep}]
@@ -1223,21 +1150,13 @@ testouterr_cmd "sh" "avail" "OK" "$ts_sh_small\n\n$ts_key_small"
 # check excepted siteconfig file is installed
 if {[siteconfig_isStderrTty]} {
 
-# test output when flag report is disabled
-if { $verbose > 0 } {
-    send_user "\tSetup TESTSUITE_ENABLE_SITECONFIG_NO_FLAG = '1'\n"
-}
-set env(TESTSUITE_ENABLE_SITECONFIG_NO_FLAG) 1
-
-testouterr_cmd "sh" "avail" "OK" "$ts_sh_noflag"
-
 # simulate Solaris OS with its specific stty command output
 if { $verbose > 0 } {
     send_user "\tSetup TESTSUITE_ENABLE_SITECONFIG_SOLARIS_STTY = '1'\n"
 }
 set env(TESTSUITE_ENABLE_SITECONFIG_SOLARIS_STTY) 1
 
-testouterr_cmd "sh" "avail" "OK" "$ts_sh_noflag_othos"
+testouterr_cmd "sh" "avail -o alias:modulepath:dirwsym" "OK" "$ts_sh_noflag_othos"
 
 
 # simulate Windows OS with its specific mode command output
@@ -1246,15 +1165,13 @@ if { $verbose > 0 } {
 }
 set env(TESTSUITE_ENABLE_SITECONFIG_WINDOWS_MODE) 1
 
-testouterr_cmd "sh" "avail" "OK" "$ts_sh_noflag_othos"
+testouterr_cmd "sh" "avail -o alias:modulepath:dirwsym" "OK" "$ts_sh_noflag_othos"
 
 # restore environment
 if { $verbose > 0 } {
-    send_user "\tUnset TESTSUITE_ENABLE_SITECONFIG_NO_FLAG\n"
     send_user "\tUnset TESTSUITE_ENABLE_SITECONFIG_SOLARIS_STTY\n"
     send_user "\tUnset TESTSUITE_ENABLE_SITECONFIG_WINDOWS_MODE\n"
 }
-unset env(TESTSUITE_ENABLE_SITECONFIG_NO_FLAG)
 unset env(TESTSUITE_ENABLE_SITECONFIG_SOLARIS_STTY)
 unset env(TESTSUITE_ENABLE_SITECONFIG_WINDOWS_MODE)
 
