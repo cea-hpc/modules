@@ -11,7 +11,7 @@ Configuration
 Specification
 -------------
 
-- Introduce one new modulefile command to set tags on modulefiles: :mconfig:`module-tag`
+- Introduce one new modulefile command to set tags on modulefiles: :mfcmd:`module-tag`
 
     - A tag is a piece of information associated to individual modulefiles
     - That is reported along module name on ``avail`` or ``list`` sub-command results
