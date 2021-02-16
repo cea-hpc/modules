@@ -309,6 +309,29 @@ switches are accepted:
 
     .. versionadded:: 4.1
 
+.. option:: --output=LIST, -o LIST
+
+ Define the content to report in addition to module names. This option is
+ supported by :subcmd:`avail` and :subcmd:`list` sub-commands on their regular
+ or terse output modes. Accepted values are a *LIST* of elements to report
+ separated by colon character (``:``). The order of the elements in *LIST*
+ does not matter.
+
+ Accepted elements in *LIST* for :subcmd:`avail` sub-command are:
+ *modulepath*, *alias*, *dirwsym*, *sym*, *tag* and *key*.
+
+ Accepted elements in *LIST* for :subcmd:`list` sub-command are: *header*,
+ *idx*, *sym*, *tag* and *key*.
+
+ The order of the elements in *LIST* does not matter. Module names are the
+ only content reported when *LIST* is set to an empty value.
+
+ See also :envvar:`MODULES_AVAIL_OUTPUT` and :envvar:`MODULES_LIST_OUTPUT`.
+
+ .. only:: html
+
+    .. versionadded:: 4.7
+
 .. option:: --paginate
 
  Pipe all message output into :command:`less` (or if set, to the command
@@ -411,7 +434,7 @@ Module Sub-Commands
 
  See :subcmd:`search`.
 
-.. subcmd:: avail [-d|-L] [-t|-l|-j] [-a] [-S|-C] [--indepth|--no-indepth] [path...]
+.. subcmd:: avail [-d|-L] [-t|-l|-j] [-a] [-o LIST] [-S|-C] [--indepth|--no-indepth] [path...]
 
  List all available *modulefiles* in the current :envvar:`MODULEPATH`. All
  directories in the :envvar:`MODULEPATH` are recursively searched for files
@@ -471,6 +494,10 @@ Module Sub-Commands
 
     .. versionchanged:: 4.7
        *Key* section added at end of output
+
+    .. versionchanged:: 4.7
+       Option :option:`--output`/:option:`-o` added, compatible with regular
+       and terse output modes
 
 .. subcmd:: clear [-f]
 
@@ -905,7 +932,7 @@ Module Sub-Commands
 
  See :subcmd:`search`.
 
-.. subcmd:: list [-a] [-t|-l|-j]
+.. subcmd:: list [-a] [-o LIST] [-t|-l|-j]
 
  List loaded modules.
 
@@ -927,6 +954,10 @@ Module Sub-Commands
 
     .. versionchanged:: 4.7
        *Key* section added at end of output
+
+    .. versionchanged:: 4.7
+       Option :option:`--output`/:option:`-o` added, compatible with regular
+       and terse output modes.
 
 .. subcmd:: load [--auto|--no-auto] [-f] modulefile...
 
