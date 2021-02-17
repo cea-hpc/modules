@@ -243,6 +243,12 @@ Modules 4.7.0 (not yet released)
 * Install: align RPM spec file syntax with spec file used on Fedora. Add
   missing build dependency on ``make`` package. Also remove obsolete ``Group``
   RPM tag.
+* Add the :mconfig:`term_width` configuration option to set the width of the
+  output. This configuration option is set to ``0`` by default, which means
+  that the output width is the full terminal width. The
+  :option:`--width`/:option:`-w` command line switches are added to supersede
+  the value of the configuration option. (fix issue #359 with contribution
+  from Anaïs Gaertner)
 
 
 .. _4.6 release notes:
