@@ -230,6 +230,19 @@ Modules 4.7.0 (not yet released)
 * When ``modulepath`` is omitted from the content to report on :subcmd:`avail`
   sub-command, available modules collected from global/user rc and enabled
   modulepaths are aggregated and reported all together.
+* Install: print generated file names rather commands executed to generate
+  these files on Makefile build targets. Output obtained when building Modules
+  is this way simplified. When option ``V=1`` is passed to ``make``, the
+  verbose mode is enabled and run commands are shown. The simplified ``make``
+  output does not apply to the install, test and clean targets or any target
+  similar to them.
+* Install: fix configure and build files of Modules Tcl extension library to
+  make them compatible with autoconf >=2.69.
+* Script: correctly detect previous Modules version number released from a
+  side git branch on :command:`mpub` command.
+* Install: align RPM spec file syntax with spec file used on Fedora. Add
+  missing build dependency on ``make`` package. Also remove obsolete ``Group``
+  RPM tag.
 
 
 .. _4.6 release notes:
