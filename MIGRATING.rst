@@ -328,6 +328,101 @@ module name stand for.
     :sgrl:`loaded`      :sgrde:`default-version`  :sgrs:`sticky`        <oT>=othertag
     :sgrdi:`modulepath`  :sgrali:`module-alias`     <module-tag>
 
+Configuring avail/list output
+-----------------------------
+
+New configuration options are introduced to control what content to output in
+addition to modules names on the regular and terse output modes of the
+:subcmd:`avail` and :subcmd:`list` sub-commands.
+
+These new configuration options named :mconfig:`avail_output`,
+:mconfig:`avail_terse_output`, :mconfig:`list_output` and
+:mconfig:`list_terse_output` can be updated using the :subcmd:`config`
+sub-command or set at installation time respectively with the
+:instopt:`--with-avail-output`, :instopt:`--with-avail-terse-output`,
+:instopt:`--with-list-output` and :instopt:`--with-list-terse-output`
+configure options.
+
+The four options accept a colon separated list of elements as value. Accepted
+elements for the :subcmd:`avail`-related options are: ``modulepath``,
+``alias``, ``dirwsym``, ``sym``, ``tag`` and ``key``. Accepted elements for
+the :subcmd:`list`-related options are: ``header``, ``idx``, ``sym``, ``tag``
+and ``key``.
+
+In the following example, default output configuration for the :subcmd:`avail`
+sub-command is checked then module tags and key section are removed to get a
+simpler output:
+
+.. parsed-literal::
+
+    :ps:`$` ml config avail_output
+    Modules Release 4.7.0 (2021-02-18)
+
+    - Config. name ---------.- Value (set by if default overridden) ---------------
+    avail_output              modulepath:alias:dirwsym:sym:tag:key
+    :ps:`$` ml av
+    ------------------ :sgrdi:`/path/to/modulefiles` ------------------
+    :sgrde:`bar/1.0`  bar/2.0  :sgrf:`foo/1.0`  :sgrs:`foo/2.0`  :sgrali:`foo/2.2`
+
+    Key:
+    :sgrdi:`modulepath`       :sgrali:`module-alias`  :sgrs:`sticky`
+    :sgrde:`default-version`  :sgrf:`forbidden`
+    :ps:`$` ml config avail_output modulepath:alias:dirwsym:sym
+    :ps:`$` ml av
+    ------------------ :sgrdi:`/path/to/modulefiles` ------------------
+    :sgrde:`bar/1.0`  bar/2.0  foo/1.0  foo/2.0  :sgrali:`foo/2.2`
+
+The :option:`--output`/:option:`-o` switches are added to define a specific
+output configuration for the duration of the associated command line. The
+following example shows how to limit the content reported on a module
+:subcmd:`list` to the loaded index and the symbolic versions in addition to
+the module names:
+
+.. parsed-literal::
+
+    :ps:`$` ml
+    Currently Loaded Modulefiles:
+     1) :sgrde:`bar/1.0`   2) :sgrs:`foo/2.0`
+
+    Key:
+    :sgrde:`default-version`  :sgrs:`sticky`
+    :ps:`$` ml -o idx:sym
+     1) :sgrde:`bar/1.0`   2) foo/2.0
+
+When the new configuration options or command line switches are set to an
+empty value, the module names are the sole information reported:
+
+.. parsed-literal::
+
+    :ps:`$` ml -t -o ""
+    bar/1.0
+    foo/2.0
+
+In case the ``modulepath`` element is withdrawn from the :subcmd:`avail`
+sub-command output configuration, the available modules from all enabled
+modulepaths are reported as a single list:
+
+.. parsed-literal::
+
+    :ps:`$` ml av
+    --------------- :sgrdi:`/path/to/other/modulefiles` ---------------
+    baz/1.0  baz/2.0
+
+    ------------------ :sgrdi:`/path/to/modulefiles` ------------------
+    :sgrde:`bar/1.0`  bar/2.0  :sgrf:`foo/1.0`  :sgrs:`foo/2.0`  :sgrali:`foo/2.2`
+
+    Key:
+    :sgrdi:`modulepath`       :sgrali:`module-alias`  :sgrs:`sticky`
+    :sgrde:`default-version`  :sgrf:`forbidden`
+    :ps:`$` ml av --output=alias:tag
+    bar/1.0  baz/1.0  :sgrf:`foo/1.0`  :sgrali:`foo/2.2`
+    bar/2.0  baz/2.0  :sgrs:`foo/2.0`
+
+.. note:: The ``avail_report_dir_sym`` and ``avail_report_mfile_sym`` locked
+   configuration options have been removed. Their behaviors can now be
+   obtained by respectively adding the ``dirwsym`` and ``sym`` elements to the
+   :mconfig:`avail_output` or :mconfig:`avail_terse_output` configuration
+   options.
 
 From v4.5 to v4.6
 =================
