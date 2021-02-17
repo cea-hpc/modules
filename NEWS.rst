@@ -195,6 +195,41 @@ Modules 4.7.0 (not yet released)
   file:`configure` script if output is sent to a terminal.
 * Install: split error messages produced by file:`configure` script over an
   additional line when too long.
+* Doc: add *Output configuration* design notes.
+* Introduce the :mconfig:`avail_output` and :mconfig:`avail_terse_output`
+  configuration options to define the content to report in addition to the
+  available module names respectively for :subcmd:`avail` sub-command regular
+  and terse output modes. Excepted value for these configuration options is a
+  colon separated list of elements to report. Default value is
+  ``modulepath:alias:dirwsym:sym:tag:key`` for :mconfig:`avail_output` and
+  ``modulepath:alias:dirwsym:sym:tag`` for :mconfig:`avail_terse_output`.
+  These values can be changed at installation time respectively with the
+  :instopt:`--with-avail-output` and :instopt:`--with-avail-terse-output`
+  options. These values can then be superseded by using the :subcmd:`config`
+  sub-command which sets the :envvar:`MODULES_AVAIL_OUTPUT` and
+  :envvar:`MODULES_AVAIL_TERSE_OUTPUT` environment variables.
+* Introduce the :mconfig:`list_output` and :mconfig:`list_terse_output`
+  configuration options to define the content to report in addition to the
+  available module names respectively for :subcmd:`list` sub-command regular
+  and terse output modes. Excepted value for these configuration options is a
+  colon separated list of elements to report. Default value is
+  ``header:idx:sym:tag:key`` for :mconfig:`list_output` and ``header`` for
+  :mconfig:`list_terse_output`. These values can be changed at installation
+  time respectively with the :instopt:`--with-list-output` and
+  :instopt:`--with-list-terse-output` options. These values can then be
+  superseded by using the :subcmd:`config` sub-command which sets the
+  :envvar:`MODULES_LIST_OUTPUT` and :envvar:`MODULES_LIST_TERSE_OUTPUT`
+  environment variables.
+* Add the :option:`--output`/:option:`-o` command-line switches to supersede
+  the output configuration of :subcmd:`avail` or :subcmd:`list` sub-commands
+  on their regular or terse output modes.
+* Remove the ``avail_report_dir_sym`` and ``avail_report_mfile_sym`` locked
+  configuration options whose behaviors can now be obtained by respectively
+  adding the ``dirwsym`` and ``sym`` elements to the :mconfig:`avail_output`
+  or :mconfig:`avail_terse_output` configuration options.
+* When ``modulepath`` is omitted from the content to report on :subcmd:`avail`
+  sub-command, available modules collected from global/user rc and enabled
+  modulepaths are aggregated and reported all together.
 
 
 .. _4.6 release notes:
