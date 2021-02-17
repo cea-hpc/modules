@@ -304,7 +304,8 @@ The following command line switches appeared on new version of Modules are not s
 | 4.6        | :option:`--trace`, :option:`-T`, :option:`--all`, :option:`-a`, |
 |            | :option:`-DD`                                                   |
 +------------+-----------------------------------------------------------------+
-| 4.7        | :option:`-vv`, :option:`--output`, :option:`-o`                 |
+| 4.7        | :option:`-vv`, :option:`--output`, :option:`-o`,                |
+|            | :option:`--width`, :option:`-w`                                 |
 +------------+-----------------------------------------------------------------+
 
 
@@ -398,6 +399,7 @@ The following environment variables appeared on new version of Modules are not s
 |            | :envvar:`MODULES_AVAIL_TERSE_OUTPUT`,                           |
 |            | :envvar:`MODULES_LIST_OUTPUT`,                                  |
 |            | :envvar:`MODULES_LIST_TERSE_OUTPUT`,                            |
+|            | :envvar:`MODULES_TERM_WIDTH`                                    |
 +------------+-----------------------------------------------------------------+
 
 
