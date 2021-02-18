@@ -251,6 +251,7 @@ rst_epilog += '.. |emph modulefilesdir| replace:: *%s*\n' % modulefilesdir
 rst_epilog += '.. |bold modulefilesdir| replace:: **%s**\n' % modulefilesdir
 rst_epilog += '.. |file modulefilesdir| replace:: :file:`%s`\n' % modulefilesdir
 rst_epilog += '.. |code version| replace:: ``%s``\n' % version
+rst_epilog += '.. |gh_tgz_dl_url| replace:: https://github.com/cea-hpc/modules/releases/download/v%s/modules-%s.tar.gz\n' % (version, version)
 
 # define roles used to color text in parsed-literal to render output like in terminal
 rst_epilog += """.. role:: noparse

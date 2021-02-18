@@ -249,6 +249,8 @@ Modules 4.7.0 (not yet released)
   :option:`--width`/:option:`-w` command line switches are added to supersede
   the value of the configuration option. (fix issue #359 with contribution
   from Anaïs Gaertner)
+* Doc: add a *Get Modules* section in :ref:`INSTALL` document to provide
+  download links for Modules' sources. (fix issue #387)
 
 
 .. _4.6 release notes:

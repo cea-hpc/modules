@@ -46,6 +46,26 @@ following tools are required:
 * python
 * sphinx >= 1.0
 
+Get Modules
+-----------
+
+Modules can usually be installed with the package manager of your Unix system.
+It it is available by default `on most Linux distributions, on OS X and
+FreeBSD <https://repology.org/project/environment-modules/versions>`_ either
+under the name of ``modules`` or ``environment-modules``.
+
+If you want to install Modules from sources, tarballs from all Modules'
+releases can be retrieved from one of the following link:
+
+* https://github.com/cea-hpc/modules/releases/
+* https://sourceforge.net/projects/modules/files/Modules/
+
+For instance to download then unpack the last release of Modules:
+
+.. parsed-literal::
+
+    :ps:`$` curl -LJO |gh_tgz_dl_url|
+    :ps:`$` tar xfz modules-\ |version|\ .tar.gz
 
 Installation instructions
 -------------------------
