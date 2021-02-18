@@ -50,11 +50,13 @@ following tools are required:
 Installation instructions
 -------------------------
 
-The simplest way to build and install Modules is::
+The simplest way to build and install Modules is:
 
-    $ ./configure
-    $ make
-    $ make install
+.. parsed-literal::
+
+    :ps:`$` ./configure
+    :ps:`$` make
+    :ps:`$` make install
 
 Some explanation, step by step:
 
@@ -87,9 +89,11 @@ A default installation process like described above will install Modules
 under ``/usr/local/Modules``. You can change this with the :instopt:`--prefix`
 option. By default, ``/usr/local/Modules/modulefiles`` will be setup as
 the default directory containing modulefiles. :instopt:`--modulefilesdir`
-option enables to change this directory location. For example::
+option enables to change this directory location. For example:
 
-    $ ./configure --prefix=/usr/share/Modules \
+.. parsed-literal::
+
+    :ps:`$` ./configure --prefix=/usr/share/Modules \\
                   --modulefilesdir=/etc/modulefiles
 
 See `Build and installation options`_ section to discover all ``./configure``
@@ -116,10 +120,12 @@ necessarily mandatory as it depends of the kind of setup you want to achieve.
    is to make the initialization scripts part of the system-wide environment
    setup in ``/etc/profile.d``. To do so, make a link in this directory to the
    profile scripts that can be found in your Modules installation init
-   directory::
+   directory:
 
-       $ ln -s PREFIX/init/profile.sh /etc/profile.d/modules.sh
-       $ ln -s PREFIX/init/profile.csh /etc/profile.d/modules.csh
+   .. parsed-literal::
+
+       :ps:`$` ln -s PREFIX/init/profile.sh /etc/profile.d/modules.sh
+       :ps:`$` ln -s PREFIX/init/profile.csh /etc/profile.d/modules.csh
 
    These profile scripts will automatically adapt to the kind of ``sh`` or
    ``csh`` shell you are running.
