@@ -8,8 +8,8 @@ Modules. It provides an overview of the new features and changed behaviors
 that will be encountered when upgrading.
 
 
-From v4.6 to v4.7 (not yet released)
-====================================
+From v4.6 to v4.7
+=================
 
 This new version is backward-compatible with v4.6 and primarily fixes bugs and
 adds new features. Version 4.7 introduces new functionalities that are
@@ -356,7 +356,7 @@ simpler output:
 .. parsed-literal::
 
     :ps:`$` ml config avail_output
-    Modules Release 4.7.0 (2021-02-18)
+    Modules Release 4.7.0 (2021-02-19)
 
     - Config. name ---------.- Value (set by if default overridden) ---------------
     avail_output              modulepath:alias:dirwsym:sym:tag:key

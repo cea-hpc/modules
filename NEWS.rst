@@ -8,8 +8,8 @@ documents those changes that are of interest to users and admins.
 
 .. _4.7 release notes:
 
-Modules 4.7.0 (not yet released)
---------------------------------
+Modules 4.7.0 (2021-02-19)
+--------------------------
 
 * Doc: simplify TOC of :ref:`MIGRATING` document
 * Add the :mfvar:`ModuleTool` and :mfvar:`ModuleToolVersion` Modules
