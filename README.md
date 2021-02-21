@@ -85,8 +85,9 @@ Requirements
 License
 -------
 
-Modules is distributed under the GNU General Public License version 2 (GPL
-v2). Read the file `COPYING.GPLv2` for details.
+Modules is distributed under the GNU General Public License, either version 2
+or (at your option) any later version (GPL v2+). Read the file `COPYING.GPLv2`
+for details.
 
 
 Documentation

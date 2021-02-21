@@ -107,5 +107,5 @@ automatically configured to the correct architecture.
 License
 -------
 
-Modules is distributed under the GNU General Public License version 2 (GPL
-v2).
+Modules is distributed under the GNU General Public License, either version 2
+or (at your option) any later version (GPL v2+).
