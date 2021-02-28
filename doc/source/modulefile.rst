@@ -636,7 +636,7 @@ the *modulefile* is being loaded.
  reference counter environment variable is named by suffixing *variable*
  by ``_modshare``.
 
- When *value* is already defined in environement *variable*, it is not added
+ When *value* is already defined in environment *variable*, it is not added
  again except if ``--duplicates`` option is set.
 
  If the *variable* is not set, it is created. When a *modulefile* is

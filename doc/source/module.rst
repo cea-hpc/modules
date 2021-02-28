@@ -1165,8 +1165,8 @@ Module Sub-Commands
 
 .. subcmd:: search [-a] [-j] string
 
- Seeks through the :mfcmd:`module-whatis` informations of all *modulefiles*
- for the specified *string*. All *module-whatis* informations matching the
+ Seeks through the :mfcmd:`module-whatis` information of all *modulefiles*
+ for the specified *string*. All *module-whatis* information matching the
  *string* in a case insensitive manner will be displayed. *string* may contain
  wildcard characters.
 
@@ -1799,7 +1799,7 @@ ENVIRONMENT
  foreground colors. See also https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
  for a complete SGR code reference.
 
- No graphical rendition will be applied to an output item that could normaly
+ No graphical rendition will be applied to an output item that could normally
  be colored but which is not defined in the color set. Thus if
  :envvar:`MODULES_COLORS` is defined empty, no output will be colored at all.
 
