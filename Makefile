@@ -369,7 +369,7 @@ endif
 
 README:
 	$(ECHO_GEN)
-	sed -e '1,9d' $@.md > $@
+	sed -e '1,10d' $@.md > $@
 
 script/add.modules: script/add.modules.in
 	$(translate-in-script)
