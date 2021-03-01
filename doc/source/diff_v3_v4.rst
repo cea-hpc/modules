@@ -406,7 +406,8 @@ The following environment variables appeared on new version of Modules are not s
 |            | :envvar:`MODULES_LIST_TERSE_OUTPUT`,                            |
 |            | :envvar:`MODULES_TERM_WIDTH`                                    |
 +------------+-----------------------------------------------------------------+
-| 4.8        | :envvar:`MODULES_EDITOR`                                        |
+| 4.8        | :envvar:`MODULES_EDITOR`, :envvar:`MODULES_VARIANT_SHORTCUT`,   |
+|            | :envvar:`MODULES_LMVARIANT`                                     |
 +------------+-----------------------------------------------------------------+
 
 
@@ -433,6 +434,8 @@ The following modulefile Tcl commands appeared on new version of Modules are not
 +------------+-----------------------------------------------------------------+
 | 4.7        | :mfcmd:`versioncmp`, :mfcmd:`module-tag`,                       |
 |            | :mfcmd:`module-info tags<module-info>`                          |
++------------+-----------------------------------------------------------------+
+| 4.8        | :mfcmd:`variant`, :mfcmd:`getvariant`                           |
 +------------+-----------------------------------------------------------------+
 
 :mfcmd:`conflict` and :mfcmd:`prereq`
@@ -472,4 +475,6 @@ The following Modules-specific Tcl variables appeared on new version of Modules 
 | in version |                                                                 |
 +============+=================================================================+
 | 4.7        | :mfvar:`ModuleTool`, :mfvar:`ModuleToolVersion`                 |
++------------+-----------------------------------------------------------------+
+| 4.8        | :mfvar:`ModuleVariant`                                          |
 +------------+-----------------------------------------------------------------+
