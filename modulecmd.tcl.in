@@ -10811,7 +10811,7 @@ proc parseModuleSpecification {mlspec args} {
                if {[info exists modarglist]} {
                   set modarg [join $modarglist]
                   if {[info exists modname] && ($modname ne {} || $modspec eq {})} {
-                     setModuleVersSpec $modarg $modname $cmpspec $versspec
+                     setModuleVersSpec $modarg $modname $cmpspec $versspec {}
                      # rework args to have 1 str element for whole module spec
                      # append to unload list if ml spec and - prefix used
                      if {$mlunload} {
@@ -10850,7 +10850,7 @@ proc parseModuleSpecification {mlspec args} {
          if {[info exists modarglist]} {
             set modarg [join $modarglist]
             if {[info exists modname] && ($modname ne {} || $modspec eq {})} {
-               setModuleVersSpec $modarg $modname $cmpspec $versspec
+               setModuleVersSpec $modarg $modname $cmpspec $versspec {}
                # rework args to have 1 string element for whole module spec
                # append to unload list if ml spec and - prefix used
                if {$mlunload} {
@@ -10881,7 +10881,7 @@ proc parseModuleSpecification {mlspec args} {
                set modarg $modname
             }
             # record spec, especially needed if arg is enclosed
-            setModuleVersSpec $modarg $modname eq {}
+            setModuleVersSpec $modarg $modname eq {} {}
             # append to unload list if ml spec and - prefix used
             if {$mlunload} {
                lappend unarglist $modarg
@@ -10901,7 +10901,7 @@ proc parseModuleSpecification {mlspec args} {
    }
 }
 
-proc setModuleVersSpec {modarg modname cmpspec versspec} {
+proc setModuleVersSpec {modarg modname cmpspec versspec variantlist} {
    # translate @loaded version into currently loaded mod matching modname
    if {$cmpspec eq {eq} && $versspec eq {loaded}} {
       if {[set lmmod [getLoadedMatchingName $modname]] ne {}} {
@@ -10937,9 +10937,10 @@ proc setModuleVersSpec {modarg modname cmpspec versspec} {
 
    reportDebug "Set module '$mod' (escglob '$modescglob'),  module name\
       '$modname' (re '$modnamere'), module root '$modroot', version cmp\
-      '$cmpspec' and version(s) '$versspec' for argument '$modarg'"
+      '$cmpspec', version(s) '$versspec' and variant(s) '$variantlist' for\
+      argument '$modarg'"
    set ::g_moduleVersSpec($modarg) [list $mod $modname $cmpspec $versspec\
-      $modnamere $modescglob $modroot]
+      $modnamere $modescglob $modroot $variantlist]
 }
 
 proc getModuleVersSpec {modarg} {
@@ -10947,7 +10948,7 @@ proc getModuleVersSpec {modarg} {
       return $::g_moduleVersSpec($modarg)
    } else {
       return [list $modarg [file dirname $modarg] {} {} {} [string map {* \\*\
-         ? \\?} $modarg] [lindex [file split $modarg] 0]]
+         ? \\?} $modarg] [lindex [file split $modarg] 0] {}]
    }
 }
 
@@ -11014,6 +11015,16 @@ proc getOneModuleFromVersSpec {modarg} {
    }
 
    return $mod
+}
+
+# translate module name version spec to return the list of variant mentioned
+proc getVariantListFromVersSpec {modarg} {
+   if {[info exists ::g_moduleVersSpec($modarg)]} {
+      set variantlist [lindex $::g_moduleVersSpec($modarg) 7]
+   } else {
+      set variantlist {}
+   }
+   return $variantlist
 }
 
 # unload phase of a list of modules reload process
