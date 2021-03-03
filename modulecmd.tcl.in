@@ -10707,6 +10707,58 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
       $search_match $dump_state $addpath_pos $not_req $otherargs]
 }
 
+# analyze module version specified within module specification
+proc parseModuleVersionSpecifier {modspec} {
+   set invalidversspec 0
+   set invalidversrange 0
+   set islist [expr {[string first , $modspec] != -1}]
+   set isrange [expr {[string first : $modspec] != -1}]
+   # no deep version specification allowed nor list/range mix
+   if {[string first / $modspec] != -1 || ($islist && $isrange)} {
+      set invalidversspec 1
+   # ',' separates multiple versions
+   } elseif {$islist} {
+      set cmpspec in
+      set versspec [split $modspec ,]
+      # empty element in list is erroneous
+      set invalidversspec [expr {[lsearch -exact $versspec {}] != -1}]
+   # ':' separates range elements
+   } elseif {$isrange} {
+      set versspec [split $modspec :]
+      set lovers [lindex $versspec 0]
+      set hivers [lindex $versspec 1]
+      if {[llength $versspec] != 2 || ($lovers eq {} && $hivers eq {})} {
+         set invalidversspec 1
+      } elseif {($lovers ne {} && ![isVersion $lovers]) || ($hivers ne {} &&\
+         ![isVersion $hivers])} {
+         set invalidversrange 1
+      # greater or equal
+      } elseif {$hivers eq {}} {
+         set cmpspec ge
+         set versspec $lovers
+      # lower or equal
+      } elseif {$lovers eq {}} {
+         set cmpspec le
+         set versspec $hivers
+      # between or equal
+      } elseif {[versioncmp $lovers $hivers] == 1} {
+         set invalidversrange 1
+      } else {
+         set cmpspec be
+      }
+   } else {
+      set cmpspec eq
+      set versspec $modspec
+   }
+   if {$invalidversspec} {
+      knerror "Invalid version specifier '$modspec'"
+   }
+   if {$invalidversrange} {
+      knerror "Invalid version range '$modspec'"
+   }
+   return [list $cmpspec $versspec]
+}
+
 # when advanced_version_spec option is enabled, parse argument list to set in
 # a global context version specification of modules passed as argument.
 # specification may vary whether it comes from the ml or another command.
@@ -10723,8 +10775,6 @@ proc parseModuleSpecification {mlspec args} {
 
    if {[info exists need_parse]} {
       if {[getConf advanced_version_spec]} {
-         set invalidversspec 0
-         set invalidversrange 0
          set mlunload 0
          set arglist [list]
          set unarglist [list]
@@ -10764,53 +10814,7 @@ proc parseModuleSpecification {mlspec args} {
             }
 
             set modspec [lindex $curverslist end]
-            set versspecislist [expr {[string first , $modspec] != -1}]
-            set versspecisrange [expr {[string first : $modspec] != -1}]
-            # no deep version specification allowed nor list/range mix
-            if {[string first / $modspec] != -1 || ($versspecislist &&\
-               $versspecisrange)} {
-               set invalidversspec 1
-            # ',' separates multiple versions
-            } elseif {$versspecislist} {
-               set cmpspec in
-               set versspec [split $modspec ,]
-               # empty element in list is erroneous
-               set invalidversspec [expr {[lsearch -exact $versspec {}] != -1}]
-            # ':' separates range elements
-            } elseif {$versspecisrange} {
-               set versspec [split $modspec :]
-               set lovers [lindex $versspec 0]
-               set hivers [lindex $versspec 1]
-               if {[llength $versspec] != 2 || ($lovers eq {} && $hivers eq\
-                  {})} {
-                  set invalidversspec 1
-               } elseif {($lovers ne {} && ![isVersion $lovers]) || ($hivers\
-                  ne {} && ![isVersion $hivers])} {
-                  set invalidversrange 1
-               # greater or equal
-               } elseif {$hivers eq {}} {
-                  set cmpspec ge
-                  set versspec $lovers
-               # lower or equal
-               } elseif {$lovers eq {}} {
-                  set cmpspec le
-                  set versspec $hivers
-               # between or equal
-               } elseif {[versioncmp $lovers $hivers] == 1} {
-                  set invalidversrange 1
-               } else {
-                  set cmpspec be
-               }
-            } else {
-               set cmpspec eq
-               set versspec $modspec
-            }
-            if {$invalidversspec} {
-               knerror "Invalid version specifier '$modspec'"
-            }
-            if {$invalidversrange} {
-               knerror "Invalid version range '$modspec'"
-            }
+            lassign [parseModuleVersionSpecifier $modspec] cmpspec versspec
             # keep arg enclosed if composed of several words
             if {[string first { } $arg] != -1} {
                lappend modarglist "{$arg}"
