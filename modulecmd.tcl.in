@@ -2939,7 +2939,7 @@ proc module-forbid {args} {
       }
 
       # record each forbid spec after parsing them
-      foreach modarg [eval parseModuleVersionSpecifier 0 $modarglist] {
+      foreach modarg [eval parseModuleSpecification 0 $modarglist] {
          setModspecTag $modarg forbidden $proplist
       }
    } elseif {$isnearly} {
@@ -2948,7 +2948,7 @@ proc module-forbid {args} {
          lappend proplist message $nearlymessage
       }
       # record each nearly forbid spec after parsing them
-      foreach modarg [eval parseModuleVersionSpecifier 0 $modarglist] {
+      foreach modarg [eval parseModuleSpecification 0 $modarglist] {
          setModspecTag $modarg nearly-forbidden $proplist
       }
    }
@@ -2994,7 +2994,7 @@ proc module-hide {args} {
    # skip hide spec record if application criteria are not met
    if {$apply} {
       # record each hide spec after parsing them
-      foreach modarg [eval parseModuleVersionSpecifier 0 $modarglist] {
+      foreach modarg [eval parseModuleSpecification 0 $modarglist] {
          setModspecHidingLevel $modarg $hidinglvl
          if {$hiddenloaded} {
             setModspecTag $modarg hidden-loaded
@@ -3039,7 +3039,7 @@ proc module-tag {args} {
    # skip tag record if application criteria are not met
    if {$apply} {
       # record each hide spec after parsing them
-      foreach modarg [eval parseModuleVersionSpecifier 0 $modarglist] {
+      foreach modarg [eval parseModuleSpecification 0 $modarglist] {
          setModspecTag $modarg $tag
       }
    }
@@ -3079,7 +3079,7 @@ proc module {command args} {
    # parse module version specification
    if {[isInList [list avail paths whatis load unload switch help test\
       display path is-avail edit] $command]} {
-      set args [eval parseModuleVersionSpecifier 0 $args]
+      set args [eval parseModuleSpecification 0 $args]
    }
 
    if {!$topcall} {
@@ -3472,7 +3472,7 @@ proc ml {args} {
       eval module $command $margs
    } else {
       # parse specified module and get list of mods to unload and mods to load
-      lassign [eval parseModuleVersionSpecifier 1 $fargs] modunlist modlolist
+      lassign [eval parseModuleSpecification 1 $fargs] modunlist modlolist
 
       # main procedure has already raised error for badly written argument
       # like '-' or '--', but we need here to replay module-specific argument
@@ -4088,7 +4088,7 @@ proc unset-function {function} {
 proc is-loaded {args} {
    reportDebug $args
    # parse module version specification
-   set args [eval parseModuleVersionSpecifier 0 $args]
+   set args [eval parseModuleSpecification 0 $args]
 
    foreach mod $args {
       if {[getLoadedMatchingName $mod returnfirst] ne {}} {
@@ -4121,7 +4121,7 @@ proc conflict {args} {
    defineModEqProc [isIcase] [getConf extended_default]
 
    # parse module version specification
-   set args [eval parseModuleVersionSpecifier 0 $args]
+   set args [eval parseModuleSpecification 0 $args]
 
    # register conflict list unless record inhibited for current iterp context
    if {[currentState inhibit_req_record] != [currentState evalid]} {
@@ -4166,7 +4166,7 @@ proc prereq {args} {
    set currentModule [currentState modulename]
 
    # parse module version specification
-   set args [eval parseModuleVersionSpecifier 0 $args]
+   set args [eval parseModuleSpecification 0 $args]
 
    # register prereq list (sets of optional prereq are registered as list)
    # unless record inhibited for current iterp context
@@ -4372,7 +4372,7 @@ proc is-used {args} {
 proc is-avail {args} {
    reportDebug $args
    # parse module version specification
-   set args [eval parseModuleVersionSpecifier 0 $args]
+   set args [eval parseModuleSpecification 0 $args]
    set ret 0
 
    # disable error reporting to avoid modulefile errors
@@ -7793,7 +7793,7 @@ proc cacheCurrentModules {{exitonerr 1}} {
          foreach modcon [getLoadedModuleConflictList] {
             # parse module version specification to record translation
             foreach modconelt [lrange $modcon 1 end] {
-               eval parseModuleVersionSpecifier 0 $modconelt
+               eval parseModuleSpecification 0 $modconelt
             }
             eval setLoadedConflict $modcon
          }
@@ -7804,7 +7804,7 @@ proc cacheCurrentModules {{exitonerr 1}} {
             # parse module version specification to record translation
             foreach modpreeltlist [lrange $modpre 1 end] {
                foreach modpreelt $modpreeltlist {
-                  eval parseModuleVersionSpecifier 0 $modpreelt
+                  eval parseModuleSpecification 0 $modpreelt
                }
             }
             eval setLoadedPrereq $modpre
@@ -10710,7 +10710,7 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
 # when advanced_version_spec option is enabled, parse argument list to set in
 # a global context version specification of modules passed as argument.
 # specification may vary whether it comes from the ml or another command.
-proc parseModuleVersionSpecifier {mlspec args} {
+proc parseModuleSpecification {mlspec args} {
    # skip arg parse if proc was already call with same arg set by an upper
    # proc. check all args to ensure current arglist does not deviate from
    # what was previously parsed
