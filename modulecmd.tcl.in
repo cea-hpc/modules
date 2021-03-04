@@ -1768,6 +1768,7 @@ system         {system         system         reportCmd      nop            nop 
 unset-alias    {unset-alias    nop            reportCmd      nop            nop            nop           }
 unset-function {unset-function nop            reportCmd      nop            nop            nop           }
 unsetenv       {unsetenv       unsetenv-un    unsetenv       unsetenv       unsetenv       setenv-wh     }
+variant        {variant        variant        variant        variant        variant        variant       }
 x-resource     {x-resource     x-resource     reportCmd      nop            nop            nop           }
       }
    }
@@ -4789,6 +4790,42 @@ proc source-sh-di {shell script args} {
    foreach modcmd $modcontent {
       interp eval $itrp $modcmd
    }
+}
+
+proc variant {args} {
+   # check args
+   if {[llength $args] == 0} {
+      knerror {No variant name specified}
+   }
+   set name [lindex $args 0]
+   if {![string match {[A-Za-z0-9_]} [string index $name 0]]} {
+      knerror "Invalid variant name '$name'"
+   }
+   set values [lrange $args 1 end]
+
+   # get current modulefile Tcl interpreter
+   set itrp __modfile_[currentState mode]_[depthState modulename]
+
+   # get variant list defined on command line
+   set vrlist [getVariantListFromVersSpec [currentState specifiedname]]
+
+   # search for variant specification (most right-positionned value wins)
+   for {set i [expr {[llength $vrlist]-1}]} {$i >= 0} {incr i -1} {
+      lassign [lindex $vrlist $i] vrname vrvalue
+      if {$vrname eq $name} {
+         if {[llength $values] > 0 && [notInList $values $vrvalue]} {
+            knerror "Invalid value '$vrvalue' for variant '$name'"
+         } else {
+            # instanciate variant in modulefile context
+            reportDebug "Set variant on $itrp: ModuleVariant($name) =\
+               '$vrvalue'"
+            $itrp eval set "{::ModuleVariant($name)}" "{$vrvalue}"
+            # after modfile interp ModuleVariant is unset by resetInterpState
+         }
+         break
+      }
+   }
+
 }
 
 ########################################################################
