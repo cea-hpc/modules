@@ -1,0 +1,51 @@
+#%Module
+
+if {[info exists env(TESTSUITE_VARIANT)]} {
+    switch -- $env(TESTSUITE_VARIANT) {
+        1 {
+            variant foo val1
+        }
+        2 {
+            variant FOO val1 val2 val3
+        }
+        3 {
+            variant foo
+        }
+        4 {
+            variant %foo val1 val2 val3
+        }
+        5 {
+            variant foo val1
+            variant foo val2
+            variant bar val1
+            variant bar val1 val2
+        }
+        6 {
+            variant foo 0 1 2
+            variant bar
+        }
+        7 {
+            variant {} 0 1 2
+        }
+        8 {
+            variant var val
+        }
+        9 {
+            variant v?r v?l
+            variant v*r v*l
+        }
+        10 {
+            variant {foo bar} val1
+            variant {foo } val1
+        }
+    }
+    setenv TS0 [lsort [array names ModuleVariant]]
+    set ts1 {}
+    foreach name [lsort [array names ModuleVariant]] {
+        if {$ts1 ne {}} {
+            append ts1 {:}
+        }
+        append ts1 "$name=$ModuleVariant($name)"
+    }
+    setenv TS1 $ts1
+}
