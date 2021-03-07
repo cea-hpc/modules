@@ -1898,6 +1898,7 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}\
    # reset modulefile-specific variable before each interpretation
    interp eval $itrp set ::ModulesCurrentModulefile "{$modfile}"
    interp eval $itrp set must_have_cookie $must_have_cookie
+   interp eval $itrp set vrspeclist "{[getVariantListFromVersSpec $modspec]}"
 
    set errorVal [interp eval $itrp {
       set modcontent [readModuleContent $::ModulesCurrentModulefile 1\
@@ -1909,6 +1910,24 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}\
       # eval then call for specific proc depending mode under same catch
       set sourceFailed [catch {
          eval $modcontent
+
+         # raise error if a variant specified is not defined in modulefile
+         set vrerrlist {}
+         foreach vrspec $vrspeclist {
+            set vrname [lindex $vrspec 0]
+            if {![info exists ::ModuleVariant($vrname)]} {
+               lappend vrerrlist "Unknown variant '$vrname' specified"
+            }
+         }
+         # report all unknown variants specified, raise error on last report
+         # take caution with vrerrlist variable as we are in modfile eval ctx
+         if {[info exists vrerrlist] && [llength $vrerrlist] > 0} {
+            for {set i 0} {$i < ([llength $vrerrlist] - 1)} {incr i} {
+               reportError [lindex $vrerrlist $i]
+            }
+            error [lindex $vrerrlist $i] {} MODULES_ERR_GLOBAL
+         }
+
          switch -- [module-info mode] {
             help {
                if {[info procs ModulesHelp] eq {ModulesHelp}} {
