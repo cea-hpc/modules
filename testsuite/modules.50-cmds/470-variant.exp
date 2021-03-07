@@ -235,6 +235,14 @@ testouterr_cmd sh {ml foo=bar} ERR $err_specmodname'foo=bar'
 testouterr_cmd sh {ml foo=bar@1.0} ERR "$err_specmodname'foo=bar@1.0'"
 testouterr_cmd sh {ml variant @foo=bar} ERR "$err_path'variant @foo=bar'"
 
+# specification of an unknown variant
+setenv_var TESTSUITE_VARIANT 1
+testouterr_cmd sh {load variant/1.0 bar=val} ERR [msg_load variant/1.0 "$error_msgs: Unknown variant 'bar' specified"]
+testouterr_cmd sh {load variant/1.0 bar=val baz=val} ERR [msg_load variant/1.0 "$error_msgs: Unknown variant 'bar' specified" "$error_msgs: Unknown variant 'baz' specified"]
+testouterr_cmd sh {load variant/1.0 bar=val variant/1.0 baz=val} ERR [msg_load variant/1.0 "$error_msgs: Unknown variant 'bar' specified"]\n\n[msg_load variant/1.0 "$error_msgs: Unknown variant 'baz' specified"]
+testouterr_cmd sh {load variant/1.0 bar=val foo=val1 baz=val} ERR [msg_load variant/1.0 "$error_msgs: Unknown variant 'bar' specified" "$error_msgs: Unknown variant 'baz' specified"]
+testouterr_cmd sh {load variant/1.0 bar=val foo=val2 baz=val} ERR [msg_load variant/1.0 [msg_moderr {Invalid value 'val2' for variant 'foo'} {variant foo val1} $mp/variant/1.0 6]]
+
 
 #
 #  Cleanup
