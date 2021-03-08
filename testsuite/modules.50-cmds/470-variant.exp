@@ -143,6 +143,7 @@ testouterr_cmd sh {load variant/1.0 foo=0 bar=val} $ans {}
 setenv_var TESTSUITE_VARIANT 7
 testouterr_cmd sh {load variant/1.0} ERR [msg_load variant/1.0 [msg_moderr {Invalid variant name ''} {variant {} 0 1 2} $mp/variant/1.0 28]]
 testouterr_cmd sh {load variant/1.0 =foo} ERR "$error_msgs: No variant name defined in argument '=foo'"
+testouterr_cmd sh {load =foo} ERR "$error_msgs: No variant name defined in argument '=foo'"
 
 # test successive evaluation of modulefiles (variants should be cleared between evaluation)
 setenv_var TESTSUITE_VARIANT 1
@@ -242,6 +243,22 @@ testouterr_cmd sh {load variant/1.0 bar=val baz=val} ERR [msg_load variant/1.0 "
 testouterr_cmd sh {load variant/1.0 bar=val variant/1.0 baz=val} ERR [msg_load variant/1.0 "$error_msgs: Unknown variant 'bar' specified"]\n\n[msg_load variant/1.0 "$error_msgs: Unknown variant 'baz' specified"]
 testouterr_cmd sh {load variant/1.0 bar=val foo=val1 baz=val} ERR [msg_load variant/1.0 "$error_msgs: Unknown variant 'bar' specified" "$error_msgs: Unknown variant 'baz' specified"]
 testouterr_cmd sh {load variant/1.0 bar=val foo=val2 baz=val} ERR [msg_load variant/1.0 [msg_moderr {Invalid value 'val2' for variant 'foo'} {variant foo val1} $mp/variant/1.0 6]]
+
+# test argument mixing variant and version specifier
+setenv_var TESTSUITE_VARIANT 1
+set ans [list]
+lappend ans [list set TS0 {foo}]
+lappend ans [list set TS1 {foo=val1}]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+testouterr_cmd sh {load variant foo=val1@1.0} $ans {}
+testouterr_cmd sh {load variant foo=val1@2.0@1.0} $ans {}
+testouterr_cmd sh {load variant foo=val@1.0} ERR [msg_load variant/1.0 [msg_moderr {Invalid value 'val' for variant 'foo'} {variant foo val1} $mp/variant/1.0 6]]
+testouterr_cmd sh {load variant foo=@1.0} ERR [msg_load variant/1.0 [msg_moderr {Invalid value '' for variant 'foo'} {variant foo val1} $mp/variant/1.0 6]]
+testouterr_cmd sh {load variant =val@1.0} ERR "$error_msgs: No variant name defined in argument '=val'"
+testouterr_cmd sh {load variant =val@} ERR "$error_msgs: No variant name defined in argument '=val'"
+testouterr_cmd sh {load variant foo=val@} ERR [msg_load variant/3.0 "$error_msgs: Unknown variant 'foo' specified"]
+testouterr_cmd sh {load foo=val@1.0} ERR $err_specmodname'foo=val@1.0'
 
 
 #
