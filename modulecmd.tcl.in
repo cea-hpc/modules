@@ -4840,6 +4840,9 @@ proc variant {args} {
                '$vrvalue'"
             $itrp eval set "{::ModuleVariant($name)}" "{$vrvalue}"
             # after modfile interp ModuleVariant is unset by resetInterpState
+
+            # record variant for persistency
+            setLoadedVariant [currentState modulename] [list $name $vrvalue]
          }
          break
       }
@@ -5146,6 +5149,34 @@ proc getLoadedModuleAltnameList {} {
       }
    }
    return $modaltlist
+}
+
+# return list of loaded module declared variant by parsing MODULES_LMVARIANT
+proc getLoadedModuleVariantList {} {
+   set modvrspeclist [list]
+   set sub1sep [getState sub1_separator]
+   # get sub sub level separator that serialize third level of info in env var
+   set sub2sep [getState sub2_separator]
+   foreach modvrspecser [split [get-env MODULES_LMVARIANT] [getState\
+      path_separator]] {
+      set vrspeclist [split $modvrspecser $sub1sep]
+      # ignore empty element (1 is meaningless as first elt is loaded mod)
+      if {[llength $vrspeclist] > 1} {
+         set modvrspec {}
+         # keep first arg as string and other args as lists
+         foreach vrspec $vrspeclist {
+            if {[llength $modvrspec] == 0} {
+               lappend modvrspec $vrspec
+            # ignore empty variant spec
+            } elseif {[llength [set vrspecli [split $vrspec $sub2sep]]] > 0} {
+               lappend modvrspec $vrspecli
+            }
+         }
+
+         lappend modvrspeclist $modvrspec
+      }
+   }
+   return $modvrspeclist
 }
 
 # return list of loaded module declared tags by parsing MODULES_LMTAG
@@ -6181,6 +6212,37 @@ proc getLoadedAltname {mod {serialized 0} {typelist {sym alias autosym}}} {
    if {$ret ne {} && $serialized} {
       # get altname info as a string that can be registered in an env var
       set ret [join [concat [list $mod] $ret] [getState sub1_separator]]
+   }
+
+   return $ret
+}
+
+proc setLoadedVariant {mod args} {
+   eval lappend "{::g_loadedModuleVariant($mod)}" $args
+}
+
+proc unsetLoadedVariant {mod} {
+   if {[info exists ::g_loadedModuleVariant($mod)]} {
+      unset ::g_loadedModuleVariant($mod)
+   }
+}
+
+proc getLoadedVariant {mod {serialized 0}} {
+   set ret {}
+
+   set sub2sep [getState sub2_separator]
+   if {[info exists ::g_loadedModuleVariant($mod)]} {
+      if {$serialized} {
+         # get variant info as a string that can be registered in an env var
+         foreach vrspec $::g_loadedModuleVariant($mod) {
+            lappend modvrspec [join $vrspec $sub2sep]
+         }
+         # translate range specifier ':' into '<' to distinguish from path sep
+         set ret [string map {: <} [join [concat [list $mod] $modvrspec]\
+            [getState sub1_separator]]]
+      } else {
+         set ret $::g_loadedModuleVariant($mod)
+      }
    }
 
    return $ret
@@ -7836,6 +7898,11 @@ proc cacheCurrentModules {{exitonerr 1}} {
          # cache declared tags of loaded modules
          foreach modtag [getLoadedModuleTagList] {
             eval setModuleTag $modtag
+         }
+
+         # cache declared variant of loaded modules
+         foreach modvrspec [getLoadedModuleVariantList] {
+            eval setLoadedVariant $modvrspec
          }
 
          # cache declared alternative names of loaded modules
@@ -12218,6 +12285,11 @@ proc cmdModuleLoad {context uasked args} {
             add-path append MODULES_LMALTNAME $modalt
          }
 
+         # declare the variant of this module
+         if {[set modvrspec [getLoadedVariant $modname 1]] ne {}} {
+            add-path append MODULES_LMVARIANT $modvrspec
+         }
+
          # declare the tags of this module
          if {[set modtag [getTagList $modname 1]] ne {}} {
             add-path append MODULES_LMTAG $modtag
@@ -12499,6 +12571,12 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             unload-path MODULES_LMALTNAME [getLoadedAltname $modname 1]
          }
          unsetLoadedAltname $modname
+
+         # unset variant declared for this module
+         if {[llength [set modvrspec [getLoadedVariant $modname]]] > 0} {
+            unload-path MODULES_LMVARIANT [getLoadedVariant $modname 1]
+         }
+         unsetLoadedVariant $modname
 
          # unset tags declared for this module
          if {[set modtag [getTagList $modname 1]] ne {}} {
