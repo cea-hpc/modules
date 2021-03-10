@@ -9789,7 +9789,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
 
 # format an element with its syms for display in a list
 proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
-   sgrdef tag_list show_tags {himatchmap {}}} {
+   sgrdef tag_list show_tags vr_list vrsgr show_vrs {himatchmap {}}} {
    # fetch sgr codes from tags to apply directly on main element
    if {$show_tags && [llength $tag_list] > 0} {
       # if more codes than character in elt, additionnal codes apply to the
@@ -9810,6 +9810,23 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
    set disp $elt$eltsuffix
    lappend eltsgrlist $eltsgr
    set dispsgr [sgr $eltsgrlist $elt $himatchmap $tagsgrlist]$eltsuffix
+
+   # format variant list if any
+   if {$show_vrs && [llength $vr_list] > 0} {
+      append disp "{[join $vr_list :]}"
+      set vrssgr "[sgr se \{]"
+      foreach vr $vr_list {
+         if {[info exists notfirstvr]} {
+            set colonsgr [sgr se :]
+            append vrssgr $colonsgr
+         } else {
+            set notfirstvr 1
+         }
+         append vrssgr [sgr $vrsgr $vr]
+      }
+      append vrssgr [sgr se \}]
+      append dispsgr $vrssgr
+   }
 
    # format remaining sym list
    if {$show_syms && [llength $sym_list] > 0} {
@@ -9946,6 +9963,9 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
    set report_sym [isEltInReport sym]
    set report_tag [isEltInReport tag]
    set report_alias [isEltInReport alias]
+   # enable variant report if configured or on list json output
+   set report_variant [isEltInReport variant [expr {[currentState\
+      commandname] eq {list} && $json}]]
 
    # prepare list of tag abbreviations that can be substituted and list of
    # tags whose name should be colored
@@ -9961,6 +9981,7 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
    # treat elements in specified order if any
    foreach elt [if {[llength $mod_list_order] == 0} {array names mod_list}\
       {set mod_list_order}] {
+      set vr_list [getLoadedVariant $elt]
       set sym_list [getVersAliasList $elt]
       # fetch tags but clear excluded tag
       set tag_list [replaceFromList [getTagList $elt] $excluded_tag]
@@ -9982,14 +10003,15 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
                   $default_colored $himatchmap] disp dispsgr
             } else {
                lassign [formatListEltToDisplay $elt di / $sym_list sy\
-                  $report_sym $default_colored {} 0 $himatchmap] disp dispsgr
+                  $report_sym $default_colored {} 0 {} {} 0 $himatchmap] disp\
+                  dispsgr
             }
          }
          modulefile - virtual {
             if {$json} {
                set dispsgr [formatListEltToJsonDisplay $elt type s modulefile\
-                  symbols a $sym_list tags a $tag_list pathname s [lindex\
-                  $mod_list($elt) 2]]
+                  variants a $vr_list symbols a $sym_list tags a $tag_list\
+                  pathname s [lindex $mod_list($elt) 2]]
             } elseif {$show_mtime} {
                set clock_mtime [expr {[lindex $mod_list($elt) 1] ne {} ?\
                   [clock format [lindex $mod_list($elt) 1] -format {%Y/%m/%d\
@@ -10000,8 +10022,8 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
                   $clock_mtime $default_colored $himatchmap] disp dispsgr
             } else {
                lassign [formatListEltToDisplay $elt {} {} $sym_list sy\
-                  $report_sym $default_colored $tag_list $report_tag\
-                  $himatchmap] disp dispsgr
+                  $report_sym $default_colored $tag_list $report_tag $vr_list\
+                  va $report_variant $himatchmap] disp dispsgr
             }
          }
          alias {
@@ -10023,7 +10045,7 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
                   }
                }
                lassign [formatListEltToDisplay $elt al {} $sym_list sy\
-                  $report_sym $default_colored $tag_list $report_tag\
+                  $report_sym $default_colored $tag_list $report_tag {} {} 0\
                   $himatchmap] disp dispsgr
             }
          }
@@ -10287,8 +10309,9 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx\
 proc displayKey {} {
    array set skipsgr [list hi 1 db 1 tr 1 se 1 er 1 wa 1 me 1 in 1 cm 1]
    array set typesgr [list mp modulepath di [list directory <SGR>/ 10] al\
-      module-alias sy [list {symbolic-version} [sgr se (]<SGR>[sgr se )] 18]\
-      de [list {default-version}]]
+      module-alias va [list variant [sgr se \{]<SGR>[sgr se \}] 9] sy [list\
+      {symbolic-version} [sgr se (]<SGR>[sgr se )] 18] de [list\
+      {default-version}]]
 
    set display_list {}
    set len_list {}
