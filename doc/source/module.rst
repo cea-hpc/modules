@@ -1827,8 +1827,9 @@ ENVIRONMENT
  highlighted element (``hi``), debug information (``db``), trace information
  (``tr``), tag separator (``se``); Error (``er``), warning (``wa``), module
  error (``me``) and info (``in``) message prefixes; Modulepath (``mp``),
- directory (``di``), module alias (``al``), module symbolic version (``sy``),
- module ``default`` version (``de``) and modulefile command (``cm``).
+ directory (``di``), module alias (``al``), module variant (``va``), module
+ symbolic version (``sy``), module ``default`` version (``de``) and modulefile
+ command (``cm``).
 
  `Module tags`_ can also be colorized. The key to set in the color palette to
  get a graphical rendering of a tag is the tag name or the tag abbreviation if
@@ -1869,6 +1870,9 @@ ENVIRONMENT
        Output items for module tags auto-loaded (``aL``), forbidden (``F``),
        hidden and hidden-loaded (``H``), loaded (``L``), nearly-forbidden
        (``nF``), sticky (``S``) and super-sticky (``sS``) added
+
+    .. versionchanged:: 4.8
+       Output item for module variant (``va``) added
 
 .. envvar:: MODULES_EDITOR
 

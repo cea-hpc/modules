@@ -631,8 +631,8 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  information (``db``), trace information (``tr``) tag separator (``se``);
  Error (``er``), warning (``wa``), module error (``me``) and info (``in``)
  message prefixes; Modulepath (``mp``), directory (``di``), module alias
- (``al``), module symbolic version (``sy``) and module ``default`` version
- (``de``).
+ (``al``), module variant (``va``), module symbolic version (``sy``) and
+ module ``default`` version (``de``).
 
  :ref:`Module tags` can also be colorized. The key to set in the color palette
  to get a graphical rendering of a tag is the tag name or the tag abbreviation
@@ -645,7 +645,7 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
  For a complete SGR code reference, see
  https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters.
- (default=\ ``hi=1:db=2:tr=2:se=2:er=91:wa=93:me=95:in=94:mp=1;94:di=94:al=96:sy=95:de=4:cm=92:aL=100:L=90;47:H=2:F=41:nF=43:S=46:sS=44``)
+ (default=\ ``hi=1:db=2:tr=2:se=2:er=91:wa=93:me=95:in=94:mp=1;94:di=94:al=96:va=93:sy=95:de=4:cm=92:aL=100:L=90;47:H=2:F=41:nF=43:S=46:sS=44``)
 
  .. only:: html
 
@@ -658,13 +658,16 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
        Output items for module tags auto-loaded (``aL``), forbidden (``F``),
        hidden and hidden-loaded (``H``), loaded (``L``), nearly-forbidden
        (``nF``), sticky (``S``) and super-sticky (``sS``) added
+
+    .. versionchanged:: 4.8
+       Output item for module variant (``va``) added
 
 .. instopt:: --with-light-background-colors=SGRLIST
 
  Default color set to apply if terminal background color is defined to
  ``light``. Expect the same syntax than described for
  :instopt:`--with-dark-background-colors`.
- (default=\ ``hi=1:db=2:tr=2:se=2:er=31:wa=33:me=35:in=34:mp=1;34:di=34:al=36:sy=35:de=4:cm=32:aL=107:L=47:H=2:F=101:nF=103:S=106:sS=104``)
+ (default=\ ``hi=1:db=2:tr=2:se=2:er=31:wa=33:me=35:in=34:mp=1;34:di=34:al=36:va=33:sy=35:de=4:cm=32:aL=107:L=47:H=2:F=101:nF=103:S=106:sS=104``)
 
  .. only:: html
 
@@ -677,6 +680,9 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
        Output items for module tags auto-loaded (``aL``), forbidden (``F``),
        hidden and hidden-loaded (``H``), loaded (``L``), nearly-forbidden
        (``nF``), sticky (``S``) and super-sticky (``sS``) added
+
+    .. versionchanged:: 4.8
+       Output item for module variant (``va``) added
 
 .. instopt:: --with-terminal-background=VALUE
 
