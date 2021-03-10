@@ -321,7 +321,7 @@ switches are accepted:
  *modulepath*, *alias*, *dirwsym*, *sym*, *tag* and *key*.
 
  Accepted elements in *LIST* for :subcmd:`list` sub-command are: *header*,
- *idx*, *sym*, *tag* and *key*.
+ *idx*, *variant*, *sym*, *tag* and *key*.
 
  The order of the elements in *LIST* does not matter. Module names are the
  only content reported when *LIST* is set to an empty value.
@@ -331,6 +331,9 @@ switches are accepted:
  .. only:: html
 
     .. versionadded:: 4.7
+
+    .. versionchanged:: 4.8
+       Element *variant* added for :subcmd:`list` sub-command
 
 .. option:: --paginate
 
@@ -1990,6 +1993,7 @@ ENVIRONMENT
    that no modules are loaded currently.
  * ``idx``: index position of each loaded module.
  * ``key``: legend appended at the end of the output to explain it.
+ * ``variant``: variant values selected for loaded modules.
  * ``sym``: symbolic versions associated with loaded modules.
  * ``tag``: tags associated with loaded modules.
 
@@ -2007,6 +2011,9 @@ ENVIRONMENT
  .. only:: html
 
     .. versionadded:: 4.7
+
+    .. versionchanged:: 4.8
+       Element ``variant`` added
 
 .. envvar:: MODULES_LIST_TERSE_OUTPUT
 

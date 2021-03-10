@@ -792,25 +792,31 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
  Specify the content to report on list sub-command regular output in addition
  to the loaded module names. Elements accepted in LIST are: ``header``,
- ``idx``, ``sym``, ``tag`` and ``key`` (elements in LIST are separated by
- ``:``). The order of the elements in LIST does not matter.
- (default=\ ``header:idx:sym:tag:key``)
+ ``idx``, ``variant``, ``sym``, ``tag`` and ``key`` (elements in LIST are
+ separated by ``:``). The order of the elements in LIST does not matter.
+ (default=\ ``header:idx:variant:sym:tag:key``)
 
  .. only:: html
 
     .. versionadded:: 4.7
+
+    .. versionchanged:: 4.8
+       Element ``variant`` added and set by default
 
 .. instopt:: --with-list-terse-output=LIST
 
  Specify the content to report on list sub-command terse output in addition
  to the loaded module names. Elements accepted in LIST are: ``header``,
- ``idx``, ``sym``, ``tag`` and ``key`` (elements in LIST are separated by
- ``:``). The order of the elements in LIST does not matter.
+ ``idx``, ``variant``, ``sym``, ``tag`` and ``key`` (elements in LIST are
+ separated by ``:``). The order of the elements in LIST does not matter.
  (default=\ ``header``)
 
  .. only:: html
 
     .. versionadded:: 4.7
+
+    .. versionchanged:: 4.8
+       Element ``variant`` added
 
 .. instopt:: --with-editor=BIN
 
