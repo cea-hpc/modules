@@ -9917,13 +9917,29 @@ proc formatArrayValToJson {vallist} {
       : {[]}}]
 }
 
+proc formatObjectValToJson {objlist} {
+   foreach {key val} $objlist {
+      if {[info exists disp]} {
+         append disp {, }
+      }
+      append disp "\"$key\": \"$val\""
+   }
+   return [expr {[info exists disp] ? "{ $disp }" : "{}"}]
+}
+
 # format an element with its syms for a json display in a list
 proc formatListEltToJsonDisplay {elt args} {
    set disp "\"$elt\": \{ \"name\": \"$elt\""
-   foreach {key vtype val} $args {
+   foreach {key vtype val show} $args {
+      if {!$show} {
+         continue
+      }
       append disp ", \"$key\": "
-      append disp [expr {$vtype eq {a} ? [formatArrayValToJson $val] :\
-         "\"$val\""}]
+      switch -- $vtype {
+         a {append disp [formatArrayValToJson $val]}
+         o {append disp [formatObjectValToJson $val]}
+         s {append disp "\"$val\""}
+      }
    }
    append disp "\}"
 
@@ -9996,7 +10012,7 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
          directory {
             if {$json} {
                set dispsgr [formatListEltToJsonDisplay $elt type s directory\
-                  symbols a $sym_list]
+                  1 symbols a $sym_list 1]
             } elseif {$show_mtime} {
                # append / char after name to clearly indicate this is a dir
                lassign [formatListEltToLongDisplay $elt di / $sym_list sy {}\
@@ -10010,8 +10026,8 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
          modulefile - virtual {
             if {$json} {
                set dispsgr [formatListEltToJsonDisplay $elt type s modulefile\
-                  variants a $vr_list symbols a $sym_list tags a $tag_list\
-                  pathname s [lindex $mod_list($elt) 2]]
+                  1 variants o $vr_list $report_variant symbols a $sym_list 1\
+                  tags a $tag_list 1 pathname s [lindex $mod_list($elt) 2] 1]
             } elseif {$show_mtime} {
                set clock_mtime [expr {[lindex $mod_list($elt) 1] ne {} ?\
                   [clock format [lindex $mod_list($elt) 1] -format {%Y/%m/%d\
@@ -10028,9 +10044,9 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
          }
          alias {
             if {$json} {
-               set dispsgr [formatListEltToJsonDisplay $elt type s alias\
-                  symbols a $sym_list tags a $tag_list target s [lindex\
-                  $mod_list($elt) 1]]
+               set dispsgr [formatListEltToJsonDisplay $elt type s alias 1\
+                  symbols a $sym_list 1 tags a $tag_list 1 target s [lindex\
+                  $mod_list($elt) 1] 1]
             } elseif {$show_mtime} {
                lassign [formatListEltToLongDisplay $elt al " -> [lindex\
                   $mod_list($elt) 1]" $sym_list sy {} $default_colored\
@@ -11648,7 +11664,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
             if {$search eq {} || [regexp -nocase $search $::g_whatis]} {
                if {$json} {
                   lappend display_list [formatListEltToJsonDisplay $elt\
-                     whatis a $::g_whatis]
+                     whatis a $::g_whatis 1]
                } else {
                   set eltsgr [string map $matchmodmap $elt]
                   foreach line $::g_whatis {
@@ -12051,7 +12067,7 @@ proc cmdModuleSavelist {show_oneperline show_mtime} {
          regsub $suffix$ [file tail $coll] {} mod
          if {$json} {
             lappend display_list [formatListEltToJsonDisplay $mod target s\
-               $colltarget pathname s $coll]
+               $colltarget 1 pathname s $coll 1]
          # no need to test mod consistency as findCollections does not return
          # collection whose name starts with "."
          } elseif {$show_mtime} {
