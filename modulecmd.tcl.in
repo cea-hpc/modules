@@ -9834,6 +9834,10 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
 
    # format variant list if any
    if {$show_vrs && [llength $vr_list] > 0} {
+      # track if a variant has been reported
+      if {![info exists ::g_used_va_nocolor]} {
+         set ::g_used_va_nocolor 1
+      }
       append disp "{[join $vr_list :]}"
       set vrssgr "[sgr se \{]"
       foreach vr $vr_list {
@@ -10346,8 +10350,8 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx\
 proc displayKey {} {
    array set skipsgr [list hi 1 db 1 tr 1 se 1 er 1 wa 1 me 1 in 1 cm 1]
    array set typesgr [list mp modulepath di [list directory <SGR>/ 10] al\
-      module-alias va [list variant [sgr se \{]<SGR>[sgr se \}] 9] sy [list\
-      {symbolic-version} [sgr se (]<SGR>[sgr se )] 18] de [list\
+      module-alias va [list variant=value [sgr se \{]<SGR>[sgr se \}] 15] sy\
+      [list {symbolic-version} [sgr se (]<SGR>[sgr se )] 18] de [list\
       {default-version}]]
 
    set display_list {}
@@ -10364,6 +10368,9 @@ proc displayKey {} {
          }
          if {$key eq {sy} && [info exists ::g_used_sym_nocolor]} {
             unset ::g_used_sym_nocolor
+         }
+         if {$key eq {va} && [info exists ::g_used_va_nocolor]} {
+            unset ::g_used_va_nocolor
          }
       # key is a tag abbreviation
       } elseif {[info exists ::g_abbrevTag($key)]} {
@@ -10383,6 +10390,12 @@ proc displayKey {} {
          unset desc
          unset len
       }
+   }
+
+   # add key for variant if any but no color
+   if {[info exists ::g_used_va_nocolor]} {
+      lappend display_list "[sgr se \{]variant=value[sgr se \}]"
+      lappend len_list 15
    }
 
    # add key for alias if '@' put in parentheses
