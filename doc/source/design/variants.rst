@@ -456,3 +456,41 @@ Variant shortcut
 - variant shortcuts could be used on the command-line or within modulefiles even if it is not recommended to use them in the latter case
 
     - as if user updates the ``variant_shortcut`` configuration option, it will broke underlying modulefiles using a de-configured shortcuts
+
+Reporting
+^^^^^^^^^
+
+- Defined variants are reported on ``list`` sub-command results
+
+    - Reported joined to modulefile name, within curly braces
+    - Each variant definition separated by a colon
+    - For instance ``module/version{vr=val:+boolvr}``
+
+- Variants are reported by default on ``list`` sub-command
+
+    - as they qualify what exact flavor of the module is loaded
+    - so it enables users to really catch what has been loaded exactly
+    - They can be removed from output using the :ref:`output configuration<output-configuration>` mechanism
+
+- Variants defined by modulefiles are not reported currently on ``avail`` sub-command as it requires to evaluate the modulefiles
+
+    - FUTURE: this could be implemented later on, but such evaluation of all modulefiles would be really expensive
+    - it will take a lot more time to get ``avail`` results (unless a valid cache is found)
+
+- A specific color key is defined to highlight variants: ``va``
+
+- Variant report depends on variant type
+
+    - valued variant: ``variant=value``
+    - boolean variant: ``+variant`` or ``-variant``
+    - valued variant with shortcut set: ``<shortcut>value`` (for instance if ``%`` is a defined shortcut: ``%value``)
+
+- Variant aliases are not reported
+
+    - to keep output tight
+
+- Special variant ``version`` is reported right after the module name
+
+    - with ``@`` shortcut
+    - using variant highlight color if any
+    - for instance: ``module@version{othervariant=value}``

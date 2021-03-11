@@ -34,7 +34,7 @@ Specification
 
     - ``avail_output``: ``modulepath:alias:dirwsym:sym:tag:key``
     - ``avail_terse_output``: ``modulepath:alias:dirwsym:sym:tag``
-    - ``list_output``: ``header:idx:sym:tag:key``
+    - ``list_output``: ``header:idx:variant:sym:tag:key``
     - ``list_terse_output``: ``header``
 
 - The above default value could be superseded:
@@ -54,7 +54,7 @@ Specification
 - Accepted elements in value lists are:
 
     - For ``avail`` options: modulepath, alias, dirwsym, sym, tag, key
-    - For ``list`` options: header, idx, sym, tag, key
+    - For ``list`` options: header, idx, variant, sym, tag, key
 
 - If the ``-o``/``--output`` options are wronly specified
 
@@ -108,10 +108,11 @@ Output key
 
 - An output key is added to print a legend explaining the output
 
-    - Meaning of ``()`` or ``<>`` is explained
+    - Meaning of ``()``, ``{}`` or ``<>`` is explained
     - Default version is colored specifically
     - Every tag shortened to a defined abbreviation
     - Every tag colored specifically
+    - Every variant type set (``variant=value``, ``+boolvariant``, ``-boolvariant``, ``%shortcutvariantvalue``, etc)
     - Legend entries only concern elements that can be found in reported output
     - Legend entries are not reported on JSON output mode
 
