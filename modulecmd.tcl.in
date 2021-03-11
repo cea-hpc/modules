@@ -5422,6 +5422,27 @@ proc abbrevTagList {taglist} {
    return [lsort -dictionary $ret]
 }
 
+proc getVariantList {mod {report 0}} {
+   set ret {}
+
+   if {[info exists ::g_loadedModuleVariant($mod)]} {
+      # use array to make variant unique
+      foreach vrspec $::g_loadedModuleVariant($mod) {
+         set vrarr([lindex $vrspec 0]) [lindex $vrspec 1]
+      }
+      # sort variant to report
+      foreach vrname [lsort -dictionary [array names vrarr]] {
+         if {$report} {
+            lappend ret $vrname=$vrarr($vrname)
+         } else {
+            lappend ret $vrname $vrarr($vrname)
+         }
+      }
+   }
+
+   return $ret
+}
+
 proc isModuleDotHidden {mod} {
    foreach elt [split $mod /] {
       if {[string index $elt 0] eq {.}} {
@@ -9997,7 +10018,7 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
    # treat elements in specified order if any
    foreach elt [if {[llength $mod_list_order] == 0} {array names mod_list}\
       {set mod_list_order}] {
-      set vr_list [getLoadedVariant $elt]
+      set vr_list [getVariantList $elt [expr {!$json}]]
       set sym_list [getVersAliasList $elt]
       # fetch tags but clear excluded tag
       set tag_list [replaceFromList [getTagList $elt] $excluded_tag]
