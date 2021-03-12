@@ -9821,10 +9821,13 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
       append disp "([join $sym_list :])"
       set symssgr [sgr se (]
       foreach sym $sym_list {
-         if {![info exists colonsgr]} {
-            set colonsgr [sgr se :]
-         } else {
+         if {[info exists notfirstsym]} {
+            if {![info exists colonsgr]} {
+               set colonsgr [sgr se :]
+            }
             append symssgr $colonsgr
+         } else {
+            set notfirstsym 1
          }
          append symssgr [sgr $symsgr $sym]
       }
@@ -9841,10 +9844,13 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
          if {![info exists ::g_used_tags($tag)]} {
             set ::g_used_tags($tag) 1
          }
-         if {![info exists commasgr]} {
-            set commasgr [sgr se :]
+         if {[info exists notfirsttag]} {
+            if {![info exists colonsgr]} {
+               set colonsgr [sgr se :]
+            }
+            append tagssgr $colonsgr
          } else {
-            append tagssgr $commasgr
+            set notfirsttag 1
          }
          # try to sgr in case a code apply to the tag
          append tagssgr [sgr $tag $tag]
