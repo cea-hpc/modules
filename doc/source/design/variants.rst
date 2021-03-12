@@ -202,9 +202,14 @@ Persistency
 - variants defined are made persistent in :envvar:`MODULES_LMVARIANT` environment variable
 
     - following same approach than for :envvar:`MODULES_LMPREREQ`
-    - each loaded module with defined variants (default value or specifically set) will expose these variants value in a record with following syntax:
+    - each loaded module with defined variants (default value or specifically set) will expose these variants value and if the value is the default one in a record with following syntax:
 
-        - ``loadedmodule&(+|-)boolvariantname1&variantname2|value2|value3...``
+        - ``loadedmodule&(+|-)boolvariantname1|isdefaultvalue&variantname2|value2|value3...|isdefaultvalue``
+
+    - for each variant it is recorded if the value set corresponds to the variant default value or not
+
+        - such information is useful to save collection when pin version mechanism is disabled
+        - on such setup the variant definition should not recorded in collection if this is the default value which is set
 
     - each *loadedmodule* record are joined in ``MODULES_LMVARIANT`` separated by ``:`` character
 
