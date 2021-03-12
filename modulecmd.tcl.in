@@ -1468,7 +1468,7 @@ proc releaseHeldReport {args} {
 
 # check if element passed as argument (corresponding to a kind of information)
 # should be part of output content
-proc isEltInReport {elt} {
+proc isEltInReport {elt {retifnotdef 1}} {
    # get config name relative to current sub-command and output format
    set conf [currentState commandname]
    if {[getState report_format] ne {regular}} {
@@ -1489,9 +1489,9 @@ proc isEltInReport {elt} {
       # check if elt is marked to be included in output
       set ret [info exists ${arrname}($elt)]
    } else {
-      # always return ok in case no config option corresponds to the current
-      # module sub-command and output format
-      set ret 1
+      # return $retifnotdef (ok by default) in case no config option
+      # corresponds to the current module sub-command and output format
+      set ret $retifnotdef
    }
 
    return $ret
