@@ -1,0 +1,136 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2021/03/11
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		list
+#   Modulefiles:    variant
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Tests around modulefiles using the variant mechanism
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+
+setenv_var MODULES_LIST_OUTPUT header:idx:variant:sym:tag:key
+setenv_var MODULES_LIST_TERSE_OUTPUT header
+
+#
+# list tests
+#
+
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1
+setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
+
+testouterr_cmd sh {list} OK "$cur_loaded
+ 1) variant/1.0{foo=val1}  
+
+Key:
+{variant=value}  "
+
+testouterr_cmd sh {list -o header:idx:sym:tag:key} OK "$cur_loaded
+ 1) variant/1.0  "
+
+testouterr_cmd sh {list -t} OK "$cur_loaded
+variant/1.0"
+
+testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"variants\": { \"foo\": \"val1\" }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"}}"
+
+# multiple variants set on module
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1&bar|val2
+setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
+
+set tserr "$cur_loaded
+ 1) variant/1.0{bar=val2:foo=val1}  
+
+Key:
+{variant=value}  "
+testouterr_cmd sh {list} OK $tserr
+testouterr_cmd sh {ml} OK $tserr
+
+set tserr "{\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"variants\": { \"bar\": \"val2\", \"foo\": \"val1\" }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"}}"
+testouterr_cmd sh {list -j} OK $tserr
+testouterr_cmd sh {ml -j} OK $tserr
+
+# multiple modules loaded
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1&bar|val2:variant/2.0&baz|val3
+setenv_loaded_module [list variant/1.0 variant/2.0] [list $mp/variant/1.0 $mp/variant/2.0]
+
+testouterr_cmd sh {list} OK "$cur_loaded
+ 1) variant/1.0{bar=val2:foo=val1}   2) variant/2.0{baz=val3}  
+
+Key:
+{variant=value}  "
+
+testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"variants\": { \"bar\": \"val2\", \"foo\": \"val1\" }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"},
+\"variant/2.0\": { \"name\": \"variant/2.0\", \"type\": \"modulefile\", \"variants\": { \"baz\": \"val3\" }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/2.0\"}}"
+
+# loaded modules with also symbols defined
+setenv_path_var MODULES_LMALTNAME variant/1.0&variant/foo
+testouterr_cmd sh {list} OK "$cur_loaded
+ 1) variant/1.0{bar=val2:foo=val1}(foo)   2) variant/2.0{baz=val3}  
+
+Key:
+{variant=value}  (symbolic-version)  "
+
+testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"variants\": { \"bar\": \"val2\", \"foo\": \"val1\" }, \"symbols\": \[ \"foo\" \], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"},
+\"variant/2.0\": { \"name\": \"variant/2.0\", \"type\": \"modulefile\", \"variants\": { \"baz\": \"val3\" }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/2.0\"}}"
+unsetenv_path_var MODULES_LMALTNAME
+
+# duplicate variant definition
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1&foo|val3&bar|val2:variant/2.0&baz|val3
+testouterr_cmd sh {list} OK "$cur_loaded
+ 1) variant/1.0{bar=val2:foo=val3}   2) variant/2.0{baz=val3}  
+
+Key:
+{variant=value}  "
+
+testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"variants\": { \"bar\": \"val2\", \"foo\": \"val3\" }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"},
+\"variant/2.0\": { \"name\": \"variant/2.0\", \"type\": \"modulefile\", \"variants\": { \"baz\": \"val3\" }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/2.0\"}}"
+
+# badly defined loaded variant
+setenv_path_var MODULES_LMVARIANT variant/1.0
+testouterr_cmd sh {list} OK "$cur_loaded
+ 1) variant/1.0   2) variant/2.0  "
+
+# colored output
+setenv_var MODULES_COLORS "se=2:va=33"
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1&bar|val2:variant/2.0&baz|val3
+
+testouterr_cmd_re sh {list --color=always} OK "$cur_loaded
+ 1\\) variant/1.0[sgr 2]{[sgr 22][sgr 33]bar=val2[sgr 0][sgr 2]:[sgr 22][sgr 33]foo=val1[sgr 0][sgr 2]}[sgr 22]   2\\) variant/2.0[sgr 2]{[sgr 22][sgr 33]baz=val3[sgr 0][sgr 2]}[sgr 22]  
+
+Key:
+[sgr 2]{[sgr 22][sgr 33]variant=value[sgr 0][sgr 2]}[sgr 22]  "
+
+unsetenv_path_var MODULES_LMVARIANT
+unsetenv_loaded_module
+
+
+#
+# avail
+#
+
+# variant not reported
+testouterr_cmd_re sh {avail variant/1.0} OK "$modlin $mpre $modlin
+variant/1.0  "
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
