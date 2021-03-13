@@ -5422,13 +5422,24 @@ proc abbrevTagList {taglist} {
    return [lsort -dictionary $ret]
 }
 
-proc getVariantList {mod {report 0}} {
+proc getVariantList {mod {report 0} {excl_dflval 0}} {
    set ret {}
 
    if {[info exists ::g_loadedModuleVariant($mod)]} {
       # use array to make variant unique
       foreach vrspec $::g_loadedModuleVariant($mod) {
-         set vrarr([lindex $vrspec 0]) [lindex $vrspec 1]
+         lassign $vrspec vrname vrvalue vrvalisdfl
+         # do not return variant if value is default
+         if {$excl_dflval} {
+            if {![string is true -strict $vrvalisdfl]} {
+               set vrarr($vrname) $vrvalue
+            # nullify previous duplicate definition if this one is default
+            } elseif {[info exists vrarr($vrname)]} {
+               unset vrarr($vrname)
+            }
+         } else {
+            set vrarr($vrname) $vrvalue
+         }
       }
       # sort variant to report
       foreach vrname [lsort -dictionary [array names vrarr]] {
@@ -6267,6 +6278,32 @@ proc getLoadedVariant {mod {serialized 0}} {
    }
 
    return $ret
+}
+
+proc getLoadedModuleWithVariantList {} {
+   set modvrlist [list]
+   foreach mod [getLoadedModuleList] {
+      set modvr [list $mod]
+      set vrlist [getVariantList $mod 1]
+      if {[llength $vrlist] > 0} {
+         set modvr [concat $modvr $vrlist]
+      }
+      lappend modvrlist $modvr
+   }
+   return $modvrlist
+}
+
+proc getLoadedModuleWithVariantNotUserAskedList {} {
+   set modvrlist [list]
+   foreach mod [getLoadedModuleNotUserAskedList] {
+      set modvr [list $mod]
+      set vrlist [getVariantList $mod 1]
+      if {[llength $vrlist] > 0} {
+         set modvr [concat $modvr $vrlist]
+      }
+      lappend modvrlist $modvr
+   }
+   return $modvrlist
 }
 
 proc isModuleUserAsked {mod} {
@@ -10534,10 +10571,13 @@ proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
       } else {
          set simplemod $mod
       }
-      lappend curr_mod_list $simplemod
+      # add each module specification as list to correctly enclose spaces in
+      # module name or variant name or value
+      set simplemodvr [concat [list $simplemod] [getVariantList $mod 1 1]]
+      lappend curr_mod_list $simplemodvr
       # record not user asked module list in simplified version form
       if {![isModuleUserAsked $mod]} {
-         lappend curr_nuasked_list $simplemod
+         lappend curr_nuasked_list $simplemodvr
       }
    }
 
@@ -10631,10 +10671,9 @@ proc formatCollectionContent {path_list mod_list nuasked_list {sgr 0}} {
    foreach mod $mod_list {
       # mark modules not asked by user to restore the user asked state
       set opt [expr {[isInList $nuasked_list $mod] ? {--notuasked } : {}}]
-      # enclose module if space character found in it
-      if {[string first { } $mod] != -1} {
-         set mod "{$mod}"
-      }
+      # no need to specifically enclose module specification if space char
+      # used in it as $mod is a list so elements including space will be
+      # automatically enclosed
       append content "$modcmd load $opt$mod" \n
    }
 
@@ -10688,18 +10727,21 @@ proc readCollectionContent {collfile colldesc} {
             }
          }
       } elseif {[regexp {module load (.*)$} $fline match modarg] == 1} {
-         # manage multiple modules specified on a single line, for instance
-         # "module load mod1 mod2 mod3", with list representation of modarg
-         # make a list of modules that were not directly asked by user
+         # remove collection-specific flags in specification
          set cleanlist [lsearch -all -inline -not -exact $modarg\
             --notuasked]
+         # parse module specification to distinguish between module + variant
+         # specif and multiple modules specified on a single line
+         set parsedlist [eval parseModuleSpecification 0 $cleanlist]
          if {[llength $modarg] != [llength $cleanlist]} {
-            set nuasked_list [concat $nuasked_list $cleanlist]
+            foreach parsed $parsedlist {
+               # add module name version and variant spec to the list
+               lappend nuasked_list $parsed
+            }
          }
-         set mod_list [concat $mod_list $cleanlist]
+         set mod_list [concat $mod_list $parsedlist]
       }
    }
-
    return [list $path_list $mod_list $nuasked_list]
 }
 
@@ -11844,8 +11886,8 @@ proc cmdModuleSave {{coll default}} {
    # format collection content, version number of modulefile are saved if
    # version pinning is enabled
    if {[getConf collection_pin_version]} {
-      set curr_mod_list [getLoadedModuleList]
-      set curr_nuasked_list [getLoadedModuleNotUserAskedList]
+      set curr_mod_list [getLoadedModuleWithVariantList]
+      set curr_nuasked_list [getLoadedModuleWithVariantNotUserAskedList]
    } else {
       lassign [getSimplifiedLoadedModuleList] curr_mod_list curr_nuasked_list
    }
