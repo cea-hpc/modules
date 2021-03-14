@@ -462,6 +462,7 @@ Variant shortcut
 
     - as if user updates the ``variant_shortcut`` configuration option, it will broke underlying modulefiles using a de-configured shortcuts
 
+
 Reporting
 ^^^^^^^^^
 
@@ -499,3 +500,19 @@ Reporting
     - with ``@`` shortcut
     - using variant highlight color if any
     - for instance: ``module@version{othervariant=value}``
+
+
+Recording collection
+^^^^^^^^^^^^^^^^^^^^
+
+- The variant specification set for loaded modules has to be recorded when saving it in a collection
+
+    - Restoring such environment should apply the variant specified on the module to load
+    - Lines like the following one could now be found in collection: ``module load hdf5@1.10 +parallel``
+    - Important to distinguish multiple modules specified on a single line from a module specified with variant defined
+
+- In case the :mconfig:`collection_pin_version` configuration option is disabled variant set to their default value should not be recorded in collection
+
+    - Following the same scheme than for module version
+    - When saving collection, the *is-default*value* information stored in persistency variable (``MODULES_LMVARIANT``) helps to know whether to value set to a variant is or not the default one
+    - The save mechanism will rely on this information to exclude or not the variant specification in the generated collection output
