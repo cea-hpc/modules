@@ -256,6 +256,101 @@ testoutfile_cmd sh "save $coll17" OK $hometestdotmod/$coll17f $c17cont
 
 
 #
+# variant tests
+#
+
+# ensure advanced_version_spec is enabled to record variant
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+# ensure implicit default is enabled for these tests
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+# test with collection_pin_version enabled
+setenv_var MODULES_COLLECTION_PIN_VERSION 1
+
+eval setenv_path_var MODULEPATH [split $c18modpath :]
+eval setenv_path_var MODULES_LMVARIANT [split $c18lmvr :]
+setenv_loaded_module [split $c18lm :] [split $c18lmf :]
+testoutfile_cmd sh "save $coll18" OK $hometestdotmod/$coll18f $c18cont
+
+# special chars or empty val in variant name or value
+eval setenv_path_var MODULEPATH [split $c19modpath :]
+eval setenv_path_var MODULES_LMVARIANT [split $c19lmvr :]
+setenv_loaded_module [split $c19lm :] [split $c19lmf :]
+testoutfile_cmd sh "save $coll19" OK $hometestdotmod/$coll19f $c19cont
+
+# badly set lmvariant
+eval setenv_path_var MODULES_LMVARIANT [split $c19lmvrbad1 :]
+testoutfile_cmd sh "save $coll19" OK $hometestdotmod/$coll19f $c19cont
+eval setenv_path_var MODULES_LMVARIANT [split $c19lmvrbad2 :]
+testoutfile_cmd sh "save $coll19" OK $hometestdotmod/$coll19f $c19cont
+eval setenv_path_var MODULES_LMVARIANT [split $c19lmvrbad3 :]
+testoutfile_cmd sh "save $coll19" OK $hometestdotmod/$coll19f $c19cont
+
+# variant set with default value
+eval setenv_path_var MODULEPATH [split $c20modpath :]
+eval setenv_path_var MODULES_LMVARIANT [split $c20lmvr :]
+setenv_loaded_module [split $c20lm :] [split $c20lmf :]
+testoutfile_cmd sh "save $coll20" OK $hometestdotmod/$coll20f $c20cont
+
+
+# test with collection_pin_version disabled
+setenv_var MODULES_COLLECTION_PIN_VERSION 0
+
+eval setenv_path_var MODULEPATH [split $c18modpath :]
+eval setenv_path_var MODULES_LMVARIANT [split $c18lmvr :]
+setenv_loaded_module [split $c18lm :] [split $c18lmf :]
+testoutfile_cmd sh "save $coll18" OK $hometestdotmod/$coll18f $c18cont
+
+# special chars or empty val in variant name or value
+eval setenv_path_var MODULEPATH [split $c21modpath :]
+eval setenv_path_var MODULES_LMVARIANT [split $c21lmvr :]
+setenv_loaded_module [split $c21lm :] [split $c21lmf :]
+testoutfile_cmd sh "save $coll21" OK $hometestdotmod/$coll21f $c21cont
+
+# badly set lmvariant
+eval setenv_path_var MODULES_LMVARIANT [split $c21lmvrbad1 :]
+testoutfile_cmd sh "save $coll21" OK $hometestdotmod/$coll21f $c21cont
+eval setenv_path_var MODULES_LMVARIANT [split $c21lmvrbad2 :]
+testoutfile_cmd sh "save $coll21" OK $hometestdotmod/$coll21f $c21cont
+eval setenv_path_var MODULES_LMVARIANT [split $c21lmvrbad3 :]
+testoutfile_cmd sh "save $coll21" OK $hometestdotmod/$coll21f $c21cont
+
+# variant set with default value
+eval setenv_path_var MODULEPATH [split $c22modpath :]
+eval setenv_path_var MODULES_LMVARIANT [split $c22lmvr :]
+setenv_loaded_module [split $c22lm :] [split $c22lmf :]
+testoutfile_cmd sh "save $coll22" OK $hometestdotmod/$coll22f $c22cont
+
+
+# test with auto loaded modules
+eval setenv_path_var MODULEPATH [split $c23modpath :]
+eval setenv_path_var MODULES_LMVARIANT [split $c23lmvr :]
+setenv_loaded_module [split $c23lm :] [split $c23lmf :] [split $c23lmnua :]
+testoutfile_cmd sh "save $coll23" OK $hometestdotmod/$coll23f $c23cont
+
+setenv_var MODULES_COLLECTION_PIN_VERSION 1
+eval setenv_path_var MODULEPATH [split $c24modpath :]
+eval setenv_path_var MODULES_LMVARIANT [split $c24lmvr :]
+setenv_loaded_module [split $c24lm :] [split $c24lmf :] [split $c24lmnua :]
+testoutfile_cmd sh "save $coll24" OK $hometestdotmod/$coll24f $c24cont
+
+
+# test recording variant with advanced_version_spec disabled
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+
+# defined variant are recorded even if advanced_version_spec is disabled
+eval setenv_path_var MODULEPATH [split $c25modpath :]
+eval setenv_path_var MODULES_LMVARIANT [split $c25lmvr :]
+setenv_loaded_module [split $c25lm :] [split $c25lmf :] [split $c25lmnua :]
+testoutfile_cmd sh "save $coll25" OK $hometestdotmod/$coll25f $c25cont
+
+unsetenv_loaded_module
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+unsetenv_var MODULES_COLLECTION_PIN_VERSION
+unsetenv_var MODULES_IMPLICIT_DEFAULT
+
+
+#
 # test unsetting HOME
 #
 
