@@ -141,6 +141,44 @@ testouterr_cmd_re sh "saveshow $coll16fp" OK "$modlin\n$coll16fpre:\n\n$c16contr
 testouterr_cmd_re sh "saveshow $coll17fp" OK "$modlin\n$coll17fpre:\n\n$c17contre\n$modlin"
 
 #
+# variant tests
+#
+
+# ensure advanced_version_spec is enabled to record variant
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+# test with collection_pin_version enabled
+setenv_var MODULES_COLLECTION_PIN_VERSION 1
+
+testouterr_cmd_re sh "saveshow $coll19fp" OK "$modlin\n$coll19fpre:\n\n$c19contre\n$modlin"
+testouterr_cmd_re sh "saveshow $coll25fp" OK "$modlin\n$coll25fpre:\n\n$c25contre\n$modlin"
+testouterr_cmd_re sh "saveshow $coll26fp" OK "$modlin\n$coll26fpre:\n\n$c26contre\n$modlin"
+
+# test with collection_pin_version enabled
+setenv_var MODULES_COLLECTION_PIN_VERSION 0
+
+testouterr_cmd_re sh "saveshow $coll19fp" OK "$modlin\n$coll19fpre:\n\n$c19contre\n$modlin"
+testouterr_cmd_re sh "saveshow $coll25fp" OK "$modlin\n$coll25fpre:\n\n$c25contre\n$modlin"
+testouterr_cmd_re sh "saveshow $coll26fp" OK "$modlin\n$coll26fpre:\n\n$c26contre\n$modlin"
+
+# disable advanced_version_spec
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+
+# each variant set is considered a module to load
+testouterr_cmd_re sh "saveshow $coll19fp" OK "$modlin\n$coll19fpre:\n\n$c19contnoavsre\n$modlin"
+testouterr_cmd_re sh "saveshow $coll26fp" OK "$modlin\n$coll26fpre:\n\n$c26contnoavsre\n$modlin"
+
+# test showing collection with bad module specification
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+testouterr_cmd_re sh "saveshow $coll27fp" ERR "$error_msgs: $msg_nomodnameinarg 'foo=val'"
+testouterr_cmd_re sh "saveshow $coll28fp" ERR "$error_msgs: $msg_nomodnameinarg '@1.0'"
+testouterr_cmd_re sh "saveshow $coll29fp" OK "$modlin\n$coll29fpre:\n\n$c29contre\n$modlin"
+
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+unsetenv_var MODULES_COLLECTION_PIN_VERSION
+
+
+#
 # test unsetting HOME
 #
 
