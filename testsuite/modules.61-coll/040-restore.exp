@@ -44,6 +44,10 @@ set c14errmsg "unload m2\nUnloading m2\nload m3\nLoading m3"
 set c15errmsg "Loading $c15mod1\nLoading $c15mod2\nLoading $c15mod3"
 set c16errmsg "Loading $c16mod1\nLoading $c16mod2\nLoading $c16mod3\nLoading $c16mod4\nLoading $c16mod5"
 set c17errmsg "Loading $c17mod1\nLoading $c17mod2"
+set c19errmsg "Loading $c19mod1\nLoading $c19mod2\nLoading $c19mod3"
+set c20errmsg "Loading $c20mod1\nLoading $c20mod2\nLoading $c20mod3"
+set c22errmsg "Loading $c22mod1\nLoading $c22mod2\nLoading $c22mod3"
+set c26errmsg "Loading $c26mod1\nLoading $c26mod2\nLoading $c26mod3"
 
 # set HOME to location containing collections
 if { $verbose > 0 } {
@@ -563,6 +567,137 @@ lappend ans [list set t15 t15]
 lappend ans [list unset mload]
 testouterr_cmd_re sh "restore $coll17fp" $ans $c17errmsg
 
+
+#
+# variant tests
+#
+
+unsetenv_path_var MODULEPATH
+unsetenv_loaded_module
+
+# ensure advanced_version_spec is enabled to restore variant
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+# ensure implicit default is enabled for these tests
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+setenv_var TESTSUITE_VARIANT coll19
+set ans [list]
+lappend ans [list setpath MODULEPATH $c19modpath]
+lappend ans [list setpath LOADEDMODULES $c19lm]
+lappend ans [list setpath _LMFILES_ $c19lmf]
+lappend ans [list setpath MODULES_LMVARIANT $c19lmvr]
+lappend ans [list setpath MODULES_LMALTNAME $c19lmalt]
+testouterr_cmd_re sh "restore $coll19fp" $ans $c19errmsg
+
+setenv_var TESTSUITE_VARIANT coll20
+set ans [list]
+lappend ans [list setpath MODULEPATH $c20modpath]
+lappend ans [list setpath LOADEDMODULES $c20lm]
+lappend ans [list setpath _LMFILES_ $c20lmf]
+#FIXME: correct test once --default will be implemented
+#lappend ans [list setpath MODULES_LMVARIANT $c20lmvr]
+lappend ans [list setpath MODULES_LMVARIANT "$c20mod1&bar ||0&fo o|v?l1 |0:$c20mod3&b*r| val1|0"]
+lappend ans [list setpath MODULES_LMALTNAME $c20lmalt]
+testouterr_cmd_re sh "restore $coll20fp" $ans $c20errmsg
+
+setenv_var TESTSUITE_VARIANT coll22
+set ans [list]
+lappend ans [list setpath MODULEPATH $c22modpath]
+lappend ans [list setpath LOADEDMODULES $c22lm]
+lappend ans [list setpath _LMFILES_ $c22lmf]
+#FIXME: correct test once --default will be implemented
+#lappend ans [list setpath MODULES_LMVARIANT $c22lmvr]
+lappend ans [list setpath MODULES_LMVARIANT "$c22mod1&fo o|v?l1 |0"]
+lappend ans [list setpath MODULES_LMALTNAME $c22lmalt]
+testouterr_cmd_re sh "restore $coll22fp" $ans $c22errmsg
+
+setenv_var TESTSUITE_VARIANT coll26
+set ans [list]
+lappend ans [list setpath MODULEPATH $c26modpath]
+lappend ans [list setpath LOADEDMODULES $c26lm]
+lappend ans [list setpath _LMFILES_ $c26lmf]
+lappend ans [list setpath MODULES_LMNOTUASKED $c26lmnua]
+#FIXME: correct test once --default will be implemented
+#lappend ans [list setpath MODULES_LMVARIANT $c26lmvr]
+lappend ans [list setpath MODULES_LMVARIANT "$c26mod1&bar ||0&fo o|v?l1 |0:$c26mod3&b*r| val1|0"]
+lappend ans [list setpath MODULES_LMALTNAME $c26lmalt]
+testouterr_cmd_re sh "restore $coll26fp" $ans $c26errmsg
+
+# test restoring variant with advanced_version_spec disabled
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+
+setenv_var TESTSUITE_VARIANT coll19
+set ans [list]
+lappend ans [list setpath MODULEPATH $c19modpath]
+lappend ans [list setpath LOADEDMODULES $c19lm]
+lappend ans [list setpath _LMFILES_ $c19lmf]
+lappend ans [list ERR]
+testouterr_cmd_re sh "restore $coll19fp" $ans "Loading variant/1.0
+$err_path'{bar =}'
+$err_path'{fo o=v\\?l1 }'
+Loading foo/1.0
+Loading variant/w s
+$err_path'{b\\*r= val1}'"
+
+setenv_var TESTSUITE_VARIANT coll26
+set ans [list]
+lappend ans [list setpath MODULEPATH $c26modpath]
+lappend ans [list setpath LOADEDMODULES $c26lm]
+lappend ans [list setpath _LMFILES_ $c26lmf]
+lappend ans [list setpath MODULES_LMNOTUASKED $c26lmnua]
+lappend ans [list ERR]
+testouterr_cmd_re sh "restore $coll26fp" $ans "Loading variant/1.0
+$err_path'{bar =}'
+$err_path'{fo o=v\\?l1 }'
+Loading foo/1.0
+Loading variant/w s
+$err_path'{b\\*r= val1}'"
+
+
+# restore collection where first module is already loaded with variant set
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_path_var MODULEPATH $c20modpath1
+setenv_loaded_module [list $c20mod1] [list $c20modpath1/$c20mod1]
+setenv_path_var MODULES_LMVARIANT "$c20mod1&bar ||1&fo o|v?l1 |0"
+
+# restore pinned-version collection with variant set with default value
+setenv_var TESTSUITE_VARIANT coll20
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $c20lm]
+lappend ans [list setpath _LMFILES_ $c20lmf]
+#FIXME: correct test once --default will be implemented
+#lappend ans [list setpath MODULES_LMVARIANT $c20lmvr]
+lappend ans [list setpath MODULES_LMVARIANT "$c20mod1&bar ||1&fo o|v?l1 |0:$c20mod3&b*r| val1|0"]
+lappend ans [list setpath MODULES_LMALTNAME $c20lmalt]
+testouterr_cmd_re sh "restore $coll20fp" $ans "Loading $c22mod2\nLoading $c22mod3"
+
+# restore non-pinned-version collection with variant set with default value
+setenv_var TESTSUITE_VARIANT coll22
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $c22lm]
+lappend ans [list setpath _LMFILES_ $c22lmf]
+#FIXME: correct test once --default will be implemented
+#lappend ans [list setpath MODULES_LMVARIANT $c22lmvr]
+lappend ans [list setpath MODULES_LMALTNAME $c22lmalt]
+testouterr_cmd_re sh "restore $coll22fp" $ans "Loading $c22mod2\nLoading $c22mod3"
+
+unsetenv_path_var MODULEPATH
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMVARIANT
+
+
+# test restoring collection with bad module specification
+testouterr_cmd_re sh "restore $coll27fp" ERR "$error_msgs: $msg_nomodnameinarg 'foo=val'"
+testouterr_cmd_re sh "restore $coll28fp" ERR "$error_msgs: $msg_nomodnameinarg '@1.0'"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $c26mod2]
+lappend ans [list setpath _LMFILES_ $c26modpath1/$c26mod2]
+lappend ans [list setpath MODULEPATH $c26modpath1]
+lappend ans [list ERR]
+testouterr_cmd_re sh "restore $coll29fp" $ans [msg_load variant/1.0 "$error_msgs: Unknown variant 'unk' specified"]\n\n[msg_load foo/1.0]
+
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+unsetenv_var MODULES_IMPLICIT_DEFAULT
 
 
 #
