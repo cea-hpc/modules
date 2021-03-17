@@ -1529,6 +1529,37 @@ proc cleanupAndExit {code} {
    exit $code
 }
 
+proc registerModuleDesignation {mod vrlist} {
+   set moddesig [sgr hi $mod]
+   # enclose module name between quotes if a space is found
+   if {[string first { } $mod] != -1} {
+      set moddesig '$moddesig'
+   }
+   set desig $moddesig
+
+   # add variant specification to the designation
+   if {[llength $vrlist] > 0} {
+      foreach vr $vrlist {
+         set vrdesig [sgr va $vr]
+         # enclose variant spec between quotes if a space is found
+         if {[string first { } $vr] != -1} {
+            set vrdesig '$vrdesig'
+         }
+         lappend vrdesiglist $vrdesig
+      }
+      append desig " \{" [join $vrdesiglist] "\}"
+   }
+   set ::g_moduleDesgination($mod) $desig
+}
+
+proc getModuleDesignation {mod} {
+   if {[info exists ::g_moduleDesgination($mod)]} {
+      return $::g_moduleDesgination($mod)
+   } else {
+      return $mod
+   }
+}
+
 # helper procedures to format various messages
 proc getHintUnFirstMsg {modlist} {
    return "HINT: Might try \"module unload [join $modlist]\" first."
@@ -11860,8 +11891,9 @@ proc cmdModuleSwitch {uasked old {new {}}} {
    # report all recorded sumup messages for this evaluation unless both old
    # and new modules are set hidden, old was auto loaded and this switch is
    # done by a modfile
-   reportMsgRecord "Switching from [sgr hi $old] to [sgr hi $new]" [expr\
-      {$oldhidden && !$olduasked && $newhidden && !$uasked}]
+   reportMsgRecord "Switching from [getModuleDesignation $old] to\
+      [getModuleDesignation $new]" [expr {$oldhidden && !$olduasked &&\
+      $newhidden && !$uasked}]
    popMsgRecordId
    if {$inhibit_req_rec} {
       lpopState inhibit_req_record
@@ -12273,7 +12305,8 @@ proc cmdModuleLoad {context uasked args} {
             # report module is already loaded if verbose2 or higher level
             if {[isModuleLoaded $modname] && [isVerbosityLevel verbose2]} {
                reportInfo "Module '$modname' is already loaded"
-               reportMsgRecord "Loading [sgr hi $modname]"
+               registerModuleDesignation $modname [getVariantList $modname 1]
+               reportMsgRecord "Loading [getModuleDesignation $modname]"
             }
             # exit treatment but no need to restore settings
             continue
@@ -12416,6 +12449,9 @@ proc cmdModuleLoad {context uasked args} {
             add-path append MODULES_LMTAG $modtag
          }
 
+         # record module title (name and variant)
+         registerModuleDesignation $modname [getVariantList $modname 1]
+
          # Load phase of dependent module reloading. These modules can adapt
          # now that mod is seen loaded. Except if switch action ongoing (DepRe
          # load phase will occur from switch)
@@ -12458,8 +12494,8 @@ proc cmdModuleLoad {context uasked args} {
       # report all recorded messages for this evaluation except if module were
       # already loaded
       if {$errCode != 4} {
-         reportMsgRecord "Loading [sgr hi $modname]" [expr {$hidden &&\
-            !$uasked}]
+         reportMsgRecord "Loading [getModuleDesignation $modname]" [expr\
+            {$hidden && !$uasked}]
       }
       popMsgRecordId
    }
@@ -12502,7 +12538,8 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                set msgrecid unload-$modname-[depthState modulename]
                pushMsgRecordId $msgrecid
                reportInfo "Module '$modname' is not loaded"
-               reportMsgRecord "Unloading [sgr hi $modname]"
+               registerModuleDesignation $modname [getVariantList $modname 1]
+               reportMsgRecord "Unloading [getModuleDesignation $modname]"
             }
          } else {
             set ret 1
@@ -12542,6 +12579,9 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       # record evaluation attempt on actual module name
       registerModuleEvalAttempt $context $modname
       registerModuleEvalAttempt $context $modfile
+
+      # record module title (name and variant)
+      registerModuleDesignation $modname [getVariantList $modname 1]
 
       pushSettings
       if {[set errCode [catch {
@@ -12766,8 +12806,8 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
 
       # report all recorded messages for this evaluation (hide evaluation if
       # loaded mod is set hidden, has been automatically loaded and unloaded)
-      reportMsgRecord "Unloading [sgr hi $modname]" [expr {$hidden &&\
-         !$uasked && [depthState evalid] != 1}]
+      reportMsgRecord "Unloading [getModuleDesignation $modname]" [expr\
+         {$hidden && !$uasked && [depthState evalid] != 1}]
       popMsgRecordId
    }
    lpopState mode
