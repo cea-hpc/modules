@@ -501,6 +501,24 @@ Reporting
     - using variant highlight color if any
     - for instance: ``module@version{othervariant=value}``
 
+- Variants are reported on the *Loading*, *Unloading* and *Switching* informational messages
+
+    - As they qualify what exact flavor of the module is loaded, unloaded or switched
+    - They are put along the module name and version designation
+    - They are reported using their short form, like for ``list`` sub-command to keep output tight
+    - Separated between each other by space character
+    - Each variant specification is enclosed between single quotes if it contains a space character
+    - The whole variant specification is enclosed between curly braces (``{}``) and separated from module name version by space character
+
+        - Easier this way to distinguish variant specification from module name version on informational messages where multiple module designation are reported
+
+    - These designations have to be recorded
+
+        - prior module evaluation and based on variant specification (passed as argument) in order to be ready for any report prior the end of modulefile evaluation (in case of error for instance)
+        - then refined after module evaluation with the variant accurately set in loaded environment
+
+- Variants are also reported along module name and version in the :mconfig:`auto_handling` informational messages
+
 
 Recording collection
 ^^^^^^^^^^^^^^^^^^^^
