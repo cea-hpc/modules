@@ -55,7 +55,7 @@ lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space yd/5.0"]
 lappend ans [list setpath MODULES_LMPREREQ "space yd/5.0&{sp.ce y+@2.5<2.7}"]
 lappend ans [list setpath MODULES_LMNOTUASKED "sp.ce y+/2.7"]
 lappend ans [list setpath MODULES_LMALTNAME "space yd/5.0&as|space yd/default&as|space yd/latest"]
-testouterr_cmd_re sh {load --auto space\ yd@4:} $ans [msg_top_load "{space yd/5.0}" {} "{sp\\.ce y\\+/2.7}" {}]
+testouterr_cmd_re sh {load --auto space\ yd@4:} $ans [msg_top_load "{'space yd/5.0'}" {} "{sp\\.ce y\\+/2.7}" {}]
 setenv_loaded_module [list "sp.ce y+/2.6"] [list "$mp/sp.ce y+/2.6"]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.6:space yd/5.0"]
@@ -70,8 +70,8 @@ lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list unsetpath MODULES_LMNOTUASKED]
-testouterr_cmd sh {unload --auto sp.ce\ y+@:2} $ans [msg_top_unload "{sp.ce y+/2.6}" {space yd/5.0} {} {}]
-testouterr_cmd sh {unload --auto space\ yd@4:} $ans [msg_top_unload "{space yd/5.0}" {} "{sp.ce y+/2.6}" {}]
+testouterr_cmd sh {unload --auto sp.ce\ y+@:2} $ans [msg_top_unload "{'sp.ce y+/2.6'}" {space yd/5.0} {} {}]
+testouterr_cmd sh {unload --auto space\ yd@4:} $ans [msg_top_unload "{'space yd/5.0'}" {} "{sp.ce y+/2.6}" {}]
 unsetenv_loaded_module
 unsetenv_path_var MODULES_LMPREREQ
 
@@ -116,7 +116,7 @@ lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/space ye/1.0"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.0&sp.ce|y+@2.5<2.7|baz @<1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "baz/1"]
 lappend ans [list ERR]
-testouterr_cmd_re sh {load --auto space\ ye@1.0} $ans [msg_top_load "{space ye/1.0}" {} baz/1 {} $err_path'sp.ce' $err_path'y\\+@2.5:2.7']
+testouterr_cmd_re sh {load --auto space\ ye@1.0} $ans [msg_top_load "{'space ye/1.0'}" {} baz/1 {} $err_path'sp.ce' $err_path'y\\+@2.5:2.7']
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "baz/1:space ye/1.1"]
@@ -124,49 +124,49 @@ lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/space ye/1.1"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.1&sp.ce|y+ @2.5<2.7|baz @<1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "baz/1"]
 lappend ans [list ERR]
-testouterr_cmd_re sh {load --auto space\ ye@1.1} $ans [msg_top_load "{space ye/1.1}" {} baz/1 {} $err_path'sp.ce' "$err_path'y\\+ @2.5:2.7'"]
+testouterr_cmd_re sh {load --auto space\ ye@1.1} $ans [msg_top_load "{'space ye/1.1'}" {} baz/1 {} $err_path'sp.ce' "$err_path'y\\+ @2.5:2.7'"]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.7:space ye/1.2"]
 lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/1.2"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.2&{sp.ce y+} @2.5<2.7|baz @<1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "sp.ce y+/2.7"]
-testouterr_cmd_re sh {load --auto space\ ye@1.2} $ans [msg_top_load "{space ye/1.2}" {} {sp.ce y\\+/2.7} {}]
+testouterr_cmd_re sh {load --auto space\ ye@1.2} $ans [msg_top_load "{'space ye/1.2'}" {} {sp.ce y\\+/2.7} {}]
 
 if {[cmpversion $tclsh_version 8.6] == -1} {
     set errcmd "prereq {sp.ce y+}@2.5:2.7 baz @:1\n"
 } else {
     set errcmd {prereq {sp.ce y+}@}
 }
-testouterr_cmd sh {load --auto space\ ye@1.3} ERR [msg_load {space ye/1.3} [msg_moderr {extra characters after close-brace} $errcmd "$mp/space ye/1.3" 2]]
+testouterr_cmd sh {load --auto space\ ye@1.3} ERR [msg_load {'space ye/1.3'} [msg_moderr {extra characters after close-brace} $errcmd "$mp/space ye/1.3" 2]]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.7:space ye/1.4"]
 lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/1.4"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.4&{sp.ce y+@1.2} @2.5<2.7|baz @<1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "sp.ce y+/2.7"]
-testouterr_cmd_re sh {load --auto space\ ye@1.4} $ans [msg_top_load "{space ye/1.4}" {} {sp.ce y\\+/2.7} {}]
+testouterr_cmd_re sh {load --auto space\ ye@1.4} $ans [msg_top_load "{'space ye/1.4'}" {} {sp.ce y\\+/2.7} {}]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.7:space ye/1.5"]
 lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/1.5"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.5&{sp.ce y+} @1.2 @2.5<2.7|baz @<1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "sp.ce y+/2.7"]
-testouterr_cmd_re sh {load --auto space\ ye@1.5} $ans [msg_top_load "{space ye/1.5}" {} {sp.ce y\\+/2.7} {}]
+testouterr_cmd_re sh {load --auto space\ ye@1.5} $ans [msg_top_load "{'space ye/1.5'}" {} {sp.ce y\\+/2.7} {}]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "sp.ce y+/0 2:space ye/1.6"]
 lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/0 2:$mp/space ye/1.6"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.6&{sp.ce y+} {@0 2}|baz @<1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "sp.ce y+/0 2"]
-testouterr_cmd_re sh {load --auto space\ ye@1.6} $ans [msg_top_load "{space ye/1.6}" {} {sp.ce y\\+/0 2} {}]
+testouterr_cmd_re sh {load --auto space\ ye@1.6} $ans [msg_top_load "{'space ye/1.6'}" {} {sp.ce y\\+/0 2} {}]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "sp.ce y+/0 2:space ye/1.7"]
 lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/0 2:$mp/space ye/1.7"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.7&{sp.ce y+@0 2}|baz @<1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "sp.ce y+/0 2"]
-testouterr_cmd_re sh {load --auto space\ ye@1.7} $ans [msg_top_load "{space ye/1.7}" {} {sp.ce y\\+/0 2} {}]
+testouterr_cmd_re sh {load --auto space\ ye@1.7} $ans [msg_top_load "{'space ye/1.7'}" {} {sp.ce y\\+/0 2} {}]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "space y /1 :space ye/1.8"]
@@ -174,7 +174,7 @@ lappend ans [list setpath _LMFILES_ "$mp/space y /1 :$mp/space ye/1.8"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.8&{space y @1 }|baz @<1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "space y /1 "]
 lappend ans [list setpath MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "]
-testouterr_cmd_re sh {load --auto space\ ye@1.8} $ans [msg_top_load "{space ye/1.8}" {} "{space y /1 }" {}]
+testouterr_cmd_re sh {load --auto space\ ye@1.8} $ans [msg_top_load "{'space ye/1.8'}" {} "{space y /1 }" {}]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "space y /1 :space ye/1.9"]
@@ -182,7 +182,7 @@ lappend ans [list setpath _LMFILES_ "$mp/space y /1 :$mp/space ye/1.9"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.9&{space y @a }|baz @<1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "space y /1 "]
 lappend ans [list setpath MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "]
-testouterr_cmd_re sh {load --auto space\ ye@1.9} $ans [msg_top_load "{space ye/1.9}" {} "{space y /1 }" {}]
+testouterr_cmd_re sh {load --auto space\ ye@1.9} $ans [msg_top_load "{'space ye/1.9'}" {} "{space y /1 }" {}]
 
 setenv_loaded_module [list {sp.ce y+/2.7}] [list "$mp/sp.ce y+/2.7"]
 
@@ -192,7 +192,7 @@ lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/baz/1:$mp/space ye/1.0
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.0&sp.ce|y+@2.5<2.7|baz @<1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "baz/1"]
 lappend ans [list ERR]
-testouterr_cmd_re sh {load --auto space\ ye@1.0} $ans [msg_top_load "{space ye/1.0}" {} baz/1 {} $err_path'sp.ce' $err_path'y\\+@2.5:2.7']
+testouterr_cmd_re sh {load --auto space\ ye@1.0} $ans [msg_top_load "{'space ye/1.0'}" {} baz/1 {} $err_path'sp.ce' $err_path'y\\+@2.5:2.7']
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.7:baz/1:space ye/1.1"]
@@ -200,7 +200,7 @@ lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/baz/1:$mp/space ye/1.1
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.1&sp.ce|y+ @2.5<2.7|baz @<1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "baz/1"]
 lappend ans [list ERR]
-testouterr_cmd_re sh {load --auto space\ ye@1.1} $ans [msg_top_load "{space ye/1.1}" {} baz/1 {} $err_path'sp.ce' "$err_path'y\\+ @2.5:2.7'"]
+testouterr_cmd_re sh {load --auto space\ ye@1.1} $ans [msg_top_load "{'space ye/1.1'}" {} baz/1 {} $err_path'sp.ce' "$err_path'y\\+ @2.5:2.7'"]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.7:space ye/1.2"]
@@ -309,7 +309,7 @@ set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath MODULES_LMPREREQ]
-testouterr_cmd sh {unload --auto sp.ce\ y+/2.7} $ans [msg_top_unload "{sp.ce y+/2.7}" {space ye/1.2} {} {}]
+testouterr_cmd sh {unload --auto sp.ce\ y+/2.7} $ans [msg_top_unload "{'sp.ce y+/2.7'}" {space ye/1.2} {} {}]
 
 setenv_loaded_module [list {sp.ce y+/2.7} {space ye/1.4}] [list "$mp/sp.ce y+/2.7" "$mp/space ye/1.4"]
 setenv_path_var MODULES_LMPREREQ "space ye/1.4&{sp.ce y+@1.2} @2.5<2.7|baz @<1"
@@ -317,7 +317,7 @@ set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath MODULES_LMPREREQ]
-testouterr_cmd sh {unload --auto sp.ce\ y+/2.7} $ans [msg_top_unload "{sp.ce y+/2.7}" {space ye/1.4} {} {}]
+testouterr_cmd sh {unload --auto sp.ce\ y+/2.7} $ans [msg_top_unload "{'sp.ce y+/2.7'}" {space ye/1.4} {} {}]
 
 setenv_loaded_module [list {sp.ce y+/2.7} {space ye/1.5}] [list "$mp/sp.ce y+/2.7" "$mp/space ye/1.5"]
 setenv_path_var MODULES_LMPREREQ "space ye/1.5&{sp.ce y+} @1.2 @2.5<2.7|baz @<1"
@@ -325,7 +325,7 @@ set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath MODULES_LMPREREQ]
-testouterr_cmd sh {unload --auto sp.ce\ y+/2.7} $ans [msg_top_unload "{sp.ce y+/2.7}" {space ye/1.5} {} {}]
+testouterr_cmd sh {unload --auto sp.ce\ y+/2.7} $ans [msg_top_unload "{'sp.ce y+/2.7'}" {space ye/1.5} {} {}]
 
 setenv_loaded_module [list {sp.ce y+/0 2} {space ye/1.6}] [list "$mp/sp.ce y+/0 2" "$mp/space ye/1.6"]
 setenv_path_var MODULES_LMPREREQ "space ye/1.6&{sp.ce y+} {@0 2}|baz @<1"
@@ -333,7 +333,7 @@ set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath MODULES_LMPREREQ]
-testouterr_cmd sh {unload --auto sp.ce\ y+/0\ 2} $ans [msg_top_unload "{sp.ce y+/0 2}" {space ye/1.6} {} {}]
+testouterr_cmd sh {unload --auto sp.ce\ y+/0\ 2} $ans [msg_top_unload "{'sp.ce y+/0 2'}" {space ye/1.6} {} {}]
 
 setenv_loaded_module [list {sp.ce y+/0 2} {space ye/1.7}] [list "$mp/sp.ce y+/0 2" "$mp/space ye/1.7"]
 setenv_path_var MODULES_LMPREREQ "space ye/1.7&{sp.ce y+@0 2}|baz @<1"
@@ -341,7 +341,7 @@ set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath MODULES_LMPREREQ]
-testouterr_cmd sh {unload --auto sp.ce\ y+/0\ 2} $ans [msg_top_unload "{sp.ce y+/0 2}" {space ye/1.7} {} {}]
+testouterr_cmd sh {unload --auto sp.ce\ y+/0\ 2} $ans [msg_top_unload "{'sp.ce y+/0 2'}" {space ye/1.7} {} {}]
 
 setenv_loaded_module [list {space y /1 } {space ye/1.8}] [list "$mp/space y /1 " "$mp/space ye/1.8"]
 setenv_path_var MODULES_LMPREREQ "space ye/1.8&{space y @1 }|baz @<1"
@@ -351,8 +351,8 @@ lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list unsetpath MODULES_LMALTNAME]
-testouterr_cmd sh {unload --auto space\ y\ /1\ } $ans [msg_top_unload "{space y /1 }" {space ye/1.8} {} {}]
-testouterr_cmd sh {unload --auto space\ y\ /a\ } $ans [msg_top_unload "{space y /1 }" {space ye/1.8} {} {}]
+testouterr_cmd sh {unload --auto space\ y\ /1\ } $ans [msg_top_unload "{'space y /1 '}" {space ye/1.8} {} {}]
+testouterr_cmd sh {unload --auto space\ y\ /a\ } $ans [msg_top_unload "{'space y /1 '}" {space ye/1.8} {} {}]
 
 setenv_loaded_module [list {space y /1 } {space ye/1.9}] [list "$mp/space y /1 " "$mp/space ye/1.9"]
 setenv_path_var MODULES_LMPREREQ "space ye/1.9&{space y @a }|baz @<1"
@@ -362,8 +362,8 @@ lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list unsetpath MODULES_LMALTNAME]
-testouterr_cmd sh {unload --auto space\ y\ /1\ } $ans [msg_top_unload "{space y /1 }" {space ye/1.9} {} {}]
-testouterr_cmd sh {unload --auto space\ y\ /a\ } $ans [msg_top_unload "{space y /1 }" {space ye/1.9} {} {}]
+testouterr_cmd sh {unload --auto space\ y\ /1\ } $ans [msg_top_unload "{'space y /1 '}" {space ye/1.9} {} {}]
+testouterr_cmd sh {unload --auto space\ y\ /a\ } $ans [msg_top_unload "{'space y /1 '}" {space ye/1.9} {} {}]
 unsetenv_path_var MODULES_LMALTNAME
 
 # unload dependent module baz/1
@@ -462,7 +462,7 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES "baz/1:sp.ce y+/2.7:space ye/1.2"]
 lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/sp.ce y+/2.7:$mp/space ye/1.2"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.2&{sp.ce y+} @2.5<2.7|baz @<1"]
-testouterr_cmd_re sh {load --auto sp.ce\ y+/2.7} $ans [msg_top_load "{sp.ce y\\+/2.7}" {} {} "{space ye/1.2}"]
+testouterr_cmd_re sh {load --auto sp.ce\ y+/2.7} $ans [msg_top_load "{'sp.ce y\\+/2.7'}" {} {} "{space ye/1.2}"]
 
 setenv_loaded_module [list {baz/1} {space ye/1.4}] [list "$mp/baz/1" "$mp/space ye/1.4"]
 setenv_path_var MODULES_LMPREREQ "space ye/1.4&{sp.ce y+@1.2} @2.5<2.7|baz @<1"
@@ -470,7 +470,7 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES "baz/1:sp.ce y+/2.7:space ye/1.4"]
 lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/sp.ce y+/2.7:$mp/space ye/1.4"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.4&{sp.ce y+@1.2} @2.5<2.7|baz @<1"]
-testouterr_cmd_re sh {load --auto sp.ce\ y+/2.7} $ans [msg_top_load "{sp.ce y\\+/2.7}" {} {} "{space ye/1.4}"]
+testouterr_cmd_re sh {load --auto sp.ce\ y+/2.7} $ans [msg_top_load "{'sp.ce y\\+/2.7'}" {} {} "{space ye/1.4}"]
 
 setenv_loaded_module [list {baz/1} {space ye/1.5}] [list "$mp/baz/1" "$mp/space ye/1.5"]
 setenv_path_var MODULES_LMPREREQ "space ye/1.5&{sp.ce y+} @1.2 @2.5<2.7|baz @<1"
@@ -478,7 +478,7 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES "baz/1:sp.ce y+/2.7:space ye/1.5"]
 lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/sp.ce y+/2.7:$mp/space ye/1.5"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.5&{sp.ce y+} @1.2 @2.5<2.7|baz @<1"]
-testouterr_cmd_re sh {load --auto sp.ce\ y+/2.7} $ans [msg_top_load "{sp.ce y\\+/2.7}" {} {} "{space ye/1.5}"]
+testouterr_cmd_re sh {load --auto sp.ce\ y+/2.7} $ans [msg_top_load "{'sp.ce y\\+/2.7'}" {} {} "{space ye/1.5}"]
 
 setenv_loaded_module [list {baz/1} {space ye/1.6}] [list "$mp/baz/1" "$mp/space ye/1.6"]
 setenv_path_var MODULES_LMPREREQ "space ye/1.6&{sp.ce y+} {@0 2}|baz @<1"
@@ -486,7 +486,7 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES "baz/1:sp.ce y+/0 2:space ye/1.6"]
 lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/sp.ce y+/0 2:$mp/space ye/1.6"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.6&{sp.ce y+} {@0 2}|baz @<1"]
-testouterr_cmd_re sh {load --auto sp.ce\ y+/0\ 2} $ans [msg_top_load "{sp.ce y\\+/0 2}" {} {} "{space ye/1.6}"]
+testouterr_cmd_re sh {load --auto sp.ce\ y+/0\ 2} $ans [msg_top_load "{'sp.ce y\\+/0 2'}" {} {} "{space ye/1.6}"]
 
 setenv_loaded_module [list {baz/1} {space ye/1.7}] [list "$mp/baz/1" "$mp/space ye/1.7"]
 setenv_path_var MODULES_LMPREREQ "space ye/1.7&{sp.ce y+@0 2}|baz @<1"
@@ -494,7 +494,7 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES "baz/1:sp.ce y+/0 2:space ye/1.7"]
 lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/sp.ce y+/0 2:$mp/space ye/1.7"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.7&{sp.ce y+@0 2}|baz @<1"]
-testouterr_cmd_re sh {load --auto sp.ce\ y+/0\ 2} $ans [msg_top_load "{sp.ce y\\+/0 2}" {} {} "{space ye/1.7}"]
+testouterr_cmd_re sh {load --auto sp.ce\ y+/0\ 2} $ans [msg_top_load "{'sp.ce y\\+/0 2'}" {} {} "{space ye/1.7}"]
 
 setenv_loaded_module [list {baz/1} {space ye/1.8}] [list "$mp/baz/1" "$mp/space ye/1.8"]
 setenv_path_var MODULES_LMPREREQ "space ye/1.8&{space y @1 }|baz @<1"
@@ -503,8 +503,8 @@ lappend ans [list setpath LOADEDMODULES "baz/1:space y /1 :space ye/1.8"]
 lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/space y /1 :$mp/space ye/1.8"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.8&{space y @1 }|baz @<1"]
 lappend ans [list setpath MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "]
-testouterr_cmd_re sh {load --auto space\ y\ /1\ } $ans [msg_top_load "{space y /1 }" {} {} "{space ye/1.8}"]
-testouterr_cmd_re sh {load --auto space\ y\ /a\ } $ans [msg_top_load "{space y /1 }" {} {} "{space ye/1.8}"]
+testouterr_cmd_re sh {load --auto space\ y\ /1\ } $ans [msg_top_load "{'space y /1 '}" {} {} "{space ye/1.8}"]
+testouterr_cmd_re sh {load --auto space\ y\ /a\ } $ans [msg_top_load "{'space y /1 '}" {} {} "{space ye/1.8}"]
 
 setenv_loaded_module [list {baz/1} {space ye/1.9}] [list "$mp/baz/1" "$mp/space ye/1.9"]
 setenv_path_var MODULES_LMPREREQ "space ye/1.9&{space y @a }|baz @<1"
@@ -513,8 +513,8 @@ lappend ans [list setpath LOADEDMODULES "baz/1:space y /1 :space ye/1.9"]
 lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/space y /1 :$mp/space ye/1.9"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.9&{space y @a }|baz @<1"]
 lappend ans [list setpath MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "]
-testouterr_cmd_re sh {load --auto space\ y\ /1\ } $ans [msg_top_load "{space y /1 }" {} {} "{space ye/1.9}"]
-testouterr_cmd_re sh {load --auto space\ y\ /a\ } $ans [msg_top_load "{space y /1 }" {} {} "{space ye/1.9}"]
+testouterr_cmd_re sh {load --auto space\ y\ /1\ } $ans [msg_top_load "{'space y /1 '}" {} {} "{space ye/1.9}"]
+testouterr_cmd_re sh {load --auto space\ y\ /a\ } $ans [msg_top_load "{'space y /1 '}" {} {} "{space ye/1.9}"]
 
 
 # various syntaxes on conflict modulefile command
@@ -544,7 +544,7 @@ if {[cmpversion $tclsh_version 8.6] == -1} {
 } else {
     set errcmd {conflict {sp.ce y+}@}
 }
-testouterr_cmd sh {load --auto space\ ye@2.3} ERR [msg_load {space ye/2.3} [msg_moderr {extra characters after close-brace} $errcmd "$mp/space ye/2.3" 2]]
+testouterr_cmd sh {load --auto space\ ye@2.3} ERR [msg_load {'space ye/2.3'} [msg_moderr {extra characters after close-brace} $errcmd "$mp/space ye/2.3" 2]]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "space ye/2.4"]
@@ -601,33 +601,33 @@ testouterr_cmd_re sh {load --auto sp.ce\ y+@2.7} $ans {}
 
 setenv_loaded_module [list {space ye/2.2}] [list "$mp/space ye/2.2"]
 setenv_path_var MODULES_LMCONFLICT "space ye/2.2&{sp.ce y+} @2.5<2.7&baz @<1"
-testouterr_cmd sh {load --auto sp.ce\ y+@2.7} ERR [msg_load {sp.ce y+/2.7} [err_conflict sp.ce\ y+/2.7 space\ ye/2.2]]
+testouterr_cmd sh {load --auto sp.ce\ y+@2.7} ERR [msg_load {'sp.ce y+/2.7'} [err_conflict sp.ce\ y+/2.7 space\ ye/2.2]]
 
 setenv_loaded_module [list {space ye/2.4}] [list "$mp/space ye/2.4"]
 setenv_path_var MODULES_LMCONFLICT "space ye/2.4&{sp.ce y+@1.2} @2.5<2.7&baz @<1"
-testouterr_cmd sh {load --auto sp.ce\ y+@2.7} ERR [msg_load {sp.ce y+/2.7} [err_conflict sp.ce\ y+/2.7 space\ ye/2.4]]
+testouterr_cmd sh {load --auto sp.ce\ y+@2.7} ERR [msg_load {'sp.ce y+/2.7'} [err_conflict sp.ce\ y+/2.7 space\ ye/2.4]]
 
 setenv_loaded_module [list {space ye/2.5}] [list "$mp/space ye/2.5"]
 setenv_path_var MODULES_LMCONFLICT "space ye/2.5&{sp.ce y+} @1.2 @2.5<2.7&baz @<1"
-testouterr_cmd sh {load --auto sp.ce\ y+@2.7} ERR [msg_load {sp.ce y+/2.7} [err_conflict sp.ce\ y+/2.7 space\ ye/2.5]]
+testouterr_cmd sh {load --auto sp.ce\ y+@2.7} ERR [msg_load {'sp.ce y+/2.7'} [err_conflict sp.ce\ y+/2.7 space\ ye/2.5]]
 
 setenv_loaded_module [list {space ye/2.6}] [list "$mp/space ye/2.6"]
 setenv_path_var MODULES_LMCONFLICT "space ye/2.6&{sp.ce y+} {@0 2}&baz @<1"
-testouterr_cmd sh {load --auto sp.ce\ y+@0\ 2} ERR [msg_load {sp.ce y+/0 2} [err_conflict sp.ce\ y+/0\ 2 space\ ye/2.6]]
+testouterr_cmd sh {load --auto sp.ce\ y+@0\ 2} ERR [msg_load {'sp.ce y+/0 2'} [err_conflict sp.ce\ y+/0\ 2 space\ ye/2.6]]
 
 setenv_loaded_module [list {space ye/2.7}] [list "$mp/space ye/2.7"]
 setenv_path_var MODULES_LMCONFLICT "space ye/2.7&{sp.ce y+@0 2}&baz @<1"
-testouterr_cmd sh {load --auto sp.ce\ y+@0\ 2} ERR [msg_load {sp.ce y+/0 2} [err_conflict sp.ce\ y+/0\ 2 space\ ye/2.7]]
+testouterr_cmd sh {load --auto sp.ce\ y+@0\ 2} ERR [msg_load {'sp.ce y+/0 2'} [err_conflict sp.ce\ y+/0\ 2 space\ ye/2.7]]
 
 setenv_loaded_module [list {space ye/2.8}] [list "$mp/space ye/2.8"]
 setenv_path_var MODULES_LMCONFLICT "space ye/2.8&{space y @1 }&baz @<1"
-testouterr_cmd sh {load --auto space\ y\ @1\ } ERR [msg_load {space y /1 } [err_conflict space\ y\ /1\  space\ ye/2.8]]
-testouterr_cmd sh {load --auto space\ y\ @n\ } ERR [msg_load {space y /1 } [err_conflict space\ y\ /1\  space\ ye/2.8]]
+testouterr_cmd sh {load --auto space\ y\ @1\ } ERR [msg_load {'space y /1 '} [err_conflict space\ y\ /1\  space\ ye/2.8]]
+testouterr_cmd sh {load --auto space\ y\ @n\ } ERR [msg_load {'space y /1 '} [err_conflict space\ y\ /1\  space\ ye/2.8]]
 
 setenv_loaded_module [list {space ye/2.9}] [list "$mp/space ye/2.9"]
 setenv_path_var MODULES_LMCONFLICT "space ye/2.9&{space y @n }&baz @<1"
-testouterr_cmd sh {load --auto space\ y\ @1\ } ERR [msg_load {space y /1 } [err_conflict space\ y\ /1\  space\ ye/2.9]]
-testouterr_cmd sh {load --auto space\ y\ @n\ } ERR [msg_load {space y /1 } [err_conflict space\ y\ /1\  space\ ye/2.9]]
+testouterr_cmd sh {load --auto space\ y\ @1\ } ERR [msg_load {'space y /1 '} [err_conflict space\ y\ /1\  space\ ye/2.9]]
+testouterr_cmd sh {load --auto space\ y\ @n\ } ERR [msg_load {'space y /1 '} [err_conflict space\ y\ /1\  space\ ye/2.9]]
 
 # load conflicting module baz/1
 
@@ -683,35 +683,35 @@ lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/2.1"]
 lappend ans [list setpath MODULES_LMCONFLICT "space ye/2.1&sp.ce&y+ @2.5<2.7&baz @<1"]
 testouterr_cmd_re sh {load --auto space\ ye@2.1} $ans {}
 
-testouterr_cmd sh {load --auto space\ ye@2.2} ERR [msg_load {space ye/2.2} [err_conflict {space ye/2.2} {sp.ce y+ @2.5:2.7}]]
-testouterr_cmd sh {load --auto space\ ye@2.4} ERR [msg_load {space ye/2.4} [err_conflict {space ye/2.4} {sp.ce y+@1.2 @2.5:2.7}]]
-testouterr_cmd sh {load --auto space\ ye@2.5} ERR [msg_load {space ye/2.5} [err_conflict {space ye/2.5} {sp.ce y+ @1.2 @2.5:2.7}]]
+testouterr_cmd sh {load --auto space\ ye@2.2} ERR [msg_load {'space ye/2.2'} [err_conflict {space ye/2.2} {sp.ce y+ @2.5:2.7}]]
+testouterr_cmd sh {load --auto space\ ye@2.4} ERR [msg_load {'space ye/2.4'} [err_conflict {space ye/2.4} {sp.ce y+@1.2 @2.5:2.7}]]
+testouterr_cmd sh {load --auto space\ ye@2.5} ERR [msg_load {'space ye/2.5'} [err_conflict {space ye/2.5} {sp.ce y+ @1.2 @2.5:2.7}]]
 
 setenv_loaded_module [list {sp.ce y+/0 2}] [list "$mp/sp.ce y+/0 2"]
 
-testouterr_cmd sh {load --auto space\ ye@2.6} ERR [msg_load {space ye/2.6} [err_conflict {space ye/2.6} {sp.ce y+ @0 2}]]
-testouterr_cmd sh {load --auto space\ ye@2.7} ERR [msg_load {space ye/2.7} [err_conflict {space ye/2.7} {sp.ce y+@0 2}]]
+testouterr_cmd sh {load --auto space\ ye@2.6} ERR [msg_load {'space ye/2.6'} [err_conflict {space ye/2.6} {sp.ce y+ @0 2}]]
+testouterr_cmd sh {load --auto space\ ye@2.7} ERR [msg_load {'space ye/2.7'} [err_conflict {space ye/2.7} {sp.ce y+@0 2}]]
 
 setenv_loaded_module [list {space y /1 }] [list "$mp/space y /1 "]
 setenv_path_var MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "
 
-testouterr_cmd sh {load --auto space\ ye@2.8} ERR [msg_load {space ye/2.8} [err_conflict {space ye/2.8} {space y @1 }]]
-testouterr_cmd sh {load --auto space\ ye@2.9} ERR [msg_load {space ye/2.9} [err_conflict {space ye/2.9} {space y @n }]]
+testouterr_cmd sh {load --auto space\ ye@2.8} ERR [msg_load {'space ye/2.8'} [err_conflict {space ye/2.8} {space y @1 }]]
+testouterr_cmd sh {load --auto space\ ye@2.9} ERR [msg_load {'space ye/2.9'} [err_conflict {space ye/2.9} {space y @n }]]
 
 # conflicting module baz/1 loaded prior conflict definition
 unsetenv_path_var MODULES_LMCONFLICT
 unsetenv_path_var MODULES_LMALTNAME
 setenv_loaded_module [list baz/1] [list "$mp/baz/1"]
 
-testouterr_cmd sh {load --auto space\ ye@2.0} ERR [msg_load {space ye/2.0} [err_conflict {space ye/2.0} {baz @:1}]]
-testouterr_cmd sh {load --auto space\ ye@2.1} ERR [msg_load {space ye/2.1} [err_conflict {space ye/2.1} {baz @:1}]]
-testouterr_cmd sh {load --auto space\ ye@2.2} ERR [msg_load {space ye/2.2} [err_conflict {space ye/2.2} {baz @:1}]]
-testouterr_cmd sh {load --auto space\ ye@2.4} ERR [msg_load {space ye/2.4} [err_conflict {space ye/2.4} {baz @:1}]]
-testouterr_cmd sh {load --auto space\ ye@2.5} ERR [msg_load {space ye/2.5} [err_conflict {space ye/2.5} {baz @:1}]]
-testouterr_cmd sh {load --auto space\ ye@2.6} ERR [msg_load {space ye/2.6} [err_conflict {space ye/2.6} {baz @:1}]]
-testouterr_cmd sh {load --auto space\ ye@2.7} ERR [msg_load {space ye/2.7} [err_conflict {space ye/2.7} {baz @:1}]]
-testouterr_cmd sh {load --auto space\ ye@2.8} ERR [msg_load {space ye/2.8} [err_conflict {space ye/2.8} {baz @:1}]]
-testouterr_cmd sh {load --auto space\ ye@2.9} ERR [msg_load {space ye/2.9} [err_conflict {space ye/2.9} {baz @:1}]]
+testouterr_cmd sh {load --auto space\ ye@2.0} ERR [msg_load {'space ye/2.0'} [err_conflict {space ye/2.0} {baz @:1}]]
+testouterr_cmd sh {load --auto space\ ye@2.1} ERR [msg_load {'space ye/2.1'} [err_conflict {space ye/2.1} {baz @:1}]]
+testouterr_cmd sh {load --auto space\ ye@2.2} ERR [msg_load {'space ye/2.2'} [err_conflict {space ye/2.2} {baz @:1}]]
+testouterr_cmd sh {load --auto space\ ye@2.4} ERR [msg_load {'space ye/2.4'} [err_conflict {space ye/2.4} {baz @:1}]]
+testouterr_cmd sh {load --auto space\ ye@2.5} ERR [msg_load {'space ye/2.5'} [err_conflict {space ye/2.5} {baz @:1}]]
+testouterr_cmd sh {load --auto space\ ye@2.6} ERR [msg_load {'space ye/2.6'} [err_conflict {space ye/2.6} {baz @:1}]]
+testouterr_cmd sh {load --auto space\ ye@2.7} ERR [msg_load {'space ye/2.7'} [err_conflict {space ye/2.7} {baz @:1}]]
+testouterr_cmd sh {load --auto space\ ye@2.8} ERR [msg_load {'space ye/2.8'} [err_conflict {space ye/2.8} {baz @:1}]]
+testouterr_cmd sh {load --auto space\ ye@2.9} ERR [msg_load {'space ye/2.9'} [err_conflict {space ye/2.9} {baz @:1}]]
 
 
 # redo the above mixed test with adv_vers_spec disabled
@@ -756,7 +756,7 @@ lappend ans [list setpath _LMFILES_ "$mp/baz/2:$mp/space ye/1.0"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.0&sp.ce|y+@2.5<2.7|baz|@<1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "baz/2"]
 lappend ans [list ERR]
-testouterr_cmd_re sh {load --auto space\ ye/1.0} $ans [msg_top_load "{space ye/1.0}" {} baz/2 {} $err_path'sp.ce' $err_path'y\\+@2.5:2.7']
+testouterr_cmd_re sh {load --auto space\ ye/1.0} $ans [msg_top_load "{'space ye/1.0'}" {} baz/2 {} $err_path'sp.ce' $err_path'y\\+@2.5:2.7']
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "baz/2:space ye/1.1"]
@@ -764,21 +764,21 @@ lappend ans [list setpath _LMFILES_ "$mp/baz/2:$mp/space ye/1.1"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.1&sp.ce|y+|@2.5<2.7|baz|@<1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "baz/2"]
 lappend ans [list ERR]
-testouterr_cmd_re sh {load --auto space\ ye/1.1} $ans [msg_top_load "{space ye/1.1}" {} baz/2 {} $err_path'sp.ce' "$err_path'y\\+'" "$err_path'@2.5:2.7'"]
+testouterr_cmd_re sh {load --auto space\ ye/1.1} $ans [msg_top_load "{'space ye/1.1'}" {} baz/2 {} $err_path'sp.ce' "$err_path'y\\+'" "$err_path'@2.5:2.7'"]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.10:space ye/1.2"]
 lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.10:$mp/space ye/1.2"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.2&{sp.ce y+}|@2.5<2.7|baz|@<1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "sp.ce y+/2.10"]
-testouterr_cmd_re sh {load --auto space\ ye/1.2} $ans [msg_top_load "{space ye/1.2}" {} {sp.ce y\\+/2.10} {}]
+testouterr_cmd_re sh {load --auto space\ ye/1.2} $ans [msg_top_load "{'space ye/1.2'}" {} {sp.ce y\\+/2.10} {}]
 
 if {[cmpversion $tclsh_version 8.6] == -1} {
     set errcmd "prereq {sp.ce y+}@2.5:2.7 baz @:1\n"
 } else {
     set errcmd {prereq {sp.ce y+}@}
 }
-testouterr_cmd sh {load --auto space\ ye/1.3} ERR [msg_load {space ye/1.3} [msg_moderr {extra characters after close-brace} $errcmd "$mp/space ye/1.3" 2]]
+testouterr_cmd sh {load --auto space\ ye/1.3} ERR [msg_load {'space ye/1.3'} [msg_moderr {extra characters after close-brace} $errcmd "$mp/space ye/1.3" 2]]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "baz/2:space ye/1.4"]
@@ -786,21 +786,21 @@ lappend ans [list setpath _LMFILES_ "$mp/baz/2:$mp/space ye/1.4"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.4&{sp.ce y+@1.2}|@2.5<2.7|baz|@<1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "baz/2"]
 lappend ans [list ERR]
-testouterr_cmd_re sh {load --auto space\ ye/1.4} $ans [msg_top_load "{space ye/1.4}" {} {baz/2} {} "$err_path'{sp.ce y\\+@1.2}'" "$err_path'@2.5:2.7'"]
+testouterr_cmd_re sh {load --auto space\ ye/1.4} $ans [msg_top_load "{'space ye/1.4'}" {} {baz/2} {} "$err_path'{sp.ce y\\+@1.2}'" "$err_path'@2.5:2.7'"]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.10:space ye/1.5"]
 lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.10:$mp/space ye/1.5"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.5&{sp.ce y+}|@1.2|@2.5<2.7|baz|@<1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "sp.ce y+/2.10"]
-testouterr_cmd_re sh {load --auto space\ ye/1.5} $ans [msg_top_load "{space ye/1.5}" {} {sp.ce y\\+/2.10} {}]
+testouterr_cmd_re sh {load --auto space\ ye/1.5} $ans [msg_top_load "{'space ye/1.5'}" {} {sp.ce y\\+/2.10} {}]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.10:space ye/1.6"]
 lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.10:$mp/space ye/1.6"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.6&{sp.ce y+}|{@0 2}|baz|@<1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "sp.ce y+/2.10"]
-testouterr_cmd_re sh {load --auto space\ ye/1.6} $ans [msg_top_load "{space ye/1.6}" {} {sp.ce y\\+/2.10} {}]
+testouterr_cmd_re sh {load --auto space\ ye/1.6} $ans [msg_top_load "{'space ye/1.6'}" {} {sp.ce y\\+/2.10} {}]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "baz/2:space ye/1.7"]
@@ -808,7 +808,7 @@ lappend ans [list setpath _LMFILES_ "$mp/baz/2:$mp/space ye/1.7"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.7&{sp.ce y+@0 2}|baz|@<1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "baz/2"]
 lappend ans [list ERR]
-testouterr_cmd_re sh {load --auto space\ ye/1.7} $ans [msg_top_load "{space ye/1.7}" {} {baz/2} {} "$err_path'{sp.ce y\\+@0 2}'"]
+testouterr_cmd_re sh {load --auto space\ ye/1.7} $ans [msg_top_load "{'space ye/1.7'}" {} {baz/2} {} "$err_path'{sp.ce y\\+@0 2}'"]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "baz/2:space ye/1.8"]
@@ -816,7 +816,7 @@ lappend ans [list setpath _LMFILES_ "$mp/baz/2:$mp/space ye/1.8"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.8&{space y @1 }|baz|@<1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "baz/2"]
 lappend ans [list ERR]
-testouterr_cmd_re sh {load --auto space\ ye/1.8} $ans [msg_top_load "{space ye/1.8}" {} {baz/2} {} "$err_path'{space y @1 }'"]
+testouterr_cmd_re sh {load --auto space\ ye/1.8} $ans [msg_top_load "{'space ye/1.8'}" {} {baz/2} {} "$err_path'{space y @1 }'"]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "baz/2:space ye/1.9"]
@@ -824,7 +824,7 @@ lappend ans [list setpath _LMFILES_ "$mp/baz/2:$mp/space ye/1.9"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.9&{space y @a }|baz|@<1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "baz/2"]
 lappend ans [list ERR]
-testouterr_cmd_re sh {load --auto space\ ye/1.9} $ans [msg_top_load "{space ye/1.9}" {} {baz/2} {} "$err_path'{space y @a }'"]
+testouterr_cmd_re sh {load --auto space\ ye/1.9} $ans [msg_top_load "{'space ye/1.9'}" {} {baz/2} {} "$err_path'{space y @a }'"]
 
 setenv_loaded_module [list {sp.ce y+/2.7}] [list "$mp/sp.ce y+/2.7"]
 
@@ -834,7 +834,7 @@ lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/baz/2:$mp/space ye/1.1
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.1&sp.ce|y+|@2.5<2.7|baz|@<1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "baz/2"]
 lappend ans [list ERR]
-testouterr_cmd_re sh {load --auto space\ ye/1.1} $ans [msg_top_load "{space ye/1.1}" {} baz/2 {} $err_path'sp.ce' "$err_path'y\\+'" "$err_path'@2.5:2.7'"]
+testouterr_cmd_re sh {load --auto space\ ye/1.1} $ans [msg_top_load "{'space ye/1.1'}" {} baz/2 {} $err_path'sp.ce' "$err_path'y\\+'" "$err_path'@2.5:2.7'"]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.7:space ye/1.5"]
@@ -871,7 +871,7 @@ set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath MODULES_LMPREREQ]
-testouterr_cmd sh {unload --auto sp.ce\ y+/2.7} $ans [msg_top_unload "{sp.ce y+/2.7}" {space ye/1.5} {} {}]
+testouterr_cmd sh {unload --auto sp.ce\ y+/2.7} $ans [msg_top_unload "{'sp.ce y+/2.7'}" {space ye/1.5} {} {}]
 
 # unload dependent module baz/1
 
@@ -906,7 +906,7 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES "baz/1:sp.ce y+/2.7:space ye/1.5"]
 lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/sp.ce y+/2.7:$mp/space ye/1.5"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.5&{sp.ce y+}|@1.2|@2.5<2.7|baz|@<1"]
-testouterr_cmd_re sh {load --auto sp.ce\ y+/2.7} $ans [msg_top_load "{sp.ce y\\+/2.7}" {} {} "{space ye/1.5}"]
+testouterr_cmd_re sh {load --auto sp.ce\ y+/2.7} $ans [msg_top_load "{'sp.ce y\\+/2.7'}" {} {} "{space ye/1.5}"]
 
 # load depedent module {sp.ce y+/0 2}
 
@@ -916,7 +916,7 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES "baz/1:sp.ce y+/0 2:space ye/1.6"]
 lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/sp.ce y+/0 2:$mp/space ye/1.6"]
 lappend ans [list setpath MODULES_LMPREREQ "space ye/1.6&{sp.ce y+}|{@0 2}|baz|@<1"]
-testouterr_cmd_re sh {load --auto sp.ce\ y+/0\ 2} $ans [msg_top_load "{sp.ce y\\+/0 2}" {} {} "{space ye/1.6}"]
+testouterr_cmd_re sh {load --auto sp.ce\ y+/0\ 2} $ans [msg_top_load "{'sp.ce y\\+/0 2'}" {} {} "{space ye/1.6}"]
 
 # various syntaxes on conflict modulefile command
 unsetenv_loaded_module
@@ -945,7 +945,7 @@ if {[cmpversion $tclsh_version 8.6] == -1} {
 } else {
     set errcmd {conflict {sp.ce y+}@}
 }
-testouterr_cmd sh {load --auto space\ ye/2.3} ERR [msg_load {space ye/2.3} [msg_moderr {extra characters after close-brace} $errcmd "$mp/space ye/2.3" 2]]
+testouterr_cmd sh {load --auto space\ ye/2.3} ERR [msg_load {'space ye/2.3'} [msg_moderr {extra characters after close-brace} $errcmd "$mp/space ye/2.3" 2]]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "space ye/2.4"]
@@ -994,7 +994,7 @@ testouterr_cmd_re sh {load --auto sp.ce\ y+/2.7} $ans {}
 
 setenv_loaded_module [list {space ye/2.5}] [list "$mp/space ye/2.5"]
 setenv_path_var MODULES_LMCONFLICT "space ye/2.5&{sp.ce y+}&@1.2&@2.5<2.7&baz&@<1"
-testouterr_cmd sh {load --auto sp.ce\ y+/2.7} ERR [msg_load {sp.ce y+/2.7} [err_conflict sp.ce\ y+/2.7 space\ ye/2.5]]
+testouterr_cmd sh {load --auto sp.ce\ y+/2.7} ERR [msg_load {'sp.ce y+/2.7'} [err_conflict sp.ce\ y+/2.7 space\ ye/2.5]]
 
 # load conflicting module baz/1
 
@@ -1016,20 +1016,20 @@ lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/2.1"]
 lappend ans [list setpath MODULES_LMCONFLICT "space ye/2.1&sp.ce&y+&@2.5<2.7&baz&@<1"]
 testouterr_cmd_re sh {load --auto space\ ye/2.1} $ans {}
 
-testouterr_cmd sh {load --auto space\ ye/2.5} ERR [msg_load {space ye/2.5} [err_conflict {space ye/2.5} {sp.ce y+}]]
+testouterr_cmd sh {load --auto space\ ye/2.5} ERR [msg_load {'space ye/2.5'} [err_conflict {space ye/2.5} {sp.ce y+}]]
 
 # conflicting module {sp.ce y+/2.7} loaded prior conflict definition
 unsetenv_path_var MODULES_LMCONFLICT
 setenv_loaded_module [list {sp.ce y+/0 2}] [list "$mp/sp.ce y+/0 2"]
 
-testouterr_cmd sh {load --auto space\ ye/2.6} ERR [msg_load {space ye/2.6} [err_conflict {space ye/2.6} {sp.ce y+}]]
+testouterr_cmd sh {load --auto space\ ye/2.6} ERR [msg_load {'space ye/2.6'} [err_conflict {space ye/2.6} {sp.ce y+}]]
 
 # conflicting module baz/1 loaded prior conflict definition
 unsetenv_path_var MODULES_LMCONFLICT
 setenv_loaded_module [list baz/1] [list "$mp/baz/1"]
 
-testouterr_cmd sh {load --auto space\ ye/2.1} ERR [msg_load {space ye/2.1} [err_conflict {space ye/2.1} {baz}]]
-testouterr_cmd sh {load --auto space\ ye/2.5} ERR [msg_load {space ye/2.5} [err_conflict {space ye/2.5} {baz}]]
+testouterr_cmd sh {load --auto space\ ye/2.1} ERR [msg_load {'space ye/2.1'} [err_conflict {space ye/2.1} {baz}]]
+testouterr_cmd sh {load --auto space\ ye/2.5} ERR [msg_load {'space ye/2.5'} [err_conflict {space ye/2.5} {baz}]]
 
 # delete generated modulefiles
 delete_endspace_test_modulefiles
