@@ -5453,32 +5453,39 @@ proc abbrevTagList {taglist} {
    return [lsort -dictionary $ret]
 }
 
-proc getVariantList {mod {report 0} {excl_dflval 0}} {
-   set ret {}
+proc getVariantList {mod {report 0} {excl_dflval 0} {from_spec 0}} {
+   # fetch variants from module specification
+   if {$from_spec} {
+      set vrspeclist [getVariantListFromVersSpec $mod]
+   # or from variant set after module being loaded
+   } elseif {[info exists ::g_loadedModuleVariant($mod)]} {
+      set vrspeclist $::g_loadedModuleVariant($mod)
+   } else {
+      set vrspeclist {}
+   }
 
-   if {[info exists ::g_loadedModuleVariant($mod)]} {
-      # use array to make variant unique
-      foreach vrspec $::g_loadedModuleVariant($mod) {
-         lassign $vrspec vrname vrvalue vrvalisdfl
-         # do not return variant if value is default
-         if {$excl_dflval} {
-            if {![string is true -strict $vrvalisdfl]} {
-               set vrarr($vrname) $vrvalue
-            # nullify previous duplicate definition if this one is default
-            } elseif {[info exists vrarr($vrname)]} {
-               unset vrarr($vrname)
-            }
-         } else {
+   # use array to make variant unique
+   foreach vrspec $vrspeclist {
+      lassign $vrspec vrname vrvalue vrvalisdfl
+      # do not return variant if value is default
+      if {$excl_dflval} {
+         if {![string is true -strict $vrvalisdfl]} {
             set vrarr($vrname) $vrvalue
+         # nullify previous duplicate definition if this one is default
+         } elseif {[info exists vrarr($vrname)]} {
+            unset vrarr($vrname)
          }
+      } else {
+         set vrarr($vrname) $vrvalue
       }
-      # sort variant to report
-      foreach vrname [lsort -dictionary [array names vrarr]] {
-         if {$report} {
-            lappend ret $vrname=$vrarr($vrname)
-         } else {
-            lappend ret $vrname $vrarr($vrname)
-         }
+   }
+   # sort variant to report
+   set ret {}
+   foreach vrname [lsort -dictionary [array names vrarr]] {
+      if {$report} {
+         lappend ret $vrname=$vrarr($vrname)
+      } else {
+         lappend ret $vrname $vrarr($vrname)
       }
    }
 
@@ -12298,6 +12305,10 @@ proc cmdModuleLoad {context uasked args} {
          set modname $loadedmodname
       }
 
+      # record module title (with the variant specified on load call) prior
+      # module evaluation to get this title ready in case of eval error
+      registerModuleDesignation $modname [getVariantList $mod 1 0 1]
+
       pushSettings
       if {[set errCode [catch {
          if {[isModuleLoaded $modname] || [isModuleLoading $modname]} {
@@ -12529,6 +12540,11 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       registerModuleEvalAttempt $context $mod
       # resolve by also looking at matching loaded module
       lassign [getPathToModule $mod {} 1 $match] modfile modname errkind
+
+      # record module title (with the variant specified on unload call) prior
+      # module evaluation to get this title ready in case of eval error
+      registerModuleDesignation $modname [getVariantList $mod 1 0 1]
+
       if {$modfile eq {}} {
          # no error return if module is not loaded
          if {$errkind eq {notloaded}} {
@@ -12538,7 +12554,6 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                set msgrecid unload-$modname-[depthState modulename]
                pushMsgRecordId $msgrecid
                reportInfo "Module '$modname' is not loaded"
-               registerModuleDesignation $modname [getVariantList $modname 1]
                reportMsgRecord "Unloading [getModuleDesignation $modname]"
             }
          } else {
