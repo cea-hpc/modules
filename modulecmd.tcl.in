@@ -4864,7 +4864,9 @@ proc variant {args} {
       lassign [lindex $vrlist $i] vrname vrvalue
       if {$vrname eq $name} {
          if {[llength $values] > 0 && [notInList $values $vrvalue]} {
-            knerror "Invalid value '$vrvalue' for variant '$name'"
+            # invalid value error is not a modulefile error
+            knerror "Invalid value '$vrvalue' for variant '$name'\nAllowed\
+               values are: $values" MODULES_ERR_GLOBAL
          } else {
             # instanciate variant in modulefile context
             reportDebug "Set variant on $itrp: ModuleVariant($name) =\
