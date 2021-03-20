@@ -1,0 +1,108 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2021/03/20
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload, switch
+#   Modulefiles:    variant
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Tests report messages involving variant mechanism
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+
+#
+# Loading/Unloading/Switching message tests
+#
+
+setenv_var TESTSUITE_VARIANT 11
+
+set ans [list]
+lappend ans [list set TS0 {bar foo}]
+lappend ans [list set TS1 {bar=val3:foo=val2}]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|val2|0&bar|val3|0]
+testouterr_cmd sh {load -v variant/1.0 foo=val2 bar=val3} $ans [msg_load {variant/1.0 {bar=val3 foo=val2}}]
+
+testouterr_cmd sh {unload -vv variant/1.0 foo=val2 bar=val3} OK [msg_unload {variant/1.0 {bar=val3 foo=val2}} [info_notloaded {variant/1.0}]]
+
+testouterr_cmd sh {switch -v variant/1.0 foo=val2 bar=val3} $ans [msg_load {variant/1.0 {bar=val3 foo=val2}}]\n[msg_switch {variant/1.0 {bar=val3 foo=val2}} {variant/1.0 {bar=val3 foo=val2}}]
+
+
+setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val2|0&bar|val3|0
+
+testouterr_cmd sh {load -vv variant/1.0 foo=val2 bar=val3} OK [msg_load {variant/1.0 {bar=val3 foo=val2}} [info_alreadyloaded {variant/1.0}]]
+
+testouterr_cmd sh {load -vv variant/1.0} OK [msg_load {variant/1.0 {bar=val3 foo=val2}} [info_alreadyloaded {variant/1.0}]]
+
+testouterr_cmd sh {switch -v variant/1.0 foo=val2 bar=val3} $ans [msg_unload {variant/1.0 {bar=val3 foo=val2}}]\n[msg_load {variant/1.0 {bar=val3 foo=val2}}]\n[msg_switch {variant/1.0 {bar=val3 foo=val2}} {variant/1.0 {bar=val3 foo=val2}}]
+
+set ans [list]
+lappend ans [list unset TS0]
+lappend ans [list unset TS1]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMVARIANT]
+testouterr_cmd sh {unload -v variant/1.0 foo=val2 bar=val3} $ans [msg_unload {variant/1.0 {bar=val3 foo=val2}}]
+
+testouterr_cmd sh {unload -v variant/1.0} $ans [msg_unload {variant/1.0 {bar=val3 foo=val2}}]
+
+set ans [list]
+lappend ans [list unset TS0]
+lappend ans [list unset TS1]
+lappend ans [list setpath LOADEDMODULES {variant/w s}]
+lappend ans [list setpath _LMFILES_ "$mp/variant/w s"]
+lappend ans [list setpath MODULES_LMVARIANT {variant/w s&b*r| val1|0}]
+if {$install_implicitdefault} {
+    lappend ans [list setpath MODULES_LMALTNAME {variant/w s&as|variant/default&as|variant/latest}]
+}
+testouterr_cmd sh {switch -v variant/w\ s b*r=\ val1} $ans [msg_unload {variant/1.0 {bar=val3 foo=val2}}]\n[msg_load {'variant/w s' {'b*r= val1'}}]\n[msg_switch {variant/1.0 {bar=val3 foo=val2}} {'variant/w s' {'b*r= val1'}}]
+
+# wrong variant specified on switched-on module
+set ans [list]
+lappend ans [list unsetpath MODULES_LMVARIANT]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unset TS0]
+lappend ans [list unset TS1]
+lappend ans [list ERR]
+testouterr_cmd sh {switch -v variant/w\ s b*r=\ val1 unk=val1} $ans [msg_unload {variant/1.0 {bar=val3 foo=val2}}]\n\n[msg_load {'variant/w s' {'b*r= val1' unk=val1}} [err_unkvar unk]]\n\n[msg_switch {variant/1.0 {bar=val3 foo=val2}} {'variant/w s' {'b*r= val1' unk=val1}} [err_swon {variant/w s}]]
+
+
+#
+# sgr rendering test
+#
+
+setenv_var MODULES_COLORS "hi=1:se=2:va=93"
+
+testouterr_cmd_re sh {load --color=always -vv variant/1.0} OK [msg_load "[sgr 1]variant/1.0[sgr 22] {[sgr 93]bar=val3[sgr 0] [sgr 93]foo=val2[sgr 0]}" [info_alreadyloaded {variant/1.0}]]
+testouterr_cmd_re sh {load --color=always -vv variant/1.0 bar=val3 foo=val2} OK [msg_load "[sgr 1]variant/1.0[sgr 22] {[sgr 93]bar=val3[sgr 0] [sgr 93]foo=val2[sgr 0]}" [info_alreadyloaded {variant/1.0}]]
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMVARIANT
+testouterr_cmd_re sh {unload --color=always -vv variant/1.0 bar=val3 foo=val2} OK [msg_unload "[sgr 1]variant/1.0[sgr 22] {[sgr 93]bar=val3[sgr 0] [sgr 93]foo=val2[sgr 0]}" [info_notloaded {variant/1.0}]]
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
