@@ -12545,6 +12545,18 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       # module evaluation to get this title ready in case of eval error
       registerModuleDesignation $modname [getVariantList $mod 1 0 1]
 
+      # if a switch action is ongoing...
+      if {[info exists swprocessing]} {
+         # pass the DepRe mod list to the calling cmdModuleSwitch
+         # procedure to let it handle the load phase of the DepRe
+         # mechanism once the switched-to module will be loaded
+         upvar deprelist deprelist
+         upvar isuasked isuasked
+
+         # transmit unloaded mod name for switch report summary
+         uplevel 1 set old $modname
+      }
+
       if {$modfile eq {}} {
          # no error return if module is not loaded
          if {$errkind eq {notloaded}} {
@@ -12576,17 +12588,6 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          continue
       }
 
-      # if a switch action is ongoing...
-      if {[info exists swprocessing]} {
-         # pass the DepRe mod list to the calling cmdModuleSwitch
-         # procedure to let it handle the load phase of the DepRe
-         # mechanism once the switched-to module will be loaded
-         upvar deprelist deprelist
-         upvar isuasked isuasked
-
-         # transmit unloaded mod name for switch report summary
-         uplevel 1 set old $modname
-      }
       # set a unique id to record messages related to this evaluation.
       set msgrecid unload-$modname-[depthState modulename]
       pushMsgRecordId $msgrecid
