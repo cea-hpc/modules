@@ -48,7 +48,7 @@ lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
 lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|val1|0]
 testouterr_cmd sh {load variant/1.0 foo=val1} $ans {}
 
-testouterr_cmd sh {load variant/1.0 foo=val2} ERR [msg_load {variant/1.0 {foo=val2}} [msg_moderr {Invalid value 'val2' for variant 'foo'} {variant foo val1} $mp/variant/1.0 6]]
+testouterr_cmd sh {load variant/1.0 foo=val2} ERR [msg_load {variant/1.0 {foo=val2}} [err_invalvarval foo val2 {val1}]]
 
 setenv_var TESTSUITE_VARIANT 2
 testouterr_cmd sh {load variant/1.0} $ansemp {}
@@ -61,7 +61,7 @@ lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
 lappend ans [list setpath MODULES_LMVARIANT variant/1.0&FOO|val2|0]
 testouterr_cmd sh {load variant/1.0 FOO=val2} $ans {}
 
-testouterr_cmd sh {load variant/1.0 FOO=val4} ERR [msg_load {variant/1.0 {FOO=val4}} [msg_moderr {Invalid value 'val4' for variant 'FOO'} {variant FOO val1 val2 val3} $mp/variant/1.0 9]]
+testouterr_cmd sh {load variant/1.0 FOO=val4} ERR [msg_load {variant/1.0 {FOO=val4}} [err_invalvarval FOO val4 {val1 val2 val3}]]
 
 setenv_var TESTSUITE_VARIANT 3
 testouterr_cmd sh {load variant/1.0} $ansemp {}
@@ -129,7 +129,7 @@ testouterr_cmd sh {load variant/1.0 %foo=val1} ERR [msg_load {variant/1.0 {%foo=
 
 setenv_var TESTSUITE_VARIANT 5
 testouterr_cmd sh {load variant/1.0} $ansemp {}
-testouterr_cmd sh {load variant/1.0 foo=val1} ERR [msg_load {variant/1.0 {foo=val1}} [msg_moderr {Invalid value 'val1' for variant 'foo'} {variant foo val2} $mp/variant/1.0 19]]
+testouterr_cmd sh {load variant/1.0 foo=val1} ERR [msg_load {variant/1.0 {foo=val1}} [err_invalvarval foo val1 {val2}]]
 set ans [list]
 lappend ans [list set TS0 {bar}]
 lappend ans [list set TS1 {bar=val1}]
@@ -142,7 +142,7 @@ setenv_var TESTSUITE_VARIANT 6
 testouterr_cmd sh {load variant/1.0} $ansemp {}
 
 set ans [list]
-testouterr_cmd sh {load variant/1.0 foo=val2 bar=val} ERR [msg_load {variant/1.0 {bar=val foo=val2}} [msg_moderr {Invalid value 'val2' for variant 'foo'} {variant foo 0 1 2} $mp/variant/1.0 24]]
+testouterr_cmd sh {load variant/1.0 foo=val2 bar=val} ERR [msg_load {variant/1.0 {bar=val foo=val2}} [err_invalvarval foo val2 {0 1 2}]]
 
 lappend ans [list set TS0 {bar foo}]
 lappend ans [list set TS1 {bar=val:foo=0}]
@@ -259,7 +259,7 @@ testouterr_cmd sh {load variant/1.0 bar=val} ERR [msg_load {variant/1.0 {bar=val
 testouterr_cmd sh {load variant/1.0 bar=val baz=val} ERR [msg_load {variant/1.0 {bar=val baz=val}} "$error_msgs: Unknown variant 'bar' specified" "$error_msgs: Unknown variant 'baz' specified"]
 testouterr_cmd sh {load variant/1.0 bar=val variant/1.0 baz=val} ERR [msg_load {variant/1.0 {bar=val}} "$error_msgs: Unknown variant 'bar' specified"]\n\n[msg_load {variant/1.0 {baz=val}} "$error_msgs: Unknown variant 'baz' specified"]
 testouterr_cmd sh {load variant/1.0 bar=val foo=val1 baz=val} ERR [msg_load {variant/1.0 {bar=val baz=val foo=val1}} "$error_msgs: Unknown variant 'bar' specified" "$error_msgs: Unknown variant 'baz' specified"]
-testouterr_cmd sh {load variant/1.0 bar=val foo=val2 baz=val} ERR [msg_load {variant/1.0 {bar=val baz=val foo=val2}} [msg_moderr {Invalid value 'val2' for variant 'foo'} {variant foo val1} $mp/variant/1.0 6]]
+testouterr_cmd sh {load variant/1.0 bar=val foo=val2 baz=val} ERR [msg_load {variant/1.0 {bar=val baz=val foo=val2}} [err_invalvarval foo val2 {val1}]]
 
 # test argument mixing variant and version specifier
 setenv_var TESTSUITE_VARIANT 1
@@ -271,8 +271,8 @@ lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
 lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|val1|0]
 testouterr_cmd sh {load variant foo=val1@1.0} $ans {}
 testouterr_cmd sh {load variant foo=val1@2.0@1.0} $ans {}
-testouterr_cmd sh {load variant foo=val@1.0} ERR [msg_load {variant/1.0 {foo=val}} [msg_moderr {Invalid value 'val' for variant 'foo'} {variant foo val1} $mp/variant/1.0 6]]
-testouterr_cmd sh {load variant foo=@1.0} ERR [msg_load {variant/1.0 {foo=}} [msg_moderr {Invalid value '' for variant 'foo'} {variant foo val1} $mp/variant/1.0 6]]
+testouterr_cmd sh {load variant foo=val@1.0} ERR [msg_load {variant/1.0 {foo=val}} [err_invalvarval foo val {val1}]]
+testouterr_cmd sh {load variant foo=@1.0} ERR [msg_load {variant/1.0 {foo=}} [err_invalvarval foo {} {val1}]]
 testouterr_cmd sh {load variant =val@1.0} ERR "$error_msgs: No variant name defined in argument '=val'"
 testouterr_cmd sh {load variant =val@} ERR "$error_msgs: No variant name defined in argument '=val'"
 testouterr_cmd sh {load variant foo=val@} ERR [msg_load {'variant/w s' {foo=val}} "$error_msgs: Unknown variant 'foo' specified"]
