@@ -23,7 +23,7 @@ Defining
     - especially modulefile evaluation may be guided by the value selected for the variants
     - so it makes more sense to have variants defined within modulefiles rather in modulercs
 
-- ``variant --default? defaultval? --multivalued? --alias? {aliasname...?} name value ...?``
+- ``variant --default? defaultval? --alias? {aliasname...?} name value ...?``
 
 - ``name`` restrained to the accepted variable name
 
@@ -48,10 +48,6 @@ Defining
         - error is raised otherwise when default value is used, as it does not correspond to an accepted value
 
             - ex: ``variant name --default 1.8 1.0 2.0``
-
-- may be multi-valued (when ``--multivalued`` argument is passed)
-
-    - if so a list is set with selected values
 
 - must have a list of accepted values
 
@@ -117,7 +113,6 @@ Evaluating
 - raise error if variant ``name``:
 
     - has been specified but passed value is incorrect
-    - is single-valued but multiple values are passed
     - is wrongly declared in modulefile
 
 - then variable ``$ModuleVariant(name)`` could be used to adapt modulefile evaluation
@@ -305,7 +300,6 @@ Specifying
 
     - this kind of variant cannot be directly appended to module name
     - thus it must be specified as a separate word
-    - in case variant can be multi-valued, a ``,`` character separates each value to set
 
 - a Boolean variant can be specified with its bare name prefixed by *+*, *-* or *~*
 
@@ -349,9 +343,7 @@ Specifying
 
         - a *merge all passed values in list* is not the methodology retained here
 
-            - to offer only one way to specify multiple values for a variant
             - same handling way whatever the variant properties
-            - as prior modulefile evaluation, variant properties are unknown (single or multi valued?)
 
     - like *name=value1 name=value2*
 
