@@ -629,14 +629,17 @@ setenv_var MODULES_ADVANCED_VERSION_SPEC 0
 setenv_var TESTSUITE_VARIANT coll19
 set ans [list]
 lappend ans [list setpath MODULEPATH $c19modpath]
-lappend ans [list setpath LOADEDMODULES $c19lm]
-lappend ans [list setpath _LMFILES_ $c19lmf]
+lappend ans [list setpath _LMFILES_ $c19modpath1/$c19mod2]
+lappend ans [list setpath LOADEDMODULES $c19mod2]
 lappend ans [list ERR]
-testouterr_cmd_re sh "restore $coll19fp" $ans "Loading variant/1.0
+testouterr_cmd_re sh "restore $coll19fp" $ans "[msg_load variant/1.0 [err_novarval {bar } {{} val1 val2}]]
+
 $err_path'{bar =}'
 $err_path'{fo o=v\\?l1 }'
 Loading foo/1.0
-Loading 'variant/w s'
+
+[msg_load {'variant/w s'} [err_novarval b\\*r {val1 { val1} val2}]]
+
 $err_path'{b\\*r= val1}'"
 
 setenv_var TESTSUITE_VARIANT coll26
@@ -689,6 +692,7 @@ unsetenv_path_var MODULES_LMVARIANT
 # test restoring collection with bad module specification
 testouterr_cmd_re sh "restore $coll27fp" ERR "$error_msgs: $msg_nomodnameinarg 'foo=val'"
 testouterr_cmd_re sh "restore $coll28fp" ERR "$error_msgs: $msg_nomodnameinarg '@1.0'"
+setenv_var TESTSUITE_VARIANT coll29
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $c26mod2]
 lappend ans [list setpath _LMFILES_ $c26modpath1/$c26mod2]
