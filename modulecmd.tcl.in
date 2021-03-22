@@ -4860,6 +4860,7 @@ proc variant {args} {
    set vrlist [getVariantListFromVersSpec [currentState specifiedname]]
 
    # search for variant specification (most right-positionned value wins)
+   set vrset 0
    for {set i [expr {[llength $vrlist]-1}]} {$i >= 0} {incr i -1} {
       lassign [lindex $vrlist $i] vrname vrvalue
       if {$vrname eq $name} {
@@ -4876,9 +4877,17 @@ proc variant {args} {
 
             # record variant for persistency (name value is-default)
             setLoadedVariant [currentState modulename] [list $name $vrvalue 0]
+
+            set vrset 1
          }
          break
       }
+   }
+
+   # error if variant has not been specified
+   if {!$vrset} {
+      knerror "No value specified for variant '$name'\nAllowed\
+         values are: $values" MODULES_ERR_GLOBAL
    }
 
 }
