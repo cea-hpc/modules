@@ -59,7 +59,7 @@ testouterr_cmd sh {load variant/1.0 FOO=val2} $ans {}
 testouterr_cmd sh {load variant/1.0 FOO=val4} ERR [msg_load {variant/1.0 {FOO=val4}} [err_invalvarval FOO val4 {val1 val2 val3}]]
 
 setenv_var TESTSUITE_VARIANT 3
-testouterr_cmd sh {load variant/1.0} ERR [msg_load variant/1.0 [err_novarval foo {}]]
+testouterr_cmd sh {load variant/1.0} ERR [msg_load variant/1.0 [err_novarval foo {bar val {} { } {bar } {foo bar} { bar } val1=val2}]]
 
 set ans [list]
 lappend ans [list set TS0 {foo}]
@@ -129,16 +129,8 @@ testouterr_cmd sh {load variant/1.0 bar=val1} ERR [msg_load {variant/1.0 {bar=va
 
 setenv_var TESTSUITE_VARIANT 6
 testouterr_cmd sh {load variant/1.0} ERR [msg_load variant/1.0 [err_novarval foo {0 1 2}]]
-
-set ans [list]
 testouterr_cmd sh {load variant/1.0 foo=val2 bar=val} ERR [msg_load {variant/1.0 {bar=val foo=val2}} [err_invalvarval foo val2 {0 1 2}]]
-
-lappend ans [list set TS0 {bar foo}]
-lappend ans [list set TS1 {bar=val:foo=0}]
-lappend ans [list setpath LOADEDMODULES variant/1.0]
-lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
-lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|0|0&bar|val|0]
-testouterr_cmd sh {load variant/1.0 foo=0 bar=val} $ans {}
+testouterr_cmd sh {load variant/1.0 foo=0 bar=val} ERR [msg_load {variant/1.0 {bar=val foo=0}} [msg_moderr {No allowed value list defined for variant 'bar'} {variant bar} $mp/variant/1.0 25]]
 
 setenv_var TESTSUITE_VARIANT 7
 testouterr_cmd sh {load variant/1.0} ERR [msg_load variant/1.0 [msg_moderr {Invalid variant name ''} {variant {} 0 1 2} $mp/variant/1.0 28]]
@@ -154,7 +146,7 @@ lappend ans [list setpath LOADEDMODULES variant/1.0]
 lappend ans [list set TS0 {foo}]
 lappend ans [list set TS1 {foo=val1}]
 lappend ans [list ERR]
-testouterr_cmd_re sh {load variant/1.0 foo=val1 variant/2.0} $ans [msg_load variant/2.0 [err_novarval foo {}]]
+testouterr_cmd_re sh {load variant/1.0 foo=val1 variant/2.0} $ans [msg_load variant/2.0 [err_novarval foo {val1}]]
 
 # test successive eval of same modulefiles with different variant values
 set ans [list]
@@ -268,6 +260,10 @@ setenv_var TESTSUITE_VARIANT 1
 testouterr_cmd sh {load variant/1.0 foo=val1} OK {}
 unsetenv_loaded_module
 unsetenv_path_var MODULES_LMVARIANT
+
+# variant with no value defined
+setenv_var TESTSUITE_VARIANT 12
+testouterr_cmd sh {load variant/1.0 foo=val1} ERR [msg_load {variant/1.0 {foo=val1}} [msg_moderr {No allowed value list defined for variant 'foo'} {variant foo} $mp/variant/1.0 50]]
 
 
 #
