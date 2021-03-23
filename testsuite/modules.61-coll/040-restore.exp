@@ -46,7 +46,7 @@ set c16errmsg "Loading '$c16mod1'\nLoading '$c16mod2'\nLoading $c16mod3\nLoading
 set c17errmsg "Loading $c17mod1\nLoading $c17mod2"
 set c19errmsg [escre "Loading $c19mod1 {'[join $c19mod1vr {' '}]'}\nLoading $c19mod2\nLoading '$c19mod3' {'[join $c19mod3vr]'}"]
 set c20errmsg [escre "Loading $c20mod1 {'[join $c20mod1vr {' '}]'}\nLoading $c20mod2\nLoading '$c20mod3' {'[join $c20mod3vr]'}"]
-set c22errmsg [escre "Loading $c22mod1 {'[join $c22mod1vr {' '}]'}\nLoading $c22mod2\nLoading '$c22mod3'"]
+set c22errmsg [escre "Loading $c22mod1 {'bar =' '[join $c22mod1vr {' '}]'}\nLoading $c22mod2\nLoading '$c22mod3' {'b*r= val1'}"]
 set c26errmsg [escre "Loading $c26mod1 {'[join $c26mod1vr {' '}]'}\nLoading $c26mod2\nLoading '$c26mod3' {'[join $c20mod3vr]'}"]
 
 # set HOME to location containing collections
@@ -594,9 +594,7 @@ set ans [list]
 lappend ans [list setpath MODULEPATH $c20modpath]
 lappend ans [list setpath LOADEDMODULES $c20lm]
 lappend ans [list setpath _LMFILES_ $c20lmf]
-#FIXME: correct test once --default will be implemented
-#lappend ans [list setpath MODULES_LMVARIANT $c20lmvr]
-lappend ans [list setpath MODULES_LMVARIANT "$c20mod1&bar ||0&fo o|v?l1 |0:$c20mod3&b*r| val1|0"]
+lappend ans [list setpath MODULES_LMVARIANT $c20lmvr]
 lappend ans [list setpath MODULES_LMALTNAME $c20lmalt]
 testouterr_cmd_re sh "restore $coll20fp" $ans $c20errmsg
 
@@ -605,9 +603,7 @@ set ans [list]
 lappend ans [list setpath MODULEPATH $c22modpath]
 lappend ans [list setpath LOADEDMODULES $c22lm]
 lappend ans [list setpath _LMFILES_ $c22lmf]
-#FIXME: correct test once --default will be implemented
-#lappend ans [list setpath MODULES_LMVARIANT $c22lmvr]
-lappend ans [list setpath MODULES_LMVARIANT "$c22mod1&fo o|v?l1 |0"]
+lappend ans [list setpath MODULES_LMVARIANT $c22lmvr]
 lappend ans [list setpath MODULES_LMALTNAME $c22lmalt]
 testouterr_cmd_re sh "restore $coll22fp" $ans $c22errmsg
 
@@ -617,9 +613,7 @@ lappend ans [list setpath MODULEPATH $c26modpath]
 lappend ans [list setpath LOADEDMODULES $c26lm]
 lappend ans [list setpath _LMFILES_ $c26lmf]
 lappend ans [list setpath MODULES_LMNOTUASKED $c26lmnua]
-#FIXME: correct test once --default will be implemented
-#lappend ans [list setpath MODULES_LMVARIANT $c26lmvr]
-lappend ans [list setpath MODULES_LMVARIANT "$c26mod1&bar ||0&fo o|v?l1 |0:$c26mod3&b*r| val1|0"]
+lappend ans [list setpath MODULES_LMVARIANT $c26lmvr]
 lappend ans [list setpath MODULES_LMALTNAME $c26lmalt]
 testouterr_cmd_re sh "restore $coll26fp" $ans $c26errmsg
 
@@ -645,15 +639,17 @@ $err_path'{b\\*r= val1}'"
 setenv_var TESTSUITE_VARIANT coll26
 set ans [list]
 lappend ans [list setpath MODULEPATH $c26modpath]
-lappend ans [list setpath LOADEDMODULES $c26lm]
-lappend ans [list setpath _LMFILES_ $c26lmf]
-lappend ans [list setpath MODULES_LMNOTUASKED $c26lmnua]
+lappend ans [list setpath LOADEDMODULES $c26mod2:$c26mod3]
+lappend ans [list setpath _LMFILES_ $c26modpath1/$c26mod2:$c26modpath1/$c26mod3]
+lappend ans [list setpath MODULES_LMVARIANT "$c26mod3&b*r| val1|1"]
+lappend ans [list setpath MODULES_LMNOTUASKED $c26mod2]
 lappend ans [list ERR]
-testouterr_cmd_re sh "restore $coll26fp" $ans "Loading variant/1.0
+testouterr_cmd_re sh "restore $coll26fp" $ans "[escre [msg_load {variant/1.0} [err_novarval {fo o} {val1 val2 {v?l1 }}]]]
+
 $err_path'{bar =}'
 $err_path'{fo o=v\\?l1 }'
 Loading foo/1.0
-Loading 'variant/w s'
+Loading 'variant/w s' {'b\\*r= val1'}
 $err_path'{b\\*r= val1}'"
 
 
@@ -668,9 +664,7 @@ setenv_var TESTSUITE_VARIANT coll20
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $c20lm]
 lappend ans [list setpath _LMFILES_ $c20lmf]
-#FIXME: correct test once --default will be implemented
-#lappend ans [list setpath MODULES_LMVARIANT $c20lmvr]
-lappend ans [list setpath MODULES_LMVARIANT "$c20mod1&bar ||1&fo o|v?l1 |0:$c20mod3&b*r| val1|0"]
+lappend ans [list setpath MODULES_LMVARIANT $c20lmvr]
 lappend ans [list setpath MODULES_LMALTNAME $c20lmalt]
 testouterr_cmd_re sh "restore $coll20fp" $ans [escre "Loading $c22mod2\nLoading '$c22mod3' {'[join $c20mod3vr]'}"]
 
@@ -679,10 +673,9 @@ setenv_var TESTSUITE_VARIANT coll22
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $c22lm]
 lappend ans [list setpath _LMFILES_ $c22lmf]
-#FIXME: correct test once --default will be implemented
-#lappend ans [list setpath MODULES_LMVARIANT $c22lmvr]
+lappend ans [list setpath MODULES_LMVARIANT $c22lmvr]
 lappend ans [list setpath MODULES_LMALTNAME $c22lmalt]
-testouterr_cmd_re sh "restore $coll22fp" $ans "Loading $c22mod2\nLoading '$c22mod3'"
+testouterr_cmd_re sh "restore $coll22fp" $ans "Loading $c22mod2\nLoading '$c22mod3' {'b\\*r= val1'}"
 
 unsetenv_path_var MODULEPATH
 unsetenv_loaded_module
