@@ -4843,15 +4843,43 @@ proc source-sh-di {shell script args} {
 }
 
 proc variant {args} {
-   # check args
-   if {[llength $args] == 0} {
+   # parse args
+   set i 0
+   foreach arg $args {
+      incr i
+      if {[info exists nextargisval]} {
+         set $nextargisval $arg
+         unset nextargisval
+      } else {
+         switch -glob -- $arg {
+            --default {
+               set nextargisval dflvalue
+            }
+            -* {
+               knerror "Invalid option '$arg'"
+            }
+            default {
+               set name $arg
+               # end option parsing: remaining elts are allowed values
+               break
+            }
+         }
+         set prevarg $arg
+      }
+   }
+
+   if {[info exists nextargisval]} {
+      knerror "Missing value for '$prevarg' option"
+   }
+
+   # check variant name and allowed values
+   if {![info exists name]} {
       knerror {No variant name specified}
    }
-   set name [lindex $args 0]
    if {![string match {[A-Za-z0-9_]} [string index $name 0]]} {
       knerror "Invalid variant name '$name'"
    }
-   set values [lrange $args 1 end]
+   set values [lrange $args $i end]
    if {[llength $values] == 0} {
       knerror "No allowed value list defined for variant '$name'"
    }
@@ -4863,36 +4891,40 @@ proc variant {args} {
    set vrlist [getVariantListFromVersSpec [currentState specifiedname]]
 
    # search for variant specification (most right-positionned value wins)
-   set vrset 0
    for {set i [expr {[llength $vrlist]-1}]} {$i >= 0} {incr i -1} {
       lassign [lindex $vrlist $i] vrname vrvalue
       if {$vrname eq $name} {
-         if {[llength $values] > 0 && [notInList $values $vrvalue]} {
-            # invalid value error is not a modulefile error
-            knerror "Invalid value '$vrvalue' for variant '$name'\nAllowed\
-               values are: $values" MODULES_ERR_GLOBAL
-         } else {
-            # instanciate variant in modulefile context
-            reportDebug "Set variant on $itrp: ModuleVariant($name) =\
-               '$vrvalue'"
-            $itrp eval set "{::ModuleVariant($name)}" "{$vrvalue}"
-            # after modfile interp ModuleVariant is unset by resetInterpState
-
-            # record variant for persistency (name value is-default)
-            setLoadedVariant [currentState modulename] [list $name $vrvalue 0]
-
-            set vrset 1
-         }
+         set value $vrvalue
+         set isdflval [expr {[info exists dflvalue] && $dflvalue eq $value}]
          break
       }
    }
 
-   # error if variant has not been specified
-   if {!$vrset} {
-      knerror "No value specified for variant '$name'\nAllowed\
-         values are: $values" MODULES_ERR_GLOBAL
+   # error if variant has not been specified unless a default is defined
+   if {![info exists isdflval]} {
+      if {[info exists dflvalue]} {
+         set value $dflvalue
+         set isdflval 1
+      } else {
+         knerror "No value specified for variant '$name'\nAllowed\
+            values are: $values" MODULES_ERR_GLOBAL
+      }
    }
 
+   # check defined value
+   if {[notInList $values $value]} {
+      # invalid value error is not a modulefile error
+      knerror "Invalid value '$value' for variant '$name'\nAllowed values\
+         are: $values" MODULES_ERR_GLOBAL
+   } else {
+      # instanciate variant in modulefile context
+      reportDebug "Set variant on $itrp: ModuleVariant($name) = '$value'"
+      $itrp eval set "{::ModuleVariant($name)}" "{$value}"
+      # after modfile interp ModuleVariant is unset by resetInterpState
+
+      # record variant for persistency (name value is-default)
+      setLoadedVariant [currentState modulename] [list $name $value $isdflval]
+   }
 }
 
 ########################################################################
