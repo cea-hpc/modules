@@ -267,6 +267,105 @@ testouterr_cmd sh {load variant/1.0 foo=val1} ERR [msg_load {variant/1.0 {foo=va
 
 
 #
+# --default tests
+#
+
+setenv_var TESTSUITE_VARIANT 13
+
+set ans [list]
+lappend ans [list set TS0 {bar foo}]
+lappend ans [list set TS1 {bar=val2:foo=val1}]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|val1|1&bar|val2|1]
+testouterr_cmd sh {load variant/1.0} $ans {}
+testouterr_cmd sh {load -vv variant/1.0} $ans [msg_load {variant/1.0 {bar=val2 foo=val1}}]
+testouterr_cmd sh {load variant/1.0 bar=val2} $ans {}
+testouterr_cmd sh {load variant/1.0 foo=val1 bar=val2} $ans {}
+
+set ans [list]
+lappend ans [list set TS0 {bar foo}]
+lappend ans [list set TS1 {bar=val1:foo=val1}]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|val1|1&bar|val1|0]
+testouterr_cmd sh {load variant/1.0 bar=val1} $ans {}
+testouterr_cmd sh {load -vv variant/1.0 bar=val1} $ans [msg_load {variant/1.0 {bar=val1 foo=val1}}]
+testouterr_cmd sh {load variant/1.0 foo=val1 bar=val1} $ans {}
+
+# bad default specification
+
+
+setenv_var TESTSUITE_VARIANT 14
+testouterr_cmd sh {load variant/1.0} ERR [msg_load variant/1.0 [msg_moderr {Missing value for '--default' option} {variant --default} $mp/variant/1.0 57]]
+testouterr_cmd sh {load variant/1.0 foo=val1} ERR [msg_load {variant/1.0 {foo=val1}} [msg_moderr {Missing value for '--default' option} {variant --default} $mp/variant/1.0 57]]
+
+setenv_var TESTSUITE_VARIANT 15
+testouterr_cmd sh {load variant/1.0} ERR [msg_load variant/1.0 [err_novarval foo {--default val1}]]
+set ans [list]
+lappend ans [list set TS0 {foo}]
+lappend ans [list set TS1 {foo=--default}]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|--default|0]
+testouterr_cmd sh {load variant/1.0 foo=--default} $ans {}
+
+setenv_var TESTSUITE_VARIANT 16
+testouterr_cmd sh {load variant/1.0} ERR [msg_load variant/1.0 [err_novarval foo {-val}]]
+set ans [list]
+lappend ans [list set TS0 {foo}]
+lappend ans [list set TS1 {foo=-val}]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|-val|0]
+testouterr_cmd sh {load variant/1.0 foo=-val} $ans {}
+
+setenv_var TESTSUITE_VARIANT 17
+set ans [list]
+lappend ans [list set TS0 {foo}]
+lappend ans [list set TS1 {foo=--val}]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|--val|0]
+testouterr_cmd sh {load variant/1.0 foo=--val} $ans {}
+
+setenv_var TESTSUITE_VARIANT 18
+testouterr_cmd sh {load variant/1.0} ERR [msg_load variant/1.0 [err_novarval foo {--default}]]
+
+setenv_var TESTSUITE_VARIANT 19
+testouterr_cmd sh {load variant/1.0} ERR [msg_load variant/1.0 [err_invalvarval foo val1 {--default val2}]]
+set ans [list]
+lappend ans [list set TS0 {foo}]
+lappend ans [list set TS1 {foo=--default}]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|--default|0]
+testouterr_cmd sh {load variant/1.0 foo=--default} $ans {}
+
+setenv_var TESTSUITE_VARIANT 20
+testouterr_cmd sh {load variant/1.0} ERR [msg_load variant/1.0 [msg_moderr {Invalid option '--opt'} {variant --opt foo val1} $mp/variant/1.0 75]]
+
+setenv_var TESTSUITE_VARIANT 21
+testouterr_cmd sh {load variant/1.0} ERR [msg_load variant/1.0 [err_invalvarval foo val1 {val2 val3}]]
+set ans [list]
+lappend ans [list set TS0 {foo}]
+lappend ans [list set TS1 {foo=val2}]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|val2|0]
+testouterr_cmd sh {load variant/1.0 foo=val2} $ans {}
+
+setenv_var TESTSUITE_VARIANT 22
+set ans [list]
+lappend ans [list set TS0 {foo}]
+lappend ans [list set TS1 {foo=val2}]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|val2|1]
+testouterr_cmd sh {load variant/1.0} $ans {}
+
+
+#
 #  Cleanup
 #
 
