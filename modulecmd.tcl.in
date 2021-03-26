@@ -4922,8 +4922,12 @@ proc variant {args} {
       $itrp eval set "{::ModuleVariant($name)}" "{$value}"
       # after modfile interp ModuleVariant is unset by resetInterpState
 
-      # record variant for persistency (name value is-default)
-      setLoadedVariant [currentState modulename] [list $name $value $isdflval]
+      # record variant for persistency (name value is-default) unless module
+      # is currently unloading
+      if {[currentState mode] ne {unload}} {
+         setLoadedVariant [currentState modulename] [list $name $value\
+            $isdflval]
+      }
    }
 }
 
