@@ -5647,9 +5647,20 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
          match {set getLoadedNameProc getLoadedMatchingName}
          close {set getLoadedNameProc getLoadedWithClosestName}
       }
-      set retlist [if {[set lm [$getLoadedNameProc $mod]] ne {}} {list\
-         [getModulefileFromLoadedModule $lm] $lm} {list {}\
-         [getModuleNameAndVersFromVersSpec $mod] notloaded}]
+      if {[set lm [$getLoadedNameProc $mod]] ne {}} {
+         # updage modspec with full loaded mod specification
+         if {[llength [set vrlist [getVariantList $lm 1]]] > 0} {
+            lassign [eval parseModuleSpecification 0 [concat [list $lm]\
+               $vrlist]] modspec
+         } else {
+            set modspec $mod
+         }
+         set retlist [list [getModulefileFromLoadedModule $lm] $lm {}\
+            $modspec]
+      } else {
+         set retlist [list {} [getModuleNameAndVersFromVersSpec $mod]\
+            notloaded $mod]
+      }
    # Check for $mod specified as a full pathname
    } elseif {[isModuleFullPath $mod]} {
       set mod [getAbsolutePath $mod]
@@ -12604,8 +12615,9 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
 
       # record evaluation attempt on specified module name
       registerModuleEvalAttempt $context $mod
-      # resolve by also looking at matching loaded module
-      lassign [getPathToModule $mod {} 1 $match] modfile modname errkind
+      # resolve by also looking at matching loaded module and update mod
+      # specification to fully match obtained loaded module
+      lassign [getPathToModule $mod {} 1 $match] modfile modname errkind mod
 
       # record module title (with the variant specified on unload call) prior
       # module evaluation to get this title ready in case of eval error
