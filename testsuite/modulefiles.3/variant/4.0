@@ -1,0 +1,23 @@
+#%Module
+if {[info exists env(TESTSUITE_VARIANT)]} {
+    switch -- $env(TESTSUITE_VARIANT) {
+        1 {
+            variant foo val1 val2 val3
+            variant bar 1 2 3
+        }
+        2 {
+            variant --default val2 foo val1 val2 val3
+            variant --default 2 bar 1 2 3
+            puts stderr [module-info specified]
+        }
+        3 {
+            variant {b?r } {} v*l1 val2
+            variant {f* o} val1 val2 {v?l1 }
+        }
+    }
+    setenv TS0 [lsort [array names ModuleVariant]]
+    foreach name [lsort [array names ModuleVariant]] {
+        append-path TS1 "$name=$ModuleVariant($name)"
+    }
+    append-path TS2 [join [lsort [array names ModuleVariant]] -]
+}
