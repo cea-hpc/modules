@@ -1762,13 +1762,14 @@ proc initModfileModeAliases {mode aliasesVN aliasesPassArgVN tracesVN} {
 
    if {![info exists g_modfilePerModeAliases]} {
       set ::g_modfileBaseAliases [list versioncmp versioncmp getenv getenv\
-         is-loaded is-loaded is-saved is-saved is-used is-used is-avail\
-         is-avail uname uname module-info module-info exit exitModfileCmd\
-         reportCmdTrace reportCmdTrace reportInternalBug reportInternalBug\
-         reportWarning reportWarning reportError reportError raiseErrorCount\
-         raiseErrorCount report report isVerbosityLevel isVerbosityLevel\
-         isWin initStateIsWin puts putsModfileCmd readModuleContent\
-         readModuleContent formatErrStackTrace formatErrStackTrace]
+         getvariant getvariant is-loaded is-loaded is-saved is-saved is-used\
+         is-used is-avail is-avail uname uname module-info module-info exit\
+         exitModfileCmd reportCmdTrace reportCmdTrace reportInternalBug\
+         reportInternalBug reportWarning reportWarning reportError\
+         reportError raiseErrorCount raiseErrorCount report report\
+         isVerbosityLevel isVerbosityLevel isWin initStateIsWin puts\
+         putsModfileCmd readModuleContent readModuleContent\
+         formatErrStackTrace formatErrStackTrace]
 
       # list of alias commands whose target procedure is adapted according to
       # the evaluation mode
@@ -4929,6 +4930,23 @@ proc variant {args} {
          setLoadedVariant [currentState modulename] [list $name $value\
             $isdflval]
       }
+   }
+}
+
+proc getvariant {name {valifundef {}}} {
+   reportDebug "name='$name', valifundef='$valifundef'"
+
+   if {[currentState mode] ne {display}} {
+      # get current modulefile Tcl interpreter
+      set itrp __modfile_[currentState mode]_[depthState modulename]
+      if {[$itrp eval info exists "{::ModuleVariant($name)}"]} {
+         return [$itrp eval set "{::ModuleVariant($name)}"]
+      } else {
+         return $valifundef
+      }
+
+   } else {
+      return [sgr va "{$name}"]
    }
 }
 
