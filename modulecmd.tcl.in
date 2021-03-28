@@ -1529,7 +1529,7 @@ proc cleanupAndExit {code} {
    exit $code
 }
 
-proc registerModuleDesignation {mod vrlist} {
+proc registerModuleDesignation {evalid mod vrlist} {
    set moddesig [sgr hi $mod]
    # enclose module name between quotes if a space is found
    if {[string first { } $mod] != -1} {
@@ -1549,12 +1549,13 @@ proc registerModuleDesignation {mod vrlist} {
       }
       append desig " \{" [join $vrdesiglist] "\}"
    }
-   set ::g_moduleDesgination($mod) $desig
+   set ::g_moduleDesgination($evalid) $desig
 }
 
-proc getModuleDesignation {mod} {
-   if {[info exists ::g_moduleDesgination($mod)]} {
-      return $::g_moduleDesgination($mod)
+proc getModuleDesignation {evalid {mod {}}} {
+   if {[info exists ::g_moduleDesgination($evalid)]} {
+      return $::g_moduleDesgination($evalid)
+   # if not found, use passed designation as fallback
    } else {
       return $mod
    }
@@ -11974,14 +11975,17 @@ proc cmdModuleSwitch {uasked old {new {}}} {
 
       # report a summary of automated evaluations if no error
       reportModuleEval
+   } else {
+      # initialize dummy load phase msg rec id to query designation
+      set newmsgrecid {}
    }
 
    # report all recorded sumup messages for this evaluation unless both old
    # and new modules are set hidden, old was auto loaded and this switch is
    # done by a modfile
-   reportMsgRecord "Switching from [getModuleDesignation $old] to\
-      [getModuleDesignation $new]" [expr {$oldhidden && !$olduasked &&\
-      $newhidden && !$uasked}]
+   reportMsgRecord "Switching from [getModuleDesignation $oldmsgrecid] to\
+      [getModuleDesignation $newmsgrecid $new]" [expr {$oldhidden &&\
+      !$olduasked && $newhidden && !$uasked}]
    popMsgRecordId
    if {$inhibit_req_rec} {
       lpopState inhibit_req_record
@@ -12339,6 +12343,7 @@ proc cmdModuleLoad {context uasked args} {
             set context reqlo
          }
          upvar newhidden hidden
+         upvar newmsgrecid msgrecid
       }
       # loading module is visible by default
       set hidden 0
@@ -12346,9 +12351,13 @@ proc cmdModuleLoad {context uasked args} {
       # record evaluation attempt on specified module name
       registerModuleEvalAttempt $context $mod
       lassign [getPathToModule $mod] modfile modname
+
+      # set a unique id to record messages related to this evaluation.
+      set msgrecid load-$modname-[depthState modulename]
+
+      # go to next module to load if not matching module found
       if {$modfile eq {}} {
          set ret 1
-         # go to next module to unload
          continue
       }
 
@@ -12371,8 +12380,7 @@ proc cmdModuleLoad {context uasked args} {
          uplevel 1 set new "{$modname}"
       }
 
-      # set a unique id to record messages related to this evaluation.
-      set msgrecid load-$modname-[depthState modulename]
+      # register record message unique id (now we know mod will be evaluated)
       pushMsgRecordId $msgrecid
 
       # record evaluation attempt on actual module name
@@ -12388,7 +12396,7 @@ proc cmdModuleLoad {context uasked args} {
 
       # record module title (with the variant specified on load call) prior
       # module evaluation to get this title ready in case of eval error
-      registerModuleDesignation $modname [getVariantList $mod 1 0 1]
+      registerModuleDesignation $msgrecid $modname [getVariantList $mod 1 0 1]
 
       pushSettings
       if {[set errCode [catch {
@@ -12397,8 +12405,9 @@ proc cmdModuleLoad {context uasked args} {
             # report module is already loaded if verbose2 or higher level
             if {[isModuleLoaded $modname] && [isVerbosityLevel verbose2]} {
                reportInfo "Module '$modname' is already loaded"
-               registerModuleDesignation $modname [getVariantList $modname 1]
-               reportMsgRecord "Loading [getModuleDesignation $modname]"
+               registerModuleDesignation $msgrecid $modname [getVariantList\
+                  $modname 1]
+               reportMsgRecord "Loading [getModuleDesignation $msgrecid]"
             }
             # exit treatment but no need to restore settings
             continue
@@ -12542,7 +12551,8 @@ proc cmdModuleLoad {context uasked args} {
          }
 
          # record module title (name and variant)
-         registerModuleDesignation $modname [getVariantList $modname 1]
+         registerModuleDesignation $msgrecid $modname [getVariantList\
+            $modname 1]
 
          # Load phase of dependent module reloading. These modules can adapt
          # now that mod is seen loaded. Except if switch action ongoing (DepRe
@@ -12586,7 +12596,7 @@ proc cmdModuleLoad {context uasked args} {
       # report all recorded messages for this evaluation except if module were
       # already loaded
       if {$errCode != 4} {
-         reportMsgRecord "Loading [getModuleDesignation $modname]" [expr\
+         reportMsgRecord "Loading [getModuleDesignation $msgrecid]" [expr\
             {$hidden && !$uasked}]
       }
       popMsgRecordId
@@ -12612,6 +12622,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          }
          upvar oldhidden hidden
          upvar olduasked uasked
+         upvar oldmsgrecid msgrecid
       }
       # unloading module is visible by default
       set hidden 0
@@ -12623,9 +12634,12 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       # specification to fully match obtained loaded module
       lassign [getPathToModule $mod {} 1 $match] modfile modname errkind mod
 
+      # set a unique id to record messages related to this evaluation.
+      set msgrecid unload-$modname-[depthState modulename]
+
       # record module title (with the variant specified on unload call) prior
       # module evaluation to get this title ready in case of eval error
-      registerModuleDesignation $modname [getVariantList $mod 1 0 1]
+      registerModuleDesignation $msgrecid $modname [getVariantList $mod 1 0 1]
 
       # if a switch action is ongoing...
       if {[info exists swprocessing]} {
@@ -12645,10 +12659,9 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             reportDebug "$modname is not loaded"
             # report module is not loaded if verbose2 or higher level
             if {[isVerbosityLevel verbose2]} {
-               set msgrecid unload-$modname-[depthState modulename]
                pushMsgRecordId $msgrecid
                reportInfo "Module '$modname' is not loaded"
-               reportMsgRecord "Unloading [getModuleDesignation $modname]"
+               reportMsgRecord "Unloading [getModuleDesignation $msgrecid]"
             }
          } else {
             set ret 1
@@ -12670,8 +12683,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          continue
       }
 
-      # set a unique id to record messages related to this evaluation.
-      set msgrecid unload-$modname-[depthState modulename]
+      # register record message unique id (now we know mod will be evaluated)
       pushMsgRecordId $msgrecid
 
       # record evaluation attempt on actual module name
@@ -12679,7 +12691,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       registerModuleEvalAttempt $context $modfile
 
       # record module title (name and variant)
-      registerModuleDesignation $modname [getVariantList $modname 1]
+      registerModuleDesignation $msgrecid $modname [getVariantList $modname 1]
 
       pushSettings
       if {[set errCode [catch {
@@ -12904,7 +12916,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
 
       # report all recorded messages for this evaluation (hide evaluation if
       # loaded mod is set hidden, has been automatically loaded and unloaded)
-      reportMsgRecord "Unloading [getModuleDesignation $modname]" [expr\
+      reportMsgRecord "Unloading [getModuleDesignation $msgrecid]" [expr\
          {$hidden && !$uasked && [depthState evalid] != 1}]
       popMsgRecordId
    }
