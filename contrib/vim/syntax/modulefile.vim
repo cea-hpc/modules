@@ -32,9 +32,10 @@ syn match modCommand "\v<(module|conflict|chdir|prereq)>"
 syn match modCommand "\v<module-(alias|forbid|hide|info|log|tag|trace|user|verbosity|version|virtual|whatis)>"
 syn match modCommand "\v<(un)?set-(alias|function)>"
 syn match modCommand "\v<(un)?setenv>"
-syn match modCommand "\v<getenv>"
+syn match modCommand "\v<get(env|variant)>"
 syn match modCommand "\v<source-sh>"
 syn match modCommand "\v<(system|uname|x-resource)>"
+syn match modCommand "\v<variant>"
 
 syn match modCommand "\v<is-(loaded|saved|used|avail)>"
 
@@ -51,5 +52,6 @@ syn match modVar "\v<ModulesVersion>"
 syn match modVar "\v<ModulesCurrentModulefile>"
 syn match modVar "\v<ModuleTool>"
 syn match modVar "\v<ModuleToolVersion>"
+syn match modVar "\v<ModuleVariant>"
 hi def link modVar tclSpecial
 
