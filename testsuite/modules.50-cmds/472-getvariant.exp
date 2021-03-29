@@ -100,6 +100,17 @@ append-path\tTS1 {f\\* o={f\\* o}}
 $modlin"
 testouterr_cmd_re sh {display variant/5.0 foo=val1 b?r\ =} OK $tserr
 
+# display loaded module
+setenv_loaded_module [list variant/5.0] [list $mp/variant/5.0]
+setenv_path_var MODULES_LMVARIANT {variant/5.0&foo|val1|0&bar|2|1&b?r ||0}
+setenv_path_var TS0 foo={foo} bar={bar} {b\\?r ={b\\?r }} {f\\* o={f\\* o}}
+setenv_path_var TS1 foo={foo} bar={bar} {b\\?r ={b\\?r }} {f\\* o={f\\* o}}
+testouterr_cmd_re sh {display variant/5.0 foo=val1 b?r\ =} OK $tserr
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMVARIANT
+unsetenv_path_var TS0
+unsetenv_path_var TS1
+
 # color test
 setenv_var MODULES_COLOR always
 setenv_var MODULES_COLORS hi=1:cm=92:va=93
@@ -119,6 +130,38 @@ set tserr "$modlin
 [sgr 92]append-path[sgr 0]\tTS1 {f\\* o=[sgr 93]{f\\* o}[sgr 0]}
 $modlin"
 testouterr_cmd_re sh {display variant/5.0 foo=val1 b?r\ =} OK $tserr
+
+unsetenv_var MODULES_COLOR
+unsetenv_var MODULES_COLORS
+
+
+#
+# help test
+#
+
+set tserr "$modlin
+Module Specific Help for $mpre/variant/5.0:
+
+b\\?r =
+bar=2
+foo=val1
+$modlin"
+testouterr_cmd_re sh {help variant/5.0 foo=val1 b?r\ =} OK $tserr
+
+
+#
+# test test
+#
+
+set tserr "$modlin
+Module Specific Test for $mpre/variant/5.0:
+
+b\\?r =
+bar=2
+foo=val1
+Test result: PASS
+$modlin"
+testouterr_cmd_re sh {test variant/5.0 foo=val1 b?r\ =} OK $tserr
 
 
 #
