@@ -1,0 +1,119 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2021/03/29
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		help
+#   Modulefiles:    variant
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test help evaluation mode with variant
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+
+# regular help
+setenv_var TESTSUITE_VARIANT 1
+set tserr "$modlin
+Module Specific Help for $mpre/variant/4.0:
+
+bar=2
+foo=val1
+$modlin"
+testouterr_cmd_re sh {help variant/4.0 foo=val1 bar=2} OK $tserr
+
+# no variant value
+set tserr "$modlin
+Module Specific Help for $mpre/variant/4.0:
+
+[err_novarval foo {val1 val2 val3} {  }]
+$modlin"
+testouterr_cmd_re sh {help variant/4.0} ERR $tserr
+
+# default value and variant specified
+setenv_var TESTSUITE_VARIANT 2
+set tserr "$modlin
+Module Specific Help for $mpre/variant/4.0:
+
+variant/4.0 foo=val1 bar=2
+bar=2
+foo=val1
+$modlin"
+testouterr_cmd_re sh {help variant/4.0 foo=val1 bar=2} OK $tserr
+
+# no value but default set
+setenv_var TESTSUITE_VARIANT 2
+set tserr "$modlin
+Module Specific Help for $mpre/variant/4.0:
+
+variant/4.0
+bar=2
+foo=val2
+$modlin"
+testouterr_cmd_re sh {help variant/4.0} OK $tserr
+
+# no value but advanced version spec disabled
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+testouterr_cmd_re sh {help variant/4.0} OK $tserr
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+# loaded module test
+setenv_loaded_module [list variant/4.0] [list $mp/variant/4.0]
+setenv_path_var MODULES_LMVARIANT {variant/4.0&foo|val3|0&bar|2|1}
+setenv_var TS0 {bar foo}
+setenv_path_var TS1 bar=2 foo=val3
+setenv_path_var TS2 bar-foo
+testouterr_cmd_re sh {help variant/4.0} OK $tserr
+
+set tserr "$modlin
+Module Specific Help for $mpre/variant/4.0:
+
+variant/4.0 bar=1
+bar=1
+foo=val2
+$modlin"
+testouterr_cmd_re sh {help variant/4.0 bar=1} OK $tserr
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMVARIANT
+unsetenv_var TS0
+unsetenv_path_var TS1
+unsetenv_path_var TS2
+
+# unknown variant
+set tserr "$modlin
+Module Specific Help for $mpre/variant/4.0:
+
+variant/4.0 unk=val
+[err_unkvar unk]
+$modlin"
+testouterr_cmd_re sh {help variant/4.0 unk=val} ERR $tserr
+
+# bad variant value
+set tserr "$modlin
+Module Specific Help for $mpre/variant/4.0:
+
+[err_invalvarval foo val4 {val1 val2 val3} {  }]
+$modlin"
+testouterr_cmd_re sh {help variant/4.0 foo=val4} ERR $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
