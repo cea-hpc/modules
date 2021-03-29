@@ -185,6 +185,23 @@ Evaluating
         - this is done to avoid the *undefined variable* error if these variables are used later in the modulefile
         - FUTURE: if the different ``version`` variant values are considered as different modulefiles in the future, then *whatis* may evaluates the ``version`` variant from module specification
 
+getvariant
+""""""""""
+
+- A :mfcmd:`getvariant` modulefile command is added following the same principle than :mfcmd:`getenv`
+
+    - A variant name is passed as argument
+    - Corresponding variant value is returned if it is defined
+    - If not defined the *value if not defined* argument is returned
+    - By default *value if not defined* argument equals to the empty string
+
+- ``getvariant`` should be preferred to accessing variant value in ``ModuleVariant`` array
+
+- On display evaluation mode, ``getvariant`` returns the variant name enclosed in curly braces
+
+    - Which helps to report where the variant is used in environment variable content
+    - The variant name and enclosing curly braces are graphically enhanced with ``va`` SGR code
+
 
 Persistency
 ^^^^^^^^^^^
