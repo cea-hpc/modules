@@ -1,0 +1,128 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2021/03/29
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		getvariant
+#   Modulefiles:    variant
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test 'getvariant' modulefile command
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+#
+# load tests
+#
+
+setenv_var TESTSUITE_VARIANT 1
+set ans [list]
+lappend ans [list setpath TS0 {foo=val 4:bar=2:b?r =:f* o=}]
+lappend ans [list setpath TS1 {foo=val 4:bar=2:b?r =:f* o= ef*ult}]
+lappend ans [list setpath LOADEDMODULES variant/5.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/5.0]
+lappend ans [list setpath MODULES_LMVARIANT {variant/5.0&foo|val 4|0&bar|2|1&b?r ||0}]
+testouterr_cmd_re sh {load variant/5.0 foo=val\ 4 b?r\ =} $ans {}
+
+setenv_var TESTSUITE_VARIANT 2
+set ans [list]
+lappend ans [list setpath TS0 {foo=:bar=}]
+lappend ans [list setpath TS1 {foo=default:bar=de *ult}]
+lappend ans [list setpath LOADEDMODULES variant/5.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/5.0]
+testouterr_cmd_re sh {load variant/5.0} $ans {}
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+testouterr_cmd_re sh {load variant/5.0} $ans {}
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+
+#
+# unload test
+#
+
+setenv_var TESTSUITE_VARIANT 1
+setenv_loaded_module [list variant/5.0] [list $mp/variant/5.0]
+setenv_path_var MODULES_LMVARIANT {variant/5.0&foo|val 4|0&bar|2|1&b?r ||0}
+setenv_path_var TS0 {foo=val 4:bar=2:b?r =:f* o=}
+setenv_path_var TS1 {foo=val 4:bar=2:b?r =:f* o= ef*ult}
+
+set ans [list]
+lappend ans [list unsetpath TS0]
+lappend ans [list unsetpath TS1]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMVARIANT]
+testouterr_cmd sh {unload variant/5.0} $ans {}
+testouterr_cmd sh {unload variant/5.0 b?r\ =} $ans {}
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMVARIANT
+unsetenv_path_var TS0
+unsetenv_path_var TS1
+
+
+#
+# display test
+#
+
+setenv_var TESTSUITE_VARIANT 1
+set tserr "$modlin
+$mpre/variant/5.0:
+
+variant\t\tfoo val1 val2 val3 {val 4}
+variant\t\t--default 2 bar 1 2 3
+variant\t\t{b\\?r } {} v\\*l1 val2
+append-path\tTS0 foo={foo}
+append-path\tTS1 foo={foo}
+append-path\tTS0 bar={bar}
+append-path\tTS1 bar={bar}
+append-path\tTS0 {b\\?r ={b\\?r }}
+append-path\tTS1 {b\\?r ={b\\?r }}
+append-path\tTS0 {f\\* o={f\\* o}}
+append-path\tTS1 {f\\* o={f\\* o}}
+$modlin"
+testouterr_cmd_re sh {display variant/5.0 foo=val1 b?r\ =} OK $tserr
+
+# color test
+setenv_var MODULES_COLOR always
+setenv_var MODULES_COLORS hi=1:cm=92:va=93
+set tserr "$modlin
+[sgr 1]$mpre/variant/5.0[sgr 22]:
+
+[sgr 92]variant[sgr 0]\t\tfoo val1 val2 val3 {val 4}
+[sgr 92]variant[sgr 0]\t\t--default 2 bar 1 2 3
+[sgr 92]variant[sgr 0]\t\t{b\\?r } {} v\\*l1 val2
+[sgr 92]append-path[sgr 0]\tTS0 foo=[sgr 93]{foo}[sgr 0]
+[sgr 92]append-path[sgr 0]\tTS1 foo=[sgr 93]{foo}[sgr 0]
+[sgr 92]append-path[sgr 0]\tTS0 bar=[sgr 93]{bar}[sgr 0]
+[sgr 92]append-path[sgr 0]\tTS1 bar=[sgr 93]{bar}[sgr 0]
+[sgr 92]append-path[sgr 0]\tTS0 {b\\?r =[sgr 93]{b\\?r }[sgr 0]}
+[sgr 92]append-path[sgr 0]\tTS1 {b\\?r =[sgr 93]{b\\?r }[sgr 0]}
+[sgr 92]append-path[sgr 0]\tTS0 {f\\* o=[sgr 93]{f\\* o}[sgr 0]}
+[sgr 92]append-path[sgr 0]\tTS1 {f\\* o=[sgr 93]{f\\* o}[sgr 0]}
+$modlin"
+testouterr_cmd_re sh {display variant/5.0 foo=val1 b?r\ =} OK $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env

@@ -1,0 +1,18 @@
+#%Module
+if {[info exists env(TESTSUITE_VARIANT)]} {
+    switch -- $env(TESTSUITE_VARIANT) {
+        1 {
+            variant foo val1 val2 val3 {val 4}
+            variant --default 2 bar 1 2 3
+            variant {b?r } {} v*l1 val2
+            set vrlist {foo default bar default {b?r } { ef*ult} {f* o} { ef*ult}}
+        }
+        2 {
+            set vrlist {foo default bar {de *ult}}
+        }
+    }
+    foreach {name fbval} $vrlist {
+        append-path TS0 "$name=[getvariant $name]"
+        append-path TS1 "$name=[getvariant $name $fbval]"
+    }
+}
