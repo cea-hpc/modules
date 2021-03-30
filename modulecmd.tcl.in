@@ -1807,7 +1807,8 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
    }
 
    # alias commands where interpreter ref should be passed as argument
-   array set aliasesPassArg [list puts __itrp__]
+   array set aliasesPassArg [list getvariant __itrp__ puts __itrp__ variant\
+      __itrp__]
 
    # initialize list with all commands not dependent of the evaluation mode
    array set aliases $::g_modfileBaseAliases
@@ -4892,13 +4893,10 @@ proc parseVariantCommandArgs {args} {
    return [list $name $values $defdflvalue $dflvalue]
 }
 
-proc variant {args} {
+proc variant {itrp args} {
    # parse args
    lassign [eval parseVariantCommandArgs $args] name values defdflvalue\
       dflvalue
-
-   # get current modulefile Tcl interpreter
-   set itrp __modfile_[currentState mode]_[depthState modulename]
 
    # get variant list defined on command line
    set vrlist [getVariantListFromVersSpec [currentState specifiedname]]
@@ -4946,25 +4944,20 @@ proc variant {args} {
 
 # optimized variant command for whatis mode: init entry in ModuleVariant array
 # to avoid variable being undefined when accessed during modulefile evaluation
-proc variant-wh {args} {
+proc variant-wh {itrp args} {
    # parse args
    lassign [eval parseVariantCommandArgs $args] name values defdflvalue\
       dflvalue
-
-   # get current modulefile Tcl interpreter
-   set itrp __modfile_[currentState mode]_[depthState modulename]
 
    # instanciate variant in modulefile context to an empty value
    reportDebug "Set variant on $itrp: ModuleVariant($name) = ''"
    $itrp eval set "{::ModuleVariant($name)}" "{}"
 }
 
-proc getvariant {name {valifundef {}}} {
+proc getvariant {itrp name {valifundef {}}} {
    reportDebug "name='$name', valifundef='$valifundef'"
 
    if {[currentState mode] ne {display}} {
-      # get current modulefile Tcl interpreter
-      set itrp __modfile_[currentState mode]_[depthState modulename]
       if {[$itrp eval info exists "{::ModuleVariant($name)}"]} {
          return [$itrp eval set "{::ModuleVariant($name)}"]
       } else {
