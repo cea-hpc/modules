@@ -1,0 +1,43 @@
+#%Module
+if {[info exists env(TESTSUITE_VARIANT)]} {
+    switch -- $env(TESTSUITE_VARIANT) {
+        1 {
+            variant foo val1 val2 val3
+            variant bar 1 2 3
+            module-whatis [module-info name]
+        }
+        2 {
+            variant --default val2 foo val1 val2 val3
+            variant --default 2 bar 1 2 3
+            module-whatis [module-info name]
+        }
+        3 {
+            variant foo val1 val2 val3
+            variant bar 1 2 3
+            module-whatis "[module-info name] $ModuleVariant(foo)-$ModuleVariant(bar)"
+        }
+        4 {
+            variant --default val2 foo val1 val2 val3
+            variant --default 2 bar 1 2 3
+            module-whatis "[module-info name] [getvariant foo]-[getvariant bar]"
+        }
+        5 {
+            variant foo val1 val2 val3
+            variant bar 1 2 3
+            module-whatis "[module-info name] $ModuleVariant(baz)"
+        }
+        6 {
+            module-whatis "[module-info name] [getvariant foo]-$ModuleVariant(bar)"
+            variant --default val2 foo val1 val2 val3
+            variant --default 2 bar 1 2 3
+        }
+        7 {
+            variant foo
+            module-whatis "[module-info name] [getvariant foo]"
+        }
+        8 {
+            variant --default
+            module-whatis "[module-info name] [getvariant foo]"
+        }
+    }
+}

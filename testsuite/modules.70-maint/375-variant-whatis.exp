@@ -1,0 +1,75 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2021/03/30
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		whatis, search
+#   Modulefiles:    variant
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test whatis evaluation mode with variant
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+
+setenv_var TESTSUITE_VARIANT 1
+set tserr "$modlin $mpre $modlin
+\\s+variant/6.0: variant/6.0"
+testouterr_cmd_re sh {whatis variant/6.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd_re sh {whatis variant/6.0} OK $tserr
+testouterr_cmd_re sh {whatis variant/6.0 unk=val} OK $tserr
+
+testouterr_cmd_re sh {search variant} OK $tserr
+testouterr_cmd_re sh {search variant/6.0} OK $tserr
+
+setenv_var TESTSUITE_VARIANT 2
+testouterr_cmd_re sh {whatis variant/6.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd_re sh {whatis variant/6.0} OK $tserr
+
+setenv_var TESTSUITE_VARIANT 3
+set tserr "$modlin $mpre $modlin
+\\s+variant/6.0: variant/6.0 -"
+testouterr_cmd_re sh {whatis variant/6.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd_re sh {whatis variant/6.0} OK $tserr
+
+setenv_var TESTSUITE_VARIANT 4
+testouterr_cmd_re sh {whatis variant/6.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd_re sh {whatis variant/6.0} OK $tserr
+
+setenv_var TESTSUITE_VARIANT 5
+testouterr_cmd_re sh {whatis variant/6.0 foo=val1 bar=2} OK {}
+testouterr_cmd_re sh {whatis variant/6.0} OK {}
+
+setenv_var TESTSUITE_VARIANT 6
+testouterr_cmd_re sh {whatis variant/6.0 foo=val1 bar=2} OK {}
+testouterr_cmd_re sh {whatis variant/6.0} OK {}
+
+setenv_var TESTSUITE_VARIANT 7
+testouterr_cmd_re sh {whatis variant/6.0 foo=val1 bar=2} OK {}
+testouterr_cmd_re sh {whatis variant/6.0} OK {}
+
+setenv_var TESTSUITE_VARIANT 8
+testouterr_cmd_re sh {whatis variant/6.0 foo=val1 bar=2} OK {}
+testouterr_cmd_re sh {whatis variant/6.0} OK {}
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
