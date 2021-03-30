@@ -4844,8 +4844,10 @@ proc source-sh-di {shell script args} {
    }
 }
 
-proc variant {args} {
-   # parse args
+# parse arguments set on a variant modulefile command
+proc parseVariantCommandArgs {args} {
+   set dflvalue {}
+   set defdflvalue 0
    set i 0
    foreach arg $args {
       incr i
@@ -4856,6 +4858,7 @@ proc variant {args} {
          switch -glob -- $arg {
             --default {
                set nextargisval dflvalue
+               set defdflvalue 1
             }
             -* {
                knerror "Invalid option '$arg'"
@@ -4886,6 +4889,14 @@ proc variant {args} {
       knerror "No allowed value list defined for variant '$name'"
    }
 
+   return [list $name $values $defdflvalue $dflvalue]
+}
+
+proc variant {args} {
+   # parse args
+   lassign [eval parseVariantCommandArgs $args] name values defdflvalue\
+      dflvalue
+
    # get current modulefile Tcl interpreter
    set itrp __modfile_[currentState mode]_[depthState modulename]
 
@@ -4897,14 +4908,14 @@ proc variant {args} {
       lassign [lindex $vrlist $i] vrname vrvalue
       if {$vrname eq $name} {
          set value $vrvalue
-         set isdflval [expr {[info exists dflvalue] && $dflvalue eq $value}]
+         set isdflval [expr {$defdflvalue && $dflvalue eq $value}]
          break
       }
    }
 
    # error if variant has not been specified unless a default is defined
    if {![info exists isdflval]} {
-      if {[info exists dflvalue]} {
+      if {$defdflvalue} {
          set value $dflvalue
          set isdflval 1
       } else {
