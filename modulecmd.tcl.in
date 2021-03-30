@@ -1801,7 +1801,7 @@ system         {system         system         reportCmd      nop            nop 
 unset-alias    {unset-alias    nop            reportCmd      nop            nop            nop           }
 unset-function {unset-function nop            reportCmd      nop            nop            nop           }
 unsetenv       {unsetenv       unsetenv-un    unsetenv       unsetenv       unsetenv       setenv-wh     }
-variant        {variant        variant        variant        variant        variant        variant       }
+variant        {variant        variant        variant        variant        variant        variant-wh    }
 x-resource     {x-resource     x-resource     reportCmd      nop            nop            nop           }
       }
    }
@@ -4942,6 +4942,21 @@ proc variant {args} {
             $isdflval]
       }
    }
+}
+
+# optimized variant command for whatis mode: init entry in ModuleVariant array
+# to avoid variable being undefined when accessed during modulefile evaluation
+proc variant-wh {args} {
+   # parse args
+   lassign [eval parseVariantCommandArgs $args] name values defdflvalue\
+      dflvalue
+
+   # get current modulefile Tcl interpreter
+   set itrp __modfile_[currentState mode]_[depthState modulename]
+
+   # instanciate variant in modulefile context to an empty value
+   reportDebug "Set variant on $itrp: ModuleVariant($name) = ''"
+   $itrp eval set "{::ModuleVariant($name)}" "{}"
 }
 
 proc getvariant {name {valifundef {}}} {
