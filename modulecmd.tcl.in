@@ -5570,10 +5570,10 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from_spec 0}} {
    # sort variant to report
    set ret {}
    foreach vrname [lsort -dictionary [array names vrarr]] {
-      if {$report} {
-         lappend ret $vrname=$vrarr($vrname)
-      } else {
-         lappend ret $vrname $vrarr($vrname)
+      switch -- $report {
+         2 {lappend ret [list $vrname $vrarr($vrname)]}
+         1 {lappend ret $vrname=$vrarr($vrname)}
+         0 {lappend ret $vrname $vrarr($vrname)}
       }
    }
 
@@ -11328,6 +11328,7 @@ proc setModuleVersSpec {modarg modname cmpspec versspec rawversspec\
       if {[set lmmod [getLoadedMatchingName $modname]] ne {}} {
          set modname [file dirname $lmmod]
          set versspec [file tail $lmmod]
+         set variantlist [getVariantList $lmmod 2]
       } else {
          knerror "No loaded version found for '$modname' module"
       }
