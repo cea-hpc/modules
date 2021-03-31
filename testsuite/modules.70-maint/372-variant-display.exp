@@ -105,6 +105,33 @@ append-path\tTS1 foo=val2
 append-path\tTS2 bar-foo
 $modlin"
 testouterr_cmd_re sh {display variant/4.0 bar=1} OK $tserr
+
+# test @loaded version specifier
+set tserr "$modlin
+$mpre/variant/4.0:
+
+variant\t\t--default val2 foo val1 val2 val3
+variant\t\t--default 2 bar 1 2 3
+variant@loaded
+setenv\t\tTS0 {bar foo}
+append-path\tTS1 bar=2
+append-path\tTS1 foo=val3
+append-path\tTS2 bar-foo
+$modlin"
+testouterr_cmd_re sh {display variant@loaded} OK $tserr
+set tserr "$modlin
+$mpre/variant/4.0:
+
+variant\t\t--default val2 foo val1 val2 val3
+variant\t\t--default 2 bar 1 2 3
+variant@loaded bar=1
+setenv\t\tTS0 {bar foo}
+append-path\tTS1 bar=2
+append-path\tTS1 foo=val3
+append-path\tTS2 bar-foo
+$modlin"
+testouterr_cmd_re sh {display variant@loaded bar=1} OK $tserr
+
 unsetenv_loaded_module
 unsetenv_path_var MODULES_LMVARIANT
 unsetenv_var TS0
