@@ -4456,7 +4456,7 @@ proc execShAndGetEnv {shell script args} {
          set getfunc {set funcout (string match -r -v $funcfilter (functions\
             -n) | while read f; functions $f; end);}
          set command "set -xgL; echo '$sep'; set funcfilter (string join '|'\
-            (string replace \\\[ \\\\\\\[ (builtin -n)))\\|fish\\.\\*;\
+            (string replace -r '(\\\[|\\.)' '\\\\\\\\\\\$1' (builtin -n)))\\|fish\\.\\*;\
             $getfunc; $getfunc; string split \$funcout; echo '$sep'; string\
             split \$funcout; echo '$sep'; pwd; echo '$sep'; source [listTo\
             shell $shdesc] 2>&1; or exit \$status; echo '$sep'; set -xgL;\
@@ -4465,10 +4465,10 @@ proc execShAndGetEnv {shell script args} {
          set varre {^(\S+?\M) ?'?(.*?)'?$}
          # exclude alias from function list
          set funcre {^function (\S+?)(?: [^\n]*?--description\
-            (?!'?alias)[^\n]+)?\n(.+?)\nend$}
+            (?!'?alias)[^\n]+)?\n(.+?)\s*\nend$}
          # fetch aliases from available functions
          set aliasre {^function (\S+?) [^\n]*?--description\
-            '?alias[^\n]+\n\s*(.+?)\nend$}
+            '?alias[^\n]+\n\s*(.+?)\s*\nend$}
          # translate back fish-specific code
          set varvalmap [list {'  '} : {\'} ' {\"} \" \\\\ \\]
          set alvalmap [list { $argv;} {}]
