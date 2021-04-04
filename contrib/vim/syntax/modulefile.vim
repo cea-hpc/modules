@@ -48,5 +48,8 @@ hi def link modProc tclSpecial
 
 
 syn match modVar "\v<ModulesVersion>"
+syn match modVar "\v<ModulesCurrentModulefile>"
+syn match modVar "\v<ModuleTool>"
+syn match modVar "\v<ModuleToolVersion>"
 hi def link modVar tclSpecial
 
