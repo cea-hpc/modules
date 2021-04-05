@@ -1,4 +1,4 @@
-.. _hide-and-forbid-modules.rst:
+.. _hide-and-forbid-modules:
 
 Hide and forbid modules
 =======================
