@@ -241,6 +241,7 @@ rst_epilog += '.. |emph etcdir| replace:: *%s*\n' % etcdir
 rst_epilog += '.. |bold etcdir| replace:: **%s**\n' % etcdir
 rst_epilog += '.. |file etcdir_rc| replace:: :file:`%s/rc`\n' % etcdir
 rst_epilog += '.. |file etcdir_siteconfig| replace:: :file:`%s/siteconfig.tcl`\n' % etcdir
+rst_epilog += '.. |file etcdir_initrc| replace:: :file:`%s/initrc`\n' % etcdir
 rst_epilog += '.. |initdir| replace:: %s\n' % initdir
 rst_epilog += '.. |emph initdir| replace:: *%s*\n' % initdir
 rst_epilog += '.. |bold initdir| replace:: **%s**\n' % initdir
