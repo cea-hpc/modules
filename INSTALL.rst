@@ -747,7 +747,7 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  Define the abbreviation to use when reporting each module tag. Each element
  in ABBRVLIST is a tag name associated to an abbreviation string (elements in
  ABBRVLIST are separated by ``:``).
- (default=\ ``auto-loaded=aL:loaded=L:hidden=H:forbidden=F:nearly-forbidden=nF``)
+ (default=\ ``auto-loaded=aL:loaded=L:hidden=H:hidden-loaded=H:forbidden=F:nearly-forbidden=nF:sticky=S:super-sticky=sS``)
 
  .. only:: html
 
