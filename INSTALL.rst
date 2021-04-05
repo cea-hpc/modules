@@ -651,6 +651,14 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
     .. versionadded:: 4.3
 
+    .. versionchanged:: 4.6
+       Output item for trace information (``tr``) added
+
+    .. versionchanged:: 4.7
+       Output items for module tags auto-loaded (``aL``), forbidden (``F``),
+       hidden and hidden-loaded (``H``), loaded (``L``), nearly-forbidden
+       (``nF``), sticky (``S``) and super-sticky (``sS``) added
+
 .. instopt:: --with-light-background-colors=SGRLIST
 
  Default color set to apply if terminal background color is defined to
@@ -661,6 +669,14 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  .. only:: html
 
     .. versionadded:: 4.3
+
+    .. versionchanged:: 4.6
+       Output item for trace information (``tr``) added
+
+    .. versionchanged:: 4.7
+       Output items for module tags auto-loaded (``aL``), forbidden (``F``),
+       hidden and hidden-loaded (``H``), loaded (``L``), nearly-forbidden
+       (``nF``), sticky (``S``) and super-sticky (``sS``) added
 
 .. instopt:: --with-terminal-background=VALUE
 

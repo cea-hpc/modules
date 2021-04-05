@@ -1812,6 +1812,14 @@ ENVIRONMENT
 
     .. versionadded:: 4.3
 
+    .. versionchanged:: 4.6
+       Output item for trace information (``tr``) added
+
+    .. versionchanged:: 4.7
+       Output items for module tags auto-loaded (``aL``), forbidden (``F``),
+       hidden and hidden-loaded (``H``), loaded (``L``), nearly-forbidden
+       (``nF``), sticky (``S``) and super-sticky (``sS``) added
+
 .. envvar:: MODULES_EXTENDED_DEFAULT
 
  If set to ``1``, a specified module version is matched against starting
