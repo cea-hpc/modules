@@ -219,7 +219,7 @@ else:
     prefix = '/usr/share/Modules'
     bindir = prefix + '/bin'
     libexecdir = prefix + '/libexec'
-    etcdir = prefix + '/etc'
+    etcdir = '/etc/environment-modules'
     initdir = prefix + '/init'
     modulefilesdir = prefix + '/modulefiles'
 
