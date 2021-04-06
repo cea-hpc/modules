@@ -268,6 +268,7 @@ rst_epilog += """.. role:: noparse
 .. role:: sgrmp
 .. role:: sgrdi
 .. role:: sgrali
+.. role:: sgrva
 .. role:: sgrsy
 .. role:: sgrde
 .. role:: sgrh
