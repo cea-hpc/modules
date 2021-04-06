@@ -8,6 +8,37 @@ documents those changes that are of interest to users and admins.
 
 .. _4.7 release notes:
 
+Modules 4.7.1 (2021-04-06)
+--------------------------
+
+* Doc: clarify the license terms used by the project. (fix issue #389)
+* Align all files from the Modules project under the GPLv2+ license. Scripts
+  and libraries that were previously licensed with GPLv3+ have been moved to
+  GPLv2+ with the consent of their respective copyright holders. (fix issue
+  #389)
+* Revert "Install: have :file:`configure` script assume the ``.`` dot
+  directory when invoked without the prepended ``./``" as consent was not
+  obtained from author to relicense the contribution to GPLv2+.
+* Doc: fixes few typos in :ref:`module(1)` and :ref:`modulefile(4)`.
+* Update the :subcmd:`sh-to-mod` mechanism to support version 3.2 of the fish
+  shell. Fish 3.2 introduces the ``.`` builtin command that should be
+  regexp-escaped when determining the shell functions or aliases defined by
+  the script analyzed by :subcmd:`sh-to-mod`.
+* Vim: update addon files to highlight modulefile variables
+  :mfvar:`ModuleTool`, :mfvar:`ModuleToolVersion` and
+  :mfvar:`ModulesCurrentModulefile`.
+* Doc: update the description and default value of the
+  :instopt:`--with-dark-background-colors` and
+  :instopt:`--with-light-background-colors` installation options.
+* Doc: add description of changes that occurred on versions 4.6 and 4.7 for
+  the :instopt:`--with-dark-background-colors` and
+  :instopt:`--with-light-background-colors` installation options and for the
+  :envvar:`MODULES_COLORS` environment variable.
+* Doc: correct the default value of the :instopt:`--with-tag-abbrev`
+  installation option.
+* Doc: add :ref:`sticky-modules-rcp` cookbook recipe.
+
+
 Modules 4.7.0 (2021-02-19)
 --------------------------
 
