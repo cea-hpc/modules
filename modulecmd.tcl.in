@@ -4185,8 +4185,8 @@ proc conflict {args} {
    foreach mod $args {
       # if the conflict module is loading and it does not correspond to
       # currently evaluated module, we cannot proceed
-      set isloading [expr {![doesModuleMatchesName $currentModule $mod] &&\
-         (!$isfullpath || ![doesModuleMatchesName $currentSModule $mod]) &&\
+      set isloading [expr {![modEq $mod $currentModule eqstart 1 2] &&\
+         (!$isfullpath || ![modEq $mod $currentSModule eqstart 1 2]) &&\
          [is-loading $mod]}]
       # if the conflicting module is loaded, we cannot either
       if {[is-loaded $mod] || $isloading} {
@@ -5966,21 +5966,6 @@ proc modStartNbProcIcase {mod name} {
    return $i
 }
 
-# check if name matches passed mod name or one of its alternative name
-proc doesModuleMatchesName {mod name} {
-   cacheCurrentModules
-   set ret 0
-
-   # check if main or alternative names of loaded mod matches passed name
-   foreach matchmod [concat [list $mod] [getLoadedAltname $mod]] {
-      if {[modEq $name $matchmod eqstart]} {
-         set ret 1
-         break
-      }
-   }
-   return $ret
-}
-
 # check if name matches one name of passed loading mod (main or alternative)
 proc doesLoadingModuleMatchesName {mod name} {
    set ret 0
@@ -6077,12 +6062,10 @@ proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}} {
       set isModulefileLoaded isModulefileLoading
       set getModuleFromLoadedModulefile getModuleFromLoadingModulefile
       set getLoadedModuleList getLoadingModuleList
-      set doesModuleMatchesName doesLoadingModuleMatchesName
    } else {
       set isModulefileLoaded isModulefileLoaded
       set getModuleFromLoadedModulefile getModuleFromLoadedModulefile
       set getLoadedModuleList getLoadedModuleList
-      set doesModuleMatchesName doesModuleMatchesName
    }
 
    # fetch currently loaded/loading module name is no list provided
@@ -6114,7 +6097,7 @@ proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}} {
          }
       }
    } elseif {$name ne {}} {
-      defineModEqProc [isIcase] [getConf extended_default]
+      defineModEqProc [isIcase] [getConf extended_default] [expr {!$loading}]
       # compare name to each currently loaded/loading module name, if multiple
       # mod match name:
       foreach mod $lmlist {
@@ -6126,7 +6109,7 @@ proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}} {
          } else {
             set matchmod $mod
          }
-         if {[$doesModuleMatchesName $matchmod $name]} {
+         if {[modEq $name $matchmod eqstart 1 [expr {$loading ? 1 : 2}]]} {
             switch -- $behavior {
                returnlast {
                   # the last loaded module will be returned
@@ -6238,7 +6221,7 @@ proc doesModuleConflict {mod} {
    set does 0
    set modconlist {}
    set moddecconlist {}
-   defineModEqProc [isIcase] [getConf extended_default]
+   defineModEqProc [isIcase] [getConf extended_default] 1
    # get module short name if loaded by its full pathname
    if {[set isfullpath [isModuleFullPath $mod]]} {
       set smod [findModuleNameFromModulefile $mod]
@@ -6252,8 +6235,8 @@ proc doesModuleConflict {mod} {
          foreach withmod $::g_loadedModuleConflict($modcon) {
             # skip own reflexive conflict (look at mod main and alternative
             # names) and those already known
-            if {![doesModuleMatchesName $mod $withmod] && (!$isfullpath ||\
-               ![doesModuleMatchesName $smod $withmod]) && ([set lmmodlist\
+            if {![modEq $withmod $mod eqstart 1 2] && (!$isfullpath ||\
+               ![modEq $withmod $smod eqstart 1 2]) && ([set lmmodlist\
                [getLoadedMatchingName $withmod returnall]] ne {} || [set\
                lmmodlist [getLoadedMatchingName $withmod returnall 1]] ne {})} {
                # multiple loaded module may match conflict declared name
@@ -6268,8 +6251,8 @@ proc doesModuleConflict {mod} {
       } elseif {[notInList $modconlist $modcon]} {
          foreach withmod $::g_loadedModuleConflict($modcon) {
             # check if mod or one of its alt name match conflict
-            if {[doesModuleMatchesName $mod $withmod] || ($isfullpath &&\
-               [doesModuleMatchesName $smod $withmod])} {
+            if {[modEq $withmod $mod eqstart 1 2] || ($isfullpath &&\
+               [modEq $withmod $smod eqstart 1 2])} {
                lappend modconlist $modcon
                lappend moddecconlist $modcon
                set does 1
@@ -6484,7 +6467,7 @@ proc unsetModuleConflictViolation {mod} {
 # build dependency chain between loaded modules based on registered prereqs
 proc setModuleDependency {mod} {
    set modlist [getLoadedModuleList]
-   defineModEqProc [isIcase] [getConf extended_default]
+   defineModEqProc [isIcase] [getConf extended_default] 1
    # only look at modules loaded prior current one to find requirements,
    # modules loaded afterward are unmet dependencies as dependents have
    # not been reloaded after them
@@ -6505,7 +6488,7 @@ proc setModuleDependency {mod} {
       foreach modpre $prereq {
          set lmfound {}
          foreach lmmod $modlist {
-            if {[doesModuleMatchesName $lmmod $modpre]} {
+            if {[modEq $modpre $lmmod eqstart 1 2]} {
                set lmfound $lmmod
                break
             }
@@ -6524,7 +6507,7 @@ proc setModuleDependency {mod} {
 
          # look if requirement can be found in the No Particular Order list
          foreach lmmod $modnpolist {
-            if {[doesModuleMatchesName $lmmod $modpre]} {
+            if {[modEq $modpre $lmmod eqstart 1 2]} {
                appendNoDupToList lmnpolist $lmmod
                break
             }
@@ -6583,7 +6566,7 @@ proc setModuleDependency {mod} {
 
    # update eventual registered unmet dependencies
    foreach modpre [array names ::g_unmetDepHash] {
-      if {[doesModuleMatchesName $mod $modpre]} {
+      if {[modEq $modpre $mod eqstart 1 2]} {
          reportDebug "refresh requirements targetting '$modpre'"
          foreach lmmod $::g_unmetDepHash($modpre) {
             if {[isInList [getDependentLoadedModuleList [list $lmmod] 0 0]\
@@ -6789,13 +6772,13 @@ proc getUnmetDependentLoadedModuleList {mod} {
    reportDebug "get dependent of upcoming loaded '$mod'"
    set unmetdeplist {}
    set depmodlist {}
-   defineModEqProc [isIcase] [getConf extended_default]
+   defineModEqProc [isIcase] [getConf extended_default] 1
 
    # skip dependent analysis if mod has a conflict with a loaded module
    lassign [doesModuleConflict $mod] doescon modconlist
    if {!$doescon} {
       foreach ummod [array names ::g_unmetDepHash] {
-         if {[doesModuleMatchesName $mod $ummod]} {
+         if {[modEq $ummod $mod eqstart 1 2]} {
             foreach depmod $::g_unmetDepHash($ummod) {
                lappend depmodlist $depmod
                # temporarily remove prereq violation of depmod if mod
@@ -6805,7 +6788,7 @@ proc getUnmetDependentLoadedModuleList {mod} {
                      foreach modpre $prereq {
                         # also temporarily remove prereq violation for
                         # requirements loaded after dependent module
-                        if {[doesModuleMatchesName $mod $modpre] ||\
+                        if {[modEq $modpre $mod eqstart 1 2] ||\
                            [is-loaded $modpre]} {
                            # backup original violation to restore it later
                            if {![info exists preunvioarr($depmod)]} {
@@ -6900,7 +6883,7 @@ proc getDirectDependentList {mod {strong 0} {nporeq 0} {loading 0}\
    # take currently loading modules into account if asked
    if {$loading} {
       set modlist [getLoadedModuleList]
-      defineModEqProc [isIcase] [getConf extended_default]
+      defineModEqProc [isIcase] [getConf extended_default] 1
       # reverse list to get closest match if returning lastly loaded module
       if {[getConf unload_match_order] eq {returnlast}} {
          set modlist [lreverse $modlist]
@@ -6911,7 +6894,7 @@ proc getDirectDependentList {mod {strong 0} {nporeq 0} {loading 0}\
             set moddep 0
             foreach modpre $prereq {
                foreach lmmod $modlist {
-                  if {[doesModuleMatchesName $lmmod $modpre]} {
+                  if {[modEq $modpre $lmmod eqstart 1 2]} {
                      lappend lmprelist $lmmod
                      if {$lmmod eq $mod} {
                         set moddep 1
@@ -9062,7 +9045,7 @@ proc defineModEqStaticProc {icase extdfl modspec} {
 
 # Define procedure to check module name equals pattern. Adapt procedure
 # code whether icase and extended_default are enabled or disabled
-proc defineModEqProc {icase extdfl} {
+proc defineModEqProc {icase extdfl {loadedmod 0}} {
    set procname modEqProc
    if {$icase} {
       append procname Icase
@@ -9082,6 +9065,11 @@ proc defineModEqProc {icase extdfl} {
 
    # also define modVersCmp which is called by modEq
    defineModVersCmpProc $icase $extdfl
+
+   # comparing against loaded modules requires to know their alternative names
+   if {$loadedmod} {
+      cacheCurrentModules
+   }
 }
 
 # alternative definitions of modEq proc
@@ -12697,7 +12685,7 @@ proc cmdModuleLoad {context uasked args} {
                foreach modalt [concat [getLoadedAltname $modconlist]\
                   $modconlist $moddecconlist] {
                   foreach reportmod $::report_conflict($modname) {
-                     if {[doesModuleMatchesName $modalt $reportmod]} {
+                     if {[modEq $reportmod $modalt eqstart 1 2]} {
                         set report_con 0
                         break
                      }
