@@ -114,8 +114,6 @@ Module version specification to check compatibility
     - ``getLoadedMatchingName``
     - ``getLoadedWithClosestName``
     - ``isModuleEvaluated``
-    - ``doesModuleMatchesName``
-    - ``doesLoadingModuleMatchesName``
 
 - specification used to resolve argument passed to the following commands:
 
