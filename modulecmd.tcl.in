@@ -12666,11 +12666,26 @@ proc cmdModuleLoad {context uasked args} {
             if {[info exists ::report_conflict($modname)]} {
                # check if conflict has not been already reported with an
                # alternative name
-               foreach modalt [concat [getLoadedAltname $modconlist]\
-                  $modconlist $moddecconlist] {
+               foreach modcon $modconlist {
                   foreach reportmod $::report_conflict($modname) {
-                     if {[modEq $reportmod $modalt eqstart 1 2]} {
+                     if {[modEq $reportmod $modcon eqstart 1 2]} {
                         set report_con 0
+                        break
+                     }
+                  }
+                  if {!$report_con} {
+                     break
+                  }
+               }
+               if {$report_con} {
+                  foreach moddeccon $moddecconlist {
+                     foreach reportmod $::report_conflict($modname) {
+                        if {[modEq $reportmod $moddeccon eqstart]} {
+                           set report_con 0
+                           break
+                        }
+                     }
+                     if {!$report_con} {
                         break
                      }
                   }
