@@ -543,3 +543,118 @@ Recording collection
     - Following the same scheme than for module version
     - When saving collection, the *is-default*value* information stored in persistency variable (``MODULES_LMVARIANT``) helps to know whether to value set to a variant is or not the default one
     - The save mechanism will rely on this information to exclude or not the variant specification in the generated collection output
+
+
+Comparing module specification including variants
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- When a module specification has to be compared on a non-loaded or non-loading modules context
+
+    - If this specification contains variants
+
+        - There is no variant set on non-loaded or non-loading modules we are comparing to
+        - Specified variants are ignored, match is only performed over module name and version
+        - FIXME: may decide to apply a *no match* instead if non-loaded or non-loading modules
+          are evaluated in the future (on avail for instance)
+
+    - If this specification does not contain variant
+
+        - There is no variant set on non-loaded or non-loading modules we are comparing to
+        - Match is performed over module name and version
+
+- When a module specification has to be compared against loaded or loading modules
+
+    - If this specification contains variants
+
+        - It should be matched against the variants set on loaded or loading modules
+        - No variant set for loaded or loading module means no match
+
+    - If this specification does not contain variant
+
+        - Loaded or loading modules match is only made on their name
+        - No comparison occurs over the variants set on loaded or loading modules
+
+- To compare variant set on loaded or loading modules
+
+    - A ``ismodlo`` flag is added to the ``modEq`` procedure
+    - With this flag it is known if ``modEq`` operates on a:
+
+        - non-loaded or non-loading context (0),
+        - loading context (1)
+        - loaded context (2)
+
+    - Variants set on loading or loaded modules will be fetched in case ``ismodlo`` is equal to 1 or 2
+    - Loaded or loading modules are passed to ``modEq`` by their name/version designation
+
+        - No change here
+        - And no change required in all procedures that perform such comparison
+
+    - Alternative names should also be tested like main module name with variants set
+
+        - As the alternative names currently apply to module name and version only
+        - Name and version could be compared on their own
+        - Then variants could be compared
+        - Which means all applying names are compared then if a match is found variants are compared
+
+- There is no need to compare variants on following procedures
+
+    - ``getLoadedWithClosestName``
+
+        - Find a loaded module whose name and version is the closest to passed specification
+        - Variant specified on loaded modules or on specification is ignored here
+
+    - ``modStartNb``
+
+        - Only used to compare module name and versions
+        - Used by ``getLoadedWithClosestName`` and ``isModuleHidden``
+
+    - ``modEqStatic``
+
+        - Always used over non-loaded or non-loading context
+        - Used by ``findModules`` and ``getModules``
+
+    - ``getEqArrayKey``
+    - ``cmdModuleSearch``
+    - ``cmdModuleSwitch``
+    - ``getModules``
+
+        - Used by ``cmdModuleAvail``, ``getPathToModule``, ``isStickynessReloading``,
+          ``cmdModulePaths``, ``cmdModuleSearch`` and ``cmdModuleAliases``
+
+    - ``getPathToModule``
+
+        - Which calls to ``getModules``
+        - Used by ``cmdModulePath``, ``cmdModuleSearch``, ``cmdModuleSwitch``, ``cmdModuleLoad``,
+          ``cmdModuleUnload``, ``cmdModuleTest``, ``cmdModuleHelp``, ``getAllModuleResolvedName``,
+          ``is-avail``, ``getSimplifiedLoadedModuleList`` and ``cmdModuleDisplay``
+
+    - ``getAllModuleResolvedName``
+
+- Variant comparison is needed on following procedures
+
+    - ``setModuleDependency``
+    - ``getUnmetDependentLoadedModuleList``
+    - ``getDirectDependentList``
+    - ``cmdModuleLoad``
+    - ``conflict``
+    - ``getLoadedMatchingName``
+    - ``doesModuleConflict``
+    - ``getModuleTag``
+
+        - Useful when a tag is defined only when a specific variant is set
+
+    - ``collectModuleTag``
+
+        - Useful when a tag is defined only when a specific variant is set
+
+    - ``getModuleHidingLevel``
+
+        - Useful when a module with a specific variant value set is defined hidden
+        - FUTURE: if variants are reported on ``avail``, hiding a variant specific value
+          would have an effect on this sub-command
+
+    - ``isModuleHidden``
+
+        - Useful when a module with a specific variant value set is defined hidden
+        - FUTURE: if variants are reported on ``avail``, hiding a variant specific value
+          would have an effect on this sub-command
