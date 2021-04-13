@@ -8933,6 +8933,26 @@ proc modVersCmpProcIcaseExtdfl {cmpspec versspec modvers test {psuf {}}} {
    return $ret
 }
 
+proc modVariantCmp {pvrlist modvrlist} {
+   set ret 1
+   array set modvrarr $modvrlist
+   foreach pvr $pvrlist {
+      set pvrarr([lindex $pvr 0]) [lindex $pvr 1]
+   }
+
+   # no match if a specified variant is not found among module variants or if
+   # the value differs
+   foreach vrname [array names pvrarr] {
+      if {![info exists modvrarr($vrname)] || $pvrarr($vrname) ne\
+         $modvrarr($vrname)} {
+         set ret 0
+         break
+      }
+   }
+
+   return $ret
+}
+
 # Setup a hardwire version of modEq procedure called modEqStatic. This
 # optimized procedure already knows the module pattern to compare to, whose
 # specification has already been resolved at procedure definition time, which
@@ -9157,6 +9177,10 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0}} {
          }
       }
    }
+   # check if variant specified matches those of selected loaded/ing module
+   if {$ret && $ismodlo > 0 && [llength $pvrlist] > 0} {
+      set ret [modVariantCmp $pvrlist [getVariantList $mod]]
+   }
    return $ret
 }
 proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0}} {
@@ -9252,6 +9276,9 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0}} {
             }
          }
       }
+   }
+   if {$ret && $ismodlo > 0 && [llength $pvrlist] > 0} {
+      set ret [modVariantCmp $pvrlist [getVariantList $mod]]
    }
    return $ret
 }
@@ -9365,6 +9392,9 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}} {
          }
       }
    }
+   if {$ret && $ismodlo > 0 && [llength $pvrlist] > 0} {
+      set ret [modVariantCmp $pvrlist [getVariantList $mod]]
+   }
    return $ret
 }
 proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}} {
@@ -9477,6 +9507,9 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}} {
             }
          }
       }
+   }
+   if {$ret && $ismodlo > 0 && [llength $pvrlist] > 0} {
+      set ret [modVariantCmp $pvrlist [getVariantList $mod]]
    }
    return $ret
 }
