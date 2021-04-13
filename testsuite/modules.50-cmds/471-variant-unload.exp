@@ -56,10 +56,9 @@ testouterr_cmd sh {unload variant/4.0 bar=2 foo=val1} $ans {}
 
 # no unload if specification does not correspond
 testouterr_cmd sh {unload variant/2.0} OK {}
-#FIXME: should detect specified variants do not match loaded ones
-#testouterr_cmd sh {unload variant/4.0 bar=1} OK {}
-#testouterr_cmd sh {unload variant/4.0 foo=val1 bar=1} OK {}
-#testouterr_cmd sh {unload variant/4.0 foo=val2 bar=0} OK {}
+testouterr_cmd sh {unload variant/4.0 bar=1} OK {}
+testouterr_cmd sh {unload variant/4.0 foo=val1 bar=1} OK {}
+testouterr_cmd sh {unload variant/4.0 foo=val2 bar=0} OK {}
 
 # test @loaded version specifier
 testouterr_cmd sh {unload variant@loaded} $ans {}
@@ -84,9 +83,8 @@ testouterr_cmd sh {unload variant/4.0 foo=val1} $ans {variant/4.0 bar=2 foo=val1
 testouterr_cmd sh {unload variant foo=val1} $ans {variant/4.0 bar=2 foo=val1}
 
 # no unload if specification does not correspond
-#FIXME: should detect specified variants do not match loaded ones
-#testouterr_cmd sh {unload variant/4.0 foo=val2} OK {}
-#testouterr_cmd sh {unload variant/4.0 foo=val2 bar=1} OK {}
+testouterr_cmd sh {unload variant/4.0 foo=val2} OK {}
+testouterr_cmd sh {unload variant/4.0 foo=val2 bar=1} OK {}
 
 
 #
@@ -107,13 +105,13 @@ testouterr_cmd sh {unload variant/4.0 b?r\ =v*l1} $ans {}
 testouterr_cmd sh {unload variant/4.0 f*\ o=v?l1\  b?r\ =v*l1} $ans {}
 
 # no unload if specification does not correspond
-#FIXME: should detect specified variants do not match loaded ones
-#testouterr_cmd sh {unload variant/4.0 b?r\ =val5} OK {}
-#testouterr_cmd sh {unload variant/4.0 b?r\ =v*l1 f*\ o=v?l1\ } OK {}
+testouterr_cmd sh {unload variant/4.0 b?r\ =val5} OK {}
+testouterr_cmd sh {unload variant/4.0 b?r\ =v*l1 f*\ o=v?l1} OK {}
+testouterr_cmd sh {unload variant/4.0 b?r\ =v\ l1 f*\ o=v?l1\ } OK {}
 
 
 #
-# multiple loaded modules match unload module specification 
+# multiple loaded modules match unload module specification
 #
 
 setenv_var TESTSUITE_VARIANT 1
@@ -141,16 +139,14 @@ lappend ans2 [list setpath MODULES_LMVARIANT variant/4.0&foo|val1|0&bar|2|0]
 setenv_var MODULES_UNLOAD_MATCH_ORDER returnlast
 testouterr_cmd sh {unload variant} $ans1 {}
 testouterr_cmd sh {unload variant foo=val1} $ans1 {}
-#FIXME: should detect specified variants do not match loaded ones
-#testouterr_cmd sh {unload variant bar=2} $ans2 {}
-#testouterr_cmd sh {unload variant bar=1} OK {}
+testouterr_cmd sh {unload variant bar=2} $ans1 {}
+testouterr_cmd sh {unload variant bar=1} OK {}
 
 setenv_var MODULES_UNLOAD_MATCH_ORDER returnfirst
 testouterr_cmd sh {unload variant} $ans2 {}
 testouterr_cmd sh {unload variant foo=val1} $ans2 {}
-testouterr_cmd sh {unload variant bar=2} $ans2 {}
-#FIXME: should detect specified variants do not match loaded ones
-#testouterr_cmd sh {unload variant bar=1} OK {}
+testouterr_cmd sh {unload variant bar=2} $ans1 {}
+testouterr_cmd sh {unload variant bar=1} OK {}
 
 unsetenv_var MODULES_UNLOAD_MATCH_ORDER
 
@@ -172,8 +168,7 @@ set tserr [msg_unload {variant/4.0 {bar=2}} [err_novarval foo {val1 val2 val3}]]
 testouterr_cmd sh {unload variant} ERR $tserr
 testouterr_cmd sh {unload variant bar=2} ERR $tserr
 testouterr_cmd sh {unload variant/4.0 bar=2} ERR $tserr
-#FIXME: should detect specified variants do not match loaded ones
-#testouterr_cmd sh {unload variant/4.0 foo=val1 bar=2} OK {}
+testouterr_cmd sh {unload variant/4.0 foo=val1 bar=2} OK {}
 
 # with default value for variant
 setenv_var TESTSUITE_VARIANT 2
@@ -187,8 +182,7 @@ lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath MODULES_LMVARIANT]
 testouterr_cmd sh {unload variant} $ans {variant/4.0 bar=2}
 testouterr_cmd sh {unload variant bar=2} $ans {variant/4.0 bar=2}
-#FIXME: should detect specified variants do not match loaded ones
-#testouterr_cmd sh {unload variant/4.0 foo=val1 bar=2} OK {}
+testouterr_cmd sh {unload variant/4.0 foo=val1 bar=2} OK {}
 
 
 # bad variant value set in persistency information
