@@ -5072,10 +5072,12 @@ proc isModuleEvaluated {context exclmod args} {
       # test arguments against all names of evaluated module (translate
       # eventual modspec in evalmod into module names, in case module
       # evaluation stopped prior module name setup)
+      # retrieve variants to pass them directly to modEq
+      set modvrlist [getVariantList $evalmod 0 0 1]
       foreach mod [getAllModulesFromVersSpec $evalmod] {
          foreach name $args {
             # indicate module is loading to also compare against all alt names
-            if {[modEq $name $mod eqstart 1 1]} {
+            if {[modEq $name $mod eqstart 1 1 $modvrlist]} {
                set evalmatch 1
                if {$context eq {any} || [isInList\
                   $::g_moduleEvalAttempt($evalmod) $context]} {
