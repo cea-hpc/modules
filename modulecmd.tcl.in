@@ -9079,7 +9079,8 @@ proc defineModEqProc {icase extdfl {loadedmod 0}} {
 }
 
 # alternative definitions of modEq proc
-proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0}} {
+proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0} {modvrlist\
+   0}} {
    # extract specified module name from name and version spec
    if {$trspec} {
       lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec\
@@ -9182,11 +9183,15 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0}} {
    }
    # check if variant specified matches those of selected loaded/ing module
    if {$ret && $ismodlo > 0 && [llength $pvrlist] > 0} {
-      set ret [modVariantCmp $pvrlist [getVariantList $mod]]
+      if {$modvrlist eq {0}} {
+         set modvrlist [getVariantList $mod]
+      }
+      set ret [modVariantCmp $pvrlist $modvrlist]
    }
    return $ret
 }
-proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0}} {
+proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0}\
+   {modvrlist 0}} {
    if {$trspec} {
       lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec\
          pmodnamere pmodescglob pmodroot pvrlist
@@ -9281,11 +9286,15 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0}} {
       }
    }
    if {$ret && $ismodlo > 0 && [llength $pvrlist] > 0} {
-      set ret [modVariantCmp $pvrlist [getVariantList $mod]]
+      if {$modvrlist eq {0}} {
+         set modvrlist [getVariantList $mod]
+      }
+      set ret [modVariantCmp $pvrlist $modvrlist]
    }
    return $ret
 }
-proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}} {
+proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
+   {modvrlist 0}} {
    if {$trspec} {
       lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec\
          pmodnamere pmodescglob pmodroot pvrlist
@@ -9396,11 +9405,15 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}} {
       }
    }
    if {$ret && $ismodlo > 0 && [llength $pvrlist] > 0} {
-      set ret [modVariantCmp $pvrlist [getVariantList $mod]]
+      if {$modvrlist eq {0}} {
+         set modvrlist [getVariantList $mod]
+      }
+      set ret [modVariantCmp $pvrlist $modvrlist]
    }
    return $ret
 }
-proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}} {
+proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
+   {modvrlist 0}} {
    if {$trspec} {
       lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec\
          pmodnamere pmodescglob pmodroot pvrlist
@@ -9512,7 +9525,10 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}} {
       }
    }
    if {$ret && $ismodlo > 0 && [llength $pvrlist] > 0} {
-      set ret [modVariantCmp $pvrlist [getVariantList $mod]]
+      if {$modvrlist eq {0}} {
+         set modvrlist [getVariantList $mod]
+      }
+      set ret [modVariantCmp $pvrlist $modvrlist]
    }
    return $ret
 }
