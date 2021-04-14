@@ -5681,8 +5681,9 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
    reportDebug "finding '$mod' in '$indir' (report_issue=$report_issue,\
       look_loaded=$look_loaded, excdir='$excdir')"
 
+   set vrlist [getVariantList $mod 1 0 1]
    if {$mod eq {}} {
-      set retlist [list {} {} none {Invalid empty module name}]
+      set retlist [list {} {} {} none {Invalid empty module name}]
    # try first to look at loaded modules if enabled to find maching module
    # or to find a closest match (used when switching with single name arg)
    } elseif {$look_loaded ne {no}} {
@@ -5691,18 +5692,11 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
          close {set getLoadedNameProc getLoadedWithClosestName}
       }
       if {[set lm [$getLoadedNameProc $mod]] ne {}} {
-         # updage modspec with full loaded mod specification
-         if {[llength [set vrlist [getVariantList $lm 1]]] > 0} {
-            lassign [eval parseModuleSpecification 0 [concat [list $lm]\
-               $vrlist]] modspec
-         } else {
-            set modspec $mod
-         }
-         set retlist [list [getModulefileFromLoadedModule $lm] $lm {}\
-            $modspec]
+         set vrlist [getVariantList $lm 1]
+         set retlist [list [getModulefileFromLoadedModule $lm] $lm]
       } else {
          set retlist [list {} [getModuleNameAndVersFromVersSpec $mod]\
-            notloaded $mod]
+            $mod notloaded]
       }
    # Check for $mod specified as a full pathname
    } elseif {[isModuleFullPath $mod]} {
@@ -5715,7 +5709,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
             set retlist [list $mod $mod]
          }
          invalid - accesserr {
-            set retlist [list {} $mod $check_valid $check_msg $mod]
+            set retlist [list {} $mod $mod $check_valid $check_msg $mod]
          }
       }
    } else {
@@ -5760,8 +5754,8 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
                   directory {
                      # is implicit default disabled and none explicitly set?
                      if {[lindex $mod_list($mod) 1] eq {}} {
-                        set retlist [list {} $mod none "No default version\
-                           defined for '$mod'"]
+                        set retlist [list {} $mod $mod none "No default\
+                           version defined for '$mod'"]
                      } else {
                         # Move to default element in directory
                         set mod $mod/[lindex $mod_list($mod) 1]
@@ -5782,7 +5776,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
                   }
                   invalid - accesserr {
                      # may found mod but issue, so end search with error
-                     set retlist [concat [list {} $mod] $mod_list($mod)]
+                     set retlist [concat [list {} $mod $mod] $mod_list($mod)]
                   }
                }
             }
@@ -5797,19 +5791,27 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
 
    # set result if nothing found
    if {![info exists retlist]} {
-      set retlist [list {} $mod none "Unable to locate a modulefile for\
+      set retlist [list {} $mod $mod none "Unable to locate a modulefile for\
          '$mod'"]
    # update result if forbidden
    } elseif {[isModuleTagged [lindex $retlist 1] forbidden]} {
-      set retlist [list {} [lindex $retlist 1] accesserr [getForbiddenMsg\
-         [lindex $retlist 1]]]
+      set retlist [list {} [lindex $retlist 1] [lindex $retlist 2] accesserr\
+         [getForbiddenMsg [lindex $retlist 1]]]
    }
    if {[lindex $retlist 0] ne {}} {
+      # build module name and variant with variant specified
+      if {[llength $vrlist] > 0} {
+         lassign [eval parseModuleSpecification 0 [concat [list [lindex\
+            $retlist 1]] $vrlist]] modnamevr
+      } else {
+         set modnamevr [lindex $retlist 1]
+      }
+      lappend retlist $modnamevr
       reportTrace "'[lindex $retlist 1]' ([lindex $retlist 0]) matching\
          '$mod'" {Select module}
    # no error if we look at loaded modules and passed mod not found loaded
-   } elseif {[lindex $retlist 2] ne {notloaded} && $report_issue} {
-      eval reportIssue [lrange $retlist 2 4]
+   } elseif {[lindex $retlist 3] ne {notloaded} && $report_issue} {
+      eval reportIssue [lrange $retlist 3 5]
    }
    return $retlist
 }
@@ -8355,7 +8357,7 @@ proc getEqArrayKeyProc {arrname name} {
          } else {
             # raise error as no default part of result
             upvar retlist retlist
-            set retlist [list {} $name none "No default version\
+            set retlist [list {} $name $name none "No default version\
                defined for '$name'"]
          }
       }
