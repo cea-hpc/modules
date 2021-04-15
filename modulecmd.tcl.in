@@ -1829,10 +1829,11 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
    }
 }
 
-proc execute-modulefile {modfile modname modspec {must_have_cookie 1}\
-   {fetch_tags 1}} {
+proc execute-modulefile {modfile modname modnamevr modspec {must_have_cookie\
+   1} {fetch_tags 1}} {
    lappendState modulefile $modfile
    lappendState modulename $modname
+   lappendState modulenamevr $modnamevr
    lappendState specifiedname $modspec
    set mode [currentState mode]
    lappendState debug_msg_prefix\
@@ -1864,6 +1865,7 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}\
          lpopState debug_msg_prefix
          lpopState specifiedname
          lpopState modulename
+         lpopState modulenamevr
          lpopState modulefile
          knerror [getSuperStickyUnloadMsg $modname]
       } elseif {[isModuleTagged $modname sticky 1] && [currentState\
@@ -1875,6 +1877,7 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}\
             lpopState debug_msg_prefix
             lpopState specifiedname
             lpopState modulename
+            lpopState modulenamevr
             lpopState modulefile
             knerror [getStickyUnloadMsg $modname]
          }
@@ -1932,7 +1935,8 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}\
    # reset modulefile-specific variable before each interpretation
    interp eval $itrp set ::ModulesCurrentModulefile "{$modfile}"
    interp eval $itrp set must_have_cookie $must_have_cookie
-   interp eval $itrp set vrspeclist "{[getVariantListFromVersSpec $modspec]}"
+   interp eval $itrp set vrspeclist "{[getVariantListFromVersSpec\
+      $modnamevr]}"
 
    set errorVal [interp eval $itrp {
       set modcontent [readModuleContent $::ModulesCurrentModulefile 1\
@@ -2037,6 +2041,7 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}\
    lpopState debug_msg_prefix
    lpopState specifiedname
    lpopState modulename
+   lpopState modulenamevr
    lpopState modulefile
 
    return $errorVal
@@ -4899,7 +4904,7 @@ proc variant {itrp args} {
       dflvalue
 
    # get variant list defined on command line
-   set vrlist [getVariantListFromVersSpec [currentState specifiedname]]
+   set vrlist [getVariantListFromVersSpec [currentState modulenamevr]]
 
    # search for variant specification (most right-positionned value wins)
    for {set i [expr {[llength $vrlist]-1}]} {$i >= 0} {incr i -1} {
@@ -11854,7 +11859,7 @@ proc cmdModuleDisplay {args} {
             set first_report 0
          }
          report [sgr hi $modfile]:\n
-         execute-modulefile $modfile $modname $mod
+         execute-modulefile $modfile $modname $modnamevr $mod
          displaySeparatorLine
       }
    }
@@ -12100,7 +12105,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
          # interpret every modulefiles obtained to get their whatis text
          foreach elt [lsort -dictionary [array names interp_list]] {
             set ::g_whatis {}
-            execute-modulefile $interp_list($elt) $elt $elt
+            execute-modulefile $interp_list($elt) $elt $elt $elt
 
             # treat whatis as a multi-line text
             if {$search eq {} || [regexp -nocase $search $::g_whatis]} {
@@ -12547,7 +12552,7 @@ proc cmdModuleSource {args} {
          # modulefile to execute as sourced files may need more flexibility
          # as they may be managed outside of the modulefile environment like
          # the initialization modulerc file
-         execute-modulefile $absfpath $absfpath $absfpath 0 0
+         execute-modulefile $absfpath $absfpath $absfpath $absfpath 0 0
          lpopState mode
       } else {
          reportErrorAndExit "File $fpath does not exist"
@@ -12567,7 +12572,7 @@ proc cmdModuleUnsource {args} {
          # modulefile to execute as sourced files may need more flexibility
          # as they may be managed outside of the modulefile environment like
          # the initialization modulerc file
-         execute-modulefile $absfpath $absfpath $absfpath 0 0
+         execute-modulefile $absfpath $absfpath $absfpath $absfpath 0 0
          lpopState mode
       } else {
          reportErrorAndExit "File $fpath does not exist"
@@ -12687,7 +12692,7 @@ proc cmdModuleLoad {context uasked args} {
             }
          }
 
-         if {[execute-modulefile $modfile $modname $mod]} {
+         if {[execute-modulefile $modfile $modname $modnamevr $mod]} {
             break
          }
 
@@ -13063,7 +13068,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          # unload evaluation to report correct order with other evaluations)
          registerModuleEval $context $modname
 
-         if {[execute-modulefile $modfile $modname $mod]} {
+         if {[execute-modulefile $modfile $modname $modnamevr $mod]} {
             break
          }
 
@@ -13681,7 +13686,7 @@ proc cmdModuleTest {args} {
             set first_report 0
          }
          report "Module Specific Test for [sgr hi $modfile]:\n"
-         execute-modulefile $modfile $modname $mod
+         execute-modulefile $modfile $modname $modnamevr $mod
          displaySeparatorLine
       }
    }
@@ -13948,7 +13953,7 @@ proc cmdModuleHelp {args} {
             set first_report 0
          }
          report "Module Specific Help for [sgr hi $modfile]:\n"
-         execute-modulefile $modfile $modname $arg
+         execute-modulefile $modfile $modname $modnamevr $arg
          displaySeparatorLine
       }
    }
