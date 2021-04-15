@@ -4437,7 +4437,7 @@ proc is-avail {args} {
    }
 
    foreach mod $args {
-      lassign [getPathToModule $mod] modfile modname
+      lassign [getPathToModule $mod] modfile modname modnamevr
       if {$modfile ne {}} {
          set ret 1
          break
@@ -11846,7 +11846,7 @@ proc cmdModuleDisplay {args} {
    lappendState mode display
    set first_report 1
    foreach mod $args {
-      lassign [getPathToModule $mod] modfile modname
+      lassign [getPathToModule $mod] modfile modname modnamevr
       if {$modfile ne {}} {
          # only one separator lines between 2 modules
          if {$first_report} {
@@ -11891,7 +11891,7 @@ proc cmdModulePaths {mod} {
                # resolve alias target
                set aliastarget [lindex $mod_list($elt) 1]
                lassign [getPathToModule $aliastarget $target_dir_list 0]\
-                  modfile modname
+                  modfile modname modnamevr
                # add module target as result instead of alias
                if {$modfile ne {} && ![info exists mod_list($modname)]} {
                   lappend ::g_return_text $modfile
@@ -11915,7 +11915,7 @@ proc cmdModulePaths {mod} {
 
 proc cmdModulePath {mod} {
    reportDebug ($mod)
-   lassign [getPathToModule $mod] modfile modname
+   lassign [getPathToModule $mod] modfile modname modnamevr
    # if no result set empty value to return empty
    if {$modfile eq {}} {
       set ::g_return_text {}
@@ -11995,7 +11995,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
                set elt_target [lindex $mod_list($elt) 1]
                if {![info exists full_list($elt_target)]} {
                   lassign [getPathToModule $elt_target $dir 0]\
-                     modfile modname issuetype issuemsg
+                     modfile modname modnamevr issuetype issuemsg
                   # add module target as result instead of alias
                   if {$modfile ne {} && ![info exists mod_list($modname)]} {
                      set interp_list($modname) $modfile
@@ -12061,7 +12061,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    # find target of aliases in all modulepath except the one already tried
    foreach elt [array names extra_search] {
       lassign [getPathToModule $elt {} 0 no [lindex $extra_search($elt) 0]]\
-         modfile modname issuetype issuemsg issuefile
+         modfile modname modnamevr issuetype issuemsg issuefile
       # found target so append it to results in corresponding modulepath
       if {$modfile ne {}} {
          # get belonging modulepath dir depending of module kind
@@ -12172,7 +12172,7 @@ proc cmdModuleSwitch {uasked old {new {}}} {
 
    # enable unload of sticky mod if stickyness is preserved on swapped-on mod
    # need to resolve swapped-off module here to get stickyness details
-   lassign [getPathToModule $old {} 0 $unload_match] modfile oldmod
+   lassign [getPathToModule $old {} 0 $unload_match] modfile oldmod oldmodvr
    if {[set sticky_reload [isStickynessReloading $oldmod $new]]} {
       lappendState reloading_sticky $oldmod
    }
@@ -12194,7 +12194,7 @@ proc cmdModuleSwitch {uasked old {new {}}} {
    if {!$uasked && $argold ne {}} {
       # skip conflict declaration if old spec matches new as in this case
       # switch means *replace loaded version of mod by this specific version*
-      lassign [getPathToModule $new] newmodfile newmod
+      lassign [getPathToModule $new] newmodfile newmod newmodvr
       if {$newmod eq {} || ![modEq $argold $newmod eqstart]} {
          # temporarily disable auto handling just to record deps, not to try
          # to load or unload them (already tried)
@@ -12596,7 +12596,7 @@ proc cmdModuleLoad {context uasked args} {
 
       # record evaluation attempt on specified module name
       registerModuleEvalAttempt $context $mod
-      lassign [getPathToModule $mod] modfile modname
+      lassign [getPathToModule $mod] modfile modname modnamevr
 
       # set a unique id to record messages related to this evaluation.
       set msgrecid load-$modname-[depthState modulename]
@@ -12893,14 +12893,16 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       registerModuleEvalAttempt $context $mod
       # resolve by also looking at matching loaded module and update mod
       # specification to fully match obtained loaded module
-      lassign [getPathToModule $mod {} 1 $match] modfile modname errkind mod
+      lassign [getPathToModule $mod {} 1 $match] modfile modname modnamevr\
+         errkind
 
       # set a unique id to record messages related to this evaluation.
       set msgrecid unload-$modname-[depthState modulename]
 
       # record module title (with the variant specified on unload call) prior
       # module evaluation to get this title ready in case of eval error
-      registerModuleDesignation $msgrecid $modname [getVariantList $mod 1 0 1]
+      registerModuleDesignation $msgrecid $modname [getVariantList $modnamevr\
+         1 0 1]
 
       # if a switch action is ongoing...
       if {[info exists swprocessing]} {
@@ -13671,7 +13673,7 @@ proc cmdModuleTest {args} {
    lappendState mode test
    set first_report 1
    foreach mod $args {
-      lassign [getPathToModule $mod] modfile modname
+      lassign [getPathToModule $mod] modfile modname modnamevr
       if {$modfile ne {}} {
          # only one separator lines between 2 modules
          if {$first_report} {
@@ -13937,7 +13939,7 @@ proc cmdModuleHelp {args} {
    lappendState mode help
    set first_report 1
    foreach arg $args {
-      lassign [getPathToModule $arg] modfile modname
+      lassign [getPathToModule $arg] modfile modname modnamevr
 
       if {$modfile ne {}} {
          # only one separator lines between 2 modules
