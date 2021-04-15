@@ -4173,6 +4173,7 @@ proc is-loading {args} {
 proc conflict {args} {
    reportDebug $args
    set currentModule [currentState modulename]
+   set curmodnamevr [currentState modulenamevr]
    # get module short name if loaded by its full pathname
    if {[set isfullpath [isModuleFullPath $currentModule]]} {
       set currentSModule [findModuleNameFromModulefile $currentModule]
@@ -4195,9 +4196,9 @@ proc conflict {args} {
          [is-loading $mod]}]
       # if the conflicting module is loaded, we cannot either
       if {[is-loaded $mod] || $isloading} {
-         set retisconun [isModuleEvaluated conun $currentModule $mod]
+         set retisconun [isModuleEvaluated conun $curmodnamevr $mod]
          # report message on currently evaluated module message block
-         if {![set retiseval [isModuleEvaluated any $currentModule $mod]] ||\
+         if {![set retiseval [isModuleEvaluated any $curmodnamevr $mod]] ||\
             [currentState msgrecordid] ne [topState msgrecordid] ||\
             !$retisconun} {
             # more appropriate msg if an eval was attempted or is by-passed
@@ -4223,6 +4224,7 @@ proc conflict {args} {
 proc prereq {args} {
    reportDebug $args
    set currentModule [currentState modulename]
+   set curmodnamevr [currentState modulenamevr]
 
    # parse module version specification
    set args [eval parseModuleSpecification 0 $args]
@@ -4274,9 +4276,9 @@ proc prereq {args} {
    }
 
    if {![eval is-loaded $args] && ![eval is-loading $args]} {
-      set retisreqlo [eval isModuleEvaluated reqlo "{$currentModule}" $args]
+      set retisreqlo [eval isModuleEvaluated reqlo "{$curmodnamevr}" $args]
       # report message on currently evaluated module message block
-      if {![set retiseval [eval isModuleEvaluated any "{$currentModule}"\
+      if {![set retiseval [eval isModuleEvaluated any "{$curmodnamevr}"\
          $args]] || [currentState msgrecordid] ne [topState msgrecordid] ||\
          !$retisreqlo} {
 
@@ -5054,7 +5056,7 @@ proc registerModuleEvalHidden {context mod} {
 
 # get context of currently evaluated module
 proc currentModuleEvalContext {} {
-   return [lindex $::g_moduleEvalAttempt([currentState modulename]) end]
+   return [lindex $::g_moduleEvalAttempt([currentState modulenamevr]) end]
 }
 
 # record module evaluation attempt and corresponding context
@@ -12635,7 +12637,7 @@ proc cmdModuleLoad {context uasked args} {
       pushMsgRecordId $msgrecid
 
       # record evaluation attempt on actual module name
-      registerModuleEvalAttempt $context $modname
+      registerModuleEvalAttempt $context $modnamevr
       registerModuleEvalAttempt $context $modfile
 
       # check if passed modname correspond to an already loaded modfile
@@ -12705,9 +12707,9 @@ proc cmdModuleLoad {context uasked args} {
          # (module unload) conflicts through its evaluation
          lassign [doesModuleConflict $modname] doescon modconlist\
             moddecconlist
-         set retisconun [eval isModuleEvaluated conun "{$modname}"\
+         set retisconun [eval isModuleEvaluated conun "{$modnamevr}"\
             $modconlist]
-         if {![set retiseval [eval isModuleEvaluated any "{$modname}"\
+         if {![set retiseval [eval isModuleEvaluated any "{$modnamevr}"\
             $modconlist]] || [currentState msgrecordid] ne [topState\
             msgrecordid] || !$retisconun} {
             # more appropriate msg if an evaluation was attempted or is
@@ -12955,7 +12957,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       pushMsgRecordId $msgrecid
 
       # record evaluation attempt on actual module name
-      registerModuleEvalAttempt $context $modname
+      registerModuleEvalAttempt $context $modnamevr
       registerModuleEvalAttempt $context $modfile
 
       # record module title (name and variant)
@@ -12986,7 +12988,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                if {$onlyndep} {
                   set errharmless 1
                }
-               knerror [expr {[eval isModuleEvaluated any "{$modname}"\
+               knerror [expr {[eval isModuleEvaluated any "{$modnamevr}"\
                   $prereq_list] ? [getDepLoadedMsg $prereq_list] :\
                   [getErrPrereqMsg $modname $prereq_list 0]}]
             }
