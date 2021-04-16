@@ -1642,6 +1642,10 @@ proc getStickyForcedUnloadMsg {mod} {
    return "Unload of sticky module '$mod' forced"
 }
 
+proc getModWithAltVrIsLoadedMsg {mod} {
+   return "Variant {[getVariantList $mod 1]} is already loaded"
+}
+
 ########################################################################
 # Use a subordinate Tcl interpreter to execute modulefiles
 #
@@ -12653,17 +12657,27 @@ proc cmdModuleLoad {context uasked args} {
 
       pushSettings
       if {[set errCode [catch {
-         if {[isModuleLoaded $modname] || [isModuleLoading $modname]} {
+         if {[set isloaded [isModuleLoaded $modname]] || [set isloading\
+            [isModuleLoading $modname]]} {
             reportDebug "$modname ($modfile) already loaded/loading"
-            # report module is already loaded if verbose2 or higher level
-            if {[isModuleLoaded $modname] && [isVerbosityLevel verbose2]} {
-               reportInfo "Module '$modname' is already loaded"
-               registerModuleDesignation $msgrecid $modname [getVariantList\
-                  $modname 1]
-               reportMsgRecord "Loading [getModuleDesignation $msgrecid]"
+            # stop if same mod is loaded but with a different set of variants
+            if {$modname ne $modnamevr && (($isloaded &&
+               [getLoadedMatchingName $modnamevr] eq {}) || ([info exists\
+               isloading] && $isloading && [getLoadedMatchingName $modnamevr\
+               {} 1] eq {}))} {
+               set errlocalreport 1
+               knerror [getModWithAltVrIsLoadedMsg $modname]
+            } else {
+               # report module is already loaded if verbose2 or higher level
+               if {$isloaded && [isVerbosityLevel verbose2]} {
+                  reportInfo "Module '$modname' is already loaded"
+                  registerModuleDesignation $msgrecid $modname\
+                     [getVariantList $modname 1]
+                  reportMsgRecord "Loading [getModuleDesignation $msgrecid]"
+               }
+               # exit treatment but no need to restore settings
+               continue
             }
-            # exit treatment but no need to restore settings
-            continue
          }
 
          # register altname of modname prior any conflict check
