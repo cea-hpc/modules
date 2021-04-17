@@ -942,19 +942,23 @@ proc reportModuleEval {} {
 
    if {[info exists ::g_moduleEval($evalid)]} {
       foreach contextevallist $::g_moduleEval($evalid) {
-         set modlist [lassign $contextevallist context]
+         set msgrecidlist [lassign $contextevallist context]
          # skip context with no description title
          if {[info exists contexttitle($context)]} {
             # exclude hidden modules from report unless an high level of
             # verbosity is set
             if {[info exists ::g_moduleHiddenEval($evalid:$context)] &&\
                ![isVerbosityLevel verbose2]} {
-               lassign [getDiffBetweenList $modlist\
-                  $::g_moduleHiddenEval($evalid:$context)] modlist
+               lassign [getDiffBetweenList $msgrecidlist\
+                  $::g_moduleHiddenEval($evalid:$context)] msgrecidlist
             }
 
-            if {[llength $modlist] > 0} {
-               reportInfo [join $modlist] $contexttitle($context)
+            if {[llength $msgrecidlist] > 0} {
+               set moddesiglist {}
+               foreach msgrecid $msgrecidlist {
+                  lappend moddesiglist [getModuleDesignation $msgrecid 0]
+               }
+               reportInfo [join $moddesiglist] $contexttitle($context)
             }
          }
       }
@@ -5026,19 +5030,21 @@ proc clearAllMsgRecordId {} {
 
 # gather for the current top evaluation the information on all evaluations
 # happening under its umbrella
-proc registerModuleEval {context mod {unset 0} {failedcontext {}}} {
+proc registerModuleEval {context msgrecid {failedmod {}} {failedcontext {}}} {
    set evalid [topState evalid]
+   set unset [expr {$failedmod eq {} ? 0 : 1}]
    set contextset 0
 
-   # add mod to existing evaluation context list
+   # add msgrecid to existing evaluation context list
    if {[info exists ::g_moduleEval($evalid)]} {
       for {set i 0} {$i < [llength $::g_moduleEval($evalid)]} {incr i 1} {
          set contextevallist [lindex $::g_moduleEval($evalid) $i]
          if {[lindex $contextevallist 0] eq $context} {
             if {$unset} {
-               set contextevallist [replaceFromList $contextevallist $mod]
+               set contextevallist [replaceFromList $contextevallist\
+                  $msgrecid]
             } else {
-               lappend contextevallist $mod
+               lappend contextevallist $msgrecid
             }
             set ::g_moduleEval($evalid) [expr {[llength $contextevallist] > 1\
                ? [lreplace $::g_moduleEval($evalid) $i $i $contextevallist]\
@@ -5049,21 +5055,21 @@ proc registerModuleEval {context mod {unset 0} {failedcontext {}}} {
       }
    }
 
-   # add mod to new evaluation context list
+   # add msgrecid to new evaluation context list
    if {!$unset && !$contextset} {
-      lappend ::g_moduleEval($evalid) [list $context $mod]
+      lappend ::g_moduleEval($evalid) [list $context $msgrecid]
    }
 
    # add mod to failed evaluation list
    if {$unset} {
-      lappend ::g_moduleFailedEval($evalid) $failedcontext $mod
+      lappend ::g_moduleFailedEval($evalid) $failedcontext $failedmod
    }
 }
 
 # record that module evaluation is set hidden
-proc registerModuleEvalHidden {context mod} {
+proc registerModuleEvalHidden {context msgrecid} {
    set evalid [topState evalid]
-   lappend ::g_moduleHiddenEval($evalid:$context) $mod
+   lappend ::g_moduleHiddenEval($evalid:$context) $msgrecid
 }
 
 # get context of currently evaluated module
@@ -12626,8 +12632,8 @@ proc cmdModuleLoad {context uasked args} {
          continue
       }
 
-      if {[isModuleEvalFailed load $modname]} {
-         reportDebug "$modname ($modfile) load was already tried and failed"
+      if {[isModuleEvalFailed load $modnamevr]} {
+         reportDebug "$modnamevr ($modfile) load was already tried and failed"
          # nullify this evaluation attempt to avoid duplicate issue report
          unregisterModuleEvalAttempt $context $mod
          continue
@@ -12722,7 +12728,7 @@ proc cmdModuleLoad {context uasked args} {
 
          # register this evaluation on the main one that triggered it (after
          # load evaluation to report correct order with other evaluations)
-         registerModuleEval $context $modname
+         registerModuleEval $context $msgrecid
 
          # raise an error if a conflict violation is detected
          # do that after modfile evaluation to give it the chance to solve its
@@ -12856,7 +12862,7 @@ proc cmdModuleLoad {context uasked args} {
          # consider evaluation hidden if hidden loaded module is auto loaded
          # and no specific messages are recorded for this evaluation
          if {$hidden && !$uasked && ![isMsgRecorded]} {
-            registerModuleEvalHidden $context $modname
+            registerModuleEvalHidden $context $msgrecid
          }
 
          # report a summary of automated evaluations if no error
@@ -12878,7 +12884,7 @@ proc cmdModuleLoad {context uasked args} {
          set ret 1
          restoreSettings
          # remove from successfully evaluated module list
-         registerModuleEval $context $modname 1 load
+         registerModuleEval $context $msgrecid $modnamevr load
          unset -nocomplain errlocalreport
       }
       popSettings
@@ -12968,8 +12974,8 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          continue
       }
 
-      if {[isModuleEvalFailed unload $modname]} {
-         reportDebug "$modname ($modfile) unload was already tried and failed"
+      if {[isModuleEvalFailed unload $modnamevr]} {
+         reportDebug "$modnamevr ($modfile) unload was already tried and failed"
          # nullify this evaluation attempt to avoid duplicate issue report
          unregisterModuleEvalAttempt $context $mod
          continue
@@ -13090,7 +13096,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
 
          # register this evaluation on the main one that triggered it (prior
          # unload evaluation to report correct order with other evaluations)
-         registerModuleEval $context $modname
+         registerModuleEval $context $msgrecid
 
          if {[execute-modulefile $modfile $modname $modnamevr $mod]} {
             break
@@ -13178,7 +13184,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          # consider evaluation hidden if hidden loaded module was auto loaded
          # and no specific messages are recorded for this evaluation
          if {$hidden && !$uasked && ![isMsgRecorded]} {
-            registerModuleEvalHidden $context $modname
+            registerModuleEvalHidden $context $msgrecid
          }
 
          # report a summary of automated evaluations if no error
@@ -13200,7 +13206,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             set ret 1
             restoreSettings
             # remove from successfully evaluated module list
-            registerModuleEval $context $modname 1 unload
+            registerModuleEval $context $msgrecid $modnamevr unload
          }
          unset -nocomplain errlocalreport errharmless
       }
