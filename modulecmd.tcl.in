@@ -1530,31 +1530,39 @@ proc cleanupAndExit {code} {
 }
 
 proc registerModuleDesignation {evalid mod vrlist} {
-   set moddesig [sgr hi $mod]
+   set moddesig $mod
+   set moddesigsgr [sgr hi $mod]
    # enclose module name between quotes if a space is found
    if {[string first { } $mod] != -1} {
       set moddesig '$moddesig'
+      set moddesigsgr '$moddesigsgr'
    }
    set desig $moddesig
+   set desigsgr $moddesigsgr
 
    # add variant specification to the designation
    if {[llength $vrlist] > 0} {
       foreach vr $vrlist {
-         set vrdesig [sgr va $vr]
+         set vrdesig $vr
+         set vrdesigsgr [sgr va $vr]
          # enclose variant spec between quotes if a space is found
          if {[string first { } $vr] != -1} {
             set vrdesig '$vrdesig'
+            set vrdesigsgr '$vrdesigsgr'
          }
          lappend vrdesiglist $vrdesig
+         lappend vrdesigsgrlist $vrdesigsgr
       }
       append desig " \{" [join $vrdesiglist] "\}"
+      append desigsgr " \{" [join $vrdesigsgrlist] "\}"
    }
-   set ::g_moduleDesgination($evalid) $desig
+   set ::g_moduleDesgination($evalid) [list $desigsgr $desig]
 }
 
-proc getModuleDesignation {evalid {mod {}}} {
+proc getModuleDesignation {evalid {sgr 1} {mod {}}} {
    if {[info exists ::g_moduleDesgination($evalid)]} {
-      return $::g_moduleDesgination($evalid)
+      set idx [expr {$sgr ? 0 : 1}]
+      return [lindex $::g_moduleDesgination($evalid) $idx]
    # if not found, use passed designation as fallback
    } else {
       return $mod
@@ -12241,7 +12249,7 @@ proc cmdModuleSwitch {uasked old {new {}}} {
    # and new modules are set hidden, old was auto loaded and this switch is
    # done by a modfile
    reportMsgRecord "Switching from [getModuleDesignation $oldmsgrecid] to\
-      [getModuleDesignation $newmsgrecid $new]" [expr {$oldhidden &&\
+      [getModuleDesignation $newmsgrecid 1 $new]" [expr {$oldhidden &&\
       !$olduasked && $newhidden && !$uasked}]
    popMsgRecordId
    if {$inhibit_req_rec} {
