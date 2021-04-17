@@ -51,7 +51,7 @@ setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val2|0&bar|val3|0
 
 testouterr_cmd sh {load -vv variant/1.0 foo=val2 bar=val3} OK [msg_load {variant/1.0 {bar=val3 foo=val2}} [info_alreadyloaded {variant/1.0}]]
 
-testouterr_cmd sh {load -vv variant/1.0} OK [msg_load {variant/1.0 {bar=val3 foo=val2}} [info_alreadyloaded {variant/1.0}]]
+testouterr_cmd sh {load -vv variant/1.0} ERR [msg_load variant/1.0 [err_othervariantloaded {bar=val3 foo=val2}]]
 
 testouterr_cmd sh {switch -v variant/1.0 foo=val2 bar=val3} $ans [msg_unload {variant/1.0 {bar=val3 foo=val2}}]\n[msg_load {variant/1.0 {bar=val3 foo=val2}}]\n[msg_switch {variant/1.0 {bar=val3 foo=val2}} {variant/1.0 {bar=val3 foo=val2}}]
 
@@ -93,7 +93,7 @@ testouterr_cmd sh {switch -v variant/w\ s b*r=\ val1 unk=val1} $ans [msg_unload 
 
 setenv_var MODULES_COLORS "hi=1:se=2:va=93"
 
-testouterr_cmd_re sh {load --color=always -vv variant/1.0} OK [msg_load "[sgr 1]variant/1.0[sgr 22] {[sgr 93]bar=val3[sgr 0] [sgr 93]foo=val2[sgr 0]}" [info_alreadyloaded {variant/1.0}]]
+testouterr_cmd_re sh {load --color=always -vv variant/1.0} ERR [msg_load "[sgr 1]variant/1.0[sgr 22]" [err_othervariantloaded {bar=val3 foo=val2}]]
 testouterr_cmd_re sh {load --color=always -vv variant/1.0 bar=val3 foo=val2} OK [msg_load "[sgr 1]variant/1.0[sgr 22] {[sgr 93]bar=val3[sgr 0] [sgr 93]foo=val2[sgr 0]}" [info_alreadyloaded {variant/1.0}]]
 
 unsetenv_loaded_module

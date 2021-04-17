@@ -153,16 +153,17 @@ testouterr_cmd_re sh {load variant/1.0 foo=val1 variant/2.0} $ans [msg_load vari
 
 # test successive eval of same modulefiles with different variant values
 set ans [list]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|val1|0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
 lappend ans [list set TS0 {foo}]
 lappend ans [list set TS1 {foo=val1}]
-lappend ans [list setpath LOADEDMODULES variant/1.0]
-lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
-lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|val1|0]
-testouterr_cmd sh {load variant/1.0 foo=val1 variant/1.0 foo=val2} $ans {}
-testouterr_cmd sh {load variant/1.0 foo=val1 variant/1.0 bar=val2} $ans {}
+lappend ans [list ERR]
+testouterr_cmd sh {load variant/1.0 foo=val1 variant/1.0 foo=val2} $ans [msg_load {variant/1.0 {foo=val2}} [err_othervariantloaded {foo=val1}]]
+testouterr_cmd sh {load variant/1.0 foo=val1 variant/1.0 bar=val2} $ans [msg_load {variant/1.0 {bar=val2}} [err_othervariantloaded {foo=val1}]]
 
 setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
-testouterr_cmd sh {load variant/1.0 bar=val2} OK {}
+testouterr_cmd sh {load variant/1.0 bar=val2} ERR [msg_load {variant/1.0 {bar=val2}} [err_othervariantloaded {}]]
 unsetenv_loaded_module
 
 # test @loaded version specifier
