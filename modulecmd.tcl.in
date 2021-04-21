@@ -5771,6 +5771,11 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
                      if {[info exists mod_list($newmod)]} {
                         set mod $newmod
                      } else {
+                        # add specified variants to current resolution
+                        if {[llength $vrlist] > 0} {
+                           lassign [eval parseModuleSpecification 0 [concat\
+                              $newmod $vrlist]] newmod
+                        }
                         # restart search on new modulename, constrained to
                         # specified dir if set, if not found in current res
                         return [getPathToModule $newmod $indir $report_issue]
@@ -5787,6 +5792,11 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
                         # restart search if default element is an hidden dir
                         if {![info exists mod_list($mod)] && [isModuleHidden\
                            $mod $modspec]} {
+                           # add specified variants to current resolution
+                           if {[llength $vrlist] > 0} {
+                              lassign [eval parseModuleSpecification 0\
+                                 [concat $mod $vrlist]] mod
+                           }
                            return [getPathToModule $mod $indir $report_issue]
                         }
                      }
