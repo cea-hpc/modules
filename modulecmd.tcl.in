@@ -6780,17 +6780,19 @@ proc areModuleConstraintsSatisfied {{mod {}} {nporeq 0}} {
 
 # return list of loaded modules having an unmet requirement on passed mod
 # and their recursive dependent
-proc getUnmetDependentLoadedModuleList {mod} {
-   reportDebug "get dependent of upcoming loaded '$mod'"
+proc getUnmetDependentLoadedModuleList {modnamevr} {
+   reportDebug "get dependent of upcoming loaded '$modnamevr'"
    set unmetdeplist {}
    set depmodlist {}
    defineModEqProc [isIcase] [getConf extended_default] 1
+   set mod [getModuleNameAndVersFromVersSpec $modnamevr]
+   set vrlist [getVariantList $modnamevr 0 0 1]
 
    # skip dependent analysis if mod has a conflict with a loaded module
    lassign [doesModuleConflict $mod] doescon modconlist
    if {!$doescon} {
       foreach ummod [array names ::g_unmetDepHash] {
-         if {[modEq $ummod $mod eqstart 1 2]} {
+         if {[modEq $ummod $mod eqstart 1 2 $vrlist]} {
             foreach depmod $::g_unmetDepHash($ummod) {
                lappend depmodlist $depmod
                # temporarily remove prereq violation of depmod if mod
@@ -6800,7 +6802,7 @@ proc getUnmetDependentLoadedModuleList {mod} {
                      foreach modpre $prereq {
                         # also temporarily remove prereq violation for
                         # requirements loaded after dependent module
-                        if {[modEq $modpre $mod eqstart 1 2] ||\
+                        if {[modEq $modpre $mod eqstart 1 2 $vrlist] ||\
                            [is-loaded $modpre]} {
                            # backup original violation to restore it later
                            if {![info exists preunvioarr($depmod)]} {
@@ -12724,7 +12726,7 @@ proc cmdModuleLoad {context uasked args} {
          if {[getConf auto_handling]} {
             # get loaded modules holding a requirement on modname and able to
             # be reloaded
-            set deprelist [getUnmetDependentLoadedModuleList $modname]
+            set deprelist [getUnmetDependentLoadedModuleList $modnamevr]
             reportDebug "depre mod list is '$deprelist'"
 
             # Reload all modules that have declared a prereq on mod as they
