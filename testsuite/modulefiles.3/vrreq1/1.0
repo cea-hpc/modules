@@ -1,0 +1,73 @@
+#%Module
+if {[info exists env(TESTSUITE_VARIANT)]} {
+    switch -- $env(TESTSUITE_VARIANT) {
+        1 {
+            variant foo val1 val2 val3
+            prereq vrreq2@1.0 bar=1 foo=val1 vrreq3@1.0 bar=1 foo=val1
+            conflict vrreq1
+        }
+        2 {
+            variant foo val1 val2 val3
+            prereq vrreq2@1.0 bar=1 foo=val1 vrreq3@1.0 bar=1 foo=val1
+            prereq vrreq4@1.0 bar=1 foo=val1
+            conflict vrreq1
+        }
+        3 {
+            variant foo val1 val2 val3
+            prereq vrreq2@1.0 bar=1 foo=val1 vrreq3@1.0 bar=1 foo=val1
+            conflict vrreq1
+            break
+        }
+        4 {
+            variant foo val1 val2 val3
+            prereq vrreq2@1:2 bar=1 foo=val1 vrreq3 bar=1 foo=val1
+            conflict vrreq1
+        }
+        5 {
+            variant foo val1 val2 val3
+            prereq vrreq2@1:2 bar=1 foo=val1 vrreq3 bar=1 foo=val1
+            prereq vrreq4@:1.0 bar=1 foo=val1
+            conflict vrreq1
+        }
+        6 {
+            variant foo val1 val2 val3
+            prereq vrreq2@1:2 bar=1 foo=val1 vrreq3 bar=1 foo=val1
+            conflict vrreq1
+            break
+        }
+        7 {
+            variant foo val1 val2 val3
+            prereq alvrreq2 bar=1 foo=val1 alvrreq3@1.0 bar=1 foo=val1
+            conflict vrreq1
+        }
+        8 {
+            variant foo val1 val2 val3
+            prereq alvrreq2 bar=1 foo=val1 alvrreq3@1.0 bar=1 foo=val1
+            prereq alvrreq41 bar=1 foo=val1
+            conflict vrreq1
+        }
+        9 {
+            variant foo val1 val2 val3
+            prereq alvrreq2 bar=1 foo=val1 alvrreq3@1.0 bar=1 foo=val1
+            conflict vrreq1
+            break
+        }
+        10 {
+            variant foo val1 val2 val3
+            module load vrreq2@1:2 bar=1 foo=val1 vrreq3 bar=1 foo=val1
+            conflict vrreq1
+        }
+        11 {
+            variant foo val1 val2 val3
+            module load vrreq2@1:2 bar=1 foo=val1 vrreq3 bar=1 foo=val1
+            module load vrreq4@:1.0 bar=1 foo=val1
+            conflict vrreq1
+        }
+        12 {
+            variant foo val1 val2 val3
+            module load vrreq2@1:2 bar=1 foo=val1 vrreq3 bar=1 foo=val1
+            conflict vrreq1
+            break
+        }
+    }
+}
