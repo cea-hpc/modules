@@ -77,6 +77,7 @@ array set g_config_defs [list\
    colors {MODULES_COLORS {} 0 {} {} initConfColors}\
    csh_limit {{} 4000 0}\
    extra_siteconfig {MODULES_SITECONFIG <undef> 1 {}}\
+   editor {MODULES_EDITOR {vi} 0 {} {} initConfEditor}\
    home {MODULESHOME @moduleshome@ 0}\
    icase {MODULES_ICASE @icase@ 0 {never search always}}\
    ignored_dirs {{} {CVS RCS SCCS .svn .git .SYNC .sos} 0}\
@@ -641,6 +642,20 @@ proc initConfTagColorName {envvar value validvallist intvallist} {
       set ::g_tagColorName($tag) 1
    }
 
+   return $value
+}
+
+# Initialize interactive editor command
+proc initConfEditor {envvar value validvallist intvallist} {
+   # overriden value coming from environment via Modules-specific variable
+   if {$envvar ne {} && [info exists ::env($envvar)]} {
+      set value $::env($envvar)
+   # overriden value coming from environment via standard variable
+   } elseif {[info exists ::env(VISUAL)]} {
+      set value $::env(VISUAL)
+   } elseif {[info exists ::env(EDITOR)]} {
+      set value $::env(EDITOR)
+   }
    return $value
 }
 
@@ -13142,7 +13157,7 @@ proc cmdModuleEdit {mod} {
    # error message has already been produced if mod not found or forbidden
    if {$modfile ne {}} {
       # redirect stdout to stderr as stdout is evaluated by module shell func
-      runCommand vi $modfile >@stderr 2>@stderr
+      runCommand [getConf editor] $modfile >@stderr 2>@stderr
    }
 }
 
