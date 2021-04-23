@@ -365,10 +365,11 @@ proc initStatePaginate {} {
    # requires a valid pager command configuration, which by default enables
    # pagination; some module command may also turn off pager; also if error
    # stream is not attached to a terminal
+   set no_subcmds [list clear edit]
    if {$paginate && (([info exists ::asked_paginate] && !$::asked_paginate)\
-      || [getState subcmd] eq {clear} || ([getState subcmd] eq {ml} &&\
-      [lindex [getState subcmd_args] 0] eq {clear}) || ![getState\
-      is_stderr_tty])} {
+      || [isInList $no_subcmds [getState subcmd]] || ([getState subcmd] eq\
+      {ml} && [isInList $no_subcmds [lindex [getState subcmd_args] 0]]) ||\
+      ![getState is_stderr_tty])} {
       set paginate 0
    }
 
@@ -3062,7 +3063,7 @@ proc module {command args} {
 
    # parse module version specification
    if {[isInList [list avail paths whatis load unload switch help test\
-      display path is-avail] $command]} {
+      display path is-avail edit] $command]} {
       set args [eval parseModuleVersionSpecifier 0 $args]
    }
 
@@ -3071,7 +3072,7 @@ proc module {command args} {
       switch -- $command {
          path - paths - autoinit - help - prepend-path - append-path -\
          remove-path - is-loaded - is-saved - is-used - is-avail -\
-         info-loaded - clear - sh-to-mod {
+         info-loaded - clear - sh-to-mod - edit {
             knerror "${msgprefix}Command '$command' not supported$tryhelpmsg"
          }
       }
@@ -3106,7 +3107,7 @@ proc module {command args} {
             set argnberr 1
          }
       }
-      path - paths - info-loaded {
+      path - paths - info-loaded - edit {
          if {[llength $args] != 1} {
             set argnberr 1
          }
@@ -3138,7 +3139,7 @@ proc module {command args} {
 
    # define if modfile should always be fully read even for validity check
    lappendState always_read_full_file [expr {![isInList [list path paths list\
-      avail aliases] $command]}]
+      avail aliases edit] $command]}]
    lappendState commandname $command
 
    if {$topcall} {
@@ -3395,6 +3396,9 @@ proc module {command args} {
       }
       sh-to-mod {
          eval cmdModuleShToMod $args
+      }
+      edit {
+         eval cmdModuleEdit $args
       }
       help {
          eval cmdModuleHelp $args
@@ -10501,8 +10505,8 @@ proc parseModuleCommandName {command defaultcmd} {
       display avail aliases path paths list whatis search purge save restore\
       saverm saveshow savelist initadd initprepend initswitch initrm initlist\
       initclear autoinit clear config help test prepend-path append-path\
-      remove-path is-loaded is-saved is-used is-avail info-loaded sh-to-mod]\
-      $command]
+      remove-path is-loaded is-saved is-used is-avail info-loaded sh-to-mod\
+      edit] $command]
 
    return [list $command $cmdvalid $cmdempty]
 }
@@ -13132,6 +13136,16 @@ proc cmdModuleShToMod {args} {
    }
 }
 
+proc cmdModuleEdit {mod} {
+   lassign [getPathToModule $mod] modfile modname
+
+   # error message has already been produced if mod not found or forbidden
+   if {$modfile ne {}} {
+      # redirect stdout to stderr as stdout is evaluated by module shell func
+      runCommand vi $modfile >@stderr 2>@stderr
+   }
+}
+
 proc cmdMlHelp {} {
    reportVersion
    report {Usage: ml [options] [command] [args ...]
@@ -13222,6 +13236,7 @@ Other commands:
   config [--dump-state|name [val]]  Display or set Modules configuration
   sh-to-mod       shell shellscript [arg ...]
                                     Make modulefile from script env changes
+  edit            modulefile        Open modulefile in editor
 
 Switches:
   -t | --terse    Display output in terse format
