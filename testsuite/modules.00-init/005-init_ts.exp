@@ -476,8 +476,16 @@ if {$nbcols ne {} && $nbcols ne {0}} {
     set msg_disp_cols $nbcols
     send_user "\tTerminal has $msg_disp_cols columns\n"
 } else {
-    set msg_disp_cols 80
-    send_user "\tFail to detect terminal column number. Fallback to $msg_disp_cols columns\n"
+    send_user "\tFail to detect terminal column number.\n"
+    if {[catch {exec stty rows 60 cols 120} errMsg]} {
+        send_user "\tFail to set specific terminal size: $errMsg\n"
+        set msg_disp_cols 80
+        send_user "\tFallback to $msg_disp_cols columns\n"
+    } else {
+        set term_cols 120
+        set msg_disp_cols 120
+        send_user "\tSuccessfully set terminal to 120 columns.\n"
+    }
 }
 unset nbcols
 
