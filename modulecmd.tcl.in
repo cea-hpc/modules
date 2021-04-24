@@ -13157,7 +13157,11 @@ proc cmdModuleEdit {mod} {
    # error message has already been produced if mod not found or forbidden
    if {$modfile ne {}} {
       # redirect stdout to stderr as stdout is evaluated by module shell func
-      runCommand [getConf editor] $modfile >@stderr 2>@stderr
+      if {[catch {runCommand [getConf editor] $modfile >@stderr 2>@stderr}\
+         errMsg]} {
+         # re-throw error but as an external one (not as a module issue)
+         knerror $errMsg
+      }
    }
 }
 
