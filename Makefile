@@ -314,6 +314,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@availterseoutput@|$(availterseoutput)|g' \
 	-e 's|@listoutput@|$(listoutput)|g' \
 	-e 's|@listterseoutput@|$(listterseoutput)|g' \
+	-e 's|@editor@|$(editor)|g' \
 	-e 's|@autohandling@|$(setautohandling)|g' \
 	-e 's|@implicitrequirement@|$(setimplicitrequirement)|g' \
 	-e 's|@availindepth@|$(setavailindepth)|g' \
