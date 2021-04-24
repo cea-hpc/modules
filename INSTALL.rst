@@ -812,6 +812,15 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
     .. versionadded:: 4.7
 
+.. instopt:: --with-editor=BIN
+
+ Name or full path of default editor program to use to open modulefile through
+ the :subcmd:`edit` sub-command. (default=\ ``vi``)
+
+ .. only:: html
+
+    .. versionadded:: 4.8
+
 .. instopt:: --with-modulepath=PATHLIST
 
  Default path list to setup as the default modulepaths.  Each path in this
