@@ -332,6 +332,8 @@ The following module sub-commands appeared on new version of Modules are not sup
 +------------+-----------------------------------------------------------------+
 | 4.6        | :subcmd:`sh-to-mod`                                             |
 +------------+-----------------------------------------------------------------+
+| 4.8        | :subcmd:`edit`                                                  |
++------------+-----------------------------------------------------------------+
 
 All module sub-commands will return a non-zero exit code in case of error whereas on compatibility version issues that occurred do not lead to an exit of the :command:`module` command with a non-zero code.
 
@@ -400,6 +402,8 @@ The following environment variables appeared on new version of Modules are not s
 |            | :envvar:`MODULES_LIST_OUTPUT`,                                  |
 |            | :envvar:`MODULES_LIST_TERSE_OUTPUT`,                            |
 |            | :envvar:`MODULES_TERM_WIDTH`                                    |
++------------+-----------------------------------------------------------------+
+| 4.8        | :envvar:`MODULES_EDITOR`                                        |
 +------------+-----------------------------------------------------------------+
 
 
