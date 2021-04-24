@@ -611,6 +611,15 @@ Module Sub-Commands
 
      .. versionadded:: 4.4
 
+ .. mconfig:: editor
+
+  Text editor command to open modulefile with through :subcmd:`edit`
+  sub-command. Defines :envvar:`MODULES_EDITOR`.
+
+  .. only:: html
+
+     .. versionadded:: 4.8
+
  .. mconfig:: extra_siteconfig
 
   Additional site-specific configuration script location. Defines
@@ -814,6 +823,19 @@ Module Sub-Commands
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
+
+.. subcmd:: edit modulefile
+
+ Open *modulefile* for edition with text editor command designated by the
+ :mconfig:`editor` configuration option.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
+.. only:: html
+
+    .. versionadded:: 4.8
 
 .. subcmd:: help [modulefile...]
 
@@ -1819,6 +1841,22 @@ ENVIRONMENT
        Output items for module tags auto-loaded (``aL``), forbidden (``F``),
        hidden and hidden-loaded (``H``), loaded (``L``), nearly-forbidden
        (``nF``), sticky (``S``) and super-sticky (``sS``) added
+
+.. envvar:: MODULES_EDITOR
+
+ Text editor command name or path for use to open modulefile through the
+ :subcmd:`edit` sub-command.
+
+ Editor command is defined for Modules in the following order of preference:
+ :envvar:`MODULES_EDITOR`, or :envvar:`VISUAL` or :envvar:`EDITOR` environment
+ variables, then the default set in :file:`modulecmd.tcl` script
+ configuration. Which means :envvar:`MODULES_EDITOR` overrides
+ :envvar:`VISUAL` or :envvar:`EDITOR` environment variables and default
+ configuration.
+
+ .. only:: html
+
+    .. versionadded:: 4.8
 
 .. envvar:: MODULES_EXTENDED_DEFAULT
 
