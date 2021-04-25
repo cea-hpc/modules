@@ -6,6 +6,27 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+.. _4.8 release notes:
+
+Modules 4.8.0 (not yet released)
+--------------------------------
+
+* Introduce the :subcmd:`edit` sub-command that opens modulefile passed as
+  argument in a text editor. Modulefile can be specified like with any other
+  sub-command, leveraging defined symbolic versions, aliases or using advanced
+  version specifiers.
+* Add the :mconfig:`editor` configuration option to select the text editor to
+  use with :subcmd:`edit` sub-command. When this option is set through the
+  :subcmd:`config` sub-command, the :envvar:`MODULES_EDITOR` environment
+  variable is set. The :instopt:`--with-editor` installation option controls
+  the default value of :mconfig:`editor` configuration option. If not set at
+  installation time, ``vi`` is set as default editor.
+* Default value of :mconfig:`editor` configuration option is overridden by the
+  :envvar:`VISUAL` or the :envvar:`EDITOR` environment variables, which are
+  both in turn overridden by the :envvar:`MODULES_EDITOR` environment
+  variable.
+
+
 .. _4.7 release notes:
 
 Modules 4.7.1 (2021-04-06)

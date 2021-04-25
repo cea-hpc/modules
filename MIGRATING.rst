@@ -8,6 +8,54 @@ Modules. It provides an overview of the new features and changed behaviors
 that will be encountered when upgrading.
 
 
+From v4.7 to v4.8
+=================
+
+This new version is backward-compatible with v4.7 and primarily fixes bugs and
+adds new features. Version 4.8 introduces new functionalities that are
+described in this section. See the :ref:`4.8 release notes<4.8 release notes>`
+for a complete list of the changes between Modules v4.7 and v4.8.
+
+Editing modulefiles
+-------------------
+
+:subcmd:`edit` sub-command is introduced to give the ability to open
+modulefiles in a text editor. Modulefiles can be specified like with any other
+sub-command: using regular, symbolic or aliased names or using advanced
+version specifiers.
+
+.. parsed-literal::
+
+    :ps:`$` ml edit foo
+
+:subcmd:`edit` sub-command resolves the path toward the designated modulefile
+then call configured text editor to open this modulefile with it. Below, the
+modulefile is opened with the ``vi`` command:
+
+.. parsed-literal::
+
+    #%Module
+    module-whatis [module-info name]
+    setenv PATH /path/to/foo-1.0/bin
+    ~                                                           
+    ~                                                           
+    ~                                                           
+    "/path/to/modulefiles/foo/1.0" 3L, 42B 1,1           All
+
+The :mconfig:`editor` configuration option controls the editor command to use.
+This option can be configured at installation time with the
+:instopt:`--with-editor` installation option. If not set, :mconfig:`editor`
+configuration option is set by default to ``vi``.
+
+:mconfig:`editor` configuration option can be changed with the
+:subcmd:`config` sub-command. Which sets the :envvar:`MODULES_EDITOR`
+environment variable.
+
+The :envvar:`VISUAL` or the :envvar:`EDITOR` environment variables override
+the default value of :mconfig:`editor` configuration option but are overridden
+by the :envvar:`MODULES_EDITOR` environment variable.
+
+
 From v4.6 to v4.7
 =================
 
