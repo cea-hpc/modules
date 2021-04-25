@@ -1,0 +1,118 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2021/04/24
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:    foo, mfvar
+#   Sub-Command:    avail
+#
+#   Comment:	%C{
+#           Test edit sub-command
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+
+# test default editor configuration
+set dfleditorpath $env(TESTSUITEDIR)/$install_editor
+if {$install_editor ne {} && ![file exists $dfleditorpath]} {
+    send_user "\tcreating fake default editor $dfleditorpath\n"
+    set fid [open $dfleditorpath w]
+    puts $fid "#!/bin/sh\necho \$0 \$1"
+    close $fid
+    file attributes $dfleditorpath -permissions 0755
+    setenv_var PATH $env(TESTSUITEDIR):$ORIG_PATH
+
+    # regular module
+    testouterr_cmd sh {edit bar/1.0} OK "$dfleditorpath $mp/bar/1.0"
+
+    # implicit default
+    testouterr_cmd sh {edit foo} OK "$dfleditorpath $mp/foo/2.0"
+
+    # explicit default
+    testouterr_cmd sh {edit key} OK "$dfleditorpath $mp/key/1.0"
+
+    # virtual module
+    testouterr_cmd sh {edit mfvar/Modules} OK "$dfleditorpath $mp/mfvar/2.0"
+
+    # alias
+    testouterr_cmd sh {edit key/3.0} OK "$dfleditorpath $mp/key/2.0"
+
+    # symbolic version
+    testouterr_cmd sh {edit key/foosym} OK "$dfleditorpath $mp/key/2.0"
+
+    # fullpath modulefile
+    testouterr_cmd sh "edit $mp/key/2.0" OK "$dfleditorpath $mp/key/2.0"
+
+    # advanced version spec
+    setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+    testouterr_cmd sh {edit foo@:1.6} OK "$dfleditorpath $mp/foo/1.0"
+    unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+
+    file delete $dfleditorpath
+    setenv_var PATH $ORIG_PATH
+} else {
+    send_user "\tskipping default editor tests\n"
+}
+
+# inexistent module
+testouterr_cmd sh {edit unknown/3.0} ERR $err_path'unknown/3.0'
+
+# forbidden module
+testouterr_cmd sh {edit tag/1.0} ERR [err_accessdenied tag/1.0]
+
+
+# use specific command
+setenv_var MODULES_EDITOR echo
+testouterr_cmd sh {edit foo} OK "$mp/foo/2.0"
+
+# unknown command
+setenv_var MODULES_EDITOR unkcmd
+testouterr_cmd sh {edit foo} ERR "$error_msgs: Command 'unkcmd' cannot be found"
+
+# empty command
+setenv_var MODULES_EDITOR {}
+testouterr_cmd sh {edit foo} ERR "$error_msgs: Command '' cannot be found"
+
+# broken command
+setenv_var MODULES_EDITOR $env(TESTSUITEDIR)/systest
+testouterr_cmd sh {edit foo} ERR "$error_msgs: child process exited abnormally"
+
+# test precedence between MODULES_EDITOR/VISUAL/EDITOR
+setenv_var MODULES_EDITOR echo
+setenv_var VISUAL true
+setenv_var EDITOR true
+testouterr_cmd sh {edit foo} OK "$mp/foo/2.0"
+
+unsetenv_var MODULES_EDITOR
+setenv_var VISUAL echo
+setenv_var EDITOR true
+testouterr_cmd sh {edit foo} OK "$mp/foo/2.0"
+
+unsetenv_var MODULES_EDITOR
+unsetenv_var VISUAL
+setenv_var EDITOR echo
+testouterr_cmd sh {edit foo} OK "$mp/foo/2.0"
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
