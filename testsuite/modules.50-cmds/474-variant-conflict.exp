@@ -627,6 +627,36 @@ unsetenv_path_var MODULES_LMVARIANT
 
 
 #
+# switch tests with auto_handling
+#
+
+setenv_var TESTSUITE_VARIANT 17
+
+# replace a requirement by an alternative: wrong variant to unload (2-arg form)
+setenv_loaded_module [list vrreq2/2.0 vrreq1/2.0 variant/7.0] [list $mp/vrreq2/2.0 $mp/vrreq1/2.0 $mp/variant/7.0] [list vrreq2/2.0 vrreq1/2.0]
+setenv_path_var MODULES_LMCONFLICT vrreq2/2.0&vrreq2:vrreq1/2.0&vrreq1
+setenv_path_var MODULES_LMPREREQ {vrreq1/2.0&vrreq2@<2.0 bar=1|vrreq3@1.0< foo=val1:variant/7.0&vrreq1@1< foo=val1}
+setenv_path_var MODULES_LMVARIANT vrreq2/2.0&foo|val2|1&bar|1|0:vrreq1/2.0&foo|val1|0:variant/7.0&foo|val2|0
+set tserr [msg_load {vrreq2/1.0 {bar=2}} [err_conlo vrreq2]]\n\n[msg_switch {vrreq2/2.0 {bar=2}} {vrreq2/1.0 {bar=2}} [err_swon vrreq2/1.0]]
+testouterr_cmd_re sh {switch --auto vrreq2/2.0 bar=2 vrreq2/1.0 bar=2} ERR $tserr
+testouterr_cmd_re sh {switch --no-auto vrreq2/2.0 bar=2 vrreq2/1.0 bar=2} ERR $tserr
+
+# replace a requirement by an alternative: wrong variant to unload (1-arg form)
+set ans [list]
+lappend ans [list setpath LOADEDMODULES vrreq2/1.0]
+lappend ans [list setpath _LMFILES_ $mp/vrreq2/1.0]
+lappend ans [list setpath MODULES_LMCONFLICT vrreq2/1.0&vrreq2]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list setpath MODULES_LMVARIANT vrreq2/1.0&foo|val1|1&bar|2|0]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list ERR]
+set tserr [msg_load {vrreq1/2.0 {foo=val1}} [err_reqmis {vrreq2@:2.0 bar=1} {vrreq3@1.0: foo=val1}]]\n\n[msg_load {variant/7.0 {foo=val2}} [err_reqmis {vrreq1@1: foo=val1}]]\n\n[msg_top_switch {vrreq2/2.0 {bar=1 foo=val2}} {vrreq2/1.0 {bar=2 foo=val1}} {{variant/7.0 {foo=val2}} {vrreq1/2.0 {foo=val1}}} {} {} {} {} [err_depref vrreq1/2.0] [err_depref variant/7.0]]
+testouterr_cmd_re sh {switch --auto vrreq2/1.0 bar=2} $ans $tserr
+set tserr [msg_unload {vrreq2/2.0 {bar=1 foo=val2}} [err_prerequn vrreq2/2.0 vrreq1/2.0]]\n\n[msg_switch {vrreq2/2.0 {bar=1 foo=val2}} {vrreq2/1.0 bar=2} [err_swoff vrreq2/2.0]]
+testouterr_cmd_re sh {switch --no-auto vrreq2/1.0 bar=2} ERR $tserr
+
+
+#
 #  Cleanup
 #
 
