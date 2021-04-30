@@ -1191,6 +1191,142 @@ testouterr_cmd_re sh {load --no-auto variant/7.0 foo=val3} $ans $tserr
 
 
 #
+# special requirement specification tests
+#
+
+setenv_var TESTSUITE_VARIANT 23
+
+# variant not specified when requiring module (prereq)
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMCONFLICT
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMVARIANT
+set tserr [msg_load {vrreq1/2.0 {foo=val1}} [err_novarval bar {1 2 3}]]\n\n[msg_load {variant/7.0 {foo=val3}} [err_reqlo {vrreq1@1: foo=val1}]]
+testouterr_cmd_re sh {load --auto variant/7.0 foo=val3} ERR $tserr
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/7.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/7.0]
+lappend ans [list setpath MODULES_LMPREREQ {variant/7.0&vrreq1@1< foo=val1}]
+lappend ans [list setpath MODULES_LMVARIANT variant/7.0&foo|val3|0]
+lappend ans [list ERR]
+set tserr [msg_load {vrreq1/2.0 {foo=val1}} [err_novarval bar {1 2 3}]]\n\n[msg_load {variant/7.0 {foo=val3}} [err_reqlof {vrreq1@1: foo=val1}]]
+testouterr_cmd_re sh {load -f --auto variant/7.0 foo=val3} $ans $tserr
+
+setenv_var TESTSUITE_VARIANT 24
+
+# unknown variant specified on required module (prereq)
+set tserr [msg_load {vrreq1/2.0 {baz=1 foo=val1}} [err_unkvar baz]]\n\n[msg_load {variant/7.0 {foo=val3}} [err_reqlo {vrreq1@1: foo=val1 baz=1}]]
+testouterr_cmd_re sh {load --auto variant/7.0 foo=val3} ERR $tserr
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/7.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/7.0]
+lappend ans [list setpath MODULES_LMPREREQ {variant/7.0&vrreq1@1< foo=val1 baz=1}]
+lappend ans [list setpath MODULES_LMVARIANT variant/7.0&foo|val3|0]
+lappend ans [list ERR]
+set tserr [msg_load {vrreq1/2.0 {baz=1 foo=val1}} [err_unkvar baz]]\n\n[msg_load {variant/7.0 {foo=val3}} [err_reqlof {vrreq1@1: foo=val1 baz=1}]]
+testouterr_cmd_re sh {load -f --auto variant/7.0 foo=val3} $ans $tserr
+
+setenv_var TESTSUITE_VARIANT 25
+
+# invalid variant value specified on required module (prereq)
+set tserr [msg_load {vrreq1/2.0 {foo=val4}} [err_invalvarval foo val4 {val1 val2 val3}]]\n\n[msg_load {variant/7.0 {foo=val3}} [err_reqlo {vrreq1@1: foo=val4}]]
+testouterr_cmd_re sh {load --auto variant/7.0 foo=val3} ERR $tserr
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/7.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/7.0]
+lappend ans [list setpath MODULES_LMPREREQ {variant/7.0&vrreq1@1< foo=val4}]
+lappend ans [list setpath MODULES_LMVARIANT variant/7.0&foo|val3|0]
+lappend ans [list ERR]
+set tserr [msg_load {vrreq1/2.0 {foo=val4}} [err_invalvarval foo val4 {val1 val2 val3}]]\n\n[msg_load {variant/7.0 {foo=val3}} [err_reqlof {vrreq1@1: foo=val4}]]
+testouterr_cmd_re sh {load -f --auto variant/7.0 foo=val3} $ans $tserr
+
+setenv_var TESTSUITE_VARIANT 26
+
+# variant not specified when requiring module (module load)
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMCONFLICT
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMVARIANT
+set tserr [msg_load {vrreq1/2.0 {foo=val1}} [err_novarval bar {1 2 3}]]\n\n[msg_load {variant/7.0 {foo=val3}} [err_reqlo {vrreq1@1: foo=val1}]]
+testouterr_cmd_re sh {load --auto variant/7.0 foo=val3} ERR $tserr
+testouterr_cmd_re sh {load --no-auto variant/7.0 foo=val3} ERR $tserr
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/7.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/7.0]
+lappend ans [list setpath MODULES_LMPREREQ {variant/7.0&vrreq1@1< foo=val1}]
+lappend ans [list setpath MODULES_LMVARIANT variant/7.0&foo|val3|0]
+lappend ans [list ERR]
+set tserr [msg_load {vrreq1/2.0 {foo=val1}} [err_novarval bar {1 2 3}]]\n\n[msg_load {variant/7.0 {foo=val3}} [err_reqlof {vrreq1@1: foo=val1}]]
+testouterr_cmd_re sh {load -f --auto variant/7.0 foo=val3} $ans $tserr
+testouterr_cmd_re sh {load -f --no-auto variant/7.0 foo=val3} $ans $tserr
+
+setenv_var TESTSUITE_VARIANT 27
+
+# unknown variant specified on required module (module load)
+set tserr [msg_load {vrreq1/2.0 {baz=1 foo=val1}} [err_unkvar baz]]\n\n[msg_load {variant/7.0 {foo=val3}} [err_reqlo {vrreq1@1: foo=val1 baz=1}]]
+testouterr_cmd_re sh {load --auto variant/7.0 foo=val3} ERR $tserr
+testouterr_cmd_re sh {load --no-auto variant/7.0 foo=val3} ERR $tserr
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/7.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/7.0]
+lappend ans [list setpath MODULES_LMPREREQ {variant/7.0&vrreq1@1< foo=val1 baz=1}]
+lappend ans [list setpath MODULES_LMVARIANT variant/7.0&foo|val3|0]
+lappend ans [list ERR]
+set tserr [msg_load {vrreq1/2.0 {baz=1 foo=val1}} [err_unkvar baz]]\n\n[msg_load {variant/7.0 {foo=val3}} [err_reqlof {vrreq1@1: foo=val1 baz=1}]]
+testouterr_cmd_re sh {load -f --auto variant/7.0 foo=val3} $ans $tserr
+testouterr_cmd_re sh {load -f --no-auto variant/7.0 foo=val3} $ans $tserr
+
+setenv_var TESTSUITE_VARIANT 28
+
+# invalid variant value specified on required module (module load)
+set tserr [msg_load {vrreq1/2.0 {foo=val4}} [err_invalvarval foo val4 {val1 val2 val3}]]\n\n[msg_load {variant/7.0 {foo=val3}} [err_reqlo {vrreq1@1: foo=val4}]]
+testouterr_cmd_re sh {load --auto variant/7.0 foo=val3} ERR $tserr
+testouterr_cmd_re sh {load --no-auto variant/7.0 foo=val3} ERR $tserr
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/7.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/7.0]
+lappend ans [list setpath MODULES_LMPREREQ {variant/7.0&vrreq1@1< foo=val4}]
+lappend ans [list setpath MODULES_LMVARIANT variant/7.0&foo|val3|0]
+lappend ans [list ERR]
+set tserr [msg_load {vrreq1/2.0 {foo=val4}} [err_invalvarval foo val4 {val1 val2 val3}]]\n\n[msg_load {variant/7.0 {foo=val3}} [err_reqlof {vrreq1@1: foo=val4}]]
+testouterr_cmd_re sh {load -f --auto variant/7.0 foo=val3} $ans $tserr
+testouterr_cmd_re sh {load -f --no-auto variant/7.0 foo=val3} $ans $tserr
+
+setenv_var TESTSUITE_VARIANT 29
+
+# variant specified multiple times on same module specification
+set ans [list]
+lappend ans [list setpath LOADEDMODULES vrreq2/2.0:vrreq1/2.0:variant/7.0]
+lappend ans [list setpath _LMFILES_ $mp/vrreq2/2.0:$mp/vrreq1/2.0:$mp/variant/7.0]
+lappend ans [list setpath MODULES_LMNOTUASKED vrreq2/2.0:vrreq1/2.0]
+lappend ans [list setpath MODULES_LMCONFLICT vrreq2/2.0&vrreq2:vrreq1/2.0&vrreq1]
+lappend ans [list setpath MODULES_LMPREREQ {vrreq1/2.0&vrreq2@<2.0 bar=2 bar=1:variant/7.0&vrreq1@1< foo=val2 foo=val1}]
+lappend ans [list setpath MODULES_LMVARIANT vrreq2/2.0&foo|val2|1&bar|1|0:vrreq1/2.0&foo|val1|0:variant/7.0&foo|val3|0]
+set tserr [msg_top_load {variant/7.0 {foo=val3}} {} {{vrreq2/2.0 {bar=1 foo=val2}} {vrreq1/2.0 {foo=val1}}} {}]
+testouterr_cmd_re sh {load --auto variant/7.0 foo=val3} $ans $tserr
+
+setenv_var TESTSUITE_VARIANT 30
+
+# requirement with multiple module specification with different variant value set (prereq)
+set ans [list]
+lappend ans [list setpath LOADEDMODULES vrreq2/2.0:vrreq1/2.0:variant/7.0]
+lappend ans [list setpath _LMFILES_ $mp/vrreq2/2.0:$mp/vrreq1/2.0:$mp/variant/7.0]
+lappend ans [list setpath MODULES_LMNOTUASKED vrreq2/2.0:vrreq1/2.0]
+lappend ans [list setpath MODULES_LMCONFLICT vrreq2/2.0&vrreq2:vrreq1/2.0&vrreq1]
+lappend ans [list setpath MODULES_LMPREREQ {vrreq1/2.0&vrreq2@<2.0 bar=1|vrreq2@<2.0 bar=2:variant/7.0&vrreq1@1< foo=val2 foo=val1}]
+lappend ans [list setpath MODULES_LMVARIANT vrreq2/2.0&foo|val2|1&bar|2|0:vrreq1/2.0&foo|val1|0:variant/7.0&foo|val3|0]
+lappend ans [list ERR]
+set tserr [msg_top_load {variant/7.0 {foo=val3}} {} {{vrreq2/2.0 {bar=2 foo=val2}} {vrreq1/2.0 {foo=val1}}} {}]
+testouterr_cmd_re sh {load --auto variant/7.0 foo=val3} $ans $tserr
+
+
+#
 #  Cleanup
 #
 
