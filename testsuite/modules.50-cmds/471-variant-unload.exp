@@ -252,17 +252,17 @@ lappend ans [list unsetpath TS1]
 lappend ans [list unsetpath TS2]
 lappend ans [list unset TS0]
 lappend ans [list ERR]
-set tserr [msg_load {variant/4.0 {bar=2 baz=val1 foo=val1}} [err_unkvar baz]]\n\n[msg_switch {variant/4.0 {bar=2 foo=val1}} {variant/4.0 {bar=2 baz=val1 foo=val1}} [err_swon variant/4.0]]
+set tserr [msg_load {variant/4.0 {bar=2 baz=val1 foo=val1}} [err_unkvar baz]]\n\n[msg_switch {variant/4.0 {bar=2 foo=val1}} {variant/4.0 {bar=2 baz=val1 foo=val1}} [err_swon {variant/4.0 {bar=2 baz=val1 foo=val1}}]]
 testouterr_cmd sh {switch variant/4.0 bar=2 foo=val1 baz=val1} $ans $tserr
 testouterr_cmd sh {switch variant/4.0 bar=2 variant/4.0 bar=2 foo=val1 baz=val1} $ans $tserr
 
 # bad variant value on switched-on module
-set tserr [msg_load {variant/4.0 {bar=1 foo=val5}} [err_invalvarval foo val5 {val1 val2 val3}]]\n\n[msg_switch {variant/4.0 {bar=2 foo=val1}} {variant/4.0 {bar=1 foo=val5}} [err_swon variant/4.0]]
+set tserr [msg_load {variant/4.0 {bar=1 foo=val5}} [err_invalvarval foo val5 {val1 val2 val3}]]\n\n[msg_switch {variant/4.0 {bar=2 foo=val1}} {variant/4.0 {bar=1 foo=val5}} [err_swon {variant/4.0 {bar=1 foo=val5}}]]
 testouterr_cmd sh {switch variant/4.0 bar=1 foo=val5} $ans $tserr
 testouterr_cmd sh {switch variant/4.0 foo=val1 variant/4.0 bar=1 foo=val5} $ans $tserr
 
 # no value set for variant on switched-on module
-set tserr [msg_load {variant/4.0 {bar=1}} [err_novarval foo {val1 val2 val3}]]\n\n[msg_switch {variant/4.0 {bar=2 foo=val1}} {variant/4.0 {bar=1}} [err_swon variant/4.0]]
+set tserr [msg_load {variant/4.0 {bar=1}} [err_novarval foo {val1 val2 val3}]]\n\n[msg_switch {variant/4.0 {bar=2 foo=val1}} {variant/4.0 {bar=1}} [err_swon {variant/4.0 {bar=1}}]]
 testouterr_cmd sh {switch variant/4.0 bar=1} $ans $tserr
 testouterr_cmd sh {switch variant/4.0 foo=val1 variant/4.0 bar=1} $ans $tserr
 
@@ -272,9 +272,9 @@ setenv_var TS0 {bar}
 setenv_path_var TS1 {bar=2}
 setenv_path_var TS2 {bar}
 #FIXME: switched-on module designation is not formatted as switch action failed on switched-off module
-set tserr [msg_unload {variant/4.0 {bar=2}} [err_novarval foo {val1 val2 val3}]]\n\n[msg_switch {variant/4.0 {bar=2}} {variant/4.0 bar=1} [err_swoff variant/4.0]]
+set tserr [msg_unload {variant/4.0 {bar=2}} [err_novarval foo {val1 val2 val3}]]\n\n[msg_switch {variant/4.0 {bar=2}} {variant/4.0 bar=1} [err_swoff {variant/4.0 {bar=2}}]]
 testouterr_cmd sh {switch variant/4.0 bar=1} ERR $tserr
-set tserr [msg_unload {variant/4.0 {bar=2}} [err_novarval foo {val1 val2 val3}]]\n\n[msg_switch {variant/4.0 {bar=2}} {variant/4.0 foo=val1} [err_swoff variant/4.0]]
+set tserr [msg_unload {variant/4.0 {bar=2}} [err_novarval foo {val1 val2 val3}]]\n\n[msg_switch {variant/4.0 {bar=2}} {variant/4.0 foo=val1} [err_swoff {variant/4.0 {bar=2}}]]
 testouterr_cmd sh {switch variant/4.0 bar=2 variant/4.0 foo=val1} ERR $tserr
 
 
