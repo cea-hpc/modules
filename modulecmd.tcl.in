@@ -1606,7 +1606,8 @@ proc getHintLoFirstMsg {modlist} {
       set oneof {}
       set mod module
    }
-   return "HINT: ${oneof}the following $mod must be loaded first: $modlist"
+   return "HINT: ${oneof}the following $mod must be loaded first: [join\
+      $modlist]"
 }
 
 proc getErrConflictMsg {conlist} {
@@ -1615,8 +1616,15 @@ proc getErrConflictMsg {conlist} {
 }
 
 proc getErrPrereqMsg {prelist {load 1}} {
-   lassign [if {$load} {list {} missing [getHintLoFirstMsg $prelist]}\
-      {list un a [getHintUnFirstMsg $prelist]}] un mis hintmsg
+   if {$load} {
+      foreach pre $prelist {
+         lappend predesiglist [getModuleDesignation spec $pre]
+      }
+      lassign [list {} missing [getHintLoFirstMsg $predesiglist]] un mis\
+         hintmsg
+   } else {
+      lassign [list un a [getHintUnFirstMsg $prelist]] un mis hintmsg
+   }
    return "Module cannot be ${un}loaded due to $mis prereq.\n$hintmsg"
 }
 
@@ -11791,7 +11799,8 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist {force 0}\
       }
       # reload module with user asked property preserved
       if {[cmdModuleLoad $context $isuasked($mod) $modnamevr]} {
-         set errMsg [string map [list _MOD_ $mod] $errmsgtpl]
+         set errMsg [string map [list _MOD_ [getModuleDesignation spec\
+            $modnamevr]] $errmsgtpl]
          if {$force} {
             # errMsg will always be set as force mode could not be enabled
             # for reload sub-cmd which provides an empty msg template
