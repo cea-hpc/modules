@@ -1589,15 +1589,15 @@ proc getHintLoFirstMsg {modlist} {
    return "HINT: ${oneof}the following $mod must be loaded first: $modlist"
 }
 
-proc getErrConflictMsg {mod conlist} {
-   return "$mod cannot be loaded due to a conflict.\n[getHintUnFirstMsg\
+proc getErrConflictMsg {conlist} {
+   return "Module cannot be loaded due to a conflict.\n[getHintUnFirstMsg\
       $conlist]"
 }
 
-proc getErrPrereqMsg {mod prelist {load 1}} {
+proc getErrPrereqMsg {prelist {load 1}} {
    lassign [if {$load} {list {} missing [getHintLoFirstMsg $prelist]}\
       {list un a [getHintUnFirstMsg $prelist]}] un mis hintmsg
-   return "$mod cannot be ${un}loaded due to $mis prereq.\n$hintmsg"
+   return "Module cannot be ${un}loaded due to $mis prereq.\n$hintmsg"
 }
 
 proc getErrReqLoMsg {prelist} {
@@ -4220,7 +4220,7 @@ proc conflict {args} {
             # more appropriate msg if an eval was attempted or is by-passed
             set msg [expr {$retiseval || [getState force] ?\
                [getConIsLoadedMsg [list $mod] $isloading] :\
-               [getErrConflictMsg $currentModule $mod]}]
+               [getErrConflictMsg $mod]}]
 
             # still proceed if force mode enabled
             if {[getState force]} {
@@ -4300,7 +4300,7 @@ proc prereq {args} {
 
          # more appropriate msg if an evaluation was attempted or is by-passed
          set msg [expr {$retiseval || [getState force] ? [getReqNotLoadedMsg\
-            $args] : [getErrPrereqMsg $currentModule $args]}]
+            $args] : [getErrPrereqMsg $args]}]
          # still proceed if force mode enabled
          if {[getState force]} {
             reportWarning $msg
@@ -12781,7 +12781,7 @@ proc cmdModuleLoad {context uasked args} {
             # it was raised raised from a conflict modulefile command)
             set conmsg [expr {$retiseval || [getState force] ?\
                [getConIsLoadedMsg $moddecconlist [is-loading $modconlist]] :\
-               [getErrConflictMsg $modname $moddecconlist]}]
+               [getErrConflictMsg $moddecconlist]}]
          }
 
          # still proceed if force mode enabled
@@ -13055,7 +13055,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                }
                knerror [expr {[eval isModuleEvaluated any "{$modnamevr}"\
                   $prereq_list] ? [getDepLoadedMsg $prereq_list] :\
-                  [getErrPrereqMsg $modname $prereq_list 0]}]
+                  [getErrPrereqMsg $prereq_list 0]}]
             }
          }
 
