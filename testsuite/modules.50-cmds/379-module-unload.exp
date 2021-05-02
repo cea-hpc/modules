@@ -40,9 +40,9 @@ testouterr_cmd_re sh {load --auto un/2} $ans $tserr
 setenv_loaded_module [list un/1 un/2] [list $mp/un/1 $mp/un/2]
 setenv_path_var MODULES_LMCONFLICT un/1&un:un/2&un
 if {$install_unloadmatchorder eq {returnlast}} {
-    set tserr "load un/3\nunload un/2\n\n[msg_top_load un/3 {} {} {} [err_conflict un/3 un/1]]"
+    set tserr "load un/3\nunload un/2\n\n[msg_top_load un/3 {} {} {} [err_conflict un/1]]"
 } else {
-    set tserr "load un/3\nunload un/1\n\n[msg_top_load un/3 {} {} {} [err_conflict un/3 un/2]]"
+    set tserr "load un/3\nunload un/1\n\n[msg_top_load un/3 {} {} {} [err_conflict un/2]]"
 }
 testouterr_cmd_re sh {load --no-auto un/3} ERR $tserr
 testouterr_cmd_re sh {load --auto un/3} ERR $tserr
@@ -81,9 +81,9 @@ testouterr_cmd_re sh {load --auto una} $ans $tserr
 
 setenv_loaded_module [list ha/1 ha/2] [list $mp/ha/1 $mp/ha/2]
 if {$install_unloadmatchorder eq {returnlast}} {
-    set tserr "load una\nunload ha/2\n\n[msg_top_load una {} {} {} [err_conflict una ha]]"
+    set tserr "load una\nunload ha/2\n\n[msg_top_load una {} {} {} [err_conflict ha]]"
 } else {
-    set tserr "load una\nunload ha/1\n\n[msg_top_load una {} {} {} [err_conflict una ha]]"
+    set tserr "load una\nunload ha/1\n\n[msg_top_load una {} {} {} [err_conflict ha]]"
 }
 testouterr_cmd_re sh {load --no-auto una} ERR $tserr
 testouterr_cmd_re sh {load --auto una} ERR $tserr
@@ -130,9 +130,9 @@ testouterr_cmd_re sh {load --auto unb} $ans $tserr
 
 setenv_loaded_module [list ha/1 ha/2] [list $mp/ha/1 $mp/ha/2]
 if {$install_unloadmatchorder eq {returnlast}} {
-    set tserr "load unb\nload una\nunload ha/2\n\n[msg_load una [err_conflict una ha]]\n\n[msg_top_load unb {} {} {} [err_reqlo una]]"
+    set tserr "load unb\nload una\nunload ha/2\n\n[msg_load una [err_conflict ha]]\n\n[msg_top_load unb {} {} {} [err_reqlo una]]"
 } else {
-    set tserr "load unb\nload una\nunload ha/1\n\n[msg_load una [err_conflict una ha]]\n\n[msg_top_load unb {} {} {} [err_reqlo una]]"
+    set tserr "load unb\nload una\nunload ha/1\n\n[msg_load una [err_conflict ha]]\n\n[msg_top_load unb {} {} {} [err_reqlo una]]"
 }
 testouterr_cmd_re sh {load --auto unb} ERR $tserr
 
@@ -172,7 +172,7 @@ testouterr_cmd_re sh {unload --auto unb} $ans $tserr
 setenv_loaded_module [list ha/1] [list $mp/ha/1]
 unsetenv_path_var MODULES_LMCONFLICT
 unsetenv_path_var MODULES_LMPREREQ
-set tserr "load unc\n\n[msg_load unc [err_conflict unc ha]]"
+set tserr "load unc\n\n[msg_load unc [err_conflict ha]]"
 testouterr_cmd_re sh {load --no-auto unc} ERR $tserr
 testouterr_cmd_re sh {load --auto unc} ERR $tserr
 
@@ -185,13 +185,13 @@ testouterr_cmd_re sh {load --no-auto und} $ans $tserr
 testouterr_cmd_re sh {load --auto und} $ans $tserr
 
 setenv_loaded_module [list ha/1 ha/2] [list $mp/ha/1 $mp/ha/2]
-set tserr "load unc\n\n[msg_load unc [err_conflict unc ha]]"
+set tserr "load unc\n\n[msg_load unc [err_conflict ha]]"
 testouterr_cmd_re sh {load --no-auto unc} ERR $tserr
 testouterr_cmd_re sh {load --auto unc} ERR $tserr
 if {$install_unloadmatchorder eq {returnlast}} {
-    set tserr "load und\nunload ha/2\n\n[msg_load und [err_conflict und ha]]"
+    set tserr "load und\nunload ha/2\n\n[msg_load und [err_conflict ha]]"
 } else {
-    set tserr "load und\nunload ha/1\n\n[msg_load und [err_conflict und ha]]"
+    set tserr "load und\nunload ha/1\n\n[msg_load und [err_conflict ha]]"
 }
 testouterr_cmd_re sh {load --no-auto und} ERR $tserr
 testouterr_cmd_re sh {load --auto und} ERR $tserr

@@ -215,14 +215,14 @@ testouterr_cmd_re "sh" "load i2" $ans ""
 # load module whereas its alias-named conflict and its symbolic-version-named conflict are loaded
 setenv_loaded_module [list alt/dir/2 alt/1] [list $mp/alt/dir/2 $mp/alt/1]
 setenv_path_var MODULES_LMALTNAME alt/dir/2&al|altfoo alt/1&alt/sym&al|foo
-testouterr_cmd_re "sh" "load i2" ERR [msg_load i2 [err_conflict i2 altfoo]]
+testouterr_cmd_re "sh" "load i2" ERR [msg_load i2 [err_conflict altfoo]]
 
 # load module whose alterative name conflicts with an already loaded module
 setenv_loaded_module [list i2] [list $mp/i2]
 unsetenv_path_var MODULES_LMALTNAME
 setenv_path_var MODULES_LMCONFLICT i2&altfoo&alt/sym
-testouterr_cmd_re "sh" "load altfoo" ERR [msg_load alt/dir/2 [err_conflict alt/dir/2 i2]]
-testouterr_cmd_re "sh" "load alt/dir/2" ERR [msg_load alt/dir/2 [err_conflict alt/dir/2 i2]]
+testouterr_cmd_re "sh" "load altfoo" ERR [msg_load alt/dir/2 [err_conflict i2]]
+testouterr_cmd_re "sh" "load alt/dir/2" ERR [msg_load alt/dir/2 [err_conflict i2]]
 
 # unload module whereas its alias-named conflict and its symbolic-version-named conflict are not loaded
 set ans [list]
@@ -327,7 +327,7 @@ testouterr_cmd_re sh {load i7} $ans [msg_top_load i7 alt/dir/2 {} {}]
 setenv_loaded_module [list i7] [list $mp/i7]
 unsetenv_path_var MODULES_LMALTNAME
 setenv_path_var MODULES_LMCONFLICT i7&altfoo
-testouterr_cmd_re sh {load alt/dir/2} ERR [msg_load alt/dir/2 [err_conflict alt/dir/2 i7]]
+testouterr_cmd_re sh {load alt/dir/2} ERR [msg_load alt/dir/2 [err_conflict i7]]
 
 
 # test empty or bad element found in MODULES_LMALTNAME control variable
