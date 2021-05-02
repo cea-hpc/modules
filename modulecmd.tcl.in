@@ -956,7 +956,7 @@ proc reportModuleEval {} {
             if {[llength $msgrecidlist] > 0} {
                set moddesiglist {}
                foreach msgrecid $msgrecidlist {
-                  lappend moddesiglist [getModuleDesignation $msgrecid 0]
+                  lappend moddesiglist [getModuleDesignation $msgrecid]
                }
                reportInfo [join $moddesiglist] $contexttitle($context)
             }
@@ -1563,10 +1563,10 @@ proc registerModuleDesignation {evalid mod vrlist} {
    set ::g_moduleDesgination($evalid) [list $desigsgr $desig]
 }
 
-proc getModuleDesignation {evalid {sgr 1} {mod {}}} {
-   if {[info exists ::g_moduleDesgination($evalid)]} {
+proc getModuleDesignation {from {mod {}} {sgr 0}} {
+   if {[info exists ::g_moduleDesgination($from)]} {
       set idx [expr {$sgr ? 0 : 1}]
-      return [lindex $::g_moduleDesgination($evalid) $idx]
+      return [lindex $::g_moduleDesgination($from) $idx]
    # if not found, use passed designation as fallback
    } else {
       return $mod
@@ -12284,8 +12284,8 @@ proc cmdModuleSwitch {uasked old {new {}}} {
    # report all recorded sumup messages for this evaluation unless both old
    # and new modules are set hidden, old was auto loaded and this switch is
    # done by a modfile
-   reportMsgRecord "Switching from [getModuleDesignation $oldmsgrecid] to\
-      [getModuleDesignation $newmsgrecid 1 $new]" [expr {$oldhidden &&\
+   reportMsgRecord "Switching from [getModuleDesignation $oldmsgrecid {} 1]\
+      to [getModuleDesignation $newmsgrecid $new 1]" [expr {$oldhidden &&\
       !$olduasked && $newhidden && !$uasked}]
    popMsgRecordId
    if {$inhibit_req_rec} {
@@ -12722,7 +12722,8 @@ proc cmdModuleLoad {context uasked args} {
                   reportInfo "Module '$modname' is already loaded"
                   registerModuleDesignation $msgrecid $modname\
                      [getVariantList $modname 1]
-                  reportMsgRecord "Loading [getModuleDesignation $msgrecid]"
+                  reportMsgRecord "Loading [getModuleDesignation $msgrecid {}\
+                     1]"
                }
                # exit treatment but no need to restore settings
                continue
@@ -12928,8 +12929,8 @@ proc cmdModuleLoad {context uasked args} {
       # report all recorded messages for this evaluation except if module were
       # already loaded
       if {$errCode != 4} {
-         reportMsgRecord "Loading [getModuleDesignation $msgrecid]" [expr\
-            {$hidden && !$uasked}]
+         reportMsgRecord "Loading [getModuleDesignation $msgrecid {} 1]"\
+            [expr {$hidden && !$uasked}]
       }
       popMsgRecordId
    }
@@ -12996,7 +12997,8 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             if {[isVerbosityLevel verbose2]} {
                pushMsgRecordId $msgrecid
                reportInfo "Module '$modname' is not loaded"
-               reportMsgRecord "Unloading [getModuleDesignation $msgrecid]"
+               reportMsgRecord "Unloading [getModuleDesignation $msgrecid {}\
+                  1]"
             }
          } else {
             set ret 1
@@ -13252,7 +13254,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
 
       # report all recorded messages for this evaluation (hide evaluation if
       # loaded mod is set hidden, has been automatically loaded and unloaded)
-      reportMsgRecord "Unloading [getModuleDesignation $msgrecid]" [expr\
+      reportMsgRecord "Unloading [getModuleDesignation $msgrecid {} 1]" [expr\
          {$hidden && !$uasked && [depthState evalid] != 1}]
       popMsgRecordId
    }
