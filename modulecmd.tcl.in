@@ -1534,39 +1534,42 @@ proc cleanupAndExit {code} {
 }
 
 proc registerModuleDesignation {evalid mod vrlist} {
-   set moddesig $mod
-   set moddesigsgr [sgr hi $mod]
-   # enclose module name between quotes if a space is found
-   if {[string first { } $mod] != -1} {
-      set moddesig '$moddesig'
-      set moddesigsgr '$moddesigsgr'
-   }
-   set desig $moddesig
-   set desigsgr $moddesigsgr
-
-   # add variant specification to the designation
-   if {[llength $vrlist] > 0} {
-      foreach vr $vrlist {
-         set vrdesig $vr
-         set vrdesigsgr [sgr va $vr]
-         # enclose variant spec between quotes if a space is found
-         if {[string first { } $vr] != -1} {
-            set vrdesig '$vrdesig'
-            set vrdesigsgr '$vrdesigsgr'
-         }
-         lappend vrdesiglist $vrdesig
-         lappend vrdesigsgrlist $vrdesigsgr
-      }
-      append desig " \{" [join $vrdesiglist] "\}"
-      append desigsgr " \{" [join $vrdesigsgrlist] "\}"
-   }
-   set ::g_moduleDesgination($evalid) [list $desigsgr $desig]
+   set ::g_moduleDesgination($evalid) [list $mod $vrlist]
 }
 
 proc getModuleDesignation {from {mod {}} {sgr 0}} {
    if {[info exists ::g_moduleDesgination($from)]} {
-      set idx [expr {$sgr ? 0 : 1}]
-      return [lindex $::g_moduleDesgination($from) $idx]
+      lassign $::g_moduleDesgination($from) moddesig vrlist
+
+      # add module name and version to the designation
+      if {$sgr} {
+         set desig [sgr hi $moddesig]
+      } else {
+         set desig $moddesig
+      }
+      # enclose module name between quotes if a space is found
+      if {[string first { } $moddesig] != -1} {
+         set desig '$desig'
+      }
+
+      # add variant specification to the designation
+      if {[llength $vrlist] > 0} {
+         foreach vr $vrlist {
+            if {$sgr} {
+               set vrdesig [sgr va $vr]
+            } else {
+               set vrdesig $vr
+            }
+            # enclose variant spec between quotes if a space is found
+            if {[string first { } $vr] != -1} {
+               set vrdesig '$vrdesig'
+            }
+            lappend vrdesiglist $vrdesig
+         }
+         append desig " \{" [join $vrdesiglist] "\}"
+      }
+
+      return $desig
    # if not found, use passed designation as fallback
    } else {
       return $mod
