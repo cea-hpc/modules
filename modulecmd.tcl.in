@@ -1626,7 +1626,10 @@ proc getReqNotLoadedMsg {prelist} {
 
 proc getDepLoadedMsg {prelist} {
    set is [expr {[llength $prelist] > 1 ? {are} : {is}}]
-   return "Dependent '[join $prelist {' and '}]' $is loaded"
+   foreach pre $prelist {
+      lappend predesiglist [getModuleDesignation loaded $pre]
+   }
+   return "Dependent [join $predesiglist { and }] $is loaded"
 }
 
 proc getErrConUnMsg {conlist} {
@@ -3308,7 +3311,7 @@ proc module {command args} {
                         $priormodlist]] ne {}} {
                         if {[cmdModuleUnload urequn match 1 0 1 1 $unmod]} {
                            reportWarning "Unload of useless requirement\
-                              $unmod failed" 1
+                              [getModuleDesignation loaded $unmod] failed" 1
                         }
                      }
                   }
@@ -3414,7 +3417,8 @@ proc module {command args} {
                            $priormodlist]] ne {}} {
                            if {[cmdModuleUnload urequn match 1 0 1 1 $unmod]} {
                               reportWarning "Unload of useless requirement\
-                                 $unmod failed" 1
+                                 [getModuleDesignation loaded $unmod] failed"\
+                                 1
                            }
                         }
                      }
@@ -11745,7 +11749,8 @@ proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {}} {context\
       if {[cmdModuleUnload $context match 0 1 0 0 $mod]} {
          # avoid failing module on load phase
          set lmlist [replaceFromList $lmlist $mod]
-         set errMsg [string map [list _MOD_ $mod] $errmsgtpl]
+         set errMsg [string map [list _MOD_ [getModuleDesignation loaded\
+            $mod]] $errmsgtpl]
          if {$force} {
             # errMsg will always be set as force mode could not be enabled
             # for reload sub-cmd which provides an empty msg template
@@ -12931,7 +12936,8 @@ proc cmdModuleLoad {context uasked args} {
          if {[info exists swprocessing] && ($errMsg eq {} || [info exists\
             errlocalreport])} {
             # warn as this issue does not lead to a rollback of switch action
-            reportWarning "Load of switched-on $modname failed" 1
+            reportWarning "Load of switched-on [getModuleDesignation\
+               $msgrecid] failed" 1
          }
          # rollback settings if some evaluation went wrong
          set ret 1
@@ -13139,7 +13145,8 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                foreach unmod [lreverse $depunlist] {
                   if {[cmdModuleUnload depun match 0 0 0 0 $unmod]} {
                      # stop if one unload fails unless force mode enabled
-                     set errMsg "Unload of dependent $unmod failed"
+                     set errMsg "Unload of dependent [getModuleDesignation\
+                        loaded $unmod] failed"
                      if {[getState force] || $force} {
                         reportWarning $errMsg 1
                      } else {
@@ -13219,8 +13226,8 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                      # unload process continues, just the UReqUn modules that
                      # are required by unmod (whose unload failed) are
                      # withdrawn from UReqUn module list
-                     reportWarning "Unload of useless requirement $unmod\
-                        failed" 1
+                     reportWarning "Unload of useless requirement\
+                        [getModuleDesignation loaded $unmod] failed" 1
                      lassign [getDiffBetweenList $urequnlist\
                         [getRequiredLoadedModuleList [list $unmod]]]\
                         urequnlist
@@ -13255,7 +13262,8 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          # unless the above reportError call already put a mesg to this block
          if {[info exists swprocessing] && ($errMsg eq {} || [info exists\
             errlocalreport])} {
-            reportError "Unload of switched-off $modname failed" 1
+            reportError "Unload of switched-off [getModuleDesignation loaded\
+               $modname] failed" 1
          }
          # rollback settings if some evaluation went wrong
          if {![info exists errharmless]} {
