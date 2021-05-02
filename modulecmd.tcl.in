@@ -1538,9 +1538,25 @@ proc registerModuleDesignation {evalid mod vrlist} {
 }
 
 proc getModuleDesignation {from {mod {}} {sgr 0}} {
-   if {[info exists ::g_moduleDesgination($from)]} {
-      lassign $::g_moduleDesgination($from) moddesig vrlist
+   # fetch module name version and variants from specified context
+   switch -- $from {
+      loaded {
+         set moddesig $mod
+         set vrlist [getVariantList $mod 1]
+      }
+      default {
+         # fetch information from passed evaluation id
+         if {[info exists ::g_moduleDesgination($from)]} {
+            lassign $::g_moduleDesgination($from) moddesig vrlist
+         # if not found, use passed designation as fallback
+         } else {
+            set desig $mod
+         }
+      }
+   }
 
+   # build module designation
+   if {![info exists desig]} {
       # add module name and version to the designation
       if {$sgr} {
          set desig [sgr hi $moddesig]
@@ -1568,12 +1584,9 @@ proc getModuleDesignation {from {mod {}} {sgr 0}} {
          }
          append desig " \{" [join $vrdesiglist] "\}"
       }
-
-      return $desig
-   # if not found, use passed designation as fallback
-   } else {
-      return $mod
    }
+
+   return $desig
 }
 
 # helper procedures to format various messages
