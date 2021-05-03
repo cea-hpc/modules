@@ -1552,42 +1552,41 @@ proc getModuleDesignation {from {mod {}} {sgr 1}} {
          # fetch information from passed evaluation id
          if {[info exists ::g_moduleDesgination($from)]} {
             lassign $::g_moduleDesgination($from) moddesig vrlist
-         # if not found, use passed designation as fallback
+         # if not found, use passed spec to compute designation
          } else {
-            set desig $mod
+            set moddesig [getModuleNameAndVersFromVersSpec $mod]
+            set vrlist [getVariantList $mod 1 0 1]
          }
       }
    }
 
    # build module designation
-   if {![info exists desig]} {
-      # add module name and version to the designation
-      if {$sgr > 1} {
-         set desig [sgr hi $moddesig]
-      } else {
-         set desig $moddesig
-      }
-      # enclose module name between quotes if a space is found
-      if {[string first { } $moddesig] != -1} {
-         set desig '$desig'
-      }
+   # add module name and version to the designation
+   if {$sgr > 1} {
+      set desig [sgr hi $moddesig]
+   } else {
+      set desig $moddesig
+   }
+   # enclose module name between quotes if a space is found
+   if {[string first { } $moddesig] != -1} {
+      set desig '$desig'
+   }
 
-      # add variant specification to the designation
-      if {[llength $vrlist] > 0} {
-         foreach vr $vrlist {
-            switch -- $sgr {
-               2 {set vrdesig [sgr va $vr]}
-               1 {set vrdesig [sgr {se va} $vr]}
-               0 {set vrdesig $vr}
-            }
-            lappend vrdesiglist $vrdesig
+   # add variant specification to the designation
+   if {[llength $vrlist] > 0} {
+      foreach vr $vrlist {
+         switch -- $sgr {
+            2 {set vrdesig [sgr va $vr]}
+            1 {set vrdesig [sgr {se va} $vr]}
+            0 {set vrdesig $vr}
          }
-         if {$sgr > 0} {
-            append desig [sgr se "\{"] [join $vrdesiglist [sgr se :]] [sgr se\
-               "\}"]
-         } else {
-            append desig "\{" [join $vrdesiglist :] "\}"
-         }
+         lappend vrdesiglist $vrdesig
+      }
+      if {$sgr > 0} {
+         append desig [sgr se "\{"] [join $vrdesiglist [sgr se :]] [sgr se\
+            "\}"]
+      } else {
+         append desig "\{" [join $vrdesiglist :] "\}"
       }
    }
 
