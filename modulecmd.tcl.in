@@ -1629,11 +1629,17 @@ proc getErrPrereqMsg {prelist {load 1}} {
 }
 
 proc getErrReqLoMsg {prelist} {
-   return "Load of requirement '[join $prelist {' or '}]' failed"
+   foreach pre $prelist {
+      lappend predesiglist [getModuleDesignation spec $pre]
+   }
+   return "Load of requirement [join $predesiglist { or }] failed"
 }
 
 proc getReqNotLoadedMsg {prelist} {
-   return "Requirement '[join $prelist {' or '}]' is not loaded"
+   foreach pre $prelist {
+      lappend predesiglist [getModuleDesignation spec $pre]
+   }
+   return "Requirement [join $predesiglist { or }] is not loaded"
 }
 
 proc getDepLoadedMsg {prelist} {
@@ -1645,13 +1651,21 @@ proc getDepLoadedMsg {prelist} {
 }
 
 proc getErrConUnMsg {conlist} {
-   return "Unload of conflicting '[join $conlist {' and '}]' failed"
+   set condesiglist {}
+   foreach con $conlist {
+      lappend condesiglist [getModuleDesignation spec $con]
+   }
+   return "Unload of conflicting [join $condesiglist { and }] failed"
 }
 
 proc getConIsLoadedMsg {conlist {loading 0}} {
    set is [expr {[llength $conlist] > 1 ? {are} : {is}}]
    set loaded [expr {$loading ? {loading} : {loaded}}]
-   return "Conflicting '[join $conlist {' and '}]' $is $loaded"
+   set condesiglist {}
+   foreach con $conlist {
+      lappend condesiglist [getModuleDesignation spec $con]
+   }
+   return "Conflicting [join $condesiglist { and }] $is $loaded"
 }
 
 proc getForbiddenMsg {mod} {
