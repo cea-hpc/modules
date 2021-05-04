@@ -4272,7 +4272,7 @@ proc conflict {args} {
             if {[getState force]} {
                reportWarning $msg
                # indicate message has already been reported
-               lappend ::report_conflict($currentModule) $mod
+               lappend ::report_conflict([currentState evalid]) $mod
             } else {
                knerror $msg MODULES_ERR_GLOBAL
             }
@@ -12838,11 +12838,11 @@ proc cmdModuleLoad {context uasked args} {
             defineModEqProc [isIcase] [getConf extended_default]
             # report warning if not already done
             set report_con 1
-            if {[info exists ::report_conflict($modname)]} {
+            if {[info exists ::report_conflict($msgrecid)]} {
                # check if conflict has not been already reported with an
                # alternative name
                foreach modcon $modconlist {
-                  foreach reportmod $::report_conflict($modname) {
+                  foreach reportmod $::report_conflict($msgrecid) {
                      if {[modEq $reportmod $modcon eqstart 1 2]} {
                         set report_con 0
                         break
@@ -12854,7 +12854,7 @@ proc cmdModuleLoad {context uasked args} {
                }
                if {$report_con} {
                   foreach moddeccon $moddecconlist {
-                     foreach reportmod $::report_conflict($modname) {
+                     foreach reportmod $::report_conflict($msgrecid) {
                         if {[modEq $reportmod $moddeccon eqstart]} {
                            set report_con 0
                            break
