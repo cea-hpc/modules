@@ -572,7 +572,7 @@ unsetenv_loaded_module
 unsetenv_path_var MODULES_LMPREREQ
 
 # prereq fails to load
-testouterr_cmd sh {load --auto advvers7@1.2} ERR [msg_load advvers6/1.5.2 $err_evalabort]\n\n[msg_load advvers7/1.2 [err_reqlo "advvers6 @:1.5.2"]]
+testouterr_cmd sh {load --auto advvers7@1.2} ERR [msg_load advvers6/1.5.2 $err_evalabort]\n\n[msg_load advvers7/1.2 [err_reqlo advvers6@:1.5.2]]
 
 # unload module and its auto loaded requirement (UReqUn)
 setenv_loaded_module [list advvers7/1.0 advvers6/1.3] [list $mp/advvers7/1.0 $mp/advvers6/1.3] [list advvers7/1.0]
@@ -706,13 +706,13 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES advvers6/1.6:advvers7/3.0]
 lappend ans [list setpath _LMFILES_ $mp/advvers6/1.6:$mp/advvers7/3.0]
 lappend ans [list setpath MODULES_LMCONFLICT "advvers7/3.0&advvers6 @1.0<1.6"]
-testouterr_cmd_re sh {load --force advvers7@3.0} $ans [msg_load advvers7/3.0 [err_conlof "advvers6 @1.0:1.6"]]
+testouterr_cmd_re sh {load --force advvers7@3.0} $ans [msg_load advvers7/3.0 [err_conlof advvers6@1.0:1.6]]
 setenv_loaded_module [list advvers6/1.2] [list $mp/advvers6/1.2]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES advvers6/1.2:advvers7/3.0]
 lappend ans [list setpath _LMFILES_ $mp/advvers6/1.2:$mp/advvers7/3.0]
 lappend ans [list setpath MODULES_LMCONFLICT "advvers7/3.0&advvers6 @1.0<1.6"]
-testouterr_cmd_re sh {load --force advvers7@3.0} $ans [msg_load advvers7/3.0 [err_conlof "advvers6 @1.0:1.6"]]
+testouterr_cmd_re sh {load --force advvers7@3.0} $ans [msg_load advvers7/3.0 [err_conlof advvers6@1.0:1.6]]
 
 # then unload conflict
 setenv_loaded_module [list advvers6/1.6 advvers7/3.0] [list $mp/advvers6/1.6 $mp/advvers7/3.0]
@@ -754,7 +754,7 @@ unsetenv_loaded_module
 unsetenv_path_var MODULES_LMCONFLICT
 
 # loading module raise conflict
-testouterr_cmd_re sh {load --auto advvers7@3.1} ERR [msg_load advvers6/1.7 [err_conloi "advvers7 @:3.1"]]\n\n[msg_load advvers7/3.1 [err_reqlo advvers6@1.6:1.7]]
+testouterr_cmd_re sh {load --auto advvers7@3.1} ERR [msg_load advvers6/1.7 [err_conloi advvers7@:3.1]]\n\n[msg_load advvers7/3.1 [err_reqlo advvers6@1.6:1.7]]
 
 # conflict loaded but successful attempt to unload it
 setenv_loaded_module [list advvers6/1.6] [list $mp/advvers6/1.6]
@@ -938,7 +938,7 @@ if {![is_config_locked implicit_default]} {
     testouterr_cmd_re sh {load --auto advvers7@8.4.2} ERR [msg_load advvers7/8.4.2 [err_conflict extdfl @1.3:2]]
     unsetenv_loaded_module
 
-    testouterr_cmd_re sh {load --auto advvers7@8.4.1} ERR [msg_load advvers7/8.4.1 "$err_nodefault'extdfl @1.4:1.5'" [err_reqlo "extdfl @1.4:1.5"]]
+    testouterr_cmd_re sh {load --auto advvers7@8.4.1} ERR [msg_load advvers7/8.4.1 "$err_nodefault'extdfl @1.4:1.5'" [err_reqlo extdfl@1.4:1.5]]
     setenv_var MODULES_IMPLICIT_DEFAULT 1
 }
 unsetenv_loaded_module
