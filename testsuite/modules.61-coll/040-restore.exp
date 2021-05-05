@@ -693,6 +693,114 @@ lappend ans [list setpath MODULEPATH $c26modpath1]
 lappend ans [list ERR]
 testouterr_cmd_re sh "restore $coll29fp" $ans [msg_load variant/1.0{unk=val} [err_unkvar unk]]\n\n[msg_load foo/1.0]
 
+
+# test collection restore when different set of variant are loaded
+setenv_var TESTSUITE_VARIANT coll30
+setenv_path_var MODULEPATH $c30modpath1
+setenv_loaded_module [list $c30mod1 $c30mod2 $c30mod3] [list $c30modpath1/$c30mod1 $c30modpath1/$c30mod2 $c30modpath1/$c30mod3]
+setenv_path_var MODULES_LMVARIANT "$c30mod1&foo|val1|0&bar|2|1:$c30mod3&foo|val1|1&bar|3|0"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $c30lm]
+lappend ans [list setpath _LMFILES_ $c30lmf]
+lappend ans [list setpath MODULES_LMVARIANT $c30lmvr]
+set tserr [msg_unload $c30mod3{bar=3:foo=val1}]\n[msg_unload $c30mod2]\n[msg_unload $c30mod1{bar=2:foo=val1}]\n
+append tserr [msg_load $c30mod1{[join $c30mod1vr :]}]\n[msg_load $c30mod2]\n[msg_load $c30mod3{[join $c30mod3vr :]}]
+testouterr_cmd_re sh "restore $coll30fp" $ans $tserr
+
+setenv_path_var MODULES_LMVARIANT "$c30mod1&foo|val1|0&bar|2|1:$c30mod3&foo|val3|0&bar|3|0"
+set tserr [msg_unload $c30mod3{bar=3:foo=val3}]\n[msg_unload $c30mod2]\n[msg_unload $c30mod1{bar=2:foo=val1}]\n
+append tserr [msg_load $c30mod1{[join $c30mod1vr :]}]\n[msg_load $c30mod2]\n[msg_load $c30mod3{[join $c30mod3vr :]}]
+testouterr_cmd_re sh "restore $coll30fp" $ans $tserr
+
+setenv_path_var MODULES_LMVARIANT "$c30mod1&foo|val2|0&bar|2|1:$c30mod3&foo|val1|1&bar|3|0"
+set tserr [msg_unload $c30mod3{bar=3:foo=val1}]\n[msg_load $c30mod3{[join $c30mod3vr :]}]
+testouterr_cmd_re sh "restore $coll30fp" $ans $tserr
+
+# variant sort in different order in persistency var
+setenv_path_var MODULES_LMVARIANT "$c30mod1&foo|val2|0&bar|2|1:$c30mod3&foo|val1|1&bar|3|0"
+testouterr_cmd_re sh "restore $coll30fp" $ans $tserr
+
+# erroneous content in variant persistency var
+setenv_path_var MODULES_LMVARIANT "$c30mod1&foo|val2|str&bar|2|2:$c30mod3&foo|val1&bar|3|2"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $c30lm]
+lappend ans [list setpath _LMFILES_ $c30lmf]
+lappend ans [list setpath MODULES_LMVARIANT $c30mod1&foo|val2|str&bar|2|2:$c30mod3&foo|val3|0&bar|3|0]
+testouterr_cmd_re sh "restore $coll30fp" $ans $tserr
+
+# default value set in collection (bar=2) but non-default value currently loaded (bar=1)
+setenv_path_var MODULES_LMVARIANT "$c30mod1&foo|val1|0&bar|1|0:$c30mod3&foo|val1|1&bar|3|0"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $c30lm]
+lappend ans [list setpath _LMFILES_ $c30lmf]
+lappend ans [list setpath MODULES_LMVARIANT $c30lmvr]
+set tserr [msg_unload $c30mod3{bar=3:foo=val1}]\n[msg_unload $c30mod2]\n[msg_unload $c30mod1{bar=1:foo=val1}]\n
+append tserr [msg_load $c30mod1{[join $c30mod1vr :]}]\n[msg_load $c30mod2]\n[msg_load $c30mod3{[join $c30mod3vr :]}]
+testouterr_cmd_re sh "restore $coll30fp" $ans $tserr
+
+
+# test collection restore when different set of variant are loaded (no pin_version)
+setenv_var TESTSUITE_VARIANT coll31
+setenv_var MODULES_COLLECTION_PIN_VERSION 0
+setenv_path_var MODULES_LMALTNAME $c31lmalt
+
+setenv_path_var MODULES_LMVARIANT "$c31mod1&foo|val1|0&bar|2|1:$c31mod3&foo|val1|1&bar|3|0"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $c31lm]
+lappend ans [list setpath _LMFILES_ $c31lmf]
+lappend ans [list setpath MODULES_LMALTNAME $c31lmalt]
+lappend ans [list setpath MODULES_LMVARIANT $c31lmvr]
+set tserr [msg_unload $c31mod3{bar=3:foo=val1}]\n[msg_unload $c31mod2]\n[msg_unload $c31mod1{bar=2:foo=val1}]\n
+append tserr [msg_load $c31mod1{[join $c31mod1vr :]}]\n[msg_load $c31mod2]\n[msg_load $c31mod3{[join $c31mod3vr :]}]
+testouterr_cmd_re sh "restore $coll31fp" $ans $tserr
+
+setenv_path_var MODULES_LMVARIANT "$c31mod1&foo|val1|0&bar|2|1:$c31mod3&foo|val3|0&bar|3|0"
+set tserr [msg_unload $c31mod3{bar=3:foo=val3}]\n[msg_unload $c31mod2]\n[msg_unload $c31mod1{bar=2:foo=val1}]\n
+append tserr [msg_load $c31mod1{[join $c31mod1vr :]}]\n[msg_load $c31mod2]\n[msg_load $c31mod3{[join $c31mod3vr :]}]
+testouterr_cmd_re sh "restore $coll31fp" $ans $tserr
+
+setenv_path_var MODULES_LMVARIANT "$c31mod1&foo|val2|0&bar|2|1:$c31mod3&foo|val1|1&bar|3|0"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $c31lm]
+lappend ans [list setpath _LMFILES_ $c31lmf]
+lappend ans [list setpath MODULES_LMVARIANT $c31lmvr]
+set tserr [msg_unload $c31mod3{bar=3:foo=val1}]\n[msg_load $c31mod3{[join $c31mod3vr :]}]
+testouterr_cmd_re sh "restore $coll31fp" $ans $tserr
+
+# variant sort in different order in persistency var
+setenv_path_var MODULES_LMVARIANT "$c31mod1&foo|val2|0&bar|2|1:$c31mod3&foo|val1|1&bar|3|0"
+testouterr_cmd_re sh "restore $coll31fp" $ans $tserr
+
+# erroneous content in variant persistency var
+# as the is-default variant value hint is broken, first module needs reload
+setenv_path_var MODULES_LMVARIANT "$c31mod1&foo|val2|str&bar|2|2:$c31mod3&foo|val1&bar|3|2"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $c31lm]
+lappend ans [list setpath _LMFILES_ $c31lmf]
+lappend ans [list setpath MODULES_LMALTNAME $c31lmalt]
+lappend ans [list setpath MODULES_LMVARIANT $c31lmvr]
+set tserr [msg_unload $c31mod3{bar=3:foo=val1}]\n[msg_unload $c31mod2]\n[msg_unload $c31mod1{bar=2:foo=val2}]\n
+append tserr [msg_load $c31mod1{[join $c31mod1vr :]}]\n[msg_load $c31mod2]\n[msg_load $c31mod3{[join $c31mod3vr :]}]
+testouterr_cmd_re sh "restore $coll31fp" $ans $tserr
+
+# default value set in collection (bar=2) but non-default value currently loaded (bar=1)
+setenv_path_var MODULES_LMVARIANT "$c31mod1&foo|val1|0&bar|1|0:$c31mod3&foo|val1|1&bar|3|0"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $c31lm]
+lappend ans [list setpath _LMFILES_ $c31lmf]
+lappend ans [list setpath MODULES_LMALTNAME $c31lmalt]
+lappend ans [list setpath MODULES_LMVARIANT $c31lmvr]
+set tserr [msg_unload $c31mod3{bar=3:foo=val1}]\n[msg_unload $c31mod2]\n[msg_unload $c31mod1{bar=1:foo=val1}]\n
+append tserr [msg_load $c31mod1{[join $c31mod1vr :]}]\n[msg_load $c31mod2]\n[msg_load $c31mod3{[join $c31mod3vr :]}]
+testouterr_cmd_re sh "restore $coll31fp" $ans $tserr
+
+unsetenv_var MODULES_COLLECTION_PIN_VERSION
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMVARIANT
+unsetenv_path_var MODULES_LMALTNAME
+unsetenv_var TESTSUITE_VARIANT
+
+
 unsetenv_var MODULES_ADVANCED_VERSION_SPEC
 unsetenv_var MODULES_IMPLICIT_DEFAULT
 
