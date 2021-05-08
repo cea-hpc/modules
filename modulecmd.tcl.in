@@ -11019,39 +11019,26 @@ proc getMovementBetweenList {from to {extfrom {}} {extto {}} {cmp eq}} {
 }
 
 # build list of currently loaded modules where modulename is registered minus
-# module version if loaded version is the default one. a helper list may be
-# provided and looked at prior to module search
-proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
-   {helper_list {}}} {
-   reportDebug called.
-
+# module version if loaded version is the default one
+proc getSimplifiedLoadedModuleList {} {
    set curr_mod_list {}
    set curr_nuasked_list {}
    set modpathlist [getModulePathList]
    foreach mod [getLoadedModuleList] {
-      # if mod found in a previous LOADEDMODULES list use simplified
-      # version of this module found in relative helper list (previously
-      # computed simplified list)
-      if {[set helper_idx [lsearch -exact $helper_raw_list $mod]] != -1} {
-         set simplemod [lindex $helper_list $helper_idx]
-      # look through modpaths for a simplified mod name if not full path
-      } elseif {![isModuleFullPath $mod] && [llength $modpathlist] > 0} {
-         set modfile [getModulefileFromLoadedModule $mod]
-         set parentmod [file dirname $mod]
-         set simplemod $mod
-         # simplify to parent name as long as it resolves to current mod
-         while {$parentmod ne {.}} {
-            lassign [getPathToModule $parentmod $modpathlist 0] parentfile
-            if {$parentfile eq $modfile} {
-               set simplemod $parentmod
-               set parentmod [file dirname $parentmod]
-            } else {
-               set parentmod .
-            }
+      set altandsimplist [getLoadedAltAndSimplifiedName $mod]
+
+      set parentmod [file dirname $mod]
+      set simplemod $mod
+      # simplify to parent name as long as it is found in simplified name list
+      while {$parentmod ne {.}} {
+         if {[isInList $altandsimplist $parentmod]} {
+            set simplemod $parentmod
+            set parentmod [file dirname $parentmod]
+         } else {
+            set parentmod .
          }
-      } else {
-         set simplemod $mod
       }
+
       # add each module specification as list to correctly enclose spaces in
       # module name or variant name or value
       set simplemodvr [concat [list $simplemod] [getVariantList $mod 1 1]]
