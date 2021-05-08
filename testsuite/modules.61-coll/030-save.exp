@@ -82,6 +82,7 @@ if { $verbose > 0 } {
 set env(MODULES_COLLECTION_PIN_VERSION) "0"
 eval setenv_path_var MODULEPATH [split $cdmodpath ":"]
 setenv_loaded_module [split $cdlm ":"] [split $cdlmf ":"]
+eval setenv_path_var MODULES_LMALTNAME [split $cdlmalt ":"]
 
 # test only sh shell as this test does not produce shell output
 testoutfile_cmd "sh" "save" "OK" "$hometestdotmod/default" "$cdcont"
@@ -105,6 +106,7 @@ if { $verbose > 0 } {
 unset env(MODULES_COLLECTION_PIN_VERSION)
 eval setenv_path_var MODULEPATH [split $c1modpath ":"]
 setenv_loaded_module [split $c1lm ":"] [split $c1lmf ":"]
+eval setenv_path_var MODULES_LMALTNAME [split $c1lmalt ":"]
 
 # test only sh shell as this test does not produce shell output
 testoutfile_cmd "sh" "save $coll1" "OK" "$hometestdotmod/$coll1" "$c1cont1"
@@ -116,6 +118,7 @@ testoutfile_cmd "sh" "save $coll1" "OK" "$hometestdotmod/$coll1" "$c1cont1"
 # setup environment state
 eval setenv_path_var MODULEPATH [split $c2modpath ":"]
 setenv_loaded_module [split $c2lm ":"] [split $c2lmf ":"]
+eval setenv_path_var MODULES_LMALTNAME [split $c2lmalt ":"]
 
 # test only sh shell as this test does not produce shell output
 testoutfile_cmd "sh" "save $coll1" "OK" "$hometestdotmod/$coll1" "$c1cont2"
@@ -165,6 +168,7 @@ testoutfile_cmd "sh" "save $coll4" "OK" "$hometestdotmod/$coll4f" "$c4cont"
 # setup environment state
 eval setenv_path_var MODULEPATH [split $c6modpath ":"]
 setenv_loaded_module [split $c6lm ":"] [split $c6lmf ":"]
+eval setenv_path_var MODULES_LMALTNAME [split $c6lmalt ":"]
 
 # test only sh shell as this test does not produce shell output
 testoutfile_cmd "sh" "save $coll6" "OK" "$hometestdotmod/$coll6f" "$c6cont"
@@ -189,6 +193,7 @@ testoutfile_cmd "sh" "save $coll6" "OK" "$hometestdotmod/$coll6f" "$c6cont"
 # setup environment state
 eval setenv_path_var MODULEPATH [split $c7modpath ":"]
 setenv_loaded_module [split $c7lm ":"] [split $c7lmf ":"]
+unsetenv_path_var MODULES_LMALTNAME
 
 # test only sh shell as this test does not produce shell output
 testoutfile_cmd "sh" "save $coll7" "OK" "$hometestdotmod/$coll7f" "$c7cont"
@@ -305,6 +310,7 @@ testoutfile_cmd sh "save $coll18" OK $hometestdotmod/$coll18f $c18cont
 eval setenv_path_var MODULEPATH [split $c21modpath :]
 eval setenv_path_var MODULES_LMVARIANT [split $c21lmvr :]
 setenv_loaded_module [split $c21lm :] [split $c21lmf :]
+eval setenv_path_var MODULES_LMALTNAME [split $c21lmalt :]
 testoutfile_cmd sh "save $coll21" OK $hometestdotmod/$coll21f $c21cont
 
 # badly set lmvariant
@@ -318,6 +324,7 @@ testoutfile_cmd sh "save $coll21" OK $hometestdotmod/$coll21f $c21cont
 # variant set with default value
 eval setenv_path_var MODULEPATH [split $c22modpath :]
 eval setenv_path_var MODULES_LMVARIANT [split $c22lmvr :]
+eval setenv_path_var MODULES_LMALTNAME [split $c22lmalt :]
 setenv_loaded_module [split $c22lm :] [split $c22lmf :]
 testoutfile_cmd sh "save $coll22" OK $hometestdotmod/$coll22f $c22cont
 
@@ -325,10 +332,12 @@ testoutfile_cmd sh "save $coll22" OK $hometestdotmod/$coll22f $c22cont
 # test with auto loaded modules
 eval setenv_path_var MODULEPATH [split $c23modpath :]
 eval setenv_path_var MODULES_LMVARIANT [split $c23lmvr :]
+eval setenv_path_var MODULES_LMALTNAME [split $c23lmalt :]
 setenv_loaded_module [split $c23lm :] [split $c23lmf :] [split $c23lmnua :]
 testoutfile_cmd sh "save $coll23" OK $hometestdotmod/$coll23f $c23cont
 
 setenv_var MODULES_COLLECTION_PIN_VERSION 1
+eval setenv_path_var MODULES_LMALTNAME [split $c24lmalt :]
 eval setenv_path_var MODULEPATH [split $c24modpath :]
 eval setenv_path_var MODULES_LMVARIANT [split $c24lmvr :]
 setenv_loaded_module [split $c24lm :] [split $c24lmf :] [split $c24lmnua :]
@@ -340,11 +349,14 @@ setenv_var MODULES_ADVANCED_VERSION_SPEC 0
 
 # defined variant are recorded even if advanced_version_spec is disabled
 eval setenv_path_var MODULEPATH [split $c25modpath :]
+eval setenv_path_var MODULES_LMALTNAME [split $c25lmalt :]
 eval setenv_path_var MODULES_LMVARIANT [split $c25lmvr :]
 setenv_loaded_module [split $c25lm :] [split $c25lmf :] [split $c25lmnua :]
 testoutfile_cmd sh "save $coll25" OK $hometestdotmod/$coll25f $c25cont
 
 unsetenv_loaded_module
+unsetenv_path_var MODULES_LMALTNAME
+unsetenv_path_var MODULES_LMVARIANT
 unsetenv_var MODULES_ADVANCED_VERSION_SPEC
 unsetenv_var MODULES_COLLECTION_PIN_VERSION
 unsetenv_var MODULES_IMPLICIT_DEFAULT
