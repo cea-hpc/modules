@@ -10980,7 +10980,7 @@ proc displayConfig {val env_var {asked 0} {trans {}} {locked 0}} {
 
 # build list of what to undo then do to move from an initial list to a target
 # list, eventually checking element presence in extra from/to lists
-proc getMovementBetweenList {from to {extfrom {}} {extto {}}} {
+proc getMovementBetweenList {from to {extfrom {}} {extto {}} {cmp eq}} {
    reportDebug "from($from) to($to) with extfrom($extfrom) extto($extto)"
 
    set undo {}
@@ -10999,7 +10999,10 @@ proc getMovementBetweenList {from to {extfrom {}} {extto {}}} {
       set in_extfrom [isInList $extfrom $from_obj]
       set in_extto [isInList $extto $to_obj]
       # are elts the sames and are both part of or missing from extra lists
-      if {$to_obj ne $from_obj || $in_extfrom != $in_extto} {
+      # when comparing modules, ask comparaison against loaded module
+      # alternative and simplified names (modEq will also compare variants)
+      if {($cmp eq {modeq} && ![modEq $to_obj $from_obj equal 1 3]) || ($cmp\
+         eq {eq} && $to_obj ne $from_obj) || $in_extfrom != $in_extto} {
          set list_equal 0
       }
       if {$list_equal == 0} {
@@ -12467,26 +12470,19 @@ proc cmdModuleRestore {{coll default}} {
    # load tags from loaded modules
    cacheCurrentModules
 
+   defineModEqProc [isIcase] [getConf extended_default]
+
    # fetch what is currently loaded
    set curr_path_list [getModulePathList returnempty 0]
-   # get current loaded module list in simplified and raw versions
-   # these lists may be used later on, see below
-   set curr_mod_list_raw [getLoadedModuleWithVariantList]
-   set curr_nuasked_list_raw [getLoadedModuleWithVariantNotUserAskedList]
-   lassign [getSimplifiedLoadedModuleList] curr_mod_list curr_nuasked_list
+   # get current loaded module list
+   set curr_mod_list [getLoadedModuleList]
+   set curr_nuasked_list [getLoadedModuleNotUserAskedList]
 
-   # determine what module to unload to restore collection
-   # from current situation with preservation of the load order
+   # determine what module to unload to restore collection from current
+   # situation with preservation of the load order (asking for a modeq
+   # comparison will help to check against simplified mod name and variants)
    lassign [getMovementBetweenList $curr_mod_list $coll_mod_list\
-      $curr_nuasked_list $coll_nuasked_list] mod_to_unload mod_to_load
-   # determine unload movement with raw loaded list in case versions are
-   # pinning in saved collection
-   lassign [getMovementBetweenList $curr_mod_list_raw $coll_mod_list\
-      $curr_nuasked_list_raw $coll_nuasked_list] mod_to_unload_raw\
-      mod_to_load_raw
-   if {[llength $mod_to_unload] > [llength $mod_to_unload_raw]} {
-      set mod_to_unload $mod_to_unload_raw
-   }
+      $curr_nuasked_list $coll_nuasked_list modeq] mod_to_unload mod_to_load
 
    # proceed as well for modulepath
    lassign [getMovementBetweenList $curr_path_list $coll_path_list] \
@@ -12522,30 +12518,17 @@ proc cmdModuleRestore {{coll default}} {
    # the undo phase, so current situation is fetched again
    set curr_path_list [getModulePathList returnempty 0]
 
-   # here we may be in a situation were no more path is left
-   # in module path, so we cannot easily compute the simplified loaded
-   # module list. so we provide two helper lists: simplified and raw
-   # versions of the loaded module list computed before starting to
-   # unload modules. these helper lists may help to learn the
-   # simplified counterpart of a loaded module if it was already loaded
-   # before starting to unload modules
-   lassign [getSimplifiedLoadedModuleList $curr_mod_list_raw $curr_mod_list]\
-      curr_mod_list curr_nuasked_list
-   set curr_mod_list_raw [getLoadedModuleWithVariantList]
-   set curr_nuasked_list_raw [getLoadedModuleWithVariantNotUserAskedList]
+   set curr_mod_list [getLoadedModuleList]
+   set curr_nuasked_list [getLoadedModuleNotUserAskedList]
 
-   # determine what module to load to restore collection
-   # from current situation with preservation of the load order
+   # determine what module to load to restore collection from current
+   # situation with preservation of the load order
+   # list of alternative and simplified names for loaded modules has been
+   # gathered and cached during the previous getMovementBetweenList call on
+   # modules, so here the getMovementBetweenList call will correctly get these
+   # alternative names for module comparison even if no modulepath is left set
    lassign [getMovementBetweenList $curr_mod_list $coll_mod_list\
-      $curr_nuasked_list $coll_nuasked_list] mod_to_unload mod_to_load
-   # determine load movement with raw loaded list in case versions are
-   # pinning in saved collection
-   lassign [getMovementBetweenList $curr_mod_list_raw $coll_mod_list\
-      $curr_nuasked_list_raw $coll_nuasked_list] mod_to_unload_raw\
-      mod_to_load_raw
-   if {[llength $mod_to_load] > [llength $mod_to_load_raw]} {
-      set mod_to_load $mod_to_load_raw
-   }
+      $curr_nuasked_list $coll_nuasked_list modeq] mod_to_unload mod_to_load
 
    # proceed as well for modulepath
    lassign [getMovementBetweenList $curr_path_list $coll_path_list] \
