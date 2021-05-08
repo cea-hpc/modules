@@ -2875,6 +2875,51 @@ proc getAllModuleResolvedName {mod {flag_type 0} {modspec {}}} {
    return $namelist
 }
 
+# build list for a given loaded module of its alternative names plus its
+# simplified names (name minus version or any subdir if this version or subdir
+# are the implicit default for module)
+proc getLoadedAltAndSimplifiedName {mod} {
+   # get all alt and simplified names for module from recorded environment
+   # when auto symbols are enabled
+   if {[getConf implicit_default] && [getConf advanced_version_spec]} {
+      set namelist [getLoadedAltname $mod]
+      # add simplified name for each default auto-symbol set
+      foreach alt [getLoadedAltname $mod 0 autosym] {
+         if {[string match */default $alt] && [notInList $namelist [set\
+            parentmod [file dirname $alt]]]} {
+            lappend namelist $parentmod
+         }
+      }
+   } elseif {[isModuleFullPath $mod]} {
+      set namelist [list $mod]
+   # use already computed name list if any
+   } elseif {[info exists ::g_loadedAltAndSimplifiedName($mod)]} {
+      set namelist $::g_loadedAltAndSimplifiedName($mod)
+   } else {
+      # get recorded alternative name
+      set namelist [getLoadedAltname $mod]
+      # also look through modpaths for simplified mod name
+      set modpathlist [getModulePathList]
+      if {[llength $modpathlist] > 0} {
+         set modfile [getModulefileFromLoadedModule $mod]
+         set parentmod [file dirname $mod]
+         # simplify to parent name as long as it resolves to current mod
+         while {$parentmod ne {.}} {
+            lassign [getPathToModule $parentmod $modpathlist 0] parentfile
+            if {$parentfile eq $modfile} {
+               lappend namelist $parentmod
+               set parentmod [file dirname $parentmod]
+            } else {
+               set parentmod .
+            }
+         }
+      }
+      # recorded computed name list for later use
+      set ::g_loadedAltAndSimplifiedName($mod) $namelist
+   }
+   return $namelist
+}
+
 # Specifies a default or alias version for a module that points to an
 # existing module version Note that aliases defaults are stored by the
 # short module name (not the full path) so aliases and defaults from one
@@ -9181,6 +9226,7 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0} {modvrlist\
    }
    # get alternative names if mod is loading(1) or loaded(2)
    set altlist [switch -- $ismodlo {
+      3 {getLoadedAltAndSimplifiedName $mod}
       2 {getLoadedAltname $mod}
       1 {getAllModuleResolvedName $mod}
       0 {list}}]
@@ -9289,6 +9335,7 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0}\
       set pmod [string trimright $pmod /]/
    }
    set altlist [switch -- $ismodlo {
+      3 {getLoadedAltAndSimplifiedName $mod}
       2 {getLoadedAltname $mod}
       1 {getAllModuleResolvedName $mod}
       0 {list}}]
@@ -9392,6 +9439,7 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
       set pmod [string trimright $pmod /]/
    }
    set altlist [switch -- $ismodlo {
+      3 {getLoadedAltAndSimplifiedName $mod}
       2 {getLoadedAltname $mod}
       1 {getAllModuleResolvedName $mod}
       0 {list}}]
@@ -9511,6 +9559,7 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
       set pmod [string trimright $pmod /]/
    }
    set altlist [switch -- $ismodlo {
+      3 {getLoadedAltAndSimplifiedName $mod}
       2 {getLoadedAltname $mod}
       1 {getAllModuleResolvedName $mod}
       0 {list}}]
