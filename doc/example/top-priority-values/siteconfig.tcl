@@ -40,7 +40,7 @@ proc setenv {args} {
 
    if {$topPriority} {
       # define an helper variable to know a top-priority value has been set
-      if {[currentMode] ne "display"} {
+      if {[currentState mode] ne "display"} {
          __setenv MODULES_PRIORITY_$var $val
       }
       __setenv $var $val
@@ -77,7 +77,7 @@ proc setenv-un {args} {
 
    if {$topPriority} {
       # define an helper variable to know a top-priority value has been set
-      if {[currentMode] ne "display"} {
+      if {[currentState mode] ne "display"} {
          __setenv-un MODULES_PRIORITY_$var $val
       }
       __setenv-un $var $val

@@ -13,7 +13,7 @@
 # override 'module' procedure to log each call made by user
 rename ::module ::__module
 proc module {command args} {
-   if {[getEvalModuleStackDepth] == 0} {
+   if {[depthState modulename] == 0} {
       exec logger -t module "[get-env USER]: $command [join $args]"
    }
    return [eval __module "{$command}" $args]
