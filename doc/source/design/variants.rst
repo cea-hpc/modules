@@ -596,6 +596,16 @@ Comparing module specification including variants
         - Then variants could be compared
         - Which means all applying names are compared then if a match is found variants are compared
 
+- Specific comparison occurs when restoring collection
+
+    - When a collection is restored an unspecified variant for a given module to load means this variant has to be set at its default value
+    - So when comparing against loaded environment, an unspecified variant in collection only matches if variant set on loaded environment is the default one
+    - Collection procedures now rely on the ``modEq`` procedure
+
+        - ``ismodlo`` flag is set to ``3`` to indicate a collection context
+        - This collection context leads to also compare simplified module names (in addition to alternative names)
+        - And to treat an unspecified variant on tested pattern as a default variant value
+
 - There is no need to compare variants on following procedures
 
     - ``getLoadedWithClosestName``
