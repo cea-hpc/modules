@@ -5670,13 +5670,21 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from_spec 0}} {
             unset vrarr($vrname)
          }
       } else {
-         set vrarr($vrname) $vrvalue
+         # is-default hint has to be transmitted on report mode '3'
+         if {$report == 3} {
+            set vrarr($vrname) [list $vrvalue [string is true -strict\
+               $vrvalisdfl]]
+         } else {
+            set vrarr($vrname) $vrvalue
+         }
       }
    }
    # sort variant to report
    set ret {}
    foreach vrname [lsort -dictionary [array names vrarr]] {
       switch -- $report {
+         3 {lappend ret $vrname [lindex $vrarr($vrname) 0] [lindex\
+            $vrarr($vrname) 1]}
          2 {lappend ret [list $vrname $vrarr($vrname)]}
          1 {lappend ret $vrname=$vrarr($vrname)}
          0 {lappend ret $vrname $vrarr($vrname)}
@@ -9057,9 +9065,16 @@ proc modVersCmpProcIcaseExtdfl {cmpspec versspec modvers test {psuf {}}} {
    return $ret
 }
 
-proc modVariantCmp {pvrlist modvrlist} {
+proc modVariantCmp {pvrlist modvrlist {missmeandfl 0}} {
    set ret 1
-   array set modvrarr $modvrlist
+   if {$missmeandfl} {
+      foreach {modvrname modvrval modvrisdfl} $modvrlist {
+         set modvrarr($modvrname) $modvrval
+         set modvrisdflarr($modvrname) $modvrisdfl
+      }
+   } else {
+      array set modvrarr $modvrlist
+   }
    foreach pvr $pvrlist {
       set pvrarr([lindex $pvr 0]) [lindex $pvr 1]
    }
@@ -9071,6 +9086,18 @@ proc modVariantCmp {pvrlist modvrlist} {
          $modvrarr($vrname)} {
          set ret 0
          break
+      }
+   }
+
+   # if an unset variant on pattern means variant default value pattern and
+   # mod are not equal if variant unset on pattern and non-default value is
+   # set for variant on mod
+   if {$missmeandfl} {
+      foreach vrname [array names modvrisdflarr] {
+         if {!$modvrisdflarr($vrname) && ![info exists pvrarr($vrname)]} {
+            set ret 0
+            break
+         }
       }
    }
 
@@ -9304,11 +9331,14 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0} {modvrlist\
       }
    }
    # check if variant specified matches those of selected loaded/ing module
-   if {$ret && $ismodlo > 0 && [llength $pvrlist] > 0} {
+   if {$ret && $ismodlo > 0 && $ismodlo < 3 && [llength $pvrlist] > 0} {
       if {$modvrlist eq {0}} {
          set modvrlist [getVariantList $mod]
       }
       set ret [modVariantCmp $pvrlist $modvrlist]
+   # when comparing collection content, variant mis means variant default val
+   } elseif {$ret && $ismodlo == 3} {
+      set ret [modVariantCmp $pvrlist [getVariantList $mod 3] 1]
    }
    return $ret
 }
@@ -9408,11 +9438,13 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0}\
          }
       }
    }
-   if {$ret && $ismodlo > 0 && [llength $pvrlist] > 0} {
+   if {$ret && $ismodlo > 0 && $ismodlo < 3 && [llength $pvrlist] > 0} {
       if {$modvrlist eq {0}} {
          set modvrlist [getVariantList $mod]
       }
       set ret [modVariantCmp $pvrlist $modvrlist]
+   } elseif {$ret && $ismodlo == 3} {
+      set ret [modVariantCmp $pvrlist [getVariantList $mod 3] 1]
    }
    return $ret
 }
@@ -9528,11 +9560,13 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
          }
       }
    }
-   if {$ret && $ismodlo > 0 && [llength $pvrlist] > 0} {
+   if {$ret && $ismodlo > 0 && $ismodlo < 3 && [llength $pvrlist] > 0} {
       if {$modvrlist eq {0}} {
          set modvrlist [getVariantList $mod]
       }
       set ret [modVariantCmp $pvrlist $modvrlist]
+   } elseif {$ret && $ismodlo == 3} {
+      set ret [modVariantCmp $pvrlist [getVariantList $mod 3] 1]
    }
    return $ret
 }
@@ -9649,11 +9683,13 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
          }
       }
    }
-   if {$ret && $ismodlo > 0 && [llength $pvrlist] > 0} {
+   if {$ret && $ismodlo > 0 && $ismodlo < 3 && [llength $pvrlist] > 0} {
       if {$modvrlist eq {0}} {
          set modvrlist [getVariantList $mod]
       }
       set ret [modVariantCmp $pvrlist $modvrlist]
+   } elseif {$ret && $ismodlo == 3} {
+      set ret [modVariantCmp $pvrlist [getVariantList $mod 3] 1]
    }
    return $ret
 }
