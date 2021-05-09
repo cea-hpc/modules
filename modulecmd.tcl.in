@@ -2879,18 +2879,7 @@ proc getAllModuleResolvedName {mod {flag_type 0} {modspec {}}} {
 # simplified names (name minus version or any subdir if this version or subdir
 # are the implicit default for module)
 proc getLoadedAltAndSimplifiedName {mod} {
-   # get all alt and simplified names for module from recorded environment
-   # when auto symbols are enabled
-   if {[getConf implicit_default] && [getConf advanced_version_spec]} {
-      set namelist [getLoadedAltname $mod]
-      # add simplified name for each default auto-symbol set
-      foreach alt [getLoadedAltname $mod 0 autosym] {
-         if {[string match */default $alt] && [notInList $namelist [set\
-            parentmod [file dirname $alt]]]} {
-            lappend namelist $parentmod
-         }
-      }
-   } elseif {[isModuleFullPath $mod]} {
+   if {[isModuleFullPath $mod]} {
       set namelist [list $mod]
    # use already computed name list if any
    } elseif {[info exists ::g_loadedAltAndSimplifiedName($mod)]} {
