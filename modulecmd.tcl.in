@@ -8484,17 +8484,21 @@ proc modVersCmpProc {cmpspec versspec modvers test {psuf {}}} {
    set ret 0
    switch -- $cmpspec {
       in {
-         foreach vers $versspec {
-            append vers $psuf
-            if {$test eq {eqstart}} {
-               set ret [string equal -length [string length $vers/] $vers/\
-                  $modvers/]
-            } else {
-               set ret [string $test $vers $modvers]
-            }
-            if {$ret} {
+         # check each verspec in list until match
+         foreach inspec $versspec {
+            lassign $inspec incmp invers
+            if {[set ret [modVersCmp $incmp $invers $modvers $test $psuf]]} {
                break
             }
+         }
+      }
+      eq {
+         append versspec $psuf
+         if {$test eq {eqstart}} {
+            set ret [string equal -length [string length $versspec/]\
+               $versspec/ $modvers/]
+         } else {
+            set ret [string $test $versspec $modvers]
          }
       }
       ge {
@@ -8524,17 +8528,20 @@ proc modVersCmpProcIcase {cmpspec versspec modvers test {psuf {}}} {
    set ret 0
    switch -- $cmpspec {
       in {
-         foreach vers $versspec {
-            append vers $psuf
-            if {$test eq {eqstart}} {
-               set ret [string equal -nocase -length [string length $vers/]\
-                  $vers/ $modvers/]
-            } else {
-               set ret [string $test -nocase $vers $modvers]
-            }
-            if {$ret} {
+         foreach inspec $versspec {
+            set invers [lassign $inspec incmp]
+            if {[set ret [modVersCmp $incmp $invers $modvers $test $psuf]]} {
                break
             }
+         }
+      }
+      eq {
+         append versspec $psuf
+         if {$test eq {eqstart}} {
+            set ret [string equal -nocase -length [string length $versspec/]\
+               $versspec/ $modvers/]
+         } else {
+            set ret [string $test -nocase $versspec $modvers]
          }
       }
       ge {
@@ -8559,18 +8566,23 @@ proc modVersCmpProcExtdfl {cmpspec versspec modvers test {psuf {}}} {
    set ret 0
    switch -- $cmpspec {
       in {
-         foreach vers $versspec {
-            append vers $psuf
-            if {$test eq {eqstart}} {
-               set ret [string equal -length [string length $vers/] $vers/\
-                  $modvers/]
-            } else {
-               set ret [string $test $vers $modvers]
-            }
-            if {$ret || [string match $vers.* $modvers]} {
-               set ret 1
+         foreach inspec $versspec {
+            lassign $inspec incmp invers
+            if {[set ret [modVersCmp $incmp $invers $modvers $test $psuf]]} {
                break
             }
+         }
+      }
+      eq {
+         append versspec $psuf
+         if {$test eq {eqstart}} {
+            set ret [string equal -length [string length $versspec/]\
+               $versspec/ $modvers/]
+         } else {
+            set ret [string $test $versspec $modvers]
+         }
+         if {!$ret && [string match $versspec.* $modvers]} {
+            set ret 1
          }
       }
       ge {
@@ -8595,20 +8607,23 @@ proc modVersCmpProcIcaseExtdfl {cmpspec versspec modvers test {psuf {}}} {
    set ret 0
    switch -- $cmpspec {
       in {
-         # check if one version in list matches
-         foreach vers $versspec {
-            append vers $psuf
-            if {$test eq {eqstart}} {
-               set ret [string equal -nocase -length [string length $vers/]\
-                  $vers/ $modvers/]
-            } else {
-               set ret [string $test -nocase $vers $modvers]
-            }
-            # try the extended default match
-            if {$ret || [string match -nocase $vers.* $modvers]} {
-               set ret 1
+         foreach inspec $versspec {
+            lassign $inspec incmp invers
+            if {[set ret [modVersCmp $incmp $invers $modvers $test $psuf]]} {
                break
             }
+         }
+      }
+      eq {
+         append versspec $psuf
+         if {$test eq {eqstart}} {
+            set ret [string equal -nocase -length [string length $versspec/]\
+               $versspec/ $modvers/]
+         } else {
+            set ret [string $test -nocase $versspec $modvers]
+         }
+         if {!$ret && [string match -nocase $versspec.* $modvers]} {
+            set ret 1
          }
       }
       ge {
@@ -10713,15 +10728,21 @@ proc parseModuleVersionSpecifier {modspec} {
    set invalidversrange 0
    set islist [expr {[string first , $modspec] != -1}]
    set isrange [expr {[string first : $modspec] != -1}]
-   # no deep version specification allowed nor list/range mix
-   if {[string first / $modspec] != -1 || ($islist && $isrange)} {
+   # no deep version specification allowed
+   if {[string first / $modspec] != -1} {
       set invalidversspec 1
    # ',' separates multiple versions
    } elseif {$islist} {
       set cmpspec in
-      set versspec [split $modspec ,]
+      set inspeclist [split $modspec ,]
       # empty element in list is erroneous
-      set invalidversspec [expr {[lsearch -exact $versspec {}] != -1}]
+      set invalidversspec [expr {[lsearch -exact $inspeclist {}] != -1}]
+      if {!$invalidversspec} {
+         # recursive call to check each element in list (can be range, etc)
+         foreach inspec $inspeclist {
+            lappend versspec [parseModuleVersionSpecifier $inspec]
+         }
+      }
    # ':' separates range elements
    } elseif {$isrange} {
       set versspec [split $modspec :]
@@ -10951,7 +10972,15 @@ proc getModuleRootFromVersSpec {modarg} {
 proc getAllModulesFromVersSpec {modarg} {
    if {[info exists ::g_moduleVersSpec($modarg)]} {
       lassign $::g_moduleVersSpec($modarg) mod modname cmpspec versspec
-      if {$mod eq {} && $cmpspec ne {eq}} {
+      if {$mod eq {} && $cmpspec eq {in}} {
+         # loop around each spec in list
+         foreach inspec $versspec {
+            lassign $inspec incmp invers
+            foreach vers $invers {
+               lappend modlist $modname/$vers
+            }
+         }
+      } elseif {$mod eq {} && $cmpspec ne {eq}} {
          foreach vers $versspec {
             lappend modlist $modname/$vers
          }
@@ -10970,7 +10999,11 @@ proc getAllModulesFromVersSpec {modarg} {
 proc getOneModuleFromVersSpec {modarg} {
    if {[info exists ::g_moduleVersSpec($modarg)]} {
       lassign $::g_moduleVersSpec($modarg) mod modname cmpspec versspec
-      if {$mod eq {} && $cmpspec ne {eq}} {
+      if {$mod eq {} && $cmpspec eq {in}} {
+         set inspec [lindex $versspec 0]
+         lassign $inspec incmp invers
+         set mod $modname/[lindex $invers 0]
+      } elseif {$mod eq {} && $cmpspec ne {eq}} {
          set mod $modname/[lindex $versspec 0]
       }
    } else {
