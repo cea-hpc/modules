@@ -103,9 +103,10 @@ Specification
 
         - for instance *soft@vers,vers,* or *soft@vers,,vers*
 
-    - version specifier cannot mix list and range in the same expression (error raised elsewhere)
+    - any version in list can be a single version or a version range
 
         - like *soft@1.2,1.4:1.6,1.8*
+        - helps to designate all versions except a few ones
 
 - when using extended default syntax
 
