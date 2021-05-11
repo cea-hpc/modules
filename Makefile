@@ -75,7 +75,8 @@ endif
 
 # define rule prereq when target need to be rebuilt when git repository change
 ifeq ($(wildcard .git),.git)
-GIT_REFRESH_PREREQ := .git/index
+GIT_DIR := $(shell git rev-parse --git-dir)
+GIT_REFRESH_PREREQ := $(GIT_DIR)/index
 else
 GIT_REFRESH_PREREQ := 
 endif

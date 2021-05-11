@@ -28,6 +28,8 @@ Modules 4.8.0 (not yet released)
 * The :ref:`Advanced module version specifiers` mechanism now allows the use
   of version range in version list (for instance ``mod@:1.2,1.4:1.6,1.8:``).
   Such specification helps to exclude specific versions. (fix issue #397)
+* Install: fix installation scripts to allow building Modules when its
+  repository is set as a git submodule. (fix issue #398)
 
 
 .. _4.7 release notes:

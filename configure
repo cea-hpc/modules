@@ -844,7 +844,7 @@ done
 
 # disable compat version build if not explicitely enabled, compat source not
 # available and not working from git repository
-if [ ! -d '.git' -a ! -d 'compat' -a $defcompatversion -eq 1 ]; then
+if [ ! -e '.git' -a ! -d 'compat' -a $defcompatversion -eq 1 ]; then
    echo_warning "\`compat' directory cannot be found, disabling compatibility \
 version build"
    compatversion=n
@@ -882,7 +882,7 @@ if [ "$(echo foo | $SED_ERE 's|foo|bar|' 2>/dev/null)" != 'bar' ]; then
 fi
 
 # if we install from git repository, must have git to fetch current release number
-if [ -d '.git' ]; then
+if [ -e '.git' ]; then
    check_requirement git
 fi
 
@@ -915,7 +915,7 @@ fi
 TCLSH=$reqpath
 
 # python is mandatory if installing from git repository to build ChangeLog
-if [ -d '.git' ]; then
+if [ -e '.git' ]; then
    missmsg=''
 elif [ -n "$pythonbin" ]; then
    missmsg="Specified Python command \`$pythonbin' cannot be found"
@@ -975,7 +975,7 @@ else
 fi
 
 # refine build number if working from git repository
-if [ -d '.git' ]; then
+if [ -e '.git' ]; then
   gitcurtag=$(git describe --tags --abbrev=0)
   gitcurdesc=$(git describe --tags)
   gitcurbranch=$(git rev-parse --abbrev-ref HEAD)
@@ -1075,7 +1075,7 @@ fi
 if [ "$compatversion" = 'y' ]; then
    if [ ! -d 'compat' ]; then
       # extract sources from a git branch and prepare sources
-      if [ -d '.git' ]; then
+      if [ -e '.git' ]; then
          if [ $checkedautoreconf -eq 1 ]; then
             check_requirement autoreconf
          fi
@@ -1116,7 +1116,8 @@ if [ "$compatversion" = 'y' ]; then
             else
                gitworktree=n
                # clone branch if no worktree command supported
-               git clone --branch=$compatbranch .git compat || exit 1
+               gitdir=$(git rev-parse --git-dir)
+               git clone --branch=$compatbranch $gitdir compat || exit 1
             fi
          fi
 
