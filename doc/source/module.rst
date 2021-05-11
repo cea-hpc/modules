@@ -1341,6 +1341,8 @@ possible to :subcmd:`load` a *modulefile* and then :subcmd:`unload` it without
 having the environment variables return to their prior state.
 
 
+.. _Advanced module version specifiers:
+
 Advanced module version specifiers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -1472,6 +1474,10 @@ color rendering do not apply on JSON output.
 
 Module tags cannot be used in search query to designate a modulefile.
 
+.. only:: html
+
+   .. versionadded:: 4.7
+
 
 .. _Sticky modules:
 
@@ -1498,6 +1504,10 @@ if the ``sticky`` tag is defined over *foo* module, loaded module *foo/1.2*
 can be swapped by *foo/2.0*. Such stickyness definition means one version of
 module should stay loaded whatever version it is.
 
+.. only:: html
+
+   .. versionadded:: 4.7
+
 
 Collections
 ^^^^^^^^^^^
@@ -1517,6 +1527,10 @@ Collections may be valid for a given target if they are suffixed. In this
 case these collections can only be restored if their suffix correspond to
 the current value of the :envvar:`MODULES_COLLECTION_TARGET` environment
 variable (see the dedicated section of this topic below).
+
+.. only:: html
+
+   .. versionadded:: 4.0
 
 
 EXIT STATUS
