@@ -1375,6 +1375,10 @@ instance ``10a``, ``1.2.3``, ``1.foo`` are versions valid for range
 comparison whereas ``default`` or ``foo.2`` versions are invalid for range
 comparison.
 
+Range of versions can be specified in version list, for instance
+``foo@:1.2,1.4:1.6,1.8:``. Such specification helps to exclude specific
+versions, like versions ``1.3`` and ``1.7`` in previous example.
+
 If the implicit default mechanism is also enabled (see
 :envvar:`MODULES_IMPLICIT_DEFAULT`), a ``default`` and ``latest`` symbolic
 versions are automatically defined for each module name (also at each
@@ -1388,6 +1392,13 @@ The symbolic version ``loaded`` may be used over loaded module name to
 designate the loaded version of the module. This version symbol should be
 specified using the ``@`` prefix notation (e.g. ``foo@loaded``). An error is
 returned if no version of designated module is currently loaded.
+
+.. only:: html
+
+   .. versionadded:: 4.4
+
+   .. versionchanged:: 4.8
+      Use of version range is allowed in version list
 
 
 .. _Module tags:
