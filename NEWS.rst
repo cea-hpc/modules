@@ -25,6 +25,9 @@ Modules 4.8.0 (not yet released)
   :envvar:`VISUAL` or the :envvar:`EDITOR` environment variables, which are
   both in turn overridden by the :envvar:`MODULES_EDITOR` environment
   variable.
+* The :ref:`Advanced module version specifiers` mechanism now allows the use
+  of version range in version list (for instance ``mod@:1.2,1.4:1.6,1.8:``).
+  Such specification helps to exclude specific versions. (fix issue #397)
 
 
 .. _4.7 release notes:

@@ -55,6 +55,20 @@ The :envvar:`VISUAL` or the :envvar:`EDITOR` environment variables override
 the default value of :mconfig:`editor` configuration option but are overridden
 by the :envvar:`MODULES_EDITOR` environment variable.
 
+Using version range in version list
+-----------------------------------
+
+The :ref:`Advanced module version specifiers` mechanism has been improved to
+allow the use of version range (*@:version*, *@vers1:vers2* or *@version:*)
+within version list (*@version1,version2,...*).
+
+It is now possible to write for instance ``mod@:1.2,1.4:1.6,1.8:`` to
+designate all versions of module *mod*, except versions *1.3* and *1.7*.
+
+This improvement is available where the advanced version specifier syntax is
+supported. Thus it can be either used from the command-line or when writing
+modulefiles, for instance to hide or tag modules or to declare requirements.
+
 
 From v4.6 to v4.7
 =================
