@@ -1,0 +1,262 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2021/05/11
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Version range used in version list
+#		}C%
+#
+##############################################################################
+
+# ensure avail -t tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+# ensure regular avail search match is set for these tests
+setenv_var MODULES_SEARCH_MATCH starts_with
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure last matching element is returned when unloading modules
+setenv_var MODULES_UNLOAD_MATCH_ORDER returnlast
+
+# ensure default tag abbreviation is defined
+setenv_var MODULES_TAG_ABBREV {auto-loaded=aL:loaded=L:hidden=H:hidden-loaded=H:forbidden=F:nearly-forbidden=nF}
+
+set mp $modpath.2
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+# enable advanced version spec for next tests
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+
+# avail test
+set tserr "$mp:\nadvvers2/1.3
+advvers2/2.0
+advvers2/2.1
+advvers2/3.2
+advvers2/4.0
+advvers2/4.1
+advvers2/4.2
+advvers2/5.0
+advvers2/5.1
+advvers2/5.2
+advvers2/5.3"
+testouterr_cmd sh {avail -t advvers2@1.3:2.1,3.2,4:5} OK $tserr
+set tserr "$mp:\nadvvers2/1.0
+advvers2/1.1
+advvers2/1.2
+advvers2/1.3
+advvers2/3.2
+advvers2/4.1
+advvers2/4.2
+advvers2/5.0
+advvers2/5.1
+advvers2/5.2"
+testouterr_cmd sh {avail -t advvers2@4.1:5.2,:1.3,3.2} OK $tserr
+set tserr "$mp:\nadvvers2/3.2
+advvers2/3.3
+advvers2/4.0
+advvers2/4.1
+advvers2/4.2
+advvers2/5.0
+advvers2/5.1
+advvers2/5.2"
+testouterr_cmd sh {avail -t advvers2@4.1:5.2,3.2:4.4,5.0} OK $tserr
+testouterr_cmd sh {avail -t advvers2@5.2:4.1,3.2:4.4,5.0} ERR $err_rangevers'5.2:4.1'
+testouterr_cmd sh {avail -t advvers2@4.1:5.2,3.2:4.4,6:5.0} ERR $err_rangevers'6:5.0'
+
+# no-indepth test
+testouterr_cmd sh {avail --no-indepth -t advvers2@4.1:5.2,3.2:4.4,5.0} OK $tserr
+
+# load test
+set ans [list]
+lappend ans [list setpath LOADEDMODULES advvers2/8.3.2]
+lappend ans [list setpath _LMFILES_ $mp/advvers2/8.3.2]
+lappend ans [list setpath MODULES_LMCONFLICT advvers2/8.3.2&advvers@2.1]
+testouterr_cmd sh {load advvers2@8.1:8.3.8,4.1:5.2,3.2:4.4,5.0} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl/1.3.1]
+lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.1]
+lappend ans [list setpath MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+testouterr_cmd sh {load extdfl@2,1.4:1.7,1.3.0:1.3.7} $ans {}
+
+# extended_default test
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl/1.4.5]
+lappend ans [list setpath _LMFILES_ $mp/extdfl/1.4.5]
+testouterr_cmd sh {load extdfl@2,1.4:1.7,1.3.2:1.3.7} $ans {}
+setenv_var MODULES_EXTENDED_DEFAULT 1
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl/2.0.1]
+lappend ans [list setpath _LMFILES_ $mp/extdfl/2.0.1]
+lappend ans [list setpath MODULES_LMALTNAME extdfl/2.0.1&as|extdfl/latest]
+testouterr_cmd sh {load extdfl@2,1.4:1.7,1.3.2:1.3.7} $ans {}
+unsetenv_var MODULES_EXTENDED_DEFAULT
+
+# implicit_default test
+if {![is_config_locked implicit_default]} {
+    setenv_var MODULES_IMPLICIT_DEFAULT 0
+    testouterr_cmd sh {load extdfl@2,1.4:1.7,1.3.2:1.3.7} ERR $err_nodefault'extdfl@2,1.4:1.7,1.3.2:1.3.7'
+    setenv_var MODULES_IMPLICIT_DEFAULT 1
+}
+
+# change modulepath to use newer test modulefiles
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+
+set tserr "$mp:\nadvvers2/1.0
+advvers2/1.1
+advvers2/2.8
+advvers2/3.7
+advvers2/4.2"
+testouterr_cmd sh {avail -t advvers2@:1.2,2.8,3:} OK $tserr
+
+# search highlight test
+setenv_var MODULES_COLORS hi=1
+set tserr "$mpre:\nadvvers2/1.0
+advvers2/1.1
+[sgr 1]advvers2/2.8[sgr 22]
+[sgr 1]advvers2/3[sgr 22].7
+advvers2/4.2"
+testouterr_cmd_re sh {avail --color=always -t advvers2@:1.2,2.8,3:} OK $tserr
+
+set tserr "$mpre:\n[sgr 1]advvers2/1[sgr 22].0
+[sgr 1]advvers2/1[sgr 22].1
+[sgr 1]advvers2/2.8[sgr 22]
+[sgr 1]advvers2/3[sgr 22].7
+[sgr 1]advvers2/4.2[sgr 22]"
+testouterr_cmd_re sh {avail --color=always -t advvers2@:1,2.8,3:4.2} OK $tserr
+unsetenv_var MODULES_COLORS
+
+# icase tests
+set tserr "$mp:\nadvvers2/1.0
+advvers2/1.1
+advvers2/2.8
+advvers2/3.7
+advvers2/4.2
+advvers2/foo"
+testouterr_cmd sh {avail -i -t advvers2@:1.2,2.8,3:,FOO} OK $tserr
+testouterr_cmd sh {avail -i -t advvers2@:1.2,FoO,2.8,3:} OK $tserr
+# icase and extended default
+setenv_var MODULES_EXTENDED_DEFAULT 1
+testouterr_cmd sh {avail -i -t advvers2@:1.2,FoO,2.8,3:} OK $tserr
+set tserr "$mp:\nadvvers2/1.0
+advvers2/1.1
+advvers2/2.0
+advvers2/2.2
+advvers2/2.8
+advvers2/2.10
+advvers2/3.7
+advvers2/4.2
+advvers2/foo"
+testouterr_cmd sh {avail -i -t advvers2@:1.2,FoO,2,3:} OK $tserr
+unsetenv_var MODULES_EXTENDED_DEFAULT
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES advvers2/foo]
+lappend ans [list setpath _LMFILES_ $mp/advvers2/foo]
+lappend ans [list setpath MODULES_LMALTNAME advvers2/foo&as|advvers2/default&as|advvers2/latest]
+testouterr_cmd sh {load -i advvers2@:1.2,FoO,2.8,3:} $ans {}
+
+
+# requirement tests
+setenv_var TESTSUITE_RANGEIN 1
+set ans [list]
+lappend ans [list setpath LOADEDMODULES advvers2/3.7:advvers2/foo]
+lappend ans [list setpath _LMFILES_ $mp/advvers2/3.7:$mp/advvers2/foo]
+lappend ans [list setpath MODULES_LMNOTUASKED advvers2/3.7]
+lappend ans [list setpath MODULES_LMALTNAME advvers2/foo&as|advvers2/default&as|advvers2/latest]
+lappend ans [list setpath MODULES_LMPREREQ advvers2/foo&advvers2@<1.3,2.8,2.13<3.20,5<]
+testouterr_cmd_re sh {load --auto advvers2@:1.2,foo,2.8,3:} $ans [msg_top_load advvers2/foo {} advvers2/3.7 {}]
+
+setenv_loaded_module [list advvers2/1.1] [list $mp/advvers2/1.1]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES advvers2/1.1:advvers2/foo]
+lappend ans [list setpath _LMFILES_ $mp/advvers2/1.1:$mp/advvers2/foo]
+lappend ans [list setpath MODULES_LMALTNAME advvers2/foo&as|advvers2/default&as|advvers2/latest]
+lappend ans [list setpath MODULES_LMPREREQ advvers2/foo&advvers2@<1.3,2.8,2.13<3.20,5<]
+testouterr_cmd_re sh {load --auto advvers2@:1.2,foo,2.8,3:} $ans {}
+
+setenv_loaded_module [list advvers2/2.10] [list $mp/advvers2/2.10]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES advvers2/2.10:advvers2/3.7:advvers2/foo]
+lappend ans [list setpath _LMFILES_ $mp/advvers2/2.10:$mp/advvers2/3.7:$mp/advvers2/foo]
+lappend ans [list setpath MODULES_LMNOTUASKED advvers2/3.7]
+lappend ans [list setpath MODULES_LMALTNAME advvers2/foo&as|advvers2/default&as|advvers2/latest]
+lappend ans [list setpath MODULES_LMPREREQ advvers2/foo&advvers2@<1.3,2.8,2.13<3.20,5<]
+testouterr_cmd_re sh {load --auto advvers2@:1.2,foo,2.8,3:} $ans [msg_top_load advvers2/foo {} advvers2/3.7 {}]
+
+unsetenv_loaded_module
+setenv_var TESTSUITE_RANGEIN 2
+set ans [list]
+lappend ans [list setpath LOADEDMODULES advvers2/3.7:advvers2/foo]
+lappend ans [list setpath _LMFILES_ $mp/advvers2/3.7:$mp/advvers2/foo]
+lappend ans [list setpath MODULES_LMNOTUASKED advvers2/3.7]
+lappend ans [list setpath MODULES_LMALTNAME advvers2/foo&as|advvers2/default&as|advvers2/latest]
+lappend ans [list setpath MODULES_LMPREREQ advvers2/foo&advvers2@<1.3,2.8,2.13<3.20,5<]
+testouterr_cmd_re sh {load --auto advvers2@:1.2,foo,2.8,3:} $ans [msg_top_load advvers2/foo {} advvers2/3.7 {}]
+
+setenv_loaded_module [list advvers2/1.1] [list $mp/advvers2/1.1]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES advvers2/1.1:advvers2/foo]
+lappend ans [list setpath _LMFILES_ $mp/advvers2/1.1:$mp/advvers2/foo]
+lappend ans [list setpath MODULES_LMALTNAME advvers2/foo&as|advvers2/default&as|advvers2/latest]
+lappend ans [list setpath MODULES_LMPREREQ advvers2/foo&advvers2@<1.3,2.8,2.13<3.20,5<]
+testouterr_cmd_re sh {load --auto advvers2@:1.2,foo,2.8,3:} $ans {}
+
+setenv_loaded_module [list advvers2/2.10] [list $mp/advvers2/2.10]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES advvers2/2.10:advvers2/3.7:advvers2/foo]
+lappend ans [list setpath _LMFILES_ $mp/advvers2/2.10:$mp/advvers2/3.7:$mp/advvers2/foo]
+lappend ans [list setpath MODULES_LMNOTUASKED advvers2/3.7]
+lappend ans [list setpath MODULES_LMALTNAME advvers2/foo&as|advvers2/default&as|advvers2/latest]
+lappend ans [list setpath MODULES_LMPREREQ advvers2/foo&advvers2@<1.3,2.8,2.13<3.20,5<]
+testouterr_cmd_re sh {load --auto advvers2@:1.2,foo,2.8,3:} $ans [msg_top_load advvers2/foo {} advvers2/3.7 {}]
+
+unsetenv_loaded_module
+
+
+# hidden module unveil tests
+setenv_var TESTSUITE_RANGEIN 3
+set tserr "$mp:\nadvvers2/2.0
+advvers2/2.2
+advvers2/2.10
+advvers2/4.2
+advvers2/foo"
+testouterr_cmd sh {avail -t advvers2} OK $tserr
+set tserr "$mp:\nadvvers2/1.0 <H>"
+testouterr_cmd sh {avail -t advvers2@1.0} OK $tserr
+testouterr_cmd sh {avail -t advvers2@:1} OK {}
+testouterr_cmd sh {avail -t advvers2@:1.0} OK $tserr
+set tserr "$mp:\nadvvers2/1.0 <H>
+advvers2/1.1 <H>
+advvers2/2.8 <H>
+advvers2/3.7 <H>
+advvers2/4.2"
+testouterr_cmd sh {avail -t advvers2@1.0:1.1,2.8,3.7:} OK $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
