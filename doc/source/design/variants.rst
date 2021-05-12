@@ -668,3 +668,9 @@ Comparing module specification including variants
         - Useful when a module with a specific variant value set is defined hidden
         - FUTURE: if variants are reported on ``avail``, hiding a variant specific value
           would have an effect on this sub-command
+
+
+Specific impact
+^^^^^^^^^^^^^^^
+
+- When loading a module with variant, if this module is already loaded but with a different variant set an error is raised
