@@ -4287,8 +4287,8 @@ proc conflict {args} {
    foreach mod $args {
       # if the conflict module is loading and it does not correspond to
       # currently evaluated module, we cannot proceed
-      set isloading [expr {![modEq $mod $currentModule eqstart 1 2] &&\
-         (!$isfullpath || ![modEq $mod $currentSModule eqstart 1 2]) &&\
+      set isloading [expr {![modEq $mod $currentModule eqstart 1 2 1] &&\
+         (!$isfullpath || ![modEq $mod $currentSModule eqstart 1 2 1]) &&\
          [is-loading $mod]}]
       # if the conflicting module is loaded, we cannot either
       if {[is-loaded $mod] || $isloading} {
@@ -5182,7 +5182,7 @@ proc isModuleEvaluated {context exclmod args} {
       foreach mod [getAllModulesFromVersSpec $evalmod] {
          foreach name $args {
             # indicate module is loading to also compare against all alt names
-            if {[modEq $name $mod eqstart 1 1 $modvrlist]} {
+            if {[modEq $name $mod eqstart 1 1 1 $modvrlist]} {
                set evalmatch 1
                if {$context eq {any} || [isInList\
                   $::g_moduleEvalAttempt($evalmod) $context]} {
@@ -6219,7 +6219,7 @@ proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}} {
          } else {
             set matchmod $mod
          }
-         if {[modEq $name $matchmod eqstart 1 [expr {$loading ? 1 : 2}]]} {
+         if {[modEq $name $matchmod eqstart 1 [expr {$loading ? 1 : 2}] 1]} {
             switch -- $behavior {
                returnlast {
                   # the last loaded module will be returned
@@ -6345,8 +6345,8 @@ proc doesModuleConflict {mod} {
          foreach withmod $::g_loadedModuleConflict($modcon) {
             # skip own reflexive conflict (look at mod main and alternative
             # names) and those already known
-            if {![modEq $withmod $mod eqstart 1 2] && (!$isfullpath ||\
-               ![modEq $withmod $smod eqstart 1 2]) && ([set lmmodlist\
+            if {![modEq $withmod $mod eqstart 1 2 1] && (!$isfullpath ||\
+               ![modEq $withmod $smod eqstart 1 2 1]) && ([set lmmodlist\
                [getLoadedMatchingName $withmod returnall]] ne {} || [set\
                lmmodlist [getLoadedMatchingName $withmod returnall 1]] ne {})} {
                # multiple loaded module may match conflict declared name
@@ -6361,8 +6361,8 @@ proc doesModuleConflict {mod} {
       } elseif {[notInList $modconlist $modcon]} {
          foreach withmod $::g_loadedModuleConflict($modcon) {
             # check if mod or one of its alt name match conflict
-            if {[modEq $withmod $mod eqstart 1 2] || ($isfullpath &&\
-               [modEq $withmod $smod eqstart 1 2])} {
+            if {[modEq $withmod $mod eqstart 1 2 1] || ($isfullpath &&\
+               [modEq $withmod $smod eqstart 1 2 1])} {
                lappend modconlist $modcon
                lappend moddecconlist $modcon
                set does 1
@@ -6598,7 +6598,7 @@ proc setModuleDependency {mod} {
       foreach modpre $prereq {
          set lmfound {}
          foreach lmmod $modlist {
-            if {[modEq $modpre $lmmod eqstart 1 2]} {
+            if {[modEq $modpre $lmmod eqstart 1 2 1]} {
                set lmfound $lmmod
                break
             }
@@ -6617,7 +6617,7 @@ proc setModuleDependency {mod} {
 
          # look if requirement can be found in the No Particular Order list
          foreach lmmod $modnpolist {
-            if {[modEq $modpre $lmmod eqstart 1 2]} {
+            if {[modEq $modpre $lmmod eqstart 1 2 1]} {
                appendNoDupToList lmnpolist $lmmod
                break
             }
@@ -6676,7 +6676,7 @@ proc setModuleDependency {mod} {
 
    # update eventual registered unmet dependencies
    foreach modpre [array names ::g_unmetDepHash] {
-      if {[modEq $modpre $mod eqstart 1 2]} {
+      if {[modEq $modpre $mod eqstart 1 2 1]} {
          reportDebug "refresh requirements targetting '$modpre'"
          foreach lmmod $::g_unmetDepHash($modpre) {
             if {[isInList [getDependentLoadedModuleList [list $lmmod] 0 0]\
@@ -6890,7 +6890,7 @@ proc getUnmetDependentLoadedModuleList {modnamevr} {
    lassign [doesModuleConflict $mod] doescon modconlist
    if {!$doescon} {
       foreach ummod [array names ::g_unmetDepHash] {
-         if {[modEq $ummod $mod eqstart 1 2 $vrlist]} {
+         if {[modEq $ummod $mod eqstart 1 2 1 $vrlist]} {
             foreach depmod $::g_unmetDepHash($ummod) {
                lappend depmodlist $depmod
                # temporarily remove prereq violation of depmod if mod
@@ -6900,7 +6900,7 @@ proc getUnmetDependentLoadedModuleList {modnamevr} {
                      foreach modpre $prereq {
                         # also temporarily remove prereq violation for
                         # requirements loaded after dependent module
-                        if {[modEq $modpre $mod eqstart 1 2 $vrlist] ||\
+                        if {[modEq $modpre $mod eqstart 1 2 1 $vrlist] ||\
                            [is-loaded $modpre]} {
                            # backup original violation to restore it later
                            if {![info exists preunvioarr($depmod)]} {
@@ -7006,7 +7006,7 @@ proc getDirectDependentList {mod {strong 0} {nporeq 0} {loading 0}\
             set moddep 0
             foreach modpre $prereq {
                foreach lmmod $modlist {
-                  if {[modEq $modpre $lmmod eqstart 1 2]} {
+                  if {[modEq $modpre $lmmod eqstart 1 2 1]} {
                      lappend lmprelist $lmmod
                      if {$lmmod eq $mod} {
                         set moddep 1
@@ -9227,8 +9227,8 @@ proc defineModEqProc {icase extdfl {loadedmod 0}} {
 }
 
 # alternative definitions of modEq proc
-proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0} {modvrlist\
-   0}} {
+proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp 0}\
+   {modvrlist 0}} {
    # extract specified module name from name and version spec
    if {$trspec} {
       lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec\
@@ -9331,19 +9331,19 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0} {modvrlist\
       }
    }
    # check if variant specified matches those of selected loaded/ing module
-   if {$ret && $ismodlo > 0 && $ismodlo < 3 && [llength $pvrlist] > 0} {
+   if {$ret && $vrcmp && $ismodlo != 3 && [llength $pvrlist] > 0} {
       if {$modvrlist eq {0}} {
          set modvrlist [getVariantList $mod]
       }
       set ret [modVariantCmp $pvrlist $modvrlist]
    # when comparing collection content, variant mis means variant default val
-   } elseif {$ret && $ismodlo == 3} {
+   } elseif {$ret && $vrcmp && $ismodlo == 3} {
       set ret [modVariantCmp $pvrlist [getVariantList $mod 3] 1]
    }
    return $ret
 }
-proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0}\
-   {modvrlist 0}} {
+proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
+   0} {modvrlist 0}} {
    if {$trspec} {
       lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec\
          pmodnamere pmodescglob pmodroot pvrlist
@@ -9438,18 +9438,18 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0}\
          }
       }
    }
-   if {$ret && $ismodlo > 0 && $ismodlo < 3 && [llength $pvrlist] > 0} {
+   if {$ret && $vrcmp && $ismodlo != 3 && [llength $pvrlist] > 0} {
       if {$modvrlist eq {0}} {
          set modvrlist [getVariantList $mod]
       }
       set ret [modVariantCmp $pvrlist $modvrlist]
-   } elseif {$ret && $ismodlo == 3} {
+   } elseif {$ret && $vrcmp && $ismodlo == 3} {
       set ret [modVariantCmp $pvrlist [getVariantList $mod 3] 1]
    }
    return $ret
 }
-proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
-   {modvrlist 0}} {
+proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
+   0} {modvrlist 0}} {
    if {$trspec} {
       lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec\
          pmodnamere pmodescglob pmodroot pvrlist
@@ -9560,18 +9560,18 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
          }
       }
    }
-   if {$ret && $ismodlo > 0 && $ismodlo < 3 && [llength $pvrlist] > 0} {
+   if {$ret && $vrcmp && $ismodlo != 3 && [llength $pvrlist] > 0} {
       if {$modvrlist eq {0}} {
          set modvrlist [getVariantList $mod]
       }
       set ret [modVariantCmp $pvrlist $modvrlist]
-   } elseif {$ret && $ismodlo == 3} {
+   } elseif {$ret && $vrcmp && $ismodlo == 3} {
       set ret [modVariantCmp $pvrlist [getVariantList $mod 3] 1]
    }
    return $ret
 }
 proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
-   {modvrlist 0}} {
+   {vrcmp 0} {modvrlist 0}} {
    if {$trspec} {
       lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec\
          pmodnamere pmodescglob pmodroot pvrlist
@@ -9683,12 +9683,12 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
          }
       }
    }
-   if {$ret && $ismodlo > 0 && $ismodlo < 3 && [llength $pvrlist] > 0} {
+   if {$ret && $vrcmp && $ismodlo != 3 && [llength $pvrlist] > 0} {
       if {$modvrlist eq {0}} {
          set modvrlist [getVariantList $mod]
       }
       set ret [modVariantCmp $pvrlist $modvrlist]
-   } elseif {$ret && $ismodlo == 3} {
+   } elseif {$ret && $vrcmp && $ismodlo == 3} {
       set ret [modVariantCmp $pvrlist [getVariantList $mod 3] 1]
    }
    return $ret
@@ -11026,8 +11026,8 @@ proc getMovementBetweenList {from to {extfrom {}} {extto {}} {cmp eq}} {
       # are elts the sames and are both part of or missing from extra lists
       # when comparing modules, ask comparaison against loaded module
       # alternative and simplified names (modEq will also compare variants)
-      if {($cmp eq {modeq} && ![modEq $to_obj $from_obj equal 1 3]) || ($cmp\
-         eq {eq} && $to_obj ne $from_obj) || $in_extfrom != $in_extto} {
+      if {($cmp eq {modeq} && ![modEq $to_obj $from_obj equal 1 3 1]) ||\
+         ($cmp eq {eq} && $to_obj ne $from_obj) || $in_extfrom != $in_extto} {
          set list_equal 0
       }
       if {$list_equal == 0} {
@@ -12887,7 +12887,7 @@ proc cmdModuleLoad {context uasked args} {
                # alternative name
                foreach modcon $modconlist {
                   foreach reportmod $::report_conflict($msgrecid) {
-                     if {[modEq $reportmod $modcon eqstart 1 2]} {
+                     if {[modEq $reportmod $modcon eqstart 1 2 1]} {
                         set report_con 0
                         break
                      }
