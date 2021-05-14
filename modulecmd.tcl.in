@@ -1911,7 +1911,7 @@ proc execute-modulefile {modfile modname modnamevr modspec {must_have_cookie\
    # gather all tags of evaluated modulefile
    if {$fetch_tags} {
       cacheCurrentModules 0
-      collectModuleTags $modname
+      collectModuleTags $modnamevr
    }
 
    # inform that access to module will be soon denied
@@ -5537,7 +5537,7 @@ proc setModspecTag {modspec tag {props {}}} {
 }
 
 proc getModuleTag {mod tag {cmp eqstart}} {
-   set modroot [lindex [file split $mod] 0]
+   set modroot [getModuleRootFromVersSpec $mod]
    # look if mod matches one of the module specs applying to mod root
    if {[info exists ::g_moduleTagRoot($modroot)]} {
       set idx [lsearch -exact $::g_moduleTagRoot($modroot) $tag]
@@ -5550,7 +5550,7 @@ proc getModuleTag {mod tag {cmp eqstart}} {
          foreach {tmodspec tprops} [lindex $::g_moduleTagRootSpec($modroot)\
             $idx] {
             # first matching module spec wins with its properties
-            if {[modEq $tmodspec $mod $cmp]} {
+            if {[modEq $tmodspec $mod $cmp 1 0 1]} {
                return [list $tag $tprops]
             }
          }
@@ -5584,7 +5584,7 @@ proc getModuleTagProp {mod tag prop} {
 
 # Gather all tags applying to a given module
 proc collectModuleTags {mod} {
-   set modroot [lindex [file split $mod] 0]
+   set modroot [getModuleRootFromVersSpec $mod]
    # look if mod matches one of the module specs applying to mod root
    if {[info exists ::g_moduleTagRoot($modroot)]} {
       for {set i 0} {$i < [llength $::g_moduleTagRoot($modroot)]} {incr i} {
@@ -5595,7 +5595,7 @@ proc collectModuleTags {mod} {
             foreach {tmodspec tprops} [lindex\
                $::g_moduleTagRootSpec($modroot) $i] {
                # add tag if one modspec matches mod
-               if {[modEq $tmodspec $mod eqstart]} {
+               if {[modEq $tmodspec $mod eqstart 1 0 1]} {
                   setModuleTag $mod $tag
                   break
                }
@@ -5617,8 +5617,9 @@ proc getTagList {mod {serialized 0}} {
          lassign [getDiffBetweenList $::g_tagHash($mod) [list loaded\
             auto-loaded hidden]] tag_list
          if {[llength $tag_list] > 0} {
-            set ret [join [concat [list $mod] $tag_list] [getState\
-               sub1_separator]]
+            # extract mod name and version from full spec with variants
+            set ret [join [concat [list [getModuleNameAndVersFromVersSpec\
+               $mod]] $tag_list] [getState sub1_separator]]
          } else {
             set ret {}
          }
@@ -12988,7 +12989,7 @@ proc cmdModuleLoad {context uasked args} {
          }
 
          # declare the tags of this module
-         if {[set modtag [getTagList $modname 1]] ne {}} {
+         if {[set modtag [getTagList $modnamevr 1]] ne {}} {
             add-path append MODULES_LMTAG $modtag
          }
 
