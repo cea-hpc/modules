@@ -1,0 +1,363 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2021/05/12
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		variant, module-hide, module-forbid, module-tag
+#   Modulefiles:    variant
+#   Sub-Command:    load
+#
+#   Comment:	%C{
+#           Test variant over hide/forbid/tag modules
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+
+#
+# module-hide test
+#
+
+setenv_var TESTSUITE_VARIANT_TAG 1
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMTAG variant/8.0&hidden-loaded]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1]
+testouterr_cmd sh {load variant@7.5:8.5 foo=val1} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val2|0&bar|2|1]
+testouterr_cmd sh {load variant@7.5:8.5 foo=val2} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMTAG variant/8.0&hidden-loaded]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1]
+testouterr_cmd sh {load variant@7.5:8.5 foo=val1 bar=2} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMTAG variant/8.0&hidden-loaded]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|1|0]
+testouterr_cmd sh {load variant@7.5:8.5 foo=val1 bar=1} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val2|0&bar|1|0]
+testouterr_cmd sh {load variant@7.5:8.5 foo=val2 bar=1} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMTAG variant/8.0&hidden-loaded]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1]
+testouterr_cmd sh {load variant@8.0 foo=val1} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val2|0&bar|2|1]
+testouterr_cmd sh {load variant@8.0 foo=val2} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMTAG variant/8.0&hidden-loaded]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1]
+testouterr_cmd sh {load variant@8.0 foo=val1 bar=2} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMTAG variant/8.0&hidden-loaded]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|1|0]
+testouterr_cmd sh {load variant@8.0 foo=val1 bar=1} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val2|0&bar|1|0]
+testouterr_cmd sh {load variant@8.0 foo=val2 bar=1} $ans {}
+
+
+# test hidden-loaded silent messages
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0:variant/7.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0:$mp/variant/7.0]
+lappend ans [list setpath MODULES_LMPREREQ {variant/7.0&variant/8.0 foo=val1}]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1]
+lappend ans [list setpath MODULES_LMNOTUASKED variant/8.0]
+lappend ans [list setpath MODULES_LMTAG variant/8.0&hidden-loaded]
+testouterr_cmd_re sh {load variant@7.0} $ans {}
+
+setenv_loaded_module [list variant/8.0 variant/7.0] [list $mp/variant/8.0 $mp/variant/7.0] [list variant/8.0]
+setenv_path_var MODULES_LMPREREQ {variant/7.0&variant/8.0 foo=val1}
+setenv_path_var MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1
+setenv_path_var MODULES_LMTAG variant/8.0&hidden-loaded
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMVARIANT]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list unsetpath MODULES_LMTAG]
+testouterr_cmd sh {unload variant@7.0} $ans {}
+
+# reload to another variant set
+setenv_loaded_module [list variant/8.0] [list $mp/variant/8.0]
+unsetenv_path_var MODULES_LMPREREQ
+setenv_path_var MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|1|0
+setenv_path_var MODULES_LMTAG variant/8.0&hidden-loaded
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val2|0&bar|2|1]
+lappend ans [list unsetpath MODULES_LMTAG]
+testouterr_cmd sh {switch variant@8.0 foo=val2} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1]
+lappend ans [list setpath MODULES_LMTAG variant/8.0&hidden-loaded]
+testouterr_cmd sh {switch variant@8.0 foo=val1} $ans {}
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMVARIANT
+unsetenv_path_var MODULES_LMTAG
+
+
+# test when module-hide is hard mode and applies to a variant default value specifically
+setenv_var TESTSUITE_VARIANT_TAG 2
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMTAG variant/8.0&hidden-loaded]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1]
+testouterr_cmd sh {load variant@7.5:8.5 foo=val1} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val2|0&bar|2|1]
+testouterr_cmd sh {load variant@7.5:8.5 foo=val2} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMTAG variant/8.0&hidden-loaded]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1]
+testouterr_cmd sh {load variant@7.5:8.5 foo=val1 bar=2} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|1|0]
+testouterr_cmd sh {load variant@7.5:8.5 foo=val1 bar=1} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMTAG variant/8.0&hidden-loaded]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1]
+testouterr_cmd sh {load variant@8.0 foo=val1} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val2|0&bar|2|1]
+testouterr_cmd sh {load variant@8.0 foo=val2} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMTAG variant/8.0&hidden-loaded]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1]
+testouterr_cmd sh {load variant@8.0 foo=val1 bar=2} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|1|0]
+testouterr_cmd sh {load variant@8.0 foo=val1 bar=1} $ans {}
+
+
+setenv_var TESTSUITE_VARIANT_TAG 3
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1]
+testouterr_cmd sh {load variant@8.0 foo=val1} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val2|0&bar|2|1]
+testouterr_cmd sh {load variant@7.5:8.5 foo=val2} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1]
+testouterr_cmd sh {load variant@8.0 foo=val1 bar=2} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMTAG variant/8.0&hidden-loaded]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|1|0]
+testouterr_cmd sh {load variant@7.5:8.5 foo=val1 bar=1} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val2|0&bar|1|0]
+testouterr_cmd sh {load variant@8.0 foo=val2 bar=1} $ans {}
+
+
+setenv_var TESTSUITE_VARIANT_TAG 4
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1]
+testouterr_cmd sh {load variant@8.0 foo=val1} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val2|0&bar|2|1]
+testouterr_cmd sh {load variant@7.5:8.5 foo=val2} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1]
+testouterr_cmd sh {load variant@8.0 foo=val1 bar=2} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMTAG variant/8.0&hidden-loaded]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|1|0]
+testouterr_cmd sh {load variant@7.5:8.5 foo=val1 bar=1} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val2|0&bar|1|0]
+testouterr_cmd sh {load variant@8.0 foo=val2 bar=1} $ans {}
+
+
+# test when module-hide applies to generic module name
+setenv_var TESTSUITE_VARIANT_TAG 5
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1]
+testouterr_cmd sh {load variant@8.0 foo=val1} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val2|0&bar|2|1]
+testouterr_cmd sh {load variant@7.5:8.5 foo=val2} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1]
+testouterr_cmd sh {load variant@8.0 foo=val1 bar=2} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMTAG variant/8.0&hidden-loaded]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|1|0]
+testouterr_cmd sh {load variant@7.5:8.5 foo=val1 bar=1} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val2|0&bar|1|0]
+testouterr_cmd sh {load variant@8.0 foo=val2 bar=1} $ans {}
+
+
+setenv_var TESTSUITE_VARIANT_TAG 6
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMTAG variant/8.0&hidden-loaded]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1]
+testouterr_cmd sh {load variant@8.0 foo=val1} $ans {}
+
+testouterr_cmd sh {load variant@7.5:8.5 foo=val2} ERR "$err_path'variant@7.5:8.5 foo=val2'"
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMTAG variant/8.0&hidden-loaded]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1]
+testouterr_cmd sh {load variant@8.0 foo=val1 bar=2} $ans {}
+
+testouterr_cmd sh {load variant@7.5:8.5 foo=val1 bar=1} ERR "$err_path'variant@7.5:8.5 foo=val1 bar=1'"
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/8.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/8.0]
+lappend ans [list setpath MODULES_LMTAG variant/8.0&hidden-loaded]
+lappend ans [list setpath MODULES_LMVARIANT variant/8.0&foo|val2|0&bar|1|0]
+testouterr_cmd sh {load variant@8.0 foo=val2 bar=1} $ans {}
+
+
+# dot hidden file
+setenv_var TESTSUITE_VARIANT_TAG 7
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/.w\ s]
+lappend ans [list setpath _LMFILES_ $mp/variant/.w\ s]
+lappend ans [list setpath MODULES_LMTAG variant/.w\ s&hidden-loaded]
+lappend ans [list setpath MODULES_LMVARIANT variant/.w\ s&foo|val1|0&bar|2|1]
+testouterr_cmd sh {load variant/.w\ s foo=val1} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/.w\ s]
+lappend ans [list setpath _LMFILES_ $mp/variant/.w\ s]
+lappend ans [list setpath MODULES_LMTAG variant/.w\ s&hidden-loaded]
+lappend ans [list setpath MODULES_LMVARIANT variant/.w\ s&foo|val1|0&bar|2|1]
+testouterr_cmd sh {load variant/.w\ s foo=val1 bar=2} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/.w\ s]
+lappend ans [list setpath _LMFILES_ $mp/variant/.w\ s]
+lappend ans [list setpath MODULES_LMVARIANT variant/.w\ s&foo|val2|0&bar|2|1]
+testouterr_cmd sh {load variant/.w\ s foo=val2} $ans {}
+
+
+#
+#  Cleanup
+#
+
+reset_test_env

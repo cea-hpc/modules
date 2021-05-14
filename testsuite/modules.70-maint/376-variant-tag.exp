@@ -1,0 +1,168 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2021/05/13
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		variant, module-hide, module-forbid, module-tag
+#   Modulefiles:    variant
+#   Sub-Command:    avail, list, whatis
+#
+#   Comment:	%C{
+#           Test variant over hide/forbid/tag modules
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+setenv_var MODULES_TAG_ABBREV {auto-loaded=aL:loaded=L:hidden=H:hidden-loaded=H:forbidden=F:nearly-forbidden=nF}
+
+
+#
+# module-hide test
+#
+
+setenv_var TESTSUITE_VARIANT_TAG 1
+set tserr {variant/8.0}
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=2} OK $tserr
+
+set tserr "$modlin $mpre $modlin\n\\s+variant/8.0: variant/8.0"
+testouterr_cmd_re sh {whatis variant@8.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd_re sh {whatis variant@8.0} OK $tserr
+testouterr_cmd_re sh {whatis variant@7.5:8.5 foo=val1} OK $tserr
+
+setenv_loaded_module [list variant/8.0] [list $mp/variant/8.0]
+setenv_path_var MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1
+setenv_path_var MODULES_LMTAG variant/8.0&hidden-loaded
+
+set tserr {variant/8.0 <L>}
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=2} OK $tserr
+
+set tserr "$modlin $mpre $modlin\n\\s+variant/8.0: variant/8.0"
+testouterr_cmd_re sh {whatis variant@8.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd_re sh {whatis variant@8.0} OK $tserr
+testouterr_cmd_re sh {whatis variant@7.5:8.5 foo=val1} OK $tserr
+
+testouterr_cmd sh {list -t -o tag} OK {}
+testouterr_cmd sh {list -a -t -o tag} OK {variant/8.0 <H>}
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMVARIANT
+unsetenv_path_var MODULES_LMTAG
+
+
+# test when module-hide is hard mode and applies to a variant default value specifically
+setenv_var TESTSUITE_VARIANT_TAG 2
+set tserr {variant/8.0}
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=2} OK $tserr
+
+set tserr "$modlin $mpre $modlin\n\\s+variant/8.0: variant/8.0"
+testouterr_cmd_re sh {whatis variant@8.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd_re sh {whatis variant@8.0} OK $tserr
+testouterr_cmd_re sh {whatis variant@7.5:8.5 foo=val1} OK $tserr
+
+setenv_loaded_module [list variant/8.0] [list $mp/variant/8.0]
+setenv_path_var MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1
+setenv_path_var MODULES_LMTAG variant/8.0&hidden-loaded
+
+set tserr {variant/8.0 <L>}
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=2} OK $tserr
+
+set tserr "$modlin $mpre $modlin\n\\s+variant/8.0: variant/8.0"
+testouterr_cmd_re sh {whatis variant@8.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd_re sh {whatis variant@8.0} OK $tserr
+testouterr_cmd_re sh {whatis variant@7.5:8.5 foo=val1} OK $tserr
+
+testouterr_cmd sh {list -t -o tag} OK {}
+testouterr_cmd sh {list -a -t -o tag} OK {variant/8.0 <H>}
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMVARIANT
+unsetenv_path_var MODULES_LMTAG
+
+
+# test when module-hide applies to generic module name
+setenv_var TESTSUITE_VARIANT_TAG 5
+set tserr {variant/8.0}
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=2} OK $tserr
+
+set tserr "$modlin $mpre $modlin\n\\s+variant/8.0: variant/8.0"
+testouterr_cmd_re sh {whatis variant@8.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd_re sh {whatis variant@8.0} OK $tserr
+testouterr_cmd_re sh {whatis variant@7.5:8.5 foo=val1} OK $tserr
+
+setenv_loaded_module [list variant/8.0] [list $mp/variant/8.0]
+setenv_path_var MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|1|0
+setenv_path_var MODULES_LMTAG variant/8.0&hidden-loaded
+
+set tserr {variant/8.0 <L>}
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=2} OK $tserr
+
+set tserr "$modlin $mpre $modlin\n\\s+variant/8.0: variant/8.0"
+testouterr_cmd_re sh {whatis variant@8.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd_re sh {whatis variant@8.0} OK $tserr
+testouterr_cmd_re sh {whatis variant@7.5:8.5 foo=val1} OK $tserr
+
+testouterr_cmd sh {list -t -o tag} OK {}
+testouterr_cmd sh {list -a -t -o tag} OK {variant/8.0 <H>}
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMVARIANT
+unsetenv_path_var MODULES_LMTAG
+
+
+# dot hidden file
+setenv_var TESTSUITE_VARIANT_TAG 7
+set tserr {variant/.w s <H>}
+testouterr_cmd sh {avail -t -o tag variant/.w\ s} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant/.w\ s foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant/.w\ s foo=val1 bar=1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant/.w\ s foo=val1 bar=2} OK $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
