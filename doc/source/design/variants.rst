@@ -674,3 +674,8 @@ Specific impact
 ^^^^^^^^^^^^^^^
 
 - When loading a module with variant, if this module is already loaded but with a different variant set an error is raised
+
+- Tags applying specifically on variants do not appear over ``avail`` result
+
+    - As variant are not treated on ``avail`` mode
+    - However if a module is loaded and tags apply to the variant selected, these tags will appear on the module designation within ``avail`` result
