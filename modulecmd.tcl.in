@@ -1890,8 +1890,15 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
    }
 }
 
-proc execute-modulefile {modfile modname modnamevr modspec {must_have_cookie\
-   1} {fetch_tags 1}} {
+proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
+   {must_have_cookie 1} {fetch_tags 1}} {
+   # link to modnamevr variable name from calling ctx if content update asked
+   if {$up_namevr} {
+      upvar $modnamevrvar modnamevr
+   } else {
+      set modnamevr $modnamevrvar
+   }
+
    lappendState modulefile $modfile
    lappendState modulename $modname
    lappendState modulenamevr $modnamevr
@@ -2097,6 +2104,21 @@ proc execute-modulefile {modfile modname modnamevr modspec {must_have_cookie\
          return 0
       }
    }]
+
+   # check if mod name version and variant has changed (default variant set)
+   # update modnamevr if so and collect tags applying to new name
+   if {$up_namevr} {
+      set newmodnamevr "{$modname}"
+      if {[set vr [getVariantList $modname 1]] ne {}} {
+         append newmodnamevr " $vr"
+      }
+      if {$modnamevr ne $newmodnamevr} {
+         lassign [eval parseModuleSpecification 0 $newmodnamevr] modnamevr
+         if {$fetch_tags} {
+            collectModuleTags $modnamevr
+         }
+      }
+   }
 
    reportDebug "exiting $modfile"
    lpopState debug_msg_prefix
@@ -12029,7 +12051,7 @@ proc cmdModuleDisplay {args} {
             set first_report 0
          }
          report [sgr hi $modfile]:\n
-         execute-modulefile $modfile $modname $modnamevr $mod
+         execute-modulefile $modfile $modname modnamevr $mod
          displaySeparatorLine
       }
    }
@@ -12275,7 +12297,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
          # interpret every modulefiles obtained to get their whatis text
          foreach elt [lsort -dictionary [array names interp_list]] {
             set ::g_whatis {}
-            execute-modulefile $interp_list($elt) $elt $elt $elt
+            execute-modulefile $interp_list($elt) $elt $elt $elt 0
 
             # treat whatis as a multi-line text
             if {$search eq {} || [regexp -nocase $search $::g_whatis]} {
@@ -12712,7 +12734,7 @@ proc cmdModuleSource {args} {
          # modulefile to execute as sourced files may need more flexibility
          # as they may be managed outside of the modulefile environment like
          # the initialization modulerc file
-         execute-modulefile $absfpath $absfpath $absfpath $absfpath 0 0
+         execute-modulefile $absfpath $absfpath $absfpath $absfpath 0 0 0
          lpopState mode
       } else {
          reportErrorAndExit "File $fpath does not exist"
@@ -12732,7 +12754,7 @@ proc cmdModuleUnsource {args} {
          # modulefile to execute as sourced files may need more flexibility
          # as they may be managed outside of the modulefile environment like
          # the initialization modulerc file
-         execute-modulefile $absfpath $absfpath $absfpath $absfpath 0 0
+         execute-modulefile $absfpath $absfpath $absfpath $absfpath 0 0 0
          lpopState mode
       } else {
          reportErrorAndExit "File $fpath does not exist"
@@ -12869,7 +12891,7 @@ proc cmdModuleLoad {context uasked args} {
             }
          }
 
-         if {[execute-modulefile $modfile $modname $modnamevr $mod]} {
+         if {[execute-modulefile $modfile $modname modnamevr $mod]} {
             break
          }
 
@@ -13250,7 +13272,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          # unload evaluation to report correct order with other evaluations)
          registerModuleEval $context $msgrecid
 
-         if {[execute-modulefile $modfile $modname $modnamevr $mod]} {
+         if {[execute-modulefile $modfile $modname modnamevr $mod]} {
             break
          }
 
@@ -13869,7 +13891,7 @@ proc cmdModuleTest {args} {
             set first_report 0
          }
          report "Module Specific Test for [sgr hi $modfile]:\n"
-         execute-modulefile $modfile $modname $modnamevr $mod
+         execute-modulefile $modfile $modname modnamevr $mod
          displaySeparatorLine
       }
    }
@@ -14136,7 +14158,7 @@ proc cmdModuleHelp {args} {
             set first_report 0
          }
          report "Module Specific Help for [sgr hi $modfile]:\n"
-         execute-modulefile $modfile $modname $modnamevr $arg
+         execute-modulefile $modfile $modname modnamevr $arg
          displaySeparatorLine
       }
    }
