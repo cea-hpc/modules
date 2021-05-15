@@ -1669,7 +1669,7 @@ proc getConIsLoadedMsg {conlist {loading 0}} {
 }
 
 proc getForbiddenMsg {mod} {
-   set msg "Access to module '$mod' is denied"
+   set msg "Access to module [getModuleDesignation spec $mod 2] is denied"
    set extramsg [getModuleTagProp $mod forbidden message]
    if {$extramsg ne {}} {
       append msg \n$extramsg
@@ -5939,12 +5939,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
    if {![info exists retlist]} {
       set retlist [list {} $mod $mod none "Unable to locate a modulefile for\
          '$mod'"]
-   # update result if forbidden
-   } elseif {[isModuleTagged [lindex $retlist 1] forbidden]} {
-      set retlist [list {} [lindex $retlist 1] [lindex $retlist 2] accesserr\
-         [getForbiddenMsg [lindex $retlist 1]]]
-   }
-   if {[lindex $retlist 0] ne {}} {
+   } else {
       # build module name and variant with variant specified
       if {[llength $vrlist] > 0} {
          lassign [eval parseModuleSpecification 0 [concat [list [lindex\
@@ -5952,6 +5947,13 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
       } else {
          set modnamevr [lindex $retlist 1]
       }
+      # update result if forbidden
+      if {[isModuleTagged $modnamevr forbidden]} {
+         set retlist [list {} [lindex $retlist 1] [lindex $retlist 2]\
+            accesserr [getForbiddenMsg $modnamevr]]
+      }
+   }
+   if {[lindex $retlist 0] ne {}} {
       lappend retlist $modnamevr
       reportTrace "'[lindex $retlist 1]' ([lindex $retlist 0]) matching\
          '$mod'" {Select module}
