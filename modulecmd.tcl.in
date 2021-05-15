@@ -2120,6 +2120,14 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
       }
    }
 
+   # check if special tags now applies and require to raise an error
+   if {$mode ne {unload}} {
+      if {[isModuleTagged $modnamevr forbidden 1]} {
+         set errorVal 1
+         reportError [getForbiddenMsg $modnamevr]
+      }
+   }
+
    reportDebug "exiting $modfile"
    lpopState debug_msg_prefix
    lpopState specifiedname
