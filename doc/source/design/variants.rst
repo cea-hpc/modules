@@ -679,3 +679,9 @@ Specific impact
 
     - As variant are not treated on ``avail`` mode
     - However if a module is loaded and tags apply to the variant selected, these tags will appear on the module designation within ``avail`` result
+
+- Variant specification is ignored on ``avail`` and ``whatis`` sub-commands
+
+    - If a forbidden tag applies to a specific module variant
+    - If this variant is the one specified as argument to ``avail`` or ``whatis`` sub-command
+    - The module will still be reported on ``avail`` or evaluated on ``whatis``
