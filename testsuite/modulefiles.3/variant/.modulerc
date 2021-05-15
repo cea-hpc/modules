@@ -22,5 +22,24 @@ if {[info exists env(TESTSUITE_VARIANT_TAG)]} {
         7 {
             module-hide --hidden-loaded variant foo=val1 bar=2
         }
+        11 {
+            module-forbid variant/8.0 foo=val1
+        }
+        12 {
+            module-forbid variant/8.0 foo=val1 bar=2 variant/8.0 foo=val1 bar=3
+        }
+        13 {
+            module-forbid --message {forbidden message} variant@8.0 foo=val1 bar=1
+        }
+        14 {
+            set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
+            module-forbid --after $tomorrow --nearly-message {nearly message} variant@7.5:8.5 foo=val1 bar=2
+        }
+        15 {
+            module-forbid variant foo=val1 bar=1
+        }
+        16 {
+            module-forbid variant@8.0
+        }
     }
 }
