@@ -1922,8 +1922,9 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
    }
 
    # inform that access to module will be soon denied
-   if {$mode ne {unload} && [isModuleTagged $modname nearly-forbidden 1]} {
-      reportWarning [getNearlyForbiddenMsg $modname]
+   if {$mode ne {unload} && [isModuleTagged $modnamevr nearly-forbidden 1]} {
+      reportWarning [getNearlyForbiddenMsg $modnamevr]
+      set nearlyforbidwarn 1
    # fail unload attempt if module is sticky, unless if forced or reloading
    # also fail unload if mod is super-sticky even if forced, unless reloading
    } elseif {$mode eq {unload}} {
@@ -2125,6 +2126,9 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
       if {[isModuleTagged $modnamevr forbidden 1]} {
          set errorVal 1
          reportError [getForbiddenMsg $modnamevr]
+      } elseif {![info exists nearlyforbidwarn] && [isModuleTagged $modnamevr\
+         nearly-forbidden 1]} {
+         reportWarning [getNearlyForbiddenMsg $modnamevr]
       }
    }
 
