@@ -26,7 +26,7 @@ setenv_path_var MODULEPATH $mp
 
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 
-setenv_var MODULES_TAG_ABBREV {auto-loaded=aL:loaded=L:hidden=H:hidden-loaded=H:forbidden=F:nearly-forbidden=nF}
+setenv_var MODULES_TAG_ABBREV {auto-loaded=aL:loaded=L:hidden=H:hidden-loaded=H:forbidden=F:nearly-forbidden=nF:sticky=S:super-sticky=sS}
 
 
 #
@@ -246,6 +246,116 @@ set tserr [err_accessdenied variant/8.0]
 testouterr_cmd_re sh {whatis variant@8.0 foo=val1 bar=2} ERR $tserr
 testouterr_cmd_re sh {whatis variant@8.0} ERR $tserr
 testouterr_cmd_re sh {whatis variant@7.5:8.5 foo=val1} ERR $tserr
+
+
+#
+# module-tag test (sticky/super-sticky)
+#
+
+setenv_var TESTSUITE_VARIANT_TAG 21
+set tserr {variant/8.0}
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=2} OK $tserr
+
+set tserr "$modlin $mpre $modlin\n\\s+variant/8.0: variant/8.0"
+testouterr_cmd_re sh {whatis variant@8.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd_re sh {whatis variant@8.0} OK $tserr
+testouterr_cmd_re sh {whatis variant@7.5:8.5 foo=val1} OK $tserr
+
+setenv_loaded_module [list variant/8.0] [list $mp/variant/8.0]
+setenv_path_var MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1
+setenv_path_var MODULES_LMTAG variant/8.0&sticky
+
+set tserr {variant/8.0 <L:S>}
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=2} OK $tserr
+
+set tserr "$modlin $mpre $modlin\n\\s+variant/8.0: variant/8.0"
+testouterr_cmd_re sh {whatis variant@8.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd_re sh {whatis variant@8.0} OK $tserr
+testouterr_cmd_re sh {whatis variant@7.5:8.5 foo=val1} OK $tserr
+
+testouterr_cmd sh {list -t -o tag} OK {variant/8.0 <S>}
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMVARIANT
+unsetenv_path_var MODULES_LMTAG
+
+
+setenv_var TESTSUITE_VARIANT_TAG 24
+set tserr {variant/8.0}
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=2} OK $tserr
+
+set tserr "$modlin $mpre $modlin\n\\s+variant/8.0: variant/8.0"
+testouterr_cmd_re sh {whatis variant@8.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd_re sh {whatis variant@8.0} OK $tserr
+testouterr_cmd_re sh {whatis variant@7.5:8.5 foo=val1} OK $tserr
+
+setenv_loaded_module [list variant/8.0] [list $mp/variant/8.0]
+setenv_path_var MODULES_LMVARIANT variant/8.0&foo|val1|0&bar|2|1
+setenv_path_var MODULES_LMTAG variant/8.0&super-sticky
+
+set tserr {variant/8.0 <L:sS>}
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=2} OK $tserr
+
+set tserr "$modlin $mpre $modlin\n\\s+variant/8.0: variant/8.0"
+testouterr_cmd_re sh {whatis variant@8.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd_re sh {whatis variant@8.0} OK $tserr
+testouterr_cmd_re sh {whatis variant@7.5:8.5 foo=val1} OK $tserr
+
+testouterr_cmd sh {list -t -o tag} OK {variant/8.0 <sS>}
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMVARIANT
+unsetenv_path_var MODULES_LMTAG
+
+
+setenv_var TESTSUITE_VARIANT_TAG 25
+set tserr {variant/8.0}
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=2} OK $tserr
+
+set tserr "$modlin $mpre $modlin\n\\s+variant/8.0: variant/8.0"
+testouterr_cmd_re sh {whatis variant@8.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd_re sh {whatis variant@8.0} OK $tserr
+testouterr_cmd_re sh {whatis variant@7.5:8.5 foo=val1} OK $tserr
+
+
+setenv_var TESTSUITE_VARIANT_TAG 26
+set tserr {variant/8.0 <S>}
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=2} OK $tserr
+
+set tserr "$modlin $mpre $modlin\n\\s+variant/8.0: variant/8.0"
+testouterr_cmd_re sh {whatis variant@8.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd_re sh {whatis variant@8.0} OK $tserr
+testouterr_cmd_re sh {whatis variant@7.5:8.5 foo=val1} OK $tserr
 
 
 #
