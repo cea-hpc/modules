@@ -1928,6 +1928,7 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
    # fail unload attempt if module is sticky, unless if forced or reloading
    # also fail unload if mod is super-sticky even if forced, unless reloading
    } elseif {$mode eq {unload}} {
+      # when loaded, tags applies to mod name and version (not with variant)
       if {[isModuleTagged $modname super-sticky 1] && [currentState\
          reloading_supersticky] ne $modname} {
          # restore changed states prior raising error
@@ -11954,41 +11955,32 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist {force 0}\
 # to one of the reloading module
 proc isStickynessReloading {mod reloading_modlist {tag sticky}} {
    set res 0
-   if {[isModuleTagged $mod $tag 1]} {
+   set modname [getModuleNameAndVersFromVersSpec $mod]
+   if {[isModuleTagged $modname $tag 1]} {
       # evalute the module-tag commands that are related to mod
       set dir [getModulepathFromModuleName [getModulefileFromLoadedModule\
-         $mod] $mod]
-      getModules $dir $mod 0 [list rc_defs_included]
+         $modname] $modname]
+      getModules $dir $modname 0 [list rc_defs_included]
 
+      set tmodspec [getModuleTag $mod $tag equal 1]
       # if tag specifically applies to fully qualified module, exact same
       # module should be found in reload list
-      if {[isModuleTagged $mod $tag 0 equal]} {
-         set res [isInList $reloading_modlist $mod]
-         reportDebug "stickyness ($tag) applies to '$mod', is reloading=$res"
+      if {$tmodspec ne {}} {
+         set tmodspec $mod
       } else {
-         # find most restrictive sticky tag definition
-         set modprev $mod
-         while {[set modpar [file  dirname $modprev]] ne {.}} {
-            if {![isModuleTagged $modpar $tag]} {
-               set stickypar $modprev
-               break
-            }
-            set modprev $modpar
-         }
-         if {![info exists stickypar]} {
-            set stickypar $modprev
-         }
-         # check if a loading mod satisfies sticky rules
-         foreach modlo $reloading_modlist {
-            if {[modEq $stickypar $modlo eqstart]} {
-               # found match
-               set res 1
-               break
-            }
-         }
-         reportDebug "stickyness ($tag) applies to '$stickypar', is\
-            reloading=$res"
+         set tmodspec [getModuleTag $mod $tag eqstart 1]
       }
+
+      # check if a loading mod satisfies sticky rules
+      foreach modlo $reloading_modlist {
+         if {[modEq $tmodspec $modlo eqstart 1 0 1]} {
+            # found match
+            set res 1
+            break
+         }
+      }
+      reportDebug "stickyness ($tag) applies to '$tmodspec', is\
+         reloading=$res"
    }
 
    return $res
@@ -12388,10 +12380,10 @@ proc cmdModuleSwitch {uasked old {new {}}} {
    # enable unload of sticky mod if stickyness is preserved on swapped-on mod
    # need to resolve swapped-off module here to get stickyness details
    lassign [getPathToModule $old {} 0 $unload_match] modfile oldmod oldmodvr
-   if {[set sticky_reload [isStickynessReloading $oldmod $new]]} {
+   if {[set sticky_reload [isStickynessReloading $oldmodvr [list $new]]]} {
       lappendState reloading_sticky $oldmod
    }
-   if {[set supersticky_reload [isStickynessReloading $oldmod $new\
+   if {[set supersticky_reload [isStickynessReloading $oldmodvr [list $new]\
       super-sticky]]} {
       lappendState reloading_supersticky $oldmod
    }
