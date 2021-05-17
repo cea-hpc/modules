@@ -5570,7 +5570,7 @@ proc setModspecTag {modspec tag {props {}}} {
    }
 }
 
-proc getModuleTag {mod tag {cmp eqstart}} {
+proc getModuleTag {mod tag {cmp eqstart} {return_rule 0}} {
    set modroot [getModuleRootFromVersSpec $mod]
    # look if mod matches one of the module specs applying to mod root
    if {[info exists ::g_moduleTagRoot($modroot)]} {
@@ -5585,7 +5585,11 @@ proc getModuleTag {mod tag {cmp eqstart}} {
             $idx] {
             # first matching module spec wins with its properties
             if {[modEq $tmodspec $mod $cmp 1 0 1]} {
-               return [list $tag $tprops]
+               if {$return_rule} {
+                  return $tmodspec
+               } else {
+                  return [list $tag $tprops]
+               }
             }
          }
       }
