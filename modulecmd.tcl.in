@@ -12555,10 +12555,16 @@ proc cmdModuleRestore {{coll default}} {
 
    # unload modules one by one (no dependency auto unload)
    foreach mod [lreverse $mod_to_unload] {
-      if {[set sticky_reload [isStickynessReloading $mod $mod_to_load]]} {
+      # test stickyness over full module name version variant designation
+      if {[set vr [getVariantList $mod 1]] ne {}} {
+         lassign [eval parseModuleSpecification 0 "{$mod} $vr"] modvr
+      } else {
+         set modvr $mod
+      }
+      if {[set sticky_reload [isStickynessReloading $modvr $mod_to_load]]} {
          lappendState reloading_sticky $mod
       }
-      if {[set supersticky_reload [isStickynessReloading $mod $mod_to_load\
+      if {[set supersticky_reload [isStickynessReloading $modvr $mod_to_load\
          super-sticky]]} {
          lappendState reloading_supersticky $mod
       }
