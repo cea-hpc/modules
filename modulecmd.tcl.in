@@ -141,7 +141,7 @@ proc getState {state {valifundef {}} {catchinitproc 0}} {
          } else {
             set value [eval $initproclist]
          }
-      # overriden value coming the command-line
+      # overridden value coming the command-line
       } elseif {[info exists ::asked_$state]} {
          set value [set ::asked_$state]
       }
@@ -231,7 +231,7 @@ proc getConf {option {valifundef {}}} {
          if {$initproc ne {}} {
             set value [$initproc $envvar $value $validvallist $intvallist]
          } else {
-            # overriden value coming from environment
+            # overridden value coming from environment
             if {$envvar ne {} && [info exists ::env($envvar)]} {
                switch -- $validvallistkind {
                   eltlist {
@@ -262,7 +262,7 @@ proc getConf {option {valifundef {}}} {
                }
             }
 
-            # overriden value coming the command-line (already validated)
+            # overridden value coming the command-line (already validated)
             if {[info exists ::asked_$option]} {
                set value [set ::asked_$option]
             }
@@ -455,11 +455,11 @@ proc initStateTclVersionLt85 {} {
 
 # Initialize Select Graphic Rendition table
 proc initConfColors {envvar value validvallist intvallist} {
-   # overriden value coming from environment
+   # overridden value coming from environment
    if {[info exists ::env($envvar)]} {
       set colors_list $::env($envvar)
       if {[catch {
-         # test overriden value could be set to a dummy array variable
+         # test overridden value could be set to a dummy array variable
          array set test_colors [split $colors_list {:=}]
       } errMsg ]} {
          # report issue as a debug message rather warning to avoid
@@ -508,7 +508,7 @@ proc initConfColors {envvar value validvallist intvallist} {
 
 # Initialize color configuration value
 proc initConfColor {envvar value validvallist intvallist} {
-   # overriden value coming from environment via standard variable
+   # overridden value coming from environment via standard variable
    # https://no-color.org/ and https://bixense.com/clicolors/
    if {[info exists ::env(NO_COLOR)]} {
       set value never
@@ -523,7 +523,7 @@ proc initConfColor {envvar value validvallist intvallist} {
       set value always
    }
 
-   # overriden value coming from environment via Modules-specific variable
+   # overridden value coming from environment via Modules-specific variable
    if {$envvar ne {} && [info exists ::env($envvar)]} {
       # ignore non-valid values
       if {[llength $validvallist] == 0 || [isInList $validvallist\
@@ -532,7 +532,7 @@ proc initConfColor {envvar value validvallist intvallist} {
       }
    }
 
-   # overriden value coming the command-line
+   # overridden value coming the command-line
    if {[info exists ::asked_color]} {
       set value [set ::asked_color]
    }
@@ -582,7 +582,7 @@ proc initConfTclExtLib {envvar value validvallist intvallist} {
 
 # Initialize module tag abbreviation table
 proc initConfTagAbbrev {envvar value validvallist intvallist} {
-   # overriden value coming from environment
+   # overridden value coming from environment
    if {[info exists ::env($envvar)]} {
       if {[catch {
          # try to set the tag-abbreviation mapping table
@@ -632,7 +632,7 @@ proc initConfTagAbbrev {envvar value validvallist intvallist} {
 
 # Initialize module tag color name table
 proc initConfTagColorName {envvar value validvallist intvallist} {
-   # overriden value coming from environment
+   # overridden value coming from environment
    if {[info exists ::env($envvar)]} {
       set value $::env($envvar)
    }
@@ -647,10 +647,10 @@ proc initConfTagColorName {envvar value validvallist intvallist} {
 
 # Initialize interactive editor command
 proc initConfEditor {envvar value validvallist intvallist} {
-   # overriden value coming from environment via Modules-specific variable
+   # overridden value coming from environment via Modules-specific variable
    if {$envvar ne {} && [info exists ::env($envvar)]} {
       set value $::env($envvar)
-   # overriden value coming from environment via standard variable
+   # overridden value coming from environment via standard variable
    } elseif {[info exists ::env(VISUAL)]} {
       set value $::env(VISUAL)
    } elseif {[info exists ::env(EDITOR)]} {
@@ -690,7 +690,7 @@ proc renderFalse {} {
       # setup flag to render only once
       setState false_rendered 1
 
-      # render a false value most of the time through a variable assignement
+      # render a false value most of the time through a variable assignment
       # that will be looked at in the shell module function calling
       # modulecmd.tcl to return in turns a boolean status. Except for python
       # and cmake, the value assigned to variable is also returned as the
@@ -732,7 +732,7 @@ proc renderFalse {} {
 proc renderTrue {} {
    reportDebug called.
 
-   # render a true value most of the time through a variable assignement that
+   # render a true value most of the time through a variable assignment that
    # will be looked at in the shell module function calling modulecmd.tcl to
    # return in turns a boolean status. Except for python and cmake, the
    # value assigned to variable is also returned as the full rendering status
@@ -772,7 +772,7 @@ proc renderTrue {} {
 proc renderText {text} {
    reportDebug "called ($text)."
 
-   # render a text value most of the time through a variable assignement that
+   # render a text value most of the time through a variable assignment that
    # will be looked at in the shell module function calling modulecmd.tcl to
    # return in turns a string value.
    switch -- [getState shelltype] {
@@ -909,14 +909,14 @@ proc reportInternalBug {message {modfile {}}} {
 
 proc reportInfo {message {title INFO}} {
    if {[isVerbosityLevel normal]} {
-      # use reportError for conveniance but there is no error here
+      # use reportError for convenience but there is no error here
       reportError $message 0 $title in 0
    }
 }
 
 proc reportTrace {message {title TRACE}} {
    if {[isVerbosityLevel trace]} {
-      # use reportError for conveniance but there is no error here
+      # use reportError for convenience but there is no error here
       reportError [sgr tr $message] 0 $title tr 0
    }
 }
@@ -1117,7 +1117,7 @@ proc formatErrStackTrace {errmsg loc {cmdlist {}}} {
          set cmd1 $cmd2
       }
 
-      # filter out stack element refering to or called by an unknown procedure
+      # filter out stack element referring to or called by an unknown procedure
       # (ie. a modulecmd.tcl internal procedure)
       if {[string index $cmd1 0] ne {$} && $cmd1 ne $unkcmd && ([isInList\
          $filtercmdlist $cmdcaller] || [isInList $filtercmdlist $cmd1])} {
@@ -1183,7 +1183,7 @@ proc sgr {keylist str {himatchmap {}} {othkeylist {}}} {
          }
       }
       if {[llength $othkeylist] == 0} {
-         # hightlight matching substring
+         # highlight matching substring
          if {[llength $himatchmap] > 0} {
             set str [string map $himatchmap $str]
          }
@@ -1415,8 +1415,8 @@ proc initErrorReport {} {
          getState reportfd
       }
 
-      # replace report procedures used to bufferize messages until error
-      # report being initialized by regular report procedures
+      # replace report procedures used to buffer messages until error report
+      # being initialized by regular report procedures
       rename ::reportDebug {}
       if {[isVerbosityLevel debug]} {
          rename ::__reportDebug ::reportDebug
@@ -2190,7 +2190,7 @@ proc execute-modulerc {modfile modname modspec} {
       interp eval $itrp set ::ModuleToolVersion {@MODULES_RELEASE@}
 
       # dump initial interpreter state to restore it before each modulerc
-      # interpreation. use same dump state for all levels
+      # interpretation. use same dump state for all levels
       if {![info exists ::g_modrcVars]} {
          dumpInterpState $itrp g_modrcVars g_modrcArrayVars\
             g_modrcUntrackVars g_modrcProcs
@@ -2565,7 +2565,7 @@ proc resolvStringWithEnv {0str} {
             set ${0varname} [get-env ${0varname}]
          }
       }
-      # resolv variable reference with values (now in local scope)
+      # resolve variable reference with values (now in local scope)
       set 0res [subst -nobackslashes -nocommands ${0str}]
    } else {
       set 0res ${0str}
@@ -2748,7 +2748,7 @@ proc setModuleResolution {mod target {symver {}} {override_res_path 1}\
       lappend g_resolvedHash($res) $relmod
    }
 
-   # register and propagate symbols to the resolution path, execption made for
+   # register and propagate symbols to the resolution path, exception made for
    # auto symbol which are stored separately and not propagated
    if {[info exists g_symbolHash($mod)]} {
       set sym_list $g_symbolHash($mod)
@@ -2853,7 +2853,7 @@ proc getAllModuleResolvedName {mod {flag_type 0} {modspec {}}} {
       lappend resmodlist $modroot
    }
 
-   # add additionnaly all the altnames set on directories, parents of mod
+   # add additionally all the altnames set on directories, parents of mod
    # or on distant directories whose default version resolves to mod
    for {set i 0} {$i < [llength $resmodlist]} {incr i 1} {
       set modelt [getArrayKey ::g_resolvedHash [lindex $resmodlist $i] $icase]
@@ -3007,7 +3007,7 @@ proc __parseDateTimeArg {opt datetime} {
    }
 }
 
-# parse application critera arguments and determine if command applies
+# parse application criteria arguments and determine if command applies
 proc parseApplicationCriteriaArgs {aftbef nearsec args} {
    set otherargs {}
 
@@ -3795,7 +3795,7 @@ proc chdir {dir} {
    return {}
 }
 
-# superseed exit command to handle it if called within a modulefile
+# supersede exit command to handle it if called within a modulefile
 # rather than exiting the whole process
 proc exitModfileCmd {{code 0}} {
    reportDebug ($code)
@@ -5062,7 +5062,7 @@ proc variant {itrp args} {
       knerror "Invalid value '$value' for variant '$name'\nAllowed values\
          are: $values" MODULES_ERR_GLOBAL
    } else {
-      # instanciate variant in modulefile context
+      # instantiate variant in modulefile context
       reportDebug "Set variant on $itrp: ModuleVariant($name) = '$value'"
       $itrp eval set "{::ModuleVariant($name)}" "{$value}"
       # after modfile interp ModuleVariant is unset by resetInterpState
@@ -5083,7 +5083,7 @@ proc variant-wh {itrp args} {
    lassign [eval parseVariantCommandArgs $args] name values defdflvalue\
       dflvalue
 
-   # instanciate variant in modulefile context to an empty value
+   # instantiate variant in modulefile context to an empty value
    reportDebug "Set variant on $itrp: ModuleVariant($name) = ''"
    $itrp eval set "{::ModuleVariant($name)}" "{}"
 }
@@ -5481,7 +5481,7 @@ proc sortModulePerLoadedAndDepOrder {modlist {nporeq 0} {loading 0}} {
       set jmin $imax
 
       if {[info exists ${reqListVar}($mod)]} {
-         # goes over all dependend modules to find the first one in the loaded
+         # goes over all dependent modules to find the first one in the loaded
          # order list located after requiring mod
          foreach lmmodlist [set ${reqListVar}($mod)] {
             foreach lmmod $lmmodlist {
@@ -5510,9 +5510,9 @@ proc sortModulePerLoadedAndDepOrder {modlist {nporeq 0} {loading 0}} {
 # return list of module paths by parsing MODULEPATH env variable
 # behavior param enables to exit in error when no MODULEPATH env variable
 # is set. by default an empty list is returned if no MODULEPATH set
-# resolv_var param tells if environement variable references in path elements
+# resolv_var param tells if environment variable references in path elements
 # should be resolved or passed as-is in result list
-# set_abs param applies an absolute path name convertion to path elements
+# set_abs param applies an absolute path name conversion to path elements
 # if enabled
 proc getModulePathList {{behavior returnempty} {resolv_var 1} {set_abs 1}} {
    if {[info exists ::env(MODULEPATH)]} {
@@ -6715,7 +6715,7 @@ proc setModuleDependency {mod} {
    # update eventual registered unmet dependencies
    foreach modpre [array names ::g_unmetDepHash] {
       if {[modEq $modpre $mod eqstart 1 2 1]} {
-         reportDebug "refresh requirements targetting '$modpre'"
+         reportDebug "refresh requirements targeting '$modpre'"
          foreach lmmod $::g_unmetDepHash($modpre) {
             if {[isInList [getDependentLoadedModuleList [list $lmmod] 0 0]\
                $mod]} {
@@ -6769,7 +6769,7 @@ proc setModuleDependency {mod} {
                   '$lmmoddepnpolist'"
                set ::g_moduleNPODepend($lmmod) $lmmoddepnpolist
             } else {
-               # refresh actual dependencies of targetting mod
+               # refresh actual dependencies of targeting mod
                unsetModuleDependency $lmmod
                setModuleDependency $lmmod
             }
@@ -6863,7 +6863,7 @@ proc unsetModuleDependency {mod} {
    if {[llength $hashdeplist] > 0} {
       reportDebug "refresh dependent of '$mod'"
       foreach lmmod $hashdeplist {
-         # refresh actual dependencies of targetting mod
+         # refresh actual dependencies of targeting mod
          unsetModuleDependency $lmmod
          setModuleDependency $lmmod
       }
@@ -8532,7 +8532,7 @@ proc getEqArrayKeyProc {arrname name} {
    return $name
 }
 
-# split string while ignore any separator character that is espaced
+# split string while ignore any separator character that is escaped
 proc psplit {str sep} {
    # use standard split if no sep character found
    if {[string first \\$sep $str] == -1} {
@@ -8587,7 +8587,7 @@ proc isVersion {str} {
    return [string is xdigit -strict [lindex [split $str .] 0]]
 }
 
-# Return number of occurences of passed character in passed string
+# Return number of occurrences of passed character in passed string
 proc countChar {str char} {
    return [expr {[string length $str] - [string length [string map [list\
       $char {}] $str]]}]
@@ -10087,7 +10087,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
                }
             }
          }
-         # consider 'default' symbols are explicitely specified if
+         # consider 'default' symbols are explicitly specified if
          # onlydefaults filter applied or resolving bare module name
          if {!$hidmatch && [lindex $found_list($elt) 0] eq {version} && [file\
             tail $elt] eq {default} && ($filter eq {onlydefaults} || ($resctx\
@@ -10144,7 +10144,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    foreach elt [array names dir_list] {
       if {![info exists found_list($elt)]} {
          set dir_list($elt) [lsort -dictionary $dir_list($elt)]
-         # get default element: explicitely defined default (whether it exists
+         # get default element: explicitly defined default (whether it exists
          # or is in error) or implicit default if enabled
          if {[info exists found_list($elt/default)] && [lindex\
             $found_list($elt/default) 0] eq {version}} {
@@ -10299,7 +10299,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
       if {[lindex $found_list($elt) 0] eq {directory} && ([info exists\
          mod_list($elt)] || $keeping)} {
          set fdir_list($elt) [lsort -dictionary $fdir_list($elt)]
-         # get default element: explicitely defined default if included in
+         # get default element: explicitly defined default if included in
          # result or not found or implicit default if enabled
          if {[info exists found_list($elt/default)] && [lindex\
             $found_list($elt/default) 0] eq {version} && ([info exists\
@@ -10345,7 +10345,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
                   set keep_list($keepelt) 1
                }
             # when noplaindir filtering, only keep dirs with syms when indepth
-            # enabled or if correponds to query depth when indepth disabled
+            # enabled or if corresponds to query depth when indepth disabled
             } elseif {$filtering && $filter eq {noplaindir} &&\
                (($indepth && (!$report_dirwsym || ![doesModuleHaveSym $elt]))\
                || (!$indepth && [countChar $elt /] != $querydepth))} {
@@ -10408,7 +10408,7 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
    sgrdef tag_list show_tags vr_list vrsgr show_vrs {himatchmap {}}} {
    # fetch sgr codes from tags to apply directly on main element
    if {$show_tags && [llength $tag_list] > 0} {
-      # if more codes than character in elt, additionnal codes apply to the
+      # if more codes than character in elt, additional codes apply to the
       # side tag list
       lassign [getTagSgrForModname $tag_list [string length $elt]] tagsgrlist\
          tag_list
@@ -10499,7 +10499,7 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
    return [list $disp $dispsgr]
 }
 
-# format an element with its syms for a long/detailled display in a list
+# format an element with its syms for a long/detailed display in a list
 proc formatListEltToLongDisplay {elt eltsgr eltsuffix sym_list symsgr mtime\
    sgrdef {himatchmap {}}} {
    set disp $elt$eltsuffix
@@ -10570,7 +10570,7 @@ proc formatListEltToJsonDisplay {elt args} {
 # counterpart. Translate substring into all module it specifies in case of an
 # advanced version specification. Each string obtained is right trimmed from
 # wildcard. No highlight is set for strings still containing wildcard chars
-# after right trim operation. No highlist map is returned at all if hightlight
+# after right trim operation. No highlist map is returned at all if highlight
 # rendering is disabled.
 proc prepareMapToHightlightSubstr {substr} {
    set maplist {}
@@ -10621,7 +10621,7 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
       set sym_list [getVersAliasList $elt]
       # fetch tags but clear excluded tag
       set tag_list [replaceFromList [getTagList $elt] $excluded_tag]
-      # abbrieviate tags unless for json output
+      # abbreviate tags unless for json output
       if {!$json} {
          set tag_list [abbrevTagList $tag_list]
       }
@@ -11079,7 +11079,7 @@ proc getMovementBetweenList {from to {extfrom {}} {extto {}} {cmp eq}} {
       set in_extfrom [isInList $extfrom $from_obj]
       set in_extto [isInList $extto $to_obj]
       # are elts the sames and are both part of or missing from extra lists
-      # when comparing modules, ask comparaison against loaded module
+      # when comparing modules, ask comparison against loaded module
       # alternative and simplified names (modEq will also compare variants)
       if {($cmp eq {modeq} && ![modEq $to_obj $from_obj equal 1 3 1]) ||\
          ($cmp eq {eq} && $to_obj ne $from_obj) || $in_extfrom != $in_extto} {
@@ -11811,7 +11811,7 @@ proc getModuleRootFromVersSpec {modarg} {
    return $modroot
 }
 
-# translate module name version spec to return all modules mentionned
+# translate module name version spec to return all modules mentioned
 proc getAllModulesFromVersSpec {modarg} {
    if {[info exists ::g_moduleVersSpec($modarg)]} {
       lassign $::g_moduleVersSpec($modarg) mod modname cmpspec versspec
@@ -11838,7 +11838,7 @@ proc getAllModulesFromVersSpec {modarg} {
    return $modlist
 }
 
-# translate module name version spec to return one module mentionned
+# translate module name version spec to return one module mentioned
 proc getOneModuleFromVersSpec {modarg} {
    if {[info exists ::g_moduleVersSpec($modarg)]} {
       lassign $::g_moduleVersSpec($modarg) mod modname cmpspec versspec
@@ -11947,13 +11947,13 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist {force 0}\
    setConf auto_handling 1
 }
 
-# test if loaded module 'mod' is sticky and if stickyness definition applies
+# test if loaded module 'mod' is sticky and if stickiness definition applies
 # to one of the reloading module
 proc isStickynessReloading {mod reloading_modlist {tag sticky}} {
    set res 0
    set modname [getModuleNameAndVersFromVersSpec $mod]
    if {[isModuleTagged $modname $tag 1]} {
-      # evalute the module-tag commands that are related to mod
+      # evaluate the module-tag commands that are related to mod
       set dir [getModulepathFromModuleName [getModulefileFromLoadedModule\
          $modname] $modname]
       getModules $dir $modname 0 [list rc_defs_included]
@@ -11975,7 +11975,7 @@ proc isStickynessReloading {mod reloading_modlist {tag sticky}} {
             break
          }
       }
-      reportDebug "stickyness ($tag) applies to '$tmodspec', is\
+      reportDebug "stickiness ($tag) applies to '$tmodspec', is\
          reloading=$res"
    }
 
@@ -12169,7 +12169,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
          switch -- [lindex $mod_list($elt) 0] {
             modulefile {
                if {[isModuleTagged $elt forbidden]} {
-                  # register any error occuring on element matching search
+                  # register any error occurring on element matching search
                   if {[modEq $mod $elt]} {
                      set err_list($elt) [list accesserr [getForbiddenMsg\
                         $elt]]
@@ -12183,7 +12183,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
             }
             virtual {
                if {[isModuleTagged $elt forbidden]} {
-                  # register any error occuring on element matching search
+                  # register any error occurring on element matching search
                   if {[modEq $mod $elt]} {
                      set err_list($elt) [list accesserr [getForbiddenMsg\
                         $elt]]
@@ -12229,7 +12229,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
                }
             }
             invalid - accesserr {
-               # register any error occuring on element matching search
+               # register any error occurring on element matching search
                if {[modEq $mod $elt]} {
                   set err_list($elt) $mod_list($elt)
                }
@@ -12373,8 +12373,8 @@ proc cmdModuleSwitch {uasked old {new {}}} {
       lappendState inhibit_req_record [currentState evalid]
    }
 
-   # enable unload of sticky mod if stickyness is preserved on swapped-on mod
-   # need to resolve swapped-off module here to get stickyness details
+   # enable unload of sticky mod if stickiness is preserved on swapped-on mod
+   # need to resolve swapped-off module here to get stickiness details
    lassign [getPathToModule $old {} 0 $unload_match] modfile oldmod oldmodvr
    if {[set sticky_reload [isStickynessReloading $oldmodvr [list $new]]]} {
       lappendState reloading_sticky $oldmod
@@ -12392,7 +12392,7 @@ proc cmdModuleSwitch {uasked old {new {}}} {
    }
 
    # register modulefile to unload as conflict if an unload module is
-   # mentionned on this module switch command set in a modulefile
+   # mentioned on this module switch command set in a modulefile
    set orig_auto_handling [getConf auto_handling]
    if {!$uasked && $argold ne {}} {
       # skip conflict declaration if old spec matches new as in this case
@@ -12481,7 +12481,7 @@ proc cmdModuleSave {{coll default}} {
       reportErrorAndExit {Nothing to save in a collection}
    }
 
-   # get coresponding filename and its directory
+   # get corresponding filename and its directory
    lassign [getCollectionFilename $coll] collfile colldesc
    set colldir [file dirname $collfile]
 
@@ -12506,7 +12506,7 @@ proc cmdModuleSave {{coll default}} {
 proc cmdModuleRestore {{coll default}} {
    reportDebug $coll
 
-   # get coresponding filename
+   # get corresponding filename
    lassign [getCollectionFilename $coll] collfile colldesc
 
    if {![file exists $collfile]} {
@@ -12551,7 +12551,7 @@ proc cmdModuleRestore {{coll default}} {
 
    # unload modules one by one (no dependency auto unload)
    foreach mod [lreverse $mod_to_unload] {
-      # test stickyness over full module name version variant designation
+      # test stickiness over full module name version variant designation
       if {[set vr [getVariantList $mod 1]] ne {}} {
          lassign [eval parseModuleSpecification 0 "{$mod} $vr"] modvr
       } else {
@@ -12625,14 +12625,14 @@ proc cmdModuleSaverm {{coll default}} {
          filepath}
    }
 
-   # get coresponding filename
+   # get corresponding filename
    lassign [getCollectionFilename $coll] collfile colldesc
 
    if {![file exists $collfile]} {
       reportErrorAndExit "Collection $colldesc cannot be found"
    }
 
-   # attempt to delete specified colletion
+   # attempt to delete specified collection
    if {[catch {
       file delete $collfile
    } errMsg ]} {
@@ -12643,7 +12643,7 @@ proc cmdModuleSaverm {{coll default}} {
 proc cmdModuleSaveshow {{coll default}} {
    reportDebug $coll
 
-   # get coresponding filename
+   # get corresponding filename
    lassign [getCollectionFilename $coll] collfile colldesc
 
    if {![file exists $collfile]} {
@@ -13237,7 +13237,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             set urequnlist [getUnloadableLoadedModuleList $urequnqry]
             reportDebug "urequn mod list is '$urequnlist'"
 
-            # DepRe: Dependent to Reload (modules optionnaly dependent or in
+            # DepRe: Dependent to Reload (modules optionally dependent or in
             # conflict with modname, DepUn or UReqUn modules + modules
             # dependent of a module part of this DepRe batch)
             set deprelist [getDependentLoadedModuleList [concat $urequnlist\
@@ -13583,7 +13583,7 @@ proc cmdModuleUse {pos args} {
          if {$path eq {}} {
             reportError {Directory name empty}
          } else {
-            # tranform given path in an absolute path to avoid dependency to
+            # transform given path in an absolute path to avoid dependency to
             # the current work directory. except if this path starts with a
             # variable reference
             if {[string index $path 0] ne {$}} {
