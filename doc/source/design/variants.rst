@@ -431,6 +431,12 @@ Specifying
     - in case the ``@loaded`` specification is followed by variant specified, those variant specifications are ignored
     - following the above example, ``mod@loaded foo=val2`` is translated into ``mod/3.0 foo=val1``
 
+- variant can also be specified to designate module on :mfcmd:`module-tag`, :mfcmd:`module-hide` or :mfcmd:`module-forbid` commands
+
+    - tags may only apply when a given variant of a module is loaded
+    - it may be useful to decommission a given variant of a module prior others
+    - or to forbid the use of a given variant to some users
+
 
 .. _variant-shortcut:
 
@@ -685,3 +691,23 @@ Specific impact
     - If a forbidden tag applies to a specific module variant
     - If this variant is the one specified as argument to ``avail`` or ``whatis`` sub-command
     - The module will still be reported on ``avail`` or evaluated on ``whatis``
+
+- Hiding a specific variant of a module will not hide the module from search results
+
+    - As variant are not treated on search context like on ``avail`` sub-command
+
+- Sticky modules can be swapped by another sticky modules if the stickiness applies to the generic module name
+
+    - It stays true even if module has variants
+    - Which means if stickiness designate module version or several versions, sticky module cannot be changed once loaded
+    - Variant change cannot either occur
+    - FUTURE: this may be revised to allow variant change if needs arise
+
+- Stickiness can be defined over specific variant value, like any other tag
+
+    - In case stickiness applies to the default value of a variant
+    - When swapping sticky modules by another still matching the sticky rule
+    - The variant with default value has to be explicitly specified for the swap to be allowed
+
+        - As it cannot be guessed prior loading module that the default value of the variant will match the sticky rule
+        - It applies to both sticky module swap context: ``restore`` and ``switch``
