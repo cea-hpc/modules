@@ -276,6 +276,39 @@ testouterr_cmd sh {switch variant/4.0 bar=1} ERR $tserr
 set tserr [msg_unload variant/4.0{bar=2} [err_novarval foo {val1 val2 val3}]]\n\n[msg_switch variant/4.0{bar=2} variant/4.0{foo=val1} [err_swoff variant/4.0{bar=2}]]
 testouterr_cmd sh {switch variant/4.0 bar=2 variant/4.0 foo=val1} ERR $tserr
 
+# test close unload match with 1-arg form
+setenv_loaded_module [list variant/4.0] [list $mp/variant/4.0]
+setenv_path_var MODULES_LMVARIANT variant/4.0&bar|2|0&foo|val1|0
+setenv_var TS0 {bar foo}
+setenv_path_var TS1 {bar=2:foo=val1}
+setenv_path_var TS2 {bar-foo}
+set ans [list]
+lappend ans [list unset TS0]
+lappend ans [list unsetpath TS1]
+lappend ans [list unsetpath TS2]
+lappend ans [list setpath LOADEDMODULES variant/6.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/6.0&foo|val1|0&bar|2|0]
+testouterr_cmd sh {switch variant/6.0 bar=2 foo=val1} $ans {}
+set ans [list]
+lappend ans [list unset TS0]
+lappend ans [list unsetpath TS1]
+lappend ans [list unsetpath TS2]
+lappend ans [list setpath LOADEDMODULES variant/6.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/6.0&foo|val2|0&bar|1|0]
+testouterr_cmd sh {switch variant/6.0 bar=1 foo=val2} $ans {}
+
+setenv_var TESTSUITE_VARIANT 10
+set ans [list]
+lappend ans [list unset TS0]
+lappend ans [list unsetpath TS1]
+lappend ans [list unsetpath TS2]
+lappend ans [list setpath LOADEDMODULES variant/6.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/6.0&baz|val3|0]
+testouterr_cmd sh {switch variant/6.0 baz=val3} $ans {}
+
 
 #
 #  Cleanup
