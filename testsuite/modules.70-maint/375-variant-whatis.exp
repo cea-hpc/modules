@@ -78,6 +78,17 @@ testouterr_cmd_re sh {whatis variant@loaded bar=1} OK $tserr
 unsetenv_loaded_module
 unsetenv_path_var MODULES_LMVARIANT
 
+# specified variants ignored whether they exist or not
+setenv_var TESTSUITE_VARIANT 1
+set tserr "$modlin $mpre $modlin\n\\s+variant/6.0: variant/6.0"
+testouterr_cmd_re sh {whatis variant@6.0 foo=val1 baz=2} OK $tserr
+testouterr_cmd_re sh {whatis variant@6.0 foo=val1 bar=2} OK $tserr
+
+# when advanced_version_spec is disabled, variant spec are considered as modulefile spec
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+set tserr "$modlin $mpre $modlin\n\\s+variant/6.0: variant/6.0\n\n$modlin $mpre $modlin\n\\s+var=val: var=val"
+testouterr_cmd_re sh {whatis variant/6.0 var=val} OK $tserr
+
 
 #
 #  Cleanup

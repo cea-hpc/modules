@@ -10,7 +10,7 @@
 #   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
 #
 #   Description:	Testuite testsequence
-#   Command:		list
+#   Command:		list, avail, path, paths, is-avail
 #   Modulefiles:    variant
 #   Sub-Command:
 #
@@ -145,6 +145,80 @@ unsetenv_loaded_module
 # variant not reported
 testouterr_cmd_re sh {avail variant/1.0} OK "$modlin $mpre $modlin
 variant/1.0  "
+
+# specified variants ignored
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+set tserr "$modlin $mpre $modlin\nvariant/1.0  "
+testouterr_cmd_re sh {avail variant/1.0 foo=val1 baz=2} OK $tserr
+# whether they exist or not
+setenv_var TESTSUITE_VARIANT 1
+set tserr "$modlin $mpre $modlin\nvariant/6.0  "
+testouterr_cmd_re sh {avail variant@6.0 foo=val1 baz=2} OK $tserr
+testouterr_cmd_re sh {avail variant@6.0 foo=val1 bar=2} OK $tserr
+unsetenv_var TESTSUITE_VARIANT
+
+# when advanced_version_spec is disabled, variant spec are considered as modulefile spec
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+set tserr "$modlin $mpre $modlin\nvariant/6.0  \n\n$modlin $mpre $modlin\nvar=val  "
+testouterr_cmd_re sh {avail variant/6.0 var=val} OK $tserr
+
+
+# highlight color output
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_var MODULES_COLORS "hi=1"
+set tserr "$mpre:\n[sgr 1]variant/6.0[sgr 22]\n[sgr 1]variant/8.0[sgr 22]"
+testouterr_cmd_re sh {avail --color=always -t variant@6.0,8.0 foo=val1 baz=2} OK $tserr
+set tserr "$mpre:\n[sgr 1]variant/6[sgr 22].0\nvariant/7.0\nvariant/7.1\n[sgr 1]variant/8[sgr 22].0"
+testouterr_cmd_re sh {avail --color=always -t variant@6:8 foo=val1 baz=2} OK $tserr
+
+
+#
+# is-avail
+#
+
+# specified variants ignored whether they exist or not
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_var TESTSUITE_VARIANT 1
+testouterr_cmd_re sh {is-avail variant@6.0 foo=val1 baz=2} OK {}
+testouterr_cmd_re sh {is-avail variant@6.0 foo=val1 bar=2} OK {}
+
+# when advanced_version_spec is disabled, variant spec are considered as modulefile spec
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+testouterr_cmd_re sh {is-avail variant/6.0 var=val} OK {}
+
+
+#
+# paths
+#
+
+# specified variants ignored whether they exist or not
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_var TESTSUITE_VARIANT 1
+set ans [list [list text $mp/variant/6.0]]
+testouterr_cmd sh {paths variant@6.0 foo=val1 baz=2} $ans {}
+testouterr_cmd sh {paths variant@6.0 foo=val1 bar=2} $ans {}
+
+# when advanced_version_spec is disabled, variant spec are considered as modulefile spec
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+set tserr "$error_msgs: Unexpected number of args for 'paths' command\n$err_typehelp"
+testouterr_cmd sh {paths variant/6.0 var=val} ERR $tserr
+
+
+#
+# path
+#
+
+# specified variants ignored whether they exist or not
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_var TESTSUITE_VARIANT 1
+set ans [list [list text $mp/variant/6.0]]
+testouterr_cmd sh {path variant@6.0 foo=val1 baz=2} $ans {}
+testouterr_cmd sh {path variant@6.0 foo=val1 bar=2} $ans {}
+
+# when advanced_version_spec is disabled, variant spec are considered as modulefile spec
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+set tserr "$error_msgs: Unexpected number of args for 'path' command\n$err_typehelp"
+testouterr_cmd sh {path variant/6.0 var=val} ERR $tserr
 
 
 #
