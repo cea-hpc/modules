@@ -437,6 +437,17 @@ Specifying
     - it may be useful to decommission a given variant of a module prior others
     - or to forbid the use of a given variant to some users
 
+- variants specified on search context are ignored
+
+    - search context taking a module specification as argument only look for module name and version
+
+        - no variant evaluation occurs on such context
+        - it concerns the ``avail``, ``whatis``, ``is-avail``, ``path`` and ``paths`` sub-commands
+
+    - if variants are defined within module specification, they are not taken into account by search commands
+    - for instance ``avail mod foo=var`` returns all versions of *foo* module whether they support the foo variant or not
+    - FUTURE: may be revised if variants are evaluated on search context
+
 
 .. _variant-shortcut:
 
@@ -560,8 +571,10 @@ Comparing module specification including variants
 
         - There is no variant set on non-loaded or non-loading modules we are comparing to
         - Specified variants are ignored, match is only performed over module name and version
-        - FIXME: may decide to apply a *no match* instead if non-loaded or non-loading modules
-          are evaluated in the future (on avail for instance)
+        - Applies especially to the search commands taking a module specification as argument
+
+            - no variant evaluation occurs on such context
+            - Namely the ``avail``, ``whatis``, ``is-avail``, ``path`` and ``paths`` sub-commands
 
     - If this specification does not contain variant
 
