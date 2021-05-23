@@ -54,6 +54,57 @@ testouterr_cmd sh {load variant/al60 bar=1 foo=val3} $ans {}
 
 
 #
+# specify variant in alias/symbol/virtual definition
+#
+
+setenv_var TESTSUITE_VARIANT aliassym2
+
+# variant set on module-alias is ignored (everything after arg-2 is ignored)
+testouterr_cmd sh {load alvariantbar} ERR [msg_load variant/6.0 [err_novarval bar {1 2 3}]]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/6.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/6.0&foo|val2|1&bar|2|0]
+lappend ans [list setpath MODULES_LMALTNAME variant/6.0&al|alvariantbar]
+testouterr_cmd sh {load alvariantbar bar=2} $ans {}
+
+
+setenv_var TESTSUITE_VARIANT aliassym3
+
+# variant set on module-version are considered as other symbolic versions
+testouterr_cmd sh {load variant/sym} ERR [msg_load variant/6.0 [err_novarval bar {1 2 3}]]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/6.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/6.0&foo|val2|1&bar|2|0]
+lappend ans [list setpath MODULES_LMALTNAME variant/6.0&variant/bar=1&variant/sym]
+testouterr_cmd sh {load variant/sym bar=2} $ans {}
+
+
+setenv_var TESTSUITE_VARIANT aliassym4
+
+# variant set on module-virtual is ignored (everything after arg-2 is ignored)
+testouterr_cmd sh {load variant/virt bar=1} ERR $err_file'$mp/bar=1'
+
+
+setenv_var TESTSUITE_VARIANT aliassym5
+
+testouterr_cmd sh {load alvariantbar} ERR "$err_path'variant/6.0 bar=1'"
+
+
+setenv_var TESTSUITE_VARIANT aliassym6
+
+testouterr_cmd sh {load variant/sym} ERR "$err_path'variant/6.0 bar=1'"
+
+
+setenv_var TESTSUITE_VARIANT aliassym7
+
+testouterr_cmd sh {load variant/virt bar=1} ERR "$err_path'variant/virt bar=1'"
+
+
+#
 #  Cleanup
 #
 

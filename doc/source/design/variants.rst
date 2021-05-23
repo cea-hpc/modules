@@ -448,6 +448,8 @@ Specifying
     - for instance ``avail mod foo=var`` returns all versions of *foo* module whether they support the foo variant or not
     - FUTURE: may be revised if variants are evaluated on search context
 
+- variant cannot be specified over the :mfcmd:`module-alias`, :mfcmd:`module-version` or :mfcmd:`module-virtual` commands
+
 
 .. _variant-shortcut:
 
