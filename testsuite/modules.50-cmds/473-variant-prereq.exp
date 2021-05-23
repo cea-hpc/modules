@@ -1325,6 +1325,22 @@ lappend ans [list ERR]
 set tserr [msg_top_load variant/7.0{foo=val3} {} {vrreq2/2.0{bar=2:foo=val2} vrreq1/2.0{foo=val1}} {}]
 testouterr_cmd_re sh {load --auto variant/7.0 foo=val3} $ans $tserr
 
+setenv_var TESTSUITE_VARIANT 31
+
+# dependent variant is default version, so not specified when loading it
+# FIXME: variant/7.0 should be reloaded (DepRe) as vrreq1/2.0 bar=1 foo=val2 is a requirement
+setenv_loaded_module [list vrreq2/2.0 variant/7.0] [list $mp/vrreq2/2.0 $mp/variant/7.0] [list vrreq2/2.0]
+setenv_path_var MODULES_LMPREREQ {variant/7.0&vrreq1@2 foo=val2 vrreq2@2 foo=val2}
+setenv_path_var MODULES_LMVARIANT vrreq2/2.0&foo|val2|1:variant/7.0&foo|val2|0
+set ans [list]
+lappend ans [list setpath LOADEDMODULES vrreq2/2.0:variant/7.0:vrreq1/2.0]
+lappend ans [list setpath _LMFILES_ $mp/vrreq2/2.0:$mp/variant/7.0:$mp/vrreq1/2.0]
+lappend ans [list setpath MODULES_LMVARIANT vrreq2/2.0&foo|val2|1:variant/7.0&foo|val2|0:vrreq1/2.0&foo|val2|1&bar|1|0]
+testouterr_cmd_re sh {load --auto vrreq1/2.0 bar=1} $ans {}
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMVARIANT
+
 
 #
 #  Cleanup

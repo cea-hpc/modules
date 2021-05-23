@@ -724,3 +724,14 @@ Specific impact
 
         - As it cannot be guessed prior loading module that the default value of the variant will match the sticky rule
         - It applies to both sticky module swap context: ``restore`` and ``switch``
+
+
+Corner cases
+------------
+
+- When loading a variant which is an optional requirement for an already loaded module
+
+    - If this optional requirement is loaded without specifying its variant value to get the default variant value
+    - Currently it is not seen as an optional requirement at the load time
+    - Thus dependent module is not reloaded
+    - FUTURE: the *deps* evaluation mode that will be triggered prior module load may fix this current limitation
