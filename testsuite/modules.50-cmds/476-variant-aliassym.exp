@@ -1,0 +1,60 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2021/05/23
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:    variant
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test module alias and symbolic version with variant modules
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+
+#
+# alias and symbolic version resolution
+#
+
+setenv_var TESTSUITE_VARIANT aliassym1
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/6.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/6.0&foo|val2|1&bar|2|0]
+lappend ans [list setpath MODULES_LMALTNAME variant/6.0&variant/sym&al|alvariant60&al|variant/al60]
+testouterr_cmd sh {load alvariant60 bar=2} $ans {}
+testouterr_cmd sh {load variant/sym bar=2} $ans {}
+testouterr_cmd sh {load variant/al60 bar=2} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/6.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/6.0&foo|val3|0&bar|1|0]
+lappend ans [list setpath MODULES_LMALTNAME variant/6.0&variant/sym&al|alvariant60&al|variant/al60]
+testouterr_cmd sh {load alvariant60 bar=1 foo=val3} $ans {}
+testouterr_cmd sh {load variant/sym bar=1 foo=val3} $ans {}
+testouterr_cmd sh {load variant/al60 bar=1 foo=val3} $ans {}
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
