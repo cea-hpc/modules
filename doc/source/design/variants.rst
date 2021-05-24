@@ -450,6 +450,7 @@ Specifying
 
 - variant cannot be specified over the :mfcmd:`module-alias`, :mfcmd:`module-version` or :mfcmd:`module-virtual` commands
 
+- variant passed as argument to :mfcmd:`module-info` ``alias``, ``version`` or ``symbols`` will not match anything
 
 .. _variant-shortcut:
 
