@@ -10,7 +10,7 @@
 #   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
 #
 #   Description:	Testuite testsequence
-#   Command:		module-info, is-loaded
+#   Command:		module-info, is-loaded, is-avail
 #   Modulefiles:    variant
 #   Sub-Command:
 #
@@ -139,6 +139,38 @@ lappend ans [list setpath LOADEDMODULES variant/1.0:variant/6.0]
 lappend ans [list setpath _LMFILES_ $mp/variant/1.0:$mp/variant/6.0]
 lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|val2|1&bar|2|0:variant/6.0&foo|val1|0&bar|1|0]
 testouterr_cmd_re sh {load variant/6.0 bar=1 foo=val1} $ans {}
+
+
+#
+# is-avail tests
+#
+
+setenv_var TESTSUITE_VARIANT info3
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMVARIANT
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+# from command-line tests are covered by 70/370
+
+set ans [list]
+lappend ans [list set TS1 {1 1 1 1 1 1 1 1 1 1 1 1 1 1}]
+lappend ans [list setpath LOADEDMODULES variant/6.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/6.0&foo|val1|0&bar|1|0]
+testouterr_cmd sh {load variant/6.0 bar=1 foo=val1} $ans {}
+
+# load one module (should not change result)
+setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val2|1&bar|2|0
+
+set ans [list]
+lappend ans [list set TS1 {1 1 1 1 1 1 1 1 1 1 1 1 1 1}]
+lappend ans [list setpath LOADEDMODULES variant/1.0:variant/6.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0:$mp/variant/6.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|val2|1&bar|2|0:variant/6.0&foo|val1|0&bar|1|0]
+testouterr_cmd_re sh {load variant/6.0 bar=1 foo=val1} $ans {}
+
+unsetenv_var MODULES_IMPLICIT_DEFAULT
 
 
 #
