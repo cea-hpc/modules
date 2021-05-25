@@ -87,6 +87,61 @@ testouterr_cmd_re sh {load variant/6.0 bar=1 foo=val1} $ans {}
 
 
 #
+# info-loaded/module-info loaded tests
+#
+
+setenv_var TESTSUITE_VARIANT info2
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMVARIANT
+set tserr "$error_msgs: Unexpected number of args for 'info-loaded' command\n$err_typehelp"
+
+# test from command-line
+testouterr_cmd sh {info-loaded variant} OK {}
+testouterr_cmd sh {info-loaded variant bar=2} ERR $tserr
+testouterr_cmd sh {info-loaded variant bar=2 foo=val2} ERR $tserr
+testouterr_cmd sh {info-loaded variant\ bar=2} OK {}
+testouterr_cmd sh {info-loaded variant\ bar=2\ foo=val2} OK {}
+testouterr_cmd sh {info-loaded variant/1.0} OK {}
+testouterr_cmd sh {info-loaded variant@1:1} OK {}
+testouterr_cmd sh {info-loaded variant/1.0 bar=2} ERR $tserr
+testouterr_cmd sh {info-loaded variant@1 bar=2 foo=val2} ERR $tserr
+testouterr_cmd sh {info-loaded variant/1.0\ bar=2} OK {}
+testouterr_cmd sh {info-loaded variant@1\ bar=2\ foo=val2} OK {}
+
+set ans [list]
+lappend ans [list set TS1 {::::::}]
+lappend ans [list setpath LOADEDMODULES variant/6.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/6.0&foo|val1|0&bar|1|0]
+testouterr_cmd sh {load variant/6.0 bar=1 foo=val1} $ans {}
+
+
+# load one module to test it
+setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val2|1&bar|2|0
+
+set ans [list [list text variant/1.0]]
+testouterr_cmd sh {info-loaded variant} $ans {}
+testouterr_cmd sh {info-loaded variant bar=2} ERR $tserr
+testouterr_cmd sh {info-loaded variant bar=2 foo=val2} ERR $tserr
+testouterr_cmd sh {info-loaded variant\ bar=2} OK {}
+testouterr_cmd sh {info-loaded variant\ bar=2\ foo=val2} OK {}
+testouterr_cmd sh {info-loaded variant/1.0} $ans {}
+testouterr_cmd sh {info-loaded variant@1:1} OK {}
+testouterr_cmd sh {info-loaded variant/1.0 bar=2} ERR $tserr
+testouterr_cmd sh {info-loaded variant@1 bar=2 foo=val2} ERR $tserr
+testouterr_cmd sh {info-loaded variant/1.0\ bar=2} OK {}
+testouterr_cmd sh {info-loaded variant@1\ bar=2\ foo=val2} OK {}
+
+set ans [list]
+lappend ans [list set TS1 {variant/1.0:::variant/1.0:::}]
+lappend ans [list setpath LOADEDMODULES variant/1.0:variant/6.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0:$mp/variant/6.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|val2|1&bar|2|0:variant/6.0&foo|val1|0&bar|1|0]
+testouterr_cmd_re sh {load variant/6.0 bar=1 foo=val1} $ans {}
+
+
+#
 #  Cleanup
 #
 
