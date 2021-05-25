@@ -1,0 +1,93 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2021/05/25
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		module-info, is-loaded
+#   Modulefiles:    variant
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test module-info/is-loaded with variant modules
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_var MODULES_EXTENDED_DEFAULT 1
+
+
+#
+# is-loaded tests
+#
+
+# test from command-line
+testouterr_cmd sh {is-loaded variant} ERR {}
+testouterr_cmd sh {is-loaded variant bar=2} ERR {}
+testouterr_cmd sh {is-loaded variant bar=1} ERR {}
+testouterr_cmd sh {is-loaded variant foo=val2} ERR {}
+testouterr_cmd sh {is-loaded variant foo=val1} ERR {}
+testouterr_cmd sh {is-loaded variant bar=1 foo=val2} ERR {}
+testouterr_cmd sh {is-loaded variant bar=2 foo=val1} ERR {}
+testouterr_cmd sh {is-loaded variant bar=2 foo=val2} ERR {}
+testouterr_cmd sh {is-loaded variant/1.0} ERR {}
+testouterr_cmd sh {is-loaded variant@1:1} ERR {}
+testouterr_cmd sh {is-loaded variant/1.0 bar=2} ERR {}
+testouterr_cmd sh {is-loaded variant/1.0 bar=2 foo=val1} ERR {}
+testouterr_cmd sh {is-loaded variant@1 bar=2 foo=val2} ERR {}
+testouterr_cmd sh {is-loaded variant@1.0 bar=2 foo=val2} ERR {}
+
+# test from modulefile
+setenv_var TESTSUITE_VARIANT info1
+set ans [list]
+lappend ans [list set TS1 {0 0 0 0 0 0 0 0 0 0 0 0 0 0}]
+lappend ans [list setpath LOADEDMODULES variant/6.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/6.0&foo|val1|0&bar|1|0]
+testouterr_cmd sh {load variant/6.0 bar=1 foo=val1} $ans {}
+
+
+# load one module to test it
+setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val2|1&bar|2|0
+
+testouterr_cmd sh {is-loaded variant} OK {}
+testouterr_cmd sh {is-loaded variant bar=2} OK {}
+testouterr_cmd sh {is-loaded variant bar=1} ERR {}
+testouterr_cmd sh {is-loaded variant foo=val2} OK {}
+testouterr_cmd sh {is-loaded variant foo=val1} ERR {}
+testouterr_cmd sh {is-loaded variant bar=1 foo=val2} ERR {}
+testouterr_cmd sh {is-loaded variant bar=2 foo=val1} ERR {}
+testouterr_cmd sh {is-loaded variant bar=2 foo=val2} OK {}
+testouterr_cmd sh {is-loaded variant/1.0} OK {}
+testouterr_cmd sh {is-loaded variant@1:2} OK {}
+testouterr_cmd sh {is-loaded variant/1.0 bar=2} OK {}
+testouterr_cmd sh {is-loaded variant/1.0 bar=2 foo=val1} ERR {}
+testouterr_cmd sh {is-loaded variant@1 bar=2 foo=val2} OK {}
+testouterr_cmd sh {is-loaded variant@1.0 bar=2 foo=val2} OK {}
+
+set ans [list]
+lappend ans [list set TS1 {1 1 0 1 0 0 0 1 1 1 1 0 1 1}]
+lappend ans [list setpath LOADEDMODULES variant/1.0:variant/6.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0:$mp/variant/6.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|val2|1&bar|2|0:variant/6.0&foo|val1|0&bar|1|0]
+testouterr_cmd_re sh {load variant/6.0 bar=1 foo=val1} $ans {}
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
