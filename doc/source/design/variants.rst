@@ -447,9 +447,14 @@ Specifying
     - for instance ``avail mod foo=var`` returns all versions of *foo* module whether they support the foo variant or not
     - FUTURE: may be revised if variants are evaluated on search context
 
-- variant cannot be specified over the :mfcmd:`module-alias`, :mfcmd:`module-version` or :mfcmd:`module-virtual` commands
+- variant cannot be specified over the :mfcmd:`module-alias`, :mfcmd:`module-version`, :mfcmd:`module-virtual` commands
 
 - variant passed as argument to :mfcmd:`module-info` ``alias``, ``version`` or ``symbols`` will not match anything
+
+- ``module-info loaded`` only accepts modulefile as argument, not variant specification
+
+    - it also only return loaded module name and version, without the variant set
+
 
 .. _variant-shortcut:
 
@@ -726,6 +731,11 @@ Specific impact
 
         - As it cannot be guessed prior loading module that the default value of the variant will match the sticky rule
         - It applies to both sticky module swap context: ``restore`` and ``switch``
+
+- On ``module-info tags``, currently defined tags need to get fetched when called
+
+    - As variant specified prior ``module-info tags`` call may change the list of tags that apply
+    - Especially when a variant inherits its default value as it is not specified when loading module
 
 
 Corner cases
