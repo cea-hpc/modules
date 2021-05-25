@@ -164,9 +164,8 @@ Evaluating
 
         - ``version`` variant value is fetched from the module specification to identify the module to unload
         - other variant specification on the unload command are dropped once matching loaded module is identified
-        - which means the specification recorded corresponds to the one from the loaded module
 
-            - as a consequence ``[module-info specified]`` returns the loaded module specification and not the specification defined on the ``module unload`` command
+            - however this specification remains available when querying ``[module-info specified]``
 
         - variant values are defined within modulefile context by the evaluation of the ``variant`` modulefile commands
 
