@@ -2499,10 +2499,21 @@ proc module-info {what {more {}}} {
          return [join $sym_list :]
       }
       tags {
-         if {$more ne {}} {
-            return [isInList [getTagList [currentState modulename]] $more]
+         # refresh mod name version and variant to correctly get all matching
+         # tags (in case tags apply to specific module variant)
+         set modname [currentState modulename]
+         set vrlist [getVariantList $modname 1]
+         if {[llength $vrlist] > 0} {
+            lassign [eval parseModuleSpecification 0 "{$modname} $vrlist"] modnamevr
          } else {
-            return [getTagList [currentState modulename]]
+            set modnamevr $modname
+         }
+         collectModuleTags $modnamevr
+
+         if {$more ne {}} {
+            return [isInList [getTagList $modnamevr] $more]
+         } else {
+            return [getTagList $modnamevr]
          }
       }
       version {
