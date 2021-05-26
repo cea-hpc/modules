@@ -5060,7 +5060,8 @@ proc variant {itrp args} {
    if {![info exists isdflval]} {
       if {$defdflvalue} {
          set value $dflvalue
-         set isdflval 1
+         # 2 means default value automatically set
+         set isdflval 2
       } else {
          knerror "No value specified for variant '$name'\nAllowed\
             values are: $values" MODULES_ERR_GLOBAL
@@ -5708,9 +5709,13 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from_spec 0}} {
    # use array to make variant unique
    foreach vrspec $vrspeclist {
       lassign $vrspec vrname vrvalue vrvalisdfl
+      # correct is-default value if invalid
+      if {![string is integer -strict $vrvalisdfl]} {
+         set vrvalisdfl 0
+      }
       # do not return variant if value is default
       if {$excl_dflval} {
-         if {![string is true -strict $vrvalisdfl]} {
+         if {$vrvalisdfl == 0} {
             set vrarr($vrname) $vrvalue
          # nullify previous duplicate definition if this one is default
          } elseif {[info exists vrarr($vrname)]} {
@@ -5719,8 +5724,8 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from_spec 0}} {
       } else {
          # is-default hint has to be transmitted on report mode '3'
          if {$report == 3} {
-            set vrarr($vrname) [list $vrvalue [string is true -strict\
-               $vrvalisdfl]]
+            set vrarr($vrname) [list $vrvalue [expr {$vrvalisdfl > 0 &&\
+               $vrvalisdfl < 3}]]
          } else {
             set vrarr($vrname) $vrvalue
          }
