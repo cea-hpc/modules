@@ -229,6 +229,38 @@ testouterr_cmd sh {load variant/6.0 bar=2} $ans {}
 
 
 #
+# module-info name tests
+#
+
+setenv_var TESTSUITE_VARIANT info6
+
+set ans [list]
+lappend ans [list set TS1 {variant/6.0}]
+lappend ans [list setpath LOADEDMODULES variant/6.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/6.0&foo|val2|1&bar|2|0]
+testouterr_cmd sh {load variant/6.0 bar=2} $ans {}
+
+set ans [list]
+lappend ans [list set TS1 {variant/6.0}]
+lappend ans [list setpath LOADEDMODULES variant/6.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/6.0&foo|val3|0&bar|1|0]
+testouterr_cmd sh {load variant/6.0 bar=1 foo=val3} $ans {}
+
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+set ans [list]
+lappend ans [list set TS1 {variant/6.0}]
+lappend ans [list setpath LOADEDMODULES variant/6.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/6.0&foo|val3|0&bar|1|0]
+testouterr_cmd sh {load variant@6:6.3 bar=1 foo=val3} $ans {}
+
+unsetenv_var MODULES_IMPLICIT_DEFAULT
+
+
+#
 #  Cleanup
 #
 
