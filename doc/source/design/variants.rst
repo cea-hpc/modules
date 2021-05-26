@@ -737,6 +737,12 @@ Specific impact
     - As variant specified prior ``module-info tags`` call may change the list of tags that apply
     - Especially when a variant inherits its default value as it is not specified when loading module
 
+- ``module-info specified`` returns module name version and variants specified to designate the currently evaluating module
+
+- ``module-info name`` only returns module name and version, variants are not part of the result
+
+    - Variants can be fetched in the ``ModuleVariant`` array within evaluation context
+
 
 Corner cases
 ------------
