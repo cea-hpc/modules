@@ -456,6 +456,38 @@ Specifying
     - it also only return loaded module name and version, without the variant set
 
 
+Variant in requirement specification
+""""""""""""""""""""""""""""""""""""
+
+- :mfcmd:`prereq`/:mfcmd:`conflict` specification
+
+    - could consolidate different variation set for same module on the same prereq/conflict list
+
+        - to indicate a preferred order (if available)
+        - like ``prereq netcdf -debug netcdf +debug``
+        - or ``prereq netcdf var=val1 netcdf var=val2 netcdf``
+
+    - in last example, could not currently consolidate definition into ``prereq netcdf var=val1,val2,default``
+
+        - in case of requirement alternatives, all possibilities should be written as independent
+
+            - like ``prereq module@vers variant=val1 module@vers variant=val2``
+
+        - to clearly indicate a priority order to apply when for instance attempting to load these requirements
+        - FUTURE: a value selection mechanism, like when selecting a module version among others, would help here
+
+- prereq/conflict persistency
+
+    - :envvar:`MODULES_LMPREREQ` and :envvar:`MODULES_LMCONFLICT` content should reflect specified variant constraint
+
+    - it could be expressed in these variables as it is specified over the prereq/conflict modulefile commands
+
+        - for instance ``MODULES_LMPREREQ=hdf5/1.10&mpi@1.8 +shared variant=name&netcdf``
+        - use of characters `` ``, ``+``, ``~``, ``,`` is not an issue
+
+            - as delimiters characters in these environment variables are ``:``, ``&`` and ``|``
+
+
 .. _variant-shortcut:
 
 Variant shortcut
