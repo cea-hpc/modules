@@ -641,7 +641,7 @@ set ans [list]
 lappend ans [list setpath MODULEPATH $c26modpath]
 lappend ans [list setpath LOADEDMODULES $c26mod2:$c26mod3]
 lappend ans [list setpath _LMFILES_ $c26modpath1/$c26mod2:$c26modpath1/$c26mod3]
-lappend ans [list setpath MODULES_LMVARIANT "$c26mod3&b*r| val1|1"]
+lappend ans [list setpath MODULES_LMVARIANT "$c26mod3&b*r| val1|2"]
 lappend ans [list setpath MODULES_LMNOTUASKED $c26mod2]
 lappend ans [list ERR]
 testouterr_cmd_re sh "restore $coll26fp" $ans "[escre [msg_load {variant/1.0} [err_novarval {fo o} {val1 val2 {v?l1 }}]]]
@@ -673,7 +673,7 @@ setenv_var TESTSUITE_VARIANT coll22
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $c22lm]
 lappend ans [list setpath _LMFILES_ $c22lmf]
-lappend ans [list setpath MODULES_LMVARIANT $c22lmvr]
+lappend ans [list setpath MODULES_LMVARIANT "$c22mod1&bar ||1&fo o|v?l1 |0:$c22mod3&b*r| val1|2"]
 lappend ans [list setpath MODULES_LMALTNAME $c22lmalt]
 testouterr_cmd_re sh "restore $coll22fp" $ans "Loading $c22mod2\nLoading '$c22mod3'{b\\*r= val1}"
 
@@ -744,7 +744,7 @@ setenv_var TESTSUITE_VARIANT coll31
 setenv_var MODULES_COLLECTION_PIN_VERSION 0
 setenv_path_var MODULES_LMALTNAME $c31lmalt
 
-setenv_path_var MODULES_LMVARIANT "$c31mod1&foo|val1|0&bar|2|1:$c31mod3&foo|val1|1&bar|3|0"
+setenv_path_var MODULES_LMVARIANT "$c31mod1&foo|val1|0&bar|2|2:$c31mod3&foo|val1|1&bar|3|0"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $c31lm]
 lappend ans [list setpath _LMFILES_ $c31lmf]
@@ -754,12 +754,12 @@ set tserr [msg_unload $c31mod3{bar=3:foo=val1}]\n[msg_unload $c31mod2]\n[msg_unl
 append tserr [msg_load $c31mod1{[join $c31mod1vr :]}]\n[msg_load $c31mod2]\n[msg_load $c31mod3{[join $c31mod3vr :]}]
 testouterr_cmd_re sh "restore $coll31fp" $ans $tserr
 
-setenv_path_var MODULES_LMVARIANT "$c31mod1&foo|val1|0&bar|2|1:$c31mod3&foo|val3|0&bar|3|0"
+setenv_path_var MODULES_LMVARIANT "$c31mod1&foo|val1|0&bar|2|2:$c31mod3&foo|val3|0&bar|3|0"
 set tserr [msg_unload $c31mod3{bar=3:foo=val3}]\n[msg_unload $c31mod2]\n[msg_unload $c31mod1{bar=2:foo=val1}]\n
 append tserr [msg_load $c31mod1{[join $c31mod1vr :]}]\n[msg_load $c31mod2]\n[msg_load $c31mod3{[join $c31mod3vr :]}]
 testouterr_cmd_re sh "restore $coll31fp" $ans $tserr
 
-setenv_path_var MODULES_LMVARIANT "$c31mod1&foo|val2|0&bar|2|1:$c31mod3&foo|val1|1&bar|3|0"
+setenv_path_var MODULES_LMVARIANT "$c31mod1&foo|val2|0&bar|2|2:$c31mod3&foo|val1|1&bar|3|0"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $c31lm]
 lappend ans [list setpath _LMFILES_ $c31lmf]
@@ -768,12 +768,12 @@ set tserr [msg_unload $c31mod3{bar=3:foo=val1}]\n[msg_load $c31mod3{[join $c31mo
 testouterr_cmd_re sh "restore $coll31fp" $ans $tserr
 
 # variant sort in different order in persistency var
-setenv_path_var MODULES_LMVARIANT "$c31mod1&foo|val2|0&bar|2|1:$c31mod3&foo|val1|1&bar|3|0"
+setenv_path_var MODULES_LMVARIANT "$c31mod1&foo|val2|0&bar|2|2:$c31mod3&foo|val1|1&bar|3|0"
 testouterr_cmd_re sh "restore $coll31fp" $ans $tserr
 
 # erroneous content in variant persistency var
 # as the is-default variant value hint is broken, first module needs reload
-setenv_path_var MODULES_LMVARIANT "$c31mod1&foo|val2|str&bar|2|2:$c31mod3&foo|val1&bar|3|2"
+setenv_path_var MODULES_LMVARIANT "$c31mod1&foo|val2|str&bar|2|3:$c31mod3&foo|val1&bar|3|3"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $c31lm]
 lappend ans [list setpath _LMFILES_ $c31lmf]
