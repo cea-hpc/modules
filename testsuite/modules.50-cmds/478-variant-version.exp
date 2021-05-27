@@ -1,0 +1,47 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2021/05/27
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:    variant
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test 'version' variant
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+
+# as version special variant is not yet implemented, an error is obtained when
+# defining this variant name
+setenv_var TESTSUITE_VARIANT version1
+
+if {[cmpversion $tclsh_version 8.5] > -1} {
+
+set tserr [msg_load variant/6.0{bar=1:foo=val3:version=1.0} "$error_msgs: 'version' is a restricted variant name"]
+testouterr_cmd sh {load variant/6.0 version=1.0 bar=1 foo=val3} ERR $tserr
+
+}
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
