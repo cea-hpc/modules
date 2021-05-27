@@ -136,6 +136,10 @@ Evaluating
 
     - therefore no entry in ``ModuleVariant`` array is made for the shortcut name
 
+- as special variant ``version`` will not be implemented on Modules 4.8, an error is raised if a variant is named ``version``
+
+    - to ensure no usage of this variant name will be made before its special mechanism availability
+
 - special variant ``version`` is instanciated as variable ``ModuleVariant(version)`` if declared
 
     - will be set to value that may be specified with the ``@`` shortcut
