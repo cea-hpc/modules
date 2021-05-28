@@ -217,14 +217,23 @@ Persistency
 - variants defined are made persistent in :envvar:`MODULES_LMVARIANT` environment variable
 
     - following same approach than for :envvar:`MODULES_LMPREREQ`
-    - each loaded module with defined variants (default value or specifically set) will expose these variants value and if the value is the default one in a record with following syntax:
+    - each loaded module with defined variants (default value or specifically set) will expose:
 
+        - these variants value
+        - and if the value is the default one and if this default was specifically asked
+        - in a record with following syntax:
         - ``loadedmodule&(+|-)boolvariantname1|isdefaultvalue&variantname2|value2|value3...|isdefaultvalue``
 
     - for each variant it is recorded if the value set corresponds to the variant default value or not
 
         - such information is useful to save collection when pin version mechanism is disabled
         - on such setup the variant definition should not recorded in collection if this is the default value which is set
+
+    - in addition to know if the variant value is default or not, it is recorded if the default value was:
+
+        - specifically asked (*isdefaultvalue=1*)
+        - or automatically set (*isdefaultvalue=2*)
+        - this information will be useful in the FUTURE to determine if a variant may be automatically swapped by another
 
     - each *loadedmodule* record are joined in ``MODULES_LMVARIANT`` separated by ``:`` character
 
@@ -601,8 +610,11 @@ Recording collection
 - In case the :mconfig:`collection_pin_version` configuration option is disabled variant set to their default value should not be recorded in collection
 
     - Following the same scheme than for module version
-    - When saving collection, the *is-default*value* information stored in persistency variable (``MODULES_LMVARIANT``) helps to know whether to value set to a variant is or not the default one
+    - When saving collection, the *is-default-value* information stored in persistency variable (``MODULES_LMVARIANT``) helps to know whether to value set to a variant is or not the default one
     - The save mechanism will rely on this information to exclude or not the variant specification in the generated collection output
+    - Within this *is-default-value* hint, the *was-this-default-specified-by-user* sub-information is not preserved when saving collection
+
+        - if collection is not pinned, default value is excluded whether it was specifically set by user or not
 
 
 Comparing module specification including variants
