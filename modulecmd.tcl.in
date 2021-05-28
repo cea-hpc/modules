@@ -5718,9 +5718,11 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from_spec 0}} {
       if {![string is integer -strict $vrvalisdfl]} {
          set vrvalisdfl 0
       }
-      # do not return variant if value is default
-      if {$excl_dflval} {
-         if {$vrvalisdfl == 0} {
+      # do not return variant if value is default, unless if variant was
+      # specifically set to default value (isdfl=1) and we only want to
+      # exclude the automatically set default value (excl_dflval=2)
+      if {$excl_dflval > 0} {
+         if {$vrvalisdfl == 0 || ($excl_dflval == 2 && $vrvalisdfl == 1)} {
             set vrarr($vrname) $vrvalue
          # nullify previous duplicate definition if this one is default
          } elseif {[info exists vrarr($vrname)]} {
@@ -11909,7 +11911,7 @@ proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {}} {context\
       # save user asked state before it vanishes
       set isuasked($mod) [isModuleUserAsked $mod]
       # save variants set for modules
-      set vr($mod) [getVariantList $mod 1]
+      set vr($mod) [getVariantList $mod 1 2]
       # force unload even if requiring mods are not part of the unload list
       # (violation state) as modules are loaded again just after
       if {[cmdModuleUnload $context match 0 1 0 0 $mod]} {
@@ -11947,7 +11949,9 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist {force 0}\
    setConf auto_handling 0
    foreach mod $lmlist {
       if {[info exists vr($mod)]} {
-         set modnamevr [concat $mod $vr($mod)]
+         # if an auto set default was excluded, module spec need parsing
+         lassign [eval parseModuleSpecification 0 "{$mod} $vr($mod)"]\
+            modnamevr
       } else {
          set modnamevr $mod
       }
