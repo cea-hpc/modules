@@ -2069,9 +2069,11 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
             unset errorMsg
             return 0
          # catch break even if called outside of a loop
+         # on Darwin, error is different: no errorCode & return code set to 3
          } elseif {$errorMsg eq {invoked "break" outside of a loop}\
             || ($errorMsg eq {} && (![info exists ::errorInfo]\
-            || $::errorInfo eq {}))} {
+            || $::errorInfo eq {})) || (![info exists ::errorCode] &&\
+            $sourceFailed == 3)} {
             unset errorMsg
             # report load/unload evaluation break if verbosity level >= normal
             if {([module-info mode load] || [module-info mode unload]) &&\
