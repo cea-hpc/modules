@@ -30,6 +30,9 @@ Modules 4.8.0 (not yet released)
   Such specification helps to exclude specific versions. (fix issue #397)
 * Install: fix installation scripts to allow building Modules when its
   repository is set as a git submodule. (fix issue #398)
+* Doc: demonstrate in the :ref:`source-script-in-modulefile` recipe how to use
+  the :mfcmd:`source-sh` command when software provide a specific
+  initialization script for each shell it supports. (fix issue #399)
 
 
 .. _4.7 release notes:
