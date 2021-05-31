@@ -675,7 +675,20 @@ lappend ans [list setpath LOADEDMODULES $c22lm]
 lappend ans [list setpath _LMFILES_ $c22lmf]
 lappend ans [list setpath MODULES_LMVARIANT "$c22mod1&bar ||1&fo o|v?l1 |0:$c22mod3&b*r| val1|2"]
 lappend ans [list setpath MODULES_LMALTNAME $c22lmalt]
-testouterr_cmd_re sh "restore $coll22fp" $ans "Loading $c22mod2\nLoading '$c22mod3'{b\\*r= val1}"
+set tserr "Loading $c22mod2\nLoading '$c22mod3'{b\\*r= val1}"
+testouterr_cmd_re sh "restore $coll22fp" $ans $tserr
+
+# same test with icase enabled and extended_default disabled
+setenv_var MODULES_ICASE always
+setenv_var MODULES_EXTENDED_DEFAULT 0
+testouterr_cmd_re sh "restore $coll22fp" $ans $tserr
+# same test with icase enabled and extended_default enabled
+setenv_var MODULES_EXTENDED_DEFAULT 1
+testouterr_cmd_re sh "restore $coll22fp" $ans $tserr
+# same test with icase disabled and extended_default enabled
+unsetenv_var MODULES_ICASE
+testouterr_cmd_re sh "restore $coll22fp" $ans $tserr
+unsetenv_var MODULES_EXTENDED_DEFAULT
 
 unsetenv_path_var MODULEPATH
 unsetenv_loaded_module
@@ -706,6 +719,18 @@ lappend ans [list setpath MODULES_LMVARIANT $c30lmvr]
 set tserr [msg_unload $c30mod3{bar=3:foo=val1}]\n[msg_unload $c30mod2]\n[msg_unload $c30mod1{bar=2:foo=val1}]\n
 append tserr [msg_load $c30mod1{[join $c30mod1vr :]}]\n[msg_load $c30mod2]\n[msg_load $c30mod3{[join $c30mod3vr :]}]
 testouterr_cmd_re sh "restore $coll30fp" $ans $tserr
+
+# same test with icase enabled and extended_default disabled
+setenv_var MODULES_ICASE always
+setenv_var MODULES_EXTENDED_DEFAULT 0
+testouterr_cmd_re sh "restore $coll30fp" $ans $tserr
+# same test with icase enabled and extended_default enabled
+setenv_var MODULES_EXTENDED_DEFAULT 1
+testouterr_cmd_re sh "restore $coll30fp" $ans $tserr
+# same test with icase disabled and extended_default enabled
+unsetenv_var MODULES_ICASE
+testouterr_cmd_re sh "restore $coll30fp" $ans $tserr
+unsetenv_var MODULES_EXTENDED_DEFAULT
 
 setenv_path_var MODULES_LMVARIANT "$c30mod1&foo|val1|0&bar|2|1:$c30mod3&foo|val3|0&bar|3|0"
 set tserr [msg_unload $c30mod3{bar=3:foo=val3}]\n[msg_unload $c30mod2]\n[msg_unload $c30mod1{bar=2:foo=val1}]\n
@@ -753,6 +778,18 @@ lappend ans [list setpath MODULES_LMVARIANT $c31lmvr]
 set tserr [msg_unload $c31mod3{bar=3:foo=val1}]\n[msg_unload $c31mod2]\n[msg_unload $c31mod1{bar=2:foo=val1}]\n
 append tserr [msg_load $c31mod1{[join $c31mod1vr :]}]\n[msg_load $c31mod2]\n[msg_load $c31mod3{[join $c31mod3vr :]}]
 testouterr_cmd_re sh "restore $coll31fp" $ans $tserr
+
+# same test with icase enabled and extended_default disabled
+setenv_var MODULES_ICASE always
+setenv_var MODULES_EXTENDED_DEFAULT 0
+testouterr_cmd_re sh "restore $coll31fp" $ans $tserr
+# same test with icase enabled and extended_default enabled
+setenv_var MODULES_EXTENDED_DEFAULT 1
+testouterr_cmd_re sh "restore $coll31fp" $ans $tserr
+# same test with icase disabled and extended_default enabled
+unsetenv_var MODULES_ICASE
+testouterr_cmd_re sh "restore $coll31fp" $ans $tserr
+unsetenv_var MODULES_EXTENDED_DEFAULT
 
 setenv_path_var MODULES_LMVARIANT "$c31mod1&foo|val1|0&bar|2|2:$c31mod3&foo|val3|0&bar|3|0"
 set tserr [msg_unload $c31mod3{bar=3:foo=val3}]\n[msg_unload $c31mod2]\n[msg_unload $c31mod1{bar=2:foo=val1}]\n
