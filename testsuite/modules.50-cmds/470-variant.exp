@@ -407,6 +407,79 @@ testouterr_cmd sh {load variant/1.0} $ans {}
 
 
 #
+# icase & extended_default test
+#
+
+setenv_var TESTSUITE_VARIANT 11
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+# icase on & extended_default off
+setenv_var MODULES_EXTENDED_DEFAULT 0
+set ans [list]
+lappend ans [list set TS0 {bar foo}]
+lappend ans [list set TS1 {bar=val3:foo=val1}]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|val1|0&bar|val3|0]
+testouterr_cmd sh {load -i variant/1.0 foo=val1 bar=val3} $ans {}
+# FIXME: no icase support currently on variant name and value
+set tserr [msg_load variant/1.0{bar=VaL3:FoO=val1} [err_novarval foo {val1 val2}]]
+testouterr_cmd sh {load -i variant/1.0 FoO=val1 bar=VaL3} ERR $tserr
+set tserr [msg_load variant/1.0{bar=VaL3:foo=val1} [err_invalvarval bar VaL3 {val3 val4}]]
+testouterr_cmd sh {load -i variant/1.0 foo=val1 bar=VaL3} ERR $tserr
+
+# icase on & extended_default on
+setenv_var MODULES_EXTENDED_DEFAULT 1
+testouterr_cmd sh {load -i variant/1 foo=val1 bar=val3} $ans {}
+# FIXME: no icase support currently on variant name and value
+set tserr [msg_load variant/1.0{bar=VaL3:FoO=val1} [err_novarval foo {val1 val2}]]
+testouterr_cmd sh {load -i variant/1 FoO=val1 bar=VaL3} ERR $tserr
+set tserr [msg_load variant/1.0{bar=VaL3:foo=val1} [err_invalvarval bar VaL3 {val3 val4}]]
+testouterr_cmd sh {load -i variant/1 foo=val1 bar=VaL3} ERR $tserr
+
+# icase off & extended_default on
+testouterr_cmd sh {load variant/1 foo=val1 bar=val3} $ans {}
+set tserr [msg_load variant/1.0{bar=VaL3:FoO=val1} [err_novarval foo {val1 val2}]]
+testouterr_cmd sh {load variant/1 FoO=val1 bar=VaL3} ERR $tserr
+set tserr [msg_load variant/1.0{bar=VaL3:foo=val1} [err_invalvarval bar VaL3 {val3 val4}]]
+testouterr_cmd sh {load variant/1 foo=val1 bar=VaL3} ERR $tserr
+
+# replay the above tests with corresponding module loaded
+setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1|0&bar|val3|0
+
+# icase on & extended_default off
+setenv_var MODULES_EXTENDED_DEFAULT 0
+testouterr_cmd sh {load -i variant/1.0 foo=val1 bar=val3} OK {}
+# FIXME: no icase support currently on variant name and value
+set tserr [msg_load variant/1.0{bar=VaL3:FoO=val1} [err_othervariantloaded {bar=val3 foo=val1}]]
+testouterr_cmd sh {load -i variant/1.0 FoO=val1 bar=VaL3} ERR $tserr
+set tserr [msg_load variant/1.0{bar=VaL3:foo=val1} [err_othervariantloaded {bar=val3 foo=val1}]]
+testouterr_cmd sh {load -i variant/1.0 foo=val1 bar=VaL3} ERR $tserr
+
+# icase on & extended_default on
+setenv_var MODULES_EXTENDED_DEFAULT 1
+testouterr_cmd sh {load -i variant/1 foo=val1 bar=val3} OK {}
+# FIXME: no icase support currently on variant name and value
+set tserr [msg_load variant/1.0{bar=VaL3:FoO=val1} [err_othervariantloaded {bar=val3 foo=val1}]]
+testouterr_cmd sh {load -i variant/1 FoO=val1 bar=VaL3} ERR $tserr
+set tserr [msg_load variant/1.0{bar=VaL3:foo=val1} [err_othervariantloaded {bar=val3 foo=val1}]]
+testouterr_cmd sh {load -i variant/1 foo=val1 bar=VaL3} ERR $tserr
+
+# icase off & extended_default on
+testouterr_cmd sh {load variant/1 foo=val1 bar=val3} OK {}
+set tserr [msg_load variant/1.0{bar=VaL3:FoO=val1} [err_othervariantloaded {bar=val3 foo=val1}]]
+testouterr_cmd sh {load variant/1 FoO=val1 bar=VaL3} ERR $tserr
+set tserr [msg_load variant/1.0{bar=VaL3:foo=val1} [err_othervariantloaded {bar=val3 foo=val1}]]
+testouterr_cmd sh {load variant/1 foo=val1 bar=VaL3} ERR $tserr
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMVARIANT
+unsetenv_var MODULES_EXTENDED_DEFAULT
+unsetenv_var MODULES_IMPLICIT_DEFAULT
+
+
+#
 #  Cleanup
 #
 

@@ -1343,6 +1343,56 @@ unsetenv_path_var MODULES_LMVARIANT
 
 
 #
+# icase & extended_default test
+#
+
+setenv_loaded_module [list vrreq1/1.0] [list $mp/vrreq1/1.0]
+setenv_path_var MODULES_LMVARIANT vrreq1/1.0&foo|val2|0&bar|2|0
+
+# icase on & extended_default off
+setenv_var MODULES_EXTENDED_DEFAULT 0
+# FIXME: no icase support currently on variant name and value
+setenv_var TESTSUITE_VARIANT 32
+set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/1.0{bAr=2:foo=VAL2}]]
+testouterr_cmd sh {load --auto -i variant/7.0} ERR $tserr
+setenv_var TESTSUITE_VARIANT 33
+set tserr [msg_load variant/7.0 "$err_path'vrreq1/1 foo=VAL2 bAr=2'" [err_reqlo vrreq1/1{bAr=2:foo=VAL2}]]
+testouterr_cmd sh {load --auto -i variant/7.0} ERR $tserr
+setenv_var TESTSUITE_VARIANT 34
+set tserr [msg_load variant/7.0 "$err_path'vrreq1/1 foo=val2 bar=2'" [err_reqlo vrreq1/1{bar=2:foo=val2}]]
+testouterr_cmd sh {load --auto -i variant/7.0} ERR $tserr
+
+# icase on & extended_default on
+setenv_var MODULES_EXTENDED_DEFAULT 1
+setenv_var TESTSUITE_VARIANT 32
+set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/1.0{bAr=2:foo=VAL2}]]
+testouterr_cmd sh {load --auto -i variant/7.0} ERR $tserr
+setenv_var TESTSUITE_VARIANT 33
+set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/1{bAr=2:foo=VAL2}]]
+testouterr_cmd sh {load --auto -i variant/7.0} ERR $tserr
+setenv_var TESTSUITE_VARIANT 34
+set ans [list]
+lappend ans [list setpath LOADEDMODULES vrreq1/1.0:variant/7.0]
+lappend ans [list setpath _LMFILES_ $mp/vrreq1/1.0:$mp/variant/7.0]
+lappend ans [list setpath MODULES_LMPREREQ {variant/7.0&vrreq1/1 foo=val2 bar=2}]
+testouterr_cmd_re sh {load --auto -i variant/7.0} $ans {}
+
+# icase off & extended_default on
+setenv_var TESTSUITE_VARIANT 32
+set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/1.0{bAr=2:foo=VAL2}]]
+testouterr_cmd sh {load --auto variant/7.0} ERR $tserr
+setenv_var TESTSUITE_VARIANT 33
+set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/1{bAr=2:foo=VAL2}]]
+testouterr_cmd sh {load --auto variant/7.0} ERR $tserr
+setenv_var TESTSUITE_VARIANT 34
+testouterr_cmd_re sh {load --auto variant/7.0} $ans {}
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMVARIANT
+unsetenv_var MODULES_EXTENDED_DEFAULT
+
+
+#
 #  Cleanup
 #
 
