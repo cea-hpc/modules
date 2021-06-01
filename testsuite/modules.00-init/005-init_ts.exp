@@ -251,8 +251,17 @@ proc info_notloaded {mod} {
     return "$::info_msgs: Module '$mod' is not loaded"
 }
 
-proc err_othervariantloaded {vr} {
-    return "$::error_msgs: Variant {$vr} is already loaded"
+proc err_othervariantloaded {vrlist {setsgr 0}} {
+    if {$setsgr} {
+        set vrdesiglist {}
+        foreach vr $vrlist {
+            lappend vrdesiglist [sgr 93]$vr[sgr 0]
+        }
+        set vrdesig [sgr 2]\{[sgr 22][join $vrdesiglist [sgr 2]:[sgr 22]][sgr 2]\}[sgr 22]
+    } else {
+        set vrdesig "{[join $vrlist :]}"
+    }
+    return "$::error_msgs: Variant $vrdesig is already loaded"
 }
 
 proc msg_moderr {msg cmdline modfile linenum {pad {}} {procname {}} {contact {}} {custom {}}} {
