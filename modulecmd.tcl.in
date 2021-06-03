@@ -11920,13 +11920,8 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist {force 0}\
    # fail as prereq may not be satisfied anymore
    setConf auto_handling 0
    foreach mod $lmlist {
-      if {[info exists vr($mod)]} {
-         # if an auto set default was excluded, module spec need parsing
-         lassign [eval parseModuleSpecification 0 "{$mod} $vr($mod)"]\
-            modnamevr
-      } else {
-         set modnamevr $mod
-      }
+      # if an auto set default was excluded, module spec need parsing
+      lassign [eval parseModuleSpecification 0 "{$mod} $vr($mod)"] modnamevr
       # reload module with user asked property preserved
       if {[cmdModuleLoad $context $isuasked($mod) $modnamevr]} {
          set errMsg [string map [list _MOD_ [getModuleDesignation spec\
