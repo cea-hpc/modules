@@ -611,6 +611,21 @@ set ans [msg_moderr {invalid command name "foo"} {foo} $modpath/setenv/1.0 30 {}
 testouterr_cmd sh {load setenv/1.0} ERR [msg_load setenv/1.0 $ans]
 unsetenv_var TESTSUITE_ENABLE_SITECONFIG_UNKINTERRDURINGMODEVAL
 
+
+# getModuleDesignation coverage test
+setenv_var TESTSUITE_ENABLE_SITECONFIG_GETMODULEDESIGNATION 1
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_loaded_module [list variant/1.0] [list $modpath.3/variant/1.0]
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1|0&bar|val3|0
+set ans [list]
+lappend ans variant/1.0{bar=val3:foo=val1}
+lappend ans $vers_reportre
+testouterr_cmd_re sh -V OK [join $ans \n]
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMVARIANT
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_GETMODULEDESIGNATION
+
 } elseif {$verbose > 0} {
     send_user "\tSkip tests relying on an excepted siteconfig file installed\n"
 }
