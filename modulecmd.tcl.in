@@ -3280,6 +3280,7 @@ proc module {command args} {
       dump_state addpath_pos not_req args
 
    # parse module version specification
+   defineParseModuleSpecificationProc [getConf advanced_version_spec]
    if {[isInList [list avail paths whatis load unload switch help test\
       display path is-avail edit] $command]} {
       set args [eval parseModuleSpecification 0 $args]
@@ -3676,6 +3677,7 @@ proc ml {args} {
       eval module $command $margs
    } else {
       # parse specified module and get list of mods to unload and mods to load
+      defineParseModuleSpecificationProc [getConf advanced_version_spec]
       lassign [eval parseModuleSpecification 1 $fargs] modunlist modlolist
 
       # main procedure has already raised error for badly written argument
@@ -11570,10 +11572,29 @@ proc parseModuleVersionSpecifier {modspec} {
    return [list $cmpspec $versspec]
 }
 
+# Define procedure to parse modulefile specification passed as argument
+# Adapt procedure code whether advanced_version_spec is enabled or disabled
+proc defineParseModuleSpecificationProc {advverspec} {
+   set procname parseModuleSpecificationProc
+   if {$advverspec} {
+      append procname AdvVersSpec
+   }
+   # define proc if not done yet or if it was defined for another context
+   if {[info procs parseModuleSpecification] eq {} ||\
+      $::g_parseModuleSpecification_proc ne $procname} {
+      if {[info exists ::g_parseModuleSpecification_proc]} {
+         rename ::parseModuleSpecification\
+            ::$::g_parseModuleSpecification_proc
+      }
+      rename ::$procname ::parseModuleSpecification
+      set ::g_parseModuleSpecification_proc $procname
+   }
+}
+
 # when advanced_version_spec option is enabled, parse argument list to set in
 # a global context version specification of modules passed as argument.
 # specification may vary whether it comes from the ml or another command.
-proc parseModuleSpecification {mlspec args} {
+proc parseModuleSpecificationProc {mlspec args} {
    # skip arg parse if proc was already call with same arg set by an upper
    # proc. check all args to ensure current arglist does not deviate from
    # what was previously parsed
@@ -11583,140 +11604,155 @@ proc parseModuleSpecification {mlspec args} {
          break
       }
    }
+   if {![info exists need_parse]} {
+      return $args
+   }
 
-   if {[info exists need_parse]} {
-      if {[getConf advanced_version_spec]} {
+   set unarglist [list]
+   set arglist [list]
+
+   foreach arg $args {
+      if {$mlspec && [string index $arg 0] eq {-}} {
+         set modname [string range $arg 1 end]
+         set mlunload 1
+      } else {
+         set modname $arg
          set mlunload 0
-         set arglist [list]
-         set unarglist [list]
-         set vrlist [list]
-         set vridx -1
-         foreach arg $args {
-            # extract version specifier from arg
-            set curverslist [lassign [split $arg @] curarg]
-            # extract valued-variant spec
-            if {[set vrsepidx [string first = $curarg]] != -1} {
-               set vrname [string range $curarg 0 [expr {$vrsepidx - 1}]]
-               set vrvalue [string range $curarg [expr {$vrsepidx + 1}] end]
+      }
+      # keep arg enclosed if composed of several words
+      if {[string first { } $modname] != -1} {
+         set modarg "{$modname}"
+      } else {
+         set modarg $modname
+      }
+      # record spec, especially needed if arg is enclosed
+      setModuleVersSpec $modarg $modname eq {} {} {}
+      # append to unload list if ml spec and - prefix used
+      if {$mlunload} {
+         lappend unarglist $modarg
+      } else {
+         lappend arglist $modarg
+      }
+   }
 
-               if {$vrname eq {}} {
-                  knerror "No variant name defined in argument '$curarg'"
-               }
-               # replace previous value for variant if already set
-               if {[info exists vrnamearr($vrname)]} {
-                  lreplace $vrlist $vrnamearr($vrname) $vrnamearr($vrname)
-               } else {
-                  incr vridx
-               }
-               # save variant name and value
-               set vrnamearr($vrname) $vridx
-               lappend vrlist [list $vrname $vrvalue]
-            } else {
-               # preserve empty argument
-               if {$curarg ne {} || $arg eq {}} {
-                  # save previous mod version spec and transformed arg if any
-                  if {[info exists modarglist]} {
-                     set modarg [join $modarglist]
-                     if {![info exists cmpspec]} {
-                        set cmpspec eq
-                        set versspec {}
-                     }
-                     if {[info exists modname] && ($modname ne {} || $modspec\
-                        eq {})} {
-                        setModuleVersSpec $modarg $modname $cmpspec $versspec\
-                           $modspec $vrlist
-                        # rework args to have 1 str element for whole mod spec
-                        # append to unload list if ml spec and - prefix used
-                        if {$mlunload} {
-                           lappend unarglist $modarg
-                        } else {
-                           lappend arglist $modarg
-                        }
-                     } else {
-                        knerror "No module name defined in argument '$modarg'"
-                     }
-                     unset modarglist
-                     set vrlist [list]
-                     array unset vrnamearr
-                     set vridx -1
-                     unset cmpspec versspec
-                  }
-                  if {$mlspec} {
-                     if {[string index $curarg 0] eq {-}} {
-                        set arg [string range $arg 1 end]
-                        set curarg [string range $curarg 1 end]
-                        set mlunload 1
-                     } else {
-                        set mlunload 0
-                     }
-                  }
-                  set modname $curarg
-                  set modspec {}
-               }
-            }
-            if {[llength $curverslist] > 0} {
-               set modspec [lindex $curverslist end]
-               lassign [parseModuleVersionSpecifier $modspec] cmpspec versspec
-            }
+   if {$mlspec} {
+      return [list $unarglist $arglist]
+   } else {
+      return $arglist
+   }
 
-            # keep arg enclosed if composed of several words
-            if {[string first { } $arg] != -1} {
-               lappend modarglist "{$arg}"
-            } else {
-               lappend modarglist $arg
-            }
+}
+proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
+   foreach arg $args {
+      if {![info exists ::g_moduleVersSpec($arg)]} {
+         set need_parse 1
+         break
+      }
+   }
+   if {![info exists need_parse]} {
+      return $args
+   }
+
+   set mlunload 0
+   set arglist [list]
+   set unarglist [list]
+   set vrlist [list]
+   set vridx -1
+   foreach arg $args {
+      # extract version specifier from arg
+      set curverslist [lassign [split $arg @] curarg]
+      # extract valued-variant spec
+      if {[set vrsepidx [string first = $curarg]] != -1} {
+         set vrname [string range $curarg 0 [expr {$vrsepidx - 1}]]
+         set vrvalue [string range $curarg [expr {$vrsepidx + 1}] end]
+
+         if {$vrname eq {}} {
+            knerror "No variant name defined in argument '$curarg'"
          }
-         # transform last args
-         if {[info exists modarglist]} {
-            set modarg [join $modarglist]
-            if {[info exists modname] && ($modname ne {} || $modspec eq {})} {
+         # replace previous value for variant if already set
+         if {[info exists vrnamearr($vrname)]} {
+            lreplace $vrlist $vrnamearr($vrname) $vrnamearr($vrname)
+         } else {
+            incr vridx
+         }
+         # save variant name and value
+         set vrnamearr($vrname) $vridx
+         lappend vrlist [list $vrname $vrvalue]
+      } else {
+         # preserve empty argument
+         if {$curarg ne {} || $arg eq {}} {
+            # save previous mod version spec and transformed arg if any
+            if {[info exists modarglist]} {
+               set modarg [join $modarglist]
                if {![info exists cmpspec]} {
                   set cmpspec eq
                   set versspec {}
                }
-               setModuleVersSpec $modarg $modname $cmpspec $versspec $modspec\
-                  $vrlist
-               # rework args to have 1 string element for whole module spec
-               # append to unload list if ml spec and - prefix used
-               if {$mlunload} {
-                  lappend unarglist $modarg
+               if {[info exists modname] && ($modname ne {} || $modspec\
+                  eq {})} {
+                  setModuleVersSpec $modarg $modname $cmpspec $versspec\
+                     $modspec $vrlist
+                  # rework args to have 1 str element for whole mod spec
+                  # append to unload list if ml spec and - prefix used
+                  if {$mlunload} {
+                     lappend unarglist $modarg
+                  } else {
+                     lappend arglist $modarg
+                  }
                } else {
-                  lappend arglist $modarg
+                  knerror "No module name defined in argument '$modarg'"
                }
-            } else {
-               knerror "No module name defined in argument '$modarg'"
+               unset modarglist
+               set vrlist [list]
+               array unset vrnamearr
+               set vridx -1
+               unset cmpspec versspec
             }
-         }
-      } else {
-         set unarglist [list]
-         set arglist [list]
-
-         foreach arg $args {
-            if {$mlspec && [string index $arg 0] eq {-}} {
-               set modname [string range $arg 1 end]
-               set mlunload 1
-            } else {
-               set modname $arg
-               set mlunload 0
+            if {$mlspec} {
+               if {[string index $curarg 0] eq {-}} {
+                  set arg [string range $arg 1 end]
+                  set curarg [string range $curarg 1 end]
+                  set mlunload 1
+               } else {
+                  set mlunload 0
+               }
             }
-            # keep arg enclosed if composed of several words
-            if {[string first { } $modname] != -1} {
-               set modarg "{$modname}"
-            } else {
-               set modarg $modname
-            }
-            # record spec, especially needed if arg is enclosed
-            setModuleVersSpec $modarg $modname eq {} {} {}
-            # append to unload list if ml spec and - prefix used
-            if {$mlunload} {
-               lappend unarglist $modarg
-            } else {
-               lappend arglist $modarg
-            }
+            set modname $curarg
+            set modspec {}
          }
       }
-   } else {
-      set arglist $args
+      if {[llength $curverslist] > 0} {
+         set modspec [lindex $curverslist end]
+         lassign [parseModuleVersionSpecifier $modspec] cmpspec versspec
+      }
+
+      # keep arg enclosed if composed of several words
+      if {[string first { } $arg] != -1} {
+         lappend modarglist "{$arg}"
+      } else {
+         lappend modarglist $arg
+      }
+   }
+   # transform last args
+   if {[info exists modarglist]} {
+      set modarg [join $modarglist]
+      if {[info exists modname] && ($modname ne {} || $modspec eq {})} {
+         if {![info exists cmpspec]} {
+            set cmpspec eq
+            set versspec {}
+         }
+         setModuleVersSpec $modarg $modname $cmpspec $versspec $modspec\
+            $vrlist
+         # rework args to have 1 string element for whole module spec
+         # append to unload list if ml spec and - prefix used
+         if {$mlunload} {
+            lappend unarglist $modarg
+         } else {
+            lappend arglist $modarg
+         }
+      } else {
+         knerror "No module name defined in argument '$modarg'"
+      }
    }
 
    if {$mlspec} {
