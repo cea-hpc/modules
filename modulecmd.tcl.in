@@ -11667,7 +11667,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
       for {set i 1} {$i < [string length $arg]} {incr i} {
          set c [string index $arg $i]
          switch -- $c {
-            @ {
+            @ - + - ~ {
                lappend curarglist [string range $arg $previ [expr {$i - 1}]]
                set previ $i
             }
@@ -11683,11 +11683,21 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
                lassign [parseModuleVersionSpecifier $modspec] cmpspec versspec
                continue
             }
+            + {
+               set curarg [string range $curarg 1 end]
+               append curarg =1
+            }
             - {
+               set curarg [string range $curarg 1 end]
                if {$mlspec} {
-                  set curarg [string range $curarg 1 end]
                   set nextmlunload 1
+               } else {
+                  append curarg =0
                }
+            }
+            ~ {
+               set curarg [string range $curarg 1 end]
+               append curarg =0
             }
             {} {
                # preserve empty argument
