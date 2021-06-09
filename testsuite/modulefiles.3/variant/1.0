@@ -97,6 +97,32 @@ if {[info exists env(TESTSUITE_VARIANT)]} {
             variant foo val1 val2 val3
             variant --default 2 bar 1 2 3
         }
+        bool1 {
+            variant foo --boolean
+        }
+        bool2 {
+            variant --boolean foo 0 1
+        }
+        bool3 {
+            variant --boolean foo val1 val2 val3
+        }
+        bool4 {
+            variant --boolean --default val1 foo val1 val2 val3
+        }
+        bool5 {
+            variant --default val1 --boolean foo
+        }
+        bool6 {
+            variant foo 0 1
+            variant --boolean foo
+        }
+        bool7 {
+            variant --boolean foo
+            variant foo 0 1
+        }
+        bool8 {
+            variant --boolean foo
+        }
     }
     if {![string match coll* $env(TESTSUITE_VARIANT)]} {
         setenv TS0 [lsort [array names ModuleVariant]]
@@ -108,5 +134,8 @@ if {[info exists env(TESTSUITE_VARIANT)]} {
             append ts1 "$name=$ModuleVariant($name)"
         }
         setenv TS1 $ts1
+    }
+    if {[string match bool* $env(TESTSUITE_VARIANT)]} {
+        setenv TS2 [expr {$ModuleVariant(foo) ? {true} : {false}}]
     }
 }
