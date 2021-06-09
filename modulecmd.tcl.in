@@ -5003,6 +5003,7 @@ proc source-sh-di {shell script args} {
 proc parseVariantCommandArgs {args} {
    set dflvalue {}
    set defdflvalue 0
+   set isboolean 0
    set i 0
    foreach arg $args {
       incr i
@@ -5014,6 +5015,9 @@ proc parseVariantCommandArgs {args} {
             --default {
                set nextargisval dflvalue
                set defdflvalue 1
+            }
+            --boolean {
+               set isboolean 1
             }
             -* {
                knerror "Invalid option '$arg'"
@@ -5040,17 +5044,33 @@ proc parseVariantCommandArgs {args} {
       knerror "Invalid variant name '$name'"
    }
    set values [lrange $args $i end]
-   if {[llength $values] == 0} {
+   if {$isboolean} {
+      if {[llength $values] > 0} {
+         knerror "No value should be defined for boolean variant '$name'"
+      } else {
+         set values {1 0 yes no true false on off}
+      }
+   } elseif {!$isboolean && [llength $values] == 0} {
       knerror "No allowed value list defined for variant '$name'"
    }
+   if {$defdflvalue && $isboolean} {
+      # default value should be bool if variant is boolean
+      if {![string is boolean -strict $dflvalue]} {
+         knerror "Boolean value is expected as default value for variant\
+            '$name'"
+      # translate default value in boolean canonical form (0 or 1)
+      } else {
+         set dflvalue [string is true -strict $dflvalue]
+      }
+   }
 
-   return [list $name $values $defdflvalue $dflvalue]
+   return [list $name $values $defdflvalue $dflvalue $isboolean]
 }
 
 proc variant {itrp args} {
    # parse args
    lassign [eval parseVariantCommandArgs $args] name values defdflvalue\
-      dflvalue
+      dflvalue isboolean
 
    # version variant is forbidden until specific implementation
    if {$name eq {version}} {
@@ -5064,7 +5084,12 @@ proc variant {itrp args} {
    for {set i [expr {[llength $vrlist]-1}]} {$i >= 0} {incr i -1} {
       lassign [lindex $vrlist $i] vrname vrvalue
       if {$vrname eq $name} {
-         set value $vrvalue
+         # translate value in boolean canonical form (0/1) if variant is bool
+         if {$isboolean && [string is boolean -strict $vrvalue]} {
+            set value [string is true -strict $vrvalue]
+         } else {
+            set value $vrvalue
+         }
          set isdflval [expr {$defdflvalue && $dflvalue eq $value}]
          break
       }
@@ -5083,7 +5108,8 @@ proc variant {itrp args} {
    }
 
    # check defined value
-   if {[notInList $values $value]} {
+   if {($isboolean && ![string is boolean -strict $value]) || (!$isboolean &&\
+      [notInList $values $value])} {
       # invalid value error is not a modulefile error
       knerror "Invalid value '$value' for variant '$name'\nAllowed values\
          are: $values" MODULES_ERR_GLOBAL
@@ -5107,7 +5133,7 @@ proc variant {itrp args} {
 proc variant-wh {itrp args} {
    # parse args
    lassign [eval parseVariantCommandArgs $args] name values defdflvalue\
-      dflvalue
+      dflvalue isboolean
 
    # instantiate variant in modulefile context to an empty value
    reportDebug "Set variant on $itrp: ModuleVariant($name) = ''"
