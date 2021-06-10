@@ -5119,11 +5119,11 @@ proc variant {itrp args} {
       $itrp eval set "{::ModuleVariant($name)}" "{$value}"
       # after modfile interp ModuleVariant is unset by resetInterpState
 
-      # record variant for persistency (name value is-default) unless module
-      # is currently unloading
+      # record variant for persistency (name value is-boolean is-default)
+      # unless module is currently unloading
       if {[currentState mode] ne {unload}} {
          setLoadedVariant [currentState modulename] [list $name $value\
-            $isdflval]
+            $isboolean $isdflval]
       }
    }
 }
@@ -5745,10 +5745,19 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from_spec 0}} {
 
    # use array to make variant unique
    foreach vrspec $vrspeclist {
-      lassign $vrspec vrname vrvalue vrvalisdfl
+      lassign $vrspec vrname vrvalue vrvalisbool vrvalisdfl
       # correct is-default value if invalid
       if {![string is integer -strict $vrvalisdfl]} {
          set vrvalisdfl 0
+      }
+      # correct is-boolean value if invalid
+      if {![string is boolean -strict $vrvalisbool]} {
+         set vrvalisbool 0
+      }
+      set vrisbool($vrname) $vrvalisbool
+      # correct boolean value if invalid
+      if {$vrvalisbool && ![string is boolean -strict $vrvalue]} {
+         set vrvalue 0
       }
       # do not return variant if value is default, unless if variant was
       # specifically set to default value (isdfl=1) and we only want to
@@ -5776,8 +5785,18 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from_spec 0}} {
       switch -- $report {
          3 {lappend ret $vrname [lindex $vrarr($vrname) 0] [lindex\
             $vrarr($vrname) 1]}
-         2 {lappend ret [list $vrname $vrarr($vrname)]}
-         1 {lappend ret $vrname=$vrarr($vrname)}
+         2 {lappend ret [list $vrname $vrarr($vrname) $vrisbool($vrname)]}
+         1 {
+            if {$vrisbool($vrname)} {
+               if {$vrarr($vrname)} {
+                  lappend ret +$vrname
+               } else {
+                  lappend ret -$vrname
+               }
+            } else {
+               lappend ret $vrname=$vrarr($vrname)
+            }
+         }
          0 {lappend ret $vrname $vrarr($vrname)}
       }
    }
@@ -11703,6 +11722,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
 
       # parse each specification element
       foreach curarg $curarglist {
+         set vrisbool 0
          switch -- [string index $curarg 0] {
             @ {
                set modspec [string range $curarg 1 end]
@@ -11712,6 +11732,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
             + {
                set curarg [string range $curarg 1 end]
                append curarg =1
+               set vrisbool 1
             }
             - {
                set curarg [string range $curarg 1 end]
@@ -11719,11 +11740,13 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
                   set nextmlunload 1
                } else {
                   append curarg =0
+                  set vrisbool 1
                }
             }
             ~ {
                set curarg [string range $curarg 1 end]
                append curarg =0
+               set vrisbool 1
             }
             {} {
                # preserve empty argument
@@ -11751,7 +11774,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
                }
                # save variant name and value
                set vrnamearr($vrname) $vridx
-               lappend vrlist [list $vrname $vrvalue]
+               lappend vrlist [list $vrname $vrvalue $vrisbool]
             }
             default {
                # save previous mod version spec and transformed arg if any
