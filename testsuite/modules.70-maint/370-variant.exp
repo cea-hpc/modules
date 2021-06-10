@@ -32,7 +32,7 @@ setenv_var MODULES_LIST_TERSE_OUTPUT header
 # list tests
 #
 
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1|0|0
 setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
 
 testouterr_cmd sh {list} OK "$cur_loaded
@@ -50,7 +50,7 @@ variant/1.0"
 testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"variants\": { \"foo\": \"val1\" }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"}}"
 
 # multiple variants set on module
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1&bar|val2
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1|0|0&bar|val2|0|0
 setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
 
 set tserr "$cur_loaded
@@ -66,7 +66,7 @@ testouterr_cmd sh {list -j} OK $tserr
 testouterr_cmd sh {ml -j} OK $tserr
 
 # multiple modules loaded
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1&bar|val2:variant/2.0&baz|val3
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1|0|0&bar|val2|0|0:variant/2.0&baz|val3|0|0
 setenv_loaded_module [list variant/1.0 variant/2.0] [list $mp/variant/1.0 $mp/variant/2.0]
 
 testouterr_cmd sh {list} OK "$cur_loaded
@@ -91,7 +91,7 @@ testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \
 unsetenv_path_var MODULES_LMALTNAME
 
 # duplicate variant definition
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1&foo|val3&bar|val2:variant/2.0&baz|val3
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1&foo|val3|0|0&bar|val2|0|0:variant/2.0&baz|val3|0|0
 testouterr_cmd sh {list} OK "$cur_loaded
  1) variant/1.0{bar=val2:foo=val3}   2) variant/2.0{baz=val3}  
 
@@ -126,7 +126,7 @@ Key:
 
 # colored output
 setenv_var MODULES_COLORS "se=2:va=33"
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1&bar|val2:variant/2.0&baz|val3
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1|0|0&bar|val2|0|0:variant/2.0&baz|val3|0|0
 
 testouterr_cmd_re sh {list --color=always} OK "$cur_loaded
  1\\) variant/1.0[sgr 2]{[sgr 22][sgr 33]bar=val2[sgr 0][sgr 2]:[sgr 22][sgr 33]foo=val1[sgr 0][sgr 2]}[sgr 22]   2\\) variant/2.0[sgr 2]{[sgr 22][sgr 33]baz=val3[sgr 0][sgr 2]}[sgr 22]  
