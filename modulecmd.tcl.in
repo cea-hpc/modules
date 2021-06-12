@@ -10655,11 +10655,14 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
    set default_colored [isSgrkeyColored de]
    set himatchmap [prepareMapToHightlightSubstr $mod]
    set clean_list {}
+   set vr_list {}
 
    # treat elements in specified order if any
    foreach elt [if {[llength $mod_list_order] == 0} {array names mod_list}\
       {set mod_list_order}] {
-      set vr_list [getVariantList $elt [expr {!$json}]]
+      if {$report_variant} {
+         set vr_list [getVariantList $elt [expr {!$json}]]
+      }
       set sym_list [getVersAliasList $elt]
       # fetch tags but clear excluded tag
       set tag_list [replaceFromList [getTagList $elt] $excluded_tag]
