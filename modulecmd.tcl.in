@@ -14566,12 +14566,27 @@ if {[catch {
                   for more information."
             }
             -* {
-               # spare argument if ml command is called
-               if {[lindex $otherargv 0] ne {ml}} {
+               # verify current command accepts minus arg (-*)
+               if {![info exists accept_minus_arg] && [llength $otherargv]\
+                  > 0} {
+                  set subcmdtest [lindex $otherargv 0]
+                  if {$subcmdtest ne {ml}} {
+                     lassign [parseModuleCommandName $subcmdtest {}]\
+                        subcmdtest
+                  }
+                  # accepted if command is ml or if adv vers spec is enabled
+                  # and command can receive boolean variant specification
+                  set accept_minus_arg [expr {$subcmdtest eq {ml} ||\
+                     ([getConf advanced_version_spec] && [isInList {avail\
+                     display help is-avail is-loaded load path paths switch\
+                     test unload whatis} $subcmdtest])}]
+               }
+               # spare argument if minus arg is accepted
+               if {[info exists accept_minus_arg] && $accept_minus_arg} {
+                  lappend otherargv $arg
+               } else {
                   reportErrorAndExit "Invalid option '$arg'\nTry 'module\
                      --help' for more information."
-               } else {
-                  lappend otherargv $arg
                }
             }
             default {
