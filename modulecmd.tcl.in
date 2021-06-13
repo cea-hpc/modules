@@ -5783,6 +5783,7 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from_spec 0}} {
    set ret {}
    foreach vrname [lsort -dictionary [array names vrarr]] {
       switch -- $report {
+         4 {lappend ret $vrname $vrarr($vrname) $vrisbool($vrname)}
          3 {lappend ret $vrname [lindex $vrarr($vrname) 0] [lindex\
             $vrarr($vrname) 1]}
          2 {lappend ret [list $vrname $vrarr($vrname) $vrisbool($vrname)]}
@@ -10588,11 +10589,16 @@ proc formatArrayValToJson {vallist} {
 }
 
 proc formatObjectValToJson {objlist} {
-   foreach {key val} $objlist {
+   foreach {key val isbool} $objlist {
       if {[info exists disp]} {
          append disp {, }
       }
-      append disp "\"$key\": \"$val\""
+      append disp "\"$key\": "
+      if {$isbool} {
+         append disp [expr {$val ? {true} : {false}}]
+      } else {
+         append disp "\"$val\""
+      }
    }
    return [expr {[info exists disp] ? "{ $disp }" : "{}"}]
 }
@@ -10669,7 +10675,7 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
    foreach elt [if {[llength $mod_list_order] == 0} {array names mod_list}\
       {set mod_list_order}] {
       if {$report_variant} {
-         set vr_list [getVariantList $elt [expr {!$json}]]
+         set vr_list [getVariantList $elt [expr {$json ? 4 : 1}]]
       }
       set sym_list [getVersAliasList $elt]
       # fetch tags but clear excluded tag
