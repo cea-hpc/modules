@@ -11729,9 +11729,24 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
       for {set i 1} {$i < [string length $arg]} {incr i} {
          set c [string index $arg $i]
          switch -- $c {
-            @ - + - ~ {
+            @ - ~ {
                lappend curarglist [string range $arg $previ [expr {$i - 1}]]
                set previ $i
+            }
+            + {
+               # allow one or more '+' char at end of module name if not
+               # followed by non-special character (@, ~ or /)
+               set nexti [expr {$i + 1}]
+               if {$nexti < [string length $arg]} {
+                  switch -- [string index $arg $nexti] {
+                     @ - + - ~ - / {}
+                     default {
+                        lappend curarglist [string range $arg $previ [expr\
+                           {$i - 1}]]
+                        set previ $i
+                     }
+                  }
+               }
             }
          }
       }
