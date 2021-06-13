@@ -134,6 +134,70 @@ testouterr_cmd_re sh {list --color=always} OK "$cur_loaded
 Key:
 [sgr 2]{[sgr 22][sgr 33]variant=value[sgr 0][sgr 2]}[sgr 22]  "
 
+# boolean variant set
+setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|1|1|0
+testouterr_cmd sh {list} OK "$cur_loaded
+ 1) variant/1.0{+foo}  
+
+Key:
+{+variant}=variant-is-on  "
+testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"variants\": { \"foo\": true }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"}}"
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|0|1|0
+testouterr_cmd sh {list} OK "$cur_loaded
+ 1) variant/1.0{-foo}  
+
+Key:
+{-variant}=variant-is-off  "
+testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"variants\": { \"foo\": false }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"}}"
+# bad persistency information for boolean variant
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|1|1
+testouterr_cmd sh {list} OK "$cur_loaded
+ 1) variant/1.0{+foo}  
+
+Key:
+{+variant}=variant-is-on  "
+testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"variants\": { \"foo\": true }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"}}"
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo||1|0
+testouterr_cmd sh {list} OK "$cur_loaded
+ 1) variant/1.0{-foo}  
+
+Key:
+{-variant}=variant-is-off  "
+testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"variants\": { \"foo\": false }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"}}"
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|str|1|0
+testouterr_cmd sh {list} OK "$cur_loaded
+ 1) variant/1.0{-foo}  
+
+Key:
+{-variant}=variant-is-off  "
+testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"variants\": { \"foo\": false }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"}}"
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|1||0
+testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"variants\": { \"foo\": \"1\" }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"}}"
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|0|str|0
+testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"variants\": { \"foo\": \"0\" }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"}}"
+
+# color output with boolean variant
+setenv_var MODULES_COLORS "se=2:va=33"
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|1|1|0
+testouterr_cmd_re sh {list --color=always} OK "$cur_loaded
+ 1\\) variant/1.0[sgr 2]{[sgr 22][sgr 33]\\+foo[sgr 0][sgr 2]}[sgr 22]  
+
+Key:
+[sgr 2]{[sgr 22][sgr 33]\\+variant[sgr 0][sgr 2]}[sgr 22]=variant-is-on  "
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|0|1|0
+testouterr_cmd_re sh {list --color=always} OK "$cur_loaded
+ 1\\) variant/1.0[sgr 2]{[sgr 22][sgr 33]-foo[sgr 0][sgr 2]}[sgr 22]  
+
+Key:
+[sgr 2]{[sgr 22][sgr 33]-variant[sgr 0][sgr 2]}[sgr 22]=variant-is-off  "
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|0|1|0&bar|val|0
+testouterr_cmd_re sh {list --color=always} OK "$cur_loaded
+ 1\\) variant/1.0[sgr 2]{[sgr 22][sgr 33]bar=val[sgr 0][sgr 2]:[sgr 22][sgr 33]-foo[sgr 0][sgr 2]}[sgr 22]  
+
+Key:
+[sgr 2]{[sgr 22][sgr 33]variant=value[sgr 0][sgr 2]}[sgr 22]  [sgr 2]{[sgr 22][sgr 33]-variant[sgr 0][sgr 2]}[sgr 22]=variant-is-off  "
+
 unsetenv_path_var MODULES_LMVARIANT
 unsetenv_loaded_module
 
