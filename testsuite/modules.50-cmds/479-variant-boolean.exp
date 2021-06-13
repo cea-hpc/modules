@@ -96,6 +96,138 @@ testouterr_cmd sh {load variant/1.0 +foo} $ans {}
 
 
 #
+# test boolean variant specification
+#
+
+# default value test
+set anst [list]
+lappend anst [list set TS0 foo]
+lappend anst [list set TS1 foo=1]
+lappend anst [list set TS2 true]
+lappend anst [list setpath LOADEDMODULES variant/1.0]
+lappend anst [list setpath _LMFILES_ $mp/variant/1.0]
+lappend anst [list setpath MODULES_LMVARIANT variant/1.0&foo|1|1|2]
+set ansf [list]
+lappend ansf [list set TS0 foo]
+lappend ansf [list set TS1 foo=0]
+lappend ansf [list set TS2 false]
+lappend ansf [list setpath LOADEDMODULES variant/1.0]
+lappend ansf [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ansf [list setpath MODULES_LMVARIANT variant/1.0&foo|0|1|2]
+
+setenv_var TESTSUITE_VARIANT bool10
+testouterr_cmd sh {load variant/1.0} $anst {}
+setenv_var TESTSUITE_VARIANT bool11
+testouterr_cmd sh {load variant/1.0} $ansf {}
+setenv_var TESTSUITE_VARIANT bool12
+testouterr_cmd sh {load variant/1.0} $anst {}
+setenv_var TESTSUITE_VARIANT bool13
+testouterr_cmd sh {load variant/1.0} $ansf {}
+setenv_var TESTSUITE_VARIANT bool14
+testouterr_cmd sh {load variant/1.0} $anst {}
+setenv_var TESTSUITE_VARIANT bool15
+testouterr_cmd sh {load variant/1.0} $ansf {}
+setenv_var TESTSUITE_VARIANT bool16
+testouterr_cmd sh {load variant/1.0} $anst {}
+setenv_var TESTSUITE_VARIANT bool17
+testouterr_cmd sh {load variant/1.0} $ansf {}
+setenv_var TESTSUITE_VARIANT bool18
+testouterr_cmd sh {load variant/1.0} $anst {}
+setenv_var TESTSUITE_VARIANT bool19
+testouterr_cmd sh {load variant/1.0} $ansf {}
+
+
+setenv_var TESTSUITE_VARIANT bool12
+# default value specified (true)
+set ans [list]
+lappend ans [list set TS0 foo]
+lappend ans [list set TS1 foo=1]
+lappend ans [list set TS2 true]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|1|1|1]
+testouterr_cmd sh {load variant/1.0 +foo} $ans {}
+testouterr_cmd sh {load variant/1.0 foo=true} $ans {}
+testouterr_cmd sh {load variant/1.0 foo=1} $ans {}
+# non-default value specified (false)
+set ans [list]
+lappend ans [list set TS0 foo]
+lappend ans [list set TS1 foo=0]
+lappend ans [list set TS2 false]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|0|1|0]
+testouterr_cmd sh {load variant/1.0 -foo} $ans {}
+testouterr_cmd sh {load variant/1.0 foo=off} $ans {}
+testouterr_cmd sh {load variant/1.0 foo=0} $ans {}
+
+setenv_var TESTSUITE_VARIANT bool13
+# default value specified (false)
+set ans [list]
+lappend ans [list set TS0 foo]
+lappend ans [list set TS1 foo=0]
+lappend ans [list set TS2 false]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|0|1|1]
+set tserr [msg_load variant/1.0{-foo}]
+testouterr_cmd sh {load -v variant/1.0 ~foo} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0 foo=f} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0 foo=0} $ans $tserr
+# non-default value specified (true)
+set ans [list]
+lappend ans [list set TS0 foo]
+lappend ans [list set TS1 foo=1]
+lappend ans [list set TS2 true]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|1|1|0]
+set tserr [msg_load variant/1.0{+foo}]
+testouterr_cmd sh {load -v variant/1.0 +foo} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0 foo=t} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0 foo=on} $ans $tserr
+
+
+# specify boolean variant whereas variant is not defined as boolean
+setenv_var TESTSUITE_VARIANT bool20
+set ans [list]
+lappend ans [list set TS0 foo]
+lappend ans [list set TS1 foo=1]
+lappend ans [list set TS2 true]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|1|0|1]
+testouterr_cmd sh {load -v variant/1.0 +foo} $ans [msg_load variant/1.0{foo=1}]
+
+set ans [list]
+lappend ans [list set TS0 foo]
+lappend ans [list set TS1 foo=0]
+lappend ans [list set TS2 false]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|0|0|0]
+testouterr_cmd sh {load -v variant/1.0 ~foo} $ans [msg_load variant/1.0{foo=0}]
+
+setenv_var TESTSUITE_VARIANT bool21
+testouterr_cmd sh {load -v variant/1.0 +foo} ERR [msg_load variant/1.0{+foo} [err_invalvarval foo 1 {false true}]]
+testouterr_cmd sh {load -v variant/1.0~foo} ERR [msg_load variant/1.0{-foo} [err_invalvarval foo 0 {false true}]]
+
+
+#
+# getvariant test on boolean
+#
+
+setenv_var TESTSUITE_VARIANT bool1
+set ans [list]
+lappend ans [list setpath TS0 {foo=1}]
+lappend ans [list setpath TS1 {foo=1}]
+lappend ans [list setpath LOADEDMODULES variant/5.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/5.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/5.0&foo|1|1|0]
+testouterr_cmd_re sh {load variant/5.0 +foo} $ans {}
+
+
+#
 #  Cleanup
 #
 
