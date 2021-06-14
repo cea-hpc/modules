@@ -228,6 +228,137 @@ testouterr_cmd_re sh {load variant/5.0 +foo} $ans {}
 
 
 #
+# is-loaded tests
+#
+
+setenv_var TESTSUITE_VARIANT bool8
+setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|1|1|0
+
+testouterr_cmd sh {is-loaded variant@1.0} OK {}
+testouterr_cmd sh {is-loaded variant@1.0 +foo} OK {}
+testouterr_cmd sh {is-loaded variant@1.0 foo=on} OK {}
+testouterr_cmd sh {is-loaded variant@1.0 foo=1} OK {}
+testouterr_cmd sh {is-loaded variant@1.0 -foo} ERR {}
+testouterr_cmd sh {is-loaded variant@1.0 foo=off} ERR {}
+testouterr_cmd sh {is-loaded variant@1.0 foo=0} ERR {}
+
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|0|1|0
+
+testouterr_cmd sh {is-loaded variant@1.0} OK {}
+testouterr_cmd sh {is-loaded variant@1.0~foo} OK {}
+testouterr_cmd sh {is-loaded variant@1.0 foo=false} OK {}
+testouterr_cmd sh {is-loaded variant@1.0+foo} ERR {}
+testouterr_cmd sh {is-loaded variant@1.0 foo=true} ERR {}
+
+
+#
+# unload tests
+#
+
+setenv_var TESTSUITE_VARIANT bool8
+setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|1|1|0
+
+set ans [list]
+lappend ans [list unset TS0]
+lappend ans [list unset TS1]
+lappend ans [list unset TS2]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMVARIANT]
+set tserr [msg_unload variant/1.0{+foo}]
+testouterr_cmd sh {unload -v variant@1.0} $ans $tserr
+testouterr_cmd sh {unload -v variant@1.0+foo} $ans $tserr
+testouterr_cmd sh {unload -v variant@1.0 foo=yes} $ans $tserr
+testouterr_cmd sh {unload -v variant@1.0~foo} OK {}
+testouterr_cmd sh {unload -v variant@1.0 foo=no} OK {}
+
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|0|1|0
+set tserr [msg_unload variant/1.0{-foo}]
+testouterr_cmd sh {unload -v variant@1.0} $ans $tserr
+testouterr_cmd sh {unload -v variant@1.0 -foo} $ans $tserr
+testouterr_cmd sh {unload -v variant@1.0 foo=f} $ans $tserr
+testouterr_cmd sh {unload -v variant@1.0 foo=0} $ans $tserr
+testouterr_cmd sh {unload -v variant@1.0 +foo} OK {}
+testouterr_cmd sh {unload -v variant@1.0 foo=t} OK {}
+testouterr_cmd sh {unload -v variant@1.0 foo=1} OK {}
+
+# bad data stored in persistency variable
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|str|1|0
+set tserr [msg_unload variant/1.0{-foo}]
+testouterr_cmd sh {unload -v variant@1.0 -foo} $ans $tserr
+testouterr_cmd sh {unload -v variant@1.0 foo=0} $ans $tserr
+testouterr_cmd sh {unload -v variant@1.0 +foo} OK {}
+testouterr_cmd sh {unload -v variant@1.0 foo=1} OK {}
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo||1|0
+testouterr_cmd sh {unload -v variant@1.0 foo=f} $ans $tserr
+testouterr_cmd sh {unload -v variant@1.0 foo=off} $ans $tserr
+testouterr_cmd sh {unload -v variant@1.0 foo=t} OK {}
+testouterr_cmd sh {unload -v variant@1.0 foo=on} OK {}
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|1|str|0
+testouterr_cmd sh {unload -v variant@1.0 -foo} OK {}
+testouterr_cmd sh {unload -v variant@1.0 foo=0} OK {}
+set tserr [msg_unload variant/1.0{foo=1}]
+testouterr_cmd sh {unload -v variant@1.0 +foo} $ans $tserr
+testouterr_cmd sh {unload -v variant@1.0 foo=1} $ans $tserr
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|1||0
+testouterr_cmd sh {unload -v variant@1.0 foo=false} OK {}
+testouterr_cmd sh {unload -v variant@1.0 foo=no} OK {}
+testouterr_cmd sh {unload -v variant@1.0 foo=true} $ans $tserr
+testouterr_cmd sh {unload -v variant@1.0 foo=yes} $ans $tserr
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|1
+testouterr_cmd sh {unload -v variant@1.0 ~foo} OK {}
+testouterr_cmd sh {unload -v variant@1.0 foo=off} OK {}
+testouterr_cmd sh {unload -v variant@1.0+foo} $ans $tserr
+testouterr_cmd sh {unload -v variant@1.0 foo=on} $ans $tserr
+
+
+#
+# switch tests
+#
+
+setenv_var TESTSUITE_VARIANT bool8
+setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
+
+set ansf [list]
+lappend ansf [list set TS0 foo]
+lappend ansf [list set TS1 foo=0]
+lappend ansf [list set TS2 false]
+lappend ansf [list setpath LOADEDMODULES variant/1.0]
+lappend ansf [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ansf [list setpath MODULES_LMVARIANT variant/1.0&foo|0|1|0]
+
+set anst [list]
+lappend anst [list set TS0 foo]
+lappend anst [list set TS1 foo=1]
+lappend anst [list set TS2 true]
+lappend anst [list setpath LOADEDMODULES variant/1.0]
+lappend anst [list setpath _LMFILES_ $mp/variant/1.0]
+lappend anst [list setpath MODULES_LMVARIANT variant/1.0&foo|1|1|0]
+
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|1|1|0
+set tserr [msg_unload variant/1.0{+foo}]\n[msg_load variant/1.0{-foo}]\n[msg_switch variant/1.0{+foo} variant/1.0{-foo}]
+testouterr_cmd sh {switch -v variant@1.0~foo} $ansf $tserr
+testouterr_cmd sh {switch -v variant@1.0 foo=0} $ansf $tserr
+testouterr_cmd sh {switch -v variant@1.0 foo=false} $ansf $tserr
+set tserr [msg_unload variant/1.0{+foo}]\n[msg_load variant/1.0{+foo}]\n[msg_switch variant/1.0{+foo} variant/1.0{+foo}]
+testouterr_cmd sh {switch -v variant@1.0+foo} $anst $tserr
+testouterr_cmd sh {switch -v variant@1.0 foo=1} $anst $tserr
+testouterr_cmd sh {switch -v variant@1.0 foo=true} $anst $tserr
+
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|0|1|0
+set tserr [msg_unload variant/1.0{-foo}]\n[msg_load variant/1.0{+foo}]\n[msg_switch variant/1.0{-foo} variant/1.0{+foo}]
+testouterr_cmd sh {switch -v variant@1.0 +foo} $anst $tserr
+testouterr_cmd sh {switch -v variant@1.0 foo=yes} $anst $tserr
+testouterr_cmd sh {switch -v variant@1.0 foo=on} $anst $tserr
+set tserr [msg_unload variant/1.0{-foo}]\n[msg_load variant/1.0{-foo}]\n[msg_switch variant/1.0{-foo} variant/1.0{-foo}]
+testouterr_cmd sh {switch -v variant@1.0 -foo} $ansf $tserr
+testouterr_cmd sh {switch -v variant@1.0 foo=no} $ansf $tserr
+testouterr_cmd sh {switch -v variant@1.0 foo=off} $ansf $tserr
+
+
+#
 #  Cleanup
 #
 
