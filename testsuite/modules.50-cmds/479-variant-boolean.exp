@@ -359,6 +359,49 @@ testouterr_cmd sh {switch -v variant@1.0 foo=off} $ansf $tserr
 
 
 #
+# test @loaded version specifier
+#
+
+setenv_var TESTSUITE_VARIANT bool8
+setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|1|1|0
+
+testouterr_cmd sh {load -v variant@loaded} OK {}
+testouterr_cmd sh {load -v variant@loaded +foo} OK {}
+testouterr_cmd sh {load -v variant@loaded foo=t} OK {}
+testouterr_cmd sh {load -v variant@loaded -foo} OK {}
+testouterr_cmd sh {load -v variant@loaded foo=f} OK {}
+
+set ans [list]
+lappend ans [list unset TS0]
+lappend ans [list unset TS1]
+lappend ans [list unset TS2]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMVARIANT]
+set tserr [msg_unload variant/1.0{+foo}]
+testouterr_cmd sh {unload -v variant@loaded} $ans $tserr
+testouterr_cmd sh {unload -v variant@loaded -foo} $ans $tserr
+testouterr_cmd sh {unload -v variant@loaded foo=0} $ans $tserr
+testouterr_cmd sh {unload -v variant@loaded +foo} $ans $tserr
+testouterr_cmd sh {unload -v variant@loaded foo=1} $ans $tserr
+
+# bad data stored in persistency variable
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|str|1|0
+testouterr_cmd sh {load -v variant@loaded} OK {}
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo||1|0
+set tserr [msg_unload variant/1.0{-foo}]
+testouterr_cmd sh {unload -v variant@loaded} $ans $tserr
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|1|str|0
+testouterr_cmd sh {load -v variant@loaded} OK {}
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|1||0
+set tserr [msg_unload variant/1.0{foo=1}]
+testouterr_cmd sh {unload -v variant@loaded} $ans $tserr
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|1
+testouterr_cmd sh {load -v variant@loaded} OK {}
+
+
+#
 #  Cleanup
 #
 
