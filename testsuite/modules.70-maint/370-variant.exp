@@ -219,6 +219,8 @@ setenv_var TESTSUITE_VARIANT 1
 set tserr "$modlin $mpre $modlin\nvariant/6.0  "
 testouterr_cmd_re sh {avail variant@6.0 foo=val1 baz=2} OK $tserr
 testouterr_cmd_re sh {avail variant@6.0 foo=val1 bar=2} OK $tserr
+# boolean variant
+testouterr_cmd_re sh {avail variant@6.0 +foo -bar} OK $tserr
 unsetenv_var TESTSUITE_VARIANT
 
 # when advanced_version_spec is disabled, variant spec are considered as modulefile spec
@@ -246,6 +248,9 @@ setenv_var TESTSUITE_VARIANT 1
 testouterr_cmd_re sh {is-avail variant@6.0 foo=val1 baz=2} OK {}
 testouterr_cmd_re sh {is-avail variant@6.0 foo=val1 bar=2} OK {}
 
+# boolean variant
+testouterr_cmd_re sh {is-avail variant@6.0 -foo +bar} OK {}
+
 # when advanced_version_spec is disabled, variant spec are considered as modulefile spec
 setenv_var MODULES_ADVANCED_VERSION_SPEC 0
 testouterr_cmd_re sh {is-avail variant/6.0 var=val} OK {}
@@ -261,6 +266,9 @@ setenv_var TESTSUITE_VARIANT 1
 set ans [list [list text $mp/variant/6.0]]
 testouterr_cmd sh {paths variant@6.0 foo=val1 baz=2} $ans {}
 testouterr_cmd sh {paths variant@6.0 foo=val1 bar=2} $ans {}
+
+# boolean variant
+testouterr_cmd sh {paths variant@6.0 -foo +bar} $ans {}
 
 # when advanced_version_spec is disabled, variant spec are considered as modulefile spec
 setenv_var MODULES_ADVANCED_VERSION_SPEC 0
@@ -278,6 +286,9 @@ setenv_var TESTSUITE_VARIANT 1
 set ans [list [list text $mp/variant/6.0]]
 testouterr_cmd sh {path variant@6.0 foo=val1 baz=2} $ans {}
 testouterr_cmd sh {path variant@6.0 foo=val1 bar=2} $ans {}
+
+# boolean variant
+testouterr_cmd sh {path variant@6.0 +foo -bar} $ans {}
 
 # when advanced_version_spec is disabled, variant spec are considered as modulefile spec
 setenv_var MODULES_ADVANCED_VERSION_SPEC 0
