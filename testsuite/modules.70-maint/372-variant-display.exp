@@ -162,6 +162,29 @@ variant\t\t--default val2 foo val1 val2 val3
 $modlin"
 testouterr_cmd_re sh {display variant/4.0 foo=val4} ERR $tserr
 
+# boolean variant
+setenv_var TESTSUITE_VARIANT bool8
+set tserr "$modlin
+$mpre/variant/4.0:
+
+variant\t\t--boolean foo
+variant@4.0\\+foo
+setenv\t\tTS0 foo
+append-path\tTS1 foo=1
+append-path\tTS2 foo
+$modlin"
+testouterr_cmd_re sh {display variant@4.0+foo} OK $tserr
+set tserr "$modlin
+$mpre/variant/4.0:
+
+variant\t\t--boolean foo
+variant@4.0~foo
+setenv\t\tTS0 foo
+append-path\tTS1 foo=0
+append-path\tTS2 foo
+$modlin"
+testouterr_cmd_re sh {display variant@4.0~foo} OK $tserr
+
 
 #
 #  Cleanup
