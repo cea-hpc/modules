@@ -5050,8 +5050,17 @@ proc parseVariantCommandArgs {args} {
       } else {
          set values {1 0 yes no true false on off}
       }
-   } elseif {!$isboolean && [llength $values] == 0} {
-      knerror "No allowed value list defined for variant '$name'"
+   } else {
+      if {[llength $values] == 0} {
+         knerror "No allowed value list defined for variant '$name'"
+      } else {
+         foreach val $values {
+            if {[string is boolean -strict $val] && ![string is integer\
+               -strict $val]} {
+               knerror "Boolean value defined on non-boolean variant '$name'"
+            }
+         }
+      }
    }
    if {$defdflvalue && $isboolean} {
       # default value should be bool if variant is boolean
