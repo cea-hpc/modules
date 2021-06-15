@@ -208,9 +208,21 @@ lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
 lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|0|0|0]
 testouterr_cmd sh {load -v variant/1.0 ~foo} $ans [msg_load variant/1.0{foo=0}]
 
+if {[cmpversion $tclsh_version 8.5] > -1} {
+
 setenv_var TESTSUITE_VARIANT bool21
-testouterr_cmd sh {load -v variant/1.0 +foo} ERR [msg_load variant/1.0{+foo} [err_invalvarval foo 1 {false true}]]
-testouterr_cmd sh {load -v variant/1.0~foo} ERR [msg_load variant/1.0{-foo} [err_invalvarval foo 0 {false true}]]
+set tserr [msg_load variant/1.0{\\+foo} [escre [msg_moderr [err_boolonnonbool foo] {variant foo false true<EXM>} $mp/variant/1.0 160]]]
+testouterr_cmd_re sh {load -v variant/1.0 +foo} ERR $tserr
+set tserr [msg_load variant/1.0{-foo} [escre [msg_moderr [err_boolonnonbool foo] {variant foo false true<EXM>} $mp/variant/1.0 160]]]
+testouterr_cmd_re sh {load -v variant/1.0~foo} ERR $tserr
+
+setenv_var TESTSUITE_VARIANT bool22
+set tserr [msg_load variant/1.0{\\+foo} [escre [msg_moderr [err_boolonnonbool foo] {variant foo yes no y n<EXM>} $mp/variant/1.0 163]]]
+testouterr_cmd_re sh {load -v variant/1.0 +foo} ERR $tserr
+set tserr [msg_load variant/1.0{-foo} [escre [msg_moderr [err_boolonnonbool foo] {variant foo yes no y n<EXM>} $mp/variant/1.0 163]]]
+testouterr_cmd_re sh {load -v variant/1.0~foo} ERR $tserr
+
+}
 
 
 #
@@ -250,6 +262,28 @@ testouterr_cmd sh {is-loaded variant@1.0~foo} OK {}
 testouterr_cmd sh {is-loaded variant@1.0 foo=false} OK {}
 testouterr_cmd sh {is-loaded variant@1.0+foo} ERR {}
 testouterr_cmd sh {is-loaded variant@1.0 foo=true} ERR {}
+
+# non-boolean variant with boolean-like value
+setenv_var TESTSUITE_VARIANT bool20
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|1|0|0
+testouterr_cmd sh {is-loaded variant@1.0 foo=1} OK {}
+testouterr_cmd sh {is-loaded variant@1.0 +foo} OK {}
+testouterr_cmd sh {is-loaded variant@1.0 foo=on} OK {}
+testouterr_cmd sh {is-loaded variant@1.0 foo=0} ERR {}
+testouterr_cmd sh {is-loaded variant@1.0 -foo} ERR {}
+testouterr_cmd sh {is-loaded variant@1.0 foo=off} ERR {}
+
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|0|0|0
+testouterr_cmd sh {is-loaded variant@1.0} OK {}
+testouterr_cmd sh {is-loaded variant@1.0~foo} OK {}
+testouterr_cmd sh {is-loaded variant@1.0 foo=false} OK {}
+testouterr_cmd sh {is-loaded variant@1.0+foo} ERR {}
+testouterr_cmd sh {is-loaded variant@1.0 foo=true} ERR {}
+
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|2|0|0
+testouterr_cmd sh {is-loaded variant@1.0~foo} ERR {}
+testouterr_cmd sh {is-loaded variant@1.0 -foo} ERR {}
+testouterr_cmd sh {is-loaded variant@1.0 foo=0} ERR {}
 
 
 #
