@@ -11819,6 +11819,12 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
                } else {
                   incr vridx
                }
+               # translate boolean vrvalue in canonical boolean
+               if {!$vrisbool && [string is boolean -strict $vrvalue] &&\
+                  ![string is integer -strict $vrvalue]} {
+                  set vrisbool 1
+                  set vrvalue [string is true -strict $vrvalue]
+               }
                # save variant name and value
                set vrnamearr($vrname) $vridx
                lappend vrlist [list $vrname $vrvalue $vrisbool]
