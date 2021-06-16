@@ -94,6 +94,36 @@ lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
 lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|1|1|0]
 testouterr_cmd sh {load variant/1.0 +foo} $ans {}
 
+# variant specified multiple times
+set ans [list]
+lappend ans [list set TS0 foo]
+lappend ans [list set TS1 foo=1]
+lappend ans [list set TS2 true]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|1|1|0]
+set tserr [msg_load variant/1.0{+foo}]
+testouterr_cmd sh {load -v variant/1.0 foo=true +foo} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0 -foo foo=true} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0 foo=false +foo} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0 foo=no foo=on} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0 foo=off foo=1} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0 ~foo+foo} $ans $tserr
+
+set ans [list]
+lappend ans [list set TS0 foo]
+lappend ans [list set TS1 foo=0]
+lappend ans [list set TS2 false]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|0|1|0]
+set tserr [msg_load variant/1.0{-foo}]
+testouterr_cmd sh {load -v variant/1.0 +foo foo=false} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0 foo=false foo=off} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0 foo=true foo=no} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0 -foo foo=t foo=0} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0 +foo~foo} $ans $tserr
+
 
 #
 # test boolean variant specification
