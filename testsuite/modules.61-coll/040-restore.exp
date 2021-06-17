@@ -871,11 +871,44 @@ append tserr [msg_load '$c33mod1'{[join $c33mod1vr :]}]\n[msg_load $c33mod2]
 testouterr_cmd_re sh "restore $coll33fp" $ans $tserr
 
 unsetenv_var MODULES_COLLECTION_PIN_VERSION
-unsetenv_loaded_module
-unsetenv_path_var MODULES_LMVARIANT
 unsetenv_path_var MODULES_LMTAG
 unsetenv_var TESTSUITE_VARIANT_TAG
 
+# restore collection with boolean variants
+setenv_var TESTSUITE_VARIANT coll35
+eval setenv_path_var MODULEPATH [split $c35modpath :]
+eval setenv_path_var MODULES_LMVARIANT [split $c35lmvr :]
+setenv_loaded_module [split $c35lm :] [split $c35lmf :]
+testouterr_cmd_re sh "restore $coll35fp" OK {}
+
+eval setenv_path_var MODULES_LMVARIANT "$c35mod1&foo|0|1|0&bar|0|1|0:$c35mod2&bar|0|1|0"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $c35lm]
+lappend ans [list setpath _LMFILES_ $c35lmf]
+lappend ans [list setpath MODULES_LMVARIANT $c35lmvr]
+set tserr [msg_unload variant/6.0{-bar}]\n[msg_unload variant/1.0{-bar:-foo}]\n[msg_load variant/1.0{\\+bar:-foo}]\n[msg_load variant/6.0{-bar}]
+testouterr_cmd_re sh "restore $coll35fp" $ans $tserr
+
+eval setenv_path_var MODULES_LMVARIANT "$c35mod1&foo|0|1|0&bar|1|1|0:$c35mod2&bar|1|1|0"
+set tserr [msg_unload variant/6.0{\\+bar}]\n[msg_load variant/6.0{-bar}]
+testouterr_cmd_re sh "restore $coll35fp" $ans $tserr
+
+eval setenv_path_var MODULES_LMVARIANT "$c35mod1&foo|str|1|0&bar|2|1|0:$c35mod2&bar|1|str|0"
+set tserr [msg_unload variant/6.0{bar=1}]\n[msg_unload variant/1.0{-bar:-foo}]\n[msg_load variant/1.0{\\+bar:-foo}]\n[msg_load variant/6.0{-bar}]
+testouterr_cmd_re sh "restore $coll35fp" $ans $tserr
+
+eval setenv_path_var MODULES_LMVARIANT "$c35mod1&foo|str&bar|2|1:$c35mod2&bar|1"
+set tserr [msg_unload variant/6.0{bar=1}]\n\n[msg_unload variant/1.0{-bar:foo=str} [err_invalvarval foo str {1 0 yes no true false on off}]]\n\n[msg_load variant/1.0{\\+bar:-foo} [err_othervariantloaded -bar:foo=str]]\n\n[msg_load variant/6.0{-bar}]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $c35lm]
+lappend ans [list setpath _LMFILES_ $c35lmf]
+lappend ans [list setpath MODULES_LMVARIANT $c35mod1&foo|str&bar|2|1:$c35mod2&bar|0|1|0]
+lappend ans [list ERR]
+testouterr_cmd_re sh "restore $coll35fp" $ans $tserr
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMVARIANT
+unsetenv_var TESTSUITE_VARIANT
 
 unsetenv_var MODULES_ADVANCED_VERSION_SPEC
 unsetenv_var MODULES_IMPLICIT_DEFAULT
