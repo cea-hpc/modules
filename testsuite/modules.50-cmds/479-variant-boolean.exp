@@ -513,6 +513,37 @@ testouterr_cmd sh {load variant@1.0 +bar-foo} ERR [msg_load variant/1.0{+bar-foo
 
 
 #
+# boolean variant prereq
+#
+
+setenv_var TESTSUITE_VARIANT bool23
+set ans [list]
+lappend ans [list set TS0 {bar foo}]
+lappend ans [list set TS1 {bar=0:foo=1}]
+lappend ans [list set TS2 true]
+lappend ans [list setpath LOADEDMODULES variant/1.0:variant/7.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0:$mp/variant/7.0]
+lappend ans [list setpath MODULES_LMNOTUASKED variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|1|1|0&bar|0|1|0]
+lappend ans [list setpath MODULES_LMPREREQ {variant/7.0&variant@1.0 +foo bar=false}]
+set tserr [msg_top_load variant/7.0 {} {variant/1.0{-bar:\\+foo}} {}]
+testouterr_cmd_re sh {load --auto variant@7.0} $ans $tserr
+
+setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|1|1|0&bar|0|1|0
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES variant/1.0:variant/7.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0:$mp/variant/7.0]
+lappend ans [list setpath MODULES_LMPREREQ {variant/7.0&variant@1.0 +foo bar=false}]
+testouterr_cmd_re sh {load --auto variant@7.0} $ans {}
+
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|0|1|0&bar|1|1|0
+set tserr [msg_load variant/1.0{-bar:+foo} [err_othervariantloaded +bar:-foo]]\n\n[msg_load variant/7.0 [err_reqlo variant/1.0{-bar:+foo}]]
+testouterr_cmd sh {load --auto variant@7.0} ERR $tserr
+
+
+#
 #  Cleanup
 #
 
