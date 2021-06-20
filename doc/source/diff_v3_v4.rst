@@ -243,6 +243,9 @@ On version 4 the characters that have a special meaning when rendered in shells 
  
  Whereas compatibility version sets a shell function when variables are in use in alias value on Bourne shell derivatives, Modules 4 always defines a shell alias never a shell function.
 
+:mfcmd:`setenv`
+ 
+ On compatibility version the :mfcmd:`setenv` modulefile command accepts any number of argument, but ignores all arguments after the first two. An error is raised on Modules 4 when more than two arguments are passed to the :mfcmd:`setenv` modulefile command.
 
 Locating Modulefiles
 ^^^^^^^^^^^^^^^^^^^^
