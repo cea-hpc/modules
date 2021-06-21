@@ -33,6 +33,11 @@ Modules 4.8.0 (not yet released)
 * Doc: demonstrate in the :ref:`source-script-in-modulefile` recipe how to use
   the :mfcmd:`source-sh` command when software provide a specific
   initialization script for each shell it supports. (fix issue #399)
+* When defining a shell function with the :mfcmd:`set-function` modulefile
+  command, only export this function when using the Bash shell (using the
+  ``export -f`` shell command) to make it available in sub-shell contexts.
+  Shell function export is not supported on other kind of sh shell (sh, ksh
+  and zsh). (fix issue #401)
 
 
 .. _4.7 release notes:

@@ -7092,9 +7092,12 @@ proc renderSettings {} {
          new {
             # trim function body to smoothly add a finishing ;
             set val [string trim $::g_Functions($funcname) "; \t\n\r"]
-            switch -- [getState shelltype] {
-               sh {
-                  puts stdout "$funcname () { $val; }; export $funcname;"
+            switch -- [getState shell] {
+               sh - ksh - zsh {
+                  puts stdout "$funcname () { $val; };"
+               }
+               bash {
+                  puts stdout "$funcname () { $val; }; export -f $funcname;"
                }
                fish {
                   puts stdout "function $funcname; $val; end;"
