@@ -49,12 +49,24 @@ Defining
 
             - ex: ``variant name --default 1.8 1.0 2.0``
 
-- must have a list of accepted values
+- may be set as a Boolean variant (when ``--boolean`` argument is passed)
+
+    - a Boolean variant may equal *true* or *false*
+
+- must have a list of accepted values unless if defined as a Boolean variant
 
     - passed value(s) must correspond to those accepted
 
         - raise error otherwise
         - raised error is a global error to signal specification issue, not a modulefile error
+
+    - an error is raised if one or more accepted values are defined on a Boolean variant
+
+    - non-Boolean variants cannot define Boolean value in their accepted value list
+
+        - as Boolean values are translated to their canonical form (*0* or *1*) when specified
+        - an error is raised otherwise
+        - exception made for the *0* and *1* integers
 
 - may be aliased (when argument ``--alias`` is passed) in which case:
 
@@ -222,7 +234,12 @@ Persistency
         - these variants value
         - and if the value is the default one and if this default was specifically asked
         - in a record with following syntax:
-        - ``loadedmodule&(+|-)boolvariantname1|isdefaultvalue&variantname2|value2|value3...|isdefaultvalue``
+        - ``loadedmodule&boolvariantname1|isbooleanvariant|isdefaultvalue&variantname2|value2|value3...|isbooleanvariant|isdefaultvalue``
+
+    - for each variant it is recorded if the variant is a Boolean variant
+
+        - which enables to compare value in a Boolean way
+        - and to report variant value with the *+variant* or *-variant* syntax
 
     - for each variant it is recorded if the value set corresponds to the variant default value or not
 
@@ -244,6 +261,12 @@ Persistency
         - ``loadedmodule&variantname1|aliasname1|-aliasname2&variant2|aliasname3...``
 
     - each loadedmodule record are joined in ``MODULES_LMVARIANTALTNAME`` separated by ``:`` character
+
+- when persistency information is corrupted
+
+    - a missing or non Boolean ``isdefaultvalue`` information means variant value is not the default
+    - a missing or non Boolean ``isbooleanvariant`` information means variant is not a Boolean variant
+    - a non-Boolean value set on a Boolean variant means variant equals *0*
 
 - Boolean variants are stored in the form ``+name`` or ``-name``
 
@@ -320,6 +343,7 @@ Specifying
 
         - it is considered as an element of the module specification (potential negated boolean variant)
         - unless if set prior the sub-command designation
+        - or set on sub-commands that do not accept module specification as argument
 
     - such change requires an option to be enabled to avoid breaking compat
 
@@ -349,6 +373,10 @@ Specifying
 
         - if a username matches a Boolean variant name, using the ``~name`` form on the shell command-line will leads to the resolution of the HOME directory path of user ``name``
 
+    - module name could end with one or more *+* characters
+
+        - it could be distinguished from a Boolean variant specification as no character should follow these trailing *+*
+
     - Boolean variant could also be specified using the *name=value* form
 
         - in which case, it should be written as a separate word
@@ -357,6 +385,8 @@ Specifying
             - false: *0*, *false*, *no*, or *off*
             - true: *1*, *true*, *yes*, or *on*
             - Any of these values may be abbreviated, and upper-case spellings are also acceptable.
+
+    - when specified Boolean value is translated to its canonical form (*0* or *1*)
 
 - variant may be specified with a shortcut if any set (see :ref:`variant-shortcut`)
 
