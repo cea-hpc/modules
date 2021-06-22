@@ -114,6 +114,8 @@ array set g_config_defs [list\
       1}}\
    search_match {MODULES_SEARCH_MATCH @searchmatch@ 0 {starts_with contains}}\
    set_shell_startup {MODULES_SET_SHELL_STARTUP @setshellstartup@ 0 {0 1}}\
+   variant_shortcut {MODULES_VARIANT_SHORTCUT {@variantshortcut@} 0 {} {}\
+      initConfVariantShortcut}\
    verbosity {MODULES_VERBOSITY @verbosity@ 0 {silent concise normal verbose\
       verbose2 trace debug debug2}}\
    wa_277 {MODULES_WA_277 @wa277@ 0 {0 1}}\
@@ -656,6 +658,61 @@ proc initConfEditor {envvar value validvallist intvallist} {
    } elseif {[info exists ::env(EDITOR)]} {
       set value $::env(EDITOR)
    }
+   return $value
+}
+
+# Initialize variant shortcut table
+proc initConfVariantShortcut {envvar value validvallist intvallist} {
+   # overridden value coming from environment
+   if {[info exists ::env($envvar)]} {
+      if {[catch {
+         # try to set the variant-shortcut mapping table
+         array set testarr [split $::env($envvar) {:=}]
+         set value $::env($envvar)
+         set setfromenv 1
+      } errMsg ]} {
+         reportWarning "Ignore invalid value set in $envvar ($::env($envvar))"
+      }
+   }
+
+   # test default value
+   if {![info exists setfromenv]} {
+      if {[catch {
+         array set testarr [split $value {:=}]
+      } errMsg ]} {
+         reportWarning "Ignore invalid default value for 'variant_shortcut'\
+            config ($value)"
+         # define an empty list if no valid value set
+         set value {}
+      }
+   }
+
+   # ignore shortcut if not equal to one character or if set on alphanum char
+   # or on char with special meaning
+   foreach {vr sc} [split $value {:=}] {
+      if {[string length $sc] == 1 && ![string match {[a-zA-Z0-9+~/@=-]}\
+         $sc]} {
+         # remove duplicate shortcut or variant definition
+         if {[info exists ::g_variantShortcut($vr)]} {
+            unset ::g_shortcutVariant($::g_variantShortcut($vr))
+         }
+         if {[info exists ::g_shortcutVariant($sc)]} {
+            unset ::g_variantShortcut($::g_shortcutVariant($sc))
+         }
+         set ::g_variantShortcut($vr) $sc
+         set ::g_shortcutVariant($sc) $vr
+      }
+   }
+
+   # update value after above filtering step
+   set value {}
+   foreach vr [array names ::g_variantShortcut] {
+      if {[string length $value] > 0} {
+         append value :
+      }
+      append value $vr=$::g_variantShortcut($vr)
+   }
+
    return $value
 }
 
