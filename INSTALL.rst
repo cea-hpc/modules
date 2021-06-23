@@ -824,6 +824,19 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
     .. versionchanged:: 4.8
        Element ``variant`` added
 
+.. instopt:: --with-variant-shortcut=SHORTCUTLIST
+
+ Define the shortcut characters that could be used to specify variant names.
+ Each element in SHORTCUTLIST is a variant name associated to a shortcut
+ character (e.g., ``foo=%``). Shortcuts cannot exceed a length of 1 character
+ and cannot be alphanumeric characters ([A-Za-z0-9]) or characters with
+ already a special meaning ([+~/@=-]). Elements in SHORTCUTLIST are separated
+ by ``:``. (default=)
+
+ .. only:: html
+
+    .. versionadded:: 4.8
+
 .. instopt:: --with-editor=BIN
 
  Name or full path of default editor program to use to open modulefile through
