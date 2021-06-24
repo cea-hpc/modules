@@ -11712,6 +11712,8 @@ proc defineParseModuleSpecificationProc {advverspec} {
    set procname parseModuleSpecificationProc
    if {$advverspec} {
       append procname AdvVersSpec
+      # resolved configured variant shortcut
+      getConf variant_shortcut
    }
    # define proc if not done yet or if it was defined for another context
    if {[info procs parseModuleSpecification] eq {} ||\
@@ -11820,6 +11822,13 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
                   }
                }
             }
+            default {
+               # check if a variant shortcut matches
+               if {[info exists ::g_shortcutVariant($c)]} {
+                  lappend curarglist [string range $arg $previ [expr {$i - 1}]]
+                  set previ $i
+               }
+            }
          }
       }
       lappend curarglist [string range $arg $previ [expr {$i - 1}]]
@@ -11827,7 +11836,8 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
       # parse each specification element
       foreach curarg $curarglist {
          set vrisbool 0
-         switch -- [string index $curarg 0] {
+         set c [string index $curarg 0]
+         switch -- $c {
             @ {
                set modspec [string range $curarg 1 end]
                lassign [parseModuleVersionSpecifier $modspec] cmpspec versspec
@@ -11856,6 +11866,13 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
                # preserve empty argument
                if {$arg ne {}} {
                   continue
+               }
+            }
+            default {
+               # translate shortcut in variant name in arg
+               if {[info exists ::g_shortcutVariant($c)]} {
+                  set curarg [string replace $curarg 0 0\
+                     $::g_shortcutVariant($c)=]
                }
             }
          }
