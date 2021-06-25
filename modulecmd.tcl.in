@@ -5858,14 +5858,14 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from_spec 0}} {
                if {$vrarr($vrname)} {
                   lappend ret +$vrname
                   # track if +var variant has been reported to build key
-                  if {![info exists ::g_used_va_onvar]} {
-                     set ::g_used_va_onvar 1
+                  if {![info exists ::g_used_va(on)]} {
+                     set ::g_used_va(on) 1
                   }
                } else {
                   lappend ret -$vrname
                   # track if -var variant has been reported to build key
-                  if {![info exists ::g_used_va_offvar]} {
-                     set ::g_used_va_offvar 1
+                  if {![info exists ::g_used_va(off)]} {
+                     set ::g_used_va(off) 1
                   }
                }
             # use defined shortcut to report if any set for this variant
@@ -5874,8 +5874,8 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from_spec 0}} {
             } else {
                lappend ret $vrname=$vrarr($vrname)
                # track if var=val variant has been reported to build key
-               if {![info exists ::g_used_va_varval]} {
-                  set ::g_used_va_varval 1
+               if {![info exists ::g_used_va(val)]} {
+                  set ::g_used_va(val) 1
                }
             }
          }
@@ -11111,20 +11111,24 @@ proc displayKey {} {
       }
    }
 
-   # add key for variant reports
-   if {[info exists ::g_used_va_varval]} {
-      lappend display_list "[sgr se \{][sgr va variant=value][sgr se \}]"
-      lappend len_list 15
+   # include var=val key if any other variant form is present in report
+   if {![info exists ::g_used_va(val)] && [array exists ::g_used_va]} {
+      set ::g_used_va(val) 1
    }
-   if {[info exists ::g_used_va_onvar]} {
+   # add key for variant reports
+   if {[info exists ::g_used_va(on)]} {
       lappend display_list "[sgr se \{][sgr va +variant][sgr se\
-         \}]=variant-is-on"
+         \}]=[sgr se \{][sgr va variant=on][sgr se \}]"
+      lappend len_list 23
+   }
+   if {[info exists ::g_used_va(off)]} {
+      lappend display_list "[sgr se \{][sgr va -variant][sgr se\
+         \}]=[sgr se \{][sgr va variant=off][sgr se \}]"
       lappend len_list 24
    }
-   if {[info exists ::g_used_va_offvar]} {
-      lappend display_list "[sgr se \{][sgr va -variant][sgr se\
-         \}]=variant-is-off"
-      lappend len_list 25
+   if {[info exists ::g_used_va(val)]} {
+      lappend display_list "[sgr se \{][sgr va variant=value][sgr se \}]"
+      lappend len_list 15
    }
 
    # add key for alias if '@' put in parentheses
