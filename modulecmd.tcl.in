@@ -5870,7 +5870,12 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from_spec 0}} {
                }
             # use defined shortcut to report if any set for this variant
             } elseif {[info exists ::g_variantShortcut($vrname)]} {
-               lappend ret $::g_variantShortcut($vrname)$vrarr($vrname)
+               set sc $::g_variantShortcut($vrname)
+               lappend ret $sc$vrarr($vrname)
+               # track if variant shortcut has been reported to build key
+               if {![info exists ::g_used_va($sc)]} {
+                  set ::g_used_va($sc) $vrname
+               }
             } else {
                lappend ret $vrname=$vrarr($vrname)
                # track if var=val variant has been reported to build key
@@ -11126,6 +11131,14 @@ proc displayKey {} {
          \}]=[sgr se \{][sgr va variant=off][sgr se \}]"
       lappend len_list 24
    }
+   foreach sc [array names ::g_used_va] {
+      if {[notInList {on off val} $sc]} {
+         lappend display_list "[sgr se \{][sgr va ${sc}value][sgr se\
+            \}]=[sgr se \{][sgr va $::g_used_va($sc)=value][sgr se \}]"
+         lappend len_list [expr {17 + [string length $::g_used_va($sc)]}]
+      }
+   }
+   # finish with variant=value entry as it is referred by other variant keys
    if {[info exists ::g_used_va(val)]} {
       lappend display_list "[sgr se \{][sgr va variant=value][sgr se \}]"
       lappend len_list 15
