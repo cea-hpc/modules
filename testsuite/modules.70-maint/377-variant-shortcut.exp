@@ -1,0 +1,125 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2021/06/23
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:    variant
+#   Sub-Command:    config, list, load, unload
+#
+#   Comment:	%C{
+#           Test variant_shortcut mechanism
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+unsetenv_var MODULES_VARIANT_SHORTCUT
+
+
+#
+# config checks
+#
+
+# check expected siteconfig file is installed
+set is_stderr_tty [siteconfig_isStderrTty]
+if {$is_stderr_tty} {
+setenv_var TESTSUITE_ENABLE_SITECONFIG_BADVARIANTSHORTCUTDFLVALUE 1
+
+set tserr "$warn_msgs: Ignore invalid default value for 'variant_shortcut' config \\(foo\\)
+$vers_reportre
+
+- Config. name $modlin.- Value \\(set by if default overridden\\) $modlin
+variant_shortcut          "
+testouterr_cmd_re sh {config variant_shortcut} OK $tserr
+
+setenv_var MODULES_VARIANT_SHORTCUT foo
+set tserr "$warn_msgs: Ignore invalid value set in MODULES_VARIANT_SHORTCUT \\(foo\\)
+$warn_msgs: Ignore invalid default value for 'variant_shortcut' config \\(foo\\)
+$vers_reportre
+
+- Config. name $modlin.- Value \\(set by if default overridden\\) $modlin
+variant_shortcut           \\(env-var\\)"
+testouterr_cmd_re sh {config variant_shortcut} OK $tserr
+
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_BADVARIANTSHORTCUTDFLVALUE
+}
+
+# bad env var syntax
+setenv_var MODULES_VARIANT_SHORTCUT foo
+set tserr "$warn_msgs: Ignore invalid value set in MODULES_VARIANT_SHORTCUT \\(foo\\)
+$vers_reportre
+
+- Config. name $modlin.- Value \\(set by if default overridden\\) $modlin
+variant_shortcut          $install_variantshortcut \\(env-var\\)"
+testouterr_cmd_re sh {config variant_shortcut} OK $tserr
+
+# forbidden shortcut length
+setenv_var MODULES_VARIANT_SHORTCUT {foo=%:bar=##}
+set tserr "$vers_reportre
+
+- Config. name $modlin.- Value \\(set by if default overridden\\) $modlin
+variant_shortcut          foo=% \\(env-var\\)"
+testouterr_cmd_re sh {config variant_shortcut} OK $tserr
+
+# forbidden shortcut character
+setenv_var MODULES_VARIANT_SHORTCUT {bar=a:foo=2:baz=@}
+set tserr "$vers_reportre
+
+- Config. name $modlin.- Value \\(set by if default overridden\\) $modlin
+variant_shortcut           \\(env-var\\)"
+testouterr_cmd_re sh {config variant_shortcut} OK $tserr
+
+# shortcut superseding
+setenv_var MODULES_VARIANT_SHORTCUT {bar=%:foo=%}
+set tserr "$vers_reportre
+
+- Config. name $modlin.- Value \\(set by if default overridden\\) $modlin
+variant_shortcut          foo=% \\(env-var\\)"
+testouterr_cmd_re sh {config variant_shortcut} OK $tserr
+
+setenv_var MODULES_VARIANT_SHORTCUT {foo=%:bar=%}
+set tserr "$vers_reportre
+
+- Config. name $modlin.- Value \\(set by if default overridden\\) $modlin
+variant_shortcut          bar=% \\(env-var\\)"
+testouterr_cmd_re sh {config variant_shortcut} OK $tserr
+
+setenv_var MODULES_VARIANT_SHORTCUT {foo=%:foo=#}
+set tserr "$vers_reportre
+
+- Config. name $modlin.- Value \\(set by if default overridden\\) $modlin
+variant_shortcut          foo=# \\(env-var\\)"
+testouterr_cmd_re sh {config variant_shortcut} OK $tserr
+
+setenv_var MODULES_VARIANT_SHORTCUT {foo=%:foo=#:bar=%}
+set tserr "$vers_reportre
+
+- Config. name $modlin.- Value \\(set by if default overridden\\) $modlin
+variant_shortcut          foo=#:bar=% \\(env-var\\)"
+testouterr_cmd_re sh {config variant_shortcut} OK $tserr
+
+setenv_var MODULES_VARIANT_SHORTCUT {foo=%:foo=#:bar=#}
+set tserr "$vers_reportre
+
+- Config. name $modlin.- Value \\(set by if default overridden\\) $modlin
+variant_shortcut          bar=# \\(env-var\\)"
+testouterr_cmd_re sh {config variant_shortcut} OK $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
