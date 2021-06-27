@@ -223,6 +223,39 @@ unsetenv_var TESTSUITE_VARIANT_TAG
 
 
 #
+# shortcut used in modulefile
+#
+
+setenv_var MODULES_VARIANT_SHORTCUT bar=%
+setenv_var TESTSUITE_VARIANT shortcut1
+
+set ans [list]
+lappend ans [list set TS0 {bar foo}]
+lappend ans [list set TS1 {bar=val1:foo=val1}]
+lappend ans [list setpath LOADEDMODULES variant/1.0:variant/7.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0:$mp/variant/7.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|val1|0|2&bar|val1|0|0]
+lappend ans [list setpath MODULES_LMPREREQ {variant/7.0&variant@1.0 %val1}]
+lappend ans [list setpath MODULES_LMNOTUASKED variant/1.0]
+set tserr [msg_load variant/1.0{%val1:foo=val1}]\n\n[msg_top_load variant/7.0 {} variant/1.0{%val1:foo=val1} {}]
+testouterr_cmd_re sh {load --auto -v variant@7.0} $ans $tserr
+
+setenv_var MODULES_VARIANT_SHORTCUT foo=%
+setenv_var TESTSUITE_VARIANT shortcut2
+
+set ans [list]
+lappend ans [list set TS0 {bar foo}]
+lappend ans [list set TS1 {bar=val2:foo=val1}]
+lappend ans [list setpath LOADEDMODULES variant/1.0:variant/7.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0:$mp/variant/7.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|val1|0|1&bar|val2|0|1]
+lappend ans [list setpath MODULES_LMPREREQ {variant/7.0&variant@1.0%val1 bar=val2}]
+lappend ans [list setpath MODULES_LMNOTUASKED variant/1.0]
+set tserr [msg_load variant/1.0{bar=val2:%val1}]\n\n[msg_top_load variant/7.0 {} variant/1.0{bar=val2:%val1} {}]
+testouterr_cmd_re sh {load --auto -v variant@7.0} $ans $tserr
+
+
+#
 # unload checks
 #
 
