@@ -119,6 +119,56 @@ testouterr_cmd_re sh {config variant_shortcut} OK $tserr
 
 
 #
+# load tests
+#
+
+setenv_var MODULES_VARIANT_SHORTCUT foo=%
+setenv_var TESTSUITE_VARIANT 13
+
+set ans [list]
+lappend ans [list set TS0 {bar foo}]
+lappend ans [list set TS1 {bar=val2:foo=val1}]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|val1|0|1&bar|val2|0|1]
+set tserr [msg_load variant/1.0{bar=val2:%val1}]
+testouterr_cmd sh {load -v variant/1.0%val1 bar=val2} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0 foo=val1 bar=val2} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0 bar=val2%val1} $ans $tserr
+
+setenv_var MODULES_VARIANT_SHORTCUT foo=%:bar=^
+set tserr [msg_load variant/1.0{^val2:%val1}]
+testouterr_cmd sh {load -v variant/1.0%val1 bar=val2} $ans $tserr
+testouterr_cmd sh {load -v variant@1.0%val1^val2} $ans $tserr
+testouterr_cmd sh {load -v variant@1.0 ^val2%val1} $ans $tserr
+
+# supersede variant spec
+testouterr_cmd sh {load -v variant@1.0 ^val1 %val1 ^val2} $ans $tserr
+testouterr_cmd sh {load -v variant@1.0 bar=val1 %val1 ^val2} $ans $tserr
+testouterr_cmd sh {load -v variant@1.0 ^val1 %val1 bar=val2} $ans $tserr
+
+# module already loaded
+setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
+setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1|0|1&bar|val2|0|1
+set tserr [msg_load variant/1.0{%val1} [err_othervariantloaded {^val2:%val1}]]
+#FIXME: should detect that omitted variant matches loaded variant with default value
+testouterr_cmd sh {load -v variant/1.0%val1} ERR $tserr
+testouterr_cmd sh {load -v variant/1.0 foo=val1} ERR $tserr
+
+testouterr_cmd sh {load -v variant@1.0%val1^val2} OK {}
+testouterr_cmd sh {load -v variant@1.0 foo=val1^val2} OK {}
+
+# another variant already loaded
+set tserr [msg_load variant/1.0{^val1:%val1} [err_othervariantloaded {^val2:%val1}]]
+testouterr_cmd sh {load -v variant/1.0%val1^val1} ERR $tserr
+testouterr_cmd sh {load -v variant@1.0 foo=val1 ^val1} ERR $tserr
+set tserr [msg_load variant/1.0{^val1} [err_othervariantloaded {^val2:%val1}]]
+testouterr_cmd sh {load -v variant@1.0 ^val1} ERR $tserr
+set tserr [msg_load variant/1.0 [err_othervariantloaded {^val2:%val1}]]
+testouterr_cmd sh {load -v variant@1.0} ERR $tserr
+
+
+#
 # list checks
 #
 
