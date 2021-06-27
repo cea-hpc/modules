@@ -169,6 +169,60 @@ testouterr_cmd sh {load -v variant@1.0} ERR $tserr
 
 
 #
+# module tags
+#
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMVARIANT
+
+setenv_var MODULES_VARIANT_SHORTCUT foo=%
+setenv_var TESTSUITE_VARIANT 13
+setenv_var TESTSUITE_VARIANT_TAG shortcut1
+
+set ans [list]
+lappend ans [list set TS0 {bar foo}]
+lappend ans [list set TS1 {bar=val2:foo=val1}]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|val1|0|1&bar|val2|0|1]
+lappend ans [list setpath MODULES_LMTAG variant/1.0&sticky]
+set tserr [msg_load variant/1.0{bar=val2:%val1}]
+testouterr_cmd sh {load -v variant/1.0%val1 bar=val2} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0 foo=val1 bar=val2} $ans $tserr
+
+setenv_var TESTSUITE_VARIANT_TAG shortcut2
+testouterr_cmd sh {load -v variant/1.0%val1 bar=val2} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0 foo=val1 bar=val2} $ans $tserr
+
+setenv_var MODULES_VARIANT_SHORTCUT bar=%
+set ans [list]
+lappend ans [list set TS0 {bar foo}]
+lappend ans [list set TS1 {bar=val2:foo=val1}]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|val1|0|1&bar|val2|0|1]
+set tserr [msg_load variant/1.0{%val2:foo=val1}]
+testouterr_cmd sh {load -v variant/1.0%val2 foo=val1} $ans $tserr
+
+setenv_var TESTSUITE_VARIANT_TAG shortcut3
+testouterr_cmd sh {load -v variant/1.0%val2 foo=val1} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0 bar=val2 foo=val1} $ans $tserr
+
+set ans [list]
+lappend ans [list set TS0 {bar foo}]
+lappend ans [list set TS1 {bar=val1:foo=val1}]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|val1|0|1&bar|val1|0|0]
+lappend ans [list setpath MODULES_LMTAG variant/1.0&sticky]
+set tserr [msg_load variant/1.0{%val1:foo=val1}]
+testouterr_cmd sh {load -v variant/1.0%val1 foo=val1} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0 bar=val1 foo=val1} $ans $tserr
+
+unsetenv_var TESTSUITE_VARIANT_TAG
+
+
+#
 # unload checks
 #
 
