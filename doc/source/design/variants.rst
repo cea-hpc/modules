@@ -557,7 +557,8 @@ Variant shortcut
 
 - shortcut does not apply to Boolean variants
 
-    - as shortcuts are intended to be a prefix, they cannot combine with *-*, *+* or *~* Boolean prefixes
+    - as shortcuts are intended to be a prefix, they do not add benefit compared to *-*, *+* or *~* Boolean prefixes
+    - however a shortcut could be defined on a boolean variant (e.g., ``%true`` or ``%0``)
 
 - by default, when ``advanced_version_spec`` is enabled, the ``@`` character is set as a shortcut for the ``version`` variant
 
@@ -569,6 +570,10 @@ Variant shortcut
 - variant shortcuts could be used on the command-line or within modulefiles even if it is not recommended to use them in the latter case
 
     - as if user updates the ``variant_shortcut`` configuration option, it will broke underlying modulefiles using a de-configured shortcuts
+
+- module designation in collection does not use variant shortcuts
+
+    - when shortcut configuration is changed it should not impact collection definition
 
 
 Reporting
@@ -598,6 +603,7 @@ Reporting
     - valued variant: ``variant=value``
     - boolean variant: ``+variant`` or ``-variant``
     - valued variant with shortcut set: ``<shortcut>value`` (for instance if ``%`` is a defined shortcut: ``%value``)
+    - in case a shortcut is defined over a Boolean variant, Boolean report prevails over shortcut
 
 - Variant aliases are not reported
 
