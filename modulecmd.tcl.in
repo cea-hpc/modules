@@ -5853,7 +5853,7 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from_spec 0}} {
          3 {lappend ret $vrname [lindex $vrarr($vrname) 0] [lindex\
             $vrarr($vrname) 1]}
          2 {lappend ret [list $vrname $vrarr($vrname) $vrisbool($vrname)]}
-         1 {
+         1 - 5 {
             if {$vrisbool($vrname)} {
                if {$vrarr($vrname)} {
                   lappend ret +$vrname
@@ -5869,7 +5869,9 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from_spec 0}} {
                   }
                }
             # use defined shortcut to report if any set for this variant
-            } elseif {[info exists ::g_variantShortcut($vrname)]} {
+            # ignore shortcut if report=5 (when saving collection)
+            } elseif {$report != 5 && [info exists\
+               ::g_variantShortcut($vrname)]} {
                set sc $::g_variantShortcut($vrname)
                lappend ret $sc$vrarr($vrname)
                # track if variant shortcut has been reported to build key
@@ -6714,7 +6716,7 @@ proc getLoadedModuleWithVariantList {} {
    set modvrlist [list]
    foreach mod [getLoadedModuleList] {
       set modvr [list $mod]
-      set vrlist [getVariantList $mod 1]
+      set vrlist [getVariantList $mod 5]
       if {[llength $vrlist] > 0} {
          set modvr [concat $modvr $vrlist]
       }
@@ -11272,7 +11274,7 @@ proc getSimplifiedLoadedModuleList {} {
 
       # add each module specification as list to correctly enclose spaces in
       # module name or variant name or value
-      set simplemodvr [concat [list $simplemod] [getVariantList $mod 1 1]]
+      set simplemodvr [concat [list $simplemod] [getVariantList $mod 5 1]]
       lappend curr_mod_list $simplemodvr
       # record not user asked module list in simplified version form
       if {![isModuleUserAsked $mod]} {
