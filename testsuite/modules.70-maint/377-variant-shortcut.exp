@@ -331,6 +331,48 @@ Key:
 
 
 #
+# specific module designation
+#
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMVARIANT
+
+setenv_var MODULES_VARIANT_SHORTCUT foo=%
+setenv_var TESTSUITE_VARIANT shortcut3
+
+set tserr [msg_load variant/1.0{%} [err_invalvarval foo {} {val1 val2 val3}]]
+testouterr_cmd sh {load -v variant/1.0%} ERR $tserr
+testouterr_cmd sh {load -v variant/1.0 %} ERR $tserr
+testouterr_cmd sh {load -v variant/1.0 %val1%} ERR $tserr
+
+# shortcut on boolean variant
+setenv_var TESTSUITE_VARIANT bool8
+set ans [list]
+lappend ans [list set TS0 {foo}]
+lappend ans [list set TS1 {foo=1}]
+lappend ans [list set TS2 true]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|1|1|0]
+set tserr [msg_load variant/1.0{+foo}]
+testouterr_cmd sh {load -v variant/1.0%1} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0%on} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0 %true} $ans $tserr
+
+set ans [list]
+lappend ans [list set TS0 {foo}]
+lappend ans [list set TS1 {foo=0}]
+lappend ans [list set TS2 false]
+lappend ans [list setpath LOADEDMODULES variant/1.0]
+lappend ans [list setpath _LMFILES_ $mp/variant/1.0]
+lappend ans [list setpath MODULES_LMVARIANT variant/1.0&foo|0|1|0]
+set tserr [msg_load variant/1.0{-foo}]
+testouterr_cmd sh {load -v variant/1.0 %0} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0%off} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0%false} $ans $tserr
+
+
+#
 #  Cleanup
 #
 
