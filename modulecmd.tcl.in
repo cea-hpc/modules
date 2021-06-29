@@ -11884,12 +11884,6 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
                append curarg =0
                set vrisbool 1
             }
-            {} {
-               # preserve empty argument
-               if {$arg ne {}} {
-                  continue
-               }
-            }
             default {
                # translate shortcut in variant name in arg
                if {[info exists ::g_shortcutVariant($c)]} {
@@ -11973,25 +11967,22 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
       }
    }
    # transform last args
-   if {[info exists modarglist]} {
-      set modarg [join $modarglist]
-      if {[info exists modname] && ($modname ne {} || $modspec eq {})} {
-         if {![info exists cmpspec]} {
-            set cmpspec eq
-            set versspec {}
-         }
-         setModuleVersSpec $modarg $modname $cmpspec $versspec $modspec\
-            $vrlist
-         # rework args to have 1 string element for whole module spec
-         # append to unload list if ml spec and - prefix used
-         if {$mlunload || $nextmlunload} {
-            lappend unarglist $modarg
-         } else {
-            lappend arglist $modarg
-         }
-      } else {
-         knerror "No module name defined in argument '$modarg'"
+   set modarg [join $modarglist]
+   if {[info exists modname] && ($modname ne {} || $modspec eq {})} {
+      if {![info exists cmpspec]} {
+         set cmpspec eq
+         set versspec {}
       }
+      setModuleVersSpec $modarg $modname $cmpspec $versspec $modspec $vrlist
+      # rework args to have 1 string element for whole module spec
+      # append to unload list if ml spec and - prefix used
+      if {$mlunload || $nextmlunload} {
+         lappend unarglist $modarg
+      } else {
+         lappend arglist $modarg
+      }
+   } else {
+      knerror "No module name defined in argument '$modarg'"
    }
 
    if {$mlspec} {
