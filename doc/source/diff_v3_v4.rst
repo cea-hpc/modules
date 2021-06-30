@@ -335,7 +335,7 @@ The following module sub-commands appeared on new version of Modules are not sup
 +------------+-----------------------------------------------------------------+
 | 4.6        | :subcmd:`sh-to-mod`                                             |
 +------------+-----------------------------------------------------------------+
-| 4.8        | :subcmd:`edit`                                                  |
+| 4.8        | :subcmd:`edit`, :subcmd:`try-load`                              |
 +------------+-----------------------------------------------------------------+
 
 All module sub-commands will return a non-zero exit code in case of error whereas on compatibility version issues that occurred do not lead to an exit of the :command:`module` command with a non-zero code.
