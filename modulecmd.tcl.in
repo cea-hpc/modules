@@ -3339,7 +3339,7 @@ proc module {command args} {
    # parse module version specification
    defineParseModuleSpecificationProc [getConf advanced_version_spec]
    if {[isInList [list avail paths whatis load unload switch help test\
-      display path is-avail edit] $command]} {
+      display path is-avail edit try-load] $command]} {
       set args [eval parseModuleSpecification 0 $args]
    }
 
@@ -3367,7 +3367,7 @@ proc module {command args} {
    # argument number check
    switch -- $command {
       unload - source - display - initadd - initprepend - initrm - test -\
-      is-avail {
+      is-avail - try-load {
          if {[llength $args] == 0} {
             set argnberr 1
          }
@@ -3417,14 +3417,17 @@ proc module {command args} {
    lappendState always_read_full_file [expr {![isInList [list path paths list\
       avail aliases edit] $command]}]
    lappendState commandname $command
+   # is evaluation a regular attempt or a try (silence not found error)
+   lappendState try_modulefile [expr {$command eq {try-load}}]
 
    if {$topcall} {
       # Find and execute any global rc file found
       runModulerc
    }
 
+
    switch -- $command {
-      load {
+      load - try-load {
          # ignore flag used in collection to track non-user asked state
          set args [replaceFromList $args --notuasked]
          # no error raised on empty argument list to cope with
@@ -3691,6 +3694,7 @@ proc module {command args} {
          eval cmdModuleResurface module-info loaded $args
       }
    }
+   lpopState try_modulefile
    lpopState commandname
    lpopState always_read_full_file
 
@@ -3748,6 +3752,8 @@ proc ml {args} {
       # define if modfile should always be fully read even for validity check
       lappendState always_read_full_file 1
       lappendState commandname ml
+      # is evaluation a regular attempt or a try (silence not found error)
+      lappendState try_modulefile [expr {$command eq {try-load}}]
 
       # Find and execute any global rc file found
       runModulerc
@@ -3770,6 +3776,7 @@ proc ml {args} {
       }
       popSettings
 
+      lpopState try_modulefile
       lpopState commandname
       lpopState always_read_full_file
 
@@ -11453,6 +11460,7 @@ proc parseModuleCommandName {command defaultcmd} {
    # resolve command if alias or shortcut name used
    switch -- $command {
       add               {set command load}
+      try-add           {set command try-load}
       rm - remove       {set command unload}
       show              {set command display}
       apropos - keyword {set command search}
@@ -11484,7 +11492,7 @@ proc parseModuleCommandName {command defaultcmd} {
       saverm saveshow savelist initadd initprepend initswitch initrm initlist\
       initclear autoinit clear config help test prepend-path append-path\
       remove-path is-loaded is-saved is-used is-avail info-loaded sh-to-mod\
-      edit] $command]
+      edit try-load] $command]
 
    return [list $command $cmdvalid $cmdempty]
 }
@@ -13050,17 +13058,19 @@ proc cmdModuleLoad {context uasked args} {
       }
       # loading module is visible by default
       set hidden 0
+      # error if module not found or forbidden
+      set notfounderr [expr {![currentState try_modulefile]}]
 
       # record evaluation attempt on specified module name
       registerModuleEvalAttempt $context $mod
-      lassign [getPathToModule $mod] modfile modname modnamevr
+      lassign [getPathToModule $mod {} $notfounderr] modfile modname modnamevr
 
       # set a unique id to record messages related to this evaluation.
       set msgrecid load-$modnamevr-[depthState modulename]
 
       # go to next module to load if not matching module found
       if {$modfile eq {}} {
-         set ret 1
+         set ret $notfounderr
          continue
       }
 
@@ -13363,13 +13373,15 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       # unloading module is visible by default
       set hidden 0
       set uasked 1
+      # error if module not found or forbidden
+      set notfounderr [expr {![currentState try_modulefile]}]
 
       # record evaluation attempt on specified module name
       registerModuleEvalAttempt $context $mod
       # resolve by also looking at matching loaded module and update mod
       # specification to fully match obtained loaded module
-      lassign [getPathToModule $mod {} 1 $match] modfile modname modnamevr\
-         errkind
+      lassign [getPathToModule $mod {} $notfounderr $match] modfile modname\
+         modnamevr errkind
 
       # set a unique id to record messages related to this evaluation.
       set msgrecid unload-$modnamevr-[depthState modulename]
@@ -13404,7 +13416,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                   2]"
             }
          } else {
-            set ret 1
+            set ret $notfounderr
          }
          # go to next module to unload
          continue
@@ -14441,6 +14453,7 @@ proc cmdModuleHelp {args} {
 
 Loading / Unloading commands:
   add | load      modulefile [...]  Load modulefile(s)
+  try-add | try-load modfile [...]  Load modfile(s), no complain if not found
   rm | unload     modulefile [...]  Remove modulefile(s)
   purge                             Unload all loaded modulefiles
   reload | refresh                  Unload then load all loaded modulefiles
