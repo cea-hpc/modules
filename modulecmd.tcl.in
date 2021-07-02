@@ -3441,10 +3441,10 @@ proc module {command args} {
                {autoinit} || [isStateDefined rc_running]))} {
                set ret [eval cmdModuleLoad load 1 $args]
             } elseif {$mode eq {load}} {
-               # load here if no auto mode, done through prereq elsewhere
-               # inhibited if currently in DepRe context
-               if {![getConf auto_handling] && [currentModuleEvalContext] ne\
-                  {depre}} {
+               # load here if try-load or no auto mode (done through prereq
+               # elsewhere, inhibited if currently in DepRe context)
+               if {$command eq {try-load} || (![getConf auto_handling] &&\
+                  [currentModuleEvalContext] ne {depre})} {
                   # attempt load of not already loaded modules
                   foreach arg $args {
                      if {![is-loaded $arg] && ![is-loading $arg]} {
@@ -3461,7 +3461,10 @@ proc module {command args} {
                }
                # register modulefiles to load as individual prereqs
                foreach arg $args {
-                  prereq $arg
+                  # no prereq record if try-load did not succeed
+                  if {$command ne {try-load} || [is-loaded $arg]} {
+                     prereq $arg
+                  }
                }
             # mods unload is handled via UReqUn mechanism when auto enabled
             # (unless if implicit_requirement has been inhibited) also unloads
