@@ -413,7 +413,7 @@ switches are accepted:
 Module Sub-Commands
 ^^^^^^^^^^^^^^^^^^^
 
-.. subcmd:: add modulefile...
+.. subcmd:: add [--auto|--no-auto] [-f] modulefile...
 
  See :subcmd:`load`.
 
@@ -1119,7 +1119,7 @@ Module Sub-Commands
 
     .. versionadded:: 4.0
 
-.. subcmd:: rm modulefile...
+.. subcmd:: rm [--auto|--no-auto] [-f] modulefile...
 
  See :subcmd:`unload`.
 
@@ -1241,7 +1241,7 @@ Module Sub-Commands
 
     .. versionadded:: 4.0
 
-.. subcmd:: swap [modulefile1] modulefile2
+.. subcmd:: swap [--auto|--no-auto] [-f] [modulefile1] modulefile2
 
  See :subcmd:`switch`.
 
