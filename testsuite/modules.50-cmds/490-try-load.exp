@@ -1,0 +1,401 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2021/07/02
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		try-load
+#   Modulefiles:    tryload
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test try-load sub-command
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+
+
+#
+# test from command-line
+#
+
+# regular load
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tryload/1.0]
+lappend ans [list setpath _LMFILES_ $mp/tryload/1.0]
+testouterr_cmd sh {try-load tryload/1.0} $ans {}
+testouterr_cmd sh {try-add tryload/1.0} $ans {}
+
+# unknown module
+testouterr_cmd sh {try-load unk/1.0} OK {}
+testouterr_cmd sh {try-add unk/1.0} OK {}
+# verbose mode
+testouterr_cmd sh {try-load -v unk/1.0} OK {}
+
+# already loaded
+setenv_loaded_module [list tryload/1.0] [list $mp/tryload/1.0]
+testouterr_cmd sh {try-load tryload/1.0} OK {}
+testouterr_cmd sh {try-add -v tryload/1.0} OK {}
+unsetenv_loaded_module
+
+# ml
+testouterr_cmd sh {ml try-load tryload/1.0} $ans {}
+testouterr_cmd sh {ml try-add tryload/1.0} $ans {}
+testouterr_cmd sh {ml try-add unk/1.0} OK {}
+testouterr_cmd sh {ml try-load -v unk/1.0} OK {}
+
+# hard-hidden module
+setenv_var TESTSUITE_TRYLOAD hide1
+testouterr_cmd sh {try-load tryload/1.0} OK {}
+testouterr_cmd sh {try-add -v tryload/1.0} OK {}
+
+# forbidden module
+setenv_var TESTSUITE_TRYLOAD forbid1
+testouterr_cmd sh {try-add tryload/1.0} OK {}
+testouterr_cmd sh {try-load -v tryload/1.0} OK {}
+
+# break during evaluation
+setenv_var TESTSUITE_TRYLOAD break1
+set tserr [msg_load tryload/1.0 $err_evalabort]
+testouterr_cmd sh {try-add tryload/1.0} ERR $tserr
+
+# erroneous evaluation
+setenv_var TESTSUITE_TRYLOAD bad1
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {2} : {8}}]
+set tserr [escre [msg_load tryload/1.0 [msg_moderr {invalid command name "unk"} {unk<EXM>} $mp/tryload/1.0 $ln]]]
+testouterr_cmd_re sh {try-add tryload/1.0} ERR $tserr
+
+# load under try-load
+setenv_var TESTSUITE_TRYLOAD subload1
+set tserr [msg_load tryload/1.0 $err_path'unk/1.0' [err_reqlo unk/1.0]]
+testouterr_cmd sh {try-load tryload/1.0} ERR $tserr
+
+setenv_var TESTSUITE_TRYLOAD subload2
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/1.0:tryload/1.0]
+lappend ans [list setpath _LMFILES_ $mp/foo/1.0:$mp/tryload/1.0]
+lappend ans [list setpath MODULES_LMPREREQ tryload/1.0&foo/1.0]
+lappend ans [list setpath MODULES_LMNOTUASKED foo/1.0]
+set tserr [msg_top_load tryload/1.0 {} {foo/1.0} {}]
+testouterr_cmd_re sh {try-load tryload/1.0} $ans $tserr
+
+# multiple argument passed to try-load
+setenv_var TESTSUITE_TRYLOAD multi1
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tryload/1.0]
+lappend ans [list setpath _LMFILES_ $mp/tryload/1.0]
+testouterr_cmd_re sh {try-load unk/1.0 tryload/1.0} $ans {}
+
+setenv_var TESTSUITE_TRYLOAD multi2
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/1.0]
+lappend ans [list setpath _LMFILES_ $mp/foo/1.0]
+lappend ans [list ERR]
+set tserr [msg_load tryload/1.0 $err_evalabort]
+testouterr_cmd_re sh {try-load tryload/1.0 foo/1.0} $ans $tserr
+
+
+#
+# test from modulefile
+#
+
+# test for both enabled and disabled auto_handling mode
+foreach auto_handling {0 1} {
+setenv_var MODULES_AUTO_HANDLING $auto_handling
+
+# regular load
+setenv_var TESTSUITE_TRYLOAD regular1
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tryload/1.0:tryload/2.0]
+lappend ans [list setpath _LMFILES_ $mp/tryload/1.0:$mp/tryload/2.0]
+lappend ans [list set TS1 ok]
+lappend ans [list setpath MODULES_LMPREREQ tryload/2.0&tryload/1.0]
+lappend ans [list setpath MODULES_LMNOTUASKED tryload/1.0]
+set tserr [msg_top_load tryload/2.0 {} tryload/1.0 {}]
+testouterr_cmd_re sh {load tryload/2.0} $ans $tserr
+testouterr_cmd_re sh {try-load tryload/2.0} $ans $tserr
+
+# already loaded
+setenv_loaded_module [list tryload/1.0] [list $mp/tryload/1.0]
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list setpath LOADEDMODULES tryload/1.0:tryload/2.0]
+lappend ans [list setpath _LMFILES_ $mp/tryload/1.0:$mp/tryload/2.0]
+lappend ans [list setpath MODULES_LMPREREQ tryload/2.0&tryload/1.0]
+testouterr_cmd_re sh {load tryload/2.0} $ans {}
+testouterr_cmd_re sh {try-load tryload/2.0} $ans {}
+unsetenv_loaded_module
+
+# regular unload (autoloaded try-load)
+setenv_loaded_module [list tryload/1.0 tryload/2.0] [list $mp/tryload/1.0 $mp/tryload/2.0] [list tryload/1.0]
+setenv_path_var MODULES_LMPREREQ tryload/2.0&tryload/1.0
+if {$auto_handling} {
+    set ans [list]
+    lappend ans [list unset TS1]
+    lappend ans [list unsetpath LOADEDMODULES]
+    lappend ans [list unsetpath _LMFILES_]
+    lappend ans [list unsetpath MODULES_LMPREREQ]
+    lappend ans [list unsetpath MODULES_LMNOTUASKED]
+} else {
+    set ans [list]
+    lappend ans [list unsetpath LOADEDMODULES]
+    lappend ans [list unsetpath _LMFILES_]
+    lappend ans [list unset TS1]
+    lappend ans [list unsetpath MODULES_LMPREREQ]
+    lappend ans [list unsetpath MODULES_LMNOTUASKED]
+}
+set tserr [msg_top_unload tryload/2.0 {} tryload/1.0 {}]
+testouterr_cmd sh {unload tryload/2.0} $ans $tserr
+
+# regular unload (non-autoloaded try-load)
+unsetenv_path_var MODULES_LMNOTUASKED
+set ans [list]
+lappend ans [list unset TS1]
+lappend ans [list setpath LOADEDMODULES tryload/1.0]
+lappend ans [list setpath _LMFILES_ $mp/tryload/1.0]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+testouterr_cmd_re sh {unload tryload/2.0} $ans {}
+
+# regular unload (with try-loaded sub-module not loaded)
+setenv_loaded_module [list tryload/2.0] [list $mp/tryload/2.0]
+setenv_path_var MODULES_LMPREREQ tryload/2.0&tryload/1.0
+set ans [list]
+lappend ans [list unset TS1]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+testouterr_cmd_re sh {unload tryload/2.0} $ans {}
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_loaded_module
+
+# unknown module
+setenv_var TESTSUITE_TRYLOAD unk1
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list setpath LOADEDMODULES tryload/2.0]
+lappend ans [list setpath _LMFILES_ $mp/tryload/2.0]
+testouterr_cmd sh {load tryload/2.0} $ans {}
+testouterr_cmd sh {try-load tryload/2.0} $ans {}
+testouterr_cmd sh {load -v tryload/2.0} $ans [msg_load tryload/2.0]
+testouterr_cmd sh {try-load -v tryload/2.0} $ans [msg_load tryload/2.0]
+
+# unload with unknown module
+setenv_loaded_module [list tryload/2.0] [list $mp/tryload/2.0]
+set ans [list]
+lappend ans [list unset TS1]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd_re sh {unload tryload/2.0} $ans {}
+testouterr_cmd_re sh {unload -v tryload/2.0} $ans [msg_unload tryload/2.0]
+unsetenv_loaded_module
+
+# hard-hidden module
+setenv_var TESTSUITE_TRYLOAD hide1
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list setpath LOADEDMODULES tryload/2.0]
+lappend ans [list setpath _LMFILES_ $mp/tryload/2.0]
+testouterr_cmd sh {load tryload/2.0} $ans {}
+
+# forbidden module
+setenv_var TESTSUITE_TRYLOAD forbid1
+testouterr_cmd sh {load tryload/2.0} $ans {}
+
+# break during evaluation
+setenv_var TESTSUITE_TRYLOAD break1
+set tserr [msg_load tryload/1.0 $err_evalabort]
+testouterr_cmd sh {load tryload/2.0} ERR $tserr
+testouterr_cmd sh {try-load tryload/2.0} ERR $tserr
+
+# erroneous evaluation
+setenv_var TESTSUITE_TRYLOAD bad1
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {2} : {8}}]
+set tserr [escre [msg_load tryload/1.0 [msg_moderr {invalid command name "unk"} {unk<EXM>} $mp/tryload/1.0 $ln]]]
+testouterr_cmd_re sh {load tryload/2.0} ERR $tserr
+testouterr_cmd_re sh {try-load tryload/2.0} ERR $tserr
+
+# load under try-load
+setenv_var TESTSUITE_TRYLOAD subload1
+set tserr [msg_load tryload/1.0 $err_path'unk/1.0' [err_reqmis unk/1.0]]\n\n[msg_load tryload/2.0 [err_reqlo unk/1.0]]
+testouterr_cmd sh {load tryload/2.0} ERR $tserr
+testouterr_cmd sh {try-load tryload/2.0} ERR $tserr
+
+setenv_var TESTSUITE_TRYLOAD subload2
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/1.0:tryload/1.0:tryload/2.0]
+lappend ans [list setpath _LMFILES_ $mp/foo/1.0:$mp/tryload/1.0:$mp/tryload/2.0]
+lappend ans [list setpath MODULES_LMPREREQ tryload/1.0&foo/1.0:tryload/2.0&tryload/1.0]
+lappend ans [list setpath MODULES_LMNOTUASKED foo/1.0:tryload/1.0]
+lappend ans [list set TS1 ok]
+set tserr [msg_top_load tryload/2.0 {} {foo/1.0 tryload/1.0} {}]
+testouterr_cmd_re sh {load tryload/2.0} $ans $tserr
+
+# try-load attempt within catch
+setenv_var TESTSUITE_TRYLOAD catch1
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list setpath LOADEDMODULES tryload/2.0]
+lappend ans [list setpath _LMFILES_ $mp/tryload/2.0]
+testouterr_cmd sh {load tryload/2.0} $ans {}
+
+setenv_var TESTSUITE_TRYLOAD catch2
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tryload/1.0:tryload/2.0]
+lappend ans [list setpath _LMFILES_ $mp/tryload/1.0:$mp/tryload/2.0]
+lappend ans [list set TS1 ok]
+lappend ans [list setpath MODULES_LMPREREQ tryload/2.0&tryload/1.0]
+lappend ans [list setpath MODULES_LMNOTUASKED tryload/1.0]
+set tserr [msg_top_load tryload/2.0 {} tryload/1.0 {}]
+testouterr_cmd_re sh {load tryload/2.0} $ans $tserr
+
+setenv_var TESTSUITE_TRYLOAD catch3
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list setpath LOADEDMODULES tryload/2.0]
+lappend ans [list setpath _LMFILES_ $mp/tryload/2.0]
+lappend ans [list ERR]
+set tserr [msg_load tryload/1.0 $err_evalabort]
+testouterr_cmd sh {load tryload/2.0} $ans $tserr
+
+setenv_var TESTSUITE_TRYLOAD catch4
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {2} : {8}}]
+set tserr [escre [msg_load tryload/1.0 [msg_moderr {invalid command name "unk"} {unk<EXM>} $mp/tryload/1.0 $ln]]]
+testouterr_cmd_re sh {load tryload/2.0} $ans $tserr
+
+# multiple argument passed to try-load
+setenv_var TESTSUITE_TRYLOAD multi1
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tryload/1.0:tryload/2.0]
+lappend ans [list setpath _LMFILES_ $mp/tryload/1.0:$mp/tryload/2.0]
+lappend ans [list set TS1 ok]
+lappend ans [list setpath MODULES_LMPREREQ tryload/2.0&tryload/1.0]
+lappend ans [list setpath MODULES_LMNOTUASKED tryload/1.0]
+set tserr [msg_top_load tryload/2.0 {} tryload/1.0 {}]
+testouterr_cmd_re sh {load tryload/2.0} $ans $tserr
+
+setenv_var TESTSUITE_TRYLOAD multi2
+set tserr [msg_load tryload/1.0 $err_evalabort]
+testouterr_cmd sh {load tryload/2.0} ERR $tserr
+
+}
+
+
+#
+# test from sourced modulefile
+#
+
+# regular load
+setenv_var TESTSUITE_TRYLOAD regular1
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tryload/1.0]
+lappend ans [list setpath _LMFILES_ $mp/tryload/1.0]
+lappend ans [list set TS1 ok]
+set tserr [msg_load tryload/1.0]
+testouterr_cmd_re sh "source $mp/tryload/2.0" $ans $tserr
+
+# already loaded
+setenv_loaded_module [list tryload/1.0] [list $mp/tryload/1.0]
+set ans [list]
+lappend ans [list set TS1 ok]
+testouterr_cmd_re sh "source $mp/tryload/2.0" $ans {}
+unsetenv_loaded_module
+
+# unknown module
+setenv_var TESTSUITE_TRYLOAD unk1
+testouterr_cmd sh "source $mp/tryload/2.0" $ans {}
+
+# hard-hidden module
+setenv_var TESTSUITE_TRYLOAD hide1
+testouterr_cmd sh "source $mp/tryload/2.0" $ans {}
+
+# forbidden module
+setenv_var TESTSUITE_TRYLOAD forbid1
+testouterr_cmd sh "source $mp/tryload/2.0" $ans {}
+
+# break during evaluation
+setenv_var TESTSUITE_TRYLOAD break1
+set tserr [msg_load tryload/1.0 $err_evalabort]
+testouterr_cmd sh "source $mp/tryload/2.0" ERR $tserr
+
+# erroneous evaluation
+setenv_var TESTSUITE_TRYLOAD bad1
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {2} : {8}}]
+set tserr [escre [msg_load tryload/1.0 [msg_moderr {invalid command name "unk"} {unk<EXM>} $mp/tryload/1.0 $ln]]]
+testouterr_cmd_re sh "source $mp/tryload/2.0" ERR $tserr
+
+# load under try-load
+setenv_var TESTSUITE_TRYLOAD subload1
+set tserr [msg_load tryload/1.0 $err_path'unk/1.0' [err_reqlo unk/1.0]]
+testouterr_cmd sh "source $mp/tryload/2.0" ERR $tserr
+
+setenv_var TESTSUITE_TRYLOAD subload2
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/1.0:tryload/1.0]
+lappend ans [list setpath _LMFILES_ $mp/foo/1.0:$mp/tryload/1.0]
+lappend ans [list setpath MODULES_LMPREREQ tryload/1.0&foo/1.0]
+lappend ans [list setpath MODULES_LMNOTUASKED foo/1.0]
+lappend ans [list set TS1 ok]
+set tserr [msg_load foo/1.0]\n\n[msg_top_load tryload/1.0 {} {foo/1.0} {}]
+testouterr_cmd_re sh "source $mp/tryload/2.0" $ans $tserr
+
+# try-load attempt within catch
+setenv_var TESTSUITE_TRYLOAD catch1
+set ans [list]
+lappend ans [list set TS1 ok]
+testouterr_cmd sh "source $mp/tryload/2.0" $ans {}
+
+setenv_var TESTSUITE_TRYLOAD catch2
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tryload/1.0]
+lappend ans [list setpath _LMFILES_ $mp/tryload/1.0]
+lappend ans [list set TS1 ok]
+set tserr [msg_load tryload/1.0]
+testouterr_cmd_re sh "source $mp/tryload/2.0" $ans $tserr
+
+setenv_var TESTSUITE_TRYLOAD catch3
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list ERR]
+set tserr [msg_load tryload/1.0 $err_evalabort]
+testouterr_cmd sh "source $mp/tryload/2.0" $ans $tserr
+
+setenv_var TESTSUITE_TRYLOAD catch4
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {2} : {8}}]
+set tserr [escre [msg_load tryload/1.0 [msg_moderr {invalid command name "unk"} {unk<EXM>} $mp/tryload/1.0 $ln]]]
+testouterr_cmd_re sh "source $mp/tryload/2.0" $ans $tserr
+
+# multiple argument passed to try-load
+setenv_var TESTSUITE_TRYLOAD multi1
+set ans [list]
+lappend ans [list setpath LOADEDMODULES tryload/1.0]
+lappend ans [list setpath _LMFILES_ $mp/tryload/1.0]
+lappend ans [list set TS1 ok]
+set tserr [msg_load tryload/1.0]
+testouterr_cmd_re sh "source $mp/tryload/2.0" $ans $tserr
+
+setenv_var TESTSUITE_TRYLOAD multi2
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/1.0]
+lappend ans [list setpath _LMFILES_ $mp/foo/1.0]
+lappend ans [list ERR]
+set tserr [msg_load tryload/1.0 $err_evalabort]\n\n[msg_load foo/1.0]
+testouterr_cmd sh "source $mp/tryload/2.0" $ans $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
