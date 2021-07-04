@@ -107,7 +107,7 @@ On compatibility version, paths composing the :envvar:`MODULEPATH` environment v
  
  When an already loaded *modulefiles* is asked for load again, compatibility version will refresh the shell alias definition this modulefile hold if any, whereas Modules 4 will ignore the new load order.
  
- In case of *modulefile* loading another modulefile, if sub-modulefile load fails calling modulefile will still be loaded on compatibility version whereas Modules 4 will also abort calling modulefile load.
+ In case of *modulefile* loading another modulefile, if sub-modulefile load fails calling modulefile will still be loaded on compatibility version whereas Modules 4 will also abort calling modulefile load. Compatibility version behavior could be restored by enclosing ``module load`` command and arguments within ``catch`` Tcl command.
 
  Starting with version ``4.1``, content sent to the ``stdout`` channel during a *modulefile* interpretation is spooled to effectively transmit this content to stdout after rendering the environment changes made by this modulefile.
 
