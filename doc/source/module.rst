@@ -1261,6 +1261,14 @@ Module Sub-Commands
        Options :option:`--auto`, :option:`--no-auto`,
        :option:`--force`/:option:`-f` added
 
+.. subcmd:: try-add [--auto|--no-auto] [-f] modulefile...
+
+ See :subcmd:`try-load`.
+
+ .. only:: html
+
+    .. versionadded:: 4.8
+
 .. subcmd:: test modulefile...
 
  Execute and display results of the Module-specific tests for the
@@ -1273,6 +1281,24 @@ Module Sub-Commands
  .. only:: html
 
     .. versionadded:: 4.0
+
+.. subcmd:: try-load [--auto|--no-auto] [-f] modulefile...
+
+ Like :subcmd:`load` sub-command, load *modulefile* into the shell
+ environment, but do not complain if *modulefile* cannot be found. If
+ *modulefile* is found but its evaluation fails, error is still reported.
+
+ Once loaded, the ``loaded`` module tag is associated to the loaded module. If
+ module has been automatically loaded by another module, the ``auto-loaded``
+ tag is associated instead (see `Module tags`_ section).
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
+ .. only:: html
+
+    .. versionadded:: 4.8
 
 .. subcmd:: unload [--auto|--no-auto] [-f] modulefile...
 
