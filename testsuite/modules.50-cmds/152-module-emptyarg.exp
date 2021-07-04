@@ -54,6 +54,11 @@ testouterr_cmd "sh" "load $module/load" "ERR" [msg_load $module/load $err_emptym
 }
 testouterr_cmd "sh" "load $module/unload" "ERR" [msg_load $module/unload $err_emptymodname $err_emptymodname]
 
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module/try-load"]
+lappend ans [list setpath _LMFILES_ "$modulepath/$module/try-load"]
+testouterr_cmd "sh" "load $module/try-load" $ans {}
+
 # for some module commands, error is not fatal and modulefile is loaded
 foreach cmd [list display test] {
     set ans [list]
@@ -128,7 +133,7 @@ foreach cmd [list list purge reload aliases savelist] {
 }
 
 # on most module commands, empty arg leads to error
-foreach cmd [list load unload] {
+foreach cmd [list load try-load unload] {
     setenv_loaded_module "$module/$cmd" "$modulepath/$module/$cmd"
     set ans [list]
     lappend ans [list unsetpath LOADEDMODULES]
@@ -216,7 +221,7 @@ proc display_stderr_content {modfile content} {
 
 
 # on all module commands, command line with empty arg is printed
-foreach cmd [list load unload] {
+foreach cmd [list load try-load unload] {
     # test both empty names {} and "" on same module command
     testouterr_cmd_re "sh" "display $module/$cmd" "OK" [display_stderr_content "$modulepathre/$module/$cmd" "module\t\t$cmd {} {}"]
 }
@@ -244,7 +249,7 @@ proc help_stderr_content {modfile content {procwarn 0}} {
 }
 
 # on all module commands, command line is ignored
-foreach cmd [list load unload use unuse source list purge reload aliases savelist display test swap swap2 save restore saveshow saverm whatis apropos avail] {
+foreach cmd [list load try-load unload use unuse source list purge reload aliases savelist display test swap swap2 save restore saveshow saverm whatis apropos avail] {
     testouterr_cmd_re "sh" "help $module/$cmd" "OK" [help_stderr_content "$modulepathre/$module/$cmd" "" 1]
 }
 
@@ -266,7 +271,7 @@ proc test_stderr_content {modfile content {procwarn 0}} {
 }
 
 # on all module commands, command line is ignored
-foreach cmd [list load unload use unuse source list purge reload aliases savelist display test swap swap2 save restore saveshow saverm whatis apropos avail] {
+foreach cmd [list load try-load unload use unuse source list purge reload aliases savelist display test swap swap2 save restore saveshow saverm whatis apropos avail] {
     testouterr_cmd_re "sh" "test $module/$cmd" "OK" [test_stderr_content "$modulepathre/$module/$cmd" "" 1]
 }
 
