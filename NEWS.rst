@@ -38,6 +38,9 @@ Modules 4.8.0 (not yet released)
   ``export -f`` shell command) to make it available in sub-shell contexts.
   Shell function export is not supported on other kind of sh shell (sh, ksh
   and zsh). (fix issue #401)
+* Introduce the :subcmd:`try-load` sub-command which like :subcmd:`load`
+  sub-command tries to load the modulefile passed as argument, but does not
+  complain if this modulefile cannot be found. (fix issue #392)
 
 
 .. _4.7 release notes:
