@@ -69,6 +69,45 @@ This improvement is available where the advanced version specifier syntax is
 supported. Thus it can be either used from the command-line or when writing
 modulefiles, for instance to hide or tag modules or to declare requirements.
 
+Try module load with no complain if not found
+---------------------------------------------
+
+Add the :subcmd:`try-load` sub-command that tries to load the modulefile
+passed as argument, like the :subcmd:`load` sub-command, but does not raise an
+error if this modulefile cannot be found.
+
+.. parsed-literal::
+
+    :ps:`$` module load unknown
+    :sgrer:`ERROR`: Unable to locate a modulefile for 'unknown'
+    :ps:`$` echo $?
+    1
+    :ps:`$` module try-load unknown
+    :ps:`$` echo $?
+    0
+    :ps:`$` module list
+    No Modulefiles Currently Loaded.
+
+This sub-command first introduced by the `Lmod`_ project is added to Modules
+to improve the compatibility between the two ``module`` implementations.
+
+:subcmd:`try-load` is also available within modulefile context to continue the
+evaluation of a modulefile in case no module is found in its attempt to load
+another modulefile
+
+.. parsed-literal::
+
+    :ps:`$` module display foo/1.0
+    -------------------------------------------------------------------
+    :sgrhi:`/path/to/modulefiles/foo/1.0`:
+    
+    :sgrcm:`module`   try-load unknown/1.0
+    -------------------------------------------------------------------
+    :ps:`$` module load foo/1.0
+    :ps:`$` module list
+    Currently Loaded Modulefiles:
+     1) foo/1.0
+
 
 From v4.6 to v4.7
 =================
