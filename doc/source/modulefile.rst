@@ -876,6 +876,23 @@ Modules Variables
 
     .. versionadded:: 4.7
 
+.. mfvar:: ModuleVariant
+
+ The :mfvar:`ModuleVariant` array variable contains an element entry for each
+ defined variant associated to the value of this variant (e.g., the
+ ``$ModuleVariant(foo)`` syntax corresponds to the value of variant ``foo`` if
+ defined). A Tcl evaluation error is obtained when accessing an undefined
+ variant in :mfvar:`ModuleVariant` array. Use preferably the
+ :mfcmd:`getvariant` command to retrieve a variant value when this variant
+ state is not known.
+
+ The list of the currently defined variants can be retrieved with
+ ``[array names ModuleVariant]`` Tcl code.
+
+ .. only:: html
+
+    .. versionadded:: 4.8
+
 .. _Locating Modulefiles:
 
 Locating Modulefiles
