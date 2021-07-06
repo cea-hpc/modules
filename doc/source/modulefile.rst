@@ -249,6 +249,9 @@ the *modulefile* is being loaded.
  ``switch`` sub-commands to inhibit the definition of an implicit prereq or
  conflict requirement onto specified modules.
 
+ On ``try-load`` sub-command, if specified *modulefile* is not found thus
+ loaded, no implicit prereq requirement is defined over this module.
+
  Command line switches :option:`--auto`, :option:`--no-auto` and
  :option:`--force` are ignored when passed to a :mfcmd:`module` command set in
  a *modulefile*.
