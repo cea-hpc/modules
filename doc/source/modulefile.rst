@@ -157,6 +157,20 @@ the *modulefile* is being loaded.
  :mfcmd:`getenv` command should be preferred over the Tcl global variable
  ``env`` to query environment variables.
 
+.. mfcmd:: getvariant variant [value]
+
+ Returns value of designated *variant*. If *variant* is not defined, *value*
+ is returned if set, an empty string is returned otherwise. The
+ :mfcmd:`getvariant` command should be preferred over the
+ :mfvar:`ModuleVariant` Tcl array to query a variant value.
+
+ When modulefile is evaluated in *display* mode, :mfcmd:`getvariant` returns
+ *variant* name enclosed in curly braces (e.g., ``{variant}``).
+
+ .. only:: html
+
+    .. versionadded:: 4.8
+
 .. mfcmd:: is-avail modulefile...
 
  The :mfcmd:`is-avail` command returns a true value if any of the listed
