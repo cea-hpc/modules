@@ -420,7 +420,7 @@ The following modulefile Tcl commands appeared on new version of Modules are not
 | Introduced | New modulefile Tcl commands                                     |
 | in version |                                                                 |
 +============+=================================================================+
-| 4.0        | :mfcmd:`module-info command<module-info>`                       |
+| 4.0        | :mfcmd:`module-info command<module-info>`, :mfcmd:`getenv`      |
 +------------+-----------------------------------------------------------------+
 | 4.1        | :mfcmd:`module-info loaded<module-info>`, :mfcmd:`is-saved`,    |
 |            | :mfcmd:`is-used`, :mfcmd:`is-avail`, :mfcmd:`module-virtual`    |

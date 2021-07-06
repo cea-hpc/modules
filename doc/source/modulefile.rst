@@ -157,6 +157,10 @@ the *modulefile* is being loaded.
  :mfcmd:`getenv` command should be preferred over the Tcl global variable
  ``env`` to query environment variables.
 
+ .. only:: html
+
+    .. versionadded:: 4.0
+
 .. mfcmd:: getvariant variant [value]
 
  Returns value of designated *variant*. If *variant* is not defined, *value*
