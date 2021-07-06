@@ -157,6 +157,9 @@ the *modulefile* is being loaded.
  :mfcmd:`getenv` command should be preferred over the Tcl global variable
  ``env`` to query environment variables.
 
+ When modulefile is evaluated in *display* mode, :mfcmd:`getenv` returns
+ *variable* name prefixed with dollar sign (e.g., ``$variable``).
+
  .. only:: html
 
     .. versionadded:: 4.0
