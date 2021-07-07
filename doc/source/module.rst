@@ -804,6 +804,15 @@ Module Sub-Commands
   Unload firstly loaded or lastly loaded module matching request. Defines
   :envvar:`MODULES_UNLOAD_MATCH_ORDER`.
 
+ .. mconfig:: variant_shortcut
+
+  Shortcut characters that could be used to specify or report module variants.
+  Defines :envvar:`MODULES_VARIANT_SHORTCUT`.
+
+  .. only:: html
+
+     .. versionadded:: 4.8
+
  .. mconfig:: verbosity
 
   Module command verbosity level. Defines :envvar:`MODULES_VERBOSITY`.
@@ -2461,6 +2470,27 @@ ENVIRONMENT
  .. only:: html
 
     .. versionadded:: 4.0
+
+.. envvar:: MODULES_VARIANT_SHORTCUT
+
+ Specifies the shortcut characters that could be used to specify and report
+ module variants (see :ref:`Module variants` section). Its value is a
+ colon-separated list of variant names associated to a shortcut character
+ (e.g., *variantname=shortcutchar*).
+
+ A variant shortcut must be of one character length and must avoid characters
+ used for other concerns or in module names (i.e., *[-+~/@=a-zA-Z0-9]*).
+
+ If a shortcut is associated to an empty string or an invalid character, this
+ shortcut definition will be ignored.
+
+ The variant shortcut definition set in :envvar:`MODULES_VARIANT_SHORTCUT`
+ environment variable supersedes the default configuration set in
+ :file:`modulecmd.tcl` script.
+
+ .. only:: html
+
+    .. versionadded:: 4.8
 
 .. envvar:: MODULES_VERBOSITY
 
