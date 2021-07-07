@@ -2188,6 +2188,30 @@ ENVIRONMENT
 
     .. versionadded:: 4.7
 
+.. envvar:: MODULES_LMVARIANT
+
+ A colon separated list of the variant instantiated through :mfcmd:`variant`
+ statements by all loaded *modulefiles* (see :ref:`Module variants` section).
+ Each element in this list starts by the name of the loaded *modulefile*
+ followed by all the variant definitions set during the load of this module.
+ The loaded modulefile and each of its variant definition are separated by the
+ ampersand character. Each variant definition starts with the variant name,
+ followed by the variant value set, then a flag to know if variant is of the
+ Boolean type and last element in this definition is a flag to know if the
+ chosen value is the default one for this variant and if it has been
+ automatically set or not. These four elements composing the variant
+ definition are separated by the pipe character.
+
+ This environment variable is intended for :command:`module` command internal
+ use to get knowledge of the variant value defined by the loaded *modulefiles*
+ in order to keep environment consistent when requirements are set over a
+ specific variant value or just to report these variant values when listing
+ loaded modules.
+
+ .. only:: html
+
+    .. versionadded:: 4.8
+
 .. envvar:: MODULES_MCOOKIE_VERSION_CHECK
 
  If set to ``1``, the version set in the Modules magic cookie in modulefile
