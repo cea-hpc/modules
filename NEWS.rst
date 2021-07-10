@@ -25,6 +25,8 @@ Modules 4.8.0 (not yet released)
   :envvar:`VISUAL` or the :envvar:`EDITOR` environment variables, which are
   both in turn overridden by the :envvar:`MODULES_EDITOR` environment
   variable.
+* Doc: fix :file:`modulecmd.tcl` internal state check in recipes example
+  codes. (fix issue #396)
 * The :ref:`Advanced module version specifiers` mechanism now allows the use
   of version range in version list (for instance ``mod@:1.2,1.4:1.6,1.8:``).
   Such specification helps to exclude specific versions. (fix issue #397)
@@ -38,9 +40,85 @@ Modules 4.8.0 (not yet released)
   ``export -f`` shell command) to make it available in sub-shell contexts.
   Shell function export is not supported on other kind of sh shell (sh, ksh
   and zsh). (fix issue #401)
+* Doc: add :ref:`variants` design notes.
+* Add the :mfcmd:`variant` modulefile command that enables to pass down
+  arguments, specified when designating the module to evaluate, within
+  modulefile evaluation context. This command defines a variant name and a
+  list of allowed values. When evaluated, :mfcmd:`variant` instantiates an
+  element in the :mfvar:`ModuleVariant` array whose name equals variant name
+  and value is set with value specified for variant when module is designated.
+  If specified value does not correspond to an allowed value or if no value
+  is specified for variant an error is raised.
+* Enhance the :ref:`Advanced module version specifiers` to handle variant
+  specification following `Spack`_'s syntax (e.g., *name=value*). When the
+  :mconfig:`advanced_version_spec` configuration is enabled, variant could be
+  specified anywhere a module can be specified.
+* Add the ``--default`` option to the :mfcmd:`variant` modulefile command to
+  indicate the default value of the variant to apply when the designation of
+  the evaluating module does not mention this variant.
+* Add the ``--boolean`` option to the :mfcmd:`variant` modulefile command to
+  indicate that the variant defined is of the Boolean type, thus no list of
+  accepted value is expected.
+* Enhance the :ref:`Advanced module version specifiers` to handle Boolean
+  variant specification following `Spack`_'s syntax (e.g., *+name*, *~name*
+  and *-name*). The *-name* syntax is not supported on :ref:`ml(1)` command as
+  the minus sign already means to unload designated module.
+* Accept any minus argument (*-word*) set after the sub-command name when the
+  :mconfig:`advanced_version_spec` configuration is enabled and if sub-command
+  accepts :ref:`Advanced module version specifiers` (like :subcmd:`load` or
+  :subcmd:`unload` sub-commands). A *false* value may be set to Boolean
+  variant this way.
+* Add the :mconfig:`variant_shortcut` configuration option to define shortcut
+  characters that could be used to specify and report module variants. Default
+  value for this option could be set at installation time with the
+  :instopt:`--with-variant-shortcut` option. No variant shortcut is defined by
+  default. This value could be superseded by setting up the
+  :mconfig:`variant_shortcut` option with :subcmd:`config` sub-command. Which
+  sets the :envvar:`MODULES_VARIANT_SHORTCUT` environment variable.
+* Enhance the :ref:`Advanced module version specifiers` to handle variant
+  shortcut specification (e.g., *<shortcut>value*).
+* Record in user loaded environment, with :envvar:`MODULES_LMVARIANT`
+  environment variable, the value specified for the variants defined in the
+  loaded modulefiles and their properties (if it is a Boolean variant and if
+  the value set is the default one).
+* Add the ``variant`` element in the allowed value list of the
+  :mconfig:`list_output` and :mconfig:`list_terse_output` configuration
+  options. Set this new element in the default value list of the
+  :mconfig:`list_output` option. When set, the variant defined for loaded
+  modules are reported on module :subcmd:`list` command output.
+* Add the ``va`` color key in default light and dark color palettes to
+  graphically enhance the report of variant value.
+* Update the key section to explain on :subcmd:`list` sub-command output the
+  reported variant elements (*name=value*, *+name*, *-name* or
+  *<shortcut>value*)
+* Record variant specification of loaded modules when saving collections and
+  reload specified variants when restoring these collections.
+* When :mconfig:`collection_pin_version` configuration is disabled, only
+  record in collections the variants whose value is not the default one.
+* Update module designation in error, warning or informational messages to
+  report variant specification enclosed in curly braces (*{}*), enclose module
+  name and version or variant specification in single quotes (*''*) if they
+  contain a space character and highlight the module designation in report
+  message if configured.
+* Introduce the :mfcmd:`getvariant` modulefile command to query for currently
+  evaluating module the value of a given variant name.
+* When translating the ``@loaded`` version specifier also retrieve the variant
+  specified for corresponding loaded module.
+* Update hide, forbid and tag mechanisms to apply them only if they match
+  selected module variant.
+* Any variant defined in module specification passed as argument to search
+  sub-commands (:subcmd:`avail`, :subcmd:`whatis`, :subcmd:`is-avail`,
+  :subcmd:`path` and :subcmd:`paths`) is ignored.
+* Raise an error if a variant named ``version`` is declared in a modulefile to
+  let room for the future implementation of this specific variant.
+* Doc: describe in the :ref:`diff_v3_v4` document argument handling change on
+  :mfcmd:`setenv` since v3.2. (fix issue #402)
 * Introduce the :subcmd:`try-load` sub-command which like :subcmd:`load`
   sub-command tries to load the modulefile passed as argument, but does not
   complain if this modulefile cannot be found. (fix issue #392)
+* Init: fix stderr redirection in fish shell initialization script, now that
+  use of the ``^`` character to redirect stderr is disabled by default (fish
+  >=3.3).
 
 
 .. _4.7 release notes:
