@@ -447,6 +447,10 @@ the *modulefile* is being loaded.
   *modulefiles* from the directory will be returned. The parameter
   *modulefile* may also be a symbolic modulefile name or a modulefile alias.
 
+  This command only returns the name and version of designated loaded module.
+  The defined variants of the loaded module are not included in the returned
+  string.
+
   .. only:: html
 
      .. versionadded:: 4.1
@@ -465,6 +469,11 @@ the *modulefile* is being loaded.
   Return the name of the *modulefile*. This is not the full pathname for
   *modulefile*. See the `Modules Variables`_ section for information on the
   full pathname.
+
+  This command only returns the name and version of currently evaluating
+  *modulefile*. The defined variants are not included in the returned string.
+  See :mfcmd:`getvariant` command or :mfvar:`ModuleVariant` array variable to
+  get defined variant values for currently evaluating *modulefile*.
 
  **module-info shell** [shellname]
 
@@ -493,7 +502,8 @@ the *modulefile* is being loaded.
 
  **module-info specified**
 
-  Return the name of the *modulefile* specified on the command line.
+  Return the module designation (name, version and variants) specified that
+  led to current *modulefile* evaluation.
 
  **module-info symbols** modulefile
 
@@ -507,6 +517,9 @@ the *modulefile* is being loaded.
   Returns all tags assigned to currently evaluated *modulefile* as a list of
   strings if no *tag* name is given (see :ref:`Module tags` section in
   :ref:`module(1)`)
+
+  When tags are assigned to specific module variants, they are returned only
+  if this variant is the one currently evaluated.
 
   Returns ``1`` if one of the tags applying to currently evaluated
   *modulefile* is *tag*. Returns ``0`` otherwise.
