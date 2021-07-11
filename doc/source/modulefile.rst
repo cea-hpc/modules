@@ -1074,6 +1074,11 @@ Advanced module version specifiers
 When the advanced module version specifiers mechanism is enabled (see
 :envvar:`MODULES_ADVANCED_VERSION_SPEC` in :ref:`module(1)`), the
 specification of modulefile passed on Modules specific Tcl commands changes.
+After the module name a version constraint and variants may be added.
+
+Version specifiers
+""""""""""""""""""
+
 After the module name a version constraint prefixed by the ``@`` character may
 be added. It could be directly appended to the module name or separated from
 it with a space character.
@@ -1116,12 +1121,55 @@ version already exists for these ``default`` or ``latest`` version names.
 Using the ``mod@latest`` (or ``mod/latest``) syntax ensures highest available
 version will be selected.
 
+Variants
+""""""""
+
+After the module name, variants can be specified. :ref:`Module variants` are
+alternative evaluation of the same *modulefile*. A variant is specified by
+associating a value to its name. This specification is then transmitted to the
+evaluating *modulefile* which instantiates the variant in the
+:mfvar:`ModuleVariant` array variable when reaching the :mfcmd:`variant`
+modulefile command declaring this variant.
+
+Variant can be specified with the ``name=value`` syntax where *name* is the
+declared variant name and *value*, the value this variant is set to when
+evaluating the *modulefile*.
+
+Boolean variants can be specified with the ``+name`` syntax to set this
+variant on and with the ``-name`` or ``~name`` syntaxes to set this variant
+off. The ``-name`` syntax is not supported on :ref:`ml(1)` command as the
+minus sign already means to unload designated module. The ``~name`` and
+``+name`` syntaxes could also be defined appended to another specification
+word (e.g., the module name, version or another variant specification),
+whereas ``-name`` syntax must be the start of a new specification word.
+
+Boolean variants may also be specified with the ``name=value`` syntax. *value*
+should be set to ``1``, ``true``, ``t``, ``yes``, ``y`` or ``on`` to enable
+the variant or it should be set to ``0``, ``false``, ``f``, ``no``, ``n`` or
+``off`` to disable the variant.
+
+Shortcuts may be used to abbreviate variant specification. The
+:mconfig:`variant_shortcut` configuration option associates shortcut character
+to variant name. With a shortcut defined, variant could be specified with the
+``<shortcut>value`` syntax. For instance if character ``%`` is set as a
+shortcut for variant ``foo``, the ``%value`` syntax is equivalent to the
+``foo=value`` syntax.
+
+Specific characters used in variant specification syntax cannot be used as
+part of the name of a module. These specific characters are ``+``, ``~``,
+``=`` and all characters set as variant shortcut. Exception is made for ``+``
+character which could be set one or several consecutive times at the end of
+module name (e.g., *name+* or *name++*).
+
 .. only:: html
 
    .. versionadded:: 4.4
 
    .. versionchanged:: 4.8
       Use of version range is allowed in version list
+
+   .. versionchanged:: 4.8
+      Support for module variant added
 
 
 Modulefile Specific Help
