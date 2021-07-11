@@ -990,6 +990,9 @@ Module Sub-Commands
  Module tags applying to the loaded modules are reported along the module name
  they are associated to (see `Module tags`_ section).
 
+ Module variants selected on the loaded modules are reported along the module
+ name they belong to (see `Module variants`_ section).
+
  A *Key* section is added at the end of the output in case some elements are
  reported in parentheses or chevrons along module name or if some graphical
  rendition is made over some outputed elements. This *Key* section gives hints
@@ -1009,6 +1012,9 @@ Module Sub-Commands
     .. versionchanged:: 4.7
        Option :option:`--output`/:option:`-o` added, compatible with regular
        and terse output modes.
+
+    .. versionchanged:: 4.8
+       Report if enabled the variants selected on loaded modules
 
 .. subcmd:: load [--auto|--no-auto] [-f] modulefile...
 
@@ -1595,6 +1601,62 @@ module should stay loaded whatever version it is.
 .. only:: html
 
    .. versionadded:: 4.7
+
+
+.. _Module variants:
+
+Module variants
+^^^^^^^^^^^^^^^
+
+Module variants are alternative evaluation of the same *modulefile*. A variant
+is specified by associating a value to its name when designating module.
+Variant specification relies on the :ref:`Advanced module version specifiers`
+mechanism.
+
+Once specified, variant's value is transmitted to the evaluating *modulefile*
+which instantiates the variant in the :mfvar:`ModuleVariant` array variable
+when reaching the :mfcmd:`variant` modulefile command declaring this variant.
+For instance the ``module load foo/1.2 bar=value1`` command leads to the
+evaluation of *foo/1.2* modulefile with *bar=value1* variant specification.
+When reaching the ``variant bar value1 value2 value3`` command in modulefile
+during its evaluation, the ``ModuleVariant(bar)`` array element is set to
+the ``value1`` string.
+
+Once variants are instantiated, modulefile's code could check the variant
+values to adapt the evaluation and define for instance different module
+requirements or produce different environment variable setup.
+
+Variants are interpreted in contexts where *modulefiles* are evaluated. Thus
+the variants specified on module designation are ignored by the
+:subcmd:`avail`, :subcmd:`whatis`, :subcmd:`is-avail`, :subcmd:`path` or
+:subcmd:`paths` sub-commands.
+
+When modulefile is evaluated a value should be specified for each variant this
+modulefile declares. When reaching the :mfcmd:`variant` modulefile command
+declaring a variant, an error is raised if no value is specified for this
+variant and if no default value is declared. Specified variant value should
+match a value from the declared accepted value list otherwise an error is
+raised. Additionally if a variant is specified but does not correspond to a
+variant declared in modulefile, an error is raised.
+
+Module variants are reported along the module they are associated to on
+:subcmd:`list` sub-command results. Variants are reported within curly braces
+next to module name, each variant definition separated from the others with a
+colon character (e.g., ``foo/1.2{variant1=value:+variant2}``). Boolean
+variants are reported with the ``+name`` or ``-name`` syntaxes. When a
+shortcut character is defined for a variant (see
+:envvar:`MODULES_VARIANT_SHORTCUT`) it is reported with the
+``<shortcut>value`` syntax. For instance if ``%`` character is defined as a
+shortcut for *variant1*: ``foo/1.2{%value:+variant2}``.
+
+When the JSON output mode is enabled (with :option:`--json`), variants are
+reported under the ``variants`` JSON object as name/value pairs. Values of
+Boolean variant are set as JSON Boolean. Other values are set as JSON strings.
+Variant shortcut and color rendering do not apply on JSON output.
+
+.. only:: html
+
+   .. versionadded:: 4.8
 
 
 Collections
