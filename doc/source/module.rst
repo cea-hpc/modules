@@ -845,7 +845,7 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
-.. only:: html
+ .. only:: html
 
     .. versionadded:: 4.8
 
