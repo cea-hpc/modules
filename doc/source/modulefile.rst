@@ -827,6 +827,40 @@ the *modulefile* is being loaded.
  :mfcmd:`unsetenv` command changes the process' environment like
  :mfcmd:`setenv`.
 
+.. mfcmd:: variant [--boolean] [--default value] name value...
+
+ Declare :ref:`module variant<Module variants>` *name* with list of accepted
+ *value* and instantiate it in the :mfvar:`ModuleVariant` array variable.
+
+ Variant's value is selected through the module designation that leads to the
+ modulefile evaluation. See `Advanced module version specifiers`_ section to
+ learn how variants could be specified.
+
+ Selected variant value is transmitted to the evaluating modulefile. A value
+ must be specified for variant *name* and it must corresponds to a value in
+ the accepted value list. Otherwise an error is raised.
+
+ When the ``--default`` option is set, variant *name* is set to the *value*
+ associated with this option in case no value is specified for variant in
+ module designation.
+
+ If the ``--boolean`` option is set, variant *name* is defined as a Boolean
+ variant. No list of accepted value should be defined in this case. All values
+ recognized as Boolean value in Tcl are accepted (i.e., ``1``, ``true``,
+ ``t``, ``yes``, ``y``, ``on``, ``0``, ``false``, ``f``, ``no``, ``n`` or
+ ``off``). Boolean variants are instantiated in :mfvar:`ModuleVariant` using
+ Tcl canonical form of Boolean value (i.e., ``0`` or ``1``).
+
+ A variant which is not defined as a Boolean variant cannot define Boolean
+ values in its accepted value list, exception made for the ``0`` and ``1``
+ integers. An error is raised otherwise.
+
+ A variant cannot be named ``version``. An error is raised otherwise.
+
+ .. only:: html
+
+    .. versionadded:: 4.8
+
 .. mfcmd:: versioncmp version1 version2
 
  Compare version string *version1* against version string *version2*. Returns
