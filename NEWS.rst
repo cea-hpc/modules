@@ -119,6 +119,8 @@ Modules 4.8.0 (not yet released)
 * Init: fix stderr redirection in fish shell initialization script, now that
   use of the ``^`` character to redirect stderr is disabled by default (fish
   >=3.3).
+* Protect quarantine mechanism code from ``rcexpandparam`` Zsh option when
+  initializing the :command:`module` command on this shell. (fix issue #403)
 
 
 .. _4.7 release notes:
