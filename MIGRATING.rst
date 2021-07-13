@@ -108,6 +108,106 @@ another modulefile
     Currently Loaded Modulefiles:
      1) foo/1.0
 
+Module variants
+---------------
+
+:ref:`Module variants` is a new mechanism that allows to pass arguments to
+evaluated modulefiles in order to achieve different environment variable or
+module requirement setup with a single modulefile.
+
+Variant specification relies on the :ref:`Advanced module version specifiers`
+mechanism, which leverages the `variant syntax`_ of the `Spack`_ package
+manager:
+
+.. _variant syntax: https://spack.readthedocs.io/en/latest/basic_usage.html#variants
+
+.. parsed-literal::
+
+    :ps:`$` module config advanced_version_spec 1
+    :ps:`$` module load -v bar/1.2 toolchain=a -debug
+    Loading :sgrhi:`bar/1.2`:sgrse:`{`:sgrva:`-debug`:sgrse:`:`:sgrva:`toolchain=a`:sgrse:`}`
+
+Variants are defined in modulefile with the :mfcmd:`variant` command, which
+defines the variant type and its accepted values:
+
+.. code-block:: tcl
+
+    #%Module4.8
+    variant toolchain a b c
+    variant --boolean --default off debug
+
+    # select software build depending on variant values
+    set suffix -[getvariant toolchain]
+    if {$ModuleVariant(debug)} {
+        append suffix -dbg
+    }
+
+    prepend-path PATH /path/to/bar-1.2$suffix/bin
+    prepend-path LD_LIBRARY_PATH /path/to/bar-1.2$suffix/lib
+
+The *bar/1.2* modulefile defines a ``toolchain`` variant, which accepts the
+``a``, ``b`` and ``c`` values, and a ``debug`` Boolean variant, which is set
+``off`` by default. Once these two variants are declared, their value
+specified on module designation are instantiated in the :mfvar:`ModuleVariant`
+array variable which could also be queried with the :mfcmd:`getvariant`
+modulefile command. Selected variant values enable to define a specific
+installation build path for the *bar/1.2* software.
+
+If a variant is not specified when designating module and if this variant is
+not declared with a default value, an error is obtained:
+
+.. parsed-literal::
+
+    :ps:`$` module purge
+    :ps:`$` module load :noparse:`bar@1.2`
+    Loading :sgrhi:`bar/1.2`
+      :sgrer:`ERROR`: No value specified for variant 'toolchain'
+        Allowed values are: a b c
+
+Once module is loaded, selected variants are reported on the :subcmd:`list`
+sub-command output:
+
+.. parsed-literal::
+
+    :ps:`$` module load :noparse:`bar@1.2` toolchain=b
+    :ps:`$` module list
+    Currently Loaded Modulefiles:
+     1) bar/1.2\ :sgrse:`{`:sgrva:`-debug`:sgrse:`:`:sgrva:`toolchain=b`:sgrse:`}`  
+
+    Key:
+    :sgrse:`{`:sgrva:`-variant`:sgrse:`}`\=\ :sgrse:`{`:sgrva:`variant=off`:sgrse:`}`  :sgrse:`{`:sgrva:`variant=value`:sgrse:`}`
+
+.. note:: The default value of the :instopt:`--with-list-output` installation
+   option has been updated to include variant information.
+
+Variant specification could be used where the :ref:`Advanced module version
+specifiers` is supported. For instance a module may express a dependency over
+a specific module variant:
+
+.. parsed-literal::
+
+    :ps:`$` module show foo/2.1 toolchain=c
+    -------------------------------------------------------------------
+    :sgrhi:`/path/to/modulfiles/foo/2.1`:
+
+    :sgrcm:`variant`         toolchain a b c
+    :sgrcm:`prereq`          :noparse:`bar@1.2 toolchain=`:sgrva:`{toolchain}`
+    :sgrcm:`prepend-path`    PATH /path/to/foo-2.1-:sgrva:`{toolchain}`/bin
+    :sgrcm:`prepend-path`    LD_LIBRARY_PATH /path/to/foo-2.1-:sgrva:`{toolchain}`/lib
+    -------------------------------------------------------------------
+
+In this example, *foo/2.1* module depends on *bar/1.2* and the same toolchain
+variant should be selected for both modules in order to load two software
+builds that are compatible between each other.
+
+.. parsed-literal::
+
+    :ps:`$` module purge
+    :ps:`$` module config auto_handling 1
+    :ps:`$` module load foo/2.1 toolchain=a
+    Loading :sgrhi:`foo/2.1`:sgrse:`{`:sgrva:`toolchain=a`:sgrse:`}`
+      :sgrin:`Loading requirement`: bar/1.2\ :sgrse:`{`:sgrva:`-debug`:sgrse:`:`:sgrva:`toolchain=a`:sgrse:`}`
+
 
 From v4.6 to v4.7
 =================
