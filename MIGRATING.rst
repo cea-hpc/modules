@@ -208,6 +208,34 @@ builds that are compatible between each other.
     Loading :sgrhi:`foo/2.1`:sgrse:`{`:sgrva:`toolchain=a`:sgrse:`}`
       :sgrin:`Loading requirement`: bar/1.2\ :sgrse:`{`:sgrva:`-debug`:sgrse:`:`:sgrva:`toolchain=a`:sgrse:`}`
 
+Variant shortcuts
+-----------------
+
+The :mconfig:`variant_shortcut` configuration option is added to define
+shortcut characters for easily specifying variants. Instead of writing the
+variant name to specify it in module designation (e.g., *name=value*), the
+shortcut associated to this variant could be used (i.e., *<shortcut>value*):
+
+.. parsed-literal::
+
+    :ps:`$` module purge
+    :ps:`$` module config variant_shortcut toolchain=%
+    :ps:`$` module load foo/2.1 %a
+    Loading :sgrhi:`foo/2.1`:sgrse:`{`:sgrva:`%a`:sgrse:`}`
+      :sgrin:`Loading requirement`: bar/1.2\ :sgrse:`{`:sgrva:`-debug`:sgrse:`:`:sgrva:`%a`:sgrse:`}`
+
+Configured shortcuts are also used to report the loaded variant on
+:subcmd:`list` sub-command output (shortcuts are explained in key section):
+
+.. parsed-literal::
+
+    :ps:`$` module list
+    Currently Loaded Modulefiles:
+     1) :sgral:`bar/1.2`\ :sgrse:`{`:sgrva:`-debug`:sgrse:`:`:sgrva:`%a`:sgrse:`}`  2) foo/2.1\ :sgrse:`{`:sgrva:`%a`:sgrse:`}`  
+
+    Key:
+    :sgral:`auto-loaded`  :sgrse:`{`:sgrva:`-variant`:sgrse:`}`\=\ :sgrse:`{`:sgrva:`variant=off`:sgrse:`}`  :sgrse:`{`:sgrva:`%value`:sgrse:`}`\=\ :sgrse:`{`:sgrva:`toolchain=value`:sgrse:`}`  :sgrse:`{`:sgrva:`variant=value`:sgrse:`}`
+
 
 From v4.6 to v4.7
 =================
