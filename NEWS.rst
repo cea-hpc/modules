@@ -8,8 +8,8 @@ documents those changes that are of interest to users and admins.
 
 .. _4.8 release notes:
 
-Modules 4.8.0 (not yet released)
---------------------------------
+Modules 4.8.0 (2021-07-14)
+--------------------------
 
 * Introduce the :subcmd:`edit` sub-command that opens modulefile passed as
   argument in a text editor. Modulefile can be specified like with any other
