@@ -16,6 +16,11 @@ Modules 5.0.0-alpha (2021-07-XX)
   :subcmd:`sh-to-mod` sub-command.
 * Remove mention of the :subcmd:`init*<initadd>` sub-commands in module usage
   message to put focus on the collection handling sub-commands.
+* Do not declare anymore the ``chdir``, ``module``, ``module-trace``,
+  ``module-verbosity``, ``module-user`` and ``module-log`` commands under the
+  modulerc Tcl interpreter as no-op commands. A clear error message is
+  obtained if these commands are still used in modulerc files instead of
+  silently ignoring them.
 
 
 .. _4.8 release notes:
