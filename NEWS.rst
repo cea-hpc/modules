@@ -6,6 +6,16 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+.. _5.0 release notes:
+
+Modules 5.0.0-alpha (2021-07-XX)
+--------------------------------
+
+* Remove deprecated :command:`createmodule.sh` and :command:`createmodule.py`
+  tools as shell script to modulefile conversion is now achieved with the
+  :subcmd:`sh-to-mod` sub-command.
+
+
 .. _4.8 release notes:
 
 Modules 4.8.0 (2021-07-14)

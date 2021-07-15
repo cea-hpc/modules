@@ -39,7 +39,7 @@ endif
 include Makefile.inc
 
 INSTALL_PREREQ := modulecmd.tcl ChangeLog README script/add.modules \
-	script/createmodule.py script/modulecmd
+	script/modulecmd
 TEST_PREREQ := $(MODULECMDTEST)
 
 ifeq ($(compatversion),y)
@@ -378,10 +378,6 @@ script/add.modules: script/add.modules.in
 	$(translate-in-script)
 	chmod +x $@
 
-script/createmodule.py: script/createmodule.py.in
-	$(translate-in-script)
-	chmod +x $@
-
 script/gitlog2changelog.py: script/gitlog2changelog.py.in
 	$(translate-in-script)
 	chmod +x $@
@@ -501,8 +497,6 @@ endif
 	chmod +x $(DESTDIR)$(bindir)/envml
 	cp script/add.modules $(DESTDIR)$(bindir)/
 	chmod +x $(DESTDIR)$(bindir)/add.modules
-	cp script/createmodule.py $(DESTDIR)$(bindir)/
-	chmod +x $(DESTDIR)$(bindir)/createmodule.py
 	cp script/modulecmd $(DESTDIR)$(bindir)/
 	chmod +x $(DESTDIR)$(bindir)/modulecmd
 	cp script/mkroot $(DESTDIR)$(bindir)/
@@ -559,7 +553,6 @@ ifeq ($(libtclenvmodules),y)
 endif
 	rm -f $(DESTDIR)$(bindir)/envml
 	rm -f $(DESTDIR)$(bindir)/add.modules
-	rm -f $(DESTDIR)$(bindir)/createmodule.py
 	rm -f $(DESTDIR)$(bindir)/modulecmd
 	rm -f $(DESTDIR)$(bindir)/mkroot
 ifeq ($(windowssupport),y)
@@ -681,7 +674,6 @@ endif
 	rm -f modulecmd.tcl
 	rm -f $(MODULECMDTEST)
 	rm -f script/add.modules
-	rm -f script/createmodule.py
 	rm -f script/gitlog2changelog.py
 	rm -f script/modulecmd
 	rm -f testsuite/example/.modulespath testsuite/example/.modulespath-wild testsuite/example/modulerc testsuite/example/modulerc-1 testsuite/example/initrc
@@ -806,8 +798,8 @@ V = 1
 endif
 # let verbose by default the install/clean/test and other specific non-build targets
 $(V).SILENT: initdir pkgdoc doc version.inc contrib/rpm/environment-modules.spec \
-	modulecmd.tcl ChangeLog README script/add.modules script/createmodule.py \
-	script/gitlog2changelog.py script/modulecmd $(COMPAT_DIR)/modulecmd$(EXEEXT) \
+	modulecmd.tcl ChangeLog README script/add.modules script/gitlog2changelog.py \
+	script/modulecmd $(COMPAT_DIR)/modulecmd$(EXEEXT) \
 	$(COMPAT_DIR)/ChangeLog lib/libtclenvmodules$(SHLIB_SUFFIX) \
 	lib/libtestutil-closedir$(SHLIB_SUFFIX) lib/libtestutil-getpwuid$(SHLIB_SUFFIX) \
 	lib/libtestutil-getgroups$(SHLIB_SUFFIX) lib/libtestutil-0getgroups$(SHLIB_SUFFIX) \
