@@ -14,6 +14,8 @@ Modules 5.0.0-alpha (2021-07-XX)
 * Remove deprecated :command:`createmodule.sh` and :command:`createmodule.py`
   tools as shell script to modulefile conversion is now achieved with the
   :subcmd:`sh-to-mod` sub-command.
+* Remove mention of the :subcmd:`init*<initadd>` sub-commands in module usage
+  message to put focus on the collection handling sub-commands.
 
 
 .. _4.8 release notes:
