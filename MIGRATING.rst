@@ -661,6 +661,8 @@ adds new features. Version 4.6 introduces new functionalities that are
 described in this section. See the :ref:`4.6 release notes<4.6 release notes>`
 for a complete list of the changes between Modules v4.5 and v4.6.
 
+.. _sh-to-mod_sub-command:
+
 sh-to-mod sub-command
 ---------------------
 
@@ -699,6 +701,8 @@ working directory are tracked. The following shells are supported: *sh*,
 :subcmd:`sh-to-mod` acts as a full replacement for the standalone
 :command:`createmodule.sh` and :command:`createmodule.py` scripts. However
 those two scripts are currently still provided for compatibility purpose.
+
+.. _source-sh_modulefile_command:
 
 source-sh modulefile command
 ----------------------------

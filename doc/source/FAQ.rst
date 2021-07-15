@@ -82,15 +82,12 @@ Modulefiles
 I want the modulefile to source some rc script that came with some application
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you want to do this... you can, but that's not what *modules* is all about. It is possible to have the :ref:`modulefile(4)` output some text to *stdout* to source some script when loading. However, you lose the advantage of this tool, because you won't be able to **unload** this environment. If you're tempted to do this... **don't**.
+See the module :ref:`sh-to-mod_sub-command` sub-command to translate the
+environment changes done by a shell script into a :ref:`modulefile(4)`.
 
-However, you can craft a modulefile by capturing the environment variables created or changed by the *rc* script. This is the goal of the ``createmodule.py`` and the ``createmodule.sh`` utilities provided in the *modules* distribution:
-
-.. parsed-literal::
-
-     \ |bindir|\ /createmodule.py somescript
-
-You can also check out `<https://sourceforge.net/projects/env2/>`_, which can translate the shell file into a :ref:`modulefile(4)` and possibly reduce the amount of work needed to convert and maintain.
+You could also check the :ref:`source-sh_modulefile_command` to directly
+import the environment changes performed by a shell script within a
+:ref:`modulefile(4)`.
 
 How do I specify the *default* modulefile for some modulefile directory?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
