@@ -25,6 +25,7 @@ Modules 5.0.0-alpha (2021-07-XX)
   modulefile command if passed environment variable is not defined.
 * Align empty directory name error message obtained on :subcmd:`use`
   sub-command with message obtained when module or collection name is empty.
+* Accept non-existent modulepath on :subcmd:`use` sub-command.
 
 
 .. _4.8 release notes:

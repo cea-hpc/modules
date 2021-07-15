@@ -13865,13 +13865,10 @@ proc cmdModuleUse {pos args} {
             if {[string index $path 0] ne {$}} {
                set path [getAbsolutePath $path]
             }
-            if {[file isdirectory [resolvStringWithEnv $path]]} {
-               lappendState mode load
-               catch {add-path $pos MODULEPATH $path}
-               lpopState mode
-            } else {
-               reportError "Directory '$path' not found"
-            }
+            # added directory may not exist at this time
+            lappendState mode load
+            catch {add-path $pos MODULEPATH $path}
+            lpopState mode
          }
       }
    }

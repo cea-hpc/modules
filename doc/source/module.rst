@@ -1352,6 +1352,15 @@ Module Sub-Commands
  :envvar:`MODULEPATH_modshare<\<VAR\>_modshare>` is also set to increase the
  number of times *directory* has been added to :envvar:`MODULEPATH`.
 
+ A *directory* that does not exist yet can be specified as argument and then
+ be added to :envvar:`MODULEPATH`.
+
+ .. only:: html
+
+    .. versionchanged:: 5.0
+       Accept non-existent modulepath
+
+
 .. subcmd:: whatis [-a] [-j] [modulefile...]
 
  Display the information set up by the :mfcmd:`module-whatis` commands inside
