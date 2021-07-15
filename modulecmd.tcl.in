@@ -1761,6 +1761,10 @@ proc getModWithAltVrIsLoadedMsg {mod} {
       is already loaded"
 }
 
+proc getEmptyNameMsg {type} {
+   return "Invalid empty $type name"
+}
+
 ########################################################################
 # Use a subordinate Tcl interpreter to execute modulefiles
 #
@@ -6004,7 +6008,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
 
    set vrlist [getVariantList $mod 1 0 1]
    if {$mod eq {}} {
-      set retlist [list {} {} {} none {Invalid empty module name}]
+      set retlist [list {} {} {} none [getEmptyNameMsg module]]
    # try first to look at loaded modules if enabled to find maching module
    # or to find a closest match (used when switching with single name arg)
    } elseif {$look_loaded ne {no}} {
@@ -11335,7 +11339,7 @@ proc getCollectionFilename {coll} {
    set colldesc $coll
 
    if {$coll eq {}} {
-      reportErrorAndExit {Invalid empty collection name}
+      reportErrorAndExit [getEmptyNameMsg collection]
    # is collection a filepath
    } elseif {[string first / $coll] > -1} {
       # collection target has no influence when
@@ -13853,7 +13857,7 @@ proc cmdModuleUse {pos args} {
    } else {
       foreach path $args {
          if {$path eq {}} {
-            reportError {Invalid empty directory name}
+            reportError [getEmptyNameMsg directory]
          } else {
             # transform given path in an absolute path to avoid dependency to
             # the current work directory. except if this path starts with a
@@ -13888,7 +13892,7 @@ proc cmdModuleUnuse {args} {
 
          # skip empty string
          if {$path eq {}} {
-            reportError {Invalid empty directory name}
+            reportError [getEmptyNameMsg directory]
             continue
          }
 
