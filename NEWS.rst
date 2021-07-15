@@ -21,6 +21,8 @@ Modules 5.0.0-alpha (2021-07-XX)
   modulerc Tcl interpreter as no-op commands. A clear error message is
   obtained if these commands are still used in modulerc files instead of
   silently ignoring them.
+* Return by default an empty string rather ``_UNDEFINED`` on :mfcmd:`getenv`
+  modulefile command if passed environment variable is not defined.
 
 
 .. _4.8 release notes:
