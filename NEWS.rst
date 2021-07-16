@@ -29,6 +29,9 @@ Modules 5.0.0-alpha (2021-07-XX)
 * Install: installation option :instopt:`--enable-auto-handling` is set on by
   default which enables the automated module handling mode (see
   :envvar:`MODULES_AUTO_HANDLING`).
+* Install: installation option :instopt:`--enable-extended-default` is set on
+  by default which allows partial module version specification (see
+  :envvar:`MODULES_EXTENDED_DEFAULT`).
 
 
 .. _4.8 release notes:

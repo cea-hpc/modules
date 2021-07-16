@@ -476,11 +476,14 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 
  Allow to specify module versions by their starting part, i.e. substring
  separated from the rest of the version string by a ``.`` character.
- (default=no)
+ (default=yes)
 
  .. only:: html
 
     .. versionadded:: 4.4
+
+    .. versionchanged:: 5.0
+       Configuration option default set to ``yes``
 
 .. instopt:: --enable-advanced-version-spec
 
