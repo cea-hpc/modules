@@ -745,11 +745,14 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  on all module sub-commands and modulefile Tcl commands for the module
  specification they receive as argument (when set to ``always``). Case
  insensitive match is disabled when this option is set to ``never``.
- (default=\ ``never``)
+ (default=\ ``search``)
 
  .. only:: html
 
     .. versionadded:: 4.4
+
+    .. versionchanged:: 5.0
+       Configuration option default set to ``search``
 
 .. instopt:: --with-nearly-forbidden-days=VALUE
 

@@ -37,6 +37,9 @@ Modules 5.0.0-alpha (2021-07-XX)
   specifiers`
 * Install: installation option :instopt:`--enable-color` is set on by default
   which enables the ``auto`` output color mode (see :envvar:`MODULES_COLOR`).
+* Install: installation option :instopt:`--with-icase` is set to ``search``
+  by default to activate case insensitive match on search contexts (see
+  :envvar:`MODULES_ICASE`).
 
 
 .. _4.8 release notes:
