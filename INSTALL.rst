@@ -375,7 +375,7 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 .. instopt:: --enable-libtclenvmodules
 
  Build and install the Modules Tcl extension library which provides optimized
- Tcl commands for the modulecmd.tcl script.
+ Tcl commands for the modulecmd.tcl script. (default=yes)
 
  .. only:: html
 
@@ -385,7 +385,7 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 
  Support multilib systems by looking in modulecmd.tcl at an alternative
  location where to find the Modules Tcl extension library depending on current
- machine architecture.
+ machine architecture. (default=no)
 
  .. only:: html
 
@@ -529,7 +529,7 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  Activate workaround for issue #277 related to Tcsh history mechanism which
  does not cope well with default module alias definition. Note that enabling
  this workaround solves Tcsh history issue but weakens shell evaluation of the
- code produced by modulefiles.
+ code produced by modulefiles. (default=no)
 
  .. only:: html
 
