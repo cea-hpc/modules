@@ -32,6 +32,9 @@ Modules 5.0.0-alpha (2021-07-XX)
 * Install: installation option :instopt:`--enable-extended-default` is set on
   by default which allows partial module version specification (see
   :envvar:`MODULES_EXTENDED_DEFAULT`).
+* Install: installation option :instopt:`--enable-advanced-version-spec` is
+  set on by default which activates the :ref:`Advanced module version
+  specifiers`
 
 
 .. _4.8 release notes:

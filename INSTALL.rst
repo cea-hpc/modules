@@ -489,11 +489,14 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 
  Activate the advanced module version specifiers which enables to finely
  select module versions by specifying after the module name a version
- constraint prefixed by the ``@`` character. (default=no)
+ constraint prefixed by the ``@`` character. (default=yes)
 
  .. only:: html
 
     .. versionadded:: 4.4
+
+    .. versionchanged:: 5.0
+       Configuration option default set to ``yes``
 
 .. instopt:: --enable-ml
 
