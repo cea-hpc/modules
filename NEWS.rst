@@ -43,6 +43,9 @@ Modules 5.0.0-alpha (2021-07-XX)
 * Install: installation option :instopt:`--enable-new-features` has been reset
   following major version change as all the options it implied are now enabled
   by default.
+* Install: installation option :instopt:`--enable-set-shell-startup` is set
+  off by default but could be enabled once installed through the ``initrc``
+  configuration file.
 
 
 .. _4.8 release notes:

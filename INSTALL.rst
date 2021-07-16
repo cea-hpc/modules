@@ -410,11 +410,14 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 .. instopt:: --enable-set-shell-startup
 
  Set when module function is defined the shell startup file to ensure that the
- module function is still defined in sub-shells. (default=yes)
+ module function is still defined in sub-shells. (default=no)
 
  .. only:: html
 
     .. versionadded:: 4.3
+
+    .. versionchanged:: 5.0
+       Configuration option default set to ``no``
 
 .. instopt:: --enable-quarantine-support
 
