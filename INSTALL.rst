@@ -512,11 +512,14 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 
  Control if output should be colored by default or not.  A value of ``yes``
  equals to the ``auto`` color mode.  ``no`` equals to the ``never`` color
- mode. (default=no)
+ mode. (default=yes)
 
  .. only:: html
 
     .. versionadded:: 4.3
+
+    .. versionchanged:: 5.0
+       Configuration option default set to ``yes``
 
 .. instopt:: --enable-wa-277
 

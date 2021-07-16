@@ -35,6 +35,8 @@ Modules 5.0.0-alpha (2021-07-XX)
 * Install: installation option :instopt:`--enable-advanced-version-spec` is
   set on by default which activates the :ref:`Advanced module version
   specifiers`
+* Install: installation option :instopt:`--enable-color` is set on by default
+  which enables the ``auto`` output color mode (see :envvar:`MODULES_COLOR`).
 
 
 .. _4.8 release notes:
