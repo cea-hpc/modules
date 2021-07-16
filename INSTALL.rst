@@ -545,15 +545,20 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 .. instopt:: --enable-new-features
 
  Enable all new features that are disabled by default due to the substantial
- behavior changes they imply on Modules 4. This option is equivalent to the
- cumulative use of :instopt:`--enable-auto-handling`,
- :instopt:`--enable-color`, :instopt:`--with-icase=search<--with-icase>`,
- :instopt:`--enable-extended-default` and
- :instopt:`--enable-advanced-version-spec`. (default=no)
+ behavior changes they imply on Modules 5. This option does not enable other
+ configuration option currently. (default=no)
 
  .. only:: html
 
     .. versionadded:: 4.7
+
+    .. versionchanged:: 5.0
+       Configuration option has been reset following major version change as
+       :instopt:`--enable-auto-handling`, :instopt:`--enable-color`,
+       :instopt:`--with-icase=search<--with-icase>`,
+       :instopt:`--enable-extended-default` and
+       :instopt:`--enable-advanced-version-spec` are set by default on Modules
+       5.
 
 .. instopt:: --enable-mcookie-version-check
 

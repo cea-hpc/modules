@@ -40,6 +40,9 @@ Modules 5.0.0-alpha (2021-07-XX)
 * Install: installation option :instopt:`--with-icase` is set to ``search``
   by default to activate case insensitive match on search contexts (see
   :envvar:`MODULES_ICASE`).
+* Install: installation option :instopt:`--enable-new-features` has been reset
+  following major version change as all the options it implied are now enabled
+  by default.
 
 
 .. _4.8 release notes:
