@@ -26,6 +26,9 @@ Modules 5.0.0-alpha (2021-07-XX)
 * Align empty directory name error message obtained on :subcmd:`use`
   sub-command with message obtained when module or collection name is empty.
 * Accept non-existent modulepath on :subcmd:`use` sub-command.
+* Install: installation option :instopt:`--enable-auto-handling` is set on by
+  default which enables the automated module handling mode (see
+  :envvar:`MODULES_AUTO_HANDLING`).
 
 
 .. _4.8 release notes:

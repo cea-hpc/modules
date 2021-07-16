@@ -429,11 +429,14 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 
  Set modulecmd.tcl to automatically apply automated modulefiles handling
  actions, like loading the pre-requisites of a modulefile when loading this
- modulefile. (default=no)
+ modulefile. (default=yes)
 
  .. only:: html
 
     .. versionadded:: 4.2
+
+    .. versionchanged:: 5.0
+       Configuration option default set to ``yes``
 
 .. instopt:: --enable-implicit-requirement
 
