@@ -159,29 +159,30 @@ necessarily mandatory as it depends of the kind of setup you want to achieve.
    Beware that shells have multiple ways to initialize depending if they are
    a login shell or not and if they are launched in interactive mode or not.
 
-3. Define module paths to enable by default. Edit ``modulerc`` configuration
-   file or ``.modulespath`` if you have chosen
+3. Define module paths to enable by default. Edit ``initrc`` configuration
+   file in the directory designated by the :instopt:`--etcdir` option or edit
+   ``modulespath`` in the same directory if you have chosen
    :instopt:`--enable-dotmodulespath` at configure time. If you have set
-   :instopt:`--with-initconf-in` to ``etcdir`` to install these Modules
+   :instopt:`--with-initconf-in` to ``initdir`` to install these Modules
    initialization configurations in the configuration directory designated by
-   the :instopt:`--etcdir` option, these configuration files
-   are respectively named ``initrc`` and ``modulespath``. If you use
-   ``.modulespath`` (or ``modulespath``) configuration file, add one line
+   the :instopt:`--initdir` option, these configuration files
+   are respectively named ``modulerc`` and ``.modulespath``. If you use
+   ``modulespath`` (or ``.modulespath``) configuration file, add one line
    mentioning each modulefile directory::
 
        /path/to/regular/modulefiles
        /path/to/other/modulefiles
 
-   If you use ``modulerc`` (or ``initrc``) configuration file, add one line
+   If you use ``initrc`` (or ``modulerc``) configuration file, add one line
    mentioning each modulefile directory prefixed by the ``module use``
    command::
 
        module use /path/to/regular/modulefiles
        module use /path/to/other/modulefiles
 
-4. Define modulefiles to load by default. Edit ``modulerc`` (or ``initrc``)
+4. Define modulefiles to load by default. Edit ``initrc`` (or ``modulerc``)
    configuration file. Modulefiles to load cannot be specified in
-   ``.modulespath`` (or ``modulespath``) file. Add there all the modulefiles
+   ``modulespath`` (or ``.modulespath``) file. Add there all the modulefiles
    you want to load by default at Modules initialization time.
 
    Add one line mentioning each modulefile to load prefixed by the
@@ -190,7 +191,7 @@ necessarily mandatory as it depends of the kind of setup you want to achieve.
        module load foo
        module load bar
 
-   In fact you can add to the ``modulerc`` (or ``initrc``) configuration file
+   In fact you can add to the ``initrc`` (or ``modulerc``) configuration file
    any kind of supported module command, like ``module config`` commands to
    tune ``module``'s default behaviors.
 
@@ -317,12 +318,12 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 .. instopt:: --enable-dotmodulespath, --enable-modulespath
 
  Set the module paths defined by :instopt:`--with-modulepath` option in a
- ``.modulespath`` file (following C version fashion) within the initialization
- directory defined by the :instopt:`--initdir` option rather than within the
- ``modulerc`` file. Or respectively, if option :instopt:`--with-initconf-in`
- has been set to ``etcdir``, in a ``modulespath`` file within the
- configuration directory defined by the :instopt:`--etcdir` option rather than
- within the ``initrc`` file. (default=no)
+ ``modulespath`` file (following C version fashion) within the initialization
+ directory defined by the :instopt:`--etcdir` option rather than within the
+ ``initrc`` file. Or respectively, if option :instopt:`--with-initconf-in` has
+ been set to ``initdir``, in a ``.modulespath`` file within the configuration
+ directory defined by the :instopt:`--initdir` option rather than within
+ the ``modulerc`` file. (default=no)
 
  .. only:: html
 
@@ -598,11 +599,14 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 .. instopt:: --with-initconf-in=VALUE
 
  Location where to install Modules initialization configuration files. Either
- ``initdir`` or ``etcdir`` (default=\ ``initdir``)
+ ``initdir`` or ``etcdir`` (default=\ ``etcdir``)
 
  .. only:: html
 
     .. versionadded:: 4.1
+
+    .. versionchanged:: 5.0
+       Configuration option default set to ``etcdir``
 
 .. instopt:: --with-tclsh=BIN
 
@@ -874,12 +878,12 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
  Default path list to setup as the default modulepaths.  Each path in this
  list should be separated by ``:``.  Defined value is registered in the
- ``modulerc`` or ``.modulespath`` configuration file, depending on the
+ ``initrc`` or ``modulespath`` configuration file, depending on the
  :instopt:`--enable-dotmodulespath` option. These files are respectively
- called ``initrc`` and ``modulespath`` if :instopt:`--with-initconf-in` is set
- to ``etcdir``. The path list value is read at initialization time to populate
- the MODULEPATH environment variable. By default, this modulepath is composed
- of the directory set for the system modulefiles
+ called ``modulerc`` and ``.modulespath`` if :instopt:`--with-initconf-in` is
+ set to ``initdir``. The path list value is read at initialization time to
+ populate the MODULEPATH environment variable. By default, this modulepath is
+ composed of the directory set for the system modulefiles
  (default=\ ``PREFIX/modulefiles`` or
  ``BASEPREFIX/$MODULE_VERSION/modulefiles`` if versioning installation mode
  enabled)
@@ -892,8 +896,8 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
  Default modulefiles to load at Modules initialization time. Each modulefile
  in this list should be separated by ``:``. Defined value is registered in the
- ``modulerc`` configuration file or in the ``initrc`` file if
- :instopt:`--with-initconf-in` is set to ``etcdir``.  (default=no)
+ ``initrc`` configuration file or in the ``modulerc`` file if
+ :instopt:`--with-initconf-in` is set to ``initdir``.  (default=no)
 
  .. only:: html
 

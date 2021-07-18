@@ -46,6 +46,11 @@ Modules 5.0.0-alpha (2021-07-XX)
 * Install: installation option :instopt:`--enable-set-shell-startup` is set
   off by default but could be enabled once installed through the ``initrc``
   configuration file.
+* Install: installation option :instopt:`--with-initconf-in` is set to
+  ``etcdir`` by default to locate configuration files in the directory
+  designated by the :instopt:`--etcdir` option. Therefore the initialization
+  configuration file is named ``initrc`` in this directory, and the
+  modulepath-specific configuration file is named ``modulespath``.
 
 
 .. _4.8 release notes:
