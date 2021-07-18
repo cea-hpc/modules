@@ -252,23 +252,23 @@ proc siteconfig_isStderrTty {} {
    return $is_stderr_tty
 }
 
-# determine overridden configuration in installed initdir modulerc
-set initmodulerc_file [expr {[file exists $install_etcdir/initrc] ? "$install_etcdir/initrc" : "$install_initdir/modulerc"}]
-set fid [open $initmodulerc_file]
+# determine overridden configuration in installed initrc conf file
+set initrc_file [expr {$install_initconfin eq {etcdir} ? "$install_etcdir/initrc" : "$install_initdir/modulerc"}]
+set fid [open $initrc_file]
 while {[gets $fid line] >= 0} {
    if {[string first {module config } $line] == 0} {
       lassign [lrange [split $line] 2 3] configname configval
-      set initmodulerc_$configname $configval
+      set initrc_$configname $configval
    }
 }
 close $fid
 unset fid
 unset line
 
-# check configuration enablement between ./configure option and init modulerc
+# check configuration enablement between ./configure option and initrc conf file
 proc is_set_shell_startup_enabled {} {
-   if {[info exists ::initmodulerc_set_shell_startup]} {
-      return $::initmodulerc_set_shell_startup
+   if {[info exists ::initrc_set_shell_startup]} {
+      return $::initrc_set_shell_startup
    } else {
       return [expr {$::install_setshellstartup eq {y} ? {1} : {0}}]
    }

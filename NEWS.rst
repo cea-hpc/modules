@@ -51,6 +51,10 @@ Modules 5.0.0-alpha (2021-07-XX)
   designated by the :instopt:`--etcdir` option. Therefore the initialization
   configuration file is named ``initrc`` in this directory, and the
   modulepath-specific configuration file is named ``modulespath``.
+* Only look at configuration files found in the location designated by the
+  :instopt:`--etcdir` or :instopt:`--initdir` option (depending on the value
+  of :instopt:`--with-initconf-in` option). Configuration files were
+  previously searched in both locations.
 
 
 .. _4.8 release notes:

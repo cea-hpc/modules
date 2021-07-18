@@ -290,6 +290,8 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@etcdir@|$(etcdir)|g' \
 	-e 's|@modulefilesdir@|$(modulefilesdir)|g' \
 	-e 's|@moduleshome@|$(moduleshome)|g' \
+	-e 's|@initrc@|$(initrc)|g' \
+	-e 's|@modulespath@|$(modulespath)|g' \
 	-e 's|@VERSION@|$(VERSION)|g' \
 	-e 's|@TCLSHDIR@/tclsh|$(TCLSH)|g' \
 	-e 's|@TCLSH@|$(TCLSH)|g' \

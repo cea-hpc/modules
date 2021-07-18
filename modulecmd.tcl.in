@@ -13943,12 +13943,10 @@ proc cmdModuleAutoinit {} {
 
    # initialize default MODULEPATH and LOADEDMODULES
    if {[get-env MODULEPATH] eq {}} {
-      # set modpaths defined in modulespath config file if it exists, use file
-      # in etcdir if it exists, dot file in initdir elsewhere
-      set modulespath [expr {[file exists @etcdir@/modulespath] ?\
-         {@etcdir@/modulespath} : {@initdir@/.modulespath}}]
-      if {[file readable $modulespath]} {
-         set fdata [split [readFile $modulespath] \n]
+      # set modpaths defined in modulespath config file if it exists
+      # use .modulespath file in initdir if conf file are located in this dir
+      if {[file readable @modulespath@]} {
+         set fdata [split [readFile @modulespath@] \n]
          foreach fline $fdata {
             if {[regexp {^\s*(.*?)\s*(#.*|)$} $fline match patharg] == 1\
                && $patharg ne {}} {
@@ -13976,14 +13974,12 @@ proc cmdModuleAutoinit {} {
       setenv LOADEDMODULES {}
    }
 
-   # source initialization modulerc if any and if no env already initialized
-   # use initrc file in etcdir if any, modulerc file in initdir otherwise
+   # source initialization initrc if any and if no env already initialized
+   # use modulerc file in initdir if conf files are located in this dir
    if {[get-env MODULEPATH] eq {} && [get-env LOADEDMODULES] eq {}} {
-      set initrc [expr {[file exists @etcdir@/initrc] ? {@etcdir@/initrc} :\
-         {@initdir@/modulerc}}]
-      if {[file exists $initrc]} {
+      if {[file exists @initrc@]} {
          setState rc_running 1
-         cmdModuleSource $initrc
+         cmdModuleSource @initrc@
          unsetState rc_running
       }
    }
