@@ -162,7 +162,7 @@ necessarily mandatory as it depends of the kind of setup you want to achieve.
 3. Define module paths to enable by default. Edit ``initrc`` configuration
    file in the directory designated by the :instopt:`--etcdir` option or edit
    ``modulespath`` in the same directory if you have chosen
-   :instopt:`--enable-dotmodulespath` at configure time. If you have set
+   :instopt:`--enable-modulespath` at configure time. If you have set
    :instopt:`--with-initconf-in` to ``initdir`` to install these Modules
    initialization configurations in the configuration directory designated by
    the :instopt:`--initdir` option, these configuration files
@@ -315,7 +315,7 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 
     .. versionadded:: 4.2
 
-.. instopt:: --enable-dotmodulespath, --enable-modulespath
+.. instopt:: --enable-modulespath, --enable-dotmodulespath
 
  Set the module paths defined by :instopt:`--with-modulepath` option in a
  ``modulespath`` file (following C version fashion) within the initialization
@@ -879,11 +879,11 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  Default path list to setup as the default modulepaths.  Each path in this
  list should be separated by ``:``.  Defined value is registered in the
  ``initrc`` or ``modulespath`` configuration file, depending on the
- :instopt:`--enable-dotmodulespath` option. These files are respectively
- called ``modulerc`` and ``.modulespath`` if :instopt:`--with-initconf-in` is
- set to ``initdir``. The path list value is read at initialization time to
- populate the MODULEPATH environment variable. By default, this modulepath is
- composed of the directory set for the system modulefiles
+ :instopt:`--enable-modulespath` option. These files are respectively called
+ ``modulerc`` and ``.modulespath`` if :instopt:`--with-initconf-in` is set to
+ ``initdir``. The path list value is read at initialization time to populate
+ the MODULEPATH environment variable. By default, this modulepath is composed
+ of the directory set for the system modulefiles
  (default=\ ``PREFIX/modulefiles`` or
  ``BASEPREFIX/$MODULE_VERSION/modulefiles`` if versioning installation mode
  enabled)

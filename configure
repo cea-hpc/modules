@@ -29,7 +29,7 @@ targetlist="${progdir}/Makefile.inc ${progdir}/site.exp"
 arglist="TCLSH PYTHON SPHINXBUILD PS BASENAME RMDIR_IGN_NON_EMPTY SED_ERE \
 VERSION RELEASE baseprefix prefix bindir libdir libexecdir etcdir initdir \
 datarootdir mandir docdir vimdatadir modulefilesdir setmanpath appendmanpath \
-setbinpath appendbinpath setdotmodulespath docinstall vimaddons \
+setbinpath appendbinpath setmodulespath docinstall vimaddons \
 examplemodulefiles builddoc gitworktree usemanpath compatversion EXEEXT \
 libtclenvmodules SHLIB_SUFFIX multilibsupport libdir64 libdir32 versioning \
 silentshdbgsupport setshellstartup quarantinesupport autohandling \
@@ -43,7 +43,7 @@ compatarglist=
 libarglist=
 
 # flags to know if argument has been specified on command-line
-defdotmodulespath=1
+defmodulespath=1
 defcompatversion=1
 defpageropts=1
 
@@ -56,7 +56,7 @@ setmanpath=y
 appendmanpath=n
 setbinpath=y
 appendbinpath=n
-setdotmodulespath=n
+setmodulespath=n
 docinstall=y
 vimaddons=y
 examplemodulefiles=y
@@ -221,11 +221,11 @@ Optional Features:
   --enable-append-manpath append rather prepend mandir to MANPATH [no]
   --enable-set-binpath    set bindir to PATH in init scripts [yes]
   --enable-append-binpath append rather prepend bindir to PATH [no]
-  --enable-dotmodulespath, --enable-modulespath
-                          configure modules path in .modulespath file rather
-                          than modulerc file (or respectively in modulespath
-                          file rather initrc file if \`--with-initconf-in' is
-                          set to 'etcdir') [no]
+  --enable-modulespath, --enable-dotmodulespath
+                          configure modules path in modulespath file rather
+                          than initrc file (or respectively in .modulespath
+                          file rather modulerc file if \`--with-initconf-in'
+                          is set to 'initdir') [no]
   --enable-doc-install    install documentation files in the documentation
                           directory defined with \'docdir' (no impact on
                           man pages installation) [yes]
@@ -587,8 +587,8 @@ for arg in "$@"; do
    --enable-append-binpath*|--disable-append-binpath)
       appendbinpath=$(get_feature_value "$arg") ;;
    --enable-dotmodulespath*|--disable-dotmodulespath|--enable-modulespath*|--disable-modulespath)
-      setdotmodulespath=$(get_feature_value "$arg")
-      defdotmodulespath=0 ;;
+      setmodulespath=$(get_feature_value "$arg")
+      defmodulespath=0 ;;
    --enable-doc-install*|--disable-doc-install)
       docinstall=$(get_feature_value "$arg")
       defdocinstall=0 ;;
@@ -1054,8 +1054,8 @@ if [ "$multilibsupport" = 'y' ]; then
 fi
 
 # check feature requirements are met
-if [ "$setdotmodulespath" = 'y' -a -n "$loadedmodules" ]; then
-   featmesg="As \`setdotmodulespath' is enabled beware that \`loadedmodules' may be ignored by init scripts"
+if [ "$setmodulespath" = 'y' -a -n "$loadedmodules" ]; then
+   featmesg="As \`setmodulespath' is enabled beware that \`loadedmodules' may be ignored by init scripts"
    echo_warning "$featmesg"
 fi
 if [ -n "$loadedmodules" -a -z "$modulepath" ]; then

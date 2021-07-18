@@ -42,7 +42,7 @@ all: $(ALL_SHELLS) modulerc zsh-functions/_module $(EXAMPLE_MODFILES_SRCDIR)/mod
 ifeq ($(versioning),y)
 all: $(EXAMPLE_MODFILES_SRCDIR)/version
 endif
-ifeq ($(setdotmodulespath),y)
+ifeq ($(setmodulespath),y)
   # both configuration files will be installed and in this case default init
   # scripts will use .modulespath prior to modulerc. If .modulespath sets a
   # module path then modulerc will be ignored
@@ -283,7 +283,7 @@ else
 endif
 	rm -f $(DESTDIR)$(modulespath) $(DESTDIR)$(initrc)
 	cp -R -P modulerc $(DESTDIR)$(initrc)
-ifeq ($(setdotmodulespath),y)
+ifeq ($(setmodulespath),y)
 	cp -R -P .modulespath $(DESTDIR)$(modulespath)
 endif
 ifeq ($(examplemodulefiles),y)
