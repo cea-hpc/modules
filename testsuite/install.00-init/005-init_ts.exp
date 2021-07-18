@@ -49,10 +49,16 @@ if {$verbose > 0} {
 }
 
 # test kind of sh-shell we have
-if {[file type "/bin/sh"] eq "link" } {
-   set sh_kind [file readlink "/bin/sh"]
-} else {
-   set sh_kind "sh"
+set shloc /bin/sh
+catch {
+   while {[file type $shloc] eq {link}} {
+      set shloc [file readlink $shloc]
+   }
+}
+set sh_kind [file tail $shloc]
+# try to see if /bin/sh binary is a bash shell or something else
+if {$sh_kind eq {sh} && ![catch {exec /bin/sh -c {echo $BASH_VERSION}} errMsg] && $errMsg ne {}} {
+   set sh_kind "bash"
 }
 
 # determine if sh-shell is a strict sh implementation
