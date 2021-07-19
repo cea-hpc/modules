@@ -73,17 +73,18 @@ if {!$is_locked_dir_file_readable} {
 
 # different result if a file in a locked directory still readable on this system
 if {$is_locked_dir_file_readable} {
+    setenv_var MODULES_ADVANCED_VERSION_SPEC 1
     set lm "$module/1.2"
     set lmf "$modpath/$lm"
     set lmfre "$modpathre/$lm"
     set ans [list]
     lappend ans [list set _LMFILES__modshare "$lmf:1"]
     lappend ans [list set LOADEDMODULES_modshare "$lm:1"]
-    lappend ans [list set MODULES_LMALTNAME_modshare $lm&loc_rc6/default&loc_rc6&loc_rc6/new&al|loc_rc6/1&al|loc_rc6/bar:1]
+    lappend ans [list set MODULES_LMALTNAME_modshare $lm&loc_rc6/default&loc_rc6&loc_rc6/new&al|loc_rc6/1&al|loc_rc6/bar&as|loc_rc6/latest:1]
     lappend ans [list set _LMFILES_ $lmf]
     lappend ans [list set LOADEDMODULES $lm]
     lappend ans [list set testsuite yes]
-    lappend ans [list set MODULES_LMALTNAME $lm&loc_rc6/default&loc_rc6&loc_rc6/new&al|loc_rc6/1&al|loc_rc6/bar]
+    lappend ans [list set MODULES_LMALTNAME $lm&loc_rc6/default&loc_rc6&loc_rc6/new&al|loc_rc6/1&al|loc_rc6/bar&as|loc_rc6/latest]
 
     testouterr_cmd "sh" "load $module" $ans ""
     testouterr_cmd_re "sh" "display $module" "OK" "$modlin\n$lmfre:\n\nmodule-whatis\t$lm\nsetenv\t\ttestsuite yes\n$modlin"
@@ -92,6 +93,7 @@ if {$is_locked_dir_file_readable} {
     unset lm
     unset lmf
     unset lmfre
+    unsetenv_var MODULES_ADVANCED_VERSION_SPEC
 } else {
     # nothing found
     testouterr_cmd "sh" "load $module" "ERR" "$err_path'$module'"

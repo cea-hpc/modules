@@ -44,6 +44,10 @@ setenv_path_var MODULEPATH $mp
 # enable advanced version spec for next tests
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 
+# ensure icase is disabled for tests by default (it will be specifically
+# enabled with '-i' command-line option on some tests)
+setenv_var MODULES_ICASE never
+
 
 # avail test
 set tserr "$mp:\nadvvers2/1.3
@@ -108,7 +112,7 @@ lappend ans [list setpath LOADEDMODULES extdfl/2.0.1]
 lappend ans [list setpath _LMFILES_ $mp/extdfl/2.0.1]
 lappend ans [list setpath MODULES_LMALTNAME extdfl/2.0.1&as|extdfl/latest]
 testouterr_cmd sh {load extdfl@2,1.4:1.7,1.3.2:1.3.7} $ans {}
-unsetenv_var MODULES_EXTENDED_DEFAULT
+setenv_var MODULES_EXTENDED_DEFAULT 0
 
 # implicit_default test
 if {![is_config_locked implicit_default]} {
@@ -169,7 +173,7 @@ advvers2/3.7
 advvers2/4.2
 advvers2/foo"
 testouterr_cmd sh {avail -i -t advvers2@:1.2,FoO,2,3:} OK $tserr
-unsetenv_var MODULES_EXTENDED_DEFAULT
+setenv_var MODULES_EXTENDED_DEFAULT 0
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES advvers2/foo]
