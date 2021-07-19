@@ -60,6 +60,7 @@ set sh_kind [file tail $shloc]
 if {$sh_kind eq {sh} && ![catch {exec /bin/sh -c {echo $BASH_VERSION}} errMsg] && $errMsg ne {}} {
    set sh_kind "bash"
 }
+send_user "\tsh_kind is '$sh_kind'\n"
 
 # determine if sh-shell is a strict sh implementation
 if {$sh_kind eq "dash" || ($tcl_platform(os) ne "Linux"\
@@ -71,6 +72,7 @@ if {$sh_kind eq "dash" || ($tcl_platform(os) ne "Linux"\
 } else {
    set sh_strict 0
 }
+send_user "\tsh_strict is '$sh_strict'\n"
 
 # check SIP is enabled or not on OS X
 if {$tcl_platform(os) eq "Darwin"} {
@@ -84,6 +86,7 @@ if {[info exists csrutil_enabled]} {
 } else {
     set sip_enabled 0
 }
+send_user "\tsip_enabled is '$sip_enabled'\n"
 
 # Cygwin environment will raise init warning message on compat version
 if {[string match "CYGWIN*" $tcl_platform(os)]} {
@@ -290,15 +293,20 @@ if {[info exists shell_path(fish)]} {
    set fish_version_ge31 [expr {[lindex [lsort -dictionary [list $fish_version 3.1.0]] 0] eq {3.1.0}}]
    set fish_version_ge32 [expr {[lindex [lsort -dictionary [list $fish_version 3.2.0]] 0] eq {3.2.0}}]
    set fish_version_is31 [string match 3.1.* $fish_version]
+   send_user "\tfish_version_ge31 is '$fish_version_ge31'\n"
+   send_user "\tfish_version_ge32 is '$fish_version_ge32'\n"
+   send_user "\tfish_version_is31 is '$fish_version_is31'\n"
 }
 
 # find ksh flavor
 if {[set kshbin [lindex [auto_execok ksh] 0]] ne {}} {
    set ksh_is_mksh [expr {[string first MIRBSD [exec $kshbin -c "echo \$KSH_VERSION"]] != -1}]
+   send_user "\tksh_is_mksh is '$ksh_is_mksh'\n"
 }
 
 # check if symbolic link registered in git repository have been effectively
 # created as symbolic link to determine if they are supported on filesystem
 set is_symlink_supported [file isdirectory $env(TESTSUITEDIR)/modulefiles/symlink]
+send_user "\tis_symlink_supported is '$is_symlink_supported'\n"
 
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
