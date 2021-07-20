@@ -55,6 +55,9 @@ Modules 5.0.0-alpha (2021-07-XX)
   :instopt:`--etcdir` or :instopt:`--initdir` option (depending on the value
   of :instopt:`--with-initconf-in` option). Configuration files were
   previously searched in both locations.
+* Install: remove installation option ``--enable-compat-version``.
+  Compatiblity version co-installation is discontinued. :command:`switchml`
+  shell function is thus removed as well.
 
 
 .. _4.8 release notes:

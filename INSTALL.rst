@@ -25,20 +25,19 @@ the tools to be found on your system:
 * sed
 * runtest
 
-When also installing Modules Tcl extension library or the bundled
-compatibility version of Modules (both enabled by default), these additional
-tools are needed:
+When also installing Modules Tcl extension library (enabled by default), these
+additional tools are needed:
 
 * grep
 * gcc
 * tcl-devel >= 8.4
 
 When installing from a distribution tarball, documentation is pre-built and
-scripts to configure Modules Tcl extension library and compatibility version
-builds are already generated. Thus no additional software is required. When
-installing from a clone of the git repository or from a git archive export,
-documentation and scripts to prepare for compilation have to be built and the
-following tools are required:
+scripts to configure Modules Tcl extension library build are already
+generated. Thus no additional software is required. When installing from a
+clone of the git repository or from a git archive export, documentation and
+scripts to prepare for compilation have to be built and the following tools
+are required:
 
 * autoconf
 * automake
@@ -81,9 +80,8 @@ The simplest way to build and install Modules is:
 Some explanation, step by step:
 
 1. ``cd`` to the directory containing the package's source code. Your system
-   must have the above requirements installed to properly build scripts,
-   compatibility version of Modules if enabled, and documentation if build
-   occurs from a clone of the git repository.
+   must have the above requirements installed to properly build scripts, and
+   documentation if build occurs from a clone of the git repository.
 
 2. Type ``./configure`` to adapt the installation for your system. At this
    step you can choose the installation paths and the features you want to
@@ -91,13 +89,12 @@ Some explanation, step by step:
    section below for a complete overview of the available options)
 
 3. Type ``make`` to adapt scripts to the configuration, build Tcl extension
-   library and compatibility version if enabled and build documentation if
-   working from git repository.
+   library if enabled and build documentation if working from git repository.
 
 4. Optionally, type ``make test`` to run the test suite.
 
-5. Type ``make install`` to install modulecmd.tcl, initialization scripts,
-   compatibility version if built and documentation.
+5. Type ``make install`` to install modulecmd.tcl, initialization scripts and
+   documentation.
 
 6. Optionally, type ``make testinstall`` to run the installation test suite.
 
@@ -357,17 +354,6 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 
  Install some modulefiles provided as example in the system modulefiles
  directory defined with the :instopt:`--modulefilesdir` option. (default=yes)
-
- .. only:: html
-
-    .. versionadded:: 4.0
-
-.. instopt:: --enable-compat-version
-
- Build and install the Modules compatibility (C) version in addition to the
- main released version. This feature also enables switching capabilities from
- initialization script between the two installed version of Modules (by
- setting-up the ``switchml`` shell function or alias).  (default=no)
 
  .. only:: html
 
@@ -917,14 +903,14 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 .. instopt:: --with-tcl
 
  Directory containing the Tcl configuration script ``tclConfig.sh``. Useful to
- compile Modules compatibility version or Modules Tcl extension library if
- this file cannot be automatically found in default locations.
+ compile Modules Tcl extension library if this file cannot be automatically
+ found in default locations.
 
 .. instopt:: --with-tclinclude
 
- Directory containing the Tcl header files. Useful to compile Modules
- compatibility version or Modules Tcl extension library if these headers
- cannot be automatically found in default locations.
+ Directory containing the Tcl header files. Useful to compile Modules Tcl
+ extension library if these headers cannot be automatically found in default
+ locations.
 
 .. instopt:: --with-python=BIN
 

@@ -30,25 +30,20 @@ arglist="TCLSH PYTHON SPHINXBUILD PS BASENAME RMDIR_IGN_NON_EMPTY SED_ERE \
 VERSION RELEASE baseprefix prefix bindir libdir libexecdir etcdir initdir \
 datarootdir mandir docdir vimdatadir modulefilesdir setmanpath appendmanpath \
 setbinpath appendbinpath setmodulespath docinstall vimaddons \
-examplemodulefiles builddoc gitworktree usemanpath compatversion EXEEXT \
-libtclenvmodules SHLIB_SUFFIX multilibsupport libdir64 libdir32 versioning \
-silentshdbgsupport setshellstartup quarantinesupport autohandling \
-availindepth implicitdefault extendeddefault moduleshome initconfin pager \
-pageropts verbosity color darkbgcolors lightbgcolors termbg lockedconfigs \
-icase unloadmatchorder searchmatch modulepath loadedmodules quarantinevars \
-wa277 advversspec ml windowssupport nearlyforbiddendays implicitrequirement \
-tagabbrev tagcolorname mcookieversioncheck availoutput availterseoutput \
-listoutput listterseoutput editor variantshortcut"
-compatarglist=
+examplemodulefiles builddoc gitworktree usemanpath EXEEXT libtclenvmodules \
+SHLIB_SUFFIX multilibsupport libdir64 libdir32 versioning silentshdbgsupport \
+setshellstartup quarantinesupport autohandling availindepth implicitdefault \
+extendeddefault moduleshome initconfin pager pageropts verbosity color \
+darkbgcolors lightbgcolors termbg lockedconfigs icase unloadmatchorder \
+searchmatch modulepath loadedmodules quarantinevars wa277 advversspec ml \
+windowssupport nearlyforbiddendays implicitrequirement tagabbrev \
+tagcolorname mcookieversioncheck availoutput availterseoutput listoutput \
+listterseoutput editor variantshortcut"
 libarglist=
 
 # flags to know if argument has been specified on command-line
 defmodulespath=1
-defcompatversion=1
 defpageropts=1
-
-# flags to know a requirement has already been checked
-checkedautoreconf=1
 
 # set argument default values
 prefix=/usr/local/Modules
@@ -60,7 +55,6 @@ setmodulespath=n
 docinstall=y
 vimaddons=y
 examplemodulefiles=y
-compatversion=n
 EXEEXT=
 libtclenvmodules=y
 SHLIB_SUFFIX='.so'
@@ -131,9 +125,6 @@ listoutput='header:idx:variant:sym:tag:key'
 listterseoutput='header'
 editor='vi'
 variantshortcut=
-
-# git branch to use to build compat version
-compatbranch='c-3.2'
 
 
 # check if output/error channels are attached to terminal
@@ -234,9 +225,6 @@ Optional Features:
   --enable-example-modulefiles
                           install in 'modulefilesdir' some modulefiles
                           provided as examples [yes]
-  --enable-compat-version also build and install Modules compatibility (C)
-                          version and enable switching capabilities between
-                          the two versions [no]
   --enable-libtclenvmodules
                           build and install the Modules Tcl extension library
                           and enable its load in modulecmd.tcl [yes]
@@ -521,11 +509,10 @@ for arg in "$@"; do
       declare $nextargisval=$arg
       unset nextargisval
       continue
-   # set compat and lib argument value defined with "--arg val" form
-   elif [ -n "${nextargiscompatlibarg+x}" ]; then
-      compatarglist+="$arg "
+   # set lib argument value defined with "--arg val" form
+   elif [ -n "${nextargislibarg+x}" ]; then
       libarglist+="$arg " ;
-      unset nextargiscompatlibarg
+      unset nextargislibarg
       continue
    # current arg should be skipped
    elif [ -n "${nextargisign+x}" ]; then
@@ -598,9 +585,6 @@ for arg in "$@"; do
    --enable-example-modulefiles*|--disable-example-modulefiles)
       examplemodulefiles=$(get_feature_value "$arg")
       defexamplemodulefiles=0 ;;
-   --enable-compat-version*|--disable-compat-version)
-      compatversion=$(get_feature_value "$arg")
-      defcompatversion=0 ;;
    --enable-libtclenvmodules*|--disable-libtclenvmodules)
       libtclenvmodules=$(get_feature_value "$arg") ;;
    --enable-multilib-support*|--disable-multilib-support)
@@ -775,18 +759,8 @@ for arg in "$@"; do
       loadedmodules=$(get_package_value "$arg") ;;
    --with-quarantine-vars=*|--without-quarantine-vars)
       quarantinevars=$(get_package_value "$arg") ;;
-   --with-tcl=*|--without-tcl)
-      compatarglist+="$arg " ;
+   --with-tcl=*|--without-tcl|--with-tclinclude=*|--without-tclinclude)
       libarglist+="$arg " ;;
-   --with-tclinclude=*|--with-tcl-inc=*)
-      # apply Tcl header specific location to corresponding configuration
-      # option of compat version and libtclenvmodules (not same option name)
-      val="${arg#*=}" ;
-      compatarglist+="--with-tcl-inc=$val " ;
-      libarglist+="--with-tclinclude=$val " ;;
-   --without-tclinclude|--without-tcl-inc)
-      compatarglist+="--without-tcl-inc " ;
-      libarglist+="--without-tclinclude " ;;
    --with-python=*|--without-python)
       pythonbin=$(get_package_value "$arg") ;;
    --with-module-path=*)
@@ -796,24 +770,13 @@ for arg in "$@"; do
       exit 0
       ;;
    --build|--host|--target)
-      # pass argument supported by compat version anb lib to their ./configure
-      # script
-      compatarglist+="$arg " ;
+      # pass argument supported by lib to its ./configure script
       libarglist+="$arg " ;
-      # and set next arg should also be send to compat version and lib scripts
-      nextargiscompatlibarg=y ;;
+      # and set next arg should also be send to lib script
+      nextargislibarg=y ;;
    --build=*|--host=*|--target=*)
-      # pass argument supported by compat version anb lib to their ./configure
-      # script
-      compatarglist+="$arg " ;
+      # pass argument supported by lib to its ./configure script
       libarglist+="$arg " ;;
-   --with-tcl-lib=*|--without-tcl-lib|--with-tcl-ver=*|--without-tcl-ver|\
-   --with-tclx=*|--without-tclx|--with-tclx-ver=*|--without-tclx-ver|\
-   --with-tclx-lib=*|--without-tclx-lib|--with-tclx-inc=*|--without-tclx-inc|\
-   --with-x|--without-x|--enable-dependency-tracking*|\
-   --disable-dependency-tracking)
-      # pass argument supported by compat version to its ./configure script
-      compatarglist+="$arg " ;;
    --program-prefix|--program-suffix|--program-transform-name|--exec-prefix|\
    --sbindir|--sysconfdir|--datadir|--includedir|--localstatedir|\
    --sharedstatedir|--infodir|--runstatedir|--oldincludedir|--localedir|\
@@ -840,19 +803,10 @@ for arg in "$@"; do
       export $arg ;;
    *)
       # type of system to build the program for (not needed here but useful
-      # for true autoconf configure scripts below
-      compatarglist+="$arg " ;
+      # for true autoconf configure script below
       libarglist+="$arg " ;;
    esac
 done
-
-# disable compat version build if not explicitely enabled, compat source not
-# available and not working from git repository
-if [ ! -e '.git' -a ! -d 'compat' -a $defcompatversion -eq 1 ]; then
-   echo_warning "\`compat' directory cannot be found, disabling compatibility \
-version build"
-   compatversion=n
-fi
 
 # test requirements availability
 check_requirement uname
@@ -1067,72 +1021,11 @@ fi
 # is enabled or not to create consistent dist in any cases.
 if [ ! -e 'lib/configure' ]; then
    check_requirement autoreconf
-   checkedautoreconf=0
    echo "--- preparing extension library sources ----------"
    pushd lib
    autoreconf -i || exit 1
    popd
    echo "--------------------------------------------------"
-fi
-
-# check compat version sources
-if [ "$compatversion" = 'y' ]; then
-   if [ ! -d 'compat' ]; then
-      # extract sources from a git branch and prepare sources
-      if [ -e '.git' ]; then
-         if [ $checkedautoreconf -eq 1 ]; then
-            check_requirement autoreconf
-         fi
-         # specific location to find autopoint on Darwin
-         if [ "$kernelname" = 'Darwin' ]; then
-            check_requirement autopoint '' "PATH=$binsearchpath:/usr/local/opt/gettext/bin"
-         else
-            check_requirement autopoint
-         fi
-         check_requirement automake
-         check_requirement aclocal
-
-         echo "--- preparing compatibility version sources ------"
-         repofull=1
-         # retrieve compat version branch if not found locally
-         git rev-parse --verify $compatbranch >/dev/null 2>/dev/null
-         if [ $? -ne 0 ]; then
-            curbranch=$(git rev-parse --abbrev-ref HEAD)
-            curremote=$(git remote show | head -n 1)
-            curnbcomm=$(git rev-list $curbranch | wc -l)
-            if [ $curnbcomm -lt 350 ]; then
-               repofull=0
-            else
-               git fetch $curremote $compatbranch || exit 1
-               git branch $compatbranch $curremote/$compatbranch || exit 1
-            fi
-         fi
-
-         # repository is truncated, need to standalone clone compat branch
-         if [ $repofull -eq 0 ]; then
-            curremoteurl=$(git config --get remote.$curremote.url)
-            git clone --branch=$compatbranch $curremoteurl compat || exit 1
-         else
-            # install compat git branch in a directory
-            git worktree list >/dev/null 2>/dev/null
-            if [ $? -eq 0 ]; then
-               git worktree add compat $compatbranch || exit 1
-            else
-               gitworktree=n
-               # clone branch if no worktree command supported
-               gitdir=$(git rev-parse --git-dir)
-               git clone --branch=$compatbranch $gitdir compat || exit 1
-            fi
-         fi
-
-         pushd compat
-         autoreconf -f -i || exit 1
-         popd
-         echo "--------------------------------------------------"
-      else
-         echo_error "Cannot build compatibility version, \`compat' directory cannot be found"
-      fi
-   fi
 fi
 
 # display configuration set
@@ -1149,24 +1042,6 @@ if [ "$libtclenvmodules" = 'y' ]; then
    echo "libarglist = $libarglist"
    pushd lib
    ./configure $libarglist || exit 1
-   popd
-   echo "--------------------------------------------------"
-fi
-
-# configure compat version sources
-if [ "$compatversion" = 'y' ]; then
-   echo "--- configuring compatibility version sources ----"
-   echo "compatarglist = $compatarglist"
-   pushd compat
-   # unknown arguments for this configure script are passed down to the
-   # compatibility version configure script (which raise error if arg unknown)
-   # also pass arguments relative to installation paths to get compatibility
-   # man pages set with them
-   # keep versioning disabled for compat version to get expected paths defined
-   ./configure --prefix=$prefix --bindir=$bindir --libdir=$libdir \
-      --libexecdir=$libexecdir --datarootdir=$datarootdir --mandir=$mandir \
-      --docdir=$docdir --with-module-path=$modulepath --with-python="$PYTHON" \
-      --disable-versioning $compatarglist || exit 1
    popd
    echo "--------------------------------------------------"
 fi
