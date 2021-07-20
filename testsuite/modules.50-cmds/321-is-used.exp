@@ -54,7 +54,13 @@ lappend ans [list unsetpath MODULEPATH]
 lappend ans [list setpath LOADEDMODULES $modulefile]
 lappend ans [list setpath _LMFILES_ $modulefile]
 
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+}
 testouterr_cmd "sh" "load $modulefile" $ans ""
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+}
 
 #
 #  Cleanup

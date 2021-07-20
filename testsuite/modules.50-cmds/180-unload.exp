@@ -184,12 +184,18 @@ lappend ans [list unset testsuite]
 lappend ans [list setpath LOADEDMODULES $module_2]
 lappend ans [list setpath _LMFILES_ $modulefile_2]
 
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+}
 # unload modulefile loaded as full pathname
 testouterr_cmd "sh" "unload $module_3" $ans ""
 
 # try with other full path name forms (./ and ../)
 testouterr_cmd "sh" "unload $module_3_reld" $ans ""
 testouterr_cmd "sh" "unload $module_3_reldd" $ans ""
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+}
 
 
 # set up the environment

@@ -184,11 +184,17 @@ lappend ans [list setpath _LMFILES_ $modulefile]
 #
 #  The tests
 #
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+}
 test_cmd_re "ALL" "load $oth11p" $ans
 
 # try with other full path name forms (./ and ../)
 test_cmd_re "sh" "load $oth11pd" $ans
 test_cmd_re "sh" "load $oth11pdd" $ans
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+}
 
 #
 # error when loading non existent module
@@ -227,11 +233,17 @@ unsetenv_var MODULES_IMPLICIT_DEFAULT
 }
 
 # try with other full path name forms (./ and ../)
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+}
 set badmod "$reldmodpath/bad/before"
 set out_interr [msg_load $modpath/bad/before [msg_moderr "$msg_invcmdname \"bad-command\"" {bad-command} $modpath/bad/before 26]]
 testouterr_cmd "sh" "load $badmod" "ERR" $out_interr
 set badmod "$relddmodpath/bad/before"
 testouterr_cmd "sh" "load $badmod" "ERR" $out_interr
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+}
 
 #
 # test with file given as full path which is not a modulefile
@@ -252,9 +264,15 @@ testouterr_cmd "sh" "load $badmod" "ERR" $out_interr
 #
 setenv_loaded_module $module $modulefile
 
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+}
 test_cmd_re "ALL" "load $oth11p" "OK"
 test_cmd_re "sh" "load $oth11pd" "OK"
 test_cmd_re "sh" "load $oth11pdd" "OK"
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+}
 
 
 #
@@ -274,6 +292,9 @@ unsetenv_var MODULES_IMPLICIT_DEFAULT
 #
 # test to load full path a modulefile already loaded with short name
 #
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+}
 setenv_loaded_module $mod11 $mod11p
 
 test_cmd_re "sh" "load $mod11p" "OK"
@@ -286,6 +307,10 @@ unsetenv_path_var MODULEPATH
 test_cmd_re "sh" "load $mod11p" "OK"
 test_cmd_re "sh" "load $mod11pd" "OK"
 test_cmd_re "sh" "load $mod11pdd" "OK"
+
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+}
 
 
 #

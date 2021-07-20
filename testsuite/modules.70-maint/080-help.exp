@@ -107,9 +107,15 @@ set out_err_4 "$err_path'$module_4'"
 # test stderr output
 testouterr_cmd_re "sh" "help $module" "OK" "$err_help"
 # test with module passed as full path
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+}
 testouterr_cmd_re "sh" "help $modulefile" "OK" "$err_help"
 testouterr_cmd_re "sh" "help $modulefile_reld" "OK" "$err_help"
 testouterr_cmd_re "sh" "help $modulefile_reldd" "OK" "$err_help"
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+}
 
 # test debug mode
 testouterr_cmd_re "sh" "-D help $module" "OK" "$err_debug_help"
@@ -125,9 +131,15 @@ testouterr_cmd_re "sh" "help $module_2" "ERR" "$out_interr"
 # test with erroneous ModulesHelp proc in modulefile
 testouterr_cmd_re "sh" "help $module_3" "ERR" "$out_interr_3"
 # test with module passed as full path
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+}
 testouterr_cmd_re "sh" "help $modulefile_3" "ERR" "$out_interr_3"
 testouterr_cmd_re "sh" "help $modulefile_3_reld" "ERR" "$out_interr_3"
 testouterr_cmd_re "sh" "help $modulefile_3_reldd" "ERR" "$out_interr_3"
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+}
 
 # test on unexistant modulefile
 testouterr_cmd "sh" "help $module_4" "ERR" "$out_err_4"

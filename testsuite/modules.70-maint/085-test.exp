@@ -76,9 +76,15 @@ set mod6_err "$err_path'$module6'"
 # missing procedure
 testouterr_cmd_re "sh" "test $module" "OK" "$modlin\n$lin_test$modulefile:\n\n$missing_test$modulefile.\n$modlin"
 # test with module passed as full path
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+}
 testouterr_cmd_re "sh" "test $modulefile_full" "OK" "$modlin\n$lin_test$modulefile:\n\n$missing_test$modulefile.\n$modlin"
 testouterr_cmd_re "sh" "test $modulefile_reld" "OK" "$modlin\n$lin_test$modulefile:\n\n$missing_test$modulefile.\n$modlin"
 testouterr_cmd_re "sh" "test $modulefile_reldd" "OK" "$modlin\n$lin_test$modulefile:\n\n$missing_test$modulefile.\n$modlin"
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+}
 
 # missing return value
 testouterr_cmd_re "sh" "test $module2" "ERR" "$modlin\n$lin_test$modulefile2:\n\nTest_err\n$fail_test\n$modlin"
@@ -101,9 +107,15 @@ testouterr_cmd_re "sh" "test $module4" "ERR" "$mod4_interr"
 # test with erroneous ModulesTest proc in modulefile
 testouterr_cmd_re "sh" "test $module5" "ERR" "$modlin\n$lin_test$modulefile5/proc:\n\n$mod5_interr\n$modlin"
 # test with module passed as full path
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+}
 testouterr_cmd_re "sh" "test $modulefile5_full" "ERR" "$modlin\n$lin_test$modulefile5/proc:\n\n$mod5_interr\n$modlin"
 testouterr_cmd_re "sh" "test $modulefile5_reld" "ERR" "$modlin\n$lin_test$modulefile5/proc:\n\n$mod5_interr\n$modlin"
 testouterr_cmd_re "sh" "test $modulefile5_reldd" "ERR" "$modlin\n$lin_test$modulefile5/proc:\n\n$mod5_interr\n$modlin"
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+}
 
 # test on unexistant modulefile
 testouterr_cmd "sh" "test $module6" "ERR" "$mod6_err"

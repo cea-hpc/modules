@@ -46,6 +46,9 @@ foreach shell $shell_list {
 
 # ensure tools used in complex shell alias definition are available
 if {[find_bin grep] ne "" && [find_bin tr] ne "" && [find_bin awk] ne ""} {
+   if {$plus_in_modpath && $install_advversspec eq {y}} {
+       setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+   }
    foreach shell $shell_list {
       if {$shell eq {csh} || $shell eq {tcsh}} {
          # alias evaluation leads to a syntax error if wa_277 is enabled
@@ -53,6 +56,9 @@ if {[find_bin grep] ne "" && [find_bin tr] ne "" && [find_bin awk] ne ""} {
       } else {
          testall_cmd_re "$shell" "ml $testsuite_modpath/alias/3.0\; testsuite; ts2" "Release\nhttp://an.example.web\\?&param=one" ".*" 0
       }
+   }
+   if {$plus_in_modpath && $install_advversspec eq {y}} {
+       unsetenv_var MODULES_ADVANCED_VERSION_SPEC
    }
 } elseif {$verbose > 0} {
    send_user "\tSkipping shell alias definition tests\n"
