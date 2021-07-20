@@ -1,5 +1,5 @@
 .PHONY: doc pkgdoc initdir install install-testsiteconfig \
-	install-testsiteconfig-1 install-testmodulerc install-testmodulerc-1 \
+	install-testsiteconfig-1 install-testmodulerc install-testinitrc-1 \
 	install-testinitrc install-testetcrc install-testmodspath \
 	install-testmodspath-empty install-testmodspath-wild \
 	uninstall-testconfig uninstall dist dist-tar dist-gzip dist-bzip2 \
@@ -425,13 +425,13 @@ lib/libtestutil-mktime$(SHLIB_SUFFIX):
 testsuite/example/.modulespath: testsuite/example/.modulespath.in
 	$(translate-in-script)
 
-testsuite/example/.modulespath-wild: testsuite/example/.modulespath-wild.in
+testsuite/example/modulespath-wild: testsuite/example/modulespath-wild.in
 	$(translate-in-script)
 
 testsuite/example/modulerc: testsuite/example/modulerc.in
 	$(translate-in-script)
 
-testsuite/example/modulerc-1: testsuite/example/modulerc-1.in
+testsuite/example/initrc-1: testsuite/example/initrc-1.in
 	$(translate-in-script)
 
 testsuite/example/initrc: testsuite/example/initrc.in
@@ -449,7 +449,7 @@ install-testmodulerc: testsuite/example/modulerc
 	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
 	cp $^ $(DESTDIR)$(initrc)
 
-install-testmodulerc-1: testsuite/example/modulerc-1
+install-testinitrc-1: testsuite/example/initrc-1
 	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
 	cp $^ $(DESTDIR)$(initrc)
 
@@ -465,11 +465,11 @@ install-testmodspath: testsuite/example/.modulespath
 	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
 	cp $^ $(DESTDIR)$(modulespath)
 
-install-testmodspath-empty: testsuite/example/.modulespath-empty
+install-testmodspath-empty: testsuite/example/modulespath-empty
 	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
 	cp $^ $(DESTDIR)$(modulespath)
 
-install-testmodspath-wild: testsuite/example/.modulespath-wild
+install-testmodspath-wild: testsuite/example/modulespath-wild
 	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
 	cp $^ $(DESTDIR)$(modulespath)
 
@@ -678,7 +678,7 @@ endif
 	rm -f script/add.modules
 	rm -f script/gitlog2changelog.py
 	rm -f script/modulecmd
-	rm -f testsuite/example/.modulespath testsuite/example/.modulespath-wild testsuite/example/modulerc testsuite/example/modulerc-1 testsuite/example/initrc
+	rm -f testsuite/example/.modulespath testsuite/example/modulespath-wild testsuite/example/modulerc testsuite/example/initrc-1 testsuite/example/initrc
 	rm -f modules-*.tar modules-*.tar.gz modules-*.tar.bz2
 	rm -rf modules-*-win/
 	rm -f modules-*-win.zip
@@ -807,6 +807,6 @@ $(V).SILENT: initdir pkgdoc doc version.inc contrib/rpm/environment-modules.spec
 	lib/libtestutil-getgroups$(SHLIB_SUFFIX) lib/libtestutil-0getgroups$(SHLIB_SUFFIX) \
 	lib/libtestutil-dupgetgroups$(SHLIB_SUFFIX) lib/libtestutil-getgrgid$(SHLIB_SUFFIX) \
 	lib/libtestutil-time$(SHLIB_SUFFIX) lib/libtestutil-mktime$(SHLIB_SUFFIX) \
-	testsuite/example/.modulespath testsuite/example/.modulespath-wild \
-	testsuite/example/modulerc testsuite/example/modulerc-1 testsuite/example/initrc \
+	testsuite/example/.modulespath testsuite/example/modulespath-wild \
+	testsuite/example/modulerc testsuite/example/initrc-1 testsuite/example/initrc \
 	dist-tar dist-gzip dist-bzip2 dist-win $(MODULECMDTEST)
