@@ -53,10 +53,6 @@ foreach modp [split $install_modulepathre ":"] {
    lappend modpath_listre $modp
 }
 
-set swmain_msg "Switching to Modules main version"
-set swcompat_msg "Switching to Modules compatibility version"
-set version_msg "Modules Release \\S+ (\\S+)"
-
 #
 # The tests
 #
@@ -66,10 +62,6 @@ if {$install_setmanpath eq "y" && $install_builddoc ne "n"} {
       send_user "\tChecking man pages availability\n"
    }
    foreach shell $shell_list {
-      if {$install_compatversion eq "y"} {
-         testall_cmd_re "$shell" "man -w modulefile-compat" "$install_mandirre/man4/modulefile-compat.*" {} 0
-         testall_cmd_re "$shell" "man -w module-compat" "$install_mandirre/man1/module-compat.*" {} 0
-      }
       testall_cmd_re "$shell" "man -w modulefile" "$install_mandirre/man4/modulefile.*" {} 0
       testall_cmd_re "$shell" "man -w module" "$install_mandirre/man1/module.*" {} 0
    }
@@ -105,28 +97,6 @@ if {$install_setbinpath eq "y"} {
          testall_cmd_re "$shell" "modulecmd $shell --version" {} "Modules Release \\S+ (\\S+)" 0
       }
    }
-   if {$install_compatversion eq "y"} {
-      # set module compat version as default
-      set env(MODULES_USE_COMPAT_VERSION) 1
-      if {$verbose > 0} {
-         send_user "\tSetup MODULES_USE_COMPAT_VERSION = 1\n"
-      }
-      foreach shell $shell_list {
-         # compat version does not support Fish shell
-         if {$shell ne "fish"} {
-            if {$shell eq "basheu"} {
-               testall_cmd_re "$shell" "modulecmd bash --version" " test 0 = 1;\$" "${compat_warn_setvar}VERSION=\\S+.*" 1
-            } else {
-               testall_cmd_re "$shell" "modulecmd $shell --version" " test 0 = 1;\$" "${compat_warn_setvar}VERSION=\\S+.*" 1
-            }
-         }
-      }
-      # restore environment setup
-      unset env(MODULES_USE_COMPAT_VERSION)
-      if {$verbose > 0} {
-         send_user "\tUnset MODULES_USE_COMPAT_VERSION\n"
-      }
-   }
 
    if {$verbose > 0} {
       send_user "\tChecking other utilities availability\n"
@@ -147,41 +117,6 @@ if {$install_setbinpath eq "y"} {
    send_user "\tSkipping envml availability checks\n"
    send_user "\tSkipping modulecmd availability checks\n"
    send_user "\tSkipping other utilities availability checks\n"
-}
-
-if {$install_compatversion eq "y"} {
-   if {$verbose > 0} {
-      send_user "\tChecking switchml availability\n"
-   }
-   foreach shell $shell_list {
-      switch -- $shell {
-         sh - bash - ksh - zsh {
-            testall_cmd_re "$shell" "type switchml" "switchml is a.*" {} 0
-         }
-         csh - tcsh {
-            testall_cmd_re "$shell" "alias switchml" ".+" {} 0
-         }
-      }
-   }
-
-   if {$verbose > 0} {
-      send_user "\tChecking switchml functionality\n"
-   }
-   foreach shell $shell_list {
-      if {$shell ne "fish"} {
-         testall_cmd_re "$shell" "module --version; switchml; switchml; module --version;" "$swcompat_msg\n$swmain_msg" "$version_msg\n$version_msg" 0
-      }
-   }
-   # set module compat version as default
-   set env(MODULES_USE_COMPAT_VERSION) 1
-   foreach shell $shell_list {
-      if {$shell ne "fish"} {
-         testall_cmd_re "$shell" "switchml; module --version; switchml; switchml; module --version;" "$swmain_msg\n$swcompat_msg\n$swmain_msg" "$version_msg\n$version_msg" 0
-      }
-   }
-   unset env(MODULES_USE_COMPAT_VERSION)
-} elseif {$verbose > 0} {
-   send_user "\tSkipping switchml availability checks\n"
 }
 
 if {$install_modulepath ne ""} {
