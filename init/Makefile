@@ -17,9 +17,9 @@ ifneq ($(wildcard ../Makefile.inc),../Makefile.inc)
 endif
 include ../Makefile.inc
 
-# generate 'module use' commands to put in modulerc from modulepath
+# generate 'module use' commands to put in initrc from modulepath
 modulerc := $(addprefix \\\nmodule use --append {,$(subst :,} ,$(modulepath)}))
-# generate 'module load' commands to put in modulerc from loadedmodules
+# generate 'module load' commands to put in initrc from loadedmodules
 ifneq ($(loadedmodules),)
   modulerc := $(modulerc)$(addprefix \\\nmodule load ,\
     $(subst :, ,$(loadedmodules)))
@@ -38,15 +38,15 @@ endif
 
 ALL_SHELLS = $(SH_LIKE) $(CSH_LIKE) $(OTHER)
 
-all: $(ALL_SHELLS) modulerc zsh-functions/_module $(EXAMPLE_MODFILES_SRCDIR)/modules
+all: $(ALL_SHELLS) initrc zsh-functions/_module $(EXAMPLE_MODFILES_SRCDIR)/modules
 ifeq ($(versioning),y)
 all: $(EXAMPLE_MODFILES_SRCDIR)/version
 endif
 ifeq ($(setmodulespath),y)
   # both configuration files will be installed and in this case default init
-  # scripts will use .modulespath prior to modulerc. If .modulespath sets a
-  # module path then modulerc will be ignored
-all: .modulespath
+  # scripts will use modulespath prior to initrc. If modulespath sets a
+  # module path then initrc will be ignored
+all: modulespath
 endif
 
 ../version.inc:
@@ -217,7 +217,7 @@ endef
 	$(translate-in-script)
 
 # workaround '\\\n' issue on Linux with Make 3.81
-modulerc: modulerc.in
+initrc: initrc.in
 	$(translate-in-script)
 	mv $@ ${@}.tmp
 	sed -e 's|\\$$||' ${@}.tmp > $@
@@ -282,9 +282,9 @@ else
 	rm -f $(DESTDIR)$(initdir)/ksh-functions/switchml
 endif
 	rm -f $(DESTDIR)$(modulespath) $(DESTDIR)$(initrc)
-	cp -R -P modulerc $(DESTDIR)$(initrc)
+	cp -R -P initrc $(DESTDIR)$(initrc)
 ifeq ($(setmodulespath),y)
-	cp -R -P .modulespath $(DESTDIR)$(modulespath)
+	cp -R -P modulespath $(DESTDIR)$(modulespath)
 endif
 ifeq ($(examplemodulefiles),y)
 	cp $(addprefix $(EXAMPLE_MODFILES_SRCDIR)/,$(EXAMPLE_MODFILES)) $(DESTDIR)$(modulefilesdir)/
@@ -319,7 +319,7 @@ ifeq ($(versioning),y)
 endif
 
 clean:
-	rm -f $(ALL_SHELLS) modulerc zsh-functions/_module .modulespath $(EXAMPLE_MODFILES_SRCDIR)/modules
+	rm -f $(ALL_SHELLS) initrc zsh-functions/_module modulespath $(EXAMPLE_MODFILES_SRCDIR)/modules
 ifeq ($(versioning),y)
 	rm -f $(EXAMPLE_MODFILES_SRCDIR)/version
 endif
@@ -331,5 +331,5 @@ endif
 # let verbose by default the install/clean/test and other specific non-build targets
 $(V).SILENT: ../version.inc sh ksh bash zsh csh tcsh fish perl.pm python.py ruby.rb \
 	lisp tcl cmake r.R bash_completion tcsh_completion zsh-functions/_module \
-	profile.sh profile.csh profile-compat.sh profile-compat.csh .modulespath \
-	modulerc $(EXAMPLE_MODFILES_SRCDIR)/modules $(EXAMPLE_MODFILES_SRCDIR)/version
+	profile.sh profile.csh profile-compat.sh profile-compat.csh modulespath \
+	initrc $(EXAMPLE_MODFILES_SRCDIR)/modules $(EXAMPLE_MODFILES_SRCDIR)/version
