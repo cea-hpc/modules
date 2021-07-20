@@ -29,9 +29,6 @@ clone_template: &CLONE_TEMPLATE
 
 artifacts_template: &ARTIFACTS_TEMPLATE
   always:
-    compatlog_artifacts:
-      path: compat/modules.log
-      type: text/plain
     log_artifacts:
       path: modules.log
       type: text/plain
@@ -88,9 +85,9 @@ task:
       image_family: freebsd-12-2
     cpu: 1
     memory: 2G
-  reqinstall_script: pkg install -y bash wget gmake dejagnu py38-sphinx tcl86 tcl-wrapper autoconf automake gettext ksh93 zsh fish perl5 python38 ruby cmake R readline
+  reqinstall_script: pkg install -y bash wget gmake dejagnu py38-sphinx tcl86 tcl-wrapper autoconf ksh93 zsh fish perl5 python38 ruby cmake R readline
   configure_script:
-    - ./configure --enable-compat-version --without-tclx --with-tcl-ver=8.6
+    - ./configure
   << : *BUILD_INSTALL_TEST_TEMPLATE
   << : *ARTIFACTS_TEMPLATE
 
@@ -129,12 +126,10 @@ task:
   reqinstall_script: |
     apt-get update
     apt-get -y install wget expect-dev dejagnu python-sphinx bash tcsh ksh zsh fish tcl tcl8.6 perl python ruby cmake r-base-core
-    # libtclenvmodules and compatibility version build requirements
+    # libtclenvmodules build requirements
     apt-get -y install gcc autoconf tcl8.6-dev
-    # compatibility version-specific build requirements
-    apt-get -y install automake autopoint
   configure_script:
-    - ./configure --with-tclsh=tclsh8.6 --prefix /tmp/modules --enable-compat-version --with-tcl=/usr/lib/tcl8.6 --with-tcl-ver=8.6 --without-tclx --enable-append-manpath --enable-append-binpath --with-bin-search-path=/usr/bin:/bin --disable-silent-shell-debug-support --enable-windows-support --with-loadedmodules=null:dot --with-quarantine-vars=LD_LIBRARY_PATH --with-dark-background-colors='hi=1:se=2:er=91:wa=93:mp=1;94:di=94:al=96:sy=95' --enable-foo FOO=bar
+    - ./configure --with-tclsh=tclsh8.6 --prefix /tmp/modules --with-tcl=/usr/lib/tcl8.6 --enable-append-manpath --enable-append-binpath --with-bin-search-path=/usr/bin:/bin --disable-silent-shell-debug-support --enable-windows-support --with-loadedmodules=null:dot --with-quarantine-vars=LD_LIBRARY_PATH --with-dark-background-colors='hi=1:se=2:er=91:wa=93:mp=1;94:di=94:al=96:sy=95' --enable-foo FOO=bar
   << : *BUILD_INSTALL_TEST_TEMPLATE
   << : *ARTIFACTS_TEMPLATE
 
@@ -156,21 +151,19 @@ task:
     if [ $VERSION_ID -eq 8 ]; then
       PYTHON_PKG='python36'
       SPHINX_PKG='python3-sphinx'
-      TCLXDEV_PKG=''
     else
       PYTHON_PKG='python'
       SPHINX_PKG='python-sphinx'
-      TCLXDEV_PKG='tclx-devel'
     fi
     yum install -y epel-release
     yum install -y tcsh zsh ksh tcl perl $PYTHON_PKG ruby cmake R-core make wget perl $SPHINX_PKG git dejagnu man-db rpm-build bzip2 autoconf gcc tcl-devel
-    yum install -y which xorg-x11-server-utils xorg-x11-server-Xvfb automake gettext-devel libX11-devel $TCLXDEV_PKG
+    yum install -y which xorg-x11-server-utils xorg-x11-server-Xvfb
     if [ $VERSION_ID -lt 8 ]; then
       wget -O /etc/yum.repos.d/shells_fish_release_2.repo http://download.opensuse.org/repositories/shells:fish:release:2/CentOS_${VERSION_ID}/shells:fish:release:2.repo
     fi
     yum install -y fish
   configure_script:
-    - ./configure --enable-compat-version --with-loadedmodules=null:dot --with-quarantine-vars='LD_LIBRARY_PATH LD_PRELOAD'
+    - ./configure --with-loadedmodules=null:dot --with-quarantine-vars='LD_LIBRARY_PATH LD_PRELOAD'
   # also enable a display on this test case to validate x-resource behavior
   << : *BUILD_INSTALL_XVBFTEST_TEMPLATE
   rpm_script:
@@ -186,9 +179,9 @@ task:
     memory: 2G
   reqinstall_script: |
     zypper install -y tcsh zsh ksh fish tcl perl python ruby cmake R-core R-core-packages make wget python-Sphinx git dejagnu man net-tools autoconf gcc tcl-devel
-    zypper install -y which xrdb xvfb-run automake gettext-tools
+    zypper install -y which xrdb xvfb-run
   configure_script:
-    - ./configure --enable-compat-version --enable-versioning --with-loadedmodules=null:dot --with-quarantine-vars='LD_LIBRARY_PATH LD_PRELOAD'
+    - ./configure --enable-versioning --with-loadedmodules=null:dot --with-quarantine-vars='LD_LIBRARY_PATH LD_PRELOAD'
   # also enable a display on this test case to validate x-resource behavior
   << : *BUILD_INSTALL_XVBFTEST_TEMPLATE
   << : *ARTIFACTS_TEMPLATE
