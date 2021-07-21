@@ -2580,18 +2580,6 @@ ENVIRONMENT
 
     .. versionadded:: 4.3
 
-.. envvar:: MODULES_USE_COMPAT_VERSION
-
- If set to ``1`` prior to Modules package initialization, enable
- Modules compatibility version (3.2 release branch) rather main version
- at initialization scripts running time. Modules package compatibility
- version should be installed along with main version for this environment
- variable to have any effect.
-
- .. only:: html
-
-    .. versionadded:: 4.0
-
 .. envvar:: MODULES_VARIANT_SHORTCUT
 
  Specifies the shortcut characters that could be used to specify and report

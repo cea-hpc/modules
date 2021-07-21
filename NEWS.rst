@@ -57,7 +57,8 @@ Modules 5.0.0-alpha (2021-07-XX)
   previously searched in both locations.
 * Install: remove installation option ``--enable-compat-version``.
   Compatiblity version co-installation is discontinued. :command:`switchml`
-  shell function is thus removed as well.
+  shell function and :envvar:`MODULES_USE_COMPAT_VERSION` are thus removed as
+  well.
 
 
 .. _4.8 release notes:
