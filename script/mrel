@@ -171,16 +171,10 @@ runcmd sudo rm -rf /usr/local/Modules
 
 if {[catch {runcmd make distclean} errmsg]} {
    # skip error if things have already been cleaned up
-   ignoreexp $errmsg {Makefile:37: *** Makefile.inc is missing, please run\
+   ignoreexp $errmsg {Makefile:34: *** Makefile.inc is missing, please run\
       './configure'.  Stop.}
 }
-if {[catch {runcmd ./configure --enable-compat-version} errmsg]} {
-   # ignore stderr output which is not an error
-   ignoreexp $errmsg "configure.ac:172: installing\
-      'config/compile'\nconfigure.ac:16: installing\
-      'config/install-sh'\nconfigure.ac:16: installing\
-      'config/missing'\nMakefile.am: installing 'config/depcomp'"
-}
+runcmd ./configure
 
 # download icdiff to compare files
 runcmd >&@$logfid make icdiff
@@ -267,7 +261,7 @@ cd /tmp/mods+test-gz
 runcmd tar xfz $cwd/$distgz
 cd modules-$relver
 reportInfo "Moved into '[pwd]' directory"
-runcmd ./configure --enable-compat-version
+runcmd ./configure
 runcmd make
 runcmd 2>@$logfid script/mt
 runcmd 2>@$logfid sudo make install
@@ -292,7 +286,7 @@ runcmd 2>@$logfid git clone $ghcloneurl
 cd modules
 reportInfo "Moved into '[pwd]' directory"
 runcmd 2>@$logfid git checkout $relbranch
-runcmd 2>@$logfid ./configure --enable-compat-version
+runcmd 2>@$logfid ./configure
 runcmd make
 runcmd 2>@$logfid script/mt
 runcmd 2>@$logfid sudo make install
@@ -321,8 +315,7 @@ reportInfo "Moved back into '[pwd]' directory"
 # ---------------------------------------------------------
 
 runcmd 2>@$logfid rpmbuild --rebuild $srcrpm
-foreach rpm [glob $rpmdir/environment-modules-$relver-1.*.rpm\
-   $rpmdir/environment-modules-compat-$relver-1.*.rpm] {
+foreach rpm [glob $rpmdir/environment-modules-$relver-1.*.rpm] {
    runcmd >@stdout rpm -qlp $rpm | less -eFKRX
    quitorcont
    # check installation of built RPM
