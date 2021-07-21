@@ -31,11 +31,6 @@ ifneq ($(findstring s,$(MAKEFLAGS)),s)
 ECHO_GEN = @echo ' ' GEN $(ECHO_DIR_PREFIX)$@;
 endif
 
-ifeq ($(compatversion),y)
-SH_LIKE += profile-compat.sh
-CSH_LIKE += profile-compat.csh
-endif
-
 ALL_SHELLS = $(SH_LIKE) $(CSH_LIKE) $(OTHER)
 
 all: $(ALL_SHELLS) initrc zsh-functions/_module $(EXAMPLE_MODFILES_SRCDIR)/modules
@@ -91,13 +86,6 @@ ifeq ($(appendbinpath),y)
 else
   appendbinpathre := /@appendbinpath@/d
   prependbinpathre := s|@prependbinpath@||g
-endif
-ifeq ($(compatversion),y)
-  compatversionre := s|@compatversion@||g
-  notcompatversionre := /@notcompatversion@/d
-else
-  compatversionre := /@compatversion@/d
-  notcompatversionre := s|@notcompatversion@||g
 endif
 ifeq ($(usemanpath),y)
   usemanpathre := s|@usemanpath@||g
@@ -190,8 +178,6 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e '$(setbinpathre)' \
 	-e '$(appendbinpathre)' \
 	-e '$(prependbinpathre)' \
-	-e '$(compatversionre)' \
-	-e '$(notcompatversionre)' \
 	-e '$(silentshdbgsupportre)' \
 	-e '$(quarantinesupportre)' \
 	-e '$(notquarantinesupportre)' \
@@ -229,10 +215,6 @@ tcsh: csh.in
 
 # this rule is needed for profile.sh to get matched
 profile.sh: profile.sh.in
-	$(translate-in-script)
-
-# this rule is needed for profile-compat.sh to get matched
-profile-compat.sh: profile-compat.sh.in
 	$(translate-in-script)
 
 $(EXAMPLE_MODFILES_SRCDIR)/modules: $(EXAMPLE_MODFILES_SRCDIR)/modules.in ../version.inc
@@ -276,11 +258,6 @@ endif
 	cp zsh-functions/_module $(DESTDIR)$(initdir)/zsh-functions/
 	cp ksh $(DESTDIR)$(initdir)/ksh-functions/module
 	cp ksh $(DESTDIR)$(initdir)/ksh-functions/ml
-ifeq ($(compatversion),y)
-	cp ksh $(DESTDIR)$(initdir)/ksh-functions/switchml
-else
-	rm -f $(DESTDIR)$(initdir)/ksh-functions/switchml
-endif
 	rm -f $(DESTDIR)$(modulespath) $(DESTDIR)$(initrc)
 	cp -R -P initrc $(DESTDIR)$(initrc)
 ifeq ($(setmodulespath),y)
@@ -301,9 +278,6 @@ ifeq ($(windowssupport),y)
 endif
 	rm -f $(DESTDIR)$(initdir)/ksh-functions/module
 	rm -f $(DESTDIR)$(initdir)/ksh-functions/ml
-ifeq ($(compatversion),y)
-	rm -f $(DESTDIR)$(initdir)/ksh-functions/switchml
-endif
 	rm -f $(DESTDIR)$(initdir)/zsh-functions/_module
 	rm -f $(DESTDIR)$(modulespath) $(DESTDIR)$(initrc)
 	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(modulefilesdir) || true
@@ -331,5 +305,5 @@ endif
 # let verbose by default the install/clean/test and other specific non-build targets
 $(V).SILENT: ../version.inc sh ksh bash zsh csh tcsh fish perl.pm python.py ruby.rb \
 	lisp tcl cmake r.R bash_completion tcsh_completion zsh-functions/_module \
-	profile.sh profile.csh profile-compat.sh profile-compat.csh modulespath \
-	initrc $(EXAMPLE_MODFILES_SRCDIR)/modules $(EXAMPLE_MODFILES_SRCDIR)/version
+	profile.sh profile.csh modulespath initrc $(EXAMPLE_MODFILES_SRCDIR)/modules \
+	$(EXAMPLE_MODFILES_SRCDIR)/version

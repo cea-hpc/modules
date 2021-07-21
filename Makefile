@@ -29,9 +29,6 @@ MODULECMDTEST := modulecmd-test.tcl
 ICDIFF_DLSRC := https://raw.githubusercontent.com/jeffkaufman/icdiff/release-1.9.5/
 ICDIFF_CHECKSUM := fd5825ede4c2853ba1747a8931b077c1
 
-# compatibility version-related files
-COMPAT_DIR := compat
-
 # source definitions shared across the Makefiles of this project
 ifneq ($(wildcard Makefile.inc),Makefile.inc)
   $(error Makefile.inc is missing, please run './configure')
@@ -41,13 +38,6 @@ include Makefile.inc
 INSTALL_PREREQ := modulecmd.tcl ChangeLog README script/add.modules \
 	script/modulecmd
 TEST_PREREQ := $(MODULECMDTEST)
-
-ifeq ($(compatversion),y)
-INSTALL_PREREQ += $(COMPAT_DIR)/modulecmd$(EXEEXT) $(COMPAT_DIR)/ChangeLog
-ifeq ($(wildcard $(COMPAT_DIR)),$(COMPAT_DIR))
-TEST_PREREQ += $(COMPAT_DIR)/modulecmd
-endif
-endif
 
 ifeq ($(libtclenvmodules),y)
 INSTALL_PREREQ += lib/libtclenvmodules$(SHLIB_SUFFIX)
@@ -388,11 +378,6 @@ script/modulecmd: script/modulecmd.in
 	$(translate-in-script)
 	chmod +x $@
 
-# compatibility version-related rules
-$(COMPAT_DIR)/modulecmd$(EXEEXT) $(COMPAT_DIR)/ChangeLog:
-	$(ECHO_GEN)
-	$(MAKE) -s --no-print-directory -C $(COMPAT_DIR) $(@F)
-
 # Tcl extension library-related rules
 lib/libtclenvmodules$(SHLIB_SUFFIX):
 	$(MAKE) --no-print-directory -C lib $(@F)
@@ -486,10 +471,6 @@ install: $(INSTALL_PREREQ)
 	mkdir -p $(DESTDIR)$(etcdir)
 	cp modulecmd.tcl $(DESTDIR)$(libexecdir)/
 	chmod +x $(DESTDIR)$(libexecdir)/modulecmd.tcl
-ifeq ($(compatversion),y)
-	cp $(COMPAT_DIR)/modulecmd$(EXEEXT) $(DESTDIR)$(libexecdir)/modulecmd-compat$(EXEEXT)
-	chmod +x $(DESTDIR)$(libexecdir)/modulecmd-compat$(EXEEXT)
-endif
 ifeq ($(libtclenvmodules),y)
 	mkdir -p $(DESTDIR)$(libdir)
 	cp lib/libtclenvmodules$(SHLIB_SUFFIX) $(DESTDIR)$(libdir)/libtclenvmodules$(SHLIB_SUFFIX)
@@ -519,10 +500,6 @@ ifeq ($(docinstall),y)
 	cp COPYING.GPLv2 $(DESTDIR)$(docdir)/
 	cp ChangeLog $(DESTDIR)$(docdir)/
 	cp README $(DESTDIR)$(docdir)/
-ifeq ($(compatversion),y)
-	cp $(COMPAT_DIR)/ChangeLog $(DESTDIR)$(docdir)/ChangeLog-compat
-	cp $(COMPAT_DIR)/NEWS $(DESTDIR)$(docdir)/NEWS-compat
-endif
 endif
 ifeq ($(vimaddons),y)
 	mkdir -p $(DESTDIR)$(vimdatadir)/ftdetect
@@ -547,9 +524,6 @@ endif
 
 uninstall:
 	rm -f $(DESTDIR)$(libexecdir)/modulecmd.tcl
-ifeq ($(compatversion),y)
-	rm -f $(DESTDIR)$(libexecdir)/modulecmd-compat$(EXEEXT)
-endif
 ifeq ($(libtclenvmodules),y)
 	rm -f $(DESTDIR)$(libdir)/libtclenvmodules$(SHLIB_SUFFIX)
 endif
@@ -573,9 +547,6 @@ ifeq ($(vimaddons),y)
 endif
 ifeq ($(docinstall),y)
 	rm -f $(addprefix $(DESTDIR)$(docdir)/,ChangeLog README COPYING.GPLv2)
-ifeq ($(compatversion),y)
-	rm -f $(addprefix $(DESTDIR)$(docdir)/,ChangeLog-compat NEWS-compat)
-endif
 ifeq ($(builddoc),n)
 	rmdir $(DESTDIR)$(docdir)
 endif
@@ -603,14 +574,6 @@ dist-tar: ChangeLog contrib/rpm/environment-modules.spec pkgdoc
 		doc/build/diff_v3_v4.txt doc/build/INSTALL.txt doc/build/INSTALL-win.txt \
 		doc/build/NEWS.txt doc/build/CONTRIBUTING.txt doc/build/module.1.in \
 		doc/build/ml.1 doc/build/modulefile.4 contrib/rpm/environment-modules.spec
-ifeq ($(compatversion) $(wildcard $(COMPAT_DIR)),y $(COMPAT_DIR))
-	$(MAKE) -s --no-print-directory -C $(COMPAT_DIR) distdir
-	mv $(COMPAT_DIR)/modules-* compatdist
-	tar -cf compatdist.tar --transform 's,^compatdist,$(DIST_PREFIX)/compat,' compatdist
-	tar --concatenate -f $(DIST_PREFIX).tar compatdist.tar
-	rm -rf compatdist
-	rm compatdist.tar
-endif
 
 dist-gzip: dist-tar
 	$(ECHO_GEN2) $(DIST_PREFIX).tar.gz
@@ -649,19 +612,10 @@ dist-win: modulecmd.tcl ChangeLog README pkgdoc
 	zip -r $(DIST_WIN_PREFIX).zip $(DIST_WIN_PREFIX)
 	rm -rf $(DIST_WIN_PREFIX)
 
-# srpm and rpm can only be built with compat sources included
 srpm: dist-bzip2
-ifeq ($(compatversion),n)
-	$(error Compatibility version sources are missing, please run './configure\
-		--enable-compat-version')
-endif
 	rpmbuild -ts $(DIST_PREFIX).tar.bz2
 
 rpm: dist-bzip2
-ifeq ($(compatversion),n)
-	$(error Compatibility version sources are missing, please run './configure\
-		--enable-compat-version')
-endif
 	rpmbuild -tb $(DIST_PREFIX).tar.bz2
 
 clean:
@@ -689,9 +643,6 @@ ifneq ($(builddoc),n)
 endif
 	rm -f version.inc
 	rm -f contrib/rpm/environment-modules.spec
-ifneq ($(wildcard $(COMPAT_DIR)/Makefile),)
-	$(MAKE) -C $(COMPAT_DIR) clean
-endif
 ifneq ($(wildcard lib/Makefile),)
 	$(MAKE) -C lib clean
 endif
@@ -703,12 +654,6 @@ distclean: clean
 	rm -rf $(NAGELFAR_RELEASE)
 	rm -rf $(TCL_RELEASE83)
 	rm -f tclsh83
-ifeq ($(wildcard .git) $(wildcard $(COMPAT_DIR)),.git $(COMPAT_DIR))
-	rm -rf $(COMPAT_DIR)
-ifeq ($(gitworktree),y)
-	git worktree prune
-endif
-endif
 ifneq ($(wildcard lib/Makefile),)
 	$(MAKE) -C lib distclean
 endif
@@ -746,9 +691,6 @@ test-deps: $(TEST_PREREQ)
 
 # if coverage enabled create markup file for better read coverage result
 test: $(TEST_PREREQ)
-ifeq ($(compatversion) $(wildcard $(COMPAT_DIR)),y $(COMPAT_DIR))
-	$(MAKE) -C $(COMPAT_DIR) test
-endif
 	TCLSH=$(TCLSH); export TCLSH; \
 	OBJDIR=`pwd -P`; export OBJDIR; \
 	TESTSUITEDIR=`cd testsuite;pwd -P`; export TESTSUITEDIR; \
@@ -801,8 +743,7 @@ endif
 # let verbose by default the install/clean/test and other specific non-build targets
 $(V).SILENT: initdir pkgdoc doc version.inc contrib/rpm/environment-modules.spec \
 	modulecmd.tcl ChangeLog README script/add.modules script/gitlog2changelog.py \
-	script/modulecmd $(COMPAT_DIR)/modulecmd$(EXEEXT) \
-	$(COMPAT_DIR)/ChangeLog lib/libtclenvmodules$(SHLIB_SUFFIX) \
+	script/modulecmd lib/libtclenvmodules$(SHLIB_SUFFIX) \
 	lib/libtestutil-closedir$(SHLIB_SUFFIX) lib/libtestutil-getpwuid$(SHLIB_SUFFIX) \
 	lib/libtestutil-getgroups$(SHLIB_SUFFIX) lib/libtestutil-0getgroups$(SHLIB_SUFFIX) \
 	lib/libtestutil-dupgetgroups$(SHLIB_SUFFIX) lib/libtestutil-getgrgid$(SHLIB_SUFFIX) \

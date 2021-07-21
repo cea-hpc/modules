@@ -7,9 +7,6 @@ BUILD_DIR := build
 
 SPHINXOPTS := -q
 
-# compatibility version-related files
-COMPAT_MAN_DIR := ../compat/doc
-
 # source definitions shared across the Makefiles of this project
 ifneq ($(wildcard ../Makefile.inc),../Makefile.inc)
   $(error ../Makefile.inc is missing, please run '../configure')
@@ -47,9 +44,6 @@ endif
 endif
 
 man: $(ALL_MAN)
-ifeq ($(compatversion),y)
-man: $(COMPAT_MAN_DIR)/module.1 $(COMPAT_MAN_DIR)/modulefile.4
-endif
 
 ifneq ($(builddoc),p)
 txt: $(ALL_TXT)
@@ -109,11 +103,6 @@ endif
 $(BUILD_DIR)/module.1: $(BUILD_DIR)/module.1.in
 	$(translate-in-script)
 
-# compatibility version-related rules
-$(COMPAT_MAN_DIR)/module.1 $(COMPAT_MAN_DIR)/modulefile.4:
-	$(ECHO_GEN)
-	$(MAKE) -s --no-print-directory -C $(COMPAT_MAN_DIR) $(@F)
-
 install: man txt
 	mkdir -p $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man4
 ifeq ($(docinstall),y)
@@ -129,10 +118,6 @@ endif
 	cp $(BUILD_DIR)/module.1 $(DESTDIR)$(mandir)/man1/
 	cp $(BUILD_DIR)/ml.1 $(DESTDIR)$(mandir)/man1/
 	cp $(BUILD_DIR)/modulefile.4 $(DESTDIR)$(mandir)/man4/
-ifeq ($(compatversion),y)
-	cp $(COMPAT_MAN_DIR)/module.1 $(DESTDIR)$(mandir)/man1/module-compat.1
-	cp $(COMPAT_MAN_DIR)/modulefile.4 $(DESTDIR)$(mandir)/man4/modulefile-compat.4
-endif
 
 uninstall:
 ifeq ($(docinstall),y)
@@ -148,10 +133,6 @@ endif
 	rm -f $(DESTDIR)$(mandir)/man1/module.1
 	rm -f $(DESTDIR)$(mandir)/man1/ml.1
 	rm -f $(DESTDIR)$(mandir)/man4/modulefile.4
-ifeq ($(compatversion),y)
-	rm -f $(DESTDIR)$(mandir)/man1/module-compat.1
-	rm -f $(DESTDIR)$(mandir)/man4/modulefile-compat.4
-endif
 	rmdir $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man4
 	rmdir $(DESTDIR)$(mandir)
 
@@ -171,5 +152,4 @@ V = 1
 endif
 # let verbose by default the install/clean/test and other specific non-build targets
 $(V).SILENT: ../version.inc $(SOURCE_DIR)/version.py $(ALL_HTML) $(ALL_TXT) \
-	$(BUILD_DIR)/module.1.in $(ALL_MAN) $(COMPAT_MAN_DIR)/module.1 \
-	$(COMPAT_MAN_DIR)/modulefile.4
+	$(BUILD_DIR)/module.1.in $(ALL_MAN)
