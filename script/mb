@@ -125,10 +125,6 @@ foreach tag [exec git tag --list v*] {
    }
 }
 
-# add compat version to tag list
-if {[file exists compat] && $mode eq {bench}} {
-   lappend taglist v3.2
-}
 foreach tag [lsort [array names tagarray]] {
    lappend taglist $tagarray($tag)
 }
@@ -150,24 +146,18 @@ foreach tag $taglist {
 if {[info exists tagtobuildlist]} {
    # clean current workspace to build clean configuration
    catch {file delete modulecmd-test.tcl modulecmd.tcl\
-      lib/libtclenvmodules.so compat/modulecmd}
+      lib/libtclenvmodules.so}
 
    foreach tag $tagtobuildlist {
-      # build compat version
-      if {$tag eq {v3.2}} {
-         exec make -C compat modulecmd
-         file rename compat/modulecmd modulecmd.$tag
-      } else {
-         exec git checkout $tag 2>@1
-         set buildtarget [expr {[string index $tag 0] ne {v} || [string\
-            compare $tag v4.3] == 1 ? {modulecmd-test.tcl} : {modulecmd.tcl}}]
-         exec make SHLIB_SUFFIX=.so.$tag $buildtarget
-         file rename $buildtarget modulecmd.$tag
-         file attributes modulecmd.$tag -permissions ugo+x
-         if {[file exists lib/envmodules.c]} {
-            exec make lib/libtclenvmodules.so
-            file rename lib/libtclenvmodules.so lib/libtclenvmodules.so.$tag
-         }
+      exec git checkout $tag 2>@1
+      set buildtarget [expr {[string index $tag 0] ne {v} || [string\
+         compare $tag v4.3] == 1 ? {modulecmd-test.tcl} : {modulecmd.tcl}}]
+      exec make SHLIB_SUFFIX=.so.$tag $buildtarget
+      file rename $buildtarget modulecmd.$tag
+      file attributes modulecmd.$tag -permissions ugo+x
+      if {[file exists lib/envmodules.c]} {
+         exec make lib/libtclenvmodules.so
+         file rename lib/libtclenvmodules.so lib/libtclenvmodules.so.$tag
       }
    }
 }
