@@ -22,15 +22,9 @@ BuildRequires:  procps
 BuildRequires:  hostname
 BuildRequires:  procps-ng
 %endif
-# specific requirements to build compat version and extension library
+# specific requirements to build extension library
 BuildRequires:  gcc
 BuildRequires:  tcl-devel
-# specific requirements to build compat version
-BuildRequires:  libX11-devel
-# TclX is not available anymore on el8
-%if 0%{?rhel} && 0%{?rhel} <= 7
-BuildRequires:  tclx-devel
-%endif
 Requires:       tcl
 Requires:       sed
 Requires:       less
@@ -50,8 +44,8 @@ Provides:       environment(modules)
 %else
 Provides:       environment-modules
 %endif
-Provides:       modules-tcl = %{version}-%{release}
 Obsoletes:      modules-tcl <= 1.923
+Obsoletes:      environment-modules-compat <= 4.8.99
 
 %description
 The Environment Modules package provides for the dynamic modification of
@@ -77,21 +71,6 @@ suite of different applications.
 NOTE: You will need to get a new shell after installing this package to
 have access to the module alias.
 
-%package compat
-Summary:        Environment Modules compatibility version
-Requires:       environment-modules = %{version}-%{release}
-%if 0%{?rhel} && 0%{?rhel} <= 6
-Requires:       net-tools
-%else
-Requires:       hostname
-%endif
-
-%description compat
-The Environment Modules package provides for the dynamic modification of
-a user's environment via modulefiles.
-
-This package provides Environment Modules compatibility version (3.2).
-
 
 %prep
 %setup -q -n modules-@MODULES_RELEASE@@MODULES_BUILD@
@@ -112,7 +91,6 @@ This package provides Environment Modules compatibility version (3.2).
            --mandir=%{_mandir} \
            --vimdatadir=%{vimdatadir} \
            --enable-multilib-support \
-           --enable-compat-version \
            --disable-doc-install \
            --enable-modulespath \
            --with-python=%{pythonbin} \
@@ -154,10 +132,6 @@ mv %{buildroot}%{_datadir}/Modules/bin/modulecmd %{buildroot}%{_bindir}/
 # major utilities go to regular bin dir
 mv %{buildroot}%{_datadir}/Modules/bin/envml %{buildroot}%{_bindir}/
 
-# rename compat docs to find them in files section
-mv compat/ChangeLog ChangeLog-compat
-mv compat/NEWS NEWS-compat
-
 mv {doc/build/,}NEWS.txt
 mv {doc/build/,}MIGRATING.txt
 mv {doc/build/,}CONTRIBUTING.txt
@@ -189,20 +163,9 @@ fi
   --slave %{_sysconfdir}/profile.d/modules.csh modules.csh %{_datadir}/Modules/init/profile.csh \
   --slave %{_bindir}/modulecmd modulecmd %{_datadir}/Modules/libexec/modulecmd.tcl
 
-%post compat
-%{_sbindir}/update-alternatives \
-  --install %{_sysconfdir}/profile.d/modules.sh modules.sh %{_datadir}/Modules/init/profile-compat.sh 10 \
-  --slave %{_sysconfdir}/profile.d/modules.csh modules.csh %{_datadir}/Modules/init/profile-compat.csh \
-  --slave %{_bindir}/modulecmd modulecmd %{_datadir}/Modules/libexec/modulecmd-compat
-
 %postun
 if [ $1 -eq 0 ] ; then
   %{_sbindir}/update-alternatives --remove modules.sh %{_datadir}/Modules/init/profile.sh
-fi
-
-%postun compat
-if [ $1 -eq 0 ] ; then
-  %{_sbindir}/update-alternatives --remove modules.sh %{_datadir}/Modules/init/profile-compat.sh
 fi
 %endif
 
@@ -245,12 +208,6 @@ fi
 %{vimdatadir}/ftdetect/modulefile.vim
 %{vimdatadir}/ftplugin/modulefile.vim
 %{vimdatadir}/syntax/modulefile.vim
-
-%files compat
-%doc ChangeLog-compat NEWS-compat
-%{_datadir}/Modules/libexec/modulecmd-compat
-%{_mandir}/man1/module-compat.1.gz
-%{_mandir}/man4/modulefile-compat.4.gz
 
 
 %changelog
