@@ -53,17 +53,6 @@ _mlret=$?
 if [ $_mlret -eq 0 ]; then
    eval "$_mlcode"
 
-@compatversion@   # redefine module command if compat version has been activated
-@compatversion@   if [ "${MODULES_USE_COMPAT_VERSION:-0}" = '1' ]; then
-@compatversion@      MODULES_CMD=@libexecdir@/modulecmd-compat
-@compatversion@      export MODULES_CMD
-@compatversion@      if [ -t 2 ]; then
-@compatversion@         _module_raw() { eval `@libexecdir@/modulecmd-compat sh $*`; }
-@compatversion@      else
-@compatversion@         module() { eval `@libexecdir@/modulecmd-compat sh $*`; }
-@compatversion@      fi
-@compatversion@   fi
-@compatversion@
    # if sh is bash, export functions to get them defined in sub-shells
    if [ "${BASH:-}" != '' ]; then
       if [ -t 2 ]; then
@@ -75,37 +64,6 @@ if [ $_mlret -eq 0 ]; then
       fi
    fi
 
-@compatversion@   # define function to switch between C and Tcl versions of Modules
-@compatversion@   switchml() {
-@compatversion@      swfound=1
-@compatversion@      if [ "${MODULES_USE_COMPAT_VERSION:-0}" = '1' ]; then
-@compatversion@         swname='main'
-@compatversion@         if [ -e @libexecdir@/modulecmd.tcl ]; then
-@compatversion@            swfound=0
-@compatversion@            unset MODULES_USE_COMPAT_VERSION
-@compatversion@         fi
-@compatversion@      else
-@compatversion@         swname='compatibility'
-@compatversion@         if [ -e @libexecdir@/modulecmd-compat ]; then
-@compatversion@            swfound=0
-@compatversion@            MODULES_USE_COMPAT_VERSION=1
-@compatversion@            export MODULES_USE_COMPAT_VERSION
-@compatversion@         fi
-@compatversion@      fi
-@compatversion@
-@compatversion@      # switch version only if command found
-@compatversion@      if [ $swfound -eq 0 ]; then
-@compatversion@         echo "Switching to Modules $swname version"
-@compatversion@         . @initdir@/sh
-@compatversion@      else
-@compatversion@         echo "Cannot switch to Modules $swname version, command not found"
-@compatversion@         return 1
-@compatversion@      fi
-@compatversion@   }
-@compatversion@   if [ "${BASH:-}" != '' ]; then
-@compatversion@      export -f switchml
-@compatversion@   fi
-@compatversion@
 @setbinpath@   case ":$PATH:" in
 @setbinpath@      *:@bindir@:*) ;;
 @setbinpath@@prependbinpath@      *) PATH=@bindir@${PATH:+:}$PATH

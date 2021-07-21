@@ -4,45 +4,8 @@ eval "`@TCLSH@ @libexecdir@/modulecmd.tcl @SHELLNAME@ autoinit`"
 
 # no environment alteration if the above autoinit command failed
 if ( $status == 0 ) then
-@compatversion@   # clarify compat version is not enabled for below tests
-@compatversion@   if ( ! $?MODULES_USE_COMPAT_VERSION ) then
-@compatversion@      setenv MODULES_USE_COMPAT_VERSION 0
-@compatversion@   endif
-@compatversion@
-@compatversion@   # redefine module command if compat version has been activated
-@compatversion@   if ( "$MODULES_USE_COMPAT_VERSION" == '1' ) then
-@compatversion@      setenv MODULES_CMD @libexecdir@/modulecmd-compat ;
-@compatversion@      if ( $?histchars && $?prompt ) alias module 'set _histchars = $histchars; unset histchars; set _prompt=$prompt:q; set prompt=""; eval `@libexecdir@/modulecmd-compat @SHELLNAME@ \!*`; set _exit="$status";  set histchars = $_histchars; unset _histchars; set prompt=$_prompt:q; unset _prompt; test 0 = $_exit' ;
-@compatversion@      if ( $?histchars && ! $?prompt ) alias module 'set _histchars = $histchars; unset histchars; eval `@libexecdir@/modulecmd-compat @SHELLNAME@ \!*`; set _exit="$status";  set histchars = $_histchars; unset _histchars; test 0 = $_exit' ;
-@compatversion@      if ( ! $?histchars && $?prompt ) alias module 'set _prompt=$prompt:q; set prompt=""; eval `@libexecdir@/modulecmd-compat @SHELLNAME@ \!*`; set _exit="$status";  set prompt=$_prompt:q;unset _prompt; test 0 = $_exit' ;
-@compatversion@      if ( ! $?histchars && ! $?prompt ) alias module 'eval `@libexecdir@/modulecmd-compat @SHELLNAME@ \!*`' ;
-@compatversion@   endif
-@compatversion@
-@compatversion@   # define function to switch between C and Tcl versions of Modules
-@compatversion@   set switchml_defined="`alias switchml`"
-@compatversion@   if ( "$switchml_defined" == '' ) then
-@compatversion@      alias switchml 'set swfound=1; \\
-@compatversion@         if ( ! $?MODULES_USE_COMPAT_VERSION ) setenv MODULES_USE_COMPAT_VERSION 0; \\
-@compatversion@         if ( "$MODULES_USE_COMPAT_VERSION" == "1" ) set swname="main"; \\
-@compatversion@         if ( "$MODULES_USE_COMPAT_VERSION" == "1" && -e @libexecdir@/modulecmd.tcl ) set swfound=0; \\
-@compatversion@         if ( "$MODULES_USE_COMPAT_VERSION" != "1" ) set swname="compatibility"; \\
-@compatversion@         if ( "$MODULES_USE_COMPAT_VERSION" != "1" && -e @libexecdir@/modulecmd-compat ) set swfound=0; \\
-@compatversion@         if ( $swfound == 0 && $swname == "main" ) setenv MODULES_USE_COMPAT_VERSION 0; \\
-@compatversion@         if ( $swfound == 0 && $swname == "compatibility" ) setenv MODULES_USE_COMPAT_VERSION 1; \\
-@compatversion@         if ( $swfound == 0 ) echo "Switching to Modules $swname version"; \\
-@compatversion@         if ( $swfound == 0 ) source @initdir@/@SHELLNAME@; \\
-@compatversion@         if ( $swfound != 0 ) echo "Cannot switch to Modules $swname version, command not found"; \\
-@compatversion@         unset swfound swname;'
-@compatversion@   endif
-@compatversion@   unset switchml_defined
-@compatversion@
    if ( $?tcsh && $?prompt && -r @initdir@/tcsh_completion ) then
-@compatversion@   if ( "$MODULES_USE_COMPAT_VERSION" != '1' ) then
       source @initdir@/tcsh_completion
-@compatversion@   else
-@compatversion@      # no completion support on compat version
-@compatversion@      uncomplete module
-@compatversion@   endif
    endif
 @setbinpath@
 @setbinpath@   if ( ":${PATH}:" !~ '*:@bindir@:*' ) then

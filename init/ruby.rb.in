@@ -24,20 +24,3 @@
 # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init config files)
 @quarantinesupport@eval `#{_mlre}@TCLSH@ @libexecdir@/modulecmd.tcl ruby autoinit`
 @notquarantinesupport@eval `@TCLSH@ @libexecdir@/modulecmd.tcl ruby autoinit`
-@compatversion@
-@compatversion@# redefine module command if compat version has been activated
-@compatversion@if ENV['MODULES_USE_COMPAT_VERSION'] == '1' then
-@compatversion@   ENV['MODULES_CMD'] = '@libexecdir@/modulecmd-compat'
-@compatversion@   class ENVModule
-@compatversion@      def ENVModule.module(*args)
-@compatversion@         if args[0].kind_of?(Array) then
-@compatversion@            args = args[0].join(' ')
-@compatversion@         else
-@compatversion@            args = args.join(' ')
-@compatversion@         end
-@compatversion@         eval `@libexecdir@/modulecmd-compat ruby #{args}`
-@compatversion@         # return value as done on new main version
-@compatversion@         return true
-@compatversion@      end
-@compatversion@   end
-@compatversion@end

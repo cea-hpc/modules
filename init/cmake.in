@@ -33,21 +33,3 @@ if(EXISTS ${tempfile_name})
   include(${tempfile_name})
   file(REMOVE ${tempfile_name})
 endif()
-@compatversion@
-@compatversion@# redefine module command if compat version has been activated
-@compatversion@if("$ENV{MODULES_USE_COMPAT_VERSION}" STREQUAL "1")
-@compatversion@   set(ENV{MODULES_CMD} "@libexecdir@/modulecmd-compat")
-@compatversion@   function(module)
-@compatversion@      execute_process(COMMAND mktemp -t moduleinit.cmake.XXXXXXXXXXXX
-@compatversion@         OUTPUT_VARIABLE tempfile_name
-@compatversion@         OUTPUT_STRIP_TRAILING_WHITESPACE)
-@compatversion@      execute_process(COMMAND @libexecdir@/modulecmd-compat cmake ${ARGV}
-@compatversion@         OUTPUT_FILE ${tempfile_name})
-@compatversion@      if(EXISTS ${tempfile_name})
-@compatversion@         include(${tempfile_name})
-@compatversion@         file(REMOVE ${tempfile_name})
-@compatversion@      endif()
-@compatversion@      # return value as done on new main version
-@compatversion@      set(module_result TRUE PARENT_SCOPE)
-@compatversion@   endfunction(module)
-@compatversion@endif()

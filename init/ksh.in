@@ -53,44 +53,6 @@ _mlret=$?
 if [ $_mlret -eq 0 ]; then
    eval "$_mlcode"
 
-@compatversion@   # redefine module command if compat version has been activated
-@compatversion@   if [ "${MODULES_USE_COMPAT_VERSION:-0}" = '1' ]; then
-@compatversion@      MODULES_CMD=@libexecdir@/modulecmd-compat
-@compatversion@      export MODULES_CMD
-@compatversion@      if [ -t 2 ]; then
-@compatversion@         _module_raw() { eval `@libexecdir@/modulecmd-compat ksh $*`; }
-@compatversion@      else
-@compatversion@         module() { eval `@libexecdir@/modulecmd-compat ksh $*`; }
-@compatversion@      fi
-@compatversion@   fi
-@compatversion@
-@compatversion@   # define function to switch between C and Tcl versions of Modules
-@compatversion@   switchml() {
-@compatversion@      typeset swfound=1
-@compatversion@      if [ "${MODULES_USE_COMPAT_VERSION:-0}" = '1' ]; then
-@compatversion@         typeset swname='main'
-@compatversion@         if [ -e @libexecdir@/modulecmd.tcl ]; then
-@compatversion@            typeset swfound=0
-@compatversion@            unset MODULES_USE_COMPAT_VERSION
-@compatversion@         fi
-@compatversion@      else
-@compatversion@         typeset swname='compatibility'
-@compatversion@         if [ -e @libexecdir@/modulecmd-compat ]; then
-@compatversion@            typeset swfound=0
-@compatversion@            MODULES_USE_COMPAT_VERSION=1
-@compatversion@            export MODULES_USE_COMPAT_VERSION
-@compatversion@         fi
-@compatversion@      fi
-@compatversion@
-@compatversion@      # switch version only if command found
-@compatversion@      if [ $swfound -eq 0 ]; then
-@compatversion@         echo "Switching to Modules $swname version"
-@compatversion@         . @initdir@/ksh
-@compatversion@      else
-@compatversion@         echo "Cannot switch to Modules $swname version, command not found"
-@compatversion@         return 1
-@compatversion@      fi
-@compatversion@   }
 @setbinpath@
 @setbinpath@   _mlinstr=":$PATH:"
 @setbinpath@   if [ "${_mlinstr#*:@bindir@:}" = "$_mlinstr" ]; then
