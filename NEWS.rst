@@ -63,6 +63,7 @@ Modules 5.0.0-alpha (2021-07-XX)
   :envvar:`QUICKTEST` environment variable is set to ``1``, only the main
   tests from the non-regression testsuite are run. When first argument of the
   :command:`mt` script is ``quick``, tests are run in quick mode.
+* Install: run non-regression testsuite in quick mode in RPM spec file.
 
 
 .. _4.8 release notes:
