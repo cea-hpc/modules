@@ -59,6 +59,10 @@ Modules 5.0.0-alpha (2021-07-XX)
   Compatiblity version co-installation is discontinued. :command:`switchml`
   shell function and :envvar:`MODULES_USE_COMPAT_VERSION` are thus removed as
   well.
+* Testsuite: introduce the non-regression quick test mode. When the
+  :envvar:`QUICKTEST` environment variable is set to ``1``, only the main
+  tests from the non-regression testsuite are run. When first argument of the
+  :command:`mt` script is ``quick``, tests are run in quick mode.
 
 
 .. _4.8 release notes:
