@@ -374,7 +374,8 @@ The following environment variables appeared on new version of Modules are not s
 | 4.1        | :envvar:`MODULES_CMD`, :envvar:`MODULES_COLLECTION_PIN_VERSION`,|
 |            | :envvar:`MODULES_PAGER`, :envvar:`MODULES_RUNENV_\<VAR\>`,      |
 |            | :envvar:`MODULES_RUN_QUARANTINE`,                               |
-|            | :envvar:`MODULES_SILENT_SHELL_DEBUG`, :envvar:`<VAR>_modquar`   |
+|            | :envvar:`MODULES_SILENT_SHELL_DEBUG`,                           |
+|            | :envvar:`<VAR>_modquar<__MODULES_QUAR_<VAR>>`                   |
 +------------+-----------------------------------------------------------------+
 | 4.2        | :envvar:`MODULES_AUTO_HANDLING`,                                |
 |            | :envvar:`MODULES_LMALTNAME<__MODULES_LMALTNAME>`,               |

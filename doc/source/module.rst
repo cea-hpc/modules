@@ -1872,6 +1872,18 @@ ENVIRONMENT
     .. versionchanged:: 5.0
        Variable renamed from ``MODULES_LMVARIANT`` to ``__MODULES_LMVARIANT``
 
+.. envvar:: __MODULES_QUAR_<VAR>
+
+ Value of environment variable :envvar:`<VAR>` passed to :file:`modulecmd.tcl`
+ in order to restore :envvar:`<VAR>` to this value once started.
+
+ .. only:: html
+
+    .. versionadded:: 4.1
+
+    .. versionchanged:: 5.0
+       Variable renamed from ``<VAR>_modquar`` to ``__MODULES_QUAR_<VAR>``
+
 .. envvar:: _LMFILES_
 
  A colon separated list of the full pathname for all loaded *modulefiles*.
@@ -2438,7 +2450,7 @@ ENVIRONMENT
  run-time environment.
 
  Original values of these environment variables set in quarantine are passed
- to :file:`modulecmd.tcl` via :envvar:`<VAR>_modquar` variables.
+ to :file:`modulecmd.tcl` via :envvar:`__MODULES_QUAR_\<VAR\>` variables.
 
  .. only:: html
 
@@ -2689,15 +2701,6 @@ ENVIRONMENT
  The location of the main Modules package file directory containing module
  command initialization scripts, the executable program :file:`modulecmd.tcl`,
  and a directory containing a collection of main *modulefiles*.
-
-.. envvar:: <VAR>_modquar
-
- Value of environment variable :envvar:`<VAR>` passed to :file:`modulecmd.tcl`
- in order to restore :envvar:`<VAR>` to this value once started.
-
- .. only:: html
-
-    .. versionadded:: 4.1
 
 .. envvar:: <VAR>_modshare
 
