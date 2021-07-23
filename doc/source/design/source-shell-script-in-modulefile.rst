@@ -49,20 +49,20 @@ Specification
 
     - To keep track of environment changes made by ``source-sh`` script evaluation
     - In order to undo these changes when unloading modulefile and report corresponding modulefile commands when displaying modulefile
-    - Environment variable :envvar:`MODULES_LMSOURCESH` is used for this need
+    - Environment variable :envvar:`__MODULES_LMSOURCESH` is used for this need
 
         - Using following syntax: ``mod&shell script arg|cmd|cmd|...&shell script|cmd:mod&shell script arg|cmd``
         - Example value: ``foo/1&sh /tmp/source.sh|append-path PATH /tmp|cd /tmp``
-        - Characters used to structure information in ``MODULES_LMSOURCESH`` (``:``, ``&`` and ``|``) are escaped
+        - Characters used to structure information in ``__MODULES_LMSOURCESH`` (``:``, ``&`` and ``|``) are escaped
 
             - Respectively to ``<EnvModEscPS>``, ``<EnvModEscS1>`` and ``<EnvModEscS2>``
             - If found in environment changes to record
 
-        - Actual bodies of shell alias and shell functions are not recorded in ``MODULES_LMSOURCESH``, an empty body is recorded instead
+        - Actual bodies of shell alias and shell functions are not recorded in ``__MODULES_LMSOURCESH``, an empty body is recorded instead
 
             - Example value: ``foo/1&sh /tmp/source.sh|set-alias alfoo {}|set-function funcfoo {}``
 
-    - When unloading modulefile, content found for this modulefile in ``MODULES_LMSOURCESH`` variable is evaluated to reverse environment changes
+    - When unloading modulefile, content found for this modulefile in ``__MODULES_LMSOURCESH`` variable is evaluated to reverse environment changes
 
         - When reaching a ``source-sh`` modulefile command, recorded content is evaluated through a modulefile Tcl interpreter in unload mode, to get the reversed effect
 
@@ -70,8 +70,8 @@ Specification
 
         - If it is loaded
 
-            - the content found for this modulefile in ``MODULES_LMSOURCESH`` variable is evaluated in display mode to report each resulting modulefile command
-            - script is evaluated to fetch shell alias and function definition which are not recorded in ``MODULES_LMSOURCESH``
+            - the content found for this modulefile in ``__MODULES_LMSOURCESH`` variable is evaluated in display mode to report each resulting modulefile command
+            - script is evaluated to fetch shell alias and function definition which are not recorded in ``__MODULES_LMSOURCESH``
 
         - If not loaded, script is evaluated to gather environment changes and report each resulting modulefile command
 

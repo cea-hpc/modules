@@ -226,9 +226,9 @@ Persistency
     - to keep track of how loaded modules were evaluated
     - and enable query commands on these loaded modules without need to reevaluate modulefile
 
-- variants defined are made persistent in :envvar:`MODULES_LMVARIANT` environment variable
+- variants defined are made persistent in :envvar:`__MODULES_LMVARIANT` environment variable
 
-    - following same approach than for :envvar:`MODULES_LMPREREQ`
+    - following same approach than for :envvar:`__MODULES_LMPREREQ`
     - each loaded module with defined variants (default value or specifically set) will expose:
 
         - these variants value
@@ -252,15 +252,15 @@ Persistency
         - or automatically set (*isdefaultvalue=2*)
         - this information will be useful in the FUTURE to determine if a variant may be automatically swapped by another
 
-    - each *loadedmodule* record are joined in ``MODULES_LMVARIANT`` separated by ``:`` character
+    - each *loadedmodule* record are joined in ``__MODULES_LMVARIANT`` separated by ``:`` character
 
-- variant alias are also made persistent in :envvar:`MODULES_LMVARIANTALTNAME` environment variable
+- variant alias are also made persistent in :envvar:`__MODULES_LMVARIANTALTNAME` environment variable
 
     - each loaded module with defined variants (default value or specifically set) which could be aliased will expose their aliases in a record with following syntax
 
         - ``loadedmodule&variantname1|aliasname1|-aliasname2&variant2|aliasname3...``
 
-    - each loadedmodule record are joined in ``MODULES_LMVARIANTALTNAME`` separated by ``:`` character
+    - each loadedmodule record are joined in ``__MODULES_LMVARIANTALTNAME`` separated by ``:`` character
 
 - when persistency information is corrupted
 
@@ -279,7 +279,7 @@ Persistency
 
     - the value of this variant is part of loaded module identification
     - ``@versionvalue`` is appended to the module name, for instance ``mod@1.2``
-    - such identification is then recorded in persistency variables to designate loaded module (like ``LOADEDMODULES``, ``MODULES_LMPREREQ``, ``MODULES_LMVARIANT``, etc)
+    - such identification is then recorded in persistency variables to designate loaded module (like ``LOADEDMODULES``, ``__MODULES_LMPREREQ``, ``__MODULES_LMVARIANT``, etc)
     - this way in case a modulefile allows the load of two of its versions in the user environment, it is possible to distinguish these two loaded versions (to unload one of them for instance)
     - with this identification, it is possible to distinguish a traditional module (identified by ``mod/version``) from a module using ``version`` variant (identified by ``mod@version``)
     - note that if a modulefile ``mod/1.2`` defines a ``version`` variant, it will be identified as ``mod/1.2@versionvalue``
@@ -451,7 +451,7 @@ Specifying
         - or ``hdf5 -serial``
         - or ``hdf5 serial=0``
 
-    - checks rely on the content of the ``MODULES_LMVARIANT`` and ``MODULES_LMVARIANTALTNAME`` variables
+    - checks rely on the content of the ``__MODULES_LMVARIANT`` and ``__MODULES_LMVARIANTALTNAME`` variables
 
         - which store variants set for loaded modules and eventual variant aliases of variant set
 
@@ -521,11 +521,11 @@ Variant in requirement specification
 
 - prereq/conflict persistency
 
-    - :envvar:`MODULES_LMPREREQ` and :envvar:`MODULES_LMCONFLICT` content should reflect specified variant constraint
+    - :envvar:`__MODULES_LMPREREQ` and :envvar:`__MODULES_LMCONFLICT` content should reflect specified variant constraint
 
     - it could be expressed in these variables as it is specified over the prereq/conflict modulefile commands
 
-        - for instance ``MODULES_LMPREREQ=hdf5/1.10&mpi@1.8 +shared variant=name&netcdf``
+        - for instance ``__MODULES_LMPREREQ=hdf5/1.10&mpi@1.8 +shared variant=name&netcdf``
         - use of characters `` ``, ``+``, ``~``, ``,`` is not an issue
 
             - as delimiters characters in these environment variables are ``:``, ``&`` and ``|``
@@ -646,7 +646,7 @@ Recording collection
 - In case the :mconfig:`collection_pin_version` configuration option is disabled variant set to their default value should not be recorded in collection
 
     - Following the same scheme than for module version
-    - When saving collection, the *is-default-value* information stored in persistency variable (``MODULES_LMVARIANT``) helps to know whether to value set to a variant is or not the default one
+    - When saving collection, the *is-default-value* information stored in persistency variable (``__MODULES_LMVARIANT``) helps to know whether to value set to a variant is or not the default one
     - The save mechanism will rely on this information to exclude or not the variant specification in the generated collection output
     - Within this *is-default-value* hint, the *was-this-default-specified-by-user* sub-information is not preserved when saving collection
 

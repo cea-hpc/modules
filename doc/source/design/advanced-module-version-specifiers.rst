@@ -216,7 +216,7 @@ Specification
     - it could be expressed in these variables somewhat like it is specified to the
 
         - prereq/conflict modulefile commands
-        - for instance ``MODULES_LMPREREQ=soft/1.10&bar@1.8,1.10&foo@<2|foo@3<4``
+        - for instance ``__MODULES_LMPREREQ=soft/1.10&bar@1.8,1.10&foo@<2|foo@3<4``
         - delimiters characters are *:*, *&* and *|*
 
             - so use of characters * *, *@*, *,* is not an issue

@@ -141,10 +141,11 @@ Modules 4.8.0 (2021-07-14)
   sets the :envvar:`MODULES_VARIANT_SHORTCUT` environment variable.
 * Enhance the :ref:`Advanced module version specifiers` to handle variant
   shortcut specification (e.g., *<shortcut>value*).
-* Record in user loaded environment, with :envvar:`MODULES_LMVARIANT`
-  environment variable, the value specified for the variants defined in the
-  loaded modulefiles and their properties (if it is a Boolean variant and if
-  the value set is the default one).
+* Record in user loaded environment, with
+  :envvar:`MODULES_LMVARIANT<__MODULES_LMVARIANT>` environment variable, the
+  value specified for the variants defined in the loaded modulefiles and their
+  properties (if it is a Boolean variant and if the value set is the default
+  one).
 * Add the ``variant`` element in the allowed value list of the
   :mconfig:`list_output` and :mconfig:`list_terse_output` configuration
   options. Set this new element in the default value list of the
@@ -231,14 +232,15 @@ Modules 4.7.0 (2021-02-19)
   strings passed as argument.
 * Enable the use of wildcard character to designate multiple directories at
   once in modulespath configuration file. (fix issue #125)
-* Distinguish aliases from symbolic versions in :envvar:`MODULES_LMALTNAME`
-  environment variable. Prefix these alias entries with the ``al|`` string.
+* Distinguish aliases from symbolic versions in
+  :envvar:`MODULES_LMALTNAME<__MODULES_LMALTNAME>` environment variable.
+  Prefix these alias entries with the ``al|`` string.
 * Fetch modulefile modification time only if required by :subcmd:`list`
   sub-command display format.
 * Use symbolic versions recorded in environment, with
-  :envvar:`MODULES_LMALTNAME` variable, to report the symbols applying to
-  loaded modules on :subcmd:`list` sub-command. Modulerc files are not
-  evaluated anymore when performing a module list.
+  :envvar:`MODULES_LMALTNAME<__MODULES_LMALTNAME>` variable, to report the
+  symbols applying to loaded modules on :subcmd:`list` sub-command. Modulerc
+  files are not evaluated anymore when performing a module list.
 * Move the definition of the :envvar:`FPATH` environment variable for Modules
   initialization on ksh shell from the initialization script of this shell to
   the resulting output of the :subcmd:`autoinit` sub-command.
@@ -280,9 +282,9 @@ Modules 4.7.0 (2021-02-19)
   tags currently are states that apply to modules: ``auto-loaded``,
   ``forbidden``, ``hidden``, ``loaded``, ``nearly-forbidden``, ``sticky`` and
   ``super-sticky``.
-* Record tags applying to each loaded module in the :envvar:`MODULES_LMTAG`
-  environment variable to make this information persist after module being
-  loaded.
+* Record tags applying to each loaded module in the
+  :envvar:`MODULES_LMTAG<__MODULES_LMTAG>` environment variable to make this
+  information persist after module being loaded.
 * Report tags applying to the loaded modules returned by the :subcmd:`list`
   sub-command. Adapt the regular and JSON output styles to report these tags
   along the module they are attached to (enclosed in ``<>``). Reported tags
@@ -490,8 +492,9 @@ Modules 4.6.1 (2020-11-14)
   issue #365)
 * Doc: make the ENVIRONMENT section from :ref:`modulefile(4)` man page point
   to the ENVIRONMENT section of :ref:`module(1)` man page.
-* Fix :subcmd:`clear` sub-command to unset the :envvar:`MODULES_LMSOURCESH`
-  environment variable. (fix issue #367)
+* Fix :subcmd:`clear` sub-command to unset the
+  :envvar:`MODULES_LMSOURCESH<__MODULES_LMSOURCESH>` environment variable.
+  (fix issue #367)
 * Correctly return on :subcmd:`avail` sub-command a symbolic version defined
   in a global RC file when specifically searched. (fix issue #368)
 * Fix module hiding resolution for symbolic versions defined in a global RC
@@ -523,12 +526,12 @@ Modules 4.6.0 (2020-09-16)
   script and apply resulting environment changes through modulefile commands.
   When a modulefile using :mfcmd:`source-sh` modulefile command is loaded, the
   modulefile commands resulting from shell script evaluation are recorded in
-  the :envvar:`MODULES_LMSOURCESH` environment variable to be able to undo
-  these environment changes when modulefile is unloaded and to report the
-  modulefile commands used when modulefile is displayed. The same kind of
-  environment changes than the :subcmd:`sh-to-mod` sub-command are tracked.
-  The same list of shells than :subcmd:`sh-to-mod` sub-command are supported.
-  (fix issue #346)
+  the :envvar:`MODULES_LMSOURCESH<__MODULES_LMSOURCESH>` environment variable
+  to be able to undo these environment changes when modulefile is unloaded and
+  to report the modulefile commands used when modulefile is displayed. The
+  same kind of environment changes than the :subcmd:`sh-to-mod` sub-command
+  are tracked. The same list of shells than :subcmd:`sh-to-mod` sub-command
+  are supported. (fix issue #346)
 * Doc: add *Source shell script in modulefile* cookbook recipe.
 * Doc: embed new Modules logo on website, online README and documentation
   portal.

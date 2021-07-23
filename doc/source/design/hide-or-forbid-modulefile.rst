@@ -196,7 +196,7 @@ Specification
                 - If switched-off module were automatically loaded
                 - And if the switch evaluation has been automatically triggered
 
-        - When those modules are loaded, a ``hidden-loaded`` tag is applied to them and recorded in :envvar:`MODULES_LMTAG` environment variable to keep track of their hidden status
+        - When those modules are loaded, a ``hidden-loaded`` tag is applied to them and recorded in :envvar:`__MODULES_LMTAG` environment variable to keep track of their hidden status
         - Hidden once loaded status does not affect ``is-loaded``: these modules will always be reported if they match ``is-loaded`` queries
 
 - ``module-forbid`` disallow evaluation of specified modules

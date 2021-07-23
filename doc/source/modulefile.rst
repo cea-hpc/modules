@@ -762,7 +762,7 @@ the *modulefile* is being loaded.
 
  When modulefile is unloaded, environment changes done are reserved by
  evaluating in the ``unload`` context the resulting modulefile commands, which
- were recorded in the :envvar:`MODULES_LMSOURCESH` environment variable at
+ were recorded in the :envvar:`__MODULES_LMSOURCESH` environment variable at
  ``load`` time.
 
  Changes on environment variables, shell aliases, shell functions and current

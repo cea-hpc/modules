@@ -92,18 +92,18 @@ Defining
 Persistency
 ^^^^^^^^^^^
 
-- The :envvar:`MODULES_LMTAG` environment variable holds all tag information applying to loaded modules
+- The :envvar:`__MODULES_LMTAG` environment variable holds all tag information applying to loaded modules
 
-    - Following the same syntax scheme than ``MODULES_LMCONFLICT``
+    - Following the same syntax scheme than ``__MODULES_LMCONFLICT``
     - For instance ``module/vers&tag&tag:module2&tag``
 
-- The ``loaded`` tag is not recorded in ``MODULES_LMTAG`` environment variable
+- The ``loaded`` tag is not recorded in ``__MODULES_LMTAG`` environment variable
 
     - As it obviously applies to all loaded modules defined in ``LOADEDMODULES`` environment variable
 
-- The ``auto-loaded`` tag is not recorded in ``MODULES_LMTAG`` environment variable
+- The ``auto-loaded`` tag is not recorded in ``__MODULES_LMTAG`` environment variable
 
-    - Auto loaded modules are currently listed in the ``MODULES_LMNOTUASKED`` environment variable
+    - Auto loaded modules are currently listed in the ``__MODULES_LMNOTUASKED`` environment variable
 
 
 Reporting

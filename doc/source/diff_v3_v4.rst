@@ -376,9 +376,11 @@ The following environment variables appeared on new version of Modules are not s
 |            | :envvar:`MODULES_RUN_QUARANTINE`,                               |
 |            | :envvar:`MODULES_SILENT_SHELL_DEBUG`, :envvar:`<VAR>_modquar`   |
 +------------+-----------------------------------------------------------------+
-| 4.2        | :envvar:`MODULES_AUTO_HANDLING`, :envvar:`MODULES_LMALTNAME`,   |
-|            | :envvar:`MODULES_LMCONFLICT`, :envvar:`MODULES_LMNOTUASKED`,    |
-|            | :envvar:`MODULES_LMPREREQ`                                      |
+| 4.2        | :envvar:`MODULES_AUTO_HANDLING`,                                |
+|            | :envvar:`MODULES_LMALTNAME<__MODULES_LMALTNAME>`,               |
+|            | :envvar:`MODULES_LMCONFLICT<__MODULES_LMCONFLICT>`,             |
+|            | :envvar:`MODULES_LMNOTUASKED<__MODULES_LMNOTUASKED>`,           |
+|            | :envvar:`MODULES_LMPREREQ<__MODULES_LMPREREQ>`                  |
 +------------+-----------------------------------------------------------------+
 | 4.3        | :envvar:`MODULES_AVAIL_INDEPTH`, :envvar:`MODULES_COLOR`,       |
 |            | :envvar:`MODULES_COLORS`, :envvar:`MODULES_IMPLICIT_DEFAULT`,   |
@@ -393,11 +395,12 @@ The following environment variables appeared on new version of Modules are not s
 +------------+-----------------------------------------------------------------+
 | 4.5        | :envvar:`MODULES_ML`                                            |
 +------------+-----------------------------------------------------------------+
-| 4.6        | :envvar:`MODULES_LMSOURCESH`,                                   |
+| 4.6        | :envvar:`MODULES_LMSOURCESH<__MODULES_LMSOURCESH>`,             |
 |            | :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS`                         |
 +------------+-----------------------------------------------------------------+
 | 4.7        | :envvar:`MODULES_SHELLS_WITH_KSH_FPATH`,                        |
-|            | :envvar:`MODULES_IMPLICIT_REQUIREMENT`, :envvar:`MODULES_LMTAG`,|
+|            | :envvar:`MODULES_IMPLICIT_REQUIREMENT`,                         |
+|            | :envvar:`MODULES_LMTAG<__MODULES_LMTAG>`,                       |
 |            | :envvar:`MODULES_TAG_ABBREV`, :envvar:`MODULES_TAG_COLOR_NAME`, |
 |            | :envvar:`MODULES_MCOOKIE_VERSION_CHECK`                         |
 |            | :envvar:`MODULES_AVAIL_OUTPUT`,                                 |
@@ -407,7 +410,7 @@ The following environment variables appeared on new version of Modules are not s
 |            | :envvar:`MODULES_TERM_WIDTH`                                    |
 +------------+-----------------------------------------------------------------+
 | 4.8        | :envvar:`MODULES_EDITOR`, :envvar:`MODULES_VARIANT_SHORTCUT`,   |
-|            | :envvar:`MODULES_LMVARIANT`                                     |
+|            | :envvar:`MODULES_LMVARIANT<__MODULES_LMVARIANT>`                |
 +------------+-----------------------------------------------------------------+
 
 

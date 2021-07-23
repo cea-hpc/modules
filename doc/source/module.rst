@@ -1704,6 +1704,174 @@ Otherwise ``1`` is returned.
 ENVIRONMENT
 -----------
 
+.. envvar:: __MODULES_LMALTNAME
+
+ A colon separated list of the alternative names set through
+ :mfcmd:`module-version` and :mfcmd:`module-alias` statements corresponding to
+ all loaded *modulefiles*. Each element in this list starts by the name of the
+ loaded *modulefile* followed by all alternative names resolving to it. The
+ loaded modulefile and its alternative names are separated by the ampersand
+ character.
+
+ Each alternative name stored in :envvar:`__MODULES_LMALTNAME` is prefixed by
+ the ``al|`` string if it corresponds to a module alias or prefixed by the
+ ``as|`` string if it corresponds to an automatic version symbol. These
+ prefixes help to distinguish the different kind of alternative name.
+
+ This environment variable is intended for :command:`module` command internal
+ use to get knowledge of the alternative names matching loaded *modulefiles*
+ in order to keep environment consistent when conflicts or pre-requirements
+ are set over these alternative designations. It also helps to find a match
+ after *modulefiles* being loaded when :subcmd:`unload`, :subcmd:`is-loaded`
+ or :subcmd:`info-loaded` actions are run over these names.
+
+ Starting version 4.7 of Modules, :envvar:`__MODULES_LMALTNAME` is also used
+ on :subcmd:`list` sub-command to report the symbolic versions associated with
+ the loaded modules.
+
+ .. only:: html
+
+    .. versionadded:: 4.2
+
+    .. versionchanged:: 5.0
+       Variable renamed from ``MODULES_LMALTNAME`` to ``__MODULES_LMALTNAME``
+
+.. envvar:: __MODULES_LMCONFLICT
+
+ A colon separated list of the :mfcmd:`conflict` statements defined by all
+ loaded *modulefiles*. Each element in this list starts by the name of the
+ loaded *modulefile* declaring the conflict followed by the name of all
+ modulefiles it declares a conflict with. These loaded modulefiles and
+ conflicting modulefile names are separated by the ampersand character.
+
+ This environment variable is intended for :command:`module` command internal
+ use to get knowledge of the conflicts declared by the loaded *modulefiles*
+ in order to keep environment consistent when a conflicting module is asked
+ for load afterward.
+
+ .. only:: html
+
+    .. versionadded:: 4.2
+
+    .. versionchanged:: 5.0
+       Variable renamed from ``MODULES_LMCONFLICT`` to
+       ``__MODULES_LMCONFLICT``
+
+.. envvar:: __MODULES_LMNOTUASKED
+
+ A colon separated list of all loaded *modulefiles* that were not explicitly
+ asked for load from the command-line.
+
+ This environment variable is intended for :command:`module` command internal
+ use to distinguish the *modulefiles* that have been loaded automatically
+ from modulefiles that have been asked by users.
+
+ .. only:: html
+
+    .. versionadded:: 4.2
+
+    .. versionchanged:: 5.0
+       Variable renamed from ``MODULES_LMNOTUASKED`` to
+       ``__MODULES_LMNOTUASKED``
+
+.. envvar:: __MODULES_LMPREREQ
+
+ A colon separated list of the :mfcmd:`prereq` statements defined by all
+ loaded *modulefiles*. Each element in this list starts by the name of the
+ loaded *modulefile* declaring the pre-requirement followed by the name of all
+ modulefiles it declares a :mfcmd:`prereq` with. These loaded modulefiles and
+ pre-required modulefile names are separated by the ampersand character. When
+ a :mfcmd:`prereq` statement is composed of multiple modulefiles, these
+ modulefile names are separated by the pipe character.
+
+ This environment variable is intended for :command:`module` command internal
+ use to get knowledge of the pre-requirement declared by the loaded
+ *modulefiles* in order to keep environment consistent when a pre-required
+ module is asked for unload afterward.
+
+ .. only:: html
+
+    .. versionadded:: 4.2
+
+    .. versionchanged:: 5.0
+       Variable renamed from ``MODULES_LMPREREQ`` to ``__MODULES_LMPREREQ``
+
+.. envvar:: __MODULES_LMSOURCESH
+
+ A colon separated list of the :mfcmd:`source-sh` statements defined by all
+ loaded *modulefiles*. Each element in this list starts by the name of the
+ loaded *modulefile* declaring the environment changes made by the evaluation
+ of :mfcmd:`source-sh` scripts. This name is followed by each
+ :mfcmd:`source-sh` statement call and corresponding result achieved in
+ modulefile. The loaded modulefile name and each :mfcmd:`source-sh` statement
+ description are separated by the ampersand character. The :mfcmd:`source-sh`
+ statement call and each resulting modulefile command (corresponding to the
+ environment changes done by sourced script) are separated by the pipe
+ character.
+
+ This environment variable is intended for :command:`module` command internal
+ use to get knowledge of the modulefile commands applied for each
+ :mfcmd:`source-sh` command when loading the modulefile. In order to reverse
+ these modulefile commands when modulefile is unloaded to undo the environment
+ changes.
+
+ .. only:: html
+
+    .. versionadded:: 4.6
+
+    .. versionchanged:: 5.0
+       Variable renamed from ``MODULES_LMSOURCESH`` to
+       ``__MODULES_LMSOURCESH``
+
+.. envvar:: __MODULES_LMTAG
+
+ A colon separated list of the tags corresponding to all loaded *modulefiles*
+ that have been set through :mfcmd:`module-tag` statements or from other
+ modulefile statements like :mfcmd:`module-forbid` (that may apply the
+ `nearly-forbidden` tag in specific situation) (see `Module tags`_ section).
+ Each element in this list starts by the name of the loaded *modulefile*
+ followed by all tags applying to it. The loaded modulefile and its tags are
+ separated by the ampersand character.
+
+ This environment variable is intended for :command:`module` command internal
+ use to get knowledge of the tags applying to loaded *modulefiles* in order
+ to report these tags on subcmd:`list` sub-command output or to apply specific
+ behavior when unloading *modulefile*.
+
+ .. only:: html
+
+    .. versionadded:: 4.7
+
+    .. versionchanged:: 5.0
+       Variable renamed from ``MODULES_LMTAG`` to ``__MODULES_LMTAG``
+
+.. envvar:: __MODULES_LMVARIANT
+
+ A colon separated list of the variant instantiated through :mfcmd:`variant`
+ statements by all loaded *modulefiles* (see :ref:`Module variants` section).
+ Each element in this list starts by the name of the loaded *modulefile*
+ followed by all the variant definitions set during the load of this module.
+ The loaded modulefile and each of its variant definition are separated by the
+ ampersand character. Each variant definition starts with the variant name,
+ followed by the variant value set, then a flag to know if variant is of the
+ Boolean type and last element in this definition is a flag to know if the
+ chosen value is the default one for this variant and if it has been
+ automatically set or not. These four elements composing the variant
+ definition are separated by the pipe character.
+
+ This environment variable is intended for :command:`module` command internal
+ use to get knowledge of the variant value defined by the loaded *modulefiles*
+ in order to keep environment consistent when requirements are set over a
+ specific variant value or just to report these variant values when listing
+ loaded modules.
+
+ .. only:: html
+
+    .. versionadded:: 4.8
+
+    .. versionchanged:: 5.0
+       Variable renamed from ``MODULES_LMVARIANT`` to ``__MODULES_LMVARIANT``
+
 .. envvar:: _LMFILES_
 
  A colon separated list of the full pathname for all loaded *modulefiles*.
@@ -2197,150 +2365,6 @@ ENVIRONMENT
  .. only:: html
 
     .. versionadded:: 4.7
-
-.. envvar:: MODULES_LMALTNAME
-
- A colon separated list of the alternative names set through
- :mfcmd:`module-version` and :mfcmd:`module-alias` statements corresponding to
- all loaded *modulefiles*. Each element in this list starts by the name of the
- loaded *modulefile* followed by all alternative names resolving to it. The
- loaded modulefile and its alternative names are separated by the ampersand
- character.
-
- Each alternative name stored in :envvar:`MODULES_LMALTNAME` is prefixed by
- the ``al|`` string if it corresponds to a module alias or prefixed by the
- ``as|`` string if it corresponds to an automatic version symbol. These
- prefixes help to distinguish the different kind of alternative name.
-
- This environment variable is intended for :command:`module` command internal
- use to get knowledge of the alternative names matching loaded *modulefiles*
- in order to keep environment consistent when conflicts or pre-requirements
- are set over these alternative designations. It also helps to find a match
- after *modulefiles* being loaded when :subcmd:`unload`, :subcmd:`is-loaded`
- or :subcmd:`info-loaded` actions are run over these names.
-
- Starting version 4.7 of Modules, :envvar:`MODULES_LMALTNAME` is also used on
- :subcmd:`list` sub-command to report the symbolic versions associated with
- the loaded modules.
-
- .. only:: html
-
-    .. versionadded:: 4.2
-
-.. envvar:: MODULES_LMCONFLICT
-
- A colon separated list of the :mfcmd:`conflict` statements defined by all
- loaded *modulefiles*. Each element in this list starts by the name of the
- loaded *modulefile* declaring the conflict followed by the name of all
- modulefiles it declares a conflict with. These loaded modulefiles and
- conflicting modulefile names are separated by the ampersand character.
-
- This environment variable is intended for :command:`module` command internal
- use to get knowledge of the conflicts declared by the loaded *modulefiles*
- in order to keep environment consistent when a conflicting module is asked
- for load afterward.
-
- .. only:: html
-
-    .. versionadded:: 4.2
-
-.. envvar:: MODULES_LMNOTUASKED
-
- A colon separated list of all loaded *modulefiles* that were not explicitly
- asked for load from the command-line.
-
- This environment variable is intended for :command:`module` command internal
- use to distinguish the *modulefiles* that have been loaded automatically
- from modulefiles that have been asked by users.
-
- .. only:: html
-
-    .. versionadded:: 4.2
-
-.. envvar:: MODULES_LMPREREQ
-
- A colon separated list of the :mfcmd:`prereq` statements defined by all
- loaded *modulefiles*. Each element in this list starts by the name of the
- loaded *modulefile* declaring the pre-requirement followed by the name of all
- modulefiles it declares a :mfcmd:`prereq` with. These loaded modulefiles and
- pre-required modulefile names are separated by the ampersand character. When
- a :mfcmd:`prereq` statement is composed of multiple modulefiles, these
- modulefile names are separated by the pipe character.
-
- This environment variable is intended for :command:`module` command internal
- use to get knowledge of the pre-requirement declared by the loaded
- *modulefiles* in order to keep environment consistent when a pre-required
- module is asked for unload afterward.
-
- .. only:: html
-
-    .. versionadded:: 4.2
-
-.. envvar:: MODULES_LMSOURCESH
-
- A colon separated list of the :mfcmd:`source-sh` statements defined by all
- loaded *modulefiles*. Each element in this list starts by the name of the
- loaded *modulefile* declaring the environment changes made by the evaluation
- of :mfcmd:`source-sh` scripts. This name is followed by each
- :mfcmd:`source-sh` statement call and corresponding result achieved in
- modulefile. The loaded modulefile name and each :mfcmd:`source-sh` statement
- description are separated by the ampersand character. The :mfcmd:`source-sh`
- statement call and each resulting modulefile command (corresponding to the
- environment changes done by sourced script) are separated by the pipe
- character.
-
- This environment variable is intended for :command:`module` command internal
- use to get knowledge of the modulefile commands applied for each
- :mfcmd:`source-sh` command when loading the modulefile. In order to reverse
- these modulefile commands when modulefile is unloaded to undo the environment
- changes.
-
- .. only:: html
-
-    .. versionadded:: 4.6
-
-.. envvar:: MODULES_LMTAG
-
- A colon separated list of the tags corresponding to all loaded *modulefiles*
- that have been set through :mfcmd:`module-tag` statements or from other
- modulefile statements like :mfcmd:`module-forbid` (that may apply the
- `nearly-forbidden` tag in specific situation) (see `Module tags`_ section).
- Each element in this list starts by the name of the loaded *modulefile*
- followed by all tags applying to it. The loaded modulefile and its tags are
- separated by the ampersand character.
-
- This environment variable is intended for :command:`module` command internal
- use to get knowledge of the tags applying to loaded *modulefiles* in order
- to report these tags on subcmd:`list` sub-command output or to apply specific
- behavior when unloading *modulefile*.
-
- .. only:: html
-
-    .. versionadded:: 4.7
-
-.. envvar:: MODULES_LMVARIANT
-
- A colon separated list of the variant instantiated through :mfcmd:`variant`
- statements by all loaded *modulefiles* (see :ref:`Module variants` section).
- Each element in this list starts by the name of the loaded *modulefile*
- followed by all the variant definitions set during the load of this module.
- The loaded modulefile and each of its variant definition are separated by the
- ampersand character. Each variant definition starts with the variant name,
- followed by the variant value set, then a flag to know if variant is of the
- Boolean type and last element in this definition is a flag to know if the
- chosen value is the default one for this variant and if it has been
- automatically set or not. These four elements composing the variant
- definition are separated by the pipe character.
-
- This environment variable is intended for :command:`module` command internal
- use to get knowledge of the variant value defined by the loaded *modulefiles*
- in order to keep environment consistent when requirements are set over a
- specific variant value or just to report these variant values when listing
- loaded modules.
-
- .. only:: html
-
-    .. versionadded:: 4.8
 
 .. envvar:: MODULES_MCOOKIE_VERSION_CHECK
 
