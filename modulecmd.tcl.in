@@ -5436,7 +5436,7 @@ proc getLoadedModuleFileList {} {
 }
 
 # return list of declared source-sh by loaded module by parsing
-# MODULES_LMSOURCESH
+# __MODULES_LMSOURCESH
 proc getLoadedModuleSourceShList {} {
    set modsrcshlist [list]
    set pathsep [getState path_separator]
@@ -5445,7 +5445,7 @@ proc getLoadedModuleSourceShList {} {
    set unsermap [list <EnvModEscPS> $pathsep <EnvModEscS1> $sub1sep\
       <EnvModEscS2> $sub2sep]
 
-   foreach modsrcshser [split [get-env MODULES_LMSOURCESH] $pathsep] {
+   foreach modsrcshser [split [get-env __MODULES_LMSOURCESH] $pathsep] {
       set srcshlist [split $modsrcshser $sub1sep]
       # ignore empty element (1 is meaningless as first elt is loaded mod)
       if {[llength $srcshlist] > 1} {
@@ -5465,12 +5465,13 @@ proc getLoadedModuleSourceShList {} {
    return $modsrcshlist
 }
 
-# return list of loaded module declared conflict by parsing MODULES_LMCONFLICT
+# return list of loaded module declared conflict by parsing
+# __MODULES_LMCONFLICT
 proc getLoadedModuleConflictList {} {
    set modconlist [list]
    # get sub level separator that serialize second level of info in env var
    set sub1sep [getState sub1_separator]
-   foreach modconser [split [get-env MODULES_LMCONFLICT] [getState\
+   foreach modconser [split [get-env __MODULES_LMCONFLICT] [getState\
       path_separator]] {
       # recover range specifier ':' from its serialized form '<'
       set conlist [split [string map {< :} $modconser] $sub1sep]
@@ -5482,13 +5483,13 @@ proc getLoadedModuleConflictList {} {
    return $modconlist
 }
 
-# return list of loaded module declared prereq by parsing MODULES_LMPREREQ
+# return list of loaded module declared prereq by parsing __MODULES_LMPREREQ
 proc getLoadedModulePrereqList {} {
    set modprelist [list]
    set sub1sep [getState sub1_separator]
    # get sub sub level separator that serialize third level of info in env var
    set sub2sep [getState sub2_separator]
-   foreach modpreser [split [get-env MODULES_LMPREREQ] [getState\
+   foreach modpreser [split [get-env __MODULES_LMPREREQ] [getState\
       path_separator]] {
       # recover range specifier ':' from its serialized form '<'
       set prelist [split [string map {< :} $modpreser] $sub1sep]
@@ -5510,10 +5511,10 @@ proc getLoadedModulePrereqList {} {
    return $modprelist
 }
 
-# return list of loaded module asked by user by parsing MODULES_LMNOTUASKED
+# return list of loaded module asked by user by parsing __MODULES_LMNOTUASKED
 proc getLoadedModuleNotUserAskedList {} {
    set nuaskedlist [list]
-   foreach mod [split [get-env MODULES_LMNOTUASKED] [getState\
+   foreach mod [split [get-env __MODULES_LMNOTUASKED] [getState\
       path_separator]] {
       # ignore empty element
       if {$mod ne {}} {
@@ -5523,11 +5524,12 @@ proc getLoadedModuleNotUserAskedList {} {
    return $nuaskedlist
 }
 
-# return list of loaded module declared altnames by parsing MODULES_LMALTNAME
+# return list of loaded module declared altnames by parsing
+# __MODULES_LMALTNAME
 proc getLoadedModuleAltnameList {} {
    set modaltlist [list]
    set sub1sep [getState sub1_separator]
-   foreach modaltser [split [get-env MODULES_LMALTNAME] [getState\
+   foreach modaltser [split [get-env __MODULES_LMALTNAME] [getState\
       path_separator]] {
       set altlist [split $modaltser $sub1sep]
       # ignore empty element (1 is meaningless as first elt is loaded mod)
@@ -5538,13 +5540,13 @@ proc getLoadedModuleAltnameList {} {
    return $modaltlist
 }
 
-# return list of loaded module declared variant by parsing MODULES_LMVARIANT
+# return list of loaded module declared variant by parsing __MODULES_LMVARIANT
 proc getLoadedModuleVariantList {} {
    set modvrspeclist [list]
    set sub1sep [getState sub1_separator]
    # get sub sub level separator that serialize third level of info in env var
    set sub2sep [getState sub2_separator]
-   foreach modvrspecser [split [get-env MODULES_LMVARIANT] [getState\
+   foreach modvrspecser [split [get-env __MODULES_LMVARIANT] [getState\
       path_separator]] {
       set vrspeclist [split $modvrspecser $sub1sep]
       # ignore empty element (1 is meaningless as first elt is loaded mod)
@@ -5566,11 +5568,11 @@ proc getLoadedModuleVariantList {} {
    return $modvrspeclist
 }
 
-# return list of loaded module declared tags by parsing MODULES_LMTAG
+# return list of loaded module declared tags by parsing __MODULES_LMTAG
 proc getLoadedModuleTagList {} {
    set modtaglist [list]
    set sub1sep [getState sub1_separator]
-   foreach modtagser [split [get-env MODULES_LMTAG] [getState\
+   foreach modtagser [split [get-env __MODULES_LMTAG] [getState\
       path_separator]] {
       set taglist [split $modtagser $sub1sep]
       # ignore empty element (1 is meaningless as first elt is loaded mod)
@@ -13267,38 +13269,38 @@ proc cmdModuleLoad {context uasked args} {
 
          # register declared source-sh in environment
          if {[set modsrcsh [getLoadedSourceSh $modname 1]] ne {}} {
-            add-path append MODULES_LMSOURCESH $modsrcsh
+            add-path append __MODULES_LMSOURCESH $modsrcsh
          }
 
          # register declared conflict in environment
          if {[set modcon [getLoadedConflict $modname 1]] ne {}} {
-            add-path append MODULES_LMCONFLICT $modcon
+            add-path append __MODULES_LMCONFLICT $modcon
          }
 
          # declare the prereq of this module
          if {[set modpre [getLoadedPrereq $modname 1]] ne {}} {
-            add-path append MODULES_LMPREREQ $modpre
+            add-path append __MODULES_LMPREREQ $modpre
          }
 
          # declare module as not asked by user (automatically loaded as
          # dependency) if it is the case
          if {!$uasked} {
-            add-path append MODULES_LMNOTUASKED $modname
+            add-path append __MODULES_LMNOTUASKED $modname
          }
 
          # declare the alternative names of this module
          if {[set modalt [getLoadedAltname $modname 1]] ne {}} {
-            add-path append MODULES_LMALTNAME $modalt
+            add-path append __MODULES_LMALTNAME $modalt
          }
 
          # declare the variant of this module
          if {[set modvrspec [getLoadedVariant $modname 1]] ne {}} {
-            add-path append MODULES_LMVARIANT $modvrspec
+            add-path append __MODULES_LMVARIANT $modvrspec
          }
 
          # declare the tags of this module
          if {[set modtag [getTagList $modnamevr 1]] ne {}} {
-            add-path append MODULES_LMTAG $modtag
+            add-path append __MODULES_LMTAG $modtag
          }
 
          # record module title (name and variant)
@@ -13576,44 +13578,44 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          unload-path LOADEDMODULES $modname
          unload-path --index _LMFILES_ $lmidx
          if {![set uasked [isModuleUserAsked $modname]]} {
-            unload-path MODULES_LMNOTUASKED $modname
+            unload-path __MODULES_LMNOTUASKED $modname
          }
          # update cache arrays
          unsetLoadedModule $modname $modfile
 
          # unregister declared source-sh
          if {[set modsrcsh [getLoadedSourceSh $modname 1]] ne {}} {
-            unload-path MODULES_LMSOURCESH $modsrcsh
+            unload-path __MODULES_LMSOURCESH $modsrcsh
          }
          unsetLoadedSourceSh $modname
 
          # unregister declared conflict
          if {[set modcon [getLoadedConflict $modname 1]] ne {}} {
-            unload-path MODULES_LMCONFLICT $modcon
+            unload-path __MODULES_LMCONFLICT $modcon
          }
          unsetLoadedConflict $modname
 
          # unset prereq declared for this module
          if {[llength [set modpre [getLoadedPrereq $modname]]] > 0} {
-            unload-path MODULES_LMPREREQ [getLoadedPrereq $modname 1]
+            unload-path __MODULES_LMPREREQ [getLoadedPrereq $modname 1]
          }
          unsetLoadedPrereq $modname
 
          # unset alternative names declared for this module
          if {[llength [set modalt [getLoadedAltname $modname]]] >0} {
-            unload-path MODULES_LMALTNAME [getLoadedAltname $modname 1]
+            unload-path __MODULES_LMALTNAME [getLoadedAltname $modname 1]
          }
          unsetLoadedAltname $modname
 
          # unset variant declared for this module
          if {[llength [set modvrspec [getLoadedVariant $modname]]] > 0} {
-            unload-path MODULES_LMVARIANT [getLoadedVariant $modname 1]
+            unload-path __MODULES_LMVARIANT [getLoadedVariant $modname 1]
          }
          unsetLoadedVariant $modname
 
          # unset tags declared for this module
          if {[set modtag [getTagList $modname 1]] ne {}} {
-            unload-path MODULES_LMTAG $modtag
+            unload-path __MODULES_LMTAG $modtag
          }
 
          if {[getConf auto_handling] && $auto} {
@@ -14197,9 +14199,9 @@ proc cmdModuleClear {{doit {}}} {
 
    # should be confirmed or forced to proceed
    if {[string equal -nocase -length 1 $doit y] || [getState force]} {
-      set vartoclear [list LOADEDMODULES MODULES_LMALTNAME MODULES_LMCONFLICT\
-         MODULES_LMNOTUASKED MODULES_LMPREREQ MODULES_LMSOURCESH\
-         MODULES_LMTAG MODULES_LMVARIANT _LMFILES_]
+      set vartoclear [list LOADEDMODULES __MODULES_LMALTNAME\
+         __MODULES_LMCONFLICT __MODULES_LMNOTUASKED __MODULES_LMPREREQ\
+         __MODULES_LMSOURCESH __MODULES_LMTAG __MODULES_LMVARIANT _LMFILES_]
 
       # add any reference counter variable to the list to unset
       set vartoclear [concat $vartoclear [array names ::env -glob *_modshare]\
@@ -14369,8 +14371,8 @@ proc cmdModuleConfig {dump_state args} {
          # report environment variable set related to Modules
          displayTableHeader hi {Env. variable} 24 {Value} 54
          set envvar_list {}
-         foreach var [list LOADEDMODULES _LMFILES_ MODULE* *_modshare\
-            *_modquar *_module*] {
+         foreach var [list LOADEDMODULES _LMFILES_ MODULE* __MODULES_*\
+            *_modshare *_modquar *_module*] {
             set envvar_list [concat $envvar_list [array names ::env -glob\
                $var]]
          }

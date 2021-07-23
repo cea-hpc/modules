@@ -64,6 +64,10 @@ Modules 5.0.0-alpha (2021-07-XX)
   tests from the non-regression testsuite are run. When first argument of the
   :command:`mt` script is ``quick``, tests are run in quick mode.
 * Install: run non-regression testsuite in quick mode in RPM spec file.
+* Rename the environment variables that are used by Modules to track loaded
+  environment state (variables whose name starts with ``MODULES_LM``). A
+  ``__`` prefix is added to the name of these variables to indicate that they
+  are intended for internal use only.
 
 
 .. _4.8 release notes:
