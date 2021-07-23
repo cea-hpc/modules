@@ -96,12 +96,10 @@ foreach shell $supported_shells {
 set env1 "orig"
 if { $verbose > 0 } {
     send_user "\tUnset MODULES_RUNENV_BAR\n"
-    send_user "\tSetup BAR_modquar = '$env1'\n"
-    send_user "\tSetup BAR = ''\n"
 }
 unset env(MODULES_RUNENV_BAR)
-set env(BAR_modquar) $env1
-set env(BAR) ""
+setenv_var __MODULES_QUAR_BAR $env1
+setenv_var BAR {}
 
 set ans [list]
 lappend ans "MODULES_RUN_QUARANTINE=$quar"
@@ -110,7 +108,7 @@ lappend ans "BAR=$env1"
 set anscsh [list]
 lappend anscsh "MODULES_RUN_QUARANTINE=$quar"
 lappend anscsh "BAR="
-lappend anscsh "BAR_modquar=$env1"
+lappend anscsh "__MODULES_QUAR_BAR=$env1"
 
 foreach shell $supported_shells {
     switch -- $shell {
@@ -142,7 +140,7 @@ set anscsh [list]
 lappend anscsh "MODULES_RUN_QUARANTINE=$quar"
 lappend anscsh "BAR=$runenv1"
 lappend anscsh "MODULES_RUNENV_BAR=$runenv1"
-lappend anscsh "BAR_modquar=$env1"
+lappend anscsh "__MODULES_QUAR_BAR=$env1"
 
 foreach shell $supported_shells {
     switch -- $shell {
@@ -176,7 +174,7 @@ set anscsh [list]
 lappend anscsh "MODULES_RUN_QUARANTINE=$quar"
 lappend anscsh "BAR=$runenv1"
 lappend anscsh "MODULES_RUNENV_BAR=$runenv1"
-lappend anscsh "BAR_modquar=$env1"
+lappend anscsh "__MODULES_QUAR_BAR=$env1"
 
 foreach shell $supported_shells {
     switch -- $shell {
@@ -196,12 +194,10 @@ set quar "BAR FOO"
 set env2 "orig2 part2 spe\"ci\"al"
 if { $verbose > 0 } {
     send_user "\tSetup MODULES_RUN_QUARANTINE = '$quar'\n"
-    send_user "\tSetup FOO_modquar = '$env2'\n"
-    send_user "\tSetup FOO = ''\n"
 }
 set env(MODULES_RUN_QUARANTINE) $quar
-set env(FOO_modquar) $env2
-set env(FOO) ""
+setenv_var __MODULES_QUAR_FOO $env2
+setenv_var FOO {}
 
 set ans [list]
 lappend ans "MODULES_RUN_QUARANTINE=$quar"
@@ -214,8 +210,8 @@ lappend anscsh "MODULES_RUN_QUARANTINE=$quar"
 lappend anscsh "BAR=$runenv1"
 lappend anscsh "FOO="
 lappend anscsh "MODULES_RUNENV_BAR=$runenv1"
-lappend anscsh "FOO_modquar=$env2"
-lappend anscsh "BAR_modquar=$env1"
+lappend anscsh "__MODULES_QUAR_FOO=$env2"
+lappend anscsh "__MODULES_QUAR_BAR=$env1"
 
 foreach shell $supported_shells {
     switch -- $shell {

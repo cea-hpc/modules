@@ -111,7 +111,7 @@ set err_cmd "$error_msgs: No autoinit mode available for 'cmd' shell"
 if {$install_quarantinesupport eq y} {
 set end_quar_sh "\\s*if \\\[ \"\\\${_mlv}\" = \"\\\${_mlv##\\\*\\\[\\\!A-Za-z0-9_\\\]}\" -a \"\\\${_mlv}\" = \"\\\${_mlv#\\\[0-9\\\]}\" \\\]; then
 \\s*if \\\[ -n \"`eval 'echo \\\${'\\\$_mlv'\\\+x}'`\" \\\]; then
-\\s*_mlre=\"\\\${_mlre:-}\\\${_mlv}_modquar='`eval 'echo \\\${'\\\$_mlv'}'`' \";
+\\s*_mlre=\"\\\${_mlre:-}__MODULES_QUAR_\\\${_mlv}='`eval 'echo \\\${'\\\$_mlv'}'`' \";
 \\s*fi;
 \\s*_mlrv=\"MODULES_RUNENV_\\\${_mlv}\";
 \\s*_mlre=\"\\\${_mlre:-}\\\${_mlv}='`eval 'echo \\\${'\\\$_mlrv':-}'`' \";
@@ -227,7 +227,7 @@ set func_fish "function $func_name
 \\s*for _mlv in \\\(string split ' ' \\\$MODULES_RUN_QUARANTINE\\\)
 \\s*if string match -r '\\\^\\\[A-Za-z_\\\]\\\[A-Za-z0-9_\\\]\\\*\\\$' \\\$_mlv >/dev/null
 \\s*if set -q \\\$_mlv
-\\s*set _mlre \\\$_mlre\\\$_mlv\"_modquar='\\\$\\\$_mlv' \"
+\\s*set _mlre \\\$_mlre\"__MODULES_QUAR_\"\\\$_mlv\"='\\\$\\\$_mlv' \"
 \\s*end
 \\s*set _mlrv \"MODULES_RUNENV_\\\$_mlv\"
 \\s*set _mlre \"\\\$_mlre\\\$_mlv='\\\$\\\$_mlrv' \"
@@ -244,7 +244,7 @@ set func_tcl "proc module {args} {
 \\s*foreach _mlv \\\[split \\\$::env\\\(MODULES_RUN_QUARANTINE\\\) \" \"\\\] {
 \\s*if {\\\[regexp {\\\^\\\[A-Za-z_\\\]\\\[A-Za-z0-9_\\\]\\\*\\\$} \\\$_mlv\\\]} {
 \\s*if {\\\[info exists ::env\\\(\\\$_mlv\\\)\\\]} {
-\\s*lappend _mlre \"\\\${_mlv}_modquar=\\\$::env\\\(\\\$_mlv\\\)\"
+\\s*lappend _mlre \"__MODULES_QUAR_\\\${_mlv}=\\\$::env\\\(\\\$_mlv\\\)\"
 \\s*}
 \\s*set _mlrv \"MODULES_RUNENV_\\\${_mlv}\"
 \\s*lappend _mlre \\\[expr {\\\[info exists ::env\\\(\\\$_mlrv\\\)\\\] \\\? \"\\\${_mlv}=\\\$::env\\\(\\\$_mlrv\\\)\" : \"\\\${_mlv}=\"}\\\]
@@ -265,7 +265,7 @@ set func_perl "sub module {
 \\s*foreach my \\\$_mlv \\\(split\\\(' ', \\\$ENV{'MODULES_RUN_QUARANTINE'}\\\)\\\) {
 \\s*if \\\(\\\$_mlv =~ \\\/\\\^\\\[A-Za-z_\\\]\\\[A-Za-z0-9_\\\]\\\*\\\$\\\/\\\) {
 \\s*if \\\(defined \\\$ENV{\\\$_mlv}\\\) {
-\\s*\\\$_mlre .= \"\\\${_mlv}_modquar='\\\$ENV{\\\$_mlv}' \";
+\\s*\\\$_mlre .= \"__MODULES_QUAR_\\\${_mlv}='\\\$ENV{\\\$_mlv}' \";
 \\s*}
 \\s*my \\\$_mlrv = \"MODULES_RUNENV_\\\$_mlv\";
 \\s*\\\$_mlre .= \"\\\$_mlv='\\\$ENV{\\\$_mlrv}' \";
@@ -290,7 +290,7 @@ def module\\\(\\*arguments\\\):
 \\s*for _mlv in os.environ\\\['MODULES_RUN_QUARANTINE'\\\].split\\\(\\\):
 \\s*if re.match\\\('\\\^\\\[A-Za-z_\\\]\\\[A-Za-z0-9_\\\]\\\*\\\$', _mlv\\\):
 \\s*if _mlv in os.environ:
-\\s*_mlre\\\[_mlv \\\+ '_modquar'\\\] = os.environ\\\[_mlv\\\]
+\\s*_mlre\\\['__MODULES_QUAR_' \\\+ _mlv\\\] = os.environ\\\[_mlv\\\]
 \\s*_mlrv = 'MODULES_RUNENV_' \\\+ _mlv
 \\s*if _mlrv in os.environ:
 \\s*_mlre\\\[_mlv\\\] = os.environ\\\[_mlrv\\\]
@@ -310,7 +310,7 @@ set func_ruby "class ENVModule
 \\s*ENV\\\['MODULES_RUN_QUARANTINE'\\\].split\\\(' '\\\).each do \\\|_mlv\\\|
 \\s*if _mlv =~ \\\/\\\^\\\[A-Za-z_\\\]\\\[A-Za-z0-9_\\\]\\\*\\\$\\\/ then
 \\s*if ENV.has_key\\\?\\\(_mlv\\\) then
-\\s*_mlre << _mlv \\\+ \"_modquar='\" \\\+ ENV\\\[_mlv\\\].to_s \\\+ \"' \"
+\\s*_mlre << \"__MODULES_QUAR_\" \\\+ _mlv \\\+ \"='\" \\\+ ENV\\\[_mlv\\\].to_s \\\+ \"' \"
 \\s*end
 \\s*_mlrv = 'MODULES_RUNENV_' \\\+ _mlv
 \\s*_mlre << _mlv \\\+ \"='\" \\\+ ENV\\\[_mlrv\\\].to_s \\\+ \"' \"
@@ -340,7 +340,7 @@ set func_cmake "function\\\(module\\\)
 \\s*foreach\\\(_mlv \\\${_mlv_list}\\\)
 \\s*if\\\(\\\${_mlv} MATCHES \"\\\^\\\[A-Za-z_\\\]\\\[A-Za-z0-9_\\\]\\\*\\\$\"\\\)
 \\s*if\\\(DEFINED ENV{\\\${_mlv}}\\\)
-\\s*set\\\(_mlre \"\\\${_mlre}\\\${_mlv}_modquar=\\\$ENV{\\\${_mlv}};\"\\\)
+\\s*set\\\(_mlre \"\\\${_mlre}__MODULES_QUAR_\\\${_mlv}=\\\$ENV{\\\${_mlv}};\"\\\)
 \\s*endif\\\(\\\)
 \\s*set\\\(_mlrv \"MODULES_RUNENV_\\\${_mlv}\"\\\)
 \\s*set\\\(_mlre \"\\\${_mlre}\\\${_mlv}=\\\$ENV{\\\${_mlrv}};\"\\\)
@@ -382,7 +382,7 @@ set func_r "module <- function\\\(...\\\){
 \\s*for \\\(mlv in strsplit\\\(Sys.getenv\\\('MODULES_RUN_QUARANTINE'\\\), ' '\\\)\\\[\\\[1\\\]\\\]\\\) {
 \\s*if \\\(grepl\\\('\\\^\\\[A-Za-z_\\\]\\\[A-Za-z0-9_\\\]\\\*\\\$', mlv\\\)\\\) {
 \\s*if \\\(\\\!is.na\\\(Sys.getenv\\\(mlv, unset=NA\\\)\\\)\\\) {
-\\s*mlre <- paste0\\\(mlre, mlv, \"_modquar='\", Sys.getenv\\\(mlv\\\), \"' \"\\\)
+\\s*mlre <- paste0\\\(mlre, \"__MODULES_QUAR_\", mlv, \"='\", Sys.getenv\\\(mlv\\\), \"' \"\\\)
 \\s*}
 \\s*mlrv <- paste0\\\('MODULES_RUNENV_', mlv\\\)
 \\s*mlre <- paste0\\\(mlre, mlv, \"='\", Sys.getenv\\\(mlrv\\\), \"' \"\\\)
