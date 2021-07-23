@@ -32,7 +32,7 @@ setenv_var MODULES_LIST_TERSE_OUTPUT header
 # list tests
 #
 
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1|0|0
+setenv_path_var __MODULES_LMVARIANT variant/1.0&foo|val1|0|0
 setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
 
 testouterr_cmd sh {list} OK "$cur_loaded
@@ -52,7 +52,7 @@ variant/1.0"
 testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"variants\": { \"foo\": \"val1\" }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"}}"
 
 # multiple variants set on module
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1|0|0&bar|val2|0|0
+setenv_path_var __MODULES_LMVARIANT variant/1.0&foo|val1|0|0&bar|val2|0|0
 setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
 
 set tserr "$cur_loaded
@@ -68,7 +68,7 @@ testouterr_cmd sh {list -j} OK $tserr
 testouterr_cmd sh {ml -j} OK $tserr
 
 # multiple modules loaded
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1|0|0&bar|val2|0|0:variant/2.0&baz|val3|0|0
+setenv_path_var __MODULES_LMVARIANT variant/1.0&foo|val1|0|0&bar|val2|0|0:variant/2.0&baz|val3|0|0
 setenv_loaded_module [list variant/1.0 variant/2.0] [list $mp/variant/1.0 $mp/variant/2.0]
 
 testouterr_cmd sh {list} OK "$cur_loaded
@@ -81,7 +81,7 @@ testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \
 \"variant/2.0\": { \"name\": \"variant/2.0\", \"type\": \"modulefile\", \"variants\": { \"baz\": \"val3\" }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/2.0\"}}"
 
 # loaded modules with also symbols defined
-setenv_path_var MODULES_LMALTNAME variant/1.0&variant/foo
+setenv_path_var __MODULES_LMALTNAME variant/1.0&variant/foo
 testouterr_cmd sh {list} OK "$cur_loaded
  1) variant/1.0{bar=val2:foo=val1}(foo)   2) variant/2.0{baz=val3}  
 
@@ -90,10 +90,10 @@ Key:
 
 testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"variants\": { \"bar\": \"val2\", \"foo\": \"val1\" }, \"symbols\": \[ \"foo\" \], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"},
 \"variant/2.0\": { \"name\": \"variant/2.0\", \"type\": \"modulefile\", \"variants\": { \"baz\": \"val3\" }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/2.0\"}}"
-unsetenv_path_var MODULES_LMALTNAME
+unsetenv_path_var __MODULES_LMALTNAME
 
 # duplicate variant definition
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1&foo|val3|0|0&bar|val2|0|0:variant/2.0&baz|val3|0|0
+setenv_path_var __MODULES_LMVARIANT variant/1.0&foo|val1&foo|val3|0|0&bar|val2|0|0:variant/2.0&baz|val3|0|0
 testouterr_cmd sh {list} OK "$cur_loaded
  1) variant/1.0{bar=val2:foo=val3}   2) variant/2.0{baz=val3}  
 
@@ -104,22 +104,22 @@ testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \
 \"variant/2.0\": { \"name\": \"variant/2.0\", \"type\": \"modulefile\", \"variants\": { \"baz\": \"val3\" }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/2.0\"}}"
 
 # badly defined loaded variant
-setenv_path_var MODULES_LMVARIANT variant/1.0
+setenv_path_var __MODULES_LMVARIANT variant/1.0
 testouterr_cmd sh {list} OK "$cur_loaded
  1) variant/1.0   2) variant/2.0  "
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo
+setenv_path_var __MODULES_LMVARIANT variant/1.0&foo
 testouterr_cmd sh {list} OK "$cur_loaded
  1) variant/1.0{foo=}   2) variant/2.0  
 
 Key:
 {variant=value}  "
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val
+setenv_path_var __MODULES_LMVARIANT variant/1.0&foo|val
 testouterr_cmd sh {list} OK "$cur_loaded
  1) variant/1.0{foo=val}   2) variant/2.0  
 
 Key:
 {variant=value}  "
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val|str
+setenv_path_var __MODULES_LMVARIANT variant/1.0&foo|val|str
 testouterr_cmd sh {list} OK "$cur_loaded
  1) variant/1.0{foo=val}   2) variant/2.0  
 
@@ -128,7 +128,7 @@ Key:
 
 # colored output
 setenv_var MODULES_COLORS "se=2:va=33"
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo|val1|0|0&bar|val2|0|0:variant/2.0&baz|val3|0|0
+setenv_path_var __MODULES_LMVARIANT variant/1.0&foo|val1|0|0&bar|val2|0|0:variant/2.0&baz|val3|0|0
 
 testouterr_cmd_re sh {list --color=always} OK "$cur_loaded
  1\\) variant/1.0[sgr 2]{[sgr 22][sgr 33]bar=val2[sgr 0][sgr 2]:[sgr 22][sgr 33]foo=val1[sgr 0][sgr 2]}[sgr 22]   2\\) variant/2.0[sgr 2]{[sgr 22][sgr 33]baz=val3[sgr 0][sgr 2]}[sgr 22]  
@@ -138,14 +138,14 @@ Key:
 
 # boolean variant set
 setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo|1|1|0
+setenv_path_var __MODULES_LMVARIANT variant/1.0&foo|1|1|0
 testouterr_cmd sh {list} OK "$cur_loaded
  1) variant/1.0{+foo}  
 
 Key:
 {+variant}={variant=on}  {variant=value}  "
 testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"variants\": { \"foo\": true }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"}}"
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo|0|1|0
+setenv_path_var __MODULES_LMVARIANT variant/1.0&foo|0|1|0
 testouterr_cmd sh {list} OK "$cur_loaded
  1) variant/1.0{-foo}  
 
@@ -153,54 +153,54 @@ Key:
 {-variant}={variant=off}  {variant=value}  "
 testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"variants\": { \"foo\": false }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"}}"
 # bad persistency information for boolean variant
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo|1|1
+setenv_path_var __MODULES_LMVARIANT variant/1.0&foo|1|1
 testouterr_cmd sh {list} OK "$cur_loaded
  1) variant/1.0{+foo}  
 
 Key:
 {+variant}={variant=on}  {variant=value}  "
 testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"variants\": { \"foo\": true }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"}}"
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo||1|0
+setenv_path_var __MODULES_LMVARIANT variant/1.0&foo||1|0
 testouterr_cmd sh {list} OK "$cur_loaded
  1) variant/1.0{-foo}  
 
 Key:
 {-variant}={variant=off}  {variant=value}  "
 testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"variants\": { \"foo\": false }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"}}"
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo|str|1|0
+setenv_path_var __MODULES_LMVARIANT variant/1.0&foo|str|1|0
 testouterr_cmd sh {list} OK "$cur_loaded
  1) variant/1.0{-foo}  
 
 Key:
 {-variant}={variant=off}  {variant=value}  "
 testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"variants\": { \"foo\": false }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"}}"
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo|1||0
+setenv_path_var __MODULES_LMVARIANT variant/1.0&foo|1||0
 testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"variants\": { \"foo\": \"1\" }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"}}"
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo|0|str|0
+setenv_path_var __MODULES_LMVARIANT variant/1.0&foo|0|str|0
 testouterr_cmd sh {list -j} OK "{\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"variants\": { \"foo\": \"0\" }, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"}}"
 
 # color output with boolean variant
 setenv_var MODULES_COLORS "se=2:va=33"
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo|1|1|0
+setenv_path_var __MODULES_LMVARIANT variant/1.0&foo|1|1|0
 testouterr_cmd_re sh {list --color=always} OK "$cur_loaded
  1\\) variant/1.0[sgr 2]{[sgr 22][sgr 33]\\+foo[sgr 0][sgr 2]}[sgr 22]  
 
 Key:
 [sgr 2]{[sgr 22][sgr 33]\\+variant[sgr 0][sgr 2]}[sgr 22]=[sgr 2]{[sgr 22][sgr 33]variant=on[sgr 0][sgr 2]}[sgr 22]  [sgr 2]{[sgr 22][sgr 33]variant=value[sgr 0][sgr 2]}[sgr 22]  "
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo|0|1|0
+setenv_path_var __MODULES_LMVARIANT variant/1.0&foo|0|1|0
 testouterr_cmd_re sh {list --color=always} OK "$cur_loaded
  1\\) variant/1.0[sgr 2]{[sgr 22][sgr 33]-foo[sgr 0][sgr 2]}[sgr 22]  
 
 Key:
 [sgr 2]{[sgr 22][sgr 33]-variant[sgr 0][sgr 2]}[sgr 22]=[sgr 2]{[sgr 22][sgr 33]variant=off[sgr 0][sgr 2]}[sgr 22]  [sgr 2]{[sgr 22][sgr 33]variant=value[sgr 0][sgr 2]}[sgr 22]  "
-setenv_path_var MODULES_LMVARIANT variant/1.0&foo|0|1|0&bar|val|0
+setenv_path_var __MODULES_LMVARIANT variant/1.0&foo|0|1|0&bar|val|0
 testouterr_cmd_re sh {list --color=always} OK "$cur_loaded
  1\\) variant/1.0[sgr 2]{[sgr 22][sgr 33]bar=val[sgr 0][sgr 2]:[sgr 22][sgr 33]-foo[sgr 0][sgr 2]}[sgr 22]  
 
 Key:
 [sgr 2]{[sgr 22][sgr 33]-variant[sgr 0][sgr 2]}[sgr 22]=[sgr 2]{[sgr 22][sgr 33]variant=off[sgr 0][sgr 2]}[sgr 22]  [sgr 2]{[sgr 22][sgr 33]variant=value[sgr 0][sgr 2]}[sgr 22]  "
 
-unsetenv_path_var MODULES_LMVARIANT
+unsetenv_path_var __MODULES_LMVARIANT
 unsetenv_loaded_module
 
 

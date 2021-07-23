@@ -49,25 +49,25 @@ if {[cmpversion $tclsh_version 8.5] > -1} {
 set ans [list]
 lappend ans [list setpath LOADEDMODULES tag/4.0]
 lappend ans [list setpath _LMFILES_ $mp/tag/4.0]
-lappend ans [list setpath MODULES_LMTAG tag/4.0&nearly-forbidden]
+lappend ans [list setpath __MODULES_LMTAG tag/4.0&nearly-forbidden]
 set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
 set tserr [msg_load tag/4.0 [err_accessnearlydenied $tomorrow]]
 testouterr_cmd sh {load tag/4.0} $ans $tserr
 
 # with empty element in variable
-setenv_path_var MODULES_LMTAG {}
+setenv_path_var __MODULES_LMTAG {}
 set ans [list]
 lappend ans [list setpath LOADEDMODULES tag/4.0]
 lappend ans [list setpath _LMFILES_ $mp/tag/4.0]
-lappend ans [list setpath MODULES_LMTAG :tag/4.0&nearly-forbidden]
+lappend ans [list setpath __MODULES_LMTAG :tag/4.0&nearly-forbidden]
 testouterr_cmd_re sh {load tag/4.0} $ans $tserr
 
 setenv_loaded_module [list tag/2.0] [list $mp/tag/1.0]
-setenv_path_var MODULES_LMTAG tag/2.0&forbidden
+setenv_path_var __MODULES_LMTAG tag/2.0&forbidden
 set ans [list]
 lappend ans [list setpath LOADEDMODULES tag/2.0:tag/4.0]
 lappend ans [list setpath _LMFILES_ $mp/tag/1.0:$mp/tag/4.0]
-lappend ans [list setpath MODULES_LMTAG tag/2.0&forbidden:tag/4.0&nearly-forbidden]
+lappend ans [list setpath __MODULES_LMTAG tag/2.0&forbidden:tag/4.0&nearly-forbidden]
 testouterr_cmd_re sh {load tag/4.0} $ans $tserr
 
 
@@ -76,31 +76,31 @@ testouterr_cmd_re sh {load tag/4.0} $ans $tserr
 #
 
 setenv_loaded_module [list tag/4.0] [list $mp/tag/4.0]
-setenv_path_var MODULES_LMTAG tag/4.0&nearly-forbidden
+setenv_path_var __MODULES_LMTAG tag/4.0&nearly-forbidden
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath MODULES_LMTAG]
+lappend ans [list unsetpath __MODULES_LMTAG]
 testouterr_cmd sh {unload tag/4.0} $ans {}
 
-setenv_path_var MODULES_LMTAG tag/4.0&nearly-forbidden&othertag
+setenv_path_var __MODULES_LMTAG tag/4.0&nearly-forbidden&othertag
 testouterr_cmd sh {unload tag/4.0} $ans {}
 
 setenv_loaded_module [list tag/4.0 tag/2.0] [list $mp/tag/4.0 $mp/tag/1.0]
-setenv_path_var MODULES_LMTAG tag/4.0&nearly-forbidden&othertag:tag/2.0&forbidden
+setenv_path_var __MODULES_LMTAG tag/4.0&nearly-forbidden&othertag:tag/2.0&forbidden
 set ans [list]
 lappend ans [list setpath LOADEDMODULES tag/2.0]
 lappend ans [list setpath _LMFILES_ $mp/tag/1.0]
-lappend ans [list setpath MODULES_LMTAG tag/2.0&forbidden]
+lappend ans [list setpath __MODULES_LMTAG tag/2.0&forbidden]
 testouterr_cmd sh {unload tag/4.0} $ans {}
 
 # with empty element in variable
 setenv_loaded_module [list tag/4.0] [list $mp/tag/4.0]
-setenv_path_var MODULES_LMTAG :tag/4.0&nearly-forbidden
+setenv_path_var __MODULES_LMTAG :tag/4.0&nearly-forbidden
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
-lappend ans [list setpath MODULES_LMTAG {}]
+lappend ans [list setpath __MODULES_LMTAG {}]
 testouterr_cmd sh {unload tag/4.0} $ans {}
 
 
@@ -109,7 +109,7 @@ testouterr_cmd sh {unload tag/4.0} $ans {}
 #
 
 setenv_loaded_module [list tag/4.0 tag/2.0 tag/5.0] [list $mp/tag/4.0 $mp/tag/1.0 $mp/tag/5.0]
-setenv_path_var MODULES_LMTAG tag/4.0&nearly-forbidden&othertag:tag/2.0&forbidden:tag/5.0&hidden-loaded
+setenv_path_var __MODULES_LMTAG tag/4.0&nearly-forbidden&othertag:tag/2.0&forbidden:tag/5.0&hidden-loaded
 testouterr_cmd sh {list} OK "$cur_loaded
  1) tag/4.0 <nF:othertag>   2) tag/2.0 <F>  
 
@@ -147,14 +147,14 @@ set tserr "{\"tag/4.0\": { \"name\": \"tag/4.0\", \"type\": \"modulefile\", \"va
 testouterr_cmd sh {list -j --all} OK $tserr
 
 unsetenv_loaded_module
-unsetenv_path_var MODULES_LMTAG
+unsetenv_path_var __MODULES_LMTAG
 unset tomorrow
 
 }
 
 #
 # 'hidden' tag test is covered by 20/11*
-# this tag is not exported in MODULES_LMTAG so cannot be reported on 'list'
+# this tag is not exported in __MODULES_LMTAG so cannot be reported on 'list'
 #
 
 #
@@ -169,16 +169,16 @@ unset tomorrow
 set ans [list]
 lappend ans [list setpath LOADEDMODULES foo/2.0:impreq/load:impreq/prereq]
 lappend ans [list setpath _LMFILES_ $mp/foo/2.0:$mp/impreq/load:$mp/impreq/prereq]
-lappend ans [list setpath MODULES_LMPREREQ impreq/load&foo:impreq/prereq&impreq/load]
-lappend ans [list setpath MODULES_LMNOTUASKED foo/2.0:impreq/load]
+lappend ans [list setpath __MODULES_LMPREREQ impreq/load&foo:impreq/prereq&impreq/load]
+lappend ans [list setpath __MODULES_LMNOTUASKED foo/2.0:impreq/load]
 if {$install_advversspec eq {y}} {
-    lappend ans [list setpath MODULES_LMALTNAME foo/2.0&as|foo/default&as|foo/latest]
+    lappend ans [list setpath __MODULES_LMALTNAME foo/2.0&as|foo/default&as|foo/latest]
 }
 testouterr_cmd_re sh {load --auto impreq/prereq} $ans [msg_top_load impreq/prereq {} [list foo/2.0 impreq/load] {}]
 
 setenv_loaded_module [list foo/2.0 impreq/load impreq/prereq] [list $mp/foo/2.0 $mp/impreq/load $mp/impreq/prereq] [list foo/2.0 impreq/load]
-setenv_path_var MODULES_LMPREREQ impreq/load&foo:impreq/prereq&impreq/load
-setenv_path_var MODULES_LMNOTUASKED foo/2.0:impreq/load
+setenv_path_var __MODULES_LMPREREQ impreq/load&foo:impreq/prereq&impreq/load
+setenv_path_var __MODULES_LMNOTUASKED foo/2.0:impreq/load
 
 testouterr_cmd sh {list} OK "$cur_loaded
  1) foo/2.0 <aL>   2) impreq/load <aL>   3) impreq/prereq  
@@ -210,7 +210,7 @@ Key:
 testouterr_cmd_re sh {avail impreq/prereq} OK $tserr
 
 # set an additional tag
-setenv_path_var MODULES_LMTAG foo/2.0&othertag
+setenv_path_var __MODULES_LMTAG foo/2.0&othertag
 
 set test_cols 120
 if {![info exists term_cols]} {
@@ -245,9 +245,9 @@ Key:
 testouterr_cmd_re sh {avail foo/2.0} OK $tserr
 
 unsetenv_loaded_module
-unsetenv_path_var MODULES_LMPREREQ
-unsetenv_path_var MODULES_LMNOTUASKED
-unsetenv_path_var MODULES_LMTAG
+unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_path_var __MODULES_LMNOTUASKED
+unsetenv_path_var __MODULES_LMTAG
 
 
 #

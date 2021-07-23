@@ -622,14 +622,14 @@ if {$install_versioning eq "y"} {
 
 # create a temporary collection used in initrc example
 setenv_path_var MODULEPATH $modpath.deps
-setenv_path_var MODULES_LMPREREQ m3&m1
+setenv_path_var __MODULES_LMPREREQ m3&m1
 setenv_loaded_module [list m1 m3] [list $modpath.deps/m1 $modpath.deps/m3] [list m1]
 testouterr_cmd sh "save $env(TESTSUITEDIR)/coll14" OK {}
 
 # setup environment state
 unsetenv_loaded_module
 unsetenv_path_var MODULEPATH
-unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var __MODULES_LMPREREQ
 
 if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalled || $modrc1_exinstalled || $initrc_exinstalled)} {
     foreach shell $supported_shells {
@@ -748,7 +748,7 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                         set ans [list]
                         lappend ans [list ERR]
                         lappend ans [list [set "func_$shell"]]
-                        lappend ans [list set MODULES_LMPREREQ m3&m1]
+                        lappend ans [list set __MODULES_LMPREREQ m3&m1]
                         lappend ans [list set MODULESHOME $moduleshome]
                         lappend ans [list set LOADEDMODULES "m1:m3:space yc/4"]
                         lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4"]
@@ -765,15 +765,15 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                         if {[is_real_shell $shell] && $install_setshellstartup eq {y}} {
                             lappend ans [list set BASH_ENV $install_initdir/bash]
                         }
-                        lappend ans [list set MODULES_LMNOTUASKED m1]
+                        lappend ans [list set __MODULES_LMNOTUASKED m1]
                         if {$install_versioning eq "y"} {
                             lappend ans [list set MODULE_VERSION_STACK "(.*)"]
                         }
                         if {[is_real_shell $shell] && $install_setshellstartup eq {y}} {
                             lappend ans [list set ENV $install_initdir/profile.sh]
                         }
-                        lappend ans [list set MODULES_LMNOTUASKED_modshare m1:1]
-                        lappend ans [list set MODULES_LMPREREQ_modshare m3&m1:1]
+                        lappend ans [list set __MODULES_LMNOTUASKED_modshare m1:1]
+                        lappend ans [list set __MODULES_LMPREREQ_modshare m3&m1:1]
                         lappend ans [list set MODULEPATH "$modpath wspace:$modpath.deps"]
                         lappend ans [list set LOADEDMODULES_modshare (.*)]
                         lappend ans [list set _LMFILES__modshare (.*)]
@@ -800,7 +800,7 @@ if {!$insmodspath && $initrc_exinstalled && $modrc eq "$install_etcdir/initrc"} 
     set ans [list]
     lappend ans [list ERR]
     lappend ans [list [set "func_sh"]]
-    lappend ans [list set MODULES_LMPREREQ m3&m1]
+    lappend ans [list set __MODULES_LMPREREQ m3&m1]
     lappend ans [list set MODULESHOME $moduleshome]
     lappend ans [list set LOADEDMODULES "m1:m3:space yc/4"]
     lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4"]
@@ -811,15 +811,15 @@ if {!$insmodspath && $initrc_exinstalled && $modrc eq "$install_etcdir/initrc"} 
     if {$install_setshellstartup eq {y}} {
         lappend ans [list set BASH_ENV $install_initdir/bash]
     }
-    lappend ans [list set MODULES_LMNOTUASKED m1]
+    lappend ans [list set __MODULES_LMNOTUASKED m1]
     if {$install_setshellstartup eq {y}} {
         lappend ans [list set ENV $install_initdir/profile.sh]
     }
     if {$install_versioning eq "y"} {
         lappend ans [list set MODULE_VERSION_STACK "(.*)"]
     }
-    lappend ans [list set MODULES_LMNOTUASKED_modshare m1:1]
-    lappend ans [list set MODULES_LMPREREQ_modshare m3&m1:1]
+    lappend ans [list set __MODULES_LMNOTUASKED_modshare m1:1]
+    lappend ans [list set __MODULES_LMPREREQ_modshare m3&m1:1]
     lappend ans [list set MODULEPATH "$modpath wspace:$modpath.deps"]
     lappend ans [list set LOADEDMODULES_modshare (.*)]
     lappend ans [list set _LMFILES__modshare (.*)]

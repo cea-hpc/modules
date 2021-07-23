@@ -41,26 +41,26 @@ if {$plus_in_modpath && $install_advversspec eq {y}} {
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $mp/c]
 lappend ans [list setpath _LMFILES_ $mp/c]
-lappend ans [list setpath MODULES_LMCONFLICT $mp/c&c]
+lappend ans [list setpath __MODULES_LMCONFLICT $mp/c&c]
 testouterr_cmd sh "load $mp/c" $ans {}
 testouterr_cmd sh "load --auto $mp/c" $ans {}
 
 setenv_loaded_module [list c] [list $mp/c]
-setenv_path_var MODULES_LMCONFLICT c&c
+setenv_path_var __MODULES_LMCONFLICT c&c
 set ans [list]
 lappend ans [list setpath LOADEDMODULES c:$mp/b]
 lappend ans [list setpath _LMFILES_ $mp/c:$mp/b]
-lappend ans [list setpath MODULES_LMPREREQ $mp/b&c]
+lappend ans [list setpath __MODULES_LMPREREQ $mp/b&c]
 testouterr_cmd_re sh "load $mp/b" $ans {}
 
 setenv_loaded_module [list $mp/c] [list $mp/c]
-setenv_path_var MODULES_LMCONFLICT $mp/c&c
+setenv_path_var __MODULES_LMCONFLICT $mp/c&c
 testouterr_cmd_re sh "load c" OK {}
 
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list unsetpath __MODULES_LMCONFLICT]
 testouterr_cmd_re sh "unload c" $ans {}
 testouterr_cmd_re sh "unload $mp/c" $ans {}
 testouterr_cmd_re sh "unload --auto c" $ans {}
@@ -68,24 +68,24 @@ testouterr_cmd_re sh "unload --auto $mp/c" $ans {}
 
 # requirement
 setenv_loaded_module [list $mp/c] [list $mp/c]
-setenv_path_var MODULES_LMCONFLICT $mp/c&c
+setenv_path_var __MODULES_LMCONFLICT $mp/c&c
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $mp/c:b]
 lappend ans [list setpath _LMFILES_ $mp/c:$mp/b]
-lappend ans [list setpath MODULES_LMPREREQ b&c]
+lappend ans [list setpath __MODULES_LMPREREQ b&c]
 testouterr_cmd_re sh "load b" $ans {}
 testouterr_cmd_re sh "load --auto b" $ans {}
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $mp/c:$mp/b]
 lappend ans [list setpath _LMFILES_ $mp/c:$mp/b]
-lappend ans [list setpath MODULES_LMPREREQ $mp/b&c]
+lappend ans [list setpath __MODULES_LMPREREQ $mp/b&c]
 testouterr_cmd_re sh "load $mp/b" $ans {}
 testouterr_cmd_re sh "load --auto $mp/b" $ans {}
 
 # conflict
 setenv_loaded_module [list $mp/c:$mp/b] [list $mp/c:$mp/b]
-setenv_path_var MODULES_LMCONFLICT $mp/c&c
-setenv_path_var MODULES_LMPREREQ $mp/b&c
+setenv_path_var __MODULES_LMCONFLICT $mp/c&c
+setenv_path_var __MODULES_LMPREREQ $mp/b&c
 testouterr_cmd sh "load a" ERR [msg_load a [err_conflict b]]
 testouterr_cmd sh "load --auto a" ERR [msg_load a [err_conflict b]]
 testouterr_cmd sh "load $mp/a" ERR [msg_load $mp/a [err_conflict b]]
@@ -95,13 +95,13 @@ testouterr_cmd sh "load --auto $mp/a" ERR [msg_load $mp/a [err_conflict b]]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $mp/c:$mp/b:a]
 lappend ans [list setpath _LMFILES_ $mp/c:$mp/b:$mp/a]
-lappend ans [list setpath MODULES_LMCONFLICT $mp/c&c:a&b]
+lappend ans [list setpath __MODULES_LMCONFLICT $mp/c&c:a&b]
 testouterr_cmd_re sh "load --force a" $ans [msg_load a [err_conlof b]]
 testouterr_cmd_re sh "load --auto --force a" $ans [msg_load a [err_conlof b]]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $mp/c:$mp/b:$mp/a]
 lappend ans [list setpath _LMFILES_ $mp/c:$mp/b:$mp/a]
-lappend ans [list setpath MODULES_LMCONFLICT $mp/c&c:$mp/a&b]
+lappend ans [list setpath __MODULES_LMCONFLICT $mp/c&c:$mp/a&b]
 testouterr_cmd_re sh "load --force $mp/a" $ans [msg_load $mpre/a [err_conlof b]]
 testouterr_cmd_re sh "load --auto --force $mp/a" $ans [msg_load $mpre/a [err_conlof b]]
 

@@ -430,22 +430,22 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
 
     # setup environment with no loaded module
     unsetenv_loaded_module
-    unsetenv_path_var MODULES_LMPREREQ
-    unsetenv_path_var MODULES_LMALTNAME
+    unsetenv_path_var __MODULES_LMPREREQ
+    unsetenv_path_var __MODULES_LMALTNAME
 
     set ans [list]
     lappend ans [list set testsuite "yes"]
     lappend ans [list setpath LOADEDMODULES "$module"]
     lappend ans [list setpath _LMFILES_ "$modulefile"]
     if {$modnuasked ne ""} {
-        lappend ans [list setpath MODULES_LMNOTUASKED "$modnuasked"]
+        lappend ans [list setpath __MODULES_LMNOTUASKED "$modnuasked"]
     }
 
     if {$modprereq ne ""} {
-        lappend ans [list setpath MODULES_LMPREREQ "$modprereq"]
+        lappend ans [list setpath __MODULES_LMPREREQ "$modprereq"]
     }
     if {$modalt ne ""} {
-        lappend ans [list setpath MODULES_LMALTNAME $modalt]
+        lappend ans [list setpath __MODULES_LMALTNAME $modalt]
     }
     if {$nodefault eq {}} {
         testouterr_cmd_re "sh" "load $modsym" $ans $msgload
@@ -491,10 +491,10 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
     # setup environment with targeted module loaded
     setenv_loaded_module $modulelist $modulefilelist $modnuasked
     if {$modprereq ne ""} {
-        setenv_path_var MODULES_LMPREREQ $modprereq
+        setenv_path_var __MODULES_LMPREREQ $modprereq
     }
     if {$modalt ne ""} {
-        setenv_path_var MODULES_LMALTNAME $modalt
+        setenv_path_var __MODULES_LMALTNAME $modalt
     }
 
     set ans [list]
@@ -505,16 +505,16 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
     lappend ans [list unsetpath LOADEDMODULES]
     lappend ans [list unsetpath _LMFILES_]
     if {$modprereq ne ""} {
-        lappend ans [list unsetpath MODULES_LMPREREQ]
+        lappend ans [list unsetpath __MODULES_LMPREREQ]
     }
     if {$::install_autohandling eq {y} && $modprereq ne {}} {
         lappend ans [list unset testsuite]
     }
     if {$modnuasked ne ""} {
-        lappend ans [list unsetpath MODULES_LMNOTUASKED]
+        lappend ans [list unsetpath __MODULES_LMNOTUASKED]
     }
     if {$modalt ne ""} {
-        lappend ans [list unsetpath MODULES_LMALTNAME]
+        lappend ans [list unsetpath __MODULES_LMALTNAME]
     }
     testouterr_cmd_re "sh" "unload $modsym" $ans $msgunload
 }

@@ -37,36 +37,36 @@ setenv_path_var MODULEPATH $mp
 
 # load attempt triggering a registered conflict
 setenv_loaded_module ma "$mp/ma"
-setenv_path_var MODULES_LMCONFLICT "ma&mb"
+setenv_path_var __MODULES_LMCONFLICT "ma&mb"
 testouterr_cmd "sh" "load mb" "ERR" [msg_load mb [err_conflict ma]]
 
 # unload attempt triggering a registered prereq
 setenv_loaded_module [list mc mb] [list "$mp/mc" "$mp/mb"] [list mc]
-setenv_path_var MODULES_LMCONFLICT "mc&mc"
-setenv_path_var MODULES_LMPREREQ "mb&mc"
+setenv_path_var __MODULES_LMCONFLICT "mc&mc"
+setenv_path_var __MODULES_LMPREREQ "mb&mc"
 if {$auto_handling} {
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath MODULES_LMNOTUASKED]
-lappend ans [list unsetpath MODULES_LMCONFLICT]
-lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath __MODULES_LMNOTUASKED]
+lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unsetpath __MODULES_LMPREREQ]
 testouterr_cmd "sh" "unload mc" $ans [msg_top_unload mc mb {} {}]
 } else {
 testouterr_cmd "sh" "unload mc" ERR [msg_unload mc [err_prerequn mb]]
 }
 
-unsetenv_path_var MODULES_LMCONFLICT
-unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_path_var __MODULES_LMPREREQ
 unsetenv_loaded_module
 
 # load tests
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "mc:mb"]
 lappend ans [list setpath _LMFILES_ "$mp/mc:$mp/mb"]
-lappend ans [list setpath MODULES_LMCONFLICT "mc&mc"]
-lappend ans [list setpath MODULES_LMPREREQ "mb&mc"]
-lappend ans [list setpath MODULES_LMNOTUASKED "mc"]
+lappend ans [list setpath __MODULES_LMCONFLICT "mc&mc"]
+lappend ans [list setpath __MODULES_LMPREREQ "mb&mc"]
+lappend ans [list setpath __MODULES_LMNOTUASKED "mc"]
 testouterr_cmd_re "sh" "load mb" $ans [msg_top_load mb {} mc {}]
 
 testouterr_cmd "sh" "load md" "ERR" [msg_load mc [err_conloi md]]\n\n[msg_load md [err_reqlo mc]]
@@ -96,9 +96,9 @@ testouterr_cmd "sh" "load mq" "ERR" [msg_unload mb [err_deplo mi]]\n\n[msg_load 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "mc:mb:mj:mr"]
 lappend ans [list setpath _LMFILES_ "$mp/mc:$mp/mb:$mp/mj:$mp/mr"]
-lappend ans [list setpath MODULES_LMCONFLICT "mc&mc"]
-lappend ans [list setpath MODULES_LMPREREQ "mb&mc:mr&mb&mj"]
-lappend ans [list setpath MODULES_LMNOTUASKED "mc:mb:mj"]
+lappend ans [list setpath __MODULES_LMCONFLICT "mc&mc"]
+lappend ans [list setpath __MODULES_LMPREREQ "mb&mc:mr&mb&mj"]
+lappend ans [list setpath __MODULES_LMNOTUASKED "mc:mb:mj"]
 testouterr_cmd_re "sh" "load mr" $ans [msg_top_load mr {} [list mc mb mj] {}]
 
 # is-loading conflict check
@@ -107,25 +107,25 @@ testouterr_cmd "sh" "load mbt" "ERR" [msg_load mbs [err_conloi mbt]]\n\n[msg_loa
 
 # unload tests
 setenv_loaded_module [list mc mb] [list "$mp/mc" "$mp/mb"] [list mc]
-setenv_path_var MODULES_LMCONFLICT "mc&mc"
-setenv_path_var MODULES_LMPREREQ "mb&mc"
+setenv_path_var __MODULES_LMCONFLICT "mc&mc"
+setenv_path_var __MODULES_LMPREREQ "mb&mc"
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath MODULES_LMNOTUASKED]
-lappend ans [list unsetpath MODULES_LMCONFLICT]
-lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath __MODULES_LMNOTUASKED]
+lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unsetpath __MODULES_LMPREREQ]
 testouterr_cmd "sh" "unload mb" $ans [msg_top_unload mb {} mc {}]
 
 setenv_loaded_module [list mc mb mj mr] [list "$mp/mc" "$mp/mb" "$mp/mj" "$mp/mr"] [list mc mb mj]
-setenv_path_var MODULES_LMCONFLICT "mc&mc"
-setenv_path_var MODULES_LMPREREQ "mb&mc:mr&mb&mj"
+setenv_path_var __MODULES_LMCONFLICT "mc&mc"
+setenv_path_var __MODULES_LMPREREQ "mb&mc:mr&mb&mj"
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath MODULES_LMNOTUASKED]
-lappend ans [list unsetpath MODULES_LMCONFLICT]
-lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath __MODULES_LMNOTUASKED]
+lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unsetpath __MODULES_LMPREREQ]
 if {$auto_handling} {
 testouterr_cmd "sh" "unload mr" $ans [msg_top_unload mr {} [list mj mb mc] {}]
 } else {
@@ -136,8 +136,8 @@ testouterr_cmd "sh" "unload mr" $ans [msg_top_unload mr {} [list mb mc mj] {}]
 
 # check broken module does not spread its prereq/conflict defs to next evaluated module
 setenv_loaded_module [list mc] [list $mp/mc]
-setenv_path_var MODULES_LMCONFLICT mc&mc
-unsetenv_path_var MODULES_LMPREREQ
+setenv_path_var __MODULES_LMCONFLICT mc&mc
+unsetenv_path_var __MODULES_LMPREREQ
 set ans [list]
 lappend ans [list setpath LOADEDMODULES mc:mj]
 lappend ans [list setpath _LMFILES_ $mp/mc:$mp/mj]
@@ -147,8 +147,8 @@ testouterr_cmd_re sh {load mbu mj} $ans [msg_load mbu $err_evalabort]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES mc:mb:mj:mr]
 lappend ans [list setpath _LMFILES_ $mp/mc:$mp/mb:$mp/mj:$mp/mr]
-lappend ans [list setpath MODULES_LMPREREQ mb&mc:mr&mb&mj]
-lappend ans [list setpath MODULES_LMNOTUASKED mb:mj]
+lappend ans [list setpath __MODULES_LMPREREQ mb&mc:mr&mb&mj]
+lappend ans [list setpath __MODULES_LMNOTUASKED mb:mj]
 lappend ans [list ERR]
 testouterr_cmd_re sh {load mbu mr} $ans [msg_load mbu $err_evalabort]\n\n[msg_top_load mr {} [list mb mj] {}]
 

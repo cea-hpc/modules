@@ -66,14 +66,14 @@ setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES foo/1.0:foo/0.prereq]
 lappend ans [list setpath _LMFILES_ $mp/foo/1.0:$mp/foo/0.prereq]
-lappend ans [list setpath MODULES_LMPREREQ foo/0.prereq&foo/1.0]
+lappend ans [list setpath __MODULES_LMPREREQ foo/0.prereq&foo/1.0]
 testouterr_cmd_re sh {load -vv --auto foo/0.prereq} $ans [msg_load foo/0.prereq]
 
 # module load of an already loaded module
 set ans [list]
 lappend ans [list setpath LOADEDMODULES foo/1.0:foo/0.load]
 lappend ans [list setpath _LMFILES_ $mp/foo/1.0:$mp/foo/0.load]
-lappend ans [list setpath MODULES_LMPREREQ foo/0.load&foo/1.0]
+lappend ans [list setpath __MODULES_LMPREREQ foo/0.load&foo/1.0]
 testouterr_cmd_re sh {load -vv --auto foo/0.load} $ans [msg_load foo/0.load]
 
 # module unload of an already unloaded module
@@ -81,7 +81,7 @@ unsetenv_loaded_module
 set ans [list]
 lappend ans [list setpath LOADEDMODULES impreq/unload]
 lappend ans [list setpath _LMFILES_ $mp/impreq/unload]
-lappend ans [list setpath MODULES_LMCONFLICT impreq/unload&foo]
+lappend ans [list setpath __MODULES_LMCONFLICT impreq/unload&foo]
 testouterr_cmd_re sh {load -vv --auto impreq/unload} $ans [msg_unload foo [info_notloaded foo]]\n\n[msg_load impreq/unload]
 
 # test module name and version specification is correctly reported

@@ -35,8 +35,8 @@ set ans [list]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath LOADEDMODULES setenv/1.0:trace/all_on:prereq/module:module/meta]
 lappend ans [list setpath _LMFILES_ $modpath/setenv/1.0:$modpath/trace/all_on:$modpath/prereq/module:$modpath/module/meta]
-lappend ans [list setpath MODULES_LMPREREQ prereq/module&trace:module/meta&setenv&trace&prereq/module]
-lappend ans [list setpath MODULES_LMNOTUASKED setenv/1.0:trace/all_on:prereq/module]
+lappend ans [list setpath __MODULES_LMPREREQ prereq/module&trace:module/meta&setenv&trace&prereq/module]
+lappend ans [list setpath __MODULES_LMNOTUASKED setenv/1.0:trace/all_on:prereq/module]
 
 # test the different verbosity level with command-line switch option if available
 testouterr_cmd_re sh {load -s module/meta} $ans {}
@@ -119,7 +119,7 @@ foreach verbosity [list silent concise normal verbose verbose2] {
     lappend ans [list set testsuite yes]
     lappend ans [list setpath LOADEDMODULES setenv/1.0:trace/all_on:prereq/module]
     lappend ans [list setpath _LMFILES_ $modpath/setenv/1.0:$modpath/trace/all_on:$modpath/prereq/module]
-    lappend ans [list setpath MODULES_LMPREREQ prereq/module&trace]
+    lappend ans [list setpath __MODULES_LMPREREQ prereq/module&trace]
     if {$verbosity eq {silent}} {
         set tserr {}
     } elseif {$verbosity eq {concise}} {
@@ -136,7 +136,7 @@ foreach verbosity [list silent concise normal verbose verbose2] {
     lappend ans [list set testsuite yes]
     lappend ans [list setpath LOADEDMODULES loc_rc1/1.0:load/15:verssort/1.10:coll/a:loc_dv2/1.0]
     lappend ans [list setpath _LMFILES_ $modpath/loc_rc1/1.0:$modpath/load/15:$modpath/verssort/1.10:$modpath/coll/a:$modpath/loc_dv2/1.0]
-    lappend ans [list setpath MODULES_LMALTNAME loc_rc1/1.0&loc_rc1/foo:loc_dv2/1.0&loc_dv2/default&loc_dv2]
+    lappend ans [list setpath __MODULES_LMALTNAME loc_rc1/1.0&loc_rc1/foo:loc_dv2/1.0&loc_dv2/default&loc_dv2]
     lappend ans [list unset mload]
     lappend ans [list set t15 t15]
     lappend ans [list set MODULE_VERSION 1.10]
@@ -154,7 +154,7 @@ foreach verbosity [list silent concise normal verbose verbose2] {
 
 # load some modules to test other sub-commands
 setenv_loaded_module [list setenv/1.0 trace/all_on prereq/module module/meta] [list $modpath/setenv/1.0 $modpath/trace/all_on $modpath/prereq/module $modpath/module/meta] [list setenv/1.0 trace/all_on prereq/module]
-setenv_path_var MODULES_LMPREREQ prereq/module&trace module/meta&setenv&trace&prereq/module
+setenv_path_var __MODULES_LMPREREQ prereq/module&trace module/meta&setenv&trace&prereq/module
 
 foreach verbosity [list silent concise normal verbose verbose2] {
     setenv_var MODULES_VERBOSITY $verbosity
@@ -165,8 +165,8 @@ foreach verbosity [list silent concise normal verbose verbose2] {
     set ans [list]
     lappend ans [list setpath LOADEDMODULES trace/all_on:prereq/module:setenv/0.6:module/meta]
     lappend ans [list setpath _LMFILES_ $modpath/trace/all_on:$modpath/prereq/module:$modpath/setenv/0.6:$modpath/module/meta]
-    lappend ans [list setpath MODULES_LMPREREQ prereq/module&trace:module/meta&setenv&trace&prereq/module]
-    lappend ans [list setpath MODULES_LMNOTUASKED trace/all_on:prereq/module]
+    lappend ans [list setpath __MODULES_LMPREREQ prereq/module&trace:module/meta&setenv&trace&prereq/module]
+    lappend ans [list setpath __MODULES_LMNOTUASKED trace/all_on:prereq/module]
     lappend ans [list unset testsuite]
     lappend ans [list set TS1 yes]
     lappend ans [list set TS2 yes]
@@ -182,9 +182,9 @@ foreach verbosity [list silent concise normal verbose verbose2] {
     set ans [list]
     lappend ans [list unsetpath LOADEDMODULES]
     lappend ans [list unsetpath _LMFILES_]
-    lappend ans [list unsetpath MODULES_LMPREREQ]
+    lappend ans [list unsetpath __MODULES_LMPREREQ]
     lappend ans [list unset testsuite]
-    lappend ans [list unsetpath MODULES_LMNOTUASKED]
+    lappend ans [list unsetpath __MODULES_LMNOTUASKED]
     if {$verbosity eq {silent}} {
         set tserr {}
     } elseif {$verbosity eq {concise}} {
@@ -208,8 +208,8 @@ foreach verbosity [list silent concise normal verbose verbose2] {
     set ans [list]
     lappend ans [list setpath LOADEDMODULES setenv/1.0:trace/all_on:prereq/module:module/meta]
     lappend ans [list setpath _LMFILES_ $modpath/setenv/1.0:$modpath/trace/all_on:$modpath/prereq/module:$modpath/module/meta]
-    lappend ans [list setpath MODULES_LMPREREQ prereq/module&trace:module/meta&setenv&trace&prereq/module]
-    lappend ans [list setpath MODULES_LMNOTUASKED setenv/1.0:trace/all_on:prereq/module]
+    lappend ans [list setpath __MODULES_LMPREREQ prereq/module&trace:module/meta&setenv&trace&prereq/module]
+    lappend ans [list setpath __MODULES_LMNOTUASKED setenv/1.0:trace/all_on:prereq/module]
     lappend ans [list set testsuite yes]
     if {$verbosity eq {silent}} {
         set tserr {}
@@ -221,7 +221,7 @@ foreach verbosity [list silent concise normal verbose verbose2] {
     testouterr_cmd_re sh {reload} $ans $tserr
 }
 
-unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var __MODULES_LMPREREQ
 unsetenv_loaded_module
 
 # test 'trace' verbosity
@@ -238,7 +238,7 @@ set ans [list]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath LOADEDMODULES loc_rc6/1.2]
 lappend ans [list setpath _LMFILES_ $modpath/loc_rc6/1.2]
-lappend ans [list setpath MODULES_LMALTNAME loc_rc6/1.2&loc_rc6/default&loc_rc6&loc_rc6/new&al|loc_rc6/1&al|loc_rc6/bar]
+lappend ans [list setpath __MODULES_LMALTNAME loc_rc6/1.2&loc_rc6/default&loc_rc6&loc_rc6/new&al|loc_rc6/1&al|loc_rc6/bar]
 testouterr_cmd_re sh {-T load loc_rc6/bar} $ans $tserr
 testouterr_cmd_re sh {load --trace loc_rc6/bar} $ans $tserr
 testouterr_cmd_re sh {load loc_rc6/bar -T} $ans $tserr

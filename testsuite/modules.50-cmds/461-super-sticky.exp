@@ -37,11 +37,11 @@ setenv_var TESTSUITE_SUPER_STICKY 1
 set anslo [list]
 lappend anslo [list setpath LOADEDMODULES sticky/1.0]
 lappend anslo [list setpath _LMFILES_ $mp/sticky/1.0]
-lappend anslo [list setpath MODULES_LMTAG sticky/1.0&super-sticky]
+lappend anslo [list setpath __MODULES_LMTAG sticky/1.0&super-sticky]
 testouterr_cmd_re sh {load sticky/1.0} $anslo {}
 
 setenv_loaded_module [list sticky/1.0] [list $mp/sticky/1.0]
-setenv_path_var MODULES_LMTAG sticky/1.0&super-sticky
+setenv_path_var __MODULES_LMTAG sticky/1.0&super-sticky
 
 set tserr [msg_unload sticky/1.0 $err_superstickyunload]
 testouterr_cmd_re sh {unload sticky/1.0} ERR $tserr
@@ -70,13 +70,13 @@ testouterr_cmd_re sh {restore -f testsuite/home/coll-sticky-0} $ans $tserr
 set ans [list]
 lappend ans [list setpath LOADEDMODULES foo/2.0:sticky/1.0]
 lappend ans [list setpath _LMFILES_ $mp/foo/2.0:$mp/sticky/1.0]
-lappend ans [list setpath MODULES_LMTAG sticky/1.0&super-sticky]
+lappend ans [list setpath __MODULES_LMTAG sticky/1.0&super-sticky]
 testouterr_cmd_re sh {restore testsuite/home/coll-sticky-1} $ans [msg_unload sticky/1.0]\n[msg_load foo/2.0]\n[msg_load sticky/1.0]
 testouterr_cmd_re sh {restore -f testsuite/home/coll-sticky-1} $ans [msg_unload sticky/1.0]\n[msg_load foo/2.0]\n[msg_load sticky/1.0]
 
 # test with multiple module loaded, one is super-sticky
 setenv_loaded_module [list foo/2.0 sticky/1.0 bar/2.0] [list $mp/foo/2.0 $mp/sticky/1.0 $mp/bar/2.0]
-setenv_path_var MODULES_LMTAG sticky/1.0&super-sticky
+setenv_path_var __MODULES_LMTAG sticky/1.0&super-sticky
 
 set tserr [msg_unload sticky/1.0 $err_superstickyunload]
 testouterr_cmd_re sh {unload sticky/1.0} ERR $tserr
@@ -93,7 +93,7 @@ testouterr_cmd_re sh {purge -f} $ans $tserr
 set ans [list]
 lappend ans [list setpath LOADEDMODULES foo/2.0:sticky/1.0:bar/2.0]
 lappend ans [list setpath _LMFILES_ $mp/foo/2.0:$mp/sticky/1.0:$mp/bar/2.0]
-lappend ans [list setpath MODULES_LMTAG sticky/1.0&super-sticky]
+lappend ans [list setpath __MODULES_LMTAG sticky/1.0&super-sticky]
 testouterr_cmd_re sh {reload} $ans {}
 testouterr_cmd_re sh {reload -f} $ans {}
 
@@ -103,7 +103,7 @@ testouterr_cmd_re sh {switch -f sticky baz} ERR [msg_switch sticky/1.0 baz $err_
 set ans [list]
 lappend ans [list setpath LOADEDMODULES sticky/1.0:foo/2.0]
 lappend ans [list setpath _LMFILES_ $mp/sticky/1.0:$mp/foo/2.0]
-lappend ans [list setpath MODULES_LMTAG sticky/1.0&super-sticky]
+lappend ans [list setpath __MODULES_LMTAG sticky/1.0&super-sticky]
 set tserr [msg_unload bar/2.0]\n[msg_unload sticky/1.0]\n[msg_unload foo/2.0]\n[msg_load sticky/1.0]\n[msg_load foo/2.0]
 testouterr_cmd_re sh {restore testsuite/home/coll-sticky-2} $ans $tserr
 testouterr_cmd_re sh {restore -f testsuite/home/coll-sticky-2} $ans $tserr
@@ -119,21 +119,21 @@ testouterr_cmd_re sh {restore -f testsuite/home/coll-sticky-3} $ans $tserr
 # test over *Dependency Reload* mechanism
 setenv_var TESTSUITE_STICKY_DEP 1
 setenv_loaded_module [list foo/2.0 sticky/1.0 bar/2.0] [list $mp/foo/2.0 $mp/sticky/1.0 $mp/bar/2.0]
-setenv_path_var MODULES_LMTAG sticky/1.0&super-sticky
-setenv_path_var MODULES_LMPREREQ sticky/1.0&foo|baz:bar/2.0&sticky/1.0
+setenv_path_var __MODULES_LMTAG sticky/1.0&super-sticky
+setenv_path_var __MODULES_LMPREREQ sticky/1.0&foo|baz:bar/2.0&sticky/1.0
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES foo/2.0:baz/2.0:sticky/1.0:bar/2.0]
 lappend ans [list setpath _LMFILES_ $mp/foo/2.0:$mp/baz/2.0:$mp/sticky/1.0:$mp/bar/2.0]
-lappend ans [list setpath MODULES_LMTAG sticky/1.0&super-sticky]
-lappend ans [list setpath MODULES_LMPREREQ sticky/1.0&foo|baz:bar/2.0&sticky/1.0]
+lappend ans [list setpath __MODULES_LMTAG sticky/1.0&super-sticky]
+lappend ans [list setpath __MODULES_LMPREREQ sticky/1.0&foo|baz:bar/2.0&sticky/1.0]
 testouterr_cmd_re sh {load --auto baz/2.0} $ans [msg_top_load baz/2.0 {} {} {sticky/1.0 bar/2.0}]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES baz/2.0:sticky/1.0:bar/2.0]
 lappend ans [list setpath _LMFILES_ $mp/baz/2.0:$mp/sticky/1.0:$mp/bar/2.0]
-lappend ans [list setpath MODULES_LMTAG sticky/1.0&super-sticky]
-lappend ans [list setpath MODULES_LMPREREQ sticky/1.0&foo|baz:bar/2.0&sticky/1.0]
+lappend ans [list setpath __MODULES_LMTAG sticky/1.0&super-sticky]
+lappend ans [list setpath __MODULES_LMPREREQ sticky/1.0&foo|baz:bar/2.0&sticky/1.0]
 testouterr_cmd_re sh {switch --auto foo/2.0 baz/2.0} $ans [msg_top_switch foo/2.0 baz/2.0 {} {} {} {} {sticky/1.0 bar/2.0}]
 
 setenv_loaded_module [list foo/2.0 baz/2.0 sticky/1.0 bar/2.0] [list $mp/foo/2.0 $mp/baz/2.0 $mp/sticky/1.0 $mp/bar/2.0]
@@ -141,13 +141,13 @@ testouterr_cmd_re sh {unload --auto foo/2.0} $ans [msg_top_unload foo/2.0 {} {} 
 
 # test over *Dependency Unload* mechanism
 setenv_loaded_module [list foo/2.0 sticky/1.0 bar/2.0] [list $mp/foo/2.0 $mp/sticky/1.0 $mp/bar/2.0]
-setenv_path_var MODULES_LMTAG sticky/1.0&super-sticky
-setenv_path_var MODULES_LMPREREQ sticky/1.0&foo|baz:bar/2.0&sticky/1.0
+setenv_path_var __MODULES_LMTAG sticky/1.0&super-sticky
+setenv_path_var __MODULES_LMPREREQ sticky/1.0&foo|baz:bar/2.0&sticky/1.0
 
 testouterr_cmd_re sh {unload --auto foo/2.0} ERR [msg_unload foo/2.0 $err_superstickyunload [err_depun sticky/1.0]]
 
 set ans [list]
-lappend ans [list setpath MODULES_LMPREREQ sticky/1.0&foo|baz]
+lappend ans [list setpath __MODULES_LMPREREQ sticky/1.0&foo|baz]
 lappend ans [list setpath _LMFILES_ $mp/sticky/1.0]
 lappend ans [list setpath LOADEDMODULES sticky/1.0]
 lappend ans [list ERR]
@@ -156,11 +156,11 @@ testouterr_cmd_re sh {unload -f --auto foo/2.0} $ans [msg_top_unload foo/2.0 bar
 
 # test over *Useless Requirement Unload* mechanism
 setenv_loaded_module [list foo/2.0 sticky/1.0 bar/2.0] [list $mp/foo/2.0 $mp/sticky/1.0 $mp/bar/2.0] [list foo/2.0 sticky/1.0]
-setenv_path_var MODULES_LMTAG sticky/1.0&super-sticky
-setenv_path_var MODULES_LMPREREQ sticky/1.0&foo|baz:bar/2.0&sticky/1.0
+setenv_path_var __MODULES_LMTAG sticky/1.0&super-sticky
+setenv_path_var __MODULES_LMPREREQ sticky/1.0&foo|baz:bar/2.0&sticky/1.0
 
 set ans [list]
-lappend ans [list setpath MODULES_LMPREREQ sticky/1.0&foo|baz]
+lappend ans [list setpath __MODULES_LMPREREQ sticky/1.0&foo|baz]
 lappend ans [list setpath _LMFILES_ $mp/foo/2.0:$mp/sticky/1.0]
 lappend ans [list setpath LOADEDMODULES foo/2.0:sticky/1.0]
 lappend ans [list ERR]
@@ -168,7 +168,7 @@ testouterr_cmd_re sh {unload --auto bar/2.0} $ans [msg_unload bar/2.0 $err_super
 testouterr_cmd_re sh {unload -f --auto bar/2.0} $ans [msg_unload bar/2.0 $err_superstickyunload [err_urequn sticky/1.0]]
 
 set ans [list]
-lappend ans [list setpath MODULES_LMPREREQ sticky/1.0&foo|baz]
+lappend ans [list setpath __MODULES_LMPREREQ sticky/1.0&foo|baz]
 lappend ans [list setpath _LMFILES_ $mp/foo/2.0:$mp/sticky/1.0:$mp/bar/1.0]
 lappend ans [list setpath LOADEDMODULES foo/2.0:sticky/1.0:bar/1.0]
 lappend ans [list ERR]
@@ -179,13 +179,13 @@ testouterr_cmd_re sh {switch -f --auto bar/2.0 bar/1.0} $ans [msg_switch bar/2.0
 unsetenv_var TESTSUITE_STICKY_DEP
 setenv_var TESTSUITE_STICKY_GENERIC 1
 setenv_loaded_module [list sticky/1.0] [list $mp/sticky/1.0]
-setenv_path_var MODULES_LMTAG sticky/1.0&super-sticky
-unsetenv_path_var MODULES_LMPREREQ
+setenv_path_var __MODULES_LMTAG sticky/1.0&super-sticky
+unsetenv_path_var __MODULES_LMPREREQ
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES sticky/2.0:foo/2.0]
 lappend ans [list setpath _LMFILES_ $mp/sticky/2.0:$mp/foo/2.0]
-lappend ans [list setpath MODULES_LMTAG sticky/2.0&super-sticky]
+lappend ans [list setpath __MODULES_LMTAG sticky/2.0&super-sticky]
 set tserr [msg_unload sticky/1.0]\n[msg_load sticky/2.0]\n[msg_load foo/2.0]
 testouterr_cmd_re sh {restore testsuite/home/coll-sticky-4} $ans $tserr
 testouterr_cmd_re sh {restore -f testsuite/home/coll-sticky-4} $ans $tserr
@@ -193,7 +193,7 @@ testouterr_cmd_re sh {restore -f testsuite/home/coll-sticky-4} $ans $tserr
 set ans [list]
 lappend ans [list setpath LOADEDMODULES sticky/4.0:foo/2.0]
 lappend ans [list setpath _LMFILES_ $mp/sticky/4.0:$mp/foo/2.0]
-lappend ans [list setpath MODULES_LMTAG sticky/4.0&super-sticky]
+lappend ans [list setpath __MODULES_LMTAG sticky/4.0&super-sticky]
 set tserr [msg_unload sticky/1.0]\n[msg_load sticky/4.0]\n[msg_load foo/2.0]
 testouterr_cmd_re sh {restore testsuite/home/coll-sticky-5} $ans $tserr
 testouterr_cmd_re sh {restore -f testsuite/home/coll-sticky-5} $ans $tserr
@@ -201,7 +201,7 @@ testouterr_cmd_re sh {restore -f testsuite/home/coll-sticky-5} $ans $tserr
 set ans [list]
 lappend ans [list setpath LOADEDMODULES sticky/2.0]
 lappend ans [list setpath _LMFILES_ $mp/sticky/2.0]
-lappend ans [list setpath MODULES_LMTAG sticky/2.0&super-sticky]
+lappend ans [list setpath __MODULES_LMTAG sticky/2.0&super-sticky]
 testouterr_cmd_re sh {switch sticky/2.0} $ans {}
 testouterr_cmd_re sh {switch sticky sticky/2.0} $ans {}
 testouterr_cmd_re sh {switch -f sticky sticky/2.0} $ans {}
@@ -209,7 +209,7 @@ testouterr_cmd_re sh {switch -f sticky sticky/2.0} $ans {}
 set ans [list]
 lappend ans [list setpath LOADEDMODULES sticky/4.0]
 lappend ans [list setpath _LMFILES_ $mp/sticky/4.0]
-lappend ans [list setpath MODULES_LMTAG sticky/4.0&super-sticky]
+lappend ans [list setpath __MODULES_LMTAG sticky/4.0&super-sticky]
 testouterr_cmd_re sh {switch sticky} $ans {}
 testouterr_cmd_re sh {switch sticky sticky} $ans {}
 testouterr_cmd_re sh {switch -f sticky sticky} $ans {}
@@ -221,12 +221,12 @@ testouterr_cmd_re sh {switch -f sticky foo} ERR $tserr
 # test when stickyness is defined over generic module name with deep module
 setenv_var TESTSUITE_STICKY_GENERIC 1
 setenv_loaded_module [list stickysub/dir1/1.0] [list $mp/stickysub/dir1/1.0]
-setenv_path_var MODULES_LMTAG stickysub/dir1/1.0&super-sticky
+setenv_path_var __MODULES_LMTAG stickysub/dir1/1.0&super-sticky
 
 set ans1 [list]
 lappend ans1 [list setpath LOADEDMODULES stickysub/dir1/2.0]
 lappend ans1 [list setpath _LMFILES_ $mp/stickysub/dir1/2.0]
-lappend ans1 [list setpath MODULES_LMTAG stickysub/dir1/2.0&super-sticky]
+lappend ans1 [list setpath __MODULES_LMTAG stickysub/dir1/2.0&super-sticky]
 testouterr_cmd_re sh {switch stickysub/dir1/2.0} $ans1 {}
 testouterr_cmd_re sh {switch stickysub stickysub/dir1/2.0} $ans1 {}
 testouterr_cmd_re sh {switch stickysub/dir1 stickysub/dir1/2.0} $ans1 {}
@@ -234,13 +234,13 @@ testouterr_cmd_re sh {switch stickysub/dir1 stickysub/dir1/2.0} $ans1 {}
 set ans2 [list]
 lappend ans2 [list setpath LOADEDMODULES stickysub/dir2/3.0]
 lappend ans2 [list setpath _LMFILES_ $mp/stickysub/dir2/3.0]
-lappend ans2 [list setpath MODULES_LMTAG stickysub/dir2/3.0&super-sticky]
+lappend ans2 [list setpath __MODULES_LMTAG stickysub/dir2/3.0&super-sticky]
 testouterr_cmd_re sh {switch stickysub/dir2/3.0} $ans2 {}
 
 set ans3 [list]
 lappend ans3 [list setpath LOADEDMODULES stickysub/dir2/4.0]
 lappend ans3 [list setpath _LMFILES_ $mp/stickysub/dir2/4.0]
-lappend ans3 [list setpath MODULES_LMTAG stickysub/dir2/4.0&super-sticky]
+lappend ans3 [list setpath __MODULES_LMTAG stickysub/dir2/4.0&super-sticky]
 testouterr_cmd_re sh {switch stickysub} $ans3 {}
 testouterr_cmd_re sh {switch stickysub/dir2} $ans3 {}
 
@@ -294,7 +294,7 @@ testouterr_cmd_re sh {switch -f stickysub/dir1} ERR $tserr
 set ans [list]
 lappend ans [list setpath LOADEDMODULES stickysub/dir1/1.0:stickysub/dir2/4.0:foo/2.0]
 lappend ans [list setpath _LMFILES_ $mp/stickysub/dir1/1.0:$mp/stickysub/dir2/4.0:$mp/foo/2.0]
-lappend ans [list setpath MODULES_LMALTNAME stickysub/dir2/4.0&as|stickysub/default&as|stickysub/latest&as|stickysub/dir2/default&as|stickysub/dir2/latest:foo/2.0&as|foo/default&as|foo/latest]
+lappend ans [list setpath __MODULES_LMALTNAME stickysub/dir2/4.0&as|stickysub/default&as|stickysub/latest&as|stickysub/dir2/default&as|stickysub/dir2/latest:foo/2.0&as|foo/default&as|foo/latest]
 lappend ans [list ERR]
 set tserr [msg_unload stickysub/dir1/1.0 $err_superstickyunload]\n\n[msg_load stickysub/dir2/4.0]\n[msg_load foo/2.0]
 testouterr_cmd_re sh {restore testsuite/home/coll-sticky-6} $ans $tserr
@@ -311,7 +311,7 @@ testouterr_cmd_re sh {switch -f stickysub/dir1} ERR $tserr
 set ans [list]
 lappend ans [list setpath LOADEDMODULES stickysub/dir1/1.0:stickysub/dir2/4.0:foo/2.0]
 lappend ans [list setpath _LMFILES_ $mp/stickysub/dir1/1.0:$mp/stickysub/dir2/4.0:$mp/foo/2.0]
-lappend ans [list setpath MODULES_LMALTNAME stickysub/dir2/4.0&as|stickysub/default&as|stickysub/latest&as|stickysub/dir2/default&as|stickysub/dir2/latest:foo/2.0&as|foo/default&as|foo/latest]
+lappend ans [list setpath __MODULES_LMALTNAME stickysub/dir2/4.0&as|stickysub/default&as|stickysub/latest&as|stickysub/dir2/default&as|stickysub/dir2/latest:foo/2.0&as|foo/default&as|foo/latest]
 lappend ans [list ERR]
 set tserr [msg_unload stickysub/dir1/1.0 $err_superstickyunload]\n\n[msg_load stickysub/dir2/4.0]\n[msg_load foo/2.0]
 testouterr_cmd_re sh {restore testsuite/home/coll-sticky-6} $ans $tserr
@@ -322,26 +322,26 @@ unsetenv_var TESTSUITE_STICKY_GENERIC
 setenv_var MODULES_ADVANCED_VERSION_SPEC 0
 setenv_var TESTSUITE_STICKY_DEP 1
 setenv_loaded_module [list foo/2.0 sticky/1.0 bar/2.0] [list $mp/foo/2.0 $mp/sticky/1.0 $mp/bar/2.0]
-setenv_path_var MODULES_LMTAG sticky/1.0&super-sticky
-setenv_path_var MODULES_LMPREREQ sticky/1.0&foo|baz:bar/2.0&sticky/1.0
+setenv_path_var __MODULES_LMTAG sticky/1.0&super-sticky
+setenv_path_var __MODULES_LMPREREQ sticky/1.0&foo|baz:bar/2.0&sticky/1.0
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES foo/2.0:sticky/1.0:bar/2.0]
 lappend ans [list setpath _LMFILES_ $mp/foo/2.0:$mp/sticky/1.0:$mp/bar/2.0]
-lappend ans [list setpath MODULES_LMTAG sticky/1.0&super-sticky]
-lappend ans [list setpath MODULES_LMPREREQ sticky/1.0&foo|baz:bar/2.0&sticky/1.0]
+lappend ans [list setpath __MODULES_LMTAG sticky/1.0&super-sticky]
+lappend ans [list setpath __MODULES_LMPREREQ sticky/1.0&foo|baz:bar/2.0&sticky/1.0]
 testouterr_cmd_re sh {reload} $ans {}
 testouterr_cmd_re sh {reload -f} $ans {}
 
 set ans [list]
-lappend ans [list setpath MODULES_LMPREREQ sticky/1.0&foo|baz]
+lappend ans [list setpath __MODULES_LMPREREQ sticky/1.0&foo|baz]
 lappend ans [list setpath _LMFILES_ $mp/foo/2.0:$mp/sticky/1.0]
 lappend ans [list setpath LOADEDMODULES foo/2.0:sticky/1.0]
 lappend ans [list ERR]
 set tserr [msg_unload sticky/1.0 $err_superstickyunload]\n\n[msg_unload foo/2.0 [err_deplo sticky/1.0]]
 testouterr_cmd_re sh {purge} $ans $tserr
 set ans [list]
-lappend ans [list setpath MODULES_LMPREREQ sticky/1.0&foo|baz]
+lappend ans [list setpath __MODULES_LMPREREQ sticky/1.0&foo|baz]
 lappend ans [list setpath _LMFILES_ $mp/sticky/1.0]
 lappend ans [list setpath LOADEDMODULES sticky/1.0]
 lappend ans [list ERR]
