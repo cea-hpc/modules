@@ -748,10 +748,15 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                         set ans [list]
                         lappend ans [list ERR]
                         lappend ans [list [set "func_$shell"]]
-                        lappend ans [list set __MODULES_LMPREREQ m3&m1]
-                        lappend ans [list set MODULESHOME $moduleshome]
+                        lappend ans [list set __MODULES_LMPREREQ_modshare m3&m1:1]
+                        if {[cmpversion $tclsh_version 8.5] == 0} {
+                            lappend ans [list set MODULESHOME $moduleshome]
+                        }
                         lappend ans [list set LOADEDMODULES "m1:m3:space yc/4"]
                         lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4"]
+                        if {[cmpversion $tclsh_version 8.6] == 0} {
+                            lappend ans [list set MODULESHOME $moduleshome]
+                        }
                         if {$shell eq {ksh}} {
                             lappend ans [list set FPATH $install_initdir/ksh-functions]
                         }
@@ -762,28 +767,31 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                         if {$shell eq {ksh}} {
                             lappend ans [list set FPATH_modshare $install_initdir/ksh-functions:1]
                         }
+                        lappend ans [list set __MODULES_LMPREREQ m3&m1]
                         if {[is_real_shell $shell] && $install_setshellstartup eq {y}} {
                             lappend ans [list set BASH_ENV $install_initdir/bash]
                         }
-                        lappend ans [list set __MODULES_LMNOTUASKED m1]
                         if {$install_versioning eq "y"} {
                             lappend ans [list set MODULE_VERSION_STACK "(.*)"]
                         }
                         if {[is_real_shell $shell] && $install_setshellstartup eq {y}} {
                             lappend ans [list set ENV $install_initdir/profile.sh]
                         }
-                        lappend ans [list set __MODULES_LMNOTUASKED_modshare m1:1]
-                        lappend ans [list set __MODULES_LMPREREQ_modshare m3&m1:1]
                         lappend ans [list set MODULEPATH "$modpath wspace:$modpath.deps"]
                         lappend ans [list set LOADEDMODULES_modshare (.*)]
                         lappend ans [list set _LMFILES__modshare (.*)]
                         lappend ans [list set MODULEPATH_modshare (.*)]
+                        lappend ans [list set __MODULES_LMNOTUASKED m1]
+                        lappend ans [list set __MODULES_LMNOTUASKED_modshare m1:1]
                     }
                     set tserr $tserr_initrc_exinstalled
                 }
             }
         }
-        testouterr_cmd_re $shell autoinit $ans $tserr
+        # disable test for Tcl8.4
+        if {[cmpversion $tclsh_version 8.5] != -1} {
+            testouterr_cmd_re $shell autoinit $ans $tserr
+        }
     }
 } else {
     send_user "\tskipping autoinit tests as installed configuration unknown\n"
@@ -800,33 +808,41 @@ if {!$insmodspath && $initrc_exinstalled && $modrc eq "$install_etcdir/initrc"} 
     set ans [list]
     lappend ans [list ERR]
     lappend ans [list [set "func_sh"]]
-    lappend ans [list set __MODULES_LMPREREQ m3&m1]
-    lappend ans [list set MODULESHOME $moduleshome]
+    lappend ans [list set __MODULES_LMPREREQ_modshare m3&m1:1]
+    if {[cmpversion $tclsh_version 8.5] == 0} {
+        lappend ans [list set MODULESHOME $moduleshome]
+    }
     lappend ans [list set LOADEDMODULES "m1:m3:space yc/4"]
     lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4"]
+    if {[cmpversion $tclsh_version 8.6] == 0} {
+        lappend ans [list set MODULESHOME $moduleshome]
+    }
     if {$install_versioning eq "y"} {
         lappend ans [list set MODULE_VERSION "(.*)"]
     }
     lappend ans [list set MODULES_CMD $modulecmd_path]
+    lappend ans [list set __MODULES_LMPREREQ m3&m1]
     if {$install_setshellstartup eq {y}} {
         lappend ans [list set BASH_ENV $install_initdir/bash]
     }
-    lappend ans [list set __MODULES_LMNOTUASKED m1]
     if {$install_setshellstartup eq {y}} {
         lappend ans [list set ENV $install_initdir/profile.sh]
     }
     if {$install_versioning eq "y"} {
         lappend ans [list set MODULE_VERSION_STACK "(.*)"]
     }
-    lappend ans [list set __MODULES_LMNOTUASKED_modshare m1:1]
-    lappend ans [list set __MODULES_LMPREREQ_modshare m3&m1:1]
     lappend ans [list set MODULEPATH "$modpath wspace:$modpath.deps"]
     lappend ans [list set LOADEDMODULES_modshare (.*)]
     lappend ans [list set _LMFILES__modshare (.*)]
     lappend ans [list set MODULEPATH_modshare (.*)]
+    lappend ans [list set __MODULES_LMNOTUASKED m1]
+    lappend ans [list set __MODULES_LMNOTUASKED_modshare m1:1]
 
     # etc/initrc is prefered over init/modulerc
-    testouterr_cmd_re sh autoinit $ans $tserr_initrc_exinstalled
+    # disable test for Tcl8.4
+    if {[cmpversion $tclsh_version 8.5] != -1} {
+        testouterr_cmd_re sh autoinit $ans $tserr_initrc_exinstalled
+    }
 
     # cannot test access if cannot change file permission
     if {!$is_file_perms_editable} {
@@ -840,7 +856,10 @@ if {!$insmodspath && $initrc_exinstalled && $modrc eq "$install_etcdir/initrc"} 
     } else {
         # same if init/modulerc cannot be read
         change_file_perms $install_initdir/modulerc ugo-rx
-        testouterr_cmd_re sh autoinit $ans $tserr_initrc_exinstalled
+        # disable test for Tcl8.4
+        if {[cmpversion $tclsh_version 8.5] != -1} {
+            testouterr_cmd_re sh autoinit $ans $tserr_initrc_exinstalled
+        }
         restore_file_perms $install_initdir/modulerc
 
         # init/modulerc ignored even if etc/initrc locked
