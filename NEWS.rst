@@ -68,6 +68,11 @@ Modules 5.0.0-alpha (2021-07-XX)
   environment state (variables whose name starts with ``MODULES_LM``). A
   ``__`` prefix is added to the name of these variables to indicate that they
   are intended for internal use only.
+* Rename the environment variables used to indirectly pass to
+  :file:`modulecmd.tcl` the value of variables set in quarantine (variables
+  whose name finishes with ``_modquar``). A ``__MODULES_QUAR_`` prefix is
+  applied to the name of these variables instead of the ``_modquar`` suffix to
+  indicate they are intended for Modules internal use of only.
 
 
 .. _4.8 release notes:

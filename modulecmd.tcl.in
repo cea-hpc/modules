@@ -8059,7 +8059,7 @@ alias ml 'module ml \!*' ;}
 @quarantinesupport@         append fdef {
 @quarantinesupport@      if [ "${_mlv}" = "${_mlv##*[!A-Za-z0-9_]}" -a "${_mlv}" = "${_mlv#[0-9]}" ]; then
 @quarantinesupport@         if [ -n "`eval 'echo ${'$_mlv'+x}'`" ]; then
-@quarantinesupport@            _mlre="${_mlre:-}${_mlv}_modquar='`eval 'echo ${'$_mlv'}'`' ";
+@quarantinesupport@            _mlre="${_mlre:-}__MODULES_QUAR_${_mlv}='`eval 'echo ${'$_mlv'}'`' ";
 @quarantinesupport@         fi;
 @quarantinesupport@         _mlrv="MODULES_RUNENV_${_mlv}";
 @quarantinesupport@         _mlre="${_mlre:-}${_mlv}='`eval 'echo ${'$_mlrv':-}'`' ";
@@ -8105,7 +8105,7 @@ ml() { module ml "$@"; };}
 @quarantinesupport@   for _mlv in (string split ' ' $MODULES_RUN_QUARANTINE)
 @quarantinesupport@      if string match -r '^[A-Za-z_][A-Za-z0-9_]*$' $_mlv >/dev/null
 @quarantinesupport@         if set -q $_mlv
-@quarantinesupport@            set _mlre $_mlre$_mlv"_modquar='$$_mlv' "
+@quarantinesupport@            set _mlre $_mlre"__MODULES_QUAR_"$_mlv"='$$_mlv' "
 @quarantinesupport@         end
 @quarantinesupport@         set _mlrv "MODULES_RUNENV_$_mlv"
 @quarantinesupport@         set _mlre "$_mlre$_mlv='$$_mlrv' "
@@ -8143,7 +8143,7 @@ end}
 @quarantinesupport@      foreach _mlv [split $::env(MODULES_RUN_QUARANTINE) " "] {
 @quarantinesupport@         if {[regexp {^[A-Za-z_][A-Za-z0-9_]*$} $_mlv]} {
 @quarantinesupport@            if {[info exists ::env($_mlv)]} {
-@quarantinesupport@               lappend _mlre "${_mlv}_modquar=$::env($_mlv)"
+@quarantinesupport@               lappend _mlre "__MODULES_QUAR_${_mlv}=$::env($_mlv)"
 @quarantinesupport@            }
 @quarantinesupport@            set _mlrv "MODULES_RUNENV_${_mlv}"
 @quarantinesupport@            lappend _mlre [expr {[info exists ::env($_mlrv)] ?\
@@ -8181,7 +8181,7 @@ proc ml {args} {
 @quarantinesupport@      foreach my $_mlv (split(' ', $ENV{'MODULES_RUN_QUARANTINE'})) {
 @quarantinesupport@         if ($_mlv =~ /^[A-Za-z_][A-Za-z0-9_]*$/) {
 @quarantinesupport@            if (defined $ENV{$_mlv}) {
-@quarantinesupport@               $_mlre .= "${_mlv}_modquar='$ENV{$_mlv}' ";
+@quarantinesupport@               $_mlre .= "__MODULES_QUAR_${_mlv}='$ENV{$_mlv}' ";
 @quarantinesupport@            }
 @quarantinesupport@            my $_mlrv = "MODULES_RUNENV_$_mlv";
 @quarantinesupport@            $_mlre .= "$_mlv='$ENV{$_mlrv}' ";
@@ -8217,7 +8217,7 @@ def module(*arguments):}
 @quarantinesupport@      for _mlv in os.environ['MODULES_RUN_QUARANTINE'].split():
 @quarantinesupport@         if re.match('^[A-Za-z_][A-Za-z0-9_]*$', _mlv):
 @quarantinesupport@            if _mlv in os.environ:
-@quarantinesupport@               _mlre[_mlv + '_modquar'] = os.environ[_mlv]
+@quarantinesupport@               _mlre['__MODULES_QUAR_' + _mlv] = os.environ[_mlv]
 @quarantinesupport@            _mlrv = 'MODULES_RUNENV_' + _mlv
 @quarantinesupport@            if _mlrv in os.environ:
 @quarantinesupport@               _mlre[_mlv] = os.environ[_mlrv]
@@ -8252,7 +8252,7 @@ def ml(*arguments):
 @quarantinesupport@         ENV['MODULES_RUN_QUARANTINE'].split(' ').each do |_mlv|
 @quarantinesupport@            if _mlv =~ /^[A-Za-z_][A-Za-z0-9_]*$/ then
 @quarantinesupport@               if ENV.has_key?(_mlv) then
-@quarantinesupport@                  _mlre << _mlv + "_modquar='" + ENV[_mlv].to_s + "' "
+@quarantinesupport@                  _mlre << "__MODULES_QUAR_" + _mlv + "='" + ENV[_mlv].to_s + "' "
 @quarantinesupport@               end
 @quarantinesupport@               _mlrv = 'MODULES_RUNENV_' + _mlv
 @quarantinesupport@               _mlre << _mlv + "='" + ENV[_mlrv].to_s + "' "
@@ -8303,7 +8303,7 @@ end}
 @quarantinesupport@      foreach(_mlv ${_mlv_list})
 @quarantinesupport@         if(${_mlv} MATCHES "^[A-Za-z_][A-Za-z0-9_]*$")
 @quarantinesupport@            if(DEFINED ENV{${_mlv}})
-@quarantinesupport@               set(_mlre "${_mlre}${_mlv}_modquar=$ENV{${_mlv}};")
+@quarantinesupport@               set(_mlre "${_mlre}__MODULES_QUAR_${_mlv}=$ENV{${_mlv}};")
 @quarantinesupport@            endif()
 @quarantinesupport@            set(_mlrv "MODULES_RUNENV_${_mlv}")
 @quarantinesupport@            set(_mlre "${_mlre}${_mlv}=$ENV{${_mlrv}};")
@@ -8356,7 +8356,7 @@ endfunction(ml)}
 @quarantinesupport@      for (mlv in strsplit(Sys.getenv('MODULES_RUN_QUARANTINE'), ' ')[[1]]) {
 @quarantinesupport@         if (grepl('^[A-Za-z_][A-Za-z0-9_]*$', mlv)) {
 @quarantinesupport@            if (!is.na(Sys.getenv(mlv, unset=NA))) {
-@quarantinesupport@               mlre <- paste0(mlre, mlv, "_modquar='", Sys.getenv(mlv), "' ")
+@quarantinesupport@               mlre <- paste0(mlre, "__MODULES_QUAR_", mlv, "='", Sys.getenv(mlv), "' ")
 @quarantinesupport@            }
 @quarantinesupport@            mlrv <- paste0('MODULES_RUNENV_', mlv)
 @quarantinesupport@            mlre <- paste0(mlre, mlv, "='", Sys.getenv(mlrv), "' ")
@@ -14372,7 +14372,7 @@ proc cmdModuleConfig {dump_state args} {
          displayTableHeader hi {Env. variable} 24 {Value} 54
          set envvar_list {}
          foreach var [list LOADEDMODULES _LMFILES_ MODULE* __MODULES_*\
-            *_modshare *_modquar *_module*] {
+            *_modshare *_module*] {
             set envvar_list [concat $envvar_list [array names ::env -glob\
                $var]]
          }
@@ -14782,7 +14782,7 @@ if {[catch {
    @quarantinesupport@   foreach var [split [getConf run_quarantine]] {
    @quarantinesupport@      # check variable name is valid
    @quarantinesupport@      if {[regexp {^[A-Za-z_][A-Za-z0-9_]*$} $var]} {
-   @quarantinesupport@         set quarvar ${var}_modquar
+   @quarantinesupport@         set quarvar __MODULES_QUAR_${var}
    @quarantinesupport@         # put back value
    @quarantinesupport@         if {[info exists env($quarvar)]} {
    @quarantinesupport@            reportDebug "Release '$var' environment variable from\
