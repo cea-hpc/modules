@@ -256,7 +256,7 @@ proc getConf {option {valifundef {}}} {
                      if {[switch -- [llength $validvallist] {
                         0 {expr {1 == 1}}
                         1 {string is $validvallist -strict $::env($envvar)}
-                        default {isInList $validvallist $::env($envvar)}
+                        default {expr {$::env($envvar) in $validvallist}}
                      }]} {
                         set value $::env($envvar)
                      }
@@ -370,9 +370,9 @@ proc initStatePaginate {} {
    # stream is not attached to a terminal
    set no_subcmds [list clear edit]
    if {$paginate && (([info exists ::asked_paginate] && !$::asked_paginate)\
-      || [isInList $no_subcmds [getState subcmd]] || ([getState subcmd] eq\
-      {ml} && [isInList $no_subcmds [lindex [getState subcmd_args] 0]]) ||\
-      ![getState is_stderr_tty])} {
+      || [getState subcmd] in $no_subcmds || ([getState subcmd] eq {ml} &&\
+      [lindex [getState subcmd_args] 0] in $no_subcmds) || ![getState\
+      is_stderr_tty])} {
       set paginate 0
    }
 
@@ -528,8 +528,7 @@ proc initConfColor {envvar value validvallist intvallist} {
    # overridden value coming from environment via Modules-specific variable
    if {$envvar ne {} && [info exists ::env($envvar)]} {
       # ignore non-valid values
-      if {[llength $validvallist] == 0 || [isInList $validvallist\
-         $::env($envvar)]} {
+      if {[llength $validvallist] == 0 || $::env($envvar) in $validvallist} {
          set value $::env($envvar)
       }
    }
@@ -728,11 +727,10 @@ proc isIcase {} {
    # depending on current sub-command, list values that equal to a case
    # insensitive match enablement
    lappend enabledValList always
-   if {[isInList [list avail whatis search paths] [currentState\
-      commandname]]} {
+   if {[currentState commandname] in [list avail whatis search paths]} {
       lappend enabledValList search
    }
-   return [isInList $enabledValList [getConf icase]]
+   return [expr {[getConf icase] in $enabledValList}]
 }
 
 
@@ -1175,8 +1173,8 @@ proc formatErrStackTrace {errmsg loc {cmdlist {}}} {
 
       # filter out stack element referring to or called by an unknown procedure
       # (ie. a modulecmd.tcl internal procedure)
-      if {[string index $cmd1 0] ne {$} && $cmd1 ne $unkcmd && ([isInList\
-         $filtercmdlist $cmdcaller] || [isInList $filtercmdlist $cmd1])} {
+      if {[string index $cmd1 0] ne {$} && $cmd1 ne $unkcmd && ($cmdcaller in\
+         $filtercmdlist || $cmd1 in $filtercmdlist)} {
          set errmsg [string replace $errmsg $aftheadidx [expr {[string first\
             $splitstr $errmsg] + $splitstrlen - 1}]]
       } else {
@@ -1191,7 +1189,7 @@ proc formatErrStackTrace {errmsg loc {cmdlist {}}} {
       set stackelt [string range $errmsg $beffootidx end]
       set cmd [lindex [split $stackelt {"}] 1]
 
-      if {[isInList $filtercmdendlist $cmd]} {
+      if {$cmd in $filtercmdendlist} {
          set errmsg [string replace $errmsg $beffootidx end]
       } else {
          set internals 0
@@ -1493,9 +1491,9 @@ proc initErrorReport {} {
       if {[isVerbosityLevel debug2]} {
          # exclude core procedure from tracing
          set excl_prc_list [list report reportDebug reportTraceExecEnter\
-            isInList getState setState unsetState lappendState lpopState\
-            currentState depthState isStateDefined isStateEqual sgr getConf\
-            setConf unsetConf lappendConf]
+            getState setState unsetState lappendState lpopState currentState\
+            depthState isStateDefined isStateEqual sgr getConf setConf\
+            unsetConf lappendConf]
          foreach prc [info procs] {
             if {$prc ni $excl_prc_list} {
                trace add execution $prc enter reportTraceExecEnter
@@ -2577,7 +2575,7 @@ proc module-info {what {more {}}} {
          collectModuleTags $modnamevr
 
          if {$more ne {}} {
-            return [isInList [getTagList $modnamevr] $more]
+            return [expr {$more in [getTagList $modnamevr]}]
          } else {
             return [getTagList $modnamevr]
          }
@@ -2595,7 +2593,7 @@ proc module-info {what {more {}}} {
             knerror "module-info usergroups not supported on Windows platform"
          } else {
             if {$more ne {}} {
-               return [isInList [getState usergroups] $more]
+               return [expr {$more in [getState usergroups]}]
             } else {
                return [getState usergroups]
             }
@@ -3130,8 +3128,8 @@ proc parseApplicationCriteriaArgs {aftbef nearsec args} {
    }
 
    # does it apply to current user?
-   set notuser [expr {[info exists notuserlist] && [isInList $notuserlist\
-      [getState username]]}]
+   set notuser [expr {[info exists notuserlist] && [getState username] in\
+      $notuserlist}]
    set notgroup [expr {[info exists notgrouplist] && [isIntBetweenList\
       $notgrouplist [getState usergroups]]}]
 
@@ -3293,8 +3291,8 @@ proc module-tag {args} {
    if {![info exists modarglist]} {
       knerror {No module specified in argument}
    }
-   if {[isInList [list loaded auto-loaded forbidden nearly-forbidden hidden\
-      hidden-loaded] $tag]} {
+   if {$tag in [list loaded auto-loaded forbidden nearly-forbidden hidden\
+      hidden-loaded]} {
       knerror "'$tag' is a reserved tag name and cannot be set"
    }
 
@@ -3340,8 +3338,8 @@ proc module {command args} {
 
    # parse module version specification
    defineParseModuleSpecificationProc [getConf advanced_version_spec]
-   if {[isInList [list avail paths whatis load unload switch help test\
-      display path is-avail edit try-load] $command]} {
+   if {$command in [list avail paths whatis load unload switch help test\
+      display path is-avail edit try-load]} {
       set args [eval parseModuleSpecification 0 $args]
    }
 
@@ -3416,8 +3414,8 @@ proc module {command args} {
    }
 
    # define if modfile should always be fully read even for validity check
-   lappendState always_read_full_file [expr {![isInList [list path paths list\
-      avail aliases edit] $command]}]
+   lappendState always_read_full_file [expr {$command ni [list path paths\
+      list avail aliases edit]}]
    lappendState commandname $command
    # is evaluation a regular attempt or a try (silence not found error)
    lappendState try_modulefile [expr {$command eq {try-load}}]
@@ -4637,7 +4635,7 @@ proc is-used {args} {
       # transform given path in an absolute path to compare with dirs
       # registered in the MODULEPATH env var which are returned absolute.
       set abspath [getAbsolutePath $path]
-      if {[isInList $modpathlist $abspath]} {
+      if {$abspath in $modpathlist} {
          return 1
       }
    }
@@ -5345,8 +5343,8 @@ proc isModuleEvaluated {context exclmod args} {
             # indicate module is loading to also compare against all alt names
             if {[modEq $name $mod eqstart 1 1 1 $modvrlist]} {
                set evalmatch 1
-               if {$context eq {any} || [isInList\
-                  $::g_moduleEvalAttempt($evalmod) $context]} {
+               if {$context eq {any} || $context in\
+                  $::g_moduleEvalAttempt($evalmod)} {
                   set ret 1
                }
                break
@@ -5588,14 +5586,14 @@ proc sortModulePerLoadedAndDepOrder {modlist {nporeq 0} {loading 0}} {
    set sortlist {}
    if {[llength $modlist] > 0} {
       foreach lmmod [getLoadedModuleList] {
-         if {[isInList $modlist $lmmod]} {
+         if {$lmmod in $modlist} {
             lappend sortlist $lmmod
          }
       }
       # also sort eventual loading modules if asked
       if {$loading} {
          foreach loadingmod [lreverse [getLoadingModuleList]] {
-            if {[isInList $modlist $loadingmod]} {
+            if {$loadingmod in $modlist} {
                lappend sortlist $loadingmod
             }
          }
@@ -5726,7 +5724,7 @@ proc getModuleTag {mod tag {cmp eqstart} {return_rule 0}} {
 proc isModuleTagged {mod tag {collected 0}} {
    # retrieve tag information from collected tags or raw info
    if {$collected} {
-      return [isInList [getTagList $mod] $tag]
+      return [expr {$tag in [getTagList $mod]}]
    } else {
       return [expr {[llength [getModuleTag $mod $tag]] != 0}]
    }
@@ -6186,11 +6184,11 @@ proc getModuleFromLoadedModulefile {modfile {idx all}} {
 }
 
 proc isModuleLoading {mod} {
-   return [isInList [getLoadingModuleList] $mod]
+   return [expr {$mod in [getLoadingModuleList]}]
 }
 
 proc isModulefileLoading {modfile} {
-   return [isInList [getLoadingModuleFileList] $modfile]
+   return [expr {$modfile in [getLoadingModuleFileList]}]
 }
 
 proc getModuleFromLoadingModulefile {modfile {idx all}} {
@@ -6655,12 +6653,11 @@ proc unsetLoadedAltname {mod} {
 proc getLoadedAltname {mod {serialized 0} {typelist {sym alias autosym}}} {
    set ret {}
 
-   if {[info exists ::g_loadedModuleAltname($mod)] && [isInList $typelist\
-      sym]} {
+   if {[info exists ::g_loadedModuleAltname($mod)] && {sym} in $typelist} {
       set ret $::g_loadedModuleAltname($mod)
    }
-   if {[info exists ::g_loadedModuleAliasAltname($mod)] && [isInList\
-      $typelist alias]} {
+   if {[info exists ::g_loadedModuleAliasAltname($mod)] && {alias} in\
+      $typelist} {
       if {$serialized} {
          # add a 'al|' prefix to each alias to distinguish them when
          # serialized
@@ -6671,8 +6668,8 @@ proc getLoadedAltname {mod {serialized 0} {typelist {sym alias autosym}}} {
          set ret [concat $ret $::g_loadedModuleAliasAltname($mod)]
       }
    }
-   if {[info exists ::g_loadedModuleAutoAltname($mod)] && [isInList $typelist\
-      autosym]} {
+   if {[info exists ::g_loadedModuleAutoAltname($mod)] && {autosym} in\
+      $typelist} {
       if {$serialized} {
          # add a 'as|' prefix to each auto sym to distinguish them when
          # serialized
@@ -6891,8 +6888,7 @@ proc setModuleDependency {mod} {
       if {[modEq $modpre $mod eqstart 1 2 1]} {
          reportDebug "refresh requirements targeting '$modpre'"
          foreach lmmod $::g_unmetDepHash($modpre) {
-            if {[isInList [getDependentLoadedModuleList [list $lmmod] 0 0]\
-               $mod]} {
+            if {$mod in [getDependentLoadedModuleList [list $lmmod] 0 0]} {
                reportDebug "skip deps refresh for '$lmmod' as dep cycle\
                   detected with '$mod'"
 
@@ -7184,7 +7180,7 @@ proc getDirectDependentList {mod {strong 0} {nporeq 0} {loading 0}\
          # of the search, which means mod is not optional but strong dependent
          if {$strong && [llength $depmod] > 1} {
             foreach lmmodlist [set ${reqListVar}([lindex $depmod 0])] {
-               if {[isInList $lmmodlist $mod]} {
+               if {$mod in $lmmodlist} {
                   foreach lmmod $lmmodlist {
                      # other mod part of the opt list is not there so mod
                      # is considered optional
@@ -8644,7 +8640,7 @@ proc getEqArrayKeyProcImpdfl {arrname name} {
                lappend mrlist $elt
             }
          }
-         if {[info exists dfl] && [isInList $mrlist $dfl]} {
+         if {[info exists dfl] && $dfl in $mrlist} {
             set match $dfl
          } else {
             set match [lindex [lsort -dictionary $mrlist] end]
@@ -8690,7 +8686,7 @@ proc getEqArrayKeyProc {arrname name} {
                lappend mrlist $elt
             }
          }
-         if {[info exists dfl] && [isInList $mrlist $dfl]} {
+         if {[info exists dfl] && $dfl in $mrlist} {
             set match $dfl
          } else {
             # raise error as no default part of result
@@ -8768,10 +8764,6 @@ proc countChar {str char} {
       $char {}] $str]]}]
 }
 
-proc isInList {lst elt} {
-   return [expr {[lsearch -exact $lst $elt] != -1}]
-}
-
 proc appendNoDupToList {lstname args} {
    set ret 0
    upvar $lstname lst
@@ -8796,7 +8788,7 @@ proc replaceFromList {list1 item {item2 {}}} {
 # test if 2 lists have at least one element in common
 proc isIntBetweenList {list1 list2} {
    foreach elt $list1 {
-      if {[isInList $list2 $elt]} {
+      if {$elt in $list2} {
          return 1
       }
    }
@@ -10023,7 +10015,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    set modqe [getOneModuleFromVersSpec $mod]
 
    # perform an in depth search or not
-   set indepth [expr {![isInList $search noindepth]}]
+   set indepth [expr {{noindepth} ni $search}]
 
    # set a default if none defined on directory entries
    set implicitdfl [getConf implicit_default]
@@ -10032,12 +10024,12 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    set autosymbol [expr {$implicitdfl && [getConf advanced_version_spec]}]
 
    # match passed name against any part of avail module names
-   set contains [isInList $search contains]
+   set contains [expr {{contains} in $search}]
    set mtest [expr {$contains ? {matchin} : {match}}]
 
    set icase [isIcase]
 
-   set wild [isInList $search wild]
+   set wild [expr {{wild} in $search}]
 
    # will only keep default or latest elts in the end or remove plain dirs
    set filtering [expr {$filter eq {noplaindir}}]
@@ -10058,11 +10050,11 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
       map {* {} ? {}} $modroot]}]
 
    # are result entries gathered in a resolution context ?
-   set resctx [isInList $search resolve]
+   set resctx [expr {{resolve} in $search}]
 
    # if search for global or user rc alias only, no dir lookup is performed
    # and aliases from g_rcAlias are returned
-   if {[isInList $search rc_alias_only]} {
+   if {{rc_alias_only} in $search} {
       set add_rc_defs 1
       array set found_list {}
    } else {
@@ -10081,7 +10073,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
       }
 
       # add alias/version definitions from global or user rc to result
-      set add_rc_defs [isInList $search rc_defs_included]
+      set add_rc_defs [expr {{rc_defs_included} in $search}]
 
       # if no indepth mode search, pass the depth level of the search query
       set depthlvl [expr {$indepth ? 0 : [expr {$querydepth + 1}]}]
@@ -11200,8 +11192,8 @@ proc getMovementBetweenList {from to {extfrom {}} {extto {}} {cmp eq}} {
       set to_obj [lindex $to $i]
       set from_obj [lindex $from $i]
       # check from/to element presence in extra from/to list
-      set in_extfrom [isInList $extfrom $from_obj]
-      set in_extto [isInList $extto $to_obj]
+      set in_extfrom [expr {$from_obj in $extfrom}]
+      set in_extto [expr {$to_obj in $extto}]
       # are elts the sames and are both part of or missing from extra lists
       # when comparing modules, ask comparison against loaded module
       # alternative and simplified names (modEq will also compare variants)
@@ -11235,7 +11227,7 @@ proc getSimplifiedLoadedModuleList {} {
       set simplemod $mod
       # simplify to parent name as long as it is found in simplified name list
       while {$parentmod ne {.}} {
-         if {[isInList $altandsimplist $parentmod]} {
+         if {$parentmod in $altandsimplist} {
             set simplemod $parentmod
             set parentmod [file dirname $parentmod]
          } else {
@@ -11336,7 +11328,7 @@ proc formatCollectionContent {path_list mod_list nuasked_list {sgr 0}} {
    # then add modules
    foreach mod $mod_list {
       # mark modules not asked by user to restore the user asked state
-      set opt [expr {[isInList $nuasked_list $mod] ? {--notuasked } : {}}]
+      set opt [expr {$mod in $nuasked_list ? {--notuasked } : {}}]
       # no need to specifically enclose module specification if space char
       # used in it as $mod is a list so elements including space will be
       # automatically enclosed
@@ -11445,12 +11437,12 @@ proc parseModuleCommandName {command defaultcmd} {
       }
    }
 
-   set cmdvalid [isInList [list load unload reload use unuse source switch\
-      display avail aliases path paths list whatis search purge save restore\
-      saverm saveshow savelist initadd initprepend initswitch initrm initlist\
-      initclear autoinit clear config help test prepend-path append-path\
-      remove-path is-loaded is-saved is-used is-avail info-loaded sh-to-mod\
-      edit try-load] $command]
+   set cmdvalid [expr {$command in [list load unload reload use unuse source\
+      switch display avail aliases path paths list whatis search purge save\
+      restore saverm saveshow savelist initadd initprepend initswitch initrm\
+      initlist initclear autoinit clear config help test prepend-path\
+      append-path remove-path is-loaded is-saved is-used is-avail info-loaded\
+      sh-to-mod edit try-load]}]
 
    return [list $command $cmdvalid $cmdempty]
 }
@@ -11478,7 +11470,7 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
          switch -glob -- $arg {
             -j - --json {
                # enable json output only on supported command
-               if {[isInList [list avail savelist list search whatis] $cmd]} {
+               if {$cmd in [list avail savelist list search whatis]} {
                   setState report_format json
                   set show_oneperline 0
                   set show_mtime 0
@@ -11496,7 +11488,7 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
             }
             -o {
                # option is only valid for specific sub-commands
-               if {[isInList [list avail list] $cmd]} {
+               if {$cmd in [list avail list]} {
                   set nextargisval asked_output
                   set output_arg -o
                } else {
@@ -11508,7 +11500,7 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
             }
             --output=* {
                # option is only valid for specific sub-commands
-               if {[isInList [list avail list] $cmd]} {
+               if {$cmd in [list avail list]} {
                   set asked_output [string range $arg 9 end]
                   set output_arg --output
                } elseif {!$ignerr} {
@@ -11531,8 +11523,7 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
             }
             --all {
                # include hidden modules only on a limited set of command
-               if {[isInList [list avail aliases search whatis ml list]\
-                  $cmd]} {
+               if {$cmd in [list avail aliases search whatis ml list]} {
                   setState hiding_threshold 2
                } else {
                   lappend otherargs $arg
@@ -11543,8 +11534,7 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
                # or one of the search/listing sub-commands
                if {$cmd eq {use}} {
                   set addpath_pos append
-               } elseif {[isInList [list avail aliases search whatis ml list]\
-                  $cmd]} {
+               } elseif {$cmd in [list avail aliases search whatis ml list]} {
                   setState hiding_threshold 2
                } else {
                   lappend otherargs $arg
@@ -11581,7 +11571,7 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
                reportWarning "Unsupported option '$arg'"
             }
             --not-req {
-               if {!$topcall && [isInList [list load unload switch] $cmd]} {
+               if {!$topcall && $cmd in [list load unload switch]} {
                   set not_req 1
                } else {
                   knerror "Unsupported option '$arg' on $cmd sub-command"
@@ -11603,7 +11593,7 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
    }
 
    if {[info exists asked_output]} {
-      if {[isInList [list long json] [getState report_format]]} {
+      if {[getState report_format] in [list long json]} {
          knerror "Unsupported option '$output_arg' on [getState\
             report_format] output mode"
       } else {
@@ -12444,8 +12434,8 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
                # report error of version target if matching query
                set elt_target [getArrayKey mod_list [lindex $mod_list($elt) 1]\
                   $icase]
-               if {[info exists mod_list($elt_target)] && [isInList [list\
-                  invalid accesserr] [lindex $mod_list($elt_target) 0]] &&\
+               if {[info exists mod_list($elt_target)] && [lindex\
+                  $mod_list($elt_target) 0] in [list invalid accesserr] &&\
                   [modEq $mod $elt]} {
                   set err_list($elt_target) $mod_list($elt_target)
                } elseif {![info exists mod_list($elt_target)]} {
@@ -13850,9 +13840,9 @@ proc cmdModuleUnuse {args} {
          # with previous behavior where relative paths were registered in
          # MODULEPATH given path is first checked against current path list
          set abspath [getAbsolutePath $path]
-         if {[isInList $modpathlist $path]} {
+         if {$path in $modpathlist} {
             set unusepath $path
-         } elseif {[isInList $modpathlist $abspath]} {
+         } elseif {$abspath in $modpathlist} {
             set unusepath $abspath
          } else {
             set unusepath {}
@@ -13867,7 +13857,7 @@ proc cmdModuleUnuse {args} {
 
             # refresh path list after unload
             set modpathlist [getModulePathList returnempty 0 0]
-            if {[isInList $modpathlist $unusepath]} {
+            if {$unusepath in $modpathlist} {
                reportWarning "Did not unuse $unusepath"
             }
          }
@@ -13942,14 +13932,14 @@ proc cmdModuleAutoinit {} {
    # append dir where to find module function for ksh (to get it defined in
    # interactive and non-interactive sub-shells). also applies for shells
    # listed in shells_with_ksh_fpath conf
-   if {[isInList [concat [split [getConf shells_with_ksh_fpath] :] [list\
-      ksh]] [getState shell]]} {
+   if {[getState shell] in [concat [split [getConf shells_with_ksh_fpath] :]\
+      [list ksh]]} {
       append-path FPATH @initdir@/ksh-functions
    }
 
    # define Modules init script as shell startup file
-   if {[getConf set_shell_startup] && [isInList [list sh csh fish]\
-      [getState shelltype]]} {
+   if {[getConf set_shell_startup] && [getState shelltype] in [list sh csh\
+      fish]} {
       # setup ENV variables to get module defined in sub-shells (works for
       # 'sh' and 'ksh' in interactive mode and 'sh' (zsh-compat), 'bash' and
       # 'ksh' (zsh-compat) in non-interactive mode.
@@ -14561,16 +14551,16 @@ if {[catch {
             }
             -D - -DD - --debug {
                set asked_verbosity [expr {$arg eq {-DD} || ([info exists\
-                  asked_verbosity] && [isInList {debug debug2}\
-                  $asked_verbosity]) ? {debug2} : {debug}}]
+                  asked_verbosity] && $asked_verbosity in {debug debug2}) ?\
+                  {debug2} : {debug}}]
             }
             -s - --silent {
                set asked_verbosity silent
             }
             -v - -vv - --verbose {
                set asked_verbosity [expr {$arg eq {-vv} || ([info exists\
-                  asked_verbosity] && [isInList {verbose verbose2}\
-                  $asked_verbosity]) ? {verbose2} : {verbose}}]
+                  asked_verbosity] && $asked_verbosity in {verbose verbose2})\
+                  ? {verbose2} : {verbose}}]
             }
             --help - -h {
                set show_help 1
@@ -14676,9 +14666,9 @@ if {[catch {
                   # accepted if command is ml or if adv vers spec is enabled
                   # and command can receive boolean variant specification
                   set accept_minus_arg [expr {$subcmdtest eq {ml} ||\
-                     ([getConf advanced_version_spec] && [isInList {avail\
-                     display help is-avail is-loaded load path paths switch\
-                     test unload whatis} $subcmdtest])}]
+                     ([getConf advanced_version_spec] && $subcmdtest in\
+                     {avail display help is-avail is-loaded load path paths\
+                     switch test unload whatis})}]
                }
                # spare argument if minus arg is accepted
                if {[info exists accept_minus_arg] && $accept_minus_arg} {
