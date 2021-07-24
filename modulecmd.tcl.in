@@ -362,7 +362,7 @@ proc initStatePaginate {} {
    # empty or 'cat' pager command means no-pager
    set no_cmds [list {} cat]
    # default pager enablement depends on pager command value
-   set paginate [notInList $no_cmds [file tail [lindex $pager 0]]]
+   set paginate [expr {[file tail [lindex $pager 0]] ni $no_cmds}]
 
    # asked enablement could only nullify a previous asked disablement as it
    # requires a valid pager command configuration, which by default enables
@@ -1493,11 +1493,11 @@ proc initErrorReport {} {
       if {[isVerbosityLevel debug2]} {
          # exclude core procedure from tracing
          set excl_prc_list [list report reportDebug reportTraceExecEnter\
-            isInList notInList getState setState unsetState lappendState\
-            lpopState currentState depthState isStateDefined isStateEqual sgr\
-            getConf setConf unsetConf lappendConf]
+            isInList getState setState unsetState lappendState lpopState\
+            currentState depthState isStateDefined isStateEqual sgr getConf\
+            setConf unsetConf lappendConf]
          foreach prc [info procs] {
-            if {[notInList $excl_prc_list $prc]} {
+            if {$prc ni $excl_prc_list} {
                trace add execution $prc enter reportTraceExecEnter
             }
          }
@@ -3356,8 +3356,8 @@ proc module {command args} {
       }
       # other commands can only be called from modulefile evaluated from
       # command acting as top-level context (source and autoinit)
-      if {([depthState modulename] > 1 || [notInList [list source autoinit]\
-         [currentState commandname]]) && $command eq {config}} {
+      if {([depthState modulename] > 1 || [currentState commandname] ni [list\
+         source autoinit]) && $command eq {config}} {
          knerror "${msgprefix}Command '$command' not supported$tryhelpmsg"
       }
       # no requirement should be recorded this module load/unload/switch cmd
@@ -3472,8 +3472,8 @@ proc module {command args} {
             # (unless if implicit_requirement has been inhibited) also unloads
             # are triggered by ongoing reload, purge or restore commands
             } elseif {(![getConf auto_handling] || [getState\
-               inhibit_req_record] eq [currentState evalid]) && [notInList\
-               [list purge reload restore] [aboveCommandName]]} {
+               inhibit_req_record] eq [currentState evalid]) &&\
+               [aboveCommandName] ni [list purge reload restore]} {
                # on unload mode, unload mods in reverse order, if loaded
                # prior this mod, if not user asked and not required by
                # other loaded mods
@@ -3579,8 +3579,8 @@ proc module {command args} {
                   # triggered by ongoing reload, purge or restore commands
                   if {(![getConf auto_handling] || [getState\
                      inhibit_req_record] eq [currentState evalid]) &&\
-                     $swlomod ne {} && [notInList [list purge reload restore]\
-                     [aboveCommandName]]} {
+                     $swlomod ne {} && [aboveCommandName] ni [list purge\
+                     reload restore]} {
                      # unload mod if it was loaded prior this mod, not user
                      # asked and not required by another loaded module
                      set modlist [getLoadedModuleList]
@@ -4102,7 +4102,7 @@ proc unload-path {args} {
       set nbelem [llength $dir_list]
       # rebuild list of element without indexes set for deletion
       for {set i 0} {$i < $nbelem} {incr i} {
-         if {[notInList $del_idx_list $i]} {
+         if {$i ni $del_idx_list} {
             lappend newpath [lindex $dir_list $i]
          }
       }
@@ -4875,12 +4875,12 @@ proc sh-to-mod {args} {
    # check environment variable change
    lassign [getDiffBetweenArray varbef varaft] notaft diff notbef
    foreach name $notaft {
-      if {[notInList $ignvarlist $name]} {
+      if {$name ni $ignvarlist} {
          lappend modcontent [list unsetenv $name]
       }
    }
    foreach name $diff {
-      if {[notInList $ignvarlist $name]} {
+      if {$name ni $ignvarlist} {
          # new value is totally different (also consider a bare ':' as a
          # totally different value to avoid erroneous matches)
          if {$varbef($name) eq $pathsep || [set idx [string first\
@@ -4931,7 +4931,7 @@ proc sh-to-mod {args} {
       }
    }
    foreach name $notbef {
-      if {[notInList $ignvarlist $name]} {
+      if {$name ni $ignvarlist} {
          if {[string first $pathsep $varaft($name)] == -1} {
             lappend modcontent [list setenv $name $varaft($name)]
          } else {
@@ -5187,7 +5187,7 @@ proc variant {itrp args} {
 
    # check defined value
    if {($isboolean && ![string is boolean -strict $value]) || (!$isboolean &&\
-      [notInList $values $value])} {
+      $value ni $values)} {
       # invalid value error is not a modulefile error
       knerror "Invalid value '$value' for variant '$name'\nAllowed values\
          are: $values" MODULES_ERR_GLOBAL
@@ -5754,8 +5754,7 @@ proc collectModuleTags {mod} {
       for {set i 0} {$i < [llength $::g_moduleTagRoot($modroot)]} {incr i} {
          set tag [lindex $::g_moduleTagRoot($modroot) $i]
          # skip already known tag
-         if {![info exists ::g_tagHash($mod)] || [notInList\
-            $::g_tagHash($mod) $tag]} {
+         if {![info exists ::g_tagHash($mod)] || $tag ni $::g_tagHash($mod)} {
             foreach {tmodspec tprops} [lindex\
                $::g_moduleTagRootSpec($modroot) $i] {
                # add tag if one modspec matches mod
@@ -6462,8 +6461,8 @@ proc setLoadedSourceSh {mod args} {
       # modulefile commands at all later index positions
       set shtomodargs [lindex $arg 0]
       set modcontent [lrange $arg 1 end]
-      if {![info exists ::g_loadedModuleSourceSh($mod)] || [notInList\
-         $::g_loadedModuleSourceSh($mod) $shtomodargs]} {
+      if {![info exists ::g_loadedModuleSourceSh($mod)] || $shtomodargs ni\
+         $::g_loadedModuleSourceSh($mod)} {
          # filter alias or function definition not to record them
          set filtmodcont [list]
          foreach modcmdlist $modcontent {
@@ -6571,7 +6570,7 @@ proc doesModuleConflict {mod} {
             }
          }
       # other loaded module declared conflicts (skipping those already known)
-      } elseif {[notInList $modconlist $modcon]} {
+      } elseif {$modcon ni $modconlist} {
          foreach withmod $::g_loadedModuleConflict($modcon) {
             # check if mod or one of its alt name match conflict
             if {[modEq $withmod $mod eqstart 1 2 1] || ($isfullpath &&\
@@ -7189,7 +7188,7 @@ proc getDirectDependentList {mod {strong 0} {nporeq 0} {loading 0}\
                   foreach lmmod $lmmodlist {
                      # other mod part of the opt list is not there so mod
                      # is considered optional
-                     if {[notInList $othmodlist $lmmod]} {
+                     if {$lmmod ni $othmodlist} {
                         set add 0
                         break
                      }
@@ -7292,7 +7291,7 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1} {nporeq 0}\
                $strong $nporeq 0 $fulllist]
          }
          # avoid module currently unloading from result list
-         if {[notInList $unloadingmodlist $depmod]} {
+         if {$depmod ni $unloadingmodlist} {
             lappend deplist $depmod
          }
       }
@@ -7326,7 +7325,7 @@ proc isModuleUnloadable {mod {unmodlist {}}} {
    } else {
       # mod is unloadable if all its dependent are unloaded or unloading
       foreach depmod [getDirectDependentList $mod] {
-         if {[notInList $unmodlist $depmod]} {
+         if {$depmod ni $unmodlist} {
             set ret 0
             break
          }
@@ -7371,7 +7370,7 @@ proc getUnloadableLoadedModuleList {modlist} {
       set deplist {}
       foreach lmmodlist $::g_moduleDepend($depmod) {
          foreach lmmod $lmmodlist {
-            if {[notInList $fulllist $lmmod]} {
+            if {$lmmod ni $fulllist} {
                lappend deplist $lmmod
             }
          }
@@ -7504,7 +7503,7 @@ proc restoreSettings {} {
       interp-sync-env set $var $val
    }
    foreach var [array names ::env] {
-      if {[notInList $envvarlist $var]} {
+      if {$var ni $envvarlist} {
          interp-sync-env unset $var
       }
    }
@@ -8444,8 +8443,8 @@ proc cacheCurrentModules {{exitonerr 1}} {
          }
 
          foreach mod $modlist {
-            setLoadedModule $mod [lindex $modfilelist $i] [notInList\
-               $nuaskedlist $mod]
+            setLoadedModule $mod [lindex $modfilelist $i] [expr {$mod ni\
+               $nuaskedlist}]
             incr i
          }
 
@@ -8773,15 +8772,11 @@ proc isInList {lst elt} {
    return [expr {[lsearch -exact $lst $elt] != -1}]
 }
 
-proc notInList {lst elt} {
-   return [expr {[lsearch -exact $lst $elt] == -1}]
-}
-
 proc appendNoDupToList {lstname args} {
    set ret 0
    upvar $lstname lst
    foreach elt $args {
-      if {![info exists lst] || [notInList $lst $elt]} {
+      if {![info exists lst] || $elt ni $lst} {
          lappend lst $elt
          set ret 1
       }
@@ -8811,7 +8806,7 @@ proc isIntBetweenList {list1 list2} {
 # test if 2 lists have at least one element in diff
 proc isDiffBetweenList {list1 list2} {
    foreach elt $list1 {
-      if {[notInList $list2 $elt]} {
+      if {$elt ni $list2} {
          return 1
       }
    }
@@ -8825,12 +8820,12 @@ proc getDiffBetweenList {list1 list2} {
    set res2 [list]
 
    foreach elt $list1 {
-      if {[notInList $list2 $elt]} {
+      if {$elt ni $list2} {
          lappend res1 $elt
       }
    }
    foreach elt $list2 {
-      if {[notInList $list1 $elt]} {
+      if {$elt ni $list1} {
          lappend res2 $elt
       }
    }
@@ -11110,7 +11105,7 @@ proc displayKey {} {
       lappend len_list 24
    }
    foreach sc [array names ::g_used_va] {
-      if {[notInList {on off val} $sc]} {
+      if {$sc ni {on off val}} {
          lappend display_list "[sgr se \{][sgr va ${sc}value][sgr se\
             \}]=[sgr se \{][sgr va $::g_used_va($sc)=value][sgr se \}]"
          lappend len_list [expr {17 + [string length $::g_used_va($sc)]}]
@@ -12839,7 +12834,7 @@ proc cmdModuleRestore {{coll default}} {
 
    # load modules one by one with user asked state preserved
    foreach mod $mod_to_load {
-      cmdModuleLoad load [notInList $coll_nuasked_list $mod] $mod
+      cmdModuleLoad load [expr {$mod ni $coll_nuasked_list}] $mod
    }
 
    popMsgRecordId 0
@@ -14259,8 +14254,7 @@ proc cmdModuleConfig {dump_state args} {
             {} {
                if {([llength $confvalid($name)] == 1 && ![string is\
                   $confvalid($name) -strict $value]) || ([llength\
-                  $confvalid($name)] > 1 && [notInList $confvalid($name)\
-                  $value])} {
+                  $confvalid($name)] > 1 && $value ni $confvalid($name))} {
                   reportErrorAndExit "Valid values for configuration option\
                      '$name' are: $confvalid($name)"
                } else {
@@ -14603,7 +14597,7 @@ if {[catch {
                set asked_color [string range $arg 8 end]
                if {$asked_color eq {}} {
                   set asked_color always
-               } elseif {[notInList [lindex $::g_config_defs(color) 3] $asked_color]} {
+               } elseif {$asked_color ni [lindex $::g_config_defs(color) 3]} {
                   unset asked_color
                }
             }
@@ -14786,7 +14780,7 @@ if {[catch {
       renderFalse
    }
    # report stack trace in addition to the error message if error is unknown
-   if {[notInList [list MODULES_ERR_RENDERED MODULES_ERR_KNOWN] $errorCode]} {
+   if {$errorCode ni [list MODULES_ERR_RENDERED MODULES_ERR_KNOWN]} {
       set errMsg "$errorInfo\n[sgr hi {Please report this issue at\
          https://github.com/cea-hpc/modules/issues}]"
    }
