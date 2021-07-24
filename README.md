@@ -80,7 +80,7 @@ system or `INSTALL-win.txt` for Windows.
 Requirements
 ------------
 
- * Tcl >= 8.4
+ * Tcl >= 8.5
 
 
 License

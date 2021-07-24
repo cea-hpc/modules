@@ -73,6 +73,10 @@ Modules 5.0.0-alpha (2021-07-XX)
   whose name finishes with ``_modquar``). A ``__MODULES_QUAR_`` prefix is
   applied to the name of these variables instead of the ``_modquar`` suffix to
   indicate they are intended for Modules internal use of only.
+* Update Tcl requirement to version 8.5 as Tcl 8.4 is deprecated since a long
+  time and this version is not available anymore on recent OS distributions.
+  Update internal code of :file:`modulecmd.tcl` to take benefit from the
+  features brought by Tcl 8.5.
 
 
 .. _4.8 release notes:

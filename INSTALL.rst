@@ -10,9 +10,9 @@ system.
 Requirements
 ------------
 
-Modules consists of one Tcl script so to run it from a user shell the
-only requirement is to have a working version of ``tclsh`` (version
-8.4 or later) available on your system. ``tclsh`` is a part of Tcl
+Modules consists of one Tcl script so to run it from a user shell the only
+requirement is to have a working version of ``tclsh`` (version 8.5 or later)
+available on your system. ``tclsh`` is a part of Tcl
 (http://www.tcl.tk/software/tcltk/).
 
 To install Modules from a distribution tarball or a clone of the git
@@ -30,7 +30,7 @@ additional tools are needed:
 
 * grep
 * gcc
-* tcl-devel >= 8.4
+* tcl-devel >= 8.5
 
 When installing from a distribution tarball, documentation is pre-built and
 scripts to configure Modules Tcl extension library build are already
