@@ -1038,9 +1038,8 @@ proc reportMsgRecord {header {hidden 0}} {
          foreach msg $::g_msgRecord($recid) {
             # split lines if too large for terminal
             set first 1
-            set max_idx [expr {$tty_cols - [string length $padding]}]
-            # max expr function is not supported in Tcl8.4 and earlier
-            if {$max_idx < 1} {set max_idx 1}
+            set max_idx [tcl::mathfunc::max [expr {$tty_cols - [string length\
+               $padding]}] 1]
             set linelist [list]
             foreach line [split $msg \n] {
                set lineadd {}
@@ -6270,9 +6269,7 @@ proc modStartNbProc {mod name} {
    } else {
       set namesplit [split $modname /]
       set modsplit [split $mod /]
-      # min expr function is not supported in Tcl8.4 and earlier
-      set imax [if {[llength $namesplit] < [llength $modsplit]} {llength\
-         $namesplit} {llength $modsplit}]
+      set imax [tcl::mathfunc::min [llength $namesplit] [llength $modsplit]]
       for {set i 0} {$i < $imax} {incr i} {
          if {![string equal [lindex $modsplit $i] [lindex $namesplit $i]]} {
             break
@@ -10894,13 +10891,8 @@ proc displaySeparatorLine {{title {}} {sgrkey {}}} {
       report [string repeat - $rep]
    } else {
       set len [string length $title]
-      # max expr function is not supported in Tcl8.4 and earlier
-      if {[set lrep [expr {($tty_cols - $len - 2)/2}]] < 1} {
-         set lrep 1
-      }
-      if {[set rrep [expr {$tty_cols - $len - 2 - $lrep}]] < 1} {
-         set rrep 1
-      }
+      set lrep [tcl::mathfunc::max [expr {($tty_cols - $len - 2)/2}] 1]
+      set rrep [tcl::mathfunc::max [expr {$tty_cols - $len - 2 - $lrep}] 1]
       report "[string repeat - $lrep] [sgr $sgrkey $title] [string repeat -\
          $rrep]"
    }
@@ -10968,9 +10960,8 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx\
       set tty_cols [getState term_columns]
       # find valid grid by starting with non-optimized solution where each
       # column length is equal to the length of the biggest element to display
-      set cur_cols [expr {int(($tty_cols - $elt_prefix_len) / $max_len)}]
-      # max expr function is not supported in Tcl8.4 and earlier
-      if {$cur_cols < 0} {set cur_cols 0}
+      set cur_cols [tcl::mathfunc::max [expr {int(($tty_cols - \
+         $elt_prefix_len) / $max_len)}] 0]
       # when display is found too short to display even one column
       if {$cur_cols == 0} {
          set cols 1
