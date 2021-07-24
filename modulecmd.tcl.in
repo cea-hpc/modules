@@ -9012,18 +9012,7 @@ proc doesModuleHaveSym {mod} {
 proc __getFilesInDirectory {dir fetch_dotversion} {
    set dir_list [list]
 
-   # try then catch any issue rather than test before trying
-   # workaround 'glob -nocomplain' which does not return permission
-   # error on Tcl 8.4, so we need to avoid registering issue if
-   # raised error is about a no match
-   if {[catch {set elt_list [glob $dir/*]} errMsg]} {
-      if {$errMsg eq "no files matched glob pattern \"$dir/*\""} {
-         set elt_list {}
-      } else {
-         # rethrow other error to catch it in caller proc
-         error $errMsg $::errorInfo $::errorCode
-      }
-   }
+   set elt_list [glob -nocomplain $dir/*]
 
    # Add each element in the current directory to the list
    foreach elt $elt_list {
@@ -11291,15 +11280,9 @@ proc findCollections {} {
       append coll_search .$colltarget
    }
 
-   # workaround 'glob -nocomplain' which does not return permission
-   # error on Tcl 8.4, so we need to avoid raising error if no match
    # glob excludes by default files starting with "."
-   if {[catch {set coll_list [glob $coll_search]} errMsg ]} {
-      if {$errMsg eq "no files matched glob pattern \"$coll_search\""} {
-         set coll_list {}
-      } else {
-         reportErrorAndExit "Cannot access collection directory.\n$errMsg"
-      }
+   if {[catch {set coll_list [glob -nocomplain $coll_search]} errMsg]} {
+      reportErrorAndExit "Cannot access collection directory.\n$errMsg"
    }
 
    return $coll_list
