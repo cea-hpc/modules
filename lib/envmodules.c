@@ -97,13 +97,8 @@ Envmodules_GetFilesInDirectoryObjCmd(
    /* Open directory. */
    if ((did  = opendir(dir)) == NULL) {
       Tcl_SetErrno(errno);
-#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
-      Tcl_AppendResult(interp, "couldn't open directory \"", dir, "\": ",
-         Tcl_PosixError(interp), (char *) NULL);
-#else
       Tcl_SetObjResult(interp, Tcl_ObjPrintf(
          "couldn't open directory \"%s\": %s", dir, Tcl_PosixError(interp)));
-#endif
       return TCL_ERROR;
    }
 
@@ -135,13 +130,8 @@ Envmodules_GetFilesInDirectoryObjCmd(
    /* Close directory. */
    if (closedir(did) == -1) {
       Tcl_SetErrno(errno);
-#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
-      Tcl_AppendResult(interp, "couldn't close directory \"", dir, "\": ",
-         Tcl_PosixError(interp), (char *) NULL);
-#else
       Tcl_SetObjResult(interp, Tcl_ObjPrintf(
          "couldn't close directory \"%s\": %s", dir, Tcl_PosixError(interp)));
-#endif
       Tcl_DecrRefCount(ltmp);
       return TCL_ERROR;
    }
@@ -232,13 +222,8 @@ Envmodules_ReadFileObjCmd(
    /* Open file. */
    if ((fid  = open(filename, O_RDONLY)) == -1) {
       Tcl_SetErrno(errno);
-#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
-      Tcl_AppendResult(interp, "couldn't open \"", filename, "\": ",
-         Tcl_PosixError(interp), (char *) NULL);
-#else
       Tcl_SetObjResult(interp, Tcl_ObjPrintf("couldn't open \"%s\": %s",
          filename, Tcl_PosixError(interp)));
-#endif
       return TCL_ERROR;
    }
 
@@ -268,13 +253,8 @@ Envmodules_ReadFileObjCmd(
    /* Error during read. */
    if (len == -1) {
       Tcl_SetErrno(errno);
-#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
-      Tcl_AppendResult(interp, "error reading \"", filename, "\": ",
-         Tcl_PosixError(interp), (char *) NULL);
-#else
       Tcl_SetObjResult(interp, Tcl_ObjPrintf("error reading \"%s\": %s",
          filename, Tcl_PosixError(interp)));
-#endif
       Tcl_DecrRefCount(res);
       close(fid);
       return TCL_ERROR;
@@ -322,14 +302,9 @@ Envmodules_InitStateUsernameObjCmd(
    if ((pwd = getpwuid(uid)) == NULL) {
       Tcl_SetErrno(errno);
       sprintf (uidstr, "%d", uid);
-#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
-      Tcl_AppendResult(interp, "couldn't find name for user id \"", uidstr,
-         "\": ", Tcl_PosixError(interp), (char *) NULL);
-#else
       Tcl_SetObjResult(interp,
          Tcl_ObjPrintf("couldn't find name for user id \"%s\": %s", uidstr,
          Tcl_PosixError(interp)));
-#endif
       return TCL_ERROR;
    }
 
@@ -392,14 +367,9 @@ Envmodules_InitStateUsergroupsObjCmd(
 #if defined (HAVE_GETGROUPS)
    if ((ngroups = getgroups(maxgroups, groups)) == -1) {
       Tcl_SetErrno(errno);
-#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
-      Tcl_AppendResult(interp, "couldn't get supplementary groups: ",
-         Tcl_PosixError(interp), (char *) NULL);
-#else
       Tcl_SetObjResult(interp,
          Tcl_ObjPrintf("couldn't get supplementary groups: %s",
          Tcl_PosixError(interp)));
-#endif
       ckfree((char *) groups);
       return TCL_ERROR;
    }
@@ -440,14 +410,9 @@ Envmodules_InitStateUsergroupsObjCmd(
       if ((grp = getgrgid(groups[i])) == NULL) {
          Tcl_SetErrno(errno);
          sprintf(gidstr, "%d", groups[i]);
-#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
-         Tcl_AppendResult(interp, "couldn't find name for group id \"",
-            gidstr, "\": ", Tcl_PosixError(interp), (char *) NULL);
-#else
          Tcl_SetObjResult(interp,
             Tcl_ObjPrintf("couldn't find name for group id \"%s\": %s",
             gidstr, Tcl_PosixError(interp)));
-#endif
          ckfree((char *) groups);
          return TCL_ERROR;
       }
@@ -487,13 +452,8 @@ Envmodules_InitStateClockSecondsObjCmd(
    /* Fetch current Epoch time */
    if ((now = time(NULL)) == -1) {
       Tcl_SetErrno(errno);
-#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
-      Tcl_AppendResult(interp, "couldn't get Epoch time: ",
-         Tcl_PosixError(interp), (char *) NULL);
-#else
       Tcl_SetObjResult(interp, Tcl_ObjPrintf("couldn't get Epoch time: %s",
          Tcl_PosixError(interp)));
-#endif
       return TCL_ERROR;
    }
 
@@ -565,14 +525,9 @@ Envmodules_ParseDateTimeArgObjCmd(
 
    /* Raise error if datetime format is invalid */
    if (valid_dt == 0) {
-#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
-      Tcl_AppendResult(interp, "Incorrect ", opt, " value '", datetime,
-         "' (valid date time format is 'YYYY-MM-DD[THH:MM]')", (char *) NULL);
-#else
       Tcl_SetObjResult(interp, Tcl_ObjPrintf(
          "Incorrect %s value '%s' (valid date time format is 'YYYY-MM-DD[THH:MM]')",
          opt, datetime));
-#endif
       Tcl_SetErrorCode(interp, "MODULES_ERR_KNOWN", NULL);
       return TCL_ERROR;
    }
@@ -580,13 +535,8 @@ Envmodules_ParseDateTimeArgObjCmd(
    /* Convert string date in Epoch time */
    if ((epoch = mktime(&tm)) == -1) {
       Tcl_SetErrno(errno);
-#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
-      Tcl_AppendResult(interp, "couldn't convert to Epoch time: ",
-         Tcl_PosixError(interp), (char *) NULL);
-#else
       Tcl_SetObjResult(interp, Tcl_ObjPrintf(
          "couldn't convert to Epoch time: %s", Tcl_PosixError(interp)));
-#endif
       return TCL_ERROR;
    }
 
@@ -614,7 +564,7 @@ Envmodules_Init(
    Tcl_Interp* interp      /* Tcl interpreter */
 ) {
     /* Require Tcl */
-   if (Tcl_InitStubs(interp, "8.4", 0) == NULL) {
+   if (Tcl_InitStubs(interp, "8.5", 0) == NULL) {
       return TCL_ERROR;
    }
 
