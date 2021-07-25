@@ -58,37 +58,19 @@ if {[cmpversion $tclsh_version 8.6] == -1} {
 } else {
     set linenum 50
 }
-if {[cmpversion $tclsh_version 8.5] == -1} {
-    set custom "<EXM>$custom"
-    set bad_msg [msg_moderr {module-info bad not supported} $custom $modulefile $linenum]
-    testouterr_cmd_re "sh" "load $module" "ERR" $trace_msg\n$tracepat_msg\n\n[escre [msg_load $module $bad_msg]]
-} else {
-    set bad_msg [msg_moderr {module-info bad not supported} $custom $modulefile $linenum]
-    testouterr_cmd "sh" "load $module" "ERR" $trace_msg\n$tracepat_msg\n\n[msg_load $module $bad_msg]
-}
+set bad_msg [msg_moderr {module-info bad not supported} $custom $modulefile $linenum]
+testouterr_cmd "sh" "load $module" "ERR" $trace_msg\n$tracepat_msg\n\n[msg_load $module $bad_msg]
 
 # test displaying
-if {[cmpversion $tclsh_version 8.5] == -1} {
-    set bad_msg "$moderr_msgs: module-info bad not supported\n.*module-info bad.*"
-} else {
-    set bad_msg [escre [msg_moderr {module-info bad not supported} {module-info bad} $modulefile 4 {  } ModulesDisplay]]
-}
+set bad_msg [escre [msg_moderr {module-info bad not supported} {module-info bad} $modulefile 4 {  } ModulesDisplay]]
 testouterr_cmd_re "sh" "display $module" "ERR" "$modlin\n$modulefilere:\n\n$trace_msg\n$tracepat_msg\n$bad_msg\n$modlin"
 
 # test help
-if {[cmpversion $tclsh_version 8.5] == -1} {
-    set bad_msg "$moderr_msgs: module-info bad not supported\n.*module-info bad.*"
-} else {
-    set bad_msg [escre [msg_moderr {module-info bad not supported} {module-info bad} $modulefile 4 {  } ModulesHelp]]
-}
+set bad_msg [escre [msg_moderr {module-info bad not supported} {module-info bad} $modulefile 4 {  } ModulesHelp]]
 testouterr_cmd_re "sh" "help $module" "ERR" "$modlin\nModule Specific Help for $modulefilere:\n\n$trace_msg\n$tracepat_msg\n$bad_msg\n$modlin"
 
 # test test
-if {[cmpversion $tclsh_version 8.5] == -1} {
-    set bad_msg "$moderr_msgs: module-info bad not supported\n.*module-info bad.*"
-} else {
-    set bad_msg [escre [msg_moderr {module-info bad not supported} {module-info bad} $modulefile 4 {  } ModulesTest]]
-}
+set bad_msg [escre [msg_moderr {module-info bad not supported} {module-info bad} $modulefile 4 {  } ModulesTest]]
 testouterr_cmd_re "sh" "test $module" "ERR" "$modlin\nModule Specific Test for $modulefilere:\n\n$trace_msg\n$tracepat_msg\n$bad_msg\n$modlin"
 
 

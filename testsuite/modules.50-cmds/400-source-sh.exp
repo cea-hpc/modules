@@ -624,9 +624,7 @@ testouterr_cmd sh {display source-sh/5.1} OK $tserr_disp4
 #
 
 # test bad source-sh call
-if {[cmpversion $tclsh_version 8.5] == -1} {
-    set msgtcl args
-} elseif {[cmpversion $tclsh_version 8.6] == -1} {
+if {[cmpversion $tclsh_version 8.6] == -1} {
     set msgtcl ...
 } else {
     set msgtcl {?arg ...?}
@@ -745,14 +743,9 @@ setenv		TS2 value
 module-whatis	source-sh/6.0
 -------------------------------------------------------------------"
 testouterr_cmd sh {display source-sh/6.0} OK $tserr
-if {[cmpversion $tclsh_version 8.5] == -1} {
-    set msgtcl "can't read \"env(FOOMINI)\": no such variable
-      while executing"
-} else {
-    set msgtcl "no such variable
+set msgtcl "no such variable
       (read trace on \"env(FOOMINI)\")
       invoked from within"
-}
 set tserr "-------------------------------------------------------------------
 Module Specific Help for $mp/source-sh/6.0:
 
@@ -936,8 +929,7 @@ testouterr_cmd sh {unload source-sh/5.0} $ans {}
 
 # bad modulefile command call in __MODULES_LMSOURCESH (missing alias name and body args)
 setenv_path_var __MODULES_LMSOURCESH source-sh/5.0\&bash\ testsuite/example/sh-to-mod.sh\&sh\ testsuite/example/mini-sh-to-mod.sh\|prepend-path\ FOOPATH\ /path/to/mini\ \{\}\|set-alias\|setenv\ FOOMINI\ value\&bash\ testsuite/example/sh-to-mod.sh\ arg1\|setenv\ FOOARG1\ arg1
-set msgtcl [expr {[cmpversion $tclsh_version 8.5] == -1 ? {-un} : {}}]
-set tserr "$moderr_msgs: wrong # args: should be \"set-alias$msgtcl alias what\"
+set tserr "$moderr_msgs: wrong # args: should be \"set-alias alias what\"
     invoked from within
 \"set-alias {}\"
     invoked from within
@@ -951,7 +943,7 @@ testouterr_cmd sh {unload source-sh/5.0} ERR [msg_unload source-sh/5.0 $tserr]
 
 # bad modulefile command call in __MODULES_LMSOURCESH (missing variable value arg)
 setenv_path_var __MODULES_LMSOURCESH source-sh/5.0\&bash\ testsuite/example/sh-to-mod.sh\&sh\ testsuite/example/mini-sh-to-mod.sh\|prepend-path\ FOOPATH\ /path/to/mini\ \{\}\|set-alias\ almini\ \{\}\|setenv\ FOOMINI\ value\&bash\ testsuite/example/sh-to-mod.sh\ arg1\|setenv\ FOOARG1
-set tserr "$moderr_msgs: wrong # args: should be \"setenv$msgtcl var val\"
+set tserr "$moderr_msgs: wrong # args: should be \"setenv var val\"
     invoked from within
 \"setenv FOOARG1\"
     invoked from within

@@ -73,34 +73,6 @@ if {$install_libtclenvmodules eq {y}} {
     testouterr_cmd sh "is-avail info/$userfgroup" ERR {}
 
     switch -- $tclsh_version {
-    8.4 {
-        if {[info exists env(COVERAGE)]} {
-            set extramsg "  mode \{incr ::_instrument_::log(<EXM>);
-  if \{\$more ne \{\}\} \{incr ::_instrument_::log(<EXM>...\""
-        } else {
-            set extramsg "        mode \{
-           if \{\$more ne \{\}\} \{
-              set command \[currentCommandName\]
-              return \[expr \{\$mode eq \$more || (\$...\""
-        }
-        set tserr [escre [msg_moderr {Command 'id' cannot be found} "eval \$initproclist\"
-      (procedure \"getState\" line 20)
-      invoked from within
-  \"getState usergroups\"
-      (\"usergroups\" arm line 8)
-      invoked from within
-  \"switch -- \$what \{
-$extramsg
-      (procedure \"module-info\" line 6)
-      invoked from within
-  \"module-info usergroups\"
-      invoked from within
-  \"if \{\[info exists env(TESTSUITE_INFO_GROUP_IN_RC)\]\} \{
-      foreach grp \[module-info usergroups\] \{
-          module-virtual info/\$grp ./usergroups
-      \}
-  \}" $mp/info/.modulerc 6 {  }]\n$err_path'info/$userfgroup']
-    }
     8.5 {
         set tserr [escre [msg_moderr {Command 'id' cannot be found} {eval $initproclist"
       (procedure "getState" line 20)
@@ -138,26 +110,6 @@ if {[siteconfig_isStderrTty]} {
 setenv_var TESTSUITE_ENABLE_SITECONFIG_WINDOWS_PLATFORM 1
 
 switch -- $tclsh_version {
-8.4 {
-    if {[info exists env(COVERAGE)]} {
-        set extramsg "mode \{incr ::_instrument_::log(<EXM>);
-if \{\$more ne \{\}\} \{incr ::_instrument_::log(<EXM>...\""
-    } else {
-        set extramsg "      mode \{
-         if \{\$more ne \{\}\} \{
-            set command \[currentCommandName\]
-            return \[expr \{\$mode eq \$more || (\$...\""
-    }
-    set tserr [escre [msg_load info/usergroups [msg_moderr {module-info usergroups not supported on Windows platform} "switch -- \$what \{
-$extramsg
-    (procedure \"module-info\" line 6)
-    invoked from within
-\"module-info usergroups\"
-    invoked from within
-\"lsort \[module-info usergroups\]\"
-    invoked from within
-\"set grplist \[lsort \[module-info usergroups\]\]" $mp/info/usergroups 2 {}]]]
-}
 8.5 {
     set tserr [escre [msg_load info/usergroups [msg_moderr {module-info usergroups not supported on Windows platform} {module-info usergroups"
     invoked from within
@@ -172,28 +124,6 @@ testouterr_cmd_re sh {load info/usergroups} ERR $tserr
 
 setenv_var TESTSUITE_INFO_GROUP_IN_RC 1
 switch -- $tclsh_version {
-8.4 {
-    if {[info exists env(COVERAGE)]} {
-        set extramsg "  mode \{incr ::_instrument_::log(<EXM>);
-  if \{\$more ne \{\}\} \{incr ::_instrument_::log(<EXM>...\""
-    } else {
-        set extramsg "        mode \{
-           if \{\$more ne \{\}\} \{
-              set command \[currentCommandName\]
-              return \[expr \{\$mode eq \$more || (\$...\""
-    }
-    set tserr [escre [msg_moderr {module-info usergroups not supported on Windows platform}  "switch -- \$what \{
-$extramsg
-      (procedure \"module-info\" line 6)
-      invoked from within
-  \"module-info usergroups\"
-      invoked from within
-  \"if \{\[info exists env(TESTSUITE_INFO_GROUP_IN_RC)\]\} \{
-      foreach grp \[module-info usergroups\] \{
-          module-virtual info/\$grp ./usergroups
-      \}
-  \}" $mp/info/.modulerc 6 {  }]\n$err_path'info/$userfgroup']
-}
 8.5 {
     set tserr [escre [msg_moderr {module-info usergroups not supported on Windows platform} {module-info usergroups"
       invoked from within

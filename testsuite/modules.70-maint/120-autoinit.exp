@@ -91,11 +91,7 @@ if {[info exists insmodrcdata] && [info exists exmodrcdata] && $exmodrcdata eq $
 }
 
 set custom {module restore unk}
-if {[cmpversion $tclsh_version 8.5] == -1} {
-    set custom [escre [msg_moderr {Collection unk cannot be found} "<EXM>$custom" $modrc 14 {  }]]
-} else {
-    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 14 {  }]]
-}
+set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 14 {  }]]
 
 set tserr_initrc_exinstalled "load m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n$err_path'unk'\n$custom"
 
@@ -788,10 +784,7 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                 }
             }
         }
-        # disable test for Tcl8.4
-        if {[cmpversion $tclsh_version 8.5] != -1} {
-            testouterr_cmd_re $shell autoinit $ans $tserr
-        }
+        testouterr_cmd_re $shell autoinit $ans $tserr
     }
 } else {
     send_user "\tskipping autoinit tests as installed configuration unknown\n"
@@ -839,10 +832,7 @@ if {!$insmodspath && $initrc_exinstalled && $modrc eq "$install_etcdir/initrc"} 
     lappend ans [list set __MODULES_LMNOTUASKED_modshare m1:1]
 
     # etc/initrc is prefered over init/modulerc
-    # disable test for Tcl8.4
-    if {[cmpversion $tclsh_version 8.5] != -1} {
-        testouterr_cmd_re sh autoinit $ans $tserr_initrc_exinstalled
-    }
+    testouterr_cmd_re sh autoinit $ans $tserr_initrc_exinstalled
 
     # cannot test access if cannot change file permission
     if {!$is_file_perms_editable} {
@@ -856,10 +846,7 @@ if {!$insmodspath && $initrc_exinstalled && $modrc eq "$install_etcdir/initrc"} 
     } else {
         # same if init/modulerc cannot be read
         change_file_perms $install_initdir/modulerc ugo-rx
-        # disable test for Tcl8.4
-        if {[cmpversion $tclsh_version 8.5] != -1} {
-            testouterr_cmd_re sh autoinit $ans $tserr_initrc_exinstalled
-        }
+        testouterr_cmd_re sh autoinit $ans $tserr_initrc_exinstalled
         restore_file_perms $install_initdir/modulerc
 
         # init/modulerc ignored even if etc/initrc locked

@@ -55,36 +55,6 @@ lappend ans2 [list ERR]
 set tserr1 $mp:\nhide1/5.0
 set tserr2 $err_path'hide1@5:'
 
-if {[cmpversion $tclsh_version 8.5] == -1} {
-
-# test --before option
-setenv_var TESTSUITE_HIDE_BEFORE_SET1 1
-set custom "    invoked from within
-\"if \{\[info exists env(TESTSUITE_HIDE_BEFORE_SET1)\]\} \{
-    module-hide --before 2020-01-01 hide1/5.0
-\}\""
-set linenum 242
-set tserr3 [escre [msg_moderr {Option '--before' not supported on Tcl<8.5} {module-hide --before 2020-01-01 hide1/5.0} $mp/hide1/.modulerc $linenum {  } {} {} $custom]]
-
-testouterr_cmd_re sh {load hide1@5:} $ans2 $tserr3
-testouterr_cmd sh {avail -t hide1@5:} OK $mp:\nhide1/5.0
-unsetenv_var TESTSUITE_HIDE_BEFORE_SET1
-
-# test --after option
-setenv_var TESTSUITE_HIDE_AFTER_SET1 1
-set custom "    invoked from within
-\"if \{\[info exists env(TESTSUITE_HIDE_AFTER_SET1)\]\} \{
-    module-hide --after 2032-04-28T02:49 hide1/5.0
-\}\""
-set linenum 269
-set tserr3 [escre [msg_moderr {Option '--after' not supported on Tcl<8.5} {module-hide --after 2032-04-28T02:49 hide1/5.0} $mp/hide1/.modulerc $linenum {  } {} {} $custom]]
-
-testouterr_cmd_re sh {load hide1@5:} $ans2 $tserr3
-testouterr_cmd sh {avail -t hide1@5:} OK $mp:\nhide1/5.0
-unsetenv_var TESTSUITE_HIDE_AFTER_SET1
-
-} else {
-
 # test --before option
 setenv_var TESTSUITE_HIDE_BEFORE_SET1 1
 testouterr_cmd sh {load hide1@5:} $ans {}
@@ -284,8 +254,6 @@ setenv_var TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET6 1
 testouterr_cmd sh {load hide1@5:} $ans $tserr7
 testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
 unsetenv_var TESTSUITE_HIDE_BEFORE_AFTER_ERR_SET6
-
-}
 
 
 #

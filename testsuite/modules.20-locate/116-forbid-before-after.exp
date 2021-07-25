@@ -55,37 +55,6 @@ lappend ans2 [list ERR]
 set tserr1 $mp:\nhide1/5.0
 set tserr3 [err_accessdenied hide1/5.0]
 
-if {[cmpversion $tclsh_version 8.5] == -1} {
-
-# test --before option
-setenv_var TESTSUITE_FORBID_BEFORE_SET1 1
-set custom "    invoked from within
-\"if \{\[info exists env(TESTSUITE_FORBID_BEFORE_SET1)\]\} \{
-    module-forbid --before 2020-01-01 hide1/5.0
-\}\""
-set linenum 339
-set tserr3 [escre [msg_moderr {Option '--before' not supported on Tcl<8.5} {module-forbid --before 2020-01-01 hide1/5.0} $mp/hide1/.modulerc $linenum {  } {} {} $custom]]
-
-testouterr_cmd_re sh {load hide1@5:} $ans2 $tserr3
-testouterr_cmd sh {avail -t hide1@5:} OK $mp:\nhide1/5.0
-unsetenv_var TESTSUITE_FORBID_BEFORE_SET1
-
-# test --after option
-setenv_var TESTSUITE_FORBID_AFTER_SET5 1
-set custom "    invoked from within
-\"if \{\[info exists env(TESTSUITE_FORBID_AFTER_SET5)\]\} \{
-    module-forbid --after 2029-09-12T13:14 hide1/5.0
-\}\""
-set linenum 347
-set tserr3 [escre [msg_moderr {Option '--after' not supported on Tcl<8.5} {module-forbid --after 2029-09-12T13:14 hide1/5.0} $mp/hide1/.modulerc $linenum {  } {} {} $custom]]
-
-testouterr_cmd_re sh {load hide1@5:} $ans2 $tserr3
-testouterr_cmd sh {avail -t hide1@5:} OK $mp:\nhide1/5.0
-unsetenv_var TESTSUITE_FORBID_AFTER_SET5
-
-
-} else {
-
 # test --before option
 setenv_var TESTSUITE_FORBID_BEFORE_SET1 1
 testouterr_cmd sh {load hide1@5:} $ans {}
@@ -136,8 +105,6 @@ setenv_var TESTSUITE_FORBID_BEFORE_AFTER_ERR_SET2 1
 testouterr_cmd sh {load hide1@5:} $ans $tserr3
 testouterr_cmd sh {avail -t hide1@5:} OK $tserr1
 unsetenv_var TESTSUITE_FORBID_BEFORE_AFTER_ERR_SET2
-
-}
 
 
 #
