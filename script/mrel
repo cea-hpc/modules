@@ -93,7 +93,7 @@ if {[regexp {^(master|v\d+.\d+.x)$} $relbranch]} {
 # ensure head sit on a tag
 set reltag [exec git describe --tags --exact-match]
 reportInfo "Found release tag '$reltag'"
-if {[regexp {^v(\d+.\d+.\d+)$} $reltag match relver]} {
+if {[regexp {^v(\d+.\d+.\d+(-(alpha|beta))?)$} $reltag match relver]} {
    reportInfo "Extract release version number '$relver'"
 } else {
    error "git tag '$reltag' is not a valid release tag"
@@ -102,7 +102,7 @@ if {[regexp {^v(\d+.\d+.\d+)$} $reltag match relver]} {
 # get previous version for later comparison
 set prevtag [exec git describe --tags --abbrev=0 HEAD^]
 reportInfo "Found previous release tag '$prevtag'"
-if {[regexp {^v(\d+.\d+.\d+)$} $prevtag match prevver]} {
+if {[regexp {^v(\d+.\d+.\d+(-(alpha|beta))?)$} $prevtag match prevver]} {
    reportInfo "Extract previous release version number '$prevver'"
 } else {
    error "git tag '$prevtag' is not a valid release tag"
@@ -196,7 +196,14 @@ reportInfo "Found dist GZ '$distgz'  (size='[file size $distgz]', sum='$distgzsu
 reportInfo "Found dist BZ '$distbz' (size='[file size $distbz]', sum='$distbzsum')"
 reportInfo "Found dist Win '$distwin' (size='[file size $distwin]', sum='$distwinsum')"
 
-set srcrpm [glob $srpmdir/environment-modules-$relver-1.*.src.rpm]
+# adapt rpm release version in case of non-final release (alpha/beta)
+if {[set nonfinalidx [string first - $relver]] != -1} {
+   set rpmrelver [string range $relver 0 [expr {$nonfinalidx -1}]]-0.1.[string range\
+      $relver [expr {$nonfinalidx + 1}] end]
+} else {
+   set rpmrelver $relver-1
+}
+set srcrpm [glob $srpmdir/environment-modules-$rpmrelver.*.src.rpm]
 reportInfo "Found source RPM '$srcrpm' (size='[file size $srcrpm]')"
 quitorcont
 
@@ -315,7 +322,7 @@ reportInfo "Moved back into '[pwd]' directory"
 # ---------------------------------------------------------
 
 runcmd 2>@$logfid rpmbuild --rebuild $srcrpm
-foreach rpm [glob $rpmdir/environment-modules-$relver-1.*.rpm] {
+foreach rpm [glob $rpmdir/environment-modules-$rpmrelver.*.rpm] {
    runcmd >@stdout rpm -qlp $rpm | less -eFKRX
    quitorcont
    # check installation of built RPM

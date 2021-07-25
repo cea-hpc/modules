@@ -70,7 +70,7 @@ if {[regexp {^(master|v\d+.\d+.x)$} $relbranch]} {
 # ensure head sit on a tag
 set reltag [exec git describe --tags --exact-match]
 reportInfo "Found release tag '$reltag'"
-if {[regexp {^v(\d+.\d+.\d+)$} $reltag match relver]} {
+if {[regexp {^v(\d+.\d+.\d+(-(alpha|beta))?)$} $reltag match relver]} {
    reportInfo "Extract release version number '$relver'"
 } else {
    error "git tag '$reltag' is not a valid release tag"
@@ -79,7 +79,7 @@ if {[regexp {^v(\d+.\d+.\d+)$} $reltag match relver]} {
 # get previous version for website update
 set prevtag [lindex [exec git tag --list v*] end-1]
 reportInfo "Found previous release tag '$prevtag'"
-if {[regexp {^v(\d+.\d+.\d+)$} $prevtag match prevver]} {
+if {[regexp {^v(\d+.\d+.\d+(-(alpha|beta))?)$} $prevtag match prevver]} {
    reportInfo "Extract previous release version number '$prevver'"
 } else {
    error "git tag '$prevtag' is not a valid release tag"
