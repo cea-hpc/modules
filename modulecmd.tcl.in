@@ -1148,7 +1148,7 @@ proc formatErrStackTrace {errmsg loc {cmdlist {}}} {
    # get list of modulecmd.tcl internal procedure to filter out from stack
    # skip this when no interp command list is provided
    if {[llength $cmdlist] > 0} {
-      lassign [getDiffBetweenList [concat [info commands] [info procs]]\
+      lassign [getDiffBetweenList [list {*}[info commands] {*}[info procs]]\
          $cmdlist] filtercmdlist keepcmdlist
    } else {
       set filtercmdlist {}
@@ -2158,7 +2158,7 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
          } else {
             # format stack trace to report modulefile information only
             reportInternalBug [formatErrStackTrace $::errorInfo\
-               $::ModulesCurrentModulefile [concat [info procs] [info\
+               $::ModulesCurrentModulefile [list {*}[info procs] {*}[info\
                commands]]]
             return 1
          }
@@ -2284,7 +2284,8 @@ proc execute-modulerc {modfile modname modspec} {
       if [catch {eval $modcontent} errorMsg] {
          # format stack trace to report modulerc information only
          reportInternalBug [formatErrStackTrace $::errorInfo\
-            $::ModulesCurrentModulefile [concat [info procs] [info commands]]]
+            $::ModulesCurrentModulefile [list {*}[info procs] {*}[info\
+            commands]]]
          return 1
       } else {
          # pass ModulesVersion value to main interp
@@ -2814,7 +2815,7 @@ proc setModuleResolution {mod target {symver {}} {override_res_path 1}\
    }
    # also adapt resolution for modules pointing to the alternative name
    if {[info exists modalt] && [info exists g_resolvedHash($modalt)]} {
-      set relmod_list [concat $relmod_list $g_resolvedHash($modalt)]
+      lappend relmod_list {*}$g_resolvedHash($modalt)
       unset g_resolvedHash($modalt)
    }
    foreach relmod $relmod_list {
@@ -2836,16 +2837,15 @@ proc setModuleResolution {mod target {symver {}} {override_res_path 1}\
    } elseif {$symver ne {} && !$auto_symver} {
       # merge symbol definitions in case of alternative name
       if {[info exists modalt] && [info exists g_symbolHash($modalt)]} {
-         set sym_list [lsort -dictionary -unique [concat $sym_list\
-            $g_symbolHash($modalt)]]
+         set sym_list [lsort -dictionary -unique [list {*}$sym_list\
+            {*}$g_symbolHash($modalt)]]
          reportDebug "set symbols '$sym_list' to $mod and $modalt"
          set g_symbolHash($mod) $sym_list
          set g_symbolHash($modalt) $sym_list
       }
 
       # dictionary-sort symbols and remove eventual duplicates
-      set sym_list [lsort -dictionary -unique [concat $sym_list\
-         [list $symver]]]
+      set sym_list [lsort -dictionary -unique [list {*}$sym_list $symver]]
 
       # propagate symbols in g_symbolHash and g_moduleVersion toward the
       # resolution path, handle that locally if we still work on same
@@ -2855,8 +2855,8 @@ proc setModuleResolution {mod target {symver {}} {override_res_path 1}\
          lassign [getModuleNameVersion $modres] modfull modresname
          if {$modname eq $modresname} {
             if {[info exists g_symbolHash($modres)]} {
-               set modres_sym_list [lsort -dictionary -unique [concat\
-                  $g_symbolHash($modres) $sym_list]]
+               set modres_sym_list [lsort -dictionary -unique [list\
+                  {*}$g_symbolHash($modres) {*}$sym_list]]
             } else {
                set modres_sym_list $sym_list
             }
@@ -4076,7 +4076,7 @@ proc unload-path {args} {
          if {$idx_val} {
             lappend del_idx_list $idx
          } else {
-            set del_idx_list [concat $del_idx_list $found_idx_list]
+            lappend del_idx_list {*}$found_idx_list
          }
       # if multiple entries found remove the extra entries compared to new
       # reference counter
@@ -4088,8 +4088,7 @@ proc unload-path {args} {
             # delete extra entries, starting from end of the list (on a path
             # variable, entries at the end have less priority than those at
             # the start)
-            set del_idx_list [concat $del_idx_list [lrange $found_idx_list\
-               $newcount end]]
+            lappend del_idx_list {*}[lrange $found_idx_list $newcount end]
          }
       }
    }
@@ -4247,7 +4246,7 @@ proc parsePathCommandArgs {cmd args} {
          } \
          default {
             # split passed value with delimiter
-            set val_list [concat $val_list [split $val $delim]]
+            lappend val_list {*}[split $val $delim]
          }
    }
 
@@ -4675,7 +4674,7 @@ proc is-avail {args} {
 
 proc execShAndGetEnv {shell script args} {
    set sep {%ModulesShToMod%}
-   set shdesc [concat [list $script] $args]
+   set shdesc [list $script {*}$args]
    set sherr 0
    set shellopts [list]
 
@@ -4784,7 +4783,7 @@ proc execShAndGetEnv {shell script args} {
    if {$shellpath eq {}} {
       knerror "Shell '$shell' cannot be found"
    }
-   set shellexec [concat [list $shellpath] $shellopts [list -c $command]]
+   set shellexec [list $shellpath {*}$shellopts -c $command]
 
    reportDebug "running '$shellexec'"
    if {[catch {set output [exec {*}$shellexec]} output]} {
@@ -4905,7 +4904,7 @@ proc sh-to-mod {args} {
                if {[llength $vallist] == 0} {
                   lappend vallist {}
                }
-               lappend modcontent [concat $modcmd $vallist]
+               lappend modcontent [list {*}$modcmd {*}$vallist]
             }
             # content should be appended
             if {($idx + [string length $varbef($name)]) < [string length\
@@ -4924,7 +4923,7 @@ proc sh-to-mod {args} {
                if {[llength $vallist] == 0} {
                   lappend vallist {}
                }
-               lappend modcontent [concat $modcmd $vallist]
+               lappend modcontent [list {*}$modcmd {*}$vallist]
             }
          }
       }
@@ -4938,7 +4937,7 @@ proc sh-to-mod {args} {
             # split value and remove duplicate entries
             set vallist [list]
             appendNoDupToList vallist {*}[split $varaft($name) $pathsep]
-            lappend modcontent [concat [list prepend-path $name] $vallist]
+            lappend modcontent [list prepend-path $name {*}$vallist]
          }
       }
    }
@@ -4947,7 +4946,7 @@ proc sh-to-mod {args} {
    foreach name $notaft {
       lappend modcontent [list unset-function $name]
    }
-   foreach name [concat $diff $notbef] {
+   foreach name [list {*}$diff {*}$notbef] {
       lappend modcontent [list set-function $name \n$funcaft($name)]
    }
    # check alias change
@@ -4955,7 +4954,7 @@ proc sh-to-mod {args} {
    foreach name $notaft {
       lappend modcontent [list unset-alias $name]
    }
-   foreach name [concat $diff $notbef] {
+   foreach name [list {*}$diff {*}$notbef] {
       lappend modcontent [list set-alias $name $aliasaft($name)]
    }
    # check current working directory change
@@ -4973,12 +4972,12 @@ proc sh-to-mod {args} {
 proc source-sh {shell script args} {
    # evaluate script and get the environment changes it performs translated
    # into modulefile commands
-   set shtomodargs [concat [list $shell $script] $args]
+   set shtomodargs [list $shell $script {*}$args]
    set modcontent [sh-to-mod {*}$shtomodargs]
 
    # register resulting modulefile commands
-   setLoadedSourceSh [currentState modulename] [concat [list $shtomodargs]\
-      $modcontent]
+   setLoadedSourceSh [currentState modulename] [list $shtomodargs\
+      {*}$modcontent]
 
    # evaluate resulting modulefile commands
    foreach modcmd $modcontent {
@@ -4988,7 +4987,7 @@ proc source-sh {shell script args} {
 
 # undo source-sh in unload mode
 proc source-sh-un {shell script args} {
-   set shtomodargs [concat [list $shell $script] $args]
+   set shtomodargs [list $shell $script {*}$args]
    set modsrcsh [getLoadedSourceSh [currentState modulename]]
 
    # find commands resulting from source-sh evaluation recorded in env
@@ -5009,7 +5008,7 @@ proc source-sh-un {shell script args} {
 
 # report underlying modulefile cmds in display mode
 proc source-sh-di {shell script args} {
-   set shtomodargs [concat [list $shell $script] $args]
+   set shtomodargs [list $shell $script {*}$args]
 
    # if module loaded, get as much content from environment as possible
    if {[is-loaded [currentState modulename]]} {
@@ -5780,8 +5779,8 @@ proc getTagList {mod {serialized 0}} {
             auto-loaded hidden]] tag_list
          if {[llength $tag_list] > 0} {
             # extract mod name and version from full spec with variants
-            set ret [join [concat [list [getModuleNameAndVersFromVersSpec\
-               $mod]] $tag_list] [getState sub1_separator]]
+            set ret [join [list [getModuleNameAndVersFromVersSpec $mod]\
+               {*}$tag_list] [getState sub1_separator]]
          } else {
             set ret {}
          }
@@ -6110,7 +6109,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
                   }
                   invalid - accesserr {
                      # may found mod but issue, so end search with error
-                     set retlist [concat [list {} $mod $mod] $mod_list($mod)]
+                     set retlist [list {} $mod $mod {*}$mod_list($mod)]
                   }
                }
             }
@@ -6346,7 +6345,7 @@ proc getLoadedWithClosestName {name} {
             set matchmodlist [list $modname]
          } else {
             # add alternative names of mod to the matching list
-            set matchmodlist [concat [list $mod] [getLoadedAltname $mod]]
+            set matchmodlist [list $mod {*}[getLoadedAltname $mod]]
          }
 
          # compare each element of the name to find closest answer. in case of
@@ -6468,7 +6467,7 @@ proc setLoadedSourceSh {mod args} {
             set modcmd [lindex $modcmdlist 0]
             if {$modcmd eq {set-alias} || $modcmd eq {set-function}} {
                # set an empty body to make valid unset-* call
-               lappend filtmodcont [concat [lrange $modcmdlist 0 1] [list {}]]
+               lappend filtmodcont [list {*}[lrange $modcmdlist 0 1] {}]
             } else {
                lappend filtmodcont $modcmdlist
             }
@@ -6502,7 +6501,7 @@ proc getLoadedSourceSh {mod {serialized 0}} {
             lappend modsrcsh $shtomodargsser$sub2sep[join $modcontentser\
                $sub2sep]
          }
-         set ret [join [concat [list $mod] $modsrcsh] $sub1sep]
+         set ret [join [list $mod {*}$modsrcsh] $sub1sep]
       } else {
          set ret $::g_loadedModuleSourceSh($mod)
       }
@@ -6528,8 +6527,8 @@ proc getLoadedConflict {mod {serialized 0}} {
       if {$serialized} {
          # get conflict info as a string that can be registered in an env var
          # translate range specifier ':' into '<' to distinguish from path sep
-         set ret [string map {: <} [join [concat [list $mod]\
-            $::g_loadedModuleConflict($mod)] [getState sub1_separator]]]
+         set ret [string map {: <} [join [list $mod\
+            {*}$::g_loadedModuleConflict($mod)] [getState sub1_separator]]]
       } else {
          set ret $::g_loadedModuleConflict($mod)
       }
@@ -6608,7 +6607,7 @@ proc getLoadedPrereq {mod {serialized 0}} {
             lappend modpre [join $pre $sub2sep]
          }
          # translate range specifier ':' into '<' to distinguish from path sep
-         set ret [string map {: <} [join [concat [list $mod] $modpre]\
+         set ret [string map {: <} [join [list $mod {*}$modpre]\
             [getState sub1_separator]]]
       } else {
          set ret $::g_loadedModulePrereq($mod)
@@ -6666,7 +6665,7 @@ proc getLoadedAltname {mod {serialized 0} {typelist {sym alias autosym}}} {
             lappend ret al|$altname
          }
       } else {
-         set ret [concat $ret $::g_loadedModuleAliasAltname($mod)]
+         lappend ret {*}$::g_loadedModuleAliasAltname($mod)
       }
    }
    if {[info exists ::g_loadedModuleAutoAltname($mod)] && {autosym} in\
@@ -6678,13 +6677,13 @@ proc getLoadedAltname {mod {serialized 0} {typelist {sym alias autosym}}} {
             lappend ret as|$altname
          }
       } else {
-         set ret [concat $ret $::g_loadedModuleAutoAltname($mod)]
+         lappend ret {*}$::g_loadedModuleAutoAltname($mod)
       }
    }
 
    if {$ret ne {} && $serialized} {
       # get altname info as a string that can be registered in an env var
-      set ret [join [concat [list $mod] $ret] [getState sub1_separator]]
+      set ret [join [list $mod {*}$ret] [getState sub1_separator]]
    }
 
    return $ret
@@ -6711,7 +6710,7 @@ proc getLoadedVariant {mod {serialized 0}} {
             lappend modvrspec [join $vrspec $sub2sep]
          }
          # translate range specifier ':' into '<' to distinguish from path sep
-         set ret [string map {: <} [join [concat [list $mod] $modvrspec]\
+         set ret [string map {: <} [join [list $mod {*}$modvrspec]\
             [getState sub1_separator]]]
       } else {
          set ret $::g_loadedModuleVariant($mod)
@@ -6727,7 +6726,7 @@ proc getLoadedModuleWithVariantList {} {
       set modvr [list $mod]
       set vrlist [getVariantList $mod 5]
       if {[llength $vrlist] > 0} {
-         set modvr [concat $modvr $vrlist]
+         lappend modvr {*}$vrlist
       }
       lappend modvrlist $modvr
    }
@@ -6740,7 +6739,7 @@ proc getLoadedModuleWithVariantNotUserAskedList {} {
       set modvr [list $mod]
       set vrlist [getVariantList $mod 1]
       if {[llength $vrlist] > 0} {
-         set modvr [concat $modvr $vrlist]
+         lappend modvr {*}$vrlist
       }
       lappend modvrlist $modvr
    }
@@ -7150,8 +7149,8 @@ proc getUnmetDependentLoadedModuleList {modnamevr} {
       }
    }
 
-   set sortlist [sortModulePerLoadedAndDepOrder [concat $unmetdeplist\
-      $deplist]]
+   set sortlist [sortModulePerLoadedAndDepOrder [list {*}$unmetdeplist\
+      {*}$deplist]]
    reportDebug "got '$sortlist'"
    return $sortlist
 }
@@ -10257,7 +10256,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
             set dfl {}
          }
          # record directory properties
-         set found_list($elt) [concat [list directory $dfl] $dir_list($elt)]
+         set found_list($elt) [list directory $dfl {*}$dir_list($elt)]
 
          # automatically define symbols for all modules matching query if
          # these names do not exist yet or if in error, in which case only
@@ -10426,7 +10425,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
             }
          } else {
             # record directory properties
-            set mod_list($elt) [concat [list directory $dfl] $fdir_list($elt)]
+            set mod_list($elt) [list directory $dfl {*}$fdir_list($elt)]
 
             # list elements to keep for filtering step
             if {$keeping} {
@@ -11239,7 +11238,7 @@ proc getSimplifiedLoadedModuleList {} {
 
       # add each module specification as list to correctly enclose spaces in
       # module name or variant name or value
-      set simplemodvr [concat [list $simplemod] [getVariantList $mod 5 1]]
+      set simplemodvr [list $simplemod {*}[getVariantList $mod 5 1]]
       lappend curr_mod_list $simplemodvr
       # record not user asked module list in simplified version form
       if {![isModuleUserAsked $mod]} {
@@ -11399,7 +11398,7 @@ proc readCollectionContent {collfile colldesc} {
                lappend nuasked_list $parsed
             }
          }
-         set mod_list [concat $mod_list $parsedlist]
+         lappend mod_list {*}$parsedlist
       }
    }
    return [list $path_list $mod_list $nuasked_list]
@@ -12290,8 +12289,7 @@ proc cmdModulePaths {mod} {
 
       # prepare list of dirs for alias/symbol target search, will first search
       # in currently looked dir, then in other dirs following precedence order
-      set target_dir_list [concat [list $dir] [replaceFromList $dir_list\
-         $dir]]
+      set target_dir_list [list $dir {*}[replaceFromList $dir_list $dir]]
 
       # forcibly enable implicit_default to resolve alias target when it
       # points to a directory
@@ -12633,8 +12631,8 @@ proc cmdModuleSwitch {uasked old {new {}}} {
 
       # merge depre info of unload and load phases
       if {[info exists undepreisuasked]} {
-         set depreisuasked [concat $undepreisuasked $depreisuasked]
-         set deprevr [concat $undeprevr $deprevr]
+         set depreisuasked [list {*}$undepreisuasked {*}$depreisuasked]
+         set deprevr [list {*}$undeprevr {*}$deprevr]
       }
 
       if {[getConf auto_handling] && [info exists deprelist] && [llength\
@@ -13113,7 +13111,7 @@ proc cmdModuleLoad {context uasked args} {
                   depreisuasked deprevr
                if {[info exists swprocessing]} {
                   if {[info exists swdeprelist]} {
-                     set swdeprelist [concat $deprelist $swdeprelist]
+                     set swdeprelist [list {*}$deprelist {*}$swdeprelist]
                   } else {
                      set swdeprelist $deprelist
                   }
@@ -13448,7 +13446,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             if {[info exists swprocessing]} {
                set urequnqry [list $modname]
             } else {
-               set urequnqry [concat $depunlist [list $modname]]
+               set urequnqry [list {*}$depunlist $modname]
             }
 
             # UReqUn: Useless Requirement to Unload (autoloaded requirements
@@ -13459,15 +13457,15 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             # DepRe: Dependent to Reload (modules optionally dependent or in
             # conflict with modname, DepUn or UReqUn modules + modules
             # dependent of a module part of this DepRe batch)
-            set deprelist [getDependentLoadedModuleList [concat $urequnlist\
-               $depunlist [list $modname]] 0 0 1 0 1 1]
+            set deprelist [getDependentLoadedModuleList [list {*}$urequnlist\
+               {*}$depunlist $modname] 0 0 1 0 1 1]
             reportDebug "depre mod list is '$deprelist'"
 
             # DepUn mods are merged into the DepRe list as an attempt to
             # reload these DepUn mods is made once switched-to mod loaded
             if {[info exists swprocessing]} {
-               set deprelist [sortModulePerLoadedAndDepOrder [concat\
-                  $depunlist $deprelist] 1]
+               set deprelist [sortModulePerLoadedAndDepOrder [list\
+                  {*}$depunlist {*}$deprelist] 1]
                set depunlist {}
             }
 
@@ -13933,8 +13931,8 @@ proc cmdModuleAutoinit {} {
    # append dir where to find module function for ksh (to get it defined in
    # interactive and non-interactive sub-shells). also applies for shells
    # listed in shells_with_ksh_fpath conf
-   if {[getState shell] in [concat [split [getConf shells_with_ksh_fpath] :]\
-      [list ksh]]} {
+   if {[getState shell] in [list {*}[split [getConf shells_with_ksh_fpath] :]\
+      ksh]} {
       append-path FPATH @initdir@/ksh-functions
    }
 
@@ -14145,8 +14143,8 @@ proc cmdModuleClear {doit doitset} {
          __MODULES_LMSOURCESH __MODULES_LMTAG __MODULES_LMVARIANT _LMFILES_]
 
       # add any reference counter variable to the list to unset
-      set vartoclear [concat $vartoclear [array names ::env -glob *_modshare]\
-         [array names ::env -glob MODULES_MODSHARE_*]]
+      lappend vartoclear {*}[array names ::env -glob *_modshare] {*}[array\
+         names ::env -glob MODULES_MODSHARE_*]
 
       # unset all Modules runtime variables
       lappendState mode load
@@ -14313,8 +14311,7 @@ proc cmdModuleConfig {dump_state args} {
          set envvar_list {}
          foreach var [list LOADEDMODULES _LMFILES_ MODULE* __MODULES_*\
             *_modshare *_module*] {
-            set envvar_list [concat $envvar_list [array names ::env -glob\
-               $var]]
+            lappend envvar_list {*}[array names ::env -glob $var]
          }
          unset displist
          foreach var [lsort -unique $envvar_list] {
@@ -14534,8 +14531,8 @@ if {[catch {
    set ddelimarg 0
    # split first arg if multi-word string detected for compat with previous
    # doc on module usage with scripting language: module('load mod1 mod2')
-   set argtoparse [if {[llength [lindex $argv 1]] > 1} {concat [split [lindex\
-      $argv 1]] [lrange $argv 2 end]} {lrange $argv 1 end}]
+   set argtoparse [if {[llength [lindex $argv 1]] > 1} {list {*}[split\
+      [lindex $argv 1]] {*}[lrange $argv 2 end]} {lrange $argv 1 end}]
    foreach arg $argtoparse {
       if {[info exists ignore_next_arg]} {
          unset ignore_next_arg
@@ -14705,13 +14702,13 @@ if {[catch {
    }
 
    setState subcmd [lindex $otherargv 0]
-   set otherargv [concat [lreplace $otherargv 0 0] $extraargv]
+   set otherargv [list {*}[lreplace $otherargv 0 0] {*}$extraargv]
    setState subcmd_args $otherargv
    # call ml frontend if it is asked command
    if {[getState subcmd] eq {ml}} {
-      set execcmdlist [concat [list ml] $otherargv]
+      set execcmdlist [list ml {*}$otherargv]
    } else {
-      set execcmdlist [concat [list module [getState subcmd]] $otherargv]
+      set execcmdlist [list module [getState subcmd] {*}$otherargv]
    }
 
    # now options are known initialize error report (start pager if enabled)
