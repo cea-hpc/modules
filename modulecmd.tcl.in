@@ -137,11 +137,11 @@ proc getState {state {valifundef {}} {catchinitproc 0}} {
          # catch init procedure error and report it as warning, so default
          # value will get set for state
          if {$catchinitproc} {
-            if {[catch {set value [eval $initproclist]} errMsg]} {
+            if {[catch {set value [{*}$initproclist]} errMsg]} {
                reportWarning $errMsg
             }
          } else {
-            set value [eval $initproclist]
+            set value [{*}$initproclist]
          }
       # overridden value coming the command-line
       } elseif {[info exists ::asked_$state]} {
@@ -178,10 +178,10 @@ proc lappendState {state args} {
       set state [lindex $args 0]
       # retrieve current val through getState to initialize it if still undef
       set value [getState $state]
-      eval appendNoDupToList value [lrange $args 1 end]
+      appendNoDupToList value {*}[lrange $args 1 end]
       setState $state $value
    } else {
-      eval lappend ::g_states($state) $args
+      lappend ::g_states($state) {*}$args
       reportDebug "$state appended with '$args'"
    }
 }
@@ -307,7 +307,7 @@ proc unsetConf {option} {
 proc lappendConf {option args} {
    # retrieve current value through getConf to initialize it if still undef
    set value [getConf $option]
-   eval appendNoDupToList value $args
+   appendNoDupToList value {*}$args
    setConf $option $value
 }
 
@@ -1436,7 +1436,7 @@ proc reportCmd {cmd args} {
 
 # report defined command (called as an execution trace)
 proc reportCmdTrace {cmdstring args} {
-   eval reportCmd $cmdstring
+   reportCmd {*}$cmdstring
 }
 
 proc reportVersion {} {
@@ -1505,7 +1505,7 @@ proc initErrorReport {} {
       # message will trigger message paging configuration and startup unless
       # already done if debug mode enabled
       foreach errreport $::errreport_buffer {
-         eval $errreport
+         {*}$errreport
       }
    }
 }
@@ -1516,7 +1516,7 @@ proc releaseHeldReport {args} {
       if {[info exists ::g_holdReport($holdid)]} {
          if {$action eq {report}} {
             foreach repcall $::g_holdReport($holdid) {
-               eval $repcall
+               {*}$repcall
             }
          }
          unset ::g_holdReport($holdid)
@@ -2176,7 +2176,7 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
          append newmodnamevr " $vr"
       }
       if {$modnamevr ne $newmodnamevr} {
-         lassign [eval parseModuleSpecification 0 $newmodnamevr] modnamevr
+         lassign [parseModuleSpecification 0 {*}$newmodnamevr] modnamevr
          if {$fetch_tags} {
             collectModuleTags $modnamevr
          }
@@ -2568,7 +2568,7 @@ proc module-info {what {more {}}} {
          set modname [currentState modulename]
          set vrlist [getVariantList $modname 1]
          if {[llength $vrlist] > 0} {
-            lassign [eval parseModuleSpecification 0 "{$modname} $vrlist"] modnamevr
+            lassign [parseModuleSpecification 0 $modname {*}$vrlist] modnamevr
          } else {
             set modnamevr $modname
          }
@@ -3155,8 +3155,9 @@ proc parseApplicationCriteriaArgs {aftbef nearsec args} {
 
 proc module-forbid {args} {
    # parse application criteria arguments to determine if command apply
-   lassign [eval parseApplicationCriteriaArgs 1 [expr {[getConf\
-      nearly_forbidden_days] * 86400}] $args] apply isnearly after otherargs
+   lassign [parseApplicationCriteriaArgs 1 [expr {[getConf\
+      nearly_forbidden_days] * 86400}] {*}$args] apply isnearly after\
+      otherargs
 
    # parse remaining argument list, do it even if command does not apply to
    # raise any command specification error
@@ -3199,7 +3200,7 @@ proc module-forbid {args} {
       }
 
       # record each forbid spec after parsing them
-      foreach modarg [eval parseModuleSpecification 0 $modarglist] {
+      foreach modarg [parseModuleSpecification 0 {*}$modarglist] {
          setModspecTag $modarg forbidden $proplist
       }
    } elseif {$isnearly} {
@@ -3208,7 +3209,7 @@ proc module-forbid {args} {
          lappend proplist message $nearlymessage
       }
       # record each nearly forbid spec after parsing them
-      foreach modarg [eval parseModuleSpecification 0 $modarglist] {
+      foreach modarg [parseModuleSpecification 0 {*}$modarglist] {
          setModspecTag $modarg nearly-forbidden $proplist
       }
    }
@@ -3219,7 +3220,7 @@ proc module-hide {args} {
    set hiddenloaded 0
 
    # parse application criteria arguments to determine if command apply
-   lassign [eval parseApplicationCriteriaArgs 1 0 $args] apply isnearly after\
+   lassign [parseApplicationCriteriaArgs 1 0 {*}$args] apply isnearly after\
       otherargs
 
    # parse remaining argument list, do it even if command does not apply to
@@ -3254,7 +3255,7 @@ proc module-hide {args} {
    # skip hide spec record if application criteria are not met
    if {$apply} {
       # record each hide spec after parsing them
-      foreach modarg [eval parseModuleSpecification 0 $modarglist] {
+      foreach modarg [parseModuleSpecification 0 {*}$modarglist] {
          setModspecHidingLevel $modarg $hidinglvl
          if {$hiddenloaded} {
             setModspecTag $modarg hidden-loaded
@@ -3265,7 +3266,7 @@ proc module-hide {args} {
 
 proc module-tag {args} {
    # parse application criteria arguments to determine if command apply
-   lassign [eval parseApplicationCriteriaArgs 0 0 $args] apply isnearly after\
+   lassign [parseApplicationCriteriaArgs 0 0 {*}$args] apply isnearly after\
       otherargs
 
    # parse remaining argument list, do it even if command does not apply to
@@ -3299,7 +3300,7 @@ proc module-tag {args} {
    # skip tag record if application criteria are not met
    if {$apply} {
       # record each hide spec after parsing them
-      foreach modarg [eval parseModuleSpecification 0 $modarglist] {
+      foreach modarg [parseModuleSpecification 0 {*}$modarglist] {
          setModspecTag $modarg $tag
       }
    }
@@ -3332,7 +3333,7 @@ proc module {command args} {
 
    # parse options, do that globally to ignore options not related to a given
    # module sub-command (exclude them from arg list)
-   lassign [eval parseModuleCommandArgs $topcall $command 0 $args]\
+   lassign [parseModuleCommandArgs $topcall $command 0 {*}$args]\
       show_oneperline show_mtime show_filter search_filter search_match\
       dump_state addpath_pos not_req args
 
@@ -3340,7 +3341,7 @@ proc module {command args} {
    defineParseModuleSpecificationProc [getConf advanced_version_spec]
    if {$command in [list avail paths whatis load unload switch help test\
       display path is-avail edit try-load]} {
-      set args [eval parseModuleSpecification 0 $args]
+      set args [parseModuleSpecification 0 {*}$args]
    }
 
    if {!$topcall} {
@@ -3439,7 +3440,7 @@ proc module {command args} {
             if {$topcall || ([depthState modulename] == 1 && (
                [aboveCommandName] eq {source} || [aboveCommandName] eq\
                {autoinit} || [isStateDefined rc_running]))} {
-               set ret [eval cmdModuleLoad load 1 $args]
+               set ret [cmdModuleLoad load 1 {*}$args]
             } elseif {$mode eq {load}} {
                # load here if try-load or no auto mode (done through prereq
                # elsewhere, inhibited if currently in DepRe context)
@@ -3452,7 +3453,7 @@ proc module {command args} {
                      }
                   }
                   if {[info exists modlist]} {
-                     set ret [eval cmdModuleLoad reqlo 0 $modlist]
+                     set ret [cmdModuleLoad reqlo 0 {*}$modlist]
                      # ignore obtained error if force mode enabled
                      if {[getState force]} {
                         set ret 0
@@ -3502,13 +3503,13 @@ proc module {command args} {
          if {$topcall || ([depthState modulename] == 1 && (
             [aboveCommandName] eq {source} || [aboveCommandName] eq\
             {autoinit} || [isStateDefined rc_running]))} {
-            set ret [eval cmdModuleUnload unload match 1 0 0 0 $args]
+            set ret [cmdModuleUnload unload match 1 0 0 0 {*}$args]
          } elseif {$mode eq {load}} {
             # unload mods only on load mode, nothing done on unload mode as
             # the registered conflict guarantees the target module cannot
             # be loaded unless forced
             # do not unload module required by others even in force mode
-            set ret [eval cmdModuleUnload conun match 0 0 0 1 $args]
+            set ret [cmdModuleUnload conun match 0 0 0 1 {*}$args]
 
             # register modulefiles to unload as individual conflicts
             foreach arg $args {
@@ -3527,20 +3528,20 @@ proc module {command args} {
       }
       use {
          if {$topcall || $mode eq {load}} {
-            eval cmdModuleUse $addpath_pos $args
+            cmdModuleUse $addpath_pos {*}$args
          } else {
-            eval cmdModuleUnuse $args
+            cmdModuleUnuse {*}$args
          }
       }
       unuse {
-         eval cmdModuleUnuse $args
+         cmdModuleUnuse {*}$args
       }
       source {
          if {$topcall || $mode eq {load}} {
-            eval cmdModuleSource $args
+            cmdModuleSource {*}$args
          } else {
             # on unload mode, unsource script in reverse order
-            eval cmdModuleUnsource [lreverse $args]
+            cmdModuleUnsource {*}[lreverse $args]
          }
       }
       switch {
@@ -3549,7 +3550,7 @@ proc module {command args} {
             ([aboveCommandName] eq {source} || [aboveCommandName] eq\
             {autoinit} || [isStateDefined rc_running]))}]
          if {$uasked} {
-            eval cmdModuleSwitch $uasked $args
+            cmdModuleSwitch $uasked {*}$args
          } else {
             # CAUTION: it is not recommended to use the `switch`
             # sub-command in modulefiles as this command is intended for
@@ -3559,7 +3560,7 @@ proc module {command args} {
 
             switch -- $mode {
                load {
-                  eval cmdModuleSwitch $uasked $args
+                  cmdModuleSwitch $uasked {*}$args
                }
                unload {
                   # find what has been asked for unload and load
@@ -3601,20 +3602,20 @@ proc module {command args} {
          }
       }
       display {
-         eval cmdModuleDisplay $args
+         cmdModuleDisplay {*}$args
       }
       avail {
-         eval cmdModuleAvail $show_oneperline $show_mtime "{$show_filter}"\
-            "{$search_filter}" "{$search_match}" $args
+         {*}cmdModuleAvail $show_oneperline $show_mtime $show_filter\
+            $search_filter $search_match {*}$args
       }
       aliases {
          cmdModuleAliases
       }
       path {
-         eval cmdModulePath $args
+         cmdModulePath {*}$args
       }
       paths {
-         eval cmdModulePaths $args
+         cmdModulePaths {*}$args
       }
       list {
          cmdModuleList $show_oneperline $show_mtime
@@ -3629,72 +3630,72 @@ proc module {command args} {
          }
       }
       search {
-         eval cmdModuleApropos $args
+         cmdModuleApropos {*}$args
       }
       purge {
-         eval cmdModulePurge
+         cmdModulePurge
       }
       save {
-         eval cmdModuleSave $args
+         cmdModuleSave {*}$args
       }
       restore {
-         eval cmdModuleRestore $args
+         cmdModuleRestore {*}$args
       }
       saverm {
-         eval cmdModuleSaverm $args
+         cmdModuleSaverm {*}$args
       }
       saveshow {
-         eval cmdModuleSaveshow $args
+         cmdModuleSaveshow {*}$args
       }
       savelist {
          cmdModuleSavelist $show_oneperline $show_mtime
       }
       initadd {
-         eval cmdModuleInit add $args
+         cmdModuleInit add {*}$args
       }
       initprepend {
-         eval cmdModuleInit prepend $args
+         cmdModuleInit prepend {*}$args
       }
       initswitch {
-         eval cmdModuleInit switch $args
+         cmdModuleInit switch {*}$args
       }
       initrm {
-         eval cmdModuleInit rm $args
+         cmdModuleInit rm {*}$args
       }
       initlist {
-         eval cmdModuleInit list $args
+         cmdModuleInit list {*}$args
       }
       initclear {
-         eval cmdModuleInit clear $args
+         cmdModuleInit clear {*}$args
       }
       autoinit {
          cmdModuleAutoinit
       }
       clear {
          # ensure empty string is correctly passed
-         eval cmdModuleClear "{$args}"
+         cmdModuleClear [lindex $args 0] [llength $args]
       }
       config {
-         eval cmdModuleConfig $dump_state $args
+         cmdModuleConfig $dump_state {*}$args
       }
       sh-to-mod {
-         eval cmdModuleShToMod $args
+         cmdModuleShToMod {*}$args
       }
       edit {
-         eval cmdModuleEdit $args
+         cmdModuleEdit {*}$args
       }
       help {
-         eval cmdModuleHelp $args
+         cmdModuleHelp {*}$args
       }
       test {
-         eval cmdModuleTest $args
+         cmdModuleTest {*}$args
       }
       prepend-path - append-path - remove-path - is-loaded - is-saved -\
       is-used - is-avail {
-         eval cmdModuleResurface $command $args
+         cmdModuleResurface $command {*}$args
       }
       info-loaded {
-         eval cmdModuleResurface module-info loaded $args
+         cmdModuleResurface module-info loaded {*}$args
       }
    }
    lpopState try_modulefile
@@ -3716,7 +3717,7 @@ proc module {command args} {
 proc ml {args} {
    # filter out all known options from argument list to guess command name
    # without them in the way
-   lassign [eval parseModuleCommandArgs 1 ml 1 $args] show_oneperline\
+   lassign [parseModuleCommandArgs 1 ml 1 {*}$args] show_oneperline\
       show_mtime show_filter search_filter search_match dump_state\
       addpath_pos not_req fargs
 
@@ -3738,17 +3739,17 @@ proc ml {args} {
    # directly call module procedure if sub-command spotted as first argument
    # or no argument supplied
    if {$cmdvalid} {
-      eval module $command $margs
+      module $command {*}$margs
    } else {
       # parse specified module and get list of mods to unload and mods to load
       defineParseModuleSpecificationProc [getConf advanced_version_spec]
-      lassign [eval parseModuleSpecification 1 $fargs] modunlist modlolist
+      lassign [parseModuleSpecification 1 {*}$fargs] modunlist modlolist
 
       # main procedure has already raised error for badly written argument
       # like '-' or '--', but we need here to replay module-specific argument
       # parsing to raise error if some arg are not allowed on unload/load cmd
       set mlcmd [expr {[llength $modunlist] > 0 ? {unload} : {load}}]
-      lassign [eval parseModuleCommandArgs 1 $mlcmd 0 $args] show_oneperline\
+      lassign [parseModuleCommandArgs 1 $mlcmd 0 {*}$args] show_oneperline\
          show_mtime show_filter search_filter search_match dump_state\
          addpath_pos not_req fargs
 
@@ -3766,11 +3767,11 @@ proc ml {args} {
 
       # first unload specified modules
       if {[llength $modunlist] > 0} {
-         set ret [eval cmdModuleUnload unload match 1 0 0 0 $modunlist]
+         set ret [cmdModuleUnload unload match 1 0 0 0 {*}$modunlist]
       }
       # then load other modules unless unload phase failed
       if {!$ret && [llength $modlolist] > 0} {
-         set ret [eval cmdModuleLoad load 1 $modlolist]
+         set ret [cmdModuleLoad load 1 {*}$modlolist]
       }
 
       # rollback changes if any load or unload failed
@@ -3952,7 +3953,7 @@ proc putsModfileCmd {itrp args} {
    } elseif {[info exists reportArgs]} {
       # report message only if not silent
       if {[isVerbosityLevel concise]} {
-         eval report $reportArgs
+         report {*}$reportArgs
       }
    # pass to real puts command if not related to stdout and do that in modfile
    # interpreter context to get access to eventual specific channel
@@ -4021,8 +4022,8 @@ proc getReferenceCountArray {var separator} {
 proc unload-path {args} {
    reportDebug ($args)
 
-   lassign [eval parsePathCommandArgs unload-path $args] separator\
-      allow_dup idx_val var path_list
+   lassign [parsePathCommandArgs unload-path {*}$args] separator allow_dup\
+      idx_val var path_list
 
    array set countarr [getReferenceCountArray $var $separator]
 
@@ -4127,7 +4128,7 @@ proc unload-path {args} {
 proc add-path {pos args} {
    reportDebug "($args) pos=$pos"
 
-   lassign [eval parsePathCommandArgs add-path $args] separator allow_dup\
+   lassign [parsePathCommandArgs add-path {*}$args] separator allow_dup\
       idx_val var path_list
 
    set sharevar [getModshareVarName $var]
@@ -4260,7 +4261,7 @@ proc prepend-path {args} {
    reportDebug $args
 
    # Set the variable for later use during the modulefile evaluation
-   eval add-path prepend $args
+   add-path prepend {*}$args
 
    return {}
 }
@@ -4269,7 +4270,7 @@ proc append-path {args} {
    reportDebug $args
 
    # Set the variable for later use during the modulefile evaluation
-   eval add-path append $args
+   add-path append {*}$args
 
    return {}
 }
@@ -4278,7 +4279,7 @@ proc remove-path {args} {
    reportDebug $args
 
    # Set the variable for later use during the modulefile evaluation
-   eval unload-path $args
+   unload-path {*}$args
 
    return {}
 }
@@ -4287,8 +4288,8 @@ proc remove-path {args} {
 proc remove-path-un {args} {
    # clear variable if it does not exist on unload mode for later use
    # during the modulefile evaluation
-   lassign [eval parsePathCommandArgs unload-path $args] separator\
-      allow_dup idx_val var path_list
+   lassign [parsePathCommandArgs unload-path {*}$args] separator allow_dup\
+      idx_val var path_list
    if {![info exists ::env($var)]} {
       reset-to-unset-env $var
    }
@@ -4301,8 +4302,8 @@ proc edit-path-wh {args} {
    reportDebug $args
 
    # get variable name
-   lassign [eval parsePathCommandArgs edit-path-wh $args] separator\
-      allow_dup idx_val var path_list
+   lassign [parsePathCommandArgs edit-path-wh {*}$args] separator allow_dup\
+      idx_val var path_list
 
    if {![info exists ::env($var)]} {
       set ::env($var) {}
@@ -4361,7 +4362,7 @@ proc unset-function {function} {
 proc is-loaded {args} {
    reportDebug $args
    # parse module version specification
-   set args [eval parseModuleSpecification 0 $args]
+   set args [parseModuleSpecification 0 {*}$args]
 
    foreach mod $args {
       if {[getLoadedMatchingName $mod returnfirst] ne {}} {
@@ -4395,11 +4396,11 @@ proc conflict {args} {
    defineModEqProc [isIcase] [getConf extended_default]
 
    # parse module version specification
-   set args [eval parseModuleSpecification 0 $args]
+   set args [parseModuleSpecification 0 {*}$args]
 
    # register conflict list unless record inhibited for current iterp context
    if {[currentState inhibit_req_record] != [currentState evalid]} {
-      eval setLoadedConflict "{$currentModule}" $args
+      setLoadedConflict $currentModule {*}$args
    }
 
    foreach mod $args {
@@ -4441,7 +4442,7 @@ proc prereq {args} {
    set curmodnamevr [currentState modulenamevr]
 
    # parse module version specification
-   set args [eval parseModuleSpecification 0 $args]
+   set args [parseModuleSpecification 0 {*}$args]
 
    # register prereq list (sets of optional prereq are registered as list)
    # unless record inhibited for current iterp context
@@ -4450,8 +4451,8 @@ proc prereq {args} {
    }
 
    # if dependency resolving is enabled try to load prereq
-   if {[getConf auto_handling] && ![eval is-loaded $args] && ![eval\
-      is-loading $args]} {
+   if {[getConf auto_handling] && ![is-loaded {*}$args] && ![is-loading\
+      {*}$args]} {
       set imax [llength $args]
       set prereqloaded 0
       # if prereq list specified, try to load first then
@@ -4468,7 +4469,7 @@ proc prereq {args} {
             # (could be raised if no modulepath defined for instance)
             lpopState reportholdid
             lappend holdidlist $curholdid report
-            eval releaseHeldReport $holdidlist
+            releaseHeldReport {*}$holdidlist
             knerror $errorMsg
          }
          lpopState reportholdid
@@ -4486,14 +4487,14 @@ proc prereq {args} {
          lappend holdidlist $curholdid report
       }
       # output held messages
-      eval releaseHeldReport $holdidlist
+      releaseHeldReport {*}$holdidlist
    }
 
-   if {![eval is-loaded $args] && ![eval is-loading $args]} {
-      set retisreqlo [eval isModuleEvaluated reqlo "{$curmodnamevr}" $args]
+   if {![is-loaded {*}$args] && ![is-loading {*}$args]} {
+      set retisreqlo [isModuleEvaluated reqlo $curmodnamevr {*}$args]
       # report message on currently evaluated module message block
-      if {![set retiseval [eval isModuleEvaluated any "{$curmodnamevr}"\
-         $args]] || [currentState msgrecordid] ne [topState msgrecordid] ||\
+      if {![set retiseval [isModuleEvaluated any $curmodnamevr {*}$args]] ||\
+         [currentState msgrecordid] ne [topState msgrecordid] ||\
          !$retisreqlo} {
 
          # more appropriate msg if an evaluation was attempted or is by-passed
@@ -4647,7 +4648,7 @@ proc is-used {args} {
 proc is-avail {args} {
    reportDebug $args
    # parse module version specification
-   set args [eval parseModuleSpecification 0 $args]
+   set args [parseModuleSpecification 0 {*}$args]
    set ret 0
 
    # disable error reporting to avoid modulefile errors
@@ -4786,7 +4787,7 @@ proc execShAndGetEnv {shell script args} {
    set shellexec [concat [list $shellpath] $shellopts [list -c $command]]
 
    reportDebug "running '$shellexec'"
-   if {[catch {set output [eval exec $shellexec]} output]} {
+   if {[catch {set output [exec {*}$shellexec]} output]} {
       set sherr 1
    }
 
@@ -4868,7 +4869,7 @@ proc sh-to-mod {args} {
 
    # evaluate script and retrieve environment before and after evaluation
    # procedure will set result variables in current context
-   eval execShAndGetEnv $args
+   execShAndGetEnv {*}$args
 
    # check environment variable change
    lassign [getDiffBetweenArray varbef varaft] notaft diff notbef
@@ -4898,7 +4899,7 @@ proc sh-to-mod {args} {
                lappend modcmd $name
                # split value and remove duplicate entries
                set vallist [list]
-               eval appendNoDupToList vallist [split [string range\
+               appendNoDupToList vallist {*}[split [string range\
                   $varaft($name) 0 [expr {$idx - 2}]] $delim]
                # an empty element is added
                if {[llength $vallist] == 0} {
@@ -4917,7 +4918,7 @@ proc sh-to-mod {args} {
                }
                lappend modcmd $name
                set vallist [list]
-               eval appendNoDupToList vallist [split [string range\
+               appendNoDupToList vallist {*}[split [string range\
                   $varaft($name) [expr {$idx + [string length $varbef($name)]\
                   + 1}] end] $delim]
                if {[llength $vallist] == 0} {
@@ -4936,7 +4937,7 @@ proc sh-to-mod {args} {
             # define a path-like variable if path separator found in it
             # split value and remove duplicate entries
             set vallist [list]
-            eval appendNoDupToList vallist [split $varaft($name) $pathsep]
+            appendNoDupToList vallist {*}[split $varaft($name) $pathsep]
             lappend modcontent [concat [list prepend-path $name] $vallist]
          }
       }
@@ -4973,7 +4974,7 @@ proc source-sh {shell script args} {
    # evaluate script and get the environment changes it performs translated
    # into modulefile commands
    set shtomodargs [concat [list $shell $script] $args]
-   set modcontent [eval sh-to-mod $shtomodargs]
+   set modcontent [sh-to-mod {*}$shtomodargs]
 
    # register resulting modulefile commands
    setLoadedSourceSh [currentState modulename] [concat [list $shtomodargs]\
@@ -4981,7 +4982,7 @@ proc source-sh {shell script args} {
 
    # evaluate resulting modulefile commands
    foreach modcmd $modcontent {
-      eval $modcmd
+      {*}$modcmd
    }
 }
 
@@ -5022,7 +5023,7 @@ proc source-sh-di {shell script args} {
       }
 
       # need to evaluate script to get alias and function definition
-      eval execShAndGetEnv $shtomodargs
+      execShAndGetEnv {*}$shtomodargs
 
       set modcontent {}
       foreach cmd $reccontent {
@@ -5054,7 +5055,7 @@ proc source-sh-di {shell script args} {
       }
    # not loaded, so get full content from script evaluation
    } else {
-      set modcontent [eval sh-to-mod $shtomodargs]
+      set modcontent [sh-to-mod {*}$shtomodargs]
    }
 
    # get name of current module unload Tcl interp
@@ -5145,7 +5146,7 @@ proc parseVariantCommandArgs {args} {
 
 proc variant {itrp args} {
    # parse args
-   lassign [eval parseVariantCommandArgs $args] name values defdflvalue\
+   lassign [parseVariantCommandArgs {*}$args] name values defdflvalue\
       dflvalue isboolean
 
    # version variant is forbidden until specific implementation
@@ -5208,7 +5209,7 @@ proc variant {itrp args} {
 # to avoid variable being undefined when accessed during modulefile evaluation
 proc variant-wh {itrp args} {
    # parse args
-   lassign [eval parseVariantCommandArgs $args] name values defdflvalue\
+   lassign [parseVariantCommandArgs {*}$args] name values defdflvalue\
       dflvalue isboolean
 
    # instantiate variant in modulefile context to an empty value
@@ -5767,7 +5768,7 @@ proc collectModuleTags {mod} {
 }
 
 proc setModuleTag {mod args} {
-   eval lappend "{::g_tagHash($mod)}" $args
+   lappend ::g_tagHash($mod) {*}$args
 }
 
 proc getTagList {mod {serialized 0}} {
@@ -6071,8 +6072,8 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
                      } else {
                         # add specified variants to current resolution
                         if {[llength $vrlist] > 0} {
-                           lassign [eval parseModuleSpecification 0 [concat\
-                              $newmod $vrlist]] newmod
+                           lassign [parseModuleSpecification 0 $newmod\
+                              {*}$vrlist] newmod
                         }
                         # restart search on new modulename, constrained to
                         # specified dir if set, if not found in current res
@@ -6092,8 +6093,8 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
                            $mod $modspec]} {
                            # add specified variants to current resolution
                            if {[llength $vrlist] > 0} {
-                              lassign [eval parseModuleSpecification 0\
-                                 [concat $mod $vrlist]] mod
+                              lassign [parseModuleSpecification 0 $mod\
+                                 {*}$vrlist] mod
                            }
                            return [getPathToModule $mod $indir $report_issue]
                         }
@@ -6129,8 +6130,8 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
    } else {
       # build module name and variant with variant specified
       if {[llength $vrlist] > 0} {
-         lassign [eval parseModuleSpecification 0 [concat [list [lindex\
-            $retlist 1]] $vrlist]] modnamevr
+         lassign [parseModuleSpecification 0 [lindex $retlist 1] {*}$vrlist]\
+            modnamevr
       } else {
          set modnamevr [lindex $retlist 1]
       }
@@ -6146,7 +6147,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
          '$mod'" {Select module}
    # no error if we look at loaded modules and passed mod not found loaded
    } elseif {[lindex $retlist 3] ne {notloaded} && $report_issue} {
-      eval reportIssue [lrange $retlist 3 5]
+      reportIssue {*}[lrange $retlist 3 5]
    }
    return $retlist
 }
@@ -6511,7 +6512,7 @@ proc getLoadedSourceSh {mod {serialized 0}} {
 }
 
 proc setLoadedConflict {mod args} {
-   eval appendNoDupToList "{::g_loadedModuleConflict($mod)}" $args
+   appendNoDupToList ::g_loadedModuleConflict($mod) {*}$args
 }
 
 proc unsetLoadedConflict {mod} {
@@ -6587,7 +6588,7 @@ proc doesModuleConflict {mod} {
 }
 
 proc setLoadedPrereq {mod args} {
-   eval appendNoDupToList "{::g_loadedModulePrereq($mod)}" $args
+   appendNoDupToList ::g_loadedModulePrereq($mod) {*}$args
 }
 
 proc unsetLoadedPrereq {mod} {
@@ -6690,7 +6691,7 @@ proc getLoadedAltname {mod {serialized 0} {typelist {sym alias autosym}}} {
 }
 
 proc setLoadedVariant {mod args} {
-   eval lappend "{::g_loadedModuleVariant($mod)}" $args
+   lappend ::g_loadedModuleVariant($mod) {*}$args
 }
 
 proc unsetLoadedVariant {mod} {
@@ -7076,7 +7077,7 @@ proc areModuleConstraintsSatisfied {{mod {}} {nporeq 0}} {
          }
          # add requirements of depmod to the module to check list
          foreach lmmodlist [set ${reqListVar}($depmod)] {
-            eval appendNoDupToList fulllist $lmmodlist
+            appendNoDupToList fulllist {*}$lmmodlist
          }
       }
    }
@@ -7257,7 +7258,7 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1} {nporeq 0}\
    set unlonporeq [expr {$being_unload ? 0 : $nporeq}]
    foreach mod $modlist {
       # no duplicates or modules from query list
-      eval appendNoDupToList fulllist [getDirectDependentList $mod $strong\
+      appendNoDupToList fulllist {*}[getDirectDependentList $mod $strong\
          $unlonporeq $loading $fulllist]
    }
 
@@ -7270,7 +7271,7 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1} {nporeq 0}\
          if {$doescon} {
             unsetModuleConflictViolation $mod
             set conunvioarr($mod) $modconlist
-            eval appendNoDupToList fulllist $modconlist
+            appendNoDupToList fulllist {*}$modconlist
          }
       }
    }
@@ -7283,7 +7284,7 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1} {nporeq 0}\
          $nporeq]} {
          # get dependent mod of dep mod when looking at full dep tree
          if {!$direct} {
-            eval appendNoDupToList fulllist [getDirectDependentList $depmod\
+            appendNoDupToList fulllist {*}[getDirectDependentList $depmod\
                $strong $nporeq 0 $fulllist]
          }
          # avoid module currently unloading from result list
@@ -7341,7 +7342,7 @@ proc getRequiredLoadedModuleList {modlist} {
    set fulllist $modlist
    for {set i 0} {$i < [llength $fulllist]} {incr i 1} {
       # gets the list of loaded modules which are required by depmod
-      eval appendNoDupToList fulllist $::g_moduleDepend([lindex $fulllist $i])
+      appendNoDupToList fulllist {*}$::g_moduleDepend([lindex $fulllist $i])
    }
 
    # sort complete result list to match both loaded and dependency orders
@@ -7445,14 +7446,14 @@ proc pushSettings {} {
       g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
       g_unmetDepHash g_moduleEval g_moduleHiddenEval} {
-      eval "lappend ::g_SAVE_$var \[array get ::$var\]"
+      lappend ::g_SAVE_$var [array get ::$var]
    }
    # save non-array variable and indication if it was set
    foreach var {g_changeDir g_stdoutPuts g_return_text} {
       if {[info exists ::$var]} {
-         eval "lappend ::g_SAVE_$var \[list 1 \[set ::$var\]\]"
+         lappend ::g_SAVE_$var [list 1 [set ::$var]]
       } else {
-         eval "lappend ::g_SAVE_$var \[list 0 {}\]"
+         lappend ::g_SAVE_$var [list 0 {}]
       }
    }
    reportDebug "settings saved (#[getSavedSettingsStackDepth])"
@@ -7470,7 +7471,7 @@ proc popSettings {} {
       g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
       g_unmetDepHash g_moduleEval g_moduleHiddenEval} {
-      eval "set ::g_SAVE_$var \[lrange \$::g_SAVE_$var 0 end-1\]"
+      set ::g_SAVE_$var [lrange [set ::g_SAVE_$var] 0 end-1]
    }
    reportDebug "previously saved settings flushed (#$flushedid)"
 }
@@ -7487,9 +7488,10 @@ proc restoreSettings {} {
       g_unmetDepHash g_moduleEval g_moduleHiddenEval} {
       # clear current $var arrays
       if {[info exists ::$var]} {
-         eval "unset ::$var; array set ::$var {}"
+         unset ::$var
+         array set ::$var {}
       }
-      eval "array set ::$var \[lindex \$::g_SAVE_$var end\]"
+      array set ::$var [lindex [set ::g_SAVE_$var] end]
    }
    # specific restore mechanism for ::env as unsetting this array will make
    # Tcl stop monitoring env accesses and not update env variables anymore
@@ -7506,9 +7508,9 @@ proc restoreSettings {} {
    # restore non-array variable if it was set
    foreach var {g_changeDir g_stdoutPuts g_return_text} {
       if {[info exists ::$var]} {
-         eval "unset ::$var"
+         unset ::$var
       }
-      eval "lassign \[lindex \$::g_SAVE_$var end\] isdefined val"
+      lassign [lindex [set ::g_SAVE_$var] end] isdefined val
       if {$isdefined} {
          set ::$var $val
       }
@@ -7953,7 +7955,7 @@ proc renderSettings {} {
    # send content deferred during modulefile interpretation
    if {[info exists ::g_stdoutPuts]} {
       foreach putsArgs $::g_stdoutPuts {
-         eval puts $putsArgs
+         puts {*}$putsArgs
          # check if a finishing newline will be needed after content sent
          set needPutsNl [expr {[lindex $putsArgs 0] eq {-nonewline}}]
       }
@@ -8399,31 +8401,31 @@ proc cacheCurrentModules {{exitonerr 1}} {
       if {[llength $modlist] == [llength $modfilelist]} {
          # cache declared tags of loaded modules
          foreach modtag [getLoadedModuleTagList] {
-            eval setModuleTag $modtag
+            setModuleTag {*}$modtag
          }
 
          # cache declared variant of loaded modules
          foreach modvrspec [getLoadedModuleVariantList] {
-            eval setLoadedVariant $modvrspec
+            setLoadedVariant {*}$modvrspec
          }
 
          # cache declared alternative names of loaded modules
          foreach modalt [getLoadedModuleAltnameList] {
-            eval setLoadedAltname $modalt
+            setLoadedAltname {*}$modalt
          }
 
          # cache declared source-sh of loaded modules
          foreach modsrcsh [getLoadedModuleSourceShList] {
-            eval setLoadedSourceSh $modsrcsh
+            setLoadedSourceSh {*}$modsrcsh
          }
 
          # cache declared conflict of loaded modules
          foreach modcon [getLoadedModuleConflictList] {
             # parse module version specification to record translation
             foreach modconelt [lrange $modcon 1 end] {
-               eval parseModuleSpecification 0 $modconelt
+               parseModuleSpecification 0 {*}$modconelt
             }
-            eval setLoadedConflict $modcon
+            setLoadedConflict {*}$modcon
          }
 
          # cache declared prereq of loaded modules, prior to setLoadedModule
@@ -8432,10 +8434,10 @@ proc cacheCurrentModules {{exitonerr 1}} {
             # parse module version specification to record translation
             foreach modpreeltlist [lrange $modpre 1 end] {
                foreach modpreelt $modpreeltlist {
-                  eval parseModuleSpecification 0 $modpreelt
+                  parseModuleSpecification 0 {*}$modpreelt
                }
             }
-            eval setLoadedPrereq $modpre
+            setLoadedPrereq {*}$modpre
          }
 
          foreach mod $modlist {
@@ -8512,7 +8514,7 @@ proc runCommand {cmd args} {
    if {$cmdpath eq {}} {
       knerror "Command '$cmd' cannot be found" MODULES_ERR_GLOBAL
    } else {
-      return [eval exec $cmdpath $args]
+      return [exec $cmdpath {*}$args]
    }
 }
 
@@ -8555,7 +8557,7 @@ proc getAbsolutePath {path} {
             lappend abslist $elt
          }
       }
-      set abspath [eval file join $abslist]
+      set abspath [file join {*}$abslist]
    }
 
    # return cleaned absolute path
@@ -10827,7 +10829,7 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
    if {[llength $display_list] > 0 && $show_mtime && ![isStateDefined\
       theader_shown]} {
       setState theader_shown 1
-      eval displayTableHeader $theader_cols
+      displayTableHeader {*}$theader_cols
    }
 
    # output formatted elements
@@ -11390,7 +11392,7 @@ proc readCollectionContent {collfile colldesc} {
             --notuasked]
          # parse module specification to distinguish between module + variant
          # specif and multiple modules specified on a single line
-         set parsedlist [eval parseModuleSpecification 0 $cleanlist]
+         set parsedlist [parseModuleSpecification 0 {*}$cleanlist]
          if {[llength $modarg] != [llength $cleanlist]} {
             foreach parsed $parsedlist {
                # add module name version and variant spec to the list
@@ -12143,7 +12145,7 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist {force 0}\
    setConf auto_handling 0
    foreach mod $lmlist {
       # if an auto set default was excluded, module spec need parsing
-      lassign [eval parseModuleSpecification 0 "{$mod} $vr($mod)"] modnamevr
+      lassign [parseModuleSpecification 0 $mod {*}$vr($mod)] modnamevr
       # reload module with user asked property preserved
       if {[cmdModuleLoad $context $isuasked($mod) $modnamevr]} {
          set errMsg [string map [list _MOD_ [getModuleDesignation spec\
@@ -12550,7 +12552,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
             '$mod'"]
       }
       foreach elt [array names err_list] {
-         eval reportIssue $err_list($elt)
+         reportIssue {*}$err_list($elt)
       }
    }
 }
@@ -12767,7 +12769,7 @@ proc cmdModuleRestore {{coll default}} {
    foreach mod [lreverse $mod_to_unload] {
       # test stickiness over full module name version variant designation
       if {[set vr [getVariantList $mod 1]] ne {}} {
-         lassign [eval parseModuleSpecification 0 "{$mod} $vr"] modvr
+         lassign [parseModuleSpecification 0 $mod {*}$vr] modvr
       } else {
          set modvr $mod
       }
@@ -12788,7 +12790,7 @@ proc cmdModuleRestore {{coll default}} {
    }
    # unuse paths
    if {[llength $path_to_unuse] > 0} {
-      eval cmdModuleUnuse [lreverse $path_to_unuse]
+      cmdModuleUnuse {*}[lreverse $path_to_unuse]
    }
 
    # since unloading a module may unload other modules or
@@ -12819,7 +12821,7 @@ proc cmdModuleRestore {{coll default}} {
    if {[llength $path_to_use] > 0} {
       # always append path here to guaranty the order
       # computed above in the movement lists
-      eval cmdModuleUse append $path_to_use
+      cmdModuleUse append {*}$path_to_use
    }
 
    # load modules one by one with user asked state preserved
@@ -13091,8 +13093,8 @@ proc cmdModuleLoad {context uasked args} {
          }
 
          # register altname of modname prior any conflict check
-         eval setLoadedAltname "{$modname}" [getAllModuleResolvedName\
-            $modname 1 $mod]
+         setLoadedAltname $modname {*}[getAllModuleResolvedName $modname 1\
+            $mod]
 
          if {[getConf auto_handling]} {
             # get loaded modules holding a requirement on modname and able to
@@ -13132,10 +13134,9 @@ proc cmdModuleLoad {context uasked args} {
          # (module unload) conflicts through its evaluation
          lassign [doesModuleConflict $modname] doescon modconlist\
             moddecconlist
-         set retisconun [eval isModuleEvaluated conun "{$modnamevr}"\
-            $modconlist]
-         if {![set retiseval [eval isModuleEvaluated any "{$modnamevr}"\
-            $modconlist]] || [currentState msgrecordid] ne [topState\
+         set retisconun [isModuleEvaluated conun $modnamevr {*}$modconlist]
+         if {![set retiseval [isModuleEvaluated any $modnamevr\
+            {*}$modconlist]] || [currentState msgrecordid] ne [topState\
             msgrecordid] || !$retisconun} {
             # more appropriate msg if an evaluation was attempted or is
             # by-passed. error is reported using declared conflict name (as if
@@ -13418,8 +13419,8 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                if {$onlyndep} {
                   set errharmless 1
                }
-               knerror [expr {[eval isModuleEvaluated any "{$modnamevr}"\
-                  $prereq_list] ? [getDepLoadedMsg $prereq_list] :\
+               knerror [expr {[isModuleEvaluated any $modnamevr\
+                  {*}$prereq_list] ? [getDepLoadedMsg $prereq_list] :\
                   [getErrPrereqMsg $prereq_list 0]}]
             }
          }
@@ -13640,7 +13641,7 @@ proc cmdModulePurge {} {
    # force it to handle loaded modules in violation state
    # remove dependent modules if force mode enabled
    set onlyndep [expr {![getState force]}]
-   eval cmdModuleUnload unload match 0 1 0 $onlyndep [lreverse\
+   cmdModuleUnload unload match 0 1 0 $onlyndep {*}[lreverse\
       [getLoadedModuleList]]
 
    popMsgRecordId 0
@@ -13898,13 +13899,13 @@ proc cmdModuleAutoinit {} {
                   if {[llength $globlist] == 0} {
                      lappend pathlist $path
                   } else {
-                     eval lappend pathlist $globlist
+                     lappend pathlist {*}$globlist
                   }
                }
             }
          }
          if {[info exists pathlist]} {
-            eval cmdModuleUse append $pathlist
+            cmdModuleUse append {*}$pathlist
          }
       }
 
@@ -14080,7 +14081,7 @@ proc cmdModuleResurface {cmd args} {
    lappendState commandname $cmd
 
    # run modulefile command and get its result
-   if {[catch {eval $cmd $args} res]} {
+   if {[catch {$cmd {*}$args} res]} {
       # report error if any and return false
       reportError $res
    } else {
@@ -14123,10 +14124,10 @@ proc cmdModuleTest {args} {
    lpopState mode
 }
 
-proc cmdModuleClear {{doit {}}} {
+proc cmdModuleClear {doit doitset} {
    reportDebug "($doit)"
    # fetch confirmation if no arg passed and force mode disabled
-   if {$doit eq {} && ![getState force]} {
+   if {!$doitset && ![getState force]} {
       # ask for it if stdin is attached to a terminal
       if {![catch {fconfigure stdin -mode}]} {
          report "Are you sure you want to clear all loaded modules!? \[n\] " 1
@@ -14329,14 +14330,14 @@ proc cmdModuleShToMod {args} {
 
    # evaluate script and get the environment changes it performs translated
    # into modulefile commands
-   set modcontent [eval sh-to-mod $args]
+   set modcontent [sh-to-mod {*}$args]
 
    # output resulting modulefile
    if {[llength $modcontent] > 0} {
       report "#%Module"
       # format each command with tabs and colors if enabled
       foreach modcmd $modcontent {
-         eval reportCmd -nativeargrep $modcmd
+         reportCmd -nativeargrep {*}$modcmd
       }
    }
 }
@@ -14758,7 +14759,7 @@ if {[catch {
    lappendState modulefile {}
 
    # eval needed to pass otherargv as list to module proc
-   eval $execcmdlist
+   {*}$execcmdlist
 } errMsg ]} {
    # re-enable error report in case it was previously inhibited
    setState inhibit_errreport 0
