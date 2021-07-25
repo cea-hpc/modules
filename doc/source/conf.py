@@ -79,7 +79,7 @@ def get_version_release_from_git():
             else:
                 return version, version + '+' + branch + '-' + tags
     else:
-        return '4.8.0', ''
+        return '5.0.0-alpha', ''
 
 # The short X.Y version.
 # The full version, including alpha/beta/rc tags.
