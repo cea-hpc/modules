@@ -3679,38 +3679,6 @@ proc displayConfig {val env_var {asked 0} {trans {}} {locked 0}} {
 }
 
 
-# exit in a clean manner by closing interaction with external components
-proc cleanupAndExit {code} {
-   # finish output document if json format enabled
-   if {[isStateEqual report_format json]} {
-      # render error messages all together
-      if {[info exists ::g_report_erralist]} {
-         # ignite report first to get eventual error message from report
-         # initialization in order 'foreach' got all messages prior firing
-         report "\"errors\": \[" 1
-         foreach {sev msg} $::g_report_erralist {
-            # split message in lines
-            lappend dispmsglist "\n{ \"severity\": \"$sev\", \"message\": \[\
-               \"[join [split [charEscaped $msg \"] \n] {", "}]\" \] }"
-         }
-         report "[join $dispmsglist ,] \]"
-      }
-      # inhibit next content separator if output is ending
-      if {[isStateDefined report_sep_next]} {
-         unsetState report_sep_next
-      }
-      report \}
-   }
-
-   # close pager if enabled
-   if {[isStateDefined reportfd] && ![isStateEqual reportfd stderr]} {
-      catch {flush [getState reportfd]}
-      catch {close [getState reportfd]}
-   }
-
-   exit $code
-}
-
 ########################################################################
 # Use a subordinate Tcl interpreter to execute modulefiles
 #
@@ -5191,490 +5159,6 @@ proc module-tag {args} {
    }
 }
 
-proc module {command args} {
-   set mode [currentState mode]
-   reportDebug "cmd='$command', args='$args'"
-
-   # guess if called from top level
-   set topcall [expr {[depthState modulename] == 0}]
-   set tryhelpmsg [expr {$topcall ? "\nTry 'module --help' for more\
-      information." : {}}]
-   if {$topcall} {
-      set msgprefix {}
-   } else {
-      set msgprefix {module: }
-   }
-
-   # resolve and check command name
-   lassign [parseModuleCommandName $command help] command cmdvalid cmdempty
-   # clear other args if no command name supplied
-   if {$cmdempty} {
-      set args {}
-   }
-   # raise error if supplied command is not known
-   if {!$cmdvalid} {
-      knerror "${msgprefix}Invalid command '$command'$tryhelpmsg"
-   }
-
-   # parse options, do that globally to ignore options not related to a given
-   # module sub-command (exclude them from arg list)
-   lassign [parseModuleCommandArgs $topcall $command 0 {*}$args]\
-      show_oneperline show_mtime show_filter search_filter search_match\
-      dump_state addpath_pos not_req args
-
-   # parse module version specification
-   defineParseModuleSpecificationProc [getConf advanced_version_spec]
-   if {$command in [list avail paths whatis load unload switch help test\
-      display path is-avail edit try-load]} {
-      set args [parseModuleSpecification 0 {*}$args]
-   }
-
-   if {!$topcall} {
-      # some commands can only be called from top level, not within modulefile
-      switch -- $command {
-         path - paths - autoinit - help - prepend-path - append-path -\
-         remove-path - is-loaded - is-saved - is-used - is-avail -\
-         info-loaded - clear - sh-to-mod - edit {
-            knerror "${msgprefix}Command '$command' not supported$tryhelpmsg"
-         }
-      }
-      # other commands can only be called from modulefile evaluated from
-      # command acting as top-level context (source and autoinit)
-      if {([depthState modulename] > 1 || [currentState commandname] ni [list\
-         source autoinit]) && $command eq {config}} {
-         knerror "${msgprefix}Command '$command' not supported$tryhelpmsg"
-      }
-      # no requirement should be recorded this module load/unload/switch cmd
-      if {$not_req || ![getConf implicit_requirement]} {
-         lappendState inhibit_req_record [currentState evalid]
-      }
-   }
-
-   # argument number check
-   switch -- $command {
-      unload - source - display - initadd - initprepend - initrm - test -\
-      is-avail - try-load {
-         if {[llength $args] == 0} {
-            set argnberr 1
-         }
-      }
-      reload - aliases - list - purge - savelist - initlist - initclear -\
-      autoinit {
-         if {[llength $args] != 0} {
-            set argnberr 1
-         }
-      }
-      switch {
-         if {[llength $args] == 0 || [llength $args] > 2} {
-            set argnberr 1
-         }
-      }
-      path - paths - info-loaded - edit {
-         if {[llength $args] != 1} {
-            set argnberr 1
-         }
-      }
-      search - save - restore - saverm - saveshow - clear {
-         if {[llength $args] > 1} {
-            set argnberr 1
-         }
-      }
-      initswitch {
-         if {[llength $args] != 2} {
-            set argnberr 1
-         }
-      }
-      prepend-path - append-path - remove-path - sh-to-mod {
-         if {[llength $args] < 2} {
-            set argnberr 1
-         }
-      }
-      config {
-         if {[llength $args] > 2} {
-            set argnberr 1
-         }
-      }
-   }
-   if {[info exists argnberr]} {
-      knerror "Unexpected number of args for '$command' command$tryhelpmsg"
-   }
-
-   # define if modfile should always be fully read even for validity check
-   lappendState always_read_full_file [expr {$command ni [list path paths\
-      list avail aliases edit]}]
-   lappendState commandname $command
-   # is evaluation a regular attempt or a try (silence not found error)
-   lappendState try_modulefile [expr {$command eq {try-load}}]
-
-   if {$topcall} {
-      # Find and execute any global rc file found
-      runModulerc
-   }
-
-
-   switch -- $command {
-      load - try-load {
-         # ignore flag used in collection to track non-user asked state
-         set args [replaceFromList $args --notuasked]
-         # no error raised on empty argument list to cope with
-         # initadd command that may expect this behavior
-         if {[llength $args] > 0} {
-            set ret 0
-            # if top command is source, consider module load commands made
-            # within sourced file evaluation as top load command
-            if {$topcall || ([depthState modulename] == 1 && (
-               [aboveCommandName] eq {source} || [aboveCommandName] eq\
-               {autoinit} || [isStateDefined rc_running]))} {
-               set ret [cmdModuleLoad load 1 {*}$args]
-            } elseif {$mode eq {load}} {
-               # load here if try-load or no auto mode (done through prereq
-               # elsewhere, inhibited if currently in DepRe context)
-               if {$command eq {try-load} || (![getConf auto_handling] &&\
-                  [currentModuleEvalContext] ne {depre})} {
-                  # attempt load of not already loaded modules
-                  foreach arg $args {
-                     if {![is-loaded $arg] && ![is-loading $arg]} {
-                        lappend modlist $arg
-                     }
-                  }
-                  if {[info exists modlist]} {
-                     set ret [cmdModuleLoad reqlo 0 {*}$modlist]
-                     # ignore obtained error if force mode enabled
-                     if {[getState force]} {
-                        set ret 0
-                     }
-                  }
-               }
-               # register modulefiles to load as individual prereqs
-               foreach arg $args {
-                  # no prereq record if try-load did not succeed
-                  if {$command ne {try-load} || [is-loaded $arg]} {
-                     prereq $arg
-                  }
-               }
-            # mods unload is handled via UReqUn mechanism when auto enabled
-            # (unless if implicit_requirement has been inhibited) also unloads
-            # are triggered by ongoing reload, purge or restore commands
-            } elseif {(![getConf auto_handling] || [getState\
-               inhibit_req_record] eq [currentState evalid]) &&\
-               [aboveCommandName] ni [list purge reload restore]} {
-               # on unload mode, unload mods in reverse order, if loaded
-               # prior this mod, if not user asked and not required by
-               # other loaded mods
-               set modlist [getLoadedModuleList]
-               set modidx [lsearch -exact $modlist [currentState modulename]]
-               if {$modidx != 0} {
-                  set priormodlist [lrange $modlist 0 $modidx]
-                  foreach arg [lreverse $args] {
-                     if {[set unmod [getLoadedMatchingName $arg {} 0\
-                        $priormodlist]] ne {}} {
-                        if {[cmdModuleUnload urequn match 1 0 1 1 $unmod]} {
-                           reportWarning "Unload of useless requirement\
-                              [getModuleDesignation loaded $unmod] failed" 1
-                        }
-                     }
-                  }
-               }
-            }
-            # sub-module interpretation failed, raise error
-            if {$ret && !$topcall} {
-               knerror {} MODULES_ERR_SUBFAILED
-            }
-         }
-      }
-      unload {
-         # if top command is source, consider module load commands made
-         # within sourced file evaluation as top load command
-         if {$topcall || ([depthState modulename] == 1 && (
-            [aboveCommandName] eq {source} || [aboveCommandName] eq\
-            {autoinit} || [isStateDefined rc_running]))} {
-            set ret [cmdModuleUnload unload match 1 0 0 0 {*}$args]
-         } elseif {$mode eq {load}} {
-            # unload mods only on load mode, nothing done on unload mode as
-            # the registered conflict guarantees the target module cannot
-            # be loaded unless forced
-            # do not unload module required by others even in force mode
-            set ret [cmdModuleUnload conun match 0 0 0 1 {*}$args]
-
-            # register modulefiles to unload as individual conflicts
-            foreach arg $args {
-               # do not break on error yet, go through the whole modfile
-               # evaluation in case conflict is solved later on
-               catch {conflict $arg}
-            }
-            # sub-module interpretation failed, raise error
-            if {$ret} {
-               knerror {} MODULES_ERR_SUBFAILED
-            }
-         }
-      }
-      reload {
-         cmdModuleReload
-      }
-      use {
-         if {$topcall || $mode eq {load}} {
-            cmdModuleUse $addpath_pos {*}$args
-         } else {
-            cmdModuleUnuse {*}$args
-         }
-      }
-      unuse {
-         cmdModuleUnuse {*}$args
-      }
-      source {
-         if {$topcall || $mode eq {load}} {
-            cmdModuleSource {*}$args
-         } else {
-            # on unload mode, unsource script in reverse order
-            cmdModuleUnsource {*}[lreverse $args]
-         }
-      }
-      switch {
-         # pass 'user asked state' to switch procedure
-         set uasked [expr {$topcall || ([depthState modulename] == 1 &&\
-            ([aboveCommandName] eq {source} || [aboveCommandName] eq\
-            {autoinit} || [isStateDefined rc_running]))}]
-         if {$uasked} {
-            cmdModuleSwitch $uasked {*}$args
-         } else {
-            # CAUTION: it is not recommended to use the `switch`
-            # sub-command in modulefiles as this command is intended for
-            # the command-line for a 2in1 operation. Could be removed from
-            # the modulefile scope in a future release. Use `module unload`
-            # and `module load` commands in modulefiles instead.
-
-            switch -- $mode {
-               load {
-                  cmdModuleSwitch $uasked {*}$args
-               }
-               unload {
-                  # find what has been asked for unload and load
-                  lassign $args swunmod swlomod
-                  if {$swlomod eq {} && $swunmod ne {}} {
-                     set swlomod $swunmod
-                  }
-
-                  # apply same mechanisms than for 'module load' and
-                  # 'module unload' for an unload evaluation: nothing done
-                  # for switched-off module and unload of switched-on
-                  # module. If auto handling is enabled switched-on module
-                  # is handled via UReqUn mechanism (unless if
-                  # implicit_requirement has been inhibited). Also unloads are
-                  # triggered by ongoing reload, purge or restore commands
-                  if {(![getConf auto_handling] || [getState\
-                     inhibit_req_record] eq [currentState evalid]) &&\
-                     $swlomod ne {} && [aboveCommandName] ni [list purge\
-                     reload restore]} {
-                     # unload mod if it was loaded prior this mod, not user
-                     # asked and not required by another loaded module
-                     set modlist [getLoadedModuleList]
-                     set modidx [lsearch -exact $modlist [currentState\
-                        modulename]]
-                     if {$modidx != 0} {
-                        set priormodlist [lrange $modlist 0 $modidx]
-                        if {[set unmod [getLoadedMatchingName $swlomod {} 0\
-                           $priormodlist]] ne {}} {
-                           if {[cmdModuleUnload urequn match 1 0 1 1 $unmod]} {
-                              reportWarning "Unload of useless requirement\
-                                 [getModuleDesignation loaded $unmod] failed"\
-                                 1
-                           }
-                        }
-                     }
-                  }
-               }
-            }
-         }
-      }
-      display {
-         cmdModuleDisplay {*}$args
-      }
-      avail {
-         {*}cmdModuleAvail $show_oneperline $show_mtime $show_filter\
-            $search_filter $search_match {*}$args
-      }
-      aliases {
-         cmdModuleAliases
-      }
-      path {
-         cmdModulePath {*}$args
-      }
-      paths {
-         cmdModulePaths {*}$args
-      }
-      list {
-         cmdModuleList $show_oneperline $show_mtime
-      }
-      whatis {
-         if {$args ne {}} {
-            foreach arg $args {
-               cmdModuleWhatIs $arg
-            }
-         } else {
-            cmdModuleWhatIs
-         }
-      }
-      search {
-         cmdModuleApropos {*}$args
-      }
-      purge {
-         cmdModulePurge
-      }
-      save {
-         cmdModuleSave {*}$args
-      }
-      restore {
-         cmdModuleRestore {*}$args
-      }
-      saverm {
-         cmdModuleSaverm {*}$args
-      }
-      saveshow {
-         cmdModuleSaveshow {*}$args
-      }
-      savelist {
-         cmdModuleSavelist $show_oneperline $show_mtime
-      }
-      initadd {
-         cmdModuleInit add {*}$args
-      }
-      initprepend {
-         cmdModuleInit prepend {*}$args
-      }
-      initswitch {
-         cmdModuleInit switch {*}$args
-      }
-      initrm {
-         cmdModuleInit rm {*}$args
-      }
-      initlist {
-         cmdModuleInit list {*}$args
-      }
-      initclear {
-         cmdModuleInit clear {*}$args
-      }
-      autoinit {
-         cmdModuleAutoinit
-      }
-      clear {
-         # ensure empty string is correctly passed
-         cmdModuleClear [lindex $args 0] [llength $args]
-      }
-      config {
-         cmdModuleConfig $dump_state {*}$args
-      }
-      sh-to-mod {
-         cmdModuleShToMod {*}$args
-      }
-      edit {
-         cmdModuleEdit {*}$args
-      }
-      help {
-         cmdModuleHelp {*}$args
-      }
-      test {
-         cmdModuleTest {*}$args
-      }
-      prepend-path - append-path - remove-path - is-loaded - is-saved -\
-      is-used - is-avail {
-         cmdModuleResurface $command {*}$args
-      }
-      info-loaded {
-         cmdModuleResurface module-info loaded {*}$args
-      }
-   }
-   lpopState try_modulefile
-   lpopState commandname
-   lpopState always_read_full_file
-
-   if {!$topcall && ($not_req || ![getConf implicit_requirement])} {
-      lpopState inhibit_req_record
-   }
-
-   # if called from top level render settings if any
-   if {$topcall} {
-      renderSettings
-   }
-
-   return {}
-}
-
-proc ml {args} {
-   # filter out all known options from argument list to guess command name
-   # without them in the way
-   lassign [parseModuleCommandArgs 1 ml 1 {*}$args] show_oneperline\
-      show_mtime show_filter search_filter search_match dump_state\
-      addpath_pos not_req fargs
-
-   # determine if first argument is a known module sub-command
-   lassign [parseModuleCommandName [lindex $fargs 0] list] command cmdvalid\
-      cmdempty
-
-   if {$cmdempty} {
-      # consider empty string supplied as first argument as module name
-      if {[llength $fargs] > 0} {
-         set cmdvalid 0
-      }
-      set margs $args
-   } else {
-      # first argument was command name
-      set margs [lrange $args 1 end]
-   }
-
-   # directly call module procedure if sub-command spotted as first argument
-   # or no argument supplied
-   if {$cmdvalid} {
-      module $command {*}$margs
-   } else {
-      # parse specified module and get list of mods to unload and mods to load
-      defineParseModuleSpecificationProc [getConf advanced_version_spec]
-      lassign [parseModuleSpecification 1 {*}$fargs] modunlist modlolist
-
-      # main procedure has already raised error for badly written argument
-      # like '-' or '--', but we need here to replay module-specific argument
-      # parsing to raise error if some arg are not allowed on unload/load cmd
-      set mlcmd [expr {[llength $modunlist] > 0 ? {unload} : {load}}]
-      lassign [parseModuleCommandArgs 1 $mlcmd 0 {*}$args] show_oneperline\
-         show_mtime show_filter search_filter search_match dump_state\
-         addpath_pos not_req fargs
-
-      # define if modfile should always be fully read even for validity check
-      lappendState always_read_full_file 1
-      lappendState commandname ml
-      # is evaluation a regular attempt or a try (silence not found error)
-      lappendState try_modulefile [expr {$command eq {try-load}}]
-
-      # Find and execute any global rc file found
-      runModulerc
-
-      set ret 0
-      pushSettings
-
-      # first unload specified modules
-      if {[llength $modunlist] > 0} {
-         set ret [cmdModuleUnload unload match 1 0 0 0 {*}$modunlist]
-      }
-      # then load other modules unless unload phase failed
-      if {!$ret && [llength $modlolist] > 0} {
-         set ret [cmdModuleLoad load 1 {*}$modlolist]
-      }
-
-      # rollback changes if any load or unload failed
-      if {$ret} {
-         restoreSettings
-      }
-      popSettings
-
-      lpopState try_modulefile
-      lpopState commandname
-      lpopState always_read_full_file
-
-      renderSettings
-   }
-
-   return {}
-}
-
 proc setenv {var val} {
    reportDebug "var='$var', val='$val'"
 
@@ -6818,14 +6302,6 @@ proc getvariant {itrp name {valifundef {}}} {
 ########################################################################
 # internal module procedures
 #
-
-proc aboveCommandName {} {
-   return [lindex [getState commandname] end-1]
-}
-
-proc ongoingCommandName {commandName} {
-   return [expr {[lsearch -exact [getState commandname] $commandName] != -1}]
-}
 
 # gather for the current top evaluation the information on all evaluations
 # happening under its umbrella
@@ -8946,45 +8422,6 @@ proc getUnloadableLoadedModuleList {modlist} {
       $modlist] end]]
    reportDebug "got '$sortlist'"
    return $sortlist
-}
-
-# runs the global RC files if they exist
-proc runModulerc {} {
-   set rclist {}
-
-   reportDebug running...
-
-   if {[set rcfile [getConf rcfile]] ne {}} {
-      # if MODULERCFILE is a dir, look at a modulerc file in it
-      if {[file isdirectory $rcfile]\
-         && [file isfile $rcfile/modulerc]} {
-         lappend rclist $rcfile/modulerc
-      } elseif {[file isfile $rcfile]} {
-         lappend rclist $rcfile
-      }
-   }
-   if {[file isfile @etcdir@/rc]} {
-      lappend rclist @etcdir@/rc
-   }
-   if {[info exists ::env(HOME)] && [file isfile $::env(HOME)/.modulerc]} {
-      lappend rclist $::env(HOME)/.modulerc
-   }
-
-   setState rc_running 1
-   foreach rc $rclist {
-      if {[file readable $rc]} {
-         reportDebug "Executing $rc"
-         cmdModuleSource $rc
-         lappendState rc_loaded $rc
-      }
-   }
-   unsetState rc_running
-
-   # identify alias or symbolic version set in these global RC files to be
-   # able to include them or not in output or resolution processes
-   array set ::g_rcAlias [array get ::g_moduleAlias]
-   array set ::g_rcVersion [array get ::g_moduleVersion]
-   array set ::g_rcVirtual [array get ::g_moduleVirtual]
 }
 
 # how many settings bundle are currently saved
@@ -11423,229 +10860,6 @@ proc readCollectionContent {collfile colldesc} {
       }
    }
    return [list $path_list $mod_list $nuasked_list]
-}
-
-# analyze/translate command name passed to module
-proc parseModuleCommandName {command defaultcmd} {
-   set cmdempty 0
-
-   # resolve command if alias or shortcut name used
-   switch -- $command {
-      add               {set command load}
-      try-add           {set command try-load}
-      rm - remove       {set command unload}
-      show              {set command display}
-      apropos - keyword {set command search}
-      {} {
-         # if empty string supplied translate to default command
-         set command $defaultcmd
-         set cmdempty 1
-      }
-      default {
-         # specific match for shortcut names
-         set cmdlen [string length $command]
-         foreach {match minlen sccmd} {load 2 load unload 4 unload delete 3\
-            unload refresh 3 reload reload 3 reload switch 2 switch swap 2\
-            switch display 2 display available 2 avail aliases 2 aliases list\
-            2 list whatis 2 whatis purge 2 purge initadd 5 initadd initload 6\
-            initadd initprepend 5 initprepend initswitch 6 initswitch\
-            initswap 6 initswitch initunload 8 initrm initlist 5 initlist} {
-            if {$cmdlen >= $minlen && [string equal -length $cmdlen $command\
-               $match]} {
-               set command $sccmd
-               break
-            }
-         }
-      }
-   }
-
-   set cmdvalid [expr {$command in [list load unload reload use unuse source\
-      switch display avail aliases path paths list whatis search purge save\
-      restore saverm saveshow savelist initadd initprepend initswitch initrm\
-      initlist initclear autoinit clear config help test prepend-path\
-      append-path remove-path is-loaded is-saved is-used is-avail info-loaded\
-      sh-to-mod edit try-load]}]
-
-   return [list $command $cmdvalid $cmdempty]
-}
-
-# analyze arg list passed to a module cmd to set options
-proc parseModuleCommandArgs {topcall cmd ignerr args} {
-   set show_oneperline 0
-   set show_mtime 0
-   set show_filter {}
-   set search_filter [expr {[getConf avail_indepth] ? {} : {noindepth}}]
-   set search_match [getConf search_match]
-   set dump_state 0
-   set addpath_pos prepend
-   set not_req 0
-   set otherargs {}
-
-   # parse argument list
-   foreach arg $args {
-      if {[info exists nextargisval]} {
-         set $nextargisval $arg
-         unset nextargisval
-      } elseif {[info exists ignore_next_arg]} {
-         unset ignore_next_arg
-      } else {
-         switch -glob -- $arg {
-            -j - --json {
-               # enable json output only on supported command
-               if {$cmd in [list avail savelist list search whatis]} {
-                  setState report_format json
-                  set show_oneperline 0
-                  set show_mtime 0
-               }
-            }
-            -t - --terse {
-               set show_oneperline 1
-               set show_mtime 0
-               setState report_format terse
-            }
-            -l - --long {
-               set show_mtime 1
-               set show_oneperline 0
-               setState report_format long
-            }
-            -o {
-               # option is only valid for specific sub-commands
-               if {$cmd in [list avail list]} {
-                  set nextargisval asked_output
-                  set output_arg -o
-               } else {
-                  if {!$ignerr} {
-                     knerror "Unsupported option '$arg' on $cmd sub-command"
-                  }
-                  set ignore_next_arg 1
-               }
-            }
-            --output=* {
-               # option is only valid for specific sub-commands
-               if {$cmd in [list avail list]} {
-                  set asked_output [string range $arg 9 end]
-                  set output_arg --output
-               } elseif {!$ignerr} {
-                  knerror "Unsupported option '--output' on $cmd sub-command"
-               }
-            }
-            --append - -append {
-               if {$cmd eq {use}} {
-                  set addpath_pos append
-               } else {
-                  lappend otherargs $arg
-               }
-            }
-            -p - --prepend - -prepend {
-               if {$cmd eq {use}} {
-                  set addpath_pos prepend
-               } else {
-                  lappend otherargs $arg
-               }
-            }
-            --all {
-               # include hidden modules only on a limited set of command
-               if {$cmd in [list avail aliases search whatis ml list]} {
-                  setState hiding_threshold 2
-               } else {
-                  lappend otherargs $arg
-               }
-            }
-            -a {
-               # -a option has a different meaning whether sub-command is use
-               # or one of the search/listing sub-commands
-               if {$cmd eq {use}} {
-                  set addpath_pos append
-               } elseif {$cmd in [list avail aliases search whatis ml list]} {
-                  setState hiding_threshold 2
-               } else {
-                  lappend otherargs $arg
-               }
-            }
-            -d - --default {
-               # in case of *-path command, -d means --delim
-               if {$arg eq {-d} && [string match *-path $cmd]} {
-                  lappend otherargs $arg
-               } else {
-                  set show_filter onlydefaults
-               }
-            }
-            -L - --latest {
-               set show_filter onlylatest
-            }
-            -C - --contains {
-               set search_match contains
-            }
-            -S - --starts-with {
-               set search_match starts_with
-            }
-            --indepth {
-               # empty value means 'in depth' as it is default behavior
-               set search_filter {}
-            }
-            --no-indepth {
-               set search_filter noindepth
-            }
-            --dump-state {
-               set dump_state 1
-            }
-            --auto - --no-auto - -f - --force {
-               reportWarning "Unsupported option '$arg'"
-            }
-            --not-req {
-               if {!$topcall && $cmd in [list load unload switch]} {
-                  set not_req 1
-               } else {
-                  knerror "Unsupported option '$arg' on $cmd sub-command"
-               }
-            }
-            --output {
-               knerror "Missing value for '$arg' option"
-            }
-            default {
-               lappend otherargs $arg
-            }
-         }
-         set prevarg $arg
-      }
-   }
-
-   if {[info exists nextargisval]} {
-      knerror "Missing value for '$prevarg' option"
-   }
-
-   if {[info exists asked_output]} {
-      if {[getState report_format] in [list long json]} {
-         knerror "Unsupported option '$output_arg' on [getState\
-            report_format] output mode"
-      } else {
-         # get config name relative to current sub-command and output format
-         set outputconf $cmd
-         if {[getState report_format] ne {regular}} {
-            append outputconf _[getState report_format]
-         }
-         append outputconf _output
-
-         # check option value is coherent with current sub-command
-         if {[isDiffBetweenList [split $asked_output :] [lindex\
-            $::g_config_defs($outputconf) 3]]} {
-            if {!$ignerr} {
-               knerror "Invalid element in value list for '$output_arg'\
-                  option on $cmd sub-command\nAllowed elements are: [lindex\
-                  $::g_config_defs($outputconf) 3] (separated by ':')"
-            }
-         } else {
-            set ::asked_$outputconf $asked_output
-         }
-      }
-   }
-
-   reportDebug "(show_oneperline=$show_oneperline, show_mtime=$show_mtime,\
-      show_filter=$show_filter, search_filter=$search_filter,\
-      search_match=$search_match, dump_state=$dump_state,\
-      addpath_pos=$addpath_pos, not_req=$not_req, otherargs=$otherargs)"
-   return [list $show_oneperline $show_mtime $show_filter $search_filter\
-      $search_match $dump_state $addpath_pos $not_req $otherargs]
 }
 
 # analyze module version specified within module specification
@@ -14496,8 +13710,800 @@ Options:
    }
 }
 
-########################################################################
-# main program
+
+##############################################################################
+# Main -----------------------------------------------------------------------
+##############################################################################
+
+# exit in a clean manner by closing interaction with external components
+proc cleanupAndExit {code} {
+   # finish output document if json format enabled
+   if {[isStateEqual report_format json]} {
+      # render error messages all together
+      if {[info exists ::g_report_erralist]} {
+         # ignite report first to get eventual error message from report
+         # initialization in order 'foreach' got all messages prior firing
+         report "\"errors\": \[" 1
+         foreach {sev msg} $::g_report_erralist {
+            # split message in lines
+            lappend dispmsglist "\n{ \"severity\": \"$sev\", \"message\": \[\
+               \"[join [split [charEscaped $msg \"] \n] {", "}]\" \] }"
+         }
+         report "[join $dispmsglist ,] \]"
+      }
+      # inhibit next content separator if output is ending
+      if {[isStateDefined report_sep_next]} {
+         unsetState report_sep_next
+      }
+      report \}
+   }
+
+   # close pager if enabled
+   if {[isStateDefined reportfd] && ![isStateEqual reportfd stderr]} {
+      catch {flush [getState reportfd]}
+      catch {close [getState reportfd]}
+   }
+
+   exit $code
+}
+
+# runs the global RC files if they exist
+proc runModulerc {} {
+   set rclist {}
+
+   reportDebug running...
+
+   if {[set rcfile [getConf rcfile]] ne {}} {
+      # if MODULERCFILE is a dir, look at a modulerc file in it
+      if {[file isdirectory $rcfile]\
+         && [file isfile $rcfile/modulerc]} {
+         lappend rclist $rcfile/modulerc
+      } elseif {[file isfile $rcfile]} {
+         lappend rclist $rcfile
+      }
+   }
+   if {[file isfile @etcdir@/rc]} {
+      lappend rclist @etcdir@/rc
+   }
+   if {[info exists ::env(HOME)] && [file isfile $::env(HOME)/.modulerc]} {
+      lappend rclist $::env(HOME)/.modulerc
+   }
+
+   setState rc_running 1
+   foreach rc $rclist {
+      if {[file readable $rc]} {
+         reportDebug "Executing $rc"
+         cmdModuleSource $rc
+         lappendState rc_loaded $rc
+      }
+   }
+   unsetState rc_running
+
+   # identify alias or symbolic version set in these global RC files to be
+   # able to include them or not in output or resolution processes
+   array set ::g_rcAlias [array get ::g_moduleAlias]
+   array set ::g_rcVersion [array get ::g_moduleVersion]
+   array set ::g_rcVirtual [array get ::g_moduleVirtual]
+}
+
+proc aboveCommandName {} {
+   return [lindex [getState commandname] end-1]
+}
+
+proc ongoingCommandName {commandName} {
+   return [expr {[lsearch -exact [getState commandname] $commandName] != -1}]
+}
+
+# analyze/translate command name passed to module
+proc parseModuleCommandName {command defaultcmd} {
+   set cmdempty 0
+
+   # resolve command if alias or shortcut name used
+   switch -- $command {
+      add               {set command load}
+      try-add           {set command try-load}
+      rm - remove       {set command unload}
+      show              {set command display}
+      apropos - keyword {set command search}
+      {} {
+         # if empty string supplied translate to default command
+         set command $defaultcmd
+         set cmdempty 1
+      }
+      default {
+         # specific match for shortcut names
+         set cmdlen [string length $command]
+         foreach {match minlen sccmd} {load 2 load unload 4 unload delete 3\
+            unload refresh 3 reload reload 3 reload switch 2 switch swap 2\
+            switch display 2 display available 2 avail aliases 2 aliases list\
+            2 list whatis 2 whatis purge 2 purge initadd 5 initadd initload 6\
+            initadd initprepend 5 initprepend initswitch 6 initswitch\
+            initswap 6 initswitch initunload 8 initrm initlist 5 initlist} {
+            if {$cmdlen >= $minlen && [string equal -length $cmdlen $command\
+               $match]} {
+               set command $sccmd
+               break
+            }
+         }
+      }
+   }
+
+   set cmdvalid [expr {$command in [list load unload reload use unuse source\
+      switch display avail aliases path paths list whatis search purge save\
+      restore saverm saveshow savelist initadd initprepend initswitch initrm\
+      initlist initclear autoinit clear config help test prepend-path\
+      append-path remove-path is-loaded is-saved is-used is-avail info-loaded\
+      sh-to-mod edit try-load]}]
+
+   return [list $command $cmdvalid $cmdempty]
+}
+
+# analyze arg list passed to a module cmd to set options
+proc parseModuleCommandArgs {topcall cmd ignerr args} {
+   set show_oneperline 0
+   set show_mtime 0
+   set show_filter {}
+   set search_filter [expr {[getConf avail_indepth] ? {} : {noindepth}}]
+   set search_match [getConf search_match]
+   set dump_state 0
+   set addpath_pos prepend
+   set not_req 0
+   set otherargs {}
+
+   # parse argument list
+   foreach arg $args {
+      if {[info exists nextargisval]} {
+         set $nextargisval $arg
+         unset nextargisval
+      } elseif {[info exists ignore_next_arg]} {
+         unset ignore_next_arg
+      } else {
+         switch -glob -- $arg {
+            -j - --json {
+               # enable json output only on supported command
+               if {$cmd in [list avail savelist list search whatis]} {
+                  setState report_format json
+                  set show_oneperline 0
+                  set show_mtime 0
+               }
+            }
+            -t - --terse {
+               set show_oneperline 1
+               set show_mtime 0
+               setState report_format terse
+            }
+            -l - --long {
+               set show_mtime 1
+               set show_oneperline 0
+               setState report_format long
+            }
+            -o {
+               # option is only valid for specific sub-commands
+               if {$cmd in [list avail list]} {
+                  set nextargisval asked_output
+                  set output_arg -o
+               } else {
+                  if {!$ignerr} {
+                     knerror "Unsupported option '$arg' on $cmd sub-command"
+                  }
+                  set ignore_next_arg 1
+               }
+            }
+            --output=* {
+               # option is only valid for specific sub-commands
+               if {$cmd in [list avail list]} {
+                  set asked_output [string range $arg 9 end]
+                  set output_arg --output
+               } elseif {!$ignerr} {
+                  knerror "Unsupported option '--output' on $cmd sub-command"
+               }
+            }
+            --append - -append {
+               if {$cmd eq {use}} {
+                  set addpath_pos append
+               } else {
+                  lappend otherargs $arg
+               }
+            }
+            -p - --prepend - -prepend {
+               if {$cmd eq {use}} {
+                  set addpath_pos prepend
+               } else {
+                  lappend otherargs $arg
+               }
+            }
+            --all {
+               # include hidden modules only on a limited set of command
+               if {$cmd in [list avail aliases search whatis ml list]} {
+                  setState hiding_threshold 2
+               } else {
+                  lappend otherargs $arg
+               }
+            }
+            -a {
+               # -a option has a different meaning whether sub-command is use
+               # or one of the search/listing sub-commands
+               if {$cmd eq {use}} {
+                  set addpath_pos append
+               } elseif {$cmd in [list avail aliases search whatis ml list]} {
+                  setState hiding_threshold 2
+               } else {
+                  lappend otherargs $arg
+               }
+            }
+            -d - --default {
+               # in case of *-path command, -d means --delim
+               if {$arg eq {-d} && [string match *-path $cmd]} {
+                  lappend otherargs $arg
+               } else {
+                  set show_filter onlydefaults
+               }
+            }
+            -L - --latest {
+               set show_filter onlylatest
+            }
+            -C - --contains {
+               set search_match contains
+            }
+            -S - --starts-with {
+               set search_match starts_with
+            }
+            --indepth {
+               # empty value means 'in depth' as it is default behavior
+               set search_filter {}
+            }
+            --no-indepth {
+               set search_filter noindepth
+            }
+            --dump-state {
+               set dump_state 1
+            }
+            --auto - --no-auto - -f - --force {
+               reportWarning "Unsupported option '$arg'"
+            }
+            --not-req {
+               if {!$topcall && $cmd in [list load unload switch]} {
+                  set not_req 1
+               } else {
+                  knerror "Unsupported option '$arg' on $cmd sub-command"
+               }
+            }
+            --output {
+               knerror "Missing value for '$arg' option"
+            }
+            default {
+               lappend otherargs $arg
+            }
+         }
+         set prevarg $arg
+      }
+   }
+
+   if {[info exists nextargisval]} {
+      knerror "Missing value for '$prevarg' option"
+   }
+
+   if {[info exists asked_output]} {
+      if {[getState report_format] in [list long json]} {
+         knerror "Unsupported option '$output_arg' on [getState\
+            report_format] output mode"
+      } else {
+         # get config name relative to current sub-command and output format
+         set outputconf $cmd
+         if {[getState report_format] ne {regular}} {
+            append outputconf _[getState report_format]
+         }
+         append outputconf _output
+
+         # check option value is coherent with current sub-command
+         if {[isDiffBetweenList [split $asked_output :] [lindex\
+            $::g_config_defs($outputconf) 3]]} {
+            if {!$ignerr} {
+               knerror "Invalid element in value list for '$output_arg'\
+                  option on $cmd sub-command\nAllowed elements are: [lindex\
+                  $::g_config_defs($outputconf) 3] (separated by ':')"
+            }
+         } else {
+            set ::asked_$outputconf $asked_output
+         }
+      }
+   }
+
+   reportDebug "(show_oneperline=$show_oneperline, show_mtime=$show_mtime,\
+      show_filter=$show_filter, search_filter=$search_filter,\
+      search_match=$search_match, dump_state=$dump_state,\
+      addpath_pos=$addpath_pos, not_req=$not_req, otherargs=$otherargs)"
+   return [list $show_oneperline $show_mtime $show_filter $search_filter\
+      $search_match $dump_state $addpath_pos $not_req $otherargs]
+}
+
+proc module {command args} {
+   set mode [currentState mode]
+   reportDebug "cmd='$command', args='$args'"
+
+   # guess if called from top level
+   set topcall [expr {[depthState modulename] == 0}]
+   set tryhelpmsg [expr {$topcall ? "\nTry 'module --help' for more\
+      information." : {}}]
+   if {$topcall} {
+      set msgprefix {}
+   } else {
+      set msgprefix {module: }
+   }
+
+   # resolve and check command name
+   lassign [parseModuleCommandName $command help] command cmdvalid cmdempty
+   # clear other args if no command name supplied
+   if {$cmdempty} {
+      set args {}
+   }
+   # raise error if supplied command is not known
+   if {!$cmdvalid} {
+      knerror "${msgprefix}Invalid command '$command'$tryhelpmsg"
+   }
+
+   # parse options, do that globally to ignore options not related to a given
+   # module sub-command (exclude them from arg list)
+   lassign [parseModuleCommandArgs $topcall $command 0 {*}$args]\
+      show_oneperline show_mtime show_filter search_filter search_match\
+      dump_state addpath_pos not_req args
+
+   # parse module version specification
+   defineParseModuleSpecificationProc [getConf advanced_version_spec]
+   if {$command in [list avail paths whatis load unload switch help test\
+      display path is-avail edit try-load]} {
+      set args [parseModuleSpecification 0 {*}$args]
+   }
+
+   if {!$topcall} {
+      # some commands can only be called from top level, not within modulefile
+      switch -- $command {
+         path - paths - autoinit - help - prepend-path - append-path -\
+         remove-path - is-loaded - is-saved - is-used - is-avail -\
+         info-loaded - clear - sh-to-mod - edit {
+            knerror "${msgprefix}Command '$command' not supported$tryhelpmsg"
+         }
+      }
+      # other commands can only be called from modulefile evaluated from
+      # command acting as top-level context (source and autoinit)
+      if {([depthState modulename] > 1 || [currentState commandname] ni [list\
+         source autoinit]) && $command eq {config}} {
+         knerror "${msgprefix}Command '$command' not supported$tryhelpmsg"
+      }
+      # no requirement should be recorded this module load/unload/switch cmd
+      if {$not_req || ![getConf implicit_requirement]} {
+         lappendState inhibit_req_record [currentState evalid]
+      }
+   }
+
+   # argument number check
+   switch -- $command {
+      unload - source - display - initadd - initprepend - initrm - test -\
+      is-avail - try-load {
+         if {[llength $args] == 0} {
+            set argnberr 1
+         }
+      }
+      reload - aliases - list - purge - savelist - initlist - initclear -\
+      autoinit {
+         if {[llength $args] != 0} {
+            set argnberr 1
+         }
+      }
+      switch {
+         if {[llength $args] == 0 || [llength $args] > 2} {
+            set argnberr 1
+         }
+      }
+      path - paths - info-loaded - edit {
+         if {[llength $args] != 1} {
+            set argnberr 1
+         }
+      }
+      search - save - restore - saverm - saveshow - clear {
+         if {[llength $args] > 1} {
+            set argnberr 1
+         }
+      }
+      initswitch {
+         if {[llength $args] != 2} {
+            set argnberr 1
+         }
+      }
+      prepend-path - append-path - remove-path - sh-to-mod {
+         if {[llength $args] < 2} {
+            set argnberr 1
+         }
+      }
+      config {
+         if {[llength $args] > 2} {
+            set argnberr 1
+         }
+      }
+   }
+   if {[info exists argnberr]} {
+      knerror "Unexpected number of args for '$command' command$tryhelpmsg"
+   }
+
+   # define if modfile should always be fully read even for validity check
+   lappendState always_read_full_file [expr {$command ni [list path paths\
+      list avail aliases edit]}]
+   lappendState commandname $command
+   # is evaluation a regular attempt or a try (silence not found error)
+   lappendState try_modulefile [expr {$command eq {try-load}}]
+
+   if {$topcall} {
+      # Find and execute any global rc file found
+      runModulerc
+   }
+
+
+   switch -- $command {
+      load - try-load {
+         # ignore flag used in collection to track non-user asked state
+         set args [replaceFromList $args --notuasked]
+         # no error raised on empty argument list to cope with
+         # initadd command that may expect this behavior
+         if {[llength $args] > 0} {
+            set ret 0
+            # if top command is source, consider module load commands made
+            # within sourced file evaluation as top load command
+            if {$topcall || ([depthState modulename] == 1 && (
+               [aboveCommandName] eq {source} || [aboveCommandName] eq\
+               {autoinit} || [isStateDefined rc_running]))} {
+               set ret [cmdModuleLoad load 1 {*}$args]
+            } elseif {$mode eq {load}} {
+               # load here if try-load or no auto mode (done through prereq
+               # elsewhere, inhibited if currently in DepRe context)
+               if {$command eq {try-load} || (![getConf auto_handling] &&\
+                  [currentModuleEvalContext] ne {depre})} {
+                  # attempt load of not already loaded modules
+                  foreach arg $args {
+                     if {![is-loaded $arg] && ![is-loading $arg]} {
+                        lappend modlist $arg
+                     }
+                  }
+                  if {[info exists modlist]} {
+                     set ret [cmdModuleLoad reqlo 0 {*}$modlist]
+                     # ignore obtained error if force mode enabled
+                     if {[getState force]} {
+                        set ret 0
+                     }
+                  }
+               }
+               # register modulefiles to load as individual prereqs
+               foreach arg $args {
+                  # no prereq record if try-load did not succeed
+                  if {$command ne {try-load} || [is-loaded $arg]} {
+                     prereq $arg
+                  }
+               }
+            # mods unload is handled via UReqUn mechanism when auto enabled
+            # (unless if implicit_requirement has been inhibited) also unloads
+            # are triggered by ongoing reload, purge or restore commands
+            } elseif {(![getConf auto_handling] || [getState\
+               inhibit_req_record] eq [currentState evalid]) &&\
+               [aboveCommandName] ni [list purge reload restore]} {
+               # on unload mode, unload mods in reverse order, if loaded
+               # prior this mod, if not user asked and not required by
+               # other loaded mods
+               set modlist [getLoadedModuleList]
+               set modidx [lsearch -exact $modlist [currentState modulename]]
+               if {$modidx != 0} {
+                  set priormodlist [lrange $modlist 0 $modidx]
+                  foreach arg [lreverse $args] {
+                     if {[set unmod [getLoadedMatchingName $arg {} 0\
+                        $priormodlist]] ne {}} {
+                        if {[cmdModuleUnload urequn match 1 0 1 1 $unmod]} {
+                           reportWarning "Unload of useless requirement\
+                              [getModuleDesignation loaded $unmod] failed" 1
+                        }
+                     }
+                  }
+               }
+            }
+            # sub-module interpretation failed, raise error
+            if {$ret && !$topcall} {
+               knerror {} MODULES_ERR_SUBFAILED
+            }
+         }
+      }
+      unload {
+         # if top command is source, consider module load commands made
+         # within sourced file evaluation as top load command
+         if {$topcall || ([depthState modulename] == 1 && (
+            [aboveCommandName] eq {source} || [aboveCommandName] eq\
+            {autoinit} || [isStateDefined rc_running]))} {
+            set ret [cmdModuleUnload unload match 1 0 0 0 {*}$args]
+         } elseif {$mode eq {load}} {
+            # unload mods only on load mode, nothing done on unload mode as
+            # the registered conflict guarantees the target module cannot
+            # be loaded unless forced
+            # do not unload module required by others even in force mode
+            set ret [cmdModuleUnload conun match 0 0 0 1 {*}$args]
+
+            # register modulefiles to unload as individual conflicts
+            foreach arg $args {
+               # do not break on error yet, go through the whole modfile
+               # evaluation in case conflict is solved later on
+               catch {conflict $arg}
+            }
+            # sub-module interpretation failed, raise error
+            if {$ret} {
+               knerror {} MODULES_ERR_SUBFAILED
+            }
+         }
+      }
+      reload {
+         cmdModuleReload
+      }
+      use {
+         if {$topcall || $mode eq {load}} {
+            cmdModuleUse $addpath_pos {*}$args
+         } else {
+            cmdModuleUnuse {*}$args
+         }
+      }
+      unuse {
+         cmdModuleUnuse {*}$args
+      }
+      source {
+         if {$topcall || $mode eq {load}} {
+            cmdModuleSource {*}$args
+         } else {
+            # on unload mode, unsource script in reverse order
+            cmdModuleUnsource {*}[lreverse $args]
+         }
+      }
+      switch {
+         # pass 'user asked state' to switch procedure
+         set uasked [expr {$topcall || ([depthState modulename] == 1 &&\
+            ([aboveCommandName] eq {source} || [aboveCommandName] eq\
+            {autoinit} || [isStateDefined rc_running]))}]
+         if {$uasked} {
+            cmdModuleSwitch $uasked {*}$args
+         } else {
+            # CAUTION: it is not recommended to use the `switch`
+            # sub-command in modulefiles as this command is intended for
+            # the command-line for a 2in1 operation. Could be removed from
+            # the modulefile scope in a future release. Use `module unload`
+            # and `module load` commands in modulefiles instead.
+
+            switch -- $mode {
+               load {
+                  cmdModuleSwitch $uasked {*}$args
+               }
+               unload {
+                  # find what has been asked for unload and load
+                  lassign $args swunmod swlomod
+                  if {$swlomod eq {} && $swunmod ne {}} {
+                     set swlomod $swunmod
+                  }
+
+                  # apply same mechanisms than for 'module load' and
+                  # 'module unload' for an unload evaluation: nothing done
+                  # for switched-off module and unload of switched-on
+                  # module. If auto handling is enabled switched-on module
+                  # is handled via UReqUn mechanism (unless if
+                  # implicit_requirement has been inhibited). Also unloads are
+                  # triggered by ongoing reload, purge or restore commands
+                  if {(![getConf auto_handling] || [getState\
+                     inhibit_req_record] eq [currentState evalid]) &&\
+                     $swlomod ne {} && [aboveCommandName] ni [list purge\
+                     reload restore]} {
+                     # unload mod if it was loaded prior this mod, not user
+                     # asked and not required by another loaded module
+                     set modlist [getLoadedModuleList]
+                     set modidx [lsearch -exact $modlist [currentState\
+                        modulename]]
+                     if {$modidx != 0} {
+                        set priormodlist [lrange $modlist 0 $modidx]
+                        if {[set unmod [getLoadedMatchingName $swlomod {} 0\
+                           $priormodlist]] ne {}} {
+                           if {[cmdModuleUnload urequn match 1 0 1 1 $unmod]} {
+                              reportWarning "Unload of useless requirement\
+                                 [getModuleDesignation loaded $unmod] failed"\
+                                 1
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+      display {
+         cmdModuleDisplay {*}$args
+      }
+      avail {
+         {*}cmdModuleAvail $show_oneperline $show_mtime $show_filter\
+            $search_filter $search_match {*}$args
+      }
+      aliases {
+         cmdModuleAliases
+      }
+      path {
+         cmdModulePath {*}$args
+      }
+      paths {
+         cmdModulePaths {*}$args
+      }
+      list {
+         cmdModuleList $show_oneperline $show_mtime
+      }
+      whatis {
+         if {$args ne {}} {
+            foreach arg $args {
+               cmdModuleWhatIs $arg
+            }
+         } else {
+            cmdModuleWhatIs
+         }
+      }
+      search {
+         cmdModuleApropos {*}$args
+      }
+      purge {
+         cmdModulePurge
+      }
+      save {
+         cmdModuleSave {*}$args
+      }
+      restore {
+         cmdModuleRestore {*}$args
+      }
+      saverm {
+         cmdModuleSaverm {*}$args
+      }
+      saveshow {
+         cmdModuleSaveshow {*}$args
+      }
+      savelist {
+         cmdModuleSavelist $show_oneperline $show_mtime
+      }
+      initadd {
+         cmdModuleInit add {*}$args
+      }
+      initprepend {
+         cmdModuleInit prepend {*}$args
+      }
+      initswitch {
+         cmdModuleInit switch {*}$args
+      }
+      initrm {
+         cmdModuleInit rm {*}$args
+      }
+      initlist {
+         cmdModuleInit list {*}$args
+      }
+      initclear {
+         cmdModuleInit clear {*}$args
+      }
+      autoinit {
+         cmdModuleAutoinit
+      }
+      clear {
+         # ensure empty string is correctly passed
+         cmdModuleClear [lindex $args 0] [llength $args]
+      }
+      config {
+         cmdModuleConfig $dump_state {*}$args
+      }
+      sh-to-mod {
+         cmdModuleShToMod {*}$args
+      }
+      edit {
+         cmdModuleEdit {*}$args
+      }
+      help {
+         cmdModuleHelp {*}$args
+      }
+      test {
+         cmdModuleTest {*}$args
+      }
+      prepend-path - append-path - remove-path - is-loaded - is-saved -\
+      is-used - is-avail {
+         cmdModuleResurface $command {*}$args
+      }
+      info-loaded {
+         cmdModuleResurface module-info loaded {*}$args
+      }
+   }
+   lpopState try_modulefile
+   lpopState commandname
+   lpopState always_read_full_file
+
+   if {!$topcall && ($not_req || ![getConf implicit_requirement])} {
+      lpopState inhibit_req_record
+   }
+
+   # if called from top level render settings if any
+   if {$topcall} {
+      renderSettings
+   }
+
+   return {}
+}
+
+proc ml {args} {
+   # filter out all known options from argument list to guess command name
+   # without them in the way
+   lassign [parseModuleCommandArgs 1 ml 1 {*}$args] show_oneperline\
+      show_mtime show_filter search_filter search_match dump_state\
+      addpath_pos not_req fargs
+
+   # determine if first argument is a known module sub-command
+   lassign [parseModuleCommandName [lindex $fargs 0] list] command cmdvalid\
+      cmdempty
+
+   if {$cmdempty} {
+      # consider empty string supplied as first argument as module name
+      if {[llength $fargs] > 0} {
+         set cmdvalid 0
+      }
+      set margs $args
+   } else {
+      # first argument was command name
+      set margs [lrange $args 1 end]
+   }
+
+   # directly call module procedure if sub-command spotted as first argument
+   # or no argument supplied
+   if {$cmdvalid} {
+      module $command {*}$margs
+   } else {
+      # parse specified module and get list of mods to unload and mods to load
+      defineParseModuleSpecificationProc [getConf advanced_version_spec]
+      lassign [parseModuleSpecification 1 {*}$fargs] modunlist modlolist
+
+      # main procedure has already raised error for badly written argument
+      # like '-' or '--', but we need here to replay module-specific argument
+      # parsing to raise error if some arg are not allowed on unload/load cmd
+      set mlcmd [expr {[llength $modunlist] > 0 ? {unload} : {load}}]
+      lassign [parseModuleCommandArgs 1 $mlcmd 0 {*}$args] show_oneperline\
+         show_mtime show_filter search_filter search_match dump_state\
+         addpath_pos not_req fargs
+
+      # define if modfile should always be fully read even for validity check
+      lappendState always_read_full_file 1
+      lappendState commandname ml
+      # is evaluation a regular attempt or a try (silence not found error)
+      lappendState try_modulefile [expr {$command eq {try-load}}]
+
+      # Find and execute any global rc file found
+      runModulerc
+
+      set ret 0
+      pushSettings
+
+      # first unload specified modules
+      if {[llength $modunlist] > 0} {
+         set ret [cmdModuleUnload unload match 1 0 0 0 {*}$modunlist]
+      }
+      # then load other modules unless unload phase failed
+      if {!$ret && [llength $modlolist] > 0} {
+         set ret [cmdModuleLoad load 1 {*}$modlolist]
+      }
+
+      # rollback changes if any load or unload failed
+      if {$ret} {
+         restoreSettings
+      }
+      popSettings
+
+      lpopState try_modulefile
+      lpopState commandname
+      lpopState always_read_full_file
+
+      renderSettings
+   }
+
+   return {}
+}
+
+#
+# Main program
+#
 
 # needed on a gentoo system. Shouldn't hurt since it is
 # supposed to be the default behavior
