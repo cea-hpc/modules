@@ -1,0 +1,2287 @@
+##########################################################################
+
+# MFINTERP.TCL, modulefile interpretation procedures
+# Copyright (C) 2002-2004 Mark Lakata
+# Copyright (C) 2004-2017 Kent Mein
+# Copyright (C) 2016-2021 Xavier Delaruelle
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+##########################################################################
+
+#
+# Tcl sub-interpreter management
+#
+
+# dummy proc to disable modulefile commands on some evaluation modes
+proc nop {args} {}
+
+# dummy proc for commands available on other Modules flavor but not here
+proc nimp {cmd args} {
+   reportWarning "'$cmd' command not implemented"
+}
+
+# synchronize environment variable change over all started sub interpreters
+proc interp-sync-env {op var {val {}}} {
+   set envvar ::env($var)
+
+   # apply operation to main interpreter
+   switch -- $op {
+      set { set $envvar $val }
+      unset { unset $envvar }
+   }
+
+   # apply operation to each sub-interpreters if not found autosynced
+   if {[llength [interp slaves]] > 0} {
+      reportDebug "$op var='$envvar', val='$val' on interp(s) [interp slaves]"
+
+      foreach itrp [interp slaves] {
+         switch -- $op {
+            set {
+               # no value pre-check on Windows platform as an empty value set
+               # means unsetting variable which lead querying value to error
+               if {[getState is_win] || ![interp eval $itrp [list info exists\
+                  $envvar]] || [interp eval $itrp [list set $envvar]] ne\
+                  $val} {
+                  interp eval $itrp [list set $envvar $val]
+               }
+            }
+            unset {
+               if {[interp eval $itrp [list info exists $envvar]]} {
+                  interp eval $itrp [list unset $envvar]
+               }
+            }
+         }
+      }
+   }
+}
+
+# Initialize list of interp alias commands to define for given evaluation mode
+proc initModfileModeAliases {mode aliasesVN aliasesPassArgVN tracesVN} {
+   global g_modfilePerModeAliases
+   upvar #0 $aliasesVN aliases
+   upvar #0 $aliasesPassArgVN aliasesPassArg
+   upvar #0 $tracesVN traces
+
+   if {![info exists g_modfilePerModeAliases]} {
+      set ::g_modfileBaseAliases [list versioncmp versioncmp getenv getenv\
+         getvariant getvariant is-loaded is-loaded is-saved is-saved is-used\
+         is-used is-avail is-avail uname uname module-info module-info exit\
+         exitModfileCmd reportCmdTrace reportCmdTrace reportInternalBug\
+         reportInternalBug reportWarning reportWarning reportError\
+         reportError raiseErrorCount raiseErrorCount report report\
+         isVerbosityLevel isVerbosityLevel isWin initStateIsWin puts\
+         putsModfileCmd readModuleContent readModuleContent\
+         formatErrStackTrace formatErrStackTrace]
+
+      # list of alias commands whose target procedure is adapted according to
+      # the evaluation mode
+      set ::g_modfileEvalModes {load unload display help test whatis}
+      array set g_modfilePerModeAliases {
+append-path    {append-path    remove-path    append-path    append-path    append-path    edit-path-wh  }
+chdir          {chdir          nop            reportCmd      nop            nop            nop           }
+conflict       {conflict       nop            reportCmd      nop            nop            nop           }
+module         {module         module         reportCmd      nop            nop            nop           }
+module-alias   {module-alias   module-alias   module-alias   module-alias   module-alias   module-alias  }
+module-log     {nimp           nimp           reportCmd      nop            nop            nop           }
+module-trace   {nimp           nimp           reportCmd      nop            nop            nop           }
+module-user    {nimp           nimp           reportCmd      nop            nop            nop           }
+module-verbosity {nimp         nimp           reportCmd      nop            nop            nop           }
+module-version {module-version module-version module-version module-version module-version module-version}
+module-virtual {module-virtual module-virtual module-virtual module-virtual module-virtual module-virtual}
+module-forbid  {module-forbid  module-forbid  module-forbid  module-forbid  module-forbid  module-forbid }
+module-hide    {module-hide    module-hide    module-hide    module-hide    module-hide    module-hide   }
+module-tag     {module-tag     module-tag     module-tag     module-tag     module-tag     module-tag    }
+module-whatis  {nop            nop            reportCmd      nop            nop            module-whatis }
+prepend-path   {prepend-path   remove-path    prepend-path   prepend-path   prepend-path   edit-path-wh  }
+prereq         {prereq         nop            reportCmd      nop            nop            nop           }
+remove-path    {remove-path    remove-path-un remove-path    remove-path    remove-path    edit-path-wh  }
+set-alias      {set-alias      set-alias-un   reportCmd      nop            nop            nop           }
+set-function   {set-function   set-function-un reportCmd     nop            nop            nop           }
+setenv         {setenv         setenv-un      setenv         setenv         setenv         setenv-wh     }
+source-sh      {source-sh      source-sh-un   source-sh-di   nop            nop            nop           }
+system         {system         system         reportCmd      nop            nop            nop           }
+unset-alias    {unset-alias    nop            reportCmd      nop            nop            nop           }
+unset-function {unset-function nop            reportCmd      nop            nop            nop           }
+unsetenv       {unsetenv       unsetenv-un    unsetenv       unsetenv       unsetenv       setenv-wh     }
+variant        {variant        variant        variant        variant        variant        variant-wh    }
+x-resource     {x-resource     x-resource     reportCmd      nop            nop            nop           }
+      }
+   }
+
+   # alias commands where interpreter ref should be passed as argument
+   array set aliasesPassArg [list getvariant __itrp__ puts __itrp__ variant\
+      __itrp__]
+
+   # initialize list with all commands not dependent of the evaluation mode
+   array set aliases $::g_modfileBaseAliases
+
+   # add alias commands whose target command vary depending on the eval mode
+   set modeidx [lsearch -exact $::g_modfileEvalModes $mode]
+   foreach alias [array names g_modfilePerModeAliases] {
+      set aliastarget [set aliases($alias) [lindex\
+         $g_modfilePerModeAliases($alias) $modeidx]]
+      # some target procedures need command name as first arg
+      if {$aliastarget eq {reportCmd} || $aliastarget eq {nimp}} {
+         set aliasesPassArg($alias) $alias
+      # associate a trace command if per-mode alias command is not reportCmd
+      # in display mode (except for source-sh)
+      } elseif {$mode eq {display} && $alias ne {source-sh}} {
+         set traces($alias) reportCmdTrace
+      }
+   }
+}
+
+proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
+   {must_have_cookie 1} {fetch_tags 1}} {
+   # link to modnamevr variable name from calling ctx if content update asked
+   if {$up_namevr} {
+      upvar $modnamevrvar modnamevr
+   } else {
+      set modnamevr $modnamevrvar
+   }
+
+   lappendState modulefile $modfile
+   lappendState modulename $modname
+   lappendState modulenamevr $modnamevr
+   lappendState specifiedname $modspec
+   set mode [currentState mode]
+   lappendState debug_msg_prefix\
+      "\[#[depthState modulename]:$mode:$modname\] "
+
+   # skip modulefile if interpretation has been inhibited
+   if {[getState inhibit_interp]} {
+      reportDebug "skipping $modfile"
+      return 1
+   }
+
+   reportTrace "'$modfile' as '$modname'" {Evaluate modulefile}
+
+   # gather all tags of evaluated modulefile
+   if {$fetch_tags} {
+      cacheCurrentModules 0
+      collectModuleTags $modnamevr
+   }
+
+   # inform that access to module will be soon denied
+   if {$mode ne {unload} && [isModuleTagged $modnamevr nearly-forbidden 1]} {
+      reportWarning [getNearlyForbiddenMsg $modnamevr]
+      set nearlyforbidwarn 1
+   # fail unload attempt if module is sticky, unless if forced or reloading
+   # also fail unload if mod is super-sticky even if forced, unless reloading
+   } elseif {$mode eq {unload}} {
+      # when loaded, tags applies to mod name and version (not with variant)
+      if {[isModuleTagged $modname super-sticky 1] && [currentState\
+         reloading_supersticky] ne $modname} {
+         # restore changed states prior raising error
+         lpopState debug_msg_prefix
+         lpopState specifiedname
+         lpopState modulename
+         lpopState modulenamevr
+         lpopState modulefile
+         knerror [getStickyUnloadMsg super-sticky]
+      } elseif {[isModuleTagged $modname sticky 1] && [currentState\
+         reloading_sticky] ne $modname} {
+         if {[getState force]} {
+            reportWarning [getStickyForcedUnloadMsg]
+         } else {
+            # restore changed states prior raising error
+            lpopState debug_msg_prefix
+            lpopState specifiedname
+            lpopState modulename
+            lpopState modulenamevr
+            lpopState modulefile
+            knerror [getStickyUnloadMsg]
+         }
+      }
+   }
+
+   if {![info exists ::g_modfileUntrackVars]} {
+      # list variable that should not be tracked for saving
+      array set ::g_modfileUntrackVars [list ModulesCurrentModulefile 1\
+         must_have_cookie 1 modcontent 1 env 1]
+
+      # commands that should be renamed before aliases setup
+      array set ::g_modfileRenameCmds [list puts _puts]
+   }
+   # dedicate an interpreter per mode and per level of interpretation to have
+   # a dedicated interpreter in case of cascaded multi-mode interpretations
+   set itrp __modfile_${mode}_[depthState modulename]
+
+   # evaluation mode-specific configuration
+   set dumpCommandsVN g_modfile${mode}Commands
+   set aliasesVN g_modfile${mode}Aliases
+   set aliasesPassArgVN g_modfile${mode}AliasesPassArg
+   set tracesVN g_modfile${mode}Traces
+   if {![info exists ::$aliasesVN]} {
+      initModfileModeAliases $mode $aliasesVN $aliasesPassArgVN $tracesVN
+   }
+
+   # create modulefile interpreter at first interpretation
+   if {![interp exists $itrp]} {
+      reportDebug "creating interp $itrp"
+      interp create $itrp
+
+      # record module tool properties
+      interp eval $itrp set ::ModuleTool Modules
+      interp eval $itrp set ::ModuleToolVersion {@MODULES_RELEASE@}
+
+      # dump initial interpreter state to restore it before each modulefile
+      # interpretation. use same dump state for all modes/levels
+      if {![info exists ::g_modfileVars]} {
+         dumpInterpState $itrp g_modfileVars g_modfileArrayVars\
+            g_modfileUntrackVars g_modfileProcs
+      }
+
+      # interp has just been created
+      set fresh 1
+   } else {
+      set fresh 0
+   }
+
+   # reset interp state command before each interpretation
+   resetInterpState $itrp $fresh g_modfileVars g_modfileArrayVars\
+      g_modfileUntrackVars g_modfileProcs $aliasesVN $aliasesPassArgVN\
+      $tracesVN g_modfileRenameCmds $dumpCommandsVN
+
+   # reset modulefile-specific variable before each interpretation
+   interp eval $itrp set ::ModulesCurrentModulefile "{$modfile}"
+   interp eval $itrp set must_have_cookie $must_have_cookie
+   interp eval $itrp set vrspeclist "{[getVariantListFromVersSpec\
+      $modnamevr]}"
+
+   set errorVal [interp eval $itrp {
+      set modcontent [readModuleContent $::ModulesCurrentModulefile 1\
+         $must_have_cookie]
+      if {$modcontent eq {}} {
+         return 1
+      }
+      info script $::ModulesCurrentModulefile
+      # eval then call for specific proc depending mode under same catch
+      set sourceFailed [catch {
+         eval $modcontent
+
+         # raise error if a variant specified is not defined in modulefile
+         set vrerrlist {}
+         foreach vrspec $vrspeclist {
+            set vrname [lindex $vrspec 0]
+            if {![info exists ::ModuleVariant($vrname)]} {
+               lappend vrerrlist "Unknown variant '$vrname' specified"
+            }
+         }
+         # report all unknown variants specified, raise error on last report
+         # take caution with vrerrlist variable as we are in modfile eval ctx
+         if {[info exists vrerrlist] && [llength $vrerrlist] > 0} {
+            for {set i 0} {$i < ([llength $vrerrlist] - 1)} {incr i} {
+               reportError [lindex $vrerrlist $i]
+            }
+            error [lindex $vrerrlist $i] {} MODULES_ERR_GLOBAL
+         }
+
+         switch -- [module-info mode] {
+            help {
+               if {[info procs ModulesHelp] eq {ModulesHelp}} {
+                  ModulesHelp
+               } else {
+                  reportWarning "Unable to find ModulesHelp in\
+                     $::ModulesCurrentModulefile."
+               }
+            }
+            display {
+               if {[info procs ModulesDisplay] eq {ModulesDisplay}} {
+                  ModulesDisplay
+               }
+            }
+            test {
+               if {[info procs ModulesTest] eq {ModulesTest}} {
+                  if {[string is true -strict [ModulesTest]]} {
+                     report {Test result: PASS}
+                  } else {
+                     report {Test result: FAIL}
+                     raiseErrorCount
+                  }
+               } else {
+                  reportWarning "Unable to find ModulesTest in\
+                     $::ModulesCurrentModulefile."
+               }
+            }
+         }
+      } errorMsg]
+      if {$sourceFailed} {
+         # no error in case of "continue" command
+         # catch continue even if called outside of a loop
+         if {$errorMsg eq {invoked "continue" outside of a loop}\
+            || $sourceFailed == 4} {
+            unset errorMsg
+            return 0
+         # catch break even if called outside of a loop
+         # on Darwin, error is different: no errorCode & return code set to 3
+         } elseif {$errorMsg eq {invoked "break" outside of a loop}\
+            || ($errorMsg eq {} && (![info exists ::errorInfo]\
+            || $::errorInfo eq {})) || (![info exists ::errorCode] &&\
+            $sourceFailed == 3)} {
+            unset errorMsg
+            # report load/unload evaluation break if verbosity level >= normal
+            if {([module-info mode load] || [module-info mode unload]) &&\
+               [isVerbosityLevel normal]} {
+               reportError {Module evaluation aborted}
+            } else {
+               raiseErrorCount
+            }
+            return 1
+         } elseif {$errorCode eq {MODULES_ERR_SUBFAILED}} {
+            # error counter and message already handled, just return error
+            return 1
+         } elseif {$errorCode eq {MODULES_ERR_GLOBALTOP}} {
+            reportError $errorMsg 1
+            return 1
+         } elseif {$errorCode eq {MODULES_ERR_GLOBAL}} {
+            reportError $errorMsg
+            return 1
+         } else {
+            # format stack trace to report modulefile information only
+            reportInternalBug [formatErrStackTrace $::errorInfo\
+               $::ModulesCurrentModulefile [list {*}[info procs] {*}[info\
+               commands]]]
+            return 1
+         }
+      } else {
+         unset errorMsg
+         return 0
+      }
+   }]
+
+   # check if mod name version and variant has changed (default variant set)
+   # update modnamevr if so and collect tags applying to new name
+   if {$up_namevr} {
+      set newmodnamevr "{$modname}"
+      if {[set vr [getVariantList $modname 1]] ne {}} {
+         append newmodnamevr " $vr"
+      }
+      if {$modnamevr ne $newmodnamevr} {
+         lassign [parseModuleSpecification 0 {*}$newmodnamevr] modnamevr
+         if {$fetch_tags} {
+            collectModuleTags $modnamevr
+         }
+      }
+   }
+
+   # check if special tags now applies and require to raise an error
+   if {$mode ne {unload}} {
+      if {[isModuleTagged $modnamevr forbidden 1]} {
+         set errorVal 1
+         reportError [getForbiddenMsg $modnamevr]
+      } elseif {![info exists nearlyforbidwarn] && [isModuleTagged $modnamevr\
+         nearly-forbidden 1]} {
+         reportWarning [getNearlyForbiddenMsg $modnamevr]
+      }
+   }
+
+   reportDebug "exiting $modfile"
+   lpopState debug_msg_prefix
+   lpopState specifiedname
+   lpopState modulename
+   lpopState modulenamevr
+   lpopState modulefile
+
+   return $errorVal
+}
+
+# Smaller subset than main module load... This function runs modulerc and
+# .version files
+proc execute-modulerc {modfile modname modspec} {
+   lappendState modulefile $modfile
+   # push name to be found by module-alias and version
+   lappendState modulename $modname
+   lappendState specifiedname $modspec
+   set ::ModulesVersion {}
+   lappendState debug_msg_prefix "\[#[depthState modulename]:$modname\] "
+
+   if {![info exists ::g_modrcUntrackVars]} {
+      # list variable that should not be tracked for saving
+      array set ::g_modrcUntrackVars [list ModulesCurrentModulefile 1\
+         ModulesVersion 1 modcontent 1 env 1]
+
+      # commands that should be renamed before aliases setup
+      array set ::g_modrcRenameCmds [list]
+
+      # list interpreter alias commands to define
+      array set ::g_modrcAliases [list uname uname system system versioncmp\
+         versioncmp is-loaded is-loaded module-version module-version\
+         module-alias module-alias module-virtual module-virtual\
+         module-forbid module-forbid module-hide module-hide\
+         module-tag module-tag module-info module-info\
+         reportInternalBug reportInternalBug setModulesVersion\
+         setModulesVersion readModuleContent readModuleContent\
+         formatErrStackTrace formatErrStackTrace]
+
+      # alias commands where an argument should be passed
+      array set ::g_modrcAliasesPassArg [list]
+
+      # trace commands that should be associated to aliases
+      array set ::g_modrcAliasesTraces [list]
+   }
+
+   # dedicate an interpreter per level of interpretation to have in case of
+   # cascaded interpretations a specific interpreter per level
+   set itrp __modrc_[depthState modulename]
+
+   reportTrace '$modfile' {Evaluate modulerc}
+   # create modulerc interpreter at first interpretation
+   if {![interp exists $itrp]} {
+      reportDebug "creating interp $itrp"
+      interp create $itrp
+
+      # record module tool properties
+      interp eval $itrp set ::ModuleTool Modules
+      interp eval $itrp set ::ModuleToolVersion {@MODULES_RELEASE@}
+
+      # dump initial interpreter state to restore it before each modulerc
+      # interpretation. use same dump state for all levels
+      if {![info exists ::g_modrcVars]} {
+         dumpInterpState $itrp g_modrcVars g_modrcArrayVars\
+            g_modrcUntrackVars g_modrcProcs
+      }
+
+      # interp has just been created
+      set fresh 1
+   } else {
+      set fresh 0
+   }
+
+   # reset interp state command before each interpretation
+   resetInterpState $itrp $fresh g_modrcVars g_modrcArrayVars\
+      g_modrcUntrackVars g_modrcProcs g_modrcAliases g_modrcAliasesPassArg\
+      g_modrcAliasesTraces g_modrcRenameCmds g_modrcCommands
+
+   interp eval $itrp set ::ModulesCurrentModulefile "{$modfile}"
+   interp eval $itrp {set ::ModulesVersion {}}
+
+   set errorVal [interp eval $itrp {
+      set modcontent [readModuleContent $::ModulesCurrentModulefile]
+      if {$modcontent eq {}} {
+         # simply skip rc file, no exit on error here
+         return 1
+      }
+      info script $::ModulesCurrentModulefile
+      if [catch {eval $modcontent} errorMsg] {
+         # format stack trace to report modulerc information only
+         reportInternalBug [formatErrStackTrace $::errorInfo\
+            $::ModulesCurrentModulefile [list {*}[info procs] {*}[info\
+            commands]]]
+         return 1
+      } else {
+         # pass ModulesVersion value to main interp
+         if {[info exists ::ModulesVersion]} {
+            setModulesVersion $::ModulesVersion
+         }
+         return 0
+      }
+   }]
+
+   # default version set via ModulesVersion variable in .version file
+   # override previously defined default version for modname
+   lassign [getModuleNameVersion] mod modname modversion
+   if {$modversion eq {.version} && $::ModulesVersion ne {}} {
+      # ModulesVersion should target an element in current directory
+      if {[string first / $::ModulesVersion] == -1} {
+         setModuleResolution $modname/default $modname/$::ModulesVersion\
+            default
+      } else {
+         reportError "Invalid ModulesVersion '$::ModulesVersion' defined"
+      }
+   }
+
+   lpopState debug_msg_prefix
+   lpopState specifiedname
+   lpopState modulename
+   lpopState modulefile
+
+   return $::ModulesVersion
+}
+
+# Save list of the defined procedure and the global variables with their
+# associated values set in sub interpreter passed as argument. Global
+# structures are used to save these information and the name of these
+# structures are provided as argument.
+proc dumpInterpState {itrp dumpVarsVN dumpArrayVarsVN untrackVarsVN\
+   dumpProcsVN} {
+   upvar #0 $dumpVarsVN dumpVars
+   upvar #0 $dumpArrayVarsVN dumpArrayVars
+   upvar #0 $untrackVarsVN untrackVars
+   upvar #0 $dumpProcsVN dumpProcs
+
+   regexp {^__[a-z]+} $itrp itrpkind
+   # save name and value for any other global variables
+   foreach var [$itrp eval {info globals}] {
+      if {![info exists untrackVars($var)]} {
+         reportDebug "saving for $itrpkind var $var"
+         if {[$itrp eval array exists ::$var]} {
+            set dumpVars($var) [$itrp eval array get ::$var]
+            set dumpArrayVars($var) 1
+         } else {
+            set dumpVars($var) [$itrp eval set ::$var]
+         }
+      }
+   }
+
+   # save name of every defined procedures
+   foreach var [$itrp eval {info procs}] {
+      set dumpProcs($var) 1
+   }
+   reportDebug "saving for $itrpkind proc list [array names dumpProcs]"
+}
+
+# Define commands to be known by sub interpreter.
+proc initInterpCommands {itrp fresh aliasesVN aliasesPassArgVN tracesVN\
+   renameCmdsVN} {
+   upvar #0 $aliasesVN aliases
+   upvar #0 $aliasesPassArgVN aliasesPassArg
+   upvar #0 $tracesVN traces
+   upvar #0 $renameCmdsVN renameCmds
+
+   # rename some commands on freshly created interp before aliases defined
+   # below overwrite them
+   if {$fresh} {
+      foreach cmd [array names renameCmds] {
+         $itrp eval rename $cmd $renameCmds($cmd)
+      }
+   }
+
+   # set interpreter alias commands each time to guaranty them being
+   # defined and not overridden by modulefile or modulerc content
+   foreach alias [array names aliases] {
+      if {[info exists aliasesPassArg($alias)]} {
+         set aliasarg $aliasesPassArg($alias)
+         # pass current itrp reference on special keyword
+         if {$aliasarg eq {__itrp__}} {
+            set aliasarg $itrp
+         }
+         interp alias $itrp $alias {} $aliases($alias) $aliasarg
+      } else {
+         interp alias $itrp $alias {} $aliases($alias)
+      }
+   }
+
+   foreach alias [array names traces] {
+      interp eval $itrp [list trace add execution $alias leave\
+         $traces($alias)]
+   }
+}
+
+# Restore initial setup of sub interpreter passed as argument based on
+# global structure previously filled with initial list of defined procedure
+# and values of global variable.
+proc resetInterpState {itrp fresh dumpVarsVN dumpArrayVarsVN untrackVarsVN\
+   dumpProcsVN aliasesVN aliasesPassArgVN tracesVN renameCmdsVN\
+   dumpCommandsVN} {
+   upvar #0 $dumpVarsVN dumpVars
+   upvar #0 $dumpArrayVarsVN dumpArrayVars
+   upvar #0 $untrackVarsVN untrackVars
+   upvar #0 $dumpProcsVN dumpProcs
+   upvar #0 $dumpCommandsVN dumpCommands
+
+   # look at list of defined procedures and delete those not part of the
+   # initial state list. do not check if they have been altered as no vital
+   # procedures lied there. note that if a Tcl command has been overridden
+   # by a proc, it will be removed here and command will also disappear
+   foreach var [$itrp eval {info procs}] {
+      if {![info exists dumpProcs($var)]} {
+         reportDebug "removing on $itrp proc $var"
+         $itrp eval [list rename $var {}]
+      }
+   }
+
+   # rename some commands and set aliases on interpreter
+   initInterpCommands $itrp $fresh $aliasesVN $aliasesPassArgVN $tracesVN\
+      $renameCmdsVN
+
+   # dump interpreter command list here on first time as aliases should be
+   # set prior to be found on this list for correct match
+   if {![info exists dumpCommands]} {
+      set dumpCommands [$itrp eval {info commands}]
+      reportDebug "saving for $itrp command list $dumpCommands"
+   # if current interpreter command list does not match initial list it
+   # means that at least one command has been altered so we need to recreate
+   # interpreter to guaranty proper functioning
+   } elseif {$dumpCommands ne [$itrp eval {info commands}]} {
+      reportDebug "missing command(s), recreating interp $itrp"
+      interp delete $itrp
+      interp create $itrp
+      initInterpCommands $itrp 1 $aliasesVN $aliasesPassArgVN $tracesVN\
+         $renameCmdsVN
+   }
+
+   # check every global variables currently set and correct them to restore
+   # initial interpreter state. work on variables at the very end to ensure
+   # procedures and commands are correctly defined
+   foreach var [$itrp eval {info globals}] {
+      if {![info exists untrackVars($var)]} {
+         if {![info exists dumpVars($var)]} {
+            reportDebug "removing on $itrp var $var"
+            $itrp eval unset ::$var
+         } elseif {![info exists dumpArrayVars($var)]} {
+            if {$dumpVars($var) ne [$itrp eval set ::$var]} {
+               reportDebug "restoring on $itrp var $var"
+               if {[llength $dumpVars($var)] > 1} {
+                  # restore value as list
+                  $itrp eval set ::$var [list $dumpVars($var)]
+               } else {
+                  # brace value to be able to restore empty string
+                  $itrp eval set ::$var "{$dumpVars($var)}"
+               }
+            }
+         } else {
+            if {$dumpVars($var) ne [$itrp eval array get ::$var]} {
+               reportDebug "restoring on $itrp var $var"
+               $itrp eval array set ::$var [list $dumpVars($var)]
+            }
+         }
+      }
+   }
+}
+
+#
+# Modulefile Tcl commands
+#
+
+# Dictionary-style string comparison
+# Use dictionary sort of lsort proc to compare two strings in the "string
+# compare" fashion (returning -1, 0 or 1). Tcl dictionary-style comparison
+# enables to compare software versions (ex: "1.10" is greater than "1.8")
+proc versioncmp {str1 str2} {
+   if {$str1 eq $str2} {
+      return 0
+   # put both strings in a list, then lsort it and get first element
+   } elseif {[lindex [lsort -dictionary [list $str1 $str2]] 0] eq $str1} {
+      return -1
+   } else {
+      return 1
+   }
+}
+
+proc module-info {what {more {}}} {
+   set mode [currentState mode]
+
+   reportDebug "$what $more"
+
+   switch -- $what {
+      mode {
+         if {$more ne {}} {
+            set command [currentState commandname]
+            return [expr {$mode eq $more || ($more eq {remove} && $mode eq \
+               {unload}) || ($more eq {switch} && $command eq {switch})}]
+         } else {
+            return $mode
+         }
+      }
+      command {
+         set command [currentState commandname]
+         if {$more eq {}} {
+            return $command
+         } else {
+            return [expr {$command eq $more}]
+         }
+      }
+      name {
+         return [currentState modulename]
+      }
+      specified {
+         return [currentState specifiedname]
+      }
+      shell {
+         if {$more ne {}} {
+            return [expr {[getState shell] eq $more}]
+         } else {
+            return [getState shell]
+         }
+      }
+      flags {
+         # C-version specific option, not relevant for Tcl-version but return
+         # a zero integer value to avoid breaking modulefiles using it
+         return 0
+      }
+      shelltype {
+         if {$more ne {}} {
+            return [expr {[getState shelltype] eq $more}]
+         } else {
+            return [getState shelltype]
+         }
+      }
+      user {
+         # C-version specific option, not relevant for Tcl-version but return
+         # an empty value or false to avoid breaking modulefiles using it
+         if {$more ne {}} {
+            return 0
+         } else {
+            return {}
+         }
+      }
+      alias {
+         set ret [resolveModuleVersionOrAlias $more [isIcase]]
+         if {$ret ne $more} {
+            return $ret
+         } else {
+            return {}
+         }
+      }
+      trace {
+         return {}
+      }
+      tracepat {
+         return {}
+      }
+      type {
+         return Tcl
+      }
+      symbols {
+         lassign [getModuleNameVersion $more 1] mod modname modversion
+         set sym_list [getVersAliasList $mod]
+         # if querying special symbol "default" but nothing found registered
+         # on it, look at symbol registered on bare module name in case there
+         # are symbols registered on it but no default symbol set yet to link
+         # to them
+         if {[llength $sym_list] == 0 && $modversion eq {default}} {
+            set sym_list [getVersAliasList $modname]
+         }
+         return [join $sym_list :]
+      }
+      tags {
+         # refresh mod name version and variant to correctly get all matching
+         # tags (in case tags apply to specific module variant)
+         set modname [currentState modulename]
+         set vrlist [getVariantList $modname 1]
+         if {[llength $vrlist] > 0} {
+            lassign [parseModuleSpecification 0 $modname {*}$vrlist] modnamevr
+         } else {
+            set modnamevr $modname
+         }
+         collectModuleTags $modnamevr
+
+         if {$more ne {}} {
+            return [expr {$more in [getTagList $modnamevr]}]
+         } else {
+            return [getTagList $modnamevr]
+         }
+      }
+      version {
+         lassign [getModuleNameVersion $more 1] mod
+         return [resolveModuleVersionOrAlias $mod [isIcase]]
+      }
+      loaded {
+         lassign [getModuleNameVersion $more 1] mod
+         return [getLoadedMatchingName $mod returnall]
+      }
+      usergroups {
+         if {[getState is_win]} {
+            knerror "module-info usergroups not supported on Windows platform"
+         } else {
+            if {$more ne {}} {
+               return [expr {$more in [getState usergroups]}]
+            } else {
+               return [getState usergroups]
+            }
+         }
+      }
+      username {
+         if {[getState is_win]} {
+            knerror "module-info username not supported on Windows platform"
+         } else {
+            if {$more ne {}} {
+               return [expr {[getState username] eq $more}]
+            } else {
+               return [getState username]
+            }
+         }
+      }
+      default {
+         knerror "module-info $what not supported"
+         return {}
+      }
+   }
+}
+
+proc module-whatis {args} {
+   set message [join $args]
+   reportDebug $message
+   lappend ::g_whatis $message
+
+   return {}
+}
+
+# Specifies a default or alias version for a module that points to an
+# existing module version Note that aliases defaults are stored by the
+# short module name (not the full path) so aliases and defaults from one
+# directory will apply to modules of the same name found in other
+# directories.
+proc module-version {args} {
+   reportDebug $args
+   lassign [getModuleNameVersion [lindex $args 0] 1] mod modname modversion
+
+   # go for registration only if valid modulename
+   if {$mod ne {}} {
+      foreach version [lrange $args 1 end] {
+         set aliasversion $modname/$version
+         # do not alter a previously defined alias version
+         if {![info exists ::g_moduleVersion($aliasversion)]} {
+            setModuleResolution $aliasversion $mod $version
+         } else {
+            reportWarning "Symbolic version '$aliasversion' already defined"
+         }
+      }
+   }
+
+   return {}
+}
+
+proc module-alias {args} {
+   lassign [getModuleNameVersion [lindex $args 0]] alias
+   lassign [getModuleNameVersion [lindex $args 1] 1] mod
+
+   reportDebug "$alias = $mod"
+
+   if {[setModuleResolution $alias $mod]} {
+      set ::g_moduleAlias($alias) $mod
+      set ::g_sourceAlias($alias) [currentState modulefile]
+   }
+
+   return {}
+}
+
+proc module-virtual {args} {
+   lassign [getModuleNameVersion [lindex $args 0]] mod
+   set modfile [getAbsolutePath [lindex $args 1]]
+
+   reportDebug "$mod = $modfile"
+
+   set ::g_moduleVirtual($mod) $modfile
+   set ::g_sourceVirtual($mod) [currentState modulefile]
+
+   return {}
+}
+
+# Parse date time argument value and translate it into epoch time
+proc __parseDateTimeArg {opt datetime} {
+   if {[regexp {^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2})?$} $datetime match\
+      timespec]} {
+      # time specification is optional
+      if {$timespec eq {}} {
+         append datetime T00:00
+      }
+      # return corresponding epoch time
+      return [clock scan $datetime -format %Y-%m-%dT%H:%M]
+   } else {
+      knerror "Incorrect $opt value '$datetime' (valid date time format is\
+         'YYYY-MM-DD\[THH:MM\]')"
+   }
+}
+
+# parse application criteria arguments and determine if command applies
+proc parseApplicationCriteriaArgs {aftbef nearsec args} {
+   set otherargs {}
+
+   # parse argument list
+   foreach arg $args {
+      if {[info exists nextargisval]} {
+         set $nextargisval $arg
+         unset nextargisval
+      } elseif {[info exists nextargisdatetime]} {
+         set ${nextargisdatetime}raw $arg
+         # get epoch time from date time argument value
+         set $nextargisdatetime [parseDateTimeArg $prevarg $arg]
+         unset nextargisdatetime
+      } else {
+         switch -- $arg {
+            --after - --before {
+               # treat --after/--before as regular content if disabled
+               if {!$aftbef} {
+                  lappend otherargs $arg
+               } elseif {[getState tcl_version_lt85]} {
+                  knerror "Option '$arg' not supported on Tcl<8.5"
+               } else {
+                  set nextargisdatetime [string trimleft $arg -]
+               }
+            }
+            --not-group - --not-user {
+               if {[getState is_win]} {
+                  knerror "Option '$arg' not supported on Windows platform"
+               } else {
+                  set nextargisval not[string range $arg 6 end]list
+               }
+            }
+            default {
+               lappend otherargs $arg
+            }
+         }
+         set prevarg $arg
+      }
+   }
+
+   if {[info exists nextargisval] || [info exists nextargisdatetime]} {
+      knerror "Missing value for '$prevarg' option"
+   }
+
+   # does it apply to current user?
+   set notuser [expr {[info exists notuserlist] && [getState username] in\
+      $notuserlist}]
+   set notgroup [expr {[info exists notgrouplist] && [isIntBetweenList\
+      $notgrouplist [getState usergroups]]}]
+
+   # does it apply currently?
+   set isbefore [expr {[info exists before] && [getState clock_seconds] <\
+      $before}]
+   set isafter [expr {[info exists after] && [getState clock_seconds] >=\
+      $after}]
+
+   # are criteria met
+   set apply [expr {!$notuser && !$notgroup && ($isbefore || $isafter ||\
+      (![info exists before] && ![info exists after]))}]
+
+   # is end limit near ?
+   set isnearly [expr {!$apply && !$notuser && !$notgroup && [info exists\
+      after] && !$isafter && [getState clock_seconds] >= ($after - $nearsec)}]
+   if {![info exists afterraw]} {
+      set afterraw {}
+   }
+
+   return [list $apply $isnearly $afterraw $otherargs]
+}
+
+proc setModspecTag {modspec tag {props {}}} {
+   reportDebug "Set tag '$tag' with properties '$props' on module\
+      specification '$modspec'"
+
+   # record tag list for mod root to optimize search
+   set modroot [getModuleRootFromVersSpec $modspec]
+   if {![info exists ::g_moduleTagRoot($modroot)]} {
+      lappend ::g_moduleTagRoot($modroot) $tag
+      set idx 0
+      set new 1
+   } else {
+      set idx [lsearch -exact $::g_moduleTagRoot($modroot) $tag]
+      if {$idx == -1} {
+         set idx [llength $::g_moduleTagRoot($modroot)]
+         lappend ::g_moduleTagRoot($modroot) $tag
+         set new 1
+      }
+   }
+
+   # then record mod spec and props at idx defined for tag. new spec are
+   # appended and firstly matching spec is returned with its props on search
+   if {[info exists new]} {
+      lappend ::g_moduleTagRootSpec($modroot) [list $modspec $props]
+   } else {
+      set tagrootlist [lindex $::g_moduleTagRootSpec($modroot) $idx]
+      lappend tagrootlist $modspec $props
+      lset ::g_moduleTagRootSpec($modroot) $idx $tagrootlist
+   }
+}
+
+proc module-forbid {args} {
+   # parse application criteria arguments to determine if command apply
+   lassign [parseApplicationCriteriaArgs 1 [expr {[getConf\
+      nearly_forbidden_days] * 86400}] {*}$args] apply isnearly after\
+      otherargs
+
+   # parse remaining argument list, do it even if command does not apply to
+   # raise any command specification error
+   foreach arg $otherargs {
+      if {[info exists nextargisval]} {
+         set $nextargisval $arg
+         unset nextargisval
+      } else {
+         switch -glob -- $arg {
+            --nearly-message {
+               set nextargisval nearlymessage
+            }
+            --message {
+               set nextargisval message
+            }
+            -* {
+               knerror "Invalid option '$arg'"
+            }
+            default {
+               lappend modarglist $arg
+            }
+         }
+         set prevarg $arg
+      }
+   }
+
+   if {[info exists nextargisval]} {
+      knerror "Missing value for '$prevarg' option"
+   }
+
+   if {![info exists modarglist]} {
+      knerror {No module specified in argument}
+   }
+
+   # skip record if application criteria are not met
+   if {$apply} {
+      set proplist {}
+      if {[info exists message]} {
+         lappend proplist message $message
+      }
+
+      # record each forbid spec after parsing them
+      foreach modarg [parseModuleSpecification 0 {*}$modarglist] {
+         setModspecTag $modarg forbidden $proplist
+      }
+   } elseif {$isnearly} {
+      lappend proplist after $after
+      if {[info exists nearlymessage]} {
+         lappend proplist message $nearlymessage
+      }
+      # record each nearly forbid spec after parsing them
+      foreach modarg [parseModuleSpecification 0 {*}$modarglist] {
+         setModspecTag $modarg nearly-forbidden $proplist
+      }
+   }
+}
+
+proc module-hide {args} {
+   set hidinglvl 1
+   set hiddenloaded 0
+
+   # parse application criteria arguments to determine if command apply
+   lassign [parseApplicationCriteriaArgs 1 0 {*}$args] apply isnearly after\
+      otherargs
+
+   # parse remaining argument list, do it even if command does not apply to
+   # raise any command specification error
+   foreach arg $otherargs {
+      switch -glob -- $arg {
+         --hard {
+            # hardened stealth
+            set hidinglvl 2
+         }
+         --soft {
+            # soften level of camouflage
+            set hidinglvl 0
+         }
+         --hidden-loaded {
+            # module should stay hidden once being loaded
+            set hiddenloaded 1
+         }
+         -* {
+            knerror "Invalid option '$arg'"
+         }
+         default {
+            lappend modarglist $arg
+         }
+      }
+   }
+
+   if {![info exists modarglist]} {
+      knerror {No module specified in argument}
+   }
+
+   # skip hide spec record if application criteria are not met
+   if {$apply} {
+      # record each hide spec after parsing them
+      foreach modarg [parseModuleSpecification 0 {*}$modarglist] {
+         setModspecHidingLevel $modarg $hidinglvl
+         if {$hiddenloaded} {
+            setModspecTag $modarg hidden-loaded
+         }
+      }
+   }
+}
+
+proc module-tag {args} {
+   # parse application criteria arguments to determine if command apply
+   lassign [parseApplicationCriteriaArgs 0 0 {*}$args] apply isnearly after\
+      otherargs
+
+   # parse remaining argument list, do it even if command does not apply to
+   # raise any command specification error
+   foreach arg $otherargs {
+      switch -glob -- $arg {
+         -* {
+            knerror "Invalid option '$arg'"
+         }
+         default {
+            if {![info exists tag]} {
+               set tag $arg
+            } else {
+               lappend modarglist $arg
+            }
+         }
+      }
+   }
+
+   if {![info exists tag]} {
+      knerror {No tag specified in argument}
+   }
+   if {![info exists modarglist]} {
+      knerror {No module specified in argument}
+   }
+   if {$tag in [list loaded auto-loaded forbidden nearly-forbidden hidden\
+      hidden-loaded]} {
+      knerror "'$tag' is a reserved tag name and cannot be set"
+   }
+
+   # skip tag record if application criteria are not met
+   if {$apply} {
+      # record each hide spec after parsing them
+      foreach modarg [parseModuleSpecification 0 {*}$modarglist] {
+         setModspecTag $modarg $tag
+      }
+   }
+}
+
+proc setenv {var val} {
+   reportDebug "var='$var', val='$val'"
+
+   # clean any previously defined reference counter array
+   unset-env [getModshareVarName $var] 1
+
+   # Set the variable for later use during the modulefile evaluation
+   set-env $var $val
+
+   return {}
+}
+
+# undo setenv in unload mode
+proc setenv-un {var val} {
+   reportDebug "var='$var', val='$val'"
+
+   # clean any existing reference counter array
+   unset-env [getModshareVarName $var] 1
+
+   # Add variable to the list of variable to unset in shell output code but
+   # set it in interp context as done on load mode for later use during the
+   # modulefile evaluation
+   unset-env $var 0 $val
+
+   return {}
+}
+
+# optimized setenv/unsetenv for whatis mode: init env variable with an empty
+# value if undefined. do not care about value, just avoid variable to be
+# undefined for later use during the modulefile evaluation
+proc setenv-wh {var args} {
+   if {![info exists ::env($var)]} {
+      reportDebug "var='$var', val=''"
+      set ::env($var) {}
+   }
+   return {}
+}
+
+proc getenv {var {valifundef {}}} {
+   reportDebug "var='$var', valifundef='$valifundef'"
+
+   if {[currentState mode] ne {display}} {
+      return [get-env $var $valifundef]
+   } else {
+      return "\$$var"
+   }
+}
+
+proc unsetenv {var {val {}}} {
+   reportDebug "var='$var', val='$val'"
+
+   # clean any existing reference counter array
+   unset-env [getModshareVarName $var] 1
+
+   # Set the variable for later use during the modulefile evaluation
+   unset-env $var
+
+   return {}
+}
+
+# undo unsetenv in unload mode
+proc unsetenv-un {var {val {}}} {
+   if {$val ne {}} {
+      return [setenv $var $val]
+   } else {
+      return [unsetenv $var]
+   }
+}
+
+proc chdir {dir} {
+   reportDebug $dir
+
+   if {[file exists $dir] && [file isdirectory $dir]} {
+      set ::g_changeDir $dir
+   } else {
+      # report issue but does not treat it as an error to have the
+      # same behavior as C-version
+      reportWarning "Cannot chdir to '$dir' for '[currentState modulename]'"
+   }
+
+   return {}
+}
+
+# supersede exit command to handle it if called within a modulefile
+# rather than exiting the whole process
+proc exitModfileCmd {{code 0}} {
+   reportDebug ($code)
+
+   if {[currentState mode] eq {load}} {
+      setState inhibit_interp 1
+   }
+
+   # break to gently end interpretation of current modulefile
+   return -code break
+}
+
+# enables sub interp to return ModulesVersion value to the main interp
+proc setModulesVersion {val} {
+   set ::ModulesVersion $val
+}
+
+# supersede puts command to catch content sent to stdout/stderr within
+# modulefile in order to correctly send stderr content (if a pager has been
+# enabled) or postpone content channel send after rendering on stdout the
+# relative environment changes required by the modulefile
+proc putsModfileCmd {itrp args} {
+   reportDebug "$args (itrp=$itrp)"
+
+   # determine if puts call targets the stdout or stderr channel
+   switch -- [llength $args] {
+      1 {
+         set deferPuts 1
+      }
+      2 {
+         switch -- [lindex $args 0] {
+            -nonewline - stdout {
+               set deferPuts 1
+            }
+            stderr {
+               set reportArgs [list [lindex $args 1]]
+            }
+         }
+      }
+      3 {
+         if {[lindex $args 0] eq {-nonewline}} {
+            switch -- [lindex $args 1] {
+               stdout {
+                  set deferPuts 1
+               }
+               stderr {
+                  set reportArgs [list [lindex $args 2] 1]
+               }
+            }
+         } else {
+            set wrongNumArgs 1
+         }
+      }
+      default {
+         set wrongNumArgs 1
+      }
+   }
+
+   # raise error if bad argument number detected, do this here rather in _puts
+   # not to confuse people with an error reported by an internal name (_puts)
+   if {[info exists wrongNumArgs]} {
+      knerror {wrong # args: should be "puts ?-nonewline? ?channelId? string"}
+   # defer puts if it targets stdout (see renderSettings)
+   } elseif {[info exists deferPuts]} {
+      lappend ::g_stdoutPuts $args
+   # if it targets stderr call report, which knows what channel to use
+   } elseif {[info exists reportArgs]} {
+      # report message only if not silent
+      if {[isVerbosityLevel concise]} {
+         report {*}$reportArgs
+      }
+   # pass to real puts command if not related to stdout and do that in modfile
+   # interpreter context to get access to eventual specific channel
+   } else {
+      # re-throw error as a known error for accurate stack trace print
+      if {[catch {$itrp eval _puts $args} errMsg]} {
+         knerror $errMsg MODULES_ERR_CUSTOM
+      }
+   }
+}
+
+proc prepend-path {args} {
+   reportDebug $args
+
+   # Set the variable for later use during the modulefile evaluation
+   add-path prepend {*}$args
+
+   return {}
+}
+
+proc append-path {args} {
+   reportDebug $args
+
+   # Set the variable for later use during the modulefile evaluation
+   add-path append {*}$args
+
+   return {}
+}
+
+proc remove-path {args} {
+   reportDebug $args
+
+   # Set the variable for later use during the modulefile evaluation
+   unload-path {*}$args
+
+   return {}
+}
+
+# undo remove-path in unload mode
+proc remove-path-un {args} {
+   # clear variable if it does not exist on unload mode for later use
+   # during the modulefile evaluation
+   lassign [parsePathCommandArgs unload-path {*}$args] separator allow_dup\
+      idx_val var path_list
+   if {![info exists ::env($var)]} {
+      reset-to-unset-env $var
+   }
+}
+
+# optimized *-path for whatis mode: init env variable with an empty value if
+# undefined. do not care about value, just avoid variable to be undefined for
+# later use during the modulefile evaluation
+proc edit-path-wh {args} {
+   reportDebug $args
+
+   # get variable name
+   lassign [parsePathCommandArgs edit-path-wh {*}$args] separator allow_dup\
+      idx_val var path_list
+
+   if {![info exists ::env($var)]} {
+      set ::env($var) {}
+   }
+
+   return {}
+}
+
+proc set-alias {alias what} {
+   reportDebug "alias='$alias', val='$what'"
+
+   set ::g_Aliases($alias) $what
+   set ::g_stateAliases($alias) new
+
+   return {}
+}
+
+# undo set-alias in unload mode
+proc set-alias-un {alias what} {
+   return [unset-alias $alias]
+}
+
+proc unset-alias {alias} {
+   reportDebug alias='$alias'
+
+   set ::g_Aliases($alias) {}
+   set ::g_stateAliases($alias) del
+
+   return {}
+}
+
+proc set-function {function what} {
+   reportDebug "function='$function', val='$what'"
+
+   set ::g_Functions($function) $what
+   set ::g_stateFunctions($function) new
+
+   return {}
+}
+
+# undo set-function in unload mode
+proc set-function-un {function what} {
+   return [unset-function $function]
+}
+
+proc unset-function {function} {
+   reportDebug function='$function'
+
+   set ::g_Functions($function) {}
+   set ::g_stateFunctions($function) del
+
+   return {}
+}
+
+
+proc is-loaded {args} {
+   reportDebug $args
+   # parse module version specification
+   set args [parseModuleSpecification 0 {*}$args]
+
+   foreach mod $args {
+      if {[getLoadedMatchingName $mod returnfirst] ne {}} {
+         return 1
+      }
+   }
+   # is something loaded whatever it is?
+   return [expr {[llength $args] == 0 && [llength [getLoadedModuleList]] > 0}]
+}
+
+proc is-loading {args} {
+   reportDebug $args
+
+   foreach mod $args {
+      if {[getLoadedMatchingName $mod returnfirst 1] ne {}} {
+         return 1
+      }
+   }
+   # is something else loading whatever it is?
+   return [expr {[llength $args] == 0 && [llength [getLoadingModuleList]] >1}]
+}
+
+proc conflict {args} {
+   reportDebug $args
+   set currentModule [currentState modulename]
+   set curmodnamevr [currentState modulenamevr]
+   # get module short name if loaded by its full pathname
+   if {[set isfullpath [isModuleFullPath $currentModule]]} {
+      set currentSModule [findModuleNameFromModulefile $currentModule]
+   }
+   defineModEqProc [isIcase] [getConf extended_default]
+
+   # parse module version specification
+   set args [parseModuleSpecification 0 {*}$args]
+
+   # register conflict list unless record inhibited for current iterp context
+   if {[currentState inhibit_req_record] != [currentState evalid]} {
+      setLoadedConflict $currentModule {*}$args
+   }
+
+   foreach mod $args {
+      # if the conflict module is loading and it does not correspond to
+      # currently evaluated module, we cannot proceed
+      set isloading [expr {![modEq $mod $currentModule eqstart 1 2 1] &&\
+         (!$isfullpath || ![modEq $mod $currentSModule eqstart 1 2 1]) &&\
+         [is-loading $mod]}]
+      # if the conflicting module is loaded, we cannot either
+      if {[is-loaded $mod] || $isloading} {
+         set retisconun [isModuleEvaluated conun $curmodnamevr $mod]
+         # report message on currently evaluated module message block
+         if {![set retiseval [isModuleEvaluated any $curmodnamevr $mod]] ||\
+            [currentState msgrecordid] ne [topState msgrecordid] ||\
+            !$retisconun} {
+            # more appropriate msg if an eval was attempted or is by-passed
+            set msg [expr {$retiseval || [getState force] ?\
+               [getConIsLoadedMsg [list $mod] $isloading] :\
+               [getErrConflictMsg $mod]}]
+
+            # still proceed if force mode enabled
+            if {[getState force]} {
+               reportWarning $msg
+               # indicate message has already been reported
+               lappend ::report_conflict([currentState evalid]) $mod
+            } else {
+               knerror $msg MODULES_ERR_GLOBAL
+            }
+         }
+      }
+   }
+
+   return {}
+}
+
+proc prereq {args} {
+   reportDebug $args
+   set currentModule [currentState modulename]
+   set curmodnamevr [currentState modulenamevr]
+
+   # parse module version specification
+   set args [parseModuleSpecification 0 {*}$args]
+
+   # register prereq list (sets of optional prereq are registered as list)
+   # unless record inhibited for current iterp context
+   if {[currentState inhibit_req_record] != [currentState evalid]} {
+      setLoadedPrereq $currentModule $args
+   }
+
+   # if dependency resolving is enabled try to load prereq
+   if {[getConf auto_handling] && ![is-loaded {*}$args] && ![is-loading\
+      {*}$args]} {
+      set imax [llength $args]
+      set prereqloaded 0
+      # if prereq list specified, try to load first then
+      # try next if load of first module not successful
+      for {set i 0} {$i<$imax && $prereqloaded==0} {incr i 1} {
+         set arg [lindex $args $i]
+
+         # hold output of each evaluation until they are all done to drop
+         # those that failed if one succeed
+         set curholdid load-$i-$arg
+         lappendState reportholdid $curholdid
+         if {[catch {cmdModuleLoad reqlo 0 $arg} errorMsg]} {
+            # if an error is raised, release output and rethrow the error
+            # (could be raised if no modulepath defined for instance)
+            lpopState reportholdid
+            lappend holdidlist $curholdid report
+            releaseHeldReport {*}$holdidlist
+            knerror $errorMsg
+         }
+         lpopState reportholdid
+
+         if {[is-loaded $arg]} {
+            set prereqloaded 1
+            # set previous reports to be dropped as this one succeed
+            if {[info exists holdidlist]} {
+               foreach {holdid action} $holdidlist {
+                  lappend newholdidlist $holdid drop
+               }
+               set holdidlist $newholdidlist
+            }
+         }
+         lappend holdidlist $curholdid report
+      }
+      # output held messages
+      releaseHeldReport {*}$holdidlist
+   }
+
+   if {![is-loaded {*}$args] && ![is-loading {*}$args]} {
+      set retisreqlo [isModuleEvaluated reqlo $curmodnamevr {*}$args]
+      # report message on currently evaluated module message block
+      if {![set retiseval [isModuleEvaluated any $curmodnamevr {*}$args]] ||\
+         [currentState msgrecordid] ne [topState msgrecordid] ||\
+         !$retisreqlo} {
+
+         # more appropriate msg if an evaluation was attempted or is by-passed
+         set msg [expr {$retiseval || [getState force] ? [getReqNotLoadedMsg\
+            $args] : [getErrPrereqMsg $args]}]
+         # still proceed if force mode enabled
+         if {[getState force]} {
+            reportWarning $msg
+         # no error raise if done later
+         } elseif {$retisreqlo} {
+            reportError $msg
+         } else {
+            knerror $msg MODULES_ERR_GLOBAL
+         }
+      }
+
+      # raise reqlo-specific msg to top level if attempted
+      if {$retisreqlo} {
+         set msg [getErrReqLoMsg $args]
+         if {[getState force]} {
+            reportWarning $msg 1
+         } else {
+            knerror $msg MODULES_ERR_GLOBALTOP
+         }
+      }
+   }
+
+   return {}
+}
+
+proc x-resource {resource {value {}}} {
+   reportDebug "($resource, $value)"
+
+   # sometimes x-resource value may be provided within resource name
+   # as the "x-resource {Ileaf.popup.saveUnder: True}" example provided
+   # in manpage. so here is an attempt to extract real resource name and
+   # value from resource argument
+   if {[string length $value] == 0 && ![file exists $resource]} {
+      # look first for a space character as delimiter, then for a colon
+      set sepapos [string first { } $resource]
+      if { $sepapos == -1 } {
+         set sepapos [string first : $resource]
+      }
+
+      if { $sepapos > -1 } {
+         set value [string range $resource [expr {$sepapos + 1}] end]
+         set resource [string range $resource 0 [expr {$sepapos - 1}]]
+         reportDebug "corrected ($resource, $value)"
+      } else {
+         # if not a file and no value provided x-resource cannot be
+         # recorded as it will produce an error when passed to xrdb
+         reportWarning "x-resource $resource is not a valid string or file"
+         return {}
+      }
+   }
+
+   # check current environment can handle X11 resource edition elsewhere exit
+   if {[catch {runCommand xrdb -query} errMsg]} {
+      knerror "X11 resources cannot be edited, issue spotted\n[sgr er\
+         ERROR]: $errMsg" MODULES_ERR_GLOBAL
+   }
+
+   # if a resource does hold an empty value in g_newXResources or
+   # g_delXResources arrays, it means this is a resource file to parse
+   if {[currentState mode] eq {load}} {
+      set ::g_newXResources($resource) $value
+   } else {
+      set ::g_delXResources($resource) $value
+   }
+
+   return {}
+}
+
+proc uname {what} {
+   reportDebug $what
+
+   return [switch -- $what {
+      sysname {getState os}
+      machine {getState machine}
+      nodename - node {getState nodename}
+      release {getState osversion}
+      domain {getState domainname}
+      version {getState kernelversion}
+      default {knerror "uname $what not supported"}
+   }]
+}
+
+# run shell command
+proc system {args} {
+   reportDebug $args
+
+   set mode [currentState mode]
+   set status {}
+
+   switch -- $mode {
+      load - unload {
+         # run through the appropriate shell
+         if {[getState is_win]} {
+            set shell cmd.exe
+            set shellarg /c
+         } else {
+            set shell /bin/sh
+            set shellarg -c
+         }
+
+         if {[catch {exec >&@stderr $shell $shellarg [join $args]}]} {
+             # non-zero exit status, get it:
+             set status [lindex $::errorCode 2]
+         } else {
+             # exit status was 0
+             set status 0
+         }
+      }
+   }
+
+   return $status
+}
+
+# test at least one of the collections passed as argument exists
+proc is-saved {args} {
+   reportDebug $args
+
+   foreach coll $args {
+      lassign [getCollectionFilename $coll] collfile colldesc
+      if {[file exists $collfile]} {
+         return 1
+      }
+   }
+   # is something saved whatever it is?
+   return [expr {[llength $args] == 0 && [llength [findCollections]] > 0}]
+}
+
+# test at least one of the directories passed as argument is set in MODULEPATH
+proc is-used {args} {
+   reportDebug $args
+
+   set modpathlist [getModulePathList]
+   foreach path $args {
+      # transform given path in an absolute path to compare with dirs
+      # registered in the MODULEPATH env var which are returned absolute.
+      set abspath [getAbsolutePath $path]
+      if {$abspath in $modpathlist} {
+         return 1
+      }
+   }
+   # is something used whatever it is?
+   return [expr {[llength $args] == 0 && [llength $modpathlist] > 0}]
+}
+
+# test at least one of the modulefiles passed as argument exists
+proc is-avail {args} {
+   reportDebug $args
+   # parse module version specification
+   set args [parseModuleSpecification 0 {*}$args]
+   set ret 0
+
+   # disable error reporting to avoid modulefile errors
+   # to pollute result. Only if not already inhibited
+   set alreadyinhibit [getState inhibit_errreport]
+   if {!$alreadyinhibit} {
+      inhibitErrorReport
+   }
+
+   foreach mod $args {
+      lassign [getPathToModule $mod] modfile modname modnamevr
+      if {$modfile ne {}} {
+         set ret 1
+         break
+      }
+   }
+
+   # re-enable only is it was disabled from this procedure
+   if {!$alreadyinhibit} {
+      setState inhibit_errreport 0
+   }
+   return $ret
+}
+
+proc execShAndGetEnv {shell script args} {
+   set sep {%ModulesShToMod%}
+   set shdesc [list $script {*}$args]
+   set sherr 0
+   set shellopts [list]
+
+   upvar ignvarlist ignvarlist
+   set ignvarlist [list OLDPWD PWD _ _AST_FEATURES PS1]
+
+   # define shell command to run to source script and analyze the environment
+   # changes it performs
+   switch -- [file tail $shell] {
+      dash - sh {
+         # declare is not supported by dash but functions cannot be retrieved
+         # anyway, so keep using declare and throw errors out to avoid overall
+         # execution error. dash does not pass arguments to sourced script but
+         # it does not raise error if arguments are set
+         set command "export -p; echo $sep; declare -f 2>/dev/null; echo\
+            $sep; alias; echo $sep; pwd; echo $sep; . [listTo shell $shdesc]\
+            2>&1; echo $sep; export -p; echo $sep; declare -f 2>/dev/null;\
+            echo $sep; alias; echo $sep; pwd"
+         set varre {export (\S+?)=["']?(.*?)["']?$}
+         set funcre {(\S+?) \(\)\s?\n?{\s?\n(.+?)\n}$}
+         set aliasre {(\S+?)='(.*?)'$}
+         set varvalmap [list {\"} {"} \\\\ \\]
+         set alvalmap [list {'\''} ' {'"'"'} ']
+      }
+      bash {
+         set command "export -p; echo $sep; declare -f; echo $sep; alias;\
+            echo $sep; pwd; echo $sep; . [listTo shell $shdesc] 2>&1; echo\
+            $sep; export -p; echo $sep; declare -f; echo $sep; alias; echo\
+            $sep; pwd"
+         set varre {declare -x (\S+?)="(.*?)"$}
+         set funcre {(\S+?) \(\)\s?\n{\s?\n(.+?)\n}$}
+         set aliasre {alias (\S+?)='(.*?)'$}
+         set varvalmap [list {\"} {"} \\\\ \\]
+         set alvalmap [list {'\''} ']
+         lappend shellopts --noprofile --norc
+      }
+      ksh - ksh93 {
+         set command "typeset -x; echo $sep; typeset +f | while read f; do\
+            typeset -f \${f%\\(\\)}; echo; done; echo $sep; alias; echo $sep;\
+            pwd; echo $sep; . [listTo shell $shdesc] 2>&1; echo $sep; typeset\
+            -x; echo $sep; typeset +f | while read f; do typeset -f\
+            \${f%\\(\\)}; echo; done; echo $sep; alias; echo $sep; pwd"
+         set varre {(\S+?)=\$?'?(.*?)'?$}
+         set funcre {(\S+?)\(\) {\n?(.+?)}[;\n]?$}
+         set aliasre {(\S+?)=\$?'?(.*?)'?$}
+         set varvalmap [list {\'} ']
+         set alvalmap [list {\"} {"} {\\'} ' {\'} ' {\\\\} {\\}]
+      }
+      zsh {
+         set command "typeset -x; echo $sep; declare -f; echo $sep; alias;\
+            echo $sep; pwd; echo $sep; . [listTo shell $shdesc] 2>&1; echo\
+            $sep; typeset -x; echo $sep; declare -f; echo $sep; alias; echo\
+            $sep; pwd"
+         set varre {(\S+?)=\$?'?(.*?)'?$}
+         set funcre {(\S+?) \(\) {\n(.+?)\n}$}
+         set aliasre {(\S+?)=\$?'?(.*?)'?$}
+         set varvalmap [list {'\''} ']
+         set alvalmap [list {'\''} ']
+      }
+      csh - tcsh {
+         set command "setenv; echo $sep; echo $sep; alias; echo $sep; pwd;\
+            echo $sep; source [listTo shell $shdesc] >& /dev/stdout; echo\
+            $sep; setenv; echo $sep; echo $sep; alias; echo $sep; pwd"
+         set varre {(\S+?)=(.*?)$}
+         set aliasre {(\S+?)\t(.*?)$}
+         set varvalmap [list]
+         set alvalmap [list]
+         lappend shellopts -f
+      }
+      fish {
+         # exclude builtins and fish-specific functions from search to reduce
+         # the number of functions to parse
+         set getfunc {set funcout (string match -r -v $funcfilter (functions\
+            -n) | while read f; functions $f; end);}
+         set command "set -xgL; echo '$sep'; set funcfilter (string join '|'\
+            (string replace -r '(\\\[|\\.)' '\\\\\\\\\\\$1' (builtin -n)))\\|fish\\.\\*;\
+            $getfunc; $getfunc; string split \$funcout; echo '$sep'; string\
+            split \$funcout; echo '$sep'; pwd; echo '$sep'; source [listTo\
+            shell $shdesc] 2>&1; or exit \$status; echo '$sep'; set -xgL;\
+            echo '$sep'; $getfunc; string split \$funcout; echo '$sep';\
+            string split \$funcout; echo '$sep'; pwd"
+         set varre {^(\S+?\M) ?'?(.*?)'?$}
+         # exclude alias from function list
+         set funcre {^function (\S+?)(?: [^\n]*?--description\
+            (?!'?alias)[^\n]+)?\n(.+?)\s*\nend$}
+         # fetch aliases from available functions
+         set aliasre {^function (\S+?) [^\n]*?--description\
+            '?alias[^\n]+\n\s*(.+?)\s*\nend$}
+         # translate back fish-specific code
+         set varvalmap [list {'  '} : {\'} ' {\"} \" \\\\ \\]
+         set alvalmap [list { $argv;} {}]
+
+         # fish builtins change LS_COLORS variable
+         lappend ignvarlist LS_COLORS
+      }
+      default {
+         knerror "Shell '$shell' not supported"
+      }
+   }
+
+   if {![file exists $script]} {
+      knerror "Script '$script' cannot be found"
+   }
+
+   set shellpath [getCommandPath $shell]
+   if {$shellpath eq {}} {
+      knerror "Shell '$shell' cannot be found"
+   }
+   set shellexec [list $shellpath {*}$shellopts -c $command]
+
+   reportDebug "running '$shellexec'"
+   if {[catch {set output [exec {*}$shellexec]} output]} {
+      set sherr 1
+   }
+
+   # link result variables to calling context
+   upvar cwdbefout cwdbefout cwdaftout cwdaftout
+
+   # extract each output sections
+   set idx 0
+   foreach varout {varbefout funcbefout aliasbefout cwdbefout scriptout\
+      varaftout funcaftout aliasaftout cwdaftout} {
+      if {[set sepidx [string first $sep $output $idx]] == -1} {
+         set $varout [string trimright [string range $output $idx end] \n]
+         if {$varout ne {cwdaftout} && !$sherr} {
+            knerror "Unexpected output when sourcing '$shdesc' in shell\
+               '$shell'"
+         }
+      } else {
+         set $varout [string trimright [string range $output $idx [expr\
+            {$sepidx - 1}]] \n]
+         set idx [expr {$sepidx + [string length $sep] + 1}]
+      }
+      # remove expected Tcl error message
+      if {$sherr && $varout eq {scriptout} && [set erridx [string\
+         last {child process exited abnormally} [set $varout]]] != -1} {
+         set $varout [string range [set $varout] 0 [expr {$erridx - 2}]]
+      }
+   }
+   if {$sepidx != -1 && !$sherr} {
+      knerror "Unexpected output when sourcing '$shdesc' in shell '$shell'"
+   }
+
+   reportDebug "script output is '$scriptout'"
+   if {$sherr} {
+      # throw error if script had an issue, send script output along if any
+      set errmsg "Script '$script' exited abnormally"
+      if {$scriptout ne {}} {
+         append errmsg "\n  with following output\n$scriptout"
+      }
+      knerror $errmsg
+   }
+
+   # link result variables to calling context
+   upvar varbef varbef varaft varaft
+   upvar funcbef funcbef funcaft funcaft
+   upvar aliasbef aliasbef aliasaft aliasaft
+
+   # extract environment variable information
+   foreach {out arr} [list varbefout varbef varaftout varaft] {
+      foreach {match name value} [regexp -all -inline -lineanchor $varre [set\
+         $out]] {
+         # convert shell-specific escaping
+         set ${arr}($name) [string map $varvalmap $value]
+      }
+   }
+   # extract function information if function supported by shell
+   if {[info exists funcre]} {
+      foreach {out arr} [list funcbefout funcbef funcaftout funcaft] {
+         foreach {match name value} [regexp -all -inline -lineanchor $funcre\
+            [set $out]] {
+            # no specific escaping to convert for functions
+            set ${arr}($name) $value
+         }
+      }
+   }
+   # extract alias information
+   foreach {out arr} [list aliasbefout aliasbef aliasaftout aliasaft] {
+      foreach {match name value} [regexp -all -inline -lineanchor $aliasre\
+         [set $out]] {
+         set ${arr}($name) [string map $alvalmap $value]
+      }
+   }
+}
+
+# execute script with args through shell and convert environment changes into
+# corresponding modulefile commands
+proc sh-to-mod {args} {
+   set modcontent [list]
+   set pathsep [getState path_separator]
+
+   # evaluate script and retrieve environment before and after evaluation
+   # procedure will set result variables in current context
+   execShAndGetEnv {*}$args
+
+   # check environment variable change
+   lassign [getDiffBetweenArray varbef varaft] notaft diff notbef
+   foreach name $notaft {
+      if {$name ni $ignvarlist} {
+         lappend modcontent [list unsetenv $name]
+      }
+   }
+   foreach name $diff {
+      if {$name ni $ignvarlist} {
+         # new value is totally different (also consider a bare ':' as a
+         # totally different value to avoid erroneous matches)
+         if {$varbef($name) eq $pathsep || [set idx [string first\
+            $varbef($name) $varaft($name)]] == -1} {
+            lappend modcontent [list setenv $name $varaft($name)]
+         } else {
+            # content should be prepended
+            if {$idx > 0} {
+               set modcmd [list prepend-path]
+               # check from the end to get the largest chunk to prepend
+               set idx [string last $varbef($name) $varaft($name)]
+               # get delimiter from char found between new and existing value
+               set delim [string index $varaft($name) [expr {$idx - 1}]]
+               if {$delim ne $pathsep} {
+                  lappend modcmd -d $delim
+               }
+               lappend modcmd $name
+               # split value and remove duplicate entries
+               set vallist [list]
+               appendNoDupToList vallist {*}[split [string range\
+                  $varaft($name) 0 [expr {$idx - 2}]] $delim]
+               # an empty element is added
+               if {[llength $vallist] == 0} {
+                  lappend vallist {}
+               }
+               lappend modcontent [list {*}$modcmd {*}$vallist]
+            }
+            # content should be appended
+            if {($idx + [string length $varbef($name)]) < [string length\
+               $varaft($name)]} {
+               set modcmd [list append-path]
+               set delim [string index $varaft($name) [expr {$idx + [string\
+                  length $varbef($name)]}]]
+               if {$delim ne $pathsep} {
+                  lappend modcmd -d $delim
+               }
+               lappend modcmd $name
+               set vallist [list]
+               appendNoDupToList vallist {*}[split [string range\
+                  $varaft($name) [expr {$idx + [string length $varbef($name)]\
+                  + 1}] end] $delim]
+               if {[llength $vallist] == 0} {
+                  lappend vallist {}
+               }
+               lappend modcontent [list {*}$modcmd {*}$vallist]
+            }
+         }
+      }
+   }
+   foreach name $notbef {
+      if {$name ni $ignvarlist} {
+         if {[string first $pathsep $varaft($name)] == -1} {
+            lappend modcontent [list setenv $name $varaft($name)]
+         } else {
+            # define a path-like variable if path separator found in it
+            # split value and remove duplicate entries
+            set vallist [list]
+            appendNoDupToList vallist {*}[split $varaft($name) $pathsep]
+            lappend modcontent [list prepend-path $name {*}$vallist]
+         }
+      }
+   }
+   # check function change
+   lassign [getDiffBetweenArray funcbef funcaft] notaft diff notbef
+   foreach name $notaft {
+      lappend modcontent [list unset-function $name]
+   }
+   foreach name [list {*}$diff {*}$notbef] {
+      lappend modcontent [list set-function $name \n$funcaft($name)]
+   }
+   # check alias change
+   lassign [getDiffBetweenArray aliasbef aliasaft] notaft diff notbef
+   foreach name $notaft {
+      lappend modcontent [list unset-alias $name]
+   }
+   foreach name [list {*}$diff {*}$notbef] {
+      lappend modcontent [list set-alias $name $aliasaft($name)]
+   }
+   # check current working directory change
+   if {$cwdbefout ne $cwdaftout} {
+      lappend modcontent [list chdir $cwdaftout]
+   }
+
+   # sort result to ensure consistent output whatever the evaluation shell
+   set modcontent [lsort -dictionary $modcontent]
+
+   reportDebug "resulting env changes '$modcontent'"
+   return $modcontent
+}
+
+proc source-sh {shell script args} {
+   # evaluate script and get the environment changes it performs translated
+   # into modulefile commands
+   set shtomodargs [list $shell $script {*}$args]
+   set modcontent [sh-to-mod {*}$shtomodargs]
+
+   # register resulting modulefile commands
+   setLoadedSourceSh [currentState modulename] [list $shtomodargs\
+      {*}$modcontent]
+
+   # evaluate resulting modulefile commands
+   foreach modcmd $modcontent {
+      {*}$modcmd
+   }
+}
+
+# undo source-sh in unload mode
+proc source-sh-un {shell script args} {
+   set shtomodargs [list $shell $script {*}$args]
+   set modsrcsh [getLoadedSourceSh [currentState modulename]]
+
+   # find commands resulting from source-sh evaluation recorded in env
+   if {[set idx [lsearch -exact $modsrcsh $shtomodargs]] != -1 } {
+      set modcontent [lindex $modsrcsh [expr {$idx + 1}]]
+   } else {
+      set modcontent {}
+   }
+
+   # get name of current module unload Tcl interp
+   set itrp __modfile_[currentState mode]_[depthState modulename]
+
+   # evaluate each recorded command in unload Tcl interp to get them reversed
+   foreach modcmd $modcontent {
+      interp eval $itrp $modcmd
+   }
+}
+
+# report underlying modulefile cmds in display mode
+proc source-sh-di {shell script args} {
+   set shtomodargs [list $shell $script {*}$args]
+
+   # if module loaded, get as much content from environment as possible
+   if {[is-loaded [currentState modulename]]} {
+      set modsrcsh [getLoadedSourceSh [currentState modulename]]
+
+      # find commands resulting from source-sh evaluation recorded in env
+      if {[set idx [lsearch -exact $modsrcsh $shtomodargs]] != -1 } {
+         set reccontent [lindex $modsrcsh [expr {$idx + 1}]]
+      } else {
+         set reccontent {}
+      }
+
+      # need to evaluate script to get alias and function definition
+      execShAndGetEnv {*}$shtomodargs
+
+      set modcontent {}
+      foreach cmd $reccontent {
+         # build modulefile content to show with recorded elements in env
+         # and alias/function definition obtained by reevaluating script
+         switch -- [lindex $cmd 0] {
+            set-alias {
+               set alname [lindex $cmd 1]
+               if {[info exists aliasaft($alname)]} {
+                  set albody $aliasaft($alname)
+               } else {
+                  set albody {}
+               }
+               lappend modcontent [list set-alias $alname $albody]
+            }
+            set-function {
+               set fnname [lindex $cmd 1]
+               if {[info exists funcaft($fnname)]} {
+                  set fnbody \n$funcaft($fnname)
+               } else {
+                  set fnbody {}
+               }
+               lappend modcontent [list set-function $fnname $fnbody]
+            }
+            default {
+               lappend modcontent $cmd
+            }
+         }
+      }
+   # not loaded, so get full content from script evaluation
+   } else {
+      set modcontent [sh-to-mod {*}$shtomodargs]
+   }
+
+   # get name of current module unload Tcl interp
+   set itrp __modfile_[currentState mode]_[depthState modulename]
+
+   # evaluate each recorded command in display Tcl interp to get them printed
+   foreach modcmd $modcontent {
+      interp eval $itrp $modcmd
+   }
+}
+
+# parse arguments set on a variant modulefile command
+proc parseVariantCommandArgs {args} {
+   set dflvalue {}
+   set defdflvalue 0
+   set isboolean 0
+   set i 0
+   foreach arg $args {
+      incr i
+      if {[info exists nextargisval]} {
+         set $nextargisval $arg
+         unset nextargisval
+      } else {
+         switch -glob -- $arg {
+            --default {
+               set nextargisval dflvalue
+               set defdflvalue 1
+            }
+            --boolean {
+               set isboolean 1
+            }
+            -* {
+               knerror "Invalid option '$arg'"
+            }
+            default {
+               set name $arg
+               # end option parsing: remaining elts are allowed values
+               break
+            }
+         }
+         set prevarg $arg
+      }
+   }
+
+   if {[info exists nextargisval]} {
+      knerror "Missing value for '$prevarg' option"
+   }
+
+   # check variant name and allowed values
+   if {![info exists name]} {
+      knerror {No variant name specified}
+   }
+   if {![string match {[A-Za-z0-9_]} [string index $name 0]]} {
+      knerror "Invalid variant name '$name'"
+   }
+   set values [lrange $args $i end]
+   if {$isboolean} {
+      if {[llength $values] > 0} {
+         knerror "No value should be defined for boolean variant '$name'"
+      } else {
+         set values {1 0 yes no true false on off}
+      }
+   } else {
+      if {[llength $values] == 0} {
+         knerror "No allowed value list defined for variant '$name'"
+      } else {
+         foreach val $values {
+            if {[string is boolean -strict $val] && ![string is integer\
+               -strict $val]} {
+               knerror "Boolean value defined on non-boolean variant '$name'"
+            }
+         }
+      }
+   }
+   if {$defdflvalue && $isboolean} {
+      # default value should be bool if variant is boolean
+      if {![string is boolean -strict $dflvalue]} {
+         knerror "Boolean value is expected as default value for variant\
+            '$name'"
+      # translate default value in boolean canonical form (0 or 1)
+      } else {
+         set dflvalue [string is true -strict $dflvalue]
+      }
+   }
+
+   return [list $name $values $defdflvalue $dflvalue $isboolean]
+}
+
+proc variant {itrp args} {
+   # parse args
+   lassign [parseVariantCommandArgs {*}$args] name values defdflvalue\
+      dflvalue isboolean
+
+   # version variant is forbidden until specific implementation
+   if {$name eq {version}} {
+      knerror "'version' is a restricted variant name" MODULES_ERR_GLOBAL
+   }
+
+   # get variant list defined on command line
+   set vrlist [getVariantListFromVersSpec [currentState modulenamevr]]
+
+   # search for variant specification (most right-positionned value wins)
+   for {set i [expr {[llength $vrlist]-1}]} {$i >= 0} {incr i -1} {
+      lassign [lindex $vrlist $i] vrname vrvalue
+      if {$vrname eq $name} {
+         # translate value in boolean canonical form (0/1) if variant is bool
+         if {$isboolean && [string is boolean -strict $vrvalue]} {
+            set value [string is true -strict $vrvalue]
+         } else {
+            set value $vrvalue
+         }
+         set isdflval [expr {$defdflvalue && $dflvalue eq $value}]
+         break
+      }
+   }
+
+   # error if variant has not been specified unless a default is defined
+   if {![info exists isdflval]} {
+      if {$defdflvalue} {
+         set value $dflvalue
+         # 2 means default value automatically set
+         set isdflval 2
+      } else {
+         knerror "No value specified for variant '$name'\nAllowed\
+            values are: $values" MODULES_ERR_GLOBAL
+      }
+   }
+
+   # check defined value
+   if {($isboolean && ![string is boolean -strict $value]) || (!$isboolean &&\
+      $value ni $values)} {
+      # invalid value error is not a modulefile error
+      knerror "Invalid value '$value' for variant '$name'\nAllowed values\
+         are: $values" MODULES_ERR_GLOBAL
+   } else {
+      # instantiate variant in modulefile context
+      reportDebug "Set variant on $itrp: ModuleVariant($name) = '$value'"
+      $itrp eval set "{::ModuleVariant($name)}" "{$value}"
+      # after modfile interp ModuleVariant is unset by resetInterpState
+
+      # record variant for persistency (name value is-boolean is-default)
+      # unless module is currently unloading
+      if {[currentState mode] ne {unload}} {
+         setLoadedVariant [currentState modulename] [list $name $value\
+            $isboolean $isdflval]
+      }
+   }
+}
+
+# optimized variant command for whatis mode: init entry in ModuleVariant array
+# to avoid variable being undefined when accessed during modulefile evaluation
+proc variant-wh {itrp args} {
+   # parse args
+   lassign [parseVariantCommandArgs {*}$args] name values defdflvalue\
+      dflvalue isboolean
+
+   # instantiate variant in modulefile context to an empty value
+   reportDebug "Set variant on $itrp: ModuleVariant($name) = ''"
+   $itrp eval set "{::ModuleVariant($name)}" "{}"
+}
+
+proc getvariant {itrp name {valifundef {}}} {
+   reportDebug "name='$name', valifundef='$valifundef'"
+
+   if {[currentState mode] ne {display}} {
+      if {[$itrp eval info exists "{::ModuleVariant($name)}"]} {
+         return [$itrp eval set "{::ModuleVariant($name)}"]
+      } else {
+         return $valifundef
+      }
+
+   } else {
+      return [sgr va "{$name}"]
+   }
+}
+
+# ;;; Local Variables: ***
+# ;;; mode:tcl ***
+# ;;; End: ***
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
