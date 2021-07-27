@@ -737,6 +737,10 @@ proc isIcase {} {
 }
 
 
+##############################################################################
+# Environment management -----------------------------------------------------
+##############################################################################
+
 proc raiseErrorCount {} {
    setState error_count [expr {[getState error_count] + 1}]
 }
@@ -869,6 +873,1238 @@ proc renderText {text} {
       }
    }
 }
+
+proc renderSettings {} {
+   global g_stateEnvVars g_stateAliases g_stateFunctions g_newXResources\
+      g_delXResources
+
+   reportDebug called.
+
+   # required to work on cygwin, shouldn't hurt real linux
+   fconfigure stdout -translation lf
+
+   # preliminaries if there is stuff to render
+   if {[getState autoinit] || [array size g_stateEnvVars] > 0 ||\
+      [array size g_stateAliases] > 0 || [array size g_newXResources] > 0 ||\
+      [array size g_stateFunctions] > 0 || [array size g_delXResources] > 0\
+      || [info exists ::g_changeDir] || [info exists ::g_stdoutPuts] ||\
+      [info exists ::g_return_text]} {
+      switch -- [getState shelltype] {
+         python {
+            puts stdout {import os}
+         }
+      }
+      set has_rendered 1
+   } else {
+      set has_rendered 0
+   }
+
+   if {[getState autoinit]} {
+      renderAutoinit
+   }
+
+   # new environment variables
+   foreach var [array names g_stateEnvVars] {
+      switch -- $g_stateEnvVars($var) {
+         new {
+            switch -- [getState shelltype] {
+               csh {
+                  set val [charEscaped $::env($var)]
+                  # csh barfs on long env vars
+                  if {[getState shell] eq {csh} && [string length $val] >\
+                     [getConf csh_limit]} {
+                     if {$var eq {PATH}} {
+                        reportWarning "PATH exceeds [getConf csh_limit]\
+                           characters, truncating and appending\
+                           /usr/bin:/bin ..."
+                        set val [string range $val 0 [expr {[getConf\
+                           csh_limit] - 1}]]:/usr/bin:/bin
+                     } else {
+                        reportWarning "$var exceeds [getConf csh_limit]\
+                           characters, truncating..."
+                         set val [string range $val 0 [expr {[getConf\
+                           csh_limit]  - 1}]]
+                     }
+                  }
+                  puts stdout "setenv $var $val;"
+               }
+               sh {
+                  puts stdout "$var=[charEscaped $::env($var)];\
+                     export $var;"
+               }
+               fish {
+                  set val [charEscaped $::env($var)]
+                  # fish shell has special treatment for PATH variable
+                  # so its value should be provided as a list separated
+                  # by spaces not by semi-colons
+                  if {$var eq {PATH}} {
+                     regsub -all : $val { } val
+                  }
+                  puts stdout "set -xg $var $val;"
+               }
+               tcl {
+                  set val $::env($var)
+                  puts stdout "set ::env($var) {$val};"
+               }
+               cmd {
+                  set val $::env($var)
+                  puts stdout "set $var=$val"
+               }
+               perl {
+                  set val [charEscaped $::env($var) \']
+                  puts stdout "\$ENV{'$var'} = '$val';"
+               }
+               python {
+                  set val [charEscaped $::env($var) \']
+                  puts stdout "os.environ\['$var'\] = '$val'"
+               }
+               ruby {
+                  set val [charEscaped $::env($var) \']
+                  puts stdout "ENV\['$var'\] = '$val'"
+               }
+               lisp {
+                  set val [charEscaped $::env($var) \"]
+                  puts stdout "(setenv \"$var\" \"$val\")"
+               }
+               cmake {
+                  set val [charEscaped $::env($var) \"]
+                  puts stdout "set(ENV{$var} \"$val\")"
+               }
+               r {
+                  set val [charEscaped $::env($var) {\\'}]
+                  puts stdout "Sys.setenv('$var'='$val')"
+               }
+            }
+         }
+         del {
+            switch -- [getState shelltype] {
+               csh {
+                  puts stdout "unsetenv $var;"
+               }
+               sh {
+                  puts stdout "unset $var;"
+               }
+               fish {
+                  puts stdout "set -e $var;"
+               }
+               tcl {
+                  puts stdout "catch {unset ::env($var)};"
+               }
+               cmd {
+                  puts stdout "set $var="
+               }
+               perl {
+                  puts stdout "delete \$ENV{'$var'};"
+               }
+               python {
+                  puts stdout "os.environ\['$var'\] = ''"
+                  puts stdout "del os.environ\['$var'\]"
+               }
+               ruby {
+                  puts stdout "ENV\['$var'\] = nil"
+               }
+               lisp {
+                  puts stdout "(setenv \"$var\" nil)"
+               }
+               cmake {
+                  puts stdout "unset(ENV{$var})"
+               }
+               r {
+                  puts stdout "Sys.unsetenv('$var')"
+               }
+            }
+         }
+      }
+   }
+
+   foreach var [array names g_stateAliases] {
+      switch -- $g_stateAliases($var) {
+         new {
+            set val $::g_Aliases($var)
+            # convert $n in !!:n and $* in !* on csh (like on compat version)
+            if {[getState shelltype] eq {csh}} {
+               regsub -all {([^\\]|^)\$([0-9]+)} $val {\1!!:\2} val
+               regsub -all {([^\\]|^)\$\*} $val {\1!*} val
+            }
+            # unescape \$ after now csh-specific conversion is over
+            regsub -all {\\\$} $val {$} val
+            switch -- [getState shelltype] {
+               csh {
+                  set val [charEscaped $val]
+                  puts stdout "alias $var $val;"
+               }
+               sh {
+                  set val [charEscaped $val]
+                  puts stdout "alias $var=$val;"
+               }
+               fish {
+                  set val [charEscaped $val]
+                  puts stdout "alias $var $val;"
+               }
+               cmd {
+                  puts stdout "doskey $var=$val"
+               }
+            }
+         }
+         del {
+            switch -- [getState shelltype] {
+               csh {
+                  puts stdout "unalias $var;"
+               }
+               sh {
+                  puts stdout "unalias $var;"
+               }
+               fish {
+                  puts stdout "functions -e $var;"
+               }
+               cmd {
+                  puts stdout "doskey $var="
+               }
+            }
+         }
+      }
+   }
+   foreach funcname [array names g_stateFunctions] {
+      switch -- $g_stateFunctions($funcname) {
+         new {
+            # trim function body to smoothly add a finishing ;
+            set val [string trim $::g_Functions($funcname) "; \t\n\r"]
+            switch -- [getState shell] {
+               sh - ksh - zsh {
+                  puts stdout "$funcname () { $val; };"
+               }
+               bash {
+                  puts stdout "$funcname () { $val; }; export -f $funcname;"
+               }
+               fish {
+                  puts stdout "function $funcname; $val; end;"
+               }
+            }
+         }
+         del {
+            switch -- [getState shelltype] {
+               sh {
+                  puts stdout "unset -f $funcname;"
+               }
+               fish {
+                  puts stdout "functions -e $funcname;"
+               }
+            }
+         }
+      }
+   }
+
+   # preliminaries for x-resources stuff
+   if {[array size g_newXResources] > 0 || [array size g_delXResources] > 0} {
+      switch -- [getState shelltype] {
+         python {
+            puts stdout {import subprocess}
+         }
+         ruby {
+            puts stdout {require 'open3'}
+         }
+      }
+   }
+
+   # new x resources
+   if {[array size g_newXResources] > 0} {
+      # xrdb executable has already be verified in x-resource
+      set xrdb [getCommandPath xrdb]
+      foreach var [array names g_newXResources] {
+         set val $g_newXResources($var)
+         # empty val means that var is a file to parse
+         if {$val eq {}} {
+            switch -- [getState shelltype] {
+               sh - csh - fish {
+                  puts stdout "$xrdb -merge $var;"
+               }
+               tcl {
+                  puts stdout "exec $xrdb -merge $var;"
+               }
+               perl {
+                  puts stdout "system(\"$xrdb -merge $var\");"
+               }
+               python {
+                  set var [charEscaped $var \']
+                  puts stdout "subprocess.Popen(\['$xrdb',\
+                     '-merge', '$var'\])"
+               }
+               ruby {
+                  set var [charEscaped $var \']
+                  puts stdout "Open3.popen2('$xrdb -merge $var')"
+               }
+               lisp {
+                  puts stdout "(shell-command-to-string \"$xrdb\
+                     -merge $var\")"
+               }
+               cmake {
+                  puts stdout "execute_process(COMMAND $xrdb -merge $var)"
+               }
+               r {
+                  set var [charEscaped $var {\\'}]
+                  puts stdout "system('$xrdb -merge $var')"
+               }
+            }
+         } else {
+            switch -- [getState shelltype] {
+               sh - csh - fish {
+                  set var [charEscaped $var \"]
+                  set val [charEscaped $val \"]
+                  puts stdout "echo \"$var: $val\" | $xrdb -merge;"
+               }
+               tcl {
+                  puts stdout "set XRDBPIPE \[open \"|$xrdb -merge\" r+\];"
+                  set var [charEscaped $var \"]
+                  set val [charEscaped $val \"]
+                  puts stdout "puts \$XRDBPIPE \"$var: $val\";"
+                  puts stdout {close $XRDBPIPE;}
+                  puts stdout {unset XRDBPIPE;}
+               }
+               perl {
+                  puts stdout "open(XRDBPIPE, \"|$xrdb -merge\");"
+                  set var [charEscaped $var \"]
+                  set val [charEscaped $val \"]
+                  puts stdout "print XRDBPIPE \"$var: $val\\n\";"
+                  puts stdout {close XRDBPIPE;}
+               }
+               python {
+                  set var [charEscaped $var \']
+                  set val [charEscaped $val \']
+                  puts stdout "subprocess.Popen(\['$xrdb', '-merge'\],\
+                     stdin=subprocess.PIPE).communicate(input='$var:\
+                     $val\\n')"
+               }
+               ruby {
+                  set var [charEscaped $var \']
+                  set val [charEscaped $val \']
+                  puts stdout "Open3.popen2('$xrdb -merge') {|i,o,t| i.puts\
+                     '$var: $val'}"
+               }
+               lisp {
+                  puts stdout "(shell-command-to-string \"echo $var:\
+                     $val | $xrdb -merge\")"
+               }
+               cmake {
+                  set var [charEscaped $var \"]
+                  set val [charEscaped $val \"]
+                  puts stdout "execute_process(COMMAND echo \"$var: $val\"\
+                     COMMAND $xrdb -merge)"
+               }
+               r {
+                  set var [charEscaped $var {\\'}]
+                  set val [charEscaped $val {\\'}]
+                  puts stdout "system('$xrdb -merge', input='$var: $val')"
+               }
+            }
+         }
+      }
+   }
+
+   if {[array size g_delXResources] > 0} {
+      set xrdb [getCommandPath xrdb]
+      set xres_to_del {}
+      foreach var [array names g_delXResources] {
+         # empty val means that var is a file to parse
+         if {$g_delXResources($var) eq {}} {
+            # xresource file has to be parsed to find what resources
+            # are declared there and need to be unset
+            foreach fline [split [exec $xrdb -n load $var] \n] {
+               lappend xres_to_del [lindex [split $fline :] 0]
+            }
+         } else {
+            lappend xres_to_del $var
+         }
+      }
+
+      # xresource strings are unset by emptying their value since there
+      # is no command of xrdb that can properly remove one property
+      switch -- [getState shelltype] {
+         sh - csh - fish {
+            foreach var $xres_to_del {
+               puts stdout "echo \"$var:\" | $xrdb -merge;"
+            }
+         }
+         tcl {
+            foreach var $xres_to_del {
+               puts stdout "set XRDBPIPE \[open \"|$xrdb -merge\" r+\];"
+               set var [charEscaped $var \"]
+               puts stdout "puts \$XRDBPIPE \"$var:\";"
+               puts stdout {close $XRDBPIPE;}
+               puts stdout {unset XRDBPIPE;}
+            }
+         }
+         perl {
+            foreach var $xres_to_del {
+               puts stdout "open(XRDBPIPE, \"|$xrdb -merge\");"
+               set var [charEscaped $var \"]
+               puts stdout "print XRDBPIPE \"$var:\\n\";"
+               puts stdout {close XRDBPIPE;}
+            }
+         }
+         python {
+            foreach var $xres_to_del {
+               set var [charEscaped $var \']
+               puts stdout "subprocess.Popen(\['$xrdb', '-merge'\],\
+                  stdin=subprocess.PIPE).communicate(input='$var:\\n')"
+            }
+         }
+         ruby {
+            foreach var $xres_to_del {
+               set var [charEscaped $var \']
+               puts stdout "Open3.popen2('$xrdb -merge') {|i,o,t| i.puts\
+                  '$var:'}"
+            }
+         }
+         lisp {
+            foreach var $xres_to_del {
+               puts stdout "(shell-command-to-string \"echo $var: |\
+                  $xrdb -merge\")"
+            }
+         }
+         cmake {
+            foreach var $xres_to_del {
+               set var [charEscaped $var \"]
+               puts stdout "execute_process(COMMAND echo \"$var:\"\
+                  COMMAND $xrdb -merge)"
+            }
+         }
+         r {
+            foreach var $xres_to_del {
+               set var [charEscaped $var {\\'}]
+               puts stdout "system('$xrdb -merge', input='$var:')"
+            }
+         }
+      }
+   }
+
+   if {[info exists ::g_changeDir]} {
+      switch -- [getState shelltype] {
+         sh - csh - fish {
+            puts stdout "cd '$::g_changeDir';"
+         }
+         tcl {
+            puts stdout "cd \"$::g_changeDir\";"
+         }
+         cmd {
+            puts stdout "cd $::g_changeDir"
+         }
+         perl {
+            puts stdout "chdir '$::g_changeDir';"
+         }
+         python {
+            puts stdout "os.chdir('$::g_changeDir')"
+         }
+         ruby {
+            puts stdout "Dir.chdir('$::g_changeDir')"
+         }
+         lisp {
+            puts stdout "(shell-command-to-string \"cd '$::g_changeDir'\")"
+         }
+         r {
+            puts stdout "setwd('$::g_changeDir')"
+         }
+      }
+      # cannot change current directory of cmake "shell"
+   }
+
+   # send content deferred during modulefile interpretation
+   if {[info exists ::g_stdoutPuts]} {
+      foreach putsArgs $::g_stdoutPuts {
+         puts {*}$putsArgs
+         # check if a finishing newline will be needed after content sent
+         set needPutsNl [expr {[lindex $putsArgs 0] eq {-nonewline}}]
+      }
+      if {$needPutsNl} {
+         puts stdout {}
+      }
+   }
+
+   # return text value if defined even if error happened
+   if {[info exists ::g_return_text]} {
+      reportDebug {text value should be returned.}
+      renderText $::g_return_text
+   } elseif {[getState error_count] > 0} {
+      reportDebug "[getState error_count] error(s) detected."
+      renderFalse
+   } elseif {[getState return_false]} {
+      reportDebug {false value should be returned.}
+      renderFalse
+   } elseif {$has_rendered} {
+      # finish with true statement if something has been put
+      renderTrue
+   }
+}
+
+proc renderAutoinit {} {
+   reportDebug called.
+
+   # automatically detect which tclsh should be used for
+   # future module commands
+   set tclshbin [info nameofexecutable]
+
+   # ensure script path is absolute
+   set ::argv0 [getAbsolutePath $::argv0]
+
+   switch -- [getState shelltype] {
+      csh {
+         set pre_hi {set _histchars = $histchars; unset histchars;}
+         set post_hi {set histchars = $_histchars; unset _histchars;}
+         set pre_pr {set _prompt=$prompt:q; set prompt="";}
+         set post_pr {set prompt=$_prompt:q; unset _prompt;}
+         # apply workaround for Tcsh history if set
+         set eval_cmd [expr {[getConf wa_277] ? "eval `$tclshbin $::argv0\
+            [getState shell] \\!*`;" :  "eval \"`$tclshbin $::argv0 [getState\
+            shell] \\!*:q`\";"}]
+         set pre_ex {set _exit="$status";}
+         set post_ex {test 0 = $_exit}
+
+         set fdef "if ( \$?histchars && \$?prompt )\
+alias module '$pre_hi $pre_pr $eval_cmd $pre_ex $post_hi $post_pr $post_ex' ;
+if ( \$?histchars && ! \$?prompt )\
+alias module '$pre_hi $eval_cmd $pre_ex $post_hi $post_ex' ;
+if ( ! \$?histchars && \$?prompt )\
+alias module '$pre_pr $eval_cmd $pre_ex $post_pr $post_ex' ;
+if ( ! \$?histchars && ! \$?prompt ) alias module '$eval_cmd' ;"
+         if {[getConf ml]} {
+            append fdef {
+alias ml 'module ml \!*' ;}
+         }
+      }
+      sh {
+         # Considering the diversity of ways local variables are handled
+         # through the sh-variants ('local' known everywhere except on ksh,
+         # 'typeset' known everywhere except on pure-sh, and on some systems
+         # the pure-sh is in fact a 'ksh'), no local variables are defined and
+         # these variables that should have been local are unset at the end
+
+         # on zsh, word splitting should be enabled explicitly
+         set wsplit [expr {[getState shell] eq {zsh} ? {^^=} : {}}]
+         # only redirect module from stderr to stdout when session is
+         # attached to a terminal to avoid breaking non-terminal session
+         # (scp, sftp, etc)
+         set fname [expr {[getState is_stderr_tty] ? {_module_raw} : {module}}]
+         # build quarantine mechanism in module function
+         # an empty runtime variable is set even if no corresponding
+         # MODULES_RUNENV_* variable found, as var cannot be unset on
+         # modified environment command-line
+         set fdef "${fname}() {"
+@silentshdbgsupport@         append fdef {
+@silentshdbgsupport@   unset _mlshdbg;
+@silentshdbgsupport@   if [ "${MODULES_SILENT_SHELL_DEBUG:-0}" = '1' ]; then
+@silentshdbgsupport@      case "$-" in
+@silentshdbgsupport@         *v*x*) set +vx; _mlshdbg='vx' ;;
+@silentshdbgsupport@         *v*) set +v; _mlshdbg='v' ;;
+@silentshdbgsupport@         *x*) set +x; _mlshdbg='x' ;;
+@silentshdbgsupport@         *) _mlshdbg='' ;;
+@silentshdbgsupport@      esac;
+@silentshdbgsupport@   fi;}
+@quarantinesupport@         append fdef "
+@quarantinesupport@   unset _mlre _mlIFS;
+@quarantinesupport@   if \[ -n \"\${IFS+x}\" \]; then
+@quarantinesupport@      _mlIFS=\$IFS;
+@quarantinesupport@   fi;
+@quarantinesupport@   IFS=' ';
+@quarantinesupport@   for _mlv in \${${wsplit}MODULES_RUN_QUARANTINE:-}; do"
+@quarantinesupport@         append fdef {
+@quarantinesupport@      if [ "${_mlv}" = "${_mlv##*[!A-Za-z0-9_]}" -a "${_mlv}" = "${_mlv#[0-9]}" ]; then
+@quarantinesupport@         if [ -n "`eval 'echo ${'$_mlv'+x}'`" ]; then
+@quarantinesupport@            _mlre="${_mlre:-}__MODULES_QUAR_${_mlv}='`eval 'echo ${'$_mlv'}'`' ";
+@quarantinesupport@         fi;
+@quarantinesupport@         _mlrv="MODULES_RUNENV_${_mlv}";
+@quarantinesupport@         _mlre="${_mlre:-}${_mlv}='`eval 'echo ${'$_mlrv':-}'`' ";
+@quarantinesupport@      fi;
+@quarantinesupport@   done;
+@quarantinesupport@   if [ -n "${_mlre:-}" ]; then}
+@quarantinesupport@         append fdef "\n      eval `eval \${${wsplit}_mlre} $tclshbin $::argv0\
+@quarantinesupport@[getState shell] '\"\$@\"'`;
+@quarantinesupport@   else
+@quarantinesupport@      eval `$tclshbin $::argv0 [getState shell] \"\$@\"`;
+@quarantinesupport@   fi;"
+@notquarantinesupport@         append fdef "
+@notquarantinesupport@   eval `$tclshbin $::argv0 [getState shell] \"\$@\"`;"
+         append fdef {
+   _mlstatus=$?;}
+@quarantinesupport@         append fdef {
+@quarantinesupport@   if [ -n "${_mlIFS+x}" ]; then
+@quarantinesupport@      IFS=$_mlIFS;
+@quarantinesupport@   else
+@quarantinesupport@      unset IFS;
+@quarantinesupport@   fi;
+@quarantinesupport@   unset _mlre _mlv _mlrv _mlIFS;}
+@silentshdbgsupport@         append fdef {
+@silentshdbgsupport@   if [ -n "${_mlshdbg:-}" ]; then
+@silentshdbgsupport@      set -$_mlshdbg;
+@silentshdbgsupport@   fi;
+@silentshdbgsupport@   unset _mlshdbg;}
+         append fdef {
+   return $_mlstatus;}
+         append fdef "\n};"
+         if {[getState is_stderr_tty]} {
+            append fdef "\nmodule() { _module_raw \"\$@\" 2>&1; };"
+         }
+         if {[getConf ml]} {
+            append fdef {
+ml() { module ml "$@"; };}
+         }
+      }
+      fish {
+         set fdef [expr {[getState is_stderr_tty] ? "function _module_raw\n" :\
+            "function module\n"}]
+@quarantinesupport@         append fdef {   set -l _mlre ''; set -l _mlv; set -l _mlrv;
+@quarantinesupport@   for _mlv in (string split ' ' $MODULES_RUN_QUARANTINE)
+@quarantinesupport@      if string match -r '^[A-Za-z_][A-Za-z0-9_]*$' $_mlv >/dev/null
+@quarantinesupport@         if set -q $_mlv
+@quarantinesupport@            set _mlre $_mlre"__MODULES_QUAR_"$_mlv"='$$_mlv' "
+@quarantinesupport@         end
+@quarantinesupport@         set _mlrv "MODULES_RUNENV_$_mlv"
+@quarantinesupport@         set _mlre "$_mlre$_mlv='$$_mlrv' "
+@quarantinesupport@      end
+@quarantinesupport@   end
+@quarantinesupport@   if [ -n "$_mlre" ]
+@quarantinesupport@      set _mlre "env $_mlre"
+@quarantinesupport@   end}
+         # use "| source -" rather than "eval" to be able
+         # to redirect stderr after stdout being evaluated
+@quarantinesupport@         append fdef "\n   eval \$_mlre $tclshbin $::argv0 [getState shell]\
+            (string escape -- \$argv) | source -\n"
+@notquarantinesupport@         append fdef "   eval $tclshbin $::argv0 [getState shell]\
+            (string escape -- \$argv) | source -\n"
+         if {[getState is_stderr_tty]} {
+            append fdef {end
+function module
+   _module_raw $argv 2>&1
+end}
+         } else {
+            append fdef end
+         }
+         if {[getConf ml]} {
+            append fdef {
+function ml
+   module ml $argv
+end}
+         }
+      }
+      tcl {
+         set fdef "proc module {args} {"
+@quarantinesupport@         append fdef {
+@quarantinesupport@   set _mlre {};
+@quarantinesupport@   if {[info exists ::env(MODULES_RUN_QUARANTINE)]} {
+@quarantinesupport@      foreach _mlv [split $::env(MODULES_RUN_QUARANTINE) " "] {
+@quarantinesupport@         if {[regexp {^[A-Za-z_][A-Za-z0-9_]*$} $_mlv]} {
+@quarantinesupport@            if {[info exists ::env($_mlv)]} {
+@quarantinesupport@               lappend _mlre "__MODULES_QUAR_${_mlv}=$::env($_mlv)"
+@quarantinesupport@            }
+@quarantinesupport@            set _mlrv "MODULES_RUNENV_${_mlv}"
+@quarantinesupport@            lappend _mlre [expr {[info exists ::env($_mlrv)] ?\
+               "${_mlv}=$::env($_mlrv)" : "${_mlv}="}]
+@quarantinesupport@         }
+@quarantinesupport@      }
+@quarantinesupport@      if {[llength $_mlre] > 0} {
+@quarantinesupport@         set _mlre [linsert $_mlre 0 "env"]
+@quarantinesupport@      }
+@quarantinesupport@   }}
+      append fdef {
+   set _mlstatus 1;}
+@quarantinesupport@         append fdef "\n   catch {exec {*}\$_mlre \"$tclshbin\"\
+            \"$::argv0\" \"[getState shell]\" {*}\$args 2>@stderr} script\n"
+@notquarantinesupport@         append fdef "\n   catch {exec \"$tclshbin\"\
+            \"$::argv0\" \"[getState shell]\" {*}\$args 2>@stderr} script\n"
+         append fdef {   eval $script;
+   return $_mlstatus}
+         append fdef "\n}"
+         if {[getConf ml]} {
+            append fdef {
+proc ml {args} {
+   return [module ml {*}$args]
+}}
+         }
+      }
+      cmd {
+         reportErrorAndExit {No autoinit mode available for 'cmd' shell}
+      }
+      perl {
+         set fdef "sub module {"
+@quarantinesupport@         append fdef {
+@quarantinesupport@   my $_mlre = '';
+@quarantinesupport@   if (defined $ENV{'MODULES_RUN_QUARANTINE'}) {
+@quarantinesupport@      foreach my $_mlv (split(' ', $ENV{'MODULES_RUN_QUARANTINE'})) {
+@quarantinesupport@         if ($_mlv =~ /^[A-Za-z_][A-Za-z0-9_]*$/) {
+@quarantinesupport@            if (defined $ENV{$_mlv}) {
+@quarantinesupport@               $_mlre .= "__MODULES_QUAR_${_mlv}='$ENV{$_mlv}' ";
+@quarantinesupport@            }
+@quarantinesupport@            my $_mlrv = "MODULES_RUNENV_$_mlv";
+@quarantinesupport@            $_mlre .= "$_mlv='$ENV{$_mlrv}' ";
+@quarantinesupport@        }
+@quarantinesupport@      }
+@quarantinesupport@      if ($_mlre ne "") {
+@quarantinesupport@         $_mlre = "env $_mlre";
+@quarantinesupport@      }
+@quarantinesupport@   }}
+         append fdef {
+   my $args = '';
+   if (@_ > 0) {
+      $args = '"' . join('" "', @_) . '"';
+   }
+   my $_mlstatus = 1;}
+@quarantinesupport@         append fdef "\n   eval `\${_mlre}$tclshbin $::argv0 perl \$args`;\n"
+@notquarantinesupport@         append fdef "\n   eval `$tclshbin $::argv0 perl \$args`;\n"
+         append fdef {   return $_mlstatus;}
+         append fdef "\n}"
+         if {[getConf ml]} {
+            append fdef {
+sub ml {
+   return module('ml', @_);
+}}
+         }
+      }
+      python {
+         set fdef {import re, subprocess
+def module(*arguments):}
+@quarantinesupport@         append fdef {
+@quarantinesupport@   _mlre = os.environ.copy()
+@quarantinesupport@   if 'MODULES_RUN_QUARANTINE' in os.environ:
+@quarantinesupport@      for _mlv in os.environ['MODULES_RUN_QUARANTINE'].split():
+@quarantinesupport@         if re.match('^[A-Za-z_][A-Za-z0-9_]*$', _mlv):
+@quarantinesupport@            if _mlv in os.environ:
+@quarantinesupport@               _mlre['__MODULES_QUAR_' + _mlv] = os.environ[_mlv]
+@quarantinesupport@            _mlrv = 'MODULES_RUNENV_' + _mlv
+@quarantinesupport@            if _mlrv in os.environ:
+@quarantinesupport@               _mlre[_mlv] = os.environ[_mlrv]
+@quarantinesupport@            else:
+@quarantinesupport@               _mlre[_mlv] = ''}
+         append fdef {
+   ns = {}}
+@quarantinesupport@         append fdef "\n   exec(subprocess.Popen(\['$tclshbin',\
+            '$::argv0', 'python'\] + list(arguments),\
+            stdout=subprocess.PIPE, env=_mlre).communicate()\[0\], ns)\n"
+@notquarantinesupport@         append fdef "\n   exec(subprocess.Popen(\['$tclshbin',\
+            '$::argv0', 'python'\] + list(arguments),\
+            stdout=subprocess.PIPE).communicate()\[0\], ns)\n"
+         append fdef {   if '_mlstatus' in ns:
+      _mlstatus = ns['_mlstatus']
+   else:
+      _mlstatus = True
+   return _mlstatus}
+         if {[getConf ml]} {
+            append fdef {
+def ml(*arguments):
+   return module('ml', *arguments)
+}
+         }
+      }
+      ruby {
+         set fdef {class ENVModule
+   def ENVModule.module(*args)}
+@quarantinesupport@         append fdef {
+@quarantinesupport@      _mlre = ''
+@quarantinesupport@      if ENV.has_key?('MODULES_RUN_QUARANTINE') then
+@quarantinesupport@         ENV['MODULES_RUN_QUARANTINE'].split(' ').each do |_mlv|
+@quarantinesupport@            if _mlv =~ /^[A-Za-z_][A-Za-z0-9_]*$/ then
+@quarantinesupport@               if ENV.has_key?(_mlv) then
+@quarantinesupport@                  _mlre << "__MODULES_QUAR_" + _mlv + "='" + ENV[_mlv].to_s + "' "
+@quarantinesupport@               end
+@quarantinesupport@               _mlrv = 'MODULES_RUNENV_' + _mlv
+@quarantinesupport@               _mlre << _mlv + "='" + ENV[_mlrv].to_s + "' "
+@quarantinesupport@            end
+@quarantinesupport@         end
+@quarantinesupport@         unless _mlre.empty?
+@quarantinesupport@            _mlre = 'env ' + _mlre
+@quarantinesupport@         end
+@quarantinesupport@      end}
+         append fdef {
+      if args[0].kind_of?(Array) then
+         args = args[0]
+      end
+      if args.length == 0 then
+         args = ''
+      else
+         args = "\"#{args.join('" "')}\""
+      end
+      _mlstatus = true}
+@quarantinesupport@         append fdef "\n      eval `#{_mlre}$tclshbin $::argv0 ruby #{args}`\n"
+@notquarantinesupport@         append fdef "\n      eval `$tclshbin $::argv0 ruby #{args}`\n"
+         append fdef {      return _mlstatus
+   end}
+         if {[getConf ml]} {
+            append fdef {
+   def ENVModule.ml(*args)
+      return ENVModule.module('ml', *args)
+   end}
+         }
+         append fdef {
+end}
+      }
+      lisp {
+         reportErrorAndExit {lisp mode autoinit not yet implemented}
+      }
+      cmake {
+@quarantinesupport@         set pre_exec "\n      execute_process(COMMAND \${_mlre} $tclshbin\
+            $::argv0 cmake "
+@notquarantinesupport@         set pre_exec "\n      execute_process(COMMAND $tclshbin\
+            $::argv0 cmake "
+         set post_exec "\n         OUTPUT_FILE \${tempfile_name})\n"
+         set fdef {function(module)
+   cmake_policy(SET CMP0007 NEW)}
+@quarantinesupport@         append fdef {
+@quarantinesupport@   set(_mlre "")
+@quarantinesupport@   if(DEFINED ENV{MODULES_RUN_QUARANTINE})
+@quarantinesupport@      string(REPLACE " " ";" _mlv_list "$ENV{MODULES_RUN_QUARANTINE}")
+@quarantinesupport@      foreach(_mlv ${_mlv_list})
+@quarantinesupport@         if(${_mlv} MATCHES "^[A-Za-z_][A-Za-z0-9_]*$")
+@quarantinesupport@            if(DEFINED ENV{${_mlv}})
+@quarantinesupport@               set(_mlre "${_mlre}__MODULES_QUAR_${_mlv}=$ENV{${_mlv}};")
+@quarantinesupport@            endif()
+@quarantinesupport@            set(_mlrv "MODULES_RUNENV_${_mlv}")
+@quarantinesupport@            set(_mlre "${_mlre}${_mlv}=$ENV{${_mlrv}};")
+@quarantinesupport@        endif()
+@quarantinesupport@      endforeach()
+@quarantinesupport@      if (NOT "${_mlre}" STREQUAL "")
+@quarantinesupport@         set(_mlre "env;${_mlre}")
+@quarantinesupport@      endif()
+@quarantinesupport@   endif()}
+         append fdef {
+   set(_mlstatus TRUE)
+   execute_process(COMMAND mktemp -t moduleinit.cmake.XXXXXXXXXXXX
+      OUTPUT_VARIABLE tempfile_name
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+   if(${ARGC} EQUAL 1)}
+            # adapt command definition depending on the number of args to be
+            # able to pass to some extend (<5 args) empty string element to
+            # modulecmd (no other way as empty element in ${ARGV} are skipped
+            append fdef "$pre_exec\"\${ARGV0}\"$post_exec"
+            append fdef {   elseif(${ARGC} EQUAL 2)}
+            append fdef "$pre_exec\"\${ARGV0}\" \"\${ARGV1}\"$post_exec"
+            append fdef {   elseif(${ARGC} EQUAL 3)}
+            append fdef "$pre_exec\"\${ARGV0}\" \"\${ARGV1}\"\
+               \"\${ARGV2}\"$post_exec"
+            append fdef {   elseif(${ARGC} EQUAL 4)}
+            append fdef "$pre_exec\"\${ARGV0}\" \"\${ARGV1}\"\
+               \"\${ARGV2}\" \"\${ARGV3}\"$post_exec"
+            append fdef {   else()}
+            append fdef "$pre_exec\${ARGV}$post_exec"
+            append fdef {   endif()
+   if(EXISTS ${tempfile_name})
+      include(${tempfile_name})
+      file(REMOVE ${tempfile_name})
+   endif()
+   set(module_result ${_mlstatus} PARENT_SCOPE)
+endfunction(module)}
+         if {[getConf ml]} {
+            append fdef {
+function(ml)
+   module(ml ${ARGV})
+   set(module_result ${module_result} PARENT_SCOPE)
+endfunction(ml)}
+         }
+      }
+      r {
+         set fdef "module <- function(...){"
+@quarantinesupport@         append fdef {
+@quarantinesupport@   mlre <- ''
+@quarantinesupport@   if (!is.na(Sys.getenv('MODULES_RUN_QUARANTINE', unset=NA))) {
+@quarantinesupport@      for (mlv in strsplit(Sys.getenv('MODULES_RUN_QUARANTINE'), ' ')[[1]]) {
+@quarantinesupport@         if (grepl('^[A-Za-z_][A-Za-z0-9_]*$', mlv)) {
+@quarantinesupport@            if (!is.na(Sys.getenv(mlv, unset=NA))) {
+@quarantinesupport@               mlre <- paste0(mlre, "__MODULES_QUAR_", mlv, "='", Sys.getenv(mlv), "' ")
+@quarantinesupport@            }
+@quarantinesupport@            mlrv <- paste0('MODULES_RUNENV_', mlv)
+@quarantinesupport@            mlre <- paste0(mlre, mlv, "='", Sys.getenv(mlrv), "' ")
+@quarantinesupport@         }
+@quarantinesupport@      }
+@quarantinesupport@      if (mlre != '') {
+@quarantinesupport@         mlre <- paste0('env ', mlre)
+@quarantinesupport@      }
+@quarantinesupport@   }}
+         append fdef {
+   arglist <- as.list(match.call())
+   arglist[1] <- 'r'
+   args <- paste0('"', paste0(arglist, collapse='" "'), '"')}
+@quarantinesupport@         append fdef "\n   cmd <- paste(mlre, '$tclshbin', '$::argv0', args,\
+            sep=' ')\n"
+@notquarantinesupport@         append fdef "\n   cmd <- paste('$tclshbin', '$::argv0', args,\
+            sep=' ')\n"
+         append fdef {   mlstatus <- TRUE
+   hndl <- pipe(cmd)
+   eval(expr = parse(file=hndl))
+   close(hndl)
+   invisible(mlstatus)}
+         append fdef "\n}"
+         if {[getConf ml]} {
+            append fdef {
+ml <- function(...){
+   module('ml', ...)
+}}
+         }
+      }
+   }
+
+   # output function definition
+   puts stdout $fdef
+}
+
+proc get-env {var {valifunset {}}} {
+   # return current value if exists and not cleared
+   if {[info exists ::env($var)] && ![info exists ::g_clearedEnvVars($var)]} {
+      return $::env($var)
+   } else {
+      return $valifunset
+   }
+}
+
+proc set-env {var val} {
+   set mode [currentState mode]
+   reportDebug "$var=$val"
+
+   # an empty string value means unsetting variable on Windows platform, so
+   # call unset-env to ensure variable will not be seen defined yet raising
+   # an error when trying to access it
+   if {[getState is_win] && $val eq {}} {
+      unset-env $var
+   } else {
+      interp-sync-env set $var $val
+
+      # variable is not cleared anymore if set again
+      if {[info exists ::g_clearedEnvVars($var)]} {
+         unset ::g_clearedEnvVars($var)
+      }
+
+      # propagate variable setup to shell environment on load and unload mode
+      if {$mode eq {load} || $mode eq {unload}} {
+         set ::g_stateEnvVars($var) new
+      }
+   }
+}
+
+proc reset-to-unset-env {var {val {}}} {
+   interp-sync-env set $var $val
+   # set var as cleared if val is empty
+   if {$val eq {}} {
+      set ::g_clearedEnvVars($var) 1
+   }
+}
+
+proc unset-env {var {internal 0} {val {}}} {
+   set mode [currentState mode]
+   reportDebug "$var (internal=$internal, val=$val)"
+
+   # clear value instead of unset it not to break variable later reference
+   # in modulefile. clear whether variable set or not to get a later usage
+   # consistent behavior whatever env is setup
+   if {!$internal} {
+      reset-to-unset-env $var $val
+   # internal variables (like ref counter var) are purely unset if they exists
+   } elseif {[info exists ::env($var)]} {
+      interp-sync-env unset $var
+      set intwasset 1
+   }
+
+   # propagate deletion in any case if variable is public and for internal
+   # one only if variable was set
+   if {($mode eq {load} || $mode eq {unload}) && (!$internal ||\
+      [info exists intwasset])} {
+      set ::g_stateEnvVars($var) del
+   }
+}
+
+proc getModshareVarName {var} {
+   # specific modshare variable for DYLD-related variables as a suffixed
+   # variable will lead to warning messages with this tool
+   if {[string range $var 0 4] eq {DYLD_}} {
+      return MODULES_MODSHARE_${var}
+   } else {
+      return ${var}_modshare
+   }
+}
+
+# path fiddling
+proc getReferenceCountArray {var separator} {
+   # get reference counter set in environment
+   set sharevar [getModshareVarName $var]
+   array set refcount {}
+   if {[info exists ::env($sharevar)]} {
+      set modsharelist [psplit $::env($sharevar) [getState path_separator]]
+      # ignore environment ref count variable if malformed
+      if {([llength $modsharelist] % 2) == 0} {
+         array set refcount $modsharelist
+      } else {
+         reportDebug "Reference counter value in '$sharevar' is malformed\
+            ($modsharelist)"
+      }
+   }
+
+   array set countarr {}
+   if {[info exists ::env($var)]} {
+      # do not skip a bare empty path entry that can also be found in
+      # reference counter array (sometimes var is cleared by setting it
+      # empty not unsetting it, ignore var in this case)
+      if {$::env($var) eq {} && [info exists refcount()]} {
+         lappend eltlist {}
+      } else {
+         set eltlist [split $::env($var) $separator]
+      }
+
+      # just go thought the elements of the variable, which means additional
+      # elements part of the reference counter variable will be ignored
+      foreach elt $eltlist {
+         # no reference counter, means value has been set once
+         if {![info exists refcount($elt)]} {
+            set count 1
+         # bad reference counter value is ignored
+         } elseif {![string is digit -strict $refcount($elt)]} {
+            reportDebug "Reference counter value for '$elt' in '$sharevar' is\
+               erroneous ($refcount($elt))"
+            set count 1
+         } else {
+            set count $refcount($elt)
+         }
+         set countarr($elt) $count
+      }
+   }
+
+   set count_list [array get countarr]
+   reportDebug "(var=$var, delim=$separator) got '$count_list'"
+
+   return $count_list
+}
+
+
+proc unload-path {args} {
+   reportDebug ($args)
+
+   lassign [parsePathCommandArgs unload-path {*}$args] separator allow_dup\
+      idx_val var path_list
+
+   array set countarr [getReferenceCountArray $var $separator]
+
+   # Don't worry about dealing with this variable if it is already scheduled
+   #  for deletion
+   if {[info exists ::g_stateEnvVars($var)] && $::g_stateEnvVars($var) eq\
+      {del}} {
+      return {}
+   }
+
+   # save initial variable content to match index arguments
+   set dir_list [split [get-env $var] $separator]
+   # detect if empty env value means empty path entry
+   if {[llength $dir_list] == 0 && [info exists countarr()]} {
+      lappend dir_list {}
+   }
+
+   # build list of index to remove from variable
+   set del_idx_list [list]
+   foreach dir $path_list {
+      # retrieve dir value if working on an index list
+      if {$idx_val} {
+         set idx $dir
+         # go to next index if this one is not part of the existing range
+         # needed to distinguish an empty value to an out-of-bound value
+         if {$idx < 0 || $idx >= [llength $dir_list]} {
+            continue
+         } else {
+            set dir [lindex $dir_list $idx]
+         }
+      }
+
+      # update reference counter array
+      if {[info exists countarr($dir)]} {
+         incr countarr($dir) -1
+         set newcount $countarr($dir)
+         if {$countarr($dir) <= 0} {
+            unset countarr($dir)
+         }
+      } else {
+         set newcount 0
+      }
+
+      # get all entry indexes corresponding to dir
+      set found_idx_list [lsearch -all -exact $dir_list $dir]
+
+      # remove all found entries
+      if {$newcount <= 0} {
+         # only remove passed position in --index mode
+         if {$idx_val} {
+            lappend del_idx_list $idx
+         } else {
+            lappend del_idx_list {*}$found_idx_list
+         }
+      # if multiple entries found remove the extra entries compared to new
+      # reference counter
+      } elseif {[llength $found_idx_list] > $newcount} {
+         # only remove passed position in --index mode
+         if {$idx_val} {
+            lappend del_idx_list $idx
+         } else {
+            # delete extra entries, starting from end of the list (on a path
+            # variable, entries at the end have less priority than those at
+            # the start)
+            lappend del_idx_list {*}[lrange $found_idx_list $newcount end]
+         }
+      }
+   }
+
+   # update variable if some element need to be removed
+   if {[llength $del_idx_list] > 0} {
+      set del_idx_list [lsort -integer -unique $del_idx_list]
+      set newpath [list]
+      set nbelem [llength $dir_list]
+      # rebuild list of element without indexes set for deletion
+      for {set i 0} {$i < $nbelem} {incr i} {
+         if {$i ni $del_idx_list} {
+            lappend newpath [lindex $dir_list $i]
+         }
+      }
+   } else {
+      set newpath $dir_list
+   }
+
+   # set env variable and corresponding reference counter in any case
+   if {[llength $newpath] == 0} {
+      unset-env $var
+   } else {
+      set-env $var [join $newpath $separator]
+   }
+
+   set sharevar [getModshareVarName $var]
+   if {[array size countarr] > 0} {
+      set-env $sharevar [pjoin [array get countarr] [getState path_separator]]
+   } else {
+      unset-env $sharevar 1
+   }
+   return {}
+}
+
+proc add-path {pos args} {
+   reportDebug "($args) pos=$pos"
+
+   lassign [parsePathCommandArgs add-path {*}$args] separator allow_dup\
+      idx_val var path_list
+
+   set sharevar [getModshareVarName $var]
+   array set countarr [getReferenceCountArray $var $separator]
+
+   if {$pos eq {prepend}} {
+      set path_list [lreverse $path_list]
+   }
+
+   set val [get-env $var]
+
+   foreach dir $path_list {
+      if {![info exists countarr($dir)] || $allow_dup} {
+         # ignore env var set empty if no empty entry found in reference
+         # counter array (sometimes var is cleared by setting it empty not
+         # unsetting it)
+         if {$val ne {} || [info exists countarr()]} {
+            set val [expr {$pos eq {prepend} ? "$dir$separator$val" :\
+               "$val$separator$dir"}]
+         } else {
+            set val $dir
+         }
+      }
+      if {[info exists countarr($dir)]} {
+         incr countarr($dir)
+      } else {
+         set countarr($dir) 1
+      }
+   }
+
+   set-env $var $val
+   set-env $sharevar [pjoin [array get countarr] [getState path_separator]]
+
+   return {}
+}
+
+# analyze argument list passed to a path command to set default value or raise
+# error in case some attributes are missing
+proc parsePathCommandArgs {cmd args} {
+   # parse argument list
+   set next_is_delim 0
+   set allow_dup 0
+   set idx_val 0
+   foreach arg $args {
+      # everything passed after variable name is considered a value
+      if {[info exists var]} {
+         # set multiple passed values in a list
+         lappend val_raw_list $arg
+      } else {
+         switch -glob -- $arg {
+            --index {
+               if {$cmd eq {add-path}} {
+                  reportWarning "--index option has no effect on $cmd"
+               } else {
+                  set idx_val 1
+               }
+            }
+            --duplicates {
+               if {$cmd eq {unload-path}} {
+                  reportWarning "--duplicates option has no effect on $cmd"
+               } else {
+                  set allow_dup 1
+               }
+            }
+            -d - -delim - --delim {
+               set next_is_delim 1
+            }
+            --delim=* {
+               set delim [string range $arg 8 end]
+            }
+            -* {
+               knerror "invalid option '$arg' for $cmd"
+            }
+            default {
+               if {$next_is_delim} {
+                  set delim $arg
+                  set next_is_delim 0
+               } else {
+                  set var $arg
+               }
+            }
+         }
+      }
+   }
+
+   # adapt with default value or raise error if some arguments are missing
+   if {![info exists delim]} {
+      set delim [getState path_separator]
+   } elseif {$delim eq {}} {
+      knerror "$cmd should get a non-empty path delimiter"
+   }
+   if {![info exists var]} {
+      knerror "$cmd should get an environment variable name"
+   } elseif {$var eq {}} {
+      knerror "$cmd should get a valid environment variable name"
+   }
+   if {![info exists val_raw_list]} {
+      knerror "$cmd should get a value for environment variable $var"
+   }
+
+   # set list of value to add
+   set val_list [list]
+   foreach val $val_raw_list {
+      # check passed indexes are numbers
+      if {$idx_val && ![string is integer -strict $val]} {
+         knerror "$cmd should get valid number as index value"
+      }
+
+      switch -- $val \
+         {} {
+            # add empty entry in list
+            lappend val_list {}
+         } \
+         $delim {
+            knerror "$cmd cannot handle path equals to separator string"
+         } \
+         default {
+            # split passed value with delimiter
+            lappend val_list {*}[split $val $delim]
+         }
+   }
+
+   reportDebug "(delim=$delim, allow_dup=$allow_dup, idx_val=$idx_val,\
+      var=$var, val=$val_list, nbval=[llength $val_list])"
+
+   return [list $delim $allow_dup $idx_val $var $val_list]
+}
+
 
 #
 # Debug, Info, Warnings and Error message handling.
@@ -1775,70 +3011,6 @@ proc nop {args} {}
 # dummy proc for commands available on other Modules flavor but not here
 proc nimp {cmd args} {
    reportWarning "'$cmd' command not implemented"
-}
-
-proc get-env {var {valifunset {}}} {
-   # return current value if exists and not cleared
-   if {[info exists ::env($var)] && ![info exists ::g_clearedEnvVars($var)]} {
-      return $::env($var)
-   } else {
-      return $valifunset
-   }
-}
-
-proc set-env {var val} {
-   set mode [currentState mode]
-   reportDebug "$var=$val"
-
-   # an empty string value means unsetting variable on Windows platform, so
-   # call unset-env to ensure variable will not be seen defined yet raising
-   # an error when trying to access it
-   if {[getState is_win] && $val eq {}} {
-      unset-env $var
-   } else {
-      interp-sync-env set $var $val
-
-      # variable is not cleared anymore if set again
-      if {[info exists ::g_clearedEnvVars($var)]} {
-         unset ::g_clearedEnvVars($var)
-      }
-
-      # propagate variable setup to shell environment on load and unload mode
-      if {$mode eq {load} || $mode eq {unload}} {
-         set ::g_stateEnvVars($var) new
-      }
-   }
-}
-
-proc reset-to-unset-env {var {val {}}} {
-   interp-sync-env set $var $val
-   # set var as cleared if val is empty
-   if {$val eq {}} {
-      set ::g_clearedEnvVars($var) 1
-   }
-}
-
-proc unset-env {var {internal 0} {val {}}} {
-   set mode [currentState mode]
-   reportDebug "$var (internal=$internal, val=$val)"
-
-   # clear value instead of unset it not to break variable later reference
-   # in modulefile. clear whether variable set or not to get a later usage
-   # consistent behavior whatever env is setup
-   if {!$internal} {
-      reset-to-unset-env $var $val
-   # internal variables (like ref counter var) are purely unset if they exists
-   } elseif {[info exists ::env($var)]} {
-      interp-sync-env unset $var
-      set intwasset 1
-   }
-
-   # propagate deletion in any case if variable is public and for internal
-   # one only if variable was set
-   if {($mode eq {load} || $mode eq {unload}) && (!$internal ||\
-      [info exists intwasset])} {
-      set ::g_stateEnvVars($var) del
-   }
 }
 
 # synchronize environment variable change over all started sub interpreters
@@ -3793,16 +4965,6 @@ proc ml {args} {
    return {}
 }
 
-proc getModshareVarName {var} {
-   # specific modshare variable for DYLD-related variables as a suffixed
-   # variable will lead to warning messages with this tool
-   if {[string range $var 0 4] eq {DYLD_}} {
-      return MODULES_MODSHARE_${var}
-   } else {
-      return ${var}_modshare
-   }
-}
-
 proc setenv {var val} {
    reportDebug "var='$var', val='$val'"
 
@@ -3966,297 +5128,6 @@ proc putsModfileCmd {itrp args} {
          knerror $errMsg MODULES_ERR_CUSTOM
       }
    }
-}
-
-########################################################################
-# path fiddling
-#
-proc getReferenceCountArray {var separator} {
-   # get reference counter set in environment
-   set sharevar [getModshareVarName $var]
-   array set refcount {}
-   if {[info exists ::env($sharevar)]} {
-      set modsharelist [psplit $::env($sharevar) [getState path_separator]]
-      # ignore environment ref count variable if malformed
-      if {([llength $modsharelist] % 2) == 0} {
-         array set refcount $modsharelist
-      } else {
-         reportDebug "Reference counter value in '$sharevar' is malformed\
-            ($modsharelist)"
-      }
-   }
-
-   array set countarr {}
-   if {[info exists ::env($var)]} {
-      # do not skip a bare empty path entry that can also be found in
-      # reference counter array (sometimes var is cleared by setting it
-      # empty not unsetting it, ignore var in this case)
-      if {$::env($var) eq {} && [info exists refcount()]} {
-         lappend eltlist {}
-      } else {
-         set eltlist [split $::env($var) $separator]
-      }
-
-      # just go thought the elements of the variable, which means additional
-      # elements part of the reference counter variable will be ignored
-      foreach elt $eltlist {
-         # no reference counter, means value has been set once
-         if {![info exists refcount($elt)]} {
-            set count 1
-         # bad reference counter value is ignored
-         } elseif {![string is digit -strict $refcount($elt)]} {
-            reportDebug "Reference counter value for '$elt' in '$sharevar' is\
-               erroneous ($refcount($elt))"
-            set count 1
-         } else {
-            set count $refcount($elt)
-         }
-         set countarr($elt) $count
-      }
-   }
-
-   set count_list [array get countarr]
-   reportDebug "(var=$var, delim=$separator) got '$count_list'"
-
-   return $count_list
-}
-
-
-proc unload-path {args} {
-   reportDebug ($args)
-
-   lassign [parsePathCommandArgs unload-path {*}$args] separator allow_dup\
-      idx_val var path_list
-
-   array set countarr [getReferenceCountArray $var $separator]
-
-   # Don't worry about dealing with this variable if it is already scheduled
-   #  for deletion
-   if {[info exists ::g_stateEnvVars($var)] && $::g_stateEnvVars($var) eq\
-      {del}} {
-      return {}
-   }
-
-   # save initial variable content to match index arguments
-   set dir_list [split [get-env $var] $separator]
-   # detect if empty env value means empty path entry
-   if {[llength $dir_list] == 0 && [info exists countarr()]} {
-      lappend dir_list {}
-   }
-
-   # build list of index to remove from variable
-   set del_idx_list [list]
-   foreach dir $path_list {
-      # retrieve dir value if working on an index list
-      if {$idx_val} {
-         set idx $dir
-         # go to next index if this one is not part of the existing range
-         # needed to distinguish an empty value to an out-of-bound value
-         if {$idx < 0 || $idx >= [llength $dir_list]} {
-            continue
-         } else {
-            set dir [lindex $dir_list $idx]
-         }
-      }
-
-      # update reference counter array
-      if {[info exists countarr($dir)]} {
-         incr countarr($dir) -1
-         set newcount $countarr($dir)
-         if {$countarr($dir) <= 0} {
-            unset countarr($dir)
-         }
-      } else {
-         set newcount 0
-      }
-
-      # get all entry indexes corresponding to dir
-      set found_idx_list [lsearch -all -exact $dir_list $dir]
-
-      # remove all found entries
-      if {$newcount <= 0} {
-         # only remove passed position in --index mode
-         if {$idx_val} {
-            lappend del_idx_list $idx
-         } else {
-            lappend del_idx_list {*}$found_idx_list
-         }
-      # if multiple entries found remove the extra entries compared to new
-      # reference counter
-      } elseif {[llength $found_idx_list] > $newcount} {
-         # only remove passed position in --index mode
-         if {$idx_val} {
-            lappend del_idx_list $idx
-         } else {
-            # delete extra entries, starting from end of the list (on a path
-            # variable, entries at the end have less priority than those at
-            # the start)
-            lappend del_idx_list {*}[lrange $found_idx_list $newcount end]
-         }
-      }
-   }
-
-   # update variable if some element need to be removed
-   if {[llength $del_idx_list] > 0} {
-      set del_idx_list [lsort -integer -unique $del_idx_list]
-      set newpath [list]
-      set nbelem [llength $dir_list]
-      # rebuild list of element without indexes set for deletion
-      for {set i 0} {$i < $nbelem} {incr i} {
-         if {$i ni $del_idx_list} {
-            lappend newpath [lindex $dir_list $i]
-         }
-      }
-   } else {
-      set newpath $dir_list
-   }
-
-   # set env variable and corresponding reference counter in any case
-   if {[llength $newpath] == 0} {
-      unset-env $var
-   } else {
-      set-env $var [join $newpath $separator]
-   }
-
-   set sharevar [getModshareVarName $var]
-   if {[array size countarr] > 0} {
-      set-env $sharevar [pjoin [array get countarr] [getState path_separator]]
-   } else {
-      unset-env $sharevar 1
-   }
-   return {}
-}
-
-proc add-path {pos args} {
-   reportDebug "($args) pos=$pos"
-
-   lassign [parsePathCommandArgs add-path {*}$args] separator allow_dup\
-      idx_val var path_list
-
-   set sharevar [getModshareVarName $var]
-   array set countarr [getReferenceCountArray $var $separator]
-
-   if {$pos eq {prepend}} {
-      set path_list [lreverse $path_list]
-   }
-
-   set val [get-env $var]
-
-   foreach dir $path_list {
-      if {![info exists countarr($dir)] || $allow_dup} {
-         # ignore env var set empty if no empty entry found in reference
-         # counter array (sometimes var is cleared by setting it empty not
-         # unsetting it)
-         if {$val ne {} || [info exists countarr()]} {
-            set val [expr {$pos eq {prepend} ? "$dir$separator$val" :\
-               "$val$separator$dir"}]
-         } else {
-            set val $dir
-         }
-      }
-      if {[info exists countarr($dir)]} {
-         incr countarr($dir)
-      } else {
-         set countarr($dir) 1
-      }
-   }
-
-   set-env $var $val
-   set-env $sharevar [pjoin [array get countarr] [getState path_separator]]
-
-   return {}
-}
-
-# analyze argument list passed to a path command to set default value or raise
-# error in case some attributes are missing
-proc parsePathCommandArgs {cmd args} {
-   # parse argument list
-   set next_is_delim 0
-   set allow_dup 0
-   set idx_val 0
-   foreach arg $args {
-      # everything passed after variable name is considered a value
-      if {[info exists var]} {
-         # set multiple passed values in a list
-         lappend val_raw_list $arg
-      } else {
-         switch -glob -- $arg {
-            --index {
-               if {$cmd eq {add-path}} {
-                  reportWarning "--index option has no effect on $cmd"
-               } else {
-                  set idx_val 1
-               }
-            }
-            --duplicates {
-               if {$cmd eq {unload-path}} {
-                  reportWarning "--duplicates option has no effect on $cmd"
-               } else {
-                  set allow_dup 1
-               }
-            }
-            -d - -delim - --delim {
-               set next_is_delim 1
-            }
-            --delim=* {
-               set delim [string range $arg 8 end]
-            }
-            -* {
-               knerror "invalid option '$arg' for $cmd"
-            }
-            default {
-               if {$next_is_delim} {
-                  set delim $arg
-                  set next_is_delim 0
-               } else {
-                  set var $arg
-               }
-            }
-         }
-      }
-   }
-
-   # adapt with default value or raise error if some arguments are missing
-   if {![info exists delim]} {
-      set delim [getState path_separator]
-   } elseif {$delim eq {}} {
-      knerror "$cmd should get a non-empty path delimiter"
-   }
-   if {![info exists var]} {
-      knerror "$cmd should get an environment variable name"
-   } elseif {$var eq {}} {
-      knerror "$cmd should get a valid environment variable name"
-   }
-   if {![info exists val_raw_list]} {
-      knerror "$cmd should get a value for environment variable $var"
-   }
-
-   # set list of value to add
-   set val_list [list]
-   foreach val $val_raw_list {
-      # check passed indexes are numbers
-      if {$idx_val && ![string is integer -strict $val]} {
-         knerror "$cmd should get valid number as index value"
-      }
-
-      switch -- $val \
-         {} {
-            # add empty entry in list
-            lappend val_list {}
-         } \
-         $delim {
-            knerror "$cmd cannot handle path equals to separator string"
-         } \
-         default {
-            # split passed value with delimiter
-            lappend val_list {*}[split $val $delim]
-         }
-   }
-
-   reportDebug "(delim=$delim, allow_dup=$allow_dup, idx_val=$idx_val,\
-      var=$var, val=$val_list, nbval=[llength $val_list])"
-
-   return [list $delim $allow_dup $idx_val $var $val_list]
 }
 
 proc prepend-path {args} {
@@ -7519,874 +8390,6 @@ proc restoreSettings {} {
    }
    reportDebug "previously saved settings restored\
       (#[getSavedSettingsStackDepth])"
-}
-
-proc renderSettings {} {
-   global g_stateEnvVars g_stateAliases g_stateFunctions g_newXResources\
-      g_delXResources
-
-   reportDebug called.
-
-   # required to work on cygwin, shouldn't hurt real linux
-   fconfigure stdout -translation lf
-
-   # preliminaries if there is stuff to render
-   if {[getState autoinit] || [array size g_stateEnvVars] > 0 ||\
-      [array size g_stateAliases] > 0 || [array size g_newXResources] > 0 ||\
-      [array size g_stateFunctions] > 0 || [array size g_delXResources] > 0\
-      || [info exists ::g_changeDir] || [info exists ::g_stdoutPuts] ||\
-      [info exists ::g_return_text]} {
-      switch -- [getState shelltype] {
-         python {
-            puts stdout {import os}
-         }
-      }
-      set has_rendered 1
-   } else {
-      set has_rendered 0
-   }
-
-   if {[getState autoinit]} {
-      renderAutoinit
-   }
-
-   # new environment variables
-   foreach var [array names g_stateEnvVars] {
-      switch -- $g_stateEnvVars($var) {
-         new {
-            switch -- [getState shelltype] {
-               csh {
-                  set val [charEscaped $::env($var)]
-                  # csh barfs on long env vars
-                  if {[getState shell] eq {csh} && [string length $val] >\
-                     [getConf csh_limit]} {
-                     if {$var eq {PATH}} {
-                        reportWarning "PATH exceeds [getConf csh_limit]\
-                           characters, truncating and appending\
-                           /usr/bin:/bin ..."
-                        set val [string range $val 0 [expr {[getConf\
-                           csh_limit] - 1}]]:/usr/bin:/bin
-                     } else {
-                        reportWarning "$var exceeds [getConf csh_limit]\
-                           characters, truncating..."
-                         set val [string range $val 0 [expr {[getConf\
-                           csh_limit]  - 1}]]
-                     }
-                  }
-                  puts stdout "setenv $var $val;"
-               }
-               sh {
-                  puts stdout "$var=[charEscaped $::env($var)];\
-                     export $var;"
-               }
-               fish {
-                  set val [charEscaped $::env($var)]
-                  # fish shell has special treatment for PATH variable
-                  # so its value should be provided as a list separated
-                  # by spaces not by semi-colons
-                  if {$var eq {PATH}} {
-                     regsub -all : $val { } val
-                  }
-                  puts stdout "set -xg $var $val;"
-               }
-               tcl {
-                  set val $::env($var)
-                  puts stdout "set ::env($var) {$val};"
-               }
-               cmd {
-                  set val $::env($var)
-                  puts stdout "set $var=$val"
-               }
-               perl {
-                  set val [charEscaped $::env($var) \']
-                  puts stdout "\$ENV{'$var'} = '$val';"
-               }
-               python {
-                  set val [charEscaped $::env($var) \']
-                  puts stdout "os.environ\['$var'\] = '$val'"
-               }
-               ruby {
-                  set val [charEscaped $::env($var) \']
-                  puts stdout "ENV\['$var'\] = '$val'"
-               }
-               lisp {
-                  set val [charEscaped $::env($var) \"]
-                  puts stdout "(setenv \"$var\" \"$val\")"
-               }
-               cmake {
-                  set val [charEscaped $::env($var) \"]
-                  puts stdout "set(ENV{$var} \"$val\")"
-               }
-               r {
-                  set val [charEscaped $::env($var) {\\'}]
-                  puts stdout "Sys.setenv('$var'='$val')"
-               }
-            }
-         }
-         del {
-            switch -- [getState shelltype] {
-               csh {
-                  puts stdout "unsetenv $var;"
-               }
-               sh {
-                  puts stdout "unset $var;"
-               }
-               fish {
-                  puts stdout "set -e $var;"
-               }
-               tcl {
-                  puts stdout "catch {unset ::env($var)};"
-               }
-               cmd {
-                  puts stdout "set $var="
-               }
-               perl {
-                  puts stdout "delete \$ENV{'$var'};"
-               }
-               python {
-                  puts stdout "os.environ\['$var'\] = ''"
-                  puts stdout "del os.environ\['$var'\]"
-               }
-               ruby {
-                  puts stdout "ENV\['$var'\] = nil"
-               }
-               lisp {
-                  puts stdout "(setenv \"$var\" nil)"
-               }
-               cmake {
-                  puts stdout "unset(ENV{$var})"
-               }
-               r {
-                  puts stdout "Sys.unsetenv('$var')"
-               }
-            }
-         }
-      }
-   }
-
-   foreach var [array names g_stateAliases] {
-      switch -- $g_stateAliases($var) {
-         new {
-            set val $::g_Aliases($var)
-            # convert $n in !!:n and $* in !* on csh (like on compat version)
-            if {[getState shelltype] eq {csh}} {
-               regsub -all {([^\\]|^)\$([0-9]+)} $val {\1!!:\2} val
-               regsub -all {([^\\]|^)\$\*} $val {\1!*} val
-            }
-            # unescape \$ after now csh-specific conversion is over
-            regsub -all {\\\$} $val {$} val
-            switch -- [getState shelltype] {
-               csh {
-                  set val [charEscaped $val]
-                  puts stdout "alias $var $val;"
-               }
-               sh {
-                  set val [charEscaped $val]
-                  puts stdout "alias $var=$val;"
-               }
-               fish {
-                  set val [charEscaped $val]
-                  puts stdout "alias $var $val;"
-               }
-               cmd {
-                  puts stdout "doskey $var=$val"
-               }
-            }
-         }
-         del {
-            switch -- [getState shelltype] {
-               csh {
-                  puts stdout "unalias $var;"
-               }
-               sh {
-                  puts stdout "unalias $var;"
-               }
-               fish {
-                  puts stdout "functions -e $var;"
-               }
-               cmd {
-                  puts stdout "doskey $var="
-               }
-            }
-         }
-      }
-   }
-   foreach funcname [array names g_stateFunctions] {
-      switch -- $g_stateFunctions($funcname) {
-         new {
-            # trim function body to smoothly add a finishing ;
-            set val [string trim $::g_Functions($funcname) "; \t\n\r"]
-            switch -- [getState shell] {
-               sh - ksh - zsh {
-                  puts stdout "$funcname () { $val; };"
-               }
-               bash {
-                  puts stdout "$funcname () { $val; }; export -f $funcname;"
-               }
-               fish {
-                  puts stdout "function $funcname; $val; end;"
-               }
-            }
-         }
-         del {
-            switch -- [getState shelltype] {
-               sh {
-                  puts stdout "unset -f $funcname;"
-               }
-               fish {
-                  puts stdout "functions -e $funcname;"
-               }
-            }
-         }
-      }
-   }
-
-   # preliminaries for x-resources stuff
-   if {[array size g_newXResources] > 0 || [array size g_delXResources] > 0} {
-      switch -- [getState shelltype] {
-         python {
-            puts stdout {import subprocess}
-         }
-         ruby {
-            puts stdout {require 'open3'}
-         }
-      }
-   }
-
-   # new x resources
-   if {[array size g_newXResources] > 0} {
-      # xrdb executable has already be verified in x-resource
-      set xrdb [getCommandPath xrdb]
-      foreach var [array names g_newXResources] {
-         set val $g_newXResources($var)
-         # empty val means that var is a file to parse
-         if {$val eq {}} {
-            switch -- [getState shelltype] {
-               sh - csh - fish {
-                  puts stdout "$xrdb -merge $var;"
-               }
-               tcl {
-                  puts stdout "exec $xrdb -merge $var;"
-               }
-               perl {
-                  puts stdout "system(\"$xrdb -merge $var\");"
-               }
-               python {
-                  set var [charEscaped $var \']
-                  puts stdout "subprocess.Popen(\['$xrdb',\
-                     '-merge', '$var'\])"
-               }
-               ruby {
-                  set var [charEscaped $var \']
-                  puts stdout "Open3.popen2('$xrdb -merge $var')"
-               }
-               lisp {
-                  puts stdout "(shell-command-to-string \"$xrdb\
-                     -merge $var\")"
-               }
-               cmake {
-                  puts stdout "execute_process(COMMAND $xrdb -merge $var)"
-               }
-               r {
-                  set var [charEscaped $var {\\'}]
-                  puts stdout "system('$xrdb -merge $var')"
-               }
-            }
-         } else {
-            switch -- [getState shelltype] {
-               sh - csh - fish {
-                  set var [charEscaped $var \"]
-                  set val [charEscaped $val \"]
-                  puts stdout "echo \"$var: $val\" | $xrdb -merge;"
-               }
-               tcl {
-                  puts stdout "set XRDBPIPE \[open \"|$xrdb -merge\" r+\];"
-                  set var [charEscaped $var \"]
-                  set val [charEscaped $val \"]
-                  puts stdout "puts \$XRDBPIPE \"$var: $val\";"
-                  puts stdout {close $XRDBPIPE;}
-                  puts stdout {unset XRDBPIPE;}
-               }
-               perl {
-                  puts stdout "open(XRDBPIPE, \"|$xrdb -merge\");"
-                  set var [charEscaped $var \"]
-                  set val [charEscaped $val \"]
-                  puts stdout "print XRDBPIPE \"$var: $val\\n\";"
-                  puts stdout {close XRDBPIPE;}
-               }
-               python {
-                  set var [charEscaped $var \']
-                  set val [charEscaped $val \']
-                  puts stdout "subprocess.Popen(\['$xrdb', '-merge'\],\
-                     stdin=subprocess.PIPE).communicate(input='$var:\
-                     $val\\n')"
-               }
-               ruby {
-                  set var [charEscaped $var \']
-                  set val [charEscaped $val \']
-                  puts stdout "Open3.popen2('$xrdb -merge') {|i,o,t| i.puts\
-                     '$var: $val'}"
-               }
-               lisp {
-                  puts stdout "(shell-command-to-string \"echo $var:\
-                     $val | $xrdb -merge\")"
-               }
-               cmake {
-                  set var [charEscaped $var \"]
-                  set val [charEscaped $val \"]
-                  puts stdout "execute_process(COMMAND echo \"$var: $val\"\
-                     COMMAND $xrdb -merge)"
-               }
-               r {
-                  set var [charEscaped $var {\\'}]
-                  set val [charEscaped $val {\\'}]
-                  puts stdout "system('$xrdb -merge', input='$var: $val')"
-               }
-            }
-         }
-      }
-   }
-
-   if {[array size g_delXResources] > 0} {
-      set xrdb [getCommandPath xrdb]
-      set xres_to_del {}
-      foreach var [array names g_delXResources] {
-         # empty val means that var is a file to parse
-         if {$g_delXResources($var) eq {}} {
-            # xresource file has to be parsed to find what resources
-            # are declared there and need to be unset
-            foreach fline [split [exec $xrdb -n load $var] \n] {
-               lappend xres_to_del [lindex [split $fline :] 0]
-            }
-         } else {
-            lappend xres_to_del $var
-         }
-      }
-
-      # xresource strings are unset by emptying their value since there
-      # is no command of xrdb that can properly remove one property
-      switch -- [getState shelltype] {
-         sh - csh - fish {
-            foreach var $xres_to_del {
-               puts stdout "echo \"$var:\" | $xrdb -merge;"
-            }
-         }
-         tcl {
-            foreach var $xres_to_del {
-               puts stdout "set XRDBPIPE \[open \"|$xrdb -merge\" r+\];"
-               set var [charEscaped $var \"]
-               puts stdout "puts \$XRDBPIPE \"$var:\";"
-               puts stdout {close $XRDBPIPE;}
-               puts stdout {unset XRDBPIPE;}
-            }
-         }
-         perl {
-            foreach var $xres_to_del {
-               puts stdout "open(XRDBPIPE, \"|$xrdb -merge\");"
-               set var [charEscaped $var \"]
-               puts stdout "print XRDBPIPE \"$var:\\n\";"
-               puts stdout {close XRDBPIPE;}
-            }
-         }
-         python {
-            foreach var $xres_to_del {
-               set var [charEscaped $var \']
-               puts stdout "subprocess.Popen(\['$xrdb', '-merge'\],\
-                  stdin=subprocess.PIPE).communicate(input='$var:\\n')"
-            }
-         }
-         ruby {
-            foreach var $xres_to_del {
-               set var [charEscaped $var \']
-               puts stdout "Open3.popen2('$xrdb -merge') {|i,o,t| i.puts\
-                  '$var:'}"
-            }
-         }
-         lisp {
-            foreach var $xres_to_del {
-               puts stdout "(shell-command-to-string \"echo $var: |\
-                  $xrdb -merge\")"
-            }
-         }
-         cmake {
-            foreach var $xres_to_del {
-               set var [charEscaped $var \"]
-               puts stdout "execute_process(COMMAND echo \"$var:\"\
-                  COMMAND $xrdb -merge)"
-            }
-         }
-         r {
-            foreach var $xres_to_del {
-               set var [charEscaped $var {\\'}]
-               puts stdout "system('$xrdb -merge', input='$var:')"
-            }
-         }
-      }
-   }
-
-   if {[info exists ::g_changeDir]} {
-      switch -- [getState shelltype] {
-         sh - csh - fish {
-            puts stdout "cd '$::g_changeDir';"
-         }
-         tcl {
-            puts stdout "cd \"$::g_changeDir\";"
-         }
-         cmd {
-            puts stdout "cd $::g_changeDir"
-         }
-         perl {
-            puts stdout "chdir '$::g_changeDir';"
-         }
-         python {
-            puts stdout "os.chdir('$::g_changeDir')"
-         }
-         ruby {
-            puts stdout "Dir.chdir('$::g_changeDir')"
-         }
-         lisp {
-            puts stdout "(shell-command-to-string \"cd '$::g_changeDir'\")"
-         }
-         r {
-            puts stdout "setwd('$::g_changeDir')"
-         }
-      }
-      # cannot change current directory of cmake "shell"
-   }
-
-   # send content deferred during modulefile interpretation
-   if {[info exists ::g_stdoutPuts]} {
-      foreach putsArgs $::g_stdoutPuts {
-         puts {*}$putsArgs
-         # check if a finishing newline will be needed after content sent
-         set needPutsNl [expr {[lindex $putsArgs 0] eq {-nonewline}}]
-      }
-      if {$needPutsNl} {
-         puts stdout {}
-      }
-   }
-
-   # return text value if defined even if error happened
-   if {[info exists ::g_return_text]} {
-      reportDebug {text value should be returned.}
-      renderText $::g_return_text
-   } elseif {[getState error_count] > 0} {
-      reportDebug "[getState error_count] error(s) detected."
-      renderFalse
-   } elseif {[getState return_false]} {
-      reportDebug {false value should be returned.}
-      renderFalse
-   } elseif {$has_rendered} {
-      # finish with true statement if something has been put
-      renderTrue
-   }
-}
-
-proc renderAutoinit {} {
-   reportDebug called.
-
-   # automatically detect which tclsh should be used for
-   # future module commands
-   set tclshbin [info nameofexecutable]
-
-   # ensure script path is absolute
-   set ::argv0 [getAbsolutePath $::argv0]
-
-   switch -- [getState shelltype] {
-      csh {
-         set pre_hi {set _histchars = $histchars; unset histchars;}
-         set post_hi {set histchars = $_histchars; unset _histchars;}
-         set pre_pr {set _prompt=$prompt:q; set prompt="";}
-         set post_pr {set prompt=$_prompt:q; unset _prompt;}
-         # apply workaround for Tcsh history if set
-         set eval_cmd [expr {[getConf wa_277] ? "eval `$tclshbin $::argv0\
-            [getState shell] \\!*`;" :  "eval \"`$tclshbin $::argv0 [getState\
-            shell] \\!*:q`\";"}]
-         set pre_ex {set _exit="$status";}
-         set post_ex {test 0 = $_exit}
-
-         set fdef "if ( \$?histchars && \$?prompt )\
-alias module '$pre_hi $pre_pr $eval_cmd $pre_ex $post_hi $post_pr $post_ex' ;
-if ( \$?histchars && ! \$?prompt )\
-alias module '$pre_hi $eval_cmd $pre_ex $post_hi $post_ex' ;
-if ( ! \$?histchars && \$?prompt )\
-alias module '$pre_pr $eval_cmd $pre_ex $post_pr $post_ex' ;
-if ( ! \$?histchars && ! \$?prompt ) alias module '$eval_cmd' ;"
-         if {[getConf ml]} {
-            append fdef {
-alias ml 'module ml \!*' ;}
-         }
-      }
-      sh {
-         # Considering the diversity of ways local variables are handled
-         # through the sh-variants ('local' known everywhere except on ksh,
-         # 'typeset' known everywhere except on pure-sh, and on some systems
-         # the pure-sh is in fact a 'ksh'), no local variables are defined and
-         # these variables that should have been local are unset at the end
-
-         # on zsh, word splitting should be enabled explicitly
-         set wsplit [expr {[getState shell] eq {zsh} ? {^^=} : {}}]
-         # only redirect module from stderr to stdout when session is
-         # attached to a terminal to avoid breaking non-terminal session
-         # (scp, sftp, etc)
-         set fname [expr {[getState is_stderr_tty] ? {_module_raw} : {module}}]
-         # build quarantine mechanism in module function
-         # an empty runtime variable is set even if no corresponding
-         # MODULES_RUNENV_* variable found, as var cannot be unset on
-         # modified environment command-line
-         set fdef "${fname}() {"
-@silentshdbgsupport@         append fdef {
-@silentshdbgsupport@   unset _mlshdbg;
-@silentshdbgsupport@   if [ "${MODULES_SILENT_SHELL_DEBUG:-0}" = '1' ]; then
-@silentshdbgsupport@      case "$-" in
-@silentshdbgsupport@         *v*x*) set +vx; _mlshdbg='vx' ;;
-@silentshdbgsupport@         *v*) set +v; _mlshdbg='v' ;;
-@silentshdbgsupport@         *x*) set +x; _mlshdbg='x' ;;
-@silentshdbgsupport@         *) _mlshdbg='' ;;
-@silentshdbgsupport@      esac;
-@silentshdbgsupport@   fi;}
-@quarantinesupport@         append fdef "
-@quarantinesupport@   unset _mlre _mlIFS;
-@quarantinesupport@   if \[ -n \"\${IFS+x}\" \]; then
-@quarantinesupport@      _mlIFS=\$IFS;
-@quarantinesupport@   fi;
-@quarantinesupport@   IFS=' ';
-@quarantinesupport@   for _mlv in \${${wsplit}MODULES_RUN_QUARANTINE:-}; do"
-@quarantinesupport@         append fdef {
-@quarantinesupport@      if [ "${_mlv}" = "${_mlv##*[!A-Za-z0-9_]}" -a "${_mlv}" = "${_mlv#[0-9]}" ]; then
-@quarantinesupport@         if [ -n "`eval 'echo ${'$_mlv'+x}'`" ]; then
-@quarantinesupport@            _mlre="${_mlre:-}__MODULES_QUAR_${_mlv}='`eval 'echo ${'$_mlv'}'`' ";
-@quarantinesupport@         fi;
-@quarantinesupport@         _mlrv="MODULES_RUNENV_${_mlv}";
-@quarantinesupport@         _mlre="${_mlre:-}${_mlv}='`eval 'echo ${'$_mlrv':-}'`' ";
-@quarantinesupport@      fi;
-@quarantinesupport@   done;
-@quarantinesupport@   if [ -n "${_mlre:-}" ]; then}
-@quarantinesupport@         append fdef "\n      eval `eval \${${wsplit}_mlre} $tclshbin $::argv0\
-@quarantinesupport@[getState shell] '\"\$@\"'`;
-@quarantinesupport@   else
-@quarantinesupport@      eval `$tclshbin $::argv0 [getState shell] \"\$@\"`;
-@quarantinesupport@   fi;"
-@notquarantinesupport@         append fdef "
-@notquarantinesupport@   eval `$tclshbin $::argv0 [getState shell] \"\$@\"`;"
-         append fdef {
-   _mlstatus=$?;}
-@quarantinesupport@         append fdef {
-@quarantinesupport@   if [ -n "${_mlIFS+x}" ]; then
-@quarantinesupport@      IFS=$_mlIFS;
-@quarantinesupport@   else
-@quarantinesupport@      unset IFS;
-@quarantinesupport@   fi;
-@quarantinesupport@   unset _mlre _mlv _mlrv _mlIFS;}
-@silentshdbgsupport@         append fdef {
-@silentshdbgsupport@   if [ -n "${_mlshdbg:-}" ]; then
-@silentshdbgsupport@      set -$_mlshdbg;
-@silentshdbgsupport@   fi;
-@silentshdbgsupport@   unset _mlshdbg;}
-         append fdef {
-   return $_mlstatus;}
-         append fdef "\n};"
-         if {[getState is_stderr_tty]} {
-            append fdef "\nmodule() { _module_raw \"\$@\" 2>&1; };"
-         }
-         if {[getConf ml]} {
-            append fdef {
-ml() { module ml "$@"; };}
-         }
-      }
-      fish {
-         set fdef [expr {[getState is_stderr_tty] ? "function _module_raw\n" :\
-            "function module\n"}]
-@quarantinesupport@         append fdef {   set -l _mlre ''; set -l _mlv; set -l _mlrv;
-@quarantinesupport@   for _mlv in (string split ' ' $MODULES_RUN_QUARANTINE)
-@quarantinesupport@      if string match -r '^[A-Za-z_][A-Za-z0-9_]*$' $_mlv >/dev/null
-@quarantinesupport@         if set -q $_mlv
-@quarantinesupport@            set _mlre $_mlre"__MODULES_QUAR_"$_mlv"='$$_mlv' "
-@quarantinesupport@         end
-@quarantinesupport@         set _mlrv "MODULES_RUNENV_$_mlv"
-@quarantinesupport@         set _mlre "$_mlre$_mlv='$$_mlrv' "
-@quarantinesupport@      end
-@quarantinesupport@   end
-@quarantinesupport@   if [ -n "$_mlre" ]
-@quarantinesupport@      set _mlre "env $_mlre"
-@quarantinesupport@   end}
-         # use "| source -" rather than "eval" to be able
-         # to redirect stderr after stdout being evaluated
-@quarantinesupport@         append fdef "\n   eval \$_mlre $tclshbin $::argv0 [getState shell]\
-            (string escape -- \$argv) | source -\n"
-@notquarantinesupport@         append fdef "   eval $tclshbin $::argv0 [getState shell]\
-            (string escape -- \$argv) | source -\n"
-         if {[getState is_stderr_tty]} {
-            append fdef {end
-function module
-   _module_raw $argv 2>&1
-end}
-         } else {
-            append fdef end
-         }
-         if {[getConf ml]} {
-            append fdef {
-function ml
-   module ml $argv
-end}
-         }
-      }
-      tcl {
-         set fdef "proc module {args} {"
-@quarantinesupport@         append fdef {
-@quarantinesupport@   set _mlre {};
-@quarantinesupport@   if {[info exists ::env(MODULES_RUN_QUARANTINE)]} {
-@quarantinesupport@      foreach _mlv [split $::env(MODULES_RUN_QUARANTINE) " "] {
-@quarantinesupport@         if {[regexp {^[A-Za-z_][A-Za-z0-9_]*$} $_mlv]} {
-@quarantinesupport@            if {[info exists ::env($_mlv)]} {
-@quarantinesupport@               lappend _mlre "__MODULES_QUAR_${_mlv}=$::env($_mlv)"
-@quarantinesupport@            }
-@quarantinesupport@            set _mlrv "MODULES_RUNENV_${_mlv}"
-@quarantinesupport@            lappend _mlre [expr {[info exists ::env($_mlrv)] ?\
-               "${_mlv}=$::env($_mlrv)" : "${_mlv}="}]
-@quarantinesupport@         }
-@quarantinesupport@      }
-@quarantinesupport@      if {[llength $_mlre] > 0} {
-@quarantinesupport@         set _mlre [linsert $_mlre 0 "env"]
-@quarantinesupport@      }
-@quarantinesupport@   }}
-      append fdef {
-   set _mlstatus 1;}
-@quarantinesupport@         append fdef "\n   catch {exec {*}\$_mlre \"$tclshbin\"\
-            \"$::argv0\" \"[getState shell]\" {*}\$args 2>@stderr} script\n"
-@notquarantinesupport@         append fdef "\n   catch {exec \"$tclshbin\"\
-            \"$::argv0\" \"[getState shell]\" {*}\$args 2>@stderr} script\n"
-         append fdef {   eval $script;
-   return $_mlstatus}
-         append fdef "\n}"
-         if {[getConf ml]} {
-            append fdef {
-proc ml {args} {
-   return [module ml {*}$args]
-}}
-         }
-      }
-      cmd {
-         reportErrorAndExit {No autoinit mode available for 'cmd' shell}
-      }
-      perl {
-         set fdef "sub module {"
-@quarantinesupport@         append fdef {
-@quarantinesupport@   my $_mlre = '';
-@quarantinesupport@   if (defined $ENV{'MODULES_RUN_QUARANTINE'}) {
-@quarantinesupport@      foreach my $_mlv (split(' ', $ENV{'MODULES_RUN_QUARANTINE'})) {
-@quarantinesupport@         if ($_mlv =~ /^[A-Za-z_][A-Za-z0-9_]*$/) {
-@quarantinesupport@            if (defined $ENV{$_mlv}) {
-@quarantinesupport@               $_mlre .= "__MODULES_QUAR_${_mlv}='$ENV{$_mlv}' ";
-@quarantinesupport@            }
-@quarantinesupport@            my $_mlrv = "MODULES_RUNENV_$_mlv";
-@quarantinesupport@            $_mlre .= "$_mlv='$ENV{$_mlrv}' ";
-@quarantinesupport@        }
-@quarantinesupport@      }
-@quarantinesupport@      if ($_mlre ne "") {
-@quarantinesupport@         $_mlre = "env $_mlre";
-@quarantinesupport@      }
-@quarantinesupport@   }}
-         append fdef {
-   my $args = '';
-   if (@_ > 0) {
-      $args = '"' . join('" "', @_) . '"';
-   }
-   my $_mlstatus = 1;}
-@quarantinesupport@         append fdef "\n   eval `\${_mlre}$tclshbin $::argv0 perl \$args`;\n"
-@notquarantinesupport@         append fdef "\n   eval `$tclshbin $::argv0 perl \$args`;\n"
-         append fdef {   return $_mlstatus;}
-         append fdef "\n}"
-         if {[getConf ml]} {
-            append fdef {
-sub ml {
-   return module('ml', @_);
-}}
-         }
-      }
-      python {
-         set fdef {import re, subprocess
-def module(*arguments):}
-@quarantinesupport@         append fdef {
-@quarantinesupport@   _mlre = os.environ.copy()
-@quarantinesupport@   if 'MODULES_RUN_QUARANTINE' in os.environ:
-@quarantinesupport@      for _mlv in os.environ['MODULES_RUN_QUARANTINE'].split():
-@quarantinesupport@         if re.match('^[A-Za-z_][A-Za-z0-9_]*$', _mlv):
-@quarantinesupport@            if _mlv in os.environ:
-@quarantinesupport@               _mlre['__MODULES_QUAR_' + _mlv] = os.environ[_mlv]
-@quarantinesupport@            _mlrv = 'MODULES_RUNENV_' + _mlv
-@quarantinesupport@            if _mlrv in os.environ:
-@quarantinesupport@               _mlre[_mlv] = os.environ[_mlrv]
-@quarantinesupport@            else:
-@quarantinesupport@               _mlre[_mlv] = ''}
-         append fdef {
-   ns = {}}
-@quarantinesupport@         append fdef "\n   exec(subprocess.Popen(\['$tclshbin',\
-            '$::argv0', 'python'\] + list(arguments),\
-            stdout=subprocess.PIPE, env=_mlre).communicate()\[0\], ns)\n"
-@notquarantinesupport@         append fdef "\n   exec(subprocess.Popen(\['$tclshbin',\
-            '$::argv0', 'python'\] + list(arguments),\
-            stdout=subprocess.PIPE).communicate()\[0\], ns)\n"
-         append fdef {   if '_mlstatus' in ns:
-      _mlstatus = ns['_mlstatus']
-   else:
-      _mlstatus = True
-   return _mlstatus}
-         if {[getConf ml]} {
-            append fdef {
-def ml(*arguments):
-   return module('ml', *arguments)
-}
-         }
-      }
-      ruby {
-         set fdef {class ENVModule
-   def ENVModule.module(*args)}
-@quarantinesupport@         append fdef {
-@quarantinesupport@      _mlre = ''
-@quarantinesupport@      if ENV.has_key?('MODULES_RUN_QUARANTINE') then
-@quarantinesupport@         ENV['MODULES_RUN_QUARANTINE'].split(' ').each do |_mlv|
-@quarantinesupport@            if _mlv =~ /^[A-Za-z_][A-Za-z0-9_]*$/ then
-@quarantinesupport@               if ENV.has_key?(_mlv) then
-@quarantinesupport@                  _mlre << "__MODULES_QUAR_" + _mlv + "='" + ENV[_mlv].to_s + "' "
-@quarantinesupport@               end
-@quarantinesupport@               _mlrv = 'MODULES_RUNENV_' + _mlv
-@quarantinesupport@               _mlre << _mlv + "='" + ENV[_mlrv].to_s + "' "
-@quarantinesupport@            end
-@quarantinesupport@         end
-@quarantinesupport@         unless _mlre.empty?
-@quarantinesupport@            _mlre = 'env ' + _mlre
-@quarantinesupport@         end
-@quarantinesupport@      end}
-         append fdef {
-      if args[0].kind_of?(Array) then
-         args = args[0]
-      end
-      if args.length == 0 then
-         args = ''
-      else
-         args = "\"#{args.join('" "')}\""
-      end
-      _mlstatus = true}
-@quarantinesupport@         append fdef "\n      eval `#{_mlre}$tclshbin $::argv0 ruby #{args}`\n"
-@notquarantinesupport@         append fdef "\n      eval `$tclshbin $::argv0 ruby #{args}`\n"
-         append fdef {      return _mlstatus
-   end}
-         if {[getConf ml]} {
-            append fdef {
-   def ENVModule.ml(*args)
-      return ENVModule.module('ml', *args)
-   end}
-         }
-         append fdef {
-end}
-      }
-      lisp {
-         reportErrorAndExit {lisp mode autoinit not yet implemented}
-      }
-      cmake {
-@quarantinesupport@         set pre_exec "\n      execute_process(COMMAND \${_mlre} $tclshbin\
-            $::argv0 cmake "
-@notquarantinesupport@         set pre_exec "\n      execute_process(COMMAND $tclshbin\
-            $::argv0 cmake "
-         set post_exec "\n         OUTPUT_FILE \${tempfile_name})\n"
-         set fdef {function(module)
-   cmake_policy(SET CMP0007 NEW)}
-@quarantinesupport@         append fdef {
-@quarantinesupport@   set(_mlre "")
-@quarantinesupport@   if(DEFINED ENV{MODULES_RUN_QUARANTINE})
-@quarantinesupport@      string(REPLACE " " ";" _mlv_list "$ENV{MODULES_RUN_QUARANTINE}")
-@quarantinesupport@      foreach(_mlv ${_mlv_list})
-@quarantinesupport@         if(${_mlv} MATCHES "^[A-Za-z_][A-Za-z0-9_]*$")
-@quarantinesupport@            if(DEFINED ENV{${_mlv}})
-@quarantinesupport@               set(_mlre "${_mlre}__MODULES_QUAR_${_mlv}=$ENV{${_mlv}};")
-@quarantinesupport@            endif()
-@quarantinesupport@            set(_mlrv "MODULES_RUNENV_${_mlv}")
-@quarantinesupport@            set(_mlre "${_mlre}${_mlv}=$ENV{${_mlrv}};")
-@quarantinesupport@        endif()
-@quarantinesupport@      endforeach()
-@quarantinesupport@      if (NOT "${_mlre}" STREQUAL "")
-@quarantinesupport@         set(_mlre "env;${_mlre}")
-@quarantinesupport@      endif()
-@quarantinesupport@   endif()}
-         append fdef {
-   set(_mlstatus TRUE)
-   execute_process(COMMAND mktemp -t moduleinit.cmake.XXXXXXXXXXXX
-      OUTPUT_VARIABLE tempfile_name
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-   if(${ARGC} EQUAL 1)}
-            # adapt command definition depending on the number of args to be
-            # able to pass to some extend (<5 args) empty string element to
-            # modulecmd (no other way as empty element in ${ARGV} are skipped
-            append fdef "$pre_exec\"\${ARGV0}\"$post_exec"
-            append fdef {   elseif(${ARGC} EQUAL 2)}
-            append fdef "$pre_exec\"\${ARGV0}\" \"\${ARGV1}\"$post_exec"
-            append fdef {   elseif(${ARGC} EQUAL 3)}
-            append fdef "$pre_exec\"\${ARGV0}\" \"\${ARGV1}\"\
-               \"\${ARGV2}\"$post_exec"
-            append fdef {   elseif(${ARGC} EQUAL 4)}
-            append fdef "$pre_exec\"\${ARGV0}\" \"\${ARGV1}\"\
-               \"\${ARGV2}\" \"\${ARGV3}\"$post_exec"
-            append fdef {   else()}
-            append fdef "$pre_exec\${ARGV}$post_exec"
-            append fdef {   endif()
-   if(EXISTS ${tempfile_name})
-      include(${tempfile_name})
-      file(REMOVE ${tempfile_name})
-   endif()
-   set(module_result ${_mlstatus} PARENT_SCOPE)
-endfunction(module)}
-         if {[getConf ml]} {
-            append fdef {
-function(ml)
-   module(ml ${ARGV})
-   set(module_result ${module_result} PARENT_SCOPE)
-endfunction(ml)}
-         }
-      }
-      r {
-         set fdef "module <- function(...){"
-@quarantinesupport@         append fdef {
-@quarantinesupport@   mlre <- ''
-@quarantinesupport@   if (!is.na(Sys.getenv('MODULES_RUN_QUARANTINE', unset=NA))) {
-@quarantinesupport@      for (mlv in strsplit(Sys.getenv('MODULES_RUN_QUARANTINE'), ' ')[[1]]) {
-@quarantinesupport@         if (grepl('^[A-Za-z_][A-Za-z0-9_]*$', mlv)) {
-@quarantinesupport@            if (!is.na(Sys.getenv(mlv, unset=NA))) {
-@quarantinesupport@               mlre <- paste0(mlre, "__MODULES_QUAR_", mlv, "='", Sys.getenv(mlv), "' ")
-@quarantinesupport@            }
-@quarantinesupport@            mlrv <- paste0('MODULES_RUNENV_', mlv)
-@quarantinesupport@            mlre <- paste0(mlre, mlv, "='", Sys.getenv(mlrv), "' ")
-@quarantinesupport@         }
-@quarantinesupport@      }
-@quarantinesupport@      if (mlre != '') {
-@quarantinesupport@         mlre <- paste0('env ', mlre)
-@quarantinesupport@      }
-@quarantinesupport@   }}
-         append fdef {
-   arglist <- as.list(match.call())
-   arglist[1] <- 'r'
-   args <- paste0('"', paste0(arglist, collapse='" "'), '"')}
-@quarantinesupport@         append fdef "\n   cmd <- paste(mlre, '$tclshbin', '$::argv0', args,\
-            sep=' ')\n"
-@notquarantinesupport@         append fdef "\n   cmd <- paste('$tclshbin', '$::argv0', args,\
-            sep=' ')\n"
-         append fdef {   mlstatus <- TRUE
-   hndl <- pipe(cmd)
-   eval(expr = parse(file=hndl))
-   close(hndl)
-   invisible(mlstatus)}
-         append fdef "\n}"
-         if {[getConf ml]} {
-            append fdef {
-ml <- function(...){
-   module('ml', ...)
-}}
-         }
-      }
-   }
-
-   # output function definition
-   puts stdout $fdef
 }
 
 proc cacheCurrentModules {{exitonerr 1}} {
