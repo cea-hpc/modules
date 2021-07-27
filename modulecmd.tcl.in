@@ -7551,69 +7551,6 @@ proc unsetLoadedModule {mod modfile} {
    unsetModuleDependency $mod
 }
 
-# Define procedure to get how many parts between passed name and mod are equal
-# Adapt procedure code whether icase is enabled or disabled
-proc defineModStartNbProc {icase} {
-   set procname modStartNbProc
-   if {$icase} {
-      append procname Icase
-   }
-   # define proc if not done yet or if it was defined for another context
-   if {[info procs modStartNb] eq {} || $::g_modStartNb_proc ne $procname} {
-      if {[info exists ::g_modStartNb_proc]} {
-         rename ::modStartNb ::$::g_modStartNb_proc
-      }
-      rename ::$procname ::modStartNb
-      set ::g_modStartNb_proc $procname
-   }
-}
-
-# alternative definitions of modStartNb proc
-proc modStartNbProc {mod name} {
-   # first compare against name's parent chunk by chunk
-   set modname [getModuleNameFromVersSpec $name]
-   if {$modname eq {.}} {
-      set i 0
-      set imax 0
-   } else {
-      set namesplit [split $modname /]
-      set modsplit [split $mod /]
-      set imax [tcl::mathfunc::min [llength $namesplit] [llength $modsplit]]
-      for {set i 0} {$i < $imax} {incr i} {
-         if {![string equal [lindex $modsplit $i] [lindex $namesplit $i]]} {
-            break
-         }
-      }
-   }
-   # if name's parent matches check if full name also matches
-   if {$i == $imax && [modEq $name $mod eqstart]} {
-      incr i
-   }
-   return $i
-}
-proc modStartNbProcIcase {mod name} {
-   set modname [getModuleNameFromVersSpec $name]
-   if {$modname eq {.}} {
-      set i 0
-      set imax 0
-   } else {
-      set namesplit [split $modname /]
-      set modsplit [split $mod /]
-      set imax [if {[llength $namesplit] < [llength $modsplit]} {llength\
-         $namesplit} {llength $modsplit}]
-      for {set i 0} {$i < $imax} {incr i} {
-         if {![string equal -nocase [lindex $modsplit $i] [lindex $namesplit\
-            $i]]} {
-            break
-         }
-      }
-   }
-   if {$i == $imax && [modEq $name $mod eqstart]} {
-      incr i
-   }
-   return $i
-}
-
 # return the currently loaded module whose name is the closest to the
 # name passed as argument. if no loaded module match at least one part
 # of the passed name, an empty string is returned.
@@ -8874,128 +8811,6 @@ proc resolveModuleVersionOrAlias {name icase} {
    return $ret
 }
 
-# Define procedure to compare module names set as array keys against pattern.
-# Adapt procedure code whether implicit_default is enabled or disabled
-proc defineGetEqArrayKeyProc {icase extdfl impdfl} {
-   set procname getEqArrayKeyProc
-   if {$impdfl} {
-      append procname Impdfl
-   }
-
-   # define proc if not done yet or if it was defined for another context
-   if {[info procs getEqArrayKey] eq {} || $::g_getEqArrayKey_proc ne\
-      $procname} {
-      if {[info exists ::g_getEqArrayKey_proc]} {
-         rename ::getEqArrayKey ::$::g_getEqArrayKey_proc
-      }
-      rename ::$procname ::getEqArrayKey
-      set ::g_getEqArrayKey_proc $procname
-   }
-
-   # also define modEq which is called by getEqArrayKey
-   defineModEqProc $icase $extdfl
-}
-
-# alternative definitions of getEqArrayKey proc
-proc getEqArrayKeyProcImpdfl {arrname name} {
-   set icase [isIcase]
-   upvar $arrname arr
-
-   # extract single module specified if any
-   lassign [getModuleVersSpec $name] mod modname
-   # check name eventual icase match
-   set mod [getArrayKey arr [string trimright $mod /] $icase]
-
-   if {$mod ne {} && [info exists arr($mod)]} {
-      set match $mod
-   } else {
-      set mlist {}
-      foreach elt [array names arr] {
-         if {[modEq $name $elt]} {
-            lappend mlist $elt
-         }
-      }
-      if {[llength $mlist] == 1} {
-         set match [lindex $mlist 0]
-      # in case multiple modules match query, check directory default and
-      # return it if it is part of match list, elsewhere return highest result
-      } elseif {[llength $mlist] > 1} {
-         # get corresponding icase parent directory
-         set pname [getArrayKey arr $modname $icase]
-         if {[info exists arr($pname)]} {
-            set dfl $pname/[lindex $arr($pname) 1]
-         }
-         # resolve symbolic version entries
-         foreach elt $mlist {
-            if {[lindex $arr($elt) 0] eq {version}} {
-               lappend mrlist [lindex $arr($elt) 1]
-            } else {
-               lappend mrlist $elt
-            }
-         }
-         if {[info exists dfl] && $dfl in $mrlist} {
-            set match $dfl
-         } else {
-            set match [lindex [lsort -dictionary $mrlist] end]
-         }
-      }
-   }
-   if {[info exists match]} {
-      reportDebug "key '$match' in array '$arrname' matches '$name'"
-      set name $match
-   }
-   return $name
-}
-proc getEqArrayKeyProc {arrname name} {
-   set icase [isIcase]
-   upvar $arrname arr
-
-   lassign [getModuleVersSpec $name] mod modname cmpspec versspec modnamere\
-      modescglob modroot variantlist modnvspec
-   # check name eventual icase match
-   set mod [getArrayKey arr [string trimright $mod /] $icase]
-
-   if {$mod ne {} && [info exists arr($mod)]} {
-      set match $mod
-   } else {
-      set mlist {}
-      foreach elt [array names arr] {
-         if {[modEq $name $elt]} {
-            lappend mlist $elt
-         }
-      }
-      # must have a default part of result even if only one result
-      if {[llength $mlist] >= 1} {
-         # get corresponding icase parent directory
-         set pname [getArrayKey arr $modname $icase]
-         if {[info exists arr($pname)]} {
-            set dfl $pname/[lindex $arr($pname) 1]
-         }
-         # resolve symbolic version entries
-         foreach elt $mlist {
-            if {[lindex $arr($elt) 0] eq {version}} {
-               lappend mrlist [lindex $arr($elt) 1]
-            } else {
-               lappend mrlist $elt
-            }
-         }
-         if {[info exists dfl] && $dfl in $mrlist} {
-            set match $dfl
-         } else {
-            # raise error as no default part of result
-            upvar retlist retlist
-            set retlist [list {} $modnvspec $name none "No default version\
-               defined for '$name'"]
-         }
-      }
-   }
-   if {[info exists match]} {
-      reportDebug "key '$match' in array '$arrname' matches '$name'"
-      set name $match
-   }
-   return $name
-}
-
 proc parseAccessIssue {modfile} {
    # retrieve and return access issue message
    if {[regexp {POSIX .* \{(.*)\}$} $::errorCode match errMsg]} {
@@ -9165,6 +8980,953 @@ proc __getFilesInDirectory {dir fetch_dotversion} {
    }
 
    return $dir_list
+}
+
+# check if an existing findModules cache entry matches current search by
+# evaluating search ids. if an exact match cannot be found, look at saved
+# searches that contains current search (superset of looked elements), extra
+# elements will be filtered-out by GetModules
+proc findModulesInMemCache {searchid} {
+   # exact same search is cached
+   if {[info exists ::g_foundModulesMemCache($searchid)]} {
+      set match_searchid $searchid
+      set mod_list $::g_foundModulesMemCache($searchid)
+   # look for a superset search
+   } else {
+      set match_searchid {}
+      set mod_list {}
+      foreach cacheid [array names ::g_foundModulesMemCache] {
+         # cache id acts as pattern to check if it contains current search
+         if {[string match $cacheid $searchid]} {
+            set match_searchid $cacheid
+            set mod_list $::g_foundModulesMemCache($cacheid)
+            break
+         }
+      }
+   }
+
+   return [list $match_searchid $mod_list]
+}
+
+# finds all module-related files matching mod in the module path dir
+proc findModules {dir mod depthlvl fetch_mtime} {
+   reportDebug "finding '$mod' in $dir (depthlvl=$depthlvl,\
+      fetch_mtime=$fetch_mtime)"
+
+   # generated search id (for cache search/save) by compacting given args
+   set searchid $dir:$mod:$depthlvl:$fetch_mtime
+
+   # look at memory cache for a compatible result
+   lassign [findModulesInMemCache $searchid] cache_searchid cache_list
+   if {$cache_searchid ne {}} {
+      reportDebug "use cache entry '$cache_searchid'"
+      return $cache_list
+   }
+
+   defineModEqStaticProc [isIcase] [getConf extended_default] $mod
+
+   # every entries are requested
+   set findall [expr {$mod eq {} || $mod eq {*}}]
+
+   # use catch protection to handle non-readable and non-existent dir
+   if {[catch {
+      set full_list {}
+      foreach {fpelt hid} [getFilesInDirectory $dir 0] {
+         set elt [file tail $fpelt]
+         # include any .modulerc file found at the modulepath root
+         if {$elt eq {.modulerc} || $findall || [modEqStatic $elt match]} {
+            lappend full_list $fpelt
+         }
+      }
+   }]} {
+      return {}
+   }
+
+   foreach igndir [getConf ignored_dirs] {
+      set ignored_dirs($igndir) 1
+   }
+   array set mod_list {}
+   for {set i 0} {$i < [llength $full_list]} {incr i 1} {
+      set element [lindex $full_list $i]
+      set tail [file tail $element]
+      set modulename [getModuleNameFromModulepath $element $dir]
+      set parentname [file dirname $modulename]
+      set moddepthlvl [llength [file split $modulename]]
+      if {[file isdirectory $element]} {
+         if {![info exists ignored_dirs($tail)]} {
+            if {[catch {
+               set elt_list [getFilesInDirectory $element 1]
+            } errMsg]} {
+               set mod_list($modulename) [list accesserr [parseAccessIssue\
+                  $element] $element]
+            } else {
+               # Add each element in the current directory to the list
+               foreach {fpelt hid} $elt_list {
+                  lappend full_list $fpelt
+                  # Flag hidden files
+                  if {$hid} {
+                     set hidden_list($fpelt) 1
+                  }
+               }
+            }
+         }
+      } else {
+         switch -glob -- $tail {
+            .modulerc {
+               set mod_list($modulename) [list modulerc]
+            }
+            .version {
+               # skip .version file from different depth level than search
+               # targets if no in depth mode is enabled
+               if {$depthlvl == 0 || $moddepthlvl == $depthlvl} {
+                  set mod_list($modulename) [list modulerc]
+               }
+            }
+            *~ - *,v - \#*\# { }
+            default {
+               # skip modfile in no in depth mode search if it does not relate
+               # to targeted depth level and one valid modfile has already be
+               # found for the dirs lying at other depth level
+               if {$depthlvl == 0 || $moddepthlvl == $depthlvl || ![info\
+                  exists modfile_indir($parentname)]} {
+                  lassign [checkValidModule $element] check_valid check_msg
+                  switch -- $check_valid {
+                     true {
+                        set mtime [expr {$fetch_mtime ? [getFileMtime\
+                           $element] : {}}]
+                        set mod_list($modulename) [list modulefile $mtime\
+                           $element]
+
+                        # a valid modfile has been found in directory
+                        if {![info exists hidden_list($element)]} {
+                           set modfile_indir($parentname) 1
+                        }
+                     }
+                     default {
+                        # register check error and relative message to get it
+                        # in case of direct access of this module element, but
+                        # no registering in parent directory structure as
+                        # element is not valid
+                        set mod_list($modulename) [list $check_valid\
+                           $check_msg $element]
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
+
+   reportDebug "found [array names mod_list]"
+
+   # cache search results
+   reportDebug "create cache entry '$searchid'"
+   set found_list [array get mod_list]
+   set ::g_foundModulesMemCache($searchid) $found_list
+
+   return $found_list
+}
+
+proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
+   global g_sourceAlias g_sourceVersion g_sourceVirtual g_rcAlias\
+      g_moduleAlias g_rcVersion g_moduleVersion g_rcVirtual g_moduleVirtual\
+      g_rcfilesSourced
+
+   reportDebug "get '$mod' in $dir (fetch_mtime=$fetch_mtime, search=$search,\
+      filter=$filter)"
+
+   # generated search id (for cache search/save) by compacting given args
+   set searchid $dir:$mod:$fetch_mtime:$search:$filter
+
+   # look at memory cache for a compatible result
+   if {[info exists ::g_gotModulesMemCache($searchid)]} {
+      reportDebug "use cache entry '$searchid'"
+      return $::g_gotModulesMemCache($searchid)
+   }
+
+   # extract one module name from query
+   set modqe [getOneModuleFromVersSpec $mod]
+
+   # perform an in depth search or not
+   set indepth [expr {{noindepth} ni $search}]
+
+   # set a default if none defined on directory entries
+   set implicitdfl [getConf implicit_default]
+
+   # automatically define latest and default sym for all modules
+   set autosymbol [expr {$implicitdfl && [getConf advanced_version_spec]}]
+
+   # match passed name against any part of avail module names
+   set contains [expr {{contains} in $search}]
+   set mtest [expr {$contains ? {matchin} : {match}}]
+
+   set icase [isIcase]
+
+   set wild [expr {{wild} in $search}]
+
+   # will only keep default or latest elts in the end or remove plain dirs
+   set filtering [expr {$filter eq {noplaindir}}]
+   set keeping [expr {!$filtering && $filter ne {}}]
+
+   # check search query string corresponds to directory
+   set querydir [string trimright $modqe *]
+   set isquerydir [expr {[string index $querydir end] eq {/}}]
+   set querydir [string trimright $querydir /]
+   set querydepth [countChar $modqe /]
+
+   # get directory relative to module name
+   set moddir [getModuleNameFromVersSpec $mod]
+   set hasmoddir [expr {$moddir ne {.}}]
+   set modroot [getModuleRootFromVersSpec $mod]
+
+   set earlyfilter [expr {!$contains && !$wild && $modroot eq [string\
+      map {* {} ? {}} $modroot]}]
+
+   # are result entries gathered in a resolution context ?
+   set resctx [expr {{resolve} in $search}]
+
+   # if search for global or user rc alias only, no dir lookup is performed
+   # and aliases from g_rcAlias are returned
+   if {{rc_alias_only} in $search} {
+      set add_rc_defs 1
+      array set found_list {}
+   } else {
+      # find modules by searching mod root name in order to catch all module
+      # related entries to correctly computed auto symbols afterward
+
+      if {$contains} {
+         set findmod *
+      } else {
+         set findmod $modroot
+         # if searched mod is an empty or flat element append wildcard
+         # character to match anything starting with mod
+         if {$wild && !$hasmoddir && [string index $findmod end] ne {*}} {
+            append findmod *
+         }
+      }
+
+      # add alias/version definitions from global or user rc to result
+      set add_rc_defs [expr {{rc_defs_included} in $search}]
+
+      # if no indepth mode search, pass the depth level of the search query
+      set depthlvl [expr {$indepth ? 0 : [expr {$querydepth + 1}]}]
+
+      array set found_list [findModules $dir $findmod $depthlvl $fetch_mtime]
+   }
+
+   # Phase #1: consolidate every kind of entries (directory, modulefile,
+   # symbolic version, alias and virtual module) in found_list
+
+   array set err_list {}
+   array set versmod_list {}
+
+   foreach elt [lsort [array names found_list]] {
+      switch -- [lindex $found_list($elt) 0] {
+         modulerc {
+            # process rc files them remove them from found_list
+            if {![info exists g_rcfilesSourced($dir/$elt)]} {
+               execute-modulerc $dir/$elt $elt $elt
+               # Keep track of already sourced rc files not to run them again
+               set g_rcfilesSourced($dir/$elt) 1
+            }
+            unset found_list($elt)
+         }
+         modulefile {
+         }
+         default {
+            # flag entries with error
+            set err_list($elt) 1
+         }
+      }
+   }
+
+   # add all versions found when parsing .version or .modulerc files in this
+   # directory or in global or user rc definitions
+   foreach vers [array names g_moduleVersion] {
+      set versmod $g_moduleVersion($vers)
+      if {($dir ne {} && [string first $dir/ $g_sourceVersion($vers)] == 0)\
+         || [info exists g_rcVersion($vers)]} {
+         set found_list($vers) [list version $versmod]
+
+         # build module symbol list
+         lappend versmod_list($versmod) $vers
+      # add global/user rc def to module symbol list in any cases
+      } elseif {!$add_rc_defs && [info exists g_rcVersion($vers)]} {
+         lappend versmod_list($versmod) $vers
+      }
+   }
+
+   # add aliases found when parsing .version or .modulerc files in this
+   # directory (skip aliases not registered from this directory except if
+   # global or user rc definitions should be included)
+   foreach alias [array names g_moduleAlias] {
+      if {($dir ne {} && [string first $dir/ $g_sourceAlias($alias)] == 0)\
+         || ($add_rc_defs && [info exists g_rcAlias($alias)])} {
+         set found_list($alias) [list alias $g_moduleAlias($alias)]
+      }
+   }
+
+   # add virtual mods found when parsing .version or .modulerc files in this
+   # directory (skip virtual mods not registered from this directory except if
+   # global or user rc definitions should be included)
+   foreach virt [array names g_moduleVirtual] {
+      if {($dir ne {} && [string first $dir/ $g_sourceVirtual($virt)] == 0)\
+         || ($add_rc_defs && [info exists g_rcVirtual($virt)])} {
+         lassign [checkValidModule $g_moduleVirtual($virt)] check_valid\
+            check_msg
+         switch -- $check_valid {
+            true {
+               set mtime [expr {$fetch_mtime ? [getFileMtime\
+                  $g_moduleVirtual($virt)] : {}}]
+               # set mtime at index 1 like a modulefile entry
+               set found_list($virt) [list virtual $mtime\
+                  $g_moduleVirtual($virt)]
+            }
+            default {
+               # register check error and relative message to get it in
+               # case of direct access of this module element
+               set found_list($virt) [list $check_valid $check_msg\
+                  $g_moduleVirtual($virt)]
+               set err_list($virt) 1
+            }
+         }
+      }
+   }
+
+   # Phase #2: filter-out dynamically hidden or expired elements
+
+   # define module name and version comparison procs
+   defineModStartNbProc $icase
+   defineModEqProc $icase [getConf extended_default]
+   defineModEqStaticProc $icase [getConf extended_default] $mod
+
+   # remove hidden elements unless they are (or their symbols) targeted by
+   # search query.
+   foreach elt [array names found_list] {
+      if {$earlyfilter && ![modEq $modroot $elt eqstart]} {
+         unset found_list($elt)
+         continue
+      }
+      if {[lassign [isModuleHidden $elt $mod 1] hidlvl hidmatch hidbydef]} {
+         # is there a symbol that matches query (bare module name query
+         # matches default symbol on resolve context or if onlydefaults filter
+         # is applied)
+         if {!$hidmatch && [info exists versmod_list($elt)]} {
+            foreach eltsym $versmod_list($elt) {
+               if {[modEqStatic $eltsym] || (($resctx || $filter eq\
+                  {onlydefaults}) && "$mod/default" eq $eltsym)} {
+                  set hidmatch 1
+                  break
+               }
+            }
+         }
+         # consider 'default' symbols are explicitly specified if
+         # onlydefaults filter applied or resolving bare module name
+         if {!$hidmatch && [lindex $found_list($elt) 0] eq {version} && [file\
+            tail $elt] eq {default} && ($filter eq {onlydefaults} || ($resctx\
+            && "$mod/default" eq $elt))} {
+            set hidmatch 1
+         }
+
+         # not hidden if matched unless if hard hiding apply
+         if {!$hidmatch || $hidlvl > 1} {
+            # record hidden symbol, not to display it in listModules
+            if {[lindex $found_list($elt) 0] eq {version}} {
+               lappend ::g_hiddenSymHash([lindex $found_list($elt) 1]) [file\
+                  tail $elt]
+            }
+            # transform forbidden module in error entry if it specifically
+            # matches search query
+            if {$hidlvl == 2 && $hidmatch && [isModuleTagged $elt\
+               forbidden]} {
+               set found_list($elt) [list accesserr [getForbiddenMsg $elt]]
+               set err_list($elt) 1
+            } else {
+               unset found_list($elt)
+            }
+         }
+      }
+      # apply hidden tag if an hidden definition apply to module
+      if {$hidbydef} {
+         setModuleTag $elt hidden
+      }
+   }
+
+   # Phase #3: elaborate directory content with default element selection
+
+   array set dir_list {}
+   array set autosym_list {}
+
+   # build list of elements contained in each directory
+   foreach elt [array names found_list] {
+      # add a ref to element in its parent directory unless element has error
+      # or is a symbolic version then recursively add parent element until
+      # reaching top directory
+      if {![info exists err_list($elt)] && [lindex $found_list($elt) 0] ne\
+         {version}} {
+         set direlt $elt
+         while {[set pardir [file dirname $direlt]] ne {.}} {
+            appendNoDupToList dir_list($pardir) [file tail $direlt]
+            set direlt $pardir
+         }
+      }
+   }
+
+   # determine default element for each directory and record sorted elt list
+   # unless if an alias or a virtual module has overwritten directory entry
+   foreach elt [array names dir_list] {
+      if {![info exists found_list($elt)]} {
+         set dir_list($elt) [lsort -dictionary $dir_list($elt)]
+         # get default element: explicitly defined default (whether it exists
+         # or is in error) or implicit default if enabled
+         if {[info exists found_list($elt/default)] && [lindex\
+            $found_list($elt/default) 0] eq {version}} {
+            set dfl [file tail [lindex $found_list($elt/default) 1]]
+         } elseif {$implicitdfl} {
+            set dfl [lindex $dir_list($elt) end]
+         } else {
+            set dfl {}
+         }
+         # record directory properties
+         set found_list($elt) [list directory $dfl {*}$dir_list($elt)]
+
+         # automatically define symbols for all modules matching query if
+         # these names do not exist yet or if in error, in which case only
+         # auto symbol resolution is set
+         if {$autosymbol && (!$hasmoddir || [modEq $modroot $elt eqstart])} {
+            if {![info exists found_list($elt/default)] || [info exists\
+               err_list($elt/default)]} {
+               if {![info exists found_list($elt/default)]} {
+                  set found_list($elt/default) [list version $elt/$dfl]
+                  set autosym_list($elt/default) 1
+               }
+               setModuleResolution $elt/default $elt/$dfl default 1 1
+            }
+            if {![info exists found_list($elt/latest)] || [info exists\
+               err_list($elt/latest)]} {
+               set lat [lindex $dir_list($elt) end]
+               if {![info exists found_list($elt/latest)]} {
+                  set found_list($elt/latest) [list version $elt/$lat]
+                  set autosym_list($elt/latest) 1
+               }
+               setModuleResolution $elt/latest $elt/$lat latest 1 1
+            }
+         }
+      }
+   }
+
+   # Phase #4: filter results to keep those matching search query
+
+   # define module name and version comparison procs
+   defineDoesModMatchAtDepthProc $indepth $querydepth $mtest
+
+   # element to include in output
+   set report_dirwsym [isEltInReport dirwsym]
+
+   array set mod_list {}
+   array set fdir_list {}
+   array set keep_list {}
+
+   # keep element matching query, add directory of element matching query,
+   # also add directory to result if query name finishes with trailing slash;
+   # only keep auto syms if fully matched or version not specified in query;
+   # (hidden elements have been filtered on phase 2)
+   foreach elt [array names found_list] {
+      set elt_type [lindex $found_list($elt) 0]
+      if {(($wild && [doesModMatchAtDepth $elt]) || (!$wild && ([modEqStatic\
+         $elt match /*] || [modEqStatic $elt match] || ($hasmoddir &&\
+         $elt_type eq {directory} && [modEq $moddir $elt]))) || ($isquerydir\
+         && $elt_type eq {directory} && [modEq $querydir $elt match 0])) &&\
+         (![info exists autosym_list($elt)] || ([countChar $elt /]\
+         != $querydepth && !$contains) || [modEqStatic $elt]) && ![info\
+         exists mod_list($elt)]} {
+         if {$elt_type eq {directory}} {
+            # add matching directory to the result list, its entries will be
+            # computed in a second time and directory will be dropped if it
+            # has no entry in the end
+            set mod_list($elt) [list directory]
+            # add dir to the filter dir list to enable its removal in next
+            # step if dir is empty
+            if {![info exists fdir_list($elt)]} {
+               set fdir_list($elt) {}
+            }
+         } else {
+            set mod_list($elt) $found_list($elt)
+         }
+
+         # version may matches query but not its target, so it should be in
+         # this case manually added to result (if it exists)
+         if {$elt_type eq {version}} {
+            # resolve eventual icase target
+            set versmod [getArrayKey found_list [lindex $mod_list($elt) 1]\
+               $icase]
+            # add target to dir struct (not version) if not already recorded
+            set direlt .
+
+            # recursively add targets to result (process directory content if
+            # target is a directory
+            set tgt_list [list $versmod]
+            for {set i 0} {$i < [llength $tgt_list]} {incr i} {
+               set tgt [lindex $tgt_list $i]
+
+               if {![info exists mod_list($tgt)]} {
+                  if {[info exists found_list($tgt)]} {
+                     set mod_list($tgt) $found_list($tgt)
+                     # version target is directory: recursively add content
+                     if {[lindex $mod_list($tgt) 0] eq {directory}} {
+                        foreach tgtelt $dir_list($tgt) {
+                           lappend tgt_list $tgt/$tgtelt
+                        }
+                        # add dir to the filter dir list to enable its removal
+                        # in next step if dir is empty
+                        if {![info exists fdir_list($tgt)]} {
+                           set fdir_list($tgt) {}
+                        }
+                     }
+                  }
+
+                  # record target in dir struct if part of found elts or if
+                  # hidden but should not be in error
+                  set pardir [file dirname $tgt]
+                  if {([info exists found_list($tgt)] || ($pardir ne {.} &&\
+                     ![info exists found_list($pardir)] && [isModuleHidden\
+                     $tgt $mod])) && ![info exists err_list($tgt)]} {
+                     # create parent directory if it does not exist
+                     if {$pardir ne {.} && ![info exists\
+                        found_list($pardir)]} {
+                        set found_list($pardir) [list directory]
+                        set mod_list($pardir) [list directory]
+                     }
+
+                     if {$i == 0} {
+                        set direlt $tgt
+                     } else {
+                        lappend fdir_list([file dirname $tgt]) [file tail\
+                           $tgt]
+                     }
+                  }
+               }
+            }
+         # skip adding element to directory content if in error
+         } elseif {[info exists err_list($elt)]} {
+            set direlt .
+         } else {
+            set direlt $elt
+         }
+
+         # track directory content, as directory are also reported to their
+         # parent directory the directory structure is also tracked
+         if {[set pardir [file dirname $direlt]] ne {.}} {
+            lappend fdir_list($pardir) [file tail $direlt]
+         # track top level entries that will be kept if result is filtered
+         } elseif {$keeping && $direlt ne {.} && $elt_type ne {directory}} {
+            set keep_list($elt) 1
+         }
+      }
+   }
+
+   # determine default element for each directory and record sorted element
+   # list unless directory entry has been overwritten by a different module
+   # kind or unless only matching directory should be part of result
+   foreach elt [lsort -decreasing [array names fdir_list]] {
+      if {[lindex $found_list($elt) 0] eq {directory} && ([info exists\
+         mod_list($elt)] || $keeping)} {
+         set fdir_list($elt) [lsort -dictionary $fdir_list($elt)]
+         # get default element: explicitly defined default if included in
+         # result or not found or implicit default if enabled
+         if {[info exists found_list($elt/default)] && [lindex\
+            $found_list($elt/default) 0] eq {version} && ([info exists\
+            mod_list([set versmod [lindex $found_list($elt/default) 1]])] ||\
+            ![info exists found_list($versmod)])} {
+            set dfl [file tail $versmod]
+         } elseif {$implicitdfl} {
+            set dfl [lindex $fdir_list($elt) end]
+         } else {
+            set dfl {}
+         }
+         # remove empty dirs
+         if {[llength $fdir_list($elt)] == 0} {
+            unset mod_list($elt)
+            unset fdir_list($elt)
+            # remove unset dir reference in parent directory. parent dir
+            # will be treated after unset dir (due to decreasing sort) if it
+            # needs to get in turn unset
+            if {[set pardir [file dirname $elt]] ne {.}} {
+               set fdir_list($pardir) [replaceFromList $fdir_list($pardir)\
+                  [file tail $elt]]
+            }
+         } else {
+            # record directory properties
+            set mod_list($elt) [list directory $dfl {*}$fdir_list($elt)]
+
+            # list elements to keep for filtering step
+            if {$keeping} {
+               if {$filter eq {onlylatest}} {
+                  set keepelt $elt/[lindex $fdir_list($elt) end]
+               } elseif {$dfl ne {}} {
+                  set keepelt $elt/$dfl
+               } else {
+                  set keepelt {}
+               }
+
+               # keep directory if its element depth is deeper than query
+               if {!$indepth && [countChar $keepelt /] > $querydepth} {
+                  set keep_list($elt) 1
+               # otherwise only keep existing modules (not directories)
+               } elseif {[info exists mod_list($keepelt)] && [lindex\
+                  $mod_list($keepelt) 0] ne {directory}} {
+                  set keep_list($keepelt) 1
+               }
+            # when noplaindir filtering, only keep dirs with syms when indepth
+            # enabled or if corresponds to query depth when indepth disabled
+            } elseif {$filtering && $filter eq {noplaindir} &&\
+               (($indepth && (!$report_dirwsym || ![doesModuleHaveSym $elt]))\
+               || (!$indepth && [countChar $elt /] != $querydepth))} {
+               unset mod_list($elt)
+            }
+         }
+      }
+   }
+
+   # now all matching modulefiles are settled, only keep those found at search
+   # query depth level if 'noindepth' mode asked
+   if {!$indepth} {
+      # remove entries with more filename path separator than query pattern
+      foreach elt [array names mod_list] {
+         if {[countChar $elt /] > $querydepth} {
+            unset mod_list($elt)
+         }
+      }
+   }
+
+   # if result should be filtered, only keep marked elements
+   if {$keeping} {
+      foreach elt [array names mod_list] {
+         if {![info exists keep_list($elt)]} {
+            unset mod_list($elt)
+         }
+      }
+   }
+
+   # Phase #5: consolidate tags set for retained modules
+
+   if {[currentState commandname] eq {avail}} {
+      # load tags from loaded modules in the global structure prior collecting
+      # tags found during this getModules evaluation
+      cacheCurrentModules 0
+
+      foreach elt [array names mod_list] {
+         switch -- [lindex $mod_list($elt) 0] {
+            alias - modulefile - virtual {
+               # gather all tags applying to elt
+               collectModuleTags $elt
+            }
+         }
+      }
+   }
+
+   reportTrace "{[array names mod_list]} matching '$mod' in '$dir'" {Get\
+      modules}
+
+   # cache search results
+   reportDebug "create cache entry '$searchid'"
+   set got_list [array get mod_list]
+   set ::g_gotModulesMemCache($searchid) $got_list
+
+   return $got_list
+}
+
+# unload phase of a list of modules reload process
+proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {}} {context\
+   unload}} {
+   upvar $lmname lmlist
+   # unload one by one to ensure same behavior whatever auto_handling state
+   foreach mod [lreverse $lmlist] {
+      # record hint that mod will be reloaded (useful in case mod is sticky)
+      lappendState reloading_sticky $mod
+      lappendState reloading_supersticky $mod
+      # save user asked state before it vanishes
+      set isuasked($mod) [isModuleUserAsked $mod]
+      # save variants set for modules
+      set vr($mod) [getVariantList $mod 1 2]
+      # force unload even if requiring mods are not part of the unload list
+      # (violation state) as modules are loaded again just after
+      if {[cmdModuleUnload $context match 0 1 0 0 $mod]} {
+         # avoid failing module on load phase
+         set lmlist [replaceFromList $lmlist $mod]
+         set errMsg [string map [list _MOD_ [getModuleDesignation loaded\
+            $mod]] $errmsgtpl]
+         if {$force} {
+            # errMsg will always be set as force mode could not be enabled
+            # for reload sub-cmd which provides an empty msg template
+            reportWarning $errMsg 1
+         # stop if one unload fails unless force mode enabled
+         } else {
+            lpopState reloading_sticky
+            lpopState reloading_supersticky
+            knerror $errMsg
+         }
+      }
+      lpopState reloading_sticky
+      lpopState reloading_supersticky
+   }
+   return [list [array get isuasked] [array get vr]]
+}
+
+# load phase of a list of modules reload process
+proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist {force 0}\
+   {errmsgtpl {}} {context load}} {
+   upvar $lmname lmlist
+   array set isuasked $isuaskedlist
+   array set vr $vrlist
+
+   # loads are made with auto handling mode disabled to avoid disturbances
+   # from a missing prereq automatically reloaded, so these module loads may
+   # fail as prereq may not be satisfied anymore
+   setConf auto_handling 0
+   foreach mod $lmlist {
+      # if an auto set default was excluded, module spec need parsing
+      lassign [parseModuleSpecification 0 $mod {*}$vr($mod)] modnamevr
+      # reload module with user asked property preserved
+      if {[cmdModuleLoad $context $isuasked($mod) $modnamevr]} {
+         set errMsg [string map [list _MOD_ [getModuleDesignation spec\
+            $modnamevr]] $errmsgtpl]
+         if {$force} {
+            # errMsg will always be set as force mode could not be enabled
+            # for reload sub-cmd which provides an empty msg template
+            reportWarning $errMsg 1
+         # stop if one load fails unless force mode enabled
+         } else {
+            knerror $errMsg
+         }
+      }
+   }
+   setConf auto_handling 1
+}
+
+# test if loaded module 'mod' is sticky and if stickiness definition applies
+# to one of the reloading module
+proc isStickynessReloading {mod reloading_modlist {tag sticky}} {
+   set res 0
+   set modname [getModuleNameAndVersFromVersSpec $mod]
+   if {[isModuleTagged $modname $tag 1]} {
+      # evaluate the module-tag commands that are related to mod
+      set dir [getModulepathFromModuleName [getModulefileFromLoadedModule\
+         $modname] $modname]
+      getModules $dir $modname 0 [list rc_defs_included]
+
+      set tmodspec [getModuleTag $mod $tag equal 1]
+      # if tag specifically applies to fully qualified module, exact same
+      # module should be found in reload list
+      if {$tmodspec ne {}} {
+         set tmodspec $mod
+      } else {
+         set tmodspec [getModuleTag $mod $tag eqstart 1]
+      }
+
+      # check if a loading mod satisfies sticky rules
+      foreach modlo $reloading_modlist {
+         if {[modEq $tmodspec $modlo eqstart 1 0 1]} {
+            # found match
+            set res 1
+            break
+         }
+      }
+      reportDebug "stickiness ($tag) applies to '$tmodspec', is\
+         reloading=$res"
+   }
+
+   return $res
+}
+
+
+##############################################################################
+# Module specification -------------------------------------------------------
+##############################################################################
+
+# Define procedure to get how many parts between passed name and mod are equal
+# Adapt procedure code whether icase is enabled or disabled
+proc defineModStartNbProc {icase} {
+   set procname modStartNbProc
+   if {$icase} {
+      append procname Icase
+   }
+   # define proc if not done yet or if it was defined for another context
+   if {[info procs modStartNb] eq {} || $::g_modStartNb_proc ne $procname} {
+      if {[info exists ::g_modStartNb_proc]} {
+         rename ::modStartNb ::$::g_modStartNb_proc
+      }
+      rename ::$procname ::modStartNb
+      set ::g_modStartNb_proc $procname
+   }
+}
+
+# alternative definitions of modStartNb proc
+proc modStartNbProc {mod name} {
+   # first compare against name's parent chunk by chunk
+   set modname [getModuleNameFromVersSpec $name]
+   if {$modname eq {.}} {
+      set i 0
+      set imax 0
+   } else {
+      set namesplit [split $modname /]
+      set modsplit [split $mod /]
+      set imax [tcl::mathfunc::min [llength $namesplit] [llength $modsplit]]
+      for {set i 0} {$i < $imax} {incr i} {
+         if {![string equal [lindex $modsplit $i] [lindex $namesplit $i]]} {
+            break
+         }
+      }
+   }
+   # if name's parent matches check if full name also matches
+   if {$i == $imax && [modEq $name $mod eqstart]} {
+      incr i
+   }
+   return $i
+}
+proc modStartNbProcIcase {mod name} {
+   set modname [getModuleNameFromVersSpec $name]
+   if {$modname eq {.}} {
+      set i 0
+      set imax 0
+   } else {
+      set namesplit [split $modname /]
+      set modsplit [split $mod /]
+      set imax [if {[llength $namesplit] < [llength $modsplit]} {llength\
+         $namesplit} {llength $modsplit}]
+      for {set i 0} {$i < $imax} {incr i} {
+         if {![string equal -nocase [lindex $modsplit $i] [lindex $namesplit\
+            $i]]} {
+            break
+         }
+      }
+   }
+   if {$i == $imax && [modEq $name $mod eqstart]} {
+      incr i
+   }
+   return $i
+}
+
+# Define procedure to compare module names set as array keys against pattern.
+# Adapt procedure code whether implicit_default is enabled or disabled
+proc defineGetEqArrayKeyProc {icase extdfl impdfl} {
+   set procname getEqArrayKeyProc
+   if {$impdfl} {
+      append procname Impdfl
+   }
+
+   # define proc if not done yet or if it was defined for another context
+   if {[info procs getEqArrayKey] eq {} || $::g_getEqArrayKey_proc ne\
+      $procname} {
+      if {[info exists ::g_getEqArrayKey_proc]} {
+         rename ::getEqArrayKey ::$::g_getEqArrayKey_proc
+      }
+      rename ::$procname ::getEqArrayKey
+      set ::g_getEqArrayKey_proc $procname
+   }
+
+   # also define modEq which is called by getEqArrayKey
+   defineModEqProc $icase $extdfl
+}
+
+# alternative definitions of getEqArrayKey proc
+proc getEqArrayKeyProcImpdfl {arrname name} {
+   set icase [isIcase]
+   upvar $arrname arr
+
+   # extract single module specified if any
+   lassign [getModuleVersSpec $name] mod modname
+   # check name eventual icase match
+   set mod [getArrayKey arr [string trimright $mod /] $icase]
+
+   if {$mod ne {} && [info exists arr($mod)]} {
+      set match $mod
+   } else {
+      set mlist {}
+      foreach elt [array names arr] {
+         if {[modEq $name $elt]} {
+            lappend mlist $elt
+         }
+      }
+      if {[llength $mlist] == 1} {
+         set match [lindex $mlist 0]
+      # in case multiple modules match query, check directory default and
+      # return it if it is part of match list, elsewhere return highest result
+      } elseif {[llength $mlist] > 1} {
+         # get corresponding icase parent directory
+         set pname [getArrayKey arr $modname $icase]
+         if {[info exists arr($pname)]} {
+            set dfl $pname/[lindex $arr($pname) 1]
+         }
+         # resolve symbolic version entries
+         foreach elt $mlist {
+            if {[lindex $arr($elt) 0] eq {version}} {
+               lappend mrlist [lindex $arr($elt) 1]
+            } else {
+               lappend mrlist $elt
+            }
+         }
+         if {[info exists dfl] && $dfl in $mrlist} {
+            set match $dfl
+         } else {
+            set match [lindex [lsort -dictionary $mrlist] end]
+         }
+      }
+   }
+   if {[info exists match]} {
+      reportDebug "key '$match' in array '$arrname' matches '$name'"
+      set name $match
+   }
+   return $name
+}
+proc getEqArrayKeyProc {arrname name} {
+   set icase [isIcase]
+   upvar $arrname arr
+
+   lassign [getModuleVersSpec $name] mod modname cmpspec versspec modnamere\
+      modescglob modroot variantlist modnvspec
+   # check name eventual icase match
+   set mod [getArrayKey arr [string trimright $mod /] $icase]
+
+   if {$mod ne {} && [info exists arr($mod)]} {
+      set match $mod
+   } else {
+      set mlist {}
+      foreach elt [array names arr] {
+         if {[modEq $name $elt]} {
+            lappend mlist $elt
+         }
+      }
+      # must have a default part of result even if only one result
+      if {[llength $mlist] >= 1} {
+         # get corresponding icase parent directory
+         set pname [getArrayKey arr $modname $icase]
+         if {[info exists arr($pname)]} {
+            set dfl $pname/[lindex $arr($pname) 1]
+         }
+         # resolve symbolic version entries
+         foreach elt $mlist {
+            if {[lindex $arr($elt) 0] eq {version}} {
+               lappend mrlist [lindex $arr($elt) 1]
+            } else {
+               lappend mrlist $elt
+            }
+         }
+         if {[info exists dfl] && $dfl in $mrlist} {
+            set match $dfl
+         } else {
+            # raise error as no default part of result
+            upvar retlist retlist
+            set retlist [list {} $modnvspec $name none "No default version\
+               defined for '$name'"]
+         }
+      }
+   }
+   if {[info exists match]} {
+      reportDebug "key '$match' in array '$arrname' matches '$name'"
+      set name $match
+   }
+   return $name
 }
 
 # Check a module name does match query at expected depth level when indepth
@@ -9991,660 +10753,6 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
    return $ret
 }
 
-# check if an existing findModules cache entry matches current search by
-# evaluating search ids. if an exact match cannot be found, look at saved
-# searches that contains current search (superset of looked elements), extra
-# elements will be filtered-out by GetModules
-proc findModulesInMemCache {searchid} {
-   # exact same search is cached
-   if {[info exists ::g_foundModulesMemCache($searchid)]} {
-      set match_searchid $searchid
-      set mod_list $::g_foundModulesMemCache($searchid)
-   # look for a superset search
-   } else {
-      set match_searchid {}
-      set mod_list {}
-      foreach cacheid [array names ::g_foundModulesMemCache] {
-         # cache id acts as pattern to check if it contains current search
-         if {[string match $cacheid $searchid]} {
-            set match_searchid $cacheid
-            set mod_list $::g_foundModulesMemCache($cacheid)
-            break
-         }
-      }
-   }
-
-   return [list $match_searchid $mod_list]
-}
-
-# finds all module-related files matching mod in the module path dir
-proc findModules {dir mod depthlvl fetch_mtime} {
-   reportDebug "finding '$mod' in $dir (depthlvl=$depthlvl,\
-      fetch_mtime=$fetch_mtime)"
-
-   # generated search id (for cache search/save) by compacting given args
-   set searchid $dir:$mod:$depthlvl:$fetch_mtime
-
-   # look at memory cache for a compatible result
-   lassign [findModulesInMemCache $searchid] cache_searchid cache_list
-   if {$cache_searchid ne {}} {
-      reportDebug "use cache entry '$cache_searchid'"
-      return $cache_list
-   }
-
-   defineModEqStaticProc [isIcase] [getConf extended_default] $mod
-
-   # every entries are requested
-   set findall [expr {$mod eq {} || $mod eq {*}}]
-
-   # use catch protection to handle non-readable and non-existent dir
-   if {[catch {
-      set full_list {}
-      foreach {fpelt hid} [getFilesInDirectory $dir 0] {
-         set elt [file tail $fpelt]
-         # include any .modulerc file found at the modulepath root
-         if {$elt eq {.modulerc} || $findall || [modEqStatic $elt match]} {
-            lappend full_list $fpelt
-         }
-      }
-   }]} {
-      return {}
-   }
-
-   foreach igndir [getConf ignored_dirs] {
-      set ignored_dirs($igndir) 1
-   }
-   array set mod_list {}
-   for {set i 0} {$i < [llength $full_list]} {incr i 1} {
-      set element [lindex $full_list $i]
-      set tail [file tail $element]
-      set modulename [getModuleNameFromModulepath $element $dir]
-      set parentname [file dirname $modulename]
-      set moddepthlvl [llength [file split $modulename]]
-      if {[file isdirectory $element]} {
-         if {![info exists ignored_dirs($tail)]} {
-            if {[catch {
-               set elt_list [getFilesInDirectory $element 1]
-            } errMsg]} {
-               set mod_list($modulename) [list accesserr [parseAccessIssue\
-                  $element] $element]
-            } else {
-               # Add each element in the current directory to the list
-               foreach {fpelt hid} $elt_list {
-                  lappend full_list $fpelt
-                  # Flag hidden files
-                  if {$hid} {
-                     set hidden_list($fpelt) 1
-                  }
-               }
-            }
-         }
-      } else {
-         switch -glob -- $tail {
-            .modulerc {
-               set mod_list($modulename) [list modulerc]
-            }
-            .version {
-               # skip .version file from different depth level than search
-               # targets if no in depth mode is enabled
-               if {$depthlvl == 0 || $moddepthlvl == $depthlvl} {
-                  set mod_list($modulename) [list modulerc]
-               }
-            }
-            *~ - *,v - \#*\# { }
-            default {
-               # skip modfile in no in depth mode search if it does not relate
-               # to targeted depth level and one valid modfile has already be
-               # found for the dirs lying at other depth level
-               if {$depthlvl == 0 || $moddepthlvl == $depthlvl || ![info\
-                  exists modfile_indir($parentname)]} {
-                  lassign [checkValidModule $element] check_valid check_msg
-                  switch -- $check_valid {
-                     true {
-                        set mtime [expr {$fetch_mtime ? [getFileMtime\
-                           $element] : {}}]
-                        set mod_list($modulename) [list modulefile $mtime\
-                           $element]
-
-                        # a valid modfile has been found in directory
-                        if {![info exists hidden_list($element)]} {
-                           set modfile_indir($parentname) 1
-                        }
-                     }
-                     default {
-                        # register check error and relative message to get it
-                        # in case of direct access of this module element, but
-                        # no registering in parent directory structure as
-                        # element is not valid
-                        set mod_list($modulename) [list $check_valid\
-                           $check_msg $element]
-                     }
-                  }
-               }
-            }
-         }
-      }
-   }
-
-   reportDebug "found [array names mod_list]"
-
-   # cache search results
-   reportDebug "create cache entry '$searchid'"
-   set found_list [array get mod_list]
-   set ::g_foundModulesMemCache($searchid) $found_list
-
-   return $found_list
-}
-
-proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
-   global g_sourceAlias g_sourceVersion g_sourceVirtual g_rcAlias\
-      g_moduleAlias g_rcVersion g_moduleVersion g_rcVirtual g_moduleVirtual\
-      g_rcfilesSourced
-
-   reportDebug "get '$mod' in $dir (fetch_mtime=$fetch_mtime, search=$search,\
-      filter=$filter)"
-
-   # generated search id (for cache search/save) by compacting given args
-   set searchid $dir:$mod:$fetch_mtime:$search:$filter
-
-   # look at memory cache for a compatible result
-   if {[info exists ::g_gotModulesMemCache($searchid)]} {
-      reportDebug "use cache entry '$searchid'"
-      return $::g_gotModulesMemCache($searchid)
-   }
-
-   # extract one module name from query
-   set modqe [getOneModuleFromVersSpec $mod]
-
-   # perform an in depth search or not
-   set indepth [expr {{noindepth} ni $search}]
-
-   # set a default if none defined on directory entries
-   set implicitdfl [getConf implicit_default]
-
-   # automatically define latest and default sym for all modules
-   set autosymbol [expr {$implicitdfl && [getConf advanced_version_spec]}]
-
-   # match passed name against any part of avail module names
-   set contains [expr {{contains} in $search}]
-   set mtest [expr {$contains ? {matchin} : {match}}]
-
-   set icase [isIcase]
-
-   set wild [expr {{wild} in $search}]
-
-   # will only keep default or latest elts in the end or remove plain dirs
-   set filtering [expr {$filter eq {noplaindir}}]
-   set keeping [expr {!$filtering && $filter ne {}}]
-
-   # check search query string corresponds to directory
-   set querydir [string trimright $modqe *]
-   set isquerydir [expr {[string index $querydir end] eq {/}}]
-   set querydir [string trimright $querydir /]
-   set querydepth [countChar $modqe /]
-
-   # get directory relative to module name
-   set moddir [getModuleNameFromVersSpec $mod]
-   set hasmoddir [expr {$moddir ne {.}}]
-   set modroot [getModuleRootFromVersSpec $mod]
-
-   set earlyfilter [expr {!$contains && !$wild && $modroot eq [string\
-      map {* {} ? {}} $modroot]}]
-
-   # are result entries gathered in a resolution context ?
-   set resctx [expr {{resolve} in $search}]
-
-   # if search for global or user rc alias only, no dir lookup is performed
-   # and aliases from g_rcAlias are returned
-   if {{rc_alias_only} in $search} {
-      set add_rc_defs 1
-      array set found_list {}
-   } else {
-      # find modules by searching mod root name in order to catch all module
-      # related entries to correctly computed auto symbols afterward
-
-      if {$contains} {
-         set findmod *
-      } else {
-         set findmod $modroot
-         # if searched mod is an empty or flat element append wildcard
-         # character to match anything starting with mod
-         if {$wild && !$hasmoddir && [string index $findmod end] ne {*}} {
-            append findmod *
-         }
-      }
-
-      # add alias/version definitions from global or user rc to result
-      set add_rc_defs [expr {{rc_defs_included} in $search}]
-
-      # if no indepth mode search, pass the depth level of the search query
-      set depthlvl [expr {$indepth ? 0 : [expr {$querydepth + 1}]}]
-
-      array set found_list [findModules $dir $findmod $depthlvl $fetch_mtime]
-   }
-
-   # Phase #1: consolidate every kind of entries (directory, modulefile,
-   # symbolic version, alias and virtual module) in found_list
-
-   array set err_list {}
-   array set versmod_list {}
-
-   foreach elt [lsort [array names found_list]] {
-      switch -- [lindex $found_list($elt) 0] {
-         modulerc {
-            # process rc files them remove them from found_list
-            if {![info exists g_rcfilesSourced($dir/$elt)]} {
-               execute-modulerc $dir/$elt $elt $elt
-               # Keep track of already sourced rc files not to run them again
-               set g_rcfilesSourced($dir/$elt) 1
-            }
-            unset found_list($elt)
-         }
-         modulefile {
-         }
-         default {
-            # flag entries with error
-            set err_list($elt) 1
-         }
-      }
-   }
-
-   # add all versions found when parsing .version or .modulerc files in this
-   # directory or in global or user rc definitions
-   foreach vers [array names g_moduleVersion] {
-      set versmod $g_moduleVersion($vers)
-      if {($dir ne {} && [string first $dir/ $g_sourceVersion($vers)] == 0)\
-         || [info exists g_rcVersion($vers)]} {
-         set found_list($vers) [list version $versmod]
-
-         # build module symbol list
-         lappend versmod_list($versmod) $vers
-      # add global/user rc def to module symbol list in any cases
-      } elseif {!$add_rc_defs && [info exists g_rcVersion($vers)]} {
-         lappend versmod_list($versmod) $vers
-      }
-   }
-
-   # add aliases found when parsing .version or .modulerc files in this
-   # directory (skip aliases not registered from this directory except if
-   # global or user rc definitions should be included)
-   foreach alias [array names g_moduleAlias] {
-      if {($dir ne {} && [string first $dir/ $g_sourceAlias($alias)] == 0)\
-         || ($add_rc_defs && [info exists g_rcAlias($alias)])} {
-         set found_list($alias) [list alias $g_moduleAlias($alias)]
-      }
-   }
-
-   # add virtual mods found when parsing .version or .modulerc files in this
-   # directory (skip virtual mods not registered from this directory except if
-   # global or user rc definitions should be included)
-   foreach virt [array names g_moduleVirtual] {
-      if {($dir ne {} && [string first $dir/ $g_sourceVirtual($virt)] == 0)\
-         || ($add_rc_defs && [info exists g_rcVirtual($virt)])} {
-         lassign [checkValidModule $g_moduleVirtual($virt)] check_valid\
-            check_msg
-         switch -- $check_valid {
-            true {
-               set mtime [expr {$fetch_mtime ? [getFileMtime\
-                  $g_moduleVirtual($virt)] : {}}]
-               # set mtime at index 1 like a modulefile entry
-               set found_list($virt) [list virtual $mtime\
-                  $g_moduleVirtual($virt)]
-            }
-            default {
-               # register check error and relative message to get it in
-               # case of direct access of this module element
-               set found_list($virt) [list $check_valid $check_msg\
-                  $g_moduleVirtual($virt)]
-               set err_list($virt) 1
-            }
-         }
-      }
-   }
-
-   # Phase #2: filter-out dynamically hidden or expired elements
-
-   # define module name and version comparison procs
-   defineModStartNbProc $icase
-   defineModEqProc $icase [getConf extended_default]
-   defineModEqStaticProc $icase [getConf extended_default] $mod
-
-   # remove hidden elements unless they are (or their symbols) targeted by
-   # search query.
-   foreach elt [array names found_list] {
-      if {$earlyfilter && ![modEq $modroot $elt eqstart]} {
-         unset found_list($elt)
-         continue
-      }
-      if {[lassign [isModuleHidden $elt $mod 1] hidlvl hidmatch hidbydef]} {
-         # is there a symbol that matches query (bare module name query
-         # matches default symbol on resolve context or if onlydefaults filter
-         # is applied)
-         if {!$hidmatch && [info exists versmod_list($elt)]} {
-            foreach eltsym $versmod_list($elt) {
-               if {[modEqStatic $eltsym] || (($resctx || $filter eq\
-                  {onlydefaults}) && "$mod/default" eq $eltsym)} {
-                  set hidmatch 1
-                  break
-               }
-            }
-         }
-         # consider 'default' symbols are explicitly specified if
-         # onlydefaults filter applied or resolving bare module name
-         if {!$hidmatch && [lindex $found_list($elt) 0] eq {version} && [file\
-            tail $elt] eq {default} && ($filter eq {onlydefaults} || ($resctx\
-            && "$mod/default" eq $elt))} {
-            set hidmatch 1
-         }
-
-         # not hidden if matched unless if hard hiding apply
-         if {!$hidmatch || $hidlvl > 1} {
-            # record hidden symbol, not to display it in listModules
-            if {[lindex $found_list($elt) 0] eq {version}} {
-               lappend ::g_hiddenSymHash([lindex $found_list($elt) 1]) [file\
-                  tail $elt]
-            }
-            # transform forbidden module in error entry if it specifically
-            # matches search query
-            if {$hidlvl == 2 && $hidmatch && [isModuleTagged $elt\
-               forbidden]} {
-               set found_list($elt) [list accesserr [getForbiddenMsg $elt]]
-               set err_list($elt) 1
-            } else {
-               unset found_list($elt)
-            }
-         }
-      }
-      # apply hidden tag if an hidden definition apply to module
-      if {$hidbydef} {
-         setModuleTag $elt hidden
-      }
-   }
-
-   # Phase #3: elaborate directory content with default element selection
-
-   array set dir_list {}
-   array set autosym_list {}
-
-   # build list of elements contained in each directory
-   foreach elt [array names found_list] {
-      # add a ref to element in its parent directory unless element has error
-      # or is a symbolic version then recursively add parent element until
-      # reaching top directory
-      if {![info exists err_list($elt)] && [lindex $found_list($elt) 0] ne\
-         {version}} {
-         set direlt $elt
-         while {[set pardir [file dirname $direlt]] ne {.}} {
-            appendNoDupToList dir_list($pardir) [file tail $direlt]
-            set direlt $pardir
-         }
-      }
-   }
-
-   # determine default element for each directory and record sorted elt list
-   # unless if an alias or a virtual module has overwritten directory entry
-   foreach elt [array names dir_list] {
-      if {![info exists found_list($elt)]} {
-         set dir_list($elt) [lsort -dictionary $dir_list($elt)]
-         # get default element: explicitly defined default (whether it exists
-         # or is in error) or implicit default if enabled
-         if {[info exists found_list($elt/default)] && [lindex\
-            $found_list($elt/default) 0] eq {version}} {
-            set dfl [file tail [lindex $found_list($elt/default) 1]]
-         } elseif {$implicitdfl} {
-            set dfl [lindex $dir_list($elt) end]
-         } else {
-            set dfl {}
-         }
-         # record directory properties
-         set found_list($elt) [list directory $dfl {*}$dir_list($elt)]
-
-         # automatically define symbols for all modules matching query if
-         # these names do not exist yet or if in error, in which case only
-         # auto symbol resolution is set
-         if {$autosymbol && (!$hasmoddir || [modEq $modroot $elt eqstart])} {
-            if {![info exists found_list($elt/default)] || [info exists\
-               err_list($elt/default)]} {
-               if {![info exists found_list($elt/default)]} {
-                  set found_list($elt/default) [list version $elt/$dfl]
-                  set autosym_list($elt/default) 1
-               }
-               setModuleResolution $elt/default $elt/$dfl default 1 1
-            }
-            if {![info exists found_list($elt/latest)] || [info exists\
-               err_list($elt/latest)]} {
-               set lat [lindex $dir_list($elt) end]
-               if {![info exists found_list($elt/latest)]} {
-                  set found_list($elt/latest) [list version $elt/$lat]
-                  set autosym_list($elt/latest) 1
-               }
-               setModuleResolution $elt/latest $elt/$lat latest 1 1
-            }
-         }
-      }
-   }
-
-   # Phase #4: filter results to keep those matching search query
-
-   # define module name and version comparison procs
-   defineDoesModMatchAtDepthProc $indepth $querydepth $mtest
-
-   # element to include in output
-   set report_dirwsym [isEltInReport dirwsym]
-
-   array set mod_list {}
-   array set fdir_list {}
-   array set keep_list {}
-
-   # keep element matching query, add directory of element matching query,
-   # also add directory to result if query name finishes with trailing slash;
-   # only keep auto syms if fully matched or version not specified in query;
-   # (hidden elements have been filtered on phase 2)
-   foreach elt [array names found_list] {
-      set elt_type [lindex $found_list($elt) 0]
-      if {(($wild && [doesModMatchAtDepth $elt]) || (!$wild && ([modEqStatic\
-         $elt match /*] || [modEqStatic $elt match] || ($hasmoddir &&\
-         $elt_type eq {directory} && [modEq $moddir $elt]))) || ($isquerydir\
-         && $elt_type eq {directory} && [modEq $querydir $elt match 0])) &&\
-         (![info exists autosym_list($elt)] || ([countChar $elt /]\
-         != $querydepth && !$contains) || [modEqStatic $elt]) && ![info\
-         exists mod_list($elt)]} {
-         if {$elt_type eq {directory}} {
-            # add matching directory to the result list, its entries will be
-            # computed in a second time and directory will be dropped if it
-            # has no entry in the end
-            set mod_list($elt) [list directory]
-            # add dir to the filter dir list to enable its removal in next
-            # step if dir is empty
-            if {![info exists fdir_list($elt)]} {
-               set fdir_list($elt) {}
-            }
-         } else {
-            set mod_list($elt) $found_list($elt)
-         }
-
-         # version may matches query but not its target, so it should be in
-         # this case manually added to result (if it exists)
-         if {$elt_type eq {version}} {
-            # resolve eventual icase target
-            set versmod [getArrayKey found_list [lindex $mod_list($elt) 1]\
-               $icase]
-            # add target to dir struct (not version) if not already recorded
-            set direlt .
-
-            # recursively add targets to result (process directory content if
-            # target is a directory
-            set tgt_list [list $versmod]
-            for {set i 0} {$i < [llength $tgt_list]} {incr i} {
-               set tgt [lindex $tgt_list $i]
-
-               if {![info exists mod_list($tgt)]} {
-                  if {[info exists found_list($tgt)]} {
-                     set mod_list($tgt) $found_list($tgt)
-                     # version target is directory: recursively add content
-                     if {[lindex $mod_list($tgt) 0] eq {directory}} {
-                        foreach tgtelt $dir_list($tgt) {
-                           lappend tgt_list $tgt/$tgtelt
-                        }
-                        # add dir to the filter dir list to enable its removal
-                        # in next step if dir is empty
-                        if {![info exists fdir_list($tgt)]} {
-                           set fdir_list($tgt) {}
-                        }
-                     }
-                  }
-
-                  # record target in dir struct if part of found elts or if
-                  # hidden but should not be in error
-                  set pardir [file dirname $tgt]
-                  if {([info exists found_list($tgt)] || ($pardir ne {.} &&\
-                     ![info exists found_list($pardir)] && [isModuleHidden\
-                     $tgt $mod])) && ![info exists err_list($tgt)]} {
-                     # create parent directory if it does not exist
-                     if {$pardir ne {.} && ![info exists\
-                        found_list($pardir)]} {
-                        set found_list($pardir) [list directory]
-                        set mod_list($pardir) [list directory]
-                     }
-
-                     if {$i == 0} {
-                        set direlt $tgt
-                     } else {
-                        lappend fdir_list([file dirname $tgt]) [file tail\
-                           $tgt]
-                     }
-                  }
-               }
-            }
-         # skip adding element to directory content if in error
-         } elseif {[info exists err_list($elt)]} {
-            set direlt .
-         } else {
-            set direlt $elt
-         }
-
-         # track directory content, as directory are also reported to their
-         # parent directory the directory structure is also tracked
-         if {[set pardir [file dirname $direlt]] ne {.}} {
-            lappend fdir_list($pardir) [file tail $direlt]
-         # track top level entries that will be kept if result is filtered
-         } elseif {$keeping && $direlt ne {.} && $elt_type ne {directory}} {
-            set keep_list($elt) 1
-         }
-      }
-   }
-
-   # determine default element for each directory and record sorted element
-   # list unless directory entry has been overwritten by a different module
-   # kind or unless only matching directory should be part of result
-   foreach elt [lsort -decreasing [array names fdir_list]] {
-      if {[lindex $found_list($elt) 0] eq {directory} && ([info exists\
-         mod_list($elt)] || $keeping)} {
-         set fdir_list($elt) [lsort -dictionary $fdir_list($elt)]
-         # get default element: explicitly defined default if included in
-         # result or not found or implicit default if enabled
-         if {[info exists found_list($elt/default)] && [lindex\
-            $found_list($elt/default) 0] eq {version} && ([info exists\
-            mod_list([set versmod [lindex $found_list($elt/default) 1]])] ||\
-            ![info exists found_list($versmod)])} {
-            set dfl [file tail $versmod]
-         } elseif {$implicitdfl} {
-            set dfl [lindex $fdir_list($elt) end]
-         } else {
-            set dfl {}
-         }
-         # remove empty dirs
-         if {[llength $fdir_list($elt)] == 0} {
-            unset mod_list($elt)
-            unset fdir_list($elt)
-            # remove unset dir reference in parent directory. parent dir
-            # will be treated after unset dir (due to decreasing sort) if it
-            # needs to get in turn unset
-            if {[set pardir [file dirname $elt]] ne {.}} {
-               set fdir_list($pardir) [replaceFromList $fdir_list($pardir)\
-                  [file tail $elt]]
-            }
-         } else {
-            # record directory properties
-            set mod_list($elt) [list directory $dfl {*}$fdir_list($elt)]
-
-            # list elements to keep for filtering step
-            if {$keeping} {
-               if {$filter eq {onlylatest}} {
-                  set keepelt $elt/[lindex $fdir_list($elt) end]
-               } elseif {$dfl ne {}} {
-                  set keepelt $elt/$dfl
-               } else {
-                  set keepelt {}
-               }
-
-               # keep directory if its element depth is deeper than query
-               if {!$indepth && [countChar $keepelt /] > $querydepth} {
-                  set keep_list($elt) 1
-               # otherwise only keep existing modules (not directories)
-               } elseif {[info exists mod_list($keepelt)] && [lindex\
-                  $mod_list($keepelt) 0] ne {directory}} {
-                  set keep_list($keepelt) 1
-               }
-            # when noplaindir filtering, only keep dirs with syms when indepth
-            # enabled or if corresponds to query depth when indepth disabled
-            } elseif {$filtering && $filter eq {noplaindir} &&\
-               (($indepth && (!$report_dirwsym || ![doesModuleHaveSym $elt]))\
-               || (!$indepth && [countChar $elt /] != $querydepth))} {
-               unset mod_list($elt)
-            }
-         }
-      }
-   }
-
-   # now all matching modulefiles are settled, only keep those found at search
-   # query depth level if 'noindepth' mode asked
-   if {!$indepth} {
-      # remove entries with more filename path separator than query pattern
-      foreach elt [array names mod_list] {
-         if {[countChar $elt /] > $querydepth} {
-            unset mod_list($elt)
-         }
-      }
-   }
-
-   # if result should be filtered, only keep marked elements
-   if {$keeping} {
-      foreach elt [array names mod_list] {
-         if {![info exists keep_list($elt)]} {
-            unset mod_list($elt)
-         }
-      }
-   }
-
-   # Phase #5: consolidate tags set for retained modules
-
-   if {[currentState commandname] eq {avail}} {
-      # load tags from loaded modules in the global structure prior collecting
-      # tags found during this getModules evaluation
-      cacheCurrentModules 0
-
-      foreach elt [array names mod_list] {
-         switch -- [lindex $mod_list($elt) 0] {
-            alias - modulefile - virtual {
-               # gather all tags applying to elt
-               collectModuleTags $elt
-            }
-         }
-      }
-   }
-
-   reportTrace "{[array names mod_list]} matching '$mod' in '$dir'" {Get\
-      modules}
-
-   # cache search results
-   reportDebug "create cache entry '$searchid'"
-   set got_list [array get mod_list]
-   set ::g_gotModulesMemCache($searchid) $got_list
-
-   return $got_list
-}
-
 # analyze module version specified within module specification
 proc parseModuleVersionSpecifier {modspec} {
    set invalidversspec 0
@@ -11110,109 +11218,6 @@ proc getModuleNameAndVersFromVersSpec {modarg} {
       set modnvspec $modarg
    }
    return $modnvspec
-}
-
-# unload phase of a list of modules reload process
-proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {}} {context\
-   unload}} {
-   upvar $lmname lmlist
-   # unload one by one to ensure same behavior whatever auto_handling state
-   foreach mod [lreverse $lmlist] {
-      # record hint that mod will be reloaded (useful in case mod is sticky)
-      lappendState reloading_sticky $mod
-      lappendState reloading_supersticky $mod
-      # save user asked state before it vanishes
-      set isuasked($mod) [isModuleUserAsked $mod]
-      # save variants set for modules
-      set vr($mod) [getVariantList $mod 1 2]
-      # force unload even if requiring mods are not part of the unload list
-      # (violation state) as modules are loaded again just after
-      if {[cmdModuleUnload $context match 0 1 0 0 $mod]} {
-         # avoid failing module on load phase
-         set lmlist [replaceFromList $lmlist $mod]
-         set errMsg [string map [list _MOD_ [getModuleDesignation loaded\
-            $mod]] $errmsgtpl]
-         if {$force} {
-            # errMsg will always be set as force mode could not be enabled
-            # for reload sub-cmd which provides an empty msg template
-            reportWarning $errMsg 1
-         # stop if one unload fails unless force mode enabled
-         } else {
-            lpopState reloading_sticky
-            lpopState reloading_supersticky
-            knerror $errMsg
-         }
-      }
-      lpopState reloading_sticky
-      lpopState reloading_supersticky
-   }
-   return [list [array get isuasked] [array get vr]]
-}
-
-# load phase of a list of modules reload process
-proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist {force 0}\
-   {errmsgtpl {}} {context load}} {
-   upvar $lmname lmlist
-   array set isuasked $isuaskedlist
-   array set vr $vrlist
-
-   # loads are made with auto handling mode disabled to avoid disturbances
-   # from a missing prereq automatically reloaded, so these module loads may
-   # fail as prereq may not be satisfied anymore
-   setConf auto_handling 0
-   foreach mod $lmlist {
-      # if an auto set default was excluded, module spec need parsing
-      lassign [parseModuleSpecification 0 $mod {*}$vr($mod)] modnamevr
-      # reload module with user asked property preserved
-      if {[cmdModuleLoad $context $isuasked($mod) $modnamevr]} {
-         set errMsg [string map [list _MOD_ [getModuleDesignation spec\
-            $modnamevr]] $errmsgtpl]
-         if {$force} {
-            # errMsg will always be set as force mode could not be enabled
-            # for reload sub-cmd which provides an empty msg template
-            reportWarning $errMsg 1
-         # stop if one load fails unless force mode enabled
-         } else {
-            knerror $errMsg
-         }
-      }
-   }
-   setConf auto_handling 1
-}
-
-# test if loaded module 'mod' is sticky and if stickiness definition applies
-# to one of the reloading module
-proc isStickynessReloading {mod reloading_modlist {tag sticky}} {
-   set res 0
-   set modname [getModuleNameAndVersFromVersSpec $mod]
-   if {[isModuleTagged $modname $tag 1]} {
-      # evaluate the module-tag commands that are related to mod
-      set dir [getModulepathFromModuleName [getModulefileFromLoadedModule\
-         $modname] $modname]
-      getModules $dir $modname 0 [list rc_defs_included]
-
-      set tmodspec [getModuleTag $mod $tag equal 1]
-      # if tag specifically applies to fully qualified module, exact same
-      # module should be found in reload list
-      if {$tmodspec ne {}} {
-         set tmodspec $mod
-      } else {
-         set tmodspec [getModuleTag $mod $tag eqstart 1]
-      }
-
-      # check if a loading mod satisfies sticky rules
-      foreach modlo $reloading_modlist {
-         if {[modEq $tmodspec $modlo eqstart 1 0 1]} {
-            # found match
-            set res 1
-            break
-         }
-      }
-      reportDebug "stickiness ($tag) applies to '$tmodspec', is\
-         reloading=$res"
-   }
-
-   return $res
 }
 
 
