@@ -3679,8 +3679,12 @@ proc displayConfig {val env_var {asked 0} {trans {}} {locked 0}} {
 }
 
 
-########################################################################
-# Use a subordinate Tcl interpreter to execute modulefiles
+##############################################################################
+# Modulefile interpretation --------------------------------------------------
+##############################################################################
+
+#
+# Tcl sub-interpreter management
 #
 
 # dummy proc to disable modulefile commands on some evaluation modes
@@ -4311,8 +4315,8 @@ proc resetInterpState {itrp fresh dumpVarsVN dumpArrayVarsVN untrackVarsVN\
    }
 }
 
-########################################################################
-# commands run from inside a module file
+#
+# Modulefile Tcl commands
 #
 
 # Dictionary-style string comparison
@@ -4479,395 +4483,6 @@ proc module-whatis {args} {
    return {}
 }
 
-# convert environment variable references in string to their values
-# every local variable is prefixed by '0' to ensure they will not be
-# overwritten through variable reference resolution process
-proc resolvStringWithEnv {0str} {
-   # fetch variable references in string
-   set 0match_list [regexp -all -inline {\$[{]?([A-Za-z_][A-Za-z0-9_]*)[}]?}\
-      ${0str}]
-   if {[llength ${0match_list}] > 0} {
-      # put in local scope every environment variable referred in string
-      for {set 0i 1} {${0i} < [llength ${0match_list}]} {incr 0i 2} {
-         set 0varname [lindex ${0match_list} ${0i}]
-         if {![info exists ${0varname}]} {
-            set ${0varname} [get-env ${0varname}]
-         }
-      }
-      # resolve variable reference with values (now in local scope)
-      set 0res [subst -nobackslashes -nocommands ${0str}]
-   } else {
-      set 0res ${0str}
-   }
-
-   reportDebug "'${0str}' resolved to '${0res}'"
-
-   return ${0res}
-}
-
-# deduce modulepath from modulefile and module name
-proc getModulepathFromModuleName {modfile modname} {
-   return [string range $modfile 0 end-[string length /$modname]]
-}
-
-# deduce module name from modulefile and modulepath
-proc getModuleNameFromModulepath {modfile modpath} {
-   return [string range $modfile [string length $modpath/] end]
-}
-
-# extract module name from modulefile and currently enabled modulepaths
-proc findModuleNameFromModulefile {modfile} {
-   set ret {}
-
-   foreach modpath [getModulePathList] {
-      if {[string first $modpath/ $modfile/] == 0} {
-         set ret [getModuleNameFromModulepath $modfile $modpath]
-         break
-      }
-   }
-   return $ret
-}
-
-# extract modulepath from modulefile and currently enabled modulepaths
-proc findModulepathFromModulefile {modfile} {
-   set ret {}
-
-   foreach modpath [getModulePathList] {
-      if {[string first $modpath/ $modfile/] == 0} {
-         set ret $modpath
-         break
-      }
-   }
-   return $ret
-}
-
-# Determine with a name provided as argument the corresponding module name,
-# version and name/version. Module name is guessed from current module name
-# when shorthand version notation is used. Both name and version are guessed
-# from current module if name provided is empty. If 'name_relative_tocur' is
-# enabled then name argument may be interpreted as a name relative to the
-# current modulefile directory (useful for module-version and module-alias
-# for instance).
-proc getModuleNameVersion {{name {}} {name_relative_tocur 0}} {
-   set curmod [currentState modulename]
-   set curmodname [file dirname $curmod]
-   set curmodversion [file tail $curmod]
-
-   if {$name eq {}} {
-      set name $curmodname
-      set version $curmodversion
-   # check for shorthand version notation like "/version" or "./version"
-   # only if we are currently interpreting a modulefile or modulerc
-   } elseif {$curmod ne {} && [regexp {^\.?\/(.*)$} $name match version]} {
-      # if we cannot distinguish a module name, raise error when shorthand
-      # version notation is used
-      if {[currentState modulefile] ne $curmod && $curmod ne {.modulerc}} {
-         # name is the name of current module directory
-         set name $curmodname
-      } else {
-         reportError "Invalid modulename '$name' found"
-         return {}
-      }
-   } else {
-      set name [string trimright $name /]
-      set version [file tail $name]
-      if {$name eq $version} {
-         set version {}
-      } else {
-         set name [file dirname $name]
-      }
-      # name may correspond to last part of current module
-      # if so name is replaced by current module name
-      if {$name_relative_tocur && [file tail $curmodname] eq $name} {
-         set name $curmodname
-      }
-   }
-
-   if {$version eq {}} {
-      set mod $name
-   } else {
-      set mod $name/$version
-   }
-
-   return [list $mod $name $version]
-}
-
-# Register alias or symbolic version deep resolution in a global array that
-# can be used thereafter to get in one query the actual modulefile behind
-# a virtual name. Also consolidate a global array that in the same manner
-# list all the symbols held by modulefiles.
-proc setModuleResolution {mod target {symver {}} {override_res_path 1}\
-   {auto_symver 0}} {
-   global g_moduleResolved g_resolvedHash g_resolvedPath g_symbolHash
-
-   # find end-point module and register step-by-step path to get to it
-   set res $target
-   lappend res_path $res
-   while {$mod ne $res && [info exists g_resolvedPath($res)]} {
-      set res $g_resolvedPath($res)
-      lappend res_path $res
-   }
-
-   # error if resolution end on initial module
-   if {$mod eq $res} {
-      reportError "Resolution loop on '$res' detected"
-      return 0
-   }
-
-   # module name will be useful when registering symbol
-   if {$symver ne {}} {
-      lassign [getModuleNameVersion $mod] modfull modname
-   }
-
-   # change default symbol owner if previously given; auto symbol are defined
-   # only if no default is pre-existing
-   if {$symver eq {default} && !$auto_symver} {
-      # alternative name "modname" is set when mod = "modname/default" both
-      # names will be registered to be known for queries and resolution defs
-      set modalt $modname
-
-      if {[info exists g_moduleResolved($mod)]} {
-         set prev $g_moduleResolved($mod)
-         # there may not be a default in case of auto symbol
-         if {[info exists g_symbolHash($prev)] && [set idx [lsearch -exact\
-            $g_symbolHash($prev) default]] != -1} {
-            reportDebug "remove symbol 'default' from '$prev'"
-            set g_symbolHash($prev) [lreplace $g_symbolHash($prev) $idx $idx]
-         }
-      }
-   }
-
-   # register end-point resolution
-   reportDebug "$mod resolved to $res"
-   set g_moduleResolved($mod) $res
-   # set first element of resolution path only if not already set or
-   # scratching enabled, no change when propagating symbol along res path
-   if {$override_res_path || ![info exists g_resolvedPath($mod)]} {
-      set g_resolvedPath($mod) $target
-   }
-   lappend g_resolvedHash($res) $mod
-
-   # also register resolution on alternative name if any
-   if {[info exists modalt]} {
-      reportDebug "$modalt resolved to $res"
-      set g_moduleResolved($modalt) $res
-      if {$override_res_path || ![info exists g_resolvedPath($modalt)]} {
-         set g_resolvedPath($modalt) $target
-      }
-      lappend g_resolvedHash($res) $modalt
-      # register name alternative to know their existence
-      set ::g_moduleAltName($modalt) $mod
-      set ::g_moduleAltName($mod) $modalt
-   }
-
-   # if other modules were pointing to this one, adapt resolution end-point
-   set relmod_list {}
-   if {[info exists g_resolvedHash($mod)]} {
-      set relmod_list $g_resolvedHash($mod)
-      unset g_resolvedHash($mod)
-   }
-   # also adapt resolution for modules pointing to the alternative name
-   if {[info exists modalt] && [info exists g_resolvedHash($modalt)]} {
-      lappend relmod_list {*}$g_resolvedHash($modalt)
-      unset g_resolvedHash($modalt)
-   }
-   foreach relmod $relmod_list {
-      set g_moduleResolved($relmod) $res
-      reportDebug "$relmod now resolved to $res"
-      lappend g_resolvedHash($res) $relmod
-   }
-
-   # register and propagate symbols to the resolution path, exception made for
-   # auto symbol which are stored separately and not propagated
-   if {[info exists g_symbolHash($mod)]} {
-      set sym_list $g_symbolHash($mod)
-   } else {
-      set sym_list {}
-   }
-   if {$symver ne {} && $auto_symver} {
-      reportDebug "define auto symbolic version '$mod' targeting $target"
-      set ::g_autoSymbol($mod) $target
-   } elseif {$symver ne {} && !$auto_symver} {
-      # merge symbol definitions in case of alternative name
-      if {[info exists modalt] && [info exists g_symbolHash($modalt)]} {
-         set sym_list [lsort -dictionary -unique [list {*}$sym_list\
-            {*}$g_symbolHash($modalt)]]
-         reportDebug "set symbols '$sym_list' to $mod and $modalt"
-         set g_symbolHash($mod) $sym_list
-         set g_symbolHash($modalt) $sym_list
-      }
-
-      # dictionary-sort symbols and remove eventual duplicates
-      set sym_list [lsort -dictionary -unique [list {*}$sym_list $symver]]
-
-      # propagate symbols in g_symbolHash and g_moduleVersion toward the
-      # resolution path, handle that locally if we still work on same
-      # modulename, call for a proper resolution as soon as we change of
-      # module to get this new resolution registered
-      foreach modres $res_path {
-         lassign [getModuleNameVersion $modres] modfull modresname
-         if {$modname eq $modresname} {
-            if {[info exists g_symbolHash($modres)]} {
-               set modres_sym_list [lsort -dictionary -unique [list\
-                  {*}$g_symbolHash($modres) {*}$sym_list]]
-            } else {
-               set modres_sym_list $sym_list
-            }
-            # sync symbols of alternative name if any
-            if {[info exists ::g_moduleAltName($modres)]} {
-               set altmodres $::g_moduleAltName($modres)
-               reportDebug "set symbols '$modres_sym_list' to $modres and\
-                  $altmodres"
-               set g_symbolHash($altmodres) $modres_sym_list
-            } else {
-               reportDebug "set symbols '$modres_sym_list' to $modres"
-            }
-            set g_symbolHash($modres) $modres_sym_list
-
-            # register symbolic version for querying in g_moduleVersion
-            foreach symelt $sym_list {
-               set modvers $modresname/$symelt
-               reportDebug "module-version $modvers = $modres"
-               set ::g_moduleVersion($modvers) $modres
-               set ::g_sourceVersion($modvers) [currentState modulefile]
-               # record eventual missing resolution
-               if {![info exists g_moduleResolved($modvers)]} {
-                  set g_moduleResolved($modvers) $modres
-                  reportDebug "$modvers resolved to $modres"
-                  lappend g_resolvedHash($modres) $modvers
-               }
-            }
-         # as we change of module name a proper resolution call should be
-         # made (see below) and will handle the rest of the resolution path
-         } else {
-            set need_set_res 1
-            break
-         }
-      }
-   # when registering an alias, existing symbols on alias source name should
-   # be broadcast along the resolution path with a proper resolution call
-   # (see below)
-   } else {
-      lassign [getModuleNameVersion $target] modres modresname
-      set need_set_res 1
-   }
-
-   # resolution needed to broadcast symbols along resolution path without
-   # altering initial path already set for these symbols
-   if {[info exists need_set_res]} {
-      foreach symelt $sym_list {
-         set modvers $modresname/$symelt
-         reportDebug "set resolution for $modvers"
-         setModuleResolution $modvers $modres $symelt 0
-      }
-   }
-
-   return 1
-}
-
-# retrieve all names that resolve to passed mod
-proc getAllModuleResolvedName {mod {flag_type 0} {modspec {}}} {
-   set namelist {}
-   set resmodlist {}
-   set icase [isIcase]
-   defineModEqProc $icase [getConf extended_default]
-
-   # get parent directories of mod
-   foreach modelt [split $mod /] {
-      if {[info exists modroot]} {
-         append modroot /
-      }
-      append modroot $modelt
-      lappend resmodlist $modroot
-   }
-
-   # add additionally all the altnames set on directories, parents of mod
-   # or on distant directories whose default version resolves to mod
-   for {set i 0} {$i < [llength $resmodlist]} {incr i 1} {
-      set modelt [getArrayKey ::g_resolvedHash [lindex $resmodlist $i] $icase]
-      if {[info exists ::g_resolvedHash($modelt)]} {
-         foreach resmod $::g_resolvedHash($modelt) {
-            # if alternative name corresponds to one root name test if default
-            # symbol is hidden
-            set resmoddfl [expr {[lsearch -exact $resmodlist $resmod] != -1 ?\
-               "$resmod/default" : {}}]
-            # if alternative name corresponds to default symbol and is hidden
-            # test if query matches bare module name
-            set resmodpar [expr {[file tail $resmod] eq {default} ? [file\
-               dirname $resmod] : {}}]
-
-            # if modelt is not a parent directory of mod, check its resolution
-            # points to mod (directly for alias/sym or indirectly for dir
-            # whose default version bridge resolution toward mod)
-            # if modspec arg is set, exclude hidden entries not explicitly
-            # matching modspec. auto symbols cannot be hidden
-            if {($modspec eq {} || ([info exists ::g_autoSymbol($resmod)] &&\
-               $::g_autoSymbol($resmod) eq $mod) || (![isModuleHidden $resmod\
-               $modspec] && ($resmoddfl eq {} || ![isModuleHidden $resmoddfl\
-               $modspec])) || [modEq $modspec $resmod eqspec] || ($resmodpar\
-               ne {} && [modEq $modspec $resmodpar eqspec])) && ([modEq\
-               $modelt $mod eqstart] || $::g_moduleResolved($resmod) eq $mod\
-               || $mod eq [lindex [getPathToModule\
-               $::g_moduleResolved($resmod) {} 0] 1])} {
-               # prefix automatically generated syms with type flag if asked
-               if {$flag_type && [info exists ::g_moduleAlias($resmod)]} {
-                  appendNoDupToList namelist al|$resmod
-               } elseif {$flag_type && [info exists\
-                  ::g_autoSymbol($resmod)]} {
-                  appendNoDupToList namelist as|$resmod
-               } else {
-                  appendNoDupToList namelist $resmod
-               }
-
-               unset modroot
-               foreach reselt [split [file dirname $resmod] /] {
-                  if {[info exists modroot]} {
-                     append modroot /
-                  }
-                  append modroot $reselt
-                  appendNoDupToList resmodlist $modroot
-               }
-            }
-         }
-      }
-   }
-   return $namelist
-}
-
-# build list for a given loaded module of its alternative names plus its
-# simplified names (name minus version or any subdir if this version or subdir
-# are the implicit default for module)
-proc getLoadedAltAndSimplifiedName {mod} {
-   if {[isModuleFullPath $mod]} {
-      set namelist [list $mod]
-   # use already computed name list if any
-   } elseif {[info exists ::g_loadedAltAndSimplifiedName($mod)]} {
-      set namelist $::g_loadedAltAndSimplifiedName($mod)
-   } else {
-      # get recorded alternative name
-      set namelist [getLoadedAltname $mod]
-      # also look through modpaths for simplified mod name
-      set modpathlist [getModulePathList]
-      if {[llength $modpathlist] > 0} {
-         set modfile [getModulefileFromLoadedModule $mod]
-         set parentmod [file dirname $mod]
-         # simplify to parent name as long as it resolves to current mod
-         while {$parentmod ne {.}} {
-            lassign [getPathToModule $parentmod $modpathlist 0] parentfile
-            if {$parentfile eq $modfile} {
-               lappend namelist $parentmod
-               set parentmod [file dirname $parentmod]
-            } else {
-               set parentmod .
-            }
-         }
-      }
-      # recorded computed name list for later use
-      set ::g_loadedAltAndSimplifiedName($mod) $namelist
-   }
-   return $namelist
-}
-
 # Specifies a default or alias version for a module that points to an
 # existing module version Note that aliases defaults are stored by the
 # short module name (not the full path) so aliases and defaults from one
@@ -5004,6 +4619,36 @@ proc parseApplicationCriteriaArgs {aftbef nearsec args} {
    }
 
    return [list $apply $isnearly $afterraw $otherargs]
+}
+
+proc setModspecTag {modspec tag {props {}}} {
+   reportDebug "Set tag '$tag' with properties '$props' on module\
+      specification '$modspec'"
+
+   # record tag list for mod root to optimize search
+   set modroot [getModuleRootFromVersSpec $modspec]
+   if {![info exists ::g_moduleTagRoot($modroot)]} {
+      lappend ::g_moduleTagRoot($modroot) $tag
+      set idx 0
+      set new 1
+   } else {
+      set idx [lsearch -exact $::g_moduleTagRoot($modroot) $tag]
+      if {$idx == -1} {
+         set idx [llength $::g_moduleTagRoot($modroot)]
+         lappend ::g_moduleTagRoot($modroot) $tag
+         set new 1
+      }
+   }
+
+   # then record mod spec and props at idx defined for tag. new spec are
+   # appended and firstly matching spec is returned with its props on search
+   if {[info exists new]} {
+      lappend ::g_moduleTagRootSpec($modroot) [list $modspec $props]
+   } else {
+      set tagrootlist [lindex $::g_moduleTagRootSpec($modroot) $idx]
+      lappend tagrootlist $modspec $props
+      lset ::g_moduleTagRootSpec($modroot) $idx $tagrootlist
+   }
 }
 
 proc module-forbid {args} {
@@ -6299,6 +5944,398 @@ proc getvariant {itrp name {valifundef {}}} {
    }
 }
 
+
+# convert environment variable references in string to their values
+# every local variable is prefixed by '0' to ensure they will not be
+# overwritten through variable reference resolution process
+proc resolvStringWithEnv {0str} {
+   # fetch variable references in string
+   set 0match_list [regexp -all -inline {\$[{]?([A-Za-z_][A-Za-z0-9_]*)[}]?}\
+      ${0str}]
+   if {[llength ${0match_list}] > 0} {
+      # put in local scope every environment variable referred in string
+      for {set 0i 1} {${0i} < [llength ${0match_list}]} {incr 0i 2} {
+         set 0varname [lindex ${0match_list} ${0i}]
+         if {![info exists ${0varname}]} {
+            set ${0varname} [get-env ${0varname}]
+         }
+      }
+      # resolve variable reference with values (now in local scope)
+      set 0res [subst -nobackslashes -nocommands ${0str}]
+   } else {
+      set 0res ${0str}
+   }
+
+   reportDebug "'${0str}' resolved to '${0res}'"
+
+   return ${0res}
+}
+
+# deduce modulepath from modulefile and module name
+proc getModulepathFromModuleName {modfile modname} {
+   return [string range $modfile 0 end-[string length /$modname]]
+}
+
+# deduce module name from modulefile and modulepath
+proc getModuleNameFromModulepath {modfile modpath} {
+   return [string range $modfile [string length $modpath/] end]
+}
+
+# extract module name from modulefile and currently enabled modulepaths
+proc findModuleNameFromModulefile {modfile} {
+   set ret {}
+
+   foreach modpath [getModulePathList] {
+      if {[string first $modpath/ $modfile/] == 0} {
+         set ret [getModuleNameFromModulepath $modfile $modpath]
+         break
+      }
+   }
+   return $ret
+}
+
+# extract modulepath from modulefile and currently enabled modulepaths
+proc findModulepathFromModulefile {modfile} {
+   set ret {}
+
+   foreach modpath [getModulePathList] {
+      if {[string first $modpath/ $modfile/] == 0} {
+         set ret $modpath
+         break
+      }
+   }
+   return $ret
+}
+
+# Determine with a name provided as argument the corresponding module name,
+# version and name/version. Module name is guessed from current module name
+# when shorthand version notation is used. Both name and version are guessed
+# from current module if name provided is empty. If 'name_relative_tocur' is
+# enabled then name argument may be interpreted as a name relative to the
+# current modulefile directory (useful for module-version and module-alias
+# for instance).
+proc getModuleNameVersion {{name {}} {name_relative_tocur 0}} {
+   set curmod [currentState modulename]
+   set curmodname [file dirname $curmod]
+   set curmodversion [file tail $curmod]
+
+   if {$name eq {}} {
+      set name $curmodname
+      set version $curmodversion
+   # check for shorthand version notation like "/version" or "./version"
+   # only if we are currently interpreting a modulefile or modulerc
+   } elseif {$curmod ne {} && [regexp {^\.?\/(.*)$} $name match version]} {
+      # if we cannot distinguish a module name, raise error when shorthand
+      # version notation is used
+      if {[currentState modulefile] ne $curmod && $curmod ne {.modulerc}} {
+         # name is the name of current module directory
+         set name $curmodname
+      } else {
+         reportError "Invalid modulename '$name' found"
+         return {}
+      }
+   } else {
+      set name [string trimright $name /]
+      set version [file tail $name]
+      if {$name eq $version} {
+         set version {}
+      } else {
+         set name [file dirname $name]
+      }
+      # name may correspond to last part of current module
+      # if so name is replaced by current module name
+      if {$name_relative_tocur && [file tail $curmodname] eq $name} {
+         set name $curmodname
+      }
+   }
+
+   if {$version eq {}} {
+      set mod $name
+   } else {
+      set mod $name/$version
+   }
+
+   return [list $mod $name $version]
+}
+
+# Register alias or symbolic version deep resolution in a global array that
+# can be used thereafter to get in one query the actual modulefile behind
+# a virtual name. Also consolidate a global array that in the same manner
+# list all the symbols held by modulefiles.
+proc setModuleResolution {mod target {symver {}} {override_res_path 1}\
+   {auto_symver 0}} {
+   global g_moduleResolved g_resolvedHash g_resolvedPath g_symbolHash
+
+   # find end-point module and register step-by-step path to get to it
+   set res $target
+   lappend res_path $res
+   while {$mod ne $res && [info exists g_resolvedPath($res)]} {
+      set res $g_resolvedPath($res)
+      lappend res_path $res
+   }
+
+   # error if resolution end on initial module
+   if {$mod eq $res} {
+      reportError "Resolution loop on '$res' detected"
+      return 0
+   }
+
+   # module name will be useful when registering symbol
+   if {$symver ne {}} {
+      lassign [getModuleNameVersion $mod] modfull modname
+   }
+
+   # change default symbol owner if previously given; auto symbol are defined
+   # only if no default is pre-existing
+   if {$symver eq {default} && !$auto_symver} {
+      # alternative name "modname" is set when mod = "modname/default" both
+      # names will be registered to be known for queries and resolution defs
+      set modalt $modname
+
+      if {[info exists g_moduleResolved($mod)]} {
+         set prev $g_moduleResolved($mod)
+         # there may not be a default in case of auto symbol
+         if {[info exists g_symbolHash($prev)] && [set idx [lsearch -exact\
+            $g_symbolHash($prev) default]] != -1} {
+            reportDebug "remove symbol 'default' from '$prev'"
+            set g_symbolHash($prev) [lreplace $g_symbolHash($prev) $idx $idx]
+         }
+      }
+   }
+
+   # register end-point resolution
+   reportDebug "$mod resolved to $res"
+   set g_moduleResolved($mod) $res
+   # set first element of resolution path only if not already set or
+   # scratching enabled, no change when propagating symbol along res path
+   if {$override_res_path || ![info exists g_resolvedPath($mod)]} {
+      set g_resolvedPath($mod) $target
+   }
+   lappend g_resolvedHash($res) $mod
+
+   # also register resolution on alternative name if any
+   if {[info exists modalt]} {
+      reportDebug "$modalt resolved to $res"
+      set g_moduleResolved($modalt) $res
+      if {$override_res_path || ![info exists g_resolvedPath($modalt)]} {
+         set g_resolvedPath($modalt) $target
+      }
+      lappend g_resolvedHash($res) $modalt
+      # register name alternative to know their existence
+      set ::g_moduleAltName($modalt) $mod
+      set ::g_moduleAltName($mod) $modalt
+   }
+
+   # if other modules were pointing to this one, adapt resolution end-point
+   set relmod_list {}
+   if {[info exists g_resolvedHash($mod)]} {
+      set relmod_list $g_resolvedHash($mod)
+      unset g_resolvedHash($mod)
+   }
+   # also adapt resolution for modules pointing to the alternative name
+   if {[info exists modalt] && [info exists g_resolvedHash($modalt)]} {
+      lappend relmod_list {*}$g_resolvedHash($modalt)
+      unset g_resolvedHash($modalt)
+   }
+   foreach relmod $relmod_list {
+      set g_moduleResolved($relmod) $res
+      reportDebug "$relmod now resolved to $res"
+      lappend g_resolvedHash($res) $relmod
+   }
+
+   # register and propagate symbols to the resolution path, exception made for
+   # auto symbol which are stored separately and not propagated
+   if {[info exists g_symbolHash($mod)]} {
+      set sym_list $g_symbolHash($mod)
+   } else {
+      set sym_list {}
+   }
+   if {$symver ne {} && $auto_symver} {
+      reportDebug "define auto symbolic version '$mod' targeting $target"
+      set ::g_autoSymbol($mod) $target
+   } elseif {$symver ne {} && !$auto_symver} {
+      # merge symbol definitions in case of alternative name
+      if {[info exists modalt] && [info exists g_symbolHash($modalt)]} {
+         set sym_list [lsort -dictionary -unique [list {*}$sym_list\
+            {*}$g_symbolHash($modalt)]]
+         reportDebug "set symbols '$sym_list' to $mod and $modalt"
+         set g_symbolHash($mod) $sym_list
+         set g_symbolHash($modalt) $sym_list
+      }
+
+      # dictionary-sort symbols and remove eventual duplicates
+      set sym_list [lsort -dictionary -unique [list {*}$sym_list $symver]]
+
+      # propagate symbols in g_symbolHash and g_moduleVersion toward the
+      # resolution path, handle that locally if we still work on same
+      # modulename, call for a proper resolution as soon as we change of
+      # module to get this new resolution registered
+      foreach modres $res_path {
+         lassign [getModuleNameVersion $modres] modfull modresname
+         if {$modname eq $modresname} {
+            if {[info exists g_symbolHash($modres)]} {
+               set modres_sym_list [lsort -dictionary -unique [list\
+                  {*}$g_symbolHash($modres) {*}$sym_list]]
+            } else {
+               set modres_sym_list $sym_list
+            }
+            # sync symbols of alternative name if any
+            if {[info exists ::g_moduleAltName($modres)]} {
+               set altmodres $::g_moduleAltName($modres)
+               reportDebug "set symbols '$modres_sym_list' to $modres and\
+                  $altmodres"
+               set g_symbolHash($altmodres) $modres_sym_list
+            } else {
+               reportDebug "set symbols '$modres_sym_list' to $modres"
+            }
+            set g_symbolHash($modres) $modres_sym_list
+
+            # register symbolic version for querying in g_moduleVersion
+            foreach symelt $sym_list {
+               set modvers $modresname/$symelt
+               reportDebug "module-version $modvers = $modres"
+               set ::g_moduleVersion($modvers) $modres
+               set ::g_sourceVersion($modvers) [currentState modulefile]
+               # record eventual missing resolution
+               if {![info exists g_moduleResolved($modvers)]} {
+                  set g_moduleResolved($modvers) $modres
+                  reportDebug "$modvers resolved to $modres"
+                  lappend g_resolvedHash($modres) $modvers
+               }
+            }
+         # as we change of module name a proper resolution call should be
+         # made (see below) and will handle the rest of the resolution path
+         } else {
+            set need_set_res 1
+            break
+         }
+      }
+   # when registering an alias, existing symbols on alias source name should
+   # be broadcast along the resolution path with a proper resolution call
+   # (see below)
+   } else {
+      lassign [getModuleNameVersion $target] modres modresname
+      set need_set_res 1
+   }
+
+   # resolution needed to broadcast symbols along resolution path without
+   # altering initial path already set for these symbols
+   if {[info exists need_set_res]} {
+      foreach symelt $sym_list {
+         set modvers $modresname/$symelt
+         reportDebug "set resolution for $modvers"
+         setModuleResolution $modvers $modres $symelt 0
+      }
+   }
+
+   return 1
+}
+
+# retrieve all names that resolve to passed mod
+proc getAllModuleResolvedName {mod {flag_type 0} {modspec {}}} {
+   set namelist {}
+   set resmodlist {}
+   set icase [isIcase]
+   defineModEqProc $icase [getConf extended_default]
+
+   # get parent directories of mod
+   foreach modelt [split $mod /] {
+      if {[info exists modroot]} {
+         append modroot /
+      }
+      append modroot $modelt
+      lappend resmodlist $modroot
+   }
+
+   # add additionally all the altnames set on directories, parents of mod
+   # or on distant directories whose default version resolves to mod
+   for {set i 0} {$i < [llength $resmodlist]} {incr i 1} {
+      set modelt [getArrayKey ::g_resolvedHash [lindex $resmodlist $i] $icase]
+      if {[info exists ::g_resolvedHash($modelt)]} {
+         foreach resmod $::g_resolvedHash($modelt) {
+            # if alternative name corresponds to one root name test if default
+            # symbol is hidden
+            set resmoddfl [expr {[lsearch -exact $resmodlist $resmod] != -1 ?\
+               "$resmod/default" : {}}]
+            # if alternative name corresponds to default symbol and is hidden
+            # test if query matches bare module name
+            set resmodpar [expr {[file tail $resmod] eq {default} ? [file\
+               dirname $resmod] : {}}]
+
+            # if modelt is not a parent directory of mod, check its resolution
+            # points to mod (directly for alias/sym or indirectly for dir
+            # whose default version bridge resolution toward mod)
+            # if modspec arg is set, exclude hidden entries not explicitly
+            # matching modspec. auto symbols cannot be hidden
+            if {($modspec eq {} || ([info exists ::g_autoSymbol($resmod)] &&\
+               $::g_autoSymbol($resmod) eq $mod) || (![isModuleHidden $resmod\
+               $modspec] && ($resmoddfl eq {} || ![isModuleHidden $resmoddfl\
+               $modspec])) || [modEq $modspec $resmod eqspec] || ($resmodpar\
+               ne {} && [modEq $modspec $resmodpar eqspec])) && ([modEq\
+               $modelt $mod eqstart] || $::g_moduleResolved($resmod) eq $mod\
+               || $mod eq [lindex [getPathToModule\
+               $::g_moduleResolved($resmod) {} 0] 1])} {
+               # prefix automatically generated syms with type flag if asked
+               if {$flag_type && [info exists ::g_moduleAlias($resmod)]} {
+                  appendNoDupToList namelist al|$resmod
+               } elseif {$flag_type && [info exists\
+                  ::g_autoSymbol($resmod)]} {
+                  appendNoDupToList namelist as|$resmod
+               } else {
+                  appendNoDupToList namelist $resmod
+               }
+
+               unset modroot
+               foreach reselt [split [file dirname $resmod] /] {
+                  if {[info exists modroot]} {
+                     append modroot /
+                  }
+                  append modroot $reselt
+                  appendNoDupToList resmodlist $modroot
+               }
+            }
+         }
+      }
+   }
+   return $namelist
+}
+
+# build list for a given loaded module of its alternative names plus its
+# simplified names (name minus version or any subdir if this version or subdir
+# are the implicit default for module)
+proc getLoadedAltAndSimplifiedName {mod} {
+   if {[isModuleFullPath $mod]} {
+      set namelist [list $mod]
+   # use already computed name list if any
+   } elseif {[info exists ::g_loadedAltAndSimplifiedName($mod)]} {
+      set namelist $::g_loadedAltAndSimplifiedName($mod)
+   } else {
+      # get recorded alternative name
+      set namelist [getLoadedAltname $mod]
+      # also look through modpaths for simplified mod name
+      set modpathlist [getModulePathList]
+      if {[llength $modpathlist] > 0} {
+         set modfile [getModulefileFromLoadedModule $mod]
+         set parentmod [file dirname $mod]
+         # simplify to parent name as long as it resolves to current mod
+         while {$parentmod ne {.}} {
+            lassign [getPathToModule $parentmod $modpathlist 0] parentfile
+            if {$parentfile eq $modfile} {
+               lappend namelist $parentmod
+               set parentmod [file dirname $parentmod]
+            } else {
+               set parentmod .
+            }
+         }
+      }
+      # recorded computed name list for later use
+      set ::g_loadedAltAndSimplifiedName($mod) $namelist
+   }
+   return $namelist
+}
+
+
+
 ########################################################################
 # internal module procedures
 #
@@ -6700,36 +6737,6 @@ proc getModulePathList {{behavior returnempty} {resolv_var 1} {set_abs 1}} {
       reportErrorAndExit {No module path defined}
    } else {
       return {}
-   }
-}
-
-proc setModspecTag {modspec tag {props {}}} {
-   reportDebug "Set tag '$tag' with properties '$props' on module\
-      specification '$modspec'"
-
-   # record tag list for mod root to optimize search
-   set modroot [getModuleRootFromVersSpec $modspec]
-   if {![info exists ::g_moduleTagRoot($modroot)]} {
-      lappend ::g_moduleTagRoot($modroot) $tag
-      set idx 0
-      set new 1
-   } else {
-      set idx [lsearch -exact $::g_moduleTagRoot($modroot) $tag]
-      if {$idx == -1} {
-         set idx [llength $::g_moduleTagRoot($modroot)]
-         lappend ::g_moduleTagRoot($modroot) $tag
-         set new 1
-      }
-   }
-
-   # then record mod spec and props at idx defined for tag. new spec are
-   # appended and firstly matching spec is returned with its props on search
-   if {[info exists new]} {
-      lappend ::g_moduleTagRootSpec($modroot) [list $modspec $props]
-   } else {
-      set tagrootlist [lindex $::g_moduleTagRootSpec($modroot) $idx]
-      lappend tagrootlist $modspec $props
-      lset ::g_moduleTagRootSpec($modroot) $idx $tagrootlist
    }
 }
 
