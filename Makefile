@@ -347,8 +347,45 @@ endif
 contrib/rpm/environment-modules.spec: contrib/rpm/environment-modules.spec.in $(GIT_REFRESH_PREREQ)
 	$(translate-in-script)
 
-modulecmd.tcl: modulecmd.tcl.in version.inc
+tcl/envmngt.tcl: tcl/envmngt.tcl.in version.inc
 	$(translate-in-script)
+
+tcl/init.tcl: tcl/init.tcl.in version.inc
+	$(translate-in-script)
+
+tcl/main.tcl: tcl/main.tcl.in version.inc
+	$(translate-in-script)
+
+tcl/mfinterp.tcl: tcl/mfinterp.tcl.in version.inc
+	$(translate-in-script)
+
+tcl/modfind.tcl: tcl/modfind.tcl.in version.inc
+	$(translate-in-script)
+
+tcl/report.tcl: tcl/report.tcl.in version.inc
+	$(translate-in-script)
+
+tcl/subcmd.tcl: tcl/subcmd.tcl.in version.inc
+	$(translate-in-script)
+
+# join all tcl/*.tcl files to build modulecmd.tcl
+modulecmd.tcl: tcl/coll.tcl tcl/envmngt.tcl tcl/init.tcl tcl/main.tcl \
+	tcl/mfinterp.tcl tcl/modeval.tcl tcl/modfind.tcl tcl/modspec.tcl \
+	tcl/report.tcl tcl/subcmd.tcl tcl/util.tcl version.inc
+	$(ECHO_GEN)
+	echo "#!$(TCLSH)" > $@
+	sed -e '3s/.*/# MODULECMD.TCL, a pure TCL implementation of the module command/' \
+		-e '1d' -e '/^# vim:/d' -e '/^# ;;;/d' tcl/init.tcl >> $@
+	sed -e '1,22d' -e '/^# vim:/d' -e '/^# ;;;/d' tcl/util.tcl >> $@
+	sed -e '1,22d' -e '/^# vim:/d' -e '/^# ;;;/d' tcl/envmngt.tcl >> $@
+	sed -e '1,22d' -e '/^# vim:/d' -e '/^# ;;;/d' tcl/report.tcl >> $@
+	sed -e '1,22d' -e '/^# vim:/d' -e '/^# ;;;/d' tcl/mfinterp.tcl >> $@
+	sed -e '1,22d' -e '/^# vim:/d' -e '/^# ;;;/d' tcl/modfind.tcl >> $@
+	sed -e '1,22d' -e '/^# vim:/d' -e '/^# ;;;/d' tcl/modeval.tcl >> $@
+	sed -e '1,20d' -e '/^# vim:/d' -e '/^# ;;;/d' tcl/modspec.tcl >> $@
+	sed -e '1,20d' -e '/^# vim:/d' -e '/^# ;;;/d' tcl/coll.tcl >> $@
+	sed -e '1,22d' -e '/^# vim:/d' -e '/^# ;;;/d' tcl/subcmd.tcl >> $@
+	sed -e '1,22d' -e '/^# vim:/d' -e '/^# ;;;/d' tcl/main.tcl >> $@
 	chmod +x $@
 
 # generate an empty changelog file if not working from git repository
@@ -629,6 +666,13 @@ endif
 	rm -f README
 	rm -f modulecmd.tcl
 	rm -f $(MODULECMDTEST)
+	rm -f tcl/envmngt.tcl
+	rm -f tcl/init.tcl
+	rm -f tcl/main.tcl
+	rm -f tcl/mfinterp.tcl
+	rm -f tcl/modfind.tcl
+	rm -f tcl/report.tcl
+	rm -f tcl/subcmd.tcl
 	rm -f script/add.modules
 	rm -f script/gitlog2changelog.py
 	rm -f script/modulecmd
@@ -742,10 +786,12 @@ V = 1
 endif
 # let verbose by default the install/clean/test and other specific non-build targets
 $(V).SILENT: initdir pkgdoc doc version.inc contrib/rpm/environment-modules.spec \
-	modulecmd.tcl ChangeLog README script/add.modules script/gitlog2changelog.py \
-	script/modulecmd lib/libtclenvmodules$(SHLIB_SUFFIX) \
-	lib/libtestutil-closedir$(SHLIB_SUFFIX) lib/libtestutil-getpwuid$(SHLIB_SUFFIX) \
-	lib/libtestutil-getgroups$(SHLIB_SUFFIX) lib/libtestutil-0getgroups$(SHLIB_SUFFIX) \
+	modulecmd.tcl tcl/envmngt.tcl tcl/init.tcl tcl/main.tcl tcl/mfinterp.tcl \
+	tcl/modfind.tcl tcl/report.tcl tcl/subcmd.tcl ChangeLog README \
+	script/add.modules script/gitlog2changelog.py script/modulecmd \
+	lib/libtclenvmodules$(SHLIB_SUFFIX) lib/libtestutil-closedir$(SHLIB_SUFFIX) \
+	lib/libtestutil-getpwuid$(SHLIB_SUFFIX) lib/libtestutil-getgroups$(SHLIB_SUFFIX) \
+	lib/libtestutil-0getgroups$(SHLIB_SUFFIX) \
 	lib/libtestutil-dupgetgroups$(SHLIB_SUFFIX) lib/libtestutil-getgrgid$(SHLIB_SUFFIX) \
 	lib/libtestutil-time$(SHLIB_SUFFIX) lib/libtestutil-mktime$(SHLIB_SUFFIX) \
 	testsuite/example/.modulespath testsuite/example/modulespath-wild \
