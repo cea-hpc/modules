@@ -1,0 +1,1697 @@
+##########################################################################
+
+# REPORT.TCL, output handling procedures
+# Copyright (C) 2002-2004 Mark Lakata
+# Copyright (C) 2004-2017 Kent Mein
+# Copyright (C) 2016-2021 Xavier Delaruelle
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+##########################################################################
+
+#
+# Debug, Info, Warnings and Error message handling.
+#
+
+# save message when report is not currently initialized as we do not
+# know yet if debug mode is enabled or not
+proc reportDebug {message {showcaller 1} {caller _undef_}} {
+   # get caller name
+   if {$caller eq {_undef_} && $showcaller} {
+      if {[info level] > 1} {
+         set caller [lindex [info level -1] 0]
+      } else {
+         set caller {}
+      }
+   }
+   lappend ::errreport_buffer [list reportDebug $message $showcaller $caller]
+}
+
+# regular procedure to use once error report is initialized
+proc __reportDebug {message {showcaller 1} {caller _undef_}} {
+   # display active interp details if not the main one
+   set prefix [currentState debug_msg_prefix]
+   # display caller name as prefix
+   if {$showcaller && $caller ne {} && ($caller ne {_undef_} || [info level]\
+      > 1)} {
+      if {$caller eq {_undef_}} {
+         set caller [lindex [info level -1] 0]
+      }
+      append prefix "$caller: "
+   }
+   report [sgr db "DEBUG $prefix$message"] 0 1
+}
+
+# alternative procedure used when debug is disabled
+proc __reportDebugNop {args} {}
+
+proc reportWarning {message {recordtop 0}} {
+   reportError $message $recordtop WARNING wa 0
+}
+
+proc reportError {message {recordtop 0} {severity ERROR} {sgrkey er}\
+   {raisecnt 1}} {
+   lappend ::errreport_buffer [list reportError $message $recordtop $severity\
+      $sgrkey $raisecnt]
+}
+
+proc __reportError {message {recordtop 0} {severity ERROR} {sgrkey er}\
+   {raisecnt 1}} {
+   # if report disabled, also disable error raise to get a coherent
+   # behavior (if no message printed, no error code change)
+   if {![getState inhibit_errreport]} {
+      if {$raisecnt} {
+         raiseErrorCount
+      }
+      set msgsgr "[sgr $sgrkey $severity]: $message"
+      # record message to report it later on if a record id is found
+      if {[currentState msgrecordid] ne {}} {
+         recordMessage $msgsgr $recordtop
+      # skip message report if silent
+      } elseif {[isVerbosityLevel concise]} {
+         # save error messages to render them all together in JSON format
+         if {[isStateEqual report_format json]} {
+            lappend ::g_report_erralist $severity $message
+         } else {
+            report $msgsgr 0 0 1
+         }
+      }
+   }
+}
+
+# throw known error (call error with 'known error' code)
+proc knerror {message {code MODULES_ERR_KNOWN}} {
+   error $message {} $code
+}
+
+# save message if report is not yet initialized
+proc reportErrorAndExit {message} {
+   lappend ::errreport_buffer [list reportErrorAndExit $message]
+}
+
+# regular procedure to use once error report is initialized
+proc __reportErrorAndExit {message} {
+   raiseErrorCount
+   renderFalse
+   error $message {} MODULES_ERR_RENDERED
+}
+
+proc reportInternalBug {message {modfile {}}} {
+   if {$modfile ne {}} {
+      append message "\nIn '$modfile'"
+   }
+   append message "\nPlease contact <[getConf contact]>"
+   reportError $message 0 {Module ERROR} me
+}
+
+proc reportInfo {message {title INFO}} {
+   if {[isVerbosityLevel normal]} {
+      # use reportError for convenience but there is no error here
+      reportError $message 0 $title in 0
+   }
+}
+
+proc reportTrace {message {title TRACE}} {
+   if {[isVerbosityLevel trace]} {
+      # use reportError for convenience but there is no error here
+      reportError [sgr tr $message] 0 $title tr 0
+   }
+}
+
+# trace procedure execution start
+proc reportTraceExecEnter {cmdstring op} {
+   set caller [expr {[info level] > 1 ? [lindex [info level -1] 0] : {}}]
+   reportDebug $cmdstring 1 $caller
+}
+
+# is currently active message record id at top level
+proc isMsgRecordIdTop {} {
+   return [expr {[depthState msgrecordid] eq 1}]
+}
+
+# record messages on the eventual additional module evaluations that have
+# occurred during the current evaluation
+proc reportModuleEval {} {
+   set evalid [currentState evalid]
+   array set contexttitle {conun {Unloading conflict} reqlo {Loading\
+      requirement} depre {Reloading dependent} depun {Unloading dependent}\
+      urequn {Unloading useless requirement}}
+
+   if {[info exists ::g_moduleEval($evalid)]} {
+      foreach contextevallist $::g_moduleEval($evalid) {
+         set msgrecidlist [lassign $contextevallist context]
+         # skip context with no description title
+         if {[info exists contexttitle($context)]} {
+            # exclude hidden modules from report unless an high level of
+            # verbosity is set
+            if {[info exists ::g_moduleHiddenEval($evalid:$context)] &&\
+               ![isVerbosityLevel verbose2]} {
+               lassign [getDiffBetweenList $msgrecidlist\
+                  $::g_moduleHiddenEval($evalid:$context)] msgrecidlist
+            }
+
+            if {[llength $msgrecidlist] > 0} {
+               set moddesiglist {}
+               foreach msgrecid $msgrecidlist {
+                  lappend moddesiglist [getModuleDesignation $msgrecid]
+               }
+               reportInfo [join $moddesiglist] $contexttitle($context)
+            }
+         }
+      }
+      # purge list in case same evaluation is re-done afterward
+      unset ::g_moduleEval($evalid)
+   }
+}
+
+# render messages related to current record id under an header block
+proc reportMsgRecord {header {hidden 0}} {
+   set recid [currentState msgrecordid]
+   if {[info exists ::g_msgRecord($recid)]} {
+      # skip message report if silent (report even if hidden as soon as msgs
+      # are associated to hidden module evaluation)
+      if {[isVerbosityLevel concise]} {
+         set tty_cols [getState term_columns]
+         set padding {  }
+
+         set dispmsg $header
+         foreach msg $::g_msgRecord($recid) {
+            # split lines if too large for terminal
+            set first 1
+            set max_idx [tcl::mathfunc::max [expr {$tty_cols - [string length\
+               $padding]}] 1]
+            set linelist [list]
+            foreach line [split $msg \n] {
+               set lineadd {}
+               while {$lineadd ne $line} {
+                  set line_max_idx $max_idx
+                  # sgr tags consume no length
+                  set eidx 0
+                  while {[set sidx [string first "\033\[" $line $eidx]] !=\
+                     -1} {
+                     set eidx [string first m $line $sidx]
+                     incr line_max_idx [expr {1 + $eidx - $sidx}]
+                  }
+
+                  # no split if no whitespace found to slice
+                  if {[string length $line] > $line_max_idx && [set cut_idx\
+                     [string last { } $line $line_max_idx]] != -1} {
+                     set lineadd [string range $line 0 [expr {$cut_idx-1}]]
+                     set line [string range $line [expr {$cut_idx+1}] end]
+                  } else {
+                     set lineadd $line
+                  }
+                  # skip empty line
+                  if {[string trim $lineadd] ne {}} {
+                     lappend linelist $lineadd
+                  }
+                  if {$first} {
+                     set first 0
+                     incr max_idx -[string length $padding]
+                     if {$max_idx < 1} {set max_idx 1}
+                  }
+               }
+            }
+
+            # display each line
+            set first 1
+            foreach line $linelist {
+               append dispmsg \n
+               if {$first} {
+                  set first 0
+               } else {
+                  append dispmsg $padding
+               }
+               append dispmsg $padding$line
+            }
+         }
+         reportSeparateNextContent
+         report $dispmsg
+         reportSeparateNextContent
+      }
+
+      # purge message list in case same evaluation is re-done afterward
+      unset ::g_msgRecord($recid)
+   # report header if no other specific msg to output in verbose mode or in
+   # normal verbosity mode if currently processing a cmd which triggers
+   # multiple module evaluations that cannot be guessed by the user
+   # if hidden flag is enabled report only if verbosity >= verbose2
+   } elseif {(!$hidden && ([isVerbosityLevel verbose] || ([isVerbosityLevel\
+      normal] && ([ongoingCommandName restore] || [ongoingCommandName\
+      source])))) || ($hidden && [isVerbosityLevel verbose2])} {
+      report $header
+   }
+}
+
+# separate next content produced if any
+proc reportSeparateNextContent {} {
+   lappend ::errreport_buffer [list reportSeparateNextContent]
+}
+
+# regular procedure to use once error report is initialized
+proc __reportSeparateNextContent {} {
+   # hold or apply
+   if {[depthState reportholdid] > 0} {
+      lappend ::g_holdReport([currentState reportholdid]) [list\
+         reportSeparateNextContent]
+   } else {
+      setState report_sep_next 1
+   }
+}
+
+# save message for block rendering
+proc recordMessage {message {recordtop 0}} {
+   lappend ::g_msgRecord([expr {$recordtop ? [topState msgrecordid] :\
+      [currentState msgrecordid]}]) $message
+}
+
+# check if some msg have been recorded for current evaluation
+proc isMsgRecorded {} {
+   return [info exists ::g_msgRecord([currentState msgrecordid])]
+}
+
+# filter and format error stack trace to only report useful content
+proc formatErrStackTrace {errmsg loc {cmdlist {}}} {
+   set headstr "\n    while executing\n"
+   set splitstr "\n    invoked from within\n"
+   set splitstrlen [string length $splitstr]
+   set aftheadidx [string first $headstr $errmsg]
+   if {$aftheadidx != -1} {
+      incr aftheadidx [string length $headstr]
+   }
+
+   # get name of invalid command name to maintain it in error stack trace
+   if {[string equal -length 22 {invalid command name "} $errmsg]} {
+      set unkcmd [lindex [split [string range $errmsg 0 $aftheadidx] {"}] 1]
+   } else {
+      set unkcmd {}
+   }
+
+   # get list of modulecmd.tcl internal procedure to filter out from stack
+   # skip this when no interp command list is provided
+   if {[llength $cmdlist] > 0} {
+      lassign [getDiffBetweenList [list {*}[info commands] {*}[info procs]]\
+         $cmdlist] filtercmdlist keepcmdlist
+   } else {
+      set filtercmdlist {}
+   }
+
+   # define commands to filter out from bottom of stack
+   set filtercmdendlist [list {eval $modcontent} "source $loc" {uplevel 1\
+      source $siteconfig}]
+
+   # filter out modulecmd internal references at beginning of stack
+   set internals 1
+   while {$internals && $aftheadidx != -1} {
+      # fetch erroneous command and its caller
+      set stackelt [string range $errmsg $aftheadidx [string first\
+         $splitstr $errmsg $aftheadidx]]
+      lassign [split [lindex [split $stackelt {"}] 1]] cmd1 cmd2
+      set cmdcaller [lindex [split [string range $stackelt [string last\
+         {(procedure } $stackelt] end] {"}] 1]
+      if {$cmd1 eq {eval}} {
+         set cmd1 $cmd2
+      }
+
+      # filter out stack element referring to or called by an unknown procedure
+      # (ie. a modulecmd.tcl internal procedure)
+      if {[string index $cmd1 0] ne {$} && $cmd1 ne $unkcmd && ($cmdcaller in\
+         $filtercmdlist || $cmd1 in $filtercmdlist)} {
+         set errmsg [string replace $errmsg $aftheadidx [expr {[string first\
+            $splitstr $errmsg] + $splitstrlen - 1}]]
+      } else {
+         set internals 0
+      }
+   }
+
+   # filter out modulecmd internal references at end of stack
+   set internals 1
+   while {$internals} {
+      set beffootidx [string last $splitstr $errmsg]
+      set stackelt [string range $errmsg $beffootidx end]
+      set cmd [lindex [split $stackelt {"}] 1]
+
+      if {$cmd in $filtercmdendlist} {
+         set errmsg [string replace $errmsg $beffootidx end]
+      } else {
+         set internals 0
+      }
+   }
+
+   # replace error location at end of stack
+   set lastnl [string last \n $errmsg]
+   set lastline [string range $errmsg [expr {$lastnl + 1}] end]
+   if {[string match {    ("eval" body line*} $lastline]} {
+      set errmsg [string replace $errmsg $lastnl [expr {$lastnl + [string\
+         length "    (\"eval\" body line"]}] "\n    (file \"$loc\" line"]
+   } elseif {![string match {    (file *} $lastline]} {
+      # add error location at end of stack
+      append errmsg "\n    (file \"$loc\")"
+   }
+
+   return $errmsg
+}
+
+# Test if color is enabled and passed sgrkey is defined and not null
+proc isSgrkeyColored {sgrkey} {
+   return [expr {[getConf color] && [info exists ::g_colors($sgrkey)] &&\
+      $::g_colors($sgrkey) ne {}}]
+}
+
+# Select Graphic Rendition of a string with passed sgr keys (if color enabled)
+proc sgr {keylist str {himatchmap {}} {othkeylist {}}} {
+   if {[getConf color]} {
+      set sgrreset 22
+      foreach sgrkey $keylist {
+         if {[info exists ::g_colors($sgrkey)]} {
+            # track color key that have been used
+            if {![info exists ::g_used_colors($sgrkey)]} {
+               set ::g_used_colors($sgrkey) 1
+            }
+            if {[info exists sgrset]} {
+               append sgrset {;}
+            }
+            append sgrset $::g_colors($sgrkey)
+            # if render bold or faint just reset that attribute, not all
+            if {$sgrreset != 0 && $sgrset != 1 && $sgrset != 2} {
+               set sgrreset 0
+            }
+         }
+      }
+      if {[llength $othkeylist] == 0} {
+         # highlight matching substring
+         if {[llength $himatchmap] > 0} {
+            set str [string map $himatchmap $str]
+         }
+         if {[info exists sgrset]} {
+            set str "\033\[${sgrset}m$str\033\[${sgrreset}m"
+         }
+      } else {
+         if {![info exists sgrset]} {
+            set sgrset {}
+         } else {
+            append sgrset {;}
+         }
+         # determine each chunk where the other sgr keys apply
+         set tagsgrlen [expr {int(ceil([string length $str]/[llength\
+            $othkeylist]))}]
+         for {set i 0} {$i < [llength $othkeylist]} {incr i} {
+            set idx [expr {$i*$tagsgrlen}]
+            set sgrkey [lindex $othkeylist $i]
+            lappend sgridxlist $idx $::g_colors($sgrkey)
+            # track color key that have been used
+            if {![info exists ::g_used_colors($sgrkey)]} {
+               set ::g_used_colors($sgrkey) 1
+            }
+         }
+         # determine each chunk where the highlight applies
+         set hiidxlist {}
+         foreach {mstr sgrmstr} $himatchmap {
+            set idx 0
+            while {$idx != -1} {
+               if {[set idx [string first $mstr $str $idx]] != -1} {
+                  lappend hiidxlist $idx
+                  incr idx [string length $mstr]
+                  # add highlight end index unless if end of string
+                  if {$idx < [string length $str]} {
+                     lappend hiidxlist $idx
+                  }
+               }
+            }
+            # no need to look at next match string if this one was found
+            if {[llength $hiidxlist] > 0} {
+               break
+            }
+         }
+
+         # mix other sgr chunks with highlighted chunks to define sgr codes
+         set i 0
+         set j 0
+         set sgridx [lindex $sgridxlist 0]
+         set hiidx [lindex $hiidxlist 0]
+         set hicur 0
+         set sgrcur {}
+         set sgrrst {0;}
+         while {$i < [llength $sgridxlist] || $j < [llength $hiidxlist]} {
+            set sgrcode {}
+            set cursgridx $sgridx
+            # sgr chunk change
+            if {$sgridx ne {} && ($hiidx eq {} || $sgridx <= $hiidx)} {
+               incr i
+               set sgrcur $sgrset[lindex $sgridxlist $i]
+               set idx $sgridx
+               if {$idx != 0} {
+                  append sgrcode $sgrrst
+               }
+               append sgrcode $sgrcur
+               incr i
+               set sgridx [lindex $sgridxlist $i]
+            }
+            # highlight change
+            if {$hiidx ne {} && ($cursgridx eq {} || $hiidx <= $cursgridx)} {
+               set idx $hiidx
+               set hicur [expr {!$hicur}]
+               if {$hicur} {
+                  if {$sgrcode ne {}} {
+                     append sgrcode {;}
+                  }
+                  append sgrcode $::g_colors(hi)
+               # restore current sgr set to only clear highlight
+               } elseif {$sgrcode eq {}} {
+                  append sgrcode $sgrrst $sgrcur
+               }
+               incr j
+               set hiidx [lindex $hiidxlist $j]
+            } elseif {$hicur} {
+               append sgrcode {;} $::g_colors(hi)
+            }
+            lappend fullsgridxlist $idx $sgrcode
+         }
+         # reset sgr at end of string
+         lappend fullsgridxlist [string length $str] 0
+
+         # apply defined sgr codes to the string
+         set stridx 0
+         foreach {sgridx sgrcode} $fullsgridxlist {
+            if {$sgridx != 0} {
+               append sgrstr [string range $str $stridx [expr {$sgridx-1}]]
+            }
+            append sgrstr "\033\[${sgrcode}m"
+            set stridx $sgridx
+         }
+         set str $sgrstr
+      }
+   }
+   return $str
+}
+
+# Sort tags to return those matching defined sgr keys in a list up to a given
+# maxnb number and if tag not set to be displayed by its name. Other elements
+# are returned in a separate list
+proc getTagSgrForModname {keylist maxnb} {
+   set sgrkeylist {}
+   if {[getConf color]} {
+      set otherlist {}
+      foreach key $keylist {
+         if {[info exists ::g_colors($key)] && ![info exists\
+            ::g_tagColorName($key)] && [llength $sgrkeylist] < $maxnb} {
+            lappend sgrkeylist $key
+         } else {
+            lappend otherlist $key
+         }
+      }
+   } else {
+      set otherlist $keylist
+   }
+   return [list $sgrkeylist $otherlist]
+}
+
+# save message if report is not yet initialized
+proc report {message {nonewline 0} {immed 0} {padnl 0}} {
+   lappend ::errreport_buffer [list report $message $nonewline $immed $padnl]
+}
+
+# regular procedure to use once error report is initialized
+proc __report {message {nonewline 0} {immed 0} {padnl 0}} {
+   # hold or print output
+   if {!$immed && [depthState reportholdid] > 0} {
+      lappend ::g_holdReport([currentState reportholdid]) [list report\
+         $message $nonewline $immed $padnl]
+   } else {
+      # produce blank line prior message if asked to
+      if {[isStateDefined reportfd] && [isStateDefined report_sep_next]} {
+         unsetState report_sep_next
+         report [expr {[isStateEqual report_format json] ? {,} : {}}]
+      }
+      # prefix msg lines after first one with 2 spaces
+      if {$padnl} {
+         set first 1
+         foreach line [split $message \n] {
+            if {$first} {
+               set first 0
+            } else {
+               append padmsg "\n  "
+            }
+            append padmsg $line
+         }
+         set message $padmsg
+      }
+
+      # protect from issue with fd, just ignore it
+      catch {
+         if {$nonewline} {
+            puts -nonewline [getState reportfd] $message
+         } else {
+            puts [getState reportfd] $message
+         }
+      }
+   }
+}
+
+# report error the correct way depending of its type
+proc reportIssue {issuetype issuemsg {issuefile {}}} {
+   switch -- $issuetype {
+      invalid {
+         reportInternalBug $issuemsg $issuefile
+      }
+      default {
+         reportError $issuemsg
+      }
+   }
+}
+
+# report defined command (used in display evaluation mode)
+proc reportCmd {cmd args} {
+   # use Tcl native string representation of list
+   if {$cmd eq {-nativeargrep}} {
+      set cmd [lindex $args 0]
+      set cmdargs [lrange $args 1 end]
+   } else {
+      set cmdargs [listTo tcl $args 0]
+   }
+   set extratab [expr {[string length $cmd] < 8 ? "\t" : {}}]
+   report [sgr cm $cmd]$extratab\t$cmdargs
+
+   # empty string returns if command result is another command input
+   return {}
+}
+
+# report defined command (called as an execution trace)
+proc reportCmdTrace {cmdstring args} {
+   reportCmd {*}$cmdstring
+}
+
+proc reportVersion {} {
+   report {Modules Release @MODULES_RELEASE@@MODULES_BUILD@\
+      (@MODULES_BUILD_DATE@)}
+}
+
+# disable error reporting (non-critical report only) unless debug enabled
+proc inhibitErrorReport {} {
+   if {![isVerbosityLevel trace]} {
+      setState inhibit_errreport 1
+   }
+}
+
+# init error report and output buffered messages
+proc initErrorReport {} {
+   # ensure init is done only once
+   if {![isStateDefined init_error_report]} {
+      setState init_error_report 1
+
+      # ask for color init now as debug mode has already fire lines to render
+      # and we want them to be reported first (not the color init lines)
+      if {[isVerbosityLevel debug]} {
+         getConf color
+      }
+
+      # trigger pager start if something needs to be printed, to guaranty
+      # reportDebug calls during pager start are processed in buffer mode
+      if {[isVerbosityLevel debug]} {
+         getState reportfd
+      }
+
+      # replace report procedures used to buffer messages until error report
+      # being initialized by regular report procedures
+      rename ::reportDebug {}
+      if {[isVerbosityLevel debug]} {
+         rename ::__reportDebug ::reportDebug
+      } else {
+         # set a disabled version if debug is disabled
+         rename ::__reportDebugNop ::reportDebug
+      }
+      rename ::reportError {}
+      rename ::__reportError ::reportError
+      rename ::reportErrorAndExit {}
+      rename ::__reportErrorAndExit ::reportErrorAndExit
+      rename ::reportSeparateNextContent {}
+      rename ::__reportSeparateNextContent ::reportSeparateNextContent
+      rename ::report {}
+      rename ::__report ::report
+
+      # trace each procedure call
+      if {[isVerbosityLevel debug2]} {
+         # exclude core procedure from tracing
+         set excl_prc_list [list report reportDebug reportTraceExecEnter\
+            getState setState unsetState lappendState lpopState currentState\
+            depthState isStateDefined isStateEqual sgr getConf setConf\
+            unsetConf lappendConf]
+         foreach prc [info procs] {
+            if {$prc ni $excl_prc_list} {
+               trace add execution $prc enter reportTraceExecEnter
+            }
+         }
+      }
+
+      # now error report is init output every message saved in buffer; first
+      # message will trigger message paging configuration and startup unless
+      # already done if debug mode enabled
+      foreach errreport $::errreport_buffer {
+         {*}$errreport
+      }
+   }
+}
+
+# drop or report held messages
+proc releaseHeldReport {args} {
+   foreach {holdid action} $args {
+      if {[info exists ::g_holdReport($holdid)]} {
+         if {$action eq {report}} {
+            foreach repcall $::g_holdReport($holdid) {
+               {*}$repcall
+            }
+         }
+         unset ::g_holdReport($holdid)
+      }
+   }
+}
+
+# check if element passed as argument (corresponding to a kind of information)
+# should be part of output content
+proc isEltInReport {elt {retifnotdef 1}} {
+   # get config name relative to current sub-command and output format
+   set conf [currentState commandname]
+   if {[getState report_format] ne {regular}} {
+      append conf _[getState report_format]
+   }
+   append conf _output
+   set arrname ::g_$conf
+
+   if {[info exists ::g_config_defs($conf)]} {
+      # build value cache if it does not exist yet
+      if {![array exists $arrname]} {
+         array set $arrname {}
+         foreach confelt [split [getConf $conf] :] {
+            set ${arrname}($confelt) 1
+         }
+      }
+
+      # check if elt is marked to be included in output
+      set ret [info exists ${arrname}($elt)]
+   } else {
+      # return $retifnotdef (ok by default) in case no config option
+      # corresponds to the current module sub-command and output format
+      set ret $retifnotdef
+   }
+
+   return $ret
+}
+
+proc registerModuleDesignation {evalid mod vrlist} {
+   set ::g_moduleDesgination($evalid) [list $mod $vrlist]
+}
+
+proc getModuleDesignation {from {mod {}} {sgr 1}} {
+   # fetch module name version and variants from specified context
+   switch -- $from {
+      spec {
+         set moddesig [getModuleNameAndVersFromVersSpec $mod]
+         set vrlist [getVariantList $mod 1 0 1]
+      }
+      loaded {
+         set moddesig $mod
+         set vrlist [getVariantList $mod 1]
+      }
+      default {
+         # fetch information from passed evaluation id
+         if {[info exists ::g_moduleDesgination($from)]} {
+            lassign $::g_moduleDesgination($from) moddesig vrlist
+         # if not found, use passed spec to compute designation
+         } else {
+            set moddesig [getModuleNameAndVersFromVersSpec $mod]
+            set vrlist [getVariantList $mod 1 0 1]
+         }
+      }
+   }
+
+   # build module designation
+   # add module name and version to the designation
+   if {$sgr > 1} {
+      set desig [sgr hi $moddesig]
+   } else {
+      set desig $moddesig
+   }
+   # enclose module name between quotes if a space is found
+   if {[string first { } $moddesig] != -1} {
+      set desig '$desig'
+   }
+
+   # add variant specification to the designation
+   if {[llength $vrlist] > 0} {
+      foreach vr $vrlist {
+         switch -- $sgr {
+            2 {set vrdesig [sgr va $vr]}
+            1 {set vrdesig [sgr {se va} $vr]}
+            0 {set vrdesig $vr}
+         }
+         lappend vrdesiglist $vrdesig
+      }
+      if {$sgr > 0} {
+         append desig [sgr se "\{"] [join $vrdesiglist [sgr se :]] [sgr se\
+            "\}"]
+      } else {
+         append desig "\{" [join $vrdesiglist :] "\}"
+      }
+   }
+
+   return $desig
+}
+
+#
+# Helper procedures to format various messages
+#
+
+proc getHintUnFirstMsg {modlist} {
+   return "HINT: Might try \"module unload [join $modlist]\" first."
+}
+
+proc getHintLoFirstMsg {modlist} {
+   if {[llength $modlist] > 1} {
+      set oneof {at least one of }
+      set mod modules
+   } else {
+      set oneof {}
+      set mod module
+   }
+   return "HINT: ${oneof}the following $mod must be loaded first: [join\
+      $modlist]"
+}
+
+proc getErrConflictMsg {conlist} {
+   return "Module cannot be loaded due to a conflict.\n[getHintUnFirstMsg\
+      $conlist]"
+}
+
+proc getErrPrereqMsg {prelist {load 1}} {
+   if {$load} {
+      foreach pre $prelist {
+         lappend predesiglist [getModuleDesignation spec $pre]
+      }
+      lassign [list {} missing [getHintLoFirstMsg $predesiglist]] un mis\
+         hintmsg
+   } else {
+      lassign [list un a [getHintUnFirstMsg $prelist]] un mis hintmsg
+   }
+   return "Module cannot be ${un}loaded due to $mis prereq.\n$hintmsg"
+}
+
+proc getErrReqLoMsg {prelist} {
+   foreach pre $prelist {
+      lappend predesiglist [getModuleDesignation spec $pre]
+   }
+   return "Load of requirement [join $predesiglist { or }] failed"
+}
+
+proc getReqNotLoadedMsg {prelist} {
+   foreach pre $prelist {
+      lappend predesiglist [getModuleDesignation spec $pre]
+   }
+   return "Requirement [join $predesiglist { or }] is not loaded"
+}
+
+proc getDepLoadedMsg {prelist} {
+   set is [expr {[llength $prelist] > 1 ? {are} : {is}}]
+   foreach pre $prelist {
+      lappend predesiglist [getModuleDesignation loaded $pre]
+   }
+   return "Dependent [join $predesiglist { and }] $is loaded"
+}
+
+proc getErrConUnMsg {conlist} {
+   set condesiglist {}
+   foreach con $conlist {
+      lappend condesiglist [getModuleDesignation spec $con]
+   }
+   return "Unload of conflicting [join $condesiglist { and }] failed"
+}
+
+proc getConIsLoadedMsg {conlist {loading 0}} {
+   set is [expr {[llength $conlist] > 1 ? {are} : {is}}]
+   set loaded [expr {$loading ? {loading} : {loaded}}]
+   set condesiglist {}
+   foreach con $conlist {
+      lappend condesiglist [getModuleDesignation spec $con]
+   }
+   return "Conflicting [join $condesiglist { and }] $is $loaded"
+}
+
+proc getForbiddenMsg {mod} {
+   set msg "Access to module [getModuleDesignation spec $mod 2] is denied"
+   set extramsg [getModuleTagProp $mod forbidden message]
+   if {$extramsg ne {}} {
+      append msg \n$extramsg
+   }
+   return $msg
+}
+
+proc getNearlyForbiddenMsg {mod} {
+   set after [getModuleTagProp $mod nearly-forbidden after]
+   set msg "Access to module will be denied starting '$after'"
+   set extramsg [getModuleTagProp $mod nearly-forbidden message]
+   if {$extramsg ne {}} {
+      append msg \n$extramsg
+   }
+   return $msg
+}
+
+proc getStickyUnloadMsg {{tag sticky}} {
+   return "Unload of $tag module skipped"
+}
+
+proc getStickyForcedUnloadMsg {} {
+   return {Unload of sticky module forced}
+}
+
+proc getModWithAltVrIsLoadedMsg {mod} {
+   set vrdesiglist {}
+   foreach vr [getVariantList $mod 1] {
+      lappend vrdesiglist [sgr va $vr]
+   }
+   return "Variant [sgr se "\{"][join $vrdesiglist [sgr se :]][sgr se "\}"]\
+      is already loaded"
+}
+
+proc getEmptyNameMsg {type} {
+   return "Invalid empty $type name"
+}
+
+#
+# Stack of message recording/eval unique identifiers
+#
+
+proc pushMsgRecordId {recid {setmsgid 1}} {
+   lappendState evalid $recid
+   if {$setmsgid} {
+      lappendState msgrecordid $recid
+   }
+}
+
+proc popMsgRecordId {{setmsgid 1}} {
+   lpopState evalid
+   if {$setmsgid} {
+      lpopState msgrecordid
+   }
+}
+
+proc clearAllMsgRecordId {} {
+   if {[isStateDefined evalid]} {
+      unsetState evalid
+   }
+   if {[isStateDefined msgrecordid]} {
+      unsetState msgrecordid
+   }
+}
+
+#
+# Format output text
+#
+
+# format an element with its syms for display in a list
+proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
+   sgrdef tag_list show_tags vr_list vrsgr show_vrs {himatchmap {}}} {
+   # fetch sgr codes from tags to apply directly on main element
+   if {$show_tags && [llength $tag_list] > 0} {
+      # if more codes than character in elt, additional codes apply to the
+      # side tag list
+      lassign [getTagSgrForModname $tag_list [string length $elt]] tagsgrlist\
+         tag_list
+   } else {
+      set tagsgrlist {}
+   }
+   # display default sym graphically over element name
+   if {$show_syms} {
+      if {[set defidx [lsearch -exact $sym_list default]] != -1 && $sgrdef} {
+         set sym_list [lreplace $sym_list $defidx $defidx]
+         lappend eltsgrlist de
+      }
+   }
+
+   set disp $elt$eltsuffix
+   lappend eltsgrlist $eltsgr
+   set dispsgr [sgr $eltsgrlist $elt $himatchmap $tagsgrlist]$eltsuffix
+
+   # format variant list if any
+   if {$show_vrs && [llength $vr_list] > 0} {
+      append disp "{[join $vr_list :]}"
+      set vrssgr "[sgr se \{]"
+      foreach vr $vr_list {
+         if {[info exists notfirstvr]} {
+            set colonsgr [sgr se :]
+            append vrssgr $colonsgr
+         } else {
+            set notfirstvr 1
+         }
+         append vrssgr [sgr $vrsgr $vr]
+      }
+      append vrssgr [sgr se \}]
+      append dispsgr $vrssgr
+   }
+
+   # format remaining sym list
+   if {$show_syms && [llength $sym_list] > 0} {
+      # track if a symbol has been reported excluding sym for alias '@'
+      if {![info exists ::g_used_sym_nocolor] && ([llength $sym_list] > 1 ||
+         [lindex $sym_list 0] ne {@})} {
+         set ::g_used_sym_nocolor 1
+      }
+      append disp "([join $sym_list :])"
+      set symssgr [sgr se (]
+      foreach sym $sym_list {
+         if {[info exists notfirstsym]} {
+            if {![info exists colonsgr]} {
+               set colonsgr [sgr se :]
+            }
+            append symssgr $colonsgr
+         } else {
+            set notfirstsym 1
+         }
+         append symssgr [sgr $symsgr $sym]
+      }
+      append symssgr [sgr se )]
+      append dispsgr $symssgr
+   }
+
+   # format tag list if any remaining
+   if {$show_tags && [llength $tag_list] > 0} {
+      append disp " <[join $tag_list :]>"
+      set tagssgr " [sgr se <]"
+      foreach tag $tag_list {
+         # track tag name or abbreviation that have been used
+         if {![info exists ::g_used_tags($tag)]} {
+            set ::g_used_tags($tag) 1
+         }
+         if {[info exists notfirsttag]} {
+            if {![info exists colonsgr]} {
+               set colonsgr [sgr se :]
+            }
+            append tagssgr $colonsgr
+         } else {
+            set notfirsttag 1
+         }
+         # try to sgr in case a code apply to the tag
+         append tagssgr [sgr $tag $tag]
+      }
+      append tagssgr [sgr se >]
+      append dispsgr $tagssgr
+   }
+
+   return [list $disp $dispsgr]
+}
+
+# format an element with its syms for a long/detailed display in a list
+proc formatListEltToLongDisplay {elt eltsgr eltsuffix sym_list symsgr mtime\
+   sgrdef {himatchmap {}}} {
+   set disp $elt$eltsuffix
+   set displen [string length $disp]
+   # display default sym graphically over element name
+   if {[set defidx [lsearch -exact $sym_list default]] != -1 && $sgrdef} {
+      set sym_list [lreplace $sym_list $defidx $defidx]
+      lappend eltsgrlist de
+   }
+   lappend eltsgrlist $eltsgr
+   set dispsgr [sgr $eltsgrlist $elt $himatchmap]$eltsuffix
+   # format remaining sym list
+   if {[llength $sym_list] > 0} {
+      set symslen [string length [join $sym_list :]]
+      foreach sym $sym_list {
+         if {![info exists colonsgr]} {
+            set colonsgr [sgr se :]
+         } else {
+            append symssgr $colonsgr
+         }
+         append symssgr [sgr $symsgr $sym]
+      }
+   } else {
+      set symssgr {}
+      set symslen 0
+   }
+   set nbws1 [expr {40 - $displen}]
+   set nbws2 [expr {20 - $symslen + [expr {$nbws1 < 0 ? $nbws1 : 0}]}]
+   return [list $disp $dispsgr[string repeat { } $nbws1]$symssgr[string\
+      repeat { } $nbws2]$mtime]
+}
+
+proc formatArrayValToJson {vallist} {
+   return [expr {[llength $vallist] > 0 ? "\[ \"[join $vallist {", "}]\" \]"\
+      : {[]}}]
+}
+
+proc formatObjectValToJson {objlist} {
+   foreach {key val isbool} $objlist {
+      if {[info exists disp]} {
+         append disp {, }
+      }
+      append disp "\"$key\": "
+      if {$isbool} {
+         append disp [expr {$val ? {true} : {false}}]
+      } else {
+         append disp "\"$val\""
+      }
+   }
+   return [expr {[info exists disp] ? "{ $disp }" : "{}"}]
+}
+
+# format an element with its syms for a json display in a list
+proc formatListEltToJsonDisplay {elt args} {
+   set disp "\"$elt\": \{ \"name\": \"$elt\""
+   foreach {key vtype val show} $args {
+      if {!$show} {
+         continue
+      }
+      append disp ", \"$key\": "
+      switch -- $vtype {
+         a {append disp [formatArrayValToJson $val]}
+         o {append disp [formatObjectValToJson $val]}
+         s {append disp "\"$val\""}
+      }
+   }
+   append disp "\}"
+
+   return $disp
+}
+
+# Prepare a map list to translate later on a substring in its highlighted
+# counterpart. Translate substring into all module it specifies in case of an
+# advanced version specification. Each string obtained is right trimmed from
+# wildcard. No highlight is set for strings still containing wildcard chars
+# after right trim operation. No highlist map is returned at all if highlight
+# rendering is disabled.
+proc prepareMapToHightlightSubstr {substr} {
+   set maplist {}
+   if {[sgr hi {}] ne {}} {
+      foreach m [getAllModulesFromVersSpec $substr] {
+         set m [string trimright $m {*?}]
+         if {$m ne {} && [string first * $m] == -1 && [string first ? $m] ==\
+            -1} {
+            lappend maplist $m [sgr hi $m]
+         }
+      }
+   }
+   return $maplist
+}
+
+# Format list of modules obtained from a getModules call in upper context
+proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
+   one_per_line theader_cols excluded_tag {mod_list_order {}}} {
+   # link to the result module list obtained in caller context
+   upvar mod_list mod_list
+
+   # output is JSON format
+   set json [isStateEqual report_format json]
+
+   # elements to include in output
+   set report_sym [isEltInReport sym]
+   set report_tag [isEltInReport tag]
+   set report_alias [isEltInReport alias]
+   # enable variant report if configured or on list json output
+   set report_variant [isEltInReport variant [expr {[currentState\
+      commandname] eq {list} && $json}]]
+
+   # prepare list of tag abbreviations that can be substituted and list of
+   # tags whose name should be colored
+   getConf tag_abbrev
+   getConf tag_color_name
+
+   # prepare results for display
+   set alias_colored [isSgrkeyColored al]
+   set default_colored [isSgrkeyColored de]
+   set himatchmap [prepareMapToHightlightSubstr $mod]
+   set clean_list {}
+   set vr_list {}
+
+   # treat elements in specified order if any
+   foreach elt [if {[llength $mod_list_order] == 0} {array names mod_list}\
+      {set mod_list_order}] {
+      if {$report_variant} {
+         set vr_list [getVariantList $elt [expr {$json ? 4 : 1}]]
+      }
+      set sym_list [getVersAliasList $elt]
+      # fetch tags but clear excluded tag
+      set tag_list [replaceFromList [getTagList $elt] $excluded_tag]
+      # abbreviate tags unless for json output
+      if {!$json} {
+         set tag_list [abbrevTagList $tag_list]
+      }
+      set dispsgr {}
+      # ignore "version" entries as symbolic version are treated
+      # along to their relative modulefile not independently
+      switch -- [lindex $mod_list($elt) 0] {
+         directory {
+            if {$json} {
+               set dispsgr [formatListEltToJsonDisplay $elt type s directory\
+                  1 symbols a $sym_list 1]
+            } elseif {$show_mtime} {
+               # append / char after name to clearly indicate this is a dir
+               lassign [formatListEltToLongDisplay $elt di / $sym_list sy {}\
+                  $default_colored $himatchmap] disp dispsgr
+            } else {
+               lassign [formatListEltToDisplay $elt di / $sym_list sy\
+                  $report_sym $default_colored {} 0 {} {} 0 $himatchmap] disp\
+                  dispsgr
+            }
+         }
+         modulefile - virtual {
+            if {$json} {
+               set dispsgr [formatListEltToJsonDisplay $elt type s modulefile\
+                  1 variants o $vr_list $report_variant symbols a $sym_list 1\
+                  tags a $tag_list 1 pathname s [lindex $mod_list($elt) 2] 1]
+            } elseif {$show_mtime} {
+               set clock_mtime [expr {[lindex $mod_list($elt) 1] ne {} ?\
+                  [clock format [lindex $mod_list($elt) 1] -format {%Y/%m/%d\
+                  %H:%M:%S}] : {}}]
+               # add to display file modification time in addition
+               # to potential syms
+               lassign [formatListEltToLongDisplay $elt {} {} $sym_list sy\
+                  $clock_mtime $default_colored $himatchmap] disp dispsgr
+            } else {
+               lassign [formatListEltToDisplay $elt {} {} $sym_list sy\
+                  $report_sym $default_colored $tag_list $report_tag $vr_list\
+                  va $report_variant $himatchmap] disp dispsgr
+            }
+         }
+         alias {
+            if {$json} {
+               set dispsgr [formatListEltToJsonDisplay $elt type s alias 1\
+                  symbols a $sym_list 1 tags a $tag_list 1 target s [lindex\
+                  $mod_list($elt) 1] 1]
+            } elseif {$show_mtime} {
+               lassign [formatListEltToLongDisplay $elt al " -> [lindex\
+                  $mod_list($elt) 1]" $sym_list sy {} $default_colored\
+                  $himatchmap] disp dispsgr
+            } elseif {$report_alias} {
+               # add a '@' sym to indicate elt is an alias if not colored
+               if {!$alias_colored} {
+                  lappend sym_list @
+                  # track use of '@' sym to add it to the output key
+                  if {![info exists ::g_used_alias_nocolor]} {
+                     set ::g_used_alias_nocolor 1
+                  }
+               }
+               lassign [formatListEltToDisplay $elt al {} $sym_list sy\
+                  $report_sym $default_colored $tag_list $report_tag {} {} 0\
+                  $himatchmap] disp dispsgr
+            }
+         }
+      }
+      if {$dispsgr ne {}} {
+         if {$json} {
+            lappend clean_list $dispsgr
+         } else {
+            lappend clean_list $disp
+            set sgrmap($disp) $dispsgr
+         }
+      }
+   }
+
+   set len_list {}
+   set max_len 0
+   if {$json} {
+      upvar 0 clean_list display_list
+      if {![info exists display_list]} {
+         set display_list {}
+      }
+   } else {
+      set display_list {}
+      # dictionary-sort results unless if output order is specified
+      if {[llength $mod_list_order] == 0} {
+         set clean_list [lsort -dictionary $clean_list]
+      }
+      foreach disp $clean_list {
+         # compute display element length list on sorted result
+         lappend display_list $sgrmap($disp)
+         lappend len_list [set len [string length $disp]]
+         if {$len > $max_len} {
+            set max_len $len
+         }
+      }
+   }
+
+   # output table header if needed and not yet done
+   if {[llength $display_list] > 0 && $show_mtime && ![isStateDefined\
+      theader_shown]} {
+      setState theader_shown 1
+      displayTableHeader {*}$theader_cols
+   }
+
+   # output formatted elements
+   displayElementList $header $hsgrkey $hstyle $one_per_line $show_idx\
+      $display_list $len_list $max_len
+}
+
+proc showModulePath {} {
+   set modpathlist [getModulePathList]
+   if {[llength $modpathlist] > 0} {
+      report {Search path for module files (in search order):}
+      foreach path $modpathlist {
+         report "  [sgr mp $path]"
+      }
+   } else {
+      reportWarning {No directories on module search path}
+   }
+}
+
+proc displayTableHeader {sgrkey args} {
+   foreach {title col_len} $args {
+      set col "- [sgr $sgrkey $title] "
+      append col [string repeat - [expr {$col_len - [string length $title] -\
+         3}]]
+      lappend col_list $col
+   }
+
+   report [join $col_list .]
+}
+
+proc displaySeparatorLine {{title {}} {sgrkey {}}} {
+   set tty_cols [getState term_columns]
+   if {$title eq {}} {
+      # adapt length if screen width is very small
+      set max_rep 67
+      set rep [expr {$tty_cols > $max_rep ? $max_rep : $tty_cols}]
+      report [string repeat - $rep]
+   } else {
+      set len [string length $title]
+      set lrep [tcl::mathfunc::max [expr {($tty_cols - $len - 2)/2}] 1]
+      set rrep [tcl::mathfunc::max [expr {$tty_cols - $len - 2 - $lrep}] 1]
+      report "[string repeat - $lrep] [sgr $sgrkey $title] [string repeat -\
+         $rrep]"
+   }
+}
+
+# get a list of elements and print them in a column or in a
+# one-per-line fashion
+proc displayElementList {header sgrkey hstyle one_per_line display_idx\
+   display_list {len_list {}} {max_len 0}} {
+   set elt_cnt [llength $display_list]
+   reportDebug "header=$header, sgrkey=$sgrkey, hstyle=$hstyle,\
+      elt_cnt=$elt_cnt, max_len=$max_len, one_per_line=$one_per_line,\
+      display_idx=$display_idx"
+
+   # end proc if no element are to print
+   if {$elt_cnt == 0} {
+      return
+   }
+   # output is JSON format
+   set json [isStateEqual report_format json]
+
+   # display header if any provided
+   if {$header ne {noheader}} {
+      if {$json} {
+         report "\"$header\": \{"
+      } elseif {$hstyle eq {sepline}} {
+         displaySeparatorLine $header $sgrkey
+      } else {
+         report [sgr $sgrkey $header]:
+      }
+   }
+
+   if {$json} {
+      set displist [join $display_list ,\n]
+   # display one element per line
+   } elseif {$one_per_line} {
+      if {$display_idx} {
+         set idx 1
+         foreach elt $display_list {
+            append displist [format {%2d) %s } $idx $elt] \n
+            incr idx
+         }
+      } else {
+         append displist [join $display_list \n] \n
+      }
+   # elsewhere display elements in columns
+   } else {
+      if {$display_idx} {
+         # save room for numbers and spacing: 2 digits + ) + space
+         set elt_prefix_len 4
+      } else {
+         set elt_prefix_len 0
+      }
+      # save room for two spaces after element
+      set elt_suffix_len 2
+
+      # compute rows*cols grid size with optimized column number
+      # the size of each column is computed to display as much column
+      # as possible on each line
+      incr max_len $elt_suffix_len
+      foreach len $len_list {
+         lappend elt_len [incr len $elt_suffix_len]
+      }
+
+      set tty_cols [getState term_columns]
+      # find valid grid by starting with non-optimized solution where each
+      # column length is equal to the length of the biggest element to display
+      set cur_cols [tcl::mathfunc::max [expr {int(($tty_cols - \
+         $elt_prefix_len) / $max_len)}] 0]
+      # when display is found too short to display even one column
+      if {$cur_cols == 0} {
+         set cols 1
+         set rows $elt_cnt
+         array set col_width [list 0 $max_len]
+      } else {
+         set cols 0
+         set rows 0
+      }
+      set last_round 0
+      set restart_loop 0
+      while {$cur_cols > $cols} {
+         if {!$restart_loop} {
+            if {$last_round} {
+               incr cur_rows
+            } else {
+               set cur_rows [expr {int(ceil(double($elt_cnt) / $cur_cols))}]
+            }
+            for {set i 0} {$i < $cur_cols} {incr i} {
+               set cur_col_width($i) 0
+            }
+            for {set i 0} {$i < $cur_rows} {incr i} {
+               set row_width($i) 0
+            }
+            set istart 0
+         } else {
+            set istart [expr {$col * $cur_rows}]
+            # only remove width of elements from current col
+            for {set row 0} {$row < ($i % $cur_rows)} {incr row} {
+               incr row_width($row) -[expr {$pre_col_width + $elt_prefix_len}]
+            }
+         }
+         set restart_loop 0
+         for {set i $istart} {$i < $elt_cnt} {incr i} {
+            set col [expr {int($i / $cur_rows)}]
+            set row [expr {$i % $cur_rows}]
+            # restart loop if a column width change
+            if {[lindex $elt_len $i] > $cur_col_width($col)} {
+               set pre_col_width $cur_col_width($col)
+               set cur_col_width($col) [lindex $elt_len $i]
+               set restart_loop 1
+               break
+            }
+            # end search of maximum number of columns if computed row width
+            # is larger than terminal width
+            if {[incr row_width($row) +[expr {$cur_col_width($col) \
+               + $elt_prefix_len}]] > $tty_cols} {
+               # start last optimization pass by increasing row number until
+               # reaching number used for previous column number, by doing so
+               # this number of column may pass in terminal width, if not
+               # fallback to previous number of column
+               if {$last_round && $cur_rows == $rows} {
+                  incr cur_cols -1
+               } else {
+                  set last_round 1
+               }
+               break
+            }
+         }
+         # went through all elements without reaching terminal width limit so
+         # this number of column solution is valid, try next with a greater
+         # column number
+         if {$i == $elt_cnt} {
+            set cols $cur_cols
+            set rows $cur_rows
+            array set col_width [array get cur_col_width]
+            # number of column is fixed if last optimization round has started
+            # reach end also if there is only one row of results
+            if {!$last_round && $rows > 1} {
+               incr cur_cols
+            }
+         }
+
+      }
+      reportDebug list=$display_list
+      reportDebug "rows/cols=$rows/$cols,\
+         lastcol_item_cnt=[expr {int($elt_cnt % $rows)}]"
+
+      for {set row 0} {$row < $rows} {incr row} {
+         for {set col 0} {$col < $cols} {incr col} {
+            set index [expr {$col * $rows + $row}]
+            if {$index < $elt_cnt} {
+               if {$display_idx} {
+                  append displist [format "%2d) " [expr {$index +1}]]
+               }
+               # cannot use 'format' as strings may contain SGR codes
+               append displist [lindex $display_list $index][string repeat\
+                  { } [expr {$col_width($col) - [lindex $len_list $index]}]]
+            }
+         }
+         append displist \n
+      }
+   }
+   if {$json && $header ne {noheader}} {
+      append displist "\n\}"
+   }
+   report $displist 1
+   reportSeparateNextContent
+}
+
+# Report an output key to help understand what the SGR used on this output
+# correspond to
+proc displayKey {} {
+   array set skipsgr [list hi 1 db 1 tr 1 se 1 er 1 wa 1 me 1 in 1 cm 1 va 1]
+   array set typesgr [list mp modulepath di [list directory <SGR>/ 10] al\
+      module-alias sy [list {symbolic-version} [sgr se (]<SGR>[sgr se )] 18]\
+      de [list {default-version}]]
+
+   set display_list {}
+   set len_list {}
+   foreach key [array names ::g_used_colors] {
+      # sgr key matches a basic modulefile type
+      if {[info exists typesgr($key)]} {
+         # the way to describe key is already defined
+         if {[llength $typesgr($key)] > 1} {
+            lassign $typesgr($key) desc desctmp len
+            set desc [string map [list <SGR> [sgr $key $desc]] $desctmp]
+         } else {
+            set desc [lindex $typesgr($key) 0]
+         }
+         if {$key eq {sy} && [info exists ::g_used_sym_nocolor]} {
+            unset ::g_used_sym_nocolor
+         }
+      # key is a tag abbreviation
+      } elseif {[info exists ::g_abbrevTag($key)]} {
+         set desc $::g_abbrevTag($key)
+      # if not part of the ignored list, this key corresponds to a tag name
+      } elseif {![info exists skipsgr($key)]} {
+         set desc $key
+      }
+      if {[info exists desc]} {
+         # define key description
+         if {![info exists len]} {
+            set len [string length $desc]
+            set desc [sgr $key $desc]
+         }
+         lappend display_list $desc
+         lappend len_list $len
+         unset desc
+         unset len
+      }
+   }
+
+   # include var=val key if any other variant form is present in report
+   if {![info exists ::g_used_va(val)] && [array exists ::g_used_va]} {
+      set ::g_used_va(val) 1
+   }
+   # add key for variant reports
+   if {[info exists ::g_used_va(on)]} {
+      lappend display_list "[sgr se \{][sgr va +variant][sgr se\
+         \}]=[sgr se \{][sgr va variant=on][sgr se \}]"
+      lappend len_list 23
+   }
+   if {[info exists ::g_used_va(off)]} {
+      lappend display_list "[sgr se \{][sgr va -variant][sgr se\
+         \}]=[sgr se \{][sgr va variant=off][sgr se \}]"
+      lappend len_list 24
+   }
+   foreach sc [array names ::g_used_va] {
+      if {$sc ni {on off val}} {
+         lappend display_list "[sgr se \{][sgr va ${sc}value][sgr se\
+            \}]=[sgr se \{][sgr va $::g_used_va($sc)=value][sgr se \}]"
+         lappend len_list [expr {17 + [string length $::g_used_va($sc)]}]
+      }
+   }
+   # finish with variant=value entry as it is referred by other variant keys
+   if {[info exists ::g_used_va(val)]} {
+      lappend display_list "[sgr se \{][sgr va variant=value][sgr se \}]"
+      lappend len_list 15
+   }
+
+   # add key for alias if '@' put in parentheses
+   if {[info exists ::g_used_alias_nocolor]} {
+      lappend display_list "[sgr se (]@[sgr se )]=module-alias"
+      lappend len_list 9
+   }
+   # add key for symbolic version if any put in parentheses but no color
+   if {[info exists ::g_used_sym_nocolor]} {
+      lappend display_list "[sgr se (]symbolic-version[sgr se )]"
+      lappend len_list 18
+   }
+
+   # add key for module tag if any put in angle brackets
+   if {[array exists ::g_used_tags]} {
+      lappend display_list "[sgr se <]module-tag[sgr se >]"
+      lappend len_list 12
+   }
+   # report translation of each uncolored tag abbreviation that have been used
+   foreach tag [array names ::g_used_tags] {
+      if {![info exists ::g_used_colors($tag)] && [info exists\
+         ::g_abbrevTag($tag)]} {
+         lappend display_list [sgr se <]$tag[sgr se >]=$::g_abbrevTag($tag)
+         lappend len_list [expr {[string length $tag] + [string length\
+            $::g_abbrevTag($tag)] + 3}]
+      }
+   }
+
+   # find largest element
+   set max_len 0
+   foreach len $len_list {
+      if {$len > $max_len} {
+         set max_len $len
+      }
+   }
+
+   if {[llength $display_list] > 0} {
+      # display header
+      report Key:
+      # display key content
+      displayElementList noheader {} {} 0 0 $display_list $len_list $max_len
+   }
+}
+
+# Return conf value and from where an eventual def value has been overridden
+proc displayConfig {val env_var {asked 0} {trans {}} {locked 0}} {
+   array set transarr $trans
+
+   # get overridden value and know what has overridden it
+   if {$asked} {
+      set defby " (cmd-line)"
+   } elseif {$env_var ne {} && !$locked && [info exists ::env($env_var)]} {
+      set defby " (env-var)"
+   } elseif {$locked} {
+      set defby " (locked)"
+   } else {
+      set defby {}
+   }
+
+   # translate fetched value if translation table exists
+   if {[info exists transarr($val)]} {
+      set val $transarr($val)
+   }
+
+   return $val$defby
+}
+
+proc reportMlUsage {} {
+   reportVersion
+   report {Usage: ml [options] [command] [args ...]
+       ml [options] [[-]modulefile ...]
+
+Examples:
+  ml                 equivalent to: module list
+  ml foo bar         equivalent to: module load foo bar
+  ml -foo -bar baz   equivalent to: module unload foo bar; module load baz
+  ml avail -t        equivalent to: module avail -t
+
+See 'module --help' to get available commands and options.}
+}
+
+proc reportUsage {} {
+   reportVersion
+   report {Usage: module [options] [command] [args ...]
+
+Loading / Unloading commands:
+  add | load      modulefile [...]  Load modulefile(s)
+  try-add | try-load modfile [...]  Load modfile(s), no complain if not found
+  rm | unload     modulefile [...]  Remove modulefile(s)
+  purge                             Unload all loaded modulefiles
+  reload | refresh                  Unload then load all loaded modulefiles
+  switch | swap   [mod1] mod2       Unload mod1 and load mod2
+
+Listing / Searching commands:
+  list            [-t|-l|-j]        List loaded modules
+  avail   [-d|-L] [-t|-l|-j] [-a] [-S|-C] [--indepth|--no-indepth] [mod ...]
+                                    List all or matching available modules
+  aliases         [-a]              List all module aliases
+  whatis [-a] [-j] [modulefile ...] Print whatis information of modulefile(s)
+  apropos | keyword | search [-a] [-j] str
+                                    Search all name and whatis containing str
+  is-loaded       [modulefile ...]  Test if any of the modulefile(s) are loaded
+  is-avail        modulefile [...]  Is any of the modulefile(s) available
+  info-loaded     modulefile        Get full name of matching loaded module(s)
+
+Collection of modules handling commands:
+  save            [collection|file] Save current module list to collection
+  restore         [collection|file] Restore module list from collection or file
+  saverm          [collection]      Remove saved collection
+  saveshow        [collection|file] Display information about collection
+  savelist        [-t|-l|-j]        List all saved collections
+  is-saved        [collection ...]  Test if any of the collection(s) exists
+
+Environment direct handling commands:
+  prepend-path [-d c] var val [...] Prepend value to environment variable
+  append-path [-d c] var val [...]  Append value to environment variable
+  remove-path [-d c] var val [...]  Remove value from environment variable
+
+Other commands:
+  help            [modulefile ...]  Print this or modulefile(s) help info
+  display | show  modulefile [...]  Display information about modulefile(s)
+  test            [modulefile ...]  Test modulefile(s)
+  use     [-a|-p] dir [...]         Add dir(s) to MODULEPATH variable
+  unuse           dir [...]         Remove dir(s) from MODULEPATH variable
+  is-used         [dir ...]         Is any of the dir(s) enabled in MODULEPATH
+  path            modulefile        Print modulefile path
+  paths           modulefile        Print path of matching available modules
+  clear           [-f]              Reset Modules-specific runtime information
+  source          scriptfile [...]  Execute scriptfile(s)
+  config [--dump-state|name [val]]  Display or set Modules configuration
+  sh-to-mod       shell shellscript [arg ...]
+                                    Make modulefile from script env changes
+  edit            modulefile        Open modulefile in editor
+
+Switches:
+  -t | --terse    Display output in terse format
+  -l | --long     Display output in long format
+  -j | --json     Display output in JSON format
+  -o LIST | --output=LIST
+                  Define elements to output on 'avail' or 'list' sub-commands
+                  in addition to module names (LIST is made of items like
+                  'sym', 'tag' or 'key' separated by ':')
+  -a | --all      Include hidden modules in search
+  -d | --default  Only show default versions available
+  -L | --latest   Only show latest versions available
+  -S | --starts-with
+                  Search modules whose name begins with query string
+  -C | --contains Search modules whose name contains query string
+  -i | --icase    Case insensitive match
+  -a | --append   Append directory to MODULEPATH (on 'use' sub-command)
+  -p | --prepend  Prepend directory to MODULEPATH
+  --auto          Enable automated module handling mode
+  --no-auto       Disable automated module handling mode
+  -f | --force    By-pass dependency consistency or confirmation dialog
+
+Options:
+  -h | --help     This usage info
+  -V | --version  Module version
+  -D | --debug    Enable debug messages
+  -T | --trace    Enable trace messages
+  -v | --verbose  Enable verbose messages
+  -s | --silent   Turn off error, warning and informational messages
+  --paginate      Pipe mesg output into a pager if stream attached to terminal
+  --no-pager      Do not pipe message output into a pager
+  --color[=WHEN]  Colorize the output; WHEN can be 'always' (default if
+                  omitted), 'auto' or 'never'
+  -w COLS | --width=COLS
+                  Set output width to COLS columns.}
+}
+
+# ;;; Local Variables: ***
+# ;;; mode:tcl ***
+# ;;; End: ***
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
