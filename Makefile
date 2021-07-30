@@ -37,7 +37,11 @@ include Makefile.inc
 
 INSTALL_PREREQ := modulecmd.tcl ChangeLog README script/add.modules \
 	script/modulecmd
+ifeq ($(COVERAGE),y)
+TEST_PREREQ := $(MODULECMDTEST)_i $(NAGELFAR)
+else
 TEST_PREREQ := $(MODULECMDTEST)
+endif
 
 ifeq ($(libtclenvmodules),y)
 INSTALL_PREREQ += lib/libtclenvmodules$(SHLIB_SUFFIX)
@@ -52,10 +56,6 @@ TEST_PREREQ += lib/libtestutil-closedir$(SHLIB_SUFFIX) \
 	lib/libtestutil-time$(SHLIB_SUFFIX) \
 	lib/libtestutil-mktime$(SHLIB_SUFFIX)
 endif
-endif
-
-ifeq ($(COVERAGE),y)
-TEST_PREREQ += $(NAGELFAR)
 endif
 
 # install old Tcl interpreters to test coverage
@@ -368,6 +368,20 @@ tcl/report.tcl: tcl/report.tcl.in version.inc
 tcl/subcmd.tcl: tcl/subcmd.tcl.in version.inc
 	$(translate-in-script)
 
+tcl/init.tcl_i: tcl/init.tcl $(NAGELFAR)
+	$(ECHO_GEN)
+	rm -f $<_log
+	$(NAGELFAR) -instrument $<
+ifeq ($(multilibsupport),y)
+ifeq ($(COVERAGE_MULTILIB),y)
+	sed -i -e 's|$(libdir64)|lib64|' -e 's|$(libdir32)|lib|' $@
+else
+	sed -i -e 's|$(libdir64)|lib|' -e 's|$(libdir32)|lib|' $@
+endif
+else
+	sed -i -e 's|$(libdir)|lib|' $@
+endif
+
 # join all tcl/*.tcl files to build modulecmd.tcl
 modulecmd.tcl: tcl/coll.tcl tcl/envmngt.tcl tcl/init.tcl tcl/main.tcl \
 	tcl/mfinterp.tcl tcl/modeval.tcl tcl/modfind.tcl tcl/modspec.tcl \
@@ -657,7 +671,7 @@ rpm: dist-bzip2
 
 clean:
 	rm -f *.log *.sum
-	rm -f $(MODULECMDTEST)_i $(MODULECMDTEST)_log $(MODULECMDTEST)_m
+	rm -f tcl/*.tcl_i tcl/*.tcl_log tcl/*.tcl_m
 	rm -rf coverage
 # do not clean generated docs if not in git repository
 ifeq ($(wildcard .git),.git)
@@ -665,7 +679,7 @@ ifeq ($(wildcard .git),.git)
 endif
 	rm -f README
 	rm -f modulecmd.tcl
-	rm -f $(MODULECMDTEST)
+	rm -f $(MODULECMDTEST) $(MODULECMDTEST)_i
 	rm -f tcl/envmngt.tcl
 	rm -f tcl/init.tcl
 	rm -f tcl/main.tcl
@@ -702,28 +716,40 @@ ifneq ($(wildcard lib/Makefile),)
 	$(MAKE) -C lib distclean
 endif
 
-# prepare for code coverage run
-ifeq ($(COVERAGE),y)
-$(MODULECMDTEST): $(NAGELFAR)
-endif
-
 # make specific modulecmd script for test to check built extension lib
 # if coverage asked, instrument script and clear previous coverage log
 $(MODULECMDTEST): modulecmd.tcl
 	$(ECHO_GEN)
 ifeq ($(multilibsupport),y)
-ifeq ($(COVERAGE_MULTILIB),y)
-	sed -e 's|$(libdir64)|lib64|' -e 's|$(libdir32)|lib|' $< > $@
-else
 	sed -e 's|$(libdir64)|lib|' -e 's|$(libdir32)|lib|' $< > $@
-endif
 else
 	sed -e 's|$(libdir)|lib|' $< > $@
 endif
-ifeq ($(COVERAGE),y)
-	rm -f $(MODULECMDTEST)_log
-	$(NAGELFAR) -instrument $@
-endif
+
+tcl/%.tcl_i: tcl/%.tcl $(NAGELFAR)
+	$(ECHO_GEN)
+	rm -f $<_log
+	$(NAGELFAR) -instrument $<
+
+# for coverage check, run tests on instrumented file to create coverage log
+# over split tcl source files
+$(MODULECMDTEST)_i: tcl/coll.tcl_i tcl/envmngt.tcl_i tcl/init.tcl_i tcl/main.tcl_i \
+	tcl/mfinterp.tcl_i tcl/modeval.tcl_i tcl/modfind.tcl_i tcl/modspec.tcl_i \
+	tcl/report.tcl_i tcl/subcmd.tcl_i tcl/util.tcl_i version.inc
+	$(ECHO_GEN)
+	echo "#!$(TCLSH)" > $@
+	echo 'source tcl/init.tcl_i' >> $@
+	echo 'source tcl/util.tcl_i' >> $@
+	echo 'source tcl/envmngt.tcl_i' >> $@
+	echo 'source tcl/report.tcl_i' >> $@
+	echo 'source tcl/mfinterp.tcl_i' >> $@
+	echo 'source tcl/modfind.tcl_i' >> $@
+	echo 'source tcl/modeval.tcl_i' >> $@
+	echo 'source tcl/modspec.tcl_i' >> $@
+	echo 'source tcl/coll.tcl_i' >> $@
+	echo 'source tcl/subcmd.tcl_i' >> $@
+	echo 'source tcl/main.tcl_i' >> $@
+	chmod +x $@
 
 # if coverage enabled, run tests on instrumented file to create coverage log
 ifeq ($(COVERAGE),y)
@@ -740,7 +766,17 @@ test: $(TEST_PREREQ)
 	TESTSUITEDIR=`cd testsuite;pwd -P`; export TESTSUITEDIR; \
 	runtest --srcdir $$TESTSUITEDIR --objdir $$OBJDIR $(RUNTESTFLAGS) --tool modules $(RUNTESTFILES)
 ifeq ($(COVERAGE),y)
-	$(NAGELFAR) -markup $(MODULECMDTEST)
+	$(NAGELFAR) -markup tcl/coll.tcl
+	$(NAGELFAR) -markup tcl/envmngt.tcl
+	$(NAGELFAR) -markup tcl/init.tcl
+	$(NAGELFAR) -markup tcl/main.tcl
+	$(NAGELFAR) -markup tcl/mfinterp.tcl
+	$(NAGELFAR) -markup tcl/modeval.tcl
+	$(NAGELFAR) -markup tcl/modfind.tcl
+	$(NAGELFAR) -markup tcl/modspec.tcl
+	$(NAGELFAR) -markup tcl/report.tcl
+	$(NAGELFAR) -markup tcl/subcmd.tcl
+	$(NAGELFAR) -markup tcl/util.tcl
 endif
 
 testinstall:
@@ -777,6 +813,8 @@ $(NAGELFAR):
 	tar xzf $(NAGELFAR_DIST)
 	rm $(NAGELFAR_DIST)
 
+# check syntax over joined code (modulecmd.tcl) to avoid 'unknown procedure'
+# errors obtained when checking each tcl file separately
 testsyntax: $(MODULECMDTEST) $(NAGELFAR)
 	$(NAGELFAR) -len 78 $<
 
@@ -787,7 +825,9 @@ endif
 # let verbose by default the install/clean/test and other specific non-build targets
 $(V).SILENT: initdir pkgdoc doc version.inc contrib/rpm/environment-modules.spec \
 	modulecmd.tcl tcl/envmngt.tcl tcl/init.tcl tcl/main.tcl tcl/mfinterp.tcl \
-	tcl/modfind.tcl tcl/report.tcl tcl/subcmd.tcl ChangeLog README \
+	tcl/modfind.tcl tcl/report.tcl tcl/subcmd.tcl tcl/coll.tcl_i tcl/envmngt.tcl_i \
+	tcl/init.tcl_i tcl/main.tcl_i tcl/mfinterp.tcl_i tcl/modfind.tcl_i tcl/modeval.tcl_i \
+	tcl/modspec.tcl_i tcl/report.tcl_i tcl/subcmd.tcl_i tcl/util.tcl_i ChangeLog README \
 	script/add.modules script/gitlog2changelog.py script/modulecmd \
 	lib/libtclenvmodules$(SHLIB_SUFFIX) lib/libtestutil-closedir$(SHLIB_SUFFIX) \
 	lib/libtestutil-getpwuid$(SHLIB_SUFFIX) lib/libtestutil-getgroups$(SHLIB_SUFFIX) \
@@ -796,4 +836,4 @@ $(V).SILENT: initdir pkgdoc doc version.inc contrib/rpm/environment-modules.spec
 	lib/libtestutil-time$(SHLIB_SUFFIX) lib/libtestutil-mktime$(SHLIB_SUFFIX) \
 	testsuite/example/.modulespath testsuite/example/modulespath-wild \
 	testsuite/example/modulerc testsuite/example/initrc-1 testsuite/example/initrc \
-	dist-tar dist-gzip dist-bzip2 dist-win $(MODULECMDTEST)
+	dist-tar dist-gzip dist-bzip2 dist-win $(MODULECMDTEST) $(MODULECMDTEST)_i
