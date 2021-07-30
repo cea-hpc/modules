@@ -43,10 +43,7 @@ if {[catch {
 }
 
 # determine source file name to report coverage against
-if {[regsub {\-test.tcl} $srcfile {.tcl} origsrcfile] == 1 && [file exists\
-   "${origsrcfile}.in"]} {
-   set targetfile "${origsrcfile}.in"
-} elseif {[file exists "${srcfile}.in"]} {
+if {[file exists "${srcfile}.in"]} {
    set targetfile "${srcfile}.in"
 } else {
    set targetfile $srcfile
@@ -58,7 +55,7 @@ set covered_lines 0
 foreach fline $fdata {
    if {[regexp {^incr ::_instrument_::log\((.*),(\d+)\) (\d+)$} \
       $fline match fname num hit] == 1} {
-      if {[file tail $fname] eq $srcfile} {
+      if {[file tail $fname] eq [file tail $srcfile]} {
          set line_hits($num) $hit
          if {$hit > 0} {
             incr covered_lines
@@ -117,7 +114,7 @@ append content(xml) "               </lines>
 </coverage>"
 
 # write reports
-set reportdir "[file dirname $srcfile]/coverage/$targetfile"
+set reportdir "coverage/$targetfile"
 if {[catch {file mkdir $reportdir} errMsg ]} {
    puts stderr "Report directory '$reportdir' cannot be created.\n$errMsg"
    exit 1
