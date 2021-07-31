@@ -112,11 +112,13 @@ set needstash [expr {[exec git status --porcelain --untracked-files=no] ne\
    {}}]
 
 # only keep last bugfix version of each minor release
-# drop releases older than 4.1 (or older than 4.3 if profile mode)
-set exclbef [expr {$mode eq {profile} ? {4.4} : {4.1}}]
+# drop releases older than 4.3 (or older than 4.6 if profile mode)
+# also drop alpha/beta releases
+set exclbef [expr {$mode eq {profile} ? {4.6} : {4.3}}]
 array set tagarray [list]
 foreach tag [exec git tag --list v*] {
-   if {[string compare $tag v$exclbef] == 1} {
+   if {[string compare $tag v$exclbef] == 1 && [string first alpha $tag] ==\
+      -1 && [string first beta $tag] == -1} {
       set majmin [join [lrange [split $tag .] 0 1] .]
       if {![info exists tagarray($majmin)] || [string compare $tag\
          $tagarray($majmin)] == 1} {
