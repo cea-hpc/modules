@@ -80,6 +80,9 @@ Modules 5.0.0-alpha (2021-07-25)
 * Split source code in several Tcl files hosted in ``tcl`` directory. When
   building Modules, the Tcl files are concatenated to make the
   :file:`modulecmd.tcl` script.
+* Record ``auto-loaded`` tag of loaded modules in :envvar:`__MODULES_LMTAG`
+  environment variable rather set a specific entry for module in the
+  ``__MODULES_LMNOTUASKED`` environment variable.
 
 
 .. _4.8 release notes:
