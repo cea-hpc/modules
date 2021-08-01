@@ -101,9 +101,10 @@ Persistency
 
     - As it obviously applies to all loaded modules defined in ``LOADEDMODULES`` environment variable
 
-- The ``auto-loaded`` tag is not recorded in ``__MODULES_LMTAG`` environment variable
+- The ``auto-loaded`` tag is now recorded in ``__MODULES_LMTAG`` environment variable
 
-    - Auto loaded modules are currently listed in the ``__MODULES_LMNOTUASKED`` environment variable
+    - Before version 5.0, this tag was not recorded and auto loaded modules where listed in the ``__MODULES_LMNOTUASKED`` environment variable
+    - This environment variable has been removed in Modules 5.0
 
 
 Reporting

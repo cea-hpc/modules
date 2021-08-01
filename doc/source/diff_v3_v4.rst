@@ -380,7 +380,7 @@ The following environment variables appeared on new version of Modules are not s
 | 4.2        | :envvar:`MODULES_AUTO_HANDLING`,                                |
 |            | :envvar:`MODULES_LMALTNAME<__MODULES_LMALTNAME>`,               |
 |            | :envvar:`MODULES_LMCONFLICT<__MODULES_LMCONFLICT>`,             |
-|            | :envvar:`MODULES_LMNOTUASKED<__MODULES_LMNOTUASKED>`,           |
+|            | ``MODULES_LMNOTUASKED``,                                        |
 |            | :envvar:`MODULES_LMPREREQ<__MODULES_LMPREREQ>`                  |
 +------------+-----------------------------------------------------------------+
 | 4.3        | :envvar:`MODULES_AVAIL_INDEPTH`, :envvar:`MODULES_COLOR`,       |

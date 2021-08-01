@@ -1757,23 +1757,6 @@ ENVIRONMENT
        Variable renamed from ``MODULES_LMCONFLICT`` to
        ``__MODULES_LMCONFLICT``
 
-.. envvar:: __MODULES_LMNOTUASKED
-
- A colon separated list of all loaded *modulefiles* that were not explicitly
- asked for load from the command-line.
-
- This environment variable is intended for :command:`module` command internal
- use to distinguish the *modulefiles* that have been loaded automatically
- from modulefiles that have been asked by users.
-
- .. only:: html
-
-    .. versionadded:: 4.2
-
-    .. versionchanged:: 5.0
-       Variable renamed from ``MODULES_LMNOTUASKED`` to
-       ``__MODULES_LMNOTUASKED``
-
 .. envvar:: __MODULES_LMPREREQ
 
  A colon separated list of the :mfcmd:`prereq` statements defined by all
