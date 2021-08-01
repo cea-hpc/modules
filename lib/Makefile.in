@@ -6,56 +6,66 @@ CFLAGS_WARNING=@CFLAGS_WARNING@
 CC=@TCL_CC@
 CFLAGS=@CFLAGS@ @TCL_INCLUDE_SPEC@
 LDFLAGS=@LDFLAGS@
-LD=@TCL_SHLIB_LD@ ${CFLAGS}
+LD=@TCL_SHLIB_LD@
+LDCC=@TCL_SHLIB_LD@ ${CFLAGS}
 
 # apply specific flags to libtclenvmodules build if code coverage asked
 ifeq ($(COVERAGE),y)
 CFLAGS_COVERAGE=-coverage -O0
+LDFLAGS_COVERAGE=-coverage
 endif
 
 # setup summary echo rules unless silent mode set
 ECHO_DIR_PREFIX = lib/
 ifneq ($(findstring s,$(MAKEFLAGS)),s)
 ECHO_CC = @echo ' ' CC '' $(ECHO_DIR_PREFIX)$@;
+ECHO_LD = @echo ' ' LD '' $(ECHO_DIR_PREFIX)$@;
 endif
 
-libtclenvmodules@TCL_SHLIB_SUFFIX@: envmodules.c
+all: libtclenvmodules@TCL_SHLIB_SUFFIX@
+
+envmodules.o: envmodules.c
 	$(ECHO_CC)
-	$(LD) ${CFLAGS_COVERAGE} $< -o $@ @TCL_STUB_LIB_SPEC@
+	$(CC) $(CFLAGS) $(CFLAGS_COVERAGE) -c $< -o $@
+
+libtclenvmodules@TCL_SHLIB_SUFFIX@: envmodules.o
+	$(ECHO_LD)
+	$(LD) $(LDFLAGS) $(LDFLAGS_COVERAGE) $< -o $@ @TCL_STUB_LIB_SPEC@
 
 libtestutil-closedir@SHLIB_SUFFIX@: testutil-closedir.c
 	$(ECHO_CC)
-	$(LD) $< -o $@
+	$(LDCC) $< -o $@
 
 libtestutil-getpwuid@SHLIB_SUFFIX@: testutil-getpwuid.c
 	$(ECHO_CC)
-	$(LD) $< -o $@
+	$(LDCC) $< -o $@
 
 libtestutil-getgroups@SHLIB_SUFFIX@: testutil-getgroups.c
 	$(ECHO_CC)
-	$(LD) $< -o $@
+	$(LDCC) $< -o $@
 
 libtestutil-0getgroups@SHLIB_SUFFIX@: testutil-0getgroups.c
 	$(ECHO_CC)
-	$(LD) $< -o $@
+	$(LDCC) $< -o $@
 
 libtestutil-dupgetgroups@SHLIB_SUFFIX@: testutil-dupgetgroups.c
 	$(ECHO_CC)
-	$(LD) $< -o $@
+	$(LDCC) $< -o $@
 
 libtestutil-getgrgid@SHLIB_SUFFIX@: testutil-getgrgid.c
 	$(ECHO_CC)
-	$(LD) $< -o $@
+	$(LDCC) $< -o $@
 
 libtestutil-time@SHLIB_SUFFIX@: testutil-time.c
 	$(ECHO_CC)
-	$(LD) $< -o $@
+	$(LDCC) $< -o $@
 
 libtestutil-mktime@SHLIB_SUFFIX@: testutil-mktime.c
 	$(ECHO_CC)
-	$(LD) $< -o $@
+	$(LDCC) $< -o $@
 
 clean:
+	rm -f envmodules.o
 	rm -f libtclenvmodules@TCL_SHLIB_SUFFIX@
 	rm -f libtestutil-closedir@SHLIB_SUFFIX@
 	rm -f libtestutil-getpwuid@SHLIB_SUFFIX@
@@ -85,8 +95,8 @@ ifeq ($(VERBOSE),1)
 V = 1
 endif
 # let verbose by default the install/clean/test and other specific non-build targets
-$(V).SILENT: libtclenvmodules@TCL_SHLIB_SUFFIX@ libtestutil-closedir@SHLIB_SUFFIX@ \
-	libtestutil-getpwuid@SHLIB_SUFFIX@ libtestutil-getgroups@SHLIB_SUFFIX@ \
-	libtestutil-0getgroups@SHLIB_SUFFIX@ libtestutil-dupgetgroups@SHLIB_SUFFIX@ \
-	libtestutil-getgrgid@SHLIB_SUFFIX@ libtestutil-time@SHLIB_SUFFIX@ \
-	libtestutil-mktime@SHLIB_SUFFIX@
+$(V).SILENT: envmodules.o libtclenvmodules@TCL_SHLIB_SUFFIX@ \
+	libtestutil-closedir@SHLIB_SUFFIX@ libtestutil-getpwuid@SHLIB_SUFFIX@ \
+	libtestutil-getgroups@SHLIB_SUFFIX@ libtestutil-0getgroups@SHLIB_SUFFIX@ \
+	libtestutil-dupgetgroups@SHLIB_SUFFIX@ libtestutil-getgrgid@SHLIB_SUFFIX@ \
+	libtestutil-time@SHLIB_SUFFIX@ libtestutil-mktime@SHLIB_SUFFIX@
