@@ -451,7 +451,8 @@ proc isModuleUnloadable {mod {unmodlist {}}} {
       set unmodlist [getUnloadingModuleList]
    }
 
-   if {[isModuleUserAsked $mod]} {
+   # loaded tag means module was not auto-loaded
+   if {[isModuleTagged $mod loaded 1]} {
       set ret 0
    } else {
       # mod is unloadable if all its dependent are unloaded or unloading
@@ -534,11 +535,10 @@ proc getSavedSettingsStackDepth {} {
 proc pushSettings {} {
    foreach var {env g_clearedEnvVars g_Aliases g_stateEnvVars g_stateAliases\
       g_stateFunctions g_Functions g_newXResources g_delXResources\
-      g_loadedModules g_loadedModuleFiles g_loadedModuleUasked\
-      g_loadedModuleVariant g_loadedModuleConflict g_loadedModulePrereq\
-      g_loadedModuleAltname g_loadedModuleAutoAltname\
-      g_loadedModuleAliasAltname g_moduleDepend g_dependHash\
-      g_moduleNPODepend g_dependNPOHash g_prereqViolation\
+      g_loadedModules g_loadedModuleFiles g_loadedModuleVariant\
+      g_loadedModuleConflict g_loadedModulePrereq g_loadedModuleAltname\
+      g_loadedModuleAutoAltname g_loadedModuleAliasAltname g_moduleDepend\
+      g_dependHash g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
       g_unmetDepHash g_moduleEval g_moduleHiddenEval} {
       lappend ::g_SAVE_$var [array get ::$var]
@@ -559,11 +559,10 @@ proc popSettings {} {
    foreach var {env g_clearedEnvVars g_Aliases g_stateEnvVars g_stateAliases\
       g_stateFunctions g_Functions g_newXResources g_delXResources\
       g_changeDir g_stdoutPuts g_return_text\
-      g_loadedModules g_loadedModuleFiles g_loadedModuleUasked\
-      g_loadedModuleVariant g_loadedModuleConflict g_loadedModulePrereq\
-      g_loadedModuleAltname g_loadedModuleAutoAltname\
-      g_loadedModuleAliasAltname g_moduleDepend g_dependHash\
-      g_moduleNPODepend g_dependNPOHash g_prereqViolation\
+      g_loadedModules g_loadedModuleFiles g_loadedModuleVariant\
+      g_loadedModuleConflict g_loadedModulePrereq g_loadedModuleAltname\
+      g_loadedModuleAutoAltname g_loadedModuleAliasAltname g_moduleDepend\
+      g_dependHash g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
       g_unmetDepHash g_moduleEval g_moduleHiddenEval} {
       set ::g_SAVE_$var [lrange [set ::g_SAVE_$var] 0 end-1]
@@ -574,11 +573,10 @@ proc popSettings {} {
 proc restoreSettings {} {
    foreach var {g_clearedEnvVars g_Aliases g_stateEnvVars g_stateAliases\
       g_stateFunctions g_Functions g_newXResources g_delXResources\
-      g_loadedModules g_loadedModuleFiles g_loadedModuleUasked\
-      g_loadedModuleVariant g_loadedModuleConflict g_loadedModulePrereq\
-      g_loadedModuleAltname g_loadedModuleAutoAltname\
-      g_loadedModuleAliasAltname g_moduleDepend g_dependHash\
-      g_moduleNPODepend g_dependNPOHash g_prereqViolation\
+      g_loadedModules g_loadedModuleFiles g_loadedModuleVariant\
+      g_loadedModuleConflict g_loadedModulePrereq g_loadedModuleAltname\
+      g_loadedModuleAutoAltname g_loadedModuleAliasAltname g_moduleDepend\
+      g_dependHash g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
       g_unmetDepHash g_moduleEval g_moduleHiddenEval} {
       # clear current $var arrays
@@ -624,7 +622,7 @@ proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {}} {context\
       lappendState reloading_sticky $mod
       lappendState reloading_supersticky $mod
       # save user asked state before it vanishes
-      set isuasked($mod) [isModuleUserAsked $mod]
+      set isuasked($mod) [isModuleTagged $mod loaded 1]
       # save variants set for modules
       set vr($mod) [getVariantList $mod 1 2]
       # force unload even if requiring mods are not part of the unload list

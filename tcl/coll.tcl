@@ -84,7 +84,7 @@ proc getSimplifiedLoadedModuleList {} {
       set simplemodvr [list $simplemod {*}[getVariantList $mod 5 1]]
       lappend curr_mod_list $simplemodvr
       # record not user asked module list in simplified version form
-      if {![isModuleUserAsked $mod]} {
+      if {[isModuleTagged $mod auto-loaded 1]} {
          lappend curr_nuasked_list $simplemodvr
       }
    }

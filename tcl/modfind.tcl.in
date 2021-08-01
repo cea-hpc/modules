@@ -1125,7 +1125,6 @@ proc setLoadedModule {mod modfile uasked} {
    lappend ::g_loadedModuleFiles($modfile) $mod
    # record if mod has been asked by user and relative loaded/auto-loaded tag
    if {$uasked} {
-      set ::g_loadedModuleUasked($mod) 1
       setModuleTag $mod loaded
    # do not register auto-loaded tag if already done (when called from
    # cacheCurrentModules proc)
@@ -1144,9 +1143,6 @@ proc unsetLoadedModule {mod modfile} {
    } else {
       set ::g_loadedModuleFiles($modfile) [replaceFromList\
          $::g_loadedModuleFiles($modfile) $mod]
-   }
-   if {[info exists ::g_loadedModuleUasked($mod)]} {
-      unset ::g_loadedModuleUasked($mod)
    }
    # update dependencies
    unsetModuleDependency $mod
@@ -1594,12 +1590,6 @@ proc getLoadedModuleWithVariantNotUserAskedList {} {
       lappend modvrlist $modvr
    }
    return $modvrlist
-}
-
-proc isModuleUserAsked {mod} {
-   cacheCurrentModules
-
-   return [info exists ::g_loadedModuleUasked($mod)]
 }
 
 # register conflict violation state between loaded modules
