@@ -77,6 +77,9 @@ Modules 5.0.0-alpha (2021-07-25)
   time and this version is not available anymore on recent OS distributions.
   Update internal code of :file:`modulecmd.tcl` to take benefit from the
   features brought by Tcl 8.5.
+* Split source code in several Tcl files hosted in ``tcl`` directory. When
+  building Modules, the Tcl files are concatenated to make the
+  :file:`modulecmd.tcl` script.
 
 
 .. _4.8 release notes:
