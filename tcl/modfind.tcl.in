@@ -509,19 +509,6 @@ proc getLoadedModulePrereqList {} {
    return $modprelist
 }
 
-# return list of loaded module asked by user by parsing __MODULES_LMNOTUASKED
-proc getLoadedModuleNotUserAskedList {} {
-   set nuaskedlist [list]
-   foreach mod [split [get-env __MODULES_LMNOTUASKED] [getState\
-      path_separator]] {
-      # ignore empty element
-      if {$mod ne {}} {
-         lappend nuaskedlist $mod
-      }
-   }
-   return $nuaskedlist
-}
-
 # return list of loaded module declared altnames by parsing
 # __MODULES_LMALTNAME
 proc getLoadedModuleAltnameList {} {
@@ -644,6 +631,16 @@ proc isModuleTagged {mod tag {collected 0}} {
    }
 }
 
+proc getTaggedLoadedModuleList {tag} {
+   set modlist [list]
+   foreach mod [getLoadedModuleList] {
+      if {[isModuleTagged $mod $tag 1]} {
+         lappend modlist $mod
+      }
+   }
+   return $modlist
+}
+
 proc getModuleTagProp {mod tag prop} {
    set ret {}
    array set tags [getModuleTag $mod $tag]
@@ -688,9 +685,9 @@ proc getTagList {mod {serialized 0}} {
    if {[info exists ::g_tagHash($mod)]} {
       if {$serialized} {
          # get tag info as a string that can be registered in an env var
-         # remove loaded/auto-loaded/hidden tags from the list to register
-         lassign [getDiffBetweenList $::g_tagHash($mod) [list loaded\
-            auto-loaded hidden]] tag_list
+         # remove loaded/hidden tags from the list to register
+         lassign [getDiffBetweenList $::g_tagHash($mod) [list loaded hidden]]\
+            tag_list
          if {[llength $tag_list] > 0} {
             # extract mod name and version from full spec with variants
             set ret [join [list [getModuleNameAndVersFromVersSpec $mod]\
@@ -1130,7 +1127,9 @@ proc setLoadedModule {mod modfile uasked} {
    if {$uasked} {
       set ::g_loadedModuleUasked($mod) 1
       setModuleTag $mod loaded
-   } else {
+   # do not register auto-loaded tag if already done (when called from
+   # cacheCurrentModules proc)
+   } elseif {![isModuleTagged $mod auto-loaded 1]} {
       setModuleTag $mod auto-loaded
    }
    # build dependency chain
@@ -1586,7 +1585,7 @@ proc getLoadedModuleWithVariantList {} {
 
 proc getLoadedModuleWithVariantNotUserAskedList {} {
    set modvrlist [list]
-   foreach mod [getLoadedModuleNotUserAskedList] {
+   foreach mod [getTaggedLoadedModuleList auto-loaded] {
       set modvr [list $mod]
       set vrlist [getVariantList $mod 1]
       if {[llength $vrlist] > 0} {
@@ -1944,7 +1943,6 @@ proc cacheCurrentModules {{exitonerr 1}} {
       set i 0
       set modfilelist [getLoadedModuleFileList]
       set modlist [getLoadedModuleList]
-      set nuaskedlist [getLoadedModuleNotUserAskedList]
 
       if {[llength $modlist] == [llength $modfilelist]} {
          # cache declared tags of loaded modules
@@ -1989,8 +1987,8 @@ proc cacheCurrentModules {{exitonerr 1}} {
          }
 
          foreach mod $modlist {
-            setLoadedModule $mod [lindex $modfilelist $i] [expr {$mod ni\
-               $nuaskedlist}]
+            setLoadedModule $mod [lindex $modfilelist $i] [expr\
+               {![isModuleTagged $mod auto-loaded 1]}]
             incr i
          }
 

@@ -568,7 +568,7 @@ proc cmdModuleRestore {{coll default}} {
    set curr_path_list [getModulePathList returnempty 0]
    # get current loaded module list
    set curr_mod_list [getLoadedModuleList]
-   set curr_nuasked_list [getLoadedModuleNotUserAskedList]
+   set curr_nuasked_list [getTaggedLoadedModuleList auto-loaded]
 
    # determine what module to unload to restore collection from current
    # situation with preservation of the load order (asking for a modeq
@@ -617,7 +617,7 @@ proc cmdModuleRestore {{coll default}} {
    set curr_path_list [getModulePathList returnempty 0]
 
    set curr_mod_list [getLoadedModuleList]
-   set curr_nuasked_list [getLoadedModuleNotUserAskedList]
+   set curr_nuasked_list [getTaggedLoadedModuleList auto-loaded]
 
    # determine what module to load to restore collection from current
    # situation with preservation of the load order
@@ -1041,12 +1041,6 @@ proc cmdModuleLoad {context uasked args} {
             add-path append __MODULES_LMPREREQ $modpre
          }
 
-         # declare module as not asked by user (automatically loaded as
-         # dependency) if it is the case
-         if {!$uasked} {
-            add-path append __MODULES_LMNOTUASKED $modname
-         }
-
          # declare the alternative names of this module
          if {[set modalt [getLoadedAltname $modname 1]] ne {}} {
             add-path append __MODULES_LMALTNAME $modalt
@@ -1330,15 +1324,14 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          # unloading visibility depends on hidden-loaded tag
          set hidden [isModuleTagged $modname hidden-loaded 1]
 
+         set uasked [isModuleUserAsked $modname]
+
          # get module position in loaded list to remove corresponding loaded
          # modulefile (entry at same position in _LMFILES_)
          # need the unfiltered loaded module list to get correct index
          set lmidx [lsearch -exact [getLoadedModuleList 0] $modname]
          unload-path LOADEDMODULES $modname
          unload-path --index _LMFILES_ $lmidx
-         if {![set uasked [isModuleUserAsked $modname]]} {
-            unload-path __MODULES_LMNOTUASKED $modname
-         }
          # update cache arrays
          unsetLoadedModule $modname $modfile
 
@@ -1959,8 +1952,8 @@ proc cmdModuleClear {doit doitset} {
    # should be confirmed or forced to proceed
    if {[string equal -nocase -length 1 $doit y] || [getState force]} {
       set vartoclear [list LOADEDMODULES __MODULES_LMALTNAME\
-         __MODULES_LMCONFLICT __MODULES_LMNOTUASKED __MODULES_LMPREREQ\
-         __MODULES_LMSOURCESH __MODULES_LMTAG __MODULES_LMVARIANT _LMFILES_]
+         __MODULES_LMCONFLICT __MODULES_LMPREREQ __MODULES_LMSOURCESH \
+         __MODULES_LMTAG __MODULES_LMVARIANT _LMFILES_]
 
       # add any reference counter variable to the list to unset
       lappend vartoclear {*}[array names ::env -glob *_modshare] {*}[array\
