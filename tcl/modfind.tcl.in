@@ -1119,17 +1119,27 @@ proc getModuleFromLoadingModulefile {modfile {idx all}} {
    }
 }
 
-proc setLoadedModule {mod modfile uasked} {
+proc setLoadedModule {mod modfile uasked {modvr {}}} {
    set ::g_loadedModules($mod) $modfile
    # a loaded modfile may correspond to multiple loaded virtual modules
    lappend ::g_loadedModuleFiles($modfile) $mod
    # record if mod has been asked by user and relative loaded/auto-loaded tag
    if {$uasked} {
       setModuleTag $mod loaded
+      # also record tag for module designation including variants if specified
+      if {$modvr ne {} && $mod ne $modvr} {
+         setModuleTag $modvr loaded
+      }
    # do not register auto-loaded tag if already done (when called from
    # cacheCurrentModules proc)
-   } elseif {![isModuleTagged $mod auto-loaded 1]} {
-      setModuleTag $mod auto-loaded
+   } else {
+      if {![isModuleTagged $mod auto-loaded 1]} {
+         setModuleTag $mod auto-loaded
+      }
+      if {$modvr ne {} && $mod ne $modvr && ![isModuleTagged $modvr\
+         auto-loaded 1]} {
+         setModuleTag $modvr auto-loaded
+      }
    }
    # build dependency chain
    setModuleDependency $mod
