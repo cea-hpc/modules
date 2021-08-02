@@ -98,10 +98,10 @@ lappend ans [list set testsuite yes]
 lappend ans [list setpath LOADEDMODULES "$module:$module_1"]
 lappend ans [list setpath _LMFILES_ "$modulefile:$modulefile_1"]
 lappend ans [list setpath __MODULES_LMPREREQ $module_1&$module]
-lappend ans [list setpath __MODULES_LMNOTUASKED $module]
 if {[is_conf_enabled advversspec implicitdefault]} {
     lappend ans [list setpath __MODULES_LMALTNAME $module&as|setenv/default&as|setenv/latest]
 }
+lappend ans [list setpath __MODULES_LMTAG $module&auto-loaded]
 
 test_cmd_re "csh" "load $module_1" $ans
 
@@ -114,10 +114,10 @@ lappend ans [list set testsuite yes]
 lappend ans [list setpath LOADEDMODULES "$module:$module_2:$module_3:$module_4"]
 lappend ans [list setpath _LMFILES_ "$modulefile:$modulefile_2:$modulefile_3:$modulefile_4"]
 lappend ans [list setpath __MODULES_LMPREREQ "$module_3&trace:$module_4&setenv&trace&$module_3"]
-lappend ans [list setpath __MODULES_LMNOTUASKED "$module:$module_2:$module_3"]
 if {[is_conf_enabled advversspec implicitdefault]} {
     lappend ans [list setpath __MODULES_LMALTNAME $module&as|setenv/default&as|setenv/latest:$module_2&as|trace/default&as|trace/latest]
 }
+lappend ans [list setpath __MODULES_LMTAG $module&auto-loaded:$module_2&auto-loaded:$module_3&auto-loaded]
 
 test_cmd_re "csh" "load $module_4" [if_implicitdefault $ans ERR]
 
@@ -140,7 +140,7 @@ lappend ans [list unsetpath __MODULES_LMPREREQ]
 if {$install_autohandling eq {y}} {
 lappend ans [list unset testsuite]
 }
-lappend ans [list unsetpath __MODULES_LMNOTUASKED]
+lappend ans [list unsetpath __MODULES_LMTAG]
 
 test_cmd_re "csh" "unload $module_4" $ans
 
@@ -225,7 +225,7 @@ lappend ans [list setpath LOADEDMODULES $submod_5]
 lappend ans [list setpath _LMFILES_ $submodfile_5]
 lappend ans [list unsetpath __MODULES_LMPREREQ]
 }
-lappend ans [list setpath __MODULES_LMNOTUASKED $submod_5]
+lappend ans [list setpath __MODULES_LMTAG $submod_5&auto-loaded]
 lappend ans [list ERR]
 testouterr_cmd "csh" "unload $module_8" $ans "$moderrun_8"
 
@@ -241,7 +241,7 @@ lappend ans [list setpath LOADEDMODULES $submod_6]
 lappend ans [list setpath _LMFILES_ $submodfile_6]
 lappend ans [list unsetpath __MODULES_LMPREREQ]
 }
-lappend ans [list setpath __MODULES_LMNOTUASKED $submod_6]
+lappend ans [list setpath __MODULES_LMTAG $submod_6&auto-loaded]
 lappend ans [list ERR]
 testouterr_cmd "csh" "unload $module_9" $ans "$moderrun_9"
 
@@ -257,7 +257,7 @@ lappend ans [list setpath LOADEDMODULES $submod_7]
 lappend ans [list setpath _LMFILES_ $submodfile_7]
 lappend ans [list unsetpath __MODULES_LMPREREQ]
 }
-lappend ans [list setpath __MODULES_LMNOTUASKED $submod_7]
+lappend ans [list setpath __MODULES_LMTAG $submod_7&auto-loaded]
 lappend ans [list ERR]
 testouterr_cmd "csh" "unload $module_10" $ans "$moderrun_10"
 

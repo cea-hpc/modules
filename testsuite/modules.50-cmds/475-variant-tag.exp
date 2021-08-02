@@ -107,23 +107,30 @@ testouterr_cmd sh {load variant@8.0 foo=val2 bar=1} $ans {}
 set ans [list]
 lappend ans [list setpath LOADEDMODULES variant/8.0:variant/7.0]
 lappend ans [list setpath _LMFILES_ $mp/variant/8.0:$mp/variant/7.0]
-lappend ans [list setpath __MODULES_LMPREREQ {variant/7.0&variant/8.0 foo=val1}]
+lappend ans [list setpath __MODULES_LMTAG variant/8.0&hidden-loaded&auto-loaded]
 lappend ans [list setpath __MODULES_LMVARIANT variant/8.0&foo|val1|0|0&bar|2|0|2]
-lappend ans [list setpath __MODULES_LMNOTUASKED variant/8.0]
-lappend ans [list setpath __MODULES_LMTAG variant/8.0&hidden-loaded]
+lappend ans [list setpath __MODULES_LMPREREQ {variant/7.0&variant/8.0 foo=val1}]
 testouterr_cmd_re sh {load variant@7.0} $ans {}
 
 setenv_loaded_module [list variant/8.0 variant/7.0] [list $mp/variant/8.0 $mp/variant/7.0] [list variant/8.0]
 setenv_path_var __MODULES_LMPREREQ {variant/7.0&variant/8.0 foo=val1}
 setenv_path_var __MODULES_LMVARIANT variant/8.0&foo|val1|0|0&bar|2|0|2
-setenv_path_var __MODULES_LMTAG variant/8.0&hidden-loaded
+setenv_path_var __MODULES_LMTAG variant/8.0&hidden-loaded&auto-loaded
+if {$install_autohandling eq {n}} {
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath __MODULES_LMVARIANT]
+lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unsetpath __MODULES_LMTAG]
+} else {
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath __MODULES_LMPREREQ]
 lappend ans [list unsetpath __MODULES_LMVARIANT]
-lappend ans [list unsetpath __MODULES_LMNOTUASKED]
 lappend ans [list unsetpath __MODULES_LMTAG]
+}
 testouterr_cmd sh {unload variant@7.0} $ans {}
 
 # reload to another variant set

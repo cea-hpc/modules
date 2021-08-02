@@ -393,7 +393,7 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
         set modalt ""
     }
     if {[info exists "::modnuasked_${i}"]} {
-        set modnuasked [join [set "::modnuasked_${i}"] ":"]
+        set modnuasked [set "::modnuasked_${i}"]
         set msgload [msg_top_load $modsym {} [set "::modnuasked_${i}"] {}]
         set msgunload [msg_top_unload $modsym {} [lreverse [set "::modnuasked_${i}"]] {}]
     } else {
@@ -437,15 +437,18 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
     lappend ans [list set testsuite "yes"]
     lappend ans [list setpath LOADEDMODULES "$module"]
     lappend ans [list setpath _LMFILES_ "$modulefile"]
-    if {$modnuasked ne ""} {
-        lappend ans [list setpath __MODULES_LMNOTUASKED "$modnuasked"]
-    }
 
     if {$modprereq ne ""} {
         lappend ans [list setpath __MODULES_LMPREREQ "$modprereq"]
     }
     if {$modalt ne ""} {
         lappend ans [list setpath __MODULES_LMALTNAME $modalt]
+    }
+    if {$modnuasked ne ""} {
+        foreach modnua $modnuasked {
+            lappend altaglist $modnua&auto-loaded
+        }
+        lappend ans [list setpath __MODULES_LMTAG [join $altaglist :]]
     }
     if {$nodefault eq {}} {
         testouterr_cmd_re "sh" "load $modsym" $ans $msgload
@@ -510,11 +513,14 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
     if {$::install_autohandling eq {y} && $modprereq ne {}} {
         lappend ans [list unset testsuite]
     }
-    if {$modnuasked ne ""} {
-        lappend ans [list unsetpath __MODULES_LMNOTUASKED]
+    if {$modnuasked ne "" && $::install_autohandling eq {y}} {
+        lappend ans [list unsetpath __MODULES_LMTAG]
     }
     if {$modalt ne ""} {
         lappend ans [list unsetpath __MODULES_LMALTNAME]
+    }
+    if {$modnuasked ne "" && $::install_autohandling eq {n}} {
+        lappend ans [list unsetpath __MODULES_LMTAG]
     }
     testouterr_cmd_re "sh" "unload $modsym" $ans $msgunload
 }

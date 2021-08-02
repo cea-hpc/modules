@@ -48,9 +48,9 @@ if {$auto_handling} {
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMNOTUASKED]
 lappend ans [list unsetpath __MODULES_LMCONFLICT]
 lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unsetpath __MODULES_LMTAG]
 testouterr_cmd "sh" "unload mc" $ans [msg_top_unload mc mb {} {}]
 } else {
 testouterr_cmd "sh" "unload mc" ERR [msg_unload mc [err_prerequn mb]]
@@ -66,7 +66,7 @@ lappend ans [list setpath LOADEDMODULES "mc:mb"]
 lappend ans [list setpath _LMFILES_ "$mp/mc:$mp/mb"]
 lappend ans [list setpath __MODULES_LMCONFLICT "mc&mc"]
 lappend ans [list setpath __MODULES_LMPREREQ "mb&mc"]
-lappend ans [list setpath __MODULES_LMNOTUASKED "mc"]
+lappend ans [list setpath __MODULES_LMTAG mc&auto-loaded]
 testouterr_cmd_re "sh" "load mb" $ans [msg_top_load mb {} mc {}]
 
 testouterr_cmd "sh" "load md" "ERR" [msg_load mc [err_conloi md]]\n\n[msg_load md [err_reqlo mc]]
@@ -98,7 +98,7 @@ lappend ans [list setpath LOADEDMODULES "mc:mb:mj:mr"]
 lappend ans [list setpath _LMFILES_ "$mp/mc:$mp/mb:$mp/mj:$mp/mr"]
 lappend ans [list setpath __MODULES_LMCONFLICT "mc&mc"]
 lappend ans [list setpath __MODULES_LMPREREQ "mb&mc:mr&mb&mj"]
-lappend ans [list setpath __MODULES_LMNOTUASKED "mc:mb:mj"]
+lappend ans [list setpath __MODULES_LMTAG mc&auto-loaded:mb&auto-loaded:mj&auto-loaded]
 testouterr_cmd_re "sh" "load mr" $ans [msg_top_load mr {} [list mc mb mj] {}]
 
 # is-loading conflict check
@@ -112,23 +112,29 @@ setenv_path_var __MODULES_LMPREREQ "mb&mc"
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMNOTUASKED]
 lappend ans [list unsetpath __MODULES_LMCONFLICT]
 lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unsetpath __MODULES_LMTAG]
 testouterr_cmd "sh" "unload mb" $ans [msg_top_unload mb {} mc {}]
 
 setenv_loaded_module [list mc mb mj mr] [list "$mp/mc" "$mp/mb" "$mp/mj" "$mp/mr"] [list mc mb mj]
 setenv_path_var __MODULES_LMCONFLICT "mc&mc"
 setenv_path_var __MODULES_LMPREREQ "mb&mc:mr&mb&mj"
+if {$auto_handling} {
+set ans [list]
+lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unsetpath __MODULES_LMPREREQ]
+testouterr_cmd "sh" "unload mr" $ans [msg_top_unload mr {} [list mj mb mc] {}]
+} else {
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMNOTUASKED]
 lappend ans [list unsetpath __MODULES_LMCONFLICT]
 lappend ans [list unsetpath __MODULES_LMPREREQ]
-if {$auto_handling} {
-testouterr_cmd "sh" "unload mr" $ans [msg_top_unload mr {} [list mj mb mc] {}]
-} else {
+lappend ans [list unsetpath __MODULES_LMTAG]
 # different UreqUn unload order, as it follows requirement definition in modulefile instead of reverse effective loaded order
 testouterr_cmd "sh" "unload mr" $ans [msg_top_unload mr {} [list mb mc mj] {}]
 }
@@ -148,7 +154,7 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES mc:mb:mj:mr]
 lappend ans [list setpath _LMFILES_ $mp/mc:$mp/mb:$mp/mj:$mp/mr]
 lappend ans [list setpath __MODULES_LMPREREQ mb&mc:mr&mb&mj]
-lappend ans [list setpath __MODULES_LMNOTUASKED mb:mj]
+lappend ans [list setpath __MODULES_LMTAG mb&auto-loaded:mj&auto-loaded]
 lappend ans [list ERR]
 testouterr_cmd_re sh {load mbu mr} $ans [msg_load mbu $err_evalabort]\n\n[msg_top_load mr {} [list mb mj] {}]
 

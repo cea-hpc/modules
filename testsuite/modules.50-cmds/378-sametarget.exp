@@ -48,28 +48,28 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES ha/1:hb]
 lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/hb]
 lappend ans [list setpath __MODULES_LMPREREQ hb&ha/1|ha]
-lappend ans [list setpath __MODULES_LMNOTUASKED ha/1]
+lappend ans [list setpath __MODULES_LMTAG ha/1&auto-loaded]
 set tserr "load ha/1\nload hb\n\n[msg_top_load hb {} ha/1 {}]"
 testouterr_cmd_re sh {load hb} $ans $tserr
 set ans [list]
 lappend ans [list setpath LOADEDMODULES ha/1:hc]
 lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/hc]
 lappend ans [list setpath __MODULES_LMPREREQ hc&ha/1|ha/2|ha]
-lappend ans [list setpath __MODULES_LMNOTUASKED ha/1]
+lappend ans [list setpath __MODULES_LMTAG ha/1&auto-loaded]
 set tserr "load ha/1\nload hc\n\n[msg_top_load hc {} ha/1 {}]"
 testouterr_cmd_re sh {load hc} $ans $tserr
 set ans [list]
 lappend ans [list setpath LOADEDMODULES ha/1:hd]
 lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/hd]
 lappend ans [list setpath __MODULES_LMPREREQ hd&ha/1&ha]
-lappend ans [list setpath __MODULES_LMNOTUASKED ha/1]
+lappend ans [list setpath __MODULES_LMTAG ha/1&auto-loaded]
 set tserr "load ha/1\nload hd\n\n[msg_top_load hd {} ha/1 {}]"
 testouterr_cmd_re sh {load hd} $ans $tserr
 set ans [list]
 lappend ans [list setpath LOADEDMODULES ha/1:ha/2:he]
 lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/ha/2:$mp/he]
 lappend ans [list setpath __MODULES_LMPREREQ he&ha/1&ha/2&ha]
-lappend ans [list setpath __MODULES_LMNOTUASKED ha/1:ha/2]
+lappend ans [list setpath __MODULES_LMTAG ha/1&auto-loaded:ha/2&auto-loaded]
 set tserr "load ha/1\nload ha/2\nload he\n\n[msg_top_load he {} [list ha/1 ha/2] {}]"
 testouterr_cmd_re sh {load he} $ans $tserr
 
@@ -90,14 +90,14 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES ha/2:ha/1:hd]
 lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/ha/1:$mp/hd]
 lappend ans [list setpath __MODULES_LMPREREQ hd&ha/1&ha]
-lappend ans [list setpath __MODULES_LMNOTUASKED ha/1]
+lappend ans [list setpath __MODULES_LMTAG ha/1&auto-loaded]
 set tserr "load ha/1\nload hd\n\n[msg_top_load hd {} ha/1 {}]"
 testouterr_cmd_re sh {load hd} $ans $tserr
 set ans [list]
 lappend ans [list setpath LOADEDMODULES ha/2:ha/1:he]
 lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/ha/1:$mp/he]
 lappend ans [list setpath __MODULES_LMPREREQ he&ha/1&ha/2&ha]
-lappend ans [list setpath __MODULES_LMNOTUASKED ha/1]
+lappend ans [list setpath __MODULES_LMTAG ha/1&auto-loaded]
 set tserr "load ha/1\nload he\n\n[msg_top_load he {} ha/1 {}]"
 testouterr_cmd_re sh {load he} $ans $tserr
 
@@ -150,7 +150,7 @@ set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMNOTUASKED]
+lappend ans [list unsetpath __MODULES_LMTAG]
 set tserr "unload hc\nunload ha/2\n\n[msg_top_unload ha/2 hc {} {}]"
 testouterr_cmd_re sh {unload ha} $ans $tserr
 set tserr "unload hc\nunload ha/2\n\n[msg_top_unload hc {} ha/2 {}]"
@@ -233,7 +233,7 @@ if {$install_unloadmatchorder eq {returnlast}} {
     lappend ans [list setpath LOADEDMODULES ha/2:hc]
     lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/hc]
     lappend ans [list setpath __MODULES_LMPREREQ hc&ha/1|ha/2|ha]
-    lappend ans [list unsetpath __MODULES_LMNOTUASKED]
+    lappend ans [list unsetpath __MODULES_LMTAG]
     set tserr "unload hc\nunload ha/1\nload hc\n\n[msg_top_unload ha/1 {} {} hc]"
 }
 testouterr_cmd_re sh {unload ha} $ans $tserr
@@ -241,7 +241,7 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES ha/2]
 lappend ans [list setpath _LMFILES_ $mp/ha/2]
 lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMNOTUASKED]
+lappend ans [list unsetpath __MODULES_LMTAG]
 set tserr "unload hc\nunload ha/1\n\n[msg_top_unload hc {} ha/1 {}]"
 testouterr_cmd_re sh {unload hc} $ans $tserr
 

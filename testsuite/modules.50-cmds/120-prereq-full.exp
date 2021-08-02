@@ -66,7 +66,7 @@ lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
 lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath __MODULES_LMPREREQ "$module&$module_tron"]
-lappend ans [list setpath __MODULES_LMNOTUASKED $module_tron]
+lappend ans [list setpath __MODULES_LMTAG $module_tron&auto-loaded]
 testouterr_cmd_re "ALL" "load --auto $module" $ans $msg_load_tron\n\n$msg_top_load_module
 
 # switch sub-command should obtain same result here
@@ -77,7 +77,7 @@ lappend ans [list setpath LOADEDMODULES "$module_troff:$module_tron:$module"]
 lappend ans [list setpath _LMFILES_ "$modulefile_troff:$modulefile_tron:$modulefile"]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath __MODULES_LMPREREQ "$module&$module_tron"]
-lappend ans [list setpath __MODULES_LMNOTUASKED $module_tron]
+lappend ans [list setpath __MODULES_LMTAG $module_tron&auto-loaded]
 testouterr_cmd_re "ALL" "load --auto $module_troff $module" $ans $msg_load_tron\n\n$msg_top_load_module
 
 testouterr_cmd "ALL" "load --no-auto $module" "ERR" $err_pre
@@ -211,17 +211,17 @@ testouterr_cmd_re "sh" "switch --auto --force $module_troff $module_tron" $ans $
 
 
 # test empty or bad element found in __MODULES_LMPREREQ control variable
-# test empty element found in __MODULES_LMNOTUASKED control variable
+# test empty element found in __MODULES_LMTAG control variable
 foreach badelt [list {} $module] {
 setenv_path_var __MODULES_LMPREREQ $badelt
 unsetenv_loaded_module
-setenv_path_var __MODULES_LMNOTUASKED {}
+setenv_path_var __MODULES_LMTAG {}
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $module_tron:$module]
 lappend ans [list setpath _LMFILES_ $modulefile_tron:$modulefile]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath __MODULES_LMPREREQ $badelt:$module&$module_tron]
-lappend ans [list setpath __MODULES_LMNOTUASKED :$module_tron]
+lappend ans [list setpath __MODULES_LMTAG :$module_tron&auto-loaded]
 testouterr_cmd_re sh "load --auto $module" $ans $msg_load_tron\n\n$msg_top_load_module
 
 setenv_loaded_module [list $module_tron $module] [list $modulefile_tron $modulefile] [list {} $module_tron]
@@ -231,7 +231,7 @@ lappend ans [list unset testsuite]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 lappend ans [list setpath __MODULES_LMPREREQ $badelt]
-lappend ans [list setpath __MODULES_LMNOTUASKED {}]
+lappend ans [list setpath __MODULES_LMTAG {&auto-loaded}]
 testouterr_cmd_re sh "unload --auto $module" $ans $msg_unload_tron\n\n$msg_top_unload_module
 }
 

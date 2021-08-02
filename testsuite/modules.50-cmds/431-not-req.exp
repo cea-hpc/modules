@@ -62,7 +62,7 @@ testouterr_cmd sh {load notreq/use} ERR $tserr
 set ans0 [list]
 lappend ans0 [list setpath LOADEDMODULES foo/2.0:notreq/load]
 lappend ans0 [list setpath _LMFILES_ $mp/foo/2.0:$mp/notreq/load]
-lappend ans0 [list setpath __MODULES_LMNOTUASKED foo/2.0]
+lappend ans0 [list setpath __MODULES_LMTAG foo/2.0&auto-loaded]
 
 set tserr [msg_top_load notreq/load {} foo/2.0 {}]
 
@@ -96,26 +96,25 @@ unsetenv_loaded_module
 set ans0 [list]
 lappend ans0 [list setpath LOADEDMODULES foo/2.0:bar/2.0:notreq/loadmul]
 lappend ans0 [list setpath _LMFILES_ $mp/foo/2.0:$mp/bar/2.0:$mp/notreq/loadmul]
-lappend ans0 [list setpath __MODULES_LMNOTUASKED foo/2.0:bar/2.0]
+lappend ans0 [list setpath __MODULES_LMTAG foo/2.0&auto-loaded:bar/2.0&auto-loaded]
 set tserr [msg_top_load notreq/loadmul {} [list foo/2.0 bar/2.0] {}]
 testouterr_cmd_re sh {load --no-auto notreq/loadmul} $ans0 $tserr
 testouterr_cmd_re sh {load --auto notreq/loadmul} $ans0 $tserr
 
 # unloading tests
-setenv_loaded_module [list foo/2.0 notreq/load] [list $mp/foo/2.0 $mp/notreq/load]
-setenv_path_var __MODULES_LMNOTUASKED foo/2.0
+setenv_loaded_module [list foo/2.0 notreq/load] [list $mp/foo/2.0 $mp/notreq/load] [list foo/2.0]
 
 # UReqUn
 set tserr [msg_top_unload notreq/load {} foo/2.0 {}]
 set ans0 [list]
 lappend ans0 [list unsetpath LOADEDMODULES]
 lappend ans0 [list unsetpath _LMFILES_]
-lappend ans0 [list unsetpath __MODULES_LMNOTUASKED]
+lappend ans0 [list unsetpath __MODULES_LMTAG]
 testouterr_cmd_re sh {unload --auto notreq/load} $ans0 $tserr
 testouterr_cmd_re sh {unload --no-auto notreq/load} $ans0 $tserr
 
 # no auto-loaded flag, no unload
-unsetenv_path_var __MODULES_LMNOTUASKED
+unsetenv_path_var __MODULES_LMTAG
 set ans0 [list]
 lappend ans0 [list setpath LOADEDMODULES foo/2.0]
 lappend ans0 [list setpath _LMFILES_ $mp/foo/2.0]
@@ -124,27 +123,26 @@ testouterr_cmd_re sh {unload --auto notreq/load} $ans0 $tserr
 testouterr_cmd_re sh {unload --no-auto notreq/load} $ans0 $tserr
 
 # DepUn (not triggered as requirement not recorded)
-setenv_path_var __MODULES_LMNOTUASKED foo/2.0
+setenv_path_var __MODULES_LMTAG foo/2.0&auto-loaded
 set ans0 [list]
 lappend ans0 [list setpath LOADEDMODULES notreq/load]
 lappend ans0 [list setpath _LMFILES_ $mp/notreq/load]
-lappend ans0 [list unsetpath __MODULES_LMNOTUASKED]
+lappend ans0 [list unsetpath __MODULES_LMTAG]
 set tserr {}
 testouterr_cmd_re sh {unload foo/2.0} $ans0 $tserr
 
 # multiple load on single command
-setenv_loaded_module [list foo/2.0 bar/2.0 notreq/loadmul] [list $mp/foo/2.0 $mp/bar/2.0 $mp/notreq/loadmul]
-setenv_path_var __MODULES_LMNOTUASKED foo/2.0:bar/2.0
+setenv_loaded_module [list foo/2.0 bar/2.0 notreq/loadmul] [list $mp/foo/2.0 $mp/bar/2.0 $mp/notreq/loadmul] [list foo/2.0 bar/2.0]
 set tserr [msg_top_unload notreq/loadmul {} [list bar/2.0 foo/2.0] {}]
 set ans0 [list]
 lappend ans0 [list unsetpath LOADEDMODULES]
 lappend ans0 [list unsetpath _LMFILES_]
-lappend ans0 [list unsetpath __MODULES_LMNOTUASKED]
+lappend ans0 [list unsetpath __MODULES_LMTAG]
 testouterr_cmd_re sh {unload --auto notreq/loadmul} $ans0 $tserr
 testouterr_cmd_re sh {unload --no-auto notreq/loadmul} $ans0 $tserr
 
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMNOTUASKED
+unsetenv_path_var __MODULES_LMTAG
 
 
 #
@@ -210,7 +208,7 @@ unsetenv_loaded_module
 set ans0 [list]
 lappend ans0 [list setpath LOADEDMODULES foo/2.0:notreq/switch1]
 lappend ans0 [list setpath _LMFILES_ $mp/foo/2.0:$mp/notreq/switch1]
-lappend ans0 [list setpath __MODULES_LMNOTUASKED foo/2.0]
+lappend ans0 [list setpath __MODULES_LMTAG foo/2.0&auto-loaded]
 
 set tserr [msg_top_load notreq/switch1 {} foo/2.0 {}]
 
@@ -248,7 +246,7 @@ unsetenv_loaded_module
 set ans0 [list]
 lappend ans0 [list setpath LOADEDMODULES foo/2.0:notreq/switch2]
 lappend ans0 [list setpath _LMFILES_ $mp/foo/2.0:$mp/notreq/switch2]
-lappend ans0 [list setpath __MODULES_LMNOTUASKED foo/2.0]
+lappend ans0 [list setpath __MODULES_LMTAG foo/2.0&auto-loaded]
 
 set tserr [msg_top_load notreq/switch2 {} foo/2.0 {}]
 
@@ -276,17 +274,16 @@ testouterr_cmd_re sh {load --no-auto notreq/switch2} $ans0 $tserr
 unsetenv_loaded_module
 
 # unloading tests
-setenv_loaded_module [list foo/2.0 notreq/switch2] [list $mp/foo/2.0 $mp/notreq/switch2]
-setenv_path_var __MODULES_LMNOTUASKED foo/2.0
+setenv_loaded_module [list foo/2.0 notreq/switch2] [list $mp/foo/2.0 $mp/notreq/switch2] [list foo/2.0]
 set tserr [msg_top_unload notreq/switch2 {} foo/2.0 {}]
 set ans0 [list]
 lappend ans0 [list unsetpath LOADEDMODULES]
 lappend ans0 [list unsetpath _LMFILES_]
-lappend ans0 [list unsetpath __MODULES_LMNOTUASKED]
+lappend ans0 [list unsetpath __MODULES_LMTAG]
 testouterr_cmd_re sh {unload --auto notreq/switch2} $ans0 $tserr
 testouterr_cmd_re sh {unload --no-auto notreq/switch2} $ans0 $tserr
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMNOTUASKED
+unsetenv_path_var __MODULES_LMTAG
 
 
 #
@@ -297,7 +294,7 @@ setenv_loaded_module [list bar/2.0] [list $mp/bar/2.0]
 set ans0 [list]
 lappend ans0 [list setpath LOADEDMODULES foo/2.0:baz/2.0:notreq/mix]
 lappend ans0 [list setpath _LMFILES_ $mp/foo/2.0:$mp/baz/2.0:$mp/notreq/mix]
-lappend ans0 [list setpath __MODULES_LMNOTUASKED foo/2.0:baz/2.0]
+lappend ans0 [list setpath __MODULES_LMTAG foo/2.0&auto-loaded:baz/2.0&auto-loaded]
 set tserr [msg_top_load notreq/mix bar/2.0 {} {} {Loading requirement: foo/2.0 baz/2.0}]
 testouterr_cmd_re sh {load --no-auto notreq/mix} $ans0 $tserr
 unsetenv_loaded_module
@@ -311,7 +308,7 @@ set ans0 [list]
 lappend ans0 [list setpath LOADEDMODULES foo/1.0:foo/0.prereq:notreq/loadsubp]
 lappend ans0 [list setpath _LMFILES_ $mp/foo/1.0:$mp/foo/0.prereq:$mp/notreq/loadsubp]
 lappend ans0 [list setpath __MODULES_LMPREREQ foo/0.prereq&foo/1.0]
-lappend ans0 [list setpath __MODULES_LMNOTUASKED foo/1.0:foo/0.prereq]
+lappend ans0 [list setpath __MODULES_LMTAG foo/1.0&auto-loaded:foo/0.prereq&auto-loaded]
 set tserr [msg_top_load notreq/loadsubp {} [list foo/1.0 foo/0.prereq] {}]
 testouterr_cmd_re sh {load --auto notreq/loadsubp} $ans0 $tserr
 
@@ -319,35 +316,32 @@ set ans0 [list]
 lappend ans0 [list setpath LOADEDMODULES foo/1.0:foo/0.load:notreq/loadsubm]
 lappend ans0 [list setpath _LMFILES_ $mp/foo/1.0:$mp/foo/0.load:$mp/notreq/loadsubm]
 lappend ans0 [list setpath __MODULES_LMPREREQ foo/0.load&foo/1.0]
-lappend ans0 [list setpath __MODULES_LMNOTUASKED foo/1.0:foo/0.load]
+lappend ans0 [list setpath __MODULES_LMTAG foo/1.0&auto-loaded:foo/0.load&auto-loaded]
 set tserr [msg_top_load notreq/loadsubm {} [list foo/1.0 foo/0.load] {}]
 testouterr_cmd_re sh {load --auto notreq/loadsubm} $ans0 $tserr
 testouterr_cmd_re sh {load --no-auto notreq/loadsubm} $ans0 $tserr
 
-setenv_loaded_module [list foo/1.0 foo/0.prereq notreq/loadsubp] [list $mp/foo/1.0 $mp/foo/0.prereq $mp/notreq/loadsubp]
-setenv_path_var __MODULES_LMNOTUASKED foo/1.0:foo/0.prereq
+setenv_loaded_module [list foo/1.0 foo/0.prereq notreq/loadsubp] [list $mp/foo/1.0 $mp/foo/0.prereq $mp/notreq/loadsubp] [list foo/1.0 foo/0.prereq]
 setenv_path_var __MODULES_LMPREREQ foo/0.prereq&foo/1.0
 set tserr [msg_top_unload notreq/loadsubp {} [list foo/0.prereq foo/1.0] {}]
 set ans0 [list]
 lappend ans0 [list unsetpath LOADEDMODULES]
 lappend ans0 [list unsetpath _LMFILES_]
 lappend ans0 [list unsetpath __MODULES_LMPREREQ]
-lappend ans0 [list unsetpath __MODULES_LMNOTUASKED]
+lappend ans0 [list unsetpath __MODULES_LMTAG]
 testouterr_cmd_re sh {unload --auto notreq/loadsubp} $ans0 $tserr
 
-setenv_loaded_module [list foo/1.0 foo/0.load notreq/loadsubm] [list $mp/foo/1.0 $mp/foo/0.load $mp/notreq/loadsubm]
-setenv_path_var __MODULES_LMNOTUASKED foo/1.0:foo/0.load
+setenv_loaded_module [list foo/1.0 foo/0.load notreq/loadsubm] [list $mp/foo/1.0 $mp/foo/0.load $mp/notreq/loadsubm] [list foo/1.0 foo/0.load]
 setenv_path_var __MODULES_LMPREREQ foo/0.load&foo/1.0
 set tserr [msg_top_unload notreq/loadsubm {} [list foo/0.load foo/1.0] {}]
 set ans0 [list]
 lappend ans0 [list unsetpath LOADEDMODULES]
 lappend ans0 [list unsetpath _LMFILES_]
 lappend ans0 [list unsetpath __MODULES_LMPREREQ]
-lappend ans0 [list unsetpath __MODULES_LMNOTUASKED]
+lappend ans0 [list unsetpath __MODULES_LMTAG]
 testouterr_cmd_re sh {unload --no-auto notreq/loadsubm} $ans0 $tserr
 
-setenv_loaded_module [list foo/1.0 foo/0.prereq] [list $mp/foo/1.0 $mp/foo/0.prereq]
-setenv_path_var __MODULES_LMNOTUASKED foo/1.0
+setenv_loaded_module [list foo/1.0 foo/0.prereq] [list $mp/foo/1.0 $mp/foo/0.prereq] [list foo/1.0]
 setenv_path_var __MODULES_LMPREREQ foo/0.prereq&foo/1.0
 # auto-loaded requirement of foo/0.prereq is not auto unloaded when foo/0.prereq is
 # unloaded by notreq/unload load
@@ -358,49 +352,47 @@ lappend ans0 [list unsetpath __MODULES_LMPREREQ]
 set tserr [msg_top_load notreq/unload foo/0.prereq {} {}]
 testouterr_cmd_re sh {load --auto notreq/unload} $ans0 $tserr
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMNOTUASKED
+unsetenv_path_var __MODULES_LMTAG
 unsetenv_path_var __MODULES_LMPREREQ
 
 set ans0 [list]
 lappend ans0 [list setpath LOADEDMODULES foo/1.0:foo/0.prereq:notreq/switchsubp]
 lappend ans0 [list setpath _LMFILES_ $mp/foo/1.0:$mp/foo/0.prereq:$mp/notreq/switchsubp]
 lappend ans0 [list setpath __MODULES_LMPREREQ foo/0.prereq&foo/1.0]
-lappend ans0 [list setpath __MODULES_LMNOTUASKED foo/1.0:foo/0.prereq]
+lappend ans0 [list setpath __MODULES_LMTAG foo/1.0&auto-loaded:foo/0.prereq&auto-loaded]
 set tserr [msg_top_load notreq/switchsubp {} [list foo/1.0 foo/0.prereq] {}]
 testouterr_cmd_re sh {load --auto notreq/switchsubp} $ans0 $tserr
 
 set ans0 [list]
 lappend ans0 [list setpath LOADEDMODULES foo/1.0:foo/0.load:notreq/switchsubm]
 lappend ans0 [list setpath _LMFILES_ $mp/foo/1.0:$mp/foo/0.load:$mp/notreq/switchsubm]
-lappend ans0 [list setpath __MODULES_LMNOTUASKED foo/1.0:foo/0.load]
+lappend ans0 [list setpath __MODULES_LMTAG foo/1.0&auto-loaded:foo/0.load&auto-loaded]
 lappend ans0 [list setpath __MODULES_LMPREREQ foo/0.load&foo/1.0]
 set tserr [msg_top_load notreq/switchsubm {} [list foo/1.0 foo/0.load] {}]
 testouterr_cmd_re sh {load --auto notreq/switchsubm} $ans0 $tserr
 testouterr_cmd_re sh {load --no-auto notreq/switchsubm} $ans0 $tserr
 
-setenv_loaded_module [list foo/1.0 foo/0.prereq notreq/switchsubp] [list $mp/foo/1.0 $mp/foo/0.prereq $mp/notreq/switchsubp]
-setenv_path_var __MODULES_LMNOTUASKED foo/1.0:foo/0.prereq
+setenv_loaded_module [list foo/1.0 foo/0.prereq notreq/switchsubp] [list $mp/foo/1.0 $mp/foo/0.prereq $mp/notreq/switchsubp] [list foo/1.0 foo/0.prereq]
 setenv_path_var __MODULES_LMPREREQ foo/0.prereq&foo/1.0
 set ans0 [list]
 lappend ans0 [list unsetpath LOADEDMODULES]
 lappend ans0 [list unsetpath _LMFILES_]
 lappend ans0 [list unsetpath __MODULES_LMPREREQ]
-lappend ans0 [list unsetpath __MODULES_LMNOTUASKED]
+lappend ans0 [list unsetpath __MODULES_LMTAG]
 set tserr [msg_top_unload notreq/switchsubp {} [list foo/0.prereq foo/1.0] {}]
 testouterr_cmd_re sh {unload --auto notreq/switchsubp} $ans0 $tserr
 
-setenv_loaded_module [list foo/1.0 foo/0.load notreq/switchsubm] [list $mp/foo/1.0 $mp/foo/0.load $mp/notreq/switchsubm]
-setenv_path_var __MODULES_LMNOTUASKED foo/1.0:foo/0.load
+setenv_loaded_module [list foo/1.0 foo/0.load notreq/switchsubm] [list $mp/foo/1.0 $mp/foo/0.load $mp/notreq/switchsubm] [list foo/1.0 foo/0.load]
 setenv_path_var __MODULES_LMPREREQ foo/0.load&foo/1.0
 set ans0 [list]
 lappend ans0 [list unsetpath LOADEDMODULES]
 lappend ans0 [list unsetpath _LMFILES_]
 lappend ans0 [list unsetpath __MODULES_LMPREREQ]
-lappend ans0 [list unsetpath __MODULES_LMNOTUASKED]
+lappend ans0 [list unsetpath __MODULES_LMTAG]
 set tserr [msg_top_unload notreq/switchsubm {} [list foo/0.load foo/1.0] {}]
 testouterr_cmd_re sh {unload --no-auto notreq/switchsubm} $ans0 $tserr
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMNOTUASKED
+unsetenv_path_var __MODULES_LMTAG
 unsetenv_path_var __MODULES_LMPREREQ
 
 
@@ -430,15 +422,14 @@ testouterr_cmd sh {load --no-auto notreq/switch1unk} ERR $tserr
 # purge/reload/restore
 #
 
-setenv_loaded_module [list foo/1.0 foo/0.load notreq/loadsubm foo/2.0 notreq/switch2] [list $mp/foo/1.0 $mp/foo/0.load $mp/notreq/loadsubm $mp/foo/2.0 $mp/notreq/switch2]
-setenv_path_var __MODULES_LMNOTUASKED foo/1.0:foo/0.load:foo/2.0
+setenv_loaded_module [list foo/1.0 foo/0.load notreq/loadsubm foo/2.0 notreq/switch2] [list $mp/foo/1.0 $mp/foo/0.load $mp/notreq/loadsubm $mp/foo/2.0 $mp/notreq/switch2] [list foo/1.0 foo/0.load foo/2.0]
 setenv_path_var __MODULES_LMPREREQ foo/0.load&foo/1.0
 
 set ans0 [list]
 lappend ans0 [list unsetpath LOADEDMODULES]
 lappend ans0 [list unsetpath _LMFILES_]
 lappend ans0 [list unsetpath __MODULES_LMPREREQ]
-lappend ans0 [list unsetpath __MODULES_LMNOTUASKED]
+lappend ans0 [list unsetpath __MODULES_LMTAG]
 set tserr {}
 testouterr_cmd_re sh {purge} $ans0 $tserr
 
@@ -446,12 +437,12 @@ set ans0 [list]
 lappend ans0 [list setpath LOADEDMODULES foo/1.0:foo/0.load:notreq/loadsubm:foo/2.0:notreq/switch2]
 lappend ans0 [list setpath _LMFILES_ $mp/foo/1.0:$mp/foo/0.load:$mp/notreq/loadsubm:$mp/foo/2.0:$mp/notreq/switch2]
 lappend ans0 [list setpath __MODULES_LMPREREQ foo/0.load&foo/1.0]
-lappend ans0 [list setpath __MODULES_LMNOTUASKED foo/1.0:foo/0.load:foo/2.0]
+lappend ans0 [list setpath __MODULES_LMTAG foo/1.0&auto-loaded:foo/0.load&auto-loaded:foo/2.0&auto-loaded]
 testouterr_cmd_re sh {reload} $ans0 $tserr
 
 testouterr_cmd_re sh {save ./testcoll} OK {}
 
-unsetenv_path_var __MODULES_LMNOTUASKED
+unsetenv_path_var __MODULES_LMTAG
 unsetenv_path_var __MODULES_LMPREREQ
 unsetenv_loaded_module
 
@@ -470,19 +461,18 @@ set ans0 [list]
 lappend ans0 [list setpath LOADEDMODULES foo/2.0:notreq/load:notreq/prereq]
 lappend ans0 [list setpath _LMFILES_ $mp/foo/2.0:$mp/notreq/load:$mp/notreq/prereq]
 lappend ans0 [list setpath __MODULES_LMPREREQ notreq/prereq&notreq/load]
-lappend ans0 [list setpath __MODULES_LMNOTUASKED foo/2.0:notreq/load]
+lappend ans0 [list setpath __MODULES_LMTAG foo/2.0&auto-loaded:notreq/load&auto-loaded]
 set tserr [msg_top_load notreq/prereq {} [list foo/2.0 notreq/load] {}]
 testouterr_cmd_re sh {load --auto notreq/prereq} $ans0 $tserr
 
 # UreqUn
-setenv_loaded_module [list foo/2.0 notreq/load notreq/prereq] [list $mp/foo/2.0 $mp/notreq/load $mp/notreq/prereq]
+setenv_loaded_module [list foo/2.0 notreq/load notreq/prereq] [list $mp/foo/2.0 $mp/notreq/load $mp/notreq/prereq] [list foo/2.0 notreq/load]
 setenv_path_var __MODULES_LMPREREQ notreq/prereq&notreq/load
-setenv_path_var __MODULES_LMNOTUASKED foo/2.0:notreq/load
 set ans0 [list]
 lappend ans0 [list unsetpath LOADEDMODULES]
 lappend ans0 [list unsetpath _LMFILES_]
 lappend ans0 [list unsetpath __MODULES_LMPREREQ]
-lappend ans0 [list unsetpath __MODULES_LMNOTUASKED]
+lappend ans0 [list unsetpath __MODULES_LMTAG]
 set tserr [msg_top_unload notreq/prereq {} [list notreq/load foo/2.0] {}]
 testouterr_cmd_re sh {unload --auto notreq/prereq} $ans0 $tserr
 
@@ -491,7 +481,7 @@ set ans0 [list]
 lappend ans0 [list unsetpath LOADEDMODULES]
 lappend ans0 [list unsetpath _LMFILES_]
 lappend ans0 [list unsetpath __MODULES_LMPREREQ]
-lappend ans0 [list unsetpath __MODULES_LMNOTUASKED]
+lappend ans0 [list unsetpath __MODULES_LMTAG]
 set tserr [msg_top_unload notreq/load notreq/prereq foo/2.0 {}]
 testouterr_cmd_re sh {unload --auto notreq/load} $ans0 $tserr
 
@@ -499,7 +489,7 @@ testouterr_cmd_re sh {unload --auto notreq/load} $ans0 $tserr
 # no common use case to sketch
 
 unsetenv_path_var __MODULES_LMPREREQ
-unsetenv_path_var __MODULES_LMNOTUASKED
+unsetenv_path_var __MODULES_LMTAG
 unsetenv_loaded_module
 
 

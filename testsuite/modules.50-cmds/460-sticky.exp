@@ -192,7 +192,7 @@ testouterr_cmd_re sh {unload -f --auto foo/2.0} $ans [msg_unload sticky/1.0 $err
 
 # test over *Useless Requirement Unload* mechanism
 setenv_loaded_module [list foo/2.0 sticky/1.0 bar/2.0] [list $mp/foo/2.0 $mp/sticky/1.0 $mp/bar/2.0] [list foo/2.0 sticky/1.0]
-setenv_path_var __MODULES_LMTAG sticky/1.0&sticky
+setenv_path_var __MODULES_LMTAG foo/2.0&auto-loaded:sticky/1.0&sticky&auto-loaded
 setenv_path_var __MODULES_LMPREREQ sticky/1.0&foo|baz:bar/2.0&sticky/1.0
 
 set ans [list]
@@ -206,7 +206,6 @@ set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMNOTUASKED]
 lappend ans [list unsetpath __MODULES_LMTAG]
 testouterr_cmd_re sh {unload -f --auto bar/2.0} $ans [msg_unload sticky/1.0 $err_stickyunloadf]\n\n[msg_top_unload bar/2.0 {} {sticky/1.0 foo/2.0} {}]
 
@@ -221,7 +220,6 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES bar/1.0]
 lappend ans [list setpath _LMFILES_ $mp/bar/1.0]
 lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMNOTUASKED]
 lappend ans [list unsetpath __MODULES_LMTAG]
 testouterr_cmd_re sh {switch -f --auto bar/2.0 bar/1.0} $ans [msg_unload sticky/1.0 $err_stickyunloadf]\n\n[msg_top_switch bar/2.0 bar/1.0 {} {sticky/1.0 foo/2.0} {} {} {}]
 

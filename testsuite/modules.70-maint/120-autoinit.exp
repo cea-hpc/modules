@@ -759,10 +759,12 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                         if {$install_versioning eq "y"} {
                             lappend ans [list set MODULE_VERSION "(.*)"]
                         }
+                        lappend ans [list set __MODULES_LMTAG m1&auto-loaded]
                         lappend ans [list set MODULES_CMD $modulecmd_path]
                         if {$shell eq {ksh}} {
                             lappend ans [list set FPATH_modshare $install_initdir/ksh-functions:1]
                         }
+                        lappend ans [list set __MODULES_LMTAG_modshare m1&auto-loaded:1]
                         lappend ans [list set __MODULES_LMPREREQ m3&m1]
                         if {[is_real_shell $shell] && $install_setshellstartup eq {y}} {
                             lappend ans [list set BASH_ENV $install_initdir/bash]
@@ -777,8 +779,6 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                         lappend ans [list set LOADEDMODULES_modshare (.*)]
                         lappend ans [list set _LMFILES__modshare (.*)]
                         lappend ans [list set MODULEPATH_modshare (.*)]
-                        lappend ans [list set __MODULES_LMNOTUASKED m1]
-                        lappend ans [list set __MODULES_LMNOTUASKED_modshare m1:1]
                     }
                     set tserr $tserr_initrc_exinstalled
                 }
@@ -813,7 +813,9 @@ if {!$insmodspath && $initrc_exinstalled && $modrc eq "$install_etcdir/initrc"} 
     if {$install_versioning eq "y"} {
         lappend ans [list set MODULE_VERSION "(.*)"]
     }
+    lappend ans [list set __MODULES_LMTAG m1&auto-loaded]
     lappend ans [list set MODULES_CMD $modulecmd_path]
+    lappend ans [list set __MODULES_LMTAG_modshare m1&auto-loaded:1]
     lappend ans [list set __MODULES_LMPREREQ m3&m1]
     if {$install_setshellstartup eq {y}} {
         lappend ans [list set BASH_ENV $install_initdir/bash]
@@ -828,8 +830,6 @@ if {!$insmodspath && $initrc_exinstalled && $modrc eq "$install_etcdir/initrc"} 
     lappend ans [list set LOADEDMODULES_modshare (.*)]
     lappend ans [list set _LMFILES__modshare (.*)]
     lappend ans [list set MODULEPATH_modshare (.*)]
-    lappend ans [list set __MODULES_LMNOTUASKED m1]
-    lappend ans [list set __MODULES_LMNOTUASKED_modshare m1:1]
 
     # etc/initrc is prefered over init/modulerc
     testouterr_cmd_re sh autoinit $ans $tserr_initrc_exinstalled

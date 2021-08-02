@@ -166,15 +166,14 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES foo/2.0:impreq/load:impreq/prereq]
 lappend ans [list setpath _LMFILES_ $mp/foo/2.0:$mp/impreq/load:$mp/impreq/prereq]
 lappend ans [list setpath __MODULES_LMPREREQ impreq/load&foo:impreq/prereq&impreq/load]
-lappend ans [list setpath __MODULES_LMNOTUASKED foo/2.0:impreq/load]
 if {$install_advversspec eq {y}} {
     lappend ans [list setpath __MODULES_LMALTNAME foo/2.0&as|foo/default&as|foo/latest]
 }
+lappend ans [list setpath __MODULES_LMTAG foo/2.0&auto-loaded:impreq/load&auto-loaded]
 testouterr_cmd_re sh {load --auto impreq/prereq} $ans [msg_top_load impreq/prereq {} [list foo/2.0 impreq/load] {}]
 
 setenv_loaded_module [list foo/2.0 impreq/load impreq/prereq] [list $mp/foo/2.0 $mp/impreq/load $mp/impreq/prereq] [list foo/2.0 impreq/load]
 setenv_path_var __MODULES_LMPREREQ impreq/load&foo:impreq/prereq&impreq/load
-setenv_path_var __MODULES_LMNOTUASKED foo/2.0:impreq/load
 
 testouterr_cmd sh {list} OK "$cur_loaded
  1) foo/2.0 <aL>   2) impreq/load <aL>   3) impreq/prereq  
@@ -206,7 +205,7 @@ Key:
 testouterr_cmd_re sh {avail impreq/prereq} OK $tserr
 
 # set an additional tag
-setenv_path_var __MODULES_LMTAG foo/2.0&othertag
+setenv_path_var __MODULES_LMTAG foo/2.0&auto-loaded&othertag:impreq/load&auto-loaded
 
 set test_cols 120
 if {![info exists term_cols]} {
@@ -242,7 +241,6 @@ testouterr_cmd_re sh {avail foo/2.0} OK $tserr
 
 unsetenv_loaded_module
 unsetenv_path_var __MODULES_LMPREREQ
-unsetenv_path_var __MODULES_LMNOTUASKED
 unsetenv_path_var __MODULES_LMTAG
 
 
