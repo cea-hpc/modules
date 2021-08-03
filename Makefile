@@ -712,6 +712,7 @@ distclean: clean
 	rm -rf $(NAGELFAR_RELEASE)
 	rm -rf $(TCL_RELEASE83)
 	rm -f tclsh83
+	rm -f tcl/tags
 ifneq ($(wildcard lib/Makefile),)
 	$(MAKE) -C lib distclean
 endif
@@ -817,6 +818,15 @@ $(NAGELFAR):
 # errors obtained when checking each tcl file separately
 testsyntax: $(MODULECMDTEST) $(NAGELFAR)
 	$(NAGELFAR) -len 78 $<
+
+# build Ctags index
+tcl/tags: tcl/coll.tcl tcl/envmngt.tcl.in tcl/init.tcl.in tcl/main.tcl.in \
+	tcl/mfinterp.tcl.in tcl/modeval.tcl tcl/modfind.tcl.in tcl/modspec.tcl \
+	tcl/report.tcl.in tcl/subcmd.tcl.in tcl/util.tcl
+	ctags --tag-relative -f $@ --langmap=tcl:.tcl.in tcl/coll.tcl \
+		tcl/envmngt.tcl.in tcl/init.tcl.in tcl/main.tcl.in tcl/mfinterp.tcl.in \
+		tcl/modeval.tcl tcl/modfind.tcl.in tcl/modspec.tcl tcl/report.tcl.in \
+		tcl/subcmd.tcl.in tcl/util.tcl
 
 # quiet build targets unless verbose mode set
 ifeq ($(VERBOSE),1)
