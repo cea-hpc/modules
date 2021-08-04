@@ -1086,9 +1086,15 @@ proc unset-env {var {internal 0} {val {}}} {
 }
 
 proc getModshareVarName {var} {
+   # no modshare variable for Modules-specific path variables as each entry
+   # should be unique (no reference counting mechanism for these variables
+   # expect for MODULEPATH)
+   if {$var in {_LMFILES_ LOADEDMODULES} || [string equal -length 10\
+      __MODULES_ $var] || [string equal -length 8 MODULES_ $var]} {
+      return {}
    # specific modshare variable for DYLD-related variables as a suffixed
    # variable will lead to warning messages with this tool
-   if {[string range $var 0 4] eq {DYLD_}} {
+   } elseif {[string range $var 0 4] eq {DYLD_}} {
       return MODULES_MODSHARE_${var}
    } else {
       return ${var}_modshare
@@ -1153,7 +1159,11 @@ proc unload-path {args} {
    lassign [parsePathCommandArgs unload-path {*}$args] separator allow_dup\
       idx_val var path_list
 
-   array set countarr [getReferenceCountArray $var $separator]
+   # no reference count management when no share variable is returned
+   set isrefcount [expr {[set sharevar [getModshareVarName $var]] ne {}}]
+   if {$isrefcount} {
+      array set countarr [getReferenceCountArray $var $separator]
+   }
 
    # Don't worry about dealing with this variable if it is already scheduled
    #  for deletion
@@ -1243,11 +1253,13 @@ proc unload-path {args} {
       set-env $var [join $newpath $separator]
    }
 
-   set sharevar [getModshareVarName $var]
-   if {[array size countarr] > 0} {
-      set-env $sharevar [pjoin [array get countarr] [getState path_separator]]
-   } else {
-      unset-env $sharevar 1
+   if {$isrefcount} {
+      if {[array size countarr] > 0} {
+         set-env $sharevar [pjoin [array get countarr] [getState\
+            path_separator]]
+      } else {
+         unset-env $sharevar 1
+      }
    }
    return {}
 }
@@ -1258,8 +1270,11 @@ proc add-path {pos args} {
    lassign [parsePathCommandArgs add-path {*}$args] separator allow_dup\
       idx_val var path_list
 
-   set sharevar [getModshareVarName $var]
-   array set countarr [getReferenceCountArray $var $separator]
+   # no reference count management when no share variable is returned
+   set isrefcount [expr {[set sharevar [getModshareVarName $var]] ne {}}]
+   if {$isrefcount} {
+      array set countarr [getReferenceCountArray $var $separator]
+   }
 
    if {$pos eq {prepend}} {
       set path_list [lreverse $path_list]
@@ -1287,7 +1302,9 @@ proc add-path {pos args} {
    }
 
    set-env $var $val
-   set-env $sharevar [pjoin [array get countarr] [getState path_separator]]
+   if {$isrefcount} {
+      set-env $sharevar [pjoin [array get countarr] [getState path_separator]]
+   }
 
    return {}
 }
