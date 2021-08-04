@@ -57,14 +57,14 @@ set what_1_2 "$header\n         $module_1: loc_rc6/0.9\n         $module_2: loc_
 
 # symbolic link name used (not targeted name) once loaded, displayed, etc
 set ans [list]
-lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES "$module_2"]
-lappend ans [list setpath _LMFILES_ "$modulefile_2"]
 if {[is_conf_enabled advversspec implicitdefault]} {
-    lappend ans [list setpath __MODULES_LMALTNAME $module_2&symlink/default&symlink&symlink/new&al|symlink/1&al|symlink/bar&as|symlink/latest]
+    lappend ans [list set __MODULES_LMALTNAME $module_2&symlink/default&symlink&symlink/new&al|symlink/1&al|symlink/bar&as|symlink/latest]
 } else {
-    lappend ans [list setpath __MODULES_LMALTNAME $module_2&symlink/default&symlink&symlink/new&al|symlink/1&al|symlink/bar]
+    lappend ans [list set __MODULES_LMALTNAME $module_2&symlink/default&symlink&symlink/new&al|symlink/1&al|symlink/bar]
 }
+lappend ans [list set _LMFILES_ "$modulefile_2"]
+lappend ans [list set LOADEDMODULES "$module_2"]
+lappend ans [list set testsuite yes]
 test_cmd "sh" "load symlink" $ans
 testouterr_cmd_re "sh" "display symlink" "OK" "$disp_2"
 testouterr_cmd_re "sh" "whatis symlink" "OK" "$what_1_2"
@@ -83,12 +83,12 @@ set disp_3 "$modlin\n$modulefilere_3:\n\n${whatis_sh}loc_rc5/2.0\n$disp_sh\n$mod
 set what_3 "$header\n        $module_3: loc_rc5/2.0"
 
 set ans [list]
-lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES "$module_3"]
-lappend ans [list setpath _LMFILES_ "$modulefile_3"]
 if {[is_conf_enabled advversspec implicitdefault]} {
-    lappend ans [list setpath __MODULES_LMALTNAME $module_3&as|symlink2/default&as|symlink2/latest]
+    lappend ans [list set __MODULES_LMALTNAME $module_3&as|symlink2/default&as|symlink2/latest]
 }
+lappend ans [list set _LMFILES_ "$modulefile_3"]
+lappend ans [list set LOADEDMODULES "$module_3"]
+lappend ans [list set testsuite yes]
 lappend ans [list ERR]
 testouterr_cmd "sh" "load symlink2" [if_implicitdefault $ans ERR] $err_mag_3[if_implicitdefault {} "\n$err_nodefault'symlink2'"]
 testouterr_cmd_re "sh" "display symlink2/2.0" "ERR" "$err_magre_3\n$disp_3"

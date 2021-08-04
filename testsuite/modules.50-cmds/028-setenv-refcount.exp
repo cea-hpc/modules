@@ -41,8 +41,6 @@ set modulefile3 "$modpath/$module3"
 #  test load mode
 #
 
-lappend ans [list set _LMFILES__modshare "$modulefile:1"]
-lappend ans [list set LOADEDMODULES_modshare "$module:1"]
 lappend ans [list unset testsuite_modshare]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
@@ -54,19 +52,19 @@ test_cmd "ALL" "load $module" $ans
 setenv_var TS1 "no"
 
 set ans [list]
-lappend ans [list unset TS1_modshare]
 lappend ans [list set TS1 maybe]
-lappend ans [list setpath LOADEDMODULES $module2]
-lappend ans [list setpath _LMFILES_ $modulefile2]
+lappend ans [list set _LMFILES_ $modulefile2]
+lappend ans [list set LOADEDMODULES $module2]
+lappend ans [list unset TS1_modshare]
 
 # setenv after append-path: an unset order for ref counter variable is produced
 test_cmd "sh" "load $module2" $ans
 
 set ans [list]
-lappend ans [list set TS1_modshare "yes:1:maybe:1"]
 lappend ans [list set TS1 "maybe:yes"]
-lappend ans [list setpath LOADEDMODULES $module3]
-lappend ans [list setpath _LMFILES_ $modulefile3]
+lappend ans [list set _LMFILES_ $modulefile3]
+lappend ans [list set LOADEDMODULES $module3]
+lappend ans [list set TS1_modshare "yes:1:maybe:1"]
 
 # append-path after setenv: an set order for ref counter variable is produced
 test_cmd "sh" "load $module3" $ans
@@ -81,8 +79,8 @@ setenv_loaded_module $module $modulefile
 
 set ans [list]
 lappend ans [list unsetpath testsuite]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset _LMFILES_]
 
 test_cmd "sh" "unload $module" $ans
 
@@ -92,8 +90,8 @@ setenv_loaded_module $module2 $modulefile2
 
 set ans [list]
 lappend ans [list unsetpath TS1]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset _LMFILES_]
 
 # setenv after append-path: an unset order for ref counter variable is produced
 # as ref counter variable is set right after append-path due to initial value of TS1
@@ -103,8 +101,8 @@ setenv_loaded_module $module3 $modulefile3
 
 set ans [list]
 lappend ans [list unset TS1]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 
 # append-path after setenv: no mention of ref counter variable as setenv order clears
 # initial value of TS1 

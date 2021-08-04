@@ -57,18 +57,18 @@ regsub -all {\+} $u_release {\\+} u_release
 
 foreach field [list sysname release machine] {
     set ans [list]
+    lappend ans [list set _LMFILES_ "$modulefile/$field"]
+    lappend ans [list set LOADEDMODULES "$module/$field"]
     lappend ans [list set testsuite [set "u_$field"] noescval]
-    lappend ans [list setpath LOADEDMODULES "$module/$field"]
-    lappend ans [list setpath _LMFILES_ "$modulefile/$field"]
     test_cmd_re "csh" "load $module/$field" $ans
 }
 
 foreach field [list nodename version] {
     if {$uname ne ""} {
         set ans [list]
+        lappend ans [list set _LMFILES_ "$modulefile/$field"]
+        lappend ans [list set LOADEDMODULES "$module/$field"]
         lappend ans [list set testsuite [set "u_$field"] noescval]
-        lappend ans [list setpath LOADEDMODULES "$module/$field"]
-        lappend ans [list setpath _LMFILES_ "$modulefile/$field"]
         test_cmd_re "csh" "load $module/$field" $ans
     } else {
         testouterr_cmd "csh" "load $module/$field" "ERR" [msg_load $module/$field $uname_warn]
@@ -77,9 +77,9 @@ foreach field [list nodename version] {
 
 if {$domainname ne ""} {
     set ans [list]
+    lappend ans [list set _LMFILES_ "$modulefile/domain"]
+    lappend ans [list set LOADEDMODULES "$module/domain"]
     lappend ans [list set testsuite $u_domain noescval]
-    lappend ans [list setpath LOADEDMODULES "$module/domain"]
-    lappend ans [list setpath _LMFILES_ "$modulefile/domain"]
 	test_cmd_re "csh" "load $module/domain" $ans
 } else {
     testouterr_cmd "csh" "load $module/domain" "ERR" [msg_load $module/domain $domainname_warn]
@@ -87,10 +87,10 @@ if {$domainname ne ""} {
 
 # check internal uname value cache mechanism
 set ans [list]
-lappend ans [list set testsuite1 [set "u_machine"] noescval]
 lappend ans [list set testsuite2 [set "u_machine"] noescval]
-lappend ans [list setpath LOADEDMODULES "$module/cache"]
-lappend ans [list setpath _LMFILES_ "$modulefile/cache"]
+lappend ans [list set _LMFILES_ "$modulefile/cache"]
+lappend ans [list set LOADEDMODULES "$module/cache"]
+lappend ans [list set testsuite1 [set "u_machine"] noescval]
 test_cmd_re "csh" "load $module/cache" $ans
 
 # bad uname subcommand
@@ -111,9 +111,9 @@ set env(PATH) ""
 # no change for these fields
 foreach field [list sysname release machine] {
     set ans [list]
+    lappend ans [list set _LMFILES_ "$modulefile/$field"]
+    lappend ans [list set LOADEDMODULES "$module/$field"]
     lappend ans [list set testsuite [set "u_$field"] noescval]
-    lappend ans [list setpath LOADEDMODULES "$module/$field"]
-    lappend ans [list setpath _LMFILES_ "$modulefile/$field"]
     test_cmd_re "csh" "load $module/$field" $ans
 }
 

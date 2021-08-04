@@ -55,9 +55,9 @@ setenv_loaded_module $module_1 $modulefile_1
 
 set ans [list]
 lappend ans [list set TEST $module_2]
-lappend ans [list setpath LOADEDMODULES "$module_1:$module_2"]
-lappend ans [list setpath _LMFILES_ "$modulefile_1:$modulefile_2"]
-lappend ans [list setpath __MODULES_LMCONFLICT "$module_2&plain/dir2"]
+lappend ans [list set __MODULES_LMCONFLICT "$module_2&plain/dir2"]
+lappend ans [list set _LMFILES_ "$modulefile_1:$modulefile_2"]
+lappend ans [list set LOADEDMODULES "$module_1:$module_2"]
 
 # switch, the one argument form with an already loaded module that does not
 # share same root, but has a middle element equal to the name to switch
@@ -77,9 +77,9 @@ testouterr_cmd "sh" "swap pl" "ERR" [msg_switch pl pl $locate_msg]
 # defined conflict but this test does not aim to that
 set ans [list]
 lappend ans [list set TEST $module_4]
-lappend ans [list setpath LOADEDMODULES "$module_3:$module_4"]
-lappend ans [list setpath _LMFILES_ "$modulefile_3:$modulefile_4"]
-lappend ans [list setpath __MODULES_LMCONFLICT "$module_4&plain/dir2"]
+lappend ans [list set __MODULES_LMCONFLICT "$module_4&plain/dir2"]
+lappend ans [list set _LMFILES_ "$modulefile_3:$modulefile_4"]
+lappend ans [list set LOADEDMODULES "$module_3:$module_4"]
 
 # two modules already loaded sharing same root than module to swap, closest
 # should be returned
@@ -91,9 +91,9 @@ setenv_loaded_module $module_3 $modulefile_3
 
 set ans [list]
 lappend ans [list set TEST $module_4]
-lappend ans [list setpath LOADEDMODULES "$module_3:$module_4"]
-lappend ans [list setpath _LMFILES_ "$modulefile_3:$modulefile_4"]
-lappend ans [list setpath __MODULES_LMCONFLICT "$module_4&plain/dir2"]
+lappend ans [list set __MODULES_LMCONFLICT "$module_4&plain/dir2"]
+lappend ans [list set _LMFILES_ "$modulefile_3:$modulefile_4"]
+lappend ans [list set LOADEDMODULES "$module_3:$module_4"]
 
 # one module already loaded sharing same root than module to swap, a module to
 # unload is specified on command line should unload it and not closest, so here
@@ -106,14 +106,14 @@ setenv_loaded_module [list $module_3 $module_2] [list $modulefile_3 $modulefile_
 
 set ans [list]
 lappend ans [list set TEST $module_4]
-lappend ans [list setpath LOADEDMODULES "$module_3:$module_4"]
-lappend ans [list setpath _LMFILES_ "$modulefile_3:$modulefile_4"]
-lappend ans [list setpath __MODULES_LMCONFLICT "$module_4&plain/dir2"]
+lappend ans [list set __MODULES_LMCONFLICT "$module_4&plain/dir2"]
+lappend ans [list set _LMFILES_ "$modulefile_3:$modulefile_4"]
+lappend ans [list set LOADEDMODULES "$module_3:$module_4"]
 
 set ansnodefault [list]
 lappend ansnodefault [list unset TEST]
-lappend ansnodefault [list setpath LOADEDMODULES "$module_3"]
-lappend ansnodefault [list setpath _LMFILES_ "$modulefile_3"]
+lappend ansnodefault [list set _LMFILES_ "$modulefile_3"]
+lappend ansnodefault [list set LOADEDMODULES "$module_3"]
 lappend ansnodefault [list ERR]
 
 # two modules already loaded sharing same root than module to swap and equality
@@ -124,53 +124,53 @@ testouterr_cmd_re "sh" "swap plain" [if_implicitdefault $ans $ansnodefault] [if_
 # set up the environment
 set env(TEST) $module_5
 setenv_loaded_module [list $module_6 $module_5] [list $modulefile_6 $modulefile_5]
-setenv_path_var __MODULES_LMALTNAME $module_6_alt $module_5_alt
+setenv_var __MODULES_LMALTNAME $module_6_alt:$module_5_alt
 
 set ans [list]
 lappend ans [list set TEST $module_6]
-lappend ans [list setpath LOADEDMODULES "$module_5:$module_6"]
-lappend ans [list setpath _LMFILES_ "$modulefile_5:$modulefile_6"]
-lappend ans [list setpath __MODULES_LMALTNAME "$module_5_alt:$module_6_alt"]
+lappend ans [list set __MODULES_LMALTNAME "$module_5_alt:$module_6_alt"]
+lappend ans [list set _LMFILES_ "$modulefile_5:$modulefile_6"]
+lappend ans [list set LOADEDMODULES "$module_5:$module_6"]
 
 testouterr_cmd_re "sh" "swap $module_6" $ans ""
 
 set ans [list]
 lappend ans [list set TEST $module_7]
-lappend ans [list setpath LOADEDMODULES "$module_6:$module_7"]
-lappend ans [list setpath _LMFILES_ "$modulefile_6:$modulefile_7"]
-lappend ans [list setpath __MODULES_LMALTNAME "$module_6_alt:$module_7_alt"]
+lappend ans [list set __MODULES_LMALTNAME "$module_6_alt:$module_7_alt"]
+lappend ans [list set _LMFILES_ "$modulefile_6:$modulefile_7"]
+lappend ans [list set LOADEDMODULES "$module_6:$module_7"]
 set ansnodefault [list]
 lappend ansnodefault [list unset TEST]
-lappend ansnodefault [list setpath LOADEDMODULES "$module_6"]
-lappend ansnodefault [list setpath _LMFILES_ "$modulefile_6"]
-lappend ansnodefault [list setpath __MODULES_LMALTNAME "$module_6_alt"]
+lappend ansnodefault [list set __MODULES_LMALTNAME "$module_6_alt"]
+lappend ansnodefault [list set _LMFILES_ "$modulefile_6"]
+lappend ansnodefault [list set LOADEDMODULES "$module_6"]
 lappend ansnodefault [list ERR]
 testouterr_cmd_re "sh" "swap modvirt" [if_implicitdefault $ans $ansnodefault] [if_implicitdefault {} [msg_switch $module_5 modvirt "$err_nodefault'modvirt'"]]
 testouterr_cmd_re "sh" "swap $module_7" $ans ""
 
 set ans [list]
 lappend ans [list unset TEST]
-lappend ans [list setpath LOADEDMODULES "$module_6"]
-lappend ans [list setpath _LMFILES_ "$modulefile_6"]
-lappend ans [list setpath __MODULES_LMALTNAME $module_6_alt]
+lappend ans [list set __MODULES_LMALTNAME $module_6_alt]
+lappend ans [list set _LMFILES_ "$modulefile_6"]
+lappend ans [list set LOADEDMODULES "$module_6"]
 set ansnodefault [list]
 lappend ansnodefault [list unset TEST]
-lappend ansnodefault [list setpath LOADEDMODULES "$module_6"]
-lappend ansnodefault [list setpath _LMFILES_ "$modulefile_6"]
-lappend ansnodefault [list setpath __MODULES_LMALTNAME "$module_6_alt"]
+lappend ansnodefault [list set __MODULES_LMALTNAME "$module_6_alt"]
+lappend ansnodefault [list set _LMFILES_ "$modulefile_6"]
+lappend ansnodefault [list set LOADEDMODULES "$module_6"]
 lappend ansnodefault [list ERR]
 testouterr_cmd_re "sh" "swap modvirt/dir1" [if_implicitdefault $ans $ansnodefault] [if_implicitdefault {} [msg_switch $module_5 modvirt/dir1 "$err_nodefault'modvirt/dir1'"]]
 
 set ans [list]
 lappend ans [list set TEST $module_7]
-lappend ans [list setpath LOADEDMODULES "$module_5:$module_7"]
-lappend ans [list setpath _LMFILES_ "$modulefile_5:$modulefile_7"]
-lappend ans [list setpath __MODULES_LMALTNAME "$module_5_alt:$module_7_alt"]
+lappend ans [list set __MODULES_LMALTNAME "$module_5_alt:$module_7_alt"]
+lappend ans [list set _LMFILES_ "$modulefile_5:$modulefile_7"]
+lappend ans [list set LOADEDMODULES "$module_5:$module_7"]
 set ansnodefault [list]
 lappend ansnodefault [list unset TEST]
-lappend ansnodefault [list setpath LOADEDMODULES "$module_5"]
-lappend ansnodefault [list setpath _LMFILES_ "$modulefile_5"]
-lappend ansnodefault [list setpath __MODULES_LMALTNAME "$module_5_alt"]
+lappend ansnodefault [list set __MODULES_LMALTNAME "$module_5_alt"]
+lappend ansnodefault [list set _LMFILES_ "$modulefile_5"]
+lappend ansnodefault [list set LOADEDMODULES "$module_5"]
 lappend ansnodefault [list ERR]
 testouterr_cmd_re "sh" "swap modvirt/dir2" [if_implicitdefault $ans $ansnodefault] [if_implicitdefault {} [msg_switch $module_6 modvirt/dir2 "$err_nodefault'modvirt/dir2'"]]
 
@@ -178,31 +178,31 @@ testouterr_cmd_re "sh" "swap modvirt/dir2" [if_implicitdefault $ans $ansnodefaul
 # set up the environment
 set env(TEST) $module_6
 setenv_loaded_module [list $module_5 $module_6] [list $modulefile_5 $modulefile_6]
-setenv_path_var __MODULES_LMALTNAME $module_5_alt $module_6_alt
+setenv_var __MODULES_LMALTNAME $module_5_alt:$module_6_alt
 
 set ans [list]
 lappend ans [list set TEST $module_6]
-lappend ans [list setpath LOADEDMODULES "$module_5:$module_6"]
-lappend ans [list setpath _LMFILES_ "$modulefile_5:$modulefile_6"]
-lappend ans [list setpath __MODULES_LMALTNAME $module_5_alt:$module_6_alt]
+lappend ans [list set __MODULES_LMALTNAME $module_5_alt:$module_6_alt]
+lappend ans [list set _LMFILES_ "$modulefile_5:$modulefile_6"]
+lappend ans [list set LOADEDMODULES "$module_5:$module_6"]
 set ansnodefault [list]
 lappend ansnodefault [list unset TEST]
-lappend ansnodefault [list setpath LOADEDMODULES "$module_5"]
-lappend ansnodefault [list setpath _LMFILES_ "$modulefile_5"]
-lappend ansnodefault [list setpath __MODULES_LMALTNAME "$module_5_alt"]
+lappend ansnodefault [list set __MODULES_LMALTNAME "$module_5_alt"]
+lappend ansnodefault [list set _LMFILES_ "$modulefile_5"]
+lappend ansnodefault [list set LOADEDMODULES "$module_5"]
 lappend ansnodefault [list ERR]
 testouterr_cmd_re "sh" "swap modvirt/dir1" [if_implicitdefault $ans $ansnodefault] [if_implicitdefault {} [msg_switch $module_6 modvirt/dir1 "$err_nodefault'modvirt/dir1'"]]
 
 set ans [list]
 lappend ans [list set TEST $module_7]
-lappend ans [list setpath LOADEDMODULES "$module_5:$module_7"]
-lappend ans [list setpath _LMFILES_ "$modulefile_5:$modulefile_7"]
-lappend ans [list setpath __MODULES_LMALTNAME "$module_5_alt:$module_7_alt"]
+lappend ans [list set __MODULES_LMALTNAME "$module_5_alt:$module_7_alt"]
+lappend ans [list set _LMFILES_ "$modulefile_5:$modulefile_7"]
+lappend ans [list set LOADEDMODULES "$module_5:$module_7"]
 set ansnodefault [list]
 lappend ansnodefault [list unset TEST]
-lappend ansnodefault [list setpath LOADEDMODULES "$module_5"]
-lappend ansnodefault [list setpath _LMFILES_ "$modulefile_5"]
-lappend ansnodefault [list setpath __MODULES_LMALTNAME "$module_5_alt"]
+lappend ansnodefault [list set __MODULES_LMALTNAME "$module_5_alt"]
+lappend ansnodefault [list set _LMFILES_ "$modulefile_5"]
+lappend ansnodefault [list set LOADEDMODULES "$module_5"]
 lappend ansnodefault [list ERR]
 testouterr_cmd_re "sh" "swap modvirt/dir2" [if_implicitdefault $ans $ansnodefault] [if_implicitdefault {} [msg_switch $module_6 modvirt/dir2 "$err_nodefault'modvirt/dir2'"]]
 
@@ -210,16 +210,16 @@ testouterr_cmd_re "sh" "swap modvirt/dir2" [if_implicitdefault $ans $ansnodefaul
 # set up the environment
 set env(TEST) $module_8
 setenv_loaded_module $module_8 $modulefile_8
-unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMALTNAME
 
 set ans [list]
 lappend ans [list set TEST $module_9]
-lappend ans [list setpath LOADEDMODULES "$module_9"]
-lappend ans [list setpath _LMFILES_ "$modulefile_9"]
+lappend ans [list set _LMFILES_ "$modulefile_9"]
+lappend ans [list set LOADEDMODULES "$module_9"]
 set ansnodefault [list]
 lappend ansnodefault [list unset TEST]
-lappend ansnodefault [list unsetpath LOADEDMODULES]
-lappend ansnodefault [list unsetpath _LMFILES_]
+lappend ansnodefault [list unset _LMFILES_]
+lappend ansnodefault [list unset LOADEDMODULES]
 lappend ansnodefault [list ERR]
 
 # FIXME

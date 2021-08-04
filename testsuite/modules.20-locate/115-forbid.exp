@@ -51,8 +51,8 @@ testouterr_cmd sh {avail -t hide1@3.10:4.20} OK $mp:\nhide1/4.0
 set tserr "$modlin $mpre $modlin\n\\s*hide1/4.0: hide1/4.0"
 testouterr_cmd_re sh {whatis hide1@3.10:4.20} OK $tserr
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide1/4.0]
-lappend ans [list setpath _LMFILES_ $mp/hide1/4.0]
+lappend ans [list set _LMFILES_ $mp/hide1/4.0]
+lappend ans [list set LOADEDMODULES hide1/4.0]
 lappend ans [list ERR]
 if {[cmpversion $tclsh_version 8.6] == -1} {
     set custom "    invoked from within
@@ -132,8 +132,8 @@ testouterr_cmd sh {avail -t hide1@3.10:4.20} OK $mp:\nhide1/4.0
 set tserr "$modlin $mpre $modlin\n\\s*hide1/4.0: hide1/4.0"
 testouterr_cmd_re sh {whatis hide1@3.10:4.20} OK $tserr
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide1/4.0]
-lappend ans [list setpath _LMFILES_ $mp/hide1/4.0]
+lappend ans [list set _LMFILES_ $mp/hide1/4.0]
+lappend ans [list set LOADEDMODULES hide1/4.0]
 testouterr_cmd sh {load hide1@3.10:4.20} $ans {}
 unsetenv_var TESTSUITE_FORBID_WILDCARD1
 
@@ -156,9 +156,9 @@ unsetenv_var TESTSUITE_FORBID_WILDCARD3
 setenv_var TESTSUITE_FORBID_SET1 1
 testouterr_cmd sh {load hide1@1.0} ERR [err_accessdenied hide1/1.0]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide1/3.1]
-lappend ans [list setpath _LMFILES_ $mp/hide1/3.1]
-lappend ans [list setpath __MODULES_LMALTNAME hide1/3.1&hide1/default&hide1]
+lappend ans [list set __MODULES_LMALTNAME hide1/3.1&hide1/default&hide1]
+lappend ans [list set _LMFILES_ $mp/hide1/3.1]
+lappend ans [list set LOADEDMODULES hide1/3.1]
 testouterr_cmd sh {load hide1/3.1} ERR [err_accessdenied hide1/3.1]
 testouterr_cmd sh {load hide1@default} ERR [err_accessdenied hide1/3.1]
 # select hide1/3.1, as it is set default and specifically mentionned in query
@@ -168,8 +168,8 @@ testouterr_cmd sh {load hide1} ERR [err_accessdenied hide1/3.1]
 testouterr_cmd sh {load hide1/} ERR [err_accessdenied hide1/3.1]
 testouterr_cmd sh {load hide1//} ERR [err_accessdenied hide1/3.1]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide1/4.0]
-lappend ans [list setpath _LMFILES_ $mp/hide1/4.0]
+lappend ans [list set _LMFILES_ $mp/hide1/4.0]
+lappend ans [list set LOADEDMODULES hide1/4.0]
 # load hide1/4.0, as defined default (hide1/3.1) is forbidden
 testouterr_cmd sh {load hide1@2:4} $ans {}
 # load hide1/4.0, as defined default (hide1/3.1) is forbidden
@@ -197,16 +197,16 @@ testouterr_cmd_re sh {load --auto hidereq/1.0} ERR [msg_load hidereq/1.0 [err_ac
 testouterr_cmd_re sh {load --auto hidereq/1.1} ERR [msg_load hidereq/1.1 [err_accessdenied hide1/3.1] [err_reqlo hide1/3.1]]
 testouterr_cmd_re sh {load --auto hidereq/1.2} ERR [msg_load hidereq/1.2 [err_accessdenied hide1/3.1] [err_reqlo hide1]]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide1/4.0:hidereq/1.3]
-lappend ans [list setpath _LMFILES_ $mp/hide1/4.0:$mp/hidereq/1.3]
-lappend ans [list setpath __MODULES_LMTAG hide1/4.0&auto-loaded]
-lappend ans [list setpath __MODULES_LMPREREQ hidereq/1.3&hide1@2<4]
+lappend ans [list set __MODULES_LMPREREQ hidereq/1.3&hide1@2<4]
+lappend ans [list set _LMFILES_ $mp/hide1/4.0:$mp/hidereq/1.3]
+lappend ans [list set LOADEDMODULES hide1/4.0:hidereq/1.3]
+lappend ans [list set __MODULES_LMTAG hide1/4.0&auto-loaded]
 testouterr_cmd_re sh {load --auto hidereq/1.3} $ans [msg_top_load hidereq/1.3 {} hide1/4.0 {}]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide1/4.0:hidereq/1.4]
-lappend ans [list setpath _LMFILES_ $mp/hide1/4.0:$mp/hidereq/1.4]
-lappend ans [list setpath __MODULES_LMTAG hide1/4.0&auto-loaded]
-lappend ans [list setpath __MODULES_LMPREREQ hidereq/1.4&hide1@3,4]
+lappend ans [list set __MODULES_LMPREREQ hidereq/1.4&hide1@3,4]
+lappend ans [list set _LMFILES_ $mp/hide1/4.0:$mp/hidereq/1.4]
+lappend ans [list set LOADEDMODULES hide1/4.0:hidereq/1.4]
+lappend ans [list set __MODULES_LMTAG hide1/4.0&auto-loaded]
 testouterr_cmd_re sh {load --auto hidereq/1.4} $ans [msg_top_load hidereq/1.4 {} hide1/4.0 {}]
 testouterr_cmd_re sh {load --auto hidereq/1.5} ERR [msg_load hidereq/1.5 [err_accessdenied hide1/3.1] [err_reqlo hide1@3.1,4.0]]
 
@@ -215,21 +215,21 @@ unsetenv_var TESTSUITE_FORBID_SET1
 
 setenv_var TESTSUITE_FORBID_SET2 1
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide1/3.2]
-lappend ans [list setpath _LMFILES_ $mp/hide1/3.2]
-lappend ans [list setpath __MODULES_LMALTNAME hide1/3.2&as|hide1/latest]
+lappend ans [list set __MODULES_LMALTNAME hide1/3.2&as|hide1/latest]
+lappend ans [list set _LMFILES_ $mp/hide1/3.2]
+lappend ans [list set LOADEDMODULES hide1/3.2]
 testouterr_cmd sh {load hide1@latest} $ans {}
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide1/3.1]
-lappend ans [list setpath _LMFILES_ $mp/hide1/3.1]
-lappend ans [list setpath __MODULES_LMALTNAME hide1/3.1&hide1/default&hide1]
+lappend ans [list set __MODULES_LMALTNAME hide1/3.1&hide1/default&hide1]
+lappend ans [list set _LMFILES_ $mp/hide1/3.1]
+lappend ans [list set LOADEDMODULES hide1/3.1]
 testouterr_cmd sh {load hide1} $ans {}
 testouterr_cmd sh {load hide1@5} ERR $err_path'hide1@5'
 testouterr_cmd sh {load hide1@4:} ERR $err_path'hide1@4:'
 testouterr_cmd sh {load hide1@4.0:} ERR [err_accessdenied hide1/4.0]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide1/2.2]
-lappend ans [list setpath _LMFILES_ $mp/hide1/2.2]
+lappend ans [list set _LMFILES_ $mp/hide1/2.2]
+lappend ans [list set LOADEDMODULES hide1/2.2]
 testouterr_cmd sh {load hide1@2,5} $ans {}
 testouterr_cmd sh {load hide1@2.2,5.0} $ans {}
 
@@ -253,33 +253,33 @@ testouterr_cmd_re sh {whatis hide1@2.2,5.0} OK "$tserr\n\\s+hide1/2.2: hide1/2.2
 
 # same result expected than load
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide1/3.2:hidereq/2.0]
-lappend ans [list setpath _LMFILES_ $mp/hide1/3.2:$mp/hidereq/2.0]
-lappend ans [list setpath __MODULES_LMPREREQ hidereq/2.0&hide1@latest]
-lappend ans [list setpath __MODULES_LMALTNAME hide1/3.2&as|hide1/latest]
-lappend ans [list setpath __MODULES_LMTAG hide1/3.2&auto-loaded]
+lappend ans [list set __MODULES_LMALTNAME hide1/3.2&as|hide1/latest]
+lappend ans [list set __MODULES_LMPREREQ hidereq/2.0&hide1@latest]
+lappend ans [list set _LMFILES_ $mp/hide1/3.2:$mp/hidereq/2.0]
+lappend ans [list set LOADEDMODULES hide1/3.2:hidereq/2.0]
+lappend ans [list set __MODULES_LMTAG hide1/3.2&auto-loaded]
 testouterr_cmd_re sh {load --auto hidereq/2.0} $ans [msg_top_load hidereq/2.0 {} hide1/3.2 {}]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide1/3.1:hidereq/2.1]
-lappend ans [list setpath _LMFILES_ $mp/hide1/3.1:$mp/hidereq/2.1]
-lappend ans [list setpath __MODULES_LMPREREQ hidereq/2.1&hide1]
-lappend ans [list setpath __MODULES_LMALTNAME hide1/3.1&hide1/default&hide1]
-lappend ans [list setpath __MODULES_LMTAG hide1/3.1&auto-loaded]
+lappend ans [list set __MODULES_LMALTNAME hide1/3.1&hide1/default&hide1]
+lappend ans [list set __MODULES_LMPREREQ hidereq/2.1&hide1]
+lappend ans [list set _LMFILES_ $mp/hide1/3.1:$mp/hidereq/2.1]
+lappend ans [list set LOADEDMODULES hide1/3.1:hidereq/2.1]
+lappend ans [list set __MODULES_LMTAG hide1/3.1&auto-loaded]
 testouterr_cmd_re sh {load --auto hidereq/2.1} $ans [msg_top_load hidereq/2.1 {} hide1/3.1 {}]
 testouterr_cmd_re sh {load --auto hidereq/2.2} ERR [msg_load hidereq/2.2 $err_path'hide1@5' [err_reqlo hide1/5]]
 testouterr_cmd_re sh {load --auto hidereq/2.3} ERR [msg_load hidereq/2.3 $err_path'hide1@4:' [err_reqlo hide1@4:]]
 testouterr_cmd_re sh {load --auto hidereq/2.4} ERR [msg_load hidereq/2.4 [err_accessdenied hide1/4.0] [err_reqlo hide1@4.0:]]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide1/2.2:hidereq/2.5]
-lappend ans [list setpath _LMFILES_ $mp/hide1/2.2:$mp/hidereq/2.5]
-lappend ans [list setpath __MODULES_LMTAG hide1/2.2&auto-loaded]
-lappend ans [list setpath __MODULES_LMPREREQ hidereq/2.5&hide1@2,5]
+lappend ans [list set __MODULES_LMPREREQ hidereq/2.5&hide1@2,5]
+lappend ans [list set _LMFILES_ $mp/hide1/2.2:$mp/hidereq/2.5]
+lappend ans [list set LOADEDMODULES hide1/2.2:hidereq/2.5]
+lappend ans [list set __MODULES_LMTAG hide1/2.2&auto-loaded]
 testouterr_cmd_re sh {load --auto hidereq/2.5} $ans [msg_top_load hidereq/2.5 {} hide1/2.2 {}]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide1/2.2:hidereq/2.6]
-lappend ans [list setpath _LMFILES_ $mp/hide1/2.2:$mp/hidereq/2.6]
-lappend ans [list setpath __MODULES_LMTAG hide1/2.2&auto-loaded]
-lappend ans [list setpath __MODULES_LMPREREQ hidereq/2.6&hide1@2.2,5.0]
+lappend ans [list set __MODULES_LMPREREQ hidereq/2.6&hide1@2.2,5.0]
+lappend ans [list set _LMFILES_ $mp/hide1/2.2:$mp/hidereq/2.6]
+lappend ans [list set LOADEDMODULES hide1/2.2:hidereq/2.6]
+lappend ans [list set __MODULES_LMTAG hide1/2.2&auto-loaded]
 testouterr_cmd_re sh {load --auto hidereq/2.6} $ans [msg_top_load hidereq/2.6 {} hide1/2.2 {}]
 
 unsetenv_var TESTSUITE_FORBID_SET2
@@ -288,15 +288,15 @@ unsetenv_var TESTSUITE_FORBID_SET2
 # impact on alias, symbol, virtual module
 setenv_var TESTSUITE_FORBID2_SET1 1
 set ans2 [list]
-lappend ans2 [list setpath LOADEDMODULES hide2/1.5]
-lappend ans2 [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans2 [list setpath __MODULES_LMALTNAME hide2/1.5&as|hide2/default&as|hide2/latest]
+lappend ans2 [list set __MODULES_LMALTNAME hide2/1.5&as|hide2/default&as|hide2/latest]
+lappend ans2 [list set _LMFILES_ $mp/hide2/1.0]
+lappend ans2 [list set LOADEDMODULES hide2/1.5]
 set ans4 [list]
-lappend ans4 [list setpath LOADEDMODULES hide2/1.5:hide2/1.0:hidereq/3.0]
-lappend ans4 [list setpath _LMFILES_ $mp/hide2/1.0:$mp/hide2/1.0:$mp/hidereq/3.0]
-lappend ans4 [list setpath __MODULES_LMPREREQ hidereq/3.0&hide2/1.5&hide2/1.1]
-lappend ans4 [list setpath __MODULES_LMALTNAME hide2/1.5&as|hide2/default&as|hide2/latest:hide2/1.0&hide2/1.4&hide2/1.2&al|hide2/1.3&al|hide2/1.1]
-lappend ans4 [list setpath __MODULES_LMTAG hide2/1.5&auto-loaded:hide2/1.0&auto-loaded]
+lappend ans4 [list set __MODULES_LMALTNAME hide2/1.5&as|hide2/default&as|hide2/latest:hide2/1.0&hide2/1.4&hide2/1.2&al|hide2/1.3&al|hide2/1.1]
+lappend ans4 [list set __MODULES_LMPREREQ hidereq/3.0&hide2/1.5&hide2/1.1]
+lappend ans4 [list set _LMFILES_ $mp/hide2/1.0:$mp/hide2/1.0:$mp/hidereq/3.0]
+lappend ans4 [list set LOADEDMODULES hide2/1.5:hide2/1.0:hidereq/3.0]
+lappend ans4 [list set __MODULES_LMTAG hide2/1.5&auto-loaded:hide2/1.0&auto-loaded]
 testouterr_cmd sh {load hide2} $ans2 {}
 testouterr_cmd sh {load hide2/1.0} ERR [err_accessdenied hide2/1.0]
 testouterr_cmd sh {load hide2/1.1} ERR [err_accessdenied hide2/1.0]
@@ -332,13 +332,13 @@ unsetenv_var TESTSUITE_FORBID2_SET1
 
 setenv_var TESTSUITE_FORBID2_SET2 1
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide2/1.0]
-lappend ans [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans [list setpath __MODULES_LMALTNAME hide2/1.0&hide2/1.4&hide2/1.2&al|hide2/1.3]
+lappend ans [list set __MODULES_LMALTNAME hide2/1.0&hide2/1.4&hide2/1.2&al|hide2/1.3]
+lappend ans [list set _LMFILES_ $mp/hide2/1.0]
+lappend ans [list set LOADEDMODULES hide2/1.0]
 set ans2 [list]
-lappend ans2 [list setpath LOADEDMODULES hide2/1.5]
-lappend ans2 [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans2 [list setpath __MODULES_LMALTNAME hide2/1.5&as|hide2/default&as|hide2/latest]
+lappend ans2 [list set __MODULES_LMALTNAME hide2/1.5&as|hide2/default&as|hide2/latest]
+lappend ans2 [list set _LMFILES_ $mp/hide2/1.0]
+lappend ans2 [list set LOADEDMODULES hide2/1.5]
 testouterr_cmd sh {load hide2} $ans2 {}
 testouterr_cmd sh {load hide2/1.0} $ans {}
 testouterr_cmd sh {load hide2/1.1} ERR [err_accessdenied hide2/1.1]
@@ -354,13 +354,13 @@ unsetenv_var TESTSUITE_FORBID2_SET2
 
 setenv_var TESTSUITE_FORBID2_SET3 1
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide2/1.0]
-lappend ans [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans [list setpath __MODULES_LMALTNAME hide2/1.0&hide2/1.4&al|hide2/1.3&al|hide2/1.1]
+lappend ans [list set __MODULES_LMALTNAME hide2/1.0&hide2/1.4&al|hide2/1.3&al|hide2/1.1]
+lappend ans [list set _LMFILES_ $mp/hide2/1.0]
+lappend ans [list set LOADEDMODULES hide2/1.0]
 set ans2 [list]
-lappend ans2 [list setpath LOADEDMODULES hide2/1.5]
-lappend ans2 [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans2 [list setpath __MODULES_LMALTNAME hide2/1.5&as|hide2/default&as|hide2/latest]
+lappend ans2 [list set __MODULES_LMALTNAME hide2/1.5&as|hide2/default&as|hide2/latest]
+lappend ans2 [list set _LMFILES_ $mp/hide2/1.0]
+lappend ans2 [list set LOADEDMODULES hide2/1.5]
 testouterr_cmd sh {load hide2} $ans2 {}
 testouterr_cmd sh {load hide2/1.0} $ans {}
 testouterr_cmd sh {load hide2/1.2} ERR [err_accessdenied hide2/1.2]
@@ -375,19 +375,19 @@ unsetenv_var TESTSUITE_FORBID2_SET3
 
 setenv_var TESTSUITE_FORBID2_SET10 1
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide2/1.0]
-lappend ans [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans [list setpath __MODULES_LMALTNAME hide2/1.0&hide2/1.4&hide2/1.2&al|hide2/1.3&al|hide2/1.1]
+lappend ans [list set __MODULES_LMALTNAME hide2/1.0&hide2/1.4&hide2/1.2&al|hide2/1.3&al|hide2/1.1]
+lappend ans [list set _LMFILES_ $mp/hide2/1.0]
+lappend ans [list set LOADEDMODULES hide2/1.0]
 set ans3 [list]
-lappend ans3 [list setpath LOADEDMODULES hide2/1.5]
-lappend ans3 [list setpath _LMFILES_ $mp/hide2/1.0]
-lappend ans3 [list setpath __MODULES_LMALTNAME hide2/1.5&as|hide2/default&as|hide2/latest]
+lappend ans3 [list set __MODULES_LMALTNAME hide2/1.5&as|hide2/default&as|hide2/latest]
+lappend ans3 [list set _LMFILES_ $mp/hide2/1.0]
+lappend ans3 [list set LOADEDMODULES hide2/1.5]
 set ans4 [list]
-lappend ans4 [list setpath LOADEDMODULES hide2/1.5:hide2/1.0:hidereq/3.0]
-lappend ans4 [list setpath _LMFILES_ $mp/hide2/1.0:$mp/hide2/1.0:$mp/hidereq/3.0]
-lappend ans4 [list setpath __MODULES_LMPREREQ hidereq/3.0&hide2/1.5&hide2/1.1]
-lappend ans4 [list setpath __MODULES_LMALTNAME hide2/1.5&as|hide2/default&as|hide2/latest:hide2/1.0&hide2/1.4&hide2/1.2&al|hide2/1.3&al|hide2/1.1]
-lappend ans4 [list setpath __MODULES_LMTAG hide2/1.5&auto-loaded:hide2/1.0&auto-loaded]
+lappend ans4 [list set __MODULES_LMALTNAME hide2/1.5&as|hide2/default&as|hide2/latest:hide2/1.0&hide2/1.4&hide2/1.2&al|hide2/1.3&al|hide2/1.1]
+lappend ans4 [list set __MODULES_LMPREREQ hidereq/3.0&hide2/1.5&hide2/1.1]
+lappend ans4 [list set _LMFILES_ $mp/hide2/1.0:$mp/hide2/1.0:$mp/hidereq/3.0]
+lappend ans4 [list set LOADEDMODULES hide2/1.5:hide2/1.0:hidereq/3.0]
+lappend ans4 [list set __MODULES_LMTAG hide2/1.5&auto-loaded:hide2/1.0&auto-loaded]
 testouterr_cmd sh {load hide2} $ans2 {}
 testouterr_cmd sh {load hide2/1.0} $ans {}
 testouterr_cmd sh {load hide2/1.5} $ans2 {}
@@ -447,9 +447,9 @@ testouterr_cmd sh {load hide3/1.0} ERR [err_accessdenied hide3/1.0]
 testouterr_cmd sh {load hide3/sub1} ERR [err_accessdenied hide3/sub1/3.0]
 testouterr_cmd sh {load hide3/sub1/3.0} ERR [err_accessdenied hide3/sub1/3.0]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub2/5.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/5.0]
-lappend ans [list setpath __MODULES_LMALTNAME hide3/sub2/5.0&hide3/sub2/new&al|hide3/al2&as|hide3/sub2/latest]
+lappend ans [list set __MODULES_LMALTNAME hide3/sub2/5.0&hide3/sub2/new&al|hide3/al2&as|hide3/sub2/latest]
+lappend ans [list set _LMFILES_ $mp/hide3/sub2/5.0]
+lappend ans [list set LOADEDMODULES hide3/sub2/5.0]
 testouterr_cmd sh {load hide3/al2} $ans {}
 testouterr_cmd sh {load hide3/sub2/new} $ans {}
 testouterr_cmd sh {load hide3/sub2/5.0} $ans {}
@@ -512,9 +512,9 @@ testouterr_cmd sh {load hide3/1.0} ERR [err_accessdenied hide3/1.0]
 testouterr_cmd sh {load hide3/sub1} ERR [err_accessdenied hide3/sub1/3.0]
 testouterr_cmd sh {load hide3/sub1/3.0} ERR [err_accessdenied hide3/sub1/3.0]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub2/5.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/5.0]
-lappend ans [list setpath __MODULES_LMALTNAME hide3/sub2/5.0&hide3/sub2/new&al|hide3/al2&as|hide3/sub2/latest]
+lappend ans [list set __MODULES_LMALTNAME hide3/sub2/5.0&hide3/sub2/new&al|hide3/al2&as|hide3/sub2/latest]
+lappend ans [list set _LMFILES_ $mp/hide3/sub2/5.0]
+lappend ans [list set LOADEDMODULES hide3/sub2/5.0]
 testouterr_cmd sh {load hide3/al2} $ans {}
 testouterr_cmd sh {load hide3/sub2/new} $ans {}
 testouterr_cmd sh {load hide3/sub2/5.0} $ans {}
@@ -577,19 +577,19 @@ testouterr_cmd sh {load hide3/1.0} ERR [err_accessdenied hide3/1.0]
 testouterr_cmd sh {load hide3/sub1} ERR [err_unablelocate hide3/sub1]
 testouterr_cmd sh {load hide3/sub1/3.0} ERR [err_accessdenied hide3/sub1/3.0]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub2/5.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/5.0]
-lappend ans [list setpath __MODULES_LMALTNAME hide3/sub2/5.0&al|hide3/al2&as|hide3/sub2/latest]
+lappend ans [list set __MODULES_LMALTNAME hide3/sub2/5.0&al|hide3/al2&as|hide3/sub2/latest]
+lappend ans [list set _LMFILES_ $mp/hide3/sub2/5.0]
+lappend ans [list set LOADEDMODULES hide3/sub2/5.0]
 testouterr_cmd sh {load hide3/al2} $ans {}
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub2/5.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/5.0]
-lappend ans [list setpath __MODULES_LMALTNAME hide3/sub2/5.0&as|hide3/sub2/latest]
+lappend ans [list set __MODULES_LMALTNAME hide3/sub2/5.0&as|hide3/sub2/latest]
+lappend ans [list set _LMFILES_ $mp/hide3/sub2/5.0]
+lappend ans [list set LOADEDMODULES hide3/sub2/5.0]
 testouterr_cmd sh {load hide3/sub2/5.0} $ans {}
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub2/5.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub2/5.0]
-lappend ans [list setpath __MODULES_LMALTNAME hide3/sub2/5.0&hide3/sub2/new&as|hide3/sub2/latest]
+lappend ans [list set __MODULES_LMALTNAME hide3/sub2/5.0&hide3/sub2/new&as|hide3/sub2/latest]
+lappend ans [list set _LMFILES_ $mp/hide3/sub2/5.0]
+lappend ans [list set LOADEDMODULES hide3/sub2/5.0]
 testouterr_cmd sh {load hide3/sub2/new} $ans {}
 # avail
 testouterr_cmd sh {avail -t hide2/1.5} OK "$mp:\nhide2/1.5 <F:H>"
@@ -647,8 +647,8 @@ unsetenv_var TESTSUITE_FORBID3_SET4
 setenv_var TESTSUITE_FORBID3_SET2 1
 setenv_loaded_module [list hide3/1.0] [list $mp/hide3/1.0]
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload hide3/1.0} $ans {}
 testouterr_cmd sh {list -t} OK $cur_loaded\nhide3/1.0
 setenv_loaded_module [list hide3/sub1/3.0] [list $mp/hide3/sub1/3.0]
@@ -697,9 +697,9 @@ testouterr_cmd sh {avail -t hide1/5.0} OK $mp:\nhide1/5.0
 set tserr "$modlin $mpre $modlin\n\\s*hide1/5.0: hide1/5.0"
 testouterr_cmd_re sh {whatis hide1@5.0} OK $tserr
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide1/5.0]
-lappend ans [list setpath _LMFILES_ $mp/hide1/5.0]
-lappend ans [list setpath __MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
+lappend ans [list set __MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
+lappend ans [list set _LMFILES_ $mp/hide1/5.0]
+lappend ans [list set LOADEDMODULES hide1/5.0]
 lappend ans [list ERR]
 if {[cmpversion $tclsh_version 8.6] == -1} {
     set custom "    invoked from within
@@ -726,13 +726,13 @@ unset msgcatlib
 # test nearly forbidden warning
 setenv_var TESTSUITE_FORBID1_NEARLY_SET1 1
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide1/5.0]
-lappend ans [list setpath _LMFILES_ $mp/hide1/5.0]
-lappend ans [list setpath __MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
-lappend ans [list setpath __MODULES_LMTAG hide1/5.0&nearly-forbidden]
+lappend ans [list set __MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
+lappend ans [list set _LMFILES_ $mp/hide1/5.0]
+lappend ans [list set LOADEDMODULES hide1/5.0]
+lappend ans [list set __MODULES_LMTAG hide1/5.0&nearly-forbidden]
 set ans2 [list]
-lappend ans2 [list unsetpath LOADEDMODULES]
-lappend ans2 [list unsetpath _LMFILES_]
+lappend ans2 [list unset _LMFILES_]
+lappend ans2 [list unset LOADEDMODULES]
 set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
 if {$install_nearlyforbiddendays >= 1} {
     testouterr_cmd sh {load hide1/5.0} $ans [msg_load hide1/5.0 [err_accessnearlydenied $tomorrow]]
@@ -747,9 +747,9 @@ testouterr_cmd sh {unload hide1/5.0} $ans2 {}
 unsetenv_loaded_module
 setenv_var MODULES_NEARLY_FORBIDDEN_DAYS 0
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide1/5.0]
-lappend ans [list setpath _LMFILES_ $mp/hide1/5.0]
-lappend ans [list setpath __MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
+lappend ans [list set __MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
+lappend ans [list set _LMFILES_ $mp/hide1/5.0]
+lappend ans [list set LOADEDMODULES hide1/5.0]
 testouterr_cmd sh {load hide1/5.0} $ans {}
 testouterr_cmd_re sh {display hide1/5.0} OK "$modlin\n$mpre/hide1/5.0:\n\nmodule-whatis\thide1/5.0\n$modlin"
 testouterr_cmd_re sh {whatis hide1/5.0} OK "$modlin $mpre $modlin\n\\s+hide1/5.0: hide1/5.0"
@@ -763,10 +763,10 @@ setenv_var MODULES_NEARLY_FORBIDDEN_DAYS 5
 set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%dT%H:%M]
 setenv_var TESTSUITE_FORBID1_NEARLY_SET2 $tomorrow
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide1/5.0]
-lappend ans [list setpath _LMFILES_ $mp/hide1/5.0]
-lappend ans [list setpath __MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
-lappend ans [list setpath __MODULES_LMTAG hide1/5.0&nearly-forbidden]
+lappend ans [list set __MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
+lappend ans [list set _LMFILES_ $mp/hide1/5.0]
+lappend ans [list set LOADEDMODULES hide1/5.0]
+lappend ans [list set __MODULES_LMTAG hide1/5.0&nearly-forbidden]
 testouterr_cmd sh {load hide1/5.0} $ans [msg_load hide1/5.0 [err_accessnearlydenied $tomorrow]]
 unsetenv_var TESTSUITE_FORBID1_NEARLY_SET2
 
@@ -801,9 +801,9 @@ testouterr_cmd sh {avail -t hide1/5.0} OK $mp:\nhide1/5.0
 set tserr "$modlin $mpre $modlin\n\\s*hide1/5.0: hide1/5.0"
 testouterr_cmd_re sh {whatis hide1@5.0} OK $tserr
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide1/5.0]
-lappend ans [list setpath _LMFILES_ $mp/hide1/5.0]
-lappend ans [list setpath __MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
+lappend ans [list set __MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
+lappend ans [list set _LMFILES_ $mp/hide1/5.0]
+lappend ans [list set LOADEDMODULES hide1/5.0]
 lappend ans [list ERR]
 if {[cmpversion $tclsh_version 8.6] == -1} {
     set custom "    invoked from within
@@ -828,11 +828,11 @@ if {$install_nearlyforbiddendays >= 1} {
     set tserr {}
 }
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide1/5.0]
-lappend ans [list setpath _LMFILES_ $mp/hide1/5.0]
-lappend ans [list setpath __MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
+lappend ans [list set __MODULES_LMALTNAME hide1/5.0&as|hide1/latest]
+lappend ans [list set _LMFILES_ $mp/hide1/5.0]
+lappend ans [list set LOADEDMODULES hide1/5.0]
 if {$install_nearlyforbiddendays >= 1} {
-lappend ans [list setpath __MODULES_LMTAG hide1/5.0&nearly-forbidden]
+lappend ans [list set __MODULES_LMTAG hide1/5.0&nearly-forbidden]
 }
 setenv_var MODULES_NEARLY_FORBIDDEN_DAYS foo
 testouterr_cmd sh {load hide1/5.0} $ans $tserr

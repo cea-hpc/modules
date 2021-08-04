@@ -65,17 +65,17 @@ set err_conf3re [regsub -all "\(\[.+?\]\)" $err_conf3 {\\\1}]
 #  The tests
 #
 
+lappend ans [list set __MODULES_LMCONFLICT "$module1&$modulefile_set1:$module2&trace:$module3&../$module_set1"]
+lappend ans [list set _LMFILES_ "$modulefile1:$modulefile2:$modulefile3"]
+lappend ans [list set LOADEDMODULES "$module1:$module2:$module3"]
 lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES "$module1:$module2:$module3"]
-lappend ans [list setpath _LMFILES_ "$modulefile1:$modulefile2:$modulefile3"]
-lappend ans [list setpath __MODULES_LMCONFLICT "$module1&$modulefile_set1:$module2&trace:$module3&../$module_set1"]
 testouterr_cmd_re "sh" "load $module1 $module2 $module3" $ans ""
 
 set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT "$modulefile1&$modulefile_set1:$modulefile2&trace:$modulefile3&../$module_set1"]
+lappend ans [list set _LMFILES_ "$modulefile1:$modulefile2:$modulefile3"]
+lappend ans [list set LOADEDMODULES "$modulefile1:$modulefile2:$modulefile3"]
 lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES "$modulefile1:$modulefile2:$modulefile3"]
-lappend ans [list setpath _LMFILES_ "$modulefile1:$modulefile2:$modulefile3"]
-lappend ans [list setpath __MODULES_LMCONFLICT "$modulefile1&$modulefile_set1:$modulefile2&trace:$modulefile3&../$module_set1"]
 testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" $ans ""
 
 
@@ -104,13 +104,10 @@ testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" "ERR" "$err
 unsetenv_path_var MODULEPATH
 
 set ans [list]
-lappend ans [list set LOADEDMODULES_modshare "(.*)"]
-lappend ans [list set _LMFILES__modshare "(.*)"]
 lappend ans [list set __MODULES_LMCONFLICT "$modulefile2&trace"]
 lappend ans [list set testsuite yes]
 lappend ans [list set LOADEDMODULES "$modulefile_tron:$modulefile_set1:$modulefile2"]
 lappend ans [list set _LMFILES_ "$modulefile_tron:$modulefile_set1:$modulefile2"]
-lappend ans [list set __MODULES_LMCONFLICT_modshare "(.*)"]
 lappend ans [list ERR]
 testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" $ans "$err_conf1re\n\n$err_conf3re"
 

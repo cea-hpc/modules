@@ -35,9 +35,9 @@ setenv_var TESTSUITE_VARIANT 1
 set ans [list]
 lappend ans [list setpath TS0 {foo=val 4:bar=2:b?r =:f* o=}]
 lappend ans [list setpath TS1 {foo=val 4:bar=2:b?r =:f* o= ef*ult}]
-lappend ans [list setpath LOADEDMODULES variant/5.0]
-lappend ans [list setpath _LMFILES_ $mp/variant/5.0]
-lappend ans [list setpath __MODULES_LMVARIANT {variant/5.0&foo|val 4|0|0&bar|2|0|2&b?r ||0|0}]
+lappend ans [list set __MODULES_LMVARIANT {variant/5.0&foo|val 4|0|0&bar|2|0|2&b?r ||0|0}]
+lappend ans [list set LOADEDMODULES variant/5.0]
+lappend ans [list set _LMFILES_ $mp/variant/5.0]
 testouterr_cmd_re sh {load variant/5.0 foo=val\ 4 b?r\ =} $ans {}
 
 skip_if_quick_mode
@@ -46,8 +46,8 @@ setenv_var TESTSUITE_VARIANT 2
 set ans [list]
 lappend ans [list setpath TS0 {foo=:bar=}]
 lappend ans [list setpath TS1 {foo=default:bar=de *ult}]
-lappend ans [list setpath LOADEDMODULES variant/5.0]
-lappend ans [list setpath _LMFILES_ $mp/variant/5.0]
+lappend ans [list set LOADEDMODULES variant/5.0]
+lappend ans [list set _LMFILES_ $mp/variant/5.0]
 testouterr_cmd_re sh {load variant/5.0} $ans {}
 
 setenv_var MODULES_ADVANCED_VERSION_SPEC 0
@@ -61,21 +61,21 @@ setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 
 setenv_var TESTSUITE_VARIANT 1
 setenv_loaded_module [list variant/5.0] [list $mp/variant/5.0]
-setenv_path_var __MODULES_LMVARIANT {variant/5.0&foo|val 4|0|0&bar|2|0|2&b?r ||0|0}
+setenv_var __MODULES_LMVARIANT {variant/5.0&foo|val 4|0|0&bar|2|0|2&b?r ||0|0}
 setenv_path_var TS0 {foo=val 4:bar=2:b?r =:f* o=}
 setenv_path_var TS1 {foo=val 4:bar=2:b?r =:f* o= ef*ult}
 
 set ans [list]
 lappend ans [list unsetpath TS0]
 lappend ans [list unsetpath TS1]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMVARIANT]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset __MODULES_LMVARIANT]
 testouterr_cmd sh {unload variant/5.0} $ans {}
 testouterr_cmd sh {unload variant/5.0 b?r\ =} $ans {}
 
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMVARIANT
+unsetenv_var __MODULES_LMVARIANT
 unsetenv_path_var TS0
 unsetenv_path_var TS1
 
@@ -104,12 +104,12 @@ testouterr_cmd_re sh {display variant/5.0 foo=val1 b?r\ =} OK $tserr
 
 # display loaded module
 setenv_loaded_module [list variant/5.0] [list $mp/variant/5.0]
-setenv_path_var __MODULES_LMVARIANT {variant/5.0&foo|val1|0|0&bar|2|0|2&b?r ||0|0}
+setenv_var __MODULES_LMVARIANT {variant/5.0&foo|val1|0|0&bar|2|0|2&b?r ||0|0}
 setenv_path_var TS0 foo={foo} bar={bar} {b\\?r ={b\\?r }} {f\\* o={f\\* o}}
 setenv_path_var TS1 foo={foo} bar={bar} {b\\?r ={b\\?r }} {f\\* o={f\\* o}}
 testouterr_cmd_re sh {display variant/5.0 foo=val1 b?r\ =} OK $tserr
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMVARIANT
+unsetenv_var __MODULES_LMVARIANT
 unsetenv_path_var TS0
 unsetenv_path_var TS1
 

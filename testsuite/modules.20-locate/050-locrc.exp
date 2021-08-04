@@ -123,10 +123,10 @@ set what_12 "$header\n      $module_12: $module_12"
 #  The tests
 #
 
+lappend ans [list set __MODULES_LMALTNAME $module_1&$modalt_1]
+lappend ans [list set _LMFILES_ $modulefile_1]
+lappend ans [list set LOADEDMODULES $module_1]
 lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES $module_1]
-lappend ans [list setpath _LMFILES_ $modulefile_1]
-lappend ans [list setpath __MODULES_LMALTNAME $module_1&$modalt_1]
 test_cmd "csh" "load loc_rc1/foo" $ans
 testouterr_cmd_re "sh" "display loc_rc1/foo" "OK" "$disp_1"
 testouterr_cmd_re "sh" "whatis loc_rc1/foo" "OK" "$what_1"
@@ -134,48 +134,48 @@ testouterr_cmd_re "sh" "whatis loc_rc1/foo" "OK" "$what_1"
 skip_if_quick_mode
 
 set ans [list]
+lappend ans [list set __MODULES_LMALTNAME $module_2&$modalt_2]
+lappend ans [list set _LMFILES_ $modulefile_2]
+lappend ans [list set LOADEDMODULES $module_2]
 lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES $module_2]
-lappend ans [list setpath _LMFILES_ $modulefile_2]
-lappend ans [list setpath __MODULES_LMALTNAME $module_2&$modalt_2]
 test_cmd "csh" "load loc_rc2/foo" $ans
 testouterr_cmd_re "sh" "display loc_rc2/foo" "OK" "$disp_2"
 testouterr_cmd_re "sh" "whatis loc_rc2/foo" "OK" "$what_2"
 
 set ans [list]
+lappend ans [list set __MODULES_LMALTNAME $module_3&$modalt_3]
+lappend ans [list set _LMFILES_ $modulefile_3]
+lappend ans [list set LOADEDMODULES $module_3]
 lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES $module_3]
-lappend ans [list setpath _LMFILES_ $modulefile_3]
-lappend ans [list setpath __MODULES_LMALTNAME $module_3&$modalt_3]
 test_cmd "csh" "load loc_rc3" $ans
 testouterr_cmd_re "sh" "display loc_rc3" "OK" "$disp_3"
 
 set ans [list]
+lappend ans [list set __MODULES_LMALTNAME $module_4&$modalt_4]
+lappend ans [list set _LMFILES_ $modulefile_4]
+lappend ans [list set LOADEDMODULES $module_4]
 lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES $module_4]
-lappend ans [list setpath _LMFILES_ $modulefile_4]
-lappend ans [list setpath __MODULES_LMALTNAME $module_4&$modalt_4]
 test_cmd "csh" "load loc_rc4" $ans
 testouterr_cmd_re "sh" "display loc_rc4" "OK" "$disp_4"
 
 # test loading implicit default of a module, which is an alias
 set ans [list]
+lappend ans [list set __MODULES_LMALTNAME $module_5&$modalt_5]
+lappend ans [list set _LMFILES_ $modulefile_5]
+lappend ans [list set LOADEDMODULES $module_5]
 lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES $module_5]
-lappend ans [list setpath _LMFILES_ $modulefile_5]
-lappend ans [list setpath __MODULES_LMALTNAME $module_5&$modalt_5]
 test_cmd "csh" "load loc_rc7" [if_implicitdefault $ans ERR]
 testouterr_cmd_re "sh" "display loc_rc7" [if_implicitdefault OK ERR] [if_implicitdefault $disp_5 "$err_nodefault'loc_rc7'"]
 
 # test loading implicit default of a module, when a symbol is the greatest version name
 # this symbol should be ignored and greatest alias or file should be chosen
 set ans [list]
-lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES $module_6]
-lappend ans [list setpath _LMFILES_ $modulefile_6]
 if {[is_conf_enabled advversspec implicitdefault]} {
-    lappend ans [list setpath __MODULES_LMALTNAME $module_6&$modalt_6]
+    lappend ans [list set __MODULES_LMALTNAME $module_6&$modalt_6]
 }
+lappend ans [list set _LMFILES_ $modulefile_6]
+lappend ans [list set LOADEDMODULES $module_6]
+lappend ans [list set testsuite yes]
 test_cmd "csh" "load loc_rc2" [if_implicitdefault $ans ERR]
 testouterr_cmd_re "sh" "display loc_rc2" [if_implicitdefault OK ERR] [if_implicitdefault $disp_6 "$err_nodefault'loc_rc2'"]
 
@@ -194,10 +194,10 @@ if {[is_config_locked implicit_default]} {
 # targeted module is loaded, this loaded module should not influence alias resolution
 setenv_loaded_module $module_8 $modulefile_8
 set ans [list]
+lappend ans [list set __MODULES_LMALTNAME $module_7&$modalt_7]
+lappend ans [list set _LMFILES_ "$modulefile_8:$modulefile_7"]
+lappend ans [list set LOADEDMODULES "$module_8:$module_7"]
 lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES "$module_8:$module_7"]
-lappend ans [list setpath _LMFILES_ "$modulefile_8:$modulefile_7"]
-lappend ans [list setpath __MODULES_LMALTNAME $module_7&$modalt_7]
 test_cmd_re "csh" "load dirmodalias" $ans
 testouterr_cmd_re "sh" "display dirmodalias" "OK" "$disp_7"
 testouterr_cmd_re "sh" "whatis dirmodalias" "OK" "$what_9_7"
@@ -210,17 +210,17 @@ unsetenv_loaded_module
 
 # working on virtual modules
 set ans [list]
-lappend ans [list setpath LOADEDMODULES $module_10]
-lappend ans [list setpath _LMFILES_ $modulefile_10]
-lappend ans [list setpath __MODULES_LMALTNAME $module_10&$modalt_10]
+lappend ans [list set __MODULES_LMALTNAME $module_10&$modalt_10]
+lappend ans [list set _LMFILES_ $modulefile_10]
+lappend ans [list set LOADEDMODULES $module_10]
 test_cmd "csh" "load loc_rcv1" $ans
 testouterr_cmd_re "sh" "display loc_rcv1" "OK" "$disp_10"
 testouterr_cmd_re "sh" "whatis loc_rcv1/bar" "OK" "$what_10"
 
 # virtual modules covering existing directory name
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "$module_11"]
-lappend ans [list setpath _LMFILES_ "$modulefile_11"]
+lappend ans [list set _LMFILES_ "$modulefile_11"]
+lappend ans [list set LOADEDMODULES "$module_11"]
 test_cmd_re "csh" "load dirmodvirt" $ans
 testouterr_cmd_re "sh" "display dirmodvirt" "OK" "$disp_11"
 testouterr_cmd_re "sh" "whatis dirmodvirt" "OK" "$what_11"
@@ -230,8 +230,8 @@ test_cmd "sh" "paths dirmodvirt" $ans
 
 # virtual modules covering existing modulefile name
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "$module_12"]
-lappend ans [list setpath _LMFILES_ "$modulefile_12"]
+lappend ans [list set _LMFILES_ "$modulefile_12"]
+lappend ans [list set LOADEDMODULES "$module_12"]
 test_cmd_re "csh" "load $module_12" $ans
 testouterr_cmd_re "sh" "display $module_12" "OK" "$disp_12"
 testouterr_cmd_re "sh" "whatis $module_12" "OK" "$what_12"

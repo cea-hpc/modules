@@ -32,10 +32,10 @@ setenv_path_var MODULEPATH $mp
 
 # load test in case 'module load' target is not loaded already
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m1:m2]
-lappend ans [list setpath _LMFILES_ $mp/m1:$mp/m2]
-lappend ans [list setpath __MODULES_LMPREREQ m2&m1]
-lappend ans [list setpath __MODULES_LMTAG m1&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ m2&m1]
+lappend ans [list set _LMFILES_ $mp/m1:$mp/m2]
+lappend ans [list set LOADEDMODULES m1:m2]
+lappend ans [list set __MODULES_LMTAG m1&auto-loaded]
 set tserr [list {load m1} {load m2} \n[msg_top_load m2 {} m1 {}]]
 testouterr_cmd_re sh {load --auto m2} $ans [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto m2} $ans [join $tserr \n]
@@ -45,9 +45,9 @@ skip_if_quick_mode
 # load test in case 'module load' target is already loaded
 setenv_loaded_module [list m1] [list $mp/m1]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m1:m2]
-lappend ans [list setpath _LMFILES_ $mp/m1:$mp/m2]
-lappend ans [list setpath __MODULES_LMPREREQ m2&m1]
+lappend ans [list set __MODULES_LMPREREQ m2&m1]
+lappend ans [list set _LMFILES_ $mp/m1:$mp/m2]
+lappend ans [list set LOADEDMODULES m1:m2]
 set tserr [list {load m2}]
 testouterr_cmd_re sh {load --auto m2} $ans [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto m2} $ans [join $tserr \n]
@@ -60,11 +60,11 @@ testouterr_cmd_re sh {load --force --no-auto m2} $ans [join $tserr \n]
 # unload test where 'module load' target is loaded, user asked and not required by another loaded module
 # target is not unloaded as it has not been automatically loaded
 setenv_loaded_module [list m1 m2] [list $mp/m1 $mp/m2]
-setenv_path_var __MODULES_LMPREREQ m2&m1
+setenv_var __MODULES_LMPREREQ m2&m1
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m1]
-lappend ans [list setpath _LMFILES_ $mp/m1]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/m1]
+lappend ans [list set LOADEDMODULES m1]
 set tserr [list {unload m2}]
 testouterr_cmd_re sh {unload --auto m2} $ans [join $tserr \n]
 testouterr_cmd_re sh {unload --no-auto m2} $ans [join $tserr \n]
@@ -72,12 +72,12 @@ testouterr_cmd_re sh {unload --no-auto m2} $ans [join $tserr \n]
 # unload test where 'module load' target is loaded, not user asked and not required by another loaded module
 # target is unloaded as it has been automatically loaded, but unload order vary depending on auto_handling state
 setenv_loaded_module [list m1 m2] [list $mp/m1 $mp/m2] [list m1]
-setenv_path_var __MODULES_LMPREREQ m2&m1
+setenv_var __MODULES_LMPREREQ m2&m1
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr [list {unload m2} {unload m1} \n[msg_top_unload m2 {} m1 {}]]
 testouterr_cmd_re sh {unload --auto m2} $ans [join $tserr \n]
 set tserr [list {unload m1} {unload m2} \n[msg_top_unload m2 {} m1 {}]]
@@ -86,11 +86,11 @@ testouterr_cmd_re sh {unload --no-auto m2} $ans [join $tserr \n]
 # unload test where 'module load' target is loaded, user asked and required by another loaded module
 # target is not unloaded as it is still required and it has been explicitely asked
 setenv_loaded_module [list m1 m2 m3] [list $mp/m1 $mp/m2 $mp/m3]
-setenv_path_var __MODULES_LMPREREQ m2&m1 m3&m1
+setenv_var __MODULES_LMPREREQ m2&m1:m3&m1
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m1:m3]
-lappend ans [list setpath _LMFILES_ $mp/m1:$mp/m3]
-lappend ans [list setpath __MODULES_LMPREREQ m3&m1]
+lappend ans [list set __MODULES_LMPREREQ m3&m1]
+lappend ans [list set _LMFILES_ $mp/m1:$mp/m3]
+lappend ans [list set LOADEDMODULES m1:m3]
 set tserr [list {unload m2}]
 testouterr_cmd_re sh {unload --auto m2} $ans [join $tserr \n]
 # force mode does not change a thing
@@ -109,30 +109,30 @@ testouterr_cmd_re sh {unload --no-auto --force m2} $ans [join $tserr \n]
 
 # same situation than above but with __MODULES_LMPREREQ not set, should not happen but just
 # check here the behavior
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMPREREQ
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m1:m3]
-lappend ans [list setpath _LMFILES_ $mp/m1:$mp/m3]
+lappend ans [list set _LMFILES_ $mp/m1:$mp/m3]
+lappend ans [list set LOADEDMODULES m1:m3]
 set tserr [list {unload m2}]
 # missing prereq information, no m1 unload is attempted
 testouterr_cmd_re sh {unload --auto m2} $ans [join $tserr \n]
 testouterr_cmd_re sh {unload --auto --force m2} $ans [join $tserr \n]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m3]
-lappend ans [list setpath _LMFILES_ $mp/m3]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list set _LMFILES_ $mp/m3]
+lappend ans [list set LOADEDMODULES m3]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr [list {unload m1} {unload m2} \n[msg_top_unload m2 {} m1 {}]]
 # unload is directly attempted in no-auto mode, m1 is unload as nothing says m3 requires it
 testouterr_cmd_re sh {unload --no-auto m2} $ans [join $tserr \n]
 testouterr_cmd_re sh {unload --no-auto --force m2} $ans [join $tserr \n]
 
 # unload 'module load' target, starts by DepUn modules when auto_handling is enabled
-setenv_path_var __MODULES_LMPREREQ m2&m1 m3&m1
+setenv_var __MODULES_LMPREREQ m2&m1:m3&m1
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr [list {unload m3} {unload m2} {unload m1} \n[msg_top_unload m1 [list m3 m2] {} {}]]
 testouterr_cmd_re sh {unload --auto m1} $ans [join $tserr \n]
 # raise an error to keep consistency and no unload if auto_handling is disabled
@@ -142,12 +142,12 @@ testouterr_cmd_re sh {unload --no-auto m1} ERR [join $tserr \n]
 # unload test where 'module load' targets are loaded and are inter-connected
 # targets are unloaded, but unload order vary depending on auto_handling state
 setenv_loaded_module [list m1 m2 m4] [list $mp/m1 $mp/m2 $mp/m4] [list m1 m2]
-setenv_path_var __MODULES_LMPREREQ m2&m1 m4&m1&m2
+setenv_var __MODULES_LMPREREQ m2&m1:m4&m1&m2
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr [list {unload m4} {unload m2} {unload m1} \n[msg_top_unload m4 {} [list m2 m1] {}]]
 testouterr_cmd_re sh {unload --auto m4} $ans [join $tserr \n]
 # module unload is recorded prior its evaluation start, that is why even if m1 finishes to unload prior m2,
@@ -158,42 +158,42 @@ testouterr_cmd_re sh {unload --no-auto m4} $ans [join $tserr \n]
 # same test than above but with user asked variation, so the 'module load' targets are
 # not unloaded as one target is user asked and requires the other target
 setenv_loaded_module [list m1 m2 m4] [list $mp/m1 $mp/m2 $mp/m4] [list m1]
-setenv_path_var __MODULES_LMPREREQ m2&m1 m4&m1&m2
+setenv_var __MODULES_LMPREREQ m2&m1:m4&m1&m2
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m1:m2]
-lappend ans [list setpath _LMFILES_ $mp/m1:$mp/m2]
-lappend ans [list setpath __MODULES_LMPREREQ m2&m1]
+lappend ans [list set __MODULES_LMPREREQ m2&m1]
+lappend ans [list set _LMFILES_ $mp/m1:$mp/m2]
+lappend ans [list set LOADEDMODULES m1:m2]
 set tserr [list {unload m4}]
 testouterr_cmd_re sh {unload --auto m4} $ans [join $tserr \n]
 testouterr_cmd_re sh {unload --no-auto m4} $ans [join $tserr \n]
 
 # load test where 'module load' target conflicts with an already loaded module
 setenv_loaded_module [list m5] [list $mp/m5]
-setenv_path_var __MODULES_LMCONFLICT m5&m1
-unsetenv_path_var __MODULES_LMPREREQ
+setenv_var __MODULES_LMCONFLICT m5&m1
+unsetenv_var __MODULES_LMPREREQ
 # evaluation is attempted prior conflict violation check
 set tserr [list {load m1} \n[msg_load m1 [err_conflict m5]] \n[msg_load m2 [err_reqlo m1]]]
 testouterr_cmd_re sh {load --auto m2} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto m2} ERR [join $tserr \n]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m5:m1:m2]
-lappend ans [list setpath _LMFILES_ $mp/m5:$mp/m1:$mp/m2]
-lappend ans [list setpath __MODULES_LMPREREQ m2&m1]
-lappend ans [list setpath __MODULES_LMTAG m1&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ m2&m1]
+lappend ans [list set _LMFILES_ $mp/m5:$mp/m1:$mp/m2]
+lappend ans [list set LOADEDMODULES m5:m1:m2]
+lappend ans [list set __MODULES_LMTAG m1&auto-loaded]
 set tserr [list {load m1} \n[msg_load m1 [err_conlof m5]] "\nload m2" \n[msg_top_load m2 {} m1 {}]]
 testouterr_cmd_re sh {load --force --auto m2} $ans [join $tserr \n]
 testouterr_cmd_re sh {load --force --no-auto m2} $ans [join $tserr \n]
 
 # load test where 'module load' target does not exist
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMCONFLICT
 set tserr [list [msg_load m7 "$err_path'm8'" [err_reqlo m8]]]
 testouterr_cmd_re sh {load --auto m7} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto m7} ERR [join $tserr \n]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m7]
-lappend ans [list setpath _LMFILES_ $mp/m7]
-lappend ans [list setpath __MODULES_LMPREREQ m7&m8]
+lappend ans [list set __MODULES_LMPREREQ m7&m8]
+lappend ans [list set _LMFILES_ $mp/m7]
+lappend ans [list set LOADEDMODULES m7]
 lappend ans [list ERR]
 set tserr [list {load m7} \n[msg_load m7 "$err_path'm8'" [err_reqlof m8]]]
 testouterr_cmd_re sh {load --force --auto m7} $ans [join $tserr \n]
@@ -201,36 +201,36 @@ testouterr_cmd_re sh {load --force --no-auto m7} $ans [join $tserr \n]
 
 # load test where 'module load' has multiple module args
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m10:m11:m12]
-lappend ans [list setpath _LMFILES_ $mp/m10:$mp/m11:$mp/m12]
-lappend ans [list setpath __MODULES_LMPREREQ m12&m10&m11]
-lappend ans [list setpath __MODULES_LMTAG m10&auto-loaded:m11&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ m12&m10&m11]
+lappend ans [list set _LMFILES_ $mp/m10:$mp/m11:$mp/m12]
+lappend ans [list set LOADEDMODULES m10:m11:m12]
+lappend ans [list set __MODULES_LMTAG m10&auto-loaded:m11&auto-loaded]
 set tserr [list [msg_top_load m12 {} {m10 m11} {}]]
 testouterr_cmd_re sh {load --auto m12} $ans [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto m12} $ans [join $tserr \n]
 setenv_loaded_module [list m10] [list $mp/m10]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m10:m11:m12]
-lappend ans [list setpath _LMFILES_ $mp/m10:$mp/m11:$mp/m12]
-lappend ans [list setpath __MODULES_LMPREREQ m12&m10&m11]
-lappend ans [list setpath __MODULES_LMTAG m11&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ m12&m10&m11]
+lappend ans [list set _LMFILES_ $mp/m10:$mp/m11:$mp/m12]
+lappend ans [list set LOADEDMODULES m10:m11:m12]
+lappend ans [list set __MODULES_LMTAG m11&auto-loaded]
 set tserr [list [msg_top_load m12 {} {m11} {}]]
 testouterr_cmd_re sh {load --auto m12} $ans [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto m12} $ans [join $tserr \n]
 setenv_loaded_module [list m11] [list $mp/m11]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m11:m10:m12]
-lappend ans [list setpath _LMFILES_ $mp/m11:$mp/m10:$mp/m12]
-lappend ans [list setpath __MODULES_LMPREREQ m12&m10&m11]
-lappend ans [list setpath __MODULES_LMTAG m10&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ m12&m10&m11]
+lappend ans [list set _LMFILES_ $mp/m11:$mp/m10:$mp/m12]
+lappend ans [list set LOADEDMODULES m11:m10:m12]
+lappend ans [list set __MODULES_LMTAG m10&auto-loaded]
 set tserr [list [msg_top_load m12 {} {m10} {}]]
 testouterr_cmd_re sh {load --auto m12} $ans [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto m12} $ans [join $tserr \n]
 setenv_loaded_module [list m10 m11] [list $mp/m10 $mp/m11]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m10:m11:m12]
-lappend ans [list setpath _LMFILES_ $mp/m10:$mp/m11:$mp/m12]
-lappend ans [list setpath __MODULES_LMPREREQ m12&m10&m11]
+lappend ans [list set __MODULES_LMPREREQ m12&m10&m11]
+lappend ans [list set _LMFILES_ $mp/m10:$mp/m11:$mp/m12]
+lappend ans [list set LOADEDMODULES m10:m11:m12]
 set tserr {}
 testouterr_cmd_re sh {load --auto m12} $ans [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto m12} $ans [join $tserr \n]
@@ -242,12 +242,12 @@ testouterr_cmd_re sh {load --no-auto m12} $ans [join $tserr \n]
 
 # load test in case 'module unload' target is not loaded
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMPREREQ
-unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMCONFLICT
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m5]
-lappend ans [list setpath _LMFILES_ $mp/m5]
-lappend ans [list setpath __MODULES_LMCONFLICT m5&m1]
+lappend ans [list set __MODULES_LMCONFLICT m5&m1]
+lappend ans [list set _LMFILES_ $mp/m5]
+lappend ans [list set LOADEDMODULES m5]
 set tserr [list {load m5}]
 testouterr_cmd_re sh {load --auto m5} $ans [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto m5} $ans [join $tserr \n]
@@ -255,9 +255,9 @@ testouterr_cmd_re sh {load --no-auto m5} $ans [join $tserr \n]
 # load test in case 'module unload' target is loaded, user asked, and not required by another loaded module
 setenv_loaded_module [list m1] [list $mp/m1]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m5]
-lappend ans [list setpath _LMFILES_ $mp/m5]
-lappend ans [list setpath __MODULES_LMCONFLICT m5&m1]
+lappend ans [list set __MODULES_LMCONFLICT m5&m1]
+lappend ans [list set _LMFILES_ $mp/m5]
+lappend ans [list set LOADEDMODULES m5]
 set tserr [list {unload m1} {load m5} \n[msg_top_load m5 m1 {} {}]]
 testouterr_cmd_re sh {load --auto m5} $ans [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto m5} $ans [join $tserr \n]
@@ -268,16 +268,16 @@ testouterr_cmd_re sh {load --force --no-auto m5} $ans [join $tserr \n]
 
 # load test in case 'module unload' target is loaded, user asked, and required by another loaded module
 setenv_loaded_module [list m1 m2] [list $mp/m1 $mp/m2]
-setenv_path_var __MODULES_LMPREREQ m2&m1
+setenv_var __MODULES_LMPREREQ m2&m1
 # evaluation is attempted prior conflict violation check
 set tserr [list [msg_unload m1 [err_prerequn m2]] "\nload m5" \n[msg_load m5 [err_conun m1]]]
 testouterr_cmd_re sh {load --auto m5} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto m5} ERR [join $tserr \n]
 # force mode will by-pass unload/conflict to garanty m2&m1 prereq
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m1:m2:m5]
-lappend ans [list setpath _LMFILES_ $mp/m1:$mp/m2:$mp/m5]
-lappend ans [list setpath __MODULES_LMCONFLICT m5&m1]
+lappend ans [list set __MODULES_LMCONFLICT m5&m1]
+lappend ans [list set _LMFILES_ $mp/m1:$mp/m2:$mp/m5]
+lappend ans [list set LOADEDMODULES m1:m2:m5]
 lappend ans [list ERR]
 set tserr [list [msg_unload m1 [err_prerequn m2]] "\nload m5" \n[msg_load m5 [err_conunf m1]]]
 testouterr_cmd_re sh {load --auto --force m5} $ans [join $tserr \n]
@@ -291,9 +291,9 @@ testouterr_cmd_re sh {load --auto m5} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto m5} ERR [join $tserr \n]
 # force mode will by-pass unload/conflict to garanty m2&m1 prereq
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m1:m2:m5]
-lappend ans [list setpath _LMFILES_ $mp/m1:$mp/m2:$mp/m5]
-lappend ans [list setpath __MODULES_LMCONFLICT m5&m1]
+lappend ans [list set __MODULES_LMCONFLICT m5&m1]
+lappend ans [list set _LMFILES_ $mp/m1:$mp/m2:$mp/m5]
+lappend ans [list set LOADEDMODULES m1:m2:m5]
 lappend ans [list ERR]
 set tserr [list [msg_unload m1 [err_prerequn m2]] "\nload m5" \n[msg_load m5 [err_conunf m1]]]
 testouterr_cmd_re sh {load --auto --force m5} $ans [join $tserr \n]
@@ -302,11 +302,11 @@ testouterr_cmd_re sh {load --no-auto --force m5} $ans [join $tserr \n]
 
 # unload test in case 'module unload' target is not loaded
 setenv_loaded_module [list m5] [list $mp/m5]
-setenv_path_var __MODULES_LMCONFLICT m5&m1
+setenv_var __MODULES_LMCONFLICT m5&m1
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 set tserr [list {unload m5}]
 testouterr_cmd_re sh {unload --auto m5} $ans [join $tserr \n]
 testouterr_cmd_re sh {unload --no-auto m5} $ans [join $tserr \n]
@@ -314,11 +314,11 @@ testouterr_cmd_re sh {unload --no-auto m5} $ans [join $tserr \n]
 # unload test in case 'module unload' target is loaded
 # as conflict vanishes, target is reloaded if auto_handling enabled
 setenv_loaded_module [list m5 m1] [list $mp/m5 $mp/m1]
-setenv_path_var __MODULES_LMCONFLICT m5&m1
+setenv_var __MODULES_LMCONFLICT m5&m1
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m1]
-lappend ans [list setpath _LMFILES_ $mp/m1]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list set _LMFILES_ $mp/m1]
+lappend ans [list set LOADEDMODULES m1]
 set tserr [list {unload m1} {unload m5} {load m1} \n[msg_top_unload m5 {} {} m1]]
 testouterr_cmd_re sh {unload --auto m5} $ans [join $tserr \n]
 # force mode does not change a thing
@@ -331,55 +331,55 @@ testouterr_cmd_re sh {unload --no-auto --force m5} $ans [join $tserr \n]
 # unload test in case 'module unload' target is loaded, user asked, required by another loaded module
 # as conflict vanishes, target and its dependent are reloaded if auto_handling enabled
 setenv_loaded_module [list m5 m1 m2] [list $mp/m5 $mp/m1 $mp/m2]
-setenv_path_var __MODULES_LMCONFLICT m5&m1
-setenv_path_var __MODULES_LMPREREQ m2&m1
+setenv_var __MODULES_LMCONFLICT m5&m1
+setenv_var __MODULES_LMPREREQ m2&m1
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m1:m2]
-lappend ans [list setpath _LMFILES_ $mp/m1:$mp/m2]
-lappend ans [list setpath __MODULES_LMPREREQ m2&m1]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list set __MODULES_LMPREREQ m2&m1]
+lappend ans [list set _LMFILES_ $mp/m1:$mp/m2]
+lappend ans [list set LOADEDMODULES m1:m2]
 set tserr [list {unload m2} {unload m1} {unload m5} {load m1} {load m2} \n[msg_top_unload m5 {} {} [list m1 m2]]]
 testouterr_cmd_re sh {unload --auto m5} $ans [join $tserr \n]
 # force mode does not change a thing
 testouterr_cmd_re sh {unload --auto --force m5} $ans [join $tserr \n]
 # target and dependent not reloaded when conflict vanishes if auto_handling disabled 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m1:m2]
-lappend ans [list setpath _LMFILES_ $mp/m1:$mp/m2]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list set _LMFILES_ $mp/m1:$mp/m2]
+lappend ans [list set LOADEDMODULES m1:m2]
 set tserr [list {unload m5}]
 testouterr_cmd_re sh {unload --no-auto m5} $ans [join $tserr \n]
 testouterr_cmd_re sh {unload --no-auto --force m5} $ans [join $tserr \n]
 
 # unload test in case 'module unload' target is loaded, not user asked, required by another loaded module
 setenv_loaded_module [list m5 m1 m2] [list $mp/m5 $mp/m1 $mp/m2] [list m1]
-setenv_path_var __MODULES_LMCONFLICT m5&m1
-setenv_path_var __MODULES_LMPREREQ m2&m1
+setenv_var __MODULES_LMCONFLICT m5&m1
+setenv_var __MODULES_LMPREREQ m2&m1
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m1:m2]
-lappend ans [list setpath _LMFILES_ $mp/m1:$mp/m2]
-lappend ans [list setpath __MODULES_LMPREREQ m2&m1]
-lappend ans [list setpath __MODULES_LMTAG m1&auto-loaded]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list set __MODULES_LMPREREQ m2&m1]
+lappend ans [list set _LMFILES_ $mp/m1:$mp/m2]
+lappend ans [list set LOADEDMODULES m1:m2]
+lappend ans [list set __MODULES_LMTAG m1&auto-loaded]
 set tserr [list {unload m2} {unload m1} {unload m5} {load m1} {load m2} \n[msg_top_unload m5 {} {} [list m1 m2]]]
 testouterr_cmd_re sh {unload --auto m5} $ans [join $tserr \n]
 # force mode does not change a thing
 testouterr_cmd_re sh {unload --auto --force m5} $ans [join $tserr \n]
 # target and dependent not reloaded when conflict vanishes if auto_handling disabled 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m1:m2]
-lappend ans [list setpath _LMFILES_ $mp/m1:$mp/m2]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list set _LMFILES_ $mp/m1:$mp/m2]
+lappend ans [list set LOADEDMODULES m1:m2]
 set tserr [list {unload m5}]
 testouterr_cmd_re sh {unload --no-auto m5} $ans [join $tserr \n]
 testouterr_cmd_re sh {unload --no-auto --force m5} $ans [join $tserr \n]
 
 # same situation than above but with __MODULES_LMCONFLICT not set, should not happen but just
 # check here the behavior
-unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMCONFLICT
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m1:m2]
-lappend ans [list setpath _LMFILES_ $mp/m1:$mp/m2]
+lappend ans [list set _LMFILES_ $mp/m1:$mp/m2]
+lappend ans [list set LOADEDMODULES m1:m2]
 set tserr [list {unload m5}]
 # missing conflict information, no m1/m2 unload is attempted
 testouterr_cmd_re sh {unload --auto m5} $ans [join $tserr \n]
@@ -388,13 +388,13 @@ testouterr_cmd_re sh {unload --no-auto m5} $ans [join $tserr \n]
 testouterr_cmd_re sh {unload --no-auto --force m5} $ans [join $tserr \n]
 
 # unload 'module unload' target, starts by DepUn modules when auto_handling is enabled
-setenv_path_var __MODULES_LMCONFLICT m5&m1
+setenv_var __MODULES_LMCONFLICT m5&m1
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m5]
-lappend ans [list setpath _LMFILES_ $mp/m5]
-lappend ans [list setpath __MODULES_LMCONFLICT m5&m1]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list set __MODULES_LMCONFLICT m5&m1]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/m5]
+lappend ans [list set LOADEDMODULES m5]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr [list {unload m5} {unload m2} {unload m1} {load m5} \n[msg_top_unload m1 m2 {} m5]]
 testouterr_cmd_re sh {unload --auto m1} $ans [join $tserr \n]
 # raise an error to keep consistency and no unload if auto_handling is disabled
@@ -404,42 +404,42 @@ testouterr_cmd_re sh {unload --no-auto m1} ERR [join $tserr \n]
 
 # switch tests
 setenv_loaded_module [list m1 m2 m3] [list $mp/m1 $mp/m2 $mp/m3] [list m1]
-unsetenv_path_var __MODULES_LMCONFLICT
-setenv_path_var __MODULES_LMPREREQ m2&m1 m3&m1
+unsetenv_var __MODULES_LMCONFLICT
+setenv_var __MODULES_LMPREREQ m2&m1:m3&m1
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m1:m6]
-lappend ans [list setpath _LMFILES_ $mp/m1:$mp/m6]
-lappend ans [list setpath __MODULES_LMCONFLICT m6&m3]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list set __MODULES_LMCONFLICT m6&m3]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/m1:$mp/m6]
+lappend ans [list set LOADEDMODULES m1:m6]
 set tserr [list {unload m2} {unload m3} {load m6} \n[msg_top_switch m2 m6 {} {} m3 {} {}]]
 #FIXME: m1 not unloaded in auto mode during switch load phase
 testouterr_cmd_re sh {switch --auto m2 m6} $ans [join $tserr \n]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m6]
-lappend ans [list setpath _LMFILES_ $mp/m6]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
-lappend ans [list setpath __MODULES_LMCONFLICT m6&m3]
+lappend ans [list set __MODULES_LMCONFLICT m6&m3]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/m6]
+lappend ans [list set LOADEDMODULES m6]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr [list {unload m2} {unload m1} {unload m3} {load m6} \n[msg_switch m2 m6 {Unloading conflict: m3} {Unloading useless requirement: m1}]]
 testouterr_cmd_re sh {switch --no-auto m2 m6} $ans [join $tserr \n]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m1:m2:m6]
-lappend ans [list setpath _LMFILES_ $mp/m1:$mp/m2:$mp/m6]
-lappend ans [list setpath __MODULES_LMCONFLICT m6&m3]
-lappend ans [list setpath __MODULES_LMPREREQ m2&m1]
+lappend ans [list set __MODULES_LMCONFLICT m6&m3]
+lappend ans [list set __MODULES_LMPREREQ m2&m1]
+lappend ans [list set _LMFILES_ $mp/m1:$mp/m2:$mp/m6]
+lappend ans [list set LOADEDMODULES m1:m2:m6]
 set tserr [list {unload m3} {load m6}]
 testouterr_cmd_re sh {switch --auto m3 m6} $ans [join $tserr \n]
 testouterr_cmd_re sh {switch --no-auto m3 m6} $ans [join $tserr \n]
 
 setenv_loaded_module [list m1 m2 m6] [list $mp/m1 $mp/m2 $mp/m6] [list m1]
-setenv_path_var __MODULES_LMPREREQ m2&m1
-setenv_path_var __MODULES_LMCONFLICT m6&m3
+setenv_var __MODULES_LMPREREQ m2&m1
+setenv_var __MODULES_LMCONFLICT m6&m3
 set ans [list]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list setpath _LMFILES_ $mp/m6]
-lappend ans [list setpath LOADEDMODULES m6]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list set LOADEDMODULES m6]
+lappend ans [list set _LMFILES_ $mp/m6]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMTAG]
 lappend ans [list ERR]
 # evaluation is attempted prior conflict violation check
 set tserr [list {unload m2} {unload m1} {load m1} {load m3} \n[msg_load m3 [err_conflict m6]] \n[msg_top_switch m2 m3 {} m1 {} {} {} [err_swon m3]]]
@@ -448,10 +448,10 @@ set tserr [list {unload m1} {unload m2} {load m1} {load m3} \n[msg_load m3 [err_
 testouterr_cmd_re sh {switch --no-auto m2 m3} $ans [join $tserr \n]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m1:m2:m3]
-lappend ans [list setpath _LMFILES_ $mp/m1:$mp/m2:$mp/m3]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
-lappend ans [list setpath __MODULES_LMPREREQ m2&m1:m3&m1]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list set __MODULES_LMPREREQ m2&m1:m3&m1]
+lappend ans [list set _LMFILES_ $mp/m1:$mp/m2:$mp/m3]
+lappend ans [list set LOADEDMODULES m1:m2:m3]
 set tserr [list {unload m6} {load m3}]
 testouterr_cmd_re sh {switch --auto m6 m3} $ans [join $tserr \n]
 testouterr_cmd_re sh {switch --no-auto m6 m3} $ans [join $tserr \n]
@@ -459,23 +459,23 @@ testouterr_cmd_re sh {switch --no-auto m6 m3} $ans [join $tserr \n]
 
 # purge and reload tests
 setenv_loaded_module [list m1 m2 m6] [list $mp/m1 $mp/m2 $mp/m6] [list m1]
-setenv_path_var __MODULES_LMCONFLICT m6&m3
-setenv_path_var __MODULES_LMPREREQ m2&m1
+setenv_var __MODULES_LMCONFLICT m6&m3
+setenv_var __MODULES_LMPREREQ m2&m1
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr [list {unload m6} {unload m2} {unload m1}]
 testouterr_cmd_re sh {purge --auto} $ans [join $tserr \n]
 testouterr_cmd_re sh {purge --no-auto} $ans [join $tserr \n]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES m1:m2:m6]
-lappend ans [list setpath _LMFILES_ $mp/m1:$mp/m2:$mp/m6]
-lappend ans [list setpath __MODULES_LMCONFLICT m6&m3]
-lappend ans [list setpath __MODULES_LMPREREQ m2&m1]
-lappend ans [list setpath __MODULES_LMTAG m1&auto-loaded]
+lappend ans [list set __MODULES_LMCONFLICT m6&m3]
+lappend ans [list set __MODULES_LMPREREQ m2&m1]
+lappend ans [list set _LMFILES_ $mp/m1:$mp/m2:$mp/m6]
+lappend ans [list set LOADEDMODULES m1:m2:m6]
+lappend ans [list set __MODULES_LMTAG m1&auto-loaded]
 set tserr [list {unload m6} {unload m2} {unload m1} {load m1} {load m2} {load m6}]
 testouterr_cmd_re sh {reload --auto} $ans [join $tserr \n]
 testouterr_cmd_re sh {reload --no-auto} $ans [join $tserr \n]

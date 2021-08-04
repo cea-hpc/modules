@@ -430,25 +430,25 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
 
     # setup environment with no loaded module
     unsetenv_loaded_module
-    unsetenv_path_var __MODULES_LMPREREQ
-    unsetenv_path_var __MODULES_LMALTNAME
+    unsetenv_var __MODULES_LMPREREQ
+    unsetenv_var __MODULES_LMALTNAME
 
     set ans [list]
-    lappend ans [list set testsuite "yes"]
-    lappend ans [list setpath LOADEDMODULES "$module"]
-    lappend ans [list setpath _LMFILES_ "$modulefile"]
-
-    if {$modprereq ne ""} {
-        lappend ans [list setpath __MODULES_LMPREREQ "$modprereq"]
-    }
     if {$modalt ne ""} {
-        lappend ans [list setpath __MODULES_LMALTNAME $modalt]
+        lappend ans [list set __MODULES_LMALTNAME $modalt]
     }
+    if {$modprereq ne ""} {
+        lappend ans [list set __MODULES_LMPREREQ "$modprereq"]
+    }
+    lappend ans [list set _LMFILES_ "$modulefile"]
+    lappend ans [list set LOADEDMODULES "$module"]
+    lappend ans [list set testsuite "yes"]
+
     if {$modnuasked ne ""} {
         foreach modnua $modnuasked {
             lappend altaglist $modnua&auto-loaded
         }
-        lappend ans [list setpath __MODULES_LMTAG [join $altaglist :]]
+        lappend ans [list set __MODULES_LMTAG [join $altaglist :]]
     }
     if {$nodefault eq {}} {
         testouterr_cmd_re "sh" "load $modsym" $ans $msgload
@@ -494,33 +494,33 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
     # setup environment with targeted module loaded
     setenv_loaded_module $modulelist $modulefilelist $modnuasked
     if {$modprereq ne ""} {
-        setenv_path_var __MODULES_LMPREREQ $modprereq
+        setenv_var __MODULES_LMPREREQ $modprereq
     }
     if {$modalt ne ""} {
-        setenv_path_var __MODULES_LMALTNAME $modalt
+        setenv_var __MODULES_LMALTNAME $modalt
     }
 
     set ans [list]
-    # unload interpretations are not cascaded if auto_handling enabled so answer order change
-    if {$::install_autohandling eq {n} || $modprereq eq {}} {
-        lappend ans [list unset testsuite]
-    }
-    lappend ans [list unsetpath LOADEDMODULES]
-    lappend ans [list unsetpath _LMFILES_]
-    if {$modprereq ne ""} {
-        lappend ans [list unsetpath __MODULES_LMPREREQ]
+    if {$modalt ne ""} {
+        lappend ans [list unset __MODULES_LMALTNAME]
     }
     if {$::install_autohandling eq {y} && $modprereq ne {}} {
         lappend ans [list unset testsuite]
     }
-    if {$modnuasked ne "" && $::install_autohandling eq {y}} {
-        lappend ans [list unsetpath __MODULES_LMTAG]
+    if {$modprereq ne ""} {
+        lappend ans [list unset __MODULES_LMPREREQ]
     }
-    if {$modalt ne ""} {
-        lappend ans [list unsetpath __MODULES_LMALTNAME]
+    lappend ans [list unset _LMFILES_]
+    lappend ans [list unset LOADEDMODULES]
+    # unload interpretations are not cascaded if auto_handling enabled so answer order change
+    if {$::install_autohandling eq {n} || $modprereq eq {}} {
+        lappend ans [list unset testsuite]
+    }
+    if {$modnuasked ne "" && $::install_autohandling eq {y}} {
+        lappend ans [list unset __MODULES_LMTAG]
     }
     if {$modnuasked ne "" && $::install_autohandling eq {n}} {
-        lappend ans [list unsetpath __MODULES_LMTAG]
+        lappend ans [list unset __MODULES_LMTAG]
     }
     testouterr_cmd_re "sh" "unload $modsym" $ans $msgunload
 }

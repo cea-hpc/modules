@@ -35,9 +35,9 @@ setenv_path_var MODULEPATH $mp
 #
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES ga]
-lappend ans [list setpath _LMFILES_ $mp/ga]
-lappend ans [list setpath __MODULES_LMPREREQ ga&ga]
+lappend ans [list set __MODULES_LMPREREQ ga&ga]
+lappend ans [list set _LMFILES_ $mp/ga]
+lappend ans [list set LOADEDMODULES ga]
 set tserr {load ga}
 testouterr_cmd sh {load ga} $ans $tserr
 # should get same result than above with either --force or --no-auto argument
@@ -49,12 +49,12 @@ skip_if_quick_mode
 
 # set situation where this self-requiring module is loaded
 setenv_loaded_module [list ga] [list $mp/ga]
-setenv_path_var __MODULES_LMPREREQ ga&ga
+setenv_var __MODULES_LMPREREQ ga&ga
 
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 set tserr {unload ga}
 testouterr_cmd sh {unload ga} $ans $tserr
 # should get same result than above with either --force or --no-auto argument
@@ -64,9 +64,9 @@ testouterr_cmd sh {unload --force --no-auto ga} $ans $tserr
 
 testouterr_cmd sh {purge} $ans $tserr
 set ans [list]
-lappend ans [list setpath LOADEDMODULES ga]
-lappend ans [list setpath _LMFILES_ $mp/ga]
-lappend ans [list setpath __MODULES_LMPREREQ ga&ga]
+lappend ans [list set __MODULES_LMPREREQ ga&ga]
+lappend ans [list set _LMFILES_ $mp/ga]
+lappend ans [list set LOADEDMODULES ga]
 set tserr "unload ga\nload ga"
 testouterr_cmd sh {reload} $ans $tserr
 
@@ -77,12 +77,12 @@ testouterr_cmd sh {reload} $ans $tserr
 #
 
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMPREREQ
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gc:gb]
-lappend ans [list setpath _LMFILES_ $mp/gc:$mp/gb]
-lappend ans [list setpath __MODULES_LMPREREQ gc&gb:gb&gc]
-lappend ans [list setpath __MODULES_LMTAG gc&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ gc&gb:gb&gc]
+lappend ans [list set _LMFILES_ $mp/gc:$mp/gb]
+lappend ans [list set LOADEDMODULES gc:gb]
+lappend ans [list set __MODULES_LMTAG gc&auto-loaded]
 set tserr "load gc\nload gb\n\n[msg_top_load gb {} gc {}]"
 testouterr_cmd_re sh {load gb} $ans $tserr
 testouterr_cmd_re sh {load --force gb} $ans $tserr
@@ -90,53 +90,53 @@ testouterr_cmd_re sh {load --force gb} $ans $tserr
 set tserr [msg_load gb [err_prereq gc]]
 testouterr_cmd_re sh {load --no-auto gb} ERR $tserr
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gb]
-lappend ans [list setpath _LMFILES_ $mp/gb]
-lappend ans [list setpath __MODULES_LMPREREQ gb&gc]
+lappend ans [list set __MODULES_LMPREREQ gb&gc]
+lappend ans [list set _LMFILES_ $mp/gb]
+lappend ans [list set LOADEDMODULES gb]
 set tserr "load gb\n\n[msg_load gb [err_reqmisf gc]]"
 testouterr_cmd_re sh {load --force --no-auto gb} $ans $tserr
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gb:gc]
-lappend ans [list setpath _LMFILES_ $mp/gb:$mp/gc]
-lappend ans [list setpath __MODULES_LMPREREQ gb&gc:gc&gb]
-lappend ans [list setpath __MODULES_LMTAG gb&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ gb&gc:gc&gb]
+lappend ans [list set _LMFILES_ $mp/gb:$mp/gc]
+lappend ans [list set LOADEDMODULES gb:gc]
+lappend ans [list set __MODULES_LMTAG gb&auto-loaded]
 set tserr "load gb\nload gc\n\n[msg_top_load gc {} gb {}]"
 testouterr_cmd_re sh {load gc} $ans $tserr
 
 setenv_loaded_module [list gc] [list $mp/gc]
-setenv_path_var __MODULES_LMPREREQ gc&gb
+setenv_var __MODULES_LMPREREQ gc&gb
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gc:gb]
-lappend ans [list setpath _LMFILES_ $mp/gc:$mp/gb]
-lappend ans [list setpath __MODULES_LMPREREQ gc&gb:gb&gc]
+lappend ans [list set __MODULES_LMPREREQ gc&gb:gb&gc]
+lappend ans [list set _LMFILES_ $mp/gc:$mp/gb]
+lappend ans [list set LOADEDMODULES gc:gb]
 # FIXME: gc is unloaded as it is seen part of DepRe, but it is loaded via ReqLo mechanism when gb is loaded
 # thus it is wrongly marked 'not user asked'. A "dep" evaluation mode prior effective load should correct this.
-lappend ans [list setpath __MODULES_LMTAG gc&auto-loaded]
+lappend ans [list set __MODULES_LMTAG gc&auto-loaded]
 set tserr "unload gc\nload gc\nload gb\n\n[msg_top_load gb {} gc [list gc {}]]"
 testouterr_cmd_re sh {load gb} $ans $tserr
 testouterr_cmd_re sh {load --force gb} $ans $tserr
 
 setenv_loaded_module [list gb] [list $mp/gb]
-setenv_path_var __MODULES_LMPREREQ gb&gc
+setenv_var __MODULES_LMPREREQ gb&gc
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gb:gc]
-lappend ans [list setpath _LMFILES_ $mp/gb:$mp/gc]
-lappend ans [list setpath __MODULES_LMPREREQ gb&gc:gc&gb]
+lappend ans [list set __MODULES_LMPREREQ gb&gc:gc&gb]
+lappend ans [list set _LMFILES_ $mp/gb:$mp/gc]
+lappend ans [list set LOADEDMODULES gb:gc]
 # FIXME: gb is unloaded as it is seen part of DepRe, but it is loaded via ReqLo mechanism when gc is loaded
 # thus it is wrongly marked 'not user asked'. A "dep" evaluation mode prior effective load should correct this.
-lappend ans [list setpath __MODULES_LMTAG gb&auto-loaded]
+lappend ans [list set __MODULES_LMTAG gb&auto-loaded]
 set tserr "unload gb\nload gb\nload gc\n\n[msg_top_load gc {} gb [list gb {}]]"
 testouterr_cmd_re sh {load gc} $ans $tserr
 testouterr_cmd_re sh {load --force gc} $ans $tserr
 
 setenv_loaded_module [list gc gb] [list $mp/gc $mp/gb] [list gc]
-setenv_path_var __MODULES_LMPREREQ gc&gb gb&gc
+setenv_var __MODULES_LMPREREQ gc&gb:gb&gc
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr "unload gb\nunload gc\n\n[msg_top_unload gb {} gc {}]"
 testouterr_cmd_re sh {unload gb} $ans $tserr
 testouterr_cmd_re sh {unload --force gb} $ans $tserr
@@ -148,7 +148,7 @@ testouterr_cmd_re sh {purge} $ans $tserr
 testouterr_cmd_re sh {reload} ERR $err_unsatreload
 
 setenv_loaded_module [list gb gc] [list $mp/gb $mp/gc] [list gb]
-setenv_path_var __MODULES_LMPREREQ gb&gc gc&gb
+setenv_var __MODULES_LMPREREQ gb&gc:gc&gb
 set tserr "unload gc\nunload gb\n\n[msg_top_unload gb gc {} {}]"
 testouterr_cmd_re sh {unload gb} $ans $tserr
 testouterr_cmd_re sh {unload --force gb} $ans $tserr
@@ -160,71 +160,71 @@ testouterr_cmd_re sh {purge} $ans $tserr
 testouterr_cmd_re sh {reload} ERR $err_unsatreload
 
 setenv_loaded_module [list gz] [list $mp/gz]
-unsetenv_path_var __MODULES_LMPREREQ
-setenv_path_var __MODULES_LMCONFLICT gz&gb
+unsetenv_var __MODULES_LMPREREQ
+setenv_var __MODULES_LMCONFLICT gz&gb
 # evaluation is attempted prior conflict violation check
 set tserr "load gc\nload gb\n\n[msg_load gb [err_conflict gz]]"
 testouterr_cmd_re sh {load gb} ERR $tserr
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gz:gc:gb]
-lappend ans [list setpath _LMFILES_ $mp/gz:$mp/gc:$mp/gb]
-lappend ans [list setpath __MODULES_LMPREREQ gc&gb:gb&gc]
-lappend ans [list setpath __MODULES_LMTAG gc&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ gc&gb:gb&gc]
+lappend ans [list set _LMFILES_ $mp/gz:$mp/gc:$mp/gb]
+lappend ans [list set LOADEDMODULES gz:gc:gb]
+lappend ans [list set __MODULES_LMTAG gc&auto-loaded]
 set tserr "load gc\nload gb\n\n[msg_top_load gb {} gc {} [err_conlof gz]]"
 testouterr_cmd_re sh {load --force gb} $ans $tserr
 
 setenv_loaded_module [list gz gc gb] [list $mp/gz $mp/gc $mp/gb] [list gc]
-setenv_path_var __MODULES_LMPREREQ gc&gb gb&gc
+setenv_var __MODULES_LMPREREQ gc&gb:gb&gc
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gz]
-lappend ans [list setpath _LMFILES_ $mp/gz]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list setpath __MODULES_LMCONFLICT gz&gb]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list set __MODULES_LMCONFLICT gz&gb]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/gz]
+lappend ans [list set LOADEDMODULES gz]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr "unload gz\nunload gb\nunload gc\nload gz\n\n[msg_top_unload gb {} gc gz]"
 testouterr_cmd_re sh {unload gb} $ans $tserr
 
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMCONFLICT
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMPREREQ
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gc:gb:gy]
-lappend ans [list setpath _LMFILES_ $mp/gc:$mp/gb:$mp/gy]
-lappend ans [list setpath __MODULES_LMPREREQ gc&gb:gb&gc:gy&gb]
-lappend ans [list setpath __MODULES_LMTAG gc&auto-loaded:gb&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ gc&gb:gb&gc:gy&gb]
+lappend ans [list set _LMFILES_ $mp/gc:$mp/gb:$mp/gy]
+lappend ans [list set LOADEDMODULES gc:gb:gy]
+lappend ans [list set __MODULES_LMTAG gc&auto-loaded:gb&auto-loaded]
 set tserr "load gc\nload gb\nload gy\n\n[msg_top_load gy {} [list gc gb] {}]"
 testouterr_cmd_re sh {load gy} $ans $tserr
 
 setenv_loaded_module [list gy] [list $mp/gy]
-setenv_path_var __MODULES_LMPREREQ gy&gb
+setenv_var __MODULES_LMPREREQ gy&gb
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gc:gb:gy]
-lappend ans [list setpath _LMFILES_ $mp/gc:$mp/gb:$mp/gy]
-lappend ans [list setpath __MODULES_LMPREREQ gc&gb:gb&gc:gy&gb]
-lappend ans [list setpath __MODULES_LMTAG gc&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ gc&gb:gb&gc:gy&gb]
+lappend ans [list set _LMFILES_ $mp/gc:$mp/gb:$mp/gy]
+lappend ans [list set LOADEDMODULES gc:gb:gy]
+lappend ans [list set __MODULES_LMTAG gc&auto-loaded]
 set tserr "unload gy\nload gc\nload gb\nload gy\n\n[msg_top_load gb {} gc gy]"
 testouterr_cmd_re sh {load gb} $ans $tserr
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gb:gy:gc]
-lappend ans [list setpath _LMFILES_ $mp/gb:$mp/gy:$mp/gc]
-lappend ans [list setpath __MODULES_LMPREREQ gb&gc:gy&gb:gc&gb]
-lappend ans [list setpath __MODULES_LMTAG gb&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ gb&gc:gy&gb:gc&gb]
+lappend ans [list set _LMFILES_ $mp/gb:$mp/gy:$mp/gc]
+lappend ans [list set LOADEDMODULES gb:gy:gc]
+lappend ans [list set __MODULES_LMTAG gb&auto-loaded]
 set tserr "unload gy\nload gb\nload gy\nload gc\n\n[msg_top_load gc {} gb gy]"
 testouterr_cmd_re sh {load gc} $ans $tserr
 
 setenv_loaded_module [list gc gb gy] [list $mp/gc $mp/gb $mp/gy] [list gc]
-setenv_path_var __MODULES_LMPREREQ gc&gb gb&gc gy&gb
+setenv_var __MODULES_LMPREREQ gc&gb:gb&gc:gy&gb
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gc:gb]
-lappend ans [list setpath _LMFILES_ $mp/gc:$mp/gb]
-lappend ans [list setpath __MODULES_LMPREREQ gc&gb:gb&gc]
+lappend ans [list set __MODULES_LMPREREQ gc&gb:gb&gc]
+lappend ans [list set _LMFILES_ $mp/gc:$mp/gb]
+lappend ans [list set LOADEDMODULES gc:gb]
 set tserr "unload gy"
 testouterr_cmd_re sh {unload gy} $ans $tserr
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr "unload gy\nunload gb\nunload gc\n\n[msg_top_unload gb gy gc {}]"
 testouterr_cmd_re sh {unload gb} $ans $tserr
 testouterr_cmd_re sh {unload --force gb} $ans $tserr
@@ -239,12 +239,12 @@ testouterr_cmd_re sh {unload gc} $ans $tserr
 #
 
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMPREREQ
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gf:ge:gd]
-lappend ans [list setpath _LMFILES_ $mp/gf:$mp/ge:$mp/gd]
-lappend ans [list setpath __MODULES_LMPREREQ gf&gd:ge&gf:gd&ge]
-lappend ans [list setpath __MODULES_LMTAG gf&auto-loaded:ge&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ gf&gd:ge&gf:gd&ge]
+lappend ans [list set _LMFILES_ $mp/gf:$mp/ge:$mp/gd]
+lappend ans [list set LOADEDMODULES gf:ge:gd]
+lappend ans [list set __MODULES_LMTAG gf&auto-loaded:ge&auto-loaded]
 set tserr "load gf\nload ge\nload gd\n\n[msg_top_load gd {} [list gf ge] {}]"
 testouterr_cmd_re sh {load gd} $ans $tserr
 testouterr_cmd_re sh {load --force gd} $ans $tserr
@@ -252,46 +252,46 @@ testouterr_cmd_re sh {load --no-auto gd} $ans $tserr
 testouterr_cmd_re sh {load --force --no-auto gd} $ans $tserr
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gd:gf:ge]
-lappend ans [list setpath _LMFILES_ $mp/gd:$mp/gf:$mp/ge]
-lappend ans [list setpath __MODULES_LMPREREQ gd&ge:gf&gd:ge&gf]
-lappend ans [list setpath __MODULES_LMTAG gd&auto-loaded:gf&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ gd&ge:gf&gd:ge&gf]
+lappend ans [list set _LMFILES_ $mp/gd:$mp/gf:$mp/ge]
+lappend ans [list set LOADEDMODULES gd:gf:ge]
+lappend ans [list set __MODULES_LMTAG gd&auto-loaded:gf&auto-loaded]
 set tserr "load gd\nload gf\nload ge\n\n[msg_top_load ge {} [list gd gf] {}]"
 testouterr_cmd_re sh {load ge} $ans $tserr
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES ge:gd:gf]
-lappend ans [list setpath _LMFILES_ $mp/ge:$mp/gd:$mp/gf]
-lappend ans [list setpath __MODULES_LMPREREQ ge&gf:gd&ge:gf&gd]
-lappend ans [list setpath __MODULES_LMTAG ge&auto-loaded:gd&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ ge&gf:gd&ge:gf&gd]
+lappend ans [list set _LMFILES_ $mp/ge:$mp/gd:$mp/gf]
+lappend ans [list set LOADEDMODULES ge:gd:gf]
+lappend ans [list set __MODULES_LMTAG ge&auto-loaded:gd&auto-loaded]
 set tserr "load ge\nload gd\nload gf\n\n[msg_top_load gf {} [list ge gd] {}]"
 testouterr_cmd_re sh {load gf} $ans $tserr
 
 setenv_loaded_module [list gf] [list $mp/gf]
-setenv_path_var __MODULES_LMPREREQ gf&gd
+setenv_var __MODULES_LMPREREQ gf&gd
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gf:ge:gd]
-lappend ans [list setpath _LMFILES_ $mp/gf:$mp/ge:$mp/gd]
-lappend ans [list setpath __MODULES_LMPREREQ gf&gd:ge&gf:gd&ge]
+lappend ans [list set __MODULES_LMPREREQ gf&gd:ge&gf:gd&ge]
+lappend ans [list set _LMFILES_ $mp/gf:$mp/ge:$mp/gd]
+lappend ans [list set LOADEDMODULES gf:ge:gd]
 # FIXME: gf is unloaded as it is seen part of DepRe, but it is loaded via ReqLo mechanism when gd is loaded
 # thus it is wrongly marked 'not user asked'. A "dep" evaluation mode prior effective load should correct this.
-lappend ans [list setpath __MODULES_LMTAG gf&auto-loaded:ge&auto-loaded]
+lappend ans [list set __MODULES_LMTAG gf&auto-loaded:ge&auto-loaded]
 set tserr "unload gf\nload gf\nload ge\nload gd\n\n[msg_top_load gd {} [list gf ge] [list gf {}]]"
 testouterr_cmd_re sh {load gd} $ans $tserr
 testouterr_cmd_re sh {load --force gd} $ans $tserr
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gf:ge:gd]
-lappend ans [list setpath _LMFILES_ $mp/gf:$mp/ge:$mp/gd]
-lappend ans [list setpath __MODULES_LMPREREQ gf&gd:ge&gf:gd&ge]
-lappend ans [list setpath __MODULES_LMTAG ge&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ gf&gd:ge&gf:gd&ge]
+lappend ans [list set _LMFILES_ $mp/gf:$mp/ge:$mp/gd]
+lappend ans [list set LOADEDMODULES gf:ge:gd]
+lappend ans [list set __MODULES_LMTAG ge&auto-loaded]
 set tserr "load ge\nload gd\n\n[msg_top_load gd {} ge {}]"
 testouterr_cmd_re sh {load --no-auto gd} $ans $tserr
 testouterr_cmd_re sh {load --force --no-auto gd} $ans $tserr
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gf:ge]
-lappend ans [list setpath _LMFILES_ $mp/gf:$mp/ge]
-lappend ans [list setpath __MODULES_LMPREREQ gf&gd:ge&gf]
+lappend ans [list set __MODULES_LMPREREQ gf&gd:ge&gf]
+lappend ans [list set _LMFILES_ $mp/gf:$mp/ge]
+lappend ans [list set LOADEDMODULES gf:ge]
 set tserr "load ge"
 testouterr_cmd_re sh {load ge} $ans $tserr
 testouterr_cmd_re sh {load --force ge} $ans $tserr
@@ -299,30 +299,30 @@ testouterr_cmd_re sh {load --no-auto ge} $ans $tserr
 testouterr_cmd_re sh {load --force --no-auto ge} $ans $tserr
 
 setenv_loaded_module [list ge] [list $mp/ge]
-setenv_path_var __MODULES_LMPREREQ ge&gf
+setenv_var __MODULES_LMPREREQ ge&gf
 set ans [list]
-lappend ans [list setpath LOADEDMODULES ge:gd:gf]
-lappend ans [list setpath _LMFILES_ $mp/ge:$mp/gd:$mp/gf]
-lappend ans [list setpath __MODULES_LMPREREQ ge&gf:gd&ge:gf&gd]
+lappend ans [list set __MODULES_LMPREREQ ge&gf:gd&ge:gf&gd]
+lappend ans [list set _LMFILES_ $mp/ge:$mp/gd:$mp/gf]
+lappend ans [list set LOADEDMODULES ge:gd:gf]
 # FIXME: ge is unloaded as it is seen part of DepRe, but it is loaded via ReqLo mechanism when gf is loaded
 # thus it is wrongly marked 'not user asked'. A "dep" evaluation mode prior effective load should correct this.
-lappend ans [list setpath __MODULES_LMTAG ge&auto-loaded:gd&auto-loaded]
+lappend ans [list set __MODULES_LMTAG ge&auto-loaded:gd&auto-loaded]
 set tserr "unload ge\nload ge\nload gd\nload gf\n\n[msg_top_load gf {} [list ge gd] [list ge {}]]"
 testouterr_cmd_re sh {load gf} $ans $tserr
 testouterr_cmd_re sh {load --force gf} $ans $tserr
 set ans [list]
-lappend ans [list setpath LOADEDMODULES ge:gd:gf]
-lappend ans [list setpath _LMFILES_ $mp/ge:$mp/gd:$mp/gf]
-lappend ans [list setpath __MODULES_LMPREREQ ge&gf:gd&ge:gf&gd]
-lappend ans [list setpath __MODULES_LMTAG gd&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ ge&gf:gd&ge:gf&gd]
+lappend ans [list set _LMFILES_ $mp/ge:$mp/gd:$mp/gf]
+lappend ans [list set LOADEDMODULES ge:gd:gf]
+lappend ans [list set __MODULES_LMTAG gd&auto-loaded]
 set tserr "load gd\nload gf\n\n[msg_top_load gf {} gd {}]"
 testouterr_cmd_re sh {load --no-auto gf} $ans $tserr
 testouterr_cmd_re sh {load --force --no-auto gf} $ans $tserr
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES ge:gd]
-lappend ans [list setpath _LMFILES_ $mp/ge:$mp/gd]
-lappend ans [list setpath __MODULES_LMPREREQ ge&gf:gd&ge]
+lappend ans [list set __MODULES_LMPREREQ ge&gf:gd&ge]
+lappend ans [list set _LMFILES_ $mp/ge:$mp/gd]
+lappend ans [list set LOADEDMODULES ge:gd]
 set tserr "load gd"
 testouterr_cmd_re sh {load gd} $ans $tserr
 testouterr_cmd_re sh {load --force gd} $ans $tserr
@@ -330,12 +330,12 @@ testouterr_cmd_re sh {load --no-auto gd} $ans $tserr
 testouterr_cmd_re sh {load --force --no-auto gd} $ans $tserr
 
 setenv_loaded_module [list gf ge gd] [list $mp/gf $mp/ge $mp/gd] [list gf ge]
-setenv_path_var __MODULES_LMPREREQ gf&gd ge&gf gd&ge
+setenv_var __MODULES_LMPREREQ gf&gd:ge&gf:gd&ge
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr "unload gd\nunload ge\nunload gf\n\n[msg_top_unload gd {} [list ge gf] {}]"
 testouterr_cmd_re sh {unload gd} $ans $tserr
 testouterr_cmd_re sh {unload --force gd} $ans $tserr
@@ -350,7 +350,7 @@ testouterr_cmd_re sh {purge} $ans $tserr
 testouterr_cmd_re sh {reload} ERR $err_unsatreload
 
 setenv_loaded_module [list gd gf ge] [list $mp/gd $mp/gf $mp/ge] [list gd gf]
-setenv_path_var __MODULES_LMPREREQ gd&ge gf&gd ge&gf
+setenv_var __MODULES_LMPREREQ gd&ge:gf&gd:ge&gf
 set tserr "unload ge\nunload gf\nunload gd\n\n[msg_top_unload gd [list ge gf] {} {}]"
 testouterr_cmd_re sh {unload gd} $ans $tserr
 testouterr_cmd_re sh {unload --force gd} $ans $tserr
@@ -365,78 +365,78 @@ testouterr_cmd_re sh {purge} $ans $tserr
 testouterr_cmd_re sh {reload} ERR $err_unsatreload
 
 setenv_loaded_module [list gx] [list $mp/gx]
-unsetenv_path_var __MODULES_LMPREREQ
-setenv_path_var __MODULES_LMCONFLICT gx&gd
+unsetenv_var __MODULES_LMPREREQ
+setenv_var __MODULES_LMCONFLICT gx&gd
 # evaluation is attempted prior conflict violation check
 set tserr "load gf\nload ge\nload gd\n\n[msg_load gd [err_conflict gx]]"
 testouterr_cmd_re sh {load gd} ERR $tserr
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gx:gf:ge:gd]
-lappend ans [list setpath _LMFILES_ $mp/gx:$mp/gf:$mp/ge:$mp/gd]
-lappend ans [list setpath __MODULES_LMPREREQ gf&gd:ge&gf:gd&ge]
-lappend ans [list setpath __MODULES_LMTAG gf&auto-loaded:ge&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ gf&gd:ge&gf:gd&ge]
+lappend ans [list set _LMFILES_ $mp/gx:$mp/gf:$mp/ge:$mp/gd]
+lappend ans [list set LOADEDMODULES gx:gf:ge:gd]
+lappend ans [list set __MODULES_LMTAG gf&auto-loaded:ge&auto-loaded]
 set tserr "load gf\nload ge\nload gd\n\n[msg_top_load gd {} [list gf ge] {} [err_conlof gx]]"
 testouterr_cmd_re sh {load --force gd} $ans $tserr
 
 setenv_loaded_module [list gx gf ge gd] [list $mp/gx $mp/gf $mp/ge $mp/gd] [list gf ge]
-setenv_path_var __MODULES_LMPREREQ gf&gd ge&gf gd&ge
+setenv_var __MODULES_LMPREREQ gf&gd:ge&gf:gd&ge
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gx]
-lappend ans [list setpath _LMFILES_ $mp/gx]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list setpath __MODULES_LMCONFLICT gx&gd]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list set __MODULES_LMCONFLICT gx&gd]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/gx]
+lappend ans [list set LOADEDMODULES gx]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr "unload gx\nunload gd\nunload ge\nunload gf\nload gx\n\n[msg_top_unload gd {} [list ge gf] gx]"
 testouterr_cmd_re sh {unload gd} $ans $tserr
 
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMCONFLICT
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMPREREQ
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gf:ge:gd:gw]
-lappend ans [list setpath _LMFILES_ $mp/gf:$mp/ge:$mp/gd:$mp/gw]
-lappend ans [list setpath __MODULES_LMPREREQ gf&gd:ge&gf:gd&ge:gw&gd]
-lappend ans [list setpath __MODULES_LMTAG gf&auto-loaded:ge&auto-loaded:gd&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ gf&gd:ge&gf:gd&ge:gw&gd]
+lappend ans [list set _LMFILES_ $mp/gf:$mp/ge:$mp/gd:$mp/gw]
+lappend ans [list set LOADEDMODULES gf:ge:gd:gw]
+lappend ans [list set __MODULES_LMTAG gf&auto-loaded:ge&auto-loaded:gd&auto-loaded]
 set tserr "load gf\nload ge\nload gd\nload gw\n\n[msg_top_load gw {} [list gf ge gd] {}]"
 testouterr_cmd_re sh {load gw} $ans $tserr
 
 setenv_loaded_module [list gw] [list $mp/gw]
-setenv_path_var __MODULES_LMPREREQ gw&gd
+setenv_var __MODULES_LMPREREQ gw&gd
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gf:ge:gd:gw]
-lappend ans [list setpath _LMFILES_ $mp/gf:$mp/ge:$mp/gd:$mp/gw]
-lappend ans [list setpath __MODULES_LMPREREQ gf&gd:ge&gf:gd&ge:gw&gd]
-lappend ans [list setpath __MODULES_LMTAG gf&auto-loaded:ge&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ gf&gd:ge&gf:gd&ge:gw&gd]
+lappend ans [list set _LMFILES_ $mp/gf:$mp/ge:$mp/gd:$mp/gw]
+lappend ans [list set LOADEDMODULES gf:ge:gd:gw]
+lappend ans [list set __MODULES_LMTAG gf&auto-loaded:ge&auto-loaded]
 set tserr "unload gw\nload gf\nload ge\nload gd\nload gw\n\n[msg_top_load gd {} [list gf ge] gw]"
 testouterr_cmd_re sh {load gd} $ans $tserr
 set ans [list]
-lappend ans [list setpath LOADEDMODULES ge:gd:gw:gf]
-lappend ans [list setpath _LMFILES_ $mp/ge:$mp/gd:$mp/gw:$mp/gf]
-lappend ans [list setpath __MODULES_LMPREREQ ge&gf:gd&ge:gw&gd:gf&gd]
-lappend ans [list setpath __MODULES_LMTAG ge&auto-loaded:gd&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ ge&gf:gd&ge:gw&gd:gf&gd]
+lappend ans [list set _LMFILES_ $mp/ge:$mp/gd:$mp/gw:$mp/gf]
+lappend ans [list set LOADEDMODULES ge:gd:gw:gf]
+lappend ans [list set __MODULES_LMTAG ge&auto-loaded:gd&auto-loaded]
 set tserr "unload gw\nload ge\nload gd\nload gw\nload gf\n\n[msg_top_load gf {} [list ge gd] gw]"
 testouterr_cmd_re sh {load gf} $ans $tserr
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gd:gw:gf:ge]
-lappend ans [list setpath _LMFILES_ $mp/gd:$mp/gw:$mp/gf:$mp/ge]
-lappend ans [list setpath __MODULES_LMPREREQ gd&ge:gw&gd:gf&gd:ge&gf]
-lappend ans [list setpath __MODULES_LMTAG gd&auto-loaded:gf&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ gd&ge:gw&gd:gf&gd:ge&gf]
+lappend ans [list set _LMFILES_ $mp/gd:$mp/gw:$mp/gf:$mp/ge]
+lappend ans [list set LOADEDMODULES gd:gw:gf:ge]
+lappend ans [list set __MODULES_LMTAG gd&auto-loaded:gf&auto-loaded]
 set tserr "unload gw\nload gd\nload gw\nload gf\nload ge\n\n[msg_top_load ge {} [list gd gf] gw]"
 testouterr_cmd_re sh {load ge} $ans $tserr
 
 setenv_loaded_module [list gf ge gd gw] [list $mp/gf $mp/ge $mp/gd $mp/gw] [list gf ge]
-setenv_path_var __MODULES_LMPREREQ gf&gd ge&gf gd&ge gw&gd
+setenv_var __MODULES_LMPREREQ gf&gd:ge&gf:gd&ge:gw&gd
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gf:ge:gd]
-lappend ans [list setpath _LMFILES_ $mp/gf:$mp/ge:$mp/gd]
-lappend ans [list setpath __MODULES_LMPREREQ gf&gd:ge&gf:gd&ge]
+lappend ans [list set __MODULES_LMPREREQ gf&gd:ge&gf:gd&ge]
+lappend ans [list set _LMFILES_ $mp/gf:$mp/ge:$mp/gd]
+lappend ans [list set LOADEDMODULES gf:ge:gd]
 set tserr "unload gw"
 testouterr_cmd_re sh {unload gw} $ans $tserr
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr "unload gw\nunload gd\nunload ge\nunload gf\n\n[msg_top_unload gd gw [list ge gf] {}]"
 testouterr_cmd_re sh {unload gd} $ans $tserr
 testouterr_cmd_re sh {unload --force gd} $ans $tserr
@@ -452,49 +452,49 @@ testouterr_cmd_re sh {unload ge} $ans $tserr
 #
 
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMPREREQ
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gh:gg:gj]
-lappend ans [list setpath _LMFILES_ $mp/gh:$mp/gg:$mp/gj]
-lappend ans [list setpath __MODULES_LMPREREQ gh&gj|gi:gg&gh:gj&gg]
-lappend ans [list setpath __MODULES_LMTAG gh&auto-loaded:gg&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ gh&gj|gi:gg&gh:gj&gg]
+lappend ans [list set _LMFILES_ $mp/gh:$mp/gg:$mp/gj]
+lappend ans [list set LOADEDMODULES gh:gg:gj]
+lappend ans [list set __MODULES_LMTAG gh&auto-loaded:gg&auto-loaded]
 set tserr "load gh\nload gg\nload gj\n\n[msg_top_load gj {} [list gh gg] {}]"
 testouterr_cmd_re sh {load gj} $ans $tserr
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gj:gh:gg]
-lappend ans [list setpath _LMFILES_ $mp/gj:$mp/gh:$mp/gg]
-lappend ans [list setpath __MODULES_LMPREREQ gj&gg:gh&gj|gi:gg&gh]
-lappend ans [list setpath __MODULES_LMTAG gj&auto-loaded:gh&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ gj&gg:gh&gj|gi:gg&gh]
+lappend ans [list set _LMFILES_ $mp/gj:$mp/gh:$mp/gg]
+lappend ans [list set LOADEDMODULES gj:gh:gg]
+lappend ans [list set __MODULES_LMTAG gj&auto-loaded:gh&auto-loaded]
 set tserr "load gj\nload gh\nload gg\n\n[msg_top_load gg {} [list gj gh] {}]"
 testouterr_cmd_re sh {load gg} $ans $tserr
 
 setenv_loaded_module [list gi] [list $mp/gi]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gi:gh:gg]
-lappend ans [list setpath _LMFILES_ $mp/gi:$mp/gh:$mp/gg]
-lappend ans [list setpath __MODULES_LMPREREQ gh&gj|gi:gg&gh]
-lappend ans [list setpath __MODULES_LMTAG gh&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ gh&gj|gi:gg&gh]
+lappend ans [list set _LMFILES_ $mp/gi:$mp/gh:$mp/gg]
+lappend ans [list set LOADEDMODULES gi:gh:gg]
+lappend ans [list set __MODULES_LMTAG gh&auto-loaded]
 set tserr "load gh\nload gg\n\n[msg_top_load gg {} gh {}]"
 testouterr_cmd_re sh {load gg} $ans $tserr
 
 setenv_loaded_module [list gi gh gg] [list $mp/gi $mp/gh $mp/gg] [list gh]
-setenv_path_var __MODULES_LMPREREQ gh&gj|gi gg&gh
+setenv_var __MODULES_LMPREREQ gh&gj|gi:gg&gh
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gi:gh:gg:gj]
-lappend ans [list setpath _LMFILES_ $mp/gi:$mp/gh:$mp/gg:$mp/gj]
-lappend ans [list setpath __MODULES_LMPREREQ gh&gj|gi:gg&gh:gj&gg]
-lappend ans [list setpath __MODULES_LMTAG gh&auto-loaded:gg&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ gh&gj|gi:gg&gh:gj&gg]
+lappend ans [list set _LMFILES_ $mp/gi:$mp/gh:$mp/gg:$mp/gj]
+lappend ans [list set LOADEDMODULES gi:gh:gg:gj]
+lappend ans [list set __MODULES_LMTAG gh&auto-loaded:gg&auto-loaded]
 set tserr "unload gg\nunload gh\nload gh\nload gg\nload gj\n\n[msg_top_load gj {} [list gh gg] [list [list gg gh] {}]]"
 testouterr_cmd_re sh {load gj} $ans $tserr
 
 setenv_loaded_module [list gj gh gg] [list $mp/gj $mp/gh $mp/gg] [list gj gh]
-setenv_path_var __MODULES_LMPREREQ gj&gg gh&gj|gi gg&gh
+setenv_var __MODULES_LMPREREQ gj&gg:gh&gj|gi:gg&gh
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr "unload gg\nunload gh\nunload gj\n\n[msg_top_unload gj [list gg gh] {} {}]"
 testouterr_cmd_re sh {unload gj} $ans $tserr
 set tserr "unload gg\nunload gh\nunload gj\n\n[msg_top_unload gh gg gj {}]"
@@ -503,16 +503,16 @@ set tserr "unload gg\nunload gh\nunload gj\n\n[msg_top_unload gg {} [list gh gj]
 testouterr_cmd_re sh {unload gg} $ans $tserr
 
 setenv_loaded_module [list gj gh gg] [list $mp/gj $mp/gh $mp/gg] [list gh]
-setenv_path_var __MODULES_LMPREREQ gj&gg gh&gj|gi gg&gh
+setenv_var __MODULES_LMPREREQ gj&gg:gh&gj|gi:gg&gh
 set tserr "unload gg\nunload gh\nunload gj\n\n[msg_top_unload gj [list gg gh] {} {}]"
 testouterr_cmd_re sh {unload gj} $ans $tserr
 #FIXME: gj stays loaded as it is seen in conflict violation, should get other cases
 # in line with this one
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gj]
-lappend ans [list setpath _LMFILES_ $mp/gj]
-lappend ans [list setpath __MODULES_LMPREREQ gj&gg]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list set __MODULES_LMPREREQ gj&gg]
+lappend ans [list set _LMFILES_ $mp/gj]
+lappend ans [list set LOADEDMODULES gj]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr "unload gg\nunload gh\n\n[msg_top_unload gh gg {} {}]"
 testouterr_cmd_re sh {unload gh} $ans $tserr
 set tserr "unload gg\nunload gh\n\n[msg_top_unload gg {} gh {}]"
@@ -525,51 +525,51 @@ testouterr_cmd_re sh {unload gg} $ans $tserr
 #
 
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMPREREQ
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gm:gl:gk]
-lappend ans [list setpath _LMFILES_ $mp/gm:$mp/gl:$mp/gk]
-lappend ans [list setpath __MODULES_LMPREREQ gm&gn|gk:gl&gm:gk&gl]
-lappend ans [list setpath __MODULES_LMTAG gm&auto-loaded:gl&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ gm&gn|gk:gl&gm:gk&gl]
+lappend ans [list set _LMFILES_ $mp/gm:$mp/gl:$mp/gk]
+lappend ans [list set LOADEDMODULES gm:gl:gk]
+lappend ans [list set __MODULES_LMTAG gm&auto-loaded:gl&auto-loaded]
 set tserr "load gm\nload gl\nload gk\n\n[msg_top_load gk {} [list gm gl] {}]"
 testouterr_cmd_re sh {load gk} $ans $tserr
 
 # set situation where dependent is already loaded with alternate prereq
 # which lead to inclusion of these loaded modules in DepRe mechanism when cycling dep is loaded
 setenv_loaded_module [list gn gm] [list $mp/gn $mp/gm] [list gn]
-setenv_path_var __MODULES_LMPREREQ gm&gn|gk
+setenv_var __MODULES_LMPREREQ gm&gn|gk
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gn:gm:gl:gk]
-lappend ans [list setpath _LMFILES_ $mp/gn:$mp/gm:$mp/gl:$mp/gk]
-lappend ans [list setpath __MODULES_LMPREREQ gm&gn|gk:gl&gm:gk&gl]
+lappend ans [list set __MODULES_LMPREREQ gm&gn|gk:gl&gm:gk&gl]
+lappend ans [list set _LMFILES_ $mp/gn:$mp/gm:$mp/gl:$mp/gk]
+lappend ans [list set LOADEDMODULES gn:gm:gl:gk]
 # FIXME: gm is unloaded as it is seen part of DepRe, but it is loaded via ReqLo mechanism when gl is loaded
 # thus it is wrongly marked 'not user asked'. A "dep" evaluation mode prior effective load should correct this.
-lappend ans [list setpath __MODULES_LMTAG gn&auto-loaded:gm&auto-loaded:gl&auto-loaded]
+lappend ans [list set __MODULES_LMTAG gn&auto-loaded:gm&auto-loaded:gl&auto-loaded]
 set tserr "unload gm\nload gm\nload gl\nload gk\n\n[msg_top_load gk {} [list gm gl] [list gm {}]]"
 testouterr_cmd_re sh {load gk} $ans $tserr
 
 setenv_loaded_module [list gn gm gl gk] [list $mp/gn $mp/gm $mp/gl $mp/gk] [list gl]
-setenv_path_var __MODULES_LMPREREQ gm&gn|gk gl&gm gk&gl
+setenv_var __MODULES_LMPREREQ gm&gn|gk:gl&gm:gk&gl
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr "unload gk\nunload gl\nunload gm\nunload gn\n\n[msg_top_unload gn [list gk gl gm] {} {}]"
 testouterr_cmd_re sh {unload gn} $ans $tserr
 set tserr "unload gk\nunload gl\nunload gm\n\n[msg_top_unload gm [list gk gl] {} {}]"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gn]
-lappend ans [list setpath _LMFILES_ $mp/gn]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/gn]
+lappend ans [list set LOADEDMODULES gn]
+lappend ans [list unset __MODULES_LMTAG]
 testouterr_cmd_re sh {unload gm} $ans $tserr
 set ans [list]
-lappend ans [list setpath LOADEDMODULES gn:gm]
-lappend ans [list setpath _LMFILES_ $mp/gn:$mp/gm]
-lappend ans [list setpath __MODULES_LMPREREQ gm&gn|gk]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list set __MODULES_LMPREREQ gm&gn|gk]
+lappend ans [list set _LMFILES_ $mp/gn:$mp/gm]
+lappend ans [list set LOADEDMODULES gn:gm]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr "unload gk\nunload gl\n\n[msg_top_unload gl gk {} {}]"
 testouterr_cmd_re sh {unload gl} $ans $tserr
 set tserr "unload gk\nunload gl\n\n[msg_top_unload gk {} gl {}]"
@@ -579,12 +579,12 @@ testouterr_cmd_re sh {unload gk} $ans $tserr
 # check dependency structures are correctly updated when loop cycle is detected on a module
 # having multiple dependent
 setenv_loaded_module [list gs gr gq gp go] [list $mp/gs $mp/gr $mp/gq $mp/gp $mp/go] [list gp]
-setenv_path_var __MODULES_LMPREREQ gq&gs|go gr&gs|go gp&gq go&gp
+setenv_var __MODULES_LMPREREQ gq&gs|go:gr&gs|go:gp&gq:go&gp
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr "unload gr\nunload go\nunload gp\nunload gq\nunload gs\n\n[msg_top_unload gs [list gr go gp gq] {} {}]"
 testouterr_cmd_re sh {unload gs} $ans $tserr
 

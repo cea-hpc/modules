@@ -62,32 +62,32 @@ set disp "$modulefilere:\n\n$disp_csh\n$modlin"
 #  The tests
 #
 
-lappend ans [list setpath LOADEDMODULES "$module_1:$module"]
-lappend ans [list setpath _LMFILES_ "$modulefile_1:$modulefile"]
-lappend ans [list setpath __MODULES_LMALTNAME $module&al|foo]
+lappend ans [list set __MODULES_LMALTNAME $module&al|foo]
 lappend ans [list set testsuite yes]
+lappend ans [list set _LMFILES_ "$modulefile_1:$modulefile"]
+lappend ans [list set LOADEDMODULES "$module_1:$module"]
 test_cmd_re "csh" "load $module_1 foo" $ans
 testouterr_cmd_re "sh" "display $module_1 foo" "OK" "$disp_1\n$disp"
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "$module_2:$module"]
-lappend ans [list setpath _LMFILES_ "$modulefile_2:$modulefile"]
 if {[is_conf_enabled advversspec implicitdefault]} {
-    lappend ans [list setpath __MODULES_LMALTNAME $module&loc_sym2/foo&loc_sym/foo&al|loc_sym2/1.0&as|loc_sym2/default&as|loc_sym2/latest]
+    lappend ans [list set __MODULES_LMALTNAME $module&loc_sym2/foo&loc_sym/foo&al|loc_sym2/1.0&as|loc_sym2/default&as|loc_sym2/latest]
 } else {
-    lappend ans [list setpath __MODULES_LMALTNAME $module&loc_sym2/foo&loc_sym/foo&al|loc_sym2/1.0]
+    lappend ans [list set __MODULES_LMALTNAME $module&loc_sym2/foo&loc_sym/foo&al|loc_sym2/1.0]
 }
 lappend ans [list set testsuite yes]
+lappend ans [list set _LMFILES_ "$modulefile_2:$modulefile"]
+lappend ans [list set LOADEDMODULES "$module_2:$module"]
 test_cmd_re "csh" "load $module_2 loc_sym2/foo" $ans
 testouterr_cmd_re "sh" "display $module_2 loc_sym2/foo" "OK" "$disp_2\n$disp"
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "$module_3:loc_sym2/2.0"]
-lappend ans [list setpath _LMFILES_ "$modulefile_3:$modulefile"]
 if {[is_conf_enabled advversspec implicitdefault]} {
-    lappend ans [list setpath __MODULES_LMALTNAME loc_sym2/2.0&as|loc_sym2/default&as|loc_sym2/latest]
+    lappend ans [list set __MODULES_LMALTNAME loc_sym2/2.0&as|loc_sym2/default&as|loc_sym2/latest]
 }
 lappend ans [list set testsuite yes]
+lappend ans [list set _LMFILES_ "$modulefile_3:$modulefile"]
+lappend ans [list set LOADEDMODULES "$module_3:loc_sym2/2.0"]
 test_cmd_re "csh" "load $module_3 loc_sym2/2.0" $ans
 testouterr_cmd_re "sh" "display $module_3 loc_sym2/2.0" "OK" "$disp_3\n$disp"
 

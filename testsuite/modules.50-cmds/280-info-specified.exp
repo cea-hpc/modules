@@ -35,12 +35,9 @@ set modulefilere "$modpathre/$module"
 #  For sh shell only (no need to check every shells)
 #
 
-lappend ans [list set _LMFILES__modshare "$modulefile:1"]
-lappend ans [list set LOADEDMODULES_modshare "$module:1"]
 lappend ans [list set __MODULES_LMALTNAME "$module&$module2"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
-lappend ans [list set __MODULES_LMALTNAME_modshare "$module&$module2:1"]
 
 #
 #  The tests
@@ -66,7 +63,7 @@ testouterr_cmd_re "sh" "test $module2" "OK" "$modlin\nModule Specific Test for $
 
 # Set up the environment for test that require the module to be loaded
 setenv_loaded_module $module $modulefile
-setenv_path_var __MODULES_LMALTNAME "$module&$module2"
+setenv_var __MODULES_LMALTNAME "$module&$module2"
 
 # test switching
 testouterr_cmd "sh" "switch $module $module" $ans "$module\n$module"
@@ -75,9 +72,9 @@ testouterr_cmd "sh" "switch $module2 $module" $ans "$module2\n$module"
 
 # test unloading
 set ans [list]
-lappend ans [list unsetpath __MODULES_LMALTNAME]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset __MODULES_LMALTNAME]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 
 testouterr_cmd "sh" "unload $module" $ans "$module"
 testouterr_cmd "sh" "unload $module2" $ans "$module2"

@@ -87,11 +87,11 @@ foreach {query match} [list extdfl/1 extdfl/1.3.1 extdfl/1.0 extdfl/1.0.2 extdfl
         set tserr $err_path'$query'
     } else {
         set ans [list]
-        lappend ans [list setpath LOADEDMODULES $match]
-        lappend ans [list setpath _LMFILES_ $mp/$match]
         if {$match eq {extdfl/1.3.1}} {
-            lappend ans [list setpath __MODULES_LMALTNAME $match&extdfl/default&extdfl]
+            lappend ans [list set __MODULES_LMALTNAME $match&extdfl/default&extdfl]
         }
+        lappend ans [list set _LMFILES_ $mp/$match]
+        lappend ans [list set LOADEDMODULES $match]
         set tserr {}
     }
     testouterr_cmd sh "load $query" $ans $tserr
@@ -126,12 +126,12 @@ setenv_loaded_module [list extdfl2/3.10.2] [list $mp/extdfl2/3.10.2]
 
 testouterr_cmd sh {load extdfl2/3} OK {}
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload extdfl2/3} $ans {}
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.9.2]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.9.2]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.9.2]
+lappend ans [list set LOADEDMODULES extdfl2/3.9.2]
 testouterr_cmd sh {switch extdfl2/3 extdfl2/3.9} $ans {}
 testouterr_cmd sh {switch -i Extdfl2/3 extDfl2/3.9} $ans {}
 testouterr_cmd sh {switch extdfl2/3.9} $ans {}
@@ -139,13 +139,13 @@ testouterr_cmd sh {switch extdfl2/3.9} $ans {}
 setenv_loaded_module [list extdfl2/3.10.2 extdfl2/3.1.3] [list $mp/extdfl2/3.10.2 $mp/extdfl2/3.1.3]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.1.3]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.3]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.1.3]
+lappend ans [list set LOADEDMODULES extdfl2/3.1.3]
 testouterr_cmd sh {unload extdfl2/3.10} $ans {}
 testouterr_cmd sh {unload -i eXtdFl2/3.10} $ans {}
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.10.2]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.10.2]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.10.2]
+lappend ans [list set LOADEDMODULES extdfl2/3.10.2]
 testouterr_cmd sh {unload extdfl2/3} $ans {}
 
 setenv_loaded_module [list extdfl2/3.1.3 extdfl2/3.10.2] [list $mp/extdfl2/3.1.3 $mp/extdfl2/3.10.2]
@@ -153,13 +153,13 @@ setenv_loaded_module [list extdfl2/3.1.3 extdfl2/3.10.2] [list $mp/extdfl2/3.1.3
 # even if extdfl2/3.1.3 is loaded, asking load of extdfl2/3.1 will trigger load of extdfl2/3.1.7
 # which is seen as the 3.1 default. See #228 for details
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.1.3:extdfl2/3.10.2:extdfl2/3.1.7]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.3:$mp/extdfl2/3.10.2:$mp/extdfl2/3.1.7]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.1.3:$mp/extdfl2/3.10.2:$mp/extdfl2/3.1.7]
+lappend ans [list set LOADEDMODULES extdfl2/3.1.3:extdfl2/3.10.2:extdfl2/3.1.7]
 testouterr_cmd_re sh {load extdfl2/3.1} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.10.2:extdfl2/3.1.7]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.10.2:$mp/extdfl2/3.1.7]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.10.2:$mp/extdfl2/3.1.7]
+lappend ans [list set LOADEDMODULES extdfl2/3.10.2:extdfl2/3.1.7]
 testouterr_cmd_re sh {switch extdfl2/3.1} $ans {}
 testouterr_cmd_re sh {switch -i ExtDfl2/3.1} $ans {}
 
@@ -170,8 +170,8 @@ testouterr_cmd sh {unload -i extdflb.4} OK {}
 testouterr_cmd_re sh {switch extdflb.4} ERR [msg_switch extdflb.4 extdflb.4 $err_path'extdflb.4']
 testouterr_cmd_re sh {switch -i extdflb.4} ERR [msg_switch extdflb.4 extdflb.4 $err_path'extdflb.4']
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdflb.4.1/1:extdflb.4.0]
-lappend ans [list setpath _LMFILES_ $mp/extdflb.4.1/1:$mp/extdflb.4.0]
+lappend ans [list set _LMFILES_ $mp/extdflb.4.1/1:$mp/extdflb.4.0]
+lappend ans [list set LOADEDMODULES extdflb.4.1/1:extdflb.4.0]
 testouterr_cmd_re sh {switch extdflb.4.0} $ans {}
 testouterr_cmd_re sh {switch -i ExtDflb.4.0} $ans {}
 
@@ -179,22 +179,22 @@ unsetenv_loaded_module
 
 # check icase mechanism at version level
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/2.rc.2]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/2.rc.2]
+lappend ans [list set _LMFILES_ $mp/extdfl2/2.rc.2]
+lappend ans [list set LOADEDMODULES extdfl2/2.rc.2]
 testouterr_cmd sh {load -i extdfl2/2.rC} $ans {}
 
 setenv_loaded_module [list extdfl2/2.rc.1] [list $mp/extdfl2/2.rc.1]
 
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload -i extdfl2/2.rC} $ans {}
 
 setenv_loaded_module [list extdfl2/2.rc.1 extdfl2/3.10.2] [list $mp/extdfl2/2.rc.1 $mp/extdfl2/3.10.2]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.10.2:extdfl2/2.rc.2]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.10.2:$mp/extdfl2/2.rc.2]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.10.2:$mp/extdfl2/2.rc.2]
+lappend ans [list set LOADEDMODULES extdfl2/3.10.2:extdfl2/2.rc.2]
 testouterr_cmd_re sh {switch -i extdfl2/2.RC} $ans {}
 
 unsetenv_loaded_module
@@ -222,232 +222,232 @@ unsetenv_loaded_module
 
 # test in modulefile
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.1.7:extdfl6/prereq]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/prereq]
-lappend ans [list setpath __MODULES_LMTAG extdfl2/3.1.7&auto-loaded]
-lappend ans [list setpath __MODULES_LMPREREQ extdfl6/prereq&extdfl2/3.1]
+lappend ans [list set __MODULES_LMPREREQ extdfl6/prereq&extdfl2/3.1]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/prereq]
+lappend ans [list set LOADEDMODULES extdfl2/3.1.7:extdfl6/prereq]
+lappend ans [list set __MODULES_LMTAG extdfl2/3.1.7&auto-loaded]
 testouterr_cmd_re sh {load --auto extdfl6/prereq} $ans [msg_top_load extdfl6/prereq {} extdfl2/3.1.7 {}]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.1.7:extdfl6/prereqi]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/prereqi]
-lappend ans [list setpath __MODULES_LMTAG extdfl2/3.1.7&auto-loaded]
-lappend ans [list setpath __MODULES_LMPREREQ extdfl6/prereqi&Extdfl2/3.1]
+lappend ans [list set __MODULES_LMPREREQ extdfl6/prereqi&Extdfl2/3.1]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/prereqi]
+lappend ans [list set LOADEDMODULES extdfl2/3.1.7:extdfl6/prereqi]
+lappend ans [list set __MODULES_LMTAG extdfl2/3.1.7&auto-loaded]
 testouterr_cmd_re sh {load --icase --auto extdfl6/prereqi} $ans [msg_top_load extdfl6/prereqi {} extdfl2/3.1.7 {}]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl6/conflict]
-lappend ans [list setpath _LMFILES_ $mp/extdfl6/conflict]
-lappend ans [list setpath __MODULES_LMCONFLICT extdfl6/conflict&extdfl2/3]
+lappend ans [list set __MODULES_LMCONFLICT extdfl6/conflict&extdfl2/3]
+lappend ans [list set _LMFILES_ $mp/extdfl6/conflict]
+lappend ans [list set LOADEDMODULES extdfl6/conflict]
 testouterr_cmd_re sh {load extdfl6/conflict} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.1.7:extdfl6/load]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/load]
-lappend ans [list setpath __MODULES_LMTAG extdfl2/3.1.7&auto-loaded]
-lappend ans [list setpath __MODULES_LMPREREQ extdfl6/load&extdfl2/3.1]
+lappend ans [list set __MODULES_LMPREREQ extdfl6/load&extdfl2/3.1]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/load]
+lappend ans [list set LOADEDMODULES extdfl2/3.1.7:extdfl6/load]
+lappend ans [list set __MODULES_LMTAG extdfl2/3.1.7&auto-loaded]
 testouterr_cmd_re sh {load --auto extdfl6/load} $ans [msg_top_load extdfl6/load {} extdfl2/3.1.7 {}]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl6/unload]
-lappend ans [list setpath _LMFILES_ $mp/extdfl6/unload]
-lappend ans [list setpath __MODULES_LMCONFLICT extdfl6/unload&extdfl2/3]
+lappend ans [list set __MODULES_LMCONFLICT extdfl6/unload&extdfl2/3]
+lappend ans [list set _LMFILES_ $mp/extdfl6/unload]
+lappend ans [list set LOADEDMODULES extdfl6/unload]
 testouterr_cmd_re sh {load extdfl6/unload} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl6/isloaded]
-lappend ans [list setpath _LMFILES_ $mp/extdfl6/isloaded]
+lappend ans [list set _LMFILES_ $mp/extdfl6/isloaded]
+lappend ans [list set LOADEDMODULES extdfl6/isloaded]
 lappend ans [list set ts 0]
 testouterr_cmd_re sh {load extdfl6/isloaded} $ans {}
 
 set ans [list]
+lappend ans [list set _LMFILES_ $mp/extdfl6/info]
+lappend ans [list set LOADEDMODULES extdfl6/info]
 lappend ans [list set ts {}]
-lappend ans [list setpath LOADEDMODULES extdfl6/info]
-lappend ans [list setpath _LMFILES_ $mp/extdfl6/info]
 testouterr_cmd_re sh {load extdfl6/info} $ans {}
 
 setenv_loaded_module [list extdfl2/3.1.7] [list $mp/extdfl2/3.1.7]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.1.7:extdfl6/prereq]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/prereq]
-lappend ans [list setpath __MODULES_LMPREREQ extdfl6/prereq&extdfl2/3.1]
+lappend ans [list set __MODULES_LMPREREQ extdfl6/prereq&extdfl2/3.1]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/prereq]
+lappend ans [list set LOADEDMODULES extdfl2/3.1.7:extdfl6/prereq]
 testouterr_cmd_re sh {load --auto extdfl6/prereq} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.1.7:extdfl6/prereqi]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/prereqi]
-lappend ans [list setpath __MODULES_LMPREREQ extdfl6/prereqi&Extdfl2/3.1]
+lappend ans [list set __MODULES_LMPREREQ extdfl6/prereqi&Extdfl2/3.1]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/prereqi]
+lappend ans [list set LOADEDMODULES extdfl2/3.1.7:extdfl6/prereqi]
 testouterr_cmd_re sh {load --icase --auto extdfl6/prereqi} $ans {}
 
 testouterr_cmd_re sh {load extdfl6/conflict} ERR [msg_load extdfl6/conflict [err_conflict extdfl2/3]]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.1.7:extdfl6/load]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/load]
-lappend ans [list setpath __MODULES_LMPREREQ extdfl6/load&extdfl2/3.1]
+lappend ans [list set __MODULES_LMPREREQ extdfl6/load&extdfl2/3.1]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/load]
+lappend ans [list set LOADEDMODULES extdfl2/3.1.7:extdfl6/load]
 testouterr_cmd_re sh {load --auto extdfl6/load} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl6/unload]
-lappend ans [list setpath _LMFILES_ $mp/extdfl6/unload]
-lappend ans [list setpath __MODULES_LMCONFLICT extdfl6/unload&extdfl2/3]
+lappend ans [list set __MODULES_LMCONFLICT extdfl6/unload&extdfl2/3]
+lappend ans [list set _LMFILES_ $mp/extdfl6/unload]
+lappend ans [list set LOADEDMODULES extdfl6/unload]
 testouterr_cmd_re sh {load extdfl6/unload} $ans [msg_top_load extdfl6/unload extdfl2/3.1.7 {} {}]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.1.7:extdfl6/isloaded]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/isloaded]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/isloaded]
+lappend ans [list set LOADEDMODULES extdfl2/3.1.7:extdfl6/isloaded]
 lappend ans [list set ts 1]
 testouterr_cmd_re sh {load extdfl6/isloaded} $ans {}
 
 set ans [list]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/info]
+lappend ans [list set LOADEDMODULES extdfl2/3.1.7:extdfl6/info]
 lappend ans [list set ts extdfl2/3.1.7]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.1.7:extdfl6/info]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/info]
 testouterr_cmd_re sh {load extdfl6/info} $ans {}
 
 # check when non-implicit default is loaded
 setenv_loaded_module [list extdfl2/3.1.3] [list $mp/extdfl2/3.1.3]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.1.3:extdfl6/prereq]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.3:$mp/extdfl6/prereq]
-lappend ans [list setpath __MODULES_LMPREREQ extdfl6/prereq&extdfl2/3.1]
+lappend ans [list set __MODULES_LMPREREQ extdfl6/prereq&extdfl2/3.1]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.1.3:$mp/extdfl6/prereq]
+lappend ans [list set LOADEDMODULES extdfl2/3.1.3:extdfl6/prereq]
 testouterr_cmd_re sh {load --auto extdfl6/prereq} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.1.3:extdfl6/prereqi]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.3:$mp/extdfl6/prereqi]
-lappend ans [list setpath __MODULES_LMPREREQ extdfl6/prereqi&Extdfl2/3.1]
+lappend ans [list set __MODULES_LMPREREQ extdfl6/prereqi&Extdfl2/3.1]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.1.3:$mp/extdfl6/prereqi]
+lappend ans [list set LOADEDMODULES extdfl2/3.1.3:extdfl6/prereqi]
 testouterr_cmd_re sh {load --icase --auto extdfl6/prereqi} $ans {}
 
 testouterr_cmd_re sh {load extdfl6/conflict} ERR [msg_load extdfl6/conflict [err_conflict extdfl2/3]]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.1.3:extdfl6/load]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.3:$mp/extdfl6/load]
-lappend ans [list setpath __MODULES_LMPREREQ extdfl6/load&extdfl2/3.1]
+lappend ans [list set __MODULES_LMPREREQ extdfl6/load&extdfl2/3.1]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.1.3:$mp/extdfl6/load]
+lappend ans [list set LOADEDMODULES extdfl2/3.1.3:extdfl6/load]
 testouterr_cmd_re sh {load --auto extdfl6/load} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl6/unload]
-lappend ans [list setpath _LMFILES_ $mp/extdfl6/unload]
-lappend ans [list setpath __MODULES_LMCONFLICT extdfl6/unload&extdfl2/3]
+lappend ans [list set __MODULES_LMCONFLICT extdfl6/unload&extdfl2/3]
+lappend ans [list set _LMFILES_ $mp/extdfl6/unload]
+lappend ans [list set LOADEDMODULES extdfl6/unload]
 testouterr_cmd_re sh {load extdfl6/unload} $ans [msg_top_load extdfl6/unload extdfl2/3.1.3 {} {}]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.1.3:extdfl6/isloaded]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.3:$mp/extdfl6/isloaded]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.1.3:$mp/extdfl6/isloaded]
+lappend ans [list set LOADEDMODULES extdfl2/3.1.3:extdfl6/isloaded]
 lappend ans [list set ts 1]
 testouterr_cmd_re sh {load extdfl6/isloaded} $ans {}
 
 set ans [list]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.1.3:$mp/extdfl6/info]
+lappend ans [list set LOADEDMODULES extdfl2/3.1.3:extdfl6/info]
 lappend ans [list set ts extdfl2/3.1.3]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.1.3:extdfl6/info]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.3:$mp/extdfl6/info]
 testouterr_cmd_re sh {load extdfl6/info} $ans {}
 
 # check when non-explicit default is loaded
 setenv_loaded_module [list extdfl/1.3.7] [list $mp/extdfl/1.3.7]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:extdfl6/prereq2]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl6/prereq2]
-lappend ans [list setpath __MODULES_LMPREREQ extdfl6/prereq2&extdfl/1.3]
+lappend ans [list set __MODULES_LMPREREQ extdfl6/prereq2&extdfl/1.3]
+lappend ans [list set _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl6/prereq2]
+lappend ans [list set LOADEDMODULES extdfl/1.3.7:extdfl6/prereq2]
 testouterr_cmd_re sh {load --auto extdfl6/prereq2} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:extdfl6/prereqi2]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl6/prereqi2]
-lappend ans [list setpath __MODULES_LMPREREQ extdfl6/prereqi2&Extdfl/1.3]
+lappend ans [list set __MODULES_LMPREREQ extdfl6/prereqi2&Extdfl/1.3]
+lappend ans [list set _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl6/prereqi2]
+lappend ans [list set LOADEDMODULES extdfl/1.3.7:extdfl6/prereqi2]
 testouterr_cmd_re sh {load --icase --auto extdfl6/prereqi2} $ans {}
 
 testouterr_cmd_re sh {load extdfl6/conflict2} ERR [msg_load extdfl6/conflict2 [err_conflict extdfl/1]]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:extdfl6/load2]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl6/load2]
-lappend ans [list setpath __MODULES_LMPREREQ extdfl6/load2&extdfl/1.3]
+lappend ans [list set __MODULES_LMPREREQ extdfl6/load2&extdfl/1.3]
+lappend ans [list set _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl6/load2]
+lappend ans [list set LOADEDMODULES extdfl/1.3.7:extdfl6/load2]
 testouterr_cmd_re sh {load --auto extdfl6/load2} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl6/unload2]
-lappend ans [list setpath _LMFILES_ $mp/extdfl6/unload2]
-lappend ans [list setpath __MODULES_LMCONFLICT extdfl6/unload2&extdfl/1]
+lappend ans [list set __MODULES_LMCONFLICT extdfl6/unload2&extdfl/1]
+lappend ans [list set _LMFILES_ $mp/extdfl6/unload2]
+lappend ans [list set LOADEDMODULES extdfl6/unload2]
 testouterr_cmd_re sh {load extdfl6/unload2} $ans [msg_top_load extdfl6/unload2 extdfl/1.3.7 {} {}]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:extdfl6/isloaded2]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl6/isloaded2]
+lappend ans [list set _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl6/isloaded2]
+lappend ans [list set LOADEDMODULES extdfl/1.3.7:extdfl6/isloaded2]
 lappend ans [list set ts 1]
 testouterr_cmd_re sh {load extdfl6/isloaded2} $ans {}
 
 set ans [list]
+lappend ans [list set _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl6/info2]
+lappend ans [list set LOADEDMODULES extdfl/1.3.7:extdfl6/info2]
 lappend ans [list set ts extdfl/1.3.7]
-lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:extdfl6/info2]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl6/info2]
 testouterr_cmd_re sh {load extdfl6/info2} $ans {}
 
 unsetenv_loaded_module
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/1.3.1:extdfl6/prereq2]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.1:$mp/extdfl6/prereq2]
-lappend ans [list setpath __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
-lappend ans [list setpath __MODULES_LMPREREQ extdfl6/prereq2&extdfl/1.3]
-lappend ans [list setpath __MODULES_LMTAG extdfl/1.3.1&auto-loaded]
+lappend ans [list set __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+lappend ans [list set __MODULES_LMPREREQ extdfl6/prereq2&extdfl/1.3]
+lappend ans [list set _LMFILES_ $mp/extdfl/1.3.1:$mp/extdfl6/prereq2]
+lappend ans [list set LOADEDMODULES extdfl/1.3.1:extdfl6/prereq2]
+lappend ans [list set __MODULES_LMTAG extdfl/1.3.1&auto-loaded]
 testouterr_cmd_re sh {load --auto extdfl6/prereq2} $ans [msg_top_load extdfl6/prereq2 {} extdfl/1.3.1 {}]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/1.3.1:extdfl6/prereqi2]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.1:$mp/extdfl6/prereqi2]
-lappend ans [list setpath __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
-lappend ans [list setpath __MODULES_LMPREREQ extdfl6/prereqi2&Extdfl/1.3]
-lappend ans [list setpath __MODULES_LMTAG extdfl/1.3.1&auto-loaded]
+lappend ans [list set __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+lappend ans [list set __MODULES_LMPREREQ extdfl6/prereqi2&Extdfl/1.3]
+lappend ans [list set _LMFILES_ $mp/extdfl/1.3.1:$mp/extdfl6/prereqi2]
+lappend ans [list set LOADEDMODULES extdfl/1.3.1:extdfl6/prereqi2]
+lappend ans [list set __MODULES_LMTAG extdfl/1.3.1&auto-loaded]
 testouterr_cmd_re sh {load --icase --auto extdfl6/prereqi2} $ans [msg_top_load extdfl6/prereqi2 {} extdfl/1.3.1 {}]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/1.3.1:extdfl6/load2]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.1:$mp/extdfl6/load2]
-lappend ans [list setpath __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
-lappend ans [list setpath __MODULES_LMPREREQ extdfl6/load2&extdfl/1.3]
-lappend ans [list setpath __MODULES_LMTAG extdfl/1.3.1&auto-loaded]
+lappend ans [list set __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+lappend ans [list set __MODULES_LMPREREQ extdfl6/load2&extdfl/1.3]
+lappend ans [list set _LMFILES_ $mp/extdfl/1.3.1:$mp/extdfl6/load2]
+lappend ans [list set LOADEDMODULES extdfl/1.3.1:extdfl6/load2]
+lappend ans [list set __MODULES_LMTAG extdfl/1.3.1&auto-loaded]
 testouterr_cmd_re sh {load --auto extdfl6/load2} $ans [msg_top_load extdfl6/load2 {} extdfl/1.3.1 {}]
 
 
 # self conflict
 setenv_loaded_module [list extdfl7/1.1] [list $mp/extdfl7/1.1]
-setenv_path_var __MODULES_LMCONFLICT extdfl7/1.1&extdfl7/1
+setenv_var __MODULES_LMCONFLICT extdfl7/1.1&extdfl7/1
 testouterr_cmd_re sh {load extdfl7/1.3} ERR [msg_load extdfl7/2.1 [err_conflict extdfl7/1.1]]
 
 # conflict over an alias name
 setenv_loaded_module [list extdfl7/2.1] [list $mp/extdfl7/2.1]
-setenv_path_var __MODULES_LMCONFLICT extdfl7/2.1&extdfl7/2
-setenv_path_var __MODULES_LMALTNAME extdfl7/2.1&extdfl7/1.3
+setenv_var __MODULES_LMCONFLICT extdfl7/2.1&extdfl7/2
+setenv_var __MODULES_LMALTNAME extdfl7/2.1&extdfl7/1.3
 testouterr_cmd_re sh {load extdfl7/1.1} ERR [msg_load extdfl7/1.1 [err_conflict extdfl7/1]]
 
 # conflict over a symbolic version name
 setenv_loaded_module [list extdfl7/3.1] [list $mp/extdfl7/3.1]
-setenv_path_var __MODULES_LMCONFLICT extdfl7/3.1&extdfl7/3
-unsetenv_path_var __MODULES_LMALTNAME
+setenv_var __MODULES_LMCONFLICT extdfl7/3.1&extdfl7/3
+unsetenv_var __MODULES_LMALTNAME
 testouterr_cmd_re sh {load extdfl7/3.0} ERR [msg_load extdfl7/2.10 [err_conflict extdfl7/3.1]]
 
 setenv_loaded_module [list extdfl7/2.10] [list $mp/extdfl7/2.10]
-setenv_path_var __MODULES_LMCONFLICT extdfl7/2.10&extdfl7/2
-setenv_path_var __MODULES_LMALTNAME extdfl7/2.10&extdfl7/3.0
+setenv_var __MODULES_LMCONFLICT extdfl7/2.10&extdfl7/2
+setenv_var __MODULES_LMALTNAME extdfl7/2.10&extdfl7/3.0
 testouterr_cmd_re sh {load extdfl7/3.1} ERR [msg_load extdfl7/3.1 [err_conflict extdfl7/3]]
 
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMCONFLICT
-unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMALTNAME
 
 # loaded module conflict with loading prereq
 setenv_loaded_module [list extdfl7/4.1] [list $mp/extdfl7/4.1]
-setenv_path_var __MODULES_LMCONFLICT extdfl7/4.1&extdfl7/1
+setenv_var __MODULES_LMCONFLICT extdfl7/4.1&extdfl7/1
 testouterr_cmd_re sh {load --auto extdfl6/load3} ERR [msg_load extdfl7/2.1 [err_conflict extdfl7/4.1]]\n\n[msg_load extdfl6/load3 [err_reqlo extdfl7/1]]
 
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMCONFLICT
 
 # loading prereq conflict with its dependent
 testouterr_cmd_re sh {load --icase --auto extDFL7/6} ERR [msg_load extdfl7/5.1 [err_conloi extDfl7/6]]\n\n[msg_load extdfl7/6.1 [err_reqlo Extdfl7/5]]
@@ -455,8 +455,8 @@ testouterr_cmd_re sh {load --icase --auto extDFL7/6} ERR [msg_load extdfl7/5.1 [
 # when unloading, ensure exact match is selected
 setenv_loaded_module [list extdfl2/3.0.2 extdfl2/3.0.15] [list $mp/extdfl2/3.0.2 $mp/extdfl2/3.0.15]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.0.15]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.0.15]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.0.15]
+lappend ans [list set LOADEDMODULES extdfl2/3.0.15]
 testouterr_cmd sh {unload extdfl2/3.0.2} $ans {}
 
 unsetenv_loaded_module
@@ -468,11 +468,11 @@ if {![is_config_locked implicit_default]} {
     testouterr_cmd_re sh {load --auto extdfl6/prereq} ERR [msg_load extdfl6/prereq $err_nodefault'extdfl2/3.1' [err_reqlo extdfl2/3.1]]
 
     set ans [list]
-    lappend ans [list setpath LOADEDMODULES extdfl/1.3.1:extdfl6/prereq2]
-    lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.1:$mp/extdfl6/prereq2]
-    lappend ans [list setpath __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
-    lappend ans [list setpath __MODULES_LMPREREQ extdfl6/prereq2&extdfl/1.3]
-    lappend ans [list setpath __MODULES_LMTAG extdfl/1.3.1&auto-loaded]
+    lappend ans [list set __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+    lappend ans [list set __MODULES_LMPREREQ extdfl6/prereq2&extdfl/1.3]
+    lappend ans [list set _LMFILES_ $mp/extdfl/1.3.1:$mp/extdfl6/prereq2]
+    lappend ans [list set LOADEDMODULES extdfl/1.3.1:extdfl6/prereq2]
+    lappend ans [list set __MODULES_LMTAG extdfl/1.3.1&auto-loaded]
     testouterr_cmd_re sh {load --auto extdfl6/prereq2} $ans [msg_top_load extdfl6/prereq2 {} extdfl/1.3.1 {}]
 
     setenv_loaded_module [list extdfl2/3.1.7] [list $mp/extdfl2/3.1.7]
@@ -491,8 +491,8 @@ unsetenv_loaded_module
 set ans [list]
 lappend ans [list set ts1 extdfl7/7]
 lappend ans [list set ts2 extdfl7/7]
-lappend ans [list setpath LOADEDMODULES extdfl7/7.1]
-lappend ans [list setpath _LMFILES_ $mp/extdfl7/7.1]
+lappend ans [list set _LMFILES_ $mp/extdfl7/7.1]
+lappend ans [list set LOADEDMODULES extdfl7/7.1]
 # FIXME: alias or symver targeting an extended_default is resolved but alternative names are not registered in environment
 testouterr_cmd sh {load extdfl7/8.1} $ans {}
 testouterr_cmd sh {load extdfl7/8.2} $ans {}
@@ -615,8 +615,8 @@ if {!$is_symlink_supported} {
 setenv_var MODULEPATH $mp
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space yd/2.10"]
-lappend ans [list setpath _LMFILES_ "$mp/space yd/2.10"]
+lappend ans [list set _LMFILES_ "$mp/space yd/2.10"]
+lappend ans [list set LOADEDMODULES "space yd/2.10"]
 testouterr_cmd sh {load space\ yd/2} $ans {}
 
 }

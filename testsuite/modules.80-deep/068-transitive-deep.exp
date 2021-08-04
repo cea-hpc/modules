@@ -449,15 +449,15 @@ for {set i 1} {$i <= 38} {incr i} {
 
     # setup clean environment
     unsetenv_loaded_module
-    unsetenv_path_var __MODULES_LMALTNAME
+    unsetenv_var __MODULES_LMALTNAME
 
     set ans [list]
-    lappend ans [list set testsuite "yes"]
-    lappend ans [list setpath LOADEDMODULES $module]
-    lappend ans [list setpath _LMFILES_ $modulefile]
     if {$modalt ne ""} {
-        lappend ans [list setpath __MODULES_LMALTNAME $modalt]
+        lappend ans [list set __MODULES_LMALTNAME $modalt]
     }
+    lappend ans [list set _LMFILES_ $modulefile]
+    lappend ans [list set LOADEDMODULES $module]
+    lappend ans [list set testsuite "yes"]
 
     set displayerr "$modwarnnl$disp_pre$modulefilere:\n\n$disp_wi$module$disp_post"
     set helperr "$modwarnnl$help_pre$modulefilere$help_post"
@@ -489,21 +489,21 @@ for {set i 1} {$i <= 38} {incr i} {
     # setup environment for unload action
     setenv_loaded_module $module $modulefile
     if {$modalt ne ""} {
-        setenv_path_var __MODULES_LMALTNAME $modalt
+        setenv_var __MODULES_LMALTNAME $modalt
     }
 
     set ans [list]
-    lappend ans [list unset testsuite]
-    lappend ans [list unsetpath LOADEDMODULES]
-    lappend ans [list unsetpath _LMFILES_]
     if {$modalt ne ""} {
-        lappend ans [list unsetpath __MODULES_LMALTNAME]
+        lappend ans [list unset __MODULES_LMALTNAME]
         # resolution warning is not triggered if alias/symbol are found through alternative names
         # except if we work on some distant deep alias case
         if {!$modforcewarn} {
             set modwarn ""
         }
     }
+    lappend ans [list unset _LMFILES_]
+    lappend ans [list unset LOADEDMODULES]
+    lappend ans [list unset testsuite]
 
     #FIXME: skip unload test for the time being, until deep alias resolution
     # set through different directory trees will be altname-ready

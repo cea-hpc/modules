@@ -54,16 +54,16 @@ testouterr_cmd sh {is-loaded variant@1.0 bar=2 foo=val2} ERR {}
 # test from modulefile
 setenv_var TESTSUITE_VARIANT info1
 set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/6.0&foo|val1|0|0&bar|1|0|0]
 lappend ans [list set TS1 {0 0 0 0 0 0 0 0 0 0 0 0 0 0}]
-lappend ans [list setpath LOADEDMODULES variant/6.0]
-lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
-lappend ans [list setpath __MODULES_LMVARIANT variant/6.0&foo|val1|0|0&bar|1|0|0]
+lappend ans [list set _LMFILES_ $mp/variant/6.0]
+lappend ans [list set LOADEDMODULES variant/6.0]
 testouterr_cmd sh {load variant/6.0 bar=1 foo=val1} $ans {}
 
 
 # load one module to test it
 setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
-setenv_path_var __MODULES_LMVARIANT variant/1.0&foo|val2|0|1&bar|2|0|0
+setenv_var __MODULES_LMVARIANT variant/1.0&foo|val2|0|1&bar|2|0|0
 
 testouterr_cmd sh {is-loaded variant} OK {}
 testouterr_cmd sh {is-loaded variant bar=2} OK {}
@@ -81,10 +81,10 @@ testouterr_cmd sh {is-loaded variant@1 bar=2 foo=val2} OK {}
 testouterr_cmd sh {is-loaded variant@1.0 bar=2 foo=val2} OK {}
 
 set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/1.0&foo|val2|0|1&bar|2|0|0:variant/6.0&foo|val1|0|0&bar|1|0|0]
 lappend ans [list set TS1 {1 1 0 1 0 0 0 1 1 1 1 0 1 1}]
-lappend ans [list setpath LOADEDMODULES variant/1.0:variant/6.0]
-lappend ans [list setpath _LMFILES_ $mp/variant/1.0:$mp/variant/6.0]
-lappend ans [list setpath __MODULES_LMVARIANT variant/1.0&foo|val2|0|1&bar|2|0|0:variant/6.0&foo|val1|0|0&bar|1|0|0]
+lappend ans [list set _LMFILES_ $mp/variant/1.0:$mp/variant/6.0]
+lappend ans [list set LOADEDMODULES variant/1.0:variant/6.0]
 testouterr_cmd_re sh {load variant/6.0 bar=1 foo=val1} $ans {}
 
 
@@ -94,7 +94,7 @@ testouterr_cmd_re sh {load variant/6.0 bar=1 foo=val1} $ans {}
 
 setenv_var TESTSUITE_VARIANT info2
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMVARIANT
+unsetenv_var __MODULES_LMVARIANT
 set tserr "$error_msgs: Unexpected number of args for 'info-loaded' command\n$err_typehelp"
 
 # test from command-line
@@ -111,16 +111,16 @@ testouterr_cmd sh {info-loaded variant/1.0\ bar=2} OK {}
 testouterr_cmd sh {info-loaded variant@1\ bar=2\ foo=val2} OK {}
 
 set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/6.0&foo|val1|0|0&bar|1|0|0]
 lappend ans [list set TS1 {::::::}]
-lappend ans [list setpath LOADEDMODULES variant/6.0]
-lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
-lappend ans [list setpath __MODULES_LMVARIANT variant/6.0&foo|val1|0|0&bar|1|0|0]
+lappend ans [list set _LMFILES_ $mp/variant/6.0]
+lappend ans [list set LOADEDMODULES variant/6.0]
 testouterr_cmd sh {load variant/6.0 bar=1 foo=val1} $ans {}
 
 
 # load one module to test it
 setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
-setenv_path_var __MODULES_LMVARIANT variant/1.0&foo|val2|0|1&bar|2|0|0
+setenv_var __MODULES_LMVARIANT variant/1.0&foo|val2|0|1&bar|2|0|0
 
 set ans [list [list text variant/1.0]]
 testouterr_cmd sh {info-loaded variant} $ans {}
@@ -136,10 +136,10 @@ testouterr_cmd sh {info-loaded variant/1.0\ bar=2} OK {}
 testouterr_cmd sh {info-loaded variant@1\ bar=2\ foo=val2} OK {}
 
 set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/1.0&foo|val2|0|1&bar|2|0|0:variant/6.0&foo|val1|0|0&bar|1|0|0]
 lappend ans [list set TS1 {variant/1.0:::variant/1.0:::}]
-lappend ans [list setpath LOADEDMODULES variant/1.0:variant/6.0]
-lappend ans [list setpath _LMFILES_ $mp/variant/1.0:$mp/variant/6.0]
-lappend ans [list setpath __MODULES_LMVARIANT variant/1.0&foo|val2|0|1&bar|2|0|0:variant/6.0&foo|val1|0|0&bar|1|0|0]
+lappend ans [list set _LMFILES_ $mp/variant/1.0:$mp/variant/6.0]
+lappend ans [list set LOADEDMODULES variant/1.0:variant/6.0]
 testouterr_cmd_re sh {load variant/6.0 bar=1 foo=val1} $ans {}
 
 
@@ -149,27 +149,27 @@ testouterr_cmd_re sh {load variant/6.0 bar=1 foo=val1} $ans {}
 
 setenv_var TESTSUITE_VARIANT info3
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMVARIANT
+unsetenv_var __MODULES_LMVARIANT
 setenv_var MODULES_IMPLICIT_DEFAULT 1
 
 # from command-line tests are covered by 70/370
 
 set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/6.0&foo|val1|0|0&bar|1|0|0]
 lappend ans [list set TS1 {1 1 1 1 1 1 1 1 1 1 1 1 1 1}]
-lappend ans [list setpath LOADEDMODULES variant/6.0]
-lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
-lappend ans [list setpath __MODULES_LMVARIANT variant/6.0&foo|val1|0|0&bar|1|0|0]
+lappend ans [list set _LMFILES_ $mp/variant/6.0]
+lappend ans [list set LOADEDMODULES variant/6.0]
 testouterr_cmd sh {load variant/6.0 bar=1 foo=val1} $ans {}
 
 # load one module (should not change result)
 setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
-setenv_path_var __MODULES_LMVARIANT variant/1.0&foo|val2|0|1&bar|2|0|0
+setenv_var __MODULES_LMVARIANT variant/1.0&foo|val2|0|1&bar|2|0|0
 
 set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/1.0&foo|val2|0|1&bar|2|0|0:variant/6.0&foo|val1|0|0&bar|1|0|0]
 lappend ans [list set TS1 {1 1 1 1 1 1 1 1 1 1 1 1 1 1}]
-lappend ans [list setpath LOADEDMODULES variant/1.0:variant/6.0]
-lappend ans [list setpath _LMFILES_ $mp/variant/1.0:$mp/variant/6.0]
-lappend ans [list setpath __MODULES_LMVARIANT variant/1.0&foo|val2|0|1&bar|2|0|0:variant/6.0&foo|val1|0|0&bar|1|0|0]
+lappend ans [list set _LMFILES_ $mp/variant/1.0:$mp/variant/6.0]
+lappend ans [list set LOADEDMODULES variant/1.0:variant/6.0]
 testouterr_cmd_re sh {load variant/6.0 bar=1 foo=val1} $ans {}
 
 unsetenv_var MODULES_IMPLICIT_DEFAULT
@@ -181,38 +181,38 @@ unsetenv_var MODULES_IMPLICIT_DEFAULT
 
 setenv_var TESTSUITE_VARIANT info4
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMVARIANT
+unsetenv_var __MODULES_LMVARIANT
 
 set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/6.0&foo|val1|0|0&bar|1|0|0]
 lappend ans [list set TS1 {t4}]
-lappend ans [list setpath LOADEDMODULES variant/6.0]
-lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
-lappend ans [list setpath __MODULES_LMVARIANT variant/6.0&foo|val1|0|0&bar|1|0|0]
-lappend ans [list setpath __MODULES_LMTAG variant/6.0&t4]
+lappend ans [list set _LMFILES_ $mp/variant/6.0]
+lappend ans [list set LOADEDMODULES variant/6.0]
+lappend ans [list set __MODULES_LMTAG variant/6.0&t4]
 testouterr_cmd sh {load variant/6.0 bar=1 foo=val1} $ans {}
 
 set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/6.0&foo|val1|0|0&bar|2|0|0]
 lappend ans [list set TS1 {t1 t2 t4}]
-lappend ans [list setpath LOADEDMODULES variant/6.0]
-lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
-lappend ans [list setpath __MODULES_LMVARIANT variant/6.0&foo|val1|0|0&bar|2|0|0]
-lappend ans [list setpath __MODULES_LMTAG variant/6.0&t1&t2&t4]
+lappend ans [list set _LMFILES_ $mp/variant/6.0]
+lappend ans [list set LOADEDMODULES variant/6.0]
+lappend ans [list set __MODULES_LMTAG variant/6.0&t1&t2&t4]
 testouterr_cmd sh {load variant/6.0 bar=2 foo=val1} $ans {}
 
 set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/6.0&foo|val2|0|1&bar|2|0|0]
 lappend ans [list set TS1 {t2 t3 t5}]
-lappend ans [list setpath LOADEDMODULES variant/6.0]
-lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
-lappend ans [list setpath __MODULES_LMVARIANT variant/6.0&foo|val2|0|1&bar|2|0|0]
-lappend ans [list setpath __MODULES_LMTAG variant/6.0&t2&t3&t5]
+lappend ans [list set _LMFILES_ $mp/variant/6.0]
+lappend ans [list set LOADEDMODULES variant/6.0]
+lappend ans [list set __MODULES_LMTAG variant/6.0&t2&t3&t5]
 testouterr_cmd sh {load variant/6.0 bar=2 foo=val2} $ans {}
 
 set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/6.0&foo|val2|0|2&bar|2|0|0]
 lappend ans [list set TS1 {t2 t3 t5}]
-lappend ans [list setpath LOADEDMODULES variant/6.0]
-lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
-lappend ans [list setpath __MODULES_LMVARIANT variant/6.0&foo|val2|0|2&bar|2|0|0]
-lappend ans [list setpath __MODULES_LMTAG variant/6.0&t2&t3&t5]
+lappend ans [list set _LMFILES_ $mp/variant/6.0]
+lappend ans [list set LOADEDMODULES variant/6.0]
+lappend ans [list set __MODULES_LMTAG variant/6.0&t2&t3&t5]
 testouterr_cmd sh {load variant/6.0 bar=2} $ans {}
 
 
@@ -223,17 +223,17 @@ testouterr_cmd sh {load variant/6.0 bar=2} $ans {}
 setenv_var TESTSUITE_VARIANT info5
 
 set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/6.0&foo|val1|0|0&bar|1|0|0]
 lappend ans [list set TS1 {variant/6.0 bar=1 foo=val1}]
-lappend ans [list setpath LOADEDMODULES variant/6.0]
-lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
-lappend ans [list setpath __MODULES_LMVARIANT variant/6.0&foo|val1|0|0&bar|1|0|0]
+lappend ans [list set _LMFILES_ $mp/variant/6.0]
+lappend ans [list set LOADEDMODULES variant/6.0]
 testouterr_cmd sh {load variant/6.0 bar=1 foo=val1} $ans {}
 
 set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/6.0&foo|val2|0|2&bar|2|0|0]
 lappend ans [list set TS1 {variant/6.0 bar=2}]
-lappend ans [list setpath LOADEDMODULES variant/6.0]
-lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
-lappend ans [list setpath __MODULES_LMVARIANT variant/6.0&foo|val2|0|2&bar|2|0|0]
+lappend ans [list set _LMFILES_ $mp/variant/6.0]
+lappend ans [list set LOADEDMODULES variant/6.0]
 testouterr_cmd sh {load variant/6.0 bar=2} $ans {}
 
 
@@ -244,26 +244,26 @@ testouterr_cmd sh {load variant/6.0 bar=2} $ans {}
 setenv_var TESTSUITE_VARIANT info6
 
 set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/6.0&foo|val2|0|2&bar|2|0|0]
 lappend ans [list set TS1 {variant/6.0}]
-lappend ans [list setpath LOADEDMODULES variant/6.0]
-lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
-lappend ans [list setpath __MODULES_LMVARIANT variant/6.0&foo|val2|0|2&bar|2|0|0]
+lappend ans [list set _LMFILES_ $mp/variant/6.0]
+lappend ans [list set LOADEDMODULES variant/6.0]
 testouterr_cmd sh {load variant/6.0 bar=2} $ans {}
 
 set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/6.0&foo|val3|0|0&bar|1|0|0]
 lappend ans [list set TS1 {variant/6.0}]
-lappend ans [list setpath LOADEDMODULES variant/6.0]
-lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
-lappend ans [list setpath __MODULES_LMVARIANT variant/6.0&foo|val3|0|0&bar|1|0|0]
+lappend ans [list set _LMFILES_ $mp/variant/6.0]
+lappend ans [list set LOADEDMODULES variant/6.0]
 testouterr_cmd sh {load variant/6.0 bar=1 foo=val3} $ans {}
 
 setenv_var MODULES_IMPLICIT_DEFAULT 1
 
 set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/6.0&foo|val3|0|0&bar|1|0|0]
 lappend ans [list set TS1 {variant/6.0}]
-lappend ans [list setpath LOADEDMODULES variant/6.0]
-lappend ans [list setpath _LMFILES_ $mp/variant/6.0]
-lappend ans [list setpath __MODULES_LMVARIANT variant/6.0&foo|val3|0|0&bar|1|0|0]
+lappend ans [list set _LMFILES_ $mp/variant/6.0]
+lappend ans [list set LOADEDMODULES variant/6.0]
 testouterr_cmd sh {load variant@6:6.3 bar=1 foo=val3} $ans {}
 
 unsetenv_var MODULES_IMPLICIT_DEFAULT

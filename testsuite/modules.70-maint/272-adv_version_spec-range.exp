@@ -104,9 +104,9 @@ testouterr_cmd sh {path extdfl7@10a:} $ans {}
 testouterr_cmd sh {path extdfl7@10g:} ERR "$err_rangevers'10g:'"
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/1.3.1]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.1]
-lappend ans [list setpath __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+lappend ans [list set __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+lappend ans [list set _LMFILES_ $mp/extdfl/1.3.1]
+lappend ans [list set LOADEDMODULES extdfl/1.3.1]
 testouterr_cmd sh {load extdfl@1.2.3:} $ans {}
 testouterr_cmd sh {load extdfl @1.2:} $ans {}
 testouterr_cmd sh {load extdfl @:1.3.1} $ans {}
@@ -121,9 +121,9 @@ testouterr_cmd sh {load extdfl @<2.0} ERR "$err_path'extdfl @<2.0'"
 testouterr_cmd sh {load extdfl @1.2<2} ERR "$err_path'extdfl @1.2<2'"
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/2.0.1]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/2.0.1]
-lappend ans [list setpath __MODULES_LMALTNAME extdfl/2.0.1&as|extdfl/latest]
+lappend ans [list set __MODULES_LMALTNAME extdfl/2.0.1&as|extdfl/latest]
+lappend ans [list set _LMFILES_ $mp/extdfl/2.0.1]
+lappend ans [list set LOADEDMODULES extdfl/2.0.1]
 testouterr_cmd sh {load extdfl @1.3.7:2.0.1} $ans {}
 testouterr_cmd sh {load extdfl @1.3.7:2.0} $ans {}
 testouterr_cmd sh {load extdfl @1.3.7:} $ans {}
@@ -133,21 +133,21 @@ testouterr_cmd sh {load extdfl/1@1.2.3:} ERR $err_path'extdfl/1@1.2.3:'
 testouterr_cmd sh {load extdfl/1 @:1.2.3} ERR "$err_path'extdfl/1 @:1.2.3'"
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/2.0.1:extdfl/1.4.5]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/2.0.1:$mp/extdfl/1.4.5]
-lappend ans [list setpath __MODULES_LMALTNAME extdfl/2.0.1&as|extdfl/latest]
+lappend ans [list set __MODULES_LMALTNAME extdfl/2.0.1&as|extdfl/latest]
+lappend ans [list set _LMFILES_ $mp/extdfl/2.0.1:$mp/extdfl/1.4.5]
+lappend ans [list set LOADEDMODULES extdfl/2.0.1:extdfl/1.4.5]
 testouterr_cmd_re sh {load extdfl@:1.3.7 @1.3.7: extdfl@1.3.7:1.4.5} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/2.0.1:extdfl2/3.1.7]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/2.0.1:$mp/extdfl2/3.1.7]
-lappend ans [list setpath __MODULES_LMALTNAME extdfl/2.0.1&as|extdfl/latest]
+lappend ans [list set __MODULES_LMALTNAME extdfl/2.0.1&as|extdfl/latest]
+lappend ans [list set _LMFILES_ $mp/extdfl/2.0.1:$mp/extdfl2/3.1.7]
+lappend ans [list set LOADEDMODULES extdfl/2.0.1:extdfl2/3.1.7]
 testouterr_cmd_re sh {load extdfl@1.3.7: extdfl2@3.0:3.1} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/2.0.1:extdfl2/3.10.2]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/2.0.1:$mp/extdfl2/3.10.2]
-lappend ans [list setpath __MODULES_LMALTNAME extdfl/2.0.1&as|extdfl/latest:extdfl2/3.10.2&as|extdfl2/default&as|extdfl2/latest]
+lappend ans [list set __MODULES_LMALTNAME extdfl/2.0.1&as|extdfl/latest:extdfl2/3.10.2&as|extdfl2/default&as|extdfl2/latest]
+lappend ans [list set _LMFILES_ $mp/extdfl/2.0.1:$mp/extdfl2/3.10.2]
+lappend ans [list set LOADEDMODULES extdfl/2.0.1:extdfl2/3.10.2]
 testouterr_cmd_re sh {load extdfl@1.1.10,1.3.7 @2: extdfl2 @3:} $ans {}
 
 # unconventional spec
@@ -285,23 +285,23 @@ if {![is_config_locked implicit_default]} {
 
 # test over existing module
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.1.7]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.7]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.1.7]
+lappend ans [list set LOADEDMODULES extdfl2/3.1.7]
 testouterr_cmd sh {load extdfl2@3.0.2:3.1.7} $ans {}
 testouterr_cmd sh {load extdfl2@:3.1.7} $ans {}
 testouterr_cmd sh {load extdfl2@:3.1.7} $ans {}
 testouterr_cmd sh "load $mp/extdfl2 @:3.1.7" ERR "$err_file'$mp/extdfl2 @:3.1.7'"
 testouterr_cmd sh "load $mp/extdfl2/3.1.7 @11:12" ERR "$err_file'$mp/extdfl2/3.1.7 @11:12'"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl3/1.1/3]
-lappend ans [list setpath _LMFILES_ $mp/extdfl3/1.1/3]
-lappend ans [list setpath __MODULES_LMALTNAME extdfl3/1.1/3&extdfl3/1.2&al|extdfl3/1.00&al|extdfl3/1.3/3&as|extdfl3/1.1/default&as|extdfl3/1.1/latest]
+lappend ans [list set __MODULES_LMALTNAME extdfl3/1.1/3&extdfl3/1.2&al|extdfl3/1.00&al|extdfl3/1.3/3&as|extdfl3/1.1/default&as|extdfl3/1.1/latest]
+lappend ans [list set _LMFILES_ $mp/extdfl3/1.1/3]
+lappend ans [list set LOADEDMODULES extdfl3/1.1/3]
 testouterr_cmd sh {load extdfl3@:1.1} $ans {}
 testouterr_cmd sh {unload extdfl2@:3.1.7} OK {}
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/1.3.1]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.1]
-lappend ans [list setpath __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+lappend ans [list set __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+lappend ans [list set _LMFILES_ $mp/extdfl/1.3.1]
+lappend ans [list set LOADEDMODULES extdfl/1.3.1]
 testouterr_cmd sh {load extdfl@:1.3.7} $ans {}
 
 # test over already loaded module
@@ -309,32 +309,32 @@ setenv_loaded_module [list extdfl2/3.1.7] [list $mp/extdfl2/3.1.7]
 testouterr_cmd sh {load extdfl2@:3.1.7} OK {}
 testouterr_cmd sh "load $mp/extdfl2 @:3.1.7" ERR "$err_file'$mp/extdfl2 @:3.1.7'"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.1.7:extdfl2/3.10.2]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl2/3.10.2]
-lappend ans [list setpath __MODULES_LMALTNAME extdfl2/3.10.2&as|extdfl2/default&as|extdfl2/latest]
+lappend ans [list set __MODULES_LMALTNAME extdfl2/3.10.2&as|extdfl2/default&as|extdfl2/latest]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl2/3.10.2]
+lappend ans [list set LOADEDMODULES extdfl2/3.1.7:extdfl2/3.10.2]
 testouterr_cmd_re sh {load extdfl2@3.1.7:} $ans {}
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload extdfl2@:3.1.7} $ans {}
 testouterr_cmd sh "unload $mp/extdfl2 @:3.1.7" OK {}
 testouterr_cmd sh {unload extdfl2@3.1.7:} $ans {}
 
 setenv_loaded_module [list extdfl/1.3.7] [list $mp/extdfl/1.3.7]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:extdfl/1.3.1]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl/1.3.1]
-lappend ans [list setpath __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+lappend ans [list set __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+lappend ans [list set _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl/1.3.1]
+lappend ans [list set LOADEDMODULES extdfl/1.3.7:extdfl/1.3.1]
 testouterr_cmd_re sh {load extdfl@1.2.3:1.3.7} $ans {}
 testouterr_cmd_re sh {load extdfl@:1.4.5} $ans {}
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:extdfl/2.0.1]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl/2.0.1]
-lappend ans [list setpath __MODULES_LMALTNAME extdfl/2.0.1&as|extdfl/latest]
+lappend ans [list set __MODULES_LMALTNAME extdfl/2.0.1&as|extdfl/latest]
+lappend ans [list set _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl/2.0.1]
+lappend ans [list set LOADEDMODULES extdfl/1.3.7:extdfl/2.0.1]
 testouterr_cmd_re sh {load extdfl@1.3.7:} $ans {}
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re sh {unload extdfl@1.3.1:1.3.7} $ans {}
 testouterr_cmd_re sh {unload extdfl@:1.4.5} $ans {}
 testouterr_cmd_re sh {unload extdfl@1.3.7:} $ans {}
@@ -351,9 +351,9 @@ testouterr_cmd sh {unload extdfl3/1.3@:5} $ans {}
 
 setenv_loaded_module [list $mp/extdfl2/3.1.7] [list $mp/extdfl2/3.1.7]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl3/1.3/4]
-lappend ans [list setpath _LMFILES_ $mp/extdfl3/1.3/4]
-lappend ans [list setpath __MODULES_LMALTNAME extdfl3/1.3/4&as|extdfl3/default&as|extdfl3/latest&as|extdfl3/1.3/default&as|extdfl3/1.3/latest]
+lappend ans [list set __MODULES_LMALTNAME extdfl3/1.3/4&as|extdfl3/default&as|extdfl3/latest&as|extdfl3/1.3/default&as|extdfl3/1.3/latest]
+lappend ans [list set _LMFILES_ $mp/extdfl3/1.3/4]
+lappend ans [list set LOADEDMODULES extdfl3/1.3/4]
 testouterr_cmd sh {switch extdfl2@3.0.0.0: extdfl3@0.9:} $ans {}
 unsetenv_loaded_module
 
@@ -413,9 +413,9 @@ setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 
 # test extended default enabled
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/2.0.1]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/2.0.1]
-lappend ans [list setpath __MODULES_LMALTNAME extdfl/2.0.1&as|extdfl/latest]
+lappend ans [list set __MODULES_LMALTNAME extdfl/2.0.1&as|extdfl/latest]
+lappend ans [list set _LMFILES_ $mp/extdfl/2.0.1]
+lappend ans [list set LOADEDMODULES extdfl/2.0.1]
 testouterr_cmd sh {load extdfl@1.4:} $ans {}
 setenv_var MODULES_EXTENDED_DEFAULT 1
 testouterr_cmd sh {load extdfl@1.4:} $ans {}
@@ -428,9 +428,9 @@ if {![is_config_locked implicit_default]} {
     # mixing an unexistent mod with a regular one will fail load when implicit default is disabled
     testouterr_cmd sh {load extdfl@1.4.3:} ERR $err_nodefault'extdfl@1.4.3:'
     set ans [list]
-    lappend ans [list setpath LOADEDMODULES extdfl/1.3.1]
-    lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.1]
-    lappend ans [list setpath __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+    lappend ans [list set __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+    lappend ans [list set _LMFILES_ $mp/extdfl/1.3.1]
+    lappend ans [list set LOADEDMODULES extdfl/1.3.1]
     testouterr_cmd sh {load extdfl@1.3:} $ans {}
     testouterr_cmd sh {load extdfl@:1.4} $ans {}
     testouterr_cmd sh {load extdfl @1:2} $ans {}
@@ -443,38 +443,38 @@ if {$is_filesystem_icase} {
 } else {
     # test icase
     set ans [list]
-    lappend ans [list setpath LOADEDMODULES extdfl/1.4.5]
-    lappend ans [list setpath _LMFILES_ $mp/extdfl/1.4.5]
+    lappend ans [list set _LMFILES_ $mp/extdfl/1.4.5]
+    lappend ans [list set LOADEDMODULES extdfl/1.4.5]
     testouterr_cmd sh {load -i extDfl@1.3.7:1.4.5} $ans {}
     set ans [list]
-    lappend ans [list setpath LOADEDMODULES extdfl2/2.rc.2]
-    lappend ans [list setpath _LMFILES_ $mp/extdfl2/2.rc.2]
+    lappend ans [list set _LMFILES_ $mp/extdfl2/2.rc.2]
+    lappend ans [list set LOADEDMODULES extdfl2/2.rc.2]
     testouterr_cmd sh {load -i extdfl2@2:2.rC} $ans {}
     set ans [list]
-    lappend ans [list setpath LOADEDMODULES icase3/1.2]
-    lappend ans [list setpath _LMFILES_ $mp/icase3/1.2]
-    lappend ans [list setpath __MODULES_LMALTNAME icase3/1.2&as|icase3/default&as|icase3/latest]
+    lappend ans [list set __MODULES_LMALTNAME icase3/1.2&as|icase3/default&as|icase3/latest]
+    lappend ans [list set _LMFILES_ $mp/icase3/1.2]
+    lappend ans [list set LOADEDMODULES icase3/1.2]
     testouterr_cmd sh {load -i icase3@1.1:1.4} $ans {}
     testouterr_cmd sh {load -i ICase3@:1.4} $ans {}
     testouterr_cmd sh {load -i icase3@:1.4} $ans {}
     set ans [list]
-    lappend ans [list setpath LOADEDMODULES iCaSe3/1.4]
-    lappend ans [list setpath _LMFILES_ $mp/iCaSe3/1.4]
-    lappend ans [list setpath __MODULES_LMALTNAME iCaSe3/1.4&as|iCaSe3/default&as|iCaSe3/latest]
+    lappend ans [list set __MODULES_LMALTNAME iCaSe3/1.4&as|iCaSe3/default&as|iCaSe3/latest]
+    lappend ans [list set _LMFILES_ $mp/iCaSe3/1.4]
+    lappend ans [list set LOADEDMODULES iCaSe3/1.4]
     testouterr_cmd sh {load -i iCaSe3@1.1:} $ans {}
     setenv_var MODULES_EXTENDED_DEFAULT 1
     testouterr_cmd sh {load -i iCaSe3@1.1:} $ans {}
     testouterr_cmd sh {load -i iCaSe3@1:2} $ans {}
     set ans [list]
-    lappend ans [list setpath LOADEDMODULES icase3/1.2]
-    lappend ans [list setpath _LMFILES_ $mp/icase3/1.2]
-    lappend ans [list setpath __MODULES_LMALTNAME icase3/1.2&as|icase3/default&as|icase3/latest]
+    lappend ans [list set __MODULES_LMALTNAME icase3/1.2&as|icase3/default&as|icase3/latest]
+    lappend ans [list set _LMFILES_ $mp/icase3/1.2]
+    lappend ans [list set LOADEDMODULES icase3/1.2]
     testouterr_cmd sh {load -i ICase3@1.2:} $ans {}
     testouterr_cmd sh {load -i ICase3@1:2} $ans {}
     setenv_var MODULES_EXTENDED_DEFAULT 0
     set ans [list]
-    lappend ans [list setpath LOADEDMODULES ICASE3/vers.1]
-    lappend ans [list setpath _LMFILES_ $mp/ICASE3/vers.1]
+    lappend ans [list set _LMFILES_ $mp/ICASE3/vers.1]
+    lappend ans [list set LOADEDMODULES ICASE3/vers.1]
     testouterr_cmd sh {load -i iCaSe3@vers.1:} ERR "$err_rangevers'vers.1:'"
     testouterr_cmd sh {load -i iCaSe3@:vErs.1} ERR "$err_rangevers':vErs.1'"
     testouterr_cmd sh {load -i ICASE3@vErs.1:VeRS.1} ERR "$err_rangevers'vErs.1:VeRS.1'"
@@ -482,18 +482,18 @@ if {$is_filesystem_icase} {
 
 # check effect over [module-info specified] call
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers/1.2]
-lappend ans [list setpath _LMFILES_ $mp/advvers/1.2]
+lappend ans [list set _LMFILES_ $mp/advvers/1.2]
+lappend ans [list set LOADEDMODULES advvers/1.2]
 lappend ans [list set ts advvers@:1.2]
 testouterr_cmd sh {load advvers@:1.2} $ans {}
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers/1.2]
-lappend ans [list setpath _LMFILES_ $mp/advvers/1.2]
+lappend ans [list set _LMFILES_ $mp/advvers/1.2]
+lappend ans [list set LOADEDMODULES advvers/1.2]
 lappend ans [list set ts "advvers @1.0:1.2"]
 testouterr_cmd sh {load advvers @1.0:1.2} $ans {}
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers/1.2]
-lappend ans [list setpath _LMFILES_ $mp/advvers/1.2]
+lappend ans [list set _LMFILES_ $mp/advvers/1.2]
+lappend ans [list set LOADEDMODULES advvers/1.2]
 lappend ans [list set ts "advvers@1.0.0:1.0.10 @1.1:1.2"]
 testouterr_cmd sh {load advvers@1.0.0:1.0.10 @1.1:1.2} $ans {}
 
@@ -504,24 +504,24 @@ testouterr_cmd sh {load advvers@1.0.0:1.0.10 @1.1:1.2} $ans {}
 
 # load prereq
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers7/1.0:advvers6/1.3]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/1.0:$mp/advvers6/1.3]
-lappend ans [list setpath __MODULES_LMTAG advvers7/1.0&auto-loaded]
-lappend ans [list setpath __MODULES_LMPREREQ advvers6/1.3&advvers7@<1.0]
+lappend ans [list set __MODULES_LMPREREQ advvers6/1.3&advvers7@<1.0]
+lappend ans [list set _LMFILES_ $mp/advvers7/1.0:$mp/advvers6/1.3]
+lappend ans [list set LOADEDMODULES advvers7/1.0:advvers6/1.3]
+lappend ans [list set __MODULES_LMTAG advvers7/1.0&auto-loaded]
 testouterr_cmd_re sh {load --auto advvers6@1.3} $ans [msg_top_load advvers6/1.3 {} advvers7/1.0 {}]
 
 # prereq already loaded
 setenv_loaded_module [list advvers7/1.0] [list $mp/advvers7/1.0]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers7/1.0:advvers6/1.3]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/1.0:$mp/advvers6/1.3]
-lappend ans [list setpath __MODULES_LMPREREQ advvers6/1.3&advvers7@<1.0]
+lappend ans [list set __MODULES_LMPREREQ advvers6/1.3&advvers7@<1.0]
+lappend ans [list set _LMFILES_ $mp/advvers7/1.0:$mp/advvers6/1.3]
+lappend ans [list set LOADEDMODULES advvers7/1.0:advvers6/1.3]
 testouterr_cmd_re sh {load --auto advvers6@1.3} $ans {}
 setenv_loaded_module [list advvers7/0.9] [list $mp/advvers7/0.9]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers7/0.9:advvers6/1.3]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/0.9:$mp/advvers6/1.3]
-lappend ans [list setpath __MODULES_LMPREREQ advvers6/1.3&advvers7@<1.0]
+lappend ans [list set __MODULES_LMPREREQ advvers6/1.3&advvers7@<1.0]
+lappend ans [list set _LMFILES_ $mp/advvers7/0.9:$mp/advvers6/1.3]
+lappend ans [list set LOADEDMODULES advvers7/0.9:advvers6/1.3]
 testouterr_cmd_re sh {load --auto advvers6@1.3} $ans {}
 unsetenv_loaded_module
 
@@ -535,10 +535,10 @@ setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 
 # prereq requires loading module
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers7/1.1:advvers6/1.4]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/1.1:$mp/advvers6/1.4]
-lappend ans [list setpath __MODULES_LMTAG advvers7/1.1&auto-loaded]
-lappend ans [list setpath __MODULES_LMPREREQ "advvers7/1.1&advvers6 @1.3<1.4:advvers6/1.4&advvers7 @1.0<1.1"]
+lappend ans [list set __MODULES_LMPREREQ "advvers7/1.1&advvers6 @1.3<1.4:advvers6/1.4&advvers7 @1.0<1.1"]
+lappend ans [list set _LMFILES_ $mp/advvers7/1.1:$mp/advvers6/1.4]
+lappend ans [list set LOADEDMODULES advvers7/1.1:advvers6/1.4]
+lappend ans [list set __MODULES_LMTAG advvers7/1.1&auto-loaded]
 testouterr_cmd_re sh {load --auto advvers6@1.4} $ans [msg_top_load advvers6/1.4 {} advvers7/1.1 {}]
 
 # prereq not loaded
@@ -547,45 +547,45 @@ testouterr_cmd_re sh {load --no-auto advvers6@1.4} ERR [msg_load advvers6/1.4 [e
 
 # load module by-pass its prereq
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers6/1.3]
-lappend ans [list setpath _LMFILES_ $mp/advvers6/1.3]
-lappend ans [list setpath __MODULES_LMPREREQ advvers6/1.3&advvers7@<1.0]
+lappend ans [list set __MODULES_LMPREREQ advvers6/1.3&advvers7@<1.0]
+lappend ans [list set _LMFILES_ $mp/advvers6/1.3]
+lappend ans [list set LOADEDMODULES advvers6/1.3]
 testouterr_cmd_re sh {load --no-auto --force advvers6@1.3} $ans [msg_load advvers6/1.3 [err_reqmisf advvers7@:1.0]]
 
 # then load missing prereq
 setenv_loaded_module [list advvers6/1.3] [list $mp/advvers6/1.3]
-setenv_path_var __MODULES_LMPREREQ advvers6/1.3&advvers7@<1.0
+setenv_var __MODULES_LMPREREQ advvers6/1.3&advvers7@<1.0
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers7/1.0:advvers6/1.3]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/1.0:$mp/advvers6/1.3]
-lappend ans [list setpath __MODULES_LMPREREQ advvers6/1.3&advvers7@<1.0]
+lappend ans [list set __MODULES_LMPREREQ advvers6/1.3&advvers7@<1.0]
+lappend ans [list set _LMFILES_ $mp/advvers7/1.0:$mp/advvers6/1.3]
+lappend ans [list set LOADEDMODULES advvers7/1.0:advvers6/1.3]
 testouterr_cmd_re sh {load --auto advvers7@1.0} $ans [msg_top_load advvers7/1.0 {} {} advvers6/1.3]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers7/0.9:advvers6/1.3]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/0.9:$mp/advvers6/1.3]
-lappend ans [list setpath __MODULES_LMPREREQ advvers6/1.3&advvers7@<1.0]
+lappend ans [list set __MODULES_LMPREREQ advvers6/1.3&advvers7@<1.0]
+lappend ans [list set _LMFILES_ $mp/advvers7/0.9:$mp/advvers6/1.3]
+lappend ans [list set LOADEDMODULES advvers7/0.9:advvers6/1.3]
 testouterr_cmd_re sh {load --auto advvers7@0.9} $ans [msg_top_load advvers7/0.9 {} {} advvers6/1.3]
 # with adv_version_spec disabled
 setenv_var MODULES_ADVANCED_VERSION_SPEC 0
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers6/1.3:advvers7/1.0]
-lappend ans [list setpath _LMFILES_ $mp/advvers6/1.3:$mp/advvers7/1.0]
+lappend ans [list set _LMFILES_ $mp/advvers6/1.3:$mp/advvers7/1.0]
+lappend ans [list set LOADEDMODULES advvers6/1.3:advvers7/1.0]
 testouterr_cmd_re sh {load --auto advvers7/1.0} $ans {}
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMPREREQ
 
 # prereq fails to load
 testouterr_cmd sh {load --auto advvers7@1.2} ERR [msg_load advvers6/1.5.2 $err_evalabort]\n\n[msg_load advvers7/1.2 [err_reqlo advvers6@:1.5.2]]
 
 # unload module and its auto loaded requirement (UReqUn)
 setenv_loaded_module [list advvers7/1.0 advvers6/1.3] [list $mp/advvers7/1.0 $mp/advvers6/1.3] [list advvers7/1.0]
-setenv_path_var __MODULES_LMPREREQ advvers6/1.3&advvers7@<1.0
+setenv_var __MODULES_LMPREREQ advvers6/1.3&advvers7@<1.0
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMTAG]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 testouterr_cmd sh {unload --auto advvers6@1.3} $ans [msg_top_unload advvers6/1.3 {} advvers7/1.0 {}]
 
 # unload prereq in auto mode
@@ -597,97 +597,97 @@ testouterr_cmd_re sh {unload --no-auto advvers7@1.0} ERR [msg_unload advvers7/1.
 # with adv_version_spec disabled
 setenv_var MODULES_ADVANCED_VERSION_SPEC 0
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers7/1.0]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/1.0]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/advvers7/1.0]
+lappend ans [list set LOADEDMODULES advvers7/1.0]
 testouterr_cmd sh {unload --auto advvers6/1.3} $ans {}
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 
 # force prereq unload
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers6/1.3]
-lappend ans [list setpath _LMFILES_ $mp/advvers6/1.3]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list set _LMFILES_ $mp/advvers6/1.3]
+lappend ans [list set LOADEDMODULES advvers6/1.3]
+lappend ans [list unset __MODULES_LMTAG]
 testouterr_cmd_re sh {unload --force --no-auto advvers7@1.0} $ans [msg_unload advvers7/1.0 [err_deplof advvers6/1.3]]
 
 # test with alternative prereq
 setenv_loaded_module [list advvers7/0.9 advvers6/1.3] [list $mp/advvers7/0.9 $mp/advvers6/1.3] [list advvers7/0.9]
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMTAG]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 testouterr_cmd sh {unload --auto advvers6@1.3} $ans [msg_top_unload advvers6/1.3 {} advvers7/0.9 {}]
 testouterr_cmd_re sh {unload --auto advvers7@0.9} $ans [msg_top_unload advvers7/0.9 advvers6/1.3 {} {}]
 testouterr_cmd_re sh {unload --no-auto advvers7@0.9} ERR [msg_unload advvers7/0.9 [err_prerequn advvers6/1.3]]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers6/1.3]
-lappend ans [list setpath _LMFILES_ $mp/advvers6/1.3]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list set _LMFILES_ $mp/advvers6/1.3]
+lappend ans [list set LOADEDMODULES advvers6/1.3]
+lappend ans [list unset __MODULES_LMTAG]
 testouterr_cmd_re sh {unload --force --no-auto advvers7@0.9} $ans [msg_unload advvers7/0.9 [err_deplof advvers6/1.3]]
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMPREREQ
 
 # prereq with list of modules
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers6/1.2:advvers7/1.3.1]
-lappend ans [list setpath _LMFILES_ $mp/advvers6/1.2:$mp/advvers7/1.3.1]
-lappend ans [list setpath __MODULES_LMPREREQ "advvers7/1.3.1&advvers6 @1.1<1.2|advvers6@1.4< @<1.6"]
+lappend ans [list set __MODULES_LMPREREQ "advvers7/1.3.1&advvers6 @1.1<1.2|advvers6@1.4< @<1.6"]
+lappend ans [list set _LMFILES_ $mp/advvers6/1.2:$mp/advvers7/1.3.1]
+lappend ans [list set LOADEDMODULES advvers6/1.2:advvers7/1.3.1]
+lappend ans [list set __MODULES_LMTAG advvers6/1.2&auto-loaded]
 lappend ans [list set ts "advvers6 @1.1:1.2"]
-lappend ans [list setpath __MODULES_LMTAG advvers6/1.2&auto-loaded]
 testouterr_cmd_re sh {load --auto advvers7@1.3.1} $ans [msg_top_load advvers7/1.3.1 {} advvers6/1.2 {}]
 setenv_loaded_module [list advvers6/1.6] [list $mp/advvers6/1.6]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers6/1.6:advvers7/1.3.1]
-lappend ans [list setpath _LMFILES_ $mp/advvers6/1.6:$mp/advvers7/1.3.1]
-lappend ans [list setpath __MODULES_LMPREREQ "advvers7/1.3.1&advvers6 @1.1<1.2|advvers6@1.4< @<1.6"]
+lappend ans [list set __MODULES_LMPREREQ "advvers7/1.3.1&advvers6 @1.1<1.2|advvers6@1.4< @<1.6"]
+lappend ans [list set _LMFILES_ $mp/advvers6/1.6:$mp/advvers7/1.3.1]
+lappend ans [list set LOADEDMODULES advvers6/1.6:advvers7/1.3.1]
 testouterr_cmd_re sh {load --auto advvers7@1.3.1} $ans {}
 unsetenv_loaded_module
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers6/1.6:advvers7/1.3.2]
-lappend ans [list setpath _LMFILES_ $mp/advvers6/1.6:$mp/advvers7/1.3.2]
-lappend ans [list setpath __MODULES_LMPREREQ "advvers7/1.3.2&advvers6 @<1.5.1|advvers6@1.4< @<1.6"]
-lappend ans [list setpath __MODULES_LMTAG advvers6/1.6&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ "advvers7/1.3.2&advvers6 @<1.5.1|advvers6@1.4< @<1.6"]
+lappend ans [list set _LMFILES_ $mp/advvers6/1.6:$mp/advvers7/1.3.2]
+lappend ans [list set LOADEDMODULES advvers6/1.6:advvers7/1.3.2]
+lappend ans [list set __MODULES_LMTAG advvers6/1.6&auto-loaded]
 lappend ans [list ERR]
 testouterr_cmd_re sh {load --auto advvers7@1.3.2} $ans [msg_top_load advvers7/1.3.2 {} advvers6/1.6 {}]
 
 # requirement expressed with @major:major.minor (check if >major.minor versions are avoided)
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/3.9.2:advvers6/3.0]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.9.2:$mp/advvers6/3.0]
-lappend ans [list setpath __MODULES_LMPREREQ "advvers6/3.0&extdfl2@3<3.9"]
-lappend ans [list setpath __MODULES_LMTAG extdfl2/3.9.2&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ "advvers6/3.0&extdfl2@3<3.9"]
+lappend ans [list set _LMFILES_ $mp/extdfl2/3.9.2:$mp/advvers6/3.0]
+lappend ans [list set LOADEDMODULES extdfl2/3.9.2:advvers6/3.0]
+lappend ans [list set __MODULES_LMTAG extdfl2/3.9.2&auto-loaded]
 testouterr_cmd_re sh {load --auto advvers6@3.0} $ans [msg_top_load advvers6/3.0 {} extdfl2/3.9.2 {}]
 
 # test major version number mixing alpha and numerical characters
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl7/9.1:advvers6/3.1]
-lappend ans [list setpath _LMFILES_ $mp/extdfl7/7.0:$mp/advvers6/3.1]
-lappend ans [list setpath __MODULES_LMPREREQ "advvers6/3.1&extdfl7@<10"]
-lappend ans [list setpath __MODULES_LMTAG extdfl7/9.1&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ "advvers6/3.1&extdfl7@<10"]
+lappend ans [list set _LMFILES_ $mp/extdfl7/7.0:$mp/advvers6/3.1]
+lappend ans [list set LOADEDMODULES extdfl7/9.1:advvers6/3.1]
+lappend ans [list set __MODULES_LMTAG extdfl7/9.1&auto-loaded]
 testouterr_cmd_re sh {load --auto advvers6@3.1} $ans [msg_top_load advvers6/3.1 {} extdfl7/9.1 {}]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl7/10a:advvers6/3.2]
-lappend ans [list setpath _LMFILES_ $mp/extdfl7/10a:$mp/advvers6/3.2]
-lappend ans [list setpath __MODULES_LMPREREQ "advvers6/3.2&extdfl7@<11"]
-lappend ans [list setpath __MODULES_LMTAG extdfl7/10a&auto-loaded]
-lappend ans [list setpath __MODULES_LMALTNAME advvers6/3.2&as|advvers6/default&as|advvers6/latest]
+lappend ans [list set __MODULES_LMALTNAME advvers6/3.2&as|advvers6/default&as|advvers6/latest]
+lappend ans [list set __MODULES_LMPREREQ "advvers6/3.2&extdfl7@<11"]
+lappend ans [list set _LMFILES_ $mp/extdfl7/10a:$mp/advvers6/3.2]
+lappend ans [list set LOADEDMODULES extdfl7/10a:advvers6/3.2]
+lappend ans [list set __MODULES_LMTAG extdfl7/10a&auto-loaded]
 testouterr_cmd_re sh {load --auto advvers6@3.2} $ans [msg_top_load advvers6/3.2 {} extdfl7/10a {}]
 
 
 # conflict not loaded
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers7/3.0]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/3.0]
-lappend ans [list setpath __MODULES_LMCONFLICT "advvers7/3.0&advvers6 @1.0<1.6"]
+lappend ans [list set __MODULES_LMCONFLICT "advvers7/3.0&advvers6 @1.0<1.6"]
+lappend ans [list set _LMFILES_ $mp/advvers7/3.0]
+lappend ans [list set LOADEDMODULES advvers7/3.0]
 testouterr_cmd sh {load advvers7@3.0} $ans {}
 
 # conflict loaded
 setenv_loaded_module [list advvers7/3.0] [list $mp/advvers7/3.0]
-setenv_path_var __MODULES_LMCONFLICT "advvers7/3.0&advvers6 @1.1<1.6"
+setenv_var __MODULES_LMCONFLICT "advvers7/3.0&advvers6 @1.1<1.6"
 testouterr_cmd sh {load advvers6@1.6} ERR [msg_load advvers6/1.6 [err_conflict advvers7/3.0]]
 testouterr_cmd sh {load advvers6@1.2} ERR [msg_load advvers6/1.2 [err_conflict advvers7/3.0]]
-unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMCONFLICT
 setenv_loaded_module [list advvers6/1.6] [list $mp/advvers6/1.6]
 testouterr_cmd sh {load advvers7@3.0} ERR [msg_load advvers7/3.0 [err_conflict advvers6 @1.0:1.6]]
 setenv_loaded_module [list advvers6/1.2] [list $mp/advvers6/1.2]
@@ -695,67 +695,67 @@ testouterr_cmd sh {load advvers7@3.0} ERR [msg_load advvers7/3.0 [err_conflict a
 
 # conflict loaded with advanced_version_spec disabled
 setenv_loaded_module [list advvers7/3.0] [list $mp/advvers7/3.0]
-setenv_path_var __MODULES_LMCONFLICT "advvers7/3.0&advvers6 @1.1<1.6"
+setenv_var __MODULES_LMCONFLICT "advvers7/3.0&advvers6 @1.1<1.6"
 setenv_var MODULES_ADVANCED_VERSION_SPEC 0
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers7/3.0:advvers6/1.6]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/3.0:$mp/advvers6/1.6]
+lappend ans [list set _LMFILES_ $mp/advvers7/3.0:$mp/advvers6/1.6]
+lappend ans [list set LOADEDMODULES advvers7/3.0:advvers6/1.6]
 testouterr_cmd_re sh {load advvers6/1.6} $ans {}
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
-unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMCONFLICT
 
 # conflict loaded but conflicting module load forced
 setenv_loaded_module [list advvers6/1.6] [list $mp/advvers6/1.6]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers6/1.6:advvers7/3.0]
-lappend ans [list setpath _LMFILES_ $mp/advvers6/1.6:$mp/advvers7/3.0]
-lappend ans [list setpath __MODULES_LMCONFLICT "advvers7/3.0&advvers6 @1.0<1.6"]
+lappend ans [list set __MODULES_LMCONFLICT "advvers7/3.0&advvers6 @1.0<1.6"]
+lappend ans [list set _LMFILES_ $mp/advvers6/1.6:$mp/advvers7/3.0]
+lappend ans [list set LOADEDMODULES advvers6/1.6:advvers7/3.0]
 testouterr_cmd_re sh {load --force advvers7@3.0} $ans [msg_load advvers7/3.0 [err_conlof advvers6@1.0:1.6]]
 setenv_loaded_module [list advvers6/1.2] [list $mp/advvers6/1.2]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers6/1.2:advvers7/3.0]
-lappend ans [list setpath _LMFILES_ $mp/advvers6/1.2:$mp/advvers7/3.0]
-lappend ans [list setpath __MODULES_LMCONFLICT "advvers7/3.0&advvers6 @1.0<1.6"]
+lappend ans [list set __MODULES_LMCONFLICT "advvers7/3.0&advvers6 @1.0<1.6"]
+lappend ans [list set _LMFILES_ $mp/advvers6/1.2:$mp/advvers7/3.0]
+lappend ans [list set LOADEDMODULES advvers6/1.2:advvers7/3.0]
 testouterr_cmd_re sh {load --force advvers7@3.0} $ans [msg_load advvers7/3.0 [err_conlof advvers6@1.0:1.6]]
 
 # then unload conflict
 setenv_loaded_module [list advvers6/1.6 advvers7/3.0] [list $mp/advvers6/1.6 $mp/advvers7/3.0]
-setenv_path_var __MODULES_LMCONFLICT "advvers7/3.0&advvers6 @1.0<1.6"
+setenv_var __MODULES_LMCONFLICT "advvers7/3.0&advvers6 @1.0<1.6"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers7/3.0]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/3.0]
-lappend ans [list setpath __MODULES_LMCONFLICT "advvers7/3.0&advvers6 @1.0<1.6"]
+lappend ans [list set __MODULES_LMCONFLICT "advvers7/3.0&advvers6 @1.0<1.6"]
+lappend ans [list set _LMFILES_ $mp/advvers7/3.0]
+lappend ans [list set LOADEDMODULES advvers7/3.0]
 testouterr_cmd sh {unload --auto advvers6@1.6} $ans [msg_top_unload advvers6/1.6 {} {} advvers7/3.0]
 setenv_loaded_module [list advvers6/1.6 advvers6/1.2 advvers7/3.0] [list $mp/advvers6/1.6 $mp/advvers6/1.2 $mp/advvers7/3.0]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers6/1.6:advvers7/3.0]
-lappend ans [list setpath _LMFILES_ $mp/advvers6/1.6:$mp/advvers7/3.0]
+lappend ans [list set _LMFILES_ $mp/advvers6/1.6:$mp/advvers7/3.0]
+lappend ans [list set LOADEDMODULES advvers6/1.6:advvers7/3.0]
 lappend ans [list unset ts]
 testouterr_cmd_re sh {unload --auto advvers6@1.2} $ans {}
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers6/1.2:advvers7/3.0]
-lappend ans [list setpath _LMFILES_ $mp/advvers6/1.2:$mp/advvers7/3.0]
+lappend ans [list set _LMFILES_ $mp/advvers6/1.2:$mp/advvers7/3.0]
+lappend ans [list set LOADEDMODULES advvers6/1.2:advvers7/3.0]
 testouterr_cmd_re sh {unload --auto advvers6@1.6} $ans {}
 # lastly loaded unload
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers6/1.6:advvers7/3.0]
-lappend ans [list setpath _LMFILES_ $mp/advvers6/1.6:$mp/advvers7/3.0]
+lappend ans [list set _LMFILES_ $mp/advvers6/1.6:$mp/advvers7/3.0]
+lappend ans [list set LOADEDMODULES advvers6/1.6:advvers7/3.0]
 lappend ans [list unset ts]
 testouterr_cmd_re sh {unload --auto advvers6@1.2:1.6} $ans {}
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers7/3.0]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/3.0]
-lappend ans [list setpath __MODULES_LMCONFLICT "advvers7/3.0&advvers6 @1.0<1.6"]
+lappend ans [list set __MODULES_LMCONFLICT "advvers7/3.0&advvers6 @1.0<1.6"]
+lappend ans [list set _LMFILES_ $mp/advvers7/3.0]
+lappend ans [list set LOADEDMODULES advvers7/3.0]
 lappend ans [list unset ts]
 testouterr_cmd_re sh {unload --auto advvers6@1.6 advvers6@1.2} $ans [msg_top_unload advvers6/1.2 {} {} advvers7/3.0]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers7/3.0]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/3.0]
+lappend ans [list set __MODULES_LMCONFLICT "advvers7/3.0&advvers6 @1.0<1.6"]
+lappend ans [list set _LMFILES_ $mp/advvers7/3.0]
+lappend ans [list set LOADEDMODULES advvers7/3.0]
 lappend ans [list unset ts]
-lappend ans [list setpath __MODULES_LMCONFLICT "advvers7/3.0&advvers6 @1.0<1.6"]
 testouterr_cmd_re sh {unload --auto advvers6@1.2 advvers6@1.6} $ans [msg_top_unload advvers6/1.6 {} {} advvers7/3.0]
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMCONFLICT
 
 # loading module raise conflict
 testouterr_cmd_re sh {load --auto advvers7@3.1} ERR [msg_load advvers6/1.7 [err_conloi advvers7@:3.1]]\n\n[msg_load advvers7/3.1 [err_reqlo advvers6@1.6:1.7]]
@@ -763,9 +763,9 @@ testouterr_cmd_re sh {load --auto advvers7@3.1} ERR [msg_load advvers6/1.7 [err_
 # conflict loaded but successful attempt to unload it
 setenv_loaded_module [list advvers6/1.6] [list $mp/advvers6/1.6]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers7/3.2]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/3.2]
-lappend ans [list setpath __MODULES_LMCONFLICT "advvers7/3.2&advvers6@1.6<1.7&advvers6 @<1.8"]
+lappend ans [list set __MODULES_LMCONFLICT "advvers7/3.2&advvers6@1.6<1.7&advvers6 @<1.8"]
+lappend ans [list set _LMFILES_ $mp/advvers7/3.2]
+lappend ans [list set LOADEDMODULES advvers7/3.2]
 testouterr_cmd sh {load --auto advvers7 @3.2} $ans [msg_top_load advvers7/3.2 advvers6/1.6 {} {}]
 
 # conflict loaded but failed attempt to unload it
@@ -775,100 +775,100 @@ unsetenv_loaded_module
 
 # conflict with list of modules
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers7/3.3]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/3.3]
-lappend ans [list setpath __MODULES_LMCONFLICT "advvers7/3.3&advvers6@<1.6&advvers6 @1.6<1.8&advvers6 @1.5.1 @<1.7"]
+lappend ans [list set __MODULES_LMCONFLICT "advvers7/3.3&advvers6@<1.6&advvers6 @1.6<1.8&advvers6 @1.5.1 @<1.7"]
+lappend ans [list set _LMFILES_ $mp/advvers7/3.3]
+lappend ans [list set LOADEDMODULES advvers7/3.3]
 testouterr_cmd sh {load --auto advvers7 @3.3} $ans {}
 setenv_loaded_module [list advvers6/1.7] [list $mp/advvers6/1.7]
 testouterr_cmd sh {load --auto advvers7 @3.3} ERR [msg_load advvers7/3.3 [err_conflict advvers6 @1.6:1.8]]
 setenv_loaded_module [list advvers7/3.3] [list $mp/advvers6/3.3]
-setenv_path_var __MODULES_LMCONFLICT "advvers7/3.3&advvers6@<1.6&advvers6 @1.6<1.8&advvers6 @1.5.1 @<1.7"
+setenv_var __MODULES_LMCONFLICT "advvers7/3.3&advvers6@<1.6&advvers6 @1.6<1.8&advvers6 @1.5.1 @<1.7"
 testouterr_cmd sh {load --auto advvers6@1.7} ERR [msg_load advvers6/1.7 [err_conflict advvers7/3.3]]
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMCONFLICT
 
 # check cyclic dependencies
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers7/4.2:advvers7/4.1:advvers7/4.0]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/4.2:$mp/advvers7/4.1:$mp/advvers7/4.0]
-lappend ans [list setpath __MODULES_LMPREREQ advvers7/4.2&advvers7@<4.0:advvers7/4.1&advvers7@4.2<4.90:advvers7/4.0&advvers7@4.0.10<4.1]
-lappend ans [list setpath __MODULES_LMTAG advvers7/4.2&auto-loaded:advvers7/4.1&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ advvers7/4.2&advvers7@<4.0:advvers7/4.1&advvers7@4.2<4.90:advvers7/4.0&advvers7@4.0.10<4.1]
+lappend ans [list set _LMFILES_ $mp/advvers7/4.2:$mp/advvers7/4.1:$mp/advvers7/4.0]
+lappend ans [list set LOADEDMODULES advvers7/4.2:advvers7/4.1:advvers7/4.0]
+lappend ans [list set __MODULES_LMTAG advvers7/4.2&auto-loaded:advvers7/4.1&auto-loaded]
 testouterr_cmd_re sh {load --auto advvers7@4.0} $ans [msg_top_load advvers7/4.0 {} [list advvers7/4.2 advvers7/4.1] {}]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers7/4.0:advvers7/4.2:advvers7/4.1]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/4.0:$mp/advvers7/4.2:$mp/advvers7/4.1]
-lappend ans [list setpath __MODULES_LMPREREQ advvers7/4.0&advvers7@4.0.10<4.1:advvers7/4.2&advvers7@<4.0:advvers7/4.1&advvers7@4.2<4.90]
-lappend ans [list setpath __MODULES_LMTAG advvers7/4.0&auto-loaded:advvers7/4.2&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ advvers7/4.0&advvers7@4.0.10<4.1:advvers7/4.2&advvers7@<4.0:advvers7/4.1&advvers7@4.2<4.90]
+lappend ans [list set _LMFILES_ $mp/advvers7/4.0:$mp/advvers7/4.2:$mp/advvers7/4.1]
+lappend ans [list set LOADEDMODULES advvers7/4.0:advvers7/4.2:advvers7/4.1]
+lappend ans [list set __MODULES_LMTAG advvers7/4.0&auto-loaded:advvers7/4.2&auto-loaded]
 testouterr_cmd_re sh {load --auto advvers7@4.1} $ans [msg_top_load advvers7/4.1 {} [list advvers7/4.0 advvers7/4.2] {}]
 setenv_loaded_module [list advvers7/4.2 advvers7/4.1 advvers7/4.0] [list $mp/advvers7/4.2 $mp/advvers7/4.1 $mp/advvers7/4.0] [list advvers7/4.2 advvers7/4.1]
-setenv_path_var __MODULES_LMPREREQ advvers7/4.2&advvers7@<4.0:advvers7/4.1&advvers7@4.2<4.90:advvers7/4.0&advvers7@4.0.10<4.1
+setenv_var __MODULES_LMPREREQ advvers7/4.2&advvers7@<4.0:advvers7/4.1&advvers7@4.2<4.90:advvers7/4.0&advvers7@4.0.10<4.1
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 testouterr_cmd_re sh {unload --auto advvers7@4.1} $ans [msg_top_unload advvers7/4.1 advvers7/4.0 advvers7/4.2 {}]
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMPREREQ
 
 # prereq and conflict complex unload situation
 setenv_loaded_module [list advvers7/5.0 advvers7/5.1 advvers7/5.2 advvers7/5.3] [list $mp/advvers7/5.0 $mp/advvers7/5.1 $mp/advvers7/5.2 $mp/advvers7/5.3] [list advvers7/5.0 advvers7/5.1]
-setenv_path_var __MODULES_LMPREREQ "advvers7/5.2&advvers7 @<5.1" "advvers7/5.1&advvers7@<5.0"
-setenv_path_var __MODULES_LMCONFLICT "advvers7/5.3&advvers7 @5.0<5.1"
+setenv_var __MODULES_LMPREREQ "advvers7/5.2&advvers7 @<5.1:advvers7/5.1&advvers7@<5.0"
+setenv_var __MODULES_LMCONFLICT "advvers7/5.3&advvers7 @5.0<5.1"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers7/5.3]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/5.3]
-lappend ans [list setpath __MODULES_LMCONFLICT "advvers7/5.3&advvers7 @5.0<5.1"]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list set __MODULES_LMCONFLICT "advvers7/5.3&advvers7 @5.0<5.1"]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/advvers7/5.3]
+lappend ans [list set LOADEDMODULES advvers7/5.3]
+lappend ans [list unset __MODULES_LMTAG]
 testouterr_cmd_re sh {unload --auto advvers7@5.2} $ans [msg_top_unload advvers7/5.2 {} [list advvers7/5.1 advvers7/5.0] advvers7/5.3]
 
 # prereq and conflict complex load situation
 setenv_loaded_module [list advvers7/5.1 advvers7/5.2 advvers7/5.3] [list $mp/advvers7/5.1 $mp/advvers7/5.2 $mp/advvers7/5.3] [list advvers7/5.1]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers7/5.1:advvers7/5.2:advvers7/5.3:advvers7/5.0]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/5.1:$mp/advvers7/5.2:$mp/advvers7/5.3:$mp/advvers7/5.0]
+lappend ans [list set _LMFILES_ $mp/advvers7/5.1:$mp/advvers7/5.2:$mp/advvers7/5.3:$mp/advvers7/5.0]
+lappend ans [list set LOADEDMODULES advvers7/5.1:advvers7/5.2:advvers7/5.3:advvers7/5.0]
 testouterr_cmd_re sh {load --force --auto advvers7@5.0} $ans [msg_load advvers7/5.0 [err_conlof advvers7/5.3]]
 
-setenv_path_var __MODULES_LMCONFLICT "advvers7/5.3&advvers7 @5.0<5.1:advvers7/5.2&advvers7 @<5.0"
+setenv_var __MODULES_LMCONFLICT "advvers7/5.3&advvers7 @5.0<5.1:advvers7/5.2&advvers7 @<5.0"
 testouterr_cmd_re sh {load --force --auto advvers7@5.0} $ans [msg_load advvers7/5.0 [err_conlof advvers7/5.2 advvers7/5.3]]
 
 # another set with more complex prereq definition
 setenv_loaded_module [list advvers7/6.0 advvers7/6.1 advvers7/6.2 advvers7/6.3 advvers7/6.5 advvers7/6.4 advvers7/6.7 advvers7/6.6] [list $mp/advvers7/6.0 $mp/advvers7/6.1 $mp/advvers7/6.2 $mp/advvers7/6.3 $mp/advvers7/6.5 $mp/advvers7/6.4 $mp/advvers7/6.7 $mp/advvers7/6.6] [list advvers7/6.0 advvers7/6.1 advvers7/6.5 advvers7/6.7]
-setenv_path_var __MODULES_LMPREREQ "advvers7/6.2&advvers7@<6.0&advvers7 @<6.1" "advvers7/6.3&advvers7@5.0<6.0" "advvers7/6.4&advvers7 @<6.1|advvers7@6.5<6.5" "advvers7/6.6&advvers7@6.7<6.10&advvers7@<6.1"
-setenv_path_var __MODULES_LMCONFLICT "advvers7/6.3&advvers7@6.1<6.2"
+setenv_var __MODULES_LMPREREQ "advvers7/6.2&advvers7@<6.0&advvers7 @<6.1:advvers7/6.3&advvers7@5.0<6.0:advvers7/6.4&advvers7 @<6.1|advvers7@6.5<6.5:advvers7/6.6&advvers7@6.7<6.10&advvers7@<6.1"
+setenv_var __MODULES_LMCONFLICT "advvers7/6.3&advvers7@6.1<6.2"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers7/6.0:advvers7/6.5:advvers7/6.3:advvers7/6.4]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/6.0:$mp/advvers7/6.5:$mp/advvers7/6.3:$mp/advvers7/6.4]
-lappend ans [list setpath __MODULES_LMPREREQ "advvers7/6.3&advvers7@5.0<6.0:advvers7/6.4&advvers7 @<6.1|advvers7@6.5<6.5"]
-lappend ans [list setpath __MODULES_LMCONFLICT "advvers7/6.3&advvers7@6.1<6.2"]
-lappend ans [list setpath __MODULES_LMTAG advvers7/6.0&auto-loaded:advvers7/6.5&auto-loaded]
+lappend ans [list set __MODULES_LMCONFLICT "advvers7/6.3&advvers7@6.1<6.2"]
+lappend ans [list set __MODULES_LMPREREQ "advvers7/6.3&advvers7@5.0<6.0:advvers7/6.4&advvers7 @<6.1|advvers7@6.5<6.5"]
+lappend ans [list set _LMFILES_ $mp/advvers7/6.0:$mp/advvers7/6.5:$mp/advvers7/6.3:$mp/advvers7/6.4]
+lappend ans [list set LOADEDMODULES advvers7/6.0:advvers7/6.5:advvers7/6.3:advvers7/6.4]
+lappend ans [list set __MODULES_LMTAG advvers7/6.0&auto-loaded:advvers7/6.5&auto-loaded]
 testouterr_cmd_re sh {unload --auto advvers7@6.1} $ans [msg_top_unload advvers7/6.1 [list advvers7/6.6 advvers7/6.2] advvers7/6.7 [list advvers7/6.3 advvers7/6.4]]
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMPREREQ
-unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMCONFLICT
 
 # load/unload additionnal prereq
 # no dependent reload triggered as requirement is already satisfied
 setenv_loaded_module [list advvers7/6.0 advvers7/6.2] [list $mp/advvers7/6.0 $mp/advvers7/6.2] [list advvers7/6.0]
-setenv_path_var __MODULES_LMPREREQ "advvers7/6.2&advvers7@<6.0&advvers7 @<6.1"
+setenv_var __MODULES_LMPREREQ "advvers7/6.2&advvers7@<6.0&advvers7 @<6.1"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers7/6.0:advvers7/6.2:advvers7/5.0]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/6.0:$mp/advvers7/6.2:$mp/advvers7/5.0]
+lappend ans [list set _LMFILES_ $mp/advvers7/6.0:$mp/advvers7/6.2:$mp/advvers7/5.0]
+lappend ans [list set LOADEDMODULES advvers7/6.0:advvers7/6.2:advvers7/5.0]
 testouterr_cmd_re sh {load --auto advvers7@5.0} $ans {}
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers7/6.0:advvers7/6.2:advvers7/6.1]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/6.0:$mp/advvers7/6.2:$mp/advvers7/6.1]
+lappend ans [list set _LMFILES_ $mp/advvers7/6.0:$mp/advvers7/6.2:$mp/advvers7/6.1]
+lappend ans [list set LOADEDMODULES advvers7/6.0:advvers7/6.2:advvers7/6.1]
 testouterr_cmd_re sh {load --auto advvers7@6.1} $ans {}
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMPREREQ
 
 # conflict declared on an alias name whose target unload has been attempted but failed
 setenv_loaded_module [list advvers6/2.1] [list $mp/advvers6/2.1]
-setenv_path_var __MODULES_LMALTNAME advvers6/2.1&advvers7/9.2
+setenv_var __MODULES_LMALTNAME advvers6/2.1&advvers7/9.2
 testouterr_cmd_re sh {load --auto advvers7@9.0} ERR [msg_load advvers7/9.0 [err_conun advvers7@9.1:9.3]]
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMALTNAME
 
 # bad specification in modulefile
 testouterr_cmd sh {load --auto advvers7@2.0} ERR [msg_load advvers7/2.0 [msg_moderr "$msg_nomodnameinarg '@1:2'" {prereq @1:2} $mp/advvers7/2.0 2]]
@@ -884,17 +884,17 @@ testouterr_cmd sh {is-loaded advvers7@3.0:3.2} OK {}
 set ans [list]
 lappend ans [list set ts1 1]
 lappend ans [list set ts2 0]
-lappend ans [list setpath LOADEDMODULES advvers7/3.0:advvers7/7.0]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/3.0:$mp/advvers7/7.0]
+lappend ans [list set _LMFILES_ $mp/advvers7/3.0:$mp/advvers7/7.0]
+lappend ans [list set LOADEDMODULES advvers7/3.0:advvers7/7.0]
 testouterr_cmd_re sh {load advvers7@7.0} $ans {}
 unsetenv_loaded_module
 
 # test unknown module
 testouterr_cmd sh {load --auto advvers7@8.1.1} ERR [msg_load advvers7/8.1.1 $err_path'unknown@:1.4.5' [err_reqlo unknown@:1.4.5]]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers7/8.1.2]
-lappend ans [list setpath _LMFILES_ $mp/advvers7/8.1.2]
-lappend ans [list setpath __MODULES_LMCONFLICT "advvers7/8.1.2&unknown @1.3.1<"]
+lappend ans [list set __MODULES_LMCONFLICT "advvers7/8.1.2&unknown @1.3.1<"]
+lappend ans [list set _LMFILES_ $mp/advvers7/8.1.2]
+lappend ans [list set LOADEDMODULES advvers7/8.1.2]
 testouterr_cmd sh {load --auto advvers7@8.1.2} $ans {}
 
 # test mod@deep/vers
@@ -911,27 +911,27 @@ testouterr_cmd_re sh {load --auto advvers7@8.3.1} ERR [msg_load advvers7/8.3.1 $
 setenv_loaded_module [list advvers@2.1] [list $mp/advvers@2.1]
 testouterr_cmd_re sh {load --auto advvers7@8.3.1} ERR [msg_load advvers7/8.3.1 $err_path'advvers@2.1:' [err_reqlo advvers@2.1:]]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers@2.1:advvers7/8.3.2]
-lappend ans [list setpath _LMFILES_ $mp/advvers@2.1:$mp/advvers7/8.3.2]
-lappend ans [list setpath __MODULES_LMCONFLICT "advvers7/8.3.2&advvers@<2.2"]
+lappend ans [list set __MODULES_LMCONFLICT "advvers7/8.3.2&advvers@<2.2"]
+lappend ans [list set _LMFILES_ $mp/advvers@2.1:$mp/advvers7/8.3.2]
+lappend ans [list set LOADEDMODULES advvers@2.1:advvers7/8.3.2]
 testouterr_cmd_re sh {load --auto advvers7@8.3.2} $ans {}
 unsetenv_loaded_module
 
 # test extended default enabled
 setenv_var MODULES_EXTENDED_DEFAULT 1
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/1.3.1:extdfl/1.4.5:advvers7/8.4.1]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.1:$mp/extdfl/1.4.5:$mp/advvers7/8.4.1]
-lappend ans [list setpath __MODULES_LMPREREQ "advvers7/8.4.1&extdfl @1.3<2&extdfl @1.4<1.5"]
-lappend ans [list setpath __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
-lappend ans [list setpath __MODULES_LMTAG extdfl/1.3.1&auto-loaded:extdfl/1.4.5&auto-loaded]
+lappend ans [list set __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+lappend ans [list set __MODULES_LMPREREQ "advvers7/8.4.1&extdfl @1.3<2&extdfl @1.4<1.5"]
+lappend ans [list set _LMFILES_ $mp/extdfl/1.3.1:$mp/extdfl/1.4.5:$mp/advvers7/8.4.1]
+lappend ans [list set LOADEDMODULES extdfl/1.3.1:extdfl/1.4.5:advvers7/8.4.1]
+lappend ans [list set __MODULES_LMTAG extdfl/1.3.1&auto-loaded:extdfl/1.4.5&auto-loaded]
 testouterr_cmd_re sh {load --auto advvers7@8.4.1} $ans [msg_top_load advvers7/8.4.1 {} [list extdfl/1.3.1 extdfl/1.4.5] {}]
 setenv_loaded_module [list extdfl/1.3.7 extdfl/1.4.5] [list $mp/extdfl/1.3.7 $mp/extdfl/1.4.5]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:extdfl/1.4.5:advvers7/8.4.1]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl/1.4.5:$mp/advvers7/8.4.1]
-lappend ans [list setpath __MODULES_LMPREREQ "advvers7/8.4.1&extdfl @1.3<2&extdfl @1.4<1.5"]
+lappend ans [list set __MODULES_LMPREREQ "advvers7/8.4.1&extdfl @1.3<2&extdfl @1.4<1.5"]
+lappend ans [list set _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl/1.4.5:$mp/advvers7/8.4.1]
+lappend ans [list set LOADEDMODULES extdfl/1.3.7:extdfl/1.4.5:advvers7/8.4.1]
 testouterr_cmd_re sh {load --auto advvers7@8.4.1} $ans {}
 
 testouterr_cmd_re sh {load --auto advvers7@8.4.2} ERR [msg_load advvers7/8.4.2 [err_conflict extdfl @1.3:2]]
@@ -953,17 +953,17 @@ if {$is_filesystem_icase} {
 } else {
     # test icase
     set ans [list]
-    lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:advvers7/8.5.1]
-    lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/advvers7/8.5.1]
-    lappend ans [list setpath __MODULES_LMTAG extdfl/1.3.7&auto-loaded]
-    lappend ans [list setpath __MODULES_LMPREREQ advvers7/8.5.1&ExtDfl@1.3.7<1.4.2]
+    lappend ans [list set __MODULES_LMPREREQ advvers7/8.5.1&ExtDfl@1.3.7<1.4.2]
+    lappend ans [list set _LMFILES_ $mp/extdfl/1.3.7:$mp/advvers7/8.5.1]
+    lappend ans [list set LOADEDMODULES extdfl/1.3.7:advvers7/8.5.1]
+    lappend ans [list set __MODULES_LMTAG extdfl/1.3.7&auto-loaded]
     testouterr_cmd_re sh {load -i --auto advvers7@8.5.1} $ans [msg_top_load advvers7/8.5.1 {} extdfl/1.3.7 {}]
 
     setenv_loaded_module [list extdfl/1.3.7] [list $mp/extdfl/1.3.7]
     set ans [list]
-    lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:advvers7/8.5.1]
-    lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/advvers7/8.5.1]
-    lappend ans [list setpath __MODULES_LMPREREQ advvers7/8.5.1&ExtDfl@1.3.7<1.4.2]
+    lappend ans [list set __MODULES_LMPREREQ advvers7/8.5.1&ExtDfl@1.3.7<1.4.2]
+    lappend ans [list set _LMFILES_ $mp/extdfl/1.3.7:$mp/advvers7/8.5.1]
+    lappend ans [list set LOADEDMODULES extdfl/1.3.7:advvers7/8.5.1]
     testouterr_cmd_re sh {load -i --auto advvers7@8.5.1} $ans {}
 
     testouterr_cmd_re sh {load -i --auto advvers7@8.5.2} ERR [msg_load advvers7/8.5.2 [err_conflict EXTDFL@1.3.7:1.4.2]]
@@ -975,28 +975,30 @@ if {$is_filesystem_icase} {
 # whether module load/prereq is used to declared and whatever the auto_handling module enabled
 setenv_loaded_module [list advvers8/1] [list $mp/advvers8/1]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers8/1:advvers10/5]
-lappend ans [list setpath _LMFILES_ $mp/advvers8/1:$mp/advvers10/5]
-lappend ans [list setpath __MODULES_LMPREREQ advvers10/5&advvers8@1<]
+lappend ans [list set __MODULES_LMPREREQ advvers10/5&advvers8@1<]
+lappend ans [list set _LMFILES_ $mp/advvers8/1:$mp/advvers10/5]
+lappend ans [list set LOADEDMODULES advvers8/1:advvers10/5]
 testouterr_cmd_re sh {load --auto advvers10/5} $ans {}
 testouterr_cmd_re sh {load --no-auto advvers10/5} $ans {}
-lappend ans [list setpath LOADEDMODULES advvers8/1:advvers10/6]
-lappend ans [list setpath _LMFILES_ $mp/advvers8/1:$mp/advvers10/6]
-lappend ans [list setpath __MODULES_LMPREREQ advvers10/6&advvers8@1<]
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ advvers10/6&advvers8@1<]
+lappend ans [list set _LMFILES_ $mp/advvers8/1:$mp/advvers10/6]
+lappend ans [list set LOADEDMODULES advvers8/1:advvers10/6]
 testouterr_cmd_re sh {load --auto advvers10/6} $ans {}
 testouterr_cmd_re sh {load --no-auto advvers10/6} $ans {}
 
 setenv_loaded_module [list advvers9/3] [list $mp/advvers9/3]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES advvers9/3:advvers10/7]
-lappend ans [list setpath _LMFILES_ $mp/advvers9/3:$mp/advvers10/7]
-lappend ans [list setpath __MODULES_LMPREREQ advvers10/7&advvers9@1<3]
+lappend ans [list set __MODULES_LMPREREQ advvers10/7&advvers9@1<3]
+lappend ans [list set _LMFILES_ $mp/advvers9/3:$mp/advvers10/7]
+lappend ans [list set LOADEDMODULES advvers9/3:advvers10/7]
 testouterr_cmd_re sh {load --auto advvers10/7} $ans {}
 testouterr_cmd_re sh {load --no-auto advvers10/7} $ans {}
-lappend ans [list setpath LOADEDMODULES advvers9/3:advvers10/8]
-lappend ans [list setpath _LMFILES_ $mp/advvers9/3:$mp/advvers10/8]
-lappend ans [list setpath __MODULES_LMPREREQ advvers10/8&advvers9@1<3]
-lappend ans [list setpath __MODULES_LMALTNAME advvers10/8&as|advvers10/default&as|advvers10/latest]
+set ans [list]
+lappend ans [list set __MODULES_LMALTNAME advvers10/8&as|advvers10/default&as|advvers10/latest]
+lappend ans [list set __MODULES_LMPREREQ advvers10/8&advvers9@1<3]
+lappend ans [list set _LMFILES_ $mp/advvers9/3:$mp/advvers10/8]
+lappend ans [list set LOADEDMODULES advvers9/3:advvers10/8]
 testouterr_cmd_re sh {load --auto advvers10/8} $ans {}
 testouterr_cmd_re sh {load --no-auto advvers10/8} $ans {}
 unsetenv_loaded_module
@@ -1022,15 +1024,15 @@ setenv_var MODULEPATH $mp
 setenv_var MODULES_EXTENDED_DEFAULT 1
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space yd/2.2"]
-lappend ans [list setpath _LMFILES_ "$mp/space yd/2.2"]
+lappend ans [list set _LMFILES_ "$mp/space yd/2.2"]
+lappend ans [list set LOADEDMODULES "space yd/2.2"]
 testouterr_cmd sh {load space\ yd@:2.6} $ans {}
 testouterr_cmd sh {avail -t space\ yd@:2.6} {} "$mp:\nspace yd/2.1\nspace yd/2.2"
 testouterr_cmd sh {avail -t space\ yd@2.1:2.3} {} "$mp:\nspace yd/2.1\nspace yd/2.2"
 testouterr_cmd sh {avail -t space\ yd@3.2:} {} "$mp:\nspace yd/4.1\nspace yd/5.0"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space yd/4.1"]
-lappend ans [list setpath _LMFILES_ "$mp/space yd/4.1"]
+lappend ans [list set _LMFILES_ "$mp/space yd/4.1"]
+lappend ans [list set LOADEDMODULES "space yd/4.1"]
 testouterr_cmd sh {load space\ yd@3:4} $ans {}
 setenv_var MODULES_EXTENDED_DEFAULT 0
 

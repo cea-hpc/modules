@@ -29,13 +29,13 @@ setenv_path_var MODULEPATH $mp
 
 # modulefile usage
 set ans [list]
+lappend ans [list set TS5 0]
 lappend ans [list set TS1 {}]
 lappend ans [list set TS2 0]
+lappend ans [list set _LMFILES_ $mp/info/tags]
+lappend ans [list set LOADEDMODULES info/tags]
 lappend ans [list set TS3 0]
 lappend ans [list set TS4 0]
-lappend ans [list set TS5 0]
-lappend ans [list setpath LOADEDMODULES info/tags]
-lappend ans [list setpath _LMFILES_ $mp/info/tags]
 testouterr_cmd sh {load info/tags} $ans {}
 
 set tserr "$modlin
@@ -53,14 +53,14 @@ setenv_var TESTSUITE_INFO_TAGS_NEARLY_FORBIDDEN 1
 set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
 
 set ans [list]
+lappend ans [list set TS5 1]
 lappend ans [list set TS1 nearly-forbidden]
 lappend ans [list set TS2 0]
+lappend ans [list set _LMFILES_ $mp/info/tags]
+lappend ans [list set LOADEDMODULES info/tags]
 lappend ans [list set TS3 0]
+lappend ans [list set __MODULES_LMTAG info/tags&nearly-forbidden]
 lappend ans [list set TS4 0]
-lappend ans [list set TS5 1]
-lappend ans [list setpath LOADEDMODULES info/tags]
-lappend ans [list setpath _LMFILES_ $mp/info/tags]
-lappend ans [list setpath __MODULES_LMTAG info/tags&nearly-forbidden]
 set tserr [msg_load info/tags [err_accessnearlydenied $tomorrow]]
 testouterr_cmd sh {load info/tags} $ans $tserr
 
@@ -85,14 +85,14 @@ unset tomorrow
 # test with tag set with module-tag
 setenv_var TESTSUITE_INFO_TAGS_SET_MODULE_TAG 1
 set ans [list]
+lappend ans [list set TS5 0]
 lappend ans [list set TS1 foo]
 lappend ans [list set TS2 1]
+lappend ans [list set _LMFILES_ $mp/info/tags]
+lappend ans [list set LOADEDMODULES info/tags]
 lappend ans [list set TS3 0]
+lappend ans [list set __MODULES_LMTAG info/tags&foo]
 lappend ans [list set TS4 0]
-lappend ans [list set TS5 0]
-lappend ans [list setpath LOADEDMODULES info/tags]
-lappend ans [list setpath _LMFILES_ $mp/info/tags]
-lappend ans [list setpath __MODULES_LMTAG info/tags&foo]
 testouterr_cmd sh {load info/tags} $ans {}
 
 set tserr "$modlin
@@ -111,7 +111,7 @@ unsetenv_var TESTSUITE_INFO_TAGS_SET_MODULE_TAG
 
 # test with module loaded
 setenv_loaded_module [list info/tags] [list $mp/info/tags] [list info/tags]
-setenv_path_var __MODULES_LMTAG info/tags&nearly-forbidden&foo&auto-loaded
+setenv_var __MODULES_LMTAG info/tags&nearly-forbidden&foo&auto-loaded
 
 set tserr "$modlin
 $mpre/info/tags:
@@ -128,19 +128,19 @@ testouterr_cmd_re sh {show info/tags} OK $tserr
 
 # unload test
 set ans [list]
+lappend ans [list unset TS5]
 lappend ans [list unset TS1]
 lappend ans [list unset TS2]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 lappend ans [list unset TS3]
-lappend ans [list unset TS5]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset __MODULES_LMTAG]
 lappend ans [list unset TS4]
-lappend ans [list unsetpath __MODULES_LMTAG]
 set tserr {TAGS=auto-loaded foo nearly-forbidden}
 testouterr_cmd_re sh {unload info/tags} $ans $tserr
 
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMTAG
 
 
 # test on other evaluation contexts

@@ -47,8 +47,8 @@ set env(PATH) "$new_path"
 #
 
 lappend ans [list setpath PATH $old_path]
-lappend ans [list setpath LOADEDMODULES $module]
-lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set _LMFILES_ $modulefile]
 
 #
 #  The tests
@@ -95,8 +95,8 @@ set ans [list]
 lappend ans [list unsetpath testsuite]
 lappend ans [list setpath testsuite2 foo]
 lappend ans [list unset testsuite3]
-lappend ans [list setpath LOADEDMODULES $module]
-lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set _LMFILES_ $modulefile]
 testouterr_cmd_re "sh" "load $module" $ans {}
 unsetenv_path_var testsuite
 unsetenv_path_var testsuite2
@@ -113,10 +113,10 @@ set env(FOO_modshare) ":1:/modules/testsuite2.2/2.2:1:/path/to/dir1:1:/modules/t
 set env(FOO) "/path/to/dir1:/modules/testsuite2.2:/modules/testsuite2.2/2.2:"
 
 set ans [list]
-lappend ans [list set FOO_modshare "/path/to/dir1:1"]
 lappend ans [list set FOO "/path/to/dir1"]
-lappend ans [list setpath LOADEDMODULES $module]
-lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set FOO_modshare "/path/to/dir1:1"]
 
 testouterr_cmd "sh" "load $module" $ans ""
 
@@ -128,10 +128,10 @@ set module "remove/2.4"
 set modulefile "$modpath/$module"
 
 set ans [list]
-lappend ans [list set FOO_modshare "/path/to/dir1:1"]
 lappend ans [list set FOO "/path/to/dir1"]
-lappend ans [list setpath LOADEDMODULES $module]
-lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set FOO_modshare "/path/to/dir1:1"]
 
 testouterr_cmd "sh" "load $module" $ans ""
 
@@ -147,10 +147,10 @@ set env(FOO_modshare) ":1"
 set env(FOO) ""
 
 set ans [list]
-lappend ans [list set FOO_modshare ":1"]
 lappend ans [list set FOO ""]
-lappend ans [list setpath LOADEDMODULES $module]
-lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set FOO_modshare ":1"]
 
 testouterr_cmd "sh" "load $module" $ans ""
 
@@ -166,40 +166,40 @@ unset env(FOO_modshare)
 set env(FOO) "/path/to/dir1:/path/to/dir2:/path/to/dir1"
 
 set ans [list]
-lappend ans [list set FOO_modshare "/path/to/dir2:1"]
 lappend ans [list set FOO "/path/to/dir2"]
-lappend ans [list setpath LOADEDMODULES $module]
-lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set FOO_modshare "/path/to/dir2:1"]
 
 testouterr_cmd "sh" "load $module" $ans ""
 
 set env(FOO_modshare) "/path/to/dir1:1:/path/to/dir2:1"
 
 set ans [list]
-lappend ans [list set FOO_modshare "/path/to/dir2:1"]
 lappend ans [list set FOO "/path/to/dir2"]
-lappend ans [list setpath LOADEDMODULES $module]
-lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set FOO_modshare "/path/to/dir2:1"]
 
 testouterr_cmd "sh" "load $module" $ans ""
 
 set env(FOO_modshare) "/path/to/dir1:2:/path/to/dir2:1"
 
 set ans [list]
-lappend ans [list set FOO_modshare "/path/to/dir1:1:/path/to/dir2:1"]
 lappend ans [list set FOO "/path/to/dir1:/path/to/dir2"]
-lappend ans [list setpath LOADEDMODULES $module]
-lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set FOO_modshare "/path/to/dir1:1:/path/to/dir2:1"]
 
 testouterr_cmd "sh" "load $module" $ans ""
 
 set env(FOO_modshare) "/path/to/dir1:3:/path/to/dir2:1"
 
 set ans [list]
-lappend ans [list set FOO_modshare "/path/to/dir1:2:/path/to/dir2:1"]
 lappend ans [list set FOO "/path/to/dir1:/path/to/dir2:/path/to/dir1"]
-lappend ans [list setpath LOADEDMODULES $module]
-lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set FOO_modshare "/path/to/dir1:2:/path/to/dir2:1"]
 
 testouterr_cmd "sh" "load $module" $ans ""
 
@@ -210,10 +210,10 @@ set env(FOO_modshare) "/path/to/dir1:2:/path/to/dir2:1"
 set env(FOO) "/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir1"
 
 set ans [list]
-lappend ans [list set FOO_modshare "/path/to/dir1:1:/path/to/dir2:1"]
 lappend ans [list set FOO "/path/to/dir1:/path/to/dir2"]
-lappend ans [list setpath LOADEDMODULES $module]
-lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set FOO_modshare "/path/to/dir1:1:/path/to/dir2:1"]
 
 testouterr_cmd "sh" "load $module" $ans [msg_load $module "$warn_msgs: --duplicates option has no effect on unload-path"]
 
@@ -235,10 +235,10 @@ set env(FOO_modshare) ":1"
 set env(FOO) ""
 
 set ans [list]
-lappend ans [list set FOO_modshare ":1"]
 lappend ans [list set FOO ""]
-lappend ans [list setpath LOADEDMODULES $module]
-lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set FOO_modshare ":1"]
 
 # out of bound
 testouterr_cmd "sh" "load $module" $ans ""
@@ -247,10 +247,10 @@ set env(FOO_modshare) "/path/to/dir1:2:/path/to/dir2:1"
 set env(FOO) "/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir1"
 
 set ans [list]
-lappend ans [list set FOO_modshare "/path/to/dir1:2"]
 lappend ans [list set FOO "/path/to/dir1:/path/to/dir1:/path/to/dir1"]
-lappend ans [list setpath LOADEDMODULES $module]
-lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set FOO_modshare "/path/to/dir1:2"]
 
 testouterr_cmd "sh" "load $module" $ans ""
 
@@ -258,10 +258,10 @@ set env(FOO_modshare) "/path/to/dir1:2:/path/to/dir2:2"
 set env(FOO) "/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir1"
 
 set ans [list]
-lappend ans [list set FOO_modshare "/path/to/dir1:2:/path/to/dir2:1"]
 lappend ans [list set FOO "/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir1"]
-lappend ans [list setpath LOADEDMODULES $module]
-lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set FOO_modshare "/path/to/dir1:2:/path/to/dir2:1"]
 
 testouterr_cmd "sh" "load $module" $ans ""
 
@@ -272,10 +272,10 @@ set env(FOO_modshare) "/path/to/dir1:2:/path/to/dir2:2"
 set env(FOO) "/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir1"
 
 set ans [list]
-lappend ans [list set FOO_modshare "/path/to/dir1:1:/path/to/dir2:1"]
 lappend ans [list set FOO "/path/to/dir1:/path/to/dir2:/path/to/dir1"]
-lappend ans [list setpath LOADEDMODULES $module]
-lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set FOO_modshare "/path/to/dir1:1:/path/to/dir2:1"]
 
 testouterr_cmd "sh" "load $module" $ans ""
 
@@ -283,10 +283,10 @@ set env(FOO_modshare) "/path/to/dir1:1"
 set env(FOO) "/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir1"
 
 set ans [list]
-lappend ans [list unset FOO_modshare]
 lappend ans [list set FOO "/path/to/dir1:/path/to/dir1"]
-lappend ans [list setpath LOADEDMODULES $module]
-lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list unset FOO_modshare]
 
 testouterr_cmd "sh" "load $module" $ans ""
 

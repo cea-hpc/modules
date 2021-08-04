@@ -220,7 +220,7 @@ for {set i 1} {$i <= 17} {incr i} {
 
     # setup clean environment
     unsetenv_loaded_module
-    unsetenv_path_var __MODULES_LMALTNAME
+    unsetenv_var __MODULES_LMALTNAME
 
     if {[info exists moderr]} {
         testouterr_cmd "sh" "load $modsym" "ERR" "$moderr"
@@ -229,12 +229,12 @@ for {set i 1} {$i <= 17} {incr i} {
         testouterr_cmd "sh" "test $modsym" "ERR" "$moderr"
     } else {
         set ans [list]
-        lappend ans [list set testsuite "yes"]
-        lappend ans [list setpath LOADEDMODULES $module]
-        lappend ans [list setpath _LMFILES_ $modulefile]
         if {$modalt ne ""} {
-            lappend ans [list setpath __MODULES_LMALTNAME $modalt]
+            lappend ans [list set __MODULES_LMALTNAME $modalt]
         }
+        lappend ans [list set _LMFILES_ $modulefile]
+        lappend ans [list set LOADEDMODULES $module]
+        lappend ans [list set testsuite "yes"]
 
         set displayerr "$disp_pre$modulefilere:\n\n$disp_wi$module$disp_post"
         set helperr "$help_pre$modulefilere$help_post"
@@ -282,16 +282,16 @@ for {set i 1} {$i <= 17} {incr i} {
     # setup environment for unload action
     setenv_loaded_module $module $modulefile
     if {$modalt ne ""} {
-        setenv_path_var __MODULES_LMALTNAME $modalt
+        setenv_var __MODULES_LMALTNAME $modalt
     }
 
     set ans [list]
-    lappend ans [list unset testsuite]
-    lappend ans [list unsetpath LOADEDMODULES]
-    lappend ans [list unsetpath _LMFILES_]
     if {$modalt ne ""} {
-        lappend ans [list unsetpath __MODULES_LMALTNAME]
+        lappend ans [list unset __MODULES_LMALTNAME]
     }
+    lappend ans [list unset _LMFILES_]
+    lappend ans [list unset LOADEDMODULES]
+    lappend ans [list unset testsuite]
 
     testouterr_cmd "sh" "unload $modsym" $ans ""
 }

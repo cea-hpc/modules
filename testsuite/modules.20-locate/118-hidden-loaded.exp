@@ -58,99 +58,99 @@ unsetenv_var TESTSUITE_HIDE3_HIDDEN_LOADED_SET2
 # load tests
 setenv_var TESTSUITE_HIDE3_HIDDEN_LOADED_SET1 1
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/1.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/1.0]
-lappend ans [list setpath __MODULES_LMALTNAME hide3/1.0&as|hide3/default&as|hide3/latest]
-lappend ans [list setpath __MODULES_LMTAG hide3/1.0&hidden-loaded]
+lappend ans [list set __MODULES_LMALTNAME hide3/1.0&as|hide3/default&as|hide3/latest]
+lappend ans [list set _LMFILES_ $mp/hide3/1.0]
+lappend ans [list set LOADEDMODULES hide3/1.0]
+lappend ans [list set __MODULES_LMTAG hide3/1.0&hidden-loaded]
 testouterr_cmd sh {load hide3@1.0} $ans {}
 
 skip_if_quick_mode
 
 # load two hidden modules in a row
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/1.0:hide3/sub1/3.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/1.0:$mp/hide3/sub1/3.0]
-lappend ans [list setpath __MODULES_LMALTNAME hide3/1.0&as|hide3/default&as|hide3/latest:hide3/sub1/3.0&as|hide3/sub1/default&as|hide3/sub1/latest]
-lappend ans [list setpath __MODULES_LMTAG hide3/1.0&hidden-loaded:hide3/sub1/3.0&hidden-loaded]
+lappend ans [list set __MODULES_LMALTNAME hide3/1.0&as|hide3/default&as|hide3/latest:hide3/sub1/3.0&as|hide3/sub1/default&as|hide3/sub1/latest]
+lappend ans [list set _LMFILES_ $mp/hide3/1.0:$mp/hide3/sub1/3.0]
+lappend ans [list set LOADEDMODULES hide3/1.0:hide3/sub1/3.0]
+lappend ans [list set __MODULES_LMTAG hide3/1.0&hidden-loaded:hide3/sub1/3.0&hidden-loaded]
 testouterr_cmd_re sh {load hide3/1.0 hide3/sub1/3.0} $ans {}
 
 setenv_loaded_module [list hide3/1.0] [list $mp/hide3/1.0]
-setenv_path_var __MODULES_LMALTNAME hide3/1.0&as|hide3/default&as|hide3/latest
-setenv_path_var __MODULES_LMTAG hide3/1.0&hidden-loaded
+setenv_var __MODULES_LMALTNAME hide3/1.0&as|hide3/default&as|hide3/latest
+setenv_var __MODULES_LMTAG hide3/1.0&hidden-loaded
 # append new hidden module to loaded environnement
 testouterr_cmd_re sh {load hide3/sub1/3.0} $ans {}
 # try to load again an hidden module
 testouterr_cmd sh {load hide3/1.0} OK {}
-unsetenv_path_var __MODULES_LMALTNAME
-unsetenv_path_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMTAG
 testouterr_cmd sh {load hide3/1.0} OK {}
 # append new hidden module against a badly formed __MODULES_LMTAG
-setenv_path_var __MODULES_LMTAG :hide3/1.0&hidden-loaded::
+setenv_var __MODULES_LMTAG :hide3/1.0&hidden-loaded::
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/1.0:hide3/sub1/3.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/1.0:$mp/hide3/sub1/3.0]
-lappend ans [list setpath __MODULES_LMALTNAME hide3/sub1/3.0&as|hide3/sub1/default&as|hide3/sub1/latest]
-lappend ans [list setpath __MODULES_LMTAG :hide3/1.0&hidden-loaded:::hide3/sub1/3.0&hidden-loaded]
+lappend ans [list set __MODULES_LMALTNAME hide3/sub1/3.0&as|hide3/sub1/default&as|hide3/sub1/latest]
+lappend ans [list set _LMFILES_ $mp/hide3/1.0:$mp/hide3/sub1/3.0]
+lappend ans [list set LOADEDMODULES hide3/1.0:hide3/sub1/3.0]
+lappend ans [list set __MODULES_LMTAG :hide3/1.0&hidden-loaded:::hide3/sub1/3.0&hidden-loaded]
 testouterr_cmd_re sh {load hide3/sub1/3.0} $ans {}
 
 
 # is-loaded tests (hidden loaded modules are always taken into account)
 setenv_loaded_module [list hide3/1.0] [list $mp/hide3/1.0]
-setenv_path_var __MODULES_LMTAG hide3/1.0&hidden-loaded
+setenv_var __MODULES_LMTAG hide3/1.0&hidden-loaded
 testouterr_cmd_re sh {is-loaded hide3/1.0} OK {}
 testouterr_cmd_re sh {is-loaded hide3} OK {}
 
 # unload tests
 setenv_loaded_module [list hide3/1.0] [list $mp/hide3/1.0]
-setenv_path_var __MODULES_LMTAG hide3/1.0&hidden-loaded
+setenv_var __MODULES_LMTAG hide3/1.0&hidden-loaded
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 testouterr_cmd_re sh {unload hide3} $ans {}
 testouterr_cmd_re sh {unload hide3/1.0} $ans {}
 setenv_loaded_module [list hide3/1.0 hide3/sub1/3.0] [list $mp/hide3/1.0 $mp/hide3/sub1/3.0]
-setenv_path_var __MODULES_LMTAG hide3/1.0&hidden-loaded:hide3/sub1/3.0&hidden-loaded
+setenv_var __MODULES_LMTAG hide3/1.0&hidden-loaded:hide3/sub1/3.0&hidden-loaded
 testouterr_cmd_re sh {unload hide3/1.0 hide3/sub1/3.0} $ans {}
 testouterr_cmd_re sh {unload hide3 hide3} $ans {}
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/sub1/3.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/sub1/3.0]
-lappend ans [list setpath __MODULES_LMTAG hide3/sub1/3.0&hidden-loaded]
+lappend ans [list set _LMFILES_ $mp/hide3/sub1/3.0]
+lappend ans [list set LOADEDMODULES hide3/sub1/3.0]
+lappend ans [list set __MODULES_LMTAG hide3/sub1/3.0&hidden-loaded]
 testouterr_cmd_re sh {unload hide3/1.0} $ans {}
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/1.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/1.0]
-lappend ans [list setpath __MODULES_LMTAG hide3/1.0&hidden-loaded]
+lappend ans [list set _LMFILES_ $mp/hide3/1.0]
+lappend ans [list set LOADEDMODULES hide3/1.0]
+lappend ans [list set __MODULES_LMTAG hide3/1.0&hidden-loaded]
 testouterr_cmd_re sh {unload hide3} $ans {}
 # unset hidden tracking var
-unsetenv_path_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMTAG
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/1.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/1.0]
+lappend ans [list set _LMFILES_ $mp/hide3/1.0]
+lappend ans [list set LOADEDMODULES hide3/1.0]
 testouterr_cmd_re sh {unload hide3} $ans {}
 
 # purge tests
 setenv_loaded_module [list hide3/1.0 hide3/sub1/3.0] [list $mp/hide3/1.0 $mp/hide3/sub1/3.0]
-setenv_path_var __MODULES_LMTAG hide3/1.0&hidden-loaded:hide3/sub1/3.0&hidden-loaded
+setenv_var __MODULES_LMTAG hide3/1.0&hidden-loaded:hide3/sub1/3.0&hidden-loaded
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 testouterr_cmd_re sh {purge} $ans {}
 
 # reload tests
 setenv_loaded_module [list hide3/1.0 hide3/sub1/3.0] [list $mp/hide3/1.0 $mp/hide3/sub1/3.0]
-setenv_path_var __MODULES_LMTAG hide3/1.0&hidden-loaded:hide3/sub1/3.0&hidden-loaded
+setenv_var __MODULES_LMTAG hide3/1.0&hidden-loaded:hide3/sub1/3.0&hidden-loaded
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/1.0:hide3/sub1/3.0]
-lappend ans [list setpath _LMFILES_ $mp/hide3/1.0:$mp/hide3/sub1/3.0]
-lappend ans [list setpath __MODULES_LMTAG hide3/1.0&hidden-loaded:hide3/sub1/3.0&hidden-loaded]
-lappend ans [list setpath __MODULES_LMALTNAME hide3/1.0&as|hide3/default&as|hide3/latest:hide3/sub1/3.0&as|hide3/sub1/default&as|hide3/sub1/latest]
+lappend ans [list set __MODULES_LMALTNAME hide3/1.0&as|hide3/default&as|hide3/latest:hide3/sub1/3.0&as|hide3/sub1/default&as|hide3/sub1/latest]
+lappend ans [list set _LMFILES_ $mp/hide3/1.0:$mp/hide3/sub1/3.0]
+lappend ans [list set LOADEDMODULES hide3/1.0:hide3/sub1/3.0]
+lappend ans [list set __MODULES_LMTAG hide3/1.0&hidden-loaded:hide3/sub1/3.0&hidden-loaded]
 testouterr_cmd_re sh {reload} $ans {}
 # missing hidden state on unload phase will recover on load again phase
 setenv_loaded_module [list hide3/1.0 hide3/sub1/3.0] [list $mp/hide3/1.0 $mp/hide3/sub1/3.0]
-setenv_path_var __MODULES_LMTAG hide3/1.0&hidden-loaded
+setenv_var __MODULES_LMTAG hide3/1.0&hidden-loaded
 testouterr_cmd_re sh {reload} $ans {}
 
 
@@ -158,21 +158,21 @@ testouterr_cmd_re sh {reload} $ans {}
 # list tests
 # only hidden modules are loaded
 setenv_loaded_module [list hide3/1.0 hide3/sub1/3.0] [list $mp/hide3/1.0 $mp/hide3/sub1/3.0]
-setenv_path_var __MODULES_LMTAG hide3/1.0&hidden-loaded:hide3/sub1/3.0&hidden-loaded
+setenv_var __MODULES_LMTAG hide3/1.0&hidden-loaded:hide3/sub1/3.0&hidden-loaded
 testouterr_cmd_re sh {list -t} OK $no_loaded
 # mix of loaded and visible modules loaded
 setenv_loaded_module [list hide3/1.0 hide3/sub1/3.0] [list $mp/hide3/1.0 $mp/hide3/sub1/3.0]
-setenv_path_var __MODULES_LMTAG hide3/1.0&hidden-loaded
+setenv_var __MODULES_LMTAG hide3/1.0&hidden-loaded
 testouterr_cmd_re sh {list -t} OK $cur_loaded\nhide3/sub1/3.0
 unsetenv_loaded_module
 
 
 # ensure hidden state is effective right after load
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/1.0:hidereq/4.1]
-lappend ans [list setpath _LMFILES_ $mp/hide3/1.0:$mp/hidereq/4.1]
-lappend ans [list setpath __MODULES_LMALTNAME hide3/1.0&as|hide3/default&as|hide3/latest]
-lappend ans [list setpath __MODULES_LMTAG hide3/1.0&hidden-loaded]
+lappend ans [list set __MODULES_LMALTNAME hide3/1.0&as|hide3/default&as|hide3/latest]
+lappend ans [list set _LMFILES_ $mp/hide3/1.0:$mp/hidereq/4.1]
+lappend ans [list set LOADEDMODULES hide3/1.0:hidereq/4.1]
+lappend ans [list set __MODULES_LMTAG hide3/1.0&hidden-loaded]
 testouterr_cmd_re sh {load hide3/1.0 hidereq/4.1} $ans $no_loaded
 
 
@@ -182,10 +182,10 @@ testouterr_cmd_re sh {restore testsuite/home/coll-hide-once-loaded} $ans "Loadin
 # unless verbose2 level activated
 testouterr_cmd_re sh {restore -v -v testsuite/home/coll-hide-once-loaded} $ans "Loading hide3/1.0\n$no_loaded\nLoading hidereq/4.1"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/1.0:hidereq/4.1]
-lappend ans [list setpath _LMFILES_ $mp/hide3/1.0:$mp/hidereq/4.1]
-lappend ans [list setpath __MODULES_LMALTNAME hide3/1.0&as|hide3/default&as|hide3/latest]
-lappend ans [list setpath __MODULES_LMTAG hide3/1.0&hidden-loaded&auto-loaded]
+lappend ans [list set __MODULES_LMALTNAME hide3/1.0&as|hide3/default&as|hide3/latest]
+lappend ans [list set _LMFILES_ $mp/hide3/1.0:$mp/hidereq/4.1]
+lappend ans [list set LOADEDMODULES hide3/1.0:hidereq/4.1]
+lappend ans [list set __MODULES_LMTAG hide3/1.0&hidden-loaded&auto-loaded]
 testouterr_cmd_re sh {restore testsuite/home/coll-hide-once-loaded-nuasked} $ans "$no_loaded\nLoading hidereq/4.1"
 setenv_var MODULES_VERBOSITY verbose
 testouterr_cmd_re sh {restore testsuite/home/coll-hide-once-loaded-nuasked} $ans "$no_loaded\nLoading hidereq/4.1"
@@ -203,20 +203,20 @@ testouterr_cmd_re sh {--verbose restore --verbose testsuite/home/coll-hide-once-
 # work on scriptfile located in current dir to cope with the relative path definition set in it
 file copy testsuite/home/coll-hide-once-loaded coll-hide-once-loaded
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/1.0:hidereq/4.1]
-lappend ans [list setpath _LMFILES_ $mp/hide3/1.0:$mp/hidereq/4.1]
+lappend ans [list set LOADEDMODULES hide3/1.0:hidereq/4.1]
+lappend ans [list set _LMFILES_ $mp/hide3/1.0:$mp/hidereq/4.1]
 lappend ans [list setpath MODULEPATH $mp]
-lappend ans [list setpath __MODULES_LMALTNAME hide3/1.0&as|hide3/default&as|hide3/latest]
-lappend ans [list setpath __MODULES_LMTAG hide3/1.0&hidden-loaded]
+lappend ans [list set __MODULES_LMTAG hide3/1.0&hidden-loaded]
+lappend ans [list set __MODULES_LMALTNAME hide3/1.0&as|hide3/default&as|hide3/latest]
 testouterr_cmd_re sh {source coll-hide-once-loaded} $ans "Loading hide3/1.0\n$no_loaded\nLoading hidereq/4.1"
 testouterr_cmd_re sh {source -vv coll-hide-once-loaded} $ans "Loading hide3/1.0\n$no_loaded\nLoading hidereq/4.1"
 file delete coll-hide-once-loaded
 set ans [list]
-lappend ans [list setpath LOADEDMODULES hide3/1.0:hidereq/4.2]
-lappend ans [list setpath _LMFILES_ $mp/hide3/1.0:$mp/hidereq/4.2]
-lappend ans [list setpath __MODULES_LMPREREQ hidereq/4.2&hide3/1.0]
-lappend ans [list setpath __MODULES_LMALTNAME hide3/1.0&as|hide3/default&as|hide3/latest]
-lappend ans [list setpath __MODULES_LMTAG hide3/1.0&hidden-loaded&auto-loaded]
+lappend ans [list set __MODULES_LMALTNAME hide3/1.0&as|hide3/default&as|hide3/latest]
+lappend ans [list set __MODULES_LMPREREQ hidereq/4.2&hide3/1.0]
+lappend ans [list set _LMFILES_ $mp/hide3/1.0:$mp/hidereq/4.2]
+lappend ans [list set LOADEDMODULES hide3/1.0:hidereq/4.2]
+lappend ans [list set __MODULES_LMTAG hide3/1.0&hidden-loaded&auto-loaded]
 testouterr_cmd_re sh {source testsuite/modulefiles.2/hidereq/4.3} $ans "Loading hidereq/4.2"
 setenv_var MODULES_VERBOSITY verbose
 testouterr_cmd_re sh {source testsuite/modulefiles.2/hidereq/4.3} $ans "Loading hidereq/4.2"

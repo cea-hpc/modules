@@ -75,8 +75,8 @@ testouterr_cmd sh {--json ml av -o sym foo/1.0} ERR "{\"errors\": \[\n{ \"severi
 
 # test on a sub-command that does not support these options
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/1.0]
-lappend ans [list setpath _LMFILES_ $mp/foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0]
 
 testouterr_cmd sh {load --output foo/1.0} ERR "$error_msgs: Missing value for '--output' option\n$err_typehelp"
 testouterr_cmd sh {load foo/1.0 -o} ERR "$error_msgs: Missing value for '-o' option\n$err_typehelp"
@@ -108,8 +108,8 @@ testouterr_cmd sh {avail --output=header:key foo} ERR $tserr_invalid_output_val
 
 # test usage in modulefile
 set ans [list]
-lappend ans [list setpath LOADEDMODULES output/1.0]
-lappend ans [list setpath _LMFILES_ $mp/output/1.0]
+lappend ans [list set _LMFILES_ $mp/output/1.0]
+lappend ans [list set LOADEDMODULES output/1.0]
 
 if {[cmpversion $tclsh_version 8.6] == -1} {
 
@@ -329,8 +329,8 @@ vcross/6.0"
 
 # tags or symbols applying to a lower priority module with same name are still reported
 setenv_path_var MODULEPATH $modpath.2:$modpath.3
-setenv_path_var MODULES_AVAIL_OUTPUT sym:tag
-setenv_path_var MODULES_AVAIL_TERSE_OUTPUT sym:tag
+setenv_var MODULES_AVAIL_OUTPUT sym:tag
+setenv_var MODULES_AVAIL_TERSE_OUTPUT sym:tag
 testouterr_cmd sh {avail foo/0} OK "foo/0.1  foo/0.2(sym) <tag>  foo/0.err  foo/0.load  foo/0.prereq  "
 testouterr_cmd sh {avail -t foo/0} OK "foo/0.1
 foo/0.2(sym) <tag>

@@ -95,8 +95,8 @@ setenv_loaded_module [list $mod11 $mod21 $mod31] [list $mod11p $mod21p $mod31p]
 set module "$mod21:$mod31:$mod12"
 set modulefile "$mod21p:$mod31p:$mod12p"
 
-lappend ans [list setpath LOADEDMODULES $module]
-lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
 
 #
 #  The tests
@@ -127,8 +127,8 @@ set module "$mod11:$mod31:$mod22"
 set modulefile "$mod11p:$mod31p:$mod22p"
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES $module]
-lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
 
 #
 #  The tests
@@ -151,8 +151,8 @@ set module "$mod11:$mod21:$mod32"
 set modulefile "$mod11p:$mod21p:$mod32p"
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES $module]
-lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
 
 #
 #  The tests
@@ -179,8 +179,8 @@ setenv_loaded_module [list {} $mod11 $mod21 $mod31] [list {} $mod11p $mod21p $mo
 
 set ans [list]
 # empty elements are ignored but stick to the variable, they should be removed
-lappend ans [list setpath LOADEDMODULES ":$module"]
-lappend ans [list setpath _LMFILES_ ":$modulefile"]
+lappend ans [list set _LMFILES_ ":$modulefile"]
+lappend ans [list set LOADEDMODULES ":$module"]
 test_cmd_re "sh" "swap $mod32" $ans
 
 # restore LOADEDMODULES/_LMFILES_
@@ -192,8 +192,8 @@ setenv_loaded_module [list $mod11 $mod21 $mod31] [list $mod11p $mod21p $mod31p]
 #
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "$mod11:$mod21:$mod31:$mod32"]
-lappend ans [list setpath _LMFILES_ "$mod11p:$mod21p:$mod31p:$mod32p"]
+lappend ans [list set _LMFILES_ "$mod11p:$mod21p:$mod31p:$mod32p"]
+lappend ans [list set LOADEDMODULES "$mod11:$mod21:$mod31:$mod32"]
 
 # module to unload is not loaded and closest module (mod31) should not be unloaded
 test_cmd_re "sh" "swap $mod32 $mod32" $ans
@@ -205,19 +205,19 @@ test_cmd_re "sh" "swap $mod32 $mod32" $ans
 setenv_loaded_module {} {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "$mod21"]
-lappend ans [list setpath _LMFILES_ "$mod21p"]
-lappend ans [list setpath __MODULES_LMALTNAME "$mod21&loc_dv2/default&loc_dv2"]
+lappend ans [list set __MODULES_LMALTNAME "$mod21&loc_dv2/default&loc_dv2"]
+lappend ans [list set _LMFILES_ "$mod21p"]
+lappend ans [list set LOADEDMODULES "$mod21"]
 
 # module to unload exists but is not loaded, just load
 testouterr_cmd_re "sh" "swap $mod11 $mod21" $ans ""
 
 setenv_loaded_module [list $mod11 $mod21] [list $mod11p $mod21p]
-setenv_path_var __MODULES_LMALTNAME "$mod21&loc_dv2/default&loc_dv2"
+setenv_var __MODULES_LMALTNAME "$mod21&loc_dv2/default&loc_dv2"
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "$mod21"]
-lappend ans [list setpath _LMFILES_ "$mod21p"]
+lappend ans [list set _LMFILES_ "$mod21p"]
+lappend ans [list set LOADEDMODULES "$mod21"]
 
 # module to load is already loaded, just unload
 testouterr_cmd_re "sh" "swap $mod11 $mod21" $ans ""
@@ -248,7 +248,7 @@ setenv_loaded_module [list $mod21] [list $mod21p]
 # Test to swap-off module with issue, nothing unloads
 #
 
-unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMALTNAME
 setenv_loaded_module [list $mod100] [list $mod100p]
 testouterr_cmd "sh" "swap $mod100 $mod11" "ERR" [msg_unload $mod100 $mod100errun]\n\n[msg_switch $mod100 $mod11 [err_swoff $mod100]]
 
@@ -259,96 +259,96 @@ setenv_loaded_module [list $mod102] [list $mod102p]
 testouterr_cmd "sh" "swap $mod102 $mod11" "ERR" [msg_unload $mod102 $mod102errun]\n\n[msg_switch $mod102 $mod11 [err_swoff $mod102]]
 
 setenv_loaded_module [list $mod100 $mod103] [list $mod100p $mod103p] [list $mod100]
-setenv_path_var __MODULES_LMPREREQ $mod103&$mod100
+setenv_var __MODULES_LMPREREQ $mod103&$mod100
 set ans [list]
 # unload interpretations are not cascaded if auto_handling enabled so answer order change
 if {$install_autohandling eq {y}} {
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list setpath _LMFILES_ $mod100p:$mod11p]
-lappend ans [list setpath LOADEDMODULES $mod100:$mod11]
+lappend ans [list set LOADEDMODULES $mod100:$mod11]
+lappend ans [list set _LMFILES_ $mod100p:$mod11p]
+lappend ans [list unset __MODULES_LMPREREQ]
 } else {
-lappend ans [list setpath LOADEDMODULES $mod100:$mod11]
-lappend ans [list setpath _LMFILES_ $mod100p:$mod11p]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mod100p:$mod11p]
+lappend ans [list set LOADEDMODULES $mod100:$mod11]
 }
 lappend ans [list ERR]
 testouterr_cmd_re "sh" "swap $mod103 $mod11" $ans [regsub -all {([.+?()])} [msg_unload $mod100 $mod100errun]$msgtopsw_103 {\\\1}]
 
 setenv_loaded_module [list $mod101 $mod104] [list $mod101p $mod104p] [list $mod101]
-setenv_path_var __MODULES_LMPREREQ $mod104&$mod101
+setenv_var __MODULES_LMPREREQ $mod104&$mod101
 set ans [list]
 if {$install_autohandling eq {y}} {
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list setpath _LMFILES_ $mod101p:$mod11p]
-lappend ans [list setpath LOADEDMODULES $mod101:$mod11]
+lappend ans [list set LOADEDMODULES $mod101:$mod11]
+lappend ans [list set _LMFILES_ $mod101p:$mod11p]
+lappend ans [list unset __MODULES_LMPREREQ]
 } else {
-lappend ans [list setpath LOADEDMODULES $mod101:$mod11]
-lappend ans [list setpath _LMFILES_ $mod101p:$mod11p]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mod101p:$mod11p]
+lappend ans [list set LOADEDMODULES $mod101:$mod11]
 }
 lappend ans [list ERR]
 testouterr_cmd_re "sh" "swap $mod104 $mod11" $ans [regsub -all {([.+?()])} [msg_unload $mod101 $mod101errun]$msgtopsw_104 {\\\1}]
 
 setenv_loaded_module [list $mod102 $mod105] [list $mod102p $mod105p] [list $mod102]
-setenv_path_var __MODULES_LMPREREQ $mod105&$mod102
+setenv_var __MODULES_LMPREREQ $mod105&$mod102
 set ans [list]
 if {$install_autohandling eq {y}} {
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list setpath _LMFILES_ $mod102p:$mod11p]
-lappend ans [list setpath LOADEDMODULES $mod102:$mod11]
+lappend ans [list set LOADEDMODULES $mod102:$mod11]
+lappend ans [list set _LMFILES_ $mod102p:$mod11p]
+lappend ans [list unset __MODULES_LMPREREQ]
 } else {
-lappend ans [list setpath LOADEDMODULES $mod102:$mod11]
-lappend ans [list setpath _LMFILES_ $mod102p:$mod11p]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mod102p:$mod11p]
+lappend ans [list set LOADEDMODULES $mod102:$mod11]
 }
 lappend ans [list ERR]
 testouterr_cmd_re "sh" "swap $mod105 $mod11" $ans [regsub -all {([.+?()])} [msg_unload $mod102 $mod102errun]$msgtopsw_105 {\\\1}]
 
 setenv_loaded_module [list $mod100 $mod103 $mod106] [list $mod100p $mod103p $mod106p] [list $mod100 $mod103]
-setenv_path_var __MODULES_LMPREREQ $mod103&$mod100 $mod106&$mod103
+setenv_var __MODULES_LMPREREQ $mod103&$mod100:$mod106&$mod103
 set ans [list]
 if {$install_autohandling eq {y}} {
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list setpath _LMFILES_ $mod100p:$mod11p]
-lappend ans [list setpath LOADEDMODULES $mod100:$mod11]
+lappend ans [list set LOADEDMODULES $mod100:$mod11]
+lappend ans [list set _LMFILES_ $mod100p:$mod11p]
+lappend ans [list unset __MODULES_LMPREREQ]
 } else {
-lappend ans [list setpath LOADEDMODULES $mod100:$mod11]
-lappend ans [list setpath _LMFILES_ $mod100p:$mod11p]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mod100p:$mod11p]
+lappend ans [list set LOADEDMODULES $mod100:$mod11]
 }
-lappend ans [list setpath __MODULES_LMTAG $mod100&auto-loaded]
+lappend ans [list set __MODULES_LMTAG $mod100&auto-loaded]
 lappend ans [list ERR]
 testouterr_cmd_re "sh" "swap $mod106 $mod11" $ans [regsub -all {([.+?()])} [msg_unload $mod100 $mod100errun]$msgtopsw_106 {\\\1}]
 
 setenv_loaded_module [list $mod101 $mod104 $mod107] [list $mod101p $mod104p $mod107p] [list $mod101 $mod104]
-setenv_path_var __MODULES_LMPREREQ $mod104&$mod101 $mod107&$mod104
+setenv_var __MODULES_LMPREREQ $mod104&$mod101:$mod107&$mod104
 set ans [list]
 if {$install_autohandling eq {y}} {
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list setpath _LMFILES_ $mod101p:$mod11p]
-lappend ans [list setpath LOADEDMODULES $mod101:$mod11]
+lappend ans [list set LOADEDMODULES $mod101:$mod11]
+lappend ans [list set _LMFILES_ $mod101p:$mod11p]
+lappend ans [list unset __MODULES_LMPREREQ]
 } else {
-lappend ans [list setpath LOADEDMODULES $mod101:$mod11]
-lappend ans [list setpath _LMFILES_ $mod101p:$mod11p]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mod101p:$mod11p]
+lappend ans [list set LOADEDMODULES $mod101:$mod11]
 }
-lappend ans [list setpath __MODULES_LMTAG $mod101&auto-loaded]
+lappend ans [list set __MODULES_LMTAG $mod101&auto-loaded]
 lappend ans [list ERR]
 testouterr_cmd_re "sh" "swap $mod107 $mod11" $ans [regsub -all {([.+?()])} [msg_unload $mod101 $mod101errun]$msgtopsw_107 {\\\1}]
 
 setenv_loaded_module [list $mod102 $mod105 $mod108] [list $mod102p $mod105p $mod108p] [list $mod102 $mod105]
-setenv_path_var __MODULES_LMPREREQ $mod105&$mod102 $mod108&$mod105
+setenv_var __MODULES_LMPREREQ $mod105&$mod102:$mod108&$mod105
 set ans [list]
 if {$install_autohandling eq {y}} {
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list setpath _LMFILES_ $mod102p:$mod11p]
-lappend ans [list setpath LOADEDMODULES $mod102:$mod11]
+lappend ans [list set LOADEDMODULES $mod102:$mod11]
+lappend ans [list set _LMFILES_ $mod102p:$mod11p]
+lappend ans [list unset __MODULES_LMPREREQ]
 } else {
-lappend ans [list setpath LOADEDMODULES $mod102:$mod11]
-lappend ans [list setpath _LMFILES_ $mod102p:$mod11p]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mod102p:$mod11p]
+lappend ans [list set LOADEDMODULES $mod102:$mod11]
 }
-lappend ans [list setpath __MODULES_LMTAG $mod102&auto-loaded]
+lappend ans [list set __MODULES_LMTAG $mod102&auto-loaded]
 lappend ans [list ERR]
 testouterr_cmd_re "sh" "swap $mod108 $mod11" $ans [regsub -all {([.+?()])} [msg_unload $mod102 $mod102errun]$msgtopsw_108 {\\\1}]
 
@@ -356,18 +356,18 @@ testouterr_cmd_re "sh" "swap $mod108 $mod11" $ans [regsub -all {([.+?()])} [msg_
 # Test to swap-on module with issue, nothing loads
 #
 
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMPREREQ
 setenv_loaded_module [list $mod11] [list $mod11p]
 
 set ans [list]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset _LMFILES_]
 lappend ans [list ERR]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath LOADEDMODULES]
 
 set ans2 [list]
+lappend ans2 [list unset _LMFILES_]
+lappend ans2 [list unset LOADEDMODULES]
 lappend ans2 [list ERR]
-lappend ans2 [list unsetpath LOADEDMODULES]
-lappend ans2 [list unsetpath _LMFILES_]
 
 
 testouterr_cmd "sh" "swap $mod11 $mod100" $ans [msg_load $mod100 $mod100err]\n\n[msg_switch $mod11 $mod100 [err_swon $mod100]]
@@ -387,8 +387,8 @@ testouterr_cmd "sh" "swap $mod11 $mod108" $ans [msg_load $mod105 $mod102err [err
 setenv_loaded_module [list $mod11p] [list $mod11p]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES $mod12p]
-lappend ans [list setpath _LMFILES_ $mod12p]
+lappend ans [list set _LMFILES_ $mod12p]
+lappend ans [list set LOADEDMODULES $mod12p]
 
 testouterr_cmd "sh" "swap $mod11p $mod12p" $ans ""
 
@@ -406,38 +406,38 @@ testouterr_cmd "sh" "swap $mod11p $mod100p" "ERR" [msg_load $mod100p $mod100err]
 setenv_loaded_module [list $mod11 $mod21] [list $mod11p $mod21p]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES $mod21]
-lappend ans [list setpath _LMFILES_ $mod21p]
+lappend ans [list set _LMFILES_ $mod21p]
+lappend ans [list set LOADEDMODULES $mod21]
 testouterr_cmd "sh" "swap $mod11p $mod21p" $ans ""
 
 # one name rule
 set ans [list]
-lappend ans [list setpath LOADEDMODULES $mod21:$mod12p]
-lappend ans [list setpath _LMFILES_ $mod21p:$mod12p]
+lappend ans [list set _LMFILES_ $mod21p:$mod12p]
+lappend ans [list set LOADEDMODULES $mod21:$mod12p]
 testouterr_cmd_re "sh" "swap $mod12p" $ans ""
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES $mod21:$mod11p]
-lappend ans [list setpath _LMFILES_ $mod21p:$mod11p]
+lappend ans [list set _LMFILES_ $mod21p:$mod11p]
+lappend ans [list set LOADEDMODULES $mod21:$mod11p]
 testouterr_cmd_re "sh" "swap $mod11p" $ans ""
 
 # same test without MODULEPATH set anymore
 unsetenv_path_var MODULEPATH
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES $mod21]
-lappend ans [list setpath _LMFILES_ $mod21p]
+lappend ans [list set _LMFILES_ $mod21p]
+lappend ans [list set LOADEDMODULES $mod21]
 testouterr_cmd "sh" "swap $mod11p $mod21p" $ans ""
 
 # one name rule
 set ans [list]
-lappend ans [list setpath LOADEDMODULES $mod11:$mod21:$mod12p]
-lappend ans [list setpath _LMFILES_ $mod11p:$mod21p:$mod12p]
+lappend ans [list set _LMFILES_ $mod11p:$mod21p:$mod12p]
+lappend ans [list set LOADEDMODULES $mod11:$mod21:$mod12p]
 testouterr_cmd_re "sh" "swap $mod12p" $ans ""
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES $mod21:$mod11p]
-lappend ans [list setpath _LMFILES_ $mod21p:$mod11p]
+lappend ans [list set _LMFILES_ $mod21p:$mod11p]
+lappend ans [list set LOADEDMODULES $mod21:$mod11p]
 testouterr_cmd_re "sh" "swap $mod11p" $ans ""
 
 
@@ -446,21 +446,21 @@ setenv_path_var MODULEPATH $modpath
 setenv_loaded_module [list $mod11p $mod21p] [list $mod11p $mod21p]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES $mod21p]
-lappend ans [list setpath _LMFILES_ $mod21p]
+lappend ans [list set _LMFILES_ $mod21p]
+lappend ans [list set LOADEDMODULES $mod21p]
 testouterr_cmd "sh" "swap $mod11 $mod21" $ans ""
 testouterr_cmd "sh" "swap $mod1name $mod2name" $ans ""
 
 # one name rule
 set ans [list]
-lappend ans [list setpath LOADEDMODULES $mod21p:$mod12]
-lappend ans [list setpath _LMFILES_ $mod21p:$mod12p]
+lappend ans [list set _LMFILES_ $mod21p:$mod12p]
+lappend ans [list set LOADEDMODULES $mod21p:$mod12]
 testouterr_cmd_re "sh" "swap $mod12" $ans ""
 
 if {$install_implicitdefault ne {y}} {
     set ans [list]
-    lappend ans [list setpath LOADEDMODULES $mod21p]
-    lappend ans [list setpath _LMFILES_ $mod21p]
+    lappend ans [list set _LMFILES_ $mod21p]
+    lappend ans [list set LOADEDMODULES $mod21p]
     lappend ans [list ERR]
 }
 testouterr_cmd_re "sh" "swap $mod1name" $ans [if_implicitdefault {} [msg_switch $mod11p $mod1name $err_nodefault'$mod1name']]
@@ -491,14 +491,14 @@ testouterr_cmd_re "sh" "switch foo $mod12" "ERR" "$err_loinconsist\n  LOADEDMODU
 
 setenv_path_var MODULEPATH $modpath
 setenv_loaded_module [list verssort/1] [list $modpath/verssort/1]
-setenv_path_var __MODULES_LMALTNAME verssort/1&&averssort/1
+setenv_var __MODULES_LMALTNAME verssort/1&&averssort/1
 
 if {$install_implicitdefault eq {y}} {
     set ans [list]
-    lappend ans [list setpath LOADEDMODULES verssort/1.10]
-    lappend ans [list setpath _LMFILES_ $modpath/verssort/1.10]
+    lappend ans [list set __MODULES_LMALTNAME verssort/1.10&al|averssort/1.10]
+    lappend ans [list set _LMFILES_ $modpath/verssort/1.10]
+    lappend ans [list set LOADEDMODULES verssort/1.10]
     lappend ans [list set MODULE_VERSION 1.10]
-    lappend ans [list setpath __MODULES_LMALTNAME verssort/1.10&al|averssort/1.10]
     testouterr_cmd sh {switch averssort} $ans {}
 }
 

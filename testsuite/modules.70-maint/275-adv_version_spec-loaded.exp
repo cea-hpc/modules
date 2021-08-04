@@ -67,13 +67,13 @@ setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
 testouterr_cmd sh {load foo@loaded} OK {}
 
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload foo@loaded} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/1.0]
-lappend ans [list setpath _LMFILES_ $mp/foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0]
 testouterr_cmd sh {switch foo@loaded} $ans {}
 
 set tserr "$modlin
@@ -188,10 +188,10 @@ testouterr_cmd sh {load --auto advvers/1.0} ERR [msg_load advvers/1.0 $tserr]
 
 setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/1.0:advvers/1.0]
-lappend ans [list setpath _LMFILES_ $mp/foo/1.0:$mp/advvers/1.0]
-lappend ans [list setpath __MODULES_LMPREREQ advvers/1.0&foo@loaded]
-lappend ans [list setpath __MODULES_LMALTNAME advvers/1.0&as|advvers/default&as|advvers/latest]
+lappend ans [list set __MODULES_LMALTNAME advvers/1.0&as|advvers/default&as|advvers/latest]
+lappend ans [list set __MODULES_LMPREREQ advvers/1.0&foo@loaded]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/advvers/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0:advvers/1.0]
 testouterr_cmd_re sh {load --auto advvers/1.0} $ans {}
 
 

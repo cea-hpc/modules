@@ -49,8 +49,8 @@ setenv_var MODULES_IMPLICIT_DEFAULT 0
 setenv_var MODULES_ADVANCED_VERSION_SPEC 0
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/2]
-lappend ans [list setpath _LMFILES_ $mp/foo/2]
+lappend ans [list set _LMFILES_ $mp/foo/2]
+lappend ans [list set LOADEDMODULES foo/2]
 
 testouterr_cmd sh {avail -t foo/default} OK {}
 testouterr_cmd sh {avail -t foo/latest} OK {}
@@ -107,9 +107,9 @@ setenv_var MODULES_IMPLICIT_DEFAULT 1
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/2]
-lappend ans [list setpath _LMFILES_ $mp/foo/2]
-lappend ans [list setpath __MODULES_LMALTNAME foo/2&as|foo/default&as|foo/latest]
+lappend ans [list set __MODULES_LMALTNAME foo/2&as|foo/default&as|foo/latest]
+lappend ans [list set _LMFILES_ $mp/foo/2]
+lappend ans [list set LOADEDMODULES foo/2]
 
 testouterr_cmd sh {avail -t foo@default} OK $mp:\nfoo/2
 testouterr_cmd sh {avail -t foo@latest} OK $mp:\nfoo/2
@@ -133,7 +133,7 @@ testouterr_cmd sh {is-loaded foo/default} ERR {}
 testouterr_cmd sh {is-loaded foo/latest} ERR {}
 testouterr_cmd sh {is-loaded foo@latest} ERR {}
 setenv_loaded_module [list foo/2] [list $mp/foo/2]
-setenv_path_var __MODULES_LMALTNAME foo/2&as|foo/default&as|foo/latest
+setenv_var __MODULES_LMALTNAME foo/2&as|foo/default&as|foo/latest
 testouterr_cmd sh {load foo} OK {}
 testouterr_cmd sh {load foo@default} OK {}
 testouterr_cmd sh {load foo/default} OK {}
@@ -145,7 +145,7 @@ testouterr_cmd sh {is-loaded foo/latest} OK {}
 testouterr_cmd sh {is-loaded foo@latest} OK {}
 testouterr_cmd sh {list -t} OK $cur_loaded\nfoo/2
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMALTNAME
 
 
 # symbol already exists
@@ -153,35 +153,35 @@ unsetenv_path_var __MODULES_LMALTNAME
 testouterr_cmd sh {avail -t autosym1@default} OK $mp:\nautosym1/1(default)
 testouterr_cmd sh {avail -t autosym1/latest} OK $mp:\nautosym1/2
 set ans [list]
-lappend ans [list setpath LOADEDMODULES autosym1/1]
-lappend ans [list setpath _LMFILES_ $mp/autosym1/1]
-lappend ans [list setpath __MODULES_LMALTNAME autosym1/1&autosym1/default&autosym1]
+lappend ans [list set __MODULES_LMALTNAME autosym1/1&autosym1/default&autosym1]
+lappend ans [list set _LMFILES_ $mp/autosym1/1]
+lappend ans [list set LOADEDMODULES autosym1/1]
 testouterr_cmd sh {load autosym1/default} $ans {}
 set ans [list]
-lappend ans [list setpath LOADEDMODULES autosym1/2]
-lappend ans [list setpath _LMFILES_ $mp/autosym1/2]
-lappend ans [list setpath __MODULES_LMALTNAME autosym1/2&as|autosym1/latest]
+lappend ans [list set __MODULES_LMALTNAME autosym1/2&as|autosym1/latest]
+lappend ans [list set _LMFILES_ $mp/autosym1/2]
+lappend ans [list set LOADEDMODULES autosym1/2]
 testouterr_cmd sh {load autosym1@latest} $ans {}
 testouterr_cmd_re sh {whatis autosym1@default} OK "$modlin $mpre $modlin\n\\s+autosym1/1: autosym1/1"
 testouterr_cmd_re sh {whatis autosym1/latest} OK "$modlin $mpre $modlin\n\\s+autosym1/2: autosym1/2"
 testouterr_cmd sh {is-loaded autosym1/default} ERR {}
 testouterr_cmd sh {is-loaded autosym1@latest} ERR {}
 setenv_loaded_module [list autosym1/1 autosym1/2] [list $mp/autosym1/1 $mp/autosym2/2]
-setenv_path_var __MODULES_LMALTNAME autosym1/1&autosym1/default&autosym1 autosym1/2&as|autosym1/latest
+setenv_var __MODULES_LMALTNAME autosym1/1&autosym1/default&autosym1:autosym1/2&as|autosym1/latest
 testouterr_cmd sh {is-loaded autosym1/default} OK {}
 testouterr_cmd sh {is-loaded autosym1@latest} OK {}
 testouterr_cmd sh {load autosym1/default} OK {}
 testouterr_cmd sh {load autosym1@latest} OK {}
 testouterr_cmd sh {list} OK "$cur_loaded\n 1) autosym1/1(default)   2) autosym1/2  $key_sym"
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMALTNAME
 
 testouterr_cmd sh {avail -t autosym2@default} OK $mp:\nautosym2/2(bar:latest)
 testouterr_cmd sh {avail -t autosym2/latest} OK $mp:\nautosym2/2(bar:latest)
 set ans [list]
-lappend ans [list setpath LOADEDMODULES autosym2/2]
-lappend ans [list setpath _LMFILES_ $mp/autosym2/2]
-lappend ans [list setpath __MODULES_LMALTNAME autosym2/2&autosym2/latest&autosym2/bar&as|autosym2/default]
+lappend ans [list set __MODULES_LMALTNAME autosym2/2&autosym2/latest&autosym2/bar&as|autosym2/default]
+lappend ans [list set _LMFILES_ $mp/autosym2/2]
+lappend ans [list set LOADEDMODULES autosym2/2]
 testouterr_cmd sh {load autosym2/default} $ans {}
 testouterr_cmd sh {load autosym2@latest} $ans {}
 testouterr_cmd_re sh {whatis autosym2@default} OK "$modlin $mpre $modlin\n\\s+autosym2/2: autosym2/2"
@@ -189,40 +189,40 @@ testouterr_cmd_re sh {whatis autosym2/latest} OK "$modlin $mpre $modlin\n\\s+aut
 testouterr_cmd sh {is-loaded autosym2/default} ERR {}
 testouterr_cmd sh {is-loaded autosym2@latest} ERR {}
 setenv_loaded_module [list autosym2/1 autosym2/2] [list $mp/autosym2/1 $mp/autosym2/2]
-setenv_path_var __MODULES_LMALTNAME autosym2/2&autosym2/latest&autosym2/bar&as|autosym2/default
+setenv_var __MODULES_LMALTNAME autosym2/2&autosym2/latest&autosym2/bar&as|autosym2/default
 testouterr_cmd sh {is-loaded autosym2/default} OK {}
 testouterr_cmd sh {is-loaded autosym2@latest} OK {}
 testouterr_cmd sh {load autosym2/default} OK {}
 testouterr_cmd sh {load autosym2@latest} OK {}
 testouterr_cmd sh {list} OK "$cur_loaded\n 1) autosym2/1   2) autosym2/2(bar:latest)  $key_sym"
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMALTNAME
 
 testouterr_cmd sh {avail -t autosym3@default} OK $mp:\nautosym3/1(default)
 testouterr_cmd sh {avail -t autosym3/latest} OK $mp:\nautosym3/2(latest)
 set ans [list]
-lappend ans [list setpath LOADEDMODULES autosym3/1]
-lappend ans [list setpath _LMFILES_ $mp/autosym3/1]
-lappend ans [list setpath __MODULES_LMALTNAME autosym3/1&autosym3/default&autosym3]
+lappend ans [list set __MODULES_LMALTNAME autosym3/1&autosym3/default&autosym3]
+lappend ans [list set _LMFILES_ $mp/autosym3/1]
+lappend ans [list set LOADEDMODULES autosym3/1]
 testouterr_cmd sh {load autosym3/default} $ans {}
 set ans [list]
-lappend ans [list setpath LOADEDMODULES autosym3/2]
-lappend ans [list setpath _LMFILES_ $mp/autosym3/2]
-lappend ans [list setpath __MODULES_LMALTNAME autosym3/2&autosym3/latest]
+lappend ans [list set __MODULES_LMALTNAME autosym3/2&autosym3/latest]
+lappend ans [list set _LMFILES_ $mp/autosym3/2]
+lappend ans [list set LOADEDMODULES autosym3/2]
 testouterr_cmd sh {load autosym3@latest} $ans {}
 testouterr_cmd_re sh {whatis autosym3@default} OK "$modlin $mpre $modlin\n\\s+autosym3/1: autosym3/1"
 testouterr_cmd_re sh {whatis autosym3/latest} OK "$modlin $mpre $modlin\n\\s+autosym3/2: autosym3/2"
 testouterr_cmd sh {is-loaded autosym3/default} ERR {}
 testouterr_cmd sh {is-loaded autosym3@latest} ERR {}
 setenv_loaded_module [list autosym3/1 autosym3/2] [list $mp/autosym3/1 $mp/autosym3/2]
-setenv_path_var __MODULES_LMALTNAME autosym3/1&autosym3/default&autosym3 autosym3/2&autosym3/latest
+setenv_var __MODULES_LMALTNAME autosym3/1&autosym3/default&autosym3:autosym3/2&autosym3/latest
 testouterr_cmd sh {is-loaded autosym3/default} OK {}
 testouterr_cmd sh {is-loaded autosym3@latest} OK {}
 testouterr_cmd sh {load autosym3/default} OK {}
 testouterr_cmd sh {load autosym3@latest} OK {}
 testouterr_cmd sh {list} OK "$cur_loaded\n 1) autosym3/1(default)   2) autosym3/2(latest)  $key_sym"
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMALTNAME
 
 
 # alias, virtual or regular version file exists
@@ -230,9 +230,9 @@ unsetenv_path_var __MODULES_LMALTNAME
 testouterr_cmd sh {avail -t autosym4@default} OK $mp:\nautosym4/latest(@)
 testouterr_cmd sh {avail -t autosym4/latest} OK $mp:\nautosym4/latest(@)
 set ans [list]
-lappend ans [list setpath LOADEDMODULES autosym4/2]
-lappend ans [list setpath _LMFILES_ $mp/autosym4/2]
-lappend ans [list setpath __MODULES_LMALTNAME autosym4/2&al|autosym4/latest&as|autosym4/default]
+lappend ans [list set __MODULES_LMALTNAME autosym4/2&al|autosym4/latest&as|autosym4/default]
+lappend ans [list set _LMFILES_ $mp/autosym4/2]
+lappend ans [list set LOADEDMODULES autosym4/2]
 testouterr_cmd sh {load autosym4/default} $ans {}
 testouterr_cmd sh {load autosym4@latest} $ans {}
 testouterr_cmd_re sh {whatis autosym4@default} OK "$modlin $mpre $modlin\n\\s+autosym4/2: autosym4/2"
@@ -240,21 +240,21 @@ testouterr_cmd_re sh {whatis autosym4/latest} OK "$modlin $mpre $modlin\n\\s+aut
 testouterr_cmd sh {is-loaded autosym4/default} ERR {}
 testouterr_cmd sh {is-loaded autosym4@latest} ERR {}
 setenv_loaded_module [list autosym4/1 autosym4/2] [list $mp/autosym4/1 $mp/autosym4/2]
-setenv_path_var __MODULES_LMALTNAME autosym4/2&al|autosym4/latest&as|autosym4/default
+setenv_var __MODULES_LMALTNAME autosym4/2&al|autosym4/latest&as|autosym4/default
 testouterr_cmd sh {is-loaded autosym4/default} OK {}
 testouterr_cmd sh {is-loaded autosym4@latest} OK {}
 testouterr_cmd sh {load autosym4/default} OK {}
 testouterr_cmd sh {load autosym4@latest} OK {}
 testouterr_cmd sh {list} OK "$cur_loaded\n 1) autosym4/1   2) autosym4/2  "
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMALTNAME
 
 testouterr_cmd sh {avail -t autosym5@default} OK $mp:\nautosym5/default
 testouterr_cmd sh {avail -t autosym5/latest} OK $mp:\nautosym5/default
 set ans [list]
-lappend ans [list setpath LOADEDMODULES autosym5/default]
-lappend ans [list setpath _LMFILES_ $mp/autosym5/default]
-lappend ans [list setpath __MODULES_LMALTNAME autosym5/default&as|autosym5/latest]
+lappend ans [list set __MODULES_LMALTNAME autosym5/default&as|autosym5/latest]
+lappend ans [list set _LMFILES_ $mp/autosym5/default]
+lappend ans [list set LOADEDMODULES autosym5/default]
 testouterr_cmd sh {load autosym5/default} $ans {}
 testouterr_cmd sh {load autosym5@latest} $ans {}
 testouterr_cmd_re sh {whatis autosym5@default} OK "$modlin $mpre $modlin\n\\s+autosym5/default: autosym5/default"
@@ -262,47 +262,47 @@ testouterr_cmd_re sh {whatis autosym5/latest} OK "$modlin $mpre $modlin\n\\s+aut
 testouterr_cmd sh {is-loaded autosym5/default} ERR {}
 testouterr_cmd sh {is-loaded autosym5@latest} ERR {}
 setenv_loaded_module [list autosym5/default] [list $mp/autosym5/default]
-setenv_path_var __MODULES_LMALTNAME autosym5/default&as|autosym5/latest
+setenv_var __MODULES_LMALTNAME autosym5/default&as|autosym5/latest
 testouterr_cmd sh {is-loaded autosym5/default} OK {}
 testouterr_cmd sh {is-loaded autosym5@latest} OK {}
 testouterr_cmd sh {load autosym5/default} OK {}
 testouterr_cmd sh {load autosym5@latest} OK {}
 testouterr_cmd sh {list} OK "$cur_loaded\n 1) autosym5/default  "
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMALTNAME
 
 testouterr_cmd sh {avail -t autosym6@default} OK $mp:\nautosym6/default(@)
 testouterr_cmd sh {avail -t autosym6/latest} OK $mp:\nautosym6/latest
 set ans [list]
-lappend ans [list setpath LOADEDMODULES autosym6/1]
-lappend ans [list setpath _LMFILES_ $mp/autosym6/1]
-lappend ans [list setpath __MODULES_LMALTNAME autosym6/1&autosym6/zzz&al|autosym6/default]
+lappend ans [list set __MODULES_LMALTNAME autosym6/1&autosym6/zzz&al|autosym6/default]
+lappend ans [list set _LMFILES_ $mp/autosym6/1]
+lappend ans [list set LOADEDMODULES autosym6/1]
 testouterr_cmd sh {load autosym6/default} $ans {}
 set ans [list]
-lappend ans [list setpath LOADEDMODULES autosym6/latest]
-lappend ans [list setpath _LMFILES_ $mp/autosym6/2]
+lappend ans [list set _LMFILES_ $mp/autosym6/2]
+lappend ans [list set LOADEDMODULES autosym6/latest]
 testouterr_cmd sh {load autosym6@latest} $ans {}
 testouterr_cmd_re sh {whatis autosym6@default} OK "$modlin $mpre $modlin\n\\s+autosym6/1: autosym6/1"
 testouterr_cmd_re sh {whatis autosym6/latest} OK "$modlin $mpre $modlin\n\\s+autosym6/latest: autosym6/latest"
 testouterr_cmd sh {is-loaded autosym6/default} ERR {}
 testouterr_cmd sh {is-loaded autosym6@latest} ERR {}
 setenv_loaded_module [list autosym6/1 autosym6/latest] [list $mp/autosym6/1 $mp/autosym6/2]
-setenv_path_var __MODULES_LMALTNAME autosym6/1&autosym6/zzz&al|autosym6/default
+setenv_var __MODULES_LMALTNAME autosym6/1&autosym6/zzz&al|autosym6/default
 testouterr_cmd sh {is-loaded autosym6/default} OK {}
 testouterr_cmd sh {is-loaded autosym6@latest} OK {}
 testouterr_cmd sh {load autosym6/default} OK {}
 testouterr_cmd sh {load autosym6@latest} OK {}
 testouterr_cmd sh {list} OK "$cur_loaded\n 1) autosym6/1(zzz)   2) autosym6/latest  $key_sym"
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMALTNAME
 
 
 # icase test
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/2]
-lappend ans [list setpath _LMFILES_ $mp/foo/2]
-lappend ans [list setpath __MODULES_LMALTNAME foo/2&as|foo/default&as|foo/latest]
+lappend ans [list set __MODULES_LMALTNAME foo/2&as|foo/default&as|foo/latest]
+lappend ans [list set _LMFILES_ $mp/foo/2]
+lappend ans [list set LOADEDMODULES foo/2]
 
 testouterr_cmd sh {avail -i -t foo@defAULT} OK $mp:\nfoo/2
 testouterr_cmd sh {avail -i -t foo@LAtest} OK $mp:\nfoo/2
@@ -314,13 +314,13 @@ testouterr_cmd sh {whatis -i foo/latest} OK {}
 testouterr_cmd sh {is-loaded -i foo/DEFault} ERR {}
 testouterr_cmd sh {is-loaded -i foo@laTEst} ERR {}
 setenv_loaded_module [list foo/2] [list $mp/foo/2]
-setenv_path_var __MODULES_LMALTNAME foo/2&as|foo/default&as|foo/latest
+setenv_var __MODULES_LMALTNAME foo/2&as|foo/default&as|foo/latest
 testouterr_cmd sh {is-loaded -i foo/deFAult} OK {}
 testouterr_cmd sh {is-loaded -i foo@LATest} OK {}
 testouterr_cmd sh {load -i foo/defauLT} OK {}
 testouterr_cmd sh {load -i foo@latESt} OK {}
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMALTNAME
 
 
 # auto symbols requires an exact match
@@ -341,9 +341,9 @@ testouterr_cmd sh {avail -t -C atest} OK $mp:\nautosym2/2(bar:latest)\nautosym3/
 testouterr_cmd sh {avail -t foo@default,latest} OK $mp:\nfoo/2
 testouterr_cmd sh {avail -t autosym1@default,latest} OK $mp:\nautosym1/1(default)\nautosym1/2
 set ans [list]
-lappend ans [list setpath LOADEDMODULES autosym1/1]
-lappend ans [list setpath _LMFILES_ $mp/autosym1/1]
-lappend ans [list setpath __MODULES_LMALTNAME autosym1/1&autosym1/default&autosym1]
+lappend ans [list set __MODULES_LMALTNAME autosym1/1&autosym1/default&autosym1]
+lappend ans [list set _LMFILES_ $mp/autosym1/1]
+lappend ans [list set LOADEDMODULES autosym1/1]
 testouterr_cmd sh {load autosym1@default,latest} $ans {}
 testouterr_cmd sh {load autosym1@default,2} $ans {}
 testouterr_cmd sh {load autosym1@1,latest} $ans {}
@@ -356,9 +356,9 @@ testouterr_cmd sh {avail -t foo@default:} ERR $err_rangevers'default:'
 testouterr_cmd sh {avail -t autosym7@default} OK $mp:\nautosym7/dir2/1\nautosym7/dir2/2
 testouterr_cmd sh {avail -t autosym7/latest} OK $mp:\nautosym7/dir2/1\nautosym7/dir2/2
 set ans [list]
-lappend ans [list setpath LOADEDMODULES autosym7/dir2/2]
-lappend ans [list setpath _LMFILES_ $mp/autosym7/dir2/2]
-lappend ans [list setpath __MODULES_LMALTNAME autosym7/dir2/2&as|autosym7/default&as|autosym7/latest&as|autosym7/dir2/default&as|autosym7/dir2/latest]
+lappend ans [list set __MODULES_LMALTNAME autosym7/dir2/2&as|autosym7/default&as|autosym7/latest&as|autosym7/dir2/default&as|autosym7/dir2/latest]
+lappend ans [list set _LMFILES_ $mp/autosym7/dir2/2]
+lappend ans [list set LOADEDMODULES autosym7/dir2/2]
 testouterr_cmd sh {load autosym7/dir2/default} $ans {}
 testouterr_cmd sh {load autosym7/dir2@latest} $ans {}
 testouterr_cmd sh {load autosym7/default} $ans {}
@@ -372,7 +372,7 @@ testouterr_cmd sh {is-loaded autosym7@latest} ERR {}
 testouterr_cmd sh {is-loaded autosym7/dir2/default} ERR {}
 testouterr_cmd sh {is-loaded autosym7/dir2@latest} ERR {}
 setenv_loaded_module [list autosym7/dir2/2] [list $mp/autosym7/dir2/2]
-setenv_path_var __MODULES_LMALTNAME autosym7/dir2/2&as|autosym7/default&as|autosym7/latest&as|autosym7/dir2/default&as|autosym7/dir2/latest
+setenv_var __MODULES_LMALTNAME autosym7/dir2/2&as|autosym7/default&as|autosym7/latest&as|autosym7/dir2/default&as|autosym7/dir2/latest
 testouterr_cmd sh {is-loaded autosym7/default} OK {}
 testouterr_cmd sh {is-loaded autosym7@latest} OK {}
 testouterr_cmd sh {is-loaded autosym7/dir2/default} OK {}
@@ -383,64 +383,64 @@ testouterr_cmd sh {load autosym7/dir2/default} OK {}
 testouterr_cmd sh {load autosym7/dir2@latest} OK {}
 testouterr_cmd sh {list} OK "$cur_loaded\n 1) autosym7/dir2/2  "
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMALTNAME
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES autosym7/dir1/2]
-lappend ans [list setpath _LMFILES_ $mp/autosym7/dir1/2]
-lappend ans [list setpath __MODULES_LMALTNAME autosym7/dir1/2&as|autosym7/dir1/default&as|autosym7/dir1/latest]
+lappend ans [list set __MODULES_LMALTNAME autosym7/dir1/2&as|autosym7/dir1/default&as|autosym7/dir1/latest]
+lappend ans [list set _LMFILES_ $mp/autosym7/dir1/2]
+lappend ans [list set LOADEDMODULES autosym7/dir1/2]
 testouterr_cmd sh {load autosym7/dir1/default} $ans {}
 testouterr_cmd sh {load autosym7/dir1@latest} $ans {}
 setenv_loaded_module [list autosym7/dir1/2] [list $mp/autosym7/dir1/2]
-setenv_path_var __MODULES_LMALTNAME autosym7/dir1/2&as|autosym7/dir1/default&as|autosym7/dir1/latest
+setenv_var __MODULES_LMALTNAME autosym7/dir1/2&as|autosym7/dir1/default&as|autosym7/dir1/latest
 testouterr_cmd sh {is-loaded autosym7/dir1/default} OK {}
 testouterr_cmd sh {is-loaded autosym7/dir1@latest} OK {}
 testouterr_cmd sh {is-loaded autosym7/default} ERR {}
 testouterr_cmd sh {is-loaded autosym7@latest} ERR {}
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMALTNAME
 
 
 # symbol spread
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES autosym8/2]
-lappend ans [list setpath _LMFILES_ $mp/autosym8/2]
-lappend ans [list setpath __MODULES_LMALTNAME autosym8/2&al|autosym8/3&as|autosym8/default&as|autosym8/latest]
+lappend ans [list set __MODULES_LMALTNAME autosym8/2&al|autosym8/3&as|autosym8/default&as|autosym8/latest]
+lappend ans [list set _LMFILES_ $mp/autosym8/2]
+lappend ans [list set LOADEDMODULES autosym8/2]
 testouterr_cmd sh {load autosym8@latest} $ans {}
 testouterr_cmd sh {avail -t autosym8@default} OK $mp:\nautosym8/3(@)
 setenv_loaded_module [list autosym8/2] [list $mp/autosym8/2]
-setenv_path_var __MODULES_LMALTNAME autosym8/2&al|autosym8/3&as|autosym8/default&as|autosym8/latest
+setenv_var __MODULES_LMALTNAME autosym8/2&al|autosym8/3&as|autosym8/default&as|autosym8/latest
 testouterr_cmd sh {is-loaded autosym8@latest} OK {}
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMALTNAME
 
 
 # use in requirements
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/2:autosym9/1]
-lappend ans [list setpath _LMFILES_ $mp/foo/2:$mp/autosym9/1]
-lappend ans [list setpath __MODULES_LMALTNAME foo/2&as|foo/default&as|foo/latest:autosym9/1&as|autosym9/default&as|autosym9/latest]
-lappend ans [list setpath __MODULES_LMPREREQ autosym9/1&foo@default]
-lappend ans [list setpath __MODULES_LMCONFLICT autosym9/1&autosym1@latest]
-lappend ans [list setpath __MODULES_LMTAG foo/2&auto-loaded]
+lappend ans [list set __MODULES_LMCONFLICT autosym9/1&autosym1@latest]
+lappend ans [list set __MODULES_LMALTNAME foo/2&as|foo/default&as|foo/latest:autosym9/1&as|autosym9/default&as|autosym9/latest]
+lappend ans [list set __MODULES_LMPREREQ autosym9/1&foo@default]
+lappend ans [list set _LMFILES_ $mp/foo/2:$mp/autosym9/1]
+lappend ans [list set LOADEDMODULES foo/2:autosym9/1]
+lappend ans [list set __MODULES_LMTAG foo/2&auto-loaded]
 # test ReqLo
 testouterr_cmd_re sh {load --auto autosym9@1} $ans [msg_top_load autosym9/1 {} foo/2 {}]
 setenv_loaded_module [list foo/2 autosym9/1] [list $mp/foo/2 $mp/autosym9/1] [list foo/2]
-setenv_path_var __MODULES_LMALTNAME foo/2&as|foo/default&as|foo/latest:autosym9/1&as|autosym9/default&as|autosym9/latest
-setenv_path_var __MODULES_LMPREREQ autosym9/1&foo@default
-setenv_path_var __MODULES_LMCONFLICT autosym9/1&autosym1@latest
+setenv_var __MODULES_LMALTNAME foo/2&as|foo/default&as|foo/latest:autosym9/1&as|autosym9/default&as|autosym9/latest
+setenv_var __MODULES_LMPREREQ autosym9/1&foo@default
+setenv_var __MODULES_LMCONFLICT autosym9/1&autosym1@latest
 # test conflict
 testouterr_cmd sh {load autosym1@latest} ERR [msg_load autosym1/2 [err_conflict autosym9/1]]
 testouterr_cmd sh {load autosym1/2} ERR [msg_load autosym1/2 [err_conflict autosym9/1]]
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
-lappend ans [list unsetpath __MODULES_LMTAG]
-lappend ans [list unsetpath __MODULES_LMALTNAME]
+lappend ans [list unset __MODULES_LMALTNAME]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 # test UReqUn
 testouterr_cmd sh {unload --auto autosym9@latest} $ans [msg_top_unload autosym9/1 {} foo/2 {}]
 testouterr_cmd sh {unload --auto autosym9/1} $ans [msg_top_unload autosym9/1 {} foo/2 {}]
@@ -450,23 +450,23 @@ testouterr_cmd sh {unload --auto foo@latest} $ans [msg_top_unload foo/2 autosym9
 testouterr_cmd sh {unload --auto foo@2} $ans [msg_top_unload foo/2 autosym9/1 {} {}]
 # test DepRe
 setenv_loaded_module [list autosym9/1] [list $mp/autosym9/1]
-setenv_path_var __MODULES_LMALTNAME autosym9/1&as|autosym9/default&as|autosym9/latest
-setenv_path_var __MODULES_LMPREREQ autosym9/1&foo@default
-setenv_path_var __MODULES_LMCONFLICT autosym9/1&autosym1@latest
+setenv_var __MODULES_LMALTNAME autosym9/1&as|autosym9/default&as|autosym9/latest
+setenv_var __MODULES_LMPREREQ autosym9/1&foo@default
+setenv_var __MODULES_LMCONFLICT autosym9/1&autosym1@latest
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/2:autosym9/1]
-lappend ans [list setpath _LMFILES_ $mp/foo/2:$mp/autosym9/1]
-lappend ans [list setpath __MODULES_LMPREREQ autosym9/1&foo@default]
-lappend ans [list setpath __MODULES_LMCONFLICT autosym9/1&autosym1@latest]
-lappend ans [list setpath __MODULES_LMALTNAME foo/2&as|foo/default&as|foo/latest:autosym9/1&as|autosym9/default&as|autosym9/latest]
+lappend ans [list set __MODULES_LMALTNAME foo/2&as|foo/default&as|foo/latest:autosym9/1&as|autosym9/default&as|autosym9/latest]
+lappend ans [list set __MODULES_LMCONFLICT autosym9/1&autosym1@latest]
+lappend ans [list set __MODULES_LMPREREQ autosym9/1&foo@default]
+lappend ans [list set _LMFILES_ $mp/foo/2:$mp/autosym9/1]
+lappend ans [list set LOADEDMODULES foo/2:autosym9/1]
 testouterr_cmd_re sh {load --auto foo@2} $ans [msg_top_load foo/2 {} {} autosym9/1]
 testouterr_cmd_re sh {load --auto foo@default} $ans [msg_top_load foo/2 {} {} autosym9/1]
 testouterr_cmd_re sh {load --auto foo@latest} $ans [msg_top_load foo/2 {} {} autosym9/1]
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMALTNAME
-unsetenv_path_var __MODULES_LMTAG
-unsetenv_path_var __MODULES_LMCONFLICT
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMPREREQ
 
 }
 
@@ -474,7 +474,7 @@ unsetenv_path_var __MODULES_LMPREREQ
 
 setenv_var MODULES_ADVANCED_VERSION_SPEC 0
 setenv_loaded_module [list autosym8/2] [list $mp/autosym8/2]
-setenv_path_var __MODULES_LMALTNAME autosym8/2&al|autosym8/3&as|autosym8/default&as|autosym8/latest
+setenv_var __MODULES_LMALTNAME autosym8/2&al|autosym8/3&as|autosym8/default&as|autosym8/latest
 testouterr_cmd sh {is-loaded autosym8/default} OK {}
 testouterr_cmd sh {is-loaded autosym8/latest} OK {}
 testouterr_cmd sh {load autosym8/latest} ERR $err_path'autosym8/latest'
@@ -484,30 +484,30 @@ testouterr_cmd sh {avail -t autosym8/latest} OK {}
 testouterr_cmd sh {avail -t autosym8/default} OK {}
 # test requirement resolution once auto symbol is disabled
 setenv_loaded_module [list foo/2 autosym9/1] [list $mp/foo/2 $mp/autosym9/1] [list foo/2]
-setenv_path_var __MODULES_LMALTNAME foo/2&as|foo/default&as|foo/latest:autosym9/1&as|autosym9/default&as|autosym9/latest
+setenv_var __MODULES_LMALTNAME foo/2&as|foo/default&as|foo/latest:autosym9/1&as|autosym9/default&as|autosym9/latest
 # hack a little bit requirement definitions to make them fit a disabled advanced_version_spec context
-setenv_path_var __MODULES_LMPREREQ autosym9/1&foo/default
-setenv_path_var __MODULES_LMCONFLICT autosym9/1&autosym1/latest
+setenv_var __MODULES_LMPREREQ autosym9/1&foo/default
+setenv_var __MODULES_LMCONFLICT autosym9/1&autosym1/latest
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
-lappend ans [list unsetpath __MODULES_LMTAG]
-lappend ans [list unsetpath __MODULES_LMALTNAME]
+lappend ans [list unset __MODULES_LMALTNAME]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 testouterr_cmd sh {unload --auto foo/default} $ans [msg_top_unload foo/2 autosym9/1 {} {}]
 testouterr_cmd sh {unload --auto foo/latest} $ans [msg_top_unload foo/2 autosym9/1 {} {}]
 testouterr_cmd sh {unload --auto foo/2} $ans [msg_top_unload foo/2 autosym9/1 {} {}]
 # conflict not seen, as symbol is not defined
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/2:autosym9/1:autosym1/2]
-lappend ans [list setpath _LMFILES_ $mp/foo/2:$mp/autosym9/1:$mp/autosym1/2]
+lappend ans [list set _LMFILES_ $mp/foo/2:$mp/autosym9/1:$mp/autosym1/2]
+lappend ans [list set LOADEDMODULES foo/2:autosym9/1:autosym1/2]
 testouterr_cmd_re sh {load autosym1/2} $ans {}
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMALTNAME
-unsetenv_path_var __MODULES_LMTAG
-unsetenv_path_var __MODULES_LMCONFLICT
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMPREREQ
 
 
 #

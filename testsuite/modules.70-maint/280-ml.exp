@@ -47,9 +47,9 @@ testouterr_cmd sh {ml av -t extdfl/1.3.1} OK "$mp:\nextdfl/1.3.1(default)"
 
 # try to load a module named load: sub-command call has higher priority
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/1.3.1]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.1]
-lappend ans [list setpath __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+lappend ans [list set __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+lappend ans [list set _LMFILES_ $mp/extdfl/1.3.1]
+lappend ans [list set LOADEDMODULES extdfl/1.3.1]
 testouterr_cmd sh {ml load extdfl} $ans {}
 testouterr_cmd sh {ml lo extdfl} $ans {}
 
@@ -69,13 +69,13 @@ testouterr_cmd sh {ml extdfl} $ans {}
 
 # basic tests over a loaded module
 setenv_loaded_module [list extdfl/1.3.1] [list $mp/extdfl/1.3.1]
-setenv_path_var __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl
+setenv_var __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl
 testouterr_cmd sh {ml} OK "$cur_loaded\n 1) extdfl/1.3.1(default)  $key_sym"
 testouterr_cmd sh {ml extdfl} OK {}
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMALTNAME]
+lappend ans [list unset __MODULES_LMALTNAME]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {ml -extdfl} $ans {}
 testouterr_cmd sh {ml -extdfl/1.3.1} $ans {}
 
@@ -85,30 +85,30 @@ testouterr_cmd sh {ml -t -f} OK "$cur_loaded\nextdfl/1.3.1"
 testouterr_cmd sh {ml --terse} OK "$cur_loaded\nextdfl/1.3.1"
 setenv_loaded_module [list t f] [list $mp/t $mp/f]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES t:f:extdfl/1.3.1]
-lappend ans [list setpath _LMFILES_ $mp/t:$mp/f:$mp/extdfl/1.3.1]
-lappend ans [list setpath __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+lappend ans [list set __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+lappend ans [list set _LMFILES_ $mp/t:$mp/f:$mp/extdfl/1.3.1]
+lappend ans [list set LOADEDMODULES t:f:extdfl/1.3.1]
 testouterr_cmd_re sh {ml extdfl -t} $ans {}
 testouterr_cmd_re sh {ml -f extdfl -t} $ans {}
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMALTNAME
 
 # abbreviated sub-command name should be consistent
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/1.3.1]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.1]
-lappend ans [list setpath __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+lappend ans [list set __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+lappend ans [list set _LMFILES_ $mp/extdfl/1.3.1]
+lappend ans [list set LOADEDMODULES extdfl/1.3.1]
 testouterr_cmd sh {ml lo extdfl} $ans {}
 testouterr_cmd sh {ml loda extdfl} ERR $err_path'loda'
 
 # module name whose start match command abbreviation
 set ans [list]
-lappend ans [list setpath LOADEDMODULES loc]
-lappend ans [list setpath _LMFILES_ $mp/loc]
+lappend ans [list set _LMFILES_ $mp/loc]
+lappend ans [list set LOADEDMODULES loc]
 testouterr_cmd sh {ml loc} $ans {}
 set ans [list]
-lappend ans [list setpath LOADEDMODULES unloc]
-lappend ans [list setpath _LMFILES_ $mp/unloc]
+lappend ans [list set _LMFILES_ $mp/unloc]
+lappend ans [list set LOADEDMODULES unloc]
 testouterr_cmd sh {ml unloc} $ans {}
 
 # test version report
@@ -133,28 +133,28 @@ setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 
 # adv version spec
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/2]
-lappend ans [list setpath _LMFILES_ $mp/foo/2]
-lappend ans [list setpath __MODULES_LMALTNAME foo/2&as|foo/default&as|foo/latest]
+lappend ans [list set __MODULES_LMALTNAME foo/2&as|foo/default&as|foo/latest]
+lappend ans [list set _LMFILES_ $mp/foo/2]
+lappend ans [list set LOADEDMODULES foo/2]
 testouterr_cmd sh {ml foo@2:3 -bar@1:2} $ans {}
 testouterr_cmd sh {ml foo @2} $ans {}
 testouterr_cmd sh {ml -foo @2} OK {}
 setenv_loaded_module [list foo/2] [list $mp/foo/2]
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {ml -foo @2} $ans {}
 testouterr_cmd sh {ml -foo @1} OK {}
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/2:foo/1:baz/2]
-lappend ans [list setpath _LMFILES_ $mp/foo/2:$mp/foo/1:$mp/baz/2]
-lappend ans [list setpath __MODULES_LMALTNAME baz/2&as|baz/default&as|baz/latest]
+lappend ans [list set __MODULES_LMALTNAME baz/2&as|baz/default&as|baz/latest]
+lappend ans [list set _LMFILES_ $mp/foo/2:$mp/foo/1:$mp/baz/2]
+lappend ans [list set LOADEDMODULES foo/2:foo/1:baz/2]
 testouterr_cmd_re sh {ml foo @1 -bar@2 baz -qux @1:3} $ans {}
 setenv_loaded_module [list foo/1 bar/2 qux/1] [list $mp/foo/1 $mp/bar/2 $mp/qux/1]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/1:baz/2]
-lappend ans [list setpath _LMFILES_ $mp/foo/1:$mp/baz/2]
-lappend ans [list setpath __MODULES_LMALTNAME baz/2&as|baz/default&as|baz/latest]
+lappend ans [list set __MODULES_LMALTNAME baz/2&as|baz/default&as|baz/latest]
+lappend ans [list set _LMFILES_ $mp/foo/1:$mp/baz/2]
+lappend ans [list set LOADEDMODULES foo/1:baz/2]
 testouterr_cmd_re sh {ml foo @1 -bar@2 baz -qux @1:3} $ans {}
 unsetenv_loaded_module
 
@@ -180,74 +180,74 @@ testouterr_cmd sh {load mlinmod} ERR [msg_load mlinmod [msg_moderr "$msg_invcmdn
 
 # load only command
 set ans [list]
-lappend ans [list setpath LOADEDMODULES bar/2]
-lappend ans [list setpath _LMFILES_ $mp/bar/2]
 if {[is_conf_enabled advversspec]} {
-    lappend ans [list setpath __MODULES_LMALTNAME bar/2&as|bar/default&as|bar/latest]
+    lappend ans [list set __MODULES_LMALTNAME bar/2&as|bar/default&as|bar/latest]
 }
+lappend ans [list set _LMFILES_ $mp/bar/2]
+lappend ans [list set LOADEDMODULES bar/2]
 testouterr_cmd sh {ml -v bar} $ans [msg_load bar/2]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES bar/2:foo/1]
-lappend ans [list setpath _LMFILES_ $mp/bar/2:$mp/foo/1]
 if {[is_conf_enabled advversspec]} {
-    lappend ans [list setpath __MODULES_LMALTNAME bar/2&as|bar/default&as|bar/latest]
+    lappend ans [list set __MODULES_LMALTNAME bar/2&as|bar/default&as|bar/latest]
 }
+lappend ans [list set _LMFILES_ $mp/bar/2:$mp/foo/1]
+lappend ans [list set LOADEDMODULES bar/2:foo/1]
 testouterr_cmd_re sh {ml bar foo/1 -v} $ans [msg_load bar/2]\n[msg_load foo/1]
 
 # unload only command
 testouterr_cmd sh {ml -v -bar} OK {}
 setenv_loaded_module [list foo/1 bar/2] [list $mp/foo/1 $mp/bar/2]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/1]
-lappend ans [list setpath _LMFILES_ $mp/foo/1]
+lappend ans [list set _LMFILES_ $mp/foo/1]
+lappend ans [list set LOADEDMODULES foo/1]
 testouterr_cmd sh {ml -v -bar} $ans [msg_unload bar/2]
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {ml -bar -foo/1 -v} $ans [msg_unload bar/2]\n[msg_unload foo/1]
 
 # mixed unload/load command: order matters among load and among unload
 # but unloads are always treated prior loads
 setenv_loaded_module [list foo/1] [list $mp/foo/1]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES bar/2:baz/2]
-lappend ans [list setpath _LMFILES_ $mp/bar/2:$mp/baz/2]
 if {[is_conf_enabled advversspec]} {
-    lappend ans [list setpath __MODULES_LMALTNAME bar/2&as|bar/default&as|bar/latest:baz/2&as|baz/default&as|baz/latest]
+    lappend ans [list set __MODULES_LMALTNAME bar/2&as|bar/default&as|bar/latest:baz/2&as|baz/default&as|baz/latest]
 }
+lappend ans [list set _LMFILES_ $mp/bar/2:$mp/baz/2]
+lappend ans [list set LOADEDMODULES bar/2:baz/2]
 testouterr_cmd_re sh {ml bar -foo/1 -v baz} $ans [msg_unload foo/1]\n[msg_load bar/2]\n[msg_load baz/2]
 testouterr_cmd_re sh {ml -v -foo/1 bar baz} $ans [msg_unload foo/1]\n[msg_load bar/2]\n[msg_load baz/2]
 testouterr_cmd_re sh {ml -v bar baz -foo/1} $ans [msg_unload foo/1]\n[msg_load bar/2]\n[msg_load baz/2]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES baz/2:bar/2]
-lappend ans [list setpath _LMFILES_ $mp/baz/2:$mp/bar/2]
 if {[is_conf_enabled advversspec]} {
-    lappend ans [list setpath __MODULES_LMALTNAME baz/2&as|baz/default&as|baz/latest:bar/2&as|bar/default&as|bar/latest]
+    lappend ans [list set __MODULES_LMALTNAME baz/2&as|baz/default&as|baz/latest:bar/2&as|bar/default&as|bar/latest]
 }
+lappend ans [list set _LMFILES_ $mp/baz/2:$mp/bar/2]
+lappend ans [list set LOADEDMODULES baz/2:bar/2]
 testouterr_cmd_re sh {ml -v baz bar -foo/1} $ans [msg_unload foo/1]\n[msg_load baz/2]\n[msg_load bar/2]
 setenv_loaded_module [list foo/1 qux/2] [list $mp/foo/1 $mp/qux/2]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES bar/2:baz/2]
-lappend ans [list setpath _LMFILES_ $mp/bar/2:$mp/baz/2]
 if {[is_conf_enabled advversspec]} {
-    lappend ans [list setpath __MODULES_LMALTNAME bar/2&as|bar/default&as|bar/latest:baz/2&as|baz/default&as|baz/latest]
+    lappend ans [list set __MODULES_LMALTNAME bar/2&as|bar/default&as|bar/latest:baz/2&as|baz/default&as|baz/latest]
 }
+lappend ans [list set _LMFILES_ $mp/bar/2:$mp/baz/2]
+lappend ans [list set LOADEDMODULES bar/2:baz/2]
 testouterr_cmd_re sh {ml --verbose bar -qux baz -foo/1} $ans [msg_unload qux/2]\n[msg_unload foo/1]\n[msg_load bar/2]\n[msg_load baz/2]
 
 # module not found error handling checks
 setenv_loaded_module [list foo/1] [list $mp/foo/1]
 testouterr_cmd sh {ml -foo/12} OK {}
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {ml -foo/12 -foo/1} $ans {}
 testouterr_cmd sh {ml -foo/1 -foo/12} $ans {}
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/1:bar/2]
-lappend ans [list setpath _LMFILES_ $mp/foo/1:$mp/bar/2]
 if {[is_conf_enabled advversspec]} {
-    lappend ans [list setpath __MODULES_LMALTNAME bar/2&as|bar/default&as|bar/latest]
+    lappend ans [list set __MODULES_LMALTNAME bar/2&as|bar/default&as|bar/latest]
 }
+lappend ans [list set _LMFILES_ $mp/foo/1:$mp/bar/2]
+lappend ans [list set LOADEDMODULES foo/1:bar/2]
 testouterr_cmd_re sh {ml -foo/12 bar} $ans {}
 testouterr_cmd sh {ml bar/12} ERR $err_path'bar/12'
 testouterr_cmd sh {ml bar/12 bar/2} ERR $err_path'bar/12'
@@ -280,8 +280,6 @@ testouterr_cmd sh {ml -foo/1 bar/0.2} ERR [msg_load bar/0.2 $tserr]
 # test clear sub-command
 testinouterr_cmd sh {ml clear} no {} "$info_msgs: Modules runtime information were not cleared"
 set ans [list]
-lappend ans [list unset _LMFILES__modshare]
-lappend ans [list unset LOADEDMODULES_modshare]
 lappend ans [list unset __MODULES_LMVARIANT]
 lappend ans [list unset MODULEPATH_modshare]
 lappend ans [list unset __MODULES_LMCONFLICT]

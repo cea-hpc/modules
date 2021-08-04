@@ -33,9 +33,9 @@ setenv_path_var MODULEPATH $mp
 
 # conflict a/conflict a
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fd]
-lappend ans [list setpath _LMFILES_ $mp/fd]
-lappend ans [list setpath __MODULES_LMCONFLICT fd&fa]
+lappend ans [list set __MODULES_LMCONFLICT fd&fa]
+lappend ans [list set _LMFILES_ $mp/fd]
+lappend ans [list set LOADEDMODULES fd]
 testouterr_cmd_re sh {load --auto fd} $ans {}
 testouterr_cmd_re sh {load --no-auto fd} $ans {}
 
@@ -45,27 +45,27 @@ testouterr_cmd_re sh {load --auto fd} ERR $tserr
 testouterr_cmd_re sh {load --no-auto fd} ERR $tserr
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa:fd]
-lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fd]
-lappend ans [list setpath __MODULES_LMCONFLICT fd&fa]
+lappend ans [list set __MODULES_LMCONFLICT fd&fa]
+lappend ans [list set _LMFILES_ $mp/fa:$mp/fd]
+lappend ans [list set LOADEDMODULES fa:fd]
 set tserr [msg_load fd [err_conlof fa] [err_conlof fa]]
 testouterr_cmd_re sh {load --force --auto fd} $ans $tserr
 testouterr_cmd_re sh {load --force --no-auto fd} $ans $tserr
 
 setenv_loaded_module [list fd] [list $mp/fd]
-setenv_path_var __MODULES_LMCONFLICT fd&fa
+setenv_var __MODULES_LMCONFLICT fd&fa
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re sh {unload --auto fd} $ans {}
 testouterr_cmd_re sh {unload --no-auto fd} $ans {}
 
 setenv_loaded_module [list fa fd] [list $mp/fa $mp/fd]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa]
-lappend ans [list setpath _LMFILES_ $mp/fa]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list set _LMFILES_ $mp/fa]
+lappend ans [list set LOADEDMODULES fa]
 set tserr [msg_top_unload fd {} {} fa]
 testouterr_cmd_re sh {unload --auto fd} $ans $tserr
 testouterr_cmd_re sh {unload --no-auto fd} $ans {}
@@ -74,13 +74,13 @@ testouterr_cmd_re sh {unload --force --no-auto fd} $ans {}
 
 
 # prereq a/prereq a
-unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMCONFLICT
 unsetenv_loaded_module
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa:fe]
-lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fe]
-lappend ans [list setpath __MODULES_LMPREREQ fe&fa]
-lappend ans [list setpath __MODULES_LMTAG fa&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ fe&fa]
+lappend ans [list set _LMFILES_ $mp/fa:$mp/fe]
+lappend ans [list set LOADEDMODULES fa:fe]
+lappend ans [list set __MODULES_LMTAG fa&auto-loaded]
 set tserr [msg_top_load fe {} fa {}]
 testouterr_cmd_re sh {load --auto fe} $ans $tserr
 testouterr_cmd_re sh {load --force --auto fe} $ans $tserr
@@ -88,55 +88,55 @@ set tserr [msg_load fe [err_prereq fa]]
 testouterr_cmd_re sh {load --no-auto fe} ERR $tserr
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fe]
-lappend ans [list setpath _LMFILES_ $mp/fe]
-lappend ans [list setpath __MODULES_LMPREREQ fe&fa]
+lappend ans [list set __MODULES_LMPREREQ fe&fa]
+lappend ans [list set _LMFILES_ $mp/fe]
+lappend ans [list set LOADEDMODULES fe]
 set tserr [msg_load fe [err_reqmisf fa] [err_reqmisf fa]]
 testouterr_cmd_re sh {load --force --no-auto fe} $ans $tserr
 
 setenv_loaded_module [list fa] [list $mp/fa]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa:fe]
-lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fe]
-lappend ans [list setpath __MODULES_LMPREREQ fe&fa]
+lappend ans [list set __MODULES_LMPREREQ fe&fa]
+lappend ans [list set _LMFILES_ $mp/fa:$mp/fe]
+lappend ans [list set LOADEDMODULES fa:fe]
 testouterr_cmd_re sh {load --auto fe} $ans {}
 testouterr_cmd_re sh {load --no-auto fe} $ans {}
 
 setenv_loaded_module [list fe] [list $mp/fe]
-setenv_path_var __MODULES_LMPREREQ fe&fa
+setenv_var __MODULES_LMPREREQ fe&fa
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re sh {unload --auto fe} $ans {}
 testouterr_cmd_re sh {unload --no-auto fe} $ans {}
 
 setenv_loaded_module [list fa fe] [list $mp/fa $mp/fe] [list fa]
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr [msg_top_unload fe {} fa {}]
 testouterr_cmd_re sh {unload --auto fe} $ans $tserr
 testouterr_cmd_re sh {unload --force --auto fe} $ans $tserr
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa]
-lappend ans [list setpath _LMFILES_ $mp/fa]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/fa]
+lappend ans [list set LOADEDMODULES fa]
 testouterr_cmd_re sh {unload --no-auto fe} $ans {}
 testouterr_cmd_re sh {unload --force --no-auto fe} $ans {}
 
 
 # prereq a b/prereq a b
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMPREREQ
 unsetenv_loaded_module
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa:ff]
-lappend ans [list setpath _LMFILES_ $mp/fa:$mp/ff]
-lappend ans [list setpath __MODULES_LMPREREQ ff&fa|fb]
-lappend ans [list setpath __MODULES_LMTAG fa&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ ff&fa|fb]
+lappend ans [list set _LMFILES_ $mp/fa:$mp/ff]
+lappend ans [list set LOADEDMODULES fa:ff]
+lappend ans [list set __MODULES_LMTAG fa&auto-loaded]
 set tserr [msg_top_load ff {} fa {}]
 testouterr_cmd_re sh {load --auto ff} $ans $tserr
 testouterr_cmd_re sh {load --force --auto ff} $ans $tserr
@@ -144,54 +144,54 @@ set tserr [msg_load ff [err_prereqor fa fb]]
 testouterr_cmd_re sh {load --no-auto ff} ERR $tserr
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES ff]
-lappend ans [list setpath _LMFILES_ $mp/ff]
-lappend ans [list setpath __MODULES_LMPREREQ ff&fa|fb]
+lappend ans [list set __MODULES_LMPREREQ ff&fa|fb]
+lappend ans [list set _LMFILES_ $mp/ff]
+lappend ans [list set LOADEDMODULES ff]
 set tserr [msg_load ff [err_reqmisf fa fb] [err_reqmisf fa fb]]
 testouterr_cmd_re sh {load --force --no-auto ff} $ans $tserr
 
 setenv_loaded_module [list fa] [list $mp/fa]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa:ff]
-lappend ans [list setpath _LMFILES_ $mp/fa:$mp/ff]
-lappend ans [list setpath __MODULES_LMPREREQ ff&fa|fb]
+lappend ans [list set __MODULES_LMPREREQ ff&fa|fb]
+lappend ans [list set _LMFILES_ $mp/fa:$mp/ff]
+lappend ans [list set LOADEDMODULES fa:ff]
 testouterr_cmd_re sh {load --auto ff} $ans {}
 testouterr_cmd_re sh {load --no-auto ff} $ans {}
 
 setenv_loaded_module [list ff] [list $mp/ff]
-setenv_path_var __MODULES_LMPREREQ ff&fa|fb
+setenv_var __MODULES_LMPREREQ ff&fa|fb
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re sh {unload --auto ff} $ans {}
 testouterr_cmd_re sh {unload --no-auto ff} $ans {}
 
 setenv_loaded_module [list fa ff] [list $mp/fa $mp/ff] [list fa]
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr [msg_top_unload ff {} fa {}]
 testouterr_cmd_re sh {unload --auto ff} $ans $tserr
 testouterr_cmd_re sh {unload --force --auto ff} $ans $tserr
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa]
-lappend ans [list setpath _LMFILES_ $mp/fa]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/fa]
+lappend ans [list set LOADEDMODULES fa]
 testouterr_cmd_re sh {unload --no-auto ff} $ans {}
 testouterr_cmd_re sh {unload --force --no-auto ff} $ans {}
 
 
 # module unload a/module unload a
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMPREREQ
 unsetenv_loaded_module
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fg]
-lappend ans [list setpath _LMFILES_ $mp/fg]
-lappend ans [list setpath __MODULES_LMCONFLICT fg&fa]
+lappend ans [list set __MODULES_LMCONFLICT fg&fa]
+lappend ans [list set _LMFILES_ $mp/fg]
+lappend ans [list set LOADEDMODULES fg]
 testouterr_cmd_re sh {load --auto fg} $ans {}
 testouterr_cmd_re sh {load --no-auto fg} $ans {}
 
@@ -203,19 +203,19 @@ testouterr_cmd_re sh {load --no-auto fg} $ans $tserr
 testouterr_cmd_re sh {load --force --no-auto fg} $ans $tserr
 
 setenv_loaded_module [list fg] [list $mp/fg]
-setenv_path_var __MODULES_LMCONFLICT fg&fa
+setenv_var __MODULES_LMCONFLICT fg&fa
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re sh {unload --auto fg} $ans {}
 testouterr_cmd_re sh {unload --no-auto fg} $ans {}
 
 setenv_loaded_module [list fa fg] [list $mp/fa $mp/fg]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa]
-lappend ans [list setpath _LMFILES_ $mp/fa]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list set _LMFILES_ $mp/fa]
+lappend ans [list set LOADEDMODULES fa]
 set tserr [msg_top_unload fg {} {} fa]
 testouterr_cmd_re sh {unload --auto fg} $ans $tserr
 testouterr_cmd_re sh {unload --no-auto fg} $ans {}
@@ -224,13 +224,13 @@ testouterr_cmd_re sh {unload --force --no-auto fg} $ans {}
 
 
 # module load a/module load a
-unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMCONFLICT
 unsetenv_loaded_module
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa:fh]
-lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fh]
-lappend ans [list setpath __MODULES_LMPREREQ fh&fa]
-lappend ans [list setpath __MODULES_LMTAG fa&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ fh&fa]
+lappend ans [list set _LMFILES_ $mp/fa:$mp/fh]
+lappend ans [list set LOADEDMODULES fa:fh]
+lappend ans [list set __MODULES_LMTAG fa&auto-loaded]
 set tserr [msg_top_load fh {} fa {}]
 testouterr_cmd_re sh {load --auto fh} $ans $tserr
 testouterr_cmd_re sh {load --force --auto fh} $ans $tserr
@@ -239,27 +239,27 @@ testouterr_cmd_re sh {load --force --no-auto fh} $ans $tserr
 
 setenv_loaded_module [list fa] [list $mp/fa]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa:fh]
-lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fh]
-lappend ans [list setpath __MODULES_LMPREREQ fh&fa]
+lappend ans [list set __MODULES_LMPREREQ fh&fa]
+lappend ans [list set _LMFILES_ $mp/fa:$mp/fh]
+lappend ans [list set LOADEDMODULES fa:fh]
 testouterr_cmd_re sh {load --auto fh} $ans {}
 testouterr_cmd_re sh {load --no-auto fh} $ans {}
 
 setenv_loaded_module [list fh] [list $mp/fh]
-setenv_path_var __MODULES_LMPREREQ fh&fa
+setenv_var __MODULES_LMPREREQ fh&fa
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re sh {unload --auto fh} $ans {}
 testouterr_cmd_re sh {unload --no-auto fh} $ans {}
 
 setenv_loaded_module [list fa fh] [list $mp/fa $mp/fh] [list fa]
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr [msg_top_unload fh {} fa {}]
 testouterr_cmd_re sh {unload --auto fh} $ans $tserr
 testouterr_cmd_re sh {unload --force --auto fh} $ans $tserr
@@ -272,13 +272,13 @@ testouterr_cmd_re sh {unload --force --no-auto fh} $ans $tserr
 #
 
 # module load a b c/module load c a b
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMPREREQ
 unsetenv_loaded_module
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa:fi]
-lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fi]
-lappend ans [list setpath __MODULES_LMPREREQ fi&fa|fb|fc&fc|fa|fb]
-lappend ans [list setpath __MODULES_LMTAG fa&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ fi&fa|fb|fc&fc|fa|fb]
+lappend ans [list set _LMFILES_ $mp/fa:$mp/fi]
+lappend ans [list set LOADEDMODULES fa:fi]
+lappend ans [list set __MODULES_LMTAG fa&auto-loaded]
 set tserr [msg_top_load fi {} fa {}]
 testouterr_cmd_re sh {load --auto fi} $ans $tserr
 testouterr_cmd_re sh {load --force --auto fi} $ans $tserr
@@ -286,43 +286,43 @@ set tserr [msg_load fi [err_prereqor fa fb fc]]
 testouterr_cmd_re sh {load --no-auto fi} ERR $tserr
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fi]
-lappend ans [list setpath _LMFILES_ $mp/fi]
-lappend ans [list setpath __MODULES_LMPREREQ fi&fa|fb|fc&fc|fa|fb]
+lappend ans [list set __MODULES_LMPREREQ fi&fa|fb|fc&fc|fa|fb]
+lappend ans [list set _LMFILES_ $mp/fi]
+lappend ans [list set LOADEDMODULES fi]
 set tserr [msg_load fi [err_reqmisf fa fb fc] [err_reqmisf fc fa fb]]
 testouterr_cmd_re sh {load --force --no-auto fi} $ans $tserr
 
 setenv_loaded_module [list fa] [list $mp/fa]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa:fi]
-lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fi]
-lappend ans [list setpath __MODULES_LMPREREQ fi&fa|fb|fc&fc|fa|fb]
+lappend ans [list set __MODULES_LMPREREQ fi&fa|fb|fc&fc|fa|fb]
+lappend ans [list set _LMFILES_ $mp/fa:$mp/fi]
+lappend ans [list set LOADEDMODULES fa:fi]
 testouterr_cmd_re sh {load --auto fi} $ans {}
 testouterr_cmd_re sh {load --no-auto fi} $ans {}
 
 setenv_loaded_module [list fi] [list $mp/fi]
-setenv_path_var __MODULES_LMPREREQ fi&fa|fb|fc&fc|fa|fb
+setenv_var __MODULES_LMPREREQ fi&fa|fb|fc&fc|fa|fb
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re sh {unload --auto fi} $ans {}
 testouterr_cmd_re sh {unload --no-auto fi} $ans {}
 
 setenv_loaded_module [list fa fi] [list $mp/fa $mp/fi] [list fa]
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr [msg_top_unload fi {} fa {}]
 testouterr_cmd_re sh {unload --auto fi} $ans $tserr
 testouterr_cmd_re sh {unload --force --auto fi} $ans $tserr
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa]
-lappend ans [list setpath _LMFILES_ $mp/fa]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/fa]
+lappend ans [list set LOADEDMODULES fa]
 testouterr_cmd_re sh {unload --no-auto fi} $ans {}
 testouterr_cmd_re sh {unload --force --no-auto fi} $ans {}
 
@@ -332,12 +332,12 @@ testouterr_cmd_re sh {unload --force --no-auto fi} $ans {}
 #
 
 # conflict a/module unload a
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMPREREQ
 unsetenv_loaded_module
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fj]
-lappend ans [list setpath _LMFILES_ $mp/fj]
-lappend ans [list setpath __MODULES_LMCONFLICT fj&fa]
+lappend ans [list set __MODULES_LMCONFLICT fj&fa]
+lappend ans [list set _LMFILES_ $mp/fj]
+lappend ans [list set LOADEDMODULES fj]
 testouterr_cmd_re sh {load --auto fj} $ans {}
 testouterr_cmd_re sh {load --no-auto fj} $ans {}
 
@@ -347,27 +347,27 @@ testouterr_cmd_re sh {load --auto fj} ERR $tserr
 testouterr_cmd_re sh {load --no-auto fj} ERR $tserr
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fj]
-lappend ans [list setpath _LMFILES_ $mp/fj]
-lappend ans [list setpath __MODULES_LMCONFLICT fj&fa]
+lappend ans [list set __MODULES_LMCONFLICT fj&fa]
+lappend ans [list set _LMFILES_ $mp/fj]
+lappend ans [list set LOADEDMODULES fj]
 set tserr [msg_top_load fj fa {} {} [err_conlof fa]]
 testouterr_cmd_re sh {load --force --auto fj} $ans $tserr
 testouterr_cmd_re sh {load --force --no-auto fj} $ans $tserr
 
 setenv_loaded_module [list fj] [list $mp/fj]
-setenv_path_var __MODULES_LMCONFLICT fj&fa
+setenv_var __MODULES_LMCONFLICT fj&fa
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re sh {unload --auto fj} $ans {}
 testouterr_cmd_re sh {unload --no-auto fj} $ans {}
 
 setenv_loaded_module [list fa fj] [list $mp/fa $mp/fj]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa]
-lappend ans [list setpath _LMFILES_ $mp/fa]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list set _LMFILES_ $mp/fa]
+lappend ans [list set LOADEDMODULES fa]
 set tserr [msg_top_unload fj {} {} fa]
 testouterr_cmd_re sh {unload --auto fj} $ans $tserr
 testouterr_cmd_re sh {unload --no-auto fj} $ans {}
@@ -376,20 +376,20 @@ testouterr_cmd_re sh {unload --force --no-auto fj} $ans {}
 
 
 # module unload a/conflict a
-unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMCONFLICT
 unsetenv_loaded_module
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fk]
-lappend ans [list setpath _LMFILES_ $mp/fk]
-lappend ans [list setpath __MODULES_LMCONFLICT fk&fa]
+lappend ans [list set __MODULES_LMCONFLICT fk&fa]
+lappend ans [list set _LMFILES_ $mp/fk]
+lappend ans [list set LOADEDMODULES fk]
 testouterr_cmd_re sh {load --auto fk} $ans {}
 testouterr_cmd_re sh {load --no-auto fk} $ans {}
 
 setenv_loaded_module [list fa] [list $mp/fa]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fk]
-lappend ans [list setpath _LMFILES_ $mp/fk]
-lappend ans [list setpath __MODULES_LMCONFLICT fk&fa]
+lappend ans [list set __MODULES_LMCONFLICT fk&fa]
+lappend ans [list set _LMFILES_ $mp/fk]
+lappend ans [list set LOADEDMODULES fk]
 set tserr [msg_top_load fk fa {} {}]
 testouterr_cmd_re sh {load --auto fk} $ans $tserr
 testouterr_cmd_re sh {load --force --auto fk} $ans $tserr
@@ -397,19 +397,19 @@ testouterr_cmd_re sh {load --no-auto fk} $ans $tserr
 testouterr_cmd_re sh {load --force --no-auto fk} $ans $tserr
 
 setenv_loaded_module [list fk] [list $mp/fk]
-setenv_path_var __MODULES_LMCONFLICT fk&fa
+setenv_var __MODULES_LMCONFLICT fk&fa
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re sh {unload --auto fk} $ans {}
 testouterr_cmd_re sh {unload --no-auto fk} $ans {}
 
 setenv_loaded_module [list fa fk] [list $mp/fa $mp/fk]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa]
-lappend ans [list setpath _LMFILES_ $mp/fa]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list set _LMFILES_ $mp/fa]
+lappend ans [list set LOADEDMODULES fa]
 set tserr [msg_top_unload fk {} {} fa]
 testouterr_cmd_re sh {unload --auto fk} $ans $tserr
 testouterr_cmd_re sh {unload --no-auto fk} $ans {}
@@ -418,13 +418,13 @@ testouterr_cmd_re sh {unload --force --no-auto fk} $ans {}
 
 
 # prereq a/module load a
-unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMCONFLICT
 unsetenv_loaded_module
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa:fl]
-lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fl]
-lappend ans [list setpath __MODULES_LMPREREQ fl&fa]
-lappend ans [list setpath __MODULES_LMTAG fa&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ fl&fa]
+lappend ans [list set _LMFILES_ $mp/fa:$mp/fl]
+lappend ans [list set LOADEDMODULES fa:fl]
+lappend ans [list set __MODULES_LMTAG fa&auto-loaded]
 set tserr [msg_top_load fl {} fa {}]
 testouterr_cmd_re sh {load --auto fl} $ans $tserr
 testouterr_cmd_re sh {load --force --auto fl} $ans $tserr
@@ -435,27 +435,27 @@ testouterr_cmd_re sh {load --force --no-auto fl} $ans $tserr
 
 setenv_loaded_module [list fa] [list $mp/fa]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa:fl]
-lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fl]
-lappend ans [list setpath __MODULES_LMPREREQ fl&fa]
+lappend ans [list set __MODULES_LMPREREQ fl&fa]
+lappend ans [list set _LMFILES_ $mp/fa:$mp/fl]
+lappend ans [list set LOADEDMODULES fa:fl]
 testouterr_cmd_re sh {load --auto fl} $ans {}
 testouterr_cmd_re sh {load --no-auto fl} $ans {}
 
 setenv_loaded_module [list fl] [list $mp/fl]
-setenv_path_var __MODULES_LMPREREQ fl&fa
+setenv_var __MODULES_LMPREREQ fl&fa
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re sh {unload --auto fl} $ans {}
 testouterr_cmd_re sh {unload --no-auto fl} $ans {}
 
 setenv_loaded_module [list fa fl] [list $mp/fa $mp/fl] [list fa]
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr [msg_top_unload fl {} fa {}]
 testouterr_cmd_re sh {unload --auto fl} $ans $tserr
 testouterr_cmd_re sh {unload --force --auto fl} $ans $tserr
@@ -464,13 +464,13 @@ testouterr_cmd_re sh {unload --force --no-auto fl} $ans $tserr
 
 
 # module load a/prereq a
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMPREREQ
 unsetenv_loaded_module
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa:fm]
-lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fm]
-lappend ans [list setpath __MODULES_LMPREREQ fm&fa]
-lappend ans [list setpath __MODULES_LMTAG fa&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ fm&fa]
+lappend ans [list set _LMFILES_ $mp/fa:$mp/fm]
+lappend ans [list set LOADEDMODULES fa:fm]
+lappend ans [list set __MODULES_LMTAG fa&auto-loaded]
 set tserr [msg_top_load fm {} fa {}]
 testouterr_cmd_re sh {load --auto fm} $ans $tserr
 testouterr_cmd_re sh {load --force --auto fm} $ans $tserr
@@ -479,27 +479,27 @@ testouterr_cmd_re sh {load --force --no-auto fm} $ans $tserr
 
 setenv_loaded_module [list fa] [list $mp/fa]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa:fm]
-lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fm]
-lappend ans [list setpath __MODULES_LMPREREQ fm&fa]
+lappend ans [list set __MODULES_LMPREREQ fm&fa]
+lappend ans [list set _LMFILES_ $mp/fa:$mp/fm]
+lappend ans [list set LOADEDMODULES fa:fm]
 testouterr_cmd_re sh {load --auto fm} $ans {}
 testouterr_cmd_re sh {load --no-auto fm} $ans {}
 
 setenv_loaded_module [list fm] [list $mp/fm]
-setenv_path_var __MODULES_LMPREREQ fm&fa
+setenv_var __MODULES_LMPREREQ fm&fa
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re sh {unload --auto fm} $ans {}
 testouterr_cmd_re sh {unload --no-auto fm} $ans {}
 
 setenv_loaded_module [list fa fm] [list $mp/fa $mp/fm] [list fa]
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr [msg_top_unload fm {} fa {}]
 testouterr_cmd_re sh {unload --auto fm} $ans $tserr
 testouterr_cmd_re sh {unload --force --auto fm} $ans $tserr
@@ -515,75 +515,75 @@ testouterr_cmd_re sh {unload --force --no-auto fm} $ans $tserr
 setenv_var MODULERCFILE $env(TESTSUITEDIR)/etc/modulerc.depsaltname
 
 # conflict alias/module unload a
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMPREREQ
 unsetenv_loaded_module
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fn]
-lappend ans [list setpath _LMFILES_ $mp/fn]
-lappend ans [list setpath __MODULES_LMCONFLICT fn&alfa&fa]
+lappend ans [list set __MODULES_LMCONFLICT fn&alfa&fa]
+lappend ans [list set _LMFILES_ $mp/fn]
+lappend ans [list set LOADEDMODULES fn]
 testouterr_cmd_re sh {load --auto fn} $ans {}
 testouterr_cmd_re sh {load --no-auto fn} $ans {}
 
 setenv_loaded_module [list fa] [list $mp/fa]
-setenv_path_var __MODULES_LMALTNAME fa&al|alfa
+setenv_var __MODULES_LMALTNAME fa&al|alfa
 set tserr [msg_load fn [err_conflict alfa]]
 testouterr_cmd_re sh {load --auto fn} ERR $tserr
 testouterr_cmd_re sh {load --no-auto fn} ERR $tserr
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fn]
-lappend ans [list setpath _LMFILES_ $mp/fn]
-lappend ans [list unsetpath __MODULES_LMALTNAME]
-lappend ans [list setpath __MODULES_LMCONFLICT fn&alfa&fa]
+lappend ans [list set __MODULES_LMCONFLICT fn&alfa&fa]
+lappend ans [list unset __MODULES_LMALTNAME]
+lappend ans [list set _LMFILES_ $mp/fn]
+lappend ans [list set LOADEDMODULES fn]
 set tserr [msg_top_load fn fa {} {} [err_conlof alfa]]
 testouterr_cmd_re sh {load --force --auto fn} $ans $tserr
 testouterr_cmd_re sh {load --force --no-auto fn} $ans $tserr
 
 setenv_loaded_module [list fn] [list $mp/fn]
-unsetenv_path_var __MODULES_LMALTNAME
-setenv_path_var __MODULES_LMCONFLICT fn&alfa&fa
+unsetenv_var __MODULES_LMALTNAME
+setenv_var __MODULES_LMCONFLICT fn&alfa&fa
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re sh {unload --auto fn} $ans {}
 testouterr_cmd_re sh {unload --no-auto fn} $ans {}
 
 setenv_loaded_module [list fa fn] [list $mp/fa $mp/fn]
-setenv_path_var __MODULES_LMALTNAME fa&al|alfa
+setenv_var __MODULES_LMALTNAME fa&al|alfa
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa]
-lappend ans [list setpath _LMFILES_ $mp/fa]
-lappend ans [list setpath __MODULES_LMALTNAME fa&al|alfa]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list set __MODULES_LMALTNAME fa&al|alfa]
+lappend ans [list set _LMFILES_ $mp/fa]
+lappend ans [list set LOADEDMODULES fa]
 set tserr [msg_top_unload fn {} {} fa]
 testouterr_cmd_re sh {unload --auto fn} $ans $tserr
 testouterr_cmd_re sh {unload --force --auto fn} $ans $tserr
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa]
-lappend ans [list setpath _LMFILES_ $mp/fa]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list set _LMFILES_ $mp/fa]
+lappend ans [list set LOADEDMODULES fa]
 testouterr_cmd_re sh {unload --no-auto fn} $ans {}
 testouterr_cmd_re sh {unload --force --no-auto fn} $ans {}
 
 
 # module unload alias/conflict a
-unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMCONFLICT
 unsetenv_loaded_module
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fo]
-lappend ans [list setpath _LMFILES_ $mp/fo]
-lappend ans [list setpath __MODULES_LMCONFLICT fo&alfa&fa]
+lappend ans [list set __MODULES_LMCONFLICT fo&alfa&fa]
+lappend ans [list set _LMFILES_ $mp/fo]
+lappend ans [list set LOADEDMODULES fo]
 testouterr_cmd_re sh {load --auto fo} $ans {}
 testouterr_cmd_re sh {load --no-auto fo} $ans {}
 
 setenv_loaded_module [list fa] [list $mp/fa]
-setenv_path_var __MODULES_LMALTNAME fa&al|alfa
+setenv_var __MODULES_LMALTNAME fa&al|alfa
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fo]
-lappend ans [list setpath _LMFILES_ $mp/fo]
-lappend ans [list unsetpath __MODULES_LMALTNAME]
-lappend ans [list setpath __MODULES_LMCONFLICT fo&alfa&fa]
+lappend ans [list set __MODULES_LMCONFLICT fo&alfa&fa]
+lappend ans [list unset __MODULES_LMALTNAME]
+lappend ans [list set _LMFILES_ $mp/fo]
+lappend ans [list set LOADEDMODULES fo]
 set tserr [msg_top_load fo fa {} {}]
 testouterr_cmd_re sh {load --auto fo} $ans $tserr
 testouterr_cmd_re sh {load --force --auto fo} $ans $tserr
@@ -591,42 +591,42 @@ testouterr_cmd_re sh {load --no-auto fo} $ans $tserr
 testouterr_cmd_re sh {load --force --no-auto fo} $ans $tserr
 
 setenv_loaded_module [list fo] [list $mp/fo]
-unsetenv_path_var __MODULES_LMALTNAME
-setenv_path_var __MODULES_LMCONFLICT fo&alfa&fa
+unsetenv_var __MODULES_LMALTNAME
+setenv_var __MODULES_LMCONFLICT fo&alfa&fa
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re sh {unload --auto fo} $ans {}
 testouterr_cmd_re sh {unload --no-auto fo} $ans {}
 
 setenv_loaded_module [list fa fo] [list $mp/fa $mp/fo]
-setenv_path_var __MODULES_LMALTNAME fa&al|alfa
+setenv_var __MODULES_LMALTNAME fa&al|alfa
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa]
-lappend ans [list setpath _LMFILES_ $mp/fa]
-lappend ans [list setpath __MODULES_LMALTNAME fa&al|alfa]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list set __MODULES_LMALTNAME fa&al|alfa]
+lappend ans [list set _LMFILES_ $mp/fa]
+lappend ans [list set LOADEDMODULES fa]
 set tserr [msg_top_unload fo {} {} fa]
 testouterr_cmd_re sh {unload --auto fo} $ans $tserr
 testouterr_cmd_re sh {unload --force --auto fo} $ans $tserr
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa]
-lappend ans [list setpath _LMFILES_ $mp/fa]
-lappend ans [list unsetpath __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list set _LMFILES_ $mp/fa]
+lappend ans [list set LOADEDMODULES fa]
 testouterr_cmd_re sh {unload --no-auto fo} $ans {}
 testouterr_cmd_re sh {unload --force --no-auto fo} $ans {}
 
 
 # prereq a/module load alias
-unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMCONFLICT
 unsetenv_loaded_module
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa:fp]
-lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fp]
-lappend ans [list setpath __MODULES_LMPREREQ fp&fa&alfa]
-lappend ans [list setpath __MODULES_LMALTNAME fa&al|alfa]
-lappend ans [list setpath __MODULES_LMTAG fa&auto-loaded]
+lappend ans [list set __MODULES_LMALTNAME fa&al|alfa]
+lappend ans [list set __MODULES_LMPREREQ fp&fa&alfa]
+lappend ans [list set _LMFILES_ $mp/fa:$mp/fp]
+lappend ans [list set LOADEDMODULES fa:fp]
+lappend ans [list set __MODULES_LMTAG fa&auto-loaded]
 set tserr [msg_top_load fp {} fa {}]
 testouterr_cmd_re sh {load --auto fp} $ans $tserr
 testouterr_cmd_re sh {load --force --auto fp} $ans $tserr
@@ -636,32 +636,32 @@ set tserr [msg_top_load fp {} fa {} [err_reqmisf fa]]
 testouterr_cmd_re sh {load --force --no-auto fp} $ans $tserr
 
 setenv_loaded_module [list fa] [list $mp/fa]
-setenv_path_var __MODULES_LMALTNAME fa&al|alfa
+setenv_var __MODULES_LMALTNAME fa&al|alfa
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa:fp]
-lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fp]
-lappend ans [list setpath __MODULES_LMPREREQ fp&fa&alfa]
+lappend ans [list set __MODULES_LMPREREQ fp&fa&alfa]
+lappend ans [list set _LMFILES_ $mp/fa:$mp/fp]
+lappend ans [list set LOADEDMODULES fa:fp]
 testouterr_cmd_re sh {load --auto fp} $ans {}
 testouterr_cmd_re sh {load --no-auto fp} $ans {}
 
 setenv_loaded_module [list fp] [list $mp/fp]
-unsetenv_path_var __MODULES_LMALTNAME
-setenv_path_var __MODULES_LMPREREQ fp&fa&alfa
+unsetenv_var __MODULES_LMALTNAME
+setenv_var __MODULES_LMPREREQ fp&fa&alfa
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re sh {unload --auto fp} $ans {}
 testouterr_cmd_re sh {unload --no-auto fp} $ans {}
 
 setenv_loaded_module [list fa fp] [list $mp/fa $mp/fp] [list fa]
-setenv_path_var __MODULES_LMALTNAME fa&al|alfa
+setenv_var __MODULES_LMALTNAME fa&al|alfa
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMALTNAME]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMALTNAME]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr [msg_top_unload fp {} fa {}]
 testouterr_cmd_re sh {unload --auto fp} $ans $tserr
 testouterr_cmd_re sh {unload --force --auto fp} $ans $tserr
@@ -670,14 +670,14 @@ testouterr_cmd_re sh {unload --force --no-auto fp} $ans $tserr
 
 
 # module load a/prereq alias
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMPREREQ
 unsetenv_loaded_module
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa:fq]
-lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fq]
-lappend ans [list setpath __MODULES_LMPREREQ fq&fa&alfa]
-lappend ans [list setpath __MODULES_LMALTNAME fa&al|alfa]
-lappend ans [list setpath __MODULES_LMTAG fa&auto-loaded]
+lappend ans [list set __MODULES_LMALTNAME fa&al|alfa]
+lappend ans [list set __MODULES_LMPREREQ fq&fa&alfa]
+lappend ans [list set _LMFILES_ $mp/fa:$mp/fq]
+lappend ans [list set LOADEDMODULES fa:fq]
+lappend ans [list set __MODULES_LMTAG fa&auto-loaded]
 set tserr [msg_top_load fq {} fa {}]
 testouterr_cmd_re sh {load --auto fq} $ans $tserr
 testouterr_cmd_re sh {load --force --auto fq} $ans $tserr
@@ -685,32 +685,32 @@ testouterr_cmd_re sh {load --no-auto fq} $ans $tserr
 testouterr_cmd_re sh {load --force --no-auto fq} $ans $tserr
 
 setenv_loaded_module [list fa] [list $mp/fa]
-setenv_path_var __MODULES_LMALTNAME fa&al|alfa
+setenv_var __MODULES_LMALTNAME fa&al|alfa
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa:fq]
-lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fq]
-lappend ans [list setpath __MODULES_LMPREREQ fq&fa&alfa]
+lappend ans [list set __MODULES_LMPREREQ fq&fa&alfa]
+lappend ans [list set _LMFILES_ $mp/fa:$mp/fq]
+lappend ans [list set LOADEDMODULES fa:fq]
 testouterr_cmd_re sh {load --auto fq} $ans {}
 testouterr_cmd_re sh {load --no-auto fq} $ans {}
 
 setenv_loaded_module [list fq] [list $mp/fq]
-unsetenv_path_var __MODULES_LMALTNAME
-setenv_path_var __MODULES_LMPREREQ fq&fa&alfa
+unsetenv_var __MODULES_LMALTNAME
+setenv_var __MODULES_LMPREREQ fq&fa&alfa
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re sh {unload --auto fq} $ans {}
 testouterr_cmd_re sh {unload --no-auto fq} $ans {}
 
 setenv_loaded_module [list fa fq] [list $mp/fa $mp/fq] [list fa]
-setenv_path_var __MODULES_LMALTNAME fa&al|alfa
+setenv_var __MODULES_LMALTNAME fa&al|alfa
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMALTNAME]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMALTNAME]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr [msg_top_unload fq {} fa {}]
 testouterr_cmd_re sh {unload --auto fq} $ans $tserr
 testouterr_cmd_re sh {unload --force --auto fq} $ans $tserr
@@ -723,15 +723,15 @@ testouterr_cmd_re sh {unload --force --no-auto fq} $ans $tserr
 #
 
 # prereq a b/prereq b
-unsetenv_path_var __MODULES_LMALTNAME
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMPREREQ
 unsetenv_loaded_module
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa:fb:fr]
-lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fb:$mp/fr]
-lappend ans [list setpath __MODULES_LMPREREQ fr&fa|fb&fb]
-lappend ans [list setpath __MODULES_LMALTNAME fa&al|alfa:fb&al|alfb]
-lappend ans [list setpath __MODULES_LMTAG fa&auto-loaded:fb&auto-loaded]
+lappend ans [list set __MODULES_LMALTNAME fa&al|alfa:fb&al|alfb]
+lappend ans [list set __MODULES_LMPREREQ fr&fa|fb&fb]
+lappend ans [list set _LMFILES_ $mp/fa:$mp/fb:$mp/fr]
+lappend ans [list set LOADEDMODULES fa:fb:fr]
+lappend ans [list set __MODULES_LMTAG fa&auto-loaded:fb&auto-loaded]
 set tserr [msg_top_load fr {} [list fa fb] {}]
 testouterr_cmd_re sh {load --auto fr} $ans $tserr
 testouterr_cmd_re sh {load --force --auto fr} $ans $tserr
@@ -739,60 +739,60 @@ set tserr [msg_load fr [err_prereqor fa fb]]
 testouterr_cmd_re sh {load --no-auto fr} ERR $tserr
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fr]
-lappend ans [list setpath _LMFILES_ $mp/fr]
-lappend ans [list setpath __MODULES_LMPREREQ fr&fa|fb&fb]
+lappend ans [list set __MODULES_LMPREREQ fr&fa|fb&fb]
+lappend ans [list set _LMFILES_ $mp/fr]
+lappend ans [list set LOADEDMODULES fr]
 set tserr [msg_load fr [err_reqmisf fa fb] [err_reqmisf fb]]
 testouterr_cmd_re sh {load --force --no-auto fr} $ans $tserr
 
 setenv_loaded_module [list fa fb] [list $mp/fa $mp/fb]
-setenv_path_var __MODULES_LMALTNAME fa&al|alfa:fb&al|alfb
+setenv_var __MODULES_LMALTNAME fa&al|alfa:fb&al|alfb
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa:fb:fr]
-lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fb:$mp/fr]
-lappend ans [list setpath __MODULES_LMPREREQ fr&fa|fb&fb]
+lappend ans [list set __MODULES_LMPREREQ fr&fa|fb&fb]
+lappend ans [list set _LMFILES_ $mp/fa:$mp/fb:$mp/fr]
+lappend ans [list set LOADEDMODULES fa:fb:fr]
 testouterr_cmd_re sh {load --auto fr} $ans {}
 testouterr_cmd_re sh {load --no-auto fr} $ans {}
 
 setenv_loaded_module [list fr] [list $mp/fr]
-setenv_path_var __MODULES_LMPREREQ fr&fa|fb&fb
-unsetenv_path_var __MODULES_LMALTNAME
+setenv_var __MODULES_LMPREREQ fr&fa|fb&fb
+unsetenv_var __MODULES_LMALTNAME
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re sh {unload --auto fr} $ans {}
 testouterr_cmd_re sh {unload --no-auto fr} $ans {}
 
 setenv_loaded_module [list fa fb fr] [list $mp/fa $mp/fb $mp/fr] [list fa fb]
-setenv_path_var __MODULES_LMALTNAME fa&al|alfa:fb&al|alfb
+setenv_var __MODULES_LMALTNAME fa&al|alfa:fb&al|alfb
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMALTNAME]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMALTNAME]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr [msg_top_unload fr {} [list fb fa] {}]
 testouterr_cmd_re sh {unload --auto fr} $ans $tserr
 testouterr_cmd_re sh {unload --force --auto fr} $ans $tserr
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa:fb]
-lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fb]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/fa:$mp/fb]
+lappend ans [list set LOADEDMODULES fa:fb]
 testouterr_cmd_re sh {unload --no-auto fr} $ans {}
 testouterr_cmd_re sh {unload --force --no-auto fr} $ans {}
 
 # prereq a balias/module load b
-unsetenv_path_var __MODULES_LMALTNAME
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMPREREQ
 unsetenv_loaded_module
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa:fb:fs]
-lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fb:$mp/fs]
-lappend ans [list setpath __MODULES_LMPREREQ fs&fa|alfb&fb]
-lappend ans [list setpath __MODULES_LMALTNAME fa&al|alfa:fb&al|alfb]
-lappend ans [list setpath __MODULES_LMTAG fa&auto-loaded:fb&auto-loaded]
+lappend ans [list set __MODULES_LMALTNAME fa&al|alfa:fb&al|alfb]
+lappend ans [list set __MODULES_LMPREREQ fs&fa|alfb&fb]
+lappend ans [list set _LMFILES_ $mp/fa:$mp/fb:$mp/fs]
+lappend ans [list set LOADEDMODULES fa:fb:fs]
+lappend ans [list set __MODULES_LMTAG fa&auto-loaded:fb&auto-loaded]
 set tserr [msg_top_load fs {} [list fa fb] {}]
 testouterr_cmd_re sh {load --auto fs} $ans $tserr
 testouterr_cmd_re sh {load --force --auto fs} $ans $tserr
@@ -800,65 +800,65 @@ set tserr [msg_load fs [err_prereqor fa alfb]]
 testouterr_cmd_re sh {load --no-auto fs} ERR $tserr
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fb:fs]
-lappend ans [list setpath _LMFILES_ $mp/fb:$mp/fs]
-lappend ans [list setpath __MODULES_LMPREREQ fs&fa|alfb&fb]
-lappend ans [list setpath __MODULES_LMALTNAME fb&al|alfb]
-lappend ans [list setpath __MODULES_LMTAG fb&auto-loaded]
+lappend ans [list set __MODULES_LMALTNAME fb&al|alfb]
+lappend ans [list set __MODULES_LMPREREQ fs&fa|alfb&fb]
+lappend ans [list set _LMFILES_ $mp/fb:$mp/fs]
+lappend ans [list set LOADEDMODULES fb:fs]
+lappend ans [list set __MODULES_LMTAG fb&auto-loaded]
 set tserr [msg_top_load fs {} fb {} [err_reqmisf fa alfb]]
 testouterr_cmd_re sh {load --force --no-auto fs} $ans $tserr
 
 setenv_loaded_module [list fa fb] [list $mp/fa $mp/fb]
-setenv_path_var __MODULES_LMALTNAME fa&al|alfa:fb&al|alfb
+setenv_var __MODULES_LMALTNAME fa&al|alfa:fb&al|alfb
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa:fb:fs]
-lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fb:$mp/fs]
-lappend ans [list setpath __MODULES_LMPREREQ fs&fa|alfb&fb]
+lappend ans [list set __MODULES_LMPREREQ fs&fa|alfb&fb]
+lappend ans [list set _LMFILES_ $mp/fa:$mp/fb:$mp/fs]
+lappend ans [list set LOADEDMODULES fa:fb:fs]
 testouterr_cmd_re sh {load --auto fs} $ans {}
 testouterr_cmd_re sh {load --no-auto fs} $ans {}
 
 setenv_loaded_module [list fs] [list $mp/fs]
-setenv_path_var __MODULES_LMPREREQ fs&fa|alfb&fb
-unsetenv_path_var __MODULES_LMALTNAME
+setenv_var __MODULES_LMPREREQ fs&fa|alfb&fb
+unsetenv_var __MODULES_LMALTNAME
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re sh {unload --auto fs} $ans {}
 testouterr_cmd_re sh {unload --no-auto fs} $ans {}
 
 setenv_loaded_module [list fa fb fs] [list $mp/fa $mp/fb $mp/fs] [list fa fb]
-setenv_path_var __MODULES_LMALTNAME fa&al|alfa:fb&al|alfb
+setenv_var __MODULES_LMALTNAME fa&al|alfa:fb&al|alfb
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMALTNAME]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMALTNAME]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr [msg_top_unload fs {} [list fb fa] {}]
 testouterr_cmd_re sh {unload --auto fs} $ans $tserr
 testouterr_cmd_re sh {unload --force --auto fs} $ans $tserr
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fa]
-lappend ans [list setpath _LMFILES_ $mp/fa]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list setpath __MODULES_LMALTNAME fa&al|alfa]
-lappend ans [list setpath __MODULES_LMTAG fa&auto-loaded]
+lappend ans [list set __MODULES_LMALTNAME fa&al|alfa]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/fa]
+lappend ans [list set LOADEDMODULES fa]
+lappend ans [list set __MODULES_LMTAG fa&auto-loaded]
 set tserr [msg_top_unload fs {} fb {}]
 testouterr_cmd_re sh {unload --no-auto fs} $ans $tserr
 testouterr_cmd_re sh {unload --force --no-auto fs} $ans $tserr
 
 # prereq b/prereq a balias
-unsetenv_path_var __MODULES_LMALTNAME
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMPREREQ
 unsetenv_loaded_module
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fb:ft]
-lappend ans [list setpath _LMFILES_ $mp/fb:$mp/ft]
-lappend ans [list setpath __MODULES_LMPREREQ ft&fb&fa|alfb]
-lappend ans [list setpath __MODULES_LMALTNAME fb&al|alfb]
-lappend ans [list setpath __MODULES_LMTAG fb&auto-loaded]
+lappend ans [list set __MODULES_LMALTNAME fb&al|alfb]
+lappend ans [list set __MODULES_LMPREREQ ft&fb&fa|alfb]
+lappend ans [list set _LMFILES_ $mp/fb:$mp/ft]
+lappend ans [list set LOADEDMODULES fb:ft]
+lappend ans [list set __MODULES_LMTAG fb&auto-loaded]
 set tserr [msg_top_load ft {} fb {}]
 testouterr_cmd_re sh {load --auto ft} $ans $tserr
 testouterr_cmd_re sh {load --force --auto ft} $ans $tserr
@@ -866,60 +866,60 @@ set tserr [msg_load ft [err_prereq fb]]
 testouterr_cmd_re sh {load --no-auto ft} ERR $tserr
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES ft]
-lappend ans [list setpath _LMFILES_ $mp/ft]
-lappend ans [list setpath __MODULES_LMPREREQ ft&fb&fa|alfb]
+lappend ans [list set __MODULES_LMPREREQ ft&fb&fa|alfb]
+lappend ans [list set _LMFILES_ $mp/ft]
+lappend ans [list set LOADEDMODULES ft]
 set tserr [msg_load ft [err_reqmisf fb] [err_reqmisf fa alfb]]
 testouterr_cmd_re sh {load --force --no-auto ft} $ans $tserr
 
 setenv_loaded_module [list fb] [list $mp/fb]
-setenv_path_var __MODULES_LMALTNAME fb&al|alfb
+setenv_var __MODULES_LMALTNAME fb&al|alfb
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fb:ft]
-lappend ans [list setpath _LMFILES_ $mp/fb:$mp/ft]
-lappend ans [list setpath __MODULES_LMPREREQ ft&fb&fa|alfb]
+lappend ans [list set __MODULES_LMPREREQ ft&fb&fa|alfb]
+lappend ans [list set _LMFILES_ $mp/fb:$mp/ft]
+lappend ans [list set LOADEDMODULES fb:ft]
 testouterr_cmd_re sh {load --auto ft} $ans {}
 testouterr_cmd_re sh {load --no-auto ft} $ans {}
 
 setenv_loaded_module [list ft] [list $mp/ft]
-setenv_path_var __MODULES_LMPREREQ ft&fa|fb&fb
-unsetenv_path_var __MODULES_LMALTNAME
+setenv_var __MODULES_LMPREREQ ft&fa|fb&fb
+unsetenv_var __MODULES_LMALTNAME
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re sh {unload --auto ft} $ans {}
 testouterr_cmd_re sh {unload --no-auto ft} $ans {}
 
 setenv_loaded_module [list fb ft] [list $mp/fb $mp/ft] [list fb]
-setenv_path_var __MODULES_LMALTNAME fb&al|alfb
+setenv_var __MODULES_LMALTNAME fb&al|alfb
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMALTNAME]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMALTNAME]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr [msg_top_unload ft {} fb {}]
 testouterr_cmd_re sh {unload --auto ft} $ans $tserr
 testouterr_cmd_re sh {unload --force --auto ft} $ans $tserr
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fb]
-lappend ans [list setpath _LMFILES_ $mp/fb]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/fb]
+lappend ans [list set LOADEDMODULES fb]
 testouterr_cmd_re sh {unload --no-auto ft} $ans {}
 testouterr_cmd_re sh {unload --force --no-auto ft} $ans {}
 
 # module load b/prereq a b
-unsetenv_path_var __MODULES_LMALTNAME
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMPREREQ
 unsetenv_loaded_module
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fb:fu]
-lappend ans [list setpath _LMFILES_ $mp/fb:$mp/fu]
-lappend ans [list setpath __MODULES_LMPREREQ fu&fb&fa|fb]
-lappend ans [list setpath __MODULES_LMALTNAME fb&al|alfb]
-lappend ans [list setpath __MODULES_LMTAG fb&auto-loaded]
+lappend ans [list set __MODULES_LMALTNAME fb&al|alfb]
+lappend ans [list set __MODULES_LMPREREQ fu&fb&fa|fb]
+lappend ans [list set _LMFILES_ $mp/fb:$mp/fu]
+lappend ans [list set LOADEDMODULES fb:fu]
+lappend ans [list set __MODULES_LMTAG fb&auto-loaded]
 set tserr [msg_top_load fu {} fb {}]
 testouterr_cmd_re sh {load --auto fu} $ans $tserr
 testouterr_cmd_re sh {load --force --auto fu} $ans $tserr
@@ -927,32 +927,32 @@ testouterr_cmd_re sh {load --no-auto fu} $ans $tserr
 testouterr_cmd_re sh {load --force --no-auto fu} $ans $tserr
 
 setenv_loaded_module [list fb] [list $mp/fb]
-setenv_path_var __MODULES_LMALTNAME fb&al|alfb
+setenv_var __MODULES_LMALTNAME fb&al|alfb
 set ans [list]
-lappend ans [list setpath LOADEDMODULES fb:fu]
-lappend ans [list setpath _LMFILES_ $mp/fb:$mp/fu]
-lappend ans [list setpath __MODULES_LMPREREQ fu&fb&fa|fb]
+lappend ans [list set __MODULES_LMPREREQ fu&fb&fa|fb]
+lappend ans [list set _LMFILES_ $mp/fb:$mp/fu]
+lappend ans [list set LOADEDMODULES fb:fu]
 testouterr_cmd_re sh {load --auto fu} $ans {}
 testouterr_cmd_re sh {load --no-auto fu} $ans {}
 
 setenv_loaded_module [list fu] [list $mp/fu]
-setenv_path_var __MODULES_LMPREREQ fu&fa|fb&fb
-unsetenv_path_var __MODULES_LMALTNAME
+setenv_var __MODULES_LMPREREQ fu&fa|fb&fb
+unsetenv_var __MODULES_LMALTNAME
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re sh {unload --auto fu} $ans {}
 testouterr_cmd_re sh {unload --no-auto fu} $ans {}
 
 setenv_loaded_module [list fb fu] [list $mp/fb $mp/fu] [list fb]
-setenv_path_var __MODULES_LMALTNAME fb&al|alfb
+setenv_var __MODULES_LMALTNAME fb&al|alfb
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMALTNAME]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMALTNAME]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 set tserr [msg_top_unload fu {} fb {}]
 testouterr_cmd_re sh {unload --auto fu} $ans $tserr
 testouterr_cmd_re sh {unload --force --auto fu} $ans $tserr
@@ -966,12 +966,12 @@ testouterr_cmd_re sh {unload --force --no-auto fu} $ans $tserr
 #
 
 setenv_loaded_module [list fi fia] [list $mp/fi $mp/fia]
-unsetenv_path_var __MODULES_LMALTNAME
-setenv_path_var __MODULES_LMPREREQ fi&fa|fb|fc&fc|fa|fb fia&fa|fb|fc&fc|fa|fb
+unsetenv_var __MODULES_LMALTNAME
+setenv_var __MODULES_LMPREREQ fi&fa|fb|fc&fc|fa|fb:fia&fa|fb|fc&fc|fa|fb
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re sh {unload --auto fia fi} $ans {}
 
 

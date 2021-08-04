@@ -52,38 +52,38 @@ setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 
 # mix spaces in advanced version specifiers and dependencies
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.7:space yd/5.0"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space yd/5.0"]
-lappend ans [list setpath __MODULES_LMPREREQ "space yd/5.0&{sp.ce y+@2.5<2.7}"]
-lappend ans [list setpath __MODULES_LMTAG "sp.ce y+/2.7&auto-loaded"]
-lappend ans [list setpath __MODULES_LMALTNAME "space yd/5.0&as|space yd/default&as|space yd/latest"]
+lappend ans [list set __MODULES_LMALTNAME "space yd/5.0&as|space yd/default&as|space yd/latest"]
+lappend ans [list set __MODULES_LMPREREQ "space yd/5.0&{sp.ce y+@2.5<2.7}"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space yd/5.0"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/2.7:space yd/5.0"]
+lappend ans [list set __MODULES_LMTAG "sp.ce y+/2.7&auto-loaded"]
 testouterr_cmd_re sh {load --auto space\ yd@4:} $ans [msg_top_load {'space yd/5.0'} {} "{'sp\\.ce y\\+/2.7'}" {}]
 setenv_loaded_module [list "sp.ce y+/2.6"] [list "$mp/sp.ce y+/2.6"]
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.6:space yd/5.0"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.6:$mp/space yd/5.0"]
-lappend ans [list setpath __MODULES_LMPREREQ "space yd/5.0&{sp.ce y+@2.5<2.7}"]
-lappend ans [list setpath __MODULES_LMALTNAME "space yd/5.0&as|space yd/default&as|space yd/latest"]
+lappend ans [list set __MODULES_LMALTNAME "space yd/5.0&as|space yd/default&as|space yd/latest"]
+lappend ans [list set __MODULES_LMPREREQ "space yd/5.0&{sp.ce y+@2.5<2.7}"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/2.6:$mp/space yd/5.0"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/2.6:space yd/5.0"]
 testouterr_cmd_re sh {load --auto space\ yd@4:5} $ans {}
 setenv_loaded_module [list "sp.ce y+/2.6" "space yd/5.0"] [list "$mp/sp.ce y+/2.6" "$mp/space yd/5.0"] [list "sp.ce y+/2.6"]
-setenv_path_var __MODULES_LMPREREQ "space yd/5.0&{sp.ce y+@2.5<2.7}"
+setenv_var __MODULES_LMPREREQ "space yd/5.0&{sp.ce y+@2.5<2.7}"
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMTAG]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
 testouterr_cmd sh {unload --auto sp.ce\ y+@:2} $ans [msg_top_unload {'sp.ce y+/2.6'} {'space yd/5.0'} {} {}]
 testouterr_cmd sh {unload --auto space\ yd@4:} $ans [msg_top_unload {'space yd/5.0'} {} "{'sp.ce y+/2.6'}" {}]
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMPREREQ
 
 
 # try various syntaxes when spaces, advanced version specifiers and dependencies are mixed
 # various syntaxes on command line
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.7"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/2.7"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/2.7"]
 testouterr_cmd sh {load sp.ce y+@2.5:2.7} ERR "$err_path'sp.ce'\n$err_path'y+@2.5:2.7'"
 testouterr_cmd sh {load sp.ce y+ @2.5:2.7} ERR "$err_path'sp.ce'\n$err_path'y+ @2.5:2.7'"
 testouterr_cmd sh {load sp.ce\ y+ @2.5:2.7} $ans {}
@@ -92,15 +92,15 @@ testouterr_cmd sh {load sp.ce\ y+@1.2 @2.5:2.7} $ans {}
 testouterr_cmd sh {load sp.ce\ y+ @1.2 @2.5:2.7} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/0 2"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/0 2"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/0 2"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/0 2"]
 testouterr_cmd sh {load sp.ce\ y+ @0\ 2} $ans {}
 testouterr_cmd sh {load sp.ce\ y+@0\ 2} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space y /1 "]
-lappend ans [list setpath _LMFILES_ "$mp/space y /1 "]
-lappend ans [list setpath __MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "]
+lappend ans [list set __MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "]
+lappend ans [list set _LMFILES_ "$mp/space y /1 "]
+lappend ans [list set LOADEDMODULES "space y /1 "]
 testouterr_cmd sh {load space\ y\  @1\ } $ans {}
 testouterr_cmd sh {load space\ y\ @1\ } $ans {}
 
@@ -113,26 +113,26 @@ testouterr_cmd sh {load space\ z\  @2\ } ERR "$err_path'{space z } {@2 }'"
 # various syntaxes on prereq modulefile command
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/1:space ye/1.0"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/space ye/1.0"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.0&sp.ce|y+@2.5<2.7|baz @<1"]
-lappend ans [list setpath __MODULES_LMTAG "baz/1&auto-loaded"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.0&sp.ce|y+@2.5<2.7|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/1:$mp/space ye/1.0"]
+lappend ans [list set LOADEDMODULES "baz/1:space ye/1.0"]
+lappend ans [list set __MODULES_LMTAG "baz/1&auto-loaded"]
 lappend ans [list ERR]
 testouterr_cmd_re sh {load --auto space\ ye@1.0} $ans [msg_top_load {'space ye/1.0'} {} baz/1 {} $err_path'sp.ce' $err_path'y\\+@2.5:2.7']
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/1:space ye/1.1"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/space ye/1.1"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+ @2.5<2.7|baz @<1"]
-lappend ans [list setpath __MODULES_LMTAG "baz/1&auto-loaded"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+ @2.5<2.7|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/1:$mp/space ye/1.1"]
+lappend ans [list set LOADEDMODULES "baz/1:space ye/1.1"]
+lappend ans [list set __MODULES_LMTAG "baz/1&auto-loaded"]
 lappend ans [list ERR]
 testouterr_cmd_re sh {load --auto space\ ye@1.1} $ans [msg_top_load {'space ye/1.1'} {} baz/1 {} $err_path'sp.ce' "$err_path'y\\+ @2.5:2.7'"]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.7:space ye/1.2"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/1.2"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.2&{sp.ce y+} @2.5<2.7|baz @<1"]
-lappend ans [list setpath __MODULES_LMTAG "sp.ce y+/2.7&auto-loaded"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.2&{sp.ce y+} @2.5<2.7|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/1.2"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/2.7:space ye/1.2"]
+lappend ans [list set __MODULES_LMTAG "sp.ce y+/2.7&auto-loaded"]
 testouterr_cmd_re sh {load --auto space\ ye@1.2} $ans [msg_top_load {'space ye/1.2'} {} {'sp.ce y\\+/2.7'} {}]
 
 if {[cmpversion $tclsh_version 8.6] == -1} {
@@ -143,402 +143,402 @@ if {[cmpversion $tclsh_version 8.6] == -1} {
 testouterr_cmd sh {load --auto space\ ye@1.3} ERR [msg_load {'space ye/1.3'} [msg_moderr {extra characters after close-brace} $errcmd "$mp/space ye/1.3" 2]]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.7:space ye/1.4"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/1.4"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.4&{sp.ce y+@1.2} @2.5<2.7|baz @<1"]
-lappend ans [list setpath __MODULES_LMTAG "sp.ce y+/2.7&auto-loaded"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.4&{sp.ce y+@1.2} @2.5<2.7|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/1.4"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/2.7:space ye/1.4"]
+lappend ans [list set __MODULES_LMTAG "sp.ce y+/2.7&auto-loaded"]
 testouterr_cmd_re sh {load --auto space\ ye@1.4} $ans [msg_top_load {'space ye/1.4'} {} {'sp.ce y\\+/2.7'} {}]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.7:space ye/1.5"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/1.5"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+} @1.2 @2.5<2.7|baz @<1"]
-lappend ans [list setpath __MODULES_LMTAG "sp.ce y+/2.7&auto-loaded"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+} @1.2 @2.5<2.7|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/1.5"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/2.7:space ye/1.5"]
+lappend ans [list set __MODULES_LMTAG "sp.ce y+/2.7&auto-loaded"]
 testouterr_cmd_re sh {load --auto space\ ye@1.5} $ans [msg_top_load {'space ye/1.5'} {} {'sp.ce y\\+/2.7'} {}]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/0 2:space ye/1.6"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/0 2:$mp/space ye/1.6"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.6&{sp.ce y+} {@0 2}|baz @<1"]
-lappend ans [list setpath __MODULES_LMTAG "sp.ce y+/0 2&auto-loaded"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.6&{sp.ce y+} {@0 2}|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/0 2:$mp/space ye/1.6"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/0 2:space ye/1.6"]
+lappend ans [list set __MODULES_LMTAG "sp.ce y+/0 2&auto-loaded"]
 testouterr_cmd_re sh {load --auto space\ ye@1.6} $ans [msg_top_load {'space ye/1.6'} {} {'sp.ce y\\+/0 2'} {}]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/0 2:space ye/1.7"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/0 2:$mp/space ye/1.7"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.7&{sp.ce y+@0 2}|baz @<1"]
-lappend ans [list setpath __MODULES_LMTAG "sp.ce y+/0 2&auto-loaded"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.7&{sp.ce y+@0 2}|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/0 2:$mp/space ye/1.7"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/0 2:space ye/1.7"]
+lappend ans [list set __MODULES_LMTAG "sp.ce y+/0 2&auto-loaded"]
 testouterr_cmd_re sh {load --auto space\ ye@1.7} $ans [msg_top_load {'space ye/1.7'} {} {'sp.ce y\\+/0 2'} {}]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space y /1 :space ye/1.8"]
-lappend ans [list setpath _LMFILES_ "$mp/space y /1 :$mp/space ye/1.8"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.8&{space y @1 }|baz @<1"]
-lappend ans [list setpath __MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "]
-lappend ans [list setpath __MODULES_LMTAG "space y /1 &auto-loaded"]
+lappend ans [list set __MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.8&{space y @1 }|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/space y /1 :$mp/space ye/1.8"]
+lappend ans [list set LOADEDMODULES "space y /1 :space ye/1.8"]
+lappend ans [list set __MODULES_LMTAG "space y /1 &auto-loaded"]
 testouterr_cmd_re sh {load --auto space\ ye@1.8} $ans [msg_top_load {'space ye/1.8'} {} "{'space y /1 '}" {}]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space y /1 :space ye/1.9"]
-lappend ans [list setpath _LMFILES_ "$mp/space y /1 :$mp/space ye/1.9"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.9&{space y @a }|baz @<1"]
-lappend ans [list setpath __MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "]
-lappend ans [list setpath __MODULES_LMTAG "space y /1 &auto-loaded"]
+lappend ans [list set __MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.9&{space y @a }|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/space y /1 :$mp/space ye/1.9"]
+lappend ans [list set LOADEDMODULES "space y /1 :space ye/1.9"]
+lappend ans [list set __MODULES_LMTAG "space y /1 &auto-loaded"]
 testouterr_cmd_re sh {load --auto space\ ye@1.9} $ans [msg_top_load {'space ye/1.9'} {} "{'space y /1 '}" {}]
 
 setenv_loaded_module [list {sp.ce y+/2.7}] [list "$mp/sp.ce y+/2.7"]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.7:baz/1:space ye/1.0"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/baz/1:$mp/space ye/1.0"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.0&sp.ce|y+@2.5<2.7|baz @<1"]
-lappend ans [list setpath __MODULES_LMTAG "baz/1&auto-loaded"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.0&sp.ce|y+@2.5<2.7|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/2.7:$mp/baz/1:$mp/space ye/1.0"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/2.7:baz/1:space ye/1.0"]
+lappend ans [list set __MODULES_LMTAG "baz/1&auto-loaded"]
 lappend ans [list ERR]
 testouterr_cmd_re sh {load --auto space\ ye@1.0} $ans [msg_top_load {'space ye/1.0'} {} baz/1 {} $err_path'sp.ce' $err_path'y\\+@2.5:2.7']
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.7:baz/1:space ye/1.1"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/baz/1:$mp/space ye/1.1"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+ @2.5<2.7|baz @<1"]
-lappend ans [list setpath __MODULES_LMTAG "baz/1&auto-loaded"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+ @2.5<2.7|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/2.7:$mp/baz/1:$mp/space ye/1.1"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/2.7:baz/1:space ye/1.1"]
+lappend ans [list set __MODULES_LMTAG "baz/1&auto-loaded"]
 lappend ans [list ERR]
 testouterr_cmd_re sh {load --auto space\ ye@1.1} $ans [msg_top_load {'space ye/1.1'} {} baz/1 {} $err_path'sp.ce' "$err_path'y\\+ @2.5:2.7'"]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.7:space ye/1.2"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/1.2"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.2&{sp.ce y+} @2.5<2.7|baz @<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.2&{sp.ce y+} @2.5<2.7|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/1.2"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/2.7:space ye/1.2"]
 testouterr_cmd_re sh {load --auto space\ ye@1.2} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.7:space ye/1.4"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/1.4"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.4&{sp.ce y+@1.2} @2.5<2.7|baz @<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.4&{sp.ce y+@1.2} @2.5<2.7|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/1.4"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/2.7:space ye/1.4"]
 testouterr_cmd_re sh {load --auto space\ ye@1.4} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.7:space ye/1.5"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/1.5"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+} @1.2 @2.5<2.7|baz @<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+} @1.2 @2.5<2.7|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/1.5"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/2.7:space ye/1.5"]
 testouterr_cmd_re sh {load --auto space\ ye@1.5} $ans {}
 
 setenv_loaded_module [list {sp.ce y+/0 2}] [list "$mp/sp.ce y+/0 2"]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/0 2:space ye/1.6"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/0 2:$mp/space ye/1.6"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.6&{sp.ce y+} {@0 2}|baz @<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.6&{sp.ce y+} {@0 2}|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/0 2:$mp/space ye/1.6"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/0 2:space ye/1.6"]
 testouterr_cmd_re sh {load --auto space\ ye@1.6} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/0 2:space ye/1.7"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/0 2:$mp/space ye/1.7"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.7&{sp.ce y+@0 2}|baz @<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.7&{sp.ce y+@0 2}|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/0 2:$mp/space ye/1.7"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/0 2:space ye/1.7"]
 testouterr_cmd_re sh {load --auto space\ ye@1.7} $ans {}
 
 setenv_loaded_module [list {space y /1 }] [list "$mp/space y /1 "]
-setenv_path_var __MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "
+setenv_var __MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space y /1 :space ye/1.8"]
-lappend ans [list setpath _LMFILES_ "$mp/space y /1 :$mp/space ye/1.8"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.8&{space y @1 }|baz @<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.8&{space y @1 }|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/space y /1 :$mp/space ye/1.8"]
+lappend ans [list set LOADEDMODULES "space y /1 :space ye/1.8"]
 testouterr_cmd_re sh {load --auto space\ ye@1.8} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space y /1 :space ye/1.9"]
-lappend ans [list setpath _LMFILES_ "$mp/space y /1 :$mp/space ye/1.9"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.9&{space y @a }|baz @<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.9&{space y @a }|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/space y /1 :$mp/space ye/1.9"]
+lappend ans [list set LOADEDMODULES "space y /1 :space ye/1.9"]
 testouterr_cmd_re sh {load --auto space\ ye@1.9} $ans {}
 
 setenv_loaded_module [list {baz/1}] [list "$mp/baz/1"]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/1:space ye/1.0"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/space ye/1.0"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.0&sp.ce|y+@2.5<2.7|baz @<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.0&sp.ce|y+@2.5<2.7|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/1:$mp/space ye/1.0"]
+lappend ans [list set LOADEDMODULES "baz/1:space ye/1.0"]
 testouterr_cmd_re sh {load --auto space\ ye@1.0} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/1:space ye/1.1"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/space ye/1.1"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+ @2.5<2.7|baz @<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+ @2.5<2.7|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/1:$mp/space ye/1.1"]
+lappend ans [list set LOADEDMODULES "baz/1:space ye/1.1"]
 testouterr_cmd_re sh {load --auto space\ ye@1.1} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/1:space ye/1.2"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/space ye/1.2"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.2&{sp.ce y+} @2.5<2.7|baz @<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.2&{sp.ce y+} @2.5<2.7|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/1:$mp/space ye/1.2"]
+lappend ans [list set LOADEDMODULES "baz/1:space ye/1.2"]
 testouterr_cmd_re sh {load --auto space\ ye@1.2} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/1:space ye/1.4"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/space ye/1.4"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.4&{sp.ce y+@1.2} @2.5<2.7|baz @<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.4&{sp.ce y+@1.2} @2.5<2.7|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/1:$mp/space ye/1.4"]
+lappend ans [list set LOADEDMODULES "baz/1:space ye/1.4"]
 testouterr_cmd_re sh {load --auto space\ ye@1.4} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/1:space ye/1.5"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/space ye/1.5"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+} @1.2 @2.5<2.7|baz @<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+} @1.2 @2.5<2.7|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/1:$mp/space ye/1.5"]
+lappend ans [list set LOADEDMODULES "baz/1:space ye/1.5"]
 testouterr_cmd_re sh {load --auto space\ ye@1.5} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/1:space ye/1.6"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/space ye/1.6"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.6&{sp.ce y+} {@0 2}|baz @<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.6&{sp.ce y+} {@0 2}|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/1:$mp/space ye/1.6"]
+lappend ans [list set LOADEDMODULES "baz/1:space ye/1.6"]
 testouterr_cmd_re sh {load --auto space\ ye@1.6} $ans {}
 
 # unload dependent module {sp.ce y+/2.7}
 
 setenv_loaded_module [list {sp.ce y+/2.7} {space ye/1.0}] [list "$mp/sp.ce y+/2.7" "$mp/space ye/1.0"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.0&sp.ce|y+@2.5<2.7|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.0&sp.ce|y+@2.5<2.7|baz @<1"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/1.0"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/1.0"]
+lappend ans [list set _LMFILES_ "$mp/space ye/1.0"]
+lappend ans [list set LOADEDMODULES "space ye/1.0"]
 testouterr_cmd sh {unload --auto sp.ce\ y+/2.7} $ans {}
 
 setenv_loaded_module [list {sp.ce y+/2.7} {space ye/1.1}] [list "$mp/sp.ce y+/2.7" "$mp/space ye/1.1"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+ @2.5<2.7|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+ @2.5<2.7|baz @<1"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/1.1"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/1.1"]
+lappend ans [list set _LMFILES_ "$mp/space ye/1.1"]
+lappend ans [list set LOADEDMODULES "space ye/1.1"]
 testouterr_cmd sh {unload --auto sp.ce\ y+/2.7} $ans {}
 
 setenv_loaded_module [list {sp.ce y+/2.7} {space ye/1.2}] [list "$mp/sp.ce y+/2.7" "$mp/space ye/1.2"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.2&{sp.ce y+} @2.5<2.7|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.2&{sp.ce y+} @2.5<2.7|baz @<1"
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload --auto sp.ce\ y+/2.7} $ans [msg_top_unload {'sp.ce y+/2.7'} {'space ye/1.2'} {} {}]
 
 setenv_loaded_module [list {sp.ce y+/2.7} {space ye/1.4}] [list "$mp/sp.ce y+/2.7" "$mp/space ye/1.4"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.4&{sp.ce y+@1.2} @2.5<2.7|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.4&{sp.ce y+@1.2} @2.5<2.7|baz @<1"
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload --auto sp.ce\ y+/2.7} $ans [msg_top_unload {'sp.ce y+/2.7'} {'space ye/1.4'} {} {}]
 
 setenv_loaded_module [list {sp.ce y+/2.7} {space ye/1.5}] [list "$mp/sp.ce y+/2.7" "$mp/space ye/1.5"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+} @1.2 @2.5<2.7|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+} @1.2 @2.5<2.7|baz @<1"
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload --auto sp.ce\ y+/2.7} $ans [msg_top_unload {'sp.ce y+/2.7'} {'space ye/1.5'} {} {}]
 
 setenv_loaded_module [list {sp.ce y+/0 2} {space ye/1.6}] [list "$mp/sp.ce y+/0 2" "$mp/space ye/1.6"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.6&{sp.ce y+} {@0 2}|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.6&{sp.ce y+} {@0 2}|baz @<1"
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload --auto sp.ce\ y+/0\ 2} $ans [msg_top_unload {'sp.ce y+/0 2'} {'space ye/1.6'} {} {}]
 
 setenv_loaded_module [list {sp.ce y+/0 2} {space ye/1.7}] [list "$mp/sp.ce y+/0 2" "$mp/space ye/1.7"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.7&{sp.ce y+@0 2}|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.7&{sp.ce y+@0 2}|baz @<1"
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload --auto sp.ce\ y+/0\ 2} $ans [msg_top_unload {'sp.ce y+/0 2'} {'space ye/1.7'} {} {}]
 
 setenv_loaded_module [list {space y /1 } {space ye/1.8}] [list "$mp/space y /1 " "$mp/space ye/1.8"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.8&{space y @1 }|baz @<1"
-setenv_path_var __MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "
+setenv_var __MODULES_LMPREREQ "space ye/1.8&{space y @1 }|baz @<1"
+setenv_var __MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMALTNAME]
+lappend ans [list unset __MODULES_LMALTNAME]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload --auto space\ y\ /1\ } $ans [msg_top_unload {'space y /1 '} {'space ye/1.8'} {} {}]
 testouterr_cmd sh {unload --auto space\ y\ /a\ } $ans [msg_top_unload {'space y /1 '} {'space ye/1.8'} {} {}]
 
 setenv_loaded_module [list {space y /1 } {space ye/1.9}] [list "$mp/space y /1 " "$mp/space ye/1.9"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.9&{space y @a }|baz @<1"
-setenv_path_var __MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "
+setenv_var __MODULES_LMPREREQ "space ye/1.9&{space y @a }|baz @<1"
+setenv_var __MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
-lappend ans [list unsetpath __MODULES_LMALTNAME]
+lappend ans [list unset __MODULES_LMALTNAME]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload --auto space\ y\ /1\ } $ans [msg_top_unload {'space y /1 '} {'space ye/1.9'} {} {}]
 testouterr_cmd sh {unload --auto space\ y\ /a\ } $ans [msg_top_unload {'space y /1 '} {'space ye/1.9'} {} {}]
-unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMALTNAME
 
 # unload dependent module baz/1
 
 setenv_loaded_module [list {baz/1} {space ye/1.0}] [list "$mp/baz/1" "$mp/space ye/1.0"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.0&sp.ce|y+@2.5<2.7|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.0&sp.ce|y+@2.5<2.7|baz @<1"
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload --auto baz/1} $ans [msg_top_unload baz/1 {'space ye/1.0'} {} {}]
 
 setenv_loaded_module [list {baz/1} {space ye/1.1}] [list "$mp/baz/1" "$mp/space ye/1.1"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+ @2.5<2.7|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+ @2.5<2.7|baz @<1"
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload --auto baz/1} $ans [msg_top_unload baz/1 {'space ye/1.1'} {} {}]
 
 setenv_loaded_module [list {baz/1} {space ye/1.2}] [list "$mp/baz/1" "$mp/space ye/1.2"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.2&{sp.ce y+} @2.5<2.7|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.2&{sp.ce y+} @2.5<2.7|baz @<1"
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload --auto baz/1} $ans [msg_top_unload baz/1 {'space ye/1.2'} {} {}]
 
 setenv_loaded_module [list {baz/1} {space ye/1.4}] [list "$mp/baz/1" "$mp/space ye/1.4"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.4&{sp.ce y+@1.2} @2.5<2.7|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.4&{sp.ce y+@1.2} @2.5<2.7|baz @<1"
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload --auto baz/1} $ans [msg_top_unload baz/1 {'space ye/1.4'} {} {}]
 
 setenv_loaded_module [list {baz/1} {space ye/1.5}] [list "$mp/baz/1" "$mp/space ye/1.5"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+} @1.2 @2.5<2.7|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+} @1.2 @2.5<2.7|baz @<1"
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload --auto baz/1} $ans [msg_top_unload baz/1 {'space ye/1.5'} {} {}]
 
 setenv_loaded_module [list {baz/1} {space ye/1.6}] [list "$mp/baz/1" "$mp/space ye/1.6"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.6&{sp.ce y+} {@0 2}|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.6&{sp.ce y+} {@0 2}|baz @<1"
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload --auto baz/1} $ans [msg_top_unload baz/1 {'space ye/1.6'} {} {}]
 
 setenv_loaded_module [list {baz/1} {space ye/1.7}] [list "$mp/baz/1" "$mp/space ye/1.7"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.7&{sp.ce y+@0 2}|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.7&{sp.ce y+@0 2}|baz @<1"
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload --auto baz/1} $ans [msg_top_unload baz/1 {'space ye/1.7'} {} {}]
 
 setenv_loaded_module [list {baz/1} {space ye/1.8}] [list "$mp/baz/1" "$mp/space ye/1.8"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.8&{space y @1 }|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.8&{space y @1 }|baz @<1"
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload --auto baz/1} $ans [msg_top_unload baz/1 {'space ye/1.8'} {} {}]
 
 setenv_loaded_module [list {baz/1} {space ye/1.9}] [list "$mp/baz/1" "$mp/space ye/1.9"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.9&{space y @a }|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.9&{space y @a }|baz @<1"
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload --auto baz/1} $ans [msg_top_unload baz/1 {'space ye/1.9'} {} {}]
 
 # load depedent module {sp.ce y+/2.7}
 
 setenv_loaded_module [list {baz/1} {space ye/1.0}] [list "$mp/baz/1" "$mp/space ye/1.0"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.0&sp.ce|y+@2.5<2.7|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.0&sp.ce|y+@2.5<2.7|baz @<1"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/1:space ye/1.0:sp.ce y+/2.7"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/space ye/1.0:$mp/sp.ce y+/2.7"]
+lappend ans [list set _LMFILES_ "$mp/baz/1:$mp/space ye/1.0:$mp/sp.ce y+/2.7"]
+lappend ans [list set LOADEDMODULES "baz/1:space ye/1.0:sp.ce y+/2.7"]
 testouterr_cmd_re sh {load --auto sp.ce\ y+/2.7} $ans {}
 
 setenv_loaded_module [list {baz/1} {space ye/1.1}] [list "$mp/baz/1" "$mp/space ye/1.1"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+ @2.5<2.7|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+ @2.5<2.7|baz @<1"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/1:space ye/1.1:sp.ce y+/2.7"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/space ye/1.1:$mp/sp.ce y+/2.7"]
+lappend ans [list set _LMFILES_ "$mp/baz/1:$mp/space ye/1.1:$mp/sp.ce y+/2.7"]
+lappend ans [list set LOADEDMODULES "baz/1:space ye/1.1:sp.ce y+/2.7"]
 testouterr_cmd_re sh {load --auto sp.ce\ y+/2.7} $ans {}
 
 setenv_loaded_module [list {baz/1} {space ye/1.2}] [list "$mp/baz/1" "$mp/space ye/1.2"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.2&{sp.ce y+} @2.5<2.7|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.2&{sp.ce y+} @2.5<2.7|baz @<1"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/1:sp.ce y+/2.7:space ye/1.2"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/sp.ce y+/2.7:$mp/space ye/1.2"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.2&{sp.ce y+} @2.5<2.7|baz @<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.2&{sp.ce y+} @2.5<2.7|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/1:$mp/sp.ce y+/2.7:$mp/space ye/1.2"]
+lappend ans [list set LOADEDMODULES "baz/1:sp.ce y+/2.7:space ye/1.2"]
 testouterr_cmd_re sh {load --auto sp.ce\ y+/2.7} $ans [msg_top_load {'sp.ce y\+/2.7'} {} {} "{'space ye/1.2'}"]
 
 setenv_loaded_module [list {baz/1} {space ye/1.4}] [list "$mp/baz/1" "$mp/space ye/1.4"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.4&{sp.ce y+@1.2} @2.5<2.7|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.4&{sp.ce y+@1.2} @2.5<2.7|baz @<1"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/1:sp.ce y+/2.7:space ye/1.4"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/sp.ce y+/2.7:$mp/space ye/1.4"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.4&{sp.ce y+@1.2} @2.5<2.7|baz @<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.4&{sp.ce y+@1.2} @2.5<2.7|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/1:$mp/sp.ce y+/2.7:$mp/space ye/1.4"]
+lappend ans [list set LOADEDMODULES "baz/1:sp.ce y+/2.7:space ye/1.4"]
 testouterr_cmd_re sh {load --auto sp.ce\ y+/2.7} $ans [msg_top_load {'sp.ce y\+/2.7'} {} {} "{'space ye/1.4'}"]
 
 setenv_loaded_module [list {baz/1} {space ye/1.5}] [list "$mp/baz/1" "$mp/space ye/1.5"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+} @1.2 @2.5<2.7|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+} @1.2 @2.5<2.7|baz @<1"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/1:sp.ce y+/2.7:space ye/1.5"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/sp.ce y+/2.7:$mp/space ye/1.5"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+} @1.2 @2.5<2.7|baz @<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+} @1.2 @2.5<2.7|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/1:$mp/sp.ce y+/2.7:$mp/space ye/1.5"]
+lappend ans [list set LOADEDMODULES "baz/1:sp.ce y+/2.7:space ye/1.5"]
 testouterr_cmd_re sh {load --auto sp.ce\ y+/2.7} $ans [msg_top_load {'sp.ce y\+/2.7'} {} {} "{'space ye/1.5'}"]
 
 setenv_loaded_module [list {baz/1} {space ye/1.6}] [list "$mp/baz/1" "$mp/space ye/1.6"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.6&{sp.ce y+} {@0 2}|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.6&{sp.ce y+} {@0 2}|baz @<1"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/1:sp.ce y+/0 2:space ye/1.6"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/sp.ce y+/0 2:$mp/space ye/1.6"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.6&{sp.ce y+} {@0 2}|baz @<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.6&{sp.ce y+} {@0 2}|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/1:$mp/sp.ce y+/0 2:$mp/space ye/1.6"]
+lappend ans [list set LOADEDMODULES "baz/1:sp.ce y+/0 2:space ye/1.6"]
 testouterr_cmd_re sh {load --auto sp.ce\ y+/0\ 2} $ans [msg_top_load {'sp.ce y\+/0 2'} {} {} "{'space ye/1.6'}"]
 
 setenv_loaded_module [list {baz/1} {space ye/1.7}] [list "$mp/baz/1" "$mp/space ye/1.7"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.7&{sp.ce y+@0 2}|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.7&{sp.ce y+@0 2}|baz @<1"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/1:sp.ce y+/0 2:space ye/1.7"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/sp.ce y+/0 2:$mp/space ye/1.7"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.7&{sp.ce y+@0 2}|baz @<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.7&{sp.ce y+@0 2}|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/1:$mp/sp.ce y+/0 2:$mp/space ye/1.7"]
+lappend ans [list set LOADEDMODULES "baz/1:sp.ce y+/0 2:space ye/1.7"]
 testouterr_cmd_re sh {load --auto sp.ce\ y+/0\ 2} $ans [msg_top_load {'sp.ce y\+/0 2'} {} {} "{'space ye/1.7'}"]
 
 setenv_loaded_module [list {baz/1} {space ye/1.8}] [list "$mp/baz/1" "$mp/space ye/1.8"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.8&{space y @1 }|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.8&{space y @1 }|baz @<1"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/1:space y /1 :space ye/1.8"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/space y /1 :$mp/space ye/1.8"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.8&{space y @1 }|baz @<1"]
-lappend ans [list setpath __MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "]
+lappend ans [list set __MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.8&{space y @1 }|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/1:$mp/space y /1 :$mp/space ye/1.8"]
+lappend ans [list set LOADEDMODULES "baz/1:space y /1 :space ye/1.8"]
 testouterr_cmd_re sh {load --auto space\ y\ /1\ } $ans [msg_top_load {'space y /1 '} {} {} "{'space ye/1.8'}"]
 testouterr_cmd_re sh {load --auto space\ y\ /a\ } $ans [msg_top_load {'space y /1 '} {} {} "{'space ye/1.8'}"]
 
 setenv_loaded_module [list {baz/1} {space ye/1.9}] [list "$mp/baz/1" "$mp/space ye/1.9"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.9&{space y @a }|baz @<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.9&{space y @a }|baz @<1"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/1:space y /1 :space ye/1.9"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/space y /1 :$mp/space ye/1.9"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.9&{space y @a }|baz @<1"]
-lappend ans [list setpath __MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "]
+lappend ans [list set __MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.9&{space y @a }|baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/1:$mp/space y /1 :$mp/space ye/1.9"]
+lappend ans [list set LOADEDMODULES "baz/1:space y /1 :space ye/1.9"]
 testouterr_cmd_re sh {load --auto space\ y\ /1\ } $ans [msg_top_load {'space y /1 '} {} {} "{'space ye/1.9'}"]
 testouterr_cmd_re sh {load --auto space\ y\ /a\ } $ans [msg_top_load {'space y /1 '} {} {} "{'space ye/1.9'}"]
 
 
 # various syntaxes on conflict modulefile command
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMPREREQ
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/2.0"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/2.0"]
-lappend ans [list setpath __MODULES_LMCONFLICT "space ye/2.0&sp.ce&y+@2.5<2.7&baz @<1"]
+lappend ans [list set __MODULES_LMCONFLICT "space ye/2.0&sp.ce&y+@2.5<2.7&baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/space ye/2.0"]
+lappend ans [list set LOADEDMODULES "space ye/2.0"]
 testouterr_cmd sh {load --auto space\ ye@2.0} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/2.1"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/2.1"]
-lappend ans [list setpath __MODULES_LMCONFLICT "space ye/2.1&sp.ce&y+ @2.5<2.7&baz @<1"]
+lappend ans [list set __MODULES_LMCONFLICT "space ye/2.1&sp.ce&y+ @2.5<2.7&baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/space ye/2.1"]
+lappend ans [list set LOADEDMODULES "space ye/2.1"]
 testouterr_cmd sh {load --auto space\ ye@2.1} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/2.2"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/2.2"]
-lappend ans [list setpath __MODULES_LMCONFLICT "space ye/2.2&{sp.ce y+} @2.5<2.7&baz @<1"]
+lappend ans [list set __MODULES_LMCONFLICT "space ye/2.2&{sp.ce y+} @2.5<2.7&baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/space ye/2.2"]
+lappend ans [list set LOADEDMODULES "space ye/2.2"]
 testouterr_cmd sh {load --auto space\ ye@2.2} $ans {}
 
 if {[cmpversion $tclsh_version 8.6] == -1} {
@@ -549,140 +549,140 @@ if {[cmpversion $tclsh_version 8.6] == -1} {
 testouterr_cmd sh {load --auto space\ ye@2.3} ERR [msg_load {'space ye/2.3'} [msg_moderr {extra characters after close-brace} $errcmd "$mp/space ye/2.3" 2]]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/2.4"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/2.4"]
-lappend ans [list setpath __MODULES_LMCONFLICT "space ye/2.4&{sp.ce y+@1.2} @2.5<2.7&baz @<1"]
+lappend ans [list set __MODULES_LMCONFLICT "space ye/2.4&{sp.ce y+@1.2} @2.5<2.7&baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/space ye/2.4"]
+lappend ans [list set LOADEDMODULES "space ye/2.4"]
 testouterr_cmd sh {load --auto space\ ye@2.4} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/2.5"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/2.5"]
-lappend ans [list setpath __MODULES_LMCONFLICT "space ye/2.5&{sp.ce y+} @1.2 @2.5<2.7&baz @<1"]
+lappend ans [list set __MODULES_LMCONFLICT "space ye/2.5&{sp.ce y+} @1.2 @2.5<2.7&baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/space ye/2.5"]
+lappend ans [list set LOADEDMODULES "space ye/2.5"]
 testouterr_cmd sh {load --auto space\ ye@2.5} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/2.6"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/2.6"]
-lappend ans [list setpath __MODULES_LMCONFLICT "space ye/2.6&{sp.ce y+} {@0 2}&baz @<1"]
+lappend ans [list set __MODULES_LMCONFLICT "space ye/2.6&{sp.ce y+} {@0 2}&baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/space ye/2.6"]
+lappend ans [list set LOADEDMODULES "space ye/2.6"]
 testouterr_cmd sh {load --auto space\ ye@2.6} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/2.7"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/2.7"]
-lappend ans [list setpath __MODULES_LMCONFLICT "space ye/2.7&{sp.ce y+@0 2}&baz @<1"]
+lappend ans [list set __MODULES_LMCONFLICT "space ye/2.7&{sp.ce y+@0 2}&baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/space ye/2.7"]
+lappend ans [list set LOADEDMODULES "space ye/2.7"]
 testouterr_cmd sh {load --auto space\ ye@2.7} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/2.8"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/2.8"]
-lappend ans [list setpath __MODULES_LMCONFLICT "space ye/2.8&{space y @1 }&baz @<1"]
+lappend ans [list set __MODULES_LMCONFLICT "space ye/2.8&{space y @1 }&baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/space ye/2.8"]
+lappend ans [list set LOADEDMODULES "space ye/2.8"]
 testouterr_cmd sh {load --auto space\ ye@2.8} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/2.9"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/2.9"]
-lappend ans [list setpath __MODULES_LMCONFLICT "space ye/2.9&{space y @n }&baz @<1"]
-lappend ans [list setpath __MODULES_LMALTNAME "space ye/2.9&as|space ye/default&as|space ye/latest"]
+lappend ans [list set __MODULES_LMALTNAME "space ye/2.9&as|space ye/default&as|space ye/latest"]
+lappend ans [list set __MODULES_LMCONFLICT "space ye/2.9&{space y @n }&baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/space ye/2.9"]
+lappend ans [list set LOADEDMODULES "space ye/2.9"]
 testouterr_cmd sh {load --auto space\ ye@2.9} $ans {}
 
 # load conflicting module {sp.ce y+/2.7}
 
 setenv_loaded_module [list {space ye/2.0}] [list "$mp/space ye/2.0"]
-setenv_path_var __MODULES_LMCONFLICT "space ye/2.0&sp.ce&y+@2.5<2.7&baz @<1"
+setenv_var __MODULES_LMCONFLICT "space ye/2.0&sp.ce&y+@2.5<2.7&baz @<1"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/2.0:sp.ce y+/2.7"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/2.0:$mp/sp.ce y+/2.7"]
+lappend ans [list set _LMFILES_ "$mp/space ye/2.0:$mp/sp.ce y+/2.7"]
+lappend ans [list set LOADEDMODULES "space ye/2.0:sp.ce y+/2.7"]
 testouterr_cmd_re sh {load --auto sp.ce\ y+@2.7} $ans {}
 
 setenv_loaded_module [list {space ye/2.1}] [list "$mp/space ye/2.1"]
-setenv_path_var __MODULES_LMCONFLICT "space ye/2.1&sp.ce&y+ @2.5<2.7&baz @<1"
+setenv_var __MODULES_LMCONFLICT "space ye/2.1&sp.ce&y+ @2.5<2.7&baz @<1"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/2.1:sp.ce y+/2.7"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/2.1:$mp/sp.ce y+/2.7"]
+lappend ans [list set _LMFILES_ "$mp/space ye/2.1:$mp/sp.ce y+/2.7"]
+lappend ans [list set LOADEDMODULES "space ye/2.1:sp.ce y+/2.7"]
 testouterr_cmd_re sh {load --auto sp.ce\ y+@2.7} $ans {}
 
 setenv_loaded_module [list {space ye/2.2}] [list "$mp/space ye/2.2"]
-setenv_path_var __MODULES_LMCONFLICT "space ye/2.2&{sp.ce y+} @2.5<2.7&baz @<1"
+setenv_var __MODULES_LMCONFLICT "space ye/2.2&{sp.ce y+} @2.5<2.7&baz @<1"
 testouterr_cmd sh {load --auto sp.ce\ y+@2.7} ERR [msg_load {'sp.ce y+/2.7'} [err_conflict space\ ye/2.2]]
 
 setenv_loaded_module [list {space ye/2.4}] [list "$mp/space ye/2.4"]
-setenv_path_var __MODULES_LMCONFLICT "space ye/2.4&{sp.ce y+@1.2} @2.5<2.7&baz @<1"
+setenv_var __MODULES_LMCONFLICT "space ye/2.4&{sp.ce y+@1.2} @2.5<2.7&baz @<1"
 testouterr_cmd sh {load --auto sp.ce\ y+@2.7} ERR [msg_load {'sp.ce y+/2.7'} [err_conflict space\ ye/2.4]]
 
 setenv_loaded_module [list {space ye/2.5}] [list "$mp/space ye/2.5"]
-setenv_path_var __MODULES_LMCONFLICT "space ye/2.5&{sp.ce y+} @1.2 @2.5<2.7&baz @<1"
+setenv_var __MODULES_LMCONFLICT "space ye/2.5&{sp.ce y+} @1.2 @2.5<2.7&baz @<1"
 testouterr_cmd sh {load --auto sp.ce\ y+@2.7} ERR [msg_load {'sp.ce y+/2.7'} [err_conflict space\ ye/2.5]]
 
 setenv_loaded_module [list {space ye/2.6}] [list "$mp/space ye/2.6"]
-setenv_path_var __MODULES_LMCONFLICT "space ye/2.6&{sp.ce y+} {@0 2}&baz @<1"
+setenv_var __MODULES_LMCONFLICT "space ye/2.6&{sp.ce y+} {@0 2}&baz @<1"
 testouterr_cmd sh {load --auto sp.ce\ y+@0\ 2} ERR [msg_load {'sp.ce y+/0 2'} [err_conflict space\ ye/2.6]]
 
 setenv_loaded_module [list {space ye/2.7}] [list "$mp/space ye/2.7"]
-setenv_path_var __MODULES_LMCONFLICT "space ye/2.7&{sp.ce y+@0 2}&baz @<1"
+setenv_var __MODULES_LMCONFLICT "space ye/2.7&{sp.ce y+@0 2}&baz @<1"
 testouterr_cmd sh {load --auto sp.ce\ y+@0\ 2} ERR [msg_load {'sp.ce y+/0 2'} [err_conflict space\ ye/2.7]]
 
 setenv_loaded_module [list {space ye/2.8}] [list "$mp/space ye/2.8"]
-setenv_path_var __MODULES_LMCONFLICT "space ye/2.8&{space y @1 }&baz @<1"
+setenv_var __MODULES_LMCONFLICT "space ye/2.8&{space y @1 }&baz @<1"
 testouterr_cmd sh {load --auto space\ y\ @1\ } ERR [msg_load {'space y /1 '} [err_conflict space\ ye/2.8]]
 testouterr_cmd sh {load --auto space\ y\ @n\ } ERR [msg_load {'space y /1 '} [err_conflict space\ ye/2.8]]
 
 setenv_loaded_module [list {space ye/2.9}] [list "$mp/space ye/2.9"]
-setenv_path_var __MODULES_LMCONFLICT "space ye/2.9&{space y @n }&baz @<1"
+setenv_var __MODULES_LMCONFLICT "space ye/2.9&{space y @n }&baz @<1"
 testouterr_cmd sh {load --auto space\ y\ @1\ } ERR [msg_load {'space y /1 '} [err_conflict space\ ye/2.9]]
 testouterr_cmd sh {load --auto space\ y\ @n\ } ERR [msg_load {'space y /1 '} [err_conflict space\ ye/2.9]]
 
 # load conflicting module baz/1
 
 setenv_loaded_module [list {space ye/2.0}] [list "$mp/space ye/2.0"]
-setenv_path_var __MODULES_LMCONFLICT "space ye/2.0&sp.ce&y+@2.5<2.7&baz @<1"
+setenv_var __MODULES_LMCONFLICT "space ye/2.0&sp.ce&y+@2.5<2.7&baz @<1"
 testouterr_cmd sh {load --auto baz/1} ERR [msg_load {baz/1} [err_conflict space\ ye/2.0]]
 
 setenv_loaded_module [list {space ye/2.1}] [list "$mp/space ye/2.1"]
-setenv_path_var __MODULES_LMCONFLICT "space ye/2.1&sp.ce&y+ @2.5<2.7&baz @<1"
+setenv_var __MODULES_LMCONFLICT "space ye/2.1&sp.ce&y+ @2.5<2.7&baz @<1"
 testouterr_cmd sh {load --auto baz/1} ERR [msg_load {baz/1} [err_conflict space\ ye/2.1]]
 
 setenv_loaded_module [list {space ye/2.2}] [list "$mp/space ye/2.2"]
-setenv_path_var __MODULES_LMCONFLICT "space ye/2.2&{sp.ce y+} @2.5<2.7&baz @<1"
+setenv_var __MODULES_LMCONFLICT "space ye/2.2&{sp.ce y+} @2.5<2.7&baz @<1"
 testouterr_cmd sh {load --auto baz/1} ERR [msg_load {baz/1} [err_conflict space\ ye/2.2]]
 
 setenv_loaded_module [list {space ye/2.4}] [list "$mp/space ye/2.4"]
-setenv_path_var __MODULES_LMCONFLICT "space ye/2.4&{sp.ce y+@1.2} @2.5<2.7&baz @<1"
+setenv_var __MODULES_LMCONFLICT "space ye/2.4&{sp.ce y+@1.2} @2.5<2.7&baz @<1"
 testouterr_cmd sh {load --auto baz/1} ERR [msg_load {baz/1} [err_conflict space\ ye/2.4]]
 
 setenv_loaded_module [list {space ye/2.5}] [list "$mp/space ye/2.5"]
-setenv_path_var __MODULES_LMCONFLICT "space ye/2.5&{sp.ce y+} @1.2 @2.5<2.7&baz @<1"
+setenv_var __MODULES_LMCONFLICT "space ye/2.5&{sp.ce y+} @1.2 @2.5<2.7&baz @<1"
 testouterr_cmd sh {load --auto baz/1} ERR [msg_load {baz/1} [err_conflict space\ ye/2.5]]
 
 setenv_loaded_module [list {space ye/2.6}] [list "$mp/space ye/2.6"]
-setenv_path_var __MODULES_LMCONFLICT "space ye/2.6&{sp.ce y+} {@0 2}&baz @<1"
+setenv_var __MODULES_LMCONFLICT "space ye/2.6&{sp.ce y+} {@0 2}&baz @<1"
 testouterr_cmd sh {load --auto baz/1} ERR [msg_load {baz/1} [err_conflict space\ ye/2.6]]
 
 setenv_loaded_module [list {space ye/2.7}] [list "$mp/space ye/2.7"]
-setenv_path_var __MODULES_LMCONFLICT "space ye/2.7&{sp.ce y+@0 2}&baz @<1"
+setenv_var __MODULES_LMCONFLICT "space ye/2.7&{sp.ce y+@0 2}&baz @<1"
 testouterr_cmd sh {load --auto baz/1} ERR [msg_load {baz/1} [err_conflict space\ ye/2.7]]
 
 setenv_loaded_module [list {space ye/2.8}] [list "$mp/space ye/2.8"]
-setenv_path_var __MODULES_LMCONFLICT "space ye/2.8&{space y @1 }&baz @<1"
+setenv_var __MODULES_LMCONFLICT "space ye/2.8&{space y @1 }&baz @<1"
 testouterr_cmd sh {load --auto baz/1} ERR [msg_load {baz/1} [err_conflict space\ ye/2.8]]
 
 setenv_loaded_module [list {space ye/2.9}] [list "$mp/space ye/2.9"]
-setenv_path_var __MODULES_LMCONFLICT "space ye/2.9&{space y @n }&baz @<1"
+setenv_var __MODULES_LMCONFLICT "space ye/2.9&{space y @n }&baz @<1"
 testouterr_cmd sh {load --auto baz/1} ERR [msg_load {baz/1} [err_conflict space\ ye/2.9]]
 
 # conflicting module {sp.ce y+/2.7} loaded prior conflict definition
-unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMCONFLICT
 setenv_loaded_module [list {sp.ce y+/2.7}] [list "$mp/sp.ce y+/2.7"]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.7:space ye/2.0"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/2.0"]
-lappend ans [list setpath __MODULES_LMCONFLICT "space ye/2.0&sp.ce&y+@2.5<2.7&baz @<1"]
+lappend ans [list set __MODULES_LMCONFLICT "space ye/2.0&sp.ce&y+@2.5<2.7&baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/2.0"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/2.7:space ye/2.0"]
 testouterr_cmd_re sh {load --auto space\ ye@2.0} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.7:space ye/2.1"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/2.1"]
-lappend ans [list setpath __MODULES_LMCONFLICT "space ye/2.1&sp.ce&y+ @2.5<2.7&baz @<1"]
+lappend ans [list set __MODULES_LMCONFLICT "space ye/2.1&sp.ce&y+ @2.5<2.7&baz @<1"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/2.1"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/2.7:space ye/2.1"]
 testouterr_cmd_re sh {load --auto space\ ye@2.1} $ans {}
 
 testouterr_cmd sh {load --auto space\ ye@2.2} ERR [msg_load {'space ye/2.2'} [err_conflict {sp.ce y+ @2.5:2.7}]]
@@ -695,14 +695,14 @@ testouterr_cmd sh {load --auto space\ ye@2.6} ERR [msg_load {'space ye/2.6'} [er
 testouterr_cmd sh {load --auto space\ ye@2.7} ERR [msg_load {'space ye/2.7'} [err_conflict {sp.ce y+@0 2}]]
 
 setenv_loaded_module [list {space y /1 }] [list "$mp/space y /1 "]
-setenv_path_var __MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "
+setenv_var __MODULES_LMALTNAME "space y /1 &space y /n &al|space y /a "
 
 testouterr_cmd sh {load --auto space\ ye@2.8} ERR [msg_load {'space ye/2.8'} [err_conflict {space y @1 }]]
 testouterr_cmd sh {load --auto space\ ye@2.9} ERR [msg_load {'space ye/2.9'} [err_conflict {space y @n }]]
 
 # conflicting module baz/1 loaded prior conflict definition
-unsetenv_path_var __MODULES_LMCONFLICT
-unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMALTNAME
 setenv_loaded_module [list baz/1] [list "$mp/baz/1"]
 
 testouterr_cmd sh {load --auto space\ ye@2.0} ERR [msg_load {'space ye/2.0'} [err_conflict {baz @:1}]]
@@ -725,8 +725,8 @@ unsetenv_loaded_module
 testouterr_cmd sh {load sp.ce y+@2.5:2.7} ERR "$err_path'sp.ce'\n$err_path'y+@2.5:2.7'"
 testouterr_cmd sh {load sp.ce y+ @2.5:2.7} ERR "$err_path'sp.ce'\n$err_path'y+'\n$err_path'@2.5:2.7'"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.10"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.10"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/2.10"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/2.10"]
 lappend ans [list ERR]
 testouterr_cmd sh {load sp.ce\ y+ @2.5:2.7} $ans $err_path'@2.5:2.7'
 testouterr_cmd sh {load sp.ce\ y+@2.5:2.7} ERR "$err_path'{sp.ce\ y+@2.5:2.7}'"
@@ -737,9 +737,9 @@ testouterr_cmd sh {load sp.ce\ y+ @0\ 2} $ans "$err_path'{@0 2}'"
 testouterr_cmd sh {load sp.ce\ y+@0\ 2} ERR "$err_path'{sp.ce y+@0 2}'"
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space y /2.2"]
-lappend ans [list setpath _LMFILES_ "$mp/space y /2.2"]
-lappend ans [list setpath __MODULES_LMALTNAME "space y /2.2&space y /default&space y "]
+lappend ans [list set __MODULES_LMALTNAME "space y /2.2&space y /default&space y "]
+lappend ans [list set _LMFILES_ "$mp/space y /2.2"]
+lappend ans [list set LOADEDMODULES "space y /2.2"]
 lappend ans [list ERR]
 testouterr_cmd sh {load space\ y\  @1\ } $ans "$err_path'{@1 }'"
 testouterr_cmd sh {load space\ y\ @1\ } ERR "$err_path'{space y @1 }'"
@@ -753,26 +753,26 @@ testouterr_cmd sh {load space\ z\  @2\ } ERR "$err_path'{space z }'\n$err_path'{
 # various syntaxes on prereq modulefile command
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/2:space ye/1.0"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/2:$mp/space ye/1.0"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.0&sp.ce|y+@2.5<2.7|baz|@<1"]
-lappend ans [list setpath __MODULES_LMTAG "baz/2&auto-loaded"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.0&sp.ce|y+@2.5<2.7|baz|@<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/2:$mp/space ye/1.0"]
+lappend ans [list set LOADEDMODULES "baz/2:space ye/1.0"]
+lappend ans [list set __MODULES_LMTAG "baz/2&auto-loaded"]
 lappend ans [list ERR]
 testouterr_cmd_re sh {load --auto space\ ye/1.0} $ans [msg_top_load {'space ye/1.0'} {} baz/2 {} $err_path'sp.ce' $err_path'y\\+@2.5:2.7']
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/2:space ye/1.1"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/2:$mp/space ye/1.1"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+|@2.5<2.7|baz|@<1"]
-lappend ans [list setpath __MODULES_LMTAG "baz/2&auto-loaded"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+|@2.5<2.7|baz|@<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/2:$mp/space ye/1.1"]
+lappend ans [list set LOADEDMODULES "baz/2:space ye/1.1"]
+lappend ans [list set __MODULES_LMTAG "baz/2&auto-loaded"]
 lappend ans [list ERR]
 testouterr_cmd_re sh {load --auto space\ ye/1.1} $ans [msg_top_load {'space ye/1.1'} {} baz/2 {} $err_path'sp.ce' "$err_path'y\\+'" "$err_path'@2.5:2.7'"]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.10:space ye/1.2"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.10:$mp/space ye/1.2"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.2&{sp.ce y+}|@2.5<2.7|baz|@<1"]
-lappend ans [list setpath __MODULES_LMTAG "sp.ce y+/2.10&auto-loaded"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.2&{sp.ce y+}|@2.5<2.7|baz|@<1"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/2.10:$mp/space ye/1.2"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/2.10:space ye/1.2"]
+lappend ans [list set __MODULES_LMTAG "sp.ce y+/2.10&auto-loaded"]
 testouterr_cmd_re sh {load --auto space\ ye/1.2} $ans [msg_top_load {'space ye/1.2'} {} {'sp.ce y\\+/2.10'} {}]
 
 if {[cmpversion $tclsh_version 8.6] == -1} {
@@ -783,163 +783,163 @@ if {[cmpversion $tclsh_version 8.6] == -1} {
 testouterr_cmd sh {load --auto space\ ye/1.3} ERR [msg_load {'space ye/1.3'} [msg_moderr {extra characters after close-brace} $errcmd "$mp/space ye/1.3" 2]]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/2:space ye/1.4"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/2:$mp/space ye/1.4"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.4&{sp.ce y+@1.2}|@2.5<2.7|baz|@<1"]
-lappend ans [list setpath __MODULES_LMTAG "baz/2&auto-loaded"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.4&{sp.ce y+@1.2}|@2.5<2.7|baz|@<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/2:$mp/space ye/1.4"]
+lappend ans [list set LOADEDMODULES "baz/2:space ye/1.4"]
+lappend ans [list set __MODULES_LMTAG "baz/2&auto-loaded"]
 lappend ans [list ERR]
 testouterr_cmd_re sh {load --auto space\ ye/1.4} $ans [msg_top_load {'space ye/1.4'} {} {baz/2} {} "$err_path'{sp.ce y\\+@1.2}'" "$err_path'@2.5:2.7'"]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.10:space ye/1.5"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.10:$mp/space ye/1.5"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+}|@1.2|@2.5<2.7|baz|@<1"]
-lappend ans [list setpath __MODULES_LMTAG "sp.ce y+/2.10&auto-loaded"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+}|@1.2|@2.5<2.7|baz|@<1"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/2.10:$mp/space ye/1.5"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/2.10:space ye/1.5"]
+lappend ans [list set __MODULES_LMTAG "sp.ce y+/2.10&auto-loaded"]
 testouterr_cmd_re sh {load --auto space\ ye/1.5} $ans [msg_top_load {'space ye/1.5'} {} {'sp.ce y\\+/2.10'} {}]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.10:space ye/1.6"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.10:$mp/space ye/1.6"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.6&{sp.ce y+}|{@0 2}|baz|@<1"]
-lappend ans [list setpath __MODULES_LMTAG "sp.ce y+/2.10&auto-loaded"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.6&{sp.ce y+}|{@0 2}|baz|@<1"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/2.10:$mp/space ye/1.6"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/2.10:space ye/1.6"]
+lappend ans [list set __MODULES_LMTAG "sp.ce y+/2.10&auto-loaded"]
 testouterr_cmd_re sh {load --auto space\ ye/1.6} $ans [msg_top_load {'space ye/1.6'} {} {'sp.ce y\\+/2.10'} {}]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/2:space ye/1.7"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/2:$mp/space ye/1.7"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.7&{sp.ce y+@0 2}|baz|@<1"]
-lappend ans [list setpath __MODULES_LMTAG "baz/2&auto-loaded"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.7&{sp.ce y+@0 2}|baz|@<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/2:$mp/space ye/1.7"]
+lappend ans [list set LOADEDMODULES "baz/2:space ye/1.7"]
+lappend ans [list set __MODULES_LMTAG "baz/2&auto-loaded"]
 lappend ans [list ERR]
 testouterr_cmd_re sh {load --auto space\ ye/1.7} $ans [msg_top_load {'space ye/1.7'} {} {baz/2} {} "$err_path'{sp.ce y\\+@0 2}'"]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/2:space ye/1.8"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/2:$mp/space ye/1.8"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.8&{space y @1 }|baz|@<1"]
-lappend ans [list setpath __MODULES_LMTAG "baz/2&auto-loaded"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.8&{space y @1 }|baz|@<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/2:$mp/space ye/1.8"]
+lappend ans [list set LOADEDMODULES "baz/2:space ye/1.8"]
+lappend ans [list set __MODULES_LMTAG "baz/2&auto-loaded"]
 lappend ans [list ERR]
 testouterr_cmd_re sh {load --auto space\ ye/1.8} $ans [msg_top_load {'space ye/1.8'} {} {baz/2} {} "$err_path'{space y @1 }'"]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/2:space ye/1.9"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/2:$mp/space ye/1.9"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.9&{space y @a }|baz|@<1"]
-lappend ans [list setpath __MODULES_LMTAG "baz/2&auto-loaded"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.9&{space y @a }|baz|@<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/2:$mp/space ye/1.9"]
+lappend ans [list set LOADEDMODULES "baz/2:space ye/1.9"]
+lappend ans [list set __MODULES_LMTAG "baz/2&auto-loaded"]
 lappend ans [list ERR]
 testouterr_cmd_re sh {load --auto space\ ye/1.9} $ans [msg_top_load {'space ye/1.9'} {} {baz/2} {} "$err_path'{space y @a }'"]
 
 setenv_loaded_module [list {sp.ce y+/2.7}] [list "$mp/sp.ce y+/2.7"]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.7:baz/2:space ye/1.1"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/baz/2:$mp/space ye/1.1"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+|@2.5<2.7|baz|@<1"]
-lappend ans [list setpath __MODULES_LMTAG "baz/2&auto-loaded"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+|@2.5<2.7|baz|@<1"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/2.7:$mp/baz/2:$mp/space ye/1.1"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/2.7:baz/2:space ye/1.1"]
+lappend ans [list set __MODULES_LMTAG "baz/2&auto-loaded"]
 lappend ans [list ERR]
 testouterr_cmd_re sh {load --auto space\ ye/1.1} $ans [msg_top_load {'space ye/1.1'} {} baz/2 {} $err_path'sp.ce' "$err_path'y\\+'" "$err_path'@2.5:2.7'"]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.7:space ye/1.5"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/1.5"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+}|@1.2|@2.5<2.7|baz|@<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+}|@1.2|@2.5<2.7|baz|@<1"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/1.5"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/2.7:space ye/1.5"]
 testouterr_cmd_re sh {load --auto space\ ye/1.5} $ans {}
 
 setenv_loaded_module [list {baz/1}] [list "$mp/baz/1"]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/1:space ye/1.1"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/space ye/1.1"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+|@2.5<2.7|baz|@<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+|@2.5<2.7|baz|@<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/1:$mp/space ye/1.1"]
+lappend ans [list set LOADEDMODULES "baz/1:space ye/1.1"]
 testouterr_cmd_re sh {load --auto space\ ye/1.1} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/1:space ye/1.5"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/space ye/1.5"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+}|@1.2|@2.5<2.7|baz|@<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+}|@1.2|@2.5<2.7|baz|@<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/1:$mp/space ye/1.5"]
+lappend ans [list set LOADEDMODULES "baz/1:space ye/1.5"]
 testouterr_cmd_re sh {load --auto space\ ye/1.5} $ans {}
 
 # unload dependent module {sp.ce y+/2.7}
 
 setenv_loaded_module [list {sp.ce y+/2.7} {space ye/1.1}] [list "$mp/sp.ce y+/2.7" "$mp/space ye/1.1"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+|@2.5<2.7|baz|@<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+|@2.5<2.7|baz|@<1"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/1.1"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/1.1"]
+lappend ans [list set _LMFILES_ "$mp/space ye/1.1"]
+lappend ans [list set LOADEDMODULES "space ye/1.1"]
 testouterr_cmd sh {unload --auto sp.ce\ y+/2.7} $ans {}
 
 setenv_loaded_module [list {sp.ce y+/2.7} {space ye/1.5}] [list "$mp/sp.ce y+/2.7" "$mp/space ye/1.5"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+}|@1.2|@2.5<2.7|baz|@<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+}|@1.2|@2.5<2.7|baz|@<1"
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload --auto sp.ce\ y+/2.7} $ans [msg_top_unload {'sp.ce y+/2.7'} {'space ye/1.5'} {} {}]
 
 # unload dependent module baz/1
 
 setenv_loaded_module [list {baz/1} {space ye/1.1}] [list "$mp/baz/1" "$mp/space ye/1.1"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+|@2.5<2.7|baz|@<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+|@2.5<2.7|baz|@<1"
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload --auto baz/1} $ans [msg_top_unload baz/1 {'space ye/1.1'} {} {}]
 
 setenv_loaded_module [list {baz/1} {space ye/1.5}] [list "$mp/baz/1" "$mp/space ye/1.5"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+}|@1.2|@2.5<2.7|baz|@<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+}|@1.2|@2.5<2.7|baz|@<1"
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload --auto baz/1} $ans [msg_top_unload baz/1 {'space ye/1.5'} {} {}]
 
 # load depedent module {sp.ce y+/2.7}
 
 setenv_loaded_module [list {baz/1} {space ye/1.1}] [list "$mp/baz/1" "$mp/space ye/1.1"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+|@2.5<2.7|baz|@<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.1&sp.ce|y+|@2.5<2.7|baz|@<1"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/1:space ye/1.1:sp.ce y+/2.7"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/space ye/1.1:$mp/sp.ce y+/2.7"]
+lappend ans [list set _LMFILES_ "$mp/baz/1:$mp/space ye/1.1:$mp/sp.ce y+/2.7"]
+lappend ans [list set LOADEDMODULES "baz/1:space ye/1.1:sp.ce y+/2.7"]
 testouterr_cmd_re sh {load --auto sp.ce\ y+/2.7} $ans {}
 
 setenv_loaded_module [list {baz/1} {space ye/1.5}] [list "$mp/baz/1" "$mp/space ye/1.5"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+}|@1.2|@2.5<2.7|baz|@<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+}|@1.2|@2.5<2.7|baz|@<1"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/1:sp.ce y+/2.7:space ye/1.5"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/sp.ce y+/2.7:$mp/space ye/1.5"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+}|@1.2|@2.5<2.7|baz|@<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.5&{sp.ce y+}|@1.2|@2.5<2.7|baz|@<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/1:$mp/sp.ce y+/2.7:$mp/space ye/1.5"]
+lappend ans [list set LOADEDMODULES "baz/1:sp.ce y+/2.7:space ye/1.5"]
 testouterr_cmd_re sh {load --auto sp.ce\ y+/2.7} $ans [msg_top_load {'sp.ce y\+/2.7'} {} {} "{'space ye/1.5'}"]
 
 # load depedent module {sp.ce y+/0 2}
 
 setenv_loaded_module [list {baz/1} {space ye/1.6}] [list "$mp/baz/1" "$mp/space ye/1.6"]
-setenv_path_var __MODULES_LMPREREQ "space ye/1.6&{sp.ce y+}|{@0 2}|baz|@<1"
+setenv_var __MODULES_LMPREREQ "space ye/1.6&{sp.ce y+}|{@0 2}|baz|@<1"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "baz/1:sp.ce y+/0 2:space ye/1.6"]
-lappend ans [list setpath _LMFILES_ "$mp/baz/1:$mp/sp.ce y+/0 2:$mp/space ye/1.6"]
-lappend ans [list setpath __MODULES_LMPREREQ "space ye/1.6&{sp.ce y+}|{@0 2}|baz|@<1"]
+lappend ans [list set __MODULES_LMPREREQ "space ye/1.6&{sp.ce y+}|{@0 2}|baz|@<1"]
+lappend ans [list set _LMFILES_ "$mp/baz/1:$mp/sp.ce y+/0 2:$mp/space ye/1.6"]
+lappend ans [list set LOADEDMODULES "baz/1:sp.ce y+/0 2:space ye/1.6"]
 testouterr_cmd_re sh {load --auto sp.ce\ y+/0\ 2} $ans [msg_top_load {'sp.ce y\+/0 2'} {} {} "{'space ye/1.6'}"]
 
 # various syntaxes on conflict modulefile command
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMPREREQ
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/2.0"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/2.0"]
-lappend ans [list setpath __MODULES_LMCONFLICT "space ye/2.0&sp.ce&y+@2.5<2.7&baz&@<1"]
+lappend ans [list set __MODULES_LMCONFLICT "space ye/2.0&sp.ce&y+@2.5<2.7&baz&@<1"]
+lappend ans [list set _LMFILES_ "$mp/space ye/2.0"]
+lappend ans [list set LOADEDMODULES "space ye/2.0"]
 testouterr_cmd sh {load --auto space\ ye/2.0} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/2.1"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/2.1"]
-lappend ans [list setpath __MODULES_LMCONFLICT "space ye/2.1&sp.ce&y+&@2.5<2.7&baz&@<1"]
+lappend ans [list set __MODULES_LMCONFLICT "space ye/2.1&sp.ce&y+&@2.5<2.7&baz&@<1"]
+lappend ans [list set _LMFILES_ "$mp/space ye/2.1"]
+lappend ans [list set LOADEDMODULES "space ye/2.1"]
 testouterr_cmd sh {load --auto space\ ye/2.1} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/2.2"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/2.2"]
-lappend ans [list setpath __MODULES_LMCONFLICT "space ye/2.2&{sp.ce y+}&@2.5<2.7&baz&@<1"]
+lappend ans [list set __MODULES_LMCONFLICT "space ye/2.2&{sp.ce y+}&@2.5<2.7&baz&@<1"]
+lappend ans [list set _LMFILES_ "$mp/space ye/2.2"]
+lappend ans [list set LOADEDMODULES "space ye/2.2"]
 testouterr_cmd sh {load --auto space\ ye/2.2} $ans {}
 
 if {[cmpversion $tclsh_version 8.6] == -1} {
@@ -950,84 +950,84 @@ if {[cmpversion $tclsh_version 8.6] == -1} {
 testouterr_cmd sh {load --auto space\ ye/2.3} ERR [msg_load {'space ye/2.3'} [msg_moderr {extra characters after close-brace} $errcmd "$mp/space ye/2.3" 2]]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/2.4"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/2.4"]
-lappend ans [list setpath __MODULES_LMCONFLICT "space ye/2.4&{sp.ce y+@1.2}&@2.5<2.7&baz&@<1"]
+lappend ans [list set __MODULES_LMCONFLICT "space ye/2.4&{sp.ce y+@1.2}&@2.5<2.7&baz&@<1"]
+lappend ans [list set _LMFILES_ "$mp/space ye/2.4"]
+lappend ans [list set LOADEDMODULES "space ye/2.4"]
 testouterr_cmd sh {load --auto space\ ye/2.4} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/2.5"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/2.5"]
-lappend ans [list setpath __MODULES_LMCONFLICT "space ye/2.5&{sp.ce y+}&@1.2&@2.5<2.7&baz&@<1"]
+lappend ans [list set __MODULES_LMCONFLICT "space ye/2.5&{sp.ce y+}&@1.2&@2.5<2.7&baz&@<1"]
+lappend ans [list set _LMFILES_ "$mp/space ye/2.5"]
+lappend ans [list set LOADEDMODULES "space ye/2.5"]
 testouterr_cmd sh {load --auto space\ ye/2.5} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/2.6"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/2.6"]
-lappend ans [list setpath __MODULES_LMCONFLICT "space ye/2.6&{sp.ce y+}&{@0 2}&baz&@<1"]
+lappend ans [list set __MODULES_LMCONFLICT "space ye/2.6&{sp.ce y+}&{@0 2}&baz&@<1"]
+lappend ans [list set _LMFILES_ "$mp/space ye/2.6"]
+lappend ans [list set LOADEDMODULES "space ye/2.6"]
 testouterr_cmd sh {load --auto space\ ye/2.6} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/2.7"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/2.7"]
-lappend ans [list setpath __MODULES_LMCONFLICT "space ye/2.7&{sp.ce y+@0 2}&baz&@<1"]
+lappend ans [list set __MODULES_LMCONFLICT "space ye/2.7&{sp.ce y+@0 2}&baz&@<1"]
+lappend ans [list set _LMFILES_ "$mp/space ye/2.7"]
+lappend ans [list set LOADEDMODULES "space ye/2.7"]
 testouterr_cmd sh {load --auto space\ ye/2.7} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/2.8"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/2.8"]
-lappend ans [list setpath __MODULES_LMCONFLICT "space ye/2.8&{space y @1 }&baz&@<1"]
+lappend ans [list set __MODULES_LMCONFLICT "space ye/2.8&{space y @1 }&baz&@<1"]
+lappend ans [list set _LMFILES_ "$mp/space ye/2.8"]
+lappend ans [list set LOADEDMODULES "space ye/2.8"]
 testouterr_cmd sh {load --auto space\ ye/2.8} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/2.9"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/2.9"]
-lappend ans [list setpath __MODULES_LMCONFLICT "space ye/2.9&{space y @n }&baz&@<1"]
+lappend ans [list set __MODULES_LMCONFLICT "space ye/2.9&{space y @n }&baz&@<1"]
+lappend ans [list set _LMFILES_ "$mp/space ye/2.9"]
+lappend ans [list set LOADEDMODULES "space ye/2.9"]
 testouterr_cmd sh {load --auto space\ ye/2.9} $ans {}
 
 # load conflicting module {sp.ce y+/2.7}
 
 setenv_loaded_module [list {space ye/2.1}] [list "$mp/space ye/2.1"]
-setenv_path_var __MODULES_LMCONFLICT "space ye/2.1&sp.ce&y+&@2.5<2.7&baz&@<1"
+setenv_var __MODULES_LMCONFLICT "space ye/2.1&sp.ce&y+&@2.5<2.7&baz&@<1"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "space ye/2.1:sp.ce y+/2.7"]
-lappend ans [list setpath _LMFILES_ "$mp/space ye/2.1:$mp/sp.ce y+/2.7"]
+lappend ans [list set _LMFILES_ "$mp/space ye/2.1:$mp/sp.ce y+/2.7"]
+lappend ans [list set LOADEDMODULES "space ye/2.1:sp.ce y+/2.7"]
 testouterr_cmd_re sh {load --auto sp.ce\ y+/2.7} $ans {}
 
 setenv_loaded_module [list {space ye/2.5}] [list "$mp/space ye/2.5"]
-setenv_path_var __MODULES_LMCONFLICT "space ye/2.5&{sp.ce y+}&@1.2&@2.5<2.7&baz&@<1"
+setenv_var __MODULES_LMCONFLICT "space ye/2.5&{sp.ce y+}&@1.2&@2.5<2.7&baz&@<1"
 testouterr_cmd sh {load --auto sp.ce\ y+/2.7} ERR [msg_load {'sp.ce y+/2.7'} [err_conflict space\ ye/2.5]]
 
 # load conflicting module baz/1
 
 setenv_loaded_module [list {space ye/2.1}] [list "$mp/space ye/2.1"]
-setenv_path_var __MODULES_LMCONFLICT "space ye/2.1&sp.ce&y+&@2.5<2.7&baz&@<1"
+setenv_var __MODULES_LMCONFLICT "space ye/2.1&sp.ce&y+&@2.5<2.7&baz&@<1"
 testouterr_cmd sh {load --auto baz/1} ERR [msg_load {baz/1} [err_conflict space\ ye/2.1]]
 
 setenv_loaded_module [list {space ye/2.5}] [list "$mp/space ye/2.5"]
-setenv_path_var __MODULES_LMCONFLICT "space ye/2.5&{sp.ce y+}&@1.2&@2.5<2.7&baz&@<1"
+setenv_var __MODULES_LMCONFLICT "space ye/2.5&{sp.ce y+}&@1.2&@2.5<2.7&baz&@<1"
 testouterr_cmd sh {load --auto baz/1} ERR [msg_load {baz/1} [err_conflict space\ ye/2.5]]
 
 # conflicting module {sp.ce y+/2.7} loaded prior conflict definition
-unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMCONFLICT
 setenv_loaded_module [list {sp.ce y+/2.7}] [list "$mp/sp.ce y+/2.7"]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "sp.ce y+/2.7:space ye/2.1"]
-lappend ans [list setpath _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/2.1"]
-lappend ans [list setpath __MODULES_LMCONFLICT "space ye/2.1&sp.ce&y+&@2.5<2.7&baz&@<1"]
+lappend ans [list set __MODULES_LMCONFLICT "space ye/2.1&sp.ce&y+&@2.5<2.7&baz&@<1"]
+lappend ans [list set _LMFILES_ "$mp/sp.ce y+/2.7:$mp/space ye/2.1"]
+lappend ans [list set LOADEDMODULES "sp.ce y+/2.7:space ye/2.1"]
 testouterr_cmd_re sh {load --auto space\ ye/2.1} $ans {}
 
 testouterr_cmd sh {load --auto space\ ye/2.5} ERR [msg_load {'space ye/2.5'} [err_conflict {sp.ce y+}]]
 
 # conflicting module {sp.ce y+/2.7} loaded prior conflict definition
-unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMCONFLICT
 setenv_loaded_module [list {sp.ce y+/0 2}] [list "$mp/sp.ce y+/0 2"]
 
 testouterr_cmd sh {load --auto space\ ye/2.6} ERR [msg_load {'space ye/2.6'} [err_conflict {sp.ce y+}]]
 
 # conflicting module baz/1 loaded prior conflict definition
-unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMCONFLICT
 setenv_loaded_module [list baz/1] [list "$mp/baz/1"]
 
 testouterr_cmd sh {load --auto space\ ye/2.1} ERR [msg_load {'space ye/2.1'} [err_conflict {baz}]]

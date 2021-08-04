@@ -71,7 +71,7 @@ testouterr_cmd sh {savelist --json} OK "{}"
 
 # test list sub-command on loaded environment
 setenv_loaded_module [list nocase/virt extdfl/1.3.1 extdfl3/1.1/3] [list $mp/nocase/1 $mp/extdfl/1.3.1 $mp/extdfl3/1.1/3]
-setenv_path_var __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl
+setenv_var __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl
 set tserr "{\"nocase/virt\": { \"name\": \"nocase/virt\", \"type\": \"modulefile\", \"variants\": {}, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/nocase/1\"},
 \"extdfl/1.3.1\": { \"name\": \"extdfl/1.3.1\", \"type\": \"modulefile\", \"variants\": {}, \"symbols\": \[ \"default\" \], \"tags\": \[\], \"pathname\": \"$mp/extdfl/1.3.1\"},
 \"extdfl3/1.1/3\": { \"name\": \"extdfl3/1.1/3\", \"type\": \"modulefile\", \"variants\": {}, \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/extdfl3/1.1/3\"}}"
@@ -82,7 +82,7 @@ testouterr_cmd sh {ml --json} OK $tserr
 testouterr_cmd sh {list -t -j} OK $tserr
 testouterr_cmd sh {list -l -j} OK $tserr
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMALTNAME
 
 # test savelist sub-command with collections
 set orighome $env(HOME)
@@ -108,14 +108,14 @@ unset orighome
 
 # test on other sub-commands
 set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/1.3.1]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.1]
-lappend ans [list setpath __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+lappend ans [list set __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+lappend ans [list set _LMFILES_ $mp/extdfl/1.3.1]
+lappend ans [list set LOADEDMODULES extdfl/1.3.1]
 testouterr_cmd sh {load -v -j extdfl} $ans [msg_load extdfl/1.3.1]
 setenv_loaded_module [list extdfl/1.3.1] [list $mp/extdfl/1.3.1]
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload -v extdfl --json} $ans [msg_unload extdfl/1.3.1]
 unsetenv_loaded_module
 

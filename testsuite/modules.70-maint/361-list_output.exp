@@ -41,7 +41,7 @@ setenv_var MODULES_AVAIL_INDEPTH 1
 #
 
 setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
-setenv_path_var __MODULES_LMALTNAME foo/1.0&foo/bar
+setenv_var __MODULES_LMALTNAME foo/1.0&foo/bar
 
 set tserr_list_foo "foo/1.0(bar)  "
 set tserr_list_terse_foo "foo/1.0(bar)"
@@ -88,8 +88,8 @@ testouterr_cmd sh {list --output=dirwsym:key} ERR $tserr_invalid_output_val
 
 # test usage in modulefile
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/1.0:output/1.0]
-lappend ans [list setpath _LMFILES_ $mp/foo/1.0:$mp/output/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/output/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0:output/1.0]
 set tserr_list_foo "foo/1.0\\(bar\\)  "
 set tserr_list_terse_foo "foo/1.0\\(bar\\)"
 
@@ -231,13 +231,13 @@ unsetenv_var MODULES_LIST_OUTPUT
 # tag test
 #
 
-setenv_path_var __MODULES_LMTAG foo/1.0&baz
+setenv_var __MODULES_LMTAG foo/1.0&baz
 testouterr_cmd sh {list --output=tag:idx} OK " 1) foo/1.0 <baz>  "
 testouterr_cmd sh {list -t -o key:tag:header} OK "$cur_loaded\nfoo/1.0 <baz>\n\nKey:\n<module-tag>  "
 setenv_var MODULES_LIST_TERSE_OUTPUT idx:tag
 testouterr_cmd sh {list -t} OK " 1) foo/1.0 <baz> "
 unsetenv_var MODULES_LIST_TERSE_OUTPUT
-unsetenv_path_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMTAG
 
 
 #

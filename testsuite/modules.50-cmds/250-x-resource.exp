@@ -53,8 +53,12 @@ lappend ans [list xres $xresfile]
 lappend ans [list xres $xresprop2 $xresval2]
 lappend ans [list xres $xresprop5 $xresval5]
 lappend ans [list xres $xresprop1 $xresval1]
-lappend ans [list setpath LOADEDMODULES $module]
-lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set _LMFILES_ $modulefile]
+
+lappend anscmd [list set _LMFILES_ $modulefile]
+lappend anscmd [list set LOADEDMODULES $module]
+
 
 #
 #  The load tests
@@ -64,7 +68,13 @@ lappend ans [list setpath _LMFILES_ $modulefile]
 if {[info exists x11_warn]} {
     testouterr_cmd "ALL" "load $module" "ERR" [msg_load $module $x11_warn]
 } else {
-    test_cmd_re "ALL" "load $module" $ans
+    foreach shell $supported_shells {
+        if {$shell eq {cmd}} {
+            test_cmd_re $shell "load $module" $anscmd
+        } else {
+            test_cmd_re $shell "load $module" $ans
+        }
+    }
 }
 
 skip_if_quick_mode
@@ -101,8 +111,12 @@ lappend ans [list unxres $xresprop4 $xresfile]
 lappend ans [list unxres $xresprop2]
 lappend ans [list unxres $xresprop5]
 lappend ans [list unxres $xresprop1]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset _LMFILES_]
+
+set anscmd [list]
+lappend anscmd [list unset _LMFILES_]
+lappend anscmd [list unset LOADEDMODULES]
 
 #
 #  The unload tests
@@ -112,7 +126,13 @@ lappend ans [list unsetpath _LMFILES_]
 if {[info exists x11_warn]} {
     testouterr_cmd "ALL" "unload $module" "ERR" [msg_unload $module $x11_warn]
 } else {
-    test_cmd_re "ALL" "unload $module" $ans
+    foreach shell $supported_shells {
+        if {$shell eq {cmd}} {
+            test_cmd_re $shell "unload $module" $anscmd
+        } else {
+            test_cmd_re $shell "unload $module" $ans
+        }
+    }
 }
 
 # setup an empty path

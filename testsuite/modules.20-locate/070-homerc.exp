@@ -41,10 +41,10 @@ set env(HOME) "$env(TESTSUITEDIR)/home"
 #  Only checked for the csh
 #
 
+lappend ans [list set __MODULES_LMALTNAME $module_1&loc_sym/sym_home]
+lappend ans [list set _LMFILES_ $modulefile_1]
+lappend ans [list set LOADEDMODULES $module_1]
 lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES $module_1]
-lappend ans [list setpath _LMFILES_ $modulefile_1]
-lappend ans [list setpath __MODULES_LMALTNAME $module_1&loc_sym/sym_home]
 
 set disp_csh "setenv\t\ttestsuite yes"
 set disp_1 "$modlin\n$modulefilere_1:\n\n$disp_csh\n$modlin"
@@ -76,14 +76,14 @@ setenv_path_var MODULEPATH $mp
 setenv_var HOME $env(TESTSUITEDIR)/home.2
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/1.0:bar/1.0]
-lappend ans [list setpath _LMFILES_ $mp/foo/1.0:$mp/bar/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0]
 
 testouterr_cmd_re sh {load bar/1.0} $ans {}
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/1.0]
-lappend ans [list setpath _LMFILES_ $mp/foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0]
 
 set tserr $modlin\n[escre $mp]/bar/1.0:\n\nmodule-whatis\tbar/1.0\n$modlin
 testouterr_cmd_re sh {display bar/1.0} $ans $tserr
@@ -91,19 +91,19 @@ testouterr_cmd_re sh {display bar/1.0} $ans $tserr
 setenv_var TESTSUITE_USERRC_LOAD 2
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/1.0:foo/0.load:bar/1.0]
-lappend ans [list setpath _LMFILES_ $mp/foo/1.0:$mp/foo/0.load:$mp/bar/1.0]
-lappend ans [list setpath __MODULES_LMPREREQ foo/0.load&foo/1.0]
-lappend ans [list setpath __MODULES_LMTAG foo/1.0&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ foo/0.load&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/foo/0.load:$mp/bar/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0:foo/0.load:bar/1.0]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded]
 
 set tserr [msg_top_load foo/0.load {} foo/1.0 {}]
 testouterr_cmd_re sh {load bar/1.0} $ans $tserr
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/1.0:foo/0.load]
-lappend ans [list setpath _LMFILES_ $mp/foo/1.0:$mp/foo/0.load]
-lappend ans [list setpath __MODULES_LMPREREQ foo/0.load&foo/1.0]
-lappend ans [list setpath __MODULES_LMTAG foo/1.0&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ foo/0.load&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/foo/0.load]
+lappend ans [list set LOADEDMODULES foo/1.0:foo/0.load]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded]
 
 append tserr \n\n$modlin\n[escre $mp]/bar/1.0:\n\nmodule-whatis\tbar/1.0\n$modlin
 testouterr_cmd_re sh {display bar/1.0} $ans $tserr

@@ -47,9 +47,9 @@ setenv_loaded_module {} {}
 #  The tests
 #
 # test 1	(/tmp)
+lappend ans [list set _LMFILES_ $mod1p]
+lappend ans [list set LOADEDMODULES $mod1]
 lappend ans [list chdir /tmp]
-lappend ans [list setpath LOADEDMODULES $mod1]
-lappend ans [list setpath _LMFILES_ $mod1p]
 
 test_cmd_re "ALL" "load $mod1" $ans
 
@@ -57,48 +57,48 @@ skip_if_quick_mode
 
 # test 2	(/foo/bar/baz)
 set ans [list]
-lappend ans [list setpath LOADEDMODULES $mod2]
-lappend ans [list setpath _LMFILES_ $mod2p]
+lappend ans [list set _LMFILES_ $mod2p]
+lappend ans [list set LOADEDMODULES $mod2]
 
 testouterr_cmd_re "ALL" "load $mod2" $ans [msg_load $mod2 $err_chdir]
 
 # test 3	(/ & /tmp)
 set ans [list]
+lappend ans [list set _LMFILES_ $mod3p]
+lappend ans [list set LOADEDMODULES $mod3]
 lappend ans [list chdir /tmp]
-lappend ans [list setpath LOADEDMODULES $mod3]
-lappend ans [list setpath _LMFILES_ $mod3p]
 
 test_cmd_re "ALL" "load $mod3" $ans
 
 # test 4	(/tmp, /)
 set ans [list]
+lappend ans [list set _LMFILES_ "$mod1p:$mod4p"]
+lappend ans [list set LOADEDMODULES "$mod1:$mod4"]
 lappend ans [list chdir /]
-lappend ans [list setpath LOADEDMODULES "$mod1:$mod4"]
-lappend ans [list setpath _LMFILES_ "$mod1p:$mod4p"]
 
 test_cmd_re "ALL" "load $mod1 $mod4" $ans
 
 # test 5	(/ /tmp)
 set ans [list]
+lappend ans [list set _LMFILES_ "$mod4p:$mod1p"]
+lappend ans [list set LOADEDMODULES "$mod4:$mod1"]
 lappend ans [list chdir /tmp]
-lappend ans [list setpath LOADEDMODULES "$mod4:$mod1"]
-lappend ans [list setpath _LMFILES_ "$mod4p:$mod1p"]
 
 test_cmd_re "ALL" "load $mod4 $mod1" $ans
 
 # test 6	(/tmp, /foo/bar/baz)
 set ans [list]
+lappend ans [list set _LMFILES_ "$mod1p:$mod2p"]
+lappend ans [list set LOADEDMODULES "$mod1:$mod2"]
 lappend ans [list chdir /tmp]
-lappend ans [list setpath LOADEDMODULES "$mod1:$mod2"]
-lappend ans [list setpath _LMFILES_ "$mod1p:$mod2p"]
 
 testouterr_cmd_re "ALL" "load $mod1 $mod2" $ans [msg_load $mod2 $err_chdir]
 
 # test 7	(/tmp, /foo/bar/baz)
 set ans [list]
+lappend ans [list set _LMFILES_ "$mod2p:$mod1p"]
+lappend ans [list set LOADEDMODULES "$mod2:$mod1"]
 lappend ans [list chdir /tmp]
-lappend ans [list setpath LOADEDMODULES "$mod2:$mod1"]
-lappend ans [list setpath _LMFILES_ "$mod2p:$mod1p"]
 
 testouterr_cmd_re "ALL" "load $mod2 $mod1" $ans [msg_load $mod2 $err_chdir]
 

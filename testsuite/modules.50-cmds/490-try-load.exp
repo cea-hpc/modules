@@ -33,8 +33,8 @@ setenv_var MODULES_ADVANCED_VERSION_SPEC 0
 
 # regular load
 set ans [list]
-lappend ans [list setpath LOADEDMODULES tryload/1.0]
-lappend ans [list setpath _LMFILES_ $mp/tryload/1.0]
+lappend ans [list set _LMFILES_ $mp/tryload/1.0]
+lappend ans [list set LOADEDMODULES tryload/1.0]
 testouterr_cmd sh {try-load tryload/1.0} $ans {}
 testouterr_cmd sh {try-add tryload/1.0} $ans {}
 
@@ -86,24 +86,24 @@ testouterr_cmd sh {try-load tryload/1.0} ERR $tserr
 
 setenv_var TESTSUITE_TRYLOAD subload2
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/1.0:tryload/1.0]
-lappend ans [list setpath _LMFILES_ $mp/foo/1.0:$mp/tryload/1.0]
-lappend ans [list setpath __MODULES_LMPREREQ tryload/1.0&foo/1.0]
-lappend ans [list setpath __MODULES_LMTAG foo/1.0&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ tryload/1.0&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/tryload/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0:tryload/1.0]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded]
 set tserr [msg_top_load tryload/1.0 {} {foo/1.0} {}]
 testouterr_cmd_re sh {try-load tryload/1.0} $ans $tserr
 
 # multiple argument passed to try-load
 setenv_var TESTSUITE_TRYLOAD multi1
 set ans [list]
-lappend ans [list setpath LOADEDMODULES tryload/1.0]
-lappend ans [list setpath _LMFILES_ $mp/tryload/1.0]
+lappend ans [list set _LMFILES_ $mp/tryload/1.0]
+lappend ans [list set LOADEDMODULES tryload/1.0]
 testouterr_cmd_re sh {try-load unk/1.0 tryload/1.0} $ans {}
 
 setenv_var TESTSUITE_TRYLOAD multi2
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/1.0]
-lappend ans [list setpath _LMFILES_ $mp/foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0]
 lappend ans [list ERR]
 set tserr [msg_load tryload/1.0 $err_evalabort]
 testouterr_cmd_re sh {try-load tryload/1.0 foo/1.0} $ans $tserr
@@ -120,11 +120,11 @@ setenv_var MODULES_AUTO_HANDLING $auto_handling
 # regular load
 setenv_var TESTSUITE_TRYLOAD regular1
 set ans [list]
-lappend ans [list setpath LOADEDMODULES tryload/1.0:tryload/2.0]
-lappend ans [list setpath _LMFILES_ $mp/tryload/1.0:$mp/tryload/2.0]
 lappend ans [list set TS1 ok]
-lappend ans [list setpath __MODULES_LMPREREQ tryload/2.0&tryload/1.0]
-lappend ans [list setpath __MODULES_LMTAG tryload/1.0&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ tryload/2.0&tryload/1.0]
+lappend ans [list set _LMFILES_ $mp/tryload/1.0:$mp/tryload/2.0]
+lappend ans [list set LOADEDMODULES tryload/1.0:tryload/2.0]
+lappend ans [list set __MODULES_LMTAG tryload/1.0&auto-loaded]
 set tserr [msg_top_load tryload/2.0 {} tryload/1.0 {}]
 testouterr_cmd_re sh {load tryload/2.0} $ans $tserr
 testouterr_cmd_re sh {try-load tryload/2.0} $ans $tserr
@@ -133,61 +133,61 @@ testouterr_cmd_re sh {try-load tryload/2.0} $ans $tserr
 setenv_loaded_module [list tryload/1.0] [list $mp/tryload/1.0]
 set ans [list]
 lappend ans [list set TS1 ok]
-lappend ans [list setpath LOADEDMODULES tryload/1.0:tryload/2.0]
-lappend ans [list setpath _LMFILES_ $mp/tryload/1.0:$mp/tryload/2.0]
-lappend ans [list setpath __MODULES_LMPREREQ tryload/2.0&tryload/1.0]
+lappend ans [list set __MODULES_LMPREREQ tryload/2.0&tryload/1.0]
+lappend ans [list set _LMFILES_ $mp/tryload/1.0:$mp/tryload/2.0]
+lappend ans [list set LOADEDMODULES tryload/1.0:tryload/2.0]
 testouterr_cmd_re sh {load tryload/2.0} $ans {}
 testouterr_cmd_re sh {try-load tryload/2.0} $ans {}
 unsetenv_loaded_module
 
 # regular unload (autoloaded try-load)
 setenv_loaded_module [list tryload/1.0 tryload/2.0] [list $mp/tryload/1.0 $mp/tryload/2.0] [list tryload/1.0]
-setenv_path_var __MODULES_LMPREREQ tryload/2.0&tryload/1.0
+setenv_var __MODULES_LMPREREQ tryload/2.0&tryload/1.0
 if {$auto_handling} {
     set ans [list]
     lappend ans [list unset TS1]
-    lappend ans [list unsetpath LOADEDMODULES]
-    lappend ans [list unsetpath _LMFILES_]
-    lappend ans [list unsetpath __MODULES_LMPREREQ]
-    lappend ans [list unsetpath __MODULES_LMTAG]
+    lappend ans [list unset __MODULES_LMPREREQ]
+    lappend ans [list unset _LMFILES_]
+    lappend ans [list unset LOADEDMODULES]
+    lappend ans [list unset __MODULES_LMTAG]
 } else {
     set ans [list]
-    lappend ans [list unsetpath LOADEDMODULES]
-    lappend ans [list unsetpath _LMFILES_]
     lappend ans [list unset TS1]
-    lappend ans [list unsetpath __MODULES_LMPREREQ]
-    lappend ans [list unsetpath __MODULES_LMTAG]
+    lappend ans [list unset __MODULES_LMPREREQ]
+    lappend ans [list unset _LMFILES_]
+    lappend ans [list unset LOADEDMODULES]
+    lappend ans [list unset __MODULES_LMTAG]
 }
 set tserr [msg_top_unload tryload/2.0 {} tryload/1.0 {}]
 testouterr_cmd sh {unload tryload/2.0} $ans $tserr
 
 # regular unload (non-autoloaded try-load)
-unsetenv_path_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMTAG
 set ans [list]
 lappend ans [list unset TS1]
-lappend ans [list setpath LOADEDMODULES tryload/1.0]
-lappend ans [list setpath _LMFILES_ $mp/tryload/1.0]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/tryload/1.0]
+lappend ans [list set LOADEDMODULES tryload/1.0]
 testouterr_cmd_re sh {unload tryload/2.0} $ans {}
 
 # regular unload (with try-loaded sub-module not loaded)
 setenv_loaded_module [list tryload/2.0] [list $mp/tryload/2.0]
-setenv_path_var __MODULES_LMPREREQ tryload/2.0&tryload/1.0
+setenv_var __MODULES_LMPREREQ tryload/2.0&tryload/1.0
 set ans [list]
 lappend ans [list unset TS1]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMPREREQ]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re sh {unload tryload/2.0} $ans {}
-unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMPREREQ
 unsetenv_loaded_module
 
 # unknown module
 setenv_var TESTSUITE_TRYLOAD unk1
 set ans [list]
 lappend ans [list set TS1 ok]
-lappend ans [list setpath LOADEDMODULES tryload/2.0]
-lappend ans [list setpath _LMFILES_ $mp/tryload/2.0]
+lappend ans [list set _LMFILES_ $mp/tryload/2.0]
+lappend ans [list set LOADEDMODULES tryload/2.0]
 testouterr_cmd sh {load tryload/2.0} $ans {}
 testouterr_cmd sh {try-load tryload/2.0} $ans {}
 testouterr_cmd sh {load -v tryload/2.0} $ans [msg_load tryload/2.0]
@@ -197,8 +197,8 @@ testouterr_cmd sh {try-load -v tryload/2.0} $ans [msg_load tryload/2.0]
 setenv_loaded_module [list tryload/2.0] [list $mp/tryload/2.0]
 set ans [list]
 lappend ans [list unset TS1]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re sh {unload tryload/2.0} $ans {}
 testouterr_cmd_re sh {unload -v tryload/2.0} $ans [msg_unload tryload/2.0]
 unsetenv_loaded_module
@@ -207,8 +207,8 @@ unsetenv_loaded_module
 setenv_var TESTSUITE_TRYLOAD hide1
 set ans [list]
 lappend ans [list set TS1 ok]
-lappend ans [list setpath LOADEDMODULES tryload/2.0]
-lappend ans [list setpath _LMFILES_ $mp/tryload/2.0]
+lappend ans [list set _LMFILES_ $mp/tryload/2.0]
+lappend ans [list set LOADEDMODULES tryload/2.0]
 testouterr_cmd sh {load tryload/2.0} $ans {}
 
 # forbidden module
@@ -236,11 +236,11 @@ testouterr_cmd sh {try-load tryload/2.0} ERR $tserr
 
 setenv_var TESTSUITE_TRYLOAD subload2
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/1.0:tryload/1.0:tryload/2.0]
-lappend ans [list setpath _LMFILES_ $mp/foo/1.0:$mp/tryload/1.0:$mp/tryload/2.0]
-lappend ans [list setpath __MODULES_LMPREREQ tryload/1.0&foo/1.0:tryload/2.0&tryload/1.0]
-lappend ans [list setpath __MODULES_LMTAG foo/1.0&auto-loaded:tryload/1.0&auto-loaded]
 lappend ans [list set TS1 ok]
+lappend ans [list set __MODULES_LMPREREQ tryload/1.0&foo/1.0:tryload/2.0&tryload/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/tryload/1.0:$mp/tryload/2.0]
+lappend ans [list set LOADEDMODULES foo/1.0:tryload/1.0:tryload/2.0]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded:tryload/1.0&auto-loaded]
 set tserr [msg_top_load tryload/2.0 {} {foo/1.0 tryload/1.0} {}]
 testouterr_cmd_re sh {load tryload/2.0} $ans $tserr
 
@@ -248,25 +248,25 @@ testouterr_cmd_re sh {load tryload/2.0} $ans $tserr
 setenv_var TESTSUITE_TRYLOAD catch1
 set ans [list]
 lappend ans [list set TS1 ok]
-lappend ans [list setpath LOADEDMODULES tryload/2.0]
-lappend ans [list setpath _LMFILES_ $mp/tryload/2.0]
+lappend ans [list set _LMFILES_ $mp/tryload/2.0]
+lappend ans [list set LOADEDMODULES tryload/2.0]
 testouterr_cmd sh {load tryload/2.0} $ans {}
 
 setenv_var TESTSUITE_TRYLOAD catch2
 set ans [list]
-lappend ans [list setpath LOADEDMODULES tryload/1.0:tryload/2.0]
-lappend ans [list setpath _LMFILES_ $mp/tryload/1.0:$mp/tryload/2.0]
 lappend ans [list set TS1 ok]
-lappend ans [list setpath __MODULES_LMPREREQ tryload/2.0&tryload/1.0]
-lappend ans [list setpath __MODULES_LMTAG tryload/1.0&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ tryload/2.0&tryload/1.0]
+lappend ans [list set _LMFILES_ $mp/tryload/1.0:$mp/tryload/2.0]
+lappend ans [list set LOADEDMODULES tryload/1.0:tryload/2.0]
+lappend ans [list set __MODULES_LMTAG tryload/1.0&auto-loaded]
 set tserr [msg_top_load tryload/2.0 {} tryload/1.0 {}]
 testouterr_cmd_re sh {load tryload/2.0} $ans $tserr
 
 setenv_var TESTSUITE_TRYLOAD catch3
 set ans [list]
 lappend ans [list set TS1 ok]
-lappend ans [list setpath LOADEDMODULES tryload/2.0]
-lappend ans [list setpath _LMFILES_ $mp/tryload/2.0]
+lappend ans [list set _LMFILES_ $mp/tryload/2.0]
+lappend ans [list set LOADEDMODULES tryload/2.0]
 lappend ans [list ERR]
 set tserr [msg_load tryload/1.0 $err_evalabort]
 testouterr_cmd sh {load tryload/2.0} $ans $tserr
@@ -279,11 +279,11 @@ testouterr_cmd_re sh {load tryload/2.0} $ans $tserr
 # multiple argument passed to try-load
 setenv_var TESTSUITE_TRYLOAD multi1
 set ans [list]
-lappend ans [list setpath LOADEDMODULES tryload/1.0:tryload/2.0]
-lappend ans [list setpath _LMFILES_ $mp/tryload/1.0:$mp/tryload/2.0]
 lappend ans [list set TS1 ok]
-lappend ans [list setpath __MODULES_LMPREREQ tryload/2.0&tryload/1.0]
-lappend ans [list setpath __MODULES_LMTAG tryload/1.0&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQ tryload/2.0&tryload/1.0]
+lappend ans [list set _LMFILES_ $mp/tryload/1.0:$mp/tryload/2.0]
+lappend ans [list set LOADEDMODULES tryload/1.0:tryload/2.0]
+lappend ans [list set __MODULES_LMTAG tryload/1.0&auto-loaded]
 set tserr [msg_top_load tryload/2.0 {} tryload/1.0 {}]
 testouterr_cmd_re sh {load tryload/2.0} $ans $tserr
 
@@ -301,9 +301,9 @@ testouterr_cmd sh {load tryload/2.0} ERR $tserr
 # regular load
 setenv_var TESTSUITE_TRYLOAD regular1
 set ans [list]
-lappend ans [list setpath LOADEDMODULES tryload/1.0]
-lappend ans [list setpath _LMFILES_ $mp/tryload/1.0]
 lappend ans [list set TS1 ok]
+lappend ans [list set _LMFILES_ $mp/tryload/1.0]
+lappend ans [list set LOADEDMODULES tryload/1.0]
 set tserr [msg_load tryload/1.0]
 testouterr_cmd_re sh "source $mp/tryload/2.0" $ans $tserr
 
@@ -344,11 +344,11 @@ testouterr_cmd sh "source $mp/tryload/2.0" ERR $tserr
 
 setenv_var TESTSUITE_TRYLOAD subload2
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/1.0:tryload/1.0]
-lappend ans [list setpath _LMFILES_ $mp/foo/1.0:$mp/tryload/1.0]
-lappend ans [list setpath __MODULES_LMPREREQ tryload/1.0&foo/1.0]
-lappend ans [list setpath __MODULES_LMTAG foo/1.0&auto-loaded]
 lappend ans [list set TS1 ok]
+lappend ans [list set __MODULES_LMPREREQ tryload/1.0&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/tryload/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0:tryload/1.0]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded]
 set tserr [msg_load foo/1.0]\n\n[msg_top_load tryload/1.0 {} {foo/1.0} {}]
 testouterr_cmd_re sh "source $mp/tryload/2.0" $ans $tserr
 
@@ -360,9 +360,9 @@ testouterr_cmd sh "source $mp/tryload/2.0" $ans {}
 
 setenv_var TESTSUITE_TRYLOAD catch2
 set ans [list]
-lappend ans [list setpath LOADEDMODULES tryload/1.0]
-lappend ans [list setpath _LMFILES_ $mp/tryload/1.0]
 lappend ans [list set TS1 ok]
+lappend ans [list set _LMFILES_ $mp/tryload/1.0]
+lappend ans [list set LOADEDMODULES tryload/1.0]
 set tserr [msg_load tryload/1.0]
 testouterr_cmd_re sh "source $mp/tryload/2.0" $ans $tserr
 
@@ -381,16 +381,16 @@ testouterr_cmd_re sh "source $mp/tryload/2.0" $ans $tserr
 # multiple argument passed to try-load
 setenv_var TESTSUITE_TRYLOAD multi1
 set ans [list]
-lappend ans [list setpath LOADEDMODULES tryload/1.0]
-lappend ans [list setpath _LMFILES_ $mp/tryload/1.0]
 lappend ans [list set TS1 ok]
+lappend ans [list set _LMFILES_ $mp/tryload/1.0]
+lappend ans [list set LOADEDMODULES tryload/1.0]
 set tserr [msg_load tryload/1.0]
 testouterr_cmd_re sh "source $mp/tryload/2.0" $ans $tserr
 
 setenv_var TESTSUITE_TRYLOAD multi2
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/1.0]
-lappend ans [list setpath _LMFILES_ $mp/foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0]
 lappend ans [list ERR]
 set tserr [msg_load tryload/1.0 $err_evalabort]\n\n[msg_load foo/1.0]
 testouterr_cmd sh "source $mp/tryload/2.0" $ans $tserr

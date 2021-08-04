@@ -28,30 +28,30 @@ setenv_path_var MODULEPATH $mp
 
 # test regular alias/version/virtual definitions made from modulepath rc
 set ans [list]
-lappend ans [list setpath LOADEDMODULES bar/1]
-lappend ans [list setpath _LMFILES_ $mp/bar/1]
 if {[is_conf_enabled advversspec implicitdefault]} {
-    lappend ans [list setpath __MODULES_LMALTNAME bar/1&bar/top&bar/dfl&al|bar/3&as|bar/default&as|bar/latest]
+    lappend ans [list set __MODULES_LMALTNAME bar/1&bar/top&bar/dfl&al|bar/3&as|bar/default&as|bar/latest]
 } else {
-    lappend ans [list setpath __MODULES_LMALTNAME bar/1&bar/top&bar/dfl&al|bar/3]
+    lappend ans [list set __MODULES_LMALTNAME bar/1&bar/top&bar/dfl&al|bar/3]
 }
+lappend ans [list set _LMFILES_ $mp/bar/1]
+lappend ans [list set LOADEDMODULES bar/1]
 testouterr_cmd sh {load bar/top} $ans {}
 testouterr_cmd sh {load bar/3} $ans {}
 
 skip_if_quick_mode
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/2]
-lappend ans [list setpath _LMFILES_ $mp/foo/.common]
 if {[is_conf_enabled advversspec implicitdefault]} {
-    lappend ans [list setpath __MODULES_LMALTNAME foo/2&al|foo/lat&as|foo/default&as|foo/latest]
+    lappend ans [list set __MODULES_LMALTNAME foo/2&al|foo/lat&as|foo/default&as|foo/latest]
 } else {
-    lappend ans [list setpath __MODULES_LMALTNAME foo/2&al|foo/lat]
+    lappend ans [list set __MODULES_LMALTNAME foo/2&al|foo/lat]
 }
+lappend ans [list set _LMFILES_ $mp/foo/.common]
+lappend ans [list set LOADEDMODULES foo/2]
 testouterr_cmd sh {load foo/lat} $ans {}
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/1]
-lappend ans [list setpath _LMFILES_ $mp/foo/.common]
+lappend ans [list set _LMFILES_ $mp/foo/.common]
+lappend ans [list set LOADEDMODULES foo/1]
 testouterr_cmd sh {load foo/1} $ans {}
 
 # test definitions pointing to non-existent modulefile
@@ -66,8 +66,8 @@ testouterr_cmd sh {load plain/default} ERR "$err_path'plain/default'"
 # test use of shorthand version notation in modulepath rc
 setenv_var TS_BAD_SHORTHAND_VERSION 1
 set ans [list]
-lappend ans [list setpath LOADEDMODULES foo/1]
-lappend ans [list setpath _LMFILES_ $mp/foo/.common]
+lappend ans [list set _LMFILES_ $mp/foo/.common]
+lappend ans [list set LOADEDMODULES foo/1]
 lappend ans [list ERR]
 testouterr_cmd sh {load foo/1} $ans "$error_msgs: Invalid modulename '/1' found\n$error_msgs: Invalid modulename '/2' found\n$error_msgs: Invalid modulename '/3' found"
 

@@ -39,12 +39,9 @@ set modulefilere2 "$modpathre/$module2"
 #  For sh shell only (no need to check every shells)
 #
 
-lappend ans [list set _LMFILES__modshare "$modulefile2:1"]
-lappend ans [list set LOADEDMODULES_modshare "$module2:1"]
 lappend ans [list set __MODULES_LMALTNAME "$module2&inforc/bar&inforc/default&inforc"]
 lappend ans [list set _LMFILES_ $modulefile2]
 lappend ans [list set LOADEDMODULES $module2]
-lappend ans [list set __MODULES_LMALTNAME_modshare "$module2&inforc/bar&inforc/default&inforc:1"]
 
 set out_rc "type: Tcl
 name: $module/.modulerc
@@ -99,7 +96,7 @@ testouterr_cmd "sh" "apropos $module" "ERR" ""
 
 # Set up the environment for test that require the module to be loaded
 setenv_loaded_module $module2 $modulefile2
-setenv_path_var __MODULES_LMALTNAME "$module2&inforc/bar&inforc/default&inforc"
+setenv_var __MODULES_LMALTNAME "$module2&inforc/bar&inforc/default&inforc"
 
 # test listing
 testouterr_cmd_re "sh" "list" "OK" "$header_list\n 1\\) $module2\\(bar:default\\)\\s+\n\nKey:\n\\(symbolic-version\\)  "
@@ -110,9 +107,9 @@ testouterr_cmd "sh" "switch $module $module2" $ans "$out_rc_switch"
 
 # test unloading
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath __MODULES_LMALTNAME]
+lappend ans [list unset __MODULES_LMALTNAME]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 # modulerc is not interpreted when unloading a loaded module
 testouterr_cmd "sh" "unload $module" $ans ""
 

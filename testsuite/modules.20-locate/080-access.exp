@@ -194,14 +194,14 @@ restore_file_perms $lmf4
 
 change_file_perms $lmf5 $hide_perms
 
-lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES $rlm5]
-lappend ans [list setpath _LMFILES_ $rlmf5]
 if {[is_conf_enabled advversspec implicitdefault]} {
-    lappend ans [list setpath __MODULES_LMALTNAME $rlm5&loc_rc1/foo&as|loc_rc1/default&as|loc_rc1/latest]
+    lappend ans [list set __MODULES_LMALTNAME $rlm5&loc_rc1/foo&as|loc_rc1/default&as|loc_rc1/latest]
 } else {
-    lappend ans [list setpath __MODULES_LMALTNAME $rlm5&loc_rc1/foo]
+    lappend ans [list set __MODULES_LMALTNAME $rlm5&loc_rc1/foo]
 }
+lappend ans [list set _LMFILES_ $rlmf5]
+lappend ans [list set LOADEDMODULES $rlm5]
+lappend ans [list set testsuite yes]
 
 # another implicit default is chosen
 testouterr_cmd "sh" "load $m5" [if_implicitdefault $ans ERR] [if_implicitdefault {} "$err_nodefault'$m5'"]
@@ -278,12 +278,12 @@ restore_file_perms $lmrc9
 change_file_perms $lmrc10 $hide_perms
 
 set ans [list]
-lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES $rlm10]
-lappend ans [list setpath _LMFILES_ $rlmf10]
 if {[is_conf_enabled advversspec implicitdefault]} {
-    lappend ans [list setpath __MODULES_LMALTNAME $rlm10&as|$m10/default&as|$m10/latest]
+    lappend ans [list set __MODULES_LMALTNAME $rlm10&as|$m10/default&as|$m10/latest]
 }
+lappend ans [list set _LMFILES_ $rlmf10]
+lappend ans [list set LOADEDMODULES $rlm10]
+lappend ans [list set testsuite yes]
 
 # another implicit default is chosen
 testouterr_cmd "sh" "load $m10" [if_implicitdefault $ans ERR] [if_implicitdefault {} "$err_nodefault'$m10'"]
@@ -511,12 +511,12 @@ restore_file_perms $lmf25
 change_file_perms $lmf26 $hide_perms
 
 set ans [list]
-lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES $rlm26]
-lappend ans [list setpath _LMFILES_ $rlmf26]
 if {[is_conf_enabled advversspec implicitdefault]} {
-    lappend ans [list setpath __MODULES_LMALTNAME $rlm26&as|$m26/default&as|$m26/latest]
+    lappend ans [list set __MODULES_LMALTNAME $rlm26&as|$m26/default&as|$m26/latest]
 }
+lappend ans [list set _LMFILES_ $rlmf26]
+lappend ans [list set LOADEDMODULES $rlm26]
+lappend ans [list set testsuite yes]
 
 # another implicit default is chosen
 testouterr_cmd "sh" "load $m26" [if_implicitdefault $ans ERR] [if_implicitdefault {} "$err_nodefault'$m26'"]
@@ -566,8 +566,6 @@ change_file_perms $lmd29 $hide_perms
 # different result if a file in a locked directory still readable on this system
 if {$is_locked_dir_file_readable} {
     set ans [list]
-    lappend ans [list set _LMFILES__modshare "$lmf29:1"]
-    lappend ans [list set LOADEDMODULES_modshare "$m29:1"]
     lappend ans [list set _LMFILES_ $lmf29]
     lappend ans [list set LOADEDMODULES $m29]
     lappend ans [list set testsuite yes]

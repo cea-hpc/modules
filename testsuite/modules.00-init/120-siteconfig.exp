@@ -326,11 +326,9 @@ set module "append/2.0"
 set modulefile "$modpath/$module"
 
 set ans [list]
-lappend ans [list set _LMFILES__modshare "$modulefile;1"]
-lappend ans [list set LOADEDMODULES_modshare "$module;1"]
 lappend ans [list setpath PATH "/path/to/dir1;/this/is/the/modules/testsuite"]
-lappend ans [list setpath _LMFILES_ $modulefile]
-lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
 lappend ans [list set PATH_modshare "/path/to/dir1;1;/this/is/the/modules/testsuite;1"]
 testouterr_cmd "cmd" "load $module" $ans ""
 
@@ -618,13 +616,13 @@ unsetenv_var TESTSUITE_ENABLE_SITECONFIG_UNKINTERRDURINGMODEVAL
 setenv_var TESTSUITE_ENABLE_SITECONFIG_GETMODULEDESIGNATION 1
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 setenv_loaded_module [list variant/1.0] [list $modpath.3/variant/1.0]
-setenv_path_var __MODULES_LMVARIANT variant/1.0&foo|val1|0&bar|val3|0
+setenv_var __MODULES_LMVARIANT variant/1.0&foo|val1|0&bar|val3|0
 set ans [list]
 lappend ans variant/1.0{bar=val3:foo=val1}
 lappend ans $vers_reportre
 testouterr_cmd_re sh -V OK [join $ans \n]
 unsetenv_loaded_module
-unsetenv_path_var __MODULES_LMVARIANT
+unsetenv_var __MODULES_LMVARIANT
 unsetenv_var MODULES_ADVANCED_VERSION_SPEC
 unsetenv_var TESTSUITE_ENABLE_SITECONFIG_GETMODULEDESIGNATION
 

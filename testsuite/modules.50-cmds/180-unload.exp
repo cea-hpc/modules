@@ -33,8 +33,8 @@ set module_3_reld "$reldmodpath/loc_rc3/1.0"
 set module_3_reldd "$relddmodpath/loc_rc3/1.0"
 
 lappend ans [list unsetpath testsuite]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset _LMFILES_]
 
 set module_0 "bad2/body"
 set modulefile_0 "$modpath/$module_0"
@@ -90,12 +90,12 @@ setenv_loaded_module [list $module_2 $module_1] [list $modulefile_2 $modulefile_
 
 set anslast [list]
 lappend anslast [list unsetpath testsuite]
-lappend anslast [list setpath LOADEDMODULES $module_2]
-lappend anslast [list setpath _LMFILES_ $modulefile_2]
+lappend anslast [list set LOADEDMODULES $module_2]
+lappend anslast [list set _LMFILES_ $modulefile_2]
 set ansfirst [list]
+lappend ansfirst [list set _LMFILES_ $modulefile_1]
+lappend ansfirst [list set LOADEDMODULES $module_1]
 lappend ansfirst [list unset testsuite]
-lappend ansfirst [list setpath LOADEDMODULES $module_1]
-lappend ansfirst [list setpath _LMFILES_ $modulefile_1]
 
 # unload with just module name, last or first matching loaded will be unloaded
 # (depends on unload_match_order setting) even if before that the real default is loaded
@@ -122,8 +122,8 @@ setenv_loaded_module [list {} $module_2 $module_1] [list {} $modulefile_2 $modul
 set ans [list]
 lappend ans [list unsetpath testsuite]
 # empty elements are ignored but stick to the variable, they should be removed
-lappend ans [list setpath LOADEDMODULES ":$module_2"]
-lappend ans [list setpath _LMFILES_ ":$modulefile_2"]
+lappend ans [list set LOADEDMODULES ":$module_2"]
+lappend ans [list set _LMFILES_ ":$modulefile_2"]
 
 testouterr_cmd_re "sh" "unload $modulefile_1" $ans ""
 
@@ -133,8 +133,8 @@ unsetenv_path_var MODULEPATH
 
 set ans [list]
 lappend ans [list unsetpath testsuite]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset _LMFILES_]
 
 # set up the environment
 setenv_loaded_module $module_1 $modulefile_1
@@ -156,12 +156,12 @@ setenv_loaded_module [list $module_2 $module_1] [list $modulefile_2 $modulefile_
 
 set anslast [list]
 lappend anslast [list unsetpath testsuite]
-lappend anslast [list setpath LOADEDMODULES $module_2]
-lappend anslast [list setpath _LMFILES_ $modulefile_2]
+lappend anslast [list set LOADEDMODULES $module_2]
+lappend anslast [list set _LMFILES_ $modulefile_2]
 set ansfirst [list]
+lappend ansfirst [list set _LMFILES_ $modulefile_1]
+lappend ansfirst [list set LOADEDMODULES $module_1]
 lappend ansfirst [list unset testsuite]
-lappend ansfirst [list setpath LOADEDMODULES $module_1]
-lappend ansfirst [list setpath _LMFILES_ $modulefile_1]
 
 # unload with just module name, modulepath not set anymore, last or first matching
 # loaded will be unloaded (depends on unload_match_order setting) even if before that the real default is loaded
@@ -182,9 +182,9 @@ testouterr_cmd "sh" "unload $modulefile_1_reldd" $anslast ""
 setenv_loaded_module [list $module_2 $module_3] [list $modulefile_2 $modulefile_3]
 
 set ans [list]
+lappend ans [list set _LMFILES_ $modulefile_2]
+lappend ans [list set LOADEDMODULES $module_2]
 lappend ans [list unset testsuite]
-lappend ans [list setpath LOADEDMODULES $module_2]
-lappend ans [list setpath _LMFILES_ $modulefile_2]
 
 if {$plus_in_modpath && $install_advversspec eq {y}} {
     setenv_var MODULES_ADVANCED_VERSION_SPEC 0
@@ -214,9 +214,9 @@ setenv_path_var MODULEPATH "$modpath.2" $modpath
 setenv_loaded_module $modulefile_2 $modulefile_2
 
 set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 lappend ans [list unset testsuite]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
 
 # unload full path modulefile with short name and modpath used
 testouterr_cmd "sh" "unload $module_2" $ans ""

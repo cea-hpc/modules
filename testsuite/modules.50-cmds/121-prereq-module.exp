@@ -58,11 +58,11 @@ set err_trace_lo [msg_load $module_tron $err_trace]
 
 # prereq is loaded automatically when autohandling is enabled
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
-lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
+lappend ans [list set __MODULES_LMPREREQ "$module&trace"]
 lappend ans [list set testsuite yes]
-lappend ans [list setpath __MODULES_LMPREREQ "$module&trace"]
-lappend ans [list setpath __MODULES_LMTAG $module_tron&auto-loaded]
+lappend ans [list set _LMFILES_ "$modulefile_tron:$modulefile"]
+lappend ans [list set LOADEDMODULES "$module_tron:$module"]
+lappend ans [list set __MODULES_LMTAG $module_tron&auto-loaded]
 if {$install_implicitdefault eq {y}} {
     set tserr $err_trace_lo\n\n[msg_top_load $module {} $module_tron {}]
 } else {
@@ -75,17 +75,17 @@ testouterr_cmd "ALL" "load --no-auto $module" "ERR" $err_pre
 skip_if_quick_mode
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "$module_troff:$module"]
-lappend ans [list setpath _LMFILES_ "$modulefile_troff:$modulefile"]
+lappend ans [list set __MODULES_LMPREREQ "$module&trace"]
 lappend ans [list set testsuite yes]
-lappend ans [list setpath __MODULES_LMPREREQ "$module&trace"]
+lappend ans [list set _LMFILES_ "$modulefile_troff:$modulefile"]
+lappend ans [list set LOADEDMODULES "$module_troff:$module"]
 testouterr_cmd_re "ALL" "load $module_troff $module" $ans ""
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
-lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
+lappend ans [list set __MODULES_LMPREREQ "$module&trace"]
 lappend ans [list set testsuite yes]
-lappend ans [list setpath __MODULES_LMPREREQ "$module&trace"]
+lappend ans [list set _LMFILES_ "$modulefile_tron:$modulefile"]
+lappend ans [list set LOADEDMODULES "$module_tron:$module"]
 testouterr_cmd_re "ALL" "load $module_tron $module" $ans $err_trace_lo
 
 #
@@ -98,11 +98,11 @@ set err_pre [msg_load $module [err_prereqor trace setenv loc_dv1]]
 
 # prereq is loaded automatically when autohandling is enabled (first in or list)
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
-lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
+lappend ans [list set __MODULES_LMPREREQ "$module&trace|setenv|loc_dv1"]
 lappend ans [list set testsuite yes]
-lappend ans [list setpath __MODULES_LMPREREQ "$module&trace|setenv|loc_dv1"]
-lappend ans [list setpath __MODULES_LMTAG $module_tron&auto-loaded]
+lappend ans [list set _LMFILES_ "$modulefile_tron:$modulefile"]
+lappend ans [list set LOADEDMODULES "$module_tron:$module"]
+lappend ans [list set __MODULES_LMTAG $module_tron&auto-loaded]
 if {$install_implicitdefault eq {y}} {
     set tserr $err_trace_lo\n\n[msg_top_load $module {} $module_tron {}]
 } else {
@@ -113,26 +113,26 @@ testouterr_cmd_re "ALL" "load --auto $module" [if_implicitdefault $ans ERR] $tse
 testouterr_cmd "ALL" "load --no-auto $module" "ERR" $err_pre
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
-lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
+lappend ans [list set __MODULES_LMPREREQ "$module&trace|setenv|loc_dv1"]
 lappend ans [list set testsuite yes]
-lappend ans [list setpath __MODULES_LMPREREQ "$module&trace|setenv|loc_dv1"]
+lappend ans [list set _LMFILES_ "$modulefile_tron:$modulefile"]
+lappend ans [list set LOADEDMODULES "$module_tron:$module"]
 testouterr_cmd_re "ALL" "load $module_tron $module" $ans $err_trace_lo
 
 # set situation where a module has been loaded with its prerequirement
 setenv_loaded_module [list $module_set $module_troff $module] [list $modulefile_set $modulefile_troff $modulefile]
-setenv_path_var __MODULES_LMPREREQ "$module&trace|setenv|loc_dv1"
+setenv_var __MODULES_LMPREREQ "$module&trace|setenv|loc_dv1"
 set ans [list]
+lappend ans [list set _LMFILES_ "$modulefile_troff:$modulefile:$modulefile_tron"]
+lappend ans [list set LOADEDMODULES "$module_troff:$module:$module_tron"]
 lappend ans [list unset testsuite]
-lappend ans [list setpath LOADEDMODULES "$module_troff:$module:$module_tron"]
-lappend ans [list setpath _LMFILES_ "$modulefile_troff:$modulefile:$modulefile_tron"]
 testouterr_cmd_re "sh" "switch --no-auto $module_set $module_tron" $ans [msg_load $module_tron $err_trace]
 
 set ans [list]
+lappend ans [list set __MODULES_LMPREREQ "$module&trace|setenv|loc_dv1"]
+lappend ans [list set _LMFILES_ "$modulefile_troff:$modulefile_tron:$modulefile"]
+lappend ans [list set LOADEDMODULES "$module_troff:$module_tron:$module"]
 lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES "$module_troff:$module_tron:$module"]
-lappend ans [list setpath _LMFILES_ "$modulefile_troff:$modulefile_tron:$modulefile"]
-lappend ans [list setpath __MODULES_LMPREREQ "$module&trace|setenv|loc_dv1"]
 testouterr_cmd_re "sh" "switch --auto $module_set $module_tron" $ans [msg_load $module_tron $err_trace]\n\n[msg_top_switch $module_set $module_tron {} {} {} {} $module]
 
 #

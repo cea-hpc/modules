@@ -57,21 +57,21 @@ testouterr_cmd "sh" "load $module/load" "ERR" [msg_load $module/load $err_emptym
 testouterr_cmd "sh" "load $module/unload" "ERR" [msg_load $module/unload $err_emptymodname $err_emptymodname]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "$module/try-load"]
-lappend ans [list setpath _LMFILES_ "$modulepath/$module/try-load"]
+lappend ans [list set _LMFILES_ "$modulepath/$module/try-load"]
+lappend ans [list set LOADEDMODULES "$module/try-load"]
 testouterr_cmd "sh" "load $module/try-load" $ans {}
 
 # for some module commands, error is not fatal and modulefile is loaded
 foreach cmd [list display test] {
     set ans [list]
-    lappend ans [list setpath LOADEDMODULES "$module/$cmd"]
-    lappend ans [list setpath _LMFILES_ "$modulepath/$module/$cmd"]
+    lappend ans [list set _LMFILES_ "$modulepath/$module/$cmd"]
+    lappend ans [list set LOADEDMODULES "$module/$cmd"]
     lappend ans [list ERR]
     testouterr_cmd "sh" "load $module/$cmd" $ans [msg_load $module/$cmd $err_emptymodname]
 }
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "$module/swap"]
-lappend ans [list setpath _LMFILES_ "$modulepath/$module/swap"]
+lappend ans [list set _LMFILES_ "$modulepath/$module/swap"]
+lappend ans [list set LOADEDMODULES "$module/swap"]
 lappend ans [list ERR]
 testouterr_cmd "sh" "load $module/swap" $ans "[msg_switch {} barunk $err_emptymodname]"
 # switch: an empty second arg leads to one name rule
@@ -79,14 +79,14 @@ set ans [list]
 lappend ans [list ERR]
 testouterr_cmd_re "sh" "load $module/swap2" $ans "[msg_switch barunk barunk "$err_path'barunk'"]\n\n[msg_load $module/swap2 [err_reqlo barunk]]"
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "$module/swap3"]
-lappend ans [list setpath _LMFILES_ "$modulepath/$module/swap3"]
+lappend ans [list set _LMFILES_ "$modulepath/$module/swap3"]
+lappend ans [list set LOADEDMODULES "$module/swap3"]
 lappend ans [list ERR]
 testouterr_cmd "sh" "load $module/swap3" $ans "[msg_switch {} {} $err_emptymodname]"
 foreach cmd [list use unuse] {
     set ans [list]
-    lappend ans [list setpath LOADEDMODULES "$module/$cmd"]
-    lappend ans [list setpath _LMFILES_ "$modulepath/$module/$cmd"]
+    lappend ans [list set _LMFILES_ "$modulepath/$module/$cmd"]
+    lappend ans [list set LOADEDMODULES "$module/$cmd"]
     lappend ans [list ERR]
     testouterr_cmd "sh" "load $module/$cmd" $ans [msg_load $module/$cmd $err_emptydirname]
 }
@@ -100,8 +100,6 @@ testouterr_cmd "sh" "load $module/source" "ERR" [msg_load $module/source [msg_mo
 # empty string currently understood like wildcard
 foreach cmd [list whatis apropos] {
     set ans [list]
-    lappend ans [list set _LMFILES__modshare "$modulepath/$module/$cmd:1"]
-    lappend ans [list set LOADEDMODULES_modshare "$module/$cmd:1"]
     lappend ans [list set _LMFILES_ "$modulepath/$module/$cmd"]
     lappend ans [list set LOADEDMODULES "$module/$cmd"]
     # other evaluated modulefiles lead to an error result on stdout
@@ -109,8 +107,8 @@ foreach cmd [list whatis apropos] {
     testouterr_cmd_re "sh" "load $module/$cmd" $ans {.+}
 }
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "$module/avail"]
-lappend ans [list setpath _LMFILES_ "$modulepath/$module/avail"]
+lappend ans [list set _LMFILES_ "$modulepath/$module/avail"]
+lappend ans [list set LOADEDMODULES "$module/avail"]
 testouterr_cmd_re "sh" "load $module/avail" $ans ".+"
 
 
@@ -128,8 +126,8 @@ foreach cmd [list list purge reload aliases savelist] {
 foreach cmd [list load try-load unload] {
     setenv_loaded_module "$module/$cmd" "$modulepath/$module/$cmd"
     set ans [list]
-    lappend ans [list unsetpath LOADEDMODULES]
-    lappend ans [list unsetpath _LMFILES_]
+    lappend ans [list unset _LMFILES_]
+    lappend ans [list unset LOADEDMODULES]
     testouterr_cmd "sh" "unload $module/$cmd" $ans ""
 }
 
@@ -137,15 +135,15 @@ foreach cmd [list load try-load unload] {
 foreach cmd [list display test] {
     setenv_loaded_module "$module/$cmd" "$modulepath/$module/$cmd"
     set ans [list]
-    lappend ans [list unsetpath LOADEDMODULES]
-    lappend ans [list unsetpath _LMFILES_]
+    lappend ans [list unset _LMFILES_]
+    lappend ans [list unset LOADEDMODULES]
     lappend ans [list ERR]
     testouterr_cmd "sh" "unload $module/$cmd" $ans [msg_unload $module/$cmd $err_emptymodname]
 }
 setenv_loaded_module "$module/swap" "$modulepath/$module/swap"
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd "sh" "unload $module/swap" $ans {}
 # switch: an empty second arg leads to one name rule
 setenv_loaded_module "$module/swap2" "$modulepath/$module/swap2"
@@ -171,8 +169,6 @@ testouterr_cmd "sh" "unload $module/source" "ERR" [msg_unload $module/source [ms
 foreach cmd [list whatis apropos] {
     setenv_loaded_module "$module/$cmd" "$modulepath/$module/$cmd"
     set ans [list]
-    lappend ans [list unset _LMFILES__modshare]
-    lappend ans [list unset LOADEDMODULES_modshare]
     lappend ans [list unset _LMFILES_]
     lappend ans [list unset LOADEDMODULES]
     # other evaluated modulefiles lead to an error result on stdout
@@ -181,8 +177,8 @@ foreach cmd [list whatis apropos] {
 }
 setenv_loaded_module "$module/avail" "$modulepath/$module/avail"
 set ans [list]
-lappend ans [list unsetpath LOADEDMODULES]
-lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 testouterr_cmd_re "sh" "unload $module/avail" $ans ".+"
 
 # restore environment
