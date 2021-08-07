@@ -1092,12 +1092,10 @@ proc getModshareVarName {var} {
    if {$var in {_LMFILES_ LOADEDMODULES} || [string equal -length 10\
       __MODULES_ $var] || [string equal -length 8 MODULES_ $var]} {
       return {}
-   # specific modshare variable for DYLD-related variables as a suffixed
-   # variable will lead to warning messages with this tool
-   } elseif {[string range $var 0 4] eq {DYLD_}} {
-      return MODULES_MODSHARE_${var}
+   # specific modshare variable use a Modules-specific prefix (rather suffix
+   # that may lead to warning message for instance for DYLD-related variables)
    } else {
-      return ${var}_modshare
+      return __MODULES_SHARE_${var}
    }
 }
 
