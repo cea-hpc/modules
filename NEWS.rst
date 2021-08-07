@@ -83,6 +83,11 @@ Modules 5.0.0-alpha (2021-07-25)
 * Record ``auto-loaded`` tag of loaded modules in :envvar:`__MODULES_LMTAG`
   environment variable rather set a specific entry for module in the
   ``__MODULES_LMNOTUASKED`` environment variable.
+* Reference counting mechanism is not anymore applied to the Modules-specific
+  path variables (like :envvar:`LOADEDMODULES`). As a result no
+  :envvar:`<VAR>_modshare` variable is set in user environment for these
+  variables. Exception is made for :envvar:`MODULEPATH` environment variable
+  where the mechanism still applies.
 
 
 .. _4.8 release notes:
