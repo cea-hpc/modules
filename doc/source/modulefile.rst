@@ -670,8 +670,8 @@ the *modulefile* is being loaded.
 
  A reference counter environment variable is also set to increase the
  number of times *value* has been added to environment *variable*. This
- reference counter environment variable is named by suffixing *variable*
- by ``_modshare``.
+ reference counter environment variable is named by prefixing *variable*
+ by :envvar:`__MODULES_SHARE_<__MODULES_SHARE_\<VAR\>>`.
 
  When *value* is already defined in environment *variable*, it is not added
  again except if ``--duplicates`` option is set.
@@ -705,10 +705,11 @@ the *modulefile* is being loaded.
 
  Reference counter of *value* in *variable* denotes the number of times
  *value* has been added to *variable*. This information is stored in
- environment *variable_modshare*. When attempting to remove *value* from
- *variable*, relative reference counter is checked and *value* is removed
- only if counter is equal to 1 or not defined. Otherwise *value* is kept
- in *variable* and reference counter is decreased by 1.
+ environment :envvar:`__MODULES_SHARE_variable<__MODULES_SHARE_\<VAR\>>`. When
+ attempting to remove *value* from *variable*, relative reference counter is
+ checked and *value* is removed only if counter is equal to 1 or not defined.
+ Otherwise *value* is kept in *variable* and reference counter is decreased by
+ 1.
 
  If *value* corresponds to the concatenation of multiple elements separated by
  colon, or *delimiter*, character, each element is treated separately.

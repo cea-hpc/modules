@@ -369,7 +369,8 @@ The following environment variables appeared on new version of Modules are not s
 | in version |                                                                 |
 +============+=================================================================+
 | 4.0        | :envvar:`MODULECONTACT`, :envvar:`MODULES_COLLECTION_TARGET`,   |
-|            | :envvar:`MODULES_USE_COMPAT_VERSION`, :envvar:`<VAR>_modshare`  |
+|            | :envvar:`MODULES_USE_COMPAT_VERSION`,                           |
+|            | :envvar:`<VAR>_modshare<__MODULES_SHARE_\<VAR\>>`               |
 +------------+-----------------------------------------------------------------+
 | 4.1        | :envvar:`MODULES_CMD`, :envvar:`MODULES_COLLECTION_PIN_VERSION`,|
 |            | :envvar:`MODULES_PAGER`, :envvar:`MODULES_RUNENV_\<VAR\>`,      |

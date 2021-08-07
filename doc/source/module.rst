@@ -1338,9 +1338,10 @@ Module Sub-Commands
  Reference counter of *directory* in :envvar:`MODULEPATH` denotes the number
  of times *directory* has been enabled. When attempting to remove *directory*
  from :envvar:`MODULEPATH`, reference counter variable
- :envvar:`MODULEPATH_modshare<\<VAR\>_modshare>` is checked and *directory* is
- removed only if its relative counter is equal to 1 or not defined. Otherwise
- *directory* is kept and reference counter is decreased by 1.
+ :envvar:`__MODULES_SHARE_MODULEPATH<__MODULES_SHARE_\<VAR\>>` is checked and
+ *directory* is removed only if its relative counter is equal to 1 or not
+ defined. Otherwise *directory* is kept and reference counter is decreased by
+ 1.
 
 .. subcmd:: use [-a|--append] directory...
 
@@ -1349,8 +1350,9 @@ Module Sub-Commands
  :envvar:`MODULEPATH`.
 
  Reference counter environment variable
- :envvar:`MODULEPATH_modshare<\<VAR\>_modshare>` is also set to increase the
- number of times *directory* has been added to :envvar:`MODULEPATH`.
+ :envvar:`__MODULES_SHARE_MODULEPATH<__MODULES_SHARE_\<VAR\>>` is also set to
+ increase the number of times *directory* has been added to
+ :envvar:`MODULEPATH`.
 
  A *directory* that does not exist yet can be specified as argument and then
  be added to :envvar:`MODULEPATH`.
@@ -1866,6 +1868,21 @@ ENVIRONMENT
 
     .. versionchanged:: 5.0
        Variable renamed from ``<VAR>_modquar`` to ``__MODULES_QUAR_<VAR>``
+
+.. envvar:: __MODULES_SHARE_<VAR>
+
+ Reference counter variable for path-like variable :envvar:`<VAR>`. A colon
+ separated list containing pairs of elements. A pair is formed by a path
+ element followed its usage counter which represents the number of times
+ this path has been enabled in variable :envvar:`<VAR>`. A colon separates the
+ two parts of the pair.
+
+ .. only:: html
+
+    .. versionadded:: 4.0
+
+    .. versionchanged:: 5.0
+       Variable renamed from ``<VAR>_modshare`` to ``__MODULES_SHARE_<VAR>``
 
 .. envvar:: _LMFILES_
 
@@ -2684,18 +2701,6 @@ ENVIRONMENT
  The location of the main Modules package file directory containing module
  command initialization scripts, the executable program :file:`modulecmd.tcl`,
  and a directory containing a collection of main *modulefiles*.
-
-.. envvar:: <VAR>_modshare
-
- Reference counter variable for path-like variable :envvar:`<VAR>`. A colon
- separated list containing pairs of elements. A pair is formed by a path
- element followed its usage counter which represents the number of times
- this path has been enabled in variable :envvar:`<VAR>`. A colon separates the
- two parts of the pair.
-
- .. only:: html
-
-    .. versionadded:: 4.0
 
 
 FILES
