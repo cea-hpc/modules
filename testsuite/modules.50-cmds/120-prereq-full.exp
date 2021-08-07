@@ -217,11 +217,17 @@ setenv_var __MODULES_LMPREREQ $badelt
 unsetenv_loaded_module
 setenv_var __MODULES_LMTAG {}
 set ans [list]
-lappend ans [list set __MODULES_LMPREREQ $badelt:$module&$module_tron]
+# empty elements are ignored then cleared from variable
+if {$badelt eq {}} {
+    lappend ans [list set __MODULES_LMPREREQ $module&$module_tron]
+} else {
+    lappend ans [list set __MODULES_LMPREREQ $badelt:$module&$module_tron]
+}
 lappend ans [list set testsuite yes]
 lappend ans [list set _LMFILES_ $modulefile_tron:$modulefile]
 lappend ans [list set LOADEDMODULES $module_tron:$module]
-lappend ans [list set __MODULES_LMTAG :$module_tron&auto-loaded]
+# empty elements are ignored then cleared from variable
+lappend ans [list set __MODULES_LMTAG $module_tron&auto-loaded]
 testouterr_cmd_re sh "load --auto $module" $ans $msg_load_tron\n\n$msg_top_load_module
 
 setenv_loaded_module [list $module_tron $module] [list $modulefile_tron $modulefile] [list {} $module_tron]

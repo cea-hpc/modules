@@ -339,7 +339,12 @@ setenv_var __MODULES_LMALTNAME $badelt
 unsetenv_var __MODULES_LMCONFLICT
 unsetenv_loaded_module
 set ans [list]
-lappend ans [list set __MODULES_LMALTNAME $badelt:alt/dir/2&al|altfoo]
+# empty elements are ignored then cleared from variable
+if {$badelt eq {}} {
+    lappend ans [list set __MODULES_LMALTNAME alt/dir/2&al|altfoo]
+} else {
+    lappend ans [list set __MODULES_LMALTNAME $badelt:alt/dir/2&al|altfoo]
+}
 lappend ans [list set _LMFILES_ $mp/alt/dir/2]
 lappend ans [list set LOADEDMODULES alt/dir/2]
 testouterr_cmd_re sh {load alt/dir/2} $ans {}

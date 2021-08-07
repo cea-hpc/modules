@@ -229,7 +229,12 @@ foreach badelt [list {} $module] {
 setenv_var __MODULES_LMCONFLICT $badelt
 unsetenv_loaded_module
 set ans [list]
-lappend ans [list set __MODULES_LMCONFLICT $badelt:$module&$module_tron]
+# empty elements are ignored then cleared from variable
+if {$badelt eq {}} {
+    lappend ans [list set __MODULES_LMCONFLICT $module&$module_tron]
+} else {
+    lappend ans [list set __MODULES_LMCONFLICT $badelt:$module&$module_tron]
+}
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
 lappend ans [list set testsuite yes]
