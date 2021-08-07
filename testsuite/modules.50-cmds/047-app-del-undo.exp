@@ -33,7 +33,7 @@ set ts_1 "http://foobar.org"
 set ts_2 "http://foobar.net"
 set ts_3 "http://foobar.com"
 set ts_new "$ts_1 $ts_2"
-# test colon char is correctly escaped in _modshare var
+# test colon char is correctly escaped in __MODULES_SHARE_ var
 set tsmod_new "http\\://foobar.net:1:http\\://foobar.org:1"
 set module "append/1.0"
 set modulefile "$modpath/$module"
@@ -43,16 +43,16 @@ set modulefile "$modpath/$module"
 #
 
 set env(testsuite) "$ts_1 $ts_2 $ts_3"
-set env(testsuite_modshare)	"http\\://foobar.com:1:http\\://foobar.org:1:http\\://foobar.net:1"
+set env(__MODULES_SHARE_testsuite)	"http\\://foobar.com:1:http\\://foobar.org:1:http\\://foobar.net:1"
 setenv_loaded_module $module $modulefile
 
 #
 #  For the different shells ...
 #
 
-lappend ans [list set testsuite_modshare $tsmod_new]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
+lappend ans [list set __MODULES_SHARE_testsuite $tsmod_new]
 lappend ans [list set testsuite $ts_new]
 
 #
@@ -99,13 +99,13 @@ set module "append/1.6"
 set modulefile "$modpath/$module"
 
 set env(testsuite) "$ts_1 $ts_2 $ts_3 http://foobar.io "
-set env(testsuite_modshare) ":1:http\\://foobar.com:1:http\\://foobar.net:1:http\\://foobar.io:1:http\\://foobar.org:1"
+set env(__MODULES_SHARE_testsuite) ":1:http\\://foobar.com:1:http\\://foobar.net:1:http\\://foobar.io:1:http\\://foobar.org:1"
 setenv_loaded_module $module $modulefile
 
 set ans [list]
-lappend ans [list set testsuite_modshare $tsmod_new]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
+lappend ans [list set __MODULES_SHARE_testsuite $tsmod_new]
 lappend ans [list set testsuite $ts_new]
 
 testouterr_cmd_re "sh" "unload $module" $ans ""

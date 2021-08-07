@@ -41,9 +41,9 @@ set modulefile3 "$modpath/$module3"
 #  test load mode
 #
 
-lappend ans [list unset testsuite_modshare]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
+lappend ans [list unset __MODULES_SHARE_testsuite]
 lappend ans [list set testsuite yes]
 
 test_cmd "ALL" "load $module" $ans
@@ -52,19 +52,19 @@ test_cmd "ALL" "load $module" $ans
 setenv_var TS1 "no"
 
 set ans [list]
+lappend ans [list unset __MODULES_SHARE_TS1]
 lappend ans [list set TS1 maybe]
 lappend ans [list set _LMFILES_ $modulefile2]
 lappend ans [list set LOADEDMODULES $module2]
-lappend ans [list unset TS1_modshare]
 
 # setenv after append-path: an unset order for ref counter variable is produced
 test_cmd "sh" "load $module2" $ans
 
 set ans [list]
+lappend ans [list set __MODULES_SHARE_TS1 "yes:1:maybe:1"]
 lappend ans [list set TS1 "maybe:yes"]
 lappend ans [list set _LMFILES_ $modulefile3]
 lappend ans [list set LOADEDMODULES $module3]
-lappend ans [list set TS1_modshare "yes:1:maybe:1"]
 
 # append-path after setenv: an set order for ref counter variable is produced
 test_cmd "sh" "load $module3" $ans

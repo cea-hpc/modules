@@ -203,15 +203,15 @@ unsetenv_path_var testsuite2
 
 set module "prepend/3.0"
 set modulefile "$modpath/$module"
-set env(FOO_modshare) ":1"
+set env(__MODULES_SHARE_FOO) ":1"
 set env(FOO) ""
 setenv_loaded_module $module $modulefile
 
 set ans [list]
+lappend ans [list unset __MODULES_SHARE_FOO]
 lappend ans [list unset FOO]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
-lappend ans [list unset FOO_modshare]
 
 testouterr_cmd "sh" "unload $module" $ans ""
 
@@ -219,60 +219,60 @@ set module2 "prepend/3.1"
 set modulefile2 "$modpath/$module2"
 
 
-set env(FOO_modshare) "/path/to/dir:1::2"
+set env(__MODULES_SHARE_FOO) "/path/to/dir:1::2"
 set env(FOO) "/path/to/dir:"
 setenv_loaded_module [list $module $module2] [list $modulefile $modulefile2]
 
 set ans [list]
+lappend ans [list unset __MODULES_SHARE_FOO]
 lappend ans [list unset FOO]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
-lappend ans [list unset FOO_modshare]
 
 testouterr_cmd "sh" "unload $module $module2" $ans ""
 
 set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO ":1"]
 lappend ans [list set FOO ""]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
-lappend ans [list set FOO_modshare ":1"]
 
 testouterr_cmd "sh" "unload $module2" $ans ""
 
 set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir:1::1"]
 lappend ans [list set FOO "/path/to/dir:"]
 lappend ans [list set _LMFILES_ $modulefile2]
 lappend ans [list set LOADEDMODULES $module2]
-lappend ans [list set FOO_modshare "/path/to/dir:1::1"]
 
 testouterr_cmd "sh" "unload $module" $ans ""
 
 
-set env(FOO_modshare) "/path/to/dir:1::2"
+set env(__MODULES_SHARE_FOO) "/path/to/dir:1::2"
 set env(FOO) "/path/to/dir:"
 setenv_loaded_module [list $module2 $module] [list $modulefile2 $modulefile]
 
 set ans [list]
+lappend ans [list unset __MODULES_SHARE_FOO]
 lappend ans [list unset FOO]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
-lappend ans [list unset FOO_modshare]
 
 testouterr_cmd "sh" "unload $module $module2" $ans ""
 
 set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO ":1"]
 lappend ans [list set FOO ""]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
-lappend ans [list set FOO_modshare ":1"]
 
 testouterr_cmd "sh" "unload $module2" $ans ""
 
 set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir:1::1"]
 lappend ans [list set FOO "/path/to/dir:"]
 lappend ans [list set _LMFILES_ $modulefile2]
 lappend ans [list set LOADEDMODULES $module2]
-lappend ans [list set FOO_modshare "/path/to/dir:1::1"]
 
 testouterr_cmd "sh" "unload $module" $ans ""
 
@@ -284,15 +284,15 @@ testouterr_cmd "sh" "unload $module" $ans ""
 set module "prepend/2.3"
 set modulefile "$modpath/$module"
 
-set env(FOO_modshare) ":1:/modules/testsuite2.2/2.2:1:/path/to/dir1:1:/modules/testsuite2.2:1"
+set env(__MODULES_SHARE_FOO) ":1:/modules/testsuite2.2/2.2:1:/path/to/dir1:1:/modules/testsuite2.2:1"
 set env(FOO) ":/modules/testsuite2.2:/modules/testsuite2.2/2.2:/path/to/dir1"
 setenv_loaded_module [list $module] [list $modulefile]
 
 set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir1:1"]
 lappend ans [list set FOO "/path/to/dir1"]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
-lappend ans [list set FOO_modshare "/path/to/dir1:1"]
 
 testouterr_cmd "sh" "unload $module" $ans ""
 

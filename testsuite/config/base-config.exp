@@ -599,7 +599,7 @@ proc shell_out {test_shell out_list {re_mode 0}} {
                 lappend answer_list $envvar($var)
 
                 # automatically set ref counter variable if not specified
-                set sharevar "${var}_modshare"
+                set sharevar __MODULES_SHARE_$var
                 if {![info exists envvar($sharevar)]} {
                     if {$re_mode} {
                         set envvar($sharevar) [shell_set $test_shell $sharevar "(.*)" $re_mode]
@@ -624,7 +624,7 @@ proc shell_out {test_shell out_list {re_mode 0}} {
                 lappend answer_list $envvar($var)
 
                 # automatically set ref counter variable if not specified
-                set sharevar "${var}_modshare"
+                set sharevar __MODULES_SHARE_$var
                 if {![info exists envvar($sharevar)]} {
                     set envvar($sharevar) [shell_unset $test_shell $sharevar $re_mode]
                     set autovar($sharevar) 1
@@ -1203,7 +1203,7 @@ proc unsetenv_var {var} {
 proc unsetenv_path_var {var} {
     unsetenv_var $var
     # unset reference counter variable
-    unsetenv_var "${var}_modshare"
+    unsetenv_var __MODULES_SHARE_$var
 }
 
 proc setenv_var {var val} {
@@ -1224,7 +1224,7 @@ proc setenv_path_var {var args} {
             incr refcnt($arg)
         }
     }
-    setenv_var "${var}_modshare" [join [array get refcnt] ":"]
+    setenv_var __MODULES_SHARE_$var [join [array get refcnt] ":"]
 }
 
 proc unsetenv_loaded_module {} {

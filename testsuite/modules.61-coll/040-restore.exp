@@ -634,11 +634,12 @@ $err_path'{b\\*r= val1}'"
 
 setenv_var TESTSUITE_VARIANT coll26
 set ans [list]
-lappend ans [list setpath MODULEPATH $c26modpath]
-lappend ans [list set LOADEDMODULES $c26mod2:$c26mod3]
-lappend ans [list set _LMFILES_ $c26modpath1/$c26mod2:$c26modpath1/$c26mod3]
 lappend ans [list set __MODULES_LMVARIANT "$c26mod3&b*r| val1|0|2"]
+lappend ans [list set _LMFILES_ $c26modpath1/$c26mod2:$c26modpath1/$c26mod3]
+lappend ans [list set LOADEDMODULES $c26mod2:$c26mod3]
 lappend ans [list set __MODULES_LMTAG $c26mod2&auto-loaded]
+lappend ans [list set MODULEPATH $c26modpath]
+lappend ans [list set __MODULES_SHARE_MODULEPATH $c26modpath:1]
 lappend ans [list ERR]
 testouterr_cmd_re sh "restore $coll26fp" $ans "[escre [msg_load {variant/1.0} [err_novarval {fo o} {val1 val2 {v?l1 }}]]]
 
@@ -696,9 +697,10 @@ testouterr_cmd_re sh "restore $coll27fp" ERR "$error_msgs: $msg_nomodnameinarg '
 testouterr_cmd_re sh "restore $coll28fp" ERR "$error_msgs: $msg_nomodnameinarg '@1.0'"
 setenv_var TESTSUITE_VARIANT coll29
 set ans [list]
-lappend ans [list set LOADEDMODULES $c26mod2]
 lappend ans [list set _LMFILES_ $c26modpath1/$c26mod2]
-lappend ans [list setpath MODULEPATH $c26modpath1]
+lappend ans [list set LOADEDMODULES $c26mod2]
+lappend ans [list set MODULEPATH $c26modpath1]
+lappend ans [list set __MODULES_SHARE_MODULEPATH $c26modpath1:1]
 lappend ans [list ERR]
 testouterr_cmd_re sh "restore $coll29fp" $ans [msg_load variant/1.0{unk=val} [err_unkvar unk]]\n\n[msg_load foo/1.0]
 

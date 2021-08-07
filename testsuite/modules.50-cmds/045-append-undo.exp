@@ -172,15 +172,15 @@ unsetenv_path_var testsuite2
 set module "append/2.3"
 set modulefile "$modpath/$module"
 
-set env(FOO_modshare) ":1:/modules/testsuite2.2/2.2:1:/path/to/dir1:1:/modules/testsuite2.2:1"
+set env(__MODULES_SHARE_FOO) ":1:/modules/testsuite2.2/2.2:1:/path/to/dir1:1:/modules/testsuite2.2:1"
 set env(FOO) "/path/to/dir1:/modules/testsuite2.2:/modules/testsuite2.2/2.2:"
 setenv_loaded_module $module $modulefile
 
 set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir1:1"]
 lappend ans [list set FOO "/path/to/dir1"]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
-lappend ans [list set FOO_modshare "/path/to/dir1:1"]
 
 testouterr_cmd "sh" "unload $module" $ans ""
 
@@ -200,7 +200,7 @@ testouterr_cmd "sh" "unload $module" $ans ""
 #
 
 set env(PATH) "$old_path"
-unset env(FOO_modshare)
+unset env(__MODULES_SHARE_FOO)
 unset env(FOO)
 unsetenv_loaded_module
 

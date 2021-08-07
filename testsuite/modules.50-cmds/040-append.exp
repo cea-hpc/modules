@@ -144,14 +144,14 @@ set module "append/2.3"
 set modulefile "$modpath/$module"
 set old_path "/path/to/dir1"
 
-set env(FOO_modshare) "$old_path:1"
+set env(__MODULES_SHARE_FOO) "$old_path:1"
 set env(FOO) $old_path
 
 set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO ":1:/modules/testsuite2.2/2.2:1:$old_path:1:/modules/testsuite2.2:1"]
 lappend ans [list set FOO "$old_path:/modules/testsuite2.2:/modules/testsuite2.2/2.2:"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
-lappend ans [list set FOO_modshare ":1:/modules/testsuite2.2/2.2:1:$old_path:1:/modules/testsuite2.2:1"]
 
 testouterr_cmd "sh" "load $module" $ans ""
 
@@ -163,10 +163,10 @@ set module "append/2.4"
 set modulefile "$modpath/$module"
 
 set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO ":1:/modules/testsuite2.2/2.2:1:$old_path:1:/modules/testsuite2.2:1"]
 lappend ans [list set FOO "$old_path:/modules/testsuite2.2:/modules/testsuite2.2/2.2:"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
-lappend ans [list set FOO_modshare ":1:/modules/testsuite2.2/2.2:1:$old_path:1:/modules/testsuite2.2:1"]
 
 testouterr_cmd "sh" "load $module" $ans ""
 
@@ -177,43 +177,43 @@ testouterr_cmd "sh" "load $module" $ans ""
 set module "append/4.0"
 set modulefile "$modpath/$module"
 
-unset env(FOO_modshare)
+unset env(__MODULES_SHARE_FOO)
 unset env(FOO)
-set env(BAR_modshare) "/path/to/dir1:2:/path/to/dir2:1"
+set env(__MODULES_SHARE_BAR) "/path/to/dir1:2:/path/to/dir2:1"
 set env(BAR) "/path/to/dir1:/path/to/dir2:/path/to/dir1"
 
 set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir1:2:/path/to/dir2:1"]
 lappend ans [list set FOO "/path/to/dir1:/path/to/dir2:/path/to/dir1"]
+lappend ans [list set __MODULES_SHARE_BAR "/path/to/dir1:3:/path/to/dir2:1"]
 lappend ans [list set BAR "/path/to/dir1:/path/to/dir2:/path/to/dir1"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
-lappend ans [list set FOO_modshare "/path/to/dir1:2:/path/to/dir2:1"]
-lappend ans [list set BAR_modshare "/path/to/dir1:3:/path/to/dir2:1"]
 
 testouterr_cmd "sh" "load $module" $ans ""
 
 set env(FOO) "/path/to/dir1"
 
 set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir1:3:/path/to/dir2:1"]
 lappend ans [list set FOO "/path/to/dir1:/path/to/dir1:/path/to/dir2:/path/to/dir1"]
+lappend ans [list set __MODULES_SHARE_BAR "/path/to/dir1:3:/path/to/dir2:1"]
 lappend ans [list set BAR "/path/to/dir1:/path/to/dir2:/path/to/dir1"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
-lappend ans [list set FOO_modshare "/path/to/dir1:3:/path/to/dir2:1"]
-lappend ans [list set BAR_modshare "/path/to/dir1:3:/path/to/dir2:1"]
 
 testouterr_cmd "sh" "load $module" $ans ""
 
-set env(FOO_modshare) "/path/to/dir1:2"
+set env(__MODULES_SHARE_FOO) "/path/to/dir1:2"
 set env(FOO) "/path/to/dir1"
 
 set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir1:4:/path/to/dir2:1"]
 lappend ans [list set FOO "/path/to/dir1:/path/to/dir1:/path/to/dir2:/path/to/dir1"]
+lappend ans [list set __MODULES_SHARE_BAR "/path/to/dir1:3:/path/to/dir2:1"]
 lappend ans [list set BAR "/path/to/dir1:/path/to/dir2:/path/to/dir1"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
-lappend ans [list set FOO_modshare "/path/to/dir1:4:/path/to/dir2:1"]
-lappend ans [list set BAR_modshare "/path/to/dir1:3:/path/to/dir2:1"]
 
 testouterr_cmd "sh" "load $module" $ans ""
 
@@ -221,12 +221,12 @@ set module "append/4.1"
 set modulefile "$modpath/$module"
 
 set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir1:4:/path/to/dir2:1"]
 lappend ans [list set FOO "/path/to/dir1:/path/to/dir1:/path/to/dir2:/path/to/dir1"]
+lappend ans [list set __MODULES_SHARE_BAR "/path/to/dir1:3:/path/to/dir2:1"]
 lappend ans [list set BAR "/path/to/dir1:/path/to/dir2:/path/to/dir1"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
-lappend ans [list set FOO_modshare "/path/to/dir1:4:/path/to/dir2:1"]
-lappend ans [list set BAR_modshare "/path/to/dir1:3:/path/to/dir2:1"]
 
 testouterr_cmd "sh" "load $module" $ans [msg_load $module "$warn_msgs: --index option has no effect on add-path"]
 
@@ -248,7 +248,7 @@ set bigpathtrunclen [expr {3999 - ([string length $bigpathvalesc] - [string leng
 set module "append/5.0"
 set modulefile "$modpath/$module"
 
-unset env(FOO_modshare)
+unset env(__MODULES_SHARE_FOO)
 unset env(FOO)
 
 set ans [list]
@@ -267,10 +267,10 @@ lappend ans [list setpath PATH "[string range $bigpathval 0 $bigpathtrunclen]:/u
 lappend ans [list set LOADEDMODULES $module]
 lappend ans [list set _LMFILES_ $modulefile]
 
-set ts_err "$warn_msgs: FOO exceeds 4000 characters, truncating...
-$warn_msgs: PATH exceeds 4000 characters, truncating and appending /usr/bin:/bin ...
-$warn_msgs: FOO_modshare exceeds 4000 characters, truncating...
-$warn_msgs: PATH_modshare exceeds 4000 characters, truncating..."
+set ts_err "$warn_msgs: __MODULES_SHARE_FOO exceeds 4000 characters, truncating...
+$warn_msgs: FOO exceeds 4000 characters, truncating...
+$warn_msgs: __MODULES_SHARE_PATH exceeds 4000 characters, truncating...
+$warn_msgs: PATH exceeds 4000 characters, truncating and appending /usr/bin:/bin ..."
 
 testouterr_cmd_re "csh" "load $module" $ans $ts_err
 
@@ -282,14 +282,14 @@ testouterr_cmd_re "csh" "load $module" $ans $ts_err
 set module "append/6.0"
 set modulefile "$modpath/$module"
 
-set env(FOO_modshare) "/path/to/dir2:1:/path/to/dir3:2:/path/to/dir4:1"
+set env(__MODULES_SHARE_FOO) "/path/to/dir2:1:/path/to/dir3:2:/path/to/dir4:1"
 set env(FOO) "/path/to/dir1:/path/to/dir4"
 
 set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir4:1:/path/to/dir1:2:/path/to/dir2:1"]
 lappend ans [list set FOO "/path/to/dir1:/path/to/dir4:/path/to/dir2"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
-lappend ans [list set FOO_modshare "/path/to/dir4:1:/path/to/dir1:2:/path/to/dir2:1"]
 
 # reference counter is automatically ajusted
 testouterr_cmd "sh" "load $module" $ans {}
@@ -297,10 +297,10 @@ testouterr_cmd "sh" "load $module" $ans {}
 # test incoherent state on unload mode
 setenv_loaded_module $module $modulefile
 set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir4:1"]
 lappend ans [list set FOO "/path/to/dir4"]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
-lappend ans [list set FOO_modshare "/path/to/dir4:1"]
 testouterr_cmd "sh" "unload $module" $ans {}
 
 
@@ -309,14 +309,14 @@ testouterr_cmd "sh" "unload $module" $ans {}
 #
 
 unsetenv_loaded_module
-set env(FOO_modshare) "/path/to/dir2:1:/path/to/dir3:2:/path/to/dir4:1"
+set env(__MODULES_SHARE_FOO) "/path/to/dir2:1:/path/to/dir3:2:/path/to/dir4:1"
 unset env(FOO)
 
 set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir1:1:/path/to/dir2:1"]
 lappend ans [list set FOO "/path/to/dir1:/path/to/dir2"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
-lappend ans [list set FOO_modshare "/path/to/dir1:1:/path/to/dir2:1"]
 
 # reference counter is automatically ajusted
 testouterr_cmd "sh" "load $module" $ans {}
@@ -324,10 +324,10 @@ testouterr_cmd "sh" "load $module" $ans {}
 # test incoherent state on unload mode
 setenv_loaded_module $module $modulefile
 set ans [list]
+lappend ans [list unset __MODULES_SHARE_FOO]
 lappend ans [list unset FOO]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
-lappend ans [list unset FOO_modshare]
 testouterr_cmd "sh" "unload $module" $ans {}
 
 
@@ -336,14 +336,14 @@ testouterr_cmd "sh" "unload $module" $ans {}
 #
 
 unsetenv_loaded_module
-set env(FOO_modshare) "/path/to/dir1:2:/path/to/dir3"
+set env(__MODULES_SHARE_FOO) "/path/to/dir1:2:/path/to/dir3"
 set env(FOO) "/path/to/dir1"
 
 set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir1:2:/path/to/dir2:1"]
 lappend ans [list set FOO "/path/to/dir1:/path/to/dir2"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
-lappend ans [list set FOO_modshare "/path/to/dir1:2:/path/to/dir2:1"]
 
 # reference counter ignored
 testouterr_cmd "sh" "load $module" $ans ""
@@ -351,10 +351,10 @@ testouterr_cmd "sh" "load $module" $ans ""
 # test incoherent state on unload mode
 setenv_loaded_module $module $modulefile
 set ans [list]
+lappend ans [list unset __MODULES_SHARE_FOO]
 lappend ans [list unset FOO]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
-lappend ans [list unset FOO_modshare]
 testouterr_cmd "sh" "unload $module" $ans {}
 
 
@@ -363,14 +363,14 @@ testouterr_cmd "sh" "unload $module" $ans {}
 #
 
 unsetenv_loaded_module
-set env(FOO_modshare) "/path/to/dir1:2:/path/to/dir3"
+set env(__MODULES_SHARE_FOO) "/path/to/dir1:2:/path/to/dir3"
 unset env(FOO)
 
 set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir1:1:/path/to/dir2:1"]
 lappend ans [list set FOO "/path/to/dir1:/path/to/dir2"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
-lappend ans [list set FOO_modshare "/path/to/dir1:1:/path/to/dir2:1"]
 
 # reference counter is automatically ajusted
 testouterr_cmd "sh" "load $module" $ans {}
@@ -378,10 +378,10 @@ testouterr_cmd "sh" "load $module" $ans {}
 # test incoherent state on unload mode
 setenv_loaded_module $module $modulefile
 set ans [list]
+lappend ans [list unset __MODULES_SHARE_FOO]
 lappend ans [list unset FOO]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
-lappend ans [list unset FOO_modshare]
 testouterr_cmd "sh" "unload $module" $ans {}
 
 

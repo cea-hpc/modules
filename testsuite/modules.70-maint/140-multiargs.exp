@@ -106,6 +106,7 @@ proc multi_test_case {args} {
         if {[info exists "::errlo_${m}"]} {
             set errlo [set "::errlo_${m}"]
             set erri $i
+            set errmod [set "::mod_${m}"]
             if {[info exists "::errsrc_${m}"]} {
                 set errsrc [set "::errsrc_${m}"]
             } else {
@@ -117,11 +118,17 @@ proc multi_test_case {args} {
         }
 
         if {[info exists "::setenv_${m}"]} {
-            lappend ans_lo [set "::setenv_${m}"]
-            lappend ans_src [set "::setenv_${m}"]
+            if {[lindex [set "::setenv_${m}"] 0] eq {setpath}} {
+                lappend ans_lo [list set __MODULES_SHARE_[lindex [set "::setenv_${m}"] 1] "(.*)"]
+                lappend ans_lo [list set {*}[lrange [set "::setenv_${m}"] 1 end]]
+                lappend ans_src [list set __MODULES_SHARE_[lindex [set "::setenv_${m}"] 1] "(.*)"]
+                lappend ans_src [list set {*}[lrange [set "::setenv_${m}"] 1 end]]
+            } else {
+                lappend ans_nonpath_lo [set "::setenv_${m}"]
+            }
         }
         if {[info exists "::srcenv_${m}"]} {
-            lappend ans_src [set "::srcenv_${m}"]
+            lappend ans_nonpath_src [set "::srcenv_${m}"]
         }
         if {[info exists "::unsetenv_${m}"]} {
             lappend ans_unlo [set "::unsetenv_${m}"]
@@ -162,27 +169,37 @@ proc multi_test_case {args} {
     unsetenv_loaded_module
 
     if {[info exists errlo]} {
-        if {$erri == 3} {
+        if {$erri == 1} {
+            lappend ans_lo [list set _LMFILES_ [join $modulefile ":"]]
+            lappend ans_lo [list set LOADEDMODULES [join $module ":"]]
+        } else {
             set ans_lo [lreverse $ans_lo]
-            if {[string first "module/" $mod] == 0} {
+            if {[string first "module/" $errmod] == 0} {
                 set ans_src [lreverse $ans_src]
             }
-        }
-        if {$erri == 1} {
             lappend ans_lo [list set LOADEDMODULES [join $module ":"]]
             lappend ans_lo [list set _LMFILES_ [join $modulefile ":"]]
-        } else {
-            lappend ans_lo [list set _LMFILES_ [join $modulefile ":"]]
-            lappend ans_lo [list set LOADEDMODULES [join $module ":"]]
         }
-        lappend ans_lo [list ERR]
-        lappend ans_src [list ERR]
     } else {
         set errlo ""
         set errsrc ""
-        lappend ans_lo [list set LOADEDMODULES [join $module ":"]]
         lappend ans_lo [list set _LMFILES_ [join $modulefile ":"]]
+        lappend ans_lo [list set LOADEDMODULES [join $module ":"]]
     }
+
+    if {[info exists ans_nonpath_src]} {
+        lappend ans_src {*}$ans_nonpath_src
+    }
+    if {[info exists ans_nonpath_lo]} {
+        lappend ans_lo {*}$ans_nonpath_lo
+        lappend ans_src {*}$ans_nonpath_lo
+    }
+
+    if {$errlo ne {}} {
+        lappend ans_lo [list ERR]
+        lappend ans_src [list ERR]
+    }
+
 
     testouterr_cmd_re "sh" "load $modsym" $ans_lo "$errlo"
     testouterr_cmd_re "sh" "display $modsym" $retdi "$disp"
