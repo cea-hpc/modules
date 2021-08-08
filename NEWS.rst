@@ -70,9 +70,10 @@ Modules 5.0.0-alpha (2021-07-25)
   are intended for internal use only.
 * Rename the environment variables used to indirectly pass to
   :file:`modulecmd.tcl` the value of variables set in quarantine (variables
-  whose name finishes with ``_modquar``). A ``__MODULES_QUAR_`` prefix is
-  applied to the name of these variables instead of the ``_modquar`` suffix to
-  indicate they are intended for Modules internal use of only.
+  whose name finishes with ``_modquar``). A
+  :envvar:`__MODULES_QUAR_<__MODULES_QUAR_\<VAR\>>` prefix is applied to the
+  name of these variables instead of the ``_modquar`` suffix to indicate they
+  are intended for Modules internal use of only.
 * Update Tcl requirement to version 8.5 as Tcl 8.4 is deprecated since a long
   time and this version is not available anymore on recent OS distributions.
   Update internal code of :file:`modulecmd.tcl` to take benefit from the
@@ -83,11 +84,16 @@ Modules 5.0.0-alpha (2021-07-25)
 * Record ``auto-loaded`` tag of loaded modules in :envvar:`__MODULES_LMTAG`
   environment variable rather set a specific entry for module in the
   ``__MODULES_LMNOTUASKED`` environment variable.
+* Rename the environment variables used by the reference counting mechanism
+  of path-like environment variables. A
+  :envvar:`__MODULES_SHARE_<__MODULES_SHARE_\<VAR\>>` prefix is applied to the
+  name of these variables instead of the ``_modshare`` suffix to clearly
+  indicate they are intended for Modules internal use of only.
 * Reference counting mechanism is not anymore applied to the Modules-specific
   path variables (like :envvar:`LOADEDMODULES`). As a result no
-  :envvar:`<VAR>_modshare` variable is set in user environment for these
-  variables. Exception is made for :envvar:`MODULEPATH` environment variable
-  where the mechanism still applies.
+  :envvar:`__MODULES_SHARE_\<VAR\>` variable is set in user environment for
+  these variables. Exception is made for :envvar:`MODULEPATH` environment
+  variable where the mechanism still applies.
 
 
 .. _4.8 release notes:
