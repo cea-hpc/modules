@@ -1150,6 +1150,25 @@ proc getReferenceCountArray {var separator} {
    return $count_list
 }
 
+# generate reference count value to export in user environment
+proc setReferenceCountRecordValue {sharevar countlist {unsetifempty 0}} {
+   foreach {elt refcount} $countlist {
+      # do not export elements with a reference count of 1 as no reference
+      # count entry means a reference count of 1
+      # exception made for empty string which is recorded even for a single
+      # reference count to be able to distinguish between an empty path
+      # variable and a path variable with an empty string as unique element
+      if {$refcount > 1 || $elt eq {}} {
+         lappend reclist $elt $refcount
+      }
+   }
+
+   if {[info exists reclist]} {
+      set-env $sharevar [pjoin $reclist [getState path_separator]]
+   } elseif {$unsetifempty} {
+      unset-env $sharevar 1
+   }
+}
 
 proc unload-path {args} {
    reportDebug ($args)
@@ -1252,12 +1271,7 @@ proc unload-path {args} {
    }
 
    if {$isrefcount} {
-      if {[array size countarr] > 0} {
-         set-env $sharevar [pjoin [array get countarr] [getState\
-            path_separator]]
-      } else {
-         unset-env $sharevar 1
-      }
+      setReferenceCountRecordValue $sharevar [array get countarr] 1
    }
    return {}
 }
@@ -1301,7 +1315,7 @@ proc add-path {pos args} {
 
    set-env $var $val
    if {$isrefcount} {
-      set-env $sharevar [pjoin [array get countarr] [getState path_separator]]
+      setReferenceCountRecordValue $sharevar [array get countarr]
    }
 
    return {}
