@@ -668,10 +668,10 @@ the *modulefile* is being loaded.
  the Tcl specially by enclosing it in ``" "`` or ``{ }``). A space, however,
  can not be specified by the ``--delim=C`` form.
 
- A reference counter environment variable is also set to increase the
- number of times *value* has been added to environment *variable*. This
- reference counter environment variable is named by prefixing *variable*
- by :envvar:`__MODULES_SHARE_<__MODULES_SHARE_\<VAR\>>`.
+ A reference counter environment variable is also set to know the number of
+ times *value* has been added to environment *variable* when it is added more
+ than one time. This reference counter environment variable is named by
+ prefixing *variable* by :envvar:`__MODULES_SHARE_<__MODULES_SHARE_\<VAR\>>`.
 
  When *value* is already defined in environment *variable*, it is not added
  again except if ``--duplicates`` option is set.
@@ -709,7 +709,8 @@ the *modulefile* is being loaded.
  attempting to remove *value* from *variable*, relative reference counter is
  checked and *value* is removed only if counter is equal to 1 or not defined.
  Otherwise *value* is kept in *variable* and reference counter is decreased by
- 1.
+ 1. If counter equals 1 after being decreased, *value* and its counter are
+ removed from reference counter variable.
 
  If *value* corresponds to the concatenation of multiple elements separated by
  colon, or *delimiter*, character, each element is treated separately.

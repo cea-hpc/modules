@@ -1877,12 +1877,27 @@ ENVIRONMENT
  this path has been enabled in variable :envvar:`<VAR>`. A colon separates the
  two parts of the pair.
 
+ An element of a path-like variable is added to the reference counter variable
+ as soon as it is added more than one time. When an element of a path-like
+ variable is not found in the reference counter variable, it means this
+ element has only be added once to the path-like variable.
+
+ When an empty string is added as an element in the path-like variable, it is
+ added to the reference counter variable even if added only once to
+ distinguish between an empty path-like variable and a path-like variable
+ containing an empty string as single element.
+
  .. only:: html
 
     .. versionadded:: 4.0
 
     .. versionchanged:: 5.0
        Variable renamed from ``<VAR>_modshare`` to ``__MODULES_SHARE_<VAR>``
+
+    .. versionchanged:: 5.0
+       Elements are added to the reference counter variable only if added more
+       than one time in the relative path-like variable
+
 
 .. envvar:: _LMFILES_
 

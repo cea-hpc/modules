@@ -94,7 +94,13 @@ Modules 5.0.0-alpha (2021-07-25)
   :envvar:`__MODULES_SHARE_\<VAR\>` variable is set in user environment for
   these variables. Exception is made for :envvar:`MODULEPATH` environment
   variable where the mechanism still applies.
-
+* When an element is added to a path-like variable through the
+  :mfcmd:`append-path` or :mfcmd:`prepend-path` modulefile commands, add this
+  element to the associated reference counter variable (named
+  :envvar:`__MODULES_SHARE_\<VAR\>`) only when this element is added multiple
+  times to the path-like variable. When an element is removed from a path-like
+  variable, this element is removed from the reference counter variable when
+  its counter is equal to 1.
 
 .. _4.8 release notes:
 
