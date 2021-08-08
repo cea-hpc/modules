@@ -1224,7 +1224,17 @@ proc setenv_path_var {var args} {
             incr refcnt($arg)
         }
     }
-    setenv_var __MODULES_SHARE_$var [join [array get refcnt] ":"]
+    # remove elements only added once (not to register them in ref count var)
+    foreach elt [array names refcnt] {
+        if {$refcnt($elt) == 1 && $elt ne {}} {
+            unset refcnt($elt)
+        }
+    }
+    if {[array size refcnt] > 0} {
+        setenv_var __MODULES_SHARE_$var [join [array get refcnt] ":"]
+    } else {
+        unsetenv_var __MODULES_SHARE_$var
+    }
 }
 
 proc unsetenv_loaded_module {} {

@@ -229,17 +229,17 @@ unsetenv_var __MODULES_LMCONFLICT
 setenv_path_var FOO "/path/to/g4-g1"
 
 set ans [list]
-lappend ans [list setpath FOO "/path/to/g4-g1-g2"]
-lappend ans [list set LOADEDMODULES "g1:g2:g4"]
-lappend ans [list set _LMFILES_ "$mp/g1:$mp/g2:$mp/g4"]
+lappend ans [list set FOO "/path/to/g4-g1-g2"]
 lappend ans [list set __MODULES_LMPREREQ "g4&g1|g2|g3"]
+lappend ans [list set _LMFILES_ "$mp/g1:$mp/g2:$mp/g4"]
+lappend ans [list set LOADEDMODULES "g1:g2:g4"]
 testouterr_cmd_re "sh" "load g2" $ans [msg_top_load g2 {} {} g4]
 
 set ans [list]
-lappend ans [list setpath FOO "/path/to/g4-g2"]
-lappend ans [list set LOADEDMODULES "g2:g4"]
-lappend ans [list set _LMFILES_ "$mp/g2:$mp/g4"]
+lappend ans [list set FOO "/path/to/g4-g2"]
 lappend ans [list set __MODULES_LMPREREQ "g4&g1|g2|g3"]
+lappend ans [list set _LMFILES_ "$mp/g2:$mp/g4"]
+lappend ans [list set LOADEDMODULES "g2:g4"]
 testouterr_cmd_re "sh" "switch g1 g2" $ans [msg_top_switch g1 g2 {} {} {} {} g4]
 
 # unload test that creates a prereq violation
@@ -262,10 +262,10 @@ lappend ans [list set LOADEDMODULES "g1:g4"]
 testouterr_cmd_re "sh" "load g1" $ans [msg_top_load g1 {} {} g4]
 
 set ans [list]
-lappend ans [list setpath FOO "/path/to/g4-g2:/path/to/g4-g1"]
-lappend ans [list set LOADEDMODULES "g2:g4"]
-lappend ans [list set _LMFILES_ "$mp/g2:$mp/g4"]
+lappend ans [list set FOO "/path/to/g4-g2:/path/to/g4-g1"]
 lappend ans [list set __MODULES_LMPREREQ "g4&g1|g2|g3"]
+lappend ans [list set _LMFILES_ "$mp/g2:$mp/g4"]
+lappend ans [list set LOADEDMODULES "g2:g4"]
 # g4 unload phase did not correctly unset path in FOO (still reference to g1 path)
 testouterr_cmd_re "sh" "load g2" $ans [msg_top_load g2 {} {} g4]
 
@@ -274,19 +274,19 @@ setenv_loaded_module [list g1 g2 g4] [list "$mp/g1" "$mp/g2" "$mp/g4"]
 setenv_path_var FOO "/path/to/g4-g1-g2"
 
 set ans [list]
-lappend ans [list setpath FOO "/path/to/g4-g2"]
-lappend ans [list set LOADEDMODULES "g2:g4"]
-lappend ans [list set _LMFILES_ "$mp/g2:$mp/g4"]
+lappend ans [list set FOO "/path/to/g4-g2"]
 lappend ans [list set __MODULES_LMPREREQ "g4&g1|g2|g3"]
+lappend ans [list set _LMFILES_ "$mp/g2:$mp/g4"]
+lappend ans [list set LOADEDMODULES "g2:g4"]
 testouterr_cmd_re "sh" "unload g1" $ans [msg_top_unload g1 {} {} g4]
 
 # load test that creates a conflict violation
 set ans [list]
-lappend ans [list setpath FOO "/path/to/g4-g1-g2-g3"]
-lappend ans [list set LOADEDMODULES "g1:g2:g3:g4"]
-lappend ans [list set _LMFILES_ "$mp/g1:$mp/g2:$mp/g3:$mp/g4"]
-lappend ans [list set __MODULES_LMPREREQ "g4&g1|g2|g3"]
+lappend ans [list set FOO "/path/to/g4-g1-g2-g3"]
 lappend ans [list set __MODULES_LMCONFLICT "g3&g2"]
+lappend ans [list set __MODULES_LMPREREQ "g4&g1|g2|g3"]
+lappend ans [list set _LMFILES_ "$mp/g1:$mp/g2:$mp/g3:$mp/g4"]
+lappend ans [list set LOADEDMODULES "g1:g2:g3:g4"]
 testouterr_cmd_re "sh" "load --force g3" $ans [msg_top_load g3 {} {} g4 [err_conlof g2]]
 
 # set loaded situation where a conflict violation exists
@@ -296,11 +296,11 @@ setenv_path_var FOO "/path/to/g4-g1-g2-g3"
 
 # unload test that solves a conflict violation
 set ans [list]
-lappend ans [list setpath FOO "/path/to/g4-g1-g2"]
-lappend ans [list set LOADEDMODULES "g1:g2:g4"]
-lappend ans [list set _LMFILES_ "$mp/g1:$mp/g2:$mp/g4"]
-lappend ans [list set __MODULES_LMPREREQ "g4&g1|g2|g3"]
+lappend ans [list set FOO "/path/to/g4-g1-g2"]
 lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list set __MODULES_LMPREREQ "g4&g1|g2|g3"]
+lappend ans [list set _LMFILES_ "$mp/g1:$mp/g2:$mp/g4"]
+lappend ans [list set LOADEDMODULES "g1:g2:g4"]
 testouterr_cmd_re "sh" "unload g3" $ans [msg_top_unload g3 {} {} [list g2 g4]]
 
 # set loaded situation where a conflict violation exists on main module
@@ -320,11 +320,11 @@ setenv_loaded_module [list g1 g4 g5] [list "$mp/g1" "$mp/g4" "$mp/g5"]
 # although conflict is solved g4 is not able to correctly unset previous FOO value as it was not
 # updated when conflict violation was there
 set ans [list]
-lappend ans [list setpath FOO "/path/to/g4-g1:/path/to/g4-g1-g2"]
-lappend ans [list set LOADEDMODULES "g1:g4"]
-lappend ans [list set _LMFILES_ "$mp/g1:$mp/g4"]
-lappend ans [list set __MODULES_LMPREREQ "g4&g1|g2|g3"]
+lappend ans [list set FOO "/path/to/g4-g1:/path/to/g4-g1-g2"]
 lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list set __MODULES_LMPREREQ "g4&g1|g2|g3"]
+lappend ans [list set _LMFILES_ "$mp/g1:$mp/g4"]
+lappend ans [list set LOADEDMODULES "g1:g4"]
 testouterr_cmd_re "sh" "unload g5" $ans [msg_top_unload g5 {} {} g4]
 
 

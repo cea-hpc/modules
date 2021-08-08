@@ -38,21 +38,20 @@ skip_if_quick_mode
 setenv_path_var FOO $path1
 
 set ans [list]
-lappend ans [list unsetpath FOO]
+lappend ans [list unset FOO]
 testouterr_cmd_re "sh" "remove-path FOO $path1" $ans ""
 
 
 setenv_path_var FOO $path1 $path2
 
 set ans [list]
-lappend ans [list setpath FOO "$path1"]
+lappend ans [list set FOO "$path1"]
 testouterr_cmd_re "ALL" "remove-path FOO $path2" $ans ""
 testouterr_cmd_re "sh" "remove-path -d : FOO $path2" $ans ""
 testouterr_cmd_re "sh" "remove-path --delim : FOO $path2" $ans ""
 testouterr_cmd_re "sh" "remove-path --delim=: FOO $path2" $ans ""
 
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO "$path1:1:$path2:1"]
 lappend ans [list set FOO "$path1:$path2"]
 testouterr_cmd_re "sh" "remove-path FOO $path3" $ans ""
 
@@ -61,7 +60,7 @@ unsetenv_var __MODULES_SHARE_FOO
 setenv_var FOO "$path1,$path2"
 
 set ans [list]
-lappend ans [list setpath FOO "$path1"]
+lappend ans [list set FOO "$path1"]
 testouterr_cmd_re "sh" "remove-path -d , FOO $path2" $ans ""
 testouterr_cmd_re "sh" "remove-path --delim , FOO $path2" $ans ""
 testouterr_cmd_re "sh" "remove-path --delim=, FOO $path2" $ans ""
@@ -70,7 +69,8 @@ testouterr_cmd_re "sh" "remove-path --delim=, FOO $path2" $ans ""
 setenv_path_var FOO {} $path1 $path2
 
 set ans [list]
-lappend ans [list setpath FOO "$path1:$path2"]
+lappend ans [list unset __MODULES_SHARE_FOO]
+lappend ans [list set FOO "$path1:$path2"]
 testouterr_cmd_re "sh" "remove-path FOO " $ans ""
 
 
@@ -90,7 +90,7 @@ set path1 "/path/to/dir1"
 setenv_path_var FOO $path1 "/modules/testsuite2.2" "/modules/testsuite2.2/2.2" {}
 
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO "$path1:1"]
+lappend ans [list unset __MODULES_SHARE_FOO]
 lappend ans [list set FOO "$path1"]
 testouterr_cmd_re "sh" "remove-path FOO /modules/testsuite2.2:/modules/testsuite2.2/2.2:" $ans ""
 testouterr_cmd_re "sh" "remove-path FOO /modules/testsuite2.2 /modules/testsuite2.2/2.2:" $ans ""
@@ -100,7 +100,7 @@ setenv_var __MODULES_SHARE_FOO ":1:http\\://foobar.com:1:http\\://foobar.net:1:h
 setenv_var FOO ",http://foobar.com,http://foobar.io,http://foobar.org,http://foobar.net"
 
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO "http\\://foobar.net:1:http\\://foobar.org:1"]
+lappend ans [list unset __MODULES_SHARE_FOO]
 lappend ans [list set FOO "http://foobar.org,http://foobar.net"]
 testouterr_cmd_re "sh" "remove-path -d , FOO ,http://foobar.com,http://foobar.io" $ans ""
 testouterr_cmd_re "sh" "remove-path -d , FOO ,http://foobar.com http://foobar.io" $ans ""
@@ -113,7 +113,7 @@ testouterr_cmd_re "sh" "remove-path -d , FOO ,http://foobar.com http://foobar.io
 setenv_path_var FOO $path1 "/foo" $path1
 
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO "$path1:1:/foo:1"]
+lappend ans [list unset __MODULES_SHARE_FOO]
 lappend ans [list set FOO "$path1:/foo"]
 testouterr_cmd_re "sh" "remove-path FOO $path1" $ans ""
 testouterr_cmd_re "sh" "remove-path --duplicates FOO $path1" $ans "$warn_msgs: --duplicates option has no effect on unload-path"
@@ -145,7 +145,7 @@ if {$sip_enabled} {
     lappend ans [list unset __MODULES_SHARE_DYLD_FOO]
     lappend ans [list unset DYLD_FOO]
 } else {
-    lappend ans [list set __MODULES_SHARE_DYLD_FOO "$path1:1"]
+    lappend ans [list unset __MODULES_SHARE_DYLD_FOO]
     lappend ans [list set DYLD_FOO "$path1"]
 }
 set tserr "(dyld: warning, unknown environment variable: DYLD_FOO\n|)"

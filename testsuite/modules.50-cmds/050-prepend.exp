@@ -40,9 +40,9 @@ set new_path "$ts_path:$old_path"
 #  For the different shells ...
 #
 
-lappend ans [list setpath PATH $new_path]
-lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set PATH $new_path]
 lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
 
 #
 #  The tests
@@ -66,9 +66,10 @@ set new_path "$ts_path:$old_path"
 #
 
 set ans [list]
-lappend ans [list setpath PATH $new_path]
-lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set __MODULES_SHARE_PATH :1]
+lappend ans [list set PATH $new_path]
 lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
 
 #
 #  The tests
@@ -106,15 +107,13 @@ set ts_path "/this/is/the/modules/testsuite"
 set new_path "$ts_path:$old_path"
 
 # set PATH with prefixing colon
-if { $verbose > 0 } {
-    send_user "\tSetup PATH = $old_path\n"
-}
-set env(PATH) "$old_path"
+setenv_path_var PATH {} $env(PATH)
 
 set ans [list]
-lappend ans [list setpath PATH $new_path]
-lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set __MODULES_SHARE_PATH :1]
+lappend ans [list set PATH $new_path]
 lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
 
 #
 #  The tests
@@ -157,11 +156,11 @@ testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $ts_err]
 set module "prepend/1.10"
 set modulefile "$modpath/$module"
 set ans [list]
-lappend ans [list setpath testsuite --delim=,:http://foobar.com]
-lappend ans [list setpath testsuite2 -d:,:http://foobar.com]
-lappend ans [list setpath testsuite3 -Lfoo:bar]
-lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set testsuite2 -d:,:http://foobar.com]
+lappend ans [list set testsuite3 -Lfoo:bar]
 lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set testsuite --delim=,:http://foobar.com]
 testouterr_cmd_re "sh" "load $module" $ans {}
 
 
@@ -190,7 +189,7 @@ set module2 "prepend/3.1"
 set modulefile2 "$modpath/$module2"
 
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir:1::2"]
+lappend ans [list set __MODULES_SHARE_FOO ":2"]
 lappend ans [list set FOO "/path/to/dir:"]
 lappend ans [list set _LMFILES_ "$modulefile:$modulefile2"]
 lappend ans [list set LOADEDMODULES "$module:$module2"]
@@ -198,7 +197,7 @@ lappend ans [list set LOADEDMODULES "$module:$module2"]
 testouterr_cmd_re "sh" "load $module $module2" $ans ""
 
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir:1::2"]
+lappend ans [list set __MODULES_SHARE_FOO ":2"]
 lappend ans [list set FOO "/path/to/dir:"]
 lappend ans [list set _LMFILES_ "$modulefile2:$modulefile"]
 lappend ans [list set LOADEDMODULES "$module2:$module"]
@@ -214,11 +213,10 @@ set module "prepend/2.3"
 set modulefile "$modpath/$module"
 set old_path "/path/to/dir1"
 
-set env(__MODULES_SHARE_FOO) "$old_path:1"
-set env(FOO) $old_path
+setenv_path_var FOO $old_path
 
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO ":1:/modules/testsuite2.2/2.2:1:$old_path:1:/modules/testsuite2.2:1"]
+lappend ans [list set __MODULES_SHARE_FOO ":1"]
 lappend ans [list set FOO ":/modules/testsuite2.2:/modules/testsuite2.2/2.2:$old_path"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
@@ -234,7 +232,7 @@ set module "prepend/2.4"
 set modulefile "$modpath/$module"
 
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO ":1:/modules/testsuite2.2/2.2:1:$old_path:1:/modules/testsuite2.2:1"]
+lappend ans [list set __MODULES_SHARE_FOO ":1"]
 lappend ans [list set FOO ":/modules/testsuite2.2:/modules/testsuite2.2/2.2:$old_path"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]

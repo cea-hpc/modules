@@ -124,9 +124,9 @@ setenv_var __MODULES_LMALTNAME $cdlmalt
 
 set ans [list]
 lappend ans [list set __MODULES_LMALTNAME $c1lmalt]
-lappend ans [list setpath MODULEPATH $c1modpath]
-lappend ans [list set LOADEDMODULES $c1lm $c1lmnodefault]
 lappend ans [list set _LMFILES_ $c1lmf $c1lmfnodefault]
+lappend ans [list set LOADEDMODULES $c1lm $c1lmnodefault]
+lappend ans [list set MODULEPATH $c1modpath]
 
 testouterr_cmd_re "ALL" "restore $coll1" $ans "$c1errmsg"
 
@@ -166,7 +166,7 @@ setenv_loaded_module [split $c2lm ":"] [split $c2lmf ":"]
 setenv_var __MODULES_LMALTNAME $c2lmalt
 
 set ans [list]
-lappend ans [list setpath MODULEPATH $c3modpath]
+lappend ans [list set MODULEPATH $c3modpath]
 
 testouterr_cmd_re "ALL" "restore $coll3" $ans "$c3errmsg"
 
@@ -232,19 +232,19 @@ unsetenv_var __MODULES_LMALTNAME
 
 if {$install_implicitdefault eq {y}} {
     set ans [list]
-    lappend ans [list set testsuite "yes"]
-    lappend ans [list set LOADEDMODULES $c6lm]
-    lappend ans [list set _LMFILES_ $c6lmf]
-    lappend ans [list setpath MODULEPATH $c6modpath]
     lappend ans [list set __MODULES_LMALTNAME $c6lmalt]
+    lappend ans [list set _LMFILES_ $c6lmf]
+    lappend ans [list set LOADEDMODULES $c6lm]
+    lappend ans [list set testsuite "yes"]
+    lappend ans [list set MODULEPATH $c6modpath]
     set c6errmsg "Loading dvcross/dir1/1.0\nLoading dcross/dir1/3.0\nLoading cross/6.0\nLoading novercross"
 } else {
     set ans [list]
-    lappend ans [list set testsuite "yes"]
-    lappend ans [list set LOADEDMODULES $c6lmnodefault]
-    lappend ans [list set _LMFILES_ $c6lmfnodefault]
-    lappend ans [list setpath MODULEPATH $c6modpath]
     lappend ans [list set __MODULES_LMALTNAME $c6lmalt]
+    lappend ans [list set _LMFILES_ $c6lmfnodefault]
+    lappend ans [list set LOADEDMODULES $c6lmnodefault]
+    lappend ans [list set testsuite "yes"]
+    lappend ans [list set MODULEPATH $c6modpath]
     lappend ans [list ERR]
     set c6errmsg "$err_nodefault'dvcross'\nLoading dcross/dir1/3.0\nLoading cross/6.0\nLoading novercross"
 }
@@ -261,21 +261,23 @@ setenv_loaded_module [list {} {}] [list {} {}]
 
 if {$install_implicitdefault eq {y}} {
     set ans [list]
-    lappend ans [list set testsuite "yes"]
-    lappend ans [list set LOADEDMODULES "::$c6lm"]
-    lappend ans [list set _LMFILES_ "::$c6lmf"]
-    # empty dir elements are ignored but stick to the variable, they should be removed
-    lappend ans [list setpath MODULEPATH "::$c6modpath"]
     lappend ans [list set __MODULES_LMALTNAME $c6lmalt]
+    lappend ans [list set _LMFILES_ "::$c6lmf"]
+    lappend ans [list set LOADEDMODULES "::$c6lm"]
+    lappend ans [list set testsuite "yes"]
+    # empty dir elements are ignored but stick to the variable, they should be removed
+    lappend ans [list set __MODULES_SHARE_MODULEPATH ":2"]
+    lappend ans [list set MODULEPATH "::$c6modpath"]
     set c6errmsg "Loading dvcross/dir1/1.0\nLoading dcross/dir1/3.0\nLoading cross/6.0\nLoading novercross"
 } else {
     set ans [list]
-    lappend ans [list set testsuite "yes"]
-    lappend ans [list set LOADEDMODULES "::$c6lmnodefault"]
-    lappend ans [list set _LMFILES_ "::$c6lmfnodefault"]
-    # empty dir elements are ignored but stick to the variable, they should be removed
-    lappend ans [list setpath MODULEPATH "::$c6modpath"]
     lappend ans [list set __MODULES_LMALTNAME $c6lmalt]
+    lappend ans [list set _LMFILES_ "::$c6lmfnodefault"]
+    lappend ans [list set LOADEDMODULES "::$c6lmnodefault"]
+    lappend ans [list set testsuite "yes"]
+    # empty dir elements are ignored but stick to the variable, they should be removed
+    lappend ans [list set __MODULES_SHARE_MODULEPATH ":2"]
+    lappend ans [list set MODULEPATH "::$c6modpath"]
     lappend ans [list ERR]
     set c6errmsg "$err_nodefault'dvcross'\nLoading dcross/dir1/3.0\nLoading cross/6.0\nLoading novercross"
 }
@@ -306,10 +308,10 @@ testouterr_cmd_re "sh" "restore $coll7fp" $ans $c7errmsg
 setenv_path_var MODULEPATH $modpath
 
 set ans [list]
-lappend ans [list set testsuite "yes"]
-lappend ans [list set LOADEDMODULES $c7lm]
 lappend ans [list set _LMFILES_ $c7lmf]
-lappend ans [list unsetpath MODULEPATH]
+lappend ans [list set LOADEDMODULES $c7lm]
+lappend ans [list set testsuite "yes"]
+lappend ans [list unset MODULEPATH]
 
 testouterr_cmd_re "sh" "restore $coll7fp" $ans $c7errmsg
 
@@ -321,10 +323,10 @@ testouterr_cmd_re "sh" "restore $coll7fp" $ans $c7errmsg
 unsetenv_path_var MODULEPATH
 
 set ans [list]
-lappend ans [list set testsuite "yes"]
-lappend ans [list set LOADEDMODULES $c8lm]
 lappend ans [list set _LMFILES_ $c8lmf]
-lappend ans [list setpath MODULEPATH $c8modpath]
+lappend ans [list set LOADEDMODULES $c8lm]
+lappend ans [list set testsuite "yes"]
+lappend ans [list set MODULEPATH $c8modpath]
 
 testouterr_cmd_re "sh" "restore $coll8fp" $ans $c8errmsg
 
@@ -334,10 +336,10 @@ testouterr_cmd_re "sh" "restore $coll8fp" $ans $c8errmsg
 #
 
 set ans [list]
-lappend ans [list set LOADEDMODULES $c9lm]
 lappend ans [list set _LMFILES_ $c9lmf]
-lappend ans [list setpath MODULEPATH $c9modpath]
+lappend ans [list set LOADEDMODULES $c9lm]
 lappend ans [list set __MODULES_LMTAG $c9lmnua]
+lappend ans [list set MODULEPATH $c9modpath]
 
 testouterr_cmd_re "sh" "restore $coll9fp" $ans $c9errmsg
 
@@ -347,10 +349,10 @@ testouterr_cmd_re "sh" "restore $coll9fp" $ans $c9errmsg
 #
 
 set ans [list]
-lappend ans [list set LOADEDMODULES $c9lm]
 lappend ans [list set _LMFILES_ $c9lmf]
-lappend ans [list setpath MODULEPATH $c9modpath]
+lappend ans [list set LOADEDMODULES $c9lm]
 lappend ans [list set __MODULES_LMTAG $c9lmnua]
+lappend ans [list set MODULEPATH $c9modpath]
 
 testouterr_cmd_re "sh" "restore $coll10fp" $ans $c10errmsg
 
@@ -407,9 +409,9 @@ eval setenv_path_var MODULEPATH [split $c9modpath ":"]
 setenv_loaded_module [split $c9lm ":"] [split $c9lmf ":"]
 
 set ans [list]
-lappend ans [list setpath MODULEPATH $c12modpath]
-lappend ans [list set LOADEDMODULES $c12lm]
 lappend ans [list set _LMFILES_ $c12lmf]
+lappend ans [list set LOADEDMODULES $c12lm]
+lappend ans [list set MODULEPATH $c12modpath]
 lappend ans [list ERR]
 testouterr_cmd_re sh "restore $coll12fp" $ans $c12errmsg
 
@@ -461,9 +463,9 @@ setenv_loaded_module [split $cdlm ":"] [split $cdlmf ":"]
 unsetenv_var MODULES_COLLECTION_TARGET
 
 set ans [list]
-lappend ans [list setpath MODULEPATH $modpath:$modpath.2]
-lappend ans [list set LOADEDMODULES $c2lm:$modpath.2/restore]
 lappend ans [list set _LMFILES_ $c2lmf:$modpath.2/restore]
+lappend ans [list set LOADEDMODULES $c2lm:$modpath.2/restore]
+lappend ans [list set MODULEPATH $modpath:$modpath.2]
 
 if {$plus_in_modpath && $install_advversspec eq {y}} {
     setenv_var MODULES_ADVANCED_VERSION_SPEC 0
@@ -534,17 +536,17 @@ unsetenv_loaded_module
 unsetenv_var __MODULES_LMPREREQ
 
 set ans [list]
-lappend ans [list setpath MODULEPATH $c15modpath]
-lappend ans [list set LOADEDMODULES $c15lm]
-lappend ans [list set _LMFILES_ $c15lmf]
 lappend ans [list set __MODULES_LMALTNAME $c15lmalt]
+lappend ans [list set _LMFILES_ $c15lmf]
+lappend ans [list set LOADEDMODULES $c15lm]
+lappend ans [list set MODULEPATH $c15modpath]
 testouterr_cmd_re sh "restore $coll15fp" $ans $c15errmsg
 
 set ans [list]
-lappend ans [list setpath MODULEPATH $c16modpath]
-lappend ans [list set LOADEDMODULES $c16lm]
-lappend ans [list set _LMFILES_ $c16lmf]
 lappend ans [list set __MODULES_LMALTNAME $c16lmalt]
+lappend ans [list set _LMFILES_ $c16lmf]
+lappend ans [list set LOADEDMODULES $c16lm]
+lappend ans [list set MODULEPATH $c16modpath]
 testouterr_cmd_re sh "restore $coll16fp" $ans $c16errmsg
 
 }
@@ -554,13 +556,13 @@ testouterr_cmd_re sh "restore $coll16fp" $ans $c16errmsg
 #
 
 set ans [list]
-lappend ans [list set testsuite "yes"]
-lappend ans [list setpath MODULEPATH $c17modpath]
-lappend ans [list set LOADEDMODULES $c17lm]
-lappend ans [list set _LMFILES_ $c17lmf]
+lappend ans [list unset mload]
 lappend ans [list set __MODULES_LMALTNAME loc_rc1/1.0&loc_rc1/foo]
 lappend ans [list set t15 t15]
-lappend ans [list unset mload]
+lappend ans [list set _LMFILES_ $c17lmf]
+lappend ans [list set LOADEDMODULES $c17lm]
+lappend ans [list set testsuite "yes"]
+lappend ans [list set MODULEPATH $c17modpath]
 testouterr_cmd_re sh "restore $coll17fp" $ans $c17errmsg
 
 
@@ -578,39 +580,39 @@ setenv_var MODULES_IMPLICIT_DEFAULT 1
 
 setenv_var TESTSUITE_VARIANT coll19
 set ans [list]
-lappend ans [list setpath MODULEPATH $c19modpath]
-lappend ans [list set LOADEDMODULES $c19lm]
-lappend ans [list set _LMFILES_ $c19lmf]
 lappend ans [list set __MODULES_LMVARIANT $c19lmvr]
 lappend ans [list set __MODULES_LMALTNAME $c19lmalt]
+lappend ans [list set _LMFILES_ $c19lmf]
+lappend ans [list set LOADEDMODULES $c19lm]
+lappend ans [list set MODULEPATH $c19modpath]
 testouterr_cmd_re sh "restore $coll19fp" $ans $c19errmsg
 
 setenv_var TESTSUITE_VARIANT coll20
 set ans [list]
-lappend ans [list setpath MODULEPATH $c20modpath]
-lappend ans [list set LOADEDMODULES $c20lm]
-lappend ans [list set _LMFILES_ $c20lmf]
 lappend ans [list set __MODULES_LMVARIANT $c20lmvr]
 lappend ans [list set __MODULES_LMALTNAME $c20lmalt]
+lappend ans [list set _LMFILES_ $c20lmf]
+lappend ans [list set LOADEDMODULES $c20lm]
+lappend ans [list set MODULEPATH $c20modpath]
 testouterr_cmd_re sh "restore $coll20fp" $ans $c20errmsg
 
 setenv_var TESTSUITE_VARIANT coll22
 set ans [list]
-lappend ans [list setpath MODULEPATH $c22modpath]
-lappend ans [list set LOADEDMODULES $c22lm]
-lappend ans [list set _LMFILES_ $c22lmf]
 lappend ans [list set __MODULES_LMVARIANT $c22lmvr]
 lappend ans [list set __MODULES_LMALTNAME $c22lmalt]
+lappend ans [list set _LMFILES_ $c22lmf]
+lappend ans [list set LOADEDMODULES $c22lm]
+lappend ans [list set MODULEPATH $c22modpath]
 testouterr_cmd_re sh "restore $coll22fp" $ans $c22errmsg
 
 setenv_var TESTSUITE_VARIANT coll26
 set ans [list]
-lappend ans [list setpath MODULEPATH $c26modpath]
-lappend ans [list set LOADEDMODULES $c26lm]
-lappend ans [list set _LMFILES_ $c26lmf]
-lappend ans [list set __MODULES_LMTAG $c26lmnua]
 lappend ans [list set __MODULES_LMVARIANT $c26lmvr]
 lappend ans [list set __MODULES_LMALTNAME $c26lmalt]
+lappend ans [list set _LMFILES_ $c26lmf]
+lappend ans [list set LOADEDMODULES $c26lm]
+lappend ans [list set __MODULES_LMTAG $c26lmnua]
+lappend ans [list set MODULEPATH $c26modpath]
 testouterr_cmd_re sh "restore $coll26fp" $ans $c26errmsg
 
 # test restoring variant with advanced_version_spec disabled
@@ -618,9 +620,9 @@ setenv_var MODULES_ADVANCED_VERSION_SPEC 0
 
 setenv_var TESTSUITE_VARIANT coll19
 set ans [list]
-lappend ans [list setpath MODULEPATH $c19modpath]
-lappend ans [list set _LMFILES_ $c19modpath1/$c19mod2]
 lappend ans [list set LOADEDMODULES $c19mod2]
+lappend ans [list set _LMFILES_ $c19modpath1/$c19mod2]
+lappend ans [list set MODULEPATH $c19modpath]
 lappend ans [list ERR]
 testouterr_cmd_re sh "restore $coll19fp" $ans "[msg_load variant/1.0 [err_novarval {bar } {{} val1 val2}]]
 
@@ -639,7 +641,6 @@ lappend ans [list set _LMFILES_ $c26modpath1/$c26mod2:$c26modpath1/$c26mod3]
 lappend ans [list set LOADEDMODULES $c26mod2:$c26mod3]
 lappend ans [list set __MODULES_LMTAG $c26mod2&auto-loaded]
 lappend ans [list set MODULEPATH $c26modpath]
-lappend ans [list set __MODULES_SHARE_MODULEPATH $c26modpath:1]
 lappend ans [list ERR]
 testouterr_cmd_re sh "restore $coll26fp" $ans "[escre [msg_load {variant/1.0} [err_novarval {fo o} {val1 val2 {v?l1 }}]]]
 
@@ -700,7 +701,6 @@ set ans [list]
 lappend ans [list set _LMFILES_ $c26modpath1/$c26mod2]
 lappend ans [list set LOADEDMODULES $c26mod2]
 lappend ans [list set MODULEPATH $c26modpath1]
-lappend ans [list set __MODULES_SHARE_MODULEPATH $c26modpath1:1]
 lappend ans [list ERR]
 testouterr_cmd_re sh "restore $coll29fp" $ans [msg_load variant/1.0{unk=val} [err_unkvar unk]]\n\n[msg_load foo/1.0]
 

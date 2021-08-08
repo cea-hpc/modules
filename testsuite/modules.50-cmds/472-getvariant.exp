@@ -33,21 +33,21 @@ setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 
 setenv_var TESTSUITE_VARIANT 1
 set ans [list]
-lappend ans [list setpath TS0 {foo=val 4:bar=2:b?r =:f* o=}]
-lappend ans [list setpath TS1 {foo=val 4:bar=2:b?r =:f* o= ef*ult}]
 lappend ans [list set __MODULES_LMVARIANT {variant/5.0&foo|val 4|0|0&bar|2|0|2&b?r ||0|0}]
-lappend ans [list set LOADEDMODULES variant/5.0]
+lappend ans [list set TS1 {foo=val 4:bar=2:b?r =:f* o= ef*ult}]
 lappend ans [list set _LMFILES_ $mp/variant/5.0]
+lappend ans [list set LOADEDMODULES variant/5.0]
+lappend ans [list set TS0 {foo=val 4:bar=2:b?r =:f* o=}]
 testouterr_cmd_re sh {load variant/5.0 foo=val\ 4 b?r\ =} $ans {}
 
 skip_if_quick_mode
 
 setenv_var TESTSUITE_VARIANT 2
 set ans [list]
-lappend ans [list setpath TS0 {foo=:bar=}]
-lappend ans [list setpath TS1 {foo=default:bar=de *ult}]
-lappend ans [list set LOADEDMODULES variant/5.0]
+lappend ans [list set TS1 {foo=default:bar=de *ult}]
 lappend ans [list set _LMFILES_ $mp/variant/5.0]
+lappend ans [list set LOADEDMODULES variant/5.0]
+lappend ans [list set TS0 {foo=:bar=}]
 testouterr_cmd_re sh {load variant/5.0} $ans {}
 
 setenv_var MODULES_ADVANCED_VERSION_SPEC 0
@@ -66,11 +66,11 @@ setenv_path_var TS0 {foo=val 4:bar=2:b?r =:f* o=}
 setenv_path_var TS1 {foo=val 4:bar=2:b?r =:f* o= ef*ult}
 
 set ans [list]
-lappend ans [list unsetpath TS0]
-lappend ans [list unsetpath TS1]
-lappend ans [list unset LOADEDMODULES]
-lappend ans [list unset _LMFILES_]
 lappend ans [list unset __MODULES_LMVARIANT]
+lappend ans [list unset TS1]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset TS0]
 testouterr_cmd sh {unload variant/5.0} $ans {}
 testouterr_cmd sh {unload variant/5.0 b?r\ =} $ans {}
 

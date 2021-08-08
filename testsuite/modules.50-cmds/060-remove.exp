@@ -46,9 +46,9 @@ set env(PATH) "$new_path"
 #  For the different shells ...
 #
 
-lappend ans [list setpath PATH $old_path]
-lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set PATH $old_path]
 lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
 
 #
 #  The tests
@@ -92,11 +92,11 @@ setenv_path_var testsuite2 , foo
 set module "remove/1.8"
 set modulefile "$modpath/$module"
 set ans [list]
-lappend ans [list unsetpath testsuite]
-lappend ans [list setpath testsuite2 foo]
+lappend ans [list set testsuite2 foo]
 lappend ans [list unset testsuite3]
-lappend ans [list set LOADEDMODULES $module]
 lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list unset testsuite]
 testouterr_cmd_re "sh" "load $module" $ans {}
 unsetenv_path_var testsuite
 unsetenv_path_var testsuite2
@@ -109,11 +109,11 @@ unsetenv_path_var testsuite2
 set module "remove/2.3"
 set modulefile "$modpath/$module"
 
-set env(__MODULES_SHARE_FOO) ":1:/modules/testsuite2.2/2.2:1:/path/to/dir1:1:/modules/testsuite2.2:1"
+set env(__MODULES_SHARE_FOO) ":1"
 set env(FOO) "/path/to/dir1:/modules/testsuite2.2:/modules/testsuite2.2/2.2:"
 
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir1:1"]
+lappend ans [list unset __MODULES_SHARE_FOO]
 lappend ans [list set FOO "/path/to/dir1"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
@@ -128,7 +128,7 @@ set module "remove/2.4"
 set modulefile "$modpath/$module"
 
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir1:1"]
+lappend ans [list unset __MODULES_SHARE_FOO]
 lappend ans [list set FOO "/path/to/dir1"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
@@ -166,37 +166,33 @@ unset env(__MODULES_SHARE_FOO)
 set env(FOO) "/path/to/dir1:/path/to/dir2:/path/to/dir1"
 
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir2:1"]
 lappend ans [list set FOO "/path/to/dir2"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
 
 testouterr_cmd "sh" "load $module" $ans ""
 
-set env(__MODULES_SHARE_FOO) "/path/to/dir1:1:/path/to/dir2:1"
-
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir2:1"]
 lappend ans [list set FOO "/path/to/dir2"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
 
 testouterr_cmd "sh" "load $module" $ans ""
 
-set env(__MODULES_SHARE_FOO) "/path/to/dir1:2:/path/to/dir2:1"
+set env(__MODULES_SHARE_FOO) "/path/to/dir1:2"
 
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir1:1:/path/to/dir2:1"]
+lappend ans [list unset __MODULES_SHARE_FOO]
 lappend ans [list set FOO "/path/to/dir1:/path/to/dir2"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
 
 testouterr_cmd "sh" "load $module" $ans ""
 
-set env(__MODULES_SHARE_FOO) "/path/to/dir1:3:/path/to/dir2:1"
+set env(__MODULES_SHARE_FOO) "/path/to/dir1:3"
 
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir1:2:/path/to/dir2:1"]
+lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir1:2"]
 lappend ans [list set FOO "/path/to/dir1:/path/to/dir2:/path/to/dir1"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
@@ -206,11 +202,11 @@ testouterr_cmd "sh" "load $module" $ans ""
 set module "remove/3.1"
 set modulefile "$modpath/$module"
 
-set env(__MODULES_SHARE_FOO) "/path/to/dir1:2:/path/to/dir2:1"
+set env(__MODULES_SHARE_FOO) "/path/to/dir1:2"
 set env(FOO) "/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir1"
 
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir1:1:/path/to/dir2:1"]
+lappend ans [list unset __MODULES_SHARE_FOO]
 lappend ans [list set FOO "/path/to/dir1:/path/to/dir2"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
@@ -243,7 +239,7 @@ lappend ans [list set LOADEDMODULES $module]
 # out of bound
 testouterr_cmd "sh" "load $module" $ans ""
 
-set env(__MODULES_SHARE_FOO) "/path/to/dir1:2:/path/to/dir2:1"
+set env(__MODULES_SHARE_FOO) "/path/to/dir1:2"
 set env(FOO) "/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir1"
 
 set ans [list]
@@ -258,7 +254,7 @@ set env(__MODULES_SHARE_FOO) "/path/to/dir1:2:/path/to/dir2:2"
 set env(FOO) "/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir1"
 
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir1:2:/path/to/dir2:1"]
+lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir1:2"]
 lappend ans [list set FOO "/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir1"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
@@ -272,18 +268,17 @@ set env(__MODULES_SHARE_FOO) "/path/to/dir1:2:/path/to/dir2:2"
 set env(FOO) "/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir1"
 
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir1:1:/path/to/dir2:1"]
+lappend ans [list unset __MODULES_SHARE_FOO]
 lappend ans [list set FOO "/path/to/dir1:/path/to/dir2:/path/to/dir1"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
 
 testouterr_cmd "sh" "load $module" $ans ""
 
-set env(__MODULES_SHARE_FOO) "/path/to/dir1:1"
+unset env(__MODULES_SHARE_FOO)
 set env(FOO) "/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir1"
 
 set ans [list]
-lappend ans [list unset __MODULES_SHARE_FOO]
 lappend ans [list set FOO "/path/to/dir1:/path/to/dir1"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
@@ -296,7 +291,6 @@ testouterr_cmd "sh" "load $module" $ans ""
 #
 
 set env(PATH) "$old_path"
-unset env(__MODULES_SHARE_FOO)
 unset env(FOO)
 
 #

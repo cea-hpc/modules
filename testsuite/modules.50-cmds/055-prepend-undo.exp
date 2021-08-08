@@ -47,9 +47,9 @@ setenv_loaded_module $module $modulefile
 #  For the different shells ...
 #
 
-lappend ans [list setpath PATH $old_path]
-lappend ans [list unset LOADEDMODULES]
+lappend ans [list set PATH $old_path]
 lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 
 #
 #  The tests
@@ -71,14 +71,19 @@ set new_path "$ts_path:$old_path"
 #  Set up the environment for reversal ...
 #
 
-set env(PATH) "$new_path"
+setenv_path_var PATH $ts_path $old_path
 setenv_loaded_module $module $modulefile
 
 #
 #  For the different shells ...
 #
 
-# same result content as above
+set ans [list]
+lappend ans [list unset __MODULES_SHARE_PATH]
+lappend ans [list set PATH $old_path]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+
 
 #
 #  The tests
@@ -108,7 +113,7 @@ set new_path "$ts_path:$old_path"
 # as adding bare colon leads to error, this module can never be loaded
 # but anyway here we test that the unloading part of "append-path" also
 # leads to error
-set env(PATH) "$new_path"
+setenv_path_var PATH {} {} $old_path
 setenv_loaded_module $module $modulefile
 
 #
@@ -128,16 +133,14 @@ set modulefile "$modpath/$module"
 set ts_path "/this/is/the/modules/testsuite::$old_path"
 set new_path ":$old_path"
 
-if { $verbose > 0 } {
-    send_user "\tSetup PATH = $ts_path\n"
-}
-set env(PATH) "$ts_path"
+setenv_path_var PATH /this/is/the/modules/testsuite {} $old_path
 setenv_loaded_module $module $modulefile
 
 set ans [list]
-lappend ans [list setpath PATH $new_path]
-lappend ans [list unset LOADEDMODULES]
+lappend ans [list set __MODULES_SHARE_PATH :1]
+lappend ans [list set PATH $new_path]
 lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
 
 #
 #  The tests
@@ -186,11 +189,11 @@ setenv_loaded_module $module $modulefile
 setenv_path_var testsuite --delim=,
 setenv_path_var testsuite2 , foo
 set ans [list]
-lappend ans [list unsetpath testsuite]
-lappend ans [list setpath testsuite2 foo]
+lappend ans [list set testsuite2 foo]
 lappend ans [list unset testsuite3]
-lappend ans [list unset LOADEDMODULES]
 lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset testsuite]
 testouterr_cmd_re "sh" "unload $module" $ans {}
 unsetenv_path_var testsuite
 unsetenv_path_var testsuite2
@@ -219,7 +222,7 @@ set module2 "prepend/3.1"
 set modulefile2 "$modpath/$module2"
 
 
-set env(__MODULES_SHARE_FOO) "/path/to/dir:1::2"
+set env(__MODULES_SHARE_FOO) ":2"
 set env(FOO) "/path/to/dir:"
 setenv_loaded_module [list $module $module2] [list $modulefile $modulefile2]
 
@@ -240,7 +243,7 @@ lappend ans [list set LOADEDMODULES $module]
 testouterr_cmd "sh" "unload $module2" $ans ""
 
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir:1::1"]
+lappend ans [list set __MODULES_SHARE_FOO ":1"]
 lappend ans [list set FOO "/path/to/dir:"]
 lappend ans [list set _LMFILES_ $modulefile2]
 lappend ans [list set LOADEDMODULES $module2]
@@ -248,7 +251,7 @@ lappend ans [list set LOADEDMODULES $module2]
 testouterr_cmd "sh" "unload $module" $ans ""
 
 
-set env(__MODULES_SHARE_FOO) "/path/to/dir:1::2"
+set env(__MODULES_SHARE_FOO) ":2"
 set env(FOO) "/path/to/dir:"
 setenv_loaded_module [list $module2 $module] [list $modulefile2 $modulefile]
 
@@ -269,7 +272,7 @@ lappend ans [list set LOADEDMODULES $module]
 testouterr_cmd "sh" "unload $module2" $ans ""
 
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir:1::1"]
+lappend ans [list set __MODULES_SHARE_FOO ":1"]
 lappend ans [list set FOO "/path/to/dir:"]
 lappend ans [list set _LMFILES_ $modulefile2]
 lappend ans [list set LOADEDMODULES $module2]
@@ -284,12 +287,12 @@ testouterr_cmd "sh" "unload $module" $ans ""
 set module "prepend/2.3"
 set modulefile "$modpath/$module"
 
-set env(__MODULES_SHARE_FOO) ":1:/modules/testsuite2.2/2.2:1:/path/to/dir1:1:/modules/testsuite2.2:1"
+set env(__MODULES_SHARE_FOO) ":1"
 set env(FOO) ":/modules/testsuite2.2:/modules/testsuite2.2/2.2:/path/to/dir1"
 setenv_loaded_module [list $module] [list $modulefile]
 
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO "/path/to/dir1:1"]
+lappend ans [list unset __MODULES_SHARE_FOO]
 lappend ans [list set FOO "/path/to/dir1"]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]

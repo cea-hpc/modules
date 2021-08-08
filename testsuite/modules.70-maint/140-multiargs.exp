@@ -119,9 +119,7 @@ proc multi_test_case {args} {
 
         if {[info exists "::setenv_${m}"]} {
             if {[lindex [set "::setenv_${m}"] 0] eq {setpath}} {
-                lappend ans_lo [list set __MODULES_SHARE_[lindex [set "::setenv_${m}"] 1] "(.*)"]
                 lappend ans_lo [list set {*}[lrange [set "::setenv_${m}"] 1 end]]
-                lappend ans_src [list set __MODULES_SHARE_[lindex [set "::setenv_${m}"] 1] "(.*)"]
                 lappend ans_src [list set {*}[lrange [set "::setenv_${m}"] 1 end]]
             } else {
                 lappend ans_nonpath_lo [set "::setenv_${m}"]
@@ -131,7 +129,11 @@ proc multi_test_case {args} {
             lappend ans_nonpath_src [set "::srcenv_${m}"]
         }
         if {[info exists "::unsetenv_${m}"]} {
-            lappend ans_unlo [set "::unsetenv_${m}"]
+            if {[lindex [set "::unsetenv_${m}"] 0] eq {setpath}} {
+                lappend ans_unlo [list set {*}[lrange [set "::unsetenv_${m}"] 1 end]]
+            } else {
+                lappend ans_nonpath_unlo [set "::unsetenv_${m}"]
+            }
         }
 
         append disp "\n$modfilere:\n\n"
@@ -213,8 +215,12 @@ proc multi_test_case {args} {
     # setup environment for unload action
     setenv_loaded_module $module $modulefile
 
-    lappend ans_unlo [list unset LOADEDMODULES]
     lappend ans_unlo [list unset _LMFILES_]
+    lappend ans_unlo [list unset LOADEDMODULES]
+
+    if {[info exists ans_nonpath_unlo]} {
+        lappend ans_unlo {*}$ans_nonpath_unlo
+    }
 
     # bad mod is stuck loaded
     testouterr_cmd_re "sh" "unload $modsym" $ans_unlo ""

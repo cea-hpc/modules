@@ -40,12 +40,12 @@ setenv_path_var TS2 bar-foo
 
 # unload module specifying it fully or partially
 set ans [list]
-lappend ans [list unset TS0]
-lappend ans [list unsetpath TS1]
-lappend ans [list unsetpath TS2]
-lappend ans [list unset LOADEDMODULES]
-lappend ans [list unset _LMFILES_]
 lappend ans [list unset __MODULES_LMVARIANT]
+lappend ans [list unset TS1]
+lappend ans [list unset TS2]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset TS0]
 testouterr_cmd sh {unload variant} $ans {}
 testouterr_cmd sh {unload variant bar=2} $ans {}
 testouterr_cmd sh {unload variant bar=2 foo=val1} $ans {}
@@ -175,13 +175,13 @@ testouterr_cmd sh {unload variant/4.0 foo=val1 bar=2} OK {}
 # with default value for variant
 setenv_var TESTSUITE_VARIANT 2
 set ans [list]
-lappend ans [list unset TS0]
-lappend ans [list unsetpath TS1]
-# TS2 is kept set as value computed on unload evaluation differs from loaded value
-lappend ans [list setpath TS2 bar]
-lappend ans [list unset LOADEDMODULES]
-lappend ans [list unset _LMFILES_]
 lappend ans [list unset __MODULES_LMVARIANT]
+lappend ans [list unset TS1]
+# TS2 is kept set as value computed on unload evaluation differs from loaded value
+lappend ans [list set TS2 bar]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset TS0]
 testouterr_cmd sh {unload variant} $ans {variant}
 testouterr_cmd sh {unload variant bar=2} $ans {variant bar=2}
 testouterr_cmd sh {unload variant/4.0 foo=val1 bar=2} OK {}
@@ -237,21 +237,19 @@ setenv_path_var TS2 {bar-foo}
 
 # switch to same modulefile but different variant value
 set ans [list]
-lappend ans [list set TS0 {bar foo}]
-lappend ans [list setpath TS1 {bar=1:foo=val2}]
-lappend ans [list setpath TS2 bar-foo]
 lappend ans [list set __MODULES_LMVARIANT variant/4.0&foo|val2|0|0&bar|1|0|0]
-lappend ans [list set LOADEDMODULES variant/4.0]
+lappend ans [list set TS1 {bar=1:foo=val2}]
+lappend ans [list set TS2 bar-foo]
 lappend ans [list set _LMFILES_ $mp/variant/4.0]
+lappend ans [list set LOADEDMODULES variant/4.0]
+lappend ans [list set TS0 {bar foo}]
 testouterr_cmd_re sh {switch variant/4.0 bar=1 foo=val2} $ans {}
 
 # unknown variant on switched-on module
 set ans [list]
 lappend ans [list unset TS1]
-lappend ans [list unset __MODULES_SHARE_TS1]
 lappend ans [list unset __MODULES_LMVARIANT]
 lappend ans [list unset TS2]
-lappend ans [list unset __MODULES_SHARE_TS2]
 lappend ans [list unset LOADEDMODULES]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset TS0]
@@ -287,30 +285,30 @@ setenv_var TS0 {bar foo}
 setenv_path_var TS1 {bar=2:foo=val1}
 setenv_path_var TS2 {bar-foo}
 set ans [list]
-lappend ans [list unset TS0]
-lappend ans [list unsetpath TS1]
-lappend ans [list unsetpath TS2]
 lappend ans [list set __MODULES_LMVARIANT variant/6.0&foo|val1|0|0&bar|2|0|0]
-lappend ans [list set LOADEDMODULES variant/6.0]
+lappend ans [list unset TS1]
+lappend ans [list unset TS2]
 lappend ans [list set _LMFILES_ $mp/variant/6.0]
+lappend ans [list set LOADEDMODULES variant/6.0]
+lappend ans [list unset TS0]
 testouterr_cmd sh {switch variant/6.0 bar=2 foo=val1} $ans {}
 set ans [list]
-lappend ans [list unset TS0]
-lappend ans [list unsetpath TS1]
-lappend ans [list unsetpath TS2]
 lappend ans [list set __MODULES_LMVARIANT variant/6.0&foo|val2|0|0&bar|1|0|0]
-lappend ans [list set LOADEDMODULES variant/6.0]
+lappend ans [list unset TS1]
+lappend ans [list unset TS2]
 lappend ans [list set _LMFILES_ $mp/variant/6.0]
+lappend ans [list set LOADEDMODULES variant/6.0]
+lappend ans [list unset TS0]
 testouterr_cmd sh {switch variant/6.0 bar=1 foo=val2} $ans {}
 
 setenv_var TESTSUITE_VARIANT 10
 set ans [list]
-lappend ans [list unset TS0]
-lappend ans [list unsetpath TS1]
-lappend ans [list unsetpath TS2]
 lappend ans [list set __MODULES_LMVARIANT variant/6.0&baz|val3|0|0]
-lappend ans [list set LOADEDMODULES variant/6.0]
+lappend ans [list unset TS1]
+lappend ans [list unset TS2]
 lappend ans [list set _LMFILES_ $mp/variant/6.0]
+lappend ans [list set LOADEDMODULES variant/6.0]
+lappend ans [list unset TS0]
 testouterr_cmd sh {switch variant/6.0 baz=val3} $ans {}
 
 

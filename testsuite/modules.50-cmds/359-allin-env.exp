@@ -99,19 +99,19 @@ set tsall ",dir2,dir2:dir1,,altered,dir2,altered,ok8,ok9"
 set ans [list]
 lappend ans [list unset ts1]
 lappend ans [list set ts2 "dir2"]
+lappend ans [list set _LMFILES_ "$modulefile/1:$modulefile/2"]
+lappend ans [list set LOADEDMODULES "$module/1:$module/2"]
 lappend ans [list set ts3 "dir2:dir1"]
 lappend ans [list set ts4 ""]
-lappend ans [list setpath TSPATH dir2]
+lappend ans [list set TSPATH dir2]
 lappend ans [list set ts5 "altered"]
 lappend ans [list set ts6 "dir2"]
 lappend ans [list set ts7 "altered"]
+lappend ans [list set TSPATH2 ok8]
 lappend ans [list set ts8 "ok8"]
-lappend ans [list set ts9 "ok9"]
-lappend ans [list setpath TSPATH2 ok8]
-lappend ans [list setpath TSPATH3 "ok8:ok9"]
-lappend ans [list set LOADEDMODULES "$module/1:$module/2"]
-lappend ans [list set _LMFILES_ "$modulefile/1:$modulefile/2"]
+lappend ans [list set TSPATH3 "ok8:ok9"]
 lappend ans [list set tsall $tsall]
+lappend ans [list set ts9 "ok9"]
 # env changes spread to next loaded modulefiles
 testouterr_cmd_re "sh" "load $module/1 $module/2" $ans ""
 
@@ -129,6 +129,25 @@ setenv_path_var TSPATH2 "ok8"
 setenv_path_var TSPATH3 "ok8:ok9"
 setenv_var tsall $tsall
 
+set ans [list]
+lappend ans [list unset ts1]
+lappend ans [list set ts2 "dir2"]
+lappend ans [list set _LMFILES_ "$modulefile/1:$modulefile/2"]
+lappend ans [list set LOADEDMODULES "$module/1:$module/2"]
+lappend ans [list set ts3 "dir2:dir1"]
+lappend ans [list set ts4 ""]
+lappend ans [list set TSPATH dir2]
+lappend ans [list set ts5 "altered"]
+lappend ans [list set ts6 "dir2"]
+lappend ans [list set ts7 "altered"]
+lappend ans [list set TSPATH2 ok8]
+lappend ans [list set TSPATH3 "ok8:ok9"]
+lappend ans [list set ts8 "ok8"]
+lappend ans [list set tsall $tsall]
+lappend ans [list set ts9 "ok9"]
+lappend ans [list set __MODULES_SHARE_TSPATH dir2:2]
+lappend ans [list set __MODULES_SHARE_TSPATH2 ok8:2]
+lappend ans [list set __MODULES_SHARE_TSPATH3 ok8:2:ok9:2]
 testouterr_cmd_re "sh" "load $module/1 $module/2" $ans ""
 
 
@@ -149,19 +168,16 @@ lappend ans [list unset ts4]
 lappend ans [list unset TSPATH]
 lappend ans [list unset ts5]
 lappend ans [list unset ts6]
-lappend ans [list unset TSPATH2]
 lappend ans [list unset ts7]
+lappend ans [list unset TSPATH2]
 lappend ans [list set TSPATH3 ok8]
 lappend ans [list unset ts8]
 lappend ans [list unset tsall]
 lappend ans [list unset ts9]
-lappend ans [list unset __MODULES_SHARE_TSPATH]
-lappend ans [list unset __MODULES_SHARE_TSPATH2]
-lappend ans [list set __MODULES_SHARE_TSPATH3 "ok8:1"]
 testouterr_cmd "sh" "unload $module/1 $module/2" $ans ""
 
 # test with module loaded but vanished env vars
-unsetenv_var ts2 
+unsetenv_var ts2
 unsetenv_var ts3
 unsetenv_var ts4
 unsetenv_path_var TSPATH
@@ -243,7 +259,7 @@ testouterr_cmd_re "sh" "display $module/1 $module/2" "" $tserr
 
 # restore environment
 unsetenv_loaded_module
-unsetenv_var ts2 
+unsetenv_var ts2
 unsetenv_var ts3
 unsetenv_var ts4
 unsetenv_path_var TSPATH
@@ -285,7 +301,7 @@ testouterr_cmd_re "sh" "help $module/1 $module/2" "" $tserr
 
 # restore environment
 unsetenv_loaded_module
-unsetenv_var ts2 
+unsetenv_var ts2
 unsetenv_var ts3
 unsetenv_var ts4
 unsetenv_path_var TSPATH
@@ -327,7 +343,7 @@ testouterr_cmd_re "sh" "test $module/1 $module/2" "" $tserr
 
 # restore environment
 unsetenv_loaded_module
-unsetenv_var ts2 
+unsetenv_var ts2
 unsetenv_var ts3
 unsetenv_var ts4
 unsetenv_path_var TSPATH
@@ -373,7 +389,7 @@ testouterr_cmd_re "sh" "whatis $module" "" $whatis
 
 # restore environment
 unsetenv_loaded_module
-unsetenv_var ts2 
+unsetenv_var ts2
 unsetenv_var ts3
 unsetenv_var ts4
 unsetenv_path_var TSPATH
