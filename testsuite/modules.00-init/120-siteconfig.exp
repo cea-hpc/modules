@@ -330,8 +330,25 @@ lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
 testouterr_cmd "cmd" "load $module" $ans ""
 
-set env(PATH) $ORIG_PATH
-unset env(__MODULES_SHARE_PATH)
+set env(PATH) "/path/to/dir1;/this/is/the/modules/testsuite"
+
+set ans [list]
+lappend ans [list set __MODULES_SHARE_PATH "/this/is/the/modules/testsuite;2"]
+lappend ans [list set PATH "/path/to/dir1;/this/is/the/modules/testsuite"]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+testouterr_cmd "cmd" "load $module" $ans ""
+
+set env(__MODULES_SHARE_PATH) "/this/is/the/modules/testsuite;2"
+
+set ans [list]
+lappend ans [list set __MODULES_SHARE_PATH "/this/is/the/modules/testsuite;3"]
+lappend ans [list set PATH "/path/to/dir1;/this/is/the/modules/testsuite"]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+testouterr_cmd "cmd" "load $module" $ans ""
+
+setenv_path_var PATH $ORIG_PATH
 
 # restore environment
 if { $verbose > 0 } {
