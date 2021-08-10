@@ -438,9 +438,18 @@ Module Sub-Commands
  *delimiter*, separated list. See :mfcmd:`append-path` in the
  :ref:`modulefile(4)` man page for further explanation.
 
+ When :subcmd:`append-path` is called as a module sub-command, the reference
+ counter variable, which denotes the number of times *value* has been added to
+ environment *variable*, is not updated unless if the ``--duplicates`` option
+ is set.
+
  .. only:: html
 
     .. versionadded:: 4.1
+
+    .. versionchanged:: 5.0
+       Reference counter environment variable is not updated anymore unless if
+       the ``--duplicates`` option is set
 
 .. subcmd:: apropos [-a] [-j] string
 
@@ -1064,9 +1073,18 @@ Module Sub-Commands
  *delimiter*, separated list. See :mfcmd:`prepend-path` in the
  :ref:`modulefile(4)` man page for further explanation.
 
+ When :subcmd:`prepend-path` is called as a module sub-command, the reference
+ counter variable, which denotes the number of times *value* has been added to
+ environment *variable*, is not updated unless if the ``--duplicates`` option
+ is set.
+
  .. only:: html
 
     .. versionadded:: 4.1
+
+    .. versionchanged:: 5.0
+       Reference counter environment variable is not updated anymore unless if
+       the ``--duplicates`` option is set
 
 .. subcmd:: purge [-f]
 
@@ -1102,9 +1120,17 @@ Module Sub-Commands
  *variable*. See :mfcmd:`remove-path` in the :ref:`modulefile(4)` man page for
  further explanation.
 
+ When :subcmd:`remove-path` is called as a module sub-command, the reference
+ counter variable, which denotes the number of times *value* has been added to
+ environment *variable*, is ignored and *value* is removed whatever the
+ reference counter value set.
+
  .. only:: html
 
     .. versionadded:: 4.1
+
+    .. versionchanged:: 5.0
+       *value* is removed whatever its reference counter value
 
 .. subcmd:: restore [collection]
 
@@ -1332,16 +1358,22 @@ Module Sub-Commands
 .. subcmd:: unuse directory...
 
  Remove one or more *directories* from the :envvar:`MODULEPATH` environment
- variable if reference counter of these *directories* is equal to 1
- or unknown.
+ variable.
 
- Reference counter of *directory* in :envvar:`MODULEPATH` denotes the number
- of times *directory* has been enabled. When attempting to remove *directory*
- from :envvar:`MODULEPATH`, reference counter variable
- :envvar:`__MODULES_SHARE_MODULEPATH<__MODULES_SHARE_\<VAR\>>` is checked and
- *directory* is removed only if its relative counter is equal to 1 or not
- defined. Otherwise *directory* is kept and reference counter is decreased by
- 1.
+ If :mfcmd:`module unuse<module>` is called during a modulefile evaluation,
+ the reference counter environment variable
+ :envvar:`__MODULES_SHARE_MODULEPATH<__MODULES_SHARE_\<VAR\>>`, which denotes
+ the number of times *directory* has been enabled, is checked and *directory*
+ is removed only if its relative counter is equal to 1 or not defined.
+ Otherwise *directory* is kept and reference counter is decreased by 1.  When
+ :subcmd:`module unuse<unuse>` is called from the command-line or within an
+ initialization modulefile script *directory* is removed whatever the
+ reference counter value set.
+
+    .. versionchanged:: 5.0
+       *directory* is removed whatever its reference counter value if
+       :subcmd:`module unuse<unuse>` is called from the command-line or within
+       an initialization modulefile script
 
 .. subcmd:: use [-a|--append] directory...
 
@@ -1349,10 +1381,13 @@ Module Sub-Commands
  variable.  The ``--append`` flag will append the *directory* to
  :envvar:`MODULEPATH`.
 
- Reference counter environment variable
+ If :mfcmd:`module use<module>` is called during a modulefile evaluation, the
+ reference counter environment variable
  :envvar:`__MODULES_SHARE_MODULEPATH<__MODULES_SHARE_\<VAR\>>` is also set to
  increase the number of times *directory* has been added to
- :envvar:`MODULEPATH`.
+ :envvar:`MODULEPATH`. Reference counter is not updated when
+ :subcmd:`module use<use>` is called from the command-line or within an
+ initialization modulefile script.
 
  A *directory* that does not exist yet can be specified as argument and then
  be added to :envvar:`MODULEPATH`.
@@ -1362,6 +1397,10 @@ Module Sub-Commands
     .. versionchanged:: 5.0
        Accept non-existent modulepath
 
+    .. versionchanged:: 5.0
+       Reference counter value of *directory* is not anymore increased if
+       :subcmd:`module use<use>` is called from the command-line or within an
+       initialization modulefile script
 
 .. subcmd:: whatis [-a] [-j] [modulefile...]
 
