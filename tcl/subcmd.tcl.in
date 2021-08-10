@@ -1618,13 +1618,19 @@ proc cmdModuleUse {pos args} {
             # the current work directory. except if this path starts with a
             # variable reference
             if {[string index $path 0] ne {$}} {
-               set path [getAbsolutePath $path]
+               lappend pathlist [getAbsolutePath $path]
+            } else {
+               lappend pathlist $path
             }
-            # added directory may not exist at this time
-            lappendState mode load
-            catch {add-path $pos MODULEPATH $path}
-            lpopState mode
          }
+      }
+
+      # added directory may not exist at this time
+      # pass all paths specified at once to add-path
+      if {[info exists pathlist]} {
+         lappendState mode load
+         catch {add-path $pos MODULEPATH {*}$pathlist}
+         lpopState mode
       }
    }
 }
@@ -1635,45 +1641,30 @@ proc cmdModuleUnuse {args} {
    if {$args eq {}} {
       showModulePath
    } else {
-      foreach path $args {
-         # get current module path list
-         # no absolute path conversion for the moment
-         if {![info exists modpathlist]} {
-            set modpathlist [getModulePathList returnempty 0 0]
-         }
+      # get current module path list
+      set modpathlist [getModulePathList returnempty 0 0]
 
-         # skip empty string
+      foreach path $args {
          if {$path eq {}} {
             reportError [getEmptyNameMsg directory]
-            continue
-         }
-
-         # transform given path in an absolute path which should have been
-         # registered in the MODULEPATH env var. however for compatibility
-         # with previous behavior where relative paths were registered in
-         # MODULEPATH given path is first checked against current path list
-         set abspath [getAbsolutePath $path]
-         if {$path in $modpathlist} {
-            set unusepath $path
-         } elseif {$abspath in $modpathlist} {
-            set unusepath $abspath
          } else {
-            set unusepath {}
-         }
-
-         if {$unusepath ne {}} {
-            lappendState mode unload
-            catch {
-               unload-path MODULEPATH $unusepath
-            }
-            lpopState mode
-
-            # refresh path list after unload
-            set modpathlist [getModulePathList returnempty 0 0]
-            if {$unusepath in $modpathlist} {
-               reportWarning "Did not unuse $unusepath"
+            if {$path in $modpathlist} {
+               lappend pathlist $path
+            # transform given path in an absolute path which should have been
+            # registered in the MODULEPATH env var. however for compatibility
+            # with previous behavior where relative paths were registered in
+            # MODULEPATH given path is first checked against current path list
+            } elseif {[set abspath [getAbsolutePath $path]] in $modpathlist} {
+               lappend pathlist $abspath
             }
          }
+      }
+
+      # pass all paths specified at once to unload-path
+      if {[info exists pathlist]} {
+         lappendState mode unload
+         catch {unload-path MODULEPATH {*}$pathlist}
+         lpopState mode
       }
    }
 }
