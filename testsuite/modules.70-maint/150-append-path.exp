@@ -43,7 +43,6 @@ if { $verbose > 0 } {
 set env(FOO) $path1
 
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO "$path1:2"]
 lappend ans [list set FOO "$path1"]
 testouterr_cmd_re "sh" "append-path FOO $path1" $ans ""
 
@@ -67,7 +66,6 @@ if { $verbose > 0 } {
 set env(FOO) "$path1:$path2"
 
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO "$path2:2"]
 lappend ans [list set FOO "$path1:$path2"]
 testouterr_cmd_re "sh" "append-path FOO $path2" $ans ""
 
@@ -123,6 +121,7 @@ if { $verbose > 0 } {
 set env(FOO) $path1
 
 set ans [list]
+# reference counter is increased due to the duplication mode
 lappend ans [list set __MODULES_SHARE_FOO "$path1:2"]
 lappend ans [list set FOO "$path1:$path1"]
 testouterr_cmd_re "sh" "append-path --duplicates FOO $path1" $ans ""
@@ -151,10 +150,10 @@ if {$sip_enabled} {
 } else {
     set ans [list]
     lappend ans [list set __MODULES_SHARE_DYLD_FOO "$path1:2"]
-    lappend ans [list set DYLD_FOO "$path1"]
+    lappend ans [list set DYLD_FOO "$path1:$path1"]
 }
 set tserr "(dyld: warning, unknown environment variable: DYLD_FOO\n|)"
-testouterr_cmd_re "sh" "append-path DYLD_FOO $path1" $ans $tserr
+testouterr_cmd_re "sh" "append-path --duplicates DYLD_FOO $path1" $ans $tserr
 
 
 #

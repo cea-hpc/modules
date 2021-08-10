@@ -101,12 +101,11 @@ testouterr_cmd "ALL" "$use" "OK" "$path_list_header\n  $path\n  $modpath"
 
 setenv_var __MODULES_SHARE_MODULEPATH "$path:2"
 
-# dir not removed if ref counter > 1, should be changed in next major version
-# as commands sends from the command-line should by-pass any ref counter
+# command sent from the command-line by-pass any ref counter
 set ans [list]
 lappend ans [list unset __MODULES_SHARE_MODULEPATH]
-lappend ans [list set MODULEPATH "$path:$modpath"]
-testouterr_cmd "sh" "$use $path" $ans "$warn_msgs: Did not unuse $path"
+lappend ans [list set MODULEPATH "$modpath"]
+testouterr_cmd "sh" "$use $path" $ans {}
 
 unsetenv_var __MODULES_SHARE_MODULEPATH
 

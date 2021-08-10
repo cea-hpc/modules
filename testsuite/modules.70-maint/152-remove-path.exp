@@ -114,7 +114,7 @@ setenv_path_var FOO $path1 "/foo" $path1
 
 set ans [list]
 lappend ans [list unset __MODULES_SHARE_FOO]
-lappend ans [list set FOO "$path1:/foo"]
+lappend ans [list set FOO /foo]
 testouterr_cmd_re "sh" "remove-path FOO $path1" $ans ""
 testouterr_cmd_re "sh" "remove-path --duplicates FOO $path1" $ans "$warn_msgs: --duplicates option has no effect on unload-path"
 
@@ -135,7 +135,7 @@ testouterr_cmd_re "sh" "remove-path --index FOO 1" $ans ""
 #
 
 setenv_var __MODULES_SHARE_DYLD_FOO "$path1:2"
-setenv_var DYLD_FOO $path1
+setenv_var DYLD_FOO $path1:$path2
 
 set ans [list]
 # path-variable handling not effective on OSX with DYLD variables when System
@@ -146,12 +146,13 @@ if {$sip_enabled} {
     lappend ans [list unset DYLD_FOO]
 } else {
     lappend ans [list unset __MODULES_SHARE_DYLD_FOO]
-    lappend ans [list set DYLD_FOO "$path1"]
+    lappend ans [list set DYLD_FOO $path2]
 }
 set tserr "(dyld: warning, unknown environment variable: DYLD_FOO\n|)"
 testouterr_cmd_re "sh" "remove-path DYLD_FOO $path1" $ans $tserr
 
 setenv_var __MODULES_SHARE_DYLD_FOO "$path1:1"
+setenv_var DYLD_FOO $path1
 
 set ans [list]
 lappend ans [list unset __MODULES_SHARE_DYLD_FOO]
@@ -199,7 +200,7 @@ testouterr_cmd_re sh "remove-path FOO $path3" $ans {}
 setenv_var __MODULES_SHARE_FOO $path1:2
 set ans [list]
 lappend ans [list unset __MODULES_SHARE_FOO]
-lappend ans [list set FOO $path1:$path2]
+lappend ans [list set FOO $path2]
 testouterr_cmd_re sh "remove-path FOO $path1" $ans {}
 set ans [list]
 lappend ans [list set __MODULES_SHARE_FOO $path1:2]
@@ -213,8 +214,8 @@ testouterr_cmd_re sh "remove-path FOO $path3" $ans {}
 # __MODULES_SHARE_ ref counter variable is updated
 setenv_var __MODULES_SHARE_FOO $path1:3
 set ans [list]
-lappend ans [list set __MODULES_SHARE_FOO $path1:2]
-lappend ans [list set FOO $path1:$path2]
+lappend ans [list unset __MODULES_SHARE_FOO]
+lappend ans [list set FOO $path2]
 testouterr_cmd_re sh "remove-path FOO $path1" $ans {}
 set ans [list]
 lappend ans [list set __MODULES_SHARE_FOO $path1:3]
