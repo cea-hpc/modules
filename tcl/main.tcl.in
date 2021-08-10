@@ -99,6 +99,17 @@ proc ongoingCommandName {commandName} {
    return [expr {[lsearch -exact [getState commandname] $commandName] != -1}]
 }
 
+# Know if we are currently at the top evaluation level: (1) at the modulecmd
+# level (module command written by user in terminal or script) or (2) during
+# the evaluation of rc or modulefile by a source or autoinit sub-command
+# triggered from modulecmd level or (3) during the evaluation of global rc
+# file. (2) and (3) are considered "extended" top evaluation contexts.
+proc isTopEvaluation {{extended 1}} {
+   return [expr {[depthState modulename] == 0 || ($extended && [depthState\
+      modulename] == 1 && ([aboveCommandName] in {source autoinit} ||\
+      [isStateDefined rc_running]))}]
+}
+
 # analyze/translate command name passed to module
 proc parseModuleCommandName {command defaultcmd} {
    set cmdempty 0
@@ -327,7 +338,7 @@ proc module {command args} {
    reportDebug "cmd='$command', args='$args'"
 
    # guess if called from top level
-   set topcall [expr {[depthState modulename] == 0}]
+   set topcall [isTopEvaluation 0]
    set tryhelpmsg [expr {$topcall ? "\nTry 'module --help' for more\
       information." : {}}]
    if {$topcall} {
@@ -453,9 +464,7 @@ proc module {command args} {
             set ret 0
             # if top command is source, consider module load commands made
             # within sourced file evaluation as top load command
-            if {$topcall || ([depthState modulename] == 1 && (
-               [aboveCommandName] eq {source} || [aboveCommandName] eq\
-               {autoinit} || [isStateDefined rc_running]))} {
+            if {[isTopEvaluation]} {
                set ret [cmdModuleLoad load 1 {*}$args]
             } elseif {$mode eq {load}} {
                # load here if try-load or no auto mode (done through prereq
@@ -516,9 +525,7 @@ proc module {command args} {
       unload {
          # if top command is source, consider module load commands made
          # within sourced file evaluation as top load command
-         if {$topcall || ([depthState modulename] == 1 && (
-            [aboveCommandName] eq {source} || [aboveCommandName] eq\
-            {autoinit} || [isStateDefined rc_running]))} {
+         if {[isTopEvaluation]} {
             set ret [cmdModuleUnload unload match 1 0 0 0 {*}$args]
          } elseif {$mode eq {load}} {
             # unload mods only on load mode, nothing done on unload mode as
@@ -562,9 +569,7 @@ proc module {command args} {
       }
       switch {
          # pass 'user asked state' to switch procedure
-         set uasked [expr {$topcall || ([depthState modulename] == 1 &&\
-            ([aboveCommandName] eq {source} || [aboveCommandName] eq\
-            {autoinit} || [isStateDefined rc_running]))}]
+         set uasked [isTopEvaluation]
          if {$uasked} {
             cmdModuleSwitch $uasked {*}$args
          } else {
