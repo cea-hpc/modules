@@ -1898,8 +1898,19 @@ proc cmdModuleResurface {cmd args} {
    lappendState mode load
    lappendState commandname $cmd
 
+   set optlist [list]
+   switch -- $cmd {
+      prepend-path - append-path - remove-path {
+         # by-pass any reference counter, as call is from top level
+         # append/prepend-path: not to increase reference counter if paths are
+         # already defined. remove-path: to ensure paths are removed whatever
+         # their reference counter value
+         lappend optlist --ignore-refcount
+      }
+   }
+
    # run modulefile command and get its result
-   if {[catch {$cmd {*}$args} res]} {
+   if {[catch {$cmd {*}$optlist {*}$args} res]} {
       # report error if any and return false
       reportError $res
    } else {
