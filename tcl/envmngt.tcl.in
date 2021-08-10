@@ -1176,7 +1176,7 @@ proc unload-path {args} {
    reportDebug ($args)
 
    lassign [parsePathCommandArgs unload-path {*}$args] separator allow_dup\
-      idx_val var path_list
+      idx_val ign_refcount var path_list
 
    # no reference count management when no share variable is returned
    set isrefcount [expr {[set sharevar [getModshareVarName $var]] ne {}}]
@@ -1215,10 +1215,17 @@ proc unload-path {args} {
 
       # update reference counter array
       if {[info exists countarr($dir)]} {
-         incr countarr($dir) -1
-         set newcount $countarr($dir)
+         # unload value in any case if counter ignored (--ignore-refcount set)
+         if {$ign_refcount} {
+            set countarr($dir) 0
+         } else {
+            incr countarr($dir) -1
+         }
          if {$countarr($dir) <= 0} {
             unset countarr($dir)
+            set newcount 0
+         } else {
+            set newcount $countarr($dir)
          }
       } else {
          set newcount 0
@@ -1282,7 +1289,7 @@ proc add-path {pos args} {
    reportDebug "($args) pos=$pos"
 
    lassign [parsePathCommandArgs add-path {*}$args] separator allow_dup\
-      idx_val var path_list
+      idx_val ign_refcount var path_list
 
    # no reference count management when no share variable is returned
    set isrefcount [expr {[set sharevar [getModshareVarName $var]] ne {}}]
@@ -1309,7 +1316,11 @@ proc add-path {pos args} {
          }
       }
       if {[info exists countarr($dir)]} {
-         incr countarr($dir)
+         # do not increase counter if it is ignored (--ignore-refcount set)
+         # unless if duplicate mode is enabled (--duplicates set)
+         if {!$ign_refcount || $allow_dup} {
+            incr countarr($dir)
+         }
       } else {
          set countarr($dir) 1
       }
@@ -1330,6 +1341,7 @@ proc parsePathCommandArgs {cmd args} {
    set next_is_delim 0
    set allow_dup 0
    set idx_val 0
+   set ign_refcount 0
    foreach arg $args {
       # everything passed after variable name is considered a value
       if {[info exists var]} {
@@ -1356,6 +1368,9 @@ proc parsePathCommandArgs {cmd args} {
             }
             --delim=* {
                set delim [string range $arg 8 end]
+            }
+            --ignore-refcount {
+               set ign_refcount 1
             }
             -* {
                knerror "invalid option '$arg' for $cmd"
@@ -1410,9 +1425,10 @@ proc parsePathCommandArgs {cmd args} {
    }
 
    reportDebug "(delim=$delim, allow_dup=$allow_dup, idx_val=$idx_val,\
-      var=$var, val=$val_list, nbval=[llength $val_list])"
+      ign_refcount=$ign_refcount, var=$var, val=$val_list, nbval=[llength\
+      $val_list])"
 
-   return [list $delim $allow_dup $idx_val $var $val_list]
+   return [list $delim $allow_dup $idx_val $ign_refcount $var $val_list]
 }
 
 # ;;; Local Variables: ***
