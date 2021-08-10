@@ -26,5 +26,16 @@
 #			
 ##############################################################################
 
-module use --append $env(TESTSUITEDIR)/modulefiles.2
+if {[info exists env(TESTSUITE_REFCOUNT)]} {
+    switch -- $env(TESTSUITE_REFCOUNT) {
+        usemulti1 {
+            module use --append $env(TESTSUITEDIR)/modulefiles.2 /foo:/bar
+        }
+        usemulti2 {
+            module use --append $env(TESTSUITEDIR)/modulefiles.2:/foo /bar
+        }
+    }
+} else {
+    module use --append $env(TESTSUITEDIR)/modulefiles.2
+}
 

@@ -179,6 +179,130 @@ lappend ans [list ERR]
 testouterr_cmd "ALL" "unload $module8" $ans [msg_unload $module8 $err_emptydirname]
 
 #
+# __MODULES_SHARE_ ref counter variable tests
+#
+
+setenv_loaded_module $module2 $modulefile2
+setenv_path_var MODULEPATH $path1 $path2
+
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list set MODULEPATH $path1]
+testouterr_cmd sh "unload $module2" $ans {}
+
+setenv_var TESTSUITE_REFCOUNT usemulti1
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list set MODULEPATH $path1]
+testouterr_cmd sh "unload $module2" $ans {}
+setenv_var TESTSUITE_REFCOUNT usemulti2
+#FIXME: joined paths are not correctly unset
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $module2" $ans {}
+unsetenv_var TESTSUITE_REFCOUNT
+
+# erroneous __MODULES_SHARE_ ref counter variable is fixed
+setenv_var __MODULES_SHARE_MODULEPATH $path2:1
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_SHARE_MODULEPATH]
+lappend ans [list set MODULEPATH $path1]
+testouterr_cmd sh "unload $module2" $ans {}
+
+setenv_var TESTSUITE_REFCOUNT usemulti1
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_SHARE_MODULEPATH]
+lappend ans [list set MODULEPATH $path1]
+testouterr_cmd sh "unload $module2" $ans {}
+setenv_var TESTSUITE_REFCOUNT usemulti2
+#FIXME: joined paths are not correctly unset
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $module2" $ans {}
+unsetenv_var TESTSUITE_REFCOUNT
+
+# erroneous __MODULES_SHARE_ ref counter variable is fixed
+setenv_var __MODULES_SHARE_MODULEPATH $path2:0
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_SHARE_MODULEPATH]
+lappend ans [list set MODULEPATH $path1]
+testouterr_cmd sh "unload $module2" $ans {}
+
+setenv_var TESTSUITE_REFCOUNT usemulti1
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_SHARE_MODULEPATH]
+lappend ans [list set MODULEPATH $path1]
+testouterr_cmd sh "unload $module2" $ans {}
+setenv_var TESTSUITE_REFCOUNT usemulti2
+#FIXME: joined paths are not correctly unset
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $module2" $ans {}
+unsetenv_var TESTSUITE_REFCOUNT
+
+# __MODULES_SHARE_ ref counter variable is updated
+setenv_var __MODULES_SHARE_MODULEPATH $path2:2
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_SHARE_MODULEPATH]
+lappend ans [list set MODULEPATH $path1:$path2]
+testouterr_cmd sh "unload $module2" $ans {}
+
+setenv_var TESTSUITE_REFCOUNT usemulti1
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_SHARE_MODULEPATH]
+lappend ans [list set MODULEPATH $path1:$path2]
+testouterr_cmd sh "unload $module2" $ans {}
+setenv_var TESTSUITE_REFCOUNT usemulti2
+#FIXME: joined paths are not correctly unset
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $module2" $ans {}
+unsetenv_var TESTSUITE_REFCOUNT
+
+# __MODULES_SHARE_ ref counter variable is updated
+setenv_var __MODULES_SHARE_MODULEPATH $path2:3
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list set __MODULES_SHARE_MODULEPATH $path2:2]
+lappend ans [list set MODULEPATH $path1:$path2]
+testouterr_cmd sh "unload $module2" $ans {}
+
+setenv_var TESTSUITE_REFCOUNT usemulti1
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list set __MODULES_SHARE_MODULEPATH $path2:2]
+lappend ans [list set MODULEPATH $path1:$path2]
+testouterr_cmd sh "unload $module2" $ans {}
+setenv_var TESTSUITE_REFCOUNT usemulti2
+#FIXME: joined paths are not correctly unset
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $module2" $ans {}
+unsetenv_var TESTSUITE_REFCOUNT
+
+
+#
 #  Cleanup
 #
 

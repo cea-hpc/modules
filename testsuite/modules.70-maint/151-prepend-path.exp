@@ -30,6 +30,7 @@ if {[info exists env(FOO)]} {
 
 set path1 "/path/to/dir1"
 set path2 "/path/other/dir2"
+set path3 "/path/other/dir3"
 
 lappend ans [list set FOO $path1]
 
@@ -143,6 +144,10 @@ set ans [list]
 lappend ans [list unset __MODULES_SHARE_FOO]
 lappend ans [list set FOO $path2:$path1]
 testouterr_cmd_re sh "prepend-path FOO $path2" $ans {}
+set ans [list]
+lappend ans [list unset __MODULES_SHARE_FOO]
+lappend ans [list set FOO $path2:$path3:$path1]
+testouterr_cmd_re sh "prepend-path FOO $path1 $path2:$path3" $ans {}
 
 # erroneous __MODULES_SHARE_ ref counter variable is fixed
 setenv_var __MODULES_SHARE_FOO $path1:0
@@ -154,6 +159,10 @@ set ans [list]
 lappend ans [list unset __MODULES_SHARE_FOO]
 lappend ans [list set FOO $path2:$path1]
 testouterr_cmd_re sh "prepend-path FOO $path2" $ans {}
+set ans [list]
+lappend ans [list unset __MODULES_SHARE_FOO]
+lappend ans [list set FOO $path2:$path3:$path1]
+testouterr_cmd_re sh "prepend-path FOO $path1 $path2:$path3" $ans {}
 
 # __MODULES_SHARE_ ref counter variable is unset when updated
 setenv_var __MODULES_SHARE_FOO $path1:2
@@ -165,6 +174,10 @@ set ans [list]
 lappend ans [list set __MODULES_SHARE_FOO $path1:2]
 lappend ans [list set FOO $path2:$path1]
 testouterr_cmd_re sh "prepend-path FOO $path2" $ans {}
+set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO $path1:2]
+lappend ans [list set FOO $path2:$path3:$path1]
+testouterr_cmd_re sh "prepend-path FOO $path1 $path2:$path3" $ans {}
 
 # __MODULES_SHARE_ ref counter variable is updated
 setenv_var __MODULES_SHARE_FOO $path1:3
@@ -176,6 +189,61 @@ set ans [list]
 lappend ans [list set __MODULES_SHARE_FOO $path1:3]
 lappend ans [list set FOO $path2:$path1]
 testouterr_cmd_re sh "prepend-path FOO $path2" $ans {}
+set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO $path1:3]
+lappend ans [list set FOO $path2:$path3:$path1]
+testouterr_cmd_re sh "prepend-path FOO $path1:$path2 $path3" $ans {}
+
+# duplicate elements in path variable + coherent __MODULES_SHARE_ ref counter variable
+setenv_var FOO $path1:$path2:$path1
+setenv_var __MODULES_SHARE_FOO $path1:2
+set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO $path1:2]
+lappend ans [list set FOO $path1:$path2:$path1]
+testouterr_cmd_re sh "prepend-path FOO $path1" $ans {}
+testouterr_cmd_re sh "prepend-path FOO $path2" $ans {}
+set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO $path1:2]
+lappend ans [list set FOO $path3:$path1:$path2:$path1]
+testouterr_cmd_re sh "prepend-path FOO $path1:$path2:$path3" $ans {}
+
+# duplicate elements in path variable + erroneous __MODULES_SHARE_ ref counter variable (0)
+setenv_var __MODULES_SHARE_FOO $path1:0
+set ans [list]
+# ref counter is not fixed whereas duplicate entries are still there
+lappend ans [list unset __MODULES_SHARE_FOO]
+lappend ans [list set FOO $path1:$path2:$path1]
+testouterr_cmd_re sh "prepend-path FOO $path1" $ans {}
+testouterr_cmd_re sh "prepend-path FOO $path2" $ans {}
+set ans [list]
+lappend ans [list unset __MODULES_SHARE_FOO]
+lappend ans [list set FOO $path3:$path1:$path2:$path1]
+testouterr_cmd_re sh "prepend-path FOO $path1:$path2:$path3" $ans {}
+
+# duplicate elements in path variable + erroneous __MODULES_SHARE_ ref counter variable (1)
+setenv_var __MODULES_SHARE_FOO $path1:1
+set ans [list]
+# ref counter is not fixed whereas duplicate entries are still there
+lappend ans [list unset __MODULES_SHARE_FOO]
+lappend ans [list set FOO $path1:$path2:$path1]
+testouterr_cmd_re sh "prepend-path FOO $path1" $ans {}
+testouterr_cmd_re sh "prepend-path FOO $path2" $ans {}
+set ans [list]
+lappend ans [list unset __MODULES_SHARE_FOO]
+lappend ans [list set FOO $path3:$path1:$path2:$path1]
+testouterr_cmd_re sh "prepend-path FOO $path1:$path2:$path3" $ans {}
+
+# duplicate elements in path variable + afterward incremented __MODULES_SHARE_ ref counter variable (3)
+setenv_var __MODULES_SHARE_FOO $path1:3
+set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO $path1:3]
+lappend ans [list set FOO $path1:$path2:$path1]
+testouterr_cmd_re sh "prepend-path FOO $path1" $ans {}
+testouterr_cmd_re sh "prepend-path FOO $path2" $ans {}
+set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO $path1:3]
+lappend ans [list set FOO $path3:$path1:$path2:$path1]
+testouterr_cmd_re sh "prepend-path FOO $path1:$path2:$path3" $ans {}
 
 
 #
