@@ -1628,8 +1628,15 @@ proc cmdModuleUse {pos args} {
       # added directory may not exist at this time
       # pass all paths specified at once to add-path
       if {[info exists pathlist]} {
+         set optlist [list]
+         # by-pass any reference counter in case use is called from top level
+         # not to increase reference counter if paths are already defined
+         if {[isTopEvaluation]} {
+            lappend optlist --ignore-refcount
+         }
+
          lappendState mode load
-         catch {add-path $pos MODULEPATH {*}$pathlist}
+         catch {add-path $pos {*}$optlist MODULEPATH {*}$pathlist}
          lpopState mode
       }
    }
@@ -1662,8 +1669,16 @@ proc cmdModuleUnuse {args} {
 
       # pass all paths specified at once to unload-path
       if {[info exists pathlist]} {
+         set optlist [list]
+         # by-pass any reference counter in case unuse is called from top
+         # level to ensure specified paths are removed whatever their
+         # reference counter value
+         if {[isTopEvaluation]} {
+            lappend optlist --ignore-refcount
+         }
+
          lappendState mode unload
-         catch {unload-path MODULEPATH {*}$pathlist}
+         catch {unload-path {*}$optlist MODULEPATH {*}$pathlist}
          lpopState mode
       }
    }
