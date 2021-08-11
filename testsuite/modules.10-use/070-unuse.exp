@@ -30,7 +30,6 @@ set tsdirname [file tail $env(TESTSUITEDIR)]
 regsub "^.*/$tsdirname" $path "$tsdirname" relpath
 regsub "$tsdirname" $relpath "$tsdirname/../$tsdirname/./" relpath_wdot
 set badpath "$env(TESTSUITEDIR)/modulefiles.bad"
-set bad_use ""
 set path_list_header "Search path for module files (in search order):"
 set no_path_list "$warn_msgs: No directories on module search path"
 
@@ -47,13 +46,17 @@ setenv_path_var MODULEPATH $path $modpath
 # test the bad first
 #
 
-testouterr_cmd_re "ALL" "$use $badpath" "OK" "$bad_use"
+# even if not changed MODULEPATH is refreshed
+set ans [list]
+lappend ans [list set MODULEPATH $path:$modpath]
+testouterr_cmd_re "ALL" "$use $badpath" $ans {}
 
 #
 # The tests ...
 #   do these last so the .modulesbeginenv is left in a good state for 070-Maint
 #
 
+set ans [list]
 lappend ans [list set MODULEPATH $modpath]
 test_cmd_re "ALL" "$use $path" $ans
 
@@ -107,13 +110,9 @@ set ans [list]
 lappend ans [list unset __MODULES_SHARE_MODULEPATH]
 lappend ans [list set MODULEPATH "$modpath"]
 testouterr_cmd "sh" "$use $path" $ans {}
-#FIXME: joined paths are not correctly unset
-#set ans [list]
-#lappend ans [list unset __MODULES_SHARE_MODULEPATH]
-#lappend ans [list unset MODULEPATH]
 set ans [list]
-lappend ans [list set __MODULES_SHARE_MODULEPATH $path:2]
-lappend ans [list set MODULEPATH $path]
+lappend ans [list unset __MODULES_SHARE_MODULEPATH]
+lappend ans [list unset MODULEPATH]
 testouterr_cmd "sh" "$use $modpath $path:/tmp" $ans {}
 
 # erroneous __MODULES_SHARE_ ref counter variable is fixed
@@ -122,11 +121,9 @@ set ans [list]
 lappend ans [list unset __MODULES_SHARE_MODULEPATH]
 lappend ans [list set MODULEPATH "$modpath"]
 testouterr_cmd sh "$use $path" $ans {}
-#FIXME: joined paths are not correctly unset
-#set ans [list]
-#lappend ans [list unset __MODULES_SHARE_MODULEPATH]
-#lappend ans [list unset MODULEPATH]
-set ans {}
+set ans [list]
+lappend ans [list unset __MODULES_SHARE_MODULEPATH]
+lappend ans [list unset MODULEPATH]
 testouterr_cmd "sh" "$use $modpath:$path /tmp" $ans {}
 
 setenv_var __MODULES_SHARE_MODULEPATH "$path:0"
@@ -134,13 +131,9 @@ set ans [list]
 lappend ans [list unset __MODULES_SHARE_MODULEPATH]
 lappend ans [list set MODULEPATH "$modpath"]
 testouterr_cmd sh "$use $path" $ans {}
-#FIXME: joined paths are not correctly unset
-#set ans [list]
-#lappend ans [list unset __MODULES_SHARE_MODULEPATH]
-#lappend ans [list unset MODULEPATH]
 set ans [list]
 lappend ans [list unset __MODULES_SHARE_MODULEPATH]
-lappend ans [list set MODULEPATH $path]
+lappend ans [list unset MODULEPATH]
 testouterr_cmd "sh" "$use $modpath $path:/tmp" $ans {}
 
 # no __MODULES_SHARE_ ref counter variable set
@@ -148,11 +141,8 @@ unsetenv_var __MODULES_SHARE_MODULEPATH
 set ans [list]
 lappend ans [list set MODULEPATH "$modpath"]
 testouterr_cmd "sh" "$use $path" $ans {}
-#FIXME: joined paths are not correctly unset
-#set ans [list]
-#lappend ans [list unset __MODULES_SHARE_MODULEPATH]
-#lappend ans [list unset MODULEPATH]
-set ans {}
+set ans [list]
+lappend ans [list unset MODULEPATH]
 testouterr_cmd "sh" "$use $modpath:$path:/tmp" $ans {}
 
 
