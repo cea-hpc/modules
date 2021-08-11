@@ -115,6 +115,9 @@ Modules 5.0.0-alpha (2021-07-25)
   the reference counter of a path entry already defined and a
   :subcmd:`module remove-path<remove-path>` will remove specified path
   whatever its reference counter value.
+* Fix :subcmd:`unuse` sub-command when sereval modulepaths are specified as a
+  single argument (i.e., ``/path/to/dir1:/path/to/dir2``). Enabled modulepaths
+  were not correctly detected when specified this way.
 
 
 .. _4.8 release notes:

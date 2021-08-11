@@ -1370,10 +1370,16 @@ Module Sub-Commands
  initialization modulefile script *directory* is removed whatever the
  reference counter value set.
 
+ If *directory* corresponds to the concatenation of multiple paths separated
+ by colon character, each path is treated separately.
+
     .. versionchanged:: 5.0
        *directory* is removed whatever its reference counter value if
        :subcmd:`module unuse<unuse>` is called from the command-line or within
        an initialization modulefile script
+
+    .. versionchanged:: 5.0
+       Accept several modulepaths passed as a single string
 
 .. subcmd:: use [-a|--append] directory...
 
