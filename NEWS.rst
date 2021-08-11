@@ -101,6 +101,21 @@ Modules 5.0.0-alpha (2021-07-25)
   times to the path-like variable. When an element is removed from a path-like
   variable, this element is removed from the reference counter variable when
   its counter is equal to 1.
+* When the :subcmd:`use` and :subcmd:`unuse` module sub-commands are not
+  called during a modulefile evaluation, the reference counter associated with
+  each entry in :envvar:`MODULEPATH` environment variable is ignored. In such
+  context, a :subcmd:`module use<use>` will not increase the reference counter
+  of a path entry already defined and a :subcmd:`module unuse<unuse>` will
+  remove specified path whatever its reference counter value.
+* When the subcmd:`append-path`, subcmd:`prepend-path` and
+  subcmd:`remove-path` module sub-commands are not called during a modulefile
+  evaluation, the reference counter associated with each entry in targeted
+  environment variable is ignored. In such context, a
+  :subcmd:`module append-path/prepend-path<prepend-path>` will not increase
+  the reference counter of a path entry already defined and a
+  :subcmd:`module remove-path<remove-path>` will remove specified path
+  whatever its reference counter value.
+
 
 .. _4.8 release notes:
 
