@@ -1387,6 +1387,9 @@ Module Sub-Commands
  variable.  The ``--append`` flag will append the *directory* to
  :envvar:`MODULEPATH`.
 
+ When *directory* is already defined in :envvar:`MODULEPATH`, it is not added
+ again or moved at the end or at the beginning of the environment variable.
+
  If :mfcmd:`module use<module>` is called during a modulefile evaluation, the
  reference counter environment variable
  :envvar:`__MODULES_SHARE_MODULEPATH<__MODULES_SHARE_\<VAR\>>` is also set to

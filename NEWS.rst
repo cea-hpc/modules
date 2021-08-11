@@ -118,6 +118,10 @@ Modules 5.0.0 (not yet released)
 * Fix :subcmd:`unuse` sub-command when sereval modulepaths are specified as a
   single argument (i.e., ``/path/to/dir1:/path/to/dir2``). Enabled modulepaths
   were not correctly detected when specified this way.
+* Doc: clarify that an already defined path is not added again or moved when
+  passed to the :subcmd:`use` sub-command or the
+  :mfcmd:`append-path/prepend-path<prepend-path>` modulefile commands. (fix
+  issue #60)
 
 
 .. _4.8 release notes:

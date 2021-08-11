@@ -674,7 +674,9 @@ the *modulefile* is being loaded.
  prefixing *variable* by :envvar:`__MODULES_SHARE_<__MODULES_SHARE_\<VAR\>>`.
 
  When *value* is already defined in environment *variable*, it is not added
- again except if ``--duplicates`` option is set.
+ again or moved at the end or at the beginning of *variable*. Exception is
+ made when the ``--duplicates`` option is set in which case *value* is added
+ again to *variable*.
 
  If the *variable* is not set, it is created. When a *modulefile* is
  unloaded, :mfcmd:`append-path` and :mfcmd:`prepend-path` become
