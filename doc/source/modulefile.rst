@@ -431,9 +431,9 @@ the *modulefile* is being loaded.
   if no *commandname* is given.
 
   Returns ``1`` if :file:`modulecmd.tcl`'s command is *commandname*.
-  *commandname* can be: ``load``, ``unload``, ``reload``, ``source``,
-  ``switch``, ``display``, ``avail``, ``aliases``, ``list``, ``whatis``,
-  ``search``, ``purge``, ``restore``, ``help`` or ``test``.
+  *commandname* can be: ``load``, ``unload``, ``refresh``, ``reload``,
+  ``source``, ``switch``, ``display``, ``avail``, ``aliases``, ``list``,
+  ``whatis``, ``search``, ``purge``, ``restore``, ``help`` or ``test``.
 
   .. only:: html
 
@@ -461,7 +461,8 @@ the *modulefile* is being loaded.
   *modetype* is given.
 
   Returns ``1`` if :file:`modulecmd.tcl`'s mode is *modetype*. *modetype* can
-  be: ``load``, ``unload``, ``remove``, ``switch``, ``display``, ``help``,
+  be: ``load``, ``unload``, ``remove`` (alias of ``unload``), ``switch``,
+  ``refresh``, ``nonpersist`` (alias of ``refresh``), ``display``, ``help``,
   ``test`` or ``whatis``.
 
  **module-info name**
