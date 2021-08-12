@@ -1100,7 +1100,25 @@ Module Sub-Commands
 
 .. subcmd:: refresh
 
- See :subcmd:`reload`.
+ Force a refresh of all non-persistent components of currently loaded modules.
+ This should be used on derived shells where shell aliases or shell functions
+ need to be reinitialized but the environment variables have already been set
+ by the currently loaded modules.
+
+ Loaded modules are evaluated in ``refresh`` mode following their load order.
+ In this evaluation mode only the :mfcmd:`set-alias` and :mfcmd:`set-function`
+ modulefile commands will produce environment changes. Other modulefile
+ commands that produce environment changes (like :mfcmd:`setenv` or
+ :mfcmd:`append-path`) are ignored during a ``refresh`` evaluation as their
+ changes should already be applied.
+
+ .. only:: html
+
+    .. versionchanged:: 4.0
+       Sub-command made as an alias of :subcmd:`reload` sub-command
+
+    .. versionchanged:: 5.0
+       Behavior of version 3.2 :subcmd:`refresh` sub-command restored
 
 .. subcmd:: reload
 
