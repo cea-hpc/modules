@@ -2207,15 +2207,41 @@ proc cmdModuleRefresh {} {
       }
       set lmfile [getModulefileFromLoadedModule $lm]
 
+      # refreshing module is visible by default
+      set hidden 0
+      set uasked 1
+
+      # set a unique id to record messages related to this evaluation.
+      set msgrecid refresh-$lmvr-[depthState modulename]
+
+      # register record message unique id (now we know mod will be evaluated)
+      pushMsgRecordId $msgrecid
+
+      # record module title (with the variant specified on load call) prior
+      # module evaluation to get this title ready in case of eval error
+      registerModuleDesignation $msgrecid $lm $vrlist
+
       # run modulefile, restore settings prior evaluation if error and
       # continue to evaluate the remaining loaded modules
       pushSettings
       if {[set errCode [catch {
          execute-modulefile $lmfile $lm lmvr $lm
+
+         # unloading visibility depends on hidden-loaded tag
+         set hidden [isModuleTagged $lm hidden-loaded 1]
+
+         # module was asked by user if tagged loaded instead of auto-loaded
+         set uasked [isModuleTagged $lm loaded 1]
       } errMsg]] == 1} {
          restoreSettings
       }
       popSettings
+
+      # report all recorded messages for this evaluation (hide evaluation if
+      # loaded mod is set hidden, has been automatically loaded and unloaded)
+      reportMsgRecord "Refreshing [getModuleDesignation $msgrecid {} 2]"\
+         [expr {$hidden && !$uasked && [depthState evalid] != 1}]
+      popMsgRecordId
    }
 
    popMsgRecordId 0
