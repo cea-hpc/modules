@@ -136,6 +136,23 @@ lappend ans [list out {echo refresh/1.0}]
 lappend ans [list out {echo refresh/2.0}]
 testouterr_cmd sh {refresh} $ans {}
 
+# verbose output mode
+set tserr2 [msg_refresh refresh/1.0]\n[msg_refresh refresh/2.0{+foo}]
+testouterr_cmd sh {refresh -v} $ans $tserr2
+
+# verbose output and hidden-loaded module
+setenv_var __MODULES_LMTAG refresh/2.0&bar&hidden-loaded
+set tserr1 [msg_refresh refresh/1.0]
+testouterr_cmd sh {refresh -v} $ans $tserr2
+
+# verbose output and hidden-loaded module
+setenv_var __MODULES_LMTAG refresh/2.0&bar&hidden-loaded&auto-loaded
+testouterr_cmd sh {refresh -v} $ans $tserr1
+testouterr_cmd sh {refresh -vv} $ans $tserr2
+setenv_var __MODULES_LMTAG refresh/1.0&hidden-loaded&auto-loaded:refresh/2.0&bar&hidden-loaded&auto-loaded
+testouterr_cmd sh {refresh -v} $ans {}
+testouterr_cmd sh {refresh -vv} $ans $tserr2
+
 # test alias/function set through source-sh
 setenv_loaded_module [list refresh/3.0] [list $mp/refresh/3.0]
 
