@@ -130,7 +130,7 @@ proc parseModuleCommandName {command defaultcmd} {
          # specific match for shortcut names
          set cmdlen [string length $command]
          foreach {match minlen sccmd} {load 2 load unload 4 unload delete 3\
-            unload refresh 3 reload reload 3 reload switch 2 switch swap 2\
+            unload refresh 3 refresh reload 3 reload switch 2 switch swap 2\
             switch display 2 display available 2 avail aliases 2 aliases list\
             2 list whatis 2 whatis purge 2 purge initadd 5 initadd initload 6\
             initadd initprepend 5 initprepend initswitch 6 initswitch\
@@ -149,7 +149,7 @@ proc parseModuleCommandName {command defaultcmd} {
       restore saverm saveshow savelist initadd initprepend initswitch initrm\
       initlist initclear autoinit clear config help test prepend-path\
       append-path remove-path is-loaded is-saved is-used is-avail info-loaded\
-      sh-to-mod edit try-load]}]
+      sh-to-mod edit try-load refresh]}]
 
    return [list $command $cmdvalid $cmdempty]
 }
@@ -376,7 +376,7 @@ proc module {command args} {
       switch -- $command {
          path - paths - autoinit - help - prepend-path - append-path -\
          remove-path - is-loaded - is-saved - is-used - is-avail -\
-         info-loaded - clear - sh-to-mod - edit {
+         info-loaded - clear - sh-to-mod - edit - refresh {
             knerror "${msgprefix}Command '$command' not supported$tryhelpmsg"
          }
       }
@@ -400,8 +400,8 @@ proc module {command args} {
             set argnberr 1
          }
       }
-      reload - aliases - list - purge - savelist - initlist - initclear -\
-      autoinit {
+      refresh - reload - aliases - list - purge - savelist - initlist -\
+      initclear - autoinit {
          if {[llength $args] != 0} {
             set argnberr 1
          }
@@ -545,6 +545,9 @@ proc module {command args} {
                knerror {} MODULES_ERR_SUBFAILED
             }
          }
+      }
+      refresh {
+         cmdModuleRefresh
       }
       reload {
          cmdModuleReload

@@ -2187,6 +2187,41 @@ proc cmdModuleEdit {mod} {
    }
 }
 
+proc cmdModuleRefresh {} {
+   reportDebug {refreshing loaded modules}
+
+   lappendState mode refresh
+   # create an eval id to track successful/failed module evaluations
+   pushMsgRecordId refresh-[depthState modulename] 0
+
+   # load variants from loaded modules
+   cacheCurrentModules
+
+   foreach lm [getLoadedModuleList] {
+      # prepare info to execute modulefile
+      set vrlist [getVariantList $lm 1]
+      if {[llength $vrlist] > 0} {
+         lassign [parseModuleSpecification 0 $lm {*}$vrlist] lmvr
+      } else {
+         set lmvr $lm
+      }
+      set lmfile [getModulefileFromLoadedModule $lm]
+
+      # run modulefile, restore settings prior evaluation if error and
+      # continue to evaluate the remaining loaded modules
+      pushSettings
+      if {[set errCode [catch {
+         execute-modulefile $lmfile $lm lmvr $lm
+      } errMsg]] == 1} {
+         restoreSettings
+      }
+      popSettings
+   }
+
+   popMsgRecordId 0
+   lpopState mode
+}
+
 proc cmdModuleHelp {args} {
    lappendState mode help
    set first_report 1
