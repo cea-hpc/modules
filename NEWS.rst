@@ -126,6 +126,9 @@ Modules 5.0.0 (not yet released)
   and re-apply the non-persistent environment changes they define (i.e., shell
   aliases and functions). With this change the :subcmd:`refresh` sub-command
   is restored to the behavior it had on Modules version 3.2.
+* Evaluate the modulefile commands resulting from a mfcmd:`source-sh` command
+  through the current modulefile Tcl interpreter in order to evaluate them
+  according to the current modulefile evaluation mode.
 
 
 .. _4.8 release notes:

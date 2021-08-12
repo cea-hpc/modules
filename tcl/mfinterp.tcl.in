@@ -2030,9 +2030,12 @@ proc source-sh {shell script args} {
    setLoadedSourceSh [currentState modulename] [list $shtomodargs\
       {*}$modcontent]
 
-   # evaluate resulting modulefile commands
+   # get name of current module Tcl interp
+   set itrp __modfile_[currentState mode]_[depthState modulename]
+
+   # evaluate resulting modulefile commands through current Tcl interp
    foreach modcmd $modcontent {
-      {*}$modcmd
+      interp eval $itrp $modcmd
    }
 }
 
