@@ -122,6 +122,10 @@ Modules 5.0.0 (not yet released)
   passed to the :subcmd:`use` sub-command or the
   :mfcmd:`append-path/prepend-path<prepend-path>` modulefile commands. (fix
   issue #60)
+* Change the :subcmd:`refresh` sub-command to evaluate all loaded modulefiles
+  and re-apply the non-persistent environment changes they define (i.e., shell
+  aliases and functions). With this change the :subcmd:`refresh` sub-command
+  is restored to the behavior it had on Modules version 3.2.
 
 
 .. _4.8 release notes:
