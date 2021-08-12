@@ -433,7 +433,8 @@ the *modulefile* is being loaded.
   Returns ``1`` if :file:`modulecmd.tcl`'s command is *commandname*.
   *commandname* can be: ``load``, ``unload``, ``refresh``, ``reload``,
   ``source``, ``switch``, ``display``, ``avail``, ``aliases``, ``list``,
-  ``whatis``, ``search``, ``purge``, ``restore``, ``help`` or ``test``.
+  ``whatis``, ``search``, ``purge``, ``restore``, ``help``, ``test`` or
+  ``try-load``.
 
   .. only:: html
 
