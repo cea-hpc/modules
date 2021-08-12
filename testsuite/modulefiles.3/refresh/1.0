@@ -1,0 +1,42 @@
+#%Module
+
+# alias and function should be set
+set-alias alfoo {echo foo1}
+set-function funcfoo {echo foo1}
+
+# other environment changes should be ignored
+setenv FOO value
+append-path BAR value
+chdir /tmp
+x-resource  my-prog*my-ress:true
+
+# module command should be ignored
+module load foo/1.0
+
+# system should be ignored
+if {[system $env(TESTSUITEDIR)/systest] eq {123}} {
+    puts stderr {command has been executed}
+}
+
+# getenv should be operational and environment variable is found defined
+if {[getenv FOO] eq {value}} {
+    set-alias algetenv {echo getenv ok}
+}
+# is-avail/is-loaded should be ok
+if {[is-avail foo/1.0]} {
+    set-alias alisavail {echo is-avail ok}
+}
+if {[is-loaded refresh/2.0]} {
+    set-alias alisloaded2 {echo is-loaded ok}
+}
+
+# fetch module-info data
+set-alias alspec "echo [module-info specified]"
+set-alias alcmd "echo [module-info command]"
+set-alias altags "echo [module-info tags]"
+set-alias almode "echo [module-info mode]"
+
+if {[module-info mode] in {load refresh}} {
+    # puts to the result channel should be effective in refresh mode
+    puts "echo [module-info name]"
+}

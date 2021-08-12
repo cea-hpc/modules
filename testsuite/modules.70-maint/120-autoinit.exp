@@ -91,7 +91,7 @@ if {[info exists insmodrcdata] && [info exists exmodrcdata] && $exmodrcdata eq $
 }
 
 set custom {module restore unk}
-set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 22 {  }]]
+set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 25 {  }]]
 
 set tserr_initrc_exinstalled "load m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n$err_path'unk'\n$custom"
 
@@ -824,9 +824,9 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
     file delete $install_initdir/modulerc
 }
 
-# test impact of reference counter variable over *use/*-path commands
 if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc eq "$install_etcdir/initrc"} {
-    setenv_var TESTSUITE_REFCOUNT initrc1
+    # test impact of reference counter variable over *use/*-path commands
+    setenv_var TESTSUITE_INITRC refcount1
     # preset environment variables with reference counter set
     setenv_path_var BAR /bar /bar
     setenv_path_var FOO /foo
@@ -874,7 +874,34 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
         lappend ans [list set MODULEPATH "$modpath wspace:$modpath.deps"]
     }
     testouterr_cmd_re sh autoinit $ans $tserr_initrc_exinstalled
-    unsetenv_var TESTSUITE_REFCOUNT
+    unsetenv_path_var BAR
+    unsetenv_path_var FOO
+
+    # test impact of use of module sub-commands that cannot be used in an initrc script
+    setenv_var TESTSUITE_INITRC subcmd1
+
+    set ans [list]
+    lappend ans [list [set "func_$shell"]]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+    }
+    lappend ans [list set MODULES_CMD $modulecmd_path]
+    lappend ans [list set MODULESHOME $moduleshome]
+    lappend ans [list set __MODULES_LMPREREQ m3&m1]
+    lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4"]
+    lappend ans [list set LOADEDMODULES "m1:m3:space yc/4"]
+    lappend ans [list set __MODULES_LMTAG m1&auto-loaded]
+    lappend ans [list set MODULEPATH "$modpath wspace:$modpath.deps"]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION "(.*)"]
+    }
+    lappend ans [list ERR]
+    set linenum [expr {[cmpversion $tclsh_version 8.6] == -1 ? 14 : 21}]
+    set custom [escre [msg_moderr {module: Command 'refresh' not supported} {module refresh<EXM>} $modrc $linenum {  }]]
+    set tserr "load m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n$err_path'unk'\n$custom"
+    testouterr_cmd_re sh autoinit $ans $tserr
+
+    unsetenv_var TESTSUITE_INITRC
 }
 
 # test precedence of etc/modulespath over init/.modulespath if we are purely testing

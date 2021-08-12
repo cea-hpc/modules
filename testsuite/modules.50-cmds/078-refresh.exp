@@ -7,8 +7,9 @@
 #   First Edition:	2005/11/21
 #   Last Mod.:		%U%, %G%
 #
-#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
-#			R.K.Owen, rk@owen.sj.ca.us
+#   Authors:        Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#                   R.K.Owen, rk@owen.sj.ca.us
+#                   Xavier Delaruelle, xavier.delaruelle@cea.fr
 #
 #   Description:	Testuite testsequence
 #   Command:		refresh
@@ -42,20 +43,116 @@ setenv_loaded_module $module1 $modulefile1
 #  For the different shells ...
 #
 
-lappend ans [list set _LMFILES_ $modulefile1]
-lappend ans [list set LOADEDMODULES $module1]
 lappend ans [list alias testsuite $alias]
 
 #
 #  The tests
 #
 
-# different behavior than C-version: on Tcl-version 'refresh' command is an
-# alias on the 'reload' command, thus it unloads then reloads every modules
-# currently loaded whereas on C-version, only the volatile components (ie.
-# shell aliases) are reloaded.
-test_cmd "ALL" "refresh" $ans
-# only available for csh/sh/fish derivatives ... no longer warn for others
+# volatile components (ie. shell aliases/functions) are reloaded.
+foreach shell $supported_shells {
+    if {$shell in $other_shells && $shell ne {cmd}} {
+        # as modulefiles are evaluated even if no environment changes are made for
+        # these shells an "return true" shell code is produced
+        testouterr_cmd $shell refresh [list [list OK nop]] {}
+    } else {
+        testouterr_cmd $shell refresh $ans {}
+    }
+}
+
+skip_if_quick_mode
+
+# abbreviated sub-command name
+testouterr_cmd sh ref $ans {}
+
+# source modulefile with "module refresh" command in it
+set module modbad/refresh
+set modulefile $modpath.3/$module
+set tserr [escre [msg_moderr "module: Command 'refresh' not supported" "<EXM>module refresh" $modulefile 27 {  }]]
+testouterr_cmd_re sh "source $modulefile" ERR $tserr
+
+
+#
+# Check 'refresh' evaluation mode
+#
+
+set mp $modpath.3
+setenv_path_var MODULEPATH $mp
+
+# nothing to refresh in loaded modules
+setenv_loaded_module [list foo/1.0 bar/1.0] [list $mp/foo/1.0 $mp/bar/1.0]
+testouterr_cmd ALL refresh OK {}
+
+# many things to refresh
+setenv_loaded_module refresh/1.0 $mp/refresh/1.0
+setenv_var FOO value
+setenv_path_var BAR value othervalue
+
+set ans [list]
+lappend ans [list alias altags {echo loaded}]
+lappend ans [list alias alspec {echo refresh/1.0}]
+lappend ans [list alias alcmd {echo refresh}]
+lappend ans [list alias alfoo {echo foo1}]
+lappend ans [list alias almode {echo refresh}]
+lappend ans [list alias alisavail {echo is-avail ok}]
+lappend ans [list alias algetenv {echo getenv ok}]
+lappend ans [list funcfoo "() {" "echo foo1; };"]
+lappend ans [list out {echo refresh/1.0}]
+testouterr_cmd sh {refresh} $ans {}
+
+# test tags and variant
+setenv_loaded_module refresh/2.0 $mp/refresh/2.0
+setenv_var __MODULES_LMTAG refresh/2.0&bar
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_var __MODULES_LMVARIANT refresh/2.0&foo|1|1|0
+
+set ans [list]
+#FIXME: tags associated with loaded module should be found
+#lappend ans [list alias altags {echo bar loaded}]
+lappend ans [list alias altags {echo }]
+lappend ans [list alias alspec {echo refresh/2.0}]
+lappend ans [list alias alfoo {echo foo2}]
+lappend ans [list funcfoo "() {" "echo foo2; };"]
+lappend ans [list out {echo refresh/2.0}]
+testouterr_cmd sh {refresh} $ans {}
+
+# test evaluation order
+setenv_loaded_module [list refresh/1.0 refresh/2.0] [list $mp/refresh/1.0 $mp/refresh/2.0]
+
+set ans [list]
+#FIXME: tags associated with loaded module should be found
+#lappend ans [list alias altags {echo bar loaded}]
+lappend ans [list alias altags {echo }]
+lappend ans [list alias alspec {echo refresh/2.0}]
+lappend ans [list alias alisloaded2 {echo is-loaded ok}]
+lappend ans [list alias alcmd {echo refresh}]
+lappend ans [list alias alfoo {echo foo2}]
+lappend ans [list alias almode {echo refresh}]
+lappend ans [list alias alisavail {echo is-avail ok}]
+lappend ans [list alias algetenv {echo getenv ok}]
+lappend ans [list alias alisloaded1 {echo is-loaded ok}]
+lappend ans [list funcfoo "() {" "echo foo2; };"]
+lappend ans [list out {echo refresh/1.0}]
+lappend ans [list out {echo refresh/2.0}]
+testouterr_cmd sh {refresh} $ans {}
+
+# test alias/function set through source-sh
+setenv_loaded_module [list refresh/3.0] [list $mp/refresh/3.0]
+
+set ans [list]
+lappend ans [list alias alsp {echo f\"o; echo b\\\"r; echo f\'o}]
+lappend ans [list alias alfoo {echo $(grep "report .Modules " ../../modulecmd.tcl | tr -d \\ 2>/dev/null | awk '{print $3}')}]
+lappend ans [list alias alcb echo\ f\{o]
+lappend ans [list alias alem {}]
+lappend ans [list funcfoo "() { echo foo; };"]
+lappend ans [list funccb "() { echo f\{o; };"]
+lappend ans [list funcnl "() { echo foo;
+    echo bar; };"]
+lappend ans [list funcsp "() { echo f\\\"o;
+    echo b\\\\\\\"r;
+    echo f\\'o; };"]
+testouterr_cmd sh {refresh} $ans {}
+
 
 #
 #  Cleanup

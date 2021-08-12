@@ -23,10 +23,17 @@
 
 skip_if_quick_mode
 
-foreach subcmd [list append-path prepend-path remove-path autoinit help is-loaded is-saved is-used is-avail path paths info-loaded clear config sh-to-mod edit] {
+setenv_path_var MODULEPATH $modpath $modpath.3
+
+foreach subcmd [list append-path prepend-path remove-path autoinit help is-loaded is-saved is-used is-avail path paths info-loaded clear config sh-to-mod edit refresh] {
     set module "modbad/$subcmd"
-    set modulefile "$modpath/$module"
-    set modulefilere "$modpathre/$module"
+    if {$subcmd in {refresh}} {
+        set modulefile "$modpath.3/$module"
+        set modulefilere "$modpathre.3/$module"
+    } else {
+        set modulefile "$modpath/$module"
+        set modulefilere "$modpathre/$module"
+    }
 
     switch -- $subcmd {
         {append-path} - {prepend-path} - {remove-path} {
