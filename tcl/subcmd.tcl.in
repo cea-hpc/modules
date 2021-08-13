@@ -2225,14 +2225,16 @@ proc cmdModuleRefresh {} {
       # continue to evaluate the remaining loaded modules
       pushSettings
       if {[set errCode [catch {
-         execute-modulefile $lmfile $lm lmvr $lm
+         if {[execute-modulefile $lmfile $lm lmvr $lm]} {
+            break
+         }
 
          # unloading visibility depends on hidden-loaded tag
          set hidden [isModuleTagged $lm hidden-loaded 1]
 
          # module was asked by user if tagged loaded instead of auto-loaded
          set uasked [isModuleTagged $lm loaded 1]
-      } errMsg]] == 1} {
+      } errMsg]] != 0 && $errCode != 4} {
          restoreSettings
       }
       popSettings

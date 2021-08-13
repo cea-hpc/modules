@@ -332,8 +332,9 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
             || $::errorInfo eq {})) || (![info exists ::errorCode] &&\
             $sourceFailed == 3)} {
             unset errorMsg
-            # report load/unload evaluation break if verbosity level >= normal
-            if {([module-info mode load] || [module-info mode unload]) &&\
+            # report load/unload/refresh evaluation break if verbosity level
+            # >= normal
+            if {([module-info mode] in {load unload refresh}) &&\
                [isVerbosityLevel normal]} {
                reportError {Module evaluation aborted}
             } else {
@@ -1230,7 +1231,7 @@ proc chdir {dir} {
 proc exitModfileCmd {{code 0}} {
    reportDebug ($code)
 
-   if {[currentState mode] eq {load}} {
+   if {[currentState mode] in {load refresh}} {
       setState inhibit_interp 1
    }
 
