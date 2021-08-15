@@ -129,6 +129,12 @@ Modules 5.0.0 (not yet released)
 * Evaluate the modulefile commands resulting from a mfcmd:`source-sh` command
   through the current modulefile Tcl interpreter in order to evaluate them
   according to the current modulefile evaluation mode.
+* When initializing Modules, refresh the loaded modules in case some user
+  environment is already configured. This is especially useful when starting a
+  sub-shell session as it ensures that the loaded environment in parent shell
+  is correctly inherited, as the :subcmd:`refresh` sub-command re-applies the
+  non-persistent environment configuration (i.e., shell alias and function
+  that are not exported to the sub-shell). (fix issue #86)
 
 
 .. _4.8 release notes:
