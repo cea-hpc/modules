@@ -135,6 +135,9 @@ Modules 5.0.0 (not yet released)
   is correctly inherited, as the :subcmd:`refresh` sub-command re-applies the
   non-persistent environment configuration (i.e., shell alias and function
   that are not exported to the sub-shell). (fix issue #86)
+* Init: add example code in default ``initrc``, the initialization script of
+  Modules, to either restore user's default collection if it exists or load a
+  predefined module list at the end of the initialization process.
 
 
 .. _4.8 release notes:
