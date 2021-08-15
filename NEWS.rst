@@ -138,6 +138,9 @@ Modules 5.0.0 (not yet released)
 * Init: add example code in default ``initrc``, the initialization script of
   Modules, to either restore user's default collection if it exists or load a
   predefined module list at the end of the initialization process.
+* When initializing Modules, evaluate the ``initrc`` configuration file in
+  addition to the the ``modulespath`` configuration file and not instead of
+  this file. ``initrc`` is evaluated after ``modulespath`` file.
 
 
 .. _4.8 release notes:

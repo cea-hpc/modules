@@ -1706,8 +1706,17 @@ proc cmdModuleAutoinit {} {
    @VERSIONING@   setenv MODULE_VERSION_STACK @MODULES_RELEASE@@MODULES_BUILD@
    @VERSIONING@}
 
-   # initialize default MODULEPATH and LOADEDMODULES
-   if {[get-env MODULEPATH] eq {}} {
+   # initialize MODULEPATH and LOADEDMODULES if found unset
+   if {![info exists ::env(MODULEPATH)]} {
+      setenv MODULEPATH {}
+   }
+   if {![info exists ::env(LOADEDMODULES)]} {
+      setenv LOADEDMODULES {}
+   }
+
+   # initialize user environment if found undefined (both MODULEPATH and
+   # LOADEDMODULES empty)
+   if {[get-env MODULEPATH] eq {} && [get-env LOADEDMODULES] eq {}} {
       # set modpaths defined in modulespath config file if it exists
       # use .modulespath file in initdir if conf file are located in this dir
       if {[file readable @modulespath@]} {
@@ -1731,23 +1740,15 @@ proc cmdModuleAutoinit {} {
          }
       }
 
-      if {![info exists ::env(MODULEPATH)]} {
-         setenv MODULEPATH {}
-      }
-   }
-   if {![info exists ::env(LOADEDMODULES)]} {
-      setenv LOADEDMODULES {}
-   }
-
-   # source initialization initrc if any and if no env already initialized
-   # use modulerc file in initdir if conf files are located in this dir
-   if {[get-env MODULEPATH] eq {} && [get-env LOADEDMODULES] eq {}} {
+      # source initialization initrc after modulespaths if it exists
+      # use modulerc file in initdir if conf files are located in this dir
       if {[file exists @initrc@]} {
          setState rc_running 1
          cmdModuleSource @initrc@
          unsetState rc_running
       }
-   # refresh already loaded modules unless if environment is inconsistent
+   # if user environment is already initialized, refresh the already loaded
+   # modules unless if environment is inconsistent
    } elseif {![catch {cacheCurrentModules}]} {
       cmdModuleRefresh
    }
