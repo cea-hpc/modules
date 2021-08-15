@@ -533,7 +533,8 @@ end}
 #
 
 # setup environment state
-setenv_loaded_module "foo" [list]
+setenv_path_var MODULEPATH $modpath.3
+setenv_loaded_module [list foo/1.0] [list $modpath.3/foo/1.0]
 
 # check various set_shell_startup configs
 foreach set_shell_startup [list {} 0 1] {
@@ -584,6 +585,102 @@ foreach set_shell_startup [list {} 0 1] {
 }
 
 skip_if_quick_mode
+
+
+# inconsistent environment set
+setenv_path_var MODULEPATH $modpath.3
+setenv_loaded_module foo [list]
+
+set ans [list]
+# an error is raised but no message is produced
+lappend ans [list ERR]
+lappend ans [list [set "func_bash"]]
+if {$install_versioning eq "y"} {
+    lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+}
+lappend ans [list set MODULES_CMD $modulecmd_path]
+if {$install_setshellstartup eq {y}} {
+    lappend ans [list set ENV $install_initdir/profile.sh]
+    lappend ans [list set BASH_ENV $install_initdir/bash]
+}
+lappend ans [list set MODULESHOME $moduleshome]
+if {$install_versioning eq "y"} {
+    lappend ans [list set MODULE_VERSION "(.*)"]
+}
+testouterr_cmd_re bash autoinit $ans {}
+
+
+# coherent environment state with loaded module that defines volatile components
+setenv_path_var MODULEPATH $modpath.3
+setenv_loaded_module [list refresh/4.0] [list $modpath.3/refresh/4.0]
+
+set ans [list]
+lappend ans [list [set "func_bash"]]
+if {$install_versioning eq "y"} {
+    lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+}
+lappend ans [list set MODULES_CMD $modulecmd_path]
+if {$install_setshellstartup eq {y}} {
+    lappend ans [list set ENV $install_initdir/profile.sh]
+    lappend ans [list set BASH_ENV $install_initdir/bash]
+}
+lappend ans [list set MODULESHOME $moduleshome]
+if {$install_versioning eq "y"} {
+    lappend ans [list set MODULE_VERSION "(.*)"]
+}
+lappend ans [list alias alfoo {echo foo4}]
+lappend ans [list funcfoo "\\(\\) {" "echo foo4; };" "export -f funcfoo;"]
+testouterr_cmd_re bash autoinit $ans {}
+
+
+# no MODULEPATH defined but a module is loaded fullpath
+unsetenv_path_var MODULEPATH
+setenv_loaded_module [list $modpath.3/refresh/4.0] [list $modpath.3/refresh/4.0]
+
+set ans [list]
+lappend ans [list [set "func_bash"]]
+if {$install_versioning eq "y"} {
+    lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+}
+lappend ans [list set MODULES_CMD $modulecmd_path]
+if {$install_setshellstartup eq {y}} {
+    lappend ans [list set ENV $install_initdir/profile.sh]
+    lappend ans [list set BASH_ENV $install_initdir/bash]
+}
+lappend ans [list set MODULESHOME $moduleshome]
+lappend ans [list set MODULEPATH {}]
+if {$install_versioning eq "y"} {
+    lappend ans [list set MODULE_VERSION "(.*)"]
+}
+lappend ans [list alias alfoo {echo foo4}]
+lappend ans [list funcfoo "\\(\\) {" "echo foo4; };" "export -f funcfoo;"]
+testouterr_cmd_re bash autoinit $ans {}
+
+# MODULEPATH defined and no module loaded
+setenv_path_var MODULEPATH $modpath.3
+unsetenv_loaded_module
+
+set ans [list]
+lappend ans [list [set "func_bash"]]
+if {$install_versioning eq "y"} {
+    lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+}
+lappend ans [list set MODULES_CMD $modulecmd_path]
+if {$install_setshellstartup eq {y}} {
+    lappend ans [list set ENV $install_initdir/profile.sh]
+    lappend ans [list set BASH_ENV $install_initdir/bash]
+}
+lappend ans [list set MODULESHOME $moduleshome]
+lappend ans [list set LOADEDMODULES {}]
+if {$install_versioning eq "y"} {
+    lappend ans [list set MODULE_VERSION "(.*)"]
+}
+testouterr_cmd_re bash autoinit $ans {}
+
+
+# setup coherent environment state
+setenv_path_var MODULEPATH $modpath.3
+setenv_loaded_module [list foo/1.0] [list $modpath.3/foo/1.0]
 
 # test versioning autoinit when MODULE_VERSION is already defined
 if {$install_versioning eq "y"} {

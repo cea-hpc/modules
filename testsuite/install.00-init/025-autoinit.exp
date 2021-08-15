@@ -46,6 +46,21 @@ if {$install_ml eq {y}} {
       testall_cmd "autoinit:$shell" "ml use $contrib_modpath\; ml purge\; ml null\; ml -null\; ml" "" "$no_loaded" 0
    }
 }
+
+
+# test loaded module refresh performed during autoinit
+setenv_path_var MODULEPATH $testsuite_modpath.3
+setenv_loaded_module [list refresh/4.0] [list $testsuite_modpath.3/refresh/4.0]
+
+foreach shell $shell_list {
+   if {$shell in {csh tcsh}} {
+      testall_cmd "autoinit:$shell" "alfoo" "foo4" "" 0
+   } else {
+      testall_cmd "autoinit:$shell" "alfoo; funcfoo" "foo4\nfoo4" "" 0
+   }
+}
+
+
 #
 #  Clean up variables used in this test case
 #
