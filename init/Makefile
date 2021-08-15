@@ -1,6 +1,9 @@
 .PHONY: dist-win install install-testconfig uninstall-testconfig uninstall \
 	clean
 
+# use bash shell to correctly expand the $'' syntax used in translate-in-script
+SHELL = /usr/bin/env bash
+
 SH_LIKE  = sh ksh bash zsh profile.sh bash_completion
 CSH_LIKE = csh tcsh tcsh_completion profile.csh
 OTHER    = perl.pm python.py ruby.rb lisp tcl fish cmake r.R
