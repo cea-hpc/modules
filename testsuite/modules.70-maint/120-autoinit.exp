@@ -749,6 +749,26 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                     if {$install_versioning eq "y"} {
                         lappend ans [list set MODULE_VERSION "(.*)"]
                     }
+                # cumulative use of modulespath then initrc is both are deployed
+                } elseif {$modspath_exinstalled && $modrc1_exinstalled} {
+                    if {$install_versioning eq "y"} {
+                        lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+                    }
+                    lappend ans [list set MODULES_CMD $modulecmd_path]
+                    lappend ans [list set MODULES_SHELLS_WITH_KSH_FPATH "sh:bash"]
+                    lappend ans [list set MODULES_ML 0]
+                    lappend ans [list set MODULES_SET_SHELL_STARTUP 0]
+                    lappend ans [list set MODULES_AUTO_HANDLING 0]
+                    lappend ans [list set _LMFILES_ "$install_modulefilesdir/null"]
+                    lappend ans [list set MODULESHOME $moduleshome/init]
+                    lappend ans [list set LOADEDMODULES null]
+                    if {$shell eq {ksh} || $shell eq {sh} || $shell eq {bash}} {
+                        lappend ans [list set FPATH $install_initdir/ksh-functions]
+                    }
+                    lappend ans [list set MODULEPATH "$install_modulepath:$install_prefix/test/modulefiles:$install_prefix/test/etc"]
+                    if {$install_versioning eq "y"} {
+                        lappend ans [list set MODULE_VERSION "(.*)"]
+                    }
                 } elseif {$modspath_exinstalled} {
                     if {$install_versioning eq "y"} {
                         lappend ans [list set MODULE_VERSION_STACK "(.*)"]
