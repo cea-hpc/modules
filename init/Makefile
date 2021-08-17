@@ -20,12 +20,19 @@ ifneq ($(wildcard ../Makefile.inc),../Makefile.inc)
 endif
 include ../Makefile.inc
 
-# generate 'module use' commands to put in initrc from modulepath
-modulerc := $(addprefix \\\nmodule use --append {,$(subst :,} ,$(modulepath)}))
+# generate 'module use' commands to put in initrc from modulepath unless
+# if the modulespath config file should be deployed
+ifeq ($(setmodulespath),n)
+modulerc := \\\n\# enable default modulepaths
+modulerc := $(modulerc)$(addprefix \\\nmodule use --append {,$(subst :,} ,$(modulepath)}))
+endif
 # generate 'module load' commands to put in initrc from loadedmodules
 ifneq ($(loadedmodules),)
   modulerc := $(modulerc)$(addprefix \\\nmodule load ,\
     $(subst :, ,$(loadedmodules)))
+endif
+ifneq ($(modulerc),)
+  modulerc := $(modulerc)\\\n
 endif
 
 # setup summary echo rules unless silent mode set
@@ -42,8 +49,8 @@ all: $(EXAMPLE_MODFILES_SRCDIR)/version
 endif
 ifeq ($(setmodulespath),y)
   # both configuration files will be installed and in this case default init
-  # scripts will use modulespath prior to initrc. If modulespath sets a
-  # module path then initrc will be ignored
+  # scripts will use both files, modulespath evaluated prior initrc. In this
+  # case the modulespaths sets are only generated in modulespath config file.
 all: modulespath
 endif
 

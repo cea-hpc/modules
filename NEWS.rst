@@ -141,6 +141,10 @@ Modules 5.0.0 (not yet released)
 * When initializing Modules, evaluate the ``initrc`` configuration file in
   addition to the the ``modulespath`` configuration file and not instead of
   this file. ``initrc`` is evaluated after ``modulespath`` file.
+* When the installation option :instopt:`--enable-modulespath` is set, the
+  list of modulepath to enable by default is now only defined in the
+  ``modulespath`` configuration file and not anymore in the ``initrc``
+  configuration file.
 
 
 .. _4.8 release notes:
