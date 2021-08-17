@@ -1,7 +1,7 @@
 #%Module
 if {[info exists env(TESTSUITE_VARIANT)]} {
     switch -- $env(TESTSUITE_VARIANT) {
-        1 - 10 {
+        1 - 10 - 11 - 12 {
             variant foo val1 val2 val3
             variant bar 1 2 3
         }
@@ -24,6 +24,15 @@ if {[info exists env(TESTSUITE_VARIANT)]} {
         append-path TS1 "$name=$ModuleVariant($name)"
     }
     append-path TS2 [join [lsort [array names ModuleVariant]] -]
+
+    switch -- $env(TESTSUITE_VARIANT) {
+        11 {
+            setenv TS3 /path/to/module-[getvariant foo]
+        }
+        12 {
+            setenv TS3 /path/to/module-$ModuleVariant(foo)
+        }
+    }
 
     proc ModulesHelp {} {
         foreach name [lsort [array names ::ModuleVariant]] {

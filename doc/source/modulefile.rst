@@ -844,7 +844,10 @@ the *modulefile* is being loaded.
 
  Selected variant value is transmitted to the evaluating modulefile. A value
  must be specified for variant *name* and it must corresponds to a value in
- the accepted value list. Otherwise an error is raised.
+ the accepted value list. Otherwise an error is raised. An exception is made
+ if modulefile is evaluated in ``display`` mode: no error is raised if no
+ value is specified for a given variant and variant is not instantiated in the
+ :mfvar:`ModuleVariant` array variable.
 
  When the ``--default`` option is set, variant *name* is set to the *value*
  associated with this option in case no value is specified for variant in
@@ -866,6 +869,10 @@ the *modulefile* is being loaded.
  .. only:: html
 
     .. versionadded:: 4.8
+
+    .. versionchanged:: 5.0
+       No error raised if a defined variant is not specified when modulefile
+       is evaluated in ``display`` mode
 
 .. mfcmd:: versioncmp version1 version2
 

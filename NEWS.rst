@@ -145,6 +145,11 @@ Modules 5.0.0 (not yet released)
   list of modulepath to enable by default is now only defined in the
   ``modulespath`` configuration file and not anymore in the ``initrc``
   configuration file.
+* No error is raised when evaluating in ``display`` mode a modulefile without
+  a value specified for the :mfcmd:`variant` it defines. This change helps to
+  learn all the variant a modulefile defines. As a result, the unspecified
+  variant is not instantiated in the :mfvar:`ModuleVariant` array variable.
+  (fix issue #406)
 
 
 .. _4.8 release notes:

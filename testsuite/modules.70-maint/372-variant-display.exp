@@ -48,7 +48,34 @@ set tserr "$modlin
 $mpre/variant/4.0:
 
 variant\t\tfoo val1 val2 val3
-[err_novarval foo {val1 val2 val3} {  }]
+variant\t\tbar 1 2 3
+setenv\t\tTS0 {}
+append-path\tTS2 {}
+$modlin"
+testouterr_cmd_re sh {display variant/4.0} OK $tserr
+
+setenv_var TESTSUITE_VARIANT 11
+set tserr "$modlin
+$mpre/variant/4.0:
+
+variant\t\tfoo val1 val2 val3
+variant\t\tbar 1 2 3
+setenv\t\tTS0 {}
+append-path\tTS2 {}
+setenv\t\tTS3 /path/to/module-{foo}
+$modlin"
+testouterr_cmd_re sh {display variant/4.0} OK $tserr
+
+setenv_var TESTSUITE_VARIANT 12
+set linenum [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 33}]
+set tserr "$modlin
+$mpre/variant/4.0:
+
+variant\t\tfoo val1 val2 val3
+variant\t\tbar 1 2 3
+setenv\t\tTS0 {}
+append-path\tTS2 {}
+[escre [msg_moderr {can't read "ModuleVariant(foo)": no such variable} {setenv TS3 /path/to/module-$ModuleVariant(foo)<EXM>} $mp/variant/4.0 $linenum {  }]]
 $modlin"
 testouterr_cmd_re sh {display variant/4.0} ERR $tserr
 

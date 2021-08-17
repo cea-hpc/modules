@@ -171,9 +171,16 @@ Evaluating
 
 - for the different evaluation modes:
 
-    - *load*, *display*, *help* and *test* applies evaluation mechanism described above
+    - *load*, *help* and *test* apply evaluation mechanism described above
 
-        - for the *display*, *help* and *test* modes it helps to see how the modulefile reacts to the different variant value
+        - for the *help* and *test* modes it helps to see how the modulefile reacts to the different variant value
+
+    - *display* applies evaluation mechanism described above but allow variant to be unspecified
+
+        - to help learning all the variant defined by the modulefile
+        - as a result unspecified variant is not instantiated in the ``ModuleVariant`` array variable
+        - with unspecified variant a user will not accurately see how the modulefile reacts to the different variant value
+            - evaluation error is obtained if accessing the ``ModuleVariant`` array variable for an unspecified variant
         - on *display* mode, the ``variant`` command is reported in addition of its evaluation
 
     - *unload* evaluates the mechanism described above but the specified variants are fetched from loaded module persistent information
