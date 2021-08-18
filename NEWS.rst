@@ -21,7 +21,7 @@ Modules 5.0.0 (not yet released)
   modulerc Tcl interpreter as no-op commands. A clear error message is
   obtained if these commands are still used in modulerc files instead of
   silently ignoring them.
-* Return by default an empty string rather ``_UNDEFINED`` on :mfcmd:`getenv`
+* Return by default an empty string rather ``_UNDEFINED_`` on :mfcmd:`getenv`
   modulefile command if passed environment variable is not defined.
 * Align empty directory name error message obtained on :subcmd:`use`
   sub-command with message obtained when module or collection name is empty.
@@ -107,8 +107,8 @@ Modules 5.0.0 (not yet released)
   context, a :subcmd:`module use<use>` will not increase the reference counter
   of a path entry already defined and a :subcmd:`module unuse<unuse>` will
   remove specified path whatever its reference counter value.
-* When the subcmd:`append-path`, subcmd:`prepend-path` and
-  subcmd:`remove-path` module sub-commands are not called during a modulefile
+* When the :subcmd:`append-path`, :subcmd:`prepend-path` and
+  :subcmd:`remove-path` module sub-commands are not called during a modulefile
   evaluation, the reference counter associated with each entry in targeted
   environment variable is ignored. In such context, a
   :subcmd:`module append-path/prepend-path<prepend-path>` will not increase
@@ -126,7 +126,7 @@ Modules 5.0.0 (not yet released)
   and re-apply the non-persistent environment changes they define (i.e., shell
   aliases and functions). With this change the :subcmd:`refresh` sub-command
   is restored to the behavior it had on Modules version 3.2.
-* Evaluate the modulefile commands resulting from a mfcmd:`source-sh` command
+* Evaluate the modulefile commands resulting from a :mfcmd:`source-sh` command
   through the current modulefile Tcl interpreter in order to evaluate them
   according to the current modulefile evaluation mode.
 * When initializing Modules, refresh the loaded modules in case some user
