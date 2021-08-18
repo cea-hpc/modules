@@ -828,10 +828,16 @@ the *modulefile* is being loaded.
 
 .. mfcmd:: unsetenv variable [value]
 
- Unsets environment *variable*. However, if there is an optional *value*,
- then when unloading a module, it will set *variable* to *value*. The
- :mfcmd:`unsetenv` command changes the process' environment like
- :mfcmd:`setenv`.
+ Unsets environment *variable*. When a *modulefile* is unloaded, no operation
+ is performed unless if an optional *value* is defined, in which case
+ *variable* is to *value*. The :mfcmd:`unsetenv` command changes the process'
+ environment like :mfcmd:`setenv`.
+
+ .. only:: html
+
+    .. versionchanged:: 5.0
+       *variable* is not unset when unloading *modulefile* and no optional
+       value is provided
 
 .. mfcmd:: variant [--boolean] [--default value] name value...
 

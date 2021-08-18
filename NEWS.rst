@@ -150,6 +150,12 @@ Modules 5.0.0 (not yet released)
   learn all the variant a modulefile defines. As a result, the unspecified
   variant is not instantiated in the :mfvar:`ModuleVariant` array variable.
   (fix issue #406)
+* When running the :mfcmd:`unsetenv` modulefile command on an unload
+  evaluation, do not unset designated environment variable if no value to
+  restore is provided.
+* Fix :mfcmd:`unsetenv` to distinguish between being called on a unload
+  evaluation without a value to restore or with an empty string value to
+  restore.
 
 
 .. _4.8 release notes:
