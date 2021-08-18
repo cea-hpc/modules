@@ -1191,8 +1191,8 @@ proc getenv {var {valifundef {}}} {
    }
 }
 
-proc unsetenv {var {val {}}} {
-   reportDebug "var='$var', val='$val'"
+proc unsetenv {var args} {
+   reportDebug "var='$var', val='[lindex $args 0]'"
 
    # clean any existing reference counter array
    unset-env [getModshareVarName $var] 1
@@ -1204,10 +1204,10 @@ proc unsetenv {var {val {}}} {
 }
 
 # undo unsetenv in unload mode
-proc unsetenv-un {var {val {}}} {
+proc unsetenv-un {var args} {
    # apply value specified for set on unload
-   if {$val ne {}} {
-      return [setenv $var $val]
+   if {[llength $args] == 1} {
+      return [setenv $var [lindex $args 0]]
    # otherwise just clear variable if it does not exist on unload mode for
    # later use during the modulefile evaluation
    } elseif {![info exists ::env($var)]} {
