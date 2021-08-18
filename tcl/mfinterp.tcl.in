@@ -1205,11 +1205,15 @@ proc unsetenv {var {val {}}} {
 
 # undo unsetenv in unload mode
 proc unsetenv-un {var {val {}}} {
+   # apply value specified for set on unload
    if {$val ne {}} {
       return [setenv $var $val]
-   } else {
-      return [unsetenv $var]
+   # otherwise just clear variable if it does not exist on unload mode for
+   # later use during the modulefile evaluation
+   } elseif {![info exists ::env($var)]} {
+      reset-to-unset-env $var
    }
+   return {}
 }
 
 proc chdir {dir} {
