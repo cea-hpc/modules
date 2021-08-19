@@ -156,6 +156,8 @@ Modules 5.0.0 (not yet released)
 * Fix :mfcmd:`unsetenv` to distinguish between being called on a unload
   evaluation without a value to restore or with an empty string value to
   restore.
+* Make :mfcmd:`system` modulefile command available from a modulerc evaluation
+  context whatever the underlying module evaluation mode.
 
 
 .. _4.8 release notes:

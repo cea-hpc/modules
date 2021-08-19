@@ -95,6 +95,23 @@ unsetenv_var TESTSUITE_ENABLE_SITECONFIG_WINDOWS_MODE
 
 
 #
+# Test use of system command in modulerc
+#
+
+setenv_var TESTSUITE_SYSTEM rc1
+
+set ans [list]
+lappend ans [list set __MODULES_LMALTNAME system/1.0&al|system/3.0]
+lappend ans [list set _LMFILES_ $modpath/system/1.0]
+lappend ans [list set LOADEDMODULES system/1.0]
+lappend ans [list set testsuite 0]
+
+testouterr_cmd sh {avail -t -o alias system/3.0} OK {system/3.0}
+testouterr_cmd sh {load system/3.0} $ans {}
+unsetenv_var TESTSUITE_SYSTEM
+
+
+#
 #  Cleanup
 #
 
