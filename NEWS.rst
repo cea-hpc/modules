@@ -158,6 +158,8 @@ Modules 5.0.0 (not yet released)
   restore.
 * Make :mfcmd:`system` modulefile command available from a modulerc evaluation
   context whatever the underlying module evaluation mode.
+* Make :mfcmd:`is-used` modulefile command available from a modulerc
+  evaluation context.
 
 
 .. _4.8 release notes:
