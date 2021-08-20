@@ -256,6 +256,9 @@ the *modulefile* is being loaded.
  :option:`--force` are ignored when passed to a :mfcmd:`module` command set in
  a *modulefile*.
 
+    .. versionchanged:: 4.7
+       Sub-command option ``--no-req`` added
+
 .. mfcmd:: module-alias name modulefile
 
  Assigns the *modulefile* to the alias *name*. This command should be
