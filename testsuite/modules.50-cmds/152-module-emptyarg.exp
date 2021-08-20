@@ -10,9 +10,9 @@
 #   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
 #
 #   Description:	Testuite testsequence
-#   Command:        load, unload, display, test, switch, source, whatis,
+#   Command:        load, unload, display, test, switch, whatis,
 #                   apropos, purge, reload, aliases, savelist, save,
-#                   restore, saveshow, saverm, use, unuse, avail 
+#                   restore, saveshow, saverm, use, unuse, avail
 #   Modulefiles:
 #   Sub-Command:
 #
@@ -95,7 +95,6 @@ foreach cmd [list use unuse] {
 foreach cmd [list save restore saveshow saverm] {
     testouterr_cmd "sh" "load $module/$cmd" "ERR" [msg_load $module/$cmd [msg_moderr $msg_collnameempty "module $cmd {}" $modulepath/$module/$cmd 27]]
 }
-testouterr_cmd "sh" "load $module/source" "ERR" [msg_load $module/source [msg_moderr $msg_filenameempty "module source {}" $modulepath/$module/source 27]]
 
 # empty string currently understood like wildcard
 foreach cmd [list whatis apropos] {
@@ -161,9 +160,6 @@ foreach cmd [list save restore saveshow saverm] {
     setenv_loaded_module "$module/$cmd" "$modulepath/$module/$cmd"
     testouterr_cmd "sh" "unload $module/$cmd" "ERR" [msg_unload $module/$cmd [msg_moderr $msg_collnameempty "module $cmd {}" $modulepath/$module/$cmd 27]]
 }
-setenv_loaded_module "$module/source" "$modulepath/$module/source"
-set env(_LMFILES_) "$modulepath/$module/source"
-testouterr_cmd "sh" "unload $module/source" "ERR" [msg_unload $module/source [msg_moderr $msg_filenameempty "module source {}" $modulepath/$module/source 27]]
 
 # empty string currently understood like wildcard
 foreach cmd [list whatis apropos] {
@@ -203,7 +199,7 @@ foreach cmd [list load try-load unload] {
     # test both empty names {} and "" on same module command
     testouterr_cmd_re "sh" "display $module/$cmd" "OK" [display_stderr_content "$modulepathre/$module/$cmd" "module\t\t$cmd {} {}"]
 }
-foreach cmd [list use unuse source list purge reload aliases savelist display test save restore saveshow saverm whatis apropos avail] {
+foreach cmd [list use unuse list purge reload aliases savelist display test save restore saveshow saverm whatis apropos avail] {
     testouterr_cmd_re "sh" "display $module/$cmd" "OK" [display_stderr_content "$modulepathre/$module/$cmd" "module\t\t$cmd {}"]
 }
 testouterr_cmd_re "sh" "display $module/swap" "OK" [display_stderr_content "$modulepathre/$module/swap" "module\t\tswap {} barunk"]
@@ -227,7 +223,7 @@ proc help_stderr_content {modfile content {procwarn 0}} {
 }
 
 # on all module commands, command line is ignored
-foreach cmd [list load try-load unload use unuse source list purge reload aliases savelist display test swap swap2 save restore saveshow saverm whatis apropos avail] {
+foreach cmd [list load try-load unload use unuse list purge reload aliases savelist display test swap swap2 save restore saveshow saverm whatis apropos avail] {
     testouterr_cmd_re "sh" "help $module/$cmd" "OK" [help_stderr_content "$modulepathre/$module/$cmd" "" 1]
 }
 
@@ -249,7 +245,7 @@ proc test_stderr_content {modfile content {procwarn 0}} {
 }
 
 # on all module commands, command line is ignored
-foreach cmd [list load try-load unload use unuse source list purge reload aliases savelist display test swap swap2 save restore saveshow saverm whatis apropos avail] {
+foreach cmd [list load try-load unload use unuse list purge reload aliases savelist display test swap swap2 save restore saveshow saverm whatis apropos avail] {
     testouterr_cmd_re "sh" "test $module/$cmd" "OK" [test_stderr_content "$modulepathre/$module/$cmd" "" 1]
 }
 
