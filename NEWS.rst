@@ -160,6 +160,7 @@ Modules 5.0.0 (not yet released)
   context whatever the underlying module evaluation mode.
 * Make :mfcmd:`is-used` modulefile command available from a modulerc
   evaluation context.
+* Remove internal state ``tcl_version_lt85`` as Tcl 8.5+ is now a requirement.
 
 
 .. _4.8 release notes:
