@@ -78,7 +78,7 @@ proc runModulerc {} {
    foreach rc $rclist {
       if {[file readable $rc]} {
          reportDebug "Executing $rc"
-         cmdModuleSource $rc
+         cmdModuleSource load $rc
          lappendState rc_loaded $rc
       }
    }
@@ -376,7 +376,7 @@ proc module {command args} {
       switch -- $command {
          path - paths - autoinit - help - prepend-path - append-path -\
          remove-path - is-loaded - is-saved - is-used - is-avail -\
-         info-loaded - clear - sh-to-mod - edit - refresh {
+         info-loaded - clear - sh-to-mod - edit - refresh - source {
             knerror "${msgprefix}Command '$command' not supported$tryhelpmsg"
          }
       }
@@ -563,12 +563,7 @@ proc module {command args} {
          cmdModuleUnuse {*}$args
       }
       source {
-         if {$topcall || $mode eq {load}} {
-            cmdModuleSource {*}$args
-         } else {
-            # on unload mode, unsource script in reverse order
-            cmdModuleUnsource {*}[lreverse $args]
-         }
+         cmdModuleSource load {*}$args
       }
       switch {
          # pass 'user asked state' to switch procedure

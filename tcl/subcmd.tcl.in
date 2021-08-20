@@ -768,34 +768,14 @@ proc cmdModuleSavelist {show_oneperline show_mtime} {
 }
 
 
-proc cmdModuleSource {args} {
+proc cmdModuleSource {mode args} {
    reportDebug $args
    foreach fpath $args {
       set absfpath [getAbsolutePath $fpath]
       if {$fpath eq {}} {
          reportErrorAndExit {File name empty}
       } elseif {[file exists $absfpath]} {
-         lappendState mode load
-         # relax constraint of having a magic cookie at the start of the
-         # modulefile to execute as sourced files may need more flexibility
-         # as they may be managed outside of the modulefile environment like
-         # the initialization modulerc file
-         execute-modulefile $absfpath $absfpath $absfpath $absfpath 0 0 0
-         lpopState mode
-      } else {
-         reportErrorAndExit "File $fpath does not exist"
-      }
-   }
-}
-
-proc cmdModuleUnsource {args} {
-   reportDebug $args
-   foreach fpath $args {
-      set absfpath [getAbsolutePath $fpath]
-      if {$fpath eq {}} {
-         reportErrorAndExit {File name empty}
-      } elseif {[file exists $absfpath]} {
-         lappendState mode unload
+         lappendState mode $mode
          # relax constraint of having a magic cookie at the start of the
          # modulefile to execute as sourced files may need more flexibility
          # as they may be managed outside of the modulefile environment like
@@ -1744,7 +1724,7 @@ proc cmdModuleAutoinit {} {
       # use modulerc file in initdir if conf files are located in this dir
       if {[file exists @initrc@]} {
          setState rc_running 1
-         cmdModuleSource @initrc@
+         cmdModuleSource load @initrc@
          unsetState rc_running
       }
    # if user environment is already initialized, refresh the already loaded

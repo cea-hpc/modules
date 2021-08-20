@@ -161,6 +161,9 @@ Modules 5.0.0 (not yet released)
 * Make :mfcmd:`is-used` modulefile command available from a modulerc
   evaluation context.
 * Remove internal state ``tcl_version_lt85`` as Tcl 8.5+ is now a requirement.
+* Forbid use of :subcmd:`module source<source>` command in modulefile or in an
+  initialization rc file, the ``source`` Tcl command should be used instead.
+  :subcmd:`source` sub-command should only be called from the command-line.
 
 
 .. _4.8 release notes:
