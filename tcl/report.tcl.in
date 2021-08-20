@@ -245,11 +245,13 @@ proc reportMsgRecord {header {hidden 0}} {
       unset ::g_msgRecord($recid)
    # report header if no other specific msg to output in verbose mode or in
    # normal verbosity mode if currently processing a cmd which triggers
-   # multiple module evaluations that cannot be guessed by the user
+   # multiple module evaluations that cannot be guessed by the user (excluding
+   # dependency evaluations which are reported by triggering top evaluation)
    # if hidden flag is enabled report only if verbosity >= verbose2
    } elseif {(!$hidden && ([isVerbosityLevel verbose] || ([isVerbosityLevel\
       normal] && ([ongoingCommandName restore] || [ongoingCommandName\
-      source])))) || ($hidden && [isVerbosityLevel verbose2])} {
+      source]) && $recid eq [topState msgrecordid]))) || ($hidden &&\
+      [isVerbosityLevel verbose2])} {
       report $header
    }
 }

@@ -93,7 +93,8 @@ if {[info exists insmodrcdata] && [info exists exmodrcdata] && $exmodrcdata eq $
 set custom {module restore unk}
 set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 25 {  }]]
 
-set tserr_initrc_exinstalled "load m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n$err_path'unk'\n$custom"
+set tserr_initrc_exinstalled "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n$err_path'unk'\n$custom"
+set tserr_initrc1_exinstalled [msg_load null]
 
 # check if stderr terminal attachement state is forced
 set is_stderr_tty [siteconfig_isStderrTty]
@@ -720,11 +721,19 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
         unset -nocomplain notestrun
         switch -- $shell {
             {lisp} {
-                set tserr [expr {!$insmodspath && $initrc_exinstalled ? "$tserr_initrc_exinstalled\n$err_lisp" : $err_lisp}]
+                switch -- "$insmodspath$initrc_exinstalled$modrc1_exinstalled" {
+                    010 {set tserr "$tserr_initrc_exinstalled\n$err_lisp"}
+                    001 - 101 {set tserr "$tserr_initrc1_exinstalled\n$err_lisp"}
+                    default {set tserr $err_lisp}
+                }
                 set ans ERR
             }
             {cmd} {
-                set tserr [expr {!$insmodspath && $initrc_exinstalled ? "$tserr_initrc_exinstalled\n$err_cmd" : $err_cmd}]
+                switch -- "$insmodspath$initrc_exinstalled$modrc1_exinstalled" {
+                    010 {set tserr "$tserr_initrc_exinstalled\n$err_cmd"}
+                    001 - 101 {set tserr "$tserr_initrc1_exinstalled\n$err_cmd"}
+                    default {set tserr $err_cmd}
+                }
                 set ans ERR
             }
             default {
@@ -769,6 +778,7 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                     if {$install_versioning eq "y"} {
                         lappend ans [list set MODULE_VERSION "(.*)"]
                     }
+                    set tserr $tserr_initrc1_exinstalled
                 } elseif {$modspath_exinstalled} {
                     if {$install_versioning eq "y"} {
                         lappend ans [list set MODULE_VERSION_STACK "(.*)"]
@@ -826,6 +836,7 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                     if {$install_versioning eq "y"} {
                         lappend ans [list set MODULE_VERSION "(.*)"]
                     }
+                    set tserr $tserr_initrc1_exinstalled
                 } elseif {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup} {
                     if {$shell eq {python}} {
                         set ans (.*)
@@ -1015,7 +1026,7 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
     lappend ans [list ERR]
     set linenum [expr {[cmpversion $tclsh_version 8.6] == -1 ? 14 : 21}]
     set custom [escre [msg_moderr {module: Command 'refresh' not supported} {module refresh<EXM>} $modrc $linenum {  }]]
-    set tserr "load m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n$err_path'unk'\n$custom"
+    set tserr "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n$err_path'unk'\n$custom"
     testouterr_cmd_re sh autoinit $ans $tserr
 
     unsetenv_var TESTSUITE_INITRC

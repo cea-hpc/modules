@@ -164,6 +164,15 @@ Modules 5.0.0 (not yet released)
 * Forbid use of :subcmd:`module source<source>` command in modulefile or in an
   initialization rc file, the ``source`` Tcl command should be used instead.
   :subcmd:`source` sub-command should only be called from the command-line.
+* Report the modules loading and unloading during the :command:`module`
+  command initialization (i.e., during the evaluation of the ``initrc``
+  configuration file). These report messages are disabled when the
+  :mconfig:`verbosity` configuration option is set to ``concise`` or
+  ``silent``.
+* During a module :subcmd:`restore` or :subcmd:`source`, only report the
+  module load and unload directly triggered by these sub-commands. Load and
+  unload triggered by other modules are reported through the automated module
+  handling messages of the main modules.
 
 
 .. _4.8 release notes:
