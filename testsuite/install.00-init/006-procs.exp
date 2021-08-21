@@ -53,6 +53,26 @@ proc _test_sub {test_shell cmd} {
    set shell $test_shell
    install_test_xxx_ "$cmd"
 
+   # if environment is found undefined, initrc is evaluated so the default
+   # module to load will appear on every test output
+   if {![info exists ::no_loadedmodules_inject] && $::install_loadedmodules\
+      ne {} && (![info exists ::env(LOADEDMODULES)] && ![info exists\
+      ::env(MODULEPATH)])} {
+      foreach lm [split $::install_loadedmodules :] {
+         lappend anserrpre "Loading $lm"
+      }
+      upvar anserr anserr
+      if {$anserr ne {.*}} {
+         if {[string length $anserr] > 0} {
+            set startmatch [expr {[string index $anserr 0] eq {^}}]
+            set anserr \n[string range $anserr $startmatch end]
+         } else {
+            set startmatch 0
+         }
+         set anserr [expr {$startmatch ? {^} : {}}][join $anserrpre \n]$anserr
+      }
+   }
+
    if { $verbose > 1 } {
       set ol [string length $comp_output]
       set oe [string length $comp_error]

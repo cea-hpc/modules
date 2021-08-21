@@ -35,6 +35,19 @@ if {[lsearch -exact $install_quarlist LD_PRELOAD] != -1} {
    lappend ansr "(ERROR: ld.so: object 'foo'.*)*"
 }
 
+if {$::install_loadedmodules ne {}} {
+   set lmlist [split $::install_loadedmodules :]
+   for {set i 0} {$i < [llength $lmlist]} {incr i} {
+      set lm [lindex $lmlist $i]
+      set lmmsg "Loading $lm"
+      if {$i == ([llength $lmlist] - 1)} {
+         append lmmsg "(\\nERROR: ld.so: object 'foo'.*)*"
+      }
+      lappend ans $lmmsg
+      lappend ansr $lmmsg
+   }
+}
+
 set quar [join $install_quarlist " "]
 if { $verbose > 0 } {
    send_user "\tAlready configured MODULES_RUN_QUARANTINE = '$quar'\n"
@@ -75,6 +88,7 @@ if {[lsearch -exact $install_quarlist LD_PRELOAD] != -1} {
 # The tests
 #
 
+set no_loadedmodules_inject 1
 foreach shell $shell_list {
    switch -- $shell {
       {csh} - {tcsh} {
@@ -101,6 +115,7 @@ foreach shell $othlang_list {
       }
    }
 }
+unset no_loadedmodules_inject
 
 #
 #  Clean up variables used in this test case
@@ -182,6 +197,11 @@ set ans [list]
 lappend ans "$warn_msgs: Bad variable name set in MODULES_RUN_QUARANTINE (F:OO)"
 lappend ans "$warn_msgs: Bad variable name set in MODULES_RUN_QUARANTINE (B\\AD)"
 lappend ans "$warn_msgs: Bad variable name set in MODULES_RUN_QUARANTINE (0BAD)"
+if {$::install_loadedmodules ne {}} {
+   foreach lm [split $::install_loadedmodules :] {
+      lappend ans "Loading $lm"
+   }
+}
 lappend ans "$warn_msgs: Bad variable name set in MODULES_RUN_QUARANTINE (F:OO)"
 lappend ans "$warn_msgs: Bad variable name set in MODULES_RUN_QUARANTINE (B\\AD)"
 lappend ans "$warn_msgs: Bad variable name set in MODULES_RUN_QUARANTINE (0BAD)"
@@ -201,13 +221,17 @@ foreach shell $shell_list {
          testall_cmd "$shell" "module source $modfile" "" [join $anscsh "\n"] 0
       }
       default {
+         set no_loadedmodules_inject 1
          testall_cmd "$shell" "module source $modfile" "" [join $ans "\n"] 0
+         unset no_loadedmodules_inject
       }
    }
 }
+set no_loadedmodules_inject 1
 foreach shell $othlang_list {
    testall_cmd "$shell" "source,$modfile" "" [join $ans "\n"] 0
 }
+unset no_loadedmodules_inject
 
 # two quarantine variables, first with env no runtime, second with env and runtime
 set quar "LD_LIBRARY_PATH FOO"
