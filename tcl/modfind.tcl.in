@@ -2031,7 +2031,7 @@ proc checkValidModule {modfile} {
    # test file only once, cache result obtained to minimize file query
    return [expr {[info exists ::g_modfileValid($modfile)]\
       ? $::g_modfileValid($modfile)\
-      : [set ::g_modfileValid($modfile) [readModuleContent $modfile 1 1 1]]}]
+      : [set ::g_modfileValid($modfile) [readModuleContent $modfile 1 1]]}]
 }
 
 # get file modification time, cache it at first query, use cache afterward
@@ -2063,8 +2063,8 @@ proc __readFile {filename {firstline 0} {must_have_cookie 0}} {
    return $fdata
 }
 
-proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}\
-   {only_check_validity 0}} {
+proc readModuleContent {modfile {report_read_issue 0} {only_check_validity\
+   0}} {
    reportDebug $modfile
    set res {}
 
@@ -2077,7 +2077,7 @@ proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}\
          # asked to always fully read files. when full file should be read
          # cookie is checked if asked to avoid to fully read non modfile
          set fdata [readFile $modfile [expr {$only_check_validity &&\
-            ![currentState always_read_full_file]}] $must_have_cookie]
+            ![currentState always_read_full_file]}] 1]
          # extract magic cookie (first word of modulefile)
          set fh [string trimright [lindex [split [string range $fdata 0 32]]\
             0] #]
@@ -2096,18 +2096,17 @@ proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}\
          }
       }
    } else {
-      # check module validity if magic cookie is mandatory
-      if {$must_have_cookie && ![string equal -length 8 $fh {#%Module}]} {
+      # check module validity
+      if {![string equal -length 8 $fh {#%Module}]} {
          set msg {Magic cookie '#%Module' missing}
          if {$only_check_validity} {
             set res [list invalid $msg]
          } else {
             reportInternalBug $msg $modfile
          }
-      # check if min version requirement is met if magic cookie is mandatory
-      } elseif {$must_have_cookie && [string length $fh] > 8 &&\
-         [getConf mcookie_version_check] && [versioncmp {@MODULES_RELEASE@}\
-         [string range $fh 8 end]] <0} {
+      # check if min version requirement is met
+      } elseif {[string length $fh] > 8 && [getConf mcookie_version_check] &&\
+         [versioncmp {@MODULES_RELEASE@} [string range $fh 8 end]] <0} {
          set msg "Modulefile requires at least Modules version [string range\
             $fh 8 end]"
          if {$only_check_validity} {

@@ -134,6 +134,16 @@ in the following order:
 3. All :file:`.modulerc` and :file:`.version` files found during modulefile
    seeking.
 
+These module run-command files must begins like *modulefiles* with the magic
+cookie ``#%Module``. A version number may be placed after this string. The
+version number reflects the minimum version of :file:`modulecmd.tcl` required
+to interpret the run-command file. If a version number doesn't exist, then
+:file:`modulecmd.tcl` will assume the run-command file is compatible. Files
+without the magic cookie or with a version number greater than the current
+version of :file:`modulecmd.tcl` will not be interpreted and an error is
+reported. Such error does not abort the whole :command:`module` evaluation. If
+the :mconfig:`mcookie_version_check` configuration is disabled the version
+number set is not checked.
 
 Command line switches
 ^^^^^^^^^^^^^^^^^^^^^

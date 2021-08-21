@@ -776,11 +776,8 @@ proc cmdModuleSource {mode args} {
          reportErrorAndExit {File name empty}
       } elseif {[file exists $absfpath]} {
          lappendState mode $mode
-         # relax constraint of having a magic cookie at the start of the
-         # modulefile to execute as sourced files may need more flexibility
-         # as they may be managed outside of the modulefile environment like
-         # the initialization modulerc file
-         execute-modulefile $absfpath $absfpath $absfpath $absfpath 0 0 0
+         # sourced file must also have a magic cookie set at their start
+         execute-modulefile $absfpath $absfpath $absfpath $absfpath 0 0
          lpopState mode
       } else {
          reportErrorAndExit "File $fpath does not exist"
@@ -1297,7 +1294,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
 
          # no need to update modnamevr and tags after evaluation as these
          # information were already complete in persistent environment
-         if {[execute-modulefile $modfile $modname $modnamevr $mod 0 1 0]} {
+         if {[execute-modulefile $modfile $modname $modnamevr $mod 0 0]} {
             break
          }
 

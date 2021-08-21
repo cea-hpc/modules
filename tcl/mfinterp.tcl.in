@@ -144,7 +144,7 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
 }
 
 proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
-   {must_have_cookie 1} {fetch_tags 1}} {
+   {fetch_tags 1}} {
    # link to modnamevr variable name from calling ctx if content update asked
    if {$up_namevr} {
       upvar $modnamevrvar modnamevr
@@ -210,7 +210,7 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
    if {![info exists ::g_modfileUntrackVars]} {
       # list variable that should not be tracked for saving
       array set ::g_modfileUntrackVars [list ModulesCurrentModulefile 1\
-         must_have_cookie 1 modcontent 1 env 1]
+         modcontent 1 env 1]
 
       # commands that should be renamed before aliases setup
       array set ::g_modfileRenameCmds [list puts _puts]
@@ -257,13 +257,11 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
 
    # reset modulefile-specific variable before each interpretation
    interp eval $itrp set ::ModulesCurrentModulefile "{$modfile}"
-   interp eval $itrp set must_have_cookie $must_have_cookie
    interp eval $itrp set vrspeclist "{[getVariantListFromVersSpec\
       $modnamevr]}"
 
    set errorVal [interp eval $itrp {
-      set modcontent [readModuleContent $::ModulesCurrentModulefile 1\
-         $must_have_cookie]
+      set modcontent [readModuleContent $::ModulesCurrentModulefile 1]
       if {$modcontent eq {}} {
          return 1
       }
