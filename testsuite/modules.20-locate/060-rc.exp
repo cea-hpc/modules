@@ -150,6 +150,42 @@ unsetenv_loaded_module
 
 
 #
+# Test erroneous MODULERCFILE file
+#
+
+set mp $modpath.3
+setenv_path_var MODULEPATH $mp
+
+# user rc file without magic cookie
+set modrcfile $env(TESTSUITEDIR)/home.3/.modulerc
+setenv_var MODULERCFILE $modrcfile
+
+set tserr $err_magic'$modrcfile'\n$err_contact
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/bar/1.0]
+lappend ans [list set LOADEDMODULES bar/1.0]
+lappend ans [list ERR]
+testouterr_cmd sh {load bar/1.0} $ans $tserr
+
+set tserr [escre $tserr]\n$modlin\n[escre $mp]/bar/1.0:\n\nmodule-whatis\tbar/1.0\n$modlin
+testouterr_cmd_re sh {display bar/1.0} ERR $tserr
+
+# user rc file with magic cookie specifying an higher module version
+set modrcfile $env(TESTSUITEDIR)/home.4/.modulerc
+setenv_var MODULERCFILE $modrcfile
+
+set tserr [moderr_minverreq $modrcfile 99]
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/bar/1.0]
+lappend ans [list set LOADEDMODULES bar/1.0]
+lappend ans [list ERR]
+testouterr_cmd sh {load bar/1.0} $ans $tserr
+
+set tserr [escre $tserr]\n$modlin\n[escre $mp]/bar/1.0:\n\nmodule-whatis\tbar/1.0\n$modlin
+testouterr_cmd_re sh {display bar/1.0} ERR $tserr
+
+
+#
 #  Cleanup
 #
 

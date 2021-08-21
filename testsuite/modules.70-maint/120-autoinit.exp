@@ -1030,6 +1030,42 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
     testouterr_cmd_re sh autoinit $ans $tserr
 
     unsetenv_var TESTSUITE_INITRC
+
+    # save installed initrc as following tests will test specific configuration
+    file rename -force $modrc $modrc.orig
+
+    set ans [list]
+    lappend ans [list [set "func_$shell"]]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+    }
+    lappend ans [list set MODULES_CMD $modulecmd_path]
+    lappend ans [list set MODULESHOME $moduleshome]
+    lappend ans [list set LOADEDMODULES {}]
+    lappend ans [list set MODULEPATH {}]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION "(.*)"]
+    }
+    lappend ans [list ERR]
+
+    # test initrc file without magic cookie
+    set fid [open $modrc w]
+    puts $fid "module load unk"
+    close $fid
+
+    set tserr [escre $err_magic'$modrc'\n$err_contact]
+    testouterr_cmd_re sh autoinit $ans $tserr
+
+    # test initrc file with incompatible module version required in magic cookie
+    set fid [open $modrc w]
+    puts $fid "#%Module99\nmodule load unk"
+    close $fid
+
+    set tserr [escre [moderr_minverreq $modrc 99]]
+    testouterr_cmd_re sh autoinit $ans $tserr
+
+    # restore installed initrc
+    file rename -force $modrc.orig $modrc
 }
 
 # test precedence of etc/modulespath over init/.modulespath if we are purely testing

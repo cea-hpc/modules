@@ -110,6 +110,39 @@ testouterr_cmd_re sh {display bar/1.0} $ans $tserr
 
 
 #
+# Test erroneous user rc
+#
+
+# user rc file without magic cookie
+set home $env(TESTSUITEDIR)/home.3
+setenv_var HOME $home
+
+set tserr $err_magic'$home/.modulerc'\n$err_contact
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/bar/1.0]
+lappend ans [list set LOADEDMODULES bar/1.0]
+lappend ans [list ERR]
+testouterr_cmd sh {load bar/1.0} $ans $tserr
+
+set tserr [escre $tserr]\n$modlin\n[escre $mp]/bar/1.0:\n\nmodule-whatis\tbar/1.0\n$modlin
+testouterr_cmd_re sh {display bar/1.0} ERR $tserr
+
+# user rc file with magic cookie specifying an higher module version
+set home $env(TESTSUITEDIR)/home.4
+setenv_var HOME $home
+
+set tserr [moderr_minverreq $home/.modulerc 99]
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/bar/1.0]
+lappend ans [list set LOADEDMODULES bar/1.0]
+lappend ans [list ERR]
+testouterr_cmd sh {load bar/1.0} $ans $tserr
+
+set tserr [escre $tserr]\n$modlin\n[escre $mp]/bar/1.0:\n\nmodule-whatis\tbar/1.0\n$modlin
+testouterr_cmd_re sh {display bar/1.0} ERR $tserr
+
+
+#
 #  Cleanup
 #
 
