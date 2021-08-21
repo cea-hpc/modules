@@ -55,6 +55,30 @@ lappend ans [list unset testsuite]
 test_cmd "ALL" "load $module" $ans
 
 
+skip_if_quick_mode
+
+
+#
+# bad specification test
+#
+
+set mp $modpath.3
+setenv_path_var MODULEPATH $mp
+
+setenv_var TESTSUITE_UNSETENV bad1
+unsetenv_var TS1
+
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {2} : {5}}]
+set tserr [escre [msg_load unsetenv/2.0 [msg_moderr {wrong # args: should be "unsetenv var ?val?"} {unsetenv TS1 foo bar<EXM>} $mp/unsetenv/2.0 $ln]]]
+testouterr_cmd_re sh {load unsetenv/2.0} ERR $tserr
+
+setenv_var TS1 foo
+testouterr_cmd_re sh {load unsetenv/2.0} ERR $tserr
+
+unsetenv_var TS1
+unsetenv_var TESTSUITE_UNSETENV
+
+
 #
 #  Cleanup
 #

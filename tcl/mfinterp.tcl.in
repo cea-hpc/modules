@@ -1192,6 +1192,12 @@ proc getenv {var {valifundef {}}} {
 proc unsetenv {var args} {
    reportDebug "var='$var', val='[lindex $args 0]'"
 
+   # error if bad argument number, use args list to distinguish between no
+   # value to restore and an empty string value to restore
+   if {[llength $args] > 1} {
+      knerror {wrong # args: should be "unsetenv var ?val?"}
+   }
+
    # clean any existing reference counter array
    unset-env [getModshareVarName $var] 1
 
@@ -1203,6 +1209,12 @@ proc unsetenv {var args} {
 
 # undo unsetenv in unload mode
 proc unsetenv-un {var args} {
+   # error if bad argument number, use args list to distinguish between no
+   # value to restore and an empty string value to restore
+   if {[llength $args] > 1} {
+      knerror {wrong # args: should be "unsetenv var ?val?"}
+   }
+
    # apply value specified for set on unload
    if {[llength $args] == 1} {
       return [setenv $var [lindex $args 0]]
