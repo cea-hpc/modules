@@ -340,11 +340,11 @@ def setup(app):
                         parse_node=parse_cmd_args_node)
     app.add_object_type(directivename='mfcmd', rolename='mfcmd',
                         objname='modulefile command',
-                        indextemplate='%s (modulefile command)',
+                        indextemplate='pair: %s; modulefile command',
                         parse_node=parse_cmd_args_node)
     app.add_object_type(directivename='mfvar', rolename='mfvar',
                         objname='modulefile variable',
-                        indextemplate='%s (modulefile variable)',
+                        indextemplate='pair: %s; modulefile variable',
                         parse_node=parse_cmd_args_node)
     app.add_object_type('instopt', 'instopt',
                         objname='installation option',
