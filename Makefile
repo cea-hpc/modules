@@ -713,6 +713,7 @@ distclean: clean
 	rm -rf $(TCL_RELEASE83)
 	rm -f tclsh83
 	rm -f tcl/tags
+	rm -f tcl/GTAGS tcl/GRTAGS tcl/GPATH tcl/gtags.file
 ifneq ($(wildcard lib/Makefile),)
 	$(MAKE) -C lib distclean
 endif
@@ -827,6 +828,27 @@ tcl/tags: tcl/coll.tcl tcl/envmngt.tcl.in tcl/init.tcl.in tcl/main.tcl.in \
 		tcl/envmngt.tcl.in tcl/init.tcl.in tcl/main.tcl.in tcl/mfinterp.tcl.in \
 		tcl/modeval.tcl tcl/modfind.tcl.in tcl/modspec.tcl tcl/report.tcl.in \
 		tcl/subcmd.tcl.in tcl/util.tcl
+
+# build Gtags target files
+tcl/gtags.file:
+	echo coll.tcl > $@
+	echo envmngt.tcl.in >> $@
+	echo init.tcl.in >> $@
+	echo main.tcl.in >> $@
+	echo mfinterp.tcl.in >> $@
+	echo modeval.tcl >> $@
+	echo modfind.tcl.in >> $@
+	echo modspec.tcl >> $@
+	echo report.tcl.in >> $@
+	echo subcmd.tcl.in >> $@
+	echo util.tcl >> $@
+
+# build Gtags tag file
+tcl/GTAGS: tcl/coll.tcl tcl/envmngt.tcl.in tcl/init.tcl.in tcl/main.tcl.in \
+	tcl/mfinterp.tcl.in tcl/modeval.tcl tcl/modfind.tcl.in tcl/modspec.tcl \
+	tcl/report.tcl.in tcl/subcmd.tcl.in tcl/util.tcl tcl/gtags.file
+	gtags -C tcl --gtagsconf ../.globalrc
+
 
 # quiet build targets unless verbose mode set
 ifeq ($(VERBOSE),1)
