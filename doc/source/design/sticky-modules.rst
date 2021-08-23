@@ -47,6 +47,21 @@ Specification
     - If a forced ``purge`` command occurs, the dependent module will be unloaded
     - Which let the super-sticky module with a missing dependency
 
+- An error is reported when trying to unload a sticky or super-sticky module
+
+    - As the expected unload is not performed
+    - So with the return code and message, user knows that what he/she asked for was not done
+    - Same goes for the ``purge`` command: user expects no more module loaded
+
+        - so an error is returned as after the command the sticky module is still loaded
+
+    - When the unload is forced a warning message is reported
+
+        - the sticky module is unloaded as expected but a warning message is done
+        - as the module was tagged not to be unloaded by default
+        - user should know he/she has done something specific
+
+
 Current limitations
 -------------------
 
