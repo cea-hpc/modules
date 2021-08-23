@@ -179,6 +179,7 @@ Modules 5.0.0 (not yet released)
   not evaluated and an error is produced if the magic cookie is missing or if
   the optional version number placed after the cookie string is higher than
   the version of the :file:`modulecmd.tcl` script in use.
+* Doc: alphabetically sort installation option in :ref:`INSTALL` document.
 
 
 .. _4.8 release notes:
