@@ -1,29 +1,28 @@
-@quarantinesupport@# define modules runtine quarantine configuration
-@quarantinesupport@@setquarvars@$ENV{'MODULES_RUN_QUARANTINE'} = '@RUN_QUARANTINE@';
-@quarantinesupport@@setquarvars@@$ENV{'RUNENV_VAR'} = 'RUNENV_VAL';@
-@quarantinesupport@@notsetquarvars@#$ENV{'MODULES_RUN_QUARANTINE'} = 'ENVVARNAME';
-@quarantinesupport@@notsetquarvars@
-@quarantinesupport@# setup quarantine if defined
-@quarantinesupport@my $_mlre = '';
-@quarantinesupport@if (defined $ENV{'MODULES_RUN_QUARANTINE'}) {
-@quarantinesupport@  foreach my $_mlv (split(' ', $ENV{'MODULES_RUN_QUARANTINE'})) {
-@quarantinesupport@     if ($_mlv =~ /^[A-Za-z_][A-Za-z0-9_]*$/) {
-@quarantinesupport@        if (defined $ENV{$_mlv}) {
-@quarantinesupport@           $_mlre .= "__MODULES_QUAR_${_mlv}='$ENV{$_mlv}' ";
-@quarantinesupport@        }
-@quarantinesupport@        my $_mlrv = "MODULES_RUNENV_$_mlv";
-@quarantinesupport@        $_mlre .= "$_mlv='$ENV{$_mlrv}' ";
-@quarantinesupport@    }
-@quarantinesupport@  }
-@quarantinesupport@  if ($_mlre ne "") {
-@quarantinesupport@     $_mlre = "env $_mlre";
-@quarantinesupport@  }
-@quarantinesupport@}
-@quarantinesupport@
-@quarantinesupport@eval `${_mlre}@TCLSH@ @libexecdir@/modulecmd.tcl perl autoinit`;
-@notquarantinesupport@eval `@TCLSH@ @libexecdir@/modulecmd.tcl perl autoinit`;
+# define modules runtine quarantine configuration
+@setquarvars@$ENV{'MODULES_RUN_QUARANTINE'} = '@RUN_QUARANTINE@';
+@setquarvars@@$ENV{'RUNENV_VAR'} = 'RUNENV_VAL';@
+@notsetquarvars@#$ENV{'MODULES_RUN_QUARANTINE'} = 'ENVVARNAME';
+@notsetquarvars@
+# setup quarantine if defined
+my $_mlre = '';
+if (defined $ENV{'MODULES_RUN_QUARANTINE'}) {
+  foreach my $_mlv (split(' ', $ENV{'MODULES_RUN_QUARANTINE'})) {
+     if ($_mlv =~ /^[A-Za-z_][A-Za-z0-9_]*$/) {
+        if (defined $ENV{$_mlv}) {
+           $_mlre .= "__MODULES_QUAR_${_mlv}='$ENV{$_mlv}' ";
+        }
+        my $_mlrv = "MODULES_RUNENV_$_mlv";
+        $_mlre .= "$_mlv='$ENV{$_mlrv}' ";
+    }
+  }
+  if ($_mlre ne "") {
+     $_mlre = "env $_mlre";
+  }
+}
 
-@quarantinesupport@# clean temp variable used to setup quarantine
-@quarantinesupport@undef $_mlre;
-@quarantinesupport@
+eval `${_mlre}@TCLSH@ @libexecdir@/modulecmd.tcl perl autoinit`;
+
+# clean temp variable used to setup quarantine
+undef $_mlre;
+
 1;

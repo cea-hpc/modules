@@ -1,33 +1,32 @@
-@quarantinesupport@# define modules runtine quarantine configuration
-@quarantinesupport@@setquarvars@set env(MODULES_RUN_QUARANTINE) "@RUN_QUARANTINE@"
-@quarantinesupport@@setquarvars@@set env(RUNENV_VAR) "RUNENV_VAL"@
-@quarantinesupport@@notsetquarvars@#set env(MODULES_RUN_QUARANTINE) "ENVVARNAME"
-@quarantinesupport@@notsetquarvars@
-@quarantinesupport@# setup quarantine if defined
-@quarantinesupport@set _mlre {}; set _mlv ""; set _mlrv "";
-@quarantinesupport@if {[info exists env(MODULES_RUN_QUARANTINE)]} {
-@quarantinesupport@   foreach _mlv [split $env(MODULES_RUN_QUARANTINE) " "] {
-@quarantinesupport@     if {[regexp {^[A-Za-z_][A-Za-z0-9_]*$} $_mlv]} {
-@quarantinesupport@        if {[info exists env($_mlv)]} {
-@quarantinesupport@           lappend _mlre "__MODULES_QUAR_${_mlv}=$env($_mlv)"
-@quarantinesupport@        }
-@quarantinesupport@        set _mlrv "MODULES_RUNENV_${_mlv}"
-@quarantinesupport@        if {[info exists env($_mlrv)]} {
-@quarantinesupport@           lappend _mlre "${_mlv}=$env($_mlrv)"
-@quarantinesupport@        } else {
-@quarantinesupport@           lappend _mlre "${_mlv}="
-@quarantinesupport@        }
-@quarantinesupport@     }
-@quarantinesupport@   }
-@quarantinesupport@   if {[llength $_mlre] > 0} {
-@quarantinesupport@     set _mlre [linsert $_mlre 0 "env"]
-@quarantinesupport@   }
-@quarantinesupport@}
-@quarantinesupport@
+# define modules runtine quarantine configuration
+@setquarvars@set env(MODULES_RUN_QUARANTINE) "@RUN_QUARANTINE@"
+@setquarvars@@set env(RUNENV_VAR) "RUNENV_VAL"@
+@notsetquarvars@#set env(MODULES_RUN_QUARANTINE) "ENVVARNAME"
+@notsetquarvars@
+# setup quarantine if defined
+set _mlre {}; set _mlv ""; set _mlrv "";
+if {[info exists env(MODULES_RUN_QUARANTINE)]} {
+   foreach _mlv [split $env(MODULES_RUN_QUARANTINE) " "] {
+     if {[regexp {^[A-Za-z_][A-Za-z0-9_]*$} $_mlv]} {
+        if {[info exists env($_mlv)]} {
+           lappend _mlre "__MODULES_QUAR_${_mlv}=$env($_mlv)"
+        }
+        set _mlrv "MODULES_RUNENV_${_mlv}"
+        if {[info exists env($_mlrv)]} {
+           lappend _mlre "${_mlv}=$env($_mlrv)"
+        } else {
+           lappend _mlre "${_mlv}="
+        }
+     }
+   }
+   if {[llength $_mlre] > 0} {
+     set _mlre [linsert $_mlre 0 "env"]
+   }
+}
+
 # define module command and surrounding initial environment (default value
 # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init config files)
-@quarantinesupport@eval [eval exec $_mlre "@TCLSH@" "@libexecdir@/modulecmd.tcl" "tcl" "autoinit" 2>@stderr]
-@notquarantinesupport@eval [exec "@TCLSH@" "@libexecdir@/modulecmd.tcl" "tcl" "autoinit" 2>@stderr]
-@quarantinesupport@
-@quarantinesupport@# clean temp variables used to setup quarantine
-@quarantinesupport@unset _mlre _mlv _mlrv
+eval [eval exec $_mlre "@TCLSH@" "@libexecdir@/modulecmd.tcl" "tcl" "autoinit" 2>@stderr]
+
+# clean temp variables used to setup quarantine
+unset _mlre _mlv _mlrv

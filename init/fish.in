@@ -1,27 +1,26 @@
-@quarantinesupport@# define modules runtine quarantine configuration
-@quarantinesupport@@setquarvars@set -xg MODULES_RUN_QUARANTINE '@RUN_QUARANTINE@'
-@quarantinesupport@@setquarvars@@set -xg RUNENV_VAR 'RUNENV_VAL'@
-@quarantinesupport@@notsetquarvars@#set -xg MODULES_RUN_QUARANTINE 'ENVVARNAME'
-@quarantinesupport@@notsetquarvars@
-@quarantinesupport@# setup quarantine if defined
-@quarantinesupport@set _mlre '';
-@quarantinesupport@for _mlv in (string split ' ' $MODULES_RUN_QUARANTINE)
-@quarantinesupport@  if string match -r '^[A-Za-z_][A-Za-z0-9_]*$' $_mlv >/dev/null
-@quarantinesupport@     if set -q $_mlv
-@quarantinesupport@        set _mlre $_mlre"__MODULES_QUAR_"$_mlv"='$$_mlv' "
-@quarantinesupport@     end
-@quarantinesupport@     set _mlrv "MODULES_RUNENV_$_mlv"
-@quarantinesupport@     set _mlre "$_mlre$_mlv='$$_mlrv' "
-@quarantinesupport@  end
-@quarantinesupport@end
-@quarantinesupport@if [ -n "$_mlre" ]
-@quarantinesupport@  set _mlre "env $_mlre"
-@quarantinesupport@end
-@quarantinesupport@
+# define modules runtine quarantine configuration
+@setquarvars@set -xg MODULES_RUN_QUARANTINE '@RUN_QUARANTINE@'
+@setquarvars@@set -xg RUNENV_VAR 'RUNENV_VAL'@
+@notsetquarvars@#set -xg MODULES_RUN_QUARANTINE 'ENVVARNAME'
+@notsetquarvars@
+# setup quarantine if defined
+set _mlre '';
+for _mlv in (string split ' ' $MODULES_RUN_QUARANTINE)
+  if string match -r '^[A-Za-z_][A-Za-z0-9_]*$' $_mlv >/dev/null
+     if set -q $_mlv
+        set _mlre $_mlre"__MODULES_QUAR_"$_mlv"='$$_mlv' "
+     end
+     set _mlrv "MODULES_RUNENV_$_mlv"
+     set _mlre "$_mlre$_mlv='$$_mlrv' "
+  end
+end
+if [ -n "$_mlre" ]
+  set _mlre "env $_mlre"
+end
+
 # define module command and surrounding initial environment (default value
 # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init config files)
-@quarantinesupport@eval $_mlre @TCLSH@ @libexecdir@/modulecmd.tcl fish autoinit | source -
-@notquarantinesupport@eval @TCLSH@ @libexecdir@/modulecmd.tcl fish autoinit | source -
+eval $_mlre @TCLSH@ @libexecdir@/modulecmd.tcl fish autoinit | source -
 
 # no environment alteration if the above autoinit command failed
 if [ $status -eq 0 ]
@@ -53,6 +52,6 @@ if [ $status -eq 0 ]
 @setmanpath@      set -e _mlpathsep
 @setmanpath@   end
 end
-@quarantinesupport@
-@quarantinesupport@# clean temp variables used to setup quarantine
-@quarantinesupport@set -e _mlre; set -e _mlv; set -e _mlrv;
+
+# clean temp variables used to setup quarantine
+set -e _mlre; set -e _mlv; set -e _mlrv;

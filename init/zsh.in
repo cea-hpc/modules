@@ -10,45 +10,44 @@
 @silentshdbgsupport@   esac;
 @silentshdbgsupport@fi;
 @silentshdbgsupport@
-@quarantinesupport@# define modules runtine quarantine configuration
-@quarantinesupport@@setquarvars@export MODULES_RUN_QUARANTINE='@RUN_QUARANTINE@'
-@quarantinesupport@@setquarvars@@export RUNENV_VAR='RUNENV_VAL'@
-@quarantinesupport@@notsetquarvars@#export MODULES_RUN_QUARANTINE='ENVVARNAME'
-@quarantinesupport@@notsetquarvars@
-@quarantinesupport@# setup quarantine if defined
-@quarantinesupport@unset _mlre _mlIFS;
-@quarantinesupport@if [ -n "${IFS+x}" ]; then
-@quarantinesupport@   _mlIFS=$IFS;
-@quarantinesupport@fi;
-@quarantinesupport@IFS=' ';
-@quarantinesupport@for _mlv in ${=MODULES_RUN_QUARANTINE:-}; do
-@quarantinesupport@   if [ "${_mlv}" = "${_mlv##*[!A-Za-z0-9_]}" -a "${_mlv}" = "${_mlv#[0-9]}" ]; then
-@quarantinesupport@      if [ -n "`eval 'echo ${'$_mlv'+x}'`" ]; then
-@quarantinesupport@         _mlre="${_mlre:-}__MODULES_QUAR_${_mlv}='`eval 'echo ${'$_mlv'}'`' ";
-@quarantinesupport@      fi;
-@quarantinesupport@      _mlrv="MODULES_RUNENV_${_mlv}";
-@quarantinesupport@      _mlre="${_mlre:-}${_mlv}='`eval 'echo ${'$_mlrv':-}'`' ";
-@quarantinesupport@   fi;
-@quarantinesupport@done;
-@quarantinesupport@if [ -n "${_mlre:-}" ]; then
-@quarantinesupport@   _mlre="eval ${_mlre}";
-@quarantinesupport@fi;
-@quarantinesupport@
+# define modules runtine quarantine configuration
+@setquarvars@export MODULES_RUN_QUARANTINE='@RUN_QUARANTINE@'
+@setquarvars@@export RUNENV_VAR='RUNENV_VAL'@
+@notsetquarvars@#export MODULES_RUN_QUARANTINE='ENVVARNAME'
+@notsetquarvars@
+# setup quarantine if defined
+unset _mlre _mlIFS;
+if [ -n "${IFS+x}" ]; then
+   _mlIFS=$IFS;
+fi;
+IFS=' ';
+for _mlv in ${=MODULES_RUN_QUARANTINE:-}; do
+   if [ "${_mlv}" = "${_mlv##*[!A-Za-z0-9_]}" -a "${_mlv}" = "${_mlv#[0-9]}" ]; then
+      if [ -n "`eval 'echo ${'$_mlv'+x}'`" ]; then
+         _mlre="${_mlre:-}__MODULES_QUAR_${_mlv}='`eval 'echo ${'$_mlv'}'`' ";
+      fi;
+      _mlrv="MODULES_RUNENV_${_mlv}";
+      _mlre="${_mlre:-}${_mlv}='`eval 'echo ${'$_mlrv':-}'`' ";
+   fi;
+done;
+if [ -n "${_mlre:-}" ]; then
+   _mlre="eval ${_mlre}";
+fi;
+
 # define module command and surrounding initial environment (default value
 # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init config files)
-@quarantinesupport@_mlcode=`${^^=_mlre:-}@TCLSH@ @libexecdir@/modulecmd.tcl zsh autoinit`
-@notquarantinesupport@_mlcode=`@TCLSH@ @libexecdir@/modulecmd.tcl zsh autoinit`
+_mlcode=`${^^=_mlre:-}@TCLSH@ @libexecdir@/modulecmd.tcl zsh autoinit`
 _mlret=$?
 
-@quarantinesupport@# clean temp variables used to setup quarantine
-@quarantinesupport@if [ -n "${_mlIFS+x}" ]; then
-@quarantinesupport@   IFS=$_mlIFS;
-@quarantinesupport@   unset _mlIFS;
-@quarantinesupport@else
-@quarantinesupport@   unset IFS;
-@quarantinesupport@fi;
-@quarantinesupport@unset _mlre _mlv _mlrv
-@quarantinesupport@
+# clean temp variables used to setup quarantine
+if [ -n "${_mlIFS+x}" ]; then
+   IFS=$_mlIFS;
+   unset _mlIFS;
+else
+   unset IFS;
+fi;
+unset _mlre _mlv _mlrv
+
 # no environment alteration if the above autoinit command failed
 if [ $_mlret -eq 0 ]; then
    eval "$_mlcode"

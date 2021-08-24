@@ -1,26 +1,25 @@
-@quarantinesupport@# define modules runtine quarantine configuration
-@quarantinesupport@@setquarvars@ENV['MODULES_RUN_QUARANTINE'] = '@RUN_QUARANTINE@'
-@quarantinesupport@@setquarvars@@ENV['RUNENV_VAR'] = 'RUNENV_VAL'@
-@quarantinesupport@@notsetquarvars@#ENV['MODULES_RUN_QUARANTINE'] = 'ENVVARNAME'
-@quarantinesupport@@notsetquarvars@
-@quarantinesupport@# setup quarantine if defined
-@quarantinesupport@_mlre = ''
-@quarantinesupport@if ENV.has_key?('MODULES_RUN_QUARANTINE') then
-@quarantinesupport@   ENV['MODULES_RUN_QUARANTINE'].split(' ').each do |_mlv|
-@quarantinesupport@      if _mlv =~ /^[A-Za-z_][A-Za-z0-9_]*$/ then
-@quarantinesupport@         if ENV.has_key?(_mlv) then
-@quarantinesupport@            _mlre << "__MODULES_QUAR_" + _mlv + "='" + ENV[_mlv].to_s + "' "
-@quarantinesupport@         end
-@quarantinesupport@         _mlrv = 'MODULES_RUNENV_' + _mlv
-@quarantinesupport@         _mlre << _mlv + "='" + ENV[_mlrv].to_s + "' "
-@quarantinesupport@      end
-@quarantinesupport@   end
-@quarantinesupport@   unless _mlre.empty?
-@quarantinesupport@      _mlre = 'env ' + _mlre
-@quarantinesupport@   end
-@quarantinesupport@end
-@quarantinesupport@
+# define modules runtine quarantine configuration
+@setquarvars@ENV['MODULES_RUN_QUARANTINE'] = '@RUN_QUARANTINE@'
+@setquarvars@@ENV['RUNENV_VAR'] = 'RUNENV_VAL'@
+@notsetquarvars@#ENV['MODULES_RUN_QUARANTINE'] = 'ENVVARNAME'
+@notsetquarvars@
+# setup quarantine if defined
+_mlre = ''
+if ENV.has_key?('MODULES_RUN_QUARANTINE') then
+   ENV['MODULES_RUN_QUARANTINE'].split(' ').each do |_mlv|
+      if _mlv =~ /^[A-Za-z_][A-Za-z0-9_]*$/ then
+         if ENV.has_key?(_mlv) then
+            _mlre << "__MODULES_QUAR_" + _mlv + "='" + ENV[_mlv].to_s + "' "
+         end
+         _mlrv = 'MODULES_RUNENV_' + _mlv
+         _mlre << _mlv + "='" + ENV[_mlrv].to_s + "' "
+      end
+   end
+   unless _mlre.empty?
+      _mlre = 'env ' + _mlre
+   end
+end
+
 # define module command and surrounding initial environment (default value
 # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init config files)
-@quarantinesupport@eval `#{_mlre}@TCLSH@ @libexecdir@/modulecmd.tcl ruby autoinit`
-@notquarantinesupport@eval `@TCLSH@ @libexecdir@/modulecmd.tcl ruby autoinit`
+eval `#{_mlre}@TCLSH@ @libexecdir@/modulecmd.tcl ruby autoinit`
