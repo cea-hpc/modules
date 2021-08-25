@@ -167,21 +167,25 @@ set func_end "\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs$end_silentdbg\\s*return \
 
 if {$install_quarantinesupport eq y} {
 set func_modcmd_sh "\\s*if \\\[ -n \"\\\${_mlre:-}\" \\\]; then
+\\s*_mlre=\"\\\${_mlre:-}__MODULES_QUARANTINE_SET=1 \";
 \\s*eval `eval \\\${_mlre} $tclshlocre $modulecmd_pathre sh '\"\\$\\@\"'`;
 \\s*else
 \\s*eval `$tclshlocre $modulecmd_pathre sh \"\\$\\@\"`;
 \\s*fi;"
 set func_modcmd_bash "\\s*if \\\[ -n \"\\\${_mlre:-}\" \\\]; then
+\\s*_mlre=\"\\\${_mlre:-}__MODULES_QUARANTINE_SET=1 \";
 \\s*eval `eval \\\${_mlre} $tclshlocre $modulecmd_pathre bash '\"\\$\\@\"'`;
 \\s*else
 \\s*eval `$tclshlocre $modulecmd_pathre bash \"\\$\\@\"`;
 \\s*fi;"
 set func_modcmd_ksh "\\s*if \\\[ -n \"\\\${_mlre:-}\" \\\]; then
+\\s*_mlre=\"\\\${_mlre:-}__MODULES_QUARANTINE_SET=1 \";
 \\s*eval `eval \\\${_mlre} $tclshlocre $modulecmd_pathre ksh '\"\\$\\@\"'`;
 \\s*else
 \\s*eval `$tclshlocre $modulecmd_pathre ksh \"\\$\\@\"`;
 \\s*fi;"
 set func_modcmd_zsh "\\s*if \\\[ -n \"\\\${_mlre:-}\" \\\]; then
+\\s*_mlre=\"\\\${_mlre:-}__MODULES_QUARANTINE_SET=1 \";
 \\s*eval `eval \\\${\\^\\^=_mlre} $tclshlocre $modulecmd_pathre zsh '\"\\$\\@\"'`;
 \\s*else
 \\s*eval `$tclshlocre $modulecmd_pathre zsh \"\\$\\@\"`;
@@ -231,7 +235,7 @@ set func_fish "function $func_name
 \\s*end
 \\s*end
 \\s*if \\\[ -n \"\\\$_mlre\" \\\]
-\\s*set _mlre \"env \\\$_mlre\"
+\\s*set _mlre \"env \\\$_mlre __MODULES_QUARANTINE_SET=1\"
 \\s*end
 \\s*eval \\\$_mlre $tclshlocre $modulecmd_pathre fish \\\(string escape -- \\\$argv\\\) \\\| source -
 end$add_func_fish"
@@ -248,6 +252,7 @@ set func_tcl "proc module {args} {
 \\s*}
 \\s*}
 \\s*if {\\\[llength \\\$_mlre\\\] > 0} {
+\\s*lappend _mlre \"__MODULES_QUARANTINE_SET=1\"
 \\s*set _mlre \\\[linsert \\\$_mlre 0 \"env\"\\\]
 \\s*}
 \\s*}
@@ -269,7 +274,7 @@ set func_perl "sub module {
 \\s*}
 \\s*}
 \\s*if \\\(\\\$_mlre ne \"\"\\\) {
-\\s*\\\$_mlre = \"env \\\$_mlre\";
+\\s*\\\$_mlre = \"env \\\${_mlre}__MODULES_QUARANTINE_SET=1 \";
 \\s*}
 \\s*}
 \\s*my \\\$args = '';
@@ -293,6 +298,7 @@ def module\\\(\\*arguments\\\):
 \\s*_mlre\\\[_mlv\\\] = os.environ\\\[_mlrv\\\]
 \\s*else:
 \\s*_mlre\\\[_mlv\\\] = ''
+\\s*_mlre\\\['__MODULES_QUARANTINE_SET'\\\] = '1'
 \\s*ns = {}
 \\s*exec\\\(subprocess\\.Popen\\\(\\\['$tclshlocre', '$modulecmd_pathre', 'python'\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE, env=_mlre\\\)\\.communicate\\\(\\\)\\\[0\\\], ns\\\)
 \\s*if '_mlstatus' in ns:
@@ -314,7 +320,7 @@ set func_ruby "class ENVModule
 \\s*end
 \\s*end
 \\s*unless _mlre.empty\\\?
-\\s*_mlre = 'env ' \\\+ _mlre
+\\s*_mlre = 'env ' \\\+ _mlre \\\+ '__MODULES_QUARANTINE_SET=1 '
 \\s*end
 \\s*end
 \\s*if args\\\[0\\\].kind_of\\?\\\(Array\\\) then
@@ -344,7 +350,7 @@ set func_cmake "function\\\(module\\\)
 \\s*endif\\\(\\\)
 \\s*endforeach\\\(\\\)
 \\s*if \\\(NOT \"\\\${_mlre}\" STREQUAL \"\"\\\)
-\\s*set\\\(_mlre \"env;\\\${_mlre}\"\\\)
+\\s*set\\\(_mlre \"env;\\\${_mlre}__MODULES_QUARANTINE_SET=1;\"\\\)
 \\s*endif\\\(\\\)
 \\s*endif\\\(\\\)
 \\s*set\\\(_mlstatus TRUE\\\)
@@ -386,7 +392,7 @@ set func_r "module <- function\\\(...\\\){
 \\s*}
 \\s*}
 \\s*if \\\(mlre \\\!= ''\\\) {
-\\s*mlre <- paste0\\\('env ', mlre\\\)
+\\s*mlre <- paste0\\\('env ', mlre, '__MODULES_QUARANTINE_SET=1 '\\\)
 \\s*}
 \\s*}
 \\s*arglist <- as.list\\\(match.call\\\(\\\)\\\)

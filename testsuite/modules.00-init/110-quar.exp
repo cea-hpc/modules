@@ -25,6 +25,9 @@ if {$install_quarantinesupport eq y} {
 
 set modfile "$env(TESTSUITEDIR)/modulefiles.2/quar"
 
+# set to mimic key variable transmitted by module shell function to tell some
+# quarantine setup has been made
+setenv_var __MODULES_QUARANTINE_SET 1
 
 # no quarantine setup, nothing should be set
 testouterr_cmd "ALL" "source $modfile" "OK" ""
@@ -74,21 +77,11 @@ set ans [list]
 lappend ans "MODULES_RUN_QUARANTINE=$quar"
 lappend ans "MODULES_RUNENV_BAR=$runenv1"
 
-set anscsh [list]
-lappend anscsh "MODULES_RUN_QUARANTINE=$quar"
-lappend anscsh "BAR=$runenv1"
-lappend anscsh "MODULES_RUNENV_BAR=$runenv1"
-
+# quarantine mechanism also applies to csh/tcsh by modulecmd.tcl but as it is not
+# implemented in module shell alias, the __MODULES_QUARANTINE_SET is never defined
+# by this shell so the mechanism is in real life situation never activated
 foreach shell $supported_shells {
-    switch -- $shell {
-        csh - tcsh {
-            # no quarantine mechanism support on these shells
-            testouterr_cmd "$shell" "source $modfile" "OK" [join $anscsh "\n"]
-        }
-        default {
-            testouterr_cmd "$shell" "source $modfile" "OK" [join $ans "\n"]
-        }
-    }
+    testouterr_cmd "$shell" "source $modfile" "OK" [join $ans "\n"]
 }
 
 
@@ -105,21 +98,8 @@ set ans [list]
 lappend ans "MODULES_RUN_QUARANTINE=$quar"
 lappend ans "BAR=$env1"
 
-set anscsh [list]
-lappend anscsh "MODULES_RUN_QUARANTINE=$quar"
-lappend anscsh "BAR="
-lappend anscsh "__MODULES_QUAR_BAR=$env1"
-
 foreach shell $supported_shells {
-    switch -- $shell {
-        csh - tcsh {
-            # no quarantine mechanism support on these shells
-            testouterr_cmd "$shell" "source $modfile" "OK" [join $anscsh "\n"]
-        }
-        default {
-            testouterr_cmd "$shell" "source $modfile" "OK" [join $ans "\n"]
-        }
-    }
+    testouterr_cmd "$shell" "source $modfile" "OK" [join $ans "\n"]
 }
 
 
@@ -136,22 +116,8 @@ lappend ans "MODULES_RUN_QUARANTINE=$quar"
 lappend ans "BAR=$env1"
 lappend ans "MODULES_RUNENV_BAR=$runenv1"
 
-set anscsh [list]
-lappend anscsh "MODULES_RUN_QUARANTINE=$quar"
-lappend anscsh "BAR=$runenv1"
-lappend anscsh "MODULES_RUNENV_BAR=$runenv1"
-lappend anscsh "__MODULES_QUAR_BAR=$env1"
-
 foreach shell $supported_shells {
-    switch -- $shell {
-        csh - tcsh {
-            # no quarantine mechanism support on these shells
-            testouterr_cmd "$shell" "source $modfile" "OK" [join $anscsh "\n"]
-        }
-        default {
-            testouterr_cmd "$shell" "source $modfile" "OK" [join $ans "\n"]
-        }
-    }
+    testouterr_cmd "$shell" "source $modfile" "OK" [join $ans "\n"]
 }
 
 
@@ -170,22 +136,8 @@ lappend ans "MODULES_RUN_QUARANTINE=$quar"
 lappend ans "BAR=$env1"
 lappend ans "MODULES_RUNENV_BAR=$runenv1"
 
-set anscsh [list]
-lappend anscsh "MODULES_RUN_QUARANTINE=$quar"
-lappend anscsh "BAR=$runenv1"
-lappend anscsh "MODULES_RUNENV_BAR=$runenv1"
-lappend anscsh "__MODULES_QUAR_BAR=$env1"
-
 foreach shell $supported_shells {
-    switch -- $shell {
-        csh - tcsh {
-            # no quarantine mechanism support on these shells
-            testouterr_cmd "$shell" "source $modfile" "OK" [join $anscsh "\n"]
-        }
-        default {
-            testouterr_cmd "$shell" "source $modfile" "OK" [join $ans "\n"]
-        }
-    }
+    testouterr_cmd "$shell" "source $modfile" "OK" [join $ans "\n"]
 }
 
 
@@ -205,24 +157,8 @@ lappend ans "BAR=$env1"
 lappend ans "FOO=$env2"
 lappend ans "MODULES_RUNENV_BAR=$runenv1"
 
-set anscsh [list]
-lappend anscsh "MODULES_RUN_QUARANTINE=$quar"
-lappend anscsh "BAR=$runenv1"
-lappend anscsh "FOO="
-lappend anscsh "MODULES_RUNENV_BAR=$runenv1"
-lappend anscsh "__MODULES_QUAR_FOO=$env2"
-lappend anscsh "__MODULES_QUAR_BAR=$env1"
-
 foreach shell $supported_shells {
-    switch -- $shell {
-        csh - tcsh {
-            # no quarantine mechanism support on these shells
-            testouterr_cmd "$shell" "source $modfile" "OK" [join $anscsh "\n"]
-        }
-        default {
-            testouterr_cmd "$shell" "source $modfile" "OK" [join $ans "\n"]
-        }
-    }
+    testouterr_cmd "$shell" "source $modfile" "OK" [join $ans "\n"]
 }
 
 
