@@ -693,7 +693,8 @@ alias ml 'module ml \!*' ;}
 @quarantinesupport@         _mlre="${_mlre:-}${_mlv}='`eval 'echo ${'$_mlrv':-}'`' ";
 @quarantinesupport@      fi;
 @quarantinesupport@   done;
-@quarantinesupport@   if [ -n "${_mlre:-}" ]; then}
+@quarantinesupport@   if [ -n "${_mlre:-}" ]; then
+@quarantinesupport@      _mlre="${_mlre:-}__MODULES_QUARANTINE_SET=1 ";}
 @quarantinesupport@         append fdef "\n      eval `eval \${${wsplit}_mlre} $tclshbin $::argv0\
 @quarantinesupport@[getState shell] '\"\$@\"'`;
 @quarantinesupport@   else
@@ -740,7 +741,7 @@ ml() { module ml "$@"; };}
 @quarantinesupport@      end
 @quarantinesupport@   end
 @quarantinesupport@   if [ -n "$_mlre" ]
-@quarantinesupport@      set _mlre "env $_mlre"
+@quarantinesupport@      set _mlre "env $_mlre __MODULES_QUARANTINE_SET=1"
 @quarantinesupport@   end}
          # use "| source -" rather than "eval" to be able
          # to redirect stderr after stdout being evaluated
@@ -779,6 +780,7 @@ end}
 @quarantinesupport@         }
 @quarantinesupport@      }
 @quarantinesupport@      if {[llength $_mlre] > 0} {
+@quarantinesupport@         lappend _mlre "__MODULES_QUARANTINE_SET=1"
 @quarantinesupport@         set _mlre [linsert $_mlre 0 "env"]
 @quarantinesupport@      }
 @quarantinesupport@   }}
@@ -816,7 +818,7 @@ proc ml {args} {
 @quarantinesupport@        }
 @quarantinesupport@      }
 @quarantinesupport@      if ($_mlre ne "") {
-@quarantinesupport@         $_mlre = "env $_mlre";
+@quarantinesupport@         $_mlre = "env ${_mlre}__MODULES_QUARANTINE_SET=1 ";
 @quarantinesupport@      }
 @quarantinesupport@   }}
          append fdef {
@@ -850,7 +852,8 @@ def module(*arguments):}
 @quarantinesupport@            if _mlrv in os.environ:
 @quarantinesupport@               _mlre[_mlv] = os.environ[_mlrv]
 @quarantinesupport@            else:
-@quarantinesupport@               _mlre[_mlv] = ''}
+@quarantinesupport@               _mlre[_mlv] = ''
+@quarantinesupport@      _mlre['__MODULES_QUARANTINE_SET'] = '1'}
          append fdef {
    ns = {}}
 @quarantinesupport@         append fdef "\n   exec(subprocess.Popen(\['$tclshbin',\
@@ -887,7 +890,7 @@ def ml(*arguments):
 @quarantinesupport@            end
 @quarantinesupport@         end
 @quarantinesupport@         unless _mlre.empty?
-@quarantinesupport@            _mlre = 'env ' + _mlre
+@quarantinesupport@            _mlre = 'env ' + _mlre + '__MODULES_QUARANTINE_SET=1 '
 @quarantinesupport@         end
 @quarantinesupport@      end}
          append fdef {
@@ -938,7 +941,7 @@ end}
 @quarantinesupport@        endif()
 @quarantinesupport@      endforeach()
 @quarantinesupport@      if (NOT "${_mlre}" STREQUAL "")
-@quarantinesupport@         set(_mlre "env;${_mlre}")
+@quarantinesupport@         set(_mlre "env;${_mlre}__MODULES_QUARANTINE_SET=1;")
 @quarantinesupport@      endif()
 @quarantinesupport@   endif()}
          append fdef {
@@ -991,7 +994,7 @@ endfunction(ml)}
 @quarantinesupport@         }
 @quarantinesupport@      }
 @quarantinesupport@      if (mlre != '') {
-@quarantinesupport@         mlre <- paste0('env ', mlre)
+@quarantinesupport@         mlre <- paste0('env ', mlre, '__MODULES_QUARANTINE_SET=1 ')
 @quarantinesupport@      }
 @quarantinesupport@   }}
          append fdef {
