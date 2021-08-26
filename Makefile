@@ -175,11 +175,9 @@ else
 endif
 
 ifeq ($(quarantinesupport),y)
-  setquarantinesupport :=
-  setnotquarantinesupport := \#
+  setquarantinesupport := 1
 else
-  setquarantinesupport := \#
-  setnotquarantinesupport :=
+  setquarantinesupport := 0
 endif
 
 ifeq ($(libtclenvmodules),y)
@@ -317,7 +315,6 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@setshellstartup@|$(setsetshellstartup)|g' \
 	-e 's|@mcookieversioncheck@|$(setmcookieversioncheck)|g' \
 	-e 's|@quarantinesupport@|$(setquarantinesupport)|g' \
-	-e 's|@notquarantinesupport@|$(setnotquarantinesupport)|g' \
 	-e 's|@libtclenvmodules@|$(setlibtclenvmodules)|g' \
 	-e 's|@SHLIB_SUFFIX@|$(SHLIB_SUFFIX)|g' \
 	-e 's|@multilibsupport@|$(setmultilibsupport)|g' \
