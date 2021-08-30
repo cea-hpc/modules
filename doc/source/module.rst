@@ -1945,6 +1945,17 @@ ENVIRONMENT
     .. versionchanged:: 5.0
        Variable renamed from ``<VAR>_modquar`` to ``__MODULES_QUAR_<VAR>``
 
+.. envvar:: __MODULES_QUARANTINE_SET
+
+ If set to ``1``, restore the environment variables set on hold by the
+ quarantine mechanism when starting :file:`modulecmd.tcl` script. This
+ variable is automatically defined by Modules shell initialization scripts or
+ :command:`module` shell function when they apply the quarantine mechanism.
+
+ .. only:: html
+
+    .. versionadded:: 5.0
+
 .. envvar:: __MODULES_SHARE_<VAR>
 
  Reference counter variable for path-like variable :envvar:`<VAR>`. A colon
