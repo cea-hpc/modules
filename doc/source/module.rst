@@ -744,6 +744,16 @@ Module Sub-Commands
 
   Text viewer to paginate message output. Defines :envvar:`MODULES_PAGER`.
 
+ .. mconfig:: quarantine_support
+
+  Defines if code for quarantine mechanism support should be generated in
+  :command:`module` shell function definition. Defines
+  :envvar:`MODULES_QUARANTINE_SUPPORT`.
+
+  .. only:: html
+
+     .. versionadded:: 5.0
+
  .. mconfig:: rcfile
 
   Global run-command file location. Defines :envvar:`MODULERCFILE`.
@@ -1951,6 +1961,7 @@ ENVIRONMENT
  quarantine mechanism when starting :file:`modulecmd.tcl` script. This
  variable is automatically defined by Modules shell initialization scripts or
  :command:`module` shell function when they apply the quarantine mechanism.
+ (see :envvar:`MODULES_QUARANTINE_SUPPORT`).
 
  .. only:: html
 
@@ -2540,16 +2551,47 @@ ENVIRONMENT
 
     .. versionadded:: 4.1
 
+.. envvar:: MODULES_QUARANTINE_SUPPORT
+
+ If set to ``1``, produces the shell code for quarantine mechanism when the
+ :subcmd:`autoinit` sub-command generates the :command:`module` shell
+ function.
+
+ The generated shell code for quarantine mechanism indirectly passes the
+ environment variable defined in :envvar:`MODULES_RUN_QUARANTINE` to the
+ :file:`modulecmd.tcl` script to protect its run-time environment from
+ side-effect coming from the current definition of these variables.
+
+ To enable quarantine support, :envvar:`MODULES_QUARANTINE_SUPPORT` should be
+ set to ``1`` prior Modules initialization or the
+ :mconfig:`quarantine_support` configuration should be set to ``1`` in the
+ :file:`initrc` configuration file.
+
+ Generated code for quarantine mechanism sets the
+ :envvar:`__MODULES_QUARANTINE_SET` environment variable when calling the
+ :file:`modulecmd.tcl` script to make it restore the environment variable put
+ in quarantine.
+
+ Quarantine mechanism support is defined for Modules in the following order of
+ preference: :envvar:`MODULES_QUARANTINE_SUPPORT` environment variable, then
+ the default set in :file:`modulecmd.tcl` script configuration. Which means
+ :envvar:`MODULES_QUARANTINE_SUPPORT` overrides default configuration.
+
+ .. only:: html
+
+    .. versionadded:: 5.0
+
 .. envvar:: MODULES_RUN_QUARANTINE
 
  A space separated list of environment variable names that should be passed
  indirectly to :file:`modulecmd.tcl` to protect its run-time environment from
  side-effect coming from their current definition.
 
- Each variable found in :envvar:`MODULES_RUN_QUARANTINE` will have its value
- emptied or set to the value of the corresponding
- :envvar:`MODULES_RUNENV_\<VAR\>` variable when defining :file:`modulecmd.tcl`
- run-time environment.
+ If the quarantine mechanism has been included in :command:`module` shell
+ function (see :envvar:`MODULES_QUARANTINE_SUPPORT`), each variable found in
+ :envvar:`MODULES_RUN_QUARANTINE` will have its value emptied or set to the
+ value of the corresponding :envvar:`MODULES_RUNENV_\<VAR\>` variable when
+ defining :file:`modulecmd.tcl` run-time environment.
 
  Original values of these environment variables set in quarantine are passed
  to :file:`modulecmd.tcl` via :envvar:`__MODULES_QUAR_\<VAR\>` variables.
