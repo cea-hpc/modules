@@ -91,7 +91,7 @@ if {[info exists insmodrcdata] && [info exists exmodrcdata] && $exmodrcdata eq $
 }
 
 set custom {module restore unk}
-set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 25 {  }]]
+set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 28 {  }]]
 
 set tserr_initrc_exinstalled "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n$err_path'unk'\n$custom"
 set tserr_initrc1_exinstalled [msg_load null]
@@ -105,7 +105,6 @@ if { $verbose > 0 } {
 set err_lisp "$error_msgs: lisp mode autoinit not yet implemented"
 set err_cmd "$error_msgs: No autoinit mode available for 'cmd' shell"
 
-if {$install_quarantinesupport eq y} {
 set end_quar_sh "\\s*if \\\[ \"\\\${_mlv}\" = \"\\\${_mlv##\\\*\\\[\\\!A-Za-z0-9_\\\]}\" -a \"\\\${_mlv}\" = \"\\\${_mlv#\\\[0-9\\\]}\" \\\]; then
 \\s*if \\\[ -n \"`eval 'echo \\\${'\\\$_mlv'\\\+x}'`\" \\\]; then
 \\s*_mlre=\"\\\${_mlre:-}__MODULES_QUAR_\\\${_mlv}='`eval 'echo \\\${'\\\$_mlv'}'`' \";
@@ -114,13 +113,15 @@ set end_quar_sh "\\s*if \\\[ \"\\\${_mlv}\" = \"\\\${_mlv##\\\*\\\[\\\!A-Za-z0-9
 \\s*_mlre=\"\\\${_mlre:-}\\\${_mlv}='`eval 'echo \\\${'\\\$_mlrv':-}'`' \";
 \\s*fi;
 \\s*done;"
-set func_quar_sh "\\s*unset _mlre _mlIFS;
+set func_quar_sh_quar "\\s*unset _mlre _mlIFS;
 \\s*if \\\[ -n \"\\\${IFS\\\+x}\" \\\]; then
 \\s*_mlIFS=\\\$IFS;
 \\s*fi;
 \\s*IFS=' ';
 \\s*for _mlv in \\\${MODULES_RUN_QUARANTINE:-}; do
 $end_quar_sh\n"
+if {$install_quarantinesupport eq y} {
+set func_quar_sh $func_quar_sh_quar
 set func_quar_zsh "\\s*unset _mlre _mlIFS;
 \\s*if \\\[ -n \"\\\${IFS\\\+x}\" \\\]; then
 \\s*_mlIFS=\\\$IFS;
@@ -129,7 +130,6 @@ set func_quar_zsh "\\s*unset _mlre _mlIFS;
 \\s*for _mlv in \\\${\\^\\^=MODULES_RUN_QUARANTINE:-}; do
 $end_quar_sh\n"
 } else {
-set end_quar_sh ""
 set func_quar_sh ""
 set func_quar_zsh ""
 }
@@ -153,18 +153,26 @@ set func_silentdbg ""
 set end_silentdbg ""
 }
 
-if {$install_quarantinesupport eq y} {
-set func_clean_ifs "\\s*if \\\[ -n \"\\\${_mlIFS\\\+x}\" \\\]; then
+set func_clean_ifs_quar "\\s*if \\\[ -n \"\\\${_mlIFS\\\+x}\" \\\]; then
 \\s*IFS=\\\$_mlIFS;
 \\s*else
 \\s*unset IFS;
 \\s*fi;
 \\s*unset _mlre _mlv _mlrv _mlIFS;\n"
+if {$install_quarantinesupport eq y} {
+set func_clean_ifs $func_clean_ifs_quar
 } else {
 set func_clean_ifs ""
 }
 set func_end "\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs$end_silentdbg\\s*return \\\$_mlstatus;"
+set func_end_quar "\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs_quar$end_silentdbg\\s*return \\\$_mlstatus;"
 
+set func_modcmd_bash_quar "\\s*if \\\[ -n \"\\\${_mlre:-}\" \\\]; then
+\\s*_mlre=\"\\\${_mlre:-}__MODULES_QUARANTINE_SET=1 \";
+\\s*eval `eval \\\${_mlre} $tclshlocre $modulecmd_pathre bash '\"\\$\\@\"'`;
+\\s*else
+\\s*eval `$tclshlocre $modulecmd_pathre bash \"\\$\\@\"`;
+\\s*fi;"
 if {$install_quarantinesupport eq y} {
 set func_modcmd_sh "\\s*if \\\[ -n \"\\\${_mlre:-}\" \\\]; then
 \\s*_mlre=\"\\\${_mlre:-}__MODULES_QUARANTINE_SET=1 \";
@@ -172,12 +180,7 @@ set func_modcmd_sh "\\s*if \\\[ -n \"\\\${_mlre:-}\" \\\]; then
 \\s*else
 \\s*eval `$tclshlocre $modulecmd_pathre sh \"\\$\\@\"`;
 \\s*fi;"
-set func_modcmd_bash "\\s*if \\\[ -n \"\\\${_mlre:-}\" \\\]; then
-\\s*_mlre=\"\\\${_mlre:-}__MODULES_QUARANTINE_SET=1 \";
-\\s*eval `eval \\\${_mlre} $tclshlocre $modulecmd_pathre bash '\"\\$\\@\"'`;
-\\s*else
-\\s*eval `$tclshlocre $modulecmd_pathre bash \"\\$\\@\"`;
-\\s*fi;"
+set func_modcmd_bash $func_modcmd_bash_quar
 set func_modcmd_ksh "\\s*if \\\[ -n \"\\\${_mlre:-}\" \\\]; then
 \\s*_mlre=\"\\\${_mlre:-}__MODULES_QUARANTINE_SET=1 \";
 \\s*eval `eval \\\${_mlre} $tclshlocre $modulecmd_pathre ksh '\"\\$\\@\"'`;
@@ -207,10 +210,13 @@ if {$is_stderr_tty} {
     set add_func_fish ""
 }
 
+set func_bash_quar "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh_quar$func_modcmd_bash_quar\n$func_end_quar\n};$add_func_sh"
+
 set func_sh "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh$func_modcmd_sh\n$func_end\n};$add_func_sh"
 set func_bash "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh$func_modcmd_bash\n$func_end\n};$add_func_sh"
 set func_ksh "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh$func_modcmd_ksh\n$func_end\n};$add_func_sh"
 set func_zsh "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_zsh$func_modcmd_zsh\n$func_end\n};$add_func_sh"
+
 set eval_cmd_csh [expr {$install_wa277 eq {y} ? "eval `$tclshlocre $modulecmd_pathre csh \\\\!\\*`" : "eval \"`$tclshlocre $modulecmd_pathre csh \\\\!\\*:q`\""}]
 set eval_cmd_tcsh [expr {$install_wa277 eq {y} ? "eval `$tclshlocre $modulecmd_pathre tcsh \\\\!\\*`" : "eval \"`$tclshlocre $modulecmd_pathre tcsh \\\\!\\*:q`\""}]
 set func_csh "if \\\( \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'set _histchars = \\\$histchars; unset histchars; set _prompt=\\\$prompt:q; set prompt=\"\"; $eval_cmd_csh; set _exit=\"\\\$status\"; set histchars = \\\$_histchars; unset _histchars; set prompt=\\\$_prompt:q; unset _prompt; test 0 = \\\$_exit' ;
@@ -492,6 +498,8 @@ if {$install_ml eq {y} && (!$modrc1_exinstalled || $modspath_exinstalled)} {
 append func_sh "
 \\s*ml\\\(\\\) { module ml \"\\\$\\\@\"; };"
 append func_bash "
+\\s*ml\\\(\\\) { module ml \"\\\$\\\@\"; };"
+append func_bash_quar "
 \\s*ml\\\(\\\) { module ml \"\\\$\\\@\"; };"
 append func_ksh "
 \\s*ml\\\(\\\) { module ml \"\\\$\\\@\"; };"
@@ -1030,10 +1038,36 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
         lappend ans [list set MODULE_VERSION "(.*)"]
     }
     lappend ans [list ERR]
-    set linenum [expr {[cmpversion $tclsh_version 8.6] == -1 ? 14 : 21}]
+    set linenum [expr {[cmpversion $tclsh_version 8.6] == -1 ? 13 : 20}]
     set custom [escre [msg_moderr {module: Command 'refresh' not supported} {module refresh<EXM>} $modrc $linenum {  }]]
-    set tserr "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n$err_path'unk'\n$custom"
+    set tserr "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n$custom"
     testouterr_cmd_re sh autoinit $ans $tserr
+
+    # test impact of quarantine support enablement through initrc config file
+    setenv_var TESTSUITE_INITRC quar1
+
+    set ans [list]
+    lappend ans [list ERR]
+    lappend ans [list [set "func_bash_quar"]]
+    lappend ans [list set MODULES_QUARANTINE_SUPPORT 1]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+    }
+    lappend ans [list set MODULES_CMD $modulecmd_path]
+    lappend ans [list set MODULESHOME $moduleshome]
+    lappend ans [list set __MODULES_LMPREREQ m3&m1]
+    lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4"]
+    lappend ans [list set LOADEDMODULES "m1:m3:space yc/4"]
+    lappend ans [list set __MODULES_LMTAG m1&auto-loaded]
+    lappend ans [list set MODULEPATH "$modpath wspace:$modpath.deps"]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION "(.*)"]
+    }
+    set linenum [expr {[cmpversion $tclsh_version 8.6] == -1 ? 14 : 21}]
+    set custom {module restore unk}
+    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 28 {  }]]
+    set tserr "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n$err_path'unk'\n$custom"
+    testouterr_cmd_re bash autoinit $ans $tserr
 
     unsetenv_var TESTSUITE_INITRC
 
@@ -1041,7 +1075,7 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
     file rename -force $modrc $modrc.orig
 
     set ans [list]
-    lappend ans [list [set "func_$shell"]]
+    lappend ans [list [set "func_sh"]]
     if {$install_versioning eq "y"} {
         lappend ans [list set MODULE_VERSION_STACK "(.*)"]
     }

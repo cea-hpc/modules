@@ -10,7 +10,6 @@ module restore [getenv TESTSUITEDIR]/coll14
 module use "[getenv TESTSUITEDIR]/modulefiles wspace"
 module load {space yc/4}
 module try-load unk
-catch {module load unk}
 if {[info exists env(TESTSUITE_INITRC)]} {
     switch -- $env(TESTSUITE_INITRC) {
         refcount1 {
@@ -20,6 +19,10 @@ if {[info exists env(TESTSUITE_INITRC)]} {
         subcmd1 {
             module refresh
         }
+        quar1 {
+            module config quarantine_support 1
+        }
     }
 }
+catch {module load unk}
 module restore unk

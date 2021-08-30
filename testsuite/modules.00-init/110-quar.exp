@@ -162,6 +162,23 @@ foreach shell $supported_shells {
 }
 
 
+# mimic if no variable transmitted by module shell function to tell some
+# quarantine setup has been made
+unsetenv_var __MODULES_QUARANTINE_SET
+
+set ans [list]
+lappend ans "MODULES_RUN_QUARANTINE=$quar"
+lappend ans "BAR=$runenv1"
+lappend ans "FOO="
+lappend ans "MODULES_RUNENV_BAR=$runenv1"
+lappend ans "__MODULES_QUAR_FOO=$env2"
+lappend ans "__MODULES_QUAR_BAR=$env1"
+
+foreach shell $supported_shells {
+    testouterr_cmd "$shell" "source $modfile" "OK" [join $ans "\n"]
+}
+
+
 #
 #  Clean up variables used in this test case
 #
