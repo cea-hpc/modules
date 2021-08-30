@@ -476,12 +476,15 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 
 .. instopt:: --enable-quarantine-support
 
- Generate code in module function definition and initialization scripts to add
- support for the environment variable quarantine mechanism (default=yes)
+ Generate code in module function definition to add support for the
+ environment variable quarantine mechanism (default=no)
 
  .. only:: html
 
-    .. versionadded:: 4.2
+    .. versionadded:: 4.1
+
+    .. versionchanged:: 5.0
+       Configuration option default set to ``no``
 
 .. instopt:: --enable-set-binpath
 
