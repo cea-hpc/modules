@@ -180,6 +180,29 @@ Modules 5.0.0 (not yet released)
   the optional version number placed after the cookie string is higher than
   the version of the :file:`modulecmd.tcl` script in use.
 * Doc: alphabetically sort installation option in :ref:`INSTALL` document.
+* Update the :instopt:`--enable-quarantine-support` installation option to
+  control a :mconfig:`quarantine_support` configuration option. When this
+  option is enabled, the :subcmd:`autoinit` sub-command produces the shell
+  code for the :command:`module` shell function definition with quarantine
+  mechanism support. When disabled, code is generated without quarantine
+  support.
+* Install: installation option :instopt:`--enable-quarantine-support` is set
+  off by default.
+* Introduce the :envvar:`MODULES_QUARANTINE_SUPPORT` environment variable to
+  control the :mconfig:`quarantine_support` configuration option once Modules
+  is installed. To enable the quarantine mechanism,
+  :envvar:`MODULES_QUARANTINE_SUPPORT` should be set to ``1`` prior Modules
+  initialization or :mconfig:`quarantine_support` configuration option should
+  be set to ``1`` in the ``initrc`` configuration file.
+* Quarantine mechanism code in the Modules shell initialization scripts is now
+  always defined and mechanism always applies if some environment variables
+  are defined in :envvar:`MODULES_RUN_QUARANTINE`.
+* Code in the :file:`modulecmd.tcl` script to restore environment variables
+  put in quarantine is now always generated and applies if the
+  :envvar:`__MODULES_QUARANTINE_SET` environment variable is set to ``1``.
+  This variable is set by the Modules initialization script prior calling the
+  :subcmd:`autoinit` sub-command or by the :command:`module` shell function if
+  it has been generated with quarantine support enabled.
 
 
 .. _4.8 release notes:
