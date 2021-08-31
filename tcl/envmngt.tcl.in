@@ -667,16 +667,18 @@ alias ml 'module ml \!*' ;}
          # MODULES_RUNENV_* variable found, as var cannot be unset on
          # modified environment command-line
          set fdef "${fname}() {"
-@silentshdbgsupport@         append fdef {
-@silentshdbgsupport@   unset _mlshdbg;
-@silentshdbgsupport@   if [ "${MODULES_SILENT_SHELL_DEBUG:-0}" = '1' ]; then
-@silentshdbgsupport@      case "$-" in
-@silentshdbgsupport@         *v*x*) set +vx; _mlshdbg='vx' ;;
-@silentshdbgsupport@         *v*) set +v; _mlshdbg='v' ;;
-@silentshdbgsupport@         *x*) set +x; _mlshdbg='x' ;;
-@silentshdbgsupport@         *) _mlshdbg='' ;;
-@silentshdbgsupport@      esac;
-@silentshdbgsupport@   fi;}
+         if {[getConf silent_shell_debug]} {
+            append fdef {
+   unset _mlshdbg;
+   if [ "${MODULES_SILENT_SHELL_DEBUG:-0}" = '1' ]; then
+      case "$-" in
+         *v*x*) set +vx; _mlshdbg='vx' ;;
+         *v*) set +v; _mlshdbg='v' ;;
+         *x*) set +x; _mlshdbg='x' ;;
+         *) _mlshdbg='' ;;
+      esac;
+   fi;}
+         }
          if {[getConf quarantine_support]} {
             append fdef "
    unset _mlre _mlIFS;
@@ -716,11 +718,13 @@ alias ml 'module ml \!*' ;}
    fi;
    unset _mlre _mlv _mlrv _mlIFS;}
          }
-@silentshdbgsupport@         append fdef {
-@silentshdbgsupport@   if [ -n "${_mlshdbg:-}" ]; then
-@silentshdbgsupport@      set -$_mlshdbg;
-@silentshdbgsupport@   fi;
-@silentshdbgsupport@   unset _mlshdbg;}
+         if {[getConf silent_shell_debug]} {
+            append fdef {
+   if [ -n "${_mlshdbg:-}" ]; then
+      set -$_mlshdbg;
+   fi;
+   unset _mlshdbg;}
+         }
          append fdef {
    return $_mlstatus;}
          append fdef "\n};"

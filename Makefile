@@ -169,9 +169,9 @@ else
 endif
 
 ifeq ($(silentshdbgsupport),y)
-  setsilentshdbgsupport :=
+  setsilentshdbgsupport := 1
 else
-  setsilentshdbgsupport := \#
+  setsilentshdbgsupport := 0
 endif
 
 ifeq ($(quarantinesupport),y)
