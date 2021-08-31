@@ -519,12 +519,15 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 
 .. instopt:: --enable-silent-shell-debug-support
 
- Generate code in module function definition and initialization scripts to add
- support for silencing shell debugging properties (default=yes)
+ Generate code in module function definition to add support for silencing
+ shell debugging properties (default=no)
 
  .. only:: html
 
     .. versionadded:: 4.2
+
+    .. versionchanged:: 5.0
+       Configuration option default set to ``no``
 
 .. instopt:: --enable-versioning
 
