@@ -203,6 +203,16 @@ Modules 5.0.0 (not yet released)
   This variable is set by the Modules initialization script prior calling the
   :subcmd:`autoinit` sub-command or by the :command:`module` shell function if
   it has been generated with quarantine support enabled.
+* Install: installation option :instopt:`--enable-silent-shell-debug-support`
+  is set off by default.
+* Code to silence shell debug properties in the Modules shell initialization
+  scripts is now always defined and mechanism applies if
+  :envvar:`MODULES_SILENT_SHELL_DEBUG` environment variable is set to ``1``.
+* Code to silence shell debug properties in the :command:`module` shell
+  function could now be enabled if :envvar:`MODULES_SILENT_SHELL_DEBUG` is set
+  to ``1`` prior Modules initialization or if the
+  :mconfig:`silent_shell_debug` configuration option is set to ``1`` in the
+  ``initrc`` configuration file.
 
 
 .. _4.8 release notes:
