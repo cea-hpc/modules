@@ -213,6 +213,7 @@ Modules 5.0.0 (not yet released)
   to ``1`` prior Modules initialization or if the
   :mconfig:`silent_shell_debug` configuration option is set to ``1`` in the
   ``initrc`` configuration file.
+* Doc: clarify TOC and title of :ref:`MIGRATING<MIGRATING>` document.
 
 
 .. _4.8 release notes:

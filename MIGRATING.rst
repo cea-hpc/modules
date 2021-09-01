@@ -1,20 +1,20 @@
 .. _MIGRATING:
 
-MIGRATING
-*********
+New features
+************
 
 This document describes the major changes occurring between versions of
 Modules. It provides an overview of the new features and changed behaviors
 that will be encountered when upgrading.
 
 
-From v4.7 to v4.8
-=================
+v4.8
+====
 
-This new version is backward-compatible with v4.7 and primarily fixes bugs and
-adds new features. Version 4.8 introduces new functionalities that are
-described in this section. See the :ref:`4.8 release notes<4.8 release notes>`
-for a complete list of the changes between Modules v4.7 and v4.8.
+This new version is backward-compatible with previous version 4 releases. It
+fixes bugs but also introduces new functionalities that are described in this
+section. See the :ref:`4.8 release notes<4.8 release notes>` for a complete
+list of the changes between Modules v4.7 and v4.8.
 
 Editing modulefiles
 -------------------
@@ -237,13 +237,13 @@ Configured shortcuts are also used to report the loaded variant on
     :sgral:`auto-loaded`  :sgrse:`{`:sgrva:`-variant`:sgrse:`}`\=\ :sgrse:`{`:sgrva:`variant=off`:sgrse:`}`  :sgrse:`{`:sgrva:`%value`:sgrse:`}`\=\ :sgrse:`{`:sgrva:`toolchain=value`:sgrse:`}`  :sgrse:`{`:sgrva:`variant=value`:sgrse:`}`
 
 
-From v4.6 to v4.7
-=================
+v4.7
+====
 
-This new version is backward-compatible with v4.6 and primarily fixes bugs and
-adds new features. Version 4.7 introduces new functionalities that are
-described in this section. See the :ref:`4.7 release notes<4.7 release notes>`
-for a complete list of the changes between Modules v4.6 and v4.7.
+This new version is backward-compatible with previous version 4 releases. It
+fixes bugs but also introduces new functionalities that are described in this
+section. See the :ref:`4.7 release notes<4.7 release notes>` for a complete
+list of the changes between Modules v4.6 and v4.7.
 
 Determining module implementation and version
 ---------------------------------------------
@@ -653,13 +653,13 @@ modulepaths are reported as a single list:
    :mconfig:`avail_output` or :mconfig:`avail_terse_output` configuration
    options.
 
-From v4.5 to v4.6
-=================
+v4.6
+====
 
-This new version is backward-compatible with v4.5 and primarily fixes bugs and
-adds new features. Version 4.6 introduces new functionalities that are
-described in this section. See the :ref:`4.6 release notes<4.6 release notes>`
-for a complete list of the changes between Modules v4.5 and v4.6.
+This new version is backward-compatible with previous version 4 releases. It
+fixes bugs but also introduces new functionalities that are described in this
+section. See the :ref:`4.6 release notes<4.6 release notes>` for a complete
+list of the changes between Modules v4.5 and v4.6.
 
 .. _sh-to-mod_sub-command:
 
@@ -1020,13 +1020,13 @@ palette with a default value of ``2`` (decreased intensity).
       :sgrtr:`Evaluate modulefile: '/path/to/modulefiles/bar/1.0' as 'bar/1.0'`
 
 
-From v4.4 to v4.5
-=================
+v4.5
+====
 
-This new version is backward-compatible with v4.4 and primarily fixes bugs and
-adds new features. Version 4.5 introduces new functionalities that are
-described in this section. See the :ref:`4.5 release notes<4.5 release notes>`
-for a complete list of the changes between Modules v4.4 and v4.5.
+This new version is backward-compatible with previous version 4 releases. It
+fixes bugs but also introduces new functionalities that are described in this
+section. See the :ref:`4.5 release notes<4.5 release notes>` for a complete
+list of the changes between Modules v4.4 and v4.5.
 
 ml command
 ----------
@@ -1193,13 +1193,13 @@ alias or a regular module version already exists for these ``default`` or
 ``latest`` version names.
 
 
-From v4.3 to v4.4
-=================
+v4.4
+====
 
-This new version is backward-compatible with v4.3 and primarily fixes bugs and
-adds new features. Version 4.4 introduces new functionalities that are
-described in this section. See the :ref:`4.4 release notes<4.4 release notes>`
-for a complete list of the changes between Modules v4.3 and v4.4.
+This new version is backward-compatible with previous version 4 releases. It
+fixes bugs but also introduces new functionalities that are described in this
+section. See the :ref:`4.4 release notes<4.4 release notes>` for a complete
+list of the changes between Modules v4.3 and v4.4.
 
 .. warning:: Modules configuration option handling has been reworked
    internally to provide a unified way for all options to get initialized,
@@ -1412,13 +1412,13 @@ which could be set through the **config** sub-command with the
 ``advanced_version_spec`` option.
 
 
-From v4.2 to v4.3
-=================
+v4.3
+====
 
-This new version is backward-compatible with v4.2 and primarily fixes bugs and
-adds new features. Version 4.3 introduces new functionalities that are
-described in this section. See the :ref:`4.3 release notes<4.3 release notes>`
-for a complete list of the changes between Modules v4.2 and v4.3.
+This new version is backward-compatible with previous version 4 releases. It
+fixes bugs but also introduces new functionalities that are described in this
+section. See the :ref:`4.3 release notes<4.3 release notes>` for a complete
+list of the changes between Modules v4.2 and v4.3.
 
 Modulepath rc file
 ------------------
@@ -1674,13 +1674,13 @@ Other new sub-commands, command-line switches and environment variables
   modulefiles will return a syntax error.
 
 
-From v4.1 to v4.2
-=================
+v4.2
+====
 
-This new version is backward-compatible with v4.1 and primarily fixes bugs and
-adds new features. Version 4.2 introduces new functionalities that are
-described in this section. See the :ref:`4.2 release notes<4.2 release notes>`
-for a complete list of the changes between Modules v4.1 and v4.2.
+This new version is backward-compatible with previous version 4 releases. It
+fixes bugs but also introduces new functionalities that are described in this
+section. See the :ref:`4.2 release notes<4.2 release notes>` for a complete
+list of the changes between Modules v4.1 and v4.2.
 
 .. _v42-conflict-constraints-consistency:
 
@@ -2102,13 +2102,13 @@ New modulefile commands
 * **unset-function**: unset a shell function on sh-kind and fish shells.
 
 
-From v4.0 to v4.1
-=================
+v4.1
+====
 
-This new version is backward-compatible with v4.0 and primarily fixes bugs and
-adds new features. Version 4.1 introduces new functionalities that are
-described in this section. See the :ref:`4.1 release notes<4.1 release notes>`
-for a complete list of the changes between Modules v4.0 and v4.1.
+This new version is backward-compatible with previous version 4 releases. It
+fixes bugs but also introduces new functionalities that are described in this
+section. See the :ref:`4.1 release notes<4.1 release notes>` for a complete
+list of the changes between Modules v4.0 and v4.1.
 
 Virtual modules
 ---------------
@@ -2258,8 +2258,8 @@ of the ``module-info loaded`` modulefile command:
     app/0.8
 
 
-From v3.2 to v4.0
-=================
+v4.0
+====
 
 Major evolution occurs with this v4.0 release as the traditional *module*
 command implemented in C is replaced by the native Tcl version. This full
