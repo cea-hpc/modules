@@ -765,7 +765,9 @@ Module Sub-Commands
 
  .. mconfig:: silent_shell_debug
 
-  Disablement of shell debugging property for the module command. Defines
+  Disablement of shell debugging property for the module command. Also defines
+  if code to silence shell debugging property should be generated in
+  :command:`module` shell function definition. Defines
   :envvar:`MODULES_SILENT_SHELL_DEBUG`.
 
  .. mconfig:: search_match
@@ -2660,9 +2662,15 @@ ENVIRONMENT
 .. envvar:: MODULES_SILENT_SHELL_DEBUG
 
  If set to ``1``, disable any ``xtrace`` or ``verbose`` debugging property set
- on current shell session for the duration of either the module command or the
- module shell initialization script. Only applies to Bourne Shell (sh) and its
- derivatives.
+ on current shell session for the duration of either the :command:`module`
+ command or the module shell initialization script. Only applies to Bourne
+ Shell (sh) and its derivatives.
+
+ To generate the code to silence shell debugging property in the
+ :command:`module` shell function, :envvar:`MODULES_SILENT_SHELL_DEBUG` should
+ be set to ``1`` prior Modules initialization or the
+ :mconfig:`silent_shell_debug` configuration option should be set to ``1`` in
+ the :file:`initrc` configuration file.
 
  .. only:: html
 
