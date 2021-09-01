@@ -91,7 +91,7 @@ if {[info exists insmodrcdata] && [info exists exmodrcdata] && $exmodrcdata eq $
 }
 
 set custom {module restore unk}
-set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 28 {  }]]
+set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 31 {  }]]
 
 set tserr_initrc_exinstalled "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n$err_path'unk'\n$custom"
 set tserr_initrc1_exinstalled [msg_load null]
@@ -134,8 +134,7 @@ set func_quar_sh ""
 set func_quar_zsh ""
 }
 
-if {$install_silentshdbgsupport eq y} {
-set func_silentdbg "\\s*unset _mlshdbg;
+set func_silentdbg_silentdbg "\\s*unset _mlshdbg;
 \\s*if \\\[ \"\\\${MODULES_SILENT_SHELL_DEBUG:-0}\" = '1' \\\]; then
 \\s*case \"\\\$-\" in
 \\s*\\\*v\\\*x\\\*\\\) set \\\+vx; _mlshdbg='vx' ;;
@@ -144,10 +143,13 @@ set func_silentdbg "\\s*unset _mlshdbg;
 \\s*\\\*\\\) _mlshdbg='' ;;
 \\s*esac;
 \\s*fi;\n"
-set end_silentdbg "\\s*if \\\[ -n \"\\\${_mlshdbg:-}\" \\\]; then
+set end_silentdbg_silentdbg "\\s*if \\\[ -n \"\\\${_mlshdbg:-}\" \\\]; then
 \\s*set -\\\$_mlshdbg;
 \\s*fi;
 \\s*unset _mlshdbg;\n"
+if {$install_silentshdbgsupport eq y} {
+set func_silentdbg $func_silentdbg_silentdbg
+set end_silentdbg $end_silentdbg_silentdbg
 } else {
 set func_silentdbg ""
 set end_silentdbg ""
@@ -166,6 +168,7 @@ set func_clean_ifs ""
 }
 set func_end "\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs$end_silentdbg\\s*return \\\$_mlstatus;"
 set func_end_quar "\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs_quar$end_silentdbg\\s*return \\\$_mlstatus;"
+set func_end_silentdbg "\\s*_mlstatus=\\\$\\\?;\n$end_silentdbg_silentdbg\\s*return \\\$_mlstatus;"
 
 set func_modcmd_bash_quar "\\s*if \\\[ -n \"\\\${_mlre:-}\" \\\]; then
 \\s*_mlre=\"\\\${_mlre:-}__MODULES_QUARANTINE_SET=1 \";
@@ -211,6 +214,7 @@ if {$is_stderr_tty} {
 }
 
 set func_bash_quar "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh_quar$func_modcmd_bash_quar\n$func_end_quar\n};$add_func_sh"
+set func_bash_silentdbg "$func_name\\\(\\\) {\n$func_silentdbg_silentdbg$func_quar_sh$func_modcmd_bash\n$func_end_silentdbg\n};$add_func_sh"
 
 set func_sh "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh$func_modcmd_sh\n$func_end\n};$add_func_sh"
 set func_bash "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh$func_modcmd_bash\n$func_end\n};$add_func_sh"
@@ -500,6 +504,8 @@ append func_sh "
 append func_bash "
 \\s*ml\\\(\\\) { module ml \"\\\$\\\@\"; };"
 append func_bash_quar "
+\\s*ml\\\(\\\) { module ml \"\\\$\\\@\"; };"
+append func_bash_silentdbg "
 \\s*ml\\\(\\\) { module ml \"\\\$\\\@\"; };"
 append func_ksh "
 \\s*ml\\\(\\\) { module ml \"\\\$\\\@\"; };"
@@ -1065,7 +1071,35 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
     }
     set linenum [expr {[cmpversion $tclsh_version 8.6] == -1 ? 14 : 21}]
     set custom {module restore unk}
-    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 28 {  }]]
+    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 31 {  }]]
+    set tserr "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n$err_path'unk'\n$custom"
+    testouterr_cmd_re bash autoinit $ans $tserr
+
+    unsetenv_var TESTSUITE_INITRC
+
+    # test impact of quarantine support enablement through initrc config file
+    setenv_var TESTSUITE_INITRC silentdbg1
+
+    set ans [list]
+    lappend ans [list ERR]
+    lappend ans [list [set "func_bash_silentdbg"]]
+    lappend ans [list set MODULES_SILENT_SHELL_DEBUG 1]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+    }
+    lappend ans [list set MODULES_CMD $modulecmd_path]
+    lappend ans [list set MODULESHOME $moduleshome]
+    lappend ans [list set __MODULES_LMPREREQ m3&m1]
+    lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4"]
+    lappend ans [list set LOADEDMODULES "m1:m3:space yc/4"]
+    lappend ans [list set __MODULES_LMTAG m1&auto-loaded]
+    lappend ans [list set MODULEPATH "$modpath wspace:$modpath.deps"]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION "(.*)"]
+    }
+    set linenum [expr {[cmpversion $tclsh_version 8.6] == -1 ? 14 : 21}]
+    set custom {module restore unk}
+    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 31 {  }]]
     set tserr "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n$err_path'unk'\n$custom"
     testouterr_cmd_re bash autoinit $ans $tserr
 
