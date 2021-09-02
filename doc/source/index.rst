@@ -105,6 +105,24 @@ automatically configured to the correct architecture.
    design
 
 
+Get started with Modules
+------------------------
+
+Learn how to retrieve and install Modules :ref:`on Unix<INSTALL>` or
+:ref:`on Windows<INSTALL-win>`. An overlook on the new functionalities
+introduced by each version is available in the :ref:`MIGRATING` guide.
+:ref:`NEWS` provides the full list of changes added in each version.
+
+Reference manual page for the :ref:`module(1)` and :ref:`ml(1)` commands and
+for :ref:`modulefile(4)` script provide details on all supported options.
+
+A :ref:`cookbook` of recipes describes how to use the various features of
+Modules and how to extend the :command:`module` command to achieve specific
+needs.
+
+If you have questions, comments or development suggestions for the Modules
+community, please read the :ref:`CONTRIBUTING` guide.
+
 License
 -------
 
