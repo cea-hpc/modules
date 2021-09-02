@@ -73,8 +73,8 @@ The simplest way to build and install Modules on a Unix system is:
     $ make
     $ make install
 
-To learn the details on how to install modules see `INSTALL.txt` for Unix
-system or `INSTALL-win.txt` for Windows.
+To learn the details on how to install modules see [`INSTALL.txt`][1] for Unix
+system or [`INSTALL-win.txt`][2] for Windows.
 
 
 Requirements
@@ -94,9 +94,9 @@ for details.
 Documentation
 -------------
 
-Look at `NEWS` for summarized information regarding the changes brought
-by each released version. Look at `ChangeLog` for detailed information
-regarding changes.
+See [`MIGRATING`][3] to get an overlook of the new functionalities introduced
+by each released versions. [`NEWS`][4] provides the full list of changes added
+in each version. Look at `ChangeLog` for the technical development details.
 
 The `doc` directory contains both the paper and man pages describing the
 user's and the module writer's usage. To generate the documentation files,
@@ -169,3 +169,8 @@ not be what it is without their contributions:
  * Jens Hamisch
  * Peter W. Osel
  * John L. Furlani
+
+[1]: https://modules.readthedocs.io/en/stable/INSTALL.html
+[2]: https://modules.readthedocs.io/en/stable/INSTALL-win.html
+[3]: https://modules.readthedocs.io/en/stable/MIGRATING.html
+[4]: https://modules.readthedocs.io/en/stable/NEWS.html

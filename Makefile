@@ -412,7 +412,7 @@ endif
 
 README:
 	$(ECHO_GEN)
-	sed -e '1,10d' $@.md > $@
+	sed -e '173,176d' -e '1,10d' -e 's|\[\(.*\?\)\]\[[0-9]\]|\1|' $@.md > $@
 
 script/add.modules: script/add.modules.in
 	$(translate-in-script)
