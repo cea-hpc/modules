@@ -214,6 +214,8 @@ Modules 5.0.0 (not yet released)
   :mconfig:`silent_shell_debug` configuration option is set to ``1`` in the
   ``initrc`` configuration file.
 * Doc: clarify TOC and title of :ref:`MIGRATING<MIGRATING>` document.
+* Doc: extend description of Modules configuration steps of in :ref:`INSTALL`
+  document.
 
 
 .. _4.8 release notes:

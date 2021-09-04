@@ -16,9 +16,10 @@ available on your system. ``tclsh`` is a part of Tcl
 (http://www.tcl.tk/software/tcltk/).
 
 To install Modules from a distribution tarball or a clone of the git
-repository, a build step is there to adapt the initialization scripts to your
-configuration and create the documentation files. This build step requires
-the tools to be found on your system:
+repository, a build step is there to tailor the :file:`modulecmd.tcl` and the
+initialization scripts to the chosen installation configuration and create the
+documentation files. This build step requires the tools to be found on your
+system:
 
 * bash
 * make
@@ -128,11 +129,7 @@ Once installed you should review and adapt the configuration to make it fit
 your needs. The following steps are provided for example. They are not
 necessarily mandatory as it depends of the kind of setup you want to achieve.
 
-1. Tune the initialization scripts. Review of these scripts is highly
-   encouraged as you may add or adapt specific stuff to get Modules
-   initialized the way you want.
-
-2. Enable Modules initialization at shell startup. An easy way to get module
+1. Enable Modules initialization at shell startup. An easy way to get module
    function defined and its associated configuration setup at shell startup
    is to make the initialization scripts part of the system-wide environment
    setup in ``/etc/profile.d``. To do so, make a link in this directory to the
@@ -156,47 +153,109 @@ necessarily mandatory as it depends of the kind of setup you want to achieve.
    Beware that shells have multiple ways to initialize depending if they are
    a login shell or not and if they are launched in interactive mode or not.
 
-3. Define module paths to enable by default. Edit ``initrc`` configuration
+2. Define module paths to enable by default. Edit ``initrc`` configuration
    file in the directory designated by the :instopt:`--etcdir` option or edit
-   ``modulespath`` in the same directory if you have chosen
-   :instopt:`--enable-modulespath` at configure time. If you have set
-   :instopt:`--with-initconf-in` to ``initdir`` to install these Modules
-   initialization configurations in the configuration directory designated by
-   the :instopt:`--initdir` option, these configuration files
-   are respectively named ``modulerc`` and ``.modulespath``. If you use
-   ``modulespath`` (or ``.modulespath``) configuration file, add one line
-   mentioning each modulefile directory::
+   ``modulespath`` in the same directory.
+
+   If you use ``modulespath`` configuration file, add one line mentioning each
+   modulefile directory::
 
        /path/to/regular/modulefiles
        /path/to/other/modulefiles
 
-   If you use ``initrc`` (or ``modulerc``) configuration file, add one line
-   mentioning each modulefile directory prefixed by the ``module use``
-   command::
+   If you use ``initrc`` configuration file, add one line mentioning each
+   modulefile directory prefixed by the :subcmd:`module use<use>` command:
+
+   .. code-block:: tcl
 
        module use /path/to/regular/modulefiles
        module use /path/to/other/modulefiles
 
-4. Define modulefiles to load by default. Edit ``initrc`` (or ``modulerc``)
-   configuration file. Modulefiles to load cannot be specified in
-   ``modulespath`` (or ``.modulespath``) file. Add there all the modulefiles
-   you want to load by default at Modules initialization time.
+   In case both configuration files ``initrc`` and ``modulespath`` are
+   present, Modules initialization process will first evaluate ``modulespath``
+   then ``initrc``.
+
+   By default, the modulepaths specified on the :instopt:`--with-modulepath`
+   installation option are automatically defined for use in ``initrc`` (or in
+   ``modulespath`` if the :instopt:`--enable-modulespath` installation option
+   has been set).
+
+   .. note:: If you have set :instopt:`--with-initconf-in` to ``initdir`` to
+      install the Modules initialization configurations in the configuration
+      directory designated by the :instopt:`--initdir` option, the configuration
+      files ``initrc`` and ``modulespath`` are respectively named ``modulerc``
+      and ``.modulespath``.
+
+3. Define modulefiles to load by default. Edit ``initrc`` configuration file.
+   Modulefiles to load cannot be specified in ``modulespath`` file. Add there
+   all the modulefiles you want to load by default at Modules initialization
+   time.
 
    Add one line mentioning each modulefile to load prefixed by the
-   ``module load`` command::
+   :subcmd:`module load<load>` command:
+
+   .. code-block:: tcl
 
        module load foo
        module load bar
 
-   In fact you can add to the ``initrc`` (or ``modulerc``) configuration file
-   any kind of supported module command, like ``module config`` commands to
-   tune ``module``'s default behaviors.
+   By default, the modules specified on the :instopt:`--with-loadedmodules`
+   installation option are automatically defined for load in ``initrc``.
+
+   Alternatively, if users have :ref:`module collections<collections>` saved
+   in their :envvar:`HOME` directory, you may prefer restoring their default
+   collection when Modules initializes rather loading the default module list:
+
+   .. code-block:: tcl
+
+       if {[is-saved default]} {
+           module restore
+       } else {
+           module load foo
+           module load bar
+       }
+
+   In fact you can add to the ``initrc`` configuration file any kind of
+   supported module command, like :subcmd:`module config<config>` commands to
+   tune :command:`module`'s default behaviors. This configuration way is
+   recommended over directly modifying the shell initialization scripts.
 
 If you go through the above steps you should have a valid setup tuned to your
 needs. After that you still have to write modulefiles to get something to
-load and unload in your newly configured Modules setup. Please have a look
-at the ``doc/example.txt`` that explains how the user environment is setup
-with Modules at the University of Minnesota computer science department.
+load and unload in your newly configured Modules setup. In case you want to
+achieve a specific setup, some additional steps may be required:
+
+4. In case the configuration you expect cannot be achieved through the
+   ``initrc`` configuration file, you may review and tune the initialization
+   scripts. These files are located in the directory designated by the
+   :instopt:`--initdir` option. Beware that these scripts could be overwritten
+   when upgrading to a newer version of Modules, so configuration should be
+   done through the ``initrc`` file as far as possible.
+
+5. If you want to alter the way the :file:`modulecmd.tcl` script operates, the
+   :file:`siteconfig.tcl` script may be used. This Tcl file is located in the
+   directory designated by the :instopt:`--etcdir` option. Every time the
+   :command:`module` command is called, it executes the :file:`modulecmd.tcl`
+   script which in turns sources the :file:`siteconfig.tcl` script during its
+   startup phase. The site-specific configuration script could override
+   default configuration values and more largely could supersede all
+   procedures defined in :file:`modulecmd.tcl` to obtain specific behaviors.
+
+6. Prior running the module sub-command specified as argument, the
+   :file:`modulecmd.tcl` script evaluates the global run-command files. These
+   files are either the :file:`rc` file in the directory designated by the
+   :instopt:`--etcdir` option, the file designated in the
+   :envvar:`MODULERCFILE` environment variable or the user-specific RC file
+   located in :file:`$HOME/.modulerc`. The RC files are modulefiles (limited
+   to a subset of the :ref:`modulefile Tcl
+   commands<Modules specific Tcl commands>`) that could define global module
+   aliases, virtual modules or module properties such as tags, forbidding
+   rules, etc.
+
+To learn more about siteconfig and run-command files, see the
+:ref:`Modulecmd startup` section in :ref:`module(1)` reference manual. You may
+also look at the available :ref:`setup recipes<cookbook>` to get concrete
+deployment examples of these files.
 
 
 Build and installation options

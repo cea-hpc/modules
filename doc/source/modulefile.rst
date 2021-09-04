@@ -54,6 +54,7 @@ shell do this ...". Announcing and accessing new software is uniform and
 independent of the user's shell. From the *modulefile* writer's perspective,
 this means one set of information will take care of every type of shell.
 
+.. _Modules specific Tcl commands:
 
 Modules Specific Tcl Commands
 -----------------------------

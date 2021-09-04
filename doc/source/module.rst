@@ -106,6 +106,8 @@ Bourne Shell (sh) (and derivatives) with :subcmd:`autoinit` sub-command:
      eval "\`\ |libexecdir|\ /modulecmd.tcl sh autoinit\`"
 
 
+.. _Modulecmd startup:
+
 Modulecmd startup
 ^^^^^^^^^^^^^^^^^
 
@@ -1757,6 +1759,8 @@ Variant shortcut and color rendering do not apply on JSON output.
 
    .. versionadded:: 4.8
 
+
+.. _collections:
 
 Collections
 ^^^^^^^^^^^
