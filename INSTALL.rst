@@ -634,7 +634,7 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
  Specify the content to report on avail sub-command regular output in addition
  to the available module names. Elements accepted in LIST are: ``modulepath``,
- ``alias``, ``dirwsym``,``sym``, ``tag`` and ``key`` (elements in LIST are
+ ``alias``, ``dirwsym``, ``sym``, ``tag`` and ``key`` (elements in LIST are
  separated by ``:``). The order of the elements in LIST does not matter.
  (default=\ ``modulepath:alias:dirwsym:sym:tag:key``)
 
@@ -646,7 +646,7 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
  Specify the content to report on avail sub-command terse output in addition
  addition to the available module names. Elements accepted in LIST are:
- ``modulepath``, ``alias``, ``dirwsym``,``sym``, ``tag`` and ``key`` (elements
+ ``modulepath``, ``alias``, ``dirwsym``, ``sym``, ``tag`` and ``key`` (elements
  in LIST are separated by ``:``). The order of the elements in LIST does not
  matter. (default=\ ``modulepath:alias:dirwsym:sym:tag``)
 

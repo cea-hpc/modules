@@ -554,8 +554,8 @@ Modules 4.7.0 (2021-02-19)
   configuration and :instopt:`--with-nearly-forbidden-days` installation
   option to integers comprised between 0 and 365.
 * Install: color *ERROR* and *WARNING* message headers produced by
-  file:`configure` script if output is sent to a terminal.
-* Install: split error messages produced by file:`configure` script over an
+  :file:`configure` script if output is sent to a terminal.
+* Install: split error messages produced by :file:`configure` script over an
   additional line when too long.
 * Doc: add *Output configuration* design notes.
 * Introduce the :mconfig:`avail_output` and :mconfig:`avail_terse_output`
@@ -1529,7 +1529,7 @@ Modules 4.2.3 (2019-03-23)
   apply same behaviors than for ``module load`` and ``module unload`` commands
   in modulefiles. If ``module switch`` has only one argument, do not define a
   conflict toward switched-off modulefile. *CAUTION: it is not recommended to
-  use `module switch` command in modulefiles*. (fix issue#229)
+  use module switch command in modulefiles*. (fix issue#229)
 * When unloading a module, revert ``module switch`` commands found in
   modulefile: switched-on module is converted to a ``module unload``, like for
   ``module load`` command. Nothing is done for switched-off module, like for

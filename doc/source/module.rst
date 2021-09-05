@@ -1912,8 +1912,8 @@ ENVIRONMENT
 
  This environment variable is intended for :command:`module` command internal
  use to get knowledge of the tags applying to loaded *modulefiles* in order
- to report these tags on subcmd:`list` sub-command output or to apply specific
- behavior when unloading *modulefile*.
+ to report these tags on :subcmd:`list` sub-command output or to apply
+ specific behavior when unloading *modulefile*.
 
  .. only:: html
 
