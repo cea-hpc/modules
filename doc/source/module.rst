@@ -36,18 +36,36 @@ The action for the :command:`module` command to take is described by the
 *sub-command* and its associated arguments.
 
 
+.. _Package Initialization:
+
 Package Initialization
 ^^^^^^^^^^^^^^^^^^^^^^
 
 The Modules package and the :command:`module` command are initialized when a
 shell-specific initialization script is sourced into the shell. The script
-creates the :command:`module` command as either an alias or function and
-creates Modules environment variables.
+executes the :subcmd:`autoinit` sub-command of the :file:`modulecmd.tcl`
+program located in |file libexecdir| for the corresponding shell. The output
+of this execution is evaluated by shell which creates the :command:`module`
+command as either an alias or function and creates Modules environment
+variables.
+
+During this initialization process, if the Modules environment is found
+undefined (when both :envvar:`MODULEPATH` and :envvar:`LOADEDMODULES` are
+found either unset or empty), the :file:`modulespath` and :file:`initrc`
+configuration files located in |file etcdir| are evaluated if present and
+following this order. :file:`modulespath` file contains the list of
+modulepaths to enable during initialization. In this file, the modulepaths are
+separated by newline or colon characters. :file:`initrc` is a modulefile that
+defines during initialization the modulepaths to enable, the modules to load
+and the :command:`module` configuration to apply.
+
+During the initialization process, if the Modules environment is found defined
+a :subcmd:`module refresh<refresh>` is automatically applied to restore in the
+current environment all non-persistent components set by loaded modules.
 
 The :command:`module` alias or function executes the :file:`modulecmd.tcl`
-program located in |file libexecdir| and has the shell evaluate the command's
-output. The first argument to :file:`modulecmd.tcl` specifies the type of
-shell.
+program and has the shell evaluate the command's output. The first argument to
+:file:`modulecmd.tcl` specifies the type of shell.
 
 The initialization scripts are kept in |file initdir_shell| where
 *<shell>* is the name of the sourcing shell. For example, a C Shell user
@@ -57,9 +75,8 @@ python, perl, ruby, tcl, cmake, r and lisp "shells" are supported which
 writes the environment changes to stdout as python, perl, ruby, tcl, lisp,
 r or cmake code.
 
-Initialization may also be performed by calling the :subcmd:`autoinit`
-sub-command of the :file:`modulecmd.tcl` program. Evaluation into the shell of
-the result of this command defines the :command:`module` alias or function.
+Initialization may also be performed by directly calling the
+:subcmd:`autoinit` sub-command of the :file:`modulecmd.tcl` program.
 
 A :command:`ml` alias or function may also be defined at initialization time
 if enabled (see :envvar:`MODULES_ML` section). :command:`ml` is a handy
@@ -2865,6 +2882,32 @@ FILES
 |file prefix|
 
  The :envvar:`MODULESHOME` directory.
+
+|file etcdir_initrc|
+
+ The configuration file evaluated by :file:`modulecmd.tcl` when it initializes
+ to enable the default modulepaths, load the default modules and set
+ :command:`module` command configuration.
+
+ :file:`initrc` is a :ref:`modulefile(4)` so it is written as a Tcl script and
+ defines modulepaths to enable with :mfcmd:`module use<module>`, modules to
+ load with :mfcmd:`module load<module>` and configuration to apply with
+ :subcmd:`module config<config>`. As any modulefile :file:`initrc` must begin
+ with the magic cookie ``#%Module``.
+
+ :file:`initrc` is optional. When this configuration file is present it is
+ evaluated after the :file:`modulespath` configuration file. See the
+ :ref:`Package Initialization` section for details.
+
+|file etcdir_modulespath|
+
+ The configuration file evaluated by :file:`modulecmd.tcl` when it initializes
+ to enable the default modulepaths. This file contains the list of modulepaths
+ separated by either newline or colon characters.
+
+ :file:`modulespath` is optional. When this configuration file is present it
+ is evaluated before the :file:`initrc` configuration file. See the
+ :ref:`Package Initialization` section for details.
 
 |file etcdir_siteconfig|
 

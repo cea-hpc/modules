@@ -216,6 +216,8 @@ Modules 5.0.0 (not yet released)
 * Doc: clarify TOC and title of :ref:`MIGRATING<MIGRATING>` document.
 * Doc: extend description of Modules configuration steps of in :ref:`INSTALL`
   document.
+* Doc: document :file:`initrc` and :file:`modulespath` configuration files in
+  :ref:`module(1)` man page.
 
 
 .. _4.8 release notes:
