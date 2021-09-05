@@ -44,13 +44,13 @@ Modules 5.0.0 (not yet released)
   following major version change as all the options it implied are now enabled
   by default.
 * Install: installation option :instopt:`--enable-set-shell-startup` is set
-  off by default but could be enabled once installed through the ``initrc``
-  configuration file.
+  off by default but could be enabled once installed through the
+  :file:`initrc` configuration file.
 * Install: installation option :instopt:`--with-initconf-in` is set to
   ``etcdir`` by default to locate configuration files in the directory
   designated by the :instopt:`--etcdir` option. Therefore the initialization
-  configuration file is named ``initrc`` in this directory, and the
-  modulepath-specific configuration file is named ``modulespath``.
+  configuration file is named :file:`initrc` in this directory, and the
+  modulepath-specific configuration file is named :file:`modulespath`.
 * Only look at configuration files found in the location designated by the
   :instopt:`--etcdir` or :instopt:`--initdir` option (depending on the value
   of :instopt:`--with-initconf-in` option). Configuration files were
@@ -135,15 +135,15 @@ Modules 5.0.0 (not yet released)
   is correctly inherited, as the :subcmd:`refresh` sub-command re-applies the
   non-persistent environment configuration (i.e., shell alias and function
   that are not exported to the sub-shell). (fix issue #86)
-* Init: add example code in default ``initrc``, the initialization script of
-  Modules, to either restore user's default collection if it exists or load a
-  predefined module list at the end of the initialization process.
-* When initializing Modules, evaluate the ``initrc`` configuration file in
-  addition to the the ``modulespath`` configuration file and not instead of
-  this file. ``initrc`` is evaluated after ``modulespath`` file.
+* Init: add example code in default :file:`initrc`, the initialization script
+  of Modules, to either restore user's default collection if it exists or load
+  a predefined module list at the end of the initialization process.
+* When initializing Modules, evaluate the :file:`initrc` configuration file in
+  addition to the the :file:`modulespath` configuration file and not instead
+  of this file. :file:`initrc` is evaluated after :file:`modulespath` file.
 * When the installation option :instopt:`--enable-modulespath` is set, the
   list of modulepath to enable by default is now only defined in the
-  ``modulespath`` configuration file and not anymore in the ``initrc``
+  :file:`modulespath` configuration file and not anymore in the :file:`initrc`
   configuration file.
 * No error is raised when evaluating in ``display`` mode a modulefile without
   a value specified for the :mfcmd:`variant` it defines. This change helps to
@@ -165,7 +165,7 @@ Modules 5.0.0 (not yet released)
   initialization rc file, the ``source`` Tcl command should be used instead.
   :subcmd:`source` sub-command should only be called from the command-line.
 * Report the modules loading and unloading during the :command:`module`
-  command initialization (i.e., during the evaluation of the ``initrc``
+  command initialization (i.e., during the evaluation of the :file:`initrc`
   configuration file). These report messages are disabled when the
   :mconfig:`verbosity` configuration option is set to ``concise`` or
   ``silent``.
@@ -174,7 +174,7 @@ Modules 5.0.0 (not yet released)
   unload triggered by other modules are reported through the automated module
   handling messages of the main modules.
 * Enforce use of the module magic cookie (i.e., ``#%Module``) at the start of
-  global or user rc files, ``initrc`` configuration file or any scriptfile
+  global or user rc files, :file:`initrc` configuration file or any scriptfile
   passed for evaluation to the :mfcmd:`source` sub-command. These files are
   not evaluated and an error is produced if the magic cookie is missing or if
   the optional version number placed after the cookie string is higher than
@@ -193,7 +193,7 @@ Modules 5.0.0 (not yet released)
   is installed. To enable the quarantine mechanism,
   :envvar:`MODULES_QUARANTINE_SUPPORT` should be set to ``1`` prior Modules
   initialization or :mconfig:`quarantine_support` configuration option should
-  be set to ``1`` in the ``initrc`` configuration file.
+  be set to ``1`` in the :file:`initrc` configuration file.
 * Quarantine mechanism code in the Modules shell initialization scripts is now
   always defined and mechanism always applies if some environment variables
   are defined in :envvar:`MODULES_RUN_QUARANTINE`.
@@ -212,7 +212,7 @@ Modules 5.0.0 (not yet released)
   function could now be enabled if :envvar:`MODULES_SILENT_SHELL_DEBUG` is set
   to ``1`` prior Modules initialization or if the
   :mconfig:`silent_shell_debug` configuration option is set to ``1`` in the
-  ``initrc`` configuration file.
+  :file:`initrc` configuration file.
 * Doc: clarify TOC and title of :ref:`MIGRATING<MIGRATING>` document.
 * Doc: extend description of Modules configuration steps of in :ref:`INSTALL`
   document.
@@ -381,7 +381,7 @@ Modules 4.7.0 (2021-02-19)
 * Introduce the :mfcmd:`versioncmp` modulefile command to compare two version
   strings passed as argument.
 * Enable the use of wildcard character to designate multiple directories at
-  once in modulespath configuration file. (fix issue #125)
+  once in :file:`modulespath` configuration file. (fix issue #125)
 * Distinguish aliases from symbolic versions in
   :envvar:`MODULES_LMALTNAME<__MODULES_LMALTNAME>` environment variable.
   Prefix these alias entries with the ``al|`` string.

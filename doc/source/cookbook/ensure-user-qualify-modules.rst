@@ -33,7 +33,7 @@ version has been set.
 
 So to ensure user fully qualify the modules they use, this
 ``implicit_default`` configuration option should be disabled. It could be
-achieved by setting the option in the ``initrc`` file installed in the
+achieved by setting the option in the :file:`initrc` file installed in the
 configuration directory (or in the ``modulerc`` file installed in the
 initialization script directory if this location is preferred).
 
