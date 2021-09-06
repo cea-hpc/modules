@@ -218,6 +218,7 @@ Modules 5.0.0 (not yet released)
   document.
 * Doc: document :file:`initrc` and :file:`modulespath` configuration files in
   :ref:`module(1)` man page.
+* Install: replace :file:`example.txt` by :file:`INSTALL.txt` guide in RPM.
 
 
 .. _4.8 release notes:
