@@ -113,7 +113,6 @@ ifeq ($(docinstall),y)
 	cp $(BUILD_DIR)/INSTALL-win.txt $(DESTDIR)$(docdir)/
 	cp $(BUILD_DIR)/NEWS.txt $(DESTDIR)$(docdir)/
 	cp $(BUILD_DIR)/CONTRIBUTING.txt $(DESTDIR)$(docdir)/
-	cp example.txt $(DESTDIR)$(docdir)/
 endif
 	cp $(BUILD_DIR)/module.1 $(DESTDIR)$(mandir)/man1/
 	cp $(BUILD_DIR)/ml.1 $(DESTDIR)$(mandir)/man1/
@@ -127,7 +126,6 @@ ifeq ($(docinstall),y)
 	rm -f $(DESTDIR)$(docdir)/INSTALL-win.txt
 	rm -f $(DESTDIR)$(docdir)/NEWS.txt
 	rm -f $(DESTDIR)$(docdir)/CONTRIBUTING.txt
-	rm -f $(DESTDIR)$(docdir)/example.txt
 	rmdir $(DESTDIR)$(docdir)
 endif
 	rm -f $(DESTDIR)$(mandir)/man1/module.1
