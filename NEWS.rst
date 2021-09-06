@@ -220,6 +220,8 @@ Modules 5.0.0 (not yet released)
   :ref:`module(1)` man page.
 * Install: replace :file:`example.txt` by :file:`INSTALL.txt` guide in RPM.
 * Doc/Install: rename ``diff_v3_v4`` document into :ref:`changes<changes>`.
+* Doc: reorganize :ref:`changes` document to let room to describe Modules 5
+  changes.
 
 
 .. _4.8 release notes:
