@@ -2550,7 +2550,7 @@ Further reading
 ---------------
 
 To get a complete list of the differences between Modules v3.2 and v4,
-please read the :ref:`diff_v3_v4` document.
+please read the :ref:`changes` document.
 
 A significant number of issues reported for v3.2 have been closed on v4.
 List of these closed issues can be found at:

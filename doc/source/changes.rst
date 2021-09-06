@@ -1,4 +1,4 @@
-.. _diff_v3_v4:
+.. _changes:
 
 Differences between versions 3.2 and 4
 ======================================

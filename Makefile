@@ -619,7 +619,7 @@ dist-tar: ChangeLog contrib/rpm/environment-modules.spec pkgdoc
 		-o $(DIST_PREFIX).tar HEAD
 	tar -rf $(DIST_PREFIX).tar --transform 's,^,$(DIST_PREFIX)/,' \
 		lib/configure lib/config.h.in ChangeLog doc/build/MIGRATING.txt \
-		doc/build/diff_v3_v4.txt doc/build/INSTALL.txt doc/build/INSTALL-win.txt \
+		doc/build/changes.txt doc/build/INSTALL.txt doc/build/INSTALL-win.txt \
 		doc/build/NEWS.txt doc/build/CONTRIBUTING.txt doc/build/module.1.in \
 		doc/build/ml.1 doc/build/modulefile.4 contrib/rpm/environment-modules.spec
 

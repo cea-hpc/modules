@@ -219,6 +219,7 @@ Modules 5.0.0 (not yet released)
 * Doc: document :file:`initrc` and :file:`modulespath` configuration files in
   :ref:`module(1)` man page.
 * Install: replace :file:`example.txt` by :file:`INSTALL.txt` guide in RPM.
+* Doc/Install: rename ``diff_v3_v4`` document into :ref:`changes<changes>`.
 
 
 .. _4.8 release notes:
@@ -327,7 +328,7 @@ Modules 4.8.0 (2021-07-14)
   :subcmd:`path` and :subcmd:`paths`) is ignored.
 * Raise an error if a variant named ``version`` is declared in a modulefile to
   let room for the future implementation of this specific variant.
-* Doc: describe in the :ref:`diff_v3_v4` document argument handling change on
+* Doc: describe in the :ref:`changes` document argument handling change on
   :mfcmd:`setenv` since v3.2. (fix issue #402)
 * Introduce the :subcmd:`try-load` sub-command which like :subcmd:`load`
   sub-command tries to load the modulefile passed as argument, but does not
@@ -494,7 +495,7 @@ Modules 4.7.0 (2021-02-19)
 * Report when trying to load a module which is already loaded or when trying
   to unload a module which is not loaded in case the verbosity mode is set to
   ``verbose2`` or any higher level. (fix issue #187)
-* Doc: improve readability of version 4 improvements in :ref:`diff_v3_v4`
+* Doc: improve readability of version 4 improvements in :ref:`changes`
   document.
 * Introduce stickyness: module tagged ``sticky`` with :mfcmd:`module-tag`
   command cannot be unloaded unless if the unload is forced or if the module
@@ -638,9 +639,9 @@ Modules 4.6.1 (2020-11-14)
   recipe
 * Doc: rework option description for :mfcmd:`module-hide` and
   :mfcmd:`module-forbid` commands in :ref:`modulefile(4)` document.
-* Doc: describe in :ref:`diff_v3_v4` document that shell special characters
-  like backticks are escaped when used in values starting Modules 4.0. (fix
-  issue #365)
+* Doc: describe in :ref:`changes` document that shell special characters like
+  backticks are escaped when used in values starting Modules 4.0. (fix issue
+  #365)
 * Doc: make the ENVIRONMENT section from :ref:`modulefile(4)` man page point
   to the ENVIRONMENT section of :ref:`module(1)` man page.
 * Fix :subcmd:`clear` sub-command to unset the
@@ -894,12 +895,12 @@ Modules 4.5.0 (2020-04-07)
 --------------------------
 
 * Doc: fix typos and grammar mistakes on :ref:`module(1)`,
-  :ref:`modulefile(4)` and :ref:`diff_v3_v4` documents. (contribution from
-  Colin Marquardt)
+  :ref:`modulefile(4)` and :ref:`changes` documents. (contribution from Colin
+  Marquardt)
 * Doc: update cookbook recipes to highlight code of the Tcl scripts included.
   (contribution from Colin Marquardt)
 * Doc: improve markup of :ref:`module(1)`, :ref:`modulefile(4)` and
-  :ref:`diff_v3_v4` documents to enable references to module sub-commands,
+  :ref:`changes` documents to enable references to module sub-commands,
   command line switches, environment variables and modulefile Tcl commands.
   (contribution from Colin Marquardt)
 * Doc: alphabetically sort module sub-commands, command-line switches,
@@ -1013,7 +1014,7 @@ Modules 4.5.0 (2020-04-07)
 * GitHub: add issue templates to guide people submitting a bug report or a
   feature request.
 * Doc: provide a link toward issues that have been fixed between versions 3.2
-  and 4.0 in :ref:`diff_v3_v4` document.
+  and 4.0 in :ref:`changes` document.
 * Script: introduce ``envml.cmd`` script for Windows platform providing
   similar behavior than ``envml`` Bash script. (contribution from Jacques
   Raphanel)

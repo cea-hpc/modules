@@ -50,7 +50,7 @@ txt: $(ALL_TXT)
 html: $(ALL_HTML)
 else
 # limit txt targets to documents that have been prebuilt
-txt: $(BUILD_DIR)/diff_v3_v4.txt $(BUILD_DIR)/MIGRATING.txt \
+txt: $(BUILD_DIR)/changes.txt $(BUILD_DIR)/MIGRATING.txt \
 	$(BUILD_DIR)/INSTALL.txt $(BUILD_DIR)/INSTALL-win.txt \
 	$(BUILD_DIR)/NEWS.txt $(BUILD_DIR)/CONTRIBUTING.txt
 endif
@@ -107,7 +107,7 @@ install: man txt
 	mkdir -p $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man4
 ifeq ($(docinstall),y)
 	mkdir -p $(DESTDIR)$(docdir)
-	cp $(BUILD_DIR)/diff_v3_v4.txt $(DESTDIR)$(docdir)/
+	cp $(BUILD_DIR)/changes.txt $(DESTDIR)$(docdir)/
 	cp $(BUILD_DIR)/MIGRATING.txt $(DESTDIR)$(docdir)/
 	cp $(BUILD_DIR)/INSTALL.txt $(DESTDIR)$(docdir)/
 	cp $(BUILD_DIR)/INSTALL-win.txt $(DESTDIR)$(docdir)/
@@ -120,7 +120,7 @@ endif
 
 uninstall:
 ifeq ($(docinstall),y)
-	rm -f $(DESTDIR)$(docdir)/diff_v3_v4.txt
+	rm -f $(DESTDIR)$(docdir)/changes.txt
 	rm -f $(DESTDIR)$(docdir)/MIGRATING.txt
 	rm -f $(DESTDIR)$(docdir)/INSTALL.txt
 	rm -f $(DESTDIR)$(docdir)/INSTALL-win.txt

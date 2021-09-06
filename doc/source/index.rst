@@ -78,7 +78,7 @@ automatically configured to the correct architecture.
    MIGRATING
    NEWS
    FAQ
-   diff_v3_v4
+   changes
 
 .. toctree::
    :hidden:
