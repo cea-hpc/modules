@@ -486,3 +486,40 @@ The following Modules-specific Tcl variables appeared on Modules 4.
 +------------+-----------------------------------------------------------------+
 | 4.8        | :mfvar:`ModuleVariant`                                          |
 +------------+-----------------------------------------------------------------+
+
+
+Modules configuration options
+"""""""""""""""""""""""""""""
+
+The concept of configuration option has been introduced on Modules ``4.3``. The
+following Modules configuration option has been introduced on Modules 4.
+
++------------+-----------------------------------------------------------------+
+| Introduced | New Modules configuration options                               |
+| in version |                                                                 |
++============+=================================================================+
+| 4.3        | :mconfig:`auto_handling`, :mconfig:`avail_indepth`,             |
+|            | :mconfig:`collection_pin_version`, :mconfig:`collection_target`,|
+|            | :mconfig:`color`, :mconfig:`colors`, :mconfig:`contact`,        |
+|            | :mconfig:`extra_siteconfig`, :mconfig:`implicit_default`,       |
+|            | :mconfig:`locked_configs`, :mconfig:`pager`, :mconfig:`rcfile`, |
+|            | :mconfig:`run_quarantine`, :mconfig:`silent_shell_debug`,       |
+|            | :mconfig:`search_match`, :mconfig:`set_shell_startup`,          |
+|            | :mconfig:`term_background`, :mconfig:`unload_match_order`,      |
+|            | :mconfig:`verbosity`, :mconfig:`wa_277`                         |
++------------+-----------------------------------------------------------------+
+| 4.4        | :mconfig:`advanced_version_spec`, :mconfig:`extended_default`,  |
+|            | :mconfig:`home`, :mconfig:`icase`                               |
++------------+-----------------------------------------------------------------+
+| 4.5        | :mconfig:`ml`                                                   |
++------------+-----------------------------------------------------------------+
+| 4.6        | :mconfig:`nearly_forbidden_days`                                |
++------------+-----------------------------------------------------------------+
+| 4.7        | :mconfig:`avail_output`, :mconfig:`avail_terse_output`,         |
+|            | :mconfig:`implicit_requirement`, :mconfig:`list_output`,        |
+|            | :mconfig:`list_terse_output`, :mconfig:`mcookie_version_check`, |
+|            | :mconfig:`shells_with_ksh_fpath`, :mconfig:`tag_color_name`,    |
+|            | :mconfig:`term_width`                                           |
++------------+-----------------------------------------------------------------+
+| 4.8        | :mconfig:`editor`, :mconfig:`variant_shortcut`                  |
++------------+-----------------------------------------------------------------+
