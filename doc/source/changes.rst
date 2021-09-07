@@ -523,3 +523,266 @@ following Modules configuration option has been introduced on Modules 4.
 +------------+-----------------------------------------------------------------+
 | 4.8        | :mconfig:`editor`, :mconfig:`variant_shortcut`                  |
 +------------+-----------------------------------------------------------------+
+
+
+Modules 5
+---------
+
+This section provides the list of differences with Modules version 4.
+Comparison takes as a basis version ``4.8`` against Modules version ``5.0``.
+Any change made past these versions will explicitly mention the release number
+starting from the difference appears or disappears.
+
+Removed or changed features
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This section describes the features of Modules 4 that are not supported or
+that behave differently on Modules 5.
+
+Package Initialization
+""""""""""""""""""""""
+
+The initialization configuration file :file:`initrc` and the
+modulepath-specific configuration file :file:`modulespath` are now searched by
+default in the ``etcdir`` instead of in the ``initdir``. Moreover these
+configuration files are only searched in one location. Previously they were
+searched in both ``etcdir`` and ``initdir`` locations by Modules
+initialization process.
+
+When initializing Modules, the :file:`initrc` configuration file is evaluated
+in addition to the the :file:`modulespath` configuration file and not instead
+of this file. :file:`initrc` is evaluated after :file:`modulespath` file.
+
+Report the modules loading and unloading during the evaluation of the
+:file:`initrc` configuration file. These report messages are disabled when the
+:mconfig:`verbosity` configuration option is set to ``concise`` or ``silent``.
+
+Enforce use of the module magic cookie (i.e., ``#%Module``) at the start of
+:file:`initrc` configuration file. No evaluation occurs and an error is
+produced if the magic cookie is missing or if the optional version number
+placed after the cookie string is higher than the version of the
+:file:`modulecmd.tcl` script in use.
+
+Quarantine mechanism code in the Modules shell initialization scripts is now
+always defined and mechanism always applies if some environment variables are
+defined in :envvar:`MODULES_RUN_QUARANTINE`. Code in the :file:`modulecmd.tcl`
+script to restore environment variables put in quarantine is now always
+generated and applies if the :envvar:`__MODULES_QUARANTINE_SET` environment
+variable is set to ``1``. By default on Modules 5 the :command:`module` shell
+function definition is generated without quarantine support but it could be
+enabled by setting :mconfig:`quarantine_support` to ``1`` in :file:`initrc`.
+
+Code to silence shell debug properties in the Modules shell initialization
+scripts is now always defined and mechanism applies if
+:envvar:`MODULES_SILENT_SHELL_DEBUG` is set to ``1``. Code to silence shell
+debug properties in the :command:`module` shell function could now be enabled
+if :envvar:`MODULES_SILENT_SHELL_DEBUG` is set to ``1`` prior Modules
+initialization or if the :mconfig:`silent_shell_debug` configuration option is
+set to ``1`` in the :file:`initrc` configuration file. Option is set off by
+default on Modules 5.
+
+Modulecmd startup
+"""""""""""""""""
+
+Enforce use of the module magic cookie (i.e., ``#%Module``) at the start of
+global or user rc files. These files are not evaluated and an error is
+produced if the magic cookie is missing or if the optional version number
+placed after the cookie string is higher than the version of the
+:file:`modulecmd.tcl` script in use.
+
+Module Sub-Commands
+"""""""""""""""""""
+
+:subcmd:`append-path`, :subcmd:`prepend-path`, :subcmd:`remove-path`
+
+ When sub-command is not called during a modulefile evaluation, the reference
+ counter associated with each entry in targeted environment variable is
+ ignored. In such context, a
+ :subcmd:`module append-path/prepend-path<prepend-path>` will not increase the
+ reference counter of a path entry already defined and a
+ :subcmd:`module remove-path<remove-path>` will remove specified path
+ whatever its reference counter value.
+
+:subcmd:`display`
+
+ No error is raised when evaluating a modulefile without a value specified for
+ the :mfcmd:`variant` it defines. As a result, the unspecified variant is not
+ instantiated in the :mfvar:`ModuleVariant` array variable.
+
+:subcmd:`load`
+
+ Reference counting mechanism is not anymore applied to the Modules-specific
+ path variables (like :envvar:`LOADEDMODULES`). As a result no
+ :envvar:`__MODULES_SHARE_\<VAR\>` variable is set in user environment for
+ these variables. Exception is made for :envvar:`MODULEPATH` environment
+ variable where the mechanism still applies.
+
+:subcmd:`refresh`
+
+ Sub-command evaluates all loaded modulefiles and re-apply the non-persistent
+ environment changes they define (i.e., shell aliases and functions). With
+ this change the :subcmd:`refresh` sub-command is restored to the behavior it
+ had on Modules version 3.2.
+
+:subcmd:`restore`, :subcmd:`source`
+
+ Only report the module load and unload directly triggered by these
+ sub-commands. Load and unload triggered by other modules are reported through
+ the automated module handling messages of the main modules.
+
+:subcmd:`source`
+
+ Enforce use of the module magic cookie (i.e., ``#%Module``) at the start of
+ any scriptfile passed for evaluation to the :subcmd:`source` sub-command.
+ These files are not evaluated and an error is produced if the magic cookie is
+ missing or if the optional version number placed after the cookie string is
+ higher than the version of the :file:`modulecmd.tcl` script in use.
+
+:subcmd:`use`
+
+ Non-existent modulepath is now accepted as argument.
+
+ Reference counting mechanism is ignored when sub-command is not called during
+ a modulefile evaluation. In such context, a :subcmd:`module use<use>` will
+ not increase the reference counter of a path entry already defined.
+
+:subcmd:`unuse`
+
+ Reference counting mechanism is ignored when sub-command is not called during
+ a modulefile evaluation. In such context, a :subcmd:`module unuse<unuse>`
+ will remove specified path whatever its reference counter value.
+
+ Correctly handle several modulepaths specified as a single argument (i.e.,
+ ``/path/to/dir1:/path/to/dir2``).
+
+Modules Specific Tcl Commands
+"""""""""""""""""""""""""""""
+
+:mfcmd:`append-path`, :mfcmd:`prepend-path`
+
+ When an element is added to a path-like variable, add this element to the
+ associated reference counter variable (named
+ :envvar:`__MODULES_SHARE_\<VAR\>`) only when this element is added multiple
+ times to the path-like variable. When an element is removed from a path-like
+ variable, this element is removed from the reference counter variable when
+ its counter is equal to 1.
+
+:mfcmd:`chdir`, :mfcmd:`module`, ``module-trace``, ``module-verbosity``,
+``module-user``, ``module-log``
+
+ These modulefile commands have been undeclared from the modulerc Tcl
+ interpreter on Modules 5. An error message is obtained if still used instead
+ of silently ignoring it.
+
+:mfcmd:`getenv`
+
+ When passed environment variable is not defined, an empty string is returned
+ by default rather ``_UNDEFINED_``.
+
+:mfcmd:`module`
+
+ Forbid use of :subcmd:`module source<source>` command in modulefile or in an
+ initialization rc file, the ``source`` Tcl command should be used instead.
+
+:mfcmd:`unsetenv`
+
+ When running on an unload evaluation, do not unset designated environment
+ variable if no value to restore is provided.
+
+ Distinguish between being called on a unload evaluation without a value to
+ restore or with an empty string value to restore.
+
+Environment
+"""""""""""
+
+The following Modules environment variables have been changed on Modules 5.
+
++--------------------------------------+---------------------------------------------+
+| Environment variable                 | Change                                      |
++======================================+=============================================+
+| :envvar:`MODULES_LMALTNAME`          | Renamed to :envvar:`__MODULES_LMALTNAME`    |
++--------------------------------------+---------------------------------------------+
+| :envvar:`MODULES_LMCONFLICT`         | Renamed to :envvar:`__MODULES_LMCONFLICT`   |
++--------------------------------------+---------------------------------------------+
+| :envvar:`MODULES_LMNOTUASKED`        | Removed                                     |
++--------------------------------------+---------------------------------------------+
+| :envvar:`MODULES_LMPREREQ`           | Renamed to :envvar:`__MODULES_LMPREREQ`     |
++--------------------------------------+---------------------------------------------+
+| :envvar:`MODULES_LMSOURCESH`         | Renamed to :envvar:`__MODULES_LMSOURCESH`   |
++--------------------------------------+---------------------------------------------+
+| :envvar:`MODULES_LMTAG`              | Renamed to :envvar:`__MODULES_LMTAG`        |
++--------------------------------------+---------------------------------------------+
+| :envvar:`MODULES_LMVARIANT`          | Renamed to :envvar:`__MODULES_LMVARIANT`    |
++--------------------------------------+---------------------------------------------+
+| :envvar:`MODULES_USE_COMPAT_VERSION` | Removed                                     |
++--------------------------------------+---------------------------------------------+
+| :envvar:`<VAR>_modquar`              | Renamed to :envvar:`__MODULES_QUAR_\<VAR\>` |
++--------------------------------------+---------------------------------------------+
+| :envvar:`<VAR>_modshare`             | Renamed to :envvar:`__MODULES_SHARE_\<VAR\>`|
++--------------------------------------+---------------------------------------------+
+
+Modules configuration options
+"""""""""""""""""""""""""""""
+
+The default value of the following Modules configuration option has been
+changed on Modules 5.
+
++---------------------------------+------------------------+-------------------+
+| Configuration option            | Previous default value | New default value |
++=================================+========================+===================+
+| :mconfig:`auto_handling`        | ``0``                  | ``1``             |
++---------------------------------+------------------------+-------------------+
+| :mconfig:`extended_default`     | ``0``                  | ``1``             |
++---------------------------------+------------------------+-------------------+
+| :mconfig:`advanced_version_spec`| ``0``                  | ``1``             |
++---------------------------------+------------------------+-------------------+
+| :mconfig:`color`                | ``never``              | ``auto``          |
++---------------------------------+------------------------+-------------------+
+| :mconfig:`icase`                | ``never``              | ``icase``         |
++---------------------------------+------------------------+-------------------+
+| :mconfig:`set_shell_startup`    | ``1``                  | ``0``             |
++---------------------------------+------------------------+-------------------+
+| :mconfig:`silent_shell_debug`   | *undefined*            | ``0``             |
++---------------------------------+------------------------+-------------------+
+
+New features
+^^^^^^^^^^^^
+
+Package Initialization
+""""""""""""""""""""""
+
+When initializing Modules, :subcmd:`refresh` the loaded modules in case some
+user environment is already configured.
+
+Environment
+"""""""""""
+
+The following environment variables appeared on Modules 5.
+
++------------+-----------------------------------------------------------------+
+| Introduced | New environment variables                                       |
+| in version |                                                                 |
++============+=================================================================+
+| 5.0        | :envvar:`MODULES_QUARANTINE_SUPPORT`,                           |
+|            | :envvar:`__MODULES_QUARANTINE_SET`                              |
++------------+-----------------------------------------------------------------+
+
+Modules Specific Tcl Commands
+"""""""""""""""""""""""""""""
+
+:mfcmd:`system`, :mfcmd:`is-used`
+
+ Starting Modules 5.0, these modulefile commands are available from a modulerc
+ evaluation context.
+
+Modules configuration options
+"""""""""""""""""""""""""""""
+
+The following Modules configuration option has been introduced on Modules 5.
+
++------------+-----------------------------------------------------------------+
+| Introduced | New Modules configuration options                               |
+| in version |                                                                 |
++============+=================================================================+
+| 5.0        | :mconfig:`quarantine_support`                                   |
++------------+-----------------------------------------------------------------+
