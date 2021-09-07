@@ -175,7 +175,7 @@ Modules 5.0.0 (not yet released)
   handling messages of the main modules.
 * Enforce use of the module magic cookie (i.e., ``#%Module``) at the start of
   global or user rc files, :file:`initrc` configuration file or any scriptfile
-  passed for evaluation to the :mfcmd:`source` sub-command. These files are
+  passed for evaluation to the :subcmd:`source` sub-command. These files are
   not evaluated and an error is produced if the magic cookie is missing or if
   the optional version number placed after the cookie string is higher than
   the version of the :file:`modulecmd.tcl` script in use.
