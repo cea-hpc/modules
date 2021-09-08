@@ -692,6 +692,16 @@ Modules Specific Tcl Commands
  Distinguish between being called on a unload evaluation without a value to
  restore or with an empty string value to restore.
 
+Locating Modulefiles
+""""""""""""""""""""
+
+As the :ref:`Advanced module version specifiers` mechanism is enabled by
+default on Modules 5, several characters are made special and cannot be used
+anymore in module name or version. These characters are ``@``, ``=``, ``~``,
+``+`` and ``,``. Also a module name cannot start with ``-`` character. Module
+name is allowed to finish by one or more ``+`` character but ``+`` cannot be
+used at the start or inside a module name.
+
 Environment
 """""""""""
 
