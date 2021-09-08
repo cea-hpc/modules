@@ -111,7 +111,9 @@ Get started with Modules
 Learn how to retrieve and install Modules :ref:`on Unix<INSTALL>` or
 :ref:`on Windows<INSTALL-win>`. An overlook on the new functionalities
 introduced by each version is available in the :ref:`MIGRATING` guide.
-:ref:`NEWS` provides the full list of changes added in each version.
+:ref:`NEWS` provides the full list of changes added in each version. The
+:ref:`changes` document gives an in-depth view of the modified behaviors and
+new features between major versions.
 
 Reference manual page for the :ref:`module(1)` and :ref:`ml(1)` commands and
 for :ref:`modulefile(4)` script provide details on all supported options.
