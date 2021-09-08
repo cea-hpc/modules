@@ -96,7 +96,9 @@ Documentation
 
 See [`MIGRATING`][3] to get an overlook of the new functionalities introduced
 by each released versions. [`NEWS`][4] provides the full list of changes added
-in each version. Look at `ChangeLog` for the technical development details.
+in each version. The [`Changes`][5] document gives an in-depth view of the
+modified behaviors and new features between major versions. You may also look
+at the `ChangeLog` for the technical development details.
 
 The `doc` directory contains both the paper and man pages describing the
 user's and the module writer's usage. To generate the documentation files,
@@ -174,3 +176,4 @@ not be what it is without their contributions:
 [2]: https://modules.readthedocs.io/en/stable/INSTALL-win.html
 [3]: https://modules.readthedocs.io/en/stable/MIGRATING.html
 [4]: https://modules.readthedocs.io/en/stable/NEWS.html
+[5]: https://modules.readthedocs.io/en/stable/changes.html
