@@ -7,6 +7,9 @@ This document lists functionality differences between each major version of Modu
 
 Regarding deprecated or newly introduced features, this document only lists their name or the command line argument related to them. Please refer to the :ref:`module(1)` and the :ref:`modulefile(4)` man pages of the previous or newer Modules version to learn the details about these removed or added features.
 
+
+.. _Modules 4 changes:
+
 Modules 4
 ---------
 
@@ -524,6 +527,8 @@ following Modules configuration option has been introduced on Modules 4.
 | 4.8        | :mconfig:`editor`, :mconfig:`variant_shortcut`                  |
 +------------+-----------------------------------------------------------------+
 
+
+.. _Modules 5 changes:
 
 Modules 5
 ---------

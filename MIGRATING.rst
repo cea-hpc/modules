@@ -8,6 +8,156 @@ Modules. It provides an overview of the new features and changed behaviors
 that will be encountered when upgrading.
 
 
+v5.0
+====
+
+With this new major version the :command:`module` experience has been updated
+to benefit by default from all the advanced behaviors and features developed
+over the Modules 4 versions. Modules 5.0 also introduces some breaking
+changes to improve the consistency of the whole solution. See the :ref:`5.0
+release notes<5.0 release notes>` for a complete list of the changes between
+Modules v4.8 and v5.0. The :ref:`changes<Modules 5 changes>` document gives an
+in-depth view of the modified behaviors.
+
+Removing compatibility version
+------------------------------
+
+The ability to co-install version 3.2 of Modules along newer version is
+discontinued. The installation option ``--enable-compat-version``,
+:command:`switchml` shell function and :envvar:`MODULES_USE_COMPAT_VERSION`
+environment variables are thus removed.
+
+The interesting features of Modules 3.2 that were missing in the
+initial Modules 4 release in 2017 have been reintroduced progressively (like
+:subcmd:`clear` sub-command or :option:`--icase` search). With Modules 5.0,
+the :subcmd:`refresh` sub-command is even changed to the behavior it had on
+Modules 3.2. So it is a good time for the big jump.
+
+If you are still using Modules 3.2, please refer to the :ref:`changes`
+document that describes the differences of this version compared to the newer
+releases.
+
+Improving Modules initialization
+--------------------------------
+
+Modules initialization files are now installed by default in the *etc*
+directory designated by the :instopt:`--etcdir` installation option. The
+initialization configuration file is named :file:`initrc` in this directory,
+and the  modulepath-specific configuration file is named :file:`modulespath`.
+When both files exist, now they are both evaluated instead of just the
+:file:`modulespath` file.
+
+Module magic cookie (i.e., ``#%Module``) is now required at the start of
+:file:`initrc`. An error is produced if the magic cookie is missing or if the
+optional version number placed after the cookie string is higher than the
+version of the :file:`modulecmd.tcl` script in use.
+
+Note that :file:`initrc` configuration file can host more than
+:subcmd:`module use<use>` and :subcmd:`module load<load>` commands.
+:command:`module` configuration can also be achieved with this file through
+the use of :subcmd:`module config<config>` commands.
+
+Modules initialization has been enhanced for situations where a module
+environment is found already defined. In this case the loaded modules are
+automatically refreshed which is useful to re-apply the non-persistent
+environment configuration (i.e., shell alias and function that are not
+exported to the sub-shell). For instance when starting a sub-shell session it
+ensures that the loaded environment is fully inherited from parent shell:
+
+.. parsed-literal::
+
+    :ps:`$` ml show foo/1.0
+    -------------------------------------------------------------------
+    :sgrhi:`/path/to/modulefiles/foo/1.0`:
+
+    :sgrcm:`set-alias`       foo {echo foo}
+    -------------------------------------------------------------------
+    :ps:`$` ml foo/1.0
+    :ps:`$` alias foo
+    alias foo='echo foo'
+    :ps:`$` bash
+    :ps:`$` ml
+    Currently Loaded Modulefiles:
+     1) foo/1.0
+    :ps:`$` alias foo
+    alias foo='echo foo'
+
+Simplifying path-like variable reference counting
+-------------------------------------------------
+
+The reference counting mechanism used for path-like environment variable
+enables to determine if a path entry has been added several times (by several
+loaded modules for instance) to know whether or not this path entry should be
+unset when unloading a module. Entry is not removed if multiple loaded modules
+rely on it.
+
+The mechanism is not applied anymore to the Modules-specific path variables
+(like :envvar:`LOADEDMODULES`) as an element entry in these variables cannot
+be added multiple times without duplication. For instance, a given module name
+and version cannot be added twice in :envvar:`LOADEDMODULES` as this module is
+only loaded once. With this change a thinner environment is produced by
+:command:`module`. An exception is made for :envvar:`MODULEPATH` environment
+variable where the mechanism still applies.
+
+.. parsed-literal::
+
+    :ps:`$` $MODULES_CMD bash load foo/2.0
+    _LMFILES_=/path/to/modulefiles/foo/2.0; export _LMFILES_;
+    LOADEDMODULES=foo/2.0; export LOADEDMODULES;
+    __MODULES_LMTAG=foo/2.0\&mytag; export __MODULES_LMTAG;
+    test 0;
+
+Reference counting mechanism has also been simplified for entries in path-like
+variable that are only referred once. For such entries no entry is set in the
+reference counting variable (which are now called
+:envvar:`__MODULES_SHARE_\<VAR\>`). A reference count entry is set only if the
+entry in the path-like variable is referred more than one time.
+
+.. parsed-literal::
+
+    :ps:`$` ml foo/3.0
+    :ps:`$` echo $PATHVAR
+    /path/to/dir1
+    :ps:`$` echo $__MODULES_SHARE_PATHVAR
+
+    :ps:`$` ml bar/1.0
+    :ps:`$` echo $PATHVAR
+    /path/to/dir1
+    :ps:`$` echo $__MODULES_SHARE_PATHVAR
+    /path/to/dir1:2
+    :ps:`$` ml -foo/3.0
+    :ps:`$` echo $PATHVAR
+    /path/to/dir1
+    :ps:`$` echo $__MODULES_SHARE_PATHVAR
+
+    :ps:`$`
+
+When the :subcmd:`use` and :subcmd:`unuse` module sub-commands are not called
+during a modulefile evaluation, the reference counter associated with each
+entry in :envvar:`MODULEPATH` environment variable is ignored. In such
+context, a :subcmd:`module use<use>` will not increase the reference counter
+of a path entry already defined and a :subcmd:`module unuse<unuse>` will
+remove specified path whatever its reference counter value. Same change applies
+for :subcmd:`append-path`, :subcmd:`prepend-path` and :subcmd:`remove-path`
+module sub-commands when called from the command-line.
+
+.. parsed-literal::
+
+    :ps:`$` echo $MODULEPATH
+    /path/to/modulefiles
+    :ps:`$` echo $__MODULES_SHARE_MODULEPATH
+    /path/to/modulefiles:2
+    :ps:`$` ml use /path/to/modulefiles
+    :ps:`$` echo $__MODULES_SHARE_MODULEPATH
+    /path/to/modulefiles:2
+    :ps:`$` ml unuse /path/to/modulefiles
+    :ps:`$` echo $MODULEPATH
+
+    :ps:`$` echo $__MODULES_SHARE_MODULEPATH
+
+    :ps:`$`
+
+
 v4.8
 ====
 
