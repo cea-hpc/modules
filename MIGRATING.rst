@@ -19,6 +19,83 @@ release notes<5.0 release notes>` for a complete list of the changes between
 Modules v4.8 and v5.0. The :ref:`changes<Modules 5 changes>` document gives an
 in-depth view of the modified behaviors.
 
+Upgraded default configuration
+------------------------------
+
+Release after release, new advanced features were added on Modules 4. They
+were set off by default to avoid breaking change during the version 4 cycle.
+With the move to a new major release, these features are set on to improve by
+default usages for everybody. These features enabled by default are:
+
+* :ref:`v42-automated-module-handling-mode` which provides the automatic
+  dependency resolution when loading and unloading modules
+
+  .. parsed-literal::
+
+      :ps:`$` module load foo/1.0
+      Loading :sgrhi:`foo/1.0`
+        :sgrin:`Loading requirement`: bar/1.0
+
+* `Extended default`_ that enables to select a module when the first number
+  in its version is specified
+
+  .. parsed-literal::
+
+      :ps:`$` module load -v foo/1
+      Loading :sgrhi:`foo/1.2.3`
+
+
+* :ref:`Advanced module version specifiers`, an improved syntax to designate
+  module version in range or list and module variant
+
+  .. parsed-literal::
+
+      :ps:`$` module load foo@:2.2 %gcc11
+      Loading :sgrhi:`foo/2.1`:sgrse:`{`:sgrva:`%gcc11`:sgrse:`}`
+        :sgrin:`Loading requirement`: bar/1.2\ :sgrse:`{`:sgrva:`-debug`:sgrse:`:`:sgrva:`%gcc11`:sgrse:`}`
+
+* `Colored output`_ to graphically enhance parts of the produced output to
+  improve readability
+
+  .. parsed-literal::
+
+      :ps:`$` ml av
+      ------------------ :sgrdi:`/path/to/modulefiles` ------------------
+      :sgrde:`bar/1.0`  bar/2.0  :sgrf:`foo/1.0`  :sgrs:`foo/2.0`  :sgrali:`foo/2.2`
+
+      Key:
+      :sgrdi:`modulepath`       :sgrali:`module-alias`  :sgrs:`sticky`
+      :sgrde:`default-version`  :sgrf:`forbidden`
+
+* :ref:`Insensitive case` search that matches modules using a different
+  character case than the one expressed in search query
+
+  .. parsed-literal::
+
+      :ps:`$` ml av liba
+      ------------------ :sgrdi:`/path/to/modulefiles` ------------------
+      LibA/1.0  LibA/2.0
+
+Some other features that were enabled by default during the Modules 4 cycle
+have been turned off as they may not be useful for basic usages. Among other
+things setting off the following features makes the definition of the
+:command:`module` function simpler. Even if off by default, these features
+can now be enabled once Modules is installed through the :file:`initrc`
+configuration file.
+
+* *Set shell startup* files to ensure the :command:`module` command is defined
+  once shell has been initialized. See the :mconfig:`set_shell_startup`
+  configuration option to activate.
+
+* *Quarantine mechanism* that protects the :command:`module` command
+  run-time environment from side effect coming from the current environment
+  definition. See the :mconfig:`quarantine_support` configuration option to
+  activate.
+
+* *Silent shell debug* which disables the debugging property set on current
+  shell session for the duration of the :command:`module` command. See the
+  :mconfig:`silent_shell_debug` configuration option to activate.
+
 Removing compatibility version
 ------------------------------
 
@@ -1356,6 +1433,8 @@ list of the changes between Modules v4.3 and v4.4.
    retrieved or set. Existing site-specific configuration script should be
    reviewed to make use of the new ``getConf``, ``setConf``, ``unsetConf``
    and ``lappendConf`` procedures to manipulate configuration options.
+
+.. _Insensitive case:
 
 Specify modules in a case insensitive manner
 --------------------------------------------
