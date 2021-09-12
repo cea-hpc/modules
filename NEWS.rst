@@ -8,8 +8,8 @@ documents those changes that are of interest to users and admins.
 
 .. _5.0 release notes:
 
-Modules 5.0.0 (not yet released)
---------------------------------
+Modules 5.0.0 (2021-09-12)
+--------------------------
 
 * Remove deprecated :command:`createmodule.sh` and :command:`createmodule.py`
   tools as shell script to modulefile conversion is now achieved with the
