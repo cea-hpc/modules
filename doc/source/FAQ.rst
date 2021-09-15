@@ -76,6 +76,44 @@ To make use of the ``module`` command from a Makefile, the shell initialization 
      module_list:
      	source $$MODULESHOME/init/bash; module list
 
+How to preserve my loaded environment when running ``screen``?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Usually the `Screen`_ terminal utility is installed with the *setgid* bit
+set. Depending on the operating system, when a *setgid* program is ran, it may
+not inherit several environment variables from its parent context like
+:envvar:`LD_LIBRARY_PATH`. This is a safeguard mechanism to protect the
+privileged process from being fooled by malicious dynamic libraries.
+
+As a result, if your currently loaded environment has defined
+:envvar:`LD_LIBRARY_PATH`, you will find it cleared in the ``screen`` session.
+
+One way to get your environment correctly initialized within ``screen`` session
+is to reload it once started with :subcmd:`module reload<reload>` command:
+
+.. parsed-literal::
+
+    :ps:`$` module load foo/1.0
+    :ps:`$` echo $LD_LIBRARY_PATH
+    /path/to/lib
+    :ps:`$` screen
+    :ps:`$` module list
+    Currently Loaded Modulefiles:
+     1) foo/1.0  
+    :ps:`$` echo $LD_LIBRARY_PATH
+
+    :ps:`$` module reload
+    :ps:`$` echo $LD_LIBRARY_PATH
+    /path/to/lib
+
+Other way around is to reconfigure ``screen`` not to rely on the *setgid* bit
+for its operations. You may also look at the `tmux`_ utility, which is an
+alternative to ``screen`` that do not use the *setgid* mechanism.
+
+.. _Screen: https://www.gnu.org/software/screen/
+.. _tmux: https://github.com/tmux/tmux/wiki
+
+
 Modulefiles
 -----------
 
