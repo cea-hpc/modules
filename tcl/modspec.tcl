@@ -298,7 +298,7 @@ proc modVersCmpProcIcase {cmpspec versspec modvers test {psuf {}}} {
    switch -- $cmpspec {
       in {
          foreach inspec $versspec {
-            set invers [lassign $inspec incmp]
+            lassign $inspec incmp invers
             if {[set ret [modVersCmp $incmp $invers $modvers $test $psuf]]} {
                break
             }
