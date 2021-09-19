@@ -12,17 +12,65 @@ Implementation
 --------------
 
 Logging module commands is implemented by the use of a site-specific
-configuration that supersedes the definition of the ``module`` command to
-execute the ``logger`` command, in order to send a message to the system log,
-prior processing the module command itself. The log message sent describes the
-module command called and who called it.
+configuration that traces every call to a modulefile evaluation.
 
 .. literalinclude:: ../../example/log-module-commands/siteconfig.tcl
    :language: tcl
    :caption: siteconfig.tcl
-   :lines: 13-20
+   :lines: 13-36
+   :lineno-start: 13
+
+This code defines a ``logModfileInterp`` procedure which is set to be
+evaluated after each evaluation of the ``execute-modulefile`` procedure with
+the `trace`_ Tcl command. Thanks to the ``trace`` mechanism
+``logModfileInterp`` receives the arguments passed to ``execute-modulefile``.
+
+The ``logModfileInterp`` procedure applies filter to only log *load* and
+*unload* modulefile evaluations. It may be extended to the other evaluation
+modes (*help*, *display*, *test*, *whatis* and *refresh*) by adapting the
+following line:
+
+.. literalinclude:: ../../example/log-module-commands/siteconfig.tcl
+   :language: tcl
+   :lines: 18-19
+   :lineno-start: 18
+
+In the proposed code, the :command:`logger` command is run to generate a log
+message. Log entries are formatted as a JSON record which is convenient to
+push these logs in a search and analytics engine like `Elasticsearch`_ or
+`Splunk`_. Such tools help to globally monitor the whole set of log entries
+produced from thousands of computing nodes.
+
+.. literalinclude:: ../../example/log-module-commands/siteconfig.tcl
+   :language: tcl
+   :lines: 29-31
+   :lineno-start: 29
+
+Example code also defines a ``logModuleCmd`` procedure which is set to be
+evaluated after each evaluation of the ``module`` and the ``ml`` procedures
+with `trace`_ Tcl command.
+
+.. literalinclude:: ../../example/log-module-commands/siteconfig.tcl
+   :language: tcl
+   :caption: siteconfig.tcl
+   :lines: 38-58
+   :lineno-start: 38
+
+.. note::
+
+   This code example may be extended to log for instance additional
+   information in each message. The `upvar`_ Tcl command may be used to
+   retrieve variables from the calling context. However beware that the
+   internal code of Modules may change, so if you rely on internal variables
+   please re-check the code in the :file:`siteconfig.tcl` file deployed after
+   each upgrade of Modules.
 
 **Compatible with Modules v4.2+**
+
+.. _trace: https://www.tcl.tk/man/tcl8.5/TclCmd/trace.html
+.. _Elasticsearch: https://www.elastic.co/elasticsearch/
+.. _Splunk: https://www.splunk.com/
+.. _upvar: https://www.tcl.tk/man/tcl8.5/TclCmd/upvar.html
 
 Installation
 ------------
@@ -44,22 +92,47 @@ Then copy there the site-specific configuration script of this recipe:
    Defined location for the site-specific configuration script may vary from
    one installation to another. To determine the expected location for this
    file on your setup, check the value of the ``siteconfig`` option on Modules
-   version 4.3 or above::
+   version 4.3 or above:
 
-       $ module config siteconfig
+   .. parsed-literal::
 
-   On older version of Modules, check the ``modulecmd.tcl`` script::
+       :ps:`$` module config siteconfig
 
-       $ grep '^set g_siteconfig ' $MODULES_CMD
+   On older version of Modules, check the ``modulecmd.tcl`` script:
+
+   .. parsed-literal::
+
+       :ps:`$` grep '^set g_siteconfig ' $MODULES_CMD
 
 Usage example
 -------------
 
-Loading a bare modulefile::
+Listing available modulefiles, then loading a bare modulefile, then another
+one with a dependency and purging everything in the end:
 
-    $ module load example
+.. parsed-literal::
 
-A log entry can then be retrieved from system log files::
+    :ps:`$` ml av
+    --------------- :sgrdi:`/path/to/modulefiles` ---------------
+    bar/1.0  foo/1.0  qux/1.0
+    :ps:`$` ml foo
+    :ps:`$` module load bar
+    Loading :sgrhi:`bar/1.0`
+      :sgrin:`Loading requirement`: qux/1.0
+    :ps:`$` module purge
 
-    $ journalctl -q -t module -n 1
-    Sep 12 20:24:01 hostname module[9925]: username: load example
+A log entry can then be retrieved from system log files:
+
+.. parsed-literal::
+
+    :ps:`$` journalctl -q -t module -n 1
+    Sep 12 20:24:01 hostname module[9925]: { "user": "username", "cmd": "ml", "args": "av" }
+    Sep 12 20:24:02 hostname module[9925]: { "user": "username", "mode": "load", "module": "foo/1.0", "auto": false }
+    Sep 12 20:24:02 hostname module[9925]: { "user": "username", "cmd": "ml", "args": "foo" }
+    Sep 12 20:24:03 hostname module[9925]: { "user": "username", "mode": "load", "module": "qux/1.0", "auto": true }
+    Sep 12 20:24:03 hostname module[9925]: { "user": "username", "mode": "load", "module": "bar/1.0", "auto": false }
+    Sep 12 20:24:03 hostname module[9925]: { "user": "username", "cmd": "module", "args": "load bar" }
+    Sep 12 20:24:04 hostname module[9925]: { "user": "username", "mode": "unload", "module": "bar/1.0" }
+    Sep 12 20:24:04 hostname module[9925]: { "user": "username", "mode": "unload", "module": "qux/1.0" }
+    Sep 12 20:24:04 hostname module[9925]: { "user": "username", "mode": "unload", "module": "foo/1.0" }
+    Sep 12 20:24:04 hostname module[9925]: { "user": "username", "cmd": "module", "args": "purge" }

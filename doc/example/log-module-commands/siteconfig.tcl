@@ -1,7 +1,7 @@
 #
-# siteconfig.tcl - Site specific configuration script changing the module
-#   procedure to generate a log entry each time a module command is called
-#   by user (module command called within modulefiles are not reported).
+# siteconfig.tcl - Site specific configuration script tracking the modulefile
+#   evaluations to generate a log entry each time a module is loaded or
+#   unloaded with an information to know if module is auto-loaded or not.
 #
 # Author: Xavier Delaruelle <xavier.delaruelle@cea.fr>
 # Compatibility: Modules v4.2+
@@ -10,13 +10,51 @@
 #   installation. Refer to the "Modulecmd startup" section in the
 #   module(1) man page to get this location.
 
-# override 'module' procedure to log each call made by user
-rename ::module ::__module
-proc module {command args} {
-   if {[depthState modulename] == 0} {
-      exec logger -t module "[get-env USER]: $command [join $args]"
+proc logModfileInterp {cmdstring code result op} {
+   # parse context
+   lassign $cmdstring cmdname modfile modname
+   set mode [currentState mode]
+
+   # only log load and unload modulefile evaluation
+   if {$mode in {load unload}} {
+
+      # add info on load mode to know if module is auto-loaded or not
+      if {$mode eq {load}} {
+         upvar 1 uasked uasked
+         set extra ", \"auto\": [expr {$uasked ? {false} : {true}}]"
+      } else {
+         set extra {}
+      }
+
+      # produced log entry (formatted as a JSON record)
+      exec logger -t module "{ \"user\": \"[get-env USER]\", \"mode\":\
+         \"$mode\", \"module\": \"$modname\"${extra} }"
    }
-   return [eval __module "{$command}" $args]
 }
+
+# run log procedure after each modulefile interpretation call
+trace add execution execute-modulefile leave logModfileInterp
+
+proc logModuleCmd {cmdstring code result op} {
+   # parse context
+   set args [lassign $cmdstring cmdname]
+   if {[info level] > 1} {
+      set caller [lindex [info level -1] 0]
+   } else {
+      set caller {}
+   }
+
+   # skip duplicate log entry when ml command calls module
+   if {$cmdname ne {module} || $caller ne {ml}} {
+
+      # produced log entry (formatted as a JSON record)
+      exec logger -t module "{ \"user\": \"[get-env USER]\", \"cmd\":\
+         \"$cmdname\", \"args\": \"$args\" }"
+   }
+}
+
+# run log procedure after each module or ml command
+trace add execution module leave logModuleCmd
+trace add execution ml leave logModuleCmd
 
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
