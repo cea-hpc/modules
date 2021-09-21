@@ -180,7 +180,9 @@ Evaluating
         - to help learning all the variant defined by the modulefile
         - as a result unspecified variant is not instantiated in the ``ModuleVariant`` array variable
         - with unspecified variant a user will not accurately see how the modulefile reacts to the different variant value
+
             - evaluation error is obtained if accessing the ``ModuleVariant`` array variable for an unspecified variant
+
         - on *display* mode, the ``variant`` command is reported in addition of its evaluation
 
     - *unload* evaluates the mechanism described above but the specified variants are fetched from loaded module persistent information
