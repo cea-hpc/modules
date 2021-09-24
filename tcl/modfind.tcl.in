@@ -775,7 +775,7 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from_spec 0}} {
          3 {lappend ret $vrname [lindex $vrarr($vrname) 0] [lindex\
             $vrarr($vrname) 1]}
          2 {lappend ret [list $vrname $vrarr($vrname) $vrisbool($vrname)]}
-         1 - 5 {
+         1 - 5 - 6 {
             if {$vrisbool($vrname)} {
                if {$vrarr($vrname)} {
                   lappend ret +$vrname
@@ -797,13 +797,15 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from_spec 0}} {
                set sc $::g_variantShortcut($vrname)
                lappend ret $sc$vrarr($vrname)
                # track if variant shortcut has been reported to build key
-               if {![info exists ::g_used_va($sc)]} {
+               # unless if key should not be updated (report mode '6')
+               if {$report != 6 && ![info exists ::g_used_va($sc)]} {
                   set ::g_used_va($sc) $vrname
                }
             } else {
                lappend ret $vrname=$vrarr($vrname)
                # track if var=val variant has been reported to build key
-               if {![info exists ::g_used_va(val)]} {
+               # unless if key should not be updated (report mode '6')
+               if {$report != 6 && ![info exists ::g_used_va(val)]} {
                   set ::g_used_va(val) 1
                }
             }
@@ -1945,14 +1947,24 @@ proc cacheCurrentModules {{exitonerr 1}} {
       set modlist [getLoadedModuleList]
 
       if {[llength $modlist] == [llength $modfilelist]} {
-         # cache declared tags of loaded modules
-         foreach modtag [getLoadedModuleTagList] {
-            setModuleTag {*}$modtag
-         }
-
          # cache declared variant of loaded modules
          foreach modvrspec [getLoadedModuleVariantList] {
             setLoadedVariant {*}$modvrspec
+            # prepare modvr designation of loaded mod needed in next steps
+            set mod [lindex $modvrspec 0]
+            set vrlist [getVariantList $mod 6]
+            set modvr [list $mod {*}$vrlist]
+            set modvrarr($mod) $modvr
+         }
+
+         # cache declared tags of loaded modules
+         foreach modtag [getLoadedModuleTagList] {
+            setModuleTag {*}$modtag
+            # also record tag over full mod and vr designation
+            set mod [lindex $modtag 0]
+            if {[info exists modvrarr($mod)]} {
+               setModuleTag $modvrarr($mod) {*}[lrange $modtag 1 end]
+            }
          }
 
          # cache declared alternative names of loaded modules
@@ -1987,8 +1999,14 @@ proc cacheCurrentModules {{exitonerr 1}} {
          }
 
          foreach mod $modlist {
+            # get all tags also recorded on mod and vr designation
+            if {[info exists modvrarr($mod)]} {
+               set modvr $modvrarr($mod)
+            } else {
+               set modvr {}
+            }
             setLoadedModule $mod [lindex $modfilelist $i] [expr\
-               {![isModuleTagged $mod auto-loaded 1]}]
+               {![isModuleTagged $mod auto-loaded 1]}] $modvr
             incr i
          }
 

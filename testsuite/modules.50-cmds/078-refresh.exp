@@ -100,6 +100,21 @@ lappend ans [list funcfoo "() {" "echo foo1; };"]
 lappend ans [list out {echo refresh/1.0}]
 testouterr_cmd sh {refresh} $ans {}
 
+# test tags
+setenv_var __MODULES_LMTAG refresh/1.0&bar
+
+set ans [list]
+lappend ans [list alias altags {echo bar loaded}]
+lappend ans [list alias alspec {echo refresh/1.0}]
+lappend ans [list alias alcmd {echo refresh}]
+lappend ans [list alias alfoo {echo foo1}]
+lappend ans [list alias almode {echo refresh}]
+lappend ans [list alias alisavail {echo is-avail ok}]
+lappend ans [list alias algetenv {echo getenv ok}]
+lappend ans [list funcfoo "() {" "echo foo1; };"]
+lappend ans [list out {echo refresh/1.0}]
+testouterr_cmd sh {refresh} $ans {}
+
 # test tags and variant
 setenv_loaded_module refresh/2.0 $mp/refresh/2.0
 setenv_var __MODULES_LMTAG refresh/2.0&bar
@@ -107,9 +122,7 @@ setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 setenv_var __MODULES_LMVARIANT refresh/2.0&foo|1|1|0
 
 set ans [list]
-#FIXME: tags associated with loaded module should be found
-#lappend ans [list alias altags {echo bar loaded}]
-lappend ans [list alias altags {echo }]
+lappend ans [list alias altags {echo bar loaded}]
 lappend ans [list alias alspec {echo refresh/2.0}]
 lappend ans [list alias alfoo {echo foo2}]
 lappend ans [list funcfoo "() {" "echo foo2; };"]
@@ -118,11 +131,10 @@ testouterr_cmd sh {refresh} $ans {}
 
 # test evaluation order
 setenv_loaded_module [list refresh/1.0 refresh/2.0] [list $mp/refresh/1.0 $mp/refresh/2.0]
+setenv_var __MODULES_LMTAG refresh/2.0&bar
 
 set ans [list]
-#FIXME: tags associated with loaded module should be found
-#lappend ans [list alias altags {echo bar loaded}]
-lappend ans [list alias altags {echo }]
+lappend ans [list alias altags {echo bar loaded}]
 lappend ans [list alias alspec {echo refresh/2.0}]
 lappend ans [list alias alisloaded2 {echo is-loaded ok}]
 lappend ans [list alias alcmd {echo refresh}]
@@ -143,10 +155,36 @@ testouterr_cmd sh {refresh -v} $ans $tserr2
 # verbose output and hidden-loaded module
 setenv_var __MODULES_LMTAG refresh/2.0&bar&hidden-loaded
 set tserr1 [msg_refresh refresh/1.0]
+set ans [list]
+lappend ans [list alias altags {echo bar hidden-loaded loaded}]
+lappend ans [list alias alspec {echo refresh/2.0}]
+lappend ans [list alias alisloaded2 {echo is-loaded ok}]
+lappend ans [list alias alcmd {echo refresh}]
+lappend ans [list alias alfoo {echo foo2}]
+lappend ans [list alias almode {echo refresh}]
+lappend ans [list alias alisavail {echo is-avail ok}]
+lappend ans [list alias algetenv {echo getenv ok}]
+lappend ans [list alias alisloaded1 {echo is-loaded ok}]
+lappend ans [list funcfoo "() {" "echo foo2; };"]
+lappend ans [list out {echo refresh/1.0}]
+lappend ans [list out {echo refresh/2.0}]
 testouterr_cmd sh {refresh -v} $ans $tserr2
 
 # verbose output and hidden-loaded module
 setenv_var __MODULES_LMTAG refresh/2.0&bar&hidden-loaded&auto-loaded
+set ans [list]
+lappend ans [list alias altags {echo auto-loaded bar hidden-loaded}]
+lappend ans [list alias alspec {echo refresh/2.0}]
+lappend ans [list alias alisloaded2 {echo is-loaded ok}]
+lappend ans [list alias alcmd {echo refresh}]
+lappend ans [list alias alfoo {echo foo2}]
+lappend ans [list alias almode {echo refresh}]
+lappend ans [list alias alisavail {echo is-avail ok}]
+lappend ans [list alias algetenv {echo getenv ok}]
+lappend ans [list alias alisloaded1 {echo is-loaded ok}]
+lappend ans [list funcfoo "() {" "echo foo2; };"]
+lappend ans [list out {echo refresh/1.0}]
+lappend ans [list out {echo refresh/2.0}]
 testouterr_cmd sh {refresh -v} $ans $tserr1
 testouterr_cmd sh {refresh -vv} $ans $tserr2
 setenv_var __MODULES_LMTAG refresh/1.0&hidden-loaded&auto-loaded:refresh/2.0&bar&hidden-loaded&auto-loaded
@@ -171,19 +209,17 @@ lappend ans [list funcsp "() { echo f\\\"o;
     echo f\\'o; };"]
 testouterr_cmd sh {refresh} $ans {}
 
-
 #
 # error during refresh evaluation
 #
 
 setenv_loaded_module [list refresh/1.0 refresh/2.0] [list $mp/refresh/1.0 $mp/refresh/2.0]
+setenv_var __MODULES_LMTAG refresh/2.0&bar
 
 # break during evaluation
 setenv_var TESTSUITE_REFRESH break1
 set ans1 [list]
-#FIXME: tags associated with loaded module should be found
-#lappend ans [list alias altags {echo bar loaded}]
-lappend ans1 [list alias altags {echo }]
+lappend ans1 [list alias altags {echo bar loaded}]
 lappend ans1 [list alias alspec {echo refresh/2.0}]
 lappend ans1 [list alias alfoo {echo foo2}]
 lappend ans1 [list alias alisloaded1 {echo is-loaded ok}]
@@ -195,10 +231,10 @@ testouterr_cmd sh {refresh} $ans1 [msg_refresh refresh/1.0 $err_evalabort]
 # verbose output
 testouterr_cmd sh {refresh -v} $ans1 [msg_refresh refresh/1.0 $err_evalabort]\n\n[msg_refresh refresh/2.0{+foo}]
 # hidden-loaded/auto-loaded
-setenv_var __MODULES_LMTAG refresh/1.0&bar&hidden-loaded&auto-loaded
+setenv_var __MODULES_LMTAG refresh/1.0&bar&hidden-loaded&auto-loaded:refresh/2.0&bar
 set tserr [msg_refresh refresh/1.0 $err_evalabort]
 testouterr_cmd sh {refresh} $ans1 $tserr
-unsetenv_var __MODULES_LMTAG
+setenv_var __MODULES_LMTAG refresh/2.0&bar
 
 # break in second loaded module
 setenv_var TESTSUITE_REFRESH break2
@@ -259,9 +295,7 @@ testouterr_cmd sh {refresh} $ans2 $tserr
 # continue command
 setenv_var TESTSUITE_REFRESH continue1
 set ans [list]
-#FIXME: tags associated with loaded module should be found
-#lappend ans [list alias altags {echo bar loaded}]
-lappend ans [list alias altags {echo }]
+lappend ans [list alias altags {echo bar loaded}]
 lappend ans [list alias alspec {echo refresh/2.0}]
 lappend ans [list alias alisloaded2 {echo is-loaded ok}]
 lappend ans [list alias alfoo {echo foo2}]
@@ -274,9 +308,7 @@ testouterr_cmd sh {refresh} $ans {}
 
 setenv_var TESTSUITE_REFRESH continue2
 set ans [list]
-#FIXME: tags associated with loaded module should be found
-#lappend ans [list alias altags {echo bar loaded}]
-lappend ans [list alias altags {echo }]
+lappend ans [list alias altags {echo bar loaded}]
 lappend ans [list alias alspec {echo refresh/2.0}]
 lappend ans [list alias alisloaded2 {echo is-loaded ok}]
 lappend ans [list alias alcmd {echo refresh}]
