@@ -1668,6 +1668,14 @@ proc cmdModuleUnuse {args} {
 proc cmdModuleAutoinit {} {
    reportDebug called.
 
+   # skip autoinit process if found already ongoing in current environment
+   if {[get-env __MODULES_AUTOINIT_INPROGRESS] eq {1}} {
+      return
+   }
+
+   # set environment variable to state autoinit process is ongoing
+   setenv __MODULES_AUTOINIT_INPROGRESS 1
+
    # flag to make renderSettings define the module command
    setState autoinit 1
 
@@ -1750,6 +1758,9 @@ proc cmdModuleAutoinit {} {
       setenv ENV @initdir@/profile.sh
       setenv BASH_ENV @initdir@/bash
    }
+
+   # clear in progress flag
+   unsetenv __MODULES_AUTOINIT_INPROGRESS
 
    lpopState mode
 }
