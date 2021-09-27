@@ -91,7 +91,7 @@ if {[info exists insmodrcdata] && [info exists exmodrcdata] && $exmodrcdata eq $
 }
 
 set custom {module restore unk}
-set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 31 {  }]]
+set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 36 {  }]]
 
 set tserr_initrc_exinstalled "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n$err_path'unk'\n$custom"
 set tserr_initrc1_exinstalled [msg_load null]
@@ -577,6 +577,9 @@ foreach set_shell_startup [list {} 0 1] {
                     lappend ans [list set MODULES_CMD $modulecmd_path]
                     if {[is_real_shell $shell] && ($env(MODULES_SET_SHELL_STARTUP) eq {1} || ($env(MODULES_SET_SHELL_STARTUP) ne {0} && $install_setshellstartup eq {y}))} {
                         lappend ans [list set ENV $install_initdir/profile.sh]
+                    }
+                    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+                    if {[is_real_shell $shell] && ($env(MODULES_SET_SHELL_STARTUP) eq {1} || ($env(MODULES_SET_SHELL_STARTUP) ne {0} && $install_setshellstartup eq {y}))} {
                         lappend ans [list set BASH_ENV $install_initdir/bash]
                     }
                     lappend ans [list set MODULESHOME $moduleshome]
@@ -588,8 +591,10 @@ foreach set_shell_startup [list {} 0 1] {
                     lappend ans [list set MODULES_CMD $modulecmd_path]
                     if {[is_real_shell $shell] && ($env(MODULES_SET_SHELL_STARTUP) eq {1} || ($env(MODULES_SET_SHELL_STARTUP) ne {0} && $install_setshellstartup eq {y}))} {
                         lappend ans [list set ENV $install_initdir/profile.sh]
+                    }
+                    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+                    if {[is_real_shell $shell] && ($env(MODULES_SET_SHELL_STARTUP) eq {1} || ($env(MODULES_SET_SHELL_STARTUP) ne {0} && $install_setshellstartup eq {y}))} {
                         lappend ans [list set BASH_ENV $install_initdir/bash]
-                    } elseif {$shell eq {ksh}} {
                     }
                     lappend ans [list set MODULESHOME $moduleshome]
                     if {$shell eq {ksh}} {
@@ -622,6 +627,9 @@ if {$install_versioning eq "y"} {
 lappend ans [list set MODULES_CMD $modulecmd_path]
 if {$install_setshellstartup eq {y}} {
     lappend ans [list set ENV $install_initdir/profile.sh]
+}
+lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+if {$install_setshellstartup eq {y}} {
     lappend ans [list set BASH_ENV $install_initdir/bash]
 }
 lappend ans [list set MODULESHOME $moduleshome]
@@ -643,6 +651,9 @@ if {$install_versioning eq "y"} {
 lappend ans [list set MODULES_CMD $modulecmd_path]
 if {$install_setshellstartup eq {y}} {
     lappend ans [list set ENV $install_initdir/profile.sh]
+}
+lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+if {$install_setshellstartup eq {y}} {
     lappend ans [list set BASH_ENV $install_initdir/bash]
 }
 lappend ans [list set MODULESHOME $moduleshome]
@@ -666,6 +677,9 @@ if {$install_versioning eq "y"} {
 lappend ans [list set MODULES_CMD $modulecmd_path]
 if {$install_setshellstartup eq {y}} {
     lappend ans [list set ENV $install_initdir/profile.sh]
+}
+lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+if {$install_setshellstartup eq {y}} {
     lappend ans [list set BASH_ENV $install_initdir/bash]
 }
 lappend ans [list set MODULESHOME $moduleshome]
@@ -689,6 +703,9 @@ if {$install_versioning eq "y"} {
 lappend ans [list set MODULES_CMD $modulecmd_path]
 if {$install_setshellstartup eq {y}} {
     lappend ans [list set ENV $install_initdir/profile.sh]
+}
+lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+if {$install_setshellstartup eq {y}} {
     lappend ans [list set BASH_ENV $install_initdir/bash]
 }
 lappend ans [list set MODULESHOME $moduleshome]
@@ -714,6 +731,9 @@ if {$install_versioning eq "y"} {
     lappend ans [list set MODULES_CMD $modulecmd_path]
     if {$install_setshellstartup eq {y}} {
         lappend ans [list set ENV $install_initdir/profile.sh]
+    }
+    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+    if {$install_setshellstartup eq {y}} {
         lappend ans [list set BASH_ENV $install_initdir/bash]
     }
     lappend ans [list set MODULESHOME $moduleshome]
@@ -767,6 +787,9 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                     lappend ans [list set MODULES_CMD $modulecmd_path]
                     if {[is_real_shell $shell] && $install_setshellstartup eq {y}} {
                         lappend ans [list set ENV $install_initdir/profile.sh]
+                    }
+                    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+                    if {[is_real_shell $shell] && $install_setshellstartup eq {y}} {
                         lappend ans [list set BASH_ENV $install_initdir/bash]
                     }
                     lappend ans [list set MODULESHOME $moduleshome]
@@ -788,6 +811,7 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                     lappend ans [list set MODULES_ML 0]
                     lappend ans [list set MODULES_SET_SHELL_STARTUP 0]
                     lappend ans [list set MODULES_AUTO_HANDLING 0]
+                    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
                     lappend ans [list set _LMFILES_ "$install_modulefilesdir/null"]
                     lappend ans [list set MODULESHOME $moduleshome/init]
                     lappend ans [list set LOADEDMODULES null]
@@ -807,6 +831,7 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                     if {[is_real_shell $shell] && $install_setshellstartup eq {y}} {
                         lappend ans [list set ENV $install_initdir/profile.sh]
                     }
+                    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
                     if {[is_real_shell $shell] && $install_setshellstartup eq {y}} {
                         lappend ans [list set BASH_ENV $install_initdir/bash]
                     }
@@ -827,6 +852,7 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                     if {[is_real_shell $shell] && $install_setshellstartup eq {y}} {
                         lappend ans [list set ENV $install_initdir/profile.sh]
                     }
+                    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
                     if {[is_real_shell $shell] && $install_setshellstartup eq {y}} {
                         lappend ans [list set BASH_ENV $install_initdir/bash]
                     }
@@ -853,6 +879,7 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                     lappend ans [list set MODULEPATH "$install_modulepath"]
                     lappend ans [list set MODULES_SET_SHELL_STARTUP 0]
                     lappend ans [list set MODULES_SHELLS_WITH_KSH_FPATH "sh:bash"]
+                    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
                     if {$install_versioning eq "y"} {
                         lappend ans [list set MODULE_VERSION "(.*)"]
                     }
@@ -867,6 +894,7 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                         lappend ans [list ERR]
                         lappend ans [list [set "func_$shell"]]
                         lappend ans [list set MODULES_CMD $modulecmd_path]
+                        lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
                         lappend ans [list set MODULESHOME $moduleshome]
                         lappend ans [list set __MODULES_LMPREREQ m3&m1]
                         lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4"]
@@ -882,6 +910,7 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                             lappend ans [list set MODULE_VERSION_STACK "(.*)"]
                         }
                         lappend ans [list set MODULES_CMD $modulecmd_path]
+                        lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
                         lappend ans [list set MODULESHOME $moduleshome]
                         lappend ans [list set __MODULES_LMPREREQ m3&m1]
                         lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4"]
@@ -921,6 +950,7 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
         lappend ans [list set MODULE_VERSION_STACK "(.*)"]
     }
     lappend ans [list set MODULES_CMD $modulecmd_path]
+    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
     lappend ans [list set MODULESHOME $moduleshome]
     lappend ans [list set __MODULES_LMPREREQ m3&m1]
     lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4"]
@@ -957,6 +987,7 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
             lappend ans [list set MODULE_VERSION_STACK "(.*)"]
         }
         lappend ans [list set MODULES_CMD $modulecmd_path]
+        lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
         lappend ans [list set MODULESHOME $moduleshome]
         lappend ans [list set LOADEDMODULES {}]
         lappend ans [list set MODULEPATH {}]
@@ -1002,24 +1033,26 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
         # as a result BAR is not unset due to the reference counter set to 2
         # it may be preferable to unset BAR as we are here in a top-level evaluation context
         lappend ans [list set BAR /bar]
+        lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
     } else {
+        lappend ans [list set LOADEDMODULES "m1:m3:space yc/4"]
+        lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4"]
+        lappend ans [list set MODULESHOME $moduleshome]
+        lappend ans [list set __MODULES_LMTAG m1&auto-loaded]
+        lappend ans [list set MODULES_CMD $modulecmd_path]
         lappend ans [list set __MODULES_SHARE_FOO /foo:2]
+        lappend ans [list unset __MODULES_SHARE_BAR]
+        lappend ans [list set __MODULES_LMPREREQ m3&m1]
+        lappend ans [list set MODULEPATH "$modpath wspace:$modpath.deps"]
         # append-path is here treated as the modulefile command and not the sub-command
         # as a result FOO reference counter is increased
         # it may be preferable not to increase ref counter as we are here in a top-level evaluation context
         lappend ans [list set FOO /foo]
-        lappend ans [list set MODULES_CMD $modulecmd_path]
-        lappend ans [list unset __MODULES_SHARE_BAR]
         # remove-path is here treated as the modulefile command and not the sub-command
         # as a result BAR is not unset due to the reference counter set to 2
         # it may be preferable to unset BAR as we are here in a top-level evaluation context
         lappend ans [list set BAR /bar]
-        lappend ans [list set MODULESHOME $moduleshome]
-        lappend ans [list set __MODULES_LMPREREQ m3&m1]
-        lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4"]
-        lappend ans [list set LOADEDMODULES "m1:m3:space yc/4"]
-        lappend ans [list set __MODULES_LMTAG m1&auto-loaded]
-        lappend ans [list set MODULEPATH "$modpath wspace:$modpath.deps"]
+        lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
     }
     testouterr_cmd_re sh autoinit $ans $tserr_initrc_exinstalled
     unsetenv_path_var BAR
@@ -1034,6 +1067,7 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
         lappend ans [list set MODULE_VERSION_STACK "(.*)"]
     }
     lappend ans [list set MODULES_CMD $modulecmd_path]
+    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
     lappend ans [list set MODULESHOME $moduleshome]
     lappend ans [list set __MODULES_LMPREREQ m3&m1]
     lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4"]
@@ -1060,6 +1094,7 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
         lappend ans [list set MODULE_VERSION_STACK "(.*)"]
     }
     lappend ans [list set MODULES_CMD $modulecmd_path]
+    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
     lappend ans [list set MODULESHOME $moduleshome]
     lappend ans [list set __MODULES_LMPREREQ m3&m1]
     lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4"]
@@ -1071,7 +1106,7 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
     }
     set linenum [expr {[cmpversion $tclsh_version 8.6] == -1 ? 14 : 21}]
     set custom {module restore unk}
-    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 31 {  }]]
+    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 36 {  }]]
     set tserr "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n$err_path'unk'\n$custom"
     testouterr_cmd_re bash autoinit $ans $tserr
 
@@ -1088,6 +1123,7 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
         lappend ans [list set MODULE_VERSION_STACK "(.*)"]
     }
     lappend ans [list set MODULES_CMD $modulecmd_path]
+    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
     lappend ans [list set MODULESHOME $moduleshome]
     lappend ans [list set __MODULES_LMPREREQ m3&m1]
     lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4"]
@@ -1099,8 +1135,46 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
     }
     set linenum [expr {[cmpversion $tclsh_version 8.6] == -1 ? 14 : 21}]
     set custom {module restore unk}
-    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 31 {  }]]
+    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 36 {  }]]
     set tserr "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n$err_path'unk'\n$custom"
+    testouterr_cmd_re bash autoinit $ans $tserr
+
+    unsetenv_var TESTSUITE_INITRC
+
+    # test load in initrc of a modulefile relying on a bash shell script
+    # execution when set_shell_startup is enabled
+    setenv_var TESTSUITE_INITRC inprogress1
+
+    set ans [list]
+    lappend ans [list ERR]
+    lappend ans [list [set "func_bash"]]
+    lappend ans [list set LOADEDMODULES "m1:m3:space yc/4:refresh/5.0"]
+    lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4:$modpath.3/refresh/5.0"]
+    lappend ans [list set MODULESHOME $moduleshome]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION "(.*)"]
+    }
+    lappend ans [list set __MODULES_LMTAG m1&auto-loaded:refresh/5.0&bar]
+    lappend ans [list set MODULES_CMD $modulecmd_path]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set BASH_ENV $install_initdir/bash]
+    }
+    lappend ans [list set __MODULES_LMPREREQ m3&m1]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+    }
+    if {$install_versioning eq "n"} {
+        lappend ans [list set BASH_ENV $install_initdir/bash]
+    }
+    lappend ans [list set ENV $install_initdir/profile.sh]
+    lappend ans [list set MODULEPATH "$modpath.3:$modpath wspace:$modpath.deps"]
+    lappend ans [list set FOO str:foo]
+    lappend ans [list set MODULES_SET_SHELL_STARTUP 1]
+    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+    set linenum [expr {[cmpversion $tclsh_version 8.6] == -1 ? 14 : 21}]
+    set custom {module restore unk}
+    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 36 {  }]]
+    set tserr "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n[msg_load refresh/5.0]\n$err_path'unk'\n$custom"
     testouterr_cmd_re bash autoinit $ans $tserr
 
     unsetenv_var TESTSUITE_INITRC
@@ -1114,6 +1188,7 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
         lappend ans [list set MODULE_VERSION_STACK "(.*)"]
     }
     lappend ans [list set MODULES_CMD $modulecmd_path]
+    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
     lappend ans [list set MODULESHOME $moduleshome]
     lappend ans [list set LOADEDMODULES {}]
     lappend ans [list set MODULEPATH {}]
@@ -1161,6 +1236,7 @@ if {$insmodspath && $modspath_exinstalled && $modspath eq "$install_etcdir/modul
     if {$install_setshellstartup eq {y}} {
         lappend ans [list set ENV $install_initdir/profile.sh]
     }
+    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
     if {$install_setshellstartup eq {y}} {
         lappend ans [list set BASH_ENV $install_initdir/bash]
     }
@@ -1197,6 +1273,7 @@ if {$insmodspath && $modspath_exinstalled && $modspath eq "$install_etcdir/modul
         if {$install_setshellstartup eq {y}} {
             lappend ans [list set ENV $install_initdir/profile.sh]
         }
+        lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
         if {$install_setshellstartup eq {y}} {
             lappend ans [list set BASH_ENV $install_initdir/bash]
         }
@@ -1210,6 +1287,77 @@ if {$insmodspath && $modspath_exinstalled && $modspath eq "$install_etcdir/modul
     # remove temporary init/modulerc
     file delete $install_initdir/.modulespath
 }
+
+
+# test autoinit infinie loop safeguard mechanism
+if {[file executable /bin/bash]} {
+    # build temporary specific init file
+    set initbash $env(TESTSUITEDIR)/initbash
+    set fid [open $initbash w]
+    puts $fid "eval \$($TCLSH $modulecmd_path bash autoinit)"
+    close $fid
+
+    # set env with loaded module that triggers run of a bash script to set an
+    # environment value, as BASH_ENV is set, the autoinit run when bash script
+    # is run should not trigger another autoinit loop
+    setenv_var BASH_ENV $initbash
+    setenv_path_var MODULEPATH $modpath.3
+    setenv_loaded_module [list refresh/5.0] [list $modpath.3/refresh/5.0]
+
+    set ans [list]
+    lappend ans [list [set "func_bash"]]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+    }
+    lappend ans [list set MODULES_CMD $modulecmd_path]
+    if {$install_setshellstartup eq {y}} {
+        lappend ans [list set ENV $install_initdir/profile.sh]
+    }
+    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+    if {$install_setshellstartup eq {y}} {
+        lappend ans [list set BASH_ENV $install_initdir/bash]
+    }
+    lappend ans [list set MODULESHOME $moduleshome]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION "(.*)"]
+    }
+    testouterr_cmd_re bash autoinit $ans {}
+
+    unsetenv_var BASH_ENV
+    file delete $initbash
+}
+
+# test effect of manually set __MODULES_AUTOINIT_INPROGRESS variable
+setenv_var __MODULES_AUTOINIT_INPROGRESS 0
+setenv_path_var MODULEPATH $modpath.3
+unsetenv_loaded_module
+
+set ans [list]
+lappend ans [list [set "func_bash"]]
+if {$install_versioning eq "y"} {
+    lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+}
+lappend ans [list set MODULES_CMD $modulecmd_path]
+if {$install_setshellstartup eq {y}} {
+    lappend ans [list set ENV $install_initdir/profile.sh]
+}
+lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+if {$install_setshellstartup eq {y}} {
+    lappend ans [list set BASH_ENV $install_initdir/bash]
+}
+lappend ans [list set MODULESHOME $moduleshome]
+lappend ans [list set LOADEDMODULES {}]
+if {$install_versioning eq "y"} {
+    lappend ans [list set MODULE_VERSION "(.*)"]
+}
+testouterr_cmd_re bash autoinit $ans {}
+
+setenv_var __MODULES_AUTOINIT_INPROGRESS foo
+testouterr_cmd_re bash autoinit $ans {}
+
+setenv_var __MODULES_AUTOINIT_INPROGRESS 1
+testouterr_cmd_re bash autoinit {} {}
+unsetenv_var __MODULES_AUTOINIT_INPROGRESS
 
 
 # remove temporary collection created for test
