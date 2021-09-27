@@ -586,6 +586,12 @@ initialization or if the :mconfig:`silent_shell_debug` configuration option is
 set to ``1`` in the :file:`initrc` configuration file. Option is set off by
 default on Modules 5.
 
+During the :subcmd:`autoinit` process, the environment variable
+:envvar:`__MODULES_AUTOINIT_INPROGRESS` is checked and if it is found set to
+``1``, the initialization process immediately ends. If not, this environment
+variable is set to ``1`` which ensures no initialization loop could occur,
+especially when the :mconfig:`set_shell_startup` configuration option is set.
+
 Modulecmd startup
 """""""""""""""""
 
@@ -779,7 +785,8 @@ The following environment variables appeared on Modules 5.
 | in version |                                                                 |
 +============+=================================================================+
 | 5.0        | :envvar:`MODULES_QUARANTINE_SUPPORT`,                           |
-|            | :envvar:`__MODULES_QUARANTINE_SET`                              |
+|            | :envvar:`__MODULES_QUARANTINE_SET`,                             |
+|            | :envvar:`__MODULES_AUTOINIT_INPROGRESS`                         |
 +------------+-----------------------------------------------------------------+
 
 Modules Specific Tcl Commands

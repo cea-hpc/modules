@@ -1815,6 +1815,19 @@ Otherwise ``1`` is returned.
 ENVIRONMENT
 -----------
 
+.. envvar:: __MODULES_AUTOINIT_INPROGRESS
+
+ If set to ``1``, the :subcmd:`autoinit` sub-command process is skipped.
+
+ This environment variable is set to ``1`` by the :subcmd:`autoinit`
+ sub-command after checking it is not set. It ensures no nested initialization
+ of Modules occur. At the end of the processing of the :subcmd:`autoinit`
+ sub-command, :envvar:`__MODULES_AUTOINIT_INPROGRESS` is unset.
+
+ .. only:: html
+
+    .. versionadded:: 5.0
+
 .. envvar:: __MODULES_LMALTNAME
 
  A colon separated list of the alternative names set through
