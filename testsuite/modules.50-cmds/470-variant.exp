@@ -128,7 +128,14 @@ setenv_var TESTSUITE_VARIANT 6
 set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {3} : {25}}]
 testouterr_cmd sh {load variant/1.0} ERR [msg_load variant/1.0 [err_novarval foo {0 1 2}]]
 testouterr_cmd sh {load variant/1.0 foo=val2 bar=val} ERR [msg_load variant/1.0{bar=val:foo=val2} [err_invalvarval foo val2 {0 1 2}]]
-testouterr_cmd_re sh {load variant/1.0 foo=0 bar=val} ERR [escre [msg_load variant/1.0{bar=val:foo=0} [msg_moderr {No allowed value list defined for variant 'bar'} {variant bar<EXM>} $mp/variant/1.0 $ln]]]
+# any kind of value accepted
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/1.0&foo|0|0|0&bar|val|0|0]
+lappend ans [list set TS1 {bar=val:foo=0}]
+lappend ans [list set _LMFILES_ $mp/variant/1.0]
+lappend ans [list set LOADEDMODULES variant/1.0]
+lappend ans [list set TS0 {bar foo}]
+testouterr_cmd_re sh {load variant/1.0 foo=0 bar=val} $ans {}
 
 setenv_var TESTSUITE_VARIANT 7
 set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {3} : {28}}]
@@ -272,8 +279,13 @@ unsetenv_var __MODULES_LMVARIANT
 
 # variant with no value defined
 setenv_var TESTSUITE_VARIANT 12
-set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {3} : {50}}]
-testouterr_cmd_re sh {load variant/1.0 foo=val1} ERR [escre [msg_load variant/1.0{foo=val1} [msg_moderr {No allowed value list defined for variant 'foo'} {variant foo<EXM>} $mp/variant/1.0 $ln]]]
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/1.0&foo|val1|0|0]
+lappend ans [list set TS1 {foo=val1}]
+lappend ans [list set _LMFILES_ $mp/variant/1.0]
+lappend ans [list set LOADEDMODULES variant/1.0]
+lappend ans [list set TS0 {foo}]
+testouterr_cmd_re sh {load variant/1.0 foo=val1} $ans {}
 
 # force load whereas another variant of module is already loaded
 setenv_var __MODULES_LMVARIANT variant/3.0&bar|val1|0|0
