@@ -1753,9 +1753,9 @@ When modulefile is evaluated a value should be specified for each variant this
 modulefile declares. When reaching the :mfcmd:`variant` modulefile command
 declaring a variant, an error is raised if no value is specified for this
 variant and if no default value is declared. Specified variant value should
-match a value from the declared accepted value list otherwise an error is
-raised. Additionally if a variant is specified but does not correspond to a
-variant declared in modulefile, an error is raised.
+match a value from the declared accepted value list if such list is defined
+otherwise an error is raised. Additionally if a variant is specified but does
+not correspond to a variant declared in modulefile, an error is raised.
 
 Module variants are reported along the module they are associated to on
 :subcmd:`list` sub-command results. Variants are reported within curly braces

@@ -861,7 +861,7 @@ the *modulefile* is being loaded.
        *variable* is not unset when unloading *modulefile* and no optional
        value is provided
 
-.. mfcmd:: variant [--boolean] [--default value] name value...
+.. mfcmd:: variant [--boolean] [--default value] name [value...]
 
  Declare :ref:`module variant<Module variants>` *name* with list of accepted
  *value* and instantiate it in the :mfvar:`ModuleVariant` array variable.
@@ -872,10 +872,11 @@ the *modulefile* is being loaded.
 
  Selected variant value is transmitted to the evaluating modulefile. A value
  must be specified for variant *name* and it must corresponds to a value in
- the accepted value list. Otherwise an error is raised. An exception is made
- if modulefile is evaluated in ``display`` mode: no error is raised if no
- value is specified for a given variant and variant is not instantiated in the
- :mfvar:`ModuleVariant` array variable.
+ the accepted value list if such list is defined. Otherwise an error is
+ raised. An exception is made if modulefile is evaluated in ``display`` mode:
+ no error is raised if no value is specified for a given variant and variant
+ is not instantiated in the :mfvar:`ModuleVariant` array variable. When no
+ list of accepted value is defined, variant could be set to any value.
 
  When the ``--default`` option is set, variant *name* is set to the *value*
  associated with this option in case no value is specified for variant in
@@ -901,6 +902,9 @@ the *modulefile* is being loaded.
     .. versionchanged:: 5.0
        No error raised if a defined variant is not specified when modulefile
        is evaluated in ``display`` mode
+
+    .. versionchanged:: 5.1
+       Accepted value list is made optional
 
 .. mfcmd:: versioncmp version1 version2
 
