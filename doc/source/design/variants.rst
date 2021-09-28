@@ -19,11 +19,11 @@ Defining
 
 - variants are defined for modulefiles within concerned modulefiles with the :mfcmd:`variant` modulefile command
 
-    - variants are bound to the modulefile their target
+    - variants are bound to the modulefile they target
     - especially modulefile evaluation may be guided by the value selected for the variants
     - so it makes more sense to have variants defined within modulefiles rather in modulercs
 
-- ``variant --default? defaultval? --alias? {aliasname...?} name value ...?``
+- ``variant --default? defaultval? --alias? {aliasname...?} name value? ...?``
 
 - ``name`` restrained to the accepted variable name
 
@@ -43,17 +43,21 @@ Defining
 
         - raise error otherwise
 
-    - default value should be part of possible value list
+    - default value should be part of possible value list if value list provided
 
         - error is raised otherwise when default value is used, as it does not correspond to an accepted value
 
             - ex: ``variant name --default 1.8 1.0 2.0``
 
+        - when no list of accepted value is provided, default value could be any value
+
 - may be set as a Boolean variant (when ``--boolean`` argument is passed)
 
     - a Boolean variant may equal *true* or *false*
 
-- must have a list of accepted values unless if defined as a Boolean variant
+- may have a list of accepted values
+
+    - unless if defined as a Boolean variant
 
     - passed value(s) must correspond to those accepted
 
@@ -67,6 +71,10 @@ Defining
         - as Boolean values are translated to their canonical form (*0* or *1*) when specified
         - an error is raised otherwise
         - exception made for the *0* and *1* integers
+
+    - when no list of accepted value is provided it means any value is accepted
+
+        - it is up to the modulefile author to write the appropriate test after variant declaration to check that the value provided is acceptable
 
 - may be aliased (when argument ``--alias`` is passed) in which case:
 
@@ -655,7 +663,7 @@ Recording collection
 - In case the :mconfig:`collection_pin_version` configuration option is disabled variant set to their default value should not be recorded in collection
 
     - Following the same scheme than for module version
-    - When saving collection, the *is-default-value* information stored in persistency variable (``__MODULES_LMVARIANT``) helps to know whether to value set to a variant is or not the default one
+    - When saving collection, the *is-default-value* information stored in persistency variable (``__MODULES_LMVARIANT``) helps to know whether the value set to a variant is or not the default one
     - The save mechanism will rely on this information to exclude or not the variant specification in the generated collection output
     - Within this *is-default-value* hint, the *was-this-default-specified-by-user* sub-information is not preserved when saving collection
 
