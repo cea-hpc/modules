@@ -2178,14 +2178,10 @@ proc parseVariantCommandArgs {args} {
          set values {1 0 yes no true false on off}
       }
    } else {
-      if {[llength $values] == 0} {
-         knerror "No allowed value list defined for variant '$name'"
-      } else {
-         foreach val $values {
-            if {[string is boolean -strict $val] && ![string is integer\
-               -strict $val]} {
-               knerror "Boolean value defined on non-boolean variant '$name'"
-            }
+      foreach val $values {
+         if {[string is boolean -strict $val] && ![string is integer\
+            -strict $val]} {
+            knerror "Boolean value defined on non-boolean variant '$name'"
          }
       }
    }
@@ -2242,14 +2238,16 @@ proc variant {itrp args} {
       } elseif {[currentState mode] eq {display}} {
          return
       } else {
-         knerror "No value specified for variant '$name'\nAllowed\
-            values are: $values" MODULES_ERR_GLOBAL
+         set allowedmsg [expr {[llength $values] == 0 ? {} : "\nAllowed\
+            values are: $values"}]
+         knerror "No value specified for variant '$name'$allowedmsg"\
+            MODULES_ERR_GLOBAL
       }
    }
 
    # check defined value
    if {($isboolean && ![string is boolean -strict $value]) || (!$isboolean &&\
-      $value ni $values)} {
+      [llength $values] > 0 && $value ni $values)} {
       # invalid value error is not a modulefile error
       knerror "Invalid value '$value' for variant '$name'\nAllowed values\
          are: $values" MODULES_ERR_GLOBAL
