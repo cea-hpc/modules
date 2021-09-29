@@ -152,6 +152,19 @@ testouterr_cmd sh {unload variant bar=1} OK {}
 
 unsetenv_var MODULES_UNLOAD_MATCH_ORDER
 
+# free variant value
+setenv_var TESTSUITE_VARIANT free1
+setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
+setenv_var __MODULES_LMVARIANT variant/1.0&foo|val1|0|0
+set ans [list]
+lappend ans [list unset __MODULES_LMVARIANT]
+lappend ans [list unset TS1]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset TS0]
+testouterr_cmd sh {unload variant foo=val1} $ans {}
+testouterr_cmd sh {unload variant/1.0} $ans {}
+
 
 #
 # variant issues

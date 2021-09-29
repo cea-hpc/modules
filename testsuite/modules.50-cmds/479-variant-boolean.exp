@@ -57,7 +57,6 @@ set linenum [expr {[cmpversion $tclsh_version 8.5] > 0 ? 113 : 3}]
 set tserr [escre [msg_load variant/1.0{+foo} [msg_moderr [err_booldflvarval foo] {variant --default val1 --boolean foo<EXM>} $mp/variant/1.0 $linenum]]]
 testouterr_cmd_re sh {load variant/1.0 +foo} ERR $tserr
 
-
 # test variant redefinition
 setenv_var TESTSUITE_VARIANT bool6
 set ans [list]
@@ -250,6 +249,39 @@ set tserr [escre [msg_load variant/1.0{+foo} [msg_moderr [err_boolonnonbool foo]
 testouterr_cmd_re sh {load -v variant/1.0 +foo} ERR $tserr
 set tserr [escre [msg_load variant/1.0{-foo} [msg_moderr [err_boolonnonbool foo] {variant foo yes no y n<EXM>} $mp/variant/1.0 $linenum]]]
 testouterr_cmd_re sh {load -v variant/1.0~foo} ERR $tserr
+
+
+#
+# boolean default value or boolean specification on free value variant
+#
+
+setenv_var TESTSUITE_VARIANT free2
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/1.0&foo|1|0|0]
+lappend ans [list set TS1 foo=1]
+lappend ans [list set _LMFILES_ $mp/variant/1.0]
+lappend ans [list set LOADEDMODULES variant/1.0]
+lappend ans [list set TS0 foo]
+testouterr_cmd_re sh {load variant/1.0 +foo} $ans {}
+testouterr_cmd_re sh {load variant/1.0 foo=true} $ans {}
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/1.0&foo|0|0|0]
+lappend ans [list set TS1 foo=0]
+lappend ans [list set _LMFILES_ $mp/variant/1.0]
+lappend ans [list set LOADEDMODULES variant/1.0]
+lappend ans [list set TS0 foo]
+testouterr_cmd_re sh {load variant/1.0 -foo} $ans {}
+testouterr_cmd_re sh {load variant/1.0 foo=off} $ans {}
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/1.0&foo|text|0|0]
+lappend ans [list set TS1 foo=text]
+lappend ans [list set _LMFILES_ $mp/variant/1.0]
+lappend ans [list set LOADEDMODULES variant/1.0]
+lappend ans [list set TS0 foo]
+testouterr_cmd_re sh {load variant/1.0 foo=text} $ans {}
 
 
 #

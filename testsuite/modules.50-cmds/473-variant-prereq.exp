@@ -1347,6 +1347,21 @@ unsetenv_var __MODULES_LMVARIANT
 
 
 #
+# free value variant test
+#
+
+setenv_var TESTSUITE_VARIANT free1
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0:vrreq1/1.0&foo|val1|0|0]
+lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2/1.0 foo=val1}]
+lappend ans [list set _LMFILES_ $mp/vrreq2/1.0:$mp/vrreq1/1.0]
+lappend ans [list set LOADEDMODULES vrreq2/1.0:vrreq1/1.0]
+lappend ans [list set __MODULES_LMTAG vrreq2/1.0&auto-loaded]
+testouterr_cmd_re sh {load --auto vrreq1/1.0 foo=val1} $ans [msg_top_load vrreq1/1.0{foo=val1} {} vrreq2/1.0{foo=val1} {}]
+
+
+#
 # icase & extended_default test
 #
 
