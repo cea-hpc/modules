@@ -703,6 +703,12 @@ Modules Specific Tcl Commands
  Distinguish between being called on a unload evaluation without a value to
  restore or with an empty string value to restore.
 
+:mfcmd:`variant`
+
+ Starting version 5.1, :mfcmd:`variant` command accepts being called without
+ a list of accepted value defined. In this case, any value specified is
+ accepted.
+
 Locating Modulefiles
 """"""""""""""""""""
 
