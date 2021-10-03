@@ -777,6 +777,13 @@ Module Sub-Commands
 
   Global run-command file location. Defines :envvar:`MODULERCFILE`.
 
+ .. mconfig:: redirect_output
+
+  Control whether or not the output of module command should be redirected
+  from stderr to stdout. Defines :envvar:`MODULES_REDIRECT_OUTPUT`.
+
+     .. versionadded:: 5.1
+
  .. mconfig:: run_quarantine
 
   Environment variables to indirectly pass to :file:`modulecmd.tcl`. Defines
