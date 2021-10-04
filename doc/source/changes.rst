@@ -781,6 +781,18 @@ Package Initialization
 When initializing Modules, :subcmd:`refresh` the loaded modules in case some
 user environment is already configured.
 
+Command line switches
+"""""""""""""""""""""
+
+The following command line switches appeared on Modules 5.
+
++------------+-----------------------------------------------------------------+
+| Introduced | New command line switches                                       |
+| in version |                                                                 |
++============+=================================================================+
+| 5.1        | :option:`--redirect`, :option:`--no-redirect`                   |
++------------+-----------------------------------------------------------------+
+
 Environment
 """""""""""
 
