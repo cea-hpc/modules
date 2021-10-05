@@ -384,7 +384,8 @@ switches are accepted:
 
 .. option:: --redirect
 
- Send message output to stdout instead of stderr.
+ Send message output to stdout instead of stderr. Only supported on sh, bash,
+ ksh, zsh and fish shells.
 
  .. only:: html
 
