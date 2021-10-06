@@ -658,15 +658,11 @@ alias ml 'module ml \!*' ;}
 
          # on zsh, word splitting should be enabled explicitly
          set wsplit [expr {[getState shell] eq {zsh} ? {^^=} : {}}]
-         # only redirect module from stderr to stdout when session is
-         # attached to a terminal to avoid breaking non-terminal session
-         # (scp, sftp, etc)
-         set fname [expr {[getState is_stderr_tty] ? {_module_raw} : {module}}]
          # build quarantine mechanism in module function
          # an empty runtime variable is set even if no corresponding
          # MODULES_RUNENV_* variable found, as var cannot be unset on
          # modified environment command-line
-         set fdef "${fname}() {"
+         set fdef "_module_raw() {"
          if {[getConf silent_shell_debug]} {
             append fdef {
    unset _mlshdbg;
@@ -727,10 +723,34 @@ alias ml 'module ml \!*' ;}
          }
          append fdef {
    return $_mlstatus;}
+         # define both _module_raw and _module functions in any cases to allow
+         # content redirection when commend-line switch is used (--redirect or
+         # --no-redirect)
+         # content is redirected by default when shell session is attached to
+         # a terminal (non-terminal session are not redirected to avoid
+         # breaking things like scp or sftp transfer)
+         # use local/typeset variable in this context as we cannot unset it
+         # afterward (since _module_raw should be the cmd to return status)
+         set localcmd [expr {[getState shell] eq {ksh} ? {typeset} : {local}}]
+         append fdef "\n};\nmodule() {
+   $localcmd _mlredir=[getState is_stderr_tty];\n"
+         append fdef {   if [ -n "${MODULES_REDIRECT_OUTPUT+x}" ]; then
+      if [ "$MODULES_REDIRECT_OUTPUT" = '0' ]; then
+         _mlredir=0;
+      elif [ "$MODULES_REDIRECT_OUTPUT" = '1' ]; then
+         _mlredir=1;
+      fi;
+   fi;
+   case " $@ " in
+      *' --no-redirect '*) _mlredir=0 ;;
+      *' --redirect '*) _mlredir=1 ;;
+   esac;
+   if [ $_mlredir -eq 0 ]; then
+      _module_raw "$@";
+   else
+      _module_raw "$@" 2>&1;
+   fi;}
          append fdef "\n};"
-         if {[getState is_stderr_tty]} {
-            append fdef "\nmodule() { _module_raw \"\$@\" 2>&1; };"
-         }
          if {[getConf ml]} {
             append fdef {
 ml() { module ml "$@"; };}
