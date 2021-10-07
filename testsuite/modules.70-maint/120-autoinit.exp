@@ -203,22 +203,69 @@ set func_modcmd_ksh "\\s*eval `$tclshlocre $modulecmd_pathre ksh \"\\$\\@\"`;"
 set func_modcmd_zsh "\\s*eval `$tclshlocre $modulecmd_pathre zsh \"\\$\\@\"`;"
 }
 
-if {$is_stderr_tty} {
-    set func_name "_module_raw"
-    set add_func_sh "\nmodule\\\(\\\) { _module_raw \"\\\$\\\@\" 2>&1; };"
-    set add_func_fish "\nfunction module\n\\s*_module_raw \\\$argv 2>&1\nend"
-} else {
-    set func_name "module"
-    set add_func_sh ""
-    set add_func_fish ""
-}
+set func_name "_module_raw"
+set add_func_sh "\nmodule\\\(\\\) {
+\\s*local _mlredir=$is_stderr_tty;
+\\s*if \\\[ -n \"\\\${MODULES_REDIRECT_OUTPUT\\\+x}\" \\\]; then
+\\s*if \\\[ \"\\\$MODULES_REDIRECT_OUTPUT\" = '0' \\\]; then
+\\s*_mlredir=0;
+\\s*elif \\\[ \"\\\$MODULES_REDIRECT_OUTPUT\" = '1' \\\]; then
+\\s*_mlredir=1;
+\\s*fi;
+\\s*fi;
+\\s*case \" \\$\\@ \" in
+\\s*\\\*' --no-redirect '\\\*\\\) _mlredir=0 ;;
+\\s*\\\*' --redirect '\\\*\\\) _mlredir=1 ;;
+\\s*esac;
+\\s*if \\\[ \\\$_mlredir -eq 0 \\\]; then
+\\s*_module_raw \"\\$\\@\";
+\\s*else
+\\s*_module_raw \"\\$\\@\" 2>&1;
+\\s*fi;
+};"
+
+set add_func_ksh "\nmodule\\\(\\\) {
+\\s*typeset _mlredir=$is_stderr_tty;
+\\s*if \\\[ -n \"\\\${MODULES_REDIRECT_OUTPUT\\\+x}\" \\\]; then
+\\s*if \\\[ \"\\\$MODULES_REDIRECT_OUTPUT\" = '0' \\\]; then
+\\s*_mlredir=0;
+\\s*elif \\\[ \"\\\$MODULES_REDIRECT_OUTPUT\" = '1' \\\]; then
+\\s*_mlredir=1;
+\\s*fi;
+\\s*fi;
+\\s*case \" \\$\\@ \" in
+\\s*\\\*' --no-redirect '\\\*\\\) _mlredir=0 ;;
+\\s*\\\*' --redirect '\\\*\\\) _mlredir=1 ;;
+\\s*esac;
+\\s*if \\\[ \\\$_mlredir -eq 0 \\\]; then
+\\s*_module_raw \"\\$\\@\";
+\\s*else
+\\s*_module_raw \"\\$\\@\" 2>&1;
+\\s*fi;
+};"
+
+set add_func_fish "\nfunction module
+\\s*set _mlredir $is_stderr_tty
+\\s*if set -q MODULES_REDIRECT_OUTPUT
+\\s*if \\\[ \"\\\$MODULES_REDIRECT_OUTPUT\" = '0' \\\]
+\\s*set _mlredir 0
+\\s*else if \\\[ \"\\\$MODULES_REDIRECT_OUTPUT\" = '1' \\\]
+\\s*set _mlredir 1
+\\s*end
+\\s*end
+\\s*if contains -- --no-redirect \\\$argv; or begin ; \\\[ \\\$_mlredir -eq 0 \\\]; and not contains -- --redirect \\\$argv ; end
+\\s*_module_raw \\\$argv
+\\s*else
+\\s*_module_raw \\\$argv 2>&1
+\\s*end
+end"
 
 set func_bash_quar "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh_quar$func_modcmd_bash_quar\n$func_end_quar\n};$add_func_sh"
 set func_bash_silentdbg "$func_name\\\(\\\) {\n$func_silentdbg_silentdbg$func_quar_sh$func_modcmd_bash\n$func_end_silentdbg\n};$add_func_sh"
 
 set func_sh "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh$func_modcmd_sh\n$func_end\n};$add_func_sh"
 set func_bash "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh$func_modcmd_bash\n$func_end\n};$add_func_sh"
-set func_ksh "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh$func_modcmd_ksh\n$func_end\n};$add_func_sh"
+set func_ksh "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh$func_modcmd_ksh\n$func_end\n};$add_func_ksh"
 set func_zsh "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_zsh$func_modcmd_zsh\n$func_end\n};$add_func_sh"
 
 set eval_cmd_csh [expr {$install_wa277 eq {y} ? "eval `$tclshlocre $modulecmd_pathre csh \\\\!\\*`" : "eval \"`$tclshlocre $modulecmd_pathre csh \\\\!\\*:q`\""}]
