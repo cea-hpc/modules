@@ -757,8 +757,7 @@ ml() { module ml "$@"; };}
          }
       }
       fish {
-         set fdef [expr {[getState is_stderr_tty] ? "function _module_raw\n"\
-            : "function module\n"}]
+         set fdef "function _module_raw\n"
          if {[getConf quarantine_support]} {
             append fdef {   set -l _mlre ''; set -l _mlv; set -l _mlrv;
    for _mlv in (string split ' ' $MODULES_RUN_QUARANTINE)
@@ -781,14 +780,23 @@ ml() { module ml "$@"; };}
             append fdef "   eval $tclshbin $::argv0 [getState shell]\
                (string escape -- \$argv) | source -\n"
          }
-         if {[getState is_stderr_tty]} {
-            append fdef {end
+         append fdef "end
 function module
-   _module_raw $argv 2>&1
-end}
-         } else {
-            append fdef end
-         }
+   set _mlredir [getState is_stderr_tty]
+   if set -q MODULES_REDIRECT_OUTPUT
+      if \[ \"\$MODULES_REDIRECT_OUTPUT\" = '0' \]
+         set _mlredir 0
+      else if \[ \"\$MODULES_REDIRECT_OUTPUT\" = '1' \]
+         set _mlredir 1
+      end
+   end
+   if contains -- --no-redirect \$argv; or begin ; \[ \$_mlredir -eq 0\
+      \]; and not contains -- --redirect \$argv ; end
+      _module_raw \$argv
+   else
+      _module_raw \$argv 2>&1
+   end
+end"
          if {[getConf ml]} {
             append fdef {
 function ml
