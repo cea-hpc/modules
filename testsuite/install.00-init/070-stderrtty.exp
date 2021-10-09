@@ -142,8 +142,59 @@ file delete $disruptive_dir2
 
 
 } elseif {$verbose > 0} {
-   send_user "\tSkip test as STDERR is not attached to a TTY\n"
+    send_user "\tSkip most tests as STDERR is not attached to a TTY\n"
 }
+
+
+# test output redirection when shell is found or not attached to tty
+set tserr "Modules Release \\S+ (\\S+)"
+if {$is_stderr_tty} {
+    set dflout $tserr
+    set dflerr {}
+} else {
+    set dflout {}
+    set dflerr $tserr
+}
+
+foreach shell $shell_redir_list {
+   testall_cmd_re $shell {module --version} $dflout $dflerr 0
+   testall_cmd_re autoinit:$shell {module --version} $dflout $dflerr 0
+   testall_cmd_re $shell {module --version --redirect} $tserr {} 0
+   testall_cmd_re autoinit:$shell {module --version --redirect} $tserr {} 0
+   testall_cmd_re $shell {module --version --no-redirect} {} $tserr 0
+   testall_cmd_re autoinit:$shell {module --version --no-redirect} {} $tserr 0
+   # if --no-redirect is part of arg list it wins even if --redirect is set after
+   testall_cmd_re $shell {module --version --redirect --no-redirect} {} $tserr 0
+   testall_cmd_re $shell {module --version --no-redirect --redirect} {} $tserr 0
+
+   setenv_var MODULES_REDIRECT_OUTPUT 0
+   testall_cmd_re $shell {module --version} {} $tserr 0
+   testall_cmd_re $shell {module --version --redirect} $tserr {} 0
+   testall_cmd_re $shell {module --version --no-redirect} {} $tserr 0
+   testall_cmd_re $shell {module --version --redirect --no-redirect} {} $tserr 0
+   testall_cmd_re $shell {module --version --no-redirect --redirect} {} $tserr 0
+
+   setenv_var MODULES_REDIRECT_OUTPUT 1
+   testall_cmd_re $shell {module --version} $tserr {} 0
+   testall_cmd_re $shell {module --version --redirect} $tserr {} 0
+   testall_cmd_re $shell {module --version --no-redirect} {} $tserr 0
+   testall_cmd_re $shell {module --version --redirect --no-redirect} {} $tserr 0
+   testall_cmd_re $shell {module --version --no-redirect --redirect} {} $tserr 0
+
+   # bad value set on MODULES_REDIRECT_OUTPUT env var
+   # any value different than 0 or 1 is ignored
+   setenv_var MODULES_REDIRECT_OUTPUT foo
+   testall_cmd_re $shell {module --version} $dflout $dflerr 0
+   testall_cmd_re $shell {module --version --redirect} $tserr {} 0
+   testall_cmd_re $shell {module --version --no-redirect} {} $tserr 0
+   setenv_var MODULES_REDIRECT_OUTPUT {}
+   testall_cmd_re $shell {module --version} $dflout $dflerr 0
+   testall_cmd_re $shell {module --version --redirect} $tserr {} 0
+   testall_cmd_re $shell {module --version --no-redirect} {} $tserr 0
+
+   unsetenv_var MODULES_REDIRECT_OUTPUT
+}
+
 
 #
 #  Clean up variables used in this test case
