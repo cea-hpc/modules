@@ -216,6 +216,36 @@ lappend ans [list set LOADEDMODULES $module]
 
 testouterr_cmd "sh" "load $module" $ans ""
 
+# test unload mode on append-path --duplicates
+setenv_loaded_module [list $module] [list $modulefile]
+set ans [list]
+lappend ans [list unset __MODULES_SHARE_FOO]
+lappend ans [list unset FOO]
+lappend ans [list unset __MODULES_SHARE_BAR]
+lappend ans [list set BAR /path/to/dir1:/path/to/dir2]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $module" $ans {}
+
+setenv_var FOO /path/to/dir1:/path/to/dir2:/path/to/dir1
+setenv_var __MODULES_SHARE_FOO /path/to/dir1:2
+setenv_var BAR /path/to/dir1
+unsetenv_var __MODULES_SHARE_BAR
+
+set ans [list]
+lappend ans [list unset __MODULES_SHARE_FOO]
+lappend ans [list unset FOO]
+lappend ans [list unset BAR]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $module" $ans {}
+
+setenv_var FOO /path/to/dir1
+setenv_var __MODULES_SHARE_FOO /path/to/dir1:2
+setenv_var BAR /path/to/dir1:/path/to/dir2:/path/to/dir1
+setenv_var __MODULES_SHARE_BAR /path/to/dir1:2
+unsetenv_loaded_module
+
 set module "append/4.1"
 set modulefile "$modpath/$module"
 

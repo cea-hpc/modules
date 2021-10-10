@@ -213,6 +213,18 @@ lappend ans [list set LOADEDMODULES $module]
 
 testouterr_cmd "sh" "load $module" $ans [msg_load $module "$warn_msgs: --duplicates option has no effect on unload-path"]
 
+# test unload mode on remove-path --duplicates
+setenv_loaded_module [list $module] [list $modulefile]
+setenv_var FOO /path/to/dir1:/path/to/dir2
+unsetenv_var __MODULES_SHARE_FOO
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $module" $ans [msg_unload $module "$warn_msgs: --duplicates option has no effect on unload-path"]
+
+unsetenv_loaded_module
+
+
 #
 # Remove path in index mode
 #
