@@ -13,6 +13,15 @@ Modules 5.1.0 (not yet released)
 
 * Allow to declare :mfcmd:`variant` with no list of accepted value. Such
   variant accepts any value specified. (fix issue #405)
+* Add the :mconfig:`redirect_output` configuration option to control on *sh*,
+  *bash*, *ksh*, *zsh* and *fish* shells whether or not the output of the
+  :command:`module` function should be redirected from stderr to stdout. When
+  set, :mconfig:`redirect_output` defines :envvar:`MODULES_REDIRECT_OUTPUT`
+  environment variable.
+* Introduce the :option:`--redirect`/:option:`--no-redirect` command-line
+  switches to supersede the value of the :mconfig:`redirect_output`
+  configuration option on *sh*, *bash*, *ksh*, *zsh* and *fish* shells. (fix
+  issue #410)
 
 
 .. _5.0 release notes:

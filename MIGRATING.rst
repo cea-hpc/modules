@@ -8,6 +8,43 @@ Modules. It provides an overview of the new features and changed behaviors
 that will be encountered when upgrading.
 
 
+v5.1 (not yet released)
+=======================
+
+This new version is backward-compatible with previous version 5 release. It
+fixes bugs but also introduces new functionalities that are described in this
+section. See the :ref:`5.1 release notes<5.1 release notes>` for a complete
+list of the changes between Modules v5.0 and v5.1.
+
+Control output redirection
+--------------------------
+
+Since version 4.0, the :command:`module` function is initialized differently
+on *sh*, *bash*, *ksh*, *zsh* and *fish* shells when their session is found
+interactive. In such situation :command:`module` redirects its output from
+*stderr* to *stdout*. Once initialized the redirection behavior is inherited
+in sub-sessions.
+
+The :mconfig:`redirect_output` configuration option is introduced in version
+5.1, to supersede the default behavior set at initialization time.
+
+.. parsed-literal::
+
+    :ps:`$` module load unknown >/dev/null
+    :ps:`$` module config redirect_output 0
+    :ps:`$` module load unknown >/dev/null
+    :sgrer:`ERROR`: Unable to locate a modulefile for 'unknown'
+
+The :option:`--redirect` and :option:`--no-redirect` command-line switches are
+also added to change the output redirection behavior for a single command:
+
+.. parsed-literal::
+
+    :ps:`$` module load unknown --redirect >/dev/null
+    :ps:`$` module load unknown --no-redirect >/dev/null
+    :sgrer:`ERROR`: Unable to locate a modulefile for 'unknown'
+
+
 v5.0
 ====
 
