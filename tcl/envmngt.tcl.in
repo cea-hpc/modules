@@ -1405,7 +1405,10 @@ proc parsePathCommandArgs {cmd args} {
                }
             }
             --duplicates {
-               if {$cmd eq {unload-path}} {
+               # raise warning when option is used by remove-path but not for
+               # append-path/prepend-path on unload mode
+               if {$cmd eq {unload-path} && ([lindex [info level -2] 0] ne\
+                  {remove-path} || [getState mode] eq {load})} {
                   reportWarning "--duplicates option has no effect on $cmd"
                } else {
                   set allow_dup 1
