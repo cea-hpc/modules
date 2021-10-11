@@ -237,14 +237,23 @@ the *modulefile* is being loaded.
 
 .. mfcmd:: module [sub-command] [sub-command-options] [sub-command-args]
 
- Contains the same *sub-commands* as described in the :ref:`module(1)`
- man page in the :ref:`Module Sub-Commands` section. This command permits a
- *modulefile* to :subcmd:`load` or :subcmd:`unload` other *modulefiles*. No
- checks are made to ensure that the *modulefile* does not try to load itself.
- Often it is useful to have a single *modulefile* that performs a number of
- ``module load`` commands. For example, if every user on the system
- requires a basic set of applications loaded, then a core *modulefile*
- would contain the necessary ``module load`` commands.
+ Contains the same *sub-commands* as described in the :ref:`module(1)` man
+ page in the :ref:`Module Sub-Commands` section. Exception made for the
+ following sub-commands that can only be used outside of a modulefile context:
+ :subcmd:`path`, :subcmd:`paths`, :subcmd:`autoinit`, :subcmd:`help`,
+ :subcmd:`clear`, :subcmd:`sh-to-mod`, :subcmd:`edit`, :subcmd:`config`,
+ :subcmd:`refresh` and :subcmd:`source`. Also the following sub-commands
+ cannot be used but have a modulefile command counterpart:
+ :subcmd:`prepend-path`, :subcmd:`append-path`, :subcmd:`remove-path`,
+ :subcmd:`is-loaded`, :subcmd:`is-saved`, :subcmd:`is-used`,
+ :subcmd:`is-avail` and :subcmd:`info-loaded`.
+
+ This command permits a *modulefile* to :subcmd:`load` or :subcmd:`unload`
+ other *modulefiles*. No checks are made to ensure that the *modulefile* does
+ not try to load itself. Often it is useful to have a single *modulefile* that
+ performs a number of ``module load`` commands. For example, if every user on
+ the system requires a basic set of applications loaded, then a core
+ *modulefile* would contain the necessary ``module load`` commands.
 
  The ``--not-req`` option may be set for the ``load``, ``unload`` and
  ``switch`` sub-commands to inhibit the definition of an implicit prereq or
@@ -259,6 +268,11 @@ the *modulefile* is being loaded.
 
     .. versionchanged:: 4.7
        Sub-command option ``--no-req`` added
+
+    .. versionchanged:: 5.0
+       :subcmd:`source` sub-command is not allowed anymore and ``source`` Tcl
+       command should be used instead
+
 
 .. mfcmd:: module-alias name modulefile
 
