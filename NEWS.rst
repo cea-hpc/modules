@@ -22,6 +22,10 @@ Modules 5.1.0 (not yet released)
   switches to supersede the value of the :mconfig:`redirect_output`
   configuration option on *sh*, *bash*, *ksh*, *zsh* and *fish* shells. (fix
   issue #410)
+* Add the ``--return-value`` option to the :mfcmd:`getenv` and
+  :mfcmd:`getvariant` modulefile commands to force to return the value of
+  respectively designated environment variable or variant when modulefile is
+  evaluated in *display* mode. (fix issue #422)
 
 
 .. _5.0 release notes:
