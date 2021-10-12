@@ -1178,7 +1178,7 @@ proc setenv-wh {var args} {
 }
 
 # parse arguments sent to the getenv modulefile command
-proc parseGetenvCommandArgs {args} {
+proc parseGetenvCommandArgs {cmd args} {
    set returnval 0
    set valifundef {}
    switch -- [llength $args] {
@@ -1212,8 +1212,9 @@ proc parseGetenvCommandArgs {args} {
    }
 
    if {[info exists wrongargs]} {
-      knerror {wrong # args: should be "getenv ?--return-value? variable\
-         ?valifundef?"}
+      set argname [expr {$cmd eq {getenv} ? {variable} : {name}}]
+      knerror "wrong # args: should be \"$cmd ?--return-value? $argname\
+         ?valifundef?\""
    }
 
    return [list $var $valifundef $returnval]
@@ -1221,7 +1222,7 @@ proc parseGetenvCommandArgs {args} {
 
 proc getenv {args} {
    # parse args
-   lassign [parseGetenvCommandArgs {*}$args] var valifundef returnval
+   lassign [parseGetenvCommandArgs getenv {*}$args] var valifundef returnval
    reportDebug "variable='$var', valifundef='$valifundef',\
       returnval='$returnval'"
 
@@ -2323,16 +2324,19 @@ proc variant-wh {itrp args} {
    $itrp eval set "{::ModuleVariant($name)}" "{}"
 }
 
-proc getvariant {itrp name {valifundef {}}} {
-   reportDebug "name='$name', valifundef='$valifundef'"
+proc getvariant {itrp args} {
+   # parse args
+   lassign [parseGetenvCommandArgs getvariant {*}$args] name valifundef\
+      returnval
+   reportDebug "name='$name', valifundef='$valifundef',\
+      returnval='$returnval'"
 
-   if {[currentState mode] ne {display}} {
+   if {[currentState mode] ne {display} || $returnval} {
       if {[$itrp eval info exists "{::ModuleVariant($name)}"]} {
          return [$itrp eval set "{::ModuleVariant($name)}"]
       } else {
          return $valifundef
       }
-
    } else {
       return [sgr va "{$name}"]
    }
