@@ -175,7 +175,7 @@ the *modulefile* is being loaded.
     .. versionchanged:: 5.1
        Option ``--return-value`` added.
 
-.. mfcmd:: getvariant variant [value]
+.. mfcmd:: getvariant [--return-value] variant [value]
 
  Returns value of designated *variant*. If *variant* is not defined, *value*
  is returned if set, an empty string is returned otherwise. The
@@ -183,11 +183,16 @@ the *modulefile* is being loaded.
  :mfvar:`ModuleVariant` Tcl array to query a variant value.
 
  When modulefile is evaluated in *display* mode, :mfcmd:`getvariant` returns
- *variant* name enclosed in curly braces (e.g., ``{variant}``).
+ *variant* name enclosed in curly braces (e.g., ``{variant}``) unless if the
+ ``--return-value`` option is set. When this option is set the value of
+ *variant* or defined fallback value is returned in *display* mode.
 
  .. only:: html
 
     .. versionadded:: 4.8
+
+    .. versionchanged:: 5.1
+       Option ``--return-value`` added.
 
 .. mfcmd:: is-avail modulefile...
 

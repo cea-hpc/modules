@@ -713,6 +713,9 @@ Modules Specific Tcl Commands
  a list of accepted value defined. In this case, any value specified is
  accepted.
 
+ Starting version 5.1, the ``--return-value`` option is added to return
+ variant value or its fallback when modulefile is evaluated in *display* mode.
+
 Locating Modulefiles
 """"""""""""""""""""
 
