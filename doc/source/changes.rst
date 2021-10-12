@@ -690,6 +690,10 @@ Modules Specific Tcl Commands
  When passed environment variable is not defined, an empty string is returned
  by default rather ``_UNDEFINED_``.
 
+ Starting version 5.1, the ``--return-value`` option is added to return
+ environment variable value or its fallback when modulefile is evaluated in
+ *display* mode.
+
 :mfcmd:`module`
 
  Forbid use of :subcmd:`module source<source>` command in modulefile or in an

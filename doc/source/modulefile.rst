@@ -151,7 +151,7 @@ the *modulefile* is being loaded.
  modules will not be listed as loaded. No environment commands will be
  performed in the current module.
 
-.. mfcmd:: getenv variable [value]
+.. mfcmd:: getenv [--return-value] variable [value]
 
  Returns value of environment *variable*. If *variable* is not defined,
  *value* is returned if set, an empty string is returned otherwise. The
@@ -159,7 +159,10 @@ the *modulefile* is being loaded.
  ``env`` to query environment variables.
 
  When modulefile is evaluated in *display* mode, :mfcmd:`getenv` returns
- *variable* name prefixed with dollar sign (e.g., ``$variable``).
+ *variable* name prefixed with dollar sign (e.g., ``$variable``) unless if the
+ ``--return-value`` option is set. When this option is set the value of
+ environment *variable* or defined fallback value is returned in *display*
+ mode.
 
  .. only:: html
 
@@ -168,6 +171,9 @@ the *modulefile* is being loaded.
     .. versionchanged:: 5.0
        An empty string is returned instead of ``_UNDEFINED_`` when *variable*
        is not defined and no *value* is set
+
+    .. versionchanged:: 5.1
+       Option ``--return-value`` added.
 
 .. mfcmd:: getvariant variant [value]
 
