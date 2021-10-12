@@ -26,3 +26,32 @@
 
 setenv testsuite "[getenv TEST]"
 setenv testsuite2 [getenv TEST2 {}]
+
+if {[info exists env(TESTSUITE_GETENV)]} {
+    switch -- $env(TESTSUITE_GETENV) {
+        toomany1 {
+            setenv testsuite3 [getenv TEST {} other]
+        }
+        toomany2 {
+            setenv testsuite3 [getenv --return-value TEST {} other]
+        }
+        toofew1 {
+            setenv testsuite3 [getenv]
+        }
+        toofew2 {
+            setenv testsuite3 [getenv --return-value]
+        }
+        misplaced1 {
+            setenv testsuite3 [getenv TEST --return-value]
+        }
+        misplaced2 {
+            setenv testsuite3 [getenv TEST foo --return-value]
+        }
+        return1 {
+            setenv testsuite3 [getenv --return-value TEST]
+        }
+        return2 {
+            setenv testsuite3 [getenv --return-value TEST foo]
+        }
+    }
+}

@@ -70,6 +70,116 @@ testouterr_cmd "sh" "load $module" $ans ""
 # test displaying
 testouterr_cmd_re "sh" "display $module" "OK" "$modlin\n$modulefilere:\n\nsetenv\t\ttestsuite \\\$TEST\nsetenv\t\ttestsuite2 \\\$TEST2\n$modlin"
 
+
+#
+# test bad arguments
+#
+
+setenv_var TESTSUITE_GETENV toomany1
+set tserr [msg_load $module [msg_moderr {wrong # args: should be "getenv ?--return-value? variable ?valifundef?"} {getenv TEST {} other} $modulefile 33]]
+testouterr_cmd sh "load $module" ERR $tserr
+
+set tserr "$modlin
+$modulefilere:
+
+setenv\\s*testsuite\\s*\\\$TEST
+setenv\\s*testsuite2\\s*\\\$TEST2
+[escre [msg_moderr {wrong # args: should be "getenv ?--return-value? variable ?valifundef?"} {getenv TEST {} other} $modulefile 33 {  }]]
+$modlin"
+testouterr_cmd_re sh "display $module" ERR $tserr
+
+setenv_var TESTSUITE_GETENV toomany2
+set tserr [msg_load $module [msg_moderr {wrong # args: should be "getenv ?--return-value? variable ?valifundef?"} {getenv --return-value TEST {} other} $modulefile 36]]
+testouterr_cmd sh "load $module" ERR $tserr
+
+setenv_var TESTSUITE_GETENV toofew1
+set tserr [msg_load $module [msg_moderr {wrong # args: should be "getenv ?--return-value? variable ?valifundef?"} {getenv} $modulefile 39]]
+testouterr_cmd sh "load $module" ERR $tserr
+
+setenv_var TESTSUITE_GETENV toofew2
+set ans [list]
+lappend ans [list set testsuite2 yes]
+lappend ans [list set testsuite3 {}]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set testsuite yes]
+testouterr_cmd sh "load $module" $ans {}
+
+setenv_var TESTSUITE_GETENV misplaced1
+unsetenv_var TEST
+set ans [list]
+lappend ans [list set testsuite2 yes]
+lappend ans [list set testsuite3 --return-value]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set testsuite {}]
+testouterr_cmd sh "load $module" $ans {}
+
+setenv_var TESTSUITE_GETENV misplaced2
+set tserr [msg_load $module [msg_moderr {wrong # args: should be "getenv ?--return-value? variable ?valifundef?"} {getenv TEST foo --return-value} $modulefile 48]]
+testouterr_cmd sh "load $module" ERR $tserr
+
+setenv_var TESTSUITE_GETENV return1
+set ans [list]
+lappend ans [list set testsuite2 yes]
+lappend ans [list set testsuite3 {}]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set testsuite {}]
+testouterr_cmd sh "load $module" $ans {}
+
+set tserr "$modlin
+$modulefilere:
+
+setenv\\s*testsuite\\s*\\\$TEST
+setenv\\s*testsuite2\\s*\\\$TEST2
+setenv\\s*testsuite3\\s*{}
+$modlin"
+testouterr_cmd_re sh "display $module" OK $tserr
+
+setenv_var TEST bar
+
+set ans [list]
+lappend ans [list set testsuite2 yes]
+lappend ans [list set testsuite3 bar]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set testsuite bar]
+testouterr_cmd sh "load $module" $ans {}
+
+set tserr "$modlin
+$modulefilere:
+
+setenv\\s*testsuite\\s*\\\$TEST
+setenv\\s*testsuite2\\s*\\\$TEST2
+setenv\\s*testsuite3\\s*bar
+$modlin"
+testouterr_cmd_re sh "display $module" OK $tserr
+
+setenv_var TESTSUITE_GETENV return2
+testouterr_cmd sh "load $module" $ans {}
+testouterr_cmd_re sh "display $module" OK $tserr
+
+unsetenv_var TEST
+
+set ans [list]
+lappend ans [list set testsuite2 yes]
+lappend ans [list set testsuite3 foo]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set testsuite {}]
+testouterr_cmd sh "load $module" $ans {}
+
+set tserr "$modlin
+$modulefilere:
+
+setenv\\s*testsuite\\s*\\\$TEST
+setenv\\s*testsuite2\\s*\\\$TEST2
+setenv\\s*testsuite3\\s*foo
+$modlin"
+testouterr_cmd_re sh "display $module" OK $tserr
+
+
 #
 #  Cleanup
 #
