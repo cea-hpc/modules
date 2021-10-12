@@ -1177,10 +1177,55 @@ proc setenv-wh {var args} {
    return {}
 }
 
-proc getenv {var {valifundef {}}} {
-   reportDebug "var='$var', valifundef='$valifundef'"
+# parse arguments sent to the getenv modulefile command
+proc parseGetenvCommandArgs {args} {
+   set returnval 0
+   set valifundef {}
+   switch -- [llength $args] {
+      1 {
+         set var [lindex $args 0]
+      }
+      2 {
+         switch -- [lindex $args 0] {
+            --return-value {
+               set returnval 1
+               set var [lindex $args 1]
+            }
+            default {
+               set var [lindex $args 0]
+               set valifundef [lindex $args 1]
+            }
+         }
+      }
+      3 {
+         if {[lindex $args 0] ne {--return-value}} {
+            set wrongargs 1
+         } else {
+            set returnval 1
+            set var [lindex $args 1]
+            set valifundef [lindex $args 2]
+         }
+      }
+      default {
+         set wrongargs 1
+      }
+   }
 
-   if {[currentState mode] ne {display}} {
+   if {[info exists wrongargs]} {
+      knerror {wrong # args: should be "getenv ?--return-value? variable\
+         ?valifundef?"}
+   }
+
+   return [list $var $valifundef $returnval]
+}
+
+proc getenv {args} {
+   # parse args
+   lassign [parseGetenvCommandArgs {*}$args] var valifundef returnval
+   reportDebug "variable='$var', valifundef='$valifundef',\
+      returnval='$returnval'"
+
+   if {[currentState mode] ne {display} || $returnval} {
       return [get-env $var $valifundef]
    } else {
       return "\$$var"
