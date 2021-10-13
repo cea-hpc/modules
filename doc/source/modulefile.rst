@@ -154,7 +154,7 @@ the *modulefile* is being loaded.
 .. mfcmd:: getenv variable [value]
 
  Returns value of environment *variable*. If *variable* is not defined,
- *value* is returned if set, ``_UNDEFINED_`` is returned otherwise. The
+ *value* is returned if set, an empty string is returned otherwise. The
  :mfcmd:`getenv` command should be preferred over the Tcl global variable
  ``env`` to query environment variables.
 
@@ -164,6 +164,10 @@ the *modulefile* is being loaded.
  .. only:: html
 
     .. versionadded:: 4.0
+
+    .. versionchanged:: 5.0
+       An empty string is returned instead of ``_UNDEFINED_`` when *variable*
+       is not defined and no *value* is set
 
 .. mfcmd:: getvariant variant [value]
 
