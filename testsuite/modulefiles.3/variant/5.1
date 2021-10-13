@@ -1,0 +1,34 @@
+#%Module
+
+if {![info exists env(TESTSUITE_GETVARIANT)] || $env(TESTSUITE_GETVARIANT) ne {return1}} {
+    variant foo val1 val2 val3
+}
+
+if {[info exists env(TESTSUITE_GETVARIANT)]} {
+    switch -- $env(TESTSUITE_GETVARIANT) {
+        toomany1 {
+            setenv testsuite [getvariant foo {} other]
+        }
+        toomany2 {
+            setenv testsuite [getvariant --return-value foo {} other]
+        }
+        toofew1 {
+            setenv testsuite [getvariant]
+        }
+        toofew2 {
+            setenv testsuite [getvariant --return-value]
+        }
+        misplaced1 {
+            setenv testsuite [getvariant foo --return-value]
+        }
+        misplaced2 {
+            setenv testsuite [getvariant foo bar --return-value]
+        }
+        return1 {
+            setenv testsuite [getvariant --return-value foo bar]
+        }
+        return2 {
+            setenv testsuite [getvariant --return-value foo]
+        }
+    }
+}
