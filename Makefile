@@ -26,8 +26,8 @@ TCLSH83 := $(TCL_RELEASE83)/unix/tclsh
 MODULECMDTEST := modulecmd-test.tcl
 
 # definitions for enhanced diff tool (to review test results)
-ICDIFF_DLSRC := https://raw.githubusercontent.com/jeffkaufman/icdiff/release-1.9.5/
-ICDIFF_CHECKSUM := fd5825ede4c2853ba1747a8931b077c1
+ICDIFF_DLSRC := https://raw.githubusercontent.com/jeffkaufman/icdiff/release-2.0.4/
+ICDIFF_CHECKSUM := 597bd4cda393803e5991c43b78cab3b3
 
 # source definitions shared across the Makefiles of this project
 ifneq ($(wildcard Makefile.inc),Makefile.inc)
