@@ -8,6 +8,40 @@ documents those changes that are of interest to users and admins.
 
 .. _5.0 release notes:
 
+Modules 5.0.1 (2021-10-16)
+--------------------------
+
+* Doc: add *How to preserve my loaded environment when running screen* entry
+  in :ref:`FAQ`.
+* Fix the advanced version specifier resolution when the
+  :mconfig:`extended_default` option is off and :mconfig:`icase` option is on
+  when resolving version list specification. (fix issue #411)
+* Doc: improve the :ref:`log-module-command` cookbook to rely on the ``trace``
+  Tcl command to track every modulefile evaluation and module/ml procedure
+  calls. (fix issue #412)
+* Doc: fix missing space between list entries in :ref:`variants` design doc.
+  (fix issue #413)
+* Correctly detect tags set on loaded modules when refreshing them.
+* Set the :envvar:`__MODULES_AUTOINIT_INPROGRESS` environment variable when
+  running the :subcmd:`autoinit` sub-command and quit autoinit process if this
+  variable is found defined and equal to 1 when starting it. Ensure this way
+  that an autoinit process will not be triggered indefinitely by itself when
+  the :mconfig:`set_shell_startup` option is enabled and some module loaded at
+  initialization time relies on the execution of a bash script. (fix issue
+  #414)
+* Remove warning message when unloading a :mfcmd:`prepend-path` or
+  :mfcmd:`append-path` modulefile command with ``--duplicates`` option set.
+  (fix issue #421)
+* Clarify the module sub-commands that are allowed to be used within a
+  modulefile. (fix issue #423)
+* Install: set in the module magic cookie of the :file:`initrc` configuration
+  file installed by default the version of Modules required to evaluate this
+  file.
+* Doc: fix documentation of :mfcmd:`getenv` modulefile command to describe
+  that an empty string is now returned when designated environment variable is
+  not defined and no default value to return is specified.
+
+
 Modules 5.0.0 (2021-09-12)
 --------------------------
 
