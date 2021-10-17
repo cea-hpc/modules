@@ -843,8 +843,14 @@ if {[catch {
    # source site configuration script if any
    sourceSiteConfig
 
+   setState supported_shells {sh bash ksh zsh csh tcsh fish cmd tcl perl\
+      python ruby lisp cmake r}
+
    # Parse shell
    setState shell [lindex $argv 0]
+   if {[getState shell] ni [getState supported_shells]} {
+      reportErrorAndExit "Unknown shell type \'([getState shell])\'"
+   }
    switch -- [getState shell] {
       sh - bash - ksh - zsh {
          setState shelltype sh
@@ -852,11 +858,8 @@ if {[catch {
       csh - tcsh {
          setState shelltype csh
       }
-      fish - cmd - tcl - perl - python - ruby - lisp - cmake - r {
-         setState shelltype [getState shell]
-      }
       default {
-         reportErrorAndExit "Unknown shell type \'([getState shell])\'"
+         setState shelltype [getState shell]
       }
    }
 
