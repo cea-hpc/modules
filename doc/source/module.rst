@@ -1365,6 +1365,15 @@ Module Sub-Commands
 
     .. versionadded:: 4.0
 
+.. subcmd:: state [name]
+
+ Gets :file:`modulecmd.tcl` states. Reports the currently set value
+ of passed state *name* or all existing states if no *name* passed.
+
+ .. only:: html
+
+    .. versionadded:: 5.1
+
 .. subcmd:: swap [--auto|--no-auto] [-f] [modulefile1] modulefile2
 
  See :subcmd:`switch`.

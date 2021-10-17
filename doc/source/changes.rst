@@ -800,6 +800,18 @@ The following command line switches appeared on Modules 5.
 | 5.1        | :option:`--redirect`, :option:`--no-redirect`                   |
 +------------+-----------------------------------------------------------------+
 
+Module Sub-Commands
+"""""""""""""""""""
+
+The following module sub-commands appeared on Modules 5.
+
++------------+-----------------------------------------------------------------+
+| Introduced | New module sub-commands                                         |
+| in version |                                                                 |
++============+=================================================================+
+| 5.1        | :subcmd:`state`                                                 |
++------------+-----------------------------------------------------------------+
+
 Environment
 """""""""""
 

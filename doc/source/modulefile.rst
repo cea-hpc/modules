@@ -257,8 +257,8 @@ the *modulefile* is being loaded.
  following sub-commands that can only be used outside of a modulefile context:
  :subcmd:`path`, :subcmd:`paths`, :subcmd:`autoinit`, :subcmd:`help`,
  :subcmd:`clear`, :subcmd:`sh-to-mod`, :subcmd:`edit`, :subcmd:`config`,
- :subcmd:`refresh` and :subcmd:`source`. Also the following sub-commands
- cannot be used but have a modulefile command counterpart:
+ :subcmd:`refresh`, :subcmd:`source` and :subcmd:`state`. Also the following
+ sub-commands cannot be used but have a modulefile command counterpart:
  :subcmd:`prepend-path`, :subcmd:`append-path`, :subcmd:`remove-path`,
  :subcmd:`is-loaded`, :subcmd:`is-saved`, :subcmd:`is-used`,
  :subcmd:`is-avail` and :subcmd:`info-loaded`.
