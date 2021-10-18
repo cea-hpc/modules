@@ -1983,6 +1983,68 @@ proc cmdModuleClear {doit doitset} {
    }
 }
 
+proc cmdModuleState {args} {
+   if {[llength $args] > 0} {
+      set name [lindex $args 0]
+   }
+
+   if {[info exists name] && $name ni [concat [array names ::g_state_defs]\
+      [array names ::g_states]]} {
+      knerror "State '$name' does not exist"
+   }
+
+   # report module version unless if called by cmdModuleConfig
+   if {[lindex [info level -1] 0] ne {cmdModuleConfig}} {
+      reportVersion
+      reportSeparateNextContent
+   }
+
+   displayTableHeader hi {State name} 24 {Value} 54
+
+   # fetch specified state or all states
+   if {[info exists name]} {
+      if {$name in [array names ::g_state_defs]} {
+         set stateval($name) [getState $name <undef> 1]
+      } else {
+         set stateval($name) [getState $name]
+      }
+   } else {
+      # define each attribute/fetched state value pair
+      foreach state [array names ::g_state_defs] {
+         set stateval($state) [getState $state <undef> 1]
+      }
+      # also get dynamic states (with no prior definition)
+      foreach state [array names ::g_states] {
+         if {![info exists stateval($state)]} {
+            set stateval($state) [getState $state]
+         }
+      }
+   }
+
+   foreach state [lsort [array names stateval]] {
+      append displist [format {%-25s %s} $state $stateval($state)] \n
+   }
+   report $displist 1
+   reportSeparateNextContent
+
+   # only report specified state if any
+   if {[info exists name]} {
+      return
+   }
+
+   # report environment variable set related to Modules
+   displayTableHeader hi {Env. variable} 24 {Value} 54
+   set envvar_list {}
+   foreach var [list LOADEDMODULES _LMFILES_ MODULE* __MODULES_* *_module*] {
+      lappend envvar_list {*}[array names ::env -glob $var]
+   }
+   unset displist
+   foreach var [lsort -unique $envvar_list] {
+      append displist [format {%-25s %s} $var $::env($var)] \n
+   }
+   report $displist 1
+}
+
 proc cmdModuleConfig {dump_state args} {
    # parse arguments
    set nameunset 0
@@ -2113,37 +2175,7 @@ proc cmdModuleConfig {dump_state args} {
       reportSeparateNextContent
 
       if {$dump_state} {
-         displayTableHeader hi {State name} 24 {Value} 54
-         # define each attribute/fetched state value pair
-         foreach state [array names ::g_state_defs] {
-            set stateval($state) [getState $state <undef> 1]
-         }
-         # also get dynamic states (with no prior definition)
-         foreach state [array names ::g_states] {
-            if {![info exists stateval($state)]} {
-               set stateval($state) [getState $state]
-            }
-         }
-
-         unset displist
-         foreach state [lsort [array names stateval]] {
-            append displist [format {%-25s %s} $state $stateval($state)] \n
-         }
-         report $displist 1
-         reportSeparateNextContent
-
-         # report environment variable set related to Modules
-         displayTableHeader hi {Env. variable} 24 {Value} 54
-         set envvar_list {}
-         foreach var [list LOADEDMODULES _LMFILES_ MODULE* __MODULES_*\
-            *_module*] {
-            lappend envvar_list {*}[array names ::env -glob $var]
-         }
-         unset displist
-         foreach var [lsort -unique $envvar_list] {
-            append displist [format {%-25s %s} $var $::env($var)] \n
-         }
-         report $displist 1
+         cmdModuleState
       }
    }
 }

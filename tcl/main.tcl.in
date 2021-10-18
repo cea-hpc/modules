@@ -149,7 +149,7 @@ proc parseModuleCommandName {command defaultcmd} {
       restore saverm saveshow savelist initadd initprepend initswitch initrm\
       initlist initclear autoinit clear config help test prepend-path\
       append-path remove-path is-loaded is-saved is-used is-avail info-loaded\
-      sh-to-mod edit try-load refresh]}]
+      sh-to-mod edit try-load refresh state]}]
 
    return [list $command $cmdvalid $cmdempty]
 }
@@ -376,7 +376,7 @@ proc module {command args} {
       switch -- $command {
          path - paths - autoinit - help - prepend-path - append-path -\
          remove-path - is-loaded - is-saved - is-used - is-avail -\
-         info-loaded - clear - sh-to-mod - edit - refresh - source {
+         info-loaded - clear - sh-to-mod - edit - refresh - source - state {
             knerror "${msgprefix}Command '$command' not supported$tryhelpmsg"
          }
       }
@@ -416,7 +416,7 @@ proc module {command args} {
             set argnberr 1
          }
       }
-      search - save - restore - saverm - saveshow - clear {
+      search - save - restore - saverm - saveshow - clear - state {
          if {[llength $args] > 1} {
             set argnberr 1
          }
@@ -696,6 +696,9 @@ proc module {command args} {
       }
       config {
          cmdModuleConfig $dump_state {*}$args
+      }
+      state {
+         cmdModuleState {*}$args
       }
       sh-to-mod {
          cmdModuleShToMod {*}$args
