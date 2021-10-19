@@ -182,38 +182,41 @@ set modulefile $mp/$module
 set modulefilere $mpre/$module
 
 setenv_var TESTSUITE_GETVARIANT toomany1
-set tserr [msg_load $module{foo=val1} [msg_moderr {wrong # args: should be "getvariant ?--return-value? name ?valifundef?"} {getvariant foo {} other} $modulefile 10]]
-testouterr_cmd sh "load $module foo=val1" ERR $tserr
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {7} : {10}}]
+set tserr [escre [msg_load $module{foo=val1} [msg_moderr {wrong # args: should be "getvariant ?--return-value? name ?valifundef?"} {getvariant foo {} other<EXM>} $modulefile $ln]]]
+testouterr_cmd_re sh "load $module foo=val1" ERR $tserr
 
 set tserr "$modlin
 $modulefilere:
 
 variant\\s*foo\\s*val1 val2 val3
-[escre [msg_moderr {wrong # args: should be "getvariant ?--return-value? name ?valifundef?"} {getvariant foo {} other} $modulefile 10 {  }]]
+[escre [msg_moderr {wrong # args: should be "getvariant ?--return-value? name ?valifundef?"} {getvariant foo {} other<EXM>} $modulefile $ln {  }]]
 $modlin"
 testouterr_cmd_re sh "display $module foo=val1" ERR $tserr
 
 setenv_var TESTSUITE_GETVARIANT toomany2
-set tserr [msg_load $module{foo=val1} [msg_moderr {wrong # args: should be "getvariant ?--return-value? name ?valifundef?"} {getvariant --return-value foo {} other} $modulefile 13]]
-testouterr_cmd sh "load $module foo=val1" ERR $tserr
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {7} : {13}}]
+set tserr [escre [msg_load $module{foo=val1} [msg_moderr {wrong # args: should be "getvariant ?--return-value? name ?valifundef?"} {getvariant --return-value foo {} other<EXM>} $modulefile $ln]]]
+testouterr_cmd_re sh "load $module foo=val1" ERR $tserr
 
 set tserr "$modlin
 $modulefilere:
 
 variant\\s*foo\\s*val1 val2 val3
-[escre [msg_moderr {wrong # args: should be "getvariant ?--return-value? name ?valifundef?"} {getvariant --return-value foo {} other} $modulefile 13 {  }]]
+[escre [msg_moderr {wrong # args: should be "getvariant ?--return-value? name ?valifundef?"} {getvariant --return-value foo {} other<EXM>} $modulefile $ln {  }]]
 $modlin"
 testouterr_cmd_re sh "display $module foo=val1" ERR $tserr
 
 setenv_var TESTSUITE_GETVARIANT toofew1
-set tserr [msg_load $module{foo=val1} [msg_moderr {wrong # args: should be "getvariant ?--return-value? name ?valifundef?"} {getvariant} $modulefile 16]]
-testouterr_cmd sh "load $module foo=val1" ERR $tserr
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {7} : {16}}]
+set tserr [escre [msg_load $module{foo=val1} [msg_moderr {wrong # args: should be "getvariant ?--return-value? name ?valifundef?"} {getvariant<EXM>} $modulefile $ln]]]
+testouterr_cmd_re sh "load $module foo=val1" ERR $tserr
 
 set tserr "$modlin
 $modulefilere:
 
 variant\\s*foo\\s*val1 val2 val3
-[escre [msg_moderr {wrong # args: should be "getvariant ?--return-value? name ?valifundef?"} {getvariant} $modulefile 16 {  }]]
+[escre [msg_moderr {wrong # args: should be "getvariant ?--return-value? name ?valifundef?"} {getvariant<EXM>} $modulefile $ln {  }]]
 $modlin"
 testouterr_cmd_re sh "display $module foo=val1" ERR $tserr
 
@@ -250,14 +253,15 @@ $modlin"
 testouterr_cmd_re sh "display $module foo=val1" OK $tserr
 
 setenv_var TESTSUITE_GETVARIANT misplaced2
-set tserr [msg_load $module{foo=val1} [msg_moderr {wrong # args: should be "getvariant ?--return-value? name ?valifundef?"} {getvariant foo bar --return-value} $modulefile 25]]
-testouterr_cmd sh "load $module foo=val1" ERR $tserr
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {7} : {25}}]
+set tserr [escre [msg_load $module{foo=val1} [msg_moderr {wrong # args: should be "getvariant ?--return-value? name ?valifundef?"} {getvariant foo bar --return-value<EXM>} $modulefile $ln]]]
+testouterr_cmd_re sh "load $module foo=val1" ERR $tserr
 
 set tserr "$modlin
 $modulefilere:
 
 variant\\s*foo\\s*val1 val2 val3
-[escre [msg_moderr {wrong # args: should be "getvariant ?--return-value? name ?valifundef?"} {getvariant foo bar --return-value} $modulefile 25 {  }]]
+[escre [msg_moderr {wrong # args: should be "getvariant ?--return-value? name ?valifundef?"} {getvariant foo bar --return-value<EXM>} $modulefile $ln {  }]]
 $modlin"
 testouterr_cmd_re sh "display $module foo=val1" ERR $tserr
 

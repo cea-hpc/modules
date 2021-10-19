@@ -76,25 +76,28 @@ testouterr_cmd_re "sh" "display $module" "OK" "$modlin\n$modulefilere:\n\nsetenv
 #
 
 setenv_var TESTSUITE_GETENV toomany1
-set tserr [msg_load $module [msg_moderr {wrong # args: should be "getenv ?--return-value? variable ?valifundef?"} {getenv TEST {} other} $modulefile 33]]
-testouterr_cmd sh "load $module" ERR $tserr
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {30} : {33}}]
+set tserr [escre [msg_load $module [msg_moderr {wrong # args: should be "getenv ?--return-value? variable ?valifundef?"} {getenv TEST {} other<EXM>} $modulefile $ln]]]
+testouterr_cmd_re sh "load $module" ERR $tserr
 
 set tserr "$modlin
 $modulefilere:
 
 setenv\\s*testsuite\\s*\\\$TEST
 setenv\\s*testsuite2\\s*\\\$TEST2
-[escre [msg_moderr {wrong # args: should be "getenv ?--return-value? variable ?valifundef?"} {getenv TEST {} other} $modulefile 33 {  }]]
+[escre [msg_moderr {wrong # args: should be "getenv ?--return-value? variable ?valifundef?"} {getenv TEST {} other<EXM>} $modulefile $ln {  }]]
 $modlin"
 testouterr_cmd_re sh "display $module" ERR $tserr
 
 setenv_var TESTSUITE_GETENV toomany2
-set tserr [msg_load $module [msg_moderr {wrong # args: should be "getenv ?--return-value? variable ?valifundef?"} {getenv --return-value TEST {} other} $modulefile 36]]
-testouterr_cmd sh "load $module" ERR $tserr
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {30} : {36}}]
+set tserr [escre [msg_load $module [msg_moderr {wrong # args: should be "getenv ?--return-value? variable ?valifundef?"} {getenv --return-value TEST {} other<EXM>} $modulefile $ln]]]
+testouterr_cmd_re sh "load $module" ERR $tserr
 
 setenv_var TESTSUITE_GETENV toofew1
-set tserr [msg_load $module [msg_moderr {wrong # args: should be "getenv ?--return-value? variable ?valifundef?"} {getenv} $modulefile 39]]
-testouterr_cmd sh "load $module" ERR $tserr
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {30} : {39}}]
+set tserr [escre [msg_load $module [msg_moderr {wrong # args: should be "getenv ?--return-value? variable ?valifundef?"} {getenv<EXM>} $modulefile $ln]]]
+testouterr_cmd_re sh "load $module" ERR $tserr
 
 setenv_var TESTSUITE_GETENV toofew2
 set ans [list]
@@ -116,8 +119,9 @@ lappend ans [list set testsuite {}]
 testouterr_cmd sh "load $module" $ans {}
 
 setenv_var TESTSUITE_GETENV misplaced2
-set tserr [msg_load $module [msg_moderr {wrong # args: should be "getenv ?--return-value? variable ?valifundef?"} {getenv TEST foo --return-value} $modulefile 48]]
-testouterr_cmd sh "load $module" ERR $tserr
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {30} : {48}}]
+set tserr [escre [msg_load $module [msg_moderr {wrong # args: should be "getenv ?--return-value? variable ?valifundef?"} {getenv TEST foo --return-value<EXM>} $modulefile $ln]]]
+testouterr_cmd_re sh "load $module" ERR $tserr
 
 setenv_var TESTSUITE_GETENV return1
 set ans [list]
