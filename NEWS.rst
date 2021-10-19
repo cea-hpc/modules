@@ -26,6 +26,10 @@ Modules 5.1.0 (not yet released)
   :mfcmd:`getvariant` modulefile commands to force to return the value of
   respectively designated environment variable or variant when modulefile is
   evaluated in *display* mode. (fix issue #422)
+* Introduce the :subcmd:`state` sub-command to display Modules states.
+* Add the ``supported_shells`` state to get the list of the shells that are
+  supported by :file:`modulecmd.tcl` through the :subcmd:`state` sub-command .
+  (fix issue #426)
 
 
 .. _5.0 release notes:
