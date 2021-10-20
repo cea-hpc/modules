@@ -184,3 +184,5 @@ Specification
         - appearing in newly prepended entries or newly appended entries and in entries defined prior script evaluation
 
 - An environment variable equaling to the path separator character (``:``) prior script evaluation is considered as undefined prior script evaluation to avoid misleading analysis
+
+- **FUTURE**: this feature may be extended to translate environment changes made by tools like Spack, Lmod or pkg-config. It may provide this way bridges between different realms.
