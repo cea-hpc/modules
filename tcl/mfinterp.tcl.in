@@ -1782,7 +1782,8 @@ proc execShAndGetEnv {shell script args} {
    set shellopts [list]
 
    upvar ignvarlist ignvarlist
-   set ignvarlist [list OLDPWD PWD _ _AST_FEATURES PS1]
+   set ignvarlist [list OLDPWD PWD _ _AST_FEATURES PS1 _LMFILES_\
+      LOADEDMODULES]
 
    # define shell command to run to source script and analyze the environment
    # changes it performs
@@ -1976,12 +1977,15 @@ proc sh-to-mod {args} {
    # check environment variable change
    lassign [getDiffBetweenArray varbef varaft] notaft diff notbef
    foreach name $notaft {
-      if {$name ni $ignvarlist} {
+      # also ignore Modules variables intended for internal use
+      if {$name ni $ignvarlist && ![string equal -length 10 $name\
+         __MODULES_]} {
          lappend modcontent [list unsetenv $name]
       }
    }
    foreach name $diff {
-      if {$name ni $ignvarlist} {
+      if {$name ni $ignvarlist && ![string equal -length 10 $name\
+         __MODULES_]} {
          # new value is totally different (also consider a bare ':' as a
          # totally different value to avoid erroneous matches)
          if {$varbef($name) eq $pathsep || [set idx [string first\
@@ -2032,7 +2036,8 @@ proc sh-to-mod {args} {
       }
    }
    foreach name $notbef {
-      if {$name ni $ignvarlist} {
+      if {$name ni $ignvarlist && ![string equal -length 10 $name\
+         __MODULES_]} {
          if {[string first $pathsep $varaft($name)] == -1} {
             lappend modcontent [list setenv $name $varaft($name)]
          } else {
