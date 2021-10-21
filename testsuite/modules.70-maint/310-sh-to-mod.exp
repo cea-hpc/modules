@@ -626,6 +626,51 @@ testouterr_shtomod ALL {} ERR "$error_msgs: Script '<SCRIPTSH>' exited abnormall
 setenv_var TESTSUITE_SHTOMOD_ERRMSG 1
 testouterr_shtomod ALL {} ERR "$error_msgs: Script '<SCRIPTSH>' exited abnormally\n    with following output\n  output message\n  error message"
 
+unsetenv_var TESTSUITE_SHTOMOD_EXIT1
+unsetenv_var TESTSUITE_SHTOMOD_OUTMSG
+unsetenv_var TESTSUITE_SHTOMOD_ERRMSG
+
+
+# usage of module in script
+setenv_path_var MODULEPATH $modpath
+setenv_var TESTSUITE_SHTOMOD_MODULE 1
+# set things to trigger a module autoinit within test script in order to ensure
+# module is defined, then cleanup not to report this setup within the environment
+# changes made by the script
+setenv_var MODULES_SET_SHELL_STARTUP 0
+setenv_var MODULES_CMD [file normalize $env(TESTSUITEDIR)/../modulecmd.tcl]
+setenv_var TCLSH $TCLSH
+set tserr "#%Module\n$tscwd\n$tsvarpre\n$tsvar\n"
+if {$install_versioning eq {y}} {
+    append tserr "setenv\t\tMODULE_VERSION $install_version
+setenv\t\tMODULE_VERSION_STACK $install_version\n"
+}
+append tserr "setenv\t\tMODULES_COLLECTION_TARGET bar
+setenv\t\ttestsuite yes"
+testouterr_shtomod ALL {} OK $tserr
+
+# already set variable with equal or different value
+setenv_var MODULES_COLLECTION_TARGET foo
+setenv_var testsuite yes
+set tserr "#%Module\n$tscwd\n$tsvarpre\n$tsvar\n"
+if {$install_versioning eq {y}} {
+    append tserr "setenv\t\tMODULE_VERSION $install_version
+setenv\t\tMODULE_VERSION_STACK $install_version\n"
+}
+append tserr "setenv\t\tMODULES_COLLECTION_TARGET bar"
+testouterr_shtomod bash {} OK $tserr
+
+# module is loaded prior sh-to-mod
+setenv_var testsuite no
+setenv_loaded_module [list setenv/1.0] [list $modpath/setenv/1.0]
+set tserr "#%Module\n$tscwd\n$tsvarpre\n$tsvar\n"
+if {$install_versioning eq {y}} {
+    append tserr "setenv\t\tMODULE_VERSION $install_version
+setenv\t\tMODULE_VERSION_STACK $install_version\n"
+}
+append tserr "setenv\t\tMODULES_COLLECTION_TARGET bar"
+testouterr_shtomod bash {} OK $tserr
+
 
 #
 #  Cleanup

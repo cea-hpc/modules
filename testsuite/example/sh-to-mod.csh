@@ -81,4 +81,13 @@ if ( $?TESTSUITE_SHTOMOD_EMPTYPREPEND ) then
    setenv TESTSUITE_SHTOMOD_EMPTYPREPEND :$TESTSUITE_SHTOMOD_EMPTYPREPEND
 endif
 
+if ( $?TESTSUITE_SHTOMOD_MODULE ) then
+   eval `$TCLSH $MODULES_CMD csh autoinit`
+   module config collection_target bar
+   module load setenv/1.0
+   unalias ml
+   unalias module
+   unsetenv MODULESHOME
+endif
+
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

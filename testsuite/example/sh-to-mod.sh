@@ -95,4 +95,20 @@ if [ "${TESTSUITE_SHTOMOD_EMPTYPREPEND:+x}" = 'x' ]; then
    TESTSUITE_SHTOMOD_EMPTYPREPEND=:$TESTSUITE_SHTOMOD_EMPTYPREPEND
 fi
 
+if [ "${TESTSUITE_SHTOMOD_MODULE:+x}" = 'x' ]; then
+   module load 2>/dev/null
+   if [ $? -ne 0 ]; then
+      eval $($TCLSH $MODULES_CMD sh autoinit)
+      autoinit=1
+   else
+      autoinit=0
+   fi
+   module config collection_target bar
+   module load setenv/1.0
+   if [ $autoinit -eq 1 ]; then
+      unset -f ml module _module_raw
+      unset MODULESHOME
+   fi
+fi
+
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

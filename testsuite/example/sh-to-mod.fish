@@ -95,4 +95,12 @@ if set -q TESTSUITE_SHTOMOD_EMPTYPREPEND
    set -xg TESTSUITE_SHTOMOD_EMPTYPREPEND :$TESTSUITE_SHTOMOD_EMPTYPREPEND
 end
 
+if set -q TESTSUITE_SHTOMOD_MODULE
+   eval $TCLSH $MODULES_CMD fish autoinit | source -
+   module config collection_target bar
+   module load setenv/1.0
+   functions -e ml module _module_raw
+   set -e MODULESHOME
+end
+
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
