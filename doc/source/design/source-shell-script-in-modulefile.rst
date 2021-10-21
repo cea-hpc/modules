@@ -185,4 +185,11 @@ Specification
 
 - An environment variable equaling to the path separator character (``:``) prior script evaluation is considered as undefined prior script evaluation to avoid misleading analysis
 
+- Environment variables made for Modules private use are filtered-out from the environment changes produced
+
+    - ``LOADEDMODULES``, ``_LMFILES_`` and any variable prefixed by ``__MODULES_`` are concerned
+    - Changes relative to Modules state are ignored this way
+    - If script loads in turn a modulefile, environment changes reported will not report the loaded module but only the environment changes it does
+    - Modules configuration variable (prefixed by ``MODULES_``) are still taken into account
+
 - **FUTURE**: this feature may be extended to translate environment changes made by tools like Spack, Lmod or pkg-config. It may provide this way bridges between different realms.
