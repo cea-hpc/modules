@@ -1342,6 +1342,9 @@ Module Sub-Commands
  Changes on environment variables, shell aliases, shell functions and current
  working directory are tracked.
 
+ Changes made on environment variable intended for Modules private use (e.g.,
+ :envvar:`LOADEDMODULES`, :envvar:`_LMFILES_`, ``__MODULES_*``) are ignored.
+
  *Shell* could be specified as a command name or a fully qualified pathname.
  The following shells are supported: sh, dash, csh, tcsh, bash, ksh, ksh93,
  zsh and fish.
@@ -1349,6 +1352,9 @@ Module Sub-Commands
  .. only:: html
 
     .. versionadded:: 4.6
+
+    .. versionchanged:: 5.1
+       Changes on Modules private environment variable are ignored
 
 .. subcmd:: show modulefile...
 
