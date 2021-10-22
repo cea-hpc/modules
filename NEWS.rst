@@ -30,6 +30,9 @@ Modules 5.1.0 (not yet released)
 * Add the ``supported_shells`` state to get the list of the shells that are
   supported by :file:`modulecmd.tcl` through the :subcmd:`state` sub-command .
   (fix issue #426)
+* Filter out the variables intended for Modules private usage when processing
+  the environment changes made by a script evaluated by :subcmd:`sh-to-mod`
+  sub-command or :mfcmd:`source-sh` modulefile command. (fix issue #427)
 
 
 .. _5.0 release notes:
