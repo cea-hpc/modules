@@ -1020,6 +1020,119 @@ unsetenv_var __MODULES_LMSOURCESH
 unsetenv_path_var FOOESC
 
 
+# test use of module command in script
+setenv_path_var MODULEPATH $modpath:$modpath.2
+setenv_var TESTSUITE_SHTOMOD_NOVAR 1
+setenv_var TESTSUITE_SHTOMOD_NOPATH 1
+setenv_var TESTSUITE_SHTOMOD_NOALIAS 1
+setenv_var TESTSUITE_SHTOMOD_NOFUNC 1
+setenv_var TESTSUITE_SHTOMOD_NOCD 1
+setenv_var TESTSUITE_SHTOMOD_MODULE 1
+# set things to trigger a module autoinit within test script in order to ensure
+# module is defined, then cleanup not to report this setup within the environment
+# changes made by the script
+setenv_var MODULES_SET_SHELL_STARTUP 0
+setenv_var MODULES_CMD [file normalize $env(TESTSUITEDIR)/../modulecmd.tcl]
+setenv_var TCLSH $TCLSH
+
+set ans [list]
+if {$install_versioning eq {y}} {
+lappend ans [list set MODULE_VERSION_STACK $install_version]
+}
+lappend ans [list set _LMFILES_ $mp/source-sh/1]
+lappend ans [list set LOADEDMODULES source-sh/1]
+lappend ans [list set testsuite yes]
+lappend ans [list set MODULES_COLLECTION_TARGET bar]
+if {$install_versioning eq {y}} {
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULE_VERSION\ $install_version\|setenv\ MODULE_VERSION_STACK\ $install_version\|setenv\ MODULES_COLLECTION_TARGET\ bar\|setenv\ testsuite\ yes]
+} else {
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULES_COLLECTION_TARGET\ bar\|setenv\ testsuite\ yes]
+}
+if {$install_versioning eq {y}} {
+lappend ans [list set MODULE_VERSION $install_version]
+}
+testouterr_cmd sh {load source-sh/1} $ans {}
+
+set tserr "-------------------------------------------------------------------
+$mp/source-sh/1:\n\n"
+if {$install_versioning eq {y}} {
+    append tserr "setenv\t\tMODULE_VERSION $install_version
+setenv\t\tMODULE_VERSION_STACK $install_version\n"
+}
+append tserr "setenv\t\tMODULES_COLLECTION_TARGET bar
+setenv\t\ttestsuite yes
+module-whatis\tsource-sh/1
+-------------------------------------------------------------------"
+testouterr_cmd sh {display source-sh/1} OK $tserr
+
+set tserr "$modlin
+Module Specific Help for $mpre/source-sh/1:
+
+$warn_msgs: Unable to find ModulesHelp in $mpre/source-sh/1.
+$modlin"
+testouterr_cmd_re sh {help source-sh/1} OK $tserr
+
+set tserr "$modlin
+Module Specific Test for $mpre/source-sh/1:
+
+$warn_msgs: Unable to find ModulesTest in $mpre/source-sh/1.
+$modlin"
+testouterr_cmd_re sh {test source-sh/1} OK $tserr
+
+# already set variable with equal or different value
+setenv_var MODULES_COLLECTION_TARGET foo
+setenv_var testsuite yes
+set ans [list]
+if {$install_versioning eq {y}} {
+lappend ans [list set MODULE_VERSION_STACK $install_version]
+}
+lappend ans [list set _LMFILES_ $mp/source-sh/1]
+lappend ans [list set LOADEDMODULES source-sh/1]
+lappend ans [list set MODULES_COLLECTION_TARGET bar]
+if {$install_versioning eq {y}} {
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULE_VERSION\ $install_version\|setenv\ MODULE_VERSION_STACK\ $install_version\|setenv\ MODULES_COLLECTION_TARGET\ bar]
+} else {
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULES_COLLECTION_TARGET\ bar]
+}
+if {$install_versioning eq {y}} {
+lappend ans [list set MODULE_VERSION $install_version]
+}
+testouterr_cmd sh {load source-sh/1} $ans {}
+
+# module is loaded prior sh-to-mod
+setenv_var testsuite no
+setenv_loaded_module [list setenv/1.0] [list $modpath/setenv/1.0]
+set ans [list]
+if {$install_versioning eq {y}} {
+lappend ans [list set MODULE_VERSION_STACK $install_version]
+}
+lappend ans [list set _LMFILES_ $modpath/setenv/1.0:$mp/source-sh/1]
+lappend ans [list set LOADEDMODULES setenv/1.0:source-sh/1]
+lappend ans [list set MODULES_COLLECTION_TARGET bar]
+if {$install_versioning eq {y}} {
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULE_VERSION\ $install_version\|setenv\ MODULE_VERSION_STACK\ $install_version\|setenv\ MODULES_COLLECTION_TARGET\ bar]
+} else {
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULES_COLLECTION_TARGET\ bar]
+}
+if {$install_versioning eq {y}} {
+lappend ans [list set MODULE_VERSION $install_version]
+}
+testouterr_cmd sh {load source-sh/1} $ans {}
+
+
+setenv_loaded_module [list source-sh/1] [list $mp/source-sh/1]
+setenv_var testsuite yes
+setenv_var MODULES_COLLECTION_TARGET bar
+setenv_var __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULES_COLLECTION_TARGET\ bar\|setenv\ testsuite\ yes
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset testsuite]
+lappend ans [list unset MODULES_COLLECTION_TARGET]
+lappend ans [list unset __MODULES_LMSOURCESH]
+testouterr_cmd sh {unload source-sh/1} $ans {}
+
+
 #
 #  Cleanup
 #
