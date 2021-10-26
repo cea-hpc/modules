@@ -1471,6 +1471,8 @@ Module Sub-Commands
  If *directory* corresponds to the concatenation of multiple paths separated
  by colon character, each path is treated separately.
 
+ .. only:: html
+
     .. versionchanged:: 5.0
        *directory* is removed whatever its reference counter value if
        :subcmd:`module unuse<unuse>` is called from the command-line or within

@@ -281,6 +281,8 @@ the *modulefile* is being loaded.
  :option:`--force` are ignored when passed to a :mfcmd:`module` command set in
  a *modulefile*.
 
+ .. only:: html
+
     .. versionchanged:: 4.7
        Sub-command option ``--no-req`` added
 
