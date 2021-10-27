@@ -33,6 +33,7 @@ Modules 5.1.0 (not yet released)
 * Filter out the variables intended for Modules private usage when processing
   the environment changes made by a script evaluated by :subcmd:`sh-to-mod`
   sub-command or :mfcmd:`source-sh` modulefile command. (fix issue #427)
+* Doc: add :ref:`control-mode-behaviors` design notes.
 
 
 .. _5.0 release notes:
