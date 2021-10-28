@@ -34,6 +34,7 @@ Modules 5.1.0 (not yet released)
   the environment changes made by a script evaluated by :subcmd:`sh-to-mod`
   sub-command or :mfcmd:`source-sh` modulefile command. (fix issue #427)
 * Doc: add :ref:`control-mode-behaviors` design notes.
+* Doc: add :ref:`add-new-config-option` design notes.
 
 
 .. _5.0 release notes:
