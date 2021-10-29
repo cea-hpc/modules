@@ -133,11 +133,13 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
       set aliastarget [set aliases($alias) [lindex\
          $g_modfilePerModeAliases($alias) $modeidx]]
       # some target procedures need command name as first arg
-      if {$aliastarget eq {reportCmd} || $aliastarget eq {nimp}} {
+      if {$aliastarget in {reportCmd nimp remove-path}} {
          set aliasesPassArg($alias) $alias
+      }
       # associate a trace command if per-mode alias command is not reportCmd
       # in display mode (except for source-sh)
-      } elseif {$mode eq {display} && $alias ne {source-sh}} {
+      if {$mode eq {display} && $alias ne {source-sh} && $aliastarget ni\
+         {reportCmd nimp}} {
          set traces($alias) reportCmdTrace
       }
    }
@@ -1384,7 +1386,7 @@ proc append-path {args} {
    return {}
 }
 
-proc remove-path {args} {
+proc remove-path {cmd args} {
    reportDebug $args
 
    # Set the variable for later use during the modulefile evaluation
