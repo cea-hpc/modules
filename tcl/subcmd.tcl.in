@@ -1308,44 +1308,44 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          # modulefile (entry at same position in _LMFILES_)
          # need the unfiltered loaded module list to get correct index
          set lmidx [lsearch -exact [getLoadedModuleList 0] $modname]
-         unload-path LOADEDMODULES $modname
-         unload-path --index _LMFILES_ $lmidx
+         remove-path LOADEDMODULES $modname
+         remove-path --index _LMFILES_ $lmidx
          # update cache arrays
          unsetLoadedModule $modname $modfile
 
          # unregister declared source-sh
          if {[set modsrcsh [getLoadedSourceSh $modname 1]] ne {}} {
-            unload-path __MODULES_LMSOURCESH $modsrcsh
+            remove-path __MODULES_LMSOURCESH $modsrcsh
          }
          unsetLoadedSourceSh $modname
 
          # unregister declared conflict
          if {[set modcon [getLoadedConflict $modname 1]] ne {}} {
-            unload-path __MODULES_LMCONFLICT $modcon
+            remove-path __MODULES_LMCONFLICT $modcon
          }
          unsetLoadedConflict $modname
 
          # unset prereq declared for this module
          if {[llength [set modpre [getLoadedPrereq $modname]]] > 0} {
-            unload-path __MODULES_LMPREREQ [getLoadedPrereq $modname 1]
+            remove-path __MODULES_LMPREREQ [getLoadedPrereq $modname 1]
          }
          unsetLoadedPrereq $modname
 
          # unset alternative names declared for this module
          if {[llength [set modalt [getLoadedAltname $modname]]] >0} {
-            unload-path __MODULES_LMALTNAME [getLoadedAltname $modname 1]
+            remove-path __MODULES_LMALTNAME [getLoadedAltname $modname 1]
          }
          unsetLoadedAltname $modname
 
          # unset variant declared for this module
          if {[llength [set modvrspec [getLoadedVariant $modname]]] > 0} {
-            unload-path __MODULES_LMVARIANT [getLoadedVariant $modname 1]
+            remove-path __MODULES_LMVARIANT [getLoadedVariant $modname 1]
          }
          unsetLoadedVariant $modname
 
          # unset tags declared for this module
          if {[set modtag [getTagList $modname 1]] ne {}} {
-            unload-path __MODULES_LMTAG $modtag
+            remove-path __MODULES_LMTAG $modtag
          }
 
          if {[getConf auto_handling] && $auto} {
@@ -1640,7 +1640,7 @@ proc cmdModuleUnuse {args} {
             # MODULEPATH given path is first checked against current path list
             } elseif {[set abspath [getAbsolutePath $path]] in $modpathlist} {
                lappend pathlist $abspath
-            # even if not found, transmit this path to unload-path in case
+            # even if not found, transmit this path to remove-path in case
             # several path elements have been joined as one string
             } else {
                lappend pathlist $path
@@ -1648,7 +1648,7 @@ proc cmdModuleUnuse {args} {
          }
       }
 
-      # pass all paths specified at once to unload-path
+      # pass all paths specified at once to remove-path
       if {[info exists pathlist]} {
          set optlist [list]
          # by-pass any reference counter in case unuse is called from top
@@ -1659,7 +1659,7 @@ proc cmdModuleUnuse {args} {
          }
 
          lappendState mode unload
-         catch {unload-path {*}$optlist MODULEPATH {*}$pathlist}
+         catch {remove-path {*}$optlist MODULEPATH {*}$pathlist}
          lpopState mode
       }
    }
