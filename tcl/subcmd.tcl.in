@@ -997,40 +997,40 @@ proc cmdModuleLoad {context uasked args} {
          # loading visibility depends on hidden-loaded tag
          set hidden [isModuleTagged $modnamevr hidden-loaded 1]
 
-         add-path append LOADEDMODULES $modname
+         append-path LOADEDMODULES $modname
          # allow duplicate modfile entries for virtual modules
-         add-path append --duplicates _LMFILES_ $modfile
+         append-path --duplicates _LMFILES_ $modfile
          # update cache arrays
          setLoadedModule $modname $modfile $uasked $modnamevr
 
          # register declared source-sh in environment
          if {[set modsrcsh [getLoadedSourceSh $modname 1]] ne {}} {
-            add-path append __MODULES_LMSOURCESH $modsrcsh
+            append-path __MODULES_LMSOURCESH $modsrcsh
          }
 
          # register declared conflict in environment
          if {[set modcon [getLoadedConflict $modname 1]] ne {}} {
-            add-path append __MODULES_LMCONFLICT $modcon
+            append-path __MODULES_LMCONFLICT $modcon
          }
 
          # declare the prereq of this module
          if {[set modpre [getLoadedPrereq $modname 1]] ne {}} {
-            add-path append __MODULES_LMPREREQ $modpre
+            append-path __MODULES_LMPREREQ $modpre
          }
 
          # declare the alternative names of this module
          if {[set modalt [getLoadedAltname $modname 1]] ne {}} {
-            add-path append __MODULES_LMALTNAME $modalt
+            append-path __MODULES_LMALTNAME $modalt
          }
 
          # declare the variant of this module
          if {[set modvrspec [getLoadedVariant $modname 1]] ne {}} {
-            add-path append __MODULES_LMVARIANT $modvrspec
+            append-path __MODULES_LMVARIANT $modvrspec
          }
 
          # declare the tags of this module
          if {[set modtag [getTagList $modnamevr 1]] ne {}} {
-            add-path append __MODULES_LMTAG $modtag
+            append-path __MODULES_LMTAG $modtag
          }
 
          # record module title (name and variant)
@@ -1603,7 +1603,7 @@ proc cmdModuleUse {pos args} {
       }
 
       # added directory may not exist at this time
-      # pass all paths specified at once to add-path
+      # pass all paths specified at once to append-path/prepend-path
       if {[info exists pathlist]} {
          set optlist [list]
          # by-pass any reference counter in case use is called from top level
@@ -1613,7 +1613,7 @@ proc cmdModuleUse {pos args} {
          }
 
          lappendState mode load
-         catch {add-path $pos {*}$optlist MODULEPATH {*}$pathlist}
+         catch {$pos-path {*}$optlist MODULEPATH {*}$pathlist}
          lpopState mode
       }
    }
