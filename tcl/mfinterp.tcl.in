@@ -133,7 +133,7 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
       set aliastarget [set aliases($alias) [lindex\
          $g_modfilePerModeAliases($alias) $modeidx]]
       # some target procedures need command name as first arg
-      if {$aliastarget eq {reportCmd} || $aliastarget eq {nimp}} {
+      if {$aliastarget in {reportCmd nimp edit-path-wh}} {
          set aliasesPassArg($alias) $alias
       # associate a trace command if per-mode alias command is not reportCmd
       # in display mode (except for source-sh)
@@ -1370,7 +1370,7 @@ proc prepend-path {args} {
    reportDebug $args
 
    # Set the variable for later use during the modulefile evaluation
-   add-path prepend {*}$args
+   add-path prepend-path {*}$args
 
    return {}
 }
@@ -1379,7 +1379,7 @@ proc prepend-path-un {args} {
    reportDebug $args
 
    # Set the variable for later use during the modulefile evaluation
-   unload-path {*}$args
+   unload-path prepend-path {*}$args
 
    return {}
 }
@@ -1388,7 +1388,7 @@ proc append-path {args} {
    reportDebug $args
 
    # Set the variable for later use during the modulefile evaluation
-   add-path append {*}$args
+   add-path append-path {*}$args
 
    return {}
 }
@@ -1397,7 +1397,7 @@ proc append-path-un {args} {
    reportDebug $args
 
    # Set the variable for later use during the modulefile evaluation
-   unload-path {*}$args
+   unload-path append-path {*}$args
 
    return {}
 }
@@ -1406,7 +1406,7 @@ proc remove-path {args} {
    reportDebug $args
 
    # Set the variable for later use during the modulefile evaluation
-   unload-path {*}$args
+   unload-path remove-path {*}$args
 
    return {}
 }
@@ -1415,7 +1415,7 @@ proc remove-path {args} {
 proc remove-path-un {args} {
    # clear variable if it does not exist on unload mode for later use
    # during the modulefile evaluation
-   lassign [parsePathCommandArgs unload-path {*}$args] separator allow_dup\
+   lassign [parsePathCommandArgs remove-path {*}$args] separator allow_dup\
       idx_val ign_refcount var path_list
    if {![info exists ::env($var)]} {
       reset-to-unset-env $var
@@ -1425,11 +1425,11 @@ proc remove-path-un {args} {
 # optimized *-path for whatis mode: init env variable with an empty value if
 # undefined. do not care about value, just avoid variable to be undefined for
 # later use during the modulefile evaluation
-proc edit-path-wh {args} {
+proc edit-path-wh {cmd args} {
    reportDebug $args
 
    # get variable name
-   lassign [parsePathCommandArgs edit-path-wh {*}$args] separator allow_dup\
+   lassign [parsePathCommandArgs $cmd {*}$args] separator allow_dup\
       idx_val ign_refcount var path_list
 
    if {![info exists ::env($var)]} {

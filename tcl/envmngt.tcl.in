@@ -1248,11 +1248,11 @@ proc setReferenceCountRecordValue {sharevar countlist} {
    }
 }
 
-proc unload-path {args} {
-   reportDebug ($args)
+proc unload-path {cmd args} {
+   reportDebug "($args) cmd=$cmd"
 
-   lassign [parsePathCommandArgs unload-path {*}$args] separator allow_dup\
-      idx_val ign_refcount var path_list
+   lassign [parsePathCommandArgs $cmd {*}$args] separator allow_dup idx_val\
+      ign_refcount var path_list
 
    # no reference count management when no share variable is returned
    set isrefcount [expr {[set sharevar [getModshareVarName $var]] ne {}}]
@@ -1361,11 +1361,11 @@ proc unload-path {args} {
    return {}
 }
 
-proc add-path {pos args} {
-   reportDebug "($args) pos=$pos"
+proc add-path {cmd args} {
+   reportDebug "($args) cmd=$cmd"
 
-   lassign [parsePathCommandArgs add-path {*}$args] separator allow_dup\
-      idx_val ign_refcount var path_list
+   lassign [parsePathCommandArgs $cmd {*}$args] separator allow_dup idx_val\
+      ign_refcount var path_list
 
    # no reference count management when no share variable is returned
    set isrefcount [expr {[set sharevar [getModshareVarName $var]] ne {}}]
@@ -1373,7 +1373,7 @@ proc add-path {pos args} {
       array set countarr [getReferenceCountArray $var $separator]
    }
 
-   if {$pos eq {prepend}} {
+   if {$cmd eq {prepend-path}} {
       set path_list [lreverse $path_list]
    }
 
@@ -1385,7 +1385,7 @@ proc add-path {pos args} {
          # counter array (sometimes var is cleared by setting it empty not
          # unsetting it)
          if {$val ne {} || [info exists countarr()]} {
-            set val [expr {$pos eq {prepend} ? "$dir$separator$val" :\
+            set val [expr {$cmd eq {prepend-path} ? "$dir$separator$val" :\
                "$val$separator$dir"}]
          } else {
             set val $dir
@@ -1426,17 +1426,15 @@ proc parsePathCommandArgs {cmd args} {
       } else {
          switch -glob -- $arg {
             --index {
-               if {$cmd eq {add-path}} {
+               if {$cmd ne {remove-path}} {
                   reportWarning "--index option has no effect on $cmd"
                } else {
                   set idx_val 1
                }
             }
             --duplicates {
-               # raise warning when option is used by remove-path but not for
-               # append-path/prepend-path on unload mode
-               if {$cmd eq {unload-path} && ([lindex [info level -2] 0] ne\
-                  {remove-path} || [getState mode] eq {load})} {
+               # raise warning when option is used by remove-path
+               if {$cmd eq {remove-path}} {
                   reportWarning "--duplicates option has no effect on $cmd"
                } else {
                   set allow_dup 1
