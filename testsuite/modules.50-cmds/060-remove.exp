@@ -62,7 +62,7 @@ test_cmd_re "ALL" "load $module" $ans
 
 set module "remove/0.3"
 set modulefile "$modpath/$module"
-set ts_err [msg_moderr "unload-path $msg_needenvvarname" {remove-path } $modulefile 24]
+set ts_err [msg_moderr "remove-path $msg_needenvvarname" {remove-path } $modulefile 24]
 testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $ts_err]
 
 #
@@ -71,7 +71,7 @@ testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $ts_err]
 
 set module "remove/0.4"
 set modulefile "$modpath/$module"
-set ts_err [msg_moderr "unload-path $msg_needenvvarval PATH" {remove-path PATH} $modulefile 24]
+set ts_err [msg_moderr "remove-path $msg_needenvvarval PATH" {remove-path PATH} $modulefile 24]
 testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $ts_err]
 
 #
@@ -80,7 +80,7 @@ testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $ts_err]
 
 set module "remove/0.5"
 set modulefile "$modpath/$module"
-set ts_err [msg_moderr "unload-path $msg_validenvvarname" {remove-path {}} $modulefile 24]
+set ts_err [msg_moderr "remove-path $msg_validenvvarname" {remove-path {}} $modulefile 24]
 testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $ts_err]
 
 #
@@ -211,7 +211,7 @@ lappend ans [list set FOO "/path/to/dir1:/path/to/dir2"]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
 
-testouterr_cmd "sh" "load $module" $ans [msg_load $module "$warn_msgs: --duplicates option has no effect on unload-path"]
+testouterr_cmd "sh" "load $module" $ans [msg_load $module "$warn_msgs: --duplicates option has no effect on remove-path"]
 
 # test unload mode on remove-path --duplicates
 setenv_loaded_module [list $module] [list $modulefile]
@@ -220,7 +220,7 @@ unsetenv_var __MODULES_SHARE_FOO
 set ans [list]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
-testouterr_cmd sh "unload $module" $ans [msg_unload $module "$warn_msgs: --duplicates option has no effect on unload-path"]
+testouterr_cmd sh "unload $module" $ans [msg_unload $module "$warn_msgs: --duplicates option has no effect on remove-path"]
 
 unsetenv_loaded_module
 
@@ -231,7 +231,7 @@ unsetenv_loaded_module
 
 set module "remove/4.0"
 set modulefile "$modpath/$module"
-set ts_err [msg_moderr "unload-path $msg_valididxvalue" {remove-path --index FOO /path/to/dir1} $modulefile 24]
+set ts_err [msg_moderr "remove-path $msg_valididxvalue" {remove-path --index FOO /path/to/dir1} $modulefile 24]
 
 # not a number
 testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $ts_err]
