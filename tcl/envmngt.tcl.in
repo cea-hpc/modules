@@ -1248,11 +1248,11 @@ proc setReferenceCountRecordValue {sharevar countlist} {
    }
 }
 
-proc unload-path {cmd args} {
-   reportDebug "($args) cmd=$cmd"
+proc unload-path {cmd dflbhv args} {
+   reportDebug "($args) cmd=$cmd, dflbhv=$dflbhv"
 
-   lassign [parsePathCommandArgs $cmd {*}$args] separator allow_dup idx_val\
-      ign_refcount var path_list
+   lassign [parsePathCommandArgs $cmd $dflbhv {*}$args] separator allow_dup\
+      idx_val ign_refcount bhv var path_list
 
    # no reference count management when no share variable is returned
    set isrefcount [expr {[set sharevar [getModshareVarName $var]] ne {}}]
@@ -1364,8 +1364,8 @@ proc unload-path {cmd args} {
 proc add-path {cmd args} {
    reportDebug "($args) cmd=$cmd"
 
-   lassign [parsePathCommandArgs $cmd {*}$args] separator allow_dup idx_val\
-      ign_refcount var path_list
+   lassign [parsePathCommandArgs $cmd add {*}$args] separator allow_dup\
+      idx_val ign_refcount bhv var path_list
 
    # no reference count management when no share variable is returned
    set isrefcount [expr {[set sharevar [getModshareVarName $var]] ne {}}]
@@ -1412,12 +1412,13 @@ proc add-path {cmd args} {
 
 # analyze argument list passed to a path command to set default value or raise
 # error in case some attributes are missing
-proc parsePathCommandArgs {cmd args} {
+proc parsePathCommandArgs {cmd dflbhv args} {
    # parse argument list
    set next_is_delim 0
    set allow_dup 0
    set idx_val 0
    set ign_refcount 0
+   set bhv $dflbhv
    foreach arg $args {
       # everything passed after variable name is considered a value
       if {[info exists var]} {
@@ -1502,10 +1503,10 @@ proc parsePathCommandArgs {cmd args} {
    }
 
    reportDebug "(delim=$delim, allow_dup=$allow_dup, idx_val=$idx_val,\
-      ign_refcount=$ign_refcount, var=$var, val=$val_list, nbval=[llength\
-      $val_list])"
+      ign_refcount=$ign_refcount, bhv=$bhv, var=$var, val=$val_list,\
+      nbval=[llength $val_list])"
 
-   return [list $delim $allow_dup $idx_val $ign_refcount $var $val_list]
+   return [list $delim $allow_dup $idx_val $ign_refcount $bhv $var $val_list]
 }
 
 # ;;; Local Variables: ***
