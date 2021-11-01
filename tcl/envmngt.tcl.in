@@ -1254,6 +1254,10 @@ proc unload-path {cmd dflbhv args} {
    lassign [parsePathCommandArgs $cmd $dflbhv {*}$args] separator allow_dup\
       idx_val ign_refcount bhv var path_list
 
+   if {$bhv eq {nop}} {
+      return [list $bhv $var]
+   }
+
    # no reference count management when no share variable is returned
    set isrefcount [expr {[set sharevar [getModshareVarName $var]] ne {}}]
    if {$isrefcount} {
@@ -1264,7 +1268,7 @@ proc unload-path {cmd dflbhv args} {
    #  for deletion
    if {[info exists ::g_stateEnvVars($var)] && $::g_stateEnvVars($var) eq\
       {del}} {
-      return {}
+      return [list $bhv $var]
    }
 
    # save initial variable content to match index arguments
@@ -1358,7 +1362,7 @@ proc unload-path {cmd dflbhv args} {
    if {$isrefcount} {
       setReferenceCountRecordValue $sharevar [array get countarr]
    }
-   return {}
+   return [list $bhv $var]
 }
 
 proc add-path {cmd args} {
