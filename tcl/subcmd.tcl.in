@@ -1612,9 +1612,13 @@ proc cmdModuleUse {pos args} {
             lappend optlist --ignore-refcount
          }
 
-         lappendState mode load
+         if {[isTopEvaluation]} {
+            lappendState mode load
+         }
          catch {$pos-path {*}$optlist MODULEPATH {*}$pathlist}
-         lpopState mode
+         if {[isTopEvaluation]} {
+            lpopState mode
+         }
       }
    }
 }
@@ -1658,9 +1662,13 @@ proc cmdModuleUnuse {args} {
             lappend optlist --ignore-refcount
          }
 
-         lappendState mode unload
+         if {[isTopEvaluation]} {
+            lappendState mode load
+         }
          catch {remove-path {*}$optlist MODULEPATH {*}$pathlist}
-         lpopState mode
+         if {[isTopEvaluation]} {
+            lpopState mode
+         }
       }
    }
 }
