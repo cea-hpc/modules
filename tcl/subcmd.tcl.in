@@ -1581,23 +1581,46 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
    setState inhibit_errreport 0
 }
 
-proc cmdModuleUse {pos args} {
-   reportDebug $args
-
+proc runModuleUse {cmd pos args} {
    if {$args eq {}} {
       showModulePath
    } else {
+      if {$pos eq {remove}} {
+         # get current module path list
+         set modpathlist [getModulePathList returnempty 0 0]
+      }
+
       foreach path $args {
-         if {$path eq {}} {
-            reportError [getEmptyNameMsg directory]
-         } else {
-            # transform given path in an absolute path to avoid dependency to
-            # the current work directory. except if this path starts with a
-            # variable reference
-            if {[string index $path 0] ne {$}} {
-               lappend pathlist [getAbsolutePath $path]
-            } else {
+         switch -glob -- $path {
+            {} {
+               reportError [getEmptyNameMsg directory]
+            }
+            $* {
                lappend pathlist $path
+            }
+            default {
+               if {$pos eq {remove}} {
+                  if {$path in $modpathlist} {
+                     lappend pathlist $path
+                  # transform given path in an absolute path which should have
+                  # been registered in the MODULEPATH env var. however for
+                  # compatibility with previous behavior where relative paths
+                  # were registered in MODULEPATH given path is first checked
+                  # against current path list
+                  } elseif {[set abspath [getAbsolutePath $path]] in\
+                     $modpathlist} {
+                     lappend pathlist $abspath
+                  # even if not found, transmit this path to remove-path in
+                  # case several path elements have been joined as one string
+                  } else {
+                     lappend pathlist $path
+                  }
+               } else {
+                  # transform given path in an absolute path to avoid
+                  # dependency to the current work directory. except if this
+                  # path starts with a variable reference
+                  lappend pathlist [getAbsolutePath $path]
+               }
             }
          }
       }
@@ -1623,54 +1646,14 @@ proc cmdModuleUse {pos args} {
    }
 }
 
+proc cmdModuleUse {pos args} {
+   reportDebug $args
+   runModuleUse use $pos {*}$args
+}
+
 proc cmdModuleUnuse {args} {
    reportDebug $args
-
-   if {$args eq {}} {
-      showModulePath
-   } else {
-      # get current module path list
-      set modpathlist [getModulePathList returnempty 0 0]
-
-      foreach path $args {
-         if {$path eq {}} {
-            reportError [getEmptyNameMsg directory]
-         } else {
-            if {$path in $modpathlist} {
-               lappend pathlist $path
-            # transform given path in an absolute path which should have been
-            # registered in the MODULEPATH env var. however for compatibility
-            # with previous behavior where relative paths were registered in
-            # MODULEPATH given path is first checked against current path list
-            } elseif {[set abspath [getAbsolutePath $path]] in $modpathlist} {
-               lappend pathlist $abspath
-            # even if not found, transmit this path to remove-path in case
-            # several path elements have been joined as one string
-            } else {
-               lappend pathlist $path
-            }
-         }
-      }
-
-      # pass all paths specified at once to remove-path
-      if {[info exists pathlist]} {
-         set optlist [list]
-         # by-pass any reference counter in case unuse is called from top
-         # level to ensure specified paths are removed whatever their
-         # reference counter value
-         if {[isTopEvaluation]} {
-            lappend optlist --ignore-refcount
-         }
-
-         if {[isTopEvaluation]} {
-            lappendState mode load
-         }
-         catch {remove-path {*}$optlist MODULEPATH {*}$pathlist}
-         if {[isTopEvaluation]} {
-            lpopState mode
-         }
-      }
-   }
+   runModuleUse unuse remove {*}$args
 }
 
 proc cmdModuleAutoinit {} {
