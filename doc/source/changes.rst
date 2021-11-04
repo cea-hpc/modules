@@ -699,6 +699,11 @@ Modules Specific Tcl Commands
  Forbid use of :subcmd:`module source<source>` command in modulefile or in an
  initialization rc file, the ``source`` Tcl command should be used instead.
 
+:mfcmd:`remove-path`
+
+ Starting with version ``5.1``, the ``--remove-on-unload`` option is added to
+ also remove value when modulefile is unloaded.
+
 :mfcmd:`unsetenv`
 
  When running on an unload evaluation, do not unset designated environment

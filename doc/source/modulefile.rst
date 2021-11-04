@@ -731,16 +731,28 @@ the *modulefile* is being loaded.
 
  See :mfcmd:`conflict`.
 
-.. mfcmd:: remove-path [-d C|--delim C|--delim=C] [--index] variable value...
+.. mfcmd:: remove-path [options] variable value...
 
  Remove *value* from the colon, or *delimiter*, separated list in
- *variable*. See :mfcmd:`prepend-path` or :mfcmd:`append-path` for further
+ *variable*.
+
+ :mfcmd:`remove-path` command accepts the following options:
+
+ * ``-d C|--delim C|--delim=C``
+ * ``--index``
+ * ``--remove-on-unload``
+
+ See :mfcmd:`prepend-path` or :mfcmd:`append-path` for further
  explanation of using an arbitrary delimiter. Every string between colons, or
  delimiters, in *variable* is compared to *value*. If the two match, *value*
  is removed from *variable* if its reference counter is equal to 1 or unknown.
 
  When ``--index`` option is set, *value* refers to an index in *variable*
  list. The string element pointed by this index is set for removal.
+
+ When *modulefile* is unloaded, no operation is performed by default. If the
+ ``--remove-on-unload`` option is set, *value* is removed. This option cannot
+ be set if ``--index`` option is also set.
 
  Reference counter of *value* in *variable* denotes the number of times
  *value* has been added to *variable*. This information is stored in
@@ -758,6 +770,9 @@ the *modulefile* is being loaded.
 
     .. versionchanged:: 4.1
        Option ``--index`` added
+
+    .. versionchanged:: 5.1
+       Option ``--remove-on-unload`` added
 
 .. mfcmd:: set-alias alias-name alias-string
 

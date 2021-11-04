@@ -38,6 +38,8 @@ Modules 5.1.0 (not yet released)
 * Set a `Code of conduct`_ for the project and its community based on the
   widely adopted Contributor Covenant.
 * Doc: add :ref:`add-new-sub-command` design notes.
+* Add the ``--remove-on-unload`` option to the :mfcmd:`remove-path` to also
+  remove value when modulefile is unloaded.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 
