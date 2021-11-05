@@ -40,6 +40,8 @@ Modules 5.1.0 (not yet released)
 * Doc: add :ref:`add-new-sub-command` design notes.
 * Add the ``--remove-on-unload`` option to the :mfcmd:`remove-path` to also
   remove value when modulefile is unloaded.
+* Raise error when an unknown option is set on :mfcmd:`module use<module>` or
+  :mfcmd:`module unuse<module>` modulefile command.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 

@@ -699,6 +699,9 @@ Modules Specific Tcl Commands
  Forbid use of :subcmd:`module source<source>` command in modulefile or in an
  initialization rc file, the ``source`` Tcl command should be used instead.
 
+ Starting version ``5.1``, an error is raised when an unused option is set
+ on ``module use`` or ``module unuse`` commands.
+
 :mfcmd:`remove-path`
 
  Starting with version ``5.1``, the ``--remove-on-unload`` option is added to
