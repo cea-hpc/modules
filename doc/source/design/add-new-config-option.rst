@@ -16,7 +16,7 @@ value then branch code in :file:`modulecmd.tcl` script to adapt
 1. First declare configuration option in ``g_config_defs`` definition array
 
     - File to edit: :file:`tcl/init.tcl.in`
-    - Example commit: `2199edf8 <https://github.com/cea-hpc/modules/commit/2199edf8>`_
+    - Example commit: :ghcommit:`2199edf8`
 
    New configuration option name should be short yet understandable. If
    composed of multiple words, they should be joined by ``_`` character.
@@ -26,13 +26,13 @@ value then branch code in :file:`modulecmd.tcl` script to adapt
    Entry in ``g_config_defs`` definition array uses option name as key then a
    list as value composed with:
 
-   - Superseding environment variable
-   - Default value
-   - Is configuration lockable to default value (0 or 1)
-   - Valid value list (empty list if no validation list)
-   - Internal value representation (optional)
-   - Specific procedure to call to initialize option value (optional)
-   - Valid value list kind (empty string, ``intbe`` or ``eltlist``)
+    - Superseding environment variable
+    - Default value
+    - Is configuration lockable to default value (0 or 1)
+    - Valid value list (empty list if no validation list)
+    - Internal value representation (optional)
+    - Specific procedure to call to initialize option value (optional)
+    - Valid value list kind (empty string, ``intbe`` or ``eltlist``)
 
 2. Update the Tcl code that compose the :file:`modulecmd.tcl` script to adapt
    behavior depending on the value defined (by default or superseded) for the
@@ -41,7 +41,7 @@ value then branch code in :file:`modulecmd.tcl` script to adapt
    configuration option introduced.
 
     - File to edit: file(s) in :file:`tcl/` directory
-    - Example commit: `4baf5dc4 <https://github.com/cea-hpc/modules/commit/4baf5dc4>`_
+    - Example commit: :ghcommit:`4baf5dc4`
 
 Installation scripts
 --------------------
@@ -56,7 +56,7 @@ installation time, an installation option should be added on the
    value, then updated when install option argument is set.
 
     - File to edit: :file:`configure`
-    - Example commit: `c00ecefa <https://github.com/cea-hpc/modules/commit/c00ecefa>`_
+    - Example commit: :ghcommit:`c00ecefa`
 
 
 2. Define the ``<optionname>`` variable in :file:`Makefile.inc.in` set to the
@@ -73,13 +73,13 @@ installation time, an installation option should be added on the
         - :file:`Makefile`
         - :file:`site.exp.in`
 
-    - Example commit: `c00ecefa <https://github.com/cea-hpc/modules/commit/c00ecefa>`_
+    - Example commit: :ghcommit:`c00ecefa`
 
 3. Set the ``@<optionname>@`` mark as the default value for configuration
    option in ``g_config_defs`` definition array in Tcl core code
 
     - File to edit: :file:`tcl/init.tcl.in`
-    - Example commit: `c00ecefa <https://github.com/cea-hpc/modules/commit/c00ecefa>`_
+    - Example commit: :ghcommit:`c00ecefa`
 
    When the *make* installation step is performed the :file:`modulecmd.tcl`
    script file is generated with the ``@<optionname>@`` mark replaced by
@@ -98,7 +98,7 @@ Files that should be edited to add reference to the new option:
 - :file:`init/fish_completion`
 - :file:`init/zsh-functions/_module.in`
 
-Example commit: `abfef4ed <https://github.com/cea-hpc/modules/commit/abfef4ed>`_
+Example commit: :ghcommit:`abfef4ed`
 
 Documentation
 -------------
@@ -124,13 +124,13 @@ Files that should be edited:
 
 Example commits:
 
-- configuration option doc: `f8e5eac6 <https://github.com/cea-hpc/modules/commit/f8e5eac6>`_
-- related environment variable doc: `eed719f0 <https://github.com/cea-hpc/modules/commit/eed719f0>`_
+- configuration option doc: :ghcommit:`f8e5eac6`
+- related environment variable doc: :ghcommit:`eed719f0`
 
 In case an installation option has been added, it should be covered by documentation
 
     - File to edit: :file:`INSTALL.rst`
-    - Example commit: `3d19ab52 <https://github.com/cea-hpc/modules/commit/3d19ab52>`_
+    - Example commit: :ghcommit:`3d19ab52`
 
 Testsuite
 ---------
@@ -147,7 +147,7 @@ configuration option and ensure overall code coverage does not drop.
         - :file:`testsuite/modules.00-init/010-environ.exp`
         - :file:`testsuite/install.00-init/010-environ.exp`
 
-    - Example commit: `1c9fe1bd <https://github.com/cea-hpc/modules/commit/1c9fe1bd>`_
+    - Example commit: :ghcommit:`1c9fe1bd`
 
    If default value for option could be set at installation time, it may be
    important to take this chosen default value into account, thanks to the
@@ -157,7 +157,7 @@ configuration option and ensure overall code coverage does not drop.
    :subcmd:`config` sub-command.
 
     - File to edit: :file:`testsuite/modules.70-maint/220-config.exp`
-    - Example commit: `1c9fe1bd <https://github.com/cea-hpc/modules/commit/1c9fe1bd>`_
+    - Example commit: :ghcommit:`1c9fe1bd`
 
 3. Craft specific tests to validate the correct behavior of the configuration
    when not set, set with valid or invalid values.
@@ -166,7 +166,7 @@ configuration option and ensure overall code coverage does not drop.
       option, if some tests already exist for concerned behavior (existing
       testsuite file to update) or not (new testfile to create).
 
-    - Example commit: `122039e5 <https://github.com/cea-hpc/modules/commit/122039e5>`_
+    - Example commit: :ghcommit:`122039e5`
 
 4. Optionally if a new installation option has been introduced, it may be
    interesting to adapt CI configuration to test a value different than the
@@ -177,4 +177,4 @@ configuration option and ensure overall code coverage does not drop.
         - :file:`.cirrus.yml`
         - :file:`.github/workflows/linux_tests.yaml`
 
-    - Example commit: `8bf6fb54 <https://github.com/cea-hpc/modules/commit/8bf6fb54>`_
+    - Example commit: :ghcommit:`8bf6fb54`
