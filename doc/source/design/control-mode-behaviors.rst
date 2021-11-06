@@ -11,10 +11,18 @@ Control mode behaviors
 - Depending on the situation, it seems interesting to apply a different
   behavior when modulefile is unloaded:
 
-    - restore value unset at load time: restore-on-unload
+    - restore value unset at load time, either:
+
+        - append-on-unload
+        - prepend-on-unload
+
     - remove value from list: remove-on-unload
     - unset full variable value: unset-on-unload
-    - set another value: set-on-unload
+    - set another value, either:
+
+        - append-on-unload
+        - prepend-on-unload
+        - set-on-unload (for non-path-like variable)
 
 - Also when modulefile loads sometimes it may be interesting to apply a
   slightly different behavior depending on the situation:
@@ -34,6 +42,9 @@ Control mode behaviors
 - Only applies when the above commands are called from a modulefile (as some
   of these commands can also act as module sub-commands)
 
+Unload behavior
+---------------
+
 - Unload behavior of concerned modulefile commands:
 
   +--------------+-------------------------+--------------------------+-----------------------+
@@ -42,8 +53,8 @@ Control mode behaviors
   +==============+=========================+==========================+=======================+
   | module use   | remove-on-unload        | *n/a*                    |                       |
   +--------------+-------------------------+--------------------------+-----------------------+
-  | module unuse | remove-on-unload        | *n/a*                    | restore-on-unload,    |
-  |              |                         |                          | set-on-unload         |
+  | module unuse | remove-on-unload        | *n/a*                    | append-on-unload,     |
+  |              |                         |                          | prepend-on-unload     |
   +--------------+-------------------------+--------------------------+-----------------------+
   | setenv       | unset-on-unload         | *n/a*                    |                       |
   +--------------+-------------------------+--------------------------+-----------------------+
@@ -54,14 +65,29 @@ Control mode behaviors
   +--------------+-------------------------+--------------------------+-----------------------+
   | prepend-path | remove-on-unload        | *n/a*                    |                       |
   +--------------+-------------------------+--------------------------+-----------------------+
-  | remove-path  | *nop*                   | *n/a*                    | restore-on-unload,    |
-  |              |                         |                          | remove-on-unload,     |
-  |              |                         |                          | set-on-unload         |
+  | remove-path  | *nop*                   | *n/a*                    | remove-on-unload,     |
+  |              |                         |                          | append-on-unload,     |
+  |              |                         |                          | prepend-on-unload     |
   +--------------+-------------------------+--------------------------+-----------------------+
 
-- *Note*: the *set-on-unload* behavior is only useful for modulefile commands
-  which unset value on load mode, as commands that set value on load mode
-  mainly need to unset the value set
+- When either restoring or setting other value for path-like modulefile
+  commands, it is needed to know if the value should be appended or prepended.
+
+- Either restoring or setting other value result in the same behavior name
+
+    - *append-on-unload* and *prepend-on-unload*
+    - position of the option will determine if the values to set are:
+
+        - those unset at load time: when option is placed prior value list
+        - a different list of value: when option is placed after value list to
+          unset at load time and another value list is defined after option
+
+- The *set-on-unload* behavior is only useful for modulefile commands which
+  unset value on load mode, as commands that set value on load mode mainly
+  need to unset the value set
+
+Load behavior
+-------------
 
 - Load behavior of concerned modulefile commands:
 
@@ -84,24 +110,32 @@ Control mode behaviors
   | remove-path  | remove-on-load        |                       |
   +--------------+-----------------------+-----------------------+
 
+Modulefile command options
+--------------------------
+
 - Alternative behaviors could be specified by setting the associated option
   over the modulefile command:
 
-    - ``--restore-on-unload``
-    - ``--set-on-unload``
-    - ``--unset-on-unload``
     - ``--remove-on-unload``
+    - ``--append-on-unload``
+    - ``--prepend-on-unload``
+    - ``--unset-on-unload``
     - ``--set-if-undef``
 
-- The ``--set-on-unload`` option requires an argument to define the value to
-  set when unloading the module
+- The ``--append-on-unload`` and ``--prepend-on-unload`` options either:
 
-    - All the values set after the option are considered element to add to the
-      path-like variable
+    - restore the value list removed at load time if placed prior this value
+      list
+    - set a different value list if a different list of value if specified
+      after option (all the values set after the option are considered element
+      to add to the path-like variable)
 
 - The ``--set-if-undef`` option does not change the behavior of ``setenv``
   when modulefile is unloaded: environment variable will be unset whether the
   option is set or not.
+
+Misc
+----
 
 - *FUTURE*: what is applied to:
 
