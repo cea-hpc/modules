@@ -333,6 +333,13 @@ def parse_opt_args_node(env, sig, signode):
         signode += addnodes.desc_addname(args, args)
     return opt
 
+from docutils import nodes
+def ghcommit_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
+    commit_id = str(text)
+    commit_url = 'https://github.com/cea-hpc/modules/commit/' + commit_id
+    title = nodes.reference('', commit_id, refuri=commit_url)
+    return [title], []
+
 # define new directive/role that can be used as .. subcmd::/:subcmd:,
 # .. mfcmd::/:mfcmd: and .. mfvar::/:mfvar:
 def setup(app):
@@ -355,4 +362,5 @@ def setup(app):
     app.add_object_type('mconfig', 'mconfig',
                         objname='module configuration option',
                         indextemplate='pair: %s; module configuration option')
+    app.add_role('ghcommit', ghcommit_role)
 
