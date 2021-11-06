@@ -35,6 +35,10 @@ Modules 5.1.0 (not yet released)
   sub-command or :mfcmd:`source-sh` modulefile command. (fix issue #427)
 * Doc: add :ref:`control-mode-behaviors` design notes.
 * Doc: add :ref:`add-new-config-option` design notes.
+* Set a `Code of conduct`_ for the project and its community based on the
+  widely adopted Contributor Covenant.
+
+.. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 
 
 .. _5.0 release notes:

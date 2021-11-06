@@ -152,6 +152,13 @@ SourceForge project page:
 > http://sourceforge.net/projects/modules/
 
 
+Code of conduct
+---------------
+
+Please note that Modules has a [Code of conduct][6]. By participating in the
+Modules community, you agree to abide by its rules.
+
+
 Authors
 -------
 
@@ -177,3 +184,4 @@ not be what it is without their contributions:
 [3]: https://modules.readthedocs.io/en/stable/MIGRATING.html
 [4]: https://modules.readthedocs.io/en/stable/NEWS.html
 [5]: https://modules.readthedocs.io/en/stable/changes.html
+[6]: CODE_OF_CONDUCT.md
