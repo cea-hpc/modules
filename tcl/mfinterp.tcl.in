@@ -573,6 +573,23 @@ proc initInterpCommands {itrp fresh aliasesVN aliasesPassArgVN tracesVN\
       }
    }
 
+   if {$fresh} {
+      # trace each modulefile command call if verbosity is set to debug
+      # (when higher verbosity level is set all cmds are already traced)
+      if {[getConf verbosity] eq {debug}} {
+         interp alias $itrp reportTraceExecEnter {} reportTraceExecEnter
+         foreach alias [array names aliases] {
+            # exclude internal commands expoxed to modulerc/file interpreter
+            if {$alias ni {report reportDebug reportError reportWarning\
+               reportCmdTrace raiseErrorCount reportInternalBug\
+               formatErrStackTrace isVerbosityLevel}} {
+               interp eval $itrp [list trace add execution $alias enter\
+                  reportTraceExecEnter]
+            }
+         }
+      }
+   }
+
    foreach alias [array names traces] {
       interp eval $itrp [list trace add execution $alias leave\
          $traces($alias)]
