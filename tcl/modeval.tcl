@@ -222,7 +222,6 @@ proc sortModulePerLoadedAndDepOrder {modlist {nporeq 0} {loading 0}} {
 # return list of loaded modules having an unmet requirement on passed mod
 # and their recursive dependent
 proc getUnmetDependentLoadedModuleList {modnamevr} {
-   reportDebug "get dependent of upcoming loaded '$modnamevr'"
    set unmetdeplist {}
    set depmodlist {}
    defineModEqProc [isIcase] [getConf extended_default] 1
@@ -470,8 +469,6 @@ proc isModuleUnloadable {mod {unmodlist {}}} {
 # gets the list of all loaded modules which are required by passed modlist
 # ordered by load position.
 proc getRequiredLoadedModuleList {modlist} {
-   reportDebug "get mods required by '$modlist'"
-
    # search over all list of loaded modules, starting with passed module
    # list, then adding in turns their requirements
    set fulllist $modlist
@@ -491,8 +488,6 @@ proc getRequiredLoadedModuleList {modlist} {
 # they have been loaded automatically and are not depended (mandatory or
 # optionally) by other module
 proc getUnloadableLoadedModuleList {modlist} {
-   reportDebug "get unloadable mods once '$modlist' unloaded"
-
    # search over all list of unloaded modules, starting with passed module
    # list, then adding in turns unloadable requirements
    set fulllist $modlist

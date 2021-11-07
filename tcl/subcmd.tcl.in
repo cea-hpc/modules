@@ -79,8 +79,6 @@ proc cmdModuleList {show_oneperline show_mtime} {
 }
 
 proc cmdModuleDisplay {args} {
-   reportDebug "displaying $args"
-
    lappendState mode display
    set first_report 1
    foreach mod $args {
@@ -100,8 +98,6 @@ proc cmdModuleDisplay {args} {
 }
 
 proc cmdModulePaths {mod} {
-   reportDebug ($mod)
-
    set dir_list [getModulePathList exiterronundef]
    foreach dir $dir_list {
       array unset mod_list
@@ -151,7 +147,6 @@ proc cmdModulePaths {mod} {
 }
 
 proc cmdModulePath {mod} {
-   reportDebug ($mod)
    lassign [getPathToModule $mod] modfile modname modnamevr
    # if no result set empty value to return empty
    if {$modfile eq {}} {
@@ -170,8 +165,6 @@ proc cmdModuleApropos {{search {}}} {
 }
 
 proc cmdModuleSearch {{mod {}} {search {}}} {
-   reportDebug "($mod, $search)"
-
    # disable error reporting to avoid modulefile errors
    # to mix with valid search results
    inhibitErrorReport
@@ -493,8 +486,6 @@ proc cmdModuleSwitch {uasked old {new {}}} {
 }
 
 proc cmdModuleSave {{coll default}} {
-   reportDebug $coll
-
    if {![areModuleConstraintsSatisfied]} {
       reportErrorAndExit {Cannot save collection, some module constraints are\
          not satistied}
@@ -538,8 +529,6 @@ proc cmdModuleSave {{coll default}} {
 }
 
 proc cmdModuleRestore {{coll default}} {
-   reportDebug $coll
-
    # get corresponding filename
    lassign [getCollectionFilename $coll] collfile colldesc
 
@@ -651,8 +640,6 @@ proc cmdModuleRestore {{coll default}} {
 }
 
 proc cmdModuleSaverm {{coll default}} {
-   reportDebug $coll
-
    # avoid to remove any kind of file with this command
    if {[string first / $coll] > -1} {
       reportErrorAndExit {Command does not remove collection specified as\
@@ -675,8 +662,6 @@ proc cmdModuleSaverm {{coll default}} {
 }
 
 proc cmdModuleSaveshow {{coll default}} {
-   reportDebug $coll
-
    # get corresponding filename
    lassign [getCollectionFilename $coll] collfile colldesc
 
@@ -769,7 +754,6 @@ proc cmdModuleSavelist {show_oneperline show_mtime} {
 
 
 proc cmdModuleSource {mode args} {
-   reportDebug $args
    foreach fpath $args {
       set absfpath [getAbsolutePath $fpath]
       if {$fpath eq {}} {
@@ -1421,8 +1405,6 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
 }
 
 proc cmdModulePurge {} {
-   reportDebug called.
-
    # create an eval id to track successful/failed module evaluations
    pushMsgRecordId purge-[depthState modulename] 0
 
@@ -1650,18 +1632,14 @@ proc runModuleUse {cmd pos args} {
 }
 
 proc cmdModuleUse {pos args} {
-   reportDebug $args
    runModuleUse use $pos {*}$args
 }
 
 proc cmdModuleUnuse {args} {
-   reportDebug $args
    runModuleUse unuse remove {*}$args
 }
 
 proc cmdModuleAutoinit {} {
-   reportDebug called.
-
    # skip autoinit process if found already ongoing in current environment
    if {[get-env __MODULES_AUTOINIT_INPROGRESS] eq {1}} {
       return
@@ -1764,8 +1742,6 @@ proc cmdModuleInit {args} {
    set init_list [lrange $args 1 end]
    set notdone 1
    set nomatch 1
-
-   reportDebug $args
 
    # Define startup files for each shell
    set files(csh) [list .modules .cshrc .cshrc_variables .login]
@@ -1883,8 +1859,6 @@ proc cmdModuleInit {args} {
 # provide access to modulefile specific commands from the command-line, making
 # them standing as a module sub-command (see module procedure)
 proc cmdModuleResurface {cmd args} {
-   reportDebug "cmd='$cmd', args='$args'"
-
    lappendState mode load
    lappendState commandname $cmd
 
@@ -1923,8 +1897,6 @@ proc cmdModuleResurface {cmd args} {
 }
 
 proc cmdModuleTest {args} {
-   reportDebug "testing $args"
-
    lappendState mode test
    set first_report 1
    foreach mod $args {
@@ -1944,7 +1916,6 @@ proc cmdModuleTest {args} {
 }
 
 proc cmdModuleClear {doit doitset} {
-   reportDebug "($doit)"
    # fetch confirmation if no arg passed and force mode disabled
    if {!$doitset && ![getState force]} {
       # ask for it if stdin is attached to a terminal
@@ -2206,8 +2177,6 @@ proc cmdModuleEdit {mod} {
 }
 
 proc cmdModuleRefresh {} {
-   reportDebug {refreshing loaded modules}
-
    lappendState mode refresh
    # create an eval id to track successful/failed module evaluations
    pushMsgRecordId refresh-[depthState modulename] 0

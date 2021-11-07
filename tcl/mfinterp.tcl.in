@@ -690,8 +690,6 @@ proc versioncmp {str1 str2} {
 proc module-info {what {more {}}} {
    set mode [currentState mode]
 
-   reportDebug "$what $more"
-
    switch -- $what {
       mode {
          if {$more ne {}} {
@@ -830,9 +828,7 @@ proc module-info {what {more {}}} {
 }
 
 proc module-whatis {args} {
-   set message [join $args]
-   reportDebug $message
-   lappend ::g_whatis $message
+   lappend ::g_whatis [join $args]
 
    return {}
 }
@@ -843,7 +839,6 @@ proc module-whatis {args} {
 # directory will apply to modules of the same name found in other
 # directories.
 proc module-version {args} {
-   reportDebug $args
    lassign [getModuleNameVersion [lindex $args 0] 1] mod modname modversion
 
    # go for registration only if valid modulename
@@ -1157,8 +1152,6 @@ proc module-tag {args} {
 }
 
 proc setenv {var val} {
-   reportDebug "var='$var', val='$val'"
-
    # clean any previously defined reference counter array
    unset-env [getModshareVarName $var] 1
 
@@ -1170,8 +1163,6 @@ proc setenv {var val} {
 
 # undo setenv in unload mode
 proc setenv-un {var val} {
-   reportDebug "var='$var', val='$val'"
-
    # clean any existing reference counter array
    unset-env [getModshareVarName $var] 1
 
@@ -1188,7 +1179,6 @@ proc setenv-un {var val} {
 # undefined for later use during the modulefile evaluation
 proc setenv-wh {var args} {
    if {![info exists ::env($var)]} {
-      reportDebug "var='$var', val=''"
       set ::env($var) {}
    }
    return {}
@@ -1251,8 +1241,6 @@ proc getenv {args} {
 }
 
 proc unsetenv {var args} {
-   reportDebug "var='$var', val='[lindex $args 0]'"
-
    # error if bad argument number, use args list to distinguish between no
    # value to restore and an empty string value to restore
    if {[llength $args] > 1} {
@@ -1288,8 +1276,6 @@ proc unsetenv-un {var args} {
 }
 
 proc chdir {dir} {
-   reportDebug $dir
-
    if {[file exists $dir] && [file isdirectory $dir]} {
       set ::g_changeDir $dir
    } else {
@@ -1304,8 +1290,6 @@ proc chdir {dir} {
 # supersede exit command to handle it if called within a modulefile
 # rather than exiting the whole process
 proc exitModfileCmd {{code 0}} {
-   reportDebug ($code)
-
    if {[currentState mode] in {load refresh}} {
       setState inhibit_interp 1
    }
@@ -1324,8 +1308,6 @@ proc setModulesVersion {val} {
 # enabled) or postpone content channel send after rendering on stdout the
 # relative environment changes required by the modulefile
 proc putsModfileCmd {itrp args} {
-   reportDebug "$args (itrp=$itrp)"
-
    # determine if puts call targets the stdout or stderr channel
    switch -- [llength $args] {
       1 {
@@ -1384,8 +1366,6 @@ proc putsModfileCmd {itrp args} {
 }
 
 proc prepend-path {args} {
-   reportDebug $args
-
    # Set the variable for later use during the modulefile evaluation
    add-path prepend-path {*}$args
 
@@ -1393,8 +1373,6 @@ proc prepend-path {args} {
 }
 
 proc prepend-path-un {args} {
-   reportDebug $args
-
    # Set the variable for later use during the modulefile evaluation
    unload-path prepend-path remove {*}$args
 
@@ -1402,8 +1380,6 @@ proc prepend-path-un {args} {
 }
 
 proc append-path {args} {
-   reportDebug $args
-
    # Set the variable for later use during the modulefile evaluation
    add-path append-path {*}$args
 
@@ -1411,8 +1387,6 @@ proc append-path {args} {
 }
 
 proc append-path-un {args} {
-   reportDebug $args
-
    # Set the variable for later use during the modulefile evaluation
    unload-path append-path remove {*}$args
 
@@ -1420,8 +1394,6 @@ proc append-path-un {args} {
 }
 
 proc remove-path {args} {
-   reportDebug $args
-
    # Set the variable for later use during the modulefile evaluation
    unload-path remove-path remove {*}$args
 
@@ -1443,8 +1415,6 @@ proc remove-path-un {args} {
 # undefined. do not care about value, just avoid variable to be undefined for
 # later use during the modulefile evaluation
 proc edit-path-wh {cmd args} {
-   reportDebug $args
-
    # get variable name
    lassign [parsePathCommandArgs $cmd nop {*}$args] separator allow_dup\
       idx_val ign_refcount bhv var path_list
@@ -1457,8 +1427,6 @@ proc edit-path-wh {cmd args} {
 }
 
 proc set-alias {alias what} {
-   reportDebug "alias='$alias', val='$what'"
-
    set ::g_Aliases($alias) $what
    set ::g_stateAliases($alias) new
 
@@ -1471,8 +1439,6 @@ proc set-alias-un {alias what} {
 }
 
 proc unset-alias {alias} {
-   reportDebug alias='$alias'
-
    set ::g_Aliases($alias) {}
    set ::g_stateAliases($alias) del
 
@@ -1480,8 +1446,6 @@ proc unset-alias {alias} {
 }
 
 proc set-function {function what} {
-   reportDebug "function='$function', val='$what'"
-
    set ::g_Functions($function) $what
    set ::g_stateFunctions($function) new
 
@@ -1494,8 +1458,6 @@ proc set-function-un {function what} {
 }
 
 proc unset-function {function} {
-   reportDebug function='$function'
-
    set ::g_Functions($function) {}
    set ::g_stateFunctions($function) del
 
@@ -1504,7 +1466,6 @@ proc unset-function {function} {
 
 
 proc is-loaded {args} {
-   reportDebug $args
    # parse module version specification
    set args [parseModuleSpecification 0 {*}$args]
 
@@ -1518,8 +1479,6 @@ proc is-loaded {args} {
 }
 
 proc is-loading {args} {
-   reportDebug $args
-
    foreach mod $args {
       if {[getLoadedMatchingName $mod returnfirst 1] ne {}} {
          return 1
@@ -1530,7 +1489,6 @@ proc is-loading {args} {
 }
 
 proc conflict {args} {
-   reportDebug $args
    set currentModule [currentState modulename]
    set curmodnamevr [currentState modulenamevr]
    # get module short name if loaded by its full pathname
@@ -1581,7 +1539,6 @@ proc conflict {args} {
 }
 
 proc prereq {args} {
-   reportDebug $args
    set currentModule [currentState modulename]
    set curmodnamevr [currentState modulenamevr]
 
@@ -1670,8 +1627,6 @@ proc prereq {args} {
 }
 
 proc x-resource {resource {value {}}} {
-   reportDebug "($resource, $value)"
-
    # sometimes x-resource value may be provided within resource name
    # as the "x-resource {Ileaf.popup.saveUnder: True}" example provided
    # in manpage. so here is an attempt to extract real resource name and
@@ -1713,8 +1668,6 @@ proc x-resource {resource {value {}}} {
 }
 
 proc uname {what} {
-   reportDebug $what
-
    return [switch -- $what {
       sysname {getState os}
       machine {getState machine}
@@ -1728,8 +1681,6 @@ proc uname {what} {
 
 # run shell command
 proc system {args} {
-   reportDebug $args
-
    # run through the appropriate shell
    if {[getState is_win]} {
       set shell cmd.exe
@@ -1752,8 +1703,6 @@ proc system {args} {
 
 # test at least one of the collections passed as argument exists
 proc is-saved {args} {
-   reportDebug $args
-
    foreach coll $args {
       lassign [getCollectionFilename $coll] collfile colldesc
       if {[file exists $collfile]} {
@@ -1766,8 +1715,6 @@ proc is-saved {args} {
 
 # test at least one of the directories passed as argument is set in MODULEPATH
 proc is-used {args} {
-   reportDebug $args
-
    set modpathlist [getModulePathList]
    foreach path $args {
       # transform given path in an absolute path to compare with dirs
@@ -1783,7 +1730,6 @@ proc is-used {args} {
 
 # test at least one of the modulefiles passed as argument exists
 proc is-avail {args} {
-   reportDebug $args
    # parse module version specification
    set args [parseModuleSpecification 0 {*}$args]
    set ret 0
