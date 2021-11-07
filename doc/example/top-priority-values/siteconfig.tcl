@@ -90,11 +90,12 @@ proc setenv-un {args} {
 # override 'add-path' procedure to add a '--top' optional argument, which
 # will benefit to the 'append-path' and 'prepend-path' modulefile commands
 rename ::add-path ::__add-path
-proc add-path {pos args} {
+proc add-path {cmd mode dflbhv args} {
    set keep_top_priority 0
+   set pos [expr {$cmd eq {append-path} ? {append} : {prepend}}]
    set arglist [lsearch -all -inline -not -exact $args "--top"]
-   lassign [eval parsePathCommandArgs "add-path" $arglist] separator\
-      allow_dup idx_val var path_list
+   lassign [parsePathCommandArgs $cmd $mode $dflbhv {*}$arglist] separator\
+      allow_dup idx_val ign_refcount bhv var path_list
 
    # top priority asked
    if {[llength $arglist] != [llength $args]} {
@@ -107,34 +108,36 @@ proc add-path {pos args} {
    # ensure top-priority value keeps first or last position by unloading it
    # priority new value addition, then restoring it
    if {$keep_top_priority} {
-      eval __unload-path $var $::env(MODULES_PRIORITY_${pos}_$var)
+      eval __unload-path $cmd load remove $var\
+         $::env(MODULES_PRIORITY_${pos}_$var)
    }
 
-   eval __add-path $pos $arglist
+   __add-path $cmd $mode $dflbhv {*}$arglist
 
    if {$keep_top_priority} {
-      eval __add-path $pos $var $::env(MODULES_PRIORITY_${pos}_$var)
+      eval __add-path $cmd $mode $dflbhv $var\
+         $::env(MODULES_PRIORITY_${pos}_$var)
    }
 }
 
 rename ::unload-path ::__unload-path
-proc unload-path {args} {
+proc unload-path {cmd mode dflbhv args} {
    set arglist [lsearch -all -inline -not -exact $args "--top"]
-   lassign [eval parsePathCommandArgs "unload-path" $arglist] separator\
-      allow_dup idx_val var path_list
+   lassign [parsePathCommandArgs $cmd $mode $dflbhv {*}$arglist] separator\
+      allow_dup idx_val ign_refcount bhv var path_list
 
    if {[llength $arglist] != [llength $args]} {
       # wipe priority helper variable when unloading top priority value
-      switch -- [lindex [info level -1] 0] {
-         {append-path}  { set pos "append" }
-         {prepend-path} { set pos "prepend" }
+      switch -- $cmd {
+         {append-path}  { set pos append }
+         {prepend-path} { set pos prepend }
       }
       if {[info exists pos]} {
          __setenv MODULES_PRIORITY_${pos}_$var $path_list
       }
    }
 
-   eval __unload-path $arglist
+   __unload-path $cmd $mode $dflbhv {*}$arglist
 }
 
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
