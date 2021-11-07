@@ -42,6 +42,8 @@ Modules 5.1.0 (not yet released)
   remove value when modulefile is unloaded.
 * Raise error when an unknown option is set on :mfcmd:`module use<module>` or
   :mfcmd:`module unuse<module>` modulefile command.
+* Rework emitted debug messages to remove obvious ones and systematically
+  report each modulefile command processed with their arguments.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 
