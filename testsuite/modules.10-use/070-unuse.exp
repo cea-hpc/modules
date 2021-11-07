@@ -162,6 +162,33 @@ testouterr_cmd "sh" "$use " "ERR" $err_emptydirname
 
 
 #
+# Test usage of variable reference
+#
+
+setenv_path_var MODULEPATH $modpath
+
+set ans [list]
+lappend ans [list set MODULEPATH $modpath]
+testouterr_cmd "sh" "$use \$TESTSUITEDIR/modulefiles.2" $ans {}
+
+setenv_path_var MODULEPATH $modpath \$TESTSUITEDIR/modulefiles.2
+
+testouterr_cmd "sh" "$use \$TESTSUITEDIR/modulefiles.2" $ans {}
+
+set ans [list]
+lappend ans [list set MODULEPATH $modpath:\$TESTSUITEDIR/modulefiles.2]
+testouterr_cmd "sh" "$use $env(TESTSUITEDIR)/modulefiles.2" $ans {}
+
+setenv_path_var MODULEPATH $env(TESTSUITEDIR)/modulefiles.2 $modpath
+
+set ans [list]
+lappend ans [list set MODULEPATH $env(TESTSUITEDIR)/modulefiles.2:$modpath]
+testouterr_cmd "sh" "$use \$TESTSUITEDIR/modulefiles.2" $ans {}
+
+setenv_path_var MODULEPATH $modpath
+
+
+#
 # test path command arguments
 #
 

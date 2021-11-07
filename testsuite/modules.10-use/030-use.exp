@@ -137,7 +137,6 @@ testouterr_cmd "sh" "$use" "OK" "$path_list_header\n  /apps/$os/$machine/$os"
 setenv_path_var MODULEPATH {$TESTSUITEDIR/modulefiles}
 testouterr_cmd sh $use OK "$path_list_header\n  $env(TESTSUITEDIR)/modulefiles"
 
-
 setenv_path_var MODULEPATH $modpath
 
 #
@@ -185,6 +184,29 @@ lappend ans [list set MODULEPATH $path:/tmp:$modpath]
 testouterr_cmd sh "$use $modpath:$path:/tmp" $ans {}
 
 unsetenv_var __MODULES_SHARE_MODULEPATH
+
+
+#
+# Test usage of variable reference
+#
+
+set ans [list]
+lappend ans [list set MODULEPATH \$TESTSUITEDIR/modulefiles.2:$modpath]
+testouterr_cmd "sh" "$use \$TESTSUITEDIR/modulefiles.2" $ans {}
+
+setenv_path_var MODULEPATH \$TESTSUITEDIR/modulefiles.2 $modpath
+testouterr_cmd "sh" "$use \$TESTSUITEDIR/modulefiles.2" $ans {}
+
+set ans [list]
+lappend ans [list set MODULEPATH $env(TESTSUITEDIR)/modulefiles.2:\$TESTSUITEDIR/modulefiles.2:$modpath]
+testouterr_cmd "sh" "$use $env(TESTSUITEDIR)/modulefiles.2" $ans {}
+
+setenv_path_var MODULEPATH $env(TESTSUITEDIR)/modulefiles.2 $modpath
+set ans [list]
+lappend ans [list set MODULEPATH \$TESTSUITEDIR/modulefiles.2:$env(TESTSUITEDIR)/modulefiles.2:$modpath]
+testouterr_cmd "sh" "$use \$TESTSUITEDIR/modulefiles.2" $ans {}
+
+setenv_path_var MODULEPATH $modpath
 
 
 #

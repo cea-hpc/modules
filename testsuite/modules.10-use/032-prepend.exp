@@ -68,6 +68,30 @@ set ans [list]
 lappend ans [list set MODULEPATH $loaded_path]
 test_cmd "ALL" "$use $loaded_path" $ans
 
+
+#
+# Test usage of variable reference
+#
+
+set ans [list]
+lappend ans [list set MODULEPATH \$TESTSUITEDIR/modulefiles.2:$modpath]
+testouterr_cmd "sh" "$use \$TESTSUITEDIR/modulefiles.2" $ans {}
+
+setenv_path_var MODULEPATH \$TESTSUITEDIR/modulefiles.2 $modpath
+testouterr_cmd "sh" "$use \$TESTSUITEDIR/modulefiles.2" $ans {}
+
+set ans [list]
+lappend ans [list set MODULEPATH $env(TESTSUITEDIR)/modulefiles.2:\$TESTSUITEDIR/modulefiles.2:$modpath]
+testouterr_cmd "sh" "$use $env(TESTSUITEDIR)/modulefiles.2" $ans {}
+
+setenv_path_var MODULEPATH $env(TESTSUITEDIR)/modulefiles.2 $modpath
+set ans [list]
+lappend ans [list set MODULEPATH \$TESTSUITEDIR/modulefiles.2:$env(TESTSUITEDIR)/modulefiles.2:$modpath]
+testouterr_cmd "sh" "$use \$TESTSUITEDIR/modulefiles.2" $ans {}
+
+setenv_path_var MODULEPATH $modpath
+
+
 #
 # Cleanup
 #
