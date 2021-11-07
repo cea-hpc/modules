@@ -1218,20 +1218,20 @@ proc parseGetenvCommandArgs {cmd args} {
       }
    }
 
+   set argname [expr {$cmd eq {getenv} ? {variable} : {name}}]
    if {[info exists wrongargs]} {
-      set argname [expr {$cmd eq {getenv} ? {variable} : {name}}]
       knerror "wrong # args: should be \"$cmd ?--return-value? $argname\
          ?valifundef?\""
    }
 
+   reportDebug "$argname='$var', valifundef='$valifundef',\
+      returnval='$returnval'"
    return [list $var $valifundef $returnval]
 }
 
 proc getenv {args} {
    # parse args
    lassign [parseGetenvCommandArgs getenv {*}$args] var valifundef returnval
-   reportDebug "variable='$var', valifundef='$valifundef',\
-      returnval='$returnval'"
 
    if {[currentState mode] ne {display} || $returnval} {
       return [get-env $var $valifundef]
@@ -2314,8 +2314,6 @@ proc getvariant {itrp args} {
    # parse args
    lassign [parseGetenvCommandArgs getvariant {*}$args] name valifundef\
       returnval
-   reportDebug "name='$name', valifundef='$valifundef',\
-      returnval='$returnval'"
 
    if {[currentState mode] ne {display} || $returnval} {
       if {[$itrp eval info exists "{::ModuleVariant($name)}"]} {
