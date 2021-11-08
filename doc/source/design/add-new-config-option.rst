@@ -103,7 +103,7 @@ Example commit: :ghcommit:`abfef4ed`
 Documentation
 -------------
 
-Man pages and other user documentation has to be updated to describe the
+Man pages and other user documentation have to be updated to describe the
 introduced option.
 
 Files that should be edited:
