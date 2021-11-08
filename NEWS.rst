@@ -37,6 +37,7 @@ Modules 5.1.0 (not yet released)
 * Doc: add :ref:`add-new-config-option` design notes.
 * Set a `Code of conduct`_ for the project and its community based on the
   widely adopted Contributor Covenant.
+* Doc: add :ref:`add-new-sub-command` design notes.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 
