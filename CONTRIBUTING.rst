@@ -67,6 +67,15 @@ Start coding
 
 .. _running-the-tests:
 
+Design notes
+~~~~~~~~~~~~
+
+See the :ref:`design` for recent feature specifications. You may also find
+there some development howtos:
+
+* :ref:`add-new-sub-command`
+* :ref:`add-new-config-option`
+
 Running the tests
 ~~~~~~~~~~~~~~~~~
 
