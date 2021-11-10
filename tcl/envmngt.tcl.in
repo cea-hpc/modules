@@ -1240,11 +1240,11 @@ proc setReferenceCountRecordValue {sharevar countlist} {
    }
 }
 
-proc unload-path {cmd dflbhv args} {
-   reportDebug "($args) cmd=$cmd, dflbhv=$dflbhv"
+proc unload-path {cmd mode dflbhv args} {
+   reportDebug "($args) cmd=$cmd, mode=$mode, dflbhv=$dflbhv"
 
-   lassign [parsePathCommandArgs $cmd $dflbhv {*}$args] separator allow_dup\
-      idx_val ign_refcount bhv var path_list
+   lassign [parsePathCommandArgs $cmd $mode $dflbhv {*}$args] separator\
+      allow_dup idx_val ign_refcount bhv var path_list
 
    if {$bhv eq {nop}} {
       return [list $bhv $var]
@@ -1360,7 +1360,7 @@ proc unload-path {cmd dflbhv args} {
 proc add-path {cmd args} {
    reportDebug "($args) cmd=$cmd"
 
-   lassign [parsePathCommandArgs $cmd add {*}$args] separator allow_dup\
+   lassign [parsePathCommandArgs $cmd load add {*}$args] separator allow_dup\
       idx_val ign_refcount bhv var path_list
 
    # no reference count management when no share variable is returned
@@ -1408,7 +1408,7 @@ proc add-path {cmd args} {
 
 # analyze argument list passed to a path command to set default value or raise
 # error in case some attributes are missing
-proc parsePathCommandArgs {cmd dflbhv args} {
+proc parsePathCommandArgs {cmd mode dflbhv args} {
    # parse argument list
    set next_is_delim 0
    set allow_dup 0

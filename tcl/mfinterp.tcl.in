@@ -1374,7 +1374,7 @@ proc prepend-path {args} {
 
 proc prepend-path-un {args} {
    # Set the variable for later use during the modulefile evaluation
-   unload-path prepend-path remove {*}$args
+   unload-path prepend-path unload remove {*}$args
 
    return {}
 }
@@ -1388,21 +1388,21 @@ proc append-path {args} {
 
 proc append-path-un {args} {
    # Set the variable for later use during the modulefile evaluation
-   unload-path append-path remove {*}$args
+   unload-path append-path unload remove {*}$args
 
    return {}
 }
 
 proc remove-path {args} {
    # Set the variable for later use during the modulefile evaluation
-   unload-path remove-path remove {*}$args
+   unload-path remove-path load remove {*}$args
 
    return {}
 }
 
 # undo remove-path in unload mode
 proc remove-path-un {args} {
-   lassign [unload-path remove-path nop {*}$args] bhv var
+   lassign [unload-path remove-path unload nop {*}$args] bhv var
 
    # clear variable if it does not exist on unload mode for later use
    # during the modulefile evaluation
@@ -1416,7 +1416,7 @@ proc remove-path-un {args} {
 # later use during the modulefile evaluation
 proc edit-path-wh {cmd args} {
    # get variable name
-   lassign [parsePathCommandArgs $cmd nop {*}$args] separator allow_dup\
+   lassign [parsePathCommandArgs $cmd load nop {*}$args] separator allow_dup\
       idx_val ign_refcount bhv var path_list
 
    if {![info exists ::env($var)]} {
