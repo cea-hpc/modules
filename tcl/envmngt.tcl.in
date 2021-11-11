@@ -1246,8 +1246,15 @@ proc unload-path {cmd mode dflbhv args} {
    lassign [parsePathCommandArgs $cmd $mode $dflbhv {*}$args] separator\
       allow_dup idx_val ign_refcount bhv var path_list
 
-   if {$bhv eq {nop}} {
-      return [list $bhv $var]
+   switch -- $bhv {
+      nop {
+         return [list $bhv $var]
+      }
+      append {
+         # set paths instead of removing them
+         add-path unload-path $cmd $separator $var {*}$path_list
+         return [list $bhv $var]
+      }
    }
 
    # no reference count management when no share variable is returned
@@ -1360,8 +1367,15 @@ proc unload-path {cmd mode dflbhv args} {
 proc add-path {cmd args} {
    reportDebug "($args) cmd=$cmd"
 
-   lassign [parsePathCommandArgs $cmd load add {*}$args] separator allow_dup\
-      idx_val ign_refcount bhv var path_list
+   # may be called from unload-path where argument parsing was already done
+   if {$cmd eq {unload-path}} {
+      set path_list [lassign $args cmd separator var]
+      set allow_dup 0
+      set ign_refcount 0
+   } else {
+      lassign [parsePathCommandArgs $cmd load add {*}$args] separator\
+         allow_dup idx_val ign_refcount bhv var path_list
+   }
 
    # no reference count management when no share variable is returned
    set isrefcount [expr {[set sharevar [getModshareVarName $var]] ne {}}]
@@ -1411,6 +1425,7 @@ proc add-path {cmd args} {
 proc parsePathCommandArgs {cmd mode dflbhv args} {
    # parse argument list
    set next_is_delim 0
+   set next_is_ignored 0
    set allow_dup 0
    set idx_val 0
    set ign_refcount 0
@@ -1418,8 +1433,28 @@ proc parsePathCommandArgs {cmd mode dflbhv args} {
    foreach arg $args {
       # everything passed after variable name is considered a value
       if {[info exists var]} {
-         # set multiple passed values in a list
-         lappend val_raw_list $arg
+         switch -- $arg {
+            --append-on-unload {
+               if {$cmd ne {remove-path}} {
+                  knerror "invalid option '$arg' for $cmd"
+               } elseif {$mode ne {unload}} {
+                  # ignore value set after this argument if not unloading
+                  set next_is_ignored 1
+               } else {
+                  set bhv append
+                  # if another argument is set, current value list is
+                  # withdrawn to start from new list set after this argument
+                  unset -nocomplain val_raw_list
+               }
+               set bhvopt $arg
+            }
+            default {
+               if {!$next_is_ignored} {
+                  # set multiple passed values in a list
+                  lappend val_raw_list $arg
+               }
+            }
+         }
       } else {
          switch -glob -- $arg {
             --index {
@@ -1452,6 +1487,15 @@ proc parsePathCommandArgs {cmd mode dflbhv args} {
                } else {
                   set bhv remove
                }
+               set bhvopt $arg
+            }
+            --append-on-unload {
+               if {$cmd ne {remove-path}} {
+                  knerror "invalid option '$arg' for $cmd"
+               } elseif {$mode eq {unload}} {
+                  set bhv append
+               }
+               set bhvopt $arg
             }
             -* {
                knerror "invalid option '$arg' for $cmd"
@@ -1481,6 +1525,11 @@ proc parsePathCommandArgs {cmd mode dflbhv args} {
    }
    if {![info exists val_raw_list]} {
       knerror "$cmd should get a value for environment variable $var"
+   }
+
+   # some options cannot be mixed
+   if {$idx_val != 0 && [info exists bhvopt]} {
+      knerror "--index and $bhvopt options cannot be simultaneously set"
    }
 
    # set list of value to add
