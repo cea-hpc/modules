@@ -1623,6 +1623,10 @@ proc runModuleUse {cmd mode pos args} {
       # added directory may not exist at this time
       # pass all paths specified at once to append-path/prepend-path
       if {[info exists pathlist]} {
+         # define path command to call and its default behavior
+         set pathcmd [expr {$pos eq {remove} ? {unload-path} : {add-path}}]
+         set dflbhv [expr {$pos eq {remove} ? {remove} : {add}}]
+
          # by-pass any reference counter in case use is called from top level
          # not to increase reference counter if paths are already defined
          if {[isTopEvaluation]} {
@@ -1632,7 +1636,8 @@ proc runModuleUse {cmd mode pos args} {
          if {[isTopEvaluation]} {
             lappendState mode load
          }
-         catch {$pos-path {*}$optlist MODULEPATH {*}$pathlist}
+         catch {$pathcmd $pos-path $mode $dflbhv {*}$optlist MODULEPATH\
+            {*}$pathlist}
          if {[isTopEvaluation]} {
             lpopState mode
          }
