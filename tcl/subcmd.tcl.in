@@ -597,7 +597,7 @@ proc cmdModuleRestore {{coll default}} {
    }
    # unuse paths
    if {[llength $path_to_unuse] > 0} {
-      cmdModuleUnuse {*}[lreverse $path_to_unuse]
+      cmdModuleUnuse load {*}[lreverse $path_to_unuse]
    }
 
    # since unloading a module may unload other modules or
@@ -628,7 +628,7 @@ proc cmdModuleRestore {{coll default}} {
    if {[llength $path_to_use] > 0} {
       # always append path here to guaranty the order
       # computed above in the movement lists
-      cmdModuleUse append {*}$path_to_use
+      cmdModuleUse load append {*}$path_to_use
    }
 
    # load modules one by one with user asked state preserved
@@ -1563,7 +1563,7 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
    setState inhibit_errreport 0
 }
 
-proc runModuleUse {cmd pos args} {
+proc runModuleUse {cmd mode pos args} {
    if {$args eq {}} {
       showModulePath
    } else {
@@ -1640,12 +1640,15 @@ proc runModuleUse {cmd pos args} {
    }
 }
 
-proc cmdModuleUse {pos args} {
-   runModuleUse use $pos {*}$args
+proc cmdModuleUse {mode pos args} {
+   if {$mode eq {unload}} {
+      set pos remove
+   }
+   runModuleUse use $mode $pos {*}$args
 }
 
-proc cmdModuleUnuse {args} {
-   runModuleUse unuse remove {*}$args
+proc cmdModuleUnuse {mode args} {
+   runModuleUse unuse $mode remove {*}$args
 }
 
 proc cmdModuleAutoinit {} {
@@ -1702,7 +1705,7 @@ proc cmdModuleAutoinit {} {
             }
          }
          if {[info exists pathlist]} {
-            cmdModuleUse append {*}$pathlist
+            cmdModuleUse load append {*}$pathlist
          }
       }
 

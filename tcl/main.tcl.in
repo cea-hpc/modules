@@ -333,8 +333,6 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
 }
 
 proc module {command args} {
-   set mode [currentState mode]
-
    # guess if called from top level
    set topcall [isTopEvaluation 0]
    set tryhelpmsg [expr {$topcall ? "\nTry 'module --help' for more\
@@ -344,6 +342,9 @@ proc module {command args} {
    } else {
       set msgprefix {module: }
    }
+
+   # get mode, set to load if called from top level
+   set mode [expr {$topcall ? {load} : [currentState mode]}]
 
    # resolve and check command name
    lassign [parseModuleCommandName $command help] command cmdvalid cmdempty
@@ -551,14 +552,10 @@ proc module {command args} {
          cmdModuleReload
       }
       use {
-         if {$topcall || $mode eq {load}} {
-            cmdModuleUse $addpath_pos {*}$args
-         } else {
-            cmdModuleUse remove {*}$args
-         }
+         cmdModuleUse $mode $addpath_pos {*}$args
       }
       unuse {
-         cmdModuleUnuse {*}$args
+         cmdModuleUnuse $mode {*}$args
       }
       source {
          cmdModuleSource load {*}$args
