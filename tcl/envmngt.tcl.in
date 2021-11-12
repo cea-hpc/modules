@@ -1252,7 +1252,7 @@ proc unload-path {cmd mode dflbhv args} {
       }
       append {
          # set paths instead of removing them
-         add-path unload-path $cmd $separator $var {*}$path_list
+         add-path unload-path load add $cmd $separator $var {*}$path_list
          return [list $bhv $var]
       }
    }
@@ -1364,8 +1364,8 @@ proc unload-path {cmd mode dflbhv args} {
    return [list $bhv $var]
 }
 
-proc add-path {cmd args} {
-   reportDebug "($args) cmd=$cmd"
+proc add-path {cmd mode dflbhv args} {
+   reportDebug "($args) cmd=$cmd, mode=$mode, dflbhv=$dflbhv"
 
    # may be called from unload-path where argument parsing was already done
    if {$cmd eq {unload-path}} {
@@ -1373,7 +1373,7 @@ proc add-path {cmd args} {
       set allow_dup 0
       set ign_refcount 0
    } else {
-      lassign [parsePathCommandArgs $cmd load add {*}$args] separator\
+      lassign [parsePathCommandArgs $cmd $mode $dflbhv {*}$args] separator\
          allow_dup idx_val ign_refcount bhv var path_list
    }
 
