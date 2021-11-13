@@ -1426,6 +1426,7 @@ proc parsePathCommandArgs {cmd mode dflbhv args} {
    # parse argument list
    set next_is_delim 0
    set next_is_ignored 0
+   set next_is_reset 0
    set allow_dup 0
    set idx_val 0
    set ign_refcount 0
@@ -1439,17 +1440,23 @@ proc parsePathCommandArgs {cmd mode dflbhv args} {
                   knerror "invalid option '$arg' for $cmd"
                } elseif {$mode ne {unload}} {
                   # ignore value set after this argument if not unloading
-                  set next_is_ignored 1
+                  # unless if no list is already set for load mode
+                  if {[info exists val_raw_list]} {
+                     set next_is_ignored 1
+                  }
                } else {
                   set bhv append
-                  # if another argument is set, current value list is
+                  # if another argument is set, current value list will be
                   # withdrawn to start from new list set after this argument
-                  unset -nocomplain val_raw_list
+                  set next_is_reset 1
                }
                set bhvopt $arg
             }
             default {
-               if {!$next_is_ignored} {
+               if {$next_is_reset} {
+                  set next_is_reset 0
+                  set val_raw_list [list $arg]
+               } elseif {!$next_is_ignored} {
                   # set multiple passed values in a list
                   lappend val_raw_list $arg
                }

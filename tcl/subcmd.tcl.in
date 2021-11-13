@@ -1572,14 +1572,11 @@ proc runModuleUse {cmd mode pos args} {
          set modpathlist [getModulePathList returnempty 0 0]
       }
 
-      set optlist [list]
       foreach path $args {
          switch -glob -- $path {
             --append-on-unload {
                if {$cmd ne {unuse}} {
                   knerror "Invalid option '$path'"
-               } elseif {![info exists pathlist]} {
-                  lappend optlist $path
                } else {
                   lappend pathlist $path
                }
@@ -1623,6 +1620,7 @@ proc runModuleUse {cmd mode pos args} {
       # added directory may not exist at this time
       # pass all paths specified at once to append-path/prepend-path
       if {[info exists pathlist]} {
+         set optlist [list]
          # define path command to call and its default behavior
          set pathcmd [expr {$pos eq {remove} ? {unload-path} : {add-path}}]
          set dflbhv [expr {$pos eq {remove} ? {remove} : {add}}]
