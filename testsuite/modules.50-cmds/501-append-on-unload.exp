@@ -233,9 +233,11 @@ unsetenv_var FOO
 setenv_var TESTSUITE_PATH_CMD_OPT remove3
 
 setenv_var FOO /tmp
-set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 38}]
-set tserr [escre [msg_load $mod [msg_moderr {remove-path should get a value for environment variable FOO} {remove-path FOO --append-on-unload /tmp<EXM>} $modfile $ln]]]
-testouterr_cmd_re sh "load $mod" ERR $tserr
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd_re sh "load $mod" $ans {}
 
 setenv_loaded_module [list $mod] [list $modfile]
 unsetenv_var FOO
@@ -279,9 +281,11 @@ testouterr_cmd_re sh "load $mod" $ans {}
 
 setenv_loaded_module [list $mod] [list $modfile]
 unsetenv_var FOO
-set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 44}]
-set tserr [escre [msg_unload $mod [msg_moderr {remove-path should get a value for environment variable FOO} {remove-path FOO /tmp /dir1 --append-on-unload<EXM>} $modfile $ln]]]
-testouterr_cmd_re sh "unload $mod" ERR $tserr
+set ans [list]
+lappend ans [list set FOO /tmp:/dir1]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd_re sh "unload $mod" $ans {}
 
 unsetenv_loaded_module
 
@@ -297,9 +301,11 @@ testouterr_cmd_re sh "load $mod" $ans {}
 
 setenv_loaded_module [list $mod] [list $modfile]
 unsetenv_var FOO
-set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 47}]
-set tserr [escre [msg_unload $mod [msg_moderr {remove-path should get a value for environment variable FOO} {remove-path FOO /tmp /dir1 --remove-on-unload --append-on-unload<EXM>} $modfile $ln]]]
-testouterr_cmd_re sh "unload $mod" ERR $tserr
+set ans [list]
+lappend ans [list set FOO /tmp:/dir1:--remove-on-unload]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd_re sh "unload $mod" $ans {}
 
 unsetenv_loaded_module
 
@@ -693,9 +699,11 @@ testouterr_cmd_re sh "load $mod" $ans {}
 
 setenv_loaded_module [list $mod] [list $modfile]
 setenv_path_var MODULEPATH $mp
-set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 83}]
-set tserr [escre [msg_unload $mod [msg_moderr {remove-path should get a value for environment variable MODULEPATH} {module unuse /tmp /dir1 --append-on-unload<EXM>} $modfile $ln]]]
-testouterr_cmd_re sh "unload $mod" ERR $tserr
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list set MODULEPATH $mp:/tmp:/dir1]
+testouterr_cmd sh "unload $mod" $ans {}
 
 unsetenv_loaded_module
 
