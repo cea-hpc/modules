@@ -271,6 +271,64 @@ testouterr_cmd_re sh "unload $mod" ERR $tserr
 unsetenv_loaded_module
 
 
+setenv_var TESTSUITE_PATH_CMD_OPT remove5
+
+setenv_path_var FOO /tmp
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 44}]
+set tserr [escre [msg_load $mod [msg_moderr {remove-path should get a value for environment variable FOO} {remove-path FOO --remove-on-unload<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_path_var FOO /tmp
+set tserr [escre [msg_unload $mod [msg_moderr {remove-path should get a value for environment variable FOO} {remove-path FOO --remove-on-unload<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "unload $mod" ERR $tserr
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT remove6
+
+setenv_path_var FOO /tmp /dir1
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_path_var FOO /tmp /dir1
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT remove7
+
+setenv_path_var FOO /tmp {}
+set ans [list]
+lappend ans [list unset __MODULES_SHARE_FOO]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_path_var FOO /tmp {}
+set ans [list]
+lappend ans [list unset __MODULES_SHARE_FOO]
+lappend ans [list unset FOO]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+unsetenv_path_var FOO
+
+
 #
 # module use
 #
@@ -404,6 +462,68 @@ Module Specific Test for $mpre/$mod:
 WARNING: Unable to find ModulesTest in $mpre/$mod.
 $modlin"
 testouterr_cmd_re sh "test $mod" OK $tserr
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT unuse3
+
+setenv_path_var MODULEPATH $mp /tmp
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 53}]
+set tserr [escre [msg_load $mod [msg_moderr {remove-path should get a value for environment variable MODULEPATH} {module unuse --remove-on-unload<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_path_var MODULEPATH $mp /tmp
+set tserr [escre [msg_unload $mod [msg_moderr {remove-path should get a value for environment variable MODULEPATH} {module unuse --remove-on-unload<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "unload $mod" ERR $tserr
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT unuse4
+
+setenv_path_var MODULEPATH $mp /tmp /dir1
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set MODULEPATH $mp]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_path_var MODULEPATH $mp /tmp /dir1
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list set MODULEPATH $mp]
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT unuse5
+
+setenv_path_var MODULEPATH $mp /tmp {}
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_SHARE_MODULEPATH :1]
+lappend ans [list set MODULEPATH $mp:]
+lappend ans [list ERR]
+set tserr [msg_load $mod $err_emptydirname]
+testouterr_cmd sh "load $mod" $ans $tserr
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_path_var MODULEPATH $mp /tmp {}
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list set __MODULES_SHARE_MODULEPATH :1]
+lappend ans [list set MODULEPATH $mp:]
+lappend ans [list ERR]
+set tserr [msg_unload $mod $err_emptydirname]
+testouterr_cmd sh "unload $mod" $ans $tserr
+
+unsetenv_loaded_module
+setenv_path_var MODULEPATH $mp
 
 
 #
