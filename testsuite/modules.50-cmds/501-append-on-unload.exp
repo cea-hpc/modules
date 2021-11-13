@@ -711,14 +711,19 @@ unsetenv_loaded_module
 setenv_var TESTSUITE_PATH_CMD_OPT unuse6
 
 setenv_path_var MODULEPATH $mp /tmp
-set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 86}]
-set tserr [escre [msg_load $mod [msg_moderr {Invalid option '--remove-on-unload'} {module unuse /tmp /dir1 --remove-on-unload --append-on-unload<EXM>} $modfile $ln]]]
-testouterr_cmd_re sh "load $mod" ERR $tserr
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set MODULEPATH $mp]
+testouterr_cmd sh "load $mod" $ans {}
 
 setenv_loaded_module [list $mod] [list $modfile]
 setenv_path_var MODULEPATH $mp
-set tserr [escre [msg_unload $mod [msg_moderr {Invalid option '--remove-on-unload'} {module unuse /tmp /dir1 --remove-on-unload --append-on-unload<EXM>} $modfile $ln]]]
-testouterr_cmd_re sh "unload $mod" ERR $tserr
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list set MODULEPATH $mp:/tmp:/dir1]
+testouterr_cmd sh "unload $mod" $ans {}
 
 unsetenv_loaded_module
 
@@ -726,14 +731,19 @@ unsetenv_loaded_module
 setenv_var TESTSUITE_PATH_CMD_OPT unuse7
 
 setenv_path_var MODULEPATH $mp /tmp
-set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 89}]
-set tserr [escre [msg_load $mod [msg_moderr {Invalid option '--remove-on-unload'} {module unuse --append-on-unload --remove-on-unload /tmp /dir1<EXM>} $modfile $ln]]]
-testouterr_cmd_re sh "load $mod" ERR $tserr
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set MODULEPATH $mp]
+testouterr_cmd sh "load $mod" $ans {}
 
 setenv_loaded_module [list $mod] [list $modfile]
-setenv_path_var MODULEPATH $mp
-set tserr [escre [msg_unload $mod [msg_moderr {Invalid option '--remove-on-unload'} {module unuse --append-on-unload --remove-on-unload /tmp /dir1<EXM>} $modfile $ln]]]
-testouterr_cmd_re sh "unload $mod" ERR $tserr
+setenv_path_var MODULEPATH $mp /dir1 /tmp
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list set MODULEPATH $mp]
+testouterr_cmd sh "unload $mod" $ans {}
 
 unsetenv_loaded_module
 
@@ -741,14 +751,19 @@ unsetenv_loaded_module
 setenv_var TESTSUITE_PATH_CMD_OPT unuse8
 
 setenv_path_var MODULEPATH $mp /tmp
-set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 92}]
-set tserr [escre [msg_load $mod [msg_moderr {Invalid option '--remove-on-unload'} {module unuse --remove-on-unload --append-on-unload /tmp /dir1<EXM>} $modfile $ln]]]
-testouterr_cmd_re sh "load $mod" ERR $tserr
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set MODULEPATH $mp]
+testouterr_cmd sh "load $mod" $ans {}
 
 setenv_loaded_module [list $mod] [list $modfile]
 setenv_path_var MODULEPATH $mp
-set tserr [escre [msg_unload $mod [msg_moderr {Invalid option '--remove-on-unload'} {module unuse --remove-on-unload --append-on-unload /tmp /dir1<EXM>} $modfile $ln]]]
-testouterr_cmd_re sh "unload $mod" ERR $tserr
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list set MODULEPATH $mp:/tmp:/dir1]
+testouterr_cmd sh "unload $mod" $ans {}
 
 unsetenv_loaded_module
 
@@ -756,14 +771,19 @@ unsetenv_loaded_module
 setenv_var TESTSUITE_PATH_CMD_OPT unuse9
 
 setenv_path_var MODULEPATH $mp /tmp
-set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 95}]
-set tserr [escre [msg_load $mod [msg_moderr {Invalid option '--remove-on-unload'} {module unuse --remove-on-unload /tmp --append-on-unload /dir1 /dir2<EXM>} $modfile $ln]]]
-testouterr_cmd_re sh "load $mod" ERR $tserr
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set MODULEPATH $mp]
+testouterr_cmd sh "load $mod" $ans {}
 
 setenv_loaded_module [list $mod] [list $modfile]
 setenv_path_var MODULEPATH $mp
-set tserr [escre [msg_unload $mod [msg_moderr {Invalid option '--remove-on-unload'} {module unuse --remove-on-unload /tmp --append-on-unload /dir1 /dir2<EXM>} $modfile $ln]]]
-testouterr_cmd_re sh "unload $mod" ERR $tserr
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list set MODULEPATH $mp:/dir1:/dir2]
+testouterr_cmd sh "unload $mod" $ans {}
 
 unsetenv_loaded_module
 
