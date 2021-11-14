@@ -1621,9 +1621,8 @@ proc runModuleUse {cmd mode pos args} {
       # pass all paths specified at once to append-path/prepend-path
       if {[info exists pathlist]} {
          set optlist [list]
-         # define path command to call and its default behavior
+         # define path command to call
          set pathcmd [expr {$pos eq {remove} ? {unload-path} : {add-path}}]
-         set dflbhv [expr {$pos eq {remove} ? {remove} : {add}}]
 
          # by-pass any reference counter in case use is called from top level
          # not to increase reference counter if paths are already defined
@@ -1634,7 +1633,7 @@ proc runModuleUse {cmd mode pos args} {
          if {[isTopEvaluation]} {
             lappendState mode load
          }
-         $pathcmd $pos-path $mode $dflbhv {*}$optlist MODULEPATH {*}$pathlist
+         $pathcmd $pos-path $mode $pos {*}$optlist MODULEPATH {*}$pathlist
          if {[isTopEvaluation]} {
             lpopState mode
          }

@@ -1252,7 +1252,7 @@ proc unload-path {cmd mode dflbhv args} {
       }
       append {
          # set paths instead of removing them
-         add-path unload-path load add $cmd $separator $var {*}$path_list
+         add-path unload-path load $bhv $cmd $separator $var {*}$path_list
          return [list $bhv $var]
       }
    }
@@ -1372,6 +1372,7 @@ proc add-path {cmd mode dflbhv args} {
       set path_list [lassign $args cmd separator var]
       set allow_dup 0
       set ign_refcount 0
+      set bhv $dflbhv
    } else {
       lassign [parsePathCommandArgs $cmd $mode $dflbhv {*}$args] separator\
          allow_dup idx_val ign_refcount bhv var path_list
@@ -1383,7 +1384,7 @@ proc add-path {cmd mode dflbhv args} {
       array set countarr [getReferenceCountArray $var $separator]
    }
 
-   if {$cmd eq {prepend-path}} {
+   if {$bhv eq {prepend}} {
       set path_list [lreverse $path_list]
    }
 
@@ -1395,7 +1396,7 @@ proc add-path {cmd mode dflbhv args} {
          # counter array (sometimes var is cleared by setting it empty not
          # unsetting it)
          if {$val ne {} || [info exists countarr()]} {
-            set val [expr {$cmd eq {prepend-path} ? "$dir$separator$val" :\
+            set val [expr {$bhv eq {prepend} ? "$dir$separator$val" :\
                "$val$separator$dir"}]
          } else {
             set val $dir
