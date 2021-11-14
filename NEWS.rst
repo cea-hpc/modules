@@ -44,6 +44,10 @@ Modules 5.1.0 (not yet released)
   :mfcmd:`module unuse<module>` modulefile command.
 * Rework emitted debug messages to remove obvious ones and systematically
   report each modulefile command processed with their arguments.
+* Add the ``--append-on-unload`` option to the :mfcmd:`remove-path` and
+  :mfcmd:`module unuse<module>` modulefile commands to append back when
+  modulefile is unloaded the value removed at load time or a specific value
+  set after this option.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 
