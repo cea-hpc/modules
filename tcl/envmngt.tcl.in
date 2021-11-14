@@ -1250,7 +1250,7 @@ proc unload-path {cmd mode dflbhv args} {
       nop {
          return [list $bhv $var]
       }
-      append {
+      append - prepend {
          # set paths instead of removing them
          add-path unload-path load $bhv $cmd $separator $var {*}$path_list
          return [list $bhv $var]
@@ -1436,7 +1436,7 @@ proc parsePathCommandArgs {cmd mode dflbhv args} {
       # everything passed after variable name is considered a value
       if {[info exists var]} {
          switch -- $arg {
-            --append-on-unload {
+            --append-on-unload - --prepend-on-unload {
                if {$cmd ne {remove-path}} {
                   knerror "invalid option '$arg' for $cmd"
                } elseif {$mode ne {unload}} {
@@ -1446,7 +1446,8 @@ proc parsePathCommandArgs {cmd mode dflbhv args} {
                      set next_is_ignored 1
                   }
                } else {
-                  set bhv append
+                  set bhv [expr {$arg eq {--append-on-unload} ? {append} :\
+                     {prepend}}]
                   # if another argument is set, current value list will be
                   # withdrawn to start from new list set after this argument
                   set next_is_reset 1
@@ -1505,11 +1506,12 @@ proc parsePathCommandArgs {cmd mode dflbhv args} {
                }
                set bhvopt $arg
             }
-            --append-on-unload {
+            --append-on-unload - --prepend-on-unload {
                if {$cmd ne {remove-path}} {
                   knerror "invalid option '$arg' for $cmd"
                } elseif {$mode eq {unload}} {
-                  set bhv append
+                  set bhv [expr {$arg eq {--append-on-unload} ? {append} :\
+                     {prepend}}]
                }
                set bhvopt $arg
             }
