@@ -24,6 +24,8 @@ Control mode behaviors
         - prepend-on-unload
         - set-on-unload (for non-path-like variable)
 
+    - do nothing: noop-on-unload
+
 - Also when modulefile loads sometimes it may be interesting to apply a
   slightly different behavior depending on the situation:
 
@@ -54,18 +56,19 @@ Unload behavior
   | module use   | remove-on-unload        | *n/a*                    |                       |
   +--------------+-------------------------+--------------------------+-----------------------+
   | module unuse | remove-on-unload        | *n/a*                    | append-on-unload,     |
-  |              |                         |                          | prepend-on-unload     |
+  |              |                         |                          | prepend-on-unload,    |
+  |              |                         |                          | noop-on-unload        |
   +--------------+-------------------------+--------------------------+-----------------------+
   | setenv       | unset-on-unload         | *n/a*                    |                       |
   +--------------+-------------------------+--------------------------+-----------------------+
-  | unsetenv     | *nop*                   | set-on-unload (when 2nd  | unset-on-unload       |
+  | unsetenv     | noop-on-unload          | set-on-unload (when 2nd  | unset-on-unload       |
   |              |                         | argument is provided)    |                       |
   +--------------+-------------------------+--------------------------+-----------------------+
   | append-path  | remove-on-unload        | *n/a*                    |                       |
   +--------------+-------------------------+--------------------------+-----------------------+
   | prepend-path | remove-on-unload        | *n/a*                    |                       |
   +--------------+-------------------------+--------------------------+-----------------------+
-  | remove-path  | *nop*                   | *n/a*                    | remove-on-unload,     |
+  | remove-path  | noop-on-unload          | *n/a*                    | remove-on-unload,     |
   |              |                         |                          | append-on-unload,     |
   |              |                         |                          | prepend-on-unload     |
   +--------------+-------------------------+--------------------------+-----------------------+
@@ -84,7 +87,12 @@ Unload behavior
 
 - The *set-on-unload* behavior is only useful for modulefile commands which
   unset value on load mode, as commands that set value on load mode mainly
-  need to unset the value set
+  need to unset the value set.
+
+- Default unload behavior of ``module unuse``, ``unsetenv`` and
+  ``remove-path`` commands can also be set as an option in their argument
+  list. Helps to dynamically choose the behavior to apply, which could be the
+  default behavior.
 
 Load behavior
 -------------
@@ -119,6 +127,7 @@ Modulefile command options
     - ``--remove-on-unload``
     - ``--append-on-unload``
     - ``--prepend-on-unload``
+    - ``--noop-on-unload``
     - ``--unset-on-unload``
     - ``--set-if-undef``
 
@@ -126,13 +135,30 @@ Modulefile command options
 
     - restore the value list removed at load time if placed prior this value
       list
-    - set a different value list if a different list of value if specified
+    - set a different value list if a different list of value is specified
       after option (all the values set after the option are considered element
       to add to the path-like variable)
+    - both options also accept to be set prior or right after variable name or
+      even right at the end of argument list to restore value list removed at
+      load time
 
 - The ``--set-if-undef`` option does not change the behavior of ``setenv``
   when modulefile is unloaded: environment variable will be unset whether the
   option is set or not.
+
+- The ``--remove-on-unload`` option can be set anywhere in argument list
+
+- The ``--remove-on-unload``, ``--append-on-unload`` and
+  ``--prepend-on-unload`` options cannot be mixed with the ``--index`` option
+  of ``remove-path`` sub-command.
+
+- The ``--remove-on-unload``, ``--append-on-unload``, ``--prepend-on-unload``
+  and ``--noop-on-unload`` options:
+
+    - can be placed at different positions in argument list to limit error
+      cases
+    - if multiple options of this kind are defined in argument list, the one
+      defined at the most right is retained
 
 Misc
 ----
