@@ -48,6 +48,10 @@ Modules 5.1.0 (not yet released)
   :mfcmd:`module unuse<module>` modulefile commands to append back when
   modulefile is unloaded the value removed at load time or a specific value
   set after this option.
+* Add the ``--prepend-on-unload`` option to the :mfcmd:`remove-path` and
+  :mfcmd:`module unuse<module>` modulefile commands to prepend back when
+  modulefile is unloaded the value removed at load time or a specific value
+  set after this option.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 

@@ -707,8 +707,9 @@ Modules Specific Tcl Commands
  Starting with version ``5.1``, the ``--remove-on-unload`` option is added to
  also remove value when modulefile is unloaded.
 
- Starting with version ``5.1``, the ``--append-on-unload`` option is added to
- restore when modulefile is unloaded the value list unset at load time.
+ Starting with version ``5.1``, the ``--append-on-unload`` and
+ ``--prepend-on-unload`` options are added to restore when modulefile is
+ unloaded the value list unset at load time.
 
 :mfcmd:`unsetenv`
 

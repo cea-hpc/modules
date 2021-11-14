@@ -277,9 +277,10 @@ the *modulefile* is being loaded.
  On ``try-load`` sub-command, if specified *modulefile* is not found thus
  loaded, no implicit prereq requirement is defined over this module.
 
- The ``unuse`` sub-command accepts the ``--remove-on-unload`` and
- ``--append-on-unload`` options to control the behavior to apply when
- *modulefile* is unloaded. See :mfcmd:`remove-path` for further explanation.
+ The ``unuse`` sub-command accepts the ``--remove-on-unload``,
+ ``--append-on-unload`` and ``--prepend-on-unload`` options to control the
+ behavior to apply when *modulefile* is unloaded. See :mfcmd:`remove-path` for
+ further explanation.
 
  Command line switches :option:`--auto`, :option:`--no-auto` and
  :option:`--force` are ignored when passed to a :mfcmd:`module` command set in
@@ -295,8 +296,8 @@ the *modulefile* is being loaded.
        command should be used instead
 
     .. versionchanged:: 5.1
-       Options ``--remove-on-unload`` and ``--append-on-unload`` added for
-       ``use`` sub-command
+       Options ``--remove-on-unload``, ``--append-on-unload`` and
+       ``--prepend-on-unload`` added for ``use`` sub-command
 
 .. mfcmd:: module-alias name modulefile
 
@@ -738,7 +739,7 @@ the *modulefile* is being loaded.
 
  See :mfcmd:`conflict`.
 
-.. mfcmd:: remove-path [options] variable value... [--append-on-unload value...]
+.. mfcmd:: remove-path [options] variable value... [--append-on-unload|--prepend-on-unload value...]
 
  Remove *value* from the colon, or *delimiter*, separated list in
  *variable*.
@@ -747,7 +748,7 @@ the *modulefile* is being loaded.
 
  * ``-d C|--delim C|--delim=C``
  * ``--index``
- * ``--remove-on-unload|--append-on-unload``
+ * ``--remove-on-unload|--append-on-unload|--prepend-on-unload``
 
  See :mfcmd:`prepend-path` or :mfcmd:`append-path` for further
  explanation of using an arbitrary delimiter. Every string between colons, or
@@ -760,8 +761,9 @@ the *modulefile* is being loaded.
  When *modulefile* is unloaded, no operation is performed by default. If the
  ``--remove-on-unload`` option is set, *value* is removed. If the
  ``--append-on-unload`` option is set, append back *value* removed at load
- time or specific *value* if any set. These options cannot be set if
- ``--index`` option is also set.
+ time or specific *value* if any set. If the ``--prepend-on-unload`` option is
+ set, prepend back *value* removed at load time or specific *value* if any
+ set. These options cannot be set if ``--index`` option is also set.
 
  Reference counter of *value* in *variable* denotes the number of times
  *value* has been added to *variable*. This information is stored in
@@ -781,7 +783,8 @@ the *modulefile* is being loaded.
        Option ``--index`` added
 
     .. versionchanged:: 5.1
-       Options ``--remove-on-unload`` and ``--append-on-unload`` added
+       Options ``--remove-on-unload``, ``--append-on-unload`` and
+       ``--prepend-on-unload`` added
 
 .. mfcmd:: set-alias alias-name alias-string
 
