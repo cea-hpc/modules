@@ -702,6 +702,9 @@ Modules Specific Tcl Commands
  Starting version ``5.1``, an error is raised when an unused option is set
  on ``module use`` or ``module unuse`` commands.
 
+ Starting version ``5.1``, options ``--*-on-unload`` added to the
+ :mfcmd:`remove-path` command are also added to the ``module unuse`` command.
+
 :mfcmd:`remove-path`
 
  Starting with version ``5.1``, the ``--remove-on-unload`` option is added to
@@ -710,6 +713,9 @@ Modules Specific Tcl Commands
  Starting with version ``5.1``, the ``--append-on-unload`` and
  ``--prepend-on-unload`` options are added to restore when modulefile is
  unloaded the value list unset at load time.
+
+ Starting with version ``5.1``, the ``--noop-on-unload`` option is added to
+ perform no operation when modulefile is unloaded.
 
 :mfcmd:`unsetenv`
 
