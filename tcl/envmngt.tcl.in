@@ -1247,7 +1247,7 @@ proc unload-path {cmd mode dflbhv args} {
       allow_dup idx_val ign_refcount bhv var path_list
 
    switch -- $bhv {
-      nop {
+      noop {
          return [list $bhv $var]
       }
       append - prepend {
@@ -1454,11 +1454,12 @@ proc parsePathCommandArgs {cmd mode dflbhv args} {
                }
                set bhvopt $arg
             }
-            --remove-on-unload {
+            --remove-on-unload - --noop-on-unload {
                if {$cmd ne {remove-path}} {
                   knerror "invalid option '$arg' for $cmd"
-               } else {
-                  set bhv remove
+               } elseif {$mode eq {unload}} {
+                  set bhv [expr {$arg eq {--remove-on-unload} ? {remove} :\
+                     {noop}}]
                }
                set bhvopt $arg
             }
@@ -1498,20 +1499,17 @@ proc parsePathCommandArgs {cmd mode dflbhv args} {
             --ignore-refcount {
                set ign_refcount 1
             }
-            --remove-on-unload {
-               if {$cmd ne {remove-path}} {
-                  knerror "invalid option '$arg' for $cmd"
-               } else {
-                  set bhv remove
-               }
-               set bhvopt $arg
-            }
-            --append-on-unload - --prepend-on-unload {
+            --append-on-unload - --prepend-on-unload - --remove-on-unload -\
+            --noop-on-unload {
                if {$cmd ne {remove-path}} {
                   knerror "invalid option '$arg' for $cmd"
                } elseif {$mode eq {unload}} {
-                  set bhv [expr {$arg eq {--append-on-unload} ? {append} :\
-                     {prepend}}]
+                  switch -- [string range $arg 2 5] {
+                     noop { set bhv noop }
+                     remo { set bhv remove }
+                     appe { set bhv append }
+                     prep { set bhv prepend }
+                  }
                }
                set bhvopt $arg
             }
@@ -1546,7 +1544,8 @@ proc parsePathCommandArgs {cmd mode dflbhv args} {
    }
 
    # some options cannot be mixed
-   if {$idx_val != 0 && [info exists bhvopt]} {
+   if {$idx_val != 0 && ([info exists bhvopt] && $bhvopt !=\
+      {--noop-on-unload})} {
       knerror "--index and $bhvopt options cannot be simultaneously set"
    }
 
