@@ -1,0 +1,711 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2021/11/16
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload, display, help, test, whatis, refresh
+#   Modulefiles:    path-cmd-opt
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test --noop-on-unload option of path modulefile commands
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+set mod path-cmd-opt/1.3
+set modfile $mp/path-cmd-opt/1.3
+
+
+#
+# append-path
+#
+
+setenv_var TESTSUITE_PATH_CMD_OPT append1
+
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 8}]
+set tserr [escre [msg_load $mod [msg_moderr {invalid option '--noop-on-unload' for append-path} {append-path FOO /tmp --noop-on-unload /dir1<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
+
+setenv_var TESTSUITE_PATH_CMD_OPT append2
+
+# load
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 11}]
+set tserr [escre [msg_load $mod [msg_moderr {invalid option '--noop-on-unload' for append-path} {append-path --noop-on-unload FOO /tmp<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_var FOO /tmp
+
+# unload
+set tserr [escre [msg_unload $mod [msg_moderr {invalid option '--noop-on-unload' for append-path} {append-path --noop-on-unload FOO /tmp<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "unload $mod" ERR $tserr
+
+# refresh
+testouterr_cmd sh {refresh} OK {}
+
+unsetenv_loaded_module
+unsetenv_var FOO
+
+# whatis
+set tserr "$modlin $mpre $modlin
+\\s*$mod: $mod"
+testouterr_cmd_re sh "whatis $mod" OK $tserr
+
+# display
+set tserr "$modlin
+$mpre/$mod:
+
+module-whatis\t$mod
+append-path\t--noop-on-unload FOO /tmp
+[escre [msg_moderr {invalid option '--noop-on-unload' for append-path} {append-path --noop-on-unload FOO /tmp<EXM>} $modfile $ln {  }]]
+$modlin"
+testouterr_cmd_re sh "display $mod" ERR $tserr
+
+# help
+set tserr "$modlin
+Module Specific Help for $mpre/$mod:
+
+[escre [msg_moderr {invalid option '--noop-on-unload' for append-path} {append-path --noop-on-unload FOO /tmp<EXM>} $modfile $ln {  }]]
+$modlin"
+testouterr_cmd_re sh "help $mod" ERR $tserr
+
+# test
+set tserr "$modlin
+Module Specific Test for $mpre/$mod:
+
+[escre [msg_moderr {invalid option '--noop-on-unload' for append-path} {append-path --noop-on-unload FOO /tmp<EXM>} $modfile $ln {  }]]
+$modlin"
+testouterr_cmd_re sh "test $mod" ERR $tserr
+
+
+#
+# prepend-path
+#
+
+setenv_var TESTSUITE_PATH_CMD_OPT prepend1
+
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 14}]
+set tserr [escre [msg_load $mod [msg_moderr {invalid option '--noop-on-unload' for prepend-path} {prepend-path --noop-on-unload FOO /tmp<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
+
+setenv_var TESTSUITE_PATH_CMD_OPT prepend2
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_var FOO /tmp
+
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 17}]
+set tserr [escre [msg_unload $mod [msg_moderr {invalid option '--noop-on-unload' for prepend-path} {prepend-path --noop-on-unload FOO /tmp /dir1<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "unload $mod" ERR $tserr
+
+unsetenv_loaded_module
+unsetenv_var FOO
+
+
+#
+# remove-path
+#
+
+setenv_var TESTSUITE_PATH_CMD_OPT remove1
+
+# load
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_path_var FOO /tmp:/dir1
+
+set ans [list]
+lappend ans [list set FOO /dir1]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+unsetenv_var FOO
+
+# unload
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+setenv_var FOO /tmp
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+# refresh
+testouterr_cmd sh {refresh} OK {}
+
+unsetenv_loaded_module
+unsetenv_var FOO
+
+# whatis
+set tserr "$modlin $mpre $modlin
+\\s*$mod: $mod"
+testouterr_cmd_re sh "whatis $mod" OK $tserr
+
+# display
+set tserr "$modlin
+$mpre/$mod:
+
+module-whatis\t$mod
+remove-path\t--noop-on-unload FOO /tmp
+$modlin"
+testouterr_cmd_re sh "display $mod" OK $tserr
+
+# help
+set tserr "$modlin
+Module Specific Help for $mpre/$mod:
+
+WARNING: Unable to find ModulesHelp in $mpre/$mod.
+$modlin"
+testouterr_cmd_re sh "help $mod" OK $tserr
+
+# test
+set tserr "$modlin
+Module Specific Test for $mpre/$mod:
+
+WARNING: Unable to find ModulesTest in $mpre/$mod.
+$modlin"
+testouterr_cmd_re sh "test $mod" OK $tserr
+
+setenv_loaded_module [list $mod] [list $modfile]
+unsetenv_var FOO
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT remove2
+
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+setenv_path_var FOO /tmp:/dir1
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+unsetenv_var FOO
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT remove3
+
+setenv_var FOO /tmp
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd_re sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+unsetenv_var FOO
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT remove4
+
+setenv_var FOO /tmp
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd_re sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+unsetenv_var FOO
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd_re sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT remove5
+
+setenv_var FOO /tmp
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd_re sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+unsetenv_var FOO
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd_re sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT remove6
+
+setenv_var FOO /tmp
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+unsetenv_var FOO
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT remove7
+
+setenv_var FOO /tmp
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_var FOO /dir1
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_var FOO
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT remove8
+setenv_var FOO /tmp
+set ans [list]
+lappend ans [list set FOO /tmp]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd_re sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+unsetenv_var FOO
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd_re sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT remove9
+
+setenv_var FOO /tmp
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 56}]
+set tserr [escre [msg_load $mod [msg_moderr {remove-path should get valid number as index value} {remove-path --index FOO 3 --noop-on-unload /tmp<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
+
+setenv_loaded_module [list $mod] [list $modfile]
+unsetenv_var FOO
+set tserr [escre [msg_unload $mod [msg_moderr {remove-path should get valid number as index value} {remove-path --index FOO 3 --noop-on-unload /tmp<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "unload $mod" ERR $tserr
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT remove10
+
+setenv_var FOO /tmp
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+set tserr [msg_load $mod "$warn_msgs: --duplicates option has no effect on remove-path"]
+testouterr_cmd sh "load $mod" $ans $tserr
+
+setenv_loaded_module [list $mod] [list $modfile]
+unsetenv_var FOO
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+set tserr [msg_unload $mod "$warn_msgs: --duplicates option has no effect on remove-path"]
+testouterr_cmd sh "unload $mod" $ans $tserr
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT remove11
+
+setenv_var FOO /tmp
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+unsetenv_var FOO
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT remove12
+
+setenv_path_var FOO /tmp
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 77}]
+set tserr [escre [msg_load $mod [msg_moderr {remove-path should get a value for environment variable FOO} {remove-path FOO --noop-on-unload<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_path_var FOO /tmp
+set tserr [escre [msg_unload $mod [msg_moderr {remove-path should get a value for environment variable FOO} {remove-path FOO --noop-on-unload<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "unload $mod" ERR $tserr
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT remove13
+
+setenv_path_var FOO /tmp /dir1 /dir3
+set ans [list]
+lappend ans [list set FOO /dir1:/dir3]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_path_var FOO /tmp /dir3
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT remove14
+
+setenv_path_var FOO /tmp /dir1
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_path_var FOO /tmp
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+unsetenv_path_var FOO
+
+
+#
+# module use
+#
+
+setenv_var TESTSUITE_PATH_CMD_OPT use1
+
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 26}]
+set tserr [escre [msg_load $mod [msg_moderr {Invalid option '--noop-on-unload'} {module use /tmp --noop-on-unload<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
+
+setenv_var TESTSUITE_PATH_CMD_OPT use2
+
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 29}]
+set tserr [escre [msg_load $mod [msg_moderr {Invalid option '--noop-on-unload'} {module use --noop-on-unload /tmp<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
+
+setenv_loaded_module [list $mod] [list $modfile]
+
+# unload
+set tserr [escre [msg_unload $mod [msg_moderr {Invalid option '--noop-on-unload'} {module use --noop-on-unload /tmp<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "unload $mod" ERR $tserr
+
+setenv_path_var MODULEPATH $mp /tmp
+testouterr_cmd_re sh "unload $mod" ERR $tserr
+
+# refresh
+testouterr_cmd sh {refresh} OK {}
+
+unsetenv_loaded_module
+setenv_path_var MODULEPATH $mp
+
+# whatis
+set tserr "$modlin $mpre $modlin
+\\s*$mod: $mod"
+testouterr_cmd_re sh "whatis $mod" OK $tserr
+
+# display
+set tserr "$modlin
+$mpre/$mod:
+
+module-whatis\t$mod
+module\t\tuse --noop-on-unload /tmp
+$modlin"
+testouterr_cmd_re sh "display $mod" OK $tserr
+
+# help
+set tserr "$modlin
+Module Specific Help for $mpre/$mod:
+
+WARNING: Unable to find ModulesHelp in $mpre/$mod.
+$modlin"
+testouterr_cmd_re sh "help $mod" OK $tserr
+
+# test
+set tserr "$modlin
+Module Specific Test for $mpre/$mod:
+
+WARNING: Unable to find ModulesTest in $mpre/$mod.
+$modlin"
+testouterr_cmd_re sh "test $mod" OK $tserr
+
+
+#
+# module unuse
+#
+
+setenv_var TESTSUITE_PATH_CMD_OPT unuse1
+
+# load
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set MODULEPATH $mp]
+testouterr_cmd_re sh "load $mod" $ans {}
+
+setenv_path_var MODULEPATH $mp /tmp
+
+testouterr_cmd_re sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_path_var MODULEPATH $mp
+
+# unload
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd_re sh "unload $mod" $ans {}
+
+setenv_path_var MODULEPATH $mp /tmp
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd_re sh "unload $mod" $ans {}
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT unuse2
+unsetenv_loaded_module
+setenv_path_var MODULEPATH $mp
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set MODULEPATH $mp]
+testouterr_cmd_re sh "load $mod" $ans {}
+
+setenv_path_var MODULEPATH /dir1 $mp /tmp
+testouterr_cmd_re sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_path_var MODULEPATH $mp
+
+# unload
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd_re sh "unload $mod" $ans {}
+
+setenv_path_var MODULEPATH $mp /tmp
+
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd_re sh "unload $mod" $ans {}
+
+# refresh
+testouterr_cmd sh {refresh} OK {}
+
+unsetenv_loaded_module
+setenv_path_var MODULEPATH $mp
+
+# whatis
+set tserr "$modlin $mpre $modlin
+\\s*$mod: $mod"
+testouterr_cmd_re sh "whatis $mod" OK $tserr
+
+# display
+set tserr "$modlin
+$mpre/$mod:
+
+module-whatis\t$mod
+module\t\tunuse --noop-on-unload /tmp /dir1
+$modlin"
+testouterr_cmd_re sh "display $mod" OK $tserr
+
+# help
+set tserr "$modlin
+Module Specific Help for $mpre/$mod:
+
+WARNING: Unable to find ModulesHelp in $mpre/$mod.
+$modlin"
+testouterr_cmd_re sh "help $mod" OK $tserr
+
+# test
+set tserr "$modlin
+Module Specific Test for $mpre/$mod:
+
+WARNING: Unable to find ModulesTest in $mpre/$mod.
+$modlin"
+testouterr_cmd_re sh "test $mod" OK $tserr
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT unuse3
+
+setenv_path_var MODULEPATH $mp /tmp
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set MODULEPATH $mp]
+testouterr_cmd_re sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_path_var MODULEPATH $mp
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT unuse4
+
+setenv_path_var MODULEPATH $mp /tmp
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set MODULEPATH $mp]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_path_var MODULEPATH $mp
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT unuse5
+
+setenv_path_var MODULEPATH $mp /tmp
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set MODULEPATH $mp]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_path_var MODULEPATH $mp
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT unuse6
+
+setenv_path_var MODULEPATH $mp /tmp
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set MODULEPATH $mp]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_path_var MODULEPATH $mp
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT unuse7
+
+setenv_path_var MODULEPATH $mp /tmp
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 86}]
+set tserr [escre [msg_load $mod [msg_moderr {remove-path should get a value for environment variable MODULEPATH} {module unuse --noop-on-unload<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_path_var MODULEPATH $mp /tmp
+set tserr [escre [msg_unload $mod [msg_moderr {remove-path should get a value for environment variable MODULEPATH} {module unuse --noop-on-unload<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "unload $mod" ERR $tserr
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT unuse8
+
+setenv_path_var MODULEPATH $mp /tmp /dir1
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set MODULEPATH $mp]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_path_var MODULEPATH $mp /tmp /dir1
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+setenv_path_var MODULEPATH $mp
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
