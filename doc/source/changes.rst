@@ -725,6 +725,9 @@ Modules Specific Tcl Commands
  Distinguish between being called on a unload evaluation without a value to
  restore or with an empty string value to restore.
 
+ Starting with version ``5.1``, the ``--noop-on-unload`` option is added to
+ perform no operation when modulefile is unloaded.
+
 :mfcmd:`variant`
 
  Starting version 5.1, :mfcmd:`variant` command accepts being called without

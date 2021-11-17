@@ -896,18 +896,24 @@ the *modulefile* is being loaded.
 
     .. versionadded:: 4.2
 
-.. mfcmd:: unsetenv variable [value]
+.. mfcmd:: unsetenv [options] variable [value]
 
  Unsets environment *variable*. When a *modulefile* is unloaded, no operation
  is performed unless if an optional *value* is defined, in which case
  *variable* is to *value*. The :mfcmd:`unsetenv` command changes the process'
  environment like :mfcmd:`setenv`.
 
+ If the ``--noop-on-unload`` option is set, no operation is performed when
+ *modulefile* is unloaded even if an optional *value* is defined.
+
  .. only:: html
 
     .. versionchanged:: 5.0
        *variable* is not unset when unloading *modulefile* and no optional
        value is provided
+
+    .. versionchanged:: 5.1
+       Option ``--noop-on-unload`` added
 
 .. mfcmd:: variant [--boolean] [--default value] name [value...]
 
