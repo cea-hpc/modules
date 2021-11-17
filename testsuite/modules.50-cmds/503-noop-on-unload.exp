@@ -705,6 +705,208 @@ setenv_path_var MODULEPATH $mp
 
 
 #
+# unsetenv
+#
+
+setenv_var TESTSUITE_PATH_CMD_OPT unsetenv1
+
+# load
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_var FOO /tmp
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+unsetenv_var FOO
+
+# unload
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+setenv_var FOO /tmp
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+unsetenv_var FOO
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT unsetenv2
+
+setenv_var FOO /tmp
+
+# load
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+unsetenv_var FOO
+
+# unload
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+# refresh
+testouterr_cmd sh {refresh} OK {}
+
+unsetenv_loaded_module
+unsetenv_var FOO
+
+# whatis
+set tserr "$modlin $mpre $modlin
+\\s*$mod: $mod"
+testouterr_cmd_re sh "whatis $mod" OK $tserr
+
+# display
+set tserr "$modlin
+$mpre/$mod:
+
+module-whatis\t$mod
+unsetenv\t--noop-on-unload FOO
+$modlin"
+testouterr_cmd_re sh "display $mod" OK $tserr
+
+# help
+set tserr "$modlin
+Module Specific Help for $mpre/$mod:
+
+WARNING: Unable to find ModulesHelp in $mpre/$mod.
+$modlin"
+testouterr_cmd_re sh "help $mod" OK $tserr
+
+# test
+set tserr "$modlin
+Module Specific Test for $mpre/$mod:
+
+WARNING: Unable to find ModulesTest in $mpre/$mod.
+$modlin"
+testouterr_cmd_re sh "test $mod" OK $tserr
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT unsetenv3
+
+# load
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_var FOO /tmp
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+unsetenv_var FOO
+
+# unload
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+setenv_var FOO /tmp
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+unsetenv_var FOO
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT unsetenv4
+
+# load
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_var FOO /tmp
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+unsetenv_var FOO
+
+# unload
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+setenv_var FOO /tmp
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+unsetenv_var FOO
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT unsetenv5
+
+setenv_var FOO /tmp
+
+# load
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+unsetenv_var FOO
+
+# unload
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+# refresh
+testouterr_cmd sh {refresh} OK {}
+
+unsetenv_loaded_module
+unsetenv_var FOO
+
+# whatis
+set tserr "$modlin $mpre $modlin
+\\s*$mod: $mod"
+testouterr_cmd_re sh "whatis $mod" OK $tserr
+
+# display
+set tserr "$modlin
+$mpre/$mod:
+
+module-whatis\t$mod
+unsetenv\tFOO val --noop-on-unload
+$modlin"
+testouterr_cmd_re sh "display $mod" OK $tserr
+
+# help
+set tserr "$modlin
+Module Specific Help for $mpre/$mod:
+
+WARNING: Unable to find ModulesHelp in $mpre/$mod.
+$modlin"
+testouterr_cmd_re sh "help $mod" OK $tserr
+
+# test
+set tserr "$modlin
+Module Specific Test for $mpre/$mod:
+
+WARNING: Unable to find ModulesTest in $mpre/$mod.
+$modlin"
+testouterr_cmd_re sh "test $mod" OK $tserr
+
+
+#
 #  Cleanup
 #
 
