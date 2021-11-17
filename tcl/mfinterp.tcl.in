@@ -1240,12 +1240,43 @@ proc getenv {args} {
    }
 }
 
-proc unsetenv {var args} {
-   # error if bad argument number, use args list to distinguish between no
-   # value to restore and an empty string value to restore
-   if {[llength $args] > 1} {
+# parse arguments sent to the unsetenv modulefile command
+proc parseUnsetenvCommandArgs {mode dflbhv args} {
+   set bhv $dflbhv
+   foreach arg $args {
+      switch -- $arg {
+         default {
+            if {![info exists var]} {
+               set var $arg
+            } elseif {![info exists val]} {
+               set val $arg
+               if {$mode eq {unload}} {
+                  set bhv set
+               }
+            } else {
+               # too much argument
+               set wrongargnum 1
+            }
+         }
+      }
+   }
+
+   if {[info exists wrongargnum] || ![info exists var]} {
       knerror {wrong # args: should be "unsetenv var ?val?"}
    }
+
+   # initialize val to always return same structure, val is only used if bhv
+   # equals 'set'
+   if {![info exists val]} {
+      set val {}
+   }
+
+   reportDebug "bhv=$bhv, var=$var, val=$val"
+   return [list $bhv $var $val]
+}
+
+proc unsetenv {args} {
+   lassign [parseUnsetenvCommandArgs load unset {*}$args] bhv var val
 
    # clean any existing reference counter array
    unset-env [getModshareVarName $var] 1
@@ -1257,20 +1288,21 @@ proc unsetenv {var args} {
 }
 
 # undo unsetenv in unload mode
-proc unsetenv-un {var args} {
-   # error if bad argument number, use args list to distinguish between no
-   # value to restore and an empty string value to restore
-   if {[llength $args] > 1} {
-      knerror {wrong # args: should be "unsetenv var ?val?"}
-   }
+proc unsetenv-un {args} {
+   lassign [parseUnsetenvCommandArgs unload noop {*}$args] bhv var val
 
-   # apply value specified for set on unload
-   if {[llength $args] == 1} {
-      return [setenv $var [lindex $args 0]]
-   # otherwise just clear variable if it does not exist on unload mode for
-   # later use during the modulefile evaluation
-   } elseif {![info exists ::env($var)]} {
-      reset-to-unset-env $var
+   switch -- $bhv {
+      set {
+         # apply value specified for set on unload
+         return [setenv $var $val]
+      }
+      noop {
+         # otherwise just clear variable if it does not exist on unload mode
+         # for later use during the modulefile evaluation
+         if {![info exists ::env($var)]} {
+            reset-to-unset-env $var
+         }
+      }
    }
    return {}
 }
