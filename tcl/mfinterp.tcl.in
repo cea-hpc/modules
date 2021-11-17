@@ -1242,15 +1242,19 @@ proc getenv {args} {
 
 # parse arguments sent to the unsetenv modulefile command
 proc parseUnsetenvCommandArgs {mode dflbhv args} {
-   set bhv $dflbhv
    foreach arg $args {
       switch -- $arg {
+         --noop-on-unload {
+            if {$mode eq {unload}} {
+               set bhv noop
+            }
+         }
          default {
             if {![info exists var]} {
                set var $arg
             } elseif {![info exists val]} {
                set val $arg
-               if {$mode eq {unload}} {
+               if {$mode eq {unload} && ![info exists bhv]} {
                   set bhv set
                }
             } else {
@@ -1262,7 +1266,12 @@ proc parseUnsetenvCommandArgs {mode dflbhv args} {
    }
 
    if {[info exists wrongargnum] || ![info exists var]} {
-      knerror {wrong # args: should be "unsetenv var ?val?"}
+      knerror {wrong # args: should be "unsetenv ?--noop-on-unload? var\
+         ?val?"}
+   }
+
+   if {![info exists bhv]} {
+      set bhv $dflbhv
    }
 
    # initialize val to always return same structure, val is only used if bhv
