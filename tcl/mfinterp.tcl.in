@@ -1244,6 +1244,11 @@ proc getenv {args} {
 proc parseUnsetenvCommandArgs {mode dflbhv args} {
    foreach arg $args {
       switch -- $arg {
+         --unset-on-unload {
+            if {$mode eq {unload}} {
+               set bhv unset
+            }
+         }
          --noop-on-unload {
             if {$mode eq {unload}} {
                set bhv noop
@@ -1266,8 +1271,8 @@ proc parseUnsetenvCommandArgs {mode dflbhv args} {
    }
 
    if {[info exists wrongargnum] || ![info exists var]} {
-      knerror {wrong # args: should be "unsetenv ?--noop-on-unload? var\
-         ?val?"}
+      knerror {wrong # args: should be "unsetenv ?--noop-on-unload?\
+         ?--unset-on-unload? var ?val?"}
    }
 
    if {![info exists bhv]} {
@@ -1304,6 +1309,9 @@ proc unsetenv-un {args} {
       set {
          # apply value specified for set on unload
          return [setenv $var $val]
+      }
+      unset {
+         return [unsetenv $var]
       }
       noop {
          # otherwise just clear variable if it does not exist on unload mode
