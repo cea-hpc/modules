@@ -114,7 +114,7 @@ source-sh      {source-sh      source-sh-un   source-sh-di   nop            nop 
 system         {system         system         reportCmd      nop            nop            nop            nop         }
 unset-alias    {unset-alias    nop            reportCmd      nop            nop            nop            nop         }
 unset-function {unset-function nop            reportCmd      nop            nop            nop            nop         }
-unsetenv       {unsetenv       unsetenv-un    unsetenv       unsetenv       unsetenv       setenv-wh      nop         }
+unsetenv       {unsetenv       unsetenv-un    unsetenv       unsetenv       unsetenv       unsetenv-wh    nop         }
 variant        {variant        variant        variant        variant        variant        variant-wh     variant     }
 x-resource     {x-resource     x-resource     reportCmd      nop            nop            nop            nop         }
       }
@@ -1151,7 +1151,36 @@ proc module-tag {args} {
    }
 }
 
-proc setenv {var val} {
+# parse arguments sent to the unsetenv modulefile command
+proc parseSetenvCommandArgs {mode dflbhv args} {
+   set bhv $dflbhv
+   foreach arg $args {
+      switch -- $arg {
+         default {
+            if {![info exists var]} {
+               set var $arg
+            } elseif {![info exists val]} {
+               set val $arg
+            } else {
+               # too much argument
+               set wrongargnum 1
+            }
+         }
+      }
+   }
+
+   if {[info exists wrongargnum] || ![info exists var] || ![info exists\
+      val]} {
+      knerror {wrong # args: should be "setenv var val"}
+   }
+
+   reportDebug "bhv=$bhv, var=$var, val=$val"
+   return [list $bhv $var $val]
+}
+
+proc setenv {args} {
+   lassign [parseSetenvCommandArgs load set {*}$args] bhv var val
+
    # clean any previously defined reference counter array
    unset-env [getModshareVarName $var] 1
 
@@ -1162,7 +1191,9 @@ proc setenv {var val} {
 }
 
 # undo setenv in unload mode
-proc setenv-un {var val} {
+proc setenv-un {args} {
+   lassign [parseSetenvCommandArgs unload unset {*}$args] bhv var val
+
    # clean any existing reference counter array
    unset-env [getModshareVarName $var] 1
 
@@ -1174,10 +1205,12 @@ proc setenv-un {var val} {
    return {}
 }
 
-# optimized setenv/unsetenv for whatis mode: init env variable with an empty
+# optimized setenv for whatis mode: init env variable with an empty
 # value if undefined. do not care about value, just avoid variable to be
 # undefined for later use during the modulefile evaluation
-proc setenv-wh {var args} {
+proc setenv-wh {args} {
+   lassign [parseSetenvCommandArgs load set {*}$args] bhv var val
+
    if {![info exists ::env($var)]} {
       set ::env($var) {}
    }
@@ -1320,6 +1353,18 @@ proc unsetenv-un {args} {
             reset-to-unset-env $var
          }
       }
+   }
+   return {}
+}
+
+# optimized unsetenv for whatis mode: init env variable with an empty
+# value if undefined. do not care about value, just avoid variable to be
+# undefined for later use during the modulefile evaluation
+proc unsetenv-wh {args} {
+   lassign [parseUnsetenvCommandArgs load noop {*}$args] bhv var val
+
+   if {![info exists ::env($var)]} {
+      set ::env($var) {}
    }
    return {}
 }
