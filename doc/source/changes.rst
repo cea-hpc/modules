@@ -728,6 +728,9 @@ Modules Specific Tcl Commands
  Starting with version ``5.1``, the ``--noop-on-unload`` option is added to
  perform no operation when modulefile is unloaded.
 
+ Starting with version ``5.1``, the ``--unset-on-unload`` option is added to
+ also unset variable when modulefile is unloaded.
+
 :mfcmd:`variant`
 
  Starting version 5.1, :mfcmd:`variant` command accepts being called without

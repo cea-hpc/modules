@@ -55,6 +55,9 @@ Modules 5.1.0 (not yet released)
 * Add the ``--noop-on-unload`` option to the :mfcmd:`unsetenv`,
   :mfcmd:`remove-path` and :mfcmd:`module unuse<module>` modulefile commands
   to perform no operation when modulefile is unloaded.
+* Add the ``--unset-on-unload`` option to the :mfcmd:`unsetenv` modulefile
+  command to also unset environment variable when modulefile is unloaded.
+
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 

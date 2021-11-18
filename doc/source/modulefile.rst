@@ -904,7 +904,9 @@ the *modulefile* is being loaded.
  environment like :mfcmd:`setenv`.
 
  If the ``--noop-on-unload`` option is set, no operation is performed when
- *modulefile* is unloaded even if an optional *value* is defined.
+ *modulefile* is unloaded. If the ``--unset-on-unload`` option is set,
+ environment *variable* is also unset when *modulefile* is unloaded. These
+ behaviors are applied even if an optional *value* is defined.
 
  .. only:: html
 
@@ -913,7 +915,7 @@ the *modulefile* is being loaded.
        value is provided
 
     .. versionchanged:: 5.1
-       Option ``--noop-on-unload`` added
+       Options ``--noop-on-unload`` and ``--unset-on-unload`` added
 
 .. mfcmd:: variant [--boolean] [--default value] name [value...]
 
