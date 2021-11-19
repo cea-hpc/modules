@@ -1156,6 +1156,11 @@ proc parseSetenvCommandArgs {mode dflbhv args} {
    set bhv $dflbhv
    foreach arg $args {
       switch -- $arg {
+         --set-if-undef {
+            if {$mode eq {load}} {
+               set setifundef 1
+            }
+         }
          default {
             if {![info exists var]} {
                set var $arg
@@ -1171,7 +1176,11 @@ proc parseSetenvCommandArgs {mode dflbhv args} {
 
    if {[info exists wrongargnum] || ![info exists var] || ![info exists\
       val]} {
-      knerror {wrong # args: should be "setenv var val"}
+      knerror {wrong # args: should be "setenv ?--set-if-undef? var val"}
+   }
+
+   if {[info exists setifundef] && [info exists ::env($var)]} {
+      set bhv noop
    }
 
    reportDebug "bhv=$bhv, var=$var, val=$val"
@@ -1181,11 +1190,13 @@ proc parseSetenvCommandArgs {mode dflbhv args} {
 proc setenv {args} {
    lassign [parseSetenvCommandArgs load set {*}$args] bhv var val
 
-   # clean any previously defined reference counter array
-   unset-env [getModshareVarName $var] 1
+   if {$bhv eq {set}} {
+      # clean any previously defined reference counter array
+      unset-env [getModshareVarName $var] 1
 
-   # Set the variable for later use during the modulefile evaluation
-   set-env $var $val
+      # Set the variable for later use during the modulefile evaluation
+      set-env $var $val
+   }
 
    return {}
 }
