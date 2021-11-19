@@ -717,6 +717,11 @@ Modules Specific Tcl Commands
  Starting with version ``5.1``, the ``--noop-on-unload`` option is added to
  perform no operation when modulefile is unloaded.
 
+:mfcmd:`setenv`
+
+ Starting with version ``5.1``, the ``--set-if-undef`` option is added to set
+ environment variable when modulefile is loaded only if not yet defined.
+
 :mfcmd:`unsetenv`
 
  When running on an unload evaluation, do not unset designated environment

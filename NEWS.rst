@@ -57,7 +57,9 @@ Modules 5.1.0 (not yet released)
   to perform no operation when modulefile is unloaded.
 * Add the ``--unset-on-unload`` option to the :mfcmd:`unsetenv` modulefile
   command to also unset environment variable when modulefile is unloaded.
-
+* Add the ``--set-if-undef`` option to the :mfcmd:`setenv` modulefile command
+  to set environment variable when modulefile is loaded only this variable is
+  not yet defined.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 

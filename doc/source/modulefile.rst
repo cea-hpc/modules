@@ -806,7 +806,7 @@ the *modulefile* is being loaded.
 
     .. versionadded:: 4.2
 
-.. mfcmd:: setenv variable value
+.. mfcmd:: setenv [--set-if-undef] variable value
 
  Set environment *variable* to *value*. The :mfcmd:`setenv` command will also
  change the process' environment. A reference using Tcl's env associative
@@ -821,6 +821,12 @@ the *modulefile* is being loaded.
  subsequent :subcmd:`unload` will unset the environment *variable* - the
  previous value cannot be restored! (Unless you handle it explicitly ... see
  below.)
+
+ When the ``--set-if-undef`` option is set, environment variable is defined
+ when *modulefile* is loaded only if not yet defined.
+
+    .. versionchanged:: 5.1
+       Option ``--set-if-undef`` added
 
 .. mfcmd:: source-sh shell script [arg...]
 
