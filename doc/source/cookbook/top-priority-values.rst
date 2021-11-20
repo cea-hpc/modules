@@ -28,9 +28,9 @@ first position in path-like variable.
 
 .. literalinclude:: ../../example/top-priority-values/siteconfig.tcl
    :caption: siteconfig.tcl
-   :lines: 17-138
+   :lines: 17-115
 
-**Compatible with Modules v4.2**
+**Compatible with Modules v4.2+**
 
 Installation
 ------------

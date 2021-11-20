@@ -17,36 +17,19 @@
 # override 'setenv' procedure to add a '--top' optional argument
 rename ::setenv ::__setenv
 proc setenv {args} {
-   set topPriority 0
-   set errArgMsg "wrong # args: should be \"setenv ?--top? var val\""
-   switch -- [llength $args] {
-      {3} {
-         if {[lindex $args 0] eq "--top"} {
-            set topPriority 1
-         } else {
-            error $errArgMsg
-         }
-         set var [lindex $args 1]
-         set val [lindex $args 2]
-      }
-      {2} {
-         set var [lindex $args 0]
-         set val [lindex $args 1]
-      }
-      default {
-         error $errArgMsg
-      }
-   }
+   set arglist [lsearch -all -inline -not -exact $args "--top"]
+   lassign [parseSetenvCommandArgs load set {*}$arglist] bhv var val
 
-   if {$topPriority} {
+   # top priority asked
+   if {[llength $arglist] != [llength $args]} {
       # define an helper variable to know a top-priority value has been set
       if {[currentState mode] ne "display"} {
          __setenv MODULES_PRIORITY_$var $val
       }
-      __setenv $var $val
+      __setenv {*}$arglist
    # set non-priority value only if no top priority value already set
    } elseif {![info exists ::env(MODULES_PRIORITY_$var)]} {
-      __setenv $var $val
+      __setenv {*}$arglist
    }
 }
 
@@ -54,37 +37,28 @@ proc setenv {args} {
 # when setenv is evaluated on an unload mode
 rename ::setenv-un ::__setenv-un
 proc setenv-un {args} {
-   set topPriority 0
-   set errArgMsg "wrong # args: should be \"setenv-un ?--top? var val\""
-   switch -- [llength $args] {
-      {3} {
-         if {[lindex $args 0] eq "--top"} {
-            set topPriority 1
-         } else {
-            error $errArgMsg
-         }
-         set var [lindex $args 1]
-         set val [lindex $args 2]
-      }
-      {2} {
-         set var [lindex $args 0]
-         set val [lindex $args 1]
-      }
-      default {
-         error $errArgMsg
-      }
-   }
+   set arglist [lsearch -all -inline -not -exact $args "--top"]
+   lassign [parseSetenvCommandArgs unload unset {*}$arglist] bhv var val
 
-   if {$topPriority} {
+   # top priority asked
+   if {[llength $arglist] != [llength $args]} {
       # define an helper variable to know a top-priority value has been set
       if {[currentState mode] ne "display"} {
          __setenv-un MODULES_PRIORITY_$var $val
       }
-      __setenv-un $var $val
+      __setenv-un {*}$arglist
    # set non-priority value only if no top priority value already set
    } elseif {![info exists ::env(MODULES_PRIORITY_$var)]} {
-      __setenv-un $var $val
+      __setenv-un {*}$arglist
    }
+}
+
+# override 'setenv-wh' procedure to interpret the '--top' optional argument
+# when setenv is evaluated on an whatis mode
+rename ::setenv-wh ::__setenv-wh
+proc setenv-wh {args} {
+   set arglist [lsearch -all -inline -not -exact $args "--top"]
+   __setenv-wh {*}$arglist
 }
 
 # override 'add-path' procedure to add a '--top' optional argument, which
