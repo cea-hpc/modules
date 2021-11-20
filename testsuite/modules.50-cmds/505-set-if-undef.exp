@@ -1,0 +1,222 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2021/11/20
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload, display, help, test, whatis, refresh
+#   Modulefiles:    path-cmd-opt
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test --set-if-undef option of path modulefile commands
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+set mod path-cmd-opt/1.5
+set modfile $mp/path-cmd-opt/1.5
+
+
+#
+# setenv
+#
+
+setenv_var TESTSUITE_PATH_CMD_OPT setenv1
+
+# load
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 8}]
+set tserr [escre [msg_load $mod [msg_moderr {wrong # args: should be "setenv ?--set-if-undef? var val"} {setenv FOO --set-if-undef<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_var FOO val
+
+# unload
+set tserr [escre [msg_unload $mod [msg_moderr {wrong # args: should be "setenv ?--set-if-undef? var val"} {setenv FOO --set-if-undef<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "unload $mod" ERR $tserr
+
+unsetenv_loaded_module
+unsetenv_var FOO
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT setenv2
+
+# load
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 11}]
+set tserr [escre [msg_load $mod [msg_moderr {wrong # args: should be "setenv ?--set-if-undef? var val"} {setenv --set-if-undef<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT setenv3
+
+# load
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 14}]
+set tserr [escre [msg_load $mod [msg_moderr {wrong # args: should be "setenv ?--set-if-undef? var val"} {setenv --set-if-undef FOO<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT setenv4
+
+# load
+set ans [list]
+lappend ans [list set FOO val]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_var FOO /tmp
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+unsetenv_var FOO
+
+# unload
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+setenv_var FOO /tmp
+
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+# refresh
+testouterr_cmd sh {refresh} OK {}
+
+unsetenv_loaded_module
+unsetenv_var FOO
+
+# whatis
+set tserr "$modlin $mpre $modlin
+\\s*$mod: $mod"
+testouterr_cmd_re sh "whatis $mod" OK $tserr
+
+# display
+set tserr "$modlin
+$mpre/$mod:
+
+module-whatis\t$mod
+setenv\t\t--set-if-undef FOO val
+$modlin"
+testouterr_cmd_re sh "display $mod" OK $tserr
+
+# help
+set tserr "$modlin
+Module Specific Help for $mpre/$mod:
+
+WARNING: Unable to find ModulesHelp in $mpre/$mod.
+$modlin"
+testouterr_cmd_re sh "help $mod" OK $tserr
+
+# test
+set tserr "$modlin
+Module Specific Test for $mpre/$mod:
+
+WARNING: Unable to find ModulesTest in $mpre/$mod.
+$modlin"
+testouterr_cmd_re sh "test $mod" OK $tserr
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT setenv5
+
+# load
+set ans [list]
+lappend ans [list set FOO val]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_var FOO /tmp
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+unsetenv_var FOO
+
+# unload
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+setenv_var FOO /tmp
+
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+unsetenv_var FOO
+
+
+setenv_var TESTSUITE_PATH_CMD_OPT setenv6
+
+# load
+set ans [list]
+lappend ans [list set FOO val]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_var FOO /tmp
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+unsetenv_var FOO
+
+# unload
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+setenv_var FOO /tmp
+
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+unsetenv_var FOO
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
