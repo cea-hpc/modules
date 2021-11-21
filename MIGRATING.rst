@@ -44,6 +44,70 @@ also added to change the output redirection behavior for a single command:
     :ps:`$` module load unknown --no-redirect >/dev/null
     :sgrer:`ERROR`: Unable to locate a modulefile for 'unknown'
 
+Change modulefile command behavior
+----------------------------------
+
+Depending on the evaluation mode of the modulefile (e.g. *load*, *unload*,
+*display*, etc) commands have different behavior. Most common example is the
+:mfcmd:`setenv` command that sets an environment variable when modulefile is
+loaded and unsets it when it is unloaded. A different behavior may be wished
+sometimes for commands. This is why options are introduced for some modulefile
+commands to control what happens on particular evaluation mode.
+
+The ``--return-value`` option is added to the :mfcmd:`getenv` and
+:mfcmd:`getvariant` modulefile commands to ensure that the value of the
+designated environment variable or variant is returned even if modulefile is
+evaluated in *display* mode:
+
+.. parsed-literal::
+
+    :ps:`$` cat /path/to/modulefiles/foo/1.0
+    #%Module5.1
+    if {[getenv --return-value VAR] eq {}} {
+        setenv VAR value
+    }
+    :ps:`$` module display foo/1.0
+    -------------------------------------------------------------------
+    :sgrhi:`/path/to/modulefiles/foo/1.0`:
+
+    :sgrcm:`setenv`          VAR value
+    -------------------------------------------------------------------
+
+``--remove-on-unload``, ``--append-on-unload``, ``--prepend-on-unload`` and
+``--noop-on-unload`` options are added to the :mfcmd:`remove-path` and
+:mfcmd:`module unuse<module>` modulefile commands to control the behavior
+applied when modulefile is unloaded. With these options it is possible for
+instance to restore the paths unset at load time or to set other paths:
+
+.. parsed-literal::
+
+    :ps:`$` module display bar/1.0
+    -------------------------------------------------------------------
+    :sgrhi:`/path/to/modulefiles/bar/1.0`:
+
+    :sgrcm:`module`          unuse --prepend-on-unload /path/to/dir1
+    :sgrcm:`module`          use /path/to/dir2
+    -------------------------------------------------------------------
+    :ps:`$` module use
+    Search path for module files (in search order):
+      :sgrmp:`/path/to/dir1`
+      :sgrmp:`/path/to/modulefiles`
+    :ps:`$` module bar/1.0
+    :ps:`$` module use
+    Search path for module files (in search order):
+      :sgrmp:`/path/to/dir2`
+      :sgrmp:`/path/to/modulefiles`
+    :ps:`$` module unload bar/1.0
+    :ps:`$` module use
+    Search path for module files (in search order):
+      :sgrmp:`/path/to/dir1`
+      :sgrmp:`/path/to/modulefiles`
+
+Following the same trend, the ``--unset-on-unload`` and ``--noop-on-unload``
+options are added to the :mfcmd:`unsetenv` modulefile command to be able to
+choose between unsetting variable, setting a value or performing no operation
+when modulefile is unloaded.
+
 
 v5.0
 ====
