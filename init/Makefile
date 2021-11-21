@@ -71,6 +71,14 @@ else
   initrc := $(initdir)/modulerc
 endif
 
+# define shell completion location
+ifeq ($(zshcompletiondir),)
+  zshcompletiondir := $(initdir)/zsh-functions
+  setzshfpathre := s|@setzshfpath@||g
+else
+  setzshfpathre := /@setzshfpath@/d
+endif
+
 # if enabled translate to keep text after markup elsewhere remove the
 # entire line
 ifeq ($(setmanpath),y)
@@ -178,6 +186,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e '$(prependbinpathre)' \
 	-e '$(usemanpathre)' \
 	-e '$(notusemanpathre)' \
+	-e '$(setzshfpathre)' \
 	-e $$'s|@modulerc@|$(modulerc)|g' \
 	-e 's|@modulepath@|$(modulepath)|g' \
 	-e '$(setquarvarsre)' $(quarvarsre) \
@@ -243,14 +252,14 @@ uninstall-testconfig:
 install: all
 	mkdir -p $(DESTDIR)$(initdir)
 	mkdir -p $(DESTDIR)$(initdir)/ksh-functions
-	mkdir -p $(DESTDIR)$(initdir)/zsh-functions
+	mkdir -p $(DESTDIR)$(zshcompletiondir)
 	mkdir -p $(DESTDIR)$(modulefilesdir)
 	cp $(ALL_SHELLS) $(DESTDIR)$(initdir)/
 ifeq ($(windowssupport),y)
 	cp cmd.cmd $(DESTDIR)$(initdir)/
 endif
 	cp fish_completion $(DESTDIR)$(initdir)/
-	cp zsh-functions/_module $(DESTDIR)$(initdir)/zsh-functions/
+	cp zsh-functions/_module $(DESTDIR)$(zshcompletiondir)/
 	cp ksh $(DESTDIR)$(initdir)/ksh-functions/module
 	cp ksh $(DESTDIR)$(initdir)/ksh-functions/ml
 	rm -f $(DESTDIR)$(modulespath) $(DESTDIR)$(initrc)
@@ -273,12 +282,12 @@ ifeq ($(windowssupport),y)
 endif
 	rm -f $(DESTDIR)$(initdir)/ksh-functions/module
 	rm -f $(DESTDIR)$(initdir)/ksh-functions/ml
-	rm -f $(DESTDIR)$(initdir)/zsh-functions/_module
+	rm -f $(DESTDIR)$(zshcompletiondir)/_module
 	rm -f $(DESTDIR)$(modulespath) $(DESTDIR)$(initrc)
 	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(modulefilesdir) || true
 	@if [ -d $(DESTDIR)$(modulefilesdir) ]; then echo; echo "WARNING: $(DESTDIR)$(modulefilesdir) is not empty so skip removal" >&2; echo; fi
 	rmdir $(DESTDIR)$(initdir)/ksh-functions
-	rmdir $(DESTDIR)$(initdir)/zsh-functions
+	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(zshcompletiondir) || true
 	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(initdir) || true
 	@if [ -d $(DESTDIR)$(initdir) ]; then echo; echo "WARNING: $(DESTDIR)$(initdir) is not empty so skip removal" >&2; echo; fi
 ifeq ($(versioning),y)
