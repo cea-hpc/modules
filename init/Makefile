@@ -4,7 +4,7 @@
 # use bash shell to correctly expand the $'' syntax used in translate-in-script
 SHELL = /usr/bin/env bash
 
-SH_LIKE  = sh ksh bash zsh profile.sh bash_completion
+SH_LIKE  = sh ksh bash zsh profile.sh
 CSH_LIKE = csh tcsh tcsh_completion profile.csh
 OTHER    = perl.pm python.py ruby.rb lisp tcl fish cmake r.R
 
@@ -43,7 +43,7 @@ endif
 
 ALL_SHELLS = $(SH_LIKE) $(CSH_LIKE) $(OTHER)
 
-all: $(ALL_SHELLS) initrc zsh-functions/_module $(EXAMPLE_MODFILES_SRCDIR)/modules
+all: $(ALL_SHELLS) initrc bash_completion zsh-functions/_module $(EXAMPLE_MODFILES_SRCDIR)/modules
 ifeq ($(versioning),y)
 all: $(EXAMPLE_MODFILES_SRCDIR)/version
 endif
@@ -72,6 +72,14 @@ else
 endif
 
 # define shell completion location
+ifeq ($(bashcompletiondir),)
+  bashcompletiondir := $(initdir)
+  makebashcompdir := n
+  sourcebashcompre := s|@sourcebashcomp@||g
+else
+  makebashcompdir := y
+  sourcebashcompre := /@sourcebashcomp@/d
+endif
 ifeq ($(zshcompletiondir),)
   zshcompletiondir := $(initdir)/zsh-functions
   setzshfpathre := s|@setzshfpath@||g
@@ -187,6 +195,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e '$(usemanpathre)' \
 	-e '$(notusemanpathre)' \
 	-e '$(setzshfpathre)' \
+	-e '$(sourcebashcompre)' \
 	-e $$'s|@modulerc@|$(modulerc)|g' \
 	-e 's|@modulepath@|$(modulepath)|g' \
 	-e '$(setquarvarsre)' $(quarvarsre) \
@@ -252,6 +261,9 @@ uninstall-testconfig:
 install: all
 	mkdir -p $(DESTDIR)$(initdir)
 	mkdir -p $(DESTDIR)$(initdir)/ksh-functions
+ifeq ($(makebashcompdir),y)
+	mkdir -p $(DESTDIR)$(bashcompletiondir)
+endif
 	mkdir -p $(DESTDIR)$(zshcompletiondir)
 	mkdir -p $(DESTDIR)$(modulefilesdir)
 	cp $(ALL_SHELLS) $(DESTDIR)$(initdir)/
@@ -259,6 +271,12 @@ ifeq ($(windowssupport),y)
 	cp cmd.cmd $(DESTDIR)$(initdir)/
 endif
 	cp fish_completion $(DESTDIR)$(initdir)/
+ifeq ($(makebashcompdir),y)
+	cp bash_completion $(DESTDIR)$(bashcompletiondir)/module
+	ln -s module $(DESTDIR)$(bashcompletiondir)/ml
+else
+	cp bash_completion $(DESTDIR)$(bashcompletiondir)/
+endif
 	cp zsh-functions/_module $(DESTDIR)$(zshcompletiondir)/
 	cp ksh $(DESTDIR)$(initdir)/ksh-functions/module
 	cp ksh $(DESTDIR)$(initdir)/ksh-functions/ml
@@ -282,11 +300,20 @@ ifeq ($(windowssupport),y)
 endif
 	rm -f $(DESTDIR)$(initdir)/ksh-functions/module
 	rm -f $(DESTDIR)$(initdir)/ksh-functions/ml
+ifeq ($(makebashcompdir),y)
+	rm -f $(DESTDIR)$(bashcompletiondir)/ml
+	rm -f $(DESTDIR)$(bashcompletiondir)/module
+else
+	rm -f $(DESTDIR)$(bashcompletiondir)/bash_completion
+endif
 	rm -f $(DESTDIR)$(zshcompletiondir)/_module
 	rm -f $(DESTDIR)$(modulespath) $(DESTDIR)$(initrc)
 	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(modulefilesdir) || true
 	@if [ -d $(DESTDIR)$(modulefilesdir) ]; then echo; echo "WARNING: $(DESTDIR)$(modulefilesdir) is not empty so skip removal" >&2; echo; fi
 	rmdir $(DESTDIR)$(initdir)/ksh-functions
+ifeq ($(makebashcompdir),y)
+	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(bashcompletiondir) || true
+endif
 	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(zshcompletiondir) || true
 	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(initdir) || true
 	@if [ -d $(DESTDIR)$(initdir) ]; then echo; echo "WARNING: $(DESTDIR)$(initdir) is not empty so skip removal" >&2; echo; fi
@@ -297,7 +324,7 @@ ifeq ($(versioning),y)
 endif
 
 clean:
-	rm -f $(ALL_SHELLS) initrc zsh-functions/_module modulespath $(EXAMPLE_MODFILES_SRCDIR)/modules
+	rm -f $(ALL_SHELLS) initrc bash_completion zsh-functions/_module modulespath $(EXAMPLE_MODFILES_SRCDIR)/modules
 ifeq ($(versioning),y)
 	rm -f $(EXAMPLE_MODFILES_SRCDIR)/version
 endif
