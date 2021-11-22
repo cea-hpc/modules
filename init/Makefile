@@ -80,6 +80,14 @@ else
   makebashcompdir := y
   sourcebashcompre := /@sourcebashcomp@/d
 endif
+ifeq ($(fishcompletiondir),)
+  fishcompletiondir := $(initdir)
+  makefishcompdir := n
+  sourcefishcompre := s|@sourcefishcomp@||g
+else
+  makefishcompdir := y
+  sourcefishcompre := /@sourcefishcomp@/d
+endif
 ifeq ($(zshcompletiondir),)
   zshcompletiondir := $(initdir)/zsh-functions
   setzshfpathre := s|@setzshfpath@||g
@@ -196,6 +204,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e '$(notusemanpathre)' \
 	-e '$(setzshfpathre)' \
 	-e '$(sourcebashcompre)' \
+	-e '$(sourcefishcompre)' \
 	-e $$'s|@modulerc@|$(modulerc)|g' \
 	-e 's|@modulepath@|$(modulepath)|g' \
 	-e '$(setquarvarsre)' $(quarvarsre) \
@@ -264,13 +273,20 @@ install: all
 ifeq ($(makebashcompdir),y)
 	mkdir -p $(DESTDIR)$(bashcompletiondir)
 endif
+ifeq ($(makefishcompdir),y)
+	mkdir -p $(DESTDIR)$(fishcompletiondir)
+endif
 	mkdir -p $(DESTDIR)$(zshcompletiondir)
 	mkdir -p $(DESTDIR)$(modulefilesdir)
 	cp $(ALL_SHELLS) $(DESTDIR)$(initdir)/
 ifeq ($(windowssupport),y)
 	cp cmd.cmd $(DESTDIR)$(initdir)/
 endif
-	cp fish_completion $(DESTDIR)$(initdir)/
+ifeq ($(makefishcompdir),y)
+	cp fish_completion $(DESTDIR)$(fishcompletiondir)/module.fish
+else
+	cp fish_completion $(DESTDIR)$(fishcompletiondir)/
+endif
 ifeq ($(makebashcompdir),y)
 	cp bash_completion $(DESTDIR)$(bashcompletiondir)/module
 	ln -s module $(DESTDIR)$(bashcompletiondir)/ml
@@ -294,7 +310,7 @@ ifeq ($(versioning),y)
 endif
 
 uninstall:
-	rm -f $(addprefix $(DESTDIR)$(initdir)/,$(ALL_SHELLS) fish_completion)
+	rm -f $(addprefix $(DESTDIR)$(initdir)/,$(ALL_SHELLS))
 ifeq ($(windowssupport),y)
 	rm -f $(DESTDIR)$(initdir)/cmd.cmd
 endif
@@ -306,6 +322,11 @@ ifeq ($(makebashcompdir),y)
 else
 	rm -f $(DESTDIR)$(bashcompletiondir)/bash_completion
 endif
+ifeq ($(makefishcompdir),y)
+	rm -f $(DESTDIR)$(fishcompletiondir)/module.fish
+else
+	rm -f $(DESTDIR)$(fishcompletiondir)/fish_completion
+endif
 	rm -f $(DESTDIR)$(zshcompletiondir)/_module
 	rm -f $(DESTDIR)$(modulespath) $(DESTDIR)$(initrc)
 	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(modulefilesdir) || true
@@ -313,6 +334,9 @@ endif
 	rmdir $(DESTDIR)$(initdir)/ksh-functions
 ifeq ($(makebashcompdir),y)
 	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(bashcompletiondir) || true
+endif
+ifeq ($(makefishcompdir),y)
+	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(fishcompletiondir) || true
 endif
 	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(zshcompletiondir) || true
 	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(initdir) || true
