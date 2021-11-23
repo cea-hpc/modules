@@ -60,6 +60,10 @@ Modules 5.1.0 (not yet released)
 * Add the ``--set-if-undef`` option to the :mfcmd:`setenv` modulefile command
   to set environment variable when modulefile is loaded only this variable is
   not yet defined.
+* Install: add the :instopt:`--with-bashcompletiondir`,
+  :instopt:`--with-fishcompletiondir` and :instopt:`--with-zshcompletiondir`
+  installation options to install shell completion scripts in their
+  system-wide location. (fix issue #428)
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 

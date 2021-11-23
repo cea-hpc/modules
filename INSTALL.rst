@@ -655,6 +655,16 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
     .. versionadded:: 4.7
 
+.. instopt:: --with-bashcompletiondir=DIR
+
+ Directory for Bash completion scripts. When this option is not set Bash
+ completion script for Modules is installed in the initialization script
+ directory and is sourced from Modules Bash initialization script. (default=)
+
+ .. only:: html
+
+    .. versionadded:: 5.1
+
 .. instopt:: --with-bin-search-path=PATHLIST
 
  List of paths to look at when searching the location of tools required to
@@ -715,6 +725,16 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  .. only:: html
 
     .. versionadded:: 4.8
+
+.. instopt:: --with-fishcompletiondir=DIR
+
+ Directory for Fish completion scripts. When this option is not set Fish
+ completion script for Modules is installed in the initialization script
+ directory and is sourced from Modules Fish initialization script. (default=)
+
+ .. only:: html
+
+    .. versionadded:: 5.1
 
 .. instopt:: --with-icase=VALUE
 
@@ -986,3 +1006,14 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  .. only:: html
 
     .. versionadded:: 4.3
+
+.. instopt:: --with-zshcompletiondir=DIR
+
+ Directory for Zsh completion scripts. When this option is not set Zsh
+ completion script for Modules is installed in the initialization script
+ directory and :envvar:`FPATH` is set in Zsh initialization script to point to
+ this location. (default=)
+
+ .. only:: html
+
+    .. versionadded:: 5.1
