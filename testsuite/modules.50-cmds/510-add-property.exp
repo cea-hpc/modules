@@ -1,0 +1,132 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2021/11/26
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload, display, help, test, whatis, refresh, avail
+#   Modulefiles:    lcompat
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test add-property modulefile command
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+set mod lcompat/1.0
+set modfile $mp/$mod
+set modfilere $mpre/$mod
+
+
+setenv_var TESTSUITE_LCOMPAT addprop1
+
+# load
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+
+# unload
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+# refresh
+testouterr_cmd sh {refresh} OK {}
+
+unsetenv_loaded_module
+
+# whatis
+set tserr "$modlin $mpre $modlin
+\\s*$mod: $mod"
+testouterr_cmd_re sh "whatis $mod" OK $tserr
+
+# display
+set tserr "$modlin
+$mpre/$mod:
+
+module-whatis\t$mod
+add-property\tkey value
+$modlin"
+testouterr_cmd_re sh "display $mod" OK $tserr
+
+# help
+set tserr "$modlin
+Module Specific Help for $mpre/$mod:
+
+$warn_msgs: Unable to find ModulesHelp in $modfilere.
+$modlin"
+testouterr_cmd_re sh "help $mod" OK $tserr
+
+# test
+set tserr "$modlin
+Module Specific Test for $mpre/$mod:
+
+$warn_msgs: Unable to find ModulesTest in $modfilere.
+$modlin"
+testouterr_cmd_re sh "test $mod" OK $tserr
+
+
+setenv_var TESTSUITE_LCOMPAT addprop2
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+
+setenv_var TESTSUITE_LCOMPAT addprop3
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+
+setenv_var TESTSUITE_LCOMPAT addprop4
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+
+setenv_var TESTSUITE_LCOMPAT addproprc1
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list ERR]
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 3 : 6}]
+set tserr [escre [msg_moderr {invalid command name "add-property"} {add-property key value<EXM>} $mp/lcompat/.modulerc $ln {  }]]
+testouterr_cmd_re sh "load $mod" $ans $tserr
+
+set tserr $mp:\n$mod
+testouterr_cmd sh "avail -t $mod" OK $tserr
+
+set tserr "$modlin $mpre $modlin
+\\s*$mod: $mod"
+testouterr_cmd_re sh "whatis $mod" OK $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
