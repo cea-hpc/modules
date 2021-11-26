@@ -860,6 +860,16 @@ The following environment variables appeared on Modules 5.
 Modules Specific Tcl Commands
 """""""""""""""""""""""""""""
 
+The following modulefile Tcl commands appeared on Modules 5.
+
++------------+-----------------------------------------------------------------+
+| Introduced | New modulefile Tcl commands                                     |
+| in version |                                                                 |
++============+=================================================================+
+| 5.1        | :mfcmd:`add-property`, :mfcmd:`remove-property`,                |
+|            | :mfcmd:`extensions`                                             |
++------------+-----------------------------------------------------------------+
+
 :mfcmd:`system`, :mfcmd:`is-used`
 
  Starting Modules 5.0, these modulefile commands are available from a modulerc
