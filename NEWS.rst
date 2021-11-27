@@ -74,6 +74,8 @@ Modules 5.1.0 (not yet released)
   :mfcmd:`prereq` command.
 * Doc: describe :mfvar:`ModulesVersion` in *Modules Variables* section in
   :ref:`modulefile(4)` man page.
+* Set ``ModuleVersion`` as an alias over :mfvar:`ModulesVersion` modulefile
+  variable for compatibility with Lmod Tcl modulefiles.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 

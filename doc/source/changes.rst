@@ -875,6 +875,19 @@ The following modulefile Tcl commands appeared on Modules 5.
  Starting Modules 5.0, these modulefile commands are available from a modulerc
  evaluation context.
 
+Modules Variables
+"""""""""""""""""
+
+The following Modules-specific Tcl variables appeared on Modules 5.
+
++------------+-----------------------------------------------------------------+
+| Introduced | New Modules-specific Tcl variables                              |
+| in version |                                                                 |
++============+=================================================================+
+| 5.1        | :mfvar:`ModuleVersion`                                          |
++------------+-----------------------------------------------------------------+
+
+
 Modules configuration options
 """""""""""""""""""""""""""""
 
