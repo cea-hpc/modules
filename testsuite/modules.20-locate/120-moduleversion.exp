@@ -1,0 +1,73 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2021/11/27
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload, display, help, test, whatis, refresh, avail
+#   Modulefiles:    lcompat
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test ModuleVersion modulefile variable
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+set mod lcompat/1.0
+set modfile $mp/$mod
+set modfilere $mpre/$mod
+
+
+setenv_var TESTSUITE_LCOMPAT modvers1
+
+set tserr "$mp:\n$mod\(default\)"
+testouterr_cmd sh "avail -t $mod" OK $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMALTNAME $mod&lcompat/default&lcompat]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load lcompat" $ans {}
+
+
+setenv_var TESTSUITE_LCOMPAT modvers2
+set tserr "$mp:\n$mod\(default\)"
+testouterr_cmd sh "avail -t $mod" OK $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMALTNAME $mod&lcompat/default&lcompat]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load lcompat" $ans {}
+
+
+setenv_var TESTSUITE_LCOMPAT modvers3
+
+set tserr "$mp:\n$mod\(default\)"
+testouterr_cmd sh "avail -t $mod" OK $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMALTNAME $mod&lcompat/default&lcompat]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load lcompat" $ans {}
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
