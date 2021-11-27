@@ -1345,6 +1345,14 @@ subroutine. The ``ModulesDisplay`` subroutine is a good place to put
 additional descriptive information about the *modulefile*.
 
 
+Compatibility with Lmod Tcl modulefile
+--------------------------------------
+
+The ``add-property``, ``remove-property`` and ``extensions`` modulefile
+commands are evaluated as a *no-operation* command. No error is obtained if
+these commands are used in modulefiles but no change occurs.
+
+
 ENVIRONMENT
 -----------
 
