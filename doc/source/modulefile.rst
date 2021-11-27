@@ -1024,6 +1024,12 @@ Modules Variables
  The :mfvar:`ModulesCurrentModulefile` variable contains the full pathname of
  the *modulefile* being interpreted.
 
+.. mfvar:: ModulesVersion
+
+ The :mfvar:`ModulesVersion` variable can be set in :file:`.version` file to
+ designate the name of the *modulefile* version which should be considered
+ as default in current directory (see `Locating Modulefiles`_ section below).
+
 .. mfvar:: ModuleTool
 
  The :mfvar:`ModuleTool` variable contains the name of the *module*
@@ -1085,13 +1091,13 @@ looked up in the module directory.
 
 If the :file:`.version` file exists, it is opened and interpreted as Tcl code
 and takes precedence over a :file:`.modulerc` file in the same directory. If
-the Tcl variable ``ModulesVersion`` is set by the :file:`.version` file,
+the Tcl variable :mfvar:`ModulesVersion` is set by the :file:`.version` file,
 :file:`modulecmd.tcl` will use the name as if it specifies a *modulefile* in
 this directory. This will become the default *modulefile* in this case.
-``ModulesVersion`` cannot refer to a *modulefile* located in a different
+:mfvar:`ModulesVersion` cannot refer to a *modulefile* located in a different
 directory.
 
-If ``ModulesVersion`` is a directory, the search begins anew down that
+If :mfvar:`ModulesVersion` is a directory, the search begins anew down that
 directory. If the name does not match any files located in the current
 directory, the search continues through the remaining directories in
 :envvar:`MODULEPATH`.

@@ -72,6 +72,8 @@ Modules 5.1.0 (not yet released)
   command.
 * Produce a clear error message when wrong number of argument is received by
   :mfcmd:`prereq` command.
+* Doc: describe :mfvar:`ModulesVersion` in *Modules Variables* section in
+  :ref:`modulefile(4)` man page.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 
