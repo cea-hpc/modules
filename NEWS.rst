@@ -70,6 +70,8 @@ Modules 5.1.0 (not yet released)
 * Introduce the :mfcmd:`prereq-any` modulefile command for compatibility with
   Lmod Tcl modulefiles. :mfcmd:`prereq-any` is an alias of :mfcmd:`prereq`
   command.
+* Produce a clear error message when wrong number of argument is received by
+  :mfcmd:`prereq` command.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 
