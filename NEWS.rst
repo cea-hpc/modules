@@ -67,6 +67,9 @@ Modules 5.1.0 (not yet released)
 * Introduce the ``add-property``, ``remove-property`` and ``extensions``
   modulefile commands for compatibility with Lmod Tcl modulefiles. These
   commands are evaluated as a *no-operation* command.
+* Introduce the :mfcmd:`prereq-any` modulefile command for compatibility with
+  Lmod Tcl modulefiles. :mfcmd:`prereq-any` is an alias of :mfcmd:`prereq`
+  command.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 

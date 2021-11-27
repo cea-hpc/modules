@@ -740,6 +740,14 @@ the *modulefile* is being loaded.
 
  See :mfcmd:`conflict`.
 
+.. mfcmd:: prereq-any modulefile...
+
+ Alias of :mfcmd:`prereq` command.
+
+ .. only:: html
+
+    .. versionadded:: 5.1
+
 .. mfcmd:: remove-path [options] variable value... [--append-on-unload|--prepend-on-unload value...]
 
  Remove *value* from the colon, or *delimiter*, separated list in

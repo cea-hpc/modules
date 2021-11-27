@@ -867,7 +867,7 @@ The following modulefile Tcl commands appeared on Modules 5.
 | in version |                                                                 |
 +============+=================================================================+
 | 5.1        | :mfcmd:`add-property`, :mfcmd:`remove-property`,                |
-|            | :mfcmd:`extensions`                                             |
+|            | :mfcmd:`extensions`, :mfcmd:`prereq-any`                        |
 +------------+-----------------------------------------------------------------+
 
 :mfcmd:`system`, :mfcmd:`is-used`
