@@ -796,6 +796,25 @@ the *modulefile* is being loaded.
        Options ``--remove-on-unload``, ``--noop-on-unload``,
        ``--append-on-unload`` and ``--prepend-on-unload`` added
 
+.. mfcmd:: reportError string
+
+ Output *string* as an error message during *modulefile* evaluation and raise
+ error count. :mfcmd:`reportError` does not abort modulefile evaluation. Use
+ the :manpage:`error(n)` Tcl command to abort evaluation in addition to emit
+ an error message.
+
+ .. only:: html
+
+    .. versionadded:: 4.0
+
+.. mfcmd:: reportWarning string
+
+ Output *string* as a warning message during *modulefile* evaluation.
+
+ .. only:: html
+
+    .. versionadded:: 4.0
+
 .. mfcmd:: set-alias alias-name alias-string
 
  Sets an alias or function with the name *alias-name* in the user's

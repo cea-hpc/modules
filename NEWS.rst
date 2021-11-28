@@ -76,6 +76,8 @@ Modules 5.1.0 (not yet released)
   :ref:`modulefile(4)` man page.
 * Set ``ModuleVersion`` as an alias over :mfvar:`ModulesVersion` modulefile
   variable for compatibility with Lmod Tcl modulefiles.
+* Doc: describe :mfcmd:`reportError` and :mfcmd:`reportWarning` modulefile
+  commands.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 
