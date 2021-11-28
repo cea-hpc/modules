@@ -79,6 +79,9 @@ Modules 5.1.0 (not yet released)
   variable for compatibility with Lmod Tcl modulefiles.
 * Doc: describe :mfcmd:`reportError` and :mfcmd:`reportWarning` modulefile
   commands.
+* Add the :mfcmd:`require-fullname` modulefile command for compatibility with
+  Lmod Tcl modulefiles. This command aborts modulefile *load* evaluation if
+  modulefile's name is not fully specified.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 

@@ -815,6 +815,16 @@ the *modulefile* is being loaded.
 
     .. versionadded:: 4.0
 
+.. mfcmd:: require-fullname
+
+ Abort *load* evaluation of *modulefile* if name specified to designate it is
+ not the fully qualified one. Module alias or a symbolic version names are
+ considered fully qualified names, exception made for the *default* symbol.
+
+ .. only:: html
+
+    .. versionadded:: 5.1
+
 .. mfcmd:: set-alias alias-name alias-string
 
  Sets an alias or function with the name *alias-name* in the user's
