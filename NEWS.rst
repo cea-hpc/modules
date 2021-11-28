@@ -64,6 +64,7 @@ Modules 5.1.0 (not yet released)
   :instopt:`--with-fishcompletiondir` and :instopt:`--with-zshcompletiondir`
   installation options to install shell completion scripts in their
   system-wide location. (fix issue #428)
+* Doc: add :ref:`lmod-tcl-modulefile-compat` design notes.
 * Introduce the ``add-property``, ``remove-property`` and ``extensions``
   modulefile commands for compatibility with Lmod Tcl modulefiles. These
   commands are evaluated as a *no-operation* command.
