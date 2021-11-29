@@ -111,6 +111,7 @@ prereq-any     {prereq         nop            reportCmd      nop            nop 
 prereq         {prereq         nop            reportCmd      nop            nop            nop            nop         }
 remove-path    {remove-path    remove-path-un remove-path    remove-path    remove-path    edit-path-wh   nop         }
 remove-property {nop           nop            nop            nop            nop            nop            nop         }
+require-fullname {require-fullname nop        reportCmd      nop            nop            nop            nop         }
 set-alias      {set-alias      set-alias-un   reportCmd      nop            nop            nop            set-alias   }
 set-function   {set-function   set-function-un reportCmd     nop            nop            nop            set-function}
 setenv         {setenv         setenv-un      setenv         setenv         setenv         setenv-wh      nop         }
@@ -2438,6 +2439,16 @@ proc getvariant {itrp args} {
       }
    } else {
       return [sgr va "{$name}"]
+   }
+}
+
+proc require-fullname {} {
+   # test specified name is any alternative name of currently evaluating mod
+   # expect the default and parent dir name (which are considered unqualified)
+   if {![modEq [currentState specifiedname] [currentState modulename] eqspec\
+      1 4]} {
+      knerror {Module version must be specified to load module}\
+         MODULES_ERR_GLOBAL
    }
 }
 

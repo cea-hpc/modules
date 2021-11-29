@@ -307,7 +307,8 @@ proc setModuleResolution {mod target {symver {}} {override_res_path 1}\
 }
 
 # retrieve all names that resolve to passed mod
-proc getAllModuleResolvedName {mod {flag_type 0} {modspec {}}} {
+proc getAllModuleResolvedName {mod {flag_type 0} {modspec {}} {filter_default\
+   0}} {
    set namelist {}
    set resmodlist {}
    set icase [isIcase]
@@ -321,6 +322,9 @@ proc getAllModuleResolvedName {mod {flag_type 0} {modspec {}}} {
       append modroot $modelt
       lappend resmodlist $modroot
    }
+
+   set modpar [file dirname $mod]
+   set moddfl $modpar/default
 
    # add additionally all the altnames set on directories, parents of mod
    # or on distant directories whose default version resolves to mod
@@ -342,6 +346,8 @@ proc getAllModuleResolvedName {mod {flag_type 0} {modspec {}}} {
             # whose default version bridge resolution toward mod)
             # if modspec arg is set, exclude hidden entries not explicitly
             # matching modspec. auto symbols cannot be hidden
+            # if filter_default is asked, skip parent module name and /default
+            # symbol name from result list
             if {($modspec eq {} || ([info exists ::g_autoSymbol($resmod)] &&\
                $::g_autoSymbol($resmod) eq $mod) || (![isModuleHidden $resmod\
                $modspec] && ($resmoddfl eq {} || ![isModuleHidden $resmoddfl\
@@ -349,7 +355,8 @@ proc getAllModuleResolvedName {mod {flag_type 0} {modspec {}}} {
                ne {} && [modEq $modspec $resmodpar eqspec])) && ([modEq\
                $modelt $mod eqstart] || $::g_moduleResolved($resmod) eq $mod\
                || $mod eq [lindex [getPathToModule\
-               $::g_moduleResolved($resmod) {} 0] 1])} {
+               $::g_moduleResolved($resmod) {} 0] 1]) && (!$filter_default ||\
+               (![modEq $resmod $modpar] && ![modEq $resmod $moddfl]))} {
                # prefix automatically generated syms with type flag if asked
                if {$flag_type && [info exists ::g_moduleAlias($resmod)]} {
                   appendNoDupToList namelist al|$resmod

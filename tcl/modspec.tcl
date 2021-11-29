@@ -591,6 +591,7 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp 0}\
    }
    # get alternative names if mod is loading(1) or loaded(2)
    set altlist [switch -- $ismodlo {
+      4 {getAllModuleResolvedName $mod 0 {} 1}
       3 {getLoadedAltAndSimplifiedName $mod}
       2 {getLoadedAltname $mod}
       1 {getAllModuleResolvedName $mod}
@@ -699,6 +700,7 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
       set pmod [string trimright $pmod /]/
    }
    set altlist [switch -- $ismodlo {
+      4 {getAllModuleResolvedName $mod 0 {} 1}
       3 {getLoadedAltAndSimplifiedName $mod}
       2 {getLoadedAltname $mod}
       1 {getAllModuleResolvedName $mod}
@@ -801,6 +803,7 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
       set pmod [string trimright $pmod /]/
    }
    set altlist [switch -- $ismodlo {
+      4 {getAllModuleResolvedName $mod 0 {} 1}
       3 {getLoadedAltAndSimplifiedName $mod}
       2 {getLoadedAltname $mod}
       1 {getAllModuleResolvedName $mod}
@@ -919,6 +922,7 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
       set pmod [string trimright $pmod /]/
    }
    set altlist [switch -- $ismodlo {
+      4 {getAllModuleResolvedName $mod 0 {} 1}
       3 {getLoadedAltAndSimplifiedName $mod}
       2 {getLoadedAltname $mod}
       1 {getAllModuleResolvedName $mod}
