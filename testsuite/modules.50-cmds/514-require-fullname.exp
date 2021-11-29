@@ -1,0 +1,269 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2021/11/28
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload, display, help, test, whatis, refresh, avail
+#   Modulefiles:    lcompat
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test require-fullname modulefile command
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+set mod lcompat/1.4
+set modfile $mp/$mod
+set modfilere $mpre/$mod
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+
+setenv_var TESTSUITE_LCOMPAT reqfull1
+
+# load
+set ans [list]
+lappend ans [list set __MODULES_LMALTNAME $mod&lcompat/sym&lcompat/default&lcompat&al|lcompat/al&as|lcompat/latest]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+testouterr_cmd sh {load lcompat/al} $ans {}
+testouterr_cmd sh {load lcompat/sym} $ans {}
+testouterr_cmd sh {load lcompat/latest} $ans {}
+testouterr_cmd sh {load lcompat@1.4:1.4} $ans {}
+
+set tserr [msg_load $mod $err_reqfull]
+testouterr_cmd sh {load lcompat} ERR $tserr
+testouterr_cmd sh {load lcompat/default} ERR $tserr
+
+# test with icase option set
+testouterr_cmd sh {load -i lCompat/Al} $ans {}
+testouterr_cmd sh {load -i Lcompat/sYm} $ans {}
+testouterr_cmd sh {load -i lcoMPat/laTest} $ans {}
+testouterr_cmd sh {load -i LCompat@1.4:1.4} $ans {}
+testouterr_cmd sh {load -i lcompAT} ERR $tserr
+testouterr_cmd sh {load -i lcomPat/DEfault} ERR $tserr
+
+# test with dependency load
+setenv_var TESTSUITE_LCOMPAT_DEP reqfulldep1
+set ans [list]
+lappend ans [list set __MODULES_LMALTNAME $mod&lcompat/sym&lcompat/default&lcompat&al|lcompat/al&as|lcompat/latest]
+lappend ans [list set __MODULES_LMPREREQ lcompatdep/1.4&$mod]
+lappend ans [list set _LMFILES_ $modfile:$mp/lcompatdep/1.4]
+lappend ans [list set LOADEDMODULES $mod:lcompatdep/1.4]
+lappend ans [list set __MODULES_LMTAG $mod&auto-loaded]
+set tserr [msg_top_load lcompatdep/1.4 {} $mod {}]
+testouterr_cmd sh {load --auto lcompatdep/1.4} $ans $tserr
+
+setenv_var TESTSUITE_LCOMPAT_DEP reqfulldep2
+set ans [list]
+lappend ans [list set __MODULES_LMALTNAME $mod&lcompat/sym&lcompat/default&lcompat&al|lcompat/al&as|lcompat/latest]
+lappend ans [list set __MODULES_LMPREREQ lcompatdep/1.4&lcompat/al]
+lappend ans [list set _LMFILES_ $modfile:$mp/lcompatdep/1.4]
+lappend ans [list set LOADEDMODULES $mod:lcompatdep/1.4]
+lappend ans [list set __MODULES_LMTAG $mod&auto-loaded]
+set tserr [msg_top_load lcompatdep/1.4 {} $mod {}]
+testouterr_cmd sh {load --auto lcompatdep/1.4} $ans $tserr
+
+setenv_var TESTSUITE_LCOMPAT_DEP reqfulldep3
+set tserr [msg_load $mod $err_reqfull]\n\n[msg_load lcompatdep/1.4 [err_reqlo lcompat]]
+testouterr_cmd sh {load --auto lcompatdep/1.4} ERR $tserr
+
+setenv_var TESTSUITE_LCOMPAT_DEP reqfulldep4
+set tserr [msg_load $mod $err_reqfull]\n\n[msg_load lcompatdep/1.4 [err_reqlo lcompat/default]]
+testouterr_cmd sh {load --auto lcompatdep/1.4} ERR $tserr
+unsetenv_var TESTSUITE_LCOMPAT_DEP
+
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_path_var __MODULES_LMALTNAME $mod&lcompat/sym&lcompat/default&lcompat&al|lcompat/al&as|lcompat/latest
+
+# unload
+set ans [list]
+lappend ans [list unset __MODULES_LMALTNAME]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+testouterr_cmd sh {unload lcompat/al} $ans {}
+testouterr_cmd sh {unload lcompat/sym} $ans {}
+testouterr_cmd sh {unload lcompat/default} $ans {}
+testouterr_cmd sh {unload lcompat} $ans {}
+
+# test with icase option set
+testouterr_cmd sh {unload -i lcompAT/Sym} $ans {}
+testouterr_cmd sh {unload -i lcompat/dEFault} $ans {}
+testouterr_cmd sh {unload -i lcompAt} $ans {}
+
+# refresh
+testouterr_cmd sh {refresh} OK {}
+
+unsetenv_loaded_module
+unsetenv_path_var __MODULES_LMALTNAME
+
+# whatis
+set tserr "$modlin $mpre $modlin
+\\s*$mod: $mod"
+testouterr_cmd_re sh "whatis $mod" OK $tserr
+
+# display
+set tserr "$modlin
+$mpre/$mod:
+
+module-whatis\t$mod
+require-fullname\t
+$modlin"
+testouterr_cmd_re sh "display $mod" OK $tserr
+testouterr_cmd_re sh "display lcompat" OK $tserr
+
+# help
+set tserr "$modlin
+Module Specific Help for $mpre/$mod:
+
+$warn_msgs: Unable to find ModulesHelp in $modfilere.
+$modlin"
+testouterr_cmd_re sh "help $mod" OK $tserr
+testouterr_cmd_re sh "help lcompat" OK $tserr
+
+# test
+set tserr "$modlin
+Module Specific Test for $mpre/$mod:
+
+$warn_msgs: Unable to find ModulesTest in $modfilere.
+$modlin"
+testouterr_cmd_re sh "test $mod" OK $tserr
+testouterr_cmd_re sh "test lcompat" OK $tserr
+
+
+setenv_var TESTSUITE_LCOMPAT reqfull2
+
+# test with implicit_default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+set ans [list]
+lappend ans [list set __MODULES_LMALTNAME $mod&as|lcompat/default&as|lcompat/latest]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh {load lcompat@1.4:} $ans {}
+set tserr [msg_load $mod $err_reqfull]
+testouterr_cmd sh {load lcompat} ERR $tserr
+testouterr_cmd sh {load lcompat@1.3:} ERR $tserr
+
+# test with extended_default enabled
+setenv_var MODULES_EXTENDED_DEFAULT 1
+
+testouterr_cmd sh {load lcompat@1} ERR $tserr
+testouterr_cmd sh {load lcompat/1} ERR $tserr
+testouterr_cmd sh {load -i lCOMpat@1} ERR $tserr
+testouterr_cmd sh {load -i LCompat/1} ERR $tserr
+testouterr_cmd sh {load lcompat@1.4} $ans {}
+testouterr_cmd sh {load -i lcomPAt@1.4} $ans {}
+
+setenv_var MODULES_EXTENDED_DEFAULT 0
+# test with implicit_default disabled
+setenv_var MODULES_IMPLICIT_DEFAULT 0
+
+if {![is_config_locked implicit_default]} {
+    set tserr $err_nodefault'lcompat'
+    testouterr_cmd sh {load lcompat} ERR $tserr
+
+    set ans [list]
+    lappend ans [list set _LMFILES_ $modfile]
+    lappend ans [list set LOADEDMODULES $mod]
+    testouterr_cmd sh {load lcompat@1.4} $ans {}
+} else {
+    testouterr_cmd sh {load lcompat} ERR $tserr
+
+    set ans [list]
+    lappend ans [list set __MODULES_LMALTNAME $mod&as|lcompat/default&as|lcompat/latest]
+    lappend ans [list set _LMFILES_ $modfile]
+    lappend ans [list set LOADEDMODULES $mod]
+    testouterr_cmd sh {load lcompat@1.4} $ans {}
+}
+
+
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+
+setenv_var TESTSUITE_LCOMPAT reqfull3
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT lcompat/deep/1.4&foo|val2|0|2]
+lappend ans [list set __MODULES_LMALTNAME lcompat/deep/1.4&lcompat/deep/deepsym&lcompat/deep/default&lcompat/deep&al|lcompat/aldeep&as|lcompat/default&as|lcompat/latest&as|lcompat/deep/latest]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES lcompat/deep/1.4]
+testouterr_cmd sh {load lcompat/deep/1.4} $ans {}
+testouterr_cmd sh {load lcompat/aldeep} $ans {}
+testouterr_cmd sh {load lcompat/deep/deepsym} $ans {}
+
+set tserr [msg_load lcompat/deep/1.4 $err_reqfull]
+testouterr_cmd sh {load lcompat/deep} ERR $tserr
+testouterr_cmd sh {load lcompat/deep/default} ERR $tserr
+
+# test with variant specified
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT lcompat/deep/1.4&foo|val1|0|0]
+lappend ans [list set __MODULES_LMALTNAME lcompat/deep/1.4&lcompat/deep/deepsym&lcompat/deep/default&lcompat/deep&al|lcompat/aldeep&as|lcompat/default&as|lcompat/latest&as|lcompat/deep/latest]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES lcompat/deep/1.4]
+testouterr_cmd sh {load lcompat/deep/1.4 foo=val1} $ans {}
+testouterr_cmd sh {load lcompat/aldeep foo=val1} $ans {}
+
+set tserr [msg_load lcompat/deep/1.4{foo=val1} $err_reqfull]
+testouterr_cmd sh {load lcompat/deep foo=val1} ERR $tserr
+
+
+setenv_var TESTSUITE_LCOMPAT reqfull4
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 15}]
+set tserr [escre [msg_load $mod [msg_moderr {wrong # args: should be "require-fullname"} {require-fullname string<EXM>} $modfile $ln {} {} {} {} {invoked from within}]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
+
+setenv_loaded_module [list $mod] [list $modfile]
+
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd_re sh "unload $mod" $ans {}
+testouterr_cmd_re sh "unload lcompat" $ans {}
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_LCOMPAT reqfullrc1
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list ERR]
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 3 : 30}]
+set tserr [escre [msg_moderr {invalid command name "require-fullname"} {require-fullname<EXM>} $mp/lcompat/.modulerc $ln {  }]]
+testouterr_cmd_re sh "load $mod" $ans $tserr
+
+set tserr $mp:\n$mod
+testouterr_cmd sh "avail -t $mod" OK $tserr
+
+set tserr "$modlin $mpre $modlin
+\\s*$mod: $mod"
+testouterr_cmd_re sh "whatis $mod" OK $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
