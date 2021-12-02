@@ -108,21 +108,13 @@ the *modulefile* is being loaded.
 
 .. mfcmd:: conflict modulefile...
 
- :mfcmd:`prereq` and :mfcmd:`conflict` control whether or not the *modulefile*
- will be loaded. The :mfcmd:`prereq` command lists *modulefiles* which must
- have been previously loaded before the current *modulefile* will be loaded.
- Similarly, the :mfcmd:`conflict` command lists *modulefiles* which
- :mfcmd:`conflict` with the current *modulefile*. If a list contains more than
- one *modulefile*, then each member of the list acts as a Boolean OR
- operation. Multiple :mfcmd:`prereq` and :mfcmd:`conflict` commands may be
- used to create a Boolean AND operation. If one of the requirements have not
- been satisfied, an error is reported and the current *modulefile* makes no
- changes to the user's environment.
-
- If an argument for :mfcmd:`prereq` is a directory and any *modulefile* from
- the directory has been loaded, then the prerequisite is met. For example,
- specifying X11 as a :mfcmd:`prereq` means that any version of X11, X11/R4 or
- X11/R5, must be loaded before proceeding.
+ :mfcmd:`conflict` controls whether or not the *modulefile* will be loaded.
+ The :mfcmd:`conflict` command lists *modulefiles* which conflict with the
+ current *modulefile*. If a list contains more than one *modulefile*, then
+ each member of the list acts as a Boolean OR operation. Multiple
+ :mfcmd:`conflict` commands may be used to create a Boolean AND operation. If
+ one of the requirements have not been satisfied, an error is reported and the
+ current *modulefile* makes no changes to the user's environment.
 
  If an argument for :mfcmd:`conflict` is a directory and any other
  *modulefile* from that directory has been loaded, then a conflict will occur.
@@ -749,7 +741,23 @@ the *modulefile* is being loaded.
 
 .. mfcmd:: prereq modulefile...
 
- See :mfcmd:`conflict`.
+ :mfcmd:`prereq` controls whether or not the *modulefile* will be loaded. The
+ :mfcmd:`prereq` command lists *modulefiles* which must have been previously
+ loaded before the current *modulefile* will be loaded. If a list contains
+ more than one *modulefile*, then each member of the list acts as a Boolean OR
+ operation. Multiple :mfcmd:`prereq` commands may be used to create a Boolean
+ AND operation. If one of the requirements have not been satisfied, an error
+ is reported and the current *modulefile* makes no changes to the user's
+ environment.
+
+ If an argument for :mfcmd:`prereq` is a directory and any *modulefile* from
+ the directory has been loaded, then the prerequisite is met. For example,
+ specifying X11 as a :mfcmd:`prereq` means that any version of X11, X11/R4 or
+ X11/R5, must be loaded before proceeding.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
 
 .. mfcmd:: prereq-any modulefile...
 
