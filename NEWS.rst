@@ -82,6 +82,8 @@ Modules 5.1.0 (not yet released)
 * Add the :mfcmd:`require-fullname` modulefile command for compatibility with
   Lmod Tcl modulefiles. This command aborts modulefile *load* evaluation if
   modulefile's name is not fully specified.
+* Add the :mfcmd:`depends-on` modulefile command, alias over the
+  :mfcmd:`prereq` command for compatibility with Lmod Tcl modulefiles.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 

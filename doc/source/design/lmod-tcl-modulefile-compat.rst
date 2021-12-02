@@ -108,3 +108,31 @@ Lmod Tcl modulefile compatiblity
 
 - This command is intended for use only within modulefile evaluation context
   (not within modulerc)
+
+
+``depends-on``
+--------------
+
+- Auto load one or more modules said as dependencies when modulefile is
+  evaluated in *load* mode
+
+    - Corresponds to the *Requirement Load* module auto handling mechanism.
+    - Semantically this command corresponds to a requirement declaration.
+    - Make it an alias over :mfcmd:`prereq` but with each argument set as a
+      *prereq*all* not a *prereq-any*.
+    - If :mconfig:`auto_handling` option is disabled, requirement will not be
+      loaded and an error is raised. This will be different than Lmod as
+      with Modules the modulefile commands defines the semantic (*this is
+      a dependency*) then the automation is defined by the module command
+      configuration, not by the modulefile like done in Lmod.
+
+- Auto unload the dependency modules when modulefile is unloaded if no other
+  loaded module depends on them
+
+    - Corresponds to the *Useless Requirement Unload* module auto handling
+      mechanism
+    - Like for *load* evaluation, automation is configured at the module
+      command level, not by individual modulefiles
+
+- This command is intended for use only within modulefile evaluation context
+  (not within modulerc)

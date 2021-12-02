@@ -142,6 +142,17 @@ the *modulefile* is being loaded.
  the command line. The :mfcmd:`continue` command will only have this effect if
  not used within a Tcl loop though.
 
+.. mfcmd:: depends-on modulefile...
+
+ Declare *modulefile* as a requirement of currently loading module. This
+ command acts as an alias of :mfcmd:`prereq` command. If more than one
+ *modulefile* are specified, then this list acts as a Boolean AND operation,
+ which means all specified *modulefiles* are required.
+
+ .. only:: html
+
+    .. versionadded:: 5.1
+
 .. mfcmd:: exit [N]
 
  This is not a modules specific command but another overloaded Tcl command
