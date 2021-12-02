@@ -93,6 +93,7 @@ add-property   {nop            nop            nop            nop            nop 
 append-path    {append-path    append-path-un append-path    append-path    append-path    edit-path-wh   nop         }
 chdir          {chdir          nop            reportCmd      nop            nop            nop            nop         }
 conflict       {conflict       nop            reportCmd      nop            nop            nop            nop         }
+depends-on     {depends-on     nop            reportCmd      nop            nop            nop            nop         }
 extensions     {nop            nop            nop            nop            nop            nop            nop         }
 module         {module         module         reportCmd      nop            nop            nop            nop         }
 module-alias   {module-alias   module-alias   module-alias   module-alias   module-alias   module-alias   nop         }
@@ -2449,6 +2450,16 @@ proc require-fullname {} {
       1 4]} {
       knerror {Module version must be specified to load module}\
          MODULES_ERR_GLOBAL
+   }
+}
+
+proc depends-on {args} {
+   if {[llength $args] == 0} {
+      knerror {wrong # args: should be "depends-on modulefile ?...?"}
+   }
+   # call prereq over each arg independently to emulate a prereq-all
+   foreach arg $args {
+      prereq $arg
    }
 }
 
