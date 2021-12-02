@@ -136,10 +136,7 @@ the *modulefile* is being loaded.
 
 .. mfcmd:: depends-on modulefile...
 
- Declare *modulefile* as a requirement of currently loading module. This
- command acts as an alias of :mfcmd:`prereq` command. If more than one
- *modulefile* are specified, then this list acts as a Boolean AND operation,
- which means all specified *modulefiles* are required.
+ Alias of :mfcmd:`prereq-all` command.
 
  .. only:: html
 
@@ -758,6 +755,17 @@ the *modulefile* is being loaded.
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
+
+.. mfcmd:: prereq-all modulefile...
+
+ Declare *modulefile* as a requirement of currently loading module. This
+ command acts as an alias of :mfcmd:`prereq` command. If more than one
+ *modulefile* are specified, then this list acts as a Boolean AND operation,
+ which means all specified *modulefiles* are required.
+
+ .. only:: html
+
+    .. versionadded:: 5.1
 
 .. mfcmd:: prereq-any modulefile...
 
