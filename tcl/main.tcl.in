@@ -163,6 +163,7 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
    set dump_state 0
    set addpath_pos prepend
    set not_req 0
+   set tag_list {}
    set otherargs {}
 
    # parse argument list
@@ -170,6 +171,9 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
       if {[info exists nextargisval]} {
          set $nextargisval $arg
          unset nextargisval
+      } elseif {[info exists nextargisvaltosplit]} {
+         set $nextargisvaltosplit [split $arg :]
+         unset nextargisvaltosplit
       } elseif {[info exists ignore_next_arg]} {
          unset ignore_next_arg
       } else {
@@ -211,6 +215,22 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
                   set output_arg --output
                } elseif {!$ignerr} {
                   knerror "Unsupported option '--output' on $cmd sub-command"
+               }
+            }
+            --tag=* - --tag {
+               # option is only valid for specific sub-commands
+               # unload allowed not to raise error on unload/load mixed ml cmd
+               if {$cmd in [list load try-load switch unload]} {
+                  if {$arg eq {--tag}} {
+                     set nextargisvaltosplit tag_list
+                  } else {
+                     set tag_list [split [string range $arg 6 end] :]
+                     if {[llength $tag_list] == 0} {
+                        knerror "Missing value for '--tag' option"
+                     }
+                  }
+               } elseif {!$ignerr} {
+                  knerror "Unsupported option '--tag' on $cmd sub-command"
                }
             }
             --append - -append {
@@ -294,8 +314,15 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
       }
    }
 
-   if {[info exists nextargisval]} {
+   if {[info exists nextargisval] || [info exists nextargisvaltosplit]} {
       knerror "Missing value for '$prevarg' option"
+   }
+
+   foreach tag $tag_list {
+      if {$tag in [list loaded auto-loaded forbidden nearly-forbidden\
+         hidden]} {
+         knerror "Tag '$tag' cannot be manually set"
+      }
    }
 
    if {[info exists asked_output]} {
@@ -327,9 +354,10 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
    reportDebug "(show_oneperline=$show_oneperline, show_mtime=$show_mtime,\
       show_filter=$show_filter, search_filter=$search_filter,\
       search_match=$search_match, dump_state=$dump_state,\
-      addpath_pos=$addpath_pos, not_req=$not_req, otherargs=$otherargs)"
+      addpath_pos=$addpath_pos, not_req=$not_req, tag_list=$tag_list,\
+      otherargs=$otherargs)"
    return [list $show_oneperline $show_mtime $show_filter $search_filter\
-      $search_match $dump_state $addpath_pos $not_req $otherargs]
+      $search_match $dump_state $addpath_pos $not_req $tag_list $otherargs]
 }
 
 proc module {command args} {
@@ -361,7 +389,7 @@ proc module {command args} {
    # module sub-command (exclude them from arg list)
    lassign [parseModuleCommandArgs $topcall $command 0 {*}$args]\
       show_oneperline show_mtime show_filter search_filter search_match\
-      dump_state addpath_pos not_req args
+      dump_state addpath_pos not_req tag_list args
 
    # parse module version specification
    defineParseModuleSpecificationProc [getConf advanced_version_spec]
@@ -736,7 +764,7 @@ proc ml {args} {
    # without them in the way
    lassign [parseModuleCommandArgs 1 ml 1 {*}$args] show_oneperline\
       show_mtime show_filter search_filter search_match dump_state\
-      addpath_pos not_req fargs
+      addpath_pos not_req tag_list fargs
 
    # determine if first argument is a known module sub-command
    lassign [parseModuleCommandName [lindex $fargs 0] list] command cmdvalid\
@@ -768,7 +796,7 @@ proc ml {args} {
       set mlcmd [expr {[llength $modunlist] > 0 ? {unload} : {load}}]
       lassign [parseModuleCommandArgs 1 $mlcmd 0 {*}$args] show_oneperline\
          show_mtime show_filter search_filter search_match dump_state\
-         addpath_pos not_req fargs
+         addpath_pos not_req tag_list fargs
 
       # define if modfile should always be fully read even for validity check
       lappendState always_read_full_file 1
@@ -970,7 +998,7 @@ if {[catch {
             -a - --append - -append - --all - -p - --prepend - -prepend -\
             --delim - -delim - --delim=* - -delim=* - --duplicates - --index\
             - --notuasked - --indepth - --no-indepth - --dump-state -\
-            --reset {
+            --reset - --tag - --tag=* {
                # command-specific switches interpreted later on
                lappend otherargv $arg
             }
