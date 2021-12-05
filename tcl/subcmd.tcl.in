@@ -368,7 +368,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    }
 }
 
-proc cmdModuleSwitch {uasked old {new {}}} {
+proc cmdModuleSwitch {uasked tag_list old {new {}}} {
    # if a single name is provided it matches for the module to load and in
    # this case the module to unload is searched to find the closest match
    # (loaded module that shares at least the same root name)
@@ -440,7 +440,7 @@ proc cmdModuleSwitch {uasked old {new {}}} {
          set undepreisuasked $depreisuasked
          set undeprevr $deprevr
       }
-      cmdModuleLoad swload $uasked $new
+      cmdModuleLoad swload $uasked $tag_list $new
 
       # merge depre info of unload and load phases
       if {[info exists undepreisuasked]} {
@@ -633,7 +633,7 @@ proc cmdModuleRestore {{coll default}} {
 
    # load modules one by one with user asked state preserved
    foreach mod $mod_to_load {
-      cmdModuleLoad load [expr {$mod ni $coll_nuasked_list}] $mod
+      cmdModuleLoad load [expr {$mod ni $coll_nuasked_list}] {} $mod
    }
 
    popMsgRecordId 0
@@ -769,7 +769,7 @@ proc cmdModuleSource {mode args} {
    }
 }
 
-proc cmdModuleLoad {context uasked args} {
+proc cmdModuleLoad {context uasked tag_list args} {
    reportDebug "loading $args (context=$context, uasked=$uasked)"
 
    set ret 0
@@ -897,6 +897,15 @@ proc cmdModuleLoad {context uasked args} {
                      set swdeprelist $deprelist
                   }
                }
+            }
+         }
+
+         # record additional tags passed through --tag option prior mod eval
+         # to make them known within evaluation
+         if {[llength $tag_list] > 0} {
+            setModuleTag $modname {*}$tag_list
+            if {$modnamevr ne {} && $modname ne $modnamevr} {
+               setModuleTag $modnamevr {*}$tag_list
             }
          }
 

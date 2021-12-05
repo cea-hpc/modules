@@ -659,7 +659,7 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist {force 0}\
       # if an auto set default was excluded, module spec need parsing
       lassign [parseModuleSpecification 0 $mod {*}$vr($mod)] modnamevr
       # reload module with user asked property preserved
-      if {[cmdModuleLoad $context $isuasked($mod) $modnamevr]} {
+      if {[cmdModuleLoad $context $isuasked($mod) {} $modnamevr]} {
          set errMsg [string map [list _MOD_ [getModuleDesignation spec\
             $modnamevr]] $errmsgtpl]
          if {$force} {

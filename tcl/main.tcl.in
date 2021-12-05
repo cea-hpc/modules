@@ -492,7 +492,7 @@ proc module {command args} {
             # if top command is source, consider module load commands made
             # within sourced file evaluation as top load command
             if {[isTopEvaluation]} {
-               set ret [cmdModuleLoad load 1 {*}$args]
+               set ret [cmdModuleLoad load 1 $tag_list {*}$args]
             } elseif {$mode eq {load}} {
                # load here if try-load or no auto mode (done through prereq
                # elsewhere, inhibited if currently in DepRe context)
@@ -505,7 +505,7 @@ proc module {command args} {
                      }
                   }
                   if {[info exists modlist]} {
-                     set ret [cmdModuleLoad reqlo 0 {*}$modlist]
+                     set ret [cmdModuleLoad reqlo 0 $tag_list {*}$modlist]
                      # ignore obtained error if force mode enabled
                      if {[getState force]} {
                         set ret 0
@@ -592,7 +592,7 @@ proc module {command args} {
          # pass 'user asked state' to switch procedure
          set uasked [isTopEvaluation]
          if {$uasked} {
-            cmdModuleSwitch $uasked {*}$args
+            cmdModuleSwitch $uasked $tag_list {*}$args
          } else {
             # CAUTION: it is not recommended to use the `switch`
             # sub-command in modulefiles as this command is intended for
@@ -602,7 +602,7 @@ proc module {command args} {
 
             switch -- $mode {
                load {
-                  cmdModuleSwitch $uasked {*}$args
+                  cmdModuleSwitch $uasked $tag_list {*}$args
                }
                unload {
                   # find what has been asked for unload and load
@@ -816,7 +816,7 @@ proc ml {args} {
       }
       # then load other modules unless unload phase failed
       if {!$ret && [llength $modlolist] > 0} {
-         set ret [cmdModuleLoad load 1 {*}$modlolist]
+         set ret [cmdModuleLoad load 1 $tag_list {*}$modlolist]
       }
 
       # rollback changes if any load or unload failed
