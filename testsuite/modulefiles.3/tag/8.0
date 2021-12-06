@@ -1,2 +1,101 @@
 #%Module
+
 module-whatis [module-info name]
+
+if {[info exists env(TESTSUITE_TAG_OPT)]} {
+    switch -- $env(TESTSUITE_TAG_OPT) {
+        vr1 {
+            variant foo val1 val2
+        }
+        loadtag1 {
+            module load --tag=foo foo/1.0
+        }
+        loadtag2 {
+            module load --tag hidden-loaded:foo foo/1.0
+        }
+        loadtag3 {
+            module load --tag loaded:hidden foo/1.0
+        }
+        loadtag4 {
+            module try-load variant@3.0 bar=val1 --tag foo
+        }
+        loadtagdup1 {
+            module load --tag=foo:bar:foo foo/1.0
+        }
+        loadtagdup2 {
+            module load --tag=bar foo/1.0
+        }
+        loadtagdup3 {
+            module load --tag=hidden-loaded:bar foo/1.0
+        }
+        infotags1 - infotags2 {
+            setenv TS [module-info tags]
+        }
+        loadtagbad1 {
+            module load --tag
+        }
+        loadtagbad2 {
+            module load --tag foo
+        }
+        loadtagbad3 {
+            module load --tag=
+        }
+        loadtagbad4 {
+            module load --tag=foo
+        }
+        loadtagbad5 {
+            module load --tag= foo/1.0
+        }
+        prtag1 {
+            prereq --tag=foo foo/1.0
+        }
+        prtag2 {
+            prereq --tag hidden-loaded:foo foo/1.0
+        }
+        prtag3 {
+            prereq --tag loaded:hidden foo/1.0
+        }
+        prtag4 {
+            prereq-any --tag=foo foo/1.0
+        }
+        prtag5 {
+            prereq-all --tag hidden-loaded:foo foo/1.0
+        }
+        prtag6 {
+            depends-on --tag hidden:loaded foo/1.0
+        }
+        prtagbad1 {
+            prereq foo/1.0 --tag foo
+        }
+        prtagbad2 {
+            prereq --tag
+        }
+        prtagbad3 {
+            prereq --tag foo
+        }
+        prtagbad4 {
+            prereq --tag=
+        }
+        prtagbad5 {
+            prereq --tag=foo
+        }
+        prtagbad6 {
+            prereq --tag= foo/1.0
+        }
+        prtagbad7 {
+            prereq-all --tag
+        }
+        prtagbad8 {
+            prereq-any --tag foo
+        }
+        prtagbad9 {
+            prereq-all --tag=
+        }
+        prtagbad10 {
+            depends-on --tag=foo
+        }
+        prtagbad11 {
+            depends-on --tag= foo/1.0
+        }
+    }
+}
