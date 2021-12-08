@@ -516,7 +516,11 @@ proc module {command args} {
                foreach arg $args {
                   # no prereq record if try-load did not succeed
                   if {$command ne {try-load} || [is-loaded $arg]} {
-                     prereq $arg
+                     if {[llength $tag_list] > 0} {
+                        prereq --tag [join $tag_list :] $arg
+                     } else {
+                        prereq $arg
+                     }
                   }
                }
             # mods unload is handled via UReqUn mechanism when auto enabled

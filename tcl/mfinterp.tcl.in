@@ -1652,10 +1652,42 @@ proc conflict {args} {
    return {}
 }
 
-proc prereq {args} {
-   if {[llength $args] == 0} {
-      knerror {wrong # args: should be "prereq modulefile ?...?"}
+proc parsePrereqCommandArgs {args} {
+   # parse tags defined
+   switch -glob -- [lindex $args 0] {
+      --tag {
+         set tag_list [split [lindex $args 1] :]
+         set tag_opt [list --tag [lindex $args 1]]
+         set args [lrange $args 2 end]
+      }
+      --tag=* {
+         set tag_list [split [string range [lindex $args 0] 6 end] :]
+         set tag_opt [list [lindex $args 0]]
+         set args [lrange $args 1 end]
+         if {[llength $tag_list] == 0} {
+            knerror "Missing value for '--tag' option"
+         }
+      }
+      default {
+         set tag_list {}
+         set tag_opt {}
+      }
    }
+   foreach tag $tag_list {
+      if {$tag in [list loaded auto-loaded forbidden nearly-forbidden\
+         hidden]} {
+         knerror "Tag '$tag' cannot be manually set"
+      }
+   }
+   if {[llength $args] == 0} {
+      knerror {wrong # args: should be "prereq ?--tag? ?taglist? modulefile\
+         ?...?"}
+   }
+   return [list $tag_list $tag_opt $args]
+}
+
+proc prereq {args} {
+   lassign [parsePrereqCommandArgs {*}$args] tag_list tag_opt args
 
    set currentModule [currentState modulename]
    set curmodnamevr [currentState modulenamevr]
@@ -1683,7 +1715,7 @@ proc prereq {args} {
          # those that failed if one succeed
          set curholdid load-$i-$arg
          lappendState reportholdid $curholdid
-         if {[catch {cmdModuleLoad reqlo 0 {} $arg} errorMsg]} {
+         if {[catch {cmdModuleLoad reqlo 0 $tag_list $arg} errorMsg]} {
             # if an error is raised, release output and rethrow the error
             # (could be raised if no modulepath defined for instance)
             lpopState reportholdid
@@ -2455,12 +2487,10 @@ proc require-fullname {} {
 }
 
 proc prereq-all {args} {
-   if {[llength $args] == 0} {
-      knerror {wrong # args: should be "prereq-all modulefile ?...?"}
-   }
+   lassign [parsePrereqCommandArgs {*}$args] tag_list tag_opt args
    # call prereq over each arg independently to emulate a prereq-all
    foreach arg $args {
-      prereq $arg
+      prereq {*}$tag_opt $arg
    }
 }
 
