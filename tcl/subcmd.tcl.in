@@ -495,12 +495,12 @@ proc cmdModuleSave {{coll default}} {
    # version pinning is enabled
    if {[getConf collection_pin_version]} {
       set curr_mod_list [getLoadedModuleWithVariantList]
-      set curr_nuasked_list [getLoadedModuleWithVariantNotUserAskedList]
+      set curr_tag_arrser [getLoadedModuleWithVariantTagArrayList]
    } else {
-      lassign [getSimplifiedLoadedModuleList] curr_mod_list curr_nuasked_list
+      lassign [getSimplifiedLoadedModuleList] curr_mod_list curr_tag_arrser
    }
    set save [formatCollectionContent [getModulePathList returnempty 0]\
-      $curr_mod_list $curr_nuasked_list]
+      $curr_mod_list $curr_tag_arrser]
 
    if { [string length $save] == 0} {
       reportErrorAndExit {Nothing to save in a collection}
@@ -538,7 +538,16 @@ proc cmdModuleRestore {{coll default}} {
 
    # read collection
    lassign [readCollectionContent $collfile $colldesc] coll_path_list\
-      coll_mod_list coll_nuasked_list
+      coll_mod_list coll_tag_arrser
+
+   # build list of module tagged auto-loaded in collection
+   array set coll_tag_arr $coll_tag_arrser
+   set coll_nuasked_list {}
+   foreach mod [array names coll_tag_arr] {
+      if {{auto-loaded} in $coll_tag_arr($mod)} {
+         lappend coll_nuasked_list $mod
+      }
+   }
 
    # collection should at least define a path or a mod
    if {[llength $coll_path_list] == 0 && [llength $coll_mod_list] == 0} {
@@ -633,7 +642,8 @@ proc cmdModuleRestore {{coll default}} {
 
    # load modules one by one with user asked state preserved
    foreach mod $mod_to_load {
-      cmdModuleLoad load [expr {$mod ni $coll_nuasked_list}] {} $mod
+      cmdModuleLoad load [expr {$mod ni $coll_nuasked_list}]\
+         $coll_tag_arr($mod) $mod
    }
 
    popMsgRecordId 0
@@ -671,7 +681,7 @@ proc cmdModuleSaveshow {{coll default}} {
 
    # read collection
    lassign [readCollectionContent $collfile $colldesc] coll_path_list\
-      coll_mod_list coll_nuasked_list
+      coll_mod_list coll_tag_arrser
 
    # collection should at least define a path or a mod
    if {[llength $coll_path_list] == 0 && [llength $coll_mod_list] == 0} {
@@ -681,7 +691,7 @@ proc cmdModuleSaveshow {{coll default}} {
    displaySeparatorLine
    report [sgr hi $collfile]:\n
    report [formatCollectionContent $coll_path_list $coll_mod_list\
-      $coll_nuasked_list 1]
+      $coll_tag_arrser 1]
    displaySeparatorLine
 }
 

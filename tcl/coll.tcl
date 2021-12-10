@@ -62,7 +62,7 @@ proc getMovementBetweenList {from to {extfrom {}} {extto {}} {cmp eq}} {
 # module version if loaded version is the default one
 proc getSimplifiedLoadedModuleList {} {
    set curr_mod_list {}
-   set curr_nuasked_list {}
+   array set curr_tag_arr {}
    set modpathlist [getModulePathList]
    foreach mod [getLoadedModuleList] {
       set altandsimplist [getLoadedAltAndSimplifiedName $mod]
@@ -83,13 +83,13 @@ proc getSimplifiedLoadedModuleList {} {
       # module name or variant name or value
       set simplemodvr [list $simplemod {*}[getVariantList $mod 5 1]]
       lappend curr_mod_list $simplemodvr
-      # record not user asked module list in simplified version form
-      if {[isModuleTagged $mod auto-loaded 1]} {
-         lappend curr_nuasked_list $simplemodvr
-      }
+      # record tags applying to module in simplified version form
+      lassign [getDiffBetweenList [getTagList $mod] [list loaded hidden]]\
+         tag_list
+      set curr_tag_arr($simplemodvr) $tag_list
    }
 
-   return [list $curr_mod_list $curr_nuasked_list]
+   return [list $curr_mod_list [array get curr_tag_arr]]
 }
 
 # return saved collections found in user directory which corresponds to
@@ -152,8 +152,9 @@ proc getCollectionFilename {coll} {
 }
 
 # generate collection content based on provided path and module lists
-proc formatCollectionContent {path_list mod_list nuasked_list {sgr 0}} {
+proc formatCollectionContent {path_list mod_list tag_arrser {sgr 0}} {
    set content {}
+   array set tag_arr $tag_arrser
 
    # graphically enhance module command if asked
    set modcmd [expr {$sgr ? [sgr cm module] : {module}}]
@@ -171,8 +172,12 @@ proc formatCollectionContent {path_list mod_list nuasked_list {sgr 0}} {
 
    # then add modules
    foreach mod $mod_list {
-      # mark modules not asked by user to restore the user asked state
-      set opt [expr {$mod in $nuasked_list ? {--notuasked } : {}}]
+      # save tags associated to module (like auto-loaded tag)
+      if {[info exists tag_arr($mod)] && [llength $tag_arr($mod)] > 0} {
+         set opt "--tag=[join $tag_arr($mod) :] "
+      } else {
+         set opt {}
+      }
       # no need to specifically enclose module specification if space char
       # used in it as $mod is a list so elements including space will be
       # automatically enclosed
@@ -188,6 +193,7 @@ proc readCollectionContent {collfile colldesc} {
    set path_list {}
    set mod_list {}
    set nuasked_list {}
+   array set tag_arr {}
 
    # read file
    if {[catch {
@@ -229,22 +235,31 @@ proc readCollectionContent {collfile colldesc} {
             }
          }
       } elseif {[regexp {module load (.*)$} $fline match modarg] == 1} {
-         # remove collection-specific flags in specification
-         set cleanlist [lsearch -all -inline -not -exact $modarg\
-            --notuasked]
+         # extract collection-specific flags from module specification
+         switch -glob -- [lindex $modarg 0] {
+            --notuasked {
+               set tag_list [list auto-loaded]
+               set cleanlist [lrange $modarg 1 end]
+            }
+            --tag=* {
+               set tag_list [split [string range [lindex $modarg 0] 6 end] :]
+               set cleanlist [lrange $modarg 1 end]
+            }
+            default {
+               set tag_list {}
+               set cleanlist $modarg
+            }
+         }
          # parse module specification to distinguish between module + variant
          # specif and multiple modules specified on a single line
          set parsedlist [parseModuleSpecification 0 {*}$cleanlist]
-         if {[llength $modarg] != [llength $cleanlist]} {
-            foreach parsed $parsedlist {
-               # add module name version and variant spec to the list
-               lappend nuasked_list $parsed
-            }
+         foreach parsed $parsedlist {
+            set tag_arr($parsed) $tag_list
          }
          lappend mod_list {*}$parsedlist
       }
    }
-   return [list $path_list $mod_list $nuasked_list]
+   return [list $path_list $mod_list [array get tag_arr]]
 }
 
 # ;;; Local Variables: ***

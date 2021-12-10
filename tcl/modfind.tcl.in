@@ -1598,17 +1598,19 @@ proc getLoadedModuleWithVariantList {} {
    return $modvrlist
 }
 
-proc getLoadedModuleWithVariantNotUserAskedList {} {
-   set modvrlist [list]
-   foreach mod [getTaggedLoadedModuleList auto-loaded] {
+proc getLoadedModuleWithVariantTagArrayList {} {
+   array set tag_arr {}
+   foreach mod [getLoadedModuleList] {
       set modvr [list $mod]
       set vrlist [getVariantList $mod 1]
       if {[llength $vrlist] > 0} {
          lappend modvr {*}$vrlist
       }
-      lappend modvrlist $modvr
+      lassign [getDiffBetweenList [getTagList $mod] [list loaded hidden]]\
+         tag_list
+      set tag_arr($modvr) $tag_list
    }
-   return $modvrlist
+   return [array get tag_arr]
 }
 
 # register conflict violation state between loaded modules
