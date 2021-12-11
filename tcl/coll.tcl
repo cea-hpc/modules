@@ -84,9 +84,7 @@ proc getSimplifiedLoadedModuleList {} {
       set simplemodvr [list $simplemod {*}[getVariantList $mod 5 1]]
       lappend curr_mod_list $simplemodvr
       # record tags applying to module in simplified version form
-      lassign [getDiffBetweenList [getTagList $mod] [list loaded hidden]]\
-         tag_list
-      set curr_tag_arr($simplemodvr) $tag_list
+      set curr_tag_arr($simplemodvr) [getExportTagList $mod]
    }
 
    return [list $curr_mod_list [array get curr_tag_arr]]

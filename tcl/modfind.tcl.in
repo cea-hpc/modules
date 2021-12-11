@@ -688,26 +688,28 @@ proc setModuleTag {mod args} {
    lappend ::g_tagHash($mod) {*}$args
 }
 
-proc getTagList {mod {serialized 0}} {
+proc getTagList {mod {sort 1}} {
    if {[info exists ::g_tagHash($mod)]} {
-      if {$serialized} {
-         # get tag info as a string that can be registered in an env var
-         # remove loaded/hidden tags from the list to register
-         lassign [getDiffBetweenList $::g_tagHash($mod) [list loaded hidden]]\
-            tag_list
-         if {[llength $tag_list] > 0} {
-            # extract mod name and version from full spec with variants
-            set ret [join [list [getModuleNameAndVersFromVersSpec $mod]\
-               {*}$tag_list] [getState sub1_separator]]
-         } else {
-            set ret {}
-         }
-      } else {
+      if {$sort} {
          set ret [lsort -dictionary $::g_tagHash($mod)]
-         reportDebug "'$mod' has tag list '$ret'"
+      } else {
+         set ret $::g_tagHash($mod)
       }
+      reportDebug "'$mod' has tag list '$ret'"
    } else {
       set ret {}
+   }
+   return $ret
+}
+
+# return tags applying to mod that can be exported
+proc getExportTagList {mod {serialized 0}} {
+   # remove loaded/hidden tags from the list to register
+   lassign [getDiffBetweenList [getTagList $mod 0] [list loaded hidden]] ret
+   if {$serialized && [llength $ret] > 0} {
+      # extract mod name and version from full spec with variants
+      set ret [join [list [getModuleNameAndVersFromVersSpec $mod] {*}$ret]\
+         [getState sub1_separator]]
    }
    return $ret
 }
@@ -1606,9 +1608,7 @@ proc getLoadedModuleWithVariantTagArrayList {} {
       if {[llength $vrlist] > 0} {
          lappend modvr {*}$vrlist
       }
-      lassign [getDiffBetweenList [getTagList $mod] [list loaded hidden]]\
-         tag_list
-      set tag_arr($modvr) $tag_list
+      set tag_arr($modvr) [getExportTagList $mod]
    }
    return [array get tag_arr]
 }
