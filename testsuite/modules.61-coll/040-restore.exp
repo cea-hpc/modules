@@ -35,7 +35,8 @@ set badcontfperrmsg "$error_msgs: $badcontfp is not a valid collection"
 set c7errmsg "Loading $modpathre.path3/dcross/dir1/3.0\nLoading $modpathre.path2/cross/6.0\nLoading $modpathre.path1/novercross"
 set c8errmsg $c7errmsg
 set c9errmsg "load $c9mod1\nLoading $c9mod1\nload $c9mod2\nLoading $c9mod2\nload $c9mod3\nLoading $c9mod3"
-set c10errmsg $c9errmsg
+set c10errmsg "$error_msgs: $msg_nomodnameinarg '--notuasked'"
+set c10errmsgb "load $c9mod1\nLoading $c9mod1\n$err_path'--notuasked'\nload $c9mod2\nLoading $c9mod2\nload $c9mod3\nLoading $c9mod3"
 set c9errmsg2 "unload $c9mod3\nUnloading $c9mod3\nunload $c9mod2\nUnloading $c9mod2\nload $c9mod2\nLoading $c9mod2\nload $c9mod3\nLoading $c9mod3"
 set c11errmsg "load $c11mod1\nLoading $c11mod1\nload $c11mod2\nLoading $c11mod2"
 set c12errmsg "unload $c9mod3\nUnloading $c9mod3\nunload $c9mod2\nUnloading $c9mod2\nunload $c9mod1\nUnloading $c9mod1\nload f4\nLoading f4\nload f5\nLoading f5\n\n[msg_load f6 [err_conlo f5]]\n\n[msg_load f7 [err_reqmis f6]]"
@@ -353,8 +354,13 @@ lappend ans [list set _LMFILES_ $c9lmf]
 lappend ans [list set LOADEDMODULES $c9lm]
 lappend ans [list set __MODULES_LMTAG $c9lmtag]
 lappend ans [list set MODULEPATH $c9modpath]
+lappend ans [list ERR]
 
-testouterr_cmd_re "sh" "restore $coll10fp" $ans $c10errmsg
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+testouterr_cmd_re "sh" "restore $coll10fp" ERR $c10errmsg
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+testouterr_cmd_re "sh" "restore $coll10fp" $ans $c10errmsgb
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
 
 
 #
