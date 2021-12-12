@@ -931,6 +931,150 @@ unsetenv_var MODULES_IMPLICIT_DEFAULT
 
 
 #
+# tag tests
+#
+
+# ensure advanced_version_spec is enabled to record variant
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+setenv_var TESTSUITE_TAG_OPT colltag1
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $c37lmvr]
+lappend ans [list set __MODULES_LMPREREQ $c37mod2&variant@3.0\ bar=val1]
+lappend ans [list set _LMFILES_ $c37lmf]
+lappend ans [list set LOADEDMODULES $c37lm]
+lappend ans [list set __MODULES_LMTAG $c37lmtag]
+set tserr [msg_load variant/3.0{bar=val1}]\n[msg_load tag/8.0]
+testouterr_cmd_re sh "restore $coll37fp" $ans $tserr
+
+setenv_var __MODULES_LMVARIANT $c37lmvr
+setenv_loaded_module [list $c37mod1] [list $c37modpath1/$c37mod1]
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $c37lmvr]
+lappend ans [list set __MODULES_LMPREREQ $c37mod2&variant@3.0\ bar=val1]
+lappend ans [list set _LMFILES_ $c37lmf]
+lappend ans [list set LOADEDMODULES $c37lm]
+lappend ans [list set __MODULES_LMTAG $c37lmtag]
+set tserr [msg_unload variant/3.0{bar=val1}]\n[msg_load variant/3.0{bar=val1}]\n[msg_load tag/8.0]
+testouterr_cmd_re sh "restore $coll37fp" $ans $tserr
+
+setenv_var __MODULES_LMTAG $c37mod1&auto-loaded
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $c37mod2&variant@3.0\ bar=val1]
+lappend ans [list set _LMFILES_ $c37lmf]
+lappend ans [list set LOADEDMODULES $c37lm]
+lappend ans [list set __MODULES_LMTAG $c37mod1&auto-loaded:$c37mod2&[join $c37mod2tag &]]
+set tserr [msg_load tag/8.0]
+testouterr_cmd_re sh "restore $coll37fp" $ans $tserr
+
+setenv_var __MODULES_LMTAG $c37mod1&foo
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $c37lmvr]
+lappend ans [list set __MODULES_LMPREREQ $c37mod2&variant@3.0\ bar=val1]
+lappend ans [list set _LMFILES_ $c37lmf]
+lappend ans [list set LOADEDMODULES $c37lm]
+#FIXME: need to unset tags set through setModuleTag when unloading module
+lappend ans [list set __MODULES_LMTAG $c37mod1&foo&foo&auto-loaded:$c37mod2&[join $c37mod2tag &]]
+set tserr [msg_unload variant/3.0{bar=val1}]\n[msg_load variant/3.0{bar=val1}]\n[msg_load tag/8.0]
+testouterr_cmd_re sh "restore $coll37fp" $ans $tserr
+
+setenv_var __MODULES_LMTAG $c37mod1&bar
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $c37lmvr]
+lappend ans [list set __MODULES_LMPREREQ $c37mod2&variant@3.0\ bar=val1]
+lappend ans [list set _LMFILES_ $c37lmf]
+lappend ans [list set LOADEDMODULES $c37lm]
+#FIXME: need to unset tags set through setModuleTag when unloading module
+lappend ans [list set __MODULES_LMTAG $c37mod1&bar&foo&auto-loaded:$c37mod2&[join $c37mod2tag &]]
+set tserr [msg_unload variant/3.0{bar=val1}]\n[msg_load variant/3.0{bar=val1}]\n[msg_load tag/8.0]
+testouterr_cmd_re sh "restore $coll37fp" $ans $tserr
+
+setenv_var __MODULES_LMTAG $c37mod1&bar&foo&auto-loaded
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $c37mod2&variant@3.0\ bar=val1]
+lappend ans [list set _LMFILES_ $c37lmf]
+lappend ans [list set LOADEDMODULES $c37lm]
+lappend ans [list set __MODULES_LMTAG $c37mod1&bar&foo&auto-loaded:$c37mod2&[join $c37mod2tag &]]
+set tserr [msg_load tag/8.0]
+testouterr_cmd_re sh "restore $coll37fp" $ans $tserr
+
+setenv_loaded_module [list foo/1.0 $c37mod1] [list $c37modpath1/foo/1.0 $c37modpath1/$c37mod1]
+setenv_var __MODULES_LMTAG $c37mod1&[join $c37mod1tag &]
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $c37lmvr]
+lappend ans [list set __MODULES_LMPREREQ $c37mod2&variant@3.0\ bar=val1]
+lappend ans [list set _LMFILES_ $c37lmf]
+lappend ans [list set LOADEDMODULES $c37lm]
+#FIXME: need to unset tags set through setModuleTag when unloading module
+lappend ans [list set __MODULES_LMTAG $c37mod1&foo&auto-loaded&foo&auto-loaded:$c37mod2&[join $c37mod2tag &]]
+set tserr [msg_unload variant/3.0{bar=val1}]\n[msg_unload foo/1.0]\n[msg_load variant/3.0{bar=val1}]\n[msg_load tag/8.0]
+testouterr_cmd_re sh "restore $coll37fp" $ans $tserr
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMVARIANT
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $c38lmvr]
+lappend ans [list set __MODULES_LMPREREQ $c38mod2&variant@3.0\ bar=val1]
+lappend ans [list set _LMFILES_ $c38lmf]
+lappend ans [list set LOADEDMODULES $c38lm]
+lappend ans [list set __MODULES_LMTAG $c38lmtag]
+set tserr [msg_load variant/3.0{bar=val1}]\n[msg_load tag/8.0]
+testouterr_cmd_re sh "restore $coll38fp" $ans $tserr
+
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+
+setenv_var TESTSUITE_TAG_OPT colltag2
+
+set ans [list]
+lappend ans [list set _LMFILES_ $c39lmf]
+lappend ans [list set LOADEDMODULES $c39lm]
+lappend ans [list set __MODULES_LMTAG $c39lmtag]
+set tserr [msg_load tag/8.0]\n[msg_load foo/1.0]
+testouterr_cmd_re sh "restore $coll39fp" $ans $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $c40lmf]
+lappend ans [list set LOADEDMODULES $c40lm]
+lappend ans [list set __MODULES_LMTAG $c40lmtag]
+set tserr [msg_load tag/8.0]\n[msg_load foo/1.0]
+testouterr_cmd_re sh "restore $coll40fp" $ans $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $c41lmf]
+lappend ans [list set LOADEDMODULES $c41lm]
+lappend ans [list set __MODULES_LMTAG $c41lmtag]
+set tserr [msg_load foo/1.0]
+testouterr_cmd_re sh "restore $coll41fp" $ans $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $c42lmf]
+lappend ans [list set LOADEDMODULES $c42lm]
+set tserr [msg_load foo/1.0]
+testouterr_cmd_re sh "restore $coll42fp" $ans $tserr
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+set tserr "$error_msgs: $msg_nomodnameinarg '--tag'"
+testouterr_cmd_re sh "restore $coll43fp" ERR $tserr
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+set ans [list]
+lappend ans [list set _LMFILES_ $c43lmf]
+lappend ans [list set LOADEDMODULES $c43lm]
+lappend ans [list set __MODULES_LMTAG $c43lmtag]
+lappend ans [list ERR]
+set tserr $err_path'--tag'\n[msg_load tag/8.0]\n[msg_load foo/1.0]
+testouterr_cmd_re sh "restore $coll43fp" $ans $tserr
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+
+
+
+unsetenv_var TESTSUITE_TAG_OPT
+
+
+#
 # Cleanup
 #
 
