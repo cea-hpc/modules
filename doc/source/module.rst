@@ -1426,17 +1426,6 @@ Module Sub-Commands
     .. versionchanged:: 5.1
        Option ``--tag`` added
 
-.. subcmd:: try-add [--tag=taglist] [--auto|--no-auto] [-f] modulefile...
-
- See :subcmd:`try-load`.
-
- .. only:: html
-
-    .. versionadded:: 4.8
-
-    .. versionchanged:: 5.1
-       Option ``--tag`` added
-
 .. subcmd:: test modulefile...
 
  Execute and display results of the Module-specific tests for the
@@ -1449,6 +1438,17 @@ Module Sub-Commands
  .. only:: html
 
     .. versionadded:: 4.0
+
+.. subcmd:: try-add [--tag=taglist] [--auto|--no-auto] [-f] modulefile...
+
+ See :subcmd:`try-load`.
+
+ .. only:: html
+
+    .. versionadded:: 4.8
+
+    .. versionchanged:: 5.1
+       Option ``--tag`` added
 
 .. subcmd:: try-load [--tag=taglist] [--auto|--no-auto] [-f] modulefile...
 
