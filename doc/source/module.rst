@@ -459,14 +459,9 @@ switches are accepted:
 Module Sub-Commands
 ^^^^^^^^^^^^^^^^^^^
 
-.. subcmd:: add [--tag=taglist] [--auto|--no-auto] [-f] modulefile...
+.. subcmd:: add [options] modulefile...
 
  See :subcmd:`load`.
-
- .. only:: html
-
-    .. versionchanged:: 5.1
-       Option ``--tag`` added
 
 .. subcmd:: aliases [-a]
 
@@ -1095,9 +1090,15 @@ Module Sub-Commands
     .. versionchanged:: 4.8
        Report if enabled the variants selected on loaded modules
 
-.. subcmd:: load [--tag=taglist] [--auto|--no-auto] [-f] modulefile...
+.. subcmd:: load [options] modulefile...
 
  Load *modulefile* into the shell environment.
+
+ :subcmd:`load` command accepts the following options:
+
+ * ``--auto|--no-auto``
+ * ``-f|--force``
+ * ``--tag=taglist``
 
  Once loaded, the ``loaded`` module tag is associated to the loaded module. If
  module has been automatically loaded by another module, the ``auto-loaded``
@@ -1393,20 +1394,21 @@ Module Sub-Commands
 
     .. versionadded:: 5.1
 
-.. subcmd:: swap [--tag=taglist] [--auto|--no-auto] [-f] [modulefile1] modulefile2
+.. subcmd:: swap [options] [modulefile1] modulefile2
 
  See :subcmd:`switch`.
 
- .. only:: html
-
-    .. versionchanged:: 5.1
-       Option ``--tag`` added
-
-.. subcmd:: switch [--tag=taglist] [--auto|--no-auto] [-f] [modulefile1] modulefile2
+.. subcmd:: switch [options] [modulefile1] modulefile2
 
  Switch loaded *modulefile1* with *modulefile2*. If *modulefile1* is not
  specified, then it is assumed to be the currently loaded module with the
  same root name as *modulefile2*.
+
+ :subcmd:`switch` command accepts the following options:
+
+ * ``--auto|--no-auto``
+ * ``-f|--force``
+ * ``--tag=taglist``
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
@@ -1439,7 +1441,7 @@ Module Sub-Commands
 
     .. versionadded:: 4.0
 
-.. subcmd:: try-add [--tag=taglist] [--auto|--no-auto] [-f] modulefile...
+.. subcmd:: try-add [options] modulefile...
 
  See :subcmd:`try-load`.
 
@@ -1447,14 +1449,17 @@ Module Sub-Commands
 
     .. versionadded:: 4.8
 
-    .. versionchanged:: 5.1
-       Option ``--tag`` added
-
-.. subcmd:: try-load [--tag=taglist] [--auto|--no-auto] [-f] modulefile...
+.. subcmd:: try-load [options] modulefile...
 
  Like :subcmd:`load` sub-command, load *modulefile* into the shell
  environment, but do not complain if *modulefile* cannot be found. If
  *modulefile* is found but its evaluation fails, error is still reported.
+
+ :subcmd:`try-load` command accepts the following options:
+
+ * ``--auto|--no-auto``
+ * ``-f|--force``
+ * ``--tag=taglist``
 
  Once loaded, the ``loaded`` module tag is associated to the loaded module. If
  module has been automatically loaded by another module, the ``auto-loaded``
