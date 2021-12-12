@@ -134,7 +134,7 @@ the *modulefile* is being loaded.
  the command line. The :mfcmd:`continue` command will only have this effect if
  not used within a Tcl loop though.
 
-.. mfcmd:: depends-on modulefile...
+.. mfcmd:: depends-on [--tag taglist] modulefile...
 
  Alias of :mfcmd:`prereq-all` command.
 
@@ -282,6 +282,12 @@ the *modulefile* is being loaded.
  options to control the behavior to apply when *modulefile* is unloaded. See
  :mfcmd:`remove-path` for further explanation.
 
+ The ``load``, ``try-load`` and ``switch`` sub-commands accept the ``--tag``
+ option to apply specified tags to *modulefile* once loaded. Option accepts
+ a concatenation of multiple module tags separated by colon character.
+ *taglist* should not contain tags inherited from *modulefile* state or from
+ other modulefile commands.
+
  Command line switches :option:`--auto`, :option:`--no-auto` and
  :option:`--force` are ignored when passed to a :mfcmd:`module` command set in
  a *modulefile*.
@@ -299,6 +305,10 @@ the *modulefile* is being loaded.
        Options ``--remove-on-unload``, ``--noop-on-unload``,
        ``--append-on-unload`` and ``--prepend-on-unload`` added for ``use``
        sub-command
+
+    .. versionchanged:: 5.1
+       Option ``--tag`` added for ``load``, ``try-load`` and ``switch``
+       sub-commands
 
 .. mfcmd:: module-alias name modulefile
 
@@ -736,7 +746,7 @@ the *modulefile* is being loaded.
     .. versionchanged:: 4.1
        Option ``--duplicates`` added
 
-.. mfcmd:: prereq modulefile...
+.. mfcmd:: prereq [--tag taglist] modulefile...
 
  :mfcmd:`prereq` controls whether or not the *modulefile* will be loaded. The
  :mfcmd:`prereq` command lists *modulefiles* which must have been previously
@@ -756,7 +766,17 @@ the *modulefile* is being loaded.
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
-.. mfcmd:: prereq-all modulefile...
+ The ``--tag`` option accepts a list of module tags to apply to *modulefile*
+ once loaded. *taglist* corresponds to the concatenation of multiple tags
+ separated by colon character. *taglist* should not contain tags inherited
+ from *modulefile* state or from other modulefile commands.
+
+ .. only:: html
+
+    .. versionchanged:: 5.1
+       Option ``--tag`` added
+
+.. mfcmd:: prereq-all [--tag taglist] modulefile...
 
  Declare *modulefile* as a requirement of currently loading module. This
  command acts as an alias of :mfcmd:`prereq` command. If more than one
@@ -767,7 +787,7 @@ the *modulefile* is being loaded.
 
     .. versionadded:: 5.1
 
-.. mfcmd:: prereq-any modulefile...
+.. mfcmd:: prereq-any [--tag taglist] modulefile...
 
  Alias of :mfcmd:`prereq` command.
 

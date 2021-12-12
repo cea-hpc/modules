@@ -459,9 +459,14 @@ switches are accepted:
 Module Sub-Commands
 ^^^^^^^^^^^^^^^^^^^
 
-.. subcmd:: add [--auto|--no-auto] [-f] modulefile...
+.. subcmd:: add [--tag=taglist] [--auto|--no-auto] [-f] modulefile...
 
  See :subcmd:`load`.
+
+ .. only:: html
+
+    .. versionchanged:: 5.1
+       Option ``--tag`` added
 
 .. subcmd:: aliases [-a]
 
@@ -1090,7 +1095,7 @@ Module Sub-Commands
     .. versionchanged:: 4.8
        Report if enabled the variants selected on loaded modules
 
-.. subcmd:: load [--auto|--no-auto] [-f] modulefile...
+.. subcmd:: load [--tag=taglist] [--auto|--no-auto] [-f] modulefile...
 
  Load *modulefile* into the shell environment.
 
@@ -1102,11 +1107,19 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+ The ``--tag`` option accepts a list of module tags to apply to *modulefile*
+ once loaded. *taglist* corresponds to the concatenation of multiple tags
+ separated by colon character. *taglist* should not contain tags inherited
+ from *modulefile* state or from other modulefile commands.
+
  .. only:: html
 
     .. versionchanged:: 4.2
        Options :option:`--auto`, :option:`--no-auto`,
        :option:`--force`/:option:`-f` added
+
+    .. versionchanged:: 5.1
+       Option ``--tag`` added
 
 .. subcmd:: path modulefile
 
@@ -1380,11 +1393,16 @@ Module Sub-Commands
 
     .. versionadded:: 5.1
 
-.. subcmd:: swap [--auto|--no-auto] [-f] [modulefile1] modulefile2
+.. subcmd:: swap [--tag=taglist] [--auto|--no-auto] [-f] [modulefile1] modulefile2
 
  See :subcmd:`switch`.
 
-.. subcmd:: switch [--auto|--no-auto] [-f] [modulefile1] modulefile2
+ .. only:: html
+
+    .. versionchanged:: 5.1
+       Option ``--tag`` added
+
+.. subcmd:: switch [--tag=taglist] [--auto|--no-auto] [-f] [modulefile1] modulefile2
 
  Switch loaded *modulefile1* with *modulefile2*. If *modulefile1* is not
  specified, then it is assumed to be the currently loaded module with the
@@ -1394,19 +1412,30 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+ The ``--tag`` option accepts a list of module tags to apply to *modulefile2*
+ once loaded. *taglist* corresponds to the concatenation of multiple tags
+ separated by colon character. *taglist* should not contain tags inherited
+ from *modulefile* state or from other modulefile commands.
+
  .. only:: html
 
     .. versionchanged:: 4.2
        Options :option:`--auto`, :option:`--no-auto`,
        :option:`--force`/:option:`-f` added
 
-.. subcmd:: try-add [--auto|--no-auto] [-f] modulefile...
+    .. versionchanged:: 5.1
+       Option ``--tag`` added
+
+.. subcmd:: try-add [--tag=taglist] [--auto|--no-auto] [-f] modulefile...
 
  See :subcmd:`try-load`.
 
  .. only:: html
 
     .. versionadded:: 4.8
+
+    .. versionchanged:: 5.1
+       Option ``--tag`` added
 
 .. subcmd:: test modulefile...
 
@@ -1421,7 +1450,7 @@ Module Sub-Commands
 
     .. versionadded:: 4.0
 
-.. subcmd:: try-load [--auto|--no-auto] [-f] modulefile...
+.. subcmd:: try-load [--tag=taglist] [--auto|--no-auto] [-f] modulefile...
 
  Like :subcmd:`load` sub-command, load *modulefile* into the shell
  environment, but do not complain if *modulefile* cannot be found. If
@@ -1435,9 +1464,17 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+ The ``--tag`` option accepts a list of module tags to apply to *modulefile*
+ once loaded. *taglist* corresponds to the concatenation of multiple tags
+ separated by colon character. *taglist* should not contain tags inherited
+ from *modulefile* state or from other modulefile commands.
+
  .. only:: html
 
     .. versionadded:: 4.8
+
+    .. versionchanged:: 5.1
+       Option ``--tag`` added
 
 .. subcmd:: unload [--auto|--no-auto] [-f] modulefile...
 

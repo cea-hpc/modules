@@ -878,6 +878,10 @@ The following modulefile Tcl commands appeared on Modules 5.
  Starting Modules 5.0, these modulefile commands are available from a modulerc
  evaluation context.
 
+:mfcmd:`prereq`, :mfcmd:`module load/try-load/switch<module>`
+
+ Starting Modules 5.1, these modulefile commands accepts the ``--tag`` option.
+
 Modules Variables
 """""""""""""""""
 
