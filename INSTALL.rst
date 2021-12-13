@@ -696,11 +696,12 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  this abbreviation to get a graphical rendering. Each basic tag has by default
  a key set in the color palette, based on its abbreviated string: auto-loaded
  (``aL``), forbidden (``F``), hidden and hidden-loaded (``H``), loaded
- (``L``), nearly-forbidden (``nF``), sticky (``S``) and super-sticky (``sS``).
+ (``L``), nearly-forbidden (``nF``), sticky (``S``), super-sticky (``sS``) and
+ keep-loaded (``kL``).
 
  For a complete SGR code reference, see
  https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters.
- (default=\ ``hi=1:db=2:tr=2:se=2:er=91:wa=93:me=95:in=94:mp=1;94:di=94:al=96:va=93:sy=95:de=4:cm=92:aL=100:L=90;47:H=2:F=41:nF=43:S=46:sS=44``)
+ (default=\ ``hi=1:db=2:tr=2:se=2:er=91:wa=93:me=95:in=94:mp=1;94:di=94:al=96:va=93:sy=95:de=4:cm=92:aL=100:L=90;47:H=2:F=41:nF=43:S=46:sS=44:kL=30;48;5;109``)
 
  .. only:: html
 
@@ -716,6 +717,9 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
     .. versionchanged:: 4.8
        Output item for module variant (``va``) added
+
+    .. versionchanged:: 5.1
+       Output item for keep-loaded module tag (``kL``) added
 
 .. instopt:: --with-editor=BIN
 
@@ -769,7 +773,7 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  Default color set to apply if terminal background color is defined to
  ``light``. Expect the same syntax than described for
  :instopt:`--with-dark-background-colors`.
- (default=\ ``hi=1:db=2:tr=2:se=2:er=31:wa=33:me=35:in=34:mp=1;34:di=34:al=36:va=33:sy=35:de=4:cm=32:aL=107:L=47:H=2:F=101:nF=103:S=106:sS=104``)
+ (default=\ ``hi=1:db=2:tr=2:se=2:er=31:wa=33:me=35:in=34:mp=1;34:di=34:al=36:va=33:sy=35:de=4:cm=32:aL=107:L=47:H=2:F=101:nF=103:S=106:sS=104:kL=48;5;109``)
 
  .. only:: html
 
@@ -785,6 +789,9 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
     .. versionchanged:: 4.8
        Output item for module variant (``va``) added
+
+    .. versionchanged:: 5.1
+       Output item for keep-loaded module tag (``kL``) added
 
 .. instopt:: --with-list-output=LIST
 
@@ -927,11 +934,14 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  Define the abbreviation to use when reporting each module tag. Each element
  in ABBRVLIST is a tag name associated to an abbreviation string (elements in
  ABBRVLIST are separated by ``:``).
- (default=\ ``auto-loaded=aL:loaded=L:hidden=H:hidden-loaded=H:forbidden=F:nearly-forbidden=nF:sticky=S:super-sticky=sS``)
+ (default=\ ``auto-loaded=aL:loaded=L:hidden=H:hidden-loaded=H:forbidden=F:nearly-forbidden=nF:sticky=S:super-sticky=sS:keep-loaded=kL``)
 
  .. only:: html
 
     .. versionadded:: 4.7
+
+    .. versionchanged:: 5.1
+       Abbreviation for ``keep-loaded`` tag added
 
 .. instopt:: --with-tag-color-name=TAGLIST
 

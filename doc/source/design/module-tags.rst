@@ -52,6 +52,7 @@ Specification
 
     - ``sticky``: loaded module cannot be unloaded unless forced or reloaded (see :ref:`sticky-modules`)
     - ``super-sticky``: loaded module cannot be unloaded even if forced, it stills can be unloaded if reloaded afterward (see :ref:`sticky-modules`)
+    - ``keep-loaded``: auto_handling mechanism does not unload auto-loaded module
 
 - Tags inherited from module state cannot be set with ``module-tag`` command
 
@@ -206,7 +207,7 @@ Abbreviations
 
 - The :mconfig:`tag_abbrev` configuration defines the abbreviations to apply to each tag
 
-    - Set by default at configure time to ``auto-loaded=aL:loaded=L:hidden=H:hidden-loaded=H:forbidden=F:nearly-forbidden=nF:sticky=S:super-sticky=sS``
+    - Set by default at configure time to ``auto-loaded=aL:loaded=L:hidden=H:hidden-loaded=H:forbidden=F:nearly-forbidden=nF:sticky=S:super-sticky=sS:keep-loaded=kL``
 
         - Note that by default, *hidden* and *hidden-loaded* tags share the same abbreviation, as they operate on separate contexts (respectively avail and list contexts)
 

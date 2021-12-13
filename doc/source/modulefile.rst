@@ -658,12 +658,19 @@ the *modulefile* is being loaded.
  are: ``auto-loaded``, ``forbidden``, ``hidden``, ``hidden-loaded``,
  ``loaded`` and ``nearly-forbidden``.
 
- When *tag* equals ``sticky`` or ``super-sticky``, designated *modulefile* are
+ When *tag* equals ``sticky`` or ``super-sticky``, designated *modulefile* is
  defined :ref:`Sticky modules`.
+
+ When *tag* equals ``keep-loaded``, designated *modulefile* is not
+ automatically unloaded when it has been auto-loaded and its dependent modules
+ are getting unloaded.
 
  .. only:: html
 
     .. versionadded:: 4.7
+
+    .. versionchanged:: 5.1
+       Tag ``keep-loaded`` added
 
 .. mfcmd:: module-version modulefile version-name...
 

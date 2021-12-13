@@ -1728,6 +1728,8 @@ Tags may also be associated to modules by using the :mfcmd:`module-tag`
 modulefile command. Among tags that could be set this way, some have a special
 meaning:
 
+* ``keep-loaded``: auto-loaded module cannot be automatically unloaded. This
+  tag is also set through the use of the :mfcmd:`always-load` command.
 * ``sticky``: module once loaded cannot be unloaded unless forced or reloaded
   (see `Sticky modules`_ section)
 * ``super-sticky``: module once loaded cannot be unloaded unless reloaded,
@@ -1772,6 +1774,9 @@ Module tags cannot be used in search query to designate a modulefile.
 .. only:: html
 
    .. versionadded:: 4.7
+
+   .. versionchanged:: 5.1
+      Tag ``keep-loaded`` added
 
 
 .. _Sticky modules:
@@ -2198,7 +2203,8 @@ ENVIRONMENT
    have been automatically loaded for either the unloaded modulefile, an
    unloaded dependent modulefile or a modulefile part of this useless
    requirement unloading batch. Modulefiles are added to this unloading batch
-   only if they are not required by any other loaded modulefiles.
+   only if they are not required by any other loaded modulefiles and if they
+   are not tagged ``keep-loaded``.
 
  * Dependent Reload: reload of the modulefiles declaring a :mfcmd:`conflict`
    or an optional :mfcmd:`prereq` onto either the unloaded modulefile, an
@@ -2226,6 +2232,10 @@ ENVIRONMENT
  .. only:: html
 
     .. versionadded:: 4.2
+
+    .. versionchanged:: 5.1
+       Modules with keep-loaded tag set are excluded from Useless Requirement
+       Unload mechanism
 
 .. envvar:: MODULES_AVAIL_INDEPTH
 
@@ -2406,7 +2416,8 @@ ENVIRONMENT
  abbreviation to get a graphical rendering. Each basic tag has by default a
  key set in the color palette, based on its abbreviated string: auto-loaded
  (``aL``), forbidden (``F``), hidden and hidden-loaded (``H``), loaded
- (``L``), nearly-forbidden (``nF``), sticky (``S``) and super-sticky (``sS``).
+ (``L``), nearly-forbidden (``nF``), sticky (``S``), super-sticky (``sS``) and
+ keep-loaded (``kL``).
 
  See the Select Graphic Rendition (SGR) section in the documentation of the
  text terminal that is used for permitted values and their meaning as
@@ -2441,6 +2452,9 @@ ENVIRONMENT
 
     .. versionchanged:: 4.8
        Output item for module variant (``va``) added
+
+    .. versionchanged:: 5.1
+       Output item for keep-loaded module tag (``kL``) added
 
 .. envvar:: MODULES_EDITOR
 
