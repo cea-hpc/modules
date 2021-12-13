@@ -450,8 +450,10 @@ proc isModuleUnloadable {mod {unmodlist {}}} {
       set unmodlist [getUnloadingModuleList]
    }
 
-   # loaded tag means module was not auto-loaded
-   if {[isModuleTagged $mod loaded 1]} {
+   # loaded tag means module was not auto-loaded. keep-loaded means module is
+   # not auto-unloadable even if auto-loaded
+   if {[isModuleTagged $mod loaded 1] || [isModuleTagged $mod keep-loaded\
+      1]} {
       set ret 0
    } else {
       # mod is unloadable if all its dependent are unloaded or unloading
