@@ -27,13 +27,15 @@ syn match tclCommand		"\v<(tcl_wordBreakAfter|tcl_wordBreakBefore)>"
 
 " Modulefile commands: https://modules.readthedocs.io/en/stable/modulefile.html
 syn match modCommand "\v<(append|prepend|remove)-path>"
-syn match modCommand "\v<prereq>"
+syn match modCommand "\v<(prereq|prereq-all|prereq-any)>"
 syn match modCommand "\v<(module|conflict|chdir|prereq)>"
 syn match modCommand "\v<module-(alias|forbid|hide|info|log|tag|trace|user|verbosity|version|virtual|whatis)>"
 syn match modCommand "\v<(un)?set-(alias|function)>"
 syn match modCommand "\v<(un)?setenv>"
 syn match modCommand "\v<get(env|variant)>"
 syn match modCommand "\v<source-sh>"
+syn match modCommand "\v<require-filename>"
+syn match modCommand "\v<depends-on>"
 syn match modCommand "\v<(system|uname|x-resource)>"
 syn match modCommand "\v<variant>"
 
