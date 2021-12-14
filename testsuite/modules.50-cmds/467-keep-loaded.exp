@@ -1,0 +1,109 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2021/12/14
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload, display, help, test, whatis, refresh, avail
+#   Modulefiles:    keep
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test keep-loaded module tag
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+set mod keep/1.0
+set modfile $mp/$mod
+set modfilere $mpre/$mod
+
+
+# load tests
+
+setenv_var TESTSUITE_KEEP_LOADED load1
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+lappend ans [list set __MODULES_LMTAG foo/1.0&keep-loaded&auto-loaded]
+set tserr [msg_top_load $mod {} foo/1.0 {}]
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+
+setenv_var TESTSUITE_KEEP_LOADED prereq1
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+
+setenv_var TESTSUITE_KEEP_LOADED switch1
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT $mod&bar]
+lappend ans [list set __MODULES_LMPREREQ $mod&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+lappend ans [list set __MODULES_LMTAG foo/1.0&keep-loaded&auto-loaded]
+set tserr [msg_top_load $mod {} foo/1.0 {}]
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+
+
+# unload tests
+
+setenv_loaded_module [list foo/1.0 $mod] [list $mp/foo/1.0 $modfile]
+setenv_path_var __MODULES_LMPREREQ $mod&foo/1.0
+setenv_path_var __MODULES_LMTAG foo/1.0&keep-loaded&auto-loaded
+
+setenv_var TESTSUITE_KEEP_LOADED load1
+set ans [list]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/foo/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0]
+testouterr_cmd sh "unload --auto $mod" $ans {}
+testouterr_cmd sh "unload --no-auto $mod" $ans {}
+
+setenv_var TESTSUITE_KEEP_LOADED prereq1
+testouterr_cmd sh "unload --auto $mod" $ans {}
+testouterr_cmd sh "unload --no-auto $mod" $ans {}
+
+setenv_path_var __MODULES_LMCONFLICT $mod&bar
+
+setenv_var TESTSUITE_KEEP_LOADED switch1
+set ans [list]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/foo/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0]
+testouterr_cmd sh "unload --auto $mod" $ans {}
+testouterr_cmd sh "unload --no-auto $mod" $ans {}
+
+
+# avail/list
+
+setenv_var MODULES_TAG_ABBREV auto-loaded=aL:keep-loaded=kL
+
+set tserr "foo/1.0 <aL:kL>  
+
+Key:
+<module-tag>  <aL>=auto-loaded  <kL>=keep-loaded  "
+testouterr_cmd sh "avail -o tag:key foo/1.0" OK $tserr
+
+set tserr "foo/1.0 <aL:kL>  $mod  
+
+Key:
+<module-tag>  <aL>=auto-loaded  <kL>=keep-loaded  "
+testouterr_cmd sh "list -o tag:key" OK $tserr
+
+#
+#  Cleanup
+#
+
+reset_test_env
