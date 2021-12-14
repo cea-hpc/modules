@@ -94,6 +94,11 @@ Modules 5.1.0 (not yet released)
 * Record tags applied to loaded modules when saving a collection. The
   ``--notuasked`` previously used to designate auto-loaded modules in
   collection is changed into the ``--tag=auto-loaded`` option.
+* Introduce the ``keep-loaded`` :ref:`module tag<Module tags>` that avoids an
+  auto-loaded module to get automatically unloaded when its dependent modules
+  are getting unloaded. Update default :mconfig:`tag_abbrev` configuration
+  option to add an abbreviation for the new tag (``kL``) and default light and
+  dark color palettes.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 
