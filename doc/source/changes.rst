@@ -522,8 +522,8 @@ following Modules configuration option has been introduced on Modules 4.
 | 4.7        | :mconfig:`avail_output`, :mconfig:`avail_terse_output`,         |
 |            | :mconfig:`implicit_requirement`, :mconfig:`list_output`,        |
 |            | :mconfig:`list_terse_output`, :mconfig:`mcookie_version_check`, |
-|            | :mconfig:`shells_with_ksh_fpath`, :mconfig:`tag_color_name`,    |
-|            | :mconfig:`term_width`                                           |
+|            | :mconfig:`shells_with_ksh_fpath`, :mconfig:`tag_abbrev`,        |
+|            | :mconfig:`tag_color_name`, :mconfig:`term_width`                |
 +------------+-----------------------------------------------------------------+
 | 4.8        | :mconfig:`editor`, :mconfig:`variant_shortcut`                  |
 +------------+-----------------------------------------------------------------+
