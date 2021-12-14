@@ -799,6 +799,8 @@ Module Sub-Commands
   Control whether or not the output of module command should be redirected
   from stderr to stdout. Defines :envvar:`MODULES_REDIRECT_OUTPUT`.
 
+  .. only:: html
+
      .. versionadded:: 5.1
 
  .. mconfig:: run_quarantine

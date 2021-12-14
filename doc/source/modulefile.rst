@@ -916,6 +916,8 @@ the *modulefile* is being loaded.
  When the ``--set-if-undef`` option is set, environment variable is defined
  when *modulefile* is loaded only if not yet defined.
 
+ .. only:: html
+
     .. versionchanged:: 5.1
        Option ``--set-if-undef`` added
 
