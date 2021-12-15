@@ -1652,7 +1652,7 @@ proc conflict {args} {
    return {}
 }
 
-proc parsePrereqCommandArgs {args} {
+proc parsePrereqCommandArgs {cmd args} {
    # parse tags defined
    switch -glob -- [lindex $args 0] {
       --tag {
@@ -1680,14 +1680,14 @@ proc parsePrereqCommandArgs {args} {
       }
    }
    if {[llength $args] == 0} {
-      knerror {wrong # args: should be "prereq ?--tag? ?taglist? modulefile\
-         ?...?"}
+      knerror "wrong # args: should be \"$cmd ?--tag? ?taglist? modulefile\
+         ?...?\""
    }
    return [list $tag_list $tag_opt $args]
 }
 
 proc prereq {args} {
-   lassign [parsePrereqCommandArgs {*}$args] tag_list tag_opt args
+   lassign [parsePrereqCommandArgs prereq {*}$args] tag_list tag_opt args
 
    set currentModule [currentState modulename]
    set curmodnamevr [currentState modulenamevr]
@@ -2487,7 +2487,7 @@ proc require-fullname {} {
 }
 
 proc prereq-all {args} {
-   lassign [parsePrereqCommandArgs {*}$args] tag_list tag_opt args
+   lassign [parsePrereqCommandArgs prereq-all {*}$args] tag_list tag_opt args
    # call prereq over each arg independently to emulate a prereq-all
    foreach arg $args {
       prereq {*}$tag_opt $arg

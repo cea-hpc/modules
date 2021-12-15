@@ -510,8 +510,8 @@ set ans [list]
 lappend ans [list set _LMFILES_ $modfile]
 lappend ans [list set LOADEDMODULES $mod]
 set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 86}]
-set tserr [msg_load $mod [msg_moderr {wrong # args: should be "prereq ?--tag? ?taglist? modulefile ?...?"} {prereq-all --tag} $modfile $ln]]
-testouterr_cmd sh "load $mod" ERR $tserr
+set tserr [escre [msg_load $mod [msg_moderr {wrong # args: should be "prereq-all ?--tag? ?taglist? modulefile ?...?"} {prereq-all --tag<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
 setenv_var TESTSUITE_TAG_OPT prtagbad8
 set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 89}]
 set tserr [msg_load $mod [msg_moderr {wrong # args: should be "prereq ?--tag? ?taglist? modulefile ?...?"} {prereq-any --tag foo} $modfile $ln]]
@@ -522,8 +522,8 @@ set tserr [msg_load $mod [msg_moderr {Missing value for '--tag' option} {prereq-
 testouterr_cmd sh "load $mod" ERR $tserr
 setenv_var TESTSUITE_TAG_OPT prtagbad10
 set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 95}]
-set tserr [msg_load $mod [msg_moderr {wrong # args: should be "prereq ?--tag? ?taglist? modulefile ?...?"} {depends-on --tag=foo} $modfile $ln]]
-testouterr_cmd sh "load $mod" ERR $tserr
+set tserr [escre [msg_load $mod [msg_moderr {wrong # args: should be "prereq-all ?--tag? ?taglist? modulefile ?...?"} {depends-on --tag=foo<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
 setenv_var TESTSUITE_TAG_OPT prtagbad11
 set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 98}]
 set tserr [msg_load $mod [msg_moderr {Missing value for '--tag' option} {depends-on --tag= foo/1.0} $modfile $ln]]
