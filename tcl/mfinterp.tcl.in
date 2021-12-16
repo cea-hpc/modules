@@ -90,6 +90,7 @@ proc initModfileModeAliases {mode aliasesVN aliasesPassArgVN tracesVN} {
       set ::g_modfileEvalModes {load unload display help test whatis refresh}
       array set g_modfilePerModeAliases {
 add-property   {nop            nop            nop            nop            nop            nop            nop         }
+always-load    {always-load    nop            reportCmd      nop            nop            nop            nop         }
 append-path    {append-path    append-path-un append-path    append-path    append-path    edit-path-wh   nop         }
 chdir          {chdir          nop            reportCmd      nop            nop            nop            nop         }
 conflict       {conflict       nop            reportCmd      nop            nop            nop            nop         }
@@ -2492,6 +2493,14 @@ proc prereq-all {args} {
    foreach arg $args {
       prereq {*}$tag_opt $arg
    }
+}
+
+proc always-load {args} {
+   lassign [parsePrereqCommandArgs always-load {*}$args] tag_list tag_opt args
+   lappend tag_list keep-loaded
+   # load all module specified, call module rather directly cmdModuleLoad to
+   # get prereq recording
+   module load --tag [join $tag_list :] {*}$args
 }
 
 # ;;; Local Variables: ***
