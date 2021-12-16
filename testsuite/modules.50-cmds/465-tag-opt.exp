@@ -456,6 +456,24 @@ testouterr_cmd sh "load --auto $mod" ERR $tserr
 testouterr_cmd sh "load --no-auto $mod" ERR $tserr
 
 
+# always-load
+setenv_var TESTSUITE_TAG_OPT prtag7
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 104}]
+set tserr [escre [msg_load $mod [msg_moderr {Tag 'hidden' cannot be manually set} {always-load --tag hidden:loaded foo/1.0<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load --auto $mod" ERR $tserr
+testouterr_cmd_re sh "load --no-auto $mod" ERR $tserr
+
+setenv_var TESTSUITE_TAG_OPT prtag8
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+lappend ans [list set __MODULES_LMTAG foo/1.0&foo&keep-loaded&auto-loaded]
+set tserr [msg_top_load $mod {} foo/1.0 {}]
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+testouterr_cmd sh "load --no-auto $mod" $ans $tserr
+
+
 # bad prereq specifications
 setenv_var TESTSUITE_TAG_OPT prtagbad1
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
@@ -528,6 +546,14 @@ setenv_var TESTSUITE_TAG_OPT prtagbad11
 set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 98}]
 set tserr [msg_load $mod [msg_moderr {Missing value for '--tag' option} {depends-on --tag= foo/1.0} $modfile $ln]]
 testouterr_cmd sh "load $mod" ERR $tserr
+setenv_var TESTSUITE_TAG_OPT prtagbad12
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 110}]
+set tserr [escre [msg_load $mod [msg_moderr {wrong # args: should be "always-load ?--tag? ?taglist? modulefile ?...?"} {always-load --tag=foo<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
+setenv_var TESTSUITE_TAG_OPT prtagbad13
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 113}]
+set tserr [escre [msg_load $mod [msg_moderr {Missing value for '--tag' option} {always-load --tag= foo/1.0<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
 
 
 #
