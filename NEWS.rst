@@ -99,6 +99,9 @@ Modules 5.1.0 (not yet released)
   are getting unloaded. Update default :mconfig:`tag_abbrev` configuration
   option to add an abbreviation for the new tag (``kL``) and default light and
   dark color palettes.
+* Add the :mfcmd:`always-load` modulefile command for compatibility with Lmod
+  Tcl modulefiles. This command loads designated modulefile and applies the
+  ``keep-loaded`` tag to it.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 

@@ -65,6 +65,27 @@ the Module commands return the empty string. Some commands behave differently
 when a *modulefile* is loaded or unloaded. The command descriptions assume
 the *modulefile* is being loaded.
 
+.. mfcmd:: always-load [--tag taglist] modulefile...
+
+ Load *modulefile* and apply the ``keep-loaded`` tag to it in order to avoid
+ the automatic unload of this *modulefile* when modules dependent of it are
+ unloaded.
+
+ *modulefile* is declared as a requirement of currently loading module. This
+ command acts as an alias of :mfcmd:`module load<module>` command. If more
+ than one *modulefile* are specified, then this list acts as a Boolean AND
+ operation, which means all specified *modulefiles* are required.
+
+ The ``--tag`` option accepts a list of module tags to apply to *modulefile*
+ once loaded in addition to the ``keep-loaded`` tag. *taglist* corresponds to
+ the concatenation of multiple tags separated by colon character. *taglist*
+ should not contain tags inherited from *modulefile* state or from other
+ modulefile commands.
+
+ .. only:: html
+
+    .. versionadded:: 5.1
+
 .. mfcmd:: append-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
  See :mfcmd:`prepend-path`.
