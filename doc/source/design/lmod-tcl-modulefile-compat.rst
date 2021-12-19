@@ -155,3 +155,80 @@ Lmod Tcl modulefile compatiblity
 
 - This command is intended for use only within modulefile evaluation context
   (not within modulerc)
+
+
+``module load-any``
+-------------------
+
+- Auto load first valid module in a list when modulefile is evaluated in
+  *load* mode
+
+    - Semantically this command corresponds to a requirement declaration.
+    - Acting as an *OR* operation
+    - Evaluation stops after first module in list loaded
+
+        - Whether called from a modulefile evaluation context or from top
+          evaluation context
+        - Different than Lmod that apply the :subcmd:`load` sub-command
+          behavior when called from top evaluation context and does not stop
+          after first modulefile loaded
+
+    - If the evaluation of first module to load in list ends in error
+
+        - When called from a modulefile evaluation context
+
+            - Error is silenced
+            - Next module in list is tried
+            - It behaves this way like a :mfcmd:`prereq` command with
+              auto_handling mode enabled
+            - Proceed this way whatever the auto_handling state
+            - Different than Lmod that aborts modulefile evaluation
+
+        - Otherwise when called from top evaluation context
+
+            - Error message is reported
+            - Next module in list is tried
+            - Different than Lmod that aborts processing
+
+    - If first modules to load are unknown
+
+        - No message reported
+        - ``load-any`` continues until finding a module in the specified list
+
+    - If a module in the list is already loaded
+
+        - When called from a modulefile evaluation context
+
+            - ``load-any`` is not performed as requirement is considered
+              already satisfied
+            - Better cope this way with the expressed requirement
+            - It behaves this way like a :mfcmd:`prereq` command
+            - Proceed this way whatever the auto_handling state
+            - Different behavior than Lmod that still proceed to load the
+              module in the list from the left to the right until loading one
+              or finding one loaded
+
+        - Otherwise when called from top evaluation context
+
+            - An attempt to load first module in list is still issued
+            - And pursued from left to right until loading one module or
+              finding one loaded
+
+    - ``load-any`` acts similarly to ``try-load`` but with an *OR* operation
+      behavior instead of an *AND* operation
+
+    - An error is obtained if none of the listed modules can be loaded if
+      none of their load attempt generated an error message
+
+    - If no argument is provided an error is obtained, like done for
+      ``try-load``
+
+- When modulefile is unloaded, an attempt to unload all specified module is
+  made
+
+    - Correspond to the behavior of a ``module unload``
+    - Modules which are still depended by other loaded modules will not be
+      unloaded
+
+- This command is intended for use only within modulefile evaluation context
+  (not within modulerc)
