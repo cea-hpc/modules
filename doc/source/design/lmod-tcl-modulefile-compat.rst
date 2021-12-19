@@ -136,3 +136,22 @@ Lmod Tcl modulefile compatiblity
 
 - This command is intended for use only within modulefile evaluation context
   (not within modulerc)
+
+
+``always-load``
+---------------
+
+- Auto load on or more modules said as dependencies when modulefile is
+  evaluated in *load* mode
+
+    - Semantically this command corresponds to a requirement declaration.
+    - Make it an alias over :mfcmd:`module load<module>`
+    - Add ``keep-loaded`` tag to the modules loaded this way
+    - When several modules are specified, it acts as an *AND* operation, which
+      means all specified modules are required
+
+- When modulefile is unloaded, the *always-load* modules are not automatically
+  unloaded as they own the ``keep-loaded`` tag
+
+- This command is intended for use only within modulefile evaluation context
+  (not within modulerc)
