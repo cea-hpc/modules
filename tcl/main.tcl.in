@@ -116,6 +116,7 @@ proc parseModuleCommandName {command defaultcmd} {
    switch -- $command {
       add               {set command load}
       try-add           {set command try-load}
+      add-any           {set command load-any}
       rm - remove       {set command unload}
       show              {set command display}
       apropos - keyword {set command search}
@@ -147,7 +148,7 @@ proc parseModuleCommandName {command defaultcmd} {
       restore saverm saveshow savelist initadd initprepend initswitch initrm\
       initlist initclear autoinit clear config help test prepend-path\
       append-path remove-path is-loaded is-saved is-used is-avail info-loaded\
-      sh-to-mod edit try-load refresh state]}]
+      sh-to-mod edit try-load refresh state load-any]}]
 
    reportDebug "(command=$command, cmdvalid=$cmdvalid, cmdempty=$cmdempty)"
    return [list $command $cmdvalid $cmdempty]
@@ -220,7 +221,7 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
             --tag=* - --tag {
                # option is only valid for specific sub-commands
                # unload allowed not to raise error on unload/load mixed ml cmd
-               if {$cmd in [list load try-load switch unload]} {
+               if {$cmd in [list load try-load load-any switch unload]} {
                   if {$arg eq {--tag}} {
                      set nextargisvaltosplit tag_list
                   } else {
@@ -394,7 +395,7 @@ proc module {command args} {
    # parse module version specification
    defineParseModuleSpecificationProc [getConf advanced_version_spec]
    if {$command in [list avail paths whatis load unload switch help test\
-      display path is-avail edit try-load]} {
+      display path is-avail edit try-load load-any]} {
       set args [parseModuleSpecification 0 {*}$args]
    }
 
@@ -422,7 +423,7 @@ proc module {command args} {
    # argument number check
    switch -- $command {
       unload - source - display - initadd - initprepend - initrm - test -\
-      is-avail - try-load {
+      is-avail - try-load - load-any {
          if {[llength $args] == 0} {
             set argnberr 1
          }
@@ -473,7 +474,9 @@ proc module {command args} {
       list avail aliases edit]}]
    lappendState commandname $command
    # is evaluation a regular attempt or a try (silence not found error)
-   lappendState try_modulefile [expr {$command eq {try-load}}]
+   lappendState try_modulefile [expr {$command in {try-load load-any}}]
+   # stop evaluation after first successful load
+   lappendState any_modulefile [expr {$command eq {load-any}}]
 
    if {$topcall} {
       # Find and execute any global rc file found
@@ -482,7 +485,7 @@ proc module {command args} {
 
 
    switch -- $command {
-      load - try-load {
+      load - try-load - load-any {
          # ignore flag used in collection to track non-user asked state
          set args [replaceFromList $args --notuasked]
          # no error raised on empty argument list to cope with
@@ -493,33 +496,54 @@ proc module {command args} {
             # within sourced file evaluation as top load command
             if {[isTopEvaluation]} {
                set ret [cmdModuleLoad load 1 $tag_list {*}$args]
+               # raise error if no module has been loaded or has produced an
+               # error during its load attempt
+               if {!$ret && $command eq {load-any} && ![is-loaded {*}$args]\
+                  && ![is-loading {*}$args]} {
+                  knerror "No module has been loaded"
+               }
             } elseif {$mode eq {load}} {
                # load here if try-load or no auto mode (done through prereq
                # elsewhere, inhibited if currently in DepRe context)
                if {$command eq {try-load} || (![getConf auto_handling] &&\
                   [currentModuleEvalContext] ne {depre})} {
-                  # attempt load of not already loaded modules
-                  foreach arg $args {
-                     if {![is-loaded $arg] && ![is-loading $arg]} {
-                        lappend modlist $arg
+                  # load requirement in a OR-operation like done through
+                  # prereq cmd when auto_handling is enabled
+                  if {$command eq {load-any}} {
+                     loadRequirementModuleList $tag_list {*}$args
+                  } else {
+                     # attempt load of not already loaded modules
+                     foreach arg $args {
+                        if {![is-loaded $arg] && ![is-loading $arg]} {
+                           lappend modlist $arg
+                        }
                      }
-                  }
-                  if {[info exists modlist]} {
-                     set ret [cmdModuleLoad reqlo 0 $tag_list {*}$modlist]
-                     # ignore obtained error if force mode enabled
-                     if {[getState force]} {
-                        set ret 0
+                     if {[info exists modlist]} {
+                        set ret [cmdModuleLoad reqlo 0 $tag_list {*}$modlist]
+                        # ignore obtained error if force mode enabled
+                        if {[getState force]} {
+                           set ret 0
+                        }
                      }
                   }
                }
-               # register modulefiles to load as individual prereqs
-               foreach arg $args {
-                  # no prereq record if try-load did not succeed
-                  if {$command ne {try-load} || [is-loaded $arg]} {
-                     if {[llength $tag_list] > 0} {
-                        prereq --tag [join $tag_list :] $arg
-                     } else {
-                        prereq $arg
+               # register modulefiles to load as individual prereqs or all at
+               # once for load-any sub-command
+               if {$command eq {load-any}} {
+                  if {[llength $tag_list] > 0} {
+                     prereq --tag [join $tag_list :] {*}$args
+                  } else {
+                     prereq {*}$args
+                  }
+               } else {
+                  foreach arg $args {
+                     # no prereq record if try-load did not succeed
+                     if {$command ne {try-load} || [is-loaded $arg]} {
+                        if {[llength $tag_list] > 0} {
+                           prereq --tag [join $tag_list :] $arg
+                        } else {
+                           prereq $arg
+                        }
                      }
                   }
                }
@@ -747,6 +771,7 @@ proc module {command args} {
          cmdModuleResurface module-info loaded {*}$args
       }
    }
+   lpopState any_modulefile
    lpopState try_modulefile
    lpopState commandname
    lpopState always_read_full_file
@@ -806,7 +831,9 @@ proc ml {args} {
       lappendState always_read_full_file 1
       lappendState commandname ml
       # is evaluation a regular attempt or a try (silence not found error)
-      lappendState try_modulefile [expr {$command eq {try-load}}]
+      lappendState try_modulefile [expr {$command in {try-load load-any}}]
+      # stop evaluation after first successful load
+      lappendState any_modulefile [expr {$command eq {load-any}}]
 
       # Find and execute any global rc file found
       runModulerc
@@ -829,6 +856,7 @@ proc ml {args} {
       }
       popSettings
 
+      lpopState any_modulefile
       lpopState try_modulefile
       lpopState commandname
       lpopState always_read_full_file

@@ -785,6 +785,12 @@ proc cmdModuleLoad {context uasked tag_list args} {
    set ret 0
    lappendState mode load
    foreach mod $args {
+      # stop when first module in list is loaded if processing load-any cmd
+      if {[info exists loadok] && $loadok && [currentState any_modulefile]} {
+         break
+      }
+      set loadok 0
+
       # if a switch action is ongoing...
       if {$context eq {swload}} {
          set swprocessing 1
@@ -877,6 +883,7 @@ proc cmdModuleLoad {context uasked tag_list args} {
                      2]"
                }
                # exit treatment but no need to restore settings
+               set loadok 1
                continue
             }
          }
@@ -1087,6 +1094,10 @@ proc cmdModuleLoad {context uasked tag_list args} {
             [expr {$hidden && !$uasked}]
       }
       popMsgRecordId
+
+      if {$errCode == 0} {
+         set loadok 1
+      }
    }
    lpopState mode
 
