@@ -609,6 +609,48 @@ proc restoreSettings {} {
       (#[getSavedSettingsStackDepth])"
 }
 
+# load modules passed as args designated as requirement
+proc loadRequirementModuleList {tag_list args} {
+   # calling procedure must have already parsed module specification in args
+   if {![is-loaded {*}$args] && ![is-loading {*}$args]} {
+      set imax [llength $args]
+      set prereqloaded 0
+      # if prereq list specified, try to load first then
+      # try next if load of first module not successful
+      for {set i 0} {$i<$imax && $prereqloaded==0} {incr i 1} {
+         set arg [lindex $args $i]
+
+         # hold output of each evaluation until they are all done to drop
+         # those that failed if one succeed
+         set curholdid load-$i-$arg
+         lappendState reportholdid $curholdid
+         if {[catch {cmdModuleLoad reqlo 0 $tag_list $arg} errorMsg]} {
+            # if an error is raised, release output and rethrow the error
+            # (could be raised if no modulepath defined for instance)
+            lpopState reportholdid
+            lappend holdidlist $curholdid report
+            releaseHeldReport {*}$holdidlist
+            knerror $errorMsg
+         }
+         lpopState reportholdid
+
+         if {[is-loaded $arg]} {
+            set prereqloaded 1
+            # set previous reports to be dropped as this one succeed
+            if {[info exists holdidlist]} {
+               foreach {holdid action} $holdidlist {
+                  lappend newholdidlist $holdid drop
+               }
+               set holdidlist $newholdidlist
+            }
+         }
+         lappend holdidlist $curholdid report
+      }
+      # output held messages
+      releaseHeldReport {*}$holdidlist
+   }
+}
+
 # unload phase of a list of modules reload process
 proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {}} {context\
    unload}} {
