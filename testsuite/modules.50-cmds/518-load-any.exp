@@ -1,0 +1,578 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2021/12/20
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load-any
+#   Modulefiles:    loadany
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test load-any sub-command
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+
+
+#
+# test from command-line
+#
+
+# regular load
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/loadany/1.0]
+lappend ans [list set LOADEDMODULES loadany/1.0]
+testouterr_cmd sh {load-any loadany/1.0} $ans {}
+testouterr_cmd sh {add-any loadany/1.0} $ans {}
+
+# regular then extra module to load
+testouterr_cmd sh {add-any loadany/1.0 foo/1.0} $ans {}
+
+skip_if_quick_mode
+
+# unknown module
+testouterr_cmd sh {load-any unk/1.0} ERR $err_nomodloaded
+testouterr_cmd sh {add-any unk/1.0} ERR $err_nomodloaded
+# verbose mode
+testouterr_cmd sh {load-any -v unk/1.0} ERR $err_nomodloaded
+
+# unknown module then known one
+testouterr_cmd sh {load-any unk/1.0 loadany/1.0} $ans {}
+testouterr_cmd sh {load-any -v unk/1.0 loadany/1.0} $ans [msg_load loadany/1.0]
+
+# already loaded
+setenv_loaded_module [list loadany/1.0] [list $mp/loadany/1.0]
+testouterr_cmd sh {load-any loadany/1.0} OK {}
+testouterr_cmd sh {add-any -v loadany/1.0} OK {}
+
+# already loaded then other module
+testouterr_cmd sh {load-any loadany/1.0 foo/1.0} OK {}
+
+# other module then already loaded module
+set ans2 [list]
+lappend ans2 [list set _LMFILES_ $mp/loadany/1.0:$mp/foo/1.0]
+lappend ans2 [list set LOADEDMODULES loadany/1.0:foo/1.0]
+testouterr_cmd sh {load-any foo/1.0 loadany/1.0} $ans2 {}
+
+unsetenv_loaded_module
+
+# ml
+testouterr_cmd sh {ml load-any loadany/1.0 foo/1.0} $ans {}
+testouterr_cmd sh {ml add-any loadany/1.0} $ans {}
+testouterr_cmd sh {ml add-any unk/1.0} ERR $err_nomodloaded
+testouterr_cmd sh {ml load-any -v unk/1.0 loadany/1.0} $ans [msg_load loadany/1.0]
+
+# hard-hidden module
+setenv_var TESTSUITE_LOADANY hide1
+testouterr_cmd sh {load-any loadany/1.0} ERR $err_nomodloaded
+testouterr_cmd sh {add-any -v loadany/1.0} ERR $err_nomodloaded
+
+# forbidden module
+setenv_var TESTSUITE_LOADANY forbid1
+testouterr_cmd sh {add-any loadany/1.0} ERR $err_nomodloaded
+testouterr_cmd sh {load-any -v loadany/1.0} ERR $err_nomodloaded
+
+# break during evaluation
+setenv_var TESTSUITE_LOADANY break1
+set tserr [msg_load loadany/1.0 $err_evalabort]
+testouterr_cmd sh {add-any loadany/1.0} ERR $tserr
+testouterr_cmd sh {ml add-any loadany/1.0} ERR $tserr
+
+# break then valid module
+set ans3 [list]
+lappend ans3 [list set _LMFILES_ $mp/foo/1.0]
+lappend ans3 [list set LOADEDMODULES foo/1.0]
+lappend ans3 [list ERR]
+testouterr_cmd sh {add-any loadany/1.0 foo/1.0} $ans3 $tserr
+testouterr_cmd sh {ml load-any loadany/1.0 foo/1.0} $ans3 $tserr
+
+# erroneous evaluation
+setenv_var TESTSUITE_LOADANY bad1
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {2} : {8}}]
+set tserr [escre [msg_load loadany/1.0 [msg_moderr {invalid command name "unk"} {unk<EXM>} $mp/loadany/1.0 $ln]]]
+testouterr_cmd_re sh {add-any loadany/1.0} ERR $tserr
+testouterr_cmd_re sh {ml load-any loadany/1.0} ERR $tserr
+
+# erroneous eval then valid module
+testouterr_cmd_re sh {add-any loadany/1.0 foo/1.0} $ans3 $tserr
+testouterr_cmd_re sh {ml add-any loadany/1.0 foo/1.0} $ans3 $tserr
+
+# load under load-any
+setenv_var TESTSUITE_LOADANY subload1
+set tserr [msg_load loadany/1.0 $err_path'unk/1.0' [err_reqlo unk/1.0]]
+testouterr_cmd sh {load-any loadany/1.0} ERR $tserr
+
+# load under load-any then valid module
+testouterr_cmd_re sh {add-any loadany/1.0 foo/1.0} $ans3 $tserr
+
+setenv_var TESTSUITE_LOADANY subload2
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ loadany/1.0&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/loadany/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0:loadany/1.0]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded]
+set tserr [msg_top_load loadany/1.0 {} {foo/1.0} {}]
+testouterr_cmd_re sh {load-any loadany/1.0} $ans $tserr
+
+testouterr_cmd_re sh {load-any loadany/1.0 bar/1.0} $ans $tserr
+
+
+#
+# test from modulefile
+#
+
+# test for both enabled and disabled auto_handling mode
+foreach auto_handling {0 1} {
+setenv_var MODULES_AUTO_HANDLING $auto_handling
+
+# regular load
+setenv_var TESTSUITE_LOADANY regular1
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list set __MODULES_LMPREREQ loadany/2.0&loadany/1.0]
+lappend ans [list set _LMFILES_ $mp/loadany/1.0:$mp/loadany/2.0]
+lappend ans [list set LOADEDMODULES loadany/1.0:loadany/2.0]
+lappend ans [list set __MODULES_LMTAG loadany/1.0&auto-loaded]
+set tserr [msg_top_load loadany/2.0 {} loadany/1.0 {}]
+testouterr_cmd_re sh {load loadany/2.0} $ans $tserr
+testouterr_cmd_re sh {load-any loadany/2.0} $ans $tserr
+
+# already loaded
+setenv_loaded_module [list loadany/1.0] [list $mp/loadany/1.0]
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list set __MODULES_LMPREREQ loadany/2.0&loadany/1.0]
+lappend ans [list set _LMFILES_ $mp/loadany/1.0:$mp/loadany/2.0]
+lappend ans [list set LOADEDMODULES loadany/1.0:loadany/2.0]
+testouterr_cmd_re sh {load loadany/2.0} $ans {}
+testouterr_cmd_re sh {load-any loadany/2.0} $ans {}
+unsetenv_loaded_module
+
+
+# regular unload (autoloaded load-any)
+setenv_loaded_module [list loadany/1.0 loadany/2.0] [list $mp/loadany/1.0 $mp/loadany/2.0] [list loadany/1.0]
+setenv_var __MODULES_LMPREREQ loadany/2.0&loadany/1.0
+if {$auto_handling} {
+    set ans [list]
+    lappend ans [list unset TS1]
+    lappend ans [list unset __MODULES_LMPREREQ]
+    lappend ans [list unset _LMFILES_]
+    lappend ans [list unset LOADEDMODULES]
+    lappend ans [list unset __MODULES_LMTAG]
+} else {
+    set ans [list]
+    lappend ans [list unset TS1]
+    lappend ans [list unset __MODULES_LMPREREQ]
+    lappend ans [list unset _LMFILES_]
+    lappend ans [list unset LOADEDMODULES]
+    lappend ans [list unset __MODULES_LMTAG]
+}
+set tserr [msg_top_unload loadany/2.0 {} loadany/1.0 {}]
+testouterr_cmd sh {unload loadany/2.0} $ans $tserr
+
+# regular unload (non-autoloaded load-any)
+unsetenv_var __MODULES_LMTAG
+set ans [list]
+lappend ans [list unset TS1]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/loadany/1.0]
+lappend ans [list set LOADEDMODULES loadany/1.0]
+testouterr_cmd_re sh {unload loadany/2.0} $ans {}
+
+# regular unload (with load-anyed sub-module not loaded)
+setenv_loaded_module [list loadany/2.0] [list $mp/loadany/2.0]
+setenv_var __MODULES_LMPREREQ loadany/2.0&loadany/1.0
+set ans [list]
+lappend ans [list unset TS1]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd_re sh {unload loadany/2.0} $ans {}
+unsetenv_var __MODULES_LMPREREQ
+unsetenv_loaded_module
+
+# unknown module
+setenv_var TESTSUITE_LOADANY unk1
+set tserr [msg_load loadany/2.0 [err_reqlo unk/1.0]]
+testouterr_cmd sh {load loadany/2.0} ERR $tserr
+testouterr_cmd sh {load-any loadany/2.0} ERR $tserr
+
+# unload with unknown module
+setenv_loaded_module [list loadany/2.0] [list $mp/loadany/2.0]
+set ans [list]
+lappend ans [list unset TS1]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd_re sh {unload loadany/2.0} $ans {}
+testouterr_cmd_re sh {unload -v loadany/2.0} $ans [msg_unload loadany/2.0]
+unsetenv_loaded_module
+
+# hard-hidden module
+setenv_var TESTSUITE_LOADANY hide1
+set tserr [msg_load loadany/2.0 [err_reqlo loadany/1.0]]
+testouterr_cmd sh {load loadany/2.0} ERR $tserr
+
+# forbidden module
+setenv_var TESTSUITE_LOADANY forbid1
+testouterr_cmd sh {load loadany/2.0} ERR $tserr
+
+# break during evaluation
+setenv_var TESTSUITE_LOADANY break1
+set tserr [msg_load loadany/1.0 $err_evalabort]\n\n[msg_load loadany/2.0 [err_reqlo loadany/1.0]]
+testouterr_cmd sh {load loadany/2.0} ERR $tserr
+testouterr_cmd sh {load-any loadany/2.0} ERR $tserr
+
+# erroneous evaluation
+setenv_var TESTSUITE_LOADANY bad1
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {2} : {8}}]
+set tserr [escre [msg_load loadany/1.0 [msg_moderr {invalid command name "unk"} {unk<EXM>} $mp/loadany/1.0 $ln]]\n\n[msg_load loadany/2.0 [err_reqlo loadany/1.0]]]
+testouterr_cmd_re sh {load loadany/2.0} ERR $tserr
+testouterr_cmd_re sh {load-any loadany/2.0} ERR $tserr
+
+# load under load-any
+setenv_var TESTSUITE_LOADANY subload1
+set tserr [msg_load loadany/1.0 $err_path'unk/1.0' [err_reqmis unk/1.0]]\n\n[msg_load loadany/2.0 [err_reqlo unk/1.0] [err_reqlo loadany/1.0]]
+testouterr_cmd sh {load loadany/2.0} ERR $tserr
+testouterr_cmd sh {load-any loadany/2.0} ERR $tserr
+
+setenv_var TESTSUITE_LOADANY subload2
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list set __MODULES_LMPREREQ loadany/1.0&foo/1.0:loadany/2.0&loadany/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/loadany/1.0:$mp/loadany/2.0]
+lappend ans [list set LOADEDMODULES foo/1.0:loadany/1.0:loadany/2.0]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded:loadany/1.0&auto-loaded]
+set tserr [msg_top_load loadany/2.0 {} {foo/1.0 loadany/1.0} {}]
+testouterr_cmd_re sh {load loadany/2.0} $ans $tserr
+
+# load-any attempt within catch
+setenv_var TESTSUITE_LOADANY catch1
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list set __MODULES_LMPREREQ loadany/2.0&unk/1.0]
+lappend ans [list set _LMFILES_ $mp/loadany/2.0]
+lappend ans [list set LOADEDMODULES loadany/2.0]
+testouterr_cmd sh {load loadany/2.0} $ans {}
+
+setenv_var TESTSUITE_LOADANY catch2
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list set __MODULES_LMPREREQ loadany/2.0&loadany/1.0]
+lappend ans [list set _LMFILES_ $mp/loadany/1.0:$mp/loadany/2.0]
+lappend ans [list set LOADEDMODULES loadany/1.0:loadany/2.0]
+lappend ans [list set __MODULES_LMTAG loadany/1.0&auto-loaded]
+set tserr [msg_top_load loadany/2.0 {} loadany/1.0 {}]
+testouterr_cmd_re sh {load loadany/2.0} $ans $tserr
+
+setenv_var TESTSUITE_LOADANY catch3
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list set __MODULES_LMPREREQ loadany/2.0&loadany/1.0]
+lappend ans [list set _LMFILES_ $mp/loadany/2.0]
+lappend ans [list set LOADEDMODULES loadany/2.0]
+lappend ans [list ERR]
+set tserr [msg_load loadany/1.0 $err_evalabort]
+testouterr_cmd sh {load loadany/2.0} $ans $tserr
+
+setenv_var TESTSUITE_LOADANY catch4
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {2} : {8}}]
+set tserr [escre [msg_load loadany/1.0 [msg_moderr {invalid command name "unk"} {unk<EXM>} $mp/loadany/1.0 $ln]]]
+testouterr_cmd_re sh {load loadany/2.0} $ans $tserr
+
+# multiple argument passed to load-any
+setenv_var TESTSUITE_LOADANY multi1
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list set __MODULES_LMPREREQ loadany/2.0&unk/1.0|loadany/1.0]
+lappend ans [list set _LMFILES_ $mp/loadany/1.0:$mp/loadany/2.0]
+lappend ans [list set LOADEDMODULES loadany/1.0:loadany/2.0]
+lappend ans [list set __MODULES_LMTAG loadany/1.0&auto-loaded]
+set tserr [msg_top_load loadany/2.0 {} loadany/1.0 {}]
+testouterr_cmd_re sh {load loadany/2.0} $ans $tserr
+
+setenv_var TESTSUITE_LOADANY multi2
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list set __MODULES_LMPREREQ loadany/2.0&loadany/1.0|foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/loadany/2.0]
+lappend ans [list set LOADEDMODULES foo/1.0:loadany/2.0]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded]
+lappend ans [list ERR]
+# load issue with loadany/1.0 is hidden and next requirement (foo/1.0) is loaded
+set tserr [msg_top_load loadany/2.0 {} foo/1.0 {}]
+testouterr_cmd sh {load loadany/2.0} $ans $tserr
+
+setenv_var TESTSUITE_LOADANY multi3
+# load issue with loadany/1.0 is hidden and next requirement (foo/1.0) is loaded
+testouterr_cmd sh {load loadany/2.0} $ans $tserr
+
+
+setenv_loaded_module [list loadany/1.0] [list $mp/loadany/1.0]
+
+# test load-any over unknown modfile then already loaded module
+setenv_var TESTSUITE_LOADANY multi1
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list set __MODULES_LMPREREQ loadany/2.0&unk/1.0|loadany/1.0]
+lappend ans [list set _LMFILES_ $mp/loadany/1.0:$mp/loadany/2.0]
+lappend ans [list set LOADEDMODULES loadany/1.0:loadany/2.0]
+testouterr_cmd sh {load loadany/2.0} $ans {}
+
+# test load-any over already loaded module then valid module
+setenv_var TESTSUITE_LOADANY multi4
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list set __MODULES_LMPREREQ loadany/2.0&loadany/1.0|foo/1.0]
+lappend ans [list set _LMFILES_ $mp/loadany/1.0:$mp/loadany/2.0]
+lappend ans [list set LOADEDMODULES loadany/1.0:loadany/2.0]
+testouterr_cmd sh {load loadany/2.0} $ans {}
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+
+# test load-any over breaking modfile then already loaded module
+setenv_var TESTSUITE_LOADANY multi2
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list set __MODULES_LMPREREQ loadany/2.0&loadany/1.0|foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/loadany/2.0]
+lappend ans [list set LOADEDMODULES foo/1.0:loadany/2.0]
+testouterr_cmd sh {load loadany/2.0} $ans {}
+
+# test load-any over erroneouds modfile then already loaded module
+setenv_var TESTSUITE_LOADANY multi3
+testouterr_cmd sh {load loadany/2.0} $ans {}
+
+# test load-any over valid module then already loaded module
+setenv_var TESTSUITE_LOADANY multi4
+testouterr_cmd sh {load loadany/2.0} $ans {}
+
+
+# first module in list loaded
+setenv_var TESTSUITE_LOADANY multi4
+setenv_loaded_module [list loadany/1.0 loadany/2.0] [list $mp/loadany/1.0 $mp/loadany/2.0]
+setenv_var __MODULES_LMPREREQ loadany/2.0&loadany/1.0|foo/1.0
+setenv_var __MODULES_LMTAG loadany/1.0&auto-loaded
+set ans [list]
+lappend ans [list unset TS1]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_top_unload loadany/2.0 {} {loadany/1.0} {}]
+testouterr_cmd sh {unload loadany/2.0} $ans $tserr
+
+setenv_loaded_module [list loadany/1.0 loadany/2.0 bar/1.0] [list $mp/loadany/1.0 $mp/loadany/2.0 $mp/bar/1.0]
+setenv_var __MODULES_LMPREREQ loadany/2.0&loadany/1.0|foo/1.0:bar/1.0&loadany/1.0
+setenv_var __MODULES_LMTAG loadany/1.0&auto-loaded
+set ans [list]
+lappend ans [list unset TS1]
+lappend ans [list set __MODULES_LMPREREQ bar/1.0&loadany/1.0]
+lappend ans [list set _LMFILES_ $mp/loadany/1.0:$mp/bar/1.0]
+lappend ans [list set LOADEDMODULES loadany/1.0:bar/1.0]
+testouterr_cmd sh {unload loadany/2.0} $ans {}
+
+# second module in list loaded
+setenv_loaded_module [list foo/1.0 loadany/2.0] [list $mp/foo/1.0 $mp/loadany/2.0]
+setenv_var __MODULES_LMPREREQ loadany/2.0&loadany/1.0|foo/1.0
+setenv_var __MODULES_LMTAG foo/1.0&auto-loaded
+set ans [list]
+lappend ans [list unset TS1]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_top_unload loadany/2.0 {} {foo/1.0} {}]
+testouterr_cmd sh {unload loadany/2.0} $ans $tserr
+
+setenv_loaded_module [list foo/1.0 loadany/2.0 bar/1.0] [list $mp/foo/1.0 $mp/loadany/2.0 $mp/bar/1.0]
+setenv_var __MODULES_LMPREREQ loadany/2.0&loadany/1.0|foo/1.0:bar/1.0&foo/1.0
+setenv_var __MODULES_LMTAG foo/1.0&auto-loaded
+set ans [list]
+lappend ans [list unset TS1]
+lappend ans [list set __MODULES_LMPREREQ bar/1.0&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0]
+testouterr_cmd sh {unload loadany/2.0} $ans {}
+
+# both module in list loaded
+setenv_loaded_module [list loadany/1.0 foo/1.0 loadany/2.0] [list $mp/loadany/1.0 $mp/foo/1.0 $mp/loadany/2.0]
+setenv_var __MODULES_LMPREREQ loadany/2.0&loadany/1.0|foo/1.0
+setenv_var __MODULES_LMTAG loadany/1.0&auto-loaded:foo/1.0&auto-loaded
+set ans [list]
+lappend ans [list unset TS1]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_top_unload loadany/2.0 {} {foo/1.0 loadany/1.0} {}]
+testouterr_cmd sh {unload loadany/2.0} $ans $tserr
+
+setenv_loaded_module [list loadany/1.0 foo/1.0 loadany/2.0 bar/1.0] [list $mp/loadany/1.0 $mp/foo/1.0 $mp/loadany/2.0 $mp/bar/1.0]
+setenv_var __MODULES_LMPREREQ loadany/2.0&loadany/1.0|foo/1.0:bar/1.0&foo/1.0
+setenv_var __MODULES_LMTAG loadany/1.0&auto-loaded:foo/1.0&auto-loaded
+set ans [list]
+lappend ans [list unset TS1]
+lappend ans [list set __MODULES_LMPREREQ bar/1.0&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded]
+set tserr [msg_top_unload loadany/2.0 {} {loadany/1.0} {}]
+testouterr_cmd sh {unload loadany/2.0} $ans $tserr
+
+setenv_var __MODULES_LMTAG foo/1.0&auto-loaded
+set ans [list]
+lappend ans [list unset TS1]
+lappend ans [list set __MODULES_LMPREREQ bar/1.0&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/loadany/1.0:$mp/foo/1.0:$mp/bar/1.0]
+lappend ans [list set LOADEDMODULES loadany/1.0:foo/1.0:bar/1.0]
+testouterr_cmd sh {unload loadany/2.0} $ans {}
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMTAG
+
+}
+
+
+#
+# test from sourced modulefile
+#
+
+# regular load
+setenv_var TESTSUITE_LOADANY regular1
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list set _LMFILES_ $mp/loadany/1.0]
+lappend ans [list set LOADEDMODULES loadany/1.0]
+set tserr [msg_load loadany/1.0]
+testouterr_cmd_re sh "source $mp/loadany/2.0" $ans $tserr
+
+# already loaded
+setenv_loaded_module [list loadany/1.0] [list $mp/loadany/1.0]
+set ans [list]
+lappend ans [list set TS1 ok]
+testouterr_cmd_re sh "source $mp/loadany/2.0" $ans {}
+unsetenv_loaded_module
+
+# unknown module
+setenv_var TESTSUITE_LOADANY unk1
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {2} : {5}}]
+set tserr [escre [msg_moderr $msg_nomodloaded {module load-any unk/1.0<EXM>} $mp/loadany/2.0 $ln {  }]]
+testouterr_cmd_re sh "source $mp/loadany/2.0" ERR $tserr
+
+# hard-hidden module
+setenv_var TESTSUITE_LOADANY hide1
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {2} : {11}}]
+set tserr [escre [msg_moderr $msg_nomodloaded {module load-any loadany/1.0<EXM>} $mp/loadany/2.0 $ln {  }]]
+testouterr_cmd_re sh "source $mp/loadany/2.0" ERR $tserr
+
+# forbidden module
+setenv_var TESTSUITE_LOADANY forbid1
+testouterr_cmd_re sh "source $mp/loadany/2.0" ERR $tserr
+
+# break during evaluation
+setenv_var TESTSUITE_LOADANY break1
+set tserr [msg_load loadany/1.0 $err_evalabort]
+testouterr_cmd sh "source $mp/loadany/2.0" ERR $tserr
+
+# erroneous evaluation
+setenv_var TESTSUITE_LOADANY bad1
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {2} : {8}}]
+set tserr [escre [msg_load loadany/1.0 [msg_moderr {invalid command name "unk"} {unk<EXM>} $mp/loadany/1.0 $ln]]]
+testouterr_cmd_re sh "source $mp/loadany/2.0" ERR $tserr
+
+# load under load-any
+setenv_var TESTSUITE_LOADANY subload1
+set tserr [msg_load loadany/1.0 $err_path'unk/1.0' [err_reqlo unk/1.0]]
+testouterr_cmd sh "source $mp/loadany/2.0" ERR $tserr
+
+setenv_var TESTSUITE_LOADANY subload2
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list set __MODULES_LMPREREQ loadany/1.0&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/loadany/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0:loadany/1.0]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded]
+set tserr [msg_top_load loadany/1.0 {} {foo/1.0} {}]
+testouterr_cmd_re sh "source $mp/loadany/2.0" $ans $tserr
+
+# load-any attempt within catch
+setenv_var TESTSUITE_LOADANY catch1
+set ans [list]
+lappend ans [list set TS1 ok]
+testouterr_cmd sh "source $mp/loadany/2.0" $ans {}
+
+setenv_var TESTSUITE_LOADANY catch2
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list set _LMFILES_ $mp/loadany/1.0]
+lappend ans [list set LOADEDMODULES loadany/1.0]
+set tserr [msg_load loadany/1.0]
+testouterr_cmd_re sh "source $mp/loadany/2.0" $ans $tserr
+
+setenv_var TESTSUITE_LOADANY catch3
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list ERR]
+set tserr [msg_load loadany/1.0 $err_evalabort]
+testouterr_cmd sh "source $mp/loadany/2.0" $ans $tserr
+
+setenv_var TESTSUITE_LOADANY catch4
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {2} : {8}}]
+set tserr [escre [msg_load loadany/1.0 [msg_moderr {invalid command name "unk"} {unk<EXM>} $mp/loadany/1.0 $ln]]]
+testouterr_cmd_re sh "source $mp/loadany/2.0" $ans $tserr
+
+# multiple argument passed to load-any
+setenv_var TESTSUITE_LOADANY multi1
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list set _LMFILES_ $mp/loadany/1.0]
+lappend ans [list set LOADEDMODULES loadany/1.0]
+set tserr [msg_load loadany/1.0]
+testouterr_cmd_re sh "source $mp/loadany/2.0" $ans $tserr
+
+setenv_var TESTSUITE_LOADANY multi2
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/foo/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0]
+lappend ans [list ERR]
+set tserr [msg_load loadany/1.0 $err_evalabort]\n\n[msg_load foo/1.0]
+testouterr_cmd sh "source $mp/loadany/2.0" $ans $tserr
+
+setenv_loaded_module [list loadany/1.0] [list $mp/loadany/1.0]
+
+# test load-any over unknown modfile then already loaded module
+setenv_var TESTSUITE_LOADANY multi1
+set ans [list]
+lappend ans [list set TS1 ok]
+testouterr_cmd sh "source $mp/loadany/2.0" $ans {}
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+
+# test load-any over breaking modfile then already loaded module
+setenv_var TESTSUITE_LOADANY multi3
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {2} : {8}}]
+set tserr [escre [msg_load loadany/1.0 [msg_moderr {invalid command name "unk"} {unk<EXM>} $mp/loadany/1.0 $ln]]]
+testouterr_cmd_re sh "source $mp/loadany/2.0" ERR $tserr
+
+unsetenv_loaded_module
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
