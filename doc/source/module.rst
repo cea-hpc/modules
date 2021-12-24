@@ -463,6 +463,14 @@ Module Sub-Commands
 
  See :subcmd:`load`.
 
+.. subcmd:: add-any [options] modulefile...
+
+ See :subcmd:`load-any`.
+
+ .. only:: html
+
+    .. versionadded:: 5.1
+
 .. subcmd:: aliases [-a]
 
  List all available symbolic version-names and aliases in the current
@@ -1123,6 +1131,37 @@ Module Sub-Commands
 
     .. versionchanged:: 5.1
        Option ``--tag`` added
+
+
+.. subcmd:: load-any [options] modulefile...
+
+ Load into the shell environment one of the *modulefile* specified. Try to
+ load each *modulefile* specified in list from the left to the right until
+ one got loaded or is found already loaded. Do not complain if *modulefile*
+ cannot be found but if its evaluation fails an error is reported.
+
+ :subcmd:`load-any` command accepts the following options:
+
+ * ``--auto|--no-auto``
+ * ``-f|--force``
+ * ``--tag=taglist``
+
+ Once loaded, the ``loaded`` module tag is associated to the loaded module. If
+ module has been automatically loaded by another module, the ``auto-loaded``
+ tag is associated instead (see `Module tags`_ section).
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
+ The ``--tag`` option accepts a list of module tags to apply to *modulefile*
+ once loaded. *taglist* corresponds to the concatenation of multiple tags
+ separated by colon character. *taglist* should not contain tags inherited
+ from *modulefile* state or from other modulefile commands.
+
+ .. only:: html
+
+    .. versionadded:: 5.1
 
 .. subcmd:: path modulefile
 

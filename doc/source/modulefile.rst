@@ -298,6 +298,11 @@ the *modulefile* is being loaded.
  On ``try-load`` sub-command, if specified *modulefile* is not found thus
  loaded, no implicit prereq requirement is defined over this module.
 
+ The ``load-any`` sub-command loads one *modulefile* from the specified list.
+ An error is obtained if no *modulefile* from the list can be loaded. No
+ operation is performed if a *modulefile* from the list is found already
+ loaded.
+
  The ``unuse`` sub-command accepts the ``--remove-on-unload``,
  ``--noop-on-unload``, ``--append-on-unload`` and ``--prepend-on-unload``
  options to control the behavior to apply when *modulefile* is unloaded. See

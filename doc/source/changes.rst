@@ -839,7 +839,7 @@ The following module sub-commands appeared on Modules 5.
 | Introduced | New module sub-commands                                         |
 | in version |                                                                 |
 +============+=================================================================+
-| 5.1        | :subcmd:`state`                                                 |
+| 5.1        | :subcmd:`state`, :subcmd:`load-any`                             |
 +------------+-----------------------------------------------------------------+
 
 Environment
@@ -870,7 +870,8 @@ The following modulefile Tcl commands appeared on Modules 5.
 | 5.1        | :mfcmd:`add-property`, :mfcmd:`remove-property`,                |
 |            | :mfcmd:`extensions`, :mfcmd:`prereq-any`,                       |
 |            | :mfcmd:`require-fullname`, :mfcmd:`depends-on`,                 |
-|            | :mfcmd:`prereq-all`, :mfcmd:`always-load`                       |
+|            | :mfcmd:`prereq-all`, :mfcmd:`always-load`,                      |
+|            | :mfcmd:`module load-any<module>`                                |
 +------------+-----------------------------------------------------------------+
 
 :mfcmd:`system`, :mfcmd:`is-used`
