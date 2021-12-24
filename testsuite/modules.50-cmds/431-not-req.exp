@@ -12,7 +12,7 @@
 #   Description:	Testuite testsequence
 #   Command:
 #   Modulefiles:    notreq, foo, bar
-#   Sub-Command:    load, unload, switch, reload, purge
+#   Sub-Command:    load, try-load, load-any, unload, switch, reload, purge
 #
 #   Comment:	%C{
 #           Test implicit_requirement configuration disablement via
@@ -45,7 +45,11 @@ setenv_path_var MODULEPATH $mp
 
 set tserr "$error_msgs: Invalid option '--not-req'\n$err_typehelp"
 testouterr_cmd_re sh {load --not-req foo} ERR $tserr
+testouterr_cmd_re sh {try-load --not-req foo} ERR $tserr
+testouterr_cmd_re sh {load-any --not-req foo} ERR $tserr
 testouterr_cmd_re sh {ml --not-req foo} ERR $tserr
+testouterr_cmd_re sh {ml try-load --not-req foo} ERR $tserr
+testouterr_cmd_re sh {ml load-any --not-req foo} ERR $tserr
 
 set ans0 [list]
 lappend ans0 [list set _LMFILES_ $mp/notreq/use]
@@ -140,6 +144,191 @@ lappend ans0 [list unset LOADEDMODULES]
 lappend ans0 [list unset __MODULES_LMTAG]
 testouterr_cmd_re sh {unload --auto notreq/loadmul} $ans0 $tserr
 testouterr_cmd_re sh {unload --no-auto notreq/loadmul} $ans0 $tserr
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMTAG
+
+
+#
+# module try-load tests
+#
+
+set ans0 [list]
+lappend ans0 [list set _LMFILES_ $mp/foo/2.0:$mp/notreq/tryload]
+lappend ans0 [list set LOADEDMODULES foo/2.0:notreq/tryload]
+lappend ans0 [list set __MODULES_LMTAG foo/2.0&auto-loaded]
+
+set tserr [msg_top_load notreq/tryload {} foo/2.0 {}]
+
+# test default implicit_requirement configuration
+unsetenv_var MODULES_IMPLICIT_REQUIREMENT
+if {$install_implicitrequirement eq {y}} {
+    testouterr_cmd_re sh {load notreq/tryload} $ans0 $tserr
+} else {
+    testouterr_cmd_re sh {load notreq/tryload} $ans0 $tserr
+}
+# option disabled
+setenv_var MODULES_IMPLICIT_REQUIREMENT 0
+testouterr_cmd_re sh {load notreq/tryload} $ans0 $tserr
+# option enabled
+setenv_var MODULES_IMPLICIT_REQUIREMENT 1
+testouterr_cmd_re sh {load notreq/tryload} $ans0 $tserr
+testouterr_cmd_re sh {load --no-auto notreq/tryload} $ans0 $tserr
+testouterr_cmd_re sh {load --auto notreq/tryload} $ans0 $tserr
+
+# module to load already loaded
+setenv_loaded_module [list foo/2.0] [list $mp/foo/2.0]
+set ans0 [list]
+lappend ans0 [list set _LMFILES_ $mp/foo/2.0:$mp/notreq/tryload]
+lappend ans0 [list set LOADEDMODULES foo/2.0:notreq/tryload]
+set tserr {}
+testouterr_cmd_re sh {load --no-auto notreq/tryload} $ans0 $tserr
+testouterr_cmd_re sh {load --auto notreq/tryload} $ans0 $tserr
+unsetenv_loaded_module
+
+# multiple load on single command
+set ans0 [list]
+lappend ans0 [list set _LMFILES_ $mp/foo/2.0:$mp/bar/2.0:$mp/notreq/tryloadmul]
+lappend ans0 [list set LOADEDMODULES foo/2.0:bar/2.0:notreq/tryloadmul]
+lappend ans0 [list set __MODULES_LMTAG foo/2.0&auto-loaded:bar/2.0&auto-loaded]
+set tserr [msg_top_load notreq/tryloadmul {} [list foo/2.0 bar/2.0] {}]
+testouterr_cmd_re sh {load --no-auto notreq/tryloadmul} $ans0 $tserr
+testouterr_cmd_re sh {load --auto notreq/tryloadmul} $ans0 $tserr
+
+# unloading tests
+setenv_loaded_module [list foo/2.0 notreq/tryload] [list $mp/foo/2.0 $mp/notreq/tryload] [list foo/2.0]
+
+# UReqUn
+set tserr [msg_top_unload notreq/tryload {} foo/2.0 {}]
+set ans0 [list]
+lappend ans0 [list unset _LMFILES_]
+lappend ans0 [list unset LOADEDMODULES]
+lappend ans0 [list unset __MODULES_LMTAG]
+testouterr_cmd_re sh {unload --auto notreq/tryload} $ans0 $tserr
+testouterr_cmd_re sh {unload --no-auto notreq/tryload} $ans0 $tserr
+
+# no auto-loaded flag, no unload
+unsetenv_var __MODULES_LMTAG
+set ans0 [list]
+lappend ans0 [list set _LMFILES_ $mp/foo/2.0]
+lappend ans0 [list set LOADEDMODULES foo/2.0]
+set tserr {}
+testouterr_cmd_re sh {unload --auto notreq/tryload} $ans0 $tserr
+testouterr_cmd_re sh {unload --no-auto notreq/tryload} $ans0 $tserr
+
+# DepUn (not triggered as requirement not recorded)
+setenv_var __MODULES_LMTAG foo/2.0&auto-loaded
+set ans0 [list]
+lappend ans0 [list set _LMFILES_ $mp/notreq/tryload]
+lappend ans0 [list set LOADEDMODULES notreq/tryload]
+lappend ans0 [list unset __MODULES_LMTAG]
+set tserr {}
+testouterr_cmd_re sh {unload foo/2.0} $ans0 $tserr
+
+# multiple load on single command
+setenv_loaded_module [list foo/2.0 bar/2.0 notreq/tryloadmul] [list $mp/foo/2.0 $mp/bar/2.0 $mp/notreq/tryloadmul] [list foo/2.0 bar/2.0]
+set tserr [msg_top_unload notreq/tryloadmul {} [list bar/2.0 foo/2.0] {}]
+set ans0 [list]
+lappend ans0 [list unset _LMFILES_]
+lappend ans0 [list unset LOADEDMODULES]
+lappend ans0 [list unset __MODULES_LMTAG]
+testouterr_cmd_re sh {unload --auto notreq/tryloadmul} $ans0 $tserr
+testouterr_cmd_re sh {unload --no-auto notreq/tryloadmul} $ans0 $tserr
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMTAG
+
+
+#
+# module load-any tests
+#
+
+set ans0 [list]
+lappend ans0 [list set _LMFILES_ $mp/foo/2.0:$mp/notreq/loadany]
+lappend ans0 [list set LOADEDMODULES foo/2.0:notreq/loadany]
+lappend ans0 [list set __MODULES_LMTAG foo/2.0&auto-loaded]
+
+set tserr [msg_top_load notreq/loadany {} foo/2.0 {}]
+
+# test default implicit_requirement configuration
+unsetenv_var MODULES_IMPLICIT_REQUIREMENT
+if {$install_implicitrequirement eq {y}} {
+    testouterr_cmd_re sh {load notreq/loadany} $ans0 $tserr
+} else {
+    testouterr_cmd_re sh {load notreq/loadany} $ans0 $tserr
+}
+# option disabled
+setenv_var MODULES_IMPLICIT_REQUIREMENT 0
+testouterr_cmd_re sh {load notreq/loadany} $ans0 $tserr
+# option enabled
+setenv_var MODULES_IMPLICIT_REQUIREMENT 1
+testouterr_cmd_re sh {load notreq/loadany} $ans0 $tserr
+testouterr_cmd_re sh {load --no-auto notreq/loadany} $ans0 $tserr
+testouterr_cmd_re sh {load --auto notreq/loadany} $ans0 $tserr
+
+# module to load already loaded
+setenv_loaded_module [list foo/2.0] [list $mp/foo/2.0]
+set ans0 [list]
+lappend ans0 [list set _LMFILES_ $mp/foo/2.0:$mp/notreq/loadany]
+lappend ans0 [list set LOADEDMODULES foo/2.0:notreq/loadany]
+set tserr {}
+testouterr_cmd_re sh {load --no-auto notreq/loadany} $ans0 $tserr
+testouterr_cmd_re sh {load --auto notreq/loadany} $ans0 $tserr
+unsetenv_loaded_module
+
+# multiple load on single command
+set ans0 [list]
+lappend ans0 [list set _LMFILES_ $mp/foo/2.0:$mp/notreq/loadanymul]
+lappend ans0 [list set LOADEDMODULES foo/2.0:notreq/loadanymul]
+lappend ans0 [list set __MODULES_LMTAG foo/2.0&auto-loaded]
+set tserr [msg_top_load notreq/loadanymul {} [list foo/2.0] {}]
+testouterr_cmd_re sh {load --no-auto notreq/loadanymul} $ans0 $tserr
+testouterr_cmd_re sh {load --auto notreq/loadanymul} $ans0 $tserr
+
+# unloading tests
+setenv_loaded_module [list foo/2.0 notreq/loadany] [list $mp/foo/2.0 $mp/notreq/loadany] [list foo/2.0]
+
+# UReqUn
+set tserr [msg_top_unload notreq/loadany {} foo/2.0 {}]
+set ans0 [list]
+lappend ans0 [list unset _LMFILES_]
+lappend ans0 [list unset LOADEDMODULES]
+lappend ans0 [list unset __MODULES_LMTAG]
+testouterr_cmd_re sh {unload --auto notreq/loadany} $ans0 $tserr
+testouterr_cmd_re sh {unload --no-auto notreq/loadany} $ans0 $tserr
+
+# no auto-loaded flag, no unload
+unsetenv_var __MODULES_LMTAG
+set ans0 [list]
+lappend ans0 [list set _LMFILES_ $mp/foo/2.0]
+lappend ans0 [list set LOADEDMODULES foo/2.0]
+set tserr {}
+testouterr_cmd_re sh {unload --auto notreq/loadany} $ans0 $tserr
+testouterr_cmd_re sh {unload --no-auto notreq/loadany} $ans0 $tserr
+
+# DepUn (not triggered as requirement not recorded)
+setenv_var __MODULES_LMTAG foo/2.0&auto-loaded
+set ans0 [list]
+lappend ans0 [list set _LMFILES_ $mp/notreq/loadany]
+lappend ans0 [list set LOADEDMODULES notreq/loadany]
+lappend ans0 [list unset __MODULES_LMTAG]
+set tserr {}
+testouterr_cmd_re sh {unload foo/2.0} $ans0 $tserr
+
+# multiple load on single command
+setenv_loaded_module [list foo/2.0 bar/2.0 notreq/loadanymul] [list $mp/foo/2.0 $mp/bar/2.0 $mp/notreq/loadanymul] [list foo/2.0 bar/2.0]
+set tserr [msg_top_unload notreq/loadanymul {} [list bar/2.0 foo/2.0] {}]
+set ans0 [list]
+lappend ans0 [list unset _LMFILES_]
+lappend ans0 [list unset LOADEDMODULES]
+lappend ans0 [list unset __MODULES_LMTAG]
+testouterr_cmd_re sh {unload --auto notreq/loadanymul} $ans0 $tserr
+testouterr_cmd_re sh {unload --no-auto notreq/loadanymul} $ans0 $tserr
+
+setenv_loaded_module [list bar/2.0 notreq/loadanymul] [list $mp/bar/2.0 $mp/notreq/loadanymul] [list bar/2.0]
+set tserr [msg_top_unload notreq/loadanymul {} [list bar/2.0] {}]
+testouterr_cmd_re sh {unload --auto notreq/loadanymul} $ans0 $tserr
+testouterr_cmd_re sh {unload --no-auto notreq/loadanymul} $ans0 $tserr
 
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMTAG
