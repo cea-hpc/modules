@@ -21,7 +21,7 @@ Specification
 
 - Tag may also be set manually with the ``--tag`` sub-command option
 
-    - Applies to :subcmd:`load`, :subcmd:`try-load` and :subcmd:`switch` sub-commands
+    - Applies to :subcmd:`load`, :subcmd:`try-load`, :subcmd:`load-any` and :subcmd:`switch` sub-commands
     - When directly used from the terminal session or within modulefile
 
 - 3 different kind of tag exist:
@@ -102,7 +102,7 @@ Defining
 - ``module load --tag tag modspec...``
 
     - Apply ``tag`` to the loading module selected through ``modspec`` module specification
-    - Available from all loading module sub-commands (``load``, ``try-load`` and ``switch``)
+    - Available from all loading module sub-commands (``load``, ``try-load``, ``load-any`` and ``switch``)
     - Option is preferably written:
 
         - ``--tag=tag`` when called from command-line

@@ -88,9 +88,9 @@ Modules 5.1.0 (not yet released)
 * Add the :mfcmd:`depends-on` modulefile command, alias over the
   :mfcmd:`prereq-all` command for compatibility with Lmod Tcl modulefiles.
 * Introduce the ``--tag`` option for the :subcmd:`load`, :subcmd:`try-load`,
-  :subcmd:`switch` sub-commands and associated :mfcmd:`module` modulefile
-  commands and :mfcmd:`prereq` modulefile commands. This new option applies
-  specified tags to the module to load.
+  :subcmd:`load-any`, :subcmd:`switch` sub-commands and associated
+  :mfcmd:`module` modulefile commands and :mfcmd:`prereq` modulefile commands.
+  This new option applies specified tags to the module to load.
 * Record tags applied to loaded modules when saving a collection. The
   ``--notuasked`` previously used to designate auto-loaded modules in
   collection is changed into the ``--tag=auto-loaded`` option.

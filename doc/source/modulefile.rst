@@ -303,11 +303,11 @@ the *modulefile* is being loaded.
  options to control the behavior to apply when *modulefile* is unloaded. See
  :mfcmd:`remove-path` for further explanation.
 
- The ``load``, ``try-load`` and ``switch`` sub-commands accept the ``--tag``
- option to apply specified tags to *modulefile* once loaded. Option accepts
- a concatenation of multiple module tags separated by colon character.
- *taglist* should not contain tags inherited from *modulefile* state or from
- other modulefile commands.
+ The ``load``, ``try-load``, ``load-any`` and ``switch`` sub-commands accept
+ the ``--tag`` option to apply specified tags to *modulefile* once loaded.
+ Option accepts a concatenation of multiple module tags separated by colon
+ character. *taglist* should not contain tags inherited from *modulefile*
+ state or from other modulefile commands.
 
  Command line switches :option:`--auto`, :option:`--no-auto` and
  :option:`--force` are ignored when passed to a :mfcmd:`module` command set in
@@ -328,8 +328,8 @@ the *modulefile* is being loaded.
        sub-command
 
     .. versionchanged:: 5.1
-       Option ``--tag`` added for ``load``, ``try-load`` and ``switch``
-       sub-commands
+       Option ``--tag`` added for ``load``, ``try-load``, ``load-any`` and
+       ``switch`` sub-commands
 
 .. mfcmd:: module-alias name modulefile
 
