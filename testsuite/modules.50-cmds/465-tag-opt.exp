@@ -10,7 +10,7 @@
 #   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
 #
 #   Description:	Testuite testsequence
-#   Command:		load, unload, switch
+#   Command:		load, try-load, load-any, unload, switch
 #   Modulefiles:    tag
 #   Sub-Command:
 #
@@ -472,6 +472,93 @@ lappend ans [list set __MODULES_LMTAG foo/1.0&foo&keep-loaded&auto-loaded]
 set tserr [msg_top_load $mod {} foo/1.0 {}]
 testouterr_cmd sh "load --auto $mod" $ans $tserr
 testouterr_cmd sh "load --no-auto $mod" $ans $tserr
+
+
+# load-any
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/foo/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0]
+lappend ans [list set __MODULES_LMTAG foo/1.0&foo]
+testouterr_cmd sh "load-any --auto foo/1.0 --tag foo bar/1.0" $ans {}
+testouterr_cmd sh "load-any --no-auto foo/1.0 --tag foo bar/1.0" $ans {}
+
+setenv_loaded_module [list bar/1.0] [list $mp/bar/1.0]
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/bar/1.0:$mp/foo/1.0]
+lappend ans [list set LOADEDMODULES bar/1.0:foo/1.0]
+lappend ans [list set __MODULES_LMTAG foo/1.0&foo]
+testouterr_cmd sh "load-any --auto foo/1.0 --tag foo bar/1.0" $ans {}
+testouterr_cmd sh "load-any --no-auto foo/1.0 --tag foo bar/1.0" $ans {}
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+testouterr_cmd sh "load-any --auto foo/1.0 bar/1.0 --tag foo" OK {}
+testouterr_cmd sh "load-any --no-auto foo/1.0 bar/1.0 --tag foo" OK {}
+
+setenv_path_var __MODULES_LMTAG foo/1.0&foo
+testouterr_cmd sh "load-any --auto foo/1.0 --tag foo bar/1.0" OK {}
+testouterr_cmd sh "load-any --no-auto foo/1.0 --tag foo bar/1.0" OK {}
+
+setenv_var TESTSUITE_TAG_OPT loadanytag1
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+unsetenv_loaded_module
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/3.0&bar|val1|0|0]
+lappend ans [list set __MODULES_LMPREREQ $mod&variant@3.0\ bar=val1|foo/1.0]
+lappend ans [list set _LMFILES_ $mp/variant/3.0:$modfile]
+lappend ans [list set LOADEDMODULES variant/3.0:$mod]
+lappend ans [list set __MODULES_LMTAG variant/3.0&foo&auto-loaded]
+set tserr [msg_top_load $mod {} {variant/3.0{bar=val1}} {}]
+testouterr_cmd sh "load-any --auto $mod" $ans $tserr
+testouterr_cmd sh "load-any --no-auto $mod" $ans $tserr
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&variant@3.0\ bar=val1|foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+testouterr_cmd sh "load-any --auto $mod" $ans {}
+testouterr_cmd sh "load-any --no-auto $mod" $ans {}
+
+setenv_path_var __MODULES_LMTAG foo/1.0&foo
+testouterr_cmd sh "load-any --auto $mod" $ans {}
+testouterr_cmd sh "load-any --no-auto $mod" $ans {}
+
+setenv_path_var __MODULES_LMTAG foo/1.0&bar
+testouterr_cmd sh "load-any --auto $mod" $ans {}
+testouterr_cmd sh "load-any --no-auto $mod" $ans {}
+
+setenv_loaded_module [list variant/3.0 $mod] [list $mp/variant/3.0 $modfile]
+setenv_path_var __MODULES_LMVARIANT variant/3.0&bar|val1|0|0
+setenv_path_var __MODULES_LMPREREQ $mod&variant@3.0\ bar=val1|foo/1.0
+setenv_path_var __MODULES_LMTAG variant/3.0&foo&auto-loaded
+
+set ans [list]
+lappend ans [list unset __MODULES_LMVARIANT]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_top_unload $mod {} {variant/3.0{bar=val1}} {}]
+testouterr_cmd sh "unload --auto $mod" $ans $tserr
+testouterr_cmd sh "unload --no-auto $mod" $ans $tserr
+
+setenv_path_var __MODULES_LMTAG variant/3.0&auto-loaded&bar
+testouterr_cmd sh "unload --auto $mod" $ans $tserr
+testouterr_cmd sh "unload --no-auto $mod" $ans $tserr
+
+unsetenv_path_var __MODULES_LMTAG
+set ans [list]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/variant/3.0]
+lappend ans [list set LOADEDMODULES variant/3.0]
+testouterr_cmd sh "unload --auto $mod" $ans {}
+testouterr_cmd sh "unload --no-auto $mod" $ans {}
+
+unsetenv_path_var __MODULES_LMVARIANT
+unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_loaded_module
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
 
 
 # bad prereq specifications
