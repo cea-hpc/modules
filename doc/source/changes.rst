@@ -883,6 +883,12 @@ The following modulefile Tcl commands appeared on Modules 5.
 
  Starting Modules 5.1, these modulefile commands accepts the ``--tag`` option.
 
+:mfcmd:`module try-load/load-any<module>`
+
+ Starting Modules 5.1, these modulefile commands accepts the ``--not-req``
+ option.
+
+
 Modules Variables
 """""""""""""""""
 

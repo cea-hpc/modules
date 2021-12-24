@@ -291,9 +291,10 @@ the *modulefile* is being loaded.
  the system requires a basic set of applications loaded, then a core
  *modulefile* would contain the necessary ``module load`` commands.
 
- The ``--not-req`` option may be set for the ``load``, ``unload`` and
- ``switch`` sub-commands to inhibit the definition of an implicit prereq or
- conflict requirement onto specified modules.
+ The ``--not-req`` option may be set for the ``load``, ``try-load``,
+ ``load-any``, ``unload`` and ``switch`` sub-commands to inhibit the
+ definition of an implicit prereq or conflict requirement onto specified
+ modules.
 
  On ``try-load`` sub-command, if specified *modulefile* is not found thus
  loaded, no implicit prereq requirement is defined over this module.
@@ -321,7 +322,8 @@ the *modulefile* is being loaded.
  .. only:: html
 
     .. versionchanged:: 4.7
-       Sub-command option ``--no-req`` added
+       Option ``--not-req`` added for ``load``, ``unload`` and ``switch``
+       sub-commands
 
     .. versionchanged:: 5.0
        :subcmd:`source` sub-command is not allowed anymore and ``source`` Tcl
@@ -335,6 +337,10 @@ the *modulefile* is being loaded.
     .. versionchanged:: 5.1
        Option ``--tag`` added for ``load``, ``try-load``, ``load-any`` and
        ``switch`` sub-commands
+
+    .. versionchanged:: 5.1
+       Option ``--not-req`` added for ``try-load`` and ``load-any``
+       sub-commands
 
 .. mfcmd:: module-alias name modulefile
 

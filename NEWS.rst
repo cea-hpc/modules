@@ -105,6 +105,8 @@ Modules 5.1.0 (not yet released)
 * Add the :subcmd:`load-any` sub-command and :mfcmd:`module load-any<module>`
   modulefile command for compatibility with Lmod Tcl modulefiles. This command
   loads one modulefile from specified list.
+* Add support for ``--not-req`` option on :mfcmd:`module try-load<module>` and
+  :mfcmd:`module load-any<module>` modulefile commands.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 
