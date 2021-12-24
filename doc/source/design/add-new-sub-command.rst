@@ -75,6 +75,9 @@ Files that should be edited:
 
     - mention if sub-command cannot be called from the modulefile evaluation
       context under :mfcmd:`module` modulefile command section
+    - if sub-command leads to modulefile evaluation, mention sub-command name
+      in the list of value returned by :mfcmd:`module-info
+      command<module-info>`
 
 - :file:`doc/source/changes.rst`
 
@@ -84,6 +87,7 @@ Files that should be edited:
 Example commits:
 
 - sub-command doc: :ghcommit:`b4c0e0f8`
+- new value returned by ``module-info command``: :ghcommit:`5cd53523`
 
 Testsuite
 ---------
@@ -108,7 +112,18 @@ not drop.
 
     - Example commit: :ghcommit:`086ac136`
 
-3. Craft specific tests to validate the correct behavior of the sub-command
+3. If the new sub-command leads to modulefile evaluation, test value returned
+   by :mfcmd:`module-info command<module-info>`.
+
+    - Files to edit:
+
+        - :file:`testsuite/modules.50-cmds/282-info-command.exp`
+        - :file:`testsuite/modules.50-cmds/283-info-command-exp.exp`
+        - :file:`testsuite/modulefiles/info/commandexp`
+
+    - Example commit: :ghcommit:`5cd53523`
+
+4. Craft specific tests to validate the correct behavior of the sub-command
    against valid or invalid values and valid or invalid environment.
 
     - File to edit: new test file to create in
