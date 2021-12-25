@@ -1269,6 +1269,12 @@ are automatically defined for each module name (also at each directory level
 in case of deep *modulefile*). Unless a symbolic version, alias, or regular
 module version already exists for these version names.
 
+Every file in searched directories is checked to see if it begins with the
+magic cookie to determine if it is a *modulefile* (see `DESCRIPTION`_
+section). When the :mconfig:`mcookie_check` configuration is set to ``eval``,
+this check is skipped and all files in search directories are considered
+*modulefiles*.
+
 If user names a *modulefile* that cannot be found in the first *modulepath*
 directory, *modulefile* will be searched in next *modulepath* directory
 and so on until a matching *modulefile* is found. If search goes through
@@ -1313,6 +1319,11 @@ targeted by a :mfcmd:`module-hide --hard<module-hide>` command and a
 are considered hard-hidden and forbidden. Such modules are not displayed or
 taken into account. When explicitly named for evaluation selection, such
 modules are unveiled to return an access error.
+
+.. note:: When the :mconfig:`mcookie_check` configuration is set to ``eval``,
+   file access permissions are not checked thus files with restricted
+   permissions are included in search results but still lead to error if
+   evaluated.
 
 A symbolic version-name assigned to a hidden module is displayed or taken into
 account only if explicitly named and if module is not hard-hidden. Non-hidden

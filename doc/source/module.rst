@@ -754,6 +754,15 @@ Module Sub-Commands
 
   The value of this option cannot be altered.
 
+ .. mconfig:: mcookie_check
+
+  Defines if the Modules magic cookie (``#%Module``) should be checked to
+  determine if a file is a modulefile. Defines :envvar:`MODULES_MCOOKIE_CHECK`.
+
+  .. only:: html
+
+     .. versionadded:: 5.1
+
  .. mconfig:: mcookie_version_check
 
   Defines if the version set in the Modules magic cookie used in modulefile
