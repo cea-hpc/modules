@@ -2665,6 +2665,26 @@ ENVIRONMENT
 
     .. versionadded:: 4.7
 
+.. envvar:: MODULES_MCOOKIE_CHECK
+
+ If set to ``eval``, the Modules magic cookie is only checked to determine if
+ a file is a modulefile when evaluating these files. If set to ``always``, the
+ Modules magic cookie is also checked when searching for modules.
+
+ The ``eval`` mode is made to significantly reduce file checks when walking
+ through modulepaths to search for *modulefiles*. Special care should be given
+ to the content of modulepaths when this ``eval`` mode is set as the following
+ kind of files are included in search results:
+
+ * *modulefiles* with a magic cookie requiring a higher version of
+   :file:`modulecmd.tcl`
+ * files not beginning with the magic cookie ``#%Module``
+ * read-protected files
+
+ .. only:: html
+
+    .. versionadded:: 5.1
+
 .. envvar:: MODULES_MCOOKIE_VERSION_CHECK
 
  If set to ``1``, the version set in the Modules magic cookie in modulefile

@@ -855,7 +855,8 @@ The following environment variables appeared on Modules 5.
 |            | :envvar:`__MODULES_QUARANTINE_SET`,                             |
 |            | :envvar:`__MODULES_AUTOINIT_INPROGRESS`                         |
 +------------+-----------------------------------------------------------------+
-| 5.1        | :envvar:`MODULES_REDIRECT_OUTPUT`                               |
+| 5.1        | :envvar:`MODULES_REDIRECT_OUTPUT`,                              |
+|            | :envvar:`MODULES_MCOOKIE_CHECK`                                 |
 +------------+-----------------------------------------------------------------+
 
 Modules Specific Tcl Commands
