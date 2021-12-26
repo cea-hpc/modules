@@ -2054,9 +2054,11 @@ proc parseAccessIssue {modfile} {
 
 proc checkValidModule {modfile} {
    # test file only once, cache result obtained to minimize file query
+   # consider modfile valid without reading it if mcookie_check < always
    return [expr {[info exists ::g_modfileValid($modfile)]\
       ? $::g_modfileValid($modfile)\
-      : [set ::g_modfileValid($modfile) [readModuleContent $modfile 1 1]]}]
+      : [set ::g_modfileValid($modfile) [expr {[getConf mcookie_check] eq\
+         {always} ? [readModuleContent $modfile 1 1] : [list true {}]}]]}]
 }
 
 # get file modification time, cache it at first query, use cache afterward
