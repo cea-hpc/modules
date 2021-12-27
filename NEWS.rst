@@ -107,6 +107,7 @@ Modules 5.1.0 (not yet released)
   loads one modulefile from specified list.
 * Add support for ``--not-req`` option on :mfcmd:`module try-load<module>` and
   :mfcmd:`module load-any<module>` modulefile commands.
+* Doc: add :ref:`magic-cookie-check` design notes.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 
