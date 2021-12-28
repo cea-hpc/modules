@@ -1,0 +1,681 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2021/12/28
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, display, help, test,
+#                   unload, reload, purge, refresh, list,
+#                   avail, whatis, search
+#   Modulefiles:    loc_dv1, loc_dv3, loc_dv4, loc_rc1, loc_virt1,
+#                   loc_virt2, loc_dv8, loc_rc5, mcookie
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test mcookie_check option set to 'eval'
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath
+set mpre $modpathre
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure avail tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+# ensure advanced version specifiers is enabled
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+# test magic cookie check only when evaluate file
+setenv_var MODULES_MCOOKIE_CHECK eval
+setenv_var TESTSUITE_MCOOKIE_CHECK eval
+
+
+#
+# modulefile without magic cookie
+#
+
+set modname loc_dv1
+set mod $modname/3.0
+set modfile $mp/$mod
+set modfilere $mpre/$mod
+
+# full module name specification
+set tserr [msg_load $mod [moderr_missingmcookiens $modfile]]
+testouterr_cmd sh "load $mod" ERR $tserr
+set tserr $modlin\n$modfilere:\n\n[escre [moderr_missingmcookie $modfile]]\n$modlin
+testouterr_cmd_re sh "display $mod" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Help\ for\ $modfilere:\n\n[escre [moderr_missingmcookie $modfile]]\n$modlin
+testouterr_cmd_re sh "help $mod" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Test\ for\ $modfilere:\n\n[escre [moderr_missingmcookie $modfile]]\n$modlin
+testouterr_cmd_re sh "test $mod" ERR $tserr
+
+# full path name specification
+set tserr [msg_load $modfile [moderr_missingmcookiens $modfile]]
+#FIXME: full path module are misunderstood if path has a directory containing character used for variant specification
+if {![string match *+* $modfile]} {
+testouterr_cmd sh "load $modfile" ERR $tserr
+}
+set tserr $modlin\n$modfilere:\n\n[escre [moderr_missingmcookie $modfile]]\n$modlin
+testouterr_cmd_re sh "display $modfile" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Help\ for\ $modfilere:\n\n[escre [moderr_missingmcookie $modfile]]\n$modlin
+testouterr_cmd_re sh "help $modfile" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Test\ for\ $modfilere:\n\n[escre [moderr_missingmcookie $modfile]]\n$modlin
+testouterr_cmd_re sh "test $modfile" ERR $tserr
+
+# implicit default name specification
+set tserr [msg_load $mod [moderr_missingmcookiens $modfile]]
+testouterr_cmd sh "load $modname" ERR $tserr
+set tserr $modlin\n$modfilere:\n\n[escre [moderr_missingmcookie $modfile]]\n$modlin
+testouterr_cmd_re sh "display $modname" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Help\ for\ $modfilere:\n\n[escre [moderr_missingmcookie $modfile]]\n$modlin
+testouterr_cmd_re sh "help $modname" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Test\ for\ $modfilere:\n\n[escre [moderr_missingmcookie $modfile]]\n$modlin
+testouterr_cmd_re sh "test $modname" ERR $tserr
+
+# module has been loaded
+setenv_loaded_module [list $mod] [list $modfile]
+set tserr [msg_unload $mod [moderr_missingmcookiens $modfile]]
+testouterr_cmd sh "unload $mod" ERR $tserr
+testouterr_cmd sh reload ERR $tserr
+testouterr_cmd sh purge ERR $tserr
+set tserr [msg_refresh $mod [moderr_missingmcookiens $modfile]]
+testouterr_cmd sh refresh ERR $tserr
+set tserr $cur_loaded\n$mod
+testouterr_cmd sh {list -t} OK $tserr
+set tserr $list_long_headerre\n$cur_loaded\n$mod\\s*$datetimere
+testouterr_cmd_re sh {list -l} OK $tserr
+unsetenv_loaded_module
+
+# global search commands
+set tserr "$mp:\n$modname/1.0\n$modname/2.0\n$mod"
+testouterr_cmd sh "avail -t $modname" OK $tserr
+set tserr $avail_long_headerre\n$mpre:\n$modname/1.0\\s*$datetimere\n$modname/2.0\\s*$datetimere\n$mod\\s*$datetimere
+testouterr_cmd_re sh "avail -l $modname" OK $tserr
+set tserr "$mp:\n$mod"
+testouterr_cmd sh "avail -t $mod" OK $tserr
+set tserr "$modlin $mpre $modlin\n\\s*$modname/1.0: $modname/1.0\n\\s*$modname/2.0: $modname/2.0"
+testouterr_cmd_re sh "whatis $modname" OK $tserr
+testouterr_cmd_re sh "search $modname" ERR $tserr
+
+
+#
+# modulefile with uncompatible magic cookie
+#
+
+set modname mcookie
+set mod $modname/1
+set modfile $mp/$mod
+set modfilere $mpre/$mod
+
+# full module name specification
+set tserr [msg_load $mod [moderr_minverreqns $modfile 99]]
+testouterr_cmd sh "load $mod" ERR $tserr
+set tserr $modlin\n$modfilere:\n\n[escre [moderr_minverreq $modfile 99]]\n$modlin
+testouterr_cmd_re sh "display $mod" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Help\ for\ $modfilere:\n\n[escre [moderr_minverreq $modfile 99]]\n$modlin
+testouterr_cmd_re sh "help $mod" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Test\ for\ $modfilere:\n\n[escre [moderr_minverreq $modfile 99]]\n$modlin
+testouterr_cmd_re sh "test $mod" ERR $tserr
+
+# full path name specification
+set tserr [msg_load $modfile [moderr_minverreqns $modfile 99]]
+#FIXME: full path module are misunderstood if path has a directory containing character used for variant specification
+if {![string match *+* $modfile]} {
+testouterr_cmd sh "load $modfile" ERR $tserr
+}
+set tserr $modlin\n$modfilere:\n\n[escre [moderr_minverreq $modfile 99]]\n$modlin
+testouterr_cmd_re sh "display $modfile" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Help\ for\ $modfilere:\n\n[escre [moderr_minverreq $modfile 99]]\n$modlin
+testouterr_cmd_re sh "help $modfile" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Test\ for\ $modfilere:\n\n[escre [moderr_minverreq $modfile 99]]\n$modlin
+testouterr_cmd_re sh "test $modfile" ERR $tserr
+
+# implicit default name specification
+set tserr [msg_load $mod [moderr_minverreqns $modfile 99]]
+testouterr_cmd sh "load $modname" ERR $tserr
+set tserr $modlin\n$modfilere:\n\n[escre [moderr_minverreq $modfile 99]]\n$modlin
+testouterr_cmd_re sh "display $modname" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Help\ for\ $modfilere:\n\n[escre [moderr_minverreq $modfile 99]]\n$modlin
+testouterr_cmd_re sh "help $modname" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Test\ for\ $modfilere:\n\n[escre [moderr_minverreq $modfile 99]]\n$modlin
+testouterr_cmd_re sh "test $modname" ERR $tserr
+
+# module has been loaded
+setenv_loaded_module [list $mod] [list $modfile]
+set tserr [msg_unload $mod [moderr_minverreqns $modfile 99]]
+testouterr_cmd sh "unload $mod" ERR $tserr
+testouterr_cmd sh reload ERR $tserr
+testouterr_cmd sh purge ERR $tserr
+set tserr [msg_refresh $mod [moderr_minverreqns $modfile 99]]
+testouterr_cmd sh refresh ERR $tserr
+set tserr $cur_loaded\n$mod
+testouterr_cmd sh {list -t} OK $tserr
+set tserr $list_long_headerre\n$cur_loaded\n$mod\\s*$datetimere
+testouterr_cmd_re sh {list -l} OK $tserr
+unsetenv_loaded_module
+
+# global search commands
+set tserr "$mp:\n$mod\n${modname}rc/1"
+testouterr_cmd sh "avail -t $modname" OK $tserr
+set tserr $avail_long_headerre\n$mpre:\n$mod\\s*$datetimere\n${modname}rc/1\\s*$datetimere
+testouterr_cmd_re sh "avail -l $modname" OK $tserr
+set tserr "$mp:\n$mod"
+testouterr_cmd sh "avail -t $mod" OK $tserr
+testouterr_cmd_re sh "whatis $modname" OK {}
+testouterr_cmd_re sh "search $modname" ERR {}
+
+
+# cannot test access if cannot change file permission
+if {!$is_file_perms_editable} {
+    send_user "\tskipping access tests as file permissions cannot be changed\n"
+# cannot test access if superuser privileges are in use
+} elseif {$tcl_platform(user) eq "root"} {
+    send_user "\tskipping access tests as tests are run by superuser\n"
+# cannot test access if restricted file permissions have no effect
+} elseif {$is_locked_dir_file_readable && $is_locked_file_readable} {
+    send_user "\tskipping access tests as locked files or directories are still readable\n"
+} else {
+
+#
+# read-protected modulefile
+#
+
+set modname loc_dv1
+set mod $modname/3.0
+set modfile $mp/$mod
+set modfilere $mpre/$mod
+
+set hide_perms "ugo-rx"
+change_file_perms $modfile $hide_perms
+
+# full module name specification
+set tserr [msg_load $mod [err_permdenied $modfile]]
+testouterr_cmd sh "load $mod" ERR $tserr
+set tserr $modlin\n$modfilere:\n\n[escre [err_permdenied $modfile]]\n$modlin
+testouterr_cmd_re sh "display $mod" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Help\ for\ $modfilere:\n\n[escre [err_permdenied $modfile]]\n$modlin
+testouterr_cmd_re sh "help $mod" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Test\ for\ $modfilere:\n\n[escre [err_permdenied $modfile]]\n$modlin
+testouterr_cmd_re sh "test $mod" ERR $tserr
+
+# full path name specification
+set tserr [msg_load $modfile [err_permdenied $modfile]]
+testouterr_cmd sh "load $modfile" ERR $tserr
+set tserr $modlin\n$modfilere:\n\n[escre [err_permdenied $modfile]]\n$modlin
+testouterr_cmd_re sh "display $modfile" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Help\ for\ $modfilere:\n\n[escre [err_permdenied $modfile]]\n$modlin
+testouterr_cmd_re sh "help $modfile" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Test\ for\ $modfilere:\n\n[escre [err_permdenied $modfile]]\n$modlin
+testouterr_cmd_re sh "test $modfile" ERR $tserr
+
+# implicit default name specification
+set tserr [msg_load $mod [err_permdenied $modfile]]
+testouterr_cmd sh "load $modname" ERR $tserr
+set tserr $modlin\n$modfilere:\n\n[escre [err_permdenied $modfile]]\n$modlin
+testouterr_cmd_re sh "display $modname" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Help\ for\ $modfilere:\n\n[escre [err_permdenied $modfile]]\n$modlin
+testouterr_cmd_re sh "help $modname" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Test\ for\ $modfilere:\n\n[escre [err_permdenied $modfile]]\n$modlin
+testouterr_cmd_re sh "test $modname" ERR $tserr
+
+# module has been loaded
+setenv_loaded_module [list $mod] [list $modfile]
+set tserr [msg_unload $mod [err_permdenied $modfile]]
+testouterr_cmd sh "unload $mod" ERR $tserr
+testouterr_cmd sh reload ERR $tserr
+testouterr_cmd sh purge ERR $tserr
+set tserr [msg_refresh $mod [err_permdenied $modfile]]
+testouterr_cmd sh refresh ERR $tserr
+set tserr $cur_loaded\n$mod
+testouterr_cmd sh {list -t} OK $tserr
+set tserr $list_long_headerre\n$cur_loaded\n$mod\\s*$datetimere
+testouterr_cmd_re sh {list -l} OK $tserr
+unsetenv_loaded_module
+
+# global search commands
+set tserr "$mp:\n$modname/1.0\n$modname/2.0\n$mod"
+testouterr_cmd sh "avail -t $modname" OK $tserr
+set tserr $avail_long_headerre\n$mpre:\n$modname/1.0\\s*$datetimere\n$modname/2.0\\s*$datetimere\n$mod\\s*$datetimere
+testouterr_cmd_re sh "avail -l $modname" OK $tserr
+set tserr "$mp:\n$mod"
+testouterr_cmd sh "avail -t $mod" OK $tserr
+set tserr "$modlin $mpre $modlin\n\\s*$modname/1.0: $modname/1.0\n\\s*$modname/2.0: $modname/2.0"
+testouterr_cmd_re sh "whatis $modname" OK $tserr
+testouterr_cmd_re sh "search $modname" ERR $tserr
+
+restore_file_perms $modfile
+
+
+#
+# read-protected directory
+#
+
+change_file_perms $mp/$modname $hide_perms
+
+# full module name specification
+set tserr $err_path'$mod'
+testouterr_cmd sh "load $mod" ERR $tserr
+testouterr_cmd_re sh "display $mod" ERR $tserr
+testouterr_cmd_re sh "help $mod" ERR $tserr
+testouterr_cmd_re sh "test $mod" ERR $tserr
+
+# full path name specification
+set tserr [msg_load $modfile [err_permdenied $modfile]]
+testouterr_cmd sh "load $modfile" ERR $tserr
+set tserr $modlin\n$modfilere:\n\n[escre [err_permdenied $modfile]]\n$modlin
+testouterr_cmd_re sh "display $modfile" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Help\ for\ $modfilere:\n\n[escre [err_permdenied $modfile]]\n$modlin
+testouterr_cmd_re sh "help $modfile" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Test\ for\ $modfilere:\n\n[escre [err_permdenied $modfile]]\n$modlin
+testouterr_cmd_re sh "test $modfile" ERR $tserr
+
+# implicit default name specification
+set tserr [err_permdenied $mp/$modname]
+testouterr_cmd sh "load $modname" ERR $tserr
+testouterr_cmd_re sh "display $modname" ERR $tserr
+testouterr_cmd_re sh "help $modname" ERR $tserr
+testouterr_cmd_re sh "test $modname" ERR $tserr
+
+# module has been loaded
+setenv_loaded_module [list $mod] [list $modfile]
+set tserr [msg_unload $mod [err_permdenied $modfile]]
+testouterr_cmd sh "unload $mod" ERR $tserr
+testouterr_cmd sh reload ERR $tserr
+testouterr_cmd sh purge ERR $tserr
+set tserr [msg_refresh $mod [err_permdenied $modfile]]
+testouterr_cmd sh refresh ERR $tserr
+set tserr $cur_loaded\n$mod
+testouterr_cmd sh {list -t} OK $tserr
+set tserr $list_long_headerre\n$cur_loaded\n$mod\\s*
+testouterr_cmd_re sh {list -l} OK $tserr
+unsetenv_loaded_module
+
+# global search commands
+testouterr_cmd sh "avail -t $modname" OK {}
+testouterr_cmd_re sh "avail -l $modname" OK {}
+testouterr_cmd sh "avail -t $mod" OK {}
+set tserr [err_permdenied $mp/$modname]
+testouterr_cmd_re sh "whatis $modname" ERR $tserr
+testouterr_cmd_re sh "search $modname" ERR {}
+
+restore_file_perms $mp/$modname
+
+
+#
+# read-protected modulefile covered by module-hide directive
+#
+
+set modname loc_rc1
+set mod $modname/2.0
+set modfile $mp/$mod
+set modfilere $mpre/$mod
+
+set hide_perms "ugo-rx"
+change_file_perms $modfile $hide_perms
+setenv_var TESTSUITE_MCOOKIE_CHECK evalhide
+
+# full module name specification
+set tserr $err_path'$mod'
+testouterr_cmd sh "load $mod" ERR $tserr
+testouterr_cmd_re sh "display $mod" ERR $tserr
+testouterr_cmd_re sh "help $mod" ERR $tserr
+testouterr_cmd_re sh "test $mod" ERR $tserr
+
+# full path name specification
+set tserr [msg_load $modfile [err_permdenied $modfile]]
+testouterr_cmd sh "load $modfile" ERR $tserr
+set tserr $modlin\n$modfilere:\n\n[escre [err_permdenied $modfile]]\n$modlin
+testouterr_cmd_re sh "display $modfile" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Help\ for\ $modfilere:\n\n[escre [err_permdenied $modfile]]\n$modlin
+testouterr_cmd_re sh "help $modfile" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Test\ for\ $modfilere:\n\n[escre [err_permdenied $modfile]]\n$modlin
+testouterr_cmd_re sh "test $modfile" ERR $tserr
+
+# implicit default name specification
+set ans [list]
+lappend ans [list set __MODULES_LMALTNAME $modname/1.0&$modname/foo&as|$modname/default\&as|$modname/latest]
+lappend ans [list set _LMFILES_ $mp/$modname/1.0]
+lappend ans [list set LOADEDMODULES $modname/1.0]
+lappend ans [list set testsuite yes]
+testouterr_cmd sh "load $modname" $ans {}
+set tserr "$modlin\n$mpre/$modname/1.0:\n\nmodule-whatis\t$modname/1.0\nsetenv\t\ttestsuite yes\n$modlin"
+testouterr_cmd_re sh "display $modname" OK $tserr
+set tserr "$modlin\nModule\ Specific\ Help\ for\ $mpre/$modname/1.0:\n\n$warn_msgs: Unable to find ModulesHelp in $mpre/$modname/1.0.\n$modlin"
+testouterr_cmd_re sh "help $modname" OK $tserr
+set tserr "$modlin\nModule\ Specific\ Test\ for\ $mpre/$modname/1.0:\n\n$warn_msgs: Unable to find ModulesTest in $mpre/$modname/1.0.\n$modlin"
+testouterr_cmd_re sh "test $modname" OK $tserr
+
+# module has been loaded
+setenv_loaded_module [list $mod] [list $modfile]
+set tserr [msg_unload $mod [err_permdenied $modfile]]
+testouterr_cmd sh "unload $mod" ERR $tserr
+testouterr_cmd sh reload ERR $tserr
+testouterr_cmd sh purge ERR $tserr
+set tserr [msg_refresh $mod [err_permdenied $modfile]]
+testouterr_cmd sh refresh ERR $tserr
+set tserr $cur_loaded\n$mod
+testouterr_cmd sh {list -t} OK $tserr
+set tserr $list_long_headerre\n$cur_loaded\n$mod\\s*$datetimere
+testouterr_cmd_re sh {list -l} OK $tserr
+unsetenv_loaded_module
+
+# global search commands
+set tserr "$mp:\n$modname/1.0(foo)"
+testouterr_cmd sh "avail -t $modname" OK $tserr
+set tserr $avail_long_headerre\n$mpre:\n$modname/1.0\\s*foo\\s*$datetimere
+testouterr_cmd_re sh "avail -l $modname" OK $tserr
+set tserr {}
+testouterr_cmd sh "avail -t $mod" OK $tserr
+set tserr "$modlin $mpre $modlin\n\\s*$modname/1.0: $modname/1.0"
+testouterr_cmd_re sh "whatis $modname" OK $tserr
+testouterr_cmd_re sh "search $modname" ERR $tserr
+
+restore_file_perms $modfile
+setenv_var TESTSUITE_MCOOKIE_CHECK eval
+
+}
+
+
+#
+# modulefile without magic cookie pointed as default version
+#
+
+set modname loc_dv4
+set mod $modname/2.0
+set modfile $mp/$mod
+set modfilere $mpre/$mod
+
+# explicit default name specification
+set tserr [msg_load $mod [moderr_missingmcookiens $modfile]]
+testouterr_cmd sh "load $modname" ERR $tserr
+set tserr $modlin\n$modfilere:\n\n[escre [moderr_missingmcookie $modfile]]\n$modlin
+testouterr_cmd_re sh "display $modname" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Help\ for\ $modfilere:\n\n[escre [moderr_missingmcookie $modfile]]\n$modlin
+testouterr_cmd_re sh "help $modname" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Test\ for\ $modfilere:\n\n[escre [moderr_missingmcookie $modfile]]\n$modlin
+testouterr_cmd_re sh "test $modname" ERR $tserr
+
+# module has been loaded
+setenv_loaded_module [list $mod] [list $modfile]
+set tserr [msg_unload $mod [moderr_missingmcookiens $modfile]]
+testouterr_cmd sh "unload $mod" ERR $tserr
+testouterr_cmd sh reload ERR $tserr
+testouterr_cmd sh purge ERR $tserr
+set tserr [msg_refresh $mod [moderr_missingmcookiens $modfile]]
+testouterr_cmd sh refresh ERR $tserr
+set tserr $cur_loaded\n$mod
+testouterr_cmd sh {list -t} OK $tserr
+set tserr $list_long_headerre\n$cur_loaded\n$mod\\s*$datetimere
+testouterr_cmd_re sh {list -l} OK $tserr
+unsetenv_loaded_module
+
+# global search commands
+set tserr "$mp:\n$modname/1.0\n${mod}(default)"
+testouterr_cmd sh "avail -t $modname" OK $tserr
+set tserr $avail_long_headerre\n$mpre:\n$modname/1.0\\s*$datetimere\n$mod\\s*default\\s*$datetimere
+testouterr_cmd_re sh "avail -l $modname" OK $tserr
+set tserr "$mp:\n${mod}(default)"
+testouterr_cmd sh "avail -t $mod" OK $tserr
+set tserr "$modlin $mpre $modlin\n\\s*$modname/1.0: $modname/1.0"
+testouterr_cmd_re sh "whatis $modname" OK $tserr
+testouterr_cmd_re sh "search $modname" ERR $tserr
+
+
+#
+# modulefile without magic cookie targeted by module-virtual
+#
+
+set modname loc_virt2
+set mod $modname/3.0
+set modfile $mp/loc_dv1/3.0
+set modfilere $mpre/loc_dv1/3.0
+
+# full module name specification
+set tserr [msg_load $mod [moderr_missingmcookiens $modfile]]
+testouterr_cmd sh "load $mod" ERR $tserr
+set tserr $modlin\n$modfilere:\n\n[escre [moderr_missingmcookie $modfile]]\n$modlin
+testouterr_cmd_re sh "display $mod" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Help\ for\ $modfilere:\n\n[escre [moderr_missingmcookie $modfile]]\n$modlin
+testouterr_cmd_re sh "help $mod" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Test\ for\ $modfilere:\n\n[escre [moderr_missingmcookie $modfile]]\n$modlin
+testouterr_cmd_re sh "test $mod" ERR $tserr
+
+# full path name specification
+set tserr [msg_load $modfile [moderr_missingmcookiens $modfile]]
+#FIXME: full path module are misunderstood if path has a directory containing character used for variant specification
+if {![string match *+* $modfile]} {
+testouterr_cmd sh "load $modfile" ERR $tserr
+}
+set tserr $modlin\n$modfilere:\n\n[escre [moderr_missingmcookie $modfile]]\n$modlin
+testouterr_cmd_re sh "display $modfile" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Help\ for\ $modfilere:\n\n[escre [moderr_missingmcookie $modfile]]\n$modlin
+testouterr_cmd_re sh "help $modfile" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Test\ for\ $modfilere:\n\n[escre [moderr_missingmcookie $modfile]]\n$modlin
+testouterr_cmd_re sh "test $modfile" ERR $tserr
+
+# implicit default name specification
+set tserr [msg_load $mod [moderr_missingmcookiens $modfile]]
+testouterr_cmd sh "load $modname" ERR $tserr
+set tserr $modlin\n$modfilere:\n\n[escre [moderr_missingmcookie $modfile]]\n$modlin
+testouterr_cmd_re sh "display $modname" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Help\ for\ $modfilere:\n\n[escre [moderr_missingmcookie $modfile]]\n$modlin
+testouterr_cmd_re sh "help $modname" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Test\ for\ $modfilere:\n\n[escre [moderr_missingmcookie $modfile]]\n$modlin
+testouterr_cmd_re sh "test $modname" ERR $tserr
+
+# module has been loaded
+setenv_loaded_module [list $mod] [list $modfile]
+set tserr [msg_unload $mod [moderr_missingmcookiens $modfile]]
+testouterr_cmd sh "unload $mod" ERR $tserr
+testouterr_cmd sh reload ERR $tserr
+testouterr_cmd sh purge ERR $tserr
+set tserr [msg_refresh $mod [moderr_missingmcookiens $modfile]]
+testouterr_cmd sh refresh ERR $tserr
+set tserr $cur_loaded\n$mod
+testouterr_cmd sh {list -t} OK $tserr
+set tserr $list_long_headerre\n$cur_loaded\n$mod\\s*$datetimere
+testouterr_cmd_re sh {list -l} OK $tserr
+unsetenv_loaded_module
+
+# global search commands
+set tserr "$mp:\n$modname/1.0\n$modname/2.0\n$mod"
+testouterr_cmd sh "avail -t $modname" OK $tserr
+set tserr $avail_long_headerre\n$mpre:\n$modname/1.0\\s*$datetimere\n$modname/2.0\\s*$datetimere\n$mod\\s*$datetimere
+testouterr_cmd_re sh "avail -l $modname" OK $tserr
+set tserr "$mp:\n$mod"
+testouterr_cmd sh "avail -t $mod" OK $tserr
+set tserr "$modlin $mpre $modlin\n\\s*$modname/1.0: $modname/1.0\n\\s*$modname/2.0: $modname/2.0"
+testouterr_cmd_re sh "whatis $modname" OK $tserr
+testouterr_cmd_re sh "search $modname" ERR $tserr
+
+
+#
+# .version file without magic cookie
+#
+
+set modname loc_dv8
+set mod $modname/2.0
+set modfile $mp/$mod
+set modfilere $mpre/$mod
+
+# implicit default name specification
+set ans [list]
+lappend ans [list set __MODULES_LMALTNAME $mod&as|$modname/default\&as|$modname/latest]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list ERR]
+set tserr [moderr_missingmcookie $mp/$modname/.version]
+testouterr_cmd sh "load $modname" $ans $tserr
+set tserr [moderr_missingmcookie $mpre/$modname/.version]\n$modlin\n$modfilere:\n\n$modlin
+testouterr_cmd_re sh "display $modname" ERR $tserr
+set tserr "[moderr_missingmcookie $mpre/$modname/.version]\n$modlin\nModule\ Specific\ Help\ for\ $modfilere:\n\n$warn_msgs: Unable to find ModulesHelp in $modfilere.\n$modlin"
+testouterr_cmd_re sh "help $modname" ERR $tserr
+set tserr "[moderr_missingmcookie $mpre/$modname/.version]\n$modlin\nModule\ Specific\ Test\ for\ $modfilere:\n\n$warn_msgs: Unable to find ModulesTest in $modfilere.\n$modlin"
+testouterr_cmd_re sh "test $modname" ERR $tserr
+
+# global search commands
+set tserr "$mp:\n$modname/1.0\n$modname/2.0"
+testouterr_cmd sh "avail -t $modname" OK $tserr
+set tserr $avail_long_headerre\n$mpre:\n$modname/1.0\\s*$datetimere\n$modname/2.0\\s*$datetimere
+testouterr_cmd_re sh "avail -l $modname" OK $tserr
+set tserr "$mp:\n$mod"
+testouterr_cmd sh "avail -t $mod" OK $tserr
+
+
+#
+# .modulerc file without magic cookie
+#
+
+set modname loc_rc5
+set mod $modname/2.0
+set modfile $mp/$mod
+set modfilere $mpre/$mod
+
+# implicit default name specification
+set ans [list]
+lappend ans [list set __MODULES_LMALTNAME $mod&as|$modname/default\&as|$modname/latest]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set testsuite yes]
+lappend ans [list ERR]
+set tserr [moderr_missingmcookie $mp/$modname/.modulerc]
+testouterr_cmd sh "load $modname" $ans $tserr
+set tserr [moderr_missingmcookie $mpre/$modname/.modulerc]\n$modlin\n$modfilere:\n\nmodule-whatis\t$mod\nsetenv\t\ttestsuite\ yes\n$modlin
+testouterr_cmd_re sh "display $modname" ERR $tserr
+set tserr "[moderr_missingmcookie $mpre/$modname/.modulerc]\n$modlin\nModule\ Specific\ Help\ for\ $modfilere:\n\n$warn_msgs: Unable to find ModulesHelp in $modfilere.\n$modlin"
+testouterr_cmd_re sh "help $modname" ERR $tserr
+set tserr "[moderr_missingmcookie $mpre/$modname/.modulerc]\n$modlin\nModule\ Specific\ Test\ for\ $modfilere:\n\n$warn_msgs: Unable to find ModulesTest in $modfilere.\n$modlin"
+testouterr_cmd_re sh "test $modname" ERR $tserr
+
+# global search commands
+set tserr "$mp:\n$modname/1.0\n$modname/2.0"
+testouterr_cmd sh "avail -t $modname" OK $tserr
+set tserr $avail_long_headerre\n$mpre:\n$modname/1.0\\s*$datetimere\n$modname/2.0\\s*$datetimere
+testouterr_cmd_re sh "avail -l $modname" OK $tserr
+set tserr "$mp:\n$mod"
+testouterr_cmd sh "avail -t $mod" OK $tserr
+
+
+#
+# unexistent file pointed by default version
+#
+
+set modname loc_dv3
+set mod $modname/3.0
+set modfile $mp/$mod
+set modfilere $mpre/$mod
+
+# full path name specification
+set tserr [msg_load $modfile $err_file'$modfile']
+#FIXME: full path module are misunderstood if path has a directory containing character used for variant specification
+if {![string match *+* $modfile]} {
+testouterr_cmd sh "load $modfile" ERR $tserr
+}
+set tserr $modlin\n$modfilere:\n\n[escre $err_file'$modfile']\n$modlin
+testouterr_cmd_re sh "display $modfile" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Help\ for\ $modfilere:\n\n[escre $err_file'$modfile']\n$modlin
+testouterr_cmd_re sh "help $modfile" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Test\ for\ $modfilere:\n\n[escre $err_file'$modfile']\n$modlin
+testouterr_cmd_re sh "test $modfile" ERR $tserr
+
+# implicit default name specification
+set tserr $err_path'$mod'
+testouterr_cmd sh "load $modname" ERR $tserr
+testouterr_cmd_re sh "display $modname" ERR $tserr
+testouterr_cmd_re sh "help $modname" ERR $tserr
+testouterr_cmd_re sh "test $modname" ERR $tserr
+
+# global search commands
+set tserr "$mp:\n$modname/1.0\n$modname/2.0"
+testouterr_cmd sh "avail -t $modname" OK $tserr
+set tserr $avail_long_headerre\n$mpre:\n$modname/1.0\\s*$datetimere\n$modname/2.0\\s*$datetimere
+testouterr_cmd_re sh "avail -l $modname" OK $tserr
+testouterr_cmd sh "avail -t $mod" OK {}
+
+
+#
+# unexistent file pointed by symbol
+#
+
+set modname loc_rc1
+set mod $modname/bar
+set modfile $mp/$mod
+set modfilere $mpre/$mod
+
+# full module name specification
+set tserr $err_path'$modname/3.0'
+testouterr_cmd sh "load $mod" ERR $tserr
+testouterr_cmd_re sh "display $mod" ERR $tserr
+testouterr_cmd_re sh "help $mod" ERR $tserr
+testouterr_cmd_re sh "test $mod" ERR $tserr
+
+# global search commands
+set tserr "$mp:\n$modname/1.0(foo)\n$modname/2.0\n$modname/4.0(@)"
+testouterr_cmd sh "avail -t $modname" OK $tserr
+set tserr "$avail_long_headerre\n$mpre:\n$modname/1.0\\s*foo\\s*$datetimere\n$modname/2.0\\s*$datetimere\n$modname/4.0 -> $modname/5.0\\s*"
+testouterr_cmd_re sh "avail -l $modname" OK $tserr
+testouterr_cmd sh "avail -t $mod" OK {}
+
+
+#
+# unexistent file pointed by alias
+#
+
+set modname loc_rc1
+set mod $modname/4.0
+set modfile $mp/$mod
+set modfilere $mpre/$mod
+
+# full module name specification
+set tserr $err_path'$modname/5.0'
+testouterr_cmd sh "load $mod" ERR $tserr
+testouterr_cmd_re sh "display $mod" ERR $tserr
+testouterr_cmd_re sh "help $mod" ERR $tserr
+testouterr_cmd_re sh "test $mod" ERR $tserr
+
+# global search commands
+set tserr "$mp:\n$modname/4.0(@)"
+testouterr_cmd sh "avail -t $mod" OK $tserr
+
+
+#
+# unexistent file pointed by module-virtual
+#
+
+set modname loc_virt1
+set mod $modname/6.0
+set modfile $mp/$modname/notexist
+set modfilere $mpre/$modname/notexist
+
+# full module name specification
+set tserr [msg_load $mod $err_file'$modfile']
+testouterr_cmd sh "load $mod" ERR $tserr
+set tserr $modlin\n$modfilere:\n\n[escre $err_file'$modfile']\n$modlin
+testouterr_cmd_re sh "display $mod" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Help\ for\ $modfilere:\n\n[escre $err_file'$modfile']\n$modlin
+testouterr_cmd_re sh "help $mod" ERR $tserr
+set tserr $modlin\nModule\ Specific\ Test\ for\ $modfilere:\n\n[escre $err_file'$modfile']\n$modlin
+testouterr_cmd_re sh "test $mod" ERR $tserr
+
+# global search commands
+set tserr "$mp:\n$modname/6.0"
+testouterr_cmd sh "avail -t $mod" OK $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env

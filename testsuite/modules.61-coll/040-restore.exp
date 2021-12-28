@@ -1052,6 +1052,11 @@ lappend ans [list set LOADEDMODULES $c42lm]
 set tserr [msg_load foo/1.0]
 testouterr_cmd_re sh "restore $coll42fp" $ans $tserr
 
+# test collection restore when magic cookie check is set only for evaluation
+setenv_var MODULES_COOKIE_CHECK eval
+testouterr_cmd_re sh "restore $coll42fp" $ans $tserr
+setenv_var MODULES_COOKIE_CHECK always
+
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 
 set tserr "$error_msgs: $msg_nomodnameinarg '--tag'"
