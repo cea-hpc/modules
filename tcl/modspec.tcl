@@ -1,7 +1,7 @@
 ##########################################################################
 
 # MODSPEC.TCL, module specification procedures
-# Copyright (C) 2016-2021 Xavier Delaruelle
+# Copyright (C) 2016-2022 Xavier Delaruelle
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
