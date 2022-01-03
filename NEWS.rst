@@ -108,6 +108,12 @@ Modules 5.1.0 (not yet released)
 * Add support for ``--not-req`` option on :mfcmd:`module try-load<module>` and
   :mfcmd:`module load-any<module>` modulefile commands.
 * Doc: add :ref:`magic-cookie-check` design notes.
+* Add the :mconfig:`mcookie_check` configuration option that control whether
+  the magic cookie at the start of modulefile (``#%Module``) need to get
+  checked or not. When set to ``eval`` the number of file checks is
+  significantly reduced when walking through modulepaths to search for
+  modulefiles. Default value for this option is overridden by the
+  :envvar:`MODULES_MCOOKIE_CHECK` environment variable.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 
