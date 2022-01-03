@@ -108,6 +108,66 @@ options are added to the :mfcmd:`unsetenv` modulefile command to be able to
 choose between unsetting variable, setting a value or performing no operation
 when modulefile is unloaded.
 
+Reducing number of I/O operations
+---------------------------------
+
+A new configuration option named :mconfig:`mcookie_check` is introduced to
+control the verification made to files to determine if they are modulefiles.
+By default this configuration option is set to ``always`` and when searching
+for modulefiles within enabled modulepaths each file below these directories
+is opened to check if it starts with the Modules magic cookie (``#%Module``).
+
+These historical checks lead to a large number of I/O operations on large
+module setup like in the below example where a total of 1098 modulefiles are
+available:
+
+  .. parsed-literal::
+
+    :ps:`$` module -o "" avail -t | wc -l
+    1098
+    :ps:`$` module config mcookie_check always
+    :ps:`$` strace -f -e open,openat,read,close -c $MODULES_CMD bash avail
+    ...
+    % time     seconds  usecs/call     calls    errors syscall
+    ------ ----------- ----------- --------- --------- ----------------
+     44.29    0.044603          25      1734       166 open
+     34.15    0.034389          16      2056           close
+     11.87    0.011949          24       483         5 openat
+      9.69    0.009761           4      2146           read
+    ------ ----------- ----------- --------- --------- ----------------
+    100.00    0.100702                  6419       171 total
+
+For each file, 3 I/O operations (``open``, ``read`` and ``close``) are
+achieved to determine if it is a modulefile and include it in search results.
+When modulefiles are located in a shared filesystem concurrently accessed by
+hundreds of users, a ``module avail`` command may take some time to finish.
+
+When setting the :mconfig:`mcookie_check` configuration option to the ``eval``
+value, files are not checked anymore when searching for modulefiles, only when
+evaluating them. All files under modulepaths are considered modulefiles, so
+the content of these directories must be carefully checked to use this
+:mconfig:`mcookie_check` mode which lead to a significant reduction of I/O
+operations:
+
+  .. parsed-literal::
+
+    :ps:`$` module config mcookie_check eval
+    :ps:`$` strace -f -e open,openat,read,close -c $MODULES_CMD bash avail
+    ...
+    % time     seconds  usecs/call     calls    errors syscall
+    ------ ----------- ----------- --------- --------- ----------------
+     30.56    0.013717          14       944           close
+     28.76    0.012911          21       612       156 open
+     26.41    0.011857          24       483         5 openat
+     14.26    0.006403           6      1034           read
+    ------ ----------- ----------- --------- --------- ----------------
+    100.00    0.044888                  3073       161 total
+
+A substantial reduction of execution time may be reduced depending on the
+storage setup used to host the modulepath directories. A special care should
+be given to the content of these directories to ensure they only contain
+modulefiles (see :envvar:`MODULES_MCOOKIE_CHECK`).
+
 
 v5.0
 ====
