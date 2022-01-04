@@ -2066,7 +2066,15 @@ proc getFileMtime {fpath} {
    if {[info exists ::g_fileMtime($fpath)]} {
       return $::g_fileMtime($fpath)
    } else {
-      return [set ::g_fileMtime($fpath) [file mtime $fpath]]
+      # protect 'file mtime' call in case we do not know what we are checking
+      # when mcookie is not checked
+      if {[catch {
+         set mtime [file mtime $fpath]
+      } errMsg ]} {
+         reportError [parseAccessIssue $fpath]
+         set mtime {}
+      }
+      return [set ::g_fileMtime($fpath) $mtime]
    }
 }
 
