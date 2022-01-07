@@ -96,6 +96,7 @@ chdir          {chdir          nop            reportCmd      nop            nop 
 conflict       {conflict       nop            reportCmd      nop            nop            nop            nop         }
 depends-on     {prereq-all     nop            reportCmd      nop            nop            nop            nop         }
 extensions     {nop            nop            nop            nop            nop            nop            nop         }
+family         {family         family-un      reportCmd      nop            nop            nop            nop         }
 module         {module         module         reportCmd      nop            nop            nop            nop         }
 module-alias   {module-alias   module-alias   module-alias   module-alias   module-alias   module-alias   nop         }
 module-log     {nimp           nimp           reportCmd      nop            nop            nop            nop         }
@@ -2476,6 +2477,40 @@ proc always-load {args} {
    # load all module specified, call module rather directly cmdModuleLoad to
    # get prereq recording
    module load --tag [join $tag_list :] {*}$args
+}
+
+proc family {name} {
+   # ensure name is valid to be part of the name of an environment variable
+   if {[string length $name] == 0 || ![regexp {^[A-Za-z0-9_]*$} $name]} {
+      knerror "Invalid family name '$name'"
+   }
+
+   # only one loaded module could provide a given family
+   conflict $name
+   # set name as an alias for currently loading module
+   setLoadedAltname [currentState modulename] al|$name
+
+   # set variable in environment to know what module name provides family
+   set upname [string toupper $name]
+   lassign [getModuleNameVersion] mod modname modversion
+   if {$modname eq {.}} {
+      set modname [currentState modulename]
+   }
+   setenv MODULES_FAMILY_$upname $modname
+   # also set Lmod-specific variable for compatibility
+   setenv LMOD_FAMILY_$upname $modname
+}
+
+proc family-un {name} {
+   # ensure name is valid to be part of the name of an environment variable
+   if {[string length $name] == 0 || ![regexp {^[A-Za-z0-9_]*$} $name]} {
+      knerror "Invalid family name '$name'"
+   }
+
+   # unset family-related environment variable
+   set upname [string toupper $name]
+   unsetenv MODULES_FAMILY_$upname
+   unsetenv LMOD_FAMILY_$upname
 }
 
 # ;;; Local Variables: ***
