@@ -232,3 +232,35 @@ Lmod Tcl modulefile compatiblity
 
 - This command is intended for use only within modulefile evaluation context
   (not within modulerc)
+
+
+``family``
+----------
+
+- Defines membership in family *name* and ensures that only one member of a
+  given family is currently loaded.
+
+    - Semantically this command corresponds to the definition of both:
+
+        - a conflict on family *name*
+        - a module alias *name* over currently loading module
+
+- Also defines the :envvar:`MODULES_FAMILY_\<NAME\>` environment variable set
+  to the currently loading module name minus its version number.
+
+    - As family *name* is used in environment variable name, it requires that
+      *name* should only use characters that are accepted there
+    - Accepted characters for family *name* are *[a-zA-Z0-9_]*
+    - An error is generated in case other kind of characters are found in
+      specified family *name*
+
+- The :envvar:`LMOD_FAMILY_\<NAME\>` environment variable is also set in
+  addition to :envvar:`MODULES_FAMILY_\<NAME\>` and set to the same value.
+  This way existing scripts or modulefiles relying on this variable do not
+  need to be changed to be compatible with Modules.
+
+- When modulefile is unloaded, the ``MODULES_FAMILY_<NAME>`` and
+  ``LMOD_FAMILY_<NAME>`` environment variables are unset
+
+- This command is intended for use only within modulefile evaluation context
+  (not within modulerc)
