@@ -119,6 +119,12 @@ Modules 5.1.0 (not yet released)
 * Create the ``prestdout`` channel for :mfcmd:`puts` modulefile command to be
   able to send content that will be evaluated in current shell session prior
   any other content. (fix issue #432)
+* Add the :mfcmd:`family` modulefile command for compatibility with Lmod Tcl
+  modulefiles. This command defines family name as a module alias over
+  currently loading module and express a conflict over this name to ensure
+  only one member of a family can be loaded in user environment.
+  :mfcmd:`family` also defines the :envvar:`MODULES_FAMILY_\<NAME\>` and
+  :envvar:`LMOD_FAMILY_\<NAME\>` environment variables.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 
