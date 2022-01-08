@@ -2543,6 +2543,20 @@ ENVIRONMENT
 
     .. versionadded:: 4.4
 
+.. envvar:: MODULES_FAMILY_<NAME>
+
+ Module name minus version that provides for the *name* family in currently
+ loaded environment. This environment variable is defined through the use of
+ the :mfcmd:`family` modulefile command.
+
+ For instance if loading modulefile ``foo/1.0`` defines being member of the
+ ``bar`` family, the :envvar:`MODULES_FAMILY_BAR<MODULES_FAMILY_\<NAME\>>`
+ will be set to the ``foo`` value.
+
+ .. only:: html
+
+    .. versionadded:: 5.1
+
 .. envvar:: MODULES_ICASE
 
  When module specification are passed as argument to module sub-commands or
