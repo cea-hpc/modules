@@ -805,12 +805,20 @@ the *modulefile* is being loaded.
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+ If the :mconfig:`auto_handling` configuration option is enabled
+ :mfcmd:`prereq` will attempt to load specified modulefile if not found loaded
+ yet (see :envvar:`MODULES_AUTO_HANDLING` in :ref:`module(1)`).
+
  The ``--tag`` option accepts a list of module tags to apply to *modulefile*
  once loaded. *taglist* corresponds to the concatenation of multiple tags
  separated by colon character. *taglist* should not contain tags inherited
  from *modulefile* state or from other modulefile commands.
 
  .. only:: html
+
+    .. versionchanged:: 4.2
+       An attempt to load modulefile is made if :mconfig:`auto_handling`
+       configuration option is enabled
 
     .. versionchanged:: 5.1
        Option ``--tag`` added
