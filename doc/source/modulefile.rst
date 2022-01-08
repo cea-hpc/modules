@@ -172,6 +172,33 @@ the *modulefile* is being loaded.
  modules will not be listed as loaded. No environment commands will be
  performed in the current module.
 
+.. mfcmd:: family name
+
+ Defines loading modulefile as a member of family *name*. Only one member of a
+ family could be loaded. Error is raised when attempting to load another
+ member of the same family *name*.
+
+ :mfcmd:`family` corresponds to the definition of a :mfcmd:`conflict` on
+ *name* and the definition of a :mfcmd:`module-alias` *name* targeting
+ currently loading module.
+
+ In addition, the :envvar:`MODULES_FAMILY_\<NAME\>` environment variable is
+ defined and set to the currently loading module name minus version. This
+ variable helps to know what module provides for the family *name* in the
+ currently loaded environment. For instance if loading modulefile ``foo/1.0``
+ defines being member of the ``bar`` family, the
+ :envvar:`MODULES_FAMILY_BAR<MODULES_FAMILY_\<NAME\>>` will be set to the
+ ``foo`` value. For compatibility, the :envvar:`LMOD_FAMILY_\<NAME\>`
+ environment variable is also defined and set to the same value than
+ :envvar:`MODULES_FAMILY_\<NAME\>`.
+
+ *name* should be a non-empty string only containing characters that could be
+ part of an environment variable name (i.e., *[a-zA-Z0-9_]*).
+
+ .. only:: html
+
+    .. versionadded:: 5.1
+
 .. mfcmd:: getenv [--return-value] variable [value]
 
  Returns value of environment *variable*. If *variable* is not defined,
@@ -1528,6 +1555,10 @@ Compatibility with Lmod Tcl modulefile
 The ``add-property``, ``remove-property`` and ``extensions`` modulefile
 commands are evaluated as a *no-operation* command. No error is obtained if
 these commands are used in modulefiles but no change occurs.
+
+When processing a :mfcmd:`family` command, the :envvar:`LMOD_FAMILY_\<NAME\>`
+environment variable is also defined to get compatible with modulefiles or
+scripts relying on such variable.
 
 
 ENVIRONMENT

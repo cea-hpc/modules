@@ -872,7 +872,7 @@ The following modulefile Tcl commands appeared on Modules 5.
 |            | :mfcmd:`extensions`, :mfcmd:`prereq-any`,                       |
 |            | :mfcmd:`require-fullname`, :mfcmd:`depends-on`,                 |
 |            | :mfcmd:`prereq-all`, :mfcmd:`always-load`,                      |
-|            | :mfcmd:`module load-any<module>`                                |
+|            | :mfcmd:`module load-any<module>`, :mfcmd:`family`               |
 +------------+-----------------------------------------------------------------+
 
 :mfcmd:`system`, :mfcmd:`is-used`
