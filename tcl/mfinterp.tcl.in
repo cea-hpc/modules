@@ -1433,6 +1433,10 @@ proc putsModfileCmd {itrp args} {
             -nonewline - stdout {
                set deferPuts 1
             }
+            prestdout {
+               set deferPrePuts 1
+               set args [lreplace $args 0 0 stdout]
+            }
             stderr {
                set reportArgs [list [lindex $args 1]]
             }
@@ -1443,6 +1447,10 @@ proc putsModfileCmd {itrp args} {
             switch -- [lindex $args 1] {
                stdout {
                   set deferPuts 1
+               }
+               prestdout {
+                  set deferPrePuts 1
+                  set args [lreplace $args 1 1 stdout]
                }
                stderr {
                   set reportArgs [list [lindex $args 2] 1]
@@ -1464,6 +1472,8 @@ proc putsModfileCmd {itrp args} {
    # defer puts if it targets stdout (see renderSettings)
    } elseif {[info exists deferPuts]} {
       lappend ::g_stdoutPuts $args
+   } elseif {[info exists deferPrePuts]} {
+      lappend ::g_prestdoutPuts $args
    # if it targets stderr call report, which knows what channel to use
    } elseif {[info exists reportArgs]} {
       # report message only if not silent

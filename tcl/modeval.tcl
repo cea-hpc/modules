@@ -541,7 +541,7 @@ proc pushSettings {} {
       lappend ::g_SAVE_$var [array get ::$var]
    }
    # save non-array variable and indication if it was set
-   foreach var {g_changeDir g_stdoutPuts g_return_text} {
+   foreach var {g_changeDir g_stdoutPuts g_prestdoutPuts g_return_text} {
       if {[info exists ::$var]} {
          lappend ::g_SAVE_$var [list 1 [set ::$var]]
       } else {
@@ -555,7 +555,7 @@ proc popSettings {} {
    set flushedid [getSavedSettingsStackDepth]
    foreach var {env g_clearedEnvVars g_Aliases g_stateEnvVars g_stateAliases\
       g_stateFunctions g_Functions g_newXResources g_delXResources\
-      g_changeDir g_stdoutPuts g_return_text\
+      g_changeDir g_stdoutPuts g_prestdoutPuts g_return_text\
       g_loadedModules g_loadedModuleFiles g_loadedModuleVariant\
       g_loadedModuleConflict g_loadedModulePrereq g_loadedModuleAltname\
       g_loadedModuleAutoAltname g_loadedModuleAliasAltname g_moduleDepend\
@@ -596,7 +596,7 @@ proc restoreSettings {} {
       }
    }
    # restore non-array variable if it was set
-   foreach var {g_changeDir g_stdoutPuts g_return_text} {
+   foreach var {g_changeDir g_stdoutPuts g_prestdoutPuts g_return_text} {
       if {[info exists ::$var]} {
          unset ::$var
       }

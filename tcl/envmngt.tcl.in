@@ -161,7 +161,7 @@ proc renderSettings {} {
       [array size g_stateAliases] > 0 || [array size g_newXResources] > 0 ||\
       [array size g_stateFunctions] > 0 || [array size g_delXResources] > 0\
       || [info exists ::g_changeDir] || [info exists ::g_stdoutPuts] ||\
-      [info exists ::g_return_text]} {
+      [info exists ::g_prestdoutPuts] || [info exists ::g_return_text]} {
       switch -- [getState shelltype] {
          python {
             puts stdout {import os}
@@ -170,6 +170,18 @@ proc renderSettings {} {
       set has_rendered 1
    } else {
       set has_rendered 0
+   }
+
+   # send pre content deferred during modulefile interpretation
+   if {[info exists ::g_prestdoutPuts]} {
+      foreach putsArgs $::g_prestdoutPuts {
+         puts {*}$putsArgs
+         # check if a finishing newline will be needed after content sent
+         set needPutsNl [expr {[lindex $putsArgs 0] eq {-nonewline}}]
+      }
+      if {$needPutsNl} {
+         puts stdout {}
+      }
    }
 
    if {[getState autoinit]} {
