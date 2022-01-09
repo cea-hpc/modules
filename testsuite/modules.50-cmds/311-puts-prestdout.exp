@@ -1,0 +1,134 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:       modules.50-cmds/%M%
+#   Revision:       %I%
+#   First Edition:  2022/01/09
+#   Last Mod.:      %U%, %G%
+#
+#   Authors:        Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:    Testuite testsequence
+#   Command:        load
+#   Modulefiles:    puts
+#   Sub-Command:
+#
+#   Comment:    %C{
+#           Test puts modulefile command on prestdout channel
+#       }C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+set mod puts/prestdout
+set modfile $mp/$mod
+set modfilere $mpre/$mod
+
+
+setenv_var TESTSUITE_PUTS prestdout1
+
+# test loading
+set ans [list]
+lappend ans [list out textpreout1]
+if {$install_advversspec eq {y}} {
+    lappend ans [list set __MODULES_LMALTNAME $mod&as|puts/default&as|puts/latest]
+}
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set testsuite ok]
+testouterr_cmd sh "load $mod" $ans {}
+
+# test displaying
+set ans [list]
+lappend ans [list out textpreout1]
+set tserr "$modlin\n$modfilere:\n\nsetenv\t\ttestsuite ok\n$modlin"
+testouterr_cmd_re sh "display $mod" $ans $tserr
+
+# test unloading
+setenv_loaded_module [list $mod] [list $modfile]
+set ans [list]
+lappend ans [list out textpreout1]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset testsuite]
+testouterr_cmd sh "unload $mod" $ans {}
+unsetenv_loaded_module
+
+skip_if_quick_mode
+
+
+setenv_var TESTSUITE_PUTS prestdout2
+
+# test loading
+set ans [list]
+lappend ans [list out textpreout1]
+if {$install_advversspec eq {y}} {
+    lappend ans [list set __MODULES_LMALTNAME $mod&as|puts/default&as|puts/latest]
+}
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set testsuite ok]
+lappend ans [list out textout1]
+lappend ans [list out prestdout1prestdout2]
+testouterr_cmd sh "load $mod" $ans {}
+
+# test displaying
+set ans [list]
+lappend ans [list out textpreout1]
+lappend ans [list out textout1]
+lappend ans [list out prestdout1prestdout2]
+set tserr "$modlin\n$modfilere:\n\nsetenv\t\ttestsuite ok\n$modlin"
+testouterr_cmd_re sh "display $mod" $ans $tserr
+
+# test unloading
+setenv_loaded_module [list $mod] [list $modfile]
+set ans [list]
+lappend ans [list out textpreout1]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset testsuite]
+lappend ans [list out textout1]
+lappend ans [list out prestdout1prestdout2]
+testouterr_cmd sh "unload $mod" $ans {}
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_PUTS prestdout3
+
+# test loading
+set ans [list]
+lappend ans [list out textpreout1textpreout2]
+if {$install_advversspec eq {y}} {
+    lappend ans [list set __MODULES_LMALTNAME $mod&as|puts/default&as|puts/latest]
+}
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set testsuite ok]
+testouterr_cmd sh "load $mod" $ans {}
+
+# test displaying
+set ans [list]
+lappend ans [list out textpreout1textpreout2]
+set tserr "$modlin\n$modfilere:\n\nsetenv\t\ttestsuite ok\n$modlin"
+testouterr_cmd_re sh "display $mod" $ans $tserr
+
+# test unloading
+setenv_loaded_module [list $mod] [list $modfile]
+set ans [list]
+lappend ans [list out textpreout1textpreout2]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset testsuite]
+testouterr_cmd sh "unload $mod" $ans {}
+unsetenv_loaded_module
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
