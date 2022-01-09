@@ -842,6 +842,25 @@ the *modulefile* is being loaded.
 
     .. versionadded:: 5.1
 
+.. mfcmd:: puts [-nonewline] [channelId] string
+
+ Writes the characters given by *string* to the channel given by *channelId*.
+ This command is not a Modules-specific command, it is actually part of Tcl.
+ See the :manpage:`puts(n)` Tcl man page for a complete description of this
+ command.
+
+ Content written to the ``stderr`` channel is rendered as output message
+ produced by modulefile. Content written to the ``stdout`` channel is rendered
+ as shell command evaluated in the user current shell environment. Content
+ sent to ``stdout`` is spooled to be rendered after the environment changes
+ made by modulefile.
+
+ .. only:: html
+
+    .. versionchanged:: 4.1
+       Content sent to ``stdout`` is spooled to apply it after the rendering
+       of the environment changes made by modulefile
+
 .. mfcmd:: remove-path [options] variable value... [--append-on-unload|--prepend-on-unload value...]
 
  Remove *value* from the colon, or *delimiter*, separated list in

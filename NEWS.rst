@@ -114,6 +114,8 @@ Modules 5.1.0 (not yet released)
   significantly reduced when walking through modulepaths to search for
   modulefiles. Default value for this option is overridden by the
   :envvar:`MODULES_MCOOKIE_CHECK` environment variable.
+* Doc: describe :mfcmd:`puts` Tcl command and its specific feature when used
+  in modulefile.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 
