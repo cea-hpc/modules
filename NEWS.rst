@@ -116,6 +116,9 @@ Modules 5.1.0 (not yet released)
   :envvar:`MODULES_MCOOKIE_CHECK` environment variable.
 * Doc: describe :mfcmd:`puts` Tcl command and its specific feature when used
   in modulefile.
+* Create the ``prestdout`` channel for :mfcmd:`puts` modulefile command to be
+  able to send content that will be evaluated in current shell session prior
+  any other content. (fix issue #432)
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 

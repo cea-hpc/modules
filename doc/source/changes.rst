@@ -889,6 +889,11 @@ The following modulefile Tcl commands appeared on Modules 5.
  Starting Modules 5.1, these modulefile commands accepts the ``--not-req``
  option.
 
+:mfcmd:`puts`
+
+ Starting Modules 5.1, if content is sent to the ``prestdout`` channel, it is
+ rendered as command to evaluate in current shell session and prior any other
+ environment changes.
 
 Modules Variables
 """""""""""""""""

@@ -855,11 +855,19 @@ the *modulefile* is being loaded.
  sent to ``stdout`` is spooled to be rendered after the environment changes
  made by modulefile.
 
+ When *channelId* equals ``prestdout``, content is rendered as shell command
+ evaluated in current shell environment. This content is spooled and rendered
+ prior any other environment changes.
+
  .. only:: html
 
     .. versionchanged:: 4.1
        Content sent to ``stdout`` is spooled to apply it after the rendering
        of the environment changes made by modulefile
+
+    .. versionchanged:: 5.1
+       Channel ``prestdout`` added to render content prior any other
+       environment changes
 
 .. mfcmd:: remove-path [options] variable value... [--append-on-unload|--prepend-on-unload value...]
 
