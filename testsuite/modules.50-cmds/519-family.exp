@@ -1,0 +1,253 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2022/01/10
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload, display, help, test, whatis, refresh, avail
+#   Modulefiles:    lcompat
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test family modulefile command
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+set mod lcompat/1.8
+set modname lcompat
+set modfile $mp/$mod
+set modfilere $mpre/$mod
+
+set flatmod flatlcompat
+set flatmodfile $mp/$flatmod
+
+set deepmod $modname/1.9/1.9
+set deepmodname $modname/1.9
+set deepmodfile $mp/$deepmod
+
+
+setenv_var TESTSUITE_LCOMPAT family1
+
+# load
+set ans [list]
+lappend ans [list set LMOD_FAMILY_FAM $modname]
+lappend ans [list set __MODULES_LMALTNAME $mod&al|fam]
+lappend ans [list set __MODULES_LMCONFLICT $mod&fam]
+lappend ans [list set MODULES_FAMILY_FAM $modname]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+
+set tserr $err_path'fam'
+testouterr_cmd sh {load fam} ERR $tserr
+
+skip_if_quick_mode
+
+# unload
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_path_var __MODULES_LMALTNAME $mod&al|fam
+setenv_path_var __MODULES_LMCONFLICT $mod&fam
+setenv_var LMOD_FAMILY_FAM $mod
+setenv_var MODULES_FAMILY_FAM $mod
+
+set ans [list]
+lappend ans [list unset LMOD_FAMILY_FAM]
+lappend ans [list unset __MODULES_LMALTNAME]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list unset MODULES_FAMILY_FAM]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+testouterr_cmd sh "unload fam" $ans {}
+
+# refresh
+testouterr_cmd sh {refresh} OK {}
+
+unsetenv_loaded_module
+unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_var LMOD_FAMILY_FAM
+unsetenv_var MODULES_FAMILY_FAM
+
+# test flat module name
+set ans [list]
+lappend ans [list set LMOD_FAMILY_FAM $flatmod]
+lappend ans [list set __MODULES_LMALTNAME $flatmod&al|fam]
+lappend ans [list set __MODULES_LMCONFLICT $flatmod&fam]
+lappend ans [list set MODULES_FAMILY_FAM $flatmod]
+lappend ans [list set _LMFILES_ $flatmodfile]
+lappend ans [list set LOADEDMODULES $flatmod]
+testouterr_cmd sh "load $flatmod" $ans {}
+
+setenv_loaded_module [list $flatmod] [list $flatmodfile]
+setenv_path_var __MODULES_LMALTNAME $flatmod&al|fam
+setenv_path_var __MODULES_LMCONFLICT $flatmod&fam
+setenv_var LMOD_FAMILY_FAM $flatmod
+setenv_var MODULES_FAMILY_FAM $flatmod
+
+set ans [list]
+lappend ans [list unset LMOD_FAMILY_FAM]
+lappend ans [list unset __MODULES_LMALTNAME]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list unset MODULES_FAMILY_FAM]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $flatmod" $ans {}
+testouterr_cmd sh "unload fam" $ans {}
+
+unsetenv_loaded_module
+unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_var LMOD_FAMILY_FAM
+unsetenv_var MODULES_FAMILY_FAM
+
+# test deep module name
+set ans [list]
+lappend ans [list set LMOD_FAMILY_FAM $deepmodname]
+lappend ans [list set __MODULES_LMALTNAME $deepmod&al|fam]
+lappend ans [list set __MODULES_LMCONFLICT $deepmod&fam]
+lappend ans [list set MODULES_FAMILY_FAM $deepmodname]
+lappend ans [list set _LMFILES_ $deepmodfile]
+lappend ans [list set LOADEDMODULES $deepmod]
+testouterr_cmd sh "load $deepmod" $ans {}
+
+setenv_loaded_module [list $deepmod] [list $deepmodfile]
+setenv_path_var __MODULES_LMALTNAME $deepmod&al|fam
+setenv_path_var __MODULES_LMCONFLICT $deepmod&fam
+setenv_var LMOD_FAMILY_FAM $deepmod
+setenv_var MODULES_FAMILY_FAM $deepmod
+
+set ans [list]
+lappend ans [list unset LMOD_FAMILY_FAM]
+lappend ans [list unset __MODULES_LMALTNAME]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list unset MODULES_FAMILY_FAM]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $deepmod" $ans {}
+testouterr_cmd sh "unload fam" $ans {}
+
+unsetenv_loaded_module
+unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_path_var __MODULES_LMCONFLICT
+unsetenv_var LMOD_FAMILY_FAM
+unsetenv_var MODULES_FAMILY_FAM
+
+# whatis
+set tserr "$modlin $mpre $modlin
+\\s*$mod: $mod"
+testouterr_cmd_re sh "whatis $mod" OK $tserr
+
+# display
+set tserr "$modlin
+$mpre/$mod:
+
+module-whatis\t$mod
+family\t\tfam
+$modlin"
+testouterr_cmd_re sh "display $mod" OK $tserr
+
+# help
+set tserr "$modlin
+Module Specific Help for $mpre/$mod:
+
+$warn_msgs: Unable to find ModulesHelp in $modfilere.
+$modlin"
+testouterr_cmd_re sh "help $mod" OK $tserr
+
+# test
+set tserr "$modlin
+Module Specific Test for $mpre/$mod:
+
+$warn_msgs: Unable to find ModulesTest in $modfilere.
+$modlin"
+testouterr_cmd_re sh "test $mod" OK $tserr
+
+
+setenv_var TESTSUITE_LCOMPAT family2
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 11}]
+set tserr [escre [msg_load $mod [msg_moderr {Invalid family name ''} {family {}<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
+
+setenv_loaded_module [list $mod] [list $modfile]
+
+set tserr [escre [msg_unload $mod [msg_moderr {Invalid family name ''} {family {}<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "unload $mod" ERR $tserr
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_LCOMPAT family3
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 14}]
+set tserr [escre [msg_load $mod [msg_moderr {Invalid family name 'b+d'} {family b+d<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
+
+setenv_loaded_module [list $mod] [list $modfile]
+
+set tserr [escre [msg_unload $mod [msg_moderr {Invalid family name 'b+d'} {family b+d<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "unload $mod" ERR $tserr
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_LCOMPAT family4
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 17}]
+set tserr [escre [msg_load $mod [msg_moderr {Invalid family name 'bad/name'} {family bad/name<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
+
+setenv_loaded_module [list $mod] [list $modfile]
+
+set tserr [escre [msg_unload $mod [msg_moderr {Invalid family name 'bad/name'} {family bad/name<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "unload $mod" ERR $tserr
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_LCOMPAT family5
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 20}]
+set tserr [escre [msg_load $mod [msg_moderr {wrong # args: should be "family name"} {family<EXM>} $modfile $ln {} {} {} {} {invoked from within}]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
+
+setenv_loaded_module [list $mod] [list $modfile]
+
+set tserr [escre [msg_unload $mod [msg_moderr {wrong # args: should be "family name"} {family<EXM>} $modfile $ln {} {} {} {} {invoked from within}]]]
+testouterr_cmd_re sh "unload $mod" ERR $tserr
+testouterr_cmd_re sh "unload lcompat" ERR $tserr
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_LCOMPAT familyrc1
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list ERR]
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 3 : 42}]
+set tserr [escre [msg_moderr {invalid command name "family"} {family fam<EXM>} $mp/lcompat/.modulerc $ln {  }]]
+testouterr_cmd_re sh "load $mod" $ans $tserr
+
+set tserr $mp:\n$mod
+testouterr_cmd sh "avail -t $mod" OK $tserr
+
+set tserr "$modlin $mpre $modlin
+\\s*$mod: $mod"
+testouterr_cmd_re sh "whatis $mod" OK $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
