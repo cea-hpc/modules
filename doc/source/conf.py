@@ -259,6 +259,8 @@ rst_epilog += '.. |gh_tgz_dl_url| replace:: https://github.com/cea-hpc/modules/r
 # define roles used to color text in parsed-literal to render output like in terminal
 rst_epilog += """.. role:: noparse
 .. role:: ps
+.. role:: sgrb
+.. role:: sgra
 .. role:: sgrhi
 .. role:: sgrer
 .. role:: sgrwa

@@ -125,6 +125,7 @@ Modules 5.1.0 (not yet released)
   only one member of a family can be loaded in user environment.
   :mfcmd:`family` also defines the :envvar:`MODULES_FAMILY_\<NAME\>` and
   :envvar:`LMOD_FAMILY_\<NAME\>` environment variables.
+* Doc: add :ref:`reduce-io-load` cookbook recipe.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 
