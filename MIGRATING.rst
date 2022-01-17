@@ -168,6 +168,9 @@ storage setup used to host the modulepath directories. A special care should
 be given to the content of these directories to ensure they only contain
 modulefiles (see :envvar:`MODULES_MCOOKIE_CHECK`).
 
+See the :ref:`reduce-io-load` cookbook recipe to learn additional features of
+Modules that could be leveraged to lower the number of I/O operations.
+
 
 v5.0
 ====
