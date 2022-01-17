@@ -472,26 +472,26 @@ them to those previously fetched.
         calls    errors syscall               calls    errors syscall
     --------- --------- ----------------  --------- --------- ----------------
             9         2 access                    9         2 access
-           :sgrb:`65`           close                    :sgra:`35`           close
+           :sgrb:`65`           :sgrhi:`close`                    :sgra:`35`           :sgrhi:`close`
             2           dup2                      2           dup2
             8         6 execve                    8         6 execve
            12           fcntl                    12           fcntl
             2           getcwd                    2           getcwd
-           :sgrb:`64`           getdents64                :sgra:`4`           getdents64
+           :sgrb:`64`           :sgrhi:`getdents64`                :sgra:`4`           :sgrhi:`getdents64`
            12         7 ioctl                    12         7 ioctl
             9         4 lseek                     9         4 lseek
            54           mmap                     54           mmap
-           :sgrb:`55`           newfstatat               :sgra:`25`           newfstatat
-           :sgrb:`63`         6 openat                   :sgra:`33`         6 openat
+           :sgrb:`55`           :sgrhi:`newfstatat`               :sgra:`25`           :sgrhi:`newfstatat`
+           :sgrb:`63`         6 :sgrhi:`openat`                   :sgra:`33`         6 :sgrhi:`openat`
             2           pipe                      2           pipe
            10           pread64                  10           pread64
           175           read                    175           read
            25        25 readlink                 25        25 readlink
-          :sgrb:`164`         2 stat                     :sgra:`10`         2 stat
+          :sgrb:`164`         2 :sgrhi:`stat`                     :sgra:`10`         2 :sgrhi:`stat`
             1           unlink                    1           unlink
            12           write                    12           write
     --------- --------- ----------------  --------- --------- ----------------
-          :sgrb:`744`        52 total                   :sgra:`440`        52 total
+          :sgrb:`744`        52 :sgrhi:`total`                   :sgra:`440`        52 :sgrhi:`total`
 
 A large I/O operation drop is observed with the *virtual* modulepath setup.
 The analysis of the 15 module directories under each of the 2 original

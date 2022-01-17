@@ -163,7 +163,7 @@ operations:
     ------ ----------- ----------- --------- --------- ----------------
     100.00    0.044888                  3073       161 total
 
-A substantial reduction of execution time may be reduced depending on the
+A substantial reduction of execution time may be noticed depending on the
 storage setup used to host the modulepath directories. A special care should
 be given to the content of these directories to ensure they only contain
 modulefiles (see :envvar:`MODULES_MCOOKIE_CHECK`).
