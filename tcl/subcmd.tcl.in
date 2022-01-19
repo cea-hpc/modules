@@ -26,6 +26,20 @@ proc cmdModuleList {show_oneperline show_mtime search_match args} {
    # load tags from loaded modules
    cacheCurrentModules
 
+   if {[llength $args] > 0} {
+      defineModEqProc [isIcase] [getConf extended_default]
+      # match passed name against any part of loaded module names
+      set mtest [expr {{contains} in $search_match ? {matchin} : {match}}]
+      # use first arg as query to highlight as reportModules only accepts one
+      # search specification
+      set searchquery [lindex $args 0]
+      # prepare header message which depend if search is performed
+      set loadedmsg {Currently Loaded Matching Modulefiles}
+   } else {
+      set searchquery {}
+      set loadedmsg {Currently Loaded Modulefiles}
+   }
+
    # filter-out hidden loaded modules unless all module should be seen
    if {[getState hiding_threshold] > 1} {
       set loadedmodlist [getLoadedModuleList]
@@ -38,9 +52,29 @@ proc cmdModuleList {show_oneperline show_mtime search_match args} {
       }
    }
 
+   # same header msg if no module loaded at all whether search is made or not
+   set noloadedmsg [expr {[llength $loadedmodlist] == 0 ? {No Modulefiles\
+      Currently Loaded.} : {No Matching Modulefiles Currently Loaded.}}]
+
+   # filter loaded modules not matching any of the mod spec passed
+   if {[llength $args] > 0} {
+      set matchlist [list]
+      foreach mod $loadedmodlist {
+         foreach pattern $args {
+            # compare pattern against loaded module, its variant set and its
+            # alternative names
+            if {[modEq $pattern $mod $mtest 1 2 1 0 *]} {
+               lappend matchlist $mod
+               break
+            }
+         }
+      }
+      set loadedmodlist $matchlist
+   }
+
    if {[llength $loadedmodlist] == 0} {
       if {!$json && [isEltInReport header]} {
-         report {No Modulefiles Currently Loaded.}
+         report $noloadedmsg
       }
    } else {
       # build mod_list array with loaded modules
@@ -64,12 +98,12 @@ proc cmdModuleList {show_oneperline show_mtime search_match args} {
 
       set one_per_line [expr {$show_mtime || $show_oneperline}]
       set show_idx [expr {!$show_mtime && [isEltInReport idx]}]
-      set header [expr {!$json && [isEltInReport header] ? {Currently Loaded\
-         Modulefiles} : {noheader}}]
+      set header [expr {!$json && [isEltInReport header] ? $loadedmsg :\
+         {noheader}}]
       set theader_cols [list hi Package 39 Versions 19 {Last mod.} 19]
 
-      reportModules {} $header {} terse $show_mtime $show_idx $one_per_line\
-         $theader_cols loaded $loadedmodlist
+      reportModules $searchquery $header {} terse $show_mtime $show_idx\
+         $one_per_line $theader_cols loaded $loadedmodlist
 
       # display output key
       if {!$show_mtime && !$json && [isEltInReport key]} {
