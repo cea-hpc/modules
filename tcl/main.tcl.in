@@ -396,7 +396,7 @@ proc module {command args} {
    # parse module version specification
    defineParseModuleSpecificationProc [getConf advanced_version_spec]
    if {$command in [list avail paths whatis load unload switch help test\
-      display path is-avail edit try-load load-any]} {
+      display path is-avail edit try-load load-any list]} {
       set args [parseModuleSpecification 0 {*}$args]
    }
 
@@ -429,8 +429,8 @@ proc module {command args} {
             set argnberr 1
          }
       }
-      refresh - reload - aliases - list - purge - savelist - initlist -\
-      initclear - autoinit {
+      refresh - reload - aliases - purge - savelist - initlist - initclear -\
+      autoinit {
          if {[llength $args] != 0} {
             set argnberr 1
          }
@@ -689,7 +689,7 @@ proc module {command args} {
          cmdModulePaths {*}$args
       }
       list {
-         cmdModuleList $show_oneperline $show_mtime
+         cmdModuleList $show_oneperline $show_mtime {*}$args
       }
       whatis {
          if {$args ne {}} {
@@ -1076,8 +1076,8 @@ if {[catch {
                   # and command can receive boolean variant specification
                   set accept_minus_arg [expr {$subcmdtest eq {ml} ||\
                      ([getConf advanced_version_spec] && $subcmdtest in\
-                     {avail display help is-avail is-loaded load path paths\
-                     switch test unload whatis})}]
+                     {avail list display help is-avail is-loaded load path\
+                     paths switch test unload whatis})}]
                }
                # spare argument if minus arg is accepted
                if {[info exists accept_minus_arg] && $accept_minus_arg} {
