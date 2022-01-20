@@ -613,7 +613,7 @@ proc defineModEqProc {icase extdfl {loadedmod 0}} {
 
 # alternative definitions of modEq proc
 proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp 0}\
-   {modvrlist 0}} {
+   {modvrlist 0} {psuf {}}} {
    # extract specified module name from name and version spec
    if {$trspec} {
       lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec\
@@ -621,9 +621,12 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp 0}\
    } else {
       set pmod $pattern
    }
-   # trim dup trailing / char
+   # trim dup trailing / char and adapt pmod suffix if it starts with /
    if {[string index $pmod end] eq {/}} {
       set pmod [string trimright $pmod /]/
+      set endwslash 1
+   } else {
+      set endwslash 0
    }
    # get alternative names if mod is loading(1) or loaded(2)
    set altlist [switch -- $ismodlo {
@@ -639,6 +642,13 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp 0}\
    }
    # specified module can be translated in a simple mod name/vers or is empty
    if {$pmod ne {} || $pattern eq {}} {
+      if {$psuf ne {}} {
+         if {$endwslash && [string index $psuf 0] eq {/}} {
+            append pmod [string range $psuf 1 end]
+         } else {
+            append pmod $psuf
+         }
+      }
       if {$test eq {eqstart}} {
          set ret [string equal -length [string length $pmod/] $pmod/ $mod/]
          # apply comparison to alternative names if any and no match for mod
@@ -670,7 +680,7 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp 0}\
       }
    } elseif {$test eq {eqspec}} {
       # test equality against all version described in spec (list or range
-      # boundaries), trspec is considered enabled
+      # boundaries), trspec is considered enabled and psuf empty
       foreach pmod [getAllModulesFromVersSpec $pattern] {
          if {[set ret [string equal $pmod $mod]]} {
             break
@@ -693,7 +703,7 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp 0}\
          $pmodname/] $pmodname/ $mod/]} {
          # then compare versions
          set modvers [string range $mod [string length $pmodname/] end]
-         set ret [modVersCmp $cmpspec $versspec $modvers $test]
+         set ret [modVersCmp $cmpspec $versspec $modvers $test $psuf]
       } else {
          set ret 0
       }
@@ -705,7 +715,8 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp 0}\
                -length [string length $pmodname/] $pmodname/ $alt/]} {
                # then compare versions
                set modvers [string range $alt [string length $pmodname/] end]
-               if {[set ret [modVersCmp $cmpspec $versspec $modvers $test]]} {
+               if {[set ret [modVersCmp $cmpspec $versspec $modvers $test\
+                  $psuf]]} {
                   break
                }
             }
@@ -725,7 +736,7 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp 0}\
    return $ret
 }
 proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
-   0} {modvrlist 0}} {
+   0} {modvrlist 0} {psuf {}}} {
    if {$trspec} {
       lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec\
          pmodnamere pmodescglob pmodroot pvrlist
@@ -734,6 +745,9 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
    }
    if {[string index $pmod end] eq {/}} {
       set pmod [string trimright $pmod /]/
+      set endwslash 1
+   } else {
+      set endwslash 0
    }
    set altlist [switch -- $ismodlo {
       4 {getAllModuleResolvedName $mod 0 {} 1}
@@ -746,6 +760,13 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
       set mod [getModuleNameAndVersFromVersSpec $mod]
    }
    if {$pmod ne {} || $pattern eq {}} {
+      if {$psuf ne {}} {
+         if {$endwslash && [string index $psuf 0] eq {/}} {
+            append pmod [string range $psuf 1 end]
+         } else {
+            append pmod $psuf
+         }
+      }
       if {$test eq {eqstart}} {
          set ret [string equal -nocase -length [string length $pmod/] $pmod/\
             $mod/]
@@ -776,7 +797,7 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
       }
    } elseif {$test eq {eqspec}} {
       # test equality against all version described in spec (list or range
-      # boundaries), trspec is considered enabled
+      # boundaries), trspec is considered enabled and psuf empty
       foreach pmod [getAllModulesFromVersSpec $pattern] {
          if {[set ret [string equal -nocase $pmod $mod]]} {
             break
@@ -799,7 +820,7 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
          -length [string length $pmodname/] $pmodname/ $mod/]} {
          # then compare versions
          set modvers [string range $mod [string length $pmodname/] end]
-         set ret [modVersCmp $cmpspec $versspec $modvers $test]
+         set ret [modVersCmp $cmpspec $versspec $modvers $test $psuf]
       } else {
          set ret 0
       }
@@ -810,7 +831,8 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
                -nocase -length [string length $pmodname/] $pmodname/ $alt/]} {
                # then compare versions
                set modvers [string range $alt [string length $pmodname/] end]
-               if {[set ret [modVersCmp $cmpspec $versspec $modvers $test]]} {
+               if {[set ret [modVersCmp $cmpspec $versspec $modvers $test\
+                  $psuf]]} {
                   break
                }
             }
@@ -828,7 +850,7 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
    return $ret
 }
 proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
-   0} {modvrlist 0}} {
+   0} {modvrlist 0} {psuf {}}} {
    if {$trspec} {
       lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec\
          pmodnamere pmodescglob pmodroot pvrlist
@@ -837,6 +859,9 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
    }
    if {[string index $pmod end] eq {/}} {
       set pmod [string trimright $pmod /]/
+      set endwslash 1
+   } else {
+      set endwslash 0
    }
    set altlist [switch -- $ismodlo {
       4 {getAllModuleResolvedName $mod 0 {} 1}
@@ -849,6 +874,13 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
       set mod [getModuleNameAndVersFromVersSpec $mod]
    }
    if {$pmod ne {} || $pattern eq {}} {
+      if {$psuf ne {}} {
+         if {$endwslash && [string index $psuf 0] eq {/}} {
+            append pmod [string range $psuf 1 end]
+         } else {
+            append pmod $psuf
+         }
+      }
       if {$test eq {eqstart}} {
          set ret [string equal -length [string length $pmod/] $pmod/ $mod/]
          if {!$ret && [llength $altlist] > 0} {
@@ -895,7 +927,7 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
       }
    } elseif {$test eq {eqspec}} {
       # test equality against all version described in spec (list or range
-      # boundaries), trspec is considered enabled
+      # boundaries), trspec is considered enabled and psuf empty
       foreach pmod [getAllModulesFromVersSpec $pattern] {
          if {[set ret [string equal $pmod $mod]]} {
             break
@@ -918,7 +950,7 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
          $pmodname/] $pmodname/ $mod/]} {
          # then compare versions
          set modvers [string range $mod [string length $pmodname/] end]
-         set ret [modVersCmp $cmpspec $versspec $modvers $test]
+         set ret [modVersCmp $cmpspec $versspec $modvers $test $psuf]
       } else {
          set ret 0
       }
@@ -929,7 +961,8 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
                -length [string length $pmodname/] $pmodname/ $alt/]} {
                # then compare versions
                set modvers [string range $alt [string length $pmodname/] end]
-               if {[set ret [modVersCmp $cmpspec $versspec $modvers $test]]} {
+               if {[set ret [modVersCmp $cmpspec $versspec $modvers $test\
+                  $psuf]]} {
                   break
                }
             }
@@ -947,7 +980,7 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
    return $ret
 }
 proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
-   {vrcmp 0} {modvrlist 0}} {
+   {vrcmp 0} {modvrlist 0} {psuf {}}} {
    if {$trspec} {
       lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec\
          pmodnamere pmodescglob pmodroot pvrlist
@@ -956,6 +989,9 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
    }
    if {[string index $pmod end] eq {/}} {
       set pmod [string trimright $pmod /]/
+      set endwslash 1
+   } else {
+      set endwslash 0
    }
    set altlist [switch -- $ismodlo {
       4 {getAllModuleResolvedName $mod 0 {} 1}
@@ -968,6 +1004,13 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
       set mod [getModuleNameAndVersFromVersSpec $mod]
    }
    if {$pmod ne {} || $pattern eq {}} {
+      if {$psuf ne {}} {
+         if {$endwslash && [string index $psuf 0] eq {/}} {
+            append pmod [string range $psuf 1 end]
+         } else {
+            append pmod $psuf
+         }
+      }
       if {$test eq {eqstart}} {
          set ret [string equal -nocase -length [string length $pmod/] $pmod/\
             $mod/]
@@ -1015,7 +1058,7 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
       }
    } elseif {$test eq {eqspec}} {
       # test equality against all version described in spec (list or range
-      # boundaries), trspec is considered enabled
+      # boundaries), trspec is considered enabled and psuf empty
       foreach pmod [getAllModulesFromVersSpec $pattern] {
          if {[set ret [string equal -nocase $pmod $mod]]} {
             break
@@ -1038,7 +1081,7 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
          -length [string length $pmodname/] $pmodname/ $mod/]} {
          # then compare versions
          set modvers [string range $mod [string length $pmodname/] end]
-         set ret [modVersCmp $cmpspec $versspec $modvers $test]
+         set ret [modVersCmp $cmpspec $versspec $modvers $test $psuf]
       } else {
          set ret 0
       }
@@ -1049,7 +1092,8 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
                -nocase -length [string length $pmodname/] $pmodname/ $alt/]} {
                # then compare versions
                set modvers [string range $alt [string length $pmodname/] end]
-               if {[set ret [modVersCmp $cmpspec $versspec $modvers $test]]} {
+               if {[set ret [modVersCmp $cmpspec $versspec $modvers $test\
+                  $psuf]]} {
                   break
                }
             }
