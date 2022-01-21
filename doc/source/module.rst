@@ -206,12 +206,15 @@ switches are accepted:
 
 .. option:: --contains, -C
 
- On :subcmd:`avail` sub-command, return modules whose fully qualified name
- contains search query string.
+ On :subcmd:`avail` and :subcmd:`list` sub-commands, return modules whose
+ fully qualified name contains search query string.
 
  .. only:: html
 
     .. versionadded:: 4.3
+
+    .. versionchanged:: 5.1
+       Support for :subcmd:`list` sub-command added
 
 .. option:: --debug, -D, -DD
 
@@ -404,12 +407,15 @@ switches are accepted:
 
 .. option:: --starts-with, -S
 
- On :subcmd:`avail` sub-command, return modules whose name starts with search
- query string.
+ On :subcmd:`avail` and :subcmd:`list` sub-commands, return modules whose name
+ starts with search query string.
 
  .. only:: html
 
     .. versionadded:: 4.3
+
+    .. versionchanged:: 5.1
+       Support for :subcmd:`list` sub-command added
 
 .. option:: --terse, -t
 
@@ -1076,9 +1082,13 @@ Module Sub-Commands
 
  See :subcmd:`search`.
 
-.. subcmd:: list [-a] [-o LIST] [-t|-l|-j]
+.. subcmd:: list [-t|-l|-j] [-a] [-o LIST] [-S|-C] [pattern...]
 
- List loaded modules.
+ List loaded modules. If a *pattern* is given, then the loaded modules are
+ filtered to only list those whose name match this *pattern*. It may contain
+ wildcard characters. *pattern* is matched in a case insensitive manner by
+ default. If multiple *patterns* are given, loaded modules has to
+ match at least one of them to be listed.
 
  Module tags applying to the loaded modules are reported along the module name
  they are associated to (see `Module tags`_ section).
@@ -1090,6 +1100,10 @@ Module Sub-Commands
  reported in parentheses or chevrons along module name or if some graphical
  rendition is made over some outputed elements. This *Key* section gives hints
  on the meaning of such elements.
+
+ The parameter *pattern* may also refer to a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
 
  .. only:: html
 
@@ -1108,6 +1122,13 @@ Module Sub-Commands
 
     .. versionchanged:: 4.8
        Report if enabled the variants selected on loaded modules
+
+    .. versionchanged:: 5.1
+       *pattern* search to filter loaded modules added
+
+    .. versionchanged:: 5.1
+       Options :option:`--starts-with`/:option:`-S` and
+       :option:`--contains`/:option:`-C` added
 
 .. subcmd:: load [options] modulefile...
 
@@ -2563,10 +2584,10 @@ ENVIRONMENT
  modulefile Tcl commands, defines the case sensitiveness to apply to match
  them. When :envvar:`MODULES_ICASE` is set to ``never``, a case sensitive
  match is applied in any cases. When set to ``search``, a case insensitive
- match is applied to the :subcmd:`avail`, :subcmd:`whatis` and :subcmd:`paths`
- sub-commands. When set to ``always``, a case insensitive match is also
- applied to the other module sub-commands and modulefile Tcl commands for the
- module specification they receive as argument.
+ match is applied to the :subcmd:`avail`, :subcmd:`list`, :subcmd:`whatis` and
+ :subcmd:`paths` sub-commands. When set to ``always``, a case insensitive
+ match is also applied to the other module sub-commands and modulefile Tcl
+ commands for the module specification they receive as argument.
 
  Case sensitiveness behavior is defined in the following order of preference:
  :option:`--icase` command line switch, which corresponds to the ``always``
@@ -2579,6 +2600,9 @@ ENVIRONMENT
  .. only:: html
 
     .. versionadded:: 4.4
+
+    .. versionchanged:: 5.1
+       Search mode applied to :subcmd:`list` sub-command
 
 .. envvar:: MODULES_IMPLICIT_DEFAULT
 

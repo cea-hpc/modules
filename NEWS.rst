@@ -126,6 +126,13 @@ Modules 5.1.0 (not yet released)
   :mfcmd:`family` also defines the :envvar:`MODULES_FAMILY_\<NAME\>` and
   :envvar:`LMOD_FAMILY_\<NAME\>` environment variables.
 * Doc: add :ref:`reduce-io-load` cookbook recipe.
+* Add the ability to filter the list of loaded modules returned by
+  :subcmd:`list` sub-command. Filtering pattern could be part of module name,
+  symbolic version or alias and is matched in a case insensitive manner by
+  default. It could also leverage the :ref:`Advanced module version
+  specifiers` syntax.
+* Add support for :option:`--starts-with` and :option:`--contains` options on
+  :subcmd:`list` sub-command.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 
