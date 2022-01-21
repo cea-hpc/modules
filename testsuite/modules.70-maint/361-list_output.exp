@@ -191,8 +191,10 @@ testouterr_cmd sh {list --output=} OK {}
 setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
 
 testouterr_cmd sh {list -t --output=sym:header} OK $cur_loaded\nfoo/1.0(bar)
+testouterr_cmd sh {list -t --output=sym:header foo} OK $cur_matchingloaded\nfoo/1.0(bar)
 setenv_var MODULES_LIST_OUTPUT sym:header
 testouterr_cmd sh {list} OK "$cur_loaded\nfoo/1.0(bar)  "
+testouterr_cmd sh {list foo} OK "$cur_matchingloaded\nfoo/1.0(bar)  "
 
 unsetenv_var MODULES_LIST_OUTPUT
 
@@ -213,6 +215,7 @@ unsetenv_var MODULES_LIST_TERSE_OUTPUT
 #
 
 testouterr_cmd sh {list --output=sym:idx} OK " 1) foo/1.0(bar)  "
+testouterr_cmd sh {list --output=sym:idx foo} OK " 1) foo/1.0(bar)  "
 testouterr_cmd sh {list -t -o idx:sym:key:header} OK "$cur_loaded\n 1) foo/1.0(bar) \n\nKey:\n(symbolic-version)  "
 
 

@@ -1,0 +1,252 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2022/01/22
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload
+#   Modulefiles:    list, foo, bar
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test 'module list' modulefile command
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+set mod list/1.0
+set modname list
+set modfile $mp/$mod
+set modfilere $mpre/$mod
+
+
+setenv_var TESTSUITE_MODULE_LIST list1
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+set tserr $no_loaded
+testouterr_cmd sh "load $mod" $ans $tserr
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+set tserr "$cur_loaded\n 1) foo/1.0  "
+testouterr_cmd sh "load $mod" $ans $tserr
+
+setenv_loaded_module [list foo/1.0 bar/1.0] [list $mp/foo/1.0 $mp/bar/1.0]
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0:$mod]
+set tserr "$cur_loaded\n 1) foo/1.0   2) bar/1.0  "
+testouterr_cmd sh "load $mod" $ans $tserr
+
+setenv_loaded_module [list foo/1.0 bar/1.0 $mod] [list $mp/foo/1.0 $mp/bar/1.0 $modfile]
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0]
+set tserr "$cur_loaded\n 1) foo/1.0   2) bar/1.0   3) $mod  "
+testouterr_cmd sh "unload $mod" $ans $tserr
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_MODULE_LIST list2
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+set tserr $no_loaded
+testouterr_cmd sh "load $mod" $ans $tserr
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+set tserr "$cur_matchingloaded\n 1) foo/1.0  "
+testouterr_cmd sh "load $mod" $ans $tserr
+
+setenv_loaded_module [list bar/1.0] [list $mp/bar/1.0]
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES bar/1.0:$mod]
+set tserr "$no_matchingloaded"
+testouterr_cmd sh "load $mod" $ans $tserr
+
+setenv_loaded_module [list foo/1.0 bar/1.0] [list $mp/foo/1.0 $mp/bar/1.0]
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0:$mod]
+set tserr "$cur_matchingloaded\n 1) foo/1.0  "
+testouterr_cmd sh "load $mod" $ans $tserr
+
+setenv_loaded_module [list foo/1.0 bar/1.0 $mod] [list $mp/foo/1.0 $mp/bar/1.0 $modfile]
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0]
+set tserr "$cur_matchingloaded\n 1) foo/1.0  "
+testouterr_cmd sh "unload $mod" $ans $tserr
+
+unsetenv_loaded_module
+
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_var TESTSUITE_MODULE_LIST list3
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+set tserr $no_loaded
+testouterr_cmd sh "load $mod" $ans $tserr
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+set tserr "$cur_matchingloaded\n 1) foo/1.0  "
+testouterr_cmd sh "load $mod" $ans $tserr
+
+setenv_loaded_module [list bar/1.0] [list $mp/bar/1.0]
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES bar/1.0:$mod]
+set tserr "$no_matchingloaded"
+testouterr_cmd sh "load $mod" $ans $tserr
+
+setenv_loaded_module [list foo/1.0 bar/1.0] [list $mp/foo/1.0 $mp/bar/1.0]
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0:$mod]
+set tserr "$cur_matchingloaded\n 1) foo/1.0  "
+testouterr_cmd sh "load $mod" $ans $tserr
+
+setenv_loaded_module [list foo/1.0 bar/1.0 $mod] [list $mp/foo/1.0 $mp/bar/1.0 $modfile]
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0]
+set tserr "$cur_matchingloaded\n 1) foo/1.0  "
+testouterr_cmd sh "unload $mod" $ans $tserr
+
+unsetenv_loaded_module
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+
+
+setenv_var TESTSUITE_MODULE_LIST list4
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+set tserr $no_loaded
+testouterr_cmd sh "load $mod" $ans $tserr
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+set tserr "$cur_matchingloaded\n 1) foo/1.0  "
+testouterr_cmd sh "load $mod" $ans $tserr
+
+setenv_loaded_module [list bar/1.0] [list $mp/bar/1.0]
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES bar/1.0:$mod]
+set tserr "$cur_matchingloaded\n 1) bar/1.0  "
+testouterr_cmd sh "load $mod" $ans $tserr
+
+setenv_loaded_module [list foo/1.0 bar/1.0] [list $mp/foo/1.0 $mp/bar/1.0]
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0:$mod]
+set tserr "$cur_matchingloaded\n 1) foo/1.0   2) bar/1.0  "
+testouterr_cmd sh "load $mod" $ans $tserr
+
+setenv_loaded_module [list foo/1.0 bar/1.0 $mod] [list $mp/foo/1.0 $mp/bar/1.0 $modfile]
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0]
+set tserr "$cur_matchingloaded\n 1) foo/1.0   2) bar/1.0  "
+testouterr_cmd sh "unload $mod" $ans $tserr
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_MODULE_LIST list5
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+set tserr $no_loaded
+testouterr_cmd sh "load $mod" $ans $tserr
+
+setenv_path_var __MODULES_LMALTNAME foo/1.0&al|alfoo
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+set tserr "$cur_matchingloaded\n 1) foo/1.0  "
+testouterr_cmd sh "load $mod" $ans $tserr
+
+unsetenv_path_var __MODULES_LMALTNAME
+setenv_loaded_module [list bar/1.0] [list $mp/bar/1.0]
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES bar/1.0:$mod]
+set tserr "$cur_matchingloaded\n 1) bar/1.0  "
+testouterr_cmd sh "load $mod" $ans $tserr
+
+setenv_path_var __MODULES_LMALTNAME foo/1.0&al|alfoo
+setenv_loaded_module [list foo/1.0 bar/1.0] [list $mp/foo/1.0 $mp/bar/1.0]
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0:$mod]
+set tserr "$cur_matchingloaded\n 1) foo/1.0   2) bar/1.0  "
+testouterr_cmd sh "load $mod" $ans $tserr
+
+setenv_loaded_module [list foo/1.0 bar/1.0 $mod] [list $mp/foo/1.0 $mp/bar/1.0 $modfile]
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0]
+set tserr "$cur_matchingloaded\n 1) foo/1.0   2) bar/1.0  "
+testouterr_cmd sh "unload $mod" $ans $tserr
+
+unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_loaded_module
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
