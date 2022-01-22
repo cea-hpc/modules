@@ -515,16 +515,16 @@ Module Sub-Commands
 
  See :subcmd:`search`.
 
-.. subcmd:: avail [-d|-L] [-t|-l|-j] [-a] [-o LIST] [-S|-C] [--indepth|--no-indepth] [path...]
+.. subcmd:: avail [-d|-L] [-t|-l|-j] [-a] [-o LIST] [-S|-C] [--indepth|--no-indepth] [pattern...]
 
  List all available *modulefiles* in the current :envvar:`MODULEPATH`. All
  directories in the :envvar:`MODULEPATH` are recursively searched for files
- containing the *modulefile* magic cookie. If an argument is given, then
- each directory in the :envvar:`MODULEPATH` is searched for *modulefiles*
- whose pathname, symbolic version-name or alias match the argument. Argument
- may contain wildcard characters. Multiple versions of an application can
- be supported by creating a subdirectory for the application containing
- *modulefiles* for each version.
+ containing the *modulefile* magic cookie. If a *pattern* argument is given,
+ then each directory in the :envvar:`MODULEPATH` is searched for *modulefiles*
+ whose pathname, symbolic version-name or alias match *pattern* in a case
+ insensitive manner by default. *pattern* may contain wildcard characters.
+ Multiple versions of an application can be supported by creating a
+ subdirectory for the application containing *modulefiles* for each version.
 
  Symbolic version-names and aliases found in the search are displayed in the
  result of this sub-command. Symbolic version-names are displayed next to
@@ -552,7 +552,7 @@ Module Sub-Commands
  rendition is made over some outputed elements. This *Key* section gives hints
  on the meaning of such elements.
 
- The parameter *path* may also refer to a symbolic modulefile name or a
+ The parameter *pattern* may also refer to a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
