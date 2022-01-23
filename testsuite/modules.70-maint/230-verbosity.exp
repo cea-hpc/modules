@@ -287,6 +287,23 @@ testouterr_cmd sh {load setenv/1.0} $ans $tserr
 set tserr [expr {$install_verbosity eq {silent} ? {} : "$err_path'unknown'"}]
 testouterr_cmd sh {load unknown} ERR $tserr
 
+# check dynamically defined procedure are correctly traced
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_path_var MODULEPATH $modpath.3
+setenv_var MODULES_VERBOSITY debug2
+set tserr "(DEBUG .*)+
+DEBUG parseModuleSpecification: .*
+(DEBUG .*)+
+DEBUG modEq: .*
+(DEBUG .*)+
+DEBUG modVersCmp: .*
+(DEBUG .*)+
+DEBUG modEqStatic: .*
+(DEBUG .*)+
+DEBUG doesModMatchAtDepth: .*
+(DEBUG .*)+"
+testouterr_cmd_re sh {avail foo@1:2} OK $tserr
+
 
 #
 #  Cleanup
