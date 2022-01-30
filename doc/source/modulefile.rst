@@ -127,6 +127,22 @@ the *modulefile* is being loaded.
 
  Set the current working directory to *directory*.
 
+.. mfcmd:: complete shell name body
+
+ Define shell completion for command *name* with specified *body* if *shell*
+ is the current shell under which :file:`modulecmd.tcl` was invoked. *Body*
+ corresponds to argument options accepted by the shell command which
+ defines completion. When a *modulefile* is unloaded, :mfcmd:`complete`
+ becomes :mfcmd:`uncomplete`.
+
+ The following *shells* are supported: bash, tcsh, bash and fish. Please refer
+ to the documentation of these shells to learn how to define completion. The
+ command is ignored if an unsupported shell is specified.
+
+ .. only:: html
+
+    .. versionadded:: 5.1
+
 .. mfcmd:: conflict modulefile...
 
  :mfcmd:`conflict` controls whether or not the *modulefile* will be loaded.
@@ -1076,6 +1092,17 @@ the *modulefile* is being loaded.
  * ``version``: the operating system version
 
  * ``machine``: a standard name that identifies the system's hardware
+
+.. mfcmd:: uncomplete name
+
+ Unsets completion for command *name* in the user's environment. When a
+ *modulefile* is unloaded, no operation is performed.
+
+ The following shells are supported: bash, tcsh and fish.
+
+ .. only:: html
+
+    .. versionadded:: 5.1
 
 .. mfcmd:: unset-alias alias-name
 
