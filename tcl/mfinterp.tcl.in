@@ -93,6 +93,7 @@ add-property   {nop            nop            nop            nop            nop 
 always-load    {always-load    nop            reportCmd      nop            nop            nop            nop         }
 append-path    {append-path    append-path-un append-path    append-path    append-path    edit-path-wh   nop         }
 chdir          {chdir          nop            reportCmd      nop            nop            nop            nop         }
+complete       {complete       complete-un    reportCmd      nop            nop            nop            complete    }
 conflict       {conflict       nop            reportCmd      nop            nop            nop            nop         }
 depends-on     {prereq-all     nop            reportCmd      nop            nop            nop            nop         }
 extensions     {nop            nop            nop            nop            nop            nop            nop         }
@@ -121,6 +122,7 @@ set-function   {set-function   set-function-un reportCmd     nop            nop 
 setenv         {setenv         setenv-un      setenv         setenv         setenv         setenv-wh      nop         }
 source-sh      {source-sh      source-sh-un   source-sh-di   nop            nop            nop            source-sh   }
 system         {system         system         reportCmd      nop            nop            nop            nop         }
+uncomplete     {uncomplete     nop            reportCmd      nop            nop            nop            nop         }
 unset-alias    {unset-alias    nop            reportCmd      nop            nop            nop            nop         }
 unset-function {unset-function nop            reportCmd      nop            nop            nop            nop         }
 unsetenv       {unsetenv       unsetenv-un    unsetenv       unsetenv       unsetenv       unsetenv-wh    nop         }
@@ -2511,6 +2513,29 @@ proc family-un {name} {
    set upname [string toupper $name]
    unsetenv MODULES_FAMILY_$upname
    unsetenv LMOD_FAMILY_$upname
+}
+
+proc complete {shell name body} {
+   if {[string length $name] == 0} {
+      knerror "Invalid command name '$name'"
+   }
+   # append definition retaining for which shell they are made
+   # also some shells may set multiple definitions for a single name
+   lappend ::g_Completes($name) $shell $body
+   set ::g_stateCompletes($name) new
+}
+
+# undo complete in unload mode
+proc complete-un {shell name body} {
+   return [uncomplete $name]
+}
+
+proc uncomplete {name} {
+   if {[string length $name] == 0} {
+      knerror "Invalid command name '$name'"
+   }
+   set ::g_Completes($name) {}
+   set ::g_stateCompletes($name) del
 }
 
 # ;;; Local Variables: ***

@@ -150,8 +150,8 @@ proc renderText {text} {
 }
 
 proc renderSettings {} {
-   global g_stateEnvVars g_stateAliases g_stateFunctions g_newXResources\
-      g_delXResources
+   global g_stateEnvVars g_stateAliases g_stateFunctions g_stateCompletes\
+      g_newXResources g_delXResources
 
    # required to work on cygwin, shouldn't hurt real linux
    fconfigure stdout -translation lf
@@ -159,9 +159,10 @@ proc renderSettings {} {
    # preliminaries if there is stuff to render
    if {[getState autoinit] || [array size g_stateEnvVars] > 0 ||\
       [array size g_stateAliases] > 0 || [array size g_newXResources] > 0 ||\
-      [array size g_stateFunctions] > 0 || [array size g_delXResources] > 0\
-      || [info exists ::g_changeDir] || [info exists ::g_stdoutPuts] ||\
-      [info exists ::g_prestdoutPuts] || [info exists ::g_return_text]} {
+      [array size g_stateFunctions] > 0 || [array size g_stateCompletes] > 0\
+      || [array size g_delXResources] > 0 || [info exists ::g_changeDir] ||\
+      [info exists ::g_stdoutPuts] || [info exists ::g_prestdoutPuts] ||\
+      [info exists ::g_return_text]} {
       switch -- [getState shelltype] {
          python {
             puts stdout {import os}
@@ -373,6 +374,41 @@ proc renderSettings {} {
                }
                fish {
                   puts stdout "functions -e $funcname;"
+               }
+            }
+         }
+      }
+   }
+   foreach compname [array names g_stateCompletes] {
+      switch -- $g_stateCompletes($compname) {
+         new {
+            foreach {compshell body} $::g_Completes($compname) {
+               # skip definition not made for current shell
+               if {$compshell eq [getState shell]} {
+                  switch -- [getState shell] {
+                     bash {
+                        puts stdout "complete $body $compname;"
+                     }
+                     tcsh {
+                        puts stdout "complete $compname $body;"
+                     }
+                     fish {
+                        puts stdout "complete -c $compname $body;"
+                     }
+                  }
+               }
+            }
+         }
+         del {
+            switch -- [getState shell] {
+               bash {
+                  puts stdout "complete -r $compname;"
+               }
+               tcsh {
+                  puts stdout "uncomplete $compname;"
+               }
+               fish {
+                  puts stdout "complete -e -c $compname;"
                }
             }
          }

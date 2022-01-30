@@ -531,11 +531,12 @@ proc getSavedSettingsStackDepth {} {
 # correct set in case of failure
 proc pushSettings {} {
    foreach var {env g_clearedEnvVars g_Aliases g_stateEnvVars g_stateAliases\
-      g_stateFunctions g_Functions g_newXResources g_delXResources\
-      g_loadedModules g_loadedModuleFiles g_loadedModuleVariant\
-      g_loadedModuleConflict g_loadedModulePrereq g_loadedModuleAltname\
-      g_loadedModuleAutoAltname g_loadedModuleAliasAltname g_moduleDepend\
-      g_dependHash g_moduleNPODepend g_dependNPOHash g_prereqViolation\
+      g_stateFunctions g_Functions g_stateCompletes g_Completes\
+      g_newXResources g_delXResources g_loadedModules g_loadedModuleFiles\
+      g_loadedModuleVariant g_loadedModuleConflict g_loadedModulePrereq\
+      g_loadedModuleAltname g_loadedModuleAutoAltname\
+      g_loadedModuleAliasAltname g_moduleDepend g_dependHash\
+      g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
       g_unmetDepHash g_moduleEval g_moduleHiddenEval} {
       lappend ::g_SAVE_$var [array get ::$var]
@@ -554,12 +555,13 @@ proc pushSettings {} {
 proc popSettings {} {
    set flushedid [getSavedSettingsStackDepth]
    foreach var {env g_clearedEnvVars g_Aliases g_stateEnvVars g_stateAliases\
-      g_stateFunctions g_Functions g_newXResources g_delXResources\
-      g_changeDir g_stdoutPuts g_prestdoutPuts g_return_text\
-      g_loadedModules g_loadedModuleFiles g_loadedModuleVariant\
-      g_loadedModuleConflict g_loadedModulePrereq g_loadedModuleAltname\
-      g_loadedModuleAutoAltname g_loadedModuleAliasAltname g_moduleDepend\
-      g_dependHash g_moduleNPODepend g_dependNPOHash g_prereqViolation\
+      g_stateFunctions g_Functions g_stateCompletes g_Completes\
+      g_newXResources g_delXResources g_changeDir g_stdoutPuts\
+      g_prestdoutPuts g_return_text g_loadedModules g_loadedModuleFiles\
+      g_loadedModuleVariant g_loadedModuleConflict g_loadedModulePrereq\
+      g_loadedModuleAltname g_loadedModuleAutoAltname\
+      g_loadedModuleAliasAltname g_moduleDepend g_dependHash\
+      g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
       g_unmetDepHash g_moduleEval g_moduleHiddenEval} {
       set ::g_SAVE_$var [lrange [set ::g_SAVE_$var] 0 end-1]
@@ -569,11 +571,12 @@ proc popSettings {} {
 
 proc restoreSettings {} {
    foreach var {g_clearedEnvVars g_Aliases g_stateEnvVars g_stateAliases\
-      g_stateFunctions g_Functions g_newXResources g_delXResources\
-      g_loadedModules g_loadedModuleFiles g_loadedModuleVariant\
-      g_loadedModuleConflict g_loadedModulePrereq g_loadedModuleAltname\
-      g_loadedModuleAutoAltname g_loadedModuleAliasAltname g_moduleDepend\
-      g_dependHash g_moduleNPODepend g_dependNPOHash g_prereqViolation\
+      g_stateFunctions g_Functions g_stateCompletes g_Completes\
+      g_newXResources g_delXResources g_loadedModules g_loadedModuleFiles\
+      g_loadedModuleVariant g_loadedModuleConflict g_loadedModulePrereq\
+      g_loadedModuleAltname g_loadedModuleAutoAltname\
+      g_loadedModuleAliasAltname g_moduleDepend g_dependHash\
+      g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
       g_unmetDepHash g_moduleEval g_moduleHiddenEval} {
       # clear current $var arrays
