@@ -134,6 +134,9 @@ Modules 5.1.0 (not yet released)
 * Add support for :option:`--starts-with` and :option:`--contains` options on
   :subcmd:`list` sub-command.
 * Doc: add :ref:`shell-completion` design notes.
+* Introduce :mfcmd:`complete` and :mfcmd:`uncomplete` modulefile commands to
+  respectively enable and disable shell completion for a given command name.
+  *bash*, *tcsh* and *fish* shells are supported.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 
