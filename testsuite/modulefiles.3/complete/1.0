@@ -1,0 +1,40 @@
+#%Module
+
+module-whatis [module-info name]
+
+if {[info exists env(TESTSUITE_COMPLETE)]} {
+    switch -- $env(TESTSUITE_COMPLETE) {
+        compbad1 {
+            complete
+        }
+        compbad2 {
+            complete bash
+        }
+        compbad3 {
+            complete bash cmd
+        }
+        compbad4 {
+            complete bash {} {-o default -F _cmd}
+        }
+        compbreak1 - compbreak2 {
+            complete bash cmd {-o default -F _cmd}
+            break
+        }
+        compcomb1 {
+            complete bash cmd {-o default -F _cmd}
+        }
+        comp1 {
+            complete bash cmd {-o default -F _cmd}
+            complete tcsh cmd {some arg list for tcsh}
+            complete fish cmd {some arg list for fish}
+            complete fish cmd {other arg list for fish}
+            complete zsh cmd {some arg list for zsh}
+            complete unksh cmd {some arg list for unksh}
+        }
+        comp2 {
+            complete [module-info shell] cmd {some arg list for shell}
+            complete [module-info shell] cmd {other arg list for shell}
+        }
+    }
+}
+
