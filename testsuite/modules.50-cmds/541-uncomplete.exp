@@ -1,0 +1,194 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2022/01/31
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload, display, help, test, whatis, refresh, avail
+#   Modulefiles:    complete
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test uncomplete modulefile command
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+set mod complete/1.1
+set modname complete
+set modfile $mp/$mod
+set modfilere $mpre/$mod
+
+
+#
+# bad specifications
+#
+
+setenv_var TESTSUITE_COMPLETE uncompbad1
+
+# load
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 8}]
+set tserr [escre [msg_load $mod [msg_moderr {wrong # args: should be "uncomplete name"} {uncomplete<EXM>} $modfile $ln {} {} {} {} {invoked from within}]]]
+testouterr_cmd_re bash "load $mod" ERR $tserr
+
+setenv_loaded_module [list $mod] [list $modfile]
+
+# unload
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd_re bash "unload $mod" $ans {}
+
+# refresh
+testouterr_cmd_re bash "refresh" OK {}
+
+unsetenv_loaded_module
+
+# whatis
+set tserr "$modlin $mpre $modlin
+\\s*$mod: $mod"
+testouterr_cmd_re bash "whatis $mod" OK $tserr
+
+# display
+set tserr "$modlin
+$mpre/$mod:
+
+module-whatis\t$mod
+uncomplete\t
+$modlin"
+testouterr_cmd_re bash "display $mod" OK $tserr
+
+# help
+set tserr "$modlin
+Module Specific Help for $mpre/$mod:
+
+$warn_msgs: Unable to find ModulesHelp in $modfilere.
+$modlin"
+testouterr_cmd_re bash "help $mod" OK $tserr
+
+# test
+set tserr "$modlin
+Module Specific Test for $mpre/$mod:
+
+$warn_msgs: Unable to find ModulesTest in $modfilere.
+$modlin"
+testouterr_cmd_re bash "test $mod" OK $tserr
+
+
+setenv_var TESTSUITE_COMPLETE uncompbad2
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 11}]
+set tserr [escre [msg_load $mod [msg_moderr {wrong # args: should be "uncomplete name"} {uncomplete cmd cmd<EXM>} $modfile $ln {} {} {} {} {invoked from within}]]]
+testouterr_cmd_re bash "load $mod" ERR $tserr
+
+setenv_loaded_module [list $mod] [list $modfile]
+testouterr_cmd_re bash "unload $mod" $ans {}
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_COMPLETE uncompbad3
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 14}]
+set tserr [escre [msg_load $mod [msg_moderr {Invalid command name ''} {uncomplete {}<EXM>} $modfile $ln]]]
+testouterr_cmd_re bash "load $mod" ERR $tserr
+
+setenv_loaded_module [list $mod] [list $modfile]
+testouterr_cmd_re bash "unload $mod" $ans {}
+unsetenv_loaded_module
+
+
+#
+# break/restore evaluations
+#
+
+setenv_var TESTSUITE_COMPLETE uncompbreak1
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/$modname/1.2]
+lappend ans [list set LOADEDMODULES $modname/1.2]
+lappend ans [list out {complete -r othercmd;}]
+lappend ans [list ERR]
+set tserr [msg_load $mod $err_evalabort]
+testouterr_cmd_re bash "load $mod $modname/1.2" $ans $tserr
+
+setenv_var TESTSUITE_COMPLETE uncompbreak2
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/$modname/1.2]
+lappend ans [list set LOADEDMODULES $modname/1.2]
+lappend ans [list ERR]
+set tserr [msg_load $mod $err_evalabort]
+testouterr_cmd_re bash "load $mod $modname/1.2" $ans $tserr
+
+
+#
+# combined evaluations
+#
+
+setenv_var TESTSUITE_COMPLETE uncompcomb1
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile:$mp/$modname/1.2]
+lappend ans [list set LOADEDMODULES $mod:$modname/1.2]
+lappend ans [list out {complete -o default -F _cmd cmd;}]
+testouterr_cmd_re bash "load $mod $modname/1.2" $ans {}
+
+
+#
+# regular specifications
+#
+
+setenv_var TESTSUITE_COMPLETE uncomp1
+foreach shell $supported_shells {
+    set ans [list]
+    lappend ans [list set _LMFILES_ $modfile]
+    lappend ans [list set LOADEDMODULES $mod]
+    switch -- $shell {
+        bash {
+            lappend ans [list out {complete -r cmd;}]
+            lappend ans [list out {complete -r othercmd;}]
+        }
+        tcsh {
+            lappend ans [list out {uncomplete cmd;}]
+            lappend ans [list out {uncomplete othercmd;}]
+        }
+        fish {
+            lappend ans [list out {complete -e -c cmd;}]
+            lappend ans [list out {complete -e -c othercmd;}]
+        }
+    }
+    testouterr_cmd $shell "load $mod" $ans {}
+}
+
+#
+# usage attempt from modulerc
+#
+
+setenv_var TESTSUITE_COMPLETE uncomprc1
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list ERR]
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 3 : 9}]
+set tserr [escre [msg_moderr {invalid command name "uncomplete"} {uncomplete cmd<EXM>} $mp/complete/.modulerc $ln {  }]]
+testouterr_cmd_re bash "load $mod" $ans $tserr
+
+set tserr $mp:\n$mod
+testouterr_cmd bash "avail -t $mod" OK $tserr
+
+set tserr "$modlin $mpre $modlin
+\\s*$mod: $mod"
+testouterr_cmd_re bash "whatis $mod" OK $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
