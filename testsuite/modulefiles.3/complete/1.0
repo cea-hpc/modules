@@ -35,6 +35,30 @@ if {[info exists env(TESTSUITE_COMPLETE)]} {
             complete [module-info shell] cmd {some arg list for shell}
             complete [module-info shell] cmd {other arg list for shell}
         }
+        comp3 {
+            switch -- [module-info shell] {
+                bash {
+set-function _cmd {local cur="$2" prev="$3" cmds opts;
+    COMPREPLY=();
+    case "$cur" in
+    -*)     COMPREPLY=( $(compgen -W "-h -v --help --version" -- "$cur") );;
+    esac;}
+set-function cmd {echo cmd}
+complete bash cmd {-o default -F _cmd}
+                }
+                tcsh {
+set-alias cmd {echo cmd}
+complete tcsh cmd {'n/-h/n/' 'n/--help/n/' \
+        'n/-V/n/' 'n/--version/n/' \
+        "p/1/(-h -V --help --version)/"}
+                }
+                fish {
+set-function cmd {echo cmd}
+complete fish cmd {-s V -l version --description 'Command version'}
+complete fish cmd {-s h -l help --description 'Command help'}
+                }
+            }
+        }
     }
 }
 
