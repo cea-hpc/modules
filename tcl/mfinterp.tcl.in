@@ -1969,10 +1969,11 @@ proc execShAndGetEnv {shell script args} {
          set command "set -xgL; echo '$sep'; set funcfilter (string join '|'\
             (string replace -r '(\\\[|\\.)' '\\\\\\\\\\\$1' (builtin -n)))\\|fish\\.\\*;\
             $getfunc; $getfunc; string split \$funcout; echo '$sep'; string\
-            split \$funcout; echo '$sep'; pwd; echo '$sep'; source [listTo\
-            shell $shdesc] 2>&1; or exit \$status; echo '$sep'; set -xgL;\
-            echo '$sep'; $getfunc; string split \$funcout; echo '$sep';\
-            string split \$funcout; echo '$sep'; pwd"
+            split \$funcout; echo '$sep'; complete; echo '$sep'; pwd; echo\
+            '$sep'; source [listTo shell $shdesc] 2>&1; or exit \$status;\
+            echo '$sep'; set -xgL; echo '$sep'; $getfunc; string split\
+            \$funcout; echo '$sep'; string split \$funcout; echo '$sep';\
+            complete; echo '$sep'; pwd"
          set varre {^(\S+?\M) ?'?(.*?)'?$}
          # exclude alias from function list
          set funcre {^function (\S+?)(?: [^\n]*?--description\
@@ -1980,6 +1981,9 @@ proc execShAndGetEnv {shell script args} {
          # fetch aliases from available functions
          set aliasre {^function (\S+?) [^\n]*?--description\
             '?alias[^\n]+\n\s*(.+?)\s*\nend$}
+         set compre {complete ((?:-\S+? )*?)(?:(?:-c|--command)\
+            )?([^-]\S+)(.*?)$}
+         set comprevar [list match valpart1 name valpart2]
          # translate back fish-specific code
          set varvalmap [list {'  '} : {\'} ' {\"} \" \\\\ \\]
          set alvalmap [list { $argv;} {}]
@@ -2081,6 +2085,9 @@ proc execShAndGetEnv {shell script args} {
       foreach {out arr} [list compbefout compbef compaftout compaft] {
          foreach $comprevar [regexp -all -inline -lineanchor $compre [set\
             $out]] {
+            if {[info exists valpart1]} {
+               set value [concat $valpart1 $valpart2]
+            }
             # no specific escaping to convert for completes
             lappend ${arr}($name) $value
          }
