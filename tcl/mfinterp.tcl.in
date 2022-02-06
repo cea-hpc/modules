@@ -1915,12 +1915,14 @@ proc execShAndGetEnv {shell script args} {
       }
       bash {
          set command "export -p; echo $sep; declare -f; echo $sep; alias;\
-            echo $sep; pwd; echo $sep; . [listTo shell $shdesc] 2>&1; echo\
-            $sep; export -p; echo $sep; declare -f; echo $sep; alias; echo\
-            $sep; pwd"
+            echo $sep; complete; echo $sep; pwd; echo $sep; . [listTo shell\
+            $shdesc] 2>&1; echo $sep; export -p; echo $sep; declare -f; echo\
+            $sep; alias; echo $sep; complete; echo $sep; pwd"
          set varre {declare -x (\S+?)="(.*?)"$}
          set funcre {(\S+?) \(\)\s?\n{\s?\n(.+?)\n}$}
          set aliasre {alias (\S+?)='(.*?)'$}
+         set compre {complete (.+?) (\S+?)$}
+         set comprevar [list match value name]
          set varvalmap [list {\"} {"} \\\\ \\]
          set alvalmap [list {'\''} ']
          lappend shellopts --noprofile --norc
