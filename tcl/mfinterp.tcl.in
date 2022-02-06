@@ -1951,12 +1951,26 @@ proc execShAndGetEnv {shell script args} {
          set varvalmap [list {'\''} ']
          set alvalmap [list {'\''} ']
       }
-      csh - tcsh {
-         set command "setenv; echo $sep; echo $sep; alias; echo $sep; pwd;\
-            echo $sep; source [listTo shell $shdesc] >& /dev/stdout; echo\
-            $sep; setenv; echo $sep; echo $sep; alias; echo $sep; pwd"
+      csh {
+         set command "setenv; echo $sep; echo $sep; alias; echo $sep; echo\
+            $sep; pwd; echo $sep; source [listTo shell $shdesc] >&\
+            /dev/stdout; echo $sep; setenv; echo $sep; echo $sep; alias; echo\
+            $sep; echo $sep; pwd"
          set varre {(\S+?)=(.*?)$}
          set aliasre {(\S+?)\t(.*?)$}
+         set varvalmap [list]
+         set alvalmap [list]
+         lappend shellopts -f
+      }
+      tcsh {
+         set command "setenv; echo $sep; echo $sep; alias; echo $sep;\
+            complete; echo $sep; pwd; echo $sep; source [listTo shell\
+            $shdesc] >& /dev/stdout; echo $sep; setenv; echo $sep; echo $sep;\
+            alias; echo $sep; complete; echo $sep; pwd"
+         set varre {(\S+?)=(.*?)$}
+         set aliasre {(\S+?)\t(.*?)$}
+         set compre {(\S+?)\t(.*?)$}
+         set comprevar [list match name value]
          set varvalmap [list]
          set alvalmap [list]
          lappend shellopts -f
