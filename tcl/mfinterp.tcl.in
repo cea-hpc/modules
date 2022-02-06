@@ -1904,9 +1904,9 @@ proc execShAndGetEnv {shell script args} {
          # execution error. dash does not pass arguments to sourced script but
          # it does not raise error if arguments are set
          set command "export -p; echo $sep; declare -f 2>/dev/null; echo\
-            $sep; alias; echo $sep; pwd; echo $sep; . [listTo shell $shdesc]\
-            2>&1; echo $sep; export -p; echo $sep; declare -f 2>/dev/null;\
-            echo $sep; alias; echo $sep; pwd"
+            $sep; alias; echo $sep; echo $sep; pwd; echo $sep; . [listTo\
+            shell $shdesc] 2>&1; echo $sep; export -p; echo $sep; declare -f\
+            2>/dev/null; echo $sep; alias; echo $sep; echo $sep; pwd"
          set varre {export (\S+?)=["']?(.*?)["']?$}
          set funcre {(\S+?) \(\)\s?\n?{\s?\n(.+?)\n}$}
          set aliasre {(\S+?)='(.*?)'$}
@@ -1928,9 +1928,10 @@ proc execShAndGetEnv {shell script args} {
       ksh - ksh93 {
          set command "typeset -x; echo $sep; typeset +f | while read f; do\
             typeset -f \${f%\\(\\)}; echo; done; echo $sep; alias; echo $sep;\
-            pwd; echo $sep; . [listTo shell $shdesc] 2>&1; echo $sep; typeset\
-            -x; echo $sep; typeset +f | while read f; do typeset -f\
-            \${f%\\(\\)}; echo; done; echo $sep; alias; echo $sep; pwd"
+            echo $sep; pwd; echo $sep; . [listTo shell $shdesc] 2>&1; echo\
+            $sep; typeset -x; echo $sep; typeset +f | while read f; do\
+            typeset -f \${f%\\(\\)}; echo; done; echo $sep; alias; echo $sep;\
+            echo $sep; pwd"
          set varre {(\S+?)=\$?'?(.*?)'?$}
          set funcre {(\S+?)\(\) {\n?(.+?)}[;\n]?$}
          set aliasre {(\S+?)=\$?'?(.*?)'?$}
@@ -1939,9 +1940,9 @@ proc execShAndGetEnv {shell script args} {
       }
       zsh {
          set command "typeset -x; echo $sep; declare -f; echo $sep; alias;\
-            echo $sep; pwd; echo $sep; . [listTo shell $shdesc] 2>&1; echo\
-            $sep; typeset -x; echo $sep; declare -f; echo $sep; alias; echo\
-            $sep; pwd"
+            echo $sep; echo $sep; pwd; echo $sep; . [listTo shell $shdesc]\
+            2>&1; echo $sep; typeset -x; echo $sep; declare -f; echo $sep;\
+            alias; echo $sep; echo $sep; pwd"
          set varre {(\S+?)=\$?'?(.*?)'?$}
          set funcre {(\S+?) \(\) {\n(.+?)\n}$}
          set aliasre {(\S+?)=\$?'?(.*?)'?$}
@@ -2009,8 +2010,8 @@ proc execShAndGetEnv {shell script args} {
 
    # extract each output sections
    set idx 0
-   foreach varout {varbefout funcbefout aliasbefout cwdbefout scriptout\
-      varaftout funcaftout aliasaftout cwdaftout} {
+   foreach varout {varbefout funcbefout aliasbefout compbefout cwdbefout\
+      scriptout varaftout funcaftout aliasaftout compaftout cwdaftout} {
       if {[set sepidx [string first $sep $output $idx]] == -1} {
          set $varout [string trimright [string range $output $idx end] \n]
          if {$varout ne {cwdaftout} && !$sherr} {
@@ -2046,6 +2047,7 @@ proc execShAndGetEnv {shell script args} {
    upvar varbef varbef varaft varaft
    upvar funcbef funcbef funcaft funcaft
    upvar aliasbef aliasbef aliasaft aliasaft
+   upvar compbef compbef compaft compaft
 
    # extract environment variable information
    foreach {out arr} [list varbefout varbef varaftout varaft] {
@@ -2072,6 +2074,16 @@ proc execShAndGetEnv {shell script args} {
          set ${arr}($name) [string map $alvalmap $value]
       }
    }
+   # extract complete information if supported by shell
+   if {[info exists compre]} {
+      foreach {out arr} [list compbefout compbef compaftout compaft] {
+         foreach $comprevar [regexp -all -inline -lineanchor $compre [set\
+            $out]] {
+            # no specific escaping to convert for completes
+            lappend ${arr}($name) $value
+         }
+      }
+   }
 }
 
 # execute script with args through shell and convert environment changes into
@@ -2079,6 +2091,7 @@ proc execShAndGetEnv {shell script args} {
 proc sh-to-mod {args} {
    set modcontent [list]
    set pathsep [getState path_separator]
+   set shell [lindex $args 0]
 
    # evaluate script and retrieve environment before and after evaluation
    # procedure will set result variables in current context
@@ -2175,6 +2188,17 @@ proc sh-to-mod {args} {
    foreach name [list {*}$diff {*}$notbef] {
       lappend modcontent [list set-alias $name $aliasaft($name)]
    }
+   # check complete change
+   lassign [getDiffBetweenArray compbef compaft] notaft diff notbef
+   foreach name [list {*}$notaft {*}$diff] {
+      # also unset changed definition to clear all previous definition
+      lappend modcontent [list uncomplete $name]
+   }
+   foreach name [list {*}$diff {*}$notbef] {
+      foreach body $compaft($name) {
+         lappend modcontent [list complete $shell $name $body]
+      }
+   }
    # check current working directory change
    if {$cwdbefout ne $cwdaftout} {
       lappend modcontent [list chdir $cwdaftout]
@@ -2242,14 +2266,25 @@ proc source-sh-di {shell script args} {
          set reccontent {}
       }
 
-      # need to evaluate script to get alias and function definition
+      # need to evaluate script to get alias/function/complete definition
       execShAndGetEnv {*}$shtomodargs
 
       set modcontent {}
       foreach cmd $reccontent {
-         # build modulefile content to show with recorded elements in env
-         # and alias/function definition obtained by reevaluating script
+         # build modulefile content to show with recorded elements in env and
+         # alias/function/complete definition obtained by reevaluating script
          switch -- [lindex $cmd 0] {
+            complete {
+               set cpname [lindex $cmd 2]
+               if {[info exists compaft($cpname)]} {
+                  set cpbodylist $compaft($cpname)
+               } else {
+                  set cpbodylist [list {}]
+               }
+               foreach cpbody $cpbodylist {
+                  lappend modcontent [list complete $shell $cpname $cpbody]
+               }
+            }
             set-alias {
                set alname [lindex $cmd 1]
                if {[info exists aliasaft($alname)]} {

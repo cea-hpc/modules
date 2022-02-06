@@ -1328,15 +1328,26 @@ proc setLoadedSourceSh {mod args} {
       set modcontent [lrange $arg 1 end]
       if {![info exists ::g_loadedModuleSourceSh($mod)] || $shtomodargs ni\
          $::g_loadedModuleSourceSh($mod)} {
-         # filter alias or function definition not to record them
+         # filter alias/function/complete definition not to record them
          set filtmodcont [list]
          foreach modcmdlist $modcontent {
             set modcmd [lindex $modcmdlist 0]
-            if {$modcmd eq {set-alias} || $modcmd eq {set-function}} {
-               # set an empty body to make valid unset-* call
-               lappend filtmodcont [list {*}[lrange $modcmdlist 0 1] {}]
-            } else {
-               lappend filtmodcont $modcmdlist
+            switch -- $modcmd {
+               set-alias - set-function {
+                  # set an empty body to make valid unset-* call
+                  lappend filtmodcont [list {*}[lrange $modcmdlist 0 1] {}]
+               }
+               complete {
+                  set complist [lrange $modcmdlist 0 2]
+                  # ensure only one order is recorded for each shell-name
+                  if {![info exists filtcomp($complist)]} {
+                     lappend filtmodcont [list {*}$complist {}]
+                     set filtcomp($complist) 1
+                  }
+               }
+               default {
+                  lappend filtmodcont $modcmdlist
+               }
             }
          }
          lappend ::g_loadedModuleSourceSh($mod) $shtomodargs $filtmodcont
