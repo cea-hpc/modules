@@ -260,7 +260,8 @@ testouterr_cmd_re sh {whatis source-sh} OK "$modlin $mpre $modlin
 \\s*source-sh/4.1: source-sh/4.1
 \\s*source-sh/4.2: source-sh/4.2
 \\s*source-sh/4.3: source-sh/4.3
-\\s*source-sh/6.0: source-sh/6.0"
+\\s*source-sh/6.0: source-sh/6.0
+\\s*source-sh/7.0: source-sh/7.0"
 
 # test 'help' sub-command when some modules are loaded
 testouterr_cmd_re sh {help source-sh/1} OK "$modlin
@@ -444,7 +445,8 @@ testouterr_cmd_re sh {whatis source-sh} OK "$modlin $mpre $modlin
 \\s*source-sh/4.0: source-sh/4.0
 \\s*source-sh/4.1: source-sh/4.1
 \\s*source-sh/4.2: source-sh/4.2
-\\s*source-sh/4.3: source-sh/4.3"
+\\s*source-sh/4.3: source-sh/4.3
+\\s*source-sh/7.0: source-sh/7.0"
 
 # test 'help' sub-command when no module loaded
 testouterr_cmd_re sh {help source-sh/1} OK "$modlin
@@ -1018,6 +1020,96 @@ unsetenv_path_var FOOPATH
 unsetenv_var FOO
 unsetenv_var __MODULES_LMSOURCESH
 unsetenv_path_var FOOESC
+
+
+# complete tests
+
+unsetenv_var TESTSUITE_SHTOMOD_NOVAR
+unsetenv_var TESTSUITE_SHTOMOD_NOPATH
+unsetenv_var TESTSUITE_SHTOMOD_NOALIAS
+unsetenv_var TESTSUITE_SHTOMOD_NOFUNC
+unsetenv_var TESTSUITE_SHTOMOD_NOCD
+
+# tcsh
+if {[find_bin tcsh] ne {}} {
+set ans [list]
+lappend ans [list set LOADEDMODULES source-sh/7.0]
+lappend ans [list set _LMFILES_ $mp/source-sh/7.0]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/7.0\&tcsh\ testsuite/example/sh-to-mod.csh\|chdir\ $mp\|complete\ tcsh\ cmd\ \{\}\|complete\ tcsh\ mycmd\ \{\}\|complete\ tcsh\ othercmd\ \{\}\|prepend-path\ FOOPATH\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHCB\ /path/to/dir1\ /path/to/d\\\{r2\ /path/to/dir3\|prepend-path\ FOOPATHEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|set-alias\ alcb\ \{\}\|set-alias\ alem\ \{\}\|set-alias\ alfoo\ \{\}\|set-alias\ alsp\ \{\}\|setenv\ FOO\ value\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOPATHSP\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\}\|setenv\ FOOPATHSPEM\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \}\|setenv\ FOOSP\ \{value\ \}]
+lappend ans [list set FOOPATHEM :/path/to/dir1:/path/to/dir2:/path/to/dir3]
+lappend ans [list set FOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}]
+lappend ans [list set FOOPATHCB /path/to/dir1:/path/to/d\{r2:/path/to/dir3]
+lappend ans [list set FOOEM {}]
+lappend ans [list set FOOSP {value }]
+lappend ans [list set FOOPATH /path/to/dir1:/path/to/dir2:/path/to/dir3]
+lappend ans [list set FOOCB va\{ue]
+lappend ans [list set __MODULES_SHARE_FOOPATHEM :1]
+lappend ans [list set FOO value]
+lappend ans [list set FOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }]
+lappend ans [list alias alsp {echo f\"o; echo b\\\"r; echo f\'o}]
+lappend ans [list alias alfoo {echo `grep "report .Modules " ../../modulecmd.tcl | tr -d \\ | awk '{print $3}'`}]
+lappend ans [list alias alcb echo\ f\\\{o]
+lappend ans [list alias alem {}]
+lappend ans [list out {complete cmd 'n/-h/n/' 'n/--help/n/' 'n/-V/n/' 'n/--version/n/' 'p/1/(-h -V --help --version)/';}]
+lappend ans [list out {complete othercmd 'n/--help/n/';}]
+lappend ans [list out {complete mycmd 'n/help/`_module_avail`/' 'n/add/`_module_not_yet_loaded; echo "--auto --no-auto --force -f --icase -i --tag --tag="`/';}]
+lappend ans [list chdir $mp]
+testouterr_cmd tcsh {load source-sh/7.0} $ans {}
+
+set tserr_disp70 "-------------------------------------------------------------------
+$mp/source-sh/7.0:
+
+chdir\t\t$mp
+complete\ttcsh cmd {'n/-h/n/' 'n/--help/n/' 'n/-V/n/' 'n/--version/n/' 'p/1/(-h -V --help --version)/'}
+complete\ttcsh mycmd {'n/help/`_module_avail`/' 'n/add/`_module_not_yet_loaded; echo \"--auto --no-auto --force -f --icase -i --tag --tag=\"`/'}
+complete\ttcsh othercmd 'n/--help/n/'
+prepend-path\tFOOPATH /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path\tFOOPATHCB /path/to/dir1 /path/to/d\{r2 /path/to/dir3
+prepend-path\tFOOPATHEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3
+set-alias\talcb {echo f\\\{o}
+set-alias\talem {}
+set-alias\talfoo {echo `grep \"report .Modules \" ../../modulecmd.tcl | tr -d \\\\ | awk '{print \\\$3}'`}
+set-alias\talsp {echo f\\\"o; echo b\\\\\\\"r; echo f\\'o}
+setenv\t\tFOO value
+setenv\t\tFOOCB va\{ue
+setenv\t\tFOOEM {}
+setenv\t\tFOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}
+setenv\t\tFOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }
+setenv\t\tFOOSP {value }
+module-whatis\tsource-sh/7.0
+-------------------------------------------------------------------"
+testouterr_cmd sh {display source-sh/7.0} OK $tserr_disp70
+testouterr_cmd tcsh {display source-sh/7.0} OK $tserr_disp70
+
+setenv_loaded_module [list source-sh/7.0] [list $mp/source-sh/7.0]
+setenv_var __MODULES_LMSOURCESH source-sh/7.0\&tcsh\ testsuite/example/sh-to-mod.csh\|chdir\ $mp\|complete\ tcsh\ cmd\ \{\}\|complete\ tcsh\ mycmd\ \{\}\|complete\ tcsh\ othercmd\ \{\}\|prepend-path\ FOOPATH\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHCB\ /path/to/dir1\ /path/to/d\\\{r2\ /path/to/dir3\|prepend-path\ FOOPATHEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|set-alias\ alcb\ \{\}\|set-alias\ alem\ \{\}\|set-alias\ alfoo\ \{\}\|set-alias\ alsp\ \{\}\|setenv\ FOO\ value\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOPATHSP\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\}\|setenv\ FOOPATHSPEM\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \}\|setenv\ FOOSP\ \{value\ \}
+set ans [list]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset __MODULES_LMSOURCESH]
+lappend ans [list unset FOOPATHEM]
+lappend ans [list unset FOOPATHSP]
+lappend ans [list unset FOOPATHCB]
+lappend ans [list unset FOOEM]
+lappend ans [list unset FOOSP]
+lappend ans [list unset FOOPATH]
+lappend ans [list unset FOOCB]
+lappend ans [list unset FOO]
+lappend ans [list unset FOOPATHSPEM]
+lappend ans [list unalias alsp]
+lappend ans [list unalias alfoo]
+lappend ans [list unalias alcb]
+lappend ans [list unalias alem]
+lappend ans [list out {uncomplete cmd;}]
+lappend ans [list out {uncomplete othercmd;}]
+lappend ans [list out {uncomplete mycmd;}]
+testouterr_cmd tcsh {unload source-sh/7.0} $ans {}
+
+testouterr_cmd tcsh {display source-sh/7.0} OK $tserr_disp70
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMSOURCESH
+}
 
 
 # test use of module command in script

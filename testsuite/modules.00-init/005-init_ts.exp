@@ -548,6 +548,21 @@ if {$nbcols ne {} && $nbcols ne {0}} {
 }
 unset nbcols
 
+proc find_bin {name} {
+   set path {}
+
+   if {[info exists ::env(PATH)]} {
+      foreach dir [split $::env(PATH) ":"] {
+         if {[file executable "$dir/$name"]} {
+            set path "$dir/$name"
+            break
+         }
+      }
+   }
+
+   return $path
+}
+
 # check SIP is enabled or not on OS X
 if {$tcl_platform(os) eq "Darwin"} {
     catch {

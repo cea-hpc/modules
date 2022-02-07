@@ -141,6 +141,9 @@ set tsalias_csh "set-alias\talcb {echo f\\{o}
 set-alias\talem {}
 set-alias\talfoo {echo `grep \"report .Modules \" ../../modulecmd.tcl | tr -d \\\\ | awk '\{print \\\$3\}'`}
 set-alias\talsp {echo f\\\"o; echo b\\\\\\\"r; echo f\\'o}"
+set tscomp_tcsh "complete\ttcsh cmd {'n/-h/n/' 'n/--help/n/' 'n/-V/n/' 'n/--version/n/' 'p/1/\(-h -V --help --version\)/'}
+complete\ttcsh mycmd {'n/help/`_module_avail`/' 'n/add/`_module_not_yet_loaded; echo \"--auto --no-auto --force -f --icase -i --tag --tag=\"`/'}
+complete\ttcsh othercmd 'n/--help/n/'"
 set tscwd "chdir\t\t$env(TESTSUITEDIR)/modulefiles.2"
 
 
@@ -185,7 +188,7 @@ if {[info exists shell_pathname(csh)]} {
     testouterr_shtomod csh {} OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_csh\n$tsvar"
 }
 if {[info exists shell_pathname(tcsh)]} {
-    testouterr_shtomod csh {} OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_csh\n$tsvar"
+    testouterr_shtomod tcsh {} OK "#%Module\n$tscwd\n$tscomp_tcsh\n$tsvarpre\n$tsalias_csh\n$tsvar"
 }
 # remove progressively all kind of changes
 setenv_var TESTSUITE_SHTOMOD_NOVAR 1
@@ -219,7 +222,7 @@ if {[info exists shell_pathname(csh)]} {
     testouterr_shtomod csh {} OK "#%Module\n$tscwd\n$tsalias_csh"
 }
 if {[info exists shell_pathname(tcsh)]} {
-    testouterr_shtomod tcsh {} OK "#%Module\n$tscwd\n$tsalias_csh"
+    testouterr_shtomod tcsh {} OK "#%Module\n$tscwd\n$tscomp_tcsh\n$tsalias_csh"
 }
 setenv_var TESTSUITE_SHTOMOD_NOFUNC 1
 if {[info exists shell_pathname(sh)]} {
@@ -251,9 +254,38 @@ if {[info exists shell_pathname(csh)]} {
     testouterr_shtomod csh {} OK "#%Module\n$tscwd\n$tsalias_csh"
 }
 if {[info exists shell_pathname(tcsh)]} {
-    testouterr_shtomod tcsh {} OK "#%Module\n$tscwd\n$tsalias_csh"
+    testouterr_shtomod tcsh {} OK "#%Module\n$tscwd\n$tscomp_tcsh\n$tsalias_csh"
 }
 setenv_var TESTSUITE_SHTOMOD_NOALIAS 1
+if {[info exists shell_pathname(sh)]} {
+    testouterr_shtomod sh {} OK "#%Module\n$tscwd"
+}
+if {[info exists shell_pathname(dash)]} {
+    testouterr_shtomod dash {} OK "#%Module\n$tscwd"
+}
+if {[info exists shell_pathname(bash)]} {
+    testouterr_shtomod bash {} OK "#%Module\n$tscwd"
+}
+if {[info exists shell_pathname(ksh)]} {
+    testouterr_shtomod ksh {} OK "#%Module\n$tscwd"
+}
+if {[info exists shell_pathname(ksh93)]} {
+    testouterr_shtomod ksh93 {} OK "#%Module\n$tscwd"
+}
+if {[info exists shell_pathname(zsh)]} {
+    testouterr_shtomod zsh {} OK "#%Module\n$tscwd"
+}
+if {[info exists shell_pathname(fish)]} {
+    testouterr_shtomod fish {} OK "#%Module\n$tscwd"
+}
+if {[info exists shell_pathname(csh)]} {
+    testouterr_shtomod csh {} OK "#%Module\n$tscwd"
+}
+if {[info exists shell_pathname(tcsh)]} {
+    testouterr_shtomod tcsh {} OK "#%Module\n$tscwd\n$tscomp_tcsh"
+}
+
+setenv_var TESTSUITE_SHTOMOD_NOCOMP 1
 testouterr_shtomod ALL {} OK "#%Module\n$tscwd"
 setenv_var TESTSUITE_SHTOMOD_NOCD 1
 testouterr_shtomod ALL {} OK {}

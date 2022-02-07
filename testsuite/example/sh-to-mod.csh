@@ -52,6 +52,14 @@ if ( ! $?TESTSUITE_SHTOMOD_NOFUNC ) then
    # no function support on csh shell
 endif
 
+if ( ! $?TESTSUITE_SHTOMOD_NOCOMP ) then
+   complete cmd 'n/-h/n/' 'n/--help/n/' \
+      'n/-V/n/' 'n/--version/n/' \
+      "p/1/(-h -V --help --version)/"
+   complete mycmd 'n/help/`_module_avail`/' 'n/add/`_module_not_yet_loaded; echo "--auto --no-auto --force -f --icase -i --tag --tag="`/'
+   complete othercmd 'n/--help/n/'
+endif
+
 if ( ! $?TESTSUITE_SHTOMOD_NOCD ) then
    cd $TESTSUITEDIR/modulefiles.2
 endif
