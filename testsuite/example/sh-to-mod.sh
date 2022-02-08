@@ -67,6 +67,12 @@ if [ "${TESTSUITE_SHTOMOD_NOFUNC:-x}" = 'x' ]; then
    }
 fi
 
+if [ "${TESTSUITE_SHTOMOD_NOCOMP:-x}" = 'x' ]; then
+   complete -o default -F _cmd cmd
+   complete -j -P '"%' -S '"' mycmd
+   complete -u othercmd
+fi
+
 if [ "${TESTSUITE_SHTOMOD_NOCD:-x}" = 'x' ]; then
    cd $TESTSUITEDIR/modulefiles.2 
 fi
