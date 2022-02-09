@@ -147,6 +147,33 @@ complete\tbash othercmd -u"
 set tscomp_tcsh "complete\ttcsh cmd {'n/-h/n/' 'n/--help/n/' 'n/-V/n/' 'n/--version/n/' 'p/1/\(-h -V --help --version\)/'}
 complete\ttcsh mycmd {'n/help/`_module_avail`/' 'n/add/`_module_not_yet_loaded; echo \"--auto --no-auto --force -f --icase -i --tag --tag=\"`/'}
 complete\ttcsh othercmd 'n/--help/n/'"
+if {[info exists fish_version_ge31] && $fish_version_ge31} {
+set tscomp_alias_fish "complete\tfish alcb {--wraps echo\\ f\\\\\\\{o}
+complete\tfish alfoo {--wraps echo\\ \\(grep\\ \\\"report\\ .Modules\\ \\\"\\ ../../modulecmd.tcl\\ \\|\\ tr\\ -d\\ \\\\\\\\\\ 2\\>/dev/null\\ \\|\\ awk\\ \\'\\{print\\ \\\$3\\}\\'\\)}
+complete\tfish alsp {--wraps echo\\ f\\\\\\\"o\\;\\ echo\\ b\\\\\\\\\\\\\\\"r\\;\\ echo\\ f\\\\\\'o}"
+set tscomp_fish "complete\tfish cmd {-l help -d 'Command help'}
+complete\tfish cmd {-l version -d 'Command version'}
+complete\tfish cmd {-s h -d 'Command help'}
+complete\tfish cmd {-s V -d 'Command version'}
+complete\tfish mycmd {--exclusive -s h -d 'Command help'}
+complete\tfish othercmd {--no-files -l help -d 'Command help'}
+complete\tfish othercmd {--no-files -s h -d 'Command help'}
+complete\tfish othercmd {-l version -d 'Command version'}
+complete\tfish othercmd {-s V -d 'Command version'}"
+} else {
+set tscomp_alias_fish "complete\tfish alcb {--wraps echo}
+complete\tfish alfoo {--wraps echo}
+complete\tfish alsp {--wraps echo}"
+set tscomp_fish "complete\tfish cmd {--long-option help --description 'Command help'}
+complete\tfish cmd {--long-option version --description 'Command version'}
+complete\tfish cmd {--short-option 'h' --description 'Command help'}
+complete\tfish cmd {--short-option 'V' --description 'Command version'}
+complete\tfish mycmd {--exclusive --short-option 'h' --description 'Command help'}
+complete\tfish othercmd {--long-option version --description 'Command version'}
+complete\tfish othercmd {--no-files --long-option help --description 'Command help'}
+complete\tfish othercmd {--no-files --short-option 'h' --description 'Command help'}
+complete\tfish othercmd {--short-option 'V' --description 'Command version'}"
+}
 set tscwd "chdir\t\t$env(TESTSUITEDIR)/modulefiles.2"
 
 
@@ -185,7 +212,7 @@ if {[info exists shell_pathname(zsh)]} {
     testouterr_shtomod zsh {} OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_zsh\n$tsfunc_zsh\n$tsvar"
 }
 if {[info exists shell_pathname(fish)]} {
-    testouterr_shtomod fish {} OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_fish\n$tsfunc_fish\n$tsvar"
+    testouterr_shtomod fish {} OK "#%Module\n$tscwd\n$tscomp_alias_fish\n$tscomp_fish\n$tsvarpre\n$tsalias_fish\n$tsfunc_fish\n$tsvar"
 }
 if {[info exists shell_pathname(csh)]} {
     testouterr_shtomod csh {} OK "#%Module\n$tscwd\n$tsvarpre\n$tsalias_csh\n$tsvar"
@@ -219,7 +246,7 @@ if {[info exists shell_pathname(zsh)]} {
     testouterr_shtomod zsh {} OK "#%Module\n$tscwd\n$tsalias_zsh\n$tsfunc_zsh"
 }
 if {[info exists shell_pathname(fish)]} {
-    testouterr_shtomod fish {} OK "#%Module\n$tscwd\n$tsalias_fish\n$tsfunc_fish"
+    testouterr_shtomod fish {} OK "#%Module\n$tscwd\n$tscomp_alias_fish\n$tscomp_fish\n$tsalias_fish\n$tsfunc_fish"
 }
 if {[info exists shell_pathname(csh)]} {
     testouterr_shtomod csh {} OK "#%Module\n$tscwd\n$tsalias_csh"
@@ -251,7 +278,7 @@ if {[info exists shell_pathname(zsh)]} {
     testouterr_shtomod zsh {} OK "#%Module\n$tscwd\n$tsalias_zsh"
 }
 if {[info exists shell_pathname(fish)]} {
-    testouterr_shtomod fish {} OK "#%Module\n$tscwd\n$tsalias_fish"
+    testouterr_shtomod fish {} OK "#%Module\n$tscwd\n$tscomp_alias_fish\n$tscomp_fish\n$tsalias_fish"
 }
 if {[info exists shell_pathname(csh)]} {
     testouterr_shtomod csh {} OK "#%Module\n$tscwd\n$tsalias_csh"
@@ -279,7 +306,7 @@ if {[info exists shell_pathname(zsh)]} {
     testouterr_shtomod zsh {} OK "#%Module\n$tscwd"
 }
 if {[info exists shell_pathname(fish)]} {
-    testouterr_shtomod fish {} OK "#%Module\n$tscwd"
+    testouterr_shtomod fish {} OK "#%Module\n$tscwd\n$tscomp_fish"
 }
 if {[info exists shell_pathname(csh)]} {
     testouterr_shtomod csh {} OK "#%Module\n$tscwd"

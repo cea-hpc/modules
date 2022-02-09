@@ -67,6 +67,20 @@ if not set -q TESTSUITE_SHTOMOD_NOFUNC
    end
 end
 
+if not set -q TESTSUITE_SHTOMOD_NOCOMP
+   complete -c cmd -s V -l version --description 'Command version'
+   complete --command cmd -s h -l help --description 'Command help'
+   complete --no-files --require-parameter -c mycmd -s h --description 'Command help'
+   # test complete definition without -c/--complete opt arg on fish>=3
+   if test (string sub -s 1 -l 1 $version) -ge 3
+      complete -f othercmd -s h -l help --description 'Command help'
+      complete othercmd -s V -l version --description 'Command version'
+   else
+      complete -f --command othercmd -s h -l help --description 'Command help'
+      complete -c othercmd -s V -l version --description 'Command version'
+   end
+end
+
 if not set -q TESTSUITE_SHTOMOD_NOCD
    cd $TESTSUITEDIR/modulefiles.2
 end

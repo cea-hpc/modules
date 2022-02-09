@@ -263,7 +263,8 @@ testouterr_cmd_re sh {whatis source-sh} OK "$modlin $mpre $modlin
 \\s*source-sh/4.3: source-sh/4.3
 \\s*source-sh/6.0: source-sh/6.0
 \\s*source-sh/7.0: source-sh/7.0
-\\s*source-sh/7.1: source-sh/7.1"
+\\s*source-sh/7.1: source-sh/7.1
+\\s*source-sh/7.2: source-sh/7.2"
 
 # test 'help' sub-command when some modules are loaded
 testouterr_cmd_re sh {help source-sh/1} OK "$modlin
@@ -449,7 +450,8 @@ testouterr_cmd_re sh {whatis source-sh} OK "$modlin $mpre $modlin
 \\s*source-sh/4.2: source-sh/4.2
 \\s*source-sh/4.3: source-sh/4.3
 \\s*source-sh/7.0: source-sh/7.0
-\\s*source-sh/7.1: source-sh/7.1"
+\\s*source-sh/7.1: source-sh/7.1
+\\s*source-sh/7.2: source-sh/7.2"
 
 # test 'help' sub-command when no module loaded
 testouterr_cmd_re sh {help source-sh/1} OK "$modlin
@@ -1215,7 +1217,184 @@ testouterr_cmd bash {display source-sh/7.1} OK $tserr_disp71
 
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMSOURCESH
+
+setenv_var TESTSUITE_SHTOMOD_NOALIAS 1
+setenv_var TESTSUITE_SHTOMOD_NOFUNC 1
+
+# fish
+if {[find_bin fish] ne {}} {
+set ans [list]
+lappend ans [list set LOADEDMODULES source-sh/7.2]
+lappend ans [list set _LMFILES_ $mp/source-sh/7.2]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/7.2\&fish\ testsuite/example/sh-to-mod.fish\|chdir\ $mp\|complete\ fish\ cmd\ \{\}\|complete\ fish\ mycmd\ \{\}\|complete\ fish\ othercmd\ \{\}\|prepend-path\ FOOPATH\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHCB\ /path/to/dir1\ /path/to/d\\\{r2\ /path/to/dir3\|prepend-path\ FOOPATHEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|setenv\ FOO\ value\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOPATHSP\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\}\|setenv\ FOOPATHSPEM\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \}\|setenv\ FOOSP\ \{value\ \}]
+lappend ans [list set FOOPATHEM :/path/to/dir1:/path/to/dir2:/path/to/dir3]
+lappend ans [list set FOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}]
+lappend ans [list set FOOPATHCB /path/to/dir1:/path/to/d\{r2:/path/to/dir3]
+lappend ans [list set FOOEM {}]
+lappend ans [list set FOOSP {value }]
+lappend ans [list set FOOPATH /path/to/dir1:/path/to/dir2:/path/to/dir3]
+lappend ans [list set FOOCB va\{ue]
+lappend ans [list set __MODULES_SHARE_FOOPATHEM :1]
+lappend ans [list set FOO value]
+lappend ans [list set FOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }]
+if {[info exists fish_version_ge31] && $fish_version_ge31} {
+lappend ans [list out {complete -c cmd -l help -d 'Command help';}]
+lappend ans [list out {complete -c cmd -l version -d 'Command version';}]
+lappend ans [list out {complete -c cmd -s h -d 'Command help';}]
+lappend ans [list out {complete -c cmd -s V -d 'Command version';}]
+lappend ans [list out {complete -c othercmd --no-files -l help -d 'Command help';}]
+lappend ans [list out {complete -c othercmd --no-files -s h -d 'Command help';}]
+lappend ans [list out {complete -c othercmd -l version -d 'Command version';}]
+lappend ans [list out {complete -c othercmd -s V -d 'Command version';}]
+lappend ans [list out {complete -c mycmd --exclusive -s h -d 'Command help';}]
+} else {
+lappend ans [list out {complete -c cmd --long-option help --description 'Command help';}]
+lappend ans [list out {complete -c cmd --long-option version --description 'Command version';}]
+lappend ans [list out {complete -c cmd --short-option 'h' --description 'Command help';}]
+lappend ans [list out {complete -c cmd --short-option 'V' --description 'Command version';}]
+lappend ans [list out {complete -c othercmd --long-option version --description 'Command version';}]
+lappend ans [list out {complete -c othercmd --no-files --long-option help --description 'Command help';}]
+lappend ans [list out {complete -c othercmd --no-files --short-option 'h' --description 'Command help';}]
+lappend ans [list out {complete -c othercmd --short-option 'V' --description 'Command version';}]
+lappend ans [list out {complete -c mycmd --exclusive --short-option 'h' --description 'Command help';}]
+}
+lappend ans [list chdir $mp]
+testouterr_cmd fish {load source-sh/7.2} $ans {}
+
+if {[info exists fish_version_ge31] && $fish_version_ge31} {
+set tserr_disp72 "-------------------------------------------------------------------
+$mp/source-sh/7.2:
+
+chdir\t\t$mp
+complete\tfish cmd {-l help -d 'Command help'}
+complete\tfish cmd {-l version -d 'Command version'}
+complete\tfish cmd {-s h -d 'Command help'}
+complete\tfish cmd {-s V -d 'Command version'}
+complete\tfish mycmd {--exclusive -s h -d 'Command help'}
+complete\tfish othercmd {--no-files -l help -d 'Command help'}
+complete\tfish othercmd {--no-files -s h -d 'Command help'}
+complete\tfish othercmd {-l version -d 'Command version'}
+complete\tfish othercmd {-s V -d 'Command version'}
+prepend-path\tFOOPATH /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path\tFOOPATHCB /path/to/dir1 /path/to/d\{r2 /path/to/dir3
+prepend-path\tFOOPATHEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3
+setenv\t\tFOO value
+setenv\t\tFOOCB va\{ue
+setenv\t\tFOOEM {}
+setenv\t\tFOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}
+setenv\t\tFOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }
+setenv\t\tFOOSP {value }
+module-whatis\tsource-sh/7.2
+-------------------------------------------------------------------"
+} else {
+set tserr_disp72 "-------------------------------------------------------------------
+$mp/source-sh/7.2:
+
+chdir\t\t$mp
+complete\tfish cmd {--long-option help --description 'Command help'}
+complete\tfish cmd {--long-option version --description 'Command version'}
+complete\tfish cmd {--short-option 'h' --description 'Command help'}
+complete\tfish cmd {--short-option 'V' --description 'Command version'}
+complete\tfish mycmd {--exclusive --short-option 'h' --description 'Command help'}
+complete\tfish othercmd {--long-option version --description 'Command version'}
+complete\tfish othercmd {--no-files --long-option help --description 'Command help'}
+complete\tfish othercmd {--no-files --short-option 'h' --description 'Command help'}
+complete\tfish othercmd {--short-option 'V' --description 'Command version'}
+prepend-path\tFOOPATH /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path\tFOOPATHCB /path/to/dir1 /path/to/d\{r2 /path/to/dir3
+prepend-path\tFOOPATHEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3
+setenv\t\tFOO value
+setenv\t\tFOOCB va\{ue
+setenv\t\tFOOEM {}
+setenv\t\tFOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}
+setenv\t\tFOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }
+setenv\t\tFOOSP {value }
+module-whatis\tsource-sh/7.2
+-------------------------------------------------------------------"
+}
+testouterr_cmd sh {display source-sh/7.2} OK $tserr_disp72
+testouterr_cmd fish {display source-sh/7.2} OK $tserr_disp72
+
+setenv_loaded_module [list source-sh/7.2] [list $mp/source-sh/7.2]
+setenv_var __MODULES_LMSOURCESH source-sh/7.2\&fish\ testsuite/example/sh-to-mod.fish\|chdir\ $mp\|complete\ fish\ cmd\ \{\}\|complete\ fish\ mycmd\ \{\}\|complete\ fish\ othercmd\ \{\}\|prepend-path\ FOOPATH\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHCB\ /path/to/dir1\ /path/to/d\\\{r2\ /path/to/dir3\|prepend-path\ FOOPATHEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|setenv\ FOO\ value\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOPATHSP\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\}\|setenv\ FOOPATHSPEM\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \}\|setenv\ FOOSP\ \{value\ \}
+set ans [list]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset __MODULES_LMSOURCESH]
+lappend ans [list unset FOOPATHEM]
+lappend ans [list unset FOOPATHSP]
+lappend ans [list unset FOOPATHCB]
+lappend ans [list unset FOOEM]
+lappend ans [list unset FOOSP]
+lappend ans [list unset FOOPATH]
+lappend ans [list unset FOOCB]
+lappend ans [list unset FOO]
+lappend ans [list unset FOOPATHSPEM]
+lappend ans [list out {complete -e -c cmd;}]
+lappend ans [list out {complete -e -c othercmd;}]
+lappend ans [list out {complete -e -c mycmd;}]
+testouterr_cmd fish {unload source-sh/7.2} $ans {}
+
+if {[info exists fish_version_ge31] && $fish_version_ge31} {
+set tserr_disp72 "-------------------------------------------------------------------
+$mp/source-sh/7.2:
+
+chdir\t\t$mp
+complete\tfish cmd {-l help -d 'Command help'}
+complete\tfish cmd {-s h -d 'Command help'}
+complete\tfish cmd {-l version -d 'Command version'}
+complete\tfish cmd {-s V -d 'Command version'}
+complete\tfish mycmd {--exclusive -s h -d 'Command help'}
+complete\tfish othercmd {-l version -d 'Command version'}
+complete\tfish othercmd {-s V -d 'Command version'}
+complete\tfish othercmd {--no-files -l help -d 'Command help'}
+complete\tfish othercmd {--no-files -s h -d 'Command help'}
+prepend-path\tFOOPATH /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path\tFOOPATHCB /path/to/dir1 /path/to/d\{r2 /path/to/dir3
+prepend-path\tFOOPATHEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3
+setenv\t\tFOO value
+setenv\t\tFOOCB va\{ue
+setenv\t\tFOOEM {}
+setenv\t\tFOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}
+setenv\t\tFOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }
+setenv\t\tFOOSP {value }
+module-whatis\tsource-sh/7.2
+-------------------------------------------------------------------"
+} else {
+set tserr_disp72 "-------------------------------------------------------------------
+$mp/source-sh/7.2:
+
+chdir\t\t$mp
+complete\tfish cmd {--long-option help --description 'Command help'}
+complete\tfish cmd {--short-option 'h' --description 'Command help'}
+complete\tfish cmd {--long-option version --description 'Command version'}
+complete\tfish cmd {--short-option 'V' --description 'Command version'}
+complete\tfish mycmd {--exclusive --short-option 'h' --description 'Command help'}
+complete\tfish othercmd {--long-option version --description 'Command version'}
+complete\tfish othercmd {--short-option 'V' --description 'Command version'}
+complete\tfish othercmd {--no-files --long-option help --description 'Command help'}
+complete\tfish othercmd {--no-files --short-option 'h' --description 'Command help'}
+prepend-path\tFOOPATH /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path\tFOOPATHCB /path/to/dir1 /path/to/d\{r2 /path/to/dir3
+prepend-path\tFOOPATHEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3
+setenv\t\tFOO value
+setenv\t\tFOOCB va\{ue
+setenv\t\tFOOEM {}
+setenv\t\tFOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}
+setenv\t\tFOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }
+setenv\t\tFOOSP {value }
+module-whatis\tsource-sh/7.2
+-------------------------------------------------------------------"
+}
+testouterr_cmd fish {display source-sh/7.2} OK $tserr_disp72
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMSOURCESH
+}
+
 setenv_var TESTSUITE_SHTOMOD_NOCOMP 1
+unsetenv_var TESTSUITE_SHTOMOD_NOALIAS
+unsetenv_var TESTSUITE_SHTOMOD_NOFUNC
 
 
 # test use of module command in script
