@@ -851,6 +851,11 @@ The following module sub-commands appeared on Modules 5.
  options are supported on this sub-command to provide the regular search match
  capabilities.
 
+:subcmd:`sh-to-mod`
+
+ Starting Modules 5.1, this sub-command also tracks shell completion changes
+ for bash, tcsh and fish shells.
+
 Environment
 """""""""""
 
@@ -893,11 +898,11 @@ The following modulefile Tcl commands appeared on Modules 5.
 
 :mfcmd:`prereq`, :mfcmd:`module load/try-load/load-any/switch<module>`
 
- Starting Modules 5.1, these modulefile commands accepts the ``--tag`` option.
+ Starting Modules 5.1, these modulefile commands accept the ``--tag`` option.
 
 :mfcmd:`module try-load/load-any<module>`
 
- Starting Modules 5.1, these modulefile commands accepts the ``--not-req``
+ Starting Modules 5.1, these modulefile commands accept the ``--not-req``
  option.
 
 :mfcmd:`puts`
@@ -905,6 +910,11 @@ The following modulefile Tcl commands appeared on Modules 5.
  Starting Modules 5.1, if content is sent to the ``prestdout`` channel, it is
  rendered as command to evaluate in current shell session and prior any other
  environment changes.
+
+:mfcmd:`source-sh`
+
+ Starting Modules 5.1, this modulefile command also tracks shell completion
+ changes for bash, tcsh and fish shells.
 
 Modules Variables
 """""""""""""""""
