@@ -137,6 +137,8 @@ Modules 5.1.0 (not yet released)
 * Introduce :mfcmd:`complete` and :mfcmd:`uncomplete` modulefile commands to
   respectively enable and disable shell completion for a given command name.
   *bash*, *tcsh* and *fish* shells are supported.
+* Track shell completion changes of *bash*, *tcsh* and *fish* shell scripts on
+  :subcmd:`sh-to-mod` sub-command and :mfcmd:`source-sh` modulefile command.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 
