@@ -28,6 +28,8 @@ Specification
     - Shell alias unset: transformed into ``unset-alias``
     - Shell function definition: transformed into ``set-function``
     - Shell function unset: transformed into ``unset-function``
+    - Shell completion definition: transformed into ``complete``
+    - Shell completion unset: transformed into ``uncomplete``
 
 - Depending on modulefile evaluation mode, ``source-sh`` has different behaviors:
 
@@ -58,9 +60,9 @@ Specification
             - Respectively to ``<EnvModEscPS>``, ``<EnvModEscS1>`` and ``<EnvModEscS2>``
             - If found in environment changes to record
 
-        - Actual bodies of shell alias and shell functions are not recorded in ``__MODULES_LMSOURCESH``, an empty body is recorded instead
+        - Actual bodies of shell alias, shell functions and shell completions are not recorded in ``__MODULES_LMSOURCESH``, an empty body is recorded instead
 
-            - Example value: ``foo/1&sh /tmp/source.sh|set-alias alfoo {}|set-function funcfoo {}``
+            - Example value: ``foo/1&sh /tmp/source.sh|set-alias alfoo {}|set-function funcfoo {}|complete bash foocmd {}``
 
     - When unloading modulefile, content found for this modulefile in ``__MODULES_LMSOURCESH`` variable is evaluated to reverse environment changes
 
@@ -71,7 +73,7 @@ Specification
         - If it is loaded
 
             - the content found for this modulefile in ``__MODULES_LMSOURCESH`` variable is evaluated in display mode to report each resulting modulefile command
-            - script is evaluated to fetch shell alias and function definition which are not recorded in ``__MODULES_LMSOURCESH``
+            - script is evaluated to fetch shell alias, function and completion definitions which are not recorded in ``__MODULES_LMSOURCESH``
 
         - If not loaded, script is evaluated to gather environment changes and report each resulting modulefile command
 
@@ -122,6 +124,11 @@ Specification
 
 - **Note**: if sourced script produces shell alias or function, these alias or function may not be compatible with the current shell of the user
 
+- Shell completion is defined for the shell used to evaluate script
+
+    - :mfcmd:`complete` commands are generated even if current user shell is not the same as the shell used to evaluate script
+    - but the completion definition will produce a no-operation on current user shell when :mfcmd:`complete` command is evaluated
+
 - **Note**: the mechanism described here only applies for shell script as to understand the impact the script execution over the user environment, this environment need to be compared prior and after execution
 
 - ``source-sh`` modulefile command relies of the ``sh-to-mod`` procedure of ``modulecmd.tcl``
@@ -165,7 +172,7 @@ Specification
         - but it is an external command, so requires extra processing and an additional requirement
         - moreover it does not return shell functions in general, only exported Bash functions
 
-    - Shell builtin commands are used to query existing environment variables, aliases, functions and current working directory
+    - Shell builtin commands are used to query existing environment variables, aliases, functions, completions and current working directory
 
         - which provides best processing efficiency
         - but leads to specific output parsing for each shell
@@ -191,5 +198,12 @@ Specification
     - Changes relative to Modules state are ignored this way
     - If script loads in turn a modulefile, environment changes reported will not report the loaded module but only the environment changes it does
     - Modules configuration variable (prefixed by ``MODULES_``) are still taken into account
+
+- There may be several shell completion changes found for the same command on particular shell like fish
+
+    - It produces multiple ``complete`` modulefile commands
+    - But in ``__MODULES_LMSOURCESH`` variable, a single entry is recorded as a single ``uncomplete`` command should be generated when unloading modulefile
+    - If completion definition is partial for a command when loading modulefile, full completion definition is removed when unloading
+    - When a completion definition difference is spotted after script evaluation, all previous completion definition for command is unset prior setting new definition
 
 - **FUTURE**: this feature may be extended to translate environment changes made by tools like Spack, Lmod or pkg-config. It may provide this way bridges between different realms.
