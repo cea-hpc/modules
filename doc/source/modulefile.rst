@@ -1044,8 +1044,8 @@ the *modulefile* is being loaded.
  were recorded in the :envvar:`__MODULES_LMSOURCESH` environment variable at
  ``load`` time.
 
- Changes on environment variables, shell aliases, shell functions and current
- working directory are tracked.
+ Changes on environment variables, shell aliases, shell functions, shell
+ completions and current working directory are tracked.
 
  Changes made on environment variable intended for Modules private use (e.g.,
  :envvar:`LOADEDMODULES`, :envvar:`_LMFILES_`, ``__MODULES_*``) are ignored.
@@ -1060,6 +1060,10 @@ the *modulefile* is being loaded.
 
     .. versionchanged:: 5.1
        Changes on Modules private environment variable are ignored
+
+    .. versionchanged:: 5.1
+       Support for tracking shell completion changes on bash, tcsh and fish
+       shells added
 
 .. mfcmd:: system string
 
