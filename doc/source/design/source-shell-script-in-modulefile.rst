@@ -203,7 +203,7 @@ Specification
 
     - It produces multiple ``complete`` modulefile commands
     - But in ``__MODULES_LMSOURCESH`` variable, a single entry is recorded as a single ``uncomplete`` command should be generated when unloading modulefile
-    - If completion definition is partial for a command when loading modulefile, full completion definition is removed when unloading
-    - When a completion definition difference is spotted after script evaluation, all previous completion definition for command is unset prior setting new definition
+    - If completion definition is partial for a command when loading modulefile, on fish shell previous completion definition is cleared right before setting those defined in modulefile
+    - When a completion definition difference is spotted after script evaluation, new completion definition is set which means previous definition is cleared (either intrinsically by shell or for fish due to the definition clear specifically added)
 
 - **FUTURE**: this feature may be extended to translate environment changes made by tools like Spack, Lmod or pkg-config. It may provide this way bridges between different realms.

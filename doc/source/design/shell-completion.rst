@@ -56,18 +56,21 @@ compatible with this evaluation. It is up to the modulefile writer to use the
 correct syntax as it cannot be guessed depending on what writer wants to
 achieve.
 
-For shells like fish, completion definition consist of multiple complete
-commands for a single *command* name.
+For shells like fish:
+
+* Completion definition consist of multiple complete commands for a single
+  *command* name.
+* Prior applying completion definition, any previous completion is cleared for
+  *command*. We ensure modulefile provides the full completion definition for
+  *command* this way.
+
+**Note**: when loading module on fish shell, completion is first fully removed
+for *command*. It is expected that modulefile provides the full completion
+definition for *command* and not rely on previous definition made elsewhere.
 
 :mfcmd:`complete` is evaluated on *load* but also *refresh* mode. Important on
 the later to get completion correctly redefined when initializing sub-shells.
 On *unload* mode, :mfcmd:`complete` becomes :mfcmd:`uncomplete`.
-
-**Note**: when unloading, completion is fully removed for *command*. In case
-completion setup was partially done by modulefile, all completion definition
-for *command* is unset when unloading. So it is expected that modulefile
-provides the full completion definition for *command* to unset only things
-that it has set.
 
 uncomplete
 ----------
