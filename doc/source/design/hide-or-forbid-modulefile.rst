@@ -182,7 +182,7 @@ Specification
             - If this evaluation has been triggered automatically
 
                 - By an *automated module handling mechanism* for instance
-                - Which means user has not explicitely asked the module load or unload
+                - Which means user has not explicitly asked the module load or unload
 
             - And was automatically loaded, in case of an automatic unload
 
@@ -293,7 +293,7 @@ Specification
     - Message content is set along forbidden module specification
 
         - Message recorded for matching module specification will be printed
-        - Message recorded on other matching specification will be ignored, only message from retained matching specificaton is printed
+        - Message recorded on other matching specification will be ignored, only message from retained matching specification is printed
         - Firstly evaluated ``module-forbid`` command that matches module specification is retained with its message property
 
 - a module matching a ``module-forbid`` statement whose ``--after`` limit is close is considered *nearly forbidden*
@@ -311,7 +311,7 @@ Specification
     - Message content is set along nearly-forbidden module specification
 
         - Message recorded for matching module specification will be printed
-        - Message recorded on other matching specification will be ignored, only message from retained matching specificaton is printed
+        - Message recorded on other matching specification will be ignored, only message from retained matching specification is printed
         - Firstly evaluated ``module-forbid`` command that matches module specification is retained with its message property
 
 - ``module-hide`` and ``module-forbid`` are intended to be used in modulerc files
@@ -324,7 +324,7 @@ Specification
     - definition with the highest hiding level wins
     - which means the most restrictive call wins
     - a ``--hidden-loaded`` status set is kept even if corresponding ``module-hide`` call is not the highest one
-    - the multiple definitions can come accross different modulerc files (global, modulepath or modulefile rc levels)
+    - the multiple definitions can come across different modulerc files (global, modulepath or modulefile rc levels)
 
 - Module specification passed as argument to ``module-hide`` and ``module-forbid`` are matched exactly against available modules
 
@@ -338,7 +338,7 @@ Specification
 
 - Auto-symbols cannot be set hidden
 
-    - When a defined ``default`` or ``latest`` symbol is set hidden, it is replaced by a ``default`` or ``latest`` auto-symbol targetting highest available module version
+    - When a defined ``default`` or ``latest`` symbol is set hidden, it is replaced by a ``default`` or ``latest`` auto-symbol targeting highest available module version
     - Targeting an auto-symbol with a ``module-hide`` command, will have no effect
 
 - When module specification of ``module-hide`` targets:

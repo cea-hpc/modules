@@ -17,7 +17,7 @@ set g_inhibit_inforeport 1 ;# Non-critical info reporting disabled if == 1
 # is set to 1
 proc reportInfo {message {title INFO}} {
    if {!$::g_inhibit_inforeport} {
-      # use reportError for conveniance but there is no error here
+      # use reportError for convenience but there is no error here
       reportError $message 0 $title 0
    }
 }

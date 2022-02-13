@@ -185,7 +185,7 @@ The first versions of the *Modules* package used shell scripts to do its magic. 
 How can I help?
 ^^^^^^^^^^^^^^^
 
-We can use help at various levels. The best way to contribute is to send in a patch file (see the FAQ on how to generate a patch file) with whatever fixes. The patch will be reviewed and tested. If you are a regular contributer then you'll likely be invited to become a developer and to have direct source access, and the fame, power, and prestige that all entails.
+We can use help at various levels. The best way to contribute is to send in a patch file (see the FAQ on how to generate a patch file) with whatever fixes. The patch will be reviewed and tested. If you are a regular contributor then you'll likely be invited to become a developer and to have direct source access, and the fame, power, and prestige that all entails.
 
 How do I download the source repository?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

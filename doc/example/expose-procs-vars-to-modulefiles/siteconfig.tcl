@@ -1,5 +1,5 @@
 #
-# siteconfig.tcl - Site specific configuration script exposing additionnal
+# siteconfig.tcl - Site specific configuration script exposing additional
 #   procedures and variables to the modulefile and modulerc evaluation
 #   contexts
 #

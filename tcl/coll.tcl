@@ -249,7 +249,7 @@ proc readCollectionContent {collfile colldesc} {
             }
          }
          # parse module specification to distinguish between module + variant
-         # specif and multiple modules specified on a single line
+         # specified and multiple modules specified on a single line
          set parsedlist [parseModuleSpecification 0 {*}$cleanlist]
          foreach parsed $parsedlist {
             set tag_arr($parsed) $tag_list

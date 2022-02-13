@@ -1,7 +1,7 @@
 .. _lmod-tcl-modulefile-compat:
 
-Lmod Tcl modulefile compatiblity
-================================
+Lmod Tcl modulefile compatibility
+=================================
 
 - Goal is to be able to evaluate with :command:`modulecmd.tcl` a Tcl
   modulefile generated for Lmod

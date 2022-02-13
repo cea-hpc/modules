@@ -275,7 +275,7 @@ switches are accepted:
     .. versionadded:: 4.4
        :option:`--icase`/:option:`-i` support was dropped on version `4.0`
        but reintroduced starting version `4.4`. When set, it now applies to
-       search query string and module specificiation on all sub-commands and
+       search query string and module specification on all sub-commands and
        modulefile Tcl commands.
 
 .. option:: --indepth
@@ -549,7 +549,7 @@ Module Sub-Commands
 
  A *Key* section is added at the end of the output in case some elements are
  reported in parentheses or chevrons along module name or if some graphical
- rendition is made over some outputed elements. This *Key* section gives hints
+ rendition is made over some output elements. This *Key* section gives hints
  on the meaning of such elements.
 
  The parameter *pattern* may also refer to a symbolic modulefile name or a
@@ -1098,7 +1098,7 @@ Module Sub-Commands
 
  A *Key* section is added at the end of the output in case some elements are
  reported in parentheses or chevrons along module name or if some graphical
- rendition is made over some outputed elements. This *Key* section gives hints
+ rendition is made over some output elements. This *Key* section gives hints
  on the meaning of such elements.
 
  The parameter *pattern* may also refer to a symbolic modulefile name or a

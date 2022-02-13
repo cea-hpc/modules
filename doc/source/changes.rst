@@ -66,7 +66,7 @@ Command line switches
 
 :option:`--icase`, :option:`-i`
 
- This command line switch was not supported starting Modules version ``4.0`` but reintroduced starting version ``4.4``. When :option:`--icase` switch is now set it applies to search query string and module specificiation on all sub-commands and modulefile Tcl commands.
+ This command line switch was not supported starting Modules version ``4.0`` but reintroduced starting version ``4.4``. When :option:`--icase` switch is now set it applies to search query string and module specification on all sub-commands and modulefile Tcl commands.
 
 
 Module Sub-Commands

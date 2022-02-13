@@ -23,7 +23,7 @@ Specification
 
     - ``module-tag`` allows to specify a symbolic module version or a module alias
     - but associated tag will apply to the symbolic version or alias only
-    - as modulefile targetted by symbol or alias does not inherit their tags
+    - as modulefile targeted by symbol or alias does not inherit their tags
     - so a sticky or super-sticky tag set on a symbolic version or alias has no effect
 
 - Sticky module can be swapped with another version from same module when stickness is defined over module parent name
@@ -40,7 +40,7 @@ Specification
     - In case stickness is defined over module parent name and another ``module-tag`` defines stickyness over specific module version name
 
         - it means stickyness applies to the module version
-        - thus these versions targetted specifically with ``module-tag`` cannot be swapped by another version from same module
+        - thus these versions targeted specifically with ``module-tag`` cannot be swapped by another version from same module
 
 - When a super-sticky module depends on a non-super-sticky module
 
@@ -65,8 +65,8 @@ Specification
 Current limitations
 -------------------
 
-- When swapping a sticky module explicitely targetted by the ``module-tag`` command and which is the default version
+- When swapping a sticky module explicitly targeted by the ``module-tag`` command and which is the default version
 
     - For instance ``module-tag sticky foo/1.0`` and ``module-version foo/1.0 default``
     - If specified swapped-on module is the generic module name, for instance *foo*
-    - ``switch`` sub-command raises an error even if the sticky module is the default version (either implicit or explicitely set) for this module
+    - ``switch`` sub-command raises an error even if the sticky module is the default version (either implicit or explicitly set) for this module

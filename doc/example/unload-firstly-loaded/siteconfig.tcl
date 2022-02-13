@@ -3,7 +3,7 @@
 #   procedure to return firstly loaded module by default instead of lastly
 #   loaded module. With this the firsly loaded module will be unloaded instead
 #   of the lastly loaded in case multiple loaded modules match passed name to
-#   unload. Which was the behavior of Modules v3.2 (compatbility) version.
+#   unload. Which was the behavior of Modules v3.2 (compatibility) version.
 #
 # Author: Xavier Delaruelle <xavier.delaruelle@cea.fr>
 # Compatibility: Modules v4.2
