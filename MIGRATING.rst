@@ -171,6 +171,39 @@ modulefiles (see :envvar:`MODULES_MCOOKIE_CHECK`).
 See the :ref:`reduce-io-load` cookbook recipe to learn additional features of
 Modules that could be leveraged to lower the number of I/O operations.
 
+Shell command completion
+------------------------
+
+New modulefile commands :mfcmd:`complete` and :mfcmd:`uncomplete` are added to
+get the ability to respectively define and unset command completion. *bash*,
+*tcsh* and *fish* shells are supported.
+
+.. parsed-literal::
+
+    :ps:`>` module display foo
+    -------------------------------------------------------------------
+    :sgrhi:`/path/to/modulefiles/foo/1.0`:
+
+    :sgrcm:`append-path`     PATH /path/to/foo-1.0/bin
+    :sgrcm:`complete`        fish foo {-s V -l version --description 'Command version'}
+    :sgrcm:`complete`        fish foo {-s h -l help --description 'Command help'}
+    -------------------------------------------------------------------
+    :ps:`>` module load foo
+    :ps:`>` foo -<TAB>
+    -h  --help  (Command help)  -V  --version  (Command version)
+
+:subcmd:`sh-to-mod` sub-command and :mfcmd:`source-sh` modulefile command have
+also been updated to track shell completion changes.
+
+.. parsed-literal::
+
+    :ps:`$` module sh-to-mod bash /path/to/foo-1.0/share/setup-env.sh
+    #%Module
+    :sgrcm:`complete`        bash foo {-o default -F _foo}
+    :sgrcm:`append-path`     PATH /path/to/foo-1.0/bin
+    :sgrcm:`set-function`    _foo {
+        ...bash completion code...}
+
 
 v5.0
 ====
