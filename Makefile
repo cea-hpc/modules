@@ -311,6 +311,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@implicitrequirement@|$(setimplicitrequirement)|g' \
 	-e 's|@availindepth@|$(setavailindepth)|g' \
 	-e 's|@silentshdbgsupport@|$(setsilentshdbgsupport)|g' \
+	-e 's|@noglobevalshells@|$(noglobevalshells)|g' \
 	-e 's|@ml@|$(setml)|g' \
 	-e 's|@setshellstartup@|$(setsetshellstartup)|g' \
 	-e 's|@mcookieversioncheck@|$(setmcookieversioncheck)|g' \

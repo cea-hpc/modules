@@ -39,7 +39,7 @@ searchmatch modulepath loadedmodules quarantinevars wa277 advversspec ml \
 windowssupport nearlyforbiddendays implicitrequirement tagabbrev \
 tagcolorname mcookieversioncheck availoutput availterseoutput listoutput \
 listterseoutput editor variantshortcut bashcompletiondir fishcompletiondir \
-zshcompletiondir"
+zshcompletiondir noglobevalshells"
 libarglist=
 
 # flags to know if argument has been specified on command-line
@@ -127,6 +127,7 @@ variantshortcut=
 bashcompletiondir=
 fishcompletiondir=
 zshcompletiondir=
+noglobevalshells='sh:bash:ksh'
 
 
 # check if output/error channels are attached to terminal
@@ -391,6 +392,12 @@ Optional Packages:
                           SHORTCUTLIST are separated by \`:') [$variantshortcut]
   --with-editor=BIN       name or full path of default editor program to use to
                           edit modulefiles [$editor]
+  --with-noglob-eval-shells=LIST
+                          for the listed shells disable pathname expansion in
+                          module shell function to evaluate shell code
+                          produced by modulecmd.tcl. shells accepted in LIST
+                          are \`sh', \`bash', \`ksh' and \`zsh' (elements in
+                          LIST are separated by \`:') [$noglobevalshells]
   --with-modulepath=PATHLIST
                           default modulepaths to set in default configuration
                           file to be enabled (each path in PATHLIST should
@@ -760,6 +767,18 @@ for arg in "$@"; do
       variantshortcut=$(get_package_value "$arg") ;;
    --with-editor=*|--without-editor)
       editor=$(get_package_value "$arg") ;;
+   --with-noglob-eval-shells*|--without-noglob-eval-shells)
+      noglobevalshells=$(get_package_value "$arg" "$noglobevalshells") ;
+      allowedval=" sh bash ksh zsh " ;
+      ORIG_IFS=$IFS ;
+      IFS=: ;
+      for val in $noglobevalshells; do
+         if [ "${allowedval// $val /}" = "$allowedval" ]; then
+            echo_error "Bad value '$val' set in option \`--with-noglob-eval-shells'"\
+               "Values allowed in list are:$allowedval"
+         fi ;
+      done ;
+      IFS=$ORIG_IFS ;;
    --with-modulepath=*|--without-modulepath)
       modulepath=$(get_package_value "$arg") ;;
    --with-loadedmodules=*|--without-loadedmodules)
