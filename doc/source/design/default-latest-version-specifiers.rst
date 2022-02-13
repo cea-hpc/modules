@@ -38,7 +38,7 @@ Specification
 
     - otherwise an error is raised
 
-- ``default`` or ``latest`` version specifiers can also be specified with the traditionnal ``mod/version`` syntax
+- ``default`` or ``latest`` version specifiers can also be specified with the traditional ``mod/version`` syntax
 
     - for instance ``mod/default`` or ``mod/latest``
 

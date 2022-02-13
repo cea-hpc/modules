@@ -6,7 +6,7 @@ Use new features without breaking old module command
 When working on large infrastructure, sometimes the ``module`` command is not
 deployed with the same version everywhere. You may have for instance some old
 cluster that still uses Modules version 3.2 and a newer supercomputer where
-the lastest version of Modules 4 is available. In such situation it may
+the latest version of Modules 4 is available. In such situation it may
 however be desired to share the same modulefile catalog.
 
 People providing software that build software and generate the modulefiles to

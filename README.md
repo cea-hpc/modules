@@ -139,7 +139,7 @@ Online documentation:
 
 > https://modules.readthedocs.io
 
-GitHub source respository:
+GitHub source repository:
 
 > https://github.com/cea-hpc/modules
 

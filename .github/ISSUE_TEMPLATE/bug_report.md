@@ -29,7 +29,7 @@ $ cat path/to/modulepath/.modulerc
 <!-- A clear and concise description of what you expected to happen. -->
 
 ### Error and debugging information
-<!-- Provide the outout you obtain when running in debug mode the commands
+<!-- Provide the output you obtain when running in debug mode the commands
     from the step to reproduce. -->
 
 ```console
@@ -39,7 +39,7 @@ $ module --debug <command2> <arguments>
 ```
 
 ### Modules version and configuration
-<!-- Provide the outout of the command below -->
+<!-- Provide the output of the command below -->
 
 ```console
 $ module --version

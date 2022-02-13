@@ -273,7 +273,7 @@ you basically just need to:
 #. Rename the standard Environment Modules ``modulecmd`` file (in the ``bin`` subdirectory
    under the installation root) to ``modulecmd.wrapped``. (It is recommended that you do this
    in a copy of your production installation, or better yet, in a new install of the 3.x Environment
-   Modules (as Flavours has been developped for Modules 3.x))
+   Modules (as Flavours has been developed for Modules 3.x))
 #. Copy the ``modulecmd.wrapper`` file from Flavours to the ``bin`` subdirectory above. Make sure
    the ``modulecmd.wrapper`` file is executable.
 #. Symlink ``modulecmd.wrapper`` to ``modulecmd``
@@ -352,7 +352,7 @@ the packages satisfying the prereqs. The resultant path is composed of:
 * the value from ``flavours revision``
 * directory separator (``/``)
 * a ``prefix`` created by concatenating the package names satisfying the prereqs, in order.
-  The package name and version will be separated by a hypen (-), as will the different
+  The package name and version will be separated by a hyphen (-), as will the different
   components.
 
 So if ``flavours root`` was set to ``/local/software/foo/1.7``, ``revision`` to 1, and the
@@ -1599,7 +1599,7 @@ to ``LoadedCompilerMatches`` and ``LoadedMPIMatches`` (instructing them to
 to a ``prereq`` on the requesting compiler/MPI module) depends on whether
 one is using a 3.x or 4.x version of Environment Modules. Due to this,
 we provide two modulefile trees, one for 3.x and one for 4.x; they are
-basicaly identical except for that matter. This leads to slightly
+basically identical except for that matter. This leads to slightly
 different instructions on how to use the examples, depending on which
 version of Environment Modules is being used, namely:
 
@@ -1759,7 +1759,7 @@ Modulepath-based Strategy
 -------------------------
 
 This strategy makes use of the ability of modules to support multiple
-directories in the ``MODULEPATH`` environment variable. Everytime a module is loaded
+directories in the ``MODULEPATH`` environment variable. Every time a module is loaded
 on which other modules might depend, a new path is added to ``MODULEPATH``
 containing the modulefiles which depend on the newly added module.
 
@@ -2405,7 +2405,7 @@ do something like:
 .. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4/foo-avail1.out
     :language: console
 
-Similary, to see the builds of foo using gcc compilers, one can do something like:
+Similarly, to see the builds of foo using gcc compilers, one can do something like:
 
 .. literalinclude:: ../../example/compiler-etc-dependencies/example-sessions/modulerc/modules4/foo-avail2.out
     :language: console
@@ -2557,7 +2557,7 @@ manually select a bar version compatible with both of these, as these strategies
 do intelligent defaulting of versions.
 
 For the :ref:`Modulepath-based_strategy`, we added the SIMD label as a final component to the
-modulename, but the defaulting was somewhat simple (e.g. alway default to lowest SIMD).
+modulename, but the defaulting was somewhat simple (e.g. always default to lowest SIMD).
 
 With the :ref:`Modulerc-based_strategy`, we added an additional naming scheme for the bar modulefiles,
 so they can start with bar/BARVERSION, or bar/COMPILER_FAMILY, or bar/SIMD_LEVEL. This not

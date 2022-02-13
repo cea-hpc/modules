@@ -160,7 +160,7 @@ Evaluating
 
     - to ensure no usage of this variant name will be made before its special mechanism availability
 
-- special variant ``version`` is instanciated as variable ``ModuleVariant(version)`` if declared
+- special variant ``version`` is instantiated as variable ``ModuleVariant(version)`` if declared
 
     - will be set to value that may be specified with the ``@`` shortcut
     - will initially work as any other variant (accepted list of value, default value)
