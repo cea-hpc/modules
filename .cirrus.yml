@@ -141,17 +141,18 @@ task:
   container:
     matrix:
       image: centos:centos7
-      image: centos:centos8
+      image: rockylinux:8
     cpu: 1
     memory: 2G
   reqinstall_script: |
     . /etc/os-release
-    if [ $VERSION_ID -eq 8 ]; then
-      sed -i 's|enabled=0|enabled=1|' /etc/yum.repos.d/CentOS-Linux-PowerTools.repo
+    # glob comparison as VERSION_ID equals 8.X on Rocky
+    if [[ $VERSION_ID == 8* ]]; then
+      sed -i 's|enabled=0|enabled=1|' /etc/yum.repos.d/Rocky-PowerTools.repo
       # specific update of libarchive is required for CMake on EL8.3
       yum update -y libarchive
     fi
-    if [ $VERSION_ID -eq 8 ]; then
+    if [[ $VERSION_ID == 8* ]]; then
       PYTHON_PKG='python36'
       SPHINX_PKG='python3-sphinx'
     else
@@ -161,7 +162,7 @@ task:
     yum install -y epel-release
     yum install -y tcsh zsh ksh tcl perl $PYTHON_PKG ruby cmake R-core make wget perl $SPHINX_PKG git dejagnu man-db rpm-build bzip2 autoconf gcc tcl-devel
     yum install -y which xorg-x11-server-utils xorg-x11-server-Xvfb
-    if [ $VERSION_ID -lt 8 ]; then
+    if [[ $VERSION_ID != 8* ]]; then
       wget -O /etc/yum.repos.d/shells_fish_release_2.repo http://download.opensuse.org/repositories/shells:fish:release:2/CentOS_${VERSION_ID}/shells:fish:release:2.repo
     fi
     yum install -y fish
