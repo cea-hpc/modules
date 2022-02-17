@@ -80,7 +80,7 @@ Specification
 
     - Visibility is however enabled if hidden module is specifically searched
 
-        - On all context hidden module *mod/1.0* is included in result for instance if *mod/1.0* or *mod@1.0,2.0* are specficied
+        - On all context hidden module *mod/1.0* is included in result for instance if *mod/1.0* or *mod@1.0,2.0* are specified
         - But hidden module *mod/1.0* is excluded from result if *mod@:2.0* or *mod@1:* are specified
         - And is also excluded from result if *mod* or *mod/** are specified when *mod/1.0* is set default
         - Unless if search is made to select one module since in this context a *mod* search query is equivalent to *mod/default*

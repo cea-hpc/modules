@@ -26,7 +26,7 @@ Specification
     - as modulefile targeted by symbol or alias does not inherit their tags
     - so a sticky or super-sticky tag set on a symbolic version or alias has no effect
 
-- Sticky module can be swapped with another version from same module when stickness is defined over module parent name
+- Sticky module can be swapped with another version from same module when stickiness is defined over module parent name
 
     - For instance if stickyness is defined over module *foo*, *foo/1.0* can be swapped with *foo/2.0*
     - Such swap could occur from a ``restore`` or a ``switch`` sub-command
@@ -37,7 +37,7 @@ Specification
         - it means stickyness applies to the module versions
         - thus they cannot be swapped by another version
 
-    - In case stickness is defined over module parent name and another ``module-tag`` defines stickyness over specific module version name
+    - In case stickiness is defined over module parent name and another ``module-tag`` defines stickyness over specific module version name
 
         - it means stickyness applies to the module version
         - thus these versions targeted specifically with ``module-tag`` cannot be swapped by another version from same module
