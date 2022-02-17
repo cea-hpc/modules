@@ -1,11 +1,11 @@
-Brief overview of whats here:
+Brief overview of what's here:
 	template: contains a template user we use at the University of
-		Minnesota.  It has initalization files for both bash
+		Minnesota.  It has initialization files for both bash
 		and tcsh.
 
 	modulefiles: contains the basic modulefiles we use at the University
 		of Minnesota, for our template user.  These are not being
-		kept upto date, but they are some simple examples to get
+		kept up to date, but they are some simple examples to get
 		you started.
 
 	scripts:
