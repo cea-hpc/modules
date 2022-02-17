@@ -229,7 +229,7 @@ Modules 5.0.0 (2021-09-12)
   of :instopt:`--with-initconf-in` option). Configuration files were
   previously searched in both locations.
 * Install: remove installation option ``--enable-compat-version``.
-  Compatiblity version co-installation is discontinued. :command:`switchml`
+  Compatibility version co-installation is discontinued. :command:`switchml`
   shell function and :envvar:`MODULES_USE_COMPAT_VERSION` are thus removed as
   well.
 * Testsuite: introduce the non-regression quick test mode. When the
@@ -598,7 +598,7 @@ Modules 4.7.0 (2021-02-19)
   given state.
 * Remove the pre-definition of runtime states with no specific property. These
   basic states are defined on-the-fly which implied they are not reported on a
-  :subcmd:`module config --dump-state<config>` command unless if instanciated.
+  :subcmd:`module config --dump-state<config>` command unless if instantiated.
 * Introduce the ``loaded`` symbolic version among advanced version specifiers
   (e.g. ``foo@loaded``) to designate the currently loaded version of specified
   module. (fix issue #366)
@@ -1961,7 +1961,7 @@ Modules 4.2.0 (2018-10-18)
   (fix issue#189)
 * Register all alternative names of loaded modules in environment with
   ``MODULES_LMALTNAME`` variable. These names correspond to the symbolic
-  versions and aliases resolving to the loaded modules. Helps to consistenly
+  versions and aliases resolving to the loaded modules. Helps to consistently
   solve ``conflict`` or ``prereq`` constraints set over these alternative
   names. (fix issue#143 / see
   :ref:`v42-consistency-module-load-unload-commands` section in MIGRATING
@@ -1996,7 +1996,7 @@ Modules 4.2.0 (2018-10-18)
   modulefile does not produce an error anymore. (fix issue#199)
 * Report error raised from modulefile evaluation as ``ERROR`` rather
   ``WARNING``, like when a conflict constraint is hit. Moreover this kind of
-  evaluation error is now silenced on global evaluation like when proceding
+  evaluation error is now silenced on global evaluation like when processing
   ``avail`` or ``search`` sub-commands.
 * Record messages to report them by block on when processing a ``load`` or an
   ``unload`` modulefile evaluation to improve readability on these evaluating
