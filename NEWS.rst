@@ -141,6 +141,13 @@ Modules 5.1.0 (not yet released)
   :subcmd:`sh-to-mod` sub-command and :mfcmd:`source-sh` modulefile command.
 * Fix typos found in code, tests and documentation. (contribution from Dimitri
   Papadopoulos Orfanos)
+* Add the :mconfig:`noglob_eval_shells` configuration option to list the shell
+  for which pathname expansion should be disabled for the time of the
+  evaluation of shell code in :command:`module` shell function. Installation
+  option :instopt:`--with-noglob-eval-shells` controls the default value of
+  :mconfig:`noglob_eval_shells` configuration option. If not set at
+  installation time, option is enabled for *sh*, *bash* and *ksh* shells by
+  default.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 
