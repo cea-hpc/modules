@@ -36,7 +36,7 @@ Using the ``break`` Tcl command to stop the modulefile evaluation does not
 require to install a recent version of Modules to get a basic sticky
 mechanism.
 
-To get a smoother sticky mechanism with two different level of stickyness,
+To get a smoother sticky mechanism with two different level of stickiness,
 allowing to reload environment or to swap a sticky module by another
 version of the same module name, the *sticky* and *super-sticky* module tags
 have been introduced in Modules v4.7.
@@ -50,7 +50,7 @@ Modulefile can also be defined ``super-sticky`` by applying the corresponding
 module tag. *Super-sticky* module cannot be unloaded even if the unload action
 is forced. It can only be unloaded if the module reloads afterward.
 
-In case the stickyness applies to the generic module name (and does not target
+In case the stickiness applies to the generic module name (and does not target
 a specific module version or version-set), one version of the sticky or
 super-sticky module can be swapped by another version of this same module.
 
@@ -117,7 +117,7 @@ modulefile command in :file:`compiler/.modulerc` file:
 
     module-tag sticky compiler
 
-As stickyness is defined over the generic *compiler* name, users can switch
+As stickiness is defined over the generic *compiler* name, users can switch
 between available compiler flavors:
 
 .. parsed-literal::

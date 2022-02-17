@@ -890,7 +890,7 @@ load or unload, the new verbosity level ``verbose2`` can be used (with
 Sticky modules
 --------------
 
-Module stickyness is introduced, in a similar fashion than on the `Lmod`_
+Module stickiness is introduced, in a similar fashion than on the `Lmod`_
 project, to allow to glue modules to the loaded environment. A sticky module
 cannot be unloaded, unless if the unload action is forced or if the module
 reloads after being unloaded.
@@ -946,7 +946,7 @@ Modulefiles targeted by a ``sticky`` or a ``super-sticky`` tag are colored on
 applies. If colored output is disabled a tag abbreviation is reported along
 module designation (respectively ``S`` and ``sS``).
 
-In case the stickyness applies to the generic module name (and does not target
+In case the stickiness applies to the generic module name (and does not target
 a specific module version or version-set), one version of the sticky or
 super-sticty module can be swapped by another version of this same module:
 

@@ -1860,7 +1860,7 @@ Sticky modules
 ^^^^^^^^^^^^^^
 
 Modules are said *sticky* when they cannot be unloaded (they stick to the
-loaded environment). Two kind of stickyness can be distinguished:
+loaded environment). Two kind of stickiness can be distinguished:
 
 * ``sticky`` module: cannot be unloaded unless if the unload is forced or if
   the module is reloaded after being unloaded
@@ -1872,11 +1872,11 @@ Modules are designated sticky by associating them the ``sticky`` or the
 ``super-sticky`` :ref:`module tag<Module tags>` with the :mfcmd:`module-tag`
 modulefile command.
 
-When stickyness is defined over the generic module name (and not over a
+When stickiness is defined over the generic module name (and not over a
 specific module version, a version list or a version range), sticky or
 super-sticky module can be swapped by another version of module. For instance
 if the ``sticky`` tag is defined over *foo* module, loaded module *foo/1.2*
-can be swapped by *foo/2.0*. Such stickyness definition means one version of
+can be swapped by *foo/2.0*. Such stickiness definition means one version of
 module should stay loaded whatever version it is.
 
 .. only:: html

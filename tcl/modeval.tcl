@@ -724,7 +724,7 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist {force 0}\
 
 # test if loaded module 'mod' is sticky and if stickiness definition applies
 # to one of the reloading module
-proc isStickynessReloading {mod reloading_modlist {tag sticky}} {
+proc isStickinessReloading {mod reloading_modlist {tag sticky}} {
    set res 0
    set modname [getModuleNameAndVersFromVersSpec $mod]
    if {[isModuleTagged $modname $tag 1]} {
