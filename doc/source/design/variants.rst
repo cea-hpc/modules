@@ -755,7 +755,7 @@ Comparing module specification including variants
     - ``cmdModuleSwitch``
     - ``getModules``
 
-        - Used by ``cmdModuleAvail``, ``getPathToModule``, ``isStickynessReloading``,
+        - Used by ``cmdModuleAvail``, ``getPathToModule``, ``isStickinessReloading``,
           ``cmdModulePaths``, ``cmdModuleSearch`` and ``cmdModuleAliases``
 
     - ``getPathToModule``
