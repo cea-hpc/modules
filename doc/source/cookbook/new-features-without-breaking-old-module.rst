@@ -111,4 +111,4 @@ current user::
 .. note::
 
    As the new Tcl variables are introduced in Modules 4.7, the use of the new
-   ``uergroups`` sub-command will only be triggered starting Modules 4.7.
+   ``usergroups`` sub-command will only be triggered starting Modules 4.7.

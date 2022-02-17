@@ -42,8 +42,8 @@ Specification
     - like *soft*, *soFT*, *SoFt*, *SOFT* filenames
     - query *SOFT* returns *SOFT* (exact match is returned among possibilities)
     - query *SoFt* returns *SoFt* (exact match is returned among possibilities)
-    - query *SOft* returns *soft* (highest dictionarily-sorted match is returned among possibilities)
-    - query *soFt* returns *soft* (highest dictionarily-sorted match is returned among possibilities)
+    - query *SOft* returns *soft* (highest lexicographically sorted match is returned among possibilities)
+    - query *soFt* returns *soft* (highest lexicographically sorted match is returned among possibilities)
 
 - When icase is enabled for search context it applies to
 

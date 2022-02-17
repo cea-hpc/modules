@@ -42,7 +42,7 @@ Specification
 
 - If :mconfig:`implicit_default` is disabled
 
-    - it makes ``extended_default`` inoperant if queried version does not include a defined default
+    - it makes ``extended_default`` inoperative if queried version does not include a defined default
     - even if only one modulefile matches query
     - with situation described above query soft/1 returns soft/1.1
     - but query soft/2 returns an error as no default is found among version 2 modulefiles

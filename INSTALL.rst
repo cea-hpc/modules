@@ -267,7 +267,7 @@ features to enable or disable. You can also get a description of these
 options by typing ``./configure --help``.
 
 Fine tuning of the installation directories (the default value for each option
-is displayed within brakets):
+is displayed within brackets):
 
 .. instopt:: --bindir=DIR
 
