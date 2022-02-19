@@ -158,6 +158,30 @@ foreach shell $shell_list {
 unsetenv_var TESTSUITE_COMPLETE
 
 
+# test noglob eval on sh-kind shells
+foreach shell $shell_list {
+   if {$shell in {sh bash ksh zsh}} {
+      if {$shell in [split $install_noglobevalshells :] || $shell eq {zsh}} {
+         set tsout {foo}
+         if {$shell eq {sh} && $sh_strict} {
+            set tserr {.*eval: \[\[: not found.*}
+         } else {
+            set tserr {}
+         }
+      } else {
+         if {$shell eq {sh} && $sh_strict} {
+            set tsout {foo}
+            set tserr {.*eval: \[\[: not found.*}
+         } else {
+            set tsout {}
+            set tserr {.*eval: .*syntax error.*(foo: .*not found.*)?}
+         }
+      }
+      testouterr_cmd_re $shell "module use \"$testsuite_modpath.3\"\; module load noglobeval/1.0\; foo" $tsout $tserr
+   }
+}
+
+
 #
 #  Clean up variables used in this test case
 #
