@@ -1164,27 +1164,38 @@ proc get-env {var {valifunset {}}} {
    }
 }
 
+proc isProtectedEnvVar {var} {
+   # return if var is protected by protected_envvars config
+   return [expr {$var in [split [getConf protected_envvars] :]}]
+}
+
 proc set-env {var val} {
    set mode [currentState mode]
    reportDebug "$var=$val"
 
-   # an empty string value means unsetting variable on Windows platform, so
-   # call unset-env to ensure variable will not be seen defined yet raising
-   # an error when trying to access it
-   if {[getState is_win] && $val eq {}} {
-      unset-env $var
+   if {![isProtectedEnvVar $var]} {
+      # an empty string value means unsetting variable on Windows platform, so
+      # call unset-env to ensure variable will not be seen defined yet raising
+      # an error when trying to access it
+      if {[getState is_win] && $val eq {}} {
+         unset-env $var
+      } else {
+         interp-sync-env set $var $val
+
+         # variable is not cleared anymore if set again
+         if {[info exists ::g_clearedEnvVars($var)]} {
+            unset ::g_clearedEnvVars($var)
+         }
+
+         # propagate variable setup to shell environment on load and unload
+         # mode
+         if {$mode eq {load} || $mode eq {unload}} {
+            set ::g_stateEnvVars($var) new
+         }
+      }
    } else {
-      interp-sync-env set $var $val
-
-      # variable is not cleared anymore if set again
-      if {[info exists ::g_clearedEnvVars($var)]} {
-         unset ::g_clearedEnvVars($var)
-      }
-
-      # propagate variable setup to shell environment on load and unload mode
-      if {$mode eq {load} || $mode eq {unload}} {
-         set ::g_stateEnvVars($var) new
-      }
+      reportWarning "Modification of protected environment variable $var\
+         ignored"
    }
 }
 
@@ -1200,22 +1211,28 @@ proc unset-env {var {internal 0} {val {}}} {
    set mode [currentState mode]
    reportDebug "$var (internal=$internal, val=$val)"
 
-   # clear value instead of unset it not to break variable later reference
-   # in modulefile. clear whether variable set or not to get a later usage
-   # consistent behavior whatever env is setup
-   if {!$internal} {
-      reset-to-unset-env $var $val
-   # internal variables (like ref counter var) are purely unset if they exists
-   } elseif {[info exists ::env($var)]} {
-      interp-sync-env unset $var
-      set intwasset 1
-   }
+   if {![isProtectedEnvVar $var]} {
+      # clear value instead of unset it not to break variable later reference
+      # in modulefile. clear whether variable set or not to get a later usage
+      # consistent behavior whatever env is setup
+      if {!$internal} {
+         reset-to-unset-env $var $val
+      # internal variables (like ref counter var) are purely unset if they
+      # exists
+      } elseif {[info exists ::env($var)]} {
+         interp-sync-env unset $var
+         set intwasset 1
+      }
 
-   # propagate deletion in any case if variable is public and for internal
-   # one only if variable was set
-   if {($mode eq {load} || $mode eq {unload}) && (!$internal ||\
-      [info exists intwasset])} {
-      set ::g_stateEnvVars($var) del
+      # propagate deletion in any case if variable is public and for internal
+      # one only if variable was set
+      if {($mode eq {load} || $mode eq {unload}) && (!$internal ||\
+         [info exists intwasset])} {
+         set ::g_stateEnvVars($var) del
+      }
+   } else {
+      reportWarning "Modification of protected environment variable $var\
+         ignored"
    }
 }
 
