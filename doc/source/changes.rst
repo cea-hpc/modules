@@ -879,6 +879,8 @@ The following environment variables appeared on Modules 5.
 |            | :envvar:`__MODULES_LMEXTRATAG`,                                 |
 |            | :envvar:`MODULES_COLLECTION_PIN_TAG`                            |
 +------------+-----------------------------------------------------------------+
+| 5.2        | :envvar:`MODULES_PROTECTED_ENVVARS`                             |
++------------+-----------------------------------------------------------------+
 
 Modules Specific Tcl Commands
 """""""""""""""""""""""""""""
@@ -955,4 +957,6 @@ The following Modules configuration option has been introduced on Modules 5.
 +------------+-----------------------------------------------------------------+
 | 5.1        | :mconfig:`redirect_output`, :mconfig:`mcookie_check`,           |
 |            | :mconfig:`collection_pin_tag`                                   |
++------------+-----------------------------------------------------------------+
+| 5.2        | :mconfig:`protected_envvars`                                    |
 +------------+-----------------------------------------------------------------+

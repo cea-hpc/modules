@@ -1001,6 +1001,21 @@ Module Sub-Commands
   sub-command when changing this configuration option from its default value.
   See :envvar:`MODULES_PAGER` description for details.
 
+ .. mconfig:: protected_envvars
+
+  Prevents any modification of listed environment variables (colon `:`
+  separator).
+
+  This configuration option is unset by default. The
+  :envvar:`MODULES_PROTECTED_ENVVARS` environment variable is defined by
+  :subcmd:`config` sub-command when changing this configuration option from
+  its default value. See :envvar:`MODULES_PROTECTED_ENVVARS` description for
+  details.
+
+  .. only:: html
+
+     .. versionadded:: 5.2
+
  .. mconfig:: quarantine_support
 
   Defines if code for quarantine mechanism support should be generated in
@@ -3174,6 +3189,24 @@ ENVIRONMENT
  .. only:: html
 
     .. versionadded:: 4.1
+
+.. envvar:: MODULES_PROTECTED_ENVVARS
+
+ A colon separated list of environment variable names that should not be
+ modified by any modulefile command.
+
+ Prevents modifications by :mfcmd:`append-path`, :mfcmd:`prepend-path`,
+ :mfcmd:`remove-path`, :mfcmd:`setenv` and :mfcmd:`unsetenv`. When these
+ modulefile commands attempt to modify a protected environment variable,
+ a warning message is emitted and modification is ignored.
+
+ This environment variable value supersedes the default value set in the
+ :mconfig:`protected_envvars` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 5.2
 
 .. envvar:: MODULES_QUARANTINE_SUPPORT
 
