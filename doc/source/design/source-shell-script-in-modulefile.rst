@@ -206,4 +206,9 @@ Specification
     - If completion definition is partial for a command when loading modulefile, on fish shell previous completion definition is cleared right before setting those defined in modulefile
     - When a completion definition difference is spotted after script evaluation, new completion definition is set which means previous definition is cleared (either intrinsically by shell or for fish due to the definition clear specifically added)
 
+- Fish shell allows nested definition of shell functions
+
+    - A separator string ``%ModulesSubShToMod%`` is printed between each function definition not to get main and nested functions mixed up
+    - Such sub-separator is only applied on fish shell
+
 - **FUTURE**: this feature may be extended to translate environment changes made by tools like Spack, Lmod or pkg-config. It may provide this way bridges between different realms.

@@ -1887,6 +1887,7 @@ proc is-avail {args} {
 
 proc execShAndGetEnv {shell script args} {
    set sep {%ModulesShToMod%}
+   set subsep {%ModulesSubShToMod%}
    set shdesc [list $script {*}$args]
    set sherr 0
    set shellopts [list]
@@ -1978,8 +1979,8 @@ proc execShAndGetEnv {shell script args} {
       fish {
          # exclude builtins and fish-specific functions from search to reduce
          # the number of functions to parse
-         set getfunc {set funcout (string match -r -v $funcfilter (functions\
-            -n) | while read f; functions $f; end);}
+         set getfunc "set funcout (string match -r -v \$funcfilter (functions\
+            -n) | while read f; functions \$f; echo '$subsep'; end);"
          set command "set -xgL; echo '$sep'; set funcfilter (string join '|'\
             (string replace -r '(\\\[|\\.)' '\\\\\\\\\\\$1' (builtin -n)))\\|fish\\.\\*;\
             $getfunc; $getfunc; string split \$funcout; echo '$sep'; string\
@@ -1990,11 +1991,11 @@ proc execShAndGetEnv {shell script args} {
             complete; echo '$sep'; pwd"
          set varre {^(\S+?\M) ?'?(.*?)'?$}
          # exclude alias from function list
-         set funcre {^function (\S+?)(?: [^\n]*?--description\
-            (?!'?alias)[^\n]+)?\n(.+?)\s*\nend$}
+         set funcre "^function (\\S+?)(?: \[^\\n\]*?--description\
+            (?!'?alias)\[^\\n\]+)?\\n(.+?)\\s*\\nend\\n$subsep\$"
          # fetch aliases from available functions
-         set aliasre {^function (\S+?) [^\n]*?--description\
-            '?alias[^\n]+\n\s*(.+?)\s*\nend$}
+         set aliasre "^function (\\S+?) \[^\\n\]*?--description\
+            '?alias\[^\\n\]+\\n\\s*(.+?)\\s*\\nend\\n$subsep\$"
          set compre {complete ((?:-\S+? )*?)(?:(?:-c|--command)\
             )?([^-]\S+)(.*?)$}
          set comprevar [list match valpart1 name valpart2]
