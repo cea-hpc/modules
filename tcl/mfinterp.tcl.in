@@ -1981,14 +1981,14 @@ proc execShAndGetEnv {shell script args} {
          # the number of functions to parse
          set getfunc "set funcout (string match -r -v \$funcfilter (functions\
             -n) | while read f; functions \$f; echo '$subsep'; end);"
-         set command "set -xgL; echo '$sep'; set funcfilter (string join '|'\
-            (string replace -r '(\\\[|\\.)' '\\\\\\\\\\\$1' (builtin -n)))\\|fish\\.\\*;\
-            $getfunc; $getfunc; string split \$funcout; echo '$sep'; string\
-            split \$funcout; echo '$sep'; complete; echo '$sep'; pwd; echo\
-            '$sep'; source [listTo shell $shdesc] 2>&1; or exit \$status;\
-            echo '$sep'; set -xgL; echo '$sep'; $getfunc; string split\
+         set command "set -xgL; echo '$sep'; set funcfilter \\^\\((string\
+            join '|' (string replace -r '(\\\[|\\.)' '\\\\\\\\\\\$1' (builtin\
+            -n)))\\|fish\\.\\*\\)\\\$; $getfunc; $getfunc; string split\
             \$funcout; echo '$sep'; string split \$funcout; echo '$sep';\
-            complete; echo '$sep'; pwd"
+            complete; echo '$sep'; pwd; echo '$sep'; source [listTo shell\
+            $shdesc] 2>&1; or exit \$status; echo '$sep'; set -xgL; echo\
+            '$sep'; $getfunc; string split \$funcout; echo '$sep'; string\
+            split \$funcout; echo '$sep'; complete; echo '$sep'; pwd"
          set varre {^(\S+?\M) ?'?(.*?)'?$}
          # exclude alias from function list
          set funcre "^function (\\S+?)(?: \[^\\n\]*?--description\

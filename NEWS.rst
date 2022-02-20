@@ -150,6 +150,8 @@ Modules 5.1.0 (not yet released)
   default.
 * Update the :subcmd:`sh-to-mod` and :mfcmd:`source-sh` mechanisms to support
   nested function definition on fish shell.
+* Fix the :subcmd:`sh-to-mod` and :mfcmd:`source-sh` mechanisms to correctly
+  detect functions with a ``_`` character in their name on fish shell.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 
