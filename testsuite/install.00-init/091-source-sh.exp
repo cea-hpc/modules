@@ -1,0 +1,51 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:       modules.00-init/%M%
+#   Revision:       %I%
+#   First Edition:  2022/02/21
+#   Last Mod.:      %U%, %G%
+#
+#   Authors:        Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:    Testuite testsequence
+#   Command:
+#   Sub-Command:
+#
+#   Comment:    %C{
+#           Check source-sh modulefile comman against external software
+#       }C%
+#
+##############################################################################
+
+# test source-sh against Spack setup-env scripts if found installed for test
+if {[file exists spack/share/spack/setup-env.sh]} {
+
+if {{bash} in $shell_list} {
+   set tsout "function\nenvironment-modules"
+   testall_cmd bash "module use \"$testsuite_modpath.3\"\; module load source-sh/spack\; type -t _spack_pathadd && spack list environment-modules" $tsout {} 0
+}
+
+if {{tcsh} in $shell_list} {
+   # not working on tcsh as variables used in spack alias are local variable, not environment variable
+   set tserr "_spack_share_dir: Undefined variable."
+   testall_cmd tcsh "module use \"$testsuite_modpath.3\"\; module load source-sh/spack\; spack list environment-modules" {} $tserr 1
+}
+
+if {{fish} in $shell_list} {
+   set tsout "environment-modules"
+   testall_cmd fish "module use \"$testsuite_modpath.3\"\; module load source-sh/spack\; functions -q spack_pathadd\; and spack list environment-modules" $tsout {} 0
+}
+
+} else {
+   send_user "\tSkipping source-sh tests over Spack scripts\n"
+}
+
+#
+#  Clean up variables used in this test case
+#
+
+reset_test_env
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
