@@ -27,6 +27,17 @@ if {{bash} in $shell_list} {
    testall_cmd bash "module use \"$testsuite_modpath.3\"\; module load source-sh/spack\; type -t _spack_pathadd && spack list environment-modules" $tsout {} 0
 }
 
+if {{ksh} in $shell_list} {
+   set tserr "_spack_pathadd()\nenvironment-modules"
+   # need to manually specify SPACK_ROOT prior script evaluation for ksh
+   testall_cmd ksh "module use \"$testsuite_modpath.3\"\; export SPACK_ROOT=spack\; module load source-sh/spack\; typeset +f _spack_pathadd && spack list environment-modules" $tserr {} 0
+}
+
+if {{zsh} in $shell_list} {
+   set tsout "_spack_pathadd\nenvironment-modules"
+   testall_cmd zsh "module use \"$testsuite_modpath.3\"\; module load source-sh/spack\; typeset +f _spack_pathadd && spack list environment-modules" $tsout {} 0
+}
+
 if {{tcsh} in $shell_list} {
    # not working on tcsh as variables used in spack alias are local variable, not environment variable
    set tserr "_spack_share_dir: Undefined variable."
