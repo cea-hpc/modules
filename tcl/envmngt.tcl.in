@@ -738,23 +738,23 @@ alias ml 'module ml \!*' ;}
    for _mlv in \${${wsplit}MODULES_RUN_QUARANTINE:-}; do"
             append fdef {
       if [ "${_mlv}" = "${_mlv##*[!A-Za-z0-9_]}" -a "${_mlv}" = "${_mlv#[0-9]}" ]; then
-         if [ -n "`eval 'echo ${'$_mlv'+x}'`" ]; then
-            _mlre="${_mlre:-}__MODULES_QUAR_${_mlv}='`eval 'echo ${'$_mlv'}'`' ";
+         if [ -n "$(eval 'echo ${'$_mlv'+x}')" ]; then
+            _mlre="${_mlre:-}__MODULES_QUAR_${_mlv}='$(eval 'echo ${'$_mlv'}')' ";
          fi;
          _mlrv="MODULES_RUNENV_${_mlv}";
-         _mlre="${_mlre:-}${_mlv}='`eval 'echo ${'$_mlrv':-}'`' ";
+         _mlre="${_mlre:-}${_mlv}='$(eval 'echo ${'$_mlrv':-}')' ";
       fi;
    done;
    if [ -n "${_mlre:-}" ]; then
       _mlre="${_mlre:-}__MODULES_QUARANTINE_SET=1 ";}
-            append fdef "\n      eval \"`eval \${${wsplit}_mlre} $tclshbin\
-               $::argv0 [getState shell] '\\\"\$@\\\"'`\";
+            append fdef "\n      eval \"\$(eval \${${wsplit}_mlre} $tclshbin\
+               $::argv0 [getState shell] '\"\$@\"')\";
    else
-      eval \"`$tclshbin $::argv0 [getState shell] \\\"\$@\\\"`\";
+      eval \"\$($tclshbin $::argv0 [getState shell] \"\$@\")\";
    fi;"
          } else {
             append fdef "
-   eval \"`$tclshbin $::argv0 [getState shell] \\\"\$@\\\"`\";"
+   eval \"\$($tclshbin $::argv0 [getState shell] \"\$@\")\";"
          }
          append fdef {
    _mlstatus=$?;}
