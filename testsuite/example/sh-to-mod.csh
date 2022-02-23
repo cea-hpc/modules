@@ -9,6 +9,7 @@ if ( ! $?TESTSUITE_SHTOMOD_NOVAR ) then
    setenv FOOEM ""
    setenv FOOSP "value "
    setenv FOOCB va\{ue
+   setenv FOOWC va\*ue
    set i=1
    while ( $#argv > 0 )
       setenv FOOARG$i "$1"
@@ -23,6 +24,7 @@ if ( ! $?TESTSUITE_SHTOMOD_NOPATH ) then
    setenv FOOPATHSP "/path/to/dir1 /path/to/dir2 /path/to/dir3"
    setenv FOOPATHSPEM "/path/to/dir1 /path/to/dir2 /path/to/dir3 "
    setenv FOOPATHCB /path/to/dir1:/path/to/d\{r2:/path/to/dir3
+   setenv FOOPATHWC /path/to/dir1:/path/to/d\*r2:/path/to/dir3
 endif
 
 if ( $?TESTSUITE_SHTOMOD_PATHDUP ) then

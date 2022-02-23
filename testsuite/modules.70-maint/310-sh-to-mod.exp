@@ -73,13 +73,15 @@ foreach var [array names -glob FOO*] {
 # expected script env changes
 set tsvarpre "prepend-path\tFOOPATH /path/to/dir1 /path/to/dir2 /path/to/dir3
 prepend-path\tFOOPATHCB /path/to/dir1 /path/to/d\\{r2 /path/to/dir3
-prepend-path\tFOOPATHEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3"
+prepend-path\tFOOPATHEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path\tFOOPATHWC /path/to/dir1 /path/to/d*r2 /path/to/dir3"
 set tsvar "setenv\t\tFOO value
 setenv\t\tFOOCB va\\{ue
 setenv\t\tFOOEM {}
 setenv\t\tFOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}
 setenv\t\tFOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }
-setenv\t\tFOOSP {value }"
+setenv\t\tFOOSP {value }
+setenv\t\tFOOWC va*ue"
 set tsfunc_bash "set-function\tfunccb \\n\\ \\ \\ \\ echo\\ f\\{o
 set-function\tfuncfoo {
     echo foo}
@@ -352,7 +354,8 @@ set tserr_noarg "#%Module
 setenv\t\tFOO value
 setenv\t\tFOOCB va\\{ue
 setenv\t\tFOOEM {}
-setenv\t\tFOOSP {value }"
+setenv\t\tFOOSP {value }
+setenv\t\tFOOWC va*ue"
 set tserr "#%Module
 setenv\t\tFOO value
 setenv\t\tFOOARG1 val
@@ -360,7 +363,8 @@ setenv\t\tFOOARG2 {value }
 setenv\t\tFOOARG3 val\\{ue
 setenv\t\tFOOCB va\\{ue
 setenv\t\tFOOEM {}
-setenv\t\tFOOSP {value }"
+setenv\t\tFOOSP {value }
+setenv\t\tFOOWC va*ue"
 if {[info exists shell_pathname(sh)]} {
     if {$sh_kind eq {dash}} {
         # dash does not take into account arguments passed to sourced script
@@ -401,7 +405,8 @@ setenv\t\tFOOARG3 {val\\\"e}
 setenv\t\tFOOARG4 {}
 setenv\t\tFOOCB va\\{ue
 setenv\t\tFOOEM {}
-setenv\t\tFOOSP {value }"
+setenv\t\tFOOSP {value }
+setenv\t\tFOOWC va*ue"
 if {[info exists shell_pathname(sh)]} {
     if {$sh_kind eq {dash}} {
         testouterr_shtomod sh "v'l val\"e val\\\"e " OK $tserr_noarg
@@ -444,7 +449,8 @@ setenv\t\tFOOARG3 {val\\\"e}
 setenv\t\tFOOARG4 {}
 setenv\t\tFOOCB va\\{ue
 setenv\t\tFOOEM {}
-setenv\t\tFOOSP {value }"
+setenv\t\tFOOSP {value }
+setenv\t\tFOOWC va*ue"
 if {[info exists shell_pathname(sh)]} {
     if {$sh_kind eq {dash}} {
         testouterr_shtomod sh "v'l val\"e val\\\"e " OK $tserr_noarg
@@ -487,46 +493,54 @@ setenv_var FOOPATHEM :/path/to/dir1:/path/to/dir2:/path/to/dir3
 setenv_var FOOPATHSP "/path/to/dir1 /path/to/dir2 /path/to/dir3"
 setenv_var FOOPATHSPEM "/path/to/dir1 /path/to/dir2 /path/to/dir3 "
 setenv_var FOOPATHCB /path/to/dir1:/path/to/d{r2:/path/to/dir3
+setenv_var FOOPATHWC /path/to/dir1:/path/to/d*r2:/path/to/dir3
 testouterr_shtomod ALL {} OK {}
 setenv_var FOOPATH /path/to/dir2
 setenv_var FOOPATHEM /path/to/dir2
 setenv_var FOOPATHSP /path/to/dir2
 setenv_var FOOPATHSPEM /path/to/dir2
 setenv_var FOOPATHCB /path/to/d{r2
+setenv_var FOOPATHWC /path/to/d*r2
 set tserr "#%Module
 append-path\t-d { } FOOPATHSP /path/to/dir3
 append-path\t-d { } FOOPATHSPEM /path/to/dir3 {}
 append-path\tFOOPATH /path/to/dir3
 append-path\tFOOPATHCB /path/to/dir3
 append-path\tFOOPATHEM /path/to/dir3
+append-path\tFOOPATHWC /path/to/dir3
 prepend-path\t-d { } FOOPATHSP /path/to/dir1
 prepend-path\t-d { } FOOPATHSPEM /path/to/dir1
 prepend-path\tFOOPATH /path/to/dir1
 prepend-path\tFOOPATHCB /path/to/dir1
-prepend-path\tFOOPATHEM {} /path/to/dir1"
+prepend-path\tFOOPATHEM {} /path/to/dir1
+prepend-path\tFOOPATHWC /path/to/dir1"
 testouterr_shtomod ALL {} OK $tserr
 setenv_var FOOPATH "/path/to/dir2:/path"
 setenv_var FOOPATHEM "/path/to/dir2:/path"
 setenv_var FOOPATHSP "/path/to/dir2 /path"
 setenv_var FOOPATHSPEM "/path/to/dir2 /path"
 setenv_var FOOPATHCB "/path/to/d{r2:/path"
+setenv_var FOOPATHWC "/path/to/d*r2:/path"
 set tserr "#%Module
 append-path\t-d / FOOPATH to dir3
 append-path\t-d / FOOPATHCB to dir3
 append-path\t-d / FOOPATHEM to dir3
 append-path\t-d / FOOPATHSP to dir3
 append-path\t-d / FOOPATHSPEM to {dir3 }
+append-path\t-d / FOOPATHWC to dir3
 prepend-path\t-d { } FOOPATHSP /path/to/dir1
 prepend-path\t-d { } FOOPATHSPEM /path/to/dir1
 prepend-path\tFOOPATH /path/to/dir1
 prepend-path\tFOOPATHCB /path/to/dir1
-prepend-path\tFOOPATHEM {} /path/to/dir1"
+prepend-path\tFOOPATHEM {} /path/to/dir1
+prepend-path\tFOOPATHWC /path/to/dir1"
 testouterr_shtomod ALL {} OK $tserr
 unsetenv_var FOOPATH
 unsetenv_var FOOPATHEM
 unsetenv_var FOOPATHSP
 unsetenv_var FOOPATHSPEM
 unsetenv_var FOOPATHCB
+unsetenv_var FOOPATHWC
 
 # path dedup tests
 setenv_var TESTSUITE_SHTOMOD_NOPATH 1

@@ -9,6 +9,7 @@ if not set -q TESTSUITE_SHTOMOD_NOVAR
    set -xg FOOEM ""
    set -xg FOOSP "value "
    set -xg FOOCB va\{ue
+   set -xg FOOWC va\*ue
    if test (count $argv) -gt 0
       for i in (seq (count $argv))
          set -xg FOOARG$i $argv[$i]
@@ -22,6 +23,7 @@ if not set -q TESTSUITE_SHTOMOD_NOPATH
    set -xg FOOPATHSP "/path/to/dir1 /path/to/dir2 /path/to/dir3"
    set -xg FOOPATHSPEM "/path/to/dir1 /path/to/dir2 /path/to/dir3 "
    set -xg FOOPATHCB /path/to/dir1 /path/to/d\{r2 /path/to/dir3
+   set -xg FOOPATHWC /path/to/dir1 /path/to/d\*r2 /path/to/dir3
 end
 
 if set -q TESTSUITE_SHTOMOD_PATHDUP

@@ -9,6 +9,7 @@ if [ "${TESTSUITE_SHTOMOD_NOVAR:-x}" = 'x' ]; then
    export FOOEM=""
    export FOOSP="value "
    export FOOCB=va{ue
+   export FOOWC=va\*ue
    i=1
    while [ $# -gt 0 ]; do
       export FOOARG$i="$1"
@@ -23,6 +24,7 @@ if [ "${TESTSUITE_SHTOMOD_NOPATH:-x}" = 'x' ]; then
    export FOOPATHSP="/path/to/dir1 /path/to/dir2 /path/to/dir3"
    export FOOPATHSPEM="/path/to/dir1 /path/to/dir2 /path/to/dir3 "
    export FOOPATHCB=/path/to/dir1:/path/to/d{r2:/path/to/dir3
+   export FOOPATHWC=/path/to/dir1:/path/to/d\*r2:/path/to/dir3
 fi
 
 if [ "${TESTSUITE_SHTOMOD_PATHDUP:+x}" = 'x' ]; then
