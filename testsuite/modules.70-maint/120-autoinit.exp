@@ -106,11 +106,11 @@ set err_lisp "$error_msgs: lisp mode autoinit not yet implemented"
 set err_cmd "$error_msgs: No autoinit mode available for 'cmd' shell"
 
 set end_quar_sh "\\s*if \\\[ \"\\\${_mlv}\" = \"\\\${_mlv##\\\*\\\[\\\!A-Za-z0-9_\\\]}\" -a \"\\\${_mlv}\" = \"\\\${_mlv#\\\[0-9\\\]}\" \\\]; then
-\\s*if \\\[ -n \"`eval 'echo \\\${'\\\$_mlv'\\\+x}'`\" \\\]; then
-\\s*_mlre=\"\\\${_mlre:-}__MODULES_QUAR_\\\${_mlv}='`eval 'echo \\\${'\\\$_mlv'}'`' \";
+\\s*if \\\[ -n \"\\\$\\\(eval 'echo \\\${'\\\$_mlv'\\\+x}'\\\)\" \\\]; then
+\\s*_mlre=\"\\\${_mlre:-}__MODULES_QUAR_\\\${_mlv}='\\\$\\\(eval 'echo \\\${'\\\$_mlv'}'\\\)' \";
 \\s*fi;
 \\s*_mlrv=\"MODULES_RUNENV_\\\${_mlv}\";
-\\s*_mlre=\"\\\${_mlre:-}\\\${_mlv}='`eval 'echo \\\${'\\\$_mlrv':-}'`' \";
+\\s*_mlre=\"\\\${_mlre:-}\\\${_mlv}='\\\$\\\(eval 'echo \\\${'\\\$_mlrv':-}'\\\)' \";
 \\s*fi;
 \\s*done;"
 set func_quar_sh_quar "\\s*unset _mlre _mlIFS;
@@ -172,35 +172,35 @@ set func_end_silentdbg "\\s*_mlstatus=\\\$\\\?;\n$end_silentdbg_silentdbg\\s*ret
 
 set func_modcmd_bash_quar "\\s*if \\\[ -n \"\\\${_mlre:-}\" \\\]; then
 \\s*_mlre=\"\\\${_mlre:-}__MODULES_QUARANTINE_SET=1 \";
-\\s*eval `eval \\\${_mlre} $tclshlocre $modulecmd_pathre bash '\"\\$\\@\"'`;
+\\s*eval \"\\\$\\\(eval \\\${_mlre} $tclshlocre $modulecmd_pathre bash '\"\\$\\@\"'\\\)\";
 \\s*else
-\\s*eval `$tclshlocre $modulecmd_pathre bash \"\\$\\@\"`;
+\\s*eval \"\\\$\\\($tclshlocre $modulecmd_pathre bash \"\\$\\@\"\\\)\";
 \\s*fi;"
 if {$install_quarantinesupport eq y} {
 set func_modcmd_sh "\\s*if \\\[ -n \"\\\${_mlre:-}\" \\\]; then
 \\s*_mlre=\"\\\${_mlre:-}__MODULES_QUARANTINE_SET=1 \";
-\\s*eval `eval \\\${_mlre} $tclshlocre $modulecmd_pathre sh '\"\\$\\@\"'`;
+\\s*eval \"\\\$\\\(eval \\\${_mlre} $tclshlocre $modulecmd_pathre sh '\"\\$\\@\"'\\\)\";
 \\s*else
-\\s*eval `$tclshlocre $modulecmd_pathre sh \"\\$\\@\"`;
+\\s*eval \"\\\$\\\($tclshlocre $modulecmd_pathre sh \"\\$\\@\"\\\)\";
 \\s*fi;"
 set func_modcmd_bash $func_modcmd_bash_quar
 set func_modcmd_ksh "\\s*if \\\[ -n \"\\\${_mlre:-}\" \\\]; then
 \\s*_mlre=\"\\\${_mlre:-}__MODULES_QUARANTINE_SET=1 \";
-\\s*eval `eval \\\${_mlre} $tclshlocre $modulecmd_pathre ksh '\"\\$\\@\"'`;
+\\s*eval \"\\\$\\\(eval \\\${_mlre} $tclshlocre $modulecmd_pathre ksh '\"\\$\\@\"'\\\)\";
 \\s*else
-\\s*eval `$tclshlocre $modulecmd_pathre ksh \"\\$\\@\"`;
+\\s*eval \"\\\$\\\($tclshlocre $modulecmd_pathre ksh \"\\$\\@\"\\\)\";
 \\s*fi;"
 set func_modcmd_zsh "\\s*if \\\[ -n \"\\\${_mlre:-}\" \\\]; then
 \\s*_mlre=\"\\\${_mlre:-}__MODULES_QUARANTINE_SET=1 \";
-\\s*eval `eval \\\${\\^\\^=_mlre} $tclshlocre $modulecmd_pathre zsh '\"\\$\\@\"'`;
+\\s*eval \"\\\$\\\(eval \\\${\\^\\^=_mlre} $tclshlocre $modulecmd_pathre zsh '\"\\$\\@\"'\\\)\";
 \\s*else
-\\s*eval `$tclshlocre $modulecmd_pathre zsh \"\\$\\@\"`;
+\\s*eval \"\\\$\\\($tclshlocre $modulecmd_pathre zsh \"\\$\\@\"\\\)\";
 \\s*fi;"
 } else {
-set func_modcmd_sh "\\s*eval `$tclshlocre $modulecmd_pathre sh \"\\$\\@\"`;"
-set func_modcmd_bash "\\s*eval `$tclshlocre $modulecmd_pathre bash \"\\$\\@\"`;"
-set func_modcmd_ksh "\\s*eval `$tclshlocre $modulecmd_pathre ksh \"\\$\\@\"`;"
-set func_modcmd_zsh "\\s*eval `$tclshlocre $modulecmd_pathre zsh \"\\$\\@\"`;"
+set func_modcmd_sh "\\s*eval \"\\\$\\\($tclshlocre $modulecmd_pathre sh \"\\$\\@\"\\\)\";"
+set func_modcmd_bash "\\s*eval \"\\\$\\\($tclshlocre $modulecmd_pathre bash \"\\$\\@\"\\\)\";"
+set func_modcmd_ksh "\\s*eval \"\\\$\\\($tclshlocre $modulecmd_pathre ksh \"\\$\\@\"\\\)\";"
+set func_modcmd_zsh "\\s*eval \"\\\$\\\($tclshlocre $modulecmd_pathre zsh \"\\$\\@\"\\\)\";"
 }
 
 set func_name "_module_raw"
