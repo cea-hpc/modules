@@ -871,8 +871,7 @@ The following environment variables appeared on Modules 5.
 +------------+-----------------------------------------------------------------+
 | 5.1        | :envvar:`MODULES_REDIRECT_OUTPUT`,                              |
 |            | :envvar:`MODULES_MCOOKIE_CHECK`,                                |
-|            | :envvar:`MODULES_FAMILY_\<NAME\>`,                              |
-|            | :envvar:`MODULES_NOGLOB_EVAL_SHELLS`                            |
+|            | :envvar:`MODULES_FAMILY_\<NAME\>`                               |
 +------------+-----------------------------------------------------------------+
 
 Modules Specific Tcl Commands
@@ -941,6 +940,5 @@ The following Modules configuration option has been introduced on Modules 5.
 +============+=================================================================+
 | 5.0        | :mconfig:`quarantine_support`                                   |
 +------------+-----------------------------------------------------------------+
-| 5.1        | :mconfig:`redirect_output`, :mconfig:`mcookie_check`,           |
-| 5.1        | :mconfig:`noglob_eval_shells`                                   |
+| 5.1        | :mconfig:`redirect_output`, :mconfig:`mcookie_check`            |
 +------------+-----------------------------------------------------------------+

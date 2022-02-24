@@ -881,17 +881,6 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
     .. versionadded:: 4.6
 
-.. instopt:: --with-noglob-eval-shells=LIST
-
- For the listed shells, disable pathname expansion in module shell function to
- evaluate shell code produced by modulecmd.tcl. Shells accepted in LIST are
- ``sh``, ``bash``, ``ksh`` and ``zsh`` (elements in LIST are separated by
- ``:``) (default=\ ``sh:bash:ksh``)
-
- .. only:: html
-
-    .. versionadded:: 5.1
-
 .. instopt:: --with-pager=BIN
 
  Name or full path of default pager program to use to paginate informational

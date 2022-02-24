@@ -799,16 +799,6 @@ Module Sub-Commands
 
      .. versionadded:: 4.6
 
- .. mconfig:: noglob_eval_shells
-
-  Disable pathname expansion in :command:`module` shell function for the time
-  of the evaluation of the code produced by :file:`modulecmd.tcl`. Apply that
-  to the listed shells. Defines :envvar:`MODULES_NOGLOB_EVAL_SHELLS`.
-
-  .. only:: html
-
-     .. versionadded:: 5.1
-
  .. mconfig:: pager
 
   Text viewer to paginate message output. Defines :envvar:`MODULES_PAGER`.
@@ -2787,24 +2777,6 @@ ENVIRONMENT
  .. only:: html
 
     .. versionadded:: 4.6
-
-.. envvar:: MODULES_NOGLOB_EVAL_SHELLS
-
- A list of shell on which the pathname expansion is disabled for the time of
- the evaluation of the shell code produced by :file:`modulecmd.tcl` in the
- :command:`module` shell function.
-
- To generate the code to disable pathname expansion in the :command:`module`
- shell function, :envvar:`MODULES_NOGLOB_EVAL_SHELLS` should be set prior
- Modules initialization or the :mconfig:`noglob_eval_shells` configuration
- option should be set in the :file:`initrc` configuration file.
-
- Accepted values are a list of shell among *sh*, *bash*, *ksh* ans *zsh*
- separated by colon character (``:``).
-
- .. only:: html
-
-    .. versionadded:: 5.1
 
 .. envvar:: MODULES_PAGER
 

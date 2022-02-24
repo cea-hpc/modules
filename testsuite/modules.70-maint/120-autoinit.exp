@@ -91,7 +91,7 @@ if {[info exists insmodrcdata] && [info exists exmodrcdata] && $exmodrcdata eq $
 }
 
 set custom {module restore unk}
-set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 39 {  }]]
+set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 36 {  }]]
 
 set tserr_initrc_exinstalled "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n$err_path'unk'\n$custom"
 set tserr_initrc1_exinstalled [msg_load null]
@@ -155,43 +155,6 @@ set func_silentdbg ""
 set end_silentdbg ""
 }
 
-set func_noglobeval "\\s*case \"\\\$-\" in
-\\s*\\\*f\\\*\\\) _mlshopt='' ;;
-\\s*\\\*\\\) set -f; _mlshopt='f' ;;
-\\s*esac;\n"
-set end_noglobeval "\\s*if \\\[ -n \"\\\${_mlshopt:-}\" \\\]; then
-\\s*set \\\+\\\$_mlshopt;
-\\s*fi;
-\\s*unset _mlshopt;\n"
-if {{sh} in [split $install_noglobevalshells :]} {
-    set func_noglobeval_sh $func_noglobeval
-    set end_noglobeval_sh $end_noglobeval
-} else {
-    set func_noglobeval_sh {}
-    set end_noglobeval_sh {}
-}
-if {{bash} in [split $install_noglobevalshells :]} {
-    set func_noglobeval_bash $func_noglobeval
-    set end_noglobeval_bash $end_noglobeval
-} else {
-    set func_noglobeval_bash {}
-    set end_noglobeval_bash {}
-}
-if {{ksh} in [split $install_noglobevalshells :]} {
-    set func_noglobeval_ksh $func_noglobeval
-    set end_noglobeval_ksh $end_noglobeval
-} else {
-    set func_noglobeval_ksh {}
-    set end_noglobeval_ksh {}
-}
-if {{zsh} in [split $install_noglobevalshells :]} {
-    set func_noglobeval_zsh $func_noglobeval
-    set end_noglobeval_zsh $end_noglobeval
-} else {
-    set func_noglobeval_zsh {}
-    set end_noglobeval_zsh {}
-}
-
 set func_clean_ifs_quar "\\s*if \\\[ -n \"\\\${_mlIFS\\\+x}\" \\\]; then
 \\s*IFS=\\\$_mlIFS;
 \\s*else
@@ -203,14 +166,9 @@ set func_clean_ifs $func_clean_ifs_quar
 } else {
 set func_clean_ifs ""
 }
-set func_end_sh "\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs$end_noglobeval_sh$end_silentdbg\\s*return \\\$_mlstatus;"
-set func_end_bash "\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs$end_noglobeval_bash$end_silentdbg\\s*return \\\$_mlstatus;"
-set func_end_ksh "\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs$end_noglobeval_ksh$end_silentdbg\\s*return \\\$_mlstatus;"
-set func_end_zsh "\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs$end_noglobeval_zsh$end_silentdbg\\s*return \\\$_mlstatus;"
-set func_end_bash_quar "\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs_quar$end_noglobeval_bash$end_silentdbg\\s*return \\\$_mlstatus;"
-set func_end_bash_silentdbg "\\s*_mlstatus=\\\$\\\?;\n$end_noglobeval_bash$end_silentdbg_silentdbg\\s*return \\\$_mlstatus;"
-set func_end_bash_nonoglobeval "\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs$end_silentdbg\\s*return \\\$_mlstatus;"
-set func_end_zsh_noglobeval "\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs$end_noglobeval$end_silentdbg\\s*return \\\$_mlstatus;"
+set func_end "\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs$end_silentdbg\\s*return \\\$_mlstatus;"
+set func_end_quar "\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs_quar$end_silentdbg\\s*return \\\$_mlstatus;"
+set func_end_silentdbg "\\s*_mlstatus=\\\$\\\?;\n$end_silentdbg_silentdbg\\s*return \\\$_mlstatus;"
 
 set func_modcmd_bash_quar "\\s*if \\\[ -n \"\\\${_mlre:-}\" \\\]; then
 \\s*_mlre=\"\\\${_mlre:-}__MODULES_QUARANTINE_SET=1 \";
@@ -302,15 +260,13 @@ set add_func_fish "\nfunction module
 \\s*end
 end"
 
-set func_bash_quar "$func_name\\\(\\\) {\n$func_silentdbg$func_noglobeval_bash$func_quar_sh_quar$func_modcmd_bash_quar\n$func_end_bash_quar\n};$add_func_sh"
-set func_bash_silentdbg "$func_name\\\(\\\) {\n$func_silentdbg_silentdbg$func_noglobeval_bash$func_quar_sh$func_modcmd_bash\n$func_end_bash_silentdbg\n};$add_func_sh"
-set func_bash_nonoglobeval "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh$func_modcmd_bash\n$func_end_bash_nonoglobeval\n};$add_func_sh"
-set func_zsh_noglobeval "$func_name\\\(\\\) {\n$func_silentdbg$func_noglobeval$func_quar_zsh$func_modcmd_zsh\n$func_end_zsh_noglobeval\n};$add_func_sh"
+set func_bash_quar "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh_quar$func_modcmd_bash_quar\n$func_end_quar\n};$add_func_sh"
+set func_bash_silentdbg "$func_name\\\(\\\) {\n$func_silentdbg_silentdbg$func_quar_sh$func_modcmd_bash\n$func_end_silentdbg\n};$add_func_sh"
 
-set func_sh "$func_name\\\(\\\) {\n$func_silentdbg$func_noglobeval_sh$func_quar_sh$func_modcmd_sh\n$func_end_sh\n};$add_func_sh"
-set func_bash "$func_name\\\(\\\) {\n$func_silentdbg$func_noglobeval_bash$func_quar_sh$func_modcmd_bash\n$func_end_bash\n};$add_func_sh"
-set func_ksh "$func_name\\\(\\\) {\n$func_silentdbg$func_noglobeval_ksh$func_quar_sh$func_modcmd_ksh\n$func_end_ksh\n};$add_func_ksh"
-set func_zsh "$func_name\\\(\\\) {\n$func_silentdbg$func_noglobeval_zsh$func_quar_zsh$func_modcmd_zsh\n$func_end_zsh\n};$add_func_sh"
+set func_sh "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh$func_modcmd_sh\n$func_end\n};$add_func_sh"
+set func_bash "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh$func_modcmd_bash\n$func_end\n};$add_func_sh"
+set func_ksh "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh$func_modcmd_ksh\n$func_end\n};$add_func_ksh"
+set func_zsh "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_zsh$func_modcmd_zsh\n$func_end\n};$add_func_sh"
 
 set eval_cmd_csh [expr {$install_wa277 eq {y} ? "eval `$tclshlocre $modulecmd_pathre csh \\\\!\\*`" : "eval \"`$tclshlocre $modulecmd_pathre csh \\\\!\\*:q`\""}]
 set eval_cmd_tcsh [expr {$install_wa277 eq {y} ? "eval `$tclshlocre $modulecmd_pathre tcsh \\\\!\\*`" : "eval \"`$tclshlocre $modulecmd_pathre tcsh \\\\!\\*:q`\""}]
@@ -598,13 +554,9 @@ append func_bash_quar "
 \\s*ml\\\(\\\) { module ml \"\\\$\\\@\"; };"
 append func_bash_silentdbg "
 \\s*ml\\\(\\\) { module ml \"\\\$\\\@\"; };"
-append func_bash_nonoglobeval "
-\\s*ml\\\(\\\) { module ml \"\\\$\\\@\"; };"
 append func_ksh "
 \\s*ml\\\(\\\) { module ml \"\\\$\\\@\"; };"
 append func_zsh "
-\\s*ml\\\(\\\) { module ml \"\\\$\\\@\"; };"
-append func_zsh_noglobeval "
 \\s*ml\\\(\\\) { module ml \"\\\$\\\@\"; };"
 append func_csh "
 \\s*alias ml 'module ml \\\\!\\\*' ;"
@@ -1201,7 +1153,7 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
     }
     set linenum [expr {[cmpversion $tclsh_version 8.6] == -1 ? 14 : 21}]
     set custom {module restore unk}
-    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 39 {  }]]
+    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 36 {  }]]
     set tserr "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n$err_path'unk'\n$custom"
     testouterr_cmd_re bash autoinit $ans $tserr
 
@@ -1230,7 +1182,7 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
     }
     set linenum [expr {[cmpversion $tclsh_version 8.6] == -1 ? 14 : 21}]
     set custom {module restore unk}
-    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 39 {  }]]
+    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 36 {  }]]
     set tserr "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n$err_path'unk'\n$custom"
     testouterr_cmd_re bash autoinit $ans $tserr
 
@@ -1268,62 +1220,9 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
     lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
     set linenum [expr {[cmpversion $tclsh_version 8.6] == -1 ? 14 : 21}]
     set custom {module restore unk}
-    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 39 {  }]]
+    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 36 {  }]]
     set tserr "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n[msg_load refresh/5.0]\n$err_path'unk'\n$custom"
     testouterr_cmd_re bash autoinit $ans $tserr
-
-    unsetenv_var TESTSUITE_INITRC
-
-    # test impact of noglob eval enablement through initrc config file
-    setenv_var TESTSUITE_INITRC noglobeval1
-
-    set ans [list]
-    lappend ans [list ERR]
-    lappend ans [list [set "func_bash_nonoglobeval"]]
-    if {$install_versioning eq "y"} {
-        lappend ans [list set MODULE_VERSION_STACK "(.*)"]
-    }
-    lappend ans [list set MODULES_CMD $modulecmd_path]
-    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
-    lappend ans [list set MODULESHOME $moduleshome]
-    lappend ans [list set MODULES_NOGLOB_EVAL_SHELLS zsh]
-    lappend ans [list set __MODULES_LMPREREQ m3&m1]
-    lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4"]
-    lappend ans [list set LOADEDMODULES "m1:m3:space yc/4"]
-    lappend ans [list set __MODULES_LMTAG m1&auto-loaded]
-    lappend ans [list set MODULEPATH "$modpath wspace:$modpath.deps"]
-    if {$install_versioning eq "y"} {
-        lappend ans [list set MODULE_VERSION "(.*)"]
-    }
-    set linenum [expr {[cmpversion $tclsh_version 8.6] == -1 ? 14 : 21}]
-    set custom {module restore unk}
-    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 39 {  }]]
-    set tserr "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n$err_path'unk'\n$custom"
-    testouterr_cmd_re bash autoinit $ans $tserr
-
-    set ans [list]
-    lappend ans [list ERR]
-    lappend ans [list [set "func_zsh_noglobeval"]]
-    if {$install_versioning eq "y"} {
-        lappend ans [list set MODULE_VERSION_STACK "(.*)"]
-    }
-    lappend ans [list set MODULES_CMD $modulecmd_path]
-    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
-    lappend ans [list set MODULESHOME $moduleshome]
-    lappend ans [list set MODULES_NOGLOB_EVAL_SHELLS zsh]
-    lappend ans [list set __MODULES_LMPREREQ m3&m1]
-    lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4"]
-    lappend ans [list set LOADEDMODULES "m1:m3:space yc/4"]
-    lappend ans [list set __MODULES_LMTAG m1&auto-loaded]
-    lappend ans [list set MODULEPATH "$modpath wspace:$modpath.deps"]
-    if {$install_versioning eq "y"} {
-        lappend ans [list set MODULE_VERSION "(.*)"]
-    }
-    set linenum [expr {[cmpversion $tclsh_version 8.6] == -1 ? 14 : 21}]
-    set custom {module restore unk}
-    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 39 {  }]]
-    set tserr "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n$err_path'unk'\n$custom"
-    testouterr_cmd_re zsh autoinit $ans $tserr
 
     unsetenv_var TESTSUITE_INITRC
 

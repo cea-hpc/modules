@@ -720,14 +720,6 @@ alias ml 'module ml \!*' ;}
       esac;
    fi;}
          }
-         # add code to disable pathname expansion during shell evaluation
-         if {[getState shell] in [split [getConf noglob_eval_shells] :]} {
-            append fdef {
-   case "$-" in
-      *f*) _mlshopt='' ;;
-      *) set -f; _mlshopt='f' ;;
-   esac;}
-         }
          if {[getConf quarantine_support]} {
             append fdef "
    unset _mlre _mlIFS;
@@ -766,13 +758,6 @@ alias ml 'module ml \!*' ;}
       unset IFS;
    fi;
    unset _mlre _mlv _mlrv _mlIFS;}
-         }
-         if {[getState shell] in [split [getConf noglob_eval_shells] :]} {
-            append fdef {
-   if [ -n "${_mlshopt:-}" ]; then
-      set +$_mlshopt;
-   fi;
-   unset _mlshopt;}
          }
          if {[getConf silent_shell_debug]} {
             append fdef {
