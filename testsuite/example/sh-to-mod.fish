@@ -67,6 +67,9 @@ if not set -q TESTSUITE_SHTOMOD_NOFUNC
       echo b\\\"r
       echo f\'o
    end
+   function funcwc
+      echo sou*sh
+   end
    function func_nested
       function func_in
          echo foo

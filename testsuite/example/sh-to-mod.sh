@@ -67,6 +67,9 @@ if [ "${TESTSUITE_SHTOMOD_NOFUNC:-x}" = 'x' ]; then
       echo b\\\"r
       echo f\'o
    }
+   funcwc() {
+      echo sou*sh
+   }
 fi
 
 if [ "${TESTSUITE_SHTOMOD_NOCOMP:-x}" = 'x' ]; then
