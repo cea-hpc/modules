@@ -23,11 +23,11 @@ fi;
 IFS=' ';
 for _mlv in ${MODULES_RUN_QUARANTINE:-}; do
    if [ "${_mlv}" = "${_mlv##*[!A-Za-z0-9_]}" -a "${_mlv}" = "${_mlv#[0-9]}" ]; then
-      if [ -n "`eval 'echo ${'$_mlv'+x}'`" ]; then
-         _mlre="${_mlre:-}__MODULES_QUAR_${_mlv}='`eval 'echo ${'$_mlv'}'`' ";
+      if [ -n "$(eval 'echo ${'$_mlv'+x}')" ]; then
+         _mlre="${_mlre:-}__MODULES_QUAR_${_mlv}='$(eval 'echo ${'$_mlv'}')' ";
       fi;
       _mlrv="MODULES_RUNENV_${_mlv}";
-      _mlre="${_mlre:-}${_mlv}='`eval 'echo ${'$_mlrv':-}'`' ";
+      _mlre="${_mlre:-}${_mlv}='$(eval 'echo ${'$_mlrv':-}')' ";
    fi;
 done;
 if [ -n "${_mlre:-}" ]; then
@@ -36,7 +36,7 @@ fi;
 
 # define module command and surrounding initial environment (default value
 # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init config files)
-_mlcode=`${_mlre:-}@TCLSH@ @libexecdir@/modulecmd.tcl sh autoinit`
+_mlcode=$(${_mlre:-}@TCLSH@ @libexecdir@/modulecmd.tcl sh autoinit)
 _mlret=$?
 
 # clean temp variables used to setup quarantine
@@ -74,7 +74,7 @@ if [ $_mlret -eq 0 ]; then
 @setmanpath@      MANPATH=:
 @setmanpath@      export MANPATH
 @setmanpath@   fi
-@setmanpath@@usemanpath@   case ":`manpath 2>/dev/null`:" in
+@setmanpath@@usemanpath@   case ":$(manpath 2>/dev/null):" in
 @setmanpath@@notusemanpath@   case ":$MANPATH:" in
 @setmanpath@      *:@mandir@:*) ;;
 @setmanpath@      *) if [ "$MANPATH" = ':' ] || [ "$MANPATH" = '' ]; then
