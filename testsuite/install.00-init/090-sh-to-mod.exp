@@ -62,10 +62,6 @@ set tsout "va{ue::value :va*ue:v'l:val\"e:val\\\"e:\n"
 append tsout "Release\nf{o\nf\"o\nb\\\"r\nf'o\n"
 append tsout "foo\nbar\nf{o\nf\"o\nb\\\"r\nf'o\nsource-sh"
 
-set tsout_nonl "va{ue::value :va*ue:v'l:val\"e:val\\\"e:\n"
-append tsout_nonl "Release\nf{o\nf\"o\nb\\\"r\nf'o\n"
-append tsout_nonl "foo echo bar\nf{o\nf\"o echo b\\\"r echo f'o\nsource-sh"
-
 # no argument passed to script nor function defined with dash
 set tsout_dash "va{ue::value :va*ue::::\n"
 append tsout_dash "Release\nf{o\nf\"o\nb\\\"r\nf'o"
@@ -96,11 +92,7 @@ foreach sh $shtomod_avail_shells {
         } elseif {$sh eq {dash} || ($sh eq {sh} && $sh_kind eq {dash})} {
            testall_cmd $fsh "module sh-to-mod $sh $testscriptsh $testscriptshargs 2>shtomod\; module load ./shtomod\; $testshenvcmds_dash" $tsout_dash {} 0
         } else {
-           # with quarantine mechanism disabled, no specific IFS is set when modulecmd.tcl output is evaluated
-           # with zsh and ksh shells, sh-to-mod does not output ';' character at end of each function line, thus
-           # when evaluated with default IFS the multiple lines are treated as a single command line
-           set out [expr {$install_quarantinesupport eq {n} && [lsearch -exact [list ksh zsh ksh93] $sh] != -1 ? $tsout_nonl : $tsout}]
-           testall_cmd $fsh "module sh-to-mod $sh $testscriptsh $testscriptshargs 2>shtomod\; module load ./shtomod\; $testshenvcmds" $out {} 0
+           testall_cmd $fsh "module sh-to-mod $sh $testscriptsh $testscriptshargs 2>shtomod\; module load ./shtomod\; $testshenvcmds" $tsout {} 0
         }
         file delete shtomod
     }
