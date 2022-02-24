@@ -17,14 +17,14 @@ sh:
 
      module () 
      { 
-        eval `/some/path/modulecmd sh $*`
+        eval "$(/some/path/modulecmd sh "$@")"
      }
 
 csh:
 
 .. code-block:: csh
 
-     eval `/some/path/modulecmd csh !*`
+     eval "`/some/path/modulecmd csh !*:q`"
 
 Where the ``modulecmd`` outputs valid shell commands to *stdout* which manipulates the shell's environment. Any text that is meant to be seen by the user **must** be sent to *stderr*. For example:
 
