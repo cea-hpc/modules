@@ -82,8 +82,8 @@ if not set -q TESTSUITE_SHTOMOD_NOCOMP
    complete -c cmd -s V -l version --description 'Command version'
    complete --command cmd -s h -l help --description 'Command help'
    complete --no-files --require-parameter -c mycmd -s h --description 'Command help'
-   # test complete definition without -c/--complete opt arg on fish>=3
-   if test (string sub -s 1 -l 1 $version) -ge 3
+   # test complete definition without -c/--complete opt arg on fish>=3.2
+   if test (string sub -s 1 -l 1 $version) -ge 3; and test (string sub -s 3 -l 1 $version) -ge 2
       complete -f othercmd -s h -l help --description 'Command help'
       complete othercmd -s V -l version --description 'Command version'
    else
