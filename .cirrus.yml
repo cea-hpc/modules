@@ -55,14 +55,6 @@ build_install_test_template: &BUILD_INSTALL_TEST_TEMPLATE
   uninstall_script:
     - $MAKE uninstall
 
-extrainstall_template: &EXTRAINSTALL_TEMPLATE
-  extrainstall_script:
-    # fetch Spack to test source-sh over its setup-env scripts
-    - git clone --depth 1 https://github.com/spack/spack.git
-    # fetch Conda to test source-sh over its setup-env scripts
-    - wget -nv --retry-connrefused --waitretry=20 --timeout=20 --tries=3 https://repo.anaconda.com/miniconda/Miniconda3-py38_4.11.0-Linux-x86_64.sh
-    - bash Miniconda3-py38_4.11.0-Linux-x86_64.sh -b -s -p ./miniconda3
-
 build_install_xvfbtest_template: &BUILD_INSTALL_XVBFTEST_TEMPLATE
   build_script:
     - $MAKE
@@ -130,6 +122,7 @@ task:
     LANG: C
     LC_ALL: C
     TEST_SPECIFIC_CONFIG: install-testmodspath-wild
+    EXTRATEST_SOURCESH: y
   container:
     image: ubuntu:focal
     cpu: 1
@@ -142,7 +135,6 @@ task:
     apt-get -y install wget expect-dev dejagnu python3-sphinx man-db bash tcsh ksh zsh fish tcl tcl8.6 perl python ruby cmake r-base-core
     # libtclenvmodules build requirements
     apt-get -y install gcc autoconf tcl8.6-dev
-  << : *EXTRAINSTALL_TEMPLATE
   configure_script:
     - ./configure --with-tclsh=tclsh8.6 --prefix /tmp/modules --with-tcl=/usr/lib/tcl8.6 --enable-append-manpath --enable-append-binpath --with-bin-search-path=/usr/bin:/bin --enable-silent-shell-debug-support --enable-windows-support --with-loadedmodules=null:dot --enable-quarantine-support --with-quarantine-vars=LD_LIBRARY_PATH --with-dark-background-colors='hi=1:se=2:er=91:wa=93:mp=1;94:di=94:al=96:sy=95' --enable-foo FOO=bar
   << : *BUILD_INSTALL_TEST_TEMPLATE

@@ -22,6 +22,12 @@ TCL_DIST83 := $(TCL_RELEASE83)-src.tar.gz
 TCL_DISTSUM83 := 5cb79f8b90cf1322cb1286b9fe67f7a2
 TCLSH83 := $(TCL_RELEASE83)/unix/tclsh
 
+# definition for Spack/Conda for source-sh testing
+SPACK_REPOURL := https://github.com/spack/spack.git
+MINICONDA_DLSRC := https://repo.anaconda.com/miniconda/
+MINICONDA_DIST := Miniconda3-py38_4.11.0-Linux-x86_64.sh
+MINICONDA_DISTSUM := 252d3b0c863333639f99fbc465ee1d61
+
 # specific modulecmd script for test
 MODULECMDTEST := modulecmd-test.tcl
 
@@ -61,6 +67,11 @@ endif
 # install old Tcl interpreters to test coverage
 ifeq ($(COVERAGE_OLDTCL),y)
 TEST_PREREQ += tclsh83
+endif
+
+# install extra software to test source-sh against their scripts
+ifeq ($(EXTRATEST_SOURCESH),y)
+TEST_PREREQ += spack miniconda3
 endif
 
 # define rule prereq when target need to be rebuilt when git repository change
@@ -709,6 +720,8 @@ distclean: clean
 	rm -rf $(NAGELFAR_RELEASE)
 	rm -rf $(TCL_RELEASE83)
 	rm -f tclsh83
+	rm -rf spack
+	rm -rf miniconda3
 	rm -f tcl/tags
 	rm -f tcl/GTAGS tcl/GRTAGS tcl/GPATH tcl/gtags.file
 ifneq ($(wildcard lib/Makefile),)
@@ -802,6 +815,18 @@ tclsh83:
 	echo 'exec $(TCLSH83) $${@}' >>$@
 	chmod +x $@
 	rm $(TCL_DIST83)
+
+# fetch spack repository (for source-sh test purpose)
+spack:
+	git clone --depth 1 $(SPACK_REPOURL)
+
+# install Conda (for source-sh test purpose)
+miniconda3:
+	$(WGET) $(MINICONDA_DLSRC)$(MINICONDA_DIST) || true
+	echo "$(MINICONDA_DISTSUM)  $(MINICONDA_DIST)" | md5sum --status -c - || \
+		md5 -c $(MINICONDA_DISTSUM) $@ || (rm -f $(MINICONDA_DIST) && false)
+	bash $(MINICONDA_DIST) -b -s -p ./miniconda3
+	rm $(MINICONDA_DIST)
 
 # install code coverage tool
 # download from alt. source if correct tarball not retrieved from primary location
