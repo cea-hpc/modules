@@ -14,7 +14,7 @@
 #   Sub-Command:
 #
 #   Comment:    %C{
-#           Check source-sh modulefile comman against external software
+#           Check source-sh modulefile command against external software
 #       }C%
 #
 ##############################################################################
@@ -57,8 +57,31 @@ if {{fish} in $shell_list} {
 if {[file exists miniconda3/etc/profile.d/conda.sh]} {
 
 if {{bash} in $shell_list} {
-   set tsout "function\n# conda environments:\n#\nbase                  *  [pwd]/miniconda3\n"
-   testall_cmd bash "module use \"$testsuite_modpath.3\"\; module load source-sh/conda\; type -t __conda_activate && conda env list" $tsout {} 0
+   set tsout "function\n# conda environments:\n#\nbase                  \\*  \\S*/miniconda3\n"
+   testall_cmd_re bash "module use \"$testsuite_modpath.3\"\; module load source-sh/conda\; type -t __conda_activate && conda env list" $tsout {} 0
+}
+
+if {{ksh} in $shell_list} {
+   # not working on ksh as 'local' command is used
+   set tsout "__conda_activate\\\(\\\)"
+   set tserr ".*local: .*"
+   testall_cmd_re ksh "module use \"$testsuite_modpath.3\"\; module load source-sh/conda\; typeset +f __conda_activate && conda env list" $tsout $tserr 127
+}
+
+if {{zsh} in $shell_list} {
+   set tsout "__conda_activate\n# conda environments:\n#\nbase                  \\*  \\S*/miniconda3\n"
+   testall_cmd_re zsh "module use \"$testsuite_modpath.3\"\; module load source-sh/conda\; typeset +f __conda_activate && conda env list" $tsout {} 0
+}
+
+if {{tcsh} in $shell_list} {
+   set tsout "# conda environments:\n#\nbase                  \\*  \\S*/miniconda3\n"
+   testall_cmd_re tcsh "module use \"$testsuite_modpath.3\"\; module load source-sh/conda\; conda env list" $tsout {} 0
+}
+
+if {{fish} in $shell_list} {
+   set tsout "# conda environments:\n#\nbase                  \\*  \\S*/miniconda3\n"
+   #FIXME: private function (i.e., __fish_*) are skipped currently so cannot test existence of __fish_conda_env_commands
+   testall_cmd_re fish "module use \"$testsuite_modpath.3\"\; module load source-sh/conda\; functions -q conda\; and conda env list" $tsout {} 0
 }
 
 } else {
