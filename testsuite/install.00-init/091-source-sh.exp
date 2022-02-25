@@ -53,6 +53,19 @@ if {{fish} in $shell_list} {
    send_user "\tSkipping source-sh tests over Spack scripts\n"
 }
 
+# test source-sh against Conda setup-env scripts if found installed for test
+if {[file exists miniconda3/etc/profile.d/conda.sh]} {
+
+if {{bash} in $shell_list} {
+   set tsout "function\n# conda environments:\n#\nbase                  *  [pwd]/miniconda3\n"
+   testall_cmd bash "module use \"$testsuite_modpath.3\"\; module load source-sh/conda\; type -t __conda_activate && conda env list" $tsout {} 0
+}
+
+} else {
+   send_user "\tSkipping source-sh tests over Spack scripts\n"
+}
+
+
 #
 #  Clean up variables used in this test case
 #
