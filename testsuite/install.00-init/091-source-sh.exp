@@ -85,7 +85,36 @@ if {{fish} in $shell_list} {
 }
 
 } else {
-   send_user "\tSkipping source-sh tests over Spack scripts\n"
+   send_user "\tSkipping source-sh tests over Conda scripts\n"
+}
+
+
+# test source-sh against OpenFOAM setup-env scripts if found installed for test
+if {[file exists OpenFOAM-dev/etc/bashrc]} {
+
+if {{bash} in $shell_list} {
+   set tsout function
+   set tserr OpenFOAM-dev
+   testall_cmd bash "module use \"$testsuite_modpath.3\"\; module load source-sh/openfoam\; type -t _foamDictionary_ && foamVersion" $tsout $tserr 0
+}
+
+# sh script does not correctly detect installation path with ksh shell
+
+if {{zsh} in $shell_list} {
+   set tsout _foamParams
+   set tserr OpenFOAM-dev
+   testall_cmd zsh "module use \"$testsuite_modpath.3\"\; module load source-sh/openfoam\; typeset +f _foamParams && foamVersion" $tsout $tserr 0
+}
+
+if {{tcsh} in $shell_list} {
+   set tsout OpenFOAM-dev
+   testall_cmd tcsh "module use \"$testsuite_modpath.3\"\; module load source-sh/openfoam\; foamVersion" $tsout {} 0
+}
+
+# no setup-env script provided for fish shell
+
+} else {
+   send_user "\tSkipping source-sh tests over OpenFOAM scripts\n"
 }
 
 

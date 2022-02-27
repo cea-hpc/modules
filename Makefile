@@ -22,11 +22,12 @@ TCL_DIST83 := $(TCL_RELEASE83)-src.tar.gz
 TCL_DISTSUM83 := 5cb79f8b90cf1322cb1286b9fe67f7a2
 TCLSH83 := $(TCL_RELEASE83)/unix/tclsh
 
-# definition for Spack/Conda for source-sh testing
+# third-party definitions for source-sh testing
 SPACK_REPOURL := https://github.com/spack/spack.git
 MINICONDA_DLSRC := https://repo.anaconda.com/miniconda/
 MINICONDA_DIST := Miniconda3-py38_4.11.0-Linux-x86_64.sh
 MINICONDA_DISTSUM := 252d3b0c863333639f99fbc465ee1d61
+OPENFOAM_REPOURL := https://github.com/OpenFOAM/OpenFOAM-dev.git
 
 # specific modulecmd script for test
 MODULECMDTEST := modulecmd-test.tcl
@@ -71,7 +72,7 @@ endif
 
 # install extra software to test source-sh against their scripts
 ifeq ($(EXTRATEST_SOURCESH),y)
-TEST_PREREQ += spack miniconda3
+TEST_PREREQ += spack miniconda3 OpenFOAM-dev
 endif
 
 # define rule prereq when target need to be rebuilt when git repository change
@@ -722,6 +723,7 @@ distclean: clean
 	rm -f tclsh83
 	rm -rf spack
 	rm -rf miniconda3
+	rm -rf OpenFOAM-dev
 	rm -f tcl/tags
 	rm -f tcl/GTAGS tcl/GRTAGS tcl/GPATH tcl/gtags.file
 ifneq ($(wildcard lib/Makefile),)
@@ -827,6 +829,10 @@ miniconda3:
 		md5 -c $(MINICONDA_DISTSUM) $@ || (rm -f $(MINICONDA_DIST) && false)
 	bash $(MINICONDA_DIST) -b -s -p ./miniconda3
 	rm $(MINICONDA_DIST)
+
+# fetch OpenFOAM repository (for source-sh test purpose)
+OpenFOAM-dev:
+	git clone --depth 1 $(OPENFOAM_REPOURL)
 
 # install code coverage tool
 # download from alt. source if correct tarball not retrieved from primary location
