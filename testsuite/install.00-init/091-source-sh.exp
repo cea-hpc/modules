@@ -24,28 +24,29 @@ if {[file exists spack/share/spack/setup-env.sh]} {
 
 if {{bash} in $shell_list} {
    set tsout "function\nenvironment-modules"
-   testall_cmd bash "module use \"$testsuite_modpath.3\"\; module load source-sh/spack\; type -t _spack_pathadd && spack list environment-modules" $tsout {} 0
+   testall_cmd bash "module use \"$testsuite_modpath.3\"\; module load source-sh/spack\; type -t _spack_pathadd && spack list environment-modules\; module unload source-sh\; test -n \"\$PATH\"" $tsout {} 0
 }
 
 if {{ksh} in $shell_list} {
    set tserr "_spack_pathadd()\nenvironment-modules"
    # need to manually specify SPACK_ROOT prior script evaluation for ksh
-   testall_cmd ksh "module use \"$testsuite_modpath.3\"\; export SPACK_ROOT=spack\; module load source-sh/spack\; typeset +f _spack_pathadd && spack list environment-modules" $tserr {} 0
+   testall_cmd ksh "module use \"$testsuite_modpath.3\"\; export SPACK_ROOT=spack\; module load source-sh/spack\; typeset +f _spack_pathadd && spack list environment-modules\; module unload source-sh\; test -n \"\$PATH\"" $tserr {} 0
 }
 
 if {{zsh} in $shell_list} {
    set tsout "_spack_pathadd\nenvironment-modules"
-   testall_cmd zsh "module use \"$testsuite_modpath.3\"\; module load source-sh/spack\; typeset +f _spack_pathadd && spack list environment-modules" $tsout {} 0
+   testall_cmd zsh "module use \"$testsuite_modpath.3\"\; module load source-sh/spack\; typeset +f _spack_pathadd && spack list environment-modules\; module unload source-sh\; test -n \"\$PATH\"" $tsout {} 0
 }
 
 if {{tcsh} in $shell_list} {
    # not working on tcsh as variables used in spack alias are local variable, not environment variable
    set tserr "_spack_share_dir: Undefined variable."
-   testall_cmd tcsh "module use \"$testsuite_modpath.3\"\; module load source-sh/spack\; spack list environment-modules" {} $tserr 1
+   testall_cmd tcsh "module use \"$testsuite_modpath.3\"\; module load source-sh/spack\; spack list environment-modules\; module unload source-sh\; test -n \"\$PATH\"" {} $tserr 1
 }
 
 if {{fish} in $shell_list} {
    set tsout "environment-modules"
+   # module command seems superseded by spack definition on fish: cannot test unload
    testall_cmd fish "module use \"$testsuite_modpath.3\"\; module load source-sh/spack\; functions -q spack_pathadd\; and spack list environment-modules" $tsout {} 0
 }
 
@@ -58,30 +59,30 @@ if {[file exists miniconda3/etc/profile.d/conda.sh]} {
 
 if {{bash} in $shell_list} {
    set tsout "function\n# conda environments:\n#\nbase                  \\*  \\S*/miniconda3\n"
-   testall_cmd_re bash "module use \"$testsuite_modpath.3\"\; module load source-sh/conda\; type -t __conda_activate && conda env list" $tsout {} 0
+   testall_cmd_re bash "module use \"$testsuite_modpath.3\"\; module load source-sh/conda\; type -t __conda_activate && conda env list\; module unload source-sh\; test -n \"\$PATH\"" $tsout {} 0
 }
 
 if {{ksh} in $shell_list} {
    # not working on ksh as 'local' command is used
    set tsout "__conda_activate\\\(\\\)"
    set tserr ".*local: .*"
-   testall_cmd_re ksh "module use \"$testsuite_modpath.3\"\; module load source-sh/conda\; typeset +f __conda_activate && conda env list" $tsout $tserr 127
+   testall_cmd_re ksh "module use \"$testsuite_modpath.3\"\; module load source-sh/conda\; typeset +f __conda_activate && conda env list\; module unload source-sh\; test -n \"\$PATH\"" $tsout $tserr 127
 }
 
 if {{zsh} in $shell_list} {
    set tsout "__conda_activate\n# conda environments:\n#\nbase                  \\*  \\S*/miniconda3\n"
-   testall_cmd_re zsh "module use \"$testsuite_modpath.3\"\; module load source-sh/conda\; typeset +f __conda_activate && conda env list" $tsout {} 0
+   testall_cmd_re zsh "module use \"$testsuite_modpath.3\"\; module load source-sh/conda\; typeset +f __conda_activate && conda env list\; module unload source-sh\; test -n \"\$PATH\"" $tsout {} 0
 }
 
 if {{tcsh} in $shell_list} {
    set tsout "# conda environments:\n#\nbase                  \\*  \\S*/miniconda3\n"
-   testall_cmd_re tcsh "module use \"$testsuite_modpath.3\"\; module load source-sh/conda\; conda env list" $tsout {} 0
+   testall_cmd_re tcsh "module use \"$testsuite_modpath.3\"\; module load source-sh/conda\; conda env list\; module unload source-sh\; test -n \"\$PATH\"" $tsout {} 0
 }
 
 if {{fish} in $shell_list} {
    set tsout "# conda environments:\n#\nbase                  \\*  \\S*/miniconda3\n"
    #FIXME: private function (i.e., __fish_*) are skipped currently so cannot test existence of __fish_conda_env_commands
-   testall_cmd_re fish "module use \"$testsuite_modpath.3\"\; module load source-sh/conda\; functions -q conda\; and conda env list" $tsout {} 0
+   testall_cmd_re fish "module use \"$testsuite_modpath.3\"\; module load source-sh/conda\; functions -q conda\; and conda env list\; module unload source-sh\; test -n \"\$PATH\"" $tsout {} 0
 }
 
 } else {
@@ -95,7 +96,7 @@ if {[file exists OpenFOAM-dev/etc/bashrc]} {
 if {{bash} in $shell_list} {
    set tsout function
    set tserr OpenFOAM-dev
-   testall_cmd bash "module use \"$testsuite_modpath.3\"\; module load source-sh/openfoam\; type -t _foamDictionary_ && foamVersion" $tsout $tserr 0
+   testall_cmd bash "module use \"$testsuite_modpath.3\"\; module load source-sh/openfoam\; type -t _foamDictionary_ && foamVersion\; module unload source-sh\; test -n \"\$PATH\"" $tsout $tserr 0
 }
 
 # sh script does not correctly detect installation path with ksh shell
@@ -103,12 +104,12 @@ if {{bash} in $shell_list} {
 if {{zsh} in $shell_list} {
    set tsout _foamParams
    set tserr OpenFOAM-dev
-   testall_cmd zsh "module use \"$testsuite_modpath.3\"\; module load source-sh/openfoam\; typeset +f _foamParams && foamVersion" $tsout $tserr 0
+   testall_cmd zsh "module use \"$testsuite_modpath.3\"\; module load source-sh/openfoam\; typeset +f _foamParams && foamVersion\; module unload source-sh\; test -n \"\$PATH\"" $tsout $tserr 0
 }
 
 if {{tcsh} in $shell_list} {
    set tsout OpenFOAM-dev
-   testall_cmd tcsh "module use \"$testsuite_modpath.3\"\; module load source-sh/openfoam\; foamVersion" $tsout {} 0
+   testall_cmd tcsh "module use \"$testsuite_modpath.3\"\; module load source-sh/openfoam\; foamVersion\; module unload source-sh\; test -n \"\$PATH\"" $tsout {} 0
 }
 
 # no setup-env script provided for fish shell
