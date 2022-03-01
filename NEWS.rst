@@ -158,6 +158,8 @@ Modules 5.1.0 (not yet released)
   completion.
 * Fix the :subcmd:`sh-to-mod` and :mfcmd:`source-sh` mechanisms to correctly
   detect empty function on fish shell.
+* Script: add :command:`pre-commit` git hook script to help verify if commits
+  are free of misspellings and trailing spaces.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 

@@ -139,7 +139,24 @@ Coding conventions
       setState already_report 1
    }
 
+* `No trailing space nor misspelling <commit-hook_>`_
+
 .. _Tcl minimal escaping style: https://wiki.tcl-lang.org/page/Tcl+Minimal+Escaping+Style
+
+.. _commit-hook:
+
+Commit hook
+~~~~~~~~~~~
+
+A :command:`pre-commit` hook script is provided in the :file:`script`
+directory of the project to help you check that the contribution made is free
+of misspellings and trailing spaces. It requires the `codespell`_ utility that
+checks for typos. The :command:`pre-commit` could be enabled in your local
+repository with following command::
+
+   ln -s ../../script/pre-commit .git/hooks/pre-commit
+
+.. _codespell: https://github.com/codespell-project/codespell
 
 Emacs settings for coding conventions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
