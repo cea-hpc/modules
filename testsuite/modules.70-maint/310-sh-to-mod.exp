@@ -737,7 +737,13 @@ setenv\t\tMODULE_VERSION_STACK $install_version\n"
 }
 append tserr "setenv\t\tMODULES_COLLECTION_TARGET bar
 setenv\t\ttestsuite yes"
-testouterr_shtomod ALL {} OK $tserr
+foreach sh $shtomod_avail_shells {
+    # skip this test for old fish version as a __fish_restore_status
+    # function is defined in this case
+    if {$sh ne {fish} || $fish_version_ge31} {
+        testouterr_shtomod $sh {} OK $tserr
+    }
+}
 
 # already set variable with equal or different value
 setenv_var MODULES_COLLECTION_TARGET foo

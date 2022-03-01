@@ -1977,13 +1977,15 @@ proc execShAndGetEnv {shell script args} {
          lappend shellopts -f
       }
       fish {
-         # exclude builtins and fish-specific functions from search to reduce
-         # the number of functions to parse
+         # exclude from search builtins, fish-specific functions and private
+         # functions defined prior script evaluation: reduce this way the
+         # the number of functions to parse.
          set getfunc "set funcout (string match -r -v \$funcfilter (functions\
-            -n) | while read f; functions \$f; echo '$subsep'; end)"
+            -a -n) | while read f; functions \$f; echo '$subsep'; end)"
          set command "set -xgL; echo '$sep'; set funcfilter \\^\\((string\
             join '|' (string replace -r '(\\\[|\\.)' '\\\\\\\\\\\\\\\$1'\
-            (builtin -n)))\\|fish\\.\\*\\)\\\$; $getfunc; $getfunc; string\
+            (builtin -n; functions -a -n | string split ', ' | string match\
+            -e -r '^_')))\\|fish\\.\\*\\)\\\$; $getfunc; $getfunc; string\
             split \$funcout; echo '$sep'; string split \$funcout; echo\
             '$sep'; complete; echo '$sep'; pwd; echo '$sep'; source [listTo\
             shell $shdesc] 2>&1; or exit \$status; echo '$sep'; set -xgL;\
