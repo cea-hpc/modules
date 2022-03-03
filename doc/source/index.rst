@@ -26,7 +26,7 @@ in an clean fashion. All popular shells are supported, including *bash*,
 languages such as *tcl*, *perl*, *python*, *ruby*, *cmake* and *r*.
 
 Modules are useful in managing different versions of applications. Modules
-can also be bundled into metamodules that will load an entire suite of
+can also be bundled into meta-modules that will load an entire suite of
 different applications.
 
 .. note:: Modules presented here are ones that modify the shell or script

@@ -56,7 +56,7 @@ Specification
     - For ``avail`` options: modulepath, alias, dirwsym, sym, tag, key
     - For ``list`` options: header, idx, variant, sym, tag, key
 
-- If the ``-o``/``--output`` options are wronly specified
+- If the ``-o``/``--output`` options are wrongly specified
 
     - An error is raised and evaluation terminates
     - It may happen in the following situations
@@ -78,7 +78,7 @@ Specification
 
     - Their value is ignored
     - So the default value takes precedence, unless a ``-o``/``--output`` option is specified
-    - Value in environment variable is wronly specified for instance in the following situations
+    - Value in environment variable is wrongly specified for instance in the following situations
 
         - Element set in option value unsupported by module sub-command
         - Elements set in option value not separated by colon character (``:``)

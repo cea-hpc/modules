@@ -149,7 +149,7 @@ Follow the same prescription as setting a *default*, but give some *bogus* value
 Build Issues
 ------------
 
-The configure script complains about Tclx
+The configure script complains about TclX
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 

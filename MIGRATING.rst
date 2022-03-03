@@ -612,7 +612,7 @@ a specific module variant:
 
     :ps:`$` module show foo/2.1 toolchain=c
     -------------------------------------------------------------------
-    :sgrhi:`/path/to/modulfiles/foo/2.1`:
+    :sgrhi:`/path/to/modulefiles/foo/2.1`:
 
     :sgrcm:`variant`         toolchain a b c
     :sgrcm:`prereq`          :noparse:`bar@1.2 toolchain=`:sgrva:`{toolchain}`
@@ -948,7 +948,7 @@ module designation (respectively ``S`` and ``sS``).
 
 In case the stickiness applies to the generic module name (and does not target
 a specific module version or version-set), one version of the sticky or
-super-sticty module can be swapped by another version of this same module:
+super-sticky module can be swapped by another version of this same module:
 
 .. parsed-literal::
 
@@ -2509,7 +2509,7 @@ produced for a given modulefile evaluation:
         HINT: the following module must be loaded first: bar/4.5
 
 In addition, foreground ``load``, ``unload``, ``switch`` and ``restore``
-actions (ie. asked on the command-line) now report a summary of the
+actions (i.e., asked on the command-line) now report a summary of the
 additional load and unload evaluations that were eventually triggered in
 the process:
 

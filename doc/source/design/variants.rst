@@ -386,7 +386,7 @@ Specifying
         - command-line option takes precedence
         - for instance the ``-t`` will always be treated as ``--terse`` and not the negation of a ``t`` variant
 
-    - beware that the negation prefix *~* when used as a separate word may trigger the tilda resolution of the currently running shell
+    - beware that the negation prefix *~* when used as a separate word may trigger the tilde resolution of the currently running shell
 
         - if a username matches a Boolean variant name, using the ``~name`` form on the shell command-line will leads to the resolution of the HOME directory path of user ``name``
 

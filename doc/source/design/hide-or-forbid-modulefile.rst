@@ -115,7 +115,7 @@ Specification
 
     - Included in module resolution result if :option:`--all` option of ``avail``, ``whatis``, ``search`` and ``aliases`` sub-commands is set
 
-        - ``--all`` option does not apply to ``is-avail`` sub-command to make it coherent with ``load`` sub-command (eg. a ``is-avail mod`` returning true implies ``load mod`` effectively loading a module)
+        - ``--all`` option does not apply to ``is-avail`` sub-command to make it coherent with ``load`` sub-command (e.g., a ``is-avail mod`` returning true implies ``load mod`` effectively loading a module)
 
     - Visibility of a module targeted by a ``module-hide`` command, with regular hiding level defined, acts similarly than for a file whose name is prefixed by a dot character on Unix platform
 
@@ -301,7 +301,7 @@ Specification
     - ``nearly-forbidden`` tag applies to such module
     - matched ``module-forbid`` statement should of course not be disabled for current user of group due to ``--not-user`` or ``--not-group`` option values
     - the *near* range is defined by the :mconfig:`nearly_forbidden_days` configuration, which equals to ``14`` (14 days) by default
-    - this configuration accepts an integer value which represents a number of days prior forbiding starts to be effective for module
+    - this configuration accepts an integer value which represents a number of days prior forbidding starts to be effective for module
     - ``nearly_forbidden_days`` configuration can be set at configure time with :instopt:`--with-nearly-forbidden-days` option or afterward with the ``config`` sub-command (which sets the :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS` environment variable)
     - when evaluating a *nearly-forbidden* module, a warning message is reported to indicate that module access will soon be denied
 

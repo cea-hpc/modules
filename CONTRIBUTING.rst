@@ -161,7 +161,7 @@ repository with following command::
 Emacs settings for coding conventions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This is an example emacs configuration that adheres to the first two
+This is an example Emacs configuration that adheres to the first two
 coding conventions.  You may wish to add this to your ``.emacs`` or
 ``.emacs.d/`` to modify your tcl-mode::
 

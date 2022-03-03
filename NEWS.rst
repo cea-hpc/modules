@@ -160,6 +160,7 @@ Modules 5.1.0 (not yet released)
   detect empty function on fish shell.
 * Script: add :command:`pre-commit` git hook script to help verify if commits
   are free of misspellings and trailing spaces.
+* Doc: fix typos found in documentation with Aspell utility.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 
@@ -307,7 +308,7 @@ Modules 5.0.0 (2021-09-12)
   the reference counter of a path entry already defined and a
   :subcmd:`module remove-path<remove-path>` will remove specified path
   whatever its reference counter value.
-* Fix :subcmd:`unuse` sub-command when sereval modulepaths are specified as a
+* Fix :subcmd:`unuse` sub-command when several modulepaths are specified as a
   single argument (i.e., ``/path/to/dir1:/path/to/dir2``). Enabled modulepaths
   were not correctly detected when specified this way.
 * Doc: clarify that an already defined path is not added again or moved when
@@ -546,7 +547,7 @@ Modules 4.7.1 (2021-04-06)
   #389)
 * Revert "Install: have :file:`configure` script assume the ``.`` dot
   directory when invoked without the prepended ``./``" as consent was not
-  obtained from author to relicense the contribution to GPLv2+.
+  obtained from author to re-license the contribution to GPLv2+.
 * Doc: fixes few typos in :ref:`module(1)` and :ref:`modulefile(4)`.
 * Update the :subcmd:`sh-to-mod` mechanism to support version 3.2 of the fish
   shell. Fish 3.2 introduces the ``.`` builtin command that should be
@@ -722,7 +723,7 @@ Modules 4.7.0 (2021-02-19)
   sub-commands to explain the meaning of graphical renditions or of elements
   set in parentheses or chevrons along module name.
 * Fix output of :subcmd:`avail` and :subcmd:`list` sub-commands on very small
-  termminal width. (fix issue #378)
+  terminal width. (fix issue #378)
 * Add :mconfig:`mcookie_version_check` configuration to define if version set
   in modulefile magic cookie should be checked against :command:`module`
   current version to determine if modulefile can be evaluated. The new
@@ -2021,7 +2022,7 @@ Modules 4.2.0 (2018-10-18)
   ``unload`` modulefile evaluation to improve readability on these evaluating
   modes that may cascade additional actions. (see
   :ref:`v42-module-message-report` section in MIGRATING document)
-* Foreground ``load``, ``unload``, ``switch`` and ``restore`` actions (ie.
+* Foreground ``load``, ``unload``, ``switch`` and ``restore`` actions (i.e.,
   asked on the command-line) now report a summary of the additional load and
   unload evaluations that were eventually triggered in the process.
 * Support ``del`` and ``remove`` aliases for ``unload`` sub-command like on

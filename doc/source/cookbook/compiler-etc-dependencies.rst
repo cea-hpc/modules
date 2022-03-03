@@ -279,7 +279,7 @@ you basically just need to:
 #. Symlink ``modulecmd.wrapper`` to ``modulecmd``
 #. Edit ``modulecmd.wrapper`` where indicated to give fully qualified path to ``modulecmd.wrapped``
 #. Copy the ``flavours.tcl`` and ``pkgIndex.tcl`` files to some (possibly new) directory under
-   the modules installation roor, and set ``TCLLIBPATH`` to that directory (you probably will want to
+   the modules installation root, and set ``TCLLIBPATH`` to that directory (you probably will want to
    add that to the various modules init scripts)
 
 The ``module`` command invokes ``modulecmd``, which in this case is results
@@ -306,7 +306,7 @@ commands:
 *  ``flavours conflict``: This is similar to the standard conflict command, but enhanced
    to recognize the flavours prereqs above.
 *  ``flavours commit``: This should be called after the ``root``, ``revision``, and ``prereq``
-   subcommands of ``flavours`` are called, and before any of the ``path`` subcommands.
+   sub-commands of ``flavours`` are called, and before any of the ``path`` sub-commands.
    It seems to be responsible for taking all those values to above and constructing the
    path to the package.
 *  ``flavours path``: This returns a string with the path to the specific build of the package.
@@ -315,7 +315,7 @@ commands:
    to the environment variable has the path (as returned by ``flavours path``) prepended
    to it with the appropriate directory separator. E.g., to add to the ``PATH`` variable the bin subdirectory
    of the root directory where the specific build was installed, use ``flavours prepend-path PATH bin``
-*  ``flavours cleanup``: This should be called after all ``flavours`` subcommands are finished
+*  ``flavours cleanup``: This should be called after all ``flavours`` sub-commands are finished
    and before exiting the script to ensure proper cleanup. Among other things, it ensures
    that any packages that depend on this package will get reloaded if this package is switched out.
 
@@ -382,7 +382,7 @@ We start with the ``module avail`` command:
     :language: console
 
 We note that we only see the package names and versions; e.g. ``foo/2.4``, without any mention
-of the compilers and MPI libraries for which it is built. This terser stype was an intentional
+of the compilers and MPI libraries for which it is built. This terser type was an intentional
 design goal of the authors. Also of note are the intelmpi and simd packages. The Flavours
 approach relies on seeing what modules have been loaded previously in order to determine what
 'flavor' of the requested package should be loaded. To support the different builds of ``bar``
@@ -769,7 +769,7 @@ The modulefile for ``foo`` is a bit more complex:
     :language: tcl
 
 The main difference between this modulefile, depending on both compiler and
-optionally MPI, and the openmpi modilefile above, is that in addition to
+optionally MPI, and the openmpi modulefile above, is that in addition to
 detecting which compiler is loaded, we call ``GetLoadedMPI`` to determine
 the MPI library which was loaded, and use both of them in constructing the
 prefix to the installed foo.
@@ -1640,7 +1640,7 @@ examined strategies is that the module list command provides information
 about what variant of each package is loaded.
 
 The ``module switch`` command, however, does not work as well as one would
-like. While it indeeds switches the specified module, it does not
+like. While it indeed switches the specified module, it does not
 successfully reload the modules which depend on the replaced module, even
 with the :ref:`Automated module handling <v42-automated-module-handling-mode>`
 feature enabled. As currently implemented,
@@ -1877,7 +1877,7 @@ on something else, like MPI library).
 This certainly enforces the consistency of loaded modules; one could not load
 a specific version of gcc (say ``gcc/9.1.0``) and an incompatible version of foo (e.g. ``foo/1.1``),
 because all of the foo modulefiles are in compiler specific module trees and there is
-no ``foo/1.1`` in the ``gcc/9.1.0`` moduletree. Conflict statements in the compiler modulefiles
+no ``foo/1.1`` in the ``gcc/9.1.0`` module tree. Conflict statements in the compiler modulefiles
 will prevent one from loading multiple compilers, thereby preventing multiple compiler
 specific modulepaths (unless the user explicitly does a ``module use`` or similar, and
 there is only so far one can go in preventing users from shooting themselves in the foot).
@@ -2136,7 +2136,7 @@ Summary of Modulepath-based strategy
   libraries. Lmod needed to add a ``module spider`` command to address this,
   but no such functionality currently exists in Environment Modules.
   If one were to use this in production, you would need to provide something
-  similar to the Lmod spider subcommand, or at least provide frequently
+  similar to the Lmod spider sub-command, or at least provide frequently
   updated web pages or similar with this information.
 * This strategy involves the use of many more modulepaths than the
   previously examined strategies, having at least one modulepath per
@@ -2211,8 +2211,8 @@ with gcc version ``8.2.0``.
 All of the strategies discussed meet this criterion, with both 3.x and 4.x versions
 of Environment Modules.
 
-Advanced Dependency Handling (e.g. the module switch subcommand)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Advanced Dependency Handling (e.g. the module switch sub-command)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Things are more complicated when we allow for the modules upon which
 other loaded modules might depend to be changed. This generally involves
@@ -2391,7 +2391,7 @@ in a large environment, with the :ref:`Modulerc-based_strategy` it can become pr
 While an unqualified ``module avail`` in the :ref:`Flavours <Flavours_strategy>`,
 :ref:`Homebrewed flavors <Homebrewed_flavors_strategy>`, and especially :ref:`Modulerc-based <Modulerc-based_strategy>` strategies
 can inundate the user with modulenames, the :ref:`Modulepath-based_strategy` has the opposite problem.
-With the :ref:`Modulepath-based_strategy` strategy, the modulefiles are split across multiple, often multually incompatible, modulepaths, so the module avail
+With the :ref:`Modulepath-based_strategy` strategy, the modulefiles are split across multiple, often mutually incompatible, modulepaths, so the module avail
 command will never return a list of all modulefiles installed, only those available given the previously loaded
 compiler/MPI libraries/etc. E.g., if a package foobar is only installed for a particular compiler/MPI combination,
 it will not appear in any module avail listing unless that particular compiler and MPI were previously loaded.

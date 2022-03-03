@@ -145,8 +145,8 @@ Specification
 
 - Shell to use to source targeted script may be specified as a command name or as a path name
 
-    - When specified as a command name (eg. ``bash``), command location will be determined based on currently set ``PATH``
-    - When specified as a path name (eg. ``/bin/bash``), this path name determines command location
+    - When specified as a command name (e.g., ``bash``), command location will be determined based on currently set ``PATH``
+    - When specified as a path name (e.g., ``/bin/bash``), this path name determines command location
 
 - Prior executing shell and making it sourcing script:
 

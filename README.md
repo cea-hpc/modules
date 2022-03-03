@@ -29,7 +29,7 @@ csh, tcsh, fish, as well as some scripting languages such as tcl, perl,
 python, ruby, cmake and r.
 
 Modules are useful in managing different versions of applications. Modules
-can also be bundled into metamodules that will load an entire suite of
+can also be bundled into meta-modules that will load an entire suite of
 different applications.
 
 
@@ -117,7 +117,7 @@ Test suite
 ----------
 
 Regression testing scripts are available in the `testsuite` directory (you
-need dejagnu to run the test suite):
+need DejaGnu to run the test suite):
 
     $ ./configure
     $ make test
