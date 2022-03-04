@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # PRE-COMMIT, hook script to verify what is about to be committed
 # Copyright (C) 2022 Xavier Delaruelle
@@ -21,10 +21,30 @@
 # redirect output to stderr.
 exec 1>&2
 
-# fail if there are misspellings
-git diff --cached --diff-filter=A HEAD | codespell -
-if [ $? -ne 0 ]; then
-   exit 1
+# apply SGR code to message if output channel is attached to terminal
+sgr() {
+   local code=$1
+   local msg=$2
+   if [ -t 2 ]; then
+      echo "\033[${code}m${msg}\033[0m"
+   else
+      echo $msg
+   fi
+}
+
+echo_warning() {
+   echo -e "$(sgr 43 WARNING): $1"
+}
+
+# fail if there are misspellings (check all files)
+command -v codespell >/dev/null
+if [ $? -eq 0 ]; then
+   git diff --cached HEAD | grep '^[+][^+]' | codespell -
+   if [ $? -ne 0 ]; then
+      exit 1
+   fi
+else
+   echo_warning "codespell command not found"
 fi
 
 # fail if there are whitespace errors
