@@ -1547,6 +1547,81 @@ module name (e.g., *name+* or *name++*).
    .. versionchanged:: 4.8
       Support for module variant added
 
+.. _Dependencies between modulefiles:
+
+Dependencies between modulefiles
+--------------------------------
+
+A modulefile may express dependencies on other modulefiles. Two kind of
+dependency exist: pre-requirement and conflict. The former means specified
+modulefiles should be loaded prior the modulefile that express the
+requirement. The latter means specified modulefiles should not be loaded for
+the modulefile that express the conflict to be loaded too.
+
+Pre-requirement could be expressed with :mfcmd:`prereq`, :mfcmd:`prereq-any`,
+:mfcmd:`prereq-all`, :mfcmd:`depends-on`, :mfcmd:`always-load`,
+:mfcmd:`module load<module>`, :mfcmd:`module switch<module>`,
+:mfcmd:`module try-load<module>` or :mfcmd:`module load-any<module>`
+modulefile commands. When the :mconfig:`auto_handling` configuration option is
+disabled, required modulefile should be manually loaded prior their dependent
+modulefile when expressed with the :mfcmd:`prereq`, :mfcmd:`prereq-any`,
+:mfcmd:`prereq-all` or :mfcmd:`depends-on` modulefile commands. For other
+commands or when :mconfig:`auto_handling` is enabled, pre-required modulefiles
+are automatically loaded.
+
+Conflict is expressed with :mfcmd:`conflict` or :mfcmd:`module unload<module>`
+modulefile commands. A conflicting loaded modulefile should be manually
+unloaded prior loading the modulefile that express such conflict when defined
+with :mfcmd:`conflict`. It is automatically unloaded when expressed with
+:mfcmd:`module unload<module>`.
+
+It is strongly advised to define dependencies prior environment changes in a
+modulefile. Dependency resolution should be done before any environment change
+to ensure the environment is getting set in the same order whether
+pre-requirements are already loaded, or if they are automatically loaded when
+loading the modulefile which depends on them, or if all loaded modules are
+reloaded or refreshed. This is especially important when the modulefile
+updates an environment variable also altered by other modulefiles like
+:envvar:`PATH`. As the order of the path elements in such variable defines
+priority, it is important that this order does not change depending on the way
+the modulefiles are loaded.
+
+:command:`module` keeps environment consistent which means a modulefile cannot
+be loaded if its requirements are not loaded or if a conflicting module is
+loaded. In addition a loaded module cannot be unloaded if other loaded modules
+depends on it. The :envvar:`automated module handling
+mechanisms<MODULES_AUTO_HANDLING>` attempt to solve the dependencies expressed
+by loading or unloading additional modulefiles. When the :option:`--no-auto`
+option is set on :command:`module` command when loading or unload modulefile,
+automated module handling mechanisms are disabled and dependencies have to be
+solved manually. When dependencies are not satisfied, modulefile fails to load
+or unload.
+
+Adding the ``--not-req`` option when expressing dependencies in modulefile
+with the :mfcmd:`module` command will attempt to load or unload the designated
+modulefile but it will not mark them as pre-requirement or conflict.
+
+By adding the :option:`--force` option to the :command:`module` command when
+loading or unloading modulefile, the consistency checks are by-passed. This
+option cannot be used when expressing dependencies in modulefiles. If a module
+has been force loaded whereas its requirements are not loaded or whereas a
+conflicting module is also loaded, the user environment is said inconsistent.
+
+Note that a pre-requirement should be found in the loaded module list prior
+its dependent module. User environment is considered inconsistent if
+pre-requirement module is found loaded after dependent module, as the
+environment changes may have been done in the wrong priority order.
+
+When user environment is considered inconsistent global operations achieved by
+:subcmd:`refresh`, :subcmd:`reload` and :subcmd:`save` sub-commands cannot
+perform. This mechanism is there to avoid the situation to worsen by
+re-evaluating all loaded modules or recording this environment.
+
+When the :mconfig:`auto_handling` configuration option is enabled, if missing
+pre-requirement modulefile gets loaded or conflicting modulefile gets unloaded
+the inconsistent loaded module will be automatically reloaded to make user
+environment consistent again.
+
 
 Modulefile Specific Help
 ------------------------

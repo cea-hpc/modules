@@ -161,6 +161,8 @@ Modules 5.1.0 (not yet released)
 * Script: add :command:`pre-commit` git hook script to help verify if commits
   are free of misspellings and trailing spaces.
 * Doc: fix typos found in documentation with Aspell utility.
+* Doc: describe :ref:`Dependencies between modulefiles` in
+  :ref:`modulefile(4)` man page. (fix issues #431 and #433)
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 
