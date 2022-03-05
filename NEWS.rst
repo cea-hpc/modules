@@ -165,6 +165,8 @@ Modules 5.1.0 (not yet released)
   :ref:`modulefile(4)` man page. (fix issues #431 and #433)
 * Script: update :command:`pre-commit` git hook script to spell check
   documentation files with `Aspell`_ tool.
+* Script: add :command:`commit-msg` git hook script to spell check commit
+  message with `Aspell`_ tool.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 .. _codespell: https://github.com/codespell-project/codespell

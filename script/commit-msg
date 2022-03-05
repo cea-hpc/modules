@@ -1,0 +1,68 @@
+#!/bin/bash
+#
+# COMMIT-MSG, hook script to verify commit message
+# Copyright (C) 2022 Xavier Delaruelle
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+##########################################################################
+
+# redirect output to stderr.
+exec 1>&2
+
+# apply SGR code to message if output channel is attached to terminal
+sgr() {
+   local code=$1
+   local msg=$2
+   if [ -t 2 ]; then
+      echo "\033[${code}m${msg}\033[0m"
+   else
+      echo $msg
+   fi
+}
+
+echo_warning() {
+   echo -e "$(sgr 43 WARNING): $1"
+}
+
+echo_error() {
+   echo -e "$(sgr 41 ERROR): $1"
+}
+
+echo_hint() {
+   echo -e "$(sgr 44 HINT): $1"
+}
+
+# check misspellings in commit message
+command -v aspell >/dev/null
+if [ $? -eq 0 ]; then
+   ASPELL_OPTS='-l en -x --home-dir=. --personal=.aspell.en.pws'
+   # use sed to extract commit message from full commit details
+   words=$(sed '/^# /Q' "$1" | aspell $ASPELL_OPTS list)
+   # abort if misspelled words found
+   if [ -n "$words" ]; then
+      befmsg='# commit message was ---------------- >8 -------------'
+      aftmsg='# ------------------------ 8< ------------------------'
+      echo_error "misspellings found in commit message\n\n$words\n"
+      echo -e "$befmsg\n$(sed '/^# /Q' "$1")\n$aftmsg\n"
+      echo_hint "correct message or skip checks with '--no-verify' git option"
+      exit 1
+   fi
+else
+   echo_warning "aspell command not found"
+fi
+
+exit 0
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

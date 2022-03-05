@@ -157,6 +157,13 @@ local repository with following command::
 
    ln -s ../../script/pre-commit .git/hooks/pre-commit
 
+A :command:`commit-msg` hook script is also provided in the :file:`script`
+directory of the project to help you check that your commit messages are free
+of misspellings. It requires the `Aspell`_ utility and could be enabled in
+your local repository with following command::
+
+   ln -s ../../script/commit-msg .git/hooks/commit-msg
+
 .. _codespell: https://github.com/codespell-project/codespell
 .. _Aspell: http://aspell.net/
 
