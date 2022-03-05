@@ -159,12 +159,16 @@ Modules 5.1.0 (not yet released)
 * Fix the :subcmd:`sh-to-mod` and :mfcmd:`source-sh` mechanisms to correctly
   detect empty function on fish shell.
 * Script: add :command:`pre-commit` git hook script to help verify if commits
-  are free of misspellings and trailing spaces.
+  are free of misspellings (with `codespell`_ tool) and trailing spaces.
 * Doc: fix typos found in documentation with Aspell utility.
 * Doc: describe :ref:`Dependencies between modulefiles` in
   :ref:`modulefile(4)` man page. (fix issues #431 and #433)
+* Script: update :command:`pre-commit` git hook script to spell check
+  documentation files with `Aspell`_ tool.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
+.. _codespell: https://github.com/codespell-project/codespell
+.. _Aspell: http://aspell.net/
 
 
 .. _5.0 release notes:

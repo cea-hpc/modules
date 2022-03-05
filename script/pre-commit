@@ -36,6 +36,10 @@ echo_warning() {
    echo -e "$(sgr 43 WARNING): $1"
 }
 
+echo_error() {
+   echo -e "$(sgr 41 ERROR): $1"
+}
+
 # fail if there are misspellings (check all files)
 command -v codespell >/dev/null
 if [ $? -eq 0 ]; then
@@ -45,6 +49,30 @@ if [ $? -eq 0 ]; then
    fi
 else
    echo_warning "codespell command not found"
+fi
+
+# interactively check misspellings in doc files
+command -v aspell >/dev/null
+if [ $? -eq 0 ]; then
+   misspell=0
+   ASPELL_OPTS='-l en -x --home-dir=. --personal=.aspell.en.pws'
+   for docfile in $(git diff --cached --name-only --diff-filter=d | grep -E\
+      '(.rst|.md)$'); do
+      words=$(git diff --cached $docfile | grep '^[+][^+]' | aspell\
+         $ASPELL_OPTS list)
+      if [ -n "$words" ]; then
+         # interactively edit file to fix misspellings
+         aspell $ASPELL_OPTS check $docfile </dev/tty >/dev/tty;
+         misspell=1
+      fi
+   done
+   # abort if misspellings were found as commit content should be adapted
+   if [ $misspell -eq 1 ]; then
+      echo_error "misspelling found, commit should be updated"
+      exit 1
+   fi
+else
+   echo_warning "aspell command not found"
 fi
 
 # fail if there are whitespace errors
