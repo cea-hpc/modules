@@ -153,16 +153,17 @@ in the following order:
 3. All :file:`.modulerc` and :file:`.version` files found during modulefile
    seeking.
 
-These module run-command files must begins like *modulefiles* with the magic
-cookie ``#%Module``. A version number may be placed after this string. The
-version number reflects the minimum version of :file:`modulecmd.tcl` required
-to interpret the run-command file. If a version number doesn't exist, then
-:file:`modulecmd.tcl` will assume the run-command file is compatible. Files
-without the magic cookie or with a version number greater than the current
-version of :file:`modulecmd.tcl` will not be interpreted and an error is
-reported. Such error does not abort the whole :command:`module` evaluation. If
-the :mconfig:`mcookie_version_check` configuration is disabled the version
-number set is not checked.
+These module run-command files must begins like *modulefiles* with the
+``#%Module`` file signature, also called the Modules magic cookie. A version
+number may be placed after this string. The version number reflects the
+minimum version of :file:`modulecmd.tcl` required to interpret the run-command
+file. If a version number doesn't exist, then :file:`modulecmd.tcl` will
+assume the run-command file is compatible. Files without the magic cookie or
+with a version number greater than the current version of
+:file:`modulecmd.tcl` will not be interpreted and an error is reported. Such
+error does not abort the whole :command:`module` evaluation. If the
+:mconfig:`mcookie_version_check` configuration is disabled the version number
+set is not checked.
 
 Command line switches
 ^^^^^^^^^^^^^^^^^^^^^
@@ -519,8 +520,8 @@ Module Sub-Commands
 
  List all available *modulefiles* in the current :envvar:`MODULEPATH`. All
  directories in the :envvar:`MODULEPATH` are recursively searched for files
- containing the *modulefile* magic cookie. If a *pattern* argument is given,
- then each directory in the :envvar:`MODULEPATH` is searched for *modulefiles*
+ containing the Modules magic cookie. If a *pattern* argument is given, then
+ each directory in the :envvar:`MODULEPATH` is searched for *modulefiles*
  whose pathname, symbolic version-name or alias match *pattern* in a case
  insensitive manner by default. *pattern* may contain wildcard characters.
  Multiple versions of an application can be supported by creating a
@@ -762,8 +763,9 @@ Module Sub-Commands
 
  .. mconfig:: mcookie_check
 
-  Defines if the Modules magic cookie (``#%Module``) should be checked to
-  determine if a file is a modulefile. Defines :envvar:`MODULES_MCOOKIE_CHECK`.
+  Defines if the Modules magic cookie (i.e., ``#%Module`` file signature)
+  should be checked to determine if a file is a modulefile. Defines
+  :envvar:`MODULES_MCOOKIE_CHECK`.
 
   .. only:: html
 
@@ -2718,9 +2720,10 @@ ENVIRONMENT
 
 .. envvar:: MODULES_MCOOKIE_CHECK
 
- If set to ``eval``, the Modules magic cookie is only checked to determine if
- a file is a modulefile when evaluating these files. If set to ``always``, the
- Modules magic cookie is also checked when searching for modules.
+ If set to ``eval``, the Modules magic cookie (i.e., ``#%Module``
+ file signature) is only checked to determine if a file is a modulefile when
+ evaluating these files. If set to ``always``, the Modules magic cookie is
+ also checked when searching for modules.
 
  The ``eval`` mode is made to significantly reduce file checks when walking
  through modulepaths to search for *modulefiles*. Special care should be given
@@ -3132,7 +3135,7 @@ FILES
  defines modulepaths to enable with :mfcmd:`module use<module>`, modules to
  load with :mfcmd:`module load<module>` and configuration to apply with
  :subcmd:`module config<config>`. As any modulefile :file:`initrc` must begin
- with the magic cookie ``#%Module``.
+ with the Modules magic cookie (i.e., ``#%Module`` file signature).
 
  :file:`initrc` is optional. When this configuration file is present it is
  evaluated after the :file:`modulespath` configuration file. See the

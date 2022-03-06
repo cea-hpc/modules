@@ -109,10 +109,10 @@ Modules 5.1.0 (not yet released)
   :mfcmd:`module load-any<module>` modulefile commands.
 * Doc: add :ref:`magic-cookie-check` design notes.
 * Add the :mconfig:`mcookie_check` configuration option that control whether
-  the magic cookie at the start of modulefile (``#%Module``) need to get
-  checked or not. When set to ``eval`` the number of file checks is
-  significantly reduced when walking through modulepaths to search for
-  modulefiles. Default value for this option is overridden by the
+  the magic cookie at the start of modulefile (i.e., ``#%Module`` file
+  signature) need to get checked or not. When set to ``eval`` the number of
+  file checks is significantly reduced when walking through modulepaths to
+  search for modulefiles. Default value for this option is overridden by the
   :envvar:`MODULES_MCOOKIE_CHECK` environment variable.
 * Doc: describe :mfcmd:`puts` Tcl command and its specific feature when used
   in modulefile.
@@ -167,6 +167,8 @@ Modules 5.1.0 (not yet released)
   documentation files with `Aspell`_ tool.
 * Script: add :command:`commit-msg` git hook script to spell check commit
   message with `Aspell`_ tool.
+* Doc: clarify that ``#%Module`` is a file signature also called Modules magic
+  cookie.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 .. _codespell: https://github.com/codespell-project/codespell

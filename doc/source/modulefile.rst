@@ -13,15 +13,16 @@ user interface. *modulefiles* can be loaded, unloaded, or switched on-the-fly
 while the user is working; and can be used to implement site policies
 regarding the access and use of applications.
 
-A *modulefile* begins with the magic cookie, ``#%Module``. A version number
-may be placed after this string. The version number is useful as the
-*modulefile* format may change thus it reflects the minimum version of
-:file:`modulecmd.tcl` required to interpret the modulefile. If a version
-number doesn't exist, then :file:`modulecmd.tcl` will assume the *modulefile*
-is compatible. Files without the magic cookie or with a version number greater
-than the current version of :file:`modulecmd.tcl` will not be interpreted. If
-the :mconfig:`mcookie_version_check` configuration is disabled the version
-number set is not checked.
+A *modulefile* begins with the ``#%Module`` file signature, also called the
+Modules magic cookie. A version number may be placed after this string. The
+version number is useful as the *modulefile* format may change thus it
+reflects the minimum version of :file:`modulecmd.tcl` required to interpret
+the modulefile. If a version number doesn't exist, then :file:`modulecmd.tcl`
+will assume the *modulefile* is compatible. Files without the magic cookie or
+with a version number greater than the current version of
+:file:`modulecmd.tcl` will not be interpreted. If the
+:mconfig:`mcookie_version_check` configuration is disabled the version number
+set is not checked.
 
 Each *modulefile* contains the changes to a user's environment needed to
 access an application. Tcl is a simple programming language which permits
@@ -1363,10 +1364,10 @@ in case of deep *modulefile*). Unless a symbolic version, alias, or regular
 module version already exists for these version names.
 
 Every file in searched directories is checked to see if it begins with the
-magic cookie to determine if it is a *modulefile* (see `DESCRIPTION`_
-section). When the :mconfig:`mcookie_check` configuration is set to ``eval``,
-this check is skipped and all files in search directories are considered
-*modulefiles*.
+Modules magic cookie (i.e., ``#%Module`` file signature) to determine if it is
+a *modulefile* (see `DESCRIPTION`_ section). When the :mconfig:`mcookie_check`
+configuration is set to ``eval``, this check is skipped and all files in
+search directories are considered *modulefiles*.
 
 If user names a *modulefile* that cannot be found in the first *modulepath*
 directory, *modulefile* will be searched in next *modulepath* directory

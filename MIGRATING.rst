@@ -115,7 +115,8 @@ A new configuration option named :mconfig:`mcookie_check` is introduced to
 control the verification made to files to determine if they are modulefiles.
 By default this configuration option is set to ``always`` and when searching
 for modulefiles within enabled modulepaths each file below these directories
-is opened to check if it starts with the Modules magic cookie (``#%Module``).
+is opened to check if it starts with the Modules magic cookie (i.e.,
+``#%Module`` file signature).
 
 These historical checks lead to a large number of I/O operations on large
 module setup like in the below example where a total of 1098 modulefiles are
@@ -321,10 +322,10 @@ and the  modulepath-specific configuration file is named :file:`modulespath`.
 When both files exist, now they are both evaluated instead of just the
 :file:`modulespath` file.
 
-Module magic cookie (i.e., ``#%Module``) is now required at the start of
-:file:`initrc`. An error is produced if the magic cookie is missing or if the
-optional version number placed after the cookie string is higher than the
-version of the :file:`modulecmd.tcl` script in use.
+Modules magic cookie (i.e., ``#%Module`` file signature) is now required at
+the start of :file:`initrc`. An error is produced if the magic cookie is
+missing or if the optional version number placed after the cookie string is
+higher than the version of the :file:`modulecmd.tcl` script in use.
 
 Note that :file:`initrc` configuration file can host more than
 :subcmd:`module use<use>` and :subcmd:`module load<load>` commands.
@@ -2472,10 +2473,10 @@ save performances on this global evaluation mode.
 Express Modules compatibility of modulefile with versioned magic cookie
 -----------------------------------------------------------------------
 
-Any modulefile should start with the ``#%Module`` magic cookie and sometimes
-a version number may be placed right after this string. Until now this
-version number corresponded to a modulefile format version but it was never
-checked.
+Any modulefile should start with the ``#%Module`` file signature (also called
+the Modules magic cookie) and sometimes a version number may be placed right
+after this string. Until now this version number corresponded to a modulefile
+format version but it was never checked.
 
 Starting with this new Modules release, this version number reflects the
 minimum version of Modules required to interpret the modulefile. If the

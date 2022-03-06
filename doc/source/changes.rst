@@ -563,10 +563,10 @@ Report the modules loading and unloading during the evaluation of the
 :file:`initrc` configuration file. These report messages are disabled when the
 :mconfig:`verbosity` configuration option is set to ``concise`` or ``silent``.
 
-Enforce use of the module magic cookie (i.e., ``#%Module``) at the start of
-:file:`initrc` configuration file. No evaluation occurs and an error is
-produced if the magic cookie is missing or if the optional version number
-placed after the cookie string is higher than the version of the
+Enforce use of the Modules magic cookie (i.e., ``#%Module`` file signature) at
+the start of :file:`initrc` configuration file. No evaluation occurs and an
+error is produced if the magic cookie is missing or if the optional version
+number placed after the cookie string is higher than the version of the
 :file:`modulecmd.tcl` script in use.
 
 Quarantine mechanism code in the Modules shell initialization scripts is now
@@ -596,10 +596,10 @@ especially when the :mconfig:`set_shell_startup` configuration option is set.
 Modulecmd startup
 """""""""""""""""
 
-Enforce use of the module magic cookie (i.e., ``#%Module``) at the start of
-global or user rc files. These files are not evaluated and an error is
-produced if the magic cookie is missing or if the optional version number
-placed after the cookie string is higher than the version of the
+Enforce use of the Modules magic cookie (i.e., ``#%Module`` file signature) at
+the start of global or user rc files. These files are not evaluated and an
+error is produced if the magic cookie is missing or if the optional version
+number placed after the cookie string is higher than the version of the
 :file:`modulecmd.tcl` script in use.
 
 Module Sub-Commands
@@ -644,11 +644,12 @@ Module Sub-Commands
 
 :subcmd:`source`
 
- Enforce use of the module magic cookie (i.e., ``#%Module``) at the start of
- any scriptfile passed for evaluation to the :subcmd:`source` sub-command.
- These files are not evaluated and an error is produced if the magic cookie is
- missing or if the optional version number placed after the cookie string is
- higher than the version of the :file:`modulecmd.tcl` script in use.
+ Enforce use of the Modules magic cookie (i.e., ``#%Module`` file signature) at
+ the start of any scriptfile passed for evaluation to the :subcmd:`source`
+ sub-command. These files are not evaluated and an error is produced if the
+ magic cookie is missing or if the optional version number placed after the
+ cookie string is higher than the version of the :file:`modulecmd.tcl` script
+ in use.
 
 :subcmd:`use`
 

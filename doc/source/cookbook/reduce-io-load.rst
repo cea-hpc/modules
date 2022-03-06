@@ -291,7 +291,7 @@ to control the verification made to files to determine if they are
 modulefiles. By default this configuration option is set to ``always`` and
 when searching for modulefiles within enabled modulepaths each file below
 these directories is opened to check if it starts with the Modules magic
-cookie (``#%Module``).
+cookie (i.e., ``#%Module`` file signature).
 
 These historical checks lead to a large number of I/O operations but if the
 option is set to the ``eval`` value, files are not checked anymore when

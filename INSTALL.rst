@@ -475,8 +475,9 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 .. instopt:: --enable-mcookie-version-check
 
  Enable check of the version specified right after Modules magic cookie
- (``#%Module``) in modulefiles, which defines the minimal version of the
- Modules tool to use in order to evaluate the modulefile. (default=yes)
+ (i.e., ``#%Module`` file signature) in modulefiles, which defines the minimal
+ version of the Modules tool to use in order to evaluate the modulefile.
+ (default=yes)
 
  .. only:: html
 
