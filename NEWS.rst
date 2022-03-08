@@ -169,6 +169,10 @@ Modules 5.1.0 (not yet released)
   message with `Aspell`_ tool.
 * Doc: clarify that ``#%Module`` is a file signature also called Modules magic
   cookie.
+* Doc: update the :ref:`module ENVIRONMENT` section in :ref:`module(1)` man
+  page to provide for each Modules environment variable the name of the
+  configuration option that could be used to set the variable with the
+  :subcmd:`config` sub-command.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 .. _codespell: https://github.com/codespell-project/codespell

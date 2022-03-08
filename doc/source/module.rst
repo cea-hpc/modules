@@ -2211,6 +2211,10 @@ ENVIRONMENT
  Email address to contact in case any issue occurs during the interpretation
  of modulefiles.
 
+ This environment variable value supersedes the default value set in the
+ :mconfig:`contact` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.0
@@ -2235,17 +2239,19 @@ ENVIRONMENT
  The location of a global run-command file containing *modulefile* specific
  setup. See `Modulecmd startup`_ section for detailed information.
 
+ This environment variable value supersedes the default value set in the
+ :mconfig:`rcfile` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
+
 .. envvar:: MODULES_ADVANCED_VERSION_SPEC
 
  If set to ``1``, enable advanced module version specifiers (see `Advanced
  module version specifiers`_ section). If set to ``0``, disable advanced
  module version specifiers.
 
- Advanced module version specifiers enablement is defined in the following
- order of preference: :envvar:`MODULES_ADVANCED_VERSION_SPEC` environment
- variable then the default set in :file:`modulecmd.tcl` script configuration.
- Which means :envvar:`MODULES_ADVANCED_VERSION_SPEC` overrides default
- configuration.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`advanced_version_spec` configuration option. It can be defined with
+ the :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -2298,13 +2304,10 @@ ENVIRONMENT
  are merged into the Dependent modulefiles to Reload that are reloaded after
  the load of the switched-to modulefile.
 
- Automated module handling mode enablement is defined in the following order
- of preference: :option:`--auto`/:option:`--no-auto` command line switches,
- then :envvar:`MODULES_AUTO_HANDLING` environment variable, then the default
- set in :file:`modulecmd.tcl` script configuration. Which means
- :envvar:`MODULES_AUTO_HANDLING` overrides default configuration and
- :option:`--auto`/:option:`--no-auto` command line switches override every
- other ways to enable or disable this mode.
+ This environment variable value supersedes the default value set on the
+ :mconfig:`auto_handling` configuration option. It can be defined with the
+ :subcmd:`config` sub-command. The :option:`--auto` and :option:`--no-auto`
+ command line switches override this environment variable.
 
  .. only:: html
 
@@ -2325,13 +2328,11 @@ ENVIRONMENT
  disabled these modulefiles and directories contained in matching directories
  are excluded.
 
- :subcmd:`avail` sub-command in depth mode enablement is defined in the
- following order of preference: :option:`--indepth`/:option:`--no-indepth`
- command line switches, then :envvar:`MODULES_AVAIL_INDEPTH` environment
- variable, then the default set in :file:`modulecmd.tcl` script configuration.
- Which means :envvar:`MODULES_AVAIL_INDEPTH` overrides default configuration
- and :option:`--indepth`/:option:`--no-indepth` command line switches override
- every other ways to enable or disable this mode.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`avail_indepth` configuration option. It can be defined with the
+ :subcmd:`config` sub-command. The :option:`--indepth` and
+ :option:`--no-indepth` command line switches override this environment
+ variable.
 
  .. only:: html
 
@@ -2359,13 +2360,10 @@ ENVIRONMENT
  modules from global/user rc and all enabled modulepaths are reported as a
  single list.
 
- :subcmd:`avail` sub-command regular output content is defined in the
- following order of preference: :option:`--output`/:option:`-o` command line
- switches, then :envvar:`MODULES_AVAIL_OUTPUT` environment variable, then the
- default set in :file:`modulecmd.tcl` script configuration. Which means
- :envvar:`MODULES_AVAIL_OUTPUT` overrides default configuration and
- :option:`--output`/:option:`-o` command line switches override every other
- ways to configure regular output content.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`avail_output` configuration option. It can be defined with
+ the :subcmd:`config` sub-command. The :option:`--output`/:option:`-o` command
+ line switches override this environment variable.
 
  .. only:: html
 
@@ -2382,13 +2380,10 @@ ENVIRONMENT
  The order of the elements in the list does not matter. Module names are the
  only content reported when *LIST* is set to an empty value.
 
- :subcmd:`avail` sub-command terse output content is defined in the following
- order of preference: :option:`--output`/:option:`-o` command line switches,
- then :envvar:`MODULES_AVAIL_TERSE_OUTPUT` environment variable, then the
- default set in :file:`modulecmd.tcl` script configuration. Which means
- :envvar:`MODULES_AVAIL_TERSE_OUTPUT` overrides default configuration and
- :option:`--output`/:option:`-o` command line switches override every other
- ways to configure terse output content.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`avail_terse_output` configuration option. It can be defined with
+ the :subcmd:`config` sub-command. The :option:`--output`/:option:`-o`
+ command line switches override this environment variable.
 
  .. only:: html
 
@@ -2408,6 +2403,10 @@ ENVIRONMENT
  collection. Otherwise modulefile version number is omitted if it corresponds
  to the explicitly set default version and also to the implicit default when
  the configuration option :mconfig:`implicit_default` is enabled.
+
+ This environment variable value supersedes the default value set in the
+ :mconfig:`collection_pin_version` configuration option. It can be defined
+ with the :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -2435,6 +2434,10 @@ ENVIRONMENT
  results from commands like :command:`lsb_release`, :command:`hostname`,
  :command:`dnsdomainname`, etc.
 
+ This environment variable value supersedes the default value set in the
+ :mconfig:`collection_target` configuration option. It can be defined with
+ the :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.0
@@ -2447,15 +2450,10 @@ ENVIRONMENT
  When color mode is set to ``auto``, output is colored only if the standard
  error output channel is attached to a terminal.
 
- Colored output enablement is defined in the following order of preference:
- :option:`--color` command line switch, then :envvar:`MODULES_COLOR`
- environment variable, then :envvar:`NO_COLOR`, :envvar:`CLICOLOR` and
- :envvar:`CLICOLOR_FORCE` environment variables, then the default set in
- :file:`modulecmd.tcl` script configuration. Which means
- :envvar:`MODULES_COLOR` overrides default configuration and the
- :envvar:`NO_COLOR` and :envvar:`CLICOLOR`/:envvar:`CLICOLOR_FORCE` variables.
- :option:`--color` command line switch overrides every other ways to enable or
- disable this mode.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`color` configuration option. It can be defined with the
+ :subcmd:`config` sub-command. The :option:`--color` command line switch
+ overrides this environment variable.
 
  :envvar:`NO_COLOR`, :envvar:`CLICOLOR` and :envvar:`CLICOLOR_FORCE`
  environment variables are also honored to define color mode. The ``never``
@@ -2465,7 +2463,8 @@ ENVIRONMENT
  :envvar:`CLICOLOR_FORCE` is set to a value different than ``0``.
  :envvar:`NO_COLOR` variable prevails over :envvar:`CLICOLOR` and
  :envvar:`CLICOLOR_FORCE`. Color mode set with these three variables is
- superseded by mode set with :envvar:`MODULES_COLOR` environment variable.
+ superseded by mode set with :envvar:`MODULES_COLOR` environment variable or
+ with :option:`--color` command line switch..
 
  .. only:: html
 
@@ -2510,10 +2509,9 @@ ENVIRONMENT
  be colored but which is not defined in the color set. Thus if
  :envvar:`MODULES_COLORS` is defined empty, no output will be colored at all.
 
- The color set is defined for Modules in the following order of preference:
- :envvar:`MODULES_COLORS` environment variable, then the default set in
- :file:`modulecmd.tcl` script configuration. Which means
- :envvar:`MODULES_COLORS` overrides default configuration.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`colors` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -2538,12 +2536,13 @@ ENVIRONMENT
  Text editor command name or path for use to open modulefile through the
  :subcmd:`edit` sub-command.
 
- Editor command is defined for Modules in the following order of preference:
- :envvar:`MODULES_EDITOR`, or :envvar:`VISUAL` or :envvar:`EDITOR` environment
- variables, then the default set in :file:`modulecmd.tcl` script
- configuration. Which means :envvar:`MODULES_EDITOR` overrides
- :envvar:`VISUAL` or :envvar:`EDITOR` environment variables and default
- configuration.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`editor` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
+
+ Text editor could also be defined through the :envvar:`VISUAL` or
+ :envvar:`EDITOR` environment variables. These environment variables are
+ overridden by :envvar:`MODULES_EDITOR`.
 
  .. only:: html
 
@@ -2563,8 +2562,9 @@ ENVIRONMENT
  matching modulefiles is returned if defined (see
  :envvar:`MODULES_IMPLICIT_DEFAULT` section)
 
- This environment variable supersedes the value of the configuration option
- :mconfig:`extended_default` set in :file:`modulecmd.tcl` script.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`extended_default` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -2595,13 +2595,11 @@ ENVIRONMENT
  match is also applied to the other module sub-commands and modulefile Tcl
  commands for the module specification they receive as argument.
 
- Case sensitiveness behavior is defined in the following order of preference:
- :option:`--icase` command line switch, which corresponds to the ``always``
- mode, then :envvar:`MODULES_ICASE` environment variable, then the default set
- in :file:`modulecmd.tcl` script configuration. Which means
- :envvar:`MODULES_ICASE` overrides default configuration and :option:`--icase`
- command line switch overrides every other ways to set case sensitiveness
- behavior.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`icase` configuration option. It can be defined with the
+ :subcmd:`config` sub-command. The :option:`--icase`/:option:`-i` command line
+ switches, which correspond to the ``always`` mode, override this environment
+ variable.
 
  .. only:: html
 
@@ -2634,10 +2632,11 @@ ENVIRONMENT
  An error is returned in the above situations if either no explicit or
  implicit default version is defined.
 
- This environment variable supersedes the value of the configuration option
- :mconfig:`implicit_default` set in :file:`modulecmd.tcl` script. This
- environment variable is ignored if :mconfig:`implicit_default` has been
- declared locked in :mconfig:`locked_configs` configuration option.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`implicit_default` configuration option. It can be defined with the
+ :subcmd:`config` sub-command. This environment variable is ignored if
+ :mconfig:`implicit_default` has been declared locked in
+ :mconfig:`locked_configs` configuration option.
 
  .. only:: html
 
@@ -2652,11 +2651,10 @@ ENVIRONMENT
  module and a prereq requirement onto switched-on module are also defined for
  :mfcmd:`module switch <module>` commands used in modulefile.
 
- This environment variable supersedes the value of the configuration option
- :mconfig:`implicit_requirement` set in :file:`modulecmd.tcl` script.
- :envvar:`MODULES_IMPLICIT_REQUIREMENT` is in turn superseded by the
- ``--not-req`` option that applies to a :mfcmd:`module` command in a
- modulefile.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`implicit_requirement` configuration option. It can be defined with
+ the :subcmd:`config` sub-command. The ``--not-req`` option, applied to a
+ :mfcmd:`module` command in a modulefile, overrides this environment variable.
 
  .. only:: html
 
@@ -2680,13 +2678,10 @@ ENVIRONMENT
  The order of the elements in the list does not matter. Module names are the
  only content reported when *LIST* is set to an empty value.
 
- :subcmd:`list` sub-command regular output content is defined in the following
- order of preference: :option:`--output`/:option:`-o` command line switches,
- then :envvar:`MODULES_LIST_OUTPUT` environment variable, then the default set
- in :file:`modulecmd.tcl` script configuration. Which means
- :envvar:`MODULES_LIST_OUTPUT` overrides default configuration and
- :option:`--output`/:option:`-o` command line switches override every other
- ways to configure regular output content.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`list_output` configuration option. It can be defined with the
+ :subcmd:`config` sub-command. The :option:`--output`/:option:`-o` command
+ line switches override this environment variable.
 
  .. only:: html
 
@@ -2706,13 +2701,10 @@ ENVIRONMENT
  The order of the elements in the list does not matter. Module names are the
  only content reported when *LIST* is set to an empty value.
 
- :subcmd:`list` sub-command regular output content is defined in the following
- order of preference: :option:`--output`/:option:`-o` command line switches,
- then :envvar:`MODULES_LIST_TERSE_OUTPUT` environment variable, then the
- default set in :file:`modulecmd.tcl` script configuration. Which means
- :envvar:`MODULES_LIST_TERSE_OUTPUT` overrides default configuration and
- :option:`--output`/:option:`-o` command line switches override every other
- ways to configure regular output content.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`list_terse_output` configuration option. It can be defined with the
+ :subcmd:`config` sub-command. The :option:`--output`/:option:`-o` command
+ line switches override this environment variable.
 
  .. only:: html
 
@@ -2735,6 +2727,10 @@ ENVIRONMENT
  * files not beginning with the magic cookie ``#%Module``
  * read-protected files
 
+ This environment variable value supersedes the default value set in the
+ :mconfig:`mcookie_check` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 5.1
@@ -2744,6 +2740,10 @@ ENVIRONMENT
  If set to ``1``, the version set in the Modules magic cookie in modulefile
  is checked against the current version of :file:`modulecmd.tcl` to determine
  if the modulefile can be evaluated.
+
+ This environment variable value supersedes the default value set in the
+ :mconfig:`mcookie_version_check` configuration option. It can be defined with
+ the :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -2755,10 +2755,9 @@ ENVIRONMENT
  `Package Initialization`_ section). If set to ``0``, :command:`ml` command is
  not defined.
 
- :command:`ml` command enablement is defined in the following order of
- preference: :envvar:`MODULES_ML` environment variable then the default set in
- :file:`modulecmd.tcl` script configuration. Which means :envvar:`MODULES_ML`
- overrides default configuration.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`ml` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -2772,10 +2771,9 @@ ENVIRONMENT
  will soon be forbidden. If set to ``0``, modules will never be considered
  *nearly forbidden*. Accepted values are integers comprised between 0 and 365.
 
- This configuration is defined in the following order of preference:
- :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS` environment variable then the default
- set in :file:`modulecmd.tcl` script configuration. Which means
- :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS` overrides default configuration.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`nearly_forbidden_days` configuration option. It can be defined with
+ the :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -2787,10 +2785,9 @@ ENVIRONMENT
  attached to a terminal. The value of this variable is composed of a pager
  command name or path eventually followed by command-line options.
 
- Paging command and options are defined for Modules in the following order of
- preference: :envvar:`MODULES_PAGER` environment variable, then the default
- set in :file:`modulecmd.tcl` script configuration. Which means
- :envvar:`MODULES_PAGER` overrides default configuration.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`pager` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
 
  If :envvar:`MODULES_PAGER` variable is set to an empty string or to the value
  ``cat``, pager will not be launched.
@@ -2820,10 +2817,9 @@ ENVIRONMENT
  :file:`modulecmd.tcl` script to make it restore the environment variable put
  in quarantine.
 
- Quarantine mechanism support is defined for Modules in the following order of
- preference: :envvar:`MODULES_QUARANTINE_SUPPORT` environment variable, then
- the default set in :file:`modulecmd.tcl` script configuration. Which means
- :envvar:`MODULES_QUARANTINE_SUPPORT` overrides default configuration.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`quarantine_support` configuration option. It can be defined with
+ the :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -2834,13 +2830,11 @@ ENVIRONMENT
  If set to ``0``, the output generated by module command is kept on stderr and
  not redirected to stdout channel.
 
- This configuration is defined in the following order of preference:
- :option:`--redirect` or :option:`--no-redirect` command line switches, then
- :envvar:`MODULES_REDIRECT_OUTPUT` environment variable, then the default set
- in :file:`modulecmd.tcl` script configuration. Which means
- :envvar:`MODULES_REDIRECT_OUTPUT` overrides default configuration.
- :option:`--redirect` or :option:`--no-redirect` command line switches
- override every other configuration.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`redirect_output` configuration option. It can be defined with
+ the :subcmd:`config` sub-command. The :option:`--redirect` and
+ :option:`--no-redirect` command line switches override this environment
+ variable.
 
  .. only:: html
 
@@ -2860,6 +2854,10 @@ ENVIRONMENT
 
  Original values of these environment variables set in quarantine are passed
  to :file:`modulecmd.tcl` via :envvar:`__MODULES_QUAR_\<VAR\>` variables.
+
+ This environment variable value supersedes the default value set in the
+ :mconfig:`run_quarantine` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -2883,13 +2881,11 @@ ENVIRONMENT
  query string. When set to ``contains``, any modules whose fully qualified
  name contains search query string are returned.
 
- Module search match style is defined in the following order of preference:
- :option:`--starts-with` and :option:`--contains` command line switches, then
- :envvar:`MODULES_SEARCH_MATCH` environment variable, then the default set in
- :file:`modulecmd.tcl` script configuration. Which means
- :envvar:`MODULES_SEARCH_MATCH` overrides default configuration and
- :option:`--starts-with`/:option:`--contains` command line switches override
- every other ways to set search match style.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`search_match` configuration option. It can be defined with the
+ :subcmd:`config` sub-command. The :option:`--starts-with` and
+ :option:`--contains` command line switches override this environment
+ variable.
 
  .. only:: html
 
@@ -2902,6 +2898,10 @@ ENVIRONMENT
  sub-shells. Setting shell startup file means defining the :envvar:`ENV` and
  :envvar:`BASH_ENV` environment variable to the Modules bourne shell
  initialization script. If set to ``0``, shell startup file is not defined.
+
+ This environment variable value supersedes the default value set in the
+ :mconfig:`set_shell_startup` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -2918,6 +2918,10 @@ ENVIRONMENT
  Accepted values are a list of shell among *sh*, *bash*, *csh*, *tcsh* and
  *fish* separated by colon character (``:``).
 
+ This environment variable value supersedes the default value set in the
+ :mconfig:`shells_with_ksh_fpath` configuration option. It can be defined with
+ the :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.7
@@ -2928,6 +2932,10 @@ ENVIRONMENT
  on current shell session for the duration of either the :command:`module`
  command or the module shell initialization script. Only applies to Bourne
  Shell (sh) and its derivatives.
+
+ This environment variable value supersedes the default value set in the
+ :mconfig:`silent_shell_debug` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
 
  To generate the code to silence shell debugging property in the
  :command:`module` shell function, :envvar:`MODULES_SILENT_SHELL_DEBUG` should
@@ -2944,8 +2952,11 @@ ENVIRONMENT
  Location of a site-specific configuration script to source into
  :file:`modulecmd.tcl`. See also `Modulecmd startup`_ section.
 
- This environment variable is ignored if :mconfig:`extra_siteconfig` has been
- declared locked in :mconfig:`locked_configs` configuration option.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`extra_siteconfig` configuration option. It can be defined with the
+ :subcmd:`config` sub-command. This environment variable is ignored if
+ :mconfig:`extra_siteconfig` has been declared locked in
+ :mconfig:`locked_configs` configuration option.
 
  .. only:: html
 
@@ -2961,9 +2972,9 @@ ENVIRONMENT
  reported. In case the whole :envvar:`MODULES_TAG_ABBREV` environment variable
  is set to an empty string, tags are reported but not abbreviated.
 
- The tag abbreviation definition set in :envvar:`MODULES_TAG_ABBREV`
- environment variable supersedes the default configuration set in
- :file:`modulecmd.tcl` script.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`tag_abbrev` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -2983,8 +2994,9 @@ ENVIRONMENT
  :envvar:`MODULES_TAG_COLOR_NAME` environment variable, a tag name or
  abbreviation is displayed and select graphic rendition is applied over it.
 
- The definition set in :envvar:`MODULES_TAG_COLOR_NAME` environment variable
- supersedes the default configuration set in :file:`modulecmd.tcl` script.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`tag_color_name` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -2998,6 +3010,10 @@ ENVIRONMENT
  :envvar:`MODULES_COLORS` variable. Accepted values are ``dark`` and
  ``light``.
 
+ This environment variable value supersedes the default value set in the
+ :mconfig:`term_background` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.3
@@ -3009,13 +3025,10 @@ ENVIRONMENT
  the module command. Accepted values are integers comprised between 0 and
  1000.
 
- This configuration is defined in the following order of preference:
- :option:`--width` or :option:`-w` command line switches, then
- :envvar:`MODULES_TERM_WIDTH` environment variable, then the default set in
- :file:`modulecmd.tcl` script configuration. Which means
- :envvar:`MODULES_TERM_WIDTH` overrides default configuration.
- :option:`--width` or :option:`-w` command line switches override every other
- configuration.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`term_width` configuration option. It can be defined with the
+ :subcmd:`config` sub-command. The :option:`--width`/:option:`-w` command line
+ switches override this environment variable.
 
  .. only:: html
 
@@ -3026,6 +3039,10 @@ ENVIRONMENT
  When a module unload request matches multiple loaded modules, unload firstly
  loaded module or lastly loaded module. Accepted values are ``returnfirst``
  and ``returnlast``.
+
+ This environment variable value supersedes the default value set in the
+ :mconfig:`unload_match_order` configuration option. It can be defined with
+ the :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -3044,9 +3061,9 @@ ENVIRONMENT
  If a shortcut is associated to an empty string or an invalid character, this
  shortcut definition will be ignored.
 
- The variant shortcut definition set in :envvar:`MODULES_VARIANT_SHORTCUT`
- environment variable supersedes the default configuration set in
- :file:`modulecmd.tcl` script.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`variant_shortcut` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -3076,14 +3093,11 @@ ENVIRONMENT
  * ``debug2``: report :file:`modulecmd.tcl` procedure calls in addition to
    printing debug messages.
 
- Module command verbosity is defined in the following order of preference:
- :option:`--silent`, :option:`--verbose`, :option:`--debug` and
- :option:`--trace` command line switches, then :envvar:`MODULES_VERBOSITY`
- environment variable, then the default set in :file:`modulecmd.tcl` script
- configuration. Which means :envvar:`MODULES_VERBOSITY` overrides default
- configuration and
- :option:`--silent`/:option:`--verbose`/:option:`--debug`/:option:`--trace`
- command line switches overrides every other ways to set verbosity level.
+ This environment variable value supersedes the default value set in the
+ :mconfig:`verbosity` configuration option. It can be defined with the
+ :subcmd:`config` sub-command. The :option:`--silent`, :option:`--verbose`,
+ :option:`--debug` and :option:`--trace` command line switches override this
+ environment variable.
 
  .. only:: html
 
@@ -3107,6 +3121,10 @@ ENVIRONMENT
  not be used anymore in shell alias definition otherwise the evaluation of the
  code produced by modulefiles will return a syntax error.
 
+ This environment variable value supersedes the default value set in the
+ :mconfig:`wa_277` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.3
@@ -3116,6 +3134,10 @@ ENVIRONMENT
  The location of the main Modules package file directory containing module
  command initialization scripts, the executable program :file:`modulecmd.tcl`,
  and a directory containing a collection of main *modulefiles*.
+
+ This environment variable value supersedes the default value set in the
+ :mconfig:`home` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
 
 
 FILES
