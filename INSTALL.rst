@@ -344,6 +344,10 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  constraint prefixed by the ``@`` character. This option also allows to
  specify module variants. (default=yes)
 
+ This installation option defines the default value of the
+ :mconfig:`advanced_version_spec` configuration option which could be changed
+ after installation with the :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.4
@@ -375,6 +379,10 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  actions, like loading the pre-requisites of a modulefile when loading this
  modulefile. (default=yes)
 
+ This installation option defines the default value of the
+ :mconfig:`auto_handling` configuration option which could be changed after
+ installation with the :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.2
@@ -390,6 +398,10 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  search results to the matching modulefiles and directories found at the depth
  level expressed by the search query if disabled. (default=yes)
 
+ This installation option defines the default value of the
+ :mconfig:`avail_indepth` configuration option which could be changed after
+ installation with the :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.3
@@ -399,6 +411,10 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  Control if output should be colored by default or not.  A value of ``yes``
  equals to the ``auto`` color mode.  ``no`` equals to the ``never`` color
  mode. (default=yes)
+
+ This installation option defines the default value of the
+ :mconfig:`color` configuration option which could be changed after
+ installation with the :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -434,6 +450,10 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  separated from the rest of the version string by a ``.`` character.
  (default=yes)
 
+ This installation option defines the default value of the
+ :mconfig:`extended_default` configuration option which could be changed after
+ installation with the :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.4
@@ -449,6 +469,10 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  module passed for evaluation should be fully qualified elsewhere an error is
  returned. (default=yes)
 
+ This installation option defines the default value of the
+ :mconfig:`implicit_default` configuration option which could be changed after
+ installation with the :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.3
@@ -458,6 +482,10 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  Implicitly define a prereq or a conflict requirement toward modules specified
  respectively on :mfcmd:`module load<module>` or :mfcmd:`module
  unload<module>` commands in modulefile. (default=yes)
+
+ This installation option defines the default value of the
+ :mconfig:`implicit_requirement` configuration option which could be changed
+ after installation with the :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -479,6 +507,10 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  version of the Modules tool to use in order to evaluate the modulefile.
  (default=yes)
 
+ This installation option defines the default value of the
+ :mconfig:`mcookie_version_check` configuration option which could be changed
+ after installation with the :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.7
@@ -487,6 +519,10 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 
  Define the :command:`ml` command, a handy frontend to the module command,
  when Modules initializes. (default=yes)
+
+ This installation option defines the default value of the :mconfig:`ml`
+ configuration option which could be changed after installation with the
+ :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -543,6 +579,10 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  Generate code in module function definition to add support for the
  environment variable quarantine mechanism (default=no)
 
+ This installation option defines the default value of the
+ :mconfig:`quarantine_support` configuration option which could be changed
+ after installation with the :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.1
@@ -574,6 +614,10 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  Set when module function is defined the shell startup file to ensure that the
  module function is still defined in sub-shells. (default=no)
 
+ This installation option defines the default value of the
+ :mconfig:`set_shell_startup` configuration option which could be changed
+ after installation with the :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.3
@@ -585,6 +629,10 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 
  Generate code in module function definition to add support for silencing
  shell debugging properties (default=no)
+
+ This installation option defines the default value of the
+ :mconfig:`silent_shell_debug` configuration option which could be changed
+ after installation with the :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -616,6 +664,10 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  this workaround solves Tcsh history issue but weakens shell evaluation of the
  code produced by modulefiles. (default=no)
 
+ This installation option defines the default value of the :mconfig:`wa_277`
+ configuration option which could be changed after installation with the
+ :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.3
@@ -643,6 +695,10 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  separated by ``:``). The order of the elements in LIST does not matter.
  (default=\ ``modulepath:alias:dirwsym:sym:tag:key``)
 
+ This installation option defines the default value of the
+ :mconfig:`avail_output` configuration option which could be changed after
+ installation with the :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.7
@@ -654,6 +710,10 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  ``modulepath``, ``alias``, ``dirwsym``, ``sym``, ``tag`` and ``key`` (elements
  in LIST are separated by ``:``). The order of the elements in LIST does not
  matter. (default=\ ``modulepath:alias:dirwsym:sym:tag``)
+
+ This installation option defines the default value of the
+ :mconfig:`avail_terse_output` configuration option which could be changed
+ after installation with the :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -707,6 +767,11 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters.
  (default=\ ``hi=1:db=2:tr=2:se=2:er=91:wa=93:me=95:in=94:mp=1;94:di=94:al=96:va=93:sy=95:de=4:cm=92:aL=100:L=90;47:H=2:F=41:nF=43:S=46:sS=44:kL=30;48;5;109``)
 
+ This installation option defines the default value of the :mconfig:`colors`
+ configuration option when :mconfig:`term_background` configuration option
+ equals ``dark``. :mconfig:`colors` could be changed after installation with
+ the :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.3
@@ -730,6 +795,10 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  Name or full path of default editor program to use to open modulefile through
  the :subcmd:`edit` sub-command. (default=\ ``vi``)
 
+ This installation option defines the default value of the :mconfig:`editor`
+ configuration option which could be changed after installation with the
+ :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.8
@@ -752,6 +821,10 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  specification they receive as argument (when set to ``always``). Case
  insensitive match is disabled when this option is set to ``never``.
  (default=\ ``search``)
+
+ This installation option defines the default value of the :mconfig:`icase`
+ configuration option which could be changed after installation with the
+ :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -779,6 +852,11 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  :instopt:`--with-dark-background-colors`.
  (default=\ ``hi=1:db=2:tr=2:se=2:er=31:wa=33:me=35:in=34:mp=1;34:di=34:al=36:va=33:sy=35:de=4:cm=32:aL=107:L=47:H=2:F=101:nF=103:S=106:sS=104:kL=48;5;109``)
 
+ This installation option defines the default value of the :mconfig:`colors`
+ configuration option when :mconfig:`term_background` configuration option
+ equals ``light``. :mconfig:`colors` could be changed after installation with
+ the :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.3
@@ -805,6 +883,10 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  separated by ``:``). The order of the elements in LIST does not matter.
  (default=\ ``header:idx:variant:sym:tag:key``)
 
+ This installation option defines the default value of the
+ :mconfig:`list_output` configuration option which could be changed after
+ installation with the :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.7
@@ -819,6 +901,10 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  ``idx``, ``variant``, ``sym``, ``tag`` and ``key`` (elements in LIST are
  separated by ``:``). The order of the elements in LIST does not matter.
  (default=\ ``header``)
+
+ This installation option defines the default value of the
+ :mconfig:`list_terse_output` configuration option which could be changed
+ after installation with the :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -844,6 +930,10 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  options. Accepted option names in CONFIGLIST are :mconfig:`extra_siteconfig`
  and :mconfig:`implicit_default` (each option name should be separated by
  whitespace character). (default=no)
+
+ This installation option defines the default value of the
+ :mconfig:`locked_configs` configuration option which cannot not be changed
+ after installation.
 
  .. only:: html
 
@@ -871,6 +961,10 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
  Location of the main Modules package file directory (default=\ ``PREFIX``)
 
+ This installation option defines the default value of the :mconfig:`home`
+ configuration option which could be changed after installation with the
+ :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.4
@@ -880,6 +974,10 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  Define the number of days a module is considered nearly forbidden prior
  reaching its expiry date. VALUE should be an integer comprised between 0 and
  365. (default=\ ``14``)
+
+ This installation option defines the default value of the
+ :mconfig:`nearly_forbidden_days` configuration option which could be changed
+ after installation with the :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -891,6 +989,10 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  message output (can be superseded at run-time by environment variable)
  (default=\ ``less``)
 
+ This installation option and :instopt:`--with-pager-opt` define the default
+ value of the :mconfig:`pager` configuration option which could be changed
+ after installation with the :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.1
@@ -898,6 +1000,10 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 .. instopt:: --with-pager-opts=OPTLIST
 
  Settings to apply to default pager program (default=\ ``-eFKRX``)
+
+ This installation option and :instopt:`--with-pager` define the default value
+ of the :mconfig:`pager` configuration option which could be changed after
+ installation with the :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -919,6 +1025,12 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  space character). A value can eventually be set to a quarantine variable
  instead of emptying it. (default=no)
 
+ This installation option defines the default value of the
+ :envvar:`MODULES_RUN_QUARANTINE` and :envvar:`MODULES_RUNENV_\<VAR\>`
+ environment variables which could be changed after installation with the
+ :subcmd:`config` sub-command on :mconfig:`run_quarantine` configuration
+ option.
+
  .. only:: html
 
     .. versionadded:: 4.1
@@ -928,6 +1040,10 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  When searching for a module with :subcmd:`avail` sub-command, match query
  string against module name start (``starts_with``) or any part of module name
  string (``contains``). (default=\ ``starts_with``)
+
+ This installation option defines the default value of the
+ :mconfig:`search_match` configuration option which could be changed after
+ installation with the :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -939,6 +1055,10 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  in ABBRVLIST is a tag name associated to an abbreviation string (elements in
  ABBRVLIST are separated by ``:``).
  (default=\ ``auto-loaded=aL:loaded=L:hidden=H:hidden-loaded=H:forbidden=F:nearly-forbidden=nF:sticky=S:super-sticky=sS:keep-loaded=kL``)
+
+ This installation option defines the default value of the
+ :mconfig:`tag_abbrev` configuration option which could be changed after
+ installation with the :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -953,6 +1073,10 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  instead of over the name of the module they are attached to. Each element in
  TAGLIST is a tag name or abbreviation (elements in TAGLIST are separated by
  ``:``). (default=)
+
+ This installation option defines the default value of the
+ :mconfig:`tag_color_name` configuration option which could be changed after
+ installation with the :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -984,6 +1108,10 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  default between the ``dark`` background colors or the ``light`` background
  colors (default=\ ``dark``)
 
+ This installation option defines the default value of the
+ :mconfig:`term_background` configuration option which could be changed after
+ installation with the :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.3
@@ -993,6 +1121,10 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  When unloading a module if multiple loaded modules match the request, unload
  module loaded first (``returnfirst``) or module loaded last (``returnlast``)
  (default=\ ``returnlast``)
+
+ This installation option defines the default value of the
+ :mconfig:`unload_match_order` configuration option which could be changed
+ after installation with the :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -1007,6 +1139,10 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  already a special meaning ([+~/@=-]). Elements in SHORTCUTLIST are separated
  by ``:``. (default=)
 
+ This installation option defines the default value of the
+ :mconfig:`variant_shortcut` configuration option which could be changed after
+ installation with the :subcmd:`config` sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.8
@@ -1016,6 +1152,10 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  Specify default message verbosity. accepted values are ``silent``,
  ``concise``, ``normal``, ``verbose``, ``verbose2``, ``trace``, ``debug`` and
  ``debug2``.  (default=\ ``normal``)
+
+ This installation option defines the default value of the
+ :mconfig:`verbosity` configuration option which could be changed after
+ installation with the :subcmd:`config` sub-command.
 
  .. only:: html
 

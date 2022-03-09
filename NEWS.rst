@@ -177,6 +177,8 @@ Modules 5.1.0 (not yet released)
   :envvar:`MODULES_SET_SHELL_STARTUP`, :envvar:`MODULES_SHELLS_WITH_KSH_FPATH`
   and :envvar:`MODULES_WA_277` should be set prior Modules initialization to
   get taken into account.
+* Doc: update :ref:`INSTALL` document to provide the name of the configuration
+  option linked the installation options.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 .. _codespell: https://github.com/codespell-project/codespell
