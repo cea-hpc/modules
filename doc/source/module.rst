@@ -2915,6 +2915,11 @@ ENVIRONMENT
  :mconfig:`set_shell_startup` configuration option. It can be defined with the
  :subcmd:`config` sub-command.
 
+ To enable shell startup file, :envvar:`MODULES_SET_SHELL_STARTUP` should be
+ set to ``1`` prior Modules initialization or the :mconfig:`set_shell_startup`
+ configuration option should be set to ``1`` in the :file:`initrc`
+ configuration file.
+
  .. only:: html
 
     .. versionadded:: 4.3
@@ -2933,6 +2938,12 @@ ENVIRONMENT
  This environment variable value supersedes the default value set in the
  :mconfig:`shells_with_ksh_fpath` configuration option. It can be defined with
  the :subcmd:`config` sub-command.
+
+ To enable the setup of :envvar:`FPATH` for some shells,
+ :envvar:`MODULES_SHELLS_WITH_KSH_FPATH` should be set to the list of these
+ shells prior Modules initialization or the :mconfig:`shells_with_ksh_fpath`
+ configuration option should be set to the list of these shells in the
+ :file:`initrc` configuration file.
 
  .. only:: html
 
@@ -3136,6 +3147,10 @@ ENVIRONMENT
  This environment variable value supersedes the default value set in the
  :mconfig:`wa_277` configuration option. It can be defined with the
  :subcmd:`config` sub-command.
+
+ To enable this workaround, :envvar:`MODULES_WA_277` should be set to ``1``
+ prior Modules initialization or the :mconfig:`wa_277` configuration option
+ should be set to ``1`` in the :file:`initrc` configuration file.
 
  .. only:: html
 

@@ -173,6 +173,10 @@ Modules 5.1.0 (not yet released)
   page to provide for each Modules environment variable the name of the
   configuration option that could be used to set the variable with the
   :subcmd:`config` sub-command.
+* Doc: clarify in :ref:`module(1)` man page that
+  :envvar:`MODULES_SET_SHELL_STARTUP`, :envvar:`MODULES_SHELLS_WITH_KSH_FPATH`
+  and :envvar:`MODULES_WA_277` should be set prior Modules initialization to
+  get taken into account.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 .. _codespell: https://github.com/codespell-project/codespell
