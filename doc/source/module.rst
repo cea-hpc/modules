@@ -2771,6 +2771,10 @@ ENVIRONMENT
  :mconfig:`ml` configuration option. It can be defined with the
  :subcmd:`config` sub-command.
 
+ To enable or disable :command:`ml` command, :envvar:`MODULES_ML` should be set
+ prior Modules initialization or the :mconfig:`ml` configuration option should
+ be set in the :file:`initrc` configuration file.
+
  .. only:: html
 
     .. versionadded:: 4.5
