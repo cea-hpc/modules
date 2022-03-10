@@ -210,6 +210,7 @@ latex_documents = [
 if 'pathsubs' in tags:
     prefix = '@prefix@'
     bindir = '@bindir@'
+    libdir = '@libdir@'
     libexecdir = '@libexecdir@'
     etcdir = '@etcdir@'
     initdir = '@initdir@'
@@ -218,6 +219,7 @@ if 'pathsubs' in tags:
 else:
     prefix = '/usr/share/Modules'
     bindir = prefix + '/bin'
+    libdir = prefix + '/lib64'
     libexecdir = prefix + '/libexec'
     etcdir = '/etc/environment-modules'
     initdir = prefix + '/init'
@@ -231,6 +233,8 @@ rst_epilog += '.. |file prefix| replace:: :file:`%s`\n' % prefix
 rst_epilog += '.. |bindir| replace:: %s\n' % bindir
 rst_epilog += '.. |emph bindir| replace:: *%s*\n' % bindir
 rst_epilog += '.. |bold bindir| replace:: **%s**\n' % bindir
+rst_epilog += '.. |libdir| replace:: %s\n' % libdir
+rst_epilog += '.. |file libdir_tcl_ext_lib| replace:: :file:`%s/libtclenvmodules.so`\n' % libdir
 rst_epilog += '.. |libexecdir| replace:: %s\n' % libexecdir
 rst_epilog += '.. |emph libexecdir| replace:: *%s*\n' % libexecdir
 rst_epilog += '.. |bold libexecdir| replace:: **%s**\n' % libexecdir

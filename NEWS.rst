@@ -179,6 +179,9 @@ Modules 5.1.0 (not yet released)
   get taken into account.
 * Doc: update :ref:`INSTALL` document to provide the name of the configuration
   option linked the installation options.
+* Doc: describe in :ref:`module(1)` man page the default value of each
+  configuration option and linked installation option and command-line
+  switches.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 .. _codespell: https://github.com/codespell-project/codespell
