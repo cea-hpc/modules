@@ -918,7 +918,7 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  Default modulefiles to load at Modules initialization time. Each modulefile
  in this list should be separated by ``:``. Defined value is registered in the
  :file:`initrc` configuration file or in the ``modulerc`` file if
- :instopt:`--with-initconf-in` is set to ``initdir``.  (default=no)
+ :instopt:`--with-initconf-in` is set to ``initdir``.  (default=)
 
  .. only:: html
 
@@ -929,7 +929,7 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  Ignore environment variable superseding value for the listed configuration
  options. Accepted option names in CONFIGLIST are :mconfig:`extra_siteconfig`
  and :mconfig:`implicit_default` (each option name should be separated by
- whitespace character). (default=no)
+ whitespace character). (default=)
 
  This installation option defines the default value of the
  :mconfig:`locked_configs` configuration option which cannot not be changed
@@ -1023,7 +1023,7 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  Environment variables to put in quarantine when running the module command to
  ensure it a sane execution environment (each variable should be separated by
  space character). A value can eventually be set to a quarantine variable
- instead of emptying it. (default=no)
+ instead of emptying it. (default=)
 
  This installation option defines the default value of the
  :envvar:`MODULES_RUN_QUARANTINE` and :envvar:`MODULES_RUNENV_\<VAR\>`
