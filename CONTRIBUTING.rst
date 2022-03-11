@@ -139,14 +139,14 @@ Coding conventions
       setState already_report 1
    }
 
-* `No trailing space nor misspelling <commit-hook_>`_
+* `No trailing space nor misspelling <commit-hooks_>`_
 
 .. _Tcl minimal escaping style: https://wiki.tcl-lang.org/page/Tcl+Minimal+Escaping+Style
 
-.. _commit-hook:
+.. _commit-hooks:
 
-Commit hook
-~~~~~~~~~~~
+Commit hooks
+~~~~~~~~~~~~
 
 A :command:`pre-commit` hook script is provided in the :file:`script`
 directory of the project to help you check that the contribution made is free
