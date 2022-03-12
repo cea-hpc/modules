@@ -1012,19 +1012,6 @@ Module Sub-Commands
   configuration option. See :envvar:`MODULES_RUN_QUARANTINE` description for
   details.
 
- .. mconfig:: silent_shell_debug
-
-  Disablement of shell debugging property for the module command. Also defines
-  if code to silence shell debugging property should be generated in
-  :command:`module` shell function definition.
-
-  Default value is ``0``. It can be changed at installation time with
-  :instopt:`--enable-silent-shell-debug-support` option. The
-  :envvar:`MODULES_SILENT_SHELL_DEBUG` environment variable is defined by
-  :subcmd:`config` sub-command when changing this configuration option from
-  its default value. See :envvar:`MODULES_SILENT_SHELL_DEBUG` description for
-  details.
-
  .. mconfig:: search_match
 
   Module search match style.
@@ -1062,6 +1049,19 @@ Module Sub-Commands
   .. only:: html
 
      .. versionadded:: 4.7
+
+ .. mconfig:: silent_shell_debug
+
+  Disablement of shell debugging property for the module command. Also defines
+  if code to silence shell debugging property should be generated in
+  :command:`module` shell function definition.
+
+  Default value is ``0``. It can be changed at installation time with
+  :instopt:`--enable-silent-shell-debug-support` option. The
+  :envvar:`MODULES_SILENT_SHELL_DEBUG` environment variable is defined by
+  :subcmd:`config` sub-command when changing this configuration option from
+  its default value. See :envvar:`MODULES_SILENT_SHELL_DEBUG` description for
+  details.
 
  .. mconfig:: siteconfig
 
