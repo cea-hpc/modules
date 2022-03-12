@@ -624,7 +624,8 @@ Module Sub-Commands
   :instopt:`--disable-advanced-version-spec<--enable-advanced-version-spec>`
   option. The :envvar:`MODULES_ADVANCED_VERSION_SPEC` environment variable is
   defined by :subcmd:`config` sub-command when changing this configuration
-  option from its default value.
+  option from its default value. See :envvar:`MODULES_ADVANCED_VERSION_SPEC`
+  description for details.
 
   .. only:: html
 
@@ -639,7 +640,8 @@ Module Sub-Commands
   :envvar:`MODULES_AUTO_HANDLING` environment variable is defined by
   :subcmd:`config` sub-command when changing this configuration option from
   its default value. The :option:`--auto` and :option:`--no-auto`
-  command line switches change the value of this configuration option.
+  command line switches change the value of this configuration option. See
+  :envvar:`MODULES_AUTO_HANDLING` description for details.
 
  .. mconfig:: avail_indepth
 
@@ -650,7 +652,8 @@ Module Sub-Commands
   :envvar:`MODULES_AVAIL_INDEPTH` environment variable is defined by
   :subcmd:`config` sub-command when changing this configuration option from
   its default value. The :option:`--indepth` and :option:`--no-indepth`
-  command line switches change the value of this configuration option.
+  command line switches change the value of this configuration option. See
+  :envvar:`MODULES_AVAIL_INDEPTH` description for details.
 
  .. mconfig:: avail_output
 
@@ -662,7 +665,8 @@ Module Sub-Commands
   :envvar:`MODULES_AVAIL_OUTPUT` environment variable is defined by
   :subcmd:`config` sub-command when changing this configuration option from
   its default value. The :option:`--output`/:option:`-o` command line switches
-  change the value of this configuration option.
+  change the value of this configuration option. See
+  :envvar:`MODULES_AVAIL_OUTPUT` description for details.
 
   .. only:: html
 
@@ -678,7 +682,8 @@ Module Sub-Commands
   :envvar:`MODULES_AVAIL_TERSE_OUTPUT` environment variable is defined by
   :subcmd:`config` sub-command when changing this configuration option from
   its default value. The :option:`--output`/:option:`-o` command line switches
-  change the value of this configuration option.
+  change the value of this configuration option. See
+  :envvar:`MODULES_AVAIL_TERSE_OUTPUT` description for details.
 
   .. only:: html
 
@@ -690,7 +695,8 @@ Module Sub-Commands
 
   Default value is ``0``. The :envvar:`MODULES_COLLECTION_PIN_VERSION`
   environment variable is defined by :subcmd:`config` sub-command when
-  changing this configuration option from its default value.
+  changing this configuration option from its default value. See
+  :envvar:`MODULES_COLLECTION_PIN_VERSION` description for details.
 
  .. mconfig:: collection_target
 
@@ -699,7 +705,8 @@ Module Sub-Commands
   This configuration option is unset by default. The
   :envvar:`MODULES_COLLECTION_TARGET` environment variable is defined by
   :subcmd:`config` sub-command when changing this configuration option from
-  its default value.
+  its default value. See :envvar:`MODULES_COLLECTION_TARGET` description for
+  details.
 
  .. mconfig:: color
 
@@ -710,7 +717,8 @@ Module Sub-Commands
   :envvar:`MODULES_COLOR` environment variable is defined by
   :subcmd:`config` sub-command when changing this configuration option from
   its default value. The :option:`--color` command line switches changes the
-  value of this configuration option.
+  value of this configuration option. See :envvar:`MODULES_COLOR` description
+  for details.
 
  .. mconfig:: colors
 
@@ -722,7 +730,8 @@ Module Sub-Commands
   :instopt:`--with-light-background-colors` options in conjunction with
   :instopt:`--with-terminal-background`. The :envvar:`MODULES_COLORS`
   environment variable is defined by :subcmd:`config` sub-command when
-  changing this configuration option from its default value.
+  changing this configuration option from its default value. See
+  :envvar:`MODULES_COLORS` description for details.
 
  .. mconfig:: contact
 
@@ -730,7 +739,8 @@ Module Sub-Commands
 
   Default value is ``root@localhost``. The :envvar:`MODULECONTACT` environment
   variable is defined by :subcmd:`config` sub-command when changing this
-  configuration option from its default value.
+  configuration option from its default value. See :envvar:`MODULECONTACT`
+  description for details.
 
  .. mconfig:: extended_default
 
@@ -740,7 +750,8 @@ Module Sub-Commands
   :instopt:`--disable-extended-default<--enable-extended-default>` option. The
   :envvar:`MODULES_EXTENDED_DEFAULT` environment variable is defined by
   :subcmd:`config` sub-command when changing this configuration option from
-  its default value.
+  its default value. See :envvar:`MODULES_EXTENDED_DEFAULT` description for
+  details.
 
   .. only:: html
 
@@ -754,7 +765,8 @@ Module Sub-Commands
   Default value is ``vi``. It can be changed at installation time with
   :instopt:`--with-editor` option. The :envvar:`MODULES_EDITOR` environment
   variable is defined by :subcmd:`config` sub-command when changing this
-  configuration option from its default value.
+  configuration option from its default value. See :envvar:`MODULES_EDITOR`
+  description for details.
 
   .. only:: html
 
@@ -767,7 +779,7 @@ Module Sub-Commands
   This configuration option is unset by default. The
   :envvar:`MODULES_SITECONFIG` environment variable is defined by
   :subcmd:`config` sub-command when changing this configuration option from
-  its default value.
+  its default value. See :envvar:`MODULES_SITECONFIG` description for details.
 
  .. mconfig:: home
 
@@ -777,6 +789,7 @@ Module Sub-Commands
   :instopt:`--prefix` or :instopt:`--with-moduleshome` options. The
   :envvar:`MODULESHOME` environment variable is defined by :subcmd:`config`
   sub-command when changing this configuration option from its default value.
+  See :envvar:`MODULESHOME` description for details.
 
   .. only:: html
 
@@ -791,7 +804,8 @@ Module Sub-Commands
   variable is defined by :subcmd:`config` sub-command when changing this
   configuration option from its default value. The
   :option:`--icase`/:option:`-i` command line switches change the value of
-  this configuration option.
+  this configuration option. See :envvar:`MODULES_ICASE` description for
+  details.
 
   .. only:: html
 
@@ -812,7 +826,8 @@ Module Sub-Commands
   :instopt:`--disable-implicit-default<--enable-implicit-default>` option. The
   :envvar:`MODULES_IMPLICIT_DEFAULT` environment variable is defined by
   :subcmd:`config` sub-command when changing this configuration option from
-  its default value.
+  its default value. See :envvar:`MODULES_IMPLICIT_DEFAULT` description for
+  details.
 
  .. mconfig:: implicit_requirement
 
@@ -823,7 +838,8 @@ Module Sub-Commands
   :instopt:`--disable-implicit-requirement<--enable-implicit-requirement>`
   option. The :envvar:`MODULES_IMPLICIT_REQUIREMENT` environment variable is
   defined by :subcmd:`config` sub-command when changing this configuration
-  option from its default value.
+  option from its default value. See :envvar:`MODULES_IMPLICIT_REQUIREMENT`
+  description for details.
 
   .. only:: html
 
@@ -839,7 +855,8 @@ Module Sub-Commands
   :envvar:`MODULES_LIST_OUTPUT` environment variable is defined by
   :subcmd:`config` sub-command when changing this configuration option from
   its default value. The :option:`--output`/:option:`-o` command line switches
-  change the value of this configuration option.
+  change the value of this configuration option. See
+  :envvar:`MODULES_LIST_OUTPUT` description for details.
 
   .. only:: html
 
@@ -855,7 +872,8 @@ Module Sub-Commands
   :envvar:`MODULES_LIST_TERSE_OUTPUT` environment variable is defined by
   :subcmd:`config` sub-command when changing this configuration option from
   its default value. The :option:`--output`/:option:`-o` command line switches
-  change the value of this configuration option.
+  change the value of this configuration option. See
+  :envvar:`MODULES_LIST_TERSE_OUTPUT` description for details.
 
   .. only:: html
 
@@ -878,7 +896,8 @@ Module Sub-Commands
 
   Default value is ``always``. The :envvar:`MODULES_MCOOKIE_CHECK` environment
   variable is defined by :subcmd:`config` sub-command when changing this
-  configuration option from its default value.
+  configuration option from its default value. See
+  :envvar:`MODULES_MCOOKIE_CHECK` description for details.
 
   .. only:: html
 
@@ -894,7 +913,8 @@ Module Sub-Commands
   :instopt:`--disable-mcookie-version-check<--enable-mcookie-version-check>`
   option. The :envvar:`MODULES_MCOOKIE_VERSION_CHECK` environment variable is
   defined by :subcmd:`config` sub-command when changing this configuration
-  option from its default value.
+  option from its default value. See :envvar:`MODULES_MCOOKIE_VERSION_CHECK`
+  description for details.
 
   .. only:: html
 
@@ -907,7 +927,8 @@ Module Sub-Commands
   Default value is ``1``. It can be changed at installation time with
   :instopt:`--disable-ml<--enable-ml>` option. The :envvar:`MODULES_ML`
   environment variable is defined by :subcmd:`config` sub-command when
-  changing this configuration option from its default value.
+  changing this configuration option from its default value. See
+  :envvar:`MODULES_ML` description for details.
 
   .. only:: html
 
@@ -922,7 +943,8 @@ Module Sub-Commands
   :instopt:`--with-nearly-forbidden-days` option. The
   :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS` environment variable is defined by
   :subcmd:`config` sub-command when changing this configuration option from
-  its default value.
+  its default value. See :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS` description
+  for details.
 
   .. only:: html
 
@@ -936,6 +958,7 @@ Module Sub-Commands
   with :instopt:`--with-pager` and :instopt:`--with-pager-opts` options. The
   :envvar:`MODULES_PAGER` environment variable is defined by :subcmd:`config`
   sub-command when changing this configuration option from its default value.
+  See :envvar:`MODULES_PAGER` description for details.
 
  .. mconfig:: quarantine_support
 
@@ -946,7 +969,8 @@ Module Sub-Commands
   :instopt:`--enable-quarantine-support` option. The
   :envvar:`MODULES_QUARANTINE_SUPPORT` environment variable is defined by
   :subcmd:`config` sub-command when changing this configuration option from
-  its default value.
+  its default value. See :envvar:`MODULES_QUARANTINE_SUPPORT` description for
+  details.
 
   .. only:: html
 
@@ -958,7 +982,8 @@ Module Sub-Commands
 
   This configuration option is unset by default. The :envvar:`MODULERCFILE`
   environment variable is defined by :subcmd:`config` sub-command when
-  changing this configuration option from its default value.
+  changing this configuration option from its default value. See
+  :envvar:`MODULERCFILE` description for details.
 
  .. mconfig:: redirect_output
 
@@ -969,7 +994,8 @@ Module Sub-Commands
   variable is defined by :subcmd:`config` sub-command when changing this
   configuration option from its default value. The :option:`--redirect` and
   :option:`--no-redirect` command line switches change the value of this
-  configuration option.
+  configuration option. See :envvar:`MODULES_REDIRECT_OUTPUT` description for
+  details.
 
   .. only:: html
 
@@ -983,7 +1009,8 @@ Module Sub-Commands
   changed at installation time with :instopt:`--with-quarantine-vars` option
   that sets :envvar:`MODULES_RUN_QUARANTINE`. This environment variable is
   also defined by :subcmd:`config` sub-command when changing this
-  configuration option.
+  configuration option. See :envvar:`MODULES_RUN_QUARANTINE` description for
+  details.
 
  .. mconfig:: silent_shell_debug
 
@@ -995,7 +1022,8 @@ Module Sub-Commands
   :instopt:`--enable-silent-shell-debug-support` option. The
   :envvar:`MODULES_SILENT_SHELL_DEBUG` environment variable is defined by
   :subcmd:`config` sub-command when changing this configuration option from
-  its default value.
+  its default value. See :envvar:`MODULES_SILENT_SHELL_DEBUG` description for
+  details.
 
  .. mconfig:: search_match
 
@@ -1006,7 +1034,8 @@ Module Sub-Commands
   :envvar:`MODULES_SEARCH_MATCH` environment variable is defined by
   :subcmd:`config` sub-command when changing this configuration option from
   its default value. The :option:`--contains` and :option:`--starts-with`
-  command line switches change the value of this configuration option.
+  command line switches change the value of this configuration option. See
+  :envvar:`MODULES_SEARCH_MATCH` description for details.
 
  .. mconfig:: set_shell_startup
 
@@ -1016,7 +1045,8 @@ Module Sub-Commands
   :instopt:`--enable-set-shell-startup` option. The
   :envvar:`MODULES_SET_SHELL_STARTUP` environment variable is defined by
   :subcmd:`config` sub-command when changing this configuration option from
-  its default value.
+  its default value. See :envvar:`MODULES_SET_SHELL_STARTUP` description for
+  details.
 
  .. mconfig:: shells_with_ksh_fpath
 
@@ -1026,7 +1056,8 @@ Module Sub-Commands
   This configuration option is set to an empty value by default. The
   :envvar:`MODULES_SHELLS_WITH_KSH_FPATH` environment variable is defined by
   :subcmd:`config` sub-command when changing this configuration option from
-  its default value.
+  its default value. See :envvar:`MODULES_SHELLS_WITH_KSH_FPATH` description
+  for details.
 
   .. only:: html
 
@@ -1048,7 +1079,7 @@ Module Sub-Commands
   It can be changed at installation time with :instopt:`--with-tag-abbrev`
   option. The :envvar:`MODULES_TAG_ABBREV` environment variable is defined by
   :subcmd:`config` sub-command when changing this configuration option from
-  its default value.
+  its default value. See :envvar:`MODULES_TAG_ABBREV` description for details.
 
   .. only:: html
 
@@ -1062,7 +1093,8 @@ Module Sub-Commands
   changed at installation time with :instopt:`--with-tag-color-name` option.
   The :envvar:`MODULES_TAG_COLOR_NAME` environment variable is defined by
   :subcmd:`config` sub-command when changing this configuration option from
-  its default value.
+  its default value. See :envvar:`MODULES_TAG_COLOR_NAME` description for
+  details.
 
   .. only:: html
 
@@ -1084,7 +1116,8 @@ Module Sub-Commands
   :instopt:`--with-terminal-background` option. The
   :envvar:`MODULES_TERM_BACKGROUND` environment variable is defined by
   :subcmd:`config` sub-command when changing this configuration option from
-  its default value.
+  its default value. See :envvar:`MODULES_TERM_BACKGROUND` description for
+  details.
 
  .. mconfig:: term_width
 
@@ -1094,7 +1127,8 @@ Module Sub-Commands
   variable is defined by :subcmd:`config` sub-command when changing this
   configuration option from its default value. The
   :option:`--width`/:option:`-w` command line switches change the value of
-  this configuration option.
+  this configuration option. See :envvar:`MODULES_TERM_WIDTH` description for
+  details.
 
   .. only:: html
 
@@ -1108,7 +1142,8 @@ Module Sub-Commands
   :instopt:`--with-unload-match-order` option. The
   :envvar:`MODULES_UNLOAD_MATCH_ORDER` environment variable is defined by
   :subcmd:`config` sub-command when changing this configuration option from
-  its default value.
+  its default value. See :envvar:`MODULES_UNLOAD_MATCH_ORDER` description for
+  details.
 
  .. mconfig:: variant_shortcut
 
@@ -1118,7 +1153,8 @@ Module Sub-Commands
   changed at installation time with :instopt:`--with-variant-shortcut` option.
   The :envvar:`MODULES_VARIANT_SHORTCUT` environment variable is defined by
   :subcmd:`config` sub-command when changing this configuration option from
-  its default value.
+  its default value. See :envvar:`MODULES_VARIANT_SHORTCUT` description for
+  details.
 
   .. only:: html
 
@@ -1134,7 +1170,8 @@ Module Sub-Commands
   changing this configuration option from its default value. The
   :option:`--debug`/:option:`-D`, :option:`--silent`/:option:`-s`,
   :option:`--trace`/:option:`-T` and :option:`--verbose`/:option:`-v`
-  command line switches change the value of this configuration option.
+  command line switches change the value of this configuration option. See
+  :envvar:`MODULES_VERBOSITY` description for details.
 
  .. mconfig:: wa_277
 
@@ -1143,7 +1180,8 @@ Module Sub-Commands
   Default value is ``0``. It can be changed at installation time with
   :instopt:`--enable-wa-277` option. The :envvar:`MODULES_WA_277` environment
   variable is defined by :subcmd:`config` sub-command when changing this
-  configuration option from its default value.
+  configuration option from its default value. See :envvar:`MODULES_WA_277`
+  description for details.
 
  .. only:: html
 
