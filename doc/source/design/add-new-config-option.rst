@@ -122,6 +122,11 @@ Files that should be edited:
     - add environment variable under *Environment* section of current Modules
       major version
 
+- :file:`INSTALL.rst`
+
+    - add configuration and related environment variable and installation
+      option in the table under *Configuration options* section
+
 Example commits:
 
 - configuration option doc: :ghcommit:`f8e5eac6`

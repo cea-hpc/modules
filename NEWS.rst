@@ -182,6 +182,9 @@ Modules 5.1.0 (not yet released)
 * Doc: describe in :ref:`module(1)` man page the default value of each
   configuration option and linked installation option and command-line
   switches.
+* Doc: add *Configuration options* section in :ref:`INSTALL` document with a
+  table summarizing all configuration options and their relative installation
+  options and environment variables.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 .. _codespell: https://github.com/codespell-project/codespell

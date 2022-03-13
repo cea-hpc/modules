@@ -223,6 +223,10 @@ necessarily mandatory as it depends of the kind of setup you want to achieve.
    tune :command:`module`'s default behaviors. This configuration way is
    recommended over directly modifying the shell initialization scripts.
 
+See the `Configuration options`_ section to discover all Modules
+:subcmd:`config` options available, their default value and the installation
+options linked to them.
+
 If you go through the above steps you should have a valid setup tuned to your
 needs. After that you still have to write modulefiles to get something to
 load and unload in your newly configured Modules setup. In case you want to
@@ -1171,3 +1175,162 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  .. only:: html
 
     .. versionadded:: 5.1
+
+
+Configuration options
+---------------------
+
+Options available through the :subcmd:`config` sub-command are described
+below. In addition to their default value, the related installation option,
+environment variable and command-line switch are listed for each configuration
+option. This table also describes if each configuration option needs to be set
+prior or during Modules initialization and if it can be modified after
+installation.
+
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| Configuration option              | Default value                                | Related installation option, environment     | Set prior or | Cannot be |
+|                                   |                                              | variable and command-line switch             | during init\ | altered   |
+|                                   |                                              |                                              | ialization   |           |
++===================================+==============================================+==============================================+==============+===========+
+| :mconfig:`advanced_version_spec`  | ``1``                                        | :instopt:`--enable-advanced-version-spec`,   |              |           |
+|                                   |                                              | :envvar:`MODULES_ADVANCED_VERSION_SPEC`      |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`auto_handling`          | ``1``                                        | :instopt:`--enable-auto-handling`,           |              |           |
+|                                   |                                              | :envvar:`MODULES_AUTO_HANDLING`,             |              |           |
+|                                   |                                              | :option:`--auto`, :option:`--no-auto`        |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`avail_indepth`          | ``1``                                        | :instopt:`--enable-avail-indepth`,           |              |           |
+|                                   |                                              | :envvar:`MODULES_AVAIL_INDEPTH`,             |              |           |
+|                                   |                                              | :option:`--indepth`, :option:`--no-indepth`  |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`avail_output`           | ``modulepath:alias:dirwsym:sym:tag:key``     | :instopt:`--with-avail-output`,              |              |           |
+|                                   |                                              | :envvar:`MODULES_AVAIL_OUTPUT`,              |              |           |
+|                                   |                                              | :option:`--output`                           |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`avail_terse_output`     | ``modulepath:alias:dirwsym:sym:tag``         | :instopt:`--with-avail-terse-output`,        |              |           |
+|                                   |                                              | :envvar:`MODULES_AVAIL_TERSE_OUTPUT`,        |              |           |
+|                                   |                                              | :option:`--output`                           |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`collection_pin_version` | ``0``                                        | :envvar:`MODULES_COLLECTION_PIN_VERSION`,    |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`collection_target`      | Unset by default                             | :envvar:`MODULES_COLLECTION_TARGET`          |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`color`                  | ``auto``                                     | :instopt:`--enable-color`,                   |              |           |
+|                                   |                                              | :envvar:`MODULES_COLOR`,                     |              |           |
+|                                   |                                              | :option:`--color`                            |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`colors`                 | :literal:`hi=1:db=2:tr=2:se=2:er=91:wa=93:\  | :instopt:`--with-dark-background-colors`,    |              |           |
+|                                   | me=95:in=94:mp=1;94:di=94:al=96:va=93:sy=95\ | :instopt:`--with-light-background-colors`,   |              |           |
+|                                   | :de=4:cm=92:aL=100:L=90;47:H=2:F=41:nF=43:\  | :envvar:`MODULES_COLORS`                     |              |           |
+|                                   | S=46:sS=44:kL=30;48;5;109`                   |                                              |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`contact`                | ``root@localhost``                           | :envvar:`MODULECONTACT`                      |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`extended_default`       | ``1``                                        | :instopt:`--enable-extended-default`,        |              |           |
+|                                   |                                              | :envvar:`MODULES_EXTENDED_DEFAULT`           |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`editor`                 | ``vi``                                       | :instopt:`--with-editor`,                    |              |           |
+|                                   |                                              | :envvar:`MODULES_EDITOR`                     |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`extra_siteconfig`       | Unset by default                             | :envvar:`MODULES_SITECONFIG`                 |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`home`                   | |file prefix|                                | :instopt:`--prefix`,                         |              |           |
+|                                   |                                              | :instopt:`--with-moduleshome`,               |              |           |
+|                                   |                                              | :envvar:`MODULESHOME`                        |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`icase`                  | ``search``                                   | :instopt:`--with-icase`,                     |              |           |
+|                                   |                                              | :envvar:`MODULES_ICASE`,                     |              |           |
+|                                   |                                              | :option:`--icase`                            |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`ignored_dirs`           | ``CVS RCS SCCS .svn .git .SYNC .sos``        |                                              |              | X         |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`implicit_default`       | ``1``                                        | :instopt:`--enable-implicit-default`,        |              |           |
+|                                   |                                              | :envvar:`MODULES_IMPLICIT_DEFAULT`           |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`implicit_requirement`   | ``1``                                        | :instopt:`--enable-implicit-requirement`,    |              |           |
+|                                   |                                              | :envvar:`MODULES_IMPLICIT_REQUIREMENT`       |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`list_output`            | ``header:idx:variant:sym:tag:key``           | :instopt:`--with-list-output`,               |              |           |
+|                                   |                                              | :envvar:`MODULES_LIST_OUTPUT`,               |              |           |
+|                                   |                                              | :option:`--output`                           |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`list_terse_output`      | ``header``                                   | :instopt:`--with-list-terse-output`,         |              |           |
+|                                   |                                              | :envvar:`MODULES_LIST_TERSE_OUTPUT`,         |              |           |
+|                                   |                                              | :option:`--output`                           |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`locked_configs`         | Empty by default                             | :instopt:`--with-locked-configs`             |              | X         |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`mcookie_check`          | ``always``                                   | :envvar:`MODULES_MCOOKIE_CHECK`              |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`mcookie_version_check`  | ``1``                                        | :instopt:`--enable-mcookie-version-check`,   |              |           |
+|                                   |                                              | :envvar:`MODULES_MCOOKIE_VERSION_CHECK`      |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`ml`                     | ``1``                                        | :instopt:`--enable-ml`,                      | X            |           |
+|                                   |                                              | :envvar:`MODULES_ML`                         |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`nearly_forbidden_days`  | ``14``                                       | :instopt:`--with-nearly-forbidden-days`,     |              |           |
+|                                   |                                              | :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS`      |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`pager`                  | ``less -eFKRX``                              | :instopt:`--with-pager`,                     |              |           |
+|                                   |                                              | :instopt:`--with-pager-opts`,                |              |           |
+|                                   |                                              | :envvar:`MODULES_PAGER`,                     |              |           |
+|                                   |                                              | :option:`--paginate`, :option:`--no-pager`   |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`quarantine_support`     | ``0``                                        | :instopt:`--enable-quarantine-support`,      | X            |           |
+|                                   |                                              | :envvar:`MODULES_QUARANTINE_SUPPORT`         |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`rcfile`                 | Unset by default                             | :envvar:`MODULERCFILE`                       |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`redirect_output`        | ``1``                                        | :envvar:`MODULES_REDIRECT_OUTPUT`,           |              |           |
+|                                   |                                              | :option:`--redirect`,                        |              |           |
+|                                   |                                              | :option:`--no-redirect`                      |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`run_quarantine`         | Empty by default                             | :instopt:`--with-quarantine-vars`,           |              |           |
+|                                   |                                              | :envvar:`MODULES_RUN_QUARANTINE`             |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`search_match`           | ``starts_with``                              | :instopt:`--with-search-match`,              |              |           |
+|                                   |                                              | :envvar:`MODULES_SEARCH_MATCH`,              |              |           |
+|                                   |                                              | :option:`--contains`,                        |              |           |
+|                                   |                                              | :option:`--starts-with`                      |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`set_shell_startup`      |  ``0``                                       | :instopt:`--enable-set-shell-startup`,       | X            |           |
+|                                   |                                              | :envvar:`MODULES_SET_SHELL_STARTUP`          |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`shells_with_ksh_fpath`  | Empty by default                             | :envvar:`MODULES_SHELLS_WITH_KSH_FPATH`      | X            |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`silent_shell_debug`     | ``0``                                        | :instopt:`--enable-silent-shell-debug-\      | X            |           |
+|                                   |                                              | support`,                                    |              |           |
+|                                   |                                              | :envvar:`MODULES_SILENT_SHELL_DEBUG`         |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`siteconfig`             | |file etcdir_siteconfig|                     | :instopt:`--prefix`, :instopt:`--etcdir`     |              | X         |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`tag_abbrev`             | :literal:`auto-loaded=aL:loaded=L:hidden=H:\ | :instopt:`--with-tag-abbrev`,                |              |           |
+|                                   | hidden-loaded=H:forbidden=F:nearly-\         | :envvar:`MODULES_TAG_ABBREV`                 |              |           |
+|                                   | forbidden=nF:sticky=S:super-sticky=sS:\      | :option:`--starts-with`                      |              |           |
+|                                   | keep-loaded=kL`                              | :option:`--starts-with`                      |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`tag_color_name`         | Empty by default                             | :instopt:`--with-tag-color-name`,            |              |           |
+|                                   |                                              | :envvar:`MODULES_TAG_COLOR_NAME`             |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`tcl_ext_lib`            | |file libdir_tcl_ext_lib|                    |                                              |              | X         |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`term_background`        | ``dark``                                     | :instopt:`--with-terminal-background`,       |              |           |
+|                                   |                                              | :envvar:`MODULES_TERM_BACKGROUND`            |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`term_width`             | ``0``                                        | :envvar:`MODULES_TERM_WIDTH`,                |              |           |
+|                                   |                                              | :option:`--width`                            |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`unload_match_order`     | ``returnlast``                               | :instopt:`--with-unload-match-order`,        |              |           |
+|                                   |                                              | :envvar:`MODULES_UNLOAD_MATCH_ORDER`         |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`variant_shortcut`       | Empty by default                             | :instopt:`--with-variant-shortcut`,          |              |           |
+|                                   |                                              | :envvar:`MODULES_VARIANT_SHORTCUT`           |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`verbosity`              | ``normal``                                   | :instopt:`--with-verbosity`,                 |              |           |
+|                                   |                                              | :envvar:`MODULES_VERBOSITY`,                 |              |           |
+|                                   |                                              | :option:`--debug`, :option:`--silent`,       |              |           |
+|                                   |                                              | :option:`--trace`, :option:`--verbose`       |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`wa_277`                 | ``1``                                        | :instopt:`--enable-wa-277`,                  | X            |           |
+|                                   |                                              | :envvar:`MODULES_WA_277`                     |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
