@@ -1213,16 +1213,16 @@ installation.
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`collection_pin_version` | ``0``                                        | :envvar:`MODULES_COLLECTION_PIN_VERSION`,    |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
-| :mconfig:`collection_target`      | Unset by default                             | :envvar:`MODULES_COLLECTION_TARGET`          |              |           |
+| :mconfig:`collection_target`      | *Unset by default*                           | :envvar:`MODULES_COLLECTION_TARGET`          |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`color`                  | ``auto``                                     | :instopt:`--enable-color`,                   |              |           |
 |                                   |                                              | :envvar:`MODULES_COLOR`,                     |              |           |
 |                                   |                                              | :option:`--color`                            |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
-| :mconfig:`colors`                 | :literal:`hi=1:db=2:tr=2:se=2:er=91:wa=93:\  | :instopt:`--with-dark-background-colors`,    |              |           |
+| :mconfig:`colors`                 | hi=1:db=2:tr=2:se=2:er=91:wa=93:\            | :instopt:`--with-dark-background-colors`,    |              |           |
 |                                   | me=95:in=94:mp=1;94:di=94:al=96:va=93:sy=95\ | :instopt:`--with-light-background-colors`,   |              |           |
 |                                   | :de=4:cm=92:aL=100:L=90;47:H=2:F=41:nF=43:\  | :envvar:`MODULES_COLORS`                     |              |           |
-|                                   | S=46:sS=44:kL=30;48;5;109`                   |                                              |              |           |
+|                                   | S=46:sS=44:kL=30;48;5;109                    |                                              |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`contact`                | ``root@localhost``                           | :envvar:`MODULECONTACT`                      |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
@@ -1232,7 +1232,7 @@ installation.
 | :mconfig:`editor`                 | ``vi``                                       | :instopt:`--with-editor`,                    |              |           |
 |                                   |                                              | :envvar:`MODULES_EDITOR`                     |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
-| :mconfig:`extra_siteconfig`       | Unset by default                             | :envvar:`MODULES_SITECONFIG`                 |              |           |
+| :mconfig:`extra_siteconfig`       | *Unset by default*                           | :envvar:`MODULES_SITECONFIG`                 |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`home`                   | |file prefix|                                | :instopt:`--prefix`,                         |              |           |
 |                                   |                                              | :instopt:`--with-moduleshome`,               |              |           |
@@ -1258,7 +1258,7 @@ installation.
 |                                   |                                              | :envvar:`MODULES_LIST_TERSE_OUTPUT`,         |              |           |
 |                                   |                                              | :option:`--output`                           |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
-| :mconfig:`locked_configs`         | Empty by default                             | :instopt:`--with-locked-configs`             |              | X         |
+| :mconfig:`locked_configs`         | *Empty by default*                           | :instopt:`--with-locked-configs`             |              | X         |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`mcookie_check`          | ``always``                                   | :envvar:`MODULES_MCOOKIE_CHECK`              |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
@@ -1279,13 +1279,13 @@ installation.
 | :mconfig:`quarantine_support`     | ``0``                                        | :instopt:`--enable-quarantine-support`,      | X            |           |
 |                                   |                                              | :envvar:`MODULES_QUARANTINE_SUPPORT`         |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
-| :mconfig:`rcfile`                 | Unset by default                             | :envvar:`MODULERCFILE`                       |              |           |
+| :mconfig:`rcfile`                 | *Unset by default*                           | :envvar:`MODULERCFILE`                       |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`redirect_output`        | ``1``                                        | :envvar:`MODULES_REDIRECT_OUTPUT`,           |              |           |
 |                                   |                                              | :option:`--redirect`,                        |              |           |
 |                                   |                                              | :option:`--no-redirect`                      |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
-| :mconfig:`run_quarantine`         | Empty by default                             | :instopt:`--with-quarantine-vars`,           |              |           |
+| :mconfig:`run_quarantine`         | *Empty by default*                           | :instopt:`--with-quarantine-vars`,           |              |           |
 |                                   |                                              | :envvar:`MODULES_RUN_QUARANTINE`             |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`search_match`           | ``starts_with``                              | :instopt:`--with-search-match`,              |              |           |
@@ -1296,7 +1296,7 @@ installation.
 | :mconfig:`set_shell_startup`      |  ``0``                                       | :instopt:`--enable-set-shell-startup`,       | X            |           |
 |                                   |                                              | :envvar:`MODULES_SET_SHELL_STARTUP`          |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
-| :mconfig:`shells_with_ksh_fpath`  | Empty by default                             | :envvar:`MODULES_SHELLS_WITH_KSH_FPATH`      | X            |           |
+| :mconfig:`shells_with_ksh_fpath`  | *Empty by default*                           | :envvar:`MODULES_SHELLS_WITH_KSH_FPATH`      | X            |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`silent_shell_debug`     | ``0``                                        | :instopt:`--enable-silent-shell-debug-\      | X            |           |
 |                                   |                                              | support`,                                    |              |           |
@@ -1304,12 +1304,12 @@ installation.
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`siteconfig`             | |file etcdir_siteconfig|                     | :instopt:`--prefix`, :instopt:`--etcdir`     |              | X         |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
-| :mconfig:`tag_abbrev`             | :literal:`auto-loaded=aL:loaded=L:hidden=H:\ | :instopt:`--with-tag-abbrev`,                |              |           |
+| :mconfig:`tag_abbrev`             | auto-loaded=aL:loaded=L:hidden=H:\           | :instopt:`--with-tag-abbrev`,                |              |           |
 |                                   | hidden-loaded=H:forbidden=F:nearly-\         | :envvar:`MODULES_TAG_ABBREV`                 |              |           |
-|                                   | forbidden=nF:sticky=S:super-sticky=sS:\      | :option:`--starts-with`                      |              |           |
-|                                   | keep-loaded=kL`                              | :option:`--starts-with`                      |              |           |
+|                                   | forbidden=nF:sticky=S:super-sticky=sS:\      |                                              |              |           |
+|                                   | keep-loaded=kL                               |                                              |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
-| :mconfig:`tag_color_name`         | Empty by default                             | :instopt:`--with-tag-color-name`,            |              |           |
+| :mconfig:`tag_color_name`         | *Empty by default*                           | :instopt:`--with-tag-color-name`,            |              |           |
 |                                   |                                              | :envvar:`MODULES_TAG_COLOR_NAME`             |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`tcl_ext_lib`            | |file libdir_tcl_ext_lib|                    |                                              |              | X         |
@@ -1323,7 +1323,7 @@ installation.
 | :mconfig:`unload_match_order`     | ``returnlast``                               | :instopt:`--with-unload-match-order`,        |              |           |
 |                                   |                                              | :envvar:`MODULES_UNLOAD_MATCH_ORDER`         |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
-| :mconfig:`variant_shortcut`       | Empty by default                             | :instopt:`--with-variant-shortcut`,          |              |           |
+| :mconfig:`variant_shortcut`       | *Empty by default*                           | :instopt:`--with-variant-shortcut`,          |              |           |
 |                                   |                                              | :envvar:`MODULES_VARIANT_SHORTCUT`           |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`verbosity`              | ``normal``                                   | :instopt:`--with-verbosity`,                 |              |           |
