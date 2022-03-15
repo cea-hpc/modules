@@ -2405,6 +2405,23 @@ ENVIRONMENT
     .. versionchanged:: 5.0
        Variable renamed from ``MODULES_LMVARIANT`` to ``__MODULES_LMVARIANT``
 
+.. envvar:: __MODULES_PUSHENV_<VAR>
+
+ Stack of saved values for :envvar:`<VAR>` environment variable. A colon-\
+ separated list containing pairs of elements. A pair is formed by a loaded
+ module name followed by the value set to :envvar:`<VAR>` in this module with
+ :mfcmd:`pushenv` command. An ampersand character separates the two parts of
+ the pair.
+
+ First element in list corresponds to the lastly set value of :envvar:`<VAR>`.
+ If a value were set to :envvar:`<VAR>` prior the first evaluated
+ :mfcmd:`pushenv` command, this value is associated to an empty module name to
+ record it as a pair element in :envvar:`__MODULES_PUSHENV_\<VAR\>`.
+
+ .. only:: html
+
+    .. versionadded:: 5.1
+
 .. envvar:: __MODULES_QUAR_<VAR>
 
  Value of environment variable :envvar:`<VAR>` passed to :file:`modulecmd.tcl`
