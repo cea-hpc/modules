@@ -886,6 +886,27 @@ the *modulefile* is being loaded.
 
     .. versionadded:: 5.1
 
+.. mfcmd:: pushenv variable value
+
+ Set environment *variable* to *value* and save previous value of *variable*
+ to restore it when *modulefile* is unloaded. Like for :mfcmd:`setenv`
+ modulefile command, changes made to *variable* with :mfcmd:`pushenv` are
+ applied to *variable* in Tcl's ``env`` array to update environment *variable*
+ value in current evaluation context.
+
+ When *modulefile* is unloaded, the *value* saved from the :mfcmd:`pushenv`
+ command of this modulefile is removed from saved value stack list. *variable*
+ is then set to the remaining *value* on top of the stack or it is unset if
+ stack becomes empty.
+
+ Saved value stack list for *variable* is stored in an environment variable
+ which is named by prefixing *variable* by :envvar:`__MODULES_PUSHENV_\
+ <__MODULES_PUSHENV_\<VAR\>>`.
+
+ .. only:: html
+
+    .. versionadded:: 5.1
+
 .. mfcmd:: puts [-nonewline] [channelId] string
 
  Writes the characters given by *string* to the channel given by *channelId*.
@@ -1021,8 +1042,8 @@ the *modulefile* is being loaded.
  :mfcmd:`setenv` becomes :mfcmd:`unsetenv`. If the environment *variable* had
  been defined it will be overwritten while loading the *modulefile*. A
  subsequent :subcmd:`unload` will unset the environment *variable* - the
- previous value cannot be restored! (Unless you handle it explicitly ... see
- below.)
+ previous value cannot be restored! (Unless you handle it explicitly or if you
+ use the :mfcmd:`pushenv` modulefile command instead of :mfcmd:`setenv`)
 
  When the ``--set-if-undef`` option is set, environment variable is defined
  when *modulefile* is loaded only if not yet defined.

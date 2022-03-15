@@ -889,7 +889,7 @@ The following modulefile Tcl commands appeared on Modules 5.
 |            | :mfcmd:`require-fullname`, :mfcmd:`depends-on`,                 |
 |            | :mfcmd:`prereq-all`, :mfcmd:`always-load`,                      |
 |            | :mfcmd:`module load-any<module>`, :mfcmd:`family`,              |
-|            | :mfcmd:`complete`, :mfcmd:`uncomplete`                          |
+|            | :mfcmd:`complete`, :mfcmd:`uncomplete`, :mfcmd:`pushenv`        |
 +------------+-----------------------------------------------------------------+
 
 :mfcmd:`system`, :mfcmd:`is-used`
