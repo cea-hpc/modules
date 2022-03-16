@@ -114,6 +114,7 @@ prepend-path   {prepend-path   prepend-path-un prepend-path  prepend-path   prep
 prereq-all     {prereq-all     nop            reportCmd      nop            nop            nop            nop         }
 prereq-any     {prereq         nop            reportCmd      nop            nop            nop            nop         }
 prereq         {prereq         nop            reportCmd      nop            nop            nop            nop         }
+pushenv        {pushenv        pushenv-un     pushenv        pushenv        pushenv        pushenv-wh     nop         }
 remove-path    {remove-path    remove-path-un remove-path    remove-path    remove-path    edit-path-wh   nop         }
 remove-property {nop           nop            nop            nop            nop            nop            nop         }
 require-fullname {require-fullname nop        reportCmd      nop            nop            nop            nop         }
@@ -2596,6 +2597,79 @@ proc uncomplete {name} {
    }
    set ::g_Completes($name) {}
    set ::g_stateCompletes($name) del
+}
+
+proc pushenv {var val} {
+   # save initial value in pushenv value stack
+   set pushvar [getPushenvVarName $var]
+   if {![info exists ::env($pushvar)] && [info exists ::env($var)]} {
+      prepend-path $pushvar &$::env($var)
+   }
+
+   # clean any previously defined reference counter array
+   unset-env [getModshareVarName $var] 1
+
+   # Set the variable for later use during the modulefile evaluation
+   set-env $var $val
+
+   # add this value to the stack associated to current module name in order to
+   # know what element to remove from stack when unloading
+   prepend-path $pushvar [currentState modulename]&$val
+
+   return {}
+}
+
+# undo pushenv in unload mode
+proc pushenv-un {var val} {
+   # clean any existing reference counter array
+   unset-env [getModshareVarName $var] 1
+
+   # update value stack
+   set pushvar [getPushenvVarName $var]
+   if {[info exists ::env($pushvar)]} {
+      set pushlist [split $::env($pushvar) :]
+      # find value pushed by currently evaluated module and remove it
+      set popidx [lsearch -exact $pushlist [currentState modulename]&$val]
+      if {$popidx != -1} {
+         set pushlist [lreplace $pushlist $popidx $popidx]
+         remove-path --index $pushvar $popidx
+      }
+
+      if {[llength $pushlist] > 0} {
+         # fetch value on top of the stack
+         set validx [expr {[string first & [lindex $pushlist 0]] + 1}]
+         set popval [string range [lindex $pushlist 0] $validx end]
+
+         # restore top value if different from current one
+         # env array is used instead of get-env to know if env var is undefined
+         if {![info exists ::env($var)] || $::env($var) ne $popval} {
+            set-env $var $popval
+         }
+
+         # if last element remaining in stack is the initial value prior first
+         # pushenv, then clear the stack totally
+         if {$validx == 1} {
+            remove-path --index $pushvar 0
+         }
+      } else {
+         unset-env $var 0 $val
+      }
+   } else {
+      # Add variable to the list of variable to unset in shell output code but
+      # set it in interp context as done on load mode for later use during the
+      # modulefile evaluation
+      unset-env $var 0 $val
+   }
+
+   return {}
+}
+
+# optimized pushenv for whatis mode (same approach than setenv-wh)
+proc pushenv-wh {var val} {
+   if {![info exists ::env($var)]} {
+      set ::env($var) {}
+   }
+   return {}
 }
 
 # ;;; Local Variables: ***
