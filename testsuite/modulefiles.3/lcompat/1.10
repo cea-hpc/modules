@@ -1,0 +1,51 @@
+#%Module
+
+module-whatis [module-info name]
+
+if {[info exists env(TESTSUITE_LCOMPAT)]} {
+    switch -- $env(TESTSUITE_LCOMPAT) {
+        pushenv1 {
+            pushenv FOO val1
+        }
+        pushenv2 {
+            pushenv FOO val val
+        }
+        pushenv3 {
+            pushenv FOO
+        }
+        pushenv4 {
+            pushenv
+        }
+        pushenv5 {
+            pushenv var v&l
+            pushenv foO &al
+        }
+        pushenv6 {
+            pushenv FOO {}
+            pushenv BAR val
+        }
+        pushenv7 {
+            pushenv FOO val1
+            puts stderr [getenv FOO]-$env(FOO)
+            pushenv FOO {}
+            puts stderr [getenv FOO]-$env(FOO)
+            pushenv FOO val1
+            puts stderr [getenv FOO]-$env(FOO)
+            pushenv FOO val2
+            puts stderr [getenv FOO]-$env(FOO)
+        }
+        pushenv8 {
+            if {[module-info mode load]} {
+                pushenv FOO val1
+            }
+        }
+        pushenv9 {
+            if {[module-info mode unload]} {
+                pushenv FOO val1
+            }
+        }
+        pushenv10 - pushenv11 - pushenv12 - pushenv13 {
+            pushenv FOO bar
+        }
+    }
+}

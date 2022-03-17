@@ -1,0 +1,933 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2022/03/16
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload, display, help, test, whatis, refresh, avail
+#   Modulefiles:    lcompat
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test pushenv modulefile command
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+set mod lcompat/1.10
+set modname lcompat
+set modfile $mp/$mod
+set modfilere $mpre/$mod
+
+set flatmod flatlcompat
+set flatmodfile $mp/$flatmod
+
+set mod2 $modname/1.11
+set modfile2 $mp/$mod2
+
+setenv_var TESTSUITE_LCOMPAT pushenv1
+
+# load
+set ans [list]
+lappend ans [list set FOO val1]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_PUSHENV_FOO $mod&val1]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_var FOO foo
+
+set ans [list]
+lappend ans [list set FOO val1]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_PUSHENV_FOO $mod&val1:&foo]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_var __MODULES_PUSHENV_FOO foo&foo
+
+set ans [list]
+lappend ans [list set FOO val1]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_PUSHENV_FOO $mod&val1:foo&foo]
+testouterr_cmd sh "load $mod" $ans {}
+
+# unload
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_var __MODULES_PUSHENV_FOO $mod&val1
+setenv_var FOO val1
+
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+testouterr_cmd sh "unload $mod" $ans {}
+
+setenv_var __MODULES_PUSHENV_FOO $mod&val1:&foo
+
+set ans [list]
+lappend ans [list set FOO foo]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+testouterr_cmd sh "unload $mod" $ans {}
+
+setenv_var __MODULES_PUSHENV_FOO $mod&val1:foo&foo
+
+set ans [list]
+lappend ans [list set FOO foo]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list set __MODULES_PUSHENV_FOO foo&foo]
+testouterr_cmd sh "unload $mod" $ans {}
+
+setenv_var __MODULES_PUSHENV_FOO $mod&val1
+
+skip_if_quick_mode
+
+# refresh
+testouterr_cmd sh {refresh} OK {}
+
+unsetenv_loaded_module
+unsetenv_path_var __MODULES_PUSHENV_FOO
+unsetenv_var FOO
+
+# whatis
+set tserr "$modlin $mpre $modlin
+\\s*$mod: $mod"
+testouterr_cmd_re sh "whatis $mod" OK $tserr
+
+# display
+set tserr "$modlin
+$mpre/$mod:
+
+module-whatis\t$mod
+pushenv\t\tFOO val1
+$modlin"
+testouterr_cmd_re sh "display $mod" OK $tserr
+
+# help
+set tserr "$modlin
+Module Specific Help for $mpre/$mod:
+
+$warn_msgs: Unable to find ModulesHelp in $modfilere.
+$modlin"
+testouterr_cmd_re sh "help $mod" OK $tserr
+
+# test
+set tserr "$modlin
+Module Specific Test for $mpre/$mod:
+
+$warn_msgs: Unable to find ModulesTest in $modfilere.
+$modlin"
+testouterr_cmd_re sh "test $mod" OK $tserr
+
+
+# multiple module load targeting same envvar
+setenv_var TESTSUITE_LCOMPAT pushenv1
+set ans [list]
+lappend ans [list set FOO val1]
+lappend ans [list set _LMFILES_ $flatmodfile:$modfile]
+lappend ans [list set LOADEDMODULES $flatmod:$mod]
+lappend ans [list set __MODULES_PUSHENV_FOO $mod&val1:$flatmod&bar]
+testouterr_cmd sh "load $flatmod $mod" $ans {}
+
+set ans [list]
+lappend ans [list set FOO bar]
+lappend ans [list set _LMFILES_ $modfile:$flatmodfile]
+lappend ans [list set LOADEDMODULES $mod:$flatmod]
+lappend ans [list set __MODULES_PUSHENV_FOO $flatmod&bar:$mod&val1]
+testouterr_cmd sh "load $mod $flatmod" $ans {}
+
+setenv_var FOO foo
+
+set ans [list]
+lappend ans [list set FOO bar]
+lappend ans [list set _LMFILES_ $modfile:$flatmodfile]
+lappend ans [list set LOADEDMODULES $mod:$flatmod]
+lappend ans [list set __MODULES_PUSHENV_FOO $flatmod&bar:$mod&val1:&foo]
+testouterr_cmd sh "load $mod $flatmod" $ans {}
+
+setenv_loaded_module [list $mod $flatmod] [list $modfile $flatmodfile]
+setenv_var __MODULES_PUSHENV_FOO $mod&val1:$flatmod&bar
+setenv_var FOO val1
+
+set ans [list]
+lappend ans [list set FOO bar]
+lappend ans [list set _LMFILES_ $flatmodfile]
+lappend ans [list set LOADEDMODULES $flatmod]
+lappend ans [list set __MODULES_PUSHENV_FOO $flatmod&bar]
+testouterr_cmd sh "unload $mod" $ans {}
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_PUSHENV_FOO $mod&val1]
+testouterr_cmd sh "unload $flatmod" $ans {}
+
+setenv_var __MODULES_PUSHENV_FOO $mod&val1:$flatmod&bar:&foo
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_PUSHENV_FOO $mod&val1:&foo]
+testouterr_cmd sh "unload $flatmod" $ans {}
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_PUSHENV_FOO
+unsetenv_var FOO
+
+
+# small caps and use of '&' char in pushed value
+setenv_var TESTSUITE_LCOMPAT pushenv5
+
+set ans [list]
+lappend ans [list set foO &al]
+lappend ans [list set var v&l]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_PUSHENV_foO $mod&&al]
+lappend ans [list set __MODULES_PUSHENV_var $mod&v&l]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_var __MODULES_PUSHENV_var $mod&v&l:&&oo
+setenv_var __MODULES_PUSHENV_foO $mod&&al
+setenv_var var v&l
+setenv_var foO &al
+
+set ans [list]
+lappend ans [list unset foO]
+lappend ans [list set var &oo]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_PUSHENV_foO]
+lappend ans [list unset __MODULES_PUSHENV_var]
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_PUSHENV_var
+unsetenv_var __MODULES_PUSHENV_foO
+unsetenv_var var
+unsetenv_var foO
+
+
+# empty string pushed value
+setenv_var TESTSUITE_LCOMPAT pushenv6
+
+setenv_var BAR {}
+
+set ans [list]
+lappend ans [list set FOO {}]
+lappend ans [list set BAR val]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_PUSHENV_FOO $mod&]
+lappend ans [list set __MODULES_PUSHENV_BAR $mod&val:&]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_var __MODULES_PUSHENV_BAR $mod&val:&
+setenv_var __MODULES_PUSHENV_FOO $mod&
+setenv_var BAR val
+setenv_var FOO {}
+
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set BAR {}]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+lappend ans [list unset __MODULES_PUSHENV_BAR]
+testouterr_cmd sh "unload $mod" $ans {}
+
+
+# missing stack definition in env
+unsetenv_var __MODULES_PUSHENV_BAR
+unsetenv_var __MODULES_PUSHENV_FOO
+
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list unset BAR]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+
+# missing variable definition in env
+setenv_var __MODULES_PUSHENV_BAR $mod&val:&
+setenv_var __MODULES_PUSHENV_FOO $mod&
+unsetenv_var BAR
+unsetenv_var FOO
+
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set BAR {}]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+lappend ans [list unset __MODULES_PUSHENV_BAR]
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_PUSHENV_BAR
+unsetenv_var __MODULES_PUSHENV_FOO
+
+
+# same env var pushed multiple times by same modulefile
+# with same value pushed multiple times
+setenv_var TESTSUITE_LCOMPAT pushenv7
+setenv_loaded_module [list $flatmod] [list $flatmodfile]
+setenv_var __MODULES_PUSHENV_FOO $flatmod&bar
+setenv_var FOO bar
+
+set ans [list]
+lappend ans [list set FOO val2]
+lappend ans [list set _LMFILES_ $flatmodfile:$modfile]
+lappend ans [list set LOADEDMODULES $flatmod:$mod]
+lappend ans [list set __MODULES_PUSHENV_FOO $mod&val2:$mod&val1:$mod&:$mod&val1:$flatmod&bar]
+set tserr "val1-val1\n-\nval1-val1\nval2-val2"
+testouterr_cmd sh "load $mod" $ans $tserr
+
+setenv_loaded_module [list $flatmod $mod] [list $flatmodfile $modfile]
+setenv_var __MODULES_PUSHENV_FOO $mod&val2:$mod&val1:$mod&:$mod&val1:$flatmod&bar
+setenv_var FOO val2
+
+set ans [list]
+lappend ans [list set FOO bar]
+lappend ans [list set _LMFILES_ $flatmodfile]
+lappend ans [list set LOADEDMODULES $flatmod]
+lappend ans [list set __MODULES_PUSHENV_FOO $flatmod&bar]
+# popped value is consistent at the end of the evaluation
+# when checked during modulefile evaluation lastly defined value remains so it is
+# not advised to use a pushenv value directly as path element in path variable
+set tserr "val2-val2\nval2-val2\nval2-val2\nbar-bar"
+testouterr_cmd sh "unload $mod" $ans $tserr
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_PUSHENV_FOO
+unsetenv_var FOO
+
+
+# same value set by different loaded modules
+setenv_var TESTSUITE_LCOMPAT pushenv1
+
+# same value defined by loaded module #1 and 3
+set ans [list]
+lappend ans [list set FOO val1]
+lappend ans [list set _LMFILES_ $modfile:$flatmodfile:$modfile2]
+lappend ans [list set LOADEDMODULES $mod:$flatmod:$mod2]
+lappend ans [list set __MODULES_PUSHENV_FOO $mod2&val1:$flatmod&bar:$mod&val1]
+testouterr_cmd sh "load $mod $flatmod $mod2" $ans {}
+
+setenv_loaded_module [list $mod $flatmod $mod2] [list $modfile $flatmodfile $modfile2]
+setenv_var __MODULES_PUSHENV_FOO $mod2&val1:$flatmod&bar:$mod&val1
+setenv_var FOO val1
+
+# unload loaded module #1
+set ans [list]
+lappend ans [list set _LMFILES_ $flatmodfile:$modfile2]
+lappend ans [list set LOADEDMODULES $flatmod:$mod2]
+lappend ans [list set __MODULES_PUSHENV_FOO $mod2&val1:$flatmod&bar]
+testouterr_cmd sh "unload $mod" $ans {}
+
+# unload loaded module #3
+set ans [list]
+lappend ans [list set FOO bar]
+lappend ans [list set _LMFILES_ $modfile:$flatmodfile]
+lappend ans [list set LOADEDMODULES $mod:$flatmod]
+lappend ans [list set __MODULES_PUSHENV_FOO $flatmod&bar:$mod&val1]
+testouterr_cmd sh "unload $mod2" $ans {}
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_PUSHENV_FOO
+unsetenv_var FOO
+
+# same value defined by loaded module #2 and 3
+set ans [list]
+lappend ans [list set FOO val1]
+lappend ans [list set _LMFILES_ $flatmodfile:$modfile:$modfile2]
+lappend ans [list set LOADEDMODULES $flatmod:$mod:$mod2]
+lappend ans [list set __MODULES_PUSHENV_FOO $mod2&val1:$mod&val1:$flatmod&bar]
+testouterr_cmd sh "load $flatmod $mod $mod2" $ans {}
+
+setenv_loaded_module [list $flatmod $mod $mod2] [list $flatmodfile $modfile $modfile2]
+setenv_var __MODULES_PUSHENV_FOO $mod2&val1:$mod&val1:$flatmod&bar
+setenv_var FOO val1
+
+# unload loaded module #2
+set ans [list]
+lappend ans [list set _LMFILES_ $flatmodfile:$modfile2]
+lappend ans [list set LOADEDMODULES $flatmod:$mod2]
+lappend ans [list set __MODULES_PUSHENV_FOO $mod2&val1:$flatmod&bar]
+testouterr_cmd sh "unload $mod" $ans {}
+
+# unload loaded module #3
+set ans [list]
+lappend ans [list set _LMFILES_ $flatmodfile:$modfile]
+lappend ans [list set LOADEDMODULES $flatmod:$mod]
+lappend ans [list set __MODULES_PUSHENV_FOO $mod&val1:$flatmod&bar]
+testouterr_cmd sh "unload $mod2" $ans {}
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_PUSHENV_FOO
+unsetenv_var FOO
+
+
+# inconsistent combination
+# pushenv command only set for load or unload mode
+setenv_var TESTSUITE_LCOMPAT pushenv8
+
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_var __MODULES_PUSHENV_FOO $mod&val1
+setenv_var FOO val1
+
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+setenv_var TESTSUITE_LCOMPAT pushenv9
+unsetenv_var __MODULES_PUSHENV_FOO
+unsetenv_var FOO
+
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+unsetenv_loaded_module
+
+
+# inconsistent combination
+# mixed append-path/pushenv definition for same env variable
+setenv_var TESTSUITE_LCOMPAT pushenv10
+
+# append-path then pushenv, no preset value
+set ans [list]
+lappend ans [list set FOO bar]
+lappend ans [list set __MODULES_PUSHENV_FOO $mod&bar:&/path/to/val1]
+lappend ans [list set _LMFILES_ $modfile2:$modfile]
+lappend ans [list set LOADEDMODULES $mod2:$mod]
+testouterr_cmd sh "load $mod2 $mod" $ans {}
+
+setenv_loaded_module [list $mod2 $mod] [list $modfile2 $modfile]
+setenv_var __MODULES_PUSHENV_FOO $mod&bar:&/path/to/val1
+setenv_var FOO bar
+
+set ans [list]
+lappend ans [list set FOO /path/to/val1]
+lappend ans [list set _LMFILES_ $modfile2]
+lappend ans [list set LOADEDMODULES $mod2]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+testouterr_cmd sh "unload $mod" $ans {}
+
+set ans [list]
+lappend ans [list set FOO bar]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+# due to the inconsistent mix, pushenv stack is withdrawn whereas $mod
+# is still loaded
+testouterr_cmd sh "unload $mod2" $ans {}
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_PUSHENV_FOO
+
+# append-path then pushenv, preset value (duplicate path elt)
+setenv_var FOO /path/to/val1
+set ans [list]
+lappend ans [list unset __MODULES_SHARE_FOO]
+lappend ans [list set FOO bar]
+lappend ans [list set __MODULES_PUSHENV_FOO $mod&bar:&/path/to/val1]
+lappend ans [list set _LMFILES_ $modfile2:$modfile]
+lappend ans [list set LOADEDMODULES $mod2:$mod]
+testouterr_cmd sh "load $mod2 $mod" $ans {}
+
+setenv_loaded_module [list $mod2 $mod] [list $modfile2 $modfile]
+setenv_var __MODULES_PUSHENV_FOO $mod&bar:&/path/to/val1
+setenv_var FOO bar
+
+set ans [list]
+lappend ans [list set FOO /path/to/val1]
+lappend ans [list set _LMFILES_ $modfile2]
+lappend ans [list set LOADEDMODULES $mod2]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+testouterr_cmd sh "unload $mod" $ans {}
+
+set ans [list]
+lappend ans [list set FOO bar]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+# due to the inconsistent mix, pushenv stack is withdrawn whereas $mod
+# is still loaded
+testouterr_cmd sh "unload $mod2" $ans {}
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_PUSHENV_FOO
+unsetenv_var FOO
+
+# pushenv then append-path, no preset value
+set ans [list]
+lappend ans [list set FOO bar:/path/to/val1]
+lappend ans [list set _LMFILES_ $modfile:$modfile2]
+lappend ans [list set LOADEDMODULES $mod:$mod2]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+testouterr_cmd sh "load $mod $mod2" $ans {}
+
+setenv_loaded_module [list $mod $mod2] [list $modfile $modfile2]
+setenv_var FOO bar:/path/to/val1
+
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile2]
+lappend ans [list set LOADEDMODULES $mod2]
+# due to the inconsistent mix, pushenv in unload mode purely unset variable
+testouterr_cmd sh "unload $mod" $ans {}
+
+set ans [list]
+lappend ans [list set FOO bar]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "unload $mod2" $ans {}
+
+unsetenv_loaded_module
+
+# pushenv then append-path, preset value (duplicate path elt)
+setenv_var FOO /path/to/val1
+set ans [list]
+lappend ans [list set FOO bar:/path/to/val1]
+lappend ans [list set _LMFILES_ $modfile:$modfile2]
+lappend ans [list set LOADEDMODULES $mod:$mod2]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+testouterr_cmd sh "load $mod $mod2" $ans {}
+
+setenv_loaded_module [list $mod $mod2] [list $modfile $modfile2]
+setenv_var FOO bar:/path/to/val1
+
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile2]
+lappend ans [list set LOADEDMODULES $mod2]
+# due to the inconsistent mix, pushenv in unload mode purely unset variable
+testouterr_cmd sh "unload $mod" $ans {}
+
+set ans [list]
+lappend ans [list set FOO bar]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "unload $mod2" $ans {}
+
+unsetenv_var FOO
+unsetenv_loaded_module
+
+
+# inconsistent combination
+# mixed setenv/pushenv definition for same env variable
+setenv_var TESTSUITE_LCOMPAT pushenv11
+
+# setenv then pushenv, no preset value
+set ans [list]
+lappend ans [list set FOO bar]
+lappend ans [list set __MODULES_PUSHENV_FOO $mod&bar:&foo]
+lappend ans [list set _LMFILES_ $modfile2:$modfile]
+lappend ans [list set LOADEDMODULES $mod2:$mod]
+testouterr_cmd sh "load $mod2 $mod" $ans {}
+
+setenv_loaded_module [list $mod2 $mod] [list $modfile2 $modfile]
+setenv_var __MODULES_PUSHENV_FOO $mod&bar:&foo
+setenv_var FOO bar
+
+set ans [list]
+lappend ans [list set FOO foo]
+lappend ans [list set _LMFILES_ $modfile2]
+lappend ans [list set LOADEDMODULES $mod2]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+testouterr_cmd sh "unload $mod" $ans {}
+
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+testouterr_cmd sh "unload $mod2" $ans {}
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_PUSHENV_FOO
+
+# setenv then pushenv, preset value
+setenv_var FOO val1
+set ans [list]
+lappend ans [list set FOO bar]
+lappend ans [list set __MODULES_PUSHENV_FOO $mod&bar:&foo]
+lappend ans [list set _LMFILES_ $modfile2:$modfile]
+lappend ans [list set LOADEDMODULES $mod2:$mod]
+testouterr_cmd sh "load $mod2 $mod" $ans {}
+
+setenv_loaded_module [list $mod2 $mod] [list $modfile2 $modfile]
+setenv_var __MODULES_PUSHENV_FOO $mod&bar:&foo
+setenv_var FOO bar
+
+set ans [list]
+lappend ans [list set FOO foo]
+lappend ans [list set _LMFILES_ $modfile2]
+lappend ans [list set LOADEDMODULES $mod2]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+testouterr_cmd sh "unload $mod" $ans {}
+
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+testouterr_cmd sh "unload $mod2" $ans {}
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_PUSHENV_FOO
+unsetenv_var FOO
+
+# pushenv then setenv, no preset value
+set ans [list]
+lappend ans [list set FOO foo]
+lappend ans [list set _LMFILES_ $modfile:$modfile2]
+lappend ans [list set LOADEDMODULES $mod:$mod2]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+testouterr_cmd sh "load $mod $mod2" $ans {}
+
+setenv_loaded_module [list $mod $mod2] [list $modfile $modfile2]
+setenv_var FOO foo
+
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile2]
+lappend ans [list set LOADEDMODULES $mod2]
+testouterr_cmd sh "unload $mod" $ans {}
+
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "unload $mod2" $ans {}
+
+unsetenv_loaded_module
+
+# pushenv then setenv, preset value
+setenv_var FOO val1
+set ans [list]
+lappend ans [list set FOO foo]
+lappend ans [list set _LMFILES_ $modfile:$modfile2]
+lappend ans [list set LOADEDMODULES $mod:$mod2]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+testouterr_cmd sh "load $mod $mod2" $ans {}
+
+setenv_loaded_module [list $mod $mod2] [list $modfile $modfile2]
+setenv_var FOO foo
+
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile2]
+lappend ans [list set LOADEDMODULES $mod2]
+testouterr_cmd sh "unload $mod" $ans {}
+
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "unload $mod2" $ans {}
+
+unsetenv_var FOO
+unsetenv_loaded_module
+
+
+# inconsistent combination
+# mixed remove-path/pushenv definition for same env variable
+setenv_var TESTSUITE_LCOMPAT pushenv12
+
+# remove-path then pushenv, no preset value
+set ans [list]
+lappend ans [list set FOO bar]
+# after remove-path, env variable is found set to an empty value
+# during the evaluation of $mod
+lappend ans [list set __MODULES_PUSHENV_FOO $mod&bar:&]
+lappend ans [list set _LMFILES_ $modfile2:$modfile]
+lappend ans [list set LOADEDMODULES $mod2:$mod]
+testouterr_cmd sh "load $mod2 $mod" $ans {}
+
+setenv_loaded_module [list $mod2 $mod] [list $modfile2 $modfile]
+setenv_var __MODULES_PUSHENV_FOO $mod&bar:&
+setenv_var FOO bar
+
+set ans [list]
+lappend ans [list set FOO {}]
+lappend ans [list set _LMFILES_ $modfile2]
+lappend ans [list set LOADEDMODULES $mod2]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+testouterr_cmd sh "unload $mod" $ans {}
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+testouterr_cmd sh "unload $mod2" $ans {}
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_PUSHENV_FOO
+
+# remove-path then pushenv, preset value (duplicate path elt)
+setenv_var FOO /path/to/val1
+set ans [list]
+lappend ans [list set FOO bar]
+# after remove-path, env variable is found set to an empty value
+# during the evaluation of $mod
+lappend ans [list set __MODULES_PUSHENV_FOO $mod&bar:&]
+lappend ans [list set _LMFILES_ $modfile2:$modfile]
+lappend ans [list set LOADEDMODULES $mod2:$mod]
+testouterr_cmd sh "load $mod2 $mod" $ans {}
+
+setenv_loaded_module [list $mod2 $mod] [list $modfile2 $modfile]
+setenv_var __MODULES_PUSHENV_FOO $mod&bar:&
+setenv_var FOO bar
+
+set ans [list]
+lappend ans [list set FOO {}]
+lappend ans [list set _LMFILES_ $modfile2]
+lappend ans [list set LOADEDMODULES $mod2]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+testouterr_cmd sh "unload $mod" $ans {}
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+testouterr_cmd sh "unload $mod2" $ans {}
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_PUSHENV_FOO
+unsetenv_var FOO
+
+# pushenv then remove-path, no preset value
+set ans [list]
+lappend ans [list set FOO bar]
+lappend ans [list set _LMFILES_ $modfile:$modfile2]
+lappend ans [list set LOADEDMODULES $mod:$mod2]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+testouterr_cmd sh "load $mod $mod2" $ans {}
+
+setenv_loaded_module [list $mod $mod2] [list $modfile $modfile2]
+setenv_var FOO bar
+
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile2]
+lappend ans [list set LOADEDMODULES $mod2]
+testouterr_cmd sh "unload $mod" $ans {}
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "unload $mod2" $ans {}
+
+unsetenv_loaded_module
+
+# pushenv then remove-path, preset value (duplicate path elt)
+setenv_var FOO /path/to/val1
+set ans [list]
+lappend ans [list set FOO bar]
+lappend ans [list set _LMFILES_ $modfile:$modfile2]
+lappend ans [list set LOADEDMODULES $mod:$mod2]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+testouterr_cmd sh "load $mod $mod2" $ans {}
+
+setenv_loaded_module [list $mod $mod2] [list $modfile $modfile2]
+setenv_var FOO bar
+
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile2]
+lappend ans [list set LOADEDMODULES $mod2]
+testouterr_cmd sh "unload $mod" $ans {}
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "unload $mod2" $ans {}
+
+unsetenv_var FOO
+unsetenv_loaded_module
+
+
+# inconsistent combination
+# mixed unsetenv/pushenv definition for same env variable
+setenv_var TESTSUITE_LCOMPAT pushenv13
+
+# unsetenv then pushenv, no preset value
+set ans [list]
+lappend ans [list set FOO bar]
+# after unsetenv, env variable is found set to an empty value
+# during the evaluation of $mod
+lappend ans [list set __MODULES_PUSHENV_FOO $mod&bar:&]
+lappend ans [list set _LMFILES_ $modfile2:$modfile]
+lappend ans [list set LOADEDMODULES $mod2:$mod]
+testouterr_cmd sh "load $mod2 $mod" $ans {}
+
+setenv_loaded_module [list $mod2 $mod] [list $modfile2 $modfile]
+setenv_var __MODULES_PUSHENV_FOO $mod&bar:&
+setenv_var FOO bar
+
+set ans [list]
+lappend ans [list set FOO {}]
+lappend ans [list set _LMFILES_ $modfile2]
+lappend ans [list set LOADEDMODULES $mod2]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+testouterr_cmd sh "unload $mod" $ans {}
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "unload $mod2" $ans {}
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_PUSHENV_FOO
+
+# unsetenv then pushenv, preset value
+setenv_var FOO val1
+set ans [list]
+lappend ans [list set FOO bar]
+# after unsetenv, env variable is found set to an empty value
+# during the evaluation of $mod
+lappend ans [list set __MODULES_PUSHENV_FOO $mod&bar:&]
+lappend ans [list set _LMFILES_ $modfile2:$modfile]
+lappend ans [list set LOADEDMODULES $mod2:$mod]
+testouterr_cmd sh "load $mod2 $mod" $ans {}
+
+setenv_loaded_module [list $mod2 $mod] [list $modfile2 $modfile]
+setenv_var __MODULES_PUSHENV_FOO $mod&bar:&
+setenv_var FOO bar
+
+set ans [list]
+lappend ans [list set FOO {}]
+lappend ans [list set _LMFILES_ $modfile2]
+lappend ans [list set LOADEDMODULES $mod2]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+testouterr_cmd sh "unload $mod" $ans {}
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "unload $mod2" $ans {}
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_PUSHENV_FOO
+unsetenv_var FOO
+
+# pushenv then unsetenv, no preset value
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile:$modfile2]
+lappend ans [list set LOADEDMODULES $mod:$mod2]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+testouterr_cmd sh "load $mod $mod2" $ans {}
+
+setenv_loaded_module [list $mod $mod2] [list $modfile $modfile2]
+
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile2]
+lappend ans [list set LOADEDMODULES $mod2]
+testouterr_cmd sh "unload $mod" $ans {}
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "unload $mod2" $ans {}
+
+unsetenv_loaded_module
+
+# pushenv then unsetenv, preset value
+setenv_var FOO val1
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile:$modfile2]
+lappend ans [list set LOADEDMODULES $mod:$mod2]
+lappend ans [list unset __MODULES_PUSHENV_FOO]
+testouterr_cmd sh "load $mod $mod2" $ans {}
+
+setenv_loaded_module [list $mod $mod2] [list $modfile $modfile2]
+unsetenv_var FOO
+
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list set _LMFILES_ $modfile2]
+lappend ans [list set LOADEDMODULES $mod2]
+testouterr_cmd sh "unload $mod" $ans {}
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "unload $mod2" $ans {}
+
+unsetenv_var FOO
+unsetenv_loaded_module
+
+
+# bad specifications
+setenv_var TESTSUITE_LCOMPAT pushenv2
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 11}]
+set tserr [escre [msg_load $mod [msg_moderr {wrong # args: should be "pushenv var val"} {pushenv FOO val val<EXM>} $modfile $ln {} {} {} {} {invoked from within}]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
+
+setenv_loaded_module [list $mod] [list $modfile]
+
+set procname [expr {[cmpversion $tclsh_version 8.6] == -1 ? {pushenv} : {pushenv-un}}]
+set tserr [escre [msg_unload $mod [msg_moderr "wrong # args: should be \"$procname var val\"" {pushenv FOO val val<EXM>} $modfile $ln {} {} {} {} {invoked from within}]]]
+testouterr_cmd_re sh "unload $mod" ERR $tserr
+
+unsetenv_loaded_module
+
+setenv_var TESTSUITE_LCOMPAT pushenv3
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 14}]
+set tserr [escre [msg_load $mod [msg_moderr {wrong # args: should be "pushenv var val"} {pushenv FOO<EXM>} $modfile $ln {} {} {} {} {invoked from within}]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
+
+setenv_var TESTSUITE_LCOMPAT pushenv4
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 17}]
+set tserr [escre [msg_load $mod [msg_moderr {wrong # args: should be "pushenv var val"} {pushenv<EXM>} $modfile $ln {} {} {} {} {invoked from within}]]]
+testouterr_cmd_re sh "load $mod" ERR $tserr
+
+setenv_var TESTSUITE_LCOMPAT pushenvrc1
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list ERR]
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 3 : 45}]
+set tserr [escre [msg_moderr {invalid command name "pushenv"} {pushenv FOO val1<EXM>} $mp/lcompat/.modulerc $ln {  }]]
+testouterr_cmd_re sh "load $mod" $ans $tserr
+
+set tserr $mp:\n$mod
+testouterr_cmd sh "avail -t $mod" OK $tserr
+
+set tserr "$modlin $mpre $modlin
+\\s*$mod: $mod"
+testouterr_cmd_re sh "whatis $mod" OK $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
