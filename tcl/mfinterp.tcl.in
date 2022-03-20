@@ -1208,6 +1208,9 @@ proc setenv {args} {
       # clean any previously defined reference counter array
       unset-env [getModshareVarName $var] 1
 
+      # clean any previously defined pushenv stack
+      unset-env [getPushenvVarName $var] 1
+
       # Set the variable for later use during the modulefile evaluation
       set-env $var $val
    }
@@ -1221,6 +1224,9 @@ proc setenv-un {args} {
 
    # clean any existing reference counter array
    unset-env [getModshareVarName $var] 1
+
+   # clean any previously defined pushenv stack
+   unset-env [getPushenvVarName $var] 1
 
    # Add variable to the list of variable to unset in shell output code but
    # set it in interp context as done on load mode for later use during the
@@ -1352,6 +1358,9 @@ proc unsetenv {args} {
 
    # clean any existing reference counter array
    unset-env [getModshareVarName $var] 1
+
+   # clean any previously defined pushenv stack
+   unset-env [getPushenvVarName $var] 1
 
    # Set the variable for later use during the modulefile evaluation
    unset-env $var
@@ -1532,6 +1541,9 @@ proc remove-path {args} {
 # undo remove-path in unload mode
 proc remove-path-un {args} {
    lassign [unload-path remove-path unload noop {*}$args] bhv var
+
+   # clean any previously defined pushenv stack
+   unset-env [getPushenvVarName $var] 1
 
    # clear variable if it does not exist on unload mode for later use
    # during the modulefile evaluation

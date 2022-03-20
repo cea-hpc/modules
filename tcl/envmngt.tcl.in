@@ -1314,6 +1314,9 @@ proc unload-path {cmd mode dflbhv args} {
       }
    }
 
+   # clean any previously defined pushenv stack
+   unset-env [getPushenvVarName $var] 1
+
    # no reference count management when no share variable is returned
    set isrefcount [expr {[set sharevar [getModshareVarName $var]] ne {}}]
    if {$isrefcount} {
@@ -1434,6 +1437,9 @@ proc add-path {cmd mode dflbhv args} {
       lassign [parsePathCommandArgs $cmd $mode $dflbhv {*}$args] separator\
          allow_dup idx_val ign_refcount bhv var path_list
    }
+
+   # clean any previously defined pushenv stack
+   unset-env [getPushenvVarName $var] 1
 
    # no reference count management when no share variable is returned
    set isrefcount [expr {[set sharevar [getModshareVarName $var]] ne {}}]
