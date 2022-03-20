@@ -185,6 +185,11 @@ Modules 5.1.0 (not yet released)
 * Doc: add *Configuration options* section in :ref:`INSTALL` document with a
   table summarizing all configuration options and their relative installation
   options and environment variables.
+* Add the :mfcmd:`pushenv` modulefile command for compatibility with Lmod Tcl
+  modulefiles. This command sets designated environment variable with
+  specified value and save the previous value set to restore it when the
+  modulefile is unloaded. Previous values are saved in a
+  :envvar:`__MODULES_PUSHENV_\<VAR\>` environment variable.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 .. _codespell: https://github.com/codespell-project/codespell
