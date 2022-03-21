@@ -264,3 +264,64 @@ Lmod Tcl modulefile compatibility
 
 - This command is intended for use only within modulefile evaluation context
   (not within modulerc)
+
+
+``pushenv``
+-----------
+
+- Sets an environment variable with a value specified as argument but saves
+  the previous value set to restore it when modulefile is unloaded.
+
+- Use a :envvar:`__MODULES_PUSHENV_\<VAR\>` environment variable as a stack to
+  record the previous values of environment variable ``<VAR>``.
+
+    - Each element in this Modules-specific variable is the combination of the
+      currently evaluating modulename and pushed value.
+
+        - Combination joined with the ampersand character
+        - Each element in variable separated by colon character
+
+    - When unloading, the value set by this module is removed not the value on
+      top of the list.
+    - Different than Lmod that restores the value on top of the stack even if
+      unloading module were not the one defining the top value currently in
+      use.
+
+- When saving value set before any module
+
+    - An empty module name is used to push to the stack.
+    - When restoring this initial value, initial entry in stack is also
+      cleared (as no other module unload will unset it).
+
+- It is not expected that for the same environment variable, :mfcmd:`pushenv`
+  is mixed with:
+
+    - ``setenv``, ``unsetenv``
+    - ``append-path``, ``prepend-path``, ``remove-path``
+    - These other modulefile commands clear the pushenv stack environment
+      variable (like ``setenv``/``unsetenv`` clear the reference counter
+      environment variable of the ``*-path`` commands)
+
+- It is not expected that :mfcmd:`pushenv` is called multiple times for the
+  same environment variable in the same modulefile
+
+    - Inconsistent results may be obtained if environment variable value is
+      used in modulefile to set other variables.
+    - Especially that unload evaluation of modulefile will not process the
+      ``pushenv`` commands in the reverse order but in the script order.
+    - When checked during modulefile evaluation, lastly defined value remains
+    - However the operation is consistent at the end of modulefile evaluation,
+      as all values are withdrawn from stack and a value defined somewhere
+      else is restored.
+    - pushenv stack environment variable correctly handles multiple entries
+      coming from same modulefile, even multiple identical values.
+
+- For Lua modulefiles, Lmod handles a specific ``false`` value which clears
+  environment variable
+
+    - Lmod does not implement this for Tcl modulefile
+    - Maybe because ``false`` cannot be distinguished from any other value
+    - So this specific behavior is also not supported on Modules
+
+- This command is intended for use only within modulefile evaluation context
+  (not within modulerc)
