@@ -1677,16 +1677,56 @@ subroutine. The ``ModulesDisplay`` subroutine is a good place to put
 additional descriptive information about the *modulefile*.
 
 
+.. _Compatibility with Lmod Tcl modulefile:
+
 Compatibility with Lmod Tcl modulefile
 --------------------------------------
+
+The :file:`modulecmd.tcl` program supports Tcl modulefile written for Lmod,
+the alternative :command:`module` implementation developed in Lua. Such
+modulefiles can be evaluated by Modules without raising error. Differences
+between the two implementations are listed below.
 
 The ``add-property``, ``remove-property`` and ``extensions`` modulefile
 commands are evaluated as a *no-operation* command. No error is obtained if
 these commands are used in modulefiles but no change occurs.
 
+The :mfcmd:`break` command does not accept any argument. A ``msg`` argument
+can be set on Lmod to provide a customized break error message.
+
+Use of :mfcmd:`reportError` command aborts modulefile evaluation on Lmod. This
+command only reports an error message on Modules.
+
+The :mfcmd:`require-fullname` command only aborts *load* modulefile evaluation
+whereas the Lmod implementation also aborts *unload* and *display*
+evaluations.
+
 When processing a :mfcmd:`family` command, the :envvar:`LMOD_FAMILY_\<NAME\>`
-environment variable is also defined to get compatible with modulefiles or
+environment variable is also defined to be compatible with modulefiles or
 scripts relying on such variable.
+
+When unloading a modulefile, the :mfcmd:`pushenv` command does not update the
+value of the environment variable if this modulefile was not defining the
+value currently in use.
+
+The third optional argument of :mfcmd:`append-path` and :mfcmd:`prepend-path`
+commands corresponds to a priority specification on Lmod whereas these two
+commands accept multiple path element arguments on Modules.
+
+The :mfcmd:`prereq` command is equivalent to the :mfcmd:`prereq-any` command
+on Modules whereas on Lmod it is equivalent to the :mfcmd:`prereq-all`
+command.
+
+If the :mconfig:`auto_handling` configuration option is disabled, the
+requirements defined with the :mfcmd:`depends-on` command are not
+automatically loaded and an error is raised if none of these requirements are
+found loaded.
+
+On :subcmd:`module load-any<load-any>` sub-command and modulefile command, a
+modulefile evaluation error is not reported and :subcmd:`module
+load-any<load-any>` continues to the next modulefile instead of aborting the
+whole process. No attempt to load listed modulefiles is made if one of these
+modulefiles is found already loaded.
 
 
 ENVIRONMENT
