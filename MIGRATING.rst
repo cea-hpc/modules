@@ -205,6 +205,26 @@ also been updated to track shell completion changes.
     :sgrcm:`set-function`    _foo {
         ...bash completion code...}
 
+Lmod Tcl modulefile support
+---------------------------
+
+With this new version, Modules now supports Tcl modulefiles written for
+`Lmod`_, the alternative :command:`module` implementation developed in Lua.
+Such modulefiles can be safely evaluated by Modules without raising error.
+
+Support has been added for the following modulefile commands introduced by
+Lmod: :mfcmd:`depends-on`, :mfcmd:`prereq-any`, :mfcmd:`always-load`,
+:mfcmd:`module load-any<module>`, :mfcmd:`pushenv`, :mfcmd:`require-fullname`
+and :mfcmd:`family`.
+
+The :ref:`Compatibility with Lmod Tcl modulefile` section in the
+:ref:`modulefile(4)` describes the differences existing between the two
+implementations.
+
+Note that when processing a :mfcmd:`family` command, the
+:envvar:`LMOD_FAMILY_\<NAME\>` environment variable is defined by Modules to
+be compatible with existing modulefiles or scripts relying on such variable.
+
 
 v5.0
 ====
