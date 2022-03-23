@@ -936,7 +936,7 @@ sub ml {
          }
       }
       python {
-         set fdef {import re, subprocess
+         set fdef {import sys, re, subprocess
 def module(*arguments):}
          if {[getConf quarantine_support]} {
             append fdef {
@@ -956,18 +956,22 @@ def module(*arguments):}
          append fdef {
    ns = {}}
          if {[getConf quarantine_support]} {
-            append fdef "\n   exec(subprocess.Popen(\['$tclshbin',\
+            append fdef "\n   out, err = subprocess.Popen(\['$tclshbin',\
                '$::argv0', 'python'\] + list(arguments),\
-               stdout=subprocess.PIPE, env=_mlre).communicate()\[0\], ns)\n"
+               stdout=subprocess.PIPE, stderr=subprocess.PIPE,\
+               env=_mlre).communicate()\n"
          } else {
-            append fdef "\n   exec(subprocess.Popen(\['$tclshbin',\
+            append fdef "\n   out, err = subprocess.Popen(\['$tclshbin',\
                '$::argv0', 'python'\] + list(arguments),\
-               stdout=subprocess.PIPE).communicate()\[0\], ns)\n"
+               stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()\n"
          }
-         append fdef {   if '_mlstatus' in ns:
+         append fdef {   exec(out, ns)
+   if '_mlstatus' in ns:
       _mlstatus = ns['_mlstatus']
    else:
       _mlstatus = True
+   if err.decode():
+      print(err.decode(), end='', file=sys.stderr)
    return _mlstatus}
          if {[getConf ml]} {
             append fdef {

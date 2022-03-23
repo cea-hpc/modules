@@ -192,6 +192,9 @@ Modules 5.1.0 (not yet released)
   :envvar:`__MODULES_PUSHENV_\<VAR\>` environment variable.
 * Doc: add :ref:`Compatibility with Lmod Tcl modulefile` section in
   :ref:`modulefile(4)` man page.
+* Update definition of the ``module()`` python function and python
+  initialization script to explicitly send output to ``sys.stderr`` to get the
+  ability to catch this content.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 .. _codespell: https://github.com/codespell-project/codespell
