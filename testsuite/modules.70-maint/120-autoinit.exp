@@ -342,7 +342,7 @@ set func_perl "sub module {
 \\s*eval `\\\${_mlre}$tclshlocre $modulecmd_pathre perl \\\$args`;
 \\s*return \\\$_mlstatus;
 }"
-set func_python "import re, subprocess
+set func_python "import sys, re, subprocess
 def module\\\(\\*arguments\\\):
 \\s*_mlre = os.environ.copy\\\(\\\)
 \\s*if 'MODULES_RUN_QUARANTINE' in os.environ:
@@ -357,11 +357,14 @@ def module\\\(\\*arguments\\\):
 \\s*_mlre\\\[_mlv\\\] = ''
 \\s*_mlre\\\['__MODULES_QUARANTINE_SET'\\\] = '1'
 \\s*ns = {}
-\\s*exec\\\(subprocess\\.Popen\\\(\\\['$tclshlocre', '$modulecmd_pathre', 'python'\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE, env=_mlre\\\)\\.communicate\\\(\\\)\\\[0\\\], ns\\\)
+\\s*out, err = subprocess\\.Popen\\\(\\\['$tclshlocre', '$modulecmd_pathre', 'python'\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE, stderr=subprocess\\.PIPE, env=_mlre\\\)\\.communicate\\\(\\\)
+\\s*exec\\\(out, ns\\\)
 \\s*if '_mlstatus' in ns:
 \\s*_mlstatus = ns\\\['_mlstatus'\\\]
 \\s*else:
 \\s*_mlstatus = True
+\\s*if err.decode\\\(\\\):
+\\s*print\\\(err.decode\\\(\\\), end='', file=sys.stderr\\\)
 \\s*return _mlstatus"
 set func_ruby "class ENVModule
 \\s*def ENVModule.module\\\(\\*args\\\)
@@ -481,14 +484,17 @@ set func_perl "sub module {
 \\s*eval `$tclshlocre $modulecmd_pathre perl \\\$args`;
 \\s*return \\\$_mlstatus;
 }"
-set func_python "import re, subprocess
+set func_python "import sys, re, subprocess
 def module\\\(\\*arguments\\\):
 \\s*ns = {}
-\\s*exec\\\(subprocess\\.Popen\\\(\\\['$tclshlocre', '$modulecmd_pathre', 'python'\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE\\\)\\.communicate\\\(\\\)\\\[0\\\], ns\\\)
+\\s*out, err = subprocess\\.Popen\\\(\\\['$tclshlocre', '$modulecmd_pathre', 'python'\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE, stderr=subprocess\\.PIPE\\\)\\.communicate\\\(\\\)
+\\s*exec\\\(out, ns\\\)
 \\s*if '_mlstatus' in ns:
 \\s*_mlstatus = ns\\\['_mlstatus'\\\]
 \\s*else:
 \\s*_mlstatus = True
+\\s*if err.decode\\\(\\\):
+\\s*print\\\(err.decode\\\(\\\), end='', file=sys.stderr\\\)
 \\s*return _mlstatus"
 set func_ruby "class ENVModule
 \\s*def ENVModule.module\\\(\\*args\\\)
