@@ -218,8 +218,8 @@ Lmod: :mfcmd:`depends-on`, :mfcmd:`prereq-any`, :mfcmd:`always-load`,
 and :mfcmd:`family`.
 
 The :ref:`Compatibility with Lmod Tcl modulefile` section in the
-:ref:`modulefile(4)` describes the differences existing between the two
-implementations.
+:ref:`modulefile(4)` man page describes the differences existing between the
+two implementations.
 
 Note that when processing a :mfcmd:`family` command, the
 :envvar:`LMOD_FAMILY_\<NAME\>` environment variable is defined by Modules to
