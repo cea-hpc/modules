@@ -1,4 +1,5 @@
-import os, re, subprocess
+from __future__ import print_function
+import os, sys, re, subprocess
 
 # define modules runtime quarantine configuration
 @setquarvars@os.environ['MODULES_RUN_QUARANTINE'] = '@RUN_QUARANTINE@'
@@ -21,7 +22,13 @@ if 'MODULES_RUN_QUARANTINE' in os.environ:
 
 # define module command and surrounding initial environment (default value
 # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init config files)
-exec(subprocess.Popen(['@TCLSH@', '@libexecdir@/modulecmd.tcl', 'python', 'autoinit'], stdout=subprocess.PIPE, env=_mlre).communicate()[0])
+out, err = subprocess.Popen(['@TCLSH@', '@libexecdir@/modulecmd.tcl', 'python', 'autoinit'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=_mlre).communicate()
 
-# clean temp variable used to setup quarantine
+exec(out)
+if err.decode():
+   print(err.decode(), end='', file=sys.stderr)
+
+# clean temp variables
 del _mlre
+del out
+del err
