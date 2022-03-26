@@ -575,6 +575,21 @@ proc getLoadedModuleTagList {} {
    return $modtaglist
 }
 
+# return list of loaded module extra tags by parsing __MODULES_LMEXTRATAG
+proc getLoadedModuleExtraTagList {} {
+   set modtaglist [list]
+   set sub1sep [getState sub1_separator]
+   foreach modtagser [split [get-env __MODULES_LMEXTRATAG] [getState\
+      path_separator]] {
+      set taglist [split $modtagser $sub1sep]
+      # ignore empty element (1 is meaningless as first elt is loaded mod)
+      if {[llength $taglist] > 1} {
+         lappend modtaglist $taglist
+      }
+   }
+   return $modtaglist
+}
+
 # return list of module paths by parsing MODULEPATH env variable
 # behavior param enables to exit in error when no MODULEPATH env variable
 # is set. by default an empty list is returned if no MODULEPATH set
@@ -688,6 +703,10 @@ proc setModuleTag {mod args} {
    appendNoDupToList ::g_tagHash($mod) {*}$args
 }
 
+proc setModuleExtraTag {mod args} {
+   appendNoDupToList ::g_extraTagHash($mod) {*}$args
+}
+
 proc getTagList {mod {sort 1}} {
    if {[info exists ::g_tagHash($mod)]} {
       if {$sort} {
@@ -710,6 +729,22 @@ proc getExportTagList {mod {serialized 0}} {
       # extract mod name and version from full spec with variants
       set ret [join [list [getModuleNameAndVersFromVersSpec $mod] {*}$ret]\
          [getState sub1_separator]]
+   }
+   return $ret
+}
+
+# return extra tags set on mod
+proc getExtraTagList {mod {serialized 0}} {
+   if {[info exists ::g_extraTagHash($mod)]} {
+      if {$serialized} {
+         # extract mod name and version from full spec with variants
+         set ret [join [list [getModuleNameAndVersFromVersSpec $mod]\
+            {*}$::g_extraTagHash($mod)] [getState sub1_separator]]
+      } else {
+         set ret $::g_extraTagHash($mod)
+      }
+   } else {
+      set ret {}
    }
    return $ret
 }
@@ -1981,6 +2016,14 @@ proc cacheCurrentModules {{exitonerr 1}} {
             set mod [lindex $modtag 0]
             if {[info exists modvrarr($mod)]} {
                setModuleTag $modvrarr($mod) {*}[lrange $modtag 1 end]
+            }
+         }
+         foreach modtag [getLoadedModuleExtraTagList] {
+            setModuleExtraTag {*}$modtag
+            # also record tag over full mod and vr designation
+            set mod [lindex $modtag 0]
+            if {[info exists modvrarr($mod)]} {
+               setModuleExtraTag $modvrarr($mod) {*}[lrange $modtag 1 end]
             }
          }
 

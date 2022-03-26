@@ -954,9 +954,19 @@ proc cmdModuleLoad {context uasked tag_list args} {
          # record additional tags passed through --tag option prior mod eval
          # to make them known within evaluation
          if {[llength $tag_list] > 0} {
+            # record tags set with --tag as extra tag excluding tags relative
+            # to the way module is loaded (auto, keep)
+            lassign [getDiffBetweenList $tag_list [list auto-loaded\
+               keep-loaded]] extratag_list
             setModuleTag $modname {*}$tag_list
+            if {[llength $extratag_list] > 0} {
+               setModuleExtraTag $modname {*}$extratag_list
+            }
             if {$modnamevr ne {} && $modname ne $modnamevr} {
                setModuleTag $modnamevr {*}$tag_list
+               if {[llength $extratag_list] > 0} {
+                  setModuleExtraTag $modnamevr {*}$extratag_list
+               }
             }
          }
 
@@ -1075,6 +1085,9 @@ proc cmdModuleLoad {context uasked tag_list args} {
          # declare the tags of this module
          if {[set modtag [getExportTagList $modnamevr 1]] ne {}} {
             append-path __MODULES_LMTAG $modtag
+         }
+         if {[set modtag [getExtraTagList $modnamevr 1]] ne {}} {
+            append-path __MODULES_LMEXTRATAG $modtag
          }
 
          # record module title (name and variant)
@@ -1394,6 +1407,9 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          # unset tags declared for this module
          if {[set modtag [getExportTagList $modname 1]] ne {}} {
             remove-path __MODULES_LMTAG $modtag
+         }
+         if {[set modtag [getExtraTagList $modname 1]] ne {}} {
+            remove-path __MODULES_LMEXTRATAG $modtag
          }
 
          if {[getConf auto_handling] && $auto} {
@@ -2010,7 +2026,7 @@ proc cmdModuleClear {doit doitset} {
    if {[string equal -nocase -length 1 $doit y] || [getState force]} {
       set vartoclear [list LOADEDMODULES __MODULES_LMALTNAME\
          __MODULES_LMCONFLICT __MODULES_LMPREREQ __MODULES_LMSOURCESH \
-         __MODULES_LMTAG __MODULES_LMVARIANT _LMFILES_]
+         __MODULES_LMTAG __MODULES_LMEXTRATAG __MODULES_LMVARIANT _LMFILES_]
 
       # add any reference counter variable to the list to unset
       lappend vartoclear {*}[array names ::env -glob __MODULES_SHARE_*]
