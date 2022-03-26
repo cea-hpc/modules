@@ -873,7 +873,8 @@ The following environment variables appeared on Modules 5.
 | 5.1        | :envvar:`MODULES_REDIRECT_OUTPUT`,                              |
 |            | :envvar:`MODULES_MCOOKIE_CHECK`,                                |
 |            | :envvar:`MODULES_FAMILY_\<NAME\>`,                              |
-|            | :envvar:`__MODULES_PUSHENV_\<VAR\>`                             |
+|            | :envvar:`__MODULES_PUSHENV_\<VAR\>`,                            |
+|            | :envvar:`__MODULES_LMEXTRATAG`                                  |
 +------------+-----------------------------------------------------------------+
 
 Modules Specific Tcl Commands

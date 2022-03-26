@@ -152,10 +152,19 @@ Persistency
       option) or tags set in modulerc (through ``module-tag`` or loaded module
       states): both kind of tags are recorded in collection
 
-- *FUTURE*: add information in ``__MODULES_LMTAG`` to distinguish manually set
-  tags
+- The :envvar:`__MODULES_LMEXTRATAG` environment variable holds all tags
+  applying to loaded modules that have been set through the ``--tag`` option
 
-    - Useful to know what to record in collections
+    - It helps to distinguish these specifically set tags from the others
+    - To only record these tags and those resulting from the way the module
+      has been loaded (like ``auto-loaded``) in collections by default
+    - The following tags set with ``--tag`` option but which describe a
+      specific state of loaded module are excluded from
+      ``__MODULES_LMEXTRATAG`` record:
+
+        - ``auto-loaded``
+        - ``keep-loaded``
+
 
 Reporting
 ^^^^^^^^^
