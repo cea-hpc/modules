@@ -749,6 +749,20 @@ proc getExtraTagList {mod {serialized 0}} {
    return $ret
 }
 
+# return tags set on mod to record in collection
+proc getSaveTagList {mod} {
+   set ret [getExtraTagList $mod]
+   # in addition to those set with --tag option, add tags obtained by the
+   # way mod has been loaded
+   if {[isModuleTagged $mod auto-loaded 1]} {
+      lappend ret auto-loaded
+   }
+   if {[isModuleTagged $mod keep-loaded 1]} {
+      lappend ret keep-loaded
+   }
+   return $ret
+}
+
 proc abbrevTagList {taglist} {
    set ret [list]
    foreach tag $taglist {
@@ -1643,7 +1657,7 @@ proc getLoadedModuleWithVariantList {} {
    return $modvrlist
 }
 
-proc getLoadedModuleWithVariantTagArrayList {} {
+proc getLoadedModuleWithVariantSaveTagArrayList {} {
    array set tag_arr {}
    foreach mod [getLoadedModuleList] {
       set modvr [list $mod]
@@ -1651,7 +1665,7 @@ proc getLoadedModuleWithVariantTagArrayList {} {
       if {[llength $vrlist] > 0} {
          lappend modvr {*}$vrlist
       }
-      set tag_arr($modvr) [getExportTagList $mod]
+      set tag_arr($modvr) [getSaveTagList $mod]
    }
    return [array get tag_arr]
 }
