@@ -943,5 +943,6 @@ The following Modules configuration option has been introduced on Modules 5.
 +============+=================================================================+
 | 5.0        | :mconfig:`quarantine_support`                                   |
 +------------+-----------------------------------------------------------------+
-| 5.1        | :mconfig:`redirect_output`, :mconfig:`mcookie_check`            |
+| 5.1        | :mconfig:`redirect_output`, :mconfig:`mcookie_check`,           |
+|            | :mconfig:`collection_pin_tag`                                   |
 +------------+-----------------------------------------------------------------+

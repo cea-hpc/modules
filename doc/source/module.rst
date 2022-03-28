@@ -698,6 +698,19 @@ Module Sub-Commands
   changing this configuration option from its default value. See
   :envvar:`MODULES_COLLECTION_PIN_VERSION` description for details.
 
+ .. mconfig:: collection_pin_tag
+
+  Register full tag list applying to modulefiles in collection.
+
+  Default value is ``0``. The :envvar:`MODULES_COLLECTION_PIN_TAG`
+  environment variable is defined by :subcmd:`config` sub-command when
+  changing this configuration option from its default value. See
+  :envvar:`MODULES_COLLECTION_PIN_TAG` description for details.
+
+  .. only:: html
+
+     .. versionadded:: 5.1
+
  .. mconfig:: collection_target
 
   Collection target which is valid for current system.
@@ -1613,6 +1626,12 @@ Module Sub-Commands
  name is also recorded for the implicit default module version. If
  :envvar:`MODULES_COLLECTION_PIN_VERSION` is set to ``1``, module version is
  always recorded even if it is the default version.
+
+ By default, only the module tags specifically set with the ``--tag`` option
+ or resulting from a specific module state (like ``auto-loaded`` and
+ ``keep-loaded`` tags) are recorded in collection. If
+ :envvar:`MODULES_COLLECTION_PIN_TAG` is set to ``1``, all tags are recorded
+ in collection except ``nearly-forbidden`` tag.
 
  No *collection* is recorded and an error is returned if the loaded
  *modulefiles* have unsatisfied constraint corresponding to the
