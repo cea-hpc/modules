@@ -751,14 +751,21 @@ proc getExtraTagList {mod {serialized 0}} {
 
 # return tags set on mod to record in collection
 proc getSaveTagList {mod} {
-   set ret [getExtraTagList $mod]
-   # in addition to those set with --tag option, add tags obtained by the
-   # way mod has been loaded
-   if {[isModuleTagged $mod auto-loaded 1]} {
-      lappend ret auto-loaded
-   }
-   if {[isModuleTagged $mod keep-loaded 1]} {
-      lappend ret keep-loaded
+   # return all tags if pin tag is enabled, except nearly-forbidden that is
+   # not intended for save
+   if {[getConf collection_pin_tag]} {
+      lassign [getDiffBetweenList [getExportTagList $mod] [list\
+         nearly-forbidden]] ret
+   } else {
+      set ret [getExtraTagList $mod]
+      # in addition to those set with --tag option, add tags obtained by the
+      # way mod has been loaded
+      if {[isModuleTagged $mod auto-loaded 1]} {
+         lappend ret auto-loaded
+      }
+      if {[isModuleTagged $mod keep-loaded 1]} {
+         lappend ret keep-loaded
+      }
    }
    return $ret
 }
