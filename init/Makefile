@@ -169,7 +169,7 @@ comp_aliases_opts := -a --all
 comp_isavail_opts := -a -i --all --icase
 comp_path_opts := -d --delim --duplicates
 comp_rm_path_opts := -d --delim --index
-comp_config_opts := --dump-state --reset advanced_version_spec auto_handling avail_indepth avail_output avail_terse_output collection_pin_version collection_target color colors contact editor extended_default extra_siteconfig home icase implicit_default implicit_requirement list_output list_terse_output locked_configs mcookie_check mcookie_version_check ml nearly_forbidden_days pager quarantine_support rcfile redirect_output run_quarantine search_match set_shell_startup shells_with_ksh_fpath silent_shell_debug tag_abbrev tag_color_name term_background term_width unload_match_order variant_shortcut verbosity wa_277
+comp_config_opts := --dump-state --reset advanced_version_spec auto_handling avail_indepth avail_output avail_terse_output collection_pin_version collection_pin_tag collection_target color colors contact editor extended_default extra_siteconfig home icase implicit_default implicit_requirement list_output list_terse_output locked_configs mcookie_check mcookie_version_check ml nearly_forbidden_days pager quarantine_support rcfile redirect_output run_quarantine search_match set_shell_startup shells_with_ksh_fpath silent_shell_debug tag_abbrev tag_color_name term_background term_width unload_match_order variant_shortcut verbosity wa_277
 
 define translate-in-script
 $(ECHO_GEN)
