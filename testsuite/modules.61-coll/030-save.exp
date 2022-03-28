@@ -413,6 +413,18 @@ setenv_var __MODULES_LMTAG $c38lmtag
 setenv_var __MODULES_LMEXTRATAG $c38lmextratag
 testoutfile_cmd sh "save $coll38" OK $hometestdotmod/$coll38f $c38cont
 
+setenv_var TESTSUITE_TAG_OPT colltag3
+
+# test tag defined by module-tag also set with --tag option
+# test keep-loaded tag that should not be recorded in extra tag list
+# test empty entry in __MODULES_LMEXTRATAG
+setenv_path_var MODULEPATH {*}[split $c44modpath :]
+unsetenv_var __MODULES_LMVARIANT
+setenv_loaded_module [split $c44lm :] [split $c44lmf :]
+setenv_var __MODULES_LMTAG $c44lmtag
+setenv_var __MODULES_LMEXTRATAG $c44mod1&[join $c44mod1extratag &]:$c44mod2&[join $c44mod2extratag &]:$c44mod3
+testoutfile_cmd sh "save $coll44" OK $hometestdotmod/$coll44f $c44cont
+
 unsetenv_var TESTSUITE_TAG_OPT
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMVARIANT
