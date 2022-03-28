@@ -874,7 +874,8 @@ The following environment variables appeared on Modules 5.
 |            | :envvar:`MODULES_MCOOKIE_CHECK`,                                |
 |            | :envvar:`MODULES_FAMILY_\<NAME\>`,                              |
 |            | :envvar:`__MODULES_PUSHENV_\<VAR\>`,                            |
-|            | :envvar:`__MODULES_LMEXTRATAG`                                  |
+|            | :envvar:`__MODULES_LMEXTRATAG`,                                 |
+|            | :envvar:`MODULES_COLLECTION_PIN_TAG`                            |
 +------------+-----------------------------------------------------------------+
 
 Modules Specific Tcl Commands

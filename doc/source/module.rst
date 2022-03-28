@@ -2734,6 +2734,23 @@ ENVIRONMENT
 
     .. versionadded:: 4.1
 
+.. envvar:: MODULES_COLLECTION_PIN_TAG
+
+ If set to ``1``, register all tags applying to modulefiles when saving a
+ collection. Otherwise only the extra tags set through the ``--tag`` option
+ and tags resulting from specific module states (like ``auto-loaded`` and
+ ``keep-loaded`` tags) are recorded in collection. Note that the
+ ``nearly-forbidden`` tag due to its temporal meaning is not saved in
+ collection even when this configuration option is enabled.
+
+ This environment variable value supersedes the default value set in the
+ :mconfig:`collection_pin_tag` configuration option. It can be defined with
+ the :subcmd:`config` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 5.1
+
 .. envvar:: MODULES_COLLECTION_TARGET
 
  The collection target that determines what collections are valid thus
