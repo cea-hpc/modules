@@ -152,6 +152,18 @@ Persistency
       option) or tags set in modulerc (through ``module-tag`` or loaded module
       states): both kind of tags are recorded in collection
 
+- The :mconfig:`collection_pin_tag` configuration option determines what tags
+  should be recorded in collection
+
+    - When disabled (default), only the tags set through ``--tag`` option or
+      resulting from the way the module has been loaded (``auto-loaded`` and
+      ``keep-loaded`` tags) are recorded in collections
+    - When enabled, all tags applying to modules are recorded
+    - Exception made for ``nearly-forbidden`` tag, as its temporal meaning
+      is not fit for being saved
+    - Changing default value of :mconfig:`collection_pin_tag` defines the
+      :envvar:`MODULES_COLLECTION_PIN_TAG` variable
+
 - The :envvar:`__MODULES_LMEXTRATAG` environment variable holds all tags
   applying to loaded modules that have been set through the ``--tag`` option
 
@@ -164,6 +176,10 @@ Persistency
 
         - ``auto-loaded``
         - ``keep-loaded``
+
+- When a collection saved with ``collection_pin_tag`` option enabled is
+  restored all tags set are then considered extra tags (as they are found set
+  through the ``--tag`` option).
 
 
 Reporting
