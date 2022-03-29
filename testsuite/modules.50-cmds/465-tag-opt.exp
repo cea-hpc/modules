@@ -613,6 +613,41 @@ unsetenv_loaded_module
 unsetenv_var MODULES_ADVANCED_VERSION_SPEC
 
 
+# reload & extra tags
+setenv_var TESTSUITE_TAG_OPT reloadtag1
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&foo]
+lappend ans [list set __MODULES_LMTAG foo/1.0&foo&keep-loaded&auto-loaded]
+set tserr [msg_top_load $mod {} foo/1.0 {}]
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+
+setenv_loaded_module [list foo/1.0 $mod] [list $mp/foo/1.0 $modfile]
+setenv_path_var __MODULES_LMPREREQ $mod&foo/1.0
+setenv_path_var __MODULES_LMEXTRATAG foo/1.0&foo
+setenv_path_var __MODULES_LMTAG foo/1.0&foo&keep-loaded&auto-loaded
+
+testouterr_cmd sh {reload} $ans {}
+
+setenv_path_var __MODULES_LMEXTRATAG foo/1.0&foo:$mod&bar
+setenv_path_var __MODULES_LMTAG foo/1.0&foo&keep-loaded&auto-loaded:$mod&bar
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&foo:$mod&bar]
+lappend ans [list set __MODULES_LMTAG foo/1.0&foo&keep-loaded&auto-loaded:$mod&bar]
+testouterr_cmd sh {reload} $ans {}
+
+unsetenv_loaded_module
+unsetenv_path_var __MODULES_LMPREREQ
+unsetenv_path_var __MODULES_LMEXTRATAG
+unsetenv_path_var __MODULES_LMTAG
+
+
 # bad prereq specifications
 setenv_var TESTSUITE_TAG_OPT prtagbad1
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
