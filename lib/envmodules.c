@@ -1,7 +1,7 @@
 /*************************************************************************
  *
  * ENVMODULES.C, Modules Tcl extension library
- * Copyright (C) 2018-2021 Xavier Delaruelle
+ * Copyright (C) 2018-2022 Xavier Delaruelle
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -352,7 +352,15 @@ Envmodules_InitStateUsergroupsObjCmd(
 
    /* Get actually configured number of groups */
 #if defined(HAVE_SYSCONF) && defined(_SC_NGROUPS_MAX)
-   maxgroups = sysconf(_SC_NGROUPS_MAX);
+   errno = 0;
+   // just -1 means 'no limit' so errno must checked as well
+   if ((maxgroups = sysconf(_SC_NGROUPS_MAX)) == -1 && errno != 0) {
+      Tcl_SetErrno(errno);
+      Tcl_SetObjResult(interp,
+         Tcl_ObjPrintf("couldn't get NGROUPS_MAX variable: %s",
+         Tcl_PosixError(interp)));
+      return TCL_ERROR;
+   }
 #else
 #  if defined(NGROUPS_MAX)
    maxgroups = NGROUPS_MAX;
