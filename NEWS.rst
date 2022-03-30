@@ -87,13 +87,6 @@ Modules 5.1.0 (not yet released)
   modulefiles are specified.
 * Add the :mfcmd:`depends-on` modulefile command, alias over the
   :mfcmd:`prereq-all` command for compatibility with Lmod Tcl modulefiles.
-* Introduce the ``--tag`` option for the :subcmd:`load`, :subcmd:`try-load`,
-  :subcmd:`load-any`, :subcmd:`switch` sub-commands and associated
-  :mfcmd:`module` modulefile commands and :mfcmd:`prereq` modulefile commands.
-  This new option applies specified tags to the module to load.
-* Record tags applied to loaded modules when saving a collection. The
-  ``--notuasked`` previously used to designate auto-loaded modules in
-  collection is changed into the ``--tag=auto-loaded`` option.
 * Introduce the ``keep-loaded`` :ref:`module tag<Module tags>` that avoids an
   auto-loaded module to get automatically unloaded when its dependent modules
   are getting unloaded. Update default :mconfig:`tag_abbrev` configuration
@@ -197,6 +190,23 @@ Modules 5.1.0 (not yet released)
   ability to catch this content.
 * Lib: handle ``sysconf`` error in function implementing the
   ``initStateUsergroups`` procedure. (contribution from Lukáš Zaoral)
+* Introduce the ``--tag`` option for the :subcmd:`load`, :subcmd:`try-load`,
+  :subcmd:`load-any`, :subcmd:`switch` sub-commands and associated
+  :mfcmd:`module` modulefile commands and :mfcmd:`prereq`, mfcmd:`prereq-all`,
+  :mfcmd:`depends-on` and :mfcmd:`always-load` modulefile commands. This new
+  option applies specified tags to the module to load.
+* Record tags set to loaded modules with the ``--tag`` option in the
+  :envvar:`__MODULES_LMEXTRATAG` environment variable to make this information
+  persists after module being loaded.
+* When saving a collection, record loaded module tags set with the ``--tag``
+  option and those resulting from module load states (like ``auto-loaded`` and
+  ``keep-loaded``). The ``--notuasked`` string previously used to designate
+  auto-loaded modules in collection is changed into the ``--tag=auto-loaded``
+  option.
+* Introduce the :mconfig:`collection_pin_tag` configuration option, that
+  records in collection all tags set on loaded modules when enabled. Option is
+  disabled by default and when set it defines the :envvar:`MODULES_COLLECTION\
+  _PIN_TAG` environment variable.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 .. _codespell: https://github.com/codespell-project/codespell
