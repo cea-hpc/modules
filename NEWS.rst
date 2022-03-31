@@ -195,6 +195,8 @@ Modules 5.1.0 (not yet released)
 * Update definition of the ``module()`` python function and python
   initialization script to explicitly send output to ``sys.stderr`` to get the
   ability to catch this content.
+* Lib: handle ``sysconf`` error in function implementing the
+  ``initStateUsergroups`` procedure. (contribution from Lukáš Zaoral)
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 .. _codespell: https://github.com/codespell-project/codespell
