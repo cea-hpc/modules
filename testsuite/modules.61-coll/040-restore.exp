@@ -1136,6 +1136,31 @@ set tserr [msg_load $c44mod1]\n[msg_load $c44mod2]\n[msg_load $c44mod3]
 testouterr_cmd_re sh "restore $coll44pinfp" $ans $tserr
 unsetenv_var MODULES_COLLECTION_PIN_TAG
 
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $c45mod2&$c45mod1]
+lappend ans [list set _LMFILES_ $c45lmf]
+lappend ans [list set LOADEDMODULES $c45lm]
+lappend ans [list set __MODULES_LMEXTRATAG $c45lmextratag]
+lappend ans [list set __MODULES_LMTAG $c45lmtag]
+set tserr [msg_load $c45mod1 [err_accessnearlydenied {}]]\n\n[msg_load $c45mod2]\n[msg_load $c45mod3]
+testouterr_cmd_re sh "restore $coll45fp" $ans $tserr
+
+setenv_var MODULES_COLLECTION_PIN_TAG 1
+testouterr_cmd_re sh "restore $coll45fp" $ans $tserr
+unsetenv_var MODULES_COLLECTION_PIN_TAG
+
+set ans [list]
+lappend ans [list set _LMFILES_ $c46lmf]
+lappend ans [list set LOADEDMODULES $c46lm]
+lappend ans [list ERR]
+set tserr [msg_load $c46mod1 [err_accessdenied $c46mod1]]\n\n[msg_load $c46mod2 [err_reqmis $c46mod1]]\n\n[msg_load $c46mod3]
+testouterr_cmd_re sh "restore $coll46fp" $ans $tserr
+
+setenv_var MODULES_COLLECTION_PIN_TAG 1
+testouterr_cmd_re sh "restore $coll46fp" $ans $tserr
+unsetenv_var MODULES_COLLECTION_PIN_TAG
+
 unsetenv_var TESTSUITE_TAG_OPT
 
 
