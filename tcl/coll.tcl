@@ -153,7 +153,7 @@ proc getCollectionFilename {coll} {
 }
 
 # generate collection content based on provided path and module lists
-proc formatCollectionContent {path_list mod_list tag_arrser {sgr 0}} {
+proc formatCollectionContent {path_list mod_list tag_arrser header {sgr 0}} {
    set content {}
    array set tag_arr $tag_arrser
 
@@ -183,6 +183,11 @@ proc formatCollectionContent {path_list mod_list tag_arrser {sgr 0}} {
       # used in it as $mod is a list so elements including space will be
       # automatically enclosed
       append content "$modcmd load $opt$mod" \n
+   }
+
+   # prepend header if defined and some content has been generated
+   if {[string length $header] != 0 && [string length $content] != 0} {
+      set content "$header\n$content"
    }
 
    return $content

@@ -533,8 +533,13 @@ proc cmdModuleSave {{coll default}} {
    } else {
       lassign [getSimplifiedLoadedModuleList] curr_mod_list curr_tag_arrser
    }
+   # generate collection content with header indicating oldest Modules version
+   # compatible with collection syntax
+   set coll_header [expr {[llength $curr_tag_arrser] > 0 ? {#%Module5.0} :\
+      {}}]
+
    set save [formatCollectionContent [getModulePathList returnempty 0]\
-      $curr_mod_list $curr_tag_arrser]
+      $curr_mod_list $curr_tag_arrser $coll_header]
 
    if { [string length $save] == 0} {
       reportErrorAndExit {Nothing to save in a collection}
@@ -725,7 +730,7 @@ proc cmdModuleSaveshow {{coll default}} {
    displaySeparatorLine
    report [sgr hi $collfile]:\n
    report [formatCollectionContent $coll_path_list $coll_mod_list\
-      $coll_tag_arrser 1]
+      $coll_tag_arrser {} 1]
    displaySeparatorLine
 }
 
