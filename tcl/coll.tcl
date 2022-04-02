@@ -84,7 +84,10 @@ proc getSimplifiedLoadedModuleList {} {
       set simplemodvr [list $simplemod {*}[getVariantList $mod 5 1]]
       lappend curr_mod_list $simplemodvr
       # record tags applying to module in simplified version form
-      set curr_tag_arr($simplemodvr) [getSaveTagList $mod]
+      set tag_list [getSaveTagList $mod]
+      if {[llength $tag_list] > 0} {
+         set curr_tag_arr($simplemodvr) $tag_list
+      }
    }
 
    return [list $curr_mod_list [array get curr_tag_arr]]
