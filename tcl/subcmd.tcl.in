@@ -546,7 +546,7 @@ proc cmdModuleSave {{coll default}} {
    }
 
    # get corresponding filename and its directory
-   lassign [getCollectionFilename $coll] collfile colldesc
+   lassign [findCollections $coll name] collfile colldesc
    set colldir [file dirname $collfile]
 
    if {![file exists $colldir]} {
@@ -568,12 +568,8 @@ proc cmdModuleSave {{coll default}} {
 }
 
 proc cmdModuleRestore {{coll default}} {
-   # get corresponding filename
-   lassign [getCollectionFilename $coll] collfile colldesc
-
-   if {![file exists $collfile]} {
-      reportErrorAndExit "Collection $colldesc cannot be found"
-   }
+   # get corresponding collection, raise error if it does not exist
+   lassign [findCollections $coll exact 1] collfile colldesc
 
    # read collection
    lassign [readCollectionContent $collfile $colldesc] coll_path_list\
@@ -695,12 +691,8 @@ proc cmdModuleSaverm {{coll default}} {
          filepath}
    }
 
-   # get corresponding filename
-   lassign [getCollectionFilename $coll] collfile colldesc
-
-   if {![file exists $collfile]} {
-      reportErrorAndExit "Collection $colldesc cannot be found"
-   }
+   # get corresponding collection, raise error if it does not exist
+   lassign [findCollections $coll exact 1] collfile colldesc
 
    # attempt to delete specified collection
    if {[catch {
@@ -711,12 +703,8 @@ proc cmdModuleSaverm {{coll default}} {
 }
 
 proc cmdModuleSaveshow {{coll default}} {
-   # get corresponding filename
-   lassign [getCollectionFilename $coll] collfile colldesc
-
-   if {![file exists $collfile]} {
-      reportErrorAndExit "Collection $colldesc cannot be found"
-   }
+   # get corresponding collection, raise error if it does not exist
+   lassign [findCollections $coll exact 1] collfile colldesc
 
    # read collection
    lassign [readCollectionContent $collfile $colldesc] coll_path_list\

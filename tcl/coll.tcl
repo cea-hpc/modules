@@ -94,36 +94,10 @@ proc getSimplifiedLoadedModuleList {} {
 }
 
 # return saved collections found in user directory which corresponds to
-# enabled collection target if any set.
-proc findCollections {} {
-   if {[info exists ::env(HOME)]} {
-      set coll_search $::env(HOME)/.module/*
-   } else {
-      reportErrorAndExit {HOME not defined}
-   }
-
-   # find saved collections (matching target suffix)
-   # a target is a domain on which a collection is only valid.
-   # when a target is set, only the collections made for that target
-   # will be available to list and restore, and saving will register
-   # the target footprint
-   set colltarget [getConf collection_target]
-   if {$colltarget ne {}} {
-      append coll_search .$colltarget
-   }
-
-   # glob excludes by default files starting with "."
-   if {[catch {set coll_list [glob -nocomplain $coll_search]} errMsg]} {
-      reportErrorAndExit "Cannot access collection directory.\n$errMsg"
-   }
-
-   return $coll_list
-}
-
-# get filename corresponding to collection name provided as argument.
-# name provided may already be a file name. collection description name
-# (with target info if any) is returned along with collection filename
-proc getCollectionFilename {coll} {
+# enabled collection target if any set. extract one collection specifically
+# when search mode is set to exact. only compute collection name if mode is
+# set to name
+proc findCollections {{coll *} {search glob} {errnomatch 0}} {
    # initialize description with collection name
    set colldesc $coll
 
@@ -137,8 +111,11 @@ proc getCollectionFilename {coll} {
    # elsewhere collection is a name
    } elseif {[info exists ::env(HOME)]} {
       set collfile $::env(HOME)/.module/$coll
-      # if a target is set, append the suffix corresponding
-      # to this target to the collection file name
+      # find saved collections (matching target suffix)
+      # a target is a domain on which a collection is only valid.
+      # when a target is set, only the collections made for that target
+      # will be available to list and restore, and saving will register
+      # the target footprint
       set colltarget [getConf collection_target]
       if {$colltarget ne {}} {
          append collfile .$colltarget
@@ -149,7 +126,25 @@ proc getCollectionFilename {coll} {
       reportErrorAndExit {HOME not defined}
    }
 
-   return [list $collfile $colldesc]
+   if {$search eq {glob}} {
+      # glob excludes by default files starting with "."
+      if {[catch {set res [glob -nocomplain $collfile]} errMsg]} {
+         reportErrorAndExit "Cannot access collection directory.\n$errMsg"
+      }
+   } else {
+      # verify that file exists
+      if {$search eq {exact} && ![file exists $collfile]} {
+         if {$errnomatch} {
+            reportErrorAndExit "Collection $colldesc cannot be found"
+         } else {
+            set collfile {}
+         }
+      }
+      # return coll filename and its description for exact and name modes
+      set res [list $collfile $colldesc]
+   }
+
+   return $res
 }
 
 # generate collection content based on provided path and module lists
