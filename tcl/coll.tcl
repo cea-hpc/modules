@@ -97,7 +97,7 @@ proc getSimplifiedLoadedModuleList {} {
 # enabled collection target if any set. extract one collection specifically
 # when search mode is set to exact. only compute collection name if mode is
 # set to name
-proc findCollections {{coll *} {search glob} {errnomatch 0}} {
+proc findCollections {{coll *} {search glob} {errnomatch 0} {checkvalid 1}} {
    # initialize description with collection name
    set colldesc $coll
 
@@ -128,15 +128,27 @@ proc findCollections {{coll *} {search glob} {errnomatch 0}} {
 
    if {$search eq {glob}} {
       # glob excludes by default files starting with "."
-      if {[catch {set res [glob -nocomplain $collfile]} errMsg]} {
+      if {[catch {set clist [glob -nocomplain $collfile]} errMsg]} {
          reportErrorAndExit "Cannot access collection directory.\n$errMsg"
+      } else {
+         set res {}
+         foreach cfile $clist {
+            if {[checkValidColl $cfile]} {
+               lappend res $cfile
+            }
+         }
       }
    } else {
       # verify that file exists
-      if {$search eq {exact} && ![file exists $collfile]} {
-         if {$errnomatch} {
-            reportErrorAndExit "Collection $colldesc cannot be found"
-         } else {
+      if {$search eq {exact}} {
+         if {![file exists $collfile]} {
+            if {$errnomatch} {
+               reportErrorAndExit "Collection $colldesc cannot be found"
+            } else {
+               set collfile {}
+            }
+         # error will be raised if collection no valid
+         } elseif {$checkvalid && ![checkValidColl $collfile $errnomatch]} {
             set collfile {}
          }
       }
@@ -144,6 +156,34 @@ proc findCollections {{coll *} {search glob} {errnomatch 0}} {
       set res [list $collfile $colldesc]
    }
 
+   return $res
+}
+
+proc checkValidColl {collfile {report_issue 0}} {
+   set res 0
+   if {[catch {
+      set fdata [readFile $collfile 1]
+      # extract magic cookie (first word)
+      set fh [string trimright [lindex [split [string range $fdata 0 32]]\
+         0] #]
+   } errMsg ]} {
+      if {$report_issue} {
+         reportErrorAndExit [parseAccessIssue $collfile]
+      }
+   } else {
+      # collection without magic cookie are valid
+      # check if min version requirement is met
+      if {[string equal -length 8 $fh {#%Module}] && [string length $fh] \
+         > 8 && [versioncmp {@MODULES_RELEASE@} [string range $fh 8 end]] \
+         < 0} {
+         if {$report_issue} {
+            reportErrorAndExit "Collection $collfile requires at least\
+               Modules version [string range $fh 8 end]"
+         }
+      } else {
+         set res 1
+      }
+   }
    return $res
 }
 
