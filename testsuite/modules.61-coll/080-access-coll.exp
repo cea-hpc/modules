@@ -40,6 +40,7 @@ if {!$is_file_perms_editable} {
 
 set header_coll "Named collection list:"
 set coll_list "$coll1\n${coll1}.save\n$coll2\n$coll3\n$coll4f\n$coll6f\n$colld\ninfocmd\ninfocmdexp"
+set coll_list_nocoll1 "${coll1}.save\n$coll2\n$coll3\n$coll4f\n$coll6f\n$colld\ninfocmd\ninfocmdexp"
 
 if {$install_implicitdefault eq {y}} {
     lappend ans [list unset mload]
@@ -93,9 +94,9 @@ file copy -force $coll1fp $coll1fpsave
 
 change_file_perms $coll1fp $hide_perms
 
-testouterr_cmd "sh" "savelist -t" "OK" "$header_coll\n$coll_list"
-testouterr_cmd "sh" "saveshow $coll1" "ERR" "$read_msg\n$perm_msg"
-testouterr_cmd "sh" "restore $coll1" "ERR" "$read_msg\n$perm_msg"
+testouterr_cmd "sh" "savelist -t" "OK" "$header_coll\n$coll_list_nocoll1"
+testouterr_cmd "sh" "saveshow $coll1" "ERR" [err_permdenied $coll1fp]
+testouterr_cmd "sh" "restore $coll1" "ERR" [err_permdenied $coll1fp]
 testouterr_cmd "sh" "save $coll1" "OK" ""
 testoutfile_cmd "sh" "saverm $coll1" "OK" "$coll1fp" "$rmc1errmsg"
 
