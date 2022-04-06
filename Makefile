@@ -357,6 +357,9 @@ endif
 contrib/rpm/environment-modules.spec: contrib/rpm/environment-modules.spec.in $(GIT_REFRESH_PREREQ)
 	$(translate-in-script)
 
+tcl/coll.tcl: tcl/coll.tcl.in version.inc
+	$(translate-in-script)
+
 tcl/envmngt.tcl: tcl/envmngt.tcl.in version.inc
 	$(translate-in-script)
 
@@ -693,6 +696,7 @@ endif
 	rm -f README
 	rm -f modulecmd.tcl
 	rm -f $(MODULECMDTEST) $(MODULECMDTEST)_i
+	rm -f tcl/coll.tcl
 	rm -f tcl/envmngt.tcl
 	rm -f tcl/init.tcl
 	rm -f tcl/main.tcl
@@ -853,17 +857,17 @@ testsyntax: $(MODULECMDTEST) $(NAGELFAR)
 	$(NAGELFAR) -len 78 $<
 
 # build Ctags index
-tcl/tags: tcl/coll.tcl tcl/envmngt.tcl.in tcl/init.tcl.in tcl/main.tcl.in \
+tcl/tags: tcl/coll.tcl.in tcl/envmngt.tcl.in tcl/init.tcl.in tcl/main.tcl.in \
 	tcl/mfinterp.tcl.in tcl/modeval.tcl tcl/modfind.tcl.in tcl/modspec.tcl \
 	tcl/report.tcl.in tcl/subcmd.tcl.in tcl/util.tcl
-	ctags --tag-relative -f $@ --langmap=tcl:.tcl.in tcl/coll.tcl \
+	ctags --tag-relative -f $@ --langmap=tcl:.tcl.in tcl/coll.tcl.in \
 		tcl/envmngt.tcl.in tcl/init.tcl.in tcl/main.tcl.in tcl/mfinterp.tcl.in \
 		tcl/modeval.tcl tcl/modfind.tcl.in tcl/modspec.tcl tcl/report.tcl.in \
 		tcl/subcmd.tcl.in tcl/util.tcl
 
 # build Gtags target files
 tcl/gtags.file:
-	echo coll.tcl > $@
+	echo coll.tcl.in > $@
 	echo envmngt.tcl.in >> $@
 	echo init.tcl.in >> $@
 	echo main.tcl.in >> $@
@@ -876,7 +880,7 @@ tcl/gtags.file:
 	echo util.tcl >> $@
 
 # build Gtags tag file
-tcl/GTAGS: tcl/coll.tcl tcl/envmngt.tcl.in tcl/init.tcl.in tcl/main.tcl.in \
+tcl/GTAGS: tcl/coll.tcl.in tcl/envmngt.tcl.in tcl/init.tcl.in tcl/main.tcl.in \
 	tcl/mfinterp.tcl.in tcl/modeval.tcl tcl/modfind.tcl.in tcl/modspec.tcl \
 	tcl/report.tcl.in tcl/subcmd.tcl.in tcl/util.tcl tcl/gtags.file
 	gtags -C tcl --gtagsconf ../.globalrc
@@ -888,11 +892,12 @@ V = 1
 endif
 # let verbose by default the install/clean/test and other specific non-build targets
 $(V).SILENT: initdir pkgdoc doc version.inc contrib/rpm/environment-modules.spec \
-	modulecmd.tcl tcl/envmngt.tcl tcl/init.tcl tcl/main.tcl tcl/mfinterp.tcl \
-	tcl/modfind.tcl tcl/report.tcl tcl/subcmd.tcl tcl/coll.tcl_i tcl/envmngt.tcl_i \
-	tcl/init.tcl_i tcl/main.tcl_i tcl/mfinterp.tcl_i tcl/modfind.tcl_i tcl/modeval.tcl_i \
-	tcl/modspec.tcl_i tcl/report.tcl_i tcl/subcmd.tcl_i tcl/util.tcl_i ChangeLog README \
-	script/add.modules script/gitlog2changelog.py script/modulecmd \
+	modulecmd.tcl tcl/coll.tcl tcl/envmngt.tcl tcl/init.tcl tcl/main.tcl \
+	tcl/mfinterp.tcl tcl/modfind.tcl tcl/report.tcl tcl/subcmd.tcl tcl/coll.tcl_i \
+	tcl/envmngt.tcl_i tcl/init.tcl_i tcl/main.tcl_i tcl/mfinterp.tcl_i \
+	tcl/modfind.tcl_i tcl/modeval.tcl_i tcl/modspec.tcl_i tcl/report.tcl_i \
+	tcl/subcmd.tcl_i tcl/util.tcl_i ChangeLog README script/add.modules \
+	script/gitlog2changelog.py script/modulecmd \
 	lib/libtclenvmodules$(SHLIB_SUFFIX) lib/libtestutil-closedir$(SHLIB_SUFFIX) \
 	lib/libtestutil-getpwuid$(SHLIB_SUFFIX) lib/libtestutil-getgroups$(SHLIB_SUFFIX) \
 	lib/libtestutil-0getgroups$(SHLIB_SUFFIX) lib/libtestutil-sysconf$(SHLIB_SUFFIX) \
