@@ -39,6 +39,17 @@ skip_if_quick_mode
 
 testouterr_cmd "sh" "is-saved" "OK" ""
 
+# test collection requiring an upcoming version of Modules
+# test effect of mcookie configuration with this collection
+testouterr_cmd sh "is-saved coll48" ERR {}
+testouterr_cmd sh "is-saved $homewithcoll/coll48" ERR {}
+setenv_var MODULES_MCOOKIE_CHECK eval
+testouterr_cmd sh "is-saved coll48" ERR {}
+setenv_var MODULES_MCOOKIE_CHECK always
+setenv_var MODULES_MCOOKIE_VERSION_CHECK 0
+testouterr_cmd sh "is-saved coll48" ERR {}
+setenv_var MODULES_MCOOKIE_VERSION_CHECK 1
+
 # define a collection target
 if { $verbose > 0 } {
     send_user "\tSetup MODULES_COLLECTION_TARGET = 'target'\n"

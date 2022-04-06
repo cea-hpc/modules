@@ -27,6 +27,7 @@ set c1fperrmsg "$error_msgs: Command does not remove collection specified as fil
 set rmcderrmsg "couldn't open \"$hometestdotmod/default\": no such file or directory"
 set rmc1errmsg "couldn't open \"$hometestdotmod/$coll1\": no such file or directory"
 set rmc4ferrmsg "couldn't open \"$hometestdotmod/$coll4f\": no such file or directory"
+set rmc48errmsg "couldn't open \"$hometestdotmod/$coll48\": no such file or directory"
 
 #
 # test removing nonexistent collection
@@ -66,6 +67,25 @@ testoutfile_cmd "sh" "saverm $coll1" "OK" "$hometestdotmod/$coll1" "$rmc1errmsg"
 #
 
 testouterr_cmd "ALL" "saverm $coll1fp" "ERR" "$c1fperrmsg"
+
+
+#
+# test removing collection requiring an upcoming version of Modules
+# test effect of mcookie configuration with this collection
+#
+
+file copy $coll48fp $hometestdotmod/$coll48
+testoutfile_cmd sh "saverm $coll48" OK $hometestdotmod/$coll48 $rmc48errmsg
+
+file copy $coll48fp $hometestdotmod/$coll48
+setenv_var MODULES_MCOOKIE_CHECK eval
+testoutfile_cmd sh "saverm $coll48" OK $hometestdotmod/$coll48 $rmc48errmsg
+setenv_var MODULES_MCOOKIE_CHECK always
+
+file copy $coll48fp $hometestdotmod/$coll48
+setenv_var MODULES_MCOOKIE_VERSION_CHECK 0
+testoutfile_cmd sh "saverm $coll48" OK $hometestdotmod/$coll48 $rmc48errmsg
+setenv_var MODULES_MCOOKIE_VERSION_CHECK 1
 
 
 #

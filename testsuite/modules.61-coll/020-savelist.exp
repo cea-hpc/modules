@@ -69,6 +69,15 @@ testouterr_cmd "sh" "savelist" "OK" "$header_coll\n$coll_list_idx"
 testouterr_cmd_re "sh" "savelist --long" "OK" "$header_long\n$header_coll\n$coll_list_long"
 testouterr_cmd_re "sh" "savelist -t --long" "OK" "$header_long\n$header_coll\n$coll_list_long"
 
+# test effect of mcookie configuration
+setenv_var MODULES_MCOOKIE_CHECK eval
+testouterr_cmd sh "savelist --terse" OK "$header_coll\n$coll_list"
+setenv_var MODULES_MCOOKIE_CHECK always
+
+setenv_var MODULES_MCOOKIE_VERSION_CHECK 0
+testouterr_cmd sh "savelist --terse" OK "$header_coll\n$coll_list"
+setenv_var MODULES_MCOOKIE_VERSION_CHECK 1
+
 # restore terminal width
 exec stty cols $term_cols
 

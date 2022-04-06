@@ -56,6 +56,23 @@ testouterr_cmd "ALL" "saveshow $badcontfp" "ERR" "$badcontfperrmsg"
 
 
 #
+# test showing collection requiring an upcoming version of Modules
+# test effect of mcookie configuration with this collection
+#
+
+testouterr_cmd sh "saveshow $coll48" ERR [collerr_minverreqns $coll48fp 99]
+testouterr_cmd sh "saveshow $coll48fp" ERR [collerr_minverreqns $coll48fp 99]
+
+setenv_var MODULES_MCOOKIE_CHECK eval
+testouterr_cmd sh "saveshow $coll48" ERR [collerr_minverreqns $coll48fp 99]
+setenv_var MODULES_MCOOKIE_CHECK always
+
+setenv_var MODULES_MCOOKIE_VERSION_CHECK 0
+testouterr_cmd sh "saveshow $coll48" ERR [collerr_minverreqns $coll48fp 99]
+setenv_var MODULES_MCOOKIE_VERSION_CHECK 1
+
+
+#
 # test showing default collection
 #
 
