@@ -329,11 +329,12 @@ the *modulefile* is being loaded.
  :subcmd:`is-avail` and :subcmd:`info-loaded`.
 
  This command permits a *modulefile* to :subcmd:`load` or :subcmd:`unload`
- other *modulefiles*. No checks are made to ensure that the *modulefile* does
- not try to load itself. Often it is useful to have a single *modulefile* that
- performs a number of ``module load`` commands. For example, if every user on
- the system requires a basic set of applications loaded, then a core
- *modulefile* would contain the necessary ``module load`` commands.
+ other *modulefiles* or to :subcmd:`use` or :subcmd:`unuse` *modulepaths*. No
+ checks are made to ensure that the *modulefile* does not try to load itself.
+ Often it is useful to have a single *modulefile* that performs a number of
+ ``module load`` commands. For example, if every user on the system requires a
+ basic set of applications loaded, then a core *modulefile* would contain the
+ necessary ``module load`` commands.
 
  The ``--not-req`` option may be set for the ``load``, ``try-load``,
  ``load-any``, ``unload`` and ``switch`` sub-commands to inhibit the
