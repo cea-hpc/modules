@@ -259,6 +259,9 @@ achieve a specific setup, some additional steps may be required:
    aliases, virtual modules or module properties such as tags, forbidding
    rules, etc.
 
+   .. note:: Run-command files are intended to set parameters for
+      modulefiles, not to configure the :command:`module` command itself.
+
 To learn more about siteconfig and run-command files, see the
 :ref:`Modulecmd startup` section in :ref:`module(1)` reference manual. You may
 also look at the available :ref:`setup recipes<cookbook>` to get concrete

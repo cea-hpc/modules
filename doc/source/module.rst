@@ -165,6 +165,9 @@ error does not abort the whole :command:`module` evaluation. If the
 :mconfig:`mcookie_version_check` configuration is disabled the version number
 set is not checked.
 
+.. note:: Run-command files are intended to set parameters for modulefiles,
+   not to configure the :command:`module` command itself.
+
 Command line switches
 ^^^^^^^^^^^^^^^^^^^^^
 
