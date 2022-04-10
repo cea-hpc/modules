@@ -213,6 +213,9 @@ Modules 5.1.0 (not yet released)
   :subcmd:`is-saved` sub-commands to exclude from result or return an error
   when checking a collection expressing a higher Modules version requirement
   in its header signature than the one currently in use.
+* Doc: describe :ref:`differences between run-command file and modulefile
+  interpretation<Modulefile and run-command interp diff>` in
+  :ref:`modulefile(4)` man page.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 .. _codespell: https://github.com/codespell-project/codespell

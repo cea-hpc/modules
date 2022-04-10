@@ -1248,6 +1248,32 @@ the *modulefile* is being loaded.
 
   Merge the Ileaf resource into the X11 resource database.
 
+.. _Modulefile and run-command interp diff:
+
+Modulefiles and run-command (rc) files are differently interpreted. A limited
+number of the Modules specific Tcl commands are available for rc files
+interpretation since such files are intended to set parameters for modulefiles
+(like defining alias, hiding, tagging, etc) and not to change user
+environment. The following table summarizes the different commands available
+for each interpretation context.
+
++---------------------------+------------------------------------------------+
+| Commands available from   | Commands available from run-command (rc) file  |
+| modulefile interpretation | interpretation                                 |
++===========================+================================================+
+| All the Modules specific  | :mfcmd:`is-loaded`, :mfcmd:`is-used`,          |
+| and standard Tcl commands | :mfcmd:`module-alias`, :mfcmd:`module-forbid`, |
+|                           | :mfcmd:`module-hide`, :mfcmd:`module-info`,    |
+|                           | :mfcmd:`module-tag`, :mfcmd:`module-version`,  |
+|                           | :mfcmd:`module-virtual`, :mfcmd:`system`,      |
+|                           | :mfcmd:`uname`, :mfcmd:`versioncmp` and        |
+|                           | standard Tcl commands                          |
++---------------------------+------------------------------------------------+
+
+.. note:: Global and user run-command files are interpreted like modulefiles
+   and benefit from all Modules specific Tcl commands. However it not advised
+   to perform environment changes from such files.
+
 
 Modules Variables
 -----------------
