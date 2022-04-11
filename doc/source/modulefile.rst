@@ -317,17 +317,6 @@ the *modulefile* is being loaded.
 
 .. mfcmd:: module [sub-command] [sub-command-options] [sub-command-args]
 
- Contains the same *sub-commands* as described in the :ref:`module(1)` man
- page in the :ref:`Module Sub-Commands` section. Exception made for the
- following sub-commands that can only be used outside of a modulefile context:
- :subcmd:`path`, :subcmd:`paths`, :subcmd:`autoinit`, :subcmd:`help`,
- :subcmd:`clear`, :subcmd:`sh-to-mod`, :subcmd:`edit`, :subcmd:`config`,
- :subcmd:`refresh`, :subcmd:`source` and :subcmd:`state`. Also the following
- sub-commands cannot be used but have a modulefile command counterpart:
- :subcmd:`prepend-path`, :subcmd:`append-path`, :subcmd:`remove-path`,
- :subcmd:`is-loaded`, :subcmd:`is-saved`, :subcmd:`is-used`,
- :subcmd:`is-avail` and :subcmd:`info-loaded`.
-
  This command permits a *modulefile* to :subcmd:`load` or :subcmd:`unload`
  other *modulefiles* or to :subcmd:`use` or :subcmd:`unuse` *modulepaths*. No
  checks are made to ensure that the *modulefile* does not try to load itself.
@@ -363,6 +352,48 @@ the *modulefile* is being loaded.
  Command line switches :option:`--auto`, :option:`--no-auto` and
  :option:`--force` are ignored when passed to a :mfcmd:`module` command set in
  a *modulefile*.
+
+ Not all the *sub-commands* described in the :ref:`Module Sub-Commands`
+ section of the :ref:`module(1)` man page are available when :mfcmd:`module`
+ is used as a Modules specific Tcl command. The following table summarizes the
+ different sub-commands available for each interpretation context.
+
+ +--------------------------------+---------------------+---------------------+
+ | Sub-commands available from    | Sub-commands avail\ | Sub-commands avail\ |
+ | modulefile interpretation      | able from :file:`i\ | able from run-comm\ |
+ |                                | nitrc` configuration| and (rc) file       |
+ |                                | file and sourced    | interpretation      |
+ |                                | script file         |                     |
+ +================================+=====================+=====================+
+ | :subcmd:`load`,                | Same sub-commands   | *None*              |
+ | :subcmd:`load-any`,            | available than for  |                     |
+ | :subcmd:`switch`,              | modulefile and      |                     |
+ | :subcmd:`try-load`,            | :subcmd:`config`    |                     |
+ | :subcmd:`unload`,              | sub-command.        |                     |
+ | :subcmd:`unuse`, :subcmd:`use`.|                     |                     |
+ | Also available but not recomm\ |                     |                     |
+ | anded for use from regular     |                     |                     |
+ | modulefile: :subcmd:`aliases`, |                     |                     |
+ | :subcmd:`avail`,               |                     |                     |
+ | :subcmd:`display`,             |                     |                     |
+ | :subcmd:`initadd`,             |                     |                     |
+ | :subcmd:`initclear`,           |                     |                     |
+ | :subcmd:`initlist`,            |                     |                     |
+ | :subcmd:`initprepend`,         |                     |                     |
+ | :subcmd:`initrm`,              |                     |                     |
+ | :subcmd:`initswitch`,          |                     |                     |
+ | :subcmd:`list`,                |                     |                     |
+ | :subcmd:`purge`,               |                     |                     |
+ | :subcmd:`reload`,              |                     |                     |
+ | :subcmd:`restore`,             |                     |                     |
+ | :subcmd:`save`,                |                     |                     |
+ | :subcmd:`savelist`,            |                     |                     |
+ | :subcmd:`saverm`,              |                     |                     |
+ | :subcmd:`saveshow`,            |                     |                     |
+ | :subcmd:`search`,              |                     |                     |
+ | :subcmd:`test`,                |                     |                     |
+ | :subcmd:`whatis`               |                     |                     |
+ +--------------------------------+---------------------+---------------------+
 
  .. only:: html
 

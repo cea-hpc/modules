@@ -216,6 +216,8 @@ Modules 5.1.0 (not yet released)
 * Doc: describe :ref:`differences between run-command file and modulefile
   interpretation<Modulefile and run-command interp diff>` in
   :ref:`modulefile(4)` man page.
+* Doc: describe :mfcmd:`module` sub-commands available as modulefile Tcl
+  command for each interpretation context in :ref:`modulefile(4)` man page.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 .. _codespell: https://github.com/codespell-project/codespell
