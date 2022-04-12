@@ -910,6 +910,10 @@ proc cmdModuleLoad {context uasked tag_list args} {
                   reportMsgRecord "Loading [getModuleDesignation $msgrecid {}\
                      2]"
                }
+
+               # apply missing tag to loaded module
+               cmdModuleTag $tag_list $modname
+
                # exit treatment but no need to restore settings
                set loadok 1
                continue
@@ -2346,6 +2350,64 @@ proc cmdModuleHelp {args} {
    if {[llength $args] == 0} {
       reportUsage
    }
+}
+
+proc cmdModuleTag {tag_list args} {
+   reportDebug "tagging $args (tag_list=$tag_list)"
+
+   set ret 0
+   foreach mod $args {
+      # find mod among loaded modules
+      lassign [getPathToModule $mod {} 1 match] modfile modname modnamevr\
+         errkind
+
+      if {$modfile eq {}} {
+         set ret 1
+         # go to next module to unload
+         continue
+      }
+
+      # record tags not already set
+      lassign [getDiffBetweenList $tag_list [getTagList $modname]] diff_list
+      if {[llength $diff_list] > 0} {
+         lappendState mode unload
+         # first unset tags declared for this module on LM env var
+         if {[set modtag [getExportTagList $modname 1]] ne {}} {
+            remove-path __MODULES_LMTAG $modtag
+         }
+         if {[set modtag [getExtraTagList $modname 1]] ne {}} {
+            remove-path __MODULES_LMEXTRATAG $modtag
+         }
+         lpopState mode
+
+         # record new tags as extra tag excluding tags relative to the way
+         # module is loaded (auto, keep)
+         lassign [getDiffBetweenList $diff_list [list auto-loaded\
+            keep-loaded]] extradiff_list
+         setModuleTag $modname {*}$diff_list
+         if {[llength $extradiff_list] > 0} {
+            setModuleExtraTag $modname {*}$extradiff_list
+         }
+         if {$modnamevr ne {} && $modname ne $modnamevr} {
+            setModuleTag $modnamevr {*}$diff_list
+            if {[llength $extradiff_list] > 0} {
+               setModuleExtraTag $modnamevr {*}$extradiff_list
+            }
+         }
+
+         # set the new tag set for module on LM env var
+         lappendState mode load
+         if {[set modtag [getExportTagList $modnamevr 1]] ne {}} {
+            append-path __MODULES_LMTAG $modtag
+         }
+         if {[set modtag [getExtraTagList $modnamevr 1]] ne {}} {
+            append-path __MODULES_LMEXTRATAG $modtag
+         }
+         lpopState mode
+      }
+   }
+
+   return $ret
 }
 
 # ;;; Local Variables: ***
