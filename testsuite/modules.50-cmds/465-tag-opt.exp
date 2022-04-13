@@ -309,13 +309,25 @@ unsetenv_var TESTSUITE_TAG_OPT
 
 # already loaded module with different tag set
 setenv_loaded_module [list $mod] [list $modfile]
-testouterr_cmd sh "load $mod --tag=bar" OK {}
+set ans [list]
+lappend ans [list set __MODULES_LMEXTRATAG $mod&bar]
+lappend ans [list set __MODULES_LMTAG $mod&bar]
+testouterr_cmd sh "load $mod --tag=bar" $ans {}
 
 setenv_path_var __MODULES_LMEXTRATAG $mod&bar
 setenv_path_var __MODULES_LMTAG $mod&bar
 testouterr_cmd sh "load $mod --tag=bar" OK {}
-testouterr_cmd sh "load $mod --tag=foo" OK {}
-testouterr_cmd sh "load $mod --tag=hidden-loaded" OK {}
+testouterr_cmd sh "load $mod --tag=bar:bar" OK {}
+set ans [list]
+lappend ans [list set __MODULES_LMEXTRATAG $mod&bar&foo]
+lappend ans [list set __MODULES_LMTAG $mod&bar&foo]
+testouterr_cmd sh "load $mod --tag=foo" $ans {}
+set ans [list]
+lappend ans [list set __MODULES_LMEXTRATAG $mod&bar&hidden-loaded]
+lappend ans [list set __MODULES_LMTAG $mod&bar&hidden-loaded]
+testouterr_cmd sh "load $mod --tag=hidden-loaded" $ans {}
+set tserr [err_tagmanset auto-loaded]
+testouterr_cmd sh "load $mod --tag=foo:auto-loaded" ERR $tserr
 
 setenv_var TESTSUITE_TAG_OPT loadtag1
 setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
@@ -325,10 +337,22 @@ set ans [list]
 lappend ans [list set __MODULES_LMPREREQ $mod&foo/1.0]
 lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
 lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&foo]
+lappend ans [list set __MODULES_LMTAG foo/1.0&foo]
 testouterr_cmd sh "load $mod" $ans {}
 
 setenv_path_var __MODULES_LMEXTRATAG foo/1.0&bar
 setenv_path_var __MODULES_LMTAG foo/1.0&bar
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&bar&foo]
+lappend ans [list set __MODULES_LMTAG foo/1.0&bar&foo]
+testouterr_cmd sh "load $mod" $ans {}
+
+setenv_path_var __MODULES_LMEXTRATAG foo/1.0&bar&foo
+setenv_path_var __MODULES_LMTAG foo/1.0&bar&foo
 set ans [list]
 lappend ans [list set __MODULES_LMPREREQ $mod&foo/1.0]
 lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
@@ -341,6 +365,8 @@ set ans [list]
 lappend ans [list set __MODULES_LMPREREQ $mod&foo/1.0]
 lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
 lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&bar&foo]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded&bar&foo]
 testouterr_cmd sh "load $mod" $ans {}
 
 unsetenv_loaded_module
@@ -534,13 +560,22 @@ testouterr_cmd sh "load-any --auto foo/1.0 --tag foo bar/1.0" $ans {}
 testouterr_cmd sh "load-any --no-auto foo/1.0 --tag foo bar/1.0" $ans {}
 
 setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
-testouterr_cmd sh "load-any --auto foo/1.0 bar/1.0 --tag foo" OK {}
-testouterr_cmd sh "load-any --no-auto foo/1.0 bar/1.0 --tag foo" OK {}
+set ans [list]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&foo]
+lappend ans [list set __MODULES_LMTAG foo/1.0&foo]
+testouterr_cmd sh "load-any --auto foo/1.0 bar/1.0 --tag foo" $ans {}
+testouterr_cmd sh "load-any --no-auto foo/1.0 bar/1.0 --tag foo" $ans {}
 
 setenv_path_var __MODULES_LMEXTRATAG foo/1.0&foo
 setenv_path_var __MODULES_LMTAG foo/1.0&foo
 testouterr_cmd sh "load-any --auto foo/1.0 --tag foo bar/1.0" OK {}
 testouterr_cmd sh "load-any --no-auto foo/1.0 --tag foo bar/1.0" OK {}
+
+set ans [list]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&foo&bar]
+lappend ans [list set __MODULES_LMTAG foo/1.0&foo&bar]
+testouterr_cmd sh "load-any --no-auto foo/1.0 --tag foo:bar bar/1.0" $ans {}
+testouterr_cmd sh "load-any --no-auto foo/1.0 --tag bar bar/1.0" $ans {}
 
 setenv_var TESTSUITE_TAG_OPT loadanytag1
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
@@ -563,16 +598,28 @@ set ans [list]
 lappend ans [list set __MODULES_LMPREREQ $mod&variant@3.0\ bar=val1|foo/1.0]
 lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
 lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&foo]
+lappend ans [list set __MODULES_LMTAG foo/1.0&foo]
 testouterr_cmd sh "load-any --auto $mod" $ans {}
 testouterr_cmd sh "load-any --no-auto $mod" $ans {}
 
 setenv_path_var __MODULES_LMEXTRATAG foo/1.0&foo
 setenv_path_var __MODULES_LMTAG foo/1.0&foo
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&variant@3.0\ bar=val1|foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
 testouterr_cmd sh "load-any --auto $mod" $ans {}
 testouterr_cmd sh "load-any --no-auto $mod" $ans {}
 
 setenv_path_var __MODULES_LMEXTRATAG foo/1.0&bar
 setenv_path_var __MODULES_LMTAG foo/1.0&bar
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&variant@3.0\ bar=val1|foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&bar&foo]
+lappend ans [list set __MODULES_LMTAG foo/1.0&bar&foo]
 testouterr_cmd sh "load-any --auto $mod" $ans {}
 testouterr_cmd sh "load-any --no-auto $mod" $ans {}
 
