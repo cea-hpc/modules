@@ -615,7 +615,15 @@ proc restoreSettings {} {
 # load modules passed as args designated as requirement
 proc loadRequirementModuleList {tag_list args} {
    # calling procedure must have already parsed module specification in args
-   if {![is-loaded {*}$args] && ![is-loading {*}$args]} {
+   foreach mod $args {
+      # get first loaded or loading mod in args list
+      if {[set loadedmod [getLoadedMatchingName $mod returnfirst]] ne {} ||\
+         [set loadedmod [getLoadedMatchingName $mod returnfirst 1]] ne {}} {
+         break
+      }
+   }
+
+   if {$loadedmod eq {}} {
       set imax [llength $args]
       set prereqloaded 0
       # if prereq list specified, try to load first then
@@ -651,6 +659,9 @@ proc loadRequirementModuleList {tag_list args} {
       }
       # output held messages
       releaseHeldReport {*}$holdidlist
+   } else {
+      # apply missing tag to first loaded module found
+      cmdModuleTag $tag_list $loadedmod
    }
 }
 

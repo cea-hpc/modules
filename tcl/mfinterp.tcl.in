@@ -1733,7 +1733,15 @@ proc prereq {args} {
       loadRequirementModuleList $tag_list {*}$args
    }
 
-   if {![is-loaded {*}$args] && ![is-loading {*}$args]} {
+   foreach mod $args {
+      # get first loaded or loading mod in args list
+      if {[set loadedmod [getLoadedMatchingName $mod returnfirst]] ne {} ||\
+         [set loadedmod [getLoadedMatchingName $mod returnfirst 1]] ne {}} {
+         break
+      }
+   }
+
+   if {$loadedmod eq {}} {
       set retisreqlo [isModuleEvaluated reqlo $curmodnamevr {*}$args]
       # report message on currently evaluated module message block
       if {![set retiseval [isModuleEvaluated any $curmodnamevr {*}$args]] ||\
@@ -1763,6 +1771,9 @@ proc prereq {args} {
             knerror $msg MODULES_ERR_GLOBALTOP
          }
       }
+   } elseif {![getConf auto_handling]} {
+      # apply missing tag to first loaded module found
+      cmdModuleTag $tag_list $loadedmod
    }
 
    return {}
