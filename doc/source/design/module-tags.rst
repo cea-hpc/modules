@@ -305,3 +305,45 @@ Querying
 - Tags cannot be queried to select modules
 
     - Symbolic versions or variants can be used to select modules
+
+Updating tags on already loaded modules
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- An attempt to load an already loaded module with a ``--tag`` option set will
+  update the list of extra tags set for this loaded module
+
+    - Works for every sub-command and modulefile commands accepting the
+      ``--tag`` option
+    - Does not imply the reload of the loaded module
+    - Add tags to the tag list already set, no removal
+    - As tags defined with ``module-tag`` cannot be unset
+
+- A ``tag`` sub-command may seem useful to update tag list of already loaded
+  modules
+
+    - But it is simpler to use the loading/enabling sub-command to set these
+      extra tags, especially to distinguish between tagging modules or
+      modulepaths
+    - So no need for a dedicated sub-command, use loading or enabled
+      sub-commands instead
+
+- If extra tags specified are already set as non-extra tags on already loaded
+  module, the tags are not updated (extra tag list is not updated)
+
+- With ``prereq``-like commands:
+
+    - only the first loaded requirement in specified list gets its tag list
+      updated
+    - loading requirement does not get its tag list updated (no real use case
+      foreseen for cyclic dependencies)
+
+- When restoring collection, extra tags of modules are unset to only keep the
+  extra tags defined in collection.
+
+    - Extra tags are cleared either when module is unloaded or specifically
+      if module is already loaded at the correct position
+
+- When unloading a module, the ``auto-loaded``, ``keep-loaded`` and all
+  extra tags are unset from in-memory knowledge, not to reapply automatically
+  these tags if the module is loaded again: only the extra and state tags
+  from this new load will be set.
