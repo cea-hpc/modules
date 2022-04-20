@@ -473,6 +473,7 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
       if {[info exists depreisuasked]} {
          set undepreisuasked $depreisuasked
          set undeprevr $deprevr
+         set undepreextratag $depreextratag
       }
       cmdModuleLoad swload $uasked $tag_list $new
 
@@ -480,6 +481,7 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
       if {[info exists undepreisuasked]} {
          set depreisuasked [list {*}$undepreisuasked {*}$depreisuasked]
          set deprevr [list {*}$undeprevr {*}$deprevr]
+         set depreextratag [list {*}$undepreextratag {*}$depreextratag]
       }
 
       if {[getConf auto_handling] && [info exists deprelist] && [llength\
@@ -490,7 +492,7 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
          # for the load phase of the DepRe mechanism.
          # Try DepRe load phase: load failure will not lead to switch failure
          reloadModuleListLoadPhase deprelist $depreisuasked $deprevr\
-            1 {Reload of dependent _MOD_ failed} depre
+            $depreextratag 1 {Reload of dependent _MOD_ failed} depre
       }
 
       # report a summary of automated evaluations if no error
@@ -873,6 +875,7 @@ proc cmdModuleLoad {context uasked tag_list args} {
          upvar deprelist swdeprelist
          upvar depreisuasked depreisuasked
          upvar deprevr deprevr
+         upvar depreextratag depreextratag
 
          # transmit loaded mod name for switch report summary
          uplevel 1 set new "{$modnamevr}"
@@ -949,7 +952,7 @@ proc cmdModuleLoad {context uasked tag_list args} {
             if {[llength $deprelist] > 0} {
                lassign [reloadModuleListUnloadPhase deprelist [getState\
                   force] {Unload of dependent _MOD_ failed} depun]\
-                  depreisuasked deprevr
+                  depreisuasked deprevr depreextratag
                if {[info exists swprocessing]} {
                   if {[info exists swdeprelist]} {
                      set swdeprelist [list {*}$deprelist {*}$swdeprelist]
@@ -1109,7 +1112,8 @@ proc cmdModuleLoad {context uasked tag_list args} {
          if {[getConf auto_handling] && [llength $deprelist] > 0 && ![info\
             exists swprocessing]} {
             reloadModuleListLoadPhase deprelist $depreisuasked $deprevr\
-               [getState force] {Reload of dependent _MOD_ failed} depre
+               $depreextratag [getState force] {Reload of dependent _MOD_\
+               failed} depre
          }
 
          # consider evaluation hidden if hidden loaded module is auto loaded
@@ -1207,6 +1211,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          upvar deprelist deprelist
          upvar depreisuasked depreisuasked
          upvar deprevr deprevr
+         upvar depreextratag depreextratag
 
          # transmit unloaded mod name for switch report summary
          uplevel 1 set old "{$modnamevr}"
@@ -1338,7 +1343,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             if {[llength $deprelist] > 0} {
                lassign [reloadModuleListUnloadPhase deprelist [getState\
                   force] {Unload of dependent _MOD_ failed} depun]\
-                  depreisuasked deprevr
+                  depreisuasked deprevr depreextratag
             }
 
             # DepUn modules unload prior main mod unload
@@ -1455,7 +1460,8 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             # will occur after the new mod load
             if {[llength $deprelist] > 0 && ![info exists swprocessing]} {
                reloadModuleListLoadPhase deprelist $depreisuasked $deprevr\
-                  [getState force] {Reload of dependent _MOD_ failed} depre
+                  $depreextratag [getState force] {Reload of dependent _MOD_\
+                  failed} depre
             }
          }
 
@@ -1536,8 +1542,8 @@ proc cmdModuleReload {args} {
       pushSettings
       if {[set errCode [catch {
          # run unload then load-again phases
-         lassign [reloadModuleListUnloadPhase lmlist] isuasked vr
-         reloadModuleListLoadPhase lmlist $isuasked $vr
+         lassign [reloadModuleListUnloadPhase lmlist] isuasked vr extratag
+         reloadModuleListLoadPhase lmlist $isuasked $vr $extratag
       } errMsg]] == 1} {
          # rollback settings if some evaluation went wrong
          restoreSettings

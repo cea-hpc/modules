@@ -678,6 +678,8 @@ proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {}} {context\
       set isuasked($mod) [isModuleTagged $mod loaded 1]
       # save variants set for modules
       set vr($mod) [getVariantList $mod 1 2]
+      # save extra tags set
+      set extratag($mod) [getExtraTagList $mod]
       # force unload even if requiring mods are not part of the unload list
       # (violation state) as modules are loaded again just after
       if {[cmdModuleUnload $context match 0 1 0 0 $mod]} {
@@ -699,15 +701,16 @@ proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {}} {context\
       lpopState reloading_sticky
       lpopState reloading_supersticky
    }
-   return [list [array get isuasked] [array get vr]]
+   return [list [array get isuasked] [array get vr] [array get extratag]]
 }
 
 # load phase of a list of modules reload process
-proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist {force 0}\
-   {errmsgtpl {}} {context load}} {
+proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist extrataglist\
+   {force 0} {errmsgtpl {}} {context load}} {
    upvar $lmname lmlist
    array set isuasked $isuaskedlist
    array set vr $vrlist
+   array set extratag $extrataglist
 
    # loads are made with auto handling mode disabled to avoid disturbances
    # from a missing prereq automatically reloaded, so these module loads may
@@ -716,8 +719,9 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist {force 0}\
    foreach mod $lmlist {
       # if an auto set default was excluded, module spec need parsing
       lassign [parseModuleSpecification 0 $mod {*}$vr($mod)] modnamevr
-      # reload module with user asked property preserved
-      if {[cmdModuleLoad $context $isuasked($mod) {} $modnamevr]} {
+      # reload module with user asked property and extra tags preserved
+      if {[cmdModuleLoad $context $isuasked($mod) $extratag($mod)\
+         $modnamevr]} {
          set errMsg [string map [list _MOD_ [getModuleDesignation spec\
             $modnamevr]] $errmsgtpl]
          if {$force} {
