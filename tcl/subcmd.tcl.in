@@ -652,6 +652,17 @@ proc cmdModuleRestore {{coll default}} {
    set curr_mod_list [getLoadedModuleList]
    set curr_nuasked_list [getTaggedLoadedModuleList auto-loaded]
 
+   # update tags sets on the modules already loaded at correct position
+   # remove extra tags that are not defined in collection
+   foreach modvr [getLoadedModuleWithVariantList] {
+      if {[info exists coll_tag_arr($modvr)]} {
+         set tag_list $coll_tag_arr($modvr)
+      } else {
+         set tag_list {}
+      }
+      cmdModuleTag 1 $tag_list $modvr
+   }
+
    # determine what module to load to restore collection from current
    # situation with preservation of the load order
    # list of alternative and simplified names for loaded modules has been
