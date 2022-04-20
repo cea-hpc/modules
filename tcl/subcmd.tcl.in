@@ -912,7 +912,7 @@ proc cmdModuleLoad {context uasked tag_list args} {
                }
 
                # apply missing tag to loaded module
-               cmdModuleTag $tag_list $modname
+               cmdModuleTag 0 $tag_list $modname
 
                # exit treatment but no need to restore settings
                set loadok 1
@@ -2352,8 +2352,8 @@ proc cmdModuleHelp {args} {
    }
 }
 
-proc cmdModuleTag {tag_list args} {
-   reportDebug "tagging $args (tag_list=$tag_list)"
+proc cmdModuleTag {unset_extra tag_list args} {
+   reportDebug "tagging $args (unset_extra=$unset_extra, tag_list=$tag_list)"
 
    set ret 0
    foreach mod $args {
@@ -2367,9 +2367,13 @@ proc cmdModuleTag {tag_list args} {
          continue
       }
 
-      # record tags not already set
+      # record tags not already set and if asked unset extra tags not set
+      # anymore
       lassign [getDiffBetweenList $tag_list [getTagList $modname]] diff_list
-      if {[llength $diff_list] > 0} {
+      lassign [getDiffBetweenList [getExtraTagList $modname] $tag_list] \
+         unset_list
+      if {[llength $diff_list] > 0 || ($unset_extra && [llength $unset_list]\
+         > 0)} {
          lappendState mode unload
          # first unset tags declared for this module on LM env var
          if {[set modtag [getExportTagList $modname 1]] ne {}} {
@@ -2379,6 +2383,16 @@ proc cmdModuleTag {tag_list args} {
             remove-path __MODULES_LMEXTRATAG $modtag
          }
          lpopState mode
+
+         # remove extra tags currently set not part of tag list if asked
+         if {$unset_extra && [llength $unset_list] > 0} {
+            unsetModuleTag $modname {*}$unset_list
+            unsetModuleExtraTag $modname {*}$unset_list
+            if {$modnamevr ne {} && $modname ne $modnamevr} {
+               unsetModuleTag $modnamevr {*}$unset_list
+               unsetModuleExtraTag $modnamevr {*}$unset_list
+            }
+         }
 
          # record new tags as extra tag excluding tags relative to the way
          # module is loaded (auto, keep)

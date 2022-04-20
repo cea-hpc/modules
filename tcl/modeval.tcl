@@ -661,7 +661,7 @@ proc loadRequirementModuleList {tag_list args} {
       releaseHeldReport {*}$holdidlist
    } else {
       # apply missing tag to first loaded module found
-      cmdModuleTag $tag_list $loadedmod
+      cmdModuleTag 0 $tag_list $loadedmod
    }
 }
 

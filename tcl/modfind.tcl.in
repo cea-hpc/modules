@@ -707,6 +707,28 @@ proc setModuleExtraTag {mod args} {
    appendNoDupToList ::g_extraTagHash($mod) {*}$args
 }
 
+proc unsetModuleTag {mod args} {
+   if {[info exists ::g_tagHash($mod)]} {
+      lassign [getDiffBetweenList $::g_tagHash($mod) $args] diff_list
+      if {[llength $diff_list] > 0} {
+         set ::g_tagHash($mod) $diff_list
+      } else {
+         unset ::g_tagHash($mod)
+      }
+   }
+}
+
+proc unsetModuleExtraTag {mod args} {
+   if {[info exists ::g_extraTagHash($mod)]} {
+      lassign [getDiffBetweenList $::g_extraTagHash($mod) $args] diff_list
+      if {[llength $diff_list] > 0} {
+         set ::g_extraTagHash($mod) $diff_list
+      } else {
+         unset ::g_extraTagHash($mod)
+      }
+   }
+}
+
 proc getTagList {mod {sort 1}} {
    if {[info exists ::g_tagHash($mod)]} {
       if {$sort} {
