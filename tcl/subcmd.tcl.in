@@ -2427,6 +2427,14 @@ proc cmdModuleTag {unset_extra tag_list args} {
             }
          }
 
+         # ensure auto-loaded tag is not preserved if not part of target tags
+         if {$unset_extra && {auto-loaded} ni $tag_list} {
+            unsetModuleTag $modname auto-loaded
+            if {$modnamevr ne {} && $modname ne $modnamevr} {
+               unsetModuleTag $modnamevr auto-loaded
+            }
+         }
+
          # record new tags as extra tag excluding tags relative to the way
          # module is loaded (auto, keep)
          lassign [getDiffBetweenList $diff_list [list auto-loaded\
