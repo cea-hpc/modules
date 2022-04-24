@@ -1421,6 +1421,13 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          # unset tags declared for this module
          if {[set modtag [getExportTagList $modname 1]] ne {}} {
             remove-path __MODULES_LMTAG $modtag
+            # also remove the auto-loaded and keep-loaded tags from
+            # in-memory knowledge not to re-apply them if module is reloaded
+            # in other conditions
+            unsetModuleTag $modname auto-loaded keep-loaded
+            if {$modnamevr ne {} && $modname ne $modnamevr} {
+               unsetModuleTag $modnamevr auto-loaded keep-loaded
+            }
          }
          if {[set modtag [getExtraTagList $modname 1]] ne {}} {
             remove-path __MODULES_LMEXTRATAG $modtag
