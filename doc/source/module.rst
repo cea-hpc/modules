@@ -2105,6 +2105,14 @@ meaning:
 * ``super-sticky``: module once loaded cannot be unloaded unless reloaded,
   module cannot be unloaded even if forced (see `Sticky modules`_ section)
 
+The :option:`--tag` option helps to apply additional tags to modules. It is
+available on :subcmd:`load`, :subcmd:`load-any`, :subcmd:`switch` and
+:subcmd:`try-load` sub-commands and on :mfcmd:`always-load`,
+:mfcmd:`depends-on`, :mfcmd:`module`, :mfcmd:`prereq`, :mfcmd:`prereq-all` and
+:mfcmd:`prereq-any` modulefile commands. In case the designated module is
+already loaded, the additional tags are added to the list of tags already
+applied to this module.
+
 Module tags are reported along the module they are associated to on
 :subcmd:`avail` and :subcmd:`list` sub-command results. Tags could be reported
 either:
