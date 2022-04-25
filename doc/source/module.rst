@@ -421,6 +421,18 @@ switches are accepted:
     .. versionchanged:: 5.1
        Support for :subcmd:`list` sub-command added
 
+.. option:: --tag=LIST
+
+ On :subcmd:`load`, :subcmd:`load-any`, :subcmd:`switch` and
+ :subcmd:`try-load` sub-commands, apply LIST of module tags to the loading
+ *modulefile*. *LIST* corresponds to the concatenation of multiple tags
+ separated by colon character (``:``). *LIST* should not contain tags
+ inherited from *modulefile* state or from other modulefile commands.
+
+ .. only:: html
+
+    .. versionadded:: 5.1
+
 .. option:: --terse, -t
 
  Display :subcmd:`avail`, :subcmd:`list` and :subcmd:`savelist` output in
@@ -1439,7 +1451,7 @@ Module Sub-Commands
        :option:`--force`/:option:`-f` added
 
     .. versionchanged:: 5.1
-       Option ``--tag`` added
+       Option :option:`--tag` added
 
 
 .. subcmd:: load-any [options] modulefile...
@@ -1630,8 +1642,8 @@ Module Sub-Commands
  :envvar:`MODULES_COLLECTION_PIN_VERSION` is set to ``1``, module version is
  always recorded even if it is the default version.
 
- By default, only the module tags specifically set with the ``--tag`` option
- or resulting from a specific module state (like ``auto-loaded`` and
+ By default, only the module tags specifically set with the :option:`--tag`
+ option or resulting from a specific module state (like ``auto-loaded`` and
  ``keep-loaded`` tags) are recorded in collection. If
  :envvar:`MODULES_COLLECTION_PIN_TAG` is set to ``1``, all tags are recorded
  in collection except ``nearly-forbidden`` tag.
@@ -1786,7 +1798,7 @@ Module Sub-Commands
        :option:`--force`/:option:`-f` added
 
     .. versionchanged:: 5.1
-       Option ``--tag`` added
+       Option :option:`--tag` added
 
 .. subcmd:: test modulefile...
 
@@ -1839,7 +1851,7 @@ Module Sub-Commands
     .. versionadded:: 4.8
 
     .. versionchanged:: 5.1
-       Option ``--tag`` added
+       Option :option:`--tag` added
 
 .. subcmd:: unload [--auto|--no-auto] [-f] modulefile...
 
@@ -2381,14 +2393,14 @@ ENVIRONMENT
 .. envvar:: __MODULES_LMEXTRATAG
 
  A colon separated list of the tags corresponding to all loaded *modulefiles*
- that have been set through the ``--tag`` option. Each element in this list
- starts by the name of the loaded *modulefile* followed by all explicitly set
- tags applying to it. The loaded modulefile and its tags are separated by the
- ampersand character.
+ that have been set through the :option:`--tag` option. Each element in this
+ list starts by the name of the loaded *modulefile* followed by all explicitly
+ set tags applying to it. The loaded modulefile and its tags are separated by
+ the ampersand character.
 
  This environment variable is intended for :command:`module` command internal
  use to distinguish from all tags those that have been specifically set with
- ``--tag`` option.
+ :option:`--tag` option.
 
  .. only:: html
 
@@ -2740,9 +2752,9 @@ ENVIRONMENT
 .. envvar:: MODULES_COLLECTION_PIN_TAG
 
  If set to ``1``, register all tags applying to modulefiles when saving a
- collection. Otherwise only the extra tags set through the ``--tag`` option
- and tags resulting from specific module states (like ``auto-loaded`` and
- ``keep-loaded`` tags) are recorded in collection. Note that the
+ collection. Otherwise only the extra tags set through the :option:`--tag`
+ option and tags resulting from specific module states (like ``auto-loaded``
+ and ``keep-loaded`` tags) are recorded in collection. Note that the
  ``nearly-forbidden`` tag due to its temporal meaning is not saved in
  collection even when this configuration option is enabled.
 
