@@ -34,6 +34,9 @@ jobs:
         run: |
           curl -LfsS -o %TCL_INSTALLER%.exe %TCL_DL_URL%/%TCL_INSTALLER%.exe
           %TCL_INSTALLER% /verysilent
+      - name: Configure Git safe.directory
+        run: |
+          & $env:CYGWIN_BASH -lc 'git config --global --add safe.directory $(cygpath -u "$GITHUB_WORKSPACE")'
       - name: Build Modules dist
         run: |
           & $env:CYGWIN_BASH -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure --disable-libtclenvmodules && make dist-win'
@@ -73,6 +76,9 @@ jobs:
           # precise all sphinxcontrib packages required as dependency spec
           # of python39-sphinx package is regularly broken
           choco install make sed git autoconf automake libtool tcl dejagnu python39 python39-sphinx ruby zsh tcsh mksh fish cmake R tcl-devel gcc-core wget python39-sphinxcontrib-applehelp python39-sphinxcontrib-devhelp python39-sphinxcontrib-htmlhelp python39-sphinxcontrib-jsmath python39-sphinxcontrib-qthelp python39-sphinxcontrib-serializinghtml python39-sphinxcontrib-websupport python39-alabaster python39-sqlalchemy --source cygwin
+      - name: Configure Git safe.directory
+        run: |
+          & $env:CYGWIN_BASH -lc 'git config --global --add safe.directory $(cygpath -u "$GITHUB_WORKSPACE")'
       - name: Build Modules
         run: |
           & $env:CYGWIN_BASH -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure && make'
