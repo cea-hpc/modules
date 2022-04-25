@@ -427,7 +427,9 @@ switches are accepted:
  :subcmd:`try-load` sub-commands, apply LIST of module tags to the loading
  *modulefile*. *LIST* corresponds to the concatenation of multiple tags
  separated by colon character (``:``). *LIST* should not contain tags
- inherited from *modulefile* state or from other modulefile commands.
+ inherited from *modulefile* state or from other modulefile commands. If
+ module is already loaded, tags from *LIST* are added to the list of tags
+ already applied to this module.
 
  .. only:: html
 
@@ -1439,10 +1441,9 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
- The ``--tag`` option accepts a list of module tags to apply to *modulefile*
- once loaded. *taglist* corresponds to the concatenation of multiple tags
- separated by colon character. *taglist* should not contain tags inherited
- from *modulefile* state or from other modulefile commands.
+ The :option:`--tag` option accepts a list of module tags to apply to
+ *modulefile* once loaded. If module is already loaded, tags from *taglist*
+ are added to the list of tags already applied to this module.
 
  .. only:: html
 
@@ -1475,10 +1476,9 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
- The ``--tag`` option accepts a list of module tags to apply to *modulefile*
- once loaded. *taglist* corresponds to the concatenation of multiple tags
- separated by colon character. *taglist* should not contain tags inherited
- from *modulefile* state or from other modulefile commands.
+ The :option:`--tag` option accepts a list of module tags to apply to
+ *modulefile* once loaded. If module is already loaded, tags from *taglist*
+ are added to the list of tags already applied to this module.
 
  .. only:: html
 
@@ -1786,10 +1786,9 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
- The ``--tag`` option accepts a list of module tags to apply to *modulefile2*
- once loaded. *taglist* corresponds to the concatenation of multiple tags
- separated by colon character. *taglist* should not contain tags inherited
- from *modulefile* state or from other modulefile commands.
+ The :option:`--tag` option accepts a list of module tags to apply to
+ *modulefile* once loaded. If module is already loaded, tags from *taglist*
+ are added to the list of tags already applied to this module.
 
  .. only:: html
 
@@ -1841,10 +1840,9 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
- The ``--tag`` option accepts a list of module tags to apply to *modulefile*
- once loaded. *taglist* corresponds to the concatenation of multiple tags
- separated by colon character. *taglist* should not contain tags inherited
- from *modulefile* state or from other modulefile commands.
+ The :option:`--tag` option accepts a list of module tags to apply to
+ *modulefile* once loaded. If module is already loaded, tags from *taglist*
+ are added to the list of tags already applied to this module.
 
  .. only:: html
 

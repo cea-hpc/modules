@@ -81,7 +81,8 @@ the *modulefile* is being loaded.
  once loaded in addition to the ``keep-loaded`` tag. *taglist* corresponds to
  the concatenation of multiple tags separated by colon character. *taglist*
  should not contain tags inherited from *modulefile* state or from other
- modulefile commands.
+ modulefile commands. If module is already loaded, tags from *taglist* are
+ added to the list of tags already applied to this module.
 
  .. only:: html
 
@@ -347,7 +348,8 @@ the *modulefile* is being loaded.
  the ``--tag`` option to apply specified tags to *modulefile* once loaded.
  Option accepts a concatenation of multiple module tags separated by colon
  character. *taglist* should not contain tags inherited from *modulefile*
- state or from other modulefile commands.
+ state or from other modulefile commands. If module is already loaded, tags
+ from *taglist* are added to the list of tags already applied to this module.
 
  Command line switches :option:`--auto`, :option:`--no-auto` and
  :option:`--force` are ignored when passed to a :mfcmd:`module` command set in
@@ -888,7 +890,9 @@ the *modulefile* is being loaded.
  The ``--tag`` option accepts a list of module tags to apply to *modulefile*
  once loaded. *taglist* corresponds to the concatenation of multiple tags
  separated by colon character. *taglist* should not contain tags inherited
- from *modulefile* state or from other modulefile commands.
+ from *modulefile* state or from other modulefile commands. If module is
+ already loaded, tags from *taglist* are added to the list of tags already
+ applied to this module.
 
  .. only:: html
 
