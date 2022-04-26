@@ -225,6 +225,41 @@ Note that when processing a :mfcmd:`family` command, the
 :envvar:`LMOD_FAMILY_\<NAME\>` environment variable is defined by Modules to
 be compatible with existing modulefiles or scripts relying on such variable.
 
+More tagging capabilities
+-------------------------
+
+The new :option:`--tag` option helps to define extra tags onto a loading
+module. These tags comes in addition to those inherited from the module state
+or those associated with the :mfcmd:`module-tag` modulefile command.
+
+The :option:`--tag` option is available on :subcmd:`load`, :subcmd:`load-any`,
+:subcmd:`switch` and :subcmd:`try-load` sub-commands and on
+:mfcmd:`always-load`, :mfcmd:`depends-on`, :mfcmd:`module`, :mfcmd:`prereq`,
+:mfcmd:`prereq-all` and :mfcmd:`prereq-any` modulefile commands.
+
+In case the designated module is already loaded, the additional tags are added
+to the list of tags already applied to this module.
+
+The ``keep-loaded`` tag is introduced in this version. It avoids an
+auto-loaded module to get automatically unloaded when its dependent modules
+are unloaded. This new tag can be set with the :mfcmd:`module-tag` modulefile
+command or when module is loaded with the :mfcmd:`always-load` modulefile
+command. Default :mconfig:`tag_abbrev` configuration option has been updated
+to add the ``kL`` abbreviation for ``keep-loaded`` tag. Default dark and light
+color palettes have been updated too.
+
+When saving a collection, the tags defined with :option:`--tag` option are
+recorded to set them again when collection is restored. Tags resulting from
+module load state, like ``auto-loaded`` and ``keep-loaded``, are also
+recorded.
+
+The :mconfig:`collection_pin_tag` configuration option is added to record in
+collection all tags set on loaded modules. This configuration option is
+disabled by default.
+
+.. note:: Collection saved now starts with a ``#%Module5.1`` file signature if
+   :option:`--tag` option is recorded in it. Such collection could only be
+   handled by Modules version 5.1 and above.
 
 v5.0
 ====

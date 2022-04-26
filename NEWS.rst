@@ -218,6 +218,9 @@ Modules 5.1.0 (not yet released)
   :ref:`modulefile(4)` man page.
 * Doc: describe :mfcmd:`module` sub-commands available as modulefile Tcl
   command for each interpretation context in :ref:`modulefile(4)` man page.
+* When loading a module with some extra tags defined through the
+  :option:`--tag` option, if this module is already loaded the new tags are
+  added to those already set.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 .. _codespell: https://github.com/codespell-project/codespell
