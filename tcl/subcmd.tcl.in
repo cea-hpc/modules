@@ -899,9 +899,11 @@ proc cmdModuleLoad {context uasked tag_list args} {
          }
       }
 
-      # record module title (with the variant specified on load call) prior
-      # module evaluation to get this title ready in case of eval error
-      registerModuleDesignation $msgrecid $modname [getVariantList $mod 1 0 1]
+      # record module title (with the variant specified on load call, and no
+      # tag list) prior module evaluation to get this title ready in case of
+      # eval error
+      registerModuleDesignation $msgrecid $modname [getVariantList $mod 1 0\
+         1] {}
 
       pushSettings
       if {[set errCode [catch {
@@ -920,7 +922,7 @@ proc cmdModuleLoad {context uasked tag_list args} {
                if {$isloaded && [isVerbosityLevel verbose2]} {
                   reportInfo "Module '$modname' is already loaded"
                   registerModuleDesignation $msgrecid $modname\
-                     [getVariantList $modname 1]
+                     [getVariantList $modname 1] [getExportTagList $modname]
                   reportMsgRecord "Loading [getModuleDesignation $msgrecid {}\
                      2]"
                }
@@ -1102,9 +1104,9 @@ proc cmdModuleLoad {context uasked tag_list args} {
             append-path __MODULES_LMEXTRATAG $modtag
          }
 
-         # record module title (name and variant)
+         # record module title (name, variants and tags)
          registerModuleDesignation $msgrecid $modname [getVariantList\
-            $modname 1]
+            $modname 1] [getExportTagList $modname]
 
          # Load phase of dependent module reloading. These modules can adapt
          # now that mod is seen loaded. Except if switch action ongoing (DepRe
@@ -1198,10 +1200,11 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       # set a unique id to record messages related to this evaluation.
       set msgrecid unload-$modnamevr-[depthState modulename]
 
-      # record module title (with the variant specified on unload call) prior
-      # module evaluation to get this title ready in case of eval error
+      # record module title (with the variant specified on unload call, and no
+      # tag list) prior module evaluation to get this title ready in case of
+      # eval error
       registerModuleDesignation $msgrecid $modname [getVariantList $modnamevr\
-         1 0 1]
+         1 0 1] {}
 
       # if a switch action is ongoing...
       if {[info exists swprocessing]} {
@@ -1255,8 +1258,9 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       registerModuleEvalAttempt $context $modnamevr
       registerModuleEvalAttempt $context $modfile
 
-      # record module title (name and variant)
-      registerModuleDesignation $msgrecid $modname [getVariantList $modname 1]
+      # record module title (name, variants and tags)
+      registerModuleDesignation $msgrecid $modname [getVariantList $modname\
+         1] [getExportTagList $modname]
 
       pushSettings
       if {[set errCode [catch {
@@ -2318,6 +2322,7 @@ proc cmdModuleRefresh {} {
          set lmvr $lm
       }
       set lmfile [getModulefileFromLoadedModule $lm]
+      set taglist [getExportTagList $lm]
 
       # refreshing module is visible by default
       set hidden 0
@@ -2329,9 +2334,9 @@ proc cmdModuleRefresh {} {
       # register record message unique id (now we know mod will be evaluated)
       pushMsgRecordId $msgrecid
 
-      # record module title (with the variant specified on load call) prior
-      # module evaluation to get this title ready in case of eval error
-      registerModuleDesignation $msgrecid $lm $vrlist
+      # record module title (with the variants and tags of loaded module)
+      # prior module evaluation to get this title ready in case of eval error
+      registerModuleDesignation $msgrecid $lm $vrlist $taglist
 
       # run modulefile, restore settings prior evaluation if error and
       # continue to evaluate the remaining loaded modules

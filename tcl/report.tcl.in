@@ -710,8 +710,8 @@ proc isEltInReport {elt {retifnotdef 1}} {
    return $ret
 }
 
-proc registerModuleDesignation {evalid mod vrlist} {
-   set ::g_moduleDesgination($evalid) [list $mod $vrlist]
+proc registerModuleDesignation {evalid mod vrlist taglist} {
+   set ::g_moduleDesgination($evalid) [list $mod $vrlist $taglist]
 }
 
 proc getModuleDesignation {from {mod {}} {sgr 1}} {
@@ -720,19 +720,22 @@ proc getModuleDesignation {from {mod {}} {sgr 1}} {
       spec {
          set moddesig [getModuleNameAndVersFromVersSpec $mod]
          set vrlist [getVariantList $mod 1 0 1]
+         set taglist {}
       }
       loaded {
          set moddesig $mod
          set vrlist [getVariantList $mod 1]
+         set taglist {}
       }
       default {
          # fetch information from passed evaluation id
          if {[info exists ::g_moduleDesgination($from)]} {
-            lassign $::g_moduleDesgination($from) moddesig vrlist
+            lassign $::g_moduleDesgination($from) moddesig vrlist taglist
          # if not found, use passed spec to compute designation
          } else {
             set moddesig [getModuleNameAndVersFromVersSpec $mod]
             set vrlist [getVariantList $mod 1 0 1]
+            set taglist [getExportTagList $mod]
          }
       }
    }
