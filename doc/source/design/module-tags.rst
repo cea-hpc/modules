@@ -23,6 +23,7 @@ Specification
 
     - Applies to :subcmd:`load`, :subcmd:`try-load`, :subcmd:`load-any` and :subcmd:`switch` sub-commands
     - When directly used from the terminal session or within modulefile
+    - Applies to :mfcmd:`always-load`, :mfcmd:`depends-on`, :mfcmd:`prereq`, :mfcmd:`prereq-all` and :mfcmd:`prereq-any` modulefile commands
 
 - 3 different kind of tag exist:
 
