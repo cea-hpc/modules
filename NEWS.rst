@@ -221,6 +221,8 @@ Modules 5.1.0 (not yet released)
 * When loading a module with some extra tags defined through the
   :option:`--tag` option, if this module is already loaded the new tags are
   added to those already set.
+* When reporting result of :subcmd:`avail` or :subcmd:`list` sub-commands,
+  enclose module names in single quotes if they contain a space character.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 .. _codespell: https://github.com/codespell-project/codespell

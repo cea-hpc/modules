@@ -942,9 +942,18 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
       }
    }
 
-   set disp $elt$eltsuffix
+   set displen 0
+   set disp $elt
    lappend eltsgrlist $eltsgr
-   set dispsgr [sgr $eltsgrlist $elt $himatchmap $tagsgrlist]$eltsuffix
+   set dispsgr [sgr $eltsgrlist $elt $himatchmap $tagsgrlist]
+   # enclose name between quotes if a space is found
+   if {[string first { } $elt] != -1} {
+      incr displen 2
+      set dispsgr '$dispsgr'
+   }
+   # append suffix
+   append disp $eltsuffix
+   append dispsgr $eltsuffix
 
    # format variant list if any
    if {$show_vrs && [llength $vr_list] > 0} {
@@ -1011,21 +1020,37 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
       append dispsgr $tagssgr
    }
 
-   return [list $disp $dispsgr]
+   # compute length
+   incr displen [string length $disp]
+
+   return [list $disp $dispsgr $displen]
 }
 
 # format an element with its syms for a long/detailed display in a list
 proc formatListEltToLongDisplay {elt eltsgr eltsuffix sym_list symsgr mtime\
    sgrdef {himatchmap {}}} {
-   set disp $elt$eltsuffix
-   set displen [string length $disp]
    # display default sym graphically over element name
    if {[set defidx [lsearch -exact $sym_list default]] != -1 && $sgrdef} {
       set sym_list [lreplace $sym_list $defidx $defidx]
       lappend eltsgrlist de
    }
    lappend eltsgrlist $eltsgr
-   set dispsgr [sgr $eltsgrlist $elt $himatchmap]$eltsuffix
+
+   set displen 0
+   set disp $elt
+   set dispsgr [sgr $eltsgrlist $elt $himatchmap]
+   # enclose name between quotes if a space is found
+   if {[string first { } $elt] != -1} {
+      incr displen 2
+      set dispsgr '$dispsgr'
+   }
+   # append suffix
+   append disp $eltsuffix
+   append dispsgr $eltsuffix
+
+   # compute length
+   incr displen [string length $disp]
+
    # format remaining sym list
    if {[llength $sym_list] > 0} {
       set symslen [string length [join $sym_list :]]
@@ -1044,7 +1069,7 @@ proc formatListEltToLongDisplay {elt eltsgr eltsuffix sym_list symsgr mtime\
    set nbws1 [expr {40 - $displen}]
    set nbws2 [expr {20 - $symslen + [expr {$nbws1 < 0 ? $nbws1 : 0}]}]
    return [list $disp $dispsgr[string repeat { } $nbws1]$symssgr[string\
-      repeat { } $nbws2]$mtime]
+      repeat { } $nbws2]$mtime $displen]
 }
 
 proc formatArrayValToJson {vallist} {
@@ -1159,11 +1184,11 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
             } elseif {$show_mtime} {
                # append / char after name to clearly indicate this is a dir
                lassign [formatListEltToLongDisplay $elt di / $sym_list sy {}\
-                  $default_colored $himatchmap] disp dispsgr
+                  $default_colored $himatchmap] disp dispsgr displen
             } else {
                lassign [formatListEltToDisplay $elt di / $sym_list sy\
                   $report_sym $default_colored {} 0 {} {} 0 $himatchmap] disp\
-                  dispsgr
+                  dispsgr displen
             }
          }
          modulefile - virtual {
@@ -1178,11 +1203,12 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
                # add to display file modification time in addition
                # to potential syms
                lassign [formatListEltToLongDisplay $elt {} {} $sym_list sy\
-                  $clock_mtime $default_colored $himatchmap] disp dispsgr
+                  $clock_mtime $default_colored $himatchmap] disp dispsgr\
+                  displen
             } else {
                lassign [formatListEltToDisplay $elt {} {} $sym_list sy\
                   $report_sym $default_colored $tag_list $report_tag $vr_list\
-                  va $report_variant $himatchmap] disp dispsgr
+                  va $report_variant $himatchmap] disp dispsgr displen
             }
          }
          alias {
@@ -1193,7 +1219,7 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
             } elseif {$show_mtime} {
                lassign [formatListEltToLongDisplay $elt al " -> [lindex\
                   $mod_list($elt) 1]" $sym_list sy {} $default_colored\
-                  $himatchmap] disp dispsgr
+                  $himatchmap] disp dispsgr displen
             } elseif {$report_alias} {
                # add a '@' sym to indicate elt is an alias if not colored
                if {!$alias_colored} {
@@ -1205,7 +1231,7 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
                }
                lassign [formatListEltToDisplay $elt al {} $sym_list sy\
                   $report_sym $default_colored $tag_list $report_tag {} {} 0\
-                  $himatchmap] disp dispsgr
+                  $himatchmap] disp dispsgr displen
             }
          }
       }
@@ -1215,6 +1241,7 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
          } else {
             lappend clean_list $disp
             set sgrmap($disp) $dispsgr
+            set lenmap($disp) $displen
          }
       }
    }
@@ -1235,9 +1262,9 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
       foreach disp $clean_list {
          # compute display element length list on sorted result
          lappend display_list $sgrmap($disp)
-         lappend len_list [set len [string length $disp]]
-         if {$len > $max_len} {
-            set max_len $len
+         lappend len_list $lenmap($disp)
+         if {$lenmap($disp) > $max_len} {
+            set max_len $lenmap($disp)
          }
       }
    }
