@@ -19,7 +19,7 @@ Specification
 
         - For instance, a module with a ``sticky`` tag set on it cannot be unloaded
 
-- Tag may also be set manually with the ``--tag`` sub-command option
+- Tag may also be set manually with the :option:`--tag` sub-command option
 
     - Applies to :subcmd:`load`, :subcmd:`try-load`, :subcmd:`load-any` and :subcmd:`switch` sub-commands
     - When directly used from the terminal session or within modulefile

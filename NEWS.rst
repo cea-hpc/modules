@@ -190,25 +190,25 @@ Modules 5.1.0 (not yet released)
   ability to catch this content.
 * Lib: handle ``sysconf`` error in function implementing the
   ``initStateUsergroups`` procedure. (contribution from Lukáš Zaoral)
-* Introduce the ``--tag`` option for the :subcmd:`load`, :subcmd:`try-load`,
-  :subcmd:`load-any`, :subcmd:`switch` sub-commands and associated
-  :mfcmd:`module` modulefile commands and :mfcmd:`prereq`, mfcmd:`prereq-all`,
-  :mfcmd:`depends-on` and :mfcmd:`always-load` modulefile commands. This new
-  option applies specified tags to the module to load.
-* Record tags set to loaded modules with the ``--tag`` option in the
+* Introduce the :option:`--tag` option for the :subcmd:`load`,
+  :subcmd:`try-load`, :subcmd:`load-any`, :subcmd:`switch` sub-commands and
+  associated :mfcmd:`module` modulefile commands and :mfcmd:`prereq`,
+  mfcmd:`prereq-all`, :mfcmd:`depends-on` and :mfcmd:`always-load` modulefile
+  commands. This new option applies specified tags to the module to load.
+* Record tags set to loaded modules with the :option:`--tag` option in the
   :envvar:`__MODULES_LMEXTRATAG` environment variable to make this information
   persists after module being loaded.
-* When saving a collection, record loaded module tags set with the ``--tag``
-  option and those resulting from module load states (like ``auto-loaded`` and
-  ``keep-loaded``). The ``--notuasked`` string previously used to designate
-  auto-loaded modules in collection is changed into the ``--tag=auto-loaded``
-  option.
+* When saving a collection, record loaded module tags set with the
+  :option:`--tag` option and those resulting from module load states (like
+  ``auto-loaded`` and ``keep-loaded``). The ``--notuasked`` string previously
+  used to designate auto-loaded modules in collection is changed into the
+  ``--tag=auto-loaded`` option.
 * Introduce the :mconfig:`collection_pin_tag` configuration option, that
   records in collection all tags set on loaded modules when enabled. Option is
   disabled by default and when set it defines the :envvar:`MODULES_COLLECTION\
   _PIN_TAG` environment variable.
 * When a collection is saved, its content starts with a ``#%Module5.1`` file
-  signature if ``--tag`` option is recorded in it.
+  signature if :option:`--tag` option is recorded in it.
 * Update the :subcmd:`restore`, :subcmd:`savelist`, :subcmd:`saveshow` and
   :subcmd:`is-saved` sub-commands to exclude from result or return an error
   when checking a collection expressing a higher Modules version requirement

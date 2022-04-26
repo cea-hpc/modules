@@ -828,7 +828,7 @@ The following command line switches appeared on Modules 5.
 | Introduced | New command line switches                                       |
 | in version |                                                                 |
 +============+=================================================================+
-| 5.1        | :option:`--redirect`, :option:`--no-redirect`                   |
+| 5.1        | :option:`--redirect`, :option:`--no-redirect`, :option:`--tag`  |
 +------------+-----------------------------------------------------------------+
 
 Module Sub-Commands
@@ -902,7 +902,8 @@ The following modulefile Tcl commands appeared on Modules 5.
 
 :mfcmd:`prereq`, :mfcmd:`module load/try-load/load-any/switch<module>`
 
- Starting Modules 5.1, these modulefile commands accept the ``--tag`` option.
+ Starting Modules 5.1, these modulefile commands accept the :option:`--tag`
+ option.
 
 :mfcmd:`module try-load/load-any<module>`
 
