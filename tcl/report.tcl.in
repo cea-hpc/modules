@@ -745,18 +745,28 @@ proc getModuleDesignation {from {mod {}} {sgr 1}} {
       2 {
          set vrsgr va
          set himatchmap [list $moddesig [sgr hi $moddesig]]
+
+         set showtags 1
+         # prepare list of tag abbreviations that can be substituted and list
+         # of tags whose name should be colored
+         getConf tag_abbrev
+         getConf tag_color_name
+         # abbreviate tags
+         set taglist [abbrevTagList $taglist]
       }
       1 {
          set vrsgr {se va}
          set himatchmap {}
+         set showtags 0
       }
       0 {
          set vrsgr {}
          set himatchmap {}
+         set showtags 0
       }
    }
-   lassign [formatListEltToDisplay $moddesig {} {} {} {} 0 0 {} 0 $vrlist\
-      $vrsgr 1 $himatchmap] disp dispsgr displen
+   lassign [formatListEltToDisplay $moddesig {} {} {} {} 0 0 $taglist\
+      $showtags $vrlist $vrsgr 1 $himatchmap] disp dispsgr displen
 
    return $dispsgr
 }
