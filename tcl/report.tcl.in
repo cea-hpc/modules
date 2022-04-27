@@ -741,36 +741,24 @@ proc getModuleDesignation {from {mod {}} {sgr 1}} {
    }
 
    # build module designation
-   # add module name and version to the designation
-   if {$sgr > 1} {
-      set desig [sgr hi $moddesig]
-   } else {
-      set desig $moddesig
-   }
-   # enclose module name between quotes if a space is found
-   if {[string first { } $moddesig] != -1} {
-      set desig '$desig'
-   }
-
-   # add variant specification to the designation
-   if {[llength $vrlist] > 0} {
-      foreach vr $vrlist {
-         switch -- $sgr {
-            2 {set vrdesig [sgr va $vr]}
-            1 {set vrdesig [sgr {se va} $vr]}
-            0 {set vrdesig $vr}
-         }
-         lappend vrdesiglist $vrdesig
+   switch -- $sgr {
+      2 {
+         set vrsgr va
+         set himatchmap [list $moddesig [sgr hi $moddesig]]
       }
-      if {$sgr > 0} {
-         append desig [sgr se "\{"] [join $vrdesiglist [sgr se :]] [sgr se\
-            "\}"]
-      } else {
-         append desig "\{" [join $vrdesiglist :] "\}"
+      1 {
+         set vrsgr {se va}
+         set himatchmap {}
+      }
+      0 {
+         set vrsgr {}
+         set himatchmap {}
       }
    }
+   lassign [formatListEltToDisplay $moddesig {} {} {} {} 0 0 {} 0 $vrlist\
+      $vrsgr 1 $himatchmap] disp dispsgr displen
 
-   return $desig
+   return $dispsgr
 }
 
 #
