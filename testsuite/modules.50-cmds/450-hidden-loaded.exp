@@ -40,7 +40,7 @@ set ans [list]
 lappend ans [list set _LMFILES_ $mp/h1]
 lappend ans [list set LOADEDMODULES h1]
 lappend ans [list set __MODULES_LMTAG h1&hidden-loaded]
-testouterr_cmd_re sh {load -v h1} $ans [msg_load h1]
+testouterr_cmd_re sh {load -v h1} $ans [msg_load {h1 <H>}]
 
 # unload
 setenv_loaded_module [list h1] [list $mp/h1]
@@ -49,7 +49,7 @@ set ans [list]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
 lappend ans [list unset __MODULES_LMTAG]
-testouterr_cmd_re sh {unload -v h1} $ans [msg_unload h1]
+testouterr_cmd_re sh {unload -v h1} $ans [msg_unload {h1 <H>}]
 
 skip_if_quick_mode
 
@@ -58,13 +58,13 @@ set ans [list]
 lappend ans [list set _LMFILES_ $mp/h10]
 lappend ans [list set LOADEDMODULES h10]
 lappend ans [list unset __MODULES_LMTAG]
-testouterr_cmd_re sh {switch -v h1 h10} $ans [msg_unload h1]\n[msg_load h10]\n[msg_switch h1 h10]
+testouterr_cmd_re sh {switch -v h1 h10} $ans [msg_unload {h1 <H>}]\n[msg_load h10]\n[msg_switch {h1 <H>} h10]
 # switch (both modules hidden)
 set ans [list]
 lappend ans [list set _LMFILES_ $mp/h3]
 lappend ans [list set LOADEDMODULES h3]
 lappend ans [list set __MODULES_LMTAG h3&hidden-loaded]
-testouterr_cmd_re sh {switch -v h1 h3} $ans [msg_unload h1]\n[msg_load h3]\n[msg_switch h1 h3]
+testouterr_cmd_re sh {switch -v h1 h3} $ans [msg_unload {h1 <H>}]\n[msg_load {h3 <H>}]\n[msg_switch {h1 <H>} {h3 <H>}]
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMTAG
 
@@ -82,7 +82,7 @@ lappend ans [list unset __MODULES_LMPREREQ]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
 lappend ans [list unset __MODULES_LMTAG]
-testouterr_cmd_re sh {purge -v} $ans [msg_unload h4]\n[msg_unload h3]\n[msg_unload h2]
+testouterr_cmd_re sh {purge -v} $ans [msg_unload h4]\n[msg_unload {h3 <H>}]\n[msg_unload {h2 <aL>}]
 
 # reload
 set ans [list]
@@ -90,7 +90,7 @@ lappend ans [list set __MODULES_LMPREREQ h2&h1:h4&h1&h2|h3]
 lappend ans [list set _LMFILES_ $mp/h1:$mp/h2:$mp/h3:$mp/h4]
 lappend ans [list set LOADEDMODULES h1:h2:h3:h4]
 lappend ans [list set __MODULES_LMTAG h1&hidden-loaded&auto-loaded:h2&auto-loaded:h3&hidden-loaded]
-testouterr_cmd_re sh {reload -v} $ans [msg_unload h4]\n[msg_unload h3]\n[msg_unload h2]\n[msg_load h2]\n[msg_load h3]\n[msg_load h4]
+testouterr_cmd_re sh {reload -v} $ans [msg_unload h4]\n[msg_unload {h3 <H>}]\n[msg_unload {h2 <aL>}]\n[msg_load {h2 <aL>}]\n[msg_load {h3 <H>}]\n[msg_load h4]
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMPREREQ
 unsetenv_var __MODULES_LMTAG
@@ -107,9 +107,9 @@ lappend ans [list set __MODULES_LMPREREQ h2&h1:h4&h1&h2|h3]
 lappend ans [list set _LMFILES_ $mp/h1:$mp/h2:$mp/h4]
 lappend ans [list set LOADEDMODULES h1:h2:h4]
 lappend ans [list set __MODULES_LMTAG h1&hidden-loaded&auto-loaded:h2&auto-loaded]
-testouterr_cmd_re sh {load -v --auto h4} $ans [msg_load h2]\n\n[msg_top_load h4 {} h2 {}]
+testouterr_cmd_re sh {load -v --auto h4} $ans [msg_load {h2 <aL>}]\n\n[msg_top_load h4 {} h2 {}]
 # unless verbose2 level activated
-testouterr_cmd_re sh {load -v -v --auto h4} $ans [msg_load h1]\n[msg_load h2]\n\n[msg_top_load h4 {} {h1 h2} {}]
+testouterr_cmd_re sh {load -v -v --auto h4} $ans [msg_load {h1 <aL:H>}]\n[msg_load {h2 <aL>}]\n\n[msg_top_load h4 {} {h1 h2} {}]
 
 # urequn
 setenv_loaded_module [list h1 h2 h4] [list $mp/h1 $mp/h2 $mp/h4] [list h1 h2]
@@ -120,13 +120,13 @@ lappend ans [list unset __MODULES_LMPREREQ]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
 lappend ans [list unset __MODULES_LMTAG]
-testouterr_cmd_re sh {unload -v --auto h4} $ans [msg_unload h2]\n\n[msg_top_unload h4 {} h2 {}]
+testouterr_cmd_re sh {unload -v --auto h4} $ans [msg_unload {h2 <aL>}]\n\n[msg_top_unload h4 {} h2 {}]
 # unless verbose2 level activated
-testouterr_cmd_re sh {unload -vv --auto h4} $ans [msg_unload h2]\n[msg_unload h1]\n\n[msg_top_unload h4 {} {h2 h1} {}]
+testouterr_cmd_re sh {unload -vv --auto h4} $ans [msg_unload {h2 <aL>}]\n[msg_unload {h1 <aL:H>}]\n\n[msg_top_unload h4 {} {h2 h1} {}]
 
 # depun
 # specified module is hidden (should be reported)
-testouterr_cmd_re sh {unload -v --auto h1} $ans [msg_unload h4]\n[msg_unload h2]\n\n[msg_top_unload h1 {h4 h2} {} {}]
+testouterr_cmd_re sh {unload -v --auto h1} $ans [msg_unload h4]\n[msg_unload {h2 <aL>}]\n\n[msg_top_unload {h1 <aL:H>} {h4 h2} {} {}]
 # depun module is hidden and was not automatically loaded (should be reported)
 setenv_var __MODULES_LMTAG h1&hidden-loaded&auto-loaded:h2&auto-loaded:h4&hidden-loaded
 setenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET2 1
@@ -135,7 +135,7 @@ lappend ans [list unset __MODULES_LMPREREQ]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
 lappend ans [list unset __MODULES_LMTAG]
-testouterr_cmd_re sh {unload -v --auto h2} $ans [msg_unload h4]\n\n[msg_top_unload h2 h4 {} {}]
+testouterr_cmd_re sh {unload -v --auto h2} $ans [msg_unload {h4 <H>}]\n\n[msg_top_unload {h2 <aL>} h4 {} {}]
 # depun module is hidden and was automatically loaded (should not be reported)
 setenv_var __MODULES_LMTAG h1&hidden-loaded&auto-loaded:h2&auto-loaded:h4&hidden-loaded&auto-loaded
 set ans [list]
@@ -143,9 +143,9 @@ lappend ans [list unset __MODULES_LMPREREQ]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
 lappend ans [list unset __MODULES_LMTAG]
-testouterr_cmd_re sh {unload -v --auto h2} $ans [msg_unload h2]
+testouterr_cmd_re sh {unload -v --auto h2} $ans [msg_unload {h2 <aL>}]
 # unless verbose2 level activated
-testouterr_cmd_re sh {-v unload -v --auto h2} $ans [msg_unload h4]\n[msg_unload h1]\n\n[msg_top_unload h2 h4 h1 {}]
+testouterr_cmd_re sh {-v unload -v --auto h2} $ans [msg_unload {h4 <aL:H>}]\n[msg_unload {h1 <aL:H>}]\n\n[msg_top_unload {h2 <aL>} h4 h1 {}]
 
 # depre (on load)
 # depun module is hidden and was automatically loaded (should not be reported)
@@ -154,7 +154,7 @@ lappend ans [list set __MODULES_LMPREREQ h2&h1:h4&h1&h2|h3]
 lappend ans [list set _LMFILES_ $mp/h1:$mp/h2:$mp/h3:$mp/h4]
 lappend ans [list set LOADEDMODULES h1:h2:h3:h4]
 lappend ans [list set __MODULES_LMTAG h1&hidden-loaded&auto-loaded:h2&auto-loaded:h3&hidden-loaded:h4&hidden-loaded&auto-loaded]
-testouterr_cmd_re sh {load -v --auto h3} $ans [msg_load h3]
+testouterr_cmd_re sh {load -v --auto h3} $ans [msg_load {h3 <H>}]
 # depun module is hidden and was not automatically loaded (should be reported)
 setenv_var __MODULES_LMTAG h1&hidden-loaded&auto-loaded:h2&auto-loaded:h4&hidden-loaded
 set ans [list]
@@ -162,8 +162,8 @@ lappend ans [list set __MODULES_LMPREREQ h2&h1:h4&h1&h2|h3]
 lappend ans [list set _LMFILES_ $mp/h1:$mp/h2:$mp/h3:$mp/h4]
 lappend ans [list set LOADEDMODULES h1:h2:h3:h4]
 lappend ans [list set __MODULES_LMTAG h1&hidden-loaded&auto-loaded:h2&auto-loaded:h3&hidden-loaded:h4&hidden-loaded]
-testouterr_cmd_re sh {load -v --auto h3} $ans [msg_unload h4]\n[msg_load h4]\n\n[msg_top_load h3 {} {} h4]
-testouterr_cmd_re sh {load -v --auto -v h3} $ans [msg_unload h4]\n[msg_load h4]\n\n[msg_top_load h3 {} {} h4]
+testouterr_cmd_re sh {load -v --auto h3} $ans [msg_unload {h4 <H>}]\n[msg_load {h4 <H>}]\n\n[msg_top_load {h3 <H>} {} {} h4]
+testouterr_cmd_re sh {load -v --auto -v h3} $ans [msg_unload {h4 <H>}]\n[msg_load {h4 <H>}]\n\n[msg_top_load {h3 <H>} {} {} h4]
 
 # depre (on unload)
 # depun module is hidden and was automatically loaded (should not be reported)
@@ -174,7 +174,7 @@ lappend ans [list set __MODULES_LMPREREQ h2&h1:h4&h1&h2|h3]
 lappend ans [list set _LMFILES_ $mp/h1:$mp/h2:$mp/h4]
 lappend ans [list set LOADEDMODULES h1:h2:h4]
 lappend ans [list set __MODULES_LMTAG h1&hidden-loaded&auto-loaded:h2&auto-loaded:h4&hidden-loaded&auto-loaded]
-testouterr_cmd_re sh {unload -v --auto h3} $ans [msg_unload h3]
+testouterr_cmd_re sh {unload -v --auto h3} $ans [msg_unload {h3 <H>}]
 # depun module is hidden and was not automatically loaded (should be reported)
 setenv_var __MODULES_LMTAG h1&hidden-loaded&auto-loaded:h2&auto-loaded:h3&hidden-loaded:h4&hidden-loaded
 set ans [list]
@@ -182,7 +182,7 @@ lappend ans [list set __MODULES_LMPREREQ h2&h1:h4&h1&h2|h3]
 lappend ans [list set _LMFILES_ $mp/h1:$mp/h2:$mp/h4]
 lappend ans [list set LOADEDMODULES h1:h2:h4]
 lappend ans [list set __MODULES_LMTAG h1&hidden-loaded&auto-loaded:h2&auto-loaded:h4&hidden-loaded]
-testouterr_cmd_re sh {unload -v --auto h3} $ans [msg_unload h4]\n[msg_load h4]\n\n[msg_top_unload h3 {} {} h4]
+testouterr_cmd_re sh {unload -v --auto h3} $ans [msg_unload {h4 <H>}]\n[msg_load {h4 <H>}]\n\n[msg_top_unload {h3 <H>} {} {} h4]
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMPREREQ
 unsetenv_var __MODULES_LMTAG
@@ -197,7 +197,7 @@ lappend ans [list set __MODULES_LMPREREQ h21&h20:h22&h21]
 lappend ans [list set _LMFILES_ $mp/h20:$mp/h21:$mp/h22]
 lappend ans [list set LOADEDMODULES h20:h21:h22]
 lappend ans [list set __MODULES_LMTAG h20&auto-loaded:h21&hidden-loaded&auto-loaded]
-testouterr_cmd_re sh {load -v --auto h22} $ans [msg_load h20]\n\n[msg_top_load h22 {} h20 {}]
+testouterr_cmd_re sh {load -v --auto h22} $ans [msg_load {h20 <aL>}]\n\n[msg_top_load h22 {} h20 {}]
 setenv_loaded_module [list h20 h21 h22] [list $mp/h20 $mp/h21 $mp/h2] [list h20 h21]
 setenv_var __MODULES_LMTAG h20&auto-loaded:h21&hidden-loaded&auto-loaded
 setenv_var __MODULES_LMPREREQ h21&h20:h22&h21
@@ -206,8 +206,8 @@ lappend ans [list unset __MODULES_LMPREREQ]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
 lappend ans [list unset __MODULES_LMTAG]
-testouterr_cmd_re sh {unload -v --auto h22} $ans [msg_unload h20]\n\n[msg_top_unload h22 {} h20 {}]
-testouterr_cmd_re sh {unload -v --auto h20} $ans [msg_unload h22]\n\n[msg_top_unload h20 h22 {} {}]
+testouterr_cmd_re sh {unload -v --auto h22} $ans [msg_unload {h20 <aL>}]\n\n[msg_top_unload h22 {} h20 {}]
+testouterr_cmd_re sh {unload -v --auto h20} $ans [msg_unload h22]\n\n[msg_top_unload {h20 <aL>} h22 {} {}]
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMPREREQ
 unsetenv_var __MODULES_LMTAG
@@ -223,10 +223,10 @@ lappend ans [list set _LMFILES_ $mp/swb:$mp/swc]
 lappend ans [list set LOADEDMODULES swb:swc]
 lappend ans [list set __MODULES_LMTAG swb&hidden-loaded&auto-loaded]
 # see switch report however swa was not loaded
-testouterr_cmd_re sh {load -v --auto swc} $ans [msg_switch swa swb]\n[msg_load swc]
+testouterr_cmd_re sh {load -v --auto swc} $ans [msg_switch swa {swb <aL:H>}]\n[msg_load swc]
 # set swa loaded
 setenv_loaded_module [list swa] [list $mp/swa]
-testouterr_cmd_re sh {load -v --auto swc} $ans [msg_unload swa]\n[msg_switch swa swb]\n\n[msg_top_load swc swa {} {}]
+testouterr_cmd_re sh {load -v --auto swc} $ans [msg_unload swa]\n[msg_switch swa {swb <aL:H>}]\n\n[msg_top_load swc swa {} {}]
 # set swa loaded and hidden
 setenv_loaded_module [list swa] [list $mp/swa]
 setenv_var __MODULES_LMTAG swa&hidden-loaded
@@ -236,7 +236,7 @@ lappend ans [list set __MODULES_LMPREREQ swc&swb]
 lappend ans [list set _LMFILES_ $mp/swb:$mp/swc]
 lappend ans [list set LOADEDMODULES swb:swc]
 lappend ans [list set __MODULES_LMTAG swb&hidden-loaded&auto-loaded]
-testouterr_cmd_re sh {load -v --auto swc} $ans [msg_unload swa]\n[msg_switch swa swb]\n\n[msg_top_load swc swa {} {}]
+testouterr_cmd_re sh {load -v --auto swc} $ans [msg_unload {swa <H>}]\n[msg_switch {swa <H>} {swb <aL:H>}]\n\n[msg_top_load swc swa {} {}]
 # set swa automatically loaded and hidden
 setenv_loaded_module [list swa] [list $mp/swa] [list swa]
 setenv_var __MODULES_LMTAG swa&hidden-loaded&auto-loaded
@@ -258,15 +258,15 @@ unsetenv_var __MODULES_LMTAG
 #
 
 setenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET5 1
-testouterr_cmd sh {load -v --auto rah} ERR [msg_load rae]\n\n[msg_load raf $err_evalabort]\n\n[msg_load rag [err_reqmis raf]]\n\n[msg_load rah [err_reqlo raf] [err_reqlo rag]]
+testouterr_cmd sh {load -v --auto rah} ERR [msg_load {rae <aL>}]\n\n[msg_load raf $err_evalabort]\n\n[msg_load rag [err_reqmis raf]]\n\n[msg_load rah [err_reqlo raf] [err_reqlo rag]]
 set ans [list]
 lappend ans [list set __MODULES_LMPREREQ rag&raf:rah&rag]
 lappend ans [list set _LMFILES_ $mp/rag:$mp/rah]
 lappend ans [list set LOADEDMODULES rag:rah]
 lappend ans [list set __MODULES_LMTAG rag&hidden-loaded&auto-loaded]
 lappend ans [list ERR]
-testouterr_cmd_re sh {load --force -v --auto rah} $ans [msg_load rae]\n\n[msg_load raf $err_evalabort]\n\n[msg_load rag [err_reqmisf raf]]\n\n[msg_top_load rah {} rag {} [err_reqlof raf]]
-testouterr_cmd_re sh {load --force -vv --auto rah} $ans [msg_load rae]\n\n[msg_load raf $err_evalabort]\n\n[msg_load rag [err_reqmisf raf]]\n\n[msg_top_load rah {} rag {} [err_reqlof raf]]
+testouterr_cmd_re sh {load --force -v --auto rah} $ans [msg_load {rae <aL>}]\n\n[msg_load raf $err_evalabort]\n\n[msg_load {rag <aL:H>} [err_reqmisf raf]]\n\n[msg_top_load rah {} rag {} [err_reqlof raf]]
+testouterr_cmd_re sh {load --force -vv --auto rah} $ans [msg_load {rae <aL>}]\n\n[msg_load raf $err_evalabort]\n\n[msg_load {rag <aL:H>} [err_reqmisf raf]]\n\n[msg_top_load rah {} rag {} [err_reqlof raf]]
 
 setenv_loaded_module [list rae raf rag rah] [list $mp/rae $mp/raf $mp/rag $mp/rah] [list rae raf rag]
 setenv_var __MODULES_LMTAG rae&auto-loaded:raf&hidden-loaded&auto-loaded:rag&hidden-loaded&auto-loaded
@@ -277,28 +277,28 @@ lappend ans [list set _LMFILES_ $mp/rae:$mp/raf]
 lappend ans [list set __MODULES_LMPREREQ raf&rae]
 lappend ans [list set __MODULES_LMTAG rae&auto-loaded:raf&hidden-loaded&auto-loaded]
 lappend ans [list ERR]
-testouterr_cmd_re sh {unload -v --auto rah} $ans [msg_unload raf $err_evalabort]\n\n[msg_unload rah [err_urequn raf]]
-testouterr_cmd_re sh {unload --force -v --auto rah} $ans [msg_unload raf $err_evalabort]\n\n[msg_unload rah [err_urequn raf]]
+testouterr_cmd_re sh {unload -v --auto rah} $ans [msg_unload {raf <aL:H>} $err_evalabort]\n\n[msg_unload rah [err_urequn raf]]
+testouterr_cmd_re sh {unload --force -v --auto rah} $ans [msg_unload {raf <aL:H>} $err_evalabort]\n\n[msg_unload rah [err_urequn raf]]
 
-testouterr_cmd_re sh {unload -v --auto rae} ERR [msg_unload rah]\n\n[msg_unload raf $err_evalabort]\n\n[msg_unload rae [err_depun raf]]
+testouterr_cmd_re sh {unload -v --auto rae} ERR [msg_unload rah]\n\n[msg_unload {raf <aL:H>} $err_evalabort]\n\n[msg_unload {rae <aL>} [err_depun raf]]
 set ans [list]
 lappend ans [list set LOADEDMODULES raf]
 lappend ans [list set _LMFILES_ $mp/raf]
 lappend ans [list set __MODULES_LMPREREQ raf&rae]
 lappend ans [list set __MODULES_LMTAG raf&hidden-loaded&auto-loaded]
 lappend ans [list ERR]
-testouterr_cmd_re sh {unload --force -v --auto rae} $ans [msg_unload rah]\n\n[msg_unload raf $err_evalabort]\n\n[msg_top_unload rae {rah} {} {} [err_depunf raf]]
+testouterr_cmd_re sh {unload --force -v --auto rae} $ans [msg_unload rah]\n\n[msg_unload {raf <aL:H>} $err_evalabort]\n\n[msg_top_unload {rae <aL>} {rah} {} {} [err_depunf raf]]
 
 setenv_loaded_module [list rae raf rag rah] [list $mp/rae $mp/raf $mp/rag $mp/rah] [list rae rag]
 setenv_var __MODULES_LMTAG rae&auto-loaded:raf&hidden-loaded:rag&hidden-loaded&auto-loaded
-testouterr_cmd_re sh {unload -v --auto rae} ERR [msg_unload rah]\n\n[msg_unload raf $err_evalabort]\n\n[msg_unload rae [err_depun raf]]
+testouterr_cmd_re sh {unload -v --auto rae} ERR [msg_unload rah]\n\n[msg_unload {raf <H>} $err_evalabort]\n\n[msg_unload {rae <aL>} [err_depun raf]]
 set ans [list]
 lappend ans [list set LOADEDMODULES raf]
 lappend ans [list set _LMFILES_ $mp/raf]
 lappend ans [list set __MODULES_LMPREREQ raf&rae]
 lappend ans [list set __MODULES_LMTAG raf&hidden-loaded]
 lappend ans [list ERR]
-testouterr_cmd_re sh {unload --force -v --auto rae} $ans [msg_unload rah]\n\n[msg_unload raf $err_evalabort]\n\n[msg_top_unload rae {rah} {} {} [err_depunf raf]]
+testouterr_cmd_re sh {unload --force -v --auto rae} $ans [msg_unload rah]\n\n[msg_unload {raf <H>} $err_evalabort]\n\n[msg_top_unload {rae <aL>} {rah} {} {} [err_depunf raf]]
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMPREREQ
 unsetenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET5
@@ -308,7 +308,7 @@ unsetenv_var __MODULES_LMTAG
 setenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET6 1
 setenv_loaded_module [list swa] [list $mp/swa] [list swa]
 setenv_var __MODULES_LMTAG swa&hidden-loaded&auto-loaded
-testouterr_cmd_re sh {load -v --auto swj} ERR [msg_load ra $err_evalabort]\n\n[msg_switch swa ra]\n\n[msg_load swj [err_swon ra] [err_reqlo ra]]
+testouterr_cmd_re sh {load -v --auto swj} ERR [msg_load ra $err_evalabort]\n\n[msg_switch {swa <aL:H>} ra]\n\n[msg_load swj [err_swon ra] [err_reqlo ra]]
 set ans [list]
 lappend ans [list set __MODULES_LMCONFLICT swj&swa]
 lappend ans [list set __MODULES_LMPREREQ swj&ra]
@@ -316,7 +316,7 @@ lappend ans [list set LOADEDMODULES swj]
 lappend ans [list set _LMFILES_ $mp/swj]
 lappend ans [list unset __MODULES_LMTAG]
 lappend ans [list ERR]
-testouterr_cmd_re sh {load --force -v --auto swj} $ans [msg_load ra $err_evalabort]\n\n[msg_switch swa ra]\n\n[msg_load swj [err_swon ra] [err_reqlof ra]]
+testouterr_cmd_re sh {load --force -v --auto swj} $ans [msg_load ra $err_evalabort]\n\n[msg_switch {swa <aL:H>} ra]\n\n[msg_load swj [err_swon ra] [err_reqlof ra]]
 unsetenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET6
 
 # conflict issue
@@ -324,14 +324,14 @@ setenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET7 1
 setenv_loaded_module [list h33] [list $mp/h33]
 unsetenv_var __MODULES_LMTAG
 setenv_var __MODULES_LMCONFLICT h33&h31
-testouterr_cmd_re sh {load -v --auto h32} ERR [msg_load h30]\n\n[msg_load h31 [err_conflict h33]]\n\n[msg_load h32 [err_reqlo h31]]
+testouterr_cmd_re sh {load -v --auto h32} ERR [msg_load {h30 <aL>}]\n\n[msg_load h31 [err_conflict h33]]\n\n[msg_load h32 [err_reqlo h31]]
 set ans [list]
 lappend ans [list set __MODULES_LMPREREQ h31&h30:h32&h31]
 lappend ans [list set _LMFILES_ $mp/h33:$mp/h30:$mp/h31:$mp/h32]
 lappend ans [list set LOADEDMODULES h33:h30:h31:h32]
 lappend ans [list set __MODULES_LMTAG h30&auto-loaded:h31&hidden-loaded&auto-loaded]
-testouterr_cmd_re sh {load --force -v --auto h32} $ans [msg_load h30]\n\n[msg_load h31 [err_conlof h33]]\n\n[msg_top_load h32 {} {h30 h31} {}]
-testouterr_cmd_re sh {load --force -vv --auto h32} $ans [msg_load h30]\n\n[msg_load h31 [err_conlof h33]]\n\n[msg_top_load h32 {} {h30 h31} {}]
+testouterr_cmd_re sh {load --force -v --auto h32} $ans [msg_load {h30 <aL>}]\n\n[msg_load {h31 <aL:H>} [err_conlof h33]]\n\n[msg_top_load h32 {} {h30 h31} {}]
+testouterr_cmd_re sh {load --force -vv --auto h32} $ans [msg_load {h30 <aL>}]\n\n[msg_load {h31 <aL:H>} [err_conlof h33]]\n\n[msg_top_load h32 {} {h30 h31} {}]
 unsetenv_var __MODULES_LMCONFLICT
 unsetenv_loaded_module
 unsetenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET7

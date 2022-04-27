@@ -44,8 +44,8 @@ testouterr_cmd_re sh {load sticky/2.0} $anslo {}
 setenv_loaded_module [list sticky/2.0] [list $mp/sticky/2.0]
 setenv_var __MODULES_LMTAG sticky/2.0&sticky&super-sticky
 
-testouterr_cmd_re sh {unload sticky/2.0} ERR [msg_unload sticky/2.0 $err_superstickyunload]
-testouterr_cmd_re sh {unload -f sticky/2.0} ERR [msg_unload sticky/2.0 $err_superstickyunload]
+testouterr_cmd_re sh {unload sticky/2.0} ERR [msg_unload {sticky/2.0 <S:sS>} $err_superstickyunload]
+testouterr_cmd_re sh {unload -f sticky/2.0} ERR [msg_unload {sticky/2.0 <S:sS>} $err_superstickyunload]
 
 # test when persistent info is cleared
 unsetenv_var __MODULES_LMTAG
@@ -69,59 +69,59 @@ setenv_loaded_module [list sticky/1.0] [list $mp/sticky/1.0]
 setenv_var __MODULES_LMTAG sticky/1.0&sticky
 setenv_var TESTSUITE_STICKY_GENERIC 2
 
-set tserr [msg_switch sticky/1.0 sticky/2.0 $err_stickyunload]
+set tserr [msg_switch {sticky/1.0 <S>} sticky/2.0 $err_stickyunload]
 testouterr_cmd_re sh {switch sticky/2.0} ERR $tserr
-set tserr [msg_switch sticky/1.0 sticky $err_stickyunload]
+set tserr [msg_switch {sticky/1.0 <S>} sticky $err_stickyunload]
 testouterr_cmd_re sh {switch sticky} ERR $tserr
 set ans [list]
 lappend ans [list set _LMFILES_ $mp/sticky/1.0:$mp/sticky/2.0:$mp/foo/2.0]
 lappend ans [list set LOADEDMODULES sticky/1.0:sticky/2.0:foo/2.0]
 lappend ans [list set __MODULES_LMTAG sticky/1.0&sticky:sticky/2.0&sticky]
 lappend ans [list ERR]
-set tserr [msg_unload sticky/1.0 $err_stickyunload]\n\n[msg_load sticky/2.0]\n[msg_load foo/2.0]
+set tserr [msg_unload {sticky/1.0 <S>} $err_stickyunload]\n\n[msg_load {sticky/2.0 <S>}]\n[msg_load foo/2.0]
 testouterr_cmd_re sh {restore testsuite/home/coll-sticky-4} $ans $tserr
 set ans [list]
 lappend ans [list set _LMFILES_ $mp/sticky/1.0:$mp/sticky/4.0:$mp/foo/2.0]
 lappend ans [list set LOADEDMODULES sticky/1.0:sticky/4.0:foo/2.0]
 lappend ans [list set __MODULES_LMTAG sticky/1.0&sticky:sticky/4.0&sticky]
 lappend ans [list ERR]
-set tserr [msg_unload sticky/1.0 $err_stickyunload]\n\n[msg_load sticky/4.0]\n[msg_load foo/2.0]
+set tserr [msg_unload {sticky/1.0 <S>} $err_stickyunload]\n\n[msg_load {sticky/4.0 <S>}]\n[msg_load foo/2.0]
 testouterr_cmd_re sh {restore testsuite/home/coll-sticky-5} $ans $tserr
 
 setenv_var TESTSUITE_SUPER_STICKY 1
 setenv_var __MODULES_LMTAG sticky/1.0&super-sticky
-set tserr [msg_switch sticky/1.0 sticky $err_superstickyunload]
+set tserr [msg_switch {sticky/1.0 <sS>} sticky $err_superstickyunload]
 testouterr_cmd_re sh {switch sticky} ERR $tserr
 set ans [list]
 lappend ans [list set _LMFILES_ $mp/sticky/1.0:$mp/sticky/2.0:$mp/foo/2.0]
 lappend ans [list set LOADEDMODULES sticky/1.0:sticky/2.0:foo/2.0]
 lappend ans [list set __MODULES_LMTAG sticky/1.0&super-sticky:sticky/2.0&super-sticky]
 lappend ans [list ERR]
-set tserr [msg_unload sticky/1.0 $err_superstickyunload]\n\n[msg_load sticky/2.0]\n[msg_load foo/2.0]
+set tserr [msg_unload {sticky/1.0 <sS>} $err_superstickyunload]\n\n[msg_load {sticky/2.0 <sS>}]\n[msg_load foo/2.0]
 testouterr_cmd_re sh {restore testsuite/home/coll-sticky-4} $ans $tserr
 unsetenv_var TESTSUITE_SUPER_STICKY
 setenv_var __MODULES_LMTAG sticky/1.0&sticky&super-sticky
 
 setenv_var TESTSUITE_STICKY_GENERIC 3
-set tserr [msg_switch sticky/1.0 sticky/2.0 $err_stickyunload]
+set tserr [msg_switch {sticky/1.0 <S:sS>} sticky/2.0 $err_stickyunload]
 testouterr_cmd_re sh {switch sticky/2.0} ERR $tserr
 set ans [list]
 lappend ans [list set _LMFILES_ $mp/sticky/1.0:$mp/sticky/2.0:$mp/foo/2.0]
 lappend ans [list set LOADEDMODULES sticky/1.0:sticky/2.0:foo/2.0]
 lappend ans [list set __MODULES_LMTAG sticky/1.0&sticky&super-sticky:sticky/2.0&super-sticky]
 lappend ans [list ERR]
-set tserr [msg_unload sticky/1.0 $err_stickyunload]\n\n[msg_load sticky/2.0]\n[msg_load foo/2.0]
+set tserr [msg_unload {sticky/1.0 <S:sS>} $err_stickyunload]\n\n[msg_load {sticky/2.0 <sS>}]\n[msg_load foo/2.0]
 testouterr_cmd_re sh {restore testsuite/home/coll-sticky-4} $ans $tserr
 
 setenv_var TESTSUITE_STICKY_GENERIC 4
-set tserr [msg_switch sticky/1.0 sticky $err_superstickyunload]
+set tserr [msg_switch {sticky/1.0 <S:sS>} sticky $err_superstickyunload]
 testouterr_cmd_re sh {switch sticky} ERR $tserr
 set ans [list]
 lappend ans [list set _LMFILES_ $mp/sticky/1.0:$mp/sticky/2.0:$mp/foo/2.0]
 lappend ans [list set LOADEDMODULES sticky/1.0:sticky/2.0:foo/2.0]
 lappend ans [list set __MODULES_LMTAG sticky/1.0&sticky&super-sticky:sticky/2.0&sticky]
 lappend ans [list ERR]
-set tserr [msg_unload sticky/1.0 $err_superstickyunload]\n\n[msg_load sticky/2.0]\n[msg_load foo/2.0]
+set tserr [msg_unload {sticky/1.0 <S:sS>} $err_superstickyunload]\n\n[msg_load {sticky/2.0 <S>}]\n[msg_load foo/2.0]
 testouterr_cmd_re sh {restore testsuite/home/coll-sticky-4} $ans $tserr
 
 setenv_var TESTSUITE_STICKY_GENERIC 5
@@ -134,7 +134,7 @@ set ans [list]
 lappend ans [list set _LMFILES_ $mp/sticky/4.0:$mp/foo/2.0]
 lappend ans [list set LOADEDMODULES sticky/4.0:foo/2.0]
 lappend ans [list set __MODULES_LMTAG sticky/4.0&sticky&super-sticky]
-set tserr [msg_unload sticky/1.0]\n[msg_load sticky/4.0]\n[msg_load foo/2.0]
+set tserr [msg_unload {sticky/1.0 <S:sS>}]\n[msg_load {sticky/4.0 <S:sS>}]\n[msg_load foo/2.0]
 testouterr_cmd_re sh {restore testsuite/home/coll-sticky-5} $ans $tserr
 
 # test cumulative stickiness declarations on deep modules
@@ -142,48 +142,48 @@ setenv_var TESTSUITE_STICKY_GENERIC 6
 setenv_loaded_module [list stickysub/dir1/1.0] [list $mp/stickysub/dir1/1.0]
 setenv_var __MODULES_LMTAG stickysub/dir1/1.0&sticky
 
-set tserr [msg_switch stickysub/dir1/1.0 stickysub $err_stickyunload]
+set tserr [msg_switch {stickysub/dir1/1.0 <S>} stickysub $err_stickyunload]
 testouterr_cmd_re sh {switch stickysub} ERR $tserr
-set tserr [msg_switch stickysub/dir1/1.0 stickysub/dir1 $err_stickyunload]
+set tserr [msg_switch {stickysub/dir1/1.0 <S>} stickysub/dir1 $err_stickyunload]
 testouterr_cmd_re sh {switch stickysub/dir1} ERR $tserr
 set ans [list]
 lappend ans [list set _LMFILES_ $mp/stickysub/dir1/1.0]
 lappend ans [list set LOADEDMODULES stickysub/dir1/1.0]
 lappend ans [list set __MODULES_LMTAG stickysub/dir1/1.0&sticky]
 testouterr_cmd_re sh {switch stickysub/dir1/1.0} $ans {}
-set tserr [msg_switch stickysub/dir1/1.0 stickysub/dir1/2.0 $err_stickyunload]
+set tserr [msg_switch {stickysub/dir1/1.0 <S>} stickysub/dir1/2.0 $err_stickyunload]
 testouterr_cmd_re sh {switch stickysub/dir1/2.0} ERR $tserr
 set ans [list]
 lappend ans [list set _LMFILES_ $mp/stickysub/dir1/1.0:$mp/stickysub/dir2/4.0:$mp/foo/2.0]
 lappend ans [list set LOADEDMODULES stickysub/dir1/1.0:stickysub/dir2/4.0:foo/2.0]
 lappend ans [list ERR]
-set tserr [msg_unload stickysub/dir1/1.0 $err_stickyunload]\n\n[msg_load stickysub/dir2/4.0]\n[msg_load foo/2.0]
+set tserr [msg_unload {stickysub/dir1/1.0 <S>} $err_stickyunload]\n\n[msg_load stickysub/dir2/4.0]\n[msg_load foo/2.0]
 testouterr_cmd_re sh {restore testsuite/home/coll-sticky-6} $ans $tserr
 
 setenv_var TESTSUITE_SUPER_STICKY 1
 setenv_var __MODULES_LMTAG stickysub/dir1/1.0&super-sticky
-set tserr [msg_switch stickysub/dir1/1.0 stickysub $err_superstickyunload]
+set tserr [msg_switch {stickysub/dir1/1.0 <sS>} stickysub $err_superstickyunload]
 testouterr_cmd_re sh {switch stickysub} ERR $tserr
-set tserr [msg_switch stickysub/dir1/1.0 stickysub/dir1 $err_superstickyunload]
+set tserr [msg_switch {stickysub/dir1/1.0 <sS>} stickysub/dir1 $err_superstickyunload]
 testouterr_cmd_re sh {switch stickysub/dir1} ERR $tserr
 set ans [list]
 lappend ans [list set _LMFILES_ $mp/stickysub/dir1/1.0]
 lappend ans [list set LOADEDMODULES stickysub/dir1/1.0]
 lappend ans [list set __MODULES_LMTAG stickysub/dir1/1.0&super-sticky]
 testouterr_cmd_re sh {switch stickysub/dir1/1.0} $ans {}
-set tserr [msg_switch stickysub/dir1/1.0 stickysub/dir1/2.0 $err_superstickyunload]
+set tserr [msg_switch {stickysub/dir1/1.0 <sS>} stickysub/dir1/2.0 $err_superstickyunload]
 testouterr_cmd_re sh {switch stickysub/dir1/2.0} ERR $tserr
 set ans [list]
 lappend ans [list set _LMFILES_ $mp/stickysub/dir1/1.0:$mp/stickysub/dir2/4.0:$mp/foo/2.0]
 lappend ans [list set LOADEDMODULES stickysub/dir1/1.0:stickysub/dir2/4.0:foo/2.0]
 lappend ans [list ERR]
-set tserr [msg_unload stickysub/dir1/1.0 $err_superstickyunload]\n\n[msg_load stickysub/dir2/4.0]\n[msg_load foo/2.0]
+set tserr [msg_unload {stickysub/dir1/1.0 <sS>} $err_superstickyunload]\n\n[msg_load stickysub/dir2/4.0]\n[msg_load foo/2.0]
 testouterr_cmd_re sh {restore testsuite/home/coll-sticky-6} $ans $tserr
 unsetenv_var TESTSUITE_SUPER_STICKY
 setenv_var __MODULES_LMTAG stickysub/dir1/1.0&sticky&super-sticky
 
 setenv_var TESTSUITE_STICKY_GENERIC 7
-set tserr [msg_switch stickysub/dir1/1.0 stickysub $err_superstickyunload]
+set tserr [msg_switch {stickysub/dir1/1.0 <S:sS>} stickysub $err_superstickyunload]
 testouterr_cmd_re sh {switch stickysub} ERR $tserr
 set ans [list]
 lappend ans [list set _LMFILES_ $mp/stickysub/dir1/1.0]
@@ -195,44 +195,44 @@ lappend ans [list set _LMFILES_ $mp/stickysub/dir1/2.0]
 lappend ans [list set LOADEDMODULES stickysub/dir1/2.0]
 lappend ans [list set __MODULES_LMTAG stickysub/dir1/2.0&super-sticky&sticky]
 testouterr_cmd_re sh {switch stickysub/dir1/2.0} $ans {}
-set tserr [msg_switch stickysub/dir1/1.0 stickysub/dir2 $err_superstickyunload]
+set tserr [msg_switch {stickysub/dir1/1.0 <S:sS>} stickysub/dir2 $err_superstickyunload]
 testouterr_cmd_re sh {switch stickysub/dir2} ERR $tserr
 set ans [list]
 lappend ans [list set _LMFILES_ $mp/stickysub/dir1/1.0:$mp/stickysub/dir2/4.0:$mp/foo/2.0]
 lappend ans [list set LOADEDMODULES stickysub/dir1/1.0:stickysub/dir2/4.0:foo/2.0]
 lappend ans [list set __MODULES_LMTAG stickysub/dir1/1.0&sticky&super-sticky:stickysub/dir2/4.0&sticky]
 lappend ans [list ERR]
-set tserr [msg_unload stickysub/dir1/1.0 $err_superstickyunload]\n\n[msg_load stickysub/dir2/4.0]\n[msg_load foo/2.0]
+set tserr [msg_unload {stickysub/dir1/1.0 <S:sS>} $err_superstickyunload]\n\n[msg_load {stickysub/dir2/4.0 <S>}]\n[msg_load foo/2.0]
 testouterr_cmd_re sh {restore testsuite/home/coll-sticky-6} $ans $tserr
 
 setenv_var TESTSUITE_STICKY_GENERIC 8
-set tserr [msg_switch stickysub/dir1/1.0 stickysub $err_stickyunload]
+set tserr [msg_switch {stickysub/dir1/1.0 <S:sS>} stickysub $err_stickyunload]
 testouterr_cmd_re sh {switch stickysub} ERR $tserr
-set tserr [msg_switch stickysub/dir1/1.0 stickysub/dir1/2.0 $err_stickyunload]
+set tserr [msg_switch {stickysub/dir1/1.0 <S:sS>} stickysub/dir1/2.0 $err_stickyunload]
 testouterr_cmd_re sh {switch stickysub/dir1/2.0} ERR $tserr
-set tserr [msg_switch stickysub/dir1/1.0 stickysub/dir2 $err_stickyunload]
+set tserr [msg_switch {stickysub/dir1/1.0 <S:sS>} stickysub/dir2 $err_stickyunload]
 testouterr_cmd_re sh {switch stickysub/dir2} ERR $tserr
 set ans [list]
 lappend ans [list set _LMFILES_ $mp/stickysub/dir1/1.0:$mp/stickysub/dir2/4.0:$mp/foo/2.0]
 lappend ans [list set LOADEDMODULES stickysub/dir1/1.0:stickysub/dir2/4.0:foo/2.0]
 lappend ans [list set __MODULES_LMTAG stickysub/dir1/1.0&sticky&super-sticky:stickysub/dir2/4.0&super-sticky]
 lappend ans [list ERR]
-set tserr [msg_unload stickysub/dir1/1.0 $err_stickyunload]\n\n[msg_load stickysub/dir2/4.0]\n[msg_load foo/2.0]
+set tserr [msg_unload {stickysub/dir1/1.0 <S:sS>} $err_stickyunload]\n\n[msg_load {stickysub/dir2/4.0 <sS>}]\n[msg_load foo/2.0]
 testouterr_cmd_re sh {restore testsuite/home/coll-sticky-6} $ans $tserr
 
 setenv_var TESTSUITE_STICKY_GENERIC 9
-set tserr [msg_switch stickysub/dir1/1.0 stickysub $err_superstickyunload]
+set tserr [msg_switch {stickysub/dir1/1.0 <S:sS>} stickysub $err_superstickyunload]
 testouterr_cmd_re sh {switch stickysub} ERR $tserr
-set tserr [msg_switch stickysub/dir1/1.0 stickysub/dir1 $err_superstickyunload]
+set tserr [msg_switch {stickysub/dir1/1.0 <S:sS>} stickysub/dir1 $err_superstickyunload]
 testouterr_cmd_re sh {switch stickysub/dir1} ERR $tserr
-set tserr [msg_switch stickysub/dir1/1.0 stickysub/dir2/3.0 $err_superstickyunload]
+set tserr [msg_switch {stickysub/dir1/1.0 <S:sS>} stickysub/dir2/3.0 $err_superstickyunload]
 testouterr_cmd_re sh {switch stickysub/dir2/3.0} ERR $tserr
 set ans [list]
 lappend ans [list set _LMFILES_ $mp/stickysub/dir1/1.0:$mp/stickysub/dir2/4.0:$mp/foo/2.0]
 lappend ans [list set LOADEDMODULES stickysub/dir1/1.0:stickysub/dir2/4.0:foo/2.0]
 lappend ans [list set __MODULES_LMTAG stickysub/dir1/1.0&sticky&super-sticky:stickysub/dir2/4.0&sticky]
 lappend ans [list ERR]
-set tserr [msg_unload stickysub/dir1/1.0 $err_superstickyunload]\n\n[msg_load stickysub/dir2/4.0]\n[msg_load foo/2.0]
+set tserr [msg_unload {stickysub/dir1/1.0 <S:sS>} $err_superstickyunload]\n\n[msg_load {stickysub/dir2/4.0 <S>}]\n[msg_load foo/2.0]
 testouterr_cmd_re sh {restore testsuite/home/coll-sticky-6} $ans $tserr
 
 setenv_var TESTSUITE_STICKY_GENERIC 10
@@ -241,9 +241,9 @@ setenv_var __MODULES_LMALTNAME stickysub/dir1/1.0&stickysub/dir1/default&stickys
 
 #FIXME: even if stickysub/dir1/1.0 is declared default, switch sub-command does not know it
 # it should reload stickysub/dir1/1.0 with no error in the 2 following cases
-set tserr [msg_switch stickysub/dir1/1.0 stickysub $err_stickyunload]
+set tserr [msg_switch {stickysub/dir1/1.0 <S>} stickysub $err_stickyunload]
 testouterr_cmd_re sh {switch stickysub} ERR $tserr
-set tserr [msg_switch stickysub/dir1/1.0 stickysub/dir1 $err_stickyunload]
+set tserr [msg_switch {stickysub/dir1/1.0 <S>} stickysub/dir1 $err_stickyunload]
 testouterr_cmd_re sh {switch stickysub/dir1} ERR $tserr
 set ans [list]
 lappend ans [list set __MODULES_LMALTNAME stickysub/dir1/1.0&stickysub/dir1/default&stickysub/dir1&stickysub/default&stickysub]
@@ -251,7 +251,7 @@ lappend ans [list set _LMFILES_ $mp/stickysub/dir1/1.0]
 lappend ans [list set LOADEDMODULES stickysub/dir1/1.0]
 lappend ans [list set __MODULES_LMTAG stickysub/dir1/1.0&sticky]
 testouterr_cmd_re sh {switch stickysub/dir1/1.0} $ans {}
-set tserr [msg_switch stickysub/dir1/1.0 stickysub/dir1/2.0 $err_stickyunload]
+set tserr [msg_switch {stickysub/dir1/1.0 <S>} stickysub/dir1/2.0 $err_stickyunload]
 testouterr_cmd_re sh {switch stickysub/dir1/2.0} ERR $tserr
 # stickysub/dir1/1.0 is correctly seen as default when restoring
 set ans [list]
@@ -267,9 +267,9 @@ unsetenv_var __MODULES_LMALTNAME
 
 #FIXME: even if stickysub/dir2/4.0 is the implicit default, switch sub-command does not know it
 # it should reload stickysub/dir2/4.0 with no error in the 2 following cases
-set tserr [msg_switch stickysub/dir2/4.0 stickysub $err_stickyunload]
+set tserr [msg_switch {stickysub/dir2/4.0 <S>} stickysub $err_stickyunload]
 testouterr_cmd_re sh {switch stickysub} ERR $tserr
-set tserr [msg_switch stickysub/dir2/4.0 stickysub/dir2 $err_stickyunload]
+set tserr [msg_switch {stickysub/dir2/4.0 <S>} stickysub/dir2 $err_stickyunload]
 testouterr_cmd_re sh {switch stickysub/dir2} ERR $tserr
 set ans [list]
 lappend ans [list set _LMFILES_ $mp/stickysub/dir2/4.0]

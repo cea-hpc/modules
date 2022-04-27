@@ -50,8 +50,9 @@ set modulefile_troff "$modpath/$module_troff"
 set err_pre [msg_load $module [err_prereq "trace/all_on"]]
 set err_trace "$warn_msgs: 'module-trace' command not implemented"
 
-set msg_load_tron [msg_load $module_tron $err_trace]
-set msg_unload_tron [msg_unload $module_tron $err_trace]
+set msg_load_tron [msg_load "$module_tron <aL>" $err_trace]
+set msg_load_tron_noal [msg_load $module_tron $err_trace]
+set msg_unload_tron [msg_unload "$module_tron <aL>" $err_trace]
 set msg_top_load_module [msg_top_load $module {} $module_tron {}]
 set msg_top_unload_module [msg_top_unload $module {} $module_tron {}]
 set msg_top_switch_module [msg_top_switch $module $module {} {} {} $module_tron {}]
@@ -96,7 +97,7 @@ lappend ans [list set __MODULES_LMPREREQ "$module&$module_tron"]
 lappend ans [list set testsuite yes]
 lappend ans [list set _LMFILES_ "$modulefile_tron:$modulefile"]
 lappend ans [list set LOADEDMODULES "$module_tron:$module"]
-testouterr_cmd_re "ALL" "load $module_tron $module" $ans $msg_load_tron
+testouterr_cmd_re "ALL" "load $module_tron $module" $ans $msg_load_tron_noal
 
 
 # test situations where auto_handling is disabled and some constraints are unsatisfied
@@ -156,11 +157,11 @@ setenv_loaded_module [list $module] [list $modulefile]
 set ans [list]
 lappend ans [list set _LMFILES_ "$modulefile:$modulefile_tron"]
 lappend ans [list set LOADEDMODULES "$module:$module_tron"]
-testouterr_cmd_re "sh" "load --no-auto $module_tron" $ans $msg_load_tron
+testouterr_cmd_re "sh" "load --no-auto $module_tron" $ans $msg_load_tron_noal
 
 # switch sub-command should obtain same result here
-testouterr_cmd_re "sh" "switch --no-auto $module_tron" $ans $msg_load_tron
-testouterr_cmd_re "sh" "switch --no-auto --force $module_tron" $ans $msg_load_tron
+testouterr_cmd_re "sh" "switch --no-auto $module_tron" $ans $msg_load_tron_noal
+testouterr_cmd_re "sh" "switch --no-auto --force $module_tron" $ans $msg_load_tron_noal
 
 # in auto mode, requiring module is reloaded
 set ans [list]

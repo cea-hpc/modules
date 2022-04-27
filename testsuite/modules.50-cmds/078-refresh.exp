@@ -149,7 +149,7 @@ lappend ans [list out {echo refresh/2.0}]
 testouterr_cmd sh {refresh} $ans {}
 
 # verbose output mode
-set tserr2 [msg_refresh refresh/1.0]\n[msg_refresh refresh/2.0{+foo}]
+set tserr2 [msg_refresh refresh/1.0]\n[msg_refresh {refresh/2.0{+foo} <bar>}]
 testouterr_cmd sh {refresh -v} $ans $tserr2
 
 # verbose output and hidden-loaded module
@@ -168,6 +168,7 @@ lappend ans [list alias alisloaded1 {echo is-loaded ok}]
 lappend ans [list funcfoo "() {" "echo foo2; };"]
 lappend ans [list out {echo refresh/1.0}]
 lappend ans [list out {echo refresh/2.0}]
+set tserr2 [msg_refresh refresh/1.0]\n[msg_refresh {refresh/2.0{+foo} <bar:H>}]
 testouterr_cmd sh {refresh -v} $ans $tserr2
 
 # verbose output and hidden-loaded module
@@ -186,9 +187,11 @@ lappend ans [list funcfoo "() {" "echo foo2; };"]
 lappend ans [list out {echo refresh/1.0}]
 lappend ans [list out {echo refresh/2.0}]
 testouterr_cmd sh {refresh -v} $ans $tserr1
+set tserr2 [msg_refresh refresh/1.0]\n[msg_refresh {refresh/2.0{+foo} <aL:bar:H>}]
 testouterr_cmd sh {refresh -vv} $ans $tserr2
 setenv_var __MODULES_LMTAG refresh/1.0&hidden-loaded&auto-loaded:refresh/2.0&bar&hidden-loaded&auto-loaded
 testouterr_cmd sh {refresh -v} $ans {}
+set tserr2 [msg_refresh {refresh/1.0 <aL:H>}]\n[msg_refresh {refresh/2.0{+foo} <aL:bar:H>}]
 testouterr_cmd sh {refresh -vv} $ans $tserr2
 unsetenv_var __MODULES_LMTAG
 
@@ -230,10 +233,10 @@ lappend ans1 [list ERR]
 testouterr_cmd sh {refresh} $ans1 [msg_refresh refresh/1.0 $err_evalabort]
 
 # verbose output
-testouterr_cmd sh {refresh -v} $ans1 [msg_refresh refresh/1.0 $err_evalabort]\n\n[msg_refresh refresh/2.0{+foo}]
+testouterr_cmd sh {refresh -v} $ans1 [msg_refresh refresh/1.0 $err_evalabort]\n\n[msg_refresh {refresh/2.0{+foo} <bar>}]
 # hidden-loaded/auto-loaded
 setenv_var __MODULES_LMTAG refresh/1.0&bar&hidden-loaded&auto-loaded:refresh/2.0&bar
-set tserr [msg_refresh refresh/1.0 $err_evalabort]
+set tserr [msg_refresh {refresh/1.0 <aL:bar:H>} $err_evalabort]
 testouterr_cmd sh {refresh} $ans1 $tserr
 setenv_var __MODULES_LMTAG refresh/2.0&bar
 
@@ -252,12 +255,12 @@ lappend ans2 [list alias almode {echo refresh}]
 lappend ans2 [list funcfoo "() {" "echo foo1; };"]
 lappend ans2 [list out {echo refresh/1.0}]
 lappend ans2 [list ERR]
-set tserr [msg_refresh refresh/2.0{+foo} $err_evalabort]
+set tserr [msg_refresh {refresh/2.0{+foo} <bar>} $err_evalabort]
 testouterr_cmd sh {refresh} $ans2 $tserr
 
 # break in both loaded modules
 setenv_var TESTSUITE_REFRESH break0
-testouterr_cmd sh {refresh} ERR [msg_refresh refresh/1.0 $err_evalabort]\n\n[msg_refresh refresh/2.0{+foo} $err_evalabort]
+testouterr_cmd sh {refresh} ERR [msg_refresh refresh/1.0 $err_evalabort]\n\n[msg_refresh {refresh/2.0{+foo} <bar>} $err_evalabort]
 
 # unknown command
 setenv_var TESTSUITE_REFRESH badcmd1
@@ -290,7 +293,7 @@ if {[cmpversion $tclsh_version 8.6] == -1} {
     set custom {}
     set linenum 19
 }
-set tserr [msg_refresh refresh/2.0{+foo} [msg_moderr {invalid command name "unk"} {unk} $mp/refresh/2.0 $linenum {} {} {} $custom]]
+set tserr [msg_refresh {refresh/2.0{+foo} <bar>} [msg_moderr {invalid command name "unk"} {unk} $mp/refresh/2.0 $linenum {} {} {} $custom]]
 testouterr_cmd sh {refresh} $ans2 $tserr
 
 # continue command
@@ -323,7 +326,7 @@ lappend ans [list out {echo refresh/1.0}]
 testouterr_cmd sh {refresh} $ans {}
 
 # verbose output
-set tserr [msg_refresh refresh/1.0]\n[msg_refresh refresh/2.0{+foo}]
+set tserr [msg_refresh refresh/1.0]\n[msg_refresh {refresh/2.0{+foo} <bar>}]
 testouterr_cmd sh {refresh -v} $ans $tserr
 
 # exit command
@@ -331,7 +334,7 @@ setenv_var TESTSUITE_REFRESH exit1
 set tserr [msg_refresh refresh/1.0 $err_evalabort]
 testouterr_cmd sh {refresh} ERR $tserr
 setenv_var TESTSUITE_REFRESH exit2
-set tserr [msg_refresh refresh/2.0{+foo} $err_evalabort]
+set tserr [msg_refresh {refresh/2.0{+foo} <bar>} $err_evalabort]
 testouterr_cmd sh {refresh} $ans2 $tserr
 
 

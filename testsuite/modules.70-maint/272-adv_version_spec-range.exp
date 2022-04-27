@@ -589,10 +589,10 @@ lappend ans [list unset __MODULES_LMTAG]
 testouterr_cmd sh {unload --auto advvers6@1.3} $ans [msg_top_unload advvers6/1.3 {} advvers7/1.0 {}]
 
 # unload prereq in auto mode
-testouterr_cmd_re sh {unload --auto advvers7@1.0} $ans [msg_top_unload advvers7/1.0 advvers6/1.3 {} {}]
+testouterr_cmd_re sh {unload --auto advvers7@1.0} $ans [msg_top_unload {advvers7/1.0 <aL>} advvers6/1.3 {} {}]
 
 # unload prereq in no-auto mode
-testouterr_cmd_re sh {unload --no-auto advvers7@1.0} ERR [msg_unload advvers7/1.0 [err_prerequn advvers6/1.3]]
+testouterr_cmd_re sh {unload --no-auto advvers7@1.0} ERR [msg_unload {advvers7/1.0 <aL>} [err_prerequn advvers6/1.3]]
 
 # with adv_version_spec disabled
 setenv_var MODULES_ADVANCED_VERSION_SPEC 0
@@ -608,7 +608,7 @@ set ans [list]
 lappend ans [list set _LMFILES_ $mp/advvers6/1.3]
 lappend ans [list set LOADEDMODULES advvers6/1.3]
 lappend ans [list unset __MODULES_LMTAG]
-testouterr_cmd_re sh {unload --force --no-auto advvers7@1.0} $ans [msg_unload advvers7/1.0 [err_deplof advvers6/1.3]]
+testouterr_cmd_re sh {unload --force --no-auto advvers7@1.0} $ans [msg_unload {advvers7/1.0 <aL>} [err_deplof advvers6/1.3]]
 
 # test with alternative prereq
 setenv_loaded_module [list advvers7/0.9 advvers6/1.3] [list $mp/advvers7/0.9 $mp/advvers6/1.3] [list advvers7/0.9]
@@ -618,13 +618,13 @@ lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
 lappend ans [list unset __MODULES_LMTAG]
 testouterr_cmd sh {unload --auto advvers6@1.3} $ans [msg_top_unload advvers6/1.3 {} advvers7/0.9 {}]
-testouterr_cmd_re sh {unload --auto advvers7@0.9} $ans [msg_top_unload advvers7/0.9 advvers6/1.3 {} {}]
-testouterr_cmd_re sh {unload --no-auto advvers7@0.9} ERR [msg_unload advvers7/0.9 [err_prerequn advvers6/1.3]]
+testouterr_cmd_re sh {unload --auto advvers7@0.9} $ans [msg_top_unload {advvers7/0.9 <aL>} advvers6/1.3 {} {}]
+testouterr_cmd_re sh {unload --no-auto advvers7@0.9} ERR [msg_unload {advvers7/0.9 <aL>} [err_prerequn advvers6/1.3]]
 set ans [list]
 lappend ans [list set _LMFILES_ $mp/advvers6/1.3]
 lappend ans [list set LOADEDMODULES advvers6/1.3]
 lappend ans [list unset __MODULES_LMTAG]
-testouterr_cmd_re sh {unload --force --no-auto advvers7@0.9} $ans [msg_unload advvers7/0.9 [err_deplof advvers6/1.3]]
+testouterr_cmd_re sh {unload --force --no-auto advvers7@0.9} $ans [msg_unload {advvers7/0.9 <aL>} [err_deplof advvers6/1.3]]
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMPREREQ
 
@@ -807,7 +807,7 @@ lappend ans [list unset __MODULES_LMPREREQ]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
 lappend ans [list unset __MODULES_LMTAG]
-testouterr_cmd_re sh {unload --auto advvers7@4.1} $ans [msg_top_unload advvers7/4.1 advvers7/4.0 advvers7/4.2 {}]
+testouterr_cmd_re sh {unload --auto advvers7@4.1} $ans [msg_top_unload {advvers7/4.1 <aL>} advvers7/4.0 advvers7/4.2 {}]
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMPREREQ
 
@@ -843,7 +843,7 @@ lappend ans [list set __MODULES_LMPREREQ "advvers7/6.3&advvers7@5.0<6.0:advvers7
 lappend ans [list set _LMFILES_ $mp/advvers7/6.0:$mp/advvers7/6.5:$mp/advvers7/6.3:$mp/advvers7/6.4]
 lappend ans [list set LOADEDMODULES advvers7/6.0:advvers7/6.5:advvers7/6.3:advvers7/6.4]
 lappend ans [list set __MODULES_LMTAG advvers7/6.0&auto-loaded:advvers7/6.5&auto-loaded]
-testouterr_cmd_re sh {unload --auto advvers7@6.1} $ans [msg_top_unload advvers7/6.1 [list advvers7/6.6 advvers7/6.2] advvers7/6.7 [list advvers7/6.3 advvers7/6.4]]
+testouterr_cmd_re sh {unload --auto advvers7@6.1} $ans [msg_top_unload {advvers7/6.1 <aL>} [list advvers7/6.6 advvers7/6.2] advvers7/6.7 [list advvers7/6.3 advvers7/6.4]]
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMPREREQ
 unsetenv_var __MODULES_LMCONFLICT

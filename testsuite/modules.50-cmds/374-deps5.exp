@@ -43,7 +43,7 @@ lappend ans [list set _LMFILES_ "$mp/de:$mp/df:$mp/dg"]
 lappend ans [list set LOADEDMODULES "de:df:dg"]
 lappend ans [list set __MODULES_LMTAG df&auto-loaded]
 set tserr [list "unload dg" "unload df" "unload dd" "load de" "load df" "load dg"]
-testouterr_cmd_re "sh" "switch dd de" $ans [join $tserr "\n"]\n\n[msg_top_switch dd de {} {} {} {} [list df dg]]
+testouterr_cmd_re "sh" "switch dd de" $ans [join $tserr "\n"]\n\n[msg_top_switch {dd <aL>} de {} {} {} {} [list df dg]]
 
 
 # dependency chain loaded with second-operational-in-list prereq module loaded
@@ -59,7 +59,7 @@ lappend ans [list set _LMFILES_ "$mp/dd:$mp/df:$mp/dg"]
 lappend ans [list set LOADEDMODULES "dd:df:dg"]
 lappend ans [list set __MODULES_LMTAG df&auto-loaded]
 set tserr [list "unload dg" "unload df" "unload de" "load dd" "load df" "load dg"]
-testouterr_cmd_re "sh" "switch de dd" $ans [join $tserr "\n"]\n\n[msg_top_switch de dd {} {} {} {} [list df dg]]
+testouterr_cmd_re "sh" "switch de dd" $ans [join $tserr "\n"]\n\n[msg_top_switch {de <aL>} dd {} {} {} {} [list df dg]]
 
 skip_if_quick_mode
 
@@ -72,7 +72,7 @@ lappend ans [list set LOADEDMODULES "da"]
 lappend ans [list unset __MODULES_LMTAG]
 lappend ans [list ERR]
 set tserr [list "unload dg" "unload df" "unload de" "load da" "load df"]
-testouterr_cmd_re "sh" "switch de da" $ans [join $tserr "\n"]\n\n[msg_load df [err_conlo da]]\n\n[msg_load dg [err_reqmis df]]\n\n[msg_top_switch de da {} {} {} {} [list [list dg df] [list]] [err_depref df] [err_depref dg]]
+testouterr_cmd_re "sh" "switch de da" $ans [join $tserr "\n"]\n\n[msg_load df [err_conlo da]]\n\n[msg_load dg [err_reqmis df]]\n\n[msg_top_switch {de <aL>} da {} {} {} {} [list [list dg df] [list]] [err_depref df] [err_depref dg]]
 
 set ans [list]
 lappend ans [list unset __MODULES_LMCONFLICT]
@@ -82,7 +82,7 @@ lappend ans [list set __MODULES_LMPREREQ "df&da|db|dc|dd|de"]
 lappend ans [list set __MODULES_LMTAG df&auto-loaded]
 lappend ans [list ERR]
 set tserr [list "unload dg" "unload df" "unload de" "load db" "load df"]
-testouterr_cmd_re "sh" "switch de db" $ans [join $tserr "\n"]\n\n[msg_load dg [err_conlo db]]\n\n[msg_top_switch de db {} {} {} {} [list [list dg df] [list df]] [err_depref dg]]
+testouterr_cmd_re "sh" "switch de db" $ans [join $tserr "\n"]\n\n[msg_load dg [err_conlo db]]\n\n[msg_top_switch {de <aL>} db {} {} {} {} [list [list dg df] [list df]] [err_depref dg]]
 
 set ans [list]
 lappend ans [list unset __MODULES_LMCONFLICT]
@@ -92,7 +92,7 @@ lappend ans [list unset __MODULES_LMPREREQ]
 lappend ans [list unset __MODULES_LMTAG]
 lappend ans [list ERR]
 set tserr [list "unload dg" "unload df" "unload de" "load dc"]
-testouterr_cmd_re "sh" "switch de dc" $ans [join $tserr "\n"]\n\n[msg_load dc $err_evalabort]\n\n[msg_load df [err_reqmis da db dc dd de]]\n\n[msg_load dg [err_reqmis df]]\n\n[msg_top_switch de dc {} {} {} {} [list [list dg df] [list]] [err_swon dc] [err_depref df] [err_depref dg]]
+testouterr_cmd_re "sh" "switch de dc" $ans [join $tserr "\n"]\n\n[msg_load dc $err_evalabort]\n\n[msg_load df [err_reqmis da db dc dd de]]\n\n[msg_load dg [err_reqmis df]]\n\n[msg_top_switch {de <aL>} dc {} {} {} {} [list [list dg df] [list]] [err_swon dc] [err_depref df] [err_depref dg]]
 
 
 # dependency chain loaded with second-operational-in-list prereq module loaded and an individual module loaded
@@ -108,7 +108,7 @@ lappend ans [list set LOADEDMODULES "dh"]
 lappend ans [list unset __MODULES_LMTAG]
 lappend ans [list ERR]
 set tserr [list "unload dg" "unload df" "unload de" "load ea"]
-testouterr_cmd_re "sh" "switch df ea" $ans [join $tserr "\n"]\n\n[msg_load ea $err_evalabort]\n\n[msg_load dg [err_reqmis df]]\n\n[msg_top_switch df ea {} de {} {} [list [list dg] [list]] [err_swon ea] [err_depref dg]]
+testouterr_cmd_re "sh" "switch df ea" $ans [join $tserr "\n"]\n\n[msg_load ea $err_evalabort]\n\n[msg_load dg [err_reqmis df]]\n\n[msg_top_switch {df <aL>} ea {} de {} {} [list [list dg] [list]] [err_swon ea] [err_depref dg]]
 
 set ans [list]
 lappend ans [list set __MODULES_LMCONFLICT "eb&dg"]
@@ -119,7 +119,7 @@ lappend ans [list unset __MODULES_LMTAG]
 lappend ans [list ERR]
 set tserr [list "unload dg" "unload df" "unload de" "load eb"]
 # as load is attempted to see if conflict solves, returned error for dg is about missing prereq
-testouterr_cmd_re "sh" "switch df eb" $ans [join $tserr "\n"]\n\n[msg_load dg [err_reqmis df]]\n\n[msg_top_switch df eb {} de {} {} [list [list dg] [list]] [err_depref dg]]
+testouterr_cmd_re "sh" "switch df eb" $ans [join $tserr "\n"]\n\n[msg_load dg [err_reqmis df]]\n\n[msg_top_switch {df <aL>} eb {} de {} {} [list [list dg] [list]] [err_depref dg]]
 
 set ans [list]
 lappend ans [list unset __MODULES_LMCONFLICT]
@@ -129,7 +129,7 @@ lappend ans [list set LOADEDMODULES "dh"]
 lappend ans [list unset __MODULES_LMTAG]
 lappend ans [list ERR]
 set tserr [list "unload dg" "unload df" "unload de" "load ea"]
-testouterr_cmd_re "sh" "switch df ec" $ans [join $tserr "\n"]\n\n[msg_load ea $err_evalabort]\n\n[msg_load ec [err_reqmis ea]]\n\n[msg_load dg [err_reqmis df]]\n\n[msg_top_switch df ec {} de {} {} [list [list dg] [list]] [err_reqlo ea] [err_swon ec] [err_depref dg]]
+testouterr_cmd_re "sh" "switch df ec" $ans [join $tserr "\n"]\n\n[msg_load ea $err_evalabort]\n\n[msg_load ec [err_reqmis ea]]\n\n[msg_load dg [err_reqmis df]]\n\n[msg_top_switch {df <aL>} ec {} de {} {} [list [list dg] [list]] [err_reqlo ea] [err_swon ec] [err_depref dg]]
 
 set ans [list]
 lappend ans [list set __MODULES_LMCONFLICT "eb&dg"]
@@ -140,7 +140,7 @@ lappend ans [list set __MODULES_LMTAG eb&auto-loaded]
 lappend ans [list ERR]
 set tserr [list "unload dg" "unload df" "unload de" "load eb" "load ed"]
 # as load is attempted to see if conflict solves, returned error for dg is about missing prereq
-testouterr_cmd_re "sh" "switch df ed" $ans [join $tserr "\n"]\n\n[msg_load dg [err_reqmis df]]\n\n[msg_top_switch df ed {} de {} eb [list [list dg] [list]] [err_depref dg]]
+testouterr_cmd_re "sh" "switch df ed" $ans [join $tserr "\n"]\n\n[msg_load dg [err_reqmis df]]\n\n[msg_top_switch {df <aL>} ed {} de {} eb [list [list dg] [list]] [err_depref dg]]
 
 set ans [list]
 lappend ans [list set __MODULES_LMCONFLICT "ee&de"]
@@ -150,7 +150,7 @@ lappend ans [list unset __MODULES_LMPREREQ]
 lappend ans [list unset __MODULES_LMTAG]
 lappend ans [list ERR]
 set tserr [list "unload dg" "unload df" "unload de" "load ee"]
-testouterr_cmd_re "sh" "switch df ee" $ans [join $tserr "\n"]\n\n[msg_load dg [err_reqmis df]]\n\n[msg_top_switch df ee {} de {} {} [list [list dg] [list]] [err_depref dg]]
+testouterr_cmd_re "sh" "switch df ee" $ans [join $tserr "\n"]\n\n[msg_load dg [err_reqmis df]]\n\n[msg_top_switch {df <aL>} ee {} de {} {} [list [list dg] [list]] [err_depref dg]]
 
 set ans [list]
 lappend ans [list set __MODULES_LMCONFLICT "ee&de"]
@@ -160,7 +160,7 @@ lappend ans [list set __MODULES_LMPREREQ "ef&ee"]
 lappend ans [list set __MODULES_LMTAG ee&auto-loaded]
 lappend ans [list ERR]
 set tserr [list "unload dg" "unload df" "unload de" "load ee" "load ef"]
-testouterr_cmd_re "sh" "switch df ef" $ans [join $tserr "\n"]\n\n[msg_load dg [err_reqmis df]]\n\n[msg_top_switch df ef {} de {} ee [list [list dg] [list]] [err_depref dg]]
+testouterr_cmd_re "sh" "switch df ef" $ans [join $tserr "\n"]\n\n[msg_load dg [err_reqmis df]]\n\n[msg_top_switch {df <aL>} ef {} de {} ee [list [list dg] [list]] [err_depref dg]]
 
 set ans [list]
 lappend ans [list unset __MODULES_LMCONFLICT]
@@ -170,7 +170,7 @@ lappend ans [list set LOADEDMODULES "dh"]
 lappend ans [list unset __MODULES_LMTAG]
 lappend ans [list ERR]
 set tserr [list "unload dg" "unload df" "unload de"]
-testouterr_cmd_re "sh" "switch df eg" $ans [join $tserr "\n"]\n\n[msg_load eg [err_conflict dh]]\n\n[msg_load dg [err_reqmis df]]\n\n[msg_top_switch df eg {} de {} {} [list [list dg] [list]] [err_swon eg] [err_depref dg]]
+testouterr_cmd_re "sh" "switch df eg" $ans [join $tserr "\n"]\n\n[msg_load eg [err_conflict dh]]\n\n[msg_load dg [err_reqmis df]]\n\n[msg_top_switch {df <aL>} eg {} de {} {} [list [list dg] [list]] [err_swon eg] [err_depref dg]]
 
 set ans [list]
 lappend ans [list unset __MODULES_LMCONFLICT]
@@ -383,7 +383,7 @@ lappend ans [list unset __MODULES_LMPREREQ]
 lappend ans [list set __MODULES_LMTAG h61&auto-loaded]
 lappend ans [list ERR]
 set tserr [list "unload h62" "unload h60" "load h68"]
-testouterr_cmd_re "sh" "switch h60 h68" $ans [join $tserr "\n"]\n\n[msg_load h62 [err_reqmis h60]]\n\n[msg_top_switch h60 h68 {} {} {} {} [list [list h62] [list]] [err_depref h62]]
+testouterr_cmd_re "sh" "switch h60 h68" $ans [join $tserr "\n"]\n\n[msg_load h62 [err_reqmis h60]]\n\n[msg_top_switch {h60 <aL>} h68 {} {} {} {} [list [list h62] [list]] [err_depref h62]]
 
 # test situation where UReqUn modules impact DepRe list (conflict solving reload)
 setenv_loaded_module [list h30 h31 h32 h38] [list "$mp/h30" "$mp/h31" "$mp/h32" "$mp/h38"] [list h30 h31]
@@ -409,7 +409,7 @@ lappend ans [list set LOADEDMODULES "h60:h73:h68:h74"]
 lappend ans [list set __MODULES_LMTAG h60&auto-loaded]
 set tserr [list "unload h74" "unload h71" "unload h62" "unload h61" "load h68" \n[msg_load h62 [err_reqmis h61]] \n[msg_load h71 [err_reqmis h62]] "\nload h74"]
 lappend ans [list ERR]
-testouterr_cmd_re "sh" "switch h61 h68" $ans [join $tserr "\n"]\n\n[msg_top_switch h61 h68 {} {} {} {} [list [list h74 h71 h62] [list h74]] [err_depref h62] [err_depref h71]]
+testouterr_cmd_re "sh" "switch h61 h68" $ans [join $tserr "\n"]\n\n[msg_top_switch {h61 <aL>} h68 {} {} {} {} [list [list h74 h71 h62] [list h74]] [err_depref h62] [err_depref h71]]
 
 
 #

@@ -34,11 +34,11 @@ set badcontfp "$homewithcoll/.Xresources"
 set badcontfperrmsg "$error_msgs: $badcontfp is not a valid collection"
 set c7errmsg "Loading $modpathre.path3/dcross/dir1/3.0\nLoading $modpathre.path2/cross/6.0\nLoading $modpathre.path1/novercross"
 set c8errmsg $c7errmsg
-set c9errmsg "load $c9mod1\nLoading $c9mod1\nload $c9mod2\nLoading $c9mod2\nload $c9mod3\nLoading $c9mod3"
+set c9errmsg "load $c9mod1\nLoading $c9mod1\nload $c9mod2\nLoading $c9mod2 <aL>\nload $c9mod3\nLoading $c9mod3"
 set c10errmsg "$error_msgs: $msg_nomodnameinarg '--notuasked'"
-set c10errmsgb "load $c9mod1\nLoading $c9mod1\n$err_path'--notuasked'\nload $c9mod2\nLoading $c9mod2\nload $c9mod3\nLoading $c9mod3"
-set c9errmsg2 "unload $c9mod3\nUnloading $c9mod3\nunload $c9mod2\nUnloading $c9mod2\nload $c9mod2\nLoading $c9mod2\nload $c9mod3\nLoading $c9mod3"
-set c11errmsg "load $c11mod1\nLoading $c11mod1\nload $c11mod2\nLoading $c11mod2"
+set c10errmsgb "load $c9mod1\nLoading $c9mod1\n$err_path'--notuasked'\nload $c9mod2\nLoading $c9mod2 <aL>\nload $c9mod3\nLoading $c9mod3"
+set c9errmsg2 "unload $c9mod3\nUnloading $c9mod3\nunload $c9mod2\nUnloading $c9mod2\nload $c9mod2\nLoading $c9mod2 <aL>\nload $c9mod3\nLoading $c9mod3"
+set c11errmsg "load $c11mod1\nLoading $c11mod1 <aL>\nload $c11mod2\nLoading $c11mod2"
 set c12errmsg "unload $c9mod3\nUnloading $c9mod3\nunload $c9mod2\nUnloading $c9mod2\nunload $c9mod1\nUnloading $c9mod1\nload f4\nLoading f4\nload f5\nLoading f5\n\n[msg_load f6 [err_conlo f5]]\n\n[msg_load f7 [err_reqmis f6]]"
 set c13errmsg $cderrmsg
 set c14errmsg "unload m2\nUnloading m2\nload m3\nLoading m3"
@@ -48,7 +48,7 @@ set c17errmsg "Loading $c17mod1\nLoading $c17mod2"
 set c19errmsg [escre "Loading $c19mod1{[join $c19mod1vr :]}\nLoading $c19mod2\nLoading '$c19mod3'{[join $c19mod3vr :]}"]
 set c20errmsg [escre "Loading $c20mod1{[join $c20mod1vr :]}\nLoading $c20mod2\nLoading '$c20mod3'{[join $c20mod3vr :]}"]
 set c22errmsg [escre "Loading $c22mod1{bar =:[join $c22mod1vr :]}\nLoading $c22mod2\nLoading '$c22mod3'{b*r= val1}"]
-set c26errmsg [escre "Loading $c26mod1{[join $c26mod1vr :]}\nLoading $c26mod2\nLoading '$c26mod3'{[join $c20mod3vr :]}"]
+set c26errmsg [escre "Loading $c26mod1{[join $c26mod1vr :]} <aL>\nLoading $c26mod2 <aL>\nLoading '$c26mod3'{[join $c20mod3vr :]}"]
 
 # set HOME to location containing collections
 if { $verbose > 0 } {
@@ -669,7 +669,7 @@ testouterr_cmd_re sh "restore $coll26fp" $ans "[escre [msg_load {variant/1.0} [e
 
 $err_path'{bar =}'
 $err_path'{fo o=v\\?l1 }'
-Loading foo/1.0
+Loading foo/1.0 <aL>
 Loading 'variant/w s'{b\\*r= val1}
 $err_path'{b\\*r= val1}'"
 
@@ -870,7 +870,7 @@ lappend ans [list set __MODULES_LMVARIANT $c32lmvr]
 lappend ans [list set _LMFILES_ $c32lmf]
 lappend ans [list set LOADEDMODULES $c32lm]
 lappend ans [list set __MODULES_LMTAG $c32mod1tag]
-set tserr [msg_unload variant/8.0{bar=2:foo=val1}]\n
+set tserr [msg_unload {variant/8.0{bar=2:foo=val1} <sS>}]\n
 append tserr [msg_load '$c32mod1'{[join $c32mod1vr :]}]\n[msg_load $c32mod2]
 testouterr_cmd_re sh "restore $coll32fp" $ans $tserr
 
@@ -887,7 +887,7 @@ lappend ans [list set _LMFILES_ $c33modpath1/variant/8.0:$c33lmf]
 lappend ans [list set LOADEDMODULES variant/8.0:$c33lm]
 lappend ans [list set __MODULES_LMTAG variant/8.0&super-sticky:$c33mod1tag]
 lappend ans [list ERR]
-set tserr [msg_unload variant/8.0{bar=2:foo=val1} $err_superstickyunload]\n\n
+set tserr [msg_unload {variant/8.0{bar=2:foo=val1} <sS>} $err_superstickyunload]\n\n
 append tserr [msg_load '$c33mod1'{[join $c33mod1vr :]}]\n[msg_load $c33mod2]
 testouterr_cmd_re sh "restore $coll33fp" $ans $tserr
 
@@ -964,7 +964,7 @@ lappend ans [list set _LMFILES_ $c37lmf]
 lappend ans [list set LOADEDMODULES $c37lm]
 lappend ans [list set __MODULES_LMEXTRATAG $c37lmextratag]
 lappend ans [list set __MODULES_LMTAG $c37lmtag]
-set tserr [msg_load variant/3.0{bar=val1}]\n[msg_load tag/8.0]
+set tserr [msg_load {variant/3.0{bar=val1} <aL:foo>}]\n[msg_load {tag/8.0 <bar:foo>}]
 testouterr_cmd_re sh "restore $coll37fp" $ans $tserr
 
 setenv_var MODULES_COLLECTION_PIN_TAG 1
@@ -989,7 +989,7 @@ lappend ans [list set _LMFILES_ $c37lmf]
 lappend ans [list set LOADEDMODULES $c37lm]
 lappend ans [list set __MODULES_LMEXTRATAG $c37lmextratag]
 lappend ans [list set __MODULES_LMTAG $c37lmtag]
-set tserr [msg_unload variant/3.0{bar=val1}]\n[msg_load variant/3.0{bar=val1}]\n[msg_load tag/8.0]
+set tserr [msg_unload variant/3.0{bar=val1}]\n[msg_load {variant/3.0{bar=val1} <aL:foo>}]\n[msg_load {tag/8.0 <bar:foo>}]
 testouterr_cmd_re sh "restore $coll37fp" $ans $tserr
 
 setenv_var __MODULES_LMTAG $c37mod1&auto-loaded
@@ -999,7 +999,7 @@ lappend ans [list set _LMFILES_ $c37lmf]
 lappend ans [list set LOADEDMODULES $c37lm]
 lappend ans [list set __MODULES_LMEXTRATAG $c37lmextratag]
 lappend ans [list set __MODULES_LMTAG $c37mod1&auto-loaded&foo:$c37mod2&[join $c37mod2tag &]]
-set tserr [msg_load tag/8.0]
+set tserr [msg_load {tag/8.0 <bar:foo>}]
 testouterr_cmd_re sh "restore $coll37fp" $ans $tserr
 
 setenv_var __MODULES_LMTAG $c37mod1&foo
@@ -1011,7 +1011,7 @@ lappend ans [list set _LMFILES_ $c37lmf]
 lappend ans [list set LOADEDMODULES $c37lm]
 lappend ans [list set __MODULES_LMEXTRATAG $c37lmextratag]
 lappend ans [list set __MODULES_LMTAG $c37lmtag]
-set tserr [msg_unload variant/3.0{bar=val1}]\n[msg_load variant/3.0{bar=val1}]\n[msg_load tag/8.0]
+set tserr [msg_unload {variant/3.0{bar=val1} <foo>}]\n[msg_load {variant/3.0{bar=val1} <aL:foo>}]\n[msg_load {tag/8.0 <bar:foo>}]
 testouterr_cmd_re sh "restore $coll37fp" $ans $tserr
 
 setenv_var __MODULES_LMTAG $c37mod1&bar
@@ -1023,7 +1023,7 @@ lappend ans [list set _LMFILES_ $c37lmf]
 lappend ans [list set LOADEDMODULES $c37lm]
 lappend ans [list set __MODULES_LMEXTRATAG $c37lmextratag]
 lappend ans [list set __MODULES_LMTAG $c37lmtag]
-set tserr [msg_unload variant/3.0{bar=val1}]\n[msg_load variant/3.0{bar=val1}]\n[msg_load tag/8.0]
+set tserr [msg_unload {variant/3.0{bar=val1} <bar>}]\n[msg_load {variant/3.0{bar=val1} <aL:foo>}]\n[msg_load {tag/8.0 <bar:foo>}]
 testouterr_cmd_re sh "restore $coll37fp" $ans $tserr
 
 setenv_var __MODULES_LMTAG $c37mod1&bar&foo&auto-loaded
@@ -1034,7 +1034,7 @@ lappend ans [list set _LMFILES_ $c37lmf]
 lappend ans [list set LOADEDMODULES $c37lm]
 lappend ans [list set __MODULES_LMEXTRATAG $c37lmextratag]
 lappend ans [list set __MODULES_LMTAG $c37lmtag]
-set tserr [msg_load tag/8.0]
+set tserr [msg_load {tag/8.0 <bar:foo>}]
 testouterr_cmd_re sh "restore $coll37fp" $ans $tserr
 
 setenv_loaded_module [list foo/1.0 $c37mod1] [list $c37modpath1/foo/1.0 $c37modpath1/$c37mod1]
@@ -1047,7 +1047,7 @@ lappend ans [list set _LMFILES_ $c37lmf]
 lappend ans [list set LOADEDMODULES $c37lm]
 lappend ans [list set __MODULES_LMEXTRATAG $c37lmextratag]
 lappend ans [list set __MODULES_LMTAG $c37lmtag]
-set tserr [msg_unload variant/3.0{bar=val1}]\n[msg_unload foo/1.0]\n[msg_load variant/3.0{bar=val1}]\n[msg_load tag/8.0]
+set tserr [msg_unload {variant/3.0{bar=val1} <aL:foo>}]\n[msg_unload foo/1.0]\n[msg_load {variant/3.0{bar=val1} <aL:foo>}]\n[msg_load {tag/8.0 <bar:foo>}]
 testouterr_cmd_re sh "restore $coll37fp" $ans $tserr
 
 # set 2nd module auto-loaded in env, not auto-loaded in collection
@@ -1062,7 +1062,7 @@ lappend ans [list set LOADEDMODULES $c37lm]
 lappend ans [list set __MODULES_LMEXTRATAG $c37lmextratag]
 lappend ans [list set __MODULES_LMTAG $c37lmtag]
 # unsetting auto-loaded tag makes module to get unloaded then loaded
-set tserr [msg_unload tag/8.0]\n[msg_load tag/8.0]
+set tserr [msg_unload {tag/8.0 <aL>}]\n[msg_load {tag/8.0 <bar:foo>}]
 testouterr_cmd_re sh "restore $coll37fp" $ans $tserr
 
 # set modules keep-loaded in env, not keep-loaded in collection
@@ -1088,7 +1088,7 @@ lappend ans [list set _LMFILES_ $c38lmf]
 lappend ans [list set LOADEDMODULES $c38lm]
 lappend ans [list set __MODULES_LMEXTRATAG $c38lmextratag]
 lappend ans [list set __MODULES_LMTAG $c38mod1&[join $c38mod1tag &]:$c38mod2&foo&bar]
-set tserr [msg_load variant/3.0{bar=val1}]\n[msg_load tag/8.0]
+set tserr [msg_load {variant/3.0{bar=val1} <aL:foo>}]\n[msg_load {tag/8.0 <bar:foo>}]
 testouterr_cmd_re sh "restore $coll38fp" $ans $tserr
 
 setenv_var MODULES_COLLECTION_PIN_TAG 1
@@ -1101,7 +1101,7 @@ lappend ans [list set LOADEDMODULES $c38lm]
 # set in the extra tags when collection is restored
 lappend ans [list set __MODULES_LMEXTRATAG $c38mod1&[join $c38mod1extratag &]:$c38mod2&[join $c38mod2tag &]]
 lappend ans [list set __MODULES_LMTAG $c38lmtag]
-set tserr [msg_load variant/3.0{bar=val1}]\n[msg_load tag/8.0]
+set tserr [msg_load {variant/3.0{bar=val1} <aL:foo>}]\n[msg_load {tag/8.0 <bar:foo>}]
 testouterr_cmd_re sh "restore $coll38pinfp" $ans $tserr
 unsetenv_var MODULES_COLLECTION_PIN_TAG
 
@@ -1114,14 +1114,14 @@ lappend ans [list set _LMFILES_ $c39lmf]
 lappend ans [list set LOADEDMODULES $c39lm]
 lappend ans [list set __MODULES_LMEXTRATAG $c39lmextratag]
 lappend ans [list set __MODULES_LMTAG $c39lmtag]
-set tserr [msg_load tag/8.0]\n[msg_load foo/1.0]
+set tserr [msg_load {tag/8.0 <bar:foo>}]\n[msg_load {foo/1.0 <bar:foo>}]
 testouterr_cmd_re sh "restore $coll39fp" $ans $tserr
 
 set ans [list]
 lappend ans [list set _LMFILES_ $c40lmf]
 lappend ans [list set LOADEDMODULES $c40lm]
 lappend ans [list set __MODULES_LMTAG $c40lmtag]
-set tserr [msg_load tag/8.0]\n[msg_load foo/1.0]
+set tserr [msg_load {tag/8.0 <bar>}]\n[msg_load foo/1.0]
 testouterr_cmd_re sh "restore $coll40fp" $ans $tserr
 
 set ans [list]
@@ -1129,7 +1129,7 @@ lappend ans [list set _LMFILES_ $c41lmf]
 lappend ans [list set LOADEDMODULES $c41lm]
 lappend ans [list set __MODULES_LMEXTRATAG $c41lmextratag]
 lappend ans [list set __MODULES_LMTAG $c41lmtag]
-set tserr [msg_load foo/1.0]
+set tserr [msg_load {foo/1.0 <bar>}]
 testouterr_cmd_re sh "restore $coll41fp" $ans $tserr
 
 set ans [list]
@@ -1153,7 +1153,7 @@ lappend ans [list set _LMFILES_ $c43lmf]
 lappend ans [list set LOADEDMODULES $c43lm]
 lappend ans [list set __MODULES_LMTAG $c43lmtag]
 lappend ans [list ERR]
-set tserr $err_path'--tag'\n[msg_load tag/8.0]\n[msg_load foo/1.0]
+set tserr $err_path'--tag'\n[msg_load {tag/8.0 <bar>}]\n[msg_load foo/1.0]
 testouterr_cmd_re sh "restore $coll43fp" $ans $tserr
 unsetenv_var MODULES_ADVANCED_VERSION_SPEC
 
@@ -1165,7 +1165,7 @@ lappend ans [list set _LMFILES_ $c44lmf]
 lappend ans [list set LOADEDMODULES $c44lm]
 lappend ans [list set __MODULES_LMEXTRATAG $c44lmextratag]
 lappend ans [list set __MODULES_LMTAG $c44lmtag]
-set tserr [msg_load $c44mod1]\n[msg_load $c44mod2]\n[msg_load $c44mod3]
+set tserr [msg_load "$c44mod1 <aL:foo:kL>"]\n[msg_load "$c44mod2 <bar:foo>"]\n[msg_load $c44mod3]
 testouterr_cmd_re sh "restore $coll44fp" $ans $tserr
 
 setenv_var MODULES_COLLECTION_PIN_TAG 1
@@ -1175,7 +1175,7 @@ lappend ans [list set _LMFILES_ $c44lmf]
 lappend ans [list set LOADEDMODULES $c44lm]
 lappend ans [list set __MODULES_LMEXTRATAG $c44lmextratag]
 lappend ans [list set __MODULES_LMTAG $c44lmtag]
-set tserr [msg_load $c44mod1]\n[msg_load $c44mod2]\n[msg_load $c44mod3]
+set tserr [msg_load "$c44mod1 <aL:foo:kL>"]\n[msg_load "$c44mod2 <bar:foo>"]\n[msg_load $c44mod3]
 testouterr_cmd_re sh "restore $coll44pinfp" $ans $tserr
 unsetenv_var MODULES_COLLECTION_PIN_TAG
 
@@ -1186,7 +1186,7 @@ lappend ans [list set _LMFILES_ $c45lmf]
 lappend ans [list set LOADEDMODULES $c45lm]
 lappend ans [list set __MODULES_LMEXTRATAG $c45lmextratag]
 lappend ans [list set __MODULES_LMTAG $c45lmtag]
-set tserr [msg_load $c45mod1 [err_accessnearlydenied {}]]\n\n[msg_load $c45mod2]\n[msg_load $c45mod3]
+set tserr [msg_load "$c45mod1 <aL:foo:kL:nF>" [err_accessnearlydenied {}]]\n\n[msg_load "$c45mod2 <bar:foo>"]\n[msg_load $c45mod3]
 testouterr_cmd_re sh "restore $coll45fp" $ans $tserr
 
 setenv_var MODULES_COLLECTION_PIN_TAG 1
@@ -1268,7 +1268,7 @@ lappend ans [list set _LMFILES_ $c49lmf]
 lappend ans [list set LOADEDMODULES $c49lm]
 lappend ans [list set __MODULES_LMEXTRATAG $c49lmextratag]
 lappend ans [list set __MODULES_LMTAG $c49mod2&[join $c49mod2tag &]:$c49mod3&bar&auto-loaded&keep-loaded]
-set tserr [msg_unload $c49mod4]\n[msg_unload $c49mod3]\n[msg_unload $c49mod2{-bar:+foo}]\n[msg_load $c49mod2{-bar:+foo}]\n[msg_load $c49mod3]\n[msg_load $c49mod4]
+set tserr [msg_unload $c49mod4]\n[msg_unload "$c49mod3 <bar:kL>"]\n[msg_unload "$c49mod2{-bar:+foo} <aL:foo:kL>"]\n[msg_load "$c49mod2{-bar:+foo} <foo:kL>"]\n[msg_load "$c49mod3 <aL:bar:kL>"]\n[msg_load $c49mod4]
 testouterr_cmd sh "restore $coll49fp" $ans $tserr
 
 # keep-loaded tag defined by module-tag in modulerc
@@ -1291,7 +1291,7 @@ lappend ans [list set _LMFILES_ $c49lmf]
 lappend ans [list set LOADEDMODULES $c49lm]
 lappend ans [list set __MODULES_LMEXTRATAG $c49lmextratag]
 lappend ans [list set __MODULES_LMTAG $c49mod2&[join $c49mod2tag &]:$c49mod3&bar&auto-loaded&keep-loaded]
-set tserr [msg_load $c49mod3]\n[msg_load $c49mod4]
+set tserr [msg_load "$c49mod3 <aL:bar:kL>"]\n[msg_load $c49mod4]
 testouterr_cmd_re sh "restore $coll49fp" $ans $tserr
 
 # module-forbid defined in modulerc for 3rd collection module

@@ -203,7 +203,7 @@ lappend ans [list set LOADEDMODULES $mod]
 lappend ans [list set __MODULES_LMEXTRATAG $mod&hidden-loaded&sticky&super-sticky]
 lappend ans [list set __MODULES_LMTAG $mod&hidden-loaded&sticky&super-sticky]
 testouterr_cmd sh "load --tag=hidden-loaded:sticky:super-sticky $mod" $ans {}
-set tserr [msg_load $mod]
+set tserr [msg_load "$mod <H:S:sS>"]
 testouterr_cmd sh "load -v --tag=hidden-loaded:sticky:super-sticky $mod" $ans $tserr
 
 # test tags that could not be set manually
@@ -221,7 +221,7 @@ lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
 lappend ans [list set LOADEDMODULES foo/1.0:$mod]
 lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&foo:$mod&bar]
 lappend ans [list set __MODULES_LMTAG foo/1.0&foo&auto-loaded:$mod&bar]
-set tserr [msg_top_load $mod {} foo/1.0 {}]
+set tserr [msg_top_load "$mod <bar>" {} foo/1.0 {}]
 testouterr_cmd sh "load --auto --tag=bar $mod" $ans $tserr
 testouterr_cmd sh "load --no-auto --tag=bar $mod" $ans $tserr
 
@@ -236,7 +236,7 @@ lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
 lappend ans [list unset __MODULES_LMEXTRATAG]
 lappend ans [list unset __MODULES_LMTAG]
-set tserr [msg_top_unload $mod {} foo/1.0 {}]
+set tserr [msg_top_unload "$mod <bar>" {} foo/1.0 {}]
 testouterr_cmd sh "unload $mod" $ans $tserr
 
 unsetenv_loaded_module
@@ -252,7 +252,7 @@ lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
 lappend ans [list set LOADEDMODULES foo/1.0:$mod]
 lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&hidden-loaded&foo:$mod&bar]
 lappend ans [list set __MODULES_LMTAG foo/1.0&hidden-loaded&foo&auto-loaded:$mod&bar]
-set tserr [msg_load $mod]
+set tserr [msg_load "$mod <bar>"]
 testouterr_cmd sh "load -v --tag=bar $mod" $ans $tserr
 
 setenv_loaded_module [list foo/1.0 $mod] [list $mp/foo/1.0 $modfile]
@@ -284,7 +284,7 @@ setenv_path_var __MODULES_LMPREREQ $mod&foo/1.0
 setenv_path_var __MODULES_LMEXTRATAG $mod&bar
 setenv_path_var __MODULES_LMTAG foo/1.0&auto-loaded:$mod&bar
 
-set tserr [escre [msg_unload $mod [msg_moderr {Tag 'loaded' cannot be manually set} {module load --tag loaded:hidden foo/1.0<EXM>} $modfile $ln]]]
+set tserr [escre [msg_unload "$mod <bar>" [msg_moderr {Tag 'loaded' cannot be manually set} {module load --tag loaded:hidden foo/1.0<EXM>} $modfile $ln]]]
 testouterr_cmd_re sh "unload $mod" ERR $tserr
 
 unsetenv_loaded_module
@@ -302,7 +302,7 @@ lappend ans [list set _LMFILES_ $mp/variant/3.0:$modfile]
 lappend ans [list set LOADEDMODULES variant/3.0:$mod]
 lappend ans [list set __MODULES_LMEXTRATAG variant/3.0&foo:$mod&bar]
 lappend ans [list set __MODULES_LMTAG variant/3.0&foo&auto-loaded:$mod&bar]
-set tserr [msg_top_load $mod {} {variant/3.0{bar=val1}} {}]
+set tserr [msg_top_load "$mod <bar>" {} {variant/3.0{bar=val1}} {}]
 testouterr_cmd sh "load --tag=bar $mod" $ans $tserr
 
 setenv_loaded_module [list variant/3.0 $mod] [list $mp/variant/3.0 $modfile]
@@ -318,7 +318,7 @@ lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
 lappend ans [list unset __MODULES_LMEXTRATAG]
 lappend ans [list unset __MODULES_LMTAG]
-set tserr [msg_top_unload $mod {} {variant/3.0{bar=val1}} {}]
+set tserr [msg_top_unload "$mod <bar>" {} {variant/3.0{bar=val1}} {}]
 testouterr_cmd sh "unload $mod" $ans $tserr
 
 unsetenv_loaded_module

@@ -41,10 +41,10 @@ lappend ans [list set __MODULES_LMTAG setenv/1.0&auto-loaded:trace/all_on&auto-l
 # test the different verbosity level with command-line switch option if available
 testouterr_cmd_re sh {load -s module/meta} $ans {}
 setenv_var MODULES_VERBOSITY concise
-testouterr_cmd_re sh {load module/meta} $ans [msg_load trace/all_on $err_trace]
+testouterr_cmd_re sh {load module/meta} $ans [msg_load {trace/all_on <aL>} $err_trace]
 setenv_var MODULES_VERBOSITY normal
-testouterr_cmd_re sh {load module/meta} $ans [msg_load trace/all_on $err_trace]\n\n[msg_top_load module/meta {} {setenv/1.0 trace/all_on prereq/module} {}]
-testouterr_cmd_re sh {load -v module/meta} $ans [msg_load setenv/1.0]\n\n[msg_load trace/all_on $err_trace]\n\n[msg_load prereq/module]\n\n[msg_top_load module/meta {} {setenv/1.0 trace/all_on prereq/module} {}]
+testouterr_cmd_re sh {load module/meta} $ans [msg_load {trace/all_on <aL>} $err_trace]\n\n[msg_top_load module/meta {} {setenv/1.0 trace/all_on prereq/module} {}]
+testouterr_cmd_re sh {load -v module/meta} $ans [msg_load {setenv/1.0 <aL>}]\n\n[msg_load {trace/all_on <aL>} $err_trace]\n\n[msg_load {prereq/module <aL>}]\n\n[msg_top_load module/meta {} {setenv/1.0 trace/all_on prereq/module} {}]
 
 skip_if_quick_mode
 
@@ -173,9 +173,9 @@ foreach verbosity [list silent concise normal verbose verbose2] {
     if {$verbosity eq {silent} || $verbosity eq {concise}} {
         set tserr {}
     } elseif {$verbosity eq {normal}} {
-        set tserr [msg_top_switch setenv/1.0 setenv/0.6 {} {} {} {} module/meta]
+        set tserr [msg_top_switch {setenv/1.0 <aL>} setenv/0.6 {} {} {} {} module/meta]
     } elseif {$verbosity eq {verbose} || $verbosity eq {verbose2}} {
-        set tserr [msg_unload module/meta]\n[msg_unload setenv/1.0]\n[msg_load setenv/0.6]\n[msg_load module/meta]\n\n[msg_top_switch setenv/1.0 setenv/0.6 {} {} {} {} module/meta]
+        set tserr [msg_unload module/meta]\n[msg_unload {setenv/1.0 <aL>}]\n[msg_load setenv/0.6]\n[msg_load module/meta]\n\n[msg_top_switch {setenv/1.0 <aL>} setenv/0.6 {} {} {} {} module/meta]
     }
     testouterr_cmd_re sh {switch --auto setenv/0.6} $ans $tserr
 
@@ -188,20 +188,20 @@ foreach verbosity [list silent concise normal verbose verbose2] {
     if {$verbosity eq {silent}} {
         set tserr {}
     } elseif {$verbosity eq {concise}} {
-        set tserr [msg_unload trace/all_on $err_trace]
+        set tserr [msg_unload {trace/all_on <aL>} $err_trace]
     } elseif {$verbosity eq {normal}} {
-        set tserr [msg_unload trace/all_on $err_trace]\n\n[msg_top_unload module/meta {} {prereq/module trace/all_on setenv/1.0} {}]
+        set tserr [msg_unload {trace/all_on <aL>} $err_trace]\n\n[msg_top_unload module/meta {} {prereq/module trace/all_on setenv/1.0} {}]
     } elseif {$verbosity eq {verbose} || $verbosity eq {verbose2}} {
-        set tserr [msg_unload prereq/module]\n\n[msg_unload trace/all_on $err_trace]\n\n[msg_unload setenv/1.0]\n\n[msg_top_unload module/meta {} {prereq/module trace/all_on setenv/1.0} {}]
+        set tserr [msg_unload {prereq/module <aL>}]\n\n[msg_unload {trace/all_on <aL>} $err_trace]\n\n[msg_unload {setenv/1.0 <aL>}]\n\n[msg_top_unload module/meta {} {prereq/module trace/all_on setenv/1.0} {}]
     }
     testouterr_cmd_re sh {unload --auto module/meta} $ans $tserr
 
     if {$verbosity eq {silent}} {
         set tserr {}
     } elseif {$verbosity eq {concise} || $verbosity eq {normal}} {
-        set tserr [msg_unload trace/all_on $err_trace]
+        set tserr [msg_unload {trace/all_on <aL>} $err_trace]
     } elseif {$verbosity eq {verbose} || $verbosity eq {verbose2}} {
-        set tserr [msg_unload module/meta]\n[msg_unload prereq/module]\n\n[msg_unload trace/all_on $err_trace]\n\n[msg_unload setenv/1.0]
+        set tserr [msg_unload module/meta]\n[msg_unload {prereq/module <aL>}]\n\n[msg_unload {trace/all_on <aL>} $err_trace]\n\n[msg_unload {setenv/1.0 <aL>}]
     }
     testouterr_cmd_re sh {purge} $ans $tserr
 
@@ -214,9 +214,9 @@ foreach verbosity [list silent concise normal verbose verbose2] {
     if {$verbosity eq {silent}} {
         set tserr {}
     } elseif {$verbosity eq {concise} || $verbosity eq {normal}} {
-        set tserr [msg_unload trace/all_on $err_trace]\n\n[msg_load trace/all_on $err_trace]
+        set tserr [msg_unload {trace/all_on <aL>} $err_trace]\n\n[msg_load {trace/all_on <aL>} $err_trace]
     } elseif {$verbosity eq {verbose} || $verbosity eq {verbose2}} {
-        set tserr [msg_unload module/meta]\n[msg_unload prereq/module]\n\n[msg_unload trace/all_on $err_trace]\n\n[msg_unload setenv/1.0]\n[msg_load setenv/1.0]\n\n[msg_load trace/all_on $err_trace]\n\n[msg_load prereq/module]\n[msg_load module/meta]
+        set tserr [msg_unload module/meta]\n[msg_unload {prereq/module <aL>}]\n\n[msg_unload {trace/all_on <aL>} $err_trace]\n\n[msg_unload {setenv/1.0 <aL>}]\n[msg_load {setenv/1.0 <aL>}]\n\n[msg_load {trace/all_on <aL>} $err_trace]\n\n[msg_load {prereq/module <aL>}]\n[msg_load module/meta]
     }
     testouterr_cmd_re sh {reload} $ans $tserr
 }
