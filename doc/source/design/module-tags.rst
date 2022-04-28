@@ -196,7 +196,7 @@ Reporting
 
 - Defines tags are reported on module evaluation message block
 
-    - Applies to *Loading*, *Unloading*, *Refreshing* message blocks
+    - Applies to *Loading*, *Unloading*, *Refreshing*, *Tagging* message blocks
     - Only for the module designation set in the header of the block
 
         - Not on the error message, or list of requirement loaded/unloaded

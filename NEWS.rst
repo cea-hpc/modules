@@ -229,6 +229,8 @@ Modules 5.1.0 (not yet released)
 * Fix :ref:`log-module-command` cookbook recipe not to break Modules
   initialization when using provided :file:`siteconfig.tcl` file. (fix issue
   #453 with contribution from Eric Burgueño)
+* Mention tagging evaluation of a module, when tag list of an already loaded
+  module is updated.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 .. _codespell: https://github.com/codespell-project/codespell

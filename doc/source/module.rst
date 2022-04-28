@@ -2115,8 +2115,8 @@ applied to this module.
 
 Module tags are reported along the module they are associated to on
 :subcmd:`avail` and :subcmd:`list` sub-command results and also when module's
-loading, unloading or refreshing evaluation is mentioned. Tags could be
-reported either:
+loading, unloading, refreshing or tagging evaluation is mentioned. Tags could
+be reported either:
 
 * along the module name, all tags set within angle brackets, each tag
   separated from the others with a colon character (e.g.,
