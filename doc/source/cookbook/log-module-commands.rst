@@ -17,7 +17,7 @@ configuration that traces every call to a modulefile evaluation.
 .. literalinclude:: ../../example/log-module-commands/siteconfig.tcl
    :language: tcl
    :caption: siteconfig.tcl
-   :lines: 13-36
+   :lines: 13-41
    :lineno-start: 13
 
 This code defines a ``logModfileInterp`` procedure which is set to be
@@ -32,8 +32,8 @@ following line:
 
 .. literalinclude:: ../../example/log-module-commands/siteconfig.tcl
    :language: tcl
-   :lines: 18-19
-   :lineno-start: 18
+   :lines: 23-24
+   :lineno-start: 23
 
 In the proposed code, the :command:`logger` command is run to generate a log
 message. Log entries are formatted as a JSON record which is convenient to
@@ -43,8 +43,8 @@ produced from thousands of computing nodes.
 
 .. literalinclude:: ../../example/log-module-commands/siteconfig.tcl
    :language: tcl
-   :lines: 29-31
-   :lineno-start: 29
+   :lines: 34-36
+   :lineno-start: 34
 
 Example code also defines a ``logModuleCmd`` procedure which is set to be
 evaluated after each evaluation of the ``module`` and the ``ml`` procedures
@@ -53,8 +53,8 @@ with `trace`_ Tcl command.
 .. literalinclude:: ../../example/log-module-commands/siteconfig.tcl
    :language: tcl
    :caption: siteconfig.tcl
-   :lines: 38-58
-   :lineno-start: 38
+   :lines: 43-63
+   :lineno-start: 43
 
 .. note::
 
@@ -125,7 +125,7 @@ A log entry can then be retrieved from system log files:
 
 .. parsed-literal::
 
-    :ps:`$` journalctl -q -t module -n 1
+    :ps:`$` journalctl -q -t module
     Sep 12 20:24:01 hostname module[9925]: { "user": "username", "cmd": "ml", "args": "av" }
     Sep 12 20:24:02 hostname module[9925]: { "user": "username", "mode": "load", "module": "foo/1.0", "auto": false }
     Sep 12 20:24:02 hostname module[9925]: { "user": "username", "cmd": "ml", "args": "foo" }

@@ -14,12 +14,17 @@ proc logModfileInterp {cmdstring code result op} {
    # parse context
    lassign $cmdstring cmdname modfile modname
    set mode [currentState mode]
+   if {[info level] > 1} {
+      set caller [lindex [info level -1] 0]
+   } else {
+      set caller {}
+   }
 
    # only log load and unload modulefile evaluation
    if {$mode in {load unload}} {
 
       # add info on load mode to know if module is auto-loaded or not
-      if {$mode eq {load}} {
+      if {$mode eq {load} && $caller eq {cmdModuleLoad}} {
          upvar 1 uasked uasked
          set extra ", \"auto\": [expr {$uasked ? {false} : {true}}]"
       } else {
