@@ -223,6 +223,9 @@ Modules 5.1.0 (not yet released)
   added to those already set.
 * When reporting result of :subcmd:`avail` or :subcmd:`list` sub-commands,
   enclose module names in single quotes if they contain a space character.
+* When mentioning the loading, unloading or refreshing evaluation of a module,
+  report the tags associated to this module as done when printing results of
+  :subcmd:`list` sub-command.
 
 .. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
 .. _codespell: https://github.com/codespell-project/codespell

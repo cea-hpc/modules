@@ -194,6 +194,17 @@ Reporting
     - Tags are right-aligned on each column
     - One space character at least separates module name and version or list of symbolic version from tag list
 
+- Defines tags are reported on module evaluation message block
+
+    - Applies to *Loading*, *Unloading*, *Refreshing* message blocks
+    - Only for the module designation set in the header of the block
+
+        - Not on the error message, or list of requirement loaded/unloaded
+        - To avoid overloading the output
+
+    - Tags are reported the same way than on ``list`` sub-command
+    - If load evaluation fails, the tags are not reported as they were not yet set
+
 - Tags applying to module alias are reported on ``avail`` reports only
 
     - Where the module alias stands for itself in the report
