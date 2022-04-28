@@ -662,7 +662,9 @@ proc cmdModuleRestore {{coll default}} {
       } else {
          set tag_list {}
       }
-      cmdModuleTag 1 $tag_list $modvr
+      # indicate if module has been asked by user
+      cmdModuleTag 1 [expr {![isModuleTagged $modvr auto-loaded 1]}]\
+         $tag_list $modvr
    }
 
    # determine what module to load to restore collection from current
@@ -928,7 +930,7 @@ proc cmdModuleLoad {context uasked tag_list args} {
                }
 
                # apply missing tag to loaded module
-               cmdModuleTag 0 $tag_list $modname
+               cmdModuleTag 0 $uasked $tag_list $modname
 
                # exit treatment but no need to restore settings
                set loadok 1
@@ -2390,8 +2392,9 @@ proc cmdModuleHelp {args} {
    }
 }
 
-proc cmdModuleTag {unset_extra tag_list args} {
-   reportDebug "tagging $args (unset_extra=$unset_extra, tag_list=$tag_list)"
+proc cmdModuleTag {unset_extra uasked tag_list args} {
+   reportDebug "tagging $args (unset_extra=$unset_extra, uasked=$uasked,\
+      tag_list=$tag_list)"
 
    set ret 0
    foreach mod $args {
@@ -2476,8 +2479,10 @@ proc cmdModuleTag {unset_extra tag_list args} {
          # update module designation now the additional tags are set
          registerModuleDesignation $msgrecid $modname [getVariantList\
             $modname 1] [getExportTagList $modname]
-         # report tagging evaluation
-         reportMsgRecord "Tagging [getModuleDesignation $msgrecid {} 2]"
+         # report tagging evaluation unless hidden and auto-loaded
+         set hidden [isModuleTagged $modnamevr hidden-loaded 1]
+         reportMsgRecord "Tagging [getModuleDesignation $msgrecid {} 2]"\
+            [expr {$hidden && !$uasked}]
          popMsgRecordId
       }
    }

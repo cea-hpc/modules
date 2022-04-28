@@ -177,7 +177,7 @@ Specification
 
             - Unless ``--all`` option is set on ``list`` sub-command
 
-        - Hidden once loaded modules load or unload is not reported
+        - Hidden once loaded modules load, unload or tag is not reported
 
             - If this evaluation has been triggered automatically
 
