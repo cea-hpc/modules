@@ -237,8 +237,25 @@ The :option:`--tag` option is available on :subcmd:`load`, :subcmd:`load-any`,
 :mfcmd:`always-load`, :mfcmd:`depends-on`, :mfcmd:`module`, :mfcmd:`prereq`,
 :mfcmd:`prereq-all` and :mfcmd:`prereq-any` modulefile commands.
 
+Informational messages of module evaluation have been updated to mention in
+module denomination the tags applying to it, as it is done in :subcmd:`list`
+sub-command output:
+
+.. parsed-literal::
+
+    :ps:`$` module load -v --tag=sticky:bar foo/1.0
+    Loading :sgrshi:`foo/1.0` <bar>
+
 In case the designated module is already loaded, the additional tags are added
 to the list of tags already applied to this module.
+
+.. parsed-literal::
+
+    :ps:`$` module list
+    Currently Loaded Modulefiles:
+     1) foo/1.0
+    :ps:`$` module load -v --tag=sticky:bar foo/1.0
+    Tagging :sgrshi:`foo/1.0` <bar>
 
 The ``keep-loaded`` tag is introduced in this version. It avoids an
 auto-loaded module to get automatically unloaded when its dependent modules
@@ -248,10 +265,45 @@ command. Default :mconfig:`tag_abbrev` configuration option has been updated
 to add the ``kL`` abbreviation for ``keep-loaded`` tag. Default dark and light
 color palettes have been updated too.
 
+.. parsed-literal::
+
+    :ps:`$` module show bar/1.0
+    -------------------------------------------------------------------
+    :sgrhi:`/path/to/modulefiles/bar/1.0`:
+
+    :sgrcm:`always-load`     foo/1.0
+    -------------------------------------------------------------------
+    :ps:`$` module load bar/1.0
+    Loading :sgrhi:`bar/1.0`
+      :sgrin:`Loading requirement`: foo/1.0
+    :ps:`$` module unload bar/1.0
+    :ps:`$` module list
+    Currently Loaded Modulefiles:
+     1) :sgral:`foo`:sgrkl:`/1.0`
+
+    Key:
+    :sgral:`auto-loaded`  :sgrkl:`keep-loaded`
+
 When saving a collection, the tags defined with :option:`--tag` option are
 recorded to set them again when collection is restored. Tags resulting from
 module load state, like ``auto-loaded`` and ``keep-loaded``, are also
 recorded.
+
+.. parsed-literal::
+
+    :ps:`$` module load --tag=sticky bar/1.0
+    Loading :sgrshi:`bar/1.0`
+      :sgrin:`Loading requirement`: foo/1.0
+    :ps:`$` module save
+    :ps:`$` module saveshow
+    -------------------------------------------------------------------
+    :sgrhi:`/home/user/.module/default`:
+
+    :sgrcm:`module` use --append /path/to/modulefiles
+    :sgrcm:`module` load --tag=auto-loaded:keep-loaded foo
+    :sgrcm:`module` load --tag=sticky bar
+
+    -------------------------------------------------------------------
 
 The :mconfig:`collection_pin_tag` configuration option is added to record in
 collection all tags set on loaded modules. This configuration option is
