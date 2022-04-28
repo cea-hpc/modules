@@ -2412,6 +2412,14 @@ proc cmdModuleTag {unset_extra tag_list args} {
          unset_list
       if {[llength $diff_list] > 0 || ($unset_extra && [llength $unset_list]\
          > 0)} {
+         # set a unique id to record messages related to this evaluation.
+         set msgrecid tag-$modnamevr-[depthState modulename]
+         pushMsgRecordId $msgrecid
+         # record module title (with the variant but no tag list) prior
+         # evaluation to get this title ready in case of error
+         registerModuleDesignation $msgrecid $modname [getVariantList\
+            $modnamevr 1] {}
+
          lappendState mode unload
          # first unset tags declared for this module on LM env var
          if {[set modtag [getExportTagList $modname 1]] ne {}} {
@@ -2464,6 +2472,13 @@ proc cmdModuleTag {unset_extra tag_list args} {
             append-path __MODULES_LMEXTRATAG $modtag
          }
          lpopState mode
+
+         # update module designation now the additional tags are set
+         registerModuleDesignation $msgrecid $modname [getVariantList\
+            $modname 1] [getExportTagList $modname]
+         # report tagging evaluation
+         reportMsgRecord "Tagging [getModuleDesignation $msgrecid {} 2]"
+         popMsgRecordId
       }
    }
 
