@@ -999,7 +999,7 @@ lappend ans [list set _LMFILES_ $c37lmf]
 lappend ans [list set LOADEDMODULES $c37lm]
 lappend ans [list set __MODULES_LMEXTRATAG $c37lmextratag]
 lappend ans [list set __MODULES_LMTAG $c37mod1&auto-loaded&foo:$c37mod2&[join $c37mod2tag &]]
-set tserr [msg_load {tag/8.0 <bar:foo>}]
+set tserr [msg_tag {variant/3.0{bar=val1} <aL:foo>}]\n[msg_load {tag/8.0 <bar:foo>}]
 testouterr_cmd_re sh "restore $coll37fp" $ans $tserr
 
 setenv_var __MODULES_LMTAG $c37mod1&foo
@@ -1034,7 +1034,7 @@ lappend ans [list set _LMFILES_ $c37lmf]
 lappend ans [list set LOADEDMODULES $c37lm]
 lappend ans [list set __MODULES_LMEXTRATAG $c37lmextratag]
 lappend ans [list set __MODULES_LMTAG $c37lmtag]
-set tserr [msg_load {tag/8.0 <bar:foo>}]
+set tserr [msg_tag {variant/3.0{bar=val1} <aL:foo>}]\n[msg_load {tag/8.0 <bar:foo>}]
 testouterr_cmd_re sh "restore $coll37fp" $ans $tserr
 
 setenv_loaded_module [list foo/1.0 $c37mod1] [list $c37modpath1/foo/1.0 $c37modpath1/$c37mod1]
@@ -1074,7 +1074,8 @@ setenv_var __MODULES_LMEXTRATAG $c37mod1&[join $c37mod1extratag &]
 set ans [list]
 lappend ans [list set __MODULES_LMEXTRATAG $c37lmextratag]
 lappend ans [list set __MODULES_LMTAG $c37mod1&[join $c37mod1tag &]&keep-loaded:$c37mod2&keep-loaded&foo]
-testouterr_cmd_re sh "restore $coll37fp" $ans {}
+set tserr [msg_tag {tag/8.0 <foo:kL>}]
+testouterr_cmd_re sh "restore $coll37fp" $ans $tserr
 
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMTAG
@@ -1220,11 +1221,14 @@ setenv_loaded_module [list $c49mod1 $c49mod2 $c49mod3 $c49mod4] [list $c49modpat
 set ans [list]
 lappend ans [list set __MODULES_LMEXTRATAG $c49lmextratag]
 lappend ans [list set __MODULES_LMTAG $c49lmtag]
-testouterr_cmd_re sh "restore $coll49fp" $ans {}
+set tserr [msg_tag {tag/8.0{-bar:+foo} <foo:kL>}]\n[msg_tag {foo/1.0 <aL:bar:kL>}]
+testouterr_cmd sh "restore $coll49fp" $ans $tserr
 
 setenv_var __MODULES_LMTAG $c49mod1&bar&foo:$c49mod3&auto-loaded:$c49mod4&bar&foo
 setenv_var __MODULES_LMEXTRATAG $c49mod1&bar&foo:$c49mod4&bar&foo
-testouterr_cmd_re sh "restore $coll49fp" $ans {}
+# message with no tag for 1st and 4th module, as their extra tag from env are removed
+set tserr [msg_tag variant/3.0{bar=val2}]\n[msg_tag {tag/8.0{-bar:+foo} <foo:kL>}]\n[msg_tag {foo/1.0 <aL:bar:kL>}]\n[msg_tag keep/1.0]
+testouterr_cmd sh "restore $coll49fp" $ans $tserr
 
 setenv_var __MODULES_LMTAG $c49mod1&bar&foo:$c49mod3&auto-loaded:$c49mod4&foo
 setenv_var __MODULES_LMEXTRATAG $c49mod1&bar
@@ -1232,14 +1236,16 @@ set ans [list]
 lappend ans [list set __MODULES_LMEXTRATAG $c49lmextratag]
 # foo tag is kept of 1st and 4th module as not set extra
 lappend ans [list set __MODULES_LMTAG $c49mod4&foo:$c49mod1&foo:$c49lmtag]
-testouterr_cmd_re sh "restore $coll49fp" $ans {}
+set tserr [msg_tag {variant/3.0{bar=val2} <foo>}]\n[msg_tag {tag/8.0{-bar:+foo} <foo:kL>}]\n[msg_tag {foo/1.0 <aL:bar:kL>}]
+testouterr_cmd sh "restore $coll49fp" $ans $tserr
 
 setenv_var __MODULES_LMTAG $c49mod1&bar&foo:$c49mod3&auto-loaded&bar&keep-loaded:$c49mod4&bar&foo
 setenv_var __MODULES_LMEXTRATAG $c49mod1&bar&foo:$c49mod3&bar:$c49mod4&bar&foo
 set ans [list]
 lappend ans [list set __MODULES_LMEXTRATAG $c49mod3&[join $c49mod3extratag &]:$c49mod2&[join $c49mod2extratag &]]
 lappend ans [list set __MODULES_LMTAG $c49mod3&[join $c49mod3tag &]:$c49mod2&[join $c49mod2tag &]]
-testouterr_cmd_re sh "restore $coll49fp" $ans {}
+set tserr [msg_tag variant/3.0{bar=val2}]\n[msg_tag {tag/8.0{-bar:+foo} <foo:kL>}]\n[msg_tag keep/1.0]
+testouterr_cmd sh "restore $coll49fp" $ans $tserr
 
 setenv_var __MODULES_LMTAG $c49mod2&bar&foo:$c49mod3&auto-loaded&bar&foo
 setenv_var __MODULES_LMEXTRATAG $c49mod2&bar
@@ -1248,14 +1254,16 @@ set ans [list]
 # and 4th module is set non-extra
 lappend ans [list unset __MODULES_LMEXTRATAG]
 lappend ans [list set __MODULES_LMTAG $c49mod2&[join $c49mod2tag &]:$c49mod3&auto-loaded&bar&foo&keep-loaded]
-testouterr_cmd_re sh "restore $coll49fp" $ans {}
+set tserr [msg_tag {tag/8.0{-bar:+foo} <foo:kL>}]\n[msg_tag {foo/1.0 <aL:bar:foo:kL>}]
+testouterr_cmd sh "restore $coll49fp" $ans $tserr
 
 setenv_var __MODULES_LMTAG $c49mod2&bar&foo:$c49mod3&auto-loaded&bar&foo
 setenv_var __MODULES_LMEXTRATAG $c49mod2&bar&foo
 set ans [list]
 lappend ans [list set __MODULES_LMEXTRATAG $c49mod2&foo]
 lappend ans [list set __MODULES_LMTAG $c49mod2&[join $c49mod2tag &]:$c49mod3&auto-loaded&bar&foo&keep-loaded]
-testouterr_cmd_re sh "restore $coll49fp" $ans {}
+set tserr [msg_tag {tag/8.0{-bar:+foo} <foo:kL>}]\n[msg_tag {foo/1.0 <aL:bar:foo:kL>}]
+testouterr_cmd sh "restore $coll49fp" $ans $tserr
 
 # 2nd module is set auto-loaded in env, not in collection
 # and 3rd module is not set auto-loaded in env, whereas it is in collection
@@ -1279,7 +1287,8 @@ setenv_var __MODULES_LMEXTRATAG $c49mod1&bar&foo:$c49mod4&bar&foo
 set ans [list]
 lappend ans [list set __MODULES_LMEXTRATAG $c49lmextratag]
 lappend ans [list set __MODULES_LMTAG $c49mod2&[join $c49mod2tag &]:$c49mod3&auto-loaded&keep-loaded&bar]
-testouterr_cmd_re sh "restore $coll49fp" $ans {}
+set tserr [msg_tag variant/3.0{bar=val2}]\n[msg_tag {tag/8.0{-bar:+foo} <foo:kL>}]\n[msg_tag {foo/1.0 <aL:bar:kL>}]\n[msg_tag keep/1.0]
+testouterr_cmd sh "restore $coll49fp" $ans $tserr
 
 unsetenv_var __MODULES_LMPREREQ
 setenv_loaded_module [list $c49mod1 $c49mod2] [list $c49modpath1/$c49mod1 $c49modpath1/$c49mod2]
@@ -1292,13 +1301,13 @@ lappend ans [list set LOADEDMODULES $c49lm]
 lappend ans [list set __MODULES_LMEXTRATAG $c49lmextratag]
 lappend ans [list set __MODULES_LMTAG $c49mod2&[join $c49mod2tag &]:$c49mod3&bar&auto-loaded&keep-loaded]
 set tserr [msg_load "$c49mod3 <aL:bar:kL>"]\n[msg_load $c49mod4]
-testouterr_cmd_re sh "restore $coll49fp" $ans $tserr
+testouterr_cmd sh "restore $coll49fp" $ans $tserr
 
 # module-forbid defined in modulerc for 3rd collection module
 setenv_var TESTSUITE_TAG_OPT coll49forb
 setenv_var TESTSUITE_KEEP_LOADED coll49forb
 set tserr [err_accessdenied $c49mod3]\n\n[msg_load $c49mod4 [err_accessdenied $c49mod3] [err_reqlo $c49mod3]]
-testouterr_cmd_re sh "restore $coll49fp" ERR $tserr
+testouterr_cmd sh "restore $coll49fp" ERR $tserr
 
 unsetenv_var TESTSUITE_TAG_OPT
 unsetenv_var TESTSUITE_KEEP_LOADED
