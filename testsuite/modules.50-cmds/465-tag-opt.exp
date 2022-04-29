@@ -10,7 +10,7 @@
 #   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
 #
 #   Description:	Testuite testsequence
-#   Command:		load, try-load, load-any, unload, switch
+#   Command:		load, try-load, load-any, unload, switch, source
 #   Modulefiles:    tag
 #   Sub-Command:
 #
@@ -225,6 +225,25 @@ set tserr [msg_top_load "$mod <bar>" {} foo/1.0 {}]
 testouterr_cmd sh "load --auto --tag=bar $mod" $ans $tserr
 testouterr_cmd sh "load --no-auto --tag=bar $mod" $ans $tserr
 
+# test verbose messages
+set tserr [msg_load {foo/1.0 <aL:foo>}]\n\n[msg_top_load "$mod <bar>" {} foo/1.0 {}]
+testouterr_cmd sh "load -v --auto --tag=bar $mod" $ans $tserr
+testouterr_cmd sh "load -v --no-auto --tag=bar $mod" $ans $tserr
+testouterr_cmd sh "load -vv --auto --tag=bar $mod" $ans $tserr
+
+# test messages when dependency is already loaded but not tagged
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&foo:$mod&bar]
+lappend ans [list set __MODULES_LMTAG foo/1.0&foo:$mod&bar]
+testouterr_cmd sh "load --auto --tag=bar $mod" $ans {}
+set tserr [msg_tag {foo/1.0 <foo>}]\n[msg_load "$mod <bar>"]
+testouterr_cmd sh "load -v --auto --tag=bar $mod" $ans $tserr
+testouterr_cmd sh "load -vv --auto --tag=bar $mod" $ans $tserr
+
 setenv_loaded_module [list foo/1.0 $mod] [list $mp/foo/1.0 $modfile]
 setenv_path_var __MODULES_LMPREREQ $mod&foo/1.0
 setenv_path_var __MODULES_LMEXTRATAG foo/1.0&foo:$mod&bar
@@ -254,6 +273,38 @@ lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&hidden-loaded&foo:$mod&bar]
 lappend ans [list set __MODULES_LMTAG foo/1.0&hidden-loaded&foo&auto-loaded:$mod&bar]
 set tserr [msg_load "$mod <bar>"]
 testouterr_cmd sh "load -v --tag=bar $mod" $ans $tserr
+
+# test verbose messages
+set tserr [msg_load {foo/1.0 <aL:foo:H>}]\n\n[msg_top_load "$mod <bar>" {} foo/1.0 {}]
+testouterr_cmd sh "load -vv --tag=bar $mod" $ans $tserr
+
+# test messages when dependency is already loaded but not tagged
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&hidden-loaded&foo:$mod&bar]
+lappend ans [list set __MODULES_LMTAG foo/1.0&hidden-loaded&foo:$mod&bar]
+testouterr_cmd sh "load --tag=bar $mod" $ans {}
+set tserr [msg_load "$mod <bar>"]
+testouterr_cmd sh "load -v --tag=bar $mod" $ans $tserr
+set tserr [msg_tag {foo/1.0 <foo:H>}]\n[msg_load "$mod <bar>"]
+testouterr_cmd sh "load -vv --tag=bar $mod" $ans $tserr
+
+# test messages when dependency is already loaded, auto-loaded, but not tagged
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0] [list foo/1.0]
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&hidden-loaded&foo:$mod&bar]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded&hidden-loaded&foo:$mod&bar]
+testouterr_cmd sh "load --tag=bar $mod" $ans {}
+set tserr [msg_load "$mod <bar>"]
+testouterr_cmd sh "load -v --tag=bar $mod" $ans $tserr
+set tserr [msg_tag {foo/1.0 <aL:foo:H>}]\n[msg_load "$mod <bar>"]
+testouterr_cmd sh "load -vv --tag=bar $mod" $ans $tserr
 
 setenv_loaded_module [list foo/1.0 $mod] [list $mp/foo/1.0 $modfile]
 setenv_path_var __MODULES_LMPREREQ $mod&foo/1.0
@@ -411,6 +462,11 @@ lappend ans [list set LOADEDMODULES foo/1.0:$mod]
 lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&foo]
 lappend ans [list set __MODULES_LMTAG foo/1.0&foo]
 testouterr_cmd sh "load $mod" $ans {}
+
+# test verbose message when requirement is already loaded
+set tserr [msg_tag {foo/1.0 <foo>}]\n[msg_load tag/8.0]
+testouterr_cmd sh "load -v $mod" $ans $tserr
+testouterr_cmd sh "load -vv $mod" $ans $tserr
 
 setenv_path_var __MODULES_LMEXTRATAG foo/1.0&bar
 setenv_path_var __MODULES_LMTAG foo/1.0&bar
@@ -1172,6 +1228,39 @@ setenv_var TESTSUITE_TAG_OPT prtagbad13
 set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 113}]
 set tserr [escre [msg_load $mod [msg_moderr {Missing value for '--tag' option} {always-load --tag= foo/1.0<EXM>} $modfile $ln]]]
 testouterr_cmd_re sh "load $mod" ERR $tserr
+
+
+# test verbose messages on source sub-cmd with already loaded modules
+# 3rd module is auto-loaded, 2nd is not
+# 4th module is hidden-loaded as extra tag, so it will be removed
+# see messages in normal, verbose and verbose2 mode
+setenv_var TESTSUITE_TAG_OPT coll49
+setenv_var TESTSUITE_KEEP_LOADED coll49
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+setenv_var __MODULES_LMVARIANT variant/3.0&bar|val2|0|0:tag/8.0&bar|0|1|0&foo|1|1|0
+setenv_var __MODULES_LMPREREQ keep/1.0&foo/1.0
+setenv_loaded_module [list variant/3.0 tag/8.0 foo/1.0 keep/1.0] [list $modpath.3/variant/3.0 $modpath.3/tag/8.0 $modpath.3/foo/1.0 $modpath.3/keep/1.0] [list foo/1.0]
+setenv_var __MODULES_LMTAG tag/8.0&hidden-loaded:foo/1.0&auto-loaded&hidden-loaded:keep/1.0&hidden-loaded
+setenv_var __MODULES_LMEXTRATAG keep/1.0&hidden-loaded
+set ans [list]
+lappend ans [list set __MODULES_LMEXTRATAG keep/1.0&hidden-loaded:tag/8.0&foo:foo/1.0&bar]
+lappend ans [list set __MODULES_LMTAG keep/1.0&hidden-loaded:tag/8.0&hidden-loaded&foo&keep-loaded:foo/1.0&auto-loaded&hidden-loaded&bar&keep-loaded]
+set coll49fp $env(HOME)/home/coll49-tosource
+set tserr [msg_tag {tag/8.0{-bar:+foo} <foo:H:kL>}]\n[msg_tag {foo/1.0 <aL:bar:H:kL>}]
+testouterr_cmd sh "source $coll49fp" $ans {}
+testouterr_cmd sh "source -v $coll49fp" $ans $tserr
+#FIXME: already loaded message printed in verbose2 mode prior Tagging message (with un-updated list of tags)
+set tserr [msg_load variant/3.0{bar=val2} [info_alreadyloaded variant/3.0]]\n\n[msg_load {tag/8.0{-bar:+foo} <H>} [info_alreadyloaded tag/8.0]]\n\n[msg_tag {tag/8.0{-bar:+foo} <foo:H:kL>}]\n\n[msg_load {foo/1.0 <aL:H>} [info_alreadyloaded foo/1.0]]\n\n[msg_tag {foo/1.0 <aL:bar:H:kL>}]\n\n[msg_load {keep/1.0 <H>} [info_alreadyloaded keep/1.0]]
+testouterr_cmd sh "source -vv $coll49fp" $ans $tserr
+
+unsetenv_var __MODULES_LMVARIANT
+unsetenv_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMEXTRATAG
+unsetenv_loaded_module
+unsetenv_var TESTSUITE_KEEP_LOADED
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
 
 
 #

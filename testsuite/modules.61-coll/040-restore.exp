@@ -1279,6 +1279,21 @@ lappend ans [list set __MODULES_LMTAG $c49mod2&[join $c49mod2tag &]:$c49mod3&bar
 set tserr [msg_unload $c49mod4]\n[msg_unload "$c49mod3 <bar:kL>"]\n[msg_unload "$c49mod2{-bar:+foo} <aL:foo:kL>"]\n[msg_load "$c49mod2{-bar:+foo} <foo:kL>"]\n[msg_load "$c49mod3 <aL:bar:kL>"]\n[msg_load $c49mod4]
 testouterr_cmd sh "restore $coll49fp" $ans $tserr
 
+# restore module tagged hidden-loaded in env: 3rd module is auto-loaded, 2nd is not
+# 4th module is hidden-loaded as extra tag, so it will be removed
+# see messages in normal, verbose and verbose2 mode
+setenv_var __MODULES_LMTAG $c49mod2&hidden-loaded:$c49mod3&auto-loaded&hidden-loaded:$c49mod4&hidden-loaded
+setenv_var __MODULES_LMEXTRATAG $c49mod4&hidden-loaded
+set ans [list]
+lappend ans [list set __MODULES_LMEXTRATAG $c49lmextratag]
+lappend ans [list set __MODULES_LMTAG $c49mod2&hidden-loaded&foo&keep-loaded:$c49mod3&auto-loaded&hidden-loaded&bar&keep-loaded]
+set tserr [msg_tag "$c49mod2{-bar:+foo} <foo:H:kL>"]\n[msg_tag $c49mod4]
+testouterr_cmd sh "restore $coll49fp" $ans $tserr
+testouterr_cmd sh "restore -v $coll49fp" $ans $tserr
+set tserr [msg_tag "$c49mod2{-bar:+foo} <foo:H:kL>"]\n[msg_tag "$c49mod3 <aL:bar:H:kL>"]\n[msg_tag $c49mod4]
+testouterr_cmd sh "restore -vv $coll49fp" $ans $tserr
+
+
 # keep-loaded tag defined by module-tag in modulerc
 setenv_var TESTSUITE_TAG_OPT coll49keep
 setenv_var TESTSUITE_KEEP_LOADED coll49keep
