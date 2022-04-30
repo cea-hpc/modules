@@ -8,8 +8,8 @@ documents those changes that are of interest to users and admins.
 
 .. _5.1 release notes:
 
-Modules 5.1.0 (not yet released)
---------------------------------
+Modules 5.1.0 (2022-04-30)
+--------------------------
 
 * Allow to declare :mfcmd:`variant` with no list of accepted value. Such
   variant accepts any value specified. (fix issue #405)

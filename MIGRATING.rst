@@ -8,8 +8,8 @@ Modules. It provides an overview of the new features and changed behaviors
 that will be encountered when upgrading.
 
 
-v5.1 (not yet released)
-=======================
+v5.1
+====
 
 This new version is backward-compatible with previous version 5 release. It
 fixes bugs but also introduces new functionalities that are described in this
