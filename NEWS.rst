@@ -193,7 +193,7 @@ Modules 5.1.0 (2022-04-30)
 * Introduce the :option:`--tag` option for the :subcmd:`load`,
   :subcmd:`try-load`, :subcmd:`load-any`, :subcmd:`switch` sub-commands and
   associated :mfcmd:`module` modulefile commands and :mfcmd:`prereq`,
-  mfcmd:`prereq-all`, :mfcmd:`depends-on` and :mfcmd:`always-load` modulefile
+  :mfcmd:`prereq-all`, :mfcmd:`depends-on` and :mfcmd:`always-load` modulefile
   commands. This new option applies specified tags to the module to load.
 * Record tags set to loaded modules with the :option:`--tag` option in the
   :envvar:`__MODULES_LMEXTRATAG` environment variable to make this information
