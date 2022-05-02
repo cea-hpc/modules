@@ -1567,15 +1567,35 @@ lappend ans [list set _LMFILES_ $mp/source-sh/1]
 lappend ans [list set LOADEDMODULES source-sh/1]
 lappend ans [list set testsuite yes]
 lappend ans [list set MODULES_COLLECTION_TARGET bar]
-if {$install_versioning eq {y}} {
-lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULE_VERSION\ $install_version\|setenv\ MODULE_VERSION_STACK\ $install_version\|setenv\ MODULES_COLLECTION_TARGET\ bar\|setenv\ testsuite\ yes]
+# if module was defined in environment prior test, the result of the source-sh evaluation
+# will be the unset of the module functions
+if {$is_modules_defined} {
+    set extraans \|unset-function\ _module_raw\|unset-function\ ml\|unset-function\ module
 } else {
-lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULES_COLLECTION_TARGET\ bar\|setenv\ testsuite\ yes]
+    set extraans {}
+}
+if {$install_versioning eq {y}} {
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULE_VERSION\ $install_version\|setenv\ MODULE_VERSION_STACK\ $install_version\|setenv\ MODULES_COLLECTION_TARGET\ bar\|setenv\ testsuite\ yes$extraans]
+} else {
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULES_COLLECTION_TARGET\ bar\|setenv\ testsuite\ yes$extraans]
 }
 if {$install_versioning eq {y}} {
 lappend ans [list set MODULE_VERSION $install_version]
 }
+if {$is_modules_defined} {
+lappend ans [list {unset -f ml;}]
+lappend ans [list {unset -f module;}]
+lappend ans [list {unset -f _module_raw;}]
+}
 testouterr_cmd sh {load source-sh/1} $ans {}
+if {$is_modules_defined} {
+set extratserr "
+unset-function\t_module_raw
+unset-function\tml
+unset-function\tmodule"
+} else {
+set extratserr {}
+}
 
 set tserr "-------------------------------------------------------------------
 $mp/source-sh/1:\n\n"
@@ -1584,7 +1604,7 @@ if {$install_versioning eq {y}} {
 setenv\t\tMODULE_VERSION_STACK $install_version\n"
 }
 append tserr "setenv\t\tMODULES_COLLECTION_TARGET bar
-setenv\t\ttestsuite yes
+setenv\t\ttestsuite yes$extratserr
 module-whatis\tsource-sh/1
 -------------------------------------------------------------------"
 testouterr_cmd sh {display source-sh/1} OK $tserr
@@ -1614,12 +1634,17 @@ lappend ans [list set _LMFILES_ $mp/source-sh/1]
 lappend ans [list set LOADEDMODULES source-sh/1]
 lappend ans [list set MODULES_COLLECTION_TARGET bar]
 if {$install_versioning eq {y}} {
-lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULE_VERSION\ $install_version\|setenv\ MODULE_VERSION_STACK\ $install_version\|setenv\ MODULES_COLLECTION_TARGET\ bar]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULE_VERSION\ $install_version\|setenv\ MODULE_VERSION_STACK\ $install_version\|setenv\ MODULES_COLLECTION_TARGET\ bar$extraans]
 } else {
-lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULES_COLLECTION_TARGET\ bar]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULES_COLLECTION_TARGET\ bar$extraans]
 }
 if {$install_versioning eq {y}} {
 lappend ans [list set MODULE_VERSION $install_version]
+}
+if {$is_modules_defined} {
+lappend ans [list {unset -f ml;}]
+lappend ans [list {unset -f module;}]
+lappend ans [list {unset -f _module_raw;}]
 }
 testouterr_cmd sh {load source-sh/1} $ans {}
 
@@ -1634,12 +1659,17 @@ lappend ans [list set _LMFILES_ $modpath/setenv/1.0:$mp/source-sh/1]
 lappend ans [list set LOADEDMODULES setenv/1.0:source-sh/1]
 lappend ans [list set MODULES_COLLECTION_TARGET bar]
 if {$install_versioning eq {y}} {
-lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULE_VERSION\ $install_version\|setenv\ MODULE_VERSION_STACK\ $install_version\|setenv\ MODULES_COLLECTION_TARGET\ bar]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULE_VERSION\ $install_version\|setenv\ MODULE_VERSION_STACK\ $install_version\|setenv\ MODULES_COLLECTION_TARGET\ bar$extraans]
 } else {
-lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULES_COLLECTION_TARGET\ bar]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULES_COLLECTION_TARGET\ bar$extraans]
 }
 if {$install_versioning eq {y}} {
 lappend ans [list set MODULE_VERSION $install_version]
+}
+if {$is_modules_defined} {
+lappend ans [list {unset -f ml;}]
+lappend ans [list {unset -f module;}]
+lappend ans [list {unset -f _module_raw;}]
 }
 testouterr_cmd sh {load source-sh/1} $ans {}
 
