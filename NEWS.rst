@@ -15,6 +15,8 @@ Modules 5.1.1 (not yet released)
   positive warning messages.
 * Install: better guess ``libdir64`` and ``libdir32`` directory locations
   when ``libdir`` does not end with *64* but contains *64*.
+* Install: update RPM spec file to move libtclenvmodules in an
+  environment-modules directory under ``libdir``.
 
 
 Modules 5.1.0 (2022-04-30)
