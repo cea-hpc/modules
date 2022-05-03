@@ -8,6 +8,13 @@ documents those changes that are of interest to users and admins.
 
 .. _5.1 release notes:
 
+Modules 5.1.1 (not yet released)
+--------------------------------
+
+* Install: add :command:`rpmlint` rc configuration file to filter false
+  positive warning messages.
+
+
 Modules 5.1.0 (2022-04-30)
 --------------------------
 
