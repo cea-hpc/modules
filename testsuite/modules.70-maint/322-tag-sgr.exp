@@ -283,6 +283,28 @@ unsetenv_loaded_module
 unsetenv_var __MODULES_LMTAG
 
 
+# test tag rendering on module name containing a space character
+setenv_loaded_module [list {variant/w s}] [list "$mp/variant/w s"]
+setenv_var __MODULES_LMTAG {variant/w s&auto-loaded}
+setenv_var MODULES_TAG_ABBREV auto-loaded=aL
+setenv_var MODULES_COLORS {aL=100:al=96:de=4:H=2}
+testouterr_cmd_re sh {list} OK "$cur_loaded
+ 1\\\) '[sgr 100]variant/w s[sgr 0]'  
+
+Key:
+[sgr 100]auto-loaded[sgr 0]  "
+
+testouterr_cmd_re sh {avail -w 60 variant} OK "$modlin $mpre $modlin
+variant/1.0      variant/3.0  variant/5.1  variant/7.1    
+variant/2.0      variant/4.0  variant/6.0  variant/8.0    
+variant/2.1/2/1  variant/5.0  variant/7.0  '[sgr 100]variant/w s[sgr 0]'  
+
+Key:
+[sgr 100]auto-loaded[sgr 0]  "
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMTAG
+
+
 #
 #  Cleanup
 #
