@@ -17,6 +17,8 @@ Modules 5.1.1 (not yet released)
   when ``libdir`` does not end with *64* but contains *64*.
 * Install: update RPM spec file to move libtclenvmodules in an
   environment-modules directory under ``libdir``.
+* Fix rendering of loading or unloading module designation when configured
+  color palette does not set the ``hi`` color key. (fix issue #455)
 
 
 Modules 5.1.0 (2022-04-30)
