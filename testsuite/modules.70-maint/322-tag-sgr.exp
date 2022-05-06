@@ -12,7 +12,7 @@
 #   Description:	Testuite testsequence
 #   Command:
 #   Modulefiles:    tag
-#   Sub-Command:    avail, list
+#   Sub-Command:    load, avail, list
 #
 #   Comment:	%C{
 #           Test tag report rendering with SGR
@@ -303,6 +303,58 @@ Key:
 [sgr 100]auto-loaded[sgr 0]  "
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMTAG
+
+
+# test sgr rendering over module designation when loading
+setenv TESTSUITE_MODULE_TAG_SET1 1
+setenv_var MODULES_TAG_ABBREV foo=F
+setenv_var MODULES_COLORS {F=42}
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/5.0]
+lappend ans [list set LOADEDMODULES tag/5.0]
+lappend ans [list set __MODULES_LMTAG tag/5.0&foo]
+set tserr [msg_load [sgr 42]tag/5.0[sgr 0]]
+testouterr_cmd_re sh {load -v tag/5.0} $ans $tserr
+
+setenv_var MODULES_COLORS {F=42:hi=1}
+set tserr [msg_load [sgr {42;1}]tag/5.0[sgr 0]]
+testouterr_cmd_re sh {load -v tag/5.0} $ans $tserr
+
+# test sgr rendering along module designation when loading
+setenv_var MODULES_COLORS {F=42}
+setenv_var MODULES_TAG_COLOR_NAME F
+set tserr [msg_load "tag/5.0 <[sgr 42]F[sgr 0]>"]
+testouterr_cmd_re sh {load -v tag/5.0} $ans $tserr
+
+setenv_var MODULES_COLORS {F=42:hi=1}
+set tserr [msg_load "[sgr 1]tag/5.0[sgr 22] <[sgr 42]F[sgr 0]>"]
+testouterr_cmd_re sh {load -v tag/5.0} $ans $tserr
+
+unsetenv_var MODULES_TAG_COLOR_NAME
+unsetenv TESTSUITE_MODULE_TAG_SET1
+unsetenv_var MODULES_TAG_ABBREV
+
+
+# test module designation rendering with tags when module is already loaded
+setenv_loaded_module [list tag/8.0] [list $mp/tag/8.0]
+setenv_var __MODULES_LMTAG tag/8.0&bar
+
+setenv_var MODULES_COLORS bar=42
+set ans [list]
+lappend ans [list set __MODULES_LMEXTRATAG tag/8.0&foo]
+lappend ans [list set __MODULES_LMTAG tag/8.0&bar&foo]
+#FIXME: already loaded message printed in verbose2 mode prior Tagging message (with un-updated list of tags)
+set tserr [msg_load [sgr 42]tag/8.0[sgr 0] [info_alreadyloaded tag/8.0]]\n\n[msg_tag "[sgr 42]tag/8.0[sgr 0] <foo>"]
+testouterr_cmd_re sh "load -vv --tag=foo tag/8.0" $ans $tserr
+setenv_var MODULES_COLORS bar=42:hi=1
+#FIXME: already loaded message printed in verbose2 mode prior Tagging message (with un-updated list of tags)
+set tserr [msg_load [sgr {42;1}]tag/8.0[sgr 0] [info_alreadyloaded tag/8.0]]\n\n[msg_tag "[sgr {42;1}]tag/8.0[sgr 0] <foo>"]
+testouterr_cmd_re sh "load -vv --tag=foo tag/8.0" $ans $tserr
+setenv_var MODULES_COLORS bar=42:foo=44:hi=1
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMTAG
+unsetenv_var MODULES_COLORS
 
 
 #

@@ -1263,6 +1263,31 @@ unsetenv_var TESTSUITE_KEEP_LOADED
 unsetenv_var MODULES_ADVANCED_VERSION_SPEC
 
 
+# test module designation rendering with tags when module evaluation fails
+setenv_var TESTSUITE_TAG_OPT prtagbad2
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 71}]
+set tserr [escre [msg_load $mod [msg_moderr {wrong # args: should be "prereq ?--tag? ?taglist? modulefile ?...?"} {prereq --tag<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load --tag=foo $mod" ERR $tserr
+unsetenv_var TESTSUITE_TAG_OPT
+
+# test module designation rendering with tags when module is already loaded
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_var __MODULES_LMTAG $mod&bar
+set tserr [msg_load "$mod <bar>" [info_alreadyloaded $mod]]
+testouterr_cmd sh "load -vv $mod" OK $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMEXTRATAG $mod&foo]
+lappend ans [list set __MODULES_LMTAG $mod&bar&foo]
+#FIXME: already loaded message printed in verbose2 mode prior Tagging message (with un-updated list of tags)
+set tserr [msg_load "$mod <bar>" [info_alreadyloaded $mod]]\n\n[msg_tag "$mod <bar:foo>"]
+testouterr_cmd sh "load -vv --tag=foo $mod" $ans $tserr
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMTAG
+unsetenv_var MODULES_COLORS
+
+
 #
 #  Cleanup
 #
