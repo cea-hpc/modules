@@ -920,17 +920,18 @@ proc cmdModuleLoad {context uasked tag_list args} {
                set errlocalreport 1
                knerror [getModWithAltVrIsLoadedMsg $modname]
             } else {
+               # apply missing tag to loaded module
+               set rettag [cmdModuleTag 0 $uasked $tag_list $modname]
+
                # report module is already loaded if verbose2 or higher level
-               if {$isloaded && [isVerbosityLevel verbose2]} {
+               # and no new tag set
+               if {$isloaded && $rettag != 2 && [isVerbosityLevel verbose2]} {
                   reportInfo "Module '$modname' is already loaded"
                   registerModuleDesignation $msgrecid $modname\
                      [getVariantList $modname 1] [getExportTagList $modname]
                   reportMsgRecord "Loading [getModuleDesignation $msgrecid {}\
                      2]"
                }
-
-               # apply missing tag to loaded module
-               cmdModuleTag 0 $uasked $tag_list $modname
 
                # exit treatment but no need to restore settings
                set loadok 1
@@ -2484,6 +2485,9 @@ proc cmdModuleTag {unset_extra uasked tag_list args} {
          reportMsgRecord "Tagging [getModuleDesignation $msgrecid {} 2]"\
             [expr {$hidden && !$uasked}]
          popMsgRecordId
+
+         # indicates that new tags have been applied
+         set ret 2
       }
    }
 

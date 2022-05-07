@@ -19,6 +19,9 @@ Modules 5.1.1 (not yet released)
   environment-modules directory under ``libdir``.
 * Fix rendering of loading or unloading module designation when configured
   color palette does not set the ``hi`` color key. (fix issue #455)
+* Remove the *already loaded* message displayed when verbosity level is higher
+  or equal to ``verbose2`` if new tags are applied to the loaded module. (fix
+  issue #456)
 
 
 Modules 5.1.0 (2022-04-30)
