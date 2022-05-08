@@ -97,6 +97,23 @@ setenv_var __MODULES_PUSHENV_FOO $mod&val1
 
 skip_if_quick_mode
 
+# a different value found in persistency environment variable
+setenv_var __MODULES_PUSHENV_FOO $mod&val2
+setenv_var FOO val2
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
+# no persistency environment variable set
+unsetenv_var __MODULES_PUSHENV_FOO
+setenv_var FOO val1
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $mod" $ans {}
+
 # refresh
 testouterr_cmd sh {refresh} OK {}
 
@@ -108,6 +125,16 @@ unsetenv_var FOO
 set tserr "$modlin $mpre $modlin
 \\s*$mod: $mod"
 testouterr_cmd_re sh "whatis $mod" OK $tserr
+
+# whatis when loaded
+setenv_loaded_module [list $mod] [list $modfile]
+setenv_var __MODULES_PUSHENV_FOO $mod&val1
+setenv_var FOO val1
+testouterr_cmd_re sh "whatis $mod" OK $tserr
+
+unsetenv_loaded_module
+unsetenv_path_var __MODULES_PUSHENV_FOO
+unsetenv_var FOO
 
 # display
 set tserr "$modlin
