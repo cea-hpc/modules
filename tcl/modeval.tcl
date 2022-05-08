@@ -614,6 +614,8 @@ proc restoreSettings {} {
 
 # load modules passed as args designated as requirement
 proc loadRequirementModuleList {tag_list args} {
+   set ret 0
+
    # calling procedure must have already parsed module specification in args
    foreach mod $args {
       # get first loaded or loading mod in args list
@@ -635,13 +637,18 @@ proc loadRequirementModuleList {tag_list args} {
          # those that failed if one succeed
          set curholdid load-$i-$arg
          lappendState reportholdid $curholdid
-         if {[catch {cmdModuleLoad reqlo 0 $tag_list $arg} errorMsg]} {
+         if {[catch {set retlo [cmdModuleLoad reqlo 0 $tag_list $arg]}\
+            errorMsg]} {
             # if an error is raised, release output and rethrow the error
             # (could be raised if no modulepath defined for instance)
             lpopState reportholdid
             lappend holdidlist $curholdid report
             releaseHeldReport {*}$holdidlist
             knerror $errorMsg
+         }
+         # update return value if an issue occurred in cmdModuleLoad
+         if {$retlo != 0} {
+            set ret $retlo
          }
          lpopState reportholdid
 
@@ -663,6 +670,8 @@ proc loadRequirementModuleList {tag_list args} {
       # apply missing tag to first loaded module found
       cmdModuleTag 0 0 $tag_list $loadedmod
    }
+
+   return $ret
 }
 
 # unload phase of a list of modules reload process

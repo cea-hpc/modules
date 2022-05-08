@@ -515,22 +515,12 @@ proc module {command args} {
                   } else {
                      # attempt load of not already loaded modules
                      foreach arg $args {
-                        if {![is-loaded $arg] && ![is-loading $arg]} {
-                           lappend modlist $arg
-                        } else {
-                           lappend loadedmodlist $arg
+                        set retlo [loadRequirementModuleList $tag_list $arg]
+                        # update return value if an issue occurred unless
+                        # force mode is enabled
+                        if {$retlo != 0 && ![getState force]} {
+                           set ret $retlo
                         }
-                     }
-                     if {[info exists modlist]} {
-                        set ret [cmdModuleLoad reqlo 0 $tag_list {*}$modlist]
-                        # ignore obtained error if force mode enabled
-                        if {[getState force]} {
-                           set ret 0
-                        }
-                     }
-                     # update tags on already loaded modules
-                     if {[info exists loadedmodlist]} {
-                        cmdModuleTag 0 0 $tag_list {*}$loadedmodlist
                      }
                   }
                }
