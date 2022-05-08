@@ -537,20 +537,12 @@ proc module {command args} {
                # register modulefiles to load as individual prereqs or all at
                # once for load-any sub-command
                if {$command eq {load-any}} {
-                  if {[llength $tag_list] > 0} {
-                     prereq --tag [join $tag_list :] {*}$args
-                  } else {
-                     prereq {*}$args
-                  }
+                  prereq --tag [join $tag_list :] {*}$args
                } else {
                   foreach arg $args {
                      # no prereq record if try-load did not succeed
                      if {$command ne {try-load} || [is-loaded $arg]} {
-                        if {[llength $tag_list] > 0} {
-                           prereq --tag [join $tag_list :] $arg
-                        } else {
-                           prereq $arg
-                        }
+                        prereq --tag [join $tag_list :] $arg
                      }
                   }
                }
