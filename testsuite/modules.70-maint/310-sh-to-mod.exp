@@ -731,6 +731,15 @@ setenv_var TESTSUITE_SHTOMOD_MODULE 1
 setenv_var MODULES_SET_SHELL_STARTUP 0
 setenv_var MODULES_CMD [file normalize $env(TESTSUITEDIR)/../modulecmd.tcl]
 setenv_var TCLSH $TCLSH
+
+# if module was defined in environment prior test, the result of the source-sh evaluation
+# will be the unset of the module functions
+if {$is_modules_defined} {
+    set extratserr "\nunset-function\t_module_raw\nunset-function\tml\nunset-function\tmodule"
+} else {
+    set extratserr {}
+}
+
 set tserr "#%Module\n$tscwd\n$tsvarpre\n$tsvar\n"
 if {$install_versioning eq {y}} {
     append tserr "setenv\t\tMODULE_VERSION $install_version
@@ -738,10 +747,14 @@ setenv\t\tMODULE_VERSION_STACK $install_version\n"
 }
 append tserr "setenv\t\tMODULES_COLLECTION_TARGET bar
 setenv\t\ttestsuite yes"
+set tserrbash "$tserr$extratserr"
 foreach sh $shtomod_avail_shells {
+    # unset module definition on bash when module is predefined
+    if {$sh eq {bash} || ($sh eq {sh} && $sh_kind eq {bash})} {
+        testouterr_shtomod $sh {} OK $tserrbash
     # skip this test for old fish version as a __fish_restore_status
     # function is defined in this case
-    if {$sh ne {fish} || $fish_version_ge31} {
+    } elseif {$sh ne {fish} || $fish_version_ge31} {
         testouterr_shtomod $sh {} OK $tserr
     }
 }
@@ -754,7 +767,7 @@ if {$install_versioning eq {y}} {
     append tserr "setenv\t\tMODULE_VERSION $install_version
 setenv\t\tMODULE_VERSION_STACK $install_version\n"
 }
-append tserr "setenv\t\tMODULES_COLLECTION_TARGET bar"
+append tserr "setenv\t\tMODULES_COLLECTION_TARGET bar$extratserr"
 testouterr_shtomod bash {} OK $tserr
 
 # module is loaded prior sh-to-mod
@@ -765,7 +778,7 @@ if {$install_versioning eq {y}} {
     append tserr "setenv\t\tMODULE_VERSION $install_version
 setenv\t\tMODULE_VERSION_STACK $install_version\n"
 }
-append tserr "setenv\t\tMODULES_COLLECTION_TARGET bar"
+append tserr "setenv\t\tMODULES_COLLECTION_TARGET bar$extratserr"
 testouterr_shtomod bash {} OK $tserr
 
 
