@@ -114,4 +114,10 @@ if [ "${TESTSUITE_SHTOMOD_MODULE:+x}" = 'x' ]; then
    unset MODULESHOME
 fi
 
+if [ "${TESTSUITE_SHTOMOD_UNSETALFUNCCOMP:+x}" = 'x' ]; then
+   unalias alfoo
+   unset -f funcfoo
+   complete -r cmd
+fi
+
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

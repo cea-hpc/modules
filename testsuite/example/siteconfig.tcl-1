@@ -392,4 +392,49 @@ if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_READCOLLCONTENT)]} {
     readCollectionContent /path/to/unk unk
 }
 
+# test removal of alias, function and completion from a source-sh bash script
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_SOURCESHBASHUNSET)]} {
+    # update the list of commands run by execShAndGetEnv procedure
+    # to predefine alias, function and completion prior source-sh evaluation
+    proc traceCommandVarOfSourceSh {name1 name2 op} {
+        set defalias {alias alfoo='echo foo'}
+        set deffunc {funcfoo() { echo foo; }}
+        set defcomp {complete -o default -F _cmd cmd}
+        uplevel 1 [list set $name1 "$defalias; $deffunc; $defcomp; [uplevel 1 set $name1]"]
+    }
+    # update start of execShAndGetEnv proc to set up trace on command variable
+    set tracevarcall "trace add variable command write traceCommandVarOfSourceSh"
+    proc execShAndGetEnv [info args execShAndGetEnv] "$tracevarcall ; [info body execShAndGetEnv]"
+}
+
+# test removal of alias, function and completion from a source-sh tcsh script
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_SOURCESHTCSHUNSET)]} {
+    # update the list of commands run by execShAndGetEnv procedure
+    # to predefine alias, function and completion prior source-sh evaluation
+    proc traceCommandVarOfSourceSh {name1 name2 op} {
+        # no function definition: not supported on tcsh shell
+        set defalias {alias alfoo 'echo foo'}
+        set defcomp {complete cmd 'n/--help/n/'}
+        uplevel 1 [list set $name1 "$defalias; $defcomp; [uplevel 1 set $name1]"]
+    }
+    # update start of execShAndGetEnv proc to set up trace on command variable
+    set tracevarcall "trace add variable command write traceCommandVarOfSourceSh"
+    proc execShAndGetEnv [info args execShAndGetEnv] "$tracevarcall ; [info body execShAndGetEnv]"
+}
+
+# test removal of alias, function and completion from a source-sh fish script
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_SOURCESHFISHUNSET)]} {
+    # update the list of commands run by execShAndGetEnv procedure
+    # to predefine alias, function and completion prior source-sh evaluation
+    proc traceCommandVarOfSourceSh {name1 name2 op} {
+        set defalias {alias alfoo='echo foo'}
+        set deffunc {function funcfoo; echo foo; end}
+        set defcomp {complete -c cmd -s V -l version --description 'Command version'}
+        uplevel 1 [list set $name1 "$defalias; $deffunc; $defcomp; [uplevel 1 set $name1]"]
+    }
+    # update start of execShAndGetEnv proc to set up trace on command variable
+    set tracevarcall "trace add variable command write traceCommandVarOfSourceSh"
+    proc execShAndGetEnv [info args execShAndGetEnv] "$tracevarcall ; [info body execShAndGetEnv]"
+}
+
 }

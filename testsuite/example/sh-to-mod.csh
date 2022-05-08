@@ -100,4 +100,9 @@ if ( $?TESTSUITE_SHTOMOD_MODULE ) then
    unsetenv MODULESHOME
 endif
 
+if ( $?TESTSUITE_SHTOMOD_UNSETALFUNCCOMP ) then
+   unalias alfoo
+   uncomplete cmd
+endif
+
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

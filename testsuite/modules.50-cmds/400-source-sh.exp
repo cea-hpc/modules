@@ -1685,6 +1685,60 @@ lappend ans [list unset testsuite]
 lappend ans [list unset MODULES_COLLECTION_TARGET]
 lappend ans [list unset __MODULES_LMSOURCESH]
 testouterr_cmd sh {unload source-sh/1} $ans {}
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMSOURCESH
+unsetenv_var MODULES_COLLECTION_TARGET
+unsetenv_var testsuite
+unsetenv_var TESTSUITE_SHTOMOD_MODULE
+
+
+# check excepted siteconfig file is installed
+if {[siteconfig_isStderrTty]} {
+
+# test removal of alias, function and completion from a source-sh script
+setenv_var TESTSUITE_SHTOMOD_UNSETALFUNCCOMP 1
+
+setenv_var TESTSUITE_ENABLE_SITECONFIG_SOURCESHBASHUNSET 1
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/source-sh/1]
+lappend ans [list set LOADEDMODULES source-sh/1]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|uncomplete\ cmd\|unset-alias\ alfoo\|unset-function\ funcfoo]
+lappend ans [list unalias alfoo]
+lappend ans [list out {unset -f funcfoo;}]
+lappend ans [list out {complete -r cmd;}]
+testouterr_cmd bash {load source-sh/1} $ans {}
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_SOURCESHBASHUNSET
+
+if {[find_bin tcsh] ne {}} {
+setenv_var TESTSUITE_ENABLE_SITECONFIG_SOURCESHTCSHUNSET 1
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/source-sh/7.0]
+lappend ans [list set LOADEDMODULES source-sh/7.0]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/7.0\&tcsh\ testsuite/example/sh-to-mod.csh\|uncomplete\ cmd\|unset-alias\ alfoo]
+lappend ans [list unalias alfoo]
+lappend ans [list out {uncomplete cmd;}]
+testouterr_cmd tcsh {load source-sh/7.0} $ans {}
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_SOURCESHTCSHUNSET
+}
+
+if {[find_bin fish] ne {}} {
+setenv_var TESTSUITE_ENABLE_SITECONFIG_SOURCESHFISHUNSET 1
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/source-sh/7.2]
+lappend ans [list set LOADEDMODULES source-sh/7.2]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/7.2\&fish\ testsuite/example/sh-to-mod.fish\|uncomplete\ cmd\|unset-alias\ alfoo\|unset-function\ funcfoo]
+lappend ans [list unalias alfoo]
+lappend ans [list out {functions -e funcfoo;}]
+lappend ans [list out {complete -e -c cmd;}]
+testouterr_cmd fish {load source-sh/7.2} $ans {}
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_SOURCESHFISHUNSET
+}
+
+unsetenv_var TESTSUITE_SHTOMOD_UNSETALFUNCCOMP
+
+} elseif {$verbose > 0} {
+    send_user "\tSkip tests relying on an excepted siteconfig file installed\n"
+}
 
 
 #

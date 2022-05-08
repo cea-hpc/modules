@@ -128,4 +128,10 @@ if set -q TESTSUITE_SHTOMOD_MODULE
    set -e MODULESHOME
 end
 
+if set -q TESTSUITE_SHTOMOD_UNSETALFUNCCOMP
+   functions -e alfoo
+   functions -e funcfoo
+   complete -e -c cmd
+end
+
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
