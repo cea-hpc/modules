@@ -826,13 +826,13 @@ proc cmdModuleLoad {context uasked tag_list args} {
    reportDebug "loading $args (context=$context, uasked=$uasked)"
 
    set ret 0
+   set loadok 0
    lappendState mode load
    foreach mod $args {
       # stop when first module in list is loaded if processing load-any cmd
-      if {[info exists loadok] && $loadok && [currentState any_modulefile]} {
+      if {$loadok && [currentState any_modulefile]} {
          break
       }
-      set loadok 0
 
       # if a switch action is ongoing...
       if {$context eq {swload}} {
@@ -1165,6 +1165,13 @@ proc cmdModuleLoad {context uasked tag_list args} {
       }
    }
    lpopState mode
+
+   # raise error if no module has been loaded or has produced an error during
+   # its load attempt in case of load-any sub-command
+   if {!$ret && !$loadok && $context eq {load} && [currentState\
+      any_modulefile]} {
+      knerror "No module has been loaded"
+   }
 
    return $ret
 }
