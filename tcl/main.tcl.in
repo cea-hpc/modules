@@ -813,10 +813,10 @@ proc ml {args} {
       # define if modfile should always be fully read even for validity check
       lappendState always_read_full_file 1
       lappendState commandname ml
-      # is evaluation a regular attempt or a try (silence not found error)
-      lappendState try_modulefile [expr {$command in {try-load load-any}}]
-      # stop evaluation after first successful load
-      lappendState any_modulefile [expr {$command eq {load-any}}]
+      # initialize try and any load states: as the load/unload shortcut is
+      # analyzed in this branch, no try-load/load-any command can occur
+      lappendState try_modulefile 0
+      lappendState any_modulefile 0
 
       # Find and execute any global rc file found
       runModulerc
