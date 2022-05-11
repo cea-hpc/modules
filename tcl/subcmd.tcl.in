@@ -1197,14 +1197,13 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       # unloading module is visible by default
       set hidden 0
       set uasked 1
-      # error if module not found or forbidden
-      set notfounderr [expr {![currentState try_modulefile]}]
 
       # record evaluation attempt on specified module name
       registerModuleEvalAttempt $context $mod
       # resolve by also looking at matching loaded module and update mod
       # specification to fully match obtained loaded module
-      lassign [getPathToModule $mod {} $notfounderr $match] modfile modname\
+      # enable report_issue flag to report empty module name issue
+      lassign [getPathToModule $mod {} 1 $match] modfile modname\
          modnamevr errkind
 
       # set a unique id to record messages related to this evaluation.
@@ -1242,7 +1241,8 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                   2]"
             }
          } else {
-            set ret $notfounderr
+            # return error code in case of empty module name
+            set ret 1
          }
          # go to next module to unload
          continue
