@@ -615,6 +615,7 @@ proc restoreSettings {} {
 # load modules passed as args designated as requirement
 proc loadRequirementModuleList {tag_list args} {
    set ret 0
+   set prereqloaded 0
 
    # calling procedure must have already parsed module specification in args
    foreach mod $args {
@@ -627,7 +628,6 @@ proc loadRequirementModuleList {tag_list args} {
 
    if {$loadedmod eq {}} {
       set imax [llength $args]
-      set prereqloaded 0
       # if prereq list specified, try to load first then
       # try next if load of first module not successful
       for {set i 0} {$i<$imax && $prereqloaded==0} {incr i 1} {
@@ -667,11 +667,12 @@ proc loadRequirementModuleList {tag_list args} {
       # output held messages
       releaseHeldReport {*}$holdidlist
    } else {
+      set prereqloaded 1
       # apply missing tag to first loaded module found
       cmdModuleTag 0 0 $tag_list $loadedmod
    }
 
-   return $ret
+   return [list $ret $prereqloaded]
 }
 
 # unload phase of a list of modules reload process
