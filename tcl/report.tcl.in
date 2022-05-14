@@ -1763,6 +1763,27 @@ proc reportMissingPrereqError {curmodnamevr args} {
    }
 }
 
+# create appropriate message and kind of report when a conflict is detected
+proc reportPresentConflictError {curmodnamevr mod isloading} {
+   set retisconun [isModuleEvaluated conun $curmodnamevr $mod]
+   # report message on currently evaluated module message block
+   if {![set retiseval [isModuleEvaluated any $curmodnamevr $mod]] ||\
+      [currentState msgrecordid] ne [topState msgrecordid] || !$retisconun} {
+      # more appropriate msg if an eval was attempted or is by-passed
+      set msg [expr {$retiseval || [getState force] ? [getConIsLoadedMsg\
+         [list $mod] $isloading] : [getErrConflictMsg $mod]}]
+
+      # still proceed if force mode enabled
+      if {[getState force]} {
+         reportWarning $msg
+         # indicate message has already been reported
+         lappend ::report_conflict([currentState evalid]) $mod
+      } else {
+         knerror $msg MODULES_ERR_GLOBAL
+      }
+   }
+}
+
 # ;;; Local Variables: ***
 # ;;; mode:tcl ***
 # ;;; End: ***
