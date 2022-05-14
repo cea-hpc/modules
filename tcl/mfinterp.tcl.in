@@ -1749,35 +1749,7 @@ proc prereq {args} {
    }
 
    if {$loadedmod eq {}} {
-      set retisreqlo [isModuleEvaluated reqlo $curmodnamevr {*}$args]
-      # report message on currently evaluated module message block
-      if {![set retiseval [isModuleEvaluated any $curmodnamevr {*}$args]] ||\
-         [currentState msgrecordid] ne [topState msgrecordid] ||\
-         !$retisreqlo} {
-
-         # more appropriate msg if an evaluation was attempted or is by-passed
-         set msg [expr {$retiseval || [getState force] ? [getReqNotLoadedMsg\
-            $args] : [getErrPrereqMsg $args]}]
-         # still proceed if force mode enabled
-         if {[getState force]} {
-            reportWarning $msg
-         # no error raise if done later
-         } elseif {$retisreqlo} {
-            reportError $msg
-         } else {
-            knerror $msg MODULES_ERR_GLOBAL
-         }
-      }
-
-      # raise reqlo-specific msg to top level if attempted
-      if {$retisreqlo} {
-         set msg [getErrReqLoMsg $args]
-         if {[getState force]} {
-            reportWarning $msg 1
-         } else {
-            knerror $msg MODULES_ERR_GLOBALTOP
-         }
-      }
+      reportMissingPrereqError $curmodnamevr {*}$args
    } elseif {![getConf auto_handling]} {
       # apply missing tag to first loaded module found
       cmdModuleTag 0 0 $tag_list $loadedmod
