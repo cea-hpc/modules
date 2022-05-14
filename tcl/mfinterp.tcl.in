@@ -32,6 +32,13 @@ proc nimp {cmd args} {
    reportWarning "'$cmd' command not implemented"
 }
 
+
+# Get identifier name of current Tcl modulefile interpreter. An interp is
+# dedicated to each mode/depth level of modulefile interpretation
+proc getCurrentModfileInterpName {} {
+   return __modfile_[currentState mode]_[depthState modulename]
+}
+
 # synchronize environment variable change over all started sub interpreters
 proc interp-sync-env {op var {val {}}} {
    set envvar ::env($var)
@@ -229,7 +236,7 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
    }
    # dedicate an interpreter per mode and per level of interpretation to have
    # a dedicated interpreter in case of cascaded multi-mode interpretations
-   set itrp __modfile_${mode}_[depthState modulename]
+   set itrp [getCurrentModfileInterpName]
 
    # evaluation mode-specific configuration
    set dumpCommandsVN g_modfile${mode}Commands
@@ -2271,7 +2278,7 @@ proc source-sh {shell script args} {
       {*}$modcontent]
 
    # get name of current module Tcl interp
-   set itrp __modfile_[currentState mode]_[depthState modulename]
+   set itrp [getCurrentModfileInterpName]
 
    # evaluate resulting modulefile commands through current Tcl interp
    foreach modcmd $modcontent {
@@ -2292,7 +2299,7 @@ proc source-sh-un {shell script args} {
    }
 
    # get name of current module unload Tcl interp
-   set itrp __modfile_[currentState mode]_[depthState modulename]
+   set itrp [getCurrentModfileInterpName]
 
    # evaluate each recorded command in unload Tcl interp to get them reversed
    foreach modcmd $modcontent {
@@ -2363,7 +2370,7 @@ proc source-sh-di {shell script args} {
    }
 
    # get name of current module unload Tcl interp
-   set itrp __modfile_[currentState mode]_[depthState modulename]
+   set itrp [getCurrentModfileInterpName]
 
    # evaluate each recorded command in display Tcl interp to get them printed
    foreach modcmd $modcontent {
