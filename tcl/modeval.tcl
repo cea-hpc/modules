@@ -638,7 +638,7 @@ proc loadRequirementModuleList {tag_list args} {
          # those that failed if one succeed
          set curholdid load-$i-$arg
          lappendState reportholdid $curholdid
-         if {[catch {set retlo [cmdModuleLoad reqlo 0 $tag_list $arg]}\
+         if {[catch {set retlo [cmdModuleLoad reqlo 0 0 $tag_list $arg]}\
             errorMsg]} {
             # if an error is raised, release output and rethrow the error
             # (could be raised if no modulepath defined for instance)
@@ -731,7 +731,7 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist extrataglist\
       # if an auto set default was excluded, module spec need parsing
       lassign [parseModuleSpecification 0 $mod {*}$vr($mod)] modnamevr
       # reload module with user asked property and extra tags preserved
-      if {[cmdModuleLoad $context $isuasked($mod) $extratag($mod)\
+      if {[cmdModuleLoad $context $isuasked($mod) 0 $extratag($mod)\
          $modnamevr]} {
          set errMsg [string map [list _MOD_ [getModuleDesignation spec\
             $modnamevr]] $errmsgtpl]

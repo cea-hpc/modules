@@ -476,8 +476,6 @@ proc module {command args} {
    lappendState commandname $command
    # is evaluation a regular attempt or a try (silence not found error)
    lappendState try_modulefile [expr {$command in {try-load load-any}}]
-   # stop evaluation after first successful load
-   lappendState any_modulefile [expr {$command eq {load-any}}]
 
    if {$topcall} {
       # Find and execute any global rc file found
@@ -496,7 +494,8 @@ proc module {command args} {
             # if top command is source, consider module load commands made
             # within sourced file evaluation as top load command
             if {[isTopEvaluation]} {
-               set ret [cmdModuleLoad load 1 $tag_list {*}$args]
+               set loadany [expr {$command eq {load-any}}]
+               set ret [cmdModuleLoad load 1 $loadany $tag_list {*}$args]
             } elseif {$mode eq {load}} {
                if {$command eq {try-load}} {
                   # attempt load of not already loaded modules
@@ -751,7 +750,6 @@ proc module {command args} {
          cmdModuleResurface module-info loaded {*}$args
       }
    }
-   lpopState any_modulefile
    lpopState try_modulefile
    lpopState commandname
    lpopState always_read_full_file
@@ -810,10 +808,9 @@ proc ml {args} {
       # define if modfile should always be fully read even for validity check
       lappendState always_read_full_file 1
       lappendState commandname ml
-      # initialize try and any load states: as the load/unload shortcut is
-      # analyzed in this branch, no try-load/load-any command can occur
+      # initialize try load states: as the load/unload shortcut is analyzed in
+      # this branch, no try-load command can occur
       lappendState try_modulefile 0
-      lappendState any_modulefile 0
 
       # Find and execute any global rc file found
       runModulerc
@@ -827,7 +824,7 @@ proc ml {args} {
       }
       # then load other modules unless unload phase failed
       if {!$ret && [llength $modlolist] > 0} {
-         set ret [cmdModuleLoad load 1 $tag_list {*}$modlolist]
+         set ret [cmdModuleLoad load 1 0 $tag_list {*}$modlolist]
       }
 
       # rollback changes if any load or unload failed
@@ -836,7 +833,6 @@ proc ml {args} {
       }
       popSettings
 
-      lpopState any_modulefile
       lpopState try_modulefile
       lpopState commandname
       lpopState always_read_full_file

@@ -475,7 +475,7 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
          set undeprevr $deprevr
          set undepreextratag $depreextratag
       }
-      cmdModuleLoad swload $uasked $tag_list $new
+      cmdModuleLoad swload $uasked 0 $tag_list $new
 
       # merge depre info of unload and load phases
       if {[info exists undepreisuasked]} {
@@ -690,7 +690,7 @@ proc cmdModuleRestore {{coll default}} {
 
    # load modules one by one with user asked state preserved
    foreach mod $mod_to_load {
-      cmdModuleLoad load [expr {$mod ni $coll_nuasked_list}]\
+      cmdModuleLoad load [expr {$mod ni $coll_nuasked_list}] 0\
          $coll_tag_arr($mod) $mod
    }
 
@@ -820,15 +820,16 @@ proc cmdModuleSource {mode args} {
    }
 }
 
-proc cmdModuleLoad {context uasked tag_list args} {
-   reportDebug "loading $args (context=$context, uasked=$uasked)"
+proc cmdModuleLoad {context uasked loadany tag_list args} {
+   reportDebug "loading $args (context=$context, uasked=$uasked,\
+      loadany=$loadany)"
 
    set ret 0
    set loadok 0
    lappendState mode load
    foreach mod $args {
-      # stop when first module in list is loaded if processing load-any cmd
-      if {$loadok && [currentState any_modulefile]} {
+      # stop when first module in list is loaded if any mode enabled
+      if {$loadok && $loadany} {
          break
       }
 
@@ -1165,9 +1166,8 @@ proc cmdModuleLoad {context uasked tag_list args} {
    lpopState mode
 
    # raise error if no module has been loaded or has produced an error during
-   # its load attempt in case of load-any sub-command
-   if {!$ret && !$loadok && $context eq {load} && [currentState\
-      any_modulefile]} {
+   # its load attempt in case of top-level load-any sub-command
+   if {!$ret && !$loadok && $context eq {load} && $loadany} {
       knerror "No module has been loaded"
    }
 
