@@ -34,9 +34,11 @@ proc nimp {cmd args} {
 
 
 # Get identifier name of current Tcl modulefile interpreter. An interp is
-# dedicated to each mode/depth level of modulefile interpretation
+# dedicated to each mode/auto_handling option value/depth level of modulefile
+# interpretation
 proc getCurrentModfileInterpName {} {
-   return __modfile_[currentState mode]_[depthState modulename]
+   set autosuf [expr {[getConf auto_handling] ? {AH} : {}}]
+   return __modfile_[currentState mode]${autosuf}_[depthState modulename]
 }
 
 # synchronize environment variable change over all started sub interpreters
@@ -75,7 +77,9 @@ proc interp-sync-env {op var {val {}}} {
 }
 
 # Initialize list of interp alias commands to define for given evaluation mode
-proc initModfileModeAliases {mode aliasesVN aliasesPassArgVN tracesVN} {
+# and auto_handling enablement
+proc initModfileModeAliases {mode autosuf aliasesVN aliasesPassArgVN\
+   tracesVN} {
    global g_modfilePerModeAliases
    upvar #0 $aliasesVN aliases
    upvar #0 $aliasesPassArgVN aliasesPassArg
@@ -138,6 +142,12 @@ variant        {variant        variant        variant        variant        vari
 x-resource     {x-resource     x-resource     reportCmd      nop            nop            nop            nop         }
       }
    }
+
+   # adapt requirement-related procedures based on auto_handling option value
+   lset g_modfilePerModeAliases(prereq) 0 prereq$autosuf
+   lset g_modfilePerModeAliases(prereq-any) 0 prereq$autosuf
+   lset g_modfilePerModeAliases(prereq-all) 0 prereq-all$autosuf
+   lset g_modfilePerModeAliases(depends-on) 0 prereq-all$autosuf
 
    # alias commands where interpreter ref should be passed as argument
    array set aliasesPassArg [list getvariant __itrp__ puts __itrp__ variant\
@@ -239,12 +249,14 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
    set itrp [getCurrentModfileInterpName]
 
    # evaluation mode-specific configuration
-   set dumpCommandsVN g_modfile${mode}Commands
-   set aliasesVN g_modfile${mode}Aliases
-   set aliasesPassArgVN g_modfile${mode}AliasesPassArg
-   set tracesVN g_modfile${mode}Traces
+   set autosuf [expr {[getConf auto_handling] ? {AH} : {}}]
+   set dumpCommandsVN g_modfile${mode}${autosuf}Commands
+   set aliasesVN g_modfile${mode}${autosuf}Aliases
+   set aliasesPassArgVN g_modfile${mode}${autosuf}AliasesPassArg
+   set tracesVN g_modfile${mode}${autosuf}Traces
    if {![info exists ::$aliasesVN]} {
-      initModfileModeAliases $mode $aliasesVN $aliasesPassArgVN $tracesVN
+      initModfileModeAliases $mode $autosuf $aliasesVN $aliasesPassArgVN\
+         $tracesVN
    }
 
    # create modulefile interpreter at first interpretation
@@ -1702,6 +1714,32 @@ proc parsePrereqCommandArgs {cmd args} {
    return [list $tag_list $tag_opt $args]
 }
 
+# prereq command defined when auto_handling mode is enabled
+proc prereqAH {args} {
+   lassign [parsePrereqCommandArgs prereq {*}$args] tag_list tag_opt args
+
+   set currentModule [currentState modulename]
+   set curmodnamevr [currentState modulenamevr]
+
+   # parse module version specification
+   set args [parseModuleSpecification 0 {*}$args]
+
+   # register prereq list (sets of optional prereq are registered as list)
+   # unless record inhibited for current iterp context
+   if {[currentState inhibit_req_record] != [currentState evalid]} {
+      setLoadedPrereq $currentModule $args
+   }
+
+   # try to load prereq as dependency resolving is enabled
+   lassign [loadRequirementModuleList $tag_list {*}$args] retlo prereqloaded
+
+   if {!$prereqloaded} {
+      reportMissingPrereqError $curmodnamevr {*}$args
+   }
+
+   return {}
+}
+
 proc prereq {args} {
    lassign [parsePrereqCommandArgs prereq {*}$args] tag_list tag_opt args
 
@@ -1717,11 +1755,6 @@ proc prereq {args} {
       setLoadedPrereq $currentModule $args
    }
 
-   # if dependency resolving is enabled try to load prereq
-   if {[getConf auto_handling]} {
-      loadRequirementModuleList $tag_list {*}$args
-   }
-
    set loadedmod_list {}
    foreach mod $args {
       # get all loaded or loading mod in args list
@@ -1733,7 +1766,7 @@ proc prereq {args} {
 
    if {[llength $loadedmod_list] == 0} {
       reportMissingPrereqError $curmodnamevr {*}$args
-   } elseif {![getConf auto_handling]} {
+   } else {
       # apply missing tag to all loaded module found
       cmdModuleTag 0 0 $tag_list {*}$loadedmod_list
    }
@@ -2508,6 +2541,14 @@ proc require-fullname {} {
       1 4]} {
       knerror {Module version must be specified to load module}\
          MODULES_ERR_GLOBAL
+   }
+}
+
+proc prereq-allAH {args} {
+   lassign [parsePrereqCommandArgs prereq-all {*}$args] tag_list tag_opt args
+   # call prereq over each arg independently to emulate a prereq-all
+   foreach arg $args {
+      prereqAH {*}$tag_opt $arg
    }
 }
 
