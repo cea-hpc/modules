@@ -1681,42 +1681,62 @@ proc conflict {args} {
 }
 
 proc parsePrereqCommandArgs {cmd args} {
-   # parse tags defined
-   switch -glob -- [lindex $args 0] {
-      --tag {
-         set tag_list [split [lindex $args 1] :]
-         set tag_opt [list --tag [lindex $args 1]]
-         set args [lrange $args 2 end]
-      }
-      --tag=* {
-         set tag_list [split [string range [lindex $args 0] 6 end] :]
-         set tag_opt [list [lindex $args 0]]
-         set args [lrange $args 1 end]
-         if {[llength $tag_list] == 0} {
-            knerror "Missing value for '--tag' option"
+   set tag_list {}
+   set optional 0
+   set opt_list {}
+   set prereq_list {}
+
+   # parse options defined
+   set i 0
+   foreach arg $args {
+      if {[info exists nextargistaglist]} {
+         set tag_list [split $arg :]
+         lappend opt_list $arg
+         unset nextargistaglist
+      } else {
+         switch -glob -- $arg {
+            --optional {
+               set optional 1
+               lappend opt_list $arg
+            }
+            --tag=* {
+               set tag_list [split [string range $arg 6 end] :]
+               lappend opt_list $arg
+               if {[llength $tag_list] == 0} {
+                  knerror "Missing value for '--tag' option"
+               }
+            }
+            --tag {
+               set nextargistaglist 1
+               lappend opt_list $arg
+            }
+            default {
+               set prereq_list [lrange $args $i end]
+               # end option parsing: remaining elts are list of prereqs
+               break
+            }
          }
       }
-      default {
-         set tag_list {}
-         set tag_opt {}
-      }
+      incr i
    }
+
    foreach tag $tag_list {
       if {$tag in [list loaded auto-loaded forbidden nearly-forbidden\
          hidden]} {
          knerror "Tag '$tag' cannot be manually set"
       }
    }
-   if {[llength $args] == 0} {
-      knerror "wrong # args: should be \"$cmd ?--tag? ?taglist? modulefile\
-         ?...?\""
+   if {[llength $prereq_list] == 0} {
+      knerror "wrong # args: should be \"$cmd ?--optional? ?--tag? ?taglist?\
+         modulefile ?...?\""
    }
-   return [list $tag_list $tag_opt $args]
+   return [list $tag_list $optional $opt_list $prereq_list]
 }
 
 # prereq command defined when auto_handling mode is enabled
 proc prereqAH {args} {
-   lassign [parsePrereqCommandArgs prereq {*}$args] tag_list tag_opt args
+   lassign [parsePrereqCommandArgs prereq {*}$args] tag_list optional\
+      opt_list args
 
    set currentModule [currentState modulename]
    set curmodnamevr [currentState modulenamevr]
@@ -1727,13 +1747,20 @@ proc prereqAH {args} {
    # register prereq list (sets of optional prereq are registered as list)
    # unless record inhibited for current iterp context
    if {[currentState inhibit_req_record] != [currentState evalid]} {
-      setLoadedPrereq $currentModule $args
+      # if requirement is optional, add current module to the recorded prereq
+      # list to make the requirement rule satisfied even if none loaded, as
+      # current module will be loaded
+      if {$optional} {
+         lappend record_list $currentModule
+      }
+      lappend record_list {*}$args
+      setLoadedPrereq $currentModule $record_list
    }
 
    # try to load prereq as dependency resolving is enabled
    lassign [loadRequirementModuleList $tag_list {*}$args] retlo prereqloaded
 
-   if {!$prereqloaded} {
+   if {!$prereqloaded && !$optional} {
       reportMissingPrereqError $curmodnamevr {*}$args
    }
 
@@ -1741,7 +1768,8 @@ proc prereqAH {args} {
 }
 
 proc prereq {args} {
-   lassign [parsePrereqCommandArgs prereq {*}$args] tag_list tag_opt args
+   lassign [parsePrereqCommandArgs prereq {*}$args] tag_list optional\
+      opt_list args
 
    set currentModule [currentState modulename]
    set curmodnamevr [currentState modulenamevr]
@@ -1752,7 +1780,14 @@ proc prereq {args} {
    # register prereq list (sets of optional prereq are registered as list)
    # unless record inhibited for current iterp context
    if {[currentState inhibit_req_record] != [currentState evalid]} {
-      setLoadedPrereq $currentModule $args
+      # if requirement is optional, add current module to the recorded prereq
+      # list to make the requirement rule satisfied even if none loaded, as
+      # current module will be loaded
+      if {$optional} {
+         lappend record_list $currentModule
+      }
+      lappend record_list {*}$args
+      setLoadedPrereq $currentModule $record_list
    }
 
    set loadedmod_list {}
@@ -1765,7 +1800,9 @@ proc prereq {args} {
    }
 
    if {[llength $loadedmod_list] == 0} {
-      reportMissingPrereqError $curmodnamevr {*}$args
+      if {!$optional} {
+         reportMissingPrereqError $curmodnamevr {*}$args
+      }
    } else {
       # apply missing tag to all loaded module found
       cmdModuleTag 0 0 $tag_list {*}$loadedmod_list
@@ -2545,26 +2582,32 @@ proc require-fullname {} {
 }
 
 proc prereq-allAH {args} {
-   lassign [parsePrereqCommandArgs prereq-all {*}$args] tag_list tag_opt args
+   lassign [parsePrereqCommandArgs prereq-all {*}$args] tag_list optional\
+      opt_list args
    # call prereq over each arg independently to emulate a prereq-all
    foreach arg $args {
-      prereqAH {*}$tag_opt $arg
+      prereqAH {*}$opt_list $arg
    }
 }
 
 proc prereq-all {args} {
-   lassign [parsePrereqCommandArgs prereq-all {*}$args] tag_list tag_opt args
+   lassign [parsePrereqCommandArgs prereq-all {*}$args] tag_list optional\
+      opt_list args
    # call prereq over each arg independently to emulate a prereq-all
    foreach arg $args {
-      prereq {*}$tag_opt $arg
+      prereq {*}$opt_list $arg
    }
 }
 
 proc always-load {args} {
-   lassign [parsePrereqCommandArgs always-load {*}$args] tag_list tag_opt args
+   lassign [parsePrereqCommandArgs always-load {*}$args] tag_list optional\
+      opt_list args
+   # append keep-loaded tag to the list, second tag list in opt_list will take
+   # over the initial list defined
    lappend tag_list keep-loaded
+   lappend opt_list --tag [join $tag_list :]
    # load all module specified
-   prereq-allAH --tag [join $tag_list :] {*}$args
+   prereq-allAH {*}$opt_list {*}$args
 }
 
 proc family {name} {
