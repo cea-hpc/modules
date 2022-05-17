@@ -507,12 +507,10 @@ proc module {command args} {
                         set ret $retlo
                      }
                   }
-                  foreach arg $args {
-                     # no prereq record if try-load did not succeed
-                     if {[is-loaded $arg]} {
-                        prereqAnyModfileCmd 0 --tag [join $tag_list :] $arg
-                     }
-                  }
+                  # record requirement as optional: no error if not loaded
+                  # but reload will be triggered if loaded later on
+                  prereqAllModfileCmd 0 --optional --tag [join $tag_list :]\
+                     {*}$args
                } elseif {$command eq {load-any}} {
                   # load and register requirement in a OR-operation
                   prereqAnyModfileCmd 1 --tag [join $tag_list :] {*}$args
