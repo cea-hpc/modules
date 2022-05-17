@@ -106,7 +106,7 @@ append-path    {append-path    append-path-un append-path    append-path    appe
 chdir          {chdir          nop            reportCmd      nop            nop            nop            nop         }
 complete       {complete       complete-un    reportCmd      nop            nop            nop            complete    }
 conflict       {conflict       nop            reportCmd      nop            nop            nop            nop         }
-depends-on     {prereq-all     nop            reportCmd      nop            nop            nop            nop         }
+depends-on     {prereqAllModfileCmd  nop      reportCmd      nop            nop            nop            nop         }
 extensions     {nop            nop            nop            nop            nop            nop            nop         }
 family         {family         family-un      reportCmd      nop            nop            nop            nop         }
 module         {module         module         reportCmd      nop            nop            nop            nop         }
@@ -122,7 +122,7 @@ module-hide    {module-hide    module-hide    module-hide    module-hide    modu
 module-tag     {module-tag     module-tag     module-tag     module-tag     module-tag     module-tag     nop         }
 module-whatis  {nop            nop            reportCmd      nop            nop            module-whatis  nop         }
 prepend-path   {prepend-path   prepend-path-un prepend-path  prepend-path   prepend-path   edit-path-wh   nop         }
-prereq-all     {prereq-all     nop            reportCmd      nop            nop            nop            nop         }
+prereq-all     {prereqAllModfileCmd  nop      reportCmd      nop            nop            nop            nop         }
 prereq-any     {prereqAnyModfileCmd  nop      reportCmd      nop            nop            nop            nop         }
 prereq         {prereqAnyModfileCmd  nop      reportCmd      nop            nop            nop            nop         }
 pushenv        {pushenv        pushenv-un     pushenv        pushenv        pushenv        pushenv-wh     nop         }
@@ -143,10 +143,6 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
       }
    }
 
-   # adapt requirement-related procedures based on auto_handling option value
-   lset g_modfilePerModeAliases(prereq-all) 0 prereq-all$autosuf
-   lset g_modfilePerModeAliases(depends-on) 0 prereq-all$autosuf
-
    # alias commands where interpreter ref should be passed as argument
    array set aliasesPassArg [list getvariant __itrp__ puts __itrp__ variant\
       __itrp__]
@@ -163,7 +159,8 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
       if {$aliastarget in {reportCmd nimp edit-path-wh}} {
          set aliasesPassArg($alias) $alias
       # prereq commands need auto_handling state as first arg
-      } elseif {$mode eq {load} && $alias in {prereq prereq-any}} {
+      } elseif {$mode eq {load} && $alias in {prereq prereq-any prereq-all\
+         depends-on}} {
          set aliasesPassArg($alias) $auto
       # associate a trace command if per-mode alias command is not reportCmd
       # in display mode (except for source-sh)
@@ -2558,21 +2555,12 @@ proc require-fullname {} {
    }
 }
 
-proc prereq-allAH {args} {
+proc prereqAllModfileCmd {auto args} {
    lassign [parsePrereqCommandArgs prereq-all {*}$args] tag_list optional\
       opt_list args
    # call prereq over each arg independently to emulate a prereq-all
    foreach arg $args {
-      prereqAnyModfileCmd 1 {*}$opt_list $arg
-   }
-}
-
-proc prereq-all {args} {
-   lassign [parsePrereqCommandArgs prereq-all {*}$args] tag_list optional\
-      opt_list args
-   # call prereq over each arg independently to emulate a prereq-all
-   foreach arg $args {
-      prereqAnyModfileCmd 0 {*}$opt_list $arg
+      prereqAnyModfileCmd $auto {*}$opt_list $arg
    }
 }
 
@@ -2584,7 +2572,7 @@ proc always-load {args} {
    lappend tag_list keep-loaded
    lappend opt_list --tag [join $tag_list :]
    # load all module specified
-   prereq-allAH {*}$opt_list {*}$args
+   prereqAllModfileCmd 1 {*}$opt_list {*}$args
 }
 
 proc family {name} {
