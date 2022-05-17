@@ -37,8 +37,8 @@ proc nimp {cmd args} {
 # dedicated to each mode/auto_handling option value/depth level of modulefile
 # interpretation
 proc getCurrentModfileInterpName {} {
-   set autosuf [expr {[getConf auto_handling] ? {AH} : {}}]
-   return __modfile_[currentState mode]${autosuf}_[depthState modulename]
+   return __modfile_[currentState mode]_[getConf auto_handling]_[depthState\
+      modulename]
 }
 
 # synchronize environment variable change over all started sub interpreters
@@ -78,7 +78,7 @@ proc interp-sync-env {op var {val {}}} {
 
 # Initialize list of interp alias commands to define for given evaluation mode
 # and auto_handling enablement
-proc initModfileModeAliases {mode autosuf aliasesVN aliasesPassArgVN\
+proc initModfileModeAliases {mode auto aliasesVN aliasesPassArgVN\
    tracesVN} {
    global g_modfilePerModeAliases
    upvar #0 $aliasesVN aliases
@@ -123,8 +123,8 @@ module-tag     {module-tag     module-tag     module-tag     module-tag     modu
 module-whatis  {nop            nop            reportCmd      nop            nop            module-whatis  nop         }
 prepend-path   {prepend-path   prepend-path-un prepend-path  prepend-path   prepend-path   edit-path-wh   nop         }
 prereq-all     {prereq-all     nop            reportCmd      nop            nop            nop            nop         }
-prereq-any     {prereq         nop            reportCmd      nop            nop            nop            nop         }
-prereq         {prereq         nop            reportCmd      nop            nop            nop            nop         }
+prereq-any     {prereqAnyModfileCmd  nop      reportCmd      nop            nop            nop            nop         }
+prereq         {prereqAnyModfileCmd  nop      reportCmd      nop            nop            nop            nop         }
 pushenv        {pushenv        pushenv-un     pushenv        pushenv        pushenv        pushenv-wh     nop         }
 remove-path    {remove-path    remove-path-un remove-path    remove-path    remove-path    edit-path-wh   nop         }
 remove-property {nop           nop            nop            nop            nop            nop            nop         }
@@ -144,8 +144,6 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
    }
 
    # adapt requirement-related procedures based on auto_handling option value
-   lset g_modfilePerModeAliases(prereq) 0 prereq$autosuf
-   lset g_modfilePerModeAliases(prereq-any) 0 prereq$autosuf
    lset g_modfilePerModeAliases(prereq-all) 0 prereq-all$autosuf
    lset g_modfilePerModeAliases(depends-on) 0 prereq-all$autosuf
 
@@ -164,6 +162,9 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
       # some target procedures need command name as first arg
       if {$aliastarget in {reportCmd nimp edit-path-wh}} {
          set aliasesPassArg($alias) $alias
+      # prereq commands need auto_handling state as first arg
+      } elseif {$mode eq {load} && $alias in {prereq prereq-any}} {
+         set aliasesPassArg($alias) $auto
       # associate a trace command if per-mode alias command is not reportCmd
       # in display mode (except for source-sh)
       } elseif {$mode eq {display} && $alias ne {source-sh}} {
@@ -255,8 +256,8 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
    set aliasesPassArgVN g_modfile${mode}${autosuf}AliasesPassArg
    set tracesVN g_modfile${mode}${autosuf}Traces
    if {![info exists ::$aliasesVN]} {
-      initModfileModeAliases $mode $autosuf $aliasesVN $aliasesPassArgVN\
-         $tracesVN
+      initModfileModeAliases $mode [getConf auto_handling] $aliasesVN\
+         $aliasesPassArgVN $tracesVN
    }
 
    # create modulefile interpreter at first interpretation
@@ -1733,8 +1734,7 @@ proc parsePrereqCommandArgs {cmd args} {
    return [list $tag_list $optional $opt_list $prereq_list]
 }
 
-# prereq command defined when auto_handling mode is enabled
-proc prereqAH {args} {
+proc prereqAnyModfileCmd {auto args} {
    lassign [parsePrereqCommandArgs prereq {*}$args] tag_list optional\
       opt_list args
 
@@ -1757,54 +1757,31 @@ proc prereqAH {args} {
       setLoadedPrereq $currentModule $record_list
    }
 
-   # try to load prereq as dependency resolving is enabled
-   lassign [loadRequirementModuleList $tag_list {*}$args] retlo prereqloaded
-
-   if {!$prereqloaded && !$optional} {
-      reportMissingPrereqError $curmodnamevr {*}$args
-   }
-
-   return {}
-}
-
-proc prereq {args} {
-   lassign [parsePrereqCommandArgs prereq {*}$args] tag_list optional\
-      opt_list args
-
-   set currentModule [currentState modulename]
-   set curmodnamevr [currentState modulenamevr]
-
-   # parse module version specification
-   set args [parseModuleSpecification 0 {*}$args]
-
-   # register prereq list (sets of optional prereq are registered as list)
-   # unless record inhibited for current iterp context
-   if {[currentState inhibit_req_record] != [currentState evalid]} {
-      # if requirement is optional, add current module to the recorded prereq
-      # list to make the requirement rule satisfied even if none loaded, as
-      # current module will be loaded
-      if {$optional} {
-         lappend record_list $currentModule
+   if {$auto} {
+      # try to load prereq as dependency resolving is enabled
+      lassign [loadRequirementModuleList $tag_list {*}$args] retlo\
+         prereqloaded
+   } else {
+      set loadedmod_list {}
+      foreach mod $args {
+         # get all loaded or loading mod in args list
+         if {[set loadedmod [getLoadedMatchingName $mod returnfirst]] ne {}\
+            || [set loadedmod [getLoadedMatchingName $mod returnfirst 1]] ne\
+            {}} {
+            lappend loadedmod_list $loadedmod
+         }
       }
-      lappend record_list {*}$args
-      setLoadedPrereq $currentModule $record_list
+      set prereqloaded [expr {[llength $loadedmod_list] > 0}]
    }
 
-   set loadedmod_list {}
-   foreach mod $args {
-      # get all loaded or loading mod in args list
-      if {[set loadedmod [getLoadedMatchingName $mod returnfirst]] ne {} ||\
-         [set loadedmod [getLoadedMatchingName $mod returnfirst 1]] ne {}} {
-         lappend loadedmod_list $loadedmod
-      }
-   }
-
-   if {[llength $loadedmod_list] == 0} {
+   if {!$prereqloaded} {
       if {!$optional} {
+         # error if requirement is not satisfied unless if optional
          reportMissingPrereqError $curmodnamevr {*}$args
       }
-   } else {
-      # apply missing tag to all loaded module found
+   } elseif {!$auto} {
+      # apply missing tag to all loaded module found (already done when
+      # dependency resolving is enabled)
       cmdModuleTag 0 0 $tag_list {*}$loadedmod_list
    }
 
@@ -2586,7 +2563,7 @@ proc prereq-allAH {args} {
       opt_list args
    # call prereq over each arg independently to emulate a prereq-all
    foreach arg $args {
-      prereqAH {*}$opt_list $arg
+      prereqAnyModfileCmd 1 {*}$opt_list $arg
    }
 }
 
@@ -2595,7 +2572,7 @@ proc prereq-all {args} {
       opt_list args
    # call prereq over each arg independently to emulate a prereq-all
    foreach arg $args {
-      prereq {*}$opt_list $arg
+      prereqAnyModfileCmd 0 {*}$opt_list $arg
    }
 }
 
