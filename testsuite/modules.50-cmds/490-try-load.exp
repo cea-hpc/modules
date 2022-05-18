@@ -121,7 +121,7 @@ setenv_var MODULES_AUTO_HANDLING $auto_handling
 setenv_var TESTSUITE_TRYLOAD regular1
 set ans [list]
 lappend ans [list set TS1 ok]
-lappend ans [list set __MODULES_LMPREREQ tryload/2.0&tryload/1.0]
+lappend ans [list set __MODULES_LMPREREQ tryload/2.0&tryload/2.0|tryload/1.0]
 lappend ans [list set _LMFILES_ $mp/tryload/1.0:$mp/tryload/2.0]
 lappend ans [list set LOADEDMODULES tryload/1.0:tryload/2.0]
 lappend ans [list set __MODULES_LMTAG tryload/1.0&auto-loaded]
@@ -133,7 +133,7 @@ testouterr_cmd_re sh {try-load tryload/2.0} $ans $tserr
 setenv_loaded_module [list tryload/1.0] [list $mp/tryload/1.0]
 set ans [list]
 lappend ans [list set TS1 ok]
-lappend ans [list set __MODULES_LMPREREQ tryload/2.0&tryload/1.0]
+lappend ans [list set __MODULES_LMPREREQ tryload/2.0&tryload/2.0|tryload/1.0]
 lappend ans [list set _LMFILES_ $mp/tryload/1.0:$mp/tryload/2.0]
 lappend ans [list set LOADEDMODULES tryload/1.0:tryload/2.0]
 testouterr_cmd_re sh {load tryload/2.0} $ans {}
@@ -142,7 +142,7 @@ unsetenv_loaded_module
 
 # regular unload (autoloaded try-load)
 setenv_loaded_module [list tryload/1.0 tryload/2.0] [list $mp/tryload/1.0 $mp/tryload/2.0] [list tryload/1.0]
-setenv_var __MODULES_LMPREREQ tryload/2.0&tryload/1.0
+setenv_var __MODULES_LMPREREQ tryload/2.0&tryload/2.0|tryload/1.0
 if {$auto_handling} {
     set ans [list]
     lappend ans [list unset TS1]
@@ -161,6 +161,24 @@ if {$auto_handling} {
 set tserr [msg_top_unload tryload/2.0 {} tryload/1.0 {}]
 testouterr_cmd sh {unload tryload/2.0} $ans $tserr
 
+# unload of try-loaded module
+if {$auto_handling} {
+    set ans [list]
+    lappend ans [list set TS1 ok]
+    lappend ans [list set __MODULES_LMPREREQ tryload/2.0&tryload/2.0|tryload/1.0]
+    lappend ans [list set _LMFILES_ $mp/tryload/2.0]
+    lappend ans [list set LOADEDMODULES tryload/2.0]
+    lappend ans [list unset __MODULES_LMTAG]
+    set tserr [msg_top_unload {tryload/1.0 <aL>} {} {} tryload/2.0]
+} else {
+    set ans [list]
+    lappend ans [list set _LMFILES_ $mp/tryload/2.0]
+    lappend ans [list set LOADEDMODULES tryload/2.0]
+    lappend ans [list unset __MODULES_LMTAG]
+    set tserr {}
+}
+testouterr_cmd sh {unload tryload/1.0} $ans $tserr
+
 # regular unload (non-autoloaded try-load)
 unsetenv_var __MODULES_LMTAG
 set ans [list]
@@ -172,7 +190,7 @@ testouterr_cmd_re sh {unload tryload/2.0} $ans {}
 
 # regular unload (with try-loaded sub-module not loaded)
 setenv_loaded_module [list tryload/2.0] [list $mp/tryload/2.0]
-setenv_var __MODULES_LMPREREQ tryload/2.0&tryload/1.0
+setenv_var __MODULES_LMPREREQ tryload/2.0&tryload/2.0|tryload/1.0
 set ans [list]
 lappend ans [list unset TS1]
 lappend ans [list unset __MODULES_LMPREREQ]
@@ -186,6 +204,7 @@ unsetenv_loaded_module
 setenv_var TESTSUITE_TRYLOAD unk1
 set ans [list]
 lappend ans [list set TS1 ok]
+lappend ans [list set __MODULES_LMPREREQ tryload/2.0&tryload/2.0|unk/1.0]
 lappend ans [list set _LMFILES_ $mp/tryload/2.0]
 lappend ans [list set LOADEDMODULES tryload/2.0]
 testouterr_cmd sh {load tryload/2.0} $ans {}
@@ -207,6 +226,7 @@ unsetenv_loaded_module
 setenv_var TESTSUITE_TRYLOAD hide1
 set ans [list]
 lappend ans [list set TS1 ok]
+lappend ans [list set __MODULES_LMPREREQ tryload/2.0&tryload/2.0|tryload/1.0]
 lappend ans [list set _LMFILES_ $mp/tryload/2.0]
 lappend ans [list set LOADEDMODULES tryload/2.0]
 testouterr_cmd sh {load tryload/2.0} $ans {}
@@ -237,7 +257,7 @@ testouterr_cmd sh {try-load tryload/2.0} ERR $tserr
 setenv_var TESTSUITE_TRYLOAD subload2
 set ans [list]
 lappend ans [list set TS1 ok]
-lappend ans [list set __MODULES_LMPREREQ tryload/1.0&foo/1.0:tryload/2.0&tryload/1.0]
+lappend ans [list set __MODULES_LMPREREQ tryload/1.0&foo/1.0:tryload/2.0&tryload/2.0|tryload/1.0]
 lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/tryload/1.0:$mp/tryload/2.0]
 lappend ans [list set LOADEDMODULES foo/1.0:tryload/1.0:tryload/2.0]
 lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded:tryload/1.0&auto-loaded]
@@ -248,6 +268,7 @@ testouterr_cmd_re sh {load tryload/2.0} $ans $tserr
 setenv_var TESTSUITE_TRYLOAD catch1
 set ans [list]
 lappend ans [list set TS1 ok]
+lappend ans [list set __MODULES_LMPREREQ tryload/2.0&tryload/2.0|unk/1.0]
 lappend ans [list set _LMFILES_ $mp/tryload/2.0]
 lappend ans [list set LOADEDMODULES tryload/2.0]
 testouterr_cmd sh {load tryload/2.0} $ans {}
@@ -255,7 +276,7 @@ testouterr_cmd sh {load tryload/2.0} $ans {}
 setenv_var TESTSUITE_TRYLOAD catch2
 set ans [list]
 lappend ans [list set TS1 ok]
-lappend ans [list set __MODULES_LMPREREQ tryload/2.0&tryload/1.0]
+lappend ans [list set __MODULES_LMPREREQ tryload/2.0&tryload/2.0|tryload/1.0]
 lappend ans [list set _LMFILES_ $mp/tryload/1.0:$mp/tryload/2.0]
 lappend ans [list set LOADEDMODULES tryload/1.0:tryload/2.0]
 lappend ans [list set __MODULES_LMTAG tryload/1.0&auto-loaded]
@@ -265,6 +286,7 @@ testouterr_cmd_re sh {load tryload/2.0} $ans $tserr
 setenv_var TESTSUITE_TRYLOAD catch3
 set ans [list]
 lappend ans [list set TS1 ok]
+lappend ans [list set __MODULES_LMPREREQ tryload/2.0&tryload/2.0|tryload/1.0]
 lappend ans [list set _LMFILES_ $mp/tryload/2.0]
 lappend ans [list set LOADEDMODULES tryload/2.0]
 lappend ans [list ERR]
@@ -280,7 +302,7 @@ testouterr_cmd_re sh {load tryload/2.0} $ans $tserr
 setenv_var TESTSUITE_TRYLOAD multi1
 set ans [list]
 lappend ans [list set TS1 ok]
-lappend ans [list set __MODULES_LMPREREQ tryload/2.0&tryload/1.0]
+lappend ans [list set __MODULES_LMPREREQ tryload/2.0&tryload/2.0|unk/1.0&tryload/2.0|tryload/1.0]
 lappend ans [list set _LMFILES_ $mp/tryload/1.0:$mp/tryload/2.0]
 lappend ans [list set LOADEDMODULES tryload/1.0:tryload/2.0]
 lappend ans [list set __MODULES_LMTAG tryload/1.0&auto-loaded]
