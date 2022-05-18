@@ -497,14 +497,21 @@ proc module {command args} {
                set loadany [expr {$command eq {load-any}}]
                set ret [cmdModuleLoad load 1 $loadany $tag_list {*}$args]
             } elseif {$mode eq {load}} {
+               # auto load is inhibited if currently in DepRe context only
+               # register requirement
+               set subauto [expr {[currentModuleEvalContext] eq {depre} ? {0}\
+                  : {1}}]
                if {$command eq {try-load}} {
                   # attempt load of not already loaded modules
-                  foreach arg $args {
-                     lassign [loadRequirementModuleList $tag_list $arg] retlo
-                     # update return value if an issue occurred unless
-                     # force mode is enabled
-                     if {$retlo != 0 && ![getState force]} {
-                        set ret $retlo
+                  if {$subauto} {
+                     foreach arg $args {
+                        lassign [loadRequirementModuleList $tag_list $arg]\
+                           retlo
+                        # update return value if an issue occurred unless
+                        # force mode is enabled
+                        if {$retlo != 0 && ![getState force]} {
+                           set ret $retlo
+                        }
                      }
                   }
                   # record requirement as optional: no error if not loaded
@@ -513,14 +520,12 @@ proc module {command args} {
                      {*}$args
                } elseif {$command eq {load-any}} {
                   # load and register requirement in a OR-operation
-                  prereqAnyModfileCmd 1 --tag [join $tag_list :] {*}$args
-               } elseif {[currentModuleEvalContext] eq {depre}} {
-                  # auto load is inhibited if currently in DepRe context
-                  # only register requirement
-                  prereqAllModfileCmd 0 --tag [join $tag_list :] {*}$args
+                  prereqAnyModfileCmd $subauto --tag [join $tag_list :]\
+                     {*}$args
                } else {
                   # load and register requirement in a AND-operation
-                  prereqAllModfileCmd 1 --tag [join $tag_list :] {*}$args
+                  prereqAllModfileCmd $subauto --tag [join $tag_list :]\
+                     {*}$args
                }
             # mods unload is handled via UReqUn mechanism when auto enabled
             # (unless if implicit_requirement has been inhibited) also unloads
