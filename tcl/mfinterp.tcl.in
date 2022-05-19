@@ -161,7 +161,7 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
       # prereq commands need auto_handling state as first arg
       } elseif {$mode eq {load} && $alias in {prereq prereq-any prereq-all\
          depends-on}} {
-         set aliasesPassArg($alias) [list $auto]
+         set aliasesPassArg($alias) [list 0 $auto]
       # associate a trace command if per-mode alias command is not reportCmd
       # in display mode (except for source-sh)
       } elseif {$mode eq {display} && $alias ne {source-sh}} {
@@ -1731,7 +1731,7 @@ proc parsePrereqCommandArgs {cmd args} {
    return [list $tag_list $optional $opt_list $prereq_list]
 }
 
-proc prereqAnyModfileCmd {auto args} {
+proc prereqAnyModfileCmd {tryload auto args} {
    lassign [parsePrereqCommandArgs prereq {*}$args] tag_list optional\
       opt_list args
 
@@ -1756,7 +1756,7 @@ proc prereqAnyModfileCmd {auto args} {
 
    if {$auto} {
       # try to load prereq as dependency resolving is enabled
-      lassign [loadRequirementModuleList $tag_list {*}$args] retlo\
+      lassign [loadRequirementModuleList $tryload $tag_list {*}$args] retlo\
          prereqloaded
    } else {
       set loadedmod_list {}
@@ -2555,12 +2555,12 @@ proc require-fullname {} {
    }
 }
 
-proc prereqAllModfileCmd {auto args} {
+proc prereqAllModfileCmd {tryload auto args} {
    lassign [parsePrereqCommandArgs prereq-all {*}$args] tag_list optional\
       opt_list args
    # call prereq over each arg independently to emulate a prereq-all
    foreach arg $args {
-      prereqAnyModfileCmd $auto {*}$opt_list $arg
+      prereqAnyModfileCmd $tryload $auto {*}$opt_list $arg
    }
 }
 
@@ -2572,7 +2572,7 @@ proc always-load {args} {
    lappend tag_list keep-loaded
    lappend opt_list --tag [join $tag_list :]
    # load all module specified
-   prereqAllModfileCmd 1 {*}$opt_list {*}$args
+   prereqAllModfileCmd 0 1 {*}$opt_list {*}$args
 }
 
 proc family {name} {

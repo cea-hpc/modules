@@ -475,7 +475,7 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
          set undeprevr $deprevr
          set undepreextratag $depreextratag
       }
-      cmdModuleLoad swload $uasked 0 $tag_list $new
+      cmdModuleLoad swload $uasked 0 0 $tag_list $new
 
       # merge depre info of unload and load phases
       if {[info exists undepreisuasked]} {
@@ -515,7 +515,7 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
 
    # register modulefile to load as prereq when called from modulefile
    if {!$uasked && !$ret && $argnew ne {}} {
-      prereqAnyModfileCmd 0 $argnew
+      prereqAnyModfileCmd 0 0 $argnew
    }
 }
 
@@ -690,7 +690,7 @@ proc cmdModuleRestore {{coll default}} {
 
    # load modules one by one with user asked state preserved
    foreach mod $mod_to_load {
-      cmdModuleLoad load [expr {$mod ni $coll_nuasked_list}] 0\
+      cmdModuleLoad load [expr {$mod ni $coll_nuasked_list}] 0 0\
          $coll_tag_arr($mod) $mod
    }
 
@@ -820,9 +820,9 @@ proc cmdModuleSource {mode args} {
    }
 }
 
-proc cmdModuleLoad {context uasked loadany tag_list args} {
+proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
    reportDebug "loading $args (context=$context, uasked=$uasked,\
-      loadany=$loadany)"
+      tryload=$tryload, loadany=$loadany)"
 
    set ret 0
    set loadok 0
@@ -846,7 +846,7 @@ proc cmdModuleLoad {context uasked loadany tag_list args} {
       # loading module is visible by default
       set hidden 0
       # error if module not found or forbidden
-      set notfounderr [expr {![currentState try_modulefile]}]
+      set notfounderr [expr {!$tryload}]
 
       # record evaluation attempt on specified module name
       registerModuleEvalAttempt $context $mod
