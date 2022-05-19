@@ -144,8 +144,8 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
    }
 
    # alias commands where interpreter ref should be passed as argument
-   array set aliasesPassArg [list getvariant __itrp__ puts __itrp__ variant\
-      __itrp__]
+   array set aliasesPassArg [list getvariant [list __itrp__] puts [list\
+      __itrp__] variant [list __itrp__]]
 
    # initialize list with all commands not dependent of the evaluation mode
    array set aliases $::g_modfileBaseAliases
@@ -157,11 +157,11 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
          $g_modfilePerModeAliases($alias) $modeidx]]
       # some target procedures need command name as first arg
       if {$aliastarget in {reportCmd nimp edit-path-wh}} {
-         set aliasesPassArg($alias) $alias
+         set aliasesPassArg($alias) [list $alias]
       # prereq commands need auto_handling state as first arg
       } elseif {$mode eq {load} && $alias in {prereq prereq-any prereq-all\
          depends-on}} {
-         set aliasesPassArg($alias) $auto
+         set aliasesPassArg($alias) [list $auto]
       # associate a trace command if per-mode alias command is not reportCmd
       # in display mode (except for source-sh)
       } elseif {$mode eq {display} && $alias ne {source-sh}} {
@@ -593,12 +593,12 @@ proc initInterpCommands {itrp fresh aliasesVN aliasesPassArgVN tracesVN\
    # defined and not overridden by modulefile or modulerc content
    foreach alias [array names aliases] {
       if {[info exists aliasesPassArg($alias)]} {
-         set aliasarg $aliasesPassArg($alias)
+         set aliasargs $aliasesPassArg($alias)
          # pass current itrp reference on special keyword
-         if {$aliasarg eq {__itrp__}} {
-            set aliasarg $itrp
+         if {[lindex $aliasargs 0] eq {__itrp__}} {
+            lset aliasargs 0 $itrp
          }
-         interp alias $itrp $alias {} $aliases($alias) $aliasarg
+         interp alias $itrp $alias {} $aliases($alias) {*}$aliasargs
       } else {
          interp alias $itrp $alias {} $aliases($alias)
       }
