@@ -1,0 +1,66 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.00-init/%M%
+#   Revision:		%I%
+#   First Edition:	2022/05/20
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check current working directory retrieval error
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+# test execution of modulecmd from a removed current working directory
+# skip this test in the following situation:
+# - when coverage is enabled, as the cwd error will be caught by coverage tool
+#   rather than getAbsolutePath procedure. The next test (pwd supersede) enable
+#   coverage check of getAbsolutePath
+# - when running on Cygwin/MinGW/MSYS which are unaffected by cwd removal
+# - when running on Tcl 8.5 where test outputs are saved in files located in
+#   current working directory
+if {![info exists env(COVERAGE)] && ![regexp {^(CYGWIN|MINGW|MSYS_NT).*}\
+    $tcl_platform(os)] && [cmpversion $tclsh_version 8.6] > -1} {
+
+    # change MODULECMD for the test to make it an absolute path name
+    set MODULECMD $env(TESTSUITEDIR)/../$MODULECMD
+
+    # create a temporary current working directory and remove it after changing to it
+    set ORIG_CWD [pwd]
+    file mkdir cwdtest
+    cd cwdtest
+    file delete ../cwdtest
+
+    set tserr "$error_msgs: error getting working directory name: no such file or directory"
+    testouterr_cmd sh {load ./unk} ERR $tserr
+
+    # move back to testsuite working directory
+    cd $ORIG_CWD
+    unset MODULECMD
+}
+
+# test pwd error catch in getAbsolutePath for coverage mode by superseding
+# the pwd procedure
+if {[siteconfig_isStderrTty]} {
+    setenv_var TESTSUITE_ENABLE_SITECONFIG_PWDERROR 1
+    set tserr "$error_msgs: Custom error message"
+    testouterr_cmd sh {load ./unk} ERR $tserr
+    unsetenv_var TESTSUITE_ENABLE_SITECONFIG_PWDERROR
+}
+
+
+#
+#  Clean up variables used in this test case
+#
+
+reset_test_env
