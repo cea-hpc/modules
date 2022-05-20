@@ -76,7 +76,11 @@ proc getAbsolutePath {path} {
    } else {
       # register pwd at first call
       if {![isStateDefined cwd]} {
-         setState cwd [pwd]
+         # raise a global known error if cwd cannot be retrieved (especially
+         # when this directory has been removed)
+         if {[catch {setState cwd [pwd]} errorMsg]} {
+            knerror $errorMsg
+         }
       }
       set curdir [getState cwd]
    }

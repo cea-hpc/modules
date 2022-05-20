@@ -22,6 +22,8 @@ Modules 5.1.1 (not yet released)
 * Remove the *already loaded* message displayed when verbosity level is higher
   or equal to ``verbose2`` if new tags are applied to the loaded module. (fix
   issue #456)
+* Report a global known error when current working directory cannot be
+  retrieved due to the removal of this directory. (fix issue #457)
 
 
 Modules 5.1.0 (2022-04-30)
