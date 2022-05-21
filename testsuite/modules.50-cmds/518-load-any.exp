@@ -374,6 +374,38 @@ lappend ans [list unset __MODULES_LMTAG]
 set tserr [msg_top_unload loadany/2.0 {} {loadany/1.0} {}]
 testouterr_cmd sh {unload loadany/2.0} $ans $tserr
 
+# load second module in list, depre mechanism reloads module
+setenv_var TESTSUITE_LOADANY multi4
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list set __MODULES_LMPREREQ loadany/2.0&loadany/1.0|foo/1.0]
+lappend ans [list set _LMFILES_ $mp/loadany/1.0:$mp/foo/1.0:$mp/loadany/2.0]
+lappend ans [list set LOADEDMODULES loadany/1.0:foo/1.0:loadany/2.0]
+set tserr [msg_top_load foo/1.0 {} {} loadany/2.0]
+testouterr_cmd sh {load --auto foo/1.0} $ans $tserr
+
+# unload one of the load-any module, depre mechanism reloads module
+setenv_var TESTSUITE_LOADANY multi4
+setenv_var __MODULES_LMPREREQ loadany/2.0&loadany/1.0|foo/1.0
+setenv_loaded_module [list loadany/1.0 foo/1.0 loadany/2.0] [list $mp/loadany/1.0 $mp/foo/1.0 $mp/loadany/2.0]
+setenv_var __MODULES_LMPREREQ loadany/2.0&loadany/1.0|foo/1.0
+setenv_var __MODULES_LMTAG loadany/1.0&auto-loaded
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list set __MODULES_LMPREREQ loadany/2.0&loadany/1.0|foo/1.0]
+lappend ans [list set _LMFILES_ $mp/loadany/1.0:$mp/loadany/2.0]
+lappend ans [list set LOADEDMODULES loadany/1.0:loadany/2.0]
+set tserr [msg_top_unload foo/1.0 {} {} loadany/2.0]
+testouterr_cmd sh {unload --auto foo/1.0} $ans $tserr
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list set __MODULES_LMPREREQ loadany/2.0&loadany/1.0|foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/loadany/2.0]
+lappend ans [list set LOADEDMODULES foo/1.0:loadany/2.0]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_top_unload {loadany/1.0 <aL>} {} {} loadany/2.0]
+testouterr_cmd sh {unload --auto loadany/1.0} $ans $tserr
+
 setenv_loaded_module [list loadany/1.0 loadany/2.0 bar/1.0] [list $mp/loadany/1.0 $mp/loadany/2.0 $mp/bar/1.0]
 setenv_var __MODULES_LMPREREQ loadany/2.0&loadany/1.0|foo/1.0:bar/1.0&loadany/1.0
 setenv_var __MODULES_LMTAG loadany/1.0&auto-loaded

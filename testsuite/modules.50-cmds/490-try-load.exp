@@ -313,6 +313,25 @@ setenv_var TESTSUITE_TRYLOAD multi2
 set tserr [msg_load tryload/1.0 $err_evalabort]
 testouterr_cmd sh {load tryload/2.0} ERR $tserr
 
+setenv_var TESTSUITE_TRYLOAD multi3
+set ans [list]
+lappend ans [list set TS1 ok]
+lappend ans [list set __MODULES_LMPREREQ tryload/2.0&tryload/2.0|tryload/1.0&tryload/2.0|foo/1.0]
+lappend ans [list set _LMFILES_ $mp/tryload/1.0:$mp/foo/1.0:$mp/tryload/2.0]
+lappend ans [list set LOADEDMODULES tryload/1.0:foo/1.0:tryload/2.0]
+lappend ans [list set __MODULES_LMTAG tryload/1.0&auto-loaded:foo/1.0&auto-loaded]
+set tserr [msg_top_load tryload/2.0 {} {tryload/1.0 foo/1.0} {}]
+testouterr_cmd sh {load tryload/2.0} $ans $tserr
+
+if {$auto_handling} {
+    setenv_loaded_module [list tryload/1.0 foo/1.0 tryload/2.0] [list $mp/tryload/1.0 $mp/foo/1.0 $mp/tryload/2.0]
+    setenv_var __MODULES_LMPREREQ tryload/2.0&tryload/2.0|tryload/1.0&tryload/2.0|foo/1.0
+    set tserr [msg_load tryload/2.0 $err_evalabort]\n\n[msg_unload foo/1.0 [err_depre tryload/2.0]]
+    testouterr_cmd sh {unload foo/1.0} ERR $tserr
+    unsetenv_loaded_module
+    unsetenv_var __MODULES_LMPREREQ
+}
+
 }
 
 
