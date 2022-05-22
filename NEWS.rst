@@ -6,6 +6,23 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+.. _5.2 release notes:
+
+Modules 5.2.0 (not yet released)
+--------------------------------
+
+* Introduce the ``--optional`` option on :mfcmd:`prereq`, :mfcmd:`prereq-all`,
+  :mfcmd:`depends-on` and :mfcmd:`always-load` modulefile commands. Expressed
+  optional dependency is considered satisfied even if modulefile is not
+  loaded. If optional requirement is loaded afterward, dependent module is
+  automatically reloaded, unless if the :mconfig:`auto_handling` configuration
+  option is disabled.
+* A dependency expressed in modulefile with :mfcmd:`module try-load<module>`
+  command is considered optional. Dependent module is automatically reloaded
+  if the optional requirement is loaded afterward, unless if the
+  :mconfig:`auto_handling` configuration option is disabled.
+
+
 .. _5.1 release notes:
 
 Modules 5.1.1 (2022-05-31)
