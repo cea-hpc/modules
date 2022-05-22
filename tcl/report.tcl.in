@@ -129,6 +129,11 @@ proc reportTrace {message {title TRACE}} {
    }
 }
 
+proc reportTimer {message start_us stop_us} {
+   set elapsed_ms [expr {($stop_us - $start_us) / 1000.0}]
+   report [sgr db "TIMER [format $message $elapsed_ms]"] 0 1
+}
+
 # trace procedure execution start
 proc reportTraceExecEnter {cmdstring op} {
    set caller [expr {[info level] > 1 ? [lindex [info level -1] 0] : {}}]
@@ -1720,6 +1725,7 @@ Options:
   -T | --trace    Enable trace messages
   -v | --verbose  Enable verbose messages
   -s | --silent   Turn off error, warning and informational messages
+  --timer         Report execution times
   --paginate      Pipe mesg output into a pager if stream attached to terminal
   --no-pager      Do not pipe message output into a pager
   --redirect      Send output to stdout (only for sh, bash, ksh, zsh and fish)

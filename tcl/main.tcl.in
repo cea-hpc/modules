@@ -22,6 +22,13 @@
 
 # exit in a clean manner by closing interaction with external components
 proc cleanupAndExit {code} {
+   # report execution time if asked
+   if {[getState timer]} {
+      reportSeparateNextContent
+      reportTimer "Total execution took %.3f ms" $::timer_start [clock\
+         microseconds]
+   }
+
    # finish output document if json format enabled
    if {[isStateEqual report_format json]} {
       # render error messages all together
@@ -1014,6 +1021,10 @@ if {[catch {
             }
             -i - --icase {
                set asked_icase always
+            }
+            --timer {
+               setState timer 1
+               set timer_start [clock microseconds]
             }
             --human - -c - --create - --userlvl=* {
                # ignore C-version specific option, no error only warning
