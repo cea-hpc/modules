@@ -66,7 +66,7 @@ the Module commands return the empty string. Some commands behave differently
 when a *modulefile* is loaded or unloaded. The command descriptions assume
 the *modulefile* is being loaded.
 
-.. mfcmd:: always-load [--tag taglist] modulefile...
+.. mfcmd:: always-load [--optional] [--tag taglist] modulefile...
 
  Load *modulefile* and apply the ``keep-loaded`` tag to it in order to avoid
  the automatic unload of this *modulefile* when modules dependent of it are
@@ -76,6 +76,10 @@ the *modulefile* is being loaded.
  command acts as an alias of :mfcmd:`module load<module>` command. If more
  than one *modulefile* are specified, then this list acts as a Boolean AND
  operation, which means all specified *modulefiles* are required.
+
+ When the ``--optional`` option is set, each specified *modulefile* is
+ declared as an optional requirement. A *modulefile* that cannot be loaded,
+ will not stop the evaluation.
 
  The ``--tag`` option accepts a list of module tags to apply to *modulefile*
  once loaded in addition to the ``keep-loaded`` tag. *taglist* corresponds to
@@ -87,6 +91,9 @@ the *modulefile* is being loaded.
  .. only:: html
 
     .. versionadded:: 5.1
+
+    .. versionchanged:: 5.2
+       Option ``--optional`` added
 
 .. mfcmd:: append-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
@@ -173,13 +180,16 @@ the *modulefile* is being loaded.
  the command line. The :mfcmd:`continue` command will only have this effect if
  not used within a Tcl loop though.
 
-.. mfcmd:: depends-on [--tag taglist] modulefile...
+.. mfcmd:: depends-on [--optional] [--tag taglist] modulefile...
 
  Alias of :mfcmd:`prereq-all` command.
 
  .. only:: html
 
     .. versionadded:: 5.1
+
+    .. versionchanged:: 5.2
+       Option ``--optional`` added
 
 .. mfcmd:: exit [N]
 
@@ -863,7 +873,7 @@ the *modulefile* is being loaded.
     .. versionchanged:: 4.1
        Option ``--duplicates`` added
 
-.. mfcmd:: prereq [--tag taglist] modulefile...
+.. mfcmd:: prereq [--optional] [--tag taglist] modulefile...
 
  :mfcmd:`prereq` controls whether or not the *modulefile* will be loaded. The
  :mfcmd:`prereq` command lists *modulefiles* which must have been previously
@@ -882,6 +892,10 @@ the *modulefile* is being loaded.
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
+
+ When the ``--optional`` option is set, the whole list of specified
+ *modulefiles* is declared as an optional requirement list. Evaluation is not
+ stopped if no *modulefile* from the list is loaded.
 
  If the :mconfig:`auto_handling` configuration option is enabled
  :mfcmd:`prereq` will attempt to load specified modulefile if not found loaded
@@ -903,24 +917,37 @@ the *modulefile* is being loaded.
     .. versionchanged:: 5.1
        Option ``--tag`` added
 
-.. mfcmd:: prereq-all [--tag taglist] modulefile...
+    .. versionchanged:: 5.2
+       Option ``--optional`` added
+
+.. mfcmd:: prereq-all [--optional] [--tag taglist] modulefile...
 
  Declare *modulefile* as a requirement of currently loading module. This
  command acts as an alias of :mfcmd:`prereq` command. If more than one
  *modulefile* are specified, then this list acts as a Boolean AND operation,
  which means all specified *modulefiles* are required.
 
+ When the ``--optional`` option is set, each specified *modulefile* is
+ declared as an optional requirement. A *modulefile* that cannot be loaded,
+ will not stop the evaluation.
+
  .. only:: html
 
     .. versionadded:: 5.1
 
-.. mfcmd:: prereq-any [--tag taglist] modulefile...
+    .. versionchanged:: 5.2
+       Option ``--optional`` added
+
+.. mfcmd:: prereq-any [--optional] [--tag taglist] modulefile...
 
  Alias of :mfcmd:`prereq` command.
 
  .. only:: html
 
     .. versionadded:: 5.1
+
+    .. versionchanged:: 5.2
+       Option ``--optional`` added
 
 .. mfcmd:: pushenv variable value
 
@@ -1685,6 +1712,14 @@ Adding the ``--not-req`` option when expressing dependencies in modulefile
 with the :mfcmd:`module` command will attempt to load or unload the designated
 modulefile but it will not mark them as pre-requirement or conflict.
 
+Adding the ``--optional`` option on :mfcmd:`prereq`, :mfcmd:`prereq-any`,
+:mfcmd:`prereq-all`, :mfcmd:`depends-on` or :mfcmd:`always-load` modulefile
+commands declares the pre-requirement as optional. If an optional
+pre-requirement is not found loaded or cannot be automatically loaded, the
+dependency expressed is yet considered satisfied. When an optional requirement
+is loaded afterward, the dependent module will get automatically reloaded if
+the :mconfig:`auto_handling` configuration option is enabled.
+
 By adding the :option:`--force` option to the :command:`module` command when
 loading or unloading modulefile, the consistency checks are by-passed. This
 option cannot be used when expressing dependencies in modulefiles. If a module
@@ -1789,6 +1824,11 @@ modulefile evaluation error is not reported and :subcmd:`module
 load-any<load-any>` continues to the next modulefile instead of aborting the
 whole process. No attempt to load listed modulefiles is made if one of these
 modulefiles is found already loaded.
+
+On :mfcmd:`module try-load<module>` modulefile command, each modulefile
+specified is considered an optional pre-requirement. If it is loaded
+afterward and if the :mconfig:`auto_handling` configuration option is enabled,
+the dependent module will get automatically reloaded.
 
 
 ENVIRONMENT
