@@ -29,14 +29,12 @@ proc defineModStartNbProc {icase} {
    if {[info procs modStartNb] eq {} || $::g_modStartNb_proc ne $procname} {
       if {[info exists ::g_modStartNb_proc]} {
          # remove existing debug trace if any
-         trace remove execution modStartNb enter reportTraceExecEnter
+         initProcReportTrace remove modStartNb
          rename ::modStartNb ::$::g_modStartNb_proc
       }
       rename ::$procname ::modStartNb
-      # set debug trace if verbosity is set to debug2 or higher
-      if {[isVerbosityLevel debug2]} {
-         trace add execution modStartNb enter reportTraceExecEnter
-      }
+      # set report traces if some debug mode enabled
+      initProcReportTrace add modStartNb
       set ::g_modStartNb_proc $procname
    }
 }
@@ -100,14 +98,12 @@ proc defineGetEqArrayKeyProc {icase extdfl impdfl} {
       $procname} {
       if {[info exists ::g_getEqArrayKey_proc]} {
          # remove existing debug trace if any
-         trace remove execution getEqArrayKey enter reportTraceExecEnter
+         initProcReportTrace remove getEqArrayKey
          rename ::getEqArrayKey ::$::g_getEqArrayKey_proc
       }
       rename ::$procname ::getEqArrayKey
-      # set debug trace if verbosity is set to debug2 or higher
-      if {[isVerbosityLevel debug2]} {
-         trace add execution getEqArrayKey enter reportTraceExecEnter
-      }
+      # set report traces if some debug mode enabled
+      initProcReportTrace add getEqArrayKey
       set ::g_getEqArrayKey_proc $procname
    }
 
@@ -226,7 +222,7 @@ proc defineDoesModMatchAtDepthProc {indepth querydepth test} {
       $::g_doesModMatchAtDepth_procprops ne $procprops} {
       if {[info exists ::g_doesModMatchAtDepth_procprops]} {
          # remove existing debug trace if any
-         trace remove execution doesModMatchAtDepth enter reportTraceExecEnter
+         initProcReportTrace remove doesModMatchAtDepth
          rename ::doesModMatchAtDepth {}
       }
       set ::g_doesModMatchAtDepth_procprops $procprops
@@ -238,10 +234,8 @@ proc defineDoesModMatchAtDepthProc {indepth querydepth test} {
          set atdepth "\[join \[lrange \[split \$mod /\] 0 $querydepth\] /\]"
       }
       proc doesModMatchAtDepth {mod} "return \[modEqStatic $atdepth $test *\]"
-      # set debug trace if verbosity is set to debug2 or higher
-      if {[isVerbosityLevel debug2]} {
-         trace add execution doesModMatchAtDepth enter reportTraceExecEnter
-      }
+      # set report traces if some debug mode enabled
+      initProcReportTrace add doesModMatchAtDepth
    }
 }
 
@@ -260,14 +254,12 @@ proc defineModVersCmpProc {icase extdfl} {
    if {[info procs modVersCmp] eq {} || $::g_modVersCmp_proc ne $procname} {
       if {[info exists ::g_modVersCmp_proc]} {
          # remove existing debug trace if any
-         trace remove execution modVersCmp enter reportTraceExecEnter
+         initProcReportTrace remove modVersCmp
          rename ::modVersCmp ::$::g_modVersCmp_proc
       }
       rename ::$procname ::modVersCmp
-      # set debug trace if verbosity is set to debug2 or higher
-      if {[isVerbosityLevel debug2]} {
-         trace add execution modVersCmp enter reportTraceExecEnter
-      }
+      # set report traces if some debug mode enabled
+      initProcReportTrace add modVersCmp
       set ::g_modVersCmp_proc $procname
    }
 }
@@ -491,7 +483,7 @@ proc defineModEqStaticProc {icase extdfl modspec} {
       $procprops} {
       if {[info exists ::g_modEqStatic_procprops]} {
          # remove existing debug trace if any
-         trace remove execution modEqStatic enter reportTraceExecEnter
+         initProcReportTrace remove modEqStatic
          rename ::modEqStatic {}
       } else {
          # also define modVersCmp which is called by modEqStatic
@@ -569,10 +561,8 @@ proc defineModEqStaticProc {icase extdfl modspec} {
       append procbody "
          return \$ret"
       proc modEqStatic {mod {test equal} {psuf {}}} $procbody
-      # set debug trace if verbosity is set to debug2 or higher
-      if {[isVerbosityLevel debug2]} {
-         trace add execution modEqStatic enter reportTraceExecEnter
-      }
+      # set report traces if some debug mode enabled
+      initProcReportTrace add modEqStatic
    }
 }
 
@@ -591,14 +581,12 @@ proc defineModEqProc {icase extdfl {loadedmod 0}} {
    if {[info procs modEq] eq {} || $::g_modEq_proc ne $procname} {
       if {[info exists ::g_modEq_proc]} {
          # remove existing debug trace if any
-         trace remove execution modEq enter reportTraceExecEnter
+         initProcReportTrace remove modEq
          rename ::modEq ::$::g_modEq_proc
       }
       rename ::$procname ::modEq
-      # set debug trace if verbosity is set to debug2 or higher
-      if {[isVerbosityLevel debug2]} {
-         trace add execution modEq enter reportTraceExecEnter
-      }
+      # set report traces if some debug mode enabled
+      initProcReportTrace add modEq
       set ::g_modEq_proc $procname
    }
 
@@ -1183,17 +1171,13 @@ proc defineParseModuleSpecificationProc {advverspec} {
       $::g_parseModuleSpecification_proc ne $procname} {
       if {[info exists ::g_parseModuleSpecification_proc]} {
          # remove existing debug trace if any
-         trace remove execution parseModuleSpecification enter\
-            reportTraceExecEnter
+         initProcReportTrace remove parseModuleSpecification
          rename ::parseModuleSpecification\
             ::$::g_parseModuleSpecification_proc
       }
       rename ::$procname ::parseModuleSpecification
-      # set debug trace if verbosity is set to debug2 or higher
-      if {[isVerbosityLevel debug2]} {
-         trace add execution parseModuleSpecification enter\
-            reportTraceExecEnter
-      }
+      # set report traces if some debug mode enabled
+      initProcReportTrace add parseModuleSpecification
       set ::g_parseModuleSpecification_proc $procname
    }
 }

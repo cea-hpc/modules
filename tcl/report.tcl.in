@@ -140,6 +140,16 @@ proc reportTraceExecEnter {cmdstring op} {
    reportDebug $cmdstring 1 $caller
 }
 
+# time procedure execution duration
+proc reportTimerExecEnter {cmdstring op} {
+   uplevel 1 set proc_timer_start [clock microseconds]
+}
+
+proc reportTimerExecLeave {cmdstring code result op} {
+   reportTimer "$cmdstring (%.3f ms)" [uplevel 1 set proc_timer_start]\
+      [clock microseconds]
+}
+
 # is currently active message record id at top level
 proc isMsgRecordIdTop {} {
    return [expr {[depthState msgrecordid] eq 1}]
@@ -611,6 +621,17 @@ proc inhibitErrorReport {} {
    }
 }
 
+proc initProcReportTrace {type prc} {
+   if {[isVerbosityLevel debug] && [getState timer]} {
+      # time execution of procedure instead of regular debug report
+      trace $type execution $prc enter reportTimerExecEnter
+      trace $type execution $prc leave reportTimerExecLeave
+   } elseif {[isVerbosityLevel debug2]} {
+      # trace each procedure call
+      trace $type execution $prc enter reportTraceExecEnter
+   }
+}
+
 # init error report and output buffered messages
 proc initErrorReport {} {
    # ensure init is done only once
@@ -629,12 +650,15 @@ proc initErrorReport {} {
          getState reportfd
       }
 
-      # replace report procedures used to buffer messages until error report
-      # being initialized by regular report procedures
-      rename ::reportDebug {}
-      if {[isVerbosityLevel debug]} {
+      # only report timing information in debug mode if timer mode is enabled
+      if {[isVerbosityLevel debug] && ![getState timer]} {
+         # replace report procedures used to buffer messages until error
+         # report being initialized by regular report procedures
+         # delete initial reportDebug proc after getState which needs it
+         rename ::reportDebug {}
          rename ::__reportDebug ::reportDebug
       } else {
+         rename ::reportDebug {}
          # set a disabled version if debug is disabled
          rename ::__reportDebugNop ::reportDebug
       }
@@ -647,16 +671,20 @@ proc initErrorReport {} {
       rename ::report {}
       rename ::__report ::report
 
-      # trace each procedure call
-      if {[isVerbosityLevel debug2]} {
-         # exclude core procedure from tracing
-         set excl_prc_list [list report reportDebug reportTraceExecEnter\
+      # setup traces for either debug or timer reports
+      if {[isVerbosityLevel debug] && [getState timer] || [isVerbosityLevel\
+         debug2]} {
+         # list of core procedures to exclude from tracing
+         set excl_prc_list [list report reportDebug reportTimer\
+            reportTraceExecEnter reportTimerExecEnter reportTimerExecLeave\
+            initProcReportTrace isVerbosityLevel reportSeparateNextContent\
             getState setState unsetState lappendState lpopState currentState\
             depthState isStateDefined isStateEqual sgr getConf setConf\
             unsetConf lappendConf]
+
          foreach prc [info procs] {
             if {$prc ni $excl_prc_list} {
-               trace add execution $prc enter reportTraceExecEnter
+               initProcReportTrace add $prc
             }
          }
       }
