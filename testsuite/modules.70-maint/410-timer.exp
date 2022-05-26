@@ -1,0 +1,101 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2022/05/26
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		list, avail
+#   Modulefiles:    foo, bar
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test --timer command line switch
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+set total_timer "$timer_msgs Total execution took \\d+.\\d+ ms"
+
+
+set tserr $no_loaded\n\n$total_timer
+testouterr_cmd_re sh {--timer list} OK $tserr
+
+skip_if_quick_mode
+
+# ml
+testouterr_cmd_re sh {ml --timer} OK $tserr
+
+# load test
+set tserr $total_timer
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/foo/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0]
+testouterr_cmd_re sh {load --timer foo/1.0} $ans $tserr
+
+testouterr_cmd_re sh {--timer load} OK $tserr
+
+# avail
+set tserr ".*\n\n$total_timer"
+testouterr_cmd_re sh {--timer avail} OK $tserr
+
+
+# global initial error
+set tserr "$error_msgs: Unknown shell type '\\\(unk\\\)'\n\n$total_timer"
+# return OK instead shell error code, as we do not know what kind of shell code to output
+testouterr_cmd_re unk {--timer avail} OK $tserr
+
+# global error
+set tserr "$error_msgs: Invalid command 'foo'\n$err_typehelp\n\n$total_timer"
+testouterr_cmd_re sh {--timer foo} ERR $tserr
+
+
+# json output (incompatible with timer reports)
+set tserr \{$total_timer\n\}
+testouterr_cmd_re sh {list --json --timer} OK $tserr
+
+# verbose mode
+set tserr [msg_load foo/1.0]\n\n$total_timer
+testouterr_cmd_re sh {load foo/1.0 --verbose --timer} $ans $tserr
+
+# silent mode
+set tserr $total_timer
+testouterr_cmd_re sh {--timer --silent load foo/1.0} $ans $tserr
+
+set tserr $no_loaded\n\n$total_timer
+testouterr_cmd_re sh {list --timer --silent} OK $tserr
+
+# debug
+set tserr "($timer_msgs .* \\\(\\d+.\\d+ ms\\\))*
+
+[msg_load foo/1.0 "Evaluate modulefile: '$mpre/foo/1.0' as 'foo/1.0'"]
+
+($timer_msgs .* \\\(\\d+.\\d+ ms\\\))*
+
+$total_timer"
+testouterr_cmd_re sh {load foo/1.0 --debug --timer} $ans $tserr
+testouterr_cmd_re sh {load foo/1.0 --debug --timer --debug} $ans $tserr
+
+set tserr "($timer_msgs .* \\\(\\d+.\\d+ ms\\\))*
+$no_loaded
+($timer_msgs .* \\\(\\d+.\\d+ ms\\\))*
+
+$total_timer"
+testouterr_cmd_re sh {--timer list -D} OK $tserr
+testouterr_cmd_re sh {--timer list -DD} OK $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
