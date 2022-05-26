@@ -440,6 +440,17 @@ switches are accepted:
  Display :subcmd:`avail`, :subcmd:`list` and :subcmd:`savelist` output in
  short format.
 
+.. option:: --timer
+
+ Prints at the end of the output an evaluation of the total execution time of
+ the :command:`module` command. When mixed with a single or multiple
+ :option:`--debug` options, replaces regular debug messages by reports of the
+ execution time of every internal procedure calls.
+
+ .. only:: html
+
+    .. versionadded:: 5.2
+
 .. option:: --trace, -T
 
  Trace mode. Report details on module searches, resolutions, selections and

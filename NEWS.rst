@@ -24,6 +24,9 @@ Modules 5.2.0 (not yet released)
 * Raise error in case of unknown or misplaced option set on :mfcmd:`prereq`,
   :mfcmd:`prereq-all`, :mfcmd:`depends-on` or :mfcmd:`always-load` modulefile
   commands.
+* Add the :option:`--timer` command-line switch to report the total execution
+  time of the :command:`module` command. Also report the execution time of
+  every internal procedure calls when mixed with :option:`--debug` option.
 
 
 .. _5.1 release notes:
