@@ -344,8 +344,7 @@ Updating tags on already loaded modules
 
 - With ``prereq``-like commands:
 
-    - only the first loaded requirement in specified list gets its tag list
-      updated
+    - all loaded requirement in specified list get their tag list updated
     - loading requirement does not get its tag list updated (no real use case
       foreseen for cyclic dependencies)
 

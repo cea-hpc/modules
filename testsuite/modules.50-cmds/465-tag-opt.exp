@@ -703,7 +703,7 @@ lappend ans [list set LOADEDMODULES foo/1.0:$mod]
 testouterr_cmd sh "load --auto $mod" $ans {}
 testouterr_cmd sh "load --no-auto $mod" $ans {}
 
-# multiple prereqs already loaded (first one updated only)
+# multiple prereqs already loaded
 setenv_var TESTSUITE_TAG_OPT prtag10
 setenv_loaded_module [list bar/1.0 foo/1.0] [list $mp/bar/1.0 $mp/foo/1.0]
 setenv_path_var __MODULES_LMEXTRATAG foo/1.0&foo
@@ -712,8 +712,8 @@ set ans [list]
 lappend ans [list set __MODULES_LMPREREQ $mod&foo/1.0|bar/1.0]
 lappend ans [list set _LMFILES_ $mp/bar/1.0:$mp/foo/1.0:$modfile]
 lappend ans [list set LOADEDMODULES bar/1.0:foo/1.0:$mod]
-lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&foo&hidden-loaded]
-lappend ans [list set __MODULES_LMTAG foo/1.0&foo&hidden-loaded]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&foo&hidden-loaded:bar/1.0&hidden-loaded&foo]
+lappend ans [list set __MODULES_LMTAG foo/1.0&foo&hidden-loaded:bar/1.0&hidden-loaded&foo]
 testouterr_cmd sh "load --auto $mod" $ans {}
 
 # auto-loaded tag set manually on already loaded (prereq)
@@ -741,9 +741,45 @@ lappend ans [list set __MODULES_LMTAG foo/1.0&keep-loaded&foo&auto-loaded]
 set tserr [msg_top_load $mod {} foo/1.0 {}]
 testouterr_cmd sh "load --auto $mod" $ans $tserr
 
+# tag set manually on second optional requirement (prereq)
+setenv_var TESTSUITE_TAG_OPT prtag13
+setenv_loaded_module [list foo/1.0 $mod] [list $mp/foo/1.0 $modfile]
+setenv_path_var __MODULES_LMEXTRATAG foo/1.0&foo
+setenv_path_var __MODULES_LMTAG foo/1.0&foo&auto-loaded
+setenv_path_var __MODULES_LMPREREQ $mod&foo/1.0|bar/1.0
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&foo/1.0|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&foo:bar/1.0&foo]
+lappend ans [list set __MODULES_LMTAG foo/1.0&foo&auto-loaded:bar/1.0&foo]
+#FIXME: tag applied by DepRe reloading module does not appear on info messages
+set tserr [msg_top_load bar/1.0 {} {} $mod]
+testouterr_cmd sh "load --auto bar/1.0" $ans $tserr
+
+# both requirement loaded, but not tagged
+unsetenv_path_var __MODULES_LMEXTRATAG
+unsetenv_path_var __MODULES_LMTAG
+unsetenv_path_var __MODULES_LMPREREQ
+setenv_loaded_module [list foo/1.0 bar/1.0] [list $mp/foo/1.0 $mp/bar/1.0]
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&foo/1.0|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&foo:bar/1.0&foo]
+lappend ans [list set __MODULES_LMTAG foo/1.0&foo:bar/1.0&foo]
+set tserr {}
+#FIXME: info messages do not mention that requirements have been updated with tag
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+testouterr_cmd sh "load --no-auto $mod" $ans $tserr
+set tserr [msg_tag {foo/1.0 <foo>}]\n[msg_tag {bar/1.0 <foo>}]\n[msg_load $mod]
+testouterr_cmd sh "load -v --auto $mod" $ans $tserr
+testouterr_cmd sh "load -v --no-auto $mod" $ans $tserr
+
 
 unsetenv_path_var __MODULES_LMEXTRATAG
 unsetenv_path_var __MODULES_LMTAG
+unsetenv_path_var __MODULES_LMPREREQ
 unsetenv_loaded_module
 
 

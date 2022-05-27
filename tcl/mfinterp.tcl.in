@@ -1722,19 +1722,20 @@ proc prereq {args} {
       loadRequirementModuleList $tag_list {*}$args
    }
 
+   set loadedmod_list {}
    foreach mod $args {
-      # get first loaded or loading mod in args list
+      # get all loaded or loading mod in args list
       if {[set loadedmod [getLoadedMatchingName $mod returnfirst]] ne {} ||\
          [set loadedmod [getLoadedMatchingName $mod returnfirst 1]] ne {}} {
-         break
+         lappend loadedmod_list $loadedmod
       }
    }
 
-   if {$loadedmod eq {}} {
+   if {[llength $loadedmod_list] == 0} {
       reportMissingPrereqError $curmodnamevr {*}$args
    } elseif {![getConf auto_handling]} {
-      # apply missing tag to first loaded module found
-      cmdModuleTag 0 0 $tag_list $loadedmod
+      # apply missing tag to all loaded module found
+      cmdModuleTag 0 0 $tag_list {*}$loadedmod_list
    }
 
    return {}

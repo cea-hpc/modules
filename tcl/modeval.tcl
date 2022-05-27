@@ -618,15 +618,16 @@ proc loadRequirementModuleList {tag_list args} {
    set prereqloaded 0
 
    # calling procedure must have already parsed module specification in args
+   set loadedmod_list {}
    foreach mod $args {
-      # get first loaded or loading mod in args list
+      # get all loaded or loading mod in args list
       if {[set loadedmod [getLoadedMatchingName $mod returnfirst]] ne {} ||\
          [set loadedmod [getLoadedMatchingName $mod returnfirst 1]] ne {}} {
-         break
+         lappend loadedmod_list $loadedmod
       }
    }
 
-   if {$loadedmod eq {}} {
+   if {[llength $loadedmod_list] == 0} {
       set imax [llength $args]
       # if prereq list specified, try to load first then
       # try next if load of first module not successful
@@ -668,8 +669,8 @@ proc loadRequirementModuleList {tag_list args} {
       releaseHeldReport {*}$holdidlist
    } else {
       set prereqloaded 1
-      # apply missing tag to first loaded module found
-      cmdModuleTag 0 0 $tag_list $loadedmod
+      # apply missing tag to all loaded module found
+      cmdModuleTag 0 0 $tag_list {*}$loadedmod_list
    }
 
    return [list $ret $prereqloaded]
