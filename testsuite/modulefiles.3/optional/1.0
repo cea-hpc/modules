@@ -1,0 +1,80 @@
+#%Module
+if {[info exists env(TESTSUITE_OPTIONAL_OPT)]} {
+    switch -- $env(TESTSUITE_OPTIONAL_OPT) {
+        prereq1 {
+            prereq --optional foo/1.0
+        }
+        prereq-all1 {
+            prereq-all --tag=foo --optional foo/1.0
+        }
+        depends-on1 {
+            depends-on --optional --tag=foo foo/1.0
+        }
+        always-load1 {
+            always-load --optional foo/1.0
+        }
+        prereq2 - prereq3 - prereq4 {
+            prereq --optional --tag=foo foo/1.0 bar/1.0
+        }
+        prereq-all2 - prereq-all3 - prereq-all4 {
+            prereq-all --optional foo/1.0 bar/1.0
+        }
+        depends-on2 - depends-on3 - depends-on4 {
+            depends-on --optional foo/1.0 bar/1.0
+        }
+        always-load2 - always-load3 - always-load4 {
+            always-load --tag=foo --optional foo/1.0 bar/1.0
+        }
+        prereq5 {
+            prereq --optional --tag=foo unk/1.0 bar/1.0
+        }
+        prereq-all5 {
+            prereq-all --optional unk/1.0 bar/1.0
+        }
+        depends-on5 {
+            depends-on --optional unk/1.0 bar/1.0
+        }
+        always-load5 {
+            always-load --tag=foo --optional unk/1.0 bar/1.0
+        }
+        prereq6 {
+            prereq --optional unk/1.0 foo/1.0
+        }
+        prereq-all6 {
+            prereq-all --optional unk/1.0 foo/1.0
+        }
+        depends-on6 {
+            depends-on --optional unk/1.0 foo/1.0
+        }
+        always-load6 {
+            always-load --optional unk/1.0 foo/1.0
+        }
+        prereq7 {
+            prereq --optional --tag=foo foo/1.0 bar/1.0
+            if {![is-loaded foo/1.0]} {
+                break
+            }
+        }
+        prereq-all7 {
+            prereq-all --optional foo/1.0 bar/1.0
+            if {![is-loaded foo/1.0]} {
+                break
+            }
+        }
+        depends-on7 {
+            depends-on --optional foo/1.0 bar/1.0
+            if {![is-loaded foo/1.0]} {
+                break
+            }
+        }
+        always-load7 {
+            always-load --tag=foo --optional foo/1.0 bar/1.0
+            if {![is-loaded foo/1.0]} {
+                break
+            }
+        }
+        err1 {
+            prereq foo/1.0 --optional
+        }
+    }
+}

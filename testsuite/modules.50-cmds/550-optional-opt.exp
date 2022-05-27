@@ -1,0 +1,669 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2022/05/27
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload
+#   Modulefiles:    complete
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test --optional option on several modulefile commands
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+set mod optional/1.0
+set modname [file dirname $mod]
+set modfile $mp/$mod
+set modfilere $mpre/$mod
+
+
+# prereq / prereq-any (single requirement)
+setenv_var TESTSUITE_OPTIONAL_OPT prereq1
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded]
+set tserr [msg_top_load $mod {} foo/1.0 {}]
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load --no-auto $mod" $ans {}
+
+
+# prereq-all / depends-on / always-load (single requirement)
+setenv_var TESTSUITE_OPTIONAL_OPT prereq-all1
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&foo]
+lappend ans [list set __MODULES_LMTAG foo/1.0&foo&auto-loaded]
+set tserr [msg_top_load $mod {} foo/1.0 {}]
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load --no-auto $mod" $ans {}
+
+setenv_var TESTSUITE_OPTIONAL_OPT depends-on1
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&foo]
+lappend ans [list set __MODULES_LMTAG foo/1.0&foo&auto-loaded]
+set tserr [msg_top_load $mod {} foo/1.0 {}]
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load --no-auto $mod" $ans {}
+
+setenv_var TESTSUITE_OPTIONAL_OPT always-load1
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+lappend ans [list set __MODULES_LMTAG foo/1.0&keep-loaded&auto-loaded]
+set tserr [msg_top_load $mod {} foo/1.0 {}]
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+testouterr_cmd sh "load --no-auto $mod" $ans $tserr
+
+
+# prereq / prereq-any (multiple requirements)
+setenv_var TESTSUITE_OPTIONAL_OPT prereq2
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&foo]
+lappend ans [list set __MODULES_LMTAG foo/1.0&foo&auto-loaded]
+set tserr [msg_top_load $mod {} foo/1.0 {}]
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0|bar/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load --no-auto $mod" $ans {}
+
+
+# prereq-all / depends-on / always-load (multiple requirements)
+setenv_var TESTSUITE_OPTIONAL_OPT prereq-all2
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0:$mod]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded:bar/1.0&auto-loaded]
+set tserr [msg_top_load $mod {} {foo/1.0 bar/1.0} {}]
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load --no-auto $mod" $ans {}
+
+setenv_var TESTSUITE_OPTIONAL_OPT depends-on2
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0:$mod]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded:bar/1.0&auto-loaded]
+set tserr [msg_top_load $mod {} {foo/1.0 bar/1.0} {}]
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load --no-auto $mod" $ans {}
+
+setenv_var TESTSUITE_OPTIONAL_OPT always-load2
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&foo:bar/1.0&foo]
+lappend ans [list set __MODULES_LMTAG foo/1.0&foo&keep-loaded&auto-loaded:bar/1.0&foo&keep-loaded&auto-loaded]
+set tserr [msg_top_load $mod {} {foo/1.0 bar/1.0} {}]
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+testouterr_cmd sh "load --no-auto $mod" $ans $tserr
+
+
+# prereq / prereq-any (multiple requirements, first breaks)
+setenv_var TESTSUITE_OPTIONAL_OPT prereq3
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES bar/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG bar/1.0&foo]
+lappend ans [list set __MODULES_LMTAG bar/1.0&foo&auto-loaded]
+lappend ans [list ERR]
+set tserr [msg_top_load $mod {} bar/1.0 {}]
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0|bar/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load --no-auto $mod" $ans {}
+
+
+# prereq-all / depends-on / always-load (multiple requirements, first breaks)
+setenv_var TESTSUITE_OPTIONAL_OPT prereq-all3
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES bar/1.0:$mod]
+lappend ans [list set __MODULES_LMTAG bar/1.0&auto-loaded]
+lappend ans [list ERR]
+set tserr [msg_load foo/1.0 $err_evalabort]\n\n[msg_top_load $mod {} {bar/1.0} {}]
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load --no-auto $mod" $ans {}
+
+setenv_var TESTSUITE_OPTIONAL_OPT depends-on3
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES bar/1.0:$mod]
+lappend ans [list set __MODULES_LMTAG bar/1.0&auto-loaded]
+lappend ans [list ERR]
+set tserr [msg_load foo/1.0 $err_evalabort]\n\n[msg_top_load $mod {} {bar/1.0} {}]
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load --no-auto $mod" $ans {}
+
+setenv_var TESTSUITE_OPTIONAL_OPT always-load3
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES bar/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG bar/1.0&foo]
+lappend ans [list set __MODULES_LMTAG bar/1.0&foo&keep-loaded&auto-loaded]
+lappend ans [list ERR]
+set tserr [msg_load foo/1.0 $err_evalabort]\n\n[msg_top_load $mod {} {bar/1.0} {}]
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+testouterr_cmd sh "load --no-auto $mod" $ans $tserr
+
+
+# prereq / prereq-any (multiple requirements, first has bad code)
+setenv_var TESTSUITE_OPTIONAL_OPT prereq4
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES bar/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG bar/1.0&foo]
+lappend ans [list set __MODULES_LMTAG bar/1.0&foo&auto-loaded]
+lappend ans [list ERR]
+set tserr [msg_top_load $mod {} bar/1.0 {}]
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0|bar/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load --no-auto $mod" $ans {}
+
+
+# prereq-all / depends-on / always-load (multiple requirements, first has bad code)
+setenv_var TESTSUITE_OPTIONAL_OPT prereq-all4
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES bar/1.0:$mod]
+lappend ans [list set __MODULES_LMTAG bar/1.0&auto-loaded]
+lappend ans [list ERR]
+set ln 12
+set tserr [escre [msg_load foo/1.0 [msg_moderr {invalid command name "unk"} unk<EXM> $mp/foo/1.0 $ln]]]\n\n[msg_top_load $mod {} {bar/1.0} {}]
+testouterr_cmd_re sh "load --auto $mod" $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load --no-auto $mod" $ans {}
+
+setenv_var TESTSUITE_OPTIONAL_OPT depends-on4
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES bar/1.0:$mod]
+lappend ans [list set __MODULES_LMTAG bar/1.0&auto-loaded]
+lappend ans [list ERR]
+set tserr [escre [msg_load foo/1.0 [msg_moderr {invalid command name "unk"} unk<EXM> $mp/foo/1.0 $ln]]]\n\n[msg_top_load $mod {} {bar/1.0} {}]
+testouterr_cmd_re sh "load --auto $mod" $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load --no-auto $mod" $ans {}
+
+setenv_var TESTSUITE_OPTIONAL_OPT always-load4
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES bar/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG bar/1.0&foo]
+lappend ans [list set __MODULES_LMTAG bar/1.0&foo&keep-loaded&auto-loaded]
+lappend ans [list ERR]
+set tserr [escre [msg_load foo/1.0 [msg_moderr {invalid command name "unk"} unk<EXM> $mp/foo/1.0 $ln]]]\n\n[msg_top_load $mod {} {bar/1.0} {}]
+testouterr_cmd_re sh "load --auto $mod" $ans $tserr
+testouterr_cmd_re sh "load --no-auto $mod" $ans $tserr
+
+
+# prereq / prereq-any (multiple requirements, first does not exist)
+setenv_var TESTSUITE_OPTIONAL_OPT prereq5
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|unk/1.0|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES bar/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG bar/1.0&foo]
+lappend ans [list set __MODULES_LMTAG bar/1.0&foo&auto-loaded]
+lappend ans [list ERR]
+set tserr [msg_top_load $mod {} bar/1.0 {} $err_path'unk/1.0']
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|unk/1.0|bar/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load --no-auto $mod" $ans {}
+
+
+# prereq-all / depends-on / always-load (multiple requirements, first does not exist)
+setenv_var TESTSUITE_OPTIONAL_OPT prereq-all5
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|unk/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES bar/1.0:$mod]
+lappend ans [list set __MODULES_LMTAG bar/1.0&auto-loaded]
+lappend ans [list ERR]
+set tserr [msg_top_load $mod {} {bar/1.0} {} $err_path'unk/1.0']
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|unk/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load --no-auto $mod" $ans {}
+
+setenv_var TESTSUITE_OPTIONAL_OPT depends-on5
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|unk/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES bar/1.0:$mod]
+lappend ans [list set __MODULES_LMTAG bar/1.0&auto-loaded]
+lappend ans [list ERR]
+set tserr [msg_top_load $mod {} {bar/1.0} {} $err_path'unk/1.0']
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|unk/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load --no-auto $mod" $ans {}
+
+setenv_var TESTSUITE_OPTIONAL_OPT always-load5
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|unk/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES bar/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG bar/1.0&foo]
+lappend ans [list set __MODULES_LMTAG bar/1.0&foo&keep-loaded&auto-loaded]
+lappend ans [list ERR]
+set tserr [msg_top_load $mod {} {bar/1.0} {} $err_path'unk/1.0']
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+testouterr_cmd sh "load --no-auto $mod" $ans $tserr
+
+
+# prereq / prereq-any (multiple requirements, first does not exist, second breaks, none loaded)
+setenv_var TESTSUITE_OPTIONAL_OPT prereq6
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|unk/1.0|foo/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list ERR]
+set tserr [msg_load foo/1.0 $err_evalabort]\n\n[msg_load $mod $err_path'unk/1.0']
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|unk/1.0|foo/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load --no-auto $mod" $ans {}
+
+
+# prereq-all / depends-on / always-load (multiple requirements, first does not exit, second breaks, none loaded)
+setenv_var TESTSUITE_OPTIONAL_OPT prereq-all6
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|unk/1.0&$mod|foo/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list ERR]
+set tserr [msg_load foo/1.0 $err_evalabort]\n\n[msg_load $mod $err_path'unk/1.0']
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|unk/1.0&$mod|foo/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load --no-auto $mod" $ans {}
+
+setenv_var TESTSUITE_OPTIONAL_OPT depends-on6
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|unk/1.0&$mod|foo/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list ERR]
+set tserr [msg_load foo/1.0 $err_evalabort]\n\n[msg_load $mod $err_path'unk/1.0']
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|unk/1.0&$mod|foo/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load --no-auto $mod" $ans {}
+
+setenv_var TESTSUITE_OPTIONAL_OPT always-load6
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|unk/1.0&$mod|foo/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list ERR]
+set tserr [msg_load foo/1.0 $err_evalabort]\n\n[msg_load $mod $err_path'unk/1.0']
+testouterr_cmd sh "load --auto $mod" $ans $tserr
+testouterr_cmd sh "load --no-auto $mod" $ans $tserr
+
+
+# wrongly positioned --optional argument
+setenv_var TESTSUITE_OPTIONAL_OPT err1
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|unk/1.0|foo/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list ERR]
+set tserr [msg_load foo/1.0{--optional} [err_unkvar -optional]]\n\n[msg_load $mod [err_reqlo foo/1.0{--optional}]]
+testouterr_cmd sh "load --auto $mod" ERR $tserr
+
+
+# no requirement loaded, then load first one
+setenv_loaded_module [list $mod] [list $modfile]
+
+setenv_var __MODULES_LMPREREQ $mod&$mod|foo/1.0|bar/1.0
+setenv_var TESTSUITE_OPTIONAL_OPT prereq2
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&foo]
+lappend ans [list set __MODULES_LMTAG foo/1.0&foo]
+set tserr [msg_top_load {foo/1.0 <foo>} {} {} $mod]
+testouterr_cmd sh "load --auto foo/1.0" $ans $tserr
+
+setenv_var __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0
+setenv_var TESTSUITE_OPTIONAL_OPT prereq-all2
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+set tserr [msg_top_load foo/1.0 {} {} $mod]
+testouterr_cmd sh "load --auto foo/1.0" $ans $tserr
+
+setenv_var TESTSUITE_OPTIONAL_OPT depends-on2
+testouterr_cmd sh "load --auto foo/1.0" $ans $tserr
+
+setenv_var TESTSUITE_OPTIONAL_OPT always-load2
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&foo]
+lappend ans [list set __MODULES_LMTAG foo/1.0&foo&keep-loaded]
+set tserr [msg_top_load {foo/1.0 <foo:kL>} {} {} $mod]
+testouterr_cmd sh "load --auto foo/1.0" $ans $tserr
+
+
+# first requirement loaded, then load second one
+setenv_loaded_module [list foo/1.0 $mod] [list $mp/foo/1.0 $modfile]
+
+setenv_var __MODULES_LMPREREQ $mod&$mod|foo/1.0|bar/1.0
+setenv_var __MODULES_LMEXTRATAG foo/1.0&foo
+setenv_var __MODULES_LMTAG foo/1.0&foo
+setenv_var TESTSUITE_OPTIONAL_OPT prereq2
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&foo:bar/1.0&foo]
+lappend ans [list set __MODULES_LMTAG foo/1.0&foo:bar/1.0&foo]
+set tserr [msg_top_load {bar/1.0 <foo>} {} {} $mod]
+testouterr_cmd sh "load --auto bar/1.0" $ans $tserr
+
+setenv_var __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0
+unsetenv_var __MODULES_LMEXTRATAG
+unsetenv_var __MODULES_LMTAG
+setenv_var TESTSUITE_OPTIONAL_OPT prereq-all2
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0:$mod]
+set tserr [msg_top_load bar/1.0 {} {} $mod]
+testouterr_cmd sh "load --auto bar/1.0" $ans $tserr
+
+setenv_var TESTSUITE_OPTIONAL_OPT depends-on2
+testouterr_cmd sh "load --auto bar/1.0" $ans $tserr
+
+setenv_var TESTSUITE_OPTIONAL_OPT always-load2
+setenv_var __MODULES_LMEXTRATAG foo/1.0&foo
+setenv_var __MODULES_LMTAG foo/1.0&foo
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&foo:bar/1.0&foo]
+lappend ans [list set __MODULES_LMTAG foo/1.0&foo&keep-loaded:bar/1.0&foo&keep-loaded]
+set tserr [msg_top_load {bar/1.0 <foo:kL>} {} {} $mod]
+testouterr_cmd sh "load --auto bar/1.0" $ans $tserr
+
+
+# first requirement loaded, then unload it
+setenv_loaded_module [list foo/1.0 $mod] [list $mp/foo/1.0 $modfile]
+
+setenv_var __MODULES_LMPREREQ $mod&$mod|foo/1.0|bar/1.0
+setenv_var __MODULES_LMEXTRATAG foo/1.0&foo
+setenv_var __MODULES_LMTAG foo/1.0&foo
+setenv_var TESTSUITE_OPTIONAL_OPT prereq2
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0|bar/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list unset __MODULES_LMEXTRATAG]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_top_unload {foo/1.0 <foo>} {} {} $mod]
+testouterr_cmd sh "unload --auto foo/1.0" $ans $tserr
+
+setenv_var __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0
+unsetenv_var __MODULES_LMEXTRATAG
+unsetenv_var __MODULES_LMTAG
+setenv_var TESTSUITE_OPTIONAL_OPT prereq-all2
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+set tserr [msg_top_unload foo/1.0 {} {} $mod]
+testouterr_cmd sh "unload --auto foo/1.0" $ans $tserr
+
+setenv_var TESTSUITE_OPTIONAL_OPT depends-on2
+testouterr_cmd sh "unload --auto foo/1.0" $ans $tserr
+
+setenv_var TESTSUITE_OPTIONAL_OPT always-load2
+setenv_var __MODULES_LMEXTRATAG foo/1.0&foo
+setenv_var __MODULES_LMTAG foo/1.0&foo
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list unset __MODULES_LMEXTRATAG]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_top_unload {foo/1.0 <foo>} {} {} $mod]
+testouterr_cmd sh "unload --auto foo/1.0" $ans $tserr
+
+
+# both requirement loaded, then unload first one
+setenv_loaded_module [list foo/1.0 bar/1.0 $mod] [list $mp/foo/1.0 $mp/bar/1.0 $modfile]
+
+setenv_var __MODULES_LMPREREQ $mod&$mod|foo/1.0|bar/1.0
+setenv_var __MODULES_LMEXTRATAG foo/1.0&foo:bar/1.0&foo
+setenv_var __MODULES_LMTAG foo/1.0&foo:bar/1.0&foo
+setenv_var TESTSUITE_OPTIONAL_OPT prereq2
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES bar/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG bar/1.0&foo]
+lappend ans [list set __MODULES_LMTAG bar/1.0&foo]
+set tserr [msg_top_unload {foo/1.0 <foo>} {} {} $mod]
+testouterr_cmd sh "unload --auto foo/1.0" $ans $tserr
+
+setenv_var __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0
+unsetenv_var __MODULES_LMEXTRATAG
+unsetenv_var __MODULES_LMTAG
+setenv_var TESTSUITE_OPTIONAL_OPT prereq-all2
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES bar/1.0:$mod]
+set tserr [msg_top_unload foo/1.0 {} {} $mod]
+testouterr_cmd sh "unload --auto foo/1.0" $ans $tserr
+
+setenv_var TESTSUITE_OPTIONAL_OPT depends-on2
+testouterr_cmd sh "unload --auto foo/1.0" $ans $tserr
+
+setenv_var TESTSUITE_OPTIONAL_OPT always-load2
+setenv_var __MODULES_LMEXTRATAG foo/1.0&foo:bar/1.0&foo
+setenv_var __MODULES_LMTAG foo/1.0&foo:bar/1.0&foo
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0]
+lappend ans [list set _LMFILES_ $mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES bar/1.0:$mod]
+lappend ans [list set __MODULES_LMEXTRATAG bar/1.0&foo]
+lappend ans [list set __MODULES_LMTAG bar/1.0&foo&keep-loaded]
+set tserr [msg_top_unload {foo/1.0 <foo>} {} {} $mod]
+testouterr_cmd sh "unload --auto foo/1.0" $ans $tserr
+
+
+# both requirement loaded, then unload first one, that breaks during unload
+setenv_loaded_module [list foo/1.0 bar/1.0 $mod] [list $mp/foo/1.0 $mp/bar/1.0 $modfile]
+
+setenv_var __MODULES_LMPREREQ $mod&$mod|foo/1.0|bar/1.0
+setenv_var __MODULES_LMEXTRATAG foo/1.0&foo:bar/1.0&foo
+setenv_var __MODULES_LMTAG foo/1.0&foo:bar/1.0&foo
+setenv_var TESTSUITE_OPTIONAL_OPT prereq3
+set tserr [msg_unload {foo/1.0 <foo>} $err_evalabort]
+testouterr_cmd sh "unload --auto foo/1.0" ERR $tserr
+
+setenv_var __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0
+unsetenv_var __MODULES_LMEXTRATAG
+unsetenv_var __MODULES_LMTAG
+setenv_var TESTSUITE_OPTIONAL_OPT prereq-all3
+set tserr [msg_unload foo/1.0 $err_evalabort]
+testouterr_cmd sh "unload --auto foo/1.0" ERR $tserr
+
+setenv_var TESTSUITE_OPTIONAL_OPT depends-on3
+testouterr_cmd sh "unload --auto foo/1.0" ERR $tserr
+
+setenv_var TESTSUITE_OPTIONAL_OPT always-load3
+setenv_var __MODULES_LMEXTRATAG foo/1.0&foo:bar/1.0&foo
+setenv_var __MODULES_LMTAG foo/1.0&foo:bar/1.0&foo
+set tserr [msg_unload {foo/1.0 <foo>} $err_evalabort]
+testouterr_cmd sh "unload --auto foo/1.0" ERR $tserr
+
+
+# both requirement loaded, then unload first one, that breaks dependent during reload
+setenv_loaded_module [list foo/1.0 bar/1.0 $mod] [list $mp/foo/1.0 $mp/bar/1.0 $modfile]
+
+setenv_var __MODULES_LMPREREQ $mod&$mod|foo/1.0|bar/1.0
+setenv_var __MODULES_LMEXTRATAG foo/1.0&foo:bar/1.0&foo
+setenv_var __MODULES_LMTAG foo/1.0&foo:bar/1.0&foo
+setenv_var TESTSUITE_OPTIONAL_OPT prereq7
+set tserr [msg_load $mod $err_evalabort]\n\n[msg_unload {foo/1.0 <foo>} [err_depre $mod]]
+testouterr_cmd sh "unload --auto foo/1.0" ERR $tserr
+
+setenv_var __MODULES_LMPREREQ $mod&$mod|foo/1.0&$mod|bar/1.0
+unsetenv_var __MODULES_LMEXTRATAG
+unsetenv_var __MODULES_LMTAG
+setenv_var TESTSUITE_OPTIONAL_OPT prereq-all7
+set tserr [msg_load $mod $err_evalabort]\n\n[msg_unload foo/1.0 [err_depre $mod]]
+testouterr_cmd sh "unload --auto foo/1.0" ERR $tserr
+
+setenv_var TESTSUITE_OPTIONAL_OPT depends-on7
+
+setenv_var TESTSUITE_OPTIONAL_OPT always-load7
+setenv_var __MODULES_LMEXTRATAG foo/1.0&foo:bar/1.0&foo
+setenv_var __MODULES_LMTAG foo/1.0&foo:bar/1.0&foo
+set tserr [msg_load $mod $err_evalabort]\n\n[msg_unload {foo/1.0 <foo>} [err_depre $mod]]
+testouterr_cmd sh "unload --auto foo/1.0" ERR $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
