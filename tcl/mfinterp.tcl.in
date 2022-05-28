@@ -2571,8 +2571,12 @@ proc always-load {args} {
    # over the initial list defined
    lappend tag_list keep-loaded
    lappend opt_list --tag [join $tag_list :]
+
+   # auto load is inhibited if currently in DepRe context
+   set auto [expr {[currentModuleEvalContext] eq {depre} ? {0} : {1}}]
+
    # load all module specified
-   prereqAllModfileCmd 0 1 {*}$opt_list {*}$args
+   prereqAllModfileCmd 0 $auto {*}$opt_list {*}$args
 }
 
 proc family {name} {
