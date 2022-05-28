@@ -26,6 +26,8 @@ Modules 5.1.1 (not yet released)
   retrieved due to the removal of this directory. (fix issue #457)
 * Update tags set through :mfcmd:`prereq` command on all already loaded
   requirements. (fix issue #459)
+* Update module designation with the tags set by reloading dependent module.
+  (fix issue #460)
 
 
 Modules 5.1.0 (2022-04-30)
