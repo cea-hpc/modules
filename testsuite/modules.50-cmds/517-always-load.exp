@@ -162,6 +162,42 @@ lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0]
 testouterr_cmd sh "unload --auto $mod" $ans {}
 testouterr_cmd sh "unload --no-auto $mod" $ans {}
 
+# second requirement loaded afterward, DepRe on depend module in auto mode
+setenv_loaded_module [list foo/1.0 $mod] [list $mp/foo/1.0 $modfile]
+setenv_path_var __MODULES_LMTAG foo/1.0&keep-loaded&auto-loaded
+setenv_path_var __MODULES_LMPREREQ $mod&foo/1.0&bar/1.0
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&foo/1.0&bar/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0:$mod]
+lappend ans [list set __MODULES_LMTAG foo/1.0&keep-loaded&auto-loaded:bar/1.0&keep-loaded]
+set tserr [msg_top_load {bar/1.0 <kL>} {} {} $mod]
+testouterr_cmd sh "load --auto bar/1.0" $ans $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile:$mp/bar/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0:$mod:bar/1.0]
+testouterr_cmd sh "load --no-auto bar/1.0" $ans {}
+
+# first requirement loaded afterward, DepRe on depend module in auto mode
+setenv_loaded_module [list bar/1.0 $mod] [list $mp/bar/1.0 $modfile]
+setenv_path_var __MODULES_LMTAG bar/1.0&keep-loaded&auto-loaded
+setenv_path_var __MODULES_LMPREREQ $mod&foo/1.0&bar/1.0
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&foo/1.0&bar/1.0]
+lappend ans [list set _LMFILES_ $mp/bar/1.0:$mp/foo/1.0:$modfile]
+lappend ans [list set LOADEDMODULES bar/1.0:foo/1.0:$mod]
+lappend ans [list set __MODULES_LMTAG bar/1.0&keep-loaded&auto-loaded:foo/1.0&keep-loaded]
+set tserr [msg_top_load {foo/1.0 <kL>} {} {} $mod]
+testouterr_cmd sh "load --auto foo/1.0" $ans $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/bar/1.0:$modfile:$mp/foo/1.0]
+lappend ans [list set LOADEDMODULES bar/1.0:$mod:foo/1.0]
+testouterr_cmd sh "load --no-auto foo/1.0" $ans {}
+
 unsetenv_loaded_module
 unsetenv_path_var __MODULES_LMTAG
 unsetenv_path_var __MODULES_LMPREREQ
@@ -205,6 +241,26 @@ setenv_var TESTSUITE_LCOMPAT allo6
 set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 23}]
 set tserr [escre [msg_load $mod [msg_moderr {wrong # args: should be "always-load ?--tag? ?taglist? modulefile ?...?"} {always-load<EXM>} $modfile $ln]]]
 testouterr_cmd_re sh "load $mod" ERR $tserr
+
+
+# second requirement loaded afterward, DepRe on depend module in auto mode
+# requirements expressed as generic module names
+setenv_var TESTSUITE_LCOMPAT allo7
+setenv_loaded_module [list foo/1.0 $mod] [list $mp/foo/1.0 $modfile]
+setenv_path_var __MODULES_LMTAG foo/1.0&keep-loaded
+setenv_path_var __MODULES_LMPREREQ $mod&foo&bar
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ $mod&foo&bar]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0:$modfile]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0:$mod]
+lappend ans [list set __MODULES_LMTAG foo/1.0&keep-loaded:bar/1.0&keep-loaded]
+set tserr [msg_top_load {bar/1.0 <kL>} {} {} $mod]
+testouterr_cmd sh "load --auto bar/1.0" $ans $tserr
+
+unsetenv_loaded_module
+unsetenv_path_var __MODULES_LMTAG
+unsetenv_path_var __MODULES_LMPREREQ
 
 
 setenv_var TESTSUITE_LCOMPAT allorc1
