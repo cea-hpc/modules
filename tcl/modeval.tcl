@@ -613,7 +613,7 @@ proc restoreSettings {} {
 }
 
 # load modules passed as args designated as requirement
-proc loadRequirementModuleList {tryload tag_list args} {
+proc loadRequirementModuleList {tryload optional tag_list args} {
    set ret 0
    set prereqloaded 0
 
@@ -635,7 +635,7 @@ proc loadRequirementModuleList {tryload tag_list args} {
          set arg [lindex $args $i]
 
          # hold output of each evaluation until they are all done to drop
-         # those that failed if one succeed
+         # those that failed if one succeed or if optional
          set curholdid load-$i-$arg
          lappendState reportholdid $curholdid
          if {[catch {set retlo [cmdModuleLoad reqlo 0 $tryload 0 $tag_list\
@@ -663,7 +663,9 @@ proc loadRequirementModuleList {tryload tag_list args} {
                set holdidlist $newholdidlist
             }
          }
-         lappend holdidlist $curholdid report
+         # drop report if not loaded and optional
+         set action [expr {$prereqloaded || !$optional ? {report} : {drop}}]
+         lappend holdidlist $curholdid $action
       }
       # output held messages
       releaseHeldReport {*}$holdidlist
