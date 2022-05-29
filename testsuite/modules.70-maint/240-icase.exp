@@ -308,8 +308,9 @@ lappend ans [list set _LMFILES_ $mp/icase/unload]
 lappend ans [list set LOADEDMODULES icase/unload]
 testouterr_cmd_re sh {load --icase icase/unload} $ans {}
 
-testouterr_cmd_re sh {load --icase --auto icase/loadi} ERR [msg_load icase/loadi $err_path'--icase' [err_reqlo --icase]]
-testouterr_cmd_re sh {load --auto icase/loadi} ERR [msg_load icase/loadi $err_path'--icase' [err_reqlo --icase]]
+set tserr [msg_load icase/loadi [msg_moderr {Invalid option '--icase'} {module load --icase noCASE/1} $mp/icase/loadi 2]]
+testouterr_cmd sh {load --icase --auto icase/loadi} ERR $tserr
+testouterr_cmd sh {load --auto icase/loadi} ERR $tserr
 
 set ans [list]
 lappend ans [list set _LMFILES_ $mp/icase/isloaded]

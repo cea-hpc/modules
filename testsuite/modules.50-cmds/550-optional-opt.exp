@@ -432,14 +432,15 @@ testouterr_cmd sh "load --no-auto $mod" $ans $tserr
 
 # wrongly positioned --optional argument
 setenv_var TESTSUITE_OPTIONAL_OPT err1
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 77}]
+set tserr [escre [msg_load $mod [msg_moderr {Misplaced option '--optional'} {prereq foo/1.0 --optional<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load --auto $mod" ERR $tserr
 
-set ans [list]
-lappend ans [list set __MODULES_LMPREREQ $mod&$mod|unk/1.0|foo/1.0]
-lappend ans [list set _LMFILES_ $modfile]
-lappend ans [list set LOADEDMODULES $mod]
-lappend ans [list ERR]
-set tserr [msg_load foo/1.0{--optional} [err_unkvar -optional]]\n\n[msg_load $mod [err_reqlo foo/1.0{--optional}]]
-testouterr_cmd sh "load --auto $mod" ERR $tserr
+# invalid option
+setenv_var TESTSUITE_OPTIONAL_OPT err2
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 80}]
+set tserr [escre [msg_load $mod [msg_moderr {Invalid option '--foo'} {prereq --foo --optional foo/1.0<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load --auto $mod" ERR $tserr
 
 
 # no requirement loaded, then load first one

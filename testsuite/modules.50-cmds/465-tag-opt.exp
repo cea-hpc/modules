@@ -1187,24 +1187,12 @@ unsetenv_path_var __MODULES_LMTAG
 setenv_var TESTSUITE_TAG_OPT prtagbad1
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 setenv_var MODULES_IMPLICIT_DEFAULT 1
-set ans [list]
-lappend ans [list set __MODULES_LMALTNAME foo/2.0&as|foo/default&as|foo/latest]
-lappend ans [list set __MODULES_LMPREREQ $mod&foo/1.0\ --tag|foo]
-lappend ans [list set _LMFILES_ $mp/foo/2.0:$modfile]
-lappend ans [list set LOADEDMODULES foo/2.0:$mod]
-lappend ans [list set __MODULES_LMTAG foo/2.0&auto-loaded]
-lappend ans [list ERR]
-set tserr [msg_top_load $mod {} foo/2.0 {}]
-testouterr_cmd sh "load --auto $mod" $ans $tserr
+set ln [expr {[cmpversion $tclsh_version 8.6] == -1 ? 5 : 68}]
+set tserr [escre [msg_load $mod [msg_moderr {Misplaced option '--tag'} {prereq foo/1.0 --tag foo<EXM>} $modfile $ln]]]
+testouterr_cmd_re sh "load --auto $mod" ERR $tserr
 
 setenv_var MODULES_ADVANCED_VERSION_SPEC 0
-set ans [list]
-lappend ans [list set __MODULES_LMPREREQ $mod&foo/1.0|--tag|foo]
-lappend ans [list set _LMFILES_ $mp/foo/1.0:$modfile]
-lappend ans [list set LOADEDMODULES foo/1.0:$mod]
-lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded]
-set tserr [msg_top_load $mod {} foo/1.0 {}]
-testouterr_cmd sh "load --auto $mod" $ans $tserr
+testouterr_cmd_re sh "load --auto $mod" ERR $tserr
 unsetenv_var MODULES_IMPLICIT_DEFAULT
 unsetenv_var MODULES_ADVANCED_VERSION_SPEC
 
