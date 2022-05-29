@@ -8,6 +8,61 @@ Modules. It provides an overview of the new features and changed behaviors
 that will be encountered when upgrading.
 
 
+v5.2 (not yet released)
+=======================
+
+This new version is backward-compatible with previous version 5 release. It
+fixes bugs but also introduces new functionalities that are described in this
+section. See the :ref:`5.2 release notes<5.2 release notes>` for a complete
+list of the changes between Modules v5.1 and v5.2.
+
+Optional requirements
+---------------------
+
+The ``--optional`` option has been added to the :mfcmd:`prereq`,
+:mfcmd:`prereq-all`, :mfcmd:`depends-on` and :mfcmd:`always-load` modulefile
+commands to indicate that specified requirement is optional. An automatic
+load attempt is also performed for optional requirements. If requirement is
+not found or cannot be loaded, the dependency is yet considered satisfied as
+it is optional.
+
+.. parsed-literal::
+
+    :ps:`$` module show foo
+    -------------------------------------------------------------------
+    :sgrhi:`/path/to/modulefiles/foo`:
+
+    :sgrcm:`prereq`          --optional bar
+    -------------------------------------------------------------------
+    :ps:`$` module load foo
+    Loading :sgrhi:`foo`
+      :sgrin:`Loading requirement`: bar
+
+
+If the optional requirement is unloaded or loaded afterward, the dependent
+module is automatically reloaded thanks to the :mconfig:`auto_handling`
+mechanism.
+
+.. parsed-literal::
+
+    :ps:`$` module unload bar
+    Unloading :sgrhi:`bar`
+      :sgrin:`Unloading dependent`: foo
+      :sgrin:`Reloading dependent`: foo
+    :ps:`$` module list
+    Currently Loaded Modulefiles:
+     1) foo
+    :ps:`$` module load bar
+    Loading :sgrhi:`bar`
+      :sgrin:`Unloading dependent`: foo
+      :sgrin:`Reloading dependent`: foo
+
+Modules loaded by other modules with the :mfcmd:`module try-load<module>`
+command are now considered optional requirements. Dependent module can be
+loaded without the *try-load* modules, but now it gets automatically reloaded
+if *try-load* module is loaded afterward, to take it into account.
+
+
 v5.1
 ====
 
