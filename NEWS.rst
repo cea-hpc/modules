@@ -21,6 +21,9 @@ Modules 5.2.0 (not yet released)
   command is considered optional. Dependent module is automatically reloaded
   if the optional requirement is loaded afterward, unless if the
   :mconfig:`auto_handling` configuration option is disabled.
+* Raise error in case of unknown or misplaced option set on :mfcmd:`prereq`,
+  :mfcmd:`prereq-all`, :mfcmd:`depends-on` or :mfcmd:`always-load` modulefile
+  commands.
 
 
 .. _5.1 release notes:

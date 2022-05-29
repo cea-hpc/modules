@@ -1708,6 +1708,9 @@ proc parsePrereqCommandArgs {cmd args} {
                set nextargistaglist 1
                lappend opt_list $arg
             }
+            -* {
+               knerror "Invalid option '$arg'"
+            }
             default {
                set prereq_list [lrange $args $i end]
                # end option parsing: remaining elts are list of prereqs
@@ -1727,6 +1730,8 @@ proc parsePrereqCommandArgs {cmd args} {
    if {[llength $prereq_list] == 0} {
       knerror "wrong # args: should be \"$cmd ?--optional? ?--tag? ?taglist?\
          modulefile ?...?\""
+   } elseif {[set mispopt [lsearch -inline -glob $prereq_list --*]] ne {}} {
+      knerror "Misplaced option '$mispopt'"
    }
    return [list $tag_list $optional $opt_list $prereq_list]
 }
