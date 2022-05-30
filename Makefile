@@ -100,7 +100,7 @@ ifneq ($(builddoc),n)
 all: pkgdoc
 endif
 
-initdir: version.inc
+initdir:
 	$(MAKE) --no-print-directory -C init all
 
 pkgdoc: version.inc

@@ -54,14 +54,6 @@ ifeq ($(setmodulespath),y)
 all: modulespath
 endif
 
-../version.inc:
-	$(MAKE) --no-print-directory -C .. version.inc
-
-# source version definitions shared across the Makefiles of this project
-ifeq ($(findstring clean,$(MAKECMDGOALS)),)
--include ../version.inc
-endif
-
 # define init configs location
 ifeq ($(initconfin),etcdir)
   modulespath := $(etcdir)/modulespath
@@ -241,10 +233,10 @@ tcsh: csh.in
 profile.sh: profile.sh.in
 	$(translate-in-script)
 
-$(EXAMPLE_MODFILES_SRCDIR)/modules: $(EXAMPLE_MODFILES_SRCDIR)/modules.in ../version.inc
+$(EXAMPLE_MODFILES_SRCDIR)/modules: $(EXAMPLE_MODFILES_SRCDIR)/modules.in
 	$(translate-in-script)
 
-$(EXAMPLE_MODFILES_SRCDIR)/version: $(EXAMPLE_MODFILES_SRCDIR)/version.in ../version.inc
+$(EXAMPLE_MODFILES_SRCDIR)/version: $(EXAMPLE_MODFILES_SRCDIR)/version.in
 	$(translate-in-script)
 
 dist-win:
@@ -360,7 +352,7 @@ ifeq ($(VERBOSE),1)
 V = 1
 endif
 # let verbose by default the install/clean/test and other specific non-build targets
-$(V).SILENT: ../version.inc sh ksh bash zsh csh tcsh fish perl.pm python.py ruby.rb \
-	lisp tcl cmake r.R bash_completion tcsh_completion zsh-functions/_module \
-	profile.sh profile.csh modulespath initrc $(EXAMPLE_MODFILES_SRCDIR)/modules \
+$(V).SILENT: sh ksh bash zsh csh tcsh fish perl.pm python.py ruby.rb lisp tcl \
+	cmake r.R bash_completion tcsh_completion zsh-functions/_module profile.sh \
+	profile.csh modulespath initrc $(EXAMPLE_MODFILES_SRCDIR)/modules \
 	$(EXAMPLE_MODFILES_SRCDIR)/version
