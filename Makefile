@@ -78,10 +78,21 @@ endif
 
 # define rule prereq when target need to be rebuilt when git repository change
 ifeq ($(wildcard .git),.git)
-GIT_DIR := $(shell git rev-parse --git-dir)
-GIT_REFRESH_PREREQ := $(GIT_DIR)/index
+GIT_REFRESH_PREREQ := .git/objects
+
+# determine if version.inc needs to get updated as git repository has changed
+ifeq ($(wildcard version.inc), version.inc)
+MTIME_VERSION := $(shell date +%s -r version.inc)
+MTIME_GIT_REPO := $(shell date +%s -r $(GIT_REFRESH_PREREQ))
+REFRESH_VERSION_INC := $(shell if [ $(MTIME_GIT_REPO) -gt $(MTIME_VERSION) ]; \
+	then echo y; else echo n; fi)
 else
-GIT_REFRESH_PREREQ := 
+REFRESH_VERSION_INC := y
+endif
+
+else
+GIT_REFRESH_PREREQ :=
+REFRESH_VERSION_INC := n
 endif
 
 # setup summary echo rules unless silent mode set
@@ -109,6 +120,11 @@ pkgdoc: version.inc
 doc: version.inc
 	$(MAKE) --no-print-directory -C doc all
 
+# source version definitions if built and no need to get refreshed
+# skip calls to git command if this file is available
+ifeq ($(wildcard version.inc) $(REFRESH_VERSION_INC), version.inc n)
+-include version.inc
+else
 # build version.inc shared definitions from git repository info
 ifeq ($(wildcard .git) $(wildcard version.inc.in),.git version.inc.in)
 GIT_CURRENT_TAG := $(shell git describe --tags --abbrev=0)
@@ -154,6 +170,9 @@ else
 MODULES_BUILD := +$(notdir $(lastword $(MODULES_BUILD_REFS)))-XX-g$(MODULES_BUILD_HASH)
 endif
 endif
+endif
+# no need to include generated version.inc file as the MODULES_* variables
+# have just been computed
 endif
 
 # determine RPM release
@@ -348,11 +367,6 @@ Makefile.inc: ;
 
 version.inc: version.inc.in $(GIT_REFRESH_PREREQ)
 	$(translate-in-script)
-
-# source version definitions shared across the Makefiles of this project
-ifeq ($(findstring clean,$(MAKECMDGOALS)),)
--include version.inc
-endif
 
 contrib/rpm/environment-modules.spec: contrib/rpm/environment-modules.spec.in $(GIT_REFRESH_PREREQ)
 	$(translate-in-script)
