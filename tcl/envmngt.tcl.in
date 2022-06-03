@@ -768,8 +768,8 @@ alias ml 'module ml \!*' ;}
          }
          append fdef {
    return $_mlstatus;}
-         # define both _module_raw and _module functions in any cases to allow
-         # content redirection when commend-line switch is used (--redirect or
+         # define both _module_raw and module functions in any cases to allow
+         # content redirection when command-line switch is used (--redirect or
          # --no-redirect)
          # content is redirected by default when shell session is attached to
          # a terminal (non-terminal session are not redirected to avoid
@@ -796,9 +796,18 @@ alias ml 'module ml \!*' ;}
       _module_raw "$@" 2>&1;
    fi;}
          append fdef "\n};"
+         if {[getState shell] eq {bash}} {
+            append fdef {
+export -f _module_raw;
+export -f module;}
+         }
          if {[getConf ml]} {
             append fdef {
 ml() { module ml "$@"; };}
+            if {[getState shell] eq {bash}} {
+               append fdef {
+export -f ml;}
+            }
          }
       }
       fish {
