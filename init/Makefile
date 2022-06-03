@@ -101,18 +101,6 @@ else
   appendmanpathre := /@appendmanpath@/d
   prependmanpathre := s|@prependmanpath@||g
 endif
-ifeq ($(setbinpath),y)
-  setbinpathre := s|@setbinpath@||g
-else
-  setbinpathre := /@setbinpath@/d
-endif
-ifeq ($(appendbinpath),y)
-  appendbinpathre := s|@appendbinpath@||g
-  prependbinpathre := /@prependbinpath@/d
-else
-  appendbinpathre := /@appendbinpath@/d
-  prependbinpathre := s|@prependbinpath@||g
-endif
 ifeq ($(usemanpath),y)
   usemanpathre := s|@usemanpath@||g
   notusemanpathre := /@notusemanpath@/d
@@ -191,9 +179,6 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e '$(setmanpathre)' \
 	-e '$(appendmanpathre)' \
 	-e '$(prependmanpathre)' \
-	-e '$(setbinpathre)' \
-	-e '$(appendbinpathre)' \
-	-e '$(prependbinpathre)' \
 	-e '$(usemanpathre)' \
 	-e '$(notusemanpathre)' \
 	-e '$(setzshfpathre)' \

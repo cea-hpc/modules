@@ -199,6 +199,16 @@ else
   setversioning := \#
   setnotversioning :=
 endif
+ifeq ($(setbinpath),y)
+  setsetbinpath :=
+else
+  setsetbinpath := \#
+endif
+ifeq ($(appendbinpath),y)
+  setappendbinpath := append
+else
+  setappendbinpath := prepend
+endif
 
 ifeq ($(silentshdbgsupport),y)
   setsilentshdbgsupport := 1
@@ -309,6 +319,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@initdir@|$(initdir)|g' \
 	-e 's|@etcdir@|$(etcdir)|g' \
 	-e 's|@modulefilesdir@|$(modulefilesdir)|g' \
+	-e 's|@bindir@|$(bindir)|g' \
 	-e 's|@moduleshome@|$(moduleshome)|g' \
 	-e 's|@initrc@|$(initrc)|g' \
 	-e 's|@modulespath@|$(modulespath)|g' \
@@ -353,6 +364,8 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@notmultilibsupport@|$(setnotmultilibsupport)|g' \
 	-e 's|@VERSIONING@|$(setversioning)|g' \
 	-e 's|@NOTVERSIONING@|$(setnotversioning)|g' \
+	-e 's|@setbinpath@|$(setsetbinpath)|g' \
+	-e 's|@appendbinpath@|$(setappendbinpath)|g' \
 	-e 's|@MODULES_RELEASE@|$(MODULES_RELEASE)|g' \
 	-e 's|@MODULES_BUILD@|$(MODULES_BUILD)|g' \
 	-e 's|@MODULES_RPM_RELEASE@|$(MODULES_RPM_RELEASE)|g' \

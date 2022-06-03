@@ -1868,6 +1868,14 @@ proc cmdModuleAutoinit {} {
       setenv BASH_ENV @initdir@/bash
    }
 
+   if {[getState shelltype] in {sh csh fish}} {
+      # add Modules bin directory to PATH if enabled but do not increase ref
+      # counter variable if already there
+      @setbinpath@if {{@bindir@} ni [split [get-env PATH] :]} {
+         @setbinpath@@appendbinpath@-path --ignore-refcount PATH {@bindir@}
+      @setbinpath@}
+   }
+
    # clear in progress flag
    unsetenv __MODULES_AUTOINIT_INPROGRESS
 
