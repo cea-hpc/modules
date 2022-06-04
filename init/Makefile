@@ -87,28 +87,6 @@ else
   setzshfpathre := /@setzshfpath@/d
 endif
 
-# if enabled translate to keep text after markup elsewhere remove the
-# entire line
-ifeq ($(setmanpath),y)
-  setmanpathre := s|@setmanpath@||g
-else
-  setmanpathre := /@setmanpath@/d
-endif
-ifeq ($(appendmanpath),y)
-  appendmanpathre := s|@appendmanpath@||g
-  prependmanpathre := /@prependmanpath@/d
-else
-  appendmanpathre := /@appendmanpath@/d
-  prependmanpathre := s|@prependmanpath@||g
-endif
-ifeq ($(usemanpath),y)
-  usemanpathre := s|@usemanpath@||g
-  notusemanpathre := /@notusemanpath@/d
-else
-  usemanpathre := /@usemanpath@/d
-  notusemanpathre := s|@notusemanpath@||g
-endif
-
 # comment entries if feature not enabled
 ifeq ($(versioning),y)
   versdir := $(baseprefix)/versions
@@ -176,11 +154,6 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@comp_path_opts@|$(comp_path_opts)|g' \
 	-e 's|@comp_rm_path_opts@|$(comp_rm_path_opts)|g' \
 	-e 's|@comp_config_opts@|$(comp_config_opts)|g' \
-	-e '$(setmanpathre)' \
-	-e '$(appendmanpathre)' \
-	-e '$(prependmanpathre)' \
-	-e '$(usemanpathre)' \
-	-e '$(notusemanpathre)' \
 	-e '$(setzshfpathre)' \
 	-e '$(sourcebashcompre)' \
 	-e '$(sourcefishcompre)' \

@@ -1874,6 +1874,27 @@ proc cmdModuleAutoinit {} {
       @setbinpath@if {{@bindir@} ni [split [get-env PATH] :]} {
          @setbinpath@@appendbinpath@-path --ignore-refcount PATH {@bindir@}
       @setbinpath@}
+
+      # add Modules man directory to MANPATH if enabled
+      # initialize MANPATH if not set with a value that preserves manpath
+      # system configuration even after addition of paths to this variable by
+      # modulefiles
+      @setmanpath@set manpath {}
+      # use manpath tool if found at configure step, use MANPATH otherwise
+      @setmanpath@@usemanpath@catch {set manpath [exec -ignorestderr 2>/dev/null manpath]}
+      @setmanpath@@notusemanpath@if {[info exists ::env(MANPATH)]} {
+      @setmanpath@@notusemanpath@   set manpath $::env(MANPATH)
+      @setmanpath@@notusemanpath@}
+      @setmanpath@if {{@mandir@} ni [split $manpath :]} {
+      @setmanpath@   if {![info exists ::env(MANPATH)]} {
+      @setmanpath@      append-path MANPATH {}
+      @setmanpath@   # ensure no duplicate ':' is set
+      @setmanpath@   } elseif {[get-env MANPATH] eq {:}} {
+      @setmanpath@      remove-path MANPATH {}
+      @setmanpath@      append-path MANPATH {}
+      @setmanpath@   }
+      @setmanpath@   @appendmanpath@-path MANPATH {@mandir@}
+      @setmanpath@}
    }
 
    # clear in progress flag

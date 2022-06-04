@@ -209,6 +209,23 @@ ifeq ($(appendbinpath),y)
 else
   setappendbinpath := prepend
 endif
+ifeq ($(setmanpath),y)
+  setsetmanpath :=
+else
+  setsetmanpath := \#
+endif
+ifeq ($(appendmanpath),y)
+  setappendmanpath := append
+else
+  setappendmanpath := prepend
+endif
+ifeq ($(usemanpath),y)
+  setusemanpath :=
+  setnotusemanpath := \#
+else
+  setusemanpath := \#
+  setnotusemanpath :=
+endif
 
 ifeq ($(silentshdbgsupport),y)
   setsilentshdbgsupport := 1
@@ -320,6 +337,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@etcdir@|$(etcdir)|g' \
 	-e 's|@modulefilesdir@|$(modulefilesdir)|g' \
 	-e 's|@bindir@|$(bindir)|g' \
+	-e 's|@mandir@|$(mandir)|g' \
 	-e 's|@moduleshome@|$(moduleshome)|g' \
 	-e 's|@initrc@|$(initrc)|g' \
 	-e 's|@modulespath@|$(modulespath)|g' \
@@ -366,6 +384,10 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@NOTVERSIONING@|$(setnotversioning)|g' \
 	-e 's|@setbinpath@|$(setsetbinpath)|g' \
 	-e 's|@appendbinpath@|$(setappendbinpath)|g' \
+	-e 's|@setmanpath@|$(setsetmanpath)|g' \
+	-e 's|@appendmanpath@|$(setappendmanpath)|g' \
+	-e 's|@usemanpath@|$(setusemanpath)|g' \
+	-e 's|@notusemanpath@|$(setnotusemanpath)|g' \
 	-e 's|@MODULES_RELEASE@|$(MODULES_RELEASE)|g' \
 	-e 's|@MODULES_BUILD@|$(MODULES_BUILD)|g' \
 	-e 's|@MODULES_RPM_RELEASE@|$(MODULES_RPM_RELEASE)|g' \
