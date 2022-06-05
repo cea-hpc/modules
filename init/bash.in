@@ -36,8 +36,7 @@ fi;
 
 # define module command and surrounding initial environment (default value
 # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init config files)
-_mlcode=$(${_mlre:-}@TCLSH@ @libexecdir@/modulecmd.tcl bash autoinit)
-_mlret=$?
+eval "$(${_mlre:-}@TCLSH@ @libexecdir@/modulecmd.tcl bash autoinit)"
 
 # clean temp variables used to setup quarantine
 if [ -n "${_mlIFS+x}" ]; then
@@ -47,19 +46,6 @@ else
    unset IFS;
 fi;
 unset _mlre _mlv _mlrv
-
-# no environment alteration if the above autoinit command failed
-if [ $_mlret -eq 0 ]; then
-   eval "$_mlcode"
-@sourcebashcomp@
-@sourcebashcomp@   # enable completion only in interactive mode
-@sourcebashcomp@   if [ ${BASH_VERSINFO:-0} -ge 3 ] && [[ $- =~ i ]] &&
-@sourcebashcomp@      [ -r @initdir@/bash_completion ]; then
-@sourcebashcomp@      source @initdir@/bash_completion
-@sourcebashcomp@   fi
-fi
-
-unset _mlcode _mlret
 
 # restore shell debugging options if disabled
 if [ -n "${_mlshdbg:-}" ]; then

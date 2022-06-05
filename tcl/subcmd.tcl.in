@@ -1897,6 +1897,15 @@ proc cmdModuleAutoinit {} {
       @setmanpath@}
    }
 
+   # source shell completion script if available, not installed in default
+   # completion locations and only if shell is interactive
+   if {[getState shell] in {@shellcompsource@} && [getState is_stderr_tty]} {
+      set compfile "@initdir@/[getState shell]_completion"
+      if {[file readable $compfile]} {
+         putsModfileCmd dummy "source $compfile;"
+      }
+   }
+
    # clear in progress flag
    unsetenv __MODULES_AUTOINIT_INPROGRESS
 

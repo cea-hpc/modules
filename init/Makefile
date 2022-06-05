@@ -67,18 +67,14 @@ endif
 ifeq ($(bashcompletiondir),)
   bashcompletiondir := $(initdir)
   makebashcompdir := n
-  sourcebashcompre := s|@sourcebashcomp@||g
 else
   makebashcompdir := y
-  sourcebashcompre := /@sourcebashcomp@/d
 endif
 ifeq ($(fishcompletiondir),)
   fishcompletiondir := $(initdir)
   makefishcompdir := n
-  sourcefishcompre := s|@sourcefishcomp@||g
 else
   makefishcompdir := y
-  sourcefishcompre := /@sourcefishcomp@/d
 endif
 ifeq ($(zshcompletiondir),)
   zshcompletiondir := $(initdir)/zsh-functions
@@ -155,8 +151,6 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@comp_rm_path_opts@|$(comp_rm_path_opts)|g' \
 	-e 's|@comp_config_opts@|$(comp_config_opts)|g' \
 	-e '$(setzshfpathre)' \
-	-e '$(sourcebashcompre)' \
-	-e '$(sourcefishcompre)' \
 	-e $$'s|@modulerc@|$(modulerc)|g' \
 	-e 's|@modulepath@|$(modulepath)|g' \
 	-e '$(setquarvarsre)' $(quarvarsre) \

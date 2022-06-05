@@ -227,6 +227,16 @@ else
   setnotusemanpath :=
 endif
 
+# build list of shell whose completion script has to be sourced during
+# autoinit initialization
+shellcompsource := tcsh
+ifeq ($(bashcompletiondir),)
+  shellcompsource += bash
+endif
+ifeq ($(fishcompletiondir),)
+  shellcompsource += fish
+endif
+
 ifeq ($(silentshdbgsupport),y)
   setsilentshdbgsupport := 1
 else
@@ -388,6 +398,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@appendmanpath@|$(setappendmanpath)|g' \
 	-e 's|@usemanpath@|$(setusemanpath)|g' \
 	-e 's|@notusemanpath@|$(setnotusemanpath)|g' \
+	-e 's|@shellcompsource@|$(shellcompsource)|g' \
 	-e 's|@MODULES_RELEASE@|$(MODULES_RELEASE)|g' \
 	-e 's|@MODULES_BUILD@|$(MODULES_BUILD)|g' \
 	-e 's|@MODULES_RPM_RELEASE@|$(MODULES_RPM_RELEASE)|g' \
