@@ -78,9 +78,6 @@ else
 endif
 ifeq ($(zshcompletiondir),)
   zshcompletiondir := $(initdir)/zsh-functions
-  setzshfpathre := s|@setzshfpath@||g
-else
-  setzshfpathre := /@setzshfpath@/d
 endif
 
 # comment entries if feature not enabled
@@ -150,7 +147,6 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@comp_path_opts@|$(comp_path_opts)|g' \
 	-e 's|@comp_rm_path_opts@|$(comp_rm_path_opts)|g' \
 	-e 's|@comp_config_opts@|$(comp_config_opts)|g' \
-	-e '$(setzshfpathre)' \
 	-e $$'s|@modulerc@|$(modulerc)|g' \
 	-e 's|@modulepath@|$(modulepath)|g' \
 	-e '$(setquarvarsre)' $(quarvarsre) \

@@ -226,6 +226,11 @@ else
   setusemanpath := \#
   setnotusemanpath :=
 endif
+ifeq ($(zshcompletiondir),)
+  setzshfpath :=
+else
+  setzshfpath := \#
+endif
 
 # build list of shell whose completion script has to be sourced during
 # autoinit initialization
@@ -399,6 +404,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@usemanpath@|$(setusemanpath)|g' \
 	-e 's|@notusemanpath@|$(setnotusemanpath)|g' \
 	-e 's|@shellcompsource@|$(shellcompsource)|g' \
+	-e 's|@setzshfpath@|$(setzshfpath)|g' \
 	-e 's|@MODULES_RELEASE@|$(MODULES_RELEASE)|g' \
 	-e 's|@MODULES_BUILD@|$(MODULES_BUILD)|g' \
 	-e 's|@MODULES_RPM_RELEASE@|$(MODULES_RPM_RELEASE)|g' \
