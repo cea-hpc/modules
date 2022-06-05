@@ -1560,9 +1560,49 @@ setenv_var MODULES_SET_SHELL_STARTUP 0
 setenv_var MODULES_CMD [file normalize $env(TESTSUITEDIR)/../modulecmd.tcl]
 setenv_var TCLSH $TCLSH
 
+set lmsourceshpath {}
+# setup simpler MANPATH value for tests if autoinit adds Modules man location to MANPATH
+if {$install_setmanpath eq {y}} {
+    set default_manpath /usr/share/man:/usr/local/share/man
+    setenv_var MANPATH $default_manpath
+    if {$install_appendmanpath eq {y}} {
+        set updatedmanpath $default_manpath:$install_mandir
+        set lmsourceshpath "append-path MANPATH $install_mandir|"
+    } else {
+        set updatedmanpath $install_mandir:$default_manpath
+        set lmsourceshpath "prepend-path MANPATH $install_mandir|"
+    }
+}
+# setup PATH without Modules bin location
+if {$install_setbinpath eq {y}} {
+    set default_path [join [lsearch -all -inline -not [split $::env(PATH) :] $install_bindir] :]
+    setenv_var PATH $default_path
+    if {$install_appendbinpath eq {y}} {
+        set updatedpath $default_path:$install_bindir
+        if {$install_appendmanpath eq {n}} {
+            set lmsourceshpath "append-path PATH $install_bindir|$lmsourceshpath"
+        } else {
+            append lmsourceshpath "append-path PATH $install_bindir|"
+        }
+    } else {
+        set updatedpath $install_bindir:$default_path
+        append lmsourceshpath "prepend-path PATH $install_bindir|"
+    }
+}
+
 set ans [list]
 if {$install_versioning eq {y}} {
 lappend ans [list set MODULE_VERSION_STACK $install_version]
+}
+# MANPATH is set before PATH if the latter is appended and not the former
+if {$install_setmanpath eq {y} && $install_appendbinpath eq {y} && $install_appendmanpath eq {n}} {
+lappend ans [list set MANPATH $updatedmanpath]
+}
+if {$install_setbinpath eq {y}} {
+lappend ans [list set PATH $updatedpath]
+}
+if {$install_setmanpath eq {y} && ($install_appendbinpath eq {n} || $install_appendmanpath eq {y})} {
+lappend ans [list set MANPATH $updatedmanpath]
 }
 lappend ans [list set _LMFILES_ $mp/source-sh/1]
 lappend ans [list set LOADEDMODULES source-sh/1]
@@ -1576,9 +1616,9 @@ if {$is_modules_defined} {
     set extraans {}
 }
 if {$install_versioning eq {y}} {
-lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULE_VERSION\ $install_version\|setenv\ MODULE_VERSION_STACK\ $install_version\|setenv\ MODULES_COLLECTION_TARGET\ bar\|setenv\ testsuite\ yes$extraans]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|${lmsourceshpath}setenv\ MODULE_VERSION\ $install_version\|setenv\ MODULE_VERSION_STACK\ $install_version\|setenv\ MODULES_COLLECTION_TARGET\ bar\|setenv\ testsuite\ yes$extraans]
 } else {
-lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULES_COLLECTION_TARGET\ bar\|setenv\ testsuite\ yes$extraans]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|${lmsourceshpath}setenv\ MODULES_COLLECTION_TARGET\ bar\|setenv\ testsuite\ yes$extraans]
 }
 if {$install_versioning eq {y}} {
 lappend ans [list set MODULE_VERSION $install_version]
@@ -1600,6 +1640,26 @@ set extratserr {}
 
 set tserr "-------------------------------------------------------------------
 $mp/source-sh/1:\n\n"
+set tserr_path {}
+if {$install_setmanpath eq {y}} {
+    if {$install_appendmanpath eq {y}} {
+        append tserr_path "append-path\tMANPATH $install_mandir\n"
+    } else {
+        append tserr_path "prepend-path\tMANPATH $install_mandir\n"
+    }
+}
+if {$install_setbinpath eq {y}} {
+    if {$install_appendbinpath eq {y}} {
+        if {$install_appendmanpath eq {n}} {
+            set tserr_path "append-path\tPATH $install_bindir\n$tserr_path"
+        } else {
+            append tserr_path "append-path\tPATH $install_bindir\n"
+        }
+    } else {
+        append tserr_path "prepend-path\tPATH $install_bindir\n"
+    }
+}
+append tserr $tserr_path
 if {$install_versioning eq {y}} {
     append tserr "setenv\t\tMODULE_VERSION $install_version
 setenv\t\tMODULE_VERSION_STACK $install_version\n"
@@ -1631,13 +1691,23 @@ set ans [list]
 if {$install_versioning eq {y}} {
 lappend ans [list set MODULE_VERSION_STACK $install_version]
 }
+# MANPATH is set before PATH if the latter is appended and not the former
+if {$install_setmanpath eq {y} && $install_appendbinpath eq {y} && $install_appendmanpath eq {n}} {
+lappend ans [list set MANPATH $updatedmanpath]
+}
+if {$install_setbinpath eq {y}} {
+lappend ans [list set PATH $updatedpath]
+}
+if {$install_setmanpath eq {y} && ($install_appendbinpath eq {n} || $install_appendmanpath eq {y})} {
+lappend ans [list set MANPATH $updatedmanpath]
+}
 lappend ans [list set _LMFILES_ $mp/source-sh/1]
 lappend ans [list set LOADEDMODULES source-sh/1]
 lappend ans [list set MODULES_COLLECTION_TARGET bar]
 if {$install_versioning eq {y}} {
-lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULE_VERSION\ $install_version\|setenv\ MODULE_VERSION_STACK\ $install_version\|setenv\ MODULES_COLLECTION_TARGET\ bar$extraans]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|${lmsourceshpath}setenv\ MODULE_VERSION\ $install_version\|setenv\ MODULE_VERSION_STACK\ $install_version\|setenv\ MODULES_COLLECTION_TARGET\ bar$extraans]
 } else {
-lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULES_COLLECTION_TARGET\ bar$extraans]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|${lmsourceshpath}setenv\ MODULES_COLLECTION_TARGET\ bar$extraans]
 }
 if {$install_versioning eq {y}} {
 lappend ans [list set MODULE_VERSION $install_version]
@@ -1656,13 +1726,23 @@ set ans [list]
 if {$install_versioning eq {y}} {
 lappend ans [list set MODULE_VERSION_STACK $install_version]
 }
+# MANPATH is set before PATH if the latter is appended and not the former
+if {$install_setmanpath eq {y} && $install_appendbinpath eq {y} && $install_appendmanpath eq {n}} {
+lappend ans [list set MANPATH $updatedmanpath]
+}
+if {$install_setbinpath eq {y}} {
+lappend ans [list set PATH $updatedpath]
+}
+if {$install_setmanpath eq {y} && ($install_appendbinpath eq {n} || $install_appendmanpath eq {y})} {
+lappend ans [list set MANPATH $updatedmanpath]
+}
 lappend ans [list set _LMFILES_ $modpath/setenv/1.0:$mp/source-sh/1]
 lappend ans [list set LOADEDMODULES setenv/1.0:source-sh/1]
 lappend ans [list set MODULES_COLLECTION_TARGET bar]
 if {$install_versioning eq {y}} {
-lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULE_VERSION\ $install_version\|setenv\ MODULE_VERSION_STACK\ $install_version\|setenv\ MODULES_COLLECTION_TARGET\ bar$extraans]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|${lmsourceshpath}setenv\ MODULE_VERSION\ $install_version\|setenv\ MODULE_VERSION_STACK\ $install_version\|setenv\ MODULES_COLLECTION_TARGET\ bar$extraans]
 } else {
-lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULES_COLLECTION_TARGET\ bar$extraans]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|${lmsourceshpath}setenv\ MODULES_COLLECTION_TARGET\ bar$extraans]
 }
 if {$install_versioning eq {y}} {
 lappend ans [list set MODULE_VERSION $install_version]
@@ -1678,8 +1758,24 @@ testouterr_cmd sh {load source-sh/1} $ans {}
 setenv_loaded_module [list source-sh/1] [list $mp/source-sh/1]
 setenv_var testsuite yes
 setenv_var MODULES_COLLECTION_TARGET bar
-setenv_var __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|setenv\ MODULES_COLLECTION_TARGET\ bar\|setenv\ testsuite\ yes
+if {$install_setbinpath eq {y}} {
+setenv_var PATH $updatedpath
+}
+if {$install_setmanpath eq {y}} {
+setenv_var MANPATH $updatedmanpath
+}
+setenv_var __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|${lmsourceshpath}setenv\ MODULES_COLLECTION_TARGET\ bar\|setenv\ testsuite\ yes
 set ans [list]
+# MANPATH is set before PATH if the latter is appended and not the former
+if {$install_setmanpath eq {y} && $install_appendbinpath eq {y} && $install_appendmanpath eq {n}} {
+lappend ans [list set MANPATH $default_manpath]
+}
+if {$install_setbinpath eq {y}} {
+lappend ans [list set PATH $default_path]
+}
+if {$install_setmanpath eq {y} && ($install_appendbinpath eq {n} || $install_appendmanpath eq {y})} {
+lappend ans [list set MANPATH $default_manpath]
+}
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
 lappend ans [list unset testsuite]
@@ -1691,6 +1787,9 @@ unsetenv_var __MODULES_LMSOURCESH
 unsetenv_var MODULES_COLLECTION_TARGET
 unsetenv_var testsuite
 unsetenv_var TESTSUITE_SHTOMOD_MODULE
+if {$install_setbinpath eq {y}} {
+    setenv_var PATH $ORIG_PATH
+}
 
 
 # check excepted siteconfig file is installed

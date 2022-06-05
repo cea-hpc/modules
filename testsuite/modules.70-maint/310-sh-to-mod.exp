@@ -75,6 +75,56 @@ set tsvarpre "prepend-path\tFOOPATH /path/to/dir1 /path/to/dir2 /path/to/dir3
 prepend-path\tFOOPATHCB /path/to/dir1 /path/to/d\\{r2 /path/to/dir3
 prepend-path\tFOOPATHEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3
 prepend-path\tFOOPATHWC /path/to/dir1 /path/to/d*r2 /path/to/dir3"
+set tsvarappwpath {}
+set tsvarprewpath $tsvarpre
+set tsvarsetwpath {}
+if {$install_setmanpath eq {y}} {
+    set default_manpath {}
+    if {$install_usemanpath eq {y}} {
+        # update PATH if set by autoinit, as it can influence the directory list
+        # returned by manpath command
+        if {$install_setbinpath eq {y}} {
+            setenv_var PATH $install_bindir:$::env(PATH)
+        }
+        catch {set default_manpath [exec -ignorestderr 2>/dev/null manpath]}
+        if {$install_setbinpath eq {y}} {
+            setenv_var PATH $ORIG_PATH
+        }
+    } elseif {[info exists ::env(MANPATH)]} {
+        set default_manpath $::env(MANPATH)
+    }
+    if {$install_mandir ni [split $default_manpath :]} {
+        if {$install_appendmanpath eq {y}} {
+            if {![info exists ::env(MANPATH)]} {
+                # even if appended, sh-to-mod summarizes this as a prepend-path
+                append tsvarprewpath "\nprepend-path\tMANPATH {} $install_mandir"
+            } elseif {$::env(MANPATH) eq {}} {
+                append tsvarsetwpath "setenv\t\tMANPATH $install_mandir\n"
+            } elseif {$::env(MANPATH) eq {:}} {
+                append tsvarsetwpath "setenv\t\tMANPATH :$install_mandir\n"
+            } else {
+                append tsvarappwpath "append-path\tMANPATH $install_mandir\n"
+            }
+        } else {
+            if {![info exists ::env(MANPATH)]} {
+                append tsvarprewpath "\nprepend-path\tMANPATH $install_mandir {}"
+            } elseif {$::env(MANPATH) eq {}} {
+                append tsvarsetwpath "setenv\t\tMANPATH $install_mandir\n"
+            } elseif {$::env(MANPATH) eq {:}} {
+                append tsvarsetwpath "setenv\t\tMANPATH $install_mandir:\n"
+            } else {
+                append tsvarprewpath "\nprepend-path\tMANPATH $install_mandir"
+            }
+        }
+    }
+}
+if {$install_setbinpath eq {y}} {
+    if {$install_appendbinpath eq {y}} {
+        append tsvarappwpath "append-path\tPATH $install_bindir\n"
+    } else {
+        append tsvarprewpath "\nprepend-path\tPATH $install_bindir"
+    }
+}
 set tsvar "setenv\t\tFOO value
 setenv\t\tFOOCB va\\{ue
 setenv\t\tFOOEM {}
@@ -740,11 +790,12 @@ if {$is_modules_defined} {
     set extratserr {}
 }
 
-set tserr "#%Module\n$tscwd\n$tsvarpre\n$tsvar\n"
+set tserr "#%Module\n$tsvarappwpath$tscwd\n$tsvarprewpath\n$tsvar\n"
 if {$install_versioning eq {y}} {
     append tserr "setenv\t\tMODULE_VERSION $install_version
 setenv\t\tMODULE_VERSION_STACK $install_version\n"
 }
+append tserr $tsvarsetwpath
 append tserr "setenv\t\tMODULES_COLLECTION_TARGET bar
 setenv\t\ttestsuite yes"
 set tserrbash "$tserr$extratserr"
@@ -762,22 +813,24 @@ foreach sh $shtomod_avail_shells {
 # already set variable with equal or different value
 setenv_var MODULES_COLLECTION_TARGET foo
 setenv_var testsuite yes
-set tserr "#%Module\n$tscwd\n$tsvarpre\n$tsvar\n"
+set tserr "#%Module\n$tsvarappwpath$tscwd\n$tsvarprewpath\n$tsvar\n"
 if {$install_versioning eq {y}} {
     append tserr "setenv\t\tMODULE_VERSION $install_version
 setenv\t\tMODULE_VERSION_STACK $install_version\n"
 }
+append tserr $tsvarsetwpath
 append tserr "setenv\t\tMODULES_COLLECTION_TARGET bar$extratserr"
 testouterr_shtomod bash {} OK $tserr
 
 # module is loaded prior sh-to-mod
 setenv_var testsuite no
 setenv_loaded_module [list setenv/1.0] [list $modpath/setenv/1.0]
-set tserr "#%Module\n$tscwd\n$tsvarpre\n$tsvar\n"
+set tserr "#%Module\n$tsvarappwpath$tscwd\n$tsvarprewpath\n$tsvar\n"
 if {$install_versioning eq {y}} {
     append tserr "setenv\t\tMODULE_VERSION $install_version
 setenv\t\tMODULE_VERSION_STACK $install_version\n"
 }
+append tserr $tsvarsetwpath
 append tserr "setenv\t\tMODULES_COLLECTION_TARGET bar$extratserr"
 testouterr_shtomod bash {} OK $tserr
 
