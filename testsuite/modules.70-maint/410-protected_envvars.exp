@@ -1,0 +1,54 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2022/06/01
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Adrien Cotte, adrien@cotte.com
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test 'protected_envvars' config
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+set mod protect/1.0
+set modname protect
+set modfile $mp/$mod
+set modfilere $mpre/$mod
+
+#
+#  Tests
+#
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+set protectmsg [msg_load $mod "WARNING: Modification of protected environment variable FOO ignored"]
+
+# Protect "FOO" environment variable
+setenv_var MODULES_PROTECTED_ENVVARS FOO
+
+set protectlist [list protectsetenv protectunsetenv protectappend protectprepend]
+foreach protecttest $protectlist {
+   setenv_var TESTSUITE_PROTECT $protecttest
+   testouterr_cmd bash "load $mod" $ans $protectmsg
+}
+
+#
+#  Cleanup
+#
+
+reset_test_env
