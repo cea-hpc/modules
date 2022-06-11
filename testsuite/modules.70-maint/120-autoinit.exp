@@ -1536,6 +1536,95 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
     file rename -force $modrc.orig $modrc
 }
 
+
+# test source of shell completion file if interactive mode detected
+if {$is_stderr_tty && !$modrc1_exinstalled && !$initrc_exinstalled && !$modrc_exinstalled\
+     && $install_versioning eq "n"} {
+    # create a simple init/bash_completion
+    if {![file exists $install_initdir/bash_completion] && $install_bashcompletiondir eq {}} {
+        set fid [open $install_initdir/bash_completion a]
+        close $fid
+
+        set ans [list]
+        lappend ans [list [set func_bash]]
+        lappend ans [list set MODULES_CMD $modulecmd_path]
+        if {$change_manpath} {
+            if {$extra_sysmanpath} {
+                lappend ans [list set __MODULES_SHARE_MANPATH :1]
+            }
+            lappend ans [list set MANPATH $updatedmanpath]
+        }
+        if {$change_path} {
+            lappend ans [list set PATH $updatedpath]
+        }
+        lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+        lappend ans [list set MODULESHOME $moduleshome]
+        lappend ans [list set LOADEDMODULES {}]
+        lappend ans [list set MODULEPATH {}]
+        lappend ans [list source "$install_initdir/bash_completion;"]
+        testouterr_cmd_re bash autoinit $ans {}
+
+        file delete $install_initdir/bash_completion
+    }
+
+    # create a simple init/tcsh_completion
+    if {![file exists $install_initdir/tcsh_completion]} {
+        set fid [open $install_initdir/tcsh_completion a]
+        close $fid
+
+        set ans [list]
+        lappend ans [list [set func_tcsh]]
+        lappend ans [list set MODULES_CMD $modulecmd_path]
+        if {$change_manpath} {
+            if {$extra_sysmanpath} {
+                lappend ans [list set __MODULES_SHARE_MANPATH :1]
+            }
+            lappend ans [list set MANPATH $updatedmanpath]
+        }
+        if {$change_path} {
+            lappend ans [list set PATH $updatedpath]
+        }
+        lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+        lappend ans [list set MODULESHOME $moduleshome]
+        lappend ans [list set LOADEDMODULES {}]
+        lappend ans [list set MODULEPATH {}]
+        lappend ans [list source "$install_initdir/tcsh_completion;"]
+        testouterr_cmd_re tcsh autoinit $ans {}
+
+        file delete $install_initdir/tcsh_completion
+    }
+
+    # create a simple init/fish_completion
+    if {![file exists $install_initdir/fish_completion] && $install_fishcompletiondir eq {}} {
+        set fid [open $install_initdir/fish_completion a]
+        close $fid
+
+        set ans [list]
+        lappend ans [list [set func_fish]]
+        lappend ans [list set MODULES_CMD $modulecmd_path]
+        if {$change_manpath} {
+            if {$extra_sysmanpath} {
+                lappend ans [list set __MODULES_SHARE_MANPATH :1]
+            }
+            lappend ans [list set MANPATH $updatedmanpath]
+        }
+        if {$change_path} {
+            lappend ans [list set PATH $updatedpath]
+        }
+        lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+        lappend ans [list set MODULESHOME $moduleshome]
+        lappend ans [list set LOADEDMODULES {}]
+        lappend ans [list set MODULEPATH {}]
+        lappend ans [list source "$install_initdir/fish_completion;"]
+        testouterr_cmd_re fish autoinit $ans {}
+
+        file delete $install_initdir/fish_completion
+    }
+} else {
+    send_user "\tskipping completion script source tests\n"
+}
+
+
 # test precedence of etc/modulespath over init/.modulespath if we are purely testing
 # (as tests will modify the installation)
 # example modulerc/initrc files should not be installed to run the lock tests
