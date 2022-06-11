@@ -1715,6 +1715,183 @@ testouterr_cmd_re bash autoinit {} {}
 unsetenv_var __MODULES_AUTOINIT_INPROGRESS
 
 
+# test MANPATH setup depending on MANPATH initial value
+if {$install_setmanpath eq {y}} {
+    unsetenv_var MANPATH
+    set mandir_found_by_manpath 0
+    if {$install_usemanpath eq {y}} {
+        # update PATH if set by autoinit, as it can influence the directory list
+        # returned by manpath command
+        if {$install_setbinpath eq {y}} {
+            set PREVIOUS_PATH $::env(PATH)
+            setenv_var PATH $install_bindir:$PREVIOUS_PATH
+        }
+        set manpath_mandir_list {}
+        catch {set manpath_mandir_list [exec -ignorestderr 2>/dev/null manpath]}
+        if {$install_setbinpath eq {y}} {
+            setenv_var PATH $PREVIOUS_PATH
+        }
+        if {$install_mandir in [split $manpath_mandir_list :]} {
+            set mandir_found_by_manpath 1
+        }
+    }
+
+    setenv_var MANPATH {}
+    set ans [list]
+    lappend ans [list [set "func_bash"]]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+    }
+    lappend ans [list set MODULES_CMD $modulecmd_path]
+    if {!$mandir_found_by_manpath} {
+        lappend ans [list set MANPATH $install_mandir]
+    }
+    if {$change_path} {
+        lappend ans [list set PATH $updatedpath]
+    }
+    if {$install_setshellstartup eq {y}} {
+        lappend ans [list set ENV $install_initdir/profile.sh]
+    }
+    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+    if {$install_setshellstartup eq {y}} {
+        lappend ans [list set BASH_ENV $install_initdir/bash]
+    }
+    lappend ans [list set MODULESHOME $moduleshome]
+    lappend ans [list set LOADEDMODULES {}]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION "(.*)"]
+    }
+    testouterr_cmd_re bash autoinit $ans {}
+
+    setenv_var MANPATH :
+    set ans [list]
+    lappend ans [list [set "func_bash"]]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+    }
+    lappend ans [list set MODULES_CMD $modulecmd_path]
+    if {!$mandir_found_by_manpath} {
+        lappend ans [list set __MODULES_SHARE_MANPATH :1]
+        if {$install_appendmanpath eq {y}} {
+            lappend ans [list set MANPATH :$install_mandir]
+        } else {
+            lappend ans [list set MANPATH $install_mandir:]
+        }
+    }
+    if {$change_path} {
+        lappend ans [list set PATH $updatedpath]
+    }
+    if {$install_setshellstartup eq {y}} {
+        lappend ans [list set ENV $install_initdir/profile.sh]
+    }
+    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+    if {$install_setshellstartup eq {y}} {
+        lappend ans [list set BASH_ENV $install_initdir/bash]
+    }
+    lappend ans [list set MODULESHOME $moduleshome]
+    lappend ans [list set LOADEDMODULES {}]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION "(.*)"]
+    }
+    testouterr_cmd_re bash autoinit $ans {}
+
+    setenv_var MANPATH :/path
+    set ans [list]
+    lappend ans [list [set "func_bash"]]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+    }
+    lappend ans [list set MODULES_CMD $modulecmd_path]
+    if {!$mandir_found_by_manpath} {
+        lappend ans [list set __MODULES_SHARE_MANPATH :1]
+        if {$install_appendmanpath eq {y}} {
+            lappend ans [list set MANPATH :/path:$install_mandir]
+        } else {
+            lappend ans [list set MANPATH ${install_mandir}::/path]
+        }
+    }
+    if {$change_path} {
+        lappend ans [list set PATH $updatedpath]
+    }
+    if {$install_setshellstartup eq {y}} {
+        lappend ans [list set ENV $install_initdir/profile.sh]
+    }
+    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+    if {$install_setshellstartup eq {y}} {
+        lappend ans [list set BASH_ENV $install_initdir/bash]
+    }
+    lappend ans [list set MODULESHOME $moduleshome]
+    lappend ans [list set LOADEDMODULES {}]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION "(.*)"]
+    }
+    testouterr_cmd_re bash autoinit $ans {}
+
+    setenv_var MANPATH /path:
+    set ans [list]
+    lappend ans [list [set "func_bash"]]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+    }
+    lappend ans [list set MODULES_CMD $modulecmd_path]
+    if {!$mandir_found_by_manpath} {
+        lappend ans [list set __MODULES_SHARE_MANPATH :1]
+        if {$install_appendmanpath eq {y}} {
+            lappend ans [list set MANPATH /path::$install_mandir]
+        } else {
+            lappend ans [list set MANPATH $install_mandir:/path:]
+        }
+    }
+    if {$change_path} {
+        lappend ans [list set PATH $updatedpath]
+    }
+    if {$install_setshellstartup eq {y}} {
+        lappend ans [list set ENV $install_initdir/profile.sh]
+    }
+    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+    if {$install_setshellstartup eq {y}} {
+        lappend ans [list set BASH_ENV $install_initdir/bash]
+    }
+    lappend ans [list set MODULESHOME $moduleshome]
+    lappend ans [list set LOADEDMODULES {}]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION "(.*)"]
+    }
+    testouterr_cmd_re bash autoinit $ans {}
+
+    setenv_var MANPATH /path1:/path2
+    set ans [list]
+    lappend ans [list [set "func_bash"]]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+    }
+    lappend ans [list set MODULES_CMD $modulecmd_path]
+    if {$install_appendmanpath eq {y}} {
+        lappend ans [list set MANPATH /path1:/path2:$install_mandir]
+    } else {
+        lappend ans [list set MANPATH $install_mandir:/path1:/path2]
+    }
+    if {$change_path} {
+        lappend ans [list set PATH $updatedpath]
+    }
+    if {$install_setshellstartup eq {y}} {
+        lappend ans [list set ENV $install_initdir/profile.sh]
+    }
+    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+    if {$install_setshellstartup eq {y}} {
+        lappend ans [list set BASH_ENV $install_initdir/bash]
+    }
+    lappend ans [list set MODULESHOME $moduleshome]
+    lappend ans [list set LOADEDMODULES {}]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION "(.*)"]
+    }
+    testouterr_cmd_re bash autoinit $ans {}
+
+    unsetenv_var MANPATH
+}
+
+
 # remove temporary collection created for test
 file delete $env(TESTSUITEDIR)/coll14
 
