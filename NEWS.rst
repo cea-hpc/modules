@@ -27,6 +27,17 @@ Modules 5.2.0 (not yet released)
 * Add the :option:`--timer` command-line switch to report the total execution
   time of the :command:`module` command. Also report the execution time of
   every internal procedure calls when mixed with :option:`--debug` option.
+* Init: move :envvar:`PATH` setup (to locate Modules' binaries location) from
+  shell initialization scripts to the :subcmd:`autoinit` sub-command. (fix
+  issue #462)
+* Init: move :envvar:`MANPATH` setup (to locate Modules' man-pages) from
+  shell initialization scripts to the :subcmd:`autoinit` sub-command. (fix
+  issue #462)
+* Init: move shell completion setup from shell initialization scripts to the
+  :subcmd:`autoinit` sub-command. (fix issue #462)
+* Init: move zsh :envvar:`FPATH` setup (to locate Modules' functions) from
+  shell initialization scripts to the :subcmd:`autoinit` sub-command. (fix
+  issue #462)
 
 
 .. _5.1 release notes:
