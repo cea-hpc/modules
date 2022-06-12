@@ -1565,28 +1565,38 @@ set lmsourceshpath {}
 if {$install_setmanpath eq {y}} {
     set default_manpath /usr/share/man:/usr/local/share/man
     setenv_var MANPATH $default_manpath
+    if {[string first { } $install_mandir] != -1} {
+        set mandirenc "{$install_mandir}"
+    } else {
+        set mandirenc $install_mandir
+    }
     if {$install_appendmanpath eq {y}} {
         set updatedmanpath $default_manpath:$install_mandir
-        set lmsourceshpath "append-path MANPATH $install_mandir|"
+        set lmsourceshpath "append-path MANPATH $mandirenc|"
     } else {
         set updatedmanpath $install_mandir:$default_manpath
-        set lmsourceshpath "prepend-path MANPATH $install_mandir|"
+        set lmsourceshpath "prepend-path MANPATH $mandirenc|"
     }
 }
 # setup PATH without Modules bin location
 if {$install_setbinpath eq {y}} {
     set default_path [join [lsearch -all -inline -not [split $::env(PATH) :] $install_bindir] :]
     setenv_var PATH $default_path
+    if {[string first { } $install_bindir] != -1} {
+        set bindirenc "{$install_bindir}"
+    } else {
+        set bindirenc $install_bindir
+    }
     if {$install_appendbinpath eq {y}} {
         set updatedpath $default_path:$install_bindir
         if {$install_appendmanpath eq {n}} {
-            set lmsourceshpath "append-path PATH $install_bindir|$lmsourceshpath"
+            set lmsourceshpath "append-path PATH $bindirenc|$lmsourceshpath"
         } else {
-            append lmsourceshpath "append-path PATH $install_bindir|"
+            append lmsourceshpath "append-path PATH $bindirenc|"
         }
     } else {
         set updatedpath $install_bindir:$default_path
-        append lmsourceshpath "prepend-path PATH $install_bindir|"
+        append lmsourceshpath "prepend-path PATH $bindirenc|"
     }
 }
 
@@ -1629,6 +1639,7 @@ lappend ans [list {unset -f module;}]
 lappend ans [list {unset -f _module_raw;}]
 }
 testouterr_cmd sh {load source-sh/1} $ans {}
+
 if {$is_modules_defined} {
 set extratserr "
 unset-function\t_module_raw
@@ -1643,20 +1654,20 @@ $mp/source-sh/1:\n\n"
 set tserr_path {}
 if {$install_setmanpath eq {y}} {
     if {$install_appendmanpath eq {y}} {
-        append tserr_path "append-path\tMANPATH $install_mandir\n"
+        append tserr_path "append-path\tMANPATH $mandirenc\n"
     } else {
-        append tserr_path "prepend-path\tMANPATH $install_mandir\n"
+        append tserr_path "prepend-path\tMANPATH $mandirenc\n"
     }
 }
 if {$install_setbinpath eq {y}} {
     if {$install_appendbinpath eq {y}} {
         if {$install_appendmanpath eq {n}} {
-            set tserr_path "append-path\tPATH $install_bindir\n$tserr_path"
+            set tserr_path "append-path\tPATH $bindirenc\n$tserr_path"
         } else {
-            append tserr_path "append-path\tPATH $install_bindir\n"
+            append tserr_path "append-path\tPATH $bindirenc\n"
         }
     } else {
-        append tserr_path "prepend-path\tPATH $install_bindir\n"
+        append tserr_path "prepend-path\tPATH $bindirenc\n"
     }
 }
 append tserr $tserr_path

@@ -94,35 +94,45 @@ if {$install_setmanpath eq {y}} {
         set default_manpath $::env(MANPATH)
     }
     if {$install_mandir ni [split $default_manpath :]} {
+        if {[string first { } $install_mandir] != -1} {
+            set mandirenc "{$install_mandir}"
+        } else {
+            set mandirenc $install_mandir
+        }
         if {$install_appendmanpath eq {y}} {
             if {![info exists ::env(MANPATH)]} {
                 # even if appended, sh-to-mod summarizes this as a prepend-path
-                append tsvarprewpath "\nprepend-path\tMANPATH {} $install_mandir"
+                append tsvarprewpath "\nprepend-path\tMANPATH {} $mandirenc"
             } elseif {$::env(MANPATH) eq {}} {
-                append tsvarsetwpath "setenv\t\tMANPATH $install_mandir\n"
+                append tsvarsetwpath "setenv\t\tMANPATH $mandirenc\n"
             } elseif {$::env(MANPATH) eq {:}} {
-                append tsvarsetwpath "setenv\t\tMANPATH :$install_mandir\n"
+                append tsvarsetwpath "setenv\t\tMANPATH :$mandirenc\n"
             } else {
-                append tsvarappwpath "append-path\tMANPATH $install_mandir\n"
+                append tsvarappwpath "append-path\tMANPATH $mandirenc\n"
             }
         } else {
             if {![info exists ::env(MANPATH)]} {
-                append tsvarprewpath "\nprepend-path\tMANPATH $install_mandir {}"
+                append tsvarprewpath "\nprepend-path\tMANPATH $mandirenc {}"
             } elseif {$::env(MANPATH) eq {}} {
-                append tsvarsetwpath "setenv\t\tMANPATH $install_mandir\n"
+                append tsvarsetwpath "setenv\t\tMANPATH $mandirenc\n"
             } elseif {$::env(MANPATH) eq {:}} {
-                append tsvarsetwpath "setenv\t\tMANPATH $install_mandir:\n"
+                append tsvarsetwpath "setenv\t\tMANPATH $mandirenc:\n"
             } else {
-                append tsvarprewpath "\nprepend-path\tMANPATH $install_mandir"
+                append tsvarprewpath "\nprepend-path\tMANPATH $mandirenc"
             }
         }
     }
 }
 if {$install_setbinpath eq {y}} {
-    if {$install_appendbinpath eq {y}} {
-        append tsvarappwpath "append-path\tPATH $install_bindir\n"
+    if {[string first { } $install_bindir] != -1} {
+        set bindirenc "{$install_bindir}"
     } else {
-        append tsvarprewpath "\nprepend-path\tPATH $install_bindir"
+        set bindirenc $install_bindir
+    }
+    if {$install_appendbinpath eq {y}} {
+        append tsvarappwpath "append-path\tPATH $bindirenc\n"
+    } else {
+        append tsvarprewpath "\nprepend-path\tPATH $bindirenc"
     }
 }
 set tsvar "setenv\t\tFOO value

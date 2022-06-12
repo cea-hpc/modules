@@ -336,31 +336,12 @@ unsetenv_var MODULES_TERM_BACKGROUND
 # also if it happen during first execution steps
 if {[siteconfig_isStderrTty]} {
 setenv_var TESTSUITE_ENABLE_SITECONFIG_BROKEN 1
-set tserr [list]
-lappend tserr "$error_msgs: Site configuration source failed"
-lappend tserr {  invalid command name "unk_foo"}
-lappend tserr {      while executing}
-lappend tserr {  "unk_foo"}
-lappend tserr "      invoked from within
-  \"if {\\\[info exists env\\(TESTSUITE_ENABLE_SITECONFIG\\)\\\]} \{
-  
-  # force stderr terminal attachment state
-  proc initStateIsStderrTty {} {
-     return 1
-  }
-  
-  # enable...\"
-      \\(file \"$siteconfig_file\" line 2\\)"
-if {[info exists env(COVERAGE)]} {
-    lappend tserr "      invoked from within
-  \"::_instrument_::source $siteconfig_file\"
-      \\(\"uplevel\" body line 1\\)
-      invoked from within
-  \"uplevel 1 \\\$args\"
-      \\(procedure \"source\" line 16\\)
-      \\(file \"$siteconfig_file\"\\)"
-}
-colorset_test_case {--color -V} [list er $error_msgs] [join $tserr \n]
+set tserr [escre "$error_msgs: Site configuration source failed
+  invalid command name \"unk_foo\"
+      while executing
+  \"unk_foo<EXM>\"
+      (file \"$siteconfig_file\" line 2)<EXM>"]
+colorset_test_case {--color -V} [list er $error_msgs] $tserr
 unsetenv_var TESTSUITE_ENABLE_SITECONFIG_BROKEN
 }
 

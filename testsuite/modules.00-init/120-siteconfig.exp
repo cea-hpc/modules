@@ -127,31 +127,12 @@ if { $verbose > 0 } {
 }
 set env(TESTSUITE_ENABLE_SITECONFIG_BROKEN) 1
 
-set ans [list]
-lappend ans "$error_msgs: Site configuration source failed"
-lappend ans {  invalid command name "unk_foo"}
-lappend ans {      while executing}
-lappend ans {  "unk_foo"}
-lappend ans "      invoked from within
-  \"if {\[info exists env(TESTSUITE_ENABLE_SITECONFIG)\]} \{
-  
-  # force stderr terminal attachment state
-  proc initStateIsStderrTty {} {
-     return 1
-  }
-  
-  # enable...\"
-      (file \"$siteconfig_file\" line 2)"
-if {[info exists env(COVERAGE)]} {
-    lappend ans "      invoked from within
-  \"::_instrument_::source $siteconfig_file\"
-      (\"uplevel\" body line 1)
-      invoked from within
-  \"uplevel 1 \$args\"
-      (procedure \"source\" line 16)
-      (file \"$siteconfig_file\")"
-}
-testouterr_cmd "sh" "-V" "ERR" [join $ans "\n"]
+set tserr [escre "$error_msgs: Site configuration source failed
+  invalid command name \"unk_foo\"
+      while executing
+  \"unk_foo<EXM>\"
+      (file \"$siteconfig_file\" line 2)<EXM>"]
+testouterr_cmd_re sh -V ERR $tserr
 
 # restore environment
 if { $verbose > 0 } {
@@ -189,31 +170,12 @@ if { $verbose > 0 } {
 }
 set env(TESTSUITE_ENABLE_SITECONFIG_ACCESSERR) 1
 
-set ans [list]
-lappend ans "$error_msgs: Site configuration source failed"
-lappend ans {  Cannot access 'foo'}
-lappend ans {      while executing}
-lappend ans {  "error [parseAccessIssue "foo"]"}
-lappend ans "      invoked from within
-  \"if {\[info exists env(TESTSUITE_ENABLE_SITECONFIG)\]} \{
-  
-  # force stderr terminal attachment state
-  proc initStateIsStderrTty {} {
-     return 1
-  }
-  
-  # enable...\"
-      (file \"$siteconfig_file\" line 2)"
-if {[info exists env(COVERAGE)]} {
-    lappend ans "      invoked from within
-  \"::_instrument_::source $siteconfig_file\"
-      (\"uplevel\" body line 1)
-      invoked from within
-  \"uplevel 1 \$args\"
-      (procedure \"source\" line 16)
-      (file \"$siteconfig_file\")"
-}
-testouterr_cmd "sh" "-V" "ERR" [join $ans "\n"]
+set tserr [escre "$error_msgs: Site configuration source failed
+  Cannot access 'foo'
+      while executing
+  \"error \[parseAccessIssue \"foo\"\]<EXM>\"
+      (file \"$siteconfig_file\" line 2)<EXM>"]
+testouterr_cmd_re sh -V ERR $tserr
 
 # restore environment
 if { $verbose > 0 } {
@@ -398,32 +360,14 @@ unsetenv_var TESTSUITE_ENABLE_SITECONFIG_NOEXTRASITECONFIG
 # test tcl ext lib load on an incompatible interp if available
 if {[info exists tclextlib_file] && [file executable ./tclsh83]} {
     setenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBLOAD83 1
-    set ans [list]
-    lappend ans "$error_msgs: Site configuration source failed"
-    lappend ans {  version conflict for package "Tcl": have 8.3, need 8.5}
-    lappend ans {      while executing}
-    lappend ans {  "exec ./tclsh83 << "load [getConf tcl_ext_lib] Envmodules""}
-    lappend ans "      invoked from within
-  \"if {\[info exists env(TESTSUITE_ENABLE_SITECONFIG)\]} \{
-  
-  # force stderr terminal attachment state
-  proc initStateIsStderrTty {} {
-     return 1
-  }
-  
-  # enable...\"
-      (file \"$siteconfig_file\" line 2)"
-    if {[info exists env(COVERAGE)]} {
-        lappend ans "      invoked from within
-  \"::_instrument_::source $siteconfig_file\"
-      (\"uplevel\" body line 1)
-      invoked from within
-  \"uplevel 1 \$args\"
-      (procedure \"source\" line 16)
-      (file \"$siteconfig_file\")"
-    }
 
-    testouterr_cmd sh -V ERR [join $ans "\n"]
+    set tserr [escre "$error_msgs: Site configuration source failed
+  version conflict for package \"Tcl\": have 8.3, need 8.5
+      while executing
+  \"exec ./tclsh83 << \"load \[getConf tcl_ext_lib\] Envmodules\"<EXM>\"
+      (file \"$siteconfig_file\" line 2)<EXM>"]
+    testouterr_cmd_re sh -V ERR $tserr
+
     # restore environment
     unsetenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBLOAD83
 } elseif {$verbose > 0} {
