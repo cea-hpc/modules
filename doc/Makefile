@@ -104,35 +104,35 @@ $(BUILD_DIR)/module.1: $(BUILD_DIR)/module.1.in
 	$(translate-in-script)
 
 install: man txt
-	mkdir -p $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man4
+	mkdir -p '$(DESTDIR)$(mandir)/man1' '$(DESTDIR)$(mandir)/man4'
 ifeq ($(docinstall),y)
-	mkdir -p $(DESTDIR)$(docdir)
-	cp $(BUILD_DIR)/changes.txt $(DESTDIR)$(docdir)/
-	cp $(BUILD_DIR)/MIGRATING.txt $(DESTDIR)$(docdir)/
-	cp $(BUILD_DIR)/INSTALL.txt $(DESTDIR)$(docdir)/
-	cp $(BUILD_DIR)/INSTALL-win.txt $(DESTDIR)$(docdir)/
-	cp $(BUILD_DIR)/NEWS.txt $(DESTDIR)$(docdir)/
-	cp $(BUILD_DIR)/CONTRIBUTING.txt $(DESTDIR)$(docdir)/
+	mkdir -p '$(DESTDIR)$(docdir)'
+	cp $(BUILD_DIR)/changes.txt '$(DESTDIR)$(docdir)/'
+	cp $(BUILD_DIR)/MIGRATING.txt '$(DESTDIR)$(docdir)/'
+	cp $(BUILD_DIR)/INSTALL.txt '$(DESTDIR)$(docdir)/'
+	cp $(BUILD_DIR)/INSTALL-win.txt '$(DESTDIR)$(docdir)/'
+	cp $(BUILD_DIR)/NEWS.txt '$(DESTDIR)$(docdir)/'
+	cp $(BUILD_DIR)/CONTRIBUTING.txt '$(DESTDIR)$(docdir)/'
 endif
-	cp $(BUILD_DIR)/module.1 $(DESTDIR)$(mandir)/man1/
-	cp $(BUILD_DIR)/ml.1 $(DESTDIR)$(mandir)/man1/
-	cp $(BUILD_DIR)/modulefile.4 $(DESTDIR)$(mandir)/man4/
+	cp $(BUILD_DIR)/module.1 '$(DESTDIR)$(mandir)/man1/'
+	cp $(BUILD_DIR)/ml.1 '$(DESTDIR)$(mandir)/man1/'
+	cp $(BUILD_DIR)/modulefile.4 '$(DESTDIR)$(mandir)/man4/'
 
 uninstall:
 ifeq ($(docinstall),y)
-	rm -f $(DESTDIR)$(docdir)/changes.txt
-	rm -f $(DESTDIR)$(docdir)/MIGRATING.txt
-	rm -f $(DESTDIR)$(docdir)/INSTALL.txt
-	rm -f $(DESTDIR)$(docdir)/INSTALL-win.txt
-	rm -f $(DESTDIR)$(docdir)/NEWS.txt
-	rm -f $(DESTDIR)$(docdir)/CONTRIBUTING.txt
-	rmdir $(DESTDIR)$(docdir)
+	rm -f '$(DESTDIR)$(docdir)/changes.txt'
+	rm -f '$(DESTDIR)$(docdir)/MIGRATING.txt'
+	rm -f '$(DESTDIR)$(docdir)/INSTALL.txt'
+	rm -f '$(DESTDIR)$(docdir)/INSTALL-win.txt'
+	rm -f '$(DESTDIR)$(docdir)/NEWS.txt'
+	rm -f '$(DESTDIR)$(docdir)/CONTRIBUTING.txt'
+	rmdir '$(DESTDIR)$(docdir)'
 endif
-	rm -f $(DESTDIR)$(mandir)/man1/module.1
-	rm -f $(DESTDIR)$(mandir)/man1/ml.1
-	rm -f $(DESTDIR)$(mandir)/man4/modulefile.4
-	rmdir $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man4
-	rmdir $(DESTDIR)$(mandir)
+	rm -f '$(DESTDIR)$(mandir)/man1/module.1'
+	rm -f '$(DESTDIR)$(mandir)/man1/ml.1'
+	rm -f '$(DESTDIR)$(mandir)/man4/modulefile.4'
+	rmdir '$(DESTDIR)$(mandir)/man1' '$(DESTDIR)$(mandir)/man4'
+	rmdir '$(DESTDIR)$(mandir)'
 
 clean:
 # do not clean generated docs if not in git repository

@@ -23,13 +23,17 @@ include ../Makefile.inc
 # generate 'module use' commands to put in initrc from modulepath unless
 # if the modulespath config file should be deployed
 ifeq ($(setmodulespath),n)
+# need to escape eventual space character in each modulepath/loadedmodule
+# entry to correctly produce the module use/module load rules
+space := $(subst ,, )
 modulerc := \\\n\# enable default modulepaths
-modulerc := $(modulerc)$(addprefix \\\nmodule use --append {,$(subst :,} ,$(modulepath)}))
+modulerc := $(modulerc)$(subst |,$(space),$(addprefix \\\nmodule use --append {,\
+  $(subst :,} ,$(subst $(space),|,$(modulepath)))}))
 endif
 # generate 'module load' commands to put in initrc from loadedmodules
 ifneq ($(loadedmodules),)
-  modulerc := $(modulerc)$(addprefix \\\nmodule load ,\
-    $(subst :, ,$(loadedmodules)))
+  modulerc := $(modulerc)$(subst |,$(space),$(addprefix \\\nmodule load {,\
+    $(subst :,} ,$(subst $(space),|,$(loadedmodules)))}))
 endif
 ifneq ($(modulerc),)
   modulerc := $(modulerc)\\\n
@@ -188,105 +192,105 @@ $(EXAMPLE_MODFILES_SRCDIR)/version: $(EXAMPLE_MODFILES_SRCDIR)/version.in
 	$(translate-in-script)
 
 dist-win:
-	mkdir $(DIST_WIN_PREFIX)/init
-	cp cmd.cmd $(DIST_WIN_PREFIX)/init/
-	mkdir $(DIST_WIN_PREFIX)/modulefiles
-	cp $(addprefix $(EXAMPLE_MODFILES_SRCDIR)/,$(EXAMPLE_WIN_MODFILES)) $(DIST_WIN_PREFIX)/modulefiles/
+	mkdir '$(DIST_WIN_PREFIX)/init'
+	cp cmd.cmd '$(DIST_WIN_PREFIX)/init/'
+	mkdir '$(DIST_WIN_PREFIX)/modulefiles'
+	cp $(addprefix $(EXAMPLE_MODFILES_SRCDIR)/,$(EXAMPLE_WIN_MODFILES)) '$(DIST_WIN_PREFIX)/modulefiles/'
 
 # example configs for test rules
 install-testconfig:
-	mkdir -p $(DESTDIR)$(initdir)
-	mkdir -p $(DESTDIR)$(etcdir)
-	mkdir -p $(DESTDIR)$(prefix)/etc
-	mkdir -p $(DESTDIR)$(modulefilesdir)
-	mkdir -p $(DESTDIR)$(prefix)/test/modulefiles $(DESTDIR)$(prefix)/test/etc
-	cp $(addprefix $(EXAMPLE_MODFILES_SRCDIR)/,$(EXAMPLE_TESTCONFIG_MODFILES)) $(DESTDIR)$(modulefilesdir)/
+	mkdir -p '$(DESTDIR)$(initdir)'
+	mkdir -p '$(DESTDIR)$(etcdir)'
+	mkdir -p '$(DESTDIR)$(prefix)/etc'
+	mkdir -p '$(DESTDIR)$(modulefilesdir)'
+	mkdir -p '$(DESTDIR)$(prefix)/test/modulefiles' '$(DESTDIR)$(prefix)/test/etc'
+	cp $(addprefix $(EXAMPLE_MODFILES_SRCDIR)/,$(EXAMPLE_TESTCONFIG_MODFILES)) '$(DESTDIR)$(modulefilesdir)/'
 
 uninstall-testconfig:
-	rmdir $(DESTDIR)$(prefix)/test/modulefiles $(DESTDIR)$(prefix)/test/etc $(DESTDIR)$(prefix)/test
-	rm -f $(addprefix $(DESTDIR)$(modulefilesdir)/,$(EXAMPLE_TESTCONFIG_MODFILES))
-	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(modulefilesdir) || true
-	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(etcdir) || true
-	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(initdir) || true
+	rmdir '$(DESTDIR)$(prefix)/test/modulefiles' '$(DESTDIR)$(prefix)/test/etc' '$(DESTDIR)$(prefix)/test'
+	rm -f $(foreach modfile,$(EXAMPLE_TESTCONFIG_MODFILES),'$(DESTDIR)$(modulefilesdir)/$(modfile)')
+	$(RMDIR_IGN_NON_EMPTY) '$(DESTDIR)$(modulefilesdir)' || true
+	$(RMDIR_IGN_NON_EMPTY) '$(DESTDIR)$(etcdir)' || true
+	$(RMDIR_IGN_NON_EMPTY) '$(DESTDIR)$(initdir)' || true
 
 install: all
-	mkdir -p $(DESTDIR)$(initdir)
-	mkdir -p $(DESTDIR)$(initdir)/ksh-functions
+	mkdir -p '$(DESTDIR)$(initdir)'
+	mkdir -p '$(DESTDIR)$(initdir)/ksh-functions'
 ifeq ($(makebashcompdir),y)
-	mkdir -p $(DESTDIR)$(bashcompletiondir)
+	mkdir -p '$(DESTDIR)$(bashcompletiondir)'
 endif
 ifeq ($(makefishcompdir),y)
-	mkdir -p $(DESTDIR)$(fishcompletiondir)
+	mkdir -p '$(DESTDIR)$(fishcompletiondir)'
 endif
-	mkdir -p $(DESTDIR)$(zshcompletiondir)
-	mkdir -p $(DESTDIR)$(modulefilesdir)
-	cp $(ALL_SHELLS) $(DESTDIR)$(initdir)/
+	mkdir -p '$(DESTDIR)$(zshcompletiondir)'
+	mkdir -p '$(DESTDIR)$(modulefilesdir)'
+	cp $(ALL_SHELLS) '$(DESTDIR)$(initdir)/'
 ifeq ($(windowssupport),y)
-	cp cmd.cmd $(DESTDIR)$(initdir)/
+	cp cmd.cmd '$(DESTDIR)$(initdir)/'
 endif
 ifeq ($(makefishcompdir),y)
-	cp fish_completion $(DESTDIR)$(fishcompletiondir)/module.fish
+	cp fish_completion '$(DESTDIR)$(fishcompletiondir)/module.fish'
 else
-	cp fish_completion $(DESTDIR)$(fishcompletiondir)/
+	cp fish_completion '$(DESTDIR)$(fishcompletiondir)/'
 endif
 ifeq ($(makebashcompdir),y)
-	cp bash_completion $(DESTDIR)$(bashcompletiondir)/module
-	ln -s module $(DESTDIR)$(bashcompletiondir)/ml
+	cp bash_completion '$(DESTDIR)$(bashcompletiondir)/module'
+	ln -s module '$(DESTDIR)$(bashcompletiondir)/ml'
 else
-	cp bash_completion $(DESTDIR)$(bashcompletiondir)/
+	cp bash_completion '$(DESTDIR)$(bashcompletiondir)/'
 endif
-	cp zsh-functions/_module $(DESTDIR)$(zshcompletiondir)/
-	cp ksh $(DESTDIR)$(initdir)/ksh-functions/module
-	cp ksh $(DESTDIR)$(initdir)/ksh-functions/ml
-	rm -f $(DESTDIR)$(modulespath) $(DESTDIR)$(initrc)
-	cp -R -P initrc $(DESTDIR)$(initrc)
+	cp zsh-functions/_module '$(DESTDIR)$(zshcompletiondir)/'
+	cp ksh '$(DESTDIR)$(initdir)/ksh-functions/module'
+	cp ksh '$(DESTDIR)$(initdir)/ksh-functions/ml'
+	rm -f '$(DESTDIR)$(modulespath)' '$(DESTDIR)$(initrc)'
+	cp -R -P initrc '$(DESTDIR)$(initrc)'
 ifeq ($(setmodulespath),y)
 	cp -R -P modulespath $(DESTDIR)$(modulespath)
 endif
 ifeq ($(examplemodulefiles),y)
-	cp $(addprefix $(EXAMPLE_MODFILES_SRCDIR)/,$(EXAMPLE_MODFILES)) $(DESTDIR)$(modulefilesdir)/
+	cp $(addprefix $(EXAMPLE_MODFILES_SRCDIR)/,$(EXAMPLE_MODFILES)) '$(DESTDIR)$(modulefilesdir)/'
 endif
 ifeq ($(versioning),y)
-	mkdir -p $(DESTDIR)$(versdir)
-	cp $(EXAMPLE_MODFILES_SRCDIR)/version $(DESTDIR)$(versdir)/$(VERSION)
+	mkdir -p '$(DESTDIR)$(versdir)'
+	cp $(EXAMPLE_MODFILES_SRCDIR)/version '$(DESTDIR)$(versdir)/$(VERSION)'
 endif
 
 uninstall:
-	rm -f $(addprefix $(DESTDIR)$(initdir)/,$(ALL_SHELLS))
+	rm -f $(foreach initscript,$(ALL_SHELLS),'$(DESTDIR)$(initdir)/$(initscript)')
 ifeq ($(windowssupport),y)
-	rm -f $(DESTDIR)$(initdir)/cmd.cmd
+	rm -f '$(DESTDIR)$(initdir)/cmd.cmd'
 endif
-	rm -f $(DESTDIR)$(initdir)/ksh-functions/module
-	rm -f $(DESTDIR)$(initdir)/ksh-functions/ml
+	rm -f '$(DESTDIR)$(initdir)/ksh-functions/module'
+	rm -f '$(DESTDIR)$(initdir)/ksh-functions/ml'
 ifeq ($(makebashcompdir),y)
-	rm -f $(DESTDIR)$(bashcompletiondir)/ml
-	rm -f $(DESTDIR)$(bashcompletiondir)/module
+	rm -f '$(DESTDIR)$(bashcompletiondir)/ml'
+	rm -f '$(DESTDIR)$(bashcompletiondir)/module'
 else
-	rm -f $(DESTDIR)$(bashcompletiondir)/bash_completion
+	rm -f '$(DESTDIR)$(bashcompletiondir)/bash_completion'
 endif
 ifeq ($(makefishcompdir),y)
-	rm -f $(DESTDIR)$(fishcompletiondir)/module.fish
+	rm -f '$(DESTDIR)$(fishcompletiondir)/module.fish'
 else
-	rm -f $(DESTDIR)$(fishcompletiondir)/fish_completion
+	rm -f '$(DESTDIR)$(fishcompletiondir)/fish_completion'
 endif
-	rm -f $(DESTDIR)$(zshcompletiondir)/_module
-	rm -f $(DESTDIR)$(modulespath) $(DESTDIR)$(initrc)
-	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(modulefilesdir) || true
-	@if [ -d $(DESTDIR)$(modulefilesdir) ]; then echo; echo "WARNING: $(DESTDIR)$(modulefilesdir) is not empty so skip removal" >&2; echo; fi
-	rmdir $(DESTDIR)$(initdir)/ksh-functions
+	rm -f '$(DESTDIR)$(zshcompletiondir)/_module'
+	rm -f '$(DESTDIR)$(modulespath)' '$(DESTDIR)$(initrc)'
+	$(RMDIR_IGN_NON_EMPTY) '$(DESTDIR)$(modulefilesdir)' || true
+	@if [ -d '$(DESTDIR)$(modulefilesdir)' ]; then echo; echo "WARNING: '$(DESTDIR)$(modulefilesdir)' is not empty so skip removal" >&2; echo; fi
+	rmdir '$(DESTDIR)$(initdir)/ksh-functions'
 ifeq ($(makebashcompdir),y)
-	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(bashcompletiondir) || true
+	$(RMDIR_IGN_NON_EMPTY) '$(DESTDIR)$(bashcompletiondir)' || true
 endif
 ifeq ($(makefishcompdir),y)
-	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(fishcompletiondir) || true
+	$(RMDIR_IGN_NON_EMPTY) '$(DESTDIR)$(fishcompletiondir)' || true
 endif
-	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(zshcompletiondir) || true
-	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(initdir) || true
-	@if [ -d $(DESTDIR)$(initdir) ]; then echo; echo "WARNING: $(DESTDIR)$(initdir) is not empty so skip removal" >&2; echo; fi
+	$(RMDIR_IGN_NON_EMPTY) '$(DESTDIR)$(zshcompletiondir)' || true
+	$(RMDIR_IGN_NON_EMPTY) '$(DESTDIR)$(initdir)' || true
+	@if [ -d '$(DESTDIR)$(initdir)' ]; then echo; echo "WARNING: '$(DESTDIR)$(initdir)' is not empty so skip removal" >&2; echo; fi
 ifeq ($(versioning),y)
-	rm -f $(DESTDIR)$(versdir)/$(VERSION)
-	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(versdir) || true
-	@if [ -d $(DESTDIR)$(versdir) ]; then echo; echo "WARNING: $(DESTDIR)$(versdir) is not empty so skip removal" >&2; echo; fi
+	rm -f '$(DESTDIR)$(versdir)/$(VERSION)'
+	$(RMDIR_IGN_NON_EMPTY) '$(DESTDIR)$(versdir)' || true
+	@if [ -d '$(DESTDIR)$(versdir)' ]; then echo; echo "WARNING: '$(DESTDIR)$(versdir)' is not empty so skip removal" >&2; echo; fi
 endif
 
 clean:

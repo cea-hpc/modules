@@ -556,95 +556,98 @@ testsuite/example/initrc: testsuite/example/initrc.in
 	$(translate-in-script)
 
 install-testsiteconfig: testsuite/example/siteconfig.tcl
-	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
-	cp $^ $(DESTDIR)$(etcdir)/
+	$(MAKE) -C init install-testconfig DESTDIR='$(DESTDIR)'
+	cp $^ '$(DESTDIR)$(etcdir)/'
 
 install-testsiteconfig-1: testsuite/example/siteconfig.tcl-1
-	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
-	cp $^ $(DESTDIR)$(etcdir)/siteconfig.tcl
+	$(MAKE) -C init install-testconfig DESTDIR='$(DESTDIR)'
+	cp $^ '$(DESTDIR)$(etcdir)/siteconfig.tcl'
 
 install-testmodulerc: testsuite/example/modulerc
-	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
-	cp $^ $(DESTDIR)$(initrc)
+	$(MAKE) -C init install-testconfig DESTDIR='$(DESTDIR)'
+	cp $^ '$(DESTDIR)$(initrc)'
 
 install-testinitrc-1: testsuite/example/initrc-1
-	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
-	cp $^ $(DESTDIR)$(initrc)
+	$(MAKE) -C init install-testconfig DESTDIR='$(DESTDIR)'
+	cp $^ '$(DESTDIR)$(initrc)'
 
 install-testinitrc: testsuite/example/initrc
-	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
-	cp $^ $(DESTDIR)$(initrc)
+	$(MAKE) -C init install-testconfig DESTDIR='$(DESTDIR)'
+	cp $^ '$(DESTDIR)$(initrc)'
 
 install-testetcrc: testsuite/etc/empty
-	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
-	cp $^ $(DESTDIR)$(etcdir)/rc
+	$(MAKE) -C init install-testconfig DESTDIR='$(DESTDIR)'
+	cp $^ '$(DESTDIR)$(etcdir)/rc'
 
 install-testmodspath: testsuite/example/.modulespath
-	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
-	cp $^ $(DESTDIR)$(modulespath)
+	$(MAKE) -C init install-testconfig DESTDIR='$(DESTDIR)'
+	cp $^ '$(DESTDIR)$(modulespath)'
 
 install-testmodspath-empty: testsuite/example/modulespath-empty
-	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
-	cp $^ $(DESTDIR)$(modulespath)
+	$(MAKE) -C init install-testconfig DESTDIR='$(DESTDIR)'
+	cp $^ '$(DESTDIR)$(modulespath)'
 
 install-testmodspath-wild: testsuite/example/modulespath-wild
-	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
-	cp $^ $(DESTDIR)$(modulespath)
+	$(MAKE) -C init install-testconfig DESTDIR='$(DESTDIR)'
+	cp $^ '$(DESTDIR)$(modulespath)'
 
 uninstall-testconfig:
-	rm -f $(DESTDIR)$(etcdir)/rc
-	rm -f $(DESTDIR)$(etcdir)/siteconfig.tcl
-	rm -f $(DESTDIR)$(initrc)
-	rm -f $(DESTDIR)$(modulespath)
-	$(MAKE) -C init uninstall-testconfig DESTDIR=$(DESTDIR)
+	rm -f '$(DESTDIR)$(etcdir)/rc'
+	rm -f '$(DESTDIR)$(etcdir)/siteconfig.tcl'
+	rm -f '$(DESTDIR)$(initrc)'
+	rm -f '$(DESTDIR)$(modulespath)'
+	$(MAKE) -C init uninstall-testconfig DESTDIR='$(DESTDIR)'
+
+# define space character as a variable to reference it in functions
+space := $(subst ,, )
 
 install: $(INSTALL_PREREQ)
-	mkdir -p $(DESTDIR)$(libexecdir)
-	mkdir -p $(DESTDIR)$(bindir)
-	mkdir -p $(DESTDIR)$(etcdir)
-	cp modulecmd.tcl $(DESTDIR)$(libexecdir)/
-	chmod +x $(DESTDIR)$(libexecdir)/modulecmd.tcl
+	mkdir -p '$(DESTDIR)$(libexecdir)'
+	mkdir -p '$(DESTDIR)$(bindir)'
+	mkdir -p '$(DESTDIR)$(etcdir)'
+	cp modulecmd.tcl '$(DESTDIR)$(libexecdir)/'
+	chmod +x '$(DESTDIR)$(libexecdir)/modulecmd.tcl'
 ifeq ($(libtclenvmodules),y)
-	mkdir -p $(DESTDIR)$(libdir)
-	cp lib/libtclenvmodules$(SHLIB_SUFFIX) $(DESTDIR)$(libdir)/libtclenvmodules$(SHLIB_SUFFIX)
-	chmod +x $(DESTDIR)$(libdir)/libtclenvmodules$(SHLIB_SUFFIX)
+	mkdir -p '$(DESTDIR)$(libdir)'
+	cp lib/libtclenvmodules$(SHLIB_SUFFIX) '$(DESTDIR)$(libdir)/libtclenvmodules$(SHLIB_SUFFIX)'
+	chmod +x '$(DESTDIR)$(libdir)/libtclenvmodules$(SHLIB_SUFFIX)'
 endif
-	cp script/envml $(DESTDIR)$(bindir)/
-	chmod +x $(DESTDIR)$(bindir)/envml
-	cp script/add.modules $(DESTDIR)$(bindir)/
-	chmod +x $(DESTDIR)$(bindir)/add.modules
-	cp script/modulecmd $(DESTDIR)$(bindir)/
-	chmod +x $(DESTDIR)$(bindir)/modulecmd
-	cp script/mkroot $(DESTDIR)$(bindir)/
-	chmod +x $(DESTDIR)$(bindir)/mkroot
+	cp script/envml '$(DESTDIR)$(bindir)/'
+	chmod +x '$(DESTDIR)$(bindir)/envml'
+	cp script/add.modules '$(DESTDIR)$(bindir)/'
+	chmod +x '$(DESTDIR)$(bindir)/add.modules'
+	cp script/modulecmd '$(DESTDIR)$(bindir)/'
+	chmod +x '$(DESTDIR)$(bindir)/modulecmd'
+	cp script/mkroot '$(DESTDIR)$(bindir)/'
+	chmod +x '$(DESTDIR)$(bindir)/mkroot'
 ifeq ($(windowssupport),y)
-	cp script/module.cmd $(DESTDIR)$(bindir)/
-	chmod +x $(DESTDIR)$(bindir)/module.cmd
-	cp script/ml.cmd $(DESTDIR)$(bindir)/
-	chmod +x $(DESTDIR)$(bindir)/ml.cmd
-	cp script/envml.cmd $(DESTDIR)$(bindir)/
-	chmod +x $(DESTDIR)$(bindir)/envml.cmd
+	cp script/module.cmd '$(DESTDIR)$(bindir)/'
+	chmod +x '$(DESTDIR)$(bindir)/module.cmd'
+	cp script/ml.cmd '$(DESTDIR)$(bindir)/'
+	chmod +x '$(DESTDIR)$(bindir)/ml.cmd'
+	cp script/envml.cmd '$(DESTDIR)$(bindir)/'
+	chmod +x '$(DESTDIR)$(bindir)/envml.cmd'
 endif
-ifneq ($(wildcard $(DESTDIR)$(etcdir)/siteconfig.tcl),$(DESTDIR)$(etcdir)/siteconfig.tcl)
-	cp siteconfig.tcl $(DESTDIR)$(etcdir)/siteconfig.tcl
+ifneq ($(wildcard $(subst $(space),\$(space),$(DESTDIR)$(etcdir)/siteconfig.tcl)),$(DESTDIR)$(etcdir)/siteconfig.tcl)
+	cp siteconfig.tcl '$(DESTDIR)$(etcdir)/siteconfig.tcl'
 endif
 ifeq ($(docinstall),y)
-	mkdir -p $(DESTDIR)$(docdir)
-	cp COPYING.GPLv2 $(DESTDIR)$(docdir)/
-	cp ChangeLog $(DESTDIR)$(docdir)/
-	cp README $(DESTDIR)$(docdir)/
+	mkdir -p '$(DESTDIR)$(docdir)'
+	cp COPYING.GPLv2 '$(DESTDIR)$(docdir)/'
+	cp ChangeLog '$(DESTDIR)$(docdir)/'
+	cp README '$(DESTDIR)$(docdir)/'
 endif
 ifeq ($(vimaddons),y)
-	mkdir -p $(DESTDIR)$(vimdatadir)/ftdetect
-	mkdir -p $(DESTDIR)$(vimdatadir)/ftplugin
-	mkdir -p $(DESTDIR)$(vimdatadir)/syntax
-	cp  contrib/vim/ftdetect/modulefile.vim  $(DESTDIR)$(vimdatadir)/ftdetect
-	cp  contrib/vim/ftplugin/modulefile.vim  $(DESTDIR)$(vimdatadir)/ftplugin
-	cp  contrib/vim/syntax/modulefile.vim    $(DESTDIR)$(vimdatadir)/syntax
+	mkdir -p '$(DESTDIR)$(vimdatadir)/ftdetect'
+	mkdir -p '$(DESTDIR)$(vimdatadir)/ftplugin'
+	mkdir -p '$(DESTDIR)$(vimdatadir)/syntax'
+	cp  contrib/vim/ftdetect/modulefile.vim  '$(DESTDIR)$(vimdatadir)/ftdetect'
+	cp  contrib/vim/ftplugin/modulefile.vim  '$(DESTDIR)$(vimdatadir)/ftplugin'
+	cp  contrib/vim/syntax/modulefile.vim    '$(DESTDIR)$(vimdatadir)/syntax'
 endif
-	$(MAKE) -C init install DESTDIR=$(DESTDIR)
+	$(MAKE) -C init install DESTDIR='$(DESTDIR)'
 ifneq ($(builddoc),n)
-	$(MAKE) -C doc install DESTDIR=$(DESTDIR)
+	$(MAKE) -C doc install DESTDIR='$(DESTDIR)'
 else
 	@echo
 	@echo "WARNING: Documentation not built nor installed" >&2
@@ -656,45 +659,45 @@ endif
 	@echo
 
 uninstall:
-	rm -f $(DESTDIR)$(libexecdir)/modulecmd.tcl
+	rm -f '$(DESTDIR)$(libexecdir)/modulecmd.tcl'
 ifeq ($(libtclenvmodules),y)
-	rm -f $(DESTDIR)$(libdir)/libtclenvmodules$(SHLIB_SUFFIX)
+	rm -f '$(DESTDIR)$(libdir)/libtclenvmodules$(SHLIB_SUFFIX)'
 endif
-	rm -f $(DESTDIR)$(bindir)/envml
-	rm -f $(DESTDIR)$(bindir)/add.modules
-	rm -f $(DESTDIR)$(bindir)/modulecmd
-	rm -f $(DESTDIR)$(bindir)/mkroot
+	rm -f '$(DESTDIR)$(bindir)/envml'
+	rm -f '$(DESTDIR)$(bindir)/add.modules'
+	rm -f '$(DESTDIR)$(bindir)/modulecmd'
+	rm -f '$(DESTDIR)$(bindir)/mkroot'
 ifeq ($(windowssupport),y)
-	rm -f $(DESTDIR)$(bindir)/module.cmd
-	rm -f $(DESTDIR)$(bindir)/ml.cmd
-	rm -f $(DESTDIR)$(bindir)/envml.cmd
+	rm -f '$(DESTDIR)$(bindir)/module.cmd'
+	rm -f '$(DESTDIR)$(bindir)/ml.cmd'
+	rm -f '$(DESTDIR)$(bindir)/envml.cmd'
 endif
 ifeq ($(vimaddons),y)
-	rm -f $(DESTDIR)$(vimdatadir)/ftdetect/modulefile.vim
-	rm -f $(DESTDIR)$(vimdatadir)/ftplugin/modulefile.vim
-	rm -f $(DESTDIR)$(vimdatadir)/syntax/modulefile.vim
-	-rmdir $(DESTDIR)$(vimdatadir)/ftdetect
-	-rmdir $(DESTDIR)$(vimdatadir)/ftplugin
-	-rmdir $(DESTDIR)$(vimdatadir)/syntax
-	-rmdir -p $(DESTDIR)$(vimdatadir)
+	rm -f '$(DESTDIR)$(vimdatadir)/ftdetect/modulefile.vim'
+	rm -f '$(DESTDIR)$(vimdatadir)/ftplugin/modulefile.vim'
+	rm -f '$(DESTDIR)$(vimdatadir)/syntax/modulefile.vim'
+	-rmdir '$(DESTDIR)$(vimdatadir)/ftdetect'
+	-rmdir '$(DESTDIR)$(vimdatadir)/ftplugin'
+	-rmdir '$(DESTDIR)$(vimdatadir)/syntax'
+	-rmdir -p '$(DESTDIR)$(vimdatadir)'
 endif
 ifeq ($(docinstall),y)
-	rm -f $(addprefix $(DESTDIR)$(docdir)/,ChangeLog README COPYING.GPLv2)
+	rm -f $(foreach docfile,ChangeLog README COPYING.GPLv2,'$(DESTDIR)$(docdir)/$(docfile)')
 ifeq ($(builddoc),n)
-	rmdir $(DESTDIR)$(docdir)
+	rmdir '$(DESTDIR)$(docdir)'
 endif
 endif
-	$(MAKE) -C init uninstall DESTDIR=$(DESTDIR)
+	$(MAKE) -C init uninstall DESTDIR='$(DESTDIR)'
 ifneq ($(builddoc),n)
-	$(MAKE) -C doc uninstall DESTDIR=$(DESTDIR)
+	$(MAKE) -C doc uninstall DESTDIR='$(DESTDIR)'
 endif
-	rmdir $(DESTDIR)$(libexecdir)
+	rmdir '$(DESTDIR)$(libexecdir)'
 ifeq ($(libtclenvmodules),y)
-	rmdir $(DESTDIR)$(libdir)
+	rmdir '$(DESTDIR)$(libdir)'
 endif
-	rmdir $(DESTDIR)$(bindir)
-	rmdir $(DESTDIR)$(datarootdir)
-	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(prefix) || true
+	rmdir '$(DESTDIR)$(bindir)'
+	rmdir '$(DESTDIR)$(datarootdir)'
+	$(RMDIR_IGN_NON_EMPTY) '$(DESTDIR)$(prefix)' || true
 
 # include config.{guess,sub} scripts in dist if generated by autoreconf
 ifeq ($(wildcard lib/config.guess),lib/config.guess)
