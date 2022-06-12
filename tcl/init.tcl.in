@@ -78,7 +78,7 @@ array set g_config_defs [list\
    csh_limit {{} 4000 0}\
    extra_siteconfig {MODULES_SITECONFIG <undef> 1 {}}\
    editor {MODULES_EDITOR {@editor@} 0 {} {} initConfEditor}\
-   home {MODULESHOME @moduleshome@ 0}\
+   home {MODULESHOME {@moduleshome@} 0}\
    icase {MODULES_ICASE @icase@ 0 {never search always}}\
    ignored_dirs {{} {CVS RCS SCCS .svn .git .SYNC .sos} 0}\
    implicit_requirement {MODULES_IMPLICIT_REQUIREMENT @implicitrequirement@ 0\
@@ -104,7 +104,7 @@ array set g_config_defs [list\
       tcsh fish} {} {} eltlist}\
    silent_shell_debug {MODULES_SILENT_SHELL_DEBUG @silentshdbgsupport@ 0 {0\
       1}}\
-   siteconfig {{} @etcdir@/siteconfig.tcl 0}\
+   siteconfig {{} {@etcdir@/siteconfig.tcl} 0}\
    tag_abbrev {MODULES_TAG_ABBREV {@tagabbrev@} 0 {} {} initConfTagAbbrev}\
    tag_color_name {MODULES_TAG_COLOR_NAME {@tagcolorname@} 0 {} {}\
       initConfTagColorName}\
@@ -325,7 +325,7 @@ proc sourceSiteConfig {} {
       set siteconfig [lindex $siteconfiglist $i]
       if {[file readable $siteconfig]} {
          reportDebug "Source site configuration ($siteconfig)"
-         if {[catch {uplevel 1 source $siteconfig} errMsg]} {
+         if {[catch {uplevel 1 source "{$siteconfig}"} errMsg]} {
             set errMsg "Site configuration source failed\n"
             # issue line number is lost due to uplevel use
             append errMsg [formatErrStackTrace $::errorInfo $siteconfig {}]
@@ -559,15 +559,15 @@ proc initConfTclExtLib {envvar value validvallist intvallist} {
    set libfile libtclenvmodules@SHLIB_SUFFIX@
 
    # determine lib directory
-   @notmultilibsupport@set libdir @libdir@
+   @notmultilibsupport@set libdir {@libdir@}
    @multilibsupport@switch -- [getState machine] {
    @multilibsupport@   x86_64 - aarch64 - ppc64le - s390x {
-   @multilibsupport@      set libdirmain @libdir64@
-   @multilibsupport@      set libdiralt @libdir32@
+   @multilibsupport@      set libdirmain {@libdir64@}
+   @multilibsupport@      set libdiralt {@libdir32@}
    @multilibsupport@   }
    @multilibsupport@   default {
-   @multilibsupport@      set libdirmain @libdir32@
-   @multilibsupport@      set libdiralt @libdir64@
+   @multilibsupport@      set libdirmain {@libdir32@}
+   @multilibsupport@      set libdiralt {@libdir64@}
    @multilibsupport@   }
    @multilibsupport@}
    @multilibsupport@# use alternative arch lib if available and not main one

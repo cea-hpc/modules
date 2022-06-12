@@ -1813,8 +1813,8 @@ proc cmdModuleAutoinit {} {
    if {[get-env MODULEPATH] eq {} && [get-env LOADEDMODULES] eq {}} {
       # set modpaths defined in modulespath config file if it exists
       # use .modulespath file in initdir if conf file are located in this dir
-      if {[file readable @modulespath@]} {
-         set fdata [split [readFile @modulespath@] \n]
+      if {[file readable {@modulespath@}]} {
+         set fdata [split [readFile {@modulespath@}] \n]
          foreach fline $fdata {
             if {[regexp {^\s*(.*?)\s*(#.*|)$} $fline match patharg] == 1\
                && $patharg ne {}} {
@@ -1836,9 +1836,9 @@ proc cmdModuleAutoinit {} {
 
       # source initialization initrc after modulespaths if it exists
       # use modulerc file in initdir if conf files are located in this dir
-      if {[file exists @initrc@]} {
+      if {[file exists {@initrc@}]} {
          lappendState commandname source
-         cmdModuleSource load @initrc@
+         cmdModuleSource load {@initrc@}
          lpopState commandname
       }
    # if user environment is already initialized, refresh the already loaded
@@ -1855,7 +1855,7 @@ proc cmdModuleAutoinit {} {
    # listed in shells_with_ksh_fpath conf
    if {[getState shell] in [list {*}[split [getConf shells_with_ksh_fpath] :]\
       ksh]} {
-      append-path FPATH @initdir@/ksh-functions
+      append-path FPATH {@initdir@/ksh-functions}
    }
 
    # define Modules init script as shell startup file
@@ -1864,8 +1864,8 @@ proc cmdModuleAutoinit {} {
       # setup ENV variables to get module defined in sub-shells (works for
       # 'sh' and 'ksh' in interactive mode and 'sh' (zsh-compat), 'bash' and
       # 'ksh' (zsh-compat) in non-interactive mode.
-      setenv ENV @initdir@/profile.sh
-      setenv BASH_ENV @initdir@/bash
+      setenv ENV {@initdir@/profile.sh}
+      setenv BASH_ENV {@initdir@/bash}
    }
 
    if {[getState shelltype] in {sh csh fish}} {
@@ -1902,7 +1902,7 @@ proc cmdModuleAutoinit {} {
    if {[getState shell] in {@shellcompsource@} && [getState is_stderr_tty]} {
       set compfile "@initdir@/[getState shell]_completion"
       if {[file readable $compfile]} {
-         putsModfileCmd dummy "source $compfile;"
+         putsModfileCmd dummy "source '$compfile';"
       }
    }
 
