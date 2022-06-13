@@ -20,6 +20,11 @@
 ##############################################################################
 
 if {$install_quarantinesupport eq y} {
+
+# skip quarantine tests if modulecmd.tcl found installed in a path
+# containing a space character
+if {[string first { } $install_libexecdir] == -1} {
+
 set modfile "$env(TESTSUITEDIR)/modulefiles.2/quar"
 
 # if quarantine configured in init scripts at build time only check
@@ -414,6 +419,10 @@ if {[info exists testlibfile] && [file exists $testlibfile]} {
 }
 
 reset_test_env
+
+} elseif {$verbose > 0} {
+   send_user "\tSkipping quarantine mechanism checks due to install path\n"
+}
 
 } elseif {$verbose > 0} {
    send_user "\tSkipping quarantine mechanism checks\n"

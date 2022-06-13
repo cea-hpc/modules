@@ -366,7 +366,7 @@ proc install_test_xxx_ {command} {
    }
 
    if {$shell eq "cmake"} {
-      lappend cmd_to_exec "-Dinitfile=$shell_init($shell)"
+      lappend cmd_to_exec "-Dinitfile='$shell_init($shell)'"
       lappend cmd_to_exec "-Dcmdlist='$command'"
       lappend cmd_to_exec "-P"
       lappend cmd_to_exec $shell_test($shell)
@@ -414,7 +414,7 @@ proc install_test_xxx_ {command} {
    # run command in separate thread
    lappend cmd_to_exec >@ $wrstdout 2>@ $wrstderr
    if [catch {
-       eval exec $cmd_to_exec
+       exec {*}$cmd_to_exec
    } ] {
        set comp_exit [lindex $errorCode 2]
    } else {
@@ -482,7 +482,7 @@ proc install_test_xxx_ {command} {
    }
 
    if {$shell eq "cmake"} {
-      lappend cmd_to_exec "-Dinitfile=$shell_init($shell)"
+      lappend cmd_to_exec "-Dinitfile='$shell_init($shell)'"
       lappend cmd_to_exec "-Dcmdlist='$command'"
       lappend cmd_to_exec "-P"
       lappend cmd_to_exec $shell_test($shell)
@@ -519,7 +519,7 @@ proc install_test_xxx_ {command} {
 
    # now need to capture the exit return code.
    if [catch {
-      set comp_output [eval exec $cmd_to_exec 2> test321.err > test321.out ]
+      set comp_output [exec {*}$cmd_to_exec 2> test321.err > test321.out ]
    } ] {
       set comp_exit [lindex $errorCode 2]
    } else {

@@ -54,6 +54,11 @@ for {set i 0} {$i < 2} {incr i} {
 # do the tests twice, second time with a quarantine setup
 # to check quarantine mechanism does not alter argument handling
 if {$i == 1} {
+   # skip tests with quarantine enabled if space character found in install path
+   if {[string first { } $install_libexecdir] != -1} {
+      send_user "\tSkip quarantine mechanism test as installation path is not compliant with it\n"
+      break
+   }
    if { $verbose > 0 } {
        send_user "\tSetup MODULES_RUN_QUARANTINE = 'FOO'\n"
    }
@@ -80,6 +85,8 @@ foreach shell $shell_list {
    testall_cmd "$shell" "module remove-path FOO \"\";module source $modfile" "" "/path/to/dir1" 0
 }
 
+# ensure colored output is disabled for CMake tests
+setenv_var CLICOLOR 0
 foreach shell $othlang_list {
    switch -- $shell {
       r {
@@ -144,6 +151,7 @@ foreach shell $othlang_list {
    testall_cmd_re "$shell" "append-path,--duplicates,FOO,:source,$modfile" "" "$foo:" 0
    testall_cmd_re "$shell" "remove-path,FOO,:source,$modfile" "" "/path/to/dir1" 0
 }
+unsetenv_var CLICOLOR
 
 }
 

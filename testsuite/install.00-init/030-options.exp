@@ -61,6 +61,7 @@ if {$install_setmanpath eq "y" && $install_builddoc ne "n"} {
    if {$verbose > 0} {
       send_user "\tChecking man pages availability\n"
    }
+   unsetenv_var MANPATH
    foreach shell $shell_list {
       testall_cmd_re "$shell" "man -w modulefile" "$install_mandirre/man4/modulefile.*" {} 0
       testall_cmd_re "$shell" "man -w module" "$install_mandirre/man1/module.*" {} 0
@@ -106,6 +107,15 @@ if {$install_setbinpath eq "y"} {
          csh - tcsh {
             testall_cmd "$shell" "which add.modules" "$install_bindir/add.modules" "" 0
             testall_cmd "$shell" "which mkroot" "$install_bindir/mkroot" "" 0
+         }
+         ksh {
+            if {[string first { } $install_bindir] != -1} {
+               testall_cmd $shell {command -v add.modules} "'$install_bindir/add.modules'" {} 0
+               testall_cmd $shell {command -v mkroot} "'$install_bindir/mkroot'" {} 0
+            } else {
+               testall_cmd $shell {command -v add.modules} $install_bindir/add.modules {} 0
+               testall_cmd $shell {command -v mkroot} $install_bindir/mkroot {} 0
+            }
          }
          default {
             testall_cmd "$shell" "command -v add.modules" "$install_bindir/add.modules" "" 0
@@ -231,10 +241,10 @@ unset env(MODULES_SILENT_SHELL_DEBUG)
 if {$verbose > 0} {
    send_user "\tChecking Windows-specific files availability\n"
 }
-testall_cmd_re "sh" "test -e $install_initdir/cmd.cmd" "" "" [expr {$install_windowssupport ne {y}}]
-testall_cmd_re "sh" "test -e $install_bindir/module.cmd" "" "" [expr {$install_windowssupport ne {y}}]
-testall_cmd_re "sh" "test -e $install_bindir/ml.cmd" "" "" [expr {$install_windowssupport ne {y}}]
-testall_cmd_re "sh" "test -e $install_bindir/envml.cmd" "" "" [expr {$install_windowssupport ne {y}}]
+testall_cmd_re "sh" "test -e '$install_initdir/cmd.cmd'" "" "" [expr {$install_windowssupport ne {y}}]
+testall_cmd_re "sh" "test -e '$install_bindir/module.cmd'" "" "" [expr {$install_windowssupport ne {y}}]
+testall_cmd_re "sh" "test -e '$install_bindir/ml.cmd'" "" "" [expr {$install_windowssupport ne {y}}]
+testall_cmd_re "sh" "test -e '$install_bindir/envml.cmd'" "" "" [expr {$install_windowssupport ne {y}}]
 
 
 #
