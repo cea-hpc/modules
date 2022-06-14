@@ -676,8 +676,8 @@ proc renderAutoinit {} {
          set pre_pr {set _prompt=$prompt:q; set prompt="";}
          set post_pr {set prompt=$_prompt:q; unset _prompt;}
          # apply workaround for Tcsh history if set
-         set eval_cmd [expr {[getConf wa_277] ? "eval `$tclshbin $::argv0\
-            [getState shell] \\!*`;" :  "eval \"`$tclshbin $::argv0 [getState\
+         set eval_cmd [expr {[getConf wa_277] ? "eval `$tclshbin '\"'\"'$::argv0'\"'\"'\
+            [getState shell] \\!*`;" :  "eval \"`$tclshbin '\"'\"'$::argv0'\"'\"' [getState\
             shell] \\!*:q`\";"}]
          set pre_ex {set _exit="$status";}
          set post_ex {test 0 = $_exit}
@@ -740,13 +740,13 @@ alias ml 'module ml \!*' ;}
    if [ -n "${_mlre:-}" ]; then
       _mlre="${_mlre:-}__MODULES_QUARANTINE_SET=1 ";}
             append fdef "\n      eval \"\$(eval \${${wsplit}_mlre} $tclshbin\
-               $::argv0 [getState shell] '\"\$@\"')\";
+               '$::argv0' [getState shell] '\"\$@\"')\";
    else
-      eval \"\$($tclshbin $::argv0 [getState shell] \"\$@\")\";
+      eval \"\$($tclshbin '$::argv0' [getState shell] \"\$@\")\";
    fi;"
          } else {
             append fdef "
-   eval \"\$($tclshbin $::argv0 [getState shell] \"\$@\")\";"
+   eval \"\$($tclshbin '$::argv0' [getState shell] \"\$@\")\";"
          }
          append fdef {
    _mlstatus=$?;}
@@ -828,10 +828,10 @@ export -f ml;}
    end}
             # use "| source -" rather than "eval" to be able
             # to redirect stderr after stdout being evaluated
-            append fdef "\n   eval \$_mlre $tclshbin $::argv0 [getState\
+            append fdef "\n   eval \$_mlre $tclshbin \\'$::argv0\\' [getState\
                shell] (string escape -- \$argv) | source -\n"
          } else {
-            append fdef "   eval $tclshbin $::argv0 [getState shell]\
+            append fdef "   eval $tclshbin \\'$::argv0\\' [getState shell]\
                (string escape -- \$argv) | source -\n"
          }
          append fdef "end
@@ -930,10 +930,10 @@ proc ml {args} {
    }
    my $_mlstatus = 1;}
          if {[getConf quarantine_support]} {
-            append fdef "\n   eval `\${_mlre}$tclshbin $::argv0 perl\
+            append fdef "\n   eval `\${_mlre}$tclshbin '$::argv0' perl\
                \$args`;\n"
          } else {
-            append fdef "\n   eval `$tclshbin $::argv0 perl \$args`;\n"
+            append fdef "\n   eval `$tclshbin '$::argv0' perl \$args`;\n"
          }
          append fdef {   return $_mlstatus;}
          append fdef "\n}"
@@ -1021,10 +1021,10 @@ def ml(*arguments):
       end
       _mlstatus = true}
          if {[getConf quarantine_support]} {
-            append fdef "\n      eval `#{_mlre}$tclshbin $::argv0 ruby\
+            append fdef "\n      eval `#{_mlre}$tclshbin '$::argv0' ruby\
                #{args}`\n"
          } else {
-            append fdef "\n      eval `$tclshbin $::argv0 ruby #{args}`\n"
+            append fdef "\n      eval `$tclshbin '$::argv0' ruby #{args}`\n"
          }
          append fdef {      return _mlstatus
    end}
@@ -1043,10 +1043,10 @@ end}
       cmake {
          if {[getConf quarantine_support]} {
             set pre_exec "\n      execute_process(COMMAND \${_mlre} $tclshbin\
-            $::argv0 cmake "
+            \"$::argv0\" cmake "
          } else {
             set pre_exec "\n      execute_process(COMMAND $tclshbin\
-            $::argv0 cmake "
+            \"$::argv0\" cmake "
          }
          set post_exec "\n         OUTPUT_FILE \${tempfile_name})\n"
          set fdef {function(module)
@@ -1130,10 +1130,10 @@ endfunction(ml)}
    arglist[1] <- 'r'
    args <- paste0('"', paste0(arglist, collapse='" "'), '"')}
          if {[getConf quarantine_support]} {
-            append fdef "\n   cmd <- paste(mlre, '$tclshbin', '$::argv0',\
+            append fdef "\n   cmd <- paste(mlre, '$tclshbin', '\"$::argv0\"',\
                args, sep=' ')\n"
          } else {
-            append fdef "\n   cmd <- paste('$tclshbin', '$::argv0', args,\
+            append fdef "\n   cmd <- paste('$tclshbin', '\"$::argv0\"', args,\
                sep=' ')\n"
          }
          append fdef {   mlstatus <- TRUE
