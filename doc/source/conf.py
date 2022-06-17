@@ -121,22 +121,18 @@ if os_rtd:
     html_theme = 'sphinx_rtd_theme'
     # override wide tables in RTD theme
     # colorize terminal output
-    html_context = {
-        'css_files': [
-            '_static/rtd_theme_overrides.css',
-            '_static/rtd_literal_block.css',
-            '_static/terminal_output.css',
-            ],
-         }
+    html_css_files = [
+        'rtd_literal_block.css',
+        'rtd_theme_overrides.css',
+        'terminal_output.css',
+        ]
 else:
     html_theme = 'bizstyle'
     # colorize terminal output
-    html_context = {
-        'css_files': [
-            '_static/literal_block.css',
-            '_static/terminal_output.css',
-            ],
-         }
+    html_css_files = [
+        'literal_block.css',
+        'terminal_output.css',
+        ]
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
