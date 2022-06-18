@@ -216,6 +216,9 @@ uninstall-testconfig:
 install: all
 	mkdir -p '$(DESTDIR)$(initdir)'
 	mkdir -p '$(DESTDIR)$(initdir)/ksh-functions'
+ifeq ($(initconfin),etcdir)
+	mkdir -p '$(DESTDIR)$(etcdir)'
+endif
 ifeq ($(makebashcompdir),y)
 	mkdir -p '$(DESTDIR)$(bashcompletiondir)'
 endif
