@@ -155,7 +155,7 @@ proc parseModuleCommandName {command defaultcmd} {
       restore saverm saveshow savelist initadd initprepend initswitch initrm\
       initlist initclear autoinit clear config help test prepend-path\
       append-path remove-path is-loaded is-saved is-used is-avail info-loaded\
-      sh-to-mod edit try-load refresh state load-any]}]
+      sh-to-mod edit try-load refresh state load-any lint]}]
 
    reportDebug "(command=$command, cmdvalid=$cmdvalid, cmdempty=$cmdempty)"
    return [list $command $cmdvalid $cmdempty]
@@ -257,7 +257,7 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
             }
             --all {
                # include hidden modules only on a limited set of command
-               if {$cmd in [list avail aliases search whatis ml list]} {
+               if {$cmd in [list avail aliases search whatis ml list lint]} {
                   setState hiding_threshold 2
                } else {
                   lappend otherargs $arg
@@ -268,7 +268,8 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
                # or one of the search/listing sub-commands
                if {$cmd eq {use}} {
                   set addpath_pos append
-               } elseif {$cmd in [list avail aliases search whatis ml list]} {
+               } elseif {$cmd in [list avail aliases search whatis ml list\
+                  lint]} {
                   setState hiding_threshold 2
                } else {
                   lappend otherargs $arg
@@ -403,7 +404,7 @@ proc module {command args} {
    # parse module version specification
    defineParseModuleSpecificationProc [getConf advanced_version_spec]
    if {$command in [list avail paths whatis load unload switch help test\
-      display path is-avail edit try-load load-any list]} {
+      display path is-avail edit try-load load-any list lint]} {
       set args [parseModuleSpecification 0 {*}$args]
    }
 
@@ -412,7 +413,8 @@ proc module {command args} {
       switch -- $command {
          path - paths - autoinit - help - prepend-path - append-path -\
          remove-path - is-loaded - is-saved - is-used - is-avail -\
-         info-loaded - clear - sh-to-mod - edit - refresh - source - state {
+         info-loaded - clear - sh-to-mod - edit - refresh - source - state -\
+         lint {
             knerror "${msgprefix}Command '$command' not supported$tryhelpmsg"
          }
       }
@@ -744,6 +746,9 @@ proc module {command args} {
       }
       edit {
          cmdModuleEdit {*}$args
+      }
+      lint {
+         cmdModuleLint {*}$args
       }
       help {
          cmdModuleHelp {*}$args
