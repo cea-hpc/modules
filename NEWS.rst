@@ -42,6 +42,8 @@ Modules 5.2.0 (not yet released)
   :subcmd:`autoinit`, in initialization scripts and Makefiles to guaranty
   correct evaluation in case these paths contain a space character. Note that
   the quarantine mechanism is not compatible with such installation paths.
+* Fix :mfcmd:`source-sh` and :subcmd:`sh-to-mod` when used with *fish* shell
+  script if ``regex-easyesc`` fish option is enabled. (fix issue #463)
 
 
 .. _5.1 release notes:

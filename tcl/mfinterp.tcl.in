@@ -2018,8 +2018,10 @@ proc execShAndGetEnv {shell script args} {
          # the number of functions to parse.
          set getfunc "set funcout (string match -r -v \$funcfilter (functions\
             -a -n) | while read f; functions \$f; echo '$subsep'; end)"
-         set command "set -xgL; echo '$sep'; set funcfilter \\^\\((string\
-            join '|' (string replace -r '(\\\[|\\.)' '\\\\\\\\\\\\\\\$1'\
+         set command "set -xgL; echo '$sep'; status test-feature\
+            regex-easyesc 2>/dev/null; and set escrepl '\\\\\\\\\$1'; or set\
+            escrepl '\\\\\\\\\\\\\\\$1'; set funcfilter \\^\\((string\
+            join '|' (string replace -r '(\\\[|\\.)' \$escrepl\
             (builtin -n; functions -a -n | string split ', ' | string match\
             -e -r '^_')))\\|fish\\.\\*\\)\\\$; $getfunc; $getfunc; string\
             split \$funcout; echo '$sep'; string split \$funcout; echo\
