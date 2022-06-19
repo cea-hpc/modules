@@ -38,6 +38,10 @@ Modules 5.2.0 (not yet released)
 * Init: move zsh :envvar:`FPATH` setup (to locate Modules' functions) from
   shell initialization scripts to the :subcmd:`autoinit` sub-command. (fix
   issue #462)
+* Enclose installation path references in shell code produced by
+  :subcmd:`autoinit`, in initialization scripts and Makefiles to guaranty
+  correct evaluation in case these paths contain a space character. Note that
+  the quarantine mechanism is not compatible with such installation paths.
 
 
 .. _5.1 release notes:
