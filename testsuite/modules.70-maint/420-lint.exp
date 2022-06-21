@@ -1,0 +1,311 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2022/06/20
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		lint
+#   Modulefiles:    lint
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test lint sub-command
+#		}C%
+#
+##############################################################################
+
+# ensure lint tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+# empty linter defined
+setenv_var MODULES_TCL_LINTER {}
+testouterr_cmd sh {lint lint/1.3} ERR "$error_msgs: No Tcl linter program configured"
+
+# unknown linter defined
+setenv_var MODULES_TCL_LINTER unk
+testouterr_cmd sh {lint lint/1.3} ERR "$error_msgs: Command 'unk' cannot be found"
+setenv_var MODULES_TCL_LINTER "/path/to/unk -arg val"
+testouterr_cmd sh {lint lint/1.3} ERR "$error_msgs: Command '/path/to/unk' cannot be found"
+setenv_var MODULES_TCL_LINTER "unk -arg val"
+testouterr_cmd sh {lint lint/1.3} ERR "$error_msgs: Command 'unk' cannot be found"
+testouterr_cmd sh {lint lint/1.3 lint/1.4} ERR "$error_msgs: Command 'unk' cannot be found"
+
+# a specific linter defined
+setenv_var MODULES_TCL_LINTER cat
+testouterr_cmd sh {lint lint/1.3} ERR [msg_lint $mp/lint/1.3 "$error_msgs: #%Module"]
+testouterr_cmd sh {lint lint/1.4} ERR [msg_lint $mp/lint/1.4 "$error_msgs: #%Module\nsource ./1.2\nsource ./unk"]
+
+set nafelgar_script [glob -nocomplain nagelfar*/nagelfar.tcl]
+if {[string length $nafelgar_script] > 0} {
+
+setenv_var MODULES_TCL_LINTER $nafelgar_script
+
+# modulefile with no error
+testouterr_cmd sh {lint lint/1.3} OK {}
+testouterr_cmd sh {lint -v lint/1.3} OK [msg_lint $mp/lint/1.3]
+
+# modulefile with warning
+set lintmsg10 "$warn_msgs line 3: Unknown command \"unk\""
+testouterr_cmd sh {lint lint/1.0} OK [msg_lint $mp/lint/1.0 $lintmsg10]
+testouterr_cmd sh {lint lint/1.0 -s} OK {}
+
+skip_if_quick_mode
+
+# modulefile with error
+set lintmsg11 {ERROR   line 3: Bad expression: invalid bareword "test"
+in expression "test";
+should be "$test" or "{test}" or "test(...)" or ...}
+testouterr_cmd sh {lint lint/1.1} ERR [msg_lint $mp/lint/1.1 $lintmsg11]
+testouterr_cmd sh {lint lint/1.1 -s} ERR {}
+
+# modulefile with multiple errors
+set lintmsg12 [list {ERROR   line 3: Could not complete statement.
+One close brace would complete the first line
+One close brace would complete at end of line 6.
+One close brace would complete the script body at line 9.
+Assuming completeness for further processing.} \
+{ERROR   line 3: Bad expression: missing operand at _@_
+in expression ""str" eq_@_"} \
+{WARNING line 5: Unknown command "else"} \
+{NOTICE  line 6: Close brace not aligned with line 5 (1 0)} \
+{WARNING line 8: Unknown command "unk"}]
+testouterr_cmd sh {lint lint/1.2} ERR [msg_lint $mp/lint/1.2 {*}$lintmsg12]
+testouterr_cmd sh {lint lint/1.2 -s} ERR {}
+
+# test argument on linter command
+setenv_var MODULES_TCL_LINTER "$nafelgar_script -len 78"
+testouterr_cmd sh {lint lint/1.0} OK [msg_lint $mp/lint/1.0 $lintmsg10]
+setenv_var MODULES_TCL_LINTER $nafelgar_script
+
+# test linter location resolution through PATH
+if {$install_tcllinter eq {nagelfar.tcl}} {
+    setenv_var PATH [file dirname $nafelgar_script]:$env(PATH)
+    unsetenv_var MODULES_TCL_LINTER
+    testouterr_cmd sh {lint lint/1.2} ERR [msg_lint $mp/lint/1.2 {*}$lintmsg12]
+    setenv_var PATH $ORIG_PATH
+    setenv_var MODULES_TCL_LINTER $nafelgar_script
+}
+
+# modulefile sourcing other file
+testouterr_cmd sh {lint lint/1.4} OK {}
+
+# test implicit default disabled
+if {![is_config_locked implicit_default]} {
+    setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+    # boolean variant test
+    testouterr_cmd sh {lint lint@1: -bool} ERR [err_invopt -bool]
+
+    # module resolution
+    testouterr_cmd sh {lint -v lint} OK [msg_lint $mp/lint/2.0]
+
+    # test advanced version spec
+    testouterr_cmd sh {lint -v lint @2:} OK [msg_lint $mp/lint/2.0]
+    testouterr_cmd sh {lint -v lint @1.0:1.3} OK [msg_lint $mp/lint/1.3]
+    testouterr_cmd sh {lint -v lint @1.0:1.3} OK [msg_lint $mp/lint/1.3]
+
+    unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+}
+
+# full path spec
+testouterr_cmd sh "lint $mp/lint/1.3" OK {}
+testouterr_cmd sh "lint $mp/lint/1.1" ERR [msg_lint $mp/lint/1.1 $lintmsg11]
+testouterr_cmd sh "lint ./testsuite/modulefiles.3/lint/1.1 lint/1.0" ERR [msg_lint $mp/lint/1.0 $lintmsg10]\n\n[msg_lint $mp/lint/1.1 $lintmsg11]
+
+# unexistent module
+testouterr_cmd sh {lint lint/unk} ERR $err_path'lint/unk'
+testouterr_cmd sh {lint -v lint/unk lint/2.0} ERR $err_path'lint/unk'\n[msg_lint $mp/lint/2.0]
+testouterr_cmd sh {lint /path/to/unk} ERR $err_file'/path/to/unk'
+
+# forbidden module
+setenv_var TESTSUITE_LINT forbid1
+testouterr_cmd sh {lint lint/1.0} ERR [err_accessdenied lint/1.0]
+testouterr_cmd sh {lint lint/1.0 lint/1.1} ERR [err_accessdenied lint/1.0]\n\n[msg_lint $mp/lint/1.1 $lintmsg11]
+unsetenv_var TESTSUITE_LINT
+
+# multiple module specified on command line
+# test error on first none on second
+testouterr_cmd sh {lint lint/1.2 lint/1.3} ERR [msg_lint $mp/lint/1.2 {*}$lintmsg12]
+testouterr_cmd sh {lint -v lint/1.2 lint/1.3} ERR [msg_lint $mp/lint/1.2 {*}$lintmsg12]\n\n[msg_lint $mp/lint/1.3]
+# test none on first error on second
+testouterr_cmd sh {lint lint/1.3 lint/1.2} ERR [msg_lint $mp/lint/1.2 {*}$lintmsg12]
+testouterr_cmd sh {lint -v lint/1.3 lint/1.2} ERR [msg_lint $mp/lint/1.2 {*}$lintmsg12]\n\n[msg_lint $mp/lint/1.3]
+# test error on both files checked
+testouterr_cmd sh {lint lint/1.1 lint/1.2} ERR [msg_lint $mp/lint/1.1 $lintmsg11]\n\n[msg_lint $mp/lint/1.2 {*}$lintmsg12]
+testouterr_cmd sh {lint -v lint/1.1 lint/1.2} ERR [msg_lint $mp/lint/1.1 $lintmsg11]\n\n[msg_lint $mp/lint/1.2 {*}$lintmsg12]
+# test no error on both files checked
+testouterr_cmd sh {lint lint/1.3 lint/2.0} OK {}
+testouterr_cmd sh {lint -v lint/1.3 lint/2.0} OK [msg_lint $mp/lint/1.3]\n[msg_lint $mp/lint/2.0]
+
+
+# ml
+# test implicit default disabled
+if {![is_config_locked implicit_default]} {
+    testouterr_cmd sh {ml lint -v lint @2:} OK [msg_lint $mp/lint/2.0]
+}
+testouterr_cmd sh {ml lint lint/1.2} ERR [msg_lint $mp/lint/1.2 {*}$lintmsg12]
+
+# icase test
+testouterr_cmd sh {lint -i lINt/1.2} ERR [msg_lint $mp/lint/1.2 {*}$lintmsg12]
+
+
+# full linting
+set lintmsgfoo10 [list "$warn_msgs line 19: Unknown command \"unk\""]
+set lintmsgloadany10 "$warn_msgs line 8: Unknown command \"unk\""
+set lintmsglist10 [list "$warn_msgs line 8: Command \"module list\" should not be used in modulefile"\
+"$warn_msgs line 11: Command \"module list\" should not be used in modulefile"\
+"$warn_msgs line 14: Command \"module list\" should not be used in modulefile"\
+"$warn_msgs line 17: Command \"module list\" should not be used in modulefile"\
+"$warn_msgs line 20: Command \"module list\" should not be used in modulefile"]
+set lintmsgmodrc [list {ERROR   line 35: Wrong number of arguments (3) to "module-alias"}\
+{ERROR   line 41: Wrong number of arguments (3) to "module-virtual"}]
+set tserr .*[escre [msg_lint $mp/foo/1.0 {*}$lintmsgfoo10]]\n.*[escre [msg_lint $mp/lint/1.0 $lintmsg10]\n\n[msg_lint $mp/lint/1.1 $lintmsg11]\n\n[msg_lint $mp/lint/1.2 {*}$lintmsg12]\n\n[msg_lint $mp/list/1.0 {*}$lintmsglist10]\n\n[msg_lint $mp/loadany/1.0 $lintmsgloadany10]].*
+testouterr_cmd_re sh {lint} ERR $tserr
+
+# check modulepath and module-specific .modulerc
+set tserr [escre [msg_lint $mpre/.modulerc {*}$lintmsgmodrc]]\n\n[msg_lint $mpre/advvers/1.0]\n[msg_lint $mpre/advvers2/.modulerc].*
+testouterr_cmd_re sh {lint -v} ERR $tserr
+
+# check modulepath without error or warning
+setenv_path_var MODULEPATH $modpath.path1
+testouterr_cmd sh {lint} OK {}
+setenv_path_var MODULEPATH $mp
+
+# hidden module test
+set tserr .*[msg_lint $mpre/key/5.0].*[escre [msg_lint $mp/lint/1.0 $lintmsg10]\n\n[msg_lint $mp/lint/1.1 $lintmsg11]\n\n[msg_lint $mp/lint/1.2 {*}$lintmsg12]].*[msg_lint '$mpre/variant/.w\ s'].*
+testouterr_cmd_re sh {lint -v -a} ERR $tserr
+
+# forbid modules returned
+# alias and virtual targets returned only once
+set lintmsgtagrc [list {ERROR   line 12: Wrong number of arguments (0) to "module-tag"}\
+{ERROR   line 15: Wrong number of arguments (1) to "module-tag"}\
+{ERROR   line 18: Bad option --foo to "module-tag"}\
+{ERROR   line 21: Bad option --before to "module-tag"}\
+{ERROR   line 24: Bad option --after to "module-tag"}]
+set tserr .*[escre [msg_lint $mpre/tag/.modulerc {*}$lintmsgtagrc]]\n\n[msg_lint $mpre/tag/1.0]\n[msg_lint $mpre/tag/4.0]\n[msg_lint $mpre/tag/5.0]\n.*
+testouterr_cmd_re sh {lint -v} ERR $tserr
+
+
+# ModuleVersion rename warning
+set lintmsglcompatversion [list {WARNING line 6: Variable "ModuleVersion" should be renamed "ModulesVersion"}\
+{WARNING line 10: Variable "ModuleVersion" should be renamed "ModulesVersion"}\
+{WARNING line 13: Variable "ModuleVersion" should be renamed "ModulesVersion"}]
+set tserr [msg_lint $mp/lcompat/.version {*}$lintmsglcompatversion]
+testouterr_cmd sh "lint $mp/lcompat/.version" OK $tserr
+
+# command not implemented
+set lintmsglcompat12 [list {WARNING line 8: Command "extensions" is not implemented}\
+{WARNING line 11: Command "extensions" is not implemented}\
+{WARNING line 14: Command "extensions" is not implemented}\
+{ERROR   line 14: Wrong number of arguments (0) to "extensions"}]
+set tserr [msg_lint $mp/lcompat/1.2 {*}$lintmsglcompat12]
+testouterr_cmd sh {lint lcompat/1.2} ERR $tserr
+
+# command deprecated and not implemented
+setenv_path_var MODULEPATH $modpath
+set lintmsglogerr [list {WARNING line 30: Command "module-log" is deprecated and not implemented}]
+set tserr [msg_lint $modpath/log/err_syslog {*}$lintmsglogerr]
+testouterr_cmd sh {lint log/err_syslog} OK $tserr
+
+# should not be used in modulefile
+setenv_path_var MODULEPATH $modpath.allin
+set lintmsgallin1 [list {WARNING line 55: Command "module aliases" should not be used in modulefile}\
+{WARNING line 56: Command "module avail" should not be used in modulefile}\
+{WARNING line 57: Command "module display" should not be used in modulefile}\
+{WARNING line 58: Command "module list" should not be used in modulefile}\
+{WARNING line 59: Command "module save" should not be used in modulefile}\
+{WARNING line 60: Command "module restore" should not be used in modulefile}\
+{WARNING line 61: Command "module savelist" should not be used in modulefile}\
+{WARNING line 62: Command "module saveshow" should not be used in modulefile}\
+{WARNING line 63: Command "module saverm" should not be used in modulefile}\
+{WARNING line 66: Command "module test" should not be used in modulefile}]
+set lintmsgallin3 [list {WARNING line 28: Command "module whatis" should not be used in modulefile}]
+set lintmsgallin4 [list {WARNING line 27: Command "module purge" should not be used in modulefile}\
+{WARNING line 28: Command "module reload" should not be used in modulefile}]
+set tserr [msg_lint $modpath.allin/allin/1 {*}$lintmsgallin1]\n\n[msg_lint $modpath.allin/allin/3 {*}$lintmsgallin3]\n\n[msg_lint $modpath.allin/allin/4 {*}$lintmsgallin4]
+testouterr_cmd sh {lint} OK $tserr
+
+# --delim=value argument test
+setenv_path_var MODULEPATH $modpath
+set tserr [msg_lint $modpath/prepend/1.6 "$error_msgs   line 24: Wrong number of arguments (3) to \"prepend-path\""]
+testouterr_cmd sh {lint prepend/1.6} ERR $tserr
+
+# no MODULEPATH set
+unsetenv_path_var MODULEPATH
+set tserr "$error_msgs: $msg_nomodpath"
+testouterr_cmd sh {lint} ERR $tserr
+testouterr_cmd sh {lint foo/1.0} ERR $tserr
+setenv_path_var MODULEPATH $mp
+
+
+# access denied
+# cannot test access if cannot change file permission
+if {!$is_file_perms_editable} {
+    send_user "\tskipping access tests as file permissions cannot be changed\n"
+# cannot test access if superuser privileges are in use
+} elseif {$tcl_platform(user) eq {root}} {
+    send_user "\tskipping access tests as tests are run by superuser\n"
+# cannot test access if restricted file permissions have no effect
+} elseif {$is_locked_dir_file_readable && $is_locked_file_readable} {
+    send_user "\tskipping access tests as locked files or directories are still readable\n"
+} else {
+
+set hide_perms ugo-rx
+
+# access denied on modulefile
+change_file_perms $mp/lint/1.0 $hide_perms
+testouterr_cmd sh {lint lint/1.0} ERR [err_permdenied $mp/lint/1.0]
+testouterr_cmd sh "lint $mp/lint/1.0" ERR [err_permdenied $mp/lint/1.0]
+restore_file_perms $mp/lint/1.0
+
+# access denied on modulerc
+change_file_perms $mp/.modulerc $hide_perms
+change_file_perms $mp/advvers2/.modulerc $hide_perms
+set tserr [msg_lint $mpre/advvers/1.0]\n[msg_lint $mpre/advvers2/1.0]\n.*
+testouterr_cmd_re sh {lint -v} ERR $tserr
+restore_file_perms $mp/.modulerc
+restore_file_perms $mp/advvers2/.modulerc
+
+}
+
+
+# sgr warning/error/notice test
+if {[siteconfig_isStderrTty]} {
+    setenv_var MODULES_COLORS hi=1:se=2:er=91:wa=93:in=94
+
+    set lintmsg12sgr [list "[sgr 91]ERROR   line 3[sgr 0]: Could not complete statement.
+One close brace would complete the first line
+One close brace would complete at end of line 6.
+One close brace would complete the script body at line 9.
+Assuming completeness for further processing." \
+"[sgr 91]ERROR   line 3[sgr 0]: Bad expression: missing operand at _@_
+in expression \"\"str\" eq_@_\"" \
+"[sgr 93]WARNING line 5[sgr 0]: Unknown command \"else\"" \
+"[sgr 94]NOTICE  line 6[sgr 0]: Close brace not aligned with line 5 \\\(1 0\\\)" \
+"[sgr 93]WARNING line 8[sgr 0]: Unknown command \"unk\""]
+
+    testouterr_cmd_re sh {--color=always lint lint/1.2} ERR [msg_lint [sgr 1]$mpre/lint/1.2[sgr 22] {*}$lintmsg12sgr]
+    unsetenv_var MODULES_COLORS
+} else {
+    send_user "\tskipping sgr lint test, terminal not attached to tty\n"
+}
+
+} else {
+    send_user "\tskipping linting tests, nagelfar linter not found'\n"
+}
+
+#
+#  Cleanup
+#
+
+reset_test_env
