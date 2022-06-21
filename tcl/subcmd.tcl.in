@@ -2544,6 +2544,19 @@ proc cmdModuleTag {unset_extra uasked tag_list args} {
 }
 
 proc cmdModuleLint {args} {
+   foreach mod $args {
+      lassign [getPathToModule $mod] modfile modname modnamevr
+      # error message has already been produced if mod not found or forbidden
+      if {$modfile ne {}} {
+         # redirect stdout to stderr as stdout is evaluated by module shell
+         # function
+         if {[catch {runCommand nagelfar/nagelfar.tcl $modfile >@stderr\
+            2>@stderr} errMsg]} {
+            # re-throw error but as an external one (not as a module issue)
+            knerror $errMsg
+         }
+      }
+   }
 }
 
 # ;;; Local Variables: ***
