@@ -1109,6 +1109,19 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
     .. versionadded:: 4.0
 
+.. instopt:: --with-tcl-linter=BIN
+
+ Name or full path of program to use to lint modulefile through the
+ :subcmd:`lint` sub-command. (default=\ ``nagelfar.tcl``)
+
+ This installation option defines the default value of the
+ :mconfig:`tcl_linter` configuration option which could be changed after
+ installation with the :subcmd:`config` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 5.2
+
 .. instopt:: --with-terminal-background=VALUE
 
  The terminal background color that determines the color set to apply by
