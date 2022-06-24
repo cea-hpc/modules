@@ -405,6 +405,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@notusemanpath@|$(setnotusemanpath)|g' \
 	-e 's|@shellcompsource@|$(shellcompsource)|g' \
 	-e 's|@setzshfpath@|$(setzshfpath)|g' \
+	-e 's|@tcllinter@|$(tcllinter)|g' \
 	-e 's|@MODULES_RELEASE@|$(MODULES_RELEASE)|g' \
 	-e 's|@MODULES_BUILD@|$(MODULES_BUILD)|g' \
 	-e 's|@MODULES_RPM_RELEASE@|$(MODULES_RPM_RELEASE)|g' \
