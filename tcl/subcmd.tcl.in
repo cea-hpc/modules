@@ -2544,6 +2544,11 @@ proc cmdModuleTag {unset_extra uasked tag_list args} {
 }
 
 proc cmdModuleLint {args} {
+   # stop if no linter defined
+   if {[llength [getConf tcl_linter]] == 0} {
+      knerror {No Tcl linter program configured}
+   }
+
    foreach mod $args {
       lassign [getPathToModule $mod] modfile modname modnamevr
       # error message has already been produced if mod not found or forbidden
@@ -2553,7 +2558,7 @@ proc cmdModuleLint {args} {
          pushMsgRecordId $msgrecid
          registerModuleDesignation $msgrecid $modfile {} {}
 
-         if {[catch {set out [runCommand nagelfar/nagelfar.tcl $modfile]}\
+         if {[catch {set out [runCommand {*}[getConf tcl_linter] $modfile]}\
             errMsg]} {
             # re-throw error but as an external one (not as a module issue)
             knerror $errMsg
