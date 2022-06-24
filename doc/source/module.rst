@@ -1164,6 +1164,21 @@ Module Sub-Commands
   installation time with :instopt:`--prefix` or :instopt:`--libdir` options.
   The value of this option cannot be altered.
 
+ .. mconfig:: tcl_linter
+
+  Command to check syntax of modulefiles with through :subcmd:`lint`
+  sub-command.
+
+  Default value is ``nagelfar.tcl``. It can be changed at installation time
+  with :instopt:`--with-tcl-linter` option. The :envvar:`MODULES_TCL_LINTER`
+  environment variable is defined by :subcmd:`config` sub-command when
+  changing this configuration option from its default value. See
+  :envvar:`MODULES_TCL_LINTER` description for details.
+
+  .. only:: html
+
+     .. versionadded:: 5.2
+
  .. mconfig:: term_background
 
   Terminal background color kind.

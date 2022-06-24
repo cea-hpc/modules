@@ -958,5 +958,5 @@ The following Modules configuration option has been introduced on Modules 5.
 | 5.1        | :mconfig:`redirect_output`, :mconfig:`mcookie_check`,           |
 |            | :mconfig:`collection_pin_tag`                                   |
 +------------+-----------------------------------------------------------------+
-| 5.2        | :mconfig:`protected_envvars`                                    |
+| 5.2        | :mconfig:`tcl_linter`, :mconfig:`protected_envvars`             |
 +------------+-----------------------------------------------------------------+
