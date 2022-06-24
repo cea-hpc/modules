@@ -879,7 +879,8 @@ The following environment variables appeared on Modules 5.
 |            | :envvar:`__MODULES_LMEXTRATAG`,                                 |
 |            | :envvar:`MODULES_COLLECTION_PIN_TAG`                            |
 +------------+-----------------------------------------------------------------+
-| 5.2        | :envvar:`MODULES_PROTECTED_ENVVARS`                             |
+| 5.2        | :envvar:`MODULES_PROTECTED_ENVVARS`,                            |
+|            | :envvar:`MODULES_TCL_LINTER`                                    |
 +------------+-----------------------------------------------------------------+
 
 Modules Specific Tcl Commands

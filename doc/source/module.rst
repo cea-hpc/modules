@@ -3440,6 +3440,19 @@ ENVIRONMENT
 
     .. versionadded:: 4.7
 
+.. envvar:: MODULES_TCL_LINTER
+
+ Command name or path for use to check syntax of modulefile through the
+ :subcmd:`lint` sub-command.
+
+ This environment variable value supersedes the default value set in the
+ :mconfig:`tcl_linter` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 5.2
+
 .. envvar:: MODULES_TERM_BACKGROUND
 
  Inform Modules of the terminal background color to determine if the color set
