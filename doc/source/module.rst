@@ -1170,10 +1170,10 @@ Module Sub-Commands
   sub-command.
 
   Default value is ``nagelfar.tcl``. It can be changed at installation time
-  with :instopt:`--with-tcl-linter` option. The :envvar:`MODULES_TCL_LINTER`
-  environment variable is defined by :subcmd:`config` sub-command when
-  changing this configuration option from its default value. See
-  :envvar:`MODULES_TCL_LINTER` description for details.
+  with :instopt:`--with-tcl-linter` and :instopt:`--with-tcl-linter-opts`
+  options. The :envvar:`MODULES_TCL_LINTER` environment variable is defined by
+  :subcmd:`config` sub-command when changing this configuration option from
+  its default value. See :envvar:`MODULES_TCL_LINTER` description for details.
 
   .. only:: html
 

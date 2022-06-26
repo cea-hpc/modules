@@ -996,7 +996,7 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  message output (can be superseded at run-time by environment variable)
  (default=\ ``less``)
 
- This installation option and :instopt:`--with-pager-opt` define the default
+ This installation option and :instopt:`--with-pager-opts` define the default
  value of the :mconfig:`pager` configuration option which could be changed
  after installation with the :subcmd:`config` sub-command.
 
@@ -1114,9 +1114,21 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  Name or full path of program to use to lint modulefile through the
  :subcmd:`lint` sub-command. (default=\ ``nagelfar.tcl``)
 
- This installation option defines the default value of the
- :mconfig:`tcl_linter` configuration option which could be changed after
- installation with the :subcmd:`config` sub-command.
+ This installation option and :instopt:`--with-tcl-linter-opts` define the
+ default value of the :mconfig:`tcl_linter` configuration option which could
+ be changed after installation with the :subcmd:`config` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 5.2
+
+.. instopt:: --with-tcl-linter-opts=OPTLIST
+
+ Settings to apply to Tcl linter program (default=)
+
+ This installation option and :instopt:`--with-tcl-linter` define the default
+ value of the :mconfig:`tcl_linter` configuration option which could be
+ changed after installation with the :subcmd:`config` sub-command.
 
  .. only:: html
 
@@ -1335,6 +1347,7 @@ installation.
 | :mconfig:`tcl_ext_lib`            | |file libdir_tcl_ext_lib|                    |                                              |              | X         |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`tcl_linter`             | ``nagelfar.tcl``                             | :instopt:`--with-tcl-linter`,                |              |           |
+|                                   |                                              | :instopt:`--with-tcl-linter-opts`,           |              |           |
 |                                   |                                              | :envvar:`MODULES_TCL_LINTER`                 |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`term_background`        | ``dark``                                     | :instopt:`--with-terminal-background`,       |              |           |
