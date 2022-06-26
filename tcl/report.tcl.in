@@ -1651,6 +1651,73 @@ proc displayConfig {val env_var {asked 0} {trans {}} {locked 0}} {
    return $val$defby
 }
 
+# report linter output as error/warning messages
+proc displayLinterOutput {linter output} {
+   switch -- $linter {
+      nagelfar {
+         # parsing linter output
+         set report_list {}
+         foreach line [split $output \n] {
+            set firstword [string range $line 0 [string first { } $line]-1]
+            switch -- $firstword {
+               Checking - Parsing {}
+               Line {
+                  # add message of previous line if any
+                  if {[info exists msg]} {
+                     lappend report_list $msg
+                  }
+
+                  # extract information from message line
+                  set colidx [string first : $line]
+                  set linenum [string trimleft [string range $line 5\
+                     $colidx-1]]
+                  set severity [string index $line $colidx+2]
+                  switch -- $severity {
+                     W {
+                        set severity WARNING
+                        set sgrkey wa
+                        set raisecnt 0
+                     }
+                     E {
+                        set severity ERROR
+                        set sgrkey er
+                        set raisecnt 1
+                     }
+                     default {
+                        set severity NOTICE
+                        set sgrkey in
+                        set raisecnt 0
+                     }
+                  }
+                  set msg [string range $line $colidx+4 end]
+
+                  # start recorded message properties
+                  lappend report_list $linenum $severity $sgrkey $raisecnt
+               }
+               default {
+                  # this line is continuing message started previously
+                  append msg \n[string trimleft $line]
+               }
+            }
+         }
+         # add message of last line if any
+         if {[info exists msg]} {
+            lappend report_list $msg
+            unset msg
+         }
+
+         # report messages
+         foreach {linenum severity sgrkey raisecnt mesg} $report_list {
+            reportError $mesg 0 "[format %-7s $severity] line $linenum"\
+               $sgrkey $raisecnt
+         }
+      }
+      default {
+         reportError $output
+      }
+   }
+}
+
 proc reportMlUsage {} {
    reportVersion
    report {Usage: ml [options] [command] [args ...]
