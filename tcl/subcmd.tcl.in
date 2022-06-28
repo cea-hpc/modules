@@ -2551,6 +2551,12 @@ proc cmdModuleLint {args} {
 
    # extract linter program name
    set linter [file rootname [file tail [lindex [getConf tcl_linter] 0]]]
+   # build command line
+   set linter_mfile [getConf tcl_linter]
+   if {$linter eq {nagelfar}} {
+      # add module-specific syntax database in addition to regular Tcl one
+      lappend linter_mfile -s _ -s nagelfar132/syntaxdb_modulefile.tcl
+   }
 
    set modfilelist {}
    # fetch every available modulefiles if no argument provided
@@ -2584,7 +2590,7 @@ proc cmdModuleLint {args} {
       pushMsgRecordId $msgrecid
       registerModuleDesignation $msgrecid $modfile {} {}
 
-      if {[catch {set out [runCommand {*}[getConf tcl_linter] $modfile]}\
+      if {[catch {set out [runCommand {*}$linter_mfile $modfile]}\
          errMsg]} {
          # re-throw error but as an external one (not as a module issue)
          knerror $errMsg
