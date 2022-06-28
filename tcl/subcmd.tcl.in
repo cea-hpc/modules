@@ -2552,28 +2552,50 @@ proc cmdModuleLint {args} {
    # extract linter program name
    set linter [file rootname [file tail [lindex [getConf tcl_linter] 0]]]
 
-   foreach mod $args {
-      lassign [getPathToModule $mod] modfile modname modnamevr
-      # error message has already been produced if mod not found or forbidden
-      if {$modfile ne {}} {
-         # set a record message unique id and record modulefile title
-         set msgrecid lint-$modfile
-         pushMsgRecordId $msgrecid
-         registerModuleDesignation $msgrecid $modfile {} {}
-
-         if {[catch {set out [runCommand {*}[getConf tcl_linter] $modfile]}\
-            errMsg]} {
-            # re-throw error but as an external one (not as a module issue)
-            knerror $errMsg
+   set modfilelist {}
+   # fetch every available modulefiles if no argument provided
+   if {[llength $args] == 0} {
+      inhibitErrorReport
+      foreach dir [getModulePathList exiterronundef] {
+         # collect all modulefile from dir that current user has access to
+         foreach {elt props} [getModules $dir *] {
+            switch -- [lindex $props 0] {
+               modulefile - virtual {
+                  appendNoDupToList modfilelist [lindex $props 2]
+               }
+            }
          }
-
-         # report linting messages
-         displayLinterOutput $linter $out
-
-         # report all lint messages for this modulefile
-         reportMsgRecord "Linting [getModuleDesignation $msgrecid {} 2]"
-         popMsgRecordId
       }
+      setState inhibit_errreport 0
+   } else {
+      foreach mod $args {
+         lassign [getPathToModule $mod] modfile modname modnamevr
+         # error mesg has already been produced if mod not found or forbidden
+         if {$modfile ne {}} {
+            lappend modfilelist $modfile
+         }
+      }
+   }
+
+   # execute linter program over every gathered file
+   foreach modfile $modfilelist {
+      # set a record message unique id and record modulefile title
+      set msgrecid lint-$modfile
+      pushMsgRecordId $msgrecid
+      registerModuleDesignation $msgrecid $modfile {} {}
+
+      if {[catch {set out [runCommand {*}[getConf tcl_linter] $modfile]}\
+         errMsg]} {
+         # re-throw error but as an external one (not as a module issue)
+         knerror $errMsg
+      }
+
+      # report linting messages
+      displayLinterOutput $linter $out
+
+      # report all lint messages for this modulefile
+      reportMsgRecord "Linting [getModuleDesignation $msgrecid {} 2]"
+      popMsgRecordId
    }
 }
 
