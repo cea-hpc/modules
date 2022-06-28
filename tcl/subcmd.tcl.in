@@ -2553,9 +2553,11 @@ proc cmdModuleLint {args} {
    set linter [file rootname [file tail [lindex [getConf tcl_linter] 0]]]
    # build command line
    set linter_mfile [getConf tcl_linter]
+   set linter_mrc [getConf tcl_linter]
    if {$linter eq {nagelfar}} {
       # add module-specific syntax database in addition to regular Tcl one
       lappend linter_mfile -s _ -s nagelfar132/syntaxdb_modulefile.tcl
+      lappend linter_mrc -s _ -s nagelfar132/syntaxdb_modulerc.tcl
    }
 
    set modfilelist {}
@@ -2563,11 +2565,20 @@ proc cmdModuleLint {args} {
    if {[llength $args] == 0} {
       inhibitErrorReport
       foreach dir [getModulePathList exiterronundef] {
+         # fetch all existing rc file current user has access to
+         foreach {elt props} [findModules $dir * 0 0] {
+            switch -- [lindex $props 0] {
+               modulerc {
+                  set tolint($dir/$elt) mrc
+               }
+            }
+         }
          # collect all modulefile from dir that current user has access to
+         # getModules will reuse the result collected for findModules
          foreach {elt props} [getModules $dir *] {
             switch -- [lindex $props 0] {
                modulefile - virtual {
-                  appendNoDupToList modfilelist [lindex $props 2]
+                  set tolint([lindex $props 2]) mfile
                }
             }
          }
@@ -2578,20 +2589,21 @@ proc cmdModuleLint {args} {
          lassign [getPathToModule $mod] modfile modname modnamevr
          # error mesg has already been produced if mod not found or forbidden
          if {$modfile ne {}} {
-            lappend modfilelist $modfile
+            set tolint($modfile) mfile
          }
       }
    }
 
    # execute linter program over every gathered file
-   foreach modfile $modfilelist {
+   foreach lintfile [lsort -dictionary [array names tolint]] {
       # set a record message unique id and record modulefile title
-      set msgrecid lint-$modfile
+      set msgrecid lint-$lintfile
       pushMsgRecordId $msgrecid
-      registerModuleDesignation $msgrecid $modfile {} {}
+      registerModuleDesignation $msgrecid $lintfile {} {}
 
-      if {[catch {set out [runCommand {*}$linter_mfile $modfile]}\
-         errMsg]} {
+      set cmdline [expr {$tolint($lintfile) eq {mrc} ? $linter_mrc :\
+         $linter_mfile}]
+      if {[catch {set out [runCommand {*}$cmdline $lintfile]} errMsg]} {
          # re-throw error but as an external one (not as a module issue)
          knerror $errMsg
       }
