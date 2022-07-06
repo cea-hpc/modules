@@ -359,6 +359,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@modulefilesdir@|$(modulefilesdir)|g' \
 	-e 's|@bindir@|$(bindir)|g' \
 	-e 's|@mandir@|$(mandir)|g' \
+	-e 's|@nagelfardatadir@|$(nagelfardatadir)|g' \
 	-e 's|@moduleshome@|$(moduleshome)|g' \
 	-e 's|@initrc@|$(initrc)|g' \
 	-e 's|@modulespath@|$(modulespath)|g' \
@@ -467,6 +468,12 @@ endif
 else
 	sed -i -e 's|$(libdir)|lib|' $@
 endif
+
+tcl/subcmd.tcl_i: tcl/subcmd.tcl $(NAGELFAR)
+	$(ECHO_GEN)
+	rm -f $<_log
+	$(NAGELFAR) -instrument $<
+	sed -i -e 's|$(nagelfardatadir)|contrib/nagelfar|g' $@
 
 # join all tcl/*.tcl files to build modulecmd.tcl
 modulecmd.tcl: tcl/coll.tcl tcl/envmngt.tcl tcl/init.tcl tcl/main.tcl \
@@ -652,6 +659,13 @@ ifeq ($(vimaddons),y)
 	cp  contrib/vim/ftplugin/modulefile.vim  '$(DESTDIR)$(vimdatadir)/ftplugin'
 	cp  contrib/vim/syntax/modulefile.vim    '$(DESTDIR)$(vimdatadir)/syntax'
 endif
+ifeq ($(nagelfaraddons),y)
+	mkdir -p '$(DESTDIR)$(nagelfardatadir)'
+	cp contrib/nagelfar/plugin_modulefile.tcl  '$(DESTDIR)$(nagelfardatadir)/'
+	cp contrib/nagelfar/plugin_modulerc.tcl  '$(DESTDIR)$(nagelfardatadir)/'
+	cp contrib/nagelfar/syntaxdb_modulefile.tcl  '$(DESTDIR)$(nagelfardatadir)/'
+	cp contrib/nagelfar/syntaxdb_modulerc.tcl  '$(DESTDIR)$(nagelfardatadir)/'
+endif
 	$(MAKE) -C init install DESTDIR='$(DESTDIR)'
 ifneq ($(builddoc),n)
 	$(MAKE) -C doc install DESTDIR='$(DESTDIR)'
@@ -687,6 +701,13 @@ ifeq ($(vimaddons),y)
 	-rmdir '$(DESTDIR)$(vimdatadir)/ftplugin'
 	-rmdir '$(DESTDIR)$(vimdatadir)/syntax'
 	-rmdir -p '$(DESTDIR)$(vimdatadir)'
+endif
+ifeq ($(nagelfaraddons),y)
+	rm -f '$(DESTDIR)$(nagelfardatadir)/plugin_modulefile.tcl'
+	rm -f '$(DESTDIR)$(nagelfardatadir)/plugin_modulerc.tcl'
+	rm -f '$(DESTDIR)$(nagelfardatadir)/syntaxdb_modulefile.tcl'
+	rm -f '$(DESTDIR)$(nagelfardatadir)/syntaxdb_modulerc.tcl'
+	-rmdir -p '$(DESTDIR)$(nagelfardatadir)'
 endif
 ifeq ($(docinstall),y)
 	rm -f $(foreach docfile,ChangeLog README COPYING.GPLv2,'$(DESTDIR)$(docdir)/$(docfile)')
@@ -832,6 +853,7 @@ ifeq ($(multilibsupport),y)
 else
 	sed -e 's|$(libdir)|lib|' $< > $@
 endif
+	sed -i -e 's|$(nagelfardatadir)|contrib/nagelfar|g' $@
 
 tcl/%.tcl_i: tcl/%.tcl $(NAGELFAR)
 	$(ECHO_GEN)

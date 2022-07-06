@@ -39,7 +39,7 @@ searchmatch modulepath loadedmodules quarantinevars wa277 advversspec ml \
 windowssupport nearlyforbiddendays implicitrequirement tagabbrev \
 tagcolorname mcookieversioncheck availoutput availterseoutput listoutput \
 listterseoutput editor variantshortcut bashcompletiondir fishcompletiondir \
-zshcompletiondir tcllinter tcllinteropts"
+zshcompletiondir tcllinter tcllinteropts nagelfardatadir nagelfaraddons"
 libarglist=
 
 # flags to know if argument has been specified on command-line
@@ -110,6 +110,7 @@ datarootdir=
 mandir=
 docdir=
 vimdatadir=
+nagelfardatadir=
 modulefilesdir=
 moduleshome=
 modulepath=
@@ -129,6 +130,7 @@ fishcompletiondir=
 zshcompletiondir=
 tcllinter='nagelfar.tcl'
 tcllinteropts=
+nagelfaraddons=y
 
 
 # check if output/error channels are attached to terminal
@@ -207,6 +209,7 @@ Fine tuning of the installation directories:
   --mandir=DIR            man documentation [DATAROOTDIR/man]
   --docdir=DIR            documentation root [DATAROOTDIR/doc]
   --vimdatadir=DIR        Vim addons directory [DATAROOTDIR/vim/vimfiles]
+  --nagelfardatadir=DIR   Nagelfar addons directory [DATAROOTDIR/nagelfar]
   --modulefilesdir=DIR    system modulefiles [PREFIX/modulefiles]
 
 Optional Features:
@@ -226,6 +229,9 @@ Optional Features:
                           man pages installation) [yes]
   --enable-vim-addons     install Vim addon files in the directory defined
                           with \'vimdatadir' [yes]
+  --enable-nagelfar-addons
+                          install Nagelfar addon files in the directory
+                          defined with \'nagelfardatadir' [yes]
   --enable-example-modulefiles
                           install in 'modulefilesdir' some modulefiles
                           provided as examples [yes]
@@ -438,6 +444,7 @@ placed in the following directory structure:
       man/
         man1/
         man4/
+      nagelfar/
       vim/
         vimfiles/
     modulefiles/"
@@ -574,6 +581,10 @@ for arg in "$@"; do
       vimdatadir="${arg#*=}" ;;
    --vimdatadir)
       nextargisval=vimdatadir ;;
+   --nagelfardatadir=*)
+      nagelfardatadir="${arg#*=}" ;;
+   --nagelfardatadir)
+      nextargisval=nagelfardatadir ;;
    --modulefilesdir=*)
       modulefilesdir="${arg#*=}" ;;
    --modulefilesdir)
@@ -595,6 +606,8 @@ for arg in "$@"; do
    --enable-vim-addons*|--disable-vim-addons)
       vimaddons=$(get_feature_value "$arg")
       defvimplugin=0 ;;
+   --enable-nagelfar-addons*|--disable-nagelfar-addons)
+      nagelfaraddons=$(get_feature_value "$arg") ;;
    --enable-example-modulefiles*|--disable-example-modulefiles)
       examplemodulefiles=$(get_feature_value "$arg")
       defexamplemodulefiles=0 ;;
@@ -1019,6 +1032,7 @@ fi
 [ -z "$mandir" ] && mandir=$datarootdir/man
 [ -z "$docdir" ] && docdir=$datarootdir/doc
 [ -z "$vimdatadir" ] && vimdatadir=$datarootdir/vim/vimfiles
+[ -z "$nagelfardatadir" ] && nagelfardatadir=$datarootdir/nagelfar
 [ -z "$modulefilesdir" ] && modulefilesdir=$prefix/modulefiles
 [ -z "$moduleshome" ] && moduleshome=$prefix
 # default modulepath based on MODULE_VERSION if versioning enabled
