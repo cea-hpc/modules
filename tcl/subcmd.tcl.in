@@ -2593,7 +2593,15 @@ proc cmdModuleLint {args} {
          lassign [getPathToModule $mod] modfile modname modnamevr
          # error mesg has already been produced if mod not found or forbidden
          if {$modfile ne {}} {
-            set tolint($modfile) mfile
+            switch -- [file tail $modfile] {
+               .modulerc - .version {
+                  set mkind mrc
+               }
+               default {
+                  set mkind mfile
+               }
+            }
+            set tolint($modfile) $mkind
          }
       }
    }
