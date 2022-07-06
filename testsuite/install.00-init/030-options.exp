@@ -246,6 +246,21 @@ testall_cmd_re "sh" "test -e '$install_bindir/module.cmd'" "" "" [expr {$install
 testall_cmd_re "sh" "test -e '$install_bindir/ml.cmd'" "" "" [expr {$install_windowssupport ne {y}}]
 testall_cmd_re "sh" "test -e '$install_bindir/envml.cmd'" "" "" [expr {$install_windowssupport ne {y}}]
 
+# test Nagelfar lint capabilities
+set nafelgar_script [glob -nocomplain nagelfar*/nagelfar.tcl]
+if {[string length $nafelgar_script] > 0} {
+   if {$verbose > 0} {
+      send_user "\tChecking Nagelfar linting\n"
+   }
+   set tserr "Linting $testsuite_modpath/prepend/1.6\n"
+   append tserr "  $error_msgs   line 24: Wrong number of arguments (3) to \"prepend-path\""
+   testall_cmd sh "module config tcl_linter $nafelgar_script; module lint --redirect $testsuite_modpath/prepend/1.6" $tserr {} 1
+   set tserr "Linting $testsuite_modpath.3/lcompat/.version\n"
+   append tserr "  $warn_msgs line 6: Variable \"ModuleVersion\" should be renamed \"ModulesVersion\"\n"
+   append tserr "  $warn_msgs line 10: Variable \"ModuleVersion\" should be renamed \"ModulesVersion\"\n"
+   append tserr "  $warn_msgs line 13: Variable \"ModuleVersion\" should be renamed \"ModulesVersion\""
+   testall_cmd sh "module config tcl_linter $nafelgar_script; module lint --redirect $testsuite_modpath.3/lcompat/.version" $tserr {} 0
+}
 
 #
 #  Clean up variables used in this test case

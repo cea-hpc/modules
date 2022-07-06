@@ -102,6 +102,7 @@ testouterr_cmd sh {lint lint/1.4} OK {}
 # test implicit default disabled
 if {![is_config_locked implicit_default]} {
     setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+    setenv_var MODULES_IMPLICIT_DEFAULT 1
 
     # boolean variant test
     testouterr_cmd sh {lint lint@1: -bool} ERR [err_invopt -bool]
@@ -115,6 +116,7 @@ if {![is_config_locked implicit_default]} {
     testouterr_cmd sh {lint -v lint @1.0:1.3} OK [msg_lint $mp/lint/1.3]
 
     unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+    unsetenv_var MODULES_IMPLICIT_DEFAULT
 }
 
 # full path spec
@@ -147,11 +149,34 @@ testouterr_cmd sh {lint -v lint/1.1 lint/1.2} ERR [msg_lint $mp/lint/1.1 $lintms
 testouterr_cmd sh {lint lint/1.3 lint/2.0} OK {}
 testouterr_cmd sh {lint -v lint/1.3 lint/2.0} OK [msg_lint $mp/lint/1.3]\n[msg_lint $mp/lint/2.0]
 
+# file set as global rc file
+setenv_var MODULERCFILE $env(TESTSUITEDIR)/etc/rc
+testouterr_cmd sh "lint ${env(MODULERCFILE)}" OK {}
+
+# modulefile commands used in global rc file
+setenv_var MODULERCFILE $mp/lint/1.0
+set tserr [msg_moderr {invalid command name "unk"} {unk} $mp/lint/1.0 3 {  }]\n\n[msg_lint $mp/lint/1.0 $lintmsg10]
+testouterr_cmd sh "lint ${env(MODULERCFILE)}" ERR $tserr
+
+setenv_var MODULERCFILE $mp/keep/1.0
+set lintmsgkeep10 [list {WARNING line 3: Command "module-whatis" should not be be used in global rc file}\
+{WARNING line 8: Command "module" should not be be used in global rc file}\
+{WARNING line 11: Command "prereq" should not be be used in global rc file}\
+{WARNING line 14: Command "module" should not be be used in global rc file}\
+{WARNING line 17: Command "always-load" should not be be used in global rc file}]
+set tserr [msg_lint $mp/keep/1.0 {*}$lintmsgkeep10]
+testouterr_cmd sh "lint ${env(MODULERCFILE)}" OK $tserr
+setenv_var MODULERCFILE $ORIG_MODULERCFILE
+
 
 # ml
 # test implicit default disabled
 if {![is_config_locked implicit_default]} {
+    setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+    setenv_var MODULES_IMPLICIT_DEFAULT 1
     testouterr_cmd sh {ml lint -v lint @2:} OK [msg_lint $mp/lint/2.0]
+    unsetenv_var MODULES_IMPLICIT_DEFAULT
+    unsetenv_var MODULES_ADVANCED_VERSION_SPEC
 }
 testouterr_cmd sh {ml lint lint/1.2} ERR [msg_lint $mp/lint/1.2 {*}$lintmsg12]
 
@@ -173,7 +198,7 @@ set tserr .*[escre [msg_lint $mp/foo/1.0 {*}$lintmsgfoo10]]\n.*[escre [msg_lint 
 testouterr_cmd_re sh {lint} ERR $tserr
 
 # check modulepath and module-specific .modulerc
-set tserr [escre [msg_lint $mpre/.modulerc {*}$lintmsgmodrc]]\n\n[msg_lint $mpre/advvers/1.0]\n[msg_lint $mpre/advvers2/.modulerc].*
+set tserr [msg_lint $env(MODULERCFILE)]\n\n[escre [msg_lint $mpre/.modulerc {*}$lintmsgmodrc]]\n\n[msg_lint $mpre/advvers/1.0]\n[msg_lint $mpre/advvers2/.modulerc].*
 testouterr_cmd_re sh {lint -v} ERR $tserr
 
 # check modulepath without error or warning
@@ -271,7 +296,7 @@ restore_file_perms $mp/lint/1.0
 # access denied on modulerc
 change_file_perms $mp/.modulerc $hide_perms
 change_file_perms $mp/advvers2/.modulerc $hide_perms
-set tserr [msg_lint $mpre/advvers/1.0]\n[msg_lint $mpre/advvers2/1.0]\n.*
+set tserr [msg_lint $env(MODULERCFILE)]\n[msg_lint $mpre/advvers/1.0]\n[msg_lint $mpre/advvers2/1.0]\n.*
 testouterr_cmd_re sh {lint -v} ERR $tserr
 restore_file_perms $mp/.modulerc
 restore_file_perms $mp/advvers2/.modulerc
