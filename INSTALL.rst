@@ -328,6 +328,14 @@ is displayed within brackets):
 
     .. versionadded:: 4.0
 
+.. instopt:: --nagelfardatadir=DIR
+
+ Directory to host Nagelfar linter addon files [``DATAROOTDIR/nagelfar``]
+
+ .. only:: html
+
+    .. versionadded:: 5.2
+
 .. instopt:: --prefix=PREFIX
 
  Installation root directory [``/usr/local/Modules``]
@@ -562,6 +570,16 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  .. only:: html
 
     .. versionadded:: 4.6
+
+.. instopt:: --enable-nagelfar-addons
+
+ Install the Nagelfar linter addon files (syntax databases and plugins to lint
+ modulefiles and modulercs) in the Nagelfar addons directory defined with the
+ :instopt:`--nagelfardatadir` option. (default=yes)
+
+ .. only:: html
+
+    .. versionadded:: 5.2
 
 .. instopt:: --enable-new-features
 
