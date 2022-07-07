@@ -620,6 +620,35 @@ proc getModulePathList {{behavior returnempty} {resolv_var 1} {set_abs 1}} {
    }
 }
 
+# return list of the configured and existing global RC files
+proc getGlobalRcFileList {} {
+   set rclist {}
+
+   if {[set rcfile [getConf rcfile]] ne {}} {
+      # if MODULERCFILE is a dir, look at a modulerc file in it
+      if {[file isdirectory $rcfile] && [file isfile $rcfile/modulerc]} {
+         lappend rclist $rcfile/modulerc
+      } elseif {[file isfile $rcfile]} {
+         lappend rclist $rcfile
+      }
+   }
+   if {[file isfile {@etcdir@/rc}]} {
+      lappend rclist {@etcdir@/rc}
+   }
+   if {[info exists ::env(HOME)] && [file isfile $::env(HOME)/.modulerc]} {
+      lappend rclist $::env(HOME)/.modulerc
+   }
+
+   set readable_rclist {}
+   foreach rc $rclist {
+      if {[file readable $rc]} {
+         lappend readable_rclist $rc
+      }
+   }
+
+   return $readable_rclist
+}
+
 proc getModuleTag {mod tag {cmp eqstart} {return_rule 0}} {
    set modroot [getModuleRootFromVersSpec $mod]
    # look if mod matches one of the module specs applying to mod root

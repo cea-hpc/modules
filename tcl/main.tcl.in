@@ -61,31 +61,11 @@ proc cleanupAndExit {code} {
 
 # runs the global RC files if they exist
 proc runModulerc {} {
-   set rclist {}
-
-   if {[set rcfile [getConf rcfile]] ne {}} {
-      # if MODULERCFILE is a dir, look at a modulerc file in it
-      if {[file isdirectory $rcfile]\
-         && [file isfile $rcfile/modulerc]} {
-         lappend rclist $rcfile/modulerc
-      } elseif {[file isfile $rcfile]} {
-         lappend rclist $rcfile
-      }
-   }
-   if {[file isfile {@etcdir@/rc}]} {
-      lappend rclist {@etcdir@/rc}
-   }
-   if {[info exists ::env(HOME)] && [file isfile $::env(HOME)/.modulerc]} {
-      lappend rclist $::env(HOME)/.modulerc
-   }
-
    setState rc_running 1
-   foreach rc $rclist {
-      if {[file readable $rc]} {
-         reportDebug "Executing $rc"
-         cmdModuleSource load $rc
-         lappendState rc_loaded $rc
-      }
+   foreach rc [getGlobalRcFileList] {
+      reportDebug "Executing $rc"
+      cmdModuleSource load $rc
+      lappendState rc_loaded $rc
    }
    unsetState rc_running
 

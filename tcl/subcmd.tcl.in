@@ -2563,10 +2563,16 @@ proc cmdModuleLint {args} {
          -s {@nagelfardatadir@/syntaxdb_modulerc.tcl}\
          -plugin {@nagelfardatadir@/plugin_modulerc.tcl}
    }
+   set global_rclist [getGlobalRcFileList]
 
    set modfilelist {}
    # fetch every available modulefiles if no argument provided
    if {[llength $args] == 0} {
+      # add global RC files
+      foreach rc $global_rclist {
+         set tolint($rc) mrc
+      }
+
       inhibitErrorReport
       foreach dir [getModulePathList exiterronundef] {
          # fetch all existing rc file current user has access to
@@ -2593,13 +2599,11 @@ proc cmdModuleLint {args} {
          lassign [getPathToModule $mod] modfile modname modnamevr
          # error mesg has already been produced if mod not found or forbidden
          if {$modfile ne {}} {
-            switch -- [file tail $modfile] {
-               .modulerc - .version {
-                  set mkind mrc
-               }
-               default {
-                  set mkind mfile
-               }
+            if {$modfile in $global_rclist || [file tail $modfile] in\
+               {.modulerc .version}} {
+               set mkind mrc
+            } else {
+               set mkind mfile
             }
             set tolint($modfile) $mkind
          }
