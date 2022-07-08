@@ -2554,6 +2554,7 @@ proc cmdModuleLint {args} {
    # build command line
    set linter_mfile [getConf tcl_linter]
    set linter_mrc [getConf tcl_linter]
+   set linter_gmrc [getConf tcl_linter]
    if {$linter eq {nagelfar}} {
       # add module-specific syntax database in addition to regular Tcl one
       lappend linter_mfile -s _\
@@ -2562,6 +2563,9 @@ proc cmdModuleLint {args} {
       lappend linter_mrc -s _\
          -s {@nagelfardatadir@/syntaxdb_modulerc.tcl}\
          -plugin {@nagelfardatadir@/plugin_modulerc.tcl}
+      lappend linter_gmrc -s _\
+         -s {@nagelfardatadir@/syntaxdb_modulefile.tcl}\
+         -plugin {@nagelfardatadir@/plugin_globalrc.tcl}
    }
    set global_rclist [getGlobalRcFileList]
 
@@ -2570,7 +2574,7 @@ proc cmdModuleLint {args} {
    if {[llength $args] == 0} {
       # add global RC files
       foreach rc $global_rclist {
-         set tolint($rc) mrc
+         set tolint($rc) gmrc
       }
 
       inhibitErrorReport
@@ -2599,8 +2603,9 @@ proc cmdModuleLint {args} {
          lassign [getPathToModule $mod] modfile modname modnamevr
          # error mesg has already been produced if mod not found or forbidden
          if {$modfile ne {}} {
-            if {$modfile in $global_rclist || [file tail $modfile] in\
-               {.modulerc .version}} {
+            if {$modfile in $global_rclist} {
+               set mkind gmrc
+            } elseif {[file tail $modfile] in {.modulerc .version}} {
                set mkind mrc
             } else {
                set mkind mfile
@@ -2617,9 +2622,8 @@ proc cmdModuleLint {args} {
       pushMsgRecordId $msgrecid
       registerModuleDesignation $msgrecid $lintfile {} {}
 
-      set cmdline [expr {$tolint($lintfile) eq {mrc} ? $linter_mrc :\
-         $linter_mfile}]
-      if {[catch {set out [runCommand {*}$cmdline $lintfile]} errMsg]} {
+      if {[catch {set out [runCommand {*}[set linter_$tolint($lintfile)]\
+         $lintfile]} errMsg]} {
          # re-throw error but as an external one (not as a module issue)
          knerror $errMsg
       }
