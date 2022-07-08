@@ -663,6 +663,7 @@ ifeq ($(nagelfaraddons),y)
 	mkdir -p '$(DESTDIR)$(nagelfardatadir)'
 	cp contrib/nagelfar/plugin_modulefile.tcl  '$(DESTDIR)$(nagelfardatadir)/'
 	cp contrib/nagelfar/plugin_modulerc.tcl  '$(DESTDIR)$(nagelfardatadir)/'
+	cp contrib/nagelfar/plugin_globalrc.tcl  '$(DESTDIR)$(nagelfardatadir)/'
 	cp contrib/nagelfar/syntaxdb_modulefile.tcl  '$(DESTDIR)$(nagelfardatadir)/'
 	cp contrib/nagelfar/syntaxdb_modulerc.tcl  '$(DESTDIR)$(nagelfardatadir)/'
 endif
@@ -705,6 +706,7 @@ endif
 ifeq ($(nagelfaraddons),y)
 	rm -f '$(DESTDIR)$(nagelfardatadir)/plugin_modulefile.tcl'
 	rm -f '$(DESTDIR)$(nagelfardatadir)/plugin_modulerc.tcl'
+	rm -f '$(DESTDIR)$(nagelfardatadir)/plugin_globalrc.tcl'
 	rm -f '$(DESTDIR)$(nagelfardatadir)/syntaxdb_modulefile.tcl'
 	rm -f '$(DESTDIR)$(nagelfardatadir)/syntaxdb_modulerc.tcl'
 	-rmdir -p '$(DESTDIR)$(nagelfardatadir)'
