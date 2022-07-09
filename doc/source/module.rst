@@ -182,8 +182,9 @@ switches are accepted:
 .. option:: --all, -a
 
  Include hidden modules in search performed with :subcmd:`avail`,
- :subcmd:`aliases`, :subcmd:`list`, :subcmd:`search` or :subcmd:`whatis`
- sub-commands. Hard-hidden modules are not affected by this option.
+ :subcmd:`aliases`, :subcmd:`list`, :subcmd:`lint`, :subcmd:`search` or
+ :subcmd:`whatis` sub-commands. Hard-hidden modules are not affected by this
+ option.
 
  .. only:: html
 
@@ -1415,6 +1416,29 @@ Module Sub-Commands
 .. subcmd:: keyword [-a] [-j] string
 
  See :subcmd:`search`.
+
+.. subcmd:: lint [-a] [modulefile...]
+
+ Analyze syntax of one or more *modulefiles* with the linter command
+ designated by the :mconfig:`tcl_linter` configuration option.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
+ If no *modulefile* is specified, all the *modulefiles* and modulerc
+ available in enabled modulepaths are analyzed as well as global and user rc
+ files. Hidden modulefiles are also analyzed when :option:`--all`/:option:`-a`
+ option is set.
+
+ When :command:`nagelfar.tcl` is the selected linter command, a static Tcl
+ syntax analysis is performed. In addition, syntax of modulefile commands are
+ checked in these files based on their kind (global/user rc, modulerc or
+ modulefile).
+
+ .. only:: html
+
+    .. versionadded:: 5.2
 
 .. subcmd:: list [-t|-l|-j] [-a] [-o LIST] [-S|-C] [pattern...]
 
