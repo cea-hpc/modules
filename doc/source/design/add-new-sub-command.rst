@@ -58,6 +58,22 @@ Files that should be edited to add reference to the new sub-command:
 
 Example commit: :ghcommit:`0a96ed64`
 
+Linter scripts
+--------------
+
+New sub-commands should be described in Nagelfar syntax databases.
+
+Files that should be edited to add reference to the new sub-command:
+
+- :file:`contrib/nagelfar/syntaxdb_modulefile.tcl`
+
+    - add sub-command name in ``::subCmd(module)`` list
+    - add sub-command argument description in ``::syntax`` array
+    - add sub-command option description in ``::option`` array
+    - See `Nagelfar syntax description`_
+
+.. _Nagelfar syntax description: http://nagelfar.sourceforge.net/syntaxtokens.html
+
 Documentation
 -------------
 
