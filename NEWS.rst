@@ -44,6 +44,11 @@ Modules 5.2.0 (not yet released)
   the quarantine mechanism is not compatible with such installation paths.
 * Fix :mfcmd:`source-sh` and :subcmd:`sh-to-mod` when used with *fish* shell
   script if ``regex-easyesc`` fish option is enabled. (fix issue #463)
+* Add the :mconfig:`protected_envvars` configuration option to define a list
+  of environment variables that cannot be modified by modulefile commands.
+  When set, :mconfig:`protected_envvars` defines
+  :envvar:`MODULES_PROTECTED_ENVVARS` environment variable. (fix issue #429
+  with contribution from Adrien Cotte)
 
 
 .. _5.1 release notes:
