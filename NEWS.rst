@@ -49,6 +49,21 @@ Modules 5.2.0 (not yet released)
   When set, :mconfig:`protected_envvars` defines
   :envvar:`MODULES_PROTECTED_ENVVARS` environment variable. (fix issue #429
   with contribution from Adrien Cotte)
+* Introduce the :subcmd:`lint` sub-command to statically analyze syntax of
+  modulefiles, modulerc and global/user rc. (fix issue #451)
+* Add the :mconfig:`tcl_linter` configuration option to define the program
+  used to analyze files with :subcmd:`lint` sub-command. This option is set to
+  ``nagelfar.tcl`` by default. When changed from default value, the
+  :envvar:`MODULES_TCL_LINTER` environment variable is defined. Default value
+  can be changed with :instopt:`--with-tcl-linter` and
+  :instopt:`--with-tcl-linter-opts` installation options.
+* Add the :instopt:`--enable-nagelfar-addons` installation option (enabled by
+  default) to install specific syntax databases and plugins to lint
+  modulefiles, modulerc and global/user rc with `Nagelfar`_. These files are
+  installed in the directory designated by the :instopt:`--nagelfardatadir`
+  (``DATAROOTDIR/nagelfar`` by default).
+
+.. _Nagelfar: http://nagelfar.sourceforge.net/
 
 
 .. _5.1 release notes:
