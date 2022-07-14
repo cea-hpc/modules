@@ -348,6 +348,12 @@ else
   tcllintercmd := $(tcllinter)
 endif
 
+ifeq ($(nagelfaraddons),y)
+  setnagelfaraddons :=
+else
+  setnagelfaraddons := \#
+endif
+
 define translate-in-script
 $(ECHO_GEN)
 sed -e 's|@prefix@|$(prefix)|g' \
@@ -413,6 +419,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@shellcompsource@|$(shellcompsource)|g' \
 	-e 's|@setzshfpath@|$(setzshfpath)|g' \
 	-e 's|@tcllintercmd@|$(tcllintercmd)|g' \
+	-e 's|@nagelfaraddons@|$(setnagelfaraddons)|g' \
 	-e 's|@MODULES_RELEASE@|$(MODULES_RELEASE)|g' \
 	-e 's|@MODULES_BUILD@|$(MODULES_BUILD)|g' \
 	-e 's|@MODULES_RPM_RELEASE@|$(MODULES_RPM_RELEASE)|g' \
