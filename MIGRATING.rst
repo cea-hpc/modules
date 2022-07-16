@@ -62,6 +62,98 @@ command are now considered optional requirements. Dependent module can be
 loaded without the *try-load* modules, but now it gets automatically reloaded
 if *try-load* module is loaded afterward, to take it into account.
 
+Linting modulefiles
+-------------------
+
+Static analysis of modulefile, modulerc and global/user rc is now possible
+with :subcmd:`lint` sub-command. It relies on an external program defined with
+:mconfig:`tcl_linter` configuration option. Modules or files specified on the
+command-line are resolved then passed to the Tcl linter program.
+
+.. parsed-literal::
+
+    :ps:`$` cat /path/to/modulefiles/foo/1.0
+    #%Module
+    if {"str" eq} {
+     else {
+    }
+    :ps:`$` module lint foo/1.0
+    Linting :sgrhi:`/path/to/modulefiles/foo/1.0`
+      :sgrer:`ERROR   line 2`: Could not complete statement.
+        One close brace would complete the first line
+        One close brace would complete at end of line 4.
+        One close brace would complete the script body at line 5.
+        Assuming completeness for further processing.
+      :sgrer:`ERROR   line 2`: Bad expression: missing operand at _@_
+        in expression ""str" eq_@_"
+      :sgrwa:`WARNING line 3`: Unknown command "else"
+      :sgrin:`NOTICE  line 4`: Close brace not aligned with line 3 (1 0)
+
+`Nagelfar`_ is the Tcl linter recommended for Modules and set by default. This
+default can be changed at installation time with :instopt:`--with-tcl-linter`
+and :instopt:`--with-tcl-linter-opts` options. It can also be configured later
+on through :mconfig:`tcl_linter` config option.
+
+Specific syntax databases and plugins for `Nagelfar`_ are added by Modules to
+precisely lint modulefile commands syntax in addition to regular Tcl syntax.
+The installation of these specific files is controlled with
+:instopt:`--enable-nagelfar-addons` option (enabled by default). Their
+location is controlled by the :instopt:`--nagelfardatadir` option.
+
+.. parsed-literal::
+
+    :ps:`$` module lint bar@:1 /path/to/modulefiles/.modulerc
+    Linting :sgrhi:`/path/to/modulefiles/.modulerc`
+      :sgrer:`ERROR   line 35`: Wrong number of arguments (3) to "module-alias"
+      :sgrer:`ERROR   line 41`: Wrong number of arguments (3) to "module-virtual"
+
+    Linting :sgrhi:`/path/to/modulefiles/bar/1.2`
+      :sgrwa:`WARNING line 19`: Unknown command "unk"
+    :ps:`$` module lint ~/.modulerc
+    Linting :sgrhi:`/home/user/.modulerc`
+      :sgrwa:`WARNING line 2`: Command "setenv" should not be be used in global rc file
+
+:subcmd:`lint` sub-command outputs messages returned by the Tcl linter
+program. Nagelfar produces NOTICE, WARNING and ERROR messages. If linter does
+not report a thing, :subcmd:`lint` sub-command will be silent, unless if the
+:option:`--verbose`/:option:`-v` is set.
+
+.. parsed-literal::
+
+    :ps:`$` module lint /path/to/modulefiles/bar/.version bar/1.4
+    :ps:`$` module lint -v /path/to/modulefiles/bar/.version bar/1.4
+    Linting :sgrhi:`/path/to/modulefiles/bar/.version`
+    Linting :sgrhi:`/path/to/modulefiles/bar/1.4`
+
+When no file is specified to :subcmd:`lint` sub-command, all the global/user
+rc files and all the modulefiles and modulercs from enabled modulepaths are
+analyzed. If the :option:`--all`/:option:`-a` option is set, all hidden
+modulefiles are also linted.
+
+.. parsed-literal::
+
+    :ps:`$` module lint
+    Linting :sgrhi:`/home/user/.modulerc`
+      :sgrwa:`WARNING line 2`: Command "setenv" should not be be used in global rc file
+
+    Linting :sgrhi:`/path/to/modulefiles/.modulerc`
+      :sgrer:`ERROR   line 35`: Wrong number of arguments (3) to "module-alias"
+      :sgrer:`ERROR   line 41`: Wrong number of arguments (3) to "module-virtual"
+
+    Linting :sgrhi:`/path/to/modulefiles/bar/1.2`
+      :sgrwa:`WARNING line 19`: Unknown command "unk"
+    ...
+
+To use `Nagelfar`_ as Tcl linter for Modules, this open source tool has to be
+installed on your system. When installing from tarball distribution, make sure
+:command:`nagelfar.tcl` command is found through a :envvar:`PATH` lookup or
+that :mconfig:`tcl_linter` option is set to its full path location.
+`Nagelfar`_ is also made available as a RPM package in `EPEL and Fedora
+repositories`_.
+
+.. _Nagelfar: http://nagelfar.sourceforge.net/
+.. _EPEL and Fedora repositories: https://src.fedoraproject.org/rpms/nagelfar
+
 
 v5.1
 ====
