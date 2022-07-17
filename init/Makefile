@@ -4,6 +4,11 @@
 # use bash shell to correctly expand the $'' syntax used in translate-in-script
 SHELL = /usr/bin/env bash
 
+# commands to install files
+INSTALL = install
+INSTALL_DIR = $(INSTALL) -d -m 755
+INSTALL_DATA = $(INSTALL) -m 644
+
 SH_LIKE  = sh ksh bash zsh profile.sh
 CSH_LIKE = csh tcsh tcsh_completion profile.csh
 OTHER    = perl.pm python.py ruby.rb lisp tcl fish cmake r.R
@@ -194,19 +199,19 @@ $(EXAMPLE_MODFILES_SRCDIR)/version: $(EXAMPLE_MODFILES_SRCDIR)/version.in
 	$(translate-in-script)
 
 dist-win:
-	mkdir '$(DIST_WIN_PREFIX)/init'
-	cp cmd.cmd '$(DIST_WIN_PREFIX)/init/'
-	mkdir '$(DIST_WIN_PREFIX)/modulefiles'
-	cp $(addprefix $(EXAMPLE_MODFILES_SRCDIR)/,$(EXAMPLE_WIN_MODFILES)) '$(DIST_WIN_PREFIX)/modulefiles/'
+	$(INSTALL_DIR) '$(DIST_WIN_PREFIX)/init'
+	$(INSTALL_DATA) cmd.cmd '$(DIST_WIN_PREFIX)/init/'
+	$(INSTALL_DIR) '$(DIST_WIN_PREFIX)/modulefiles'
+	$(INSTALL_DATA) $(addprefix $(EXAMPLE_MODFILES_SRCDIR)/,$(EXAMPLE_WIN_MODFILES)) '$(DIST_WIN_PREFIX)/modulefiles/'
 
 # example configs for test rules
 install-testconfig:
-	mkdir -p '$(DESTDIR)$(initdir)'
-	mkdir -p '$(DESTDIR)$(etcdir)'
-	mkdir -p '$(DESTDIR)$(prefix)/etc'
-	mkdir -p '$(DESTDIR)$(modulefilesdir)'
-	mkdir -p '$(DESTDIR)$(prefix)/test/modulefiles' '$(DESTDIR)$(prefix)/test/etc'
-	cp $(addprefix $(EXAMPLE_MODFILES_SRCDIR)/,$(EXAMPLE_TESTCONFIG_MODFILES)) '$(DESTDIR)$(modulefilesdir)/'
+	$(INSTALL_DIR) '$(DESTDIR)$(initdir)'
+	$(INSTALL_DIR) '$(DESTDIR)$(etcdir)'
+	$(INSTALL_DIR) '$(DESTDIR)$(prefix)/etc'
+	$(INSTALL_DIR) '$(DESTDIR)$(modulefilesdir)'
+	$(INSTALL_DIR) '$(DESTDIR)$(prefix)/test/modulefiles' '$(DESTDIR)$(prefix)/test/etc'
+	$(INSTALL_DATA) $(addprefix $(EXAMPLE_MODFILES_SRCDIR)/,$(EXAMPLE_TESTCONFIG_MODFILES)) '$(DESTDIR)$(modulefilesdir)/'
 
 uninstall-testconfig:
 	rmdir '$(DESTDIR)$(prefix)/test/modulefiles' '$(DESTDIR)$(prefix)/test/etc' '$(DESTDIR)$(prefix)/test'
@@ -216,48 +221,47 @@ uninstall-testconfig:
 	$(RMDIR_IGN_NON_EMPTY) '$(DESTDIR)$(initdir)' || true
 
 install: all
-	mkdir -p '$(DESTDIR)$(initdir)'
-	mkdir -p '$(DESTDIR)$(initdir)/ksh-functions'
+	$(INSTALL_DIR) '$(DESTDIR)$(initdir)'
+	$(INSTALL_DIR) '$(DESTDIR)$(initdir)/ksh-functions'
 ifeq ($(initconfin),etcdir)
-	mkdir -p '$(DESTDIR)$(etcdir)'
+	$(INSTALL_DIR) '$(DESTDIR)$(etcdir)'
 endif
 ifeq ($(makebashcompdir),y)
-	mkdir -p '$(DESTDIR)$(bashcompletiondir)'
+	$(INSTALL_DIR) '$(DESTDIR)$(bashcompletiondir)'
 endif
 ifeq ($(makefishcompdir),y)
-	mkdir -p '$(DESTDIR)$(fishcompletiondir)'
+	$(INSTALL_DIR) '$(DESTDIR)$(fishcompletiondir)'
 endif
-	mkdir -p '$(DESTDIR)$(zshcompletiondir)'
-	mkdir -p '$(DESTDIR)$(modulefilesdir)'
-	cp $(ALL_SHELLS) '$(DESTDIR)$(initdir)/'
+	$(INSTALL_DIR) '$(DESTDIR)$(zshcompletiondir)'
+	$(INSTALL_DIR) '$(DESTDIR)$(modulefilesdir)'
+	$(INSTALL_DATA) $(ALL_SHELLS) '$(DESTDIR)$(initdir)/'
 ifeq ($(windowssupport),y)
-	cp cmd.cmd '$(DESTDIR)$(initdir)/'
+	$(INSTALL_DATA) cmd.cmd '$(DESTDIR)$(initdir)/'
 endif
 ifeq ($(makefishcompdir),y)
-	cp fish_completion '$(DESTDIR)$(fishcompletiondir)/module.fish'
+	$(INSTALL_DATA) fish_completion '$(DESTDIR)$(fishcompletiondir)/module.fish'
 else
-	cp fish_completion '$(DESTDIR)$(fishcompletiondir)/'
+	$(INSTALL_DATA) fish_completion '$(DESTDIR)$(fishcompletiondir)/'
 endif
 ifeq ($(makebashcompdir),y)
-	cp bash_completion '$(DESTDIR)$(bashcompletiondir)/module'
+	$(INSTALL_DATA) bash_completion '$(DESTDIR)$(bashcompletiondir)/module'
 	ln -s module '$(DESTDIR)$(bashcompletiondir)/ml'
 else
-	cp bash_completion '$(DESTDIR)$(bashcompletiondir)/'
+	$(INSTALL_DATA) bash_completion '$(DESTDIR)$(bashcompletiondir)/'
 endif
-	cp zsh-functions/_module '$(DESTDIR)$(zshcompletiondir)/'
-	cp ksh '$(DESTDIR)$(initdir)/ksh-functions/module'
-	cp ksh '$(DESTDIR)$(initdir)/ksh-functions/ml'
-	rm -f '$(DESTDIR)$(modulespath)' '$(DESTDIR)$(initrc)'
-	cp -R -P initrc '$(DESTDIR)$(initrc)'
+	$(INSTALL_DATA) zsh-functions/_module '$(DESTDIR)$(zshcompletiondir)/'
+	$(INSTALL_DATA) ksh '$(DESTDIR)$(initdir)/ksh-functions/module'
+	$(INSTALL_DATA) ksh '$(DESTDIR)$(initdir)/ksh-functions/ml'
+	$(INSTALL_DATA) initrc '$(DESTDIR)$(initrc)'
 ifeq ($(setmodulespath),y)
-	cp -R -P modulespath $(DESTDIR)$(modulespath)
+	$(INSTALL_DATA) modulespath $(DESTDIR)$(modulespath)
 endif
 ifeq ($(examplemodulefiles),y)
-	cp $(addprefix $(EXAMPLE_MODFILES_SRCDIR)/,$(EXAMPLE_MODFILES)) '$(DESTDIR)$(modulefilesdir)/'
+	$(INSTALL_DATA) $(addprefix $(EXAMPLE_MODFILES_SRCDIR)/,$(EXAMPLE_MODFILES)) '$(DESTDIR)$(modulefilesdir)/'
 endif
 ifeq ($(versioning),y)
-	mkdir -p '$(DESTDIR)$(versdir)'
-	cp $(EXAMPLE_MODFILES_SRCDIR)/version '$(DESTDIR)$(versdir)/$(VERSION)'
+	$(INSTALL_DIR) '$(DESTDIR)$(versdir)'
+	$(INSTALL_DATA) $(EXAMPLE_MODFILES_SRCDIR)/version '$(DESTDIR)$(versdir)/$(VERSION)'
 endif
 
 uninstall:

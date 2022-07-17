@@ -5,6 +5,12 @@
 	uninstall-testconfig uninstall dist dist-tar dist-gzip dist-bzip2 \
 	dist-win srpm rpm clean distclean test-deps test testinstall testsyntax
 
+# commands to install files
+INSTALL = install
+INSTALL_DIR = $(INSTALL) -d -m 755
+INSTALL_DATA = $(INSTALL) -m 644
+INSTALL_PROGRAM = $(INSTALL) -m 755
+
 # download command and its options
 WGET := wget --retry-connrefused --waitretry=20 --timeout=20 --tries=3
 
@@ -578,39 +584,39 @@ testsuite/example/initrc: testsuite/example/initrc.in
 
 install-testsiteconfig: testsuite/example/siteconfig.tcl
 	$(MAKE) -C init install-testconfig DESTDIR='$(DESTDIR)'
-	cp $^ '$(DESTDIR)$(etcdir)/'
+	$(INSTALL_DATA) $^ '$(DESTDIR)$(etcdir)/'
 
 install-testsiteconfig-1: testsuite/example/siteconfig.tcl-1
 	$(MAKE) -C init install-testconfig DESTDIR='$(DESTDIR)'
-	cp $^ '$(DESTDIR)$(etcdir)/siteconfig.tcl'
+	$(INSTALL_DATA) $^ '$(DESTDIR)$(etcdir)/siteconfig.tcl'
 
 install-testmodulerc: testsuite/example/modulerc
 	$(MAKE) -C init install-testconfig DESTDIR='$(DESTDIR)'
-	cp $^ '$(DESTDIR)$(initrc)'
+	$(INSTALL_DATA) $^ '$(DESTDIR)$(initrc)'
 
 install-testinitrc-1: testsuite/example/initrc-1
 	$(MAKE) -C init install-testconfig DESTDIR='$(DESTDIR)'
-	cp $^ '$(DESTDIR)$(initrc)'
+	$(INSTALL_DATA) $^ '$(DESTDIR)$(initrc)'
 
 install-testinitrc: testsuite/example/initrc
 	$(MAKE) -C init install-testconfig DESTDIR='$(DESTDIR)'
-	cp $^ '$(DESTDIR)$(initrc)'
+	$(INSTALL_DATA) $^ '$(DESTDIR)$(initrc)'
 
 install-testetcrc: testsuite/etc/empty
 	$(MAKE) -C init install-testconfig DESTDIR='$(DESTDIR)'
-	cp $^ '$(DESTDIR)$(etcdir)/rc'
+	$(INSTALL_DATA) $^ '$(DESTDIR)$(etcdir)/rc'
 
 install-testmodspath: testsuite/example/.modulespath
 	$(MAKE) -C init install-testconfig DESTDIR='$(DESTDIR)'
-	cp $^ '$(DESTDIR)$(modulespath)'
+	$(INSTALL_DATA) $^ '$(DESTDIR)$(modulespath)'
 
 install-testmodspath-empty: testsuite/example/modulespath-empty
 	$(MAKE) -C init install-testconfig DESTDIR='$(DESTDIR)'
-	cp $^ '$(DESTDIR)$(modulespath)'
+	$(INSTALL_DATA) $^ '$(DESTDIR)$(modulespath)'
 
 install-testmodspath-wild: testsuite/example/modulespath-wild
 	$(MAKE) -C init install-testconfig DESTDIR='$(DESTDIR)'
-	cp $^ '$(DESTDIR)$(modulespath)'
+	$(INSTALL_DATA) $^ '$(DESTDIR)$(modulespath)'
 
 uninstall-testconfig:
 	rm -f '$(DESTDIR)$(etcdir)/rc'
@@ -623,56 +629,47 @@ uninstall-testconfig:
 space := $(subst ,, )
 
 install: $(INSTALL_PREREQ)
-	mkdir -p '$(DESTDIR)$(libexecdir)'
-	mkdir -p '$(DESTDIR)$(bindir)'
-	mkdir -p '$(DESTDIR)$(etcdir)'
-	cp modulecmd.tcl '$(DESTDIR)$(libexecdir)/'
-	chmod +x '$(DESTDIR)$(libexecdir)/modulecmd.tcl'
+	$(INSTALL_DIR) '$(DESTDIR)$(libexecdir)'
+	$(INSTALL_DIR) '$(DESTDIR)$(bindir)'
+	$(INSTALL_DIR) '$(DESTDIR)$(etcdir)'
+	$(INSTALL_PROGRAM) modulecmd.tcl '$(DESTDIR)$(libexecdir)/'
 ifeq ($(libtclenvmodules),y)
-	mkdir -p '$(DESTDIR)$(libdir)'
-	cp lib/libtclenvmodules$(SHLIB_SUFFIX) '$(DESTDIR)$(libdir)/libtclenvmodules$(SHLIB_SUFFIX)'
-	chmod +x '$(DESTDIR)$(libdir)/libtclenvmodules$(SHLIB_SUFFIX)'
+	$(INSTALL_DIR) '$(DESTDIR)$(libdir)'
+	$(INSTALL_PROGRAM) lib/libtclenvmodules$(SHLIB_SUFFIX) '$(DESTDIR)$(libdir)/'
 endif
-	cp script/envml '$(DESTDIR)$(bindir)/'
-	chmod +x '$(DESTDIR)$(bindir)/envml'
-	cp script/add.modules '$(DESTDIR)$(bindir)/'
-	chmod +x '$(DESTDIR)$(bindir)/add.modules'
-	cp script/modulecmd '$(DESTDIR)$(bindir)/'
-	chmod +x '$(DESTDIR)$(bindir)/modulecmd'
-	cp script/mkroot '$(DESTDIR)$(bindir)/'
-	chmod +x '$(DESTDIR)$(bindir)/mkroot'
+	$(INSTALL_PROGRAM) script/envml '$(DESTDIR)$(bindir)/'
+	$(INSTALL_PROGRAM) script/add.modules '$(DESTDIR)$(bindir)/'
+	$(INSTALL_PROGRAM) script/modulecmd '$(DESTDIR)$(bindir)/'
+	$(INSTALL_PROGRAM) script/mkroot '$(DESTDIR)$(bindir)/'
 ifeq ($(windowssupport),y)
-	cp script/module.cmd '$(DESTDIR)$(bindir)/'
-	chmod +x '$(DESTDIR)$(bindir)/module.cmd'
-	cp script/ml.cmd '$(DESTDIR)$(bindir)/'
-	chmod +x '$(DESTDIR)$(bindir)/ml.cmd'
-	cp script/envml.cmd '$(DESTDIR)$(bindir)/'
-	chmod +x '$(DESTDIR)$(bindir)/envml.cmd'
+	$(INSTALL_PROGRAM) script/module.cmd '$(DESTDIR)$(bindir)/'
+	$(INSTALL_PROGRAM) script/ml.cmd '$(DESTDIR)$(bindir)/'
+	$(INSTALL_PROGRAM) script/envml.cmd '$(DESTDIR)$(bindir)/'
 endif
 ifneq ($(wildcard $(subst $(space),\$(space),$(DESTDIR)$(etcdir)/siteconfig.tcl)),$(DESTDIR)$(etcdir)/siteconfig.tcl)
-	cp siteconfig.tcl '$(DESTDIR)$(etcdir)/siteconfig.tcl'
+	$(INSTALL_DATA) siteconfig.tcl '$(DESTDIR)$(etcdir)/'
 endif
 ifeq ($(docinstall),y)
-	mkdir -p '$(DESTDIR)$(docdir)'
-	cp COPYING.GPLv2 '$(DESTDIR)$(docdir)/'
-	cp ChangeLog '$(DESTDIR)$(docdir)/'
-	cp README '$(DESTDIR)$(docdir)/'
+	$(INSTALL_DIR) '$(DESTDIR)$(docdir)'
+	$(INSTALL_DATA) COPYING.GPLv2 '$(DESTDIR)$(docdir)/'
+	$(INSTALL_DATA) ChangeLog '$(DESTDIR)$(docdir)/'
+	$(INSTALL_DATA) README '$(DESTDIR)$(docdir)/'
 endif
 ifeq ($(vimaddons),y)
-	mkdir -p '$(DESTDIR)$(vimdatadir)/ftdetect'
-	mkdir -p '$(DESTDIR)$(vimdatadir)/ftplugin'
-	mkdir -p '$(DESTDIR)$(vimdatadir)/syntax'
-	cp  contrib/vim/ftdetect/modulefile.vim  '$(DESTDIR)$(vimdatadir)/ftdetect'
-	cp  contrib/vim/ftplugin/modulefile.vim  '$(DESTDIR)$(vimdatadir)/ftplugin'
-	cp  contrib/vim/syntax/modulefile.vim    '$(DESTDIR)$(vimdatadir)/syntax'
+	$(INSTALL_DIR) '$(DESTDIR)$(vimdatadir)/ftdetect'
+	$(INSTALL_DIR) '$(DESTDIR)$(vimdatadir)/ftplugin'
+	$(INSTALL_DIR) '$(DESTDIR)$(vimdatadir)/syntax'
+	$(INSTALL_DATA) contrib/vim/ftdetect/modulefile.vim '$(DESTDIR)$(vimdatadir)/ftdetect'
+	$(INSTALL_DATA) contrib/vim/ftplugin/modulefile.vim '$(DESTDIR)$(vimdatadir)/ftplugin'
+	$(INSTALL_DATA) contrib/vim/syntax/modulefile.vim '$(DESTDIR)$(vimdatadir)/syntax'
 endif
 ifeq ($(nagelfaraddons),y)
-	mkdir -p '$(DESTDIR)$(nagelfardatadir)'
-	cp contrib/nagelfar/plugin_modulefile.tcl  '$(DESTDIR)$(nagelfardatadir)/'
-	cp contrib/nagelfar/plugin_modulerc.tcl  '$(DESTDIR)$(nagelfardatadir)/'
-	cp contrib/nagelfar/plugin_globalrc.tcl  '$(DESTDIR)$(nagelfardatadir)/'
-	cp contrib/nagelfar/syntaxdb_modulefile.tcl  '$(DESTDIR)$(nagelfardatadir)/'
-	cp contrib/nagelfar/syntaxdb_modulerc.tcl  '$(DESTDIR)$(nagelfardatadir)/'
+	$(INSTALL_DIR) '$(DESTDIR)$(nagelfardatadir)'
+	$(INSTALL_DATA) contrib/nagelfar/plugin_modulefile.tcl  '$(DESTDIR)$(nagelfardatadir)/'
+	$(INSTALL_DATA) contrib/nagelfar/plugin_modulerc.tcl  '$(DESTDIR)$(nagelfardatadir)/'
+	$(INSTALL_DATA) contrib/nagelfar/plugin_globalrc.tcl  '$(DESTDIR)$(nagelfardatadir)/'
+	$(INSTALL_DATA) contrib/nagelfar/syntaxdb_modulefile.tcl  '$(DESTDIR)$(nagelfardatadir)/'
+	$(INSTALL_DATA) contrib/nagelfar/syntaxdb_modulerc.tcl  '$(DESTDIR)$(nagelfardatadir)/'
 endif
 	$(MAKE) -C init install DESTDIR='$(DESTDIR)'
 ifneq ($(builddoc),n)
@@ -770,27 +767,27 @@ dist: dist-gzip
 # dist zip ball for Windows platform with all pre-generated relevant files
 dist-win: modulecmd.tcl ChangeLog README pkgdoc
 	$(ECHO_GEN2) $(DIST_WIN_PREFIX).zip
-	mkdir $(DIST_WIN_PREFIX)
-	mkdir $(DIST_WIN_PREFIX)/libexec
-	cp modulecmd.tcl $(DIST_WIN_PREFIX)/libexec/
-	mkdir $(DIST_WIN_PREFIX)/bin
-	cp script/module.cmd $(DIST_WIN_PREFIX)/bin/
-	cp script/ml.cmd $(DIST_WIN_PREFIX)/bin/
-	cp script/envml.cmd $(DIST_WIN_PREFIX)/bin/
-	mkdir $(DIST_WIN_PREFIX)/doc
-	cp COPYING.GPLv2 $(DIST_WIN_PREFIX)/doc/
-	cp ChangeLog $(DIST_WIN_PREFIX)/doc/
-	cp README $(DIST_WIN_PREFIX)/doc/
-	cp doc/build/MIGRATING.txt $(DIST_WIN_PREFIX)/doc/
-	cp doc/build/INSTALL-win.txt $(DIST_WIN_PREFIX)/doc/
-	cp doc/build/NEWS.txt $(DIST_WIN_PREFIX)/doc/
-	cp doc/build/CONTRIBUTING.txt $(DIST_WIN_PREFIX)/doc/
-	cp doc/build/module.txt $(DIST_WIN_PREFIX)/doc/
-	cp doc/build/modulefile.txt $(DIST_WIN_PREFIX)/doc/
+	$(INSTALL_DIR) $(DIST_WIN_PREFIX)
+	$(INSTALL_DIR) $(DIST_WIN_PREFIX)/libexec
+	$(INSTALL_PROGRAM) modulecmd.tcl $(DIST_WIN_PREFIX)/libexec/
+	$(INSTALL_DIR) $(DIST_WIN_PREFIX)/bin
+	$(INSTALL_PROGRAM) script/module.cmd $(DIST_WIN_PREFIX)/bin/
+	$(INSTALL_PROGRAM) script/ml.cmd $(DIST_WIN_PREFIX)/bin/
+	$(INSTALL_PROGRAM) script/envml.cmd $(DIST_WIN_PREFIX)/bin/
+	$(INSTALL_DIR) $(DIST_WIN_PREFIX)/doc
+	$(INSTALL_DATA) COPYING.GPLv2 $(DIST_WIN_PREFIX)/doc/
+	$(INSTALL_DATA) ChangeLog $(DIST_WIN_PREFIX)/doc/
+	$(INSTALL_DATA) README $(DIST_WIN_PREFIX)/doc/
+	$(INSTALL_DATA) doc/build/MIGRATING.txt $(DIST_WIN_PREFIX)/doc/
+	$(INSTALL_DATA) doc/build/INSTALL-win.txt $(DIST_WIN_PREFIX)/doc/
+	$(INSTALL_DATA) doc/build/NEWS.txt $(DIST_WIN_PREFIX)/doc/
+	$(INSTALL_DATA) doc/build/CONTRIBUTING.txt $(DIST_WIN_PREFIX)/doc/
+	$(INSTALL_DATA) doc/build/module.txt $(DIST_WIN_PREFIX)/doc/
+	$(INSTALL_DATA) doc/build/modulefile.txt $(DIST_WIN_PREFIX)/doc/
 	$(MAKE) --no-print-directory -C init dist-win DIST_WIN_PREFIX=../$(DIST_WIN_PREFIX)
-	cp script/INSTALL.bat $(DIST_WIN_PREFIX)/
-	cp script/UNINSTALL.bat $(DIST_WIN_PREFIX)/
-	cp script/TESTINSTALL.bat $(DIST_WIN_PREFIX)/
+	$(INSTALL_PROGRAM) script/INSTALL.bat $(DIST_WIN_PREFIX)/
+	$(INSTALL_PROGRAM) script/UNINSTALL.bat $(DIST_WIN_PREFIX)/
+	$(INSTALL_PROGRAM) script/TESTINSTALL.bat $(DIST_WIN_PREFIX)/
 	zip -r $(DIST_WIN_PREFIX).zip $(DIST_WIN_PREFIX)
 	rm -rf $(DIST_WIN_PREFIX)
 

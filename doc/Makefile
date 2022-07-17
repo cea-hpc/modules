@@ -7,6 +7,11 @@ BUILD_DIR := build
 
 SPHINXOPTS := -q
 
+# commands to install files
+INSTALL = install
+INSTALL_DIR = $(INSTALL) -d -m 755
+INSTALL_DATA = $(INSTALL) -m 644
+
 # source definitions shared across the Makefiles of this project
 ifneq ($(wildcard ../Makefile.inc),../Makefile.inc)
   $(error ../Makefile.inc is missing, please run '../configure')
@@ -104,19 +109,19 @@ $(BUILD_DIR)/module.1: $(BUILD_DIR)/module.1.in
 	$(translate-in-script)
 
 install: man txt
-	mkdir -p '$(DESTDIR)$(mandir)/man1' '$(DESTDIR)$(mandir)/man4'
+	$(INSTALL_DIR) '$(DESTDIR)$(mandir)/man1' '$(DESTDIR)$(mandir)/man4'
 ifeq ($(docinstall),y)
-	mkdir -p '$(DESTDIR)$(docdir)'
-	cp $(BUILD_DIR)/changes.txt '$(DESTDIR)$(docdir)/'
-	cp $(BUILD_DIR)/MIGRATING.txt '$(DESTDIR)$(docdir)/'
-	cp $(BUILD_DIR)/INSTALL.txt '$(DESTDIR)$(docdir)/'
-	cp $(BUILD_DIR)/INSTALL-win.txt '$(DESTDIR)$(docdir)/'
-	cp $(BUILD_DIR)/NEWS.txt '$(DESTDIR)$(docdir)/'
-	cp $(BUILD_DIR)/CONTRIBUTING.txt '$(DESTDIR)$(docdir)/'
+	$(INSTALL_DIR) '$(DESTDIR)$(docdir)'
+	$(INSTALL_DATA) $(BUILD_DIR)/changes.txt '$(DESTDIR)$(docdir)/'
+	$(INSTALL_DATA) $(BUILD_DIR)/MIGRATING.txt '$(DESTDIR)$(docdir)/'
+	$(INSTALL_DATA) $(BUILD_DIR)/INSTALL.txt '$(DESTDIR)$(docdir)/'
+	$(INSTALL_DATA) $(BUILD_DIR)/INSTALL-win.txt '$(DESTDIR)$(docdir)/'
+	$(INSTALL_DATA) $(BUILD_DIR)/NEWS.txt '$(DESTDIR)$(docdir)/'
+	$(INSTALL_DATA) $(BUILD_DIR)/CONTRIBUTING.txt '$(DESTDIR)$(docdir)/'
 endif
-	cp $(BUILD_DIR)/module.1 '$(DESTDIR)$(mandir)/man1/'
-	cp $(BUILD_DIR)/ml.1 '$(DESTDIR)$(mandir)/man1/'
-	cp $(BUILD_DIR)/modulefile.4 '$(DESTDIR)$(mandir)/man4/'
+	$(INSTALL_DATA) $(BUILD_DIR)/module.1 '$(DESTDIR)$(mandir)/man1/'
+	$(INSTALL_DATA) $(BUILD_DIR)/ml.1 '$(DESTDIR)$(mandir)/man1/'
+	$(INSTALL_DATA) $(BUILD_DIR)/modulefile.4 '$(DESTDIR)$(mandir)/man4/'
 
 uninstall:
 ifeq ($(docinstall),y)
