@@ -65,8 +65,6 @@ Start coding
 .. _create a pull request: https://help.github.com/articles/creating-a-pull-request/
 .. _Tcl 8.5 commands reference: https://www.tcl.tk/man/tcl8.5/TclCmd/contents.htm
 
-.. _running-the-tests:
-
 Design notes
 ~~~~~~~~~~~~
 
@@ -75,6 +73,8 @@ there some development howtos:
 
 * :ref:`add-new-sub-command`
 * :ref:`add-new-config-option`
+
+.. _running-the-tests:
 
 Running the tests
 ~~~~~~~~~~~~~~~~~
