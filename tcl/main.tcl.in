@@ -135,7 +135,7 @@ proc parseModuleCommandName {command defaultcmd} {
       restore saverm saveshow savelist initadd initprepend initswitch initrm\
       initlist initclear autoinit clear config help test prepend-path\
       append-path remove-path is-loaded is-saved is-used is-avail info-loaded\
-      sh-to-mod edit try-load refresh state load-any lint]}]
+      sh-to-mod edit try-load refresh state load-any lint mod-to-sh]}]
 
    reportDebug "(command=$command, cmdvalid=$cmdvalid, cmdempty=$cmdempty)"
    return [list $command $cmdvalid $cmdempty]
@@ -384,7 +384,7 @@ proc module {command args} {
    # parse module version specification
    defineParseModuleSpecificationProc [getConf advanced_version_spec]
    if {$command in [list avail paths whatis load unload switch help test\
-      display path is-avail edit try-load load-any list lint]} {
+      display path is-avail edit try-load load-any list lint mod-to-sh]} {
       set args [parseModuleSpecification 0 {*}$args]
    }
 
@@ -394,7 +394,7 @@ proc module {command args} {
          path - paths - autoinit - help - prepend-path - append-path -\
          remove-path - is-loaded - is-saved - is-used - is-avail -\
          info-loaded - clear - sh-to-mod - edit - refresh - source - state -\
-         lint {
+         lint - mod-to-sh {
             knerror "${msgprefix}Command '$command' not supported$tryhelpmsg"
          }
       }
@@ -444,7 +444,7 @@ proc module {command args} {
             set argnberr 1
          }
       }
-      prepend-path - append-path - remove-path - sh-to-mod {
+      prepend-path - append-path - remove-path - sh-to-mod - mod-to-sh {
          if {[llength $args] < 2} {
             set argnberr 1
          }
@@ -729,6 +729,9 @@ proc module {command args} {
       }
       lint {
          cmdModuleLint {*}$args
+      }
+      mod-to-sh {
+         cmdModuleModToSh {*}$args
       }
       help {
          cmdModuleHelp {*}$args
@@ -1045,7 +1048,7 @@ if {[catch {
                   set accept_minus_arg [expr {$subcmdtest eq {ml} ||\
                      ([getConf advanced_version_spec] && $subcmdtest in\
                      {avail list display help is-avail is-loaded load path\
-                     paths switch test unload whatis})}]
+                     paths switch test unload whatis mod-to-sh})}]
                }
                # spare argument if minus arg is accepted
                if {[info exists accept_minus_arg] && $accept_minus_arg} {
