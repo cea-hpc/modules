@@ -384,7 +384,7 @@ the *modulefile* is being loaded.
  | :subcmd:`unload`,              | sub-command.        |                     |
  | :subcmd:`unuse`, :subcmd:`use`.|                     |                     |
  | Also available but not recomm\ |                     |                     |
- | anded for use from regular     |                     |                     |
+ | ended for use from regular     |                     |                     |
  | modulefile: :subcmd:`aliases`, |                     |                     |
  | :subcmd:`avail`,               |                     |                     |
  | :subcmd:`display`,             |                     |                     |

@@ -90,7 +90,7 @@ Files that should be edited:
 
 - :file:`doc/source/modulefile.rst` (modulefile manpage)
 
-    - mention if sub-command cannot be called from the modulefile evaluation
+    - mention if sub-command can be called from the modulefile evaluation
       context under :mfcmd:`module` modulefile command section
     - if sub-command leads to modulefile evaluation, mention sub-command name
       in the list of value returned by :mfcmd:`module-info
