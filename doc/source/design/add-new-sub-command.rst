@@ -61,7 +61,8 @@ Example commit: :ghcommit:`0a96ed64`
 Linter scripts
 --------------
 
-New sub-commands should be described in Nagelfar syntax databases.
+New sub-commands should be described in Nagelfar syntax databases if it can be
+called within a modulefile context.
 
 Files that should be edited to add reference to the new sub-command:
 
