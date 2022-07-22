@@ -675,7 +675,7 @@ proc initErrorReport {} {
       if {[isVerbosityLevel debug] && [getState timer] || [isVerbosityLevel\
          debug2]} {
          # list of core procedures to exclude from tracing
-         set excl_prc_list [list report reportDebug reportTimer\
+         set excl_prc_list [list report reportDebug reportFlush reportTimer\
             reportTraceExecEnter reportTimerExecEnter reportTimerExecLeave\
             initProcReportTrace isVerbosityLevel reportSeparateNextContent\
             getState setState unsetState lappendState lpopState currentState\
@@ -709,6 +709,43 @@ proc releaseHeldReport {args} {
          }
          unset ::g_holdReport($holdid)
       }
+   }
+}
+
+# final message output and reportfd flush and close
+proc reportFlush {} {
+   # report execution time if asked
+   if {[getState timer]} {
+      reportSeparateNextContent
+      reportTimer "Total execution took %.3f ms" $::timer_start [clock\
+         microseconds]
+   }
+
+   # finish output document if json format enabled
+   if {[isStateEqual report_format json]} {
+      # render error messages all together
+      if {[info exists ::g_report_erralist]} {
+         # ignite report first to get eventual error message from report
+         # initialization in order 'foreach' got all messages prior firing
+         report "\"errors\": \[" 1
+         foreach {sev msg} $::g_report_erralist {
+            # split message in lines
+            lappend dispmsglist "\n{ \"severity\": \"$sev\", \"message\": \[\
+               \"[join [split [charEscaped $msg \"] \n] {", "}]\" \] }"
+         }
+         report "[join $dispmsglist ,] \]"
+      }
+      # inhibit next content separator if output is ending
+      if {[isStateDefined report_sep_next]} {
+         unsetState report_sep_next
+      }
+      report \}
+   }
+
+   # close pager if enabled
+   if {[isStateDefined reportfd] && ![isStateEqual reportfd stderr]} {
+      catch {flush [getState reportfd]}
+      catch {close [getState reportfd]}
    }
 }
 
