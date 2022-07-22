@@ -40,31 +40,31 @@ proc renderFalse {} {
          sh - csh - fish {
             # no need to set a variable on real shells as last statement
             # result can easily be checked
-            puts stdout {test 0 = 1;}
+            lappend ::g_shcode_out {test 0 = 1;}
          }
          tcl {
-            puts stdout {set _mlstatus 0;}
+            lappend ::g_shcode_out {set _mlstatus 0;}
          }
          cmd {
-            puts stdout {set errorlevel=1}
+            lappend ::g_shcode_out {set errorlevel=1}
          }
          perl {
-            puts stdout {{ no strict 'vars'; $_mlstatus = 0; }}
+            lappend ::g_shcode_out {{ no strict 'vars'; $_mlstatus = 0; }}
          }
          python {
-            puts stdout {_mlstatus = False}
+            lappend ::g_shcode_out {_mlstatus = False}
          }
          ruby {
-            puts stdout {_mlstatus = false}
+            lappend ::g_shcode_out {_mlstatus = false}
          }
          lisp {
-            puts stdout {nil}
+            lappend ::g_shcode_out {nil}
          }
          cmake {
-            puts stdout {set(_mlstatus FALSE)}
+            lappend ::g_shcode_out {set(_mlstatus FALSE)}
          }
          r {
-            puts stdout {mlstatus <- FALSE}
+            lappend ::g_shcode_out {mlstatus <- FALSE}
          }
       }
    }
@@ -79,31 +79,31 @@ proc renderTrue {} {
       sh - csh - fish {
          # no need to set a variable on real shells as last statement
          # result can easily be checked
-         puts stdout {test 0;}
+         lappend ::g_shcode_out {test 0;}
       }
       tcl {
-         puts stdout {set _mlstatus 1;}
+         lappend ::g_shcode_out {set _mlstatus 1;}
       }
       cmd {
-         puts stdout {set errorlevel=0}
+         lappend ::g_shcode_out {set errorlevel=0}
       }
       perl {
-         puts stdout {{ no strict 'vars'; $_mlstatus = 1; }}
+         lappend ::g_shcode_out {{ no strict 'vars'; $_mlstatus = 1; }}
       }
       python {
-         puts stdout {_mlstatus = True}
+         lappend ::g_shcode_out {_mlstatus = True}
       }
       ruby {
-         puts stdout {_mlstatus = true}
+         lappend ::g_shcode_out {_mlstatus = true}
       }
       lisp {
-         puts stdout {t}
+         lappend ::g_shcode_out {t}
       }
       cmake {
-         puts stdout {set(_mlstatus TRUE)}
+         lappend ::g_shcode_out {set(_mlstatus TRUE)}
       }
       r {
-         puts stdout {mlstatus <- TRUE}
+         lappend ::g_shcode_out {mlstatus <- TRUE}
       }
    }
 }
@@ -117,44 +117,41 @@ proc renderText {text} {
          foreach word $text {
             # no need to set a variable on real shells, echoing text will make
             # it available as result
-            puts stdout "echo '$word';"
+            lappend ::g_shcode_out "echo '$word';"
          }
       }
       tcl {
-         puts stdout "set _mlstatus \"$text\";"
+         lappend ::g_shcode_out "set _mlstatus \"$text\";"
       }
       cmd {
          foreach word $text {
-            puts stdout "echo $word"
+            lappend ::g_shcode_out "echo $word"
          }
       }
       perl {
-         puts stdout "{ no strict 'vars'; \$_mlstatus = '$text'; }"
+         lappend ::g_shcode_out "{ no strict 'vars'; \$_mlstatus = '$text'; }"
       }
       python {
-         puts stdout "_mlstatus = '$text'"
+         lappend ::g_shcode_out "_mlstatus = '$text'"
       }
       ruby {
-         puts stdout "_mlstatus = '$text'"
+         lappend ::g_shcode_out "_mlstatus = '$text'"
       }
       lisp {
-         puts stdout "(message \"$text\")"
+         lappend ::g_shcode_out "(message \"$text\")"
       }
       cmake {
-         puts stdout "set(_mlstatus \"$text\")"
+         lappend ::g_shcode_out "set(_mlstatus \"$text\")"
       }
       r {
-         puts stdout "mlstatus <- '$text'"
+         lappend ::g_shcode_out "mlstatus <- '$text'"
       }
    }
 }
 
 proc renderSettings {} {
    global g_stateEnvVars g_stateAliases g_stateFunctions g_stateCompletes\
-      g_newXResources g_delXResources
-
-   # required to work on cygwin, shouldn't hurt real linux
-   fconfigure stdout -translation lf
+      g_newXResources g_delXResources g_shcode_out
 
    # preliminaries if there is stuff to render
    if {[getState autoinit] || [array size g_stateEnvVars] > 0 ||\
@@ -165,7 +162,7 @@ proc renderSettings {} {
       [info exists ::g_return_text]} {
       switch -- [getState shelltype] {
          python {
-            puts stdout {import os}
+            lappend g_shcode_out {import os}
          }
       }
       set has_rendered 1
@@ -175,13 +172,16 @@ proc renderSettings {} {
 
    # send pre content deferred during modulefile interpretation
    if {[info exists ::g_prestdoutPuts]} {
-      foreach putsArgs $::g_prestdoutPuts {
-         puts {*}$putsArgs
-         # check if a finishing newline will be needed after content sent
-         set needPutsNl [expr {[lindex $putsArgs 0] eq {-nonewline}}]
+      foreach {newline msg} $::g_prestdoutPuts {
+         append outmsg $msg
+         if {$newline} {
+            lappend g_shcode_out $outmsg
+            unset outmsg
+         }
       }
-      if {$needPutsNl} {
-         puts stdout {}
+      # add last remaining message
+      if {[info exists outmsg]} {
+         lappend g_shcode_out $outmsg
       }
    }
 
@@ -212,10 +212,10 @@ proc renderSettings {} {
                            csh_limit]  - 1}]]
                      }
                   }
-                  puts stdout "setenv $var $val;"
+                  lappend g_shcode_out "setenv $var $val;"
                }
                sh {
-                  puts stdout "$var=[charEscaped $::env($var)];\
+                  lappend g_shcode_out "$var=[charEscaped $::env($var)];\
                      export $var;"
                }
                fish {
@@ -226,77 +226,77 @@ proc renderSettings {} {
                   if {$var eq {PATH}} {
                      regsub -all : $val { } val
                   }
-                  puts stdout "set -xg $var $val;"
+                  lappend g_shcode_out "set -xg $var $val;"
                }
                tcl {
                   set val $::env($var)
-                  puts stdout "set ::env($var) {$val};"
+                  lappend g_shcode_out "set ::env($var) {$val};"
                }
                cmd {
                   set val $::env($var)
-                  puts stdout "set $var=$val"
+                  lappend g_shcode_out "set $var=$val"
                }
                perl {
                   set val [charEscaped $::env($var) \']
-                  puts stdout "\$ENV{'$var'} = '$val';"
+                  lappend g_shcode_out "\$ENV{'$var'} = '$val';"
                }
                python {
                   set val [charEscaped $::env($var) \']
-                  puts stdout "os.environ\['$var'\] = '$val'"
+                  lappend g_shcode_out "os.environ\['$var'\] = '$val'"
                }
                ruby {
                   set val [charEscaped $::env($var) \']
-                  puts stdout "ENV\['$var'\] = '$val'"
+                  lappend g_shcode_out "ENV\['$var'\] = '$val'"
                }
                lisp {
                   set val [charEscaped $::env($var) \"]
-                  puts stdout "(setenv \"$var\" \"$val\")"
+                  lappend g_shcode_out "(setenv \"$var\" \"$val\")"
                }
                cmake {
                   set val [charEscaped $::env($var) \"]
-                  puts stdout "set(ENV{$var} \"$val\")"
+                  lappend g_shcode_out "set(ENV{$var} \"$val\")"
                }
                r {
                   set val [charEscaped $::env($var) {\\'}]
-                  puts stdout "Sys.setenv('$var'='$val')"
+                  lappend g_shcode_out "Sys.setenv('$var'='$val')"
                }
             }
          }
          del {
             switch -- [getState shelltype] {
                csh {
-                  puts stdout "unsetenv $var;"
+                  lappend g_shcode_out "unsetenv $var;"
                }
                sh {
-                  puts stdout "unset $var;"
+                  lappend g_shcode_out "unset $var;"
                }
                fish {
-                  puts stdout "set -e $var;"
+                  lappend g_shcode_out "set -e $var;"
                }
                tcl {
-                  puts stdout "catch {unset ::env($var)};"
+                  lappend g_shcode_out "catch {unset ::env($var)};"
                }
                cmd {
-                  puts stdout "set $var="
+                  lappend g_shcode_out "set $var="
                }
                perl {
-                  puts stdout "delete \$ENV{'$var'};"
+                  lappend g_shcode_out "delete \$ENV{'$var'};"
                }
                python {
-                  puts stdout "os.environ\['$var'\] = ''"
-                  puts stdout "del os.environ\['$var'\]"
+                  lappend g_shcode_out "os.environ\['$var'\] = ''"
+                  lappend g_shcode_out "del os.environ\['$var'\]"
                }
                ruby {
-                  puts stdout "ENV\['$var'\] = nil"
+                  lappend g_shcode_out "ENV\['$var'\] = nil"
                }
                lisp {
-                  puts stdout "(setenv \"$var\" nil)"
+                  lappend g_shcode_out "(setenv \"$var\" nil)"
                }
                cmake {
-                  puts stdout "unset(ENV{$var})"
+                  lappend g_shcode_out "unset(ENV{$var})"
                }
                r {
-                  puts stdout "Sys.unsetenv('$var')"
+                  lappend g_shcode_out "Sys.unsetenv('$var')"
                }
             }
          }
@@ -317,34 +317,34 @@ proc renderSettings {} {
             switch -- [getState shelltype] {
                csh {
                   set val [charEscaped $val]
-                  puts stdout "alias $var $val;"
+                  lappend g_shcode_out "alias $var $val;"
                }
                sh {
                   set val [charEscaped $val]
-                  puts stdout "alias $var=$val;"
+                  lappend g_shcode_out "alias $var=$val;"
                }
                fish {
                   set val [charEscaped $val]
-                  puts stdout "alias $var $val;"
+                  lappend g_shcode_out "alias $var $val;"
                }
                cmd {
-                  puts stdout "doskey $var=$val"
+                  lappend g_shcode_out "doskey $var=$val"
                }
             }
          }
          del {
             switch -- [getState shelltype] {
                csh {
-                  puts stdout "unalias $var;"
+                  lappend g_shcode_out "unalias $var;"
                }
                sh {
-                  puts stdout "unalias $var;"
+                  lappend g_shcode_out "unalias $var;"
                }
                fish {
-                  puts stdout "functions -e $var;"
+                  lappend g_shcode_out "functions -e $var;"
                }
                cmd {
-                  puts stdout "doskey $var="
+                  lappend g_shcode_out "doskey $var="
                }
             }
          }
@@ -357,23 +357,24 @@ proc renderSettings {} {
             set val [string trim $::g_Functions($funcname) "; \t\n\r"]
             switch -- [getState shell] {
                sh - ksh - zsh {
-                  puts stdout "$funcname () { $val; };"
+                  lappend g_shcode_out "$funcname () { $val; };"
                }
                bash {
-                  puts stdout "$funcname () { $val; }; export -f $funcname;"
+                  lappend g_shcode_out "$funcname () { $val; }; export -f\
+                     $funcname;"
                }
                fish {
-                  puts stdout "function $funcname; $val; end;"
+                  lappend g_shcode_out "function $funcname; $val; end;"
                }
             }
          }
          del {
             switch -- [getState shelltype] {
                sh {
-                  puts stdout "unset -f $funcname;"
+                  lappend g_shcode_out "unset -f $funcname;"
                }
                fish {
-                  puts stdout "functions -e $funcname;"
+                  lappend g_shcode_out "functions -e $funcname;"
                }
             }
          }
@@ -387,18 +388,18 @@ proc renderSettings {} {
                if {$compshell eq [getState shell]} {
                   switch -- [getState shell] {
                      bash {
-                        puts stdout "complete $body $compname;"
+                        lappend g_shcode_out "complete $body $compname;"
                      }
                      tcsh {
-                        puts stdout "complete $compname $body;"
+                        lappend g_shcode_out "complete $compname $body;"
                      }
                      fish {
                         # ensure pre-existing fish completion is cleared
                         if {![info exists fishcompclear($compname)]} {
-                           puts stdout "complete -e -c $compname;"
+                           lappend g_shcode_out "complete -e -c $compname;"
                            set fishcompclear($compname) 1
                         }
-                        puts stdout "complete -c $compname $body;"
+                        lappend g_shcode_out "complete -c $compname $body;"
                      }
                   }
                }
@@ -407,13 +408,13 @@ proc renderSettings {} {
          del {
             switch -- [getState shell] {
                bash {
-                  puts stdout "complete -r $compname;"
+                  lappend g_shcode_out "complete -r $compname;"
                }
                tcsh {
-                  puts stdout "uncomplete $compname;"
+                  lappend g_shcode_out "uncomplete $compname;"
                }
                fish {
-                  puts stdout "complete -e -c $compname;"
+                  lappend g_shcode_out "complete -e -c $compname;"
                }
             }
          }
@@ -424,10 +425,10 @@ proc renderSettings {} {
    if {[array size g_newXResources] > 0 || [array size g_delXResources] > 0} {
       switch -- [getState shelltype] {
          python {
-            puts stdout {import subprocess}
+            lappend g_shcode_out {import subprocess}
          }
          ruby {
-            puts stdout {require 'open3'}
+            lappend g_shcode_out {require 'open3'}
          }
       }
    }
@@ -442,33 +443,34 @@ proc renderSettings {} {
          if {$val eq {}} {
             switch -- [getState shelltype] {
                sh - csh - fish {
-                  puts stdout "$xrdb -merge $var;"
+                  lappend g_shcode_out "$xrdb -merge $var;"
                }
                tcl {
-                  puts stdout "exec $xrdb -merge $var;"
+                  lappend g_shcode_out "exec $xrdb -merge $var;"
                }
                perl {
-                  puts stdout "system(\"$xrdb -merge $var\");"
+                  lappend g_shcode_out "system(\"$xrdb -merge $var\");"
                }
                python {
                   set var [charEscaped $var \']
-                  puts stdout "subprocess.Popen(\['$xrdb',\
+                  lappend g_shcode_out "subprocess.Popen(\['$xrdb',\
                      '-merge', '$var'\])"
                }
                ruby {
                   set var [charEscaped $var \']
-                  puts stdout "Open3.popen2('$xrdb -merge $var')"
+                  lappend g_shcode_out "Open3.popen2('$xrdb -merge $var')"
                }
                lisp {
-                  puts stdout "(shell-command-to-string \"$xrdb\
+                  lappend g_shcode_out "(shell-command-to-string \"$xrdb\
                      -merge $var\")"
                }
                cmake {
-                  puts stdout "execute_process(COMMAND $xrdb -merge $var)"
+                  lappend g_shcode_out "execute_process(COMMAND $xrdb -merge\
+                     $var)"
                }
                r {
                   set var [charEscaped $var {\\'}]
-                  puts stdout "system('$xrdb -merge $var')"
+                  lappend g_shcode_out "system('$xrdb -merge $var')"
                }
             }
          } else {
@@ -476,50 +478,52 @@ proc renderSettings {} {
                sh - csh - fish {
                   set var [charEscaped $var \"]
                   set val [charEscaped $val \"]
-                  puts stdout "echo \"$var: $val\" | $xrdb -merge;"
+                  lappend g_shcode_out "echo \"$var: $val\" | $xrdb -merge;"
                }
                tcl {
-                  puts stdout "set XRDBPIPE \[open \"|$xrdb -merge\" r+\];"
+                  lappend g_shcode_out "set XRDBPIPE \[open \"|$xrdb -merge\"\
+                     r+\];"
                   set var [charEscaped $var \"]
                   set val [charEscaped $val \"]
-                  puts stdout "puts \$XRDBPIPE \"$var: $val\";"
-                  puts stdout {close $XRDBPIPE;}
-                  puts stdout {unset XRDBPIPE;}
+                  lappend g_shcode_out "puts \$XRDBPIPE \"$var: $val\";"
+                  lappend g_shcode_out {close $XRDBPIPE;}
+                  lappend g_shcode_out {unset XRDBPIPE;}
                }
                perl {
-                  puts stdout "open(XRDBPIPE, \"|$xrdb -merge\");"
+                  lappend g_shcode_out "open(XRDBPIPE, \"|$xrdb -merge\");"
                   set var [charEscaped $var \"]
                   set val [charEscaped $val \"]
-                  puts stdout "print XRDBPIPE \"$var: $val\\n\";"
-                  puts stdout {close XRDBPIPE;}
+                  lappend g_shcode_out "print XRDBPIPE \"$var: $val\\n\";"
+                  lappend g_shcode_out {close XRDBPIPE;}
                }
                python {
                   set var [charEscaped $var \']
                   set val [charEscaped $val \']
-                  puts stdout "subprocess.Popen(\['$xrdb', '-merge'\],\
-                     stdin=subprocess.PIPE).communicate(input='$var:\
+                  lappend g_shcode_out "subprocess.Popen(\['$xrdb',\
+                     '-merge'\], stdin=subprocess.PIPE).communicate(input='$var:\
                      $val\\n')"
                }
                ruby {
                   set var [charEscaped $var \']
                   set val [charEscaped $val \']
-                  puts stdout "Open3.popen2('$xrdb -merge') {|i,o,t| i.puts\
-                     '$var: $val'}"
+                  lappend g_shcode_out "Open3.popen2('$xrdb -merge') {|i,o,t|\
+                     i.puts '$var: $val'}"
                }
                lisp {
-                  puts stdout "(shell-command-to-string \"echo $var:\
+                  lappend g_shcode_out "(shell-command-to-string \"echo $var:\
                      $val | $xrdb -merge\")"
                }
                cmake {
                   set var [charEscaped $var \"]
                   set val [charEscaped $val \"]
-                  puts stdout "execute_process(COMMAND echo \"$var: $val\"\
-                     COMMAND $xrdb -merge)"
+                  lappend g_shcode_out "execute_process(COMMAND echo \"$var:\
+                     $val\" COMMAND $xrdb -merge)"
                }
                r {
                   set var [charEscaped $var {\\'}]
                   set val [charEscaped $val {\\'}]
-                  puts stdout "system('$xrdb -merge', input='$var: $val')"
+                  lappend g_shcode_out "system('$xrdb -merge', input='$var:\
+                     $val')"
                }
             }
          }
@@ -547,57 +551,58 @@ proc renderSettings {} {
       switch -- [getState shelltype] {
          sh - csh - fish {
             foreach var $xres_to_del {
-               puts stdout "echo \"$var:\" | $xrdb -merge;"
+               lappend g_shcode_out "echo \"$var:\" | $xrdb -merge;"
             }
          }
          tcl {
             foreach var $xres_to_del {
-               puts stdout "set XRDBPIPE \[open \"|$xrdb -merge\" r+\];"
+               lappend g_shcode_out "set XRDBPIPE \[open \"|$xrdb -merge\"\
+                  r+\];"
                set var [charEscaped $var \"]
-               puts stdout "puts \$XRDBPIPE \"$var:\";"
-               puts stdout {close $XRDBPIPE;}
-               puts stdout {unset XRDBPIPE;}
+               lappend g_shcode_out "puts \$XRDBPIPE \"$var:\";"
+               lappend g_shcode_out {close $XRDBPIPE;}
+               lappend g_shcode_out {unset XRDBPIPE;}
             }
          }
          perl {
             foreach var $xres_to_del {
-               puts stdout "open(XRDBPIPE, \"|$xrdb -merge\");"
+               lappend g_shcode_out "open(XRDBPIPE, \"|$xrdb -merge\");"
                set var [charEscaped $var \"]
-               puts stdout "print XRDBPIPE \"$var:\\n\";"
-               puts stdout {close XRDBPIPE;}
+               lappend g_shcode_out "print XRDBPIPE \"$var:\\n\";"
+               lappend g_shcode_out {close XRDBPIPE;}
             }
          }
          python {
             foreach var $xres_to_del {
                set var [charEscaped $var \']
-               puts stdout "subprocess.Popen(\['$xrdb', '-merge'\],\
+               lappend g_shcode_out "subprocess.Popen(\['$xrdb', '-merge'\],\
                   stdin=subprocess.PIPE).communicate(input='$var:\\n')"
             }
          }
          ruby {
             foreach var $xres_to_del {
                set var [charEscaped $var \']
-               puts stdout "Open3.popen2('$xrdb -merge') {|i,o,t| i.puts\
-                  '$var:'}"
+               lappend g_shcode_out "Open3.popen2('$xrdb -merge') {|i,o,t|\
+                  i.puts '$var:'}"
             }
          }
          lisp {
             foreach var $xres_to_del {
-               puts stdout "(shell-command-to-string \"echo $var: |\
+               lappend g_shcode_out "(shell-command-to-string \"echo $var: |\
                   $xrdb -merge\")"
             }
          }
          cmake {
             foreach var $xres_to_del {
                set var [charEscaped $var \"]
-               puts stdout "execute_process(COMMAND echo \"$var:\"\
+               lappend g_shcode_out "execute_process(COMMAND echo \"$var:\"\
                   COMMAND $xrdb -merge)"
             }
          }
          r {
             foreach var $xres_to_del {
                set var [charEscaped $var {\\'}]
-               puts stdout "system('$xrdb -merge', input='$var:')"
+               lappend g_shcode_out "system('$xrdb -merge', input='$var:')"
             }
          }
       }
@@ -606,28 +611,29 @@ proc renderSettings {} {
    if {[info exists ::g_changeDir]} {
       switch -- [getState shelltype] {
          sh - csh - fish {
-            puts stdout "cd '$::g_changeDir';"
+            lappend g_shcode_out "cd '$::g_changeDir';"
          }
          tcl {
-            puts stdout "cd \"$::g_changeDir\";"
+            lappend g_shcode_out "cd \"$::g_changeDir\";"
          }
          cmd {
-            puts stdout "cd $::g_changeDir"
+            lappend g_shcode_out "cd $::g_changeDir"
          }
          perl {
-            puts stdout "chdir '$::g_changeDir';"
+            lappend g_shcode_out "chdir '$::g_changeDir';"
          }
          python {
-            puts stdout "os.chdir('$::g_changeDir')"
+            lappend g_shcode_out "os.chdir('$::g_changeDir')"
          }
          ruby {
-            puts stdout "Dir.chdir('$::g_changeDir')"
+            lappend g_shcode_out "Dir.chdir('$::g_changeDir')"
          }
          lisp {
-            puts stdout "(shell-command-to-string \"cd '$::g_changeDir'\")"
+            lappend g_shcode_out "(shell-command-to-string \"cd\
+               '$::g_changeDir'\")"
          }
          r {
-            puts stdout "setwd('$::g_changeDir')"
+            lappend g_shcode_out "setwd('$::g_changeDir')"
          }
       }
       # cannot change current directory of cmake "shell"
@@ -635,13 +641,16 @@ proc renderSettings {} {
 
    # send content deferred during modulefile interpretation
    if {[info exists ::g_stdoutPuts]} {
-      foreach putsArgs $::g_stdoutPuts {
-         puts {*}$putsArgs
-         # check if a finishing newline will be needed after content sent
-         set needPutsNl [expr {[lindex $putsArgs 0] eq {-nonewline}}]
+      foreach {newline msg} $::g_stdoutPuts {
+         append outmsg $msg
+         if {$newline} {
+            lappend g_shcode_out $outmsg
+            unset outmsg
+         }
       }
-      if {$needPutsNl} {
-         puts stdout {}
+      # add last remaining message
+      if {[info exists outmsg]} {
+         lappend g_shcode_out $outmsg
       }
    }
 
@@ -658,6 +667,18 @@ proc renderSettings {} {
    } elseif {$has_rendered} {
       # finish with true statement if something has been put
       renderTrue
+   }
+}
+
+# Output all gathered shell code to stdout. This is a separate proc rather the
+# final code of renderSettings as such output is also done when exiting after
+# an error. Stdout is flushed from cleanupAndExit proc
+proc renderFlush {} {
+   if {[info exists ::g_shcode_out]} {
+      # required to work on cygwin, shouldn't hurt real linux
+      fconfigure stdout -translation lf
+
+      puts stdout [join $::g_shcode_out \n]
    }
 }
 
@@ -1152,7 +1173,7 @@ ml <- function(...){
    }
 
    # output function definition
-   puts stdout $fdef
+   lappend ::g_shcode_out $fdef
 }
 
 proc get-env {var {valifunset {}}} {

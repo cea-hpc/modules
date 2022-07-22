@@ -1457,16 +1457,19 @@ proc putsModfileCmd {itrp args} {
    # determine if puts call targets the stdout or stderr channel
    switch -- [llength $args] {
       1 {
-         set deferPuts 1
+         # create struct with newline status and message to output
+         set deferPuts [list 1 [lindex $args 0]]
       }
       2 {
          switch -- [lindex $args 0] {
-            -nonewline - stdout {
-               set deferPuts 1
+            -nonewline {
+               set deferPuts [list 0 [lindex $args 1]]
+            }
+            stdout {
+               set deferPuts [list 1 [lindex $args 1]]
             }
             prestdout {
-               set deferPrePuts 1
-               set args [lreplace $args 0 0 stdout]
+               set deferPrePuts [list 1 [lindex $args 1]]
             }
             stderr {
                set reportArgs [list [lindex $args 1]]
@@ -1477,11 +1480,10 @@ proc putsModfileCmd {itrp args} {
          if {[lindex $args 0] eq {-nonewline}} {
             switch -- [lindex $args 1] {
                stdout {
-                  set deferPuts 1
+                  set deferPuts [list 0 [lindex $args 2]]
                }
                prestdout {
-                  set deferPrePuts 1
-                  set args [lreplace $args 1 1 stdout]
+                  set deferPrePuts [list 0 [lindex $args 2]]
                }
                stderr {
                   set reportArgs [list [lindex $args 2] 1]
@@ -1502,9 +1504,9 @@ proc putsModfileCmd {itrp args} {
       knerror {wrong # args: should be "puts ?-nonewline? ?channelId? string"}
    # defer puts if it targets stdout (see renderSettings)
    } elseif {[info exists deferPuts]} {
-      lappend ::g_stdoutPuts $args
+      lappend ::g_stdoutPuts {*}$deferPuts
    } elseif {[info exists deferPrePuts]} {
-      lappend ::g_prestdoutPuts $args
+      lappend ::g_prestdoutPuts {*}$deferPrePuts
    # if it targets stderr call report, which knows what channel to use
    } elseif {[info exists reportArgs]} {
       # report message only if not silent
