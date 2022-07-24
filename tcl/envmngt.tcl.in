@@ -1708,6 +1708,18 @@ proc parsePathCommandArgs {cmd mode dflbhv args} {
    return [list $delim $allow_dup $idx_val $ign_refcount $bhv $var $val_list]
 }
 
+# get list of Modules-specific environment variable in glob form
+proc getModulesEnvVarGlobList {{loaded_ctx 0}} {
+   set envvar_glob_list [list LOADEDMODULES _LMFILES_]
+   # only return list of variables related to module loaded context
+   if {$loaded_ctx} {
+      lappend envvar_glob_list __MODULES_*
+   } else {
+      lappend envvar_glob_list MODULE* __MODULES_* *_module*
+   }
+   return $envvar_glob_list
+}
+
 # ;;; Local Variables: ***
 # ;;; mode:tcl ***
 # ;;; End: ***

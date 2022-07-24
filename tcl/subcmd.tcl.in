@@ -2111,20 +2111,12 @@ proc cmdModuleClear {doit doitset} {
 
    # should be confirmed or forced to proceed
    if {[string equal -nocase -length 1 $doit y] || [getState force]} {
-      set vartoclear [list LOADEDMODULES __MODULES_LMALTNAME\
-         __MODULES_LMCONFLICT __MODULES_LMPREREQ __MODULES_LMSOURCESH \
-         __MODULES_LMTAG __MODULES_LMEXTRATAG __MODULES_LMVARIANT _LMFILES_]
-
-      # add any stack of saved values to the list to unset
-      lappend vartoclear {*}[array names ::env -glob __MODULES_PUSHENV_*]
-
-      # add any reference counter variable to the list to unset
-      lappend vartoclear {*}[array names ::env -glob __MODULES_SHARE_*]
-
-      # unset all Modules runtime variables
       lappendState mode load
-      foreach var $vartoclear {
-         unset-env $var
+      # unset all Modules runtime variables
+      foreach globvar [getModulesEnvVarGlobList 1] {
+         foreach var [array names ::env -glob $globvar] {
+            unset-env $var
+         }
       }
       lpopState mode
    } else {
@@ -2184,7 +2176,7 @@ proc cmdModuleState {args} {
    # report environment variable set related to Modules
    displayTableHeader hi {Env. variable} 24 {Value} 54
    set envvar_list {}
-   foreach var [list LOADEDMODULES _LMFILES_ MODULE* __MODULES_* *_module*] {
+   foreach var [getModulesEnvVarGlobList] {
       lappend envvar_list {*}[array names ::env -glob $var]
    }
    unset displist
