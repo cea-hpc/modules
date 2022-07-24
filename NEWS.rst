@@ -65,6 +65,7 @@ Modules 5.2.0 (not yet released)
 * Install: use :command:`install` command rather :command:`cp` or
   :command:`mkdir` to install Modules and guaranty consistent permission modes
   on deployed files.
+* Also unset :mfcmd:`pushenv` value stacks on :subcmd:`clear` sub-command.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 
