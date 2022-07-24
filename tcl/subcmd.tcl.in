@@ -2637,7 +2637,26 @@ proc cmdModuleLint {args} {
    }
 }
 
-proc cmdModuleModToSh {args} {
+proc cmdModuleModToSh {shell args} {
+   # save shell modulecmd is initialized to
+   setState modtosh_real_shell [getState shell]
+
+   # set shell and shellType states to mod-to-sh target value
+   if {$shell ni [getState supported_shells]} {
+      reportErrorAndExit "Unsupported shell type \'$shell\'"
+   }
+   setState shell $shell
+   if {[isStateDefined shelltype]} {
+      unsetState shelltype
+   }
+
+   # modulefile evaluation is done against mod-to-sh target shell which means
+   # module-info will return mod-to-sh shell value
+   return [cmdModuleLoad load 1 0 0 {} {*}$args]
+
+   # after evaluation, renderSettings will produce shell code for mod-to-sh
+   # target shell. modtosh_real_shell state helps to know that shell code has
+   # to be output on report message channel
 }
 
 # ;;; Local Variables: ***

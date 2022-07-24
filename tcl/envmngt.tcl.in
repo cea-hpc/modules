@@ -655,6 +655,21 @@ proc renderSettings {} {
       }
    }
 
+   # if currently processing mod-to-sh subcmd, send shell code to the message
+   # channel then reset code and shell state to get evaluation result shell
+   # code on stdout channel
+   if {[getState modtosh_real_shell] ne {}} {
+      if {[info exists g_shcode_out]} {
+         report [join $::g_shcode_out \n]
+         unset g_shcode_out
+      }
+
+      setState shell [getState modtosh_real_shell]
+      if {[isStateDefined shelltype]} {
+         unsetState shelltype
+      }
+   }
+
    # return text value if defined even if error happened
    if {[info exists ::g_return_text]} {
       reportDebug {text value should be returned.}
