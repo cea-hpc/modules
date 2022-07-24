@@ -20,8 +20,9 @@
 
 ##########################################################################
 
-# exit in a clean manner by closing interaction with external components
-proc cleanupAndExit {code} {
+# exit in a clean manner by flushing and closing interaction with external
+# components
+proc flushAndExit {code} {
    # output all shell code generated on stdout
    renderFlush
    # output last messages on the report file descriptor and close it
@@ -1088,11 +1089,11 @@ if {[catch {
       } else {
          reportUsage
       }
-      cleanupAndExit 0
+      flushAndExit 0
    }
    if {$show_version} {
       reportVersion
-      cleanupAndExit 0
+      flushAndExit 0
    }
 
    # no modulefile is currently being interpreted
@@ -1118,10 +1119,10 @@ if {[catch {
    reportError $errMsg
    # init error report here in case the error raised before the regular init
    initErrorReport
-   cleanupAndExit 1
+   flushAndExit 1
 }
 
-cleanupAndExit 0
+flushAndExit 0
 
 # ;;; Local Variables: ***
 # ;;; mode:tcl ***
