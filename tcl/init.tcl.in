@@ -48,6 +48,7 @@ array set g_state_defs [list\
    reportfd {stderr initStateReportfd}\
    return_false {0}\
    siteconfig_loaded {0}\
+   shelltype {<undef> initStateShellType}\
    sub1_separator {&}\
    sub2_separator {|}\
    tcl_ext_lib_loaded {0}\
@@ -433,6 +434,22 @@ proc initStateTermColumns {} {
       set cols [expr {![info exists cols] || $cols eq {0} ? 80 : $cols}]
    }
    return $cols
+}
+
+# Deduce shelltype value from shell state value
+proc initStateShellType {} {
+   switch -- [getState shell] {
+      sh - bash - ksh - zsh {
+         set shelltype sh
+      }
+      csh - tcsh {
+         set shelltype csh
+      }
+      default {
+         set shelltype [getState shell]
+      }
+   }
+   return $shelltype
 }
 
 # Get all groups of user running modulecmd.tcl process
