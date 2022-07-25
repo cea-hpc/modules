@@ -279,16 +279,19 @@ testouterr_cmd sh {ml -foo/1 bar/0.2} ERR [msg_load bar/0.2 $tserr]
 
 # test clear sub-command
 testinouterr_cmd sh {ml clear} no {} "$info_msgs: Modules runtime information were not cleared"
+
+# only clear Modules-specific variables that are defined
 set ans [list]
-lappend ans [list unset __MODULES_LMVARIANT]
-lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testinouterr_cmd sh {clear} y $ans {}
+
+setenv_loaded_module [list extdfl/1.3.1] [list $mp/extdfl/1.3.1]
+setenv_var __MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl
+set ans [list]
 lappend ans [list unset __MODULES_LMALTNAME]
 lappend ans [list unset _LMFILES_]
-lappend ans [list unset __MODULES_LMPREREQ]
 lappend ans [list unset LOADEDMODULES]
-lappend ans [list unset __MODULES_LMEXTRATAG]
-lappend ans [list unset __MODULES_LMTAG]
-lappend ans [list unset __MODULES_LMSOURCESH]
 testinouterr_cmd sh {clear} y $ans {}
 
 

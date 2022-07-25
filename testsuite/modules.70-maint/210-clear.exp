@@ -26,42 +26,27 @@ set mp "$modpath.2"
 setenv_path_var MODULEPATH $mp
 
 # no module loaded
+# no Modules-specific env variables, nothing cleared
+testouterr_cmd sh {clear y} OK {}
+
+# basic module loaded
+setenv_loaded_module [list clear/3] [list $mp/clear/3]
 set ans [list]
-lappend ans [list unset __MODULES_LMVARIANT]
-lappend ans [list unset __MODULES_LMCONFLICT]
-lappend ans [list unset __MODULES_LMALTNAME]
 lappend ans [list unset _LMFILES_]
-lappend ans [list unset __MODULES_LMPREREQ]
 lappend ans [list unset LOADEDMODULES]
-lappend ans [list unset __MODULES_LMEXTRATAG]
-lappend ans [list unset __MODULES_LMTAG]
-lappend ans [list unset __MODULES_LMSOURCESH]
+testouterr_cmd sh {clear y} $ans {}
+
+skip_if_quick_mode
 
 # test all valid confirmation strings
 foreach str [list y Y yes YES Yes yESfoo] {
     testouterr_cmd sh "clear $str" $ans {}
 }
 
-skip_if_quick_mode
-
 # test valid confirmation passed via stdin
 foreach str [list y Y yes YES Yes yESfoo] {
     testinouterr_cmd sh {clear} $str $ans {}
 }
-
-# basic module loaded
-setenv_loaded_module [list clear/3] [list $mp/clear/3]
-set ans [list]
-lappend ans [list unset __MODULES_LMVARIANT]
-lappend ans [list unset __MODULES_LMCONFLICT]
-lappend ans [list unset __MODULES_LMALTNAME]
-lappend ans [list unset _LMFILES_]
-lappend ans [list unset __MODULES_LMPREREQ]
-lappend ans [list unset LOADEDMODULES]
-lappend ans [list unset __MODULES_LMEXTRATAG]
-lappend ans [list unset __MODULES_LMTAG]
-lappend ans [list unset __MODULES_LMSOURCESH]
-testouterr_cmd sh {clear y} $ans {}
 
 # advanced module-set loaded
 setenv_loaded_module [list clear/1 clear/3] [list $mp/clear/1 $mp/clear/3] [list clear/1]
@@ -77,12 +62,12 @@ set ans [list]
 lappend ans [list unset __MODULES_LMVARIANT]
 lappend ans [list unset __MODULES_LMCONFLICT]
 lappend ans [list unset __MODULES_LMALTNAME]
-lappend ans [list unset _LMFILES_]
 lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
 lappend ans [list unset __MODULES_LMEXTRATAG]
-lappend ans [list unset __MODULES_LMTAG]
 lappend ans [list unset __MODULES_LMSOURCESH]
+lappend ans [list unset __MODULES_LMTAG]
 testouterr_cmd sh {clear YES} $ans {}
 
 # test cancellation strings
