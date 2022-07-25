@@ -190,6 +190,15 @@ proc renderSettings {} {
       renderAutoinit
    }
 
+   # filter Modules-specific environment variables for mod-to-sh subcmd
+   if {[getState modtosh_real_shell] ne {}} {
+      foreach globvar [getModulesEnvVarGlobList 1] {
+         foreach var [array names g_stateEnvVars -glob $globvar] {
+            unset g_stateEnvVars($var)
+         }
+      }
+   }
+
    # new environment variables
    foreach var [array names g_stateEnvVars] {
       switch -- $g_stateEnvVars($var) {
