@@ -2645,6 +2645,13 @@ proc cmdModuleModToSh {shell args} {
       unsetState shelltype
    }
 
+   # silence message report (avoid mix with produced shell code) unless if
+   # a debugging mode is set
+   if {![isVerbosityLevel trace]} {
+      unsetConf verbosity
+      set ::asked_verbosity silent
+   }
+
    # modulefile evaluation is done against mod-to-sh target shell which means
    # module-info will return mod-to-sh shell value
    return [cmdModuleLoad load 1 0 0 {} {*}$args]
