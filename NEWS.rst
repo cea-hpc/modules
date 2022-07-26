@@ -67,6 +67,7 @@ Modules 5.2.0 (not yet released)
   :command:`mkdir` to install Modules and guaranty consistent permission modes
   on deployed files.
 * Also unset :mfcmd:`pushenv` value stacks on :subcmd:`clear` sub-command.
+* Doc: add :ref:`mod-to-sh-sub-command` design notes.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 
