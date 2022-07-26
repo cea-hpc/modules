@@ -62,6 +62,7 @@ Modules 5.2.0 (not yet released)
   modulefiles, modulerc and global/user rc with `Nagelfar`_. These files are
   installed in the directory designated by the :instopt:`--nagelfardatadir`
   (``DATAROOTDIR/nagelfar`` by default).
+* Doc: add :ref:`lint-sub-command` design notes.
 * Install: use :command:`install` command rather :command:`cp` or
   :command:`mkdir` to install Modules and guaranty consistent permission modes
   on deployed files.
