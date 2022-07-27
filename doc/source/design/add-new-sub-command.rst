@@ -68,10 +68,10 @@ Files that should be edited to add reference to the new sub-command:
 
 - :file:`contrib/nagelfar/syntaxdb_modulefile.tcl`
 
-    - add sub-command name in ``::subCmd(module)`` list
-    - add sub-command argument description in ``::syntax`` array
-    - add sub-command option description in ``::option`` array
-    - See `Nagelfar syntax description`_
+  - add sub-command name in ``::subCmd(module)`` list
+  - add sub-command argument description in ``::syntax`` array
+  - add sub-command option description in ``::option`` array
+  - See `Nagelfar syntax description`_
 
 .. _Nagelfar syntax description: http://nagelfar.sourceforge.net/syntaxtokens.html
 
@@ -85,21 +85,21 @@ Files that should be edited:
 
 - :file:`doc/source/module.rst` (module manpage)
 
-    - add sub-command description with ``subcmd`` anchor under *Module
-      Sub-Commands* section
+  - add sub-command description with ``subcmd`` anchor under *Module
+    Sub-Commands* section
 
 - :file:`doc/source/modulefile.rst` (modulefile manpage)
 
-    - mention if sub-command can be called from the modulefile evaluation
-      context under :mfcmd:`module` modulefile command section
-    - if sub-command leads to modulefile evaluation, mention sub-command name
-      in the list of value returned by :mfcmd:`module-info
-      command<module-info>`
+  - mention if sub-command can be called from the modulefile evaluation
+    context under :mfcmd:`module` modulefile command section
+  - if sub-command leads to modulefile evaluation, mention sub-command name
+    in the list of value returned by :mfcmd:`module-info
+    command<module-info>`
 
 - :file:`doc/source/changes.rst`
 
-    - add sub-command under *Module Sub-Commands* section of current Modules
-      major version
+  - add sub-command under *Module Sub-Commands* section of current Modules
+    major version
 
 Example commits:
 
@@ -113,34 +113,34 @@ Non-regression testsuite must be adapted first to add specific tests to check
 the behavior of the added sub-command and ensure overall code coverage does
 not drop.
 
-1. Test the sub-command against an invalid number of arguments (too few and
+#. Test the sub-command against an invalid number of arguments (too few and
    too many).
 
     - File to edit: :file:`testsuite/modules.00-init/071-args.exp`
     - Example commit: :ghcommit:`086ac136`
 
-2. If the new sub-command cannot be called from a modulefile evaluation, test
+#. If the new sub-command cannot be called from a modulefile evaluation, test
    the error obtained when tried.
 
     - Files to edit:
 
-        - :file:`testsuite/modules.50-cmds/151-module-onlytop.exp`
-        - :file:`testsuite/modulefiles.3/modbad/<subcmdname>`
+      - :file:`testsuite/modules.50-cmds/151-module-onlytop.exp`
+      - :file:`testsuite/modulefiles.3/modbad/<subcmdname>`
 
     - Example commit: :ghcommit:`086ac136`
 
-3. If the new sub-command leads to modulefile evaluation, test value returned
+#. If the new sub-command leads to modulefile evaluation, test value returned
    by :mfcmd:`module-info command<module-info>`.
 
     - Files to edit:
 
-        - :file:`testsuite/modules.50-cmds/282-info-command.exp`
-        - :file:`testsuite/modules.50-cmds/283-info-command-exp.exp`
-        - :file:`testsuite/modulefiles/info/commandexp`
+      - :file:`testsuite/modules.50-cmds/282-info-command.exp`
+      - :file:`testsuite/modules.50-cmds/283-info-command-exp.exp`
+      - :file:`testsuite/modulefiles/info/commandexp`
 
     - Example commit: :ghcommit:`5cd53523`
 
-4. Craft specific tests to validate the correct behavior of the sub-command
+#. Craft specific tests to validate the correct behavior of the sub-command
    against valid or invalid values and valid or invalid environment.
 
     - File to edit: new test file to create in

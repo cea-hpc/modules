@@ -5,41 +5,41 @@ Control mode behaviors
 
 - Modulefile commands that modify environment variables applies
 
-    - a behavior when modulefile is loaded
-    - and another behavior when modulefile is unloaded
+  - a behavior when modulefile is loaded
+  - and another behavior when modulefile is unloaded
 
 - Depending on the situation, it seems interesting to apply a different
   behavior when modulefile is unloaded:
 
-    - restore value unset at load time, either:
+  - restore value unset at load time, either:
 
-        - append-on-unload
-        - prepend-on-unload
+    - append-on-unload
+    - prepend-on-unload
 
-    - remove value from list: remove-on-unload
-    - unset full variable value: unset-on-unload
-    - set another value, either:
+  - remove value from list: remove-on-unload
+  - unset full variable value: unset-on-unload
+  - set another value, either:
 
-        - append-on-unload
-        - prepend-on-unload
-        - set-on-unload (for non-path-like variable)
+    - append-on-unload
+    - prepend-on-unload
+    - set-on-unload (for non-path-like variable)
 
-    - do nothing: noop-on-unload
+  - do nothing: noop-on-unload
 
 - Also when modulefile loads sometimes it may be interesting to apply a
   slightly different behavior depending on the situation:
 
-    - set value only if variable is undefined: set-if-undef
+  - set value only if variable is undefined: set-if-undef
 
 - Concerned modulefile commands:
 
-    - :mfcmd:`module use<module>`
-    - :mfcmd:`module unuse<module>`
-    - :mfcmd:`setenv`
-    - :mfcmd:`unsetenv`
-    - :mfcmd:`append-path`
-    - :mfcmd:`prepend-path`
-    - :mfcmd:`remove-path`
+  - :mfcmd:`module use<module>`
+  - :mfcmd:`module unuse<module>`
+  - :mfcmd:`setenv`
+  - :mfcmd:`unsetenv`
+  - :mfcmd:`append-path`
+  - :mfcmd:`prepend-path`
+  - :mfcmd:`remove-path`
 
 - Only applies when the above commands are called from a modulefile (as some
   of these commands can also act as module sub-commands)
@@ -78,12 +78,12 @@ Unload behavior
 
 - Either restoring or setting other value result in the same behavior name
 
-    - *append-on-unload* and *prepend-on-unload*
-    - position of the option will determine if the values to set are:
+  - *append-on-unload* and *prepend-on-unload*
+  - position of the option will determine if the values to set are:
 
-        - those unset at load time: when option is placed prior value list
-        - a different list of value: when option is placed after value list to
-          unset at load time and another value list is defined after option
+    - those unset at load time: when option is placed prior value list
+    - a different list of value: when option is placed after value list to
+      unset at load time and another value list is defined after option
 
 - The *set-on-unload* behavior is only useful for modulefile commands which
   unset value on load mode, as commands that set value on load mode mainly
@@ -124,23 +124,23 @@ Modulefile command options
 - Alternative behaviors could be specified by setting the associated option
   over the modulefile command:
 
-    - ``--remove-on-unload``
-    - ``--append-on-unload``
-    - ``--prepend-on-unload``
-    - ``--noop-on-unload``
-    - ``--unset-on-unload``
-    - ``--set-if-undef``
+  - ``--remove-on-unload``
+  - ``--append-on-unload``
+  - ``--prepend-on-unload``
+  - ``--noop-on-unload``
+  - ``--unset-on-unload``
+  - ``--set-if-undef``
 
 - The ``--append-on-unload`` and ``--prepend-on-unload`` options either:
 
-    - restore the value list removed at load time if placed prior this value
-      list
-    - set a different value list if a different list of value is specified
-      after option (all the values set after the option are considered element
-      to add to the path-like variable)
-    - both options also accept to be set prior or right after variable name or
-      even right at the end of argument list to restore value list removed at
-      load time
+  - restore the value list removed at load time if placed prior this value
+    list
+  - set a different value list if a different list of value is specified
+    after option (all the values set after the option are considered element
+    to add to the path-like variable)
+  - both options also accept to be set prior or right after variable name or
+    even right at the end of argument list to restore value list removed at
+    load time
 
 - The ``--set-if-undef`` option does not change the behavior of ``setenv``
   when modulefile is unloaded: environment variable will be unset whether the
@@ -155,17 +155,17 @@ Modulefile command options
 - The ``--remove-on-unload``, ``--append-on-unload``, ``--prepend-on-unload``
   and ``--noop-on-unload`` options:
 
-    - can be placed at different positions in argument list to limit error
-      cases
-    - if multiple options of this kind are defined in argument list, the one
-      defined at the most right is retained
+  - can be placed at different positions in argument list to limit error
+    cases
+  - if multiple options of this kind are defined in argument list, the one
+    defined at the most right is retained
 
 Misc
 ----
 
 - *FUTURE*: what is applied to:
 
-    - ``module use`` may also be interesting for ``module load``
-    - ``module unuse`` may also be interesting for ``module unload``
+  - ``module use`` may also be interesting for ``module load``
+  - ``module unuse`` may also be interesting for ``module unload``
 
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
