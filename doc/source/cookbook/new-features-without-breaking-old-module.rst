@@ -112,3 +112,5 @@ current user::
 
    As the new Tcl variables are introduced in Modules 4.7, the use of the new
    ``usergroups`` sub-command will only be triggered starting Modules 4.7.
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

@@ -2586,3 +2586,5 @@ with a reasonable error message if no such build is available. They all have
 their own strengths and weaknesses. This document tried to present these
 strategies objectively and has been made to help you to evaluate how to handle
 this issue at your site.
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

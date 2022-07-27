@@ -363,3 +363,5 @@ users member of the ``eol`` Unix group.
 
    Do not forget to protect the access to the directory where the software is
    installed prior its general availability and after its decommissioned date.
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

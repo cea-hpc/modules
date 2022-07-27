@@ -136,3 +136,5 @@ A log entry can then be retrieved from system log files:
     Sep 12 20:24:04 hostname module[9925]: { "user": "username", "mode": "unload", "module": "qux/1.0" }
     Sep 12 20:24:04 hostname module[9925]: { "user": "username", "mode": "unload", "module": "foo/1.0" }
     Sep 12 20:24:04 hostname module[9925]: { "user": "username", "cmd": "module", "args": "purge" }
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

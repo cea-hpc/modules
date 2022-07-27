@@ -57,3 +57,5 @@ Run the test both with the test directory not existing and existing::
     Running ModulesTest for file creation...done
     Test result: PASS
     -------------------------------------------------------------------
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

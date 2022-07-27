@@ -234,3 +234,5 @@ Whereas the ``bar`` shell alias is setup on *csh* shell environment:
     barbin -q -l
     :ps:`$` bar
     bar, version 2.1
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

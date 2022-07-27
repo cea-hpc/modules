@@ -169,3 +169,5 @@ for load in the initialization RC file |file etcdir_initrc|:
     module use --append .../example/sticky-modules/modulefiles
     module load core
     module load compiler/compB
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

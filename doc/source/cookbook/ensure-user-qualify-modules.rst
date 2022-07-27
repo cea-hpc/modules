@@ -122,3 +122,5 @@ loaded by their generic name::
 
    $ module load -v softb
    Loading softb/1
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

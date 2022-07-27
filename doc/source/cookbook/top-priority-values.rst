@@ -86,3 +86,5 @@ variable set::
    topvalue
    $ echo $TESTPATH
    topprevalue:prevalue:postvalue:toppostvalue
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

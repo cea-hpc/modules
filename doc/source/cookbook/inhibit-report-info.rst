@@ -73,3 +73,5 @@ inhibition should let ``foo`` load quiet::
 
    $ module load --auto foo
    $
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

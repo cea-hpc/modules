@@ -514,3 +514,5 @@ users. You may not notice a big difference if your modulefiles are installed
 on a local SSD storage whereas it can be a game changer if instead the
 modulefiles are hosted on a shared HDD filesystem that is accessed by
 hundreds of users.
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

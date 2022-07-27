@@ -70,3 +70,5 @@ variable set::
    $ module load ./example/module-info-name-return-basename/modulefiles/info/name
    $ echo $MODNAME
    name
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

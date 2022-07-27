@@ -77,3 +77,5 @@ Load both ``foo`` modulefiles then attempt to unload ``foo`` name::
    $ module list
    Currently Loaded Modulefiles:
     1) foo/2
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

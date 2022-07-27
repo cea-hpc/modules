@@ -247,3 +247,4 @@ The tips given above should work with both 3.x and 4.x versions of the Tcl
 based environmental packages.  They have been explicitly tested on versions
 3.2.10 and 4.3.0.
 
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

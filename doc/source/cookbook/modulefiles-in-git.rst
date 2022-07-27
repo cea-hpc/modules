@@ -111,3 +111,5 @@ Edit, test, then::
 
 After a successful push and unload, it is safe to delete your local
 ``$HOME/modulefiles`` directory if you wish.
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

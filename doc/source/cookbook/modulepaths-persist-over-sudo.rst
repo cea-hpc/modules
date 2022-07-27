@@ -66,3 +66,5 @@ Thus available modulefiles are found again::
    $ sudo $MODULES_CMD bash avail >/dev/null
    --------------- /usr/share/Modules/modulefiles ---------------
    dot  module-git  module-info  modules  null  use.own
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
