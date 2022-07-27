@@ -192,9 +192,9 @@ switches are accepted:
 
 .. option:: --auto
 
- On :subcmd:`load`, :subcmd:`unload` and :subcmd:`switch` sub-commands, enable
- automated module handling mode. See also :envvar:`MODULES_AUTO_HANDLING`
- section.
+ On :subcmd:`load`, :subcmd:`unload`, :subcmd:`switch`, :subcmd:`load-any` and
+ :subcmd:`try-load` sub-commands, enable automated module handling mode. See
+ also :envvar:`MODULES_AUTO_HANDLING` section.
 
  .. only:: html
 
@@ -249,14 +249,17 @@ switches are accepted:
 
 .. option:: --force, -f
 
- On :subcmd:`load`, :subcmd:`unload` and :subcmd:`switch` sub-commands,
- by-pass any unsatisfied modulefile constraint corresponding to the declared
- :mfcmd:`prereq` and :mfcmd:`conflict`. Which means for instance that a
- *modulefile* will be loaded even if it comes in conflict with another loaded
- *modulefile* or that a *modulefile* will be unloaded even if it is required
- as a prereq by another *modulefile*.
+ On :subcmd:`load`, :subcmd:`unload`, :subcmd:`switch`, :subcmd:`load-any` and
+ :subcmd:`try-load` sub-commands by-pass any unsatisfied modulefile constraint
+ corresponding to the declared :mfcmd:`prereq` and :mfcmd:`conflict`. Which
+ means for instance that a *modulefile* will be loaded even if it comes in
+ conflict with another loaded *modulefile* or that a *modulefile* will be
+ unloaded even if it is required as a prereq by another *modulefile*.
 
  On :subcmd:`clear` sub-command, skip the confirmation dialog and proceed.
+
+ On :subcmd:`purge` sub-command also unload `sticky modules`_ and modulefiles
+ that are depended by non-unloadable modules.
 
  .. only:: html
 
@@ -319,9 +322,9 @@ switches are accepted:
 
 .. option:: --no-auto
 
- On :subcmd:`load`, :subcmd:`unload` and :subcmd:`switch` sub-commands,
- disable automated module handling mode. See also
- :envvar:`MODULES_AUTO_HANDLING` section.
+ On :subcmd:`load`, :subcmd:`unload`, :subcmd:`switch`, :subcmd:`load-any` and
+ :subcmd:`try-load` sub-commands, disable automated module handling mode. See
+ also :envvar:`MODULES_AUTO_HANDLING` section.
 
  .. only:: html
 
@@ -1596,8 +1599,8 @@ Module Sub-Commands
 
  Unload all loaded *modulefiles*.
 
- When the :option:`--force` option is set, also unload modulefiles that are
- depended by unloadable modules.
+ When the :option:`--force` option is set, also unload `sticky modules`_ and
+ modulefiles that are depended by non-unloadable modules.
 
  .. only:: html
 
