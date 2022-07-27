@@ -192,9 +192,9 @@ switches are accepted:
 
 .. option:: --auto
 
- On :subcmd:`load`, :subcmd:`unload`, :subcmd:`switch`, :subcmd:`load-any` and
- :subcmd:`try-load` sub-commands, enable automated module handling mode. See
- also :envvar:`MODULES_AUTO_HANDLING` section.
+ On :subcmd:`load`, :subcmd:`unload`, :subcmd:`switch`, :subcmd:`load-any`,
+ :subcmd:`try-load` and :subcmd:`mod-to-sh` sub-commands, enable automated
+ module handling mode. See also :envvar:`MODULES_AUTO_HANDLING` section.
 
  .. only:: html
 
@@ -249,12 +249,13 @@ switches are accepted:
 
 .. option:: --force, -f
 
- On :subcmd:`load`, :subcmd:`unload`, :subcmd:`switch`, :subcmd:`load-any` and
- :subcmd:`try-load` sub-commands by-pass any unsatisfied modulefile constraint
- corresponding to the declared :mfcmd:`prereq` and :mfcmd:`conflict`. Which
- means for instance that a *modulefile* will be loaded even if it comes in
- conflict with another loaded *modulefile* or that a *modulefile* will be
- unloaded even if it is required as a prereq by another *modulefile*.
+ On :subcmd:`load`, :subcmd:`unload`, :subcmd:`switch`, :subcmd:`load-any`,
+ :subcmd:`try-load` and :subcmd:`mod-to-sh` sub-commands by-pass any
+ unsatisfied modulefile constraint corresponding to the declared
+ :mfcmd:`prereq` and :mfcmd:`conflict`. Which means for instance that a
+ *modulefile* will be loaded even if it comes in conflict with another loaded
+ *modulefile* or that a *modulefile* will be unloaded even if it is required
+ as a prereq by another *modulefile*.
 
  On :subcmd:`clear` sub-command, skip the confirmation dialog and proceed.
 
@@ -322,9 +323,9 @@ switches are accepted:
 
 .. option:: --no-auto
 
- On :subcmd:`load`, :subcmd:`unload`, :subcmd:`switch`, :subcmd:`load-any` and
- :subcmd:`try-load` sub-commands, disable automated module handling mode. See
- also :envvar:`MODULES_AUTO_HANDLING` section.
+ On :subcmd:`load`, :subcmd:`unload`, :subcmd:`switch`, :subcmd:`load-any`,
+ :subcmd:`try-load` and :subcmd:`mod-to-sh` sub-commands, disable automated
+ module handling mode. See also :envvar:`MODULES_AUTO_HANDLING` section.
 
  .. only:: html
 
@@ -1551,6 +1552,42 @@ Module Sub-Commands
  .. only:: html
 
     .. versionadded:: 5.1
+
+.. subcmd:: mod-to-sh [options] shell modulefile...
+
+ Evaluate *modulefile* and report resulting environment changes as code for
+ *shell*.
+
+ :subcmd:`mod-to-sh` command accepts the following options:
+
+ * ``--auto|--no-auto``
+ * ``-f|--force``
+
+ An attempt to load *modulefile* is made to get its environment changes. This
+ evaluation does not change the current shell environment. Like for
+ :subcmd:`load` sub-command, no evaluation occurs if *modulefile* is found
+ loaded in current environment.
+
+ Changes made on environment variable intended for Modules private use (e.g.,
+ :envvar:`LOADEDMODULES`, :envvar:`_LMFILES_`, ``__MODULES_*``) are ignored.
+
+ *Shell* could be any shell name supported by :file:`modulecmd.tcl`.
+
+ Produced *shell* code is returned on the message output channel by
+ :file:`modulecmd.tcl`. Thus it is not rendered in current environment by the
+ :command:`module` shell function.
+
+ :subcmd:`mod-to-sh` automatically set :mconfig:`verbosity` to the ``silent``
+ mode, to avoid messages to mix with the produced shell code. Verbosity is not
+ changed if set to the ``trace`` mode or any higher debugging level.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
+ .. only:: html
+
+    .. versionadded:: 5.2
 
 .. subcmd:: path modulefile
 
