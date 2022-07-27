@@ -88,3 +88,5 @@ returned.
 unset a defined completion. There should not be a lot of use case for this
 command, but it does not cost much to add as it is needed to undo the
 :mfcmd:`complete` command when a modulefile is unloaded.
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

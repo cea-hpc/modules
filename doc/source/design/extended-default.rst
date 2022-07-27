@@ -59,3 +59,4 @@ Specification
     - :ref:`module_version_specification_to_select_one_module`
     - :ref:`module_version_specification_to_check_compatibility`
 
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

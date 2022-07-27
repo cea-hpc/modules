@@ -854,3 +854,5 @@ Corner cases
     - Currently it is not seen as an optional requirement at the load time
     - Thus dependent module is not reloaded
     - FUTURE: the *deps* evaluation mode that will be triggered prior module load may fix this current limitation
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

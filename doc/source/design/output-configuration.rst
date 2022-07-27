@@ -120,3 +120,5 @@ Output key
 
     - Key is reported at the end of the output
     - No key section is reported if no element need to be described (no color, no symbol, no tag, etc)
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

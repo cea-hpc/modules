@@ -212,3 +212,5 @@ Specification
     - Such sub-separator is only applied on fish shell
 
 - **FUTURE**: this feature may be extended to translate environment changes made by tools like Spack, Lmod or pkg-config. It may provide this way bridges between different realms.
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

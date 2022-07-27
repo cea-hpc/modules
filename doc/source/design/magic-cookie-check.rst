@@ -87,3 +87,5 @@ all module search contexts. It is called by:
 .. note:: File readability (permission check) is not verified when
    ``mcookie_check`` option is set to ``eval`` to keep the full benefit of
    this mode regarding the I/O load optimization.
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

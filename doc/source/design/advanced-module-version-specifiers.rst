@@ -265,3 +265,5 @@ Corner cases
     - but a ``module load -i icase@1.1,1.4`` command will load *iCaSe/1.4*
 
         - as no version *1.1* nor *1.4* is found in *icase* directory
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

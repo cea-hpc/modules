@@ -96,3 +96,5 @@ Corner cases
     - and also ``module load -i ICase`` command will load *icase/1.2*
 
         - as no directory *ICase* exists, result is returned from highest directory: *icase*
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

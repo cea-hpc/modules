@@ -128,3 +128,5 @@ Module version specification to check compatibility
     - for instance ``prereq mod@:1.8 mod@1.10`` triggers load tentative of default version among *mod@:1.8* then if this tentative fails load of *mod@1.10* is attempted
     - another example with ``prereq mod mod@1.10``, which triggers load tentative of *mod/default* then if it fails load of mod@1.10 is attempted
 
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

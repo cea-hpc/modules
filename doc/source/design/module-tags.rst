@@ -358,3 +358,5 @@ Updating tags on already loaded modules
   extra tags are unset from in-memory knowledge, not to reapply automatically
   these tags if the module is loaded again: only the extra and state tags
   from this new load will be set.
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

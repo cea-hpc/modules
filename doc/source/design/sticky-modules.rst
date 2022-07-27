@@ -70,3 +70,5 @@ Current limitations
     - For instance ``module-tag sticky foo/1.0`` and ``module-version foo/1.0 default``
     - If specified swapped-on module is the generic module name, for instance *foo*
     - ``switch`` sub-command raises an error even if the sticky module is the default version (either implicit or explicitly set) for this module
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

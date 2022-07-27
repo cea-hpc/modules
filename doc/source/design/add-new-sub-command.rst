@@ -149,3 +149,5 @@ not drop.
       directory otherwise.
 
     - Example commit: :ghcommit:`086ac136`
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

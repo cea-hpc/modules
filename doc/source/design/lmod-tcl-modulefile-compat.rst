@@ -346,3 +346,5 @@ Lmod Tcl modulefile compatibility
 
 - This command is intended for use only within modulefile evaluation context
   (not within modulerc)
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

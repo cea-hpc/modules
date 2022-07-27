@@ -123,3 +123,5 @@ Report output
   * If verbose mode set, report empty block if no linting message
   * If silent mode set, report nothing, exit code helps to know if linter has
     reported error
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

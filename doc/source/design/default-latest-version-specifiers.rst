@@ -68,3 +68,5 @@ Specification
 
         - for instance ``mod/1.2&mod/regular_symbol&as|mod/latest``
         - it helps to filter auto symbols from regular symbols that need to be displayed
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

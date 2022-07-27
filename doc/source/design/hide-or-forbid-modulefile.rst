@@ -387,3 +387,5 @@ Specification
 
     - is *0* by default, which means module is considered hidden if its hiding level is greater or equal to *0*
     - is raised to *2* when ``--all`` option is applied, which means module is considered hidden if its hiding level is greater or equal to *2*
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

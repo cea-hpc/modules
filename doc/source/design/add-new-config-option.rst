@@ -183,3 +183,5 @@ configuration option and ensure overall code coverage does not drop.
         - :file:`.github/workflows/linux_tests.yaml`
 
     - Example commit: :ghcommit:`8bf6fb54`
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
