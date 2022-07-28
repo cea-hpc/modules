@@ -154,6 +154,50 @@ repositories`_.
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 .. _EPEL and Fedora repositories: https://src.fedoraproject.org/rpms/nagelfar
 
+mod-to-sh sub-command
+---------------------
+
+New sub-command is added to translate modulefile into shell code:
+:subcmd:`mod-to-sh`. It evaluates modulefiles passed as argument and produces
+code for specified shell.
+
+.. parsed-literal::
+
+    :ps:`$` cat /path/to/modulefiles/foo
+    #%Module
+    setenv FOO value
+    set-function foo {echo foo}
+    :ps:`$` module mod-to-sh bash foo
+    FOO=value; export FOO;
+    foo () { echo foo; }; export -f foo;
+
+Designated modulefiles are evaluated as if they were loading. But instead of
+producing shell code that is evaluated in current shell session,
+:command:`module` command outputs this shell code.
+
+.. parsed-literal::
+
+    :ps:`$` cat /path/to/modulefiles/bar
+    #%Module
+    setenv BAR othervalue
+    set-alias bar {echo bar}
+    :ps:`$` module mod-to-sh fish foo bar
+    set -xg FOO value;
+    set -xg BAR othervalue;
+    alias bar echo\ bar;
+    function foo; echo foo; end;
+    :ps:`$` module list
+    No Modulefiles Currently Loaded.
+
+All shells supported by :file:`modulecmd.tcl` script are supported by
+:subcmd:`mod-to-sh`.
+
+.. parsed-literal::
+
+    :ps:`$` module mod-to-sh python foo bar
+    import os
+    os.environ['FOO'] = 'value'
+    os.environ['BAR'] = 'othervalue'
 
 v5.1
 ====

@@ -68,6 +68,8 @@ Modules 5.2.0 (not yet released)
   on deployed files.
 * Also unset :mfcmd:`pushenv` value stacks on :subcmd:`clear` sub-command.
 * Doc: add :ref:`mod-to-sh-sub-command` design notes.
+* Introduce the :subcmd:`mod-to-sh` sub-command to translate designated
+  modulefile(s) into code for specified shell. (fix issue #447)
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 
