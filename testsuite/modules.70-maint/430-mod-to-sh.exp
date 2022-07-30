@@ -1,0 +1,173 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2022/07/30
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		mod-to-sh
+#   Modulefiles:    mod-to-sh
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test mod-to-sh sub-command
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+set ansok [list [list OK nop]]
+
+set modname mod-to-sh
+set mod $modname/1.0
+set modfile $mp/$mod
+set mod2 $modname/1.1
+
+
+# regular evaluation
+setenv_var TESTSUITE_MODTOSH regular1
+set ans [list]
+lappend ans [list set FOO value]
+lappend ans [list set FOOPATH value]
+lappend ans [list alias alfoo {echo foo}]
+lappend ans [list funcfoo "() { echo foo; }; export -f funcfoo;"]
+set tserr [shell_out bash $ans 0 0]
+testouterr_cmd sh "mod-to-sh bash $mod" $ansok $tserr
+
+# multiple modulefiles
+set ans [list]
+lappend ans [list set FOO value2]
+lappend ans [list set FOOPATH value:value2]
+lappend ans [list alias alfoo {echo foo}]
+lappend ans [list funcfoo "() { echo foo; }; export -f funcfoo;"]
+set tserr [shell_out bash $ans 0 0]
+testouterr_cmd sh "mod-to-sh bash $mod $mod2" $ansok $tserr
+
+# unknown module
+testouterr_cmd sh "mod-to-sh bash unk" ERR {}
+
+# unsupported shell
+testouterr_cmd sh "mod-to-sh unk unk" ERR [err_unsupportedshell unk]
+
+skip_if_quick_mode
+
+
+# test every supported shell
+setenv_var TESTSUITE_MODTOSH regular2
+foreach shell $supported_shells {
+    set ans [list]
+    lappend ans [list set FOO $shell]
+    lappend ans [list set FOOPATH value]
+    set tserr [shell_out $shell $ans 0 0]
+    testouterr_cmd sh "mod-to-sh $shell $mod" $ansok $tserr
+}
+
+# already loaded module
+setenv_loaded_module [list $mod] [list $modfile]
+testouterr_cmd sh "mod-to-sh sh $mod" OK {}
+
+# first module already loaded, not the second
+set ans [list]
+lappend ans [list set FOO value2]
+lappend ans [list set FOOPATH value2]
+set tserr [shell_out sh $ans 0 0]
+testouterr_cmd sh "mod-to-sh sh $mod $mod2" $ansok $tserr
+unsetenv_loaded_module
+
+
+# messages output on stderr by modulefile
+setenv_var TESTSUITE_MODTOSH msg1
+testouterr_cmd sh "mod-to-sh sh $mod" ERR {}
+
+setenv_var TESTSUITE_MODTOSH msg2
+set ans [list]
+lappend ans [list set FOO value]
+set tserr [shell_out sh $ans 0 0]
+testouterr_cmd sh "mod-to-sh sh $mod" ERR $tserr
+
+# silent mode set
+testouterr_cmd sh "mod-to-sh -v sh $mod" ERR $tserr
+
+# verbose mode set
+testouterr_cmd sh "mod-to-sh -v sh $mod" ERR $tserr
+
+# trace mode set
+set tserr .*[escre [msg_load $mod "Evaluate modulefile: '$modfile' as '$mod'" "$error_msgs: message error1"]]\n\n[shell_out sh $ans 1 0]
+testouterr_cmd_re sh "mod-to-sh -T sh $mod" ERR $tserr
+
+# content sent on stdout and prestdout
+setenv_var TESTSUITE_MODTOSH out1
+set ans [list]
+lappend ans [list out {echo preout;}]
+lappend ans [list set FOO value]
+lappend ans [list out {echo out;}]
+set tserr [shell_out sh $ans 0 0]
+testouterr_cmd sh "mod-to-sh sh $mod" $ansok $tserr
+
+
+# error during evaluation
+setenv_var TESTSUITE_MODTOSH err1
+testouterr_cmd sh "mod-to-sh sh $mod" ERR {}
+
+# break during evaluation
+setenv_var TESTSUITE_MODTOSH err2
+testouterr_cmd sh "mod-to-sh sh $mod" ERR {}
+
+
+# test boolean variant specified on command-line
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_var TESTSUITE_MODTOSH variant1
+set ans [list]
+lappend ans [list set FOO 1]
+set tserr [shell_out sh $ans 0 0]
+testouterr_cmd sh "mod-to-sh sh $mod +foo" $ansok $tserr
+
+set ans [list]
+lappend ans [list set FOO 0]
+set tserr [shell_out sh $ans 0 0]
+testouterr_cmd sh "mod-to-sh sh $mod -foo" $ansok $tserr
+
+# test advanced version specifier
+testouterr_cmd sh "mod-to-sh sh $modname @1.0 foo=false" $ansok $tserr
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+
+
+# wrong --tag option
+testouterr_cmd sh "mod-to-sh sh $mod --tag=foo" ERR [err_unsupportedopt --tag mod-to-sh]
+
+# --icase option
+setenv_var TESTSUITE_MODTOSH regular2
+set ans [list]
+lappend ans [list set FOO bash]
+lappend ans [list set FOOPATH value]
+set tserr [shell_out bash $ans 0 0]
+testouterr_cmd sh "mod-to-sh -i bash mOd-TO-sh/1.0" $ansok $tserr
+
+# --auto option
+setenv_var TESTSUITE_MODTOSH prereq1
+set ans [list]
+lappend ans [list set FOO value2]
+lappend ans [list set FOOPATH value2]
+set tserr [shell_out bash $ans 0 0]
+testouterr_cmd sh "mod-to-sh --auto bash $mod" $ansok $tserr
+
+# --no-auto option
+testouterr_cmd sh "mod-to-sh --no-auto bash $mod" ERR {}
+
+# --no-auto and --force options
+testouterr_cmd sh "mod-to-sh --no-auto --force bash $mod" $ansok {}
+
+
+#
+#  Cleanup
+#
+
+reset_test_env

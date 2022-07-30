@@ -1,0 +1,45 @@
+#%Module
+
+if {[info exists env(TESTSUITE_MODTOSH)]} {
+    switch -- $env(TESTSUITE_MODTOSH) {
+        regular1 {
+            setenv FOO value
+            append-path FOOPATH value
+            set-alias alfoo {echo foo}
+            set-function funcfoo {echo foo}
+        }
+        regular2 {
+            setenv FOO [module-info shell]
+            append-path FOOPATH value
+        }
+        msg1 {
+            reportError {message error1}
+            reportWarning {message warning1}
+            puts stderr {message puts1}
+        }
+        msg2 {
+            reportError {message error1}
+            setenv FOO value
+        }
+        out1 {
+            puts stdout {echo out;}
+            puts prestdout {echo preout;}
+            setenv FOO value
+        }
+        err1 {
+            setenv FOO value
+            unk
+        }
+        err2 {
+            setenv FOO value
+            break
+        }
+        variant1 {
+            variant --boolean foo
+            setenv FOO [getvariant foo]
+        }
+        prereq1 {
+            prereq mod-to-sh/1.1
+        }
+    }
+}
