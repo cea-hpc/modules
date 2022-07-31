@@ -63,6 +63,73 @@ testouterr_cmd "csh" "source $module_3" "ERR" "$err_csh"
 # env is set until reaching Tcl breaking point
 testouterr_cmd "csh" "source $module_4" $ans2 "$err_csh2"
 
+
+# test file path precedence over available modulefile
+# skip this test in the following situation:
+# - when coverage is enabled, as the cwd error will be caught by coverage tool
+#   rather than getAbsolutePath procedure. The next test (pwd supersede) enable
+#   coverage check of getAbsolutePath
+# - when running on Tcl 8.5 where test outputs are saved in files located in
+#   current working directory
+if {![info exists env(COVERAGE)] && [cmpversion $tclsh_version 8.6] > -1} {
+    setenv_path_var MODULEPATH $modpath.2
+    cd $env(TESTSUITEDIR)/modulefiles.memcache
+    # change MODULECMD for the test to make it an absolute path name
+    set MODULECMD $env(TESTSUITEDIR)/../$MODULECMD
+
+    set ans [list]
+    lappend ans [list set ts ok]
+    testouterr_cmd sh {source foo/1} $ans {}
+
+    # move back to testsuite working directory
+    cd $ORIG_CWD
+    unset MODULECMD
+}
+
+# test existing modulefile
+setenv_path_var MODULEPATH $modpath.memcache
+set ans [list]
+lappend ans [list set ts ok]
+testouterr_cmd sh {source foo/1} $ans {}
+
+# test unexisting modulefile
+testouterr_cmd sh {source foo/unk} ERR $err_path'foo/unk'
+
+# source filepath then modulefile
+set ans [list]
+lappend ans [list set testsuite yes]
+lappend ans [list set ts ok]
+testouterr_cmd sh "source $module_1 foo/1" $ans {}
+
+# source nonexistent filepath then modulefile
+set tserr "$error_msgs: File $module_3 does not exist"
+testouterr_cmd sh "source $module_3 foo/1" ERR $tserr
+
+# test boolean variant specified on command-line
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_path_var MODULEPATH $modpath.3
+setenv_var TESTSUITE_VARIANT bool8
+set ans [list]
+lappend ans [list set TS1 foo=1]
+lappend ans [list set TS2 true]
+lappend ans [list set TS0 foo]
+testouterr_cmd sh {source variant/1.0 +foo} $ans {}
+set ans [list]
+lappend ans [list set TS1 foo=0]
+lappend ans [list set TS2 false]
+lappend ans [list set TS0 foo]
+testouterr_cmd sh {source variant/1.0 -foo} $ans {}
+
+# test other variant specification
+setenv_var TESTSUITE_VARIANT 2
+set ans [list]
+lappend ans [list set TS1 FOO=val2]
+lappend ans [list set TS0 FOO]
+testouterr_cmd sh {source variant @1.0 FOO=val2} $ans {}
+unsetenv_var TESTSUITE_VARIANT
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+
+
 #
 #  Cleanup
 #
