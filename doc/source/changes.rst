@@ -861,6 +861,11 @@ The following module sub-commands appeared on Modules 5.
  Starting Modules 5.1, this sub-command also tracks shell completion changes
  for bash, tcsh and fish shells.
 
+:subcmd:`source`
+
+ Starting Modules 5.2, this sub-command accepts modulefile specification as
+ argument in addition to file path.
+
 Environment
 """""""""""
 

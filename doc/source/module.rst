@@ -193,8 +193,9 @@ switches are accepted:
 .. option:: --auto
 
  On :subcmd:`load`, :subcmd:`unload`, :subcmd:`switch`, :subcmd:`load-any`,
- :subcmd:`try-load` and :subcmd:`mod-to-sh` sub-commands, enable automated
- module handling mode. See also :envvar:`MODULES_AUTO_HANDLING` section.
+ :subcmd:`try-load`, :subcmd:`mod-to-sh` and :subcmd:`source` sub-commands,
+ enable automated module handling mode. See also
+ :envvar:`MODULES_AUTO_HANDLING` section.
 
  .. only:: html
 
@@ -250,8 +251,8 @@ switches are accepted:
 .. option:: --force, -f
 
  On :subcmd:`load`, :subcmd:`unload`, :subcmd:`switch`, :subcmd:`load-any`,
- :subcmd:`try-load` and :subcmd:`mod-to-sh` sub-commands by-pass any
- unsatisfied modulefile constraint corresponding to the declared
+ :subcmd:`try-load`, :subcmd:`mod-to-sh` and :subcmd:`source` sub-commands
+ by-pass any unsatisfied modulefile constraint corresponding to the declared
  :mfcmd:`prereq` and :mfcmd:`conflict`. Which means for instance that a
  *modulefile* will be loaded even if it comes in conflict with another loaded
  *modulefile* or that a *modulefile* will be unloaded even if it is required
@@ -324,8 +325,9 @@ switches are accepted:
 .. option:: --no-auto
 
  On :subcmd:`load`, :subcmd:`unload`, :subcmd:`switch`, :subcmd:`load-any`,
- :subcmd:`try-load` and :subcmd:`mod-to-sh` sub-commands, disable automated
- module handling mode. See also :envvar:`MODULES_AUTO_HANDLING` section.
+ :subcmd:`try-load`, :subcmd:`mod-to-sh` and :subcmd:`source` sub-commands,
+ disable automated module handling mode. See also
+ :envvar:`MODULES_AUTO_HANDLING` section.
 
  .. only:: html
 
@@ -1851,16 +1853,30 @@ Module Sub-Commands
 
  See :subcmd:`display`.
 
-.. subcmd:: source scriptfile...
+.. subcmd:: source [options] modulefile...
 
- Execute *scriptfile* into the shell environment. *scriptfile* must be written
- with *modulefile* syntax and specified with a fully qualified path. Once
- executed *scriptfile* is not marked loaded in shell environment which differ
- from :subcmd:`load` sub-command.
+ Execute *modulefile* into the shell environment. Once executed *modulefile*
+ is not marked loaded in shell environment which differ from :subcmd:`load`
+ sub-command.
+
+ :subcmd:`source` command accepts the following options:
+
+ * ``--auto|--no-auto``
+ * ``-f|--force``
+
+ If *modulefile* corresponds to a fully qualified path, this file is executed.
+ Otherwise *modulefile* is searched among the available modulefiles.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
 
  .. only:: html
 
     .. versionadded:: 4.0
+
+    .. versionchanged:: 5.2
+       Accept modulefile specification as argument
 
 .. subcmd:: state [name]
 

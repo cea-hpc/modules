@@ -70,6 +70,9 @@ Modules 5.2.0 (not yet released)
 * Doc: add :ref:`mod-to-sh-sub-command` design notes.
 * Introduce the :subcmd:`mod-to-sh` sub-command to translate designated
   modulefile(s) into code for specified shell. (fix issue #447)
+* Make :subcmd:`source` sub-command accepts modulefile specification as
+  argument. If argument does not correspond to a file path, search it among
+  available modulefiles. (fix issue #424)
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 
