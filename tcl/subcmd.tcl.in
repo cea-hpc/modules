@@ -805,18 +805,31 @@ proc cmdModuleSavelist {show_oneperline show_mtime} {
 
 
 proc cmdModuleSource {mode args} {
-   foreach fpath $args {
-      set absfpath [getAbsolutePath $fpath]
-      if {$fpath eq {}} {
+   foreach mod $args {
+      set rawarg [getRawArgumentFromVersSpec $mod]
+      if {$mod eq {}} {
          reportErrorAndExit {File name empty}
-      } elseif {[file exists $absfpath]} {
-         lappendState mode $mode
-         # sourced file must also have a magic cookie set at their start
-         execute-modulefile $absfpath $absfpath $absfpath $absfpath 0 0
-         lpopState mode
+      # first check if raw specification is an existing file
+      } elseif {[file exists [set absfpath [getAbsolutePath $rawarg]]]} {
+         set modfile $absfpath
+         set modname $absfpath
+         set modnamevr $absfpath
+         set mod $absfpath
+      # if not a path specification, try to resolve a modulefile
+      } elseif {![isModuleFullPath $rawarg]} {
+         lassign [getPathToModule $mod] modfile modname modnamevr
+         # stop if no module found, issue has been reported by getPathToModule
+         if {$modfile eq {}} {
+            break
+         }
       } else {
-         reportErrorAndExit "File $fpath does not exist"
+         reportErrorAndExit "File $rawarg does not exist"
       }
+
+      lappendState mode $mode
+      # sourced file must also have a magic cookie set at their start
+      execute-modulefile $modfile $modname $modnamevr $mod 0 0
+      lpopState mode
    }
 }
 
