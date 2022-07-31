@@ -73,6 +73,8 @@ Modules 5.2.0 (not yet released)
 * Make :subcmd:`source` sub-command accepts modulefile specification as
   argument. If argument does not correspond to a file path, search it among
   available modulefiles. (fix issue #424)
+* Doc: clarify :mfcmd:`set-alias` only define shell alias and not shell
+  function.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 

@@ -1076,10 +1076,10 @@ the *modulefile* is being loaded.
 
 .. mfcmd:: set-alias alias-name alias-string
 
- Sets an alias or function with the name *alias-name* in the user's
- environment to the string *alias-string*. For some shells, aliases are not
- possible and the command has no effect. When a *modulefile* is unloaded,
- :mfcmd:`set-alias` becomes :mfcmd:`unset-alias`.
+ Sets an alias with the name *alias-name* in the user's environment to the
+ string *alias-string*. For some shells, aliases are not possible and the
+ command has no effect. When a *modulefile* is unloaded, :mfcmd:`set-alias`
+ becomes :mfcmd:`unset-alias`.
 
 .. mfcmd:: set-function function-name function-string
 
