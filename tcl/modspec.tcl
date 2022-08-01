@@ -1217,7 +1217,7 @@ proc parseModuleSpecificationProc {mlspec args} {
          set modarg $modname
       }
       # record spec, especially needed if arg is enclosed
-      setModuleVersSpec $modarg $modname eq {} {} {}
+      setModuleVersSpec $modarg $modname eq {} {} {} $arg
       # append to unload list if ml spec and - prefix used
       if {$mlunload} {
          lappend unarglist $modarg
@@ -1250,6 +1250,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
    set unarglist [list]
    set vrlist [list]
    set vridx -1
+   set rawarg [list]
    foreach arg $args {
       # set each specification element as separate word but preserve space
       # character in each arg
@@ -1367,7 +1368,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
                   if {[info exists modname] && ($modname ne {} || $modspec\
                      eq {})} {
                      setModuleVersSpec $modarg $modname $cmpspec $versspec\
-                        $modspec $vrlist
+                        $modspec $vrlist $rawarg
                      # rework args to have 1 str element for whole mod spec
                      # append to unload list if ml spec and - prefix used
                      if {$mlunload} {
@@ -1382,6 +1383,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
                   set vrlist [list]
                   array unset vrnamearr
                   set vridx -1
+                  set rawarg [list]
                   unset cmpspec versspec
                }
                set mlunload $nextmlunload
@@ -1391,6 +1393,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
             }
          }
       }
+      lappend rawarg $arg
 
       # keep arg enclosed if composed of several words
       if {[string first { } $arg] != -1} {
@@ -1406,7 +1409,8 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
          set cmpspec eq
          set versspec {}
       }
-      setModuleVersSpec $modarg $modname $cmpspec $versspec $modspec $vrlist
+      setModuleVersSpec $modarg $modname $cmpspec $versspec $modspec $vrlist\
+         $rawarg
       # rework args to have 1 string element for whole module spec
       # append to unload list if ml spec and - prefix used
       if {$mlunload || $nextmlunload} {
@@ -1426,7 +1430,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
 }
 
 proc setModuleVersSpec {modarg modname cmpspec versspec rawversspec\
-   variantlist} {
+   variantlist rawarg} {
    # translate @loaded version into currently loaded mod matching modname
    if {$cmpspec eq {eq} && $versspec eq {loaded}} {
       if {[set lmmod [getLoadedMatchingName $modname]] ne {}} {
@@ -1471,9 +1475,10 @@ proc setModuleVersSpec {modarg modname cmpspec versspec rawversspec\
    reportDebug "Set module '$mod' (escglob '$modescglob'),  module name\
       '$modname' (re '$modnamere'), module root '$modroot', version cmp\
       '$cmpspec', version(s) '$versspec', variant(s) '$variantlist' and\
-      module name version spec '$modnvspec' for argument '$modarg'"
+      module name version spec '$modnvspec' for argument '$modarg' (raw\
+      '$rawarg')"
    set ::g_moduleVersSpec($modarg) [list $mod $modname $cmpspec $versspec\
-      $modnamere $modescglob $modroot $variantlist $modnvspec]
+      $modnamere $modescglob $modroot $variantlist $modnvspec $rawarg]
 }
 
 proc getModuleVersSpec {modarg} {
@@ -1481,7 +1486,7 @@ proc getModuleVersSpec {modarg} {
       return $::g_moduleVersSpec($modarg)
    } else {
       return [list $modarg [file dirname $modarg] {} {} {} [string map {* \\*\
-         ? \\?} $modarg] [lindex [file split $modarg] 0] {} $modarg]
+         ? \\?} $modarg] [lindex [file split $modarg] 0] {} $modarg $modarg]
    }
 }
 
@@ -1568,6 +1573,16 @@ proc getModuleNameAndVersFromVersSpec {modarg} {
       set modnvspec $modarg
    }
    return $modnvspec
+}
+
+# get raw argument specified from parsed version spec
+proc getRawArgumentFromVersSpec {modarg} {
+   if {[info exists ::g_moduleVersSpec($modarg)]} {
+      set rawarg [lindex $::g_moduleVersSpec($modarg) 9]
+   } else {
+      set rawarg $modarg
+   }
+   return $rawarg
 }
 
 # ;;; Local Variables: ***
