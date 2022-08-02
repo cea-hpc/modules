@@ -752,15 +752,49 @@ proc cmdModuleSavelist {show_oneperline show_mtime search_match args} {
 
    reportDebug "list collections for target \"$colltarget\""
 
+   if {[llength $args] > 0} {
+      defineModEqProc [isIcase] 0
+      # match passed name against any part of collection names
+      set mtest [expr {{contains} in $search_match ? {matchin} : {match}}]
+      # prepare header message which depend if search is performed
+      set collmsg "Matching named collection list$targetdesc:"
+   } else {
+      set collmsg "Named collection list$targetdesc:"
+   }
+
    foreach collfile [findCollections] {
       # remove target suffix from names to display
       regsub $suffix$ [file tail $collfile] {} coll
       set coll_arr($coll) $collfile
    }
 
-   if {![array exists coll_arr]} {
+   # same header msg if no collection at all whether search is made or not
+   set nocollmsg [expr {![array exists coll_arr] ? "No named\
+      collection$targetdesc." : "No matching named collection$targetdesc."}]
+
+   # filter collection not matching any of the passed specification
+   if {[llength $args] > 0} {
+      set matchlist [list]
+      foreach coll [array names coll_arr] {
+         set match 0
+         foreach pattern $args {
+            # compare pattern against collections using comparison module proc
+            # useful for suffix/prefix/icase checks, disabling module-specific
+            # checks (variants, alternative names, etc)
+            if {[modEq $pattern $coll $mtest 0 0 0 0 *]} {
+               set match 1
+               break
+            }
+         }
+         if {!$match} {
+            unset coll_arr($coll)
+         }
+      }
+   }
+
+   if {[array size coll_arr] == 0} {
       if {!$json} {
-         report "No named collection$targetdesc."
+         report $nocollmsg
       }
    } else {
       set list {}
@@ -768,7 +802,7 @@ proc cmdModuleSavelist {show_oneperline show_mtime search_match args} {
          if {$show_mtime} {
             displayTableHeader hi Collection 59 {Last mod.} 19
          }
-         report "Named collection list$targetdesc:"
+         report $collmsg
       }
       set display_list {}
       set len_list {}
