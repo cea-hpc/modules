@@ -856,6 +856,15 @@ The following module sub-commands appeared on Modules 5.
  options are supported on this sub-command to provide the regular search match
  capabilities.
 
+:subcmd:`savelist`
+
+ Starting Modules 5.2, this sub-command accepts patterns to filter the named
+ collections to list.
+
+ Starting Modules 5.2, the :option:`--starts-with` and :option:`--contains`
+ options are supported on this sub-command to provide the regular search match
+ capabilities.
+
 :subcmd:`sh-to-mod`
 
  Starting Modules 5.1, this sub-command also tracks shell completion changes

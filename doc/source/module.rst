@@ -212,8 +212,9 @@ switches are accepted:
 
 .. option:: --contains, -C
 
- On :subcmd:`avail` and :subcmd:`list` sub-commands, return modules whose
- fully qualified name contains search query string.
+ On :subcmd:`avail`, :subcmd:`list` and :subcmd:`savelist` sub-commands,
+ return modules or collections whose fully qualified name contains search
+ query string.
 
  .. only:: html
 
@@ -221,6 +222,9 @@ switches are accepted:
 
     .. versionchanged:: 5.1
        Support for :subcmd:`list` sub-command added
+
+    .. versionchanged:: 5.2
+       Support for :subcmd:`savelist` sub-command added
 
 .. option:: --debug, -D, -DD
 
@@ -418,8 +422,8 @@ switches are accepted:
 
 .. option:: --starts-with, -S
 
- On :subcmd:`avail` and :subcmd:`list` sub-commands, return modules whose name
- starts with search query string.
+ On :subcmd:`avail`, :subcmd:`list` and :subcmd:`savelist` sub-commands,
+ return modules or collections whose name starts with search query string.
 
  .. only:: html
 
@@ -427,6 +431,9 @@ switches are accepted:
 
     .. versionchanged:: 5.1
        Support for :subcmd:`list` sub-command added
+
+    .. versionchanged:: 5.2
+       Support for :subcmd:`savelist` sub-command added
 
 .. option:: --tag=LIST
 
@@ -1449,10 +1456,10 @@ Module Sub-Commands
 .. subcmd:: list [-t|-l|-j] [-a] [-o LIST] [-S|-C] [pattern...]
 
  List loaded modules. If a *pattern* is given, then the loaded modules are
- filtered to only list those whose name match this *pattern*. It may contain
+ filtered to only list those whose name matches this *pattern*. It may contain
  wildcard characters. *pattern* is matched in a case insensitive manner by
- default. If multiple *patterns* are given, loaded modules has to
- match at least one of them to be listed.
+ default. If multiple *patterns* are given, loaded module has to match at
+ least one of them to be listed.
 
  Module tags applying to the loaded modules are reported along the module name
  they are associated to (see `Module tags`_ section).
@@ -1763,11 +1770,17 @@ Module Sub-Commands
 
     .. versionadded:: 4.0
 
-.. subcmd:: savelist [-t|-l|-j]
+.. subcmd:: savelist [-t|-l|-j] [-S|-C] [pattern...]
 
  List collections that are currently saved under the user's collection
  directory. If :envvar:`MODULES_COLLECTION_TARGET` is set, only collections
  matching the target suffix will be displayed.
+
+ If a *pattern* is given, then the collections are filtered to only list
+ those whose name matches this *pattern*. It may contain wildcard characters.
+ *pattern* is matched in a case insensitive manner by default. If multiple
+ *patterns* are given, collection has to match at least one of them to be
+ listed.
 
  .. only:: html
 
@@ -1775,6 +1788,13 @@ Module Sub-Commands
 
     .. versionchanged:: 4.5
        Option :option:`--json`/:option:`-j` added
+
+    .. versionchanged:: 5.2
+       *pattern* search to filter collections added
+
+    .. versionchanged:: 5.2
+       Options :option:`--starts-with`/:option:`-S` and
+       :option:`--contains`/:option:`-C` added
 
 .. subcmd:: saverm [collection]
 
@@ -3075,10 +3095,11 @@ ENVIRONMENT
  modulefile Tcl commands, defines the case sensitiveness to apply to match
  them. When :envvar:`MODULES_ICASE` is set to ``never``, a case sensitive
  match is applied in any cases. When set to ``search``, a case insensitive
- match is applied to the :subcmd:`avail`, :subcmd:`list`, :subcmd:`whatis` and
- :subcmd:`paths` sub-commands. When set to ``always``, a case insensitive
- match is also applied to the other module sub-commands and modulefile Tcl
- commands for the module specification they receive as argument.
+ match is applied to the :subcmd:`avail`, :subcmd:`list`, :subcmd:`whatis`,
+ :subcmd:`paths` and :subcmd:`savelist` sub-commands. When set to ``always``,
+ a case insensitive match is also applied to the other module sub-commands
+ and modulefile Tcl commands for the module specification they receive as
+ argument.
 
  This environment variable value supersedes the default value set in the
  :mconfig:`icase` configuration option. It can be defined with the
@@ -3092,6 +3113,9 @@ ENVIRONMENT
 
     .. versionchanged:: 5.1
        Search mode applied to :subcmd:`list` sub-command
+
+    .. versionchanged:: 5.2
+       Search mode applied to :subcmd:`savelist` sub-command
 
 .. envvar:: MODULES_IMPLICIT_DEFAULT
 

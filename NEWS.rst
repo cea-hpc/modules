@@ -75,6 +75,11 @@ Modules 5.2.0 (not yet released)
   available modulefiles. (fix issue #424)
 * Doc: clarify :mfcmd:`set-alias` only define shell alias and not shell
   function.
+* Add the ability to filter the list of collections returned by
+  :subcmd:`savelist` sub-command. Filtering pattern is matched in a case
+  insensitive manner by default.
+* Add support for :option:`--starts-with` and :option:`--contains` options on
+  :subcmd:`savelist` sub-command.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 
