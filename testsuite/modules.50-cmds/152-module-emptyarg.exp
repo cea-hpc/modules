@@ -43,7 +43,7 @@ setenv_path_var MODULEPATH $modulepath
 #
 
 # wrong arg number if command does not accept any argument
-foreach cmd [list purge reload aliases savelist] {
+foreach cmd [list purge reload aliases] {
     testouterr_cmd "sh" "load $module/$cmd" "ERR" [msg_load $module/$cmd [msg_moderr "Unexpected number of args for '$cmd' command" "module $cmd {}" $modulepath/$module/$cmd 27]]
 }
 
@@ -112,6 +112,10 @@ set ans [list]
 lappend ans [list set _LMFILES_ $modulepath/$module/list]
 lappend ans [list set LOADEDMODULES $module/list]
 testouterr_cmd sh "load $module/list" $ans $no_loaded
+set ans [list]
+lappend ans [list set _LMFILES_ $modulepath/$module/savelist]
+lappend ans [list set LOADEDMODULES $module/savelist]
+testouterr_cmd sh "load $module/savelist" $ans $no_named_coll
 
 
 #
@@ -119,7 +123,7 @@ testouterr_cmd sh "load $module/list" $ans $no_loaded
 #
 
 # wrong arg number if command does not accept any argument
-foreach cmd [list purge reload aliases savelist] {
+foreach cmd [list purge reload aliases] {
     setenv_loaded_module "$module/$cmd" "$modulepath/$module/$cmd"
     testouterr_cmd "sh" "unload $module/$cmd" "ERR" [msg_unload $module/$cmd [msg_moderr "Unexpected number of args for '$cmd' command" "module $cmd {}" $modulepath/$module/$cmd 27]]
 }
@@ -184,6 +188,11 @@ set ans [list]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh "unload $module/list" $ans "$cur_matchingloaded\n 1) $module/list  "
+setenv_loaded_module $module/savelist $modulepath/$module/savelist
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh "unload $module/savelist" $ans $no_named_coll
 
 # restore environment
 unsetenv_loaded_module

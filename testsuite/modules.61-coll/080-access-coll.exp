@@ -38,7 +38,6 @@ if {!$is_file_perms_editable} {
 # Variables for this test
 #
 
-set header_coll "Named collection list:"
 set coll_list "$coll1\n${coll1}.save\n$coll2\n$coll3\n$coll4f\n$coll6f\n$colld\ninfocmd\ninfocmdexp"
 set coll_list_nocoll1 "${coll1}.save\n$coll2\n$coll3\n$coll4f\n$coll6f\n$colld\ninfocmd\ninfocmdexp"
 
@@ -94,7 +93,7 @@ file copy -force $coll1fp $coll1fpsave
 
 change_file_perms $coll1fp $hide_perms
 
-testouterr_cmd "sh" "savelist -t" "OK" "$header_coll\n$coll_list_nocoll1"
+testouterr_cmd "sh" "savelist -t" "OK" "$named_coll\n$coll_list_nocoll1"
 testouterr_cmd "sh" "saveshow $coll1" "ERR" [err_permdenied $coll1fp]
 testouterr_cmd "sh" "restore $coll1" "ERR" [err_permdenied $coll1fp]
 testouterr_cmd "sh" "save $coll1" "OK" ""
@@ -111,7 +110,7 @@ restore_file_perms $coll1fp
 
 change_file_perms $coll1fp $write_perms
 
-testouterr_cmd "sh" "savelist -t" "OK" "$header_coll\n$coll_list"
+testouterr_cmd "sh" "savelist -t" "OK" "$named_coll\n$coll_list"
 testouterr_cmd_re "sh" "saveshow $coll1" "OK" "$modlin\n$coll1fpre:\n\n$presavedc1cont1re\n$modlin"
 testouterr_cmd_re "sh" "restore $coll1" $ans "$c1errmsg"
 testouterr_cmd "sh" "save $coll1" "ERR" "$save_msg\n$perm_msg"
@@ -153,7 +152,7 @@ file copy -force $coll1fpsave $coll1fp
 
 change_file_perms $homewithcolldotmod $write_perms
 
-testouterr_cmd "sh" "savelist -t" "OK" "$header_coll\n$coll_list"
+testouterr_cmd "sh" "savelist -t" "OK" "$named_coll\n$coll_list"
 testouterr_cmd_re "sh" "saveshow $coll1" "OK" "$modlin\n$coll1fpre:\n\n$presavedc1cont1re\n$modlin"
 testouterr_cmd_re "sh" "restore $coll1" $ans "$c1errmsg"
 testouterr_cmd "sh" "save $coll1" "OK" ""
