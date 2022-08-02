@@ -752,9 +752,13 @@ proc cmdModuleSavelist {show_oneperline show_mtime search_match args} {
 
    reportDebug "list collections for target \"$colltarget\""
 
-   set coll_list [findCollections]
+   foreach collfile [findCollections] {
+      # remove target suffix from names to display
+      regsub $suffix$ [file tail $collfile] {} coll
+      set coll_arr($coll) $collfile
+   }
 
-   if { [llength $coll_list] == 0} {
+   if {![array exists coll_arr]} {
       if {!$json} {
          report "No named collection$targetdesc."
       }
@@ -777,21 +781,19 @@ proc cmdModuleSavelist {show_oneperline show_mtime search_match args} {
          set one_per_line 0
       }
 
-      foreach coll [lsort -dictionary $coll_list] {
-         # remove target suffix from names to display
-         regsub $suffix$ [file tail $coll] {} mod
+      foreach coll [lsort -dictionary [array names coll_arr]] {
          if {$json} {
-            lappend display_list [formatListEltToJsonDisplay $mod target s\
-               $colltarget 1 pathname s $coll 1]
-         # no need to test mod consistency as findCollections does not return
+            lappend display_list [formatListEltToJsonDisplay $coll target s\
+               $colltarget 1 pathname s $coll_arr($coll) 1]
+         # no need to test coll consistency as findCollections does not return
          # collection whose name starts with "."
          } elseif {$show_mtime} {
-            set filetime [clock format [getFileMtime $coll]\
+            set filetime [clock format [getFileMtime $coll_arr($coll)]\
                -format {%Y/%m/%d %H:%M:%S}]
-            lappend display_list [format %-60s%19s $mod $filetime]
+            lappend display_list [format %-60s%19s $coll $filetime]
          } else {
-            lappend display_list $mod
-            lappend len_list [set len [string length $mod]]
+            lappend display_list $coll
+            lappend len_list [set len [string length $coll]]
             if {$len > $max_len} {
                set max_len $len
             }
