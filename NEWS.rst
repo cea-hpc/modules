@@ -80,6 +80,8 @@ Modules 5.2.0 (not yet released)
   insensitive manner by default.
 * Add support for :option:`--starts-with` and :option:`--contains` options on
   :subcmd:`savelist` sub-command.
+* Highlight all search patterns on :subcmd:`list` sub-command output instead
+  of only the first one..
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 

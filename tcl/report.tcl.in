@@ -1179,14 +1179,16 @@ proc formatListEltToJsonDisplay {elt args} {
 # wildcard. No highlight is set for strings still containing wildcard chars
 # after right trim operation. No highlist map is returned at all if highlight
 # rendering is disabled.
-proc prepareMapToHightlightSubstr {substr} {
+proc prepareMapToHightlightSubstr {args} {
    set maplist {}
    if {[sgr hi {}] ne {}} {
-      foreach m [getAllModulesFromVersSpec $substr] {
-         set m [string trimright $m {*?}]
-         if {$m ne {} && [string first * $m] == -1 && [string first ? $m] ==\
-            -1} {
-            lappend maplist $m [sgr hi $m]
+      foreach substr $args {
+         foreach m [getAllModulesFromVersSpec $substr] {
+            set m [string trimright $m {*?}]
+            if {$m ne {} && [string first * $m] == -1 && [string first ? $m]\
+               == -1} {
+               lappend maplist $m [sgr hi $m]
+            }
          }
       }
    }
@@ -1194,7 +1196,7 @@ proc prepareMapToHightlightSubstr {substr} {
 }
 
 # Format list of modules obtained from a getModules call in upper context
-proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
+proc reportModules {search_queries header hsgrkey hstyle show_mtime show_idx\
    one_per_line theader_cols excluded_tag {mod_list_order {}}} {
    # link to the result module list obtained in caller context
    upvar mod_list mod_list
@@ -1218,7 +1220,7 @@ proc reportModules {mod header hsgrkey hstyle show_mtime show_idx\
    # prepare results for display
    set alias_colored [isSgrkeyColored al]
    set default_colored [isSgrkeyColored de]
-   set himatchmap [prepareMapToHightlightSubstr $mod]
+   set himatchmap [prepareMapToHightlightSubstr {*}$search_queries]
    set clean_list {}
    set vr_list {}
 

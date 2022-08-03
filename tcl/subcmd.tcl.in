@@ -30,13 +30,11 @@ proc cmdModuleList {show_oneperline show_mtime search_match args} {
       defineModEqProc [isIcase] [getConf extended_default]
       # match passed name against any part of loaded module names
       set mtest [expr {{contains} in $search_match ? {matchin} : {match}}]
-      # use first arg as query to highlight as reportModules only accepts one
-      # search specification
-      set searchquery [lindex $args 0]
+      set search_queries $args
       # prepare header message which depend if search is performed
       set loadedmsg {Currently Loaded Matching Modulefiles}
    } else {
-      set searchquery {}
+      set search_queries {}
       set loadedmsg {Currently Loaded Modulefiles}
    }
 
@@ -102,7 +100,7 @@ proc cmdModuleList {show_oneperline show_mtime search_match args} {
          {noheader}}]
       set theader_cols [list hi Package 39 Versions 19 {Last mod.} 19]
 
-      reportModules $searchquery $header {} terse $show_mtime $show_idx\
+      reportModules $search_queries $header {} terse $show_mtime $show_idx\
          $one_per_line $theader_cols loaded $loadedmodlist
 
       # display output key
@@ -1691,6 +1689,7 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
    inhibitErrorReport
 
    foreach mod $args {
+      set search_queries [list $mod]
       array unset mod_list
       # look if aliases have been defined in the global or user-specific
       # modulerc and display them if any in a dedicated list
@@ -1698,8 +1697,8 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
          $show_filter]
 
       if {$report_modulepath} {
-         reportModules $mod {global/user modulerc} hi $hstyle $show_mtime 0\
-            $one_per_line $theader_cols hidden-loaded
+         reportModules $search_queries {global/user modulerc} hi $hstyle\
+            $show_mtime 0 $one_per_line $theader_cols hidden-loaded
       }
 
       foreach dir [getModulePathList exiterronundef] {
@@ -1709,8 +1708,8 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
             # err is raised from a modulerc)
             array set mod_list [getModules $dir $mod $show_mtime\
                $search_filter $show_filter]
-            reportModules $mod $dir mp $hstyle $show_mtime 0 $one_per_line\
-               $theader_cols hidden-loaded
+            reportModules $search_queries $dir mp $hstyle $show_mtime 0\
+               $one_per_line $theader_cols hidden-loaded
          } else {
             # add result if not already added from an upper priority modpath
             foreach {elt props} [getModules $dir $mod $show_mtime\
@@ -1724,8 +1723,8 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
 
       # no report by modulepath, mix all aggregated results
       if {!$report_modulepath} {
-         reportModules $mod noheader {} {} $show_mtime 0 $one_per_line\
-            $theader_cols hidden-loaded
+         reportModules $search_queries noheader {} {} $show_mtime 0\
+            $one_per_line $theader_cols hidden-loaded
       }
    }
 
