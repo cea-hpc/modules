@@ -1490,6 +1490,12 @@ proc getModuleVersSpec {modarg} {
    }
 }
 
+proc unsetModuleVersSpec {modarg} {
+   if {[info exists ::g_moduleVersSpec($modarg)]} {
+      unset ::g_moduleVersSpec($modarg)
+   }
+}
+
 # get module name from module name and version spec if parsed
 proc getModuleNameFromVersSpec {modarg} {
    if {[info exists ::g_moduleVersSpec($modarg)]} {
