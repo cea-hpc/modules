@@ -1,0 +1,116 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2022/08/03
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		savelist
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test savelist sub-command search capabilities
+#		}C%
+#
+##############################################################################
+
+
+# test HOME with no collection
+set tserr $no_named_coll
+testouterr_cmd sh {savelist foo} OK $tserr
+
+
+# set HOME to location containing collections
+setenv_var HOME $homewithcoll
+
+set tserr "$matching_named_coll\n 1) infocmd   2) infocmdexp  "
+testouterr_cmd sh {savelist infocmd} OK $tserr
+
+set tserr $no_matching_named_coll
+testouterr_cmd sh {savelist bar} OK $tserr
+
+set tserr "$matching_named_coll\n 1) coll1   2) infocmdexp  "
+testouterr_cmd sh {savelist infocmde coll1} OK $tserr
+testouterr_cmd sh {savelist infocmde bar coll1} OK $tserr
+
+skip_if_quick_mode
+
+
+# search match & icase tests
+setenv_var MODULES_SEARCH_MATCH starts_with
+
+set tserr "$matching_named_coll\n 1) infocmd   2) infocmdexp  "
+testouterr_cmd sh {savelist inf} OK $tserr
+testouterr_cmd sh {savelist -S info} OK $tserr
+
+if {$install_icase eq {search}} {
+    testouterr_cmd sh {savelist iNf} OK $tserr
+} else {
+    testouterr_cmd sh {savelist iNf} OK $no_matching_named_coll
+}
+testouterr_cmd sh {savelist -i iNf} OK $tserr
+testouterr_cmd sh {savelist --icase InFO} OK $tserr
+testouterr_cmd sh {-i savelist infoCMD} OK $tserr
+
+testouterr_cmd sh {savelist -C cmd} OK $tserr
+testouterr_cmd sh {savelist --contains -i cMd} OK $tserr
+
+set tserr $no_matching_named_coll
+testouterr_cmd sh {savelist cmd} OK $tserr
+testouterr_cmd sh {savelist -i cMd} OK $tserr
+
+setenv_var MODULES_SEARCH_MATCH contains
+
+set tserr "$matching_named_coll\n 1) infocmd   2) infocmdexp  "
+testouterr_cmd sh {savelist info} OK $tserr
+testouterr_cmd sh {savelist -i info} OK $tserr
+testouterr_cmd sh {savelist ocm} OK $tserr
+testouterr_cmd sh {savelist -C cmd} OK $tserr
+
+set tserr $no_matching_named_coll
+testouterr_cmd sh {savelist -S cmd} OK $tserr
+testouterr_cmd sh {savelist --starts-with -i cMd} OK $tserr
+
+unsetenv_var MODULES_SEARCH_MATCH
+
+
+# glob match
+set tserr "$matching_named_coll\n 1) infocmd   2) infocmdexp  "
+testouterr_cmd sh {savelist -S *cmd} OK $tserr
+testouterr_cmd sh {savelist -S ?nfo} OK $tserr
+testouterr_cmd sh {savelist -i -S i?fO} OK $tserr
+testouterr_cmd sh {savelist -C ocm?} OK $tserr
+
+set tserr "$matching_named_coll
+ 1) $coll1   3) $coll3          5) $coll6f   7) infocmd     
+ 2) $coll2   4) $coll4f   6) $colld        8) infocmdexp  "
+testouterr_cmd sh {savelist -w 80 *} OK $tserr
+testouterr_cmd sh {savelist -w 80 ?} OK $tserr
+
+
+# ml
+set tserr "$matching_named_coll\n 1) infocmd   2) infocmdexp  "
+testouterr_cmd sh {ml savelist info} OK $tserr
+if {$install_icase eq {search}} {
+    testouterr_cmd sh {ml savelist INFO} OK $tserr
+} else {
+    testouterr_cmd sh {ml savelist INFO} OK $no_matching_named_coll
+}
+testouterr_cmd sh {ml savelist -S *cmd} OK $tserr
+testouterr_cmd sh {ml savelist -S ?nfo} OK $tserr
+testouterr_cmd sh {ml savelist -C cmd} OK $tserr
+set tserr $no_matching_named_coll
+testouterr_cmd sh {ml savelist foo} OK $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
