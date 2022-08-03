@@ -795,7 +795,6 @@ proc cmdModuleSavelist {show_oneperline show_mtime search_match args} {
          report $nocollmsg
       }
    } else {
-      set list {}
       if {!$json} {
          if {$show_mtime} {
             displayTableHeader hi Collection 59 {Last mod.} 19
@@ -805,13 +804,10 @@ proc cmdModuleSavelist {show_oneperline show_mtime search_match args} {
       set display_list {}
       set len_list {}
       set max_len 0
-      if {$show_mtime || $show_oneperline} {
-         set display_idx 0
-         set one_per_line 1
-      } else {
-         set display_idx 1
-         set one_per_line 0
-      }
+      set one_per_line [expr {$show_mtime || $show_oneperline}]
+      set show_idx [expr {!$one_per_line}]
+      # prepare query to highlight
+      set himatchmap [prepareMapToHightlightSubstr {*}$args]
 
       foreach coll [lsort -dictionary [array names coll_arr]] {
          if {$json} {
@@ -819,21 +815,24 @@ proc cmdModuleSavelist {show_oneperline show_mtime search_match args} {
                $colltarget 1 pathname s $coll_arr($coll) 1]
          # no need to test coll consistency as findCollections does not return
          # collection whose name starts with "."
-         } elseif {$show_mtime} {
-            set filetime [clock format [getFileMtime $coll_arr($coll)]\
-               -format {%Y/%m/%d %H:%M:%S}]
-            lappend display_list [format %-60s%19s $coll $filetime]
          } else {
-            lappend display_list $coll
-            lappend len_list [set len [string length $coll]]
-            if {$len > $max_len} {
-               set max_len $len
+            set collsgr [sgr {} $coll $himatchmap]
+            if {$show_mtime} {
+               set filetime [clock format [getFileMtime $coll_arr($coll)]\
+                  -format {%Y/%m/%d %H:%M:%S}]
+               lappend display_list [format %-60s%19s $collsgr $filetime]
+            } else {
+               lappend display_list $collsgr
+               lappend len_list [set len [string length $coll]]
+               if {$len > $max_len} {
+                  set max_len $len
+               }
             }
          }
       }
 
-      displayElementList noheader {} {} $one_per_line $display_idx\
-         $display_list $len_list $max_len
+      displayElementList noheader {} {} $one_per_line $show_idx $display_list\
+         $len_list $max_len
    }
 }
 

@@ -452,6 +452,16 @@ colorset_test_case {list -C rc tr} [list hi rc hi tr se : se \\( se \\) sy new s
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMALTNAME
 
+# highlighted element (hi) on savelist
+setenv_var HOME $env(HOME)/home
+set tserr ".* 1\\) infocmd   2\\) infocmdexp  "
+colorset_test_case {savelist info} [list hi info] $tserr 1
+set tserr ".*
+ 1\\) coll1   3\\) coll3          5\\) coll6.target   7\\) infocmdexp  
+ 2\\) coll2   4\\) coll4.target   6\\) infocmd       "
+colorset_test_case {savelist -w 80 coll info} [list hi coll hi info] $tserr 1
+setenv_var HOME $ORIG_HOME
+
 # modulefile or collection command report (cm)
 colorset_test_case {saveshow testsuite/home/.module/infocmd} [list cm module] ".*module use --append .*\nmodule load info/command.*"
 colorset_test_case {display setenv/1.0} [list cm setenv] ".*setenv\t\ttestsuite yes.*"
