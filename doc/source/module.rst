@@ -182,9 +182,9 @@ switches are accepted:
 .. option:: --all, -a
 
  Include hidden modules in search performed with :subcmd:`avail`,
- :subcmd:`aliases`, :subcmd:`list`, :subcmd:`lint`, :subcmd:`search` or
- :subcmd:`whatis` sub-commands. Hard-hidden modules are not affected by this
- option.
+ :subcmd:`aliases`, :subcmd:`list`, :subcmd:`lint`, :subcmd:`savelist`,
+ :subcmd:`search` or :subcmd:`whatis` sub-commands. Hard-hidden modules are
+ not affected by this option.
 
  .. only:: html
 
@@ -1770,11 +1770,12 @@ Module Sub-Commands
 
     .. versionadded:: 4.0
 
-.. subcmd:: savelist [-t|-l|-j] [-S|-C] [pattern...]
+.. subcmd:: savelist [-t|-l|-j] [-a] [-S|-C] [pattern...]
 
  List collections that are currently saved under the user's collection
  directory. If :envvar:`MODULES_COLLECTION_TARGET` is set, only collections
- matching the target suffix will be displayed.
+ matching the target suffix will be displayed unless if the
+ :option:`--all`/:option:`-a` option is set.
 
  If a *pattern* is given, then the collections are filtered to only list
  those whose name matches this *pattern*. It may contain wildcard characters.
@@ -1793,8 +1794,9 @@ Module Sub-Commands
        *pattern* search to filter collections added
 
     .. versionchanged:: 5.2
-       Options :option:`--starts-with`/:option:`-S` and
-       :option:`--contains`/:option:`-C` added
+       Options :option:`--starts-with`/:option:`-S`,
+       :option:`--contains`/:option:`-C` and :option:`--all`/:option:`-a`
+       added
 
 .. subcmd:: saverm [collection]
 

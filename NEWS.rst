@@ -83,6 +83,9 @@ Modules 5.2.0 (not yet released)
 * Highlight all search patterns on :subcmd:`list` sub-command output instead
   of only the first one..
 * Highlight all search patterns on :subcmd:`savelist` sub-command output.
+* Add support for :option:`--all` option on :subcmd:`savelist` sub-command not
+  to limit result to the collection matching currently defined
+  :mconfig:`collection_target`.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 
