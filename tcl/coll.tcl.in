@@ -111,13 +111,14 @@ proc findCollections {{coll *} {search glob} {errnomatch 0} {checkvalid 1}} {
    # elsewhere collection is a name
    } elseif {[info exists ::env(HOME)]} {
       set collfile $::env(HOME)/.module/$coll
-      # find saved collections (matching target suffix)
-      # a target is a domain on which a collection is only valid.
-      # when a target is set, only the collections made for that target
-      # will be available to list and restore, and saving will register
-      # the target footprint
+      # find saved collections (matching target suffix). a target is a domain
+      # on which a collection is only valid. when a target is set, only the
+      # collections made for that target will be available to list and
+      # restore, and saving will register the target footprint. current target
+      # is ignored if --all option is set on savelist command
       set colltarget [getConf collection_target]
-      if {$colltarget ne {}} {
+      if {$colltarget ne {} && ([getState hiding_threshold] < 2 ||\
+         [currentState commandname] ne {savelist})} {
          append collfile .$colltarget
          # add knowledge of collection target on description
          append colldesc " (for target \"$colltarget\")"

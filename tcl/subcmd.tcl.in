@@ -735,10 +735,10 @@ proc cmdModuleSaveshow {{coll default}} {
 }
 
 proc cmdModuleSavelist {show_oneperline show_mtime search_match args} {
-   # if a target is set, only list collection matching this
-   # target (means having target as suffix in their name)
+   # if a target is set, only list collection matching this target (means
+   # having target as suffix in their name) unless if --all option is set
    set colltarget [getConf collection_target]
-   if {$colltarget ne {}} {
+   if {$colltarget ne {} && [getState hiding_threshold] < 2} {
       set suffix .$colltarget
       set targetdesc " (for target \"$colltarget\")"
    } else {
@@ -748,7 +748,7 @@ proc cmdModuleSavelist {show_oneperline show_mtime search_match args} {
 
    set json [isStateEqual report_format json]
 
-   reportDebug "list collections for target \"$colltarget\""
+   reportDebug "list collections$targetdesc"
 
    if {[llength $args] > 0} {
       defineModEqProc [isIcase] 0
