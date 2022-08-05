@@ -192,10 +192,8 @@ switches are accepted:
 
 .. option:: --auto
 
- On :subcmd:`load`, :subcmd:`unload`, :subcmd:`switch`, :subcmd:`load-any`,
- :subcmd:`try-load`, :subcmd:`mod-to-sh` and :subcmd:`source` sub-commands,
- enable automated module handling mode. See also
- :envvar:`MODULES_AUTO_HANDLING` section.
+ Enable automated module handling mode on sub-commands that load or unload
+ modulefiles. See also :envvar:`MODULES_AUTO_HANDLING` section.
 
  .. only:: html
 
@@ -328,10 +326,8 @@ switches are accepted:
 
 .. option:: --no-auto
 
- On :subcmd:`load`, :subcmd:`unload`, :subcmd:`switch`, :subcmd:`load-any`,
- :subcmd:`try-load`, :subcmd:`mod-to-sh` and :subcmd:`source` sub-commands,
- disable automated module handling mode. See also
- :envvar:`MODULES_AUTO_HANDLING` section.
+ Disable automated module handling mode on sub-commands that load or unload
+ modulefiles. See also :envvar:`MODULES_AUTO_HANDLING` section.
 
  .. only:: html
 
