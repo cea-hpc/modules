@@ -190,6 +190,12 @@ switches are accepted:
 
     .. versionadded:: 4.6
 
+    .. versionchanged:: 4.7
+       Support for :subcmd:`list` sub-command added
+
+    .. versionchanged:: 5.2
+       Support for :subcmd:`lint` and :subcmd:`savelist` sub-commands added
+
 .. option:: --auto
 
  Enable automated module handling mode on sub-commands that load or unload
@@ -273,6 +279,18 @@ switches are accepted:
        instead of enabling an active dependency resolution mechanism
        :option:`--force` command line switch now enables to by-pass dependency
        consistency when loading or unloading a *modulefile*.
+
+    .. versionchanged:: 4.7
+       Support for :subcmd:`purge` sub-command added
+
+    .. versionchanged:: 4.8
+       Support for :subcmd:`try-load` sub-command added
+
+    .. versionchanged:: 5.1
+       Support for :subcmd:`load-any` sub-command added
+
+    .. versionchanged:: 5.2
+       Support for :subcmd:`mod-to-sh` sub-command added
 
 .. option:: --help, -h
 
