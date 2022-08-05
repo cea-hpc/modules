@@ -79,6 +79,19 @@ testouterr_cmd sh {savelist --starts-with -i cMd} OK $tserr
 
 unsetenv_var MODULES_SEARCH_MATCH
 
+# --all tests
+set tserr "$matching_named_coll\n 1) infocmd   2) infocmdexp  "
+testouterr_cmd sh {savelist -a info} OK $tserr
+setenv_var MODULES_COLLECTION_TARGET target
+set tserr "No matching named collection (for target \"target\")."
+testouterr_cmd sh {savelist info} OK $tserr
+set tserr "$named_coll
+ 1) $coll1   3) $coll3          5) $coll6f   7) infocmd     
+ 2) $coll2   4) $coll4f   6) $colld        8) infocmdexp  "
+testouterr_cmd sh {savelist -w 80 --all} OK $tserr
+set tserr "$matching_named_coll\n 1) infocmd   2) infocmdexp  "
+testouterr_cmd sh {savelist -a info} OK $tserr
+unsetenv_var MODULES_COLLECTION_TARGET
 
 # glob match
 set tserr "$matching_named_coll\n 1) infocmd   2) infocmdexp  "
@@ -107,6 +120,14 @@ testouterr_cmd sh {ml savelist -S ?nfo} OK $tserr
 testouterr_cmd sh {ml savelist -C cmd} OK $tserr
 set tserr $no_matching_named_coll
 testouterr_cmd sh {ml savelist foo} OK $tserr
+setenv_var MODULES_COLLECTION_TARGET target
+set tserr "$named_coll
+ 1) $coll1   3) $coll3          5) $coll6f   7) infocmd     
+ 2) $coll2   4) $coll4f   6) $colld        8) infocmdexp  "
+testouterr_cmd sh {ml savelist -w 80 --all} OK $tserr
+set tserr "$matching_named_coll\n 1) infocmd   2) infocmdexp  "
+testouterr_cmd sh {ml savelist -a info} OK $tserr
+unsetenv_var MODULES_COLLECTION_TARGET
 
 
 #
