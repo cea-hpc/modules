@@ -70,7 +70,7 @@ program and has the shell evaluate the command's output. The first argument to
 The initialization scripts are kept in |file initdir_shell| where
 *<shell>* is the name of the sourcing shell. For example, a C Shell user
 sources the |file initdir_csh| script. The sh, csh, tcsh, bash, ksh,
-zsh and fish shells are supported by :file:`modulecmd.tcl`. In addition,
+zsh, fish and cmd shells are supported by :file:`modulecmd.tcl`. In addition,
 python, perl, ruby, tcl, cmake, r and lisp "shells" are supported which
 writes the environment changes to stdout as python, perl, ruby, tcl, lisp,
 r or cmake code.

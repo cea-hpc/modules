@@ -282,6 +282,8 @@ On version 4 and for *sh*, *bash*, *ksh*, *zsh* and *fish* shells, text output, 
 
 Starting version ``4.5``, a new alias or function called :command:`ml` may be defined at initialization time, to provide a handy frontend to the :command:`module` command.
 
+Starting version ``4.5``, support for Windows *cmd* shell is introduced.
+
 Modulecmd startup
 """""""""""""""""
 

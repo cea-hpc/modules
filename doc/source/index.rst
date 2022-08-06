@@ -22,7 +22,7 @@ replace the shared modulefiles.
 
 Modules can be **loaded** and **unloaded** dynamically and atomically,
 in an clean fashion. All popular shells are supported, including *bash*,
-*ksh*, *zsh*, *sh*, *csh*, *tcsh*, *fish*, as well as some scripting
+*ksh*, *zsh*, *sh*, *csh*, *tcsh*, *fish*, *cmd*, as well as some scripting
 languages such as *tcl*, *perl*, *python*, *ruby*, *cmake* and *r*.
 
 Modules are useful in managing different versions of applications. Modules

@@ -660,8 +660,8 @@ the *modulefile* is being loaded.
 
   If a *shellname* is given, returns ``1`` if :file:`modulecmd.tcl`'s current
   shell is *shellname*, returns ``0`` otherwise. *shellname* can be: ``sh``,
-  ``bash``, ``ksh``, ``zsh``, ``csh``, ``tcsh``, ``fish``, ``tcl``, ``perl``,
-  ``python``, ``ruby``, ``lisp``, ``cmake``, ``r``.
+  ``bash``, ``ksh``, ``zsh``, ``csh``, ``tcsh``, ``fish``, ``cmd``, ``tcl``,
+  ``perl``, ``python``, ``ruby``, ``lisp``, ``cmake``, ``r``.
 
  **module-info shelltype** [shelltypename]
 
@@ -673,8 +673,8 @@ the *modulefile* is being loaded.
 
   If a *shelltypename* is given, returns ``1`` if :file:`modulecmd.tcl`'s
   current shell type is *shelltypename*, returns ``0`` otherwise.
-  *shelltypename* can be: ``sh``, ``csh``, ``fish``, ``tcl``, ``perl``,
-  ``python``, ``ruby``, ``lisp``, ``cmake``, ``r``.
+  *shelltypename* can be: ``sh``, ``csh``, ``fish``, ``cmd``, ``tcl``,
+  ``perl``, ``python``, ``ruby``, ``lisp``, ``cmake``, ``r``.
 
  **module-info specified**
 
