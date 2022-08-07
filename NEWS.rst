@@ -86,6 +86,9 @@ Modules 5.2.0 (not yet released)
 * Add support for :option:`--all` option on :subcmd:`savelist` sub-command not
   to limit result to the collection matching currently defined
   :mconfig:`collection_target`.
+* Doc: add :ref:`Shell support` section in :ref:`modulefile(4)` man page to
+  describe how shells support the different kind of environment changes that
+  can be defined in modulefiles.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 

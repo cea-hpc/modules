@@ -1078,15 +1078,16 @@ the *modulefile* is being loaded.
 
  Sets an alias with the name *alias-name* in the user's environment to the
  string *alias-string*. For some shells, aliases are not possible and the
- command has no effect. When a *modulefile* is unloaded, :mfcmd:`set-alias`
- becomes :mfcmd:`unset-alias`.
+ command has no effect (see `Shell support`_ section). When a *modulefile* is
+ unloaded, :mfcmd:`set-alias` becomes :mfcmd:`unset-alias`.
 
 .. mfcmd:: set-function function-name function-string
 
  Creates a function with the name *function-name* in the user's environment
  with the function body *function-string*. For some shells, functions are not
- possible and the command has no effect. When a *modulefile* is unloaded,
- :mfcmd:`set-function` becomes :mfcmd:`unset-function`.
+ possible and the command has no effect (see `Shell support`_ section). When a
+ *modulefile* is unloaded, :mfcmd:`set-function` becomes
+ :mfcmd:`unset-function`.
 
  .. only:: html
 
@@ -1829,6 +1830,75 @@ On :mfcmd:`module try-load<module>` modulefile command, each modulefile
 specified is considered an optional pre-requirement. If it is loaded
 afterward and if the :mconfig:`auto_handling` configuration option is enabled,
 the dependent module will get automatically reloaded.
+
+
+.. _Shell support:
+
+Shell support
+-------------
+
+The :file:`modulecmd.tcl` program that evaluates *modulefiles* supports a
+variety of shells or languages: *sh* family shells (*sh*, *bash*, *ksh* and
+*zsh*), *csh* family shells (*csh* and *tcsh*), *fish*, *cmd*, *python*,
+*perl*, *ruby*, *tcl*, *cmake*, *r*, and *lisp*.
+
+Modulefiles produce environment changes when evaluated, like defining an
+environment variable. The :file:`modulecmd.tcl` program outputs the
+corresponding code for the selected "shell". Thereafter this code is evaluated
+by the :command:`module` alias or function to update the current environment.
+
+Depending on the "shell" kind, not all the environment changes that can be
+defined in modulefiles are supported. The following table summarizes the
+changes that are supported by the shells supported by :file:`modulecmd.tcl`.
+
++--------+-----------------------+----------------------+-------------------------+---------------------+----------------+---------------------+
+|        | Environment variables | Shell alias          | Shell functions         | Command completion  | :mfcmd:`chdir` | :mfcmd:`x-resource` |
+|        | (:mfcmd:`setenv`,     | (:mfcmd:`set-alias`, | (:mfcmd:`set-function`, | (:mfcmd:`complete`, |                |                     |
+|        | :mfcmd:`unsetenv`,    | :mfcmd:`unset-alias`)| :mfcmd:`unset-function`)| :mfcmd:`uncomplete`)|                |                     |
+|        | :mfcmd:`pushenv`,     |                      |                         |                     |                |                     |
+|        | :mfcmd:`append-path`, |                      |                         |                     |                |                     |
+|        | :mfcmd:`prepend-path`,|                      |                         |                     |                |                     |
+|        | :mfcmd:`remove-path`) |                      |                         |                     |                |                     |
++--------+-----------------------+----------------------+-------------------------+---------------------+----------------+---------------------+
+| sh     | ⦁                     | ⦁                    | ⦁                       |                     | ⦁              | ⦁                   |
++--------+-----------------------+----------------------+-------------------------+---------------------+----------------+---------------------+
+| bash   | ⦁                     | ⦁                    | ⦁                       | ⦁                   | ⦁              | ⦁                   |
++--------+-----------------------+----------------------+-------------------------+---------------------+----------------+---------------------+
+| ksh    | ⦁                     | ⦁                    | ⦁                       |                     | ⦁              | ⦁                   |
++--------+-----------------------+----------------------+-------------------------+---------------------+----------------+---------------------+
+| zsh    | ⦁                     | ⦁                    | ⦁                       |                     | ⦁              | ⦁                   |
++--------+-----------------------+----------------------+-------------------------+---------------------+----------------+---------------------+
+| csh    | ⦁                     | ⦁                    |                         |                     | ⦁              | ⦁                   |
++--------+-----------------------+----------------------+-------------------------+---------------------+----------------+---------------------+
+| tcsh   | ⦁                     | ⦁                    |                         | ⦁                   | ⦁              | ⦁                   |
++--------+-----------------------+----------------------+-------------------------+---------------------+----------------+---------------------+
+| fish   | ⦁                     | ⦁                    | ⦁                       | ⦁                   | ⦁              | ⦁                   |
++--------+-----------------------+----------------------+-------------------------+---------------------+----------------+---------------------+
+| cmd    | ⦁                     | ⦁                    |                         |                     | ⦁              |                     |
++--------+-----------------------+----------------------+-------------------------+---------------------+----------------+---------------------+
+| python | ⦁                     |                      |                         |                     | ⦁              | ⦁                   |
++--------+-----------------------+----------------------+-------------------------+---------------------+----------------+---------------------+
+| perl   | ⦁                     |                      |                         |                     | ⦁              | ⦁                   |
++--------+-----------------------+----------------------+-------------------------+---------------------+----------------+---------------------+
+| ruby   | ⦁                     |                      |                         |                     | ⦁              | ⦁                   |
++--------+-----------------------+----------------------+-------------------------+---------------------+----------------+---------------------+
+| tcl    | ⦁                     |                      |                         |                     | ⦁              | ⦁                   |
++--------+-----------------------+----------------------+-------------------------+---------------------+----------------+---------------------+
+| cmake  | ⦁                     |                      |                         |                     |                | ⦁                   |
++--------+-----------------------+----------------------+-------------------------+---------------------+----------------+---------------------+
+| r      | ⦁                     |                      |                         |                     | ⦁              | ⦁                   |
++--------+-----------------------+----------------------+-------------------------+---------------------+----------------+---------------------+
+| lisp   | ⦁                     |                      |                         |                     | ⦁              | ⦁                   |
++--------+-----------------------+----------------------+-------------------------+---------------------+----------------+---------------------+
+
+The :mfcmd:`source-sh` command evaluates a shell script and produces the
+modulefile commands corresponding to the environment changes made by this
+script. :mfcmd:`source-sh` is able to evaluate *sh*, *bash*, *ksh*, *zsh*,
+*csh*, *tcsh* and *fish* shell scripts. :mfcmd:`source-sh` produces
+environment changes corresponding to the kinds listed in the above table.
+Based on the evaluated script, refer to the above table to know the
+environment changes that will be rendered for the shell specified to
+:file:`modulecmd.tcl` program.
 
 
 ENVIRONMENT
