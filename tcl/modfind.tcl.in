@@ -416,178 +416,82 @@ proc getLoadedAltAndSimplifiedName {mod} {
    return $namelist
 }
 
-# return list of loaded modules by parsing LOADEDMODULES env variable
-proc getLoadedModuleList {{filter_empty 1}} {
-   set modlist [list]
-   foreach mod [split [get-env LOADEDMODULES] [getState path_separator]] {
-      # ignore empty element
-      if {$mod ne {} || !$filter_empty} {
-         lappend modlist $mod
+# return value list of a loaded module property by parsing corresponding
+# environment variable
+proc getLoadedModulePropertyList {prop {filter_empty 1}} {
+   switch -- $prop {
+      name {
+         set envvar LOADEDMODULES
+         set subsplit 0
       }
-   }
-   return $modlist
-}
-
-# return list of loaded module files by parsing _LMFILES_ env variable
-proc getLoadedModuleFileList {} {
-   set modfilelist [list]
-   foreach modfile [split [get-env _LMFILES_] [getState path_separator]] {
-      # ignore empty element
-      if {$modfile ne {}} {
-         lappend modfilelist $modfile
+      file {
+         set envvar _LMFILES_
+         set subsplit 0
       }
-   }
-   return $modfilelist
-}
-
-# return list of declared source-sh by loaded module by parsing
-# __MODULES_LMSOURCESH
-proc getLoadedModuleSourceShList {} {
-   set modsrcshlist [list]
-   set pathsep [getState path_separator]
-   set sub1sep [getState sub1_separator]
-   set sub2sep [getState sub2_separator]
-   set unsermap [list <EnvModEscPS> $pathsep <EnvModEscS1> $sub1sep\
-      <EnvModEscS2> $sub2sep]
-
-   foreach modsrcshser [split [get-env __MODULES_LMSOURCESH] $pathsep] {
-      set srcshlist [split $modsrcshser $sub1sep]
-      # ignore empty element (1 is meaningless as first elt is loaded mod)
-      if {[llength $srcshlist] > 1} {
-         set modsrcsh {}
-         # keep first arg as string and other args as lists
-         foreach srcsh $srcshlist {
-            # unescape delimiter chars used in content
-            if {[llength $modsrcsh] == 0} {
-               lappend modsrcsh [string map $unsermap $srcsh]
-            } else {
-               lappend modsrcsh [string map $unsermap [split $srcsh $sub2sep]]
-            }
+      modulepath {
+         set envvar MODULEPATH
+         set subsplit 0
+      }
+      default {
+         set envvar __MODULES_LM[string toupper $prop]
+         set subsplit 1
+         if {$prop in {altname conflict}} {
+            set nosubsubsplit 1
          }
-         lappend modsrcshlist $modsrcsh
       }
    }
-   return $modsrcshlist
-}
-
-# return list of loaded module declared conflict by parsing
-# __MODULES_LMCONFLICT
-proc getLoadedModuleConflictList {} {
-   set modconlist [list]
-   # get sub level separator that serialize second level of info in env var
-   set sub1sep [getState sub1_separator]
-   foreach modconser [split [get-env __MODULES_LMCONFLICT] [getState\
-      path_separator]] {
-      # recover range specifier ':' from its serialized form '<'
-      set conlist [split [string map {< :} $modconser] $sub1sep]
-      # ignore empty element (1 is meaningless as first elt is loaded mod)
-      if {[llength $conlist] > 1} {
-         lappend modconlist $conlist
+   switch -- $prop {
+      conflict - prereq {
+         set unserialize_map {< :}
+      }
+      sourcesh {
+         set unserialize_submap [list <EnvModEscPS> [getState path_separator]\
+            <EnvModEscS1> [getState sub1_separator]\
+            <EnvModEscS2> [getState sub2_separator]]
       }
    }
-   return $modconlist
-}
 
-# return list of loaded module declared prereq by parsing __MODULES_LMPREREQ
-proc getLoadedModulePrereqList {} {
-   set modprelist [list]
-   set sub1sep [getState sub1_separator]
-   # get sub sub level separator that serialize third level of info in env var
-   set sub2sep [getState sub2_separator]
-   foreach modpreser [split [get-env __MODULES_LMPREREQ] [getState\
-      path_separator]] {
-      # recover range specifier ':' from its serialized form '<'
-      set prelist [split [string map {< :} $modpreser] $sub1sep]
-      # ignore empty element (1 is meaningless as first elt is loaded mod)
-      if {[llength $prelist] > 1} {
-         set modpre {}
-         # keep first arg as string and other args as lists
-         foreach pre $prelist {
-            if {[llength $modpre] == 0} {
-               lappend modpre $pre
-            } else {
-               lappend modpre [split $pre $sub2sep]
+   set res_list [list]
+   foreach elt [split [get-env $envvar] [getState path_separator]] {
+      if {$subsplit} {
+         set sub1sep [getState sub1_separator]
+         set sub2sep [getState sub2_separator]
+         # unserialize content of environment variable if map translation set
+         if {[info exists unserialize_map]} {
+            set elt [string map $unserialize_map $elt]
+         }
+         set subelt_list [split $elt $sub1sep]
+         # ignore empty element (1 is meaningless as first elt is loaded mod)
+         if {[llength $subelt_list] > 1 || !$filter_empty} {
+            set subres_list {}
+            foreach subelt $subelt_list {
+               # keep first arg as string and other args as lists (unless if
+               # subelt should not be split)
+               if {[llength $subres_list] > 0 && ![info exists\
+                  nosubsubsplit]} {
+                  set subelt [split $subelt $sub2sep]
+                  # skip empty value element
+                  if {[llength $subelt] == 0 && $filter_empty} {
+                     continue
+                  }
+               }
+               if {[info exists unserialize_submap]} {
+                  set subelt [string map $unserialize_submap $subelt]
+               }
+               lappend subres_list $subelt
             }
+
+            lappend res_list $subres_list
          }
 
-         lappend modprelist $modpre
-      }
-   }
-   return $modprelist
-}
-
-# return list of loaded module declared altnames by parsing
-# __MODULES_LMALTNAME
-proc getLoadedModuleAltnameList {} {
-   set modaltlist [list]
-   set sub1sep [getState sub1_separator]
-   foreach modaltser [split [get-env __MODULES_LMALTNAME] [getState\
-      path_separator]] {
-      set altlist [split $modaltser $sub1sep]
-      # ignore empty element (1 is meaningless as first elt is loaded mod)
-      if {[llength $altlist] > 1} {
-         lappend modaltlist $altlist
-      }
-   }
-   return $modaltlist
-}
-
-# return list of loaded module declared variant by parsing __MODULES_LMVARIANT
-proc getLoadedModuleVariantList {} {
-   set modvrspeclist [list]
-   set sub1sep [getState sub1_separator]
-   # get sub sub level separator that serialize third level of info in env var
-   set sub2sep [getState sub2_separator]
-   foreach modvrspecser [split [get-env __MODULES_LMVARIANT] [getState\
-      path_separator]] {
-      set vrspeclist [split $modvrspecser $sub1sep]
-      # ignore empty element (1 is meaningless as first elt is loaded mod)
-      if {[llength $vrspeclist] > 1} {
-         set modvrspec {}
-         # keep first arg as string and other args as lists
-         foreach vrspec $vrspeclist {
-            if {[llength $modvrspec] == 0} {
-               lappend modvrspec $vrspec
-            # ignore empty variant spec
-            } elseif {[llength [set vrspecli [split $vrspec $sub2sep]]] > 0} {
-               lappend modvrspec $vrspecli
-            }
+      } else {
+         # ignore empty element
+         if {$elt ne {} || !$filter_empty} {
+            lappend res_list $elt
          }
-
-         lappend modvrspeclist $modvrspec
       }
    }
-   return $modvrspeclist
-}
-
-# return list of loaded module declared tags by parsing __MODULES_LMTAG
-proc getLoadedModuleTagList {} {
-   set modtaglist [list]
-   set sub1sep [getState sub1_separator]
-   foreach modtagser [split [get-env __MODULES_LMTAG] [getState\
-      path_separator]] {
-      set taglist [split $modtagser $sub1sep]
-      # ignore empty element (1 is meaningless as first elt is loaded mod)
-      if {[llength $taglist] > 1} {
-         lappend modtaglist $taglist
-      }
-   }
-   return $modtaglist
-}
-
-# return list of loaded module extra tags by parsing __MODULES_LMEXTRATAG
-proc getLoadedModuleExtraTagList {} {
-   set modtaglist [list]
-   set sub1sep [getState sub1_separator]
-   foreach modtagser [split [get-env __MODULES_LMEXTRATAG] [getState\
-      path_separator]] {
-      set taglist [split $modtagser $sub1sep]
-      # ignore empty element (1 is meaningless as first elt is loaded mod)
-      if {[llength $taglist] > 1} {
-         lappend modtaglist $taglist
-      }
-   }
-   return $modtaglist
+   return $res_list
 }
 
 # return list of module paths by parsing MODULEPATH env variable
@@ -598,26 +502,21 @@ proc getLoadedModuleExtraTagList {} {
 # set_abs param applies an absolute path name conversion to path elements
 # if enabled
 proc getModulePathList {{behavior returnempty} {resolv_var 1} {set_abs 1}} {
-   if {[info exists ::env(MODULEPATH)]} {
-      set modpathlist [list]
-      foreach modpath [split $::env(MODULEPATH) [getState path_separator]] {
-         # ignore empty element
-         if {$modpath ne {}} {
-            if {$resolv_var} {
-               set modpath [resolvStringWithEnv $modpath]
-            }
-            if {$set_abs} {
-               set modpath [getAbsolutePath $modpath]
-            }
-            appendNoDupToList modpathlist $modpath
-         }
-      }
-      return $modpathlist
-   } elseif {$behavior eq {exiterronundef}} {
+   if {![info exists ::env(MODULEPATH)] && $behavior eq {exiterronundef}} {
       reportErrorAndExit {No module path defined}
-   } else {
-      return {}
    }
+
+   set modpath_list [list]
+   foreach modpath [getLoadedModulePropertyList modulepath] {
+      if {$resolv_var} {
+         set modpath [resolvStringWithEnv $modpath]
+      }
+      if {$set_abs} {
+         set modpath [getAbsolutePath $modpath]
+      }
+      appendNoDupToList modpath_list $modpath
+   }
+   return $modpath_list
 }
 
 # return list of the configured and existing global RC files
@@ -684,7 +583,7 @@ proc isModuleTagged {mod tag {collected 0}} {
 
 proc getTaggedLoadedModuleList {tag} {
    set modlist [list]
-   foreach mod [getLoadedModuleList] {
+   foreach mod [getLoadedModulePropertyList name] {
       if {[isModuleTagged $mod $tag 1]} {
          lappend modlist $mod
       }
@@ -1301,7 +1200,7 @@ proc getLoadedWithClosestName {name} {
       defineModStartNbProc $icase
       defineModEqProc $icase [getConf extended_default]
       # compare name to each currently loaded module name
-      foreach mod [getLoadedModuleList] {
+      foreach mod [getLoadedModulePropertyList name] {
          # if module loaded as fullpath but test name not, try to get loaded
          # mod short name (with currently used modulepaths) to compare it
          if {[isModuleFullPath $mod] && [set modname\
@@ -1346,16 +1245,16 @@ proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}} {
    if {$loading} {
       set isModulefileLoaded isModulefileLoading
       set getModuleFromLoadedModulefile getModuleFromLoadingModulefile
-      set getLoadedModuleList getLoadingModuleList
+      set getLoadedModuleList [list getLoadingModuleList]
    } else {
       set isModulefileLoaded isModulefileLoaded
       set getModuleFromLoadedModulefile getModuleFromLoadedModulefile
-      set getLoadedModuleList getLoadedModuleList
+      set getLoadedModuleList [list getLoadedModulePropertyList name]
    }
 
    # fetch currently loaded/loading module name is no list provided
    if {[llength $lmlist] == 0} {
-      set lmlist [$getLoadedModuleList]
+      set lmlist [{*}$getLoadedModuleList]
    }
 
    # if module is passed as full modulefile path name, look at lmfile names
@@ -1695,7 +1594,7 @@ proc getLoadedVariant {mod {serialized 0}} {
 
 proc getLoadedModuleWithVariantList {} {
    set modvrlist [list]
-   foreach mod [getLoadedModuleList] {
+   foreach mod [getLoadedModulePropertyList name] {
       set modvr [list $mod]
       set vrlist [getVariantList $mod 5]
       if {[llength $vrlist] > 0} {
@@ -1708,7 +1607,7 @@ proc getLoadedModuleWithVariantList {} {
 
 proc getLoadedModuleWithVariantSaveTagArrayList {} {
    array set tag_arr {}
-   foreach mod [getLoadedModuleList] {
+   foreach mod [getLoadedModulePropertyList name] {
       set modvr [list $mod]
       set vrlist [getVariantList $mod 1]
       if {[llength $vrlist] > 0} {
@@ -1756,7 +1655,7 @@ proc unsetModuleConflictViolation {mod} {
 
 # build dependency chain between loaded modules based on registered prereqs
 proc setModuleDependency {mod} {
-   set modlist [getLoadedModuleList]
+   set modlist [getLoadedModulePropertyList name]
    defineModEqProc [isIcase] [getConf extended_default] 1
    # only look at modules loaded prior current one to find requirements,
    # modules loaded afterward are unmet dependencies as dependents have
@@ -2062,12 +1961,12 @@ proc cacheCurrentModules {{exitonerr 1}} {
       setState lm_info_cached 1
       # mark specific as well as generic modules as loaded
       set i 0
-      set modfilelist [getLoadedModuleFileList]
-      set modlist [getLoadedModuleList]
+      set modfilelist [getLoadedModulePropertyList file]
+      set modlist [getLoadedModulePropertyList name]
 
       if {[llength $modlist] == [llength $modfilelist]} {
          # cache declared variant of loaded modules
-         foreach modvrspec [getLoadedModuleVariantList] {
+         foreach modvrspec [getLoadedModulePropertyList variant] {
             setLoadedVariant {*}$modvrspec
             # prepare modvr designation of loaded mod needed in next steps
             set mod [lindex $modvrspec 0]
@@ -2077,7 +1976,7 @@ proc cacheCurrentModules {{exitonerr 1}} {
          }
 
          # cache declared tags of loaded modules
-         foreach modtag [getLoadedModuleTagList] {
+         foreach modtag [getLoadedModulePropertyList tag] {
             setModuleTag {*}$modtag
             # also record tag over full mod and vr designation
             set mod [lindex $modtag 0]
@@ -2085,7 +1984,7 @@ proc cacheCurrentModules {{exitonerr 1}} {
                setModuleTag $modvrarr($mod) {*}[lrange $modtag 1 end]
             }
          }
-         foreach modtag [getLoadedModuleExtraTagList] {
+         foreach modtag [getLoadedModulePropertyList extratag] {
             setModuleExtraTag {*}$modtag
             # also record tag over full mod and vr designation
             set mod [lindex $modtag 0]
@@ -2095,17 +1994,17 @@ proc cacheCurrentModules {{exitonerr 1}} {
          }
 
          # cache declared alternative names of loaded modules
-         foreach modalt [getLoadedModuleAltnameList] {
+         foreach modalt [getLoadedModulePropertyList altname] {
             setLoadedAltname {*}$modalt
          }
 
          # cache declared source-sh of loaded modules
-         foreach modsrcsh [getLoadedModuleSourceShList] {
+         foreach modsrcsh [getLoadedModulePropertyList sourcesh] {
             setLoadedSourceSh {*}$modsrcsh
          }
 
          # cache declared conflict of loaded modules
-         foreach modcon [getLoadedModuleConflictList] {
+         foreach modcon [getLoadedModulePropertyList conflict] {
             # parse module version specification to record translation
             foreach modconelt [lrange $modcon 1 end] {
                parseModuleSpecification 0 {*}$modconelt
@@ -2115,7 +2014,7 @@ proc cacheCurrentModules {{exitonerr 1}} {
 
          # cache declared prereq of loaded modules, prior to setLoadedModule
          # which triggers dependency chain build
-         foreach modpre [getLoadedModulePrereqList] {
+         foreach modpre [getLoadedModulePropertyList prereq] {
             # parse module version specification to record translation
             foreach modpreeltlist [lrange $modpre 1 end] {
                foreach modpreelt $modpreeltlist {

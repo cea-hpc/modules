@@ -40,10 +40,10 @@ proc cmdModuleList {show_oneperline show_mtime search_match args} {
 
    # filter-out hidden loaded modules unless all module should be seen
    if {[getState hiding_threshold] > 1} {
-      set loadedmodlist [getLoadedModuleList]
+      set loadedmodlist [getLoadedModulePropertyList name]
    } else {
       set loadedmodlist [list]
-      foreach mod [getLoadedModuleList] {
+      foreach mod [getLoadedModulePropertyList name] {
          if {![isModuleTagged $mod hidden-loaded 1]} {
             lappend loadedmodlist $mod
          }
@@ -598,7 +598,7 @@ proc cmdModuleRestore {{coll default}} {
    # fetch what is currently loaded
    set curr_path_list [getModulePathList returnempty 0]
    # get current loaded module list
-   set curr_mod_list [getLoadedModuleList]
+   set curr_mod_list [getLoadedModulePropertyList name]
    set curr_nuasked_list [getTaggedLoadedModuleList auto-loaded]
 
    # determine what module to unload to restore collection from current
@@ -647,7 +647,7 @@ proc cmdModuleRestore {{coll default}} {
    # the undo phase, so current situation is fetched again
    set curr_path_list [getModulePathList returnempty 0]
 
-   set curr_mod_list [getLoadedModuleList]
+   set curr_mod_list [getLoadedModulePropertyList name]
    set curr_nuasked_list [getTaggedLoadedModuleList auto-loaded]
 
    # update tags sets on the modules already loaded at correct position
@@ -1443,7 +1443,8 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          # get module position in loaded list to remove corresponding loaded
          # modulefile (entry at same position in _LMFILES_)
          # need the unfiltered loaded module list to get correct index
-         set lmidx [lsearch -exact [getLoadedModuleList 0] $modname]
+         set lmidx [lsearch -exact [getLoadedModulePropertyList name 0]\
+            $modname]
          remove-path LOADEDMODULES $modname
          remove-path --index _LMFILES_ $lmidx
          # update cache arrays
@@ -1585,7 +1586,7 @@ proc cmdModulePurge {} {
    # remove dependent modules if force mode enabled
    set onlyndep [expr {![getState force]}]
    cmdModuleUnload unload match 0 1 0 $onlyndep {*}[lreverse\
-      [getLoadedModuleList]]
+      [getLoadedModulePropertyList name]]
 
    popMsgRecordId 0
 }
@@ -1593,7 +1594,7 @@ proc cmdModulePurge {} {
 proc cmdModuleReload {args} {
    # reload all loaded modules if no module list passed
    if {[llength $args] == 0} {
-      set lmlist [getLoadedModuleList]
+      set lmlist [getLoadedModulePropertyList name]
    } else {
       set lmlist $args
    }
@@ -2410,7 +2411,7 @@ proc cmdModuleRefresh {} {
    # load variants from loaded modules
    cacheCurrentModules
 
-   foreach lm [getLoadedModuleList] {
+   foreach lm [getLoadedModulePropertyList name] {
       # prepare info to execute modulefile
       set vrlist [getVariantList $lm 1]
       if {[llength $vrlist] > 0} {
