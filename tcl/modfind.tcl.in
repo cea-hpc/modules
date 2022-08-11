@@ -1622,6 +1622,22 @@ proc getLoadedModuleWithVariantSaveTagArrayList {} {
    return [array get tag_arr]
 }
 
+# get current loaded state to record it as the virtual init collection
+proc getLoadedInit {} {
+   set ret [formatCollectionContent [getModulePathList returnempty 0]\
+      [getLoadedModuleWithVariantList]\
+      [getLoadedModuleWithVariantSaveTagArrayList] {}]
+
+   # remove ending newline in collection output
+   set ret [string trimright $ret \n]
+
+   # get init state as a string that can be registered in an env var translate
+   # tag list separator ':' into '<' and line split '\n' into ':'
+   set ret [string map {: < \n :} $ret]
+
+   return $ret
+}
+
 # register conflict violation state between loaded modules
 proc setModuleConflictViolation {mod modconlist} {
    reportDebug "set conflict violation state for '$mod'"
