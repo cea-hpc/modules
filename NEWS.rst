@@ -89,6 +89,10 @@ Modules 5.2.0 (not yet released)
 * Doc: add :ref:`Shell support` section in :ref:`modulefile(4)` man page to
   describe how shells support the different kind of environment changes that
   can be defined in modulefiles.
+* Record during :subcmd:`autoinit` sub-command the initial environment state
+  in :envvar:`__MODULES_LMINIT`. Enabled modulepaths and loaded modulefiles
+  through :file:`modulespath` and :file:`initrc` initialization configuration
+  files are recorded in this new environment variable.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 

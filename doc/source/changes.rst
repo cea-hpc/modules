@@ -902,7 +902,8 @@ The following environment variables appeared on Modules 5.
 |            | :envvar:`MODULES_COLLECTION_PIN_TAG`                            |
 +------------+-----------------------------------------------------------------+
 | 5.2        | :envvar:`MODULES_PROTECTED_ENVVARS`,                            |
-|            | :envvar:`MODULES_TCL_LINTER`                                    |
+|            | :envvar:`MODULES_TCL_LINTER`,                                   |
+|            | :envvar:`__MODULES_LMINIT`                                      |
 +------------+-----------------------------------------------------------------+
 
 Modules Specific Tcl Commands

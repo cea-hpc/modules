@@ -2505,6 +2505,20 @@ ENVIRONMENT
        Variable renamed from ``MODULES_LMCONFLICT`` to
        ``__MODULES_LMCONFLICT``
 
+.. envvar:: __MODULES_LMINIT
+
+ A colon separated list describing the modulepaths that have been enabled and
+ the *modulefiles* that have been loaded with their tags during :ref:`Modules
+ initialization<Package Initialization>`. Each element in this list
+ corresponds to a :ref:`collection<collections>` definition line.
+
+ This environment variable is intended for :command:`module` command internal
+ use to get knowledge of the initial loaded state after initialization.
+
+ .. only:: html
+
+    .. versionadded:: 5.2
+
 .. envvar:: __MODULES_LMPREREQ
 
  A colon separated list of the :mfcmd:`prereq` statements defined by all
