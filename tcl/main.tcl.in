@@ -107,7 +107,7 @@ proc parseModuleCommandName {command defaultcmd} {
       restore saverm saveshow savelist initadd initprepend initswitch initrm\
       initlist initclear autoinit clear config help test prepend-path\
       append-path remove-path is-loaded is-saved is-used is-avail info-loaded\
-      sh-to-mod edit try-load refresh state load-any lint mod-to-sh]}]
+      sh-to-mod edit try-load refresh state load-any lint mod-to-sh reset]}]
 
    reportDebug "(command=$command, cmdvalid=$cmdvalid, cmdempty=$cmdempty)"
    return [list $command $cmdvalid $cmdempty]
@@ -368,7 +368,7 @@ proc module {command args} {
          path - paths - autoinit - help - prepend-path - append-path -\
          remove-path - is-loaded - is-saved - is-used - is-avail -\
          info-loaded - clear - sh-to-mod - edit - refresh - source - state -\
-         lint - mod-to-sh {
+         lint - mod-to-sh - reset {
             knerror "${msgprefix}Command '$command' not supported$tryhelpmsg"
          }
       }
@@ -392,7 +392,8 @@ proc module {command args} {
             set argnberr 1
          }
       }
-      refresh - reload - aliases - purge - initlist - initclear - autoinit {
+      refresh - reload - aliases - purge - initlist - initclear - autoinit -\
+         reset {
          if {[llength $args] != 0} {
             set argnberr 1
          }
@@ -705,6 +706,9 @@ proc module {command args} {
       }
       mod-to-sh {
          cmdModuleModToSh {*}$args
+      }
+      reset {
+         cmdModuleReset
       }
       help {
          cmdModuleHelp {*}$args
