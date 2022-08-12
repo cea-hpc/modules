@@ -231,18 +231,22 @@ proc formatCollectionContent {path_list mod_list tag_arrser header {sgr 0}} {
 
 # read given collection file and return the path and module lists it defines
 proc readCollectionContent {collfile colldesc} {
-   # init lists (maybe coll does not set mod to load)
-   set path_list {}
-   set mod_list {}
-   set nuasked_list {}
-   array set tag_arr {}
-
    # read file
    if {[catch {
       set fdata [split [readFile $collfile] \n]
    } errMsg ]} {
       reportErrorAndExit "Collection $colldesc cannot be read.\n$errMsg"
    }
+
+   return [parseCollectionContent $fdata]
+}
+
+proc parseCollectionContent {fdata} {
+   # init lists (maybe coll does not set mod to load)
+   set path_list {}
+   set mod_list {}
+   set nuasked_list {}
+   array set tag_arr {}
 
    # analyze collection content
    foreach fline $fdata {

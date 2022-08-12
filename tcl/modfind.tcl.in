@@ -434,14 +434,14 @@ proc getLoadedModulePropertyList {prop {filter_empty 1}} {
       }
       default {
          set envvar __MODULES_LM[string toupper $prop]
-         set subsplit 1
+         set subsplit [expr {$prop ni {init}}]
          if {$prop in {altname conflict}} {
             set nosubsubsplit 1
          }
       }
    }
    switch -- $prop {
-      conflict - prereq {
+      conflict - prereq - init {
          set unserialize_map {< :}
       }
       sourcesh {

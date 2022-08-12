@@ -566,12 +566,17 @@ proc cmdModuleSave {{coll default}} {
 }
 
 proc cmdModuleRestore {{coll default}} {
-   # get corresponding collection, raise error if it does not exist
-   lassign [findCollections $coll exact 1] collfile colldesc
+   # read specific __init__ collection from __MODULES_LMINIT env var
+   if {$coll eq {__init__}} {
+      lassign [parseCollectionContent [getLoadedModulePropertyList init]]\
+         coll_path_list coll_mod_list coll_tag_arrser
+   } else {
+      # get corresponding collection, raise error if it does not exist
+      lassign [findCollections $coll exact 1] collfile colldesc
 
-   # read collection
-   lassign [readCollectionContent $collfile $colldesc] coll_path_list\
-      coll_mod_list coll_tag_arrser
+      lassign [readCollectionContent $collfile $colldesc] coll_path_list\
+         coll_mod_list coll_tag_arrser
+   }
 
    # build list of module tagged auto-loaded in collection
    array set coll_tag_arr $coll_tag_arrser
@@ -582,8 +587,10 @@ proc cmdModuleRestore {{coll default}} {
       }
    }
 
-   # collection should at least define a path or a mod
-   if {[llength $coll_path_list] == 0 && [llength $coll_mod_list] == 0} {
+   # collection should at least define a path or a mod, but initial env may be
+   # totally empty
+   if {$coll ne {__init__} && [llength $coll_path_list] == 0 && [llength\
+      $coll_mod_list] == 0} {
       reportErrorAndExit "$colldesc is not a valid collection"
    }
 
@@ -2714,6 +2721,7 @@ proc cmdModuleModToSh {shell args} {
 }
 
 proc cmdModuleReset {} {
+   cmdModuleRestore __init__
 }
 
 # ;;; Local Variables: ***
