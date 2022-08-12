@@ -1719,6 +1719,18 @@ Module Sub-Commands
     .. versionchanged:: 5.0
        *value* is removed whatever its reference counter value
 
+.. subcmd:: reset
+
+ Restore initial environment, which corresponds to the loaded state after
+ :ref:`Modules initialization<Package Initialization>`.
+
+ :subcmd:`reset` sub-command restores the environment definition found in
+ :envvar:`__MODULES_LMINIT` environment variable.
+
+ .. only:: html
+
+    .. versionadded:: 5.2
+
 .. subcmd:: restore [collection]
 
  Restore the environment state as defined in *collection*. If *collection*
@@ -2513,7 +2525,9 @@ ENVIRONMENT
  corresponds to a :ref:`collection<collections>` definition line.
 
  This environment variable is intended for :command:`module` command internal
- use to get knowledge of the initial loaded state after initialization.
+ use to get knowledge of the initial loaded state after initialization. This
+ initial environment state can then be restored with :subcmd:`reset`
+ sub-command.
 
  .. only:: html
 

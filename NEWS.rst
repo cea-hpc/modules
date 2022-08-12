@@ -93,6 +93,8 @@ Modules 5.2.0 (not yet released)
   in :envvar:`__MODULES_LMINIT`. Enabled modulepaths and loaded modulefiles
   through :file:`modulespath` and :file:`initrc` initialization configuration
   files are recorded in this new environment variable.
+* Add :subcmd:`reset` sub-command to restore initial environment. It takes
+  recorded environment in :envvar:`__MODULES_LMINIT` and restores it.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 
