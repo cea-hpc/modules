@@ -11,7 +11,7 @@
 #
 #   Description:    Testuite testsequence
 #   Command:        load, display, whatis, search, source, restore
-#   Command:        unload, switch, purge, reload, help, test
+#   Command:        unload, switch, purge, reload, help, test, reset
 #   Modulefiles:    info/commandexp
 #   Sub-Command:
 #
@@ -65,6 +65,11 @@ testouterr_cmd sh "load-any $module" $ans load-any
 set tserr [shell_set sh INFOCMD mod-to-sh]
 testouterr_cmd sh "mod-to-sh sh $module" [list [list OK nop]] $tserr
 
+# test reset
+setenv_var __MODULES_LMINIT "module use --append $modpath:module load $module"
+testouterr_cmd sh reset $ans reset\n[msg_load $module]
+unsetenv_var __MODULES_LMINIT
+
 # test displaying
 testouterr_cmd_re "sh" "display $module" "OK" "$modlin\n$modulefilere:\n\ndisplay\n$modlin"
 
@@ -86,7 +91,7 @@ if { $verbose > 0 } {
 set env(HOME) "$homewithcoll"
 
 # test restoring
-testouterr_cmd "sh" "restore infocmdexp" $ans "restore\nLoading info/commandexp"
+testouterr_cmd "sh" "restore infocmdexp" $ans restore\n[msg_load $module]
 
 # restore default testsuite home
 if { $verbose > 0 } {
