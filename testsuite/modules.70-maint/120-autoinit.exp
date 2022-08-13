@@ -91,7 +91,7 @@ if {[info exists insmodrcdata] && [info exists exmodrcdata] && $exmodrcdata eq $
 }
 
 set custom {module restore unk}
-set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 36 {  }]]
+set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 48 {  }]]
 
 set tserr_modrc_exinstalled [msg_load null]
 set tserr_initrc_exinstalled "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload {m1 <aL>}]\n[msg_unload mj]\nload m1\n[msg_load {m1 <aL>}]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n$err_path'unk'\n$custom"
@@ -1537,9 +1537,8 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
         lappend ans [list set __MODULES_LMTAG m1&auto-loaded]
         lappend ans [list set MODULEPATH "$modpath wspace:$modpath.deps"]
     }
-    set linenum [expr {[cmpversion $tclsh_version 8.6] == -1 ? 14 : 21}]
     set custom {module restore unk}
-    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 36 {  }]]
+    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 48 {  }]]
     set tserr "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload {m1 <aL>}]\n[msg_unload mj]\nload m1\n[msg_load {m1 <aL>}]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n$err_path'unk'\n$custom"
     testouterr_cmd_re bash autoinit $ans $tserr
 
@@ -1576,9 +1575,8 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
         lappend ans [list set __MODULES_LMTAG m1&auto-loaded]
         lappend ans [list set MODULEPATH "$modpath wspace:$modpath.deps"]
     }
-    set linenum [expr {[cmpversion $tclsh_version 8.6] == -1 ? 14 : 21}]
     set custom {module restore unk}
-    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 36 {  }]]
+    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 48 {  }]]
     set tserr "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload {m1 <aL>}]\n[msg_unload mj]\nload m1\n[msg_load {m1 <aL>}]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n$err_path'unk'\n$custom"
     testouterr_cmd_re bash autoinit $ans $tserr
 
@@ -1618,11 +1616,106 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
     }
     lappend ans [list set MODULES_SET_SHELL_STARTUP 1]
     lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
-    set linenum [expr {[cmpversion $tclsh_version 8.6] == -1 ? 14 : 21}]
     set custom {module restore unk}
-    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 36 {  }]]
+    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 48 {  }]]
     set tserr "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload {m1 <aL>}]\n[msg_unload mj]\nload m1\n[msg_load {m1 <aL>}]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n[msg_load {refresh/5.0 <bar>}]\n$err_path'unk'\n$custom"
     testouterr_cmd_re bash autoinit $ans $tserr
+
+    # test module loaded with specific tag and which auto-loads another module
+    setenv_var TESTSUITE_INITRC tag1
+
+    set ans [list]
+    lappend ans [list ERR]
+    lappend ans [list [set "func_bash"]]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set LOADEDMODULES "m1:m3:space yc/4:foo/0.2:foo/1.0:foo/0.load"]
+        lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4:$modpath.3/foo/0.2:$modpath.3/foo/1.0:$modpath.3/foo/0.load"]
+        lappend ans [list set MODULESHOME $moduleshome]
+        lappend ans [list set MODULE_VERSION "(.*)"]
+        lappend ans [list set __MODULES_LMTAG m1&auto-loaded:foo/0.2&tag:foo/1.0&auto-loaded:foo/0.load&foo]
+        lappend ans [list set MODULES_CMD $modulecmd_path]
+        lappend ans [list set __MODULES_LMPREREQ m3&m1:foo/0.load&foo/1.0]
+        lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+        lappend ans [list set __MODULES_LMALTNAME foo/0.2&foo/sym]
+        lappend ans [list set MODULEPATH "$modpath.3:$modpath wspace:$modpath.deps"]
+        lappend ans [list set __MODULES_LMINIT "module use --append $modpath.3:module use --append {$modpath wspace}:module use --append $modpath.deps:module load --tag=auto-loaded m1:module load m3:module load {space yc/4}:module load foo/0.2:module load --tag=auto-loaded foo/1.0:module load --tag=foo foo/0.load"]
+        if {$change_path} {
+            lappend ans [list set PATH $updatedpath]
+        }
+        lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+        lappend ans [list set __MODULES_LMEXTRATAG foo/0.load&foo]
+    } else {
+        lappend ans [list set MODULES_CMD $modulecmd_path]
+        lappend ans [list set __MODULES_LMALTNAME foo/0.2&foo/sym]
+        lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+        lappend ans [list set MODULESHOME $moduleshome]
+        lappend ans [list set __MODULES_LMPREREQ m3&m1:foo/0.load&foo/1.0]
+        lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4:$modpath.3/foo/0.2:$modpath.3/foo/1.0:$modpath.3/foo/0.load"]
+        lappend ans [list set LOADEDMODULES "m1:m3:space yc/4:foo/0.2:foo/1.0:foo/0.load"]
+        lappend ans [list set __MODULES_LMINIT "module use --append $modpath.3:module use --append {$modpath wspace}:module use --append $modpath.deps:module load --tag=auto-loaded m1:module load m3:module load {space yc/4}:module load foo/0.2:module load --tag=auto-loaded foo/1.0:module load --tag=foo foo/0.load"]
+        if {$change_path} {
+            lappend ans [list set PATH $updatedpath]
+        }
+        lappend ans [list set __MODULES_LMEXTRATAG foo/0.load&foo]
+        lappend ans [list set __MODULES_LMTAG m1&auto-loaded:foo/0.2&tag:foo/1.0&auto-loaded:foo/0.load&foo]
+        lappend ans [list set MODULEPATH "$modpath.3:$modpath wspace:$modpath.deps"]
+    }
+    set custom {module restore unk}
+    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 48 {  }]]
+    set tserr "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload {m1 <aL>}]\n[msg_unload mj]\nload m1\n[msg_load {m1 <aL>}]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n[msg_load {foo/0.2 <tag>}]\n\n[msg_top_load {foo/0.load <foo>} {} foo/1.0 {}]\n\n$err_path'unk'\n$custom"
+    testouterr_cmd_re bash autoinit $ans $tserr
+
+    # test with a __MODULES_LMINIT variable already set
+    setenv_var __MODULES_LMINIT "module use --append $modpath"
+    testouterr_cmd_re bash autoinit $ans $tserr
+    unsetenv_var __MODULES_LMINIT
+
+    # test module variant defined in initrc
+    setenv_var TESTSUITE_INITRC variant1
+    setenv_var TESTSUITE_VARIANT collinitrc
+    setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+    set ans [list]
+    lappend ans [list ERR]
+    lappend ans [list [set "func_bash"]]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set LOADEDMODULES "m1:m3:space yc/4:variant/1.0"]
+        lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4:$modpath.3/variant/1.0"]
+        lappend ans [list set MODULESHOME $moduleshome]
+        lappend ans [list set MODULE_VERSION "(.*)"]
+        lappend ans [list set __MODULES_LMTAG m1&auto-loaded]
+        lappend ans [list set MODULES_CMD $modulecmd_path]
+        lappend ans [list set __MODULES_LMVARIANT variant/1.0&foo|1|1|1&bar|val1|0|0]
+        lappend ans [list set __MODULES_LMPREREQ m3&m1]
+        lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+        lappend ans [list set MODULEPATH "$modpath.3:$modpath wspace:$modpath.deps"]
+        lappend ans [list set __MODULES_LMINIT "module use --append $modpath.3:module use --append {$modpath wspace}:module use --append $modpath.deps:module load --tag=auto-loaded m1:module load m3:module load {space yc/4}:module load variant/1.0 bar=val1 +foo"]
+        if {$change_path} {
+            lappend ans [list set PATH $updatedpath]
+        }
+        lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+    } else {
+        lappend ans [list set __MODULES_LMVARIANT variant/1.0&foo|1|1|1&bar|val1|0|0]
+        lappend ans [list set MODULES_CMD $modulecmd_path]
+        lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+        lappend ans [list set MODULESHOME $moduleshome]
+        lappend ans [list set __MODULES_LMPREREQ m3&m1]
+        lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4:$modpath.3/variant/1.0"]
+        lappend ans [list set LOADEDMODULES "m1:m3:space yc/4:variant/1.0"]
+        lappend ans [list set __MODULES_LMINIT "module use --append $modpath.3:module use --append {$modpath wspace}:module use --append $modpath.deps:module load --tag=auto-loaded m1:module load m3:module load {space yc/4}:module load variant/1.0 bar=val1 +foo"]
+        if {$change_path} {
+            lappend ans [list set PATH $updatedpath]
+        }
+        lappend ans [list set __MODULES_LMTAG m1&auto-loaded]
+        lappend ans [list set MODULEPATH "$modpath.3:$modpath wspace:$modpath.deps"]
+    }
+    set custom {module restore unk}
+    set custom [escre [msg_moderr {Collection unk cannot be found} $custom $modrc 48 {  }]]
+    set tserr "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload {m1 <aL>}]\n[msg_unload mj]\nload m1\n[msg_load {m1 <aL>}]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n[msg_load {variant/1.0{bar=val1:\+foo}}]\n$err_path'unk'\n$custom"
+    testouterr_cmd_re bash autoinit $ans $tserr
+
+    unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+    unsetenv_var TESTSUITE_VARIANT
 
     unsetenv_var TESTSUITE_INITRC
 
