@@ -1506,6 +1506,32 @@ if {!$insmodspath && $initrc_exinstalled && !$install_setshellstartup && $modrc 
     set tserr "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload {m1 <aL>}]\n[msg_unload mj]\nload m1\n[msg_load {m1 <aL>}]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n$custom"
     testouterr_cmd_re sh autoinit $ans $tserr
 
+    # reset sub-command cannot be used in initrc
+    setenv_var TESTSUITE_INITRC subcmd2
+
+    set ans [list]
+    lappend ans [list [set "func_$shell"]]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+    }
+    lappend ans [list set MODULES_CMD $modulecmd_path]
+    lappend ans [list unset __MODULES_AUTOINIT_INPROGRESS]
+    lappend ans [list set MODULESHOME $moduleshome]
+    lappend ans [list set __MODULES_LMPREREQ m3&m1]
+    lappend ans [list set _LMFILES_ "$modpath.deps/m1:$modpath.deps/m3:$modpath wspace/space yc/4"]
+    lappend ans [list set LOADEDMODULES "m1:m3:space yc/4"]
+    lappend ans [list set __MODULES_LMINIT $lminit_initrc_exinstalled]
+    lappend ans [list set __MODULES_LMTAG m1&auto-loaded]
+    lappend ans [list set MODULEPATH "$modpath wspace:$modpath.deps"]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION "(.*)"]
+    }
+    lappend ans [list ERR]
+    set linenum [expr {[cmpversion $tclsh_version 8.6] == -1 ? 13 : 39}]
+    set custom [escre [msg_moderr {module: Command 'reset' not supported} {module reset<EXM>} $modrc $linenum {  }]]
+    set tserr "[msg_load mj]\nload m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload {m1 <aL>}]\n[msg_unload mj]\nload m1\n[msg_load {m1 <aL>}]\nload m3\n[msg_load m3]\n[msg_load {'space yc/4'}]\n$custom"
+    testouterr_cmd_re sh autoinit $ans $tserr
+
     # test impact of quarantine support enablement through initrc config file
     setenv_var TESTSUITE_INITRC quar1
 
