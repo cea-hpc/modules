@@ -10,7 +10,7 @@
 #   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
 #
 #   Description:	Testuite testsequence
-#   Command:		reset
+#   Command:		reset, restore
 #   Modulefiles:    foo, bar, qux, variant
 #   Sub-Command:
 #
@@ -226,6 +226,9 @@ setenv_var __MODULES_LMEXTRATAG foo/0.load&bar
 setenv_var __MODULES_LMINIT "module use --append $mp:module load foo/0.2:module load --tag=auto-loaded foo/1.0:module load --tag=bar foo/0.load"
 testouterr_cmd sh reset OK {}
 
+# restore __init__ is equivalent to reset
+testouterr_cmd sh {restore __init__} OK {}
+
 
 #
 # loaded environment is inconsistent
@@ -274,6 +277,9 @@ lappend ans [list set __MODULES_LMEXTRATAG foo/0.load&bar]
 lappend ans [list set __MODULES_LMTAG foo/0.2&tag:foo/1.0&auto-loaded:foo/0.load&bar]
 set tserr [msg_unload {foo/0.load <bar>}]\n[msg_load {foo/0.2 <tag>}]\n[msg_load {foo/1.0 <aL>}]\n[msg_load {foo/0.load <bar>}]
 testouterr_cmd sh reset $ans $tserr
+
+# restore __init__ is equivalent to reset
+testouterr_cmd sh {restore __init__} $ans $tserr
 
 
 #
