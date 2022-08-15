@@ -1734,9 +1734,10 @@ Module Sub-Commands
 .. subcmd:: restore [collection]
 
  Restore the environment state as defined in *collection*. If *collection*
- name is not specified, then it is assumed to be the *default* collection. If
- *collection* is a fully qualified path, it is restored from this location
- rather than from a file under the user's collection directory. If
+ name is not specified, then it is assumed to be the *default* collection if
+ it exists, ``__init__`` special collection otherwise. If *collection* is a
+ fully qualified path, it is restored from this location rather than from a
+ file under the user's collection directory. If
  :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix equivalent to the value
  of this variable is appended to the *collection* file name to restore.
 
@@ -1763,7 +1764,8 @@ Module Sub-Commands
     .. versionadded:: 4.0
 
     .. versionchanged:: 5.2
-       Restore initial environment when *collection* name is ``__init__``
+       Restore initial environment when *collection* name is ``__init__`` or
+       when no collection name is specified and no *default* collection exists
 
 .. subcmd:: rm [--auto|--no-auto] [-f] modulefile...
 
@@ -2531,9 +2533,12 @@ ENVIRONMENT
  corresponds to a :ref:`collection<collections>` definition line.
 
  This environment variable is intended for :command:`module` command internal
- use to get knowledge of the initial loaded state after initialization. This
- initial environment state can then be restored with :subcmd:`reset`
- sub-command.
+ use to get knowledge of the initial loaded state after initialization.
+
+ This initial environment state can then be restored with :subcmd:`reset`
+ sub-command. It can also be restored with :subcmd:`restore` sub-command when
+ ``__init__`` collection name is specified or when no collection name is
+ specified and no *default* collection exists.
 
  .. only:: html
 

@@ -863,6 +863,9 @@ The following module sub-commands appeared on Modules 5.
  Starting Modules 5.2, initial environment is restored when specified
  collection name is ``__init__``.
 
+ Starting Modules 5.2, if no argument is provided and if default collection
+ does not exist, initial environment is restored.
+
 :subcmd:`savelist`
 
  Starting Modules 5.2, this sub-command accepts patterns to filter the named
