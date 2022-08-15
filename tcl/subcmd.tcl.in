@@ -565,15 +565,33 @@ proc cmdModuleSave {{coll default}} {
    }
 }
 
-proc cmdModuleRestore {{coll default}} {
+proc cmdModuleRestore {args} {
+   # distinguish between zero and one argument provided
+   if {[llength $args] == 0} {
+      set arg_provided 0
+      set coll default
+   } else {
+      set arg_provided 1
+      set coll [lindex $args 0]
+   }
+
+   if {$coll ne {__init__}} {
+      # get corresponding collection, raise error if it does not exist unless
+      # if no collection name has been provided
+      lassign [findCollections $coll exact $arg_provided] collfile colldesc
+
+      # if default collection does not exist and no collection name has been
+      # provided, restore initial environment
+      if {!$arg_provided && $collfile eq {}} {
+         set coll __init__
+      }
+   }
+
    # read specific __init__ collection from __MODULES_LMINIT env var
    if {$coll eq {__init__}} {
       lassign [parseCollectionContent [getLoadedModulePropertyList init]]\
          coll_path_list coll_mod_list coll_tag_arrser
    } else {
-      # get corresponding collection, raise error if it does not exist
-      lassign [findCollections $coll exact 1] collfile colldesc
-
       lassign [readCollectionContent $collfile $colldesc] coll_path_list\
          coll_mod_list coll_tag_arrser
    }
