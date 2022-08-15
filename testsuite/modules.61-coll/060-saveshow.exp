@@ -134,7 +134,29 @@ testouterr_cmd_re "sh" "saveshow $coll7fp" "OK" "$modlin\n$coll7fpre:\n\n$c7cont
 # MODULES_COLLECTION_TARGET is set
 #
 
-testouterr_cmd "ALL" "saveshow" "ERR" "$cbadterrmsg"
+testouterr_cmd "ALL" "saveshow default" "ERR" "$cbadterrmsg"
+
+# no collection name specified, if default collection does not exists
+# initial environment is displayed
+set tserr "$modlin\ninitial environment:\n\n\n$modlin"
+testouterr_cmd_re ALL saveshow OK $tserr
+
+# same effect if __init__ name is provided
+testouterr_cmd_re sh {saveshow __init__} OK $tserr
+
+# set specific initial environment
+setenv_var __MODULES_LMINIT "module use --append $c9modpath1:module load $c9mod3"
+set tserr "$modlin
+initial environment:
+
+module use --append $c9modpath1
+module load $c9mod3
+
+$modlin"
+testouterr_cmd_re sh saveshow OK $tserr
+testouterr_cmd_re sh {saveshow __init__} OK $tserr
+
+unsetenv_var __MODULES_LMINIT
 
 
 #
