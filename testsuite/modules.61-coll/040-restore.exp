@@ -444,7 +444,35 @@ testouterr_cmd_re sh "restore $coll12fp" $ans $c12errmsg
 # MODULES_COLLECTION_TARGET is set
 #
 
-testouterr_cmd "ALL" "restore" "ERR" "$cbadterrmsg"
+testouterr_cmd "ALL" "restore default" "ERR" "$cbadterrmsg"
+
+# no collection name specified, if default collection does not exists
+# initial environment is restored
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset MODULEPATH]
+set tserr "unload $c9mod3\n[msg_unload $c9mod3]
+unload $c9mod2\n[msg_unload $c9mod2]
+unload $c9mod1\n[msg_unload $c9mod1]"
+testouterr_cmd ALL restore $ans $tserr
+
+# same effect if __init__ name is provided
+testouterr_cmd sh {restore __init__} $ans $tserr
+
+# set specific initial environment
+setenv_var __MODULES_LMINIT "module use --append $c9modpath1:module load $c9mod3"
+set ans [list]
+lappend ans [list set _LMFILES_ $c9modpath1/$c9mod3]
+lappend ans [list set LOADEDMODULES $c9mod3]
+set tserr "unload $c9mod3\n[msg_unload $c9mod3]
+unload $c9mod2\n[msg_unload $c9mod2]
+unload $c9mod1\n[msg_unload $c9mod1]
+load $c9mod3\n[msg_load $c9mod3]"
+testouterr_cmd sh restore $ans $tserr
+testouterr_cmd sh {restore __init__} $ans $tserr
+
+unsetenv_var __MODULES_LMINIT
 
 
 #
