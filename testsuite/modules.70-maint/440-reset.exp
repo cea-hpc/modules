@@ -11,7 +11,7 @@
 #
 #   Description:	Testuite testsequence
 #   Command:		reset, restore
-#   Modulefiles:    foo, bar, qux, variant
+#   Modulefiles:    foo, bar, qux, variant, reset
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -427,6 +427,40 @@ testouterr_cmd sh reset $ans $tserr
 
 unsetenv_var TESTSUITE_VARIANT
 unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+
+
+#
+# loaded environment is totally different and a loaded module autoloads another one
+#
+
+setenv_path_var MODULEPATH $mp
+setenv_loaded_module [list foo/1.0 reset/1] [list $mp/foo/1.0 $mp/reset/1]
+setenv_var __MODULES_LMPREREQ reset/1&foo/1.0
+setenv_var __MODULES_LMTAG foo/1.0&auto-loaded
+unsetenv_var __MODULES_LMEXTRATAG
+unsetenv_var __MODULES_LMVARIANT
+
+# initial environment = 1 modulepath, X loaded modules
+setenv_var __MODULES_LMINIT "module use --append $mp:module load --tag=auto-loaded foo/1.0:module load foo/0.load"
+
+# autoload done with 'module load' in no-auto mode
+setenv_var TESTSUITE_RESET load1
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ foo/0.load&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/foo/0.load]
+lappend ans [list set LOADEDMODULES foo/1.0:foo/0.load]
+# auto-loaded foo/1.0 is not auto-unloaded by reset/1, as performed
+# during a restore or purge sub-command
+set tserr unload-1\n[msg_unload {reset/1}]\n[msg_load {foo/0.load}]
+testouterr_cmd sh {reset --auto} $ans $tserr
+testouterr_cmd sh {reset --no-auto} $ans $tserr
+
+# autoload done with 'module switch' in no-auto mode
+setenv_var TESTSUITE_RESET switch1
+testouterr_cmd sh {reset --auto} $ans $tserr
+testouterr_cmd sh {reset --no-auto} $ans $tserr
+
+unsetenv_var TESTSUITE_RESET
 
 
 #
