@@ -99,6 +99,11 @@ Modules 5.2.0 (not yet released)
   :subcmd:`restore` sub-command equals ``__init__``.
 * When no argument is provided to :subcmd:`restore` sub-command and if
   *default* collection does not exist, initial environment is restored.
+* Initial environment content is displayed when collection name specified on
+  :subcmd:`saveshow` sub-command equals ``__init__``.
+* When no argument is provided to :subcmd:`saveshow` sub-command and if
+  *default* collection does not exist, initial environment content is
+  displayed.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 

@@ -1847,15 +1847,24 @@ Module Sub-Commands
 .. subcmd:: saveshow [collection]
 
  Display the content of *collection*. If *collection* name is not specified,
- then it is assumed to be the *default* collection. If *collection* is a
- fully qualified path, this location is displayed rather than a collection
- file under the user's collection directory. If
- :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix equivalent to the value
- of this variable will be appended to the *collection* file name.
+ then it is assumed to be the *default* collection if it exists, ``__init__``
+ special collection otherwise. If *collection* is a fully qualified path, this
+ location is displayed rather than a collection file under the user's
+ collection directory. If :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix
+ equivalent to the value of this variable will be appended to the *collection*
+ file name.
+
+ If *collection* name is ``__init__``, initial environment content defined in
+ :envvar:`__MODULES_LMINIT` environment variable is displayed.
 
  .. only:: html
 
     .. versionadded:: 4.0
+
+    .. versionchanged:: 5.2
+       Display content of initial environment when *collection* name is
+       ``__init__`` or when no collection name is specified and no *default*
+       collection exists
 
 .. subcmd:: search [-a] [-j] string
 
@@ -2539,6 +2548,10 @@ ENVIRONMENT
  sub-command. It can also be restored with :subcmd:`restore` sub-command when
  ``__init__`` collection name is specified or when no collection name is
  specified and no *default* collection exists.
+
+ The content of the initial environment can be displayed with
+ :subcmd:`saveshow` sub-command when ``__init__`` collection name is specified
+ or when no collection name is specified and no *default* collection exists.
 
  .. only:: html
 

@@ -879,6 +879,14 @@ The following module sub-commands appeared on Modules 5.
  sub-command not to limit to the collection matching currently set collection
  target.
 
+:subcmd:`saveshow`
+
+ Starting Modules 5.2, initial environment is displayed when specified
+ collection name is ``__init__``.
+
+ Starting Modules 5.2, if no argument is provided and if default collection
+ does not exist, initial environment is displayed.
+
 :subcmd:`sh-to-mod`
 
  Starting Modules 5.1, this sub-command also tracks shell completion changes
