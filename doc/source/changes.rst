@@ -858,6 +858,11 @@ The following module sub-commands appeared on Modules 5.
  options are supported on this sub-command to provide the regular search match
  capabilities.
 
+:subcmd:`restore`
+
+ Starting Modules 5.2, initial environment is restored when specified
+ collection name is ``__init__``.
+
 :subcmd:`savelist`
 
  Starting Modules 5.2, this sub-command accepts patterns to filter the named

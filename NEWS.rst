@@ -95,6 +95,8 @@ Modules 5.2.0 (not yet released)
   files are recorded in this new environment variable.
 * Add :subcmd:`reset` sub-command to restore initial environment. It takes
   recorded environment in :envvar:`__MODULES_LMINIT` and restores it.
+* Initial environment is restored when collection name specified on
+  :subcmd:`restore` sub-command equals ``__init__``.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 

@@ -1740,6 +1740,9 @@ Module Sub-Commands
  :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix equivalent to the value
  of this variable is appended to the *collection* file name to restore.
 
+ If *collection* name is ``__init__``, initial environment state defined in
+ :envvar:`__MODULES_LMINIT` environment variable is restored.
+
  When restoring a *collection*, the currently set :envvar:`MODULEPATH`
  directory list and the currently loaded *modulefiles* are unused and
  unloaded then used and loaded to exactly match the :envvar:`MODULEPATH` and
@@ -1758,6 +1761,9 @@ Module Sub-Commands
  .. only:: html
 
     .. versionadded:: 4.0
+
+    .. versionchanged:: 5.2
+       Restore initial environment when *collection* name is ``__init__``
 
 .. subcmd:: rm [--auto|--no-auto] [-f] modulefile...
 
