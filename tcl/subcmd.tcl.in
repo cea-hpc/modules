@@ -2765,7 +2765,13 @@ proc cmdModuleModToSh {shell args} {
 }
 
 proc cmdModuleReset {} {
-   cmdModuleRestore __init__
+   # use reset_target_state configuration option to know the environment state
+   # to restore
+   if {[getConf reset_target_state] eq {__purge__}} {
+      cmdModulePurge
+   } else {
+      cmdModuleRestore [getConf reset_target_state]
+   }
 }
 
 # ;;; Local Variables: ***
