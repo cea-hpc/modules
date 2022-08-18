@@ -461,6 +461,128 @@ testouterr_cmd sh {reset --auto} $ans $tserr
 testouterr_cmd sh {reset --no-auto} $ans $tserr
 
 unsetenv_var TESTSUITE_RESET
+unsetenv_var __MODULES_LMPREREQ
+
+
+#
+# reset_target_state set to __init__
+#
+
+setenv_var MODULES_RESET_TARGET_STATE __init__
+
+setenv_path_var MODULEPATH $modpath.2
+setenv_loaded_module [list bar/1 qux/1] [list $modpath.2/bar/1 $modpath.2/qux/1]
+setenv_var __MODULES_LMTAG bar/1&foo:qux/1&bar&foo
+setenv_var __MODULES_LMEXTRATAG qux/1&bar
+
+# no initial environment defined
+unsetenv_var __MODULES_LMINIT
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset MODULEPATH]
+lappend ans [list unset __MODULES_LMEXTRATAG]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_unload {qux/1 <bar:foo>}]\n[msg_unload {bar/1 <foo>}]
+testouterr_cmd sh reset $ans $tserr
+
+# initial environment = 1 modulepath, X loaded modules with manual and modulerc-defined tags
+setenv_var __MODULES_LMINIT "module use --append $mp:module load foo/0.2:module load --tag=auto-loaded foo/1.0:module load --tag=bar foo/0.load"
+set ans [list]
+lappend ans [list set __MODULES_LMALTNAME foo/0.2&foo/sym]
+lappend ans [list set __MODULES_LMPREREQ foo/0.load&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/0.2:$mp/foo/1.0:$mp/foo/0.load]
+lappend ans [list set LOADEDMODULES foo/0.2:foo/1.0:foo/0.load]
+lappend ans [list set MODULEPATH $mp]
+lappend ans [list set __MODULES_LMEXTRATAG foo/0.load&bar]
+lappend ans [list set __MODULES_LMTAG foo/0.2&tag:foo/1.0&auto-loaded:foo/0.load&bar]
+set tserr [msg_unload {qux/1 <bar:foo>}]\n[msg_unload {bar/1 <foo>}]\n[msg_load {foo/0.2 <tag>}]\n[msg_load {foo/1.0 <aL>}]\n[msg_load {foo/0.load <bar>}]
+testouterr_cmd sh reset $ans $tserr
+
+
+#
+# reset_target_state set to __purge__
+#
+
+setenv_var MODULES_RESET_TARGET_STATE __purge__
+
+setenv_path_var MODULEPATH $modpath.2
+setenv_loaded_module [list bar/1 qux/1] [list $modpath.2/bar/1 $modpath.2/qux/1]
+setenv_var __MODULES_LMTAG bar/1&foo:qux/1&bar&foo
+setenv_var __MODULES_LMEXTRATAG qux/1&bar
+
+# no initial environment defined
+unsetenv_var __MODULES_LMINIT
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMEXTRATAG]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_unload {qux/1 <bar:foo>}]\n[msg_unload {bar/1 <foo>}]
+testouterr_cmd sh reset $ans $tserr
+
+# initial environment = 1 modulepath, X loaded modules with manual and modulerc-defined tags
+setenv_var __MODULES_LMINIT "module use --append $mp:module load foo/0.2:module load --tag=auto-loaded foo/1.0:module load --tag=bar foo/0.load"
+testouterr_cmd sh reset $ans $tserr
+
+
+#
+# reset_target_state set to collection name
+#
+
+setenv_var HOME $env(HOME)/home
+
+setenv_path_var MODULEPATH $modpath.2
+setenv_loaded_module [list bar/1 qux/1] [list $modpath.2/bar/1 $modpath.2/qux/1]
+setenv_var __MODULES_LMTAG bar/1&foo:qux/1&bar&foo
+setenv_var __MODULES_LMEXTRATAG qux/1&bar
+
+# unknown collection
+setenv_var MODULES_RESET_TARGET_STATE unknown
+# no initial environment defined
+unsetenv_var __MODULES_LMINIT
+set tserr "$error_msgs: Collection unknown cannot be found"
+testouterr_cmd sh reset ERR $tserr
+# initial environment = 1 modulepath, X loaded modules with manual and modulerc-defined tags
+setenv_var __MODULES_LMINIT "module use --append $mp:module load foo/0.2:module load --tag=auto-loaded foo/1.0:module load --tag=bar foo/0.load"
+testouterr_cmd sh reset ERR $tserr
+unsetenv_var __MODULES_LMINIT
+
+# default collection
+setenv_var MODULES_RESET_TARGET_STATE default
+set ans [list]
+lappend ans [list unset mload]
+if {[is_conf_enabled advversspec implicitdefault]} {
+    lappend ans [list set __MODULES_LMALTNAME loc_rc1/1.0&loc_rc1/foo:verssort/1.10&as|verssort/default&as|verssort/latest:loc_dv2/1.0&loc_dv2/default&loc_dv2]
+} else {
+    lappend ans [list set __MODULES_LMALTNAME loc_rc1/1.0&loc_rc1/foo:loc_dv2/1.0&loc_dv2/default&loc_dv2]
+}
+lappend ans [list set t15 t15]
+lappend ans [list set testsuite yes]
+lappend ans [list set _LMFILES_ $modpath/loc_rc1/1.0:$modpath/load/15:$modpath/verssort/1.10:$modpath/coll/a:$modpath/loc_dv2/1.0]
+lappend ans [list set LOADEDMODULES loc_rc1/1.0:load/15:verssort/1.10:coll/a:loc_dv2/1.0]
+lappend ans [list set MODULE_VERSION 1.10]
+lappend ans [list set MODULEPATH $modpath]
+lappend ans [list unset __MODULES_LMEXTRATAG]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr "[msg_unload {qux/1 <bar:foo>}]\n[msg_unload {bar/1 <foo>}]\n[msg_load loc_rc1/1.0]\n[msg_load load/15]\n[msg_load verssort/1.10]\nload coll/a\n[msg_load coll/a]\n[msg_load loc_dv2/1.0]"
+testouterr_cmd sh reset $ans $tserr
+
+# other collection with target set
+setenv_var MODULES_COLLECTION_TARGET target
+setenv_var MODULES_RESET_TARGET_STATE coll4
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list set MODULEPATH $modpath:$modpath.2]
+lappend ans [list unset __MODULES_LMEXTRATAG]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_unload {qux/1 <bar:foo>}]\n[msg_unload {bar/1 <foo>}]
+testouterr_cmd sh reset $ans $tserr
+
+unsetenv_var MODULES_RESET_TARGET_STATE
+unsetenv_var MODULES_COLLECTION_TARGET
+setenv_var HOME $ORIG_HOME
 
 
 #
