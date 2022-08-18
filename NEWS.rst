@@ -104,6 +104,13 @@ Modules 5.2.0 (not yet released)
 * When no argument is provided to :subcmd:`saveshow` sub-command and if
   *default* collection does not exist, initial environment content is
   displayed.
+* Add :mconfig:`reset_target_state` configuration option to determine behavior
+  of :subcmd:`reset` sub-command. When set to ``__init__`` (default value)
+  initial environment is restored. When set to ``__purge__``, a
+  :subcmd:`purge` sub-command is performed. Any other value, corresponds to
+  the name of a collection to :subcmd:`restore`. When set,
+  :mconfig:`reset_target_state` defines :envvar:`MODULES_RESET_TARGET_STATE`
+  environment variable.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 

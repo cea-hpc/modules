@@ -1085,6 +1085,21 @@ Module Sub-Commands
 
      .. versionadded:: 5.1
 
+ .. mconfig:: reset_target_state
+
+  Control behavior of :subcmd:`reset` sub-command. Whether environment should
+  be purged (``__purge__``), initial environment (``__init__``) or a named
+  collection (any other value) should restored.
+
+  Default value is ``__init__``. The :envvar:`MODULES_RESET_TARGET_STATE`
+  environment variable is defined by :subcmd:`config` sub-command when
+  changing this configuration option from its default value. See
+  :envvar:`MODULES_RESET_TARGET_STATE` description for details.
+
+  .. only:: html
+
+     .. versionadded:: 5.2
+
  .. mconfig:: run_quarantine
 
   Environment variables to indirectly pass to :file:`modulecmd.tcl`.
@@ -1726,6 +1741,13 @@ Module Sub-Commands
 
  :subcmd:`reset` sub-command restores the environment definition found in
  :envvar:`__MODULES_LMINIT` environment variable.
+
+ :subcmd:`reset` behavior can be changed with :mconfig:`reset_target_state`.
+ This configuration option is set by default to ``__init__``, which
+ corresponds to the above behavior description. When set to ``__purge__``,
+ :subcmd:`reset` performs a :subcmd:`purge` of the environment. When set to
+ any other value, :subcmd:`reset` performs a :subcmd:`restore` of
+ corresponding name collection.
 
  .. only:: html
 
@@ -3438,6 +3460,21 @@ ENVIRONMENT
  .. only:: html
 
     .. versionadded:: 5.1
+
+.. envvar:: MODULES_RESET_TARGET_STATE
+
+ Defines behavior of :subcmd:`reset` sub-command. When set to ``__init__``,
+ initial environment is restored. When set to ``__purge__``, :subcmd:`reset`
+ performs a :subcmd:`purge` sub-command. Any other value designates a name
+ collection to :subcmd:`restore`.
+
+ This environment variable value supersedes the default value set in the
+ :mconfig:`reset_target_state` configuration option. It can be defined with
+ the :subcmd:`config` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 5.2
 
 .. envvar:: MODULES_RUN_QUARANTINE
 

@@ -919,7 +919,8 @@ The following environment variables appeared on Modules 5.
 +------------+-----------------------------------------------------------------+
 | 5.2        | :envvar:`MODULES_PROTECTED_ENVVARS`,                            |
 |            | :envvar:`MODULES_TCL_LINTER`,                                   |
-|            | :envvar:`__MODULES_LMINIT`                                      |
+|            | :envvar:`__MODULES_LMINIT`,                                     |
+|            | :envvar:`MODULES_RESET_TARGET_STATE`                            |
 +------------+-----------------------------------------------------------------+
 
 Modules Specific Tcl Commands
@@ -998,5 +999,6 @@ The following Modules configuration option has been introduced on Modules 5.
 | 5.1        | :mconfig:`redirect_output`, :mconfig:`mcookie_check`,           |
 |            | :mconfig:`collection_pin_tag`                                   |
 +------------+-----------------------------------------------------------------+
-| 5.2        | :mconfig:`tcl_linter`, :mconfig:`protected_envvars`             |
+| 5.2        | :mconfig:`tcl_linter`, :mconfig:`protected_envvars`,            |
+|            | :mconfig:`reset_target_state`                                   |
 +------------+-----------------------------------------------------------------+
