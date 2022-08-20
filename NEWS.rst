@@ -111,6 +111,7 @@ Modules 5.2.0 (not yet released)
   the name of a collection to :subcmd:`restore`. When set,
   :mconfig:`reset_target_state` defines :envvar:`MODULES_RESET_TARGET_STATE`
   environment variable.
+* Doc: add :ref:`initial-environment` design notes.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 
