@@ -297,25 +297,14 @@ setenv_var __MODULES_LMINIT "module use --append $mp:module load foo/0.2:module 
 set ans [list]
 lappend ans [list set __MODULES_LMALTNAME foo/0.2&foo/sym]
 lappend ans [list set __MODULES_LMPREREQ foo/0.load&foo/1.0]
-lappend ans [list set _LMFILES_ $modpath.2/bar/1:$mp/foo/0.2:$mp/foo/1.0:$mp/foo/0.load]
-lappend ans [list set LOADEDMODULES bar/1:foo/0.2:foo/1.0:foo/0.load]
-lappend ans [list set __MODULES_LMEXTRATAG foo/0.load&bar]
-lappend ans [list set __MODULES_LMTAG bar/1&sticky:foo/0.2&tag:foo/1.0&auto-loaded:foo/0.load&bar]
-lappend ans [list set MODULEPATH $mp]
-lappend ans [list ERR]
-set tserr [msg_unload {bar/1 <S>} $err_stickyunload]\n\n[msg_load {foo/0.2 <tag>}]\n[msg_load {foo/1.0 <aL>}]\n[msg_load {foo/0.load <bar>}]
-testouterr_cmd sh reset $ans $tserr
-
-# --force mode allows to unload sticky module
-set ans [list]
-lappend ans [list set __MODULES_LMALTNAME foo/0.2&foo/sym]
-lappend ans [list set __MODULES_LMPREREQ foo/0.load&foo/1.0]
 lappend ans [list set _LMFILES_ $mp/foo/0.2:$mp/foo/1.0:$mp/foo/0.load]
 lappend ans [list set LOADEDMODULES foo/0.2:foo/1.0:foo/0.load]
 lappend ans [list set __MODULES_LMEXTRATAG foo/0.load&bar]
 lappend ans [list set MODULEPATH $mp]
 lappend ans [list set __MODULES_LMTAG foo/0.2&tag:foo/1.0&auto-loaded:foo/0.load&bar]
-set tserr [msg_unload {bar/1 <S>} $err_stickyunloadf]\n\n[msg_load {foo/0.2 <tag>}]\n[msg_load {foo/1.0 <aL>}]\n[msg_load {foo/0.load <bar>}]
+set tserr [msg_unload {bar/1 <S>}]\n[msg_load {foo/0.2 <tag>}]\n[msg_load {foo/1.0 <aL>}]\n[msg_load {foo/0.load <bar>}]
+# like restore sub-command, sticky modules are unloaded on a reset
+testouterr_cmd sh reset $ans $tserr
 testouterr_cmd sh {reset -f} $ans $tserr
 
 
