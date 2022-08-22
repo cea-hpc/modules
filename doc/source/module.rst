@@ -2375,7 +2375,7 @@ Modules are said *sticky* when they cannot be unloaded (they stick to the
 loaded environment). Two kind of stickiness can be distinguished:
 
 * ``sticky`` module: cannot be unloaded unless if the unload is forced or if
-  the module is reloaded after being unloaded
+  the module is reloaded after being unloaded or if restoring a collection.
 * ``super-sticky`` module: cannot be unloaded unless if the module is reloaded
   after being unloaded; super-sticky modules cannot be unloaded even if the
   unload is forced.
@@ -2391,9 +2391,19 @@ if the ``sticky`` tag is defined over *foo* module, loaded module *foo/1.2*
 can be swapped by *foo/2.0*. Such stickiness definition means one version of
 module should stay loaded whatever version it is.
 
+When restoring a :ref:`collection<Collections>` or resetting to the initial
+environment, sticky modules are unloaded to ensure :subcmd:`restore` or
+:subcmd:`reset` sub-commands fully set the environment in target collection or
+initial state. Super-sticky modules still cannot be unloaded with
+:subcmd:`restore` and :subcmd:`reset` sub-commands.
+
 .. only:: html
 
    .. versionadded:: 4.7
+
+    .. versionchanged:: 5.2
+       Unload sticky modules when restoring a collection or resetting to the
+       initial environment
 
 
 .. _Module variants:

@@ -112,6 +112,8 @@ Modules 5.2.0 (not yet released)
   :mconfig:`reset_target_state` defines :envvar:`MODULES_RESET_TARGET_STATE`
   environment variable.
 * Doc: add :ref:`initial-environment` design notes.
+* Unload *sticky* modules on :subcmd:`restore` and :subcmd:`reset`
+  sub-commands to fully set environment in collection or initial state.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 
