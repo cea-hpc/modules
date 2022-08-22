@@ -11,7 +11,13 @@ Configuration
 Specification
 -------------
 
-- Once loaded a sticky module cannot be unloaded unless forced or reloaded.
+- Once loaded a sticky module cannot be unloaded unless
+
+  - forced
+  - or reloaded
+  - or when restoring a collection
+  - or resetting to initial environment state
+
 - If module is super-sticky instead of sticky, it cannot be unloaded even if forced, only if it is reloaded afterward
 
 - Stickiness definition relies on :ref:`module-tags`
@@ -46,6 +52,14 @@ Specification
 
   - If a forced ``purge`` command occurs, the dependent module will be unloaded
   - Which let the super-sticky module with a missing dependency
+
+- Starting Modules 5.2, sticky modules are unloaded
+
+  - On :subcmd:`restore` sub-command
+  - On :subcmd:`reset` sub-command if :mconfig:`reset_target_state` is not equal to ``__purge__``
+  - No specific error or warning message
+  - This is allowed to fully restore the collection in its targeted state
+  - No change for super-sticky modules
 
 - An error is reported when trying to unload a sticky or super-sticky module
 

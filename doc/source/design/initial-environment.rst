@@ -76,18 +76,16 @@ initial environment, like done for any collection.
 Behavior of ``reset`` sub-command can be changed with `reset_target_state
 configuration option`_.
 
-``reset`` accepts ``--force`` option to unload *sticky* modules from loaded
-environment to restore initial environment. A *super-sticky* module cannot be
-unloaded by ``reset`` sub-command.
-
-As it evaluates modules, ``--auto`` and ``--no-auto`` options can be set for
-``reset`` sub-command. But, as for ``restore`` sub-command these options
-should have no impact, as:
+As it evaluates modules, ``--force``, ``--auto`` and ``--no-auto`` options can
+e set for ``reset`` sub-command. But, as for ``restore`` sub-command these
+options should have no impact, as:
 
 * collection fully describes dependencies to load, no automatic resolution
   needed
 * current environment unload is processed module by module, no automatic
   resolution expected
+* *sticky* modules are unloaded by default, no need to force unload
+* *super-sticky* cannot be unloaded even if forced
 
 ``reset`` sub-command outputs *Loading*, *Unloading*, *Tagging* messages like
 ``restore`` sub-command. Which is the default output mode for a sub-command
