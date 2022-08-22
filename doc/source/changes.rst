@@ -703,23 +703,23 @@ Modules Specific Tcl Commands
  Forbid use of :subcmd:`module source<source>` command in modulefile or in an
  initialization rc file, the ``source`` Tcl command should be used instead.
 
- Starting version ``5.1``, an error is raised when an unused option is set
- on ``module use`` or ``module unuse`` commands.
+ Starting version ``5.1``:
 
- Starting version ``5.1``, options ``--*-on-unload`` added to the
- :mfcmd:`remove-path` command are also added to the ``module unuse`` command.
+ * an error is raised when an unused option is set on ``module use`` or
+   ``module unuse`` commands.
+ * options ``--*-on-unload`` added to the :mfcmd:`remove-path` command are
+   also added to the ``module unuse`` command.
 
 :mfcmd:`remove-path`
 
- Starting with version ``5.1``, the ``--remove-on-unload`` option is added to
- also remove value when modulefile is unloaded.
+ Starting with version ``5.1``:
 
- Starting with version ``5.1``, the ``--append-on-unload`` and
- ``--prepend-on-unload`` options are added to restore when modulefile is
- unloaded the value list unset at load time.
-
- Starting with version ``5.1``, the ``--noop-on-unload`` option is added to
- perform no operation when modulefile is unloaded.
+ * the ``--remove-on-unload`` option is added to also remove value when
+   modulefile is unloaded.
+ * the ``--append-on-unload`` and ``--prepend-on-unload`` options are added to
+   restore when modulefile is unloaded the value list unset at load time.
+ * the ``--noop-on-unload`` option is added to perform no operation when
+   modulefile is unloaded.
 
 :mfcmd:`setenv`
 
@@ -734,20 +734,21 @@ Modules Specific Tcl Commands
  Distinguish between being called on a unload evaluation without a value to
  restore or with an empty string value to restore.
 
- Starting with version ``5.1``, the ``--noop-on-unload`` option is added to
- perform no operation when modulefile is unloaded.
+ Starting with version ``5.1``:
 
- Starting with version ``5.1``, the ``--unset-on-unload`` option is added to
- also unset variable when modulefile is unloaded.
+ * the ``--noop-on-unload`` option is added to perform no operation when
+   modulefile is unloaded.
+ * the ``--unset-on-unload`` option is added to also unset variable when
+   modulefile is unloaded.
 
 :mfcmd:`variant`
 
- Starting version 5.1, :mfcmd:`variant` command accepts being called without
- a list of accepted value defined. In this case, any value specified is
- accepted.
+ Starting version 5.1:
 
- Starting version 5.1, the ``--return-value`` option is added to return
- variant value or its fallback when modulefile is evaluated in *display* mode.
+ * :mfcmd:`variant` command accepts being called without a list of accepted
+   value defined. In this case, any value specified is accepted.
+ * the ``--return-value`` option is added to return variant value or its
+   fallback when modulefile is evaluated in *display* mode.
 
 Locating Modulefiles
 """"""""""""""""""""
@@ -851,12 +852,11 @@ The following module sub-commands appeared on Modules 5.
 
 :subcmd:`list`
 
- Starting Modules 5.1, this sub-command accepts patterns to filter the loaded
- modules to list.
+ Starting Modules 5.1:
 
- Starting Modules 5.1, the :option:`--starts-with` and :option:`--contains`
- options are supported on this sub-command to provide the regular search match
- capabilities.
+ * this sub-command accepts patterns to filter the loaded modules to list.
+ * the :option:`--starts-with` and :option:`--contains` options are supported
+   on this sub-command to provide the regular search match capabilities.
 
 :subcmd:`restore`
 
@@ -870,24 +870,22 @@ The following module sub-commands appeared on Modules 5.
 
 :subcmd:`savelist`
 
- Starting Modules 5.2, this sub-command accepts patterns to filter the named
- collections to list.
+ Starting Modules 5.2:
 
- Starting Modules 5.2, the :option:`--starts-with` and :option:`--contains`
- options are supported on this sub-command to provide the regular search match
- capabilities.
-
- Starting Modules 5.2, the :option:`--all` option is supported on this
- sub-command not to limit to the collection matching currently set collection
- target.
+ * this sub-command accepts patterns to filter the named collections to list.
+ * the :option:`--starts-with` and :option:`--contains` options are supported
+   on this sub-command to provide the regular search match capabilities.
+ * the :option:`--all` option is supported on this sub-command not to limit to
+   the collection matching currently set collection target.
 
 :subcmd:`saveshow`
 
- Starting Modules 5.2, initial environment is displayed when specified
- collection name is ``__init__``.
+ Starting Modules 5.2:
 
- Starting Modules 5.2, if no argument is provided and if default collection
- does not exist, initial environment is displayed.
+ * initial environment is displayed when specified collection name is
+   ``__init__``.
+ * if no argument is provided and if default collection does not exist,
+   initial environment is displayed.
 
 :subcmd:`sh-to-mod`
 
