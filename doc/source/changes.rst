@@ -644,6 +644,14 @@ Module Sub-Commands
  sub-commands. Load and unload triggered by other modules are reported through
  the automated module handling messages of the main modules.
 
+:subcmd:`restore`
+
+ Starting Modules 5.2:
+
+ * if no argument is provided and if default collection does not exist,
+   initial environment is restored.
+ * *sticky* modules are unloaded when restoring a collection.
+
 :subcmd:`source`
 
  Enforce use of the Modules magic cookie (i.e., ``#%Module`` file signature) at
@@ -652,6 +660,11 @@ Module Sub-Commands
  magic cookie is missing or if the optional version number placed after the
  cookie string is higher than the version of the :file:`modulecmd.tcl` script
  in use.
+
+:subcmd:`saveshow`
+
+ Starting Modules 5.2, if no argument is provided and if default collection
+ does not exist, initial environment is displayed.
 
 :subcmd:`use`
 
@@ -694,37 +707,13 @@ Modules Specific Tcl Commands
  When passed environment variable is not defined, an empty string is returned
  by default rather ``_UNDEFINED_``.
 
- Starting version 5.1, the ``--return-value`` option is added to return
- environment variable value or its fallback when modulefile is evaluated in
- *display* mode.
-
 :mfcmd:`module`
 
  Forbid use of :subcmd:`module source<source>` command in modulefile or in an
  initialization rc file, the ``source`` Tcl command should be used instead.
 
- Starting version ``5.1``:
-
- * an error is raised when an unused option is set on ``module use`` or
-   ``module unuse`` commands.
- * options ``--*-on-unload`` added to the :mfcmd:`remove-path` command are
-   also added to the ``module unuse`` command.
-
-:mfcmd:`remove-path`
-
- Starting with version ``5.1``:
-
- * the ``--remove-on-unload`` option is added to also remove value when
-   modulefile is unloaded.
- * the ``--append-on-unload`` and ``--prepend-on-unload`` options are added to
-   restore when modulefile is unloaded the value list unset at load time.
- * the ``--noop-on-unload`` option is added to perform no operation when
-   modulefile is unloaded.
-
-:mfcmd:`setenv`
-
- Starting with version ``5.1``, the ``--set-if-undef`` option is added to set
- environment variable when modulefile is loaded only if not yet defined.
+ Starting version ``5.1`` an error is raised when an unused option is set on
+ ``module use`` or ``module unuse`` commands.
 
 :mfcmd:`unsetenv`
 
@@ -734,21 +723,11 @@ Modules Specific Tcl Commands
  Distinguish between being called on a unload evaluation without a value to
  restore or with an empty string value to restore.
 
- Starting with version ``5.1``:
-
- * the ``--noop-on-unload`` option is added to perform no operation when
-   modulefile is unloaded.
- * the ``--unset-on-unload`` option is added to also unset variable when
-   modulefile is unloaded.
-
 :mfcmd:`variant`
 
- Starting version 5.1:
-
- * :mfcmd:`variant` command accepts being called without a list of accepted
-   value defined. In this case, any value specified is accepted.
- * the ``--return-value`` option is added to return variant value or its
-   fallback when modulefile is evaluated in *display* mode.
+ Starting version 5.1, :mfcmd:`variant` command accepts being called without a
+ list of accepted value defined. In this case, any value specified is
+ accepted.
 
 Locating Modulefiles
 """"""""""""""""""""
@@ -860,13 +839,8 @@ The following module sub-commands appeared on Modules 5.
 
 :subcmd:`restore`
 
- Starting Modules 5.2:
-
- * initial environment is restored when specified collection name is
-   ``__init__``.
- * if no argument is provided and if default collection does not exist,
-   initial environment is restored.
- * *sticky* modules are unloaded when restoring a collection.
+ Starting Modules 5.2, initial environment is restored when specified
+ collection name is ``__init__``.
 
 :subcmd:`savelist`
 
@@ -880,12 +854,8 @@ The following module sub-commands appeared on Modules 5.
 
 :subcmd:`saveshow`
 
- Starting Modules 5.2:
-
- * initial environment is displayed when specified collection name is
-   ``__init__``.
- * if no argument is provided and if default collection does not exist,
-   initial environment is displayed.
+ Starting Modules 5.2, initial environment is displayed when specified
+ collection name is ``__init__``.
 
 :subcmd:`sh-to-mod`
 
@@ -945,6 +915,12 @@ The following modulefile Tcl commands appeared on Modules 5.
  Starting Modules 5.0, these modulefile commands are available from a modulerc
  evaluation context.
 
+:mfcmd:`getenv`
+
+ Starting version 5.1, the ``--return-value`` option is added to return
+ environment variable value or its fallback when modulefile is evaluated in
+ *display* mode.
+
 :mfcmd:`prereq`, :mfcmd:`module load/try-load/load-any/switch<module>`
 
  Starting Modules 5.1, these modulefile commands accept the :option:`--tag`
@@ -961,16 +937,51 @@ The following modulefile Tcl commands appeared on Modules 5.
  Starting Modules 5.1, these modulefile commands accept the ``--not-req``
  option.
 
+:mfcmd:`module unuse<module>`
+
+ Starting version ``5.1`` options ``--*-on-unload`` added to the
+ :mfcmd:`remove-path` command are also added to the ``module unuse`` command.
+
 :mfcmd:`puts`
 
  Starting Modules 5.1, if content is sent to the ``prestdout`` channel, it is
  rendered as command to evaluate in current shell session and prior any other
  environment changes.
 
+:mfcmd:`remove-path`
+
+ Starting with version ``5.1``:
+
+ * the ``--remove-on-unload`` option is added to also remove value when
+   modulefile is unloaded.
+ * the ``--append-on-unload`` and ``--prepend-on-unload`` options are added to
+   restore when modulefile is unloaded the value list unset at load time.
+ * the ``--noop-on-unload`` option is added to perform no operation when
+   modulefile is unloaded.
+
+:mfcmd:`setenv`
+
+ Starting with version ``5.1``, the ``--set-if-undef`` option is added to set
+ environment variable when modulefile is loaded only if not yet defined.
+
 :mfcmd:`source-sh`
 
  Starting Modules 5.1, this modulefile command also tracks shell completion
  changes for bash, tcsh and fish shells.
+
+:mfcmd:`unsetenv`
+
+ Starting with version ``5.1``:
+
+ * the ``--noop-on-unload`` option is added to perform no operation when
+   modulefile is unloaded.
+ * the ``--unset-on-unload`` option is added to also unset variable when
+   modulefile is unloaded.
+
+:mfcmd:`variant`
+
+ Starting version 5.1, the ``--return-value`` option is added to return
+ variant value or its fallback when modulefile is evaluated in *display* mode.
 
 Modules Variables
 """""""""""""""""
