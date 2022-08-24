@@ -199,6 +199,70 @@ All shells supported by :file:`modulecmd.tcl` script are supported by
     os.environ['FOO'] = 'value'
     os.environ['BAR'] = 'othervalue'
 
+Initial environment
+-------------------
+
+When Modules initializes, it evaluates the :file:`initrc` and
+:file:`modulespath` configuration files to enable default modulepaths and load
+default modules. Initial environment corresponds to the environment state
+after this initialization.
+
+Initial environment is now saved in an environment variable
+(:envvar:`__MODULES_LMINIT`) in current shell session to remember what are the
+initial modulepaths and initial modules with their tags and variants if any.
+
+:subcmd:`reset` sub-command is introduced, in a similar fashion than on
+`Lmod`_, to restore the initial environment. Here, :subcmd:`reset` relies on
+the :ref:`collection<collections>` mechanism based and the content of
+:envvar:`__MODULES_LMINIT`. Currently enabled modulepaths and loaded modules
+are respectively unused and unloaded to use the modulepaths and load the
+modules with tags and variants as described by initial environment.
+
+.. parsed-literal::
+
+    :ps:`$` module list
+    Currently Loaded Modulefiles:
+     1) foo/1.0   2) bar/1.0
+    :ps:`$` module switch bar/1.0 qux/1.0
+    :ps:`$` module reset
+    Unloading :sgrhi:`qux/1.0`
+    Loading :sgrhi:`bar/1.0`
+
+:subcmd:`restore` sub-command has been adapted to reinitialize the environment
+to its initial state when no collection name is provided and no *default*
+collection exists or if ``__init__`` virtual collection name is provided.
+
+It is possible to view the content of the initial environment with
+:subcmd:`saveshow` sub-command. It is displayed when no argument is provided
+and no collection exists or if ``__init__`` name is provided.
+
+.. parsed-literal::
+
+    :ps:`$` module saveshow __init__
+    -------------------------------------------------------------------
+    :sgrhi:`initial environment`:
+
+    :sgrcm:`module` use --append /path/to/modulefiles
+    :sgrcm:`module` load foo/1.0
+    :sgrcm:`module` load bar/1.0
+
+    -------------------------------------------------------------------
+
+Users have the ability to define what is their initial environment state and
+thus adapt the behavior of :subcmd:`reset` sub-command with
+:mconfig:`reset_target_state` configuration option. Default value is
+``__init__`` and it corresponds to the behavior described above. When set to
+``__purge__``, a :subcmd:`purge` command is performed when resetting. Any
+other value corresponds to the name of a collection to restore.
+
+.. parsed-literal::
+
+    :ps:`$` module config reset_target_state __purge__
+    :ps:`$` module reset
+    Unloading bar/1.0
+    Unloading foo/1.0
+
+
 v5.1
 ====
 
