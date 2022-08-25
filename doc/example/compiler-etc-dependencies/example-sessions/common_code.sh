@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 #
 # This should be sourced from the other scripts
 
