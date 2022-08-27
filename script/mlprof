@@ -1,7 +1,7 @@
 #!/usr/bin/env tclsh
 #
 # MLPROF, profile a given modulecmd execution
-# Copyright (C) 2019-2021 Xavier Delaruelle
+# Copyright (C) 2019-2022 Xavier Delaruelle
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,9 +29,10 @@ set argv [lrange [lreplace $argv 1 1 sh] 1 end]
 # inhibit exit command to get through the whole modulecmd.tcl script and
 # and finish here to compute profiling result
 rename ::exit ::__exit
-proc exit {args} {}
+proc exit {{returnCode 0}} {}
 # also inhibit puts to ensure nothing is printed during execution
 rename ::puts ::__puts
+##nagelfar syntax puts r 0
 proc puts {args} {}
 
 # initialize profiling
@@ -80,6 +81,7 @@ proc ::profiler::profProc {name arglist body} {
 
    if {[package vsatisfies [package provide Tcl] 8.4]} {
        uplevel 1 [list ::_oldProc $name $arglist $body]
+       ##nagelfar subcmd+ {trace add execution} {enter leave}
        trace add execution $name {enter leave} \
           [list ::profiler::TraceHandler $name]
    } else {
