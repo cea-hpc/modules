@@ -1,7 +1,7 @@
 #!/usr/bin/env tclsh
 #
 # NGLFAR2CCOV, translate Nagelfar coverage result for Codecov report
-# Copyright (C) 2017-2021 Xavier Delaruelle
+# Copyright (C) 2017-2022 Xavier Delaruelle
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -68,7 +68,8 @@ set ratio_covered [format "%.4f" \
    [expr {double($covered_lines) / $total_lines}]]
 set percent_covered [format "%.2f" [expr {100 * $ratio_covered}]]
 
-puts "Found $covered_lines lines covered over $total_lines ($percent_covered %)"
+puts "Found $covered_lines lines covered over $total_lines ($percent_covered\
+   %)"
 
 # catch additional information to build reports
 set fmtime [file mtime $covres]
@@ -79,7 +80,9 @@ regsub -all "\\." $targetfile "_" srcname
 array set content {}
 set content(json) "{
    \"files\": \[
-      {\"file\": \"$targetfile\", \"percent_covered\": \"$percent_covered\", \"covered_lines\": \"$covered_lines\", \"total_lines\": \"$total_lines\"}
+      {\"file\": \"$targetfile\", \"percent_covered\": \"$percent_covered\",\
+      \"covered_lines\": \"$covered_lines\", \"total_lines\":\
+      \"$total_lines\"}
    \],
    \"percent_covered\": \"$percent_covered\",
    \"covered_lines\": $covered_lines,
@@ -92,19 +95,23 @@ set content(json) "{
 
 # build xml report content
 set content(xml) "<?xml version=\"1.0\" ?>
-<!DOCTYPE coverage SYSTEM 'http://cobertura.sourceforge.net/xml/coverage-03.dtd'>
+<!DOCTYPE coverage SYSTEM\
+   'http://cobertura.sourceforge.net/xml/coverage-03.dtd'>
 <coverage line-rate=\"0.000\" version=\"1.9\" timestamp=\"$fmtime\">
    <sources>
       <source>$targetfile</source>
    </sources>
    <packages>
-      <package name=\"$srcname\" line-rate=\"0.000\" branch-rate=\"1.0\" complexity=\"1.0\">
+      <package name=\"$srcname\" line-rate=\"0.000\" branch-rate=\"1.0\"\
+         complexity=\"1.0\">
          <classes>
-            <class name=\"$srcname\" filename=\"$targetfile\" line-rate=\"$ratio_covered\">
+            <class name=\"$srcname\" filename=\"$targetfile\"\
+               line-rate=\"$ratio_covered\">
                <lines>
 "
 foreach n [lsort -integer [array names line_hits]] {
-   append content(xml) "                  <line number=\"$n\" hits=\"$line_hits($n)\"/>\n"
+   append content(xml) "                  <line number=\"$n\"\
+      hits=\"$line_hits($n)\"/>\n"
 }
 append content(xml) "               </lines>
             </class>

@@ -138,7 +138,8 @@ if {![info exists env(MREL_GITHUB_TEST_REMOTE)]} {
 set gh_test_remote $env(MREL_GITHUB_TEST_REMOTE)
 reportInfo "GitHub test remote set to '$gh_test_remote'"
 set ghremtgt [lindex [split [exec git remote get-url $gh_test_remote] :.] 2]
-set ghstatusurl https://api.github.com/repos/$ghremtgt/commits/$relbranch/status
+set ghstatusurl\
+   https://api.github.com/repos/$ghremtgt/commits/$relbranch/status
 set ghtgturl https://github.com/$ghremtgt/commit/$relbranch
 set ghcloneurl https://github.com/$ghremtgt.git
 set ghexporturl https://github.com/$ghremtgt/archive/$reltag.tar.gz
@@ -192,14 +193,17 @@ set distgzsum [lindex [exec md5sum $distgz] 0]
 set distbzsum [lindex [exec md5sum $distbz] 0]
 set distwinsum [lindex [exec md5sum $distwin] 0]
 
-reportInfo "Found dist GZ '$distgz'  (size='[file size $distgz]', sum='$distgzsum')"
-reportInfo "Found dist BZ '$distbz' (size='[file size $distbz]', sum='$distbzsum')"
-reportInfo "Found dist Win '$distwin' (size='[file size $distwin]', sum='$distwinsum')"
+reportInfo "Found dist GZ '$distgz'  (size='[file size $distgz]',\
+   sum='$distgzsum')"
+reportInfo "Found dist BZ '$distbz' (size='[file size $distbz]',\
+   sum='$distbzsum')"
+reportInfo "Found dist Win '$distwin' (size='[file size $distwin]',\
+   sum='$distwinsum')"
 
 # adapt rpm release version in case of non-final release (alpha/beta)
 if {[set nonfinalidx [string first - $relver]] != -1} {
-   set rpmrelver [string range $relver 0 [expr {$nonfinalidx -1}]]-0.1.[string range\
-      $relver [expr {$nonfinalidx + 1}] end]
+   set rpmrelver [string range $relver 0 [expr {$nonfinalidx -\
+      1}]]-0.1.[string range $relver [expr {$nonfinalidx + 1}] end]
 } else {
    set rpmrelver $relver-1
 }
