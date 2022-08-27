@@ -3,8 +3,7 @@
 	install-testinitrc install-testetcrc install-testmodspath \
 	install-testmodspath-empty install-testmodspath-wild \
 	uninstall-testconfig uninstall dist dist-tar dist-gzip dist-bzip2 \
-	dist-win srpm rpm clean distclean test-deps test testinstall testlint \
-	testsyntax
+	dist-win srpm rpm clean distclean test-deps test testinstall testlint
 
 # commands to install files
 INSTALL = install
@@ -970,11 +969,6 @@ $(NAGELFAR):
 		(rm -f $(NAGELFAR_DIST) && false)
 	tar xzf $(NAGELFAR_DIST)
 	rm $(NAGELFAR_DIST)
-
-# check syntax over joined code (modulecmd.tcl) to avoid 'unknown procedure'
-# errors obtained when checking each tcl file separately
-testsyntax: $(MODULECMDTEST) $(NAGELFAR)
-	$(NAGELFAR) -len 78 $<
 
 # build Ctags index
 tcl/tags: tcl/coll.tcl.in tcl/envmngt.tcl.in tcl/init.tcl.in tcl/main.tcl.in \
