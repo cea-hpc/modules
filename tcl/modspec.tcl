@@ -70,6 +70,7 @@ proc modStartNbProcIcase {mod name} {
    } else {
       set namesplit [split $modname /]
       set modsplit [split $mod /]
+      ##nagelfar ignore #2 Badly formed if statement
       set imax [if {[llength $namesplit] < [llength $modsplit]} {llength\
          $namesplit} {llength $modsplit}]
       for {set i 0} {$i < $imax} {incr i} {

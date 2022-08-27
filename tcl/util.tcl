@@ -211,12 +211,13 @@ proc appendNoDupToList {lstname args} {
 }
 
 proc replaceFromList {list1 item {item2 {}}} {
-    while {[set xi [lsearch -exact $list1 $item]] >= 0} {
-       set list1 [if {[string length $item2] == 0} {lreplace $list1 $xi $xi}\
+   while {[set xi [lsearch -exact $list1 $item]] >= 0} {
+      ##nagelfar ignore #2 Badly formed if statement
+      set list1 [if {[string length $item2] == 0} {lreplace $list1 $xi $xi}\
          {lreplace $list1 $xi $xi $item2}]
-    }
+   }
 
-    return $list1
+   return $list1
 }
 
 # test if 2 lists have at least one element in common
