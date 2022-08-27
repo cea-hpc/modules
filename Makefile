@@ -3,7 +3,8 @@
 	install-testinitrc install-testetcrc install-testmodspath \
 	install-testmodspath-empty install-testmodspath-wild \
 	uninstall-testconfig uninstall dist dist-tar dist-gzip dist-bzip2 \
-	dist-win srpm rpm clean distclean test-deps test testinstall testsyntax
+	dist-win srpm rpm clean distclean test-deps test testinstall testlint \
+	testsyntax
 
 # commands to install files
 INSTALL = install
@@ -918,6 +919,12 @@ testinstall:
 	OBJDIR=`pwd -P`; export OBJDIR; \
 	TESTSUITEDIR=`cd testsuite;pwd -P`; export TESTSUITEDIR; \
 	runtest --srcdir $$TESTSUITEDIR --objdir $$OBJDIR $(RUNTESTFLAGS) --tool install $(RUNTESTFILES)
+
+testlint: initdir modulecmd.tcl $(NAGELFAR) script/add.modules script/modulecmd
+	NAGELFAR=$(NAGELFAR); export NAGELFAR; \
+	OBJDIR=`pwd -P`; export OBJDIR; \
+	TESTSUITEDIR=`cd testsuite;pwd -P`; export TESTSUITEDIR; \
+	runtest --srcdir $$TESTSUITEDIR --objdir $$OBJDIR $(RUNTESTFLAGS) --tool lint $(RUNTESTFILES)
 
 
 # install enhanced diff tool (to review test results)

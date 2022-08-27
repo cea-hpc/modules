@@ -114,8 +114,13 @@ Modules 5.2.0 (not yet released)
 * Doc: add :ref:`initial-environment` design notes.
 * Unload *sticky* modules on :subcmd:`restore` and :subcmd:`reset`
   sub-commands to fully set environment in collection or initial state.
+* Testsuite: add *lint* testsuite to validate syntax of shell and Tcl scripts
+  of this project. This testsuite can be invoked with ``make testlint`` or
+  ``script/mt lint``. sh, bash and ksh scripts are checked with `ShellCheck`_
+  tool and tcl scripts are checked with `Nagelfar`_.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
+.. _ShellCheck: https://www.shellcheck.net/
 
 
 .. _5.1 release notes:

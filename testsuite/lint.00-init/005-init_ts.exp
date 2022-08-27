@@ -1,0 +1,123 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:          lint.00-init/%M%
+#   Revision:      %I%
+#   First Edition: 2022/08/26
+#   Last Mod.:     %U%, %G%
+#
+#   Authors:       Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:   Testuite testsequence
+#   Command:
+#   Sub-Command:
+#
+#   Comment: %C{
+#     Defines all patterns used further in the testsuite
+#   }C%
+#
+##############################################################################
+
+proc report {msg} {
+   if {$::verbose > 0} {
+      send_user "\t$msg\n"
+   }
+}
+
+report {Initializing the testsuite ...}
+
+#
+# file list to test per language
+#
+
+set lint_files(sh) [list\
+   init/profile.sh\
+   init/sh\
+   doc/example/compiler-etc-dependencies/example-sessions/common_code.sh\
+]
+
+set lint_files(bash) [list\
+   init/bash_completion\
+   init/bash\
+]
+
+set lint_files(ksh) [list\
+   init/ksh\
+]
+
+set lint_files(tcl) [list\
+   init/tcl\
+]
+
+# list generated or source files to skip
+set skip_files [list\
+   modulecmd-test.tcl\
+   lib/configure\
+   lib/config.status\
+   init/ksh.in\
+   init/sh.in\
+   init/bash.in\
+   init/bash_completion.in\
+   init/profile.sh.in\
+   init/tcl.in\
+   script/modulecmd.in\
+   script/add.modules.in\
+]
+
+# fetch files in directories not to scan in depth
+set scan_files [glob -types f * testsuite/*]
+
+# scan directories to find files to scan
+set scan_dirs [list\
+   script\
+   init\
+   lib\
+   contrib\
+   testsuite/bin\
+   doc/example\
+]
+lappend scan_files {*}[exec find {*}$scan_dirs -type f]
+
+# check files to find file to lint
+foreach fpath $scan_files {
+   if {$fpath ni $skip_files} {
+      switch -glob -- [exec file -b $fpath] {
+         {POSIX shell script*} {
+            lappend lint_files(sh) $fpath
+         }
+         {Bourne-Again shell script*} {
+            lappend lint_files(bash) $fpath
+         }
+         {*tclsh script*} {
+            lappend lint_files(tcl) $fpath
+         }
+      }
+   }
+}
+
+foreach lang [array names lint_files] {
+   report "$lang files to lint:\n\t\t[join $lint_files($lang) \n\t\t]"
+}
+
+# specific lint options for some files
+array set file_lint_opts [list\
+   modulecmd.tcl {-quiet -len 78 -severity W}\
+]
+
+proc set_linter_opts {fpath} {
+   if {![info exists ::ORIG_linter_opts]} {
+      set ::ORIG_linter_opts $::linter_opts
+   }
+   if {[info exists ::file_lint_opts($fpath)]} {
+      set ::linter_opts $::file_lint_opts($fpath)
+   } else {
+      set ::linter_opts $::ORIG_linter_opts
+   }
+}
+
+# clean up temporary variables used
+unset fpath
+unset lang
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

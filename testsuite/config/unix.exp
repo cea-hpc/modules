@@ -546,3 +546,70 @@ proc install_test_xxx_ {command} {
 }
 
 }
+
+#
+# Test procedure to lint script files
+#
+
+# alternative method to collect stdout and stderr from command execution (on
+# Tcl>=8.6): use channel pipe instead of saving these outputs in file
+if {[lindex [lsort -dictionary [list 8.6 [info tclversion]]] 1] eq [info tclversion]} {
+
+proc lint_test_xxx_ {filepath} {
+   if {[info exists ::endpipe]} {
+      unset ::endpipe
+   }
+
+   # global variable ::shell corresponds to linter command to use
+   if {[auto_execok $::shell] eq {}} {
+      untested "linter command '$::shell' not found"
+      return
+   }
+
+   # prepare command to execute
+   set cmd_to_exec [list $::shell]
+   if {[info exists ::linter_opts]} {
+      lappend cmd_to_exec {*}$::linter_opts
+   }
+   lappend cmd_to_exec $filepath
+
+   if {$::verbose > 0} {
+      send_user "   ...  Testing '$::shell $filepath\n"
+   }
+   if {$::verbose > 1} {
+      send_user "starting $cmd_to_exec\n"
+   }
+
+   # create pipes
+   lassign [chan pipe] rdstdout wrstdout
+   lassign [chan pipe] rdstderr wrstderr
+
+   # fetch output asynchronously
+   fileevent $rdstdout readable [list readpipe $rdstdout $rdstderr comp_output]
+   fconfigure $rdstdout -blocking 0
+   fileevent $rdstderr readable [list readpipe $rdstderr $rdstdout comp_error]
+   fconfigure $rdstderr -blocking 0
+
+   # run command in separate thread
+   lappend cmd_to_exec >@ $wrstdout 2>@ $wrstderr
+   if [catch {
+       exec {*}$cmd_to_exec
+   } ] {
+       set ::comp_exit [lindex $::errorCode 2]
+   } else {
+       set ::comp_exit 0
+   }
+   close $wrstdout
+   close $wrstderr
+
+   vwait endpipe
+}
+
+} else {
+
+# expect 'lint' testsuite to be run only on Tcl>=8.6
+proc lint_test_xxx_ {filepath} {
+   unsupported {lint testsuite not supported on Tcl<8.5}
+}
+
+}
