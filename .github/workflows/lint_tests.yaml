@@ -1,0 +1,38 @@
+name: lint-tests
+
+on:
+  push:
+    branches-ignore:
+      - c-master
+      - c-3.2
+  pull_request:
+
+jobs:
+  lint-all:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install system packages
+        run: |
+          sudo apt-get -y update
+          sudo apt-get install -y expect-dev dejagnu python3-sphinx bash tcl8.6 python3
+          # libtclenvmodules build requirements
+          sudo apt-get install -y gcc autoconf tcl8.6-dev
+          # add linter tools
+          sudo apt-get install -y shellcheck
+      - name: Build Modules
+        run: |
+          ./configure
+          make
+      - name: Lint script files
+        run: |
+          script/mt lint
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: testsuite-logs-${{ github.job }}
+          path: |
+            lint.log
+          retention-days: 5
