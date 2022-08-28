@@ -9,7 +9,7 @@ on:
 
 jobs:
   tcl86-nolibtclenvmodules:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     env:
       CONFIGURE_OPTS: --with-tclsh=tclsh8.6 --disable-libtclenvmodules --prefix=/tmp/modules --with-pager=more --with-pager-opts=-X --with-initconf-in=initdir --enable-quarantine-support --disable-set-binpath --disable-set-manpath
       COVERAGE: y
@@ -22,13 +22,9 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get -y update
-          sudo apt-get install -y expect-dev dejagnu python-sphinx bash tcsh ksh zsh fish tcl8.6 perl python ruby cmake r-base-core
+          sudo apt-get install -y expect-dev dejagnu python3-sphinx bash tcsh ksh zsh fish tcl8.6 perl python3 ruby cmake r-base-core
           # add package to run tests in an X-enabled environment
           sudo apt-get install -y xvfb x11-xserver-utils
-          # need to fix gems on bionic to avoid warning messages that broke output checks
-          sudo gem update --system 3.0.8
-          # remove snapd file that breaks fish shell on bionic (see https://bugs.launchpad.net/ubuntu/+source/snapd/+bug/1961365)
-          rm -f /usr/share/fish/vendor_conf.d/snapd.fish
       - name: Build Modules
         run: |
           ./configure $CONFIGURE_OPTS
@@ -63,9 +59,9 @@ jobs:
           retention-days: 5
 
   tcl85-nolibtclenvmodules:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     env:
-      CONFIGURE_OPTS: --with-tclsh=tclsh8.5 --prefix=/tmp/modules --disable-libtclenvmodules --with-tcl=/usr/lib/tcl8.5 --enable-versioning --with-loadedmodules=null:dot --without-pager --disable-avail-indepth --with-terminal-background=light --with-unload-match-order=returnfirst --disable-implicit-default --with-search-match=contains --with-locked-configs=extra_siteconfig --disable-auto-handling --disable-extended-default --disable-advanced-version-spec --disable-color --with-icase=never --with-tcl-linter=nagelfar132/nagelfar.tcl
+      CONFIGURE_OPTS: --with-tclsh=tclsh8.5 --prefix=/tmp/modules --disable-libtclenvmodules --with-tcl=/usr/local/lib --enable-versioning --with-loadedmodules=null:dot --without-pager --disable-avail-indepth --with-terminal-background=light --with-unload-match-order=returnfirst --disable-implicit-default --with-search-match=contains --with-locked-configs=extra_siteconfig --disable-auto-handling --disable-extended-default --disable-advanced-version-spec --disable-color --with-icase=never --with-tcl-linter=nagelfar132/nagelfar.tcl
       COVERAGE: y
       EXTRA_SCRIPT_PRETEST: make install-testinitrc install-testsiteconfig
       EXTRA_SCRIPT_POSTTEST: make uninstall-testconfig
@@ -76,13 +72,16 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get -y update
-          sudo apt-get install -y expect-dev dejagnu python-sphinx bash tcsh ksh zsh tcl8.5 perl python ruby cmake r-base-core
+          sudo apt-get install -y expect-dev dejagnu python3-sphinx bash tcsh ksh zsh perl python3 ruby cmake r-base-core
           # libtclenvmodules build requirements
-          sudo apt-get install -y gcc autoconf tcl8.5-dev 
-          # need to fix gems on xenial to avoid warning messages that broke output checks
-          sudo gem update --system 3.0.8
-          # remove snapd file that breaks fish shell on bionic (see https://bugs.launchpad.net/ubuntu/+source/snapd/+bug/1961365)
-          rm -f /usr/share/fish/vendor_conf.d/snapd.fish
+          sudo apt-get install -y gcc autoconf
+          # manually install tcl8.5
+          curl -L --output tcl8.5.19-src.tar.gz http://downloads.sourceforge.net/tcl/tcl8.5.19-src.tar.gz
+          tar xfz tcl8.5.19-src.tar.gz
+          cd tcl8.5.19/unix
+          ./configure
+          make -j
+          sudo make install
       - name: Build Modules
         run: |
           ./configure $CONFIGURE_OPTS
@@ -117,9 +116,9 @@ jobs:
           retention-days: 5
 
   tcl85-2:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     env:
-      CONFIGURE_OPTS: --with-tclsh=tclsh8.5 --prefix=/tmp/modules --with-tcl=/usr/lib/tcl8.5 --enable-quarantine-support --enable-silent-shell-debug-support --enable-modulespath --with-pager=more --with-dark-background-colors=hi --with-locked-configs=implicit_default --enable-wa-277 --enable-advanced-version-spec --disable-ml --disable-implicit-requirement --enable-set-shell-startup
+      CONFIGURE_OPTS: --with-tclsh=tclsh8.5 --prefix=/tmp/modules --with-tcl=/usr/local/lib --enable-quarantine-support --enable-silent-shell-debug-support --enable-modulespath --with-pager=more --with-dark-background-colors=hi --with-locked-configs=implicit_default --enable-wa-277 --enable-advanced-version-spec --disable-ml --disable-implicit-requirement --enable-set-shell-startup
       COVERAGE: y
       EXTRA_SCRIPT_PRETEST: make install-testinitrc-1 install-testetcrc install-testmodspath
       EXTRA_SCRIPT_POSTTEST: make uninstall-testconfig
@@ -130,13 +129,16 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get -y update
-          sudo apt-get install -y expect-dev dejagnu python-sphinx bash tcsh ksh zsh fish tcl8.5 perl python ruby cmake r-base-core
+          sudo apt-get install -y expect-dev dejagnu python3-sphinx bash tcsh ksh zsh fish perl python3 ruby cmake r-base-core
           # libtclenvmodules build requirements
-          sudo apt-get install -y gcc autoconf tcl8.5-dev 
-          # need to fix gems on bionic to avoid warning messages that broke output checks
-          sudo gem update --system 3.0.8
-          # remove snapd file that breaks fish shell on bionic (see https://bugs.launchpad.net/ubuntu/+source/snapd/+bug/1961365)
-          rm -f /usr/share/fish/vendor_conf.d/snapd.fish
+          sudo apt-get install -y gcc autoconf
+          # manually install tcl8.5
+          curl -L --output tcl8.5.19-src.tar.gz http://downloads.sourceforge.net/tcl/tcl8.5.19-src.tar.gz
+          tar xfz tcl8.5.19-src.tar.gz
+          cd tcl8.5.19/unix
+          ./configure
+          make -j
+          sudo make install
       - name: Build Modules
         run: |
           ./configure $CONFIGURE_OPTS
@@ -171,7 +173,7 @@ jobs:
           retention-days: 5
 
   tcl86:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     env:
       CONFIGURE_OPTS: --with-tclsh=tclsh8.6 --prefix=/tmp/modules --libdir=/tmp/modules/lib64 --enable-multilib-support
       COVERAGE: y
@@ -186,13 +188,9 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get -y update
-          sudo apt-get install -y expect-dev dejagnu python-sphinx bash tcsh ksh zsh fish tcl8.6 perl python ruby cmake r-base-core
+          sudo apt-get install -y expect-dev dejagnu python3-sphinx bash tcsh ksh zsh fish tcl8.6 perl python3 ruby cmake r-base-core
           # libtclenvmodules build requirements
           sudo apt-get install -y gcc autoconf tcl8.6-dev 
-          # need to fix gems on bionic to avoid warning messages that broke output checks
-          sudo gem update --system 3.0.8
-          # remove snapd file that breaks fish shell on bionic (see https://bugs.launchpad.net/ubuntu/+source/snapd/+bug/1961365)
-          rm -f /usr/share/fish/vendor_conf.d/snapd.fish
       - name: Build Modules
         run: |
           ./configure $CONFIGURE_OPTS
@@ -229,9 +227,9 @@ jobs:
           retention-days: 5
 
   tcl85:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     env:
-      CONFIGURE_OPTS: --with-tclsh=tclsh8.5 --prefix=/tmp/modules --with-tcl=/usr/lib/tcl8.5
+      CONFIGURE_OPTS: --with-tclsh=tclsh8.5 --prefix=/tmp/modules --with-tcl=/usr/local/lib
       COVERAGE: y
       EXTRA_SCRIPT_PRETEST: make install-testsiteconfig-1 && export TESTSUITE_ENABLE_SITECONFIG=1
       EXTRA_SCRIPT_POSTTEST: unset TESTSUITE_ENABLE_SITECONFIG
@@ -242,13 +240,16 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get -y update
-          sudo apt-get install -y expect-dev dejagnu python-sphinx bash tcsh ksh zsh tcl8.5 perl python ruby cmake r-base-core
+          sudo apt-get install -y expect-dev dejagnu python3-sphinx bash tcsh ksh zsh perl python3 ruby cmake r-base-core
           # libtclenvmodules build requirements
-          sudo apt-get install -y gcc autoconf tcl8.5-dev 
-          # need to fix gems on xenial to avoid warning messages that broke output checks
-          sudo gem update --system 3.0.8
-          # remove snapd file that breaks fish shell on bionic (see https://bugs.launchpad.net/ubuntu/+source/snapd/+bug/1961365)
-          rm -f /usr/share/fish/vendor_conf.d/snapd.fish
+          sudo apt-get install -y gcc autoconf
+          # manually install tcl8.5
+          curl -L --output tcl8.5.19-src.tar.gz http://downloads.sourceforge.net/tcl/tcl8.5.19-src.tar.gz
+          tar xfz tcl8.5.19-src.tar.gz
+          cd tcl8.5.19/unix
+          ./configure
+          make -j
+          sudo make install
       - name: Build Modules
         run: |
           ./configure $CONFIGURE_OPTS
