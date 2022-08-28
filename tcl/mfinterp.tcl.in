@@ -1075,6 +1075,7 @@ proc module-forbid {args} {
    if {$apply} {
       set proplist {}
       if {[info exists message]} {
+         ##nagelfar ignore Found constant
          lappend proplist message $message
       }
 
@@ -1083,8 +1084,10 @@ proc module-forbid {args} {
          setModspecTag $modarg forbidden $proplist
       }
    } elseif {$isnearly} {
+      ##nagelfar ignore Found constant
       lappend proplist after $after
       if {[info exists nearlymessage]} {
+         ##nagelfar ignore Found constant
          lappend proplist message $nearlymessage
       }
       # record each nearly forbid spec after parsing them
@@ -1945,6 +1948,7 @@ proc execShAndGetEnv {shell script args} {
          # anyway, so keep using declare and throw errors out to avoid overall
          # execution error. dash does not pass arguments to sourced script but
          # it does not raise error if arguments are set
+         ##nagelfar ignore +3 Found constant
          set command "export -p; echo $sep; declare -f 2>/dev/null; echo\
             $sep; alias; echo $sep; echo $sep; pwd; echo $sep; . [listTo\
             shell $shdesc] 2>&1; echo $sep; export -p; echo $sep; declare -f\
@@ -1956,6 +1960,7 @@ proc execShAndGetEnv {shell script args} {
          set alvalmap [list {'\''} ' {'"'"'} ']
       }
       bash {
+         ##nagelfar ignore +2 Found constant
          set command "export -p; echo $sep; declare -f; echo $sep; alias;\
             echo $sep; complete; echo $sep; pwd; echo $sep; . [listTo shell\
             $shdesc] 2>&1; echo $sep; export -p; echo $sep; declare -f; echo\
@@ -1970,6 +1975,7 @@ proc execShAndGetEnv {shell script args} {
          lappend shellopts --noprofile --norc
       }
       ksh - ksh93 {
+         ##nagelfar ignore +3 Found constant
          set command "typeset -x; echo $sep; typeset +f | while read f; do\
             typeset -f \${f%\\(\\)}; echo; done; echo $sep; alias; echo $sep;\
             echo $sep; pwd; echo $sep; . [listTo shell $shdesc] 2>&1; echo\
@@ -1983,6 +1989,7 @@ proc execShAndGetEnv {shell script args} {
          set alvalmap [list {\"} {"} {\\'} ' {\'} ' {\\\\} {\\}]
       }
       zsh {
+         ##nagelfar ignore +2 Found constant
          set command "typeset -x; echo $sep; declare -f; echo $sep; alias;\
             echo $sep; echo $sep; pwd; echo $sep; . [listTo shell $shdesc]\
             2>&1; echo $sep; typeset -x; echo $sep; declare -f; echo $sep;\
@@ -1994,6 +2001,7 @@ proc execShAndGetEnv {shell script args} {
          set alvalmap [list {'\''} ']
       }
       csh {
+         ##nagelfar ignore +2 Found constant
          set command "setenv; echo $sep; echo $sep; alias; echo $sep; echo\
             $sep; pwd; echo $sep; source [listTo shell $shdesc] >&\
             /dev/stdout; echo $sep; setenv; echo $sep; echo $sep; alias; echo\
@@ -2005,6 +2013,7 @@ proc execShAndGetEnv {shell script args} {
          lappend shellopts -f
       }
       tcsh {
+         ##nagelfar ignore +2 Found constant
          set command "setenv; echo $sep; echo $sep; alias; echo $sep;\
             complete; echo $sep; pwd; echo $sep; source [listTo shell\
             $shdesc] >& /dev/stdout; echo $sep; setenv; echo $sep; echo $sep;\
@@ -2023,6 +2032,7 @@ proc execShAndGetEnv {shell script args} {
          # the number of functions to parse.
          set getfunc "set funcout (string match -r -v \$funcfilter (functions\
             -a -n) | while read f; functions \$f; echo '$subsep'; end)"
+         ##nagelfar ignore +9 Found constant
          set command "set -xgL; echo '$sep'; status test-feature\
             regex-easyesc 2>/dev/null; and set escrepl '\\\\\\\\\$1'; or set\
             escrepl '\\\\\\\\\\\\\\\$1'; set funcfilter \\^\\((string\
@@ -2116,24 +2126,30 @@ proc execShAndGetEnv {shell script args} {
    upvar compbef compbef compaft compaft
 
    # extract environment variable information
+   ##nagelfar ignore Found constant
    foreach {out arr} [list varbefout varbef varaftout varaft] {
+      ##nagelfar vartype out varName
       foreach {match name value} [regexp -all -inline -lineanchor $varre [set\
          $out]] {
          # convert shell-specific escaping
+         ##nagelfar ignore Suspicious variable name
          set ${arr}($name) [string map $varvalmap $value]
       }
    }
    # extract function information if function supported by shell
    if {[info exists funcre]} {
+      ##nagelfar ignore Found constant
       foreach {out arr} [list funcbefout funcbef funcaftout funcaft] {
          foreach {match name value} [regexp -all -inline -lineanchor $funcre\
             [set $out]] {
             # no specific escaping to convert for functions
+            ##nagelfar ignore Suspicious variable name
             set ${arr}($name) $value
          }
       }
    }
    # extract alias information
+   ##nagelfar ignore Found constant
    foreach {out arr} [list aliasbefout aliasbef aliasaftout aliasaft] {
       foreach {match name value} [regexp -all -inline -lineanchor $aliasre\
          [set $out]] {
@@ -2142,7 +2158,9 @@ proc execShAndGetEnv {shell script args} {
    }
    # extract complete information if supported by shell
    if {[info exists compre]} {
+      ##nagelfar ignore Found constant
       foreach {out arr} [list compbefout compbef compaftout compaft] {
+         ##nagelfar ignore Non constant variable list to foreach statement
          foreach $comprevar [regexp -all -inline -lineanchor $compre [set\
             $out]] {
             if {[info exists valpart1]} {
@@ -2408,6 +2426,7 @@ proc parseVariantCommandArgs {args} {
       } else {
          switch -glob -- $arg {
             --default {
+               ##nagelfar ignore Found constant
                set nextargisval dflvalue
                set defdflvalue 1
             }

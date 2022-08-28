@@ -913,9 +913,11 @@ proc cmdModuleSource {mode args} {
          reportErrorAndExit "File $rawarg does not exist"
       }
 
+      ##nagelfar ignore Found constant
       lappendState mode $mode
       # sourced file must also have a magic cookie set at their start
       execute-modulefile $modfile $modname $modnamevr $mod 0 0
+      ##nagelfar ignore Found constant
       lpopState mode
    }
 }
@@ -1378,6 +1380,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          if {[llength $prereq_list] > 0 && (![getConf auto_handling] ||\
             !$auto)} {
             # force mode should not affect if we only look for mods w/o dep
+            ##nagelfar ignore Found constant
             if {([getState force] || $force) && !$onlyndep} {
                # in case unload is called for a DepRe mechanism do not warn
                # about prereq violation enforced as it is due to the dependent
@@ -1453,6 +1456,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             # same loaded prereq as when they were loaded. Avoid modules not
             # satisfying their constraint.
             if {[llength $deprelist] > 0} {
+               ##nagelfar ignore +2 Found constant
                lassign [reloadModuleListUnloadPhase deprelist [getState\
                   force] {Unload of dependent _MOD_ failed} depun]\
                   depreisuasked deprevr depreextratag
@@ -1461,10 +1465,12 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             # DepUn modules unload prior main mod unload
             if {[llength $depunlist] > 0} {
                foreach unmod [lreverse $depunlist] {
+                  ##nagelfar ignore Found constant
                   if {[cmdModuleUnload depun match 0 0 0 0 $unmod]} {
                      # stop if one unload fails unless force mode enabled
                      set errMsg "Unload of dependent [getModuleDesignation\
                         loaded $unmod] failed"
+                     ##nagelfar ignore Found constant
                      if {[getState force] || $force} {
                         reportWarning $errMsg 1
                      } else {
@@ -1561,6 +1567,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                set urequnlist [lreverse $urequnlist]
                for {set i 0} {$i < [llength $urequnlist]} {incr i 1} {
                   set unmod [lindex $urequnlist $i]
+                  ##nagelfar ignore Found constant
                   if {[cmdModuleUnload urequn match 0 0 0 0 $unmod]} {
                      # just warn if UReqUn module cannot be unloaded, main
                      # unload process continues, just the UReqUn modules that
@@ -1579,6 +1586,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             # except if a switch action is ongoing as this DepRe load phase
             # will occur after the new mod load
             if {[llength $deprelist] > 0 && ![info exists swprocessing]} {
+               ##nagelfar ignore +2 Found constant
                reloadModuleListLoadPhase deprelist $depreisuasked $deprevr\
                   $depreextratag [getState force] {Reload of dependent _MOD_\
                   failed} depre
@@ -1857,10 +1865,12 @@ proc runModuleUse {cmd mode pos args} {
          }
 
          if {[isTopEvaluation]} {
+            ##nagelfar ignore Found constant
             lappendState mode load
          }
          $pathcmd $pos-path $mode $pos {*}$optlist MODULEPATH {*}$pathlist
          if {[isTopEvaluation]} {
+            ##nagelfar ignore Found constant
             lpopState mode
          }
       }
@@ -1986,6 +1996,7 @@ proc cmdModuleAutoinit {} {
       # modulefiles
       @setmanpath@set manpath {}
       # use manpath tool if found at configure step, use MANPATH otherwise
+      ##nagelfar ignore Found constant
       @setmanpath@@usemanpath@catch {set manpath [exec -ignorestderr 2>/dev/null manpath]}
       @setmanpath@@notusemanpath@if {[info exists ::env(MANPATH)]} {
       @setmanpath@@notusemanpath@   set manpath $::env(MANPATH)
@@ -2739,12 +2750,14 @@ proc cmdModuleLint {args} {
 
 proc cmdModuleModToSh {shell args} {
    # save shell modulecmd is initialized to
+   ##nagelfar ignore Found constant
    setState modtosh_real_shell [getState shell]
 
    # set shell and shellType states to mod-to-sh target value
    if {$shell ni [getState supported_shells]} {
       reportErrorAndExit "Unsupported shell type \'$shell\'"
    }
+   ##nagelfar ignore Found constant
    setState shell $shell
    unsetState shelltype
 

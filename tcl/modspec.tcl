@@ -32,6 +32,7 @@ proc defineModStartNbProc {icase} {
          initProcReportTrace remove modStartNb
          rename ::modStartNb ::$::g_modStartNb_proc
       }
+      ##nagelfar syntax modStartNb x x
       rename ::$procname ::modStartNb
       # set report traces if some debug mode enabled
       initProcReportTrace add modStartNb
@@ -102,6 +103,7 @@ proc defineGetEqArrayKeyProc {icase extdfl impdfl} {
          initProcReportTrace remove getEqArrayKey
          rename ::getEqArrayKey ::$::g_getEqArrayKey_proc
       }
+      ##nagelfar syntax getEqArrayKey x x
       rename ::$procname ::getEqArrayKey
       # set report traces if some debug mode enabled
       initProcReportTrace add getEqArrayKey
@@ -234,6 +236,7 @@ proc defineDoesModMatchAtDepthProc {indepth querydepth test} {
       } else {
          set atdepth "\[join \[lrange \[split \$mod /\] 0 $querydepth\] /\]"
       }
+      ##nagelfar syntax doesModMatchAtDepth x
       proc doesModMatchAtDepth {mod} "return \[modEqStatic $atdepth $test *\]"
       # set report traces if some debug mode enabled
       initProcReportTrace add doesModMatchAtDepth
@@ -258,6 +261,7 @@ proc defineModVersCmpProc {icase extdfl} {
          initProcReportTrace remove modVersCmp
          rename ::modVersCmp ::$::g_modVersCmp_proc
       }
+      ##nagelfar syntax modVersCmp x x x x x?
       rename ::$procname ::modVersCmp
       # set report traces if some debug mode enabled
       initProcReportTrace add modVersCmp
@@ -561,6 +565,7 @@ proc defineModEqStaticProc {icase extdfl modspec} {
       }
       append procbody "
          return \$ret"
+      ##nagelfar syntax modEqStatic x x? x?
       proc modEqStatic {mod {test equal} {psuf {}}} $procbody
       # set report traces if some debug mode enabled
       initProcReportTrace add modEqStatic
@@ -585,6 +590,7 @@ proc defineModEqProc {icase extdfl {loadedmod 0}} {
          initProcReportTrace remove modEq
          rename ::modEq ::$::g_modEq_proc
       }
+      ##nagelfar syntax modEq x x x? x? x? x? x? x?
       rename ::$procname ::modEq
       # set report traces if some debug mode enabled
       initProcReportTrace add modEq
@@ -1176,6 +1182,7 @@ proc defineParseModuleSpecificationProc {advverspec} {
          rename ::parseModuleSpecification\
             ::$::g_parseModuleSpecification_proc
       }
+      ##nagelfar syntax parseModuleSpecification x x*
       rename ::$procname ::parseModuleSpecification
       # set report traces if some debug mode enabled
       initProcReportTrace add parseModuleSpecification
