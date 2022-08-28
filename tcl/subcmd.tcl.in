@@ -277,8 +277,8 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
             }
             version {
                # report error of version target if matching query
-               set elt_target [getArrayKey mod_list [lindex $mod_list($elt) 1]\
-                  $icase]
+               set elt_target [getArrayKey mod_list [lindex $mod_list($elt)\
+                  1] $icase]
                if {[info exists mod_list($elt_target)] && [lindex\
                   $mod_list($elt_target) 0] in [list invalid accesserr] &&\
                   [modEq $mod $elt]} {
@@ -1355,7 +1355,8 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       }
 
       if {[isModuleEvalFailed unload $modnamevr]} {
-         reportDebug "$modnamevr ($modfile) unload was already tried and failed"
+         reportDebug "$modnamevr ($modfile) unload was already tried and\
+            failed"
          # nullify this evaluation attempt to avoid duplicate issue report
          unregisterModuleEvalAttempt $context $mod
          continue
@@ -1386,7 +1387,8 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                # about prereq violation enforced as it is due to the dependent
                # module which is already in a violation state
                # warn in case of a purge
-               if {$auto || !$force || [currentState commandname] eq {purge}} {
+               if {$auto || !$force || [currentState commandname] eq\
+                  {purge}} {
                   reportWarning [getDepLoadedMsg $prereq_list]
                }
             } else {
@@ -1412,7 +1414,8 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             # or a module part of this DepUn batch)
             set depunnpolist [getDependentLoadedModuleList [list $modname] 1\
                0 1 0]
-            set depunlist [getDependentLoadedModuleList [list $modname] 1 0 0 0]
+            set depunlist [getDependentLoadedModuleList [list $modname] 1 0 0\
+               0]
             # look at both regular dependencies or No Particular Order
             # dependencies: use NPO result if situation can be healed with NPO
             # dependencies, which will be part of DepRe list to restore the
@@ -1996,6 +1999,7 @@ proc cmdModuleAutoinit {} {
       # modulefiles
       @setmanpath@set manpath {}
       # use manpath tool if found at configure step, use MANPATH otherwise
+      ##nagelfar ignore +2 Too long line
       ##nagelfar ignore Found constant
       @setmanpath@@usemanpath@catch {set manpath [exec -ignorestderr 2>/dev/null manpath]}
       @setmanpath@@notusemanpath@if {[info exists ::env(MANPATH)]} {
@@ -2025,6 +2029,7 @@ proc cmdModuleAutoinit {} {
    if {[getState shell] eq {zsh}} {
       # setup FPATH to put module completion at hand when zsh completion
       # script is not installed in default completion location
+      ##nagelfar ignore Too long line
       @setzshfpath@prepend-path --ignore-refcount FPATH {@initdir@/zsh-functions}
    }
 

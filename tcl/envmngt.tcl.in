@@ -510,7 +510,8 @@ proc renderSettings {} {
                   set var [charEscaped $var \']
                   set val [charEscaped $val \']
                   lappend g_shcode_out "subprocess.Popen(\['$xrdb',\
-                     '-merge'\], stdin=subprocess.PIPE).communicate(input='$var:\
+                     '-merge'\],\
+                     stdin=subprocess.PIPE).communicate(input='$var:\
                      $val\\n')"
                }
                ruby {
@@ -721,9 +722,9 @@ proc renderAutoinit {} {
          set pre_pr {set _prompt=$prompt:q; set prompt="";}
          set post_pr {set prompt=$_prompt:q; unset _prompt;}
          # apply workaround for Tcsh history if set
-         set eval_cmd [expr {[getConf wa_277] ? "eval `$tclshbin '\"'\"'$::argv0'\"'\"'\
-            [getState shell] \\!*`;" :  "eval \"`$tclshbin '\"'\"'$::argv0'\"'\"' [getState\
-            shell] \\!*:q`\";"}]
+         set eval_cmd [expr {[getConf wa_277] ? "eval `$tclshbin\
+            '\"'\"'$::argv0'\"'\"' [getState shell] \\!*`;" : "eval\
+            \"`$tclshbin '\"'\"'$::argv0'\"'\"' [getState shell] \\!*:q`\";"}]
          set pre_ex {set _exit="$status";}
          set post_ex {test 0 = $_exit}
 
@@ -773,6 +774,7 @@ alias ml 'module ml \!*' ;}
    fi;
    IFS=' ';
    for _mlv in \${${wsplit}MODULES_RUN_QUARANTINE:-}; do"
+            ##nagelfar ignore #4 Too long line
             append fdef {
       if [ "${_mlv}" = "${_mlv##*[!A-Za-z0-9_]}" -a "${_mlv}" = "${_mlv#[0-9]}" ]; then
          if [ -n "$(eval 'echo ${'$_mlv'+x}')" ]; then
@@ -1017,7 +1019,8 @@ def module(*arguments):}
          } else {
             append fdef "\n   out, err = subprocess.Popen(\['$tclshbin',\
                '$::argv0', 'python'\] + list(arguments),\
-               stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()\n"
+               stdout=subprocess.PIPE,\
+               stderr=subprocess.PIPE).communicate()\n"
          }
          append fdef {   exec(out, ns)
    if '_mlstatus' in ns:
@@ -1038,6 +1041,7 @@ def ml(*arguments):
          set fdef {class ENVModule
    def ENVModule.module(*args)}
          if {[getConf quarantine_support]} {
+            ##nagelfar ignore +7 Too long line
             append fdef {
       _mlre = ''
       if ENV.has_key?('MODULES_RUN_QUARANTINE') then
@@ -1153,6 +1157,7 @@ endfunction(ml)}
       r {
          set fdef "module <- function(...){"
          if {[getConf quarantine_support]} {
+            ##nagelfar ignore +7 Too long line
             append fdef {
    mlre <- ''
    if (!is.na(Sys.getenv('MODULES_RUN_QUARANTINE', unset=NA))) {

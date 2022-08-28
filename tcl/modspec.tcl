@@ -1289,7 +1289,8 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
             default {
                # check if a variant shortcut matches
                if {[info exists ::g_shortcutVariant($c)]} {
-                  lappend curarglist [string range $arg $previ [expr {$i - 1}]]
+                  lappend curarglist [string range $arg $previ [expr {$i -\
+                     1}]]
                   set previ $i
                }
             }
