@@ -362,6 +362,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
          # interpret every modulefiles obtained to get their whatis text
          foreach elt [lsort -dictionary [array names interp_list]] {
             set ::g_whatis {}
+            ##nagelfar ignore Suspicious variable name
             execute-modulefile $interp_list($elt) $elt $elt $elt 0
 
             # treat whatis as a multi-line text
@@ -916,6 +917,7 @@ proc cmdModuleSource {mode args} {
       ##nagelfar ignore Found constant
       lappendState mode $mode
       # sourced file must also have a magic cookie set at their start
+      ##nagelfar ignore Suspicious variable name
       execute-modulefile $modfile $modname $modnamevr $mod 0 0
       ##nagelfar ignore Found constant
       lpopState mode
@@ -1490,6 +1492,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
 
          # no need to update modnamevr and tags after evaluation as these
          # information were already complete in persistent environment
+         ##nagelfar ignore Suspicious variable name
          if {[execute-modulefile $modfile $modname $modnamevr $mod 0 0]} {
             break
          }
@@ -2391,6 +2394,7 @@ proc cmdModuleConfig {dump_state args} {
                }
             }
             {} {
+               ##nagelfar ignore +2 Non static subcommand
                if {([llength $confvalid($name)] == 1 && ![string is\
                   $confvalid($name) -strict $value]) || ([llength\
                   $confvalid($name)] > 1 && $value ni $confvalid($name))} {
@@ -2428,6 +2432,7 @@ proc cmdModuleConfig {dump_state args} {
       }
 
       foreach var $varlist {
+         ##nagelfar ignore +2 Suspicious variable name
          set valrep [displayConfig $confval($var) $confvar($var) [info exists\
             ::asked_$var] $confvtrans($var) [expr {$conflockable($var) eq {1}\
             && [isConfigLocked $var]}]]
@@ -2738,6 +2743,7 @@ proc cmdModuleLint {args} {
       pushMsgRecordId $msgrecid
       registerModuleDesignation $msgrecid $lintfile {} {}
 
+      ##nagelfar ignore Suspicious variable name
       if {[catch {set out [runCommand {*}[set linter_$tolint($lintfile)]\
          $lintfile]} errMsg]} {
          # re-throw error but as an external one (not as a module issue)

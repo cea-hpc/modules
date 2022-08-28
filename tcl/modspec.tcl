@@ -237,6 +237,7 @@ proc defineDoesModMatchAtDepthProc {indepth querydepth test} {
          set atdepth "\[join \[lrange \[split \$mod /\] 0 $querydepth\] /\]"
       }
       ##nagelfar syntax doesModMatchAtDepth x
+      ##nagelfar ignore Non constant argument to proc
       proc doesModMatchAtDepth {mod} "return \[modEqStatic $atdepth $test *\]"
       # set report traces if some debug mode enabled
       initProcReportTrace add doesModMatchAtDepth
@@ -288,6 +289,7 @@ proc modVersCmpProc {cmpspec versspec modvers test {psuf {}}} {
             set ret [string equal -length [string length $versspec/]\
                $versspec/ $modvers/]
          } else {
+            ##nagelfar ignore Non static subcommand
             set ret [string $test $versspec $modvers]
          }
       }
@@ -331,6 +333,7 @@ proc modVersCmpProcIcase {cmpspec versspec modvers test {psuf {}}} {
             set ret [string equal -nocase -length [string length $versspec/]\
                $versspec/ $modvers/]
          } else {
+            ##nagelfar ignore Non static subcommand
             set ret [string $test -nocase $versspec $modvers]
          }
       }
@@ -369,6 +372,7 @@ proc modVersCmpProcExtdfl {cmpspec versspec modvers test {psuf {}}} {
             set ret [string equal -length [string length $versspec/]\
                $versspec/ $modvers/]
          } else {
+            ##nagelfar ignore Non static subcommand
             set ret [string $test $versspec $modvers]
          }
          if {!$ret && [string match $versspec.* $modvers]} {
@@ -410,6 +414,7 @@ proc modVersCmpProcIcaseExtdfl {cmpspec versspec modvers test {psuf {}}} {
             set ret [string equal -nocase -length [string length $versspec/]\
                $versspec/ $modvers/]
          } else {
+            ##nagelfar ignore Non static subcommand
             set ret [string $test -nocase $versspec $modvers]
          }
          if {!$ret && [string match -nocase $versspec.* $modvers]} {
@@ -566,6 +571,7 @@ proc defineModEqStaticProc {icase extdfl modspec} {
       append procbody "
          return \$ret"
       ##nagelfar syntax modEqStatic x x? x?
+      ##nagelfar ignore Non constant argument to proc
       proc modEqStatic {mod {test equal} {psuf {}}} $procbody
       # set report traces if some debug mode enabled
       initProcReportTrace add modEqStatic
@@ -663,10 +669,12 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp 0}\
          } elseif {$test eq {eqspec}} {
             set test equal
          }
+         ##nagelfar ignore Non static subcommand
          set ret [string $test $pmod $mod]
          # apply comparison to alternative names if any and no match for mod
          if {!$ret && [llength $altlist] > 0} {
             foreach alt $altlist {
+               ##nagelfar ignore Non static subcommand
                if {[set ret [string $test $pmod $alt]]} {
                   break
                }
@@ -781,9 +789,11 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
          } elseif {$test eq {eqspec}} {
             set test equal
          }
+         ##nagelfar ignore Non static subcommand
          set ret [string $test -nocase $pmod $mod]
          if {!$ret && [llength $altlist] > 0} {
             foreach alt $altlist {
+               ##nagelfar ignore Non static subcommand
                if {[set ret [string $test -nocase $pmod $alt]]} {
                   break
                }
@@ -895,9 +905,11 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
             set test equal
             set eqspec 1
          }
+         ##nagelfar ignore Non static subcommand
          set ret [string $test $pmod $mod]
          if {!$ret && [llength $altlist] > 0} {
             foreach alt $altlist {
+               ##nagelfar ignore Non static subcommand
                if {[set ret [string $test $pmod $alt]]} {
                   break
                }
@@ -1026,9 +1038,11 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
             set test equal
             set eqspec 1
          }
+         ##nagelfar ignore Non static subcommand
          set ret [string $test -nocase $pmod $mod]
          if {!$ret && [llength $altlist] > 0} {
             foreach alt $altlist {
+               ##nagelfar ignore Non static subcommand
                if {[set ret [string $test -nocase $pmod $alt]]} {
                   break
                }

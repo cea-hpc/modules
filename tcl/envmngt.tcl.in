@@ -715,6 +715,7 @@ proc renderAutoinit {} {
    # ensure script path is absolute
    set ::argv0 [getAbsolutePath $::argv0]
 
+   ##nagelfar ignore #462 Close brace not aligned with line
    switch -- [getState shelltype] {
       csh {
          set pre_hi {set _histchars = $histchars; unset histchars;}
@@ -824,6 +825,7 @@ alias ml 'module ml \!*' ;}
          # use local/typeset variable in this context as we cannot unset it
          # afterward (since _module_raw should be the cmd to return status)
          set localcmd [expr {[getState shell] eq {ksh} ? {typeset} : {local}}]
+         ##nagelfar ignore Unescaped close brace
          append fdef "\n};\nmodule() {
    $localcmd _mlredir=[getState is_stderr_tty];\n"
          append fdef {   if [ -n "${MODULES_REDIRECT_OUTPUT+x}" ]; then
@@ -1070,6 +1072,7 @@ def ml(*arguments):
       end
       _mlstatus = true}
          if {[getConf quarantine_support]} {
+            ##nagelfar ignore +2 Suspicious # char
             append fdef "\n      eval `#{_mlre}$tclshbin '$::argv0' ruby\
                #{args}`\n"
          } else {

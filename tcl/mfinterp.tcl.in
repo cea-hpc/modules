@@ -44,6 +44,7 @@ proc getCurrentModfileInterpName {} {
 # synchronize environment variable change over all started sub interpreters
 proc interp-sync-env {op var {val {}}} {
    set envvar ::env($var)
+   ##nagelfar vartype envvar varName
 
    # apply operation to main interpreter
    switch -- $op {
@@ -254,7 +255,11 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
    set aliasesVN g_modfile${mode}${autosuf}Aliases
    set aliasesPassArgVN g_modfile${mode}${autosuf}AliasesPassArg
    set tracesVN g_modfile${mode}${autosuf}Traces
+   ##nagelfar ignore Suspicious variable name
    if {![info exists ::$aliasesVN]} {
+      ##nagelfar vartype aliasesVN varName
+      ##nagelfar vartype aliasesPassArgVN varName
+      ##nagelfar vartype tracesVN varName
       initModfileModeAliases $mode [getConf auto_handling] $aliasesVN\
          $aliasesPassArgVN $tracesVN
    }
@@ -291,6 +296,7 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
    interp eval $itrp set vrspeclist "{[getVariantListFromVersSpec\
       $modnamevr]}"
 
+   ##nagelfar ignore +7 Suspicious # char
    set errorVal [interp eval $itrp {
       set modcontent [readModuleContent $::ModulesCurrentModulefile 1]
       if {$modcontent eq {}} {
@@ -500,6 +506,7 @@ proc execute-modulerc {modfile modname modspec} {
    # create an alias ModuleVersion on ModulesVersion
    interp eval $itrp {upvar 0 ::ModulesVersion ::ModuleVersion}
 
+   ##nagelfar ignore +4 Suspicious # char
    set errorVal [interp eval $itrp {
       set modcontent [readModuleContent $::ModulesCurrentModulefile]
       if {$modcontent eq {}} {
@@ -653,6 +660,10 @@ proc resetInterpState {itrp fresh dumpVarsVN dumpArrayVarsVN untrackVarsVN\
       }
    }
 
+   ##nagelfar vartype aliasesVN varName
+   ##nagelfar vartype aliasesPassArgVN varName
+   ##nagelfar vartype tracesVN varName
+   ##nagelfar vartype renameCmdsVN varName
    # rename some commands and set aliases on interpreter
    initInterpCommands $itrp $fresh $aliasesVN $aliasesPassArgVN $tracesVN\
       $renameCmdsVN
@@ -940,11 +951,14 @@ proc parseApplicationCriteriaArgs {aftbef nearsec args} {
    # parse argument list
    foreach arg $args {
       if {[info exists nextargisval]} {
+         ##nagelfar vartype nextargisval varName
          set $nextargisval $arg
          unset nextargisval
       } elseif {[info exists nextargisdatetime]} {
+         ##nagelfar ignore Suspicious variable name
          set ${nextargisdatetime}raw $arg
          # get epoch time from date time argument value
+         ##nagelfar vartype nextargisdatetime varName
          ##nagelfar ignore Unknown variable
          set $nextargisdatetime [parseDateTimeArg $prevarg $arg]
          unset nextargisdatetime
@@ -1043,6 +1057,7 @@ proc module-forbid {args} {
    # raise any command specification error
    foreach arg $otherargs {
       if {[info exists nextargisval]} {
+         ##nagelfar vartype nextargisval varName
          set $nextargisval $arg
          unset nextargisval
       } else {
@@ -2089,6 +2104,7 @@ proc execShAndGetEnv {shell script args} {
    set idx 0
    foreach varout {varbefout funcbefout aliasbefout compbefout cwdbefout\
       scriptout varaftout funcaftout aliasaftout compaftout cwdaftout} {
+      ##nagelfar vartype varout varName
       if {[set sepidx [string first $sep $output $idx]] == -1} {
          set $varout [string trimright [string range $output $idx end] \n]
          if {$varout ne {cwdaftout} && !$sherr} {
@@ -2154,6 +2170,7 @@ proc execShAndGetEnv {shell script args} {
    foreach {out arr} [list aliasbefout aliasbef aliasaftout aliasaft] {
       foreach {match name value} [regexp -all -inline -lineanchor $aliasre\
          [set $out]] {
+         ##nagelfar ignore Suspicious variable name
          set ${arr}($name) [string map $alvalmap $value]
       }
    }
@@ -2169,6 +2186,7 @@ proc execShAndGetEnv {shell script args} {
                set value [concat $valpart1 $valpart2]
             }
             # no specific escaping to convert for completes
+            ##nagelfar ignore Suspicious variable name
             lappend ${arr}($name) $value
          }
       }
@@ -2422,6 +2440,7 @@ proc parseVariantCommandArgs {args} {
    foreach arg $args {
       incr i
       if {[info exists nextargisval]} {
+         ##nagelfar vartype nextargisval varName
          set $nextargisval $arg
          unset nextargisval
       } else {

@@ -118,6 +118,8 @@ Modules 5.2.0 (not yet released)
   of this project. This testsuite can be invoked with ``make testlint`` or
   ``script/mt lint``. sh, bash and ksh scripts are checked with `ShellCheck`_
   tool and tcl scripts are checked with `Nagelfar`_.
+* Update :file:`modulecmd.tcl` code and add Nagelfar inline comments to fix
+  linter reports.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 .. _ShellCheck: https://www.shellcheck.net/

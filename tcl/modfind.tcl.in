@@ -31,6 +31,7 @@ proc resolvStringWithEnv {0str} {
       # put in local scope every environment variable referred in string
       for {set 0i 1} {${0i} < [llength ${0match_list}]} {incr 0i 2} {
          set 0varname [lindex ${0match_list} ${0i}]
+         ##nagelfar vartype 0varname varName
          if {![info exists ${0varname}]} {
             set ${0varname} [get-env ${0varname}]
          }
@@ -885,8 +886,8 @@ proc isModuleHidden {mod {modspec {}} {retdetails 0}} {
    if {$hidlvl >= [getState hiding_threshold]} {
       # soft hidden mods are considered matched if their root name matches
       # search query, other kind of hidden mods must fully matches query
-      set hidmatch [expr {$hidlvl == 0 ? [expr {[modStartNb $mod $modspec]\
-         > 0}] : [modEq $modspec $mod eqspec]}]
+      set hidmatch [expr {$hidlvl == 0 ? [modStartNb $mod $modspec] > 0 :\
+         [modEq $modspec $mod eqspec]}]
    } else {
       set hidlvl -1
       set hidmatch 0
@@ -1947,6 +1948,7 @@ proc areModuleConstraintsSatisfied {{mod {}} {nporeq 0}} {
    }
 
    # check if any loaded module violates its prereq or conflict constraints
+   ##nagelfar vartype reqVioVar varName
    if {$mod eq {}} {
       if {[array size ::g_conflictViolation] > 0 || [array size\
          $reqVioVar] > 0} {
@@ -1958,6 +1960,7 @@ proc areModuleConstraintsSatisfied {{mod {}} {nporeq 0}} {
          set depmod [lindex $fulllist $i]
 
          # check if depmod violates its prereq or conflict constraints
+         ##nagelfar ignore +2 Suspicious variable name
          if {[info exists ::g_conflictViolation($depmod)] || [info exists\
             ${reqVioVar}($depmod)]} {
             # found violation among the requirement chain of mod so the
@@ -1966,6 +1969,7 @@ proc areModuleConstraintsSatisfied {{mod {}} {nporeq 0}} {
             break
          }
          # add requirements of depmod to the module to check list
+         ##nagelfar ignore Suspicious variable name
          foreach lmmodlist [set ${reqListVar}($depmod)] {
             appendNoDupToList fulllist {*}$lmmodlist
          }
@@ -2485,7 +2489,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
       set add_rc_defs [expr {{rc_defs_included} in $search}]
 
       # if no indepth mode search, pass the depth level of the search query
-      set depthlvl [expr {$indepth ? 0 : [expr {$querydepth + 1}]}]
+      set depthlvl [expr {$indepth ? 0 : $querydepth + 1}]
 
       array set found_list [findModules $dir $findmod $depthlvl $fetch_mtime]
    }

@@ -192,6 +192,7 @@ proc sortModulePerLoadedAndDepOrder {modlist {nporeq 0} {loading 0}} {
       set mod [lindex $sortlist $i]
       set jmin $imax
 
+      ##nagelfar ignore #4 Suspicious variable name
       if {[info exists ${reqListVar}($mod)]} {
          # goes over all dependent modules to find the first one in the loaded
          # order list located after requiring mod
@@ -305,6 +306,7 @@ proc getDirectDependentList {mod {strong 0} {nporeq 0} {loading 0}\
       set reqListVar ::g_moduleDepend
    }
 
+   ##nagelfar ignore #2 Suspicious variable name
    if {[info exists ${depListVar}($mod)]} {
       foreach depmod [set ${depListVar}($mod)] {
          set add 1
@@ -313,6 +315,7 @@ proc getDirectDependentList {mod {strong 0} {nporeq 0} {loading 0}\
          # mods from a dependent list (composed of optional parts) are part
          # of the search, which means mod is not optional but strong dependent
          if {$strong && [llength $depmod] > 1} {
+            ##nagelfar ignore Suspicious variable name
             foreach lmmodlist [set ${reqListVar}([lindex $depmod 0])] {
                if {$mod in $lmmodlist} {
                   foreach lmmod $lmmodlist {
@@ -539,10 +542,12 @@ proc pushSettings {} {
       g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
       g_unmetDepHash g_moduleEval g_moduleHiddenEval} {
+      ##nagelfar ignore Suspicious variable name
       lappend ::g_SAVE_$var [array get ::$var]
    }
    # save non-array variable and indication if it was set
    foreach var {g_changeDir g_stdoutPuts g_prestdoutPuts g_return_text} {
+      ##nagelfar ignore #4 Suspicious variable name
       if {[info exists ::$var]} {
          lappend ::g_SAVE_$var [list 1 [set ::$var]]
       } else {
@@ -564,6 +569,7 @@ proc popSettings {} {
       g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
       g_unmetDepHash g_moduleEval g_moduleHiddenEval} {
+      ##nagelfar ignore Suspicious variable name
       set ::g_SAVE_$var [lrange [set ::g_SAVE_$var] 0 end-1]
    }
    reportDebug "previously saved settings flushed (#$flushedid)"
@@ -580,6 +586,7 @@ proc restoreSettings {} {
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
       g_unmetDepHash g_moduleEval g_moduleHiddenEval} {
       # clear current $var arrays
+      ##nagelfar ignore #5 Suspicious variable name
       if {[info exists ::$var]} {
          unset ::$var
          array set ::$var {}
@@ -600,6 +607,7 @@ proc restoreSettings {} {
    }
    # restore non-array variable if it was set
    foreach var {g_changeDir g_stdoutPuts g_prestdoutPuts g_return_text} {
+      ##nagelfar ignore #6 Suspicious variable name
       if {[info exists ::$var]} {
          unset ::$var
       }

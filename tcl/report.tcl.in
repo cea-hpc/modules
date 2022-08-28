@@ -622,6 +622,7 @@ proc inhibitErrorReport {} {
 }
 
 proc initProcReportTrace {type prc} {
+   ##nagelfar ignore #7 Non static subcommand
    if {[isVerbosityLevel debug] && [getState timer]} {
       # time execution of procedure instead of regular debug report
       trace $type execution $prc enter reportTimerExecEnter
@@ -757,17 +758,20 @@ proc isEltInReport {elt {retifnotdef 1}} {
    }
    append conf _output
    set arrname ::g_$conf
+   ##nagelfar vartype arrname varName
 
    if {[info exists ::g_config_defs($conf)]} {
       # build value cache if it does not exist yet
       if {![array exists $arrname]} {
          array set $arrname {}
          foreach confelt [split [getConf $conf] :] {
+            ##nagelfar ignore Suspicious variable name
             set ${arrname}($confelt) 1
          }
       }
 
       # check if elt is marked to be included in output
+      ##nagelfar ignore Suspicious variable name
       set ret [info exists ${arrname}($elt)]
    } else {
       # return $retifnotdef (ok by default) in case no config option
@@ -1130,7 +1134,7 @@ proc formatListEltToLongDisplay {elt eltsgr eltsuffix sym_list symsgr mtime\
       set symslen 0
    }
    set nbws1 [expr {40 - $displen}]
-   set nbws2 [expr {20 - $symslen + [expr {$nbws1 < 0 ? $nbws1 : 0}]}]
+   set nbws2 [expr {$nbws1 < 0 ? 20 - $symslen + $nbws1 : 20 - $symslen}]
    return [list $disp $dispsgr[string repeat { } $nbws1]$symssgr[string\
       repeat { } $nbws2]$mtime $displen]
 }
