@@ -18,12 +18,23 @@
 
 ##########################################################################
 
+proc reportUsage {} {
+   puts "Usage: $::argv0 \[options\]
+
+Build Modules release files and test them
+
+Options:
+  -h, --help      Show this help message and exit"
+}
+
 proc sgr {sgrcode str} {
    return "\033\[${sgrcode}m$str\033\[0m"
 }
 
 proc logadd {str} {
-   puts $::logfid $str
+   if {[info exists ::logfid]} {
+      puts $::logfid $str
+   }
 }
 
 proc reportInfo {str} {
@@ -65,6 +76,25 @@ proc extractflist {relver distcontentfile listfile} {
    puts $fid [join [lsort [split [string map [list modules-$relver/ {}]\
       $distfiles] \n]] \n]
    close $fid
+}
+
+
+# parse arguments
+set hintmsg "\n  Try '$argv0 --help' for more information."
+if {$argc > 1} {
+   reportError "Unexpected number of arguments$hintmsg"
+   exit 1
+} elseif {$argc == 1} {
+   switch -- [lindex $argv 0] {
+      -h - --help {
+         reportUsage
+         exit 0
+      }
+      default {
+         reportError "Invalid option '[lindex $argv 0]'$hintmsg"
+         exit 1
+      }
+   }
 }
 
 
