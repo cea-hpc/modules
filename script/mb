@@ -18,6 +18,36 @@
 
 ##########################################################################
 
+proc reportUsage {} {
+   puts "Usage: $::argv0 \[options\] \[bench|profile\] \[test...\]
+
+Make bench between modulecmd versions
+
+Available tests:
+  help, avail, avail2, avail3, whatis, whatis2, whatis3, apropos, load,
+  list, unload (all tests selected by default)
+
+Modes:
+  bench           Report command execution time
+  profile         Report top 10 procedure calls
+
+Options:
+  -h, --help      Show this help message and exit
+
+Examples:
+   $::argv0
+   $::argv0 profile
+   $::argv0 load unload list"
+}
+
+proc sgr {sgrcode str} {
+   return "\033\[${sgrcode}m$str\033\[0m"
+}
+
+proc reportError {str} {
+   puts "[sgr {1;31} ERROR]: $str"
+}
+
 set benchrep 20
 set profprocnb 10
 set curdir [pwd]
@@ -79,15 +109,31 @@ proc runtest {mode test} {
    }
 }
 
-# fetch args
+# parse arguments
+set hintmsg "\n  Try '$argv0 --help' for more information."
 foreach arg $argv {
-   switch -- $arg {
+   switch -glob -- $arg {
       profile {
          set mode profile
+      }
+      bench {
+         set mode bench
       }
       help - avail - avail2 - avail3 - whatis - whatis2 - whatis3 - apropos -\
          load - list - unload {
          lappend testlist $arg
+      }
+      -h - --help {
+         reportUsage
+         exit 0
+      }
+      -* {
+         reportError "Invalid option '$arg'$hintmsg"
+         exit 1
+      }
+      default {
+         reportError "Invalid test name '$arg'$hintmsg"
+         exit 1
       }
    }
 }
