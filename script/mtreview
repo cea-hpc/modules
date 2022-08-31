@@ -18,8 +18,26 @@
 
 ##########################################################################
 
+proc reportUsage {} {
+   puts "Usage: $::argv0 \[options\] testlogfile
+
+Review test suite log file
+
+Options:
+  -h, --help      Show this help message and exit
+
+Examples:
+   $::argv0 modules.log
+   $::argv0 install.log
+   $::argv0 lint.log"
+}
+
 proc sgr {sgrcode str} {
    return "\033\[${sgrcode}m$str\033\[0m"
+}
+
+proc reportError {str} {
+   puts "[sgr {1;31} ERROR]: $str"
 }
 
 proc diffWithIcdiff {} {
@@ -57,17 +75,25 @@ proc getDiffCommand {} {
    return $cmdlist
 }
 
-set usage "Usage: $argv0 file
-Review test suite log file"
-
-# parse command-line arguments
-set logfile [lindex $argv 0]
-if {[llength $argv] == 0 || $logfile eq "-h" || $logfile eq "--help"} {
-   puts stderr $usage
-   exit 0
-} elseif {[llength $argv] > 1} {
-   puts stderr $usage
+# parse arguments
+set hintmsg "\n  Try '$argv0 --help' for more information."
+if {$argc != 1} {
+   reportError "Unexpected number of arguments$hintmsg"
    exit 1
+}
+set arg [lindex $argv 0]
+switch -glob -- $arg {
+   -h - --help {
+      reportUsage
+      exit 0
+   }
+   -* {
+      reportError "Invalid option '$arg'$hintmsg"
+      exit 1
+   }
+   default {
+      set logfile $arg
+   }
 }
 
 set fid [open $logfile r]
