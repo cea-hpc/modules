@@ -18,13 +18,67 @@
 
 ##########################################################################
 
+proc reportUsage {} {
+   puts "Usage: $::argv0 \[option\] mode versiontag args...
+
+Profile a given modulecmd execution
+
+Modes:
+  reportX         Report profiling of top X called procedures
+  print           Print full profiling report
+
+Define modulecmd.tcl run:
+  versiontag      Select modulecmd.tcl version to profile
+  args            Set modulecmd.tcl arguments to define execution to profile
+
+Options:
+  -h, --help      Show this help message and exit
+
+Examples:
+  $::argv0 report10 v5.0.1 avail
+  $::argv0 report5 v4.5.3 load mymod/3.0
+  $::argv0 print v5.1.1 list"
+}
+
+proc sgr {sgrcode str} {
+   return "\033\[${sgrcode}m$str\033\[0m"
+}
+
+proc reportError {str} {
+   puts "[sgr {1;31} ERROR]: $str"
+}
+
+# parse arguments
+set hintmsg "\n  Try '$argv0 --help' for more information."
+# treat options
+set firstarg [lindex $argv 0]
+switch -glob -- $firstarg {
+   -h - --help {
+      reportUsage
+      exit 0
+   }
+   -* {
+      reportError "Invalid option '$firstarg'$hintmsg"
+      exit 1
+   }
+}
+if {$argc < 2} {
+   reportError "Unexpected number of arguments$hintmsg"
+   exit 1
+}
 # how to report collected data
-set mode [lindex $argv 0]
+set mode $firstarg
 # get modulecmd version to run
 set tag [lindex $argv 1]
 
 # fix arguments to run modulecmd.tcl via source command
 set argv [lrange [lreplace $argv 1 1 sh] 1 end]
+
+# clean argument management code prior profiling
+rename reportUsage {}
+rename sgr {}
+rename reportError {}
+unset hintmsg
 
 # inhibit exit command to get through the whole modulecmd.tcl script and
 # and finish here to compute profiling result
