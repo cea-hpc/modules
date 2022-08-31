@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# MT, run specific part of the test suite
+# MT, run all or specific parts of the test suite
 # Copyright (C) 2018-2022 Xavier Delaruelle
 #
 # This program is free software: you can redistribute it and/or modify
@@ -19,6 +19,36 @@
 ##########################################################################
 
 set -u
+
+# print help message
+echo_usage() {
+   echo "Usage: $0 [options] [testsuite] [serienum[/testfilenum]]...
+
+Run all or specific parts of the test suite
+
+Test suites:
+  modules         Test modulecmd.tcl built script (default)
+  quick           Short version of modulecmd.tcl testsuite
+  cov             Coverage mode of modulecmd.tcl testsuite
+  install         Test Modules installation
+  lint            Lint script files of this repository
+
+Select parts of testsuite:
+  serienum        Identification number of testsuite directory containing a
+                  series of testfile (e.g., '50' for modules.50-cmds dir.)
+  testfilenum     Identification number of testfile in a testserie (e.g.,
+                  '370' for 370-variant.exp testfile in modules.70-maint dir.)
+
+Options:
+  -h, --help      Show this help message and exit
+
+Examples:
+  $0
+  $0 quick
+  $0 lint
+  $0 50/37 61 70/{290,440}
+"
+}
 
 # print message on stderr then exit
 echo_error() {
@@ -43,7 +73,14 @@ target=test
 testserie=modules
 setuptestfiles=(00/005 00/006 00/010 00/050 00/080 00/085)
 if [ $# -gt 0 ]; then
-   if [ "$1" = "quick" ]; then
+   if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+      echo_usage
+      exit 0
+   elif [ "$1" = "modules" ]; then
+      target=test
+      testserie=modules
+      shift
+   elif [ "$1" = "quick" ]; then
       export QUICKTEST=1
       shift
    elif [ "$1" = "cov" ]; then
