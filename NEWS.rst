@@ -120,6 +120,10 @@ Modules 5.2.0 (not yet released)
   tool and tcl scripts are checked with `Nagelfar`_.
 * Update :file:`modulecmd.tcl` code and add Nagelfar inline comments to fix
   linter reports.
+* Script: add usage message and support for ``-h``/``--help`` option on
+  :command:`mrel`, :command:`mpub`, :command:`mt`, :command:`mtreview`,
+  :command:`nglfar2ccov`, :command:`mb` and :command:`mlprof` development
+  utilities.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 .. _ShellCheck: https://www.shellcheck.net/
