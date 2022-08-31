@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source $MOD_GIT_ROOTDIR/doc/example/compiler-etc-dependencies/example-sessions/common_code.sh
+source "$MOD_GIT_ROOTDIR"/doc/example/compiler-etc-dependencies/example-sessions/common_code.sh
 
 do_cmd module purge
 do_cmd module load openmpi/3.1
@@ -21,7 +21,7 @@ if [ $err -eq 0 ]; then
 	esac
 fi
 do_cmd module purge
-do_cmd module load $GCCGNU/8.2.0
+do_cmd module load "$GCCGNU/8.2.0"
 do_cmd module load openmpi
 err=$?
 do_cmd module list

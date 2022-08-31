@@ -28,7 +28,7 @@ sgr() {
    if [ -t 2 ]; then
       echo "\033[${code}m${msg}\033[0m"
    else
-      echo $msg
+      echo "$msg"
    fi
 }
 
@@ -47,9 +47,9 @@ echo_hint() {
 # check misspellings in commit message
 command -v aspell >/dev/null
 if [ $? -eq 0 ]; then
-   ASPELL_OPTS='-l en -x --home-dir=. --personal=.aspell.en.pws'
+   ASPELL_OPTS=(-l en -x --home-dir=. --personal=.aspell.en.pws)
    # use sed to extract commit message from full commit details
-   words=$(sed '/^# /Q' "$1" | aspell $ASPELL_OPTS list)
+   words=$(sed '/^# /Q' "$1" | aspell "${ASPELL_OPTS[@]}" list)
    # abort if misspelled words found
    if [ -n "$words" ]; then
       befmsg='# commit message was ---------------- >8 -------------'

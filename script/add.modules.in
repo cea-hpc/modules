@@ -31,12 +31,12 @@ $0
 	possibly your $HOME/.kshenv (or whatever is
 	specified by the ENV environment variable).
 !
-if [ -r $HOME/.bash_profile ]; then
+if [ -r "$HOME/.bash_profile" ]; then
 	/bin/cat <<!
 	Also your $HOME/.bash_profile will be processed.
 !
 fi
-if [ -r $HOME/.bash_login ]; then
+if [ -r "$HOME/.bash_login" ]; then
 	/bin/cat <<!
 	Also your $HOME/.bash_login will be processed.
 !
@@ -60,7 +60,7 @@ fi
 /bin/echo "Continue on (type n for no - default=yes)?\c"
 read xxx
 
-if [ x$xxx = xn ]
+if [ x"$xxx" = xn ]
 then
 	exit 1
 fi
@@ -70,7 +70,7 @@ cleandot() {
 	/bin/cat <<!
 Cleaning $1
 !
-	mv $1 $3
+	mv "$1" "$3"
 	sed \
 -e "/^[ 	]*if[ 	]*([ 	]*-e[ 	].*\/csh\.modules[ 	]*)[ 	]*then[ 	]*\$/,/^[	]*endif[ 	]*\$/d" \
 -e "/^[ 	]*if[ 	]*\[[ 	]*-[ef][ 	].*\/profile\.modules[ 	]*][ 	]*\$/,/^[ 	]*fi[ 	]*\$/d" \
@@ -81,33 +81,33 @@ Cleaning $1
 -e "/^[ 	]*source[ 	]*.*\/Modules.*\$/d" \
 -e "/^[ 	]*source[ 	]*.*\/csh\.modules[ 	]*/d" \
 -e "/^[ 	]*\.[ 	]*.*\/profile\.modules[ 	]*/d" \
-	$3 > $2
+	"$3" > "$2"
 }
 
 # find if certain of the dot files have load lines already
 findload() {
-	grep "^[ 	]*module[ 	]*load" $1 > /tmp/load.$$
+	grep "^[ 	]*module[ 	]*load" "$1" > /tmp/load.$$
 }
 
 # put common stuff derivatives here $1=.dot_file $2=action $3=shell(csh,sh) $4=skel alternative
 shdot() {
-	if [ -f $1 ]
+	if [ -f "$1" ]
 	then
 		/bin/cat <<!
 
 Processing your $1 (your old one is $1.old)
 !
-		if cleandot $1 /tmp/$1.$$ $1.old
+		if cleandot "$1" "/tmp/$1.$$" "$1.old"
 		then
-			if [ x$2 = xsource ]
+			if [ x"$2" = xsource ]
 			then
 				/bin/cat <<!
-Adding sourcing lines at beginning of $1
+Adding sourcing lines at beginning of "$1"
 !
-				if [ x$3 = xsh ]
+				if [ x"$3" = xsh ]
 				then
-					findload $1.old
-					/bin/cat > $1 <<!
+					findload "$1.old"
+					/bin/cat > "$1" <<!
 if [ -f $ETC/profile.modules ]
 then
 	. $ETC/profile.modules
@@ -115,44 +115,44 @@ then
 !
 				if [ -s /tmp/load.$$ ]
 				then
-					/bin/cat /tmp/load.$$ >> $1
+					/bin/cat /tmp/load.$$ >> "$1"
 				else
-					/bin/cat >> $1 <<!
+					/bin/cat >> "$1" <<!
 	module load null
 !
 				fi
-					/bin/cat >> $1 <<!
+					/bin/cat >> "$1" <<!
 fi
 !
-				elif [ x$3 = xcsh ]
+				elif [ x"$3" = xcsh ]
 				then
-					findload $1.old
-					/bin/cat > $1 <<!
+					findload "$1.old"
+					/bin/cat > "$1" <<!
 if ( -e $ETC/csh.modules ) then
 	source $ETC/csh.modules
 # put your own module loads here
 !
 				if [ -s /tmp/load.$$ ]
 				then
-					/bin/cat /tmp/load.$$ >> $1
+					/bin/cat /tmp/load.$$ >> "$1"
 				else
-					/bin/cat >> $1 <<!
+					/bin/cat >> "$1" <<!
 	module load null
 !
 				fi
-					/bin/cat >> $1 <<!
+					/bin/cat >> "$1" <<!
 endif
 !
 				fi
-				/bin/cat /tmp/$1.$$ >> $1 && /bin/rm /tmp/$1.$$
-			elif [ x$2 = xalias ]
+				/bin/cat "/tmp/$1.$$" >> "$1" && /bin/rm "/tmp/$1.$$"
+			elif [ x"$2" = xalias ]
 			then
 				/bin/cat <<!
 Adding alias or function lines at beginning of $1
 !
-				if [ x$3 = xsh ]
+				if [ x"$3" = xsh ]
 				then
-					/bin/cat > $1 <<!
+					/bin/cat > "$1" <<!
 case "\$0" in
           -sh|sh|*/sh)	modules_shell=sh ;;
        -ksh|ksh|*/ksh)	modules_shell=ksh ;;
@@ -161,9 +161,9 @@ case "\$0" in
 esac
 module() { eval \`@TCLSH@ '@libexecdir@/modulecmd.tcl' \$modules_shell \$*\`; }
 !
-				elif [ x$3 = xcsh ]
+				elif [ x"$3" = xcsh ]
 				then
-					/bin/cat > $1 <<!
+					/bin/cat > "$1" <<!
 if (\$?tcsh) then
         set modules_shell="tcsh"
 else
@@ -172,7 +172,7 @@ endif
 alias module 'eval \`@TCLSH@ "@libexecdir@/modulecmd.tcl" '\$modules_shell '\!*\`'
 !
 				fi
-				/bin/cat /tmp/$1.$$ >> $1 && /bin/rm /tmp/$1.$$
+				/bin/cat "/tmp/$1.$$" >> "$1" && /bin/rm "/tmp/$1.$$"
 			fi
 		else
 			/bin/echo "Had problems with your $1"
@@ -181,13 +181,13 @@ alias module 'eval \`@TCLSH@ "@libexecdir@/modulecmd.tcl" '\$modules_shell '\!*\
 		/bin/cat <<!
 You had no $1 as I see it.  Copying $4 for you.
 !
-		/bin/cp $4 $1
+		/bin/cp "$4" "$1"
 	fi
 	/bin/rm /tmp/load.$$ 2> /dev/null
 }
 
 # process files in $HOME
-cd $HOME
+cd "$HOME"
 if [ -r .bash_profile ]; then
 	shdot .bash_profile source sh $SKEL/.profile
 fi
@@ -196,7 +196,7 @@ if [ -r .bash_login ]; then
 fi
 shdot .profile source sh $SKEL/.profile
 shdot .bashrc alias sh $SKEL/.kshenv
-shdot `basename ${ENV:=.kshenv}` alias sh $SKEL/.kshenv
+shdot `basename "${ENV:=.kshenv}"` alias sh $SKEL/.kshenv
 shdot .login source csh $SKEL/.login
 shdot .cshrc alias csh $SKEL/.cshrc
 
