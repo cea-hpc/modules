@@ -25,11 +25,11 @@ fi;
 IFS=' ';
 for _mlv in ${MODULES_RUN_QUARANTINE:-}; do
    if [ "${_mlv}" = "${_mlv##*[!A-Za-z0-9_]}" ] && [ "${_mlv}" = "${_mlv#[0-9]}" ]; then
-      if [ -n "$(eval 'echo ${'$_mlv'+x}')" ]; then
-         _mlre="${_mlre:-}__MODULES_QUAR_${_mlv}='$(eval 'echo ${'$_mlv'}')' ";
+      if [ -n "$(eval 'echo ${'"$_mlv"'+x}')" ]; then
+         _mlre="${_mlre:-}__MODULES_QUAR_${_mlv}='$(eval 'echo ${'"$_mlv"'}')' ";
       fi;
       _mlrv="MODULES_RUNENV_${_mlv}";
-      _mlre="${_mlre:-}${_mlv}='$(eval 'echo ${'$_mlrv':-}')' ";
+      _mlre="${_mlre:-}${_mlv}='$(eval 'echo ${'"$_mlrv"':-}')' ";
    fi;
 done;
 if [ -n "${_mlre:-}" ]; then
@@ -38,6 +38,7 @@ fi;
 
 # define module command and surrounding initial environment (default value
 # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init config files)
+# shellcheck disable=2086 # word splitting expected on _mlre
 _mlcode=$(${_mlre:-}@TCLSH@ '@libexecdir@/modulecmd.tcl' sh autoinit)
 _mlret=$?
 
@@ -68,8 +69,8 @@ unset _mlcode _mlret
 
 # restore shell debugging options if disabled
 if [ -n "${_mlshdbg:-}" ]; then
-   set -$_mlshdbg;
+   set -"$_mlshdbg";
    unset _mlshdbg;
 fi;
 
-# vim:set tabstop=3 shiftwidth=3 expandtab autoindent syntax=sh:
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent syntax=sh :

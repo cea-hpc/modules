@@ -20,7 +20,7 @@ _module_avail() {
     local cur="${1:-}"
     # skip avail call if word currently being completed is an option keyword
     if [ -z "$cur" ] || [ "${cur:0:1}" != '-' ]; then
-        module avail --color=never -s -t -S --no-indepth -o '' $cur 2>&1
+        module avail --color=never -s -t -S --no-indepth -o '' "$cur" 2>&1
     fi
 }
 
@@ -32,7 +32,7 @@ _module_savelist() {
 }
 
 _module_not_yet_loaded() {
-    _module_avail ${1:-} | sort | @SED_ERE@ "\%^(${LOADEDMODULES//:/|})$%d"
+    _module_avail "${1:-}" | sort | @SED_ERE@ "\%^(${LOADEDMODULES//:/|})$%d"
 }
 
 _module_long_arg_list() {
@@ -40,13 +40,13 @@ _module_long_arg_list() {
 
     if [[ ${COMP_WORDS[COMP_CWORD-2]} == sw* ]]
     then
-        _module_comgen_words_and_files "$(_module_not_yet_loaded $cur)" "$cur"
+        _module_comgen_words_and_files "$(_module_not_yet_loaded "$cur")" "$cur"
         return
     fi
     for ((i = COMP_CWORD - 1; i > 0; i--))
         do case ${COMP_WORDS[$i]} in
         add|load)
-            _module_comgen_words_and_files "$(_module_not_yet_loaded $cur)" "$cur"
+            _module_comgen_words_and_files "$(_module_not_yet_loaded "$cur")" "$cur"
             break;;
         rm|del|remove|unload|switch|swap)
             COMPREPLY=( $(IFS=: compgen -W "${LOADEDMODULES}" -- "$cur") )
@@ -62,9 +62,9 @@ _module() {
 
     case "$prev" in
     add|add-any|load|load-any|try-add|try-load)
-                    _module_comgen_words_and_files "@comp_load_opts@ $(_module_not_yet_loaded $cur)" "$cur";;
-    avail)          _module_comgen_words_and_files "@comp_avail_opts@ $(_module_avail $cur)" "$cur";;
-    edit)           _module_comgen_words_and_files "$(_module_avail $cur)" "$cur";;
+                    _module_comgen_words_and_files "@comp_load_opts@ $(_module_not_yet_loaded "$cur")" "$cur";;
+    avail)          _module_comgen_words_and_files "@comp_avail_opts@ $(_module_avail "$cur")" "$cur";;
+    edit)           _module_comgen_words_and_files "$(_module_avail "$cur")" "$cur";;
     aliases)  COMPREPLY=( $(compgen -W "@comp_aliases_opts@" -- "$cur") );;
     list|savelist)  COMPREPLY=( $(compgen -W "@comp_list_opts@" -- "$cur") );;
     clear)  COMPREPLY=( $(compgen -W "@comp_clear_opts@" -- "$cur") );;
@@ -76,15 +76,15 @@ _module() {
     unuse|is-used)  COMPREPLY=( $(IFS=: compgen -W "${MODULEPATH}" -- "$cur") );;
     use|-a|--append)   ;;               # let readline handle the completion
     display|help|show|test|path|paths|is-loaded|info-loaded)
-                    _module_comgen_words_and_files "@comp_mfile_opts@ $(_module_avail $cur)" "$cur";;
+                    _module_comgen_words_and_files "@comp_mfile_opts@ $(_module_avail "$cur")" "$cur";;
     is-avail)
-                    _module_comgen_words_and_files "@comp_isavail_opts@ $(_module_avail $cur)" "$cur";;
+                    _module_comgen_words_and_files "@comp_isavail_opts@ $(_module_avail "$cur")" "$cur";;
     lint)
-                    _module_comgen_words_and_files "@comp_lint_opts@ $(_module_avail $cur)" "$cur";;
+                    _module_comgen_words_and_files "@comp_lint_opts@ $(_module_avail "$cur")" "$cur";;
     mod-to-sh)
-                    _module_comgen_words_and_files "@comp_modtosh_opts@ $(_module_not_yet_loaded $cur)" "$cur";;
+                    _module_comgen_words_and_files "@comp_modtosh_opts@ $(_module_not_yet_loaded "$cur")" "$cur";;
     whatis)
-                    _module_comgen_words_and_files "@comp_whatis_opts@ $(_module_avail $cur)" "$cur";;
+                    _module_comgen_words_and_files "@comp_whatis_opts@ $(_module_avail "$cur")" "$cur";;
     apropos|keyword|search)
                     COMPREPLY=( $(compgen -W "@comp_search_opts@" -- "$cur") );;
     config|--reset) COMPREPLY=( $(compgen -W "@comp_config_opts@" -- "$cur") );;
@@ -96,7 +96,7 @@ _module() {
                     COMPREPLY=( $(compgen -W "@comp_rm_path_opts@" -- "$cur") );;
     initadd|initclear|initlist|initprepend|initrm)
                     ;;
-    *)  if test $COMP_CWORD -gt 2
+    *)  if test "$COMP_CWORD" -gt 2
         then
             _module_long_arg_list "$cur"
         else
@@ -121,9 +121,9 @@ if $(type -t ml >/dev/null); then
 
         case "$prev" in
         add|add-any|load|load-any|try-add|try-load)
-                        _module_comgen_words_and_files "@comp_load_opts@ $(_module_not_yet_loaded $cur)" "$cur";;
-        avail)          _module_comgen_words_and_files "@comp_avail_opts@ $(_module_avail $cur)" "$cur";;
-        edit)           _module_comgen_words_and_files "$(_module_avail $cur)" "$cur";;
+                        _module_comgen_words_and_files "@comp_load_opts@ $(_module_not_yet_loaded "$cur")" "$cur";;
+        avail)          _module_comgen_words_and_files "@comp_avail_opts@ $(_module_avail "$cur")" "$cur";;
+        edit)           _module_comgen_words_and_files "$(_module_avail "$cur")" "$cur";;
         aliases)  COMPREPLY=( $(compgen -W "@comp_aliases_opts@" -- "$cur") );;
         list|savelist)  COMPREPLY=( $(compgen -W "@comp_list_opts@" -- "$cur") );;
         clear)  COMPREPLY=( $(compgen -W "@comp_clear_opts@" -- "$cur") );;
@@ -135,15 +135,15 @@ if $(type -t ml >/dev/null); then
         unuse|is-used)  COMPREPLY=( $(IFS=: compgen -W "${MODULEPATH}" -- "$cur") );;
         use|-a|--append)   ;;               # let readline handle the completion
         display|help|show|test|path|paths|is-loaded|info-loaded)
-                        _module_comgen_words_and_files "@comp_mfile_opts@ $(_module_avail $cur)" "$cur";;
+                        _module_comgen_words_and_files "@comp_mfile_opts@ $(_module_avail "$cur")" "$cur";;
         is-avail)
-                        _module_comgen_words_and_files "@comp_isavail_opts@ $(_module_avail $cur)" "$cur";;
+                        _module_comgen_words_and_files "@comp_isavail_opts@ $(_module_avail "$cur")" "$cur";;
         lint)
-                        _module_comgen_words_and_files "@comp_lint_opts@ $(_module_avail $cur)" "$cur";;
+                        _module_comgen_words_and_files "@comp_lint_opts@ $(_module_avail "$cur")" "$cur";;
         mod-to-sh)
-                        _module_comgen_words_and_files "@comp_modtosh_opts@ $(_module_not_yet_loaded $cur)" "$cur";;
+                        _module_comgen_words_and_files "@comp_modtosh_opts@ $(_module_not_yet_loaded "$cur")" "$cur";;
         whatis)
-                        _module_comgen_words_and_files "@comp_whatis_opts@ $(_module_avail $cur)" "$cur";;
+                        _module_comgen_words_and_files "@comp_whatis_opts@ $(_module_avail "$cur")" "$cur";;
         apropos|keyword|search)
                         COMPREPLY=( $(compgen -W "@comp_search_opts@" -- "$cur") );;
         config|--reset) COMPREPLY=( $(compgen -W "@comp_config_opts@" -- "$cur") );;
@@ -155,7 +155,7 @@ if $(type -t ml >/dev/null); then
                         COMPREPLY=( $(compgen -W "@comp_rm_path_opts@" -- "$cur") );;
         initadd|initclear|initlist|initprepend|initrm)
                         ;;
-        *)  if test $COMP_CWORD -gt 2
+        *)  if test "$COMP_CWORD" -gt 2
             then
                 _module_long_arg_list "$cur"
             else
@@ -170,7 +170,7 @@ if $(type -t ml >/dev/null); then
                             loaded_modules+="-${i} "
                         done
                         COMPREPLY=( "${COMPREPLY[@]}" $(compgen -W "@comp_load_opts@ $loaded_modules" -- "$cur") );;
-                *)       _module_comgen_words_and_files "@comp_load_opts@ $(_module_not_yet_loaded $cur)" "$cur"
+                *)       _module_comgen_words_and_files "@comp_load_opts@ $(_module_not_yet_loaded "$cur")" "$cur"
                         COMPREPLY=( "${COMPREPLY[@]}" $(compgen -W "@comp_opts@ @comp_cmds@" -- "$cur") )
                         loaded_modules=""
                         for i in ${LOADEDMODULES//:/ }; do

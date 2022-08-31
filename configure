@@ -40,7 +40,7 @@ windowssupport nearlyforbiddendays implicitrequirement tagabbrev \
 tagcolorname mcookieversioncheck availoutput availterseoutput listoutput \
 listterseoutput editor variantshortcut bashcompletiondir fishcompletiondir \
 zshcompletiondir tcllinter tcllinteropts nagelfardatadir nagelfaraddons"
-libarglist=
+libarglist=()
 
 # flags to know if argument has been specified on command-line
 defmodulespath=1
@@ -152,7 +152,7 @@ sgr() {
    else
       local out=$msg
    fi
-   echo $out
+   echo "$out"
 }
 
 # print message on stderr then exit
@@ -471,9 +471,9 @@ check_requirement() {
          else
             cmdsearch="command -v $cmd"
          fi
-         reqpath=$(eval $cmdsearch)
+         reqpath=$(eval "$cmdsearch")
          if [ -n "$reqpath" ]; then
-            echo $reqpath
+            echo "$reqpath"
             break
          else
             echo "not found"
@@ -527,12 +527,12 @@ get_package_value() {
 for arg in "$@"; do
    # set argument value defined with "--arg val" form
    if [ -n "${nextargisval+x}" ]; then
-      declare $nextargisval=$arg
+      declare "$nextargisval"="$arg"
       unset nextargisval
       continue
    # set lib argument value defined with "--arg val" form
    elif [ -n "${nextargislibarg+x}" ]; then
-      libarglist+="$arg " ;
+      libarglist+=("$arg");
       unset nextargislibarg
       continue
    # current arg should be skipped
@@ -797,7 +797,7 @@ for arg in "$@"; do
    --with-tcl-linter-opts=*|--without-tcl-linter-opts)
       tcllinteropts=$(get_package_value "$arg") ;;
    --with-tcl=*|--without-tcl|--with-tclinclude=*|--without-tclinclude)
-      libarglist+="$arg " ;;
+      libarglist+=("$arg") ;;
    --with-python=*|--without-python)
       pythonbin=$(get_package_value "$arg") ;;
    --with-module-path=*)
@@ -808,12 +808,12 @@ for arg in "$@"; do
       ;;
    --build|--host|--target)
       # pass argument supported by lib to its ./configure script
-      libarglist+="$arg " ;
+      libarglist+=("$arg") ;
       # and set next arg should also be send to lib script
       nextargislibarg=y ;;
    --build=*|--host=*|--target=*)
       # pass argument supported by lib to its ./configure script
-      libarglist+="$arg " ;;
+      libarglist+=("$arg") ;;
    --program-prefix|--program-suffix|--program-transform-name|--exec-prefix|\
    --sbindir|--sysconfdir|--datadir|--includedir|--localstatedir|\
    --sharedstatedir|--infodir|--runstatedir|--oldincludedir|--localedir|\
@@ -837,11 +837,11 @@ for arg in "$@"; do
       echo_error "Unrecognized option \`$arg'" tryhelp;;
    *=*)
       echo -e "Export \`$arg' in environment" ;
-      export $arg ;;
+      export "$arg" ;;
    *)
       # type of system to build the program for (not needed here but useful
       # for true autoconf configure script below
-      libarglist+="$arg " ;;
+      libarglist+=("$arg") ;;
    esac
 done
 
@@ -902,7 +902,7 @@ fi
 # get tclsh location from standard PATHs or /usr/local/bin
 # or validate location passed as argument
 if [ -n "$tclshbin" ]; then
-   check_requirement $tclshbin '' "PATH=$binsearchpath"
+   check_requirement "$tclshbin" '' "PATH=$binsearchpath"
 else
    # also check version-specific names in case no generic tclsh binary exists
    check_requirement $TCLSH '' "PATH=$binsearchpath" 'tclsh8.6' 'tclsh8.5' 'tclsh8.4'
@@ -919,7 +919,7 @@ else
 fi
 # only look at --with-python specification if set
 if [ -n "$pythonbin" ]; then
-   check_requirement $pythonbin "$missmsg" "PATH=$binsearchpath"
+   check_requirement "$pythonbin" "$missmsg" "PATH=$binsearchpath"
 else
    check_requirement $PYTHON "$missmsg" "PATH=$binsearchpath" 'python3' 'python2'
 fi
@@ -946,7 +946,7 @@ BASENAME=$reqpath
 # get pager program location from standard PATHs or /usr/local/bin
 # or validate location passed as argument
 if [ -n "$pager" ]; then
-   check_requirement $pager '' "PATH=$binsearchpath"
+   check_requirement "$pager" '' "PATH=$binsearchpath"
    pager=$reqpath
 fi
 # adapt pager program settings dependings of specified args
@@ -956,7 +956,7 @@ if [ $defpageropts -eq 1 ] && [ "${pager##*/}" != 'less' ]; then
 fi
 
 if [ -n "$tcllinter" ]; then
-   check_requirement $tcllinter "$tcllinter could not be found" "PATH=$binsearchpath"
+   check_requirement "$tcllinter" "$tcllinter could not be found" "PATH=$binsearchpath"
    if [ -n "$reqpath" ]; then
       tcllinter=$reqpath
    fi
@@ -964,12 +964,13 @@ fi
 
 # fetch modules version from version.inc.in file (which may be raw data to
 # refine or exact values if dist has been built by `git archive`)
-if [ -r ${progdir}/version.inc.in ]; then
-  release=$(sed -n '/^MODULES_RELEASE/{s/.*= //p;q;}' ${progdir}/version.inc.in)
+if [ -r "${progdir}/version.inc.in" ]; then
+  release=$(sed -n '/^MODULES_RELEASE/{s/.*= //p;q;}' \
+     "${progdir}/version.inc.in")
   build_hash=$(sed -n '/^MODULES_BUILD_HASH/{s/.*= //p;q;}' \
-     ${progdir}/version.inc.in)
+     "${progdir}/version.inc.in")
   build_refs=$(sed -n '/^MODULES_BUILD_REFS/{s/.*= //p;q;}' \
-     ${progdir}/version.inc.in)
+     "${progdir}/version.inc.in")
   build_refs=${build_refs//,}
   build_refs=${build_refs//origin\/}
 else
@@ -1084,9 +1085,9 @@ done
 # configure extension library sources
 if [ "$libtclenvmodules" = 'y' ]; then
    echo "--- configuring extension library sources --------"
-   echo "libarglist = $libarglist"
+   echo "libarglist = ${libarglist[*]}"
    pushd lib
-   ./configure $libarglist || exit 1
+   ./configure "${libarglist[@]}" || exit 1
    popd
    echo "--------------------------------------------------"
 fi
@@ -1100,7 +1101,7 @@ for target in ${targetlist}; do
       extra_regexp=('-e' 's|\$|\$\$|g')
    fi
    echo "creating $target"
-   sed "${translation_regexp[@]}" "${extra_regexp[@]}" ${target}.in >$target
+   sed "${translation_regexp[@]}" "${extra_regexp[@]}" "${target}.in" >"$target"
 done
 
 exit 0

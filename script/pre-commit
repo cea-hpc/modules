@@ -28,7 +28,7 @@ sgr() {
    if [ -t 2 ]; then
       echo "\033[${code}m${msg}\033[0m"
    else
-      echo $msg
+      echo "$msg"
    fi
 }
 
@@ -55,14 +55,14 @@ fi
 command -v aspell >/dev/null
 if [ $? -eq 0 ]; then
    misspell=0
-   ASPELL_OPTS='-l en -x --home-dir=. --personal=.aspell.en.pws'
+   ASPELL_OPTS=(-l en -x --home-dir=. --personal=.aspell.en.pws)
    for docfile in $(git diff --cached --name-only --diff-filter=d | grep -E\
       '(.rst|.md)$'); do
-      words=$(git diff --cached $docfile | grep '^[+][^+]' | aspell\
-         $ASPELL_OPTS list)
+      words=$(git diff --cached "$docfile" | grep '^[+][^+]' | aspell\
+         "${ASPELL_OPTS[@]}" list)
       if [ -n "$words" ]; then
          # interactively edit file to fix misspellings
-         aspell $ASPELL_OPTS check $docfile </dev/tty >/dev/tty;
+         aspell "${ASPELL_OPTS[@]}" check "$docfile" </dev/tty >/dev/tty;
          misspell=1
       fi
    done

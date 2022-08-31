@@ -1,11 +1,11 @@
 #!/bin/bash
 
-source $MOD_GIT_ROOTDIR/doc/example/compiler-etc-dependencies/example-sessions/common_code.sh
+source "$MOD_GIT_ROOTDIR"/doc/example/compiler-etc-dependencies/example-sessions/common_code.sh
 
 do_cmd module purge
 case $TMP_STRATEGY in
    modulepath)
-	do_cmd module load $GCCGNU/9.1.0
+	do_cmd module load "$GCCGNU/9.1.0"
 	;;
 esac
 do_cmd module load bar
@@ -29,7 +29,7 @@ fi
 do_cmd module purge
 case $TMP_STRATEGY in
    modulepath)
-	do_cmd module load $GCCGNU/8.2.0
+	do_cmd module load "$GCCGNU/8.2.0"
 	;;
 esac
 do_cmd module load bar/4.7
