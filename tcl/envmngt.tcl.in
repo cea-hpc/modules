@@ -777,12 +777,12 @@ alias ml 'module ml \!*' ;}
    for _mlv in \${${wsplit}MODULES_RUN_QUARANTINE:-}; do"
             ##nagelfar ignore #4 Too long line
             append fdef {
-      if [ "${_mlv}" = "${_mlv##*[!A-Za-z0-9_]}" -a "${_mlv}" = "${_mlv#[0-9]}" ]; then
-         if [ -n "$(eval 'echo ${'$_mlv'+x}')" ]; then
-            _mlre="${_mlre:-}__MODULES_QUAR_${_mlv}='$(eval 'echo ${'$_mlv'}')' ";
+      if [ "${_mlv}" = "${_mlv##*[!A-Za-z0-9_]}" ] && [ "${_mlv}" = "${_mlv#[0-9]}" ]; then
+         if [ -n "$(eval 'echo ${'"$_mlv"'+x}')" ]; then
+            _mlre="${_mlre:-}__MODULES_QUAR_${_mlv}='$(eval 'echo ${'"$_mlv"'}')' ";
          fi;
          _mlrv="MODULES_RUNENV_${_mlv}";
-         _mlre="${_mlre:-}${_mlv}='$(eval 'echo ${'$_mlrv':-}')' ";
+         _mlre="${_mlre:-}${_mlv}='$(eval 'echo ${'"$_mlrv"':-}')' ";
       fi;
    done;
    if [ -n "${_mlre:-}" ]; then
@@ -810,7 +810,7 @@ alias ml 'module ml \!*' ;}
          if {[getConf silent_shell_debug]} {
             append fdef {
    if [ -n "${_mlshdbg:-}" ]; then
-      set -$_mlshdbg;
+      set -"$_mlshdbg";
    fi;
    unset _mlshdbg;}
          }

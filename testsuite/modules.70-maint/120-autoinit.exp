@@ -113,12 +113,12 @@ if { $verbose > 0 } {
 set err_lisp "$error_msgs: lisp mode autoinit not yet implemented"
 set err_cmd "$error_msgs: No autoinit mode available for 'cmd' shell"
 
-set end_quar_sh "\\s*if \\\[ \"\\\${_mlv}\" = \"\\\${_mlv##\\\*\\\[\\\!A-Za-z0-9_\\\]}\" -a \"\\\${_mlv}\" = \"\\\${_mlv#\\\[0-9\\\]}\" \\\]; then
-\\s*if \\\[ -n \"\\\$\\\(eval 'echo \\\${'\\\$_mlv'\\\+x}'\\\)\" \\\]; then
-\\s*_mlre=\"\\\${_mlre:-}__MODULES_QUAR_\\\${_mlv}='\\\$\\\(eval 'echo \\\${'\\\$_mlv'}'\\\)' \";
+set end_quar_sh "\\s*if \\\[ \"\\\${_mlv}\" = \"\\\${_mlv##\\\*\\\[\\\!A-Za-z0-9_\\\]}\" \\\] && \\\[ \"\\\${_mlv}\" = \"\\\${_mlv#\\\[0-9\\\]}\" \\\]; then
+\\s*if \\\[ -n \"\\\$\\\(eval 'echo \\\${'\"\\\$_mlv\"'\\\+x}'\\\)\" \\\]; then
+\\s*_mlre=\"\\\${_mlre:-}__MODULES_QUAR_\\\${_mlv}='\\\$\\\(eval 'echo \\\${'\"\\\$_mlv\"'}'\\\)' \";
 \\s*fi;
 \\s*_mlrv=\"MODULES_RUNENV_\\\${_mlv}\";
-\\s*_mlre=\"\\\${_mlre:-}\\\${_mlv}='\\\$\\\(eval 'echo \\\${'\\\$_mlrv':-}'\\\)' \";
+\\s*_mlre=\"\\\${_mlre:-}\\\${_mlv}='\\\$\\\(eval 'echo \\\${'\"\\\$_mlrv\"':-}'\\\)' \";
 \\s*fi;
 \\s*done;"
 set func_quar_sh_quar "\\s*unset _mlre _mlIFS;
@@ -152,7 +152,7 @@ set func_silentdbg_silentdbg "\\s*unset _mlshdbg;
 \\s*esac;
 \\s*fi;\n"
 set end_silentdbg_silentdbg "\\s*if \\\[ -n \"\\\${_mlshdbg:-}\" \\\]; then
-\\s*set -\\\$_mlshdbg;
+\\s*set -\"\\\$_mlshdbg\";
 \\s*fi;
 \\s*unset _mlshdbg;\n"
 if {$install_silentshdbgsupport eq y} {
