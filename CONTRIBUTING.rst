@@ -86,6 +86,12 @@ Run the basic test suite with::
 This only runs the tests for the current environment. `GitHub Actions`_ and
 `Cirrus CI`_ will run the full suite when you submit your pull request.
 
+There are more than 17 000 test cases thus it generally takes around 12
+minutes to run the full test suite. It can be executed in *quick* mode to just
+run the most essential tests in about 1 minute::
+
+   make test QUICKTEST=y
+
 .. _GitHub Actions: https://github.com/cea-hpc/modules/actions
 .. _Cirrus CI: https://cirrus-ci.com/github/cea-hpc/modules
 
