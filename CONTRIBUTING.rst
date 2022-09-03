@@ -130,6 +130,23 @@ coverage mode on full testsuite or on a few testfiles::
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 
+Running linter tests
+~~~~~~~~~~~~~~~~~~~~
+
+Linter tools check code syntax and report issues and good practices to follow.
+Modules uses `Nagelfar`_ to check syntax of Tcl scripts and `ShellCheck`_ to
+lint sh, bash and ksh scripts.
+
+Run ``make testlint`` to lint all sh, bash, ksh and Tcl scripts in your local
+Modules repository.
+
+The :command:`script/mt` utility may also be used to run the full *lint* test
+suite or just specific testfiles. For instance to only lint Tcl scripts::
+
+   script/mt lint 00/030
+
+.. _ShellCheck: https://www.shellcheck.net/
+
 Building the docs
 ~~~~~~~~~~~~~~~~~
 
