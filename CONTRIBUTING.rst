@@ -92,6 +92,16 @@ run the most essential tests in about 1 minute::
 
    make test QUICKTEST=y
 
+The :command:`script/mt` utility is also available to just execute one or
+several testfiles. If a test fails, :command:`script/mt` reports the *diff*
+comparison between expected and actual results. For instance, to only
+execute :file:`testsuite/modules.50-cmds/470-variant.exp` testfile, run::
+
+   script/mt 50/470
+
+Run :command:`script/mt` with ``--help`` option to get usage details and
+syntax to select several testfiles.
+
 .. _GitHub Actions: https://github.com/cea-hpc/modules/actions
 .. _Cirrus CI: https://cirrus-ci.com/github/cea-hpc/modules
 
@@ -112,6 +122,11 @@ coverage mode and an annotated script will be produced for each Tcl script in
 
    make test COVERAGE=y
    # then open tcl/*.tcl_m files and look for ';# Not covered' lines
+
+The :command:`script/mt` utility may also be used to run the test suite in
+coverage mode on full testsuite or on a few testfiles::
+
+   script/mt cov 70/{280,290}
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 
