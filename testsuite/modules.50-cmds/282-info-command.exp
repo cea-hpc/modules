@@ -12,6 +12,7 @@
 #   Description:    Testuite testsequence
 #   Command:        load, display, whatis, search, source, restore
 #   Command:        unload, switch, purge, reload, help, test, reset
+#   Command:        stash
 #   Modulefiles:    info/command
 #   Sub-Command:
 #
@@ -69,6 +70,12 @@ testouterr_cmd sh "mod-to-sh sh $module" [list [list OK nop]] $tserr
 setenv_var __MODULES_LMINIT "module use --append $modpath:module load $module"
 testouterr_cmd sh reset $ans reset\n[msg_load $module]
 unsetenv_var __MODULES_LMINIT
+
+# test stash
+setenv_var __MODULES_LMINIT "module use --append $modpath:module load $module"
+testouterr_cmd sh stash $ans stash\n[msg_load $module]
+unsetenv_var __MODULES_LMINIT
+delete_last_stash_coll
 
 # test displaying
 testouterr_cmd_re "sh" "display $module" "OK" "$modlin\n$modulefilere:\n\ndisplay\n$modlin"
