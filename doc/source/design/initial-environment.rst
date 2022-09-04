@@ -77,7 +77,7 @@ Behavior of ``reset`` sub-command can be changed with `reset_target_state
 configuration option`_.
 
 As it evaluates modules, ``--force``, ``--auto`` and ``--no-auto`` options can
-e set for ``reset`` sub-command. But, as for ``restore`` sub-command these
+be set for ``reset`` sub-command. But, as for ``restore`` sub-command these
 options should have no impact, as:
 
 * collection fully describes dependencies to load, no automatic resolution
