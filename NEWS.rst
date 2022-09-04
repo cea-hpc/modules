@@ -131,6 +131,8 @@ Modules 5.2.0 (not yet released)
 * Init: update profile script for sh-like shells to only source sh or bash
   initialization script when BASH environment variable is found set. (fix
   issue #473)
+* Add :subcmd:`stash` sub-command to save current environment and restore
+  initial one.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 .. _ShellCheck: https://www.shellcheck.net/

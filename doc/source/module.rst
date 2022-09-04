@@ -1965,6 +1965,23 @@ Module Sub-Commands
     .. versionchanged:: 5.2
        Accept modulefile specification as argument
 
+.. subcmd:: stash
+
+ :subcmd:`Save<save>` current environment in a stash collection then
+ :subcmd:`reset` to initial environment.
+
+ A collection is created only if current environment state differs from
+ initial environment. Stash collection is named
+ *stash-<unix_millis_timestamp>* where *<unix_millis_timestamp>* is the number
+ of milliseconds between Unix Epoch and when this command is run.
+
+ If :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix equivalent to the
+ value of this variable will be appended to the stash collection file name.
+
+ .. only:: html
+
+    .. versionadded:: 5.2
+
 .. subcmd:: state [name]
 
  Gets :file:`modulecmd.tcl` states. Reports the currently set value
@@ -3025,9 +3042,9 @@ ENVIRONMENT
  When it happens a collection made on machine 1 may be erroneous on machine 2.
 
  When a target is set, only the collections made for that target are
- available to the :subcmd:`restore`, :subcmd:`savelist`, :subcmd:`saveshow`
- and :subcmd:`saverm` sub-commands. Saving a collection registers the target
- footprint by suffixing the collection filename with
+ available to the :subcmd:`restore`, :subcmd:`savelist`, :subcmd:`saveshow`,
+ :subcmd:`saverm` and :subcmd:`stash` sub-commands. Saving a collection
+ registers the target footprint by suffixing the collection filename with
  ``.$MODULES_COLLECTION_TARGET``. The collection target is not involved when
  collection is specified as file path on the :subcmd:`saveshow`,
  :subcmd:`restore` and :subcmd:`save` sub-commands.
