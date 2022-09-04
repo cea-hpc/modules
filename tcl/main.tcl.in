@@ -107,7 +107,8 @@ proc parseModuleCommandName {command defaultcmd} {
       restore saverm saveshow savelist initadd initprepend initswitch initrm\
       initlist initclear autoinit clear config help test prepend-path\
       append-path remove-path is-loaded is-saved is-used is-avail info-loaded\
-      sh-to-mod edit try-load refresh state load-any lint mod-to-sh reset]}]
+      sh-to-mod edit try-load refresh state load-any lint mod-to-sh reset\
+      stash]}]
 
    reportDebug "(command=$command, cmdvalid=$cmdvalid, cmdempty=$cmdempty)"
    return [list $command $cmdvalid $cmdempty]
@@ -372,7 +373,7 @@ proc module {command args} {
          path - paths - autoinit - help - prepend-path - append-path -\
          remove-path - is-loaded - is-saved - is-used - is-avail -\
          info-loaded - clear - sh-to-mod - edit - refresh - source - state -\
-         lint - mod-to-sh - reset {
+         lint - mod-to-sh - reset - stash {
             knerror "${msgprefix}Command '$command' not supported$tryhelpmsg"
          }
       }
@@ -397,7 +398,7 @@ proc module {command args} {
          }
       }
       refresh - reload - aliases - purge - initlist - initclear - autoinit -\
-         reset {
+         reset - stash {
          if {[llength $args] != 0} {
             set argnberr 1
          }
@@ -497,10 +498,12 @@ proc module {command args} {
                }
             # mods unload is handled via UReqUn mechanism when auto enabled
             # (unless if implicit_requirement has been inhibited) also unloads
-            # are triggered by ongoing reload, purge, restore or reset cmds
+            # are triggered by ongoing reload, purge, restore, reset or stash
+            # cmds
             } elseif {(![getConf auto_handling] || [getState\
                inhibit_req_record] eq [currentState evalid]) &&\
-               [aboveCommandName] ni [list purge reload restore reset]} {
+               [aboveCommandName] ni [list purge reload restore reset stash]}\
+               {
                # on unload mode, unload mods in reverse order, if loaded
                # prior this mod, if not user asked and not required by
                # other loaded mods
@@ -593,11 +596,12 @@ proc module {command args} {
                   # module. If auto handling is enabled switched-on module
                   # is handled via UReqUn mechanism (unless if
                   # implicit_requirement has been inhibited). Also unloads are
-                  # triggered by ongoing reload, purge, restore or reset cmds
+                  # triggered by ongoing reload, purge, restore, reset or
+                  # stash cmds
                   if {(![getConf auto_handling] || [getState\
                      inhibit_req_record] eq [currentState evalid]) &&\
                      $swlomod ne {} && [aboveCommandName] ni [list purge\
-                     reload restore reset]} {
+                     reload restore reset stash]} {
                      # unload mod if it was loaded prior this mod, not user
                      # asked and not required by another loaded module
                      set modlist [getLoadedModulePropertyList name]
@@ -714,6 +718,9 @@ proc module {command args} {
       }
       reset {
          cmdModuleReset
+      }
+      stash {
+         cmdModuleStash
       }
       help {
          cmdModuleHelp {*}$args
