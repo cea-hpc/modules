@@ -124,6 +124,8 @@ Modules 5.2.0 (not yet released)
   :command:`mrel`, :command:`mpub`, :command:`mt`, :command:`mtreview`,
   :command:`nglfar2ccov`, :command:`mb` and :command:`mlprof` development
   utilities.
+* Doc: describe :command:`script/mt` and :command:`script/mb` utilities in
+  :ref:`CONTRIBUTING` guide.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 .. _ShellCheck: https://www.shellcheck.net/

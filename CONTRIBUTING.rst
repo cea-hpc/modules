@@ -147,6 +147,40 @@ suite or just specific testfiles. For instance to only lint Tcl scripts::
 
 .. _ShellCheck: https://www.shellcheck.net/
 
+Check performances
+~~~~~~~~~~~~~~~~~~
+
+The :command:`script/mb` utility checks from your local repository the
+performances of major releases of Modules and current branch. Current ongoing
+modifications are first stashed, then :command:`modulecmd.tcl` of the
+releases and current branch are built. Different tests are run against each
+version and the execution time of each test is reported in millisecond::
+
+   $ script/mb
+             |   v4.1.4 |   v4.3.1 |   v4.5.3 |   v4.7.1 |   v5.1.1 |   master |
+   ----------+----------+----------+----------+----------+----------+----------+
+        help |        9 |       12 |       12 |       15 |       16 |       16 |
+       avail |       61 |       67 |       76 |       82 |       91 |       86 |
+      avail2 |       11 |       16 |       19 |       21 |       23 |       23 |
+      avail3 |        - |        - |        - |      120 |      128 |      130 |
+      whatis |      208 |      155 |      233 |      216 |      221 |      224 |
+     whatis2 |       10 |       15 |       17 |       20 |       21 |       22 |
+     whatis3 |        - |        - |        - |      287 |      307 |      314 |
+     apropos |      208 |      153 |      222 |      210 |      220 |      223 |
+        load |       66 |       87 |      134 |      162 |      120 |      126 |
+        list |       24 |       23 |       33 |       22 |       25 |       25 |
+      unload |       46 |       24 |       25 |       29 |       31 |       31 |
+
+It helps to verify that current work committed in local repository does not
+impact performances on simple test scenarios. Run :command:`script/mb` with
+``--help`` option to get its usage details.
+
+The ``profile`` mode may also be interesting to learn what are the internal
+procedures of :command:`modulecmd.tcl` taking most of the execution time for
+each test::
+
+   script/mb profile
+
 Building the docs
 ~~~~~~~~~~~~~~~~~
 
