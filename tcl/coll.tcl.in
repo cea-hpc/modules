@@ -309,6 +309,60 @@ proc parseCollectionContent {fdata} {
    return [list $path_list $mod_list [array get tag_arr]]
 }
 
+# return specified collection content and differences compared to currently
+# defined environment
+proc getDiffBetweenCurEnvAndColl {collfile colldesc} {
+   # read specific __init__ collection from __MODULES_LMINIT env var
+   if {$collfile eq {__init__}} {
+      lassign [parseCollectionContent [getLoadedModulePropertyList init]]\
+         coll_path_list coll_mod_list coll_tag_arrser
+   } else {
+      lassign [readCollectionContent $collfile $colldesc] coll_path_list\
+         coll_mod_list coll_tag_arrser
+   }
+
+   # build list of module tagged auto-loaded in collection
+   array set coll_tag_arr $coll_tag_arrser
+   set coll_nuasked_list {}
+   foreach mod [array names coll_tag_arr] {
+      if {{auto-loaded} in $coll_tag_arr($mod)} {
+         lappend coll_nuasked_list $mod
+      }
+   }
+
+   # collection should at least define a path or a mod, but initial env may be
+   # totally empty
+   if {$collfile ne {__init__} && [llength $coll_path_list] == 0 && [llength\
+      $coll_mod_list] == 0} {
+      reportErrorAndExit "$colldesc is not a valid collection"
+   }
+
+   # load tags from loaded modules
+   cacheCurrentModules
+
+   defineModEqProc [isIcase] [getConf extended_default]
+
+   # fetch what is currently loaded
+   set curr_path_list [getModulePathList returnempty 0]
+   # get current loaded module list
+   set curr_mod_list [getLoadedModulePropertyList name]
+   set curr_nuasked_list [getTaggedLoadedModuleList auto-loaded]
+
+   # determine what module to unload to restore collection from current
+   # situation with preservation of the load order (asking for a modeq
+   # comparison will help to check against simplified mod name and variants)
+   lassign [getMovementBetweenList $curr_mod_list $coll_mod_list\
+      $curr_nuasked_list $coll_nuasked_list modeq] mod_to_unload mod_to_load
+
+   # proceed as well for modulepath
+   lassign [getMovementBetweenList $curr_path_list $coll_path_list] \
+      path_to_unuse path_to_use
+
+   return [list $coll_path_list $coll_mod_list $coll_tag_arrser\
+      $coll_nuasked_list $mod_to_unload $mod_to_load $path_to_unuse\
+      $path_to_use]
+}
+
 # ;;; Local Variables: ***
 # ;;; mode:tcl ***
 # ;;; End: ***
