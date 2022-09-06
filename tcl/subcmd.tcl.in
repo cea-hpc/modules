@@ -2746,6 +2746,50 @@ proc cmdModuleReset {} {
 }
 
 proc cmdModuleStash {} {
+   # check if there is something to stash
+   if {[getConf reset_target_state] eq {__purge__}} {
+      # load tags from loaded modules
+      cacheCurrentModules
+
+      # current environment differs from initial 'purge' state when at least
+      # a module is loaded and it is not super-sticky and not sticky or force
+      # mode is enabled to allow sticky tag unload
+      set diff_from_init 0
+      foreach mod [getLoadedModulePropertyList name] {
+         if {![isModuleTagged $mod super-sticky 1] && (![isModuleTagged $mod\
+            sticky 1] || [getState force])} {
+            set diff_from_init 1
+            break
+         }
+      }
+   } else {
+      # compare current environment against initial collection to check if
+      # something differ
+      set coll [getConf reset_target_state]
+      # get corresponding collection or init, raise error if it does not exist
+      lassign [findCollections $coll exact 0 1] collfile colldesc
+
+      # fetch collection content and differences compared current environment
+      lassign [getDiffBetweenCurEnvAndColl $collfile $colldesc]\
+         coll_path_list coll_mod_list coll_tag_arrser coll_nuasked_list\
+         mod_to_unload mod_to_load path_to_unuse path_to_use is_tags_diff
+      array set coll_tag_arr $coll_tag_arrser
+
+      set diff_from_init [expr {[llength $mod_to_unload] > 0 || [llength\
+         $mod_to_load] > 0 || [llength $path_to_unuse] > 0 || [llength\
+         $path_to_use] > 0 || $is_tags_diff}]
+   }
+
+   if {!$diff_from_init} {
+      reportWarning {No specific environment to save}
+      return
+   }
+
+   # record current environment
+   cmdModuleSave stash-[clock milliseconds]
+
+   # restore initial environment
+   cmdModuleReset
 }
 
 # ;;; Local Variables: ***
