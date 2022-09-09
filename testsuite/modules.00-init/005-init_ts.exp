@@ -102,6 +102,7 @@ set err_reqfull "$::error_msgs: Module version must be specified to load module"
 set err_nomodloaded "$error_msgs: $msg_nomodloaded"
 set err_save_emptyenv "$::error_msgs: Nothing to save in a collection"
 set err_save_unsat "$::error_msgs: Cannot save collection, some module constraints are not satistied"
+set warn_nostash "$::warn_msgs: No specific environment to save"
 
 
 proc err_conflict {args} {
@@ -792,6 +793,15 @@ proc delete_last_stash_coll {} {
     set collfile [lindex [lsort [glob $::env(HOME)/.module/stash-*]] 0]
     send_user "\tDeleting stash collection $collfile\n"
     file delete $collfile
+}
+
+# fetch stash collections
+proc get_all_stash_colls {} {
+    return [glob -types f $::env(HOME)/.module/stash-*]
+}
+
+proc get_last_stash_coll {} {
+    return [lindex [lsort [get_all_stash_colls]] end]
 }
 
 # report current system information

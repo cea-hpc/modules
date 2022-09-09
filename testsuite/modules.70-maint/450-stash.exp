@@ -1,0 +1,1029 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2022/09/07
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		stash
+#   Modulefiles:    foo, bar, qux, variant, reset
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test stash sub-command
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+setenv_path_var MODULEPATH $mp
+
+set collhome $env(HOME)/.module
+set stashcollglob $collhome/stash-*
+set stashtargetcollglob $collhome/stash-*.target
+set headercompattag "#%Module5.1\n"
+
+
+#
+# basic tests
+#
+
+# no difference with initial __init__ environment
+setenv_var MODULES_RESET_TARGET_STATE __init__
+setenv_path_var MODULEPATH $modpath.2
+setenv_loaded_module [list bar/1 qux/1] [list $modpath.2/bar/1 $modpath.2/qux/1]
+setenv_var __MODULES_LMINIT "module use --append $modpath.2:module load bar/1:module load qux/1"
+testouterr_cmd sh stash OK $warn_nostash
+unsetenv_var __MODULES_LMINIT
+unsetenv_path_var MODULEPATH
+unsetenv_loaded_module
+
+# diff between current & init = modules to unload
+setenv_path_var MODULEPATH $modpath.3
+setenv_loaded_module [list foo/1.0 bar/1.0] [list $modpath.3/foo/1.0 $modpath.3/bar/1.0]
+setenv_var __MODULES_LMINIT "module use --append $modpath.3"
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+set tserr [msg_unload {bar/1.0}]\n[msg_unload {foo/1.0}]
+set stashcont "module use --append $modpath.3
+module load foo/1.0
+module load bar/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+unsetenv_var __MODULES_LMINIT
+unsetenv_path_var MODULEPATH
+unsetenv_loaded_module
+
+
+skip_if_quick_mode
+
+# create collection for reset target test
+file mkdir $collhome
+set fid [open $collhome/resetcoll w]
+puts $fid "module use --append $modpath.2
+module load bar/1
+module load qux/1"
+close $fid
+file copy $collhome/resetcoll $collhome/resettargetcoll.target
+set fid [open $collhome/resettagcoll w]
+puts $fid "module use --append $modpath.2
+module load --tag=foo:bar bar/1
+module load --tag=bar:foo qux/1"
+close $fid
+set fid [open $collhome/resetvariantcoll w]
+puts $fid "{$headercompattag}module use --append $modpath.3
+module load variant/3.0 bar=val2
+module load --tag=foo:keep-loaded tag/8.0 -bar +foo
+module load --tag=bar:auto-loaded:keep-loaded foo/1.0
+module load keep/1.0"
+close $fid
+set fid [open $collhome/resetempty w]
+puts $fid {}
+close $fid
+
+
+#
+# no difference with initial __purge__ environment
+#
+
+setenv_var MODULES_RESET_TARGET_STATE __purge__
+
+# 1 modulepath used
+testouterr_cmd sh stash OK $warn_nostash
+
+# no modulepath
+unsetenv_path_var MODULEPATH
+testouterr_cmd sh stash OK $warn_nostash
+
+# 1 super-sticky loaded modules
+setenv_path_var MODULEPATH $modpath.2
+setenv_loaded_module [list bar/1] [list $modpath.2/bar/1]
+setenv_var __MODULES_LMTAG bar/1&super-sticky
+setenv_var __MODULES_LMEXTRATAG bar/1&super-sticky
+testouterr_cmd sh stash OK $warn_nostash
+testouterr_cmd sh {stash --force} OK $warn_nostash
+
+# 1 super-sticky and 1 sticky loaded modules
+setenv_path_var MODULEPATH $modpath.2
+setenv_loaded_module [list bar/1 qux/1] [list $modpath.2/bar/1 $modpath.2/qux/1]
+setenv_var __MODULES_LMTAG bar/1&super-sticky:qux/1&super-sticky
+setenv_var __MODULES_LMEXTRATAG bar/1&super-sticky:qux/1&super-sticky
+testouterr_cmd sh stash OK $warn_nostash
+
+
+#
+# no difference with initial __init__ environment
+#
+
+setenv_var MODULES_RESET_TARGET_STATE __init__
+unsetenv_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMEXTRATAG
+
+# no initial environment defined / no loaded environment
+unsetenv_var __MODULES_LMINIT
+unsetenv_path_var MODULEPATH
+unsetenv_loaded_module
+testouterr_cmd sh stash OK $warn_nostash
+setenv_var __MODULES_LMINIT {}
+testouterr_cmd sh stash OK $warn_nostash
+unsetenv_var __MODULES_LMINIT
+
+# same tags between current and initial environment but listed in different order
+setenv_var __MODULES_LMINIT "module use --append $modpath.2:module load --tag=foo<bar bar/1:module load --tag=bar<foo qux/1"
+setenv_path_var MODULEPATH $modpath.2
+setenv_loaded_module [list bar/1 qux/1] [list $modpath.2/bar/1 $modpath.2/qux/1]
+setenv_var __MODULES_LMTAG bar/1&bar&foo:qux/1&foo&bar
+setenv_var __MODULES_LMEXTRATAG bar/1&bar&foo:qux/1&foo&bar
+testouterr_cmd sh stash OK $warn_nostash
+
+# same tags between current and initial environment but listed in different order (modules with variant)
+setenv_var TESTSUITE_TAG_OPT coll49
+setenv_var TESTSUITE_KEEP_LOADED coll49
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_var __MODULES_LMINIT "module use --append $modpath.3:module load variant/3.0 bar=val2:module load --tag=foo<keep-loaded tag/8.0 -bar +foo:module load --tag=bar<auto-loaded<keep-loaded foo/1.0:module load keep/1.0"
+setenv_path_var MODULEPATH $modpath.3
+setenv_var __MODULES_LMVARIANT variant/3.0&bar|val2|0|0:tag/8.0&bar|0|1|0&foo|1|1|0
+setenv_var __MODULES_LMPREREQ keep/1.0&foo/1.0
+setenv_loaded_module [list variant/3.0 tag/8.0 foo/1.0 keep/1.0] [list $modpath.3/variant/3.0 $modpath.3/tag/8.0 $modpath.3/foo/1.0 $modpath.3/keep/1.0] [list foo/1.0]
+setenv_var __MODULES_LMTAG tag/8.0&keep-loaded&foo:foo/1.0&bar&keep-loaded&auto-loaded
+setenv_var __MODULES_LMEXTRATAG tag/8.0&foo:foo/1.0&bar
+testouterr_cmd sh stash OK $warn_nostash
+unsetenv_var __MODULES_LMVARIANT
+unsetenv_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMINIT
+unsetenv_var TESTSUITE_KEEP_LOADED
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+unsetenv_var TESTSUITE_TAG_OPT
+
+# same tags between current and initial environment but regular tags are not saved (modules with variant)
+setenv_var TESTSUITE_TAG_OPT coll49
+setenv_var TESTSUITE_KEEP_LOADED coll49
+setenv_var TESTSUITE_STASH coll49
+setenv_var MODULES_COLLECTION_PIN_TAG 0
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_var __MODULES_LMINIT "module use --append $modpath.3:module load variant/3.0 bar=val2:module load --tag=foo<keep-loaded tag/8.0 -bar +foo:module load --tag=bar<auto-loaded<keep-loaded foo/1.0:module load keep/1.0"
+setenv_path_var MODULEPATH $modpath.3
+setenv_var __MODULES_LMVARIANT variant/3.0&bar|val2|0|0:tag/8.0&bar|0|1|0&foo|1|1|0
+setenv_var __MODULES_LMPREREQ keep/1.0&foo/1.0
+setenv_loaded_module [list variant/3.0 tag/8.0 foo/1.0 keep/1.0] [list $modpath.3/variant/3.0 $modpath.3/tag/8.0 $modpath.3/foo/1.0 $modpath.3/keep/1.0] [list foo/1.0]
+setenv_var __MODULES_LMTAG tag/8.0&keep-loaded&foo&qux:foo/1.0&bar&keep-loaded&auto-loaded&qux
+setenv_var __MODULES_LMEXTRATAG tag/8.0&foo:foo/1.0&bar
+testouterr_cmd sh stash OK $warn_nostash
+unsetenv_var __MODULES_LMVARIANT
+unsetenv_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMINIT
+unsetenv_var TESTSUITE_KEEP_LOADED
+unsetenv_var MODULES_COLLECTION_PIN_TAG
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+unsetenv_var TESTSUITE_TAG_OPT
+unsetenv_var TESTSUITE_STASH
+
+
+#
+# no difference with initial collection environment
+#
+
+setenv_var MODULES_RESET_TARGET_STATE resetcoll
+setenv_path_var MODULEPATH $modpath.2
+setenv_loaded_module [list bar/1 qux/1] [list $modpath.2/bar/1 $modpath.2/qux/1]
+unsetenv_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMEXTRATAG
+testouterr_cmd sh stash OK $warn_nostash
+
+# same tags between current and collection environment but listed in different order
+setenv_var MODULES_RESET_TARGET_STATE resettagcoll
+setenv_path_var MODULEPATH $modpath.2
+setenv_loaded_module [list bar/1 qux/1] [list $modpath.2/bar/1 $modpath.2/qux/1]
+setenv_var __MODULES_LMTAG bar/1&bar&foo:qux/1&foo&bar
+setenv_var __MODULES_LMEXTRATAG bar/1&bar&foo:qux/1&foo&bar
+testouterr_cmd sh stash OK $warn_nostash
+
+# same tags between current and initial environment but listed in different order (modules with variant)
+setenv_var MODULES_RESET_TARGET_STATE resetvariantcoll
+setenv_var TESTSUITE_TAG_OPT coll49
+setenv_var TESTSUITE_KEEP_LOADED coll49
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_path_var MODULEPATH $modpath.3
+setenv_var __MODULES_LMVARIANT variant/3.0&bar|val2|0|0:tag/8.0&bar|0|1|0&foo|1|1|0
+setenv_var __MODULES_LMPREREQ keep/1.0&foo/1.0
+setenv_loaded_module [list variant/3.0 tag/8.0 foo/1.0 keep/1.0] [list $modpath.3/variant/3.0 $modpath.3/tag/8.0 $modpath.3/foo/1.0 $modpath.3/keep/1.0] [list foo/1.0]
+setenv_var __MODULES_LMTAG tag/8.0&keep-loaded&foo:foo/1.0&bar&keep-loaded&auto-loaded
+setenv_var __MODULES_LMEXTRATAG tag/8.0&foo:foo/1.0&bar
+testouterr_cmd sh stash OK $warn_nostash
+unsetenv_var __MODULES_LMVARIANT
+unsetenv_var __MODULES_LMPREREQ
+unsetenv_var TESTSUITE_KEEP_LOADED
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+unsetenv_var TESTSUITE_TAG_OPT
+
+# same tags between current and initial environment but regular tags are not saved (modules with variant)
+setenv_var MODULES_RESET_TARGET_STATE resetvariantcoll
+setenv_var TESTSUITE_TAG_OPT coll49
+setenv_var TESTSUITE_KEEP_LOADED coll49
+setenv_var TESTSUITE_STASH coll49
+setenv_var MODULES_COLLECTION_PIN_TAG 0
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_path_var MODULEPATH $modpath.3
+setenv_var __MODULES_LMVARIANT variant/3.0&bar|val2|0|0:tag/8.0&bar|0|1|0&foo|1|1|0
+setenv_var __MODULES_LMPREREQ keep/1.0&foo/1.0
+setenv_loaded_module [list variant/3.0 tag/8.0 foo/1.0 keep/1.0] [list $modpath.3/variant/3.0 $modpath.3/tag/8.0 $modpath.3/foo/1.0 $modpath.3/keep/1.0] [list foo/1.0]
+setenv_var __MODULES_LMTAG tag/8.0&keep-loaded&foo&qux:foo/1.0&bar&keep-loaded&auto-loaded&qux
+setenv_var __MODULES_LMEXTRATAG tag/8.0&foo:foo/1.0&bar
+testouterr_cmd sh stash OK $warn_nostash
+unsetenv_var __MODULES_LMVARIANT
+unsetenv_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMINIT
+unsetenv_var TESTSUITE_KEEP_LOADED
+unsetenv_var MODULES_COLLECTION_PIN_TAG
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+unsetenv_var TESTSUITE_TAG_OPT
+unsetenv_var TESTSUITE_STASH
+
+
+#
+# something to stash then reset to __purge__ environment
+#
+
+setenv_var MODULES_RESET_TARGET_STATE __purge__
+
+# 2 loaded modules
+setenv_path_var MODULEPATH $modpath.2
+setenv_loaded_module [list bar/1 qux/1] [list $modpath.2/bar/1 $modpath.2/qux/1]
+unsetenv_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMEXTRATAG
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+set stashcont "module use --append $modpath.2
+module load bar/1
+module load qux/1\n"
+set tserr [msg_unload qux/1]\n[msg_unload bar/1]
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+# collection target defined
+setenv_var MODULES_COLLECTION_TARGET target
+setenv_path_var MODULEPATH $modpath.2
+setenv_loaded_module [list bar/1] [list $modpath.2/bar/1]
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+set tserr [msg_unload bar/1]
+set stashcont "module use --append $modpath.2
+module load bar/1\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashtargetcollglob $stashcont
+delete_last_stash_coll
+unsetenv_var MODULES_COLLECTION_TARGET
+
+# 1 super-sticky and 1 sticky loaded modules
+setenv_path_var MODULEPATH $modpath.2
+setenv_loaded_module [list bar/1 qux/1] [list $modpath.2/bar/1 $modpath.2/qux/1]
+setenv_var __MODULES_LMTAG bar/1&super-sticky:qux/1&sticky
+setenv_var __MODULES_LMEXTRATAG bar/1&super-sticky:qux/1&sticky
+set ans [list]
+lappend ans [list set LOADEDMODULES bar/1]
+lappend ans [list set _LMFILES_ $modpath.2/bar/1]
+lappend ans [list set __MODULES_LMTAG bar/1&super-sticky]
+lappend ans [list set __MODULES_LMEXTRATAG bar/1&super-sticky]
+lappend ans [list ERR]
+set stashcont "${headercompattag}module use --append $modpath.2
+module load --tag=super-sticky bar/1
+module load --tag=sticky qux/1\n"
+set tserr [msg_unload {qux/1 <S>} $err_stickyunloadf]\n\n[msg_unload {bar/1 <sS>} $err_superstickyunload]
+testouterrfileglob_cmd sh {stash --force} $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+# empty environment
+unsetenv_path_var MODULEPATH
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMEXTRATAG
+testouterr_cmd sh stash OK $warn_nostash
+
+# inconsistent environment
+setenv_path_var MODULEPATH $modpath.3
+setenv_loaded_module [list reset/1] [list $modpath.3/reset/1]
+setenv_var __MODULES_LMPREREQ reset/1&foo/1.0
+testouterr_cmd sh stash ERR $err_save_unsat
+unsetenv_path_var MODULEPATH
+unsetenv_loaded_module
+
+
+#
+# something to stash then reset to __init__ environment
+#
+
+setenv_var MODULES_RESET_TARGET_STATE __init__
+
+# no initial environment defined
+setenv_path_var MODULEPATH $modpath.2
+setenv_loaded_module [list bar/1 qux/1] [list $modpath.2/bar/1 $modpath.2/qux/1]
+unsetenv_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMEXTRATAG
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset MODULEPATH]
+set tserr [msg_unload qux/1]\n[msg_unload bar/1]
+set stashcont "module use --append $modpath.2
+module load bar/1
+module load qux/1\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+# different load order
+setenv_var __MODULES_LMINIT "module use --append $modpath.2:module load qux/1:module load bar/1"
+set tserr [msg_unload qux/1]\n[msg_unload bar/1]\n[msg_load qux/1]\n[msg_load bar/1]
+set ans [list]
+lappend ans [list set _LMFILES_ $modpath.2/qux/1:$modpath.2/bar/1]
+lappend ans [list set LOADEDMODULES qux/1:bar/1]
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+# collection target defined
+setenv_var MODULES_COLLECTION_TARGET target
+testouterrfileglob_cmd sh stash $ans $tserr $stashtargetcollglob $stashcont
+delete_last_stash_coll
+unsetenv_var MODULES_COLLECTION_TARGET
+
+# tag in init env, not in current env
+setenv_var __MODULES_LMINIT "module use --append $modpath.2:module load --tag=foo bar/1:module load qux/1"
+set ans [list]
+lappend ans [list set __MODULES_LMEXTRATAG bar/1&foo]
+lappend ans [list set __MODULES_LMTAG bar/1&foo]
+set tserr [msg_tag {bar/1 <foo>}]
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+# tag in current env, not in init env
+setenv_var __MODULES_LMINIT "module use --append $modpath.2:module load bar/1:module load qux/1"
+setenv_var __MODULES_LMTAG bar/1&foo
+setenv_var __MODULES_LMEXTRATAG bar/1&foo
+set ans [list]
+lappend ans [list unset __MODULES_LMEXTRATAG]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_tag {bar/1}]
+set stashcont "${headercompattag}module use --append $modpath.2
+module load --tag=foo bar/1
+module load qux/1\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+# different tags between current and init envs
+setenv_var __MODULES_LMINIT "module use --append $modpath.2:module load --tag=bar bar/1:module load qux/1"
+setenv_var __MODULES_LMTAG bar/1&foo
+setenv_var __MODULES_LMEXTRATAG bar/1&foo
+set ans [list]
+lappend ans [list set __MODULES_LMEXTRATAG bar/1&bar]
+lappend ans [list set __MODULES_LMTAG bar/1&bar]
+set tserr [msg_tag {bar/1 <bar>}]
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+# different tags between current and init envs (with module variants
+# and specific auto-loaded/keep-loaded tags)
+setenv_var TESTSUITE_TAG_OPT coll49
+setenv_var TESTSUITE_KEEP_LOADED coll49
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_var MODULES_COLLECTION_PIN_TAG 0
+
+setenv_var __MODULES_LMINIT "module use --append $modpath.3:module load variant/3.0 bar=val2:module load --tag=foo<keep-loaded tag/8.0 -bar +foo:module load --tag=bar<auto-loaded<keep-loaded foo/1.0:module load keep/1.0"
+setenv_path_var MODULEPATH $modpath.3
+setenv_var __MODULES_LMVARIANT variant/3.0&bar|val2|0|0:tag/8.0&bar|0|1|0&foo|1|1|0
+setenv_var __MODULES_LMPREREQ keep/1.0&foo/1.0
+unsetenv_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMEXTRATAG
+setenv_loaded_module [list variant/3.0 tag/8.0 foo/1.0 keep/1.0] [list $modpath.3/variant/3.0 $modpath.3/tag/8.0 $modpath.3/foo/1.0 $modpath.3/keep/1.0] [list foo/1.0]
+
+set ans [list]
+lappend ans [list set __MODULES_LMEXTRATAG tag/8.0&foo:foo/1.0&bar]
+lappend ans [list set __MODULES_LMTAG tag/8.0&foo&keep-loaded:foo/1.0&auto-loaded&bar&keep-loaded]
+set tserr [msg_tag {tag/8.0{-bar:+foo} <foo:kL>}]\n[msg_tag {foo/1.0 <aL:bar:kL>}]
+set stashcont "${headercompattag}module use --append $modpath.3
+module load variant/3.0 bar=val2
+module load tag/8.0 -bar +foo
+module load --tag=auto-loaded foo/1.0
+module load keep/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+setenv_var __MODULES_LMTAG variant/3.0&bar&foo:foo/1.0&auto-loaded:keep/1.0&bar&foo
+setenv_var __MODULES_LMEXTRATAG variant/3.0&bar&foo:keep/1.0&bar&foo
+# message with no tag for 1st and 4th module, as their extra tag from env are removed
+set tserr [msg_tag variant/3.0{bar=val2}]\n[msg_tag {tag/8.0{-bar:+foo} <foo:kL>}]\n[msg_tag {foo/1.0 <aL:bar:kL>}]\n[msg_tag keep/1.0]
+set stashcont "${headercompattag}module use --append $modpath.3
+module load --tag=bar:foo variant/3.0 bar=val2
+module load tag/8.0 -bar +foo
+module load --tag=auto-loaded foo/1.0
+module load --tag=bar:foo keep/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+setenv_var __MODULES_LMTAG variant/3.0&bar&foo:foo/1.0&auto-loaded:keep/1.0&foo
+setenv_var __MODULES_LMEXTRATAG variant/3.0&bar
+set ans [list]
+lappend ans [list set __MODULES_LMEXTRATAG tag/8.0&foo:foo/1.0&bar]
+# foo tag is kept of 1st and 4th module as not set extra
+lappend ans [list set __MODULES_LMTAG keep/1.0&foo:variant/3.0&foo:tag/8.0&foo&keep-loaded:foo/1.0&auto-loaded&bar&keep-loaded]
+set tserr [msg_tag {variant/3.0{bar=val2} <foo>}]\n[msg_tag {tag/8.0{-bar:+foo} <foo:kL>}]\n[msg_tag {foo/1.0 <aL:bar:kL>}]
+setenv_var MODULES_COLLECTION_PIN_TAG 1
+set stashcont "${headercompattag}module use --append $modpath.3
+module load --tag=bar:foo variant/3.0 bar=val2
+module load tag/8.0 -bar +foo
+module load --tag=auto-loaded foo/1.0
+module load --tag=foo keep/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+setenv_var MODULES_COLLECTION_PIN_TAG 0
+set stashcont "${headercompattag}module use --append $modpath.3
+module load --tag=bar variant/3.0 bar=val2
+module load tag/8.0 -bar +foo
+module load --tag=auto-loaded foo/1.0
+module load keep/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+setenv_var __MODULES_LMTAG variant/3.0&bar&foo:foo/1.0&auto-loaded&bar&keep-loaded:keep/1.0&bar&foo
+setenv_var __MODULES_LMEXTRATAG variant/3.0&bar&foo:foo/1.0&bar:keep/1.0&bar&foo
+set ans [list]
+lappend ans [list set __MODULES_LMEXTRATAG foo/1.0&bar:tag/8.0&foo]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded&bar&keep-loaded:tag/8.0&foo&keep-loaded]
+set tserr [msg_tag variant/3.0{bar=val2}]\n[msg_tag {tag/8.0{-bar:+foo} <foo:kL>}]\n[msg_tag keep/1.0]
+set stashcont "${headercompattag}module use --append $modpath.3
+module load --tag=bar:foo variant/3.0 bar=val2
+module load tag/8.0 -bar +foo
+module load --tag=bar:auto-loaded:keep-loaded foo/1.0
+module load --tag=bar:foo keep/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+setenv_var __MODULES_LMTAG tag/8.0&bar&foo:foo/1.0&auto-loaded&bar&foo
+setenv_var __MODULES_LMEXTRATAG tag/8.0&bar
+set ans [list]
+# all tags are restored non extra, as loaded environment defines foo for 2nd
+# and 4th module is set non-extra
+lappend ans [list unset __MODULES_LMEXTRATAG]
+lappend ans [list set __MODULES_LMTAG tag/8.0&foo&keep-loaded:foo/1.0&auto-loaded&bar&foo&keep-loaded]
+set tserr [msg_tag {tag/8.0{-bar:+foo} <foo:kL>}]\n[msg_tag {foo/1.0 <aL:bar:foo:kL>}]
+setenv_var MODULES_COLLECTION_PIN_TAG 1
+set stashcont "${headercompattag}module use --append $modpath.3
+module load variant/3.0 bar=val2
+module load --tag=bar:foo tag/8.0 -bar +foo
+module load --tag=auto-loaded:bar:foo foo/1.0
+module load keep/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+setenv_var MODULES_COLLECTION_PIN_TAG 0
+set stashcont "${headercompattag}module use --append $modpath.3
+module load variant/3.0 bar=val2
+module load --tag=bar tag/8.0 -bar +foo
+module load --tag=auto-loaded foo/1.0
+module load keep/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+setenv_var __MODULES_LMTAG tag/8.0&bar&foo:foo/1.0&auto-loaded&bar&foo
+setenv_var __MODULES_LMEXTRATAG tag/8.0&bar&foo
+set ans [list]
+lappend ans [list set __MODULES_LMEXTRATAG tag/8.0&foo]
+lappend ans [list set __MODULES_LMTAG tag/8.0&foo&keep-loaded:foo/1.0&auto-loaded&bar&foo&keep-loaded]
+set tserr [msg_tag {tag/8.0{-bar:+foo} <foo:kL>}]\n[msg_tag {foo/1.0 <aL:bar:foo:kL>}]
+setenv_var MODULES_COLLECTION_PIN_TAG 1
+set stashcont "${headercompattag}module use --append $modpath.3
+module load variant/3.0 bar=val2
+module load --tag=bar:foo tag/8.0 -bar +foo
+module load --tag=auto-loaded:bar:foo foo/1.0
+module load keep/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+setenv_var MODULES_COLLECTION_PIN_TAG 0
+set stashcont "${headercompattag}module use --append $modpath.3
+module load variant/3.0 bar=val2
+module load --tag=bar:foo tag/8.0 -bar +foo
+module load --tag=auto-loaded foo/1.0
+module load keep/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+# 2nd module is set auto-loaded in env, not in collection
+# and 3rd module is not set auto-loaded in env, whereas it is in collection
+setenv_var __MODULES_LMTAG tag/8.0&auto-loaded&foo&keep-loaded:foo/1.0&bar&keep-loaded
+setenv_var __MODULES_LMEXTRATAG tag/8.0&foo:foo/1.0&bar
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/3.0&bar|val2|0|0:tag/8.0&bar|0|1|0&foo|1|1|0]
+lappend ans [list set __MODULES_LMPREREQ keep/1.0&foo/1.0]
+lappend ans [list set _LMFILES_ $modpath.3/variant/3.0:$modpath.3/tag/8.0:$modpath.3/foo/1.0:$modpath.3/keep/1.0]
+lappend ans [list set LOADEDMODULES variant/3.0:tag/8.0:foo/1.0:keep/1.0]
+lappend ans [list set __MODULES_LMEXTRATAG tag/8.0&foo:foo/1.0&bar]
+lappend ans [list set __MODULES_LMTAG tag/8.0&foo&keep-loaded:foo/1.0&bar&auto-loaded&keep-loaded]
+set tserr [msg_unload keep/1.0]\n[msg_unload "foo/1.0 <bar:kL>"]\n[msg_unload "tag/8.0{-bar:+foo} <aL:foo:kL>"]\n[msg_load "tag/8.0{-bar:+foo} <foo:kL>"]\n[msg_load "foo/1.0 <aL:bar:kL>"]\n[msg_load keep/1.0]
+set stashcont "${headercompattag}module use --append $modpath.3
+module load variant/3.0 bar=val2
+module load --tag=foo:auto-loaded:keep-loaded tag/8.0 -bar +foo
+module load --tag=bar:keep-loaded foo/1.0
+module load keep/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+# restore module tagged hidden-loaded in env: 3rd module is auto-loaded, 2nd is not
+# 4th module is hidden-loaded as extra tag, so it will be removed
+# see messages in normal, verbose and verbose2 mode
+setenv_var __MODULES_LMTAG tag/8.0&hidden-loaded:foo/1.0&auto-loaded&hidden-loaded:keep/1.0&hidden-loaded
+setenv_var __MODULES_LMEXTRATAG keep/1.0&hidden-loaded
+set ans [list]
+lappend ans [list set __MODULES_LMEXTRATAG tag/8.0&foo:foo/1.0&bar]
+lappend ans [list set __MODULES_LMTAG tag/8.0&hidden-loaded&foo&keep-loaded:foo/1.0&auto-loaded&hidden-loaded&bar&keep-loaded]
+set tserr [msg_tag "tag/8.0{-bar:+foo} <foo:H:kL>"]\n[msg_tag keep/1.0]
+setenv_var MODULES_COLLECTION_PIN_TAG 1
+set stashcont "${headercompattag}module use --append $modpath.3
+module load variant/3.0 bar=val2
+module load --tag=hidden-loaded tag/8.0 -bar +foo
+module load --tag=auto-loaded:hidden-loaded foo/1.0
+module load --tag=hidden-loaded keep/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+testouterrfileglob_cmd sh {stash -v} $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+set tserr [msg_tag "tag/8.0{-bar:+foo} <foo:H:kL>"]\n[msg_tag "foo/1.0 <aL:bar:H:kL>"]\n[msg_tag keep/1.0]
+testouterrfileglob_cmd sh {stash -vv} $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+setenv_var MODULES_COLLECTION_PIN_TAG 0
+
+# keep-loaded tag defined by module-tag in modulerc
+setenv_var TESTSUITE_TAG_OPT coll49keep
+setenv_var TESTSUITE_KEEP_LOADED coll49keep
+setenv_var __MODULES_LMTAG variant/3.0&bar&foo:foo/1.0&auto-loaded&keep-loaded:keep/1.0&bar&foo
+setenv_var __MODULES_LMEXTRATAG variant/3.0&bar&foo:keep/1.0&bar&foo
+set ans [list]
+lappend ans [list set __MODULES_LMEXTRATAG tag/8.0&foo:foo/1.0&bar]
+lappend ans [list set __MODULES_LMTAG tag/8.0&foo&keep-loaded:foo/1.0&auto-loaded&keep-loaded&bar]
+set tserr [msg_tag variant/3.0{bar=val2}]\n[msg_tag {tag/8.0{-bar:+foo} <foo:kL>}]\n[msg_tag {foo/1.0 <aL:bar:kL>}]\n[msg_tag keep/1.0]
+set stashcont "${headercompattag}module use --append $modpath.3
+module load --tag=bar:foo variant/3.0 bar=val2
+module load tag/8.0 -bar +foo
+module load --tag=auto-loaded:keep-loaded foo/1.0
+module load --tag=bar:foo keep/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+# module-forbid defined in modulerc for 3rd collection module
+unsetenv_var __MODULES_LMPREREQ
+setenv_loaded_module [list variant/3.0 tag/8.0] [list $modpath.3/variant/3.0 $modpath.3/tag/8.0]
+setenv_var __MODULES_LMTAG tag/8.0&foo&keep-loaded
+setenv_var __MODULES_LMEXTRATAG tag/8.0&foo
+setenv_var TESTSUITE_TAG_OPT coll49forb
+setenv_var TESTSUITE_KEEP_LOADED coll49forb
+set tserr [err_accessdenied foo/1.0]\n\n[msg_load keep/1.0 [err_accessdenied foo/1.0] [err_reqlo foo/1.0]]
+set stashcont "${headercompattag}module use --append $modpath.3
+module load variant/3.0 bar=val2
+module load --tag=foo:keep-loaded tag/8.0 -bar +foo\n"
+testouterrfileglob_cmd sh stash ERR $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+# same tags between current and initial environment but regular tags are not saved in init env then pin tag enabled (modules with variant)
+setenv_var TESTSUITE_TAG_OPT coll49
+setenv_var TESTSUITE_KEEP_LOADED coll49
+setenv_var TESTSUITE_STASH coll49
+setenv_var MODULES_COLLECTION_PIN_TAG 1
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_var __MODULES_LMINIT "module use --append $modpath.3:module load variant/3.0 bar=val2:module load --tag=foo<keep-loaded tag/8.0 -bar +foo:module load --tag=bar<auto-loaded<keep-loaded foo/1.0:module load keep/1.0"
+setenv_path_var MODULEPATH $modpath.3
+setenv_var __MODULES_LMVARIANT variant/3.0&bar|val2|0|0:tag/8.0&bar|0|1|0&foo|1|1|0
+setenv_var __MODULES_LMPREREQ keep/1.0&foo/1.0
+setenv_loaded_module [list variant/3.0 tag/8.0 foo/1.0 keep/1.0] [list $modpath.3/variant/3.0 $modpath.3/tag/8.0 $modpath.3/foo/1.0 $modpath.3/keep/1.0] [list foo/1.0]
+setenv_var __MODULES_LMTAG tag/8.0&keep-loaded&foo&qux:foo/1.0&bar&keep-loaded&auto-loaded&qux
+setenv_var __MODULES_LMEXTRATAG tag/8.0&foo:foo/1.0&bar
+set stashcont "${headercompattag}module use --append $modpath.3
+module load variant/3.0 bar=val2
+module load --tag=keep-loaded:foo:qux tag/8.0 -bar +foo
+module load --tag=bar:keep-loaded:auto-loaded:qux foo/1.0
+module load keep/1.0\n"
+# as pin tag is enabled after recording initial environment, it is not detected that
+# initial env and current env are the same, so a stash is created but no environment
+# change occurs when restoring initial environment
+testouterrfileglob_cmd sh stash OK {} $stashcollglob $stashcont
+delete_last_stash_coll
+
+unsetenv_var __MODULES_LMVARIANT
+unsetenv_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMINIT
+unsetenv_var TESTSUITE_KEEP_LOADED
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+unsetenv_var TESTSUITE_TAG_OPT
+unsetenv_var TESTSUITE_STASH
+
+
+# autoload evaluation in modulefiles
+setenv_path_var MODULEPATH $modpath.3
+setenv_loaded_module [list foo/1.0 reset/1] [list $modpath.3/foo/1.0 $modpath.3/reset/1]
+setenv_var __MODULES_LMPREREQ reset/1&foo/1.0
+setenv_var __MODULES_LMTAG foo/1.0&auto-loaded
+unsetenv_var __MODULES_LMEXTRATAG
+unsetenv_var __MODULES_LMVARIANT
+
+# initial environment = 1 modulepath, X loaded modules
+setenv_var __MODULES_LMINIT "module use --append $modpath.3:module load --tag=auto-loaded foo/1.0:module load foo/0.load"
+
+# autoload done with 'module load' in no-auto mode
+setenv_var TESTSUITE_RESET load1
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ foo/0.load&foo/1.0]
+lappend ans [list set _LMFILES_ $modpath.3/foo/1.0:$modpath.3/foo/0.load]
+lappend ans [list set LOADEDMODULES foo/1.0:foo/0.load]
+# auto-loaded foo/1.0 is not auto-unloaded by reset/1, as performed
+# during a restore or purge sub-command
+set tserr unload-1\n[msg_unload {reset/1}]\n[msg_load {foo/0.load}]
+set stashcont "${headercompattag}module use --append $modpath.3
+module load --tag=auto-loaded foo/1.0
+module load reset/1\n"
+testouterrfileglob_cmd sh {stash --auto} $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+testouterrfileglob_cmd sh {stash --no-auto} $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+# autoload done with 'module switch' in no-auto mode
+setenv_var TESTSUITE_RESET switch1
+testouterrfileglob_cmd sh {stash --auto} $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+testouterrfileglob_cmd sh {stash --no-auto} $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+unsetenv_var TESTSUITE_RESET
+unsetenv_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMTAG
+unsetenv_loaded_module
+
+
+# diff between current & init = modulepaths to unuse
+setenv_path_var MODULEPATH $modpath.3:$modpath.2
+setenv_loaded_module [list foo/1.0] [list $modpath.3/foo/1.0]
+setenv_var __MODULES_LMINIT "module use --append $modpath.3:module load foo/1.0"
+set ans [list]
+lappend ans [list set MODULEPATH $modpath.3]
+set tserr {}
+set stashcont "module use --append $modpath.3
+module use --append $modpath.2
+module load foo/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+# diff between current & init = modulepaths to use
+setenv_path_var MODULEPATH $modpath.3
+setenv_loaded_module [list foo/1.0] [list $modpath.3/foo/1.0]
+setenv_var __MODULES_LMINIT "module use --append $modpath.3:module use --append $modpath.2:module load foo/1.0"
+set ans [list]
+lappend ans [list set MODULEPATH $modpath.3:$modpath.2]
+set tserr {}
+set stashcont "module use --append $modpath.3
+module load foo/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+# diff between current & init = modules to load
+setenv_path_var MODULEPATH $modpath.3
+setenv_loaded_module [list foo/1.0] [list $modpath.3/foo/1.0]
+setenv_var __MODULES_LMINIT "module use --append $modpath.3:module load foo/1.0:module load bar/1.0"
+set ans [list]
+lappend ans [list set _LMFILES_ $modpath.3/foo/1.0:$modpath.3/bar/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0]
+set tserr [msg_load bar/1.0]
+set stashcont "module use --append $modpath.3
+module load foo/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+# empty environment and empty init environment
+setenv_var __MODULES_LMINIT {}
+unsetenv_path_var MODULEPATH
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMEXTRATAG
+testouterr_cmd sh stash OK $warn_nostash
+
+# empty environment and non-empty init environment
+setenv_var __MODULES_LMINIT "module use --append $modpath.3:module load foo/1.0"
+unsetenv_path_var MODULEPATH
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMEXTRATAG
+testouterr_cmd sh stash ERR $err_save_emptyenv
+unsetenv_var __MODULES_LMINIT
+
+# inconsistent environment
+setenv_var __MODULES_LMINIT "module use --append $modpath.3:module load foo/1.0"
+setenv_path_var MODULEPATH $modpath.3
+setenv_loaded_module [list reset/1] [list $modpath.3/reset/1]
+setenv_var __MODULES_LMPREREQ reset/1&foo/1.0
+testouterr_cmd sh stash ERR $err_save_unsat
+unsetenv_var __MODULES_LMINIT
+unsetenv_path_var MODULEPATH
+unsetenv_loaded_module
+
+
+#
+# something to stash then reset to collection environment
+#
+
+# collection target defined
+setenv_var MODULES_RESET_TARGET_STATE resettargetcoll
+setenv_var MODULES_COLLECTION_TARGET target
+setenv_path_var MODULEPATH $modpath.2
+setenv_loaded_module [list bar/1] [list $modpath.2/bar/1]
+set ans [list]
+lappend ans [list set _LMFILES_ $modpath.2/bar/1:$modpath.2/qux/1]
+lappend ans [list set LOADEDMODULES bar/1:qux/1]
+set tserr [msg_load {qux/1}]
+set stashcont "module use --append $modpath.2
+module load bar/1\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashtargetcollglob $stashcont
+delete_last_stash_coll
+unsetenv_var MODULES_COLLECTION_TARGET
+
+setenv_var MODULES_RESET_TARGET_STATE resetvariantcoll
+
+# different tags between current and init envs (with module variants
+# and specific auto-loaded/keep-loaded tags)
+setenv_var TESTSUITE_TAG_OPT coll49
+setenv_var TESTSUITE_KEEP_LOADED coll49
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_var MODULES_COLLECTION_PIN_TAG 0
+
+setenv_path_var MODULEPATH $modpath.3
+setenv_var __MODULES_LMVARIANT variant/3.0&bar|val2|0|0:tag/8.0&bar|0|1|0&foo|1|1|0
+setenv_var __MODULES_LMPREREQ keep/1.0&foo/1.0
+unsetenv_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMEXTRATAG
+setenv_loaded_module [list variant/3.0 tag/8.0 foo/1.0 keep/1.0] [list $modpath.3/variant/3.0 $modpath.3/tag/8.0 $modpath.3/foo/1.0 $modpath.3/keep/1.0] [list foo/1.0]
+
+set ans [list]
+lappend ans [list set __MODULES_LMEXTRATAG tag/8.0&foo:foo/1.0&bar]
+lappend ans [list set __MODULES_LMTAG tag/8.0&foo&keep-loaded:foo/1.0&auto-loaded&bar&keep-loaded]
+set tserr [msg_tag {tag/8.0{-bar:+foo} <foo:kL>}]\n[msg_tag {foo/1.0 <aL:bar:kL>}]
+set stashcont "${headercompattag}module use --append $modpath.3
+module load variant/3.0 bar=val2
+module load tag/8.0 -bar +foo
+module load --tag=auto-loaded foo/1.0
+module load keep/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+setenv_var __MODULES_LMTAG variant/3.0&bar&foo:foo/1.0&auto-loaded:keep/1.0&bar&foo
+setenv_var __MODULES_LMEXTRATAG variant/3.0&bar&foo:keep/1.0&bar&foo
+# message with no tag for 1st and 4th module, as their extra tag from env are removed
+set tserr [msg_tag variant/3.0{bar=val2}]\n[msg_tag {tag/8.0{-bar:+foo} <foo:kL>}]\n[msg_tag {foo/1.0 <aL:bar:kL>}]\n[msg_tag keep/1.0]
+set stashcont "${headercompattag}module use --append $modpath.3
+module load --tag=bar:foo variant/3.0 bar=val2
+module load tag/8.0 -bar +foo
+module load --tag=auto-loaded foo/1.0
+module load --tag=bar:foo keep/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+setenv_var __MODULES_LMTAG variant/3.0&bar&foo:foo/1.0&auto-loaded:keep/1.0&foo
+setenv_var __MODULES_LMEXTRATAG variant/3.0&bar
+set ans [list]
+lappend ans [list set __MODULES_LMEXTRATAG tag/8.0&foo:foo/1.0&bar]
+# foo tag is kept of 1st and 4th module as not set extra
+lappend ans [list set __MODULES_LMTAG keep/1.0&foo:variant/3.0&foo:tag/8.0&foo&keep-loaded:foo/1.0&auto-loaded&bar&keep-loaded]
+set tserr [msg_tag {variant/3.0{bar=val2} <foo>}]\n[msg_tag {tag/8.0{-bar:+foo} <foo:kL>}]\n[msg_tag {foo/1.0 <aL:bar:kL>}]
+setenv_var MODULES_COLLECTION_PIN_TAG 1
+set stashcont "${headercompattag}module use --append $modpath.3
+module load --tag=bar:foo variant/3.0 bar=val2
+module load tag/8.0 -bar +foo
+module load --tag=auto-loaded foo/1.0
+module load --tag=foo keep/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+setenv_var MODULES_COLLECTION_PIN_TAG 0
+set stashcont "${headercompattag}module use --append $modpath.3
+module load --tag=bar variant/3.0 bar=val2
+module load tag/8.0 -bar +foo
+module load --tag=auto-loaded foo/1.0
+module load keep/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+setenv_var __MODULES_LMTAG tag/8.0&bar&foo:foo/1.0&auto-loaded&bar&foo
+setenv_var __MODULES_LMEXTRATAG tag/8.0&bar
+set ans [list]
+# all tags are restored non extra, as loaded environment defines foo for 2nd
+# and 4th module is set non-extra
+lappend ans [list unset __MODULES_LMEXTRATAG]
+lappend ans [list set __MODULES_LMTAG tag/8.0&foo&keep-loaded:foo/1.0&auto-loaded&bar&foo&keep-loaded]
+set tserr [msg_tag {tag/8.0{-bar:+foo} <foo:kL>}]\n[msg_tag {foo/1.0 <aL:bar:foo:kL>}]
+setenv_var MODULES_COLLECTION_PIN_TAG 1
+set stashcont "${headercompattag}module use --append $modpath.3
+module load variant/3.0 bar=val2
+module load --tag=bar:foo tag/8.0 -bar +foo
+module load --tag=auto-loaded:bar:foo foo/1.0
+module load keep/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+setenv_var MODULES_COLLECTION_PIN_TAG 0
+set stashcont "${headercompattag}module use --append $modpath.3
+module load variant/3.0 bar=val2
+module load --tag=bar tag/8.0 -bar +foo
+module load --tag=auto-loaded foo/1.0
+module load keep/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+# 2nd module is set auto-loaded in env, not in collection
+# and 3rd module is not set auto-loaded in env, whereas it is in collection
+setenv_var __MODULES_LMTAG tag/8.0&auto-loaded&foo&keep-loaded:foo/1.0&bar&keep-loaded
+setenv_var __MODULES_LMEXTRATAG tag/8.0&foo:foo/1.0&bar
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/3.0&bar|val2|0|0:tag/8.0&bar|0|1|0&foo|1|1|0]
+lappend ans [list set __MODULES_LMPREREQ keep/1.0&foo/1.0]
+lappend ans [list set _LMFILES_ $modpath.3/variant/3.0:$modpath.3/tag/8.0:$modpath.3/foo/1.0:$modpath.3/keep/1.0]
+lappend ans [list set LOADEDMODULES variant/3.0:tag/8.0:foo/1.0:keep/1.0]
+lappend ans [list set __MODULES_LMEXTRATAG tag/8.0&foo:foo/1.0&bar]
+lappend ans [list set __MODULES_LMTAG tag/8.0&foo&keep-loaded:foo/1.0&bar&auto-loaded&keep-loaded]
+set tserr [msg_unload keep/1.0]\n[msg_unload "foo/1.0 <bar:kL>"]\n[msg_unload "tag/8.0{-bar:+foo} <aL:foo:kL>"]\n[msg_load "tag/8.0{-bar:+foo} <foo:kL>"]\n[msg_load "foo/1.0 <aL:bar:kL>"]\n[msg_load keep/1.0]
+set stashcont "${headercompattag}module use --append $modpath.3
+module load variant/3.0 bar=val2
+module load --tag=foo:auto-loaded:keep-loaded tag/8.0 -bar +foo
+module load --tag=bar:keep-loaded foo/1.0
+module load keep/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+# restore module tagged hidden-loaded in env: 3rd module is auto-loaded, 2nd is not
+# 4th module is hidden-loaded as extra tag, so it will be removed
+# see messages in normal, verbose and verbose2 mode
+setenv_var __MODULES_LMTAG tag/8.0&hidden-loaded:foo/1.0&auto-loaded&hidden-loaded:keep/1.0&hidden-loaded
+setenv_var __MODULES_LMEXTRATAG keep/1.0&hidden-loaded
+set ans [list]
+lappend ans [list set __MODULES_LMEXTRATAG tag/8.0&foo:foo/1.0&bar]
+lappend ans [list set __MODULES_LMTAG tag/8.0&hidden-loaded&foo&keep-loaded:foo/1.0&auto-loaded&hidden-loaded&bar&keep-loaded]
+set tserr [msg_tag "tag/8.0{-bar:+foo} <foo:H:kL>"]\n[msg_tag keep/1.0]
+setenv_var MODULES_COLLECTION_PIN_TAG 1
+set stashcont "${headercompattag}module use --append $modpath.3
+module load variant/3.0 bar=val2
+module load --tag=hidden-loaded tag/8.0 -bar +foo
+module load --tag=auto-loaded:hidden-loaded foo/1.0
+module load --tag=hidden-loaded keep/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+testouterrfileglob_cmd sh {stash -v} $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+set tserr [msg_tag "tag/8.0{-bar:+foo} <foo:H:kL>"]\n[msg_tag "foo/1.0 <aL:bar:H:kL>"]\n[msg_tag keep/1.0]
+testouterrfileglob_cmd sh {stash -vv} $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+setenv_var MODULES_COLLECTION_PIN_TAG 0
+
+# keep-loaded tag defined by module-tag in modulerc
+setenv_var TESTSUITE_TAG_OPT coll49keep
+setenv_var TESTSUITE_KEEP_LOADED coll49keep
+setenv_var __MODULES_LMTAG variant/3.0&bar&foo:foo/1.0&auto-loaded&keep-loaded:keep/1.0&bar&foo
+setenv_var __MODULES_LMEXTRATAG variant/3.0&bar&foo:keep/1.0&bar&foo
+set ans [list]
+lappend ans [list set __MODULES_LMEXTRATAG tag/8.0&foo:foo/1.0&bar]
+lappend ans [list set __MODULES_LMTAG tag/8.0&foo&keep-loaded:foo/1.0&auto-loaded&keep-loaded&bar]
+set tserr [msg_tag variant/3.0{bar=val2}]\n[msg_tag {tag/8.0{-bar:+foo} <foo:kL>}]\n[msg_tag {foo/1.0 <aL:bar:kL>}]\n[msg_tag keep/1.0]
+set stashcont "${headercompattag}module use --append $modpath.3
+module load --tag=bar:foo variant/3.0 bar=val2
+module load tag/8.0 -bar +foo
+module load --tag=auto-loaded:keep-loaded foo/1.0
+module load --tag=bar:foo keep/1.0\n"
+testouterrfileglob_cmd sh stash $ans $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+# module-forbid defined in modulerc for 3rd collection module
+unsetenv_var __MODULES_LMPREREQ
+setenv_loaded_module [list variant/3.0 tag/8.0] [list $modpath.3/variant/3.0 $modpath.3/tag/8.0]
+setenv_var __MODULES_LMTAG tag/8.0&foo&keep-loaded
+setenv_var __MODULES_LMEXTRATAG tag/8.0&foo
+setenv_var TESTSUITE_TAG_OPT coll49forb
+setenv_var TESTSUITE_KEEP_LOADED coll49forb
+set tserr [err_accessdenied foo/1.0]\n\n[msg_load keep/1.0 [err_accessdenied foo/1.0] [err_reqlo foo/1.0]]
+set stashcont "${headercompattag}module use --append $modpath.3
+module load variant/3.0 bar=val2
+module load --tag=foo:keep-loaded tag/8.0 -bar +foo\n"
+testouterrfileglob_cmd sh stash ERR $tserr $stashcollglob $stashcont
+delete_last_stash_coll
+
+# same tags between current and initial environment but regular tags are not saved in init env then pin tag enabled (modules with variant)
+setenv_var TESTSUITE_TAG_OPT coll49
+setenv_var TESTSUITE_KEEP_LOADED coll49
+setenv_var TESTSUITE_STASH coll49
+setenv_var MODULES_COLLECTION_PIN_TAG 1
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_path_var MODULEPATH $modpath.3
+setenv_var __MODULES_LMVARIANT variant/3.0&bar|val2|0|0:tag/8.0&bar|0|1|0&foo|1|1|0
+setenv_var __MODULES_LMPREREQ keep/1.0&foo/1.0
+setenv_loaded_module [list variant/3.0 tag/8.0 foo/1.0 keep/1.0] [list $modpath.3/variant/3.0 $modpath.3/tag/8.0 $modpath.3/foo/1.0 $modpath.3/keep/1.0] [list foo/1.0]
+setenv_var __MODULES_LMTAG tag/8.0&keep-loaded&foo&qux:foo/1.0&bar&keep-loaded&auto-loaded&qux
+setenv_var __MODULES_LMEXTRATAG tag/8.0&foo:foo/1.0&bar
+set stashcont "${headercompattag}module use --append $modpath.3
+module load variant/3.0 bar=val2
+module load --tag=keep-loaded:foo:qux tag/8.0 -bar +foo
+module load --tag=bar:keep-loaded:auto-loaded:qux foo/1.0
+module load keep/1.0\n"
+# as pin tag is enabled after recording collection environment, it is not detected that
+# collection env and current env are the same, so a stash is created but no environment
+# change occurs when restoring collection environment
+testouterrfileglob_cmd sh stash OK {} $stashcollglob $stashcont
+delete_last_stash_coll
+
+unsetenv_var __MODULES_LMVARIANT
+unsetenv_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMINIT
+unsetenv_var TESTSUITE_KEEP_LOADED
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+unsetenv_var MODULES_COLLECTION_PIN_TAG
+unsetenv_var TESTSUITE_TAG_OPT
+unsetenv_var TESTSUITE_STASH
+
+
+#
+# odd collection to restore
+#
+
+# collection to restore does not exist
+setenv_var MODULES_RESET_TARGET_STATE unknown
+setenv_path_var MODULEPATH $modpath.3
+setenv_loaded_module [list foo/1.0 bar/1.0] [list $modpath.3/foo/1.0 $modpath.3/bar/1.0]
+set tserr [err_coll_notfound unknown]
+testouterr_cmd sh stash ERR $tserr
+
+# collection to restore cannot be read
+# cannot test access if cannot change file permission
+if {!$is_file_perms_editable} {
+    send_user "\tskipping access tests as file permissions cannot be changed\n"
+# cannot test access if superuser privileges are in use
+} elseif {$tcl_platform(user) eq "root"} {
+    send_user "\tskipping access tests as tests are run by superuser\n"
+# cannot test access if restricted file permissions have no effect
+} elseif {$is_locked_dir_file_readable && $is_locked_file_readable} {
+    send_user "\tskipping access tests as locked files or directories are still readable\n"
+} else {
+    setenv_var MODULES_RESET_TARGET_STATE resetcoll
+    setenv_path_var MODULEPATH $modpath.3
+    setenv_loaded_module [list foo/1.0 bar/1.0] [list $modpath.3/foo/1.0 $modpath.3/bar/1.0]
+
+
+    change_file_perms $collhome/resetcoll ugo-rx
+    set tserr [err_permdenied $collhome/resetcoll]
+    testouterr_cmd sh stash ERR $tserr
+    restore_file_perms $collhome/resetcoll
+}
+
+# collection to restore is empty
+setenv_var MODULES_RESET_TARGET_STATE resetempty
+setenv_path_var MODULEPATH $modpath.3
+setenv_loaded_module [list foo/1.0 bar/1.0] [list $modpath.3/foo/1.0 $modpath.3/bar/1.0]
+set tserr [err_coll_notvalid resetempty]
+testouterr_cmd sh stash ERR $tserr
+
+# empty environment and empty collection environment
+setenv_var MODULES_RESET_TARGET_STATE resetempty
+unsetenv_path_var MODULEPATH
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMEXTRATAG
+set tserr [err_coll_notvalid resetempty]
+testouterr_cmd sh stash ERR $tserr
+
+# empty environment and non-empty collection environment
+setenv_var MODULES_RESET_TARGET_STATE resetcoll
+unsetenv_path_var MODULEPATH
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMEXTRATAG
+testouterr_cmd sh stash ERR $err_save_emptyenv
+
+# inconsistent environment
+setenv_var MODULES_RESET_TARGET_STATE resetcoll
+setenv_path_var MODULEPATH $modpath.3
+setenv_loaded_module [list reset/1] [list $modpath.3/reset/1]
+setenv_var __MODULES_LMPREREQ reset/1&foo/1.0
+testouterr_cmd sh stash ERR $err_save_unsat
+unsetenv_var __MODULES_LMINIT
+unsetenv_path_var MODULEPATH
+unsetenv_loaded_module
+
+
+#
+#  Cleanup
+#
+
+file delete $collhome/resetcoll
+file delete $collhome/resettargetcoll.target
+file delete $collhome/resettagcoll
+file delete $collhome/resetvariantcoll
+file delete $collhome/resetempty
+catch {
+    foreach fpath [get_all_stash_colls] {
+        send_user "\tdeleting $fpath\n"
+        file delete $fpath
+    }
+}
+file delete $collhome
+reset_test_env
