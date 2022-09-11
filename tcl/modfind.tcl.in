@@ -484,10 +484,13 @@ proc getLoadedModulePropertyList {prop {filter_empty 1}} {
 
             lappend res_list $subres_list
          }
-
       } else {
          # ignore empty element
          if {$elt ne {} || !$filter_empty} {
+            # unserialize content of env variable if map translation set
+            if {[info exists unserialize_map]} {
+               set elt [string map $unserialize_map $elt]
+            }
             lappend res_list $elt
          }
       }
