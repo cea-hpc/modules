@@ -264,7 +264,10 @@ proc getDiffBetweenList {list1 list2} {
 # different value and elements from arr2 not in arr1.
 # if notset_equals_empty is enabled, not-set element in array is equivalent to
 # element set to an empty value.
-proc getDiffBetweenArray {arrname1 arrname2 {notset_equals_empty 0}} {
+# if unordered_lists_compared is enabled, value of array element is considered
+# a list and difference between list entries is made (order insensitive)
+proc getDiffBetweenArray {arrname1 arrname2 {notset_equals_empty 0}\
+   {unordered_lists_compared 0}} {
    upvar $arrname1 arr1
    upvar $arrname2 arr2
    set notin2 [list]
@@ -282,8 +285,17 @@ proc getDiffBetweenArray {arrname1 arrname2 {notset_equals_empty 0}} {
             lappend diff $name
          }
       # element present in both arrays but with a different value
-      } elseif {$arr1($name) ne $arr2($name)} {
-         lappend diff $name
+      } elseif {!$unordered_lists_compared} {
+         # but with a different value
+         if {$arr1($name) ne $arr2($name)} {
+            lappend diff $name
+         }
+      } else {
+         # with a different value, not considering order
+         lassign [getDiffBetweenList $arr1($name) $arr2($name)] notin2 notin1
+         if {([llength $notin2] + [llength $notin1]) > 0} {
+            lappend diff $name
+         }
       }
    }
 
