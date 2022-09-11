@@ -347,6 +347,8 @@ proc getDiffBetweenCurEnvAndColl {collfile colldesc} {
    # get current loaded module list
    set curr_mod_list [getLoadedModulePropertyList name]
    set curr_nuasked_list [getTaggedLoadedModuleList auto-loaded]
+   # get current save tags of loaded modules
+   array set curr_tag_arr [getLoadedModuleWithVariantSaveTagArrayList]
 
    # determine what module to unload to restore collection from current
    # situation with preservation of the load order (asking for a modeq
@@ -358,9 +360,23 @@ proc getDiffBetweenCurEnvAndColl {collfile colldesc} {
    lassign [getMovementBetweenList $curr_path_list $coll_path_list] \
       path_to_unuse path_to_use
 
+   # indicate if loaded modules that matches modules in collection have
+   # different tags set
+   if {[llength $mod_to_load] == 0} {
+      # consider a not-set entry as an empty element when comparing collection
+      # and current environment tags. compare tags as unordered lists
+      lassign [getDiffBetweenArray curr_tag_arr coll_tag_arr 1 1] notincoll\
+         diff notincurr
+      set is_tags_diff [expr {[llength $diff] > 0}]
+   # if some module from collection are not yet loaded, consider there is a
+   # difference
+   } else {
+      set is_tags_diff 1
+   }
+
    return [list $coll_path_list $coll_mod_list $coll_tag_arrser\
       $coll_nuasked_list $mod_to_unload $mod_to_load $path_to_unuse\
-      $path_to_use]
+      $path_to_use $is_tags_diff]
 }
 
 # ;;; Local Variables: ***
