@@ -126,6 +126,8 @@ Modules 5.2.0 (not yet released)
   utilities.
 * Doc: describe :command:`script/mt` and :command:`script/mb` utilities in
   :ref:`CONTRIBUTING` guide.
+* Fix `ShellCheck`_ error, warning and info reports over all sh, bash and ksh
+  shell scripts. (fix issue #470 with contribution from Lukáš Zaoral)
 * Init: update profile script for sh-like shells to only source sh or bash
   initialization script when BASH environment variable is found set. (fix
   issue #473)
