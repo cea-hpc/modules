@@ -126,6 +126,9 @@ Modules 5.2.0 (not yet released)
   utilities.
 * Doc: describe :command:`script/mt` and :command:`script/mb` utilities in
   :ref:`CONTRIBUTING` guide.
+* Init: update profile script for sh-like shells to only source sh or bash
+  initialization script when BASH environment variable is found set. (fix
+  issue #473)
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 .. _ShellCheck: https://www.shellcheck.net/
