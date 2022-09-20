@@ -579,20 +579,10 @@ proc cmdModuleRestore {args} {
       set coll [lindex $args 0]
    }
 
-   if {$coll ne {__init__}} {
-      # get corresponding collection, raise error if it does not exist unless
-      # if no collection name has been provided
-      lassign [findCollections $coll exact $arg_provided] collfile colldesc
-
-      # if default collection does not exist and no collection name has been
-      # provided, restore initial environment
-      if {!$arg_provided && $collfile eq {}} {
-         set collfile __init__
-      }
-   } else {
-      set collfile $coll
-      set colldesc {}
-   }
+   # get corresponding collection, raise error if it does not exist unless
+   # if no collection name has been provided or if __init__
+   lassign [findCollections $coll exact [expr {!$arg_provided}]\
+      $arg_provided] collfile colldesc
 
    # forcibly enable implicit_default to restore colls saved in this mode
    setConf implicit_default 1
@@ -693,7 +683,7 @@ proc cmdModuleSaverm {{coll default}} {
 
    # get corresponding collection, raise error if it does not exist, but do
    # not check if collection is valid
-   lassign [findCollections $coll exact 1 0] collfile colldesc
+   lassign [findCollections $coll exact 0 1 0] collfile colldesc
 
    # attempt to delete specified collection
    if {[catch {
@@ -713,23 +703,17 @@ proc cmdModuleSaveshow {args} {
       set coll [lindex $args 0]
    }
 
-   if {$coll ne {__init__}} {
-      # get corresponding collection, raise error if it does not exist unless
-      # if no collection name has been provided
-      lassign [findCollections $coll exact $arg_provided] collfile colldesc
-
-      # if default collection does not exist and no collection name has been
-      # provided, restore initial environment
-      if {!$arg_provided && $collfile eq {}} {
-         set coll __init__
-      }
-   }
+   # get corresponding collection, raise error if it does not exist unless
+   # if no collection name has been provided or if __init__
+   lassign [findCollections $coll exact [expr {!$arg_provided}]\
+      $arg_provided] collfile colldesc
 
    # read specific __init__ collection from __MODULES_LMINIT env var
-   if {$coll eq {__init__}} {
+   if {$collfile eq {__init__}} {
       lassign [parseCollectionContent [getLoadedModulePropertyList init]]\
          coll_path_list coll_mod_list coll_tag_arrser
       set collfile {initial environment}
+      set coll __init__
    } else {
       lassign [readCollectionContent $collfile $colldesc] coll_path_list\
          coll_mod_list coll_tag_arrser

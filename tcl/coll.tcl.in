@@ -97,13 +97,18 @@ proc getSimplifiedLoadedModuleList {} {
 # return saved collections found in user directory which corresponds to
 # enabled collection target if any set. extract one collection specifically
 # when search mode is set to exact. only compute collection name if mode is
-# set to name
-proc findCollections {{coll *} {search glob} {errnomatch 0} {checkvalid 1}} {
+# set to name. translate collection name to __init__ if not found and
+# swap_by_init enabled.
+proc findCollections {{coll *} {search glob} {swap_by_init 0} {errnomatch 0}\
+   {checkvalid 1}} {
    # initialize description with collection name
    set colldesc $coll
 
    if {$coll eq {}} {
       reportErrorAndExit [getEmptyNameMsg collection]
+   } elseif {$coll eq {__init__}} {
+      set collfile $coll
+      set colldesc {}
    # is collection a filepath
    } elseif {[string first / $coll] > -1} {
       # collection target has no influence when
@@ -128,34 +133,45 @@ proc findCollections {{coll *} {search glob} {errnomatch 0} {checkvalid 1}} {
       reportErrorAndExit {HOME not defined}
    }
 
-   if {$search eq {glob}} {
-      # glob excludes by default files starting with "."
-      if {[catch {set clist [glob -nocomplain $collfile]} errMsg]} {
-         reportErrorAndExit "Cannot access collection directory.\n$errMsg"
-      } else {
-         set res {}
-         foreach cfile $clist {
-            if {[checkValidColl $cfile]} {
-               lappend res $cfile
+   switch -- $search {
+      glob {
+         # glob excludes by default files starting with "."
+         if {[catch {set clist [glob -nocomplain $collfile]} errMsg]} {
+            reportErrorAndExit "Cannot access collection directory.\n$errMsg"
+         } else {
+            set res {}
+            foreach cfile $clist {
+               if {[checkValidColl $cfile]} {
+                  lappend res $cfile
+               }
             }
          }
       }
-   } else {
-      # verify that file exists
-      if {$search eq {exact}} {
-         if {![file exists $collfile]} {
-            if {$errnomatch} {
-               reportErrorAndExit "Collection $colldesc cannot be found"
-            } else {
+      exact {
+         if {$coll ne {__init__}} {
+            # verify that file exists
+            if {![file exists $collfile]} {
+               if {$errnomatch} {
+                  reportErrorAndExit "Collection $colldesc cannot be found"
+               } else {
+                  set collfile {}
+               }
+            # error will be raised if collection not valid
+            } elseif {$checkvalid && ![checkValidColl $collfile\
+               $errnomatch]} {
                set collfile {}
             }
-         # error will be raised if collection no valid
-         } elseif {$checkvalid && ![checkValidColl $collfile $errnomatch]} {
-            set collfile {}
          }
+         if {$collfile eq {} && $swap_by_init} {
+            set collfile __init__
+            set colldesc {}
+         }
+         # return coll filename and its description for exact and name modes
+         set res [list $collfile $colldesc]
       }
-      # return coll filename and its description for exact and name modes
-      set res [list $collfile $colldesc]
+      name {
+         set res [list $collfile $colldesc]
+      }
    }
 
    return $res
