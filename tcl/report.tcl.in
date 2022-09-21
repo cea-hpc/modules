@@ -265,9 +265,9 @@ proc reportMsgRecord {header {hidden 0}} {
    # if hidden flag is enabled report only if verbosity >= verbose2
    } elseif {(!$hidden && ([isVerbosityLevel verbose] || ([isVerbosityLevel\
       normal] && ([ongoingCommandName restore] || [ongoingCommandName source]\
-      || [ongoingCommandName reset] || [ongoingCommandName stash]) && $recid\
-      eq [topState msgrecordid]))) || ($hidden && [isVerbosityLevel\
-      verbose2])} {
+      || [ongoingCommandName reset] || [ongoingCommandName stash] ||\
+      [ongoingCommandName stashpop]) && $recid eq [topState msgrecordid])))\
+      || ($hidden && [isVerbosityLevel verbose2])} {
       report $header
    }
 }
@@ -1778,7 +1778,7 @@ See 'module --help' to get available commands and options.}
 
 proc reportUsage {} {
    reportVersion
-   ##nagelfar ignore #101 Too long line
+   ##nagelfar ignore #102 Too long line
    report {Usage: module [options] [command] [args ...]
 
 Loading / Unloading commands:
@@ -1814,6 +1814,7 @@ Collection of modules handling commands:
                                     List all or matching saved collections
   is-saved        [collection ...]  Test if any of the collection(s) exists
   stash                             Save current environment and reset
+  stashpop        [stash]           Restore then remove stash collection
 
 Environment direct handling commands:
   prepend-path [-d c] var val [...] Prepend value to environment variable
