@@ -75,4 +75,47 @@ non-regression testsuite.
 By using current number of milliseconds we get a unique file name without the
 need to check existing stash file names.
 
+stashpop sub-command
+--------------------
+
+:subcmd:`stashpop` sub-command restore a stashed collection then delete this
+collection file.
+
+General properties:
+
+* Shortcut name: none
+* Accepted option: :option:`--force`, :option:`--auto`, :option:`--no-auto`
+* Expected number of argument: 0 or 1
+* Accept boolean variant specification: no
+* Parse module version specification: no
+* Fully read modulefile when checking validity: yes
+* Sub-command only called from top level: yes
+* Lead to modulefile evaluation: yes (``unload`` and ``load`` modes)
+
+``stashpop`` is equivalent to :subcmd:`restore stash-\<xxx\><restore>` then
+:subcmd:`saverm stash-\<xxx\><saverm>`.
+
+As it evaluates modules, ``--force``, ``--auto`` and ``--no-auto`` options can
+be set for ``stashpop`` sub-command. But, as for ``reset`` and ``stash``
+sub-commands these options should have no impact.
+
+The stash collection to restore can be specified as argument to ``stashpop``
+sub-command. Either as:
+
+* a stash index: 0 for the most recent stash, 1 for the one before it
+* a stash collection name (e.g., *stash-<milliseconds>*)
+
+Error is obtained and processing stops if:
+
+* stash index does not correspond to an existing stash collection (for
+  currently set collection target)
+* stash collection name does not correspond to an existing collection (for
+  currently set collection target)
+* stash collection exists but cannot be accessed
+* stash collection cannot be removed
+
+If stash collection to pop is not different than current environment,
+collection restore will not change a thing and stash collection will be
+removed.
+
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
