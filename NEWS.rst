@@ -133,6 +133,8 @@ Modules 5.2.0 (not yet released)
   issue #473)
 * Add :subcmd:`stash` sub-command to save current environment and restore
   initial one.
+* Add :subcmd:`stashpop` sub-command to restore stash collection then delete
+  this collection file.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 .. _ShellCheck: https://www.shellcheck.net/

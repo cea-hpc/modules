@@ -827,7 +827,7 @@ The following module sub-commands appeared on Modules 5.
 | 5.1        | :subcmd:`state`, :subcmd:`load-any`                             |
 +------------+-----------------------------------------------------------------+
 | 5.2        | :subcmd:`lint`, :subcmd:`mod-to-sh`, :subcmd:`reset`,           |
-|            | :subcmd:`stash`                                                 |
+|            | :subcmd:`stash`, :subcmd:`stashpop`                             |
 +------------+-----------------------------------------------------------------+
 
 :subcmd:`list`
