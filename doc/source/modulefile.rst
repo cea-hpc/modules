@@ -608,7 +608,8 @@ the *modulefile* is being loaded.
   *commandname* can be: ``load``, ``unload``, ``refresh``, ``reload``,
   ``source``, ``switch``, ``display``, ``avail``, ``aliases``, ``list``,
   ``whatis``, ``search``, ``purge``, ``restore``, ``help``, ``test``,
-  ``try-load``, ``load-any``, ``mod-to-sh``, ``reset`` or ``stash``.
+  ``try-load``, ``load-any``, ``mod-to-sh``, ``reset``, ``stash`` or
+  ``stashpop``.
 
   .. only:: html
 
