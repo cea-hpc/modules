@@ -2793,6 +2793,27 @@ proc cmdModuleStash {} {
 }
 
 proc cmdModuleStashpop {{stash 0}} {
+   # determine stash collection name from argument
+   if {[string match stash-* $stash]} {
+      set coll $stash
+   } elseif {[string is integer -strict $stash]} {
+      # filter collection from other target (especially if no target set)
+      set collfile [lindex [lsort -decreasing [findCollections stash-* glob\
+         0 0 1 1]] $stash]
+      if {$collfile eq {}} {
+         knerror "Invalid stash index '$stash'"
+      }
+      # extract collection name (without path and target extension)
+      set coll [file rootname [file tail $collfile]]
+   } else {
+      knerror "Invalid stash collection name '$stash'"
+   }
+
+   # restore stash collection environment state
+   cmdModuleRestore $coll
+
+   # delete stash collection file
+   cmdModuleSaverm $coll
 }
 
 # ;;; Local Variables: ***
