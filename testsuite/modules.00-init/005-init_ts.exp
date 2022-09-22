@@ -352,6 +352,14 @@ proc err_coll_notvalid {coll} {
     return "$::error_msgs: $coll is not a valid collection"
 }
 
+proc err_stash_index {idx} {
+    return "$::error_msgs: Invalid stash index '$idx'"
+}
+
+proc err_stash_name {name} {
+    return "$::error_msgs: Invalid stash collection name '$name'"
+}
+
 proc msg_moderr {msg cmdline modfile linenum {pad {}} {procname {}} {contact {}} {custom {}} {custom2 {while executing}}} {
     set linefile [expr {$procname ne {} || $linenum eq {} ? {} : " line $linenum"}]
     set errcontact [expr {$contact eq {} ? $::err_contactns : "Please contact <$contact>"}]
@@ -787,6 +795,21 @@ proc cmpversion {str1 str2} {
    } else {
       return 1
    }
+}
+
+proc create_stash_coll {content} {
+    set colldir $::env(HOME)/.module
+    if {![file exists $colldir]} {
+        file mkdir $colldir
+    }
+    set coll stash-[clock milliseconds]
+    if {[info exists ::env(MODULES_COLLECTION_TARGET)]} {
+        append coll .$::env(MODULES_COLLECTION_TARGET)
+    }
+    send_user "\tCreating stash collection $colldir/$coll\n"
+    set fid [open $colldir/$coll w]
+    puts $fid $content
+    close $fid
 }
 
 proc delete_last_stash_coll {} {
