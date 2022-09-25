@@ -98,9 +98,10 @@ proc getSimplifiedLoadedModuleList {} {
 # enabled collection target if any set. extract one collection specifically
 # when search mode is set to exact. only compute collection name if mode is
 # set to name. translate collection name to __init__ if not found and
-# swap_by_init enabled.
+# swap_by_init enabled. if no_other_target enabled, ensure no result from
+# other target are returned from glob search
 proc findCollections {{coll *} {search glob} {swap_by_init 0} {errnomatch 0}\
-   {checkvalid 1}} {
+   {checkvalid 1} {no_other_target 0}} {
    # initialize description with collection name
    set colldesc $coll
 
@@ -141,7 +142,11 @@ proc findCollections {{coll *} {search glob} {swap_by_init 0} {errnomatch 0}\
          } else {
             set res {}
             foreach cfile $clist {
-               if {[checkValidColl $cfile]} {
+               # test collection is from correct target or no target if
+               # no_other_target is enabled
+               set cfile_ext [string range [file extension $cfile] 1 end]
+               if {(!$no_other_target || $cfile_ext eq [getConf\
+                  collection_target]) && [checkValidColl $cfile]} {
                   lappend res $cfile
                }
             }
