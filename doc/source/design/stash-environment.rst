@@ -118,4 +118,37 @@ If stash collection to pop is not different than current environment,
 collection restore will not change a thing and stash collection will be
 removed.
 
+stashrm sub-command
+-------------------
+
+:subcmd:`stashrm` sub-command delete a stash collection file.
+
+General properties:
+
+* Shortcut name: none
+* Accepted option: none
+* Expected number of argument: 0 or 1
+* Accept boolean variant specification: no
+* Parse module version specification: no
+* Fully read modulefile when checking validity: yes
+* Sub-command only called from top level: yes
+* Lead to modulefile evaluation: no
+
+``stashrm`` is equivalent to :subcmd:`saverm stash-\<xxx\><saverm>`.
+
+The stash collection to delete can be specified as argument to ``stashrm``
+sub-command. Either as:
+
+* a stash index: 0 for the most recent stash, 1 for the one before it
+* a stash collection name (e.g., *stash-<milliseconds>*)
+
+Error is obtained and processing stops if:
+
+* stash index does not correspond to an existing stash collection (for
+  currently set collection target)
+* stash collection name does not correspond to an existing collection (for
+  currently set collection target)
+* stash collection exists but cannot be accessed
+* stash collection cannot be removed
+
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
