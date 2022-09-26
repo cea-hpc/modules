@@ -1,0 +1,295 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2022/09/25
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		stashrm
+#   Modulefiles:    foo, bar
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test stashrm sub-command
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+setenv_path_var MODULEPATH $mp
+
+set collhome $env(HOME)/.module
+set stashcollglob $collhome/stash-*
+
+set stash_basic_content "module use --append $mp
+module load foo/1.0
+module load bar/1.0\n"
+set stash_basic2_content "module use --append $mp
+module load bar/1.0\n"
+
+
+#
+# basic tests
+#
+
+testouterr_cmd sh stashrm ERR [err_stash_index 0]
+testouterr_cmd sh {stashrm 1} ERR [err_stash_index 1]
+
+create_stash_coll $stash_basic_content
+set last_stash_file [get_last_stash_coll]
+set tsfileerr "couldn't open \"$last_stash_file\": no such file or directory"
+testouterrfile_cmd sh stashrm OK {} $last_stash_file $tsfileerr
+
+create_stash_coll $stash_basic_content
+set last_stash_file [get_last_stash_coll]
+set last_stash [file tail $last_stash_file]
+set tsfileerr "couldn't open \"$last_stash_file\": no such file or directory"
+testouterrfile_cmd sh stashrm OK {} $last_stash_file $tsfileerr
+
+skip_if_quick_mode
+
+
+#
+# stash argument tests
+#
+
+# no .module dir
+file delete $collhome
+testouterr_cmd sh stashrm ERR [err_stash_index 0]
+
+# create regular collection file (not a stash one)
+file mkdir $collhome
+set fid [open $collhome/coll w]
+puts "module use --append $mp
+module load foo/1.0"
+close $fid
+
+# no stash collection
+testouterr_cmd sh stashrm ERR [err_stash_index 0]
+
+# empty argument
+testouterr_cmd sh "stashrm " ERR [err_stash_name {}]
+
+# negative index
+testouterr_cmd sh {stashrm -1} ERR [err_invopt -1]
+
+# large number
+testouterr_cmd sh {stashrm 123456789012345} ERR [err_stash_name 123456789012345]
+
+# index padded with space (no collection file)
+testouterr_cmd sh {stashrm \ 0\ } ERR [err_stash_index { 0 }]
+
+# index padded with space (collection file exists)
+create_stash_coll $stash_basic_content
+set last_stash_file [get_last_stash_coll]
+set last_stash [file tail $last_stash_file]
+set tsfileerr "couldn't open \"$last_stash_file\": no such file or directory"
+testouterrfile_cmd sh {stashrm \ 0\ } OK {} $last_stash_file $tsfileerr
+
+# create regular collection file (not a stash one) but with similar name
+set fid [open $collhome/stash w]
+puts "module use --append $mp
+module load foo/1.0"
+close $fid
+set fid [open $collhome/stash123456789 w]
+puts "module use --append $mp
+module load foo/1.0"
+close $fid
+
+# collection name that looks like stash collection
+testouterr_cmd sh {stashrm stash} ERR [err_stash_name stash]
+testouterr_cmd sh {stashrm stash123456789} ERR [err_stash_name stash123456789]
+
+# same tests but with files that do not exist
+file delete $collhome/stash
+file delete $collhome/stash123456789
+testouterr_cmd sh {stashrm stash} ERR [err_stash_name stash]
+testouterr_cmd sh {stashrm stash123456789} ERR [err_stash_name stash123456789]
+
+# different collection name (that does not exist)
+testouterr_cmd sh {stashrm other} ERR [err_stash_name other]
+# different collection name (that does exist)
+testouterr_cmd sh {stashrm coll} ERR [err_stash_name coll]
+
+
+#
+# stash order
+#
+
+create_stash_coll $stash_basic_content
+set first_stash_file [get_last_stash_coll]
+set first_stash [file tail $first_stash_file]
+after 2
+create_stash_coll $stash_basic2_content
+
+set tsfileerr "couldn't open \"$first_stash_file\": no such file or directory"
+testouterrfile_cmd sh {stashrm 1} OK {} $first_stash_file $tsfileerr
+
+create_stash_coll $stash_basic_content
+set last_stash_file [get_last_stash_coll]
+set last_stash [file tail $last_stash_file]
+set tsfileerr "couldn't open \"$last_stash_file\": no such file or directory"
+testouterrfile_cmd sh {stashrm 0} OK {} $last_stash_file $tsfileerr
+
+delete_last_stash_coll
+
+
+#
+# collection target
+#
+
+setenv_var MODULES_COLLECTION_TARGET foo
+create_stash_coll $stash_basic_content
+
+set last_stash_file [get_last_stash_coll]
+set last_stash [file tail $last_stash_file]
+set tsfileerr "couldn't open \"$last_stash_file\": no such file or directory"
+testouterrfile_cmd sh stashrm OK {} $last_stash_file $tsfileerr
+
+create_stash_coll $stash_basic_content
+set last_stash_file [get_last_stash_coll]
+set last_stash [file tail $last_stash_file]
+after 2
+create_stash_coll $stash_basic_content
+
+set tsfileerr "couldn't open \"$last_stash_file\": no such file or directory"
+testouterrfile_cmd sh {stashrm 1} OK {} $last_stash_file $tsfileerr
+
+# collection 0.foo remaining, changing collection target
+setenv_var MODULES_COLLECTION_TARGET bar
+testouterr_cmd sh stashrm ERR [err_stash_index 0]
+
+# collection 0.foo remaining, removing collection target
+unsetenv_var MODULES_COLLECTION_TARGET
+testouterr_cmd sh stashrm ERR [err_stash_index 0]
+
+setenv_var MODULES_COLLECTION_TARGET foo
+create_stash_coll $stash_basic_content
+
+# collection 0.foo and 1.foo exist, chanfing collection target
+setenv_var MODULES_COLLECTION_TARGET bar
+testouterr_cmd sh {stashrm 1} ERR [err_stash_index 1]
+
+# collection 0.foo and 1.foo exist, removing collection target
+unsetenv_var MODULES_COLLECTION_TARGET
+testouterr_cmd sh {stashrm 1} ERR [err_stash_index 1]
+
+setenv_var MODULES_COLLECTION_TARGET bar
+create_stash_coll $stash_basic2_content
+set last_stash_file [get_last_stash_coll]
+set last_stash [file tail $last_stash_file]
+setenv_var MODULES_COLLECTION_TARGET foo
+create_stash_coll $stash_basic_content
+
+# test collection from correct target is popped
+setenv_var MODULES_COLLECTION_TARGET bar
+set tsfileerr "couldn't open \"$last_stash_file\": no such file or directory"
+testouterrfile_cmd sh stashrm OK {} $last_stash_file $tsfileerr
+
+create_stash_coll $stash_basic2_content
+set first_stash_current_target_file [get_last_stash_coll]
+after 2
+create_stash_coll $stash_basic_content
+set last_stash_current_target_file [get_last_stash_coll]
+set last_stash_current_target_with_ext [file tail $last_stash_current_target_file]
+set last_stash_current_target [file rootname $last_stash_current_target_with_ext]
+setenv_var MODULES_COLLECTION_TARGET foo
+create_stash_coll $stash_basic_content
+set last_stash_foreign_target_file [get_last_stash_coll]
+set last_stash_foreign_target_with_ext [file tail $last_stash_foreign_target_file]
+set last_stash_foreign_target [file rootname $last_stash_foreign_target_with_ext]
+
+setenv_var MODULES_COLLECTION_TARGET bar
+set tsfileerr "couldn't open \"$first_stash_current_target_file\": no such file or directory"
+testouterrfile_cmd sh {stashrm 1} OK {} $first_stash_current_target_file $tsfileerr
+
+# specifying valid stash collection name from current target
+testouterr_cmd sh "stashrm $last_stash_current_target_with_ext" ERR [err_coll_notfound $last_stash_current_target_with_ext bar]
+set tsfileerr "couldn't open \"$last_stash_current_target_file\": no such file or directory"
+testouterrfile_cmd sh "stashrm $last_stash_current_target" OK {} $last_stash_current_target_file $tsfileerr
+
+create_stash_coll $stash_basic2_content
+after 2
+create_stash_coll $stash_basic_content
+
+# specifying valid stash collection name from foreign target
+testouterr_cmd sh "stashrm $last_stash_foreign_target_with_ext" ERR [err_coll_notfound $last_stash_foreign_target_with_ext bar]
+testouterr_cmd sh "stashrm $last_stash_foreign_target" ERR [err_coll_notfound $last_stash_foreign_target bar]
+
+delete_last_stash_coll
+delete_last_stash_coll
+delete_last_stash_coll
+delete_last_stash_coll
+delete_last_stash_coll
+delete_last_stash_coll
+unsetenv_var MODULES_COLLECTION_TARGET
+
+
+#
+# errors
+#
+
+create_stash_coll $stash_basic_content
+set last_stash_file [get_last_stash_coll]
+set last_stash [file tail $last_stash_file]
+
+# no HOME set
+unsetenv_var HOME
+set tserr "$error_msgs: HOME not defined"
+testouterr_cmd sh stashrm ERR $tserr
+setenv_var HOME $ORIG_HOME
+
+# cannot test access if cannot change file permission
+if {!$is_file_perms_editable} {
+    send_user "\tskipping access tests as file permissions cannot be changed\n"
+# cannot test access if superuser privileges are in use
+} elseif {$tcl_platform(user) eq "root"} {
+    send_user "\tskipping access tests as tests are run by superuser\n"
+# cannot test access if restricted file permissions have no effect
+} elseif {$is_locked_dir_file_readable && $is_locked_file_readable} {
+    send_user "\tskipping access tests as locked files or directories are still readable\n"
+} else {
+
+    # cannot read collection directory
+    change_file_perms $collhome ugo-rwx
+    set tserr "$error_msgs: Cannot access collection directory.\n"
+    append tserr "  couldn't read directory \"$collhome/\": permission denied"
+    testouterr_cmd sh stashrm ERR $tserr
+    restore_file_perms $collhome
+
+    # cannot delete collection file
+    change_file_perms $collhome ugo-w
+    change_file_perms $collhome/$last_stash ugo-w
+    set tserr "$error_msgs: Collection $last_stash cannot be removed.\n"
+    append tserr "  error deleting \"$collhome/$last_stash\": permission denied"
+    testouterr_cmd sh stashrm ERR $tserr
+    restore_file_perms $collhome/$last_stash
+    restore_file_perms $collhome
+
+    # cannot read collection file
+    change_file_perms $collhome/$last_stash ugo-r
+    testouterr_cmd sh stashrm ERR [err_stash_index 0]
+    set tsfileerr "couldn't open \"$last_stash_file\": no such file or directory"
+    testouterrfile_cmd sh "stashrm $last_stash" OK {} $last_stash_file $tsfileerr
+}
+
+
+#
+#  Cleanup
+#
+
+file delete $collhome/coll
+catch {
+    foreach fpath [get_all_stash_colls] {
+        send_user "\tDeleting $fpath\n"
+        file delete $fpath
+    }
+}
+file delete $collhome
+
+reset_test_env

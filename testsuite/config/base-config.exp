@@ -1158,6 +1158,22 @@ proc testoutfile_cmd {test_shell cmd answer filepath ansfile} {
     }
 }
 
+proc testouterrfile_cmd {test_shell cmd answer anserr filepath ansfile} {
+    if {$test_shell eq "ALL"} {
+        global supported_shells
+        foreach shell $supported_shells {
+            testouterrfile_cmd $shell $cmd $answer $anserr $filepath $ansfile
+        }
+    } else {
+        _test_sub $test_shell "$cmd"
+        if { [ _test_out $test_shell "$cmd" "$answer" ]
+        &&   [ _test_err $test_shell "$cmd" "$anserr" ]
+        &&   [ _test_file $test_shell "$cmd" "$filepath" "$ansfile" ] } {
+            _test_ok $test_shell "$cmd"
+        }
+    }
+}
+
 proc testouterrfileglob_cmd {test_shell cmd answer anserr fileglob ansfile} {
     _test_sub $test_shell "$cmd"
     set filepath [lindex [lsort [glob $fileglob]] end]
