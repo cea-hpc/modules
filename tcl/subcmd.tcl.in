@@ -2820,6 +2820,17 @@ proc cmdModuleStashshow {{stash 0}} {
 }
 
 proc cmdModuleStashclear {} {
+   # get all stash collections (only from current target)
+   set collfile_list [findCollections stash-* glob 0 0 1 1]
+
+   # delete all stash collections starting from most recent
+   foreach collfile [lsort -decreasing $collfile_list] {
+      # extract collection name (without path and target extension)
+      set coll [file rootname [file tail $collfile]]
+
+      # delete stash collection file
+      cmdModuleSaverm $coll
+   }
 }
 
 # ;;; Local Variables: ***
