@@ -151,4 +151,37 @@ Error is obtained and processing stops if:
 * stash collection exists but cannot be accessed
 * stash collection cannot be removed
 
+stashshow sub-command
+---------------------
+
+:subcmd:`stashshow` sub-command displays the content of a stash collection file.
+
+General properties:
+
+* Shortcut name: none
+* Accepted option: none
+* Expected number of argument: 0 or 1
+* Accept boolean variant specification: no
+* Parse module version specification: no
+* Fully read modulefile when checking validity: yes
+* Sub-command only called from top level: yes
+* Lead to modulefile evaluation: no
+
+``stashshow`` is equivalent to :subcmd:`saveshow stash-\<xxx\><saveshow>`.
+
+The stash collection to display can be specified as argument to ``stashshow``
+sub-command. Either as:
+
+* a stash index: 0 for the most recent stash, 1 for the one before it
+* a stash collection name (e.g., *stash-<milliseconds>*)
+
+Error is obtained and processing stops if:
+
+* stash index does not correspond to an existing stash collection (for
+  currently set collection target)
+* stash collection name does not correspond to an existing collection (for
+  currently set collection target)
+* stash collection exists but cannot be accessed
+* stash collection cannot be removed
+
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
