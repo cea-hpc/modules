@@ -2017,6 +2017,23 @@ Module Sub-Commands
 
     .. versionadded:: 5.2
 
+.. subcmd:: stashshow [stash]
+
+ :subcmd:`Display<saveshow>` the content of *stash* collection file.
+
+ *stash* is either a full stash collection name (i.e.,
+ *stash-<unix_millis_timestamp>*) or a stash index. Most recent stash
+ collection has index *0*, *1* is the one before it. When no *stash* is given
+ the latest stash collection is assumed (that is stash index *0*).
+
+ If :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix equivalent to the
+ value of this variable will be appended to the stash collection file name to
+ display.
+
+ .. only:: html
+
+    .. versionadded:: 5.2
+
 .. subcmd:: state [name]
 
  Gets :file:`modulecmd.tcl` states. Reports the currently set value
@@ -3078,11 +3095,12 @@ ENVIRONMENT
 
  When a target is set, only the collections made for that target are
  available to the :subcmd:`restore`, :subcmd:`savelist`, :subcmd:`saveshow`,
- :subcmd:`saverm`, :subcmd:`stash`, :subcmd:`stashpop` and :subcmd:`stashrm`
- sub-commands. Saving a collection registers the target footprint by suffixing
- the collection filename with ``.$MODULES_COLLECTION_TARGET``. The collection
- target is not involved when collection is specified as file path on the
- :subcmd:`saveshow`, :subcmd:`restore` and :subcmd:`save` sub-commands.
+ :subcmd:`saverm`, :subcmd:`stash`, :subcmd:`stashpop`, :subcmd:`stashshow`,
+ and :subcmd:`stashrm` sub-commands. Saving a collection registers the target
+ footprint by suffixing the collection filename with
+ ``.$MODULES_COLLECTION_TARGET``. The collection target is not involved when
+ collection is specified as file path on the :subcmd:`saveshow`,
+ :subcmd:`restore` and :subcmd:`save` sub-commands.
 
  For example, the :envvar:`MODULES_COLLECTION_TARGET` variable may be set with
  results from commands like :command:`lsb_release`, :command:`hostname`,

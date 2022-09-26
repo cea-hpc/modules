@@ -136,6 +136,7 @@ Modules 5.2.0 (not yet released)
 * Add :subcmd:`stashpop` sub-command to restore stash collection then delete
   this collection file.
 * Add :subcmd:`stashrm` sub-command to delete stash collection file.
+* Add :subcmd:`stashshow` sub-command to display stash collection file.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 .. _ShellCheck: https://www.shellcheck.net/
