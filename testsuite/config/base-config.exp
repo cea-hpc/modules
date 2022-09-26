@@ -952,6 +952,23 @@ proc _test_file {test_shell cmd filepath answer} {
 	}
 }
 
+proc _test_globlist {test_shell cmd fileglob answer} {
+	global verbose
+
+    set globlist [lsort [glob -nocomplain $fileglob]]
+
+	if { $globlist ne $answer } {
+		fail "$cmd ($test_shell)"
+		set ol [string length $globlist]
+		set oe [string length $answer]
+		send_user "GLOBLIST\[$ol\]: '$globlist'#>\n"
+		send_user "EXP\[$oe\]: '$answer'#>\n"
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
 proc _test_exit {test_shell cmd exitval} {
 	global comp_exit
 	global verbose
@@ -1181,6 +1198,26 @@ proc testouterrfileglob_cmd {test_shell cmd answer anserr fileglob ansfile} {
     &&   [ _test_err $test_shell "$cmd" "$anserr" ]
     &&   [ _test_file $test_shell "$cmd" "$filepath" "$ansfile" ] } {
         _test_ok $test_shell "$cmd"
+    }
+}
+
+#
+# Test procedure for full text matching with stdout, stderr and glob file list
+#
+
+proc testouterrgloblist_cmd {test_shell cmd answer anserr fileglob ansglob} {
+    if {$test_shell eq {ALL}} {
+        global supported_shells
+        foreach shell $supported_shells {
+            testouterrgloblist_cmd $shell $cmd $answer $anserr $fileglob $ansglob
+        }
+    } else {
+        _test_sub $test_shell $cmd
+        if { [ _test_out $test_shell $cmd $answer ]
+        &&   [ _test_err $test_shell $cmd $anserr ]
+        &&   [ _test_globlist $test_shell $cmd $fileglob $ansglob ] } {
+            _test_ok $test_shell $cmd
+        }
     }
 }
 

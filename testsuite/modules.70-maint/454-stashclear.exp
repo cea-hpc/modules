@@ -1,0 +1,161 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2022/09/26
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		stashclear
+#   Modulefiles:    foo, bar
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test stashclear sub-command
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+setenv_path_var MODULEPATH $mp
+
+set collhome $env(HOME)/.module
+set stashcollglob $collhome/stash-*
+
+set stash_basic_content "module use --append $mp
+module load foo/1.0
+module load bar/1.0\n"
+set stash_basic2_content "module use --append $mp
+module load bar/1.0\n"
+
+
+#
+# basic tests
+#
+
+testouterrgloblist_cmd sh stashclear OK {} $stashcollglob {}
+
+create_stash_coll $stash_basic_content
+testouterrgloblist_cmd sh stashclear OK {} $stashcollglob {}
+
+create_stash_coll $stash_basic_content
+create_stash_coll $stash_basic_content
+testouterrgloblist_cmd sh stashclear OK {} $stashcollglob {}
+
+skip_if_quick_mode
+
+
+#
+# collection target
+#
+
+setenv_var MODULES_COLLECTION_TARGET foo
+create_stash_coll $stash_basic_content
+
+testouterrgloblist_cmd sh stashclear OK {} $stashcollglob {}
+
+create_stash_coll $stash_basic_content
+set last_stash_file [get_last_stash_coll]
+
+# collection 0.foo remaining, changing collection target
+setenv_var MODULES_COLLECTION_TARGET bar
+testouterrgloblist_cmd sh stashclear OK {} $stashcollglob $last_stash_file
+
+# collection 0.foo remaining, removing collection target
+unsetenv_var MODULES_COLLECTION_TARGET
+testouterrgloblist_cmd sh stashclear OK {} $stashcollglob $last_stash_file
+
+setenv_var MODULES_COLLECTION_TARGET bar
+create_stash_coll $stash_basic2_content
+setenv_var MODULES_COLLECTION_TARGET foo
+create_stash_coll $stash_basic_content
+set foo_stash_file_list [list $last_stash_file [get_last_stash_coll]]
+
+# test collection from correct target is popped
+setenv_var MODULES_COLLECTION_TARGET bar
+testouterrgloblist_cmd sh stashclear OK {} $stashcollglob $foo_stash_file_list
+
+delete_last_stash_coll
+delete_last_stash_coll
+unsetenv_var MODULES_COLLECTION_TARGET
+
+
+#
+# errors
+#
+
+create_stash_coll $stash_basic_content
+set previous_stash_file [get_last_stash_coll]
+set previous_stash [file tail $previous_stash_file]
+lappend stash_coll_list $previous_stash_file
+after 2
+create_stash_coll $stash_basic_content
+lappend stash_coll_list [get_last_stash_coll]
+after 2
+create_stash_coll $stash_basic_content
+set last_stash_file [get_last_stash_coll]
+set last_stash [file tail $last_stash_file]
+lappend stash_coll_list $last_stash_file
+set stash_coll_list [lsort $stash_coll_list]
+
+# no HOME set
+unsetenv_var HOME
+set tserr "$error_msgs: HOME not defined"
+testouterr_cmd sh stashclear ERR $tserr
+setenv_var HOME $ORIG_HOME
+
+# cannot test access if cannot change file permission
+if {!$is_file_perms_editable} {
+    send_user "\tskipping access tests as file permissions cannot be changed\n"
+# cannot test access if superuser privileges are in use
+} elseif {$tcl_platform(user) eq "root"} {
+    send_user "\tskipping access tests as tests are run by superuser\n"
+# cannot test access if restricted file permissions have no effect
+} elseif {$is_locked_dir_file_readable && $is_locked_file_readable} {
+    send_user "\tskipping access tests as locked files or directories are still readable\n"
+} else {
+
+    # cannot read collection directory
+    change_file_perms $collhome ugo-rwx
+    set tserr "$error_msgs: Cannot access collection directory.\n"
+    append tserr "  couldn't read directory \"$collhome/\": permission denied"
+    testouterr_cmd sh stashclear ERR $tserr
+    restore_file_perms $collhome
+
+    # cannot delete collection file
+    change_file_perms $collhome ugo-w
+    change_file_perms $previous_stash_file ugo-w
+    set tserr "$error_msgs: Collection $last_stash cannot be removed.\n"
+    append tserr "  error deleting \"$last_stash_file\": permission denied"
+    testouterrgloblist_cmd sh stashclear ERR $tserr $stashcollglob $stash_coll_list
+    restore_file_perms $previous_stash_file
+    restore_file_perms $collhome
+
+    # cannot read collection file
+    change_file_perms $last_stash_file ugo-r
+    # collection that cannot be read is not returned in valid list, so no attempt
+    # to delete this file
+    testouterrgloblist_cmd sh stashclear OK {} $stashcollglob $last_stash_file
+
+    delete_last_stash_coll
+}
+
+
+#
+#  Cleanup
+#
+
+file delete $collhome/coll
+catch {
+    foreach fpath [get_all_stash_colls] {
+        send_user "\tDeleting $fpath\n"
+        file delete $fpath
+    }
+}
+file delete $collhome
+
+reset_test_env
