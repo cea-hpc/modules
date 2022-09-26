@@ -184,4 +184,30 @@ Error is obtained and processing stops if:
 * stash collection exists but cannot be accessed
 * stash collection cannot be removed
 
+stashclear sub-command
+----------------------
+
+:subcmd:`stashclear` sub-command delete all stash collection files.
+
+General properties:
+
+* Shortcut name: none
+* Accepted option: none
+* Expected number of argument: 0
+* Accept boolean variant specification: no
+* Parse module version specification: no
+* Fully read modulefile when checking validity: yes
+* Sub-command only called from top level: yes
+* Lead to modulefile evaluation: no
+
+``stashclear`` removes stash collection of currently defined
+``collection_target``.
+
+``stashclear`` proceeds without a confirmation message and does not output
+the list of stash collection removed, even in verbose mode.
+
+Error is obtained and processing stops if:
+
+* a stash collection cannot be removed
+
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
