@@ -1982,6 +1982,16 @@ Module Sub-Commands
 
     .. versionadded:: 5.2
 
+.. subcmd:: stashclear
+
+ Remove all stash collection files of current :mconfig:`collection_target`. If
+ no collection target is currently set, remove stash collection files without
+ a target suffix.
+
+ .. only:: html
+
+    .. versionadded:: 5.2
+
 .. subcmd:: stashpop [stash]
 
  :subcmd:`Restore<restore>` *stash* collection then delete corresponding
