@@ -210,4 +210,38 @@ Error is obtained and processing stops if:
 
 * a stash collection cannot be removed
 
+stashlist sub-command
+---------------------
+
+:subcmd:`stashlist` sub-command lists all stash collection files.
+
+General properties:
+
+* Shortcut name: none
+* Accepted option: :option:`--terse`, :option:`--long`, :option:`--json`
+* Expected number of argument: 0
+* Accept boolean variant specification: no
+* Parse module version specification: no
+* Fully read modulefile when checking validity: yes
+* Sub-command only called from top level: yes
+* Lead to modulefile evaluation: no
+
+``stashlist`` is equivalent to :subcmd:`savelist stash-*<savelist>`.
+
+``stashlist`` lists stash collection of currently defined
+``collection_target``.
+
+Returned stash collections are listed in the reverse order (most recent
+collection first) and list index starts at 0. Index is this way consistent
+with stash index argument value that could be provided to ``stashpop``,
+``stashshow`` or ``stashrm`` sub-commands.
+
+``stashlist`` relies on ``savelist`` sub-command. A difference exists however:
+when no collection target is set, only the stash collections without a target
+defined are returned.
+
+Error is obtained and processing stops if:
+
+* stash collection exists but cannot be accessed
+
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
