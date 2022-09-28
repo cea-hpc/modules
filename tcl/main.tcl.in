@@ -108,7 +108,7 @@ proc parseModuleCommandName {command defaultcmd} {
       initlist initclear autoinit clear config help test prepend-path\
       append-path remove-path is-loaded is-saved is-used is-avail info-loaded\
       sh-to-mod edit try-load refresh state load-any lint mod-to-sh reset\
-      stash stashpop stashrm stashshow stashclear]}]
+      stash stashpop stashrm stashshow stashclear stashlist]}]
 
    reportDebug "(command=$command, cmdvalid=$cmdvalid, cmdempty=$cmdempty)"
    return [list $command $cmdvalid $cmdempty]
@@ -143,7 +143,8 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
          switch -glob -- $arg {
             -j - --json {
                # enable json output only on supported command
-               if {$cmd in [list avail savelist list search whatis]} {
+               if {$cmd in [list avail savelist stashlist list search\
+                  whatis]} {
                   setState report_format json
                   set show_oneperline 0
                   set show_mtime 0
@@ -374,7 +375,7 @@ proc module {command args} {
          remove-path - is-loaded - is-saved - is-used - is-avail -\
          info-loaded - clear - sh-to-mod - edit - refresh - source - state -\
          lint - mod-to-sh - reset - stash - stashpop - stashrm - stashshow -\
-         stashclear {
+         stashclear - stashlist {
             knerror "${msgprefix}Command '$command' not supported$tryhelpmsg"
          }
       }
@@ -399,7 +400,7 @@ proc module {command args} {
          }
       }
       refresh - reload - aliases - purge - initlist - initclear - autoinit -\
-         reset - stash - stashclear {
+         reset - stash - stashclear - stashlist {
          if {[llength $args] != 0} {
             set argnberr 1
          }
@@ -735,6 +736,9 @@ proc module {command args} {
       }
       stashclear {
          cmdModuleStashclear
+      }
+      stashlist {
+         cmdModuleStashlist $show_oneperline $show_mtime
       }
       help {
          cmdModuleHelp {*}$args
