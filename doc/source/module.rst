@@ -320,8 +320,9 @@ switches are accepted:
 
 .. option:: --json, -j
 
- Display :subcmd:`avail`, :subcmd:`list`, :subcmd:`savelist`, :subcmd:`whatis`
- and :subcmd:`search` output in JSON format.
+ Display :subcmd:`avail`, :subcmd:`list`, :subcmd:`savelist`,
+ :subcmd:`stashlist`, :subcmd:`whatis` and :subcmd:`search` output in JSON
+ format.
 
  .. only:: html
 
@@ -339,8 +340,8 @@ switches are accepted:
 
 .. option:: --long, -l
 
- Display :subcmd:`avail`, :subcmd:`list` and :subcmd:`savelist` output in long
- format.
+ Display :subcmd:`avail`, :subcmd:`list`, :subcmd:`savelist` and
+ :subcmd:`stashlist` output in long format.
 
 .. option:: --no-auto
 
@@ -465,8 +466,8 @@ switches are accepted:
 
 .. option:: --terse, -t
 
- Display :subcmd:`avail`, :subcmd:`list` and :subcmd:`savelist` output in
- short format.
+ Display :subcmd:`avail`, :subcmd:`list`, :subcmd:`savelist` and
+ :subcmd:`stashlist` output in short format.
 
 .. option:: --timer
 
@@ -1992,6 +1993,16 @@ Module Sub-Commands
 
     .. versionadded:: 5.2
 
+.. subcmd:: stashlist [-t|-l|-j]
+
+ List all stash collection files of current :mconfig:`collection_target`. If
+ no collection target is currently set, list stash collection files without a
+ target suffix.
+
+ .. only:: html
+
+    .. versionadded:: 5.2
+
 .. subcmd:: stashpop [stash]
 
  :subcmd:`Restore<restore>` *stash* collection then delete corresponding
@@ -3105,9 +3116,9 @@ ENVIRONMENT
 
  When a target is set, only the collections made for that target are
  available to the :subcmd:`restore`, :subcmd:`savelist`, :subcmd:`saveshow`,
- :subcmd:`saverm`, :subcmd:`stash`, :subcmd:`stashpop`, :subcmd:`stashshow`,
- and :subcmd:`stashrm` sub-commands. Saving a collection registers the target
- footprint by suffixing the collection filename with
+ :subcmd:`saverm`, :subcmd:`stash`, :subcmd:`stashpop`, :subcmd:`stashlist`,
+ :subcmd:`stashshow`, and :subcmd:`stashrm` sub-commands. Saving a collection
+ registers the target footprint by suffixing the collection filename with
  ``.$MODULES_COLLECTION_TARGET``. The collection target is not involved when
  collection is specified as file path on the :subcmd:`saveshow`,
  :subcmd:`restore` and :subcmd:`save` sub-commands.
