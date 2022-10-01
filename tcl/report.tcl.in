@@ -1350,7 +1350,7 @@ proc reportModules {search_queries header hsgrkey hstyle show_mtime show_idx\
    }
 
    # output formatted elements
-   displayElementList $header $hsgrkey $hstyle $one_per_line $show_idx\
+   displayElementList $header $hsgrkey $hstyle $one_per_line $show_idx 1\
       $display_list $len_list $max_len
 }
 
@@ -1396,11 +1396,11 @@ proc displaySeparatorLine {{title {}} {sgrkey {}}} {
 # get a list of elements and print them in a column or in a
 # one-per-line fashion
 proc displayElementList {header sgrkey hstyle one_per_line display_idx\
-   display_list {len_list {}} {max_len 0}} {
+   start_idx display_list {len_list {}} {max_len 0}} {
    set elt_cnt [llength $display_list]
    reportDebug "header=$header, sgrkey=$sgrkey, hstyle=$hstyle,\
       elt_cnt=$elt_cnt, max_len=$max_len, one_per_line=$one_per_line,\
-      display_idx=$display_idx"
+      display_idx=$display_idx, start_idx=$start_idx"
 
    # end proc if no element are to print
    if {$elt_cnt == 0} {
@@ -1425,7 +1425,7 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx\
    # display one element per line
    } elseif {$one_per_line} {
       if {$display_idx} {
-         set idx 1
+         set idx $start_idx
          foreach elt $display_list {
             append displist [format {%2d) %s } $idx $elt] \n
             incr idx
@@ -1542,7 +1542,7 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx\
             set index [expr {$col * $rows + $row}]
             if {$index < $elt_cnt} {
                if {$display_idx} {
-                  append displist [format "%2d) " [expr {$index +1}]]
+                  append displist [format "%2d) " [expr {$index +$start_idx}]]
                }
                # cannot use 'format' as strings may contain SGR codes
                append displist [lindex $display_list $index][string repeat\
@@ -1668,7 +1668,7 @@ proc displayKey {} {
       # display header
       report Key:
       # display key content
-      displayElementList noheader {} {} 0 0 $display_list $len_list $max_len
+      displayElementList noheader {} {} 0 0 0 $display_list $len_list $max_len
    }
 }
 
