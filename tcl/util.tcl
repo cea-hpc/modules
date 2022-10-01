@@ -313,6 +313,15 @@ proc getDiffBetweenArray {arrname1 arrname2 {notset_equals_empty 0}\
    return [list $notin2 $diff $notin1]
 }
 
+proc getCallingProcName {} {
+   if {[info level] > 2} {
+      set caller [lindex [info level -2] 0]
+   } else {
+      set caller {}
+   }
+   return $caller
+}
+
 # ;;; Local Variables: ***
 # ;;; mode:tcl ***
 # ;;; End: ***

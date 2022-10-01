@@ -29,11 +29,7 @@
 proc reportDebug {message {showcaller 1} {caller _undef_}} {
    # get caller name
    if {$caller eq {_undef_} && $showcaller} {
-      if {[info level] > 1} {
-         set caller [lindex [info level -1] 0]
-      } else {
-         set caller {}
-      }
+      set caller [getCallingProcName]
    }
    lappend ::errreport_buffer [list reportDebug $message $showcaller $caller]
 }
@@ -42,12 +38,11 @@ proc reportDebug {message {showcaller 1} {caller _undef_}} {
 proc __reportDebug {message {showcaller 1} {caller _undef_}} {
    # display active interp details if not the main one
    set prefix [currentState debug_msg_prefix]
+   if {$caller eq {_undef_} && $showcaller} {
+      set caller [getCallingProcName]
+   }
    # display caller name as prefix
-   if {$showcaller && $caller ne {} && ($caller ne {_undef_} || [info level]\
-      > 1)} {
-      if {$caller eq {_undef_}} {
-         set caller [lindex [info level -1] 0]
-      }
+   if {$showcaller && $caller ne {}} {
       append prefix "$caller: "
    }
    report [sgr db "DEBUG $prefix$message"] 0 1
@@ -136,8 +131,7 @@ proc reportTimer {message start_us stop_us} {
 
 # trace procedure execution start
 proc reportTraceExecEnter {cmdstring op} {
-   set caller [expr {[info level] > 1 ? [lindex [info level -1] 0] : {}}]
-   reportDebug $cmdstring 1 $caller
+   reportDebug $cmdstring 1 [getCallingProcName]
 }
 
 # time procedure execution duration
@@ -682,7 +676,7 @@ proc initErrorReport {} {
             initProcReportTrace isVerbosityLevel reportSeparateNextContent\
             getState setState unsetState lappendState lpopState currentState\
             depthState isStateDefined isStateEqual sgr getConf setConf\
-            unsetConf lappendConf]
+            unsetConf lappendConf getCallingProcName]
 
          foreach prc [info procs] {
             if {$prc ni $excl_prc_list} {
