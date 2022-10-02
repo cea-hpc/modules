@@ -749,25 +749,50 @@ proc cmdModuleSavelist {show_oneperline show_mtime search_match args} {
 
    reportDebug "list collections$targetdesc"
 
-   if {[llength $args] > 0} {
-      defineModEqProc [isIcase] 0
-      # match passed name against any part of collection names
-      set mtest [expr {{contains} in $search_match ? {matchin} : {match}}]
-      # prepare header message which depend if search is performed
-      set collmsg "Matching named collection list$targetdesc:"
+   # if only stash collection are expected, start result index at 0, sort
+   # results in reverse order (latest first) and ensure only collection from
+   # current target (and no-target if none set) are returned.
+   if {[getCallingProcName] eq {cmdModuleStashlist}} {
+      set start_idx 0
+      set sort_opts [list -dictionary -decreasing]
+      set find_no_other_target 1
+      set typedesc stash
+      # no icase match as stash collections are only lowercases
+      set icase 0
    } else {
-      set collmsg "Named collection list$targetdesc:"
+      set start_idx 1
+      set sort_opts [list -dictionary]
+      set find_no_other_target 0
+      set typedesc named
+      set icase [isIcase]
    }
 
-   foreach collfile [findCollections] {
+   if {[llength $args] > 0} {
+      defineModEqProc $icase 0
+      # match passed name against any part of collection names
+      set mtest [expr {{contains} in $search_match ? {matchin} : {match}}]
+   }
+
+   # prepare header message which depend if search is performed (no search
+   # considered if listing stash collections)
+   if {[llength $args] > 0 && $typedesc ne {stash}} {
+      set collmsg "Matching $typedesc collection list$targetdesc:"
+   } else {
+      set collmsg "[string totitle $typedesc] collection list$targetdesc:"
+   }
+
+   foreach collfile [findCollections * glob 0 0 1 $find_no_other_target] {
       # remove target suffix from names to display
       regsub $suffix$ [file tail $collfile] {} coll
       set coll_arr($coll) $collfile
    }
 
    # same header msg if no collection at all whether search is made or not
-   set nocollmsg [expr {![array exists coll_arr] ? "No named\
-      collection$targetdesc." : "No matching named collection$targetdesc."}]
+   if {![array exists coll_arr] || $typedesc eq {stash}} {
+      set nocollmsg "No $typedesc collection$targetdesc."
+   } else {
+      set nocollmsg "No matching $typedesc collection$targetdesc."
+   }
 
    # filter collection not matching any of the passed specification
    if {[llength $args] > 0} {
@@ -808,7 +833,7 @@ proc cmdModuleSavelist {show_oneperline show_mtime search_match args} {
       # prepare query to highlight
       set himatchmap [prepareMapToHightlightSubstr {*}$args]
 
-      foreach coll [lsort -dictionary [array names coll_arr]] {
+      foreach coll [lsort {*}$sort_opts [array names coll_arr]] {
          if {$json} {
             lappend display_list [formatListEltToJsonDisplay $coll target s\
                $colltarget 1 pathname s $coll_arr($coll) 1]
@@ -2834,6 +2859,7 @@ proc cmdModuleStashclear {} {
 }
 
 proc cmdModuleStashlist {show_oneperline show_mtime} {
+   cmdModuleSavelist $show_oneperline $show_mtime {} stash-*
 }
 
 # ;;; Local Variables: ***
