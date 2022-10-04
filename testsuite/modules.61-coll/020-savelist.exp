@@ -20,12 +20,11 @@
 #
 ##############################################################################
 
-set header_long "- Collection $modlin.- Last mod. $modlin"
-set header_no_coll $no_named_coll
-set header_target_no_coll "No named collection (for target \"$collemptytarget\")."
-set header_coll $named_coll
-set header_target_coll "Named collection list (for target \"$colltarget\"):"
-set header_target_coll_re "Named collection list \\(for target \"$colltarget\"\\):"
+set header_no_coll [msg_no_named_coll]
+set header_target_no_coll [msg_no_named_coll 0 $collemptytarget]
+set header_coll [msg_named_coll]
+set header_target_coll [msg_named_coll 0 $colltarget]
+set header_target_coll_re [escre $header_target_coll]
 set coll_list "$coll1\n$coll2\n$coll3\n$coll4f\n$coll6f\n$colld\ninfocmd\ninfocmdexp"
 set coll_list_idx " 1) $coll1   3) $coll3          5) $coll6f   7) infocmd     \n 2) $coll2   4) $coll4f   6) $colld        8) infocmdexp  "
 set lprops "\\s+\[0-9\/]{10} \[0-9:]{8}"
@@ -66,8 +65,8 @@ if {![info exists term_cols]} {
 testouterr_cmd "sh" "savelist --terse" "OK" "$header_coll\n$coll_list"
 testouterr_cmd "sh" "savelist -l --terse" "OK" "$header_coll\n$coll_list"
 testouterr_cmd "sh" "savelist" "OK" "$header_coll\n$coll_list_idx"
-testouterr_cmd_re "sh" "savelist --long" "OK" "$header_long\n$header_coll\n$coll_list_long"
-testouterr_cmd_re "sh" "savelist -t --long" "OK" "$header_long\n$header_coll\n$coll_list_long"
+testouterr_cmd_re "sh" "savelist --long" "OK" "$savelist_long_headerre\n$header_coll\n$coll_list_long"
+testouterr_cmd_re "sh" "savelist -t --long" "OK" "$savelist_long_headerre\n$header_coll\n$coll_list_long"
 
 # test effect of mcookie configuration
 setenv_var MODULES_MCOOKIE_CHECK eval
@@ -112,7 +111,7 @@ set env(MODULES_COLLECTION_TARGET) "$colltarget"
 # target has matching collection
 testouterr_cmd "sh" "savelist -t" "OK" "$header_target_coll\n$coll_target_list"
 testouterr_cmd "sh" "savelist" "OK" "$header_target_coll\n$coll_target_list_idx"
-testouterr_cmd_re "sh" "savelist -l" "OK" "$header_long\n$header_target_coll_re\n$coll_target_list_long"
+testouterr_cmd_re "sh" "savelist -l" "OK" "$savelist_long_headerre\n$header_target_coll_re\n$coll_target_list_long"
 
 
 #
