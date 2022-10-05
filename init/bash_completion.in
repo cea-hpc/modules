@@ -31,6 +31,13 @@ _module_savelist() {
         /:$/d;'
 }
 
+_module_stashlist() {
+    module stashlist --color=never -s -t 2>&1 | sed '
+        /No stash collection\.$/d;
+        /Stash collection list$/d;
+        /:$/d;'
+}
+
 _module_not_yet_loaded() {
     _module_avail "${1:-}" | sort | @SED_ERE@ "\%^(${LOADEDMODULES//:/|})$%d"
 }
@@ -68,6 +75,8 @@ _module() {
     aliases)  COMPREPLY=( $(compgen -W "@comp_aliases_opts@" -- "$cur") );;
     list|savelist)  COMPREPLY=( $(compgen -W "@comp_list_opts@" -- "$cur") );;
     stashlist)  COMPREPLY=( $(compgen -W "@comp_stashlist_opts@" -- "$cur") );;
+    stashpop|stashshow|stashrm)
+                    COMPREPLY=( $(compgen -W "$(_module_stashlist)" -- "$cur") );;
     clear)  COMPREPLY=( $(compgen -W "@comp_clear_opts@" -- "$cur") );;
     restore|save|saveshow|saverm|is-saved)
                     COMPREPLY=( $(compgen -W "$(_module_savelist)" -- "$cur") );;
@@ -89,7 +98,7 @@ _module() {
     apropos|keyword|search)
                     COMPREPLY=( $(compgen -W "@comp_search_opts@" -- "$cur") );;
     config|--reset) COMPREPLY=( $(compgen -W "@comp_config_opts@" -- "$cur") );;
-    -h|--help|-V|--version|purge|refresh|reload|sh-to-mod|source|state|reset|stash|stashclear|stashpop|stashrm|stashshow)
+    -h|--help|-V|--version|purge|refresh|reload|sh-to-mod|source|state|reset|stash|stashclear)
                     ;;
     append-path|prepend-path)
                     COMPREPLY=( $(compgen -W "@comp_path_opts@" -- "$cur") );;
@@ -128,6 +137,8 @@ if $(type -t ml >/dev/null); then
         aliases)  COMPREPLY=( $(compgen -W "@comp_aliases_opts@" -- "$cur") );;
         list|savelist)  COMPREPLY=( $(compgen -W "@comp_list_opts@" -- "$cur") );;
         stashlist)  COMPREPLY=( $(compgen -W "@comp_stashlist_opts@" -- "$cur") );;
+        stashpop|stashshow|stashrm)
+                    COMPREPLY=( $(compgen -W "$(_module_stashlist)" -- "$cur") );;
         clear)  COMPREPLY=( $(compgen -W "@comp_clear_opts@" -- "$cur") );;
         restore|save|saveshow|saverm|is-saved)
                         COMPREPLY=( $(compgen -W "$(_module_savelist)" -- "$cur") );;
@@ -149,7 +160,7 @@ if $(type -t ml >/dev/null); then
         apropos|keyword|search)
                         COMPREPLY=( $(compgen -W "@comp_search_opts@" -- "$cur") );;
         config|--reset) COMPREPLY=( $(compgen -W "@comp_config_opts@" -- "$cur") );;
-        -h|--help|-V|--version|purge|refresh|reload|sh-to-mod|source|state|reset|stash|stashclear|stashpop|stashrm|stashshow)
+        -h|--help|-V|--version|purge|refresh|reload|sh-to-mod|source|state|reset|stash|stashclear)
                         ;;
         append-path|prepend-path)
                         COMPREPLY=( $(compgen -W "@comp_path_opts@" -- "$cur") );;

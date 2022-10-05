@@ -45,6 +45,15 @@ function __fish_module_use_savelist --description 'Test if module command should
    return 1
 end
 
+function __fish_module_use_stashlist --description 'Test if module command should have stash collections as potential completion'
+   for i in (commandline -opc)
+      if contains -- $i stashpop stashrm stashshow
+         return 0
+      end
+   end
+   return 1
+end
+
 function __fish_module_use_config --description 'Test if module command should have configuration parameters as potential completion'
    for i in (commandline -opc)
       if contains -- $i config
@@ -61,6 +70,11 @@ complete -c module -n '__fish_module_use_initlist' -f -a "(module initlist --col
 complete -c module -n '__fish_module_use_savelist' -f -a "(module savelist --color=never -s -t 2>&1 | sed '\
    /No named collection\.\$/d; \
    /Named collection list\$/d; \
+   /:\$/d; \
+   /:ERROR:/d;')"
+complete -c module -n '__fish_module_use_stashlist' -f -a "(module stashlist --color=never -s -t 2>&1 | sed '\
+   /No stash collection\.\$/d; \
+   /Stash collection list\$/d; \
    /:\$/d; \
    /:ERROR:/d;')"
 complete -c module -n '__fish_module_use_config' -f -a "--dump-state --reset advanced_version_spec auto_handling avail_indepth avail_output avail_terse_output collection_pin_version collection_pin_tag collection_target color colors contact editor extended_default extra_siteconfig home icase implicit_default implicit_requirement list_output list_terse_output locked_configs mcookie_check mcookie_version_check ml nearly_forbidden_days pager protected_envvars quarantine_support rcfile redirect_output reset_target_state run_quarantine search_match set_shell_startup shells_with_ksh_fpath silent_shell_debug tag_abbrev tag_color_name tcl_linter term_background term_width unload_match_order variant_shortcut verbosity wa_277"

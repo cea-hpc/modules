@@ -14,6 +14,12 @@ alias _module_savelist '\\
         /Named collection list$/d; \\
         /:$/d; '"'"
 
+alias _module_stashlist '\\
+    @TCLSH@ "@libexecdir@/modulecmd.tcl" tcsh stashlist --color=never -s -t |& sed '"'"'\\
+        /No stash collection\.$/d; \\
+        /Stash collection list$/d; \\
+        /:$/d; '"'"
+
 alias _module_not_yet_loaded '\\
         mkfifo /tmp/modules_tcsh_completion.$$.p1 /tmp/modules_tcsh_completion.$$.p2 && \\
         ( _module_avail | sort >! /tmp/modules_tcsh_completion.$$.p1 & ); \\
@@ -86,9 +92,9 @@ complete module 'n/help/`_module_avail`/' \
         "n/stash/n/" \
         "n/stashclear/n/" \
         "n/stashlist/(@comp_stashlist_opts@)/" \
-        "n/stashpop/n/" \
-        "n/stashrm/n/" \
-        "n/stashshow/n/" \
+        'n/stashpop/`_module_stashlist`/' \
+        'n/stashrm/`_module_stashlist`/' \
+        'n/stashshow/`_module_stashlist`/' \
         "n/--reset/(@comp_config_opts@)/" \
         'n/-h/n/' \
         'n/--help/n/' \

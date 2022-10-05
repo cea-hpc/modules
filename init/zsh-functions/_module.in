@@ -20,6 +20,13 @@ _module_savelist() {
       /:$/d;'
 }
 
+_module_stashlist() {
+   module stashlist --color=never -s -t 2>&1 | sed '
+      /No stash collection\.$/d;
+      /Stash collection list$/d;
+      /:$/d;'
+}
+
 _module_not_yet_loaded() {
    _module_avail ${1:-} | sort | @SED_ERE@ "\%^(${LOADEDMODULES//:/|})$%d"
 }
@@ -46,6 +53,13 @@ _module_saved_colls() {
    saved_colls=(${$(_module_savelist)})
 
    _describe -t saved-colls 'saved collections' saved_colls && ret=0
+}
+
+_module_stash_colls() {
+   local -a stash_colls;
+   stash_colls=(${$(_module_stashlist)})
+
+   _describe -t stash-colls 'stash collections' stash_colls && ret=0
 }
 
 _module_notloaded_mods() {
@@ -229,6 +243,10 @@ _module() {
                   '(-l --long)'{-l,--long}'[Display output in long format]' \
                   '(-t --terse)'{-t,--terse}'[Display output in terse format]' \
                   '(-j --json)'{-j,--json}'[Display output in JSON format]' && ret=0
+               ;;
+            (stashpop|stashshow|stashrm)
+               _alternative 'avail-stashs:collections:{_module_stash_colls}' \
+                  && ret=0
                ;;
             (clear)
                _arguments \
