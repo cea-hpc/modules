@@ -244,4 +244,10 @@ Error is obtained and processing stops if:
 
 * stash collection exists but cannot be accessed
 
+savelist sub-command
+--------------------
+
+:subcmd:`savelist` sub-command is adapted to filter out stash collections by
+default. Stash collections are reported if :option:`--all` option is set.
+
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

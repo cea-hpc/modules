@@ -1840,6 +1840,10 @@ Module Sub-Commands
  *patterns* are given, collection has to match at least one of them to be
  listed.
 
+ Stash collections are not listed unless if the :option:`--all`/:option:`-a`
+ option is set. Stash collections can be listed with :subcmd:`stashlist`
+ sub-command.
+
  .. only:: html
 
     .. versionadded:: 4.0
