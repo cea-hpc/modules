@@ -784,7 +784,11 @@ proc cmdModuleSavelist {show_oneperline show_mtime search_match args} {
    foreach collfile [findCollections * glob 0 0 1 $find_no_other_target] {
       # remove target suffix from names to display
       regsub $suffix$ [file tail $collfile] {} coll
-      set coll_arr($coll) $collfile
+      # filter stash collections unless called by stashlist or --all opt set
+      if {$typedesc ne {named} || ![regexp {stash-\d+} $coll] || [getState\
+         hiding_threshold] >= 2} {
+         set coll_arr($coll) $collfile
+      }
    }
 
    # same header msg if no collection at all whether search is made or not
