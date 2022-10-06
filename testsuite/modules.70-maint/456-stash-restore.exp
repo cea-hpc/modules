@@ -1,0 +1,83 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2022/10/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		restore
+#   Modulefiles:    foo, bar
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test restore sub-command with stash collections
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.3
+setenv_path_var MODULEPATH $mp
+
+set collhome $env(HOME)/.module
+set stash_basic_content "module use --append $mp
+module load foo/1.0
+module load bar/1.0\n"
+
+
+# basic restore of stash collection
+create_stash_coll $stash_basic_content
+set last_stash_file [get_last_stash_coll]
+set last_stash [file tail $last_stash_file]
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1.0]
+set tserr [msg_load {foo/1.0}]\n[msg_load {bar/1.0}]
+testouterr_cmd sh "restore $last_stash" $ans $tserr
+testouterr_cmd sh "restore $last_stash_file" $ans $tserr
+
+delete_last_stash_coll
+
+
+# stash collection from current target
+setenv_var MODULES_COLLECTION_TARGET foo
+create_stash_coll $stash_basic_content
+set last_stash_file [get_last_stash_coll]
+set last_stash_with_target [file tail $last_stash_file]
+set last_stash [file rootname $last_stash_with_target]
+
+testouterr_cmd sh "restore $last_stash" $ans $tserr
+testouterr_cmd sh "restore $last_stash_file" $ans $tserr
+testouterr_cmd sh "restore $last_stash_with_target" ERR [err_coll_notfound $last_stash_with_target foo]
+
+# stash collection from foreign target
+setenv_var MODULES_COLLECTION_TARGET bar
+
+testouterr_cmd sh "restore $last_stash" ERR [err_coll_notfound $last_stash bar]
+testouterr_cmd sh "restore $last_stash_file" $ans $tserr
+testouterr_cmd sh "restore $last_stash_with_target" ERR [err_coll_notfound $last_stash_with_target bar]
+
+# stash collection from foreign no target
+unsetenv_var MODULES_COLLECTION_TARGET
+
+testouterr_cmd sh "restore $last_stash" ERR [err_coll_notfound $last_stash]
+testouterr_cmd sh "restore $last_stash_file" $ans $tserr
+testouterr_cmd sh "restore $last_stash_with_target" $ans $tserr
+
+delete_last_stash_coll
+
+
+#
+#  Cleanup
+#
+
+file delete $collhome
+
+reset_test_env
