@@ -2577,9 +2577,20 @@ case these collections can only be restored if their suffix correspond to
 the current value of the :envvar:`MODULES_COLLECTION_TARGET` environment
 variable (see the dedicated section of this topic below).
 
+Stash collections are created and restored respectively with :subcmd:`stash`
+and :subcmd:`stashpop` sub-commands. When created, current environment state
+is dumped in a collection then environment is :subcmd:`reset` to the defined
+initial state. When restored, environment is updated to match stash collection
+definition, then stash collection file is deleted. Stash collections have same
+format and are saved in the same location than other collections. Collection
+target also applies to stash collection.
+
 .. only:: html
 
    .. versionadded:: 4.0
+
+   .. versionchanged:: 5.2
+      Stash collection introduced
 
 
 EXIT STATUS
