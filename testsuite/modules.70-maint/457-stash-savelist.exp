@@ -1,0 +1,109 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2022/10/07
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		savelist
+#   Modulefiles:    foo, bar
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test savelist sub-command with stash collections
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+setenv_path_var MODULEPATH $mp
+
+set collhome $env(HOME)/.module
+set stash_basic_content "module use --append $mp
+module load foo/1.0
+module load bar/1.0\n"
+
+
+# only stash collection exists
+create_stash_coll $stash_basic_content
+set last_stash_file [get_last_stash_coll]
+set last_stash [file tail $last_stash_file]
+
+testouterr_cmd sh savelist OK [msg_no_named_coll]
+
+testouterr_cmd sh {savelist stash} OK [msg_no_named_coll]
+
+set tserr "[msg_named_coll]\n 1) $last_stash  "
+testouterr_cmd sh {savelist -a} OK $tserr
+
+set tserr "[msg_named_coll 1]\n 1) $last_stash  "
+testouterr_cmd sh {savelist -a stash} OK $tserr
+
+
+# stash collection and name collection exist
+# create regular collection file (not a stash one)
+file mkdir $collhome
+set fid [open $collhome/coll w]
+puts "module use --append $mp
+module load foo/1.0"
+close $fid
+
+set tserr "[msg_named_coll]\n 1) coll  "
+testouterr_cmd sh savelist OK $tserr
+
+testouterr_cmd sh {savelist stash} OK [msg_no_named_coll 1]
+
+set tserr "[msg_named_coll]\n 1) coll   2) $last_stash  "
+testouterr_cmd sh {savelist -a} OK $tserr
+
+set tserr "[msg_named_coll 1]\n 1) $last_stash  "
+testouterr_cmd sh {savelist -a stash} OK $tserr
+
+
+# add a stash collection in a given target
+setenv_var MODULES_COLLECTION_TARGET foo
+create_stash_coll $stash_basic_content
+set last_last_stash_file [get_last_stash_coll]
+set last_last_stash [file tail $last_last_stash_file]
+
+testouterr_cmd sh savelist OK [msg_no_named_coll 0 foo]
+
+testouterr_cmd sh {savelist stash} OK [msg_no_named_coll 0 foo]
+
+set tserr "[msg_named_coll]\n 1) coll   2) $last_stash   3) $last_last_stash  "
+testouterr_cmd sh {savelist -a} OK $tserr
+
+set tserr "[msg_named_coll 1]\n 1) $last_stash   2) $last_last_stash  "
+testouterr_cmd sh {savelist -a stash} OK $tserr
+
+
+# unset target
+unsetenv_var MODULES_COLLECTION_TARGET
+
+set tserr "[msg_named_coll]\n 1) coll  "
+testouterr_cmd sh savelist OK $tserr
+
+testouterr_cmd sh {savelist stash} OK [msg_no_named_coll 1]
+
+set tserr "[msg_named_coll]\n 1) coll   2) $last_stash   3) $last_last_stash  "
+testouterr_cmd sh {savelist -a} OK $tserr
+
+set tserr "[msg_named_coll 1]\n 1) $last_stash   2) $last_last_stash  "
+testouterr_cmd sh {savelist -a stash} OK $tserr
+
+
+#
+#  Cleanup
+#
+
+delete_last_stash_coll
+delete_last_stash_coll
+file delete $collhome/coll
+file delete $collhome
+
+reset_test_env
