@@ -262,6 +262,81 @@ other value corresponds to the name of a collection to restore.
     Unloading bar/1.0
     Unloading foo/1.0
 
+Stashing environment
+--------------------
+
+The ability to stash current environment is added with the introduction of the
+:subcmd:`stash` sub-command. When called current environment is saved in a
+*stash* collection then initial environment is restored.
+
+.. parsed-literal::
+
+    :ps:`$` module list
+    Currently Loaded Modulefiles:
+     1) bar/2.0   2) foo/2.0
+    :ps:`$` module stash
+    Unloading :sgrhi:`foo/2.0`
+    Unloading :sgrhi:`bar/2.0`
+    :ps:`$` module list
+    No Modulefiles Currently Loaded.
+
+Sub-commands are added to specifically handle stash collections. Their names
+are prefixed with *stash*, like :subcmd:`stashlist` to list existing stash
+collections or :subcmd:`stashshow` to display their content.
+
+.. parsed-literal::
+
+    :ps:`$` module stashlist
+    Stash collection list:
+     0) stash-1665377597432   1) stash-1664946764252
+    :ps:`$` module stashshow
+    -------------------------------------------------------------------
+    :sgrhi:`/home/user/.module/stash-1665377597432:`
+
+    :sgrcm:`module` use --append /path/to/modulefiles
+    :sgrcm:`module` load bar
+    :sgrcm:`module` load foo
+
+    -------------------------------------------------------------------
+
+Stash collections can be designated on sub-commands by their collection name
+or stash index. Most recent stash collection has index ``0``, the one after is
+designated with index ``1``, and so on. When no stash collection is specified,
+most recent one is assumed.
+
+.. parsed-literal::
+
+    :ps:`$` module stashshow 1
+    -------------------------------------------------------------------
+    :sgrhi:`/home/user/.module/stash-1664946764252:`
+
+    :sgrcm:`module` use --append /path/to/modulefiles
+    :sgrcm:`module` load foobar
+
+    -------------------------------------------------------------------
+
+Stash collections are restored with the :subcmd:`stashpop` sub-command. It
+changes the user environment to match the stash definition, then it deletes
+the stash collection file.
+
+.. parsed-literal::
+
+    :ps:`$` module stashpop
+    Loading :sgrhi:`bar/2.0`
+    Loading :sgrhi:`foo/2.0`
+    :ps:`$` module stashlist
+    Stash collection list:
+     0) stash-1664946764252
+
+Stash collections can be deleted one by one with :subcmd:`stashrm` sub-command
+or all together with :subcmd:`stashclear`.
+
+.. parsed-literal::
+
+    :ps:`$` module stashrm
+    :ps:`$` module stashlist
+    No stash collection.
+
 
 v5.1
 ====
