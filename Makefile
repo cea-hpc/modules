@@ -88,8 +88,8 @@ GIT_REFRESH_PREREQ := .git/objects
 
 # determine if version.inc needs to get updated as git repository has changed
 ifeq ($(wildcard version.inc), version.inc)
-MTIME_VERSION := $(shell date +%s -r version.inc)
-MTIME_GIT_REPO := $(shell date +%s -r $(GIT_REFRESH_PREREQ))
+MTIME_VERSION := $(shell date -r version.inc +%s)
+MTIME_GIT_REPO := $(shell date -r $(GIT_REFRESH_PREREQ) +%s)
 REFRESH_VERSION_INC := $(shell if [ $(MTIME_GIT_REPO) -gt $(MTIME_VERSION) ]; \
 	then echo y; else echo n; fi)
 else
