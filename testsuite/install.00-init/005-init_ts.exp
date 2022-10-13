@@ -65,6 +65,14 @@ if {$sh_kind eq "dash" || ($tcl_platform(os) ne "Linux"\
 }
 send_user "\tsh_strict is '$sh_strict'\n"
 
+# grab bash shell version
+set bashbin [find_bin bash]
+if {$bashbin ne {}} {
+   set bash_version [exec $bashbin -c {echo $BASH_VERSION}]
+   set bash_version_is52 [string match 5.2.* $bash_version]
+   send_user "\tbash_version_is52 is '$bash_version_is52'\n"
+}
+
 # check SIP is enabled or not on OS X
 if {$tcl_platform(os) eq "Darwin"} {
     catch {
@@ -101,6 +109,10 @@ array set shell_path {}
 array set shell_opts {}
 array set shell_test {}
 foreach shell [list sh bash basheu ksh zsh csh tcsh fish tcl perl python ruby cmake r] {
+   if {$shell eq {basheu} && $bash_version_is52} {
+      send_user "\t'basheu' shell tests ignored on Bash 5.2\n"
+      continue
+   }
    switch -- $shell {
       tcl {
          set shellbin $install_tclsh
