@@ -141,6 +141,8 @@ Modules 5.2.0 (not yet released)
 * Add :subcmd:`stashlist` sub-command to list all stash collection files.
 * Update :subcmd:`savelist` sub-command to filter out stash collections unless
   if :option:`--all` option is set.
+* Doc: ensure current user environment does not break logging system in
+  :ref:`log-module-command` recipe. (fix issue #475)
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 .. _ShellCheck: https://www.shellcheck.net/

@@ -17,8 +17,8 @@ configuration that traces every call to a modulefile evaluation.
 .. literalinclude:: ../../example/log-module-commands/siteconfig.tcl
    :language: tcl
    :caption: siteconfig.tcl
-   :lines: 13-41
-   :lineno-start: 13
+   :lines: 26-54
+   :lineno-start: 26
 
 This code defines a ``logModfileInterp`` procedure which is set to be
 evaluated after each evaluation of the ``execute-modulefile`` procedure with
@@ -32,19 +32,28 @@ following line:
 
 .. literalinclude:: ../../example/log-module-commands/siteconfig.tcl
    :language: tcl
-   :lines: 23-24
-   :lineno-start: 23
+   :lines: 36-37
+   :lineno-start: 36
 
-In the proposed code, the :command:`logger` command is run to generate a log
-message. Log entries are formatted as a JSON record which is convenient to
-push these logs in a search and analytics engine like `Elasticsearch`_ or
-`Splunk`_. Such tools help to globally monitor the whole set of log entries
-produced from thousands of computing nodes.
+In the proposed code, log entries are formatted as a JSON record which is
+convenient to push these logs in a search and analytics engine like
+`Elasticsearch`_ or `Splunk`_. Such tools help to globally monitor the whole
+set of log entries produced from thousands of computing nodes.
 
 .. literalinclude:: ../../example/log-module-commands/siteconfig.tcl
    :language: tcl
-   :lines: 34-36
-   :lineno-start: 34
+   :lines: 47-49
+   :lineno-start: 47
+
+The :command:`logger` command is run to generate the log message. This is done
+through a specific ``execLogger`` procedure ensuring that the current user
+environment does not confuse :command:`logger` with unexpected version of the
+libraries it requires.
+
+.. literalinclude:: ../../example/log-module-commands/siteconfig.tcl
+   :language: tcl
+   :lines: 13-24
+   :lineno-start: 13
 
 Example code also defines a ``logModuleCmd`` procedure which is set to be
 evaluated after each evaluation of the ``module`` and the ``ml`` procedures
@@ -53,8 +62,8 @@ with `trace`_ Tcl command.
 .. literalinclude:: ../../example/log-module-commands/siteconfig.tcl
    :language: tcl
    :caption: siteconfig.tcl
-   :lines: 43-63
-   :lineno-start: 43
+   :lines: 56-76
+   :lineno-start: 56
 
 .. note::
 

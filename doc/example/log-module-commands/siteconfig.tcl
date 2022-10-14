@@ -10,6 +10,19 @@
 #   installation. Refer to the "Modulecmd startup" section in the
 #   module(1) man page to get this location.
 
+proc execLogger {msg} {
+   # ensure logger command is executed with system libs
+   if {[info exists ::env(LD_LIBRARY_PATH)]} {
+      set ORIG_LD_LIBRARY_PATH $::env(LD_LIBRARY_PATH)
+      unset ::env(LD_LIBRARY_PATH)
+   }
+   exec logger -t module $msg
+   # restore current user lib setup
+   if {[info exists ORIG_LD_LIBRARY_PATH]} {
+      set ::env(LD_LIBRARY_PATH) $ORIG_LD_LIBRARY_PATH
+   }
+}
+
 proc logModfileInterp {cmdstring code result op} {
    # parse context
    lassign $cmdstring cmdname modfile modname
@@ -32,8 +45,8 @@ proc logModfileInterp {cmdstring code result op} {
       }
 
       # produced log entry (formatted as a JSON record)
-      exec logger -t module "{ \"user\": \"[get-env USER]\", \"mode\":\
-         \"$mode\", \"module\": \"$modname\"${extra} }"
+      execLogger "{ \"user\": \"[get-env USER]\", \"mode\": \"$mode\",\
+         \"module\": \"$modname\"${extra} }"
    }
 }
 
@@ -53,8 +66,8 @@ proc logModuleCmd {cmdstring code result op} {
    if {$cmdname ne {module} || $caller ne {ml}} {
 
       # produced log entry (formatted as a JSON record)
-      exec logger -t module "{ \"user\": \"[get-env USER]\", \"cmd\":\
-         \"$cmdname\", \"args\": \"$args\" }"
+      execLogger "{ \"user\": \"[get-env USER]\", \"cmd\": \"$cmdname\",\
+         \"args\": \"$args\" }"
    }
 }
 
