@@ -36,7 +36,8 @@ fi;
 
 # define module command and surrounding initial environment (default value
 # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init config files)
-eval "$(${^^=_mlre:-}@TCLSH@ '@libexecdir@/modulecmd.tcl' zsh autoinit)"
+_mlcode=$(${^^=_mlre:-}@TCLSH@ '@libexecdir@/modulecmd.tcl' zsh autoinit)
+_mlret=$?
 
 # clean temp variables used to setup quarantine
 if [ -n "${_mlIFS+x}" ]; then
@@ -46,6 +47,19 @@ else
    unset IFS;
 fi;
 unset _mlre _mlv _mlrv
+
+# no environment alteration if the above autoinit command failed
+if [ $_mlret -eq 0 ]; then
+   eval "$_mlcode"
+@setzshfpath@
+@setzshfpath@   # setup FPATH to put module completion at hand in case zsh completion enabled
+@setzshfpath@   # cannot be configured by autoinit as FPATH is not an environment variable
+@setzshfpath@   if [[ ! ":$FPATH:" =~ ':@initdir@/zsh-functions:' ]]; then
+@setzshfpath@      FPATH="@initdir@/zsh-functions${FPATH:+:}$FPATH"
+@setzshfpath@   fi
+fi
+
+unset _mlcode _mlret
 
 # restore shell debugging options if disabled
 if [ -n "${_mlshdbg:-}" ]; then
