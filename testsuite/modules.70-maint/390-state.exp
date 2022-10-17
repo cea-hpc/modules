@@ -33,6 +33,13 @@ set tserr "$vers_reportre\n\n$state_header"
 if {[auto_execok uname] eq {} || [auto_execok domainname] eq {}} {
     append tserr "(\nWARNING: Command '\\S+' cannot be found)+"
 }
+if {$group_name_fetch_failed} {
+    if {$install_libtclenvmodules eq {y}} {
+        append tserr "(\nWARNING: couldn't find name for group id \"\\S+\": Success)+"
+    } else {
+        append tserr "(\nWARNING: .*\n  .*/id: cannot find name for group ID \\S+)+"
+    }
+}
 foreach param $statelist {
     append tserr "\n$param\\s+.*"
 }
