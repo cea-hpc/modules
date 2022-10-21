@@ -493,11 +493,39 @@ proc execute-modulerc {modfile modname modspec} {
          setModulesVersion readModuleContent readModuleContent\
          formatErrStackTrace formatErrStackTrace]
 
+      # add site-specific command aliases for modulerc interp
+      if {[info exists ::modulerc_extra_cmds]} {
+         if {[catch {array set ::g_modrcAliases $::modulerc_extra_cmds}\
+            errorMsg]} {
+            knerror "Invalid value '$::modulerc_extra_cmds' ($errorMsg)\nfor\
+               siteconfig variable 'modulerc_extra_cmds'"
+         }
+      }
+
       # alias commands where an argument should be passed
       array set ::g_modrcAliasesPassArg [list]
 
       # trace commands that should be associated to aliases
       array set ::g_modrcAliasesTraces [list]
+
+      # variable to define in modulerc interp
+      set ::g_modrcBaseVars [list ModuleTool Modules ModuleToolVersion\
+         {@MODULES_RELEASE@}]
+
+      if {[info exists ::modulerc_extra_vars]} {
+         if {([llength $::modulerc_extra_vars] % 2) != 0} {
+            knerror "Invalid value '$::modulerc_extra_vars' (list must have\
+               an even number of elements)\nfor siteconfig variable\
+               'modulerc_extra_vars'"
+         }
+         foreach {var val} $::modulerc_extra_vars {
+            if {[string first { } $var] != -1} {
+               knerror "Invalid variable name '$var'\ndefined in siteconfig\
+                  variable 'modulerc_extra_vars'"
+            }
+         }
+         lappend ::g_modrcBaseVars {*}$::modulerc_extra_vars
+      }
    }
 
    # dedicate an interpreter per level of interpretation to have in case of
@@ -510,9 +538,10 @@ proc execute-modulerc {modfile modname modspec} {
       reportDebug "creating interp $itrp"
       interp create $itrp
 
-      # record module tool properties
-      interp eval $itrp set ::ModuleTool Modules
-      interp eval $itrp set ::ModuleToolVersion {@MODULES_RELEASE@}
+      # initialize global static variables for modulerc interp
+      foreach {var val} $::g_modrcBaseVars {
+         interp eval $itrp set ::$var "{$val}"
+      }
 
       # dump initial interpreter state to restore it before each modulerc
       # interpretation. use same dump state for all levels

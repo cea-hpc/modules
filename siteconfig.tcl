@@ -21,3 +21,10 @@
 # procedures defined in this file
 #set modulefile_extra_cmds {command1 procedure1 command2 procedure2}
 
+# define specific variables in modulerc interpreter context
+#set modulerc_extra_vars {varname1 value1 varname2 value2}
+
+# define specific commands in modulerc interpreter context based on procedures
+# defined in this file
+#set modulerc_extra_cmds {command1 procedure1 command2 procedure2}
+
