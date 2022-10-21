@@ -14,3 +14,10 @@
 # superseding
 #lappendConf locked_configs implicit_default
 
+# define specific variables in modulefile interpreter context
+#set modulefile_extra_vars {varname1 value1 varname2 value2}
+
+# define specific commands in modulefile interpreter context based on
+# procedures defined in this file
+#set modulefile_extra_cmds {command1 procedure1 command2 procedure2}
+

@@ -152,6 +152,14 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
    # initialize list with all commands not dependent of the evaluation mode
    array set aliases $::g_modfileBaseAliases
 
+   # add site-specific command aliases for modulefile interp
+   if {[info exists ::modulefile_extra_cmds]} {
+      if {[catch {array set aliases $::modulefile_extra_cmds} errorMsg]} {
+         knerror "Invalid value '$::modulefile_extra_cmds' ($errorMsg)\nfor\
+            siteconfig variable 'modulefile_extra_cmds'"
+      }
+   }
+
    # add alias commands whose target command vary depending on the eval mode
    set modeidx [lsearch -exact $::g_modfileEvalModes $mode]
    foreach alias [array names g_modfilePerModeAliases] {
@@ -264,14 +272,37 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
          $aliasesPassArgVN $tracesVN
    }
 
+   # variable to define in modulefile interp
+   if {![info exists ::g_modfileBaseVars]} {
+      # record module tool properties
+      set ::g_modfileBaseVars [list ModuleTool Modules ModuleToolVersion\
+         {@MODULES_RELEASE@}]
+
+      if {[info exists ::modulefile_extra_vars]} {
+         if {([llength $::modulefile_extra_vars] % 2) != 0} {
+            knerror "Invalid value '$::modulefile_extra_vars' (list must have\
+               an even number of elements)\nfor siteconfig variable\
+               'modulefile_extra_vars'"
+         }
+         foreach {var val} $::modulefile_extra_vars {
+            if {[string first { } $var] != -1} {
+               knerror "Invalid variable name '$var'\ndefined in siteconfig\
+                  variable 'modulefile_extra_vars'"
+            }
+         }
+         lappend ::g_modfileBaseVars {*}$::modulefile_extra_vars
+      }
+   }
+
    # create modulefile interpreter at first interpretation
    if {![interp exists $itrp]} {
       reportDebug "creating interp $itrp"
       interp create $itrp
 
-      # record module tool properties
-      interp eval $itrp set ::ModuleTool Modules
-      interp eval $itrp set ::ModuleToolVersion {@MODULES_RELEASE@}
+      # initialize global static variables for modulefile interp
+      foreach {var val} $::g_modfileBaseVars {
+         interp eval $itrp set ::$var "{$val}"
+      }
 
       # dump initial interpreter state to restore it before each modulefile
       # interpretation. use same dump state for all modes/levels
