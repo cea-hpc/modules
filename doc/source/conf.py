@@ -345,7 +345,7 @@ def ghcommit_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
     return [title], []
 
 # define new directive/role that can be used as .. subcmd::/:subcmd:,
-# .. mfcmd::/:mfcmd: and .. mfvar::/:mfvar:
+# .. mfcmd::/:mfcmd:, .. mfvar::/:mfvar: and .. sitevar::/:sitevar:
 def setup(app):
     app.add_object_type('subcmd', 'subcmd',
                         objname='module sub-command',
@@ -358,6 +358,10 @@ def setup(app):
     app.add_object_type(directivename='mfvar', rolename='mfvar',
                         objname='modulefile variable',
                         indextemplate='pair: %s; modulefile variable',
+                        parse_node=parse_cmd_args_node)
+    app.add_object_type(directivename='sitevar', rolename='sitevar',
+                        objname='siteconfig variable',
+                        indextemplate='pair: %s; siteconfig variable',
                         parse_node=parse_cmd_args_node)
     app.add_object_type('instopt', 'instopt',
                         objname='installation option',

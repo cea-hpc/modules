@@ -146,6 +146,23 @@ Modules 5.2.0 (not yet released)
   :envvar:`__MODULES_LMREFRESH` environment variable.
 * Optimize :subcmd:`refresh` sub-command to only evaluate loaded modules that
   defines volatile environment changes (shell completion, alias or function).
+  (fix issue #477)
+* Add :sitevar:`modulefile_extra_cmds` hook variable that could be defined in
+  :file:`siteconfig.tcl` file to define specific commands in modulefile
+  interpreter context. :sitevar:`modulefile_extra_cmds` is a list of command
+  name and relative procedure pairs. (fix issue #286)
+* Add :sitevar:`modulefile_extra_vars` hook variable that could be defined in
+  :file:`siteconfig.tcl` file to define specific variables in modulefile
+  interpreter context. :sitevar:`modulefile_extra_vars` is a list of variable
+  name and value pairs. (fix issue #286)
+* Add :sitevar:`modulerc_extra_cmds` hook variable that could be defined in
+  :file:`siteconfig.tcl` file to define specific commands in modulerc
+  interpreter context. :sitevar:`modulerc_extra_cmds` is a list of command
+  name and relative procedure pairs. (fix issue #286)
+* Add :sitevar:`modulerc_extra_vars` hook variable that could be defined in
+  :file:`siteconfig.tcl` file to define specific variables in modulerc
+  interpreter context. :sitevar:`modulerc_extra_vars` is a list of variable
+  name and value pairs. (fix issue #286)
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 .. _ShellCheck: https://www.shellcheck.net/
