@@ -11,7 +11,6 @@ jobs:
   native:
     runs-on: windows-2022
     env:
-      CYGWIN_BASH: C:\tools\cygwin\bin\bash
       TCL_INSTALLER: SetupTcl-8.6.10-x64_Bawt-1.2.1
       TCL_DL_URL: http://www.bawt.tcl3d.org/download/Tcl-Pure
       TCLSH_DIR: C:\Tcl\bin
@@ -24,11 +23,11 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Install system packages
-        run: |
+      - uses: cygwin/cygwin-install-action@master
+        with:
           # precise all sphinxcontrib packages required as dependency spec
           # of python39-sphinx package is regularly broken
-          choco install make sed git autoconf automake libtool tcl python39 python39-sphinx zip python39-sphinxcontrib-applehelp python39-sphinxcontrib-devhelp python39-sphinxcontrib-htmlhelp python39-sphinxcontrib-jsmath python39-sphinxcontrib-qthelp python39-sphinxcontrib-serializinghtml python39-sphinxcontrib-websupport python39-alabaster python39-sqlalchemy --source cygwin
+          packages: make sed git autoconf automake libtool tcl python39 python39-sphinx zip python39-sphinxcontrib-applehelp python39-sphinxcontrib-devhelp python39-sphinxcontrib-htmlhelp python39-sphinxco  ntrib-jsmath python39-sphinxcontrib-qthelp python39-sphinxcontrib-serializinghtml python39-sphinxcontrib-websupport python39-alabaster python39-sqlalchemy
       - name: Install Tcl under Windows
         shell: cmd
         run: |
@@ -36,10 +35,10 @@ jobs:
           %TCL_INSTALLER% /verysilent
       - name: Configure Git safe.directory
         run: |
-          & $env:CYGWIN_BASH -lc 'git config --global --add safe.directory $(cygpath -u "$GITHUB_WORKSPACE")'
+          bash -lc 'git config --global --add safe.directory $(cygpath -u "$GITHUB_WORKSPACE")'
       - name: Build Modules dist
         run: |
-          & $env:CYGWIN_BASH -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure --disable-libtclenvmodules && make dist-win'
+          bash -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure --disable-libtclenvmodules && make dist-win'
       - name: Install Modules
         shell: cmd
         run: |
@@ -62,8 +61,6 @@ jobs:
 
   cygwin:
     runs-on: windows-2022
-    env:
-      CYGWIN_BASH: C:\tools\cygwin\bin\bash
     steps:
       - name: Configure Git autocrlf
         shell: bash
@@ -71,31 +68,31 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Install system packages
-        run: |
+      - uses: cygwin/cygwin-install-action@master
+        with:
           # precise all sphinxcontrib packages required as dependency spec
           # of python39-sphinx package is regularly broken
           # precise liblapack0 package needed by R package (missing depdency
           # since R-4.2.1-1)
-          choco install make sed git autoconf automake libtool tcl dejagnu python39 python39-sphinx ruby zsh tcsh mksh fish cmake R liblapack0 tcl-devel gcc-core wget python39-sphinxcontrib-applehelp python39-sphinxcontrib-devhelp python39-sphinxcontrib-htmlhelp python39-sphinxcontrib-jsmath python39-sphinxcontrib-qthelp python39-sphinxcontrib-serializinghtml python39-sphinxcontrib-websupport python39-alabaster python39-sqlalchemy --source cygwin
+          packages: make sed git autoconf automake libtool tcl dejagnu python39 python39-sphinx ruby zsh tcsh mksh fish cmake R liblapack0 tcl-devel gcc-core wget python39-sphinxcontrib-applehelp python39-sphinxcontrib-devhelp python39-sphinxcontrib-htmlhelp python39-sphinxcontrib-jsmath python39-sphinxcontrib-qthelp python39-sphinxcontrib-serializinghtml python39-sphinxcontrib-websupport python39-alabaster python39-sqlalchemy
       - name: Configure Git safe.directory
         run: |
-          & $env:CYGWIN_BASH -lc 'git config --global --add safe.directory $(cygpath -u "$GITHUB_WORKSPACE")'
+          bash -lc 'git config --global --add safe.directory $(cygpath -u "$GITHUB_WORKSPACE")'
       - name: Build Modules
         run: |
-          & $env:CYGWIN_BASH -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure && make'
+          bash -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure && make'
       - name: Test Modules build
         run: |
-          & $env:CYGWIN_BASH -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && script/mt'
+          bash -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && script/mt'
       - name: Install Modules
         run: |
-          & $env:CYGWIN_BASH -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && make install'
+          bash -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && make install'
       - name: Test Modules installation
         run: |
-          & $env:CYGWIN_BASH -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && script/mt install'
+          bash -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && script/mt install'
       - name: Uninstall Modules
         run: |
-          & $env:CYGWIN_BASH -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && make uninstall'
+          bash -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && make uninstall'
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
