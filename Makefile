@@ -16,9 +16,9 @@ WGET := wget --retry-connrefused --waitretry=20 --timeout=20 --tries=3
 
 # definitions for code coverage
 NAGELFAR_DLSRC1 := http://downloads.sourceforge.net/nagelfar/
-NAGELFAR_RELEASE := nagelfar132
+NAGELFAR_RELEASE := nagelfar133
 NAGELFAR_DIST := $(NAGELFAR_RELEASE).tar.gz
-NAGELFAR_DISTSUM := 2a85579f57492863de286a484fe061ed
+NAGELFAR_DISTSUM := ab3451c8ba6b1ec9d9e26dec7e17b954
 NAGELFAR := $(NAGELFAR_RELEASE)/nagelfar.tcl
 
 # definition for old Tcl interpreter for coverage testing
