@@ -1,0 +1,23 @@
+#%Module
+
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_REGULAR)]} {
+    switch -- $env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_REGULAR) {
+        override {
+            proc mycmd {} {
+                return override
+            }
+            proc mycmd2 {} {
+                return override
+            }
+            set myvar override
+            setenv BAR [mycmd]-[othercmd]-${myvar}
+            proc ModulesHelp {} {
+                puts stderr [mycmd]-[othercmd]-${::myvar}
+            }
+            proc ModulesTest {} {
+                puts stderr [mycmd]-[othercmd]-${::myvar}
+                return 1
+            }
+        }
+    }
+}

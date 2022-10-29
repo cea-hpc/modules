@@ -452,4 +452,97 @@ if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_PWDERROR)]} {
     }
 }
 
+# extra modulefile/modulerc command and variable tests
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_ODD)]} {
+    switch -- $env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_ODD) {
+        cmd    {set modulefile_extra_cmds [list mycmd]}
+        rc_cmd {set modulerc_extra_cmds [list mycmd]}
+        var    {set modulefile_extra_vars [list myvar]}
+        rc_var {set modulerc_extra_vars [list myvar]}
+    }
+}
+
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_EMPTYDEF)]} {
+    switch -- $env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_EMPTYDEF) {
+        cmd    {set modulefile_extra_cmds [list]}
+        rc_cmd {set modulerc_extra_cmds {}}
+        var    {set modulefile_extra_vars {}}
+        rc_var {set modulerc_extra_vars [list]}
+    }
+}
+
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_EMPTYVAL)]} {
+    switch -- $env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_EMPTYVAL) {
+        cmd    {set modulefile_extra_cmds [list mycmd {}]}
+        rc_cmd {set modulerc_extra_cmds [list mycmd {}]}
+        var    {set modulefile_extra_vars [list myvar {}]}
+        rc_var {set modulerc_extra_vars [list myvar {}]}
+    }
+}
+
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_UNK)]} {
+    switch -- $env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_UNK) {
+        cmd    {set modulefile_extra_cmds [list mycmd unkproc]}
+        rc_cmd {set modulerc_extra_cmds [list mycmd unkproc]}
+    }
+}
+
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_SUPERSEDE)]} {
+    proc myproc1 {args} {
+        return myproc1
+    }
+    proc myproc2 {args} {
+        return myproc2
+    }
+    switch -- $env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_SUPERSEDE) {
+        cmd    {set modulefile_extra_cmds [list uname myproc1 pid myproc2]}
+        rc_cmd {set modulerc_extra_cmds [list uname myproc1 pid myproc2]}
+        var    {set modulefile_extra_vars [list ModuleTool super ModulesCurrentModulefile myfile]}
+        rc_var {set modulerc_extra_vars [list ModuleTool super ModulesCurrentModulefile myfile]}
+    }
+}
+
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_SPACEINVAL)]} {
+    proc {my proc1} {args} {
+        return myproc1
+    }
+    switch -- $env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_SPACEINVAL) {
+        cmd    {set modulefile_extra_cmds [list mycmd {my proc1}]}
+        rc_cmd {set modulerc_extra_cmds [list mycmd {my proc1}]}
+    }
+}
+
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_SPACEINNAME)]} {
+    proc myproc1 {args} {
+        return myproc1
+    }
+    switch -- $env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_SPACEINNAME) {
+        cmd    {set modulefile_extra_cmds [list {my cmd} myproc1]}
+        rc_cmd {set modulerc_extra_cmds [list {my cmd} myproc1]}
+        var    {set modulefile_extra_vars [list {my var} value]}
+        rc_var {set modulerc_extra_vars [list {my var} value]}
+    }
+}
+
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_REGULAR)]} {
+    proc mycmd {args} {
+        return myproc1
+    }
+    proc mycmd2 {args} {
+        return myproc2
+    }
+    switch -- $env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_REGULAR) {
+        cmd    {set modulefile_extra_cmds [list mycmd mycmd othercmd mycmd2]}
+        rc_cmd {set modulerc_extra_cmds [list mycmd mycmd othercmd mycmd2]}
+        var    {set modulefile_extra_vars [list myvar {my value} othervar value]}
+        rc_var {set modulerc_extra_vars [list myvar {my value} othervar value]}
+        mix - override   {
+            set modulefile_extra_cmds [list mycmd mycmd othercmd mycmd2]
+            set modulerc_extra_cmds [list mycmd mycmd othercmd mycmd2]
+            set modulefile_extra_vars [list myvar value]
+            set modulerc_extra_vars [list myvar value]
+        }
+    }
+}
+
 }

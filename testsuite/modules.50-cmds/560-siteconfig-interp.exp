@@ -1,0 +1,380 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2022/10/27
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload
+#   Modulefiles:    interp
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test specific variables and commands defined in siteconfig
+#           configuration file
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+
+# check expected siteconfig file is installed
+set is_stderr_tty [siteconfig_isStderrTty]
+if {$is_stderr_tty} {
+
+# odd number of element in extra lists
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_ODD rc_cmd
+set tserr "$error_msgs: Invalid value 'mycmd' (list must have an even number of elements)"
+append tserr "\n  for siteconfig variable 'modulerc_extra_cmds'"
+testouterr_cmd sh {avail interp} ERR $tserr
+
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_ODD rc_var
+set tserr "$error_msgs: Invalid value 'myvar' (list must have an even number of elements)"
+append tserr "\n  for siteconfig variable 'modulerc_extra_vars'"
+testouterr_cmd sh {avail interp} ERR $tserr
+
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_ODD cmd
+set tserr "$error_msgs: Invalid value 'mycmd' (list must have an even number of elements)"
+append tserr "\n  for siteconfig variable 'modulefile_extra_cmds'"
+testouterr_cmd sh {load interp/1} ERR $tserr
+
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_ODD var
+set tserr "$error_msgs: Invalid value 'myvar' (list must have an even number of elements)"
+append tserr "\n  for siteconfig variable 'modulefile_extra_vars'"
+testouterr_cmd sh {load interp/1} ERR $tserr
+
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_ODD
+
+
+# empty content in defined extra lists
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_EMPTYDEF rc_cmd
+set tserr "interp/0\ninterp/1\ninterp/2"
+testouterr_cmd sh {avail -t -o sym interp} OK $tserr
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_EMPTYDEF rc_var
+set tserr "interp/0\ninterp/1\ninterp/2"
+testouterr_cmd sh {avail -t -o sym interp} OK $tserr
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_EMPTYDEF cmd
+set tserr {}
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/interp/1]
+lappend ans [list set LOADEDMODULES interp/1]
+testouterr_cmd sh {load interp/1} $ans $tserr
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_EMPTYDEF var
+testouterr_cmd sh {load interp/1} $ans $tserr
+
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_EMPTYDEF
+
+
+# empty value for extra cmds and vars
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_EMPTYVAL rc_cmd
+if {[cmpversion $tclsh_version 8.5] > 0} {
+    set tserr "interp/0\ninterp/1\ninterp/2"
+    testouterr_cmd sh {avail -t -o sym interp} OK $tserr
+} else {
+    # specific error on Tcl 8.5
+    set tserr "$error_msgs: alias \"mycmd\" not found\n      while executing\n  \"interp alias \\\$itrp \\\$alias {} \\\$aliases\\(\\\$alias\\)\".*"
+    testouterr_cmd_re sh {avail -t -o sym interp} ERR $tserr
+}
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_EMPTYVAL rc_var
+set tserr "interp/0\ninterp/1(empty)\ninterp/2"
+testouterr_cmd sh {avail -t -o sym interp} OK $tserr
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_EMPTYVAL cmd
+if {[cmpversion $tclsh_version 8.5] > 0} {
+    set tserr [msg_load interp/1 [msg_moderr {invalid command name ""} mycmd $mp/interp/1 12 {} {} {} {} {invoked from within}]]
+    testouterr_cmd sh {load interp/1} ERR $tserr
+} else {
+    # specific error on Tcl 8.5
+    set tserr "$error_msgs: alias \"mycmd\" not found\n      while executing\n  \"interp alias \\\$itrp \\\$alias {} \\\$aliases\\(\\\$alias\\)\".*"
+    testouterr_cmd_re sh {load interp/1} ERR $tserr
+}
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_EMPTYVAL var
+set tserr {}
+set ans [list]
+lappend ans [list set FOO {}]
+lappend ans [list set _LMFILES_ $mp/interp/1]
+lappend ans [list set LOADEDMODULES interp/1]
+testouterr_cmd sh {load interp/1} $ans $tserr
+
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_EMPTYVAL
+
+
+# undefined extra cmds
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_UNK rc_cmd
+set tserr "interp/0\ninterp/1\ninterp/2"
+testouterr_cmd sh {avail -t -o sym interp} OK $tserr
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_UNK cmd
+if {[cmpversion $tclsh_version 8.5] > 0} {
+    set tserr [msg_load interp/1 [msg_moderr {invalid command name "unkproc"} mycmd $mp/interp/1 19 {} {} {} {} {invoked from within}]]
+    testouterr_cmd sh {load interp/1} ERR $tserr
+} else {
+    # specific error on Tcl 8.5
+    set tserr [escre [msg_load interp/1 [msg_moderr {invalid command name "unkproc"} mycmd<EXM> $mp/interp/1 17 {} {} {} {} {invoked from within}]]]
+    testouterr_cmd_re sh {load interp/1} ERR $tserr
+}
+
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_UNK
+
+
+# extra cmds and vars that supersede existing cmds or variables
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_SUPERSEDE rc_cmd
+set tserr "interp/0\ninterp/1(myproc1:myproc2)\ninterp/2"
+testouterr_cmd sh {avail -t -o sym interp} OK $tserr
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_SUPERSEDE rc_var
+set tserr "interp/0\ninterp/1(.modulerc:super)\ninterp/2"
+testouterr_cmd sh {avail -t -o sym -a interp} OK $tserr
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_SUPERSEDE cmd
+set tserr {}
+set ans [list]
+lappend ans [list set FOO myproc1-myproc2]
+lappend ans [list set _LMFILES_ $mp/interp/1]
+lappend ans [list set LOADEDMODULES interp/1]
+testouterr_cmd sh {load interp/1} $ans $tserr
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_SUPERSEDE var
+set ans [list]
+lappend ans [list set FOO super-1]
+lappend ans [list set _LMFILES_ $mp/interp/1]
+lappend ans [list set LOADEDMODULES interp/1]
+testouterr_cmd sh {load interp/1} $ans $tserr
+
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_SUPERSEDE
+
+
+# extra cmd whose target proc has space in their name
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_SPACEINVAL rc_cmd
+set tserr "interp/0\ninterp/1(myproc1)\ninterp/2"
+testouterr_cmd sh {avail -t -o sym interp} OK $tserr
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_SPACEINVAL cmd
+set tserr {}
+set ans [list]
+lappend ans [list set FOO myproc1]
+lappend ans [list set _LMFILES_ $mp/interp/1]
+lappend ans [list set LOADEDMODULES interp/1]
+testouterr_cmd sh {load interp/1} $ans $tserr
+
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_SPACEINVAL
+
+
+# space in extra cmds and vars name
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_SPACEINNAME rc_cmd
+set tserr "interp/0\ninterp/1(myproc1)\ninterp/2"
+testouterr_cmd sh {avail -t -o sym interp} OK $tserr
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_SPACEINNAME rc_var
+set tserr "$error_msgs: Invalid variable name 'my var'"
+append tserr "\n  defined in siteconfig variable 'modulerc_extra_vars'"
+testouterr_cmd sh {avail -t -o sym interp} ERR $tserr
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_SPACEINNAME cmd
+set tserr {}
+set ans [list]
+lappend ans [list set FOO myproc1]
+lappend ans [list set _LMFILES_ $mp/interp/1]
+lappend ans [list set LOADEDMODULES interp/1]
+testouterr_cmd sh {load interp/1} $ans $tserr
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_SPACEINNAME var
+set tserr "$error_msgs: Invalid variable name 'my var'"
+append tserr "\n  defined in siteconfig variable 'modulefile_extra_vars'"
+testouterr_cmd sh {load interp/1} ERR $tserr
+
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_SPACEINNAME
+
+
+# extra cmds and vars that supersede existing cmds or variables
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_REGULAR rc_cmd
+set tserr "interp/0\ninterp/1(myproc1:myproc2)\ninterp/2"
+testouterr_cmd sh {avail -t -o sym interp} OK $tserr
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_REGULAR rc_var
+set tserr "interp/0\ninterp/1(my value:value)\ninterp/2"
+testouterr_cmd sh {avail -t -o sym interp} OK $tserr
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_REGULAR cmd
+set tserr {}
+set ans [list]
+lappend ans [list set FOO myproc1-myproc2]
+lappend ans [list set _LMFILES_ $mp/interp/1]
+lappend ans [list set LOADEDMODULES interp/1]
+testouterr_cmd sh {load interp/1} $ans $tserr
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_REGULAR var
+set ans [list]
+lappend ans [list set FOO "my value-value"]
+lappend ans [list set _LMFILES_ $mp/interp/1]
+lappend ans [list set LOADEDMODULES interp/1]
+testouterr_cmd sh {load interp/1} $ans $tserr
+
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_REGULAR mix
+set ans [list]
+lappend ans [list set FOO "myproc1-myproc2-value"]
+lappend ans [list set __MODULES_LMALTNAME interp/1&interp/myproc1&interp/value]
+lappend ans [list set __MODULES_LMREFRESH interp/1]
+lappend ans [list set _LMFILES_ $mp/interp/1]
+lappend ans [list set LOADEDMODULES interp/1]
+lappend ans [list alias myproc1 {echo myproc2-value}]
+testouterr_cmd sh {load interp/1} $ans $tserr
+
+
+# test all evaluation modes
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_REGULAR mix
+
+# display
+set sepline [string repeat - 67]
+set tserr "$sepline
+$mp/interp/1:
+
+setenv\t\tFOO myproc1-myproc2-value
+module-whatis\tmyproc1-myproc2-value
+set-alias\tmyproc1 {echo myproc2-value}
+$sepline"
+testouterr_cmd sh {display interp/value} OK $tserr
+
+# help
+set tserr "$sepline
+Module Specific Help for $mp/interp/1:
+
+myproc1-myproc2-value
+$sepline"
+testouterr_cmd sh {help interp/value} OK $tserr
+
+# test
+set tserr "$sepline
+Module Specific Test for $mp/interp/1:
+
+myproc1-myproc2-value
+Test result: PASS
+$sepline"
+testouterr_cmd sh {test interp/value} OK $tserr
+
+# whatis
+set tserr "$modlin $mpre $modlin
+\\s+interp/1: myproc1-myproc2-value"
+testouterr_cmd_re sh {whatis interp/value} OK $tserr
+
+
+setenv_loaded_module [list interp/1] [list $mp/interp/1]
+setenv_var __MODULES_LMREFRESH interp/1
+setenv_var __MODULES_LMALTNAME interp/1&interp/myproc1&interp/value
+setenv_var FOO myproc1-myproc2-value
+# unload
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list unset __MODULES_LMALTNAME]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMREFRESH]
+lappend ans [list unalias myproc1]
+testouterr_cmd sh {unload interp/value} $ans {}
+
+# refresh
+set ans [list]
+lappend ans [list alias myproc1 {echo myproc2-value}]
+testouterr_cmd sh {refresh} $ans {}
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMREFRESH
+unsetenv_var __MODULES_LMALTNAME
+unsetenv_var FOO
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_REGULAR
+
+
+# test override extra command and variable definitions in modulefile/modulerc
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_REGULAR override
+
+# load
+set ans [list]
+lappend ans [list set FOO "myproc1-myproc2-value"]
+lappend ans [list set __MODULES_LMALTNAME interp/1&interp/myproc1&interp/value]
+lappend ans [list set BAR "override-myproc2-override"]
+lappend ans [list set __MODULES_LMREFRESH interp/1]
+lappend ans [list set _LMFILES_ $mp/interp/0:$mp/interp/1]
+lappend ans [list set LOADEDMODULES interp/0:interp/1]
+lappend ans [list alias myproc1 {echo myproc2-value}]
+testouterr_cmd sh {load interp/0 interp/1} $ans {}
+
+# display
+set sepline [string repeat - 67]
+set tserr "$sepline
+$mp/interp/0:
+
+setenv\t\tBAR override-myproc2-override
+$sepline
+$mp/interp/1:
+
+setenv\t\tFOO myproc1-myproc2-value
+module-whatis\tmyproc1-myproc2-value
+set-alias\tmyproc1 {echo myproc2-value}
+$sepline"
+testouterr_cmd sh {display interp/0 interp/value} OK $tserr
+
+# help
+set tserr "$sepline
+Module Specific Help for $mp/interp/0:
+
+override-myproc2-override
+$sepline
+Module Specific Help for $mp/interp/1:
+
+myproc1-myproc2-value
+$sepline"
+testouterr_cmd sh {help interp/0 interp/value} OK $tserr
+
+# test
+set tserr "$sepline
+Module Specific Test for $mp/interp/0:
+
+override-myproc2-override
+Test result: PASS
+$sepline
+Module Specific Test for $mp/interp/1:
+
+myproc1-myproc2-value
+Test result: PASS
+$sepline"
+testouterr_cmd sh {test interp/0 interp/value} OK $tserr
+
+# whatis
+set tserr "$modlin $mpre $modlin
+\\s+interp/1: myproc1-myproc2-value"
+testouterr_cmd_re sh {whatis interp} OK $tserr
+
+setenv_loaded_module [list interp/0 interp/1] [list $mp/interp/0 $mp/interp/1]
+setenv_var __MODULES_LMREFRESH interp/1
+setenv_var __MODULES_LMALTNAME interp/1&interp/myproc1&interp/value
+setenv_var BAR override-myproc2-override
+setenv_var FOO myproc1-myproc2-value
+# unload
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list unset __MODULES_LMALTNAME]
+lappend ans [list unset BAR]
+lappend ans [list unset __MODULES_LMREFRESH]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unalias myproc1]
+testouterr_cmd sh {unload interp/0 interp/value} $ans {}
+
+# refresh
+set ans [list]
+lappend ans [list alias myproc1 {echo myproc2-value}]
+testouterr_cmd sh {refresh} $ans {}
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMREFRESH
+unsetenv_var __MODULES_LMALTNAME
+unsetenv_var FOO
+unsetenv_var BAR
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_EXTRA_REGULAR
+
+} elseif {$verbose > 0} {
+    send_user "\tSkip tests relying on an excepted siteconfig file installed\n"
+}
+
+
+#
+#  Cleanup
+#
+
+reset_test_env

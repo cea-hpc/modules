@@ -1,0 +1,60 @@
+#%Module
+
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_ODD)]} {
+    switch -- $env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_ODD) {
+        cmd    {setenv FOO [mycmd]}
+        var    {setenv FOO $myvar}
+    }
+}
+
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_EMPTYVAL)]} {
+    switch -- $env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_EMPTYVAL) {
+        cmd    {setenv FOO [mycmd]}
+        var    {setenv FOO $myvar}
+    }
+}
+
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_UNK)]} {
+    switch -- $env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_UNK) {
+        cmd    {setenv FOO [mycmd]}
+    }
+}
+
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_SUPERSEDE)]} {
+    switch -- $env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_SUPERSEDE) {
+        cmd    {setenv FOO [uname machine]-[pid]}
+        var    {setenv FOO ${ModuleTool}-[file tail $ModulesCurrentModulefile]}
+    }
+}
+
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_SPACEINVAL)]} {
+    switch -- $env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_SPACEINVAL) {
+        cmd    {setenv FOO [mycmd]}
+    }
+}
+
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_SPACEINNAME)]} {
+    switch -- $env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_SPACEINNAME) {
+        cmd    {setenv FOO [my\ cmd]}
+        var    {setenv FOO $my\ var}
+    }
+}
+
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_REGULAR)]} {
+    switch -- $env(TESTSUITE_ENABLE_SITECONFIG_EXTRA_REGULAR) {
+        cmd    {setenv FOO [mycmd]-[othercmd]}
+        var    {setenv FOO ${myvar}-${othervar}}
+        mix - override    {
+            setenv FOO [mycmd]-[othercmd]-${myvar}
+            module-whatis [mycmd]-[othercmd]-${myvar}
+            set-alias [mycmd] "echo [othercmd]-$myvar"
+            proc ModulesHelp {} {
+                puts stderr [mycmd]-[othercmd]-${::myvar}
+            }
+            proc ModulesTest {} {
+                puts stderr [mycmd]-[othercmd]-${::myvar}
+                return 1
+            }
+        }
+    }
+}
