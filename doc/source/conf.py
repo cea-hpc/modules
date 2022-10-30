@@ -73,8 +73,8 @@ def get_version_release_from_git():
         else:
             branch = git_current_branch.rstrip()
             tags = git_current_desc.lstrip(git_current_tag + '-').rstrip()
-            # workaround for RTD, where master branch is not detected
-            if branch == 'master' or os.environ.get('READTHEDOCS', None) == 'True':
+            # workaround for RTD, where main branch is not detected
+            if branch == 'main' or os.environ.get('READTHEDOCS', None) == 'True':
                 return version, version + '+' + tags
             else:
                 return version, version + '+' + branch + '-' + tags

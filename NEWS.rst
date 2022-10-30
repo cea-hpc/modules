@@ -140,6 +140,8 @@ Modules 5.2.0 (not yet released)
   if :option:`--all` option is set.
 * Doc: ensure current user environment does not break logging system in
   :ref:`log-module-command` recipe. (fix issue #475)
+* Rename the default git branch from *master* to *main* to use inclusive
+  terminology.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 .. _ShellCheck: https://www.shellcheck.net/
@@ -397,7 +399,7 @@ Modules 5.1.0 (2022-04-30)
 * Mention tagging evaluation of a module, when tag list of an already loaded
   module is updated.
 
-.. _Code of conduct: https://github.com/cea-hpc/modules/blob/master/CODE_OF_CONDUCT.md
+.. _Code of conduct: https://github.com/cea-hpc/modules/blob/main/CODE_OF_CONDUCT.md
 .. _codespell: https://github.com/codespell-project/codespell
 .. _Aspell: http://aspell.net/
 

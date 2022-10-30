@@ -157,7 +157,7 @@ releases and current branch are built. Different tests are run against each
 version and the execution time of each test is reported in millisecond::
 
    $ script/mb
-             |   v4.1.4 |   v4.3.1 |   v4.5.3 |   v4.7.1 |   v5.1.1 |   master |
+             |   v4.1.4 |   v4.3.1 |   v4.5.3 |   v4.7.1 |   v5.1.1 |     main |
    ----------+----------+----------+----------+----------+----------+----------+
         help |        9 |       12 |       12 |       15 |       16 |       16 |
        avail |       61 |       67 |       76 |       82 |       91 |       86 |

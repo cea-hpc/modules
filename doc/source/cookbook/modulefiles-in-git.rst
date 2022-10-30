@@ -87,7 +87,7 @@ Copy the ``localmodules`` file from the Modules source tree to your
 repo::
 
     cd /home/modules/modulefiles
-    curl --output localmodules https://raw.githubusercontent.com/cea-hpc/modules/master/doc/example/modulefiles-in-git/modulefiles/localmodules
+    curl --output localmodules https://raw.githubusercontent.com/cea-hpc/modules/main/doc/example/modulefiles-in-git/modulefiles/localmodules
 
 Edit paths in the top of ``localmodules``, if your installation
 differs from the assumptions, then::

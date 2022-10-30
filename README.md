@@ -1,9 +1,9 @@
-# <img src="https://raw.githubusercontent.com/cea-hpc/modules/master/doc/img/modules_red.svg" height="180" alt="Modules"/>
+# <img src="https://raw.githubusercontent.com/cea-hpc/modules/main/doc/img/modules_red.svg" height="180" alt="Modules"/>
 
 [![Linux Build Status](https://github.com/cea-hpc/modules/workflows/linux-tests/badge.svg)](https://github.com/cea-hpc/modules/actions?query=workflow:linux-tests)
 [![Windows Build Status](https://github.com/cea-hpc/modules/workflows/windows-tests/badge.svg)](https://github.com/cea-hpc/modules/actions?query=workflow:windows-tests)
 [![FreeBSD/OS X/Linux Build Status](https://api.cirrus-ci.com/github/cea-hpc/modules.svg)](https://cirrus-ci.com/github/cea-hpc/modules)
-[![Coverage Status](https://codecov.io/gh/cea-hpc/modules/branch/master/graph/badge.svg)](https://codecov.io/gh/cea-hpc/modules)
+[![Coverage Status](https://codecov.io/gh/cea-hpc/modules/branch/main/graph/badge.svg)](https://codecov.io/gh/cea-hpc/modules)
 [![Documentation Status](https://readthedocs.org/projects/modules/badge/?version=latest)](https://modules.readthedocs.io/en/latest/?badge=latest)
 [![Packaging status](https://repology.org/badge/tiny-repos/environment-modules.svg)](https://repology.org/metapackage/environment-modules/versions)
 [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/EnvModules.svg?style=social&label=Follow)](https://twitter.com/EnvModules)

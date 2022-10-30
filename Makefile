@@ -141,7 +141,7 @@ MODULES_RELEASE := $(subst v,,$(GIT_CURRENT_TAG))
 MODULES_BUILD_DATE := $(shell git log -1 --format=%cd --date=short)
 ifeq ($(GIT_CURRENT_TAG),$(GIT_CURRENT_DESC))
 MODULES_BUILD :=
-else ifeq ($(GIT_CURRENT_BRANCH),master)
+else ifeq ($(GIT_CURRENT_BRANCH),main)
 MODULES_BUILD := +$(subst $(GIT_CURRENT_TAG)-,,$(GIT_CURRENT_DESC))
 else
 MODULES_BUILD := +$(GIT_CURRENT_BRANCH)$(subst $(GIT_CURRENT_TAG),,$(GIT_CURRENT_DESC))
@@ -168,7 +168,7 @@ MODULES_BUILD_REFS := $(subst $(comma),,$(MODULES_BUILD_REFS))
 
 ifeq ($(filter v$(MODULES_RELEASE),$(MODULES_BUILD_REFS)),v$(MODULES_RELEASE))
 MODULES_BUILD :=
-else ifeq ($(filter master,$(MODULES_BUILD_REFS)),master)
+else ifeq ($(filter main,$(MODULES_BUILD_REFS)),main)
 MODULES_BUILD := +XX-g$(MODULES_BUILD_HASH)
 else ifeq ($(MODULES_BUILD_REFS),%D)
 MODULES_BUILD := +XX-g$(MODULES_BUILD_HASH)
