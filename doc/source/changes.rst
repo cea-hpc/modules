@@ -892,7 +892,8 @@ The following environment variables appeared on Modules 5.
 | 5.2        | :envvar:`MODULES_PROTECTED_ENVVARS`,                            |
 |            | :envvar:`MODULES_TCL_LINTER`,                                   |
 |            | :envvar:`__MODULES_LMINIT`,                                     |
-|            | :envvar:`MODULES_RESET_TARGET_STATE`                            |
+|            | :envvar:`MODULES_RESET_TARGET_STATE`,                           |
+|            | :envvar:`__MODULES_LMREFRESH`                                   |
 +------------+-----------------------------------------------------------------+
 
 Modules Specific Tcl Commands

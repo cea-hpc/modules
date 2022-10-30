@@ -142,6 +142,8 @@ Modules 5.2.0 (not yet released)
   :ref:`log-module-command` recipe. (fix issue #475)
 * Rename the default git branch from *master* to *main* to use inclusive
   terminology.
+* Mark loaded modules that could benefit from a refresh evaluation in the
+  :envvar:`__MODULES_LMREFRESH` environment variable.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 .. _ShellCheck: https://www.shellcheck.net/

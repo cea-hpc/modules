@@ -2716,6 +2716,16 @@ ENVIRONMENT
     .. versionchanged:: 5.0
        Variable renamed from ``MODULES_LMPREREQ`` to ``__MODULES_LMPREREQ``
 
+.. envvar:: __MODULES_LMREFRESH
+
+ A colon separated list of the loaded modules that are qualified for refresh
+ evaluation. Loaded modules listed in this variable are those defining
+ volatile environment changes like shell completion, alias and function.
+
+ .. only:: html
+
+    .. versionadded:: 5.2
+
 .. envvar:: __MODULES_LMSOURCESH
 
  A colon separated list of the :mfcmd:`source-sh` statements defined by all
