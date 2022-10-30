@@ -144,6 +144,8 @@ Modules 5.2.0 (not yet released)
   terminology.
 * Mark loaded modules that could benefit from a refresh evaluation in the
   :envvar:`__MODULES_LMREFRESH` environment variable.
+* Optimize :subcmd:`refresh` sub-command to only evaluate loaded modules that
+  defines volatile environment changes (shell completion, alias or function).
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 .. _ShellCheck: https://www.shellcheck.net/

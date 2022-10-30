@@ -839,6 +839,11 @@ The following module sub-commands appeared on Modules 5.
  * the :option:`--starts-with` and :option:`--contains` options are supported
    on this sub-command to provide the regular search match capabilities.
 
+:subcmd:`refresh`
+
+ Starting Modules 5.2, only the loaded modules listed in the
+ :envvar:`__MODULES_LMREFRESH` environment variables are refreshed.
+
 :subcmd:`restore`
 
  Starting Modules 5.2, initial environment is restored when specified

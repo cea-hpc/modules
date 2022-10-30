@@ -1686,16 +1686,20 @@ Module Sub-Commands
 .. subcmd:: refresh
 
  Force a refresh of all non-persistent components of currently loaded modules.
- This should be used on derived shells where shell aliases or shell functions
- need to be reinitialized but the environment variables have already been set
- by the currently loaded modules.
+ This should be used on derived shells where shell completions, shell aliases
+ or shell functions need to be reinitialized but the environment variables
+ have already been set by the currently loaded modules.
 
  Loaded modules are evaluated in ``refresh`` mode following their load order.
- In this evaluation mode only the :mfcmd:`set-alias` and :mfcmd:`set-function`
- modulefile commands will produce environment changes. Other modulefile
- commands that produce environment changes (like :mfcmd:`setenv` or
- :mfcmd:`append-path`) are ignored during a ``refresh`` evaluation as their
- changes should already be applied.
+ In this evaluation mode only the :mfcmd:`complete`, :mfcmd:`set-alias` and
+ :mfcmd:`set-function` modulefile commands will produce environment changes.
+ Other modulefile commands that produce environment changes (like
+ :mfcmd:`setenv` or :mfcmd:`append-path`) are ignored during a ``refresh``
+ evaluation as their changes should already be applied.
+
+ Only the loaded modules defining non-persistent environment changes are
+ evaluated in ``refresh`` mode. Such loaded modules are listed in the
+ :envvar:`__MODULES_LMREFRESH` environment variable.
 
  .. only:: html
 
@@ -1704,6 +1708,9 @@ Module Sub-Commands
 
     .. versionchanged:: 5.0
        Behavior of version 3.2 :subcmd:`refresh` sub-command restored
+
+    .. versionchanged:: 5.2
+       Only evaluate modules listed in :envvar:`__MODULES_LMREFRESH`
 
 .. subcmd:: reload
 
