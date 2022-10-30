@@ -38,6 +38,7 @@ set alias "ps -auxww | grep modulecmd"
 #
 
 setenv_loaded_module $module1 $modulefile1
+setenv_var __MODULES_LMREFRESH $module1
 
 #
 #  For the different shells ...
@@ -81,10 +82,12 @@ setenv_path_var MODULEPATH $mp
 
 # nothing to refresh in loaded modules
 setenv_loaded_module [list foo/1.0 bar/1.0] [list $mp/foo/1.0 $mp/bar/1.0]
+unsetenv_var __MODULES_LMREFRESH
 testouterr_cmd ALL refresh OK {}
 
 # many things to refresh
 setenv_loaded_module refresh/1.0 $mp/refresh/1.0
+setenv_var __MODULES_LMREFRESH refresh/1.0
 setenv_var FOO value
 setenv_path_var BAR value othervalue
 
@@ -117,6 +120,7 @@ testouterr_cmd sh {refresh} $ans {}
 
 # test tags and variant
 setenv_loaded_module refresh/2.0 $mp/refresh/2.0
+setenv_var __MODULES_LMREFRESH refresh/2.0
 setenv_var __MODULES_LMTAG refresh/2.0&bar
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 setenv_var __MODULES_LMVARIANT refresh/2.0&foo|1|1|0
@@ -131,6 +135,7 @@ testouterr_cmd sh {refresh} $ans {}
 
 # test evaluation order
 setenv_loaded_module [list refresh/1.0 refresh/2.0] [list $mp/refresh/1.0 $mp/refresh/2.0]
+setenv_var __MODULES_LMREFRESH refresh/1.0:refresh/2.0
 setenv_var __MODULES_LMTAG refresh/2.0&bar
 
 set ans [list]
@@ -197,6 +202,7 @@ unsetenv_var __MODULES_LMTAG
 
 # test alias/function set through source-sh
 setenv_loaded_module [list refresh/3.0] [list $mp/refresh/3.0]
+setenv_var __MODULES_LMREFRESH refresh/3.0
 
 set ans [list]
 lappend ans [list alias alsp {echo f\"o; echo b\\\"r; echo f\'o}]
@@ -218,6 +224,7 @@ testouterr_cmd sh {refresh} $ans {}
 #
 
 setenv_loaded_module [list refresh/1.0 refresh/2.0] [list $mp/refresh/1.0 $mp/refresh/2.0]
+setenv_var __MODULES_LMREFRESH refresh/1.0:refresh/2.0
 setenv_var __MODULES_LMTAG refresh/2.0&bar
 
 # break during evaluation
@@ -336,6 +343,15 @@ testouterr_cmd sh {refresh} ERR $tserr
 setenv_var TESTSUITE_REFRESH exit2
 set tserr [msg_refresh {refresh/2.0{+foo} <bar>} $err_evalabort]
 testouterr_cmd sh {refresh} $ans2 $tserr
+
+# verbose output, 2 module loaded, only one made for refresh
+setenv_loaded_module [list refresh/4.0 refresh/6.0] [list $mp/refresh/4.0 $mp/refresh/6.0]
+setenv_var __MODULES_LMREFRESH refresh/4.0
+set ans [list]
+lappend ans [list alias alfoo {echo foo4}]
+lappend ans [list funcfoo "() {" "echo foo4; };"]
+set tserr [msg_refresh refresh/4.0]
+testouterr_cmd sh {refresh -v} $ans $tserr
 
 
 #

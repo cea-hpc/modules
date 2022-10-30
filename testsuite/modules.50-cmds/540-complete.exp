@@ -41,6 +41,7 @@ set tserr [escre [msg_load $mod [msg_moderr {wrong # args: should be "complete s
 testouterr_cmd_re bash "load $mod" ERR $tserr
 
 setenv_loaded_module [list $mod] [list $modfile]
+setenv_var __MODULES_LMREFRESH $mod
 
 # unload
 set tserr [escre [msg_unload $mod [msg_moderr {wrong # args: should be "complete shell name body"} {complete<EXM>} $modfile 5 {} {} {} {} {invoked from within}]]]
@@ -51,6 +52,7 @@ set tserr [escre [msg_refresh $mod [msg_moderr {wrong # args: should be "complet
 testouterr_cmd_re bash "refresh" ERR $tserr
 
 unsetenv_loaded_module
+unsetenv_var __MODULES_LMREFRESH
 
 # whatis
 set tserr "$modlin $mpre $modlin
@@ -121,6 +123,7 @@ setenv_var TESTSUITE_COMPLETE comp1
 # load
 foreach shell $supported_shells {
     set ans [list]
+    lappend ans [list set __MODULES_LMREFRESH $mod]
     lappend ans [list set _LMFILES_ $modfile]
     lappend ans [list set LOADEDMODULES $mod]
     switch -- $shell {
@@ -140,12 +143,14 @@ foreach shell $supported_shells {
 }
 
 setenv_loaded_module [list $mod] [list $modfile]
+setenv_var __MODULES_LMREFRESH $mod
 
 # unload
 foreach shell $supported_shells {
     set ans [list]
     lappend ans [list unset _LMFILES_]
     lappend ans [list unset LOADEDMODULES]
+    lappend ans [list unset __MODULES_LMREFRESH]
     switch -- $shell {
         bash {
             lappend ans [list out {complete -r cmd;}]
@@ -186,6 +191,7 @@ foreach shell $supported_shells {
 
 
 unsetenv_loaded_module
+unsetenv_var __MODULES_LMREFRESH
 
 # whatis
 set tserr "$modlin $mpre $modlin
@@ -230,6 +236,7 @@ testouterr_cmd_re sh "test $mod" OK $tserr
 setenv_var TESTSUITE_COMPLETE comp2
 foreach shell $supported_shells {
     set ans [list]
+    lappend ans [list set __MODULES_LMREFRESH $mod]
     lappend ans [list set _LMFILES_ $modfile]
     lappend ans [list set LOADEDMODULES $mod]
     switch -- $shell {
@@ -257,6 +264,7 @@ foreach shell $supported_shells {
 
 setenv_var TESTSUITE_COMPLETE compbreak1
 set ans [list]
+lappend ans [list set __MODULES_LMREFRESH $modname/1.2]
 lappend ans [list set _LMFILES_ $mp/$modname/1.2]
 lappend ans [list set LOADEDMODULES $modname/1.2]
 lappend ans [list out {complete -o default -F _othercmd othercmd;}]
@@ -279,6 +287,7 @@ testouterr_cmd_re bash "load $mod $modname/1.2" $ans $tserr
 
 setenv_var TESTSUITE_COMPLETE compcomb1
 set ans [list]
+lappend ans [list set __MODULES_LMREFRESH $mod]
 lappend ans [list set _LMFILES_ $modfile:$mp/$modname/1.2]
 lappend ans [list set LOADEDMODULES $mod:$modname/1.2]
 lappend ans [list out {complete -r cmd;}]

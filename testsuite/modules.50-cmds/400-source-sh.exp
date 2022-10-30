@@ -56,6 +56,7 @@ lappend ans [list set FOOPATHWC /path/to/dir1:/path/to/d\*r2:/path/to/dir3]
 lappend ans [list set FOOPATHDUPEM :/path/to/dir1:/path/to/dir2:/path/to/dir3]
 lappend ans [list set FOO value]
 lappend ans [list set FOOPATHDUPSP "/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to:dir4 /path/to/dir3"]
+lappend ans [list set __MODULES_LMREFRESH source-sh/1]
 lappend ans [list set FOOWC va\*ue]
 lappend ans [list set FOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }]
 lappend ans [list alias alsp {echo f\"o; echo b\\\"r; echo f\'o}]
@@ -76,6 +77,7 @@ testouterr_cmd sh {load source-sh/1} $ans {}
 
 # basic unload
 setenv_loaded_module [list source-sh/1] [list $mp/source-sh/1]
+setenv_var __MODULES_LMREFRESH source-sh/1
 setenv_var __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|chdir\ $mp\|prepend-path\ FOOPATH\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHCB\ /path/to/dir1\ /path/to/d\\\{r2\ /path/to/dir3\|prepend-path\ FOOPATHDUP\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \{/path/to\ dir4\}\|prepend-path\ FOOPATHDUPEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHDUPMIX\ \{\}\ /path/to/dir1\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir1\}\ /path/to/dir3\|prepend-path\ FOOPATHDUPSP\ \{/path/to/dir1\ /path/to/dir1\ /path/to/dir2\ /path/to/dir1\ /path/to/dir3\ /path/to\}\ \{dir4\ /path/to/dir3\}\|prepend-path\ FOOPATHEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHWC\ /path/to/dir1\ /path/to/d\*r2\ /path/to/dir3\|set-alias\ alcb\ \{\}\|set-alias\ alem\ \{\}\|set-alias\ alfoo\ \{\}\|set-alias\ alsp\ \{\}\|set-function\ funccb\ \{\}\|set-function\ funcfoo\ \{\}\|set-function\ funcnl\ \{\}\|set-function\ funcsp\ \{\}\|set-function\ funcwc\ \{\}\|setenv\ FOO\ value\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOPATHDUPSPEM\ \{/path/to/dir1\ /path/to/dir1\ /path/to/dir2\ /path/to/dir1\ /path/to/dir3\ /path/to/dir3\ \}\|setenv\ FOOPATHSP\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\}\|setenv\ FOOPATHSPEM\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \}\|setenv\ FOOSP\ \{value\ \}\|setenv\ FOOWC\ va\*ue
 setenv_path_var FOOPATHDUP "/path/to/dir1:/path/to/dir2:/path/to/dir3:/path/to dir4"
 setenv_path_var FOOPATHEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3
@@ -115,6 +117,7 @@ lappend ans [list unset FOOPATHWC]
 lappend ans [list unset FOOPATHDUPEM]
 lappend ans [list unset FOO]
 lappend ans [list unset FOOPATHDUPSP]
+lappend ans [list unset __MODULES_LMREFRESH]
 lappend ans [list unset FOOWC]
 lappend ans [list unset FOOPATHSPEM]
 lappend ans [list unalias alsp]
@@ -134,6 +137,7 @@ skip_if_quick_mode
 set ans [list]
 lappend ans [list set FOOMINI value]
 lappend ans [list set FOOPATH /path/to/mini:/path/to/dir1:/path/to/dir2:/path/to/dir3]
+lappend ans [list set __MODULES_LMREFRESH source-sh/1:source-sh/2]
 lappend ans [list set _LMFILES_ $mp/source-sh/1:$mp/source-sh/2]
 lappend ans [list set LOADEDMODULES source-sh/1:source-sh/2]
 lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|chdir\ $mp\|prepend-path\ FOOPATH\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHCB\ /path/to/dir1\ /path/to/d\\\{r2\ /path/to/dir3\|prepend-path\ FOOPATHDUP\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \{/path/to\ dir4\}\|prepend-path\ FOOPATHDUPEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHDUPMIX\ \{\}\ /path/to/dir1\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir1\}\ /path/to/dir3\|prepend-path\ FOOPATHDUPSP\ \{/path/to/dir1\ /path/to/dir1\ /path/to/dir2\ /path/to/dir1\ /path/to/dir3\ /path/to\}\ \{dir4\ /path/to/dir3\}\|prepend-path\ FOOPATHEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHWC\ /path/to/dir1\ /path/to/d\*r2\ /path/to/dir3\|set-alias\ alcb\ \{\}\|set-alias\ alem\ \{\}\|set-alias\ alfoo\ \{\}\|set-alias\ alsp\ \{\}\|set-function\ funccb\ \{\}\|set-function\ funcfoo\ \{\}\|set-function\ funcnl\ \{\}\|set-function\ funcsp\ \{\}\|set-function\ funcwc\ \{\}\|setenv\ FOO\ value\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOPATHDUPSPEM\ \{/path/to/dir1\ /path/to/dir1\ /path/to/dir2\ /path/to/dir1\ /path/to/dir3\ /path/to/dir3\ \}\|setenv\ FOOPATHSP\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\}\|setenv\ FOOPATHSPEM\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \}\|setenv\ FOOSP\ \{value\ \}\|setenv\ FOOWC\ va\*ue:source-sh/2\&sh\ testsuite/example/mini-sh-to-mod.sh\|prepend-path\ FOOPATH\ /path/to/mini\|set-alias\ almini\ \{\}\|setenv\ FOOMINI\ value]
@@ -142,6 +146,7 @@ testouterr_cmd_re sh {load source-sh/2} $ans {}
 
 # unload one of these modulefiles
 setenv_loaded_module [list source-sh/1 source-sh/2] [list $mp/source-sh/1 $mp/source-sh/2]
+setenv_var __MODULES_LMREFRESH source-sh/1:source-sh/2
 setenv_var FOOMINI value
 setenv_path_var FOOPATH /path/to/mini:/path/to/dir1:/path/to/dir2:/path/to/dir3
 setenv_var __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|chdir\ $mp\|prepend-path\ FOOPATH\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHCB\ /path/to/dir1\ /path/to/d\\\{r2\ /path/to/dir3\|prepend-path\ FOOPATHDUP\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \{/path/to\ dir4\}\|prepend-path\ FOOPATHDUPEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHDUPMIX\ \{\}\ /path/to/dir1\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir1\}\ /path/to/dir3\|prepend-path\ FOOPATHDUPSP\ \{/path/to/dir1\ /path/to/dir1\ /path/to/dir2\ /path/to/dir1\ /path/to/dir3\ /path/to\}\ \{dir4\ /path/to/dir3\}\|prepend-path\ FOOPATHEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHWC\ /path/to/dir1\ /path/to/d\*r2\ /path/to/dir3\|set-alias\ alcb\ \{\}\|set-alias\ alem\ \{\}\|set-alias\ alfoo\ \{\}\|set-alias\ alsp\ \{\}\|set-function\ funccb\ \{\}\|set-function\ funcfoo\ \{\}\|set-function\ funcnl\ \{\}\|set-function\ funcsp\ \{\}\|set-function\ funcwc\ \{\}\|setenv\ FOO\ value\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOPATHDUPSPEM\ \{/path/to/dir1\ /path/to/dir1\ /path/to/dir2\ /path/to/dir1\ /path/to/dir3\ /path/to/dir3\ \}\|setenv\ FOOPATHSP\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\}\|setenv\ FOOPATHSPEM\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \}\|setenv\ FOOSP\ \{value\ \}\|setenv\ FOOWC\ va\*ue:source-sh/2\&sh\ testsuite/example/mini-sh-to-mod.sh\|prepend-path\ FOOPATH\ /path/to/mini\|set-alias\ almini\ \{\}\|setenv\ FOOMINI\ value
@@ -151,6 +156,7 @@ lappend ans [list unset FOOMINI]
 lappend ans [list set FOOPATH /path/to/dir1:/path/to/dir2:/path/to/dir3]
 lappend ans [list set _LMFILES_ $mp/source-sh/1]
 lappend ans [list set LOADEDMODULES source-sh/1]
+lappend ans [list set __MODULES_LMREFRESH source-sh/1]
 lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|chdir\ $mp\|prepend-path\ FOOPATH\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHCB\ /path/to/dir1\ /path/to/d\\\{r2\ /path/to/dir3\|prepend-path\ FOOPATHDUP\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \{/path/to\ dir4\}\|prepend-path\ FOOPATHDUPEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHDUPMIX\ \{\}\ /path/to/dir1\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir1\}\ /path/to/dir3\|prepend-path\ FOOPATHDUPSP\ \{/path/to/dir1\ /path/to/dir1\ /path/to/dir2\ /path/to/dir1\ /path/to/dir3\ /path/to\}\ \{dir4\ /path/to/dir3\}\|prepend-path\ FOOPATHEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHWC\ /path/to/dir1\ /path/to/d\*r2\ /path/to/dir3\|set-alias\ alcb\ \{\}\|set-alias\ alem\ \{\}\|set-alias\ alfoo\ \{\}\|set-alias\ alsp\ \{\}\|set-function\ funccb\ \{\}\|set-function\ funcfoo\ \{\}\|set-function\ funcnl\ \{\}\|set-function\ funcsp\ \{\}\|set-function\ funcwc\ \{\}\|setenv\ FOO\ value\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOPATHDUPSPEM\ \{/path/to/dir1\ /path/to/dir1\ /path/to/dir2\ /path/to/dir1\ /path/to/dir3\ /path/to/dir3\ \}\|setenv\ FOOPATHSP\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\}\|setenv\ FOOPATHSPEM\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \}\|setenv\ FOOSP\ \{value\ \}\|setenv\ FOOWC\ va\*ue]
 lappend ans [list unalias almini]
 testouterr_cmd sh {unload source-sh/2} $ans {}
@@ -176,6 +182,7 @@ lappend ans [list unset FOOPATHWC]
 lappend ans [list unset FOOPATHDUPEM]
 lappend ans [list unset FOO]
 lappend ans [list unset FOOPATHDUPSP]
+lappend ans [list set __MODULES_LMREFRESH source-sh/2]
 lappend ans [list unset FOOWC]
 lappend ans [list unset FOOPATHSPEM]
 lappend ans [list unalias alsp]
@@ -196,6 +203,7 @@ lappend ans [list unset __MODULES_SHARE_FOOPATHDUPEM]
 lappend ans [list set __MODULES_SHARE_FOOPATHDUPMIX ":2:/path/to/dir3:2"]
 lappend ans [list set FOOPATHDUPMIX :/path/to/dir1:/path/to/dir1\ /path/to/dir2\ /path/to/dir1:/path/to/dir3]
 lappend ans [list set FOOPATH /path/to/dir1:/path/to/dir2:/path/to/dir3]
+lappend ans [list set __MODULES_LMREFRESH source-sh/1:source-sh/2:source-sh/3]
 lappend ans [list set _LMFILES_ $mp/source-sh/1:$mp/source-sh/2:$mp/source-sh/3]
 lappend ans [list set LOADEDMODULES source-sh/1:source-sh/2:source-sh/3]
 lappend ans [list set FOOPATHDUP "/path/to/dir1:/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir3:/path/to dir4:/path/to/dir3"]
@@ -218,6 +226,7 @@ testouterr_cmd_re sh {load source-sh/3} $ans {}
 
 # unload from that point
 setenv_loaded_module [list source-sh/1 source-sh/2 source-sh/3] [list $mp/source-sh/1 $mp/source-sh/2 $mp/source-sh/3]
+setenv_var __MODULES_LMREFRESH source-sh/1:source-sh/2:source-sh/3
 setenv_var FOOPATHDUP "/path/to/dir1:/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir3:/path/to dir4:/path/to/dir3"
 unsetenv_var __MODULES_SHARE_FOOPATHDUPEM
 unsetenv_var __MODULES_SHARE_FOOPATH
@@ -246,6 +255,7 @@ lappend ans [list unset FOOPATHWC]
 lappend ans [list unset FOOPATHDUPEM]
 lappend ans [list unset FOO]
 lappend ans [list unset FOOPATHDUPSP]
+lappend ans [list set __MODULES_LMREFRESH source-sh/2:source-sh/3]
 lappend ans [list unset FOOWC]
 lappend ans [list unset FOOPATHSPEM]
 lappend ans [list unalias alsp]
@@ -450,6 +460,7 @@ testouterr_cmd sh {display source-sh/5.1} OK $tserr_disp4
 
 
 unsetenv_loaded_module
+unsetenv_var __MODULES_LMREFRESH
 unsetenv_var __MODULES_LMSOURCESH
 unsetenv_path_var FOOPATHDUP
 unsetenv_path_var FOOPATHEM
@@ -696,11 +707,13 @@ lappend ans [list set LOADEDMODULES source-sh/1:source-sh/2]
 lappend ans [list set _LMFILES_ $mp/source-sh/1:$mp/source-sh/2]
 lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|:source-sh/2\&sh\ testsuite/example/mini-sh-to-mod.sh\|prepend-path\ FOOPATH\ /path/to/mini\ \{\}\|set-alias\ almini\ \{\}\|setenv\ FOOMINI\ value]
 lappend ans [list setpath FOOPATH /path/to/mini:]
+lappend ans [list set __MODULES_LMREFRESH source-sh/2]
 lappend ans [list set FOOMINI value]
 lappend ans [list alias almini echo\ mini]
 testouterr_cmd_re sh {load source-sh/1 source-sh/2} $ans {}
 
 setenv_loaded_module [list source-sh/1 source-sh/2] [list $mp/source-sh/1 $mp/source-sh/2]
+setenv_var __MODULES_LMREFRESH source-sh/2
 setenv_var __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|:source-sh/2\&sh\ testsuite/example/mini-sh-to-mod.sh\|prepend-path\ FOOPATH\ /path/to/mini\ \{\}\|set-alias\ almini\ \{\}\|setenv\ FOOMINI\ value
 set ans [list]
 lappend ans [list set _LMFILES_ $mp/source-sh/2]
@@ -709,6 +722,7 @@ lappend ans [list set __MODULES_LMSOURCESH source-sh/2\&sh\ testsuite/example/mi
 testouterr_cmd sh {unload source-sh/1} $ans {}
 
 unsetenv_loaded_module
+unsetenv_var __MODULES_LMREFRESH
 unsetenv_var __MODULES_LMSOURCESH
 unsetenv_var TESTSUITE_SHTOMOD_NOVAR
 
@@ -724,6 +738,7 @@ lappend ans [list set FOOARG1 arg1]
 lappend ans [list set FOOCB va\{ue]
 lappend ans [list set FOOPATH /path/to/mini:]
 lappend ans [list set FOO value]
+lappend ans [list set __MODULES_LMREFRESH source-sh/5.0]
 lappend ans [list set FOOWC va\*ue]
 lappend ans [list alias almini echo\ mini]
 testouterr_cmd sh {load source-sh/5.0} $ans {}
@@ -741,6 +756,7 @@ lappend ans [list set FOOARG2 arg2]
 lappend ans [list set FOOCB va\{ue]
 lappend ans [list set FOOPATH /path/to/mini:]
 lappend ans [list set FOO value]
+lappend ans [list set __MODULES_LMREFRESH source-sh/5.1]
 lappend ans [list set FOOWC va\*ue]
 lappend ans [list alias almini echo\ mini]
 testouterr_cmd sh {load source-sh/5.1} $ans {}
@@ -846,6 +862,7 @@ lappend ans [list unset LOADEDMODULES]
 testouterr_cmd sh {unload source-sh/1} $ans {}
 
 # partial __MODULES_LMSOURCESH
+setenv_var __MODULES_LMREFRESH source-sh/1
 setenv_var __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|chdir\ $mp\|prepend-path\ FOOPATH\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHCB\ /path/to/dir1\ /path/to/d\\\{r2\ /path/to/dir3\|prepend-path\ FOOPATHDUP\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \{/path/to\ dir4\}\|prepend-path\ FOOPATHDUPEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHDUPMIX\ \{\}\ /path/to/dir1\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir1\}\ /path/to/dir3\|prepend-path\ FOOPATHDUPSP\ \{/path/to/dir1\ /path/to/dir1\ /path/to/dir2\ /path/to/dir1\ /path/to/dir3\ /path/to\}\ \{dir4\ /path/to/dir3\}\|prepend-path\ FOOPATHEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHWC\ /path/to/dir1\ /path/to/d\*r2\ /path/to/dir3\|set-alias\ alcb\ \{\}\|set-alias\ alem\ \{\}\|set-alias\ alsp\ \{\}\|set-function\ funccb\ \{\}\|set-function\ funcnl\ \{\}\|set-function\ funcsp\ \{\}\|set-function\ funcwc\ \{\}\|setenv\ FOO\ value\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOPATHDUPSPEM\ \{/path/to/dir1\ /path/to/dir1\ /path/to/dir2\ /path/to/dir1\ /path/to/dir3\ /path/to/dir3\ \}\|setenv\ FOOPATHSP\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\}\|setenv\ FOOPATHSPEM\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \}\|setenv\ FOOWC\ va\*ue
 set ans [list]
 lappend ans [list unset __MODULES_SHARE_FOOPATHDUPMIX]
@@ -867,6 +884,7 @@ lappend ans [list unset FOOPATHWC]
 lappend ans [list unset FOOPATHDUPEM]
 lappend ans [list unset FOO]
 lappend ans [list unset FOOPATHDUPSP]
+lappend ans [list unset __MODULES_LMREFRESH]
 lappend ans [list unset FOOWC]
 lappend ans [list unset FOOPATHSPEM]
 lappend ans [list unalias alsp]
@@ -878,6 +896,7 @@ lappend ans [list "unset -f funcnl;"]
 lappend ans [list "unset -f funcsp;"]
 testouterr_cmd sh {unload source-sh/1} $ans {}
 
+unsetenv_var __MODULES_LMREFRESH
 unsetenv_var __MODULES_LMSOURCESH
 unsetenv_path_var FOOPATHDUP
 unsetenv_path_var FOOPATHEM
@@ -892,6 +911,7 @@ unsetenv_var FOOPATHSPEM
 
 # a LMSOURCESH entry with shtomodargs but no modcontent
 setenv_loaded_module [list source-sh/5.0] [list $mp/source-sh/5.0]
+setenv_var __MODULES_LMREFRESH source-sh/5.0
 setenv_var FOOMINI value
 setenv_var FOOARG1 arg1
 setenv_path_var FOOPATH /path/to/mini {}
@@ -904,6 +924,7 @@ lappend ans [list unset __MODULES_SHARE_FOOPATH]
 lappend ans [list unset FOOPATH]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMREFRESH]
 lappend ans [list set __MODULES_LMSOURCESH source-sh/5.0\&bash\ testsuite/example/sh-to-mod.sh\&sh\ testsuite/example/mini-sh-to-mod.sh\|prepend-path\ FOOPATH\ /path/to/mini\ \{\}\|set-alias\ almini\ \{\}\|setenv\ FOOMINI\ value\&bash\ testsuite/example/sh-to-mod.sh\ arg1\|setenv\ FOOARG1\ arg1]
 lappend ans [list unset FOOARG1]
 lappend ans [list unalias almini]
@@ -916,6 +937,7 @@ lappend ans [list unset __MODULES_SHARE_FOOPATH]
 lappend ans [list unset FOOPATH]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMREFRESH]
 lappend ans [list unset __MODULES_LMSOURCESH]
 lappend ans [list unset FOOARG1]
 lappend ans [list unalias almini]
@@ -930,6 +952,7 @@ lappend ans [list unset __MODULES_SHARE_FOOPATH]
 lappend ans [list unset FOOPATH]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMREFRESH]
 lappend ans [list set __MODULES_LMSOURCESH source-sh/5.0\&bash\ testsuite/example/sh-to-mod.sh\&sh\ testsuite/example/mini-sh-to-mod.sh\|prepend-path\ FOOPATH\ /path/to/mini\ \{\}\|set-alias\ almini\|setenv\ FOOMINI\ value\&bash\ testsuite/example/sh-to-mod.sh\ arg1\|setenv\ FOOARG1\ arg1]
 lappend ans [list unset FOOARG1]
 lappend ans [list unalias almini]
@@ -1007,6 +1030,7 @@ testouterr_cmd sh {display source-sh/5.0} OK $tserr_disp3
 
 
 unsetenv_loaded_module
+unsetenv_var __MODULES_LMREFRESH
 unsetenv_path_var FOOPATH
 unsetenv_var FOOEM
 unsetenv_var FOOSP
@@ -1036,12 +1060,14 @@ lappend ans [list set FOOARG1 arg1]
 lappend ans [list set FOOCB va\{ue]
 lappend ans [list set FOOPATH /path/\{\|:/path/to/mini::/path/\}\&]
 lappend ans [list set FOO value]
+lappend ans [list set __MODULES_LMREFRESH source-sh/5.0]
 lappend ans [list set FOOWC va\*ue]
 lappend ans [list set FOOESC {}]
 lappend ans [list alias almini echo\ mini]
 testouterr_cmd sh {load source-sh/5.0} $ans {}
 
 setenv_loaded_module [list source-sh/5.0] [list $mp/source-sh/5.0]
+setenv_var __MODULES_LMREFRESH source-sh/5.0
 setenv_var FOOMINI value
 setenv_var FOOEM {}
 setenv_var FOOSP {value }
@@ -1065,6 +1091,7 @@ lappend ans [list unset FOOARG1]
 lappend ans [list unset FOOCB]
 lappend ans [list unset FOOPATH]
 lappend ans [list unset FOO]
+lappend ans [list unset __MODULES_LMREFRESH]
 lappend ans [list unset FOOWC]
 lappend ans [list unset FOOESC]
 lappend ans [list unalias almini]
@@ -1079,6 +1106,7 @@ unsetenv_var FOOCB
 unsetenv_var FOOWC
 unsetenv_path_var FOOPATH
 unsetenv_var FOO
+unsetenv_var __MODULES_LMREFRESH
 unsetenv_var __MODULES_LMSOURCESH
 unsetenv_path_var FOOESC
 
@@ -1108,6 +1136,7 @@ lappend ans [list set FOOCB va\{ue]
 lappend ans [list set __MODULES_SHARE_FOOPATHEM :1]
 lappend ans [list set FOOPATHWC /path/to/dir1:/path/to/d\*r2:/path/to/dir3]
 lappend ans [list set FOO value]
+lappend ans [list set __MODULES_LMREFRESH source-sh/7.0]
 lappend ans [list set FOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }]
 lappend ans [list set FOOWC va\*ue]
 lappend ans [list alias alsp {echo f\"o; echo b\\\"r; echo f\'o}]
@@ -1148,6 +1177,7 @@ testouterr_cmd sh {display source-sh/7.0} OK $tserr_disp70
 testouterr_cmd tcsh {display source-sh/7.0} OK $tserr_disp70
 
 setenv_loaded_module [list source-sh/7.0] [list $mp/source-sh/7.0]
+setenv_var __MODULES_LMREFRESH source-sh/7.0
 setenv_var __MODULES_LMSOURCESH source-sh/7.0\&tcsh\ testsuite/example/sh-to-mod.csh\|chdir\ $mp\|complete\ tcsh\ cmd\ \{\}\|complete\ tcsh\ mycmd\ \{\}\|complete\ tcsh\ othercmd\ \{\}\|prepend-path\ FOOPATH\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHCB\ /path/to/dir1\ /path/to/d\\\{r2\ /path/to/dir3\|prepend-path\ FOOPATHEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHWC\ /path/to/dir1\ /path/to/d\*r2\ /path/to/dir3\|set-alias\ alcb\ \{\}\|set-alias\ alem\ \{\}\|set-alias\ alfoo\ \{\}\|set-alias\ alsp\ \{\}\|setenv\ FOO\ value\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOPATHSP\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\}\|setenv\ FOOPATHSPEM\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \}\|setenv\ FOOSP\ \{value\ \}\|setenv\ FOOWC\ va\*ue
 set ans [list]
 lappend ans [list unset _LMFILES_]
@@ -1162,6 +1192,7 @@ lappend ans [list unset FOOPATH]
 lappend ans [list unset FOOCB]
 lappend ans [list unset FOOPATHWC]
 lappend ans [list unset FOO]
+lappend ans [list unset __MODULES_LMREFRESH]
 lappend ans [list unset FOOPATHSPEM]
 lappend ans [list unset FOOWC]
 lappend ans [list unalias alsp]
@@ -1186,6 +1217,7 @@ testouterr_cmd tcsh {refresh} $ans {}
 testouterr_cmd tcsh {display source-sh/7.0} OK $tserr_disp70
 
 unsetenv_loaded_module
+unsetenv_var __MODULES_LMREFRESH
 unsetenv_var __MODULES_LMSOURCESH
 }
 
@@ -1204,6 +1236,7 @@ lappend ans [list set FOOCB va\{ue]
 lappend ans [list set __MODULES_SHARE_FOOPATHEM :1]
 lappend ans [list set FOOPATHWC /path/to/dir1:/path/to/d\*r2:/path/to/dir3]
 lappend ans [list set FOO value]
+lappend ans [list set __MODULES_LMREFRESH source-sh/7.1]
 lappend ans [list set FOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }]
 lappend ans [list set FOOWC va\*ue]
 lappend ans [list alias alsp {echo f\"o; echo b\\\"r; echo f\'o}]
@@ -1265,6 +1298,7 @@ testouterr_cmd sh {display source-sh/7.1} OK $tserr_disp71
 testouterr_cmd bash {display source-sh/7.1} OK $tserr_disp71
 
 setenv_loaded_module [list source-sh/7.1] [list $mp/source-sh/7.1]
+setenv_var __MODULES_LMREFRESH source-sh/7.1
 setenv_var __MODULES_LMSOURCESH source-sh/7.1\&bash\ testsuite/example/sh-to-mod.sh\|chdir\ $mp\|complete\ bash\ cmd\ \{\}\|complete\ bash\ mycmd\ \{\}\|complete\ bash\ othercmd\ \{\}\|prepend-path\ FOOPATH\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHCB\ /path/to/dir1\ /path/to/d\\\{r2\ /path/to/dir3\|prepend-path\ FOOPATHEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHWC\ /path/to/dir1\ /path/to/d\*r2\ /path/to/dir3\|set-alias\ alcb\ \{\}\|set-alias\ alem\ \{\}\|set-alias\ alfoo\ \{\}\|set-alias\ alsp\ \{\}\|set-function\ funccb\ \{\}\|set-function\ funcfoo\ \{\}\|set-function\ funcnl\ \{\}\|set-function\ funcsp\ \{\}\|set-function\ funcwc\ \{\}\|setenv\ FOO\ value\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOPATHSP\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\}\|setenv\ FOOPATHSPEM\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \}\|setenv\ FOOSP\ \{value\ \}\|setenv\ FOOWC\ va\*ue
 set ans [list]
 lappend ans [list unset _LMFILES_]
@@ -1279,6 +1313,7 @@ lappend ans [list unset FOOPATH]
 lappend ans [list unset FOOCB]
 lappend ans [list unset FOOPATHWC]
 lappend ans [list unset FOO]
+lappend ans [list unset __MODULES_LMREFRESH]
 lappend ans [list unset FOOPATHSPEM]
 lappend ans [list unset FOOWC]
 lappend ans [list unalias alsp]
@@ -1316,6 +1351,7 @@ testouterr_cmd bash {refresh} $ans {}
 testouterr_cmd bash {display source-sh/7.1} OK $tserr_disp71
 
 unsetenv_loaded_module
+unsetenv_var __MODULES_LMREFRESH
 unsetenv_var __MODULES_LMSOURCESH
 
 setenv_var TESTSUITE_SHTOMOD_NOALIAS 1
@@ -1337,6 +1373,7 @@ lappend ans [list set FOOCB va\{ue]
 lappend ans [list set __MODULES_SHARE_FOOPATHEM :1]
 lappend ans [list set FOOPATHWC /path/to/dir1:/path/to/d\*r2:/path/to/dir3]
 lappend ans [list set FOO value]
+lappend ans [list set __MODULES_LMREFRESH source-sh/7.2]
 lappend ans [list set FOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }]
 lappend ans [list set FOOWC va\*ue]
 if {[info exists fish_version_ge31] && $fish_version_ge31} {
@@ -1428,6 +1465,7 @@ testouterr_cmd sh {display source-sh/7.2} OK $tserr_disp72
 testouterr_cmd fish {display source-sh/7.2} OK $tserr_disp72
 
 setenv_loaded_module [list source-sh/7.2] [list $mp/source-sh/7.2]
+setenv_var __MODULES_LMREFRESH source-sh/7.2
 setenv_var __MODULES_LMSOURCESH source-sh/7.2\&fish\ testsuite/example/sh-to-mod.fish\|chdir\ $mp\|complete\ fish\ cmd\ \{\}\|complete\ fish\ mycmd\ \{\}\|complete\ fish\ othercmd\ \{\}\|prepend-path\ FOOPATH\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHCB\ /path/to/dir1\ /path/to/d\\\{r2\ /path/to/dir3\|prepend-path\ FOOPATHEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHWC\ /path/to/dir1\ /path/to/d\*r2\ /path/to/dir3\|setenv\ FOO\ value\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOPATHSP\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\}\|setenv\ FOOPATHSPEM\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \}\|setenv\ FOOSP\ \{value\ \}\|setenv\ FOOWC\ va\*ue
 set ans [list]
 lappend ans [list unset _LMFILES_]
@@ -1442,6 +1480,7 @@ lappend ans [list unset FOOPATH]
 lappend ans [list unset FOOCB]
 lappend ans [list unset FOOPATHWC]
 lappend ans [list unset FOO]
+lappend ans [list unset __MODULES_LMREFRESH]
 lappend ans [list unset FOOPATHSPEM]
 lappend ans [list unset FOOWC]
 lappend ans [list out {complete -e -c cmd;}]
@@ -1537,6 +1576,7 @@ module-whatis\tsource-sh/7.2
 testouterr_cmd fish {display source-sh/7.2} OK $tserr_disp72
 
 unsetenv_loaded_module
+unsetenv_var __MODULES_LMREFRESH
 unsetenv_var __MODULES_LMSOURCESH
 }
 
