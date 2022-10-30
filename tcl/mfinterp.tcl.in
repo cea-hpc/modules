@@ -1612,6 +1612,9 @@ proc set-alias {alias what} {
    set ::g_Aliases($alias) $what
    set ::g_stateAliases($alias) new
 
+   # current module is qualified for refresh evaluation
+   lappendState -nodup refresh_qualified [currentState modulename]
+
    return {}
 }
 
@@ -1630,6 +1633,9 @@ proc unset-alias {alias} {
 proc set-function {function what} {
    set ::g_Functions($function) $what
    set ::g_stateFunctions($function) new
+
+   # current module is qualified for refresh evaluation
+   lappendState -nodup refresh_qualified [currentState modulename]
 
    return {}
 }
@@ -2677,6 +2683,9 @@ proc complete {shell name body} {
    # also some shells may set multiple definitions for a single name
    lappend ::g_Completes($name) $shell $body
    set ::g_stateCompletes($name) new
+
+   # current module is qualified for refresh evaluation
+   lappendState -nodup refresh_qualified [currentState modulename]
 }
 
 # undo complete in unload mode

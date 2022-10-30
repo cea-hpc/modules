@@ -435,7 +435,7 @@ proc getLoadedModulePropertyList {prop {filter_empty 1}} {
       }
       default {
          set envvar __MODULES_LM[string toupper $prop]
-         set subsplit [expr {$prop ni {init}}]
+         set subsplit [expr {$prop ni {init refresh}}]
          if {$prop in {altname conflict}} {
             set nosubsubsplit 1
          }
@@ -1141,7 +1141,11 @@ proc getModuleFromLoadingModulefile {modfile {idx all}} {
    }
 }
 
-proc setLoadedModule {mod modfile uasked {modvr {}}} {
+proc isModuleRefreshQualified {mod} {
+   return $::g_loadedModulesRefresh($mod)
+}
+
+proc setLoadedModule {mod modfile uasked {modvr {}} refresh} {
    set ::g_loadedModules($mod) $modfile
    # a loaded modfile may correspond to multiple loaded virtual modules
    lappend ::g_loadedModuleFiles($modfile) $mod
@@ -1153,6 +1157,9 @@ proc setLoadedModule {mod modfile uasked {modvr {}}} {
    if {$modvr ne {} && $mod ne $modvr} {
       setModuleTag $modvr $loadedtag
    }
+
+   # is module qualified for refresh evaluation
+   set ::g_loadedModulesRefresh($mod) $refresh
 
    # build dependency chain
    setModuleDependency $mod
@@ -1167,6 +1174,9 @@ proc unsetLoadedModule {mod modfile} {
       set ::g_loadedModuleFiles($modfile) [replaceFromList\
          $::g_loadedModuleFiles($modfile) $mod]
    }
+
+   unset ::g_loadedModulesRefresh($mod)
+
    # update dependencies
    unsetModuleDependency $mod
 }
@@ -1991,6 +2001,7 @@ proc cacheCurrentModules {{exitonerr 1}} {
       set i 0
       set modfilelist [getLoadedModulePropertyList file]
       set modlist [getLoadedModulePropertyList name]
+      set refreshlist [getLoadedModulePropertyList refresh]
 
       if {[llength $modlist] == [llength $modfilelist]} {
          # cache declared variant of loaded modules
@@ -2060,7 +2071,8 @@ proc cacheCurrentModules {{exitonerr 1}} {
                set modvr {}
             }
             setLoadedModule $mod [lindex $modfilelist $i] [expr\
-               {![isModuleTagged $mod auto-loaded 1]}] $modvr
+               {![isModuleTagged $mod auto-loaded 1]}] $modvr [expr {$mod in\
+               $refreshlist}]
             incr i
          }
 

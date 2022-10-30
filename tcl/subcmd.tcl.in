@@ -1151,7 +1151,8 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
          # allow duplicate modfile entries for virtual modules
          append-path --duplicates _LMFILES_ $modfile
          # update cache arrays
-         setLoadedModule $modname $modfile $uasked $modnamevr
+         setLoadedModule $modname $modfile $uasked $modnamevr [expr {$modname\
+            in [getState refresh_qualified]}]
 
          # register declared source-sh in environment
          if {[set modsrcsh [getLoadedSourceSh $modname 1]] ne {}} {
@@ -1184,6 +1185,11 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
          }
          if {[set modtag [getExtraTagList $modnamevr 1]] ne {}} {
             append-path __MODULES_LMEXTRATAG $modtag
+         }
+
+         # declare module qualified for refresh evaluation
+         if {[isModuleRefreshQualified $modname]} {
+            append-path __MODULES_LMREFRESH $modname
          }
 
          # Load phase of dependent module reloading. These modules can adapt
@@ -1478,6 +1484,11 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
 
          # module was asked by user if tagged loaded instead of auto-loaded
          set uasked [isModuleTagged $modname loaded 1]
+
+         # unset module from list of loaded modules qualified for refresh eval
+         if {[isModuleRefreshQualified $modname]} {
+            remove-path __MODULES_LMREFRESH $modname
+         }
 
          # get module position in loaded list to remove corresponding loaded
          # modulefile (entry at same position in _LMFILES_)

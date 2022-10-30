@@ -537,7 +537,7 @@ proc pushSettings {} {
       g_stateFunctions g_Functions g_stateCompletes g_Completes\
       g_newXResources g_delXResources g_loadedModules g_loadedModuleFiles\
       g_loadedModuleVariant g_loadedModuleConflict g_loadedModulePrereq\
-      g_loadedModuleAltname g_loadedModuleAutoAltname\
+      g_loadedModulesRefresh g_loadedModuleAltname g_loadedModuleAutoAltname\
       g_loadedModuleAliasAltname g_moduleDepend g_dependHash\
       g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
@@ -564,7 +564,7 @@ proc popSettings {} {
       g_newXResources g_delXResources g_changeDir g_stdoutPuts\
       g_prestdoutPuts g_return_text g_loadedModules g_loadedModuleFiles\
       g_loadedModuleVariant g_loadedModuleConflict g_loadedModulePrereq\
-      g_loadedModuleAltname g_loadedModuleAutoAltname\
+      g_loadedModulesRefresh g_loadedModuleAltname g_loadedModuleAutoAltname\
       g_loadedModuleAliasAltname g_moduleDepend g_dependHash\
       g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
@@ -580,7 +580,7 @@ proc restoreSettings {} {
       g_stateFunctions g_Functions g_stateCompletes g_Completes\
       g_newXResources g_delXResources g_loadedModules g_loadedModuleFiles\
       g_loadedModuleVariant g_loadedModuleConflict g_loadedModulePrereq\
-      g_loadedModuleAltname g_loadedModuleAutoAltname\
+      g_loadedModulesRefresh g_loadedModuleAltname g_loadedModuleAutoAltname\
       g_loadedModuleAliasAltname g_moduleDepend g_dependHash\
       g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
