@@ -1,8 +1,8 @@
 # SITECONFIG.TCL, site-specific configuration script for Modules
 #
 # This Tcl script enables to supersede any global variable or procedure
-# definition of modulecmd.tcl. See 'Modulecmd startup' section in module(1)
-# manpage for detailed information.
+# definition of modulecmd.tcl. See 'Site-specific configuration' section in
+# module(1) manpage for detailed information.
 
 ##########################################################################
 

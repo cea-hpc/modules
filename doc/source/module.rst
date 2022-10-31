@@ -129,13 +129,10 @@ Modulecmd startup
 ^^^^^^^^^^^^^^^^^
 
 Upon invocation :file:`modulecmd.tcl` sources a site-specific configuration
-script if it exists. The location for this script is
-|file etcdir_siteconfig|. An additional siteconfig script may be
-specified with the :envvar:`MODULES_SITECONFIG` environment variable, if
-allowed by :file:`modulecmd.tcl` configuration, and will be loaded if it
-exists after |file etcdir_siteconfig|. Siteconfig is a Tcl script that enables
-to supersede any global variable or procedure definition of
-:file:`modulecmd.tcl`.
+script if it exists. Siteconfig script is a Tcl script located at
+|file etcdir_siteconfig|. It enables to supersede any global variable or
+procedure definition of :file:`modulecmd.tcl`. See :ref:`Site-specific
+configuration` for detailed information.
 
 Afterward, :file:`modulecmd.tcl` sources rc files which contain global,
 user and *modulefile* specific setups. These files are interpreted as
@@ -844,7 +841,9 @@ Module Sub-Commands
 
  .. mconfig:: extra_siteconfig
 
-  Additional site-specific configuration script location.
+  Additional site-specific configuration script location. See
+  :ref:`Site-specific configuration` section for details.
+
 
   This configuration option is unset by default. The
   :envvar:`MODULES_SITECONFIG` environment variable is defined by
@@ -1165,7 +1164,9 @@ Module Sub-Commands
 
  .. mconfig:: siteconfig
 
-  Primary site-specific configuration script location.
+  Primary site-specific configuration script location. See
+  :ref:`Site-specific configuration` section for details.
+
 
   Default value is |file etcdir_siteconfig|. It can be changed at installation
   time with :instopt:`--prefix` or :instopt:`--etcdir` options. The value of
@@ -2599,6 +2600,152 @@ target also applies to stash collection.
    .. versionchanged:: 5.2
       Stash collection introduced
 
+.. _Site-specific configuration:
+
+Site-specific configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Siteconfig, the site-specific configuration script, is a way to extend
+:file:`modulecmd.tcl`. Siteconfig is a Tcl script. Its location is
+|file etcdir_siteconfig|.
+
+When :file:`modulecmd.tcl` is invoked it sources siteconfig script if it
+exists. Any global variable or procedure of :file:`modulecmd.tcl` can be
+redefined in siteconfig.
+
+An additional siteconfig script may be specified through the
+:mconfig:`extra_siteconfig` configuration option. The
+:envvar:`MODULES_SITECONFIG` environment variable is defined by
+:subcmd:`config` sub-command when setting :mconfig:`extra_siteconfig`. If it
+exists the extra siteconfig is sourced by :file:`modulecmd.tcl` right after
+main siteconfig script.
+
+Hooks
+"""""
+
+Siteconfig relies on the ability of the Tcl language to overwrite previously
+defined variables and procedures. Sites may deploy their own Tcl code in
+siteconfig to adapt :file:`modulecmd.tcl` to their specific needs. The
+``trace`` Tcl command may especially be used to define hooks that are run when
+entering or leaving a given procedure, or when a variable is read or written.
+See :manpage:`trace(n)` man page for detailed information. The following
+example setup a procedure that is executed before each modulefile evaluation:
+
+.. code-block:: tcl
+
+    proc beforeEval {cmdstring code result op} {
+       # code to run right before each modulefile evaluation
+    }
+    trace add execution execute-modulefile enter beforeEval
+
+Siteconfig hook variables
+"""""""""""""""""""""""""
+
+Some Tcl variables can be defined in siteconfig script with special hook
+meaning. The following variables are recognized:
+
+.. sitevar:: modulefile_extra_vars
+
+ List of variable names and associated values to setup in modulefile
+ evaluation context. These variables can be accessed when modulefile is
+ executed. In case code in a modulefile changes the value of such variable,
+ its value is reset to the one defined in :sitevar:`modulefile_extra_vars`
+ prior the evaluation of the next modulefile.
+
+ .. code-block:: tcl
+
+    set modulefile_extra_vars {myvar 1 othervar {some text}}
+
+ In the above siteconfig example, :sitevar:`modulefile_extra_vars` sets the
+ ``myvar`` and ``othervar`` variables in the modulefile evaluation context
+ with respectively ``1`` and ``some text`` as value.
+
+ .. only:: html
+
+    .. versionadded:: 5.2
+
+.. sitevar:: modulefile_extra_cmds
+
+ List of command and associated local procedure to setup in modulefile
+ evaluation context. These commands can be called from the modulefile to
+ execute associated procedure. In case a modulefile changes the definition
+ of such command, its definition is bound again on the procedure defined in
+ :sitevar:`modulefile_extra_cmds` prior the evaluation of the next modulefile.
+
+ .. code-block:: tcl
+
+    proc mycmd {} {
+        # Tcl code
+    }
+    proc anotherproc {args} {
+        # Tcl code
+    }
+    set modulefile_extra_cmds {mycmd mycmd othercmd anotherproc}
+
+ In the above siteconfig example, :sitevar:`modulefile_extra_cmds` sets the
+ ``mycmd`` and ``othercmd`` commands in the modulefile evaluation context and
+ bind them respectively to the ``mycmd`` and ``anotherproc`` procedures
+ defined in siteconfig script.
+
+ .. only:: html
+
+    .. versionadded:: 5.2
+
+.. sitevar:: modulerc_extra_vars
+
+ List of variable names and associated values to setup in modulerc evaluation
+ context. These variables can be accessed when modulerc is executed. In case
+ code in a modulerc changes the value of such variable, its value
+ is reset to the one defined in :sitevar:`modulerc_extra_vars` prior the
+ evaluation of the next modulerc.
+
+ .. code-block:: tcl
+
+    set modulerc_extra_vars {myvar 1 othervar {some text}}
+
+ In the above siteconfig example, :sitevar:`modulerc_extra_vars` sets the
+ ``myvar`` and ``othervar`` variables in the modulerc evaluation context with
+ respectively ``1`` and ``some text`` as value.
+
+ .. only:: html
+
+    .. versionadded:: 5.2
+
+.. sitevar:: modulerc_extra_cmds
+
+ List of command and associated local procedure to setup in modulerc
+ evaluation context. These commands can be called from the modulerc to execute
+ associated procedure. In case a modulerc changes the definition of such
+ command, its definition is bound again on the procedure defined in
+ :sitevar:`modulerc_extra_cmds` prior the evaluation of the next modulerc.
+
+ .. code-block:: tcl
+
+    proc mycmd {} {
+        # Tcl code
+    }
+    proc anotherproc {args} {
+        # Tcl code
+    }
+    set modulerc_extra_cmds {mycmd mycmd othercmd anotherproc}
+
+ In the above siteconfig example, :sitevar:`modulerc_extra_cmds` sets the
+ ``mycmd`` and ``othercmd`` commands in the modulerc evaluation context and
+ bind them respectively to the ``mycmd`` and ``anotherproc`` procedures
+ defined in siteconfig script.
+
+
+ .. only:: html
+
+    .. versionadded:: 5.2
+
+.. only:: html
+
+   .. versionadded:: 4.1
+
+   .. versionchanged:: 4.3
+      Additional site-specific configuration script introduced
+
 
 EXIT STATUS
 -----------
@@ -3730,7 +3877,8 @@ ENVIRONMENT
 .. envvar:: MODULES_SITECONFIG
 
  Location of a site-specific configuration script to source into
- :file:`modulecmd.tcl`. See also `Modulecmd startup`_ section.
+ :file:`modulecmd.tcl`. See :ref:`Site-specific configuration` section for
+ details.
 
  This environment variable value supersedes the default value set in the
  :mconfig:`extra_siteconfig` configuration option. It can be defined with the
@@ -3974,7 +4122,9 @@ FILES
 
  The site-specific configuration script of :file:`modulecmd.tcl`. An
  additional configuration script could be defined using the
- :envvar:`MODULES_SITECONFIG` environment variable.
+ :envvar:`MODULES_SITECONFIG` environment variable. See :ref:`Site-specific
+ configuration` for detailed information.
+
 
 |file etcdir_rc|
 
@@ -4008,5 +4158,5 @@ FILES
 SEE ALSO
 --------
 
-:ref:`ml(1)`, :ref:`modulefile(4)`
+:ref:`ml(1)`, :ref:`modulefile(4)`, :manpage:`trace(n)`
 
