@@ -1338,7 +1338,7 @@ A modulefile is declared *sticky* by applying it the ``sticky`` tag with the
 
 .. parsed-literal::
 
-    :ps:`$` cat mp/foo/.modulerc
+    :ps:`$` cat /path/to/modulefiles/foo/.modulerc
     #%Module4.7
     module-tag sticky foo/1.0
     :ps:`$` ml
@@ -1363,7 +1363,7 @@ is forced. It can only be unloaded if the module reloads afterward.
 
 .. parsed-literal::
 
-    :ps:`$` cat mp/bar/.modulerc
+    :ps:`$` cat /path/to/modulefiles/bar/.modulerc
     #%Module4.7
     module-tag super-sticky bar/1.0
     :ps:`$` ml
@@ -1390,7 +1390,7 @@ super-sticky module can be swapped by another version of this same module:
 
 .. parsed-literal::
 
-    :ps:`$` cat mp/baz/.modulerc
+    :ps:`$` cat /path/to/modulefiles/baz/.modulerc
     #%Module4.7
     module-tag sticky baz
     :ps:`$` ml
