@@ -337,6 +337,86 @@ or all together with :subcmd:`stashclear`.
     :ps:`$` module stashlist
     No stash collection.
 
+Siteconfig hook variables
+-------------------------
+
+Several Tcl variables are introduced for :ref:`Site-specific configuration`
+script to define specific commands and variables in the evaluation context of
+modulefiles and modulercs. These commands and variables setup in
+:file:`siteconfig.tcl` can be used in modulefile or modulerc. Sites can easily
+extend modulefile and modulerc syntax with specific elements.
+
+:sitevar:`modulefile_extra_cmds` variable defines a list of commands to expose
+in the modulefile evaluation context and the associated procedure to run when
+this command is called. This variable has to be defined in
+:file:`siteconfig.tcl` located for instance at |file etcdir_siteconfig|.
+
+In the following example :sitevar:`modulefile_extra_cmds` is used to define
+the ``sys`` command and bound it to the ``sys`` procedure that is also defined
+in :file:`siteconfig.tcl`.
+
+.. code-block:: tcl
+
+    proc sys {mode} {
+       switch -- $mode {
+          name    { return myhost-$::tcl_platform(machine) }
+          default { error "Unknown mode '$mode'" }
+       }
+    }
+    set modulefile_extra_cmds {sys sys}
+
+Once :file:`siteconfig.tcl` is setup, the ``sys`` command can be called by
+modulefiles. In the following example it is used to determine the application
+path.
+
+.. parsed-literal::
+
+    :ps:`$` cat /path/to/modulefiles/foo/1.2
+    #%Module
+    append-path PATH /path/to/apps/foo-1.2/[sys name]/bin
+
+    :ps:`$` module show foo/1.2
+    -------------------------------------------------------------------
+    :sgrhi:`/path/to/modulefiles/foo/1.2`:
+
+    :sgrcm:`append-path`     PATH /path/to/apps/foo-1.2/myhost-x86_64/bin
+    -------------------------------------------------------------------
+
+:sitevar:`modulerc_extra_cmds` follows the same approach than
+:sitevar:`modulefile_extra_cmds` and makes specific commands available during
+modulerc evaluation.
+
+:sitevar:`modulefile_extra_vars` variable defines a list of variables to
+expose in the modulefile evaluation context and their associated value. This
+variable has to be defined in :file:`siteconfig.tcl`.
+
+In the following example :sitevar:`modulefile_extra_vars` is used to define
+the ``APP_ROOT`` variable with ``/path/to/apps`` as value.
+
+.. code-block:: tcl
+
+    set modulefile_extra_vars {APP_ROOT /path/to/apps}
+
+Once :file:`siteconfig.tcl` is setup, the ``APP_ROOT`` variable can be used in
+modulefiles.
+
+.. parsed-literal::
+
+    :ps:`$` cat /path/to/modulefiles/bar/2.1
+    #%Module
+    append-path PATH $APP_ROOT/bar-2.1/[sys name]/bin
+
+    :ps:`$` module show bar/2.1
+    -------------------------------------------------------------------
+    :sgrhi:`/path/to/modulefiles/bar/2.1`:
+
+    :sgrcm:`append-path`     PATH /path/to/apps/bar-2.1/myhost-x86_64/bin
+    -------------------------------------------------------------------
+
+:sitevar:`modulerc_extra_vars` follows the same approach than
+:sitevar:`modulefile_extra_vars` and makes specific variables available during
+modulerc evaluation.
+
 
 v5.1
 ====
