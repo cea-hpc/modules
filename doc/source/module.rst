@@ -2638,6 +2638,22 @@ example setup a procedure that is executed before each modulefile evaluation:
     }
     trace add execution execute-modulefile enter beforeEval
 
+Another possibility is to override the definition of an existing procedure by
+first renaming its original version then creating a new procedure that will add
+specific code and rely on the renamed original procedure for the rest. See
+:manpage:`rename(n)` man page for details. As an example, the following code
+adds a new query option to the :mfcmd:`module-info` modulefile command:
+
+.. code-block:: tcl
+
+    rename module-info __module-info
+    proc module-info {what {more {}}} {
+       switch -- $what {
+          platform { return myhost-$::tcl_platform(machine) }
+          default { return [__module-info $what $more] }
+       }
+    }
+
 Siteconfig hook variables
 """""""""""""""""""""""""
 
@@ -4125,7 +4141,6 @@ FILES
  :envvar:`MODULES_SITECONFIG` environment variable. See :ref:`Site-specific
  configuration` for detailed information.
 
-
 |file etcdir_rc|
 
  The system-wide modules rc file. The location of this file can be changed
@@ -4158,5 +4173,5 @@ FILES
 SEE ALSO
 --------
 
-:ref:`ml(1)`, :ref:`modulefile(4)`, :manpage:`trace(n)`
+:ref:`ml(1)`, :ref:`modulefile(4)`
 
