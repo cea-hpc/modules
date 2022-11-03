@@ -63,7 +63,7 @@ Start coding
 
 .. _committing as you go: https://dont-be-afraid-to-commit.readthedocs.io/en/latest/git/commandlinegit.html#commit-your-changes
 .. _create a pull request: https://help.github.com/articles/creating-a-pull-request/
-.. _Tcl 8.5 commands reference: https://www.tcl.tk/man/tcl8.5/TclCmd/contents.htm
+.. _Tcl 8.5 commands reference: https://www.tcl-lang.org/man/tcl8.5/TclCmd/contents.htm
 
 Design notes
 ~~~~~~~~~~~~

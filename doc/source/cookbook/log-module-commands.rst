@@ -76,10 +76,10 @@ with `trace`_ Tcl command.
 
 **Compatible with Modules v4.2+**
 
-.. _trace: https://www.tcl.tk/man/tcl8.5/TclCmd/trace.html
+.. _trace: https://www.tcl-lang.org/man/tcl8.5/TclCmd/trace.html
 .. _Elasticsearch: https://www.elastic.co/elasticsearch/
 .. _Splunk: https://www.splunk.com/
-.. _upvar: https://www.tcl.tk/man/tcl8.5/TclCmd/upvar.html
+.. _upvar: https://www.tcl-lang.org/man/tcl8.5/TclCmd/upvar.html
 
 Installation
 ------------

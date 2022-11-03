@@ -7,7 +7,7 @@ set syntax=tcl
 syn clear tclCommand
 
 " set again tclCommand with `syn match`
-" Basic Tcl commands: http://www.tcl.tk/man/tcl8.6/TclCmd/contents.htm
+" Basic Tcl commands: http://www.tcl-lang.org/man/tcl8.6/TclCmd/contents.htm
 syn match tclCommand		"\v<(after|append|array|bgerror|binary|cd|chan|clock|close|concat)>"
 syn match tclCommand		"\v<(dde|dict|encoding|eof|error|eval|exec|exit|expr|fblocked)>"
 syn match tclCommand		"\v<(fconfigure|fcopy|file|fileevent|flush|format|gets|glob)>"
@@ -19,7 +19,7 @@ syn match tclCommand		"\v<(registry|regsub|rename|scan|seek|self|set|socket|sour
 syn match tclCommand		"\v<(split|string|subst|tell|time|trace|unknown|unload|unset)>"
 syn match tclCommand		"\v<(update|uplevel|upvar|variable|vwait)>"
 
-" The 'Tcl Standard Library' commands: http://www.tcl.tk/man/tcl8.6/TclCmd/library.htm
+" The 'Tcl Standard Library' commands: http://www.tcl-lang.org/man/tcl8.6/TclCmd/library.htm
 syn match tclCommand		"\v<(auto_execok|auto_import|auto_load|auto_mkindex|auto_reset)>"
 syn match tclCommand		"\v<(auto_qualify|tcl_findLibrary|parray|tcl_endOfWord)>"
 syn match tclCommand		"\v<(tcl_startOfNextWord|tcl_startOfPreviousWord)>"

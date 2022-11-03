@@ -16,7 +16,7 @@ Requirements
 Modules consists of one Tcl script so to run it from a user shell the only
 requirement is to have a working version of ``tclsh`` (version 8.5 or later)
 available on your system. ``tclsh`` is a part of Tcl
-(http://www.tcl.tk/software/tcltk/).
+(http://www.tcl-lang.org/software/tcltk/).
 
 To install Modules from a distribution tarball or a clone of the git
 repository, a build step is there to tailor the :file:`modulecmd.tcl` and the
