@@ -163,7 +163,10 @@ Modules 5.2.0 (not yet released)
   :file:`siteconfig.tcl` file to define specific variables in modulerc
   interpreter context. :sitevar:`modulerc_extra_vars` is a list of variable
   name and value pairs. (fix issue #286)
-* Add :ref:`Site-specific configuration` section in :ref:`module(1)` man page.
+* Doc: Add :ref:`Site-specific configuration` section in :ref:`module(1)` man
+  page.
+* Doc: extend :ref:`Collections` section with examples in :ref:`module(1)` man
+  page.
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 .. _ShellCheck: https://www.shellcheck.net/
