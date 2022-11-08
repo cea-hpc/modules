@@ -8,8 +8,8 @@ documents those changes that are of interest to users and admins.
 
 .. _5.2 release notes:
 
-Modules 5.2.0 (not yet released)
---------------------------------
+Modules 5.2.0 (2022-11-08)
+--------------------------
 
 * Introduce the ``--optional`` option on :mfcmd:`prereq`, :mfcmd:`prereq-all`,
   :mfcmd:`depends-on` and :mfcmd:`always-load` modulefile commands. Expressed
