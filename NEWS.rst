@@ -6,6 +6,15 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+.. _5.3 release notes:
+
+Modules 5.3.0 (not yet released)
+--------------------------------
+
+* Add :subcmd:`cachebuild` sub-command to create cache for modulepaths
+  enabled or specified on the command line.
+
+
 .. _5.2 release notes:
 
 Modules 5.2.0 (2022-11-08)

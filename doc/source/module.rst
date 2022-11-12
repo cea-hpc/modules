@@ -635,6 +635,21 @@ Module Sub-Commands
        Option :option:`--output`/:option:`-o` added, compatible with regular
        and terse output modes
 
+.. subcmd:: cachebuild [modulepath...]
+
+ Build module cache file for designated modulepaths. If no argument is
+ provided cache file is built for every modulepath currently enabled. Cache
+ file creation is skipped for modulepaths where user cannot write in.
+
+ The name and content of every readable modulefiles and rc files are recorded
+ into cache file. Also last modification time of modulefiles and invalid
+ modulefile error messages are recorded. With all these information, the sole
+ cache file is evaluated to know what is available within modulepath.
+
+ .. only:: html
+
+    .. versionadded:: 5.3
+
 .. subcmd:: clear [-f]
 
  Force the Modules package to believe that no modules are currently loaded. A
