@@ -2874,6 +2874,28 @@ proc cmdModuleCachebuild {args} {
 }
 
 proc cmdModuleCacheclear {} {
+   foreach modpath [getModulePathList exiterronundef] {
+      set cachefile [getModuleCacheFilename $modpath]
+      if {[file exists $cachefile]} {
+         # set a record message unique id and record cachefile title
+         set msgrecid cacheclear-$cachefile
+         pushMsgRecordId $msgrecid
+         registerModuleDesignation $msgrecid $cachefile {} {}
+
+         if {[file writable $modpath]} {
+            if {[catch {file delete $cachefile} errMsg]} {
+               reportError $errMsg
+            }
+         } else {
+            reportWarning {Cannot remove cache file, directory is not\
+               writable}
+         }
+
+         # report all messages for this cachefile deletion
+         reportMsgRecord "Deleting [getModuleDesignation $msgrecid {} 2]"
+         popMsgRecordId
+      }
+   }
 }
 
 # ;;; Local Variables: ***

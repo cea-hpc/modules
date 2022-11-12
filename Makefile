@@ -483,9 +483,9 @@ tcl/subcmd.tcl_i: tcl/subcmd.tcl $(NAGELFAR)
 	sed -i -e 's|$(nagelfardatadir)|contrib/nagelfar|g' $@
 
 # join all tcl/*.tcl files to build modulecmd.tcl
-modulecmd.tcl: tcl/coll.tcl tcl/envmngt.tcl tcl/init.tcl tcl/main.tcl \
-	tcl/mfinterp.tcl tcl/modeval.tcl tcl/modfind.tcl tcl/modspec.tcl \
-	tcl/report.tcl tcl/subcmd.tcl tcl/util.tcl version.inc
+modulecmd.tcl: tcl/cache.tcl tcl/coll.tcl tcl/envmngt.tcl tcl/init.tcl \
+	tcl/main.tcl tcl/mfinterp.tcl tcl/modeval.tcl tcl/modfind.tcl \
+	tcl/modspec.tcl tcl/report.tcl tcl/subcmd.tcl tcl/util.tcl version.inc
 	$(ECHO_GEN)
 	echo "#!$(TCLSH)" > $@
 	sed -e '3s/.*/# MODULECMD.TCL, a pure TCL implementation of the module command/' \
@@ -497,6 +497,7 @@ modulecmd.tcl: tcl/coll.tcl tcl/envmngt.tcl tcl/init.tcl tcl/main.tcl \
 	sed -e '1,22d' -e '/^# vim:/d' -e '/^# ;;;/d' tcl/modfind.tcl >> $@
 	sed -e '1,22d' -e '/^# vim:/d' -e '/^# ;;;/d' tcl/modeval.tcl >> $@
 	sed -e '1,20d' -e '/^# vim:/d' -e '/^# ;;;/d' tcl/modspec.tcl >> $@
+	sed -e '1,20d' -e '/^# vim:/d' -e '/^# ;;;/d' tcl/cache.tcl >> $@
 	sed -e '1,20d' -e '/^# vim:/d' -e '/^# ;;;/d' tcl/coll.tcl >> $@
 	sed -e '1,22d' -e '/^# vim:/d' -e '/^# ;;;/d' tcl/subcmd.tcl >> $@
 	sed -e '1,22d' -e '/^# vim:/d' -e '/^# ;;;/d' tcl/main.tcl >> $@
@@ -862,9 +863,10 @@ tcl/%.tcl_i: tcl/%.tcl $(NAGELFAR)
 
 # for coverage check, run tests on instrumented file to create coverage log
 # over split tcl source files
-$(MODULECMDTEST)_i: tcl/coll.tcl_i tcl/envmngt.tcl_i tcl/init.tcl_i tcl/main.tcl_i \
-	tcl/mfinterp.tcl_i tcl/modeval.tcl_i tcl/modfind.tcl_i tcl/modspec.tcl_i \
-	tcl/report.tcl_i tcl/subcmd.tcl_i tcl/util.tcl_i version.inc
+$(MODULECMDTEST)_i: tcl/cache.tcl_i tcl/coll.tcl_i tcl/envmngt.tcl_i \
+	tcl/init.tcl_i tcl/main.tcl_i tcl/mfinterp.tcl_i tcl/modeval.tcl_i \
+	tcl/modfind.tcl_i tcl/modspec.tcl_i tcl/report.tcl_i tcl/subcmd.tcl_i \
+	tcl/util.tcl_i version.inc
 	$(ECHO_GEN)
 	echo "#!$(TCLSH)" > $@
 	echo 'source tcl/init.tcl_i' >> $@
@@ -875,6 +877,7 @@ $(MODULECMDTEST)_i: tcl/coll.tcl_i tcl/envmngt.tcl_i tcl/init.tcl_i tcl/main.tcl
 	echo 'source tcl/modfind.tcl_i' >> $@
 	echo 'source tcl/modeval.tcl_i' >> $@
 	echo 'source tcl/modspec.tcl_i' >> $@
+	echo 'source tcl/cache.tcl_i' >> $@
 	echo 'source tcl/coll.tcl_i' >> $@
 	echo 'source tcl/subcmd.tcl_i' >> $@
 	echo 'source tcl/main.tcl_i' >> $@
@@ -895,6 +898,7 @@ test: $(TEST_PREREQ)
 	TESTSUITEDIR=`cd testsuite;pwd -P`; export TESTSUITEDIR; \
 	runtest --srcdir $$TESTSUITEDIR --objdir $$OBJDIR $(RUNTESTFLAGS) --tool modules $(RUNTESTFILES)
 ifeq ($(COVERAGE),y)
+	$(NAGELFAR) -markup tcl/cache.tcl
 	$(NAGELFAR) -markup tcl/coll.tcl
 	$(NAGELFAR) -markup tcl/envmngt.tcl
 	$(NAGELFAR) -markup tcl/init.tcl
@@ -965,17 +969,18 @@ $(NAGELFAR):
 	rm $(NAGELFAR_DIST)
 
 # build Ctags index
-tcl/tags: tcl/coll.tcl.in tcl/envmngt.tcl.in tcl/init.tcl.in tcl/main.tcl.in \
-	tcl/mfinterp.tcl.in tcl/modeval.tcl tcl/modfind.tcl.in tcl/modspec.tcl \
-	tcl/report.tcl.in tcl/subcmd.tcl.in tcl/util.tcl
-	ctags --tag-relative -f $@ --langmap=tcl:.tcl.in tcl/coll.tcl.in \
-		tcl/envmngt.tcl.in tcl/init.tcl.in tcl/main.tcl.in tcl/mfinterp.tcl.in \
-		tcl/modeval.tcl tcl/modfind.tcl.in tcl/modspec.tcl tcl/report.tcl.in \
-		tcl/subcmd.tcl.in tcl/util.tcl
+tcl/tags: tcl/cache.tcl tcl/coll.tcl.in tcl/envmngt.tcl.in tcl/init.tcl.in \
+	tcl/main.tcl.in tcl/mfinterp.tcl.in tcl/modeval.tcl tcl/modfind.tcl.in \
+	tcl/modspec.tcl tcl/report.tcl.in tcl/subcmd.tcl.in tcl/util.tcl
+	ctags --tag-relative -f $@ --langmap=tcl:.tcl.in tcl/cache.tcl \
+		tcl/coll.tcl.in tcl/envmngt.tcl.in tcl/init.tcl.in tcl/main.tcl.in \
+		tcl/mfinterp.tcl.in tcl/modeval.tcl tcl/modfind.tcl.in \
+		tcl/modspec.tcl tcl/report.tcl.in tcl/subcmd.tcl.in tcl/util.tcl
 
 # build Gtags target files
 tcl/gtags.file:
-	echo coll.tcl.in > $@
+	echo cache.tcl > $@
+	echo coll.tcl.in >> $@
 	echo envmngt.tcl.in >> $@
 	echo init.tcl.in >> $@
 	echo main.tcl.in >> $@
@@ -988,9 +993,10 @@ tcl/gtags.file:
 	echo util.tcl >> $@
 
 # build Gtags tag file
-tcl/GTAGS: tcl/coll.tcl.in tcl/envmngt.tcl.in tcl/init.tcl.in tcl/main.tcl.in \
-	tcl/mfinterp.tcl.in tcl/modeval.tcl tcl/modfind.tcl.in tcl/modspec.tcl \
-	tcl/report.tcl.in tcl/subcmd.tcl.in tcl/util.tcl tcl/gtags.file
+tcl/GTAGS: tcl/cache.tcl tcl/coll.tcl.in tcl/envmngt.tcl.in tcl/init.tcl.in \
+	tcl/main.tcl.in tcl/mfinterp.tcl.in tcl/modeval.tcl tcl/modfind.tcl.in \
+	tcl/modspec.tcl tcl/report.tcl.in tcl/subcmd.tcl.in tcl/util.tcl \
+	tcl/gtags.file
 	gtags -C tcl --gtagsconf ../.globalrc
 
 
@@ -1001,11 +1007,12 @@ endif
 # let verbose by default the install/clean/test and other specific non-build targets
 $(V).SILENT: initdir pkgdoc doc version.inc contrib/rpm/environment-modules.spec \
 	modulecmd.tcl tcl/coll.tcl tcl/envmngt.tcl tcl/init.tcl tcl/main.tcl \
-	tcl/mfinterp.tcl tcl/modfind.tcl tcl/report.tcl tcl/subcmd.tcl tcl/coll.tcl_i \
-	tcl/envmngt.tcl_i tcl/init.tcl_i tcl/main.tcl_i tcl/mfinterp.tcl_i \
-	tcl/modfind.tcl_i tcl/modeval.tcl_i tcl/modspec.tcl_i tcl/report.tcl_i \
-	tcl/subcmd.tcl_i tcl/util.tcl_i ChangeLog README script/add.modules \
-	script/gitlog2changelog.py script/modulecmd \
+	tcl/mfinterp.tcl tcl/modfind.tcl tcl/report.tcl tcl/subcmd.tcl \
+	tcl/cache.tcl_i tcl/coll.tcl_i tcl/envmngt.tcl_i tcl/init.tcl_i \
+	tcl/main.tcl_i tcl/mfinterp.tcl_i tcl/modfind.tcl_i tcl/modeval.tcl_i \
+	tcl/modspec.tcl_i tcl/report.tcl_i tcl/subcmd.tcl_i tcl/util.tcl_i \
+	ChangeLog README script/add.modules script/gitlog2changelog.py \
+	script/modulecmd \
 	lib/libtclenvmodules$(SHLIB_SUFFIX) lib/libtestutil-closedir$(SHLIB_SUFFIX) \
 	lib/libtestutil-getpwuid$(SHLIB_SUFFIX) lib/libtestutil-getgroups$(SHLIB_SUFFIX) \
 	lib/libtestutil-0getgroups$(SHLIB_SUFFIX) lib/libtestutil-sysconf$(SHLIB_SUFFIX) \
