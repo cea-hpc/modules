@@ -14,6 +14,8 @@ Modules 5.3.0 (not yet released)
 * Add :ref:`module-cache` design notes.
 * Add :subcmd:`cachebuild` sub-command to create cache for modulepaths
   enabled or specified on the command line.
+* Add :subcmd:`cacheclear` sub-command to delete cache file in all enabled
+  modulepaths.
 
 
 .. _5.2 release notes:

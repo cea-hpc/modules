@@ -650,6 +650,16 @@ Module Sub-Commands
 
     .. versionadded:: 5.3
 
+.. subcmd:: cacheclear
+
+ Delete module cache file in every modulepath currently enabled. If user
+ cannot write in a modulepath directory, cache file deletion is skipped for
+ this modulepath.
+
+ .. only:: html
+
+    .. versionadded:: 5.3
+
 .. subcmd:: clear [-f]
 
  Force the Modules package to believe that no modules are currently loaded. A

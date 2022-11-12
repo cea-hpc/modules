@@ -830,7 +830,7 @@ The following module sub-commands appeared on Modules 5.
 |            | :subcmd:`stash`, :subcmd:`stashpop`, :subcmd:`stashrm`,         |
 |            | :subcmd:`stashshow`, :subcmd:`stashclear`, :subcmd:`stashlist`  |
 +------------+-----------------------------------------------------------------+
-| 5.3        | :subcmd:`cachebuild`                                            |
+| 5.3        | :subcmd:`cachebuild`, :subcmd:`cacheclear`                      |
 +------------+-----------------------------------------------------------------+
 
 :subcmd:`list`
