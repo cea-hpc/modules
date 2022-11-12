@@ -11,6 +11,7 @@ documents those changes that are of interest to users and admins.
 Modules 5.3.0 (not yet released)
 --------------------------------
 
+* Add :ref:`module-cache` design notes.
 * Add :subcmd:`cachebuild` sub-command to create cache for modulepaths
   enabled or specified on the command line.
 
