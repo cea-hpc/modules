@@ -118,7 +118,7 @@ quarvarsre += s/@.*RUNENV_VAR.*@//;'
 endif
 
 # define variables for shell completion
-comp_cmds := add add-any apropos aliases avail append-path clear config del display edit help initadd initclear initlist initprepend initrm is-loaded is-saved is-used is-avail info-loaded keyword lint list load load-any mod-to-sh path paths purge prepend-path refresh reload reset restore rm remove remove-path save savelist saveshow saverm search show sh-to-mod source stash stashclear stashlist stashpop stashrm stashshow state swap switch test try-add try-load unload unuse use whatis
+comp_cmds := add add-any apropos aliases avail append-path cachebuild clear config del display edit help initadd initclear initlist initprepend initrm is-loaded is-saved is-used is-avail info-loaded keyword lint list load load-any mod-to-sh path paths purge prepend-path refresh reload reset restore rm remove remove-path save savelist saveshow saverm search show sh-to-mod source stash stashclear stashlist stashpop stashrm stashshow state swap switch test try-add try-load unload unuse use whatis
 comp_opts := -D -h -s -T -v -V -w --debug --help --silent --trace --verbose --version --paginate --no-pager --color --color= --width --width=
 comp_load_opts := --auto --no-auto --force -f --icase -i --tag --tag=
 comp_unload_opts := --auto --no-auto --force -f --icase -i
