@@ -108,7 +108,7 @@ proc parseModuleCommandName {command defaultcmd} {
       initlist initclear autoinit clear config help test prepend-path\
       append-path remove-path is-loaded is-saved is-used is-avail info-loaded\
       sh-to-mod edit try-load refresh state load-any lint mod-to-sh reset\
-      stash stashpop stashrm stashshow stashclear stashlist]}]
+      stash stashpop stashrm stashshow stashclear stashlist cachebuild]}]
 
    reportDebug "(command=$command, cmdvalid=$cmdvalid, cmdempty=$cmdempty)"
    return [list $command $cmdvalid $cmdempty]
@@ -375,7 +375,7 @@ proc module {command args} {
          remove-path - is-loaded - is-saved - is-used - is-avail -\
          info-loaded - clear - sh-to-mod - edit - refresh - source - state -\
          lint - mod-to-sh - reset - stash - stashpop - stashrm - stashshow -\
-         stashclear - stashlist {
+         stashclear - stashlist - cachebuild {
             knerror "${msgprefix}Command '$command' not supported$tryhelpmsg"
          }
       }
@@ -739,6 +739,9 @@ proc module {command args} {
       }
       stashlist {
          cmdModuleStashlist $show_oneperline $show_mtime
+      }
+      cachebuild {
+         cmdModuleCachebuild {*}$args
       }
       help {
          cmdModuleHelp {*}$args
