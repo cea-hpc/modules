@@ -101,6 +101,8 @@ set err_save_emptyenv "$::error_msgs: Nothing to save in a collection"
 set err_save_unsat "$::error_msgs: Cannot save collection, some module constraints are not satistied"
 set warn_nostash "$::warn_msgs: No specific environment to save"
 set warn_cache_nowritable "$::warn_msgs: Cannot remove cache file, directory is not writable"
+set warn_cache_build_nowritable "$::warn_msgs: Cannot build cache file, directory is not writable"
+set warn_cache_nothingtorec "$::warn_msgs: Nothing to record in cache file"
 
 
 proc err_conflict {args} {
@@ -542,6 +544,12 @@ proc msg_delete {mod args} {
     return $msg
 }
 
+proc msg_create {mod args} {
+    set msg "Creating $mod"
+    append msg [eval msg_block_content $args]
+    return $msg
+}
+
 proc msg_top_load {mod unlist reqlolist deprelist args} {
     lassign [mix_depre_depun_list $deprelist {}] deprelist depunlist
 
@@ -899,6 +907,13 @@ proc create_dummy_cachefile {mp} {
     set cachefile $mp/.modulecache
     send_user "\tCreating dummy cache file $cachefile\n"
     close [open $cachefile w]
+}
+
+proc create_dummy_modulefile {modfile} {
+    send_user "\tCreating dummy module file $modfile\n"
+    set fid [open $modfile w]
+    puts $fid {#%Module}
+    close $fid
 }
 
 # report current system information
