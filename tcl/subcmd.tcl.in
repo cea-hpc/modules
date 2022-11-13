@@ -2871,6 +2871,47 @@ proc cmdModuleStashlist {show_oneperline show_mtime} {
 }
 
 proc cmdModuleCachebuild {args} {
+   # use enabled modulepaths when no arg is provided
+   if {[llength $args] > 0} {
+      set modpath_list $args
+   } else {
+      set modpath_list [getModulePathList exiterronundef]
+   }
+
+   foreach modpath $modpath_list {
+      set cachefile [getModuleCacheFilename $modpath]
+      # set a record message unique id and record cachefile title
+      set msgrecid cachebuild-$cachefile
+      pushMsgRecordId $msgrecid
+      registerModuleDesignation $msgrecid $cachefile {} {}
+
+      if {[file isdirectory $modpath]} {
+         if {[file writable $modpath]} {
+            # get cache content for modulepath
+            set cache [formatModuleCacheContent $modpath]
+            if {[string length $cache] == 0} {
+               reportWarning {Nothing to record in cache file}
+            } else {
+               # record cache content in file
+               if {[catch {
+                  set fid [open $cachefile w]
+                  puts $fid $cache
+                  close $fid
+               } errMsg]} {
+                  reportError $errMsg
+               }
+            }
+         } else {
+            reportWarning {Cannot build cache file, directory is not writable}
+         }
+      } else {
+         reportError "'$modpath' is not a directory"
+      }
+
+      # report all messages for this cachefile creation
+      reportMsgRecord "Creating [getModuleDesignation $msgrecid {} 2]"
+      popMsgRecordId
+   }
 }
 
 proc cmdModuleCacheclear {} {

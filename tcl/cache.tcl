@@ -23,6 +23,10 @@ proc getModuleCacheFilename {modpath} {
    return $modpath/.modulecache
 }
 
+# Build cache file content for given modulepath
+proc formatModuleCacheContent {modpath} {
+}
+
 # ;;; Local Variables: ***
 # ;;; mode:tcl ***
 # ;;; End: ***
