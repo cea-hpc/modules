@@ -1,0 +1,198 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.30-cache/%M%
+#   Revision:		%I%
+#   First Edition:	2022/11/12
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		cacheclear
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test cacheclear sub-command
+#		}C%
+#
+##############################################################################
+
+
+# no modulepath defined
+unsetenv_path_var MODULEPATH
+set tserr "$error_msgs: $msg_nomodpath"
+testouterr_cmd sh cacheclear ERR $tserr
+
+# empty modulepath
+setenv_path_var MODULEPATH {}
+testouterr_cmd sh cacheclear OK {}
+
+# create modulepaths for tests
+set mp1 $env(HOME)/mp1
+set mp2 $env(HOME)/mp2
+set mp1cache $mp1/.modulecache
+set mp2cache $mp2/.modulecache
+set mpunk $env(HOME)/mpunk
+set mpfile $mp1/foo
+file mkdir $mp1
+file mkdir $mp2
+
+# 2 modulepath set, cachefile found in first
+create_dummy_cachefile $mp1
+setenv_path_var MODULEPATH $mp1:$mp2
+set tserr [msg_delete $mp1cache]
+set tsfileerr "couldn't open \"$mp1cache\": no such file or directory"
+testouterrfile_cmd sh cacheclear OK $tserr $mp1cache $tsfileerr
+
+# 2 modulepath set, cachefile found in both
+create_dummy_cachefile $mp1
+create_dummy_cachefile $mp2
+set tserr [msg_delete $mp1cache]\n[msg_delete $mp2cache]
+testouterr_cmd sh cacheclear OK $tserr
+testouterr_cmd sh cacheclear OK {}
+
+file delete $mp1
+file delete $mp2
+skip_if_quick_mode
+file mkdir $mp1
+file mkdir $mp2
+close [open $mpfile w]
+
+# silent mode
+create_dummy_cachefile $mp1
+create_dummy_cachefile $mp2
+testouterr_cmd sh {cacheclear -s} OK {}
+testouterr_cmd sh cacheclear OK {}
+
+# verbose mode
+create_dummy_cachefile $mp1
+create_dummy_cachefile $mp2
+set tserr [msg_delete $mp1cache]\n[msg_delete $mp2cache]
+testouterr_cmd sh {cacheclear -v} OK $tserr
+testouterr_cmd sh cacheclear OK {}
+
+# unexistent modulepath, then cache to delete in next path
+setenv_path_var MODULEPATH $mpunk:$mp2
+create_dummy_cachefile $mp2
+set tserr [msg_delete $mp2cache]
+testouterr_cmd sh cacheclear OK $tserr
+
+# modulepath is a file, then cache to delete in next path
+setenv_path_var MODULEPATH $mpfile:$mp2
+create_dummy_cachefile $mp2
+set tserr [msg_delete $mp2cache]
+testouterr_cmd sh cacheclear OK $tserr
+
+
+# cannot test access if cannot change file permission
+if {!$is_file_perms_editable} {
+    send_user "\tskipping access tests as file permissions cannot be changed\n"
+# cannot test access if superuser privileges are in use
+} elseif {$tcl_platform(user) eq "root"} {
+    send_user "\tskipping access tests as tests are run by superuser\n"
+# cannot test access if restricted file permissions have no effect
+} elseif {$is_locked_dir_file_readable && $is_locked_file_readable} {
+    send_user "\tskipping access tests as locked files or directories are still readable\n"
+} else {
+
+set nowrite_perms ugo-w
+set noread_perms ugo-r
+set nosearch_perms ugo-x
+
+# first modulepath not writable, no modulecache in it
+setenv_path_var MODULEPATH $mp1:$mp2
+create_dummy_cachefile $mp2
+change_file_perms $mp1 $nowrite_perms
+set tserr [msg_delete $mp2cache]
+testouterr_cmd sh cacheclear OK $tserr
+restore_file_perms $mp1
+
+# first modulepath not writable, modulecache in it
+create_dummy_cachefile $mp1
+create_dummy_cachefile $mp2
+change_file_perms $mp1 $nowrite_perms
+set tserr [msg_delete $mp1cache $warn_cache_nowritable]\n\n[msg_delete $mp2cache]
+testouterr_cmd sh cacheclear OK $tserr
+restore_file_perms $mp1
+file delete $mp1cache
+
+# first modulepath not writable, modulecache in it but not writable also
+create_dummy_cachefile $mp1
+create_dummy_cachefile $mp2
+change_file_perms $mp1 $nowrite_perms
+change_file_perms $mp1cache $nowrite_perms
+set tserr [msg_delete $mp1cache $warn_cache_nowritable]\n\n[msg_delete $mp2cache]
+testouterr_cmd sh cacheclear OK $tserr
+restore_file_perms $mp1
+restore_file_perms $mp1cache
+file delete $mp1cache
+
+# both modulepath not writable, modulecache in them but not writable also
+create_dummy_cachefile $mp1
+create_dummy_cachefile $mp2
+change_file_perms $mp1 $nowrite_perms
+change_file_perms $mp2 $nowrite_perms
+change_file_perms $mp1cache $nowrite_perms
+change_file_perms $mp2cache $nowrite_perms
+set tserr [msg_delete $mp1cache $warn_cache_nowritable]\n\n[msg_delete $mp2cache $warn_cache_nowritable]
+testouterr_cmd sh cacheclear OK $tserr
+restore_file_perms $mp1
+restore_file_perms $mp2
+restore_file_perms $mp1cache
+restore_file_perms $mp2cache
+file delete $mp1cache
+file delete $mp2cache
+
+# modulepath writable, no modulecache in first path
+create_dummy_cachefile $mp2
+set tserr [msg_delete $mp2cache]
+testouterr_cmd sh cacheclear OK $tserr
+
+# modulepath writable, modulecache in first path not writable
+create_dummy_cachefile $mp1
+create_dummy_cachefile $mp2
+change_file_perms $mp1cache $nowrite_perms
+set tserr [msg_delete $mp1cache]\n[msg_delete $mp2cache]
+testouterr_cmd sh cacheclear OK $tserr
+
+# first modulepath not readable, second module not searchable
+create_dummy_cachefile $mp1
+create_dummy_cachefile $mp2
+change_file_perms $mp1 $noread_perms
+change_file_perms $mp2 $nosearch_perms
+set tserr [msg_delete $mp1cache]
+testouterr_cmd sh cacheclear OK $tserr
+restore_file_perms $mp1
+restore_file_perms $mp2
+file delete $mp2cache
+
+# check expected siteconfig file is installed
+set is_stderr_tty [siteconfig_isStderrTty]
+if {$is_stderr_tty} {
+    # test a file delete failure by faking modulepath directory is writable
+    setenv_var TESTSUITE_ENABLE_SITECONFIG_CACHECLEAR_DELETE 1
+    create_dummy_cachefile $mp1
+    create_dummy_cachefile $mp2
+    change_file_perms $mp1 $nowrite_perms
+    set tserr [msg_delete $mp1cache "$error_msgs: error deleting \"$mp1cache\": permission denied"]\n\n[msg_delete $mp2cache]
+    testouterr_cmd sh cacheclear ERR $tserr
+    restore_file_perms $mp1
+    file delete $mp1cache
+    unsetenv_var TESTSUITE_ENABLE_SITECONFIG_CACHECLEAR_DELETE
+}
+
+}
+
+
+#
+#  Cleanup
+#
+
+file delete $mpfile
+file delete $mp1
+file delete $mp2
+
+reset_test_env

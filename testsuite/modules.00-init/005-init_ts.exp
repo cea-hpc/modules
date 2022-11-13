@@ -100,6 +100,7 @@ set err_nomodloaded "$error_msgs: $msg_nomodloaded"
 set err_save_emptyenv "$::error_msgs: Nothing to save in a collection"
 set err_save_unsat "$::error_msgs: Cannot save collection, some module constraints are not satistied"
 set warn_nostash "$::warn_msgs: No specific environment to save"
+set warn_cache_nowritable "$::warn_msgs: Cannot remove cache file, directory is not writable"
 
 
 proc err_conflict {args} {
@@ -535,6 +536,12 @@ proc msg_lint {mod args} {
     return $msg
 }
 
+proc msg_delete {mod args} {
+    set msg "Deleting $mod"
+    append msg [eval msg_block_content $args]
+    return $msg
+}
+
 proc msg_top_load {mod unlist reqlolist deprelist args} {
     lassign [mix_depre_depun_list $deprelist {}] deprelist depunlist
 
@@ -886,6 +893,12 @@ proc get_all_stash_colls {} {
 
 proc get_last_stash_coll {} {
     return [lindex [lsort [get_all_stash_colls]] end]
+}
+
+proc create_dummy_cachefile {mp} {
+    set cachefile $mp/.modulecache
+    send_user "\tCreating dummy cache file $cachefile\n"
+    close [open $cachefile w]
 }
 
 # report current system information
