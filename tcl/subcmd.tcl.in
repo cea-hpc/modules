@@ -2887,19 +2887,21 @@ proc cmdModuleCachebuild {args} {
 
       if {[file isdirectory $modpath]} {
          if {[file writable $modpath]} {
-            # get cache content for modulepath
-            set cache [formatModuleCacheContent $modpath]
-            if {[string length $cache] == 0} {
-               reportWarning {Nothing to record in cache file}
-            } else {
-               # record cache content in file
-               if {[catch {
+            if {[catch {
+               # get cache content for modulepath
+               set cache [formatModuleCacheContent $modpath]
+               if {[string length $cache] == 0} {
+                  reportWarning {Nothing to record in cache file}
+               } else {
+                  # record cache content in file
                   set fid [open $cachefile w]
                   puts $fid $cache
                   close $fid
-               } errMsg]} {
-                  reportError $errMsg
                }
+            } errMsg]} {
+               # report error occurring during cache content format or cache
+               # file write
+               reportError $errMsg
             }
          } else {
             reportWarning {Cannot build cache file, directory is not writable}
