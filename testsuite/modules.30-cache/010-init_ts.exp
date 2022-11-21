@@ -19,3 +19,223 @@
 #		}C%
 #
 ##############################################################################
+
+# create modulepaths for tests
+set mp1 $env(HOME)/mp1
+set mp2 $env(HOME)/mp2
+set mp1cache $mp1/.modulecache
+set mp2cache $mp2/.modulecache
+
+# generate content in modulepaths
+# no header modulefile
+set mod1 foo/1.0
+set mod1c {#This is not a modulefile
+module-whatis [module-info name]
+}
+# comment modulefile
+set mod2 foo/2.0
+set mod2c {#%Module
+# Some comment in modulefile
+# Some comment in modulefile
+# Some comment in modulefile
+module-whatis [module-info name]
+if {[is-loaded bar]} {
+    prereq bar
+}
+}
+# uncompatible header modulefile
+set mod3 foo/3.0
+set mod3c {#%Module99
+module-whatis "foo"
+module load {bar}
+}
+# bad command modulefile
+set mod4 foo/4.0
+set mod4c {#%Module5.2
+unk
+}
+# unbalanced curly brace modulefile
+set mod5 foo/5.0
+set mod5c "#%Module
+if {\[is-loaded bar\] {
+  module load bar
+}
+"
+# unbalanced quote modulefile
+set mod6 foo/6.0
+set mod6c {#%Module
+setenv VAR "val
+}
+
+# regular modulefiles
+set mod7 bar/1.0
+set mod7c "#%Module\nmodule-whatis \[module-info name\]"
+set mod8 bar/2.0
+set mod8c $mod7c
+set mod9 quxa/1.0
+set mod9c $mod7c
+set mod10 quxb/1.0
+set mod10c $mod7c
+set mod11 quxc/1.0
+set mod11c $mod7c
+set mod12 quxd/1.0
+set mod12c $mod7c
+set mod13 quxe/1.0
+set mod13c $mod7c
+
+# hidden modulefile
+set mod14 baz/.1.10
+set mod14c $mod7c
+set mod15 .hid/1.0
+set mod15c $mod7c
+
+# special char in modulefile name
+set mod16 {baz/w s}
+set mod16c $mod7c
+set mod17 {baz/w#s}
+set mod17c $mod7c
+set mod18 {baz/w"s}
+set mod18c $mod7c
+set mod19 {w s/1.0}
+set mod19c $mod7c
+set mod20 {w#s/1.0}
+set mod20c $mod7c
+set mod21 {w"s/1.0}
+set mod21c $mod7c
+
+# deep modulefiles
+set mod22 quux/sub/1.0
+set mod22c $mod7c
+set mod23 quux/sub/2.0
+set mod23c $mod7c
+set mod24 quux/oth/3.0
+set mod24c $mod7c
+set mod25 quux/oth/4.0
+set mod25c $mod7c
+set mod26 quux/nok/5.0
+set mod26c "#%Module99\nmodule-whatis \[module-info name\]"
+
+# no header modulerc
+set modrc1 foo/.modulerc
+set modrc1c {#This is not a rc file
+module-version foo/1.0 default}
+# comment modulerc
+set modrc2 quxa/.modulerc
+set modrc2c {#%Module
+# Some comment in modulerc
+# Some comment in modulerc
+# Some comment in modulerc
+if {[is-loaded bar]} {
+    module-alias quxa/1.0 bar
+}
+}
+# uncompatible header modulerc
+set modrc3 quxb/.modulerc
+set modrc3c {#%Module99
+module-version quxb/1.0 default
+}
+# bad command modulerc
+set modrc4 quxc/.modulerc
+set modrc4c {#%Module5.2
+unk
+}
+# unbalanced curly brace modulerc
+set modrc5 quxd/.modulerc
+set modrc5c "#%Module
+if {\[is-loaded bar\] {
+  module-alias quxd/2.0 bar
+}
+"
+# unbalanced quote modulerc
+set modrc6 quxe/.modulerc
+set modrc6c {#%Module
+module-version quxe/1.0 "default
+}
+
+# hidden modulerc
+set modrc7 .hid/.modulerc
+set modrc7c "#%Module"
+
+# special char in modulerc name
+set modrc8 {w s/.modulerc}
+set modrc8c $modrc7c
+set modrc9 {w#s/.modulerc}
+set modrc9c $modrc7c
+set modrc10 {w"s/.modulerc}
+set modrc10c $modrc7c
+
+# deep modulerc
+set modrc11 quux/sub/.modulerc
+set modrc11c $modrc7c
+set modrc12 quux/.modulerc
+set modrc12c {#%Module
+module-version ./oth default
+module-version quux/oth/3.0 sym
+module-tag foo quux/sub/1.0
+module-tag bar quux/oth/3.0}
+
+# .version modulerc
+set modrc13 bar/.version
+set modrc13c {#%Module
+set ModulesVersion 1.0}
+
+# create described modulefiles and modulerc
+proc create_diverse_module_setup {mp} {
+    file mkdir $mp
+    set i 1
+    while {[info exists ::mod$i]} {
+        set mod [set ::mod$i]
+        lappend dir_list [file dirname $mod]
+        set file_arr($mod) [set ::mod${i}c]
+        incr i
+    }
+    set i 1
+    while {[info exists ::modrc$i]} {
+        set modrc [set ::modrc$i]
+        lappend dir_list [file dirname $modrc]
+        set file_arr($modrc) [set ::modrc${i}c]
+        incr i
+    }
+    set dir_list [lsort -unique $dir_list]
+    file mkdir $mp/quux
+    foreach dir $dir_list {
+        file mkdir $mp/$dir
+    }
+    foreach f [array names file_arr] {
+        set fid [open $mp/$f w]
+        puts -nonewline $fid $file_arr($f)
+        close $fid
+    }
+    return [list $dir_list [array get file_arr]]
+}
+
+# create simpler modulefiles modulercs setup
+proc create_simple_module_setup {mp} {
+    file mkdir $mp
+    set dir_list [list foo bar]
+    set content "#%Module\nmodule-whatis \[module-info name\]"
+    array set file_arr [list foo/1.0 $content foo/.modulerc {#%Module}\
+        bar/1.0 {#%Module} bar/2.0 {#%Module}]
+    foreach dir $dir_list {
+        file mkdir $mp/$dir
+    }
+    foreach f [array names file_arr] {
+        set fid [open $mp/$f w]
+        puts -nonewline $fid $file_arr($f)
+        close $fid
+    }
+    return [list $dir_list [array get file_arr]]
+}
+
+proc delete_module_setup {mp file_list dir_list} {
+    foreach f $file_list {
+        file delete $mp/$f
+    }
+    foreach d [lsort -decreasing -unique $dir_list] {
+        file delete $mp/$d
+    }
+    file delete $mp
+}
+
+# save specific test env
+save_test_env

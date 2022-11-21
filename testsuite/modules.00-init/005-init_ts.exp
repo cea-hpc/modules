@@ -616,6 +616,9 @@ proc mix_depre_depun_list {deprelist depunlist} {
     return [list $deprelist $depunlist]
 }
 
+# Modules release number
+set major_minor_rel [join [lrange [split $install_version .] 0 1] .]
+
 # test kind of sh-shell we have
 if {[file type /bin/sh] eq {link}} {
    set sh_kind [file readlink /bin/sh]
@@ -906,7 +909,9 @@ proc get_last_stash_coll {} {
 proc create_dummy_cachefile {mp} {
     set cachefile $mp/.modulecache
     send_user "\tCreating dummy cache file $cachefile\n"
-    close [open $cachefile w]
+    set fid [open $cachefile w]
+    puts $fid "#%Module$::major_minor_rel"
+    close $fid
 }
 
 proc create_dummy_modulefile {modfile} {
