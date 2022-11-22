@@ -168,6 +168,21 @@ proc execute-cachefile {cachefile modpath} {
    return $exec_res
 }
 
+# cache file command to record modulefile content
+proc modulefile-content {mod mtime header content} {
+   set modfile [currentState modulepath]/$mod
+
+   # record modulefile information in memory structures
+   set ::g_modfileContent($modfile) [list $header $content]
+   set ::g_fileMtime($modfile) $mtime
+   set ::g_modfileValid($modfile) [list true {}]
+
+   # gather all modulefiles/modulercs of a modulepath in a global variable
+   # with same information structure than findModules result
+   lappend ::g_cacheModpath([currentState modulepath]) $mod [list modulefile\
+      $mtime $modfile]
+}
+
 # finds all module-related files matching mod in the modulepath dir by looking
 # into the cache file
 proc findModulesInCacheFile {modpath mod depthlvl fetch_mtime} {
