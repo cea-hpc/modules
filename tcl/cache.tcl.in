@@ -79,6 +79,71 @@ proc formatModuleCacheContent {modpath} {
    return $content
 }
 
+# evaluate cache file
+proc execute-cachefile {cachefile modpath} {
+   # register current modulepath for cachefile commands to know where they are
+   lappendState modulepath $modpath
+   lappendState debug_msg_prefix "\[cache:$cachefile\] "
+
+   #FIXME: create cache file evaluation interp
+
+   #FIXME: evaluate cache file
+
+   set exec_res 0
+   reportDebug "exiting $cachefile (result=$exec_res)"
+
+   lpopState debug_msg_prefix
+   lpopState modulepath
+
+   return $exec_res
+}
+
+# finds all module-related files matching mod in the modulepath dir by looking
+# into the cache file
+proc findModulesInCacheFile {modpath mod depthlvl fetch_mtime} {
+   set cachefile [getModuleCacheFilename $modpath]
+
+   # check if cache should be ignored
+   if {[currentState commandname] eq {cachebuild}} {
+      return {}
+   }
+
+   # check if a cache file is available
+   if {![info exists ::g_cachefilesAvail($cachefile)]} {
+      if {[set ::g_cachefilesAvail($cachefile) [file readable $cachefile]]} {
+         reportDebug "cache file '$cachefile' exists and is readable"
+      } else {
+         reportDebug "cache file '$cachefile' cannot be found or read"
+      }
+   }
+
+   # return if no cache file available
+   if {!$::g_cachefilesAvail($cachefile)} {
+      return {}
+   }
+
+   # evaluate cache file if not yet done
+   if {![info exists ::g_cachefilesSourced($cachefile)]} {
+      set exec_res [execute-cachefile $cachefile $modpath]
+      # keep track of already sourced cache files not to run them again
+      set ::g_cachefilesSourced($cachefile) $exec_res
+   } else {
+      reportDebug "cache file '$cachefile' has already been evaluated"
+   }
+
+   # return if cache file has not been correctly sourced
+   if {!$::g_cachefilesSourced($cachefile)} {
+      return {}
+   }
+
+   # tailor cache file content to what is requested
+   set cache_list {}
+
+   #FIXME
+
+   return $cache_list
+}
+
 # ;;; Local Variables: ***
 # ;;; mode:tcl ***
 # ;;; End: ***

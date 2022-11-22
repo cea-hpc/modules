@@ -2318,6 +2318,15 @@ proc findModules {dir mod depthlvl fetch_mtime} {
       return $cache_list
    }
 
+   # look at modulepath cache file
+   set cache_list [findModulesInCacheFile $dir $mod $depthlvl $fetch_mtime]
+   if {[llength $cache_list] > 0} {
+      # record cache file findinds in memory cache
+      reportDebug "create cache entry '$searchid'"
+      set ::g_foundModulesMemCache($searchid) $cache_list
+      return $cache_list
+   }
+
    defineModEqStaticProc [isIcase] [getConf extended_default] $mod
 
    # every entries are requested
