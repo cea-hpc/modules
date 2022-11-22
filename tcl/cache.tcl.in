@@ -195,6 +195,19 @@ proc modulerc-content {modrc header content} {
    lappend ::g_cacheModpath([currentState modulepath]) $modrc [list modulerc]
 }
 
+# cache file command to record an invalid modulefile
+proc modulefile-invalid {mod type msg} {
+   set modfile [currentState modulepath]/$mod
+
+   # record modulefile information in memory structures
+   set ::g_modfileValid($modfile) [list $type $msg]
+
+   # also gather all invalid modulefiles of a modulepath in a global variable
+   # with same information structure than findModules result
+   lappend ::g_cacheModpath([currentState modulepath]) $mod [list $type $msg\
+      $modfile]
+}
+
 # finds all module-related files matching mod in the modulepath dir by looking
 # into the cache file
 proc findModulesInCacheFile {modpath mod depthlvl fetch_mtime} {
