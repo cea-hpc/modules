@@ -183,6 +183,18 @@ proc modulefile-content {mod mtime header content} {
       $mtime $modfile]
 }
 
+# cache file command to record modulerc content
+proc modulerc-content {modrc header content} {
+   set modrcfile [currentState modulepath]/$modrc
+
+   # record modulerc information in memory structures
+   set ::g_modfileContent($modrcfile) [list $header $content]
+
+   # gather all modulefiles/modulercs of a modulepath in a global variable
+   # with same information structure than findModules result
+   lappend ::g_cacheModpath([currentState modulepath]) $modrc [list modulerc]
+}
+
 # finds all module-related files matching mod in the modulepath dir by looking
 # into the cache file
 proc findModulesInCacheFile {modpath mod depthlvl fetch_mtime} {
