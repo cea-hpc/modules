@@ -102,12 +102,12 @@ proc __reportErrorAndExit {message} {
    error $message {} MODULES_ERR_RENDERED
 }
 
-proc reportInternalBug {message {modfile {}}} {
+proc reportInternalBug {message {modfile {}} {title {Module ERROR}}} {
    if {$modfile ne {}} {
       append message "\nIn '$modfile'"
    }
    append message "\nPlease contact <[getConf contact]>"
-   reportError $message 0 {Module ERROR} me
+   reportError $message 0 $title me
 }
 
 proc reportInfo {message {title INFO}} {
@@ -322,7 +322,7 @@ proc formatErrStackTrace {errmsg loc {cmdlist {}}} {
 
    # define commands to filter out from bottom of stack
    set filtercmdendlist [list {eval $modcontent} "source $loc" {uplevel 1\
-      source $siteconfig}]
+      source $siteconfig} {eval $cachecontent}]
 
    # filter out modulecmd internal references at beginning of stack
    set internals 1
