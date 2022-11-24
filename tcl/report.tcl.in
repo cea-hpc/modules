@@ -124,9 +124,9 @@ proc reportTrace {message {title TRACE}} {
    }
 }
 
-proc reportTimer {message start_us stop_us} {
+proc reportTimer {message timestr start_us stop_us} {
    set elapsed_ms [expr {($stop_us - $start_us) / 1000.0}]
-   report [sgr db "TIMER [format $message $elapsed_ms]"] 0 1
+   report [sgr db "TIMER $message [format $timestr $elapsed_ms]"] 0 1
 }
 
 # trace procedure execution start
@@ -140,7 +140,7 @@ proc reportTimerExecEnter {cmdstring op} {
 }
 
 proc reportTimerExecLeave {cmdstring code result op} {
-   reportTimer "$cmdstring (%.3f ms)" [uplevel 1 set proc_timer_start]\
+   reportTimer $cmdstring {(%.3f ms)} [uplevel 1 set proc_timer_start]\
       [clock microseconds]
 }
 
@@ -714,7 +714,7 @@ proc reportFlush {} {
    # report execution time if asked
    if {[getState timer]} {
       reportSeparateNextContent
-      reportTimer "Total execution took %.3f ms" $::timer_start [clock\
+      reportTimer {Total execution took} {%.3f ms} $::timer_start [clock\
          microseconds]
    }
 
