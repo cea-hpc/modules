@@ -247,9 +247,43 @@ proc findModulesInCacheFile {modpath mod depthlvl fetch_mtime} {
    }
 
    # tailor cache file content to what is requested
-   set cache_list {}
+   array set cache_arr $::g_cacheModpath($modpath)
+   reportDebug "[array size cache_arr] elements are cached for '$modpath'"
 
-   #FIXME
+   # filter entries unless all are requested
+   set findall [expr {$mod in {{} *}}]
+   if {!$findall || $depthlvl > 0} {
+      defineModEqStaticProc [isIcase] [getConf extended_default] $mod
+      foreach elt [array names cache_arr] {
+         set eltroot [lindex [file split $elt] 0]
+         set eltdepthlvl [llength [file split $elt]]
+         set elttail [file tail $elt]
+         set eltparent [file dirname $elt]
+
+         # exclude if not matching mod pattern (which is always a root name)
+         if {$eltroot ne {.modulerc} && !$findall && ![modEqStatic $eltroot\
+            match]} {
+            unset cache_arr($elt)
+         # also exclude if not corresponding to search depth level (or if one
+         # modulefile has already been added for directories lying at other
+         # depth level)
+         } elseif {$depthlvl > 0 && $elttail ne {.modulerc} && $eltdepthlvl\
+            != $depthlvl && [info exists modfile_indir($eltparent)]} {
+            unset cache_arr($elt)
+         } else {
+            # track a valid non-hidden modulefile has been added in parent
+            # directory
+            if {[string index $elttail 0] ne {.} && ![info exists\
+               modfile_indir($eltparent)] && [lindex $cache_arr($elt) 0] eq\
+               {modulefile}} {
+               set modfile_indir($eltparent) 1
+            }
+         }
+      }
+   }
+
+   reportDebug "found [array names cache_arr] ([array size cache_arr])"
+   set cache_list [array get cache_arr]
 
    return $cache_list
 }
