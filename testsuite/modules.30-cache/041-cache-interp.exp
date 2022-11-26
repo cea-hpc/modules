@@ -1,0 +1,114 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.30-cache/%M%
+#   Revision:		%I%
+#   First Edition:	2022/11/26
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		avail
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test cachefile interpreter
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# generate content in modulepaths
+lassign [create_simple_module_setup $mp1] dir_list file_list
+array set file_arr $file_list
+lassign [create_simple_module_setup $mp2] other_dir_list other_file_list
+array set other_file_arr $other_file_list
+
+# create cache file for mp1 that supersedes command definition
+set fid [open $mp1cache w]
+puts $fid "#%Module$major_minor_rel
+modulefile-content foo/1.0 {} {#%Module} {#%Module}
+modulerc-content foo/.modulerc {#%Module} {#%Module}
+proc modulefile-content {args} {}
+modulefile-content bar/1.0 {} {#%Module} {#%Module}
+modulefile-content bar/2.0 {} {#%Module} {#%Module}"
+close $fid
+set tserr [msg_create $mp2cache]
+testouterr_cmd sh "cachebuild $mp2" OK $tserr
+
+setenv_var MODULEPATH $mp1:$mp2
+set tserr "$mp1:
+foo/1.0
+
+$mp2:
+bar/1.0
+bar/2.0
+foo/1.0"
+# polluted proc is reset when evaluating next cachefile
+testouterr_cmd sh {avail -t} OK $tserr
+
+
+# test local variables and procedures are not propagated to the next evaluation
+set fid [open $mp1cache w]
+puts $fid "#%Module$major_minor_rel
+proc foo {args} {}
+set bar val"
+close $fid
+set fid [open $mp2cache w]
+puts $fid "#%Module$major_minor_rel
+if {\[llength \[info procs foo\]\] > 0} {
+    modulefile-content foo/1.0 {} {#%Module} {#%Module}
+}
+if {\[info exists bar\]} {
+    modulefile-content bar/1.0 {} {#%Module} {#%Module}
+}"
+close $fid
+setenv_var MODULEPATH $mp1:$mp2
+# local procedures or variables are not propagated to the next evaluation
+testouterr_cmd sh {avail -t} OK {}
+
+
+# test a cachefile overriding basic Tcl command
+set fid [open $mp1cache w]
+puts $fid "#%Module$major_minor_rel
+proc set {args} {}"
+close $fid
+set tserr [msg_create $mp2cache]
+testouterr_cmd sh "cachebuild $mp2" OK $tserr
+
+setenv_var MODULEPATH $mp1:$mp2
+set tserr "$mp2:
+bar/1.0
+bar/2.0
+foo/1.0"
+# due to polluted command, interp is reset when prior evaluating next cachefile
+testouterr_cmd sh {avail -t} OK $tserr
+set tserr ".*
+Evaluate cache file: '[escre $mp2cache]'
+DEBUG \\\[cache:[escre $mp2cache]\\\] resetInterpState: removing on __cachefile proc set
+DEBUG \\\[cache:[escre $mp2cache]\\\] resetInterpState: missing command\\(s\\), recreating interp __cachefile
+DEBUG \\\[cache:[escre $mp2cache]\\\] execute-cachefile: readModuleContent [escre $mp2cache] 1
+DEBUG \\\[cache:[escre $mp2cache]\\\] execute-cachefile: exiting [escre $mp2cache] \\(result=1\\)
+.*"
+testouterr_cmd_re sh {avail -D -t} OK $tserr
+
+
+#
+#  Cleanup
+#
+
+file delete $mp1cache
+file delete $mp2cache
+
+# delete created files and dirs
+delete_module_setup $mp1 [array names file_arr] $dir_list
+delete_module_setup $mp2 [array names other_file_arr] $other_dir_list
+
+reset_test_env
