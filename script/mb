@@ -24,8 +24,9 @@ proc reportUsage {} {
 Make bench between modulecmd versions
 
 Available tests:
-  help, avail, avail2, avail3, whatis, whatis2, whatis3, apropos, load,
-  list, unload (all tests selected by default)
+  help, avail, avail_cache, avail2, avail2_cache, avail3, avail3_cache,
+  whatis, whatis_cache, whatis2, whatis2_cache, whatis3, whatis3_cache,
+  apropos, load, load_cache, list, unload (all tests selected by default)
 
 Modes:
   bench           Report command execution time
@@ -63,23 +64,41 @@ proc profile {tag args} {
    return [eval exec script/mlprof report$::profprocnb $tag $args]
 }
 
+# procedures to create cache file in modulepaths prior tests and remove them
+# after tests
+proc module_cache_create {tag} {
+   exec ./modulecmd.$tag sh --silent cachebuild
+}
+proc module_cache_delete {tag} {
+   exec ./modulecmd.$tag sh --silent cacheclear
+}
+
 # run test for each modulecmd version
 proc runtest {mode test} {
-   # set environment for test
-   if {[info exists ::testenvlist($test)]} {
-      foreach {var val} $::testenvlist($test) {
+   # is test a cache-enabled version of another test
+   if {[set idx [string first _cache $test]] > -1} {
+      set eff_test [string range $test 0 $idx-1]
+      set use_cache 1
+   } else {
+      set eff_test $test
+      set use_cache 0
+   }
+
+   # set environment for test (based on effective test config)
+   if {[info exists ::testenvlist($eff_test)]} {
+      foreach {var val} $::testenvlist($eff_test) {
          set ::env($var) $val
       }
    }
 
-   if {[info exists ::testsubcmdlist($test)]} {
-      lappend cmdlist $::testsubcmdlist($test)
+   if {[info exists ::testsubcmdlist($eff_test)]} {
+      lappend cmdlist $::testsubcmdlist($eff_test)
    } else {
-      lappend cmdlist $test
+      lappend cmdlist $eff_test
    }
 
-   if {[info exists ::testarglist($test)]} {
-      set cmdlist [concat $cmdlist $::testarglist($test)]
+   if {[info exists ::testarglist($eff_test)]} {
+      set cmdlist [concat $cmdlist $::testarglist($eff_test)]
    }
 
    foreach tag $::taglist {
@@ -96,14 +115,20 @@ proc runtest {mode test} {
             }
          }
       } else {
+         if {$use_cache} {
+            module_cache_create $tag
+         }
          set res [eval $mode $tag $cmdlist]
+         if {$use_cache} {
+            module_cache_delete $tag
+         }
       }
       lappend ::testres($test) $tag $res
    }
 
    # clean test environment
-   if {[info exists ::testenvlist($test)]} {
-      foreach {var val} $::testenvlist($test) {
+   if {[info exists ::testenvlist($eff_test)]} {
+      foreach {var val} $::testenvlist($eff_test) {
          unset ::env($var)
       }
    }
@@ -119,8 +144,10 @@ foreach arg $argv {
       bench {
          set mode bench
       }
-      help - avail - avail2 - avail3 - whatis - whatis2 - whatis3 - apropos -\
-         load - list - unload {
+      help - avail - avail_cache - avail2 - avail2_cache - avail3 -\
+         avail3_cache - whatis - whatis_cache - whatis2 - whatis2_cache -\
+         whatis3 - whatis3_cache - apropos - load - load_cache - list -\
+         unload {
          lappend testlist $arg
       }
       -h - --help {
@@ -142,8 +169,9 @@ if {![info exists mode]} {
    set mode bench
 }
 if {![info exists testlist]} {
-   set testlist [list help avail avail2 avail3 whatis whatis2 whatis3 apropos\
-      load list unload]
+   set testlist [list help avail avail_cache avail2 avail2_cache avail3\
+      avail3_cache whatis whatis_cache whatis2 whatis2_cache whatis3\
+      whatis3_cache apropos load load_cache list unload]
 }
 
 # fetch information from git repository to save workspace and get available
@@ -240,7 +268,9 @@ set testenvlist(whatis3) $testenvlist(avail3)
 set testenvlist(apropos) $testenvlist(avail)
 set testenvlist(unload) $testenvlist(list)
 # some tests have a minimum version requirement
-array set testcompatlist [list avail3 4.6.0 whatis3 4.6.0]
+array set testcompatlist [list avail3 4.6.0 whatis3 4.6.0 avail_cache 5.3.0\
+   avail2_cache 5.3.0 avail3_cache 5.3.0 whatis_cache 5.3.0 whatis2_cache\
+   5.3.0 whatis3_cache 5.3.0 load_cache 5.3.0]
 
 # adapt output table to test mode
 if {$mode eq {profile}} {
@@ -250,10 +280,10 @@ if {$mode eq {profile}} {
    set collen 9
    set colsep {----------+}
 }
-set linesep ----------+[string repeat $colsep [llength $taglist]]
+set linesep --------------+[string repeat $colsep [llength $taglist]]
 
 # output header
-append tooutput [format "%9s |" {}]
+append tooutput [format "%13s |" {}]
 foreach elt $taglist {
    append tooutput [format "%${collen}s |" [string range $elt 0 7]]
 }
@@ -267,7 +297,7 @@ foreach test $testlist {
       set tooutput {}
       set nbprofres [expr {$profprocnb + 1}]
       for {set i 0} {$i < $nbprofres} {incr i 1} {
-         append tooutput [format "%9s |" [expr {$i == 0 ? $test : {}}]]
+         append tooutput [format "%13s |" [expr {$i == 0 ? $test : {}}]]
          foreach {tag res} $::testres($test) {
             set procname [lindex $res [expr {$i * 3}]]
             set nbcalls [lindex $res [expr {$i * 3 + 1}]]
@@ -279,7 +309,7 @@ foreach test $testlist {
       }
       append tooutput $linesep
    } else {
-      set tooutput [format "%9s |" $test]
+      set tooutput [format "%13s |" $test]
       foreach {tag res} $::testres($test) {
          append tooutput [format "%${collen}s |" $res]
       }
