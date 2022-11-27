@@ -254,18 +254,26 @@ proc findModulesInCacheFile {modpath mod depthlvl fetch_mtime} {
    # filter entries unless all are requested
    # exclude if not matching mod pattern (which is always a root name)
    if {!$findall} {
+      # first create a list of element root name to check, as we need to
+      # compare against root name
+      foreach elt [array names cache_arr] {
+         set eltroot [lindex [file split $elt] 0]
+         lappend eltroot_arr($eltroot) $elt
+      }
+      unset -nocomplain eltroot_arr(.modulerc)
+
       # create a list of non matching element to remove rather checking
       # elements one by one through modEqStatic: lsearch -glob is enough to
       # test match (mod is always a root name, could be icased)
       if {[isIcase]} {
-         set elt_list [lsearch -nocase -all -inline -not -glob [array names\
-            cache_arr] $mod*]
+         set eltroot_list [lsearch -nocase -all -inline -not -glob [array\
+            names eltroot_arr] $mod*]
       } else {
-         set elt_list [lsearch -all -inline -not -glob [array names\
-            cache_arr] $mod*]
+         set eltroot_list [lsearch -all -inline -not -glob [array names\
+            eltroot_arr] $mod*]
       }
-      foreach elt $elt_list {
-         if {$elt ne {.modulerc}} {
+      foreach eltroot $eltroot_list {
+         foreach elt $eltroot_arr($eltroot) {
             unset cache_arr($elt)
          }
       }
