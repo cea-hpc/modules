@@ -1,0 +1,206 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.30-cache/%M%
+#   Revision:		%I%
+#   First Edition:	2022/11/27
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		avail
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test erroneous cachefile
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure avail tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+# ensure auto symbolic versions are set for these tests
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+# generate content in modulepaths
+lassign [create_simple_module_setup $mp1] dir_list file_list
+array set file_arr $file_list
+
+setenv_var MODULEPATH $mp1
+
+# cache with an unknown command
+set fid [open $mp1cache w]
+puts $fid "#%Module$major_minor_rel
+modulefile-content foo/1.0 1000000000 #%Module {#%Module
+module-whatis foo/1.0
+setenv FOO 1}
+modulerc-content foo/.modulerc #%Module {#%Module
+module-version foo/1.0 sym}
+unk
+modulefile-content bar/1.0 1000000000 #%Module #%Module
+modulefile-content bar/2.0 1000000000 #%Module {#%Module
+module-whatis bar/2.0
+setenv BAR 1}
+modulerc-content bar/.modulerc #%Module {#%Module
+module-version bar/2.0 sym}"
+close $fid
+set cacheerr [msg_cacheerr {invalid command name "unk"} unk $mp1cache 7]
+
+set tserr_avail "$mp1:
+bar/1.0
+bar/2.0
+foo/1.0(sym)"
+testouterr_cmd sh {avail -t} OK $tserr_avail
+set tserr ".*
+[escre $cacheerr]
+.*"
+testouterr_cmd_re sh {avail -D -t} ERR $tserr
+set tserr_whatis "$modlin [escre $mp1] $modlin
+\\s+foo/1.0: foo/1.0"
+testouterr_cmd_re sh {whatis} OK $tserr_whatis
+set ans_load1 [list]
+lappend ans_load1 [list set FOO 1]
+lappend ans_load1 [list set __MODULES_LMALTNAME foo/1.0&foo/sym&as|foo/default&as|foo/latest]
+lappend ans_load1 [list set _LMFILES_ $mp1/foo/1.0]
+lappend ans_load1 [list set LOADEDMODULES foo/1.0]
+lappend ans_load1 [list ERR]
+testouterr_cmd sh {load foo/1.0} $ans_load1 $cacheerr
+set ans_load2 [list]
+lappend ans_load2 [list set __MODULES_LMALTNAME bar/2.0&as|bar/default&as|bar/latest]
+lappend ans_load2 [list set _LMFILES_ $mp1/bar/2.0]
+lappend ans_load2 [list set LOADEDMODULES bar/2.0]
+lappend ans_load2 [list ERR]
+testouterr_cmd sh {load bar/2.0} $ans_load2 $cacheerr
+
+# cache with a command with bad args
+set fid [open $mp1cache w]
+puts $fid "#%Module$major_minor_rel
+modulefile-content foo/1.0 1000000000 #%Module {#%Module
+module-whatis foo/1.0
+setenv FOO 1}
+modulerc-content foo/.modulerc #%Module {#%Module
+module-version foo/1.0 sym}
+modulefile-content bar/1.0 1000000000 #%Module #%Module extraarg
+modulefile-content bar/2.0 1000000000 #%Module {#%Module
+module-whatis bar/2.0
+setenv BAR 1}
+modulerc-content bar/.modulerc #%Module {#%Module
+module-version bar/2.0 sym}"
+close $fid
+set cacheerr [msg_cacheerr {wrong # args: should be "modulefile-content mod mtime header content"} {modulefile-content bar/1.0 1000000000 #%Module #%Module extraarg} $mp1cache 7 {invoked from within}]
+
+testouterr_cmd sh {avail -t} OK $tserr_avail
+set tserr ".*
+[escre $cacheerr]
+.*"
+testouterr_cmd_re sh {avail -D -t} ERR $tserr
+testouterr_cmd_re sh {whatis} OK $tserr_whatis
+testouterr_cmd sh {load foo/1.0} $ans_load1 $cacheerr
+testouterr_cmd sh {load bar/2.0} $ans_load2 $cacheerr
+
+# cache with unbalanced curly brace
+set fid [open $mp1cache w]
+puts $fid "#%Module$major_minor_rel
+modulefile-content foo/1.0 1000000000 #%Module {#%Module
+module-whatis foo/1.0
+setenv FOO 1}
+modulerc-content foo/.modulerc #%Module {#%Module
+module-version foo/1.0 sym}
+modulefile-content bar/1.0 1000000000 #%Module {#%Module
+modulefile-content bar/2.0 1000000000 #%Module {#%Module
+module-whatis bar/2.0
+setenv BAR 1}
+modulerc-content bar/.modulerc #%Module {#%Module
+module-version bar/2.0 sym}"
+close $fid
+set cacheerr [escre [msg_cacheerr {missing close-brace: possible unbalanced brace in comment} "modulefile-content bar/1.0 1000000000 #%Module \{<EXM>" $mp1cache 7]]
+
+testouterr_cmd sh {avail -t} OK $tserr_avail
+set tserr ".*
+$cacheerr
+.*"
+testouterr_cmd_re sh {avail -D -t} ERR $tserr
+testouterr_cmd_re sh {whatis} OK $tserr_whatis
+testouterr_cmd_re sh {load foo/1.0} $ans_load1 $cacheerr
+testouterr_cmd_re sh {load bar/2.0} $ans_load2 $cacheerr
+
+# cache with unbalanced quote
+set fid [open $mp1cache w]
+puts $fid "#%Module$major_minor_rel
+modulefile-content foo/1.0 1000000000 #%Module {#%Module
+module-whatis foo/1.0
+setenv FOO 1}
+modulerc-content foo/.modulerc #%Module {#%Module
+module-version foo/1.0 sym}
+modulefile-content bar/1.0 1000000000 #%Module \"#%Module
+modulefile-content bar/2.0 1000000000 #%Module {#%Module
+module-whatis bar/2.0
+setenv BAR 1}
+modulerc-content bar/.modulerc #%Module {#%Module
+module-version bar/2.0 sym}"
+close $fid
+set cacheerr [escre [msg_cacheerr {missing "} {modulefile-content bar/1.0 1000000000 #%Module "<EXM>} $mp1cache 7]]
+
+testouterr_cmd sh {avail -t} OK $tserr_avail
+set tserr ".*
+$cacheerr
+.*"
+testouterr_cmd_re sh {avail -D -t} ERR $tserr
+testouterr_cmd_re sh {whatis} OK $tserr_whatis
+testouterr_cmd_re sh {load foo/1.0} $ans_load1 $cacheerr
+testouterr_cmd_re sh {load bar/2.0} $ans_load2 $cacheerr
+
+
+# duplicate modulefile and modulerc entries
+set fid [open $mp1cache w]
+puts $fid "#%Module$major_minor_rel
+modulefile-content foo/1.0 1000000000 #%Module {#%Module
+module-whatis foo/1.0
+setenv FOO 1}
+modulefile-content foo/1.0 1000000000 #%Module {#%Module
+module-whatis foo/2.0
+setenv FOO 2}
+modulerc-content foo/.modulerc #%Module {#%Module
+module-version foo/1.0 sym}
+modulerc-content foo/.modulerc #%Module {#%Module
+module-version foo/1.0 oth}
+modulefile-content bar/1.0 1000000000 #%Module #%Module
+modulefile-content bar/2.0 1000000000 #%Module {#%Module
+module-whatis bar/2.0
+setenv BAR 1}
+modulerc-content bar/.modulerc #%Module {#%Module
+module-version bar/2.0 sym}"
+close $fid
+
+set tserr_avail "$mp1:
+bar/1.0
+bar/2.0(sym)
+foo/1.0(oth)"
+testouterr_cmd sh {avail -t} OK $tserr_avail
+set ans_load1 [list]
+lappend ans_load1 [list set FOO 2]
+lappend ans_load1 [list set __MODULES_LMALTNAME foo/1.0&foo/oth&as|foo/default&as|foo/latest]
+lappend ans_load1 [list set _LMFILES_ $mp1/foo/1.0]
+lappend ans_load1 [list set LOADEDMODULES foo/1.0]
+testouterr_cmd sh {load foo/1.0} $ans_load1 {}
+
+
+#
+#  Cleanup
+#
+
+file delete $mp1cache
+
+# delete created files and dirs
+delete_module_setup $mp1 [array names file_arr] $dir_list
+
+reset_test_env
