@@ -177,6 +177,12 @@ files corresponding to the query. So results between using cache file or not
 should be the same: compared to a search without cache, no extra modulefile or
 modulerc evaluation will be performed when a cache file is used.
 
+As cache is recorded with both ``mcookie_check`` and ``mcookie_version_check``
+options enabled, these two options are not honored (if disabled) when a cache
+file is used. They are primarily useful to skip I/O tests when walking through
+the content of a modulepath directory. As these I/O tests are done during the
+cache build process, the options are useless when using cache files.
+
 Cache evaluation
 ----------------
 
@@ -246,6 +252,10 @@ with a warning notice.
 Reports a ``Creating <modulepath>`` block header message for each cache file
 created or updated. This report is made when verbosity is set to ``normal``
 or higher mode.
+
+:mconfig:`mcookie_check` and :mconfig:`mcookie_version_check` options are both
+enabled when recording cache. This is produced with exact same content whether
+these options are enabled or not.
 
 cacheclear sub-command
 ----------------------

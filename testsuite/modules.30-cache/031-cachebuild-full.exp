@@ -90,6 +90,25 @@ testouterr_cmd sh {avail -a -t -o } OK $tserr
 file delete $mp1cache
 
 
+# test cache generation when mcookie_check is set to eval (should not change
+# cache content)
+setenv_path_var MODULEPATH $mp1
+setenv_var MODULES_MCOOKIE_CHECK eval
+set tserr [msg_create $mp1cache]
+testouterrfile_cmd sh cachebuild OK $tserr $mp1cache $tscache
+setenv_var MODULES_MCOOKIE_CHECK always
+file delete $mp1cache
+
+# test cache generation when mcookie_version_check is disabled (should not
+# change cache content)
+setenv_path_var MODULEPATH $mp1
+setenv_var MODULES_MCOOKIE_VERSION_CHECK 0
+set tserr [msg_create $mp1cache]
+testouterrfile_cmd sh cachebuild OK $tserr $mp1cache $tscache
+setenv_var MODULES_MCOOKIE_VERSION_CHECK 1
+file delete $mp1cache
+
+
 # generate simpler setup
 lassign [create_simple_module_setup $mp2] other_dir_list other_file_list
 array set other_file_arr $other_file_list

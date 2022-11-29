@@ -410,6 +410,39 @@ foo/1.0"
 testouterr_cmd_re sh {avail -T -t foo/1.0} OK $tserr
 
 
+# cache usage when mcookie_check is set to eval (same result as if
+# option is set to always)
+setenv_path_var MODULEPATH $mp1
+set tserr [msg_create $mp1cache]
+testouterr_cmd sh cachebuild OK $tserr
+setenv_var MODULES_MCOOKIE_CHECK eval
+testouterr_cmd sh {avail -a -t -o } OK $tserr_avail1
+testouterr_cmd sh {avail -a -t -o  foo} OK $tserr_avail2
+testouterr_cmd_re sh whatis OK $tserr_whatis1
+testouterr_cmd_re sh {whatis baz} OK $tserr_whatis2
+testouterr_cmd sh {load bar} $ans_load1 {}
+testouterr_cmd sh {load foo/1.0} ERR $tserr_load2
+testouterr_cmd sh {load foo/3.0} ERR $tserr_load3
+testouterr_cmd_re sh {load foo/5.0} ERR $tserr_load4
+testouterr_cmd sh {load .hid} $ans_load5 {}
+setenv_var MODULES_MCOOKIE_CHECK always
+
+# cache usage when mcookie_version_check is disabled (same result as if
+# option is enabled)
+setenv_var MODULES_MCOOKIE_VERSION_CHECK 0
+testouterr_cmd sh {avail -a -t -o } OK $tserr_avail1
+testouterr_cmd sh {avail -a -t -o  foo} OK $tserr_avail2
+testouterr_cmd_re sh whatis OK $tserr_whatis1
+testouterr_cmd_re sh {whatis baz} OK $tserr_whatis2
+testouterr_cmd sh {load bar} $ans_load1 {}
+testouterr_cmd sh {load foo/1.0} ERR $tserr_load2
+testouterr_cmd sh {load foo/3.0} ERR $tserr_load3
+testouterr_cmd_re sh {load foo/5.0} ERR $tserr_load4
+testouterr_cmd sh {load .hid} $ans_load5 {}
+setenv_var MODULES_MCOOKIE_VERSION_CHECK 1
+file delete $mp1cache
+
+
 #
 #  Cleanup
 #
