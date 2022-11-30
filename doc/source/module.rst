@@ -646,6 +646,8 @@ Module Sub-Commands
  modulefile error messages are recorded. With all these information, the sole
  cache file is evaluated to know what is available within modulepath.
 
+ See :ref:`Module cache` section for more details on module cache mechanism.
+
  .. only:: html
 
     .. versionadded:: 5.3
@@ -655,6 +657,8 @@ Module Sub-Commands
  Delete module cache file in every modulepath currently enabled. If user
  cannot write in a modulepath directory, cache file deletion is skipped for
  this modulepath.
+
+ See :ref:`Module cache` section for more details on module cache mechanism.
 
  .. only:: html
 
@@ -3002,6 +3006,38 @@ meaning. The following variables are recognized:
    .. versionchanged:: 4.3
       Additional site-specific configuration script introduced
 
+.. _Module cache:
+
+Module cache
+^^^^^^^^^^^^
+
+To improve module search efficiency, a module cache can be setup in each
+modulepath. A module cache is represented by a :file:`.modulecache` file
+stored at the root of modulepath directory. This file aggregates contents of
+all valid modulercs and modulefiles and issue description of all
+non-modulefiles stored in modulepath directory.
+
+When cache file is available, a module search analyzes this file rather
+walking through the content of modulepath directory to check if files are
+modulefiles or not. Cache file reduces module search processing time
+especially when hundreds of modulefiles are available and if these files are
+located on busy storage systems. Having one file to read per modulepath rather
+walking through a whole directory content extremely reduces the number of
+required I/O operations.
+
+Cache files are generated with :subcmd:`cachebuild` sub-command. This command
+has to be run by someone who owns write access in modulepath directory to
+create cache file and who can read all the content of this modulepath to be
+able to create a cache file containing all information.
+
+Cache files are used any time a module search occurs in modulepaths. They are
+analyzed for instance during :subcmd:`avail`, :subcmd:`load`,
+:subcmd:`display` or :subcmd:`whatis` sub-commands.
+
+Cache files are removed with :subcmd:`cacheclear` sub-command. This command
+has to be run by someone who own write access in modulepath directory to
+effectively delete cache file.
+
 
 EXIT STATUS
 -----------
@@ -3862,6 +3898,10 @@ ENVIRONMENT
  * files not beginning with the magic cookie ``#%Module``
  * read-protected files
 
+ When a :ref:`module cache<Module cache>` file is available for a given
+ modulepath, ``eval`` mode is not applied as cache content is generated in
+ ``always`` mode.
+
  This environment variable value supersedes the default value set in the
  :mconfig:`mcookie_check` configuration option. It can be defined with the
  :subcmd:`config` sub-command.
@@ -3875,6 +3915,10 @@ ENVIRONMENT
  If set to ``1``, the version set in the Modules magic cookie in modulefile
  is checked against the current version of :file:`modulecmd.tcl` to determine
  if the modulefile can be evaluated.
+
+ When a :ref:`module cache<Module cache>` file is available for a given
+ modulepath, version check is considered enabled as cache content is generated
+ in this mode.
 
  This environment variable value supersedes the default value set in the
  :mconfig:`mcookie_version_check` configuration option. It can be defined with
@@ -4399,6 +4443,14 @@ FILES
  The directory for system-wide *modulefiles*. The location of the directory
  can be changed using the :envvar:`MODULEPATH` environment variable as
  described above.
+
+:file:`<modulepath>/.modulerc`
+
+ Modulepath-specific module rc file.
+
+:file:`<modulepath>/.modulecache`
+
+ Modulepath-specific :ref:`module cache<Module cache>` file.
 
 |file libexecdir_modulecmd|
 

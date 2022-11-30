@@ -1431,6 +1431,12 @@ directory, and the :file:`.modulerc` applies to the current directory and all
 subdirectories. Changes made in these files will affect the subsequently
 interpreted *modulefile*.
 
+If a :file:`.modulecache` file is found at the root of a modulepath directory,
+this file is interpreted as Tcl code to learn all :file:`.modulerc`,
+:file:`.version` and modulefiles available. Modulepath directory is not walked
+through and no file in it are read as described above since all information
+are stored in :ref:`module cache<Module cache>` file.
+
 If no default version may be figured out, an implicit default is selected when
 this behavior is enabled (see :envvar:`MODULES_IMPLICIT_DEFAULT` in
 :ref:`module(1)`). If disabled, module names should be fully qualified when no
