@@ -13,9 +13,15 @@ Modules 5.3.0 (not yet released)
 
 * Add :ref:`module-cache` design notes.
 * Add :subcmd:`cachebuild` sub-command to create cache for modulepaths
-  enabled or specified on the command line.
+  enabled or specified on the command line. Cache files are named
+  ``.modulecache`` and stored at the root of modulepath directories.
 * Add :subcmd:`cacheclear` sub-command to delete cache file in all enabled
   modulepaths.
+* Use cache file if available rather search the content of modulepath
+  directories when searching for modules (e.g., during :subcmd:`avail`,
+  :subcmd:`load`, :subcmd:`display`, etc).
+* Script: add cache-enabled version of *avail*, *whatis* and *load* tests on
+  :command:`mb` benchmark utility.
 
 
 .. _5.2 release notes:
