@@ -22,6 +22,12 @@ Modules 5.3.0 (not yet released)
   :subcmd:`load`, :subcmd:`display`, etc).
 * Script: add cache-enabled version of *avail*, *whatis* and *load* tests on
   :command:`mb` benchmark utility.
+* Add the :mconfig:`ignore_cache` configuration option to ignore module cache
+  file. Option is disabled by default and when set, it defines
+  :envvar:`MODULES_IGNORE_CACHE` environment variable.
+* Add :option:`--ignore-cache` command-line switch to enable
+  :mconfig:`ignore_cache` configuration option and ignore module cache file
+  for current execution.
 
 
 .. _5.2 release notes:
