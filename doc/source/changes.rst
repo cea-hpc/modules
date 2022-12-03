@@ -814,6 +814,8 @@ The following command line switches appeared on Modules 5.
 +------------+-----------------------------------------------------------------+
 | 5.2        | :option:`--timer`                                               |
 +------------+-----------------------------------------------------------------+
+| 5.3        | :option:`--ignore-cache`                                        |
++------------+-----------------------------------------------------------------+
 
 Module Sub-Commands
 """""""""""""""""""
@@ -901,6 +903,8 @@ The following environment variables appeared on Modules 5.
 |            | :envvar:`__MODULES_LMINIT`,                                     |
 |            | :envvar:`MODULES_RESET_TARGET_STATE`,                           |
 |            | :envvar:`__MODULES_LMREFRESH`                                   |
++------------+-----------------------------------------------------------------+
+| 5.3        | :envvar:`MODULES_IGNORE_CACHE`,                                 |
 +------------+-----------------------------------------------------------------+
 
 Modules Specific Tcl Commands
@@ -1022,4 +1026,6 @@ The following Modules configuration option has been introduced on Modules 5.
 +------------+-----------------------------------------------------------------+
 | 5.2        | :mconfig:`tcl_linter`, :mconfig:`protected_envvars`,            |
 |            | :mconfig:`reset_target_state`                                   |
++------------+-----------------------------------------------------------------+
+| 5.3        | :mconfig:`ignore_cache`                                         |
 +------------+-----------------------------------------------------------------+

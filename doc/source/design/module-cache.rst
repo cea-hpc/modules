@@ -169,6 +169,10 @@ sub-commands:
 It may also occur during other sub-commands that evaluates modulefiles using
 the ``is-avail`` command: like unload or refresh.
 
+Cache files are ignored if :mconfig:`ignore_cache` configuration option is
+enabled. This option can also be enabled just for one execution with the
+:option:`--ignore-cache` command line option.
+
 Is there an impact at evaluating the full cache file rather making a directory
 walk-through to find a module? Cache file is fully read, but not all the files
 described in it are evaluated. Just those corresponding to the search, like it
