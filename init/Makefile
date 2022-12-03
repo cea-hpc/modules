@@ -119,7 +119,7 @@ endif
 
 # define variables for shell completion
 comp_cmds := add add-any apropos aliases avail append-path cachebuild cacheclear clear config del display edit help initadd initclear initlist initprepend initrm is-loaded is-saved is-used is-avail info-loaded keyword lint list load load-any mod-to-sh path paths purge prepend-path refresh reload reset restore rm remove remove-path save savelist saveshow saverm search show sh-to-mod source stash stashclear stashlist stashpop stashrm stashshow state swap switch test try-add try-load unload unuse use whatis
-comp_opts := -D -h -s -T -v -V -w --debug --help --silent --trace --verbose --version --paginate --no-pager --color --color= --width --width=
+comp_opts := -D -h -s -T -v -V -w --debug --help --silent --trace --verbose --version --paginate --no-pager --color --color= --width --width= --ignore-cache
 comp_load_opts := --auto --no-auto --force -f --icase -i --tag --tag=
 comp_unload_opts := --auto --no-auto --force -f --icase -i
 comp_list_opts := -a -j -l -o -t --all --json --long --output --output= --terse
@@ -135,7 +135,7 @@ comp_lint_opts := -a -i --all --icase
 comp_modtosh_opts := --auto --no-auto --force -f --icase -i
 comp_path_opts := -d --delim --duplicates
 comp_rm_path_opts := -d --delim --index
-comp_config_opts := --dump-state --reset advanced_version_spec auto_handling avail_indepth avail_output avail_terse_output collection_pin_version collection_pin_tag collection_target color colors contact editor extended_default extra_siteconfig home icase implicit_default implicit_requirement list_output list_terse_output locked_configs mcookie_check mcookie_version_check ml nearly_forbidden_days pager protected_envvars quarantine_support rcfile redirect_output reset_target_state run_quarantine search_match set_shell_startup shells_with_ksh_fpath silent_shell_debug tag_abbrev tag_color_name tcl_linter term_background term_width unload_match_order variant_shortcut verbosity wa_277
+comp_config_opts := --dump-state --reset advanced_version_spec auto_handling avail_indepth avail_output avail_terse_output collection_pin_version collection_pin_tag collection_target color colors contact editor extended_default extra_siteconfig home icase ignore_cache implicit_default implicit_requirement list_output list_terse_output locked_configs mcookie_check mcookie_version_check ml nearly_forbidden_days pager protected_envvars quarantine_support rcfile redirect_output reset_target_state run_quarantine search_match set_shell_startup shells_with_ksh_fpath silent_shell_debug tag_abbrev tag_color_name tcl_linter term_background term_width unload_match_order variant_shortcut verbosity wa_277
 
 define translate-in-script
 $(ECHO_GEN)
