@@ -1,0 +1,86 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.30-cache/%M%
+#   Revision:		%I%
+#   First Edition:	2022/12/03
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		avail, whatis, load
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test ignore_cache configuration option
+#		}C%
+#
+##############################################################################
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# generate content in modulepaths
+lassign [create_simple_module_setup $mp1] dir_list file_list
+array set file_arr $file_list
+
+setenv_var MODULEPATH $mp1
+
+# tests with empty cache file
+create_dummy_cachefile $mp1
+
+set tserr_avail "bar/1.0
+bar/2.0
+foo/1.0"
+set tserr_whatis "$modlin [escre $mp1] $modlin
+\\s+foo/1.0: foo/1.0"
+set ans_load [list]
+lappend ans_load [list set _LMFILES_ $mp1/bar/1.0]
+lappend ans_load [list set LOADEDMODULES bar/1.0]
+
+# cache enabled
+testouterr_cmd sh {avail -t -o } OK {}
+# cache disabled
+testouterr_cmd sh {--ignore-cache avail -t -o } OK $tserr_avail
+
+# clean setup prior quitting if quick mode
+if {[is_quick_mode]} {
+    file delete $mp1cache
+    delete_module_setup $mp1 [array names file_arr] $dir_list
+}
+skip_if_quick_mode
+
+# cache enabled
+testouterr_cmd sh {load bar/1.0} ERR $err_path'bar/1.0'
+testouterr_cmd sh {whatis} OK {}
+
+setenv_var MODULES_IGNORE_CACHE 0
+testouterr_cmd sh {avail -t -o } OK {}
+testouterr_cmd sh {load bar/1.0} ERR $err_path'bar/1.0'
+testouterr_cmd sh {whatis} OK {}
+
+# cache disabled
+testouterr_cmd sh {avail --ignore-cache -t -o } OK $tserr_avail
+testouterr_cmd_re sh {whatis --ignore-cache} OK $tserr_whatis
+testouterr_cmd sh {load bar/1.0 --ignore-cache} $ans_load {}
+
+setenv_var MODULES_IGNORE_CACHE 1
+testouterr_cmd sh {avail -t -o } OK $tserr_avail
+testouterr_cmd sh {--ignore-cache avail -t -o } OK $tserr_avail
+testouterr_cmd_re sh {whatis} OK $tserr_whatis
+testouterr_cmd sh {load bar/1.0} $ans_load {}
+
+
+#
+#  Cleanup
+#
+
+file delete $mp1cache
+
+# delete created files and dirs
+delete_module_setup $mp1 [array names file_arr] $dir_list
+
+reset_test_env
