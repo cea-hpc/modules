@@ -305,6 +305,14 @@ switches are accepted:
        search query string and module specification on all sub-commands and
        modulefile Tcl commands.
 
+.. option:: --ignore-cache
+
+ Ignore module cache.
+
+ .. only:: html
+
+    .. versionadded:: 5.3
+
 .. option:: --indepth
 
  On :subcmd:`avail` sub-command, include in search results the matching
@@ -908,6 +916,19 @@ Module Sub-Commands
   .. only:: html
 
      .. versionadded:: 4.4
+
+ .. mconfig:: ignore_cache
+
+  Ignore module cache.
+
+  Default is ``0``. The :envvar:`MODULES_IGNORE_CACHE` environment variable
+  is defined by :subcmd:`config` sub-command when changing this configuration
+  option from its default value. The :option:`--ignore-cache` command line
+  switch changes the value of this configuration option.
+
+  .. only:: html
+
+     .. versionadded:: 5.3
 
  .. mconfig:: ignored_dirs
 
@@ -3778,6 +3799,19 @@ ENVIRONMENT
 
     .. versionchanged:: 5.2
        Search mode applied to :subcmd:`savelist` sub-command
+
+.. envvar:: MODULES_IGNORE_CACHE
+
+ Ignore (if set to ``1``) or not (if set to ``0``) module cache.
+
+ This environment variable value supersedes the default value set in the
+ :mconfig:`ignore_cache` configuration option. It can be defined with the
+ :subcmd:`config` sub-command. The :option:`--ignore-cache` command line
+ switch overrides this environment variable.
+
+ .. only:: html
+
+    .. versionadded:: 5.3
 
 .. envvar:: MODULES_IMPLICIT_DEFAULT
 
