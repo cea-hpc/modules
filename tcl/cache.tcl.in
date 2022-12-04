@@ -79,6 +79,41 @@ proc formatModuleCacheContent {modpath} {
    return $content
 }
 
+# read a cache file
+proc readCacheContent {cachefile} {
+   set res {}
+   if {[catch {
+      # read full file
+      set fid [open $cachefile r]
+      set fdata [read $fid]
+      close $fid
+      # extract magic cookie (first word of cache file)
+      set fh [string trimright [lindex [split [string range $fdata 0 32]]\
+         0] #]
+      set fhvers [string range $fh 8 end]
+   } errMsg ]} {
+      reportError [parseAccessIssue $cachefile]
+   } else {
+      # check cache validity
+      if {![string equal -length 8 $fh {#%Module}]} {
+         reportInternalBug {Magic cookie '#%Module' missing} $cachefile\
+            {Cache ERROR}
+      # check if version requirement is present
+      } elseif {[string length $fh] <= 8} {
+         reportInternalBug {Modules version requirement missing} $cachefile\
+            {Cache ERROR}
+      # check if min version requirement is met
+      } elseif {[versioncmp {@MODULES_RELEASE@} $fhvers] <0} {
+         reportInternalBug "Cache file requires at least Modules version\
+            $fhvers" $cachefile {Cache ERROR}
+      } else {
+         # set file content as result
+         set res $fdata
+      }
+   }
+   return $res
+}
+
 # evaluate cache file
 proc execute-cachefile {cachefile modpath} {
    # register current modulepath for cachefile commands to know where they are
@@ -101,7 +136,7 @@ proc execute-cachefile {cachefile modpath} {
       array set ::g_cachefileAliases [list modulefile-content\
          modulefile-content modulerc-content modulerc-content\
          modulefile-invalid modulefile-invalid reportInternalBug\
-         reportInternalBug readModuleContent readModuleContent\
+         reportInternalBug readCacheContent readCacheContent\
          formatErrStackTrace formatErrStackTrace]
 
       # alias commands where an argument should be passed
@@ -142,7 +177,7 @@ proc execute-cachefile {cachefile modpath} {
    # evaluate cache file
    ##nagelfar ignore +4 Suspicious # char
    set exec_res [interp eval $itrp {
-      set cachecontent [readModuleContent $::ModulesCurrentCachefile 1]
+      set cachecontent [readCacheContent $::ModulesCurrentCachefile]
       if {$cachecontent eq {}} {
          # simply skip cache file, no exit on error here
          return 0
