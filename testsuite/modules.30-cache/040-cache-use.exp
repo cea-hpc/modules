@@ -174,16 +174,36 @@ lappend ans_load1b [list set __MODULES_LMALTNAME bar/1.0&bar/default&bar]
 lappend ans_load1b [list set _LMFILES_ $mp1/bar/1.0]
 lappend ans_load1b [list set LOADEDMODULES bar/1.0]
 lappend ans_load1b [list ERR]
-testouterr_cmd sh {load bar} $ans_load1b $err_magic'$mp1cache'\n$err_contact
-testouterr_cmd sh {load foo/1.0} ERR $err_magic'$mp1cache'\n$err_contact\n$tserr_load2
-testouterr_cmd sh {load foo/3.0} ERR $err_magic'$mp1cache'\n$err_contact\n$tserr_load3
-testouterr_cmd_re sh {load foo/5.0} ERR $err_magic'[escre $mp1cache]'\n$err_contact\n$tserr_load4
+testouterr_cmd sh {load bar} $ans_load1b [cacheerr_magic $mp1cache]
+testouterr_cmd sh {load foo/1.0} ERR [cacheerr_magic $mp1cache]\n$tserr_load2
+testouterr_cmd sh {load foo/3.0} ERR [cacheerr_magic $mp1cache]\n$tserr_load3
+testouterr_cmd_re sh {load foo/5.0} ERR [cacheerr_magic [escre $mp1cache]]\n$tserr_load4
 set ans_load5b [list]
 lappend ans_load5b [list set __MODULES_LMALTNAME .hid/1.0&as|.hid/default&as|.hid/latest]
 lappend ans_load5b [list set _LMFILES_ $mp1/.hid/1.0]
 lappend ans_load5b [list set LOADEDMODULES .hid/1.0]
 lappend ans_load5b [list ERR]
-testouterr_cmd sh {load .hid} $ans_load5b $err_magic'$mp1cache'\n$err_contact
+testouterr_cmd sh {load .hid} $ans_load5b [cacheerr_magic $mp1cache]
+file delete $mp1cache
+
+# test with a module header without version specification
+set fid [open $mp1cache w]
+puts $fid "#%Module
+modulefile-content bar/1.0 1664035017 #%Module #%Module"
+close $fid
+testouterr_cmd sh {avail -a -t -o } OK $tserr_avail1
+testouterr_cmd sh {avail -a -t -o  foo} OK $tserr_avail2
+testouterr_cmd sh {load bar} $ans_load1b [cacheerr_misverreq $mp1cache]
+file delete $mp1cache
+
+# test with a module header with required version too high
+set fid [open $mp1cache w]
+puts $fid "#%Module99
+modulefile-content bar/1.0 1664035017 #%Module #%Module"
+close $fid
+testouterr_cmd sh {avail -a -t -o } OK $tserr_avail1
+testouterr_cmd sh {avail -a -t -o  foo} OK $tserr_avail2
+testouterr_cmd sh {load bar} $ans_load1b [cacheerr_minverreq $mp1cache 99]
 file delete $mp1cache
 
 # tests with a cache containing element that does not exists anymore in modulepath
@@ -441,6 +461,36 @@ testouterr_cmd_re sh {load foo/5.0} ERR $tserr_load4
 testouterr_cmd sh {load .hid} $ans_load5 {}
 setenv_var MODULES_MCOOKIE_VERSION_CHECK 1
 file delete $mp1cache
+
+
+# cannot test access if cannot change file permission
+if {!$is_file_perms_editable} {
+    send_user "\tskipping access tests as file permissions cannot be changed\n"
+# cannot test access if superuser privileges are in use
+} elseif {$tcl_platform(user) eq "root"} {
+    send_user "\tskipping access tests as tests are run by superuser\n"
+# cannot test access if restricted file permissions have no effect
+} elseif {$is_locked_dir_file_readable && $is_locked_file_readable} {
+    send_user "\tskipping access tests as locked files or directories are still readable\n"
+} else {
+
+set noread_perms ugo-r
+
+# check expected siteconfig file is installed
+set is_stderr_tty [siteconfig_isStderrTty]
+if {$is_stderr_tty} {
+    # test a cache read failure by faking cache file is readable
+    setenv_var TESTSUITE_ENABLE_SITECONFIG_CACHE_READ 1
+    create_dummy_cachefile $mp1
+    change_file_perms $mp1cache $noread_perms
+    testouterr_cmd sh {avail -a -t -o } OK $tserr_avail1
+    testouterr_cmd sh {load bar} $ans_load1b [err_permdenied $mp1cache]
+    restore_file_perms $mp1cache
+    file delete $mp1cache
+    unsetenv_var TESTSUITE_ENABLE_SITECONFIG_CACHE_READ
+}
+
+}
 
 
 #
