@@ -28,6 +28,10 @@ Modules 5.3.0 (not yet released)
 * Add :option:`--ignore-cache` command-line switch to enable
   :mconfig:`ignore_cache` configuration option and ignore module cache file
   for current execution.
+* Add :mconfig:`cache_buffer_bytes` configuration option to define buffer size
+  when reading or writing cache files. Option is set to ``32768`` by default.
+  When set it defines :envvar:`MODULES_CACHE_BUFFER_BYTES` environment
+  variable.
 
 
 .. _5.2 release notes:
