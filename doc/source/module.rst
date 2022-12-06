@@ -780,6 +780,19 @@ Module Sub-Commands
 
      .. versionadded:: 4.7
 
+ .. mconfig:: cache_buffer_bytes
+
+  Size of the buffer used when reading or writing cache files.
+
+  Default value is ``32768``. Values between 4096 and 1000000 are accepted.
+  The :envvar:`MODULES_CACHE_BUFFER_BYTES` environment variable is defined by
+  :subcmd:`config` sub-command when changing this configuration option from
+  its default value.
+
+  .. only:: html
+
+     .. versionadded:: 5.3
+
  .. mconfig:: collection_pin_version
 
   Register exact modulefile version in collection.
@@ -3552,6 +3565,15 @@ ENVIRONMENT
  .. only:: html
 
     .. versionadded:: 4.7
+
+.. envvar:: MODULES_CACHE_BUFFER_BYTES
+
+ Size of the buffer used when reading or writing cache files. Accepted values
+ are integers comprised between 4096 and 1000000.
+
+ .. only:: html
+
+    .. versionadded:: 5.3
 
 .. envvar:: MODULES_CMD
 
