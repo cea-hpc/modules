@@ -85,6 +85,8 @@ proc readCacheContent {cachefile} {
    if {[catch {
       # read full file
       set fid [open $cachefile r]
+      # use defined buffer size to limit number of read system call
+      fconfigure $fid -buffersize [getConf cache_buffer_bytes]
       set fdata [read $fid]
       close $fid
       # extract magic cookie (first word of cache file)
