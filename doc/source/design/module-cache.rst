@@ -187,6 +187,15 @@ file is used. They are primarily useful to skip I/O tests when walking through
 the content of a modulepath directory. As these I/O tests are done during the
 cache build process, the options are useless when using cache files.
 
+Read/write performances
+-----------------------
+
+:mconfig:`cache_buffer_bytes` configuration option defines size of the buffer
+when reading or writing cache files.
+
+With a bigger buffer, fewer read or write system calls are needed to read or
+write cache file. On busy storage systems it can improve I/O performances.
+
 Cache evaluation
 ----------------
 
