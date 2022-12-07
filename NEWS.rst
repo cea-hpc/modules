@@ -32,6 +32,11 @@ Modules 5.3.0 (not yet released)
   when reading or writing cache files. Option is set to ``32768`` by default.
   When set it defines :envvar:`MODULES_CACHE_BUFFER_BYTES` environment
   variable.
+* Add :mconfig:`cache_expiry_secs` configuration option that defines the
+  number of seconds a cache file is considered valid after being generated.
+  Option is set to ``0`` by default which means cache files never expire. When
+  option is set it defines :envvar:`MODULES_CACHE_EXPIRY_SECS` environment
+  variable.
 
 
 .. _5.2 release notes:
