@@ -906,6 +906,7 @@ The following environment variables appeared on Modules 5.
 +------------+-----------------------------------------------------------------+
 | 5.3        | :envvar:`MODULES_IGNORE_CACHE`,                                 |
 |            | :envvar:`MODULES_CACHE_BUFFER_BYTES`,                           |
+|            | :envvar:`MODULES_CACHE_EXPIRY_SECS`                             |
 +------------+-----------------------------------------------------------------+
 
 Modules Specific Tcl Commands
@@ -1029,4 +1030,5 @@ The following Modules configuration option has been introduced on Modules 5.
 |            | :mconfig:`reset_target_state`                                   |
 +------------+-----------------------------------------------------------------+
 | 5.3        | :mconfig:`ignore_cache`, :mconfig:`cache_buffer_bytes`,         |
+|            | :mconfig:`cache_expiry_secs`                                    |
 +------------+-----------------------------------------------------------------+

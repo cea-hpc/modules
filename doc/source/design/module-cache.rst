@@ -173,6 +173,14 @@ Cache files are ignored if :mconfig:`ignore_cache` configuration option is
 enabled. This option can also be enabled just for one execution with the
 :option:`--ignore-cache` command line option.
 
+Cache files are ignored if cache expiry mechanism is enabled through the
+:mconfig:`cache_expiry_secs` configuration option. When this option is set to
+0, it means a cache file never expires. This is the default behavior. If set
+to something else, cache file is expired if its last modification time is
+older than the number of seconds defined in ``cache_expiry_secs``. Option
+value is an integer between 1 and 31536000, which is the number of seconds
+during 1 year.
+
 Is there an impact at evaluating the full cache file rather making a directory
 walk-through to find a module? Cache file is fully read, but not all the files
 described in it are evaluated. Just those corresponding to the search, like it
