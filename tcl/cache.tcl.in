@@ -255,12 +255,25 @@ proc findModulesInCacheFile {modpath mod depthlvl fetch_mtime} {
       return [list 0 {}]
    }
 
-   # check if a cache file is available
+   # check if a cache file is available (exist, readable and not expired)
    if {![info exists ::g_cachefilesAvail($cachefile)]} {
-      if {[set ::g_cachefilesAvail($cachefile) [file readable $cachefile]]} {
+      if {[file readable $cachefile]} {
          reportDebug "cache file '$cachefile' exists and is readable"
+         # check expiry if enabled
+         if {[set expiry_secs [getConf cache_expiry_secs]] != 0} {
+            set cachemtime [getFileMtime $cachefile]
+            # cache is also considered expired if its mtime cannot be fetched
+            set ::g_cachefilesAvail($cachefile) [expr {$cachemtime ne {} &&\
+               $expiry_secs > ([getState clock_seconds] - $cachemtime)}]
+            if {!$::g_cachefilesAvail($cachefile)} {
+               reportDebug "cache file '$cachefile' has expired"
+            }
+         } else {
+            set ::g_cachefilesAvail($cachefile) 1
+         }
       } else {
          reportDebug "cache file '$cachefile' cannot be found or read"
+         set ::g_cachefilesAvail($cachefile) 0
       }
    }
 
