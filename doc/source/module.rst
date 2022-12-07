@@ -793,6 +793,19 @@ Module Sub-Commands
 
      .. versionadded:: 5.3
 
+ .. mconfig:: cache_expiry_secs
+
+  Number of seconds a cache file is considered valid after being generated.
+
+  Default value is ``0``. Values between 0 and 31536000 are accepted.
+  The :envvar:`MODULES_CACHE_EXPIRY_SECS` environment variable is defined by
+  :subcmd:`config` sub-command when changing this configuration option from
+  its default value.
+
+  .. only:: html
+
+     .. versionadded:: 5.3
+
  .. mconfig:: collection_pin_version
 
   Register exact modulefile version in collection.
@@ -3570,6 +3583,20 @@ ENVIRONMENT
 
  Size of the buffer used when reading or writing cache files. Accepted values
  are integers comprised between 4096 and 1000000.
+
+ .. only:: html
+
+    .. versionadded:: 5.3
+
+.. envvar:: MODULES_CACHE_EXPIRY_SECS
+
+ Number of seconds a cache file is considered valid after being generated. For
+ example, if set to ``3600`` it means a cache file expires one hour after
+ being generated and is then ignored.
+
+ When set to ``0`` cache file never expires. Accepted values are integers
+ comprised between 0 (cache files never expire) and 31536000 (equivalent to
+ one year duration).
 
  .. only:: html
 
