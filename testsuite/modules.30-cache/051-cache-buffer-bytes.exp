@@ -1,0 +1,96 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.30-cache/%M%
+#   Revision:		%I%
+#   First Edition:	2022/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		avail, whatis, load
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test cache_buffer_bytes configuration option
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# generate content in modulepaths
+lassign [create_simple_module_setup $mp1] dir_list file_list
+array set file_arr $file_list
+
+setenv_var MODULEPATH $mp1
+
+# create cache file
+set tserr [msg_create $mp1cache]
+testouterr_cmd sh cachebuild OK $tserr
+
+set tserr_avail "$mp1:
+bar/1.0
+bar/2.0
+foo/1.0"
+set ans_load [list]
+lappend ans_load [list set _LMFILES_ $mp1/bar/1.0]
+lappend ans_load [list set LOADEDMODULES bar/1.0]
+set tserr_load_debug1 ".*
+DEBUG \\\[cache:[escre $mp1cache]\\\] setConf: cache_buffer_bytes set to '1000000'
+.*"
+set tserr_load_debug2 ".*
+DEBUG \\\[cache:[escre $mp1cache]\\\] setConf: cache_buffer_bytes set to '32768'
+.*"
+
+
+# test small buffer size
+setenv_var MODULES_CACHE_BUFFER_BYTES 4096
+testouterr_cmd sh {avail -t} OK $tserr_avail
+testouterr_cmd sh {load bar/1.0} $ans_load {}
+setenv_var MODULES_CACHE_BUFFER_BYTES 8192
+testouterr_cmd sh {avail -t} OK $tserr_avail
+testouterr_cmd sh {load bar/1.0} $ans_load {}
+
+# test large buffer size
+setenv_var MODULES_CACHE_BUFFER_BYTES 262144
+testouterr_cmd sh {avail -t} OK $tserr_avail
+testouterr_cmd sh {load bar/1.0} $ans_load {}
+setenv_var MODULES_CACHE_BUFFER_BYTES 1000000
+testouterr_cmd sh {avail -t} OK $tserr_avail
+testouterr_cmd_re sh {load -D bar/1.0} $ans_load $tserr_load_debug1
+
+# test erroneous buffer size
+setenv_var MODULES_CACHE_BUFFER_BYTES -1000
+testouterr_cmd sh {avail -t} OK $tserr_avail
+testouterr_cmd_re sh {load -D bar/1.0} $ans_load $tserr_load_debug2
+setenv_var MODULES_CACHE_BUFFER_BYTES 1024
+testouterr_cmd sh {avail -t} OK $tserr_avail
+testouterr_cmd_re sh {load -D bar/1.0} $ans_load $tserr_load_debug2
+setenv_var MODULES_CACHE_BUFFER_BYTES 10000000
+testouterr_cmd sh {avail -t} OK $tserr_avail
+testouterr_cmd_re sh {load -D bar/1.0} $ans_load $tserr_load_debug2
+setenv_var MODULES_CACHE_BUFFER_BYTES foo
+testouterr_cmd sh {avail -t} OK $tserr_avail
+testouterr_cmd_re sh {load -D bar/1.0} $ans_load $tserr_load_debug2
+setenv_var MODULES_CACHE_BUFFER_BYTES {}
+testouterr_cmd sh {avail -t} OK $tserr_avail
+testouterr_cmd_re sh {load -D bar/1.0} $ans_load $tserr_load_debug2
+
+
+#
+#  Cleanup
+#
+
+file delete $mp1cache
+
+# delete created files and dirs
+delete_module_setup $mp1 [array names file_arr] $dir_list
+
+reset_test_env
