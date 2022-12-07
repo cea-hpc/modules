@@ -1,0 +1,189 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.30-cache/%M%
+#   Revision:		%I%
+#   First Edition:	2022/12/07
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		avail, whatis, load
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test cache_expiry_secs configuration option
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# generate content in modulepaths
+lassign [create_simple_module_setup $mp1] dir_list file_list
+array set file_arr $file_list
+
+setenv_var MODULEPATH $mp1
+
+# create empty cache file
+create_dummy_cachefile $mp1
+
+set tserr_avail_cache {}
+set tserr_avail_nocache "$mp1:
+bar/1.0
+bar/2.0
+foo/1.0"
+set ans_load_cache ERR
+set tserr_load_cache $err_path'bar/1.0'
+set ans_load_nocache [list]
+lappend ans_load_nocache [list set _LMFILES_ $mp1/bar/1.0]
+lappend ans_load_nocache [list set LOADEDMODULES bar/1.0]
+
+set now_secs [clock seconds]
+set more_than_one_hour_ago [expr {$now_secs - 3600 - 1}]
+set more_than_one_month_ago [expr {$now_secs - (3600*24*30) - 1}]
+set more_than_one_year_ago [expr {$now_secs - (3600*24*365) - 1}]
+
+# expiration disabled
+testouterr_cmd sh {avail -t} OK $tserr_avail_cache
+testouterr_cmd sh {load bar/1.0} $ans_load_cache $tserr_load_cache
+file mtime $mp1cache $more_than_one_year_ago
+testouterr_cmd sh {avail -t} OK $tserr_avail_cache
+testouterr_cmd sh {load bar/1.0} $ans_load_cache $tserr_load_cache
+
+setenv_var MODULES_CACHE_EXPIRY_SECS 0
+file mtime $mp1cache $now_secs
+testouterr_cmd sh {avail -t} OK $tserr_avail_cache
+testouterr_cmd sh {load bar/1.0} $ans_load_cache $tserr_load_cache
+file mtime $mp1cache $more_than_one_month_ago
+testouterr_cmd sh {avail -t} OK $tserr_avail_cache
+testouterr_cmd sh {load bar/1.0} $ans_load_cache $tserr_load_cache
+
+# expiration after 1 hour
+setenv_var MODULES_CACHE_EXPIRY_SECS 3600
+file mtime $mp1cache $now_secs
+testouterr_cmd sh {avail -t} OK $tserr_avail_cache
+testouterr_cmd sh {load bar/1.0} $ans_load_cache $tserr_load_cache
+file mtime $mp1cache $more_than_one_hour_ago
+testouterr_cmd sh {avail -t} OK $tserr_avail_nocache
+testouterr_cmd sh {load bar/1.0} $ans_load_nocache {}
+file mtime $mp1cache $more_than_one_month_ago
+testouterr_cmd sh {avail -t} OK $tserr_avail_nocache
+testouterr_cmd sh {load bar/1.0} $ans_load_nocache {}
+file mtime $mp1cache $more_than_one_year_ago
+testouterr_cmd sh {avail -t} OK $tserr_avail_nocache
+testouterr_cmd sh {load bar/1.0} $ans_load_nocache {}
+
+# expiration after 1 month
+setenv_var MODULES_CACHE_EXPIRY_SECS [expr {3600*24*30}]
+file mtime $mp1cache $now_secs
+testouterr_cmd sh {avail -t} OK $tserr_avail_cache
+testouterr_cmd sh {load bar/1.0} $ans_load_cache $tserr_load_cache
+file mtime $mp1cache $more_than_one_hour_ago
+testouterr_cmd sh {avail -t} OK $tserr_avail_cache
+testouterr_cmd sh {load bar/1.0} $ans_load_cache $tserr_load_cache
+file mtime $mp1cache $more_than_one_month_ago
+testouterr_cmd sh {avail -t} OK $tserr_avail_nocache
+testouterr_cmd sh {load bar/1.0} $ans_load_nocache {}
+file mtime $mp1cache $more_than_one_year_ago
+testouterr_cmd sh {avail -t} OK $tserr_avail_nocache
+testouterr_cmd sh {load bar/1.0} $ans_load_nocache {}
+
+# expiration after 1 year
+setenv_var MODULES_CACHE_EXPIRY_SECS [expr {3600*24*365}]
+file mtime $mp1cache $now_secs
+testouterr_cmd sh {avail -t} OK $tserr_avail_cache
+testouterr_cmd sh {load bar/1.0} $ans_load_cache $tserr_load_cache
+file mtime $mp1cache $more_than_one_hour_ago
+testouterr_cmd sh {avail -t} OK $tserr_avail_cache
+testouterr_cmd sh {load bar/1.0} $ans_load_cache $tserr_load_cache
+file mtime $mp1cache $more_than_one_month_ago
+testouterr_cmd sh {avail -t} OK $tserr_avail_cache
+testouterr_cmd sh {load bar/1.0} $ans_load_cache $tserr_load_cache
+file mtime $mp1cache $more_than_one_year_ago
+testouterr_cmd sh {avail -t} OK $tserr_avail_nocache
+testouterr_cmd sh {load bar/1.0} $ans_load_nocache {}
+
+# erroneous expiration delay
+setenv_var MODULES_CACHE_EXPIRY_SECS -1000
+file mtime $mp1cache $now_secs
+testouterr_cmd sh {avail -t} OK $tserr_avail_cache
+testouterr_cmd sh {load bar/1.0} $ans_load_cache $tserr_load_cache
+file mtime $mp1cache $more_than_one_hour_ago
+testouterr_cmd sh {avail -t} OK $tserr_avail_cache
+testouterr_cmd sh {load bar/1.0} $ans_load_cache $tserr_load_cache
+file mtime $mp1cache $more_than_one_month_ago
+testouterr_cmd sh {avail -t} OK $tserr_avail_cache
+testouterr_cmd sh {load bar/1.0} $ans_load_cache $tserr_load_cache
+file mtime $mp1cache $more_than_one_year_ago
+testouterr_cmd sh {avail -t} OK $tserr_avail_cache
+testouterr_cmd sh {load bar/1.0} $ans_load_cache $tserr_load_cache
+
+setenv_var MODULES_CACHE_EXPIRY_SECS foo
+file mtime $mp1cache $now_secs
+testouterr_cmd sh {avail -t} OK $tserr_avail_cache
+testouterr_cmd sh {load bar/1.0} $ans_load_cache $tserr_load_cache
+file mtime $mp1cache $more_than_one_hour_ago
+testouterr_cmd sh {avail -t} OK $tserr_avail_cache
+testouterr_cmd sh {load bar/1.0} $ans_load_cache $tserr_load_cache
+file mtime $mp1cache $more_than_one_month_ago
+testouterr_cmd sh {avail -t} OK $tserr_avail_cache
+testouterr_cmd sh {load bar/1.0} $ans_load_cache $tserr_load_cache
+file mtime $mp1cache $more_than_one_year_ago
+testouterr_cmd sh {avail -t} OK $tserr_avail_cache
+testouterr_cmd sh {load bar/1.0} $ans_load_cache $tserr_load_cache
+
+
+# cannot test access if cannot change file permission
+if {!$is_file_perms_editable} {
+    send_user "\tskipping access tests as file permissions cannot be changed\n"
+# cannot test access if superuser privileges are in use
+} elseif {$tcl_platform(user) eq "root"} {
+    send_user "\tskipping access tests as tests are run by superuser\n"
+# cannot test access if restricted file permissions have no effect
+} elseif {$is_locked_dir_file_readable && $is_locked_file_readable} {
+    send_user "\tskipping access tests as locked files or directories are still readable\n"
+} else {
+
+# check expected siteconfig file is installed
+set is_stderr_tty [siteconfig_isStderrTty]
+if {$is_stderr_tty} {
+    # test a cache read failure by faking cache file is readable
+    setenv_var TESTSUITE_ENABLE_SITECONFIG_CACHE_READ 1
+
+    set tserr [err_permdenied $mp1cache]\n$err_path'bar/1.0'
+
+    setenv_var MODULES_CACHE_EXPIRY_SECS 3600
+    file mtime $mp1cache $now_secs
+    change_file_perms $mp1 ugo-rx
+    testouterr_cmd sh {avail -t} OK {}
+    testouterr_cmd sh {load bar/1.0} ERR $tserr
+    restore_file_perms $mp1
+
+    file mtime $mp1cache $more_than_one_hour_ago
+    change_file_perms $mp1 ugo-rx
+    testouterr_cmd sh {avail -t} OK {}
+    testouterr_cmd sh {load bar/1.0} ERR $tserr
+    restore_file_perms $mp1
+    unsetenv_var TESTSUITE_ENABLE_SITECONFIG_CACHE_READ
+}
+
+}
+
+
+#
+#  Cleanup
+#
+
+file delete $mp1cache
+
+# delete created files and dirs
+delete_module_setup $mp1 [array names file_arr] $dir_list
+
+reset_test_env
