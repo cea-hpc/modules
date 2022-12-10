@@ -23,32 +23,147 @@ proc getModuleCacheFilename {modpath} {
    return $modpath/.modulecache
 }
 
+# test if a given file path has a limited access by check permission mode set
+# for others
+proc isFileAccessLimited {fpath isdir} {
+   # check if file stat info can be fetched
+   if {[file readable $fpath]} {
+      # extract permissions for "other"
+      set other_perms [string index [file attributes $fpath -permissions] end]
+      # test file can be read by other: o+r right, which means file should at
+      # least have 0b100 mode, which can be binary-compared against 0b011 (3)
+      # if file is a directory, test it can also be searched: o+x right, which
+      # means dir should at least have 0b101 mode, which can be compared
+      # against 0b010 (2)
+      set perms_mask [expr {$isdir ? {2} : {3}}]
+      set ret [expr {($other_perms | $perms_mask) != 7}]
+   } else {
+      set ret 1
+   }
+   return $ret
+}
+
+# walk through directory content and return every files and dirs with limited
+# access rights
+proc getLimitedAccessesInDirectory {modpath} {
+   # cannot test limited accesses on Windows platform
+   if {[getState is_win]} {
+      return {}
+   }
+
+   foreach igndir [getConf ignored_dirs] {
+      set ignored_dirs($igndir) 1
+   }
+   # walk through directory to find elements with limited access
+   array set limited_arr {}
+   lappend full_list $modpath
+   for {set i 0} {$i < [llength $full_list]} {incr i 1} {
+      set elt [lindex $full_list $i]
+      set elttail [file tail $elt]
+      set eltname [getModuleNameFromModulepath $elt $modpath]
+      if {[file isdirectory $elt]} {
+         # skip ignored dirs
+         if {![info exists ignored_dirs($elttail)]} {
+            if {[isFileAccessLimited $elt 1]} {
+               set limited_arr($eltname) d
+            # only walk through directory content if its access is not limited
+            } else {
+               # get all elements found in directory (regular and dot files)
+               set direlt_list [glob -nocomplain $elt/*]
+               foreach eltindir [glob -nocomplain -types hidden -directory\
+                  $elt -tails *] {
+                  if {$eltindir ni {. ..}} {
+                     lappend direlt_list $elt/$eltindir
+                  }
+               }
+               if {[llength $direlt_list] > 0} {
+                  lappend full_list {*}$direlt_list
+               }
+            }
+         }
+      } else {
+         # skip ignored files
+         switch -glob -- $elttail {
+            *~ - *,v - \#*\# {}
+            default {
+               if {[isFileAccessLimited $elt 0]} {
+                  set limited_arr($eltname) f
+               }
+            }
+         }
+      }
+   }
+
+   # filter .version/.modulecache files found at the root of modulepath dir
+   foreach elt [list .version .modulecache] {
+      if {[info exists limited_arr($elt)]} {
+         unset limited_arr($elt)
+      }
+   }
+
+   reportDebug "found [array names limited_arr] ([array size limited_arr])\
+      with limited access"
+   return [array get limited_arr]
+}
+
 # Build cache file content for given modulepath
 proc formatModuleCacheContent {modpath} {
    set content {}
    # collect files from modulepath directory
    array set found_list [findModules $modpath * 0 1]
 
+   # collect files and dirs from modulepath directory with limited access
+   array set limited_list [getLimitedAccessesInDirectory $modpath]
+
+   # concatenate element found and those with limited access as the second
+   # kind may not be part of found list
+   set elt_list [lsort -unique [concat [array names found_list] [array names\
+      limited_list]]]
+
    # build cache entry for every file found
-   foreach elt [lsort [array names found_list]] {
+   foreach elt $elt_list {
+      # ignore element if it has been flagged in skip list (one of its parent
+      # directory has limited access) or if modulepath has itself a limited
+      # access
+      if {[info exists skip_list($elt)] || $elt eq {}} {
+         continue
+      }
+
       set entry_list [list]
       set fetch_content 0
-      switch -- [lindex $found_list($elt) 0] {
-         modulerc {
-            lappend entry_list modulerc-content $elt
-            set fetch_content 1
+
+      # mention in cache that file or directory has limited access to test if
+      # they can be accessed by user when cache is evaluated
+      if {[info exists limited_list($elt)]} {
+         if {$limited_list($elt) eq {d}} {
+            # mark all elements contained in dir to skip them as their parent
+            # directory has limited access (due to lsort on foreach loop we
+            # are assured to treat parent dir before the entries it contains)
+            foreach elttoskip [array names found_list -glob $elt/*] {
+               set skip_list($elttoskip) 1
+            }
+            lappend entry_list limited-access-directory $elt
+         } else {
+            lappend entry_list limited-access-file $elt
          }
-         modulefile {
-            lappend entry_list modulefile-content $elt [lindex\
-               $found_list($elt) 1]
-            set fetch_content 1
-         }
-         default {
-            # also record obtained error to get all the information to cover
-            # everything fetched by findModules. only modulefile validity is
-            # checked in findModules
-            lappend entry_list modulefile-invalid $elt {*}[lrange\
-               $found_list($elt) 0 1]
+      } else {
+         switch -- [lindex $found_list($elt) 0] {
+            modulerc {
+               lappend entry_list modulerc-content $elt
+               set fetch_content 1
+            }
+            modulefile {
+               lappend entry_list modulefile-content $elt [lindex\
+                  $found_list($elt) 1]
+               set fetch_content 1
+            }
+            default {
+               # also record obtained error to get all the information to
+               # cover everything fetched by findModules. only modulefile
+               # validity is checked in findModules
+               lappend entry_list modulefile-invalid $elt {*}[lrange\
+                  $found_list($elt) 0 1]
+            }
          }
       }
       # fetch file content
