@@ -136,7 +136,7 @@ set tscache "#%Module$major_minor_rel"
 foreach f [lsort [array names other_file_arr]] {
     switch -- $f {
         bar/1.0 {
-            set entry [list modulefile-invalid $f accesserr "Permission denied on '$mp2/bar/1.0'"]
+            set entry [list limited-access-file $f]
         }
         default {
             if {[file tail $f] in {.modulerc .version}} {
@@ -159,7 +159,9 @@ set tscache "#%Module$major_minor_rel"
 foreach f [lsort [array names other_file_arr]] {
     set entry {}
     switch -- $f {
-        foo/.modulerc {}
+        foo/.modulerc {
+            set entry [list limited-access-file $f]
+        }
         default {
             if {[file tail $f] in {.modulerc .version}} {
                 set entry [list modulerc-content $f {#%Module} $other_file_arr($f)]
@@ -173,7 +175,6 @@ foreach f [lsort [array names other_file_arr]] {
         append tscache "\n$entry"
     }
 }
-#FIXME: should track that foo/.modulerc exists and has limited access
 testouterrfile_cmd sh cachebuild OK $tserr $mp2cache $tscache
 restore_file_perms $mp2/foo/.modulerc
 
@@ -198,9 +199,8 @@ foreach f [lsort [array names other_file_arr]] {
         append tscache "\n$entry"
     }
 }
-set entry [list modulefile-invalid foo accesserr "Permission denied on '$mp2/foo'"]
+set entry [list limited-access-directory foo]
 append tscache "\n$entry"
-#FIXME: should track foo as a directory with limited access rather than an invalid modulefile
 testouterrfile_cmd sh cachebuild OK $tserr $mp2cache $tscache
 restore_file_perms $mp2/foo
 
