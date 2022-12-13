@@ -1,0 +1,395 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.30-cache/%M%
+#   Revision:		%I%
+#   First Edition:	2022/12/11
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		cachebuild
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test cachebuild sub-command with limited-access content
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+setenv_path_var MODULEPATH $mp1
+
+# create modulefile/modulerc complex setup
+lassign [create_diverse_module_setup $mp1] dir_list file_list
+lassign [extend_diverse_module_setup $mp1] other_dir_list other_file_list
+lappend dir_list {*}$other_dir_list
+array set file_arr [concat $file_list $other_file_list]
+
+
+# expected cache file when no limited access
+set tscache "#%Module$major_minor_rel"
+foreach f [lsort [array names file_arr]] {
+    set entry {}
+    switch -- $f {
+        .version {}
+        foo/1.0 - empty/notamodule - empty/deep/notadeepmodule {
+            set entry [list modulefile-invalid $f invalid {Magic cookie '#%Module' missing}]
+        }
+        foo/3.0 - quux/nok/5.0 {
+            set entry [list modulefile-invalid $f invalid {Modulefile requires at least Modules version 99}]
+        }
+        default {
+            switch -- $f {
+                foo/.modulerc {set header {}}
+                foo/4.0 - quxc/.modulerc {set header {#%Module5.2}}
+                quxb/.modulerc {set header {#%Module99}}
+                default {set header {#%Module}}
+            }
+
+            if {[file tail $f] in {.modulerc .version}} {
+                set entry [list modulerc-content $f $header $file_arr($f)]
+            } else {
+                set mtime [file mtime $mp1/$f]
+                set entry [list modulefile-content $f $mtime $header $file_arr($f)]
+            }
+        }
+    }
+    if {[string length $entry] > 0} {
+        append tscache "\n$entry"
+    }
+}
+
+# make cache without any limited access
+set tserr [msg_create $mp1cache]
+testouterrfile_cmd sh "cachebuild $mp1" OK $tserr $mp1cache $tscache
+
+# cannot test access if cannot change file permission
+if {!$is_file_perms_editable} {
+    send_user "\tskipping access tests as file permissions cannot be changed\n"
+# cannot test access if superuser privileges are in use
+} elseif {$tcl_platform(user) eq "root"} {
+    send_user "\tskipping access tests as tests are run by superuser\n"
+# cannot test access if restricted file permissions have no effect
+} elseif {$is_locked_dir_file_readable && $is_locked_file_readable} {
+    send_user "\tskipping access tests as locked files or directories are still readable\n"
+} else {
+
+set no_ar_perms ugo-r
+set no_ax_perms ugo-x
+set no_arx_perms ugo-rx
+set no_or_perms o-r
+set no_ox_perms o-x
+set no_orx_perms o-rx
+
+
+change_file_perms $mp1/foo $no_ar_perms
+change_file_perms $mp1/quux/oth $no_ax_perms
+change_file_perms $mp1/.modulerc $no_arx_perms
+change_file_perms $mp1/empty $no_arx_perms
+change_file_perms $mp1/anotherempty $no_ar_perms
+change_file_perms $mp1/bar/.version $no_ar_perms
+change_file_perms $mp1/quxa/.modulerc $no_arx_perms
+change_file_perms $mp1/baz/.1.10 $no_arx_perms
+change_file_perms $mp1/quxc/1.0 $no_arx_perms
+
+set tscache1 "#%Module$major_minor_rel"
+foreach f [lsort [concat [array names file_arr] [list foo quux/oth empty anotherempty]]] {
+    set entry {}
+    switch -glob -- $f {
+        .version {}
+        foo/* - quux/oth/* - empty/* {}
+        foo - quux/oth - empty - anotherempty {
+            set entry [list limited-access-directory $f]
+        }
+        .modulerc - bar/.version - quxa/.modulerc - baz/.1.10 - quxc/1.0 {
+            set entry [list limited-access-file $f]
+        }
+        foo/1.0 - empty/notamodule - empty/deep/notadeepmodule {
+            set entry [list modulefile-invalid $f invalid {Magic cookie '#%Module' missing}]
+        }
+        foo/3.0 - quux/nok/5.0 {
+            set entry [list modulefile-invalid $f invalid {Modulefile requires at least Modules version 99}]
+        }
+        default {
+            switch -- $f {
+                foo/.modulerc {set header {}}
+                foo/4.0 - quxc/.modulerc {set header {#%Module5.2}}
+                quxb/.modulerc {set header {#%Module99}}
+                default {set header {#%Module}}
+            }
+
+            if {[file tail $f] in {.modulerc .version}} {
+                set entry [list modulerc-content $f $header $file_arr($f)]
+            } else {
+                set mtime [file mtime $mp1/$f]
+                set entry [list modulefile-content $f $mtime $header $file_arr($f)]
+            }
+        }
+    }
+    if {[string length $entry] > 0} {
+        append tscache1 "\n$entry"
+    }
+}
+
+testouterrfile_cmd sh "cachebuild $mp1" OK $tserr $mp1cache $tscache1
+
+
+# second limited set
+change_file_perms $mp1/quux $no_ar_perms
+restore_file_perms $mp1/foo
+restore_file_perms $mp1/.modulerc
+restore_file_perms $mp1/bar/.version
+change_file_perms $mp1/.version $no_ar_perms
+change_file_perms $mp1/foo/1.0 $no_ar_perms
+change_file_perms $mp1/foo/.modulerc $no_arx_perms
+
+set tscache2 "#%Module$major_minor_rel"
+foreach f [lsort [concat [array names file_arr] [list quux empty anotherempty]]] {
+    set entry {}
+    switch -glob -- $f {
+        .version {}
+        quux/* - empty/* {}
+        quux - empty - anotherempty {
+            set entry [list limited-access-directory $f]
+        }
+        quxa/.modulerc - baz/.1.10 - quxc/1.0 - foo/1.0 - foo/.modulerc {
+            set entry [list limited-access-file $f]
+        }
+        empty/notamodule - empty/deep/notadeepmodule {
+            set entry [list modulefile-invalid $f invalid {Magic cookie '#%Module' missing}]
+        }
+        foo/3.0 {
+            set entry [list modulefile-invalid $f invalid {Modulefile requires at least Modules version 99}]
+        }
+        default {
+            switch -- $f {
+                foo/4.0 - quxc/.modulerc {set header {#%Module5.2}}
+                quxb/.modulerc {set header {#%Module99}}
+                default {set header {#%Module}}
+            }
+
+            if {[file tail $f] in {.modulerc .version}} {
+                set entry [list modulerc-content $f $header $file_arr($f)]
+            } else {
+                set mtime [file mtime $mp1/$f]
+                set entry [list modulefile-content $f $mtime $header $file_arr($f)]
+            }
+        }
+    }
+    if {[string length $entry] > 0} {
+        append tscache2 "\n$entry"
+    }
+}
+
+testouterrfile_cmd sh "cachebuild $mp1" OK $tserr $mp1cache $tscache2
+
+restore_file_perms $mp1/quux
+restore_file_perms $mp1/quux/oth
+restore_file_perms $mp1/empty
+restore_file_perms $mp1/anotherempty
+restore_file_perms $mp1/quxa/.modulerc
+restore_file_perms $mp1/baz/.1.10
+restore_file_perms $mp1/quxc/1.0
+restore_file_perms $mp1/.version
+restore_file_perms $mp1/foo/1.0
+restore_file_perms $mp1/foo/.modulerc
+
+
+# third limited set: restrictions only applies for other (based on first set)
+change_file_perms $mp1/foo $no_or_perms
+change_file_perms $mp1/quux/oth $no_ox_perms
+change_file_perms $mp1/.modulerc $no_orx_perms
+change_file_perms $mp1/empty $no_orx_perms
+change_file_perms $mp1/anotherempty $no_or_perms
+change_file_perms $mp1/bar/.version $no_or_perms
+change_file_perms $mp1/quxa/.modulerc $no_orx_perms
+change_file_perms $mp1/baz/.1.10 $no_orx_perms
+change_file_perms $mp1/quxc/1.0 $no_orx_perms
+
+testouterrfile_cmd sh "cachebuild $mp1" OK $tserr $mp1cache $tscache1
+
+
+# fourth limited set: restrictions only applies for other (based on second set)
+change_file_perms $mp1/quux $no_or_perms
+restore_file_perms $mp1/foo
+restore_file_perms $mp1/.modulerc
+restore_file_perms $mp1/bar/.version
+change_file_perms $mp1/.version $no_or_perms
+change_file_perms $mp1/foo/1.0 $no_or_perms
+change_file_perms $mp1/foo/.modulerc $no_orx_perms
+
+testouterrfile_cmd sh "cachebuild $mp1" OK $tserr $mp1cache $tscache2
+
+# cachefile exists and has limited access for others
+change_file_perms $mp1cache $no_or_perms
+testouterrfile_cmd sh "cachebuild $mp1" OK $tserr $mp1cache $tscache2
+restore_file_perms $mp1cache
+
+restore_file_perms $mp1/quux
+restore_file_perms $mp1/quux/oth
+restore_file_perms $mp1/empty
+restore_file_perms $mp1/anotherempty
+restore_file_perms $mp1/quxa/.modulerc
+restore_file_perms $mp1/baz/.1.10
+restore_file_perms $mp1/quxc/1.0
+restore_file_perms $mp1/.version
+restore_file_perms $mp1/foo/1.0
+restore_file_perms $mp1/foo/.modulerc
+
+file delete $mp1cache
+
+
+# whole modulepath has limited access
+change_file_perms $mp1 $no_arx_perms
+set tserr [msg_create $mp1cache $warn_cache_nothingtorec]
+set tscacheerr "couldn't open \"$mp1cache\": permission denied"
+testouterrfile_cmd sh "cachebuild $mp1" OK $tserr $mp1cache $tscacheerr
+restore_file_perms $mp1
+
+# whole modulepath has limited access (restriction for others only)
+# cache file is generated: others will not access this modulepath so the
+# cache will be consistent for people able to reaching path
+change_file_perms $mp1 $no_orx_perms
+set tserr [msg_create $mp1cache]
+testouterrfile_cmd sh "cachebuild $mp1" OK $tserr $mp1cache $tscache
+restore_file_perms $mp1
+
+# check expected siteconfig file is installed
+set is_stderr_tty [siteconfig_isStderrTty]
+if {$is_stderr_tty} {
+    # fake we are on Windows platform
+    setenv_var TESTSUITE_ENABLE_SITECONFIG_WINDOWS_PLATFORM 1
+
+change_file_perms $mp1/foo $no_ar_perms
+change_file_perms $mp1/quux/oth $no_ax_perms
+change_file_perms $mp1/.modulerc $no_arx_perms
+change_file_perms $mp1/empty $no_arx_perms
+change_file_perms $mp1/anotherempty $no_ar_perms
+change_file_perms $mp1/bar/.version $no_ar_perms
+change_file_perms $mp1/quxa/.modulerc $no_arx_perms
+change_file_perms $mp1/baz/.1.10 $no_arx_perms
+change_file_perms $mp1/quxc/1.0 $no_arx_perms
+
+set tscachewin1 "#%Module$major_minor_rel"
+foreach f [lsort [concat [array names file_arr] [list foo empty anotherempty]]] {
+    set entry {}
+    switch -glob -- $f {
+        .version - quxa/.modulerc - .modulerc - bar/.version {}
+        foo/* - empty/* {}
+        foo - empty - anotherempty - baz/.1.10 - quxc/1.0 - quux/oth/3.0 - quux/oth/4.0 {
+            set entry [list modulefile-invalid $f accesserr "Permission denied on '$mp1/$f'"]
+        }
+        foo/1.0 - empty/notamodule - empty/deep/notadeepmodule {
+            set entry [list modulefile-invalid $f invalid {Magic cookie '#%Module' missing}]
+        }
+        foo/3.0 - quux/nok/5.0 {
+            set entry [list modulefile-invalid $f invalid {Modulefile requires at least Modules version 99}]
+        }
+        default {
+            switch -- $f {
+                foo/.modulerc {set header {}}
+                foo/4.0 - quxc/.modulerc {set header {#%Module5.2}}
+                quxb/.modulerc {set header {#%Module99}}
+                default {set header {#%Module}}
+            }
+
+            if {[file tail $f] in {.modulerc .version}} {
+                set entry [list modulerc-content $f $header $file_arr($f)]
+            } else {
+                set mtime [file mtime $mp1/$f]
+                set entry [list modulefile-content $f $mtime $header $file_arr($f)]
+            }
+        }
+    }
+    if {[string length $entry] > 0} {
+        append tscachewin1 "\n$entry"
+    }
+}
+
+testouterrfile_cmd sh "cachebuild $mp1" OK $tserr $mp1cache $tscachewin1
+
+restore_file_perms $mp1/foo
+restore_file_perms $mp1/.modulerc
+restore_file_perms $mp1/bar/.version
+restore_file_perms $mp1/quux/oth
+restore_file_perms $mp1/empty
+restore_file_perms $mp1/anotherempty
+restore_file_perms $mp1/quxa/.modulerc
+restore_file_perms $mp1/baz/.1.10
+restore_file_perms $mp1/quxc/1.0
+
+change_file_perms $mp1/foo $no_or_perms
+change_file_perms $mp1/quux/oth $no_ox_perms
+change_file_perms $mp1/.modulerc $no_orx_perms
+change_file_perms $mp1/empty $no_orx_perms
+change_file_perms $mp1/anotherempty $no_or_perms
+change_file_perms $mp1/bar/.version $no_or_perms
+change_file_perms $mp1/quxa/.modulerc $no_orx_perms
+change_file_perms $mp1/baz/.1.10 $no_orx_perms
+change_file_perms $mp1/quxc/1.0 $no_orx_perms
+
+set tscachewin2 "#%Module$major_minor_rel"
+foreach f [lsort [array names file_arr]] {
+    set entry {}
+    switch -- $f {
+        .version {}
+        foo/1.0 - empty/deep/notadeepmodule - empty/notamodule {
+            set entry [list modulefile-invalid $f invalid {Magic cookie '#%Module' missing}]
+        }
+        foo/3.0 - quux/nok/5.0 {
+            set entry [list modulefile-invalid $f invalid {Modulefile requires at least Modules version 99}]
+        }
+        default {
+            switch -- $f {
+                foo/.modulerc {set header {}}
+                foo/4.0 - quxc/.modulerc {set header {#%Module5.2}}
+                quxb/.modulerc {set header {#%Module99}}
+                default {set header {#%Module}}
+            }
+
+            if {[file tail $f] in {.modulerc .version}} {
+                set entry [list modulerc-content $f $header $file_arr($f)]
+            } else {
+                set mtime [file mtime $mp1/$f]
+                set entry [list modulefile-content $f $mtime $header $file_arr($f)]
+            }
+        }
+    }
+    if {[string length $entry] > 0} {
+        append tscachewin2 "\n$entry"
+    }
+}
+
+testouterrfile_cmd sh "cachebuild $mp1" OK $tserr $mp1cache $tscachewin2
+
+restore_file_perms $mp1/foo
+restore_file_perms $mp1/.modulerc
+restore_file_perms $mp1/bar/.version
+restore_file_perms $mp1/quux/oth
+restore_file_perms $mp1/empty
+restore_file_perms $mp1/anotherempty
+restore_file_perms $mp1/quxa/.modulerc
+restore_file_perms $mp1/baz/.1.10
+restore_file_perms $mp1/quxc/1.0
+
+    unsetenv_var TESTSUITE_ENABLE_SITECONFIG_WINDOWS_PLATFORM
+}
+
+}
+
+
+#
+#  Cleanup
+#
+
+file delete $mp1cache
+
+# delete created files and dirs
+delete_module_setup $mp1 [array names file_arr] $dir_list
+
+reset_test_env

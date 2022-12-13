@@ -209,6 +209,24 @@ proc create_diverse_module_setup {mp} {
     return [list $dir_list [array get file_arr]]
 }
 
+proc extend_diverse_module_setup {mp} {
+    set dir_list [list empty empty/deep anotherempty]
+    set content "#%Module\nmodule-whatis \[module-info name\]"
+    set notamod {This is not a modulefile}
+    array set file_arr [list foobar $content empty/notamodule $notamod\
+        empty/deep/notadeepmodule $notamod quuxbar $content .version\
+        {#%Module} .modulerc {#%Module}]
+    foreach dir $dir_list {
+        file mkdir $mp/$dir
+    }
+    foreach f [array names file_arr] {
+        set fid [open $mp/$f w]
+        puts -nonewline $fid $file_arr($f)
+        close $fid
+    }
+    return [list $dir_list [array get file_arr]]
+}
+
 # create simpler modulefiles modulercs setup
 proc create_simple_module_setup {mp} {
     file mkdir $mp
