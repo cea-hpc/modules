@@ -240,6 +240,7 @@ proc execute-cachefile {cachefile modpath} {
    # initialize cache gathering structures for modulepath
    set ::g_cacheModpath($modpath) {}
    set ::g_cacheFLimitedModpath($modpath) {}
+   set ::g_cacheDLimitedModpath($modpath) {}
 
    # initialize cache file evaluation interp configuration
    if {![info exists ::g_cachefileUntrackVars]} {
@@ -254,7 +255,8 @@ proc execute-cachefile {cachefile modpath} {
       array set ::g_cachefileAliases [list modulefile-content\
          modulefile-content modulerc-content modulerc-content\
          modulefile-invalid modulefile-invalid limited-access-file\
-         limited-access-file reportInternalBug reportInternalBug\
+         limited-access-file limited-access-directory\
+         limited-access-directory reportInternalBug reportInternalBug\
          readCacheContent readCacheContent formatErrStackTrace\
          formatErrStackTrace]
 
@@ -365,6 +367,11 @@ proc modulefile-invalid {mod type msg} {
 # gather modulepath limited access files in specific structure
 proc limited-access-file {mod} {
    lappend ::g_cacheFLimitedModpath([currentState modulepath]) $mod 1
+}
+
+# gather modulepath limited access files in specific structure
+proc limited-access-directory {dir} {
+   lappend ::g_cacheDLimitedModpath([currentState modulepath]) $dir 1
 }
 
 # finds all module-related files matching mod in the modulepath dir by looking
