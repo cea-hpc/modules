@@ -237,8 +237,9 @@ proc execute-cachefile {cachefile modpath} {
    lappendState modulepath $modpath
    lappendState debug_msg_prefix "\[cache:$cachefile\] "
 
-   # initialize cache gathering structure for modulepath
+   # initialize cache gathering structures for modulepath
    set ::g_cacheModpath($modpath) {}
+   set ::g_cacheFLimitedModpath($modpath) {}
 
    # initialize cache file evaluation interp configuration
    if {![info exists ::g_cachefileUntrackVars]} {
@@ -252,9 +253,10 @@ proc execute-cachefile {cachefile modpath} {
       # list interpreter alias commands to define
       array set ::g_cachefileAliases [list modulefile-content\
          modulefile-content modulerc-content modulerc-content\
-         modulefile-invalid modulefile-invalid reportInternalBug\
-         reportInternalBug readCacheContent readCacheContent\
-         formatErrStackTrace formatErrStackTrace]
+         modulefile-invalid modulefile-invalid limited-access-file\
+         limited-access-file reportInternalBug reportInternalBug\
+         readCacheContent readCacheContent formatErrStackTrace\
+         formatErrStackTrace]
 
       # alias commands where an argument should be passed
       array set ::g_cachefileAliasesPassArg [list]
@@ -358,6 +360,11 @@ proc modulefile-invalid {mod type msg} {
    # with same information structure than findModules result
    lappend ::g_cacheModpath([currentState modulepath]) $mod [list $type $msg\
       $modfile]
+}
+
+# gather modulepath limited access files in specific structure
+proc limited-access-file {mod} {
+   lappend ::g_cacheFLimitedModpath([currentState modulepath]) $mod 1
 }
 
 # finds all module-related files matching mod in the modulepath dir by looking
