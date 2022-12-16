@@ -2303,49 +2303,11 @@ proc findModulesInMemCache {searchid} {
    return [list $match_searchid $mod_list]
 }
 
-# finds all module-related files matching mod in the module path dir
-proc findModules {dir mod depthlvl fetch_mtime} {
-   reportDebug "finding '$mod' in $dir (depthlvl=$depthlvl,\
-      fetch_mtime=$fetch_mtime)"
-
-   # generated search id (for cache search/save) by compacting given args
-   set searchid $dir:$mod:$depthlvl:$fetch_mtime
-
-   # look at memory cache for a compatible result
-   lassign [findModulesInMemCache $searchid] cache_searchid cache_list
-   if {$cache_searchid ne {}} {
-      reportDebug "use cache entry '$cache_searchid'"
-      return $cache_list
-   }
-
-   # look at modulepath cache file
-   lassign [findModulesInCacheFile $dir $mod $depthlvl $fetch_mtime] cache_ok\
-      cache_list
-   if {$cache_ok} {
-      # record cache file findinds in memory cache
-      reportDebug "create cache entry '$searchid'"
-      set ::g_foundModulesMemCache($searchid) $cache_list
-      return $cache_list
-   }
-
-   defineModEqStaticProc [isIcase] [getConf extended_default] $mod
-
-   # every entries are requested
-   set findall [expr {$mod eq {} || $mod eq {*}}]
-
-   # use catch protection to handle non-readable and non-existent dir
-   if {[catch {
-      set full_list {}
-      foreach {fpelt hid} [getFilesInDirectory $dir 0] {
-         set elt [file tail $fpelt]
-         # include any .modulerc file found at the modulepath root
-         if {$elt eq {.modulerc} || $findall || [modEqStatic $elt match]} {
-            lappend full_list $fpelt
-         }
-      }
-   }]} {
-      return {}
-   }
+# Walk through provided list of directories and files to find modules
+proc findModulesFromDirsAndFiles {dir full_list depthlvl fetch_mtime\
+   res_arrname} {
+   # link to variables/arrays from upper context
+   upvar $res_arrname mod_list
 
    foreach igndir [getConf ignored_dirs] {
       set ignored_dirs($igndir) 1
@@ -2421,6 +2383,54 @@ proc findModules {dir mod depthlvl fetch_mtime} {
          }
       }
    }
+}
+
+# finds all module-related files matching mod in the module path dir
+proc findModules {dir mod depthlvl fetch_mtime} {
+   reportDebug "finding '$mod' in $dir (depthlvl=$depthlvl,\
+      fetch_mtime=$fetch_mtime)"
+
+   # generated search id (for cache search/save) by compacting given args
+   set searchid $dir:$mod:$depthlvl:$fetch_mtime
+
+   # look at memory cache for a compatible result
+   lassign [findModulesInMemCache $searchid] cache_searchid cache_list
+   if {$cache_searchid ne {}} {
+      reportDebug "use cache entry '$cache_searchid'"
+      return $cache_list
+   }
+
+   # look at modulepath cache file
+   lassign [findModulesInCacheFile $dir $mod $depthlvl $fetch_mtime] cache_ok\
+      cache_list
+   if {$cache_ok} {
+      # record cache file findinds in memory cache
+      reportDebug "create cache entry '$searchid'"
+      set ::g_foundModulesMemCache($searchid) $cache_list
+      return $cache_list
+   }
+
+   defineModEqStaticProc [isIcase] [getConf extended_default] $mod
+
+   # every entries are requested
+   set findall [expr {$mod eq {} || $mod eq {*}}]
+
+   # use catch protection to handle non-readable and non-existent dir
+   if {[catch {
+      set full_list {}
+      foreach {fpelt hid} [getFilesInDirectory $dir 0] {
+         set elt [file tail $fpelt]
+         # include any .modulerc file found at the modulepath root
+         if {$elt eq {.modulerc} || $findall || [modEqStatic $elt match]} {
+            lappend full_list $fpelt
+         }
+      }
+   }]} {
+      return {}
+   }
+
+   # walk through list of dirs and files to find modules
+   findModulesFromDirsAndFiles $dir $full_list $depthlvl $fetch_mtime mod_list
 
    reportDebug "found [array names mod_list]"
 
