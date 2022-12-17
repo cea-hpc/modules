@@ -2305,9 +2305,22 @@ proc findModulesInMemCache {searchid} {
 
 # Walk through provided list of directories and files to find modules
 proc findModulesFromDirsAndFiles {dir full_list depthlvl fetch_mtime\
-   res_arrname} {
+   res_arrname {indir_arrname {}} {hidden_listname {}} {fknown_arrname {}}\
+   {dknown_arrname {}}} {
    # link to variables/arrays from upper context
    upvar $res_arrname mod_list
+   if {$indir_arrname ne {}} {
+      upvar $indir_arrname modfile_indir
+   }
+   if {$hidden_listname ne {}} {
+      upvar $hidden_listname hidden_list
+   }
+   if {$fknown_arrname ne {}} {
+      upvar $fknown_arrname fknown_arr
+   }
+   if {$dknown_arrname ne {}} {
+      upvar $dknown_arrname dknown_arr
+   }
 
    foreach igndir [getConf ignored_dirs] {
       set ignored_dirs($igndir) 1
@@ -2319,7 +2332,10 @@ proc findModulesFromDirsAndFiles {dir full_list depthlvl fetch_mtime\
       set modulename [getModuleNameFromModulepath $element $dir]
       set parentname [file dirname $modulename]
       set moddepthlvl [llength [file split $modulename]]
-      if {[file isdirectory $element]} {
+      # check if element is a directory if we do not already know if it is a
+      # dir or a file from transmitted structures
+      if {[info exists dknown_arr($modulename)] || (![info exists\
+         fknown_arr($modulename)] && [file isdirectory $element])} {
          if {![info exists ignored_dirs($tail)]} {
             if {[catch {
                set elt_list [getFilesInDirectory $element 1]

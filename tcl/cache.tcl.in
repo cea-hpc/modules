@@ -428,11 +428,15 @@ proc findModulesInCacheFile {modpath mod depthlvl fetch_mtime} {
    # tailor cache file content to what is requested
    array set cache_arr $::g_cacheModpath($modpath)
    reportDebug "[array size cache_arr] elements are cached for '$modpath'"
+   array set flimited_arr $::g_cacheFLimitedModpath($modpath)
+   reportDebug "[array size flimited_arr] limited access files for '$modpath'"
+   array set dlimited_arr $::g_cacheDLimitedModpath($modpath)
+   reportDebug "[array size dlimited_arr] limited access dirs for '$modpath'"
 
    # filter entries unless all are requested
    set findall [expr {$mod in {{} *}}]
+   defineModEqStaticProc [isIcase] [getConf extended_default] $mod
    if {!$findall || $depthlvl > 0} {
-      defineModEqStaticProc [isIcase] [getConf extended_default] $mod
       foreach elt [array names cache_arr] {
          set eltroot [lindex [file split $elt] 0]
          set eltdepthlvl [llength [file split $elt]]
@@ -460,6 +464,31 @@ proc findModulesInCacheFile {modpath mod depthlvl fetch_mtime} {
          }
       }
    }
+
+   array set hidden_list {}
+   set limited_list [list]
+   # add limited access files and directories to result if they match query
+   foreach elt [concat [array names flimited_arr] [array names\
+      dlimited_arr]] {
+      set eltroot [lindex [file split $elt] 0]
+      if {$eltroot eq {.modulerc} || $findall || [modEqStatic $eltroot\
+         match]} {
+         set fpelt [file join $modpath $elt]
+         lappend limited_list $fpelt
+         # indicate file is hidden in structure that will be transmitted to
+         # findModulesFromDirsAndFiles for no-indepth module search
+         if {[string index [file tail $elt] 0] eq {.} && [info exists\
+            flimited_arr($elt)]} {
+            set hidden_list($fpelt) 1
+         }
+      }
+   }
+
+   # walk through list of matching limited access dirs and files to find
+   # modules available to current user (transmit list of known files and dirs
+   # to avoid file stat tests)
+   findModulesFromDirsAndFiles $modpath $limited_list $depthlvl $fetch_mtime\
+      cache_arr modfile_indir hidden_list flimited_arr dlimited_arr
 
    reportDebug "found [array names cache_arr] ([array size cache_arr])"
    set cache_list [array get cache_arr]
