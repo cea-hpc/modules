@@ -32,7 +32,10 @@ array set file_arr $file_list
 # expected cache file
 set tscache "#%Module$major_minor_rel"
 foreach f [lsort [array names file_arr]] {
+    set entry {}
     switch -- $f {
+        .git/ignmod - quux/SCCS/ignmod - {w s/1.0~} -\
+        foo/1.0,v - quxc/1.0~ - .svn/ignmod - .sos/ignmod {}
         foo/1.0 {
             set entry [list modulefile-invalid $f invalid {Magic cookie '#%Module' missing}]
         }
@@ -55,7 +58,9 @@ foreach f [lsort [array names file_arr]] {
             }
         }
     }
-    append tscache "\n$entry"
+    if {[string length $entry] > 0} {
+        append tscache "\n$entry"
+    }
 }
 
 
@@ -78,6 +83,8 @@ testouterrfile_cmd sh cachebuild OK $tserr $mp1cache $tscache
 set tserr {}
 foreach f [lsort [array names file_arr]] {
     switch -glob -- $f {
+        .git/ignmod - quux/SCCS/ignmod - {w s/1.0~} -\
+        foo/1.0,v - quxc/1.0~ - .svn/ignmod - .sos/ignmod {}
         */.modulerc - */.version - foo/1.0 - foo/3.0 - quux/nok/5.0 {}
         {* *}   {lappend tserr '$f'}
         default {lappend tserr $f}

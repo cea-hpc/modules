@@ -73,6 +73,9 @@ change_file_perms $mp1/bar/.version $no_or_perms
 change_file_perms $mp1/quxa/.modulerc $no_orx_perms
 change_file_perms $mp1/baz/.1.10 $no_orx_perms
 change_file_perms $mp1/quxc/1.0 $no_orx_perms
+change_file_perms $mp1/quxc/1.0~ $no_orx_perms
+change_file_perms $mp1/.svn $no_orx_perms
+change_file_perms $mp1/.sos/ignmod $no_orx_perms
 
 # create file cache for test
 set tserr [msg_create $mp1cache]
@@ -84,7 +87,9 @@ set tserr_mcookie {}
 set tserr_mcookie_vers {}
 foreach f [lsort [array names file_arr]] {
     switch -glob -- $f {
-        */.modulerc - */.version - quux/nok/5.0 - .modulerc - .version {}
+        */.modulerc - */.version - quux/nok/5.0 - .modulerc - .version -\
+        .git/ignmod - quux/SCCS/ignmod - {w s/1.0~} - foo/1.0,v - quxc/1.0~ -\
+        .svn/ignmod - .sos/ignmod {}
         foo/1.0 - empty/notamodule - empty/deep/notadeepmodule {
             lappend tserr_mcookie $f
         }
@@ -304,6 +309,9 @@ restore_file_perms $mp1/anotherempty
 restore_file_perms $mp1/quxa/.modulerc
 restore_file_perms $mp1/baz/.1.10
 restore_file_perms $mp1/quxc/1.0
+restore_file_perms $mp1/quxc/1.0~
+restore_file_perms $mp1/.svn
+restore_file_perms $mp1/.sos/ignmod
 restore_file_perms $mp1/.version
 restore_file_perms $mp1/foo/1.0
 restore_file_perms $mp1/foo/.modulerc
@@ -319,6 +327,9 @@ change_file_perms $mp1/bar/.version $no_ar_perms
 change_file_perms $mp1/quxa/.modulerc $no_arx_perms
 change_file_perms $mp1/baz/.1.10 $no_arx_perms
 change_file_perms $mp1/quxc/1.0 $no_arx_perms
+change_file_perms $mp1/quxc/1.0~ $no_arx_perms
+change_file_perms $mp1/.svn $no_arx_perms
+change_file_perms $mp1/.sos/ignmod $no_arx_perms
 
 # create file cache for test
 set tserr [msg_create $mp1cache]
@@ -330,7 +341,8 @@ set tserr_mcookie {}
 foreach f [lsort [array names file_arr]] {
     switch -glob -- $f {
         */.modulerc - */.version - foo/1.0 - foo/3.0 - quux/nok/5.0 -\
-        .modulerc - .version - foo/* {}
+        .modulerc - .version - foo/* - .git/ignmod - quux/SCCS/ignmod -\
+        {w s/1.0~} - foo/1.0,v - quxc/1.0~ - .svn/ignmod - .sos/ignmod {}
         empty/notamodule - empty/deep/notadeepmodule - quux/oth/* -\
         baz/.1.10 - quxc/1.0 {
             lappend tserr_mcookie $f
@@ -474,7 +486,8 @@ foreach f [lsort [array names file_arr]] {
     switch -glob -- $f {
         */.modulerc - */.version - foo/1.0 - foo/3.0 - quux/nok/5.0 -\
         empty/notamodule - empty/deep/notadeepmodule - .modulerc -\
-        .version {}
+        .version - .git/ignmod - quux/SCCS/ignmod - {w s/1.0~} -\
+        foo/1.0,v - quxc/1.0~ - .svn/ignmod - .sos/ignmod {}
         foo/1.0 - quux/* - baz/.1.10 - quxc/1.0 {}
         {* *}   {
             lappend tserr '$f'
@@ -536,6 +549,9 @@ restore_file_perms $mp1/anotherempty
 restore_file_perms $mp1/quxa/.modulerc
 restore_file_perms $mp1/baz/.1.10
 restore_file_perms $mp1/quxc/1.0
+restore_file_perms $mp1/quxc/1.0~
+restore_file_perms $mp1/.svn
+restore_file_perms $mp1/.sos/ignmod
 restore_file_perms $mp1/.version
 restore_file_perms $mp1/foo/1.0
 restore_file_perms $mp1/foo/.modulerc

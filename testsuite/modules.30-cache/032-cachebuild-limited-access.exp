@@ -36,7 +36,8 @@ set tscache "#%Module$major_minor_rel"
 foreach f [lsort [array names file_arr]] {
     set entry {}
     switch -- $f {
-        .version {}
+        .version - .git/ignmod - quux/SCCS/ignmod - {w s/1.0~} -\
+        foo/1.0,v - quxc/1.0~ - .svn/ignmod - .sos/ignmod {}
         foo/1.0 - empty/notamodule - empty/deep/notadeepmodule {
             set entry [list modulefile-invalid $f invalid {Magic cookie '#%Module' missing}]
         }
@@ -96,12 +97,16 @@ change_file_perms $mp1/bar/.version $no_ar_perms
 change_file_perms $mp1/quxa/.modulerc $no_arx_perms
 change_file_perms $mp1/baz/.1.10 $no_arx_perms
 change_file_perms $mp1/quxc/1.0 $no_arx_perms
+change_file_perms $mp1/quxc/1.0~ $no_arx_perms
+change_file_perms $mp1/.svn $no_arx_perms
+change_file_perms $mp1/.sos/ignmod $no_arx_perms
 
 set tscache1 "#%Module$major_minor_rel"
 foreach f [lsort [concat [array names file_arr] [list foo quux/oth empty anotherempty]]] {
     set entry {}
     switch -glob -- $f {
-        .version {}
+        .version - .git/ignmod - quux/SCCS/ignmod - {w s/1.0~} -\
+        foo/1.0,v - quxc/1.0~ - .svn/ignmod - .sos/ignmod {}
         foo/* - quux/oth/* - empty/* {}
         foo - quux/oth - empty - anotherempty {
             set entry [list limited-access-directory $f]
@@ -152,7 +157,8 @@ set tscache2 "#%Module$major_minor_rel"
 foreach f [lsort [concat [array names file_arr] [list quux empty anotherempty]]] {
     set entry {}
     switch -glob -- $f {
-        .version {}
+        .version - .git/ignmod - quux/SCCS/ignmod - {w s/1.0~} -\
+        foo/1.0,v - quxc/1.0~ - .svn/ignmod - .sos/ignmod {}
         quux/* - empty/* {}
         quux - empty - anotherempty {
             set entry [list limited-access-directory $f]
@@ -195,6 +201,9 @@ restore_file_perms $mp1/anotherempty
 restore_file_perms $mp1/quxa/.modulerc
 restore_file_perms $mp1/baz/.1.10
 restore_file_perms $mp1/quxc/1.0
+restore_file_perms $mp1/quxc/1.0~
+restore_file_perms $mp1/.svn
+restore_file_perms $mp1/.sos/ignmod
 restore_file_perms $mp1/.version
 restore_file_perms $mp1/foo/1.0
 restore_file_perms $mp1/foo/.modulerc
@@ -210,6 +219,9 @@ change_file_perms $mp1/bar/.version $no_or_perms
 change_file_perms $mp1/quxa/.modulerc $no_orx_perms
 change_file_perms $mp1/baz/.1.10 $no_orx_perms
 change_file_perms $mp1/quxc/1.0 $no_orx_perms
+change_file_perms $mp1/quxc/1.0~ $no_orx_perms
+change_file_perms $mp1/.svn $no_orx_perms
+change_file_perms $mp1/.sos/ignmod $no_orx_perms
 
 testouterrfile_cmd sh "cachebuild $mp1" OK $tserr $mp1cache $tscache1
 
@@ -237,6 +249,9 @@ restore_file_perms $mp1/anotherempty
 restore_file_perms $mp1/quxa/.modulerc
 restore_file_perms $mp1/baz/.1.10
 restore_file_perms $mp1/quxc/1.0
+restore_file_perms $mp1/quxc/1.0~
+restore_file_perms $mp1/.svn
+restore_file_perms $mp1/.sos/ignmod
 restore_file_perms $mp1/.version
 restore_file_perms $mp1/foo/1.0
 restore_file_perms $mp1/foo/.modulerc
@@ -274,12 +289,17 @@ change_file_perms $mp1/bar/.version $no_ar_perms
 change_file_perms $mp1/quxa/.modulerc $no_arx_perms
 change_file_perms $mp1/baz/.1.10 $no_arx_perms
 change_file_perms $mp1/quxc/1.0 $no_arx_perms
+change_file_perms $mp1/quxc/1.0~ $no_arx_perms
+change_file_perms $mp1/.svn $no_arx_perms
+change_file_perms $mp1/.sos/ignmod $no_arx_perms
 
 set tscachewin1 "#%Module$major_minor_rel"
 foreach f [lsort [concat [array names file_arr] [list foo empty anotherempty]]] {
     set entry {}
     switch -glob -- $f {
-        .version - quxa/.modulerc - .modulerc - bar/.version {}
+        .version - .git/ignmod - quux/SCCS/ignmod - {w s/1.0~} -\
+        foo/1.0,v - quxc/1.0~ - .svn/ignmod - .sos/ignmod {}
+        quxa/.modulerc - .modulerc - bar/.version {}
         foo/* - empty/* {}
         foo - empty - anotherempty - baz/.1.10 - quxc/1.0 - quux/oth/3.0 - quux/oth/4.0 {
             set entry [list modulefile-invalid $f accesserr "Permission denied on '$mp1/$f'"]
@@ -322,6 +342,9 @@ restore_file_perms $mp1/anotherempty
 restore_file_perms $mp1/quxa/.modulerc
 restore_file_perms $mp1/baz/.1.10
 restore_file_perms $mp1/quxc/1.0
+restore_file_perms $mp1/quxc/1.0~
+restore_file_perms $mp1/.svn
+restore_file_perms $mp1/.sos/ignmod
 
 change_file_perms $mp1/foo $no_or_perms
 change_file_perms $mp1/quux/oth $no_ox_perms
@@ -332,12 +355,16 @@ change_file_perms $mp1/bar/.version $no_or_perms
 change_file_perms $mp1/quxa/.modulerc $no_orx_perms
 change_file_perms $mp1/baz/.1.10 $no_orx_perms
 change_file_perms $mp1/quxc/1.0 $no_orx_perms
+change_file_perms $mp1/quxc/1.0~ $no_orx_perms
+change_file_perms $mp1/.svn $no_orx_perms
+change_file_perms $mp1/.sos/ignmod $no_orx_perms
 
 set tscachewin2 "#%Module$major_minor_rel"
 foreach f [lsort [array names file_arr]] {
     set entry {}
     switch -- $f {
-        .version {}
+        .version - .git/ignmod - quux/SCCS/ignmod - {w s/1.0~} -\
+        foo/1.0,v - quxc/1.0~ - .svn/ignmod - .sos/ignmod {}
         foo/1.0 - empty/deep/notadeepmodule - empty/notamodule {
             set entry [list modulefile-invalid $f invalid {Magic cookie '#%Module' missing}]
         }
@@ -376,6 +403,9 @@ restore_file_perms $mp1/anotherempty
 restore_file_perms $mp1/quxa/.modulerc
 restore_file_perms $mp1/baz/.1.10
 restore_file_perms $mp1/quxc/1.0
+restore_file_perms $mp1/quxc/1.0~
+restore_file_perms $mp1/.svn
+restore_file_perms $mp1/.sos/ignmod
 
     unsetenv_var TESTSUITE_ENABLE_SITECONFIG_WINDOWS_PLATFORM
 }
