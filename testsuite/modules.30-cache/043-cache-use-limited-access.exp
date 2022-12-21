@@ -286,6 +286,9 @@ restore_file_perms $mp1/bar/.version
 change_file_perms $mp1/.version $no_or_perms
 change_file_perms $mp1/foo/1.0 $no_or_perms
 change_file_perms $mp1/foo/.modulerc $no_orx_perms
+change_file_perms $mp1/othhid/.deep $no_orx_perms
+change_file_perms $mp1/othhid2 $no_orx_perms
+change_file_perms $mp1/.hid/1.0 $no_or_perms
 
 # create file cache for test
 set tserr [msg_create $mp1cache]
@@ -315,6 +318,9 @@ restore_file_perms $mp1/.sos/ignmod
 restore_file_perms $mp1/.version
 restore_file_perms $mp1/foo/1.0
 restore_file_perms $mp1/foo/.modulerc
+restore_file_perms $mp1/othhid/.deep
+restore_file_perms $mp1/othhid2
+restore_file_perms $mp1/.hid/1.0
 
 
 # limit access to some files and dirs for all
@@ -475,6 +481,9 @@ restore_file_perms $mp1/bar/.version
 change_file_perms $mp1/.version $no_ar_perms
 change_file_perms $mp1/foo/1.0 $no_ar_perms
 change_file_perms $mp1/foo/.modulerc $no_arx_perms
+change_file_perms $mp1/othhid/.deep $no_arx_perms
+change_file_perms $mp1/othhid2 $no_arx_perms
+change_file_perms $mp1/.hid/1.0 $no_ar_perms
 
 # create file cache for test
 set tserr [msg_create $mp1cache]
@@ -488,7 +497,8 @@ foreach f [lsort [array names file_arr]] {
         empty/notamodule - empty/deep/notadeepmodule - .modulerc -\
         .version - .git/ignmod - quux/SCCS/ignmod - {w s/1.0~} -\
         foo/1.0,v - quxc/1.0~ - .svn/ignmod - .sos/ignmod {}
-        foo/1.0 - quux/* - baz/.1.10 - quxc/1.0 {}
+        foo/1.0 - quux/* - baz/.1.10 - quxc/1.0 - othhid/.deep/* -\
+        othhid2/* - .hid/1.0 {}
         {* *}   {
             lappend tserr '$f'
             lappend tserr_long "'$f'.*\[0-9:\/ \]*"
@@ -540,7 +550,8 @@ testouterr_cmd sh {load foo/3.0} ERR $tserr_load3_c
 set tserr_load4_c "[escre [msg_load foo/5.0 [msg_moderr {missing close-brace} if\ \{<EXM> $mp1/foo/5.0 2]]]"
 testouterr_cmd_re sh {load foo/5.0} ERR $tserr_load4_c
 
-testouterr_cmd sh {load .hid} $ans_load5 {}
+set tserr_load5_c $err_path'.hid'
+testouterr_cmd sh {load .hid} ERR $tserr_load5_c
 
 restore_file_perms $mp1/quux
 restore_file_perms $mp1/quux/oth
@@ -555,6 +566,9 @@ restore_file_perms $mp1/.sos/ignmod
 restore_file_perms $mp1/.version
 restore_file_perms $mp1/foo/1.0
 restore_file_perms $mp1/foo/.modulerc
+restore_file_perms $mp1/othhid/.deep
+restore_file_perms $mp1/othhid2
+restore_file_perms $mp1/.hid/1.0
 
 
 # test potential double cache evaluation situation
