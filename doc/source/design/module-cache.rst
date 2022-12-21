@@ -70,6 +70,11 @@ times, which is reported on ``--long`` output. Modulefile validity check
 result is also recorded if modulefile is not valid. Modulerc validity check
 is not recorded as it is not an information produced by ``findModules``.
 
+Note: modulercs and modulefiles are not tested when generating cache file to
+see if they are valid, if their code is correctly executed. Their bare content
+is recorded. Same result is obtained this way whether a cache file is used or
+not.
+
 Cache format
 ------------
 
@@ -149,6 +154,29 @@ difference is visible with file name.
 
 Note: Limited access tests are skipped on Windows platform as Unix-style file
 permission cannot be tested there.
+
+Recording full modulefile content or subset of elements
+-------------------------------------------------------
+
+It was initially drafted that only a subset of element of modulefiles would be
+recorded in cache file, to reduce size of this file and reduce its evaluation
+time.
+
+Recording full modulefile content is in the end preferred as:
+
+* this solution is simpler to implement
+* cache file size is not too big in the end (~ hundreds of KB for a thousand
+  of modulefiles)
+* evaluation time of large cache file is acceptable (time taken to evaluate
+  cannot be noticed by user)
+* simpler to understand and manage for sites
+
+Producing a cache entry for a modulefile with only a subset of commands
+recorded (like variant or requirement) is only feasible for modulefiles not
+using conditionals or specific evaluation scheme. Recording full content will
+work in any scenario whereas recording a subset limits cache usage. Moreover
+it is hard to determine, depending of the modulefile set, where cache can be
+used or not if only a subset of elements is recorded.
 
 Cache validity
 --------------
