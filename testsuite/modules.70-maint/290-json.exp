@@ -238,6 +238,9 @@ setenv_path_var MODULEPATH $mp
 
 # check multiple error messages rendering
 if {$is_file_perms_editable && $tcl_platform(user) ne {root} && !$is_locked_dir_file_readable && !$is_locked_file_readable && !$is_filesystem_icase} {
+    # ignore prebuilt cache file as access to some modules are restricted here
+    ignore_modulecache_if_built
+
 	change_file_perms $mp/IcAsE/1 ugo-rx
 	change_file_perms $mp/ICASE/1 ugo-rx
 	change_file_perms $mp/iCaSe/1 ugo-rx
@@ -256,6 +259,8 @@ if {$is_file_perms_editable && $tcl_platform(user) ne {root} && !$is_locked_dir_
 	restore_file_perms $mp/iCaSe/1
 	restore_file_perms $mp/icASE/1
 	restore_file_perms $mp/icase/1
+
+    end_ignore_modulecache_if_built
 } elseif { $verbose > 0 } {
     send_user "\tskipping multiple error message rendering test as file access cannot be restricted\n"
 }

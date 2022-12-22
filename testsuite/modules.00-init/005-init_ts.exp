@@ -983,6 +983,9 @@ module-virtual {space y /v } {./1 }}
 module-whatis [module-info name]}
       close $fid
    }
+
+   # do not rely on cache if prebuilt
+   ignore_modulecache_if_built
 }
 
 proc delete_endspace_test_modulefiles {} {
@@ -992,6 +995,24 @@ proc delete_endspace_test_modulefiles {} {
       file delete $mp/$module/$f
    }
    file delete $mp/$module
+
+   # can reuse prebuilt cache if any now temporary modules are deleted
+   end_ignore_modulecache_if_built
+}
+
+# ensure next tests will ignore cache files if modulecache have been built
+proc ignore_modulecache_if_built {} {
+    if {[info exists ::env(TESTSUITE_ENABLE_MODULECACHE)]} {
+        send_user "\tIgnore module cache files on next tests\n"
+        setenv_var MODULES_IGNORE_CACHE 1
+    }
+}
+
+proc end_ignore_modulecache_if_built {} {
+    if {[info exists ::env(TESTSUITE_ENABLE_MODULECACHE)]} {
+        send_user "\tUse cache files again on next tests\n"
+        unsetenv_var MODULES_IGNORE_CACHE
+    }
 }
 
 #

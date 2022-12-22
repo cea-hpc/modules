@@ -150,6 +150,9 @@ if {!$is_file_perms_editable} {
     send_user "\tskipping access tests as locked files or directories are still readable\n"
 } else {
 
+# ignore prebuilt cache file as access to some modules are restricted here
+ignore_modulecache_if_built
+
 # test with modules whose access is restricted
 change_file_perms $mp/hide3/sub2/4.0 ugo-rx
 change_file_perms $mp/hide3/sub1 ugo-rx
@@ -161,6 +164,8 @@ testouterr_cmd sh {avail --all -t hide3/sub2@default} OK {}
 restore_file_perms $mp/hide3/sub2/4.0
 restore_file_perms $mp/hide3/sub1
 restore_file_perms $mp/hide1
+
+end_ignore_modulecache_if_built
 
 }
 
@@ -231,10 +236,15 @@ if {!$is_file_perms_editable} {
     send_user "\tskipping access tests as locked files or directories are still readable\n"
 } else {
 
+# ignore prebuilt cache file as access to some modules are restricted here
+ignore_modulecache_if_built
+
 # test with modules whose access is restricted
 change_file_perms $mp/hide1 ugo-rx
 testouterr_cmd sh {avail -a -t hide1@2:4} OK {}
 restore_file_perms $mp/hide1
+
+end_ignore_modulecache_if_built
 
 }
 

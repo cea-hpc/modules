@@ -508,6 +508,9 @@ if {!$is_file_perms_editable} {
     send_user "\tskipping access tests as locked files or directories are still readable\n"
 } else {
 
+# ignore prebuilt cache file as access to some modules are restricted here
+ignore_modulecache_if_built
+
 set hide_perms "ugo-rx"
 
 change_file_perms $mp/extdfl2/2.rc.1 $hide_perms
@@ -515,6 +518,8 @@ testouterr_cmd sh {whatis -i extdfl2/vIcase} ERR "$error_msgs: Permission denied
 restore_file_perms $mp/extdfl2/2.rc.1
 
 unset hide_perms
+
+end_ignore_modulecache_if_built
 
 }
 
