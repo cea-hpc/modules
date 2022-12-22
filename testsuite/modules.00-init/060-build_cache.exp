@@ -1,0 +1,31 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.00-init/%M%
+#   Revision:		%I%
+#   First Edition:	2022/12/22
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Build cache for testsuite modulepaths
+#		}C%
+#
+##############################################################################
+
+if {[info exists env(TESTSUITE_ENABLE_MODULECACHE)]} {
+    foreach mp [glob $env(TESTSUITEDIR)/modulefiles*] {
+        if {[string first { } $mp] == -1} {
+            send_user "\tBuilding cachefile $mp\n"
+            testouterr_cmd sh "cachebuild $mp" OK [msg_create $mp/.modulecache]
+        }
+    }
+    setenv_var MODULES_CACHE_BUFFER_BYTES 1000000
+}
