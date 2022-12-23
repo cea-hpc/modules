@@ -252,6 +252,27 @@ file is used. They are primarily useful to skip I/O tests when walking through
 the content of a modulepath directory. As these I/O tests are done during the
 cache build process, the options are useless when using cache files.
 
+When cache file is not in sync
+------------------------------
+
+Files or directories are freely available through cache when used even if
+after cache being built:
+
+* their access is limited
+* they are deleted
+* their content changes and is not anymore valid
+
+When files or directories have their access limited prior building cache, but
+afterward these access limitations are lifted. These elements will require
+an access test to check if they are available. This test will always be
+successful as element accesses are not anymore limited.
+
+If files or directories do not exist when cache is built, they will not be
+found when cache is used.
+
+If modulefile is recorded in cache as invalid, it will stay invalid if cache
+is used even the modulefile is fixed. Cache need to be regenerated.
+
 Read/write performances
 -----------------------
 
