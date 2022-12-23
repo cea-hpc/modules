@@ -1,0 +1,373 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.30-cache/%M%
+#   Revision:		%I%
+#   First Edition:	2022/12/23
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		avail, whatis, load
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test use of cachefiles with inconsistent definition of
+#           files and directories and their limited access
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+# cannot test access if cannot change file permission
+if {!$is_file_perms_editable} {
+    send_user "\tskipping access tests as file permissions cannot be changed\n"
+# cannot test access if superuser privileges are in use
+} elseif {$tcl_platform(user) eq "root"} {
+    send_user "\tskipping access tests as tests are run by superuser\n"
+# cannot test access if restricted file permissions have no effect
+} elseif {$is_locked_dir_file_readable && $is_locked_file_readable} {
+    send_user "\tskipping access tests as locked files or directories are still readable\n"
+} else {
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure avail tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+# ensure auto symbolic versions are set for these tests
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+# ensure regular avail search match is set for these tests
+setenv_var MODULES_SEARCH_MATCH starts_with
+
+# generate content in modulepaths
+lassign [create_diverse_module_setup $mp1] dir_list file_list
+lassign [extend_diverse_module_setup $mp1] other_dir_list other_file_list
+lappend dir_list {*}$other_dir_list
+array set file_arr [concat $file_list $other_file_list]
+
+setenv_var MODULEPATH $mp1
+
+# create file cache for test, no limitation recorded at that point
+set tserr [msg_create $mp1cache]
+testouterr_cmd sh cachebuild OK $tserr
+
+
+set no_ar_perms ugo-r
+set no_ax_perms ugo-x
+set no_arx_perms ugo-rx
+set no_or_perms o-r
+set no_ox_perms o-x
+set no_orx_perms o-rx
+
+
+# limit access to some files and dirs for others
+change_file_perms $mp1/foo $no_or_perms
+change_file_perms $mp1/quux/oth $no_ox_perms
+change_file_perms $mp1/.modulerc $no_orx_perms
+change_file_perms $mp1/empty $no_orx_perms
+change_file_perms $mp1/anotherempty $no_or_perms
+change_file_perms $mp1/bar/.version $no_or_perms
+change_file_perms $mp1/quxa/.modulerc $no_orx_perms
+change_file_perms $mp1/baz/.1.10 $no_orx_perms
+change_file_perms $mp1/quxc/1.0 $no_orx_perms
+change_file_perms $mp1/quxc/1.0~ $no_orx_perms
+change_file_perms $mp1/.svn $no_orx_perms
+change_file_perms $mp1/.sos/ignmod $no_orx_perms
+
+set tserr {}
+foreach f [lsort [array names file_arr]] {
+    switch -glob -- $f {
+        */.modulerc - */.version - foo/1.0 - foo/3.0 - quux/nok/5.0 -\
+        .git/ignmod - quux/SCCS/ignmod - {w s/1.0~} - foo/1.0,v -\
+        quxc/1.0~ - .svn/ignmod - .sos/ignmod - .modulerc -\
+        .version - empty/notamodule - empty/deep/notadeepmodule {}
+        {* *}   {lappend tserr '$f'}
+        default {lappend tserr $f}
+    }
+}
+set tserr_avail1 [join $tserr \n]
+testouterr_cmd sh {avail -a -t -o } OK $tserr_avail1
+set tserr_avail2 [join {foo/2.0 foo/4.0 foo/5.0 foo/6.0 foobar} \n]
+testouterr_cmd sh {avail -a -t -o  foo} OK $tserr_avail2
+
+set tserr_whatis1 "$modlin [escre $mp1] $modlin
+\\s+bar/1.0: bar/1.0
+\\s+bar/2.0: bar/2.0
+\\s+baz/w s: baz/w s
+\\s+baz/w\"s: baz/w\"s
+\\s+baz/w#s: baz/w#s
+\\s+foo/2.0: foo/2.0
+\\s+foobar: foobar
+\\s+quux/oth/3.0: quux/oth/3.0
+\\s+quux/oth/4.0: quux/oth/4.0
+\\s+quux/sub/1.0: quux/sub/1.0
+\\s+quux/sub/2.0: quux/sub/2.0
+\\s+quuxbar: quuxbar
+\\s+quxa/1.0: quxa/1.0
+\\s+quxb/1.0: quxb/1.0
+\\s+quxc/1.0: quxc/1.0
+\\s+quxd/1.0: quxd/1.0
+\\s+quxe/1.0: quxe/1.0
+\\s+w s/1.0: w s/1.0
+\\s+w\"s/1.0: w\"s/1.0
+\\s+w#s/1.0: w#s/1.0"
+testouterr_cmd_re sh whatis OK $tserr_whatis1
+set tserr_whatis2 "$modlin [escre $mp1] $modlin
+\\s+baz/w s: baz/w s
+\\s+baz/w\"s: baz/w\"s
+\\s+baz/w#s: baz/w#s"
+testouterr_cmd_re sh {whatis baz} OK $tserr_whatis2
+
+set ans_load1 [list]
+lappend ans_load1 [list set __MODULES_LMALTNAME bar/1.0&bar/default&bar]
+lappend ans_load1 [list set _LMFILES_ $mp1/bar/1.0]
+lappend ans_load1 [list set LOADEDMODULES bar/1.0]
+testouterr_cmd sh {load bar} $ans_load1 {}
+
+set tserr_load2 "$err_magic'$mp1/foo/.modulerc'\n$err_contact
+$err_magic'$mp1/foo/1.0'\n$err_contact"
+testouterr_cmd sh {load foo/1.0} ERR $tserr_load2
+
+set tserr_load3 "$err_magic'$mp1/foo/.modulerc'\n$err_contact
+[moderr_minverreq $mp1/foo/3.0 99]"
+testouterr_cmd sh {load foo/3.0} ERR $tserr_load3
+
+set tserr_load4 "$err_magic'[escre $mp1]/foo/.modulerc'\n$err_contact
+
+[escre [msg_load foo/5.0 [msg_moderr {missing close-brace} if\ \{<EXM> $mp1/foo/5.0 2]]]"
+testouterr_cmd_re sh {load foo/5.0} ERR $tserr_load4
+
+set ans_load5 [list]
+lappend ans_load5 [list set __MODULES_LMALTNAME .hid/1.0&as|.hid/default&as|.hid/latest]
+lappend ans_load5 [list set _LMFILES_ $mp1/.hid/1.0]
+lappend ans_load5 [list set LOADEDMODULES .hid/1.0]
+testouterr_cmd sh {load .hid} $ans_load5 {}
+
+
+# test indepth/noindepth resolution
+set tserr_noindepth1 "$mp1:
+bar/
+baz/
+foo/
+foobar
+quux/
+quuxbar
+quxa/
+quxb/
+quxc/
+quxd/
+quxe/
+'w s'/
+w\"s/
+w#s/"
+testouterr_cmd sh {avail -t --no-indepth} OK $tserr_noindepth1
+set tserr_noindepth2 "$mp1:
+quux/
+quuxbar"
+testouterr_cmd sh {avail -t --no-indepth quux} OK $tserr_noindepth2
+set tserr_noindepth3 "$mp1:
+quux/oth/(default)
+quux/sub/"
+testouterr_cmd sh {avail -t --no-indepth quux/} OK $tserr_noindepth3
+testouterr_cmd sh {avail -t --no-indepth quux/*} OK $tserr_noindepth3
+set tserr_noindepth4 "$mp1:
+quux/oth/(default)"
+testouterr_cmd sh {avail -t --no-indepth quux/o} OK $tserr_noindepth4
+set tserr_noindepth5 ""
+testouterr_cmd sh {avail -t --no-indepth quux/nok} OK $tserr_noindepth5
+testouterr_cmd sh {avail -t --no-indepth quux/no} OK $tserr_noindepth5
+
+
+# cache usage when mcookie_check is set to eval (same result as if option
+# is set to always)
+setenv_var MODULES_MCOOKIE_CHECK eval
+testouterr_cmd sh {avail -a -t -o } OK $tserr_avail1
+testouterr_cmd sh {avail -a -t -o  foo} OK $tserr_avail2
+testouterr_cmd_re sh whatis OK $tserr_whatis1
+testouterr_cmd_re sh {whatis baz} OK $tserr_whatis2
+testouterr_cmd sh {load bar} $ans_load1 {}
+testouterr_cmd sh {load foo/1.0} ERR $tserr_load2
+testouterr_cmd sh {load foo/3.0} ERR $tserr_load3
+testouterr_cmd_re sh {load foo/5.0} ERR $tserr_load4
+testouterr_cmd sh {load .hid} $ans_load5 {}
+setenv_var MODULES_MCOOKIE_CHECK always
+
+# cache usage when mcookie_version_check is disabled (same result as if
+# option is enabled unless)
+setenv_var MODULES_MCOOKIE_VERSION_CHECK 0
+testouterr_cmd sh {avail -a -t -o } OK $tserr_avail1
+testouterr_cmd sh {avail -a -t -o  foo} OK $tserr_avail2
+testouterr_cmd_re sh whatis OK $tserr_whatis1
+testouterr_cmd_re sh {whatis baz} OK $tserr_whatis2
+testouterr_cmd sh {load bar} $ans_load1 {}
+testouterr_cmd sh {load foo/1.0} ERR $tserr_load2
+testouterr_cmd sh {load foo/3.0} ERR $tserr_load3
+testouterr_cmd_re sh {load foo/5.0} ERR $tserr_load4
+testouterr_cmd sh {load .hid} $ans_load5 {}
+setenv_var MODULES_MCOOKIE_VERSION_CHECK 1
+
+
+# second limited set (for others)
+change_file_perms $mp1/quux $no_or_perms
+restore_file_perms $mp1/foo
+restore_file_perms $mp1/.modulerc
+restore_file_perms $mp1/bar/.version
+change_file_perms $mp1/.version $no_or_perms
+change_file_perms $mp1/foo/1.0 $no_or_perms
+change_file_perms $mp1/foo/.modulerc $no_orx_perms
+change_file_perms $mp1/othhid/.deep $no_orx_perms
+change_file_perms $mp1/othhid2 $no_orx_perms
+change_file_perms $mp1/.hid/1.0 $no_or_perms
+
+testouterr_cmd sh {avail -a -t -o } OK $tserr_avail1
+testouterr_cmd sh {avail -a -t -o  foo} OK $tserr_avail2
+testouterr_cmd_re sh whatis OK $tserr_whatis1
+testouterr_cmd_re sh {whatis baz} OK $tserr_whatis2
+testouterr_cmd sh {load bar} $ans_load1 {}
+testouterr_cmd sh {load foo/1.0} ERR $tserr_load2
+testouterr_cmd sh {load foo/3.0} ERR $tserr_load3
+testouterr_cmd_re sh {load foo/5.0} ERR $tserr_load4
+testouterr_cmd sh {load .hid} $ans_load5 {}
+
+restore_file_perms $mp1/quux
+restore_file_perms $mp1/quux/oth
+restore_file_perms $mp1/empty
+restore_file_perms $mp1/anotherempty
+restore_file_perms $mp1/quxa/.modulerc
+restore_file_perms $mp1/baz/.1.10
+restore_file_perms $mp1/quxc/1.0
+restore_file_perms $mp1/quxc/1.0~
+restore_file_perms $mp1/.svn
+restore_file_perms $mp1/.sos/ignmod
+restore_file_perms $mp1/.version
+restore_file_perms $mp1/foo/1.0
+restore_file_perms $mp1/foo/.modulerc
+restore_file_perms $mp1/othhid/.deep
+restore_file_perms $mp1/othhid2
+restore_file_perms $mp1/.hid/1.0
+
+
+# limit access to some files and dirs for all
+change_file_perms $mp1/foo $no_ar_perms
+change_file_perms $mp1/quux/oth $no_ax_perms
+change_file_perms $mp1/.modulerc $no_arx_perms
+change_file_perms $mp1/empty $no_orx_perms
+change_file_perms $mp1/anotherempty $no_ar_perms
+change_file_perms $mp1/bar/.version $no_ar_perms
+change_file_perms $mp1/quxa/.modulerc $no_arx_perms
+change_file_perms $mp1/baz/.1.10 $no_arx_perms
+change_file_perms $mp1/quxc/1.0 $no_arx_perms
+change_file_perms $mp1/quxc/1.0~ $no_arx_perms
+change_file_perms $mp1/.svn $no_arx_perms
+change_file_perms $mp1/.sos/ignmod $no_arx_perms
+
+testouterr_cmd sh {avail -a -t -o } OK $tserr_avail1
+testouterr_cmd sh {avail -a -t -o  foo} OK $tserr_avail2
+testouterr_cmd_re sh whatis OK $tserr_whatis1
+testouterr_cmd_re sh {whatis baz} OK $tserr_whatis2
+testouterr_cmd sh {load bar} $ans_load1 {}
+testouterr_cmd sh {load foo/1.0} ERR $tserr_load2
+testouterr_cmd sh {load foo/3.0} ERR $tserr_load3
+testouterr_cmd_re sh {load foo/5.0} ERR $tserr_load4
+testouterr_cmd sh {load .hid} $ans_load5 {}
+
+
+# test indepth/noindepth resolution
+testouterr_cmd sh {avail -t --no-indepth} OK $tserr_noindepth1
+testouterr_cmd sh {avail -t --no-indepth quux} OK $tserr_noindepth2
+testouterr_cmd sh {avail -t --no-indepth quux/} OK $tserr_noindepth3
+testouterr_cmd sh {avail -t --no-indepth quux/*} OK $tserr_noindepth3
+testouterr_cmd sh {avail -t --no-indepth quux/o} OK $tserr_noindepth4
+testouterr_cmd sh {avail -t --no-indepth quux/nok} OK $tserr_noindepth5
+testouterr_cmd sh {avail -t --no-indepth quux/no} OK $tserr_noindepth5
+
+
+# cache usage when mcookie_check is set to eval (same result as if option
+# is set to always)
+setenv_var MODULES_MCOOKIE_CHECK eval
+testouterr_cmd sh {avail -a -t -o } OK $tserr_avail1
+testouterr_cmd sh {avail -a -t -o  foo} OK $tserr_avail2
+testouterr_cmd_re sh whatis OK $tserr_whatis1
+testouterr_cmd_re sh {whatis baz} OK $tserr_whatis2
+testouterr_cmd sh {load bar} $ans_load1 {}
+testouterr_cmd sh {load foo/1.0} ERR $tserr_load2
+testouterr_cmd sh {load foo/3.0} ERR $tserr_load3
+testouterr_cmd_re sh {load foo/5.0} ERR $tserr_load4
+testouterr_cmd sh {load .hid} $ans_load5 {}
+setenv_var MODULES_MCOOKIE_CHECK always
+
+# cache usage when mcookie_version_check is disabled (same result as if
+# option is enabled)
+setenv_var MODULES_MCOOKIE_VERSION_CHECK 0
+testouterr_cmd sh {avail -a -t -o } OK $tserr_avail1
+testouterr_cmd sh {avail -a -t -o  foo} OK $tserr_avail2
+testouterr_cmd_re sh whatis OK $tserr_whatis1
+testouterr_cmd_re sh {whatis baz} OK $tserr_whatis2
+testouterr_cmd sh {load bar} $ans_load1 {}
+testouterr_cmd sh {load foo/1.0} ERR $tserr_load2
+testouterr_cmd sh {load foo/3.0} ERR $tserr_load3
+testouterr_cmd_re sh {load foo/5.0} ERR $tserr_load4
+testouterr_cmd sh {load .hid} $ans_load5 {}
+setenv_var MODULES_MCOOKIE_VERSION_CHECK 1
+
+
+# second limited set (for all)
+change_file_perms $mp1/quux $no_ar_perms
+restore_file_perms $mp1/foo
+restore_file_perms $mp1/.modulerc
+restore_file_perms $mp1/bar/.version
+change_file_perms $mp1/.version $no_ar_perms
+change_file_perms $mp1/foo/1.0 $no_ar_perms
+change_file_perms $mp1/foo/.modulerc $no_arx_perms
+change_file_perms $mp1/othhid/.deep $no_arx_perms
+change_file_perms $mp1/othhid2 $no_arx_perms
+change_file_perms $mp1/.hid/1.0 $no_ar_perms
+
+testouterr_cmd sh {avail -a -t -o } OK $tserr_avail1
+testouterr_cmd sh {avail -a -t -o  foo} OK $tserr_avail2
+testouterr_cmd_re sh whatis OK $tserr_whatis1
+testouterr_cmd_re sh {whatis baz} OK $tserr_whatis2
+testouterr_cmd sh {load bar} $ans_load1 {}
+testouterr_cmd sh {load foo/1.0} ERR $tserr_load2
+testouterr_cmd sh {load foo/3.0} ERR $tserr_load3
+testouterr_cmd_re sh {load foo/5.0} ERR $tserr_load4
+testouterr_cmd sh {load .hid} $ans_load5 {}
+
+restore_file_perms $mp1/quux
+restore_file_perms $mp1/quux/oth
+restore_file_perms $mp1/empty
+restore_file_perms $mp1/anotherempty
+restore_file_perms $mp1/quxa/.modulerc
+restore_file_perms $mp1/baz/.1.10
+restore_file_perms $mp1/quxc/1.0
+restore_file_perms $mp1/quxc/1.0~
+restore_file_perms $mp1/.svn
+restore_file_perms $mp1/.sos/ignmod
+restore_file_perms $mp1/.version
+restore_file_perms $mp1/foo/1.0
+restore_file_perms $mp1/foo/.modulerc
+restore_file_perms $mp1/othhid/.deep
+restore_file_perms $mp1/othhid2
+restore_file_perms $mp1/.hid/1.0
+
+
+#
+#  Cleanup
+#
+
+# delete generated cache file
+file delete $mp1cache
+
+# delete created files and dirs
+delete_module_setup $mp1 [array names file_arr] $dir_list
+
+reset_test_env
+
+}
