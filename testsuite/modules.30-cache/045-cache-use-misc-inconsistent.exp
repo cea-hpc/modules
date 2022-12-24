@@ -1,0 +1,327 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.30-cache/%M%
+#   Revision:		%I%
+#   First Edition:	2022/12/24
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		avail, whatis, load
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test use of cachefiles not in sync with file system
+#           content
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+# cannot test access if cannot change file permission
+if {!$is_file_perms_editable} {
+    send_user "\tskipping access tests as file permissions cannot be changed\n"
+# cannot test access if superuser privileges are in use
+} elseif {$tcl_platform(user) eq "root"} {
+    send_user "\tskipping access tests as tests are run by superuser\n"
+# cannot test access if restricted file permissions have no effect
+} elseif {$is_locked_dir_file_readable && $is_locked_file_readable} {
+    send_user "\tskipping access tests as locked files or directories are still readable\n"
+} else {
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure avail tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+# ensure auto symbolic versions are set for these tests
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+# ensure regular avail search match is set for these tests
+setenv_var MODULES_SEARCH_MATCH starts_with
+
+# generate content in modulepaths
+lassign [create_diverse_module_setup $mp1] dir_list file_list
+lassign [extend_diverse_module_setup $mp1] other_dir_list other_file_list
+lappend dir_list {*}$other_dir_list
+array set file_arr [concat $file_list $other_file_list]
+
+set no_ar_perms ugo-r
+set no_ax_perms ugo-x
+set no_arx_perms ugo-rx
+set no_or_perms o-r
+set no_ox_perms o-x
+set no_orx_perms o-rx
+
+setenv_var MODULEPATH $mp1
+
+# create not-in-sync setup between cache and filesystem
+change_file_perms $mp1/quxa/1.0 $no_or_perms
+change_file_perms $mp1/foo/.modulerc $no_or_perms
+change_file_perms $mp1/foo/3.0 $no_or_perms
+change_file_perms $mp1/quxb $no_orx_perms
+
+set tserr [msg_create $mp1cache]
+testouterr_cmd sh cachebuild OK $tserr
+
+file delete $mp1/quxa/1.0
+file delete $mp1/foo/.modulerc
+file delete $mp1/foo/1.0
+file delete $mp1/foo/3.0
+file delete $mp1/quxb/1.0
+file delete $mp1/quxb/.modulerc
+file delete $mp1/quxb
+file delete $mp1/bar/1.0
+file delete $mp1/bar/.version
+file delete $mp1/quxc/1.0
+file delete $mp1/quxc/1.0~
+file delete $mp1/quxc/.modulerc
+file delete $mp1/quxc
+
+unset file_arr(quxa/1.0)
+unset file_arr(foo/.modulerc)
+unset file_arr(foo/1.0)
+unset file_arr(foo/3.0)
+unset file_arr(quxb/1.0)
+unset file_arr(quxb/.modulerc)
+unset file_arr(bar/1.0)
+unset file_arr(bar/.version)
+unset file_arr(quxc/1.0)
+unset file_arr(quxc/1.0~)
+unset file_arr(quxc/.modulerc)
+set idx [lsearch -exact $dir_list quxb]
+set dir_list [lreplace $dir_list $idx $idx]
+set idx [lsearch -exact $dir_list quxc]
+set dir_list [lreplace $dir_list $idx $idx]
+
+
+# limited-access modulefile that does not exist on filesystem
+# quxa/1.0
+testouterr_cmd sh {avail -a -t quxa/1.0 -o } OK {}
+testouterr_cmd sh {load quxa/1.0} ERR $err_file'$mp1/quxa/1.0'
+
+# limited-access modulerc that does not exist on filesystem
+# foo/.modulerc (foo/default)
+testouterr_cmd sh {avail -a -t foo/default -o } OK foo/6.0
+
+# limited-access directory that does not exist on filesystem
+# quxb
+testouterr_cmd sh {avail -a -t quxb -o } OK {}
+if {$install_libtclenvmodules eq {y}} {
+    set tserr $err_file'$mp1/quxb'
+} else {
+    set tserr $err_path'quxb'
+}
+testouterr_cmd sh {load quxb} ERR $tserr
+testouterr_cmd sh {load quxb/1.0} ERR $err_path'quxb/1.0'
+
+# not limited-access modulefile that does not exist on filesystem
+# bar/1.0
+testouterr_cmd sh {avail -a -t bar/1.0 -o } OK bar/1.0
+set ans_bar [list]
+lappend ans_bar [list set __MODULES_LMALTNAME bar/1.0&bar/default&bar]
+lappend ans_bar [list set _LMFILES_ $mp1/bar/1.0]
+lappend ans_bar [list set LOADEDMODULES bar/1.0]
+testouterr_cmd sh {load bar/1.0} $ans_bar {}
+
+# not limited-access modulerc that does not exist on filesystem
+# bar/.version (bar/default)
+testouterr_cmd sh {avail -a -t bar/default -o } OK bar/1.0
+testouterr_cmd sh {load bar/default} $ans_bar {}
+
+# not limited-access directory that does not exist on filesystem
+# quxc
+testouterr_cmd sh {avail -a -t quxc -o } OK quxc/1.0
+
+
+# limited-access modulefile which is an available directory on filesystem
+# quxa/1.0
+file mkdir $mp1/quxa/1.0
+set fid [open $mp1/quxa/1.0/foo w]
+puts $fid {#%Module}
+close $fid
+testouterr_cmd sh {avail -a -t quxa/1.0 -o } OK {}
+testouterr_cmd sh {load quxa/1.0} ERR $err_illdir'$mp1/quxa/1.0'
+
+# limited-access modulefile which is a restricted directory on filesystem
+# quxa/1.0
+change_file_perms $mp1/quxa/1.0 $no_arx_perms
+testouterr_cmd sh {avail -a -t quxa/1.0 -o } OK {}
+testouterr_cmd sh {load quxa/1.0} ERR [err_permdenied $mp1/quxa/1.0]
+
+restore_file_perms $mp1/quxa/1.0
+file delete $mp1/quxa/1.0/foo
+file delete $mp1/quxa/1.0
+
+# limited-access modulerc which is an available directory on filesystem
+# foo/.modulerc (foo/default)
+file mkdir $mp1/foo/.modulerc
+set fid [open $mp1/foo/.modulerc/foo w]
+puts $fid {#%Module}
+close $fid
+testouterr_cmd sh {avail -a -t foo/default -o } OK foo/6.0
+testouterr_cmd_re sh {load foo/default} ERR [escre [msg_load foo/6.0 <EXM>]]
+
+# limited-access modulerc which is a restricted directory on filesystem
+# foo/.modulerc (foo/default)
+change_file_perms $mp1/foo/.modulerc $no_arx_perms
+testouterr_cmd sh {avail -a -t foo/default -o } OK foo/6.0
+testouterr_cmd_re sh {load foo/default} ERR [escre [msg_load foo/6.0 <EXM>]]
+
+restore_file_perms $mp1/foo/.modulerc
+file delete $mp1/foo/.modulerc/foo
+file delete $mp1/foo/.modulerc
+
+# limited-access directory which is an available file on filesystem
+# quxb
+close [open $mp1/quxb w]
+testouterr_cmd sh {avail -a -t quxb -o } OK {}
+if {$install_libtclenvmodules eq {y}} {
+    set tserr $err_notadir'$mp1/quxb'
+} else {
+    set tserr $err_path'quxb'
+}
+testouterr_cmd sh {load quxb} ERR $tserr
+
+# limited-access directory which is a restricted file on filesystem
+# quxb
+change_file_perms $mp1/quxb $no_ar_perms
+testouterr_cmd sh {avail -a -t quxb -o } OK {}
+if {$install_libtclenvmodules eq {y}} {
+    set tserr $err_notadir'$mp1/quxb'
+} else {
+    set tserr $err_path'quxb'
+}
+testouterr_cmd sh {load quxb} ERR $tserr
+
+restore_file_perms $mp1/quxb
+file delete $mp1/quxb
+
+# limited-access directory which is an available modulefile on filesystem
+# quxb
+set fid [open $mp1/quxb w]
+puts $fid {#%Module}
+close $fid
+testouterr_cmd sh {avail -a -t quxb -o } OK {}
+if {$install_libtclenvmodules eq {y}} {
+    set tserr $err_notadir'$mp1/quxb'
+} else {
+    set tserr $err_path'quxb'
+}
+testouterr_cmd sh {load quxb} ERR $tserr
+
+# limited-access directory which is a restricted modulefile on filesystem
+# quxb
+change_file_perms $mp1/quxb $no_ar_perms
+testouterr_cmd sh {avail -a -t quxb -o } OK {}
+if {$install_libtclenvmodules eq {y}} {
+    set tserr $err_notadir'$mp1/quxb'
+} else {
+    set tserr $err_path'quxb'
+}
+testouterr_cmd sh {load quxb} ERR $tserr
+
+restore_file_perms $mp1/quxb
+file delete $mp1/quxb
+
+# not limited access modulefile which is an available directory on filesystem
+# bar/1.0
+file mkdir $mp1/bar/1.0
+set fid [open $mp1/bar/1.0/foo w]
+puts $fid {#%Module}
+close $fid
+testouterr_cmd sh {avail -a -t bar/1.0 -o } OK bar/1.0
+testouterr_cmd sh {load bar/1.0} $ans_bar {}
+
+# not limited access modulefile which is a restricted directory on filesystem
+# bar/1.0
+change_file_perms $mp1/bar/1.0 $no_arx_perms
+testouterr_cmd sh {avail -a -t bar/1.0 -o } OK bar/1.0
+testouterr_cmd sh {load bar/1.0} $ans_bar {}
+
+restore_file_perms $mp1/bar/1.0
+file delete $mp1/bar/1.0/foo
+file delete $mp1/bar/1.0
+
+# not limited access modulerc which is an available directory on filesystem
+# bar/.version (bar/default)
+file mkdir $mp1/bar/.version
+set fid [open $mp1/bar/.version/foo w]
+puts $fid {#%Module}
+close $fid
+testouterr_cmd sh {avail -a -t bar/default -o } OK bar/1.0
+testouterr_cmd sh {load bar/default} $ans_bar {}
+
+# not limited access modulerc which is a restricted directory on filesystem
+# bar/.version (bar/default)
+change_file_perms $mp1/bar/.version $no_arx_perms
+testouterr_cmd sh {avail -a -t bar/default -o } OK bar/1.0
+testouterr_cmd sh {load bar/default} $ans_bar {}
+
+restore_file_perms $mp1/bar/.version
+file delete $mp1/bar/.version/foo
+file delete $mp1/bar/.version
+
+# not limited access modulefile which is invalid on filesystem
+# bar/1.0
+set fid [open $mp1/bar/1.0 w]
+puts $fid {#Not a modulefile}
+close $fid
+testouterr_cmd sh {avail -a -t bar/1.0 -o } OK bar/1.0
+testouterr_cmd sh {load bar/1.0} $ans_bar {}
+
+file delete $mp1/bar/1.0
+
+# limited access modulefile which is invalid on filesystem
+# quxa/1.0
+set fid [open $mp1/quxa/1.0 w]
+puts $fid {#Not a modulefile}
+close $fid
+testouterr_cmd sh {avail -a -t quxa/1.0 -o } OK {}
+testouterr_cmd sh {load quxa/1.0} ERR $err_magic'$mp1/quxa/1.0'\n$err_contact
+
+file delete $mp1/quxa/1.0
+
+# not limited access invalid modulefile which is valid on filesystem
+# foo/1.0
+set fid [open $mp1/foo/1.0 w]
+puts $fid {#%Module}
+close $fid
+testouterr_cmd sh {avail -a -t foo/1.0 -o } OK {}
+testouterr_cmd sh {load foo/1.0} ERR $err_magic'$mp1/foo/1.0'\n$err_contact
+
+file delete $mp1/foo/1.0
+
+# limited access invalid modulefile which is valid on filesystem
+# foo/3.0
+set fid [open $mp1/foo/3.0 w]
+puts $fid {#%Module}
+close $fid
+testouterr_cmd sh {avail -a -t foo/3.0 -o } OK foo/3.0
+set ans [list]
+lappend ans [list set _LMFILES_ $mp1/foo/3.0]
+lappend ans [list set LOADEDMODULES foo/3.0]
+testouterr_cmd sh {load foo/3.0} $ans {}
+
+file delete $mp1/foo/3.0
+
+
+#
+#  Cleanup
+#
+
+# delete generated cache file
+file delete $mp1cache
+
+# delete created files and dirs
+delete_module_setup $mp1 [array names file_arr] $dir_list
+
+reset_test_env
+
+}
