@@ -1433,9 +1433,10 @@ interpreted *modulefile*.
 
 If a :file:`.modulecache` file is found at the root of a modulepath directory,
 this file is interpreted as Tcl code to learn all :file:`.modulerc`,
-:file:`.version` and modulefiles available. Modulepath directory is not walked
-through and no file in it are read as described above since all information
-are stored in :ref:`module cache<Module cache>` file.
+:file:`.version` and modulefiles available. Modulepath content is read from
+:ref:`module cache<Module cache>` file. Modulepath directory is only walked
+through to check if limited access modulefiles or directories are available to
+current user.
 
 If no default version may be figured out, an implicit default is selected when
 this behavior is enabled (see :envvar:`MODULES_IMPLICIT_DEFAULT` in

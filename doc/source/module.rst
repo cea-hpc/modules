@@ -3072,10 +3072,17 @@ located on busy storage systems. Having one file to read per modulepath rather
 walking through a whole directory content extremely reduces the number of
 required I/O operations.
 
+When modulefiles or directories in the modulepath are not accessible for
+everyone, a *limited access* indication is recorded in cache file rather
+content of these modulefiles and content of these directories. When cache file
+containing such indication is processed, the limited access modulefiles are
+tested to check if they are available to the current running user. Limited
+access directories are walked down to find all available modulefiles and
+modulercs.
+
 Cache files are generated with :subcmd:`cachebuild` sub-command. This command
 has to be run by someone who owns write access in modulepath directory to
-create cache file and who can read all the content of this modulepath to be
-able to create a cache file containing all information.
+create cache file.
 
 Cache files are used any time a module search occurs in modulepaths. They are
 analyzed for instance during :subcmd:`avail`, :subcmd:`load`,

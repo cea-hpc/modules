@@ -37,6 +37,10 @@ Modules 5.3.0 (not yet released)
   Option is set to ``0`` by default which means cache files never expire. When
   option is set it defines :envvar:`MODULES_CACHE_EXPIRY_SECS` environment
   variable.
+* Modulefiles and directories that are not accessible by everyone are not
+  recorded in cache file. A *limited access* directive is recorded instead to
+  indicate these modulefiles have to be tested and directories have to be
+  walked down to determine what the running user can access.
 
 
 .. _5.2 release notes:
