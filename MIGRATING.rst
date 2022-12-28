@@ -8,6 +8,88 @@ Modules. It provides an overview of the new features and changed behaviors
 that will be encountered when upgrading.
 
 
+v5.3 (not yet released)
+=======================
+
+Module cache
+------------
+
+A module cache file can be created under each modulepath directory with new
+:subcmd:`cachebuild` sub-command. Cache file is named :file:`.modulecache` and
+contains in one file all modulefiles and modulercs found in modulepath
+directory.
+
+When cache file is available, module search mechanism uses this file rather
+walking through the content of modulepath directory. I/O operations are saved
+this way which reduces search processing time.
+
+When searching for available modules without cache, each file contained
+in enabled modulepaths is opened to check if it is a modulefile or not. Such
+checks lead to a large number of I/O operations on large module setup like in
+the below example where a total of 1051 modulefiles are available:
+
+  .. parsed-literal::
+
+    :ps:`$` module -o "" avail -t | wc -l
+    1051
+    :ps:`$` syscall_list=access,close,getdents64,newfstatat,openat,read
+    :ps:`$` strace -f -e $syscall_list -c $MODULES_CMD bash avail
+    % time     seconds  usecs/call     calls    errors syscall
+    ------ ----------- ----------- --------- --------- ----------------
+     31.09    0.003776           2      1424         9 openat
+     28.56    0.003469           2      1649         3 newfstatat
+     14.08    0.001710           1      1421           close
+     11.85    0.001439           3       460           getdents64
+     10.88    0.001321           0      1505           read
+      3.54    0.000430           4       107         5 access
+    ------ ----------- ----------- --------- --------- ----------------
+    100.00    0.012145           1      6566        17 total
+
+After building cache file for every enabled modulepaths in this example setup,
+a lot of I/O operations are saved when searching for available modules:
+
+  .. parsed-literal::
+
+    :ps:`$` module cachebuild
+    Creating :sgrhi:`/path/to/modulefiles/.modulecache`
+    Creating :sgrhi:`/path/to/modulefiles.2/.modulecache`
+    Creating :sgrhi:`/path/to/modulefiles.3/.modulecache`
+    :ps:`$` module config cache_buffer_bytes 1000000
+    :ps:`$` strace -f -e $syscall_list -c $MODULES_CMD bash avail
+    % time     seconds  usecs/call     calls    errors syscall
+    ------ ----------- ----------- --------- --------- ----------------
+     70.19    0.000544           2       255           read
+     13.16    0.000102           2        38         9 openat
+      8.90    0.000069           1        35           close
+      6.06    0.000047           1        31         2 newfstatat
+      1.68    0.000013           1        11         2 access
+    ------ ----------- ----------- --------- --------- ----------------
+    100.00    0.000775           2       370        13 total
+
+A significant execution time drop may be noticed, especially if modulepath
+directories are stored on heavily loaded network filesystem.
+
+To further optimize I/O operation count, the :mconfig:`cache_buffer_bytes`
+configuration option can be set like in the above example to use fewer number
+of ``read`` operation to load cache file content.
+
+To build cache file, user should be granted write access on modulepath
+directory. Modulefiles or directories that are not accessible for everyone are
+not recorded in cache. An indication is saved instead to test these limited
+access elements when cache is loaded to determine if they are available to
+currently running user.
+
+Cache file can be ignored with :option:`--ignore-cache` command line switch or
+more permanently with :mconfig:`ignore_cache` configuration option.
+
+Cache file is valid indefinitely by default but :mconfig:`cache_expiry_secs`
+configuration option can be used to define the number of seconds a cache file
+is considered valid after being generated. Expired cache file is ignored.
+
+Cache file of enabled modulepaths can be deleted all at once with
+:subcmd:`cacheclear` sub-command.
+
+
 v5.2
 ====
 
@@ -1560,7 +1642,7 @@ the module names:
     :ps:`$` ml -o idx:sym
      1) :sgrde:`bar/1.0`   2) foo/2.0
 
-When the new configuration options or command line switches are set to an
+When the new configuration options command line switches are set to an
 empty value, the module names are the sole information reported:
 
 .. parsed-literal::
