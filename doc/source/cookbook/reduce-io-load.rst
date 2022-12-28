@@ -42,6 +42,7 @@ operations to analyze the content of modulepath:
 * `Modulepath rc file`_
 * `mcookie_check configuration option`_
 * `Virtual modules`_
+* `Module cache`_
 
 Each of the above features contributes to an I/O reduction as described in the
 following section. Combined use of all these features will give the biggest
@@ -499,12 +500,82 @@ modulepaths is not anymore needed as the ``.modulerc`` in the 2 *virtual*
 modulepaths already point to the modulefile location. ``stat``, ``open``,
 ``getdents`` and ``close`` I/O calls are saved due to that.
 
+Module cache
+------------
+
+Module cache can be built for every modulepaths with :subcmd:`cachebuild`
+sub-command. When a cache file is found for an enabled modulepath, this file
+is evaluated instead of walking down the content of the modulepath directory.
+
+**Compatible with Modules v5.3+**
+
+Here we start over the module setup at the end of the `Modulepath rc file`_
+section, restoring :mconfig:`mcookie_check` configuration to default, building
+cache and setting cache read buffer to maximum value.
+
+.. parsed-literal::
+
+    :ps:`$` module unuse example/reduce-io-load/applications-virt
+    :ps:`$` module unuse example/reduce-io-load/libraries-virt
+    :ps:`$` module use example/reduce-io-load/applications
+    :ps:`$` module use example/reduce-io-load/libraries
+    :ps:`$` module config mcookie_check always
+    :ps:`$` module cachebuild
+    Creating :sgrhi:`example/reduce-io-load/libraries/.modulecache`
+    Creating :sgrhi:`example/reduce-io-load/applications/.modulecache`
+    :ps:`$` module config cache_buffer_bytes 1000000
+
+Once things are setup, new statistics are collected and compared between when
+cache is used or when it is ignored.
+
+.. parsed-literal::
+
+    :ps:`$` module -o "" avail -t | wc -l
+    116
+    :ps:`$` strace -f -c -S name -e trace=%file,%desc -U calls,errors,name \\
+        --silence=attach $MODULES_CMD bash avail 2>with_cache.out
+    :ps:`$` strace -f -c -S name -e trace=%file,%desc -U calls,errors,name \\
+        --silence=attach $MODULES_CMD bash avail --ignore-cache 2>no_cache.out
+    :ps:`$` ./icdiff --cols=76 no_cache.out with_cache.out
+    :sgrhi:`no_cache.out`                          :sgrhi:`with_cache.out`
+        calls    errors syscall               calls    errors syscall
+    --------- --------- ----------------  --------- --------- ----------------
+            :sgrb:`9`         2 access                   :sgra:`10`         2 access
+          :sgrb:`183`           :sgrhi:`close`                    :sgra:`29`           :sgrhi:`close`
+            2           dup2                      2           dup2
+            9         7 execve                    9         7 execve
+           :sgrb:`12`           fcntl                    :sgra:`15`           fcntl
+            1           getcwd                    1           getcwd
+           :sgrb:`64`           :sgrhi:`getdents64`
+           :sgrb:`12         7` ioctl                    :sgra:`15        10` ioctl
+            :sgrb:`9`         4 lseek                    :sgra:`10`         4 lseek
+           :sgrb:`37`           mmap                     :sgra:`38`           mmap
+          :sgrb:`221`         2 :sgrhi:`newfstatat`               :sgra:`30`         2 :sgrhi:`newfstatat`
+          :sgrb:`187`        10 :sgrhi:`openat`                   :sgra:`33`        10 :sgrhi:`openat`
+            2           pipe2                     2           pipe2
+           10           pread64                  10           pread64
+          :sgrb:`324`           :sgrhi:`read`                    :sgra:`209`           :sgrhi:`read`
+           :sgrb:`35        35` readlink                 :sgra:`54        54` readlink
+            1           unlink                    1           unlink
+           12           write                    12           write
+    --------- --------- ----------------  --------- --------- ----------------
+         :sgrb:`1130        67` :sgrhi:`total`                   :sgra:`480        89` :sgrhi:`total`
+
+When a cache is found, one file is read instead of checking all directories
+and files in modulepath directory. Only the modulefiles and directories that
+are not accessible for everyone are live checked after reading cache file to
+see if these elements are available to current user.
+
+It explains the significant I/O call drop that can be observed here. Some I/O
+calls are slightly higher due to the evaluation of module cache files.
+
+
 Wrap-up
 -------
 
-Combining all the 4 features detailed above leads to a significant drop in
-I/O operations. Almost all remaining I/O calls are made for the initialization
-of the :command:`module` command run.
+Combining all the 4 first features or last one detailed above leads to a
+significant drop in I/O operations. Almost all remaining I/O calls are made
+for the initialization of the :command:`module` command run.
 
 It is advised to run this recipe code on your setup to observe the I/O load
 gain you could obtain. As said earlier the less I/O operations there are, the

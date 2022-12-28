@@ -41,6 +41,8 @@ Modules 5.3.0 (not yet released)
   recorded in cache file. A *limited access* directive is recorded instead to
   indicate these modulefiles have to be tested and directories have to be
   walked down to determine what the running user can access.
+* Doc: update :ref:`reduce-io-load` cookbook recipe with module cache
+  description.
 
 
 .. _5.2 release notes:
