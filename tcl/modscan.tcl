@@ -18,6 +18,27 @@
 
 ##########################################################################
 
+# optimized variant command for scan mode: init entry in ModuleVariant array
+# to avoid variable being undefined when accessed during modulefile evaluation
+# record variant definition in structure for extra match search or report
+proc variant-sc {itrp args} {
+   # parse args
+   lassign [parseVariantCommandArgs {*}$args] name values defdflvalue\
+      dflvalue isboolean
+
+   # remove duplicate possible values for boolean variant
+   if {$isboolean} {
+      set values {on off}
+   }
+
+   lappend ::g_scanModuleVariant([currentState modulename]) [list $name\
+      $values]
+
+   # instantiate variant in modulefile context to an empty value
+   reportDebug "Set variant on $itrp: ModuleVariant($name) = ''"
+   $itrp eval set "{::ModuleVariant($name)}" "{}"
+}
+
 # determine if current module search requires an extra match search
 proc isExtraMatchSearchRequired {mod} {
    # an extra match search is required if:
