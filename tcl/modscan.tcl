@@ -18,6 +18,12 @@
 
 ##########################################################################
 
+# determine if current module search requires an extra match search
+proc isExtraMatchSearchRequired {mod} {
+   # an extra match search is required if:
+   # * variant should be reported in output
+   return [expr {[isEltInReport variant 0]}]
+}
 
 # ;;; Local Variables: ***
 # ;;; mode:tcl ***
