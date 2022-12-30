@@ -393,3 +393,5 @@ are skipped and reported with a warning notice.
 Reports a ``Deleting <modulepath>`` block header message for each cache file
 created or updated. This report is made when verbosity is set to ``normal``
 or higher mode.
+
+.. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
