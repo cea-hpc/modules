@@ -25,6 +25,28 @@ proc isExtraMatchSearchRequired {mod} {
    return [expr {[isEltInReport variant 0]}]
 }
 
+# perform extra match search on currently being built module search result
+proc filterExtraMatchSearch {mod res_arrname} {
+   # link to variables/arrays from upper context
+   upvar $res_arrname found_list
+
+   # evaluate all modules found in scan mode to gather content information
+   lappendState mode scan
+   foreach elt [array names found_list] {
+      switch -- [lindex $found_list($elt) 0] {
+         modulefile - virtual {
+            # skip evaluation of fully forbidden modulefile
+            if {![isModuleTagged $elt forbidden 0]} {
+               ##nagelfar ignore Suspicious variable name
+               execute-modulefile [lindex $found_list($elt) 2] $elt $elt $elt\
+                  0 0
+            }
+         }
+      }
+   }
+   lpopState mode
+}
+
 # ;;; Local Variables: ***
 # ;;; mode:tcl ***
 # ;;; End: ***
