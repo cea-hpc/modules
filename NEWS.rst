@@ -56,6 +56,21 @@ Modules 5.3.0 (not yet released)
 * Init: fix bash shell completion script to be able to complete full name of
   available modules. (fix issue #490)
 * Install: move licence name to SPDX format in RPM spec file.
+* Doc: add :ref:`extra-match-search` design notes.
+* Introduce *extra match search* mechanism that evaluates available
+  modulefiles during a module search to find those matching an extra query
+  on a variant value, a dependency or an environment variable definition.
+  During this specific evaluation, modulefiles are interpreted in *scan*
+  mode.
+* ``scan`` string is returned by :mfcmd:`module-info mode<module-info>` when
+  queried during a *scan* modulefile evaluation.
+* Add the ``variant`` element in the allowed value list of the
+  :mconfig:`avail_output` and :mconfig:`avail_terse_output` configuration
+  options. When set, variants and their possible values are reported along the
+  module they are associated to on :subcmd:`avail` command output. Adding
+  variant information to this output activates the *extra match search*
+  mechanism that scan modulefiles to find variants they define. (fix issue
+  #407)
 
 
 .. _5.2 release notes:
