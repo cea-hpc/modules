@@ -53,7 +53,7 @@ Specification
 
 - Accepted elements in value lists are:
 
-  - For ``avail`` options: modulepath, alias, dirwsym, sym, tag, key
+  - For ``avail`` options: modulepath, alias, dirwsym, sym, tag, key, variant
   - For ``list`` options: header, idx, variant, sym, tag, key
 
 - If the ``-o``/``--output`` options are wrongly specified
@@ -120,5 +120,12 @@ Output key
 
   - Key is reported at the end of the output
   - No key section is reported if no element need to be described (no color, no symbol, no tag, etc)
+
+- Variant keys are not adapted for ``avail`` output
+
+  - Even if all possible values are reported instead of the only one set
+  - Users should be able to understand ``name=val1,val2,...`` corresponds to
+    the ``name=value`` key entry
+  - Same applies to the shortcut variant key
 
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

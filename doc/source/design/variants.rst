@@ -608,10 +608,12 @@ Reporting
   - so it enables users to really catch what has been loaded exactly
   - They can be removed from output using the :ref:`output configuration<output-configuration>` mechanism
 
-- Variants defined by modulefiles are not reported currently on ``avail`` sub-command as it requires to evaluate the modulefiles
+- Variants defined by modulefiles may be reported on ``avail`` sub-command
 
-  - FUTURE: this could be implemented later on, but such evaluation of all modulefiles would be really expensive
-  - it will take a lot more time to get ``avail`` results (unless a valid cache is found)
+  - Not by default, if ``variant`` value is added to ``avail_output`` or ``avail_terse_output``
+  - It requires an :ref:`extra-match-search`
+  - Which in turns requires more processing time as modulefiles are evaluated
+  - Having cache file available helps to reduce the I/O load caused by such process
 
 - A specific color key is defined to highlight variants: ``va``
 
@@ -621,6 +623,16 @@ Reporting
   - boolean variant: ``+variant`` or ``-variant``
   - valued variant with shortcut set: ``<shortcut>value`` (for instance if ``%`` is a defined shortcut: ``%value``)
   - in case a shortcut is defined over a Boolean variant, Boolean report prevails over shortcut
+
+- On ``avail``, all possible values of variant are reported
+
+  - Values are separated from each other with ``,`` character
+  - Boolean variant are reported as valued variant with ``on`` and ``off`` values reported
+  - Example: ``mod/1.0{variant=val1,val2,boolvariant=on,off:%val1,val2}``
+  - A ``*`` value is reported in possible value list for free-value variant
+
+    - To indicate all values are possible
+    - Loaded variant value and default variant value are also reported if any
 
 - Variant aliases are not reported
 
