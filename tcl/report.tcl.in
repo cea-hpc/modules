@@ -1213,6 +1213,8 @@ proc reportModules {search_queries header hsgrkey hstyle show_mtime show_idx\
    # enable variant report if configured or on list json output
    set report_variant [isEltInReport variant [expr {[currentState\
       commandname] eq {list} && $json}]]
+   set collect_variant_from [expr {[currentState commandname] eq {avail} ?\
+      {2} : {0}}]
 
    # prepare list of tag abbreviations that can be substituted and list of
    # tags whose name should be colored
@@ -1231,7 +1233,8 @@ proc reportModules {search_queries header hsgrkey hstyle show_mtime show_idx\
    foreach elt [if {[llength $mod_list_order] == 0} {array names mod_list}\
       {set mod_list_order}] {
       if {$report_variant} {
-         set vr_list [getVariantList $elt [expr {$json ? 4 : 1}]]
+         set vr_list [getVariantList $elt [expr {$json ? 4 : 1}] 0\
+            $collect_variant_from]
       }
       set sym_list [getVersAliasList $elt]
       # fetch tags but clear excluded tag

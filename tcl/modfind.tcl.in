@@ -739,20 +739,39 @@ proc abbrevTagList {taglist} {
    return [lsort -dictionary $ret]
 }
 
-proc getVariantList {mod {report 0} {excl_dflval 0} {from_spec 0}} {
-   # fetch variants from module specification
-   if {$from_spec} {
-      set vrspeclist [getVariantListFromVersSpec $mod]
-   # or from variant set after module being loaded
-   } elseif {[info exists ::g_loadedModuleVariant($mod)]} {
-      set vrspeclist $::g_loadedModuleVariant($mod)
-   } else {
-      set vrspeclist {}
+proc getVariantList {mod {report 0} {excl_dflval 0} {from 0}} {
+   set vrspeclist {}
+   # fetch variant information from
+   switch -- $from {
+      0 {
+         # variant set after module being loaded
+         if {[info exists ::g_loadedModuleVariant($mod)]} {
+            set vrspeclist $::g_loadedModuleVariant($mod)
+         }
+      }
+      1 {
+         # module specification
+         set vrspeclist [getVariantListFromVersSpec $mod]
+      }
+      2 {
+         # variant definition collected during scan evaluation
+         if {[info exists ::g_scanModuleVariant($mod)]} {
+            set vrspeclist $::g_scanModuleVariant($mod)
+         }
+      }
    }
 
    # use array to make variant unique
    foreach vrspec $vrspeclist {
-      lassign $vrspec vrname vrvalue vrvalisbool vrvalisdfl
+      if {$from == 2} {
+         # report all available variant values on avail
+         lassign $vrspec vrname vrvalues
+         set vrvalue [join $vrvalues ,]
+         set vrvalisbool 0
+         set vrvalisdfl 0
+      } else {
+         lassign $vrspec vrname vrvalue vrvalisbool vrvalisdfl
+      }
       # correct is-default value if invalid
       if {![string is integer -strict $vrvalisdfl]} {
          set vrvalisdfl 0
