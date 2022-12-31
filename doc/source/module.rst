@@ -393,7 +393,7 @@ switches are accepted:
  does not matter.
 
  Accepted elements in *LIST* for :subcmd:`avail` sub-command are:
- *modulepath*, *alias*, *dirwsym*, *sym*, *tag* and *key*.
+ *modulepath*, *alias*, *dirwsym*, *sym*, *tag*, *key* and *variant*.
 
  Accepted elements in *LIST* for :subcmd:`list` sub-command are: *header*,
  *idx*, *variant*, *sym*, *tag* and *key*.
@@ -409,6 +409,9 @@ switches are accepted:
 
     .. versionchanged:: 4.8
        Element *variant* added for :subcmd:`list` sub-command
+
+    .. versionchanged:: 5.3
+       Element *variant* added for :subcmd:`avail` sub-command
 
 .. option:: --paginate
 
@@ -610,6 +613,10 @@ Module Sub-Commands
  :subcmd:`avail` sub-command are reported along the module name they are
  associated to (see `Module tags`_ section).
 
+ Module variants and their available values may be reported along the module
+ name they belong to (see `Module variants`_ section) if defined in avail
+ output configuration option (see :option:`--output`/:option:`-o`).
+
  A *Key* section is added at the end of the output in case some elements are
  reported in parentheses or chevrons along module name or if some graphical
  rendition is made over some output elements. This *Key* section gives hints
@@ -642,6 +649,10 @@ Module Sub-Commands
     .. versionchanged:: 4.7
        Option :option:`--output`/:option:`-o` added, compatible with regular
        and terse output modes
+
+    .. versionchanged:: 5.3
+       Module variants may be reported if defined in avail output
+       configuration
 
 .. subcmd:: cachebuild [modulepath...]
 
@@ -3549,6 +3560,8 @@ ENVIRONMENT
    modules found in them.
  * ``sym``: symbolic versions associated with available modules.
  * ``tag``: tags associated with available modules.
+ * ``variant``: variants and their possible values associated with available
+   modules.
 
  The order of the elements in the list does not matter. Module names are the
  only content reported when *LIST* is set to an empty value.
@@ -3565,6 +3578,9 @@ ENVIRONMENT
  .. only:: html
 
     .. versionadded:: 4.7
+
+    .. versionchanged:: 5.3
+       Element ``variant`` added
 
 .. envvar:: MODULES_AVAIL_TERSE_OUTPUT
 
@@ -3585,6 +3601,9 @@ ENVIRONMENT
  .. only:: html
 
     .. versionadded:: 4.7
+
+    .. versionchanged:: 5.3
+       Element ``variant`` added
 
 .. envvar:: MODULES_CACHE_BUFFER_BYTES
 
@@ -3970,6 +3989,9 @@ ENVIRONMENT
  .. only:: html
 
     .. versionadded:: 4.7
+
+    .. versionchanged:: 4.8
+       Element ``variant`` added
 
 .. envvar:: MODULES_MCOOKIE_CHECK
 

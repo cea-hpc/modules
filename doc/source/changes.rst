@@ -530,6 +530,11 @@ following Modules configuration option has been introduced on Modules 4.
 | 4.8        | :mconfig:`editor`, :mconfig:`variant_shortcut`                  |
 +------------+-----------------------------------------------------------------+
 
+:mconfig:`list_output`, :mconfig:`list_terse_output`
+
+ Starting version 4.8, element ``variant`` is added to the list of accepted
+ values. It is added to the default value list of :mconfig:`list_output`.
+
 
 .. _Modules 5 changes:
 
@@ -994,7 +999,7 @@ The following modulefile Tcl commands appeared on Modules 5.
  * the ``--unset-on-unload`` option is added to also unset variable when
    modulefile is unloaded.
 
-:mfcmd:`variant`
+:mfcmd:`getvariant`
 
  Starting version 5.1, the ``--return-value`` option is added to return
  variant value or its fallback when modulefile is evaluated in *display* mode.
@@ -1032,3 +1037,8 @@ The following Modules configuration option has been introduced on Modules 5.
 | 5.3        | :mconfig:`ignore_cache`, :mconfig:`cache_buffer_bytes`,         |
 |            | :mconfig:`cache_expiry_secs`                                    |
 +------------+-----------------------------------------------------------------+
+
+:mconfig:`avail_output`, :mconfig:`avail_terse_output`
+
+ Starting version 5.3, element ``variant`` is added to the list of accepted
+ values.

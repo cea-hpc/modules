@@ -716,9 +716,9 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
  Specify the content to report on avail sub-command regular output in addition
  to the available module names. Elements accepted in LIST are: ``modulepath``,
- ``alias``, ``dirwsym``, ``sym``, ``tag`` and ``key`` (elements in LIST are
- separated by ``:``). The order of the elements in LIST does not matter.
- (default=\ ``modulepath:alias:dirwsym:sym:tag:key``)
+ ``alias``, ``dirwsym``, ``sym``, ``tag``, ``key`` and ``variant`` (elements
+ in LIST are  separated by ``:``). The order of the elements in LIST does not
+ matter. (default=\ ``modulepath:alias:dirwsym:sym:tag:key``)
 
  This installation option defines the default value of the
  :mconfig:`avail_output` configuration option which could be changed after
@@ -728,13 +728,17 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
     .. versionadded:: 4.7
 
+    .. versionchanged:: 5.3
+       Element ``variant`` added
+
 .. instopt:: --with-avail-terse-output=LIST
 
  Specify the content to report on avail sub-command terse output in addition
  addition to the available module names. Elements accepted in LIST are:
- ``modulepath``, ``alias``, ``dirwsym``, ``sym``, ``tag`` and ``key`` (elements
- in LIST are separated by ``:``). The order of the elements in LIST does not
- matter. (default=\ ``modulepath:alias:dirwsym:sym:tag``)
+ ``modulepath``, ``alias``, ``dirwsym``, ``sym``, ``tag``, ``key`` and
+ ``variant`` (elements in LIST are separated by ``:``). The order of the
+ elements in LIST does not matter.
+ (default=\ ``modulepath:alias:dirwsym:sym:tag``)
 
  This installation option defines the default value of the
  :mconfig:`avail_terse_output` configuration option which could be changed
@@ -743,6 +747,9 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  .. only:: html
 
     .. versionadded:: 4.7
+
+    .. versionchanged:: 5.3
+       Element ``variant`` added
 
 .. instopt:: --with-bashcompletiondir=DIR
 
