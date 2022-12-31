@@ -639,7 +639,7 @@ the *modulefile* is being loaded.
   Returns ``1`` if :file:`modulecmd.tcl`'s mode is *modetype*. *modetype* can
   be: ``load``, ``unload``, ``remove`` (alias of ``unload``), ``switch``,
   ``refresh``, ``nonpersist`` (alias of ``refresh``), ``display``, ``help``,
-  ``test`` or ``whatis``.
+  ``test``, ``whatis`` or ``scan``.
 
  **module-info name**
 
