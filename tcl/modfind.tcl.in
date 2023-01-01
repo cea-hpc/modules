@@ -765,7 +765,7 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from 0}} {
    foreach vrspec $vrspeclist {
       if {$from == 2} {
          # report all available variant values on avail
-         lassign $vrspec vrname vrvalues
+         lassign $vrspec vrname vrvalues vrdefdflval vrdflval
          set vrvalisbool 0
          set vrvalisdfl 0
       } else {
@@ -797,6 +797,13 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from 0}} {
          }
       } else {
          if {$report == 7} {
+            # indicate what value in the list is the default one
+            if {[info exists vrdefdflval]} {
+               set vrdflidxarr($vrname) [expr {$vrdefdflval ? [lsearch -exact\
+                  $vrvalues $vrdflval] : {-1}}]
+            } else {
+               set vrdflidxarr($vrname) [expr {$vrvalisdfl ? {0} : {-1}}]
+            }
             if {$vrvalisbool} {
                set vrarr($vrname) $vrvalue
             } else {
@@ -857,13 +864,13 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from 0}} {
          7 {
             if {$vrisbool($vrname)} {
                if {$vrarr($vrname)} {
-                  lappend ret [list +$vrname]
+                  lappend ret [list {} [list +$vrname] $vrdflidxarr($vrname)]
                   # track if +var variant has been reported to build key
                   if {![info exists ::g_used_va(on)]} {
                      set ::g_used_va(on) 1
                   }
                } else {
-                  lappend ret [list -$vrname]
+                  lappend ret [list {} [list -$vrname] $vrdflidxarr($vrname)]
                   # track if -var variant has been reported to build key
                   if {![info exists ::g_used_va(off)]} {
                      set ::g_used_va(off) 1
@@ -874,14 +881,15 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from 0}} {
             } elseif {$report != 5 && [info exists\
                ::g_variantShortcut($vrname)]} {
                set sc $::g_variantShortcut($vrname)
-               lappend ret [list $sc $vrarr($vrname)]
+               lappend ret [list $sc $vrarr($vrname) $vrdflidxarr($vrname)]
                # track if variant shortcut has been reported to build key
                # unless if key should not be updated (report mode '6')
                if {$report != 6 && ![info exists ::g_used_va($sc)]} {
                   set ::g_used_va($sc) $vrname
                }
             } else {
-               lappend ret [list $vrname= $vrarr($vrname)]
+               lappend ret [list $vrname= $vrarr($vrname)\
+                  $vrdflidxarr($vrname)]
                # track if var=val variant has been reported to build key
                # unless if key should not be updated (report mode '6')
                if {$report != 6 && ![info exists ::g_used_va(val)]} {

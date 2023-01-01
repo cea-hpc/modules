@@ -1,7 +1,7 @@
 ##########################################################################
 
 # MODSCAN.TCL, modulefile scan and extra match search procedures
-# Copyright (C) 2022 Xavier Delaruelle
+# Copyright (C) 2022-2023 Xavier Delaruelle
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,10 +29,13 @@ proc variant-sc {itrp args} {
    # remove duplicate possible values for boolean variant
    if {$isboolean} {
       set values {on off}
+      if {$defdflvalue} {
+         set dflvalue [expr {$dflvalue ? {on} : {off}}]
+      }
    }
 
    lappend ::g_scanModuleVariant([currentState modulename]) [list $name\
-      $values]
+      $values $defdflvalue $dflvalue $isboolean]
 
    # instantiate variant in modulefile context to an empty value
    reportDebug "Set variant on $itrp: ModuleVariant($name) = ''"
