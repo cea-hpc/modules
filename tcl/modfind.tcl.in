@@ -3,7 +3,7 @@
 # MODFIND.TCL, available or loaded module find procedures
 # Copyright (C) 2002-2004 Mark Lakata
 # Copyright (C) 2004-2017 Kent Mein
-# Copyright (C) 2016-2022 Xavier Delaruelle
+# Copyright (C) 2016-2023 Xavier Delaruelle
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -766,11 +766,11 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from 0}} {
       if {$from == 2} {
          # report all available variant values on avail
          lassign $vrspec vrname vrvalues
-         set vrvalue [join $vrvalues ,]
          set vrvalisbool 0
          set vrvalisdfl 0
       } else {
          lassign $vrspec vrname vrvalue vrvalisbool vrvalisdfl
+         set vrvalues [list $vrvalue]
       }
       # correct is-default value if invalid
       if {![string is integer -strict $vrvalisdfl]} {
@@ -796,8 +796,14 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from 0}} {
             unset vrarr($vrname)
          }
       } else {
+         if {$report == 7} {
+            if {$vrvalisbool} {
+               set vrarr($vrname) $vrvalue
+            } else {
+               set vrarr($vrname) $vrvalues
+            }
          # is-default hint has to be transmitted on report mode '3'
-         if {$report == 3} {
+         } elseif {$report == 3} {
             set vrarr($vrname) [list $vrvalue [expr {$vrvalisdfl > 0 &&\
                $vrvalisdfl < 3}]]
          } else {
@@ -841,6 +847,41 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from 0}} {
                }
             } else {
                lappend ret $vrname=$vrarr($vrname)
+               # track if var=val variant has been reported to build key
+               # unless if key should not be updated (report mode '6')
+               if {$report != 6 && ![info exists ::g_used_va(val)]} {
+                  set ::g_used_va(val) 1
+               }
+            }
+         }
+         7 {
+            if {$vrisbool($vrname)} {
+               if {$vrarr($vrname)} {
+                  lappend ret [list +$vrname]
+                  # track if +var variant has been reported to build key
+                  if {![info exists ::g_used_va(on)]} {
+                     set ::g_used_va(on) 1
+                  }
+               } else {
+                  lappend ret [list -$vrname]
+                  # track if -var variant has been reported to build key
+                  if {![info exists ::g_used_va(off)]} {
+                     set ::g_used_va(off) 1
+                  }
+               }
+            # use defined shortcut to report if any set for this variant
+            # ignore shortcut if report=5 (when saving collection)
+            } elseif {$report != 5 && [info exists\
+               ::g_variantShortcut($vrname)]} {
+               set sc $::g_variantShortcut($vrname)
+               lappend ret [list $sc $vrarr($vrname)]
+               # track if variant shortcut has been reported to build key
+               # unless if key should not be updated (report mode '6')
+               if {$report != 6 && ![info exists ::g_used_va($sc)]} {
+                  set ::g_used_va($sc) $vrname
+               }
+            } else {
+               lappend ret [list $vrname= $vrarr($vrname)]
                # track if var=val variant has been reported to build key
                # unless if key should not be updated (report mode '6')
                if {$report != 6 && ![info exists ::g_used_va(val)]} {

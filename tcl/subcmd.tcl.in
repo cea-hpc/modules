@@ -985,7 +985,7 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
       # record module title (with the variant specified on load call, and no
       # tag list) prior module evaluation to get this title ready in case of
       # eval error
-      registerModuleDesignation $msgrecid $modname [getVariantList $mod 1 0\
+      registerModuleDesignation $msgrecid $modname [getVariantList $mod 7 0\
          1] {}
 
       pushSettings
@@ -1009,7 +1009,7 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
                if {$isloaded && $rettag != 2 && [isVerbosityLevel verbose2]} {
                   reportInfo "Module '$modname' is already loaded"
                   registerModuleDesignation $msgrecid $modname\
-                     [getVariantList $modname 1] [getExportTagList $modname]
+                     [getVariantList $modname 7] [getExportTagList $modname]
                   reportMsgRecord "Loading [getModuleDesignation $msgrecid {}\
                      2]"
                }
@@ -1206,7 +1206,7 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
 
          # record module title (name, variants and tags)
          registerModuleDesignation $msgrecid $modname [getVariantList\
-            $modname 1] [getExportTagList $modname]
+            $modname 7] [getExportTagList $modname]
 
          # consider evaluation hidden if hidden loaded module is auto loaded
          # and no specific messages are recorded for this evaluation
@@ -1299,7 +1299,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       # tag list) prior module evaluation to get this title ready in case of
       # eval error
       registerModuleDesignation $msgrecid $modname [getVariantList $modnamevr\
-         1 0 1] {}
+         7 0 1] {}
 
       # if a switch action is ongoing...
       if {[info exists swprocessing]} {
@@ -1357,7 +1357,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
 
       # record module title (name, variants and tags)
       registerModuleDesignation $msgrecid $modname [getVariantList $modname\
-         1] [getExportTagList $modname]
+         7] [getExportTagList $modname]
 
       pushSettings
       if {[set errCode [catch {
@@ -2491,7 +2491,8 @@ proc cmdModuleRefresh {} {
 
       # record module title (with the variants and tags of loaded module)
       # prior module evaluation to get this title ready in case of eval error
-      registerModuleDesignation $msgrecid $lm $vrlist $taglist
+      registerModuleDesignation $msgrecid $lm [getVariantList $lm 7]\
+         $taglist
 
       # run modulefile, restore settings prior evaluation if error and
       # continue to evaluate the remaining loaded modules
@@ -2574,7 +2575,7 @@ proc cmdModuleTag {unset_extra uasked tag_list args} {
          # record module title (with the variant but no tag list) prior
          # evaluation to get this title ready in case of error
          registerModuleDesignation $msgrecid $modname [getVariantList\
-            $modnamevr 1] {}
+            $modnamevr 7] {}
 
          lappendState mode unload
          # first unset tags declared for this module on LM env var
@@ -2631,7 +2632,7 @@ proc cmdModuleTag {unset_extra uasked tag_list args} {
 
          # update module designation now the additional tags are set
          registerModuleDesignation $msgrecid $modname [getVariantList\
-            $modname 1] [getExportTagList $modname]
+            $modname 7] [getExportTagList $modname]
          # report tagging evaluation unless hidden and auto-loaded
          set hidden [isModuleTagged $modnamevr hidden-loaded 1]
          reportMsgRecord "Tagging [getModuleDesignation $msgrecid {} 2]"\

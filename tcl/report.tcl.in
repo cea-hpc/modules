@@ -3,7 +3,7 @@
 # REPORT.TCL, output handling procedures
 # Copyright (C) 2002-2004 Mark Lakata
 # Copyright (C) 2004-2017 Kent Mein
-# Copyright (C) 2016-2022 Xavier Delaruelle
+# Copyright (C) 2016-2023 Xavier Delaruelle
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -787,12 +787,12 @@ proc getModuleDesignation {from {mod {}} {sgr 1}} {
    switch -- $from {
       spec {
          set moddesig [getModuleNameAndVersFromVersSpec $mod]
-         set vrlist [getVariantList $mod 1 0 1]
+         set vrlist [getVariantList $mod 7 0 1]
          set taglist {}
       }
       loaded {
          set moddesig $mod
-         set vrlist [getVariantList $mod 1]
+         set vrlist [getVariantList $mod 7]
          set taglist {}
       }
       default {
@@ -802,7 +802,7 @@ proc getModuleDesignation {from {mod {}} {sgr 1}} {
          # if not found, use passed spec to compute designation
          } else {
             set moddesig [getModuleNameAndVersFromVersSpec $mod]
-            set vrlist [getVariantList $mod 1 0 1]
+            set vrlist [getVariantList $mod 7 0 1]
             set taglist [getExportTagList $mod]
          }
       }
@@ -1020,19 +1020,28 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
 
    # format variant list if any
    if {$show_vrs && [llength $vr_list] > 0} {
-      append disp "{[join $vr_list :]}"
+      set commasgr [sgr se ,]
       set vrssgr "[sgr se \{]"
-      foreach vr $vr_list {
+      set vrs \{
+      foreach vrspec $vr_list {
+         lassign $vrspec vrnameset vrvalues
          if {[info exists notfirstvr]} {
             set colonsgr [sgr se :]
             append vrssgr $colonsgr
+            append vrs :
          } else {
             set notfirstvr 1
          }
-         append vrssgr [sgr $vrsgr $vr]
+         append vrssgr [sgr $vrsgr $vrnameset[lindex $vrvalues 0]]
+         foreach vrvalue [lrange $vrvalues 1 end] {
+            append vrssgr $commasgr[sgr $vrsgr $vrvalue]
+         }
+         append vrs $vrnameset[join $vrvalues :]
       }
       append vrssgr [sgr se \}]
+      append vrs \}
       append dispsgr $vrssgr
+      append disp $vrs
    }
 
    # format remaining sym list
@@ -1233,7 +1242,7 @@ proc reportModules {search_queries header hsgrkey hstyle show_mtime show_idx\
    foreach elt [if {[llength $mod_list_order] == 0} {array names mod_list}\
       {set mod_list_order}] {
       if {$report_variant} {
-         set vr_list [getVariantList $elt [expr {$json ? 4 : 1}] 0\
+         set vr_list [getVariantList $elt [expr {$json ? 4 : 7}] 0\
             $collect_variant_from]
       }
       set sym_list [getVersAliasList $elt]
