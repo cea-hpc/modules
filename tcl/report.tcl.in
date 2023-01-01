@@ -1024,13 +1024,19 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
       set vrssgr "[sgr se \{]"
       set vrs \{
       foreach vrspec $vr_list {
-         lassign $vrspec vrnameset vrvalues vrdflidx
+         lassign $vrspec vrnameset vrvalues vrdflidx vrloadedidx
+         array unset vrvalsgridx
+         # apply sgr to default and loaded variant value
          if {$vrdflidx != -1} {
-            # apply sgr to default variant value
-            set vrsgrvalues [lreplace $vrvalues $vrdflidx $vrdflidx [sgr de\
-               [lindex $vrvalues $vrdflidx]]]
-         } else {
-            set vrsgrvalues $vrvalues
+            lappend vrvalsgridx($vrdflidx) de
+         }
+         if {$vrloadedidx != -1} {
+            lappend vrvalsgridx($vrloadedidx) L
+         }
+         set vrsgrvalues $vrvalues
+         foreach vrvalidx [array names vrvalsgridx] {
+            lset vrsgrvalues $vrvalidx [sgr $vrvalsgridx($vrvalidx) [lindex\
+               $vrvalues $vrvalidx]]
          }
          if {[info exists notfirstvr]} {
             set colonsgr [sgr se :]
