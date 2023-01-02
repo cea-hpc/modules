@@ -71,6 +71,10 @@ Modules 5.3.0 (not yet released)
   variant information to this output activates the *extra match search*
   mechanism that scan modulefiles to find variants they define. (fix issue
   #407)
+* Apply graphic rendition of default version (``de`` SGR key) to default
+  variant value on either :subcmd:`list` and :subcmd:`avail` command output.
+* Apply either loaded or auto-loaded graphic rendition to the loaded variant
+  value on :subcmd:`avail` command output.
 
 
 .. _5.2 release notes:
