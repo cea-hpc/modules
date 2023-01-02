@@ -741,6 +741,7 @@ proc abbrevTagList {taglist} {
 
 proc getVariantList {mod {report 0} {excl_dflval 0} {from 0}} {
    set vrspeclist {}
+   set loadedsgrkey {}
    # fetch variant information from
    switch -- $from {
       0 {
@@ -766,6 +767,12 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from 0}} {
                   set lovrvalue [expr {$lovrvalue ? {on} : {off}}]
                }
                set lovrarr($lovrname) $lovrvalue
+            }
+            # get sgr key corresponding to loaded tag (if tag reported)
+            if {$report == 7 && [isEltInReport tag]} {
+               set loadedkind [expr {[isModuleTagged $mod auto-loaded 1] ?\
+                  {auto-loaded} : {loaded}}]
+               lassign [abbrevTagList [list $loadedkind]] loadedsgrkey
             }
          }
       }
@@ -880,14 +887,14 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from 0}} {
             if {$vrisbool($vrname)} {
                if {$vrarr($vrname)} {
                   lappend ret [list {} [list +$vrname] $vrdflidxarr($vrname)\
-                     $vrloidxarr($vrname)]
+                     $vrloidxarr($vrname) $loadedsgrkey]
                   # track if +var variant has been reported to build key
                   if {![info exists ::g_used_va(on)]} {
                      set ::g_used_va(on) 1
                   }
                } else {
                   lappend ret [list {} [list -$vrname] $vrdflidxarr($vrname)\
-                     $vrloidxarr($vrname)]
+                     $vrloidxarr($vrname) $loadedsgrkey]
                   # track if -var variant has been reported to build key
                   if {![info exists ::g_used_va(off)]} {
                      set ::g_used_va(off) 1
@@ -899,7 +906,7 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from 0}} {
                ::g_variantShortcut($vrname)]} {
                set sc $::g_variantShortcut($vrname)
                lappend ret [list $sc $vrarr($vrname) $vrdflidxarr($vrname)\
-                  $vrloidxarr($vrname)]
+                  $vrloidxarr($vrname) $loadedsgrkey]
                # track if variant shortcut has been reported to build key
                # unless if key should not be updated (report mode '6')
                if {$report != 6 && ![info exists ::g_used_va($sc)]} {
@@ -907,7 +914,7 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from 0}} {
                }
             } else {
                lappend ret [list $vrname= $vrarr($vrname)\
-                  $vrdflidxarr($vrname) $vrloidxarr($vrname)]
+                  $vrdflidxarr($vrname) $vrloidxarr($vrname) $loadedsgrkey]
                # track if var=val variant has been reported to build key
                # unless if key should not be updated (report mode '6')
                if {$report != 6 && ![info exists ::g_used_va(val)]} {
