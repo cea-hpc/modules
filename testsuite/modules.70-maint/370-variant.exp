@@ -200,6 +200,65 @@ testouterr_cmd_re sh {list --color=always} OK "$cur_loaded
 Key:
 [sgr 2]{[sgr 22][sgr 33]-variant[sgr 0][sgr 2]}[sgr 22]=[sgr 2]{[sgr 22][sgr 33]variant=off[sgr 0][sgr 2]}[sgr 22]  [sgr 2]{[sgr 22][sgr 33]variant=value[sgr 0][sgr 2]}[sgr 22]  "
 
+# color output with default variant
+setenv_var MODULES_COLORS "se=2:va=33:de=4:aL=100:L=90"
+setenv_var __MODULES_LMVARIANT variant/1.0&foo|val1|0|1
+
+# valued variant value is default, module is loaded, key is reported
+set tserr "$cur_loaded
+ 1\\) variant/1.0[sgr 2]{[sgr 22][sgr 33]foo=[sgr 4]val1[sgr 0][sgr 0][sgr 2]}[sgr 22]  
+
+Key:
+[sgr 4]default-version[sgr 0]  [sgr 2]{[sgr 22][sgr 33]variant=value[sgr 0][sgr 2]}[sgr 22]  "
+testouterr_cmd_re sh {list --color=always} OK $tserr
+# valued variant value is default automatically set, module is loaded, key is reported
+setenv_var __MODULES_LMVARIANT variant/1.0&foo|val1|0|2
+testouterr_cmd_re sh {list --color=always} OK $tserr
+# valued variant value is default, module is auto-loaded, key is reported
+setenv_var __MODULES_LMVARIANT variant/1.0&foo|val1|0|1
+setenv_var __MODULES_LMTAG variant/1.0&auto-loaded
+set tserr "$cur_loaded
+ 1\\) [sgr 100]variant/1.0[sgr 0][sgr 2]{[sgr 22][sgr 33]foo=[sgr 4]val1[sgr 0][sgr 0][sgr 2]}[sgr 22]  
+
+Key:
+[sgr 4]default-version[sgr 0]  [sgr 100]auto-loaded[sgr 0]  [sgr 2]{[sgr 22][sgr 33]variant=value[sgr 0][sgr 2]}[sgr 22]  "
+testouterr_cmd_re sh {list --color=always} OK $tserr
+# valued variant value containing space is default, module is loaded, no key reported
+setenv_var __MODULES_LMVARIANT {variant/1.0&foo|val1 |0|1}
+unsetenv_var __MODULES_LMTAG
+set tserr "$cur_loaded
+ 1\\) variant/1.0[sgr 2]{[sgr 22][sgr 33]foo=[sgr 4]val1 [sgr 0][sgr 0][sgr 2]}[sgr 22]  "
+testouterr_cmd_re sh {list --color=always -o header:idx:variant:sym:tag} OK $tserr
+# valued variant value is not default, module is loaded, no key reported
+setenv_var __MODULES_LMVARIANT {variant/1.0&foo|val1|0|0}
+set tserr "$cur_loaded
+ 1\\) variant/1.0[sgr 2]{[sgr 22][sgr 33]foo=val1[sgr 0][sgr 2]}[sgr 22]  "
+testouterr_cmd_re sh {list --color=always -o header:idx:variant:sym:tag} OK $tserr
+
+# shortcut variant value is default, module is loaded, key is reported
+# shortcut variant value is default, module is auto-loaded, key is reported
+setenv_var __MODULES_LMTAG variant/1.0&auto-loaded
+unsetenv_var __MODULES_LMTAG
+
+# boolean variant value is default, module is loaded, key is reported
+setenv_var __MODULES_LMVARIANT {variant/1.0&foo|1|1|1}
+set tserr "$cur_loaded
+ 1\\) variant/1.0[sgr 2]{[sgr 22][sgr 33][sgr 4]\\+foo[sgr 0][sgr 0][sgr 2]}[sgr 22]  
+
+Key:
+[sgr 4]default-version[sgr 0]  [sgr 2]{[sgr 22][sgr 33]\\+variant[sgr 0][sgr 2]}[sgr 22]=[sgr 2]{[sgr 22][sgr 33]variant=on[sgr 0][sgr 2]}[sgr 22]  [sgr 2]{[sgr 22][sgr 33]variant=value[sgr 0][sgr 2]}[sgr 22]  "
+testouterr_cmd_re sh {list --color=always} OK $tserr
+# boolean variant value is default, module is auto-loaded, key is reported
+setenv_var __MODULES_LMVARIANT {variant/1.0&foo|0|1|2}
+setenv_var __MODULES_LMTAG variant/1.0&auto-loaded
+set tserr "$cur_loaded
+ 1\\) [sgr 100]variant/1.0[sgr 0][sgr 2]{[sgr 22][sgr 33][sgr 4]-foo[sgr 0][sgr 0][sgr 2]}[sgr 22]  
+
+Key:
+[sgr 4]default-version[sgr 0]  [sgr 100]auto-loaded[sgr 0]  [sgr 2]{[sgr 22][sgr 33]-variant[sgr 0][sgr 2]}[sgr 22]=[sgr 2]{[sgr 22][sgr 33]variant=off[sgr 0][sgr 2]}[sgr 22]  [sgr 2]{[sgr 22][sgr 33]variant=value[sgr 0][sgr 2]}[sgr 22]  "
+testouterr_cmd_re sh {list --color=always} OK $tserr
+unsetenv_var __MODULES_LMTAG
+
 unsetenv_var __MODULES_LMVARIANT
 unsetenv_loaded_module
 
