@@ -785,6 +785,19 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from 0}} {
          lassign $vrspec vrname vrvalues vrdefdflval vrdflval
          set vrvalisbool 0
          set vrvalisdfl 0
+         # build value list to output for free-variant value
+         if {[llength $vrvalues] == 0} {
+            # if module is loaded, add loaded variant value
+            if {[info exists lovrarr($vrname)]} {
+               lappend vrvalues $lovrarr($vrname)
+            }
+            # if a default value is defined, add it to possible value list
+            if {$vrdefdflval && $vrdflval ni $vrvalues} {
+               lappend vrvalues $vrdflval
+            }
+            # indicate on free-value variant that all values are possible
+            lappend vrvalues *
+         }
       } else {
          lassign $vrspec vrname vrvalue vrvalisbool vrvalisdfl
          set vrvalues [list $vrvalue]
