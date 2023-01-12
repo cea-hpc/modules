@@ -1,0 +1,556 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.51-scan/%M%
+#   Revision:		%I%
+#   First Edition:	2022/01/08
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		avail
+#   Modulefiles:    variant
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Tests avail output with variant reported
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.3
+set mpre $modpathre.3
+setenv_path_var MODULEPATH $mp
+
+# ensure advanced version specifiers are enabled
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+
+#
+# regular global tests
+#
+
+setenv_var TESTSUITE_VARIANT 13
+
+set tserr "variant/1.0{bar=val1,val2,val3:foo=val1}
+variant/2.0{foo=val1}
+variant/2.1/2/1
+variant/3.0{bar=val1,val2}
+variant/4.0
+variant/5.0
+variant/5.1{foo=val1,val2,val3}
+variant/6.0
+variant/7.0{foo=val1,val2,val3}
+variant/7.1
+variant/8.0
+'variant/w s'"
+testouterr_cmd sh {avail -t -o variant variant} OK $tserr
+
+set tserr "advvers/1.0        keep/1.0             modbad/stashpop          reset/2                                   
+advvers2/1.0       keep/2.0             modbad/stashrm           source-sh/conda                           
+advvers2/1.1       key/1.0              modbad/stashshow         source-sh/openfoam                        
+advvers2/2.0       key/2.0              modbad/state             source-sh/spack                           
+advvers2/2.2       key/4.0              noglobeval/1.0           sticky/1.0                                
+advvers2/2.8       lcompat/1.0          notreq/load              sticky/2.0                                
+advvers2/2.10      lcompat/1.1          notreq/loadany           sticky/3.0                                
+advvers2/3.7       lcompat/1.2          notreq/loadanymul        sticky/4.0                                
+advvers2/4.2       lcompat/1.3          notreq/loaderr           stickysub/dir1/1.0                        
+advvers2/foo       lcompat/1.4          notreq/loadmul           stickysub/dir1/2.0                        
+bar/1.0            lcompat/1.5          notreq/loadsubm          stickysub/dir2/3.0                        
+bar/2.0            lcompat/1.6          notreq/loadsubp          stickysub/dir2/4.0                        
+baz/1.0            lcompat/1.7          notreq/loadunk           tag/1.0                                   
+baz/2.0            lcompat/1.8          notreq/mix               tag/2.0                                   
+complete/1.0       lcompat/1.9/1.9      notreq/prereq            tag/4.0                                   
+complete/1.1       lcompat/1.9/2.0      notreq/switch1           tag/5.0                                   
+complete/1.2       lcompat/1.10         notreq/switch1err        tag/6.0                                   
+complete/2.0       lcompat/1.11         notreq/switch1unk        tag/7.0                                   
+flatlcompat        lcompat/2.0          notreq/switch2           tag/8.0                                   
+foo/0.2            lcompatdep/1.4       notreq/switchsubm        tag/9.0                                   
+foo/0.err          lcompatdep/2.0       notreq/switchsubp        tryload/1.0                               
+foo/0.load         lint/1.0             notreq/tryload           tryload/2.0                               
+foo/0.prereq       lint/1.1             notreq/tryloadmul        unsetenv/2.0                              
+foo/1.0            lint/1.2             notreq/unload            var=val                                   
+foo/2.0            lint/1.3             notreq/unloaderr         variant/1.0{bar=val1,val2,val3:foo=val1}  
+impreq/load        lint/1.4             notreq/unloadmul         variant/2.0{foo=val1}                     
+impreq/loaderr     lint/2.0             notreq/use               variant/2.1/2/1                           
+impreq/loadmul     list/1.0             optional/1.0             variant/3.0{bar=val1,val2}                
+impreq/loadsubm    list/2.0             optional/2.0             variant/4.0                               
+impreq/loadsubp    loadany/1.0          output/1.0               variant/5.0                               
+impreq/loadunk     loadany/2.0          path-cmd-opt/1.0         variant/5.1{foo=val1,val2,val3}           
+impreq/mix         mfvar/1.0            path-cmd-opt/1.1         variant/6.0                               
+impreq/prereq      mfvar/2.0            path-cmd-opt/1.2         variant/7.0{foo=val1,val2,val3}           
+impreq/switch1     mfvar/Modules/5.2.0  path-cmd-opt/1.3         variant/7.1                               
+impreq/switch1err  mod-to-sh/1.0        path-cmd-opt/1.4         variant/8.0                               
+impreq/switch1unk  mod-to-sh/1.1        path-cmd-opt/1.5         'variant/w s'                             
+impreq/switch2     mod-to-sh/2.0        path-cmd-opt/2.0         versioncmp/1.0                            
+impreq/switchsubm  modbad/cachebuild    protect/1.0              vrreq1/1.0{foo=val1,val2,val3}            
+impreq/switchsubp  modbad/cacheclear    protect/2.0              vrreq1/2.0{foo=val1,val2,val3}            
+impreq/unload      modbad/lint          puts/prestdout           'vrreq1/w s'                              
+impreq/unloaderr   modbad/mod-to-sh     refresh/1.0              vrreq2/1.0{bar=0,1,2:foo=val1,val2,val3}  
+impreq/unloadmul   modbad/refresh       refresh/2.0{foo=on,off}  vrreq2/2.0{bar=0,1,2:foo=val1,val2,val3}  
+info/tags          modbad/reset         refresh/3.0              'vrreq2/w s'                              
+info/tags2         modbad/source        refresh/4.0              vrreq3/1.0{bar=0,1,2:foo=val1,val2,val3}  
+interp/0           modbad/stash         refresh/5.0              vrreq3/2.0{bar=0,1,2:foo=val1,val2,val3}  
+interp/1           modbad/stashclear    refresh/6.0              vrreq4/1.0{bar=0,1,2:foo=val1,val2,val3}  
+interp/2           modbad/stashlist     reset/1                  vrreq4/2.0{bar=0,1,2:foo=val1,val2,val3}  "
+testouterr_cmd sh {avail -w 120 -o variant} OK $tserr
+
+setenv_var MODULES_AVAIL_OUTPUT variant
+testouterr_cmd sh {avail -w 120} OK $tserr
+
+#
+# terse tests
+#
+
+set tserr "advvers/1.0
+advvers2/1.0
+advvers2/1.1
+advvers2/2.0
+advvers2/2.2
+advvers2/2.8
+advvers2/2.10
+advvers2/3.7
+advvers2/4.2
+advvers2/foo
+bar/1.0
+bar/2.0
+baz/1.0
+baz/2.0
+complete/1.0
+complete/1.1
+complete/1.2
+complete/2.0
+flatlcompat
+foo/0.2
+foo/0.err
+foo/0.load
+foo/0.prereq
+foo/1.0
+foo/2.0
+impreq/load
+impreq/loaderr
+impreq/loadmul
+impreq/loadsubm
+impreq/loadsubp
+impreq/loadunk
+impreq/mix
+impreq/prereq
+impreq/switch1
+impreq/switch1err
+impreq/switch1unk
+impreq/switch2
+impreq/switchsubm
+impreq/switchsubp
+impreq/unload
+impreq/unloaderr
+impreq/unloadmul
+info/tags
+info/tags2
+interp/0
+interp/1
+interp/2
+keep/1.0
+keep/2.0
+key/1.0
+key/2.0
+key/4.0
+lcompat/1.0
+lcompat/1.1
+lcompat/1.2
+lcompat/1.3
+lcompat/1.4
+lcompat/1.5
+lcompat/1.6
+lcompat/1.7
+lcompat/1.8
+lcompat/1.9/1.9
+lcompat/1.9/2.0
+lcompat/1.10
+lcompat/1.11
+lcompat/2.0
+lcompatdep/1.4
+lcompatdep/2.0
+lint/1.0
+lint/1.1
+lint/1.2
+lint/1.3
+lint/1.4
+lint/2.0
+list/1.0
+list/2.0
+loadany/1.0
+loadany/2.0
+mfvar/1.0
+mfvar/2.0
+mfvar/Modules/5.2.0
+mod-to-sh/1.0
+mod-to-sh/1.1
+mod-to-sh/2.0
+modbad/cachebuild
+modbad/cacheclear
+modbad/lint
+modbad/mod-to-sh
+modbad/refresh
+modbad/reset
+modbad/source
+modbad/stash
+modbad/stashclear
+modbad/stashlist
+modbad/stashpop
+modbad/stashrm
+modbad/stashshow
+modbad/state
+noglobeval/1.0
+notreq/load
+notreq/loadany
+notreq/loadanymul
+notreq/loaderr
+notreq/loadmul
+notreq/loadsubm
+notreq/loadsubp
+notreq/loadunk
+notreq/mix
+notreq/prereq
+notreq/switch1
+notreq/switch1err
+notreq/switch1unk
+notreq/switch2
+notreq/switchsubm
+notreq/switchsubp
+notreq/tryload
+notreq/tryloadmul
+notreq/unload
+notreq/unloaderr
+notreq/unloadmul
+notreq/use
+optional/1.0
+optional/2.0
+output/1.0
+path-cmd-opt/1.0
+path-cmd-opt/1.1
+path-cmd-opt/1.2
+path-cmd-opt/1.3
+path-cmd-opt/1.4
+path-cmd-opt/1.5
+path-cmd-opt/2.0
+protect/1.0
+protect/2.0
+puts/prestdout
+refresh/1.0
+refresh/2.0{foo=on,off}
+refresh/3.0
+refresh/4.0
+refresh/5.0
+refresh/6.0
+reset/1
+reset/2
+source-sh/conda
+source-sh/openfoam
+source-sh/spack
+sticky/1.0
+sticky/2.0
+sticky/3.0
+sticky/4.0
+stickysub/dir1/1.0
+stickysub/dir1/2.0
+stickysub/dir2/3.0
+stickysub/dir2/4.0
+tag/1.0
+tag/2.0
+tag/4.0
+tag/5.0
+tag/6.0
+tag/7.0
+tag/8.0
+tag/9.0
+tryload/1.0
+tryload/2.0
+unsetenv/2.0
+var=val
+variant/1.0{bar=val1,val2,val3:foo=val1}
+variant/2.0{foo=val1}
+variant/2.1/2/1
+variant/3.0{bar=val1,val2}
+variant/4.0
+variant/5.0
+variant/5.1{foo=val1,val2,val3}
+variant/6.0
+variant/7.0{foo=val1,val2,val3}
+variant/7.1
+variant/8.0
+'variant/w s'
+versioncmp/1.0
+vrreq1/1.0{foo=val1,val2,val3}
+vrreq1/2.0{foo=val1,val2,val3}
+'vrreq1/w s'
+vrreq2/1.0{bar=0,1,2:foo=val1,val2,val3}
+vrreq2/2.0{bar=0,1,2:foo=val1,val2,val3}
+'vrreq2/w s'
+vrreq3/1.0{bar=0,1,2:foo=val1,val2,val3}
+vrreq3/2.0{bar=0,1,2:foo=val1,val2,val3}
+vrreq4/1.0{bar=0,1,2:foo=val1,val2,val3}
+vrreq4/2.0{bar=0,1,2:foo=val1,val2,val3}"
+testouterr_cmd sh {avail -t -o variant} OK $tserr
+
+setenv_var MODULES_AVAIL_TERSE_OUTPUT variant
+testouterr_cmd sh {avail -t} OK $tserr
+
+#
+# no-indepth tests
+#
+
+set tserr "advvers/
+advvers2/
+bar/
+baz/
+complete/
+flatlcompat
+foo/
+impreq/
+info/
+interp/
+keep/
+key/
+lcompat/
+lcompatdep/
+lint/
+list/
+loadany/
+mfvar/
+mod-to-sh/
+modbad/
+noglobeval/
+notreq/
+optional/
+output/
+path-cmd-opt/
+protect/
+puts/
+refresh/
+reset/
+source-sh/
+sticky/
+stickysub/
+tag/
+tryload/
+unsetenv/
+var=val
+variant/
+versioncmp/
+vrreq1/
+vrreq2/
+vrreq3/
+vrreq4/"
+testouterr_cmd sh {avail -t --no-indepth} OK $tserr
+
+set tserr "variant/1.0{bar=val1,val2,val3:foo=val1}
+variant/2.0{foo=val1}
+variant/2.1/
+variant/3.0{bar=val1,val2}
+variant/4.0
+variant/5.0
+variant/5.1{foo=val1,val2,val3}
+variant/6.0
+variant/7.0{foo=val1,val2,val3}
+variant/7.1
+variant/8.0
+'variant/w s'"
+testouterr_cmd sh {avail -t --no-indepth variant/} OK $tserr
+
+
+#
+# JSON tests
+#
+
+setenv_var TESTSUITE_VARIANT 13
+
+set tserr "{\"$mp\": {
+\"variant/6.0\": { \"name\": \"variant/6.0\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/6.0\"},
+\"variant/5.1\": { \"name\": \"variant/5.1\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/5.1\"},
+\"variant/7.0\": { \"name\": \"variant/7.0\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/7.0\"},
+\"variant/7.1\": { \"name\": \"variant/7.1\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/7.1\"},
+\"variant/8.0\": { \"name\": \"variant/8.0\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/8.0\"},
+\"variant/w s\": { \"name\": \"variant/w s\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/w s\"},
+\"variant/1.0\": { \"name\": \"variant/1.0\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/1.0\"},
+\"variant/2.0\": { \"name\": \"variant/2.0\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/2.0\"},
+\"variant/3.0\": { \"name\": \"variant/3.0\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/3.0\"},
+\"variant/2.1/2/1\": { \"name\": \"variant/2.1/2/1\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/2.1/2/1\"},
+\"variant/4.0\": { \"name\": \"variant/4.0\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/4.0\"},
+\"variant/5.0\": { \"name\": \"variant/5.0\", \"type\": \"modulefile\", \"symbols\": \[\], \"tags\": \[\], \"pathname\": \"$mp/variant/5.0\"}
+}}"
+testouterrjson_cmd sh {avail -j variant} OK $tserr
+
+set tserr "{\"errors\": \[
+{ \"severity\": \"ERROR\", \"message\": \[ \"Unsupported option '-o' on json output mode\" \] } \]
+}"
+testouterr_cmd sh {avail -j -o variant variant} ERR $tserr
+
+unsetenv_var TESTSUITE_VARIANT
+
+
+#
+# hidden tests
+#
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+setenv_var MODULES_AVAIL_TERSE_OUTPUT alias:dirwsym:sym:tag:variant
+
+setenv_var TESTSUITE_AVAIL hidden1
+
+set tserr "variant1/1.1{bar=on,off:foo=val1,val2,val3}
+variant1/2.0{bar=variant1/2.0:foo=*}
+variant1/2.1{bar=variant1/2.1:foo=*}"
+testouterr_cmd sh {avail -t variant1} OK $tserr
+
+set tserr "variant1/1.0{bar=on,off:foo=val1,val2,val3} <H>
+variant1/1.1{bar=on,off:foo=val1,val2,val3}
+variant1/2.0{bar=variant1/2.0:foo=*}
+variant1/2.1{bar=variant1/2.1:foo=*}"
+testouterr_cmd sh {avail -t -a variant1} OK $tserr
+
+
+#
+# forbidden tests
+#
+
+setenv_var TESTSUITE_AVAIL forbidden1
+
+set tserr "variant1/1.0 <F>
+variant1/1.1{bar=on,off:foo=val1,val2,val3}
+variant1/2.0{bar=variant1/2.0:foo=*}
+variant1/2.1{bar=variant1/2.1:foo=*}"
+testouterr_cmd sh {avail -t variant1} OK $tserr
+testouterr_cmd sh {avail -t -a variant1} OK $tserr
+
+setenv_var TESTSUITE_AVAIL forbidden2
+set tserr "variant1/1.0 <F>
+variant1/1.1 <F>
+variant1/2.0 <F>
+variant1/2.1 <F>"
+testouterr_cmd sh {avail -t variant1} OK $tserr
+
+setenv_var TESTSUITE_AVAIL forbidden3
+set tserr "variant1/1.0{bar=on,off:foo=val1,val2,val3}
+variant1/1.1{bar=on,off:foo=val1,val2,val3}
+variant1/2.0{bar=variant1/2.0:foo=*}
+variant1/2.1{bar=variant1/2.1:foo=*}"
+testouterr_cmd sh {avail -t variant1} OK $tserr
+
+
+#
+# special character in variant value
+#
+
+setenv_var TESTSUITE_AVAIL specialchar1
+
+set tserr "variant1/1.0{foo=v:l,*}  variant1/2.0{bar=v l,v l e,v:l:foo=*}  
+variant1/1.1{foo=v:l,*}  variant1/2.1{bar=v l,v l e,v:l:foo=*}  "
+testouterr_cmd sh {avail -w 120 variant1} OK $tserr
+
+set tserr "variant1/1.0{foo=v:l,*}
+variant1/1.1{foo=v:l,*}
+variant1/2.0{bar=v l,v l e,v:l:foo=*}
+variant1/2.1{bar=v l,v l e,v:l:foo=*}"
+testouterr_cmd sh {avail -t variant1} OK $tserr
+
+
+#
+# dynamic definition of variants based on environment variables
+#
+
+setenv_var TESTSUITE_AVAIL dyndef1
+
+setenv_var TESTSUITE_DYNDEF {val1 val2}
+set tserr "variant1/2.0{foo=val1,val2}"
+testouterr_cmd sh {avail -t variant1/2.0} OK $tserr
+unsetenv_var TESTSUITE_DYNDEF
+
+setenv_var TESTSUITE_AVAIL dyndef2
+set tserr "variant1/2.0{bar=val1,val2:foo=val1,val2}"
+testouterr_cmd sh {avail -t variant1/2.0} OK $tserr
+
+setenv_var TESTSUITE_AVAIL dyndef3
+set tserr "variant1/2.0{bar=*:foo=*}"
+testouterr_cmd sh {avail -t variant1/2.0} OK $tserr
+
+setenv_var TESTSUITE_DYNDEF1 {val1 val2}
+setenv_var TESTSUITE_DYNDEF2 {val1 val2}
+set tserr "variant1/2.0{bar=val1,val2:foo=val1,val2}"
+testouterr_cmd sh {avail -t variant1/2.0} OK $tserr
+unsetenv_var TESTSUITE_DYNDEF1
+unsetenv_var TESTSUITE_DYNDEF2
+
+setenv_var TESTSUITE_AVAIL dyndef4
+set tserr "variant1/2.0{bar=*:foo=*}"
+testouterr_cmd sh {avail -t variant1/2.0} OK $tserr
+
+setenv_var TESTSUITE_DYNDEF1 {val1 val2}
+setenv_var TESTSUITE_DYNDEF2 {val1 val2}
+set tserr "variant1/2.0{bar=val1,val2:foo=val1,val2}"
+testouterr_cmd sh {avail -t variant1/2.0} OK $tserr
+unsetenv_var TESTSUITE_DYNDEF1
+unsetenv_var TESTSUITE_DYNDEF2
+
+setenv_var TESTSUITE_AVAIL dyndef5
+set tserr "variant1/2.0{bar=*:foo=*}"
+testouterr_cmd sh {avail -t variant1/2.0} OK $tserr
+
+setenv_var TESTSUITE_DYNDEF1 {val1 val2}
+setenv_var TESTSUITE_DYNDEF2 {val1 val2}
+set tserr "variant1/2.0{bar=val1,val2:foo=val1,val2}"
+testouterr_cmd sh {avail -t variant1/2.0} OK $tserr
+unsetenv_var TESTSUITE_DYNDEF1
+unsetenv_var TESTSUITE_DYNDEF2
+
+setenv_var TESTSUITE_AVAIL dyndef6
+set tserr "variant1/2.0{bar=*:foo=*}"
+testouterr_cmd sh {avail -t variant1/2.0} OK $tserr
+
+setenv_var TESTSUITE_DYNDEF1 {val1 val2}
+setenv_var TESTSUITE_DYNDEF2 {val1 val2}
+set tserr "variant1/2.0{bar=val1,val2:foo=val1,val2}"
+testouterr_cmd sh {avail -t variant1/2.0} OK $tserr
+unsetenv_var TESTSUITE_DYNDEF1
+unsetenv_var TESTSUITE_DYNDEF2
+
+setenv_var TESTSUITE_AVAIL dyndef7
+set tserr "variant1/2.0"
+testouterr_cmd sh {avail -t variant1/2.0} OK $tserr
+
+setenv_var TESTSUITE_DYNDEF1 val1
+setenv_var TESTSUITE_DYNDEF2 val2
+set tserr "variant1/2.0{bar=val1,val2:foo=val1,val2}"
+testouterr_cmd sh {avail -t variant1/2.0} OK $tserr
+unsetenv_var TESTSUITE_DYNDEF1
+unsetenv_var TESTSUITE_DYNDEF2
+
+setenv_var TESTSUITE_AVAIL dyndef8
+set tserr "variant1/2.0{bar=:foo=val1,val2,val3:qux=}"
+testouterr_cmd sh {avail -t variant1/2.0} OK $tserr
+
+
+#
+# redefinition of variant
+#
+
+setenv_var TESTSUITE_AVAIL redef1
+
+set tserr "variant1/1.0{bar=val1,val2:foo=*}"
+testouterr_cmd sh {avail -t variant1/1.0} OK $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env

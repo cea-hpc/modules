@@ -1,0 +1,60 @@
+#%Module
+if {[info exists env(TESTSUITE_AVAIL)]} {
+    switch -- $env(TESTSUITE_AVAIL) {
+        hidden1 - forbidden1 - forbidden2 - forbidden3 {
+            variant foo
+            variant bar [module-info name]
+        }
+        specialchar1 {
+            variant foo
+            variant bar {v l} {v l e} {v:l}
+        }
+        dyndef1 {
+            variant foo {*}$env(TESTSUITE_DYNDEF)
+        }
+        dyndef2 {
+            set env(TESTSUITE_DYNDEF) [list val1 val2]
+            variant foo {*}$env(TESTSUITE_DYNDEF)
+            variant bar {*}[getenv TESTSUITE_DYNDEF]
+        }
+        dyndef3 {
+            setenv TESTSUITE_DYNDEF1 [list val1 val2]
+            pushenv TESTSUITE_DYNDEF2 [list val1 val2]
+            variant foo {*}$env(TESTSUITE_DYNDEF1)
+            variant bar {*}$env(TESTSUITE_DYNDEF2)
+        }
+        dyndef4 {
+            setenv TESTSUITE_DYNDEF1 [list val1 val2]
+            pushenv TESTSUITE_DYNDEF2 [list val1 val2]
+            variant foo {*}[getenv TESTSUITE_DYNDEF1]
+            variant bar {*}[getenv TESTSUITE_DYNDEF2]
+        }
+        dyndef5 {
+            append-path -d { } TESTSUITE_DYNDEF1 val1 val2
+            prepend-path -d { } TESTSUITE_DYNDEF2 val1 val2
+            variant foo {*}$env(TESTSUITE_DYNDEF1)
+            variant bar {*}$env(TESTSUITE_DYNDEF2)
+        }
+        dyndef6 {
+            append-path -d { } TESTSUITE_DYNDEF1 val1 val2
+            prepend-path -d { } TESTSUITE_DYNDEF2 val1 val2
+            variant foo {*}[getenv TESTSUITE_DYNDEF1]
+            variant bar {*}[getenv TESTSUITE_DYNDEF2]
+        }
+        dyndef7 {
+            setenv TESTSUITE_DYNDEF1 val1
+            setenv TESTSUITE_DYNDEF2 val2
+            if {$env(TESTSUITE_DYNDEF1) eq {val1}} {
+                variant foo val1 val2
+            }
+            if {[getenv TESTSUITE_DYNDEF2] eq {val2}} {
+                variant bar val1 val2
+            }
+        }
+        dyndef8 {
+            variant foo val1 val2 val3
+            variant bar [getvariant foo]
+            variant qux $ModuleVariant(foo)
+        }
+    }
+}
