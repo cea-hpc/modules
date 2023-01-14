@@ -1,0 +1,136 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.51-scan/%M%
+#   Revision:		%I%
+#   First Edition:	2023/01/14
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		avail
+#   Modulefiles:    scan
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Tests scan evaluation on avail sub-command
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+# ensure advanced version specifiers are enabled
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure avail tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+setenv_var MODULES_AVAIL_TERSE_OUTPUT alias:dirwsym:sym:tag:variant
+
+
+#
+# scan evaluation on erroneous modulefiles
+#
+
+setenv_var TESTSUITE_SCAN break1
+set tserr1 "scan/1.0
+scan/1.1
+scan/2.0{foo=val1,val2,val3}
+scan/2.1{foo=val1,val2,val3}"
+testouterr_cmd sh {avail -t scan} OK $tserr1
+
+setenv_var TESTSUITE_SCAN break2
+set tserr2 "scan/1.0{foo=val1,val2}
+scan/1.1{foo=val1,val2}
+scan/2.0{foo=val1,val2,val3}
+scan/2.1{foo=val1,val2,val3}"
+testouterr_cmd sh {avail -t scan} OK $tserr2
+
+setenv_var TESTSUITE_SCAN unk1
+testouterr_cmd sh {avail -t scan} OK $tserr1
+
+setenv_var TESTSUITE_SCAN unk2
+testouterr_cmd sh {avail -t scan} OK $tserr2
+
+setenv_var TESTSUITE_SCAN undef1
+testouterr_cmd sh {avail -t scan} OK $tserr1
+
+setenv_var TESTSUITE_SCAN undef2
+testouterr_cmd sh {avail -t scan} OK $tserr2
+
+setenv_var TESTSUITE_SCAN exit1
+testouterr_cmd sh {avail -t scan} OK $tserr1
+
+setenv_var TESTSUITE_SCAN exit2
+testouterr_cmd sh {avail -t scan} OK $tserr2
+
+setenv_var TESTSUITE_SCAN continue1
+testouterr_cmd sh {avail -t scan} OK $tserr1
+
+setenv_var TESTSUITE_SCAN continue2
+testouterr_cmd sh {avail -t scan} OK $tserr2
+
+setenv_var TESTSUITE_SCAN variant1
+testouterr_cmd sh {avail -t scan} OK $tserr1
+
+setenv_var TESTSUITE_SCAN variant2
+testouterr_cmd sh {avail -t scan} OK $tserr2
+
+setenv_var TESTSUITE_SCAN mfcmderr1
+testouterr_cmd sh {avail -t scan} OK $tserr1
+
+setenv_var TESTSUITE_SCAN mfcmderr2
+set tserr3 "scan/1.0{foo=val1,val2:qux=val1,val2}
+scan/1.1{foo=val1,val2:qux=val1,val2}
+scan/2.0{foo=val1,val2,val3}
+scan/2.1{foo=val1,val2,val3}"
+testouterr_cmd sh {avail -t scan} OK $tserr3
+
+
+#
+# puts text during scan
+#
+
+# puts to stdout
+setenv_var TESTSUITE_SCAN puts1
+set ans [list]
+lappend ans [list out {some text}]
+lappend ans [list out {some text}]
+set tserr "scan/1.0{foo=val1,val2}
+scan/1.1{foo=val1,val2}
+scan/2.0{foo=val1,val2,val3}
+scan/2.1{foo=val1,val2,val3}"
+testouterr_cmd sh {avail -t scan} $ans $tserr
+
+setenv_var TESTSUITE_SCAN puts2
+testouterr_cmd sh {avail -t scan} $ans $tserr
+
+setenv_var TESTSUITE_SCAN puts3
+testouterr_cmd sh {avail -t scan} $ans $tserr
+
+# puts to stderr
+setenv_var TESTSUITE_SCAN puts4
+set tserr "some text
+some text
+scan/1.0{foo=val1,val2}
+scan/1.1{foo=val1,val2}
+scan/2.0{foo=val1,val2,val3}
+scan/2.1{foo=val1,val2,val3}"
+testouterr_cmd sh {avail -t scan} OK $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
