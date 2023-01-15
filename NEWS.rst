@@ -43,6 +43,8 @@ Modules 5.3.0 (not yet released)
   walked down to determine what the running user can access.
 * Doc: update :ref:`reduce-io-load` cookbook recipe with module cache
   description.
+* Correctly apply extra tag set when loading a module whose variant has value
+  automatically set. (fix issue #484)
 
 
 .. _5.2 release notes:

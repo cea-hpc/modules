@@ -3,7 +3,7 @@
 # MFINTERP.TCL, modulefile interpretation procedures
 # Copyright (C) 2002-2004 Mark Lakata
 # Copyright (C) 2004-2017 Kent Mein
-# Copyright (C) 2016-2022 Xavier Delaruelle
+# Copyright (C) 2016-2023 Xavier Delaruelle
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -437,9 +437,15 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
          append newmodnamevr " $vr"
       }
       if {$modnamevr ne $newmodnamevr} {
+         set modnamevr_tag_list [getTagList $modnamevr]
+         set modnamevr_extratag_list [getExtraTagList $modnamevr]
          lassign [parseModuleSpecification 0 {*}$newmodnamevr] modnamevr
          if {$fetch_tags} {
             collectModuleTags $modnamevr
+            # set tags applying to previous name (without default variant set)
+            # not to forget extra defined tags
+            setModuleTag $modnamevr {*}$modnamevr_tag_list
+            setModuleExtraTag $modnamevr {*}$modnamevr_extratag_list
          }
       }
    }

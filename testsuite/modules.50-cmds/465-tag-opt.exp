@@ -31,7 +31,6 @@ set modfile $mp/$mod
 set modfilere $mpre/$mod
 
 
-
 # load / try-load
 set ans [list]
 lappend ans [list set _LMFILES_ $modfile]
@@ -1312,6 +1311,212 @@ testouterr_cmd sh "load -vv --tag=bar $mod" OK $tserr
 
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMTAG
+
+
+#
+# load with extra tags and variant with default value
+#
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+setenv_var TESTSUITE_TAG_OPT vrdfl1
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|2]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod" $ans {}
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|2]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_LMEXTRATAG $mod&foo]
+lappend ans [list set __MODULES_LMTAG $mod&foo]
+testouterr_cmd sh "load $mod --tag=foo" $ans {}
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|1]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_LMEXTRATAG $mod&foo]
+lappend ans [list set __MODULES_LMTAG $mod&foo]
+testouterr_cmd sh "load $mod --tag=foo foo=val1" $ans {}
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val2|0|0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_LMEXTRATAG $mod&foo]
+lappend ans [list set __MODULES_LMTAG $mod&foo]
+testouterr_cmd sh "load $mod --tag=foo foo=val2" $ans {}
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|2]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_LMEXTRATAG $mod&foo]
+lappend ans [list set __MODULES_LMTAG $mod&foo&keep-loaded]
+testouterr_cmd sh "load $mod --tag=foo:keep-loaded" $ans {}
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|1]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_LMEXTRATAG $mod&foo]
+lappend ans [list set __MODULES_LMTAG $mod&foo&keep-loaded]
+testouterr_cmd sh "load $mod --tag=foo:keep-loaded foo=val1" $ans {}
+
+setenv_var TESTSUITE_TAG_OPT vrdfl2
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|2]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_LMEXTRATAG $mod&foo]
+lappend ans [list set __MODULES_LMTAG $mod&foo&keep-loaded]
+testouterr_cmd sh "load $mod --tag=foo:keep-loaded" $ans {}
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|1]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_LMEXTRATAG $mod&foo]
+lappend ans [list set __MODULES_LMTAG $mod&foo&keep-loaded]
+testouterr_cmd sh "load $mod --tag=foo:keep-loaded foo=val1" $ans {}
+
+setenv_var TESTSUITE_TAG_OPT vrdfl3
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|2]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_LMEXTRATAG $mod&foo]
+lappend ans [list set __MODULES_LMTAG $mod&foo&keep-loaded]
+testouterr_cmd sh "load $mod --tag=foo:keep-loaded" $ans {}
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|1]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_LMEXTRATAG $mod&foo]
+lappend ans [list set __MODULES_LMTAG $mod&foo&keep-loaded]
+testouterr_cmd sh "load $mod --tag=foo:keep-loaded foo=val1" $ans {}
+
+setenv_var TESTSUITE_TAG_OPT vrdfl4
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|0&bar|val1|0|2]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_LMEXTRATAG $mod&foo]
+lappend ans [list set __MODULES_LMTAG $mod&foo&keep-loaded]
+testouterr_cmd sh "load $mod foo=val1 --tag=foo:keep-loaded" $ans {}
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|0&bar|val1|0|1]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_LMEXTRATAG $mod&foo]
+lappend ans [list set __MODULES_LMTAG $mod&foo&keep-loaded]
+testouterr_cmd sh "load $mod --tag=foo:keep-loaded foo=val1 bar=val1" $ans {}
+
+setenv_var TESTSUITE_TAG_OPT vrdfl5
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|0&bar|val1|0|2]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod foo=val1" $ans {}
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|0&bar|val1|0|1]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod foo=val1 bar=val1" $ans {}
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|0&bar|val2|0|0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_LMTAG $mod&foo]
+testouterr_cmd sh "load $mod foo=val1 bar=val2" $ans {}
+
+setenv_var TESTSUITE_TAG_OPT vrdfl6
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|0&bar|val1|0|2]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_LMTAG $mod&foo]
+testouterr_cmd sh "load $mod foo=val1" $ans {}
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|0&bar|val1|0|1]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_LMTAG $mod&foo]
+testouterr_cmd sh "load $mod foo=val1 bar=val1" $ans {}
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|0&bar|val2|0|0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod foo=val1 bar=val2" $ans {}
+
+setenv_var TESTSUITE_TAG_OPT vrdfl7
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|0&bar|val1|0|2]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_LMTAG $mod&foo]
+testouterr_cmd sh "load $mod foo=val1" $ans {}
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|0&bar|val1|0|1]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_LMTAG $mod&foo]
+testouterr_cmd sh "load $mod foo=val1 bar=val1" $ans {}
+testouterr_cmd sh "load $mod bar=val1 foo=val1" $ans {}
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|0&bar|val2|0|0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_LMTAG $mod&foo]
+testouterr_cmd sh "load $mod foo=val1 bar=val2" $ans {}
+
+setenv_var TESTSUITE_TAG_OPT vrdfl8
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|0&bar|val1|0|2]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_LMTAG $mod&foo]
+testouterr_cmd sh "load $mod foo=val1" $ans {}
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|0&bar|val1|0|1]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_LMTAG $mod&foo]
+testouterr_cmd sh "load $mod foo=val1 bar=val1" $ans {}
+testouterr_cmd sh "load $mod bar=val1 foo=val1" $ans {}
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|0&bar|val2|0|0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod foo=val1 bar=val2" $ans {}
+
+setenv_var TESTSUITE_TAG_OPT vrdfl9
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|0&bar|val1|0|2]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod foo=val1" $ans {}
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|0&bar|val1|0|1]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+testouterr_cmd sh "load $mod foo=val1 bar=val1" $ans {}
+testouterr_cmd sh "load $mod bar=val1 foo=val1" $ans {}
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|0&bar|val2|0|0]
+lappend ans [list set _LMFILES_ $modfile]
+lappend ans [list set LOADEDMODULES $mod]
+lappend ans [list set __MODULES_LMTAG $mod&foo]
+testouterr_cmd sh "load $mod foo=val1 bar=val2" $ans {}
+
+setenv_var TESTSUITE_TAG_OPT vrdfl10
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT $mod&foo|val1|0|2]
+lappend ans [list set __MODULES_LMPREREQ foo/1.0&$mod]
+lappend ans [list set _LMFILES_ $modfile:$mp/foo/1.0]
+lappend ans [list set LOADEDMODULES $mod:foo/1.0]
+lappend ans [list set __MODULES_LMEXTRATAG $mod&foo]
+lappend ans [list set __MODULES_LMTAG $mod&foo&keep-loaded&auto-loaded]
+set tserr [msg_top_load foo/1.0 {} $mod{foo=val1} {}]
+testouterr_cmd sh "load --auto foo/1.0" $ans $tserr
 
 
 #
