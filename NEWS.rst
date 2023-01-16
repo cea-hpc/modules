@@ -45,6 +45,8 @@ Modules 5.3.0 (not yet released)
   description.
 * Correctly apply extra tag set when loading a module whose variant has value
   automatically set. (fix issue #484)
+* Catch collection directory creation error and report appropriate message.
+  (fix issue #482)
 
 
 .. _5.2 release notes:

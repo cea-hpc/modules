@@ -501,6 +501,34 @@ testouterr_cmd "sh" "save" "ERR" $err_save_unsat
 
 
 #
+# error creating collection directory
+#
+
+# check excepted siteconfig file is installed
+set is_stderr_tty [siteconfig_isStderrTty]
+if {$is_stderr_tty} {
+
+setenv_var TESTSUITE_ENABLE_SITECONFIG_MKDIR_COLLDIR 1
+set TEST_HOME $ORIG_HOME/mkdircolldir
+file mkdir $TEST_HOME
+setenv_var HOME $TEST_HOME
+
+eval setenv_path_var MODULEPATH [split $cdmodpath ":"]
+setenv_loaded_module [split $cdlm ":"] [split $cdlmf ":"]
+setenv_var __MODULES_LMALTNAME $cdlmalt
+
+set tserr "$error_msgs: Collection directory cannot be created.
+  Custom error message"
+testouterr_cmd sh save ERR $tserr
+
+file delete $TEST_HOME
+setenv_var HOME $ORIG_HOME
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_MKDIR_COLLDIR
+
+}
+
+
+#
 # Cleanup
 #
 
