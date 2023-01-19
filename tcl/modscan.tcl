@@ -42,6 +42,38 @@ proc variant-sc {itrp args} {
    $itrp eval set "{::ModuleVariant($name)}" "{}"
 }
 
+# test given variant specification matches what scanned module defines
+proc doesModVariantMatch {mod pvrlist} {
+   set ret 1
+   if {[info exists ::g_scanModuleVariant($mod)]} {
+      foreach availvr $::g_scanModuleVariant($mod) {
+         set availvrarr([lindex $availvr 0]) [lindex $availvr 1]
+         set availvrisbool([lindex $availvr 0]) [lindex $availvr 4]
+      }
+      foreach pvr $pvrlist {
+         set pvrarr([lindex $pvr 0]) [lindex $pvr 1]
+         set pvrisbool([lindex $pvr 0]) [lindex $pvr 2]
+      }
+
+      # no match if a specified variant is not found among module variants or
+      # if the value is not available
+      foreach vrname [array names pvrarr] {
+         # if variant is a boolean, specified value should be a boolean too
+         # any value accepted for free-value variant
+         if {![info exists availvrarr($vrname)] || ($availvrisbool($vrname)\
+            && !$pvrisbool($vrname)) || (!$availvrisbool($vrname) && [llength\
+            $availvrarr($vrname)] > 0 && $pvrarr($vrname) ni\
+            $availvrarr($vrname))} {
+            set ret 0
+            break
+         }
+      }
+   } else {
+      set ret 0
+   }
+   return $ret
+}
+
 # determine if current module search requires an extra match search
 proc isExtraMatchSearchRequired {mod} {
    # an extra match search is required if:
@@ -57,6 +89,11 @@ proc filterExtraMatchSearch {mod res_arrname} {
    # link to variables/arrays from upper context
    upvar $res_arrname found_list
 
+   # get extra match query properties
+   set spec_vr_list [getVariantListFromVersSpec $mod]
+   set check_variant [expr {[llength $spec_vr_list] > 0}]
+   set filter_res $check_variant
+
    # evaluate all modules found in scan mode to gather content information
    lappendState mode scan
    foreach elt [array names found_list] {
@@ -67,6 +104,21 @@ proc filterExtraMatchSearch {mod res_arrname} {
                ##nagelfar ignore Suspicious variable name
                execute-modulefile [lindex $found_list($elt) 2] $elt $elt $elt\
                   0 0
+            }
+         }
+      }
+      # unset elements that do not match extra query
+      if {$filter_res} {
+         switch -- [lindex $found_list($elt) 0] {
+            alias {
+               # module alias does not hold properties to match extra query
+               unset found_list($elt)
+            }
+            modulefile - virtual {
+               if {$check_variant && ![doesModVariantMatch $elt\
+                  $spec_vr_list]} {
+                  unset found_list($elt)
+               }
             }
          }
       }
