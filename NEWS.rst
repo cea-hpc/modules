@@ -47,6 +47,8 @@ Modules 5.3.0 (not yet released)
   automatically set. (fix issue #484)
 * Catch collection directory creation error and report appropriate message.
   (fix issue #482)
+* Fix :mfcmd:`source-sh` and :subcmd:`sh-to-mod` shell alias translation when
+  used with new *fish* shell version (3.6).
 
 
 .. _5.2 release notes:
