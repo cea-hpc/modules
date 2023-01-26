@@ -1,7 +1,7 @@
 ##########################################################################
 
 # MODSPEC.TCL, module specification procedures
-# Copyright (C) 2016-2022 Xavier Delaruelle
+# Copyright (C) 2016-2023 Xavier Delaruelle
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -1206,8 +1206,10 @@ proc defineParseModuleSpecificationProc {advverspec} {
 
 # when advanced_version_spec option is enabled, parse argument list to set in
 # a global context version specification of modules passed as argument.
-# specification may vary whether it comes from the ml or another command.
-proc parseModuleSpecificationProc {mlspec args} {
+# mlspec: specification may vary whether it comes from the ml or another
+# command. nonamespec: sometimes specification may omit module name and
+# version and just provides variant properties
+proc parseModuleSpecificationProc {mlspec nonamespec args} {
    # skip arg parse if proc was already call with same arg set by an upper
    # proc. check all args to ensure current arglist does not deviate from
    # what was previously parsed
@@ -1255,7 +1257,7 @@ proc parseModuleSpecificationProc {mlspec args} {
    }
 
 }
-proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
+proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec args} {
    foreach arg $args {
       if {![info exists ::g_moduleVersSpec($arg)]} {
          set need_parse 1
@@ -1388,6 +1390,11 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
                      set cmpspec eq
                      set versspec {}
                   }
+                  # wild search name if no module name allowed
+                  if {$nonamespec && ![info exists modname]} {
+                     set modname *
+                     set modspec *
+                  }
                   if {[info exists modname] && ($modname ne {} || $modspec\
                      eq {})} {
                      setModuleVersSpec $modarg $modname $cmpspec $versspec\
@@ -1427,6 +1434,10 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec args} {
    }
    # transform last args
    set modarg [join $modarglist]
+   if {$nonamespec && ![info exists modname]} {
+      set modname *
+      set modspec *
+   }
    if {[info exists modname] && ($modname ne {} || $modspec eq {})} {
       if {![info exists cmpspec]} {
          set cmpspec eq

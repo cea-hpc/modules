@@ -3,7 +3,7 @@
 # MAIN.TCL, main procedures and code
 # Copyright (C) 2002-2004 Mark Lakata
 # Copyright (C) 2004-2017 Kent Mein
-# Copyright (C) 2016-2022 Xavier Delaruelle
+# Copyright (C) 2016-2023 Xavier Delaruelle
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -366,7 +366,9 @@ proc module {command args} {
    if {$command in [list avail paths whatis load unload switch help test\
       display path is-avail edit try-load load-any list lint mod-to-sh\
       source]} {
-      set args [parseModuleSpecification 0 {*}$args]
+      # some cmds allow to express variant without module name
+      set allow_noname_spec [expr {$command in {avail list paths whatis}}]
+      set args [parseModuleSpecification 0 $allow_noname_spec {*}$args]
    }
 
    if {!$topcall} {
@@ -805,7 +807,7 @@ proc ml {args} {
    } else {
       # parse specified module and get list of mods to unload and mods to load
       defineParseModuleSpecificationProc [getConf advanced_version_spec]
-      lassign [parseModuleSpecification 1 {*}$fargs] modunlist modlolist
+      lassign [parseModuleSpecification 1 0 {*}$fargs] modunlist modlolist
 
       # main procedure has already raised error for badly written argument
       # like '-' or '--', but we need here to replay module-specific argument

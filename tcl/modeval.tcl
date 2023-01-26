@@ -3,7 +3,7 @@
 # MODEVAL.TCL, module evaluation procedures
 # Copyright (C) 2002-2004 Mark Lakata
 # Copyright (C) 2004-2017 Kent Mein
-# Copyright (C) 2016-2022 Xavier Delaruelle
+# Copyright (C) 2016-2023 Xavier Delaruelle
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -739,7 +739,7 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist extrataglist\
    setConf auto_handling 0
    foreach mod $lmlist {
       # if an auto set default was excluded, module spec need parsing
-      lassign [parseModuleSpecification 0 $mod {*}$vr($mod)] modnamevr
+      lassign [parseModuleSpecification 0 0 $mod {*}$vr($mod)] modnamevr
       # reload module with user asked property and extra tags preserved
       if {[cmdModuleLoad $context $isuasked($mod) 0 0 $extratag($mod)\
          $modnamevr]} {

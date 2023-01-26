@@ -1110,7 +1110,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
                      } else {
                         # add specified variants to current resolution
                         if {[llength $vrlist] > 0} {
-                           lassign [parseModuleSpecification 0 $newmod\
+                           lassign [parseModuleSpecification 0 0 $newmod\
                               {*}$vrlist] newmod
                         }
                         # restart search on new modulename, constrained to
@@ -1131,7 +1131,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
                            $mod $modspec]} {
                            # add specified variants to current resolution
                            if {[llength $vrlist] > 0} {
-                              lassign [parseModuleSpecification 0 $mod\
+                              lassign [parseModuleSpecification 0 0 $mod\
                                  {*}$vrlist] mod
                            }
                            return [getPathToModule $mod $indir $report_issue]
@@ -1168,8 +1168,8 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
    } else {
       # build module name and variant with variant specified
       if {[llength $vrlist] > 0} {
-         lassign [parseModuleSpecification 0 [lindex $retlist 1] {*}$vrlist]\
-            modnamevr
+         lassign [parseModuleSpecification 0 0 [lindex $retlist 1]\
+            {*}$vrlist] modnamevr
       } else {
          set modnamevr [lindex $retlist 1]
       }
@@ -2152,7 +2152,7 @@ proc cacheCurrentModules {{exitonerr 1}} {
          foreach modcon [getLoadedModulePropertyList conflict] {
             # parse module version specification to record translation
             foreach modconelt [lrange $modcon 1 end] {
-               parseModuleSpecification 0 {*}$modconelt
+               parseModuleSpecification 0 0 {*}$modconelt
             }
             setLoadedConflict {*}$modcon
          }
@@ -2163,7 +2163,7 @@ proc cacheCurrentModules {{exitonerr 1}} {
             # parse module version specification to record translation
             foreach modpreeltlist [lrange $modpre 1 end] {
                foreach modpreelt $modpreeltlist {
-                  parseModuleSpecification 0 {*}$modpreelt
+                  parseModuleSpecification 0 0 {*}$modpreelt
                }
             }
             setLoadedPrereq {*}$modpre
