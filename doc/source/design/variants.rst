@@ -215,6 +215,7 @@ Evaluating
 
     - like for ``setenv`` or ``*-path`` modulefile commands on this mode, ``variant`` will set the ``ModuleVariant`` array with a empty string for each variant defined in the modulefile
     - this is done to avoid the *undefined variable* error if these variables are used later in the modulefile
+    - however variant specified in module specification is used to filter modules to evaluate in *whatis* mode thanks to the *extra match search* mechanism
     - FUTURE: if the different ``version`` variant values are considered as different modulefiles in the future, then *whatis* may evaluates the ``version`` variant from module specification
 
 getvariant
@@ -496,16 +497,31 @@ Specifying
   - it may be useful to decommission a given variant of a module prior others
   - or to forbid the use of a given variant to some users
 
-- variants specified on search context are ignored
+- variants specified on search context are taken into account to filter results
 
-  - search context taking a module specification as argument only look for module name and version
+  - due to the :ref:`extra-match-search` mechanism
+  - it concerns the ``avail``, ``whatis`` and ``paths`` sub-commands
+  - only available modules matching the variant specification will be retained
+  - for instance ``avail mod foo=var`` returns all versions of *mod* module where a variant *foo* is defined with *var* as a possible value
+  - exception is made for ``is-avail`` and ``path`` search sub-command
 
-    - no variant evaluation occurs on such context
-    - it concerns the ``avail``, ``whatis``, ``is-avail``, ``path`` and ``paths`` sub-commands
+    - as they are more module selection commands rather an available module search commands
+    - it does not take info account variants defined within module specification
 
-  - if variants are defined within module specification, they are not taken into account by search commands
-  - for instance ``avail mod foo=var`` returns all versions of *foo* module whether they support the foo variant or not
-  - FUTURE: may be revised if variants are evaluated on search context
+  - these search commands (except ``is-avail`` and ``path``) allow module specification without module name and version
+
+    - only variant name and value specified (e.g., ``module avail foo=var``)
+    - only modules declaring such variant with such version will be retained in result
+
+- variants specified on loaded module list context are taken into account to filter results
+
+  - concerns ``list`` sub-command
+  - not related to *extra match search* as comparison is made against loaded modules not content of available modules
+  - only loaded modules matching the variant specification will be retained
+  - module specification without module name and version is allowed on this context
+
+    - only variant name and value specified (e.g., ``module list foo=var``)
+    - only loaded modules declaring such variant set with this version will be retained in result
 
 - variant cannot be specified over the :mfcmd:`module-alias`, :mfcmd:`module-version`, :mfcmd:`module-virtual` commands
 
@@ -689,12 +705,18 @@ Comparing module specification including variants
 
   - If this specification contains variants
 
-    - There is no variant set on non-loaded or non-loading modules we are comparing to
-    - Specified variants are ignored, match is only performed over module name and version
     - Applies especially to the search commands taking a module specification as argument
+    - Specified variants are taken into account through :ref:`extra-match-search` mechanism
 
-      - no variant evaluation occurs on such context
-      - Namely the ``avail``, ``whatis``, ``is-avail``, ``path`` and ``paths`` sub-commands
+      - Once matching name and version are found
+      - A *scan* evaluation is made on them
+      - Only those declaring specified variants and values are retained in results
+
+    - It applies to ``avail``, ``whatis`` and ``paths`` sub-commands
+    - Exception is made for ``is-avail`` and ``path`` sub-commands
+
+      - do not trigger *extra match search* process
+      - even if variant specified in module specification argument
 
   - If this specification does not contain variant
 
@@ -767,6 +789,8 @@ Comparing module specification including variants
   - ``cmdModuleSwitch``
   - ``getModules``
 
+    - Unless if module specification contains a variant definition, which
+      triggers an *extra match search* process
     - Used by ``cmdModuleAvail``, ``getPathToModule``, ``isStickinessReloading``,
       ``cmdModulePaths``, ``cmdModuleSearch`` and ``cmdModuleAliases``
 
@@ -785,6 +809,7 @@ Comparing module specification including variants
   - ``getUnmetDependentLoadedModuleList``
   - ``getDirectDependentList``
   - ``cmdModuleLoad``
+  - ``cmdModuleList``
   - ``conflict``
   - ``getLoadedMatchingName``
   - ``doesModuleConflict``
@@ -816,18 +841,19 @@ Specific impact
 
 - Tags applying specifically on variants do not appear over ``avail`` result
 
-  - As variant are not treated on ``avail`` mode
+  - Even when variants are processed  on ``avail`` mode
   - However if a module is loaded and tags apply to the variant selected, these tags will appear on the module designation within ``avail`` result
 
-- Variant specification is ignored on ``avail`` and ``whatis`` sub-commands
+- Forbidding a specific variant of a module will not exclude it from search results
 
-  - If a forbidden tag applies to a specific module variant
-  - If this variant is the one specified as argument to ``avail`` or ``whatis`` sub-command
   - The module will still be reported on ``avail`` or evaluated on ``whatis``
+  - Even if this specific variant is searched
+  - As search sub-commands report all possible variants of available modules
 
 - Hiding a specific variant of a module will not hide the module from search results
 
-  - As variant are not treated on search context like on ``avail`` sub-command
+  - Even if this specific variant is searched
+  - As search sub-commands report all possible variants of available modules
 
 - Sticky modules can be swapped by another sticky modules if the stickiness applies to the generic module name
 

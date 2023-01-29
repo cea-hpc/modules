@@ -42,6 +42,7 @@ Module version specification to return all matching modules
   - refer to extended default version like *mod/1* (to refer to *mod/1.1.1*)
   - refer to symbolic version or module alias
   - specify multiple versions as list (*mod@1,2*) or range (*mod@:1* or *mod@1:2*)
+  - refer to a variant specification (with or without a module name specification)
 
 - all modules matching specification are retrieved with ``getModules``
 - specification used to resolve argument passed to the following commands:
@@ -49,6 +50,7 @@ Module version specification to return all matching modules
   - ``avail``
   - ``paths``
   - ``whatis``
+  - ``list`` (matching specification retrieved from loaded modules, not ``getModules``)
 
 - used to get all alias and symbolic version of loaded modules treated by:
 
