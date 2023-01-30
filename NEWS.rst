@@ -75,6 +75,17 @@ Modules 5.3.0 (not yet released)
   variant value on either :subcmd:`list` and :subcmd:`avail` command output.
 * Apply either loaded or auto-loaded graphic rendition to the loaded variant
   value on :subcmd:`avail` command output.
+* Update :subcmd:`avail`, :subcmd:`paths` and :subcmd:`whatis` sub-commands to
+  take into account variant set in module specification. Available modules are
+  filtered with *extra match search* mechanism to only return those matching
+  the variant specification.
+* Update :subcmd:`avail`, :subcmd:`paths` and :subcmd:`whatis` sub-commands to
+  accept module specification with just a variant set (no module name and
+  version). Available modules are filtered with *extra match search* mechanism
+  to only return those matching the variant specification.
+* Update :subcmd:`list` sub-command to accept module specification with just a
+  variant set (no module name and version). Loaded modules are filtered to
+  only return those matching the variant specification.
 
 
 .. _5.2 release notes:
