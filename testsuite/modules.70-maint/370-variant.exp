@@ -271,18 +271,36 @@ unsetenv_loaded_module
 testouterr_cmd_re sh {avail variant/1.0} OK "$modlin $mpre $modlin
 variant/1.0  "
 
-# specified variants ignored
+# specified variants taken into account (module returned if match)
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 set tserr "$modlin $mpre $modlin\nvariant/1.0  "
-testouterr_cmd_re sh {avail variant/1.0 foo=val1 baz=2} OK $tserr
-# whether they exist or not
+testouterr_cmd_re sh {avail variant/1.0 foo=val1 baz=2} OK {}
 setenv_var TESTSUITE_VARIANT 1
 set tserr "$modlin $mpre $modlin\nvariant/6.0  "
-testouterr_cmd_re sh {avail variant@6.0 foo=val1 baz=2} OK $tserr
+testouterr_cmd_re sh {avail variant@6.0 foo=val1 baz=2} OK {}
+testouterr_cmd_re sh {avail variant@6.0 foo=val4 bar=1} OK {}
+testouterr_cmd_re sh {avail variant@6.0 foo=val4} OK {}
+testouterr_cmd_re sh {avail variant@6.0 baz=3} OK {}
 testouterr_cmd_re sh {avail variant@6.0 foo=val1 bar=2} OK $tserr
-# boolean variant
+testouterr_cmd_re sh {avail variant@6.0 foo=val1 bar=1} OK $tserr
+testouterr_cmd_re sh {avail variant@6.0 foo=val1} OK $tserr
+testouterr_cmd_re sh {avail variant@6.0 bar=2} OK $tserr
+
+# shortcut variant specification
+setenv_var MODULES_VARIANT_SHORTCUT foo=%
+testouterr_cmd_re sh {avail variant@6.0 %val4} OK {}
+testouterr_cmd_re sh {avail variant@6.0 %val1 bar=2} OK $tserr
+testouterr_cmd_re sh {avail variant@6.0 %val2} OK $tserr
+unsetenv_var MODULES_VARIANT_SHORTCUT
+
+# boolean variant specification
+testouterr_cmd_re sh {avail variant@6.0 +foo -bar} OK {}
+setenv_var TESTSUITE_VARIANT bool1
 testouterr_cmd_re sh {avail variant@6.0 +foo -bar} OK $tserr
+testouterr_cmd_re sh {avail variant@6.0 +foo} OK $tserr
+testouterr_cmd_re sh {avail variant@6.0 ~bar} OK $tserr
 unsetenv_var TESTSUITE_VARIANT
+
 
 # when advanced_version_spec is disabled, variant spec are considered as modulefile spec
 setenv_var MODULES_ADVANCED_VERSION_SPEC 0
@@ -293,10 +311,14 @@ testouterr_cmd_re sh {avail variant/6.0 var=val} OK $tserr
 # highlight color output
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 setenv_var MODULES_COLORS "hi=1"
-set tserr "$mpre:\n[sgr 1]variant/6.0[sgr 22]\n[sgr 1]variant/8.0[sgr 22]"
-testouterr_cmd_re sh {avail --color=always -t variant@6.0,8.0 foo=val1 baz=2} OK $tserr
-set tserr "$mpre:\n[sgr 1]variant/6[sgr 22].0\nvariant/7.0\nvariant/7.1\n[sgr 1]variant/8[sgr 22].0"
-testouterr_cmd_re sh {avail --color=always -t variant@6:8 foo=val1 baz=2} OK $tserr
+setenv_var TESTSUITE_VARIANT 1
+set tserr "$mpre:\n[sgr 1]variant/6.0[sgr 22]"
+testouterr_cmd_re sh {avail --color=always -t variant@6.0,8.0 foo=val1 baz=2} OK {}
+testouterr_cmd_re sh {avail --color=always -t variant@6.0,8.0 foo=val1} OK $tserr
+set tserr "$mpre:\n[sgr 1]variant/6[sgr 22].0\nvariant/7.0"
+testouterr_cmd_re sh {avail --color=always -t variant@6:8 foo=val1 baz=2} OK {}
+testouterr_cmd_re sh {avail --color=always -t variant@6:8 foo=val1} OK $tserr
+unsetenv_var TESTSUITE_VARIANT
 
 
 #
@@ -309,11 +331,20 @@ setenv_var TESTSUITE_VARIANT 1
 testouterr_cmd_re sh {is-avail variant@6.0 foo=val1 baz=2} OK {}
 testouterr_cmd_re sh {is-avail variant@6.0 foo=val1 bar=2} OK {}
 
+# shortcut variant specification
+setenv_var MODULES_VARIANT_SHORTCUT foo=%
+testouterr_cmd_re sh {is-avail variant@6.0 %val1 baz=2} OK {}
+testouterr_cmd_re sh {is-avail variant@6.0 %val1} OK {}
+unsetenv_var MODULES_VARIANT_SHORTCUT
+
 # boolean variant
+testouterr_cmd_re sh {is-avail variant@6.0 -foo +bar} OK {}
+setenv_var TESTSUITE_VARIANT bool1
 testouterr_cmd_re sh {is-avail variant@6.0 -foo +bar} OK {}
 
 # when advanced_version_spec is disabled, variant spec are considered as modulefile spec
 setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+setenv_var TESTSUITE_VARIANT 1
 testouterr_cmd_re sh {is-avail variant/6.0 var=val} OK {}
 
 
@@ -321,18 +352,34 @@ testouterr_cmd_re sh {is-avail variant/6.0 var=val} OK {}
 # paths
 #
 
-# specified variants ignored whether they exist or not
+# specified variants taken into account (module returned if match)
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 setenv_var TESTSUITE_VARIANT 1
 set ans [list [list text $mp/variant/6.0]]
-testouterr_cmd sh {paths variant@6.0 foo=val1 baz=2} $ans {}
+testouterr_cmd sh {paths variant@6.0 foo=val1 baz=2} OK {}
+testouterr_cmd sh {paths variant@6.0 foo=val4} OK {}
+testouterr_cmd sh {paths variant@6.0 baz=4} OK {}
 testouterr_cmd sh {paths variant@6.0 foo=val1 bar=2} $ans {}
+testouterr_cmd sh {paths variant@6.0 foo=val1} $ans {}
+testouterr_cmd sh {paths variant@6.0 bar=2} $ans {}
+
+# shortcut variant specification
+setenv_var MODULES_VARIANT_SHORTCUT foo=%
+testouterr_cmd sh {paths variant@6.0 foo=val4} OK {}
+testouterr_cmd sh {paths variant@6.0 %val1 bar=2} $ans {}
+testouterr_cmd sh {paths variant@6.0 %val2} $ans {}
+unsetenv_var MODULES_VARIANT_SHORTCUT
 
 # boolean variant
-testouterr_cmd sh {paths variant@6.0 -foo +bar} $ans {}
+testouterr_cmd sh {paths variant@6.0 -foo +bar} OK {}
+setenv_var TESTSUITE_VARIANT bool1
+testouterr_cmd sh {paths variant@6.0 ~foo +bar} $ans {}
+testouterr_cmd sh {paths variant@6.0 -foo} $ans {}
+testouterr_cmd sh {paths variant@6.0 +bar} $ans {}
 
 # when advanced_version_spec is disabled, variant spec are considered as modulefile spec
 setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+setenv_var TESTSUITE_VARIANT 1
 set tserr "$error_msgs: Unexpected number of args for 'paths' command\n$err_typehelp"
 testouterr_cmd sh {paths variant/6.0 var=val} ERR $tserr
 
@@ -348,11 +395,20 @@ set ans [list [list text $mp/variant/6.0]]
 testouterr_cmd sh {path variant@6.0 foo=val1 baz=2} $ans {}
 testouterr_cmd sh {path variant@6.0 foo=val1 bar=2} $ans {}
 
+# shortcut variant specification
+setenv_var MODULES_VARIANT_SHORTCUT foo=%
+testouterr_cmd sh {path variant@6.0 %val1 baz=2} $ans {}
+testouterr_cmd sh {path variant@6.0 %val1} $ans {}
+unsetenv_var MODULES_VARIANT_SHORTCUT
+
 # boolean variant
 testouterr_cmd sh {path variant@6.0 +foo -bar} $ans {}
+setenv_var TESTSUITE_VARIANT bool1
+testouterr_cmd sh {path variant@6.0 +foo ~bar} $ans {}
 
 # when advanced_version_spec is disabled, variant spec are considered as modulefile spec
 setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+setenv_var TESTSUITE_VARIANT 1
 set tserr "$error_msgs: Unexpected number of args for 'path' command\n$err_typehelp"
 testouterr_cmd sh {path variant/6.0 var=val} ERR $tserr
 

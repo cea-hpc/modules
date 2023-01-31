@@ -34,13 +34,19 @@ set tserr "$modlin $mpre $modlin
 \\s+variant/6.0: variant/6.0"
 testouterr_cmd_re sh {whatis variant/6.0 foo=val1 bar=2} OK $tserr
 testouterr_cmd_re sh {whatis variant/6.0} OK $tserr
-testouterr_cmd_re sh {whatis variant/6.0 unk=val} OK $tserr
+testouterr_cmd_re sh {whatis variant/6.0 unk=val} ERR "$err_path'variant/6.0 unk=val'"
 
 testouterr_cmd_re sh {search variant} OK $tserr
 testouterr_cmd_re sh {search variant/6.0} OK $tserr
 
 setenv_var TESTSUITE_VARIANT 2
+# variant/4.0 reacts to TESTSUITE_VARIANT=2 in scan mode
+set tserr "variant/4.0
+$modlin $mpre $modlin
+\\s+variant/6.0: variant/6.0"
 testouterr_cmd_re sh {whatis variant/6.0 foo=val1 bar=2} OK $tserr
+set tserr "$modlin $mpre $modlin
+\\s+variant/6.0: variant/6.0"
 testouterr_cmd_re sh {whatis variant/6.0} OK $tserr
 
 setenv_var TESTSUITE_VARIANT 3
@@ -58,17 +64,17 @@ testouterr_cmd_re sh {whatis variant/6.0 foo=val1 bar=2} OK {}
 testouterr_cmd_re sh {whatis variant/6.0} OK {}
 
 setenv_var TESTSUITE_VARIANT 6
-testouterr_cmd_re sh {whatis variant/6.0 foo=val1 bar=2} OK {}
+testouterr_cmd_re sh {whatis variant/6.0 foo=val1 bar=2} ERR "$err_path'variant/6.0 foo=val1 bar=2'"
 testouterr_cmd_re sh {whatis variant/6.0} OK {}
 
 setenv_var TESTSUITE_VARIANT 7
 set tserr "$modlin $mpre $modlin
 \\s+variant/6.0: variant/6.0 "
-testouterr_cmd_re sh {whatis variant/6.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd_re sh {whatis variant/6.0 foo=val1 bar=2} ERR "$err_path'variant/6.0 foo=val1 bar=2'"
 testouterr_cmd_re sh {whatis variant/6.0} OK $tserr
 
 setenv_var TESTSUITE_VARIANT 8
-testouterr_cmd_re sh {whatis variant/6.0 foo=val1 bar=2} OK {}
+testouterr_cmd_re sh {whatis variant/6.0 foo=val1 bar=2} ERR "$err_path'variant/6.0 foo=val1 bar=2'"
 testouterr_cmd_re sh {whatis variant/6.0} OK {}
 
 # test @loaded version specifier
@@ -82,17 +88,33 @@ testouterr_cmd_re sh {whatis variant@loaded bar=1} OK $tserr
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMVARIANT
 
-# specified variants ignored whether they exist or not
+# specified variants taken into account (module returned if match)
 setenv_var TESTSUITE_VARIANT 1
 set tserr "$modlin $mpre $modlin\n\\s+variant/6.0: variant/6.0"
-testouterr_cmd_re sh {whatis variant@6.0 foo=val1 baz=2} OK $tserr
+testouterr_cmd_re sh {whatis variant@6.0 foo=val1 baz=2} ERR "$err_path'variant@6.0 foo=val1 baz=2'"
+testouterr_cmd_re sh {whatis variant@6.0 baz=2} ERR "$err_path'variant@6.0 baz=2'"
+testouterr_cmd_re sh {whatis variant@6.0 foo=val4} ERR "$err_path'variant@6.0 foo=val4'"
 testouterr_cmd_re sh {whatis variant@6.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd_re sh {whatis variant@6.0 foo=val1} OK $tserr
+testouterr_cmd_re sh {whatis variant@6.0 bar=2} OK $tserr
+
+# shortcut variant specification
+setenv_var MODULES_VARIANT_SHORTCUT foo=%
+testouterr_cmd_re sh {whatis variant@6.0 %val1 baz=2} ERR "$err_path'variant@6.0 %val1 baz=2'"
+testouterr_cmd_re sh {whatis variant@6.0 %val1 bar=2} OK $tserr
+testouterr_cmd_re sh {whatis variant@6.0 %val2} OK $tserr
+unsetenv_var MODULES_VARIANT_SHORTCUT
 
 # boolean variant
+testouterr_cmd sh {whatis variant@6.0 -foo +bar} ERR "$err_path'variant@6.0 -foo +bar'"
+setenv_var TESTSUITE_VARIANT bool1
 testouterr_cmd_re sh {whatis variant@6.0 -foo +bar} OK $tserr
+testouterr_cmd_re sh {whatis variant@6.0 ~foo} OK $tserr
+testouterr_cmd_re sh {whatis variant@6.0 +bar} OK $tserr
 
 # when advanced_version_spec is disabled, variant spec are considered as modulefile spec
 setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+setenv_var TESTSUITE_VARIANT 1
 set tserr "$modlin $mpre $modlin\n\\s+variant/6.0: variant/6.0\n\n$modlin $mpre $modlin\n\\s+var=val: var=val"
 testouterr_cmd_re sh {whatis variant/6.0 var=val} OK $tserr
 

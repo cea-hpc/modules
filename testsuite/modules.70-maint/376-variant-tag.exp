@@ -12,7 +12,7 @@
 #   Description:	Testuite testsequence
 #   Command:		variant, module-hide, module-forbid, module-tag
 #   Modulefiles:    variant
-#   Sub-Command:    avail, list, whatis
+#   Sub-Command:    avail, list, whatis, paths
 #
 #   Comment:	%C{
 #           Test variant over hide/forbid/tag modules
@@ -237,17 +237,23 @@ testouterr_cmd_re sh {whatis variant@7.5:8.5 foo=val1} OK $tserr
 
 setenv_var TESTSUITE_VARIANT_TAG 16
 set tserr {variant/8.0 <F>}
+# module not found when variant is specified as module cannot be evaluated
+# to find if it defines variant, as it is tagged forbidden
 testouterr_cmd sh {avail -t -o tag variant@7.5:8.5} OK $tserr
-testouterr_cmd sh {avail -t -o tag variant@7.5:8.5 foo=val1} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@7.5:8.5 foo=val1} OK {}
 testouterr_cmd sh {avail -t -o tag variant@8.0} OK $tserr
-testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1} OK $tserr
-testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=1} OK $tserr
-testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1} OK {}
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=1} OK {}
+testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=2} OK {}
 
 set tserr [err_accessdenied variant/8.0]
-testouterr_cmd_re sh {whatis variant@8.0 foo=val1 bar=2} ERR $tserr
+testouterr_cmd_re sh {whatis variant@8.0 foo=val1 bar=2} ERR "$err_path'variant@8.0 foo=val1 bar=2'"
 testouterr_cmd_re sh {whatis variant@8.0} ERR $tserr
-testouterr_cmd_re sh {whatis variant@7.5:8.5 foo=val1} ERR $tserr
+testouterr_cmd_re sh {whatis variant@7.5:8.5 foo=val1} ERR "$err_path'variant@7.5:8.5 foo=val1'"
+
+set ans [list [list text $mp/variant/8.0]]
+testouterr_cmd sh {paths variant@7.5:8.5} $ans {}
+testouterr_cmd sh {paths variant@7.5:8.5 foo=val1} OK {}
 
 
 #
