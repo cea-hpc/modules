@@ -94,6 +94,13 @@ proc filterExtraMatchSearch {mod res_arrname} {
    set check_variant [expr {[llength $spec_vr_list] > 0}]
    set filter_res $check_variant
 
+   # disable error reporting to avoid modulefile errors (not coping with scan
+   # evaluation for instance) to pollute result
+   set alreadyinhibit [getState inhibit_errreport]
+   if {!$alreadyinhibit} {
+      inhibitErrorReport
+   }
+
    # evaluate all modules found in scan mode to gather content information
    lappendState mode scan
    foreach elt [array names found_list] {
@@ -124,6 +131,11 @@ proc filterExtraMatchSearch {mod res_arrname} {
       }
    }
    lpopState mode
+
+   # re-enable error report only is it was disabled from this procedure
+   if {!$alreadyinhibit} {
+      setState inhibit_errreport 0
+   }
 }
 
 # ;;; Local Variables: ***
