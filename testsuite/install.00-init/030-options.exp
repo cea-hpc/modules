@@ -157,12 +157,16 @@ if {$install_examplemodulefiles eq "y" && $modfilesdir_in_modpath} {
    unset env(MODULES_TAG_ABBREV)
    # check version-specific modulefile, related to versioning installation mode
    if {$install_versioning eq "y"} {
+      # disable advanced version spec to correctly resolve version module
+      # when module version contains a branch name and '+' sign
+      setenv_var MODULES_ADVANCED_VERSION_SPEC 0
       foreach shell $shell_list {
          testall_cmd_re "$shell" "module load modules; module avail -t $install_version" {} "$versdir_header\n$install_versionre" 0
       }
       foreach shell $othlang_list {
          testall_cmd_re "$shell" "load,modules:avail,-t,$install_version" {} "$versdir_header\n$install_versionre" 0
       }
+      unsetenv_var MODULES_ADVANCED_VERSION_SPEC
    }
 } elseif {$verbose > 0} {
    send_user "\tSkipping example modulefiles installation checks\n"
