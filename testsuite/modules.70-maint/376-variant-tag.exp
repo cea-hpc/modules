@@ -12,7 +12,7 @@
 #   Description:	Testuite testsequence
 #   Command:		variant, module-hide, module-forbid, module-tag
 #   Modulefiles:    variant
-#   Sub-Command:    avail, list, whatis, paths
+#   Sub-Command:    avail, list, whatis, paths, is-avail
 #
 #   Comment:	%C{
 #           Test variant over hide/forbid/tag modules
@@ -63,8 +63,18 @@ testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=2} OK $tserr
 
 set tserr "$modlin $mpre $modlin\n\\s+variant/8.0: variant/8.0"
 testouterr_cmd_re sh {whatis variant@8.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd_re sh {whatis variant@8.0 foo=val1} OK $tserr
 testouterr_cmd_re sh {whatis variant@8.0} OK $tserr
 testouterr_cmd_re sh {whatis variant@7.5:8.5 foo=val1} OK $tserr
+
+set ans [list [list text $mp/variant/8.0]]
+testouterr_cmd sh {paths variant@8.0 foo=val1 bar=2} $ans {}
+testouterr_cmd sh {paths variant@8.0 foo=val1} $ans {}
+testouterr_cmd sh {paths variant@8.0} $ans {}
+
+testouterr_cmd sh {is-avail variant@8.0 foo=val1 bar=2} OK {}
+testouterr_cmd sh {is-avail variant@8.0 foo=val1} OK {}
+testouterr_cmd sh {is-avail variant@8.0} OK {}
 
 testouterr_cmd sh {list -t -o tag} OK {}
 testouterr_cmd sh {list -a -t -o tag} OK {variant/8.0 <H>}
@@ -103,8 +113,18 @@ testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=2} OK $tserr
 
 set tserr "$modlin $mpre $modlin\n\\s+variant/8.0: variant/8.0"
 testouterr_cmd_re sh {whatis variant@8.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd_re sh {whatis variant@8.0 foo=val1} OK $tserr
 testouterr_cmd_re sh {whatis variant@8.0} OK $tserr
 testouterr_cmd_re sh {whatis variant@7.5:8.5 foo=val1} OK $tserr
+
+set ans [list [list text $mp/variant/8.0]]
+testouterr_cmd sh {paths variant@8.0 foo=val1 bar=2} $ans {}
+testouterr_cmd sh {paths variant@8.0 foo=val1} $ans {}
+testouterr_cmd sh {paths variant@8.0} $ans {}
+
+testouterr_cmd sh {is-avail variant@8.0 foo=val1 bar=2} OK {}
+testouterr_cmd sh {is-avail variant@8.0 foo=val1} OK {}
+testouterr_cmd sh {is-avail variant@8.0} OK {}
 
 testouterr_cmd sh {list -t -o tag} OK {}
 testouterr_cmd sh {list -a -t -o tag} OK {variant/8.0 <H>}
@@ -178,8 +198,19 @@ testouterr_cmd sh {avail -t -o tag variant@8.0 foo=val1 bar=2} OK $tserr
 
 set tserr "$modlin $mpre $modlin\n\\s+variant/8.0: variant/8.0"
 testouterr_cmd_re sh {whatis variant@8.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd_re sh {whatis variant@8.0 foo=val1} OK $tserr
 testouterr_cmd_re sh {whatis variant@8.0} OK $tserr
 testouterr_cmd_re sh {whatis variant@7.5:8.5 foo=val1} OK $tserr
+
+set ans [list [list text $mp/variant/8.0]]
+testouterr_cmd sh {paths variant@8.0 foo=val1 bar=2} $ans {}
+testouterr_cmd sh {paths variant@8.0 foo=val1} $ans {}
+testouterr_cmd sh {paths variant@8.0} $ans {}
+
+# access denied error obtained on is-avail as a module selection is made
+testouterr_cmd sh {is-avail variant@8.0 foo=val1 bar=2} ERR {}
+testouterr_cmd sh {is-avail variant@8.0 foo=val1} ERR {}
+testouterr_cmd sh {is-avail variant@8.0} OK {}
 
 
 setenv_var TESTSUITE_VARIANT_TAG 14
