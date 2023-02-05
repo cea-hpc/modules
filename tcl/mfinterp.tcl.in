@@ -400,11 +400,11 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
             $sourceFailed == 3)} {
             unset errorMsg
             # report load/unload/refresh evaluation break if verbosity level
-            # >= normal
-            if {([module-info mode] in {load unload refresh}) &&\
-               [isVerbosityLevel normal]} {
+            # >= normal, no error count raise during scan evaluation
+            set mode [module-info mode]
+            if {$mode in {load unload refresh} && [isVerbosityLevel normal]} {
                reportError {Module evaluation aborted}
-            } else {
+            } elseif {$mode ne {scan}} {
                raiseErrorCount
             }
             return 1
