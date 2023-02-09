@@ -987,7 +987,8 @@ proc clearAllMsgRecordId {} {
 
 # format an element with its syms for display in a list
 proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
-   sgrdef tag_list show_tags vr_list vrsgr show_vrs {himatchmap {}}} {
+   sgrdef tag_list show_tags vr_list vrsgr show_vrs {himatchmap {}}\
+   {himatcharrvrmap {}} {himatcharrvrvalmap {}}} {
    # fetch sgr codes from tags to apply directly on main element
    if {$show_tags && [llength $tag_list] > 0} {
       # if more codes than character in elt, additional codes apply to the
@@ -1020,11 +1021,14 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
 
    # format variant list if any
    if {$show_vrs && [llength $vr_list] > 0} {
+      array set himatchvrvalarr $himatcharrvrvalmap
+      array set himatchvrarr $himatcharrvrmap
       set commasgr [sgr se ,]
       set vrssgr "[sgr se \{]"
       set vrs \{
       foreach vrspec $vr_list {
-         lassign $vrspec vrnameset vrvalues vrdflidx vrloadedidx loadedsgrkey
+         lassign $vrspec vrname vrnameset vrvalues vrdflidx vrloadedidx\
+            loadedsgrkey
          array unset vrvalsgridx
          # apply sgr to default and loaded variant value
          if {$vrdflidx != -1} {
@@ -1045,9 +1049,20 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix sym_list symsgr show_syms\
          } else {
             set notfirstvr 1
          }
-         append vrssgr [sgr $vrsgr $vrnameset[lindex $vrsgrvalues 0]]
+         # highlight variant if corresponds to one set in query
+         if {[info exists himatchvrarr($vrname)]} {
+            set hivrmap $himatchvrarr($vrname)
+            set hivrvalmap $himatchvrvalarr($vrname)
+         } else {
+            set hivrmap {}
+            set hivrvalmap {}
+         }
+         if {[string length $vrnameset] > 0} {
+            append vrssgr [sgr $vrsgr $vrnameset $hivrmap]
+         }
+         append vrssgr [sgr $vrsgr [lindex $vrsgrvalues 0] $hivrvalmap]
          foreach vrvalue [lrange $vrsgrvalues 1 end] {
-            append vrssgr $commasgr[sgr $vrsgr $vrvalue]
+            append vrssgr $commasgr[sgr $vrsgr $vrvalue $hivrvalmap]
          }
          append vrs $vrnameset[join $vrvalues :]
       }
@@ -1219,6 +1234,36 @@ proc prepareMapToHightlightSubstr {args} {
    return $maplist
 }
 
+# Specific highlight translation map for variant name and value
+proc prepareMapToHightlightVariant {args} {
+   set vrname_maplist {}
+   set vrval_maplist {}
+   if {[sgr hi {}] ne {}} {
+      foreach modspec $args {
+         foreach vrspec [getVariantListFromVersSpec $modspec] {
+            lassign $vrspec vrname vrvalue vrisbool
+            set maplist [list $vrname [sgr hi $vrname]]
+            # also highlight shortcut if any
+            if {[info exists ::g_variantShortcut($vrname)]} {
+               lappend maplist $::g_variantShortcut($vrname) [sgr hi\
+                  $::g_variantShortcut($vrname)]
+            }
+            lappend vrname_maplist $vrname $maplist
+            # adapt variant value to highlight if boolean
+            set maplist {}
+            if {$vrisbool} {
+               set vrshort [expr {$vrvalue ? {+} : {-}}]$vrname
+               lappend maplist $vrshort [sgr hi $vrshort]
+               set vrvalue [expr {$vrvalue ? {on} : {off}}]
+            }
+            lappend maplist $vrvalue [sgr hi $vrvalue]
+            lappend vrval_maplist $vrname $maplist
+         }
+      }
+   }
+   return [list $vrname_maplist $vrval_maplist]
+}
+
 # Format list of modules obtained from a getModules call in upper context
 proc reportModules {search_queries header hsgrkey hstyle show_mtime show_idx\
    one_per_line theader_cols excluded_tag {mod_list_order {}}} {
@@ -1247,6 +1292,8 @@ proc reportModules {search_queries header hsgrkey hstyle show_mtime show_idx\
    set alias_colored [isSgrkeyColored al]
    set default_colored [isSgrkeyColored de]
    set himatchmap [prepareMapToHightlightSubstr {*}$search_queries]
+   lassign [prepareMapToHightlightVariant {*}$search_queries]\
+      himatcharrvrmap himatcharrvrvalmap
    set clean_list {}
    set vr_list {}
 
@@ -1300,7 +1347,8 @@ proc reportModules {search_queries header hsgrkey hstyle show_mtime show_idx\
             } else {
                lassign [formatListEltToDisplay $elt {} {} $sym_list sy\
                   $report_sym $default_colored $tag_list $report_tag $vr_list\
-                  va $report_variant $himatchmap] disp dispsgr displen
+                  va $report_variant $himatchmap $himatcharrvrmap\
+                  $himatcharrvrvalmap] disp dispsgr displen
             }
          }
          alias {
