@@ -83,7 +83,11 @@ testouterr_cmd sh "stashshow " ERR [err_stash_name {}]
 testouterr_cmd sh {stashshow -1} ERR [err_invopt -1]
 
 # large number
-testouterr_cmd sh {stashshow 123456789012345} ERR [err_stash_name 123456789012345]
+if {[cmpversion $tclsh_version 8.6] == 1} {
+    testouterr_cmd sh {stashshow 123456789012345} ERR [err_stash_index 123456789012345]
+} else {
+    testouterr_cmd sh {stashshow 123456789012345} ERR [err_stash_name 123456789012345]
+}
 
 # index padded with space (no collection file)
 testouterr_cmd sh {stashshow \ 0\ } ERR [err_stash_index { 0 }]
