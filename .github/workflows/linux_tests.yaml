@@ -286,3 +286,49 @@ jobs:
             install.log
           retention-days: 5
 
+  tcl87:
+    runs-on: ubuntu-22.04
+    env:
+      CONFIGURE_OPTS: --with-tclsh=tclsh8.7 --prefix=/tmp/modules --with-tcl=/usr/local/lib
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install system packages
+        run: |
+          sudo apt-get -y update
+          sudo apt-get install -y expect-dev dejagnu python3-sphinx bash tcsh ksh zsh fish perl python3 ruby cmake r-base-core
+          # libtclenvmodules build requirements
+          sudo apt-get install -y gcc autoconf
+          # manually install tcl8.7
+          curl -L --output tcl8.7a5-src.tar.gz http://downloads.sourceforge.net/tcl/tcl8.7a5-src.tar.gz
+          tar xfz tcl8.7a5-src.tar.gz
+          cd tcl8.7a5/unix
+          ./configure
+          make -j
+          sudo make install
+      - name: Build Modules
+        run: |
+          ./configure $CONFIGURE_OPTS
+          make
+      - name: Test Modules build
+        run: |
+          make test-deps
+          script/mt
+      - name: Install Modules
+        run: |
+          make install
+      - name: Test Modules installation
+        run: |
+          script/mt install
+      - name: Uninstall Modules
+        run: |
+          make uninstall
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: testsuite-logs-${{ github.job }}
+          path: |
+            modules.log
+            install.log
+          retention-days: 5
