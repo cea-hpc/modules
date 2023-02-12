@@ -82,8 +82,15 @@ set tserr "($timer_msgs .* \\\(\\d+.\\d+ ms\\\))*
 ($timer_msgs .* \\\(\\d+.\\d+ ms\\\))*
 
 $total_timer"
-testouterr_cmd_re sh {load foo/1.0 --debug --timer} $ans $tserr
-testouterr_cmd_re sh {load foo/1.0 --debug --timer --debug} $ans $tserr
+# following tests are expected to fail with Tcl 9.0 (as of 9.0b1)
+# see https://core.tcl-lang.org/tcl/tktview/46dda6fc2904ee86cc45b3ddc14ce6fb6b4303e4
+if {[cmpversion $tclsh_version 9.0] >= 0} {
+    testouterr_cmd_re sh {load foo/1.0 --debug --timer} $ans $tserr 0 xfail
+    testouterr_cmd_re sh {load foo/1.0 --debug --timer --debug} $ans $tserr 0 xfail
+} else {
+    testouterr_cmd_re sh {load foo/1.0 --debug --timer} $ans $tserr
+    testouterr_cmd_re sh {load foo/1.0 --debug --timer --debug} $ans $tserr
+}
 
 set tserr "($timer_msgs .* \\\(\\d+.\\d+ ms\\\))*
 $no_loaded
