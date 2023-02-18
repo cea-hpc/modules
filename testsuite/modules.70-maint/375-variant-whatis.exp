@@ -97,26 +97,36 @@ testouterr_cmd_re sh {whatis variant@6.0 foo=val4} ERR "$err_path'variant@6.0 fo
 testouterr_cmd_re sh {whatis variant@6.0 foo=val1 bar=2} OK $tserr
 testouterr_cmd_re sh {whatis variant@6.0 foo=val1} OK $tserr
 testouterr_cmd_re sh {whatis variant@6.0 bar=2} OK $tserr
+# no module name/version, but variant specified
+testouterr_cmd_re sh {whatis foo=val3 bar=3} OK $tserr
 
 # shortcut variant specification
 setenv_var MODULES_VARIANT_SHORTCUT foo=%
+set tserr "$modlin $mpre $modlin\n\\s+variant/6.0: variant/6.0"
 testouterr_cmd_re sh {whatis variant@6.0 %val1 baz=2} ERR "$err_path'variant@6.0 %val1 baz=2'"
 testouterr_cmd_re sh {whatis variant@6.0 %val1 bar=2} OK $tserr
 testouterr_cmd_re sh {whatis variant@6.0 %val2} OK $tserr
+# no module name/version, but variant specified
+testouterr_cmd_re sh {whatis %val3 bar=3} OK $tserr
 unsetenv_var MODULES_VARIANT_SHORTCUT
 
 # boolean variant
 testouterr_cmd sh {whatis variant@6.0 -foo +bar} ERR "$err_path'variant@6.0 -foo +bar'"
 setenv_var TESTSUITE_VARIANT bool1
+set tserr "$modlin $mpre $modlin\n\\s+variant/6.0: variant/6.0"
 testouterr_cmd_re sh {whatis variant@6.0 -foo +bar} OK $tserr
 testouterr_cmd_re sh {whatis variant@6.0 ~foo} OK $tserr
 testouterr_cmd_re sh {whatis variant@6.0 +bar} OK $tserr
+# no module name/version, but variant specified
+testouterr_cmd_re sh {whatis ~bar} OK $tserr
 
 # free value variant
 setenv_var TESTSUITE_VARIANT free3
 set tserr "$modlin $mpre $modlin\n\\s+variant/6.0: variant/6.0"
 testouterr_cmd_re sh {whatis variant/6.0 foo=val1} OK $tserr
 testouterr_cmd_re sh {whatis variant/6.0 foo=no} OK $tserr
+# no module name/version, but variant specified
+testouterr_cmd_re sh {whatis foo=anything} OK $tserr
 unsetenv_var TESTSUITE_VARIANT
 
 # when advanced_version_spec is disabled, variant spec are considered as modulefile spec
