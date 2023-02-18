@@ -395,26 +395,55 @@ testouterr_cmd_re sh {avail variant@6.0 foo=val1 bar=2} OK $tserr
 testouterr_cmd_re sh {avail variant@6.0 foo=val1 bar=1} OK $tserr
 testouterr_cmd_re sh {avail variant@6.0 foo=val1} OK $tserr
 testouterr_cmd_re sh {avail variant@6.0 bar=2} OK $tserr
+# no module name/version, but variant specified
+if {$install_availindepth eq {y}} {
+    set tserr "$mp:\nvariant/4.0\nvariant/5.0\nvariant/6.0"
+} else {
+    set tserr "$mp:\nvariant/"
+}
+testouterr_cmd sh {avail -t foo=val3 bar=3} OK $tserr
 
 # shortcut variant specification
 setenv_var MODULES_VARIANT_SHORTCUT foo=%
+set tserr "$modlin $mpre $modlin\nvariant/6.0  "
 testouterr_cmd_re sh {avail variant@6.0 %val4} OK {}
 testouterr_cmd_re sh {avail variant@6.0 %val1 bar=2} OK $tserr
 testouterr_cmd_re sh {avail variant@6.0 %val2} OK $tserr
+# no module name/version, but variant specified
+if {$install_availindepth eq {y}} {
+    set tserr "$mp:\nvariant/4.0\nvariant/5.0\nvariant/6.0"
+} else {
+    set tserr "$mp:\nvariant/"
+}
+testouterr_cmd sh {avail -t %val3 bar=3} OK $tserr
 unsetenv_var MODULES_VARIANT_SHORTCUT
 
 # boolean variant specification
 testouterr_cmd_re sh {avail variant@6.0 +foo -bar} OK {}
 setenv_var TESTSUITE_VARIANT bool1
+set tserr "$modlin $mpre $modlin\nvariant/6.0  "
 testouterr_cmd_re sh {avail variant@6.0 +foo -bar} OK $tserr
 testouterr_cmd_re sh {avail variant@6.0 +foo} OK $tserr
 testouterr_cmd_re sh {avail variant@6.0 ~bar} OK $tserr
+# no module name/version, but variant specified
+if {$install_availindepth eq {n}} {
+    set tserr "$modlin $mpre $modlin\nvariant/  "
+}
+testouterr_cmd_re sh {avail ~bar} OK $tserr
 unsetenv_var TESTSUITE_VARIANT
 
 # free value variant
 setenv_var TESTSUITE_VARIANT free3
+set tserr "$modlin $mpre $modlin\nvariant/6.0  "
 testouterr_cmd_re sh {avail variant/6.0 foo=val1} OK $tserr
 testouterr_cmd_re sh {avail variant/6.0 foo=no} OK $tserr
+# no module name/version, but variant specified
+if {$install_availindepth eq {y}} {
+    set tserr "$mp:\nvariant/1.0\nvariant/6.0"
+} else {
+    set tserr "$mp:\nvariant/"
+}
+testouterr_cmd sh {avail -t foo=anything} OK $tserr
 unsetenv_var TESTSUITE_VARIANT
 
 # when advanced_version_spec is disabled, variant spec are considered as modulefile spec
@@ -445,6 +474,8 @@ setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 setenv_var TESTSUITE_VARIANT 1
 testouterr_cmd_re sh {is-avail variant@6.0 foo=val1 baz=2} OK {}
 testouterr_cmd_re sh {is-avail variant@6.0 foo=val1 bar=2} OK {}
+# no module name/version, but variant specified
+testouterr_cmd sh {is-avail foo=val1 bar=2} ERR "$err_specmodname'foo=val1 bar=2'"
 
 # shortcut variant specification
 setenv_var MODULES_VARIANT_SHORTCUT foo=%
@@ -483,25 +514,48 @@ testouterr_cmd sh {paths variant@6.0 baz=4} OK {}
 testouterr_cmd sh {paths variant@6.0 foo=val1 bar=2} $ans {}
 testouterr_cmd sh {paths variant@6.0 foo=val1} $ans {}
 testouterr_cmd sh {paths variant@6.0 bar=2} $ans {}
+# no module name/version, but variant specified
+set ans [list\
+    [list text $mp/variant/4.0]\
+    [list text $mp/variant/5.0]\
+    [list text $mp/variant/6.0]]
+testouterr_cmd sh {paths foo=val3 bar=3} $ans {}
 
 # shortcut variant specification
 setenv_var MODULES_VARIANT_SHORTCUT foo=%
+set ans [list [list text $mp/variant/6.0]]
 testouterr_cmd sh {paths variant@6.0 foo=val4} OK {}
 testouterr_cmd sh {paths variant@6.0 %val1 bar=2} $ans {}
 testouterr_cmd sh {paths variant@6.0 %val2} $ans {}
+# no module name/version, but variant specified
+set ans [list\
+    [list text $mp/variant/4.0]\
+    [list text $mp/variant/5.0]\
+    [list text $mp/variant/6.0]]
+testouterr_cmd sh {paths %val3 bar=3} $ans {}
 unsetenv_var MODULES_VARIANT_SHORTCUT
 
 # boolean variant
 testouterr_cmd sh {paths variant@6.0 -foo +bar} OK {}
 setenv_var TESTSUITE_VARIANT bool1
+set ans [list [list text $mp/variant/6.0]]
 testouterr_cmd sh {paths variant@6.0 ~foo +bar} $ans {}
 testouterr_cmd sh {paths variant@6.0 -foo} $ans {}
 testouterr_cmd sh {paths variant@6.0 +bar} $ans {}
+# no module name/version, but variant specified
+set ans [list [list text $mp/variant/6.0]]
+testouterr_cmd sh {paths -bar +foo} $ans {}
 
 # free value variant
 setenv_var TESTSUITE_VARIANT free3
+set ans [list [list text $mp/variant/6.0]]
 testouterr_cmd sh {paths variant/6.0 foo=val1} $ans {}
 testouterr_cmd sh {paths variant/6.0 foo=no} $ans {}
+# no module name/version, but variant specified
+set ans [list\
+    [list text $mp/variant/1.0]\
+    [list text $mp/variant/6.0]]
+testouterr_cmd sh {paths foo=anything} $ans {}
 unsetenv_var TESTSUITE_VARIANT
 
 # when advanced_version_spec is disabled, variant spec are considered as modulefile spec
@@ -521,6 +575,8 @@ setenv_var TESTSUITE_VARIANT 1
 set ans [list [list text $mp/variant/6.0]]
 testouterr_cmd sh {path variant@6.0 foo=val1 baz=2} $ans {}
 testouterr_cmd sh {path variant@6.0 foo=val1 bar=2} $ans {}
+# no module name/version, but variant specified
+testouterr_cmd sh {path foo=val1 bar=2} ERR "$err_specmodname'foo=val1 bar=2'"
 
 # shortcut variant specification
 setenv_var MODULES_VARIANT_SHORTCUT foo=%
