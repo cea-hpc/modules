@@ -85,9 +85,10 @@ proc isExtraMatchSearchRequired {mod} {
 }
 
 # perform extra match search on currently being built module search result
-proc filterExtraMatchSearch {mod res_arrname} {
+proc filterExtraMatchSearch {mod res_arrname versmod_arrname} {
    # link to variables/arrays from upper context
    upvar $res_arrname found_list
+   upvar $versmod_arrname versmod_list
 
    # get extra match query properties
    set spec_vr_list [getVariantListFromVersSpec $mod]
@@ -101,6 +102,7 @@ proc filterExtraMatchSearch {mod res_arrname} {
       inhibitErrorReport
    }
 
+   set unset_list {}
    # evaluate all modules found in scan mode to gather content information
    lappendState mode scan
    foreach elt [array names found_list] {
@@ -119,18 +121,29 @@ proc filterExtraMatchSearch {mod res_arrname} {
          switch -- [lindex $found_list($elt) 0] {
             alias {
                # module alias does not hold properties to match extra query
-               unset found_list($elt)
+               lappend unset_list $elt
             }
             modulefile - virtual {
                if {$check_variant && ![doesModVariantMatch $elt\
                   $spec_vr_list]} {
-                  unset found_list($elt)
+                  lappend unset_list $elt
                }
             }
          }
       }
    }
    lpopState mode
+
+   # unset marked elements
+   foreach elt $unset_list {
+      unset found_list($elt)
+      # also unset any symbolic version pointing to unset elt
+      if {[info exists versmod_list($elt)]} {
+         foreach eltsym $versmod_list($elt) {
+            unset found_list($eltsym)
+         }
+      }
+   }
 
    # re-enable error report only is it was disabled from this procedure
    if {!$alreadyinhibit} {
