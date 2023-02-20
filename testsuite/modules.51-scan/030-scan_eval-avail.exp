@@ -215,6 +215,76 @@ setenv_var MODULERCFILE $ORIG_MODULERCFILE
 
 
 #
+# alias element during scan
+#
+
+setenv_var TESTSUITE_SCAN alias1
+
+set tserr "scan/1.0{foo=val1,val2,val3,val4}
+scan/1.1{foo=val1,val2,val3,val4}
+scan/2.0{foo=val1,val2,val3}
+scan/2.1{foo=val1,val2,val3}"
+testouterr_cmd sh {avail -t foo=val3} OK $tserr
+
+set tserr "scan/1.0{foo=val1,val2,val3,val4}
+scan/1.1{foo=val1,val2,val3,val4}"
+testouterr_cmd sh {avail -t foo=val4} OK $tserr
+
+# matching name, but no variant in an alias (no resolution to target on avail)
+testouterr_cmd sh {avail -t scan/alias foo=val4} OK {}
+
+testouterr_cmd sh {avail -t scan/alias foo=val5} OK {}
+
+set tserr ".*\n"
+if {[is_conf_enabled implicitdefault]} {
+    append tserr "Get modules: {scan/1.1 scan/default scan/latest scan/1.0} matching 'foo=val4' in '$mpre'\n"
+} else {
+    append tserr "Get modules: {scan/1.1 scan/1.0} matching 'foo=val4' in '$mpre'\n"
+}
+append tserr "scan/1.0{foo=val1,val2,val3,val4}
+scan/1.1{foo=val1,val2,val3,val4}"
+testouterr_cmd_re sh {avail -T -t foo=val4} OK $tserr
+
+# with global symbol
+setenv_var MODULERCFILE $env(TESTSUITEDIR)/etc/modulerc.scan
+
+testouterr_cmd sh {avail -t scan/glalias foo=val4} OK {}
+testouterr_cmd sh {avail -t scanalias foo=val4} OK {}
+
+# no extra match filter
+set tserr "scan/1.0{foo=val1,val2,val3,val4}
+scan/1.1{foo=val1,val2,val3,val4}
+scan/2.0{foo=val1,val2,val3}
+scan/2.1{foo=val1,val2,val3}
+scan/alias(@)
+scan/alunk(@)
+scan/glalias(@)
+scan/glalunk(@)
+scanalias(@)"
+testouterr_cmd sh {avail -t -o tag:variant:sym:alias scan} OK $tserr
+
+set tserr ".*
+Get modules: {} matching 'foo=val4' in ''
+.*\n"
+if {[is_conf_enabled implicitdefault]} {
+    append tserr "Get modules: {scan/1.1 scan/default scan/latest scan/1.0} matching 'foo=val4' in '$mpre'\n"
+} else {
+    append tserr "Get modules: {scan/1.1 scan/1.0} matching 'foo=val4' in '$mpre'\n"
+}
+append tserr "scan/1.0{foo=val1,val2,val3,val4}
+scan/1.1{foo=val1,val2,val3,val4}"
+testouterr_cmd_re sh {avail -T -t foo=val4} OK $tserr
+
+set tserr ".*
+Get modules: {} matching 'scan@:1.0 foo=val4' in ''
+.*
+Get modules: {scan/1.0} matching 'scan@:1.0 foo=val4' in '$mpre'
+scan/1.0{foo=val1,val2,val3,val4}"
+testouterr_cmd_re sh {avail -T -t scan@:1.0 foo=val4} OK $tserr
+setenv_var MODULERCFILE $ORIG_MODULERCFILE
+
+
+#
 #  Cleanup
 #
 
