@@ -74,6 +74,38 @@ match search`_ section. With the consolidated information gathered by these
 evaluations, procedure filters entries in result array that do not match the
 extra match query.
 
+Symbolic versions
+^^^^^^^^^^^^^^^^^
+
+From ``filterExtraMatchSearch``, symbolic version elements are retained unless
+if they target an element that is withdrawn by the filter process.
+
+They need to be filtered if their target is filtered as it may confuse some
+sub-commands like ``paths`` if they are part of ``getModules`` result.
+
+During wild search (no module name specified) with variant specified, auto
+symbolic versions (*latest* and *default*) are disabled. This is done
+especially for sub-commands like ``paths`` that take getModules result and try
+to resolve each entry. In this situation it is important not to have any auto
+symbol that indirectly targets an element withdrawn from extra match filter.
+
+Module aliases
+^^^^^^^^^^^^^^
+
+From ``filterExtraMatchSearch``, module alias elements are purely withdrawn by
+the filter process as they are not resolved on *return all matching modules*
+context. They are also withdrawn even if searched module name matches alias
+name.
+
+They need to be filtered when search query mentions a specific variant and
+value as alias does not define variant in itself.
+
+When variants have to be reported but are not part of the search query, then
+no filtering process occurs, aliases are not withdrawn.
+
+FUTURE: it may be revised to implement extra match search on *select one
+module* context.
+
 Module tags
 ^^^^^^^^^^^
 
