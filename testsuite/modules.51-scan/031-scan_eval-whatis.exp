@@ -1,0 +1,208 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.51-scan/%M%
+#   Revision:		%I%
+#   First Edition:	2023/02/21
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		whatis
+#   Modulefiles:    scan
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Tests scan evaluation on whatis sub-command
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+# ensure advanced version specifiers are enabled
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+# ensure whatis tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+
+#
+# symbolic version elements during scan
+#
+
+setenv_var TESTSUITE_SCAN sym1
+
+set tserr "$modlin $mpre $modlin
+\\s+scan/1.0: scan/1.0
+\\s+scan/1.1: scan/1.1
+\\s+scan/2.0: scan/2.0
+\\s+scan/2.1: scan/2.1"
+testouterr_cmd_re sh {whatis foo=val3} OK $tserr
+
+set tserr ".*\n"
+if {[is_conf_enabled implicitdefault]} {
+    append tserr "Get modules: {scan/1.1 scan/2.0 scan/foo scan/sym scan foo/unk scan/default scan/2.1 scan/latest scan/unk scan/1.0} matching 'foo=val3' in '$mpre'\n"
+} else {
+    append tserr "Get modules: {scan/1.1 scan/2.0 scan/foo scan/sym scan scan/2.1 foo/unk scan/unk scan/1.0} matching 'foo=val3' in '$mpre'\n"
+}
+append tserr ".*
+$modlin $mpre $modlin
+\\s+scan/1.0: scan/1.0
+\\s+scan/1.1: scan/1.1
+\\s+scan/2.0: scan/2.0
+\\s+scan/2.1: scan/2.1"
+testouterr_cmd_re sh {whatis -T foo=val3} OK $tserr
+
+set tserr "$modlin $mpre $modlin
+\\s+scan/1.0: scan/1.0
+\\s+scan/1.1: scan/1.1"
+testouterr_cmd_re sh {whatis foo=val4} OK $tserr
+
+set tserr "$modlin $mpre $modlin
+\\s+scan/1.0: scan/1.0"
+testouterr_cmd_re sh {whatis scan/sym foo=val4} OK $tserr
+
+set tserr ".*\n"
+if {[is_conf_enabled implicitdefault]} {
+    append tserr "Get modules: {scan/1.1 scan/sym scan foo/unk scan/default scan/latest scan/unk scan/1.0} matching 'foo=val4' in '$mpre'\n"
+} else {
+    append tserr "Get modules: {scan/1.1 scan/sym scan foo/unk scan/unk scan/1.0} matching 'foo=val4' in '$mpre'\n"
+}
+append tserr ".*
+$modlin $mpre $modlin
+\\s+scan/1.0: scan/1.0
+\\s+scan/1.1: scan/1.1"
+testouterr_cmd_re sh {whatis -T foo=val4} OK $tserr
+
+set tserr ".*
+Get modules: {scan scan/1.0} matching 'scan@:1.0 foo=val4' in '$mpre'
+.*
+$modlin $mpre $modlin
+\\s+scan/1.0: scan/1.0"
+testouterr_cmd_re sh {whatis -T scan@:1.0 foo=val4} OK $tserr
+
+# with global symbol
+setenv_var MODULERCFILE $env(TESTSUITEDIR)/etc/modulerc.scan
+set tserr "$modlin $mpre $modlin
+\\s+scan/1.0: scan/1.0
+\\s+scan/1.1: scan/1.1"
+testouterr_cmd_re sh {whatis foo=val4} OK $tserr
+
+set tserr "$modlin $mpre $modlin
+\\s+scan/1.0: scan/1.0"
+testouterr_cmd_re sh {whatis scan/globalsym foo=val4} OK $tserr
+
+testouterr_cmd sh {whatis scan/globalsym foo=val5} ERR "$err_path'scan/globalsym foo=val5'"
+
+# no extra match filter
+set tserr "$modlin $mpre $modlin
+\\s+scan/1.0: scan/1.0
+\\s+scan/1.1: scan/1.1
+\\s+scan/2.0: scan/2.0
+\\s+scan/2.1: scan/2.1"
+testouterr_cmd_re sh {whatis scan} OK $tserr
+
+set tserr ".*\n"
+if {[is_conf_enabled implicitdefault]} {
+    append tserr "Get modules: {scan/1.1 scan/sym scan foo/unk scan/default scan/latest scan/globalsym scan/unk foo/globalunk scan/1.0 scan/globalunk} matching 'foo=val4' in '$mpre'\n"
+} else {
+    append tserr "Get modules: {scan/1.1 scan/sym scan foo/unk scan/globalsym scan/unk foo/globalunk scan/1.0 scan/globalunk} matching 'foo=val4' in '$mpre'\n"
+}
+append tserr ".*
+$modlin $mpre $modlin
+\\s+scan/1.0: scan/1.0
+\\s+scan/1.1: scan/1.1"
+testouterr_cmd_re sh {whatis -T foo=val4} OK $tserr
+
+set tserr ".*
+Get modules: {scan scan/1.0} matching 'scan@:1.0 foo=val4' in '$mpre'
+.*
+$modlin $mpre $modlin
+\\s+scan/1.0: scan/1.0"
+testouterr_cmd_re sh {whatis -T scan@:1.0 foo=val4} OK $tserr
+setenv_var MODULERCFILE $ORIG_MODULERCFILE
+
+
+#
+# alias element during scan
+#
+
+setenv_var TESTSUITE_SCAN alias1
+
+set tserr "$modlin $mpre $modlin
+\\s+scan/1.0: scan/1.0
+\\s+scan/1.1: scan/1.1
+\\s+scan/2.0: scan/2.0
+\\s+scan/2.1: scan/2.1"
+testouterr_cmd_re sh {whatis foo=val3} OK $tserr
+
+set tserr "$modlin $mpre $modlin
+\\s+scan/1.0: scan/1.0
+\\s+scan/1.1: scan/1.1"
+testouterr_cmd_re sh {whatis foo=val4} OK $tserr
+
+# matching name, but no variant in an alias
+# FIXME: may change if resolution to target is applied on whatis
+testouterr_cmd sh {whatis scan/alias foo=val4} ERR "$err_path'scan/alias foo=val4'"
+
+testouterr_cmd sh {whatis scan/alias foo=val5} ERR "$err_path'scan/alias foo=val5'"
+
+set tserr ".*\n"
+if {[is_conf_enabled implicitdefault]} {
+    append tserr "Get modules: {scan/1.1 scan scan/default scan/latest scan/1.0} matching 'foo=val4' in '$mpre'\n"
+} else {
+    append tserr "Get modules: {scan/1.1 scan scan/1.0} matching 'foo=val4' in '$mpre'\n"
+}
+append tserr ".*
+$modlin $mpre $modlin
+\\s+scan/1.0: scan/1.0
+\\s+scan/1.1: scan/1.1"
+testouterr_cmd_re sh {whatis -T foo=val4} OK $tserr
+
+# with global symbol
+setenv_var MODULERCFILE $env(TESTSUITEDIR)/etc/modulerc.scan
+
+testouterr_cmd sh {whatis scan/glalias foo=val4} ERR "$err_path'scan/glalias foo=val4'"
+testouterr_cmd sh {whatis scanalias foo=val4} ERR "$err_path'scanalias foo=val4'"
+
+# no extra match filter
+set tserr "$modlin $mpre $modlin
+\\s+scan/1.0: scan/1.0
+\\s+scan/1.1: scan/1.1
+\\s+scan/2.0: scan/2.0
+\\s+scan/2.1: scan/2.1"
+testouterr_cmd_re sh {whatis scan} OK $tserr
+
+set tserr ".*\n"
+if {[is_conf_enabled implicitdefault]} {
+    append tserr "Get modules: {scan/1.1 scan scan/default scan/latest scan/1.0} matching 'foo=val4' in '$mpre'\n"
+} else {
+    append tserr "Get modules: {scan/1.1 scan scan/1.0} matching 'foo=val4' in '$mpre'\n"
+}
+append tserr ".*
+$modlin $mpre $modlin
+\\s+scan/1.0: scan/1.0
+\\s+scan/1.1: scan/1.1"
+testouterr_cmd_re sh {whatis -T foo=val4} OK $tserr
+
+set tserr ".*
+Get modules: {scan scan/1.0} matching 'scan@:1.0 foo=val4' in '$mpre'
+.*
+$modlin $mpre $modlin
+\\s+scan/1.0: scan/1.0"
+testouterr_cmd_re sh {whatis -T scan@:1.0 foo=val4} OK $tserr
+setenv_var MODULERCFILE $ORIG_MODULERCFILE
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
