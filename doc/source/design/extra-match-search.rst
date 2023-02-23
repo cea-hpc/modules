@@ -42,12 +42,19 @@ Extra match search is performed from ``getModules`` procedure. All subsequent
 procedures relying on ``getModules`` will then benefit from this extra process
 without a change.
 
-Extra match search is done right after *phase 2: filter-out dynamically
-hidden or expired elements*. This way the subsequent phases that defines
-defaults, directory content and no-indepth mode does not need to be updated
-and will apply on the extra match search result.
+Extra match search is done right after *phase 3: elaborate directory content
+with default element selection*. At this stage:
 
-As extra match search is performed after *phase 2*, search operation will only
+* symbolic versions, aliases and virtual modules are known
+* dynamically hidden or expired elements have been filtered
+* automatically defined symbols are set
+* initial directory content and their default version are set
+
+This way the subsequent phases that filters result based on name and version
+search query, adjusts directory content and no-indepth mode does not need to be
+updated and will apply on the extra match search result.
+
+As extra match search is performed after *phase 3*, search operation will only
 applies on result obtained from traditional lookup.
 
 Extra match search will only be performed if search query requires it. It will

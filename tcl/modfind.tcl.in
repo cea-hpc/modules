@@ -2790,17 +2790,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
       }
    }
 
-   # Phase #3: perform extra match search
-
-   if {[isExtraMatchSearchRequired $mod]} {
-      filterExtraMatchSearch $mod found_list versmod_list
-   }
-
-   # Phase #4: elaborate directory content with default element selection
-
-   # ensure modEqStatic is defined as expected (could have been redefined
-   # during scan evaluation occurring during previous phase
-   defineModEqStaticProc $icase [getConf extended_default] $mod
+   # Phase #3: elaborate directory content with default element selection
 
    array set dir_list {}
    array set autosym_list {}
@@ -2846,6 +2836,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
                err_list($elt/default)]} {
                if {![info exists found_list($elt/default)]} {
                   set found_list($elt/default) [list version $elt/$dfl]
+                  lappend versmod_list($elt/$dfl) $elt/default
                   set autosym_list($elt/default) 1
                }
                setModuleResolution $elt/default $elt/$dfl default 1 1
@@ -2855,6 +2846,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
                set lat [lindex $dir_list($elt) end]
                if {![info exists found_list($elt/latest)]} {
                   set found_list($elt/latest) [list version $elt/$lat]
+                  lappend versmod_list($elt/$lat) $elt/latest
                   set autosym_list($elt/latest) 1
                }
                setModuleResolution $elt/latest $elt/$lat latest 1 1
@@ -2862,6 +2854,16 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
          }
       }
    }
+
+   # Phase #4: perform extra match search
+
+   if {[isExtraMatchSearchRequired $mod]} {
+      filterExtraMatchSearch $mod found_list versmod_list
+   }
+
+   # ensure modEqStatic is defined as expected (could have been redefined
+   # during scan evaluation)
+   defineModEqStaticProc $icase [getConf extended_default] $mod
 
    # Phase #5: filter results to keep those matching search query
 
