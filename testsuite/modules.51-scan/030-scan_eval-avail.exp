@@ -203,6 +203,67 @@ setenv_var MODULERCFILE $ORIG_MODULERCFILE
 
 
 #
+# default symbolic version during scan
+#
+
+setenv_var TESTSUITE_SCAN sym2
+
+set tserr ".*
+Get modules: {} matching 'scan foo=val1' in ''
+.*
+Get modules: {scan/1.1 scan/default scan/1.0} matching 'scan foo=val1' in '$mpre'
+scan/1.0{foo=val1,val2,val3}\\\(default\\\)
+scan/1.1{foo=val1,val2,val3}"
+testouterr_cmd_re sh {avail -T -t scan foo=val1} OK $tserr
+
+if {$install_searchmatch eq {contains}} {
+set tserr ".*
+Get modules: {} matching 'scan foo=val4' in ''
+.*
+Get modules: {scan/2.0 scan/2.1} matching 'scan foo=val4' in '$mpre'
+scan/2.0{foo=val2,val3,val4}
+scan/2.1{foo=val2,val3,val4}"
+} else {
+set tserr ".*
+Get modules: {} matching 'scan foo=val4' in ''
+.*
+Get modules: {scan/2.0 scan/2.1 scan/latest} matching 'scan foo=val4' in '$mpre'
+scan/2.0{foo=val2,val3,val4}
+scan/2.1{foo=val2,val3,val4}"
+}
+testouterr_cmd_re sh {avail -T -t scan foo=val4} OK $tserr
+
+set tserr ".*
+Get modules: {} matching 'scan@default foo=val4' in ''
+.*
+Get modules: {} matching 'scan@default foo=val4' in '$mpre'"
+testouterr_cmd_re sh {avail -T -t scan@default foo=val4} OK $tserr
+
+set tserr ".*
+Get modules: {} matching 'scan@default foo=val2' in ''
+.*
+Get modules: {scan/default scan/1.0} matching 'scan@default foo=val2' in '$mpre'
+scan/1.0{foo=val1,val2,val3}\\\(default\\\)"
+testouterr_cmd_re sh {avail -T -t scan@default foo=val2} OK $tserr
+
+set tserr ".*
+Get modules: {} matching 'scan@1.1:2.1 foo=val4' in ''
+.*
+Get modules: {scan/2.0 scan/2.1} matching 'scan@1.1:2.1 foo=val4' in '$mpre'
+scan/2.0{foo=val2,val3,val4}
+scan/2.1{foo=val2,val3,val4}"
+testouterr_cmd_re sh {avail -T -t scan@1.1:2.1 foo=val4} OK $tserr
+
+set tserr ".*
+Get modules: {} matching 'scan@1.1:2.0 foo=val2' in ''
+.*
+Get modules: {scan/2.0 scan/1.1} matching 'scan@1.1:2.0 foo=val2' in '$mpre'
+scan/1.1{foo=val1,val2,val3}
+scan/2.0{foo=val2,val3,val4}"
+testouterr_cmd_re sh {avail -T -t scan@1.1:2.0 foo=val2} OK $tserr
+
+
+#
 # alias element during scan
 #
 

@@ -98,6 +98,54 @@ setenv_var MODULERCFILE $ORIG_MODULERCFILE
 
 
 #
+# default symbolic version during scan
+#
+
+setenv_var TESTSUITE_SCAN sym2
+
+set tserr ".*
+Get modules: {scan/1.1 scan/default scan scan/1.0} matching 'scan foo=val1' in '$mpre'
+Get modules: {scan scan/1.0} matching 'scan/1.0' in '$mpre'
+.*"
+set ans [list]
+lappend ans [list text $mp/scan/1.0]
+testouterr_cmd_re sh {paths -T scan foo=val1} $ans $tserr
+
+set tserr ".*
+Get modules: {scan/2.0 scan scan/2.1 scan/latest} matching 'scan foo=val4' in '$mpre'
+Get modules: {scan/2.1 scan} matching 'scan/2.1' in '$mpre'
+.*"
+set ans [list]
+lappend ans [list text $mp/scan/2.0]
+testouterr_cmd_re sh {paths -T scan foo=val4} $ans $tserr
+
+set tserr ".*
+Get modules: {} matching 'scan@default foo=val4' in '$mpre'"
+testouterr_cmd_re sh {paths -T scan@default foo=val4} OK $tserr
+
+set tserr ".*
+Get modules: {scan/default scan scan/1.0} matching 'scan@default foo=val2' in '$mpre'
+Get modules: {scan scan/1.0} matching 'scan/1.0' in '$mpre'
+.*"
+set ans [list]
+lappend ans [list text $mp/scan/1.0]
+testouterr_cmd_re sh {paths -T scan@default foo=val2} $ans $tserr
+
+set tserr ".*
+Get modules: {scan/2.0 scan/2.1 scan} matching 'scan@1.1:2.1 foo=val4' in '$mpre'"
+set ans [list]
+lappend ans [list text $mp/scan/2.0]
+testouterr_cmd_re sh {paths -T scan@1.1:2.1 foo=val4} $ans $tserr
+
+set tserr ".*
+Get modules: {scan/2.0 scan/1.1 scan} matching 'scan@1.1:2.0 foo=val2' in '$mpre'"
+set ans [list]
+lappend ans [list text $mp/scan/1.0]
+lappend ans [list text $mp/scan/2.0]
+testouterr_cmd_re sh {paths -T scan@1.1:2.0 foo=val2} $ans $tserr
+
+
+#
 # alias element during scan
 #
 
