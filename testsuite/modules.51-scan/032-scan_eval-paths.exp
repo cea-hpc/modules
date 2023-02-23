@@ -44,13 +44,9 @@ lappend ans [list text $mp/scan/1.0]
 lappend ans [list text $mp/scan/2.0]
 testouterr_cmd sh {paths foo=val3} $ans {}
 
-set tserr ".*\n"
-if {[is_conf_enabled implicitdefault]} {
-    append tserr "Get modules: {scan/1.1 scan/2.0 scan/foo scan/sym scan foo/unk scan/default scan/2.1 scan/latest scan/unk scan/1.0} matching 'foo=val3' in '$mpre'\n"
-} else {
-    append tserr "Get modules: {scan/1.1 scan/2.0 scan/foo scan/sym scan scan/2.1 foo/unk scan/unk scan/1.0} matching 'foo=val3' in '$mpre'\n"
-}
-append tserr ".*"
+set tserr ".*
+Get modules: {foo/unk scan scan/foo scan/unk scan/1.0 scan/2.0 scan/1.1 scan/2.1 scan/sym} matching 'foo=val3' in '$mpre'
+.*"
 testouterr_cmd_re sh {paths -T foo=val3} $ans $tserr
 
 set ans [list]
@@ -63,13 +59,9 @@ testouterr_cmd sh {paths scan/sym foo=val4} $ans {}
 
 set ans [list]
 lappend ans [list text $mp/scan/1.0]
-set tserr ".*\n"
-if {[is_conf_enabled implicitdefault]} {
-    append tserr "Get modules: {scan/1.1 scan/sym scan foo/unk scan/default scan/latest scan/unk scan/1.0} matching 'foo=val4' in '$mpre'\n"
-} else {
-    append tserr "Get modules: {scan/1.1 scan/sym scan foo/unk scan/unk scan/1.0} matching 'foo=val4' in '$mpre'\n"
-}
-append tserr ".*"
+set tserr ".*
+Get modules: {scan/1.1 scan/sym scan foo/unk scan/unk scan/1.0} matching 'foo=val4' in '$mpre'
+.*"
 testouterr_cmd_re sh {paths -T foo=val4} $ans $tserr
 
 set tserr ".*
@@ -92,13 +84,9 @@ lappend ans [list text $mp/scan/1.0]
 lappend ans [list text $mp/scan/2.0]
 testouterr_cmd sh {paths scan} $ans {}
 
-set tserr ".*\n"
-if {[is_conf_enabled implicitdefault]} {
-    append tserr "Get modules: {scan/1.1 scan/sym scan foo/unk scan/default scan/latest scan/globalsym scan/unk foo/globalunk scan/1.0 scan/globalunk} matching 'foo=val4' in '$mpre'\n"
-} else {
-    append tserr "Get modules: {scan/1.1 scan/sym scan foo/unk scan/globalsym scan/unk foo/globalunk scan/1.0 scan/globalunk} matching 'foo=val4' in '$mpre'\n"
-}
-append tserr ".*"
+set tserr ".*
+Get modules: {foo/unk foo/globalunk scan scan/unk scan/globalunk scan/1.0 scan/1.1 scan/sym scan/globalsym} matching 'foo=val4' in '$mpre'
+.*"
 set ans [list]
 lappend ans [list text $mp/scan/1.0]
 testouterr_cmd_re sh {paths -T foo=val4} $ans $tserr

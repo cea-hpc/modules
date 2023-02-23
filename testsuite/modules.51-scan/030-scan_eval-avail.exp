@@ -141,13 +141,9 @@ scan/2.0{foo=val1,val2,val3}(foo)
 scan/2.1{foo=val1,val2,val3}"
 testouterr_cmd sh {avail -t foo=val3} OK $tserr
 
-set tserr ".*\n"
-if {[is_conf_enabled implicitdefault]} {
-    append tserr "Get modules: {scan/1.1 scan/2.0 scan/foo scan/sym foo/unk scan/default scan/2.1 scan/latest scan/unk scan/1.0} matching 'foo=val3' in '$mpre'\n"
-} else {
-    append tserr "Get modules: {scan/1.1 scan/2.0 scan/foo scan/sym scan/2.1 foo/unk scan/unk scan/1.0} matching 'foo=val3' in '$mpre'\n"
-}
-append tserr "scan/1.0{foo=val1,val2,val3,val4}\\\(sym\\\)
+set tserr ".*
+Get modules: {foo/unk scan/foo scan/unk scan/1.0 scan/2.0 scan/1.1 scan/2.1 scan/sym} matching 'foo=val3' in '$mpre'
+scan/1.0{foo=val1,val2,val3,val4}\\\(sym\\\)
 scan/1.1{foo=val1,val2,val3,val4}
 scan/2.0{foo=val1,val2,val3}\\\(foo\\\)
 scan/2.1{foo=val1,val2,val3}"
@@ -160,13 +156,9 @@ testouterr_cmd sh {avail -t foo=val4} OK $tserr
 set tserr "scan/1.0{foo=val1,val2,val3,val4}(sym)"
 testouterr_cmd sh {avail -t scan/sym foo=val4} OK $tserr
 
-set tserr ".*\n"
-if {[is_conf_enabled implicitdefault]} {
-    append tserr "Get modules: {scan/1.1 scan/sym foo/unk scan/default scan/latest scan/unk scan/1.0} matching 'foo=val4' in '$mpre'\n"
-} else {
-    append tserr "Get modules: {scan/1.1 scan/sym foo/unk scan/unk scan/1.0} matching 'foo=val4' in '$mpre'\n"
-}
-append tserr "scan/1.0{foo=val1,val2,val3,val4}\\\(sym\\\)
+set tserr ".*
+Get modules: {scan/1.1 scan/sym foo/unk scan/unk scan/1.0} matching 'foo=val4' in '$mpre'
+scan/1.0{foo=val1,val2,val3,val4}\\\(sym\\\)
 scan/1.1{foo=val1,val2,val3,val4}"
 testouterr_cmd_re sh {avail -T -t foo=val4} OK $tserr
 
@@ -195,13 +187,9 @@ testouterr_cmd sh {avail -t -o tag:variant:sym:alias scan} OK $tserr
 
 set tserr ".*
 Get modules: {foo/globalsym scan/globalsym foo/globalunk scan/globalunk} matching 'foo=val4' in ''
-.*\n"
-if {[is_conf_enabled implicitdefault]} {
-    append tserr "Get modules: {scan/1.1 scan/sym foo/unk scan/default scan/latest scan/globalsym scan/unk foo/globalunk scan/1.0 scan/globalunk} matching 'foo=val4' in '$mpre'\n"
-} else {
-    append tserr "Get modules: {scan/1.1 scan/sym foo/unk scan/globalsym scan/unk foo/globalunk scan/1.0 scan/globalunk} matching 'foo=val4' in '$mpre'\n"
-}
-append tserr "scan/1.0{foo=val1,val2,val3,val4}\\\(globalsym:sym\\\)
+.*
+Get modules: {foo/unk foo/globalunk scan/unk scan/globalunk scan/1.0 scan/1.1 scan/sym scan/globalsym} matching 'foo=val4' in '$mpre'
+scan/1.0{foo=val1,val2,val3,val4}\\\(globalsym:sym\\\)
 scan/1.1{foo=val1,val2,val3,val4}"
 testouterr_cmd_re sh {avail -T -t foo=val4} OK $tserr
 
@@ -235,13 +223,9 @@ testouterr_cmd sh {avail -t scan/alias foo=val4} OK {}
 
 testouterr_cmd sh {avail -t scan/alias foo=val5} OK {}
 
-set tserr ".*\n"
-if {[is_conf_enabled implicitdefault]} {
-    append tserr "Get modules: {scan/1.1 scan/default scan/latest scan/1.0} matching 'foo=val4' in '$mpre'\n"
-} else {
-    append tserr "Get modules: {scan/1.1 scan/1.0} matching 'foo=val4' in '$mpre'\n"
-}
-append tserr "scan/1.0{foo=val1,val2,val3,val4}
+set tserr ".*
+Get modules: {scan/1.1 scan/1.0} matching 'foo=val4' in '$mpre'
+scan/1.0{foo=val1,val2,val3,val4}
 scan/1.1{foo=val1,val2,val3,val4}"
 testouterr_cmd_re sh {avail -T -t foo=val4} OK $tserr
 
@@ -265,13 +249,9 @@ testouterr_cmd sh {avail -t -o tag:variant:sym:alias scan} OK $tserr
 
 set tserr ".*
 Get modules: {} matching 'foo=val4' in ''
-.*\n"
-if {[is_conf_enabled implicitdefault]} {
-    append tserr "Get modules: {scan/1.1 scan/default scan/latest scan/1.0} matching 'foo=val4' in '$mpre'\n"
-} else {
-    append tserr "Get modules: {scan/1.1 scan/1.0} matching 'foo=val4' in '$mpre'\n"
-}
-append tserr "scan/1.0{foo=val1,val2,val3,val4}
+.*
+Get modules: {scan/1.1 scan/1.0} matching 'foo=val4' in '$mpre'
+scan/1.0{foo=val1,val2,val3,val4}
 scan/1.1{foo=val1,val2,val3,val4}"
 testouterr_cmd_re sh {avail -T -t foo=val4} OK $tserr
 
