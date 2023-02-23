@@ -2591,7 +2591,10 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    set implicitdfl [getConf implicit_default]
 
    # automatically define latest and default sym for all modules
-   set autosymbol [expr {$implicitdfl && [getConf advanced_version_spec]}]
+   # disable when implicit default or advanced version spec are disabled or
+   # if search query does not contain a module name and version but variant
+   set autosymbol [expr {$implicitdfl && [getConf advanced_version_spec] &&\
+      ![isSpecWildWithVariant $mod]}]
 
    # match passed name against any part of avail module names
    set contains [expr {{contains} in $search}]

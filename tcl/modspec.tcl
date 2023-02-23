@@ -1625,6 +1625,12 @@ proc getRawArgumentFromVersSpec {modarg} {
    return $rawarg
 }
 
+# is mod spec containing variant but no module name and version
+proc isSpecWildWithVariant {mod} {
+   return [expr {[getModuleNameAndVersFromVersSpec $mod] eq {*} && [llength\
+      [getVariantListFromVersSpec $mod]] > 0}]
+}
+
 # ;;; Local Variables: ***
 # ;;; mode:tcl ***
 # ;;; End: ***
