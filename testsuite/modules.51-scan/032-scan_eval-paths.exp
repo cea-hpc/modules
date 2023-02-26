@@ -265,6 +265,38 @@ setenv_var MODULERCFILE $ORIG_MODULERCFILE
 
 
 #
+# special chars
+#
+
+setenv_var TESTSUITE_SCAN special1
+
+testouterr_cmd sh {paths foo=*} OK {}
+testouterr_cmd sh {paths variant foo=*} OK {}
+
+set ans [list]
+lappend ans [list text $mp/scan/1.0]
+lappend ans [list text $mp/scan/2.0]
+testouterr_cmd sh {paths * foo=val2} $ans {}
+
+setenv_var MODULES_VARIANT_SHORTCUT foo=%
+set ans [list]
+lappend ans [list text $mp/scan/1.0]
+lappend ans [list text $mp/scan/2.0]
+testouterr_cmd sh {paths * %val2} $ans {}
+unsetenv_var MODULES_VARIANT_SHORTCUT
+
+setenv_var TESTSUITE_SCAN special2
+
+set ans [list]
+lappend ans [list text $mp/scan/2.0]
+testouterr_cmd sh {paths * foo=val2} $ans {}
+
+set ans [list]
+lappend ans [list text $mp/scan/1.0]
+testouterr_cmd sh {paths * +foo} $ans {}
+
+
+#
 #  Cleanup
 #
 

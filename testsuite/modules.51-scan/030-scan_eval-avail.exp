@@ -461,6 +461,40 @@ testouterr_cmd sh {avail -t --no-indepth scan/ foo=val5} OK {}
 
 
 #
+# special chars
+#
+
+setenv_var TESTSUITE_SCAN special1
+
+testouterr_cmd sh {avail -t foo=*} OK {}
+testouterr_cmd sh {avail -t variant foo=*} OK {}
+
+set tserr "scan/1.0{foo=val1,val2,val3}
+scan/1.1{foo=val1,val2,val3}
+scan/2.0{foo=val2,val3,val4}
+scan/2.1{foo=val2,val3,val4}"
+testouterr_cmd sh {avail -t * foo=val2} OK $tserr
+
+setenv_var MODULES_VARIANT_SHORTCUT foo=%
+set tserr "scan/1.0{%val1,val2,val3}
+scan/1.1{%val1,val2,val3}
+scan/2.0{%val2,val3,val4}
+scan/2.1{%val2,val3,val4}"
+testouterr_cmd sh {avail -t * %val2} OK $tserr
+unsetenv_var MODULES_VARIANT_SHORTCUT
+
+setenv_var TESTSUITE_SCAN special2
+
+set tserr "scan/2.0{foo=val1,val2,val3}
+scan/2.1{foo=val1,val2,val3}"
+testouterr_cmd sh {avail -t * foo=val2} OK $tserr
+
+set tserr "scan/1.0{foo=on,off}
+scan/1.1{foo=on,off}"
+testouterr_cmd sh {avail -t * +foo} OK $tserr
+
+
+#
 #  Cleanup
 #
 

@@ -300,6 +300,44 @@ setenv_var MODULERCFILE $ORIG_MODULERCFILE
 
 
 #
+# special chars
+#
+
+setenv_var TESTSUITE_SCAN special1
+
+testouterr_cmd sh {whatis foo=*} ERR "$err_path'foo=*'"
+testouterr_cmd sh {whatis variant foo=*} ERR "$err_path'variant foo=*'"
+
+set tserr "$modlin $mpre $modlin
+\\s+scan/1.0: scan/1.0
+\\s+scan/1.1: scan/1.1
+\\s+scan/2.0: scan/2.0
+\\s+scan/2.1: scan/2.1"
+testouterr_cmd_re sh {whatis * foo=val2} OK $tserr
+
+setenv_var MODULES_VARIANT_SHORTCUT foo=%
+set tserr "$modlin $mpre $modlin
+\\s+scan/1.0: scan/1.0
+\\s+scan/1.1: scan/1.1
+\\s+scan/2.0: scan/2.0
+\\s+scan/2.1: scan/2.1"
+testouterr_cmd_re sh {whatis * %val2} OK $tserr
+unsetenv_var MODULES_VARIANT_SHORTCUT
+
+setenv_var TESTSUITE_SCAN special2
+
+set tserr "$modlin $mpre $modlin
+\\s+scan/2.0: scan/2.0
+\\s+scan/2.1: scan/2.1"
+testouterr_cmd_re sh {whatis * foo=val2} OK $tserr
+
+set tserr "$modlin $mpre $modlin
+\\s+scan/1.0: scan/1.0
+\\s+scan/1.1: scan/1.1"
+testouterr_cmd_re sh {whatis * +foo} OK $tserr
+
+
+#
 #  Cleanup
 #
 
