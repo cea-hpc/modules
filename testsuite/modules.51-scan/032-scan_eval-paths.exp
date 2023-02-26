@@ -297,6 +297,70 @@ testouterr_cmd sh {paths * +foo} $ans {}
 
 
 #
+# error accessing modules
+#
+
+# disable module cache for these specific tests
+if {[info exists env(TESTSUITE_ENABLE_MODULECACHE)]} {
+    setenv_var MODULES_IGNORE_CACHE 1
+}
+
+# creating modules with no or incompatible header
+close [open $mp/scan/1.5 w]
+set fid [open $mp/scan/1.6 w]
+puts $fid {#%Module99}
+close $fid
+
+setenv_var TESTSUITE_SCAN access1
+
+set ans [list]
+lappend ans [list text $mp/scan/1.0]
+lappend ans [list text $mp/scan/2.0]
+testouterr_cmd_re sh {paths scan foo=val2} $ans {}
+
+testouterr_cmd sh {paths scan@1.5 foo=val2} OK {}
+testouterr_cmd sh {paths scan@1.6 foo=val2} OK {}
+
+set ans [list]
+lappend ans [list text $mp/scan/2.0]
+testouterr_cmd_re sh {paths scan@1.2:2.0 foo=val2} $ans {}
+
+file delete $mp/scan/1.5
+file delete $mp/scan/1.6
+
+# cannot test access if cannot change file permission
+if {!$is_file_perms_editable} {
+    send_user "\tskipping access tests as file permissions cannot be changed\n"
+# cannot test access if superuser privileges are in use
+} elseif {$tcl_platform(user) eq "root"} {
+    send_user "\tskipping access tests as tests are run by superuser\n"
+# cannot test access if restricted file permissions have no effect
+} elseif {$is_locked_dir_file_readable && $is_locked_file_readable} {
+    send_user "\tskipping access tests as locked files or directories are still readable\n"
+} else {
+
+change_file_perms $mp/scan/1.0 ugo-r
+
+set ans [list]
+lappend ans [list text $mp/scan/2.0]
+testouterr_cmd_re sh {paths scan foo=val2} $ans {}
+
+testouterr_cmd sh {paths scan@1.0 foo=val2} OK {}
+
+set ans [list]
+lappend ans [list text $mp/scan/2.0]
+testouterr_cmd_re sh {paths scan@1.1:2.0 foo=val2} $ans {}
+
+restore_file_perms $mp/scan/1.0
+
+}
+
+if {[info exists env(TESTSUITE_ENABLE_MODULECACHE)]} {
+    unsetenv_var MODULES_IGNORE_CACHE
+}
+
+
+#
 #  Cleanup
 #
 
