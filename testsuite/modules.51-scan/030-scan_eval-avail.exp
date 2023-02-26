@@ -427,6 +427,40 @@ setenv_var MODULERCFILE $ORIG_MODULERCFILE
 
 
 #
+# no-indepth mode
+#
+
+setenv_var TESTSUITE_VARIANT free3
+setenv_path_var MODULEPATH $modpath.3
+
+set tserr variant/
+testouterr_cmd sh {avail -t --no-indepth foo=anything} OK $tserr
+testouterr_cmd sh {avail -t --no-indepth variant foo=anything} OK $tserr
+testouterr_cmd sh {avail -t --no-indepth varian foo=anything} OK $tserr
+
+set tserr "variant/1.0{foo=*}
+variant/6.0{foo=*}"
+testouterr_cmd sh {avail -t --no-indepth variant/ foo=anything} OK $tserr
+unsetenv_var TESTSUITE_VARIANT
+
+setenv_var TESTSUITE_SCAN noindepth1
+setenv_path_var MODULEPATH $mp
+
+set tserr scan/
+testouterr_cmd sh {avail -t --no-indepth foo=val4} OK $tserr
+testouterr_cmd sh {avail -t --no-indepth scan foo=val4} OK $tserr
+testouterr_cmd sh {avail -t --no-indepth sca foo=val4} OK $tserr
+
+set tserr "scan/2.0{foo=val2,val3,val4}
+scan/2.1{foo=val2,val3,val4}"
+testouterr_cmd sh {avail -t --no-indepth scan/ foo=val4} OK $tserr
+
+testouterr_cmd sh {avail -t --no-indepth foo=val5} OK {}
+testouterr_cmd sh {avail -t --no-indepth foo=val} OK {}
+testouterr_cmd sh {avail -t --no-indepth scan/ foo=val5} OK {}
+
+
+#
 #  Cleanup
 #
 
