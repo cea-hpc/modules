@@ -57,6 +57,12 @@ updated and will apply on the extra match search result.
 As extra match search is performed after *phase 3*, search operation will only
 applies on result obtained from traditional lookup.
 
+In case no-indepth mode is asked and extra match search should be performed,
+traditional file lookup (by ``findModules``) is made to return all existing
+files. Not only those matching depth level. As extra match filtering process
+may eliminate some entries, all of them should be tested to obtain accurate
+result.
+
 Extra match search will only be performed if search query requires it. It will
 be determined by ``isExtraMatchSearchRequired`` procedure. See `What triggers
 an extra match search?`_ for applying conditions. Current search module
