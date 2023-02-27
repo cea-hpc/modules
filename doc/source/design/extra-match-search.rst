@@ -132,6 +132,14 @@ specifically to searched variant, this module is excluded from result.
 If module hidden tag only applies to some specific variant values, modulefile
 is evaluated in scan mode.
 
+Error entries
+^^^^^^^^^^^^^
+
+Files in error (e.g., without a module header string, not readable) are
+ignored by ``filterExtraMatchSearch`` and kept in result array. These error
+entries are useful to report the message they contain if erroneous file was
+specifically selected.
+
 What triggers ``scan`` evaluation?
 ----------------------------------
 
