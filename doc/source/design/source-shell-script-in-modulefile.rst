@@ -33,7 +33,7 @@ Specification
 
 - Depending on modulefile evaluation mode, ``source-sh`` has different behaviors:
 
-  - ``load``: execute script to gather its environment changes, transform them in modulefile commands and evaluate them
+  - ``load``, ``refresh`` and ``scan``: execute script to gather its environment changes, transform them in modulefile commands and evaluate them
   - ``unload``: undo environment changes made on load mode
   - ``display``: execute script to gather its environment changes and report resulting command name and arguments for display
   - ``help``, ``test`` and ``whatis``: no operation

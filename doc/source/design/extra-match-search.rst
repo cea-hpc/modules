@@ -191,6 +191,10 @@ mode: output is effectively produced toward the designated channel. It is up
 to modulefile writer to handle the ``scan`` evaluation, like done for
 ``whatis``.
 
+``source-sh`` commands in modulefile are rendered like on a ``load``
+evaluation. They will produce ``setenv``, ``set-alias``, ``set-function`` and
+so on commands that will be in turn evaluated in *scan* mode.
+
 Specific impact
 ---------------
 
