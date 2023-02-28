@@ -86,6 +86,8 @@ Modules 5.3.0 (not yet released)
 * Update :subcmd:`list` sub-command to accept module specification with just a
   variant set (no module name and version). Loaded modules are filtered to
   only return those matching the variant specification.
+* Highlight searched variant name and value (``hi`` SGR key) on either
+  :subcmd:`list` and :subcmd:`avail` command output.
 
 
 .. _5.2 release notes:
