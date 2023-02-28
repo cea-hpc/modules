@@ -615,7 +615,9 @@ Module Sub-Commands
 
  Module variants and their available values may be reported along the module
  name they belong to (see `Module variants`_ section) if defined in avail
- output configuration option (see :option:`--output`/:option:`-o`).
+ output configuration option (see :option:`--output`/:option:`-o` option). The
+ :ref:`extra match search` process is triggered to collect variant
+ information.
 
  A *Key* section is added at the end of the output in case some elements are
  reported in parentheses or chevrons along module name or if some graphical
@@ -625,6 +627,11 @@ Module Sub-Commands
  The parameter *pattern* may also refer to a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
+
+ If *pattern* contains variant specification, the :ref:`extra match search`
+ process is triggered to collect variant information. Modules are included in
+ results only if they match *pattern* variant specification. *pattern* may be
+ a bare variant specification without mention of a module name.
 
  .. only:: html
 
@@ -653,6 +660,9 @@ Module Sub-Commands
     .. versionchanged:: 5.3
        Module variants may be reported if defined in avail output
        configuration
+
+    .. versionchanged:: 5.3
+       *pattern* may include variant specification to filter results
 
 .. subcmd:: cachebuild [modulepath...]
 
@@ -1594,6 +1604,10 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+ If *pattern* contains variant specification, loaded modules are included in
+ results only if they match it. *pattern* may be a bare variant specification
+ without mention of a module name.
+
  .. only:: html
 
     .. versionchanged:: 4.5
@@ -1618,6 +1632,9 @@ Module Sub-Commands
     .. versionchanged:: 5.1
        Options :option:`--starts-with`/:option:`-S` and
        :option:`--contains`/:option:`-C` added
+
+    .. versionchanged:: 5.3
+       *pattern* may include variant specification to filter results
 
 .. subcmd:: load [options] modulefile...
 
@@ -1736,9 +1753,17 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+ If *pattern* contains variant specification, the :ref:`extra match search`
+ process is triggered to collect variant information. Modules are included in
+ results only if they match *pattern* variant specification. *pattern* may be
+ a bare variant specification without mention of a module name.
+
  .. only:: html
 
     .. versionadded:: 4.0
+
+    .. versionchanged:: 5.3
+       *pattern* may include variant specification to filter results
 
 .. subcmd:: prepend-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
@@ -2330,6 +2355,11 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+ If *pattern* contains variant specification, the :ref:`extra match search`
+ process is triggered to collect variant information. Modules are included in
+ results only if they match *pattern* variant specification. *pattern* may be
+ a bare variant specification without mention of a module name.
+
  .. only:: html
 
     .. versionchanged:: 4.5
@@ -2337,6 +2367,9 @@ Module Sub-Commands
 
     .. versionchanged:: 4.6
        Option :option:`--all`/:option:`-a` added
+
+    .. versionchanged:: 5.3
+       *pattern* may include variant specification to filter results
 
 
 Modulefiles
@@ -2617,10 +2650,12 @@ Once variants are instantiated, modulefile's code could check the variant
 values to adapt the evaluation and define for instance different module
 requirements or produce different environment variable setup.
 
-Variants are interpreted in contexts where *modulefiles* are evaluated. Thus
-the variants specified on module designation are ignored by the
-:subcmd:`avail`, :subcmd:`whatis`, :subcmd:`is-avail`, :subcmd:`path` or
-:subcmd:`paths` sub-commands.
+Variants are interpreted in contexts where *modulefiles* are evaluated.
+Variants specified on module designation are ignored by the
+:subcmd:`is-avail` or :subcmd:`path` sub-commands. On search sub-commands
+(:subcmd:`avail`, :subcmd:`whatis` and :subcmd:`paths`), variants are
+interpreted and trigger the :ref:`extra match search` process to filter
+results.
 
 When modulefile is evaluated a value should be specified for each variant this
 modulefile declares. When reaching the :mfcmd:`variant` modulefile command
@@ -2630,15 +2665,26 @@ match a value from the declared accepted value list if such list is defined
 otherwise an error is raised. Additionally if a variant is specified but does
 not correspond to a variant declared in modulefile, an error is raised.
 
+When searching for modules with variants specified in search query, the
+:ref:`extra match search` process triggers a specific *scan* modulefile
+evaluation. Variants defined in modulefile are collected during this
+evaluation then compared to the variants specified in search query. If there
+is a match, module is included in search results otherwise it is withdrawn.
+
 Module variants are reported along the module they are associated to on
-:subcmd:`list` sub-command results. Variants are reported within curly braces
-next to module name, each variant definition separated from the others with a
-colon character (e.g., ``foo/1.2{variant1=value:+variant2}``). Boolean
-variants are reported with the ``+name`` or ``-name`` syntaxes. When a
-shortcut character is defined for a variant (see
-:envvar:`MODULES_VARIANT_SHORTCUT`) it is reported with the
-``<shortcut>value`` syntax. For instance if ``%`` character is defined as a
-shortcut for *variant1*: ``foo/1.2{%value:+variant2}``.
+:subcmd:`list` sub-command results. They are also reported on :subcmd:`avail`
+sub-command if specified in search query or added to the element to report in
+sub-command output (see :option:`--output`/:option:`-o` option).
+
+Variants are reported within curly braces next to module name, each variant
+definition separated from the others with a colon character (e.g.,
+``foo/1.2{variant1=value:+variant2}``). Boolean variants are reported with the
+``+name`` or ``-name`` syntaxes on :subcmd:`list` sub-command or with the
+``name=on,off`` syntax on :subcmd:`avail` sub-command. When a shortcut
+character is defined for a variant (see :envvar:`MODULES_VARIANT_SHORTCUT`) it
+is reported with the ``<shortcut>value`` syntax. For instance if ``%``
+character is defined as a shortcut for *variant1*:
+``foo/1.2{%value:+variant2}``.
 
 When the JSON output mode is enabled (with :option:`--json`), variants are
 reported under the ``variants`` JSON object as name/value pairs. Values of
@@ -2648,6 +2694,56 @@ Variant shortcut and color rendering do not apply on JSON output.
 .. only:: html
 
    .. versionadded:: 4.8
+
+   .. versionchanged:: 5.3
+      Variants specified in :subcmd:`avail`, :subcmd:`whatis` or
+      :subcmd:`paths` search query interpreted to filter results
+
+
+.. _Extra match search:
+
+Extra match search
+^^^^^^^^^^^^^^^^^^
+
+Extra match search is a mechanism that evaluates available modulefiles during
+a module search to find those matching an extra query or to report additional
+information. After selecting modulefiles that match the module name and
+version specified in search query, these remaining modulefiles are evaluated
+to collect their content.
+
+Extra match search is available on the following module search sub-commands:
+:subcmd:`avail`, :subcmd:`whatis` and :subcmd:`paths`.
+
+Extra match search is triggered when:
+
+* :ref:`Module variants` and their available values have to be reported in
+  avail output (see :option:`--output`/:option:`-o` option): extra match
+  search is triggered to collect variant information
+* Module variant is specified in search query: extra match search is triggered
+  to collect variant information then match them against variant specified in
+  query
+
+If search query does not contain an extra query and if variant information
+should not be reported, no extra match search is performed. If search query
+does not contain any module name and version but contains an extra query or if
+variant information should be reported, extra match search is applied to all
+available modulefiles.
+
+During this specific evaluation, modulefiles are interpreted in *scan* mode.
+This mode aims to collect the different Tcl modulefile commands used. Special
+care should be given when writing modulefiles to ensure they cope with such
+evaluation mode.
+
+Modulefiles tagged *forbidden* are excluded from extra match search
+evaluation. Thus they are excluded from result when this mechanism is
+triggered.
+
+As extra match search implies additional modulefile evaluations, it is advised
+to build and use :ref:`Module cache` to improve search speed.
+
+.. only:: html
+
+   .. versionadded:: 5.3
 
 
 .. _collections:

@@ -88,6 +88,7 @@ Modules 5.3.0 (not yet released)
   only return those matching the variant specification.
 * Highlight searched variant name and value (``hi`` SGR key) on either
   :subcmd:`list` and :subcmd:`avail` command output.
+* Doc: add :ref:`Extra match search` description in :ref:`module(1)` man page.
 
 
 .. _5.2 release notes:
