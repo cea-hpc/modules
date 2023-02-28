@@ -1728,11 +1728,11 @@ Module Sub-Commands
 
     .. versionadded:: 4.0
 
-.. subcmd:: paths modulefile
+.. subcmd:: paths pattern
 
- Print path of available *modulefiles* matching argument.
+ Print path of available *modulefiles* matching *pattern*.
 
- The parameter *modulefile* may also be a symbolic modulefile name or a
+ The parameter *pattern* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
@@ -2320,14 +2320,13 @@ Module Sub-Commands
        :subcmd:`module use<use>` is called from the command-line or within an
        initialization modulefile script
 
-.. subcmd:: whatis [-a] [-j] [modulefile...]
+.. subcmd:: whatis [-a] [-j] [pattern...]
 
  Display the information set up by the :mfcmd:`module-whatis` commands inside
- the specified *modulefiles*. These specified *modulefiles* may be
- expressed using wildcard characters. If no *modulefile* is specified,
- all :mfcmd:`module-whatis` lines will be shown.
+ *modulefiles* matching *pattern*. *pattern* may contain wildcard characters.
+ If no *pattern* is specified, all :mfcmd:`module-whatis` lines will be shown.
 
- The parameter *modulefile* may also be a symbolic modulefile name or a
+ The parameter *pattern* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
