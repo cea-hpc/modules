@@ -140,6 +140,42 @@ ignored by ``filterExtraMatchSearch`` and kept in result array. These error
 entries are useful to report the message they contain if erroneous file was
 specifically selected.
 
+Query grammar
+-------------
+
+In extra match search query, variants are expressed like in *select one
+module* context:
+
+* multiple variants mentioned act as an *AND* operation
+
+  * ``module avail mod/1.0 foo=val1 bar=val2``
+  * means *foo* equals *val1* and *bar* equals *val2*
+
+* same variant mentioned multiple times: only the last mention is retained
+
+  * ``module avail mod/1.0 foo=val1 foo=val2``
+  * means *foo* equals *val2*
+
+FUTURE: expressing an *OR* operation
+
+* for instance by mentioning multiple values separated by ``,`` character
+* ``module avail mod/1.0 foo=val1,val2 bar=val2``
+* means *foo* equals *val1* or *val2* and *bar* equals *val2*
+* such syntax is equivalent to version list specification
+* does not seem useful to allow ranges like for version
+* FIXME: allow such syntax on any context or only for *return all matching
+  modules* context?
+
+FUTURE: expressing a *NOT* operation
+
+* adding a character like ``~`` or ``!`` prior value
+* ``module avail mod/1.0 foo=!val1 bar=val2``
+* means *foo* equals any value expect *val1* and *bar* equals *val2*
+* FIXME: allow such syntax on any context or only for *return all matching
+  modules* context?
+* NOTE: *NOT* operator is not specified currently on Spack's side. Some
+  discussions mention use of ``!``, which does not work for Tcsh shell
+
 What triggers ``scan`` evaluation?
 ----------------------------------
 
