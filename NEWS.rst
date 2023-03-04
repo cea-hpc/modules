@@ -49,6 +49,8 @@ Modules 5.3.0 (not yet released)
   (fix issue #482)
 * Fix :mfcmd:`source-sh` and :subcmd:`sh-to-mod` shell alias translation when
   used with new *fish* shell version (3.6).
+* Install: allow to build Modules from a short-depth git repository. (fix
+  issue #486)
 
 
 .. _5.2 release notes:

@@ -133,19 +133,29 @@ ifeq ($(wildcard version.inc) $(REFRESH_VERSION_INC), version.inc n)
 else
 # build version.inc shared definitions from git repository info
 ifeq ($(wildcard .git) $(wildcard version.inc.in),.git version.inc.in)
-GIT_CURRENT_TAG := $(shell git describe --tags --abbrev=0)
-GIT_CURRENT_DESC := $(shell git describe --tags)
+GIT_CURRENT_TAG := $(shell git describe --tags --abbrev=0 2>/dev/null)
+GIT_CURRENT_DESC := $(shell git describe --tags 2>/dev/null)
 GIT_CURRENT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 
 MODULES_RELEASE := $(subst v,,$(GIT_CURRENT_TAG))
-MODULES_BUILD_DATE := $(shell git log -1 --format=%cd --date=short)
-ifeq ($(GIT_CURRENT_TAG),$(GIT_CURRENT_DESC))
+ifeq ($(MODULES_RELEASE),)
+# load raw version information to get MODULES_RELEASE as git repository does
+# not contain enough info (checked out repository depth too short)
+include version.inc.in
+GIT_CURRENT_COMMIT := $(shell git rev-parse --short=8 HEAD)
+ifeq ($(GIT_CURRENT_BRANCH),main)
+MODULES_BUILD := +XX-g$(GIT_CURRENT_COMMIT)
+else
+MODULES_BUILD := +$(GIT_CURRENT_BRANCH)-XX-g$(GIT_CURRENT_COMMIT)
+endif
+else ifeq ($(GIT_CURRENT_TAG),$(GIT_CURRENT_DESC))
 MODULES_BUILD :=
 else ifeq ($(GIT_CURRENT_BRANCH),main)
 MODULES_BUILD := +$(subst $(GIT_CURRENT_TAG)-,,$(GIT_CURRENT_DESC))
 else
 MODULES_BUILD := +$(GIT_CURRENT_BRANCH)$(subst $(GIT_CURRENT_TAG),,$(GIT_CURRENT_DESC))
 endif
+MODULES_BUILD_DATE := $(shell git log -1 --format=%cd --date=short)
 
 else
 # load raw version information
