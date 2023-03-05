@@ -44,6 +44,17 @@ proc variant-sc {itrp args} {
    $itrp eval set "{::ModuleVariant($name)}" "{}"
 }
 
+proc setenv-sc {args} {
+   lassign [parseSetenvCommandArgs load set {*}$args] bhv var val
+
+   recordScanModuleElt [currentState modulename] $var setenv envvar
+
+   if {![info exists ::env($var)]} {
+      set ::env($var) {}
+   }
+   return {}
+}
+
 proc recordScanModuleElt {mod name args} {
    if {![info exists ::g_scanModuleElt]} {
       set ::g_scanModuleElt [dict create]
