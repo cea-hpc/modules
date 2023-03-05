@@ -79,9 +79,10 @@ proc isExtraMatchSearchRequired {mod} {
    # an extra match search is required if:
    # * variant should be reported in output
    # * mod specification contains variant during avail/paths/whatis
-   return [expr {[isEltInReport variant 0] || ([llength\
-      [getVariantListFromVersSpec $mod]] > 0 && [currentState commandname] in\
-      {avail paths whatis})}]
+   # * mod specification contains extra specifier during avail/paths/whatis
+   return [expr {[isEltInReport variant 0] || (([llength\
+      [getVariantListFromVersSpec $mod]] + [llength [getExtraListFromVersSpec\
+      $mod]]) > 0 && [currentState commandname] in {avail paths whatis})}]
 }
 
 # perform extra match search on currently being built module search result
