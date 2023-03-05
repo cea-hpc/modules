@@ -1241,7 +1241,7 @@ proc parseModuleSpecificationProc {mlspec nonamespec args} {
          set modarg $modname
       }
       # record spec, especially needed if arg is enclosed
-      setModuleVersSpec $modarg $modname eq {} {} {} $arg
+      setModuleVersSpec $modarg $modname eq {} {} {} $arg {}
       # append to unload list if ml spec and - prefix used
       if {$mlunload} {
          lappend unarglist $modarg
@@ -1274,6 +1274,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec args} {
    set unarglist [list]
    set vrlist [list]
    set vridx -1
+   set xtlist [list]
    set rawarg [list]
    foreach arg $args {
       # set each specification element as separate word but preserve space
@@ -1382,6 +1383,22 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec args} {
                set vrnamearr($vrname) $vridx
                lappend vrlist [list $vrname $vrvalue $vrisbool]
             }
+            *:* {
+               # extract extra specifier spec
+               set xtsepidx [string first : $curarg]
+               set xtelt [string range $curarg 0 [expr {$xtsepidx - 1}]]
+               set xtname [string range $curarg [expr {$xtsepidx + 1}] end]
+
+               # check no other : character is found in argument or element
+               # and name are not an empty string
+               if {[string length $xtelt] == 0 || [string length $xtname] ==\
+                  0 || [string last : $curarg] != $xtsepidx} {
+                  knerror "Invalid extra specification '$arg'"
+               }
+               # save extra specifier element and name value, same element can
+               # appear multiple time (means AND operator)
+               lappend xtlist [list $xtelt $xtname]
+            }
             default {
                # save previous mod version spec and transformed arg if any
                if {[info exists modarglist]} {
@@ -1398,7 +1415,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec args} {
                   if {[info exists modname] && ($modname ne {} || $modspec\
                      eq {})} {
                      setModuleVersSpec $modarg $modname $cmpspec $versspec\
-                        $modspec $vrlist $rawarg
+                        $modspec $vrlist $rawarg $xtlist
                      # rework args to have 1 str element for whole mod spec
                      # append to unload list if ml spec and - prefix used
                      if {$mlunload} {
@@ -1413,6 +1430,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec args} {
                   set vrlist [list]
                   array unset vrnamearr
                   set vridx -1
+                  set xtlist [list]
                   set rawarg [list]
                   unset cmpspec versspec
                }
@@ -1444,7 +1462,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec args} {
          set versspec {}
       }
       setModuleVersSpec $modarg $modname $cmpspec $versspec $modspec $vrlist\
-         $rawarg
+         $rawarg $xtlist
       # rework args to have 1 string element for whole module spec
       # append to unload list if ml spec and - prefix used
       if {$mlunload || $nextmlunload} {
@@ -1464,7 +1482,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec args} {
 }
 
 proc setModuleVersSpec {modarg modname cmpspec versspec rawversspec\
-   variantlist rawarg} {
+   variantlist rawarg extralist} {
    # translate @loaded version into currently loaded mod matching modname
    if {$cmpspec eq {eq} && $versspec eq {loaded}} {
       if {[set lmmod [getLoadedMatchingName $modname]] ne {}} {
@@ -1510,9 +1528,10 @@ proc setModuleVersSpec {modarg modname cmpspec versspec rawversspec\
       '$modname' (re '$modnamere'), module root '$modroot', version cmp\
       '$cmpspec', version(s) '$versspec', variant(s) '$variantlist' and\
       module name version spec '$modnvspec' for argument '$modarg' (raw\
-      '$rawarg')"
+      '$rawarg') and extra specifier(s) '$extralist'"
    set ::g_moduleVersSpec($modarg) [list $mod $modname $cmpspec $versspec\
-      $modnamere $modescglob $modroot $variantlist $modnvspec $rawarg]
+      $modnamere $modescglob $modroot $variantlist $modnvspec $rawarg\
+      $extralist]
 }
 
 proc getModuleVersSpec {modarg} {
@@ -1520,7 +1539,8 @@ proc getModuleVersSpec {modarg} {
       return $::g_moduleVersSpec($modarg)
    } else {
       return [list $modarg [file dirname $modarg] {} {} {} [string map {* \\*\
-         ? \\?} $modarg] [lindex [file split $modarg] 0] {} $modarg $modarg]
+         ? \\?} $modarg] [lindex [file split $modarg] 0] {} $modarg $modarg\
+         {}]
    }
 }
 
@@ -1623,6 +1643,17 @@ proc getRawArgumentFromVersSpec {modarg} {
       set rawarg $modarg
    }
    return $rawarg
+}
+
+# translate module name version spec to return the list of extra specifier
+# mentioned
+proc getExtraListFromVersSpec {modarg} {
+   if {[info exists ::g_moduleVersSpec($modarg)]} {
+      set extralist [lindex $::g_moduleVersSpec($modarg) 10]
+   } else {
+      set extralist {}
+   }
+   return $extralist
 }
 
 # is mod spec containing variant but no module name and version
