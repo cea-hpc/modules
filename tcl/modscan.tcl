@@ -74,6 +74,25 @@ proc doesModVariantMatch {mod pvrlist} {
    return $ret
 }
 
+# test given extra specifiers match what scanned module defines
+proc doesModExtraMatch {mod pxtlist} {
+   set ret 1
+   if {[info exists ::g_scanModuleElt]} {
+      foreach pxt $pxtlist {
+         lassign $pxt elt name
+         # does mod defines named element
+         if {![dict exists $::g_scanModuleElt $elt $name] || $mod ni [dict\
+            get $::g_scanModuleElt $elt $name]} {
+            set ret 0
+            break
+         }
+      }
+   } else {
+      set ret 0
+   }
+   return $ret
+}
+
 # determine if current module search requires an extra match search
 proc isExtraMatchSearchRequired {mod} {
    # an extra match search is required if:
@@ -94,7 +113,9 @@ proc filterExtraMatchSearch {mod res_arrname versmod_arrname} {
    # get extra match query properties
    set spec_vr_list [getVariantListFromVersSpec $mod]
    set check_variant [expr {[llength $spec_vr_list] > 0}]
-   set filter_res $check_variant
+   set spec_xt_list [getExtraListFromVersSpec $mod]
+   set check_extra [expr {[llength $spec_xt_list] > 0}]
+   set filter_res [expr {$check_variant || $check_extra}]
 
    # disable error reporting to avoid modulefile errors (not coping with scan
    # evaluation for instance) to pollute result
@@ -125,8 +146,9 @@ proc filterExtraMatchSearch {mod res_arrname versmod_arrname} {
                lappend unset_list $elt
             }
             modulefile - virtual {
-               if {$check_variant && ![doesModVariantMatch $elt\
-                  $spec_vr_list]} {
+               if {($check_variant && ![doesModVariantMatch $elt\
+                  $spec_vr_list]) || ($check_extra && ![doesModExtraMatch\
+                  $elt $spec_xt_list])} {
                   lappend unset_list $elt
                }
             }
