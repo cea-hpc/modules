@@ -34,12 +34,32 @@ proc variant-sc {itrp args} {
       }
    }
 
+   recordScanModuleElt [currentState modulename] $name variant
+
    lappend ::g_scanModuleVariant([currentState modulename]) [list $name\
       $values $defdflvalue $dflvalue $isboolean]
 
    # instantiate variant in modulefile context to an empty value
    reportDebug "Set variant on $itrp: ModuleVariant($name) = ''"
    $itrp eval set "{::ModuleVariant($name)}" "{}"
+}
+
+proc recordScanModuleElt {mod name args} {
+   if {![info exists ::g_scanModuleElt]} {
+      set ::g_scanModuleElt [dict create]
+   }
+   foreach elt $args {
+      if {![dict exists $::g_scanModuleElt $elt]} {
+         dict set ::g_scanModuleElt $elt {}
+      }
+      if {![dict exists $::g_scanModuleElt $elt $name]} {
+         dict set ::g_scanModuleElt $elt $name [list $mod]
+      } else {
+         ##nagelfar ignore Suspicious variable name
+         dict with ::g_scanModuleElt $elt {lappend $name $mod}
+      }
+      reportDebug "Module $mod defines $elt:$name"
+   }
 }
 
 # test given variant specification matches what scanned module defines
