@@ -558,6 +558,34 @@ if {[info exists env(TESTSUITE_ENABLE_MODULECACHE)]} {
 
 
 #
+# scan evaluation when modulepath contains dot hidden symbol
+#
+
+setenv_path_var MODULEPATH $modpath
+
+set ans [list]
+lappend ans [list out scan]
+lappend ans [list out scan]
+lappend ans [list out 0]
+lappend ans [list out 0]
+lappend ans [list OK]
+set tserr "procedure auto_load_index has not been altered
+avail
+procedure auto_load_index has not been altered
+info/specified
+modA scan
+modB scan
+scan coll/a
+scan coll/b
+scan coll/c
+scan coll/d"
+testouterr_cmd sh {avail -t foo=val2} $ans $tserr
+testouterr_cmd sh {avail -t -a foo=val2} $ans $tserr
+
+setenv_path_var MODULEPATH $mp
+
+
+#
 #  Cleanup
 #
 

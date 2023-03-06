@@ -140,7 +140,10 @@ proc filterExtraMatchSearch {mod res_arrname versmod_arrname} {
       # also unset any symbolic version pointing to unset elt
       if {[info exists versmod_list($elt)]} {
          foreach eltsym $versmod_list($elt) {
-            unset found_list($eltsym)
+            # getModules phase #2 may have already withdrawn symbol
+            if {[info exists found_list($eltsym)]} {
+               unset found_list($eltsym)
+            }
          }
       }
    }
