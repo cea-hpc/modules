@@ -55,6 +55,18 @@ proc setenv-sc {args} {
    return {}
 }
 
+proc edit-path-sc {cmd args} {
+   lassign [parsePathCommandArgs $cmd load noop {*}$args] separator allow_dup\
+      idx_val ign_refcount bhv var path_list
+
+   recordScanModuleElt [currentState modulename] $var $cmd envvar
+
+   if {![info exists ::env($var)]} {
+      set ::env($var) {}
+   }
+   return {}
+}
+
 proc recordScanModuleElt {mod name args} {
    if {![info exists ::g_scanModuleElt]} {
       set ::g_scanModuleElt [dict create]
