@@ -116,6 +116,9 @@ value as alias does not define variant in itself.
 When variants have to be reported but are not part of the search query, then
 no filtering process occurs, aliases are not withdrawn.
 
+Directories overridden by aliases take precedence over these aliases when
+*extra match search* is performed.
+
 FUTURE: it may be revised to implement extra match search on *select one
 module* context.
 

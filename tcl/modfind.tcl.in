@@ -2625,6 +2625,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    # are result entries gathered in a resolution context ?
    set resctx [expr {{resolve} in $search}]
 
+   # need to perform an extra match search?
+   set ems_required [isExtraMatchSearchRequired $mod]
+
    # if search for global or user rc alias only, no dir lookup is performed
    # and aliases from g_rcAlias are returned
    if {{rc_alias_only} in $search} {
@@ -2817,8 +2820,11 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
 
    # determine default element for each directory and record sorted elt list
    # unless if an alias or a virtual module has overwritten directory entry
+   # but override alias entry if extra match search is required (as it
+   # withdrawn module aliases)
    foreach elt [array names dir_list] {
-      if {![info exists found_list($elt)]} {
+      if {![info exists found_list($elt)] || ($ems_required && [lindex\
+         $found_list($elt) 0] eq {alias})} {
          set dir_list($elt) [lsort -dictionary $dir_list($elt)]
          # get default element: explicitly defined default (whether it exists
          # or is in error) or implicit default if enabled
@@ -2862,7 +2868,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
 
    # Phase #4: perform extra match search
 
-   if {[isExtraMatchSearchRequired $mod]} {
+   if {$ems_required} {
       filterExtraMatchSearch $mod found_list versmod_list
    }
 
