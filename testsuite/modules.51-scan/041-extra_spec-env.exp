@@ -1,0 +1,125 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.51-scan/%M%
+#   Revision:		%I%
+#   First Edition:	2023/03/08
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		avail
+#   Modulefiles:    extra
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Tests environment-change related extra specifier
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+# ensure advanced version specifiers are enabled
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure avail tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+setenv_var MODULES_AVAIL_TERSE_OUTPUT alias:dirwsym:sym:tag
+
+#
+# setenv
+#
+
+setenv_var TESTSUITE_EXTRA setenv1
+
+set tserr extra/1.0
+testouterr_cmd sh {avail -t extra setenv:XTFOO} OK $tserr
+testouterr_cmd sh {avail -t extra setenv:XTUNK} OK {}
+testouterr_cmd sh {avail -t extra setenv:XTFOO setenv:XTBAR} OK {}
+
+setenv_var TESTSUITE_EXTRA setenv2
+
+testouterr_cmd sh {avail -t extra setenv:XTFOO} OK $tserr
+testouterr_cmd sh {avail -t extra setenv:XTUNK} OK {}
+testouterr_cmd sh {avail -t extra setenv:XTFOO setenv:XTBAR} OK $tserr
+
+
+#
+# unsetenv
+#
+
+setenv_var TESTSUITE_EXTRA unsetenv1
+testouterr_cmd sh {avail -t extra unsetenv:XTFOO} OK $tserr
+testouterr_cmd sh {avail -t extra unsetenv:XTUNK} OK {}
+testouterr_cmd sh {avail -t extra envvar:XTFOO} OK $tserr
+
+
+#
+# *-path
+#
+
+setenv_var TESTSUITE_EXTRA append1
+testouterr_cmd sh {avail -t extra append-path:XTFOO} OK $tserr
+testouterr_cmd sh {avail -t extra append-path:XTUNK} OK {}
+testouterr_cmd sh {avail -t extra envvar:XTFOO} OK $tserr
+
+setenv_var TESTSUITE_EXTRA prepend1
+testouterr_cmd sh {avail -t extra prepend-path:XTFOO} OK $tserr
+testouterr_cmd sh {avail -t extra prepend-path:XTUNK} OK {}
+testouterr_cmd sh {avail -t extra envvar:XTFOO} OK $tserr
+
+setenv_var TESTSUITE_EXTRA remove1
+testouterr_cmd sh {avail -t extra remove-path:XTFOO} OK $tserr
+testouterr_cmd sh {avail -t extra remove-path:XTUNK} OK {}
+testouterr_cmd sh {avail -t extra envvar:XTFOO} OK $tserr
+
+
+#
+# pushenv
+#
+
+setenv_var TESTSUITE_EXTRA pushenv1
+testouterr_cmd sh {avail -t extra pushenv:XTFOO} OK $tserr
+testouterr_cmd sh {avail -t extra pushenv:XTUNK} OK {}
+testouterr_cmd sh {avail -t extra envvar:XTFOO} OK $tserr
+
+
+#
+# envvar mix
+#
+
+setenv_var TESTSUITE_EXTRA envvarmix1
+
+set tserr "extra/1.0\nextra/2.0"
+testouterr_cmd sh {avail -t extra setenv:XTFOO} OK $tserr
+set tserr extra/1.0
+testouterr_cmd sh {avail -t extra setenv:XTFOO append-path:XTBAR} OK $tserr
+testouterr_cmd sh {avail -t extra envvar:XTFOO envvar:XTBAR} OK $tserr
+
+setenv_var TESTSUITE_EXTRA envvarmix2
+
+set tserr "extra/1.0\nextra/2.0"
+testouterr_cmd sh {avail -t extra envvar:XTFOO} OK $tserr
+
+setenv_var TESTSUITE_EXTRA envvarmix3
+
+set tserr "extra/1.0\nextra/2.0"
+testouterr_cmd sh {avail -t extra envvar:XTFOO} OK $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
