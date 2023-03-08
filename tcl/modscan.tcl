@@ -67,6 +67,15 @@ proc edit-path-sc {cmd args} {
    return {}
 }
 
+proc pushenv-sc {var val} {
+   recordScanModuleElt [currentState modulename] $var pushenv envvar
+
+   if {![info exists ::env($var)]} {
+      set ::env($var) {}
+   }
+   return {}
+}
+
 proc recordScanModuleElt {mod name args} {
    if {![info exists ::g_scanModuleElt]} {
       set ::g_scanModuleElt [dict create]
