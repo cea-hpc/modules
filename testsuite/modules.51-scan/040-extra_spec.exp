@@ -1,0 +1,181 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.51-scan/%M%
+#   Revision:		%I%
+#   First Edition:	2023/03/08
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		avail, whatis, paths
+#   Modulefiles:    extra
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Tests extra specifier specification
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+# ensure advanced version specifiers are enabled
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure avail tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+setenv_var MODULES_AVAIL_TERSE_OUTPUT alias:dirwsym:sym:tag
+
+
+#
+# empty modulepath
+#
+
+set mp1 $env(HOME)/mp1
+file mkdir $mp1
+setenv_path_var MODULEPATH $mp1
+
+testouterr_cmd sh {avail -t} OK {}
+testouterr_cmd sh {avail -t variant:foo} OK {}
+testouterr_cmd sh {avail -t foo=val2 variant:foo} OK {}
+
+
+#
+# modulepath with empty modulefile
+#
+
+file mkdir $mp1/foo
+set fid [open $mp1/foo/1.0 w]
+puts $fid {#%Module}
+close $fid
+
+set tserr foo/1.0
+testouterr_cmd sh {avail -t} OK $tserr
+testouterr_cmd sh {avail -t variant:foo} OK {}
+testouterr_cmd sh {avail -t foo=val2 variant:foo} OK {}
+
+file delete $mp1/foo/1.0
+file delete $mp1/foo
+file delete $mp1
+
+
+#
+# bad syntax
+#
+
+setenv_path_var MODULEPATH $mp
+
+testouterr_cmd sh {avail -t scan/1.0 variant:foo:foo} ERR [err_extraspec variant:foo:foo]
+testouterr_cmd sh {avail -t scan/1.0 variant:} ERR [err_extraspec variant:]
+testouterr_cmd sh {avail -t scan/1.0 :foo} ERR [err_extraspec :foo]
+
+
+#
+# basic tests
+#
+
+setenv_var TESTSUITE_EXTRA vr1
+
+set tserr extra/1.0
+testouterr_cmd sh {avail -t extra variant:xtfoo} OK $tserr
+testouterr_cmd sh {avail -t extra variant:xtunk} OK {}
+testouterr_cmd sh {avail -t extra variant:xtfoo,xtbar} OK {}
+testouterr_cmd sh {avail -t extra variant:xtfoo variant:xtbar} OK $tserr
+testouterr_cmd sh {avail -t extra variant:xtfoo variant:xtfoo} OK $tserr
+
+set tserr "$modlin $mpre $modlin
+\\s+extra/1.0: extra/1.0"
+testouterr_cmd_re sh {whatis extra variant:xtfoo} OK $tserr
+testouterr_cmd sh {whatis extra variant:xtunk} ERR "$err_path'extra variant:xtunk'"
+testouterr_cmd_re sh {whatis extra variant:xtfoo variant:xtbar} OK $tserr
+
+set ans [list]
+lappend ans [list text $mp/extra/1.0]
+testouterr_cmd sh {paths extra variant:xtfoo} $ans {}
+testouterr_cmd sh {paths extra variant:xtunk} OK {}
+testouterr_cmd sh {paths extra variant:xtfoo variant:xtbar} $ans {}
+
+skip_if_quick_mode
+
+
+#
+# additional tests
+#
+
+setenv_var TESTSUITE_EXTRA vr2
+
+set tserr extra/1.0
+testouterr_cmd sh {avail -t variant:xtbar} OK $tserr
+testouterr_cmd sh {avail -t variant:xtfoo,xtbar} OK {}
+testouterr_cmd sh {avail -t variant:xtfoo variant:xtbar} OK {}
+testouterr_cmd sh {avail -t variant:xtfoo variant:xtfoo} OK {}
+
+set tserr "$modlin $mpre $modlin
+\\s+extra/1.0: extra/1.0"
+testouterr_cmd_re sh {whatis extra variant:xtbar} OK $tserr
+testouterr_cmd sh {whatis extra variant:xtfoo,xtbar} ERR "$err_path'extra variant:xtfoo,xtbar'"
+testouterr_cmd_re sh {whatis extra variant:xtfoo variant:xtbar} ERR "$err_path'extra variant:xtfoo variant:xtbar'"
+
+set ans [list]
+lappend ans [list text $mp/extra/1.0]
+testouterr_cmd sh {paths extra variant:xtbar} $ans {}
+testouterr_cmd sh {paths extra variant:xtfoo,xtbar} OK {}
+testouterr_cmd sh {paths extra variant:xtfoo variant:xtbar} OK {}
+
+
+# no module name specified
+setenv_var TESTSUITE_EXTRA vr1
+
+set tserr extra/1.0
+testouterr_cmd sh {avail -t variant:xtfoo} OK $tserr
+testouterr_cmd sh {avail -t variant:xtunk} OK {}
+testouterr_cmd sh {avail -t variant:xtfoo,xtbar} OK {}
+testouterr_cmd sh {avail -t variant:xtfoo variant:xtbar} OK $tserr
+testouterr_cmd sh {avail -t variant:xtfoo variant:xtfoo} OK $tserr
+
+set tserr "$modlin $mpre $modlin
+\\s+extra/1.0: extra/1.0"
+testouterr_cmd_re sh {whatis variant:xtfoo} OK $tserr
+testouterr_cmd sh {whatis variant:xtunk} ERR "$err_path'variant:xtunk'"
+testouterr_cmd_re sh {whatis variant:xtfoo variant:xtbar} OK $tserr
+
+set ans [list]
+lappend ans [list text $mp/extra/1.0]
+testouterr_cmd sh {paths variant:xtfoo} $ans {}
+testouterr_cmd sh {paths variant:xtunk} OK {}
+testouterr_cmd sh {paths variant:xtfoo variant:xtbar} $ans {}
+
+
+# mix with specified variant
+setenv_var TESTSUITE_EXTRA vr1
+
+set tserr extra/1.0
+testouterr_cmd sh {avail -t extra xtfoo=val2 variant:xtbar} OK $tserr
+testouterr_cmd sh {avail -t extra xtfoo=val2 variant:xtfoo} OK $tserr
+testouterr_cmd sh {avail -t extra xtfoo=val5 variant:xtfoo} OK {}
+testouterr_cmd sh {avail -t extra xtfoo=val2 variant:unk} OK {}
+testouterr_cmd sh {avail -t extra xtfoo=val5 variant:unk} OK {}
+testouterr_cmd sh {avail -t xtfoo=val2 variant:xtbar} OK $tserr
+testouterr_cmd sh {avail -t xtfoo=val2 variant:xtfoo} OK $tserr
+
+
+# sgr test (no highlight due to extra specifier
+setenv_var MODULES_COLORS "hi=1:se=2:va=33"
+set tserr "[sgr 1]extra[sgr 22]/1.0[sgr 2]{[sgr 22][sgr 33]xtbar=[sgr 0][sgr 33]val1[sgr 0][sgr 2],[sgr 22][sgr 33]val2[sgr 0][sgr 2],[sgr 22][sgr 33]val3[sgr 0][sgr 2]:[sgr 22][sgr 33]xtfoo=[sgr 0][sgr 33]val1[sgr 0][sgr 2],[sgr 22][sgr 33]val2[sgr 0][sgr 2],[sgr 22][sgr 33]val3[sgr 0][sgr 2]}[sgr 22]"
+testouterr_cmd_re sh {avail --color=always -o variant -t extra variant:xtbar} OK $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
