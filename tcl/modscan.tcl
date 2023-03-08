@@ -76,6 +76,17 @@ proc pushenv-sc {var val} {
    return {}
 }
 
+proc unsetenv-sc {args} {
+   lassign [parseUnsetenvCommandArgs load noop {*}$args] bhv var val
+
+   recordScanModuleElt [currentState modulename] $var unsetenv envvar
+
+   if {![info exists ::env($var)]} {
+      set ::env($var) {}
+   }
+   return {}
+}
+
 proc recordScanModuleElt {mod name args} {
    if {![info exists ::g_scanModuleElt]} {
       set ::g_scanModuleElt [dict create]
