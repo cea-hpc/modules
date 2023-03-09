@@ -12,6 +12,13 @@ match search*. It mainly looks at modulefile content to retain those matching
 specified query. This content lookup requires a specific modulefile evaluation
 (see `Modulefile evaluation mode for extra match search`_).
 
+Requirements
+------------
+
+An extra match search query requires :ref:`advanced-module-version-specifiers`
+configuration to be enabled. Otherwise query specifiers will be understood as
+module name and version.
+
 When extra match search applies
 -------------------------------
 
@@ -143,6 +150,140 @@ ignored by ``filterExtraMatchSearch`` and kept in result array. These error
 entries are useful to report the message they contain if erroneous file was
 specifically selected.
 
+Extra specifier
+---------------
+
+Extra specifier enables to query whose modules defines a given element. With
+them it is possible to get all the modules defining a given environment
+variable or requiring a given module.
+
+Most of the modulefile Tcl commands are associated to an extra specifier. Some
+aliases are also provided, to gather several command elements into the general
+same concept they are about. Following table list the available extra
+specifiers and their associated modulefile command.
+
++--------------------+-----------------------------------------+
+| Modulefile command | Extra specifier(s)                      |
++====================+=========================================+
+| variant            | variant                                 |
++--------------------+-----------------------------------------+
+| setenv             | setenv, envvar                          |
++--------------------+-----------------------------------------+
+| unsetenv           | unsetenv, envvar                        |
++--------------------+-----------------------------------------+
+| pushenv            | pushenv, envvar                         |
++--------------------+-----------------------------------------+
+| append-path        | append-path, envvar                     |
++--------------------+-----------------------------------------+
+| prepend-path       | prepend-path, envvar                    |
++--------------------+-----------------------------------------+
+| remove-path        | remove-path, envvar                     |
++--------------------+-----------------------------------------+
+| complete           | complete                                |
++--------------------+-----------------------------------------+
+| uncomplete         | uncomplete                              |
++--------------------+-----------------------------------------+
+| set-alias          | set-alias                               |
++--------------------+-----------------------------------------+
+| unset-alias        | unset-alias                             |
++--------------------+-----------------------------------------+
+| set-function       | set-function                            |
++--------------------+-----------------------------------------+
+| unset-function     | unset-function                          |
++--------------------+-----------------------------------------+
+| chdir              | chdir                                   |
++--------------------+-----------------------------------------+
+| family             | family                                  |
++--------------------+-----------------------------------------+
+| prereq             | prereq, prereq-any, require             |
++--------------------+-----------------------------------------+
+| prereq-any         | prereq-any, prereq, require             |
++--------------------+-----------------------------------------+
+| prereq-all         | prereq-all, depends-on, require         |
++--------------------+-----------------------------------------+
+| depends-on         | depends-on, prereq-all, require         |
++--------------------+-----------------------------------------+
+| always-load        | always-load, require                    |
++--------------------+-----------------------------------------+
+| conflict           | conflict, incompat                      |
++--------------------+-----------------------------------------+
+| module load        | load, require                           |
++--------------------+-----------------------------------------+
+| module load-any    | load-any, require                       |
++--------------------+-----------------------------------------+
+| module try-load    | try-load, require                       |
++--------------------+-----------------------------------------+
+| module unload      | unload, incompat                        |
++--------------------+-----------------------------------------+
+| module switch      | switch, switch-on, require, switch-off, |
+|                    | incompat                                |
++--------------------+-----------------------------------------+
+
+Extra specifier are only valid on *return all matching modules* context. An
+error is returned when used in query on other contexts.
+
+Using an unknown extra specifier (not part of the above table) produces an
+error. Helps to distinguish between a bad specification and no modulefile
+declaring the associated modulefile command.
+
+Extra specifier are not made to resolve module alias or symbolic version, as
+such resolution is part of the regular match search.
+
+The ``module switch`` command produces content in different extra specifiers.
+Switched-on module can be queried via ``switch``, ``switch-on`` and
+``require`` specifiers. Switched-off module can be queried via ``switch``,
+``switch-off`` and ``incompat`` specifiers. On its one-arg form, no
+switched-off module is added to relative specifiers.
+
+Recording extra specifier specification
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Extra specifiers defined in a search query are processed and saved in
+*ModuleVersSpec* structure along other query elements. As the search query
+string is passed along the procedures, it is possible to retrieved the
+extra specifier properties from this query string (with
+``getExtraListFromVersSpec`` procedure).
+
+Extra specifiers are saved as a list of list. Every extra specifier defined in
+query is set as a list whose first element is extra specifier name, then the
+other element corresponds to the list of values provided to this argument.
+
+For example, search query ``mod/1.0 setenv:FOO variant:bar setenv:BAR``
+produces internal representation ``{setenv FOO} {variant bar} {setenv BAR}``.
+
+When *OR* operation will be supported, search query ``mod/1.0 setenv:FOO,BAR``
+will produce internal representation ``{setenv FOO BAR}``.
+
+Filtering extra specifier results
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Every *-sc* variant of modulefile Tcl command, record their properties in the
+``g_scanModuleElt`` global dictionary. It is a nested structure that contains
+at the top level the list of defined extra specifier names. Each of these
+names is in turn a structure that contains all defined extra specifier values
+associated to the module name and version defining this extra specifier name
+and value pair.
+
+For example, when module *mod/1.0* defines *setenv FOO value* in its file,
+then the global dictionary is updated to add *mod/1.0* to the *setenv > FOO*
+nested key.
+
+When extra specifier has alias name(s), each of these aliases have their own
+entry in the global directory. Reusing the previous example, *envvar* is an
+alias on *setenv* extra specifier. When module *mod/1.0* defines *setenv FOO
+value*, the global dictionary is also updated to add *mod/1.0* to the *envvar
+> FOO* nested key (in addition to the *setenv > FOO* nested key.
+
+Such data structure optimizes filtering work: it is done once for all
+modulefiles after finishing the scan evaluation of all of them. For each
+extra specifier criteria, goal is to match the corresponding nested key in
+``g_scanModuleElt`` global directory. Modulefiles to keep in result of those
+listed as value in every matched nested keys.
+
+When there are several extra specifiers in search query, result are the
+modules present in the value list of every matched keys (intersection of value
+list obtained for every extra specifier criterion).
+
 Query grammar
 -------------
 
@@ -158,6 +299,39 @@ module* context:
 
   * ``module avail mod/1.0 foo=val1 foo=val2``
   * means *foo* equals *val2*
+
+In extra match search query, extra specifiers are expressed with *name:value*
+syntax. Using *:* as separator helps to distinguish from variant
+specification. As a consequence, such character is not recommended to be part
+of a module name or version (which was already the case, as *:* character is
+also a separator used in environment variables like *LOADEDMODULES*). As extra
+specifiers only applies to *return all matching modules* context, the use of
+*name:value* specific syntax may help user to distinguish from the *select one
+module* context.
+
+NOTE: use of a *--where* or *--with* options was also considered to be able
+to use a *name=value* syntax like variant specification. It was preferred to
+use a different syntax (*name:value*) to avoid having to type an extra option.
+
+NOTE: if *name=value* syntax where used for extra specifier, all extra
+specifier names would have been forbidden to use as variant names.
+
+* multiple extra specifiers mentioned act as an *AND* operation
+
+  * ``module avail mod/1.0 setenv:FOO pushenv:BAR``
+  * means module defines *setenv* command to set *FOO* environment variable
+    and defines *pushenv* command to set BAR*
+
+* same extra specifier mentioned multiple times: all mentions retained and act
+  as an *AND* operation
+
+  * ``module avail mod/1.0 variant:foo variant:bar``
+  * means defines variant *foo* and variant *bar*
+
+Value of either variant or extra specifier are full name. No wildcard
+characters are taken into account (they are treated literally).
+
+An error is raised when an empty extra specifier name or value is specified.
 
 FUTURE: expressing an *OR* operation
 
