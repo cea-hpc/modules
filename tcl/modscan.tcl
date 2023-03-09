@@ -103,6 +103,10 @@ proc uncomplete-sc {name} {
    recordScanModuleElt [currentState modulename] $name uncomplete
 }
 
+proc set-alias-sc {alias what} {
+   recordScanModuleElt [currentState modulename] $alias set-alias
+}
+
 proc recordScanModuleElt {mod name args} {
    if {![info exists ::g_scanModuleElt]} {
       set ::g_scanModuleElt [dict create]
