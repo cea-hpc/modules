@@ -87,6 +87,14 @@ proc unsetenv-sc {args} {
    return {}
 }
 
+proc complete-sc {shell name body} {
+   if {[string length $name] == 0} {
+      knerror "Invalid command name '$name'"
+   }
+
+   recordScanModuleElt [currentState modulename] $name complete
+}
+
 proc recordScanModuleElt {mod name args} {
    if {![info exists ::g_scanModuleElt]} {
       set ::g_scanModuleElt [dict create]
