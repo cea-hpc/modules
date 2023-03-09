@@ -95,6 +95,14 @@ proc complete-sc {shell name body} {
    recordScanModuleElt [currentState modulename] $name complete
 }
 
+proc uncomplete-sc {name} {
+   if {[string length $name] == 0} {
+      knerror "Invalid command name '$name'"
+   }
+
+   recordScanModuleElt [currentState modulename] $name uncomplete
+}
+
 proc recordScanModuleElt {mod name args} {
    if {![info exists ::g_scanModuleElt]} {
       set ::g_scanModuleElt [dict create]
