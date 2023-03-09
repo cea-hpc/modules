@@ -107,6 +107,10 @@ proc set-alias-sc {alias what} {
    recordScanModuleElt [currentState modulename] $alias set-alias
 }
 
+proc unset-alias-sc {alias} {
+   recordScanModuleElt [currentState modulename] $alias unset-alias
+}
+
 proc recordScanModuleElt {mod name args} {
    if {![info exists ::g_scanModuleElt]} {
       set ::g_scanModuleElt [dict create]
