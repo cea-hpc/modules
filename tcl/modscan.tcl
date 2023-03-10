@@ -119,6 +119,10 @@ proc unset-function-sc {function} {
    recordScanModuleElt [currentState modulename] $function unset-function
 }
 
+proc chdir-sc {dir} {
+   recordScanModuleElt [currentState modulename] $dir chdir
+}
+
 proc recordScanModuleElt {mod name args} {
    if {![info exists ::g_scanModuleElt]} {
       set ::g_scanModuleElt [dict create]
