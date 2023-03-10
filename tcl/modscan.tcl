@@ -115,6 +115,10 @@ proc set-function-sc {function what} {
    recordScanModuleElt [currentState modulename] $function set-function
 }
 
+proc unset-function-sc {function} {
+   recordScanModuleElt [currentState modulename] $function unset-function
+}
+
 proc recordScanModuleElt {mod name args} {
    if {![info exists ::g_scanModuleElt]} {
       set ::g_scanModuleElt [dict create]
