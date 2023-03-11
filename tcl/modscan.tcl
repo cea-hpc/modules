@@ -130,6 +130,16 @@ proc family-sc {name} {
    recordScanModuleElt [currentState modulename] $name family
 }
 
+proc prereq-sc {args} {
+   lassign [parsePrereqCommandArgs prereq {*}$args] tag_list optional\
+      opt_list args
+
+   foreach modspec [parseModuleSpecification 0 0 0 {*}$args] {
+      recordScanModuleElt [currentState modulename] $modspec prereq\
+         prereq-any require
+   }
+}
+
 proc recordScanModuleElt {mod name args} {
    if {![info exists ::g_scanModuleElt]} {
       set ::g_scanModuleElt [dict create]
