@@ -173,23 +173,29 @@ proc doesModVariantMatch {mod pvrlist} {
    return $ret
 }
 
-# test given extra specifiers match what scanned module defines
-proc doesModExtraMatch {mod pxtlist} {
-   set ret 1
+# collect list of modules matching all extra specifier criteria
+proc getModMatchingExtraSpec {pxtlist} {
+   set res [list]
    if {[info exists ::g_scanModuleElt]} {
       foreach pxt $pxtlist {
          lassign $pxt elt name
-         # does mod defines named element
-         if {![dict exists $::g_scanModuleElt $elt $name] || $mod ni [dict\
-            get $::g_scanModuleElt $elt $name]} {
-            set ret 0
+         # get modules matching one extra specifier criterion
+         if {[dict exists $::g_scanModuleElt $elt $name]} {
+            set one_crit_res [dict get $::g_scanModuleElt $elt $name]
+         } else {
+            set one_crit_res [list]
+         }
+         lappend all_crit_res $one_crit_res
+         # no match on one criterion means no match globally, no need to test
+         # further criteria
+         if {[llength $one_crit_res] == 0} {
             break
          }
       }
-   } else {
-      set ret 0
+      # matching modules are those found in every criteria result
+      set res [getIntersectBetweenList {*}$all_crit_res]
    }
-   return $ret
+   return $res
 }
 
 # determine if current module search requires an extra match search
@@ -224,6 +230,7 @@ proc filterExtraMatchSearch {mod res_arrname versmod_arrname} {
    }
 
    set unset_list {}
+   set keep_list {}
    # evaluate all modules found in scan mode to gather content information
    lappendState mode scan
    foreach elt [array names found_list] {
@@ -245,16 +252,28 @@ proc filterExtraMatchSearch {mod res_arrname versmod_arrname} {
                lappend unset_list $elt
             }
             modulefile - virtual {
-               if {($check_variant && ![doesModVariantMatch $elt\
-                  $spec_vr_list]) || ($check_extra && ![doesModExtraMatch\
-                  $elt $spec_xt_list])} {
+               if {$check_variant && ![doesModVariantMatch $elt\
+                  $spec_vr_list]} {
                   lappend unset_list $elt
+               } elseif {$check_extra} {
+                  # know currently retained modules to later compute those
+                  # to withdrawn
+                  lappend keep_list $elt
                }
             }
          }
       }
    }
    lpopState mode
+
+   # get list of modules matching extra specifiers to determine those to not
+   # matching that need to be withdrawn from result
+   if {$check_extra} {
+      set extra_keep_list [getModMatchingExtraSpec $spec_xt_list]
+      lassign [getDiffBetweenList $keep_list $extra_keep_list]\
+         extra_unset_list
+      set unset_list [list {*}$unset_list {*}$extra_unset_list]
+   }
 
    # unset marked elements
    foreach elt $unset_list {
