@@ -260,6 +260,28 @@ proc getDiffBetweenList {list1 list2} {
    return [list $res1 $res2]
 }
 
+# return intersection of all lists: elements present in every list
+proc getIntersectBetweenList {args} {
+   foreach lst $args {
+      if {![info exists res]} {
+         set cur_res $lst
+      } else {
+         set cur_res [list]
+         foreach elt $res {
+            if {$elt in $lst} {
+               lappend cur_res $elt
+            }
+         }
+      }
+      set res $cur_res
+      # stop when intersection result becomes empty
+      if {[llength $res] == 0} {
+         break
+      }
+   }
+   return $res
+}
+
 # return elements from arr1 not in arr2, elements from arr1 in arr2 but with a
 # different value and elements from arr2 not in arr1.
 # if notset_equals_empty is enabled, not-set element in array is equivalent to
