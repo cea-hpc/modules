@@ -196,11 +196,25 @@ proc getModMatchingExtraSpec {pxtlist} {
    if {[info exists ::g_scanModuleElt]} {
       foreach pxt $pxtlist {
          lassign $pxt elt name
-         # get modules matching one extra specifier criterion
-         if {[dict exists $::g_scanModuleElt $elt $name]} {
-            set one_crit_res [dict get $::g_scanModuleElt $elt $name]
+         set one_crit_res [list]
+         if {$elt in {require prereq prereq-any}} {
+            if {[dict exists $::g_scanModuleElt $elt]} {
+               foreach modspec [dict get $::g_scanModuleElt $elt] {
+                  # modEq proc has been initialized in getModules phase #2
+                  # LIMITATION: bare mod name search does not match fully
+                  # qualified requirement definition
+                  if {[modEq $modspec $name eqstart]} {
+                     # possible duplicate module entry in result list
+                     lappend one_crit_res {*}[dict get $::g_scanModuleElt\
+                        $elt $modspec]
+                  }
+               }
+            }
          } else {
-            set one_crit_res [list]
+            # get modules matching one simple extra specifier criterion
+            if {[dict exists $::g_scanModuleElt $elt $name]} {
+               set one_crit_res [dict get $::g_scanModuleElt $elt $name]
+            }
          }
          lappend all_crit_res $one_crit_res
          # no match on one criterion means no match globally, no need to test
