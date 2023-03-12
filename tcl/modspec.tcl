@@ -1268,6 +1268,12 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec args} {
       return $args
    }
 
+   # define extra specifier known list, to raise error if argument does not
+   # match
+   set xtelt_valid_list [list append-path chdir complete envvar family\
+      prepend-path pushenv remove-path set-alias set-function setenv\
+      uncomplete unset-alias unset-function unsetenv variant]
+
    set mlunload 0
    set nextmlunload 0
    set arglist [list]
@@ -1394,6 +1400,10 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec args} {
                if {[string length $xtelt] == 0 || [string length $xtname] ==\
                   0 || [string last : $curarg] != $xtsepidx} {
                   knerror "Invalid extra specification '$arg'"
+               }
+               if {$xtelt ni $xtelt_valid_list} {
+                  knerror "Invalid extra specifier '$xtelt'\nValid extra\
+                     specifiers are: $xtelt_valid_list"
                }
                # save extra specifier element and name value, same element can
                # appear multiple time (means AND operator)
