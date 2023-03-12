@@ -123,6 +123,13 @@ proc chdir-sc {dir} {
    recordScanModuleElt [currentState modulename] $dir chdir
 }
 
+proc family-sc {name} {
+   if {[string length $name] == 0 || ![regexp {^[A-Za-z0-9_]*$} $name]} {
+      knerror "Invalid family name '$name'"
+   }
+   recordScanModuleElt [currentState modulename] $name family
+}
+
 proc recordScanModuleElt {mod name args} {
    if {![info exists ::g_scanModuleElt]} {
       set ::g_scanModuleElt [dict create]
