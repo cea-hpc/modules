@@ -1,0 +1,65 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.51-scan/%M%
+#   Revision:		%I%
+#   First Edition:	2023/03/12
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		avail
+#   Modulefiles:    extra
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test conflict related extra specifier
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+# ensure advanced version specifiers are enabled
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure avail tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+setenv_var MODULES_AVAIL_TERSE_OUTPUT alias:dirwsym:sym:tag
+
+
+#
+# family
+#
+
+setenv_var TESTSUITE_EXTRA family1
+
+set tserr extra/1.0
+testouterr_cmd sh {avail -t extra family:xtfoo} OK $tserr
+testouterr_cmd sh {avail -t extra family:xtbar} OK {}
+
+setenv_var TESTSUITE_EXTRA family2
+
+testouterr_cmd sh {avail -t extra family:xtfoo} OK {}
+testouterr_cmd sh {avail -t extra family:*} OK {}
+
+setenv_var TESTSUITE_EXTRA family3
+
+testouterr_cmd sh {avail -t extra family:xtfoo} OK {}
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
