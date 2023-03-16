@@ -187,6 +187,23 @@ testouterr_cmd sh {avail -t extra variant:tfoo} OK {}
 
 
 #
+# extra specifier on non-allowed context
+#
+
+set tserr [err_xtspec_notallowed]
+testouterr_cmd sh {load extra variant:xtfoo} ERR $tserr
+testouterr_cmd sh {display extra/1.0 setenv:XTFOO variant:xtfoo} ERR $tserr
+testouterr_cmd sh {ml extra variant:xtfoo} ERR $tserr
+
+setenv_loaded_module [list extra/1.0] [list $mp/extra/1.0]
+
+testouterr_cmd sh {ml -extra/1.0 variant:xtfoo} ERR $tserr
+testouterr_cmd sh {list extra/1.0 variant:xtfoo} ERR $tserr
+
+unsetenv_loaded_module
+
+
+#
 #  Cleanup
 #
 
