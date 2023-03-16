@@ -1196,7 +1196,7 @@ proc defineParseModuleSpecificationProc {advverspec} {
          rename ::parseModuleSpecification\
             ::$::g_parseModuleSpecification_proc
       }
-      ##nagelfar syntax parseModuleSpecification x x*
+      ##nagelfar syntax parseModuleSpecification x x x x*
       rename ::$procname ::parseModuleSpecification
       # set report traces if some debug mode enabled
       initProcReportTrace add parseModuleSpecification
@@ -1208,8 +1208,9 @@ proc defineParseModuleSpecificationProc {advverspec} {
 # a global context version specification of modules passed as argument.
 # mlspec: specification may vary whether it comes from the ml or another
 # command. nonamespec: sometimes specification may omit module name and
-# version and just provides variant properties
-proc parseModuleSpecificationProc {mlspec nonamespec args} {
+# version and just provides variant properties. xtspec: is extra specifier
+# specification allowed
+proc parseModuleSpecificationProc {mlspec nonamespec xtspec args} {
    # skip arg parse if proc was already call with same arg set by an upper
    # proc. check all args to ensure current arglist does not deviate from
    # what was previously parsed
@@ -1257,7 +1258,7 @@ proc parseModuleSpecificationProc {mlspec nonamespec args} {
    }
 
 }
-proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec args} {
+proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec args} {
    foreach arg $args {
       if {![info exists ::g_moduleVersSpec($arg)]} {
          set need_parse 1
@@ -1390,6 +1391,10 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec args} {
                lappend vrlist [list $vrname $vrvalue $vrisbool]
             }
             *:* {
+               # extra specification may not be accepted on current context
+               if {!$xtspec} {
+                  knerror "No extra specification allowed on this command"
+               }
                # extract extra specifier spec
                set xtsepidx [string first : $curarg]
                set xtelt [string range $curarg 0 [expr {$xtsepidx - 1}]]

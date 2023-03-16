@@ -739,7 +739,7 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist extrataglist\
    setConf auto_handling 0
    foreach mod $lmlist {
       # if an auto set default was excluded, module spec need parsing
-      lassign [parseModuleSpecification 0 0 $mod {*}$vr($mod)] modnamevr
+      lassign [parseModuleSpecification 0 0 0 $mod {*}$vr($mod)] modnamevr
       # reload module with user asked property and extra tags preserved
       if {[cmdModuleLoad $context $isuasked($mod) 0 0 $extratag($mod)\
          $modnamevr]} {
