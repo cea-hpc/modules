@@ -51,6 +51,8 @@ Modules 5.3.0 (not yet released)
   used with new *fish* shell version (3.6).
 * Install: allow to build Modules from a short-depth git repository. (fix
   issue #486)
+* Install: ensure git log format is not influenced by user's configuration in
+  :command:`gitlog2changelog.py`. (fix issue #487)
 
 
 .. _5.2 release notes:
