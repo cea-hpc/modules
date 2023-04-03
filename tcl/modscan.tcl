@@ -140,6 +140,16 @@ proc prereq-sc {args} {
    }
 }
 
+proc prereq-all-sc {args} {
+   lassign [parsePrereqCommandArgs prereq-all {*}$args] tag_list optional\
+      opt_list args
+
+   foreach modspec [parseModuleSpecification 0 0 0 {*}$args] {
+      recordScanModuleElt [currentState modulename] $modspec prereq-all\
+         depends-on require
+   }
+}
+
 proc recordScanModuleElt {mod name args} {
    if {![info exists ::g_scanModuleElt]} {
       set ::g_scanModuleElt [dict create]
@@ -197,7 +207,7 @@ proc getModMatchingExtraSpec {pxtlist} {
       foreach pxt $pxtlist {
          lassign $pxt elt name
          set one_crit_res [list]
-         if {$elt in {require prereq prereq-any}} {
+         if {$elt in {require prereq prereq-all prereq-any depends-on}} {
             if {[dict exists $::g_scanModuleElt $elt]} {
                foreach modspec [dict get $::g_scanModuleElt $elt] {
                   # modEq proc has been initialized in getModules phase #2
