@@ -163,15 +163,16 @@ proc always-load-sc {args} {
 proc module-sc {command args} {
    lassign [parseModuleCommandName $command help] command cmdvalid cmdempty
    # ignore sub-commands that do not either load or unload
-   if {$command in {load load-any try-load}} {
+   if {$command in {load load-any try-load unload}} {
       # parse options to distinguish them from module version spec
       lassign [parseModuleCommandArgs 0 $command 0 {*}$args] show_oneperline\
          show_mtime show_filter search_filter search_match dump_state\
          addpath_pos not_req tag_list args
+      set xtalias [expr {$command eq {unload} ? {incompat} : {require}}]
       # record each module spec
       foreach modspec [parseModuleSpecification 0 0 0 {*}$args] {
          recordScanModuleElt [currentState modulename] $modspec $command\
-            require
+            $xtalias
       }
    }
 }
@@ -233,8 +234,8 @@ proc getModMatchingExtraSpec {pxtlist} {
       foreach pxt $pxtlist {
          lassign $pxt elt name
          set one_crit_res [list]
-         if {$elt in {require load prereq prereq-all prereq-any depends-on\
-            always-load load-any try-load}} {
+         if {$elt in {require incompat load unload prereq prereq-all\
+            prereq-any depends-on always-load load-any try-load}} {
             if {[dict exists $::g_scanModuleElt $elt]} {
                foreach modspec [dict get $::g_scanModuleElt $elt] {
                   # modEq proc has been initialized in getModules phase #2
