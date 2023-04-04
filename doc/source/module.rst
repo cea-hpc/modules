@@ -113,8 +113,8 @@ Python:
 .. parsed-literal::
 
      import os
-     exec(open('\ |initdir|\ /python.py').read())
-     module('load', 'modulefile', 'modulefile', '...')
+     exec(open("\ |initdir|\ /python.py").read(), globals())
+     module("load", "modulefile", "modulefile", "...")
 
 Bourne Shell (sh) (and derivatives) with :subcmd:`autoinit` sub-command:
 
