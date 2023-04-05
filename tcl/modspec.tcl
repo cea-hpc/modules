@@ -1274,8 +1274,8 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec args} {
    set xtelt_valid_list [list always-load append-path chdir complete\
       depends-on envvar family incompat load load-any prepend-path prereq\
       prereq-all prereq-any pushenv remove-path require set-alias\
-      set-function setenv try-load uncomplete unload unset-alias\
-      unset-function unsetenv variant]
+      set-function setenv switch switch-on switch-off try-load uncomplete\
+      unload unset-alias unset-function unsetenv variant]
 
    set mlunload 0
    set nextmlunload 0

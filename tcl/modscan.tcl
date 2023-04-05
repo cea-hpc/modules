@@ -163,16 +163,36 @@ proc always-load-sc {args} {
 proc module-sc {command args} {
    lassign [parseModuleCommandName $command help] command cmdvalid cmdempty
    # ignore sub-commands that do not either load or unload
-   if {$command in {load load-any try-load unload}} {
+   if {$command in {load load-any switch try-load unload}} {
       # parse options to distinguish them from module version spec
       lassign [parseModuleCommandArgs 0 $command 0 {*}$args] show_oneperline\
          show_mtime show_filter search_filter search_match dump_state\
          addpath_pos not_req tag_list args
-      set xtalias [expr {$command eq {unload} ? {incompat} : {require}}]
-      # record each module spec
-      foreach modspec [parseModuleSpecification 0 0 0 {*}$args] {
-         recordScanModuleElt [currentState modulename] $modspec $command\
-            $xtalias
+      set modspeclist [parseModuleSpecification 0 0 0 {*}$args]
+      if {$command eq {switch}} {
+         # distinguish switched-off module spec from switched-on
+         # ignore command without or with too much argument
+         switch -- [llength $modspeclist] {
+            {1} {
+               # no switched-off module with one-arg form
+               recordScanModuleElt [currentState modulename] $modspeclist\
+                  switch switch-on require
+            }
+            {2} {
+               lassign $modspeclist swoffarg swonarg
+               recordScanModuleElt [currentState modulename] $swoffarg switch\
+                  switch-off incompat
+               recordScanModuleElt [currentState modulename] $swonarg switch\
+                  switch-on require
+            }
+         }
+      } else {
+         set xtalias [expr {$command eq {unload} ? {incompat} : {require}}]
+         # record each module spec
+         foreach modspec $modspeclist {
+            recordScanModuleElt [currentState modulename] $modspec $command\
+               $xtalias
+         }
       }
    }
 }
@@ -235,7 +255,8 @@ proc getModMatchingExtraSpec {pxtlist} {
          lassign $pxt elt name
          set one_crit_res [list]
          if {$elt in {require incompat load unload prereq prereq-all\
-            prereq-any depends-on always-load load-any try-load}} {
+            prereq-any depends-on always-load load-any try-load switch\
+            switch-on switch-off}} {
             if {[dict exists $::g_scanModuleElt $elt]} {
                foreach modspec [dict get $::g_scanModuleElt $elt] {
                   # modEq proc has been initialized in getModules phase #2
