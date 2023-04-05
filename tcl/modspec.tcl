@@ -1271,7 +1271,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec args} {
 
    # define extra specifier known list, to raise error if argument does not
    # match
-   set xtelt_valid_list [list always-load append-path chdir complete\
+   set xtelt_valid_list [list always-load append-path chdir complete conflict\
       depends-on envvar family incompat load load-any prepend-path prereq\
       prereq-all prereq-any pushenv remove-path require set-alias\
       set-function setenv switch switch-on switch-off try-load uncomplete\

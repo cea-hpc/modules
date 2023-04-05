@@ -160,6 +160,12 @@ proc always-load-sc {args} {
    }
 }
 
+proc conflict-sc {args} {
+   foreach modspec [parseModuleSpecification 0 0 0 {*}$args] {
+      recordScanModuleElt [currentState modulename] $modspec conflict incompat
+   }
+}
+
 proc module-sc {command args} {
    lassign [parseModuleCommandName $command help] command cmdvalid cmdempty
    # ignore sub-commands that do not either load or unload
@@ -254,7 +260,7 @@ proc getModMatchingExtraSpec {pxtlist} {
       foreach pxt $pxtlist {
          lassign $pxt elt name
          set one_crit_res [list]
-         if {$elt in {require incompat load unload prereq prereq-all\
+         if {$elt in {require incompat load unload prereq conflict prereq-all\
             prereq-any depends-on always-load load-any try-load switch\
             switch-on switch-off}} {
             if {[dict exists $::g_scanModuleElt $elt]} {
