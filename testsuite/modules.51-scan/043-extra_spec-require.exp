@@ -1,0 +1,277 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.51-scan/%M%
+#   Revision:		%I%
+#   First Edition:	2023/04/08
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		avail
+#   Modulefiles:    extra
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test require related extra specifier
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+# ensure advanced version specifiers are enabled
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure avail tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+setenv_var MODULES_AVAIL_TERSE_OUTPUT alias:dirwsym:sym:tag
+
+
+#
+# prereq
+#
+
+set tserr extra/1.0
+
+setenv_var TESTSUITE_EXTRA prereq1
+
+testouterr_cmd sh {avail -t extra prereq:xtfoo} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo/1.0} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo/2.0} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo@1.0} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo@1.0\ foo=bar} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo\ @1.0\ foo=bar} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo\ foo=bar} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo@0.8:1.2} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo@0.8:1.2\ foo=bar} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo@0.8:\ foo=bar} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo@:1.2} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo@0.8:\ foo=bar @1.0} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo@0.8:\ foo=bar @2.0} OK {}
+testouterr_cmd sh {avail -t extra prereq:xtfoo/1.0 prereq:xtfoo/2.0} OK $tserr
+
+testouterr_cmd sh {avail -t extra require:xtfoo/1.0} OK $tserr
+testouterr_cmd sh {avail -t extra prereq-any:xtfoo/1.0} OK $tserr
+
+setenv_var MODULES_EXTENDED_DEFAULT 1
+testouterr_cmd sh {avail -t extra prereq:xtfoo/3} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo@1} OK $tserr
+setenv_var MODULES_EXTENDED_DEFAULT 0
+testouterr_cmd sh {avail -t extra prereq:xtfoo/3} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo@1} OK $tserr
+unsetenv_var MODULES_EXTENDED_DEFAULT
+
+setenv_var MODULES_ICASE never
+testouterr_cmd sh {avail -t extra prereq:xtFOO/1.0} OK {}
+setenv_var MODULES_ICASE search
+testouterr_cmd sh {avail -t extra prereq:xtFOO/1.0} OK $tserr
+unsetenv_var MODULES_ICASE
+
+
+setenv_var TESTSUITE_EXTRA prereq2
+
+testouterr_cmd sh {avail -t extra prereq:xtfoo} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo/1.0} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo/2.0} OK {}
+testouterr_cmd sh {avail -t extra prereq:xtfoo@1.0} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo@1.0\ foo=bar} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo\ @1.0\ foo=bar} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo\ foo=bar} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo@0.8:1.2} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo/1.0 prereq:xtfoo/2.0} OK {}
+testouterr_cmd sh {avail -t extra prereq:xtfoo@:1.1 prereq:xtfoo@0.9:} OK $tserr
+
+setenv_var MODULES_EXTENDED_DEFAULT 1
+testouterr_cmd sh {avail -t extra prereq:xtfoo/3} OK {}
+testouterr_cmd sh {avail -t extra prereq:xtfoo@1} OK $tserr
+setenv_var MODULES_EXTENDED_DEFAULT 0
+testouterr_cmd sh {avail -t extra prereq:xtfoo/3} OK {}
+testouterr_cmd sh {avail -t extra prereq:xtfoo@1} OK {}
+unsetenv_var MODULES_EXTENDED_DEFAULT
+
+setenv_var MODULES_ICASE never
+testouterr_cmd sh {avail -t extra prereq:xtFOO/1.0} OK {}
+setenv_var MODULES_ICASE search
+testouterr_cmd sh {avail -t extra prereq:xtFOO/1.0} OK $tserr
+unsetenv_var MODULES_ICASE
+
+
+setenv_var TESTSUITE_EXTRA prereq3
+
+testouterr_cmd sh {avail -t extra prereq:xtunk} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtunk/1.0} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtunk@1.0} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtunk@1.0\ foo=bar} OK $tserr
+
+
+setenv_var TESTSUITE_EXTRA prereq4
+
+# FIXME: defined prereq in modulefile is xtunk/1.0, no match with xtunk
+# generic module name as no xtunk module is resolved
+testouterr_cmd sh {avail -t extra prereq:xtunk} OK {}
+testouterr_cmd sh {avail -t extra prereq:xtunk/1.0} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtunk@1.0\ foo=bar} OK $tserr
+
+
+setenv_var TESTSUITE_EXTRA prereqalt1
+
+testouterr_cmd sh {avail -t extra prereq:xtfoo} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo/1.0} OK $tserr
+# FIXME: looking at available modules, aliases are not resolved to their
+# target
+testouterr_cmd sh {avail -t extra prereq:alxtfoo} OK {}
+
+
+setenv_var TESTSUITE_EXTRA prereqalt2
+
+# FIXME: symbolic version pointing on module name is not matched
+testouterr_cmd sh {avail -t extra prereq:xtfoo/1.1} OK {}
+testouterr_cmd sh {avail -t extra prereq:xtfoo/1.0} OK $tserr
+
+
+setenv_var TESTSUITE_EXTRA prereqalt3
+
+# FIXME: alias pointing on module name is not matched
+testouterr_cmd sh {avail -t extra prereq:alxtfoo/1.1} OK {}
+testouterr_cmd sh {avail -t extra prereq:xtfoo/1.0} OK $tserr
+
+
+setenv_var TESTSUITE_EXTRA prereqalt4
+
+# FIXME: alias pointing on module name is not matched
+testouterr_cmd sh {avail -t extra prereq:xtfoo/1.0} OK {}
+testouterr_cmd sh {avail -t extra prereq:alxtfoo} OK $tserr
+
+
+setenv_var TESTSUITE_EXTRA prereqalt5
+
+# FIXME: symbolic version pointing on module name is not matched
+testouterr_cmd sh {avail -t extra prereq:xtfoo/1.0} OK {}
+testouterr_cmd sh {avail -t extra prereq:xtfoo/1.1} OK $tserr
+
+
+setenv_var TESTSUITE_EXTRA prereq5
+
+testouterr_cmd sh {avail -t extra prereq:xtfoo/1.0} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:variant/1.0} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo/1.0 prereq:variant/1.0} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo/1.0 prereq:variant/1.0 prereq:xtfoo} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo/1.0 prereq:variant/1.0 prereq:xtunk/1.0} OK {}
+
+testouterr_cmd sh {avail -t extra prereq-any:variant/1.0} OK $tserr
+
+
+setenv_var TESTSUITE_EXTRA prereq6
+
+testouterr_cmd sh {avail -t extra prereq:xtfoo/1.0} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:info} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:info/1.0 prereq:xtfoo prereq:variant\ foo=val} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:info/1.0 prereq:xtfoo\ foo=val prereq:variant} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:info prereq:xtfoo prereq:xtunk\ foo=val} OK {}
+
+
+setenv_var TESTSUITE_EXTRA prereq7
+
+testouterr_cmd sh {avail -t extra prereq:xtbar/1.0} OK {}
+testouterr_cmd sh {avail -t extra prereq:xtbar/2.0} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtbar} OK $tserr
+# FIXME: expressed range is compatible with prereq definition inside module, but
+# it is currently excluded from result as no module in range 1.1:1.3 exists
+testouterr_cmd sh {avail -t extra prereq:xtbar@1.0:1.3} OK {}
+testouterr_cmd sh {avail -t extra prereq:xtbar@1.4:2.0} OK $tserr
+
+
+setenv_var TESTSUITE_EXTRA prereq8
+
+testouterr_cmd sh {avail -t extra prereq:xtbar/1.0} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtbar/2.0} OK {}
+testouterr_cmd sh {avail -t extra prereq:xtbar} OK $tserr
+# FIXME: expressed range is compatible with prereq definition inside module, but
+# it is currently excluded from result as no module xtbar/1.1 exists
+testouterr_cmd sh {avail -t extra prereq:xtbar@1.1:1.3} OK {}
+testouterr_cmd sh {avail -t extra prereq:xtbar@0.6:1.2} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtbar@0.6:1.2\ bar=val1} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtbar@0.6:1.2\ bar=unk} OK $tserr
+
+
+setenv_var TESTSUITE_EXTRA prereq9
+
+testouterr_cmd sh {avail -t extra prereq:xtbar\ @1.0} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtbar\ @1.0\ bar=val1} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtbar@0.6:1.2\ bar=val1} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtbar/0.9\ bar=val1} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtbar@1.0\ bar=val2} OK {}
+testouterr_cmd sh {avail -t extra prereq:xtbar@0.6:1.2\ bar=unk} OK {}
+testouterr_cmd sh {avail -t extra prereq:xtbar\ @0.9\ bar=val1\ foo=unk} OK $tserr
+
+
+setenv_var TESTSUITE_EXTRA prereq10
+
+testouterr_cmd sh {avail -t extra prereq:xtfoo} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo/1.0\ bar=unk} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtbar@0.6:1.2\ bar=val1} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtbar\ @1.0\ bar=unk} OK {}
+
+
+setenv_var TESTSUITE_EXTRA prereq11
+
+testouterr_cmd sh {avail -t extra prereq:xtbar\ @1.0\ bar=val1} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtbar\ @1.0\ bar=val1\ foo=val2} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtbar\ @1.0\ bar=val1\ foo=val1} OK {}
+testouterr_cmd sh {avail -t extra prereq:xtbar\ @1.0\ bar=val1\ foo=unk} OK {}
+testouterr_cmd sh {avail -t extra prereq:xtbar\ @1.0\ bar=unk} OK {}
+
+
+setenv_var TESTSUITE_EXTRA prereq12
+
+testouterr_cmd sh {avail -t extra prereq:xtfoo/1.0} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo\ @1.0} OK $tserr
+setenv_var MODULES_EXTENDED_DEFAULT 1
+testouterr_cmd sh {avail -t extra prereq:xtfoo@1} OK $tserr
+unsetenv_var MODULES_EXTENDED_DEFAULT
+testouterr_cmd sh {avail -t extra prereq:xtfoo@1.1} OK {}
+
+
+setenv_var TESTSUITE_EXTRA prereq13
+
+setenv_var MODULES_EXTENDED_DEFAULT 1
+testouterr_cmd sh {avail -t extra prereq:xtfoo/1} OK $tserr
+unsetenv_var MODULES_EXTENDED_DEFAULT
+testouterr_cmd sh {avail -t extra prereq:xtfoo@1.1} OK {}
+
+
+setenv_var TESTSUITE_EXTRA prereq14
+
+testouterr_cmd sh {avail -t extra prereq:xtfoo/1.0} OK {}
+
+
+#
+# prereq-any
+#
+
+setenv_var TESTSUITE_EXTRA prereq-any1
+
+testouterr_cmd sh {avail -t extra prereq-any:xtfoo/1.0} OK $tserr
+testouterr_cmd sh {avail -t extra prereq-any:xtfoo\ @1.0\ foo=val1} OK $tserr
+testouterr_cmd sh {avail -t extra prereq-any:xtbar} OK {}
+testouterr_cmd sh {avail -t extra prereq-any:xtfoo} OK $tserr
+testouterr_cmd sh {avail -t extra prereq:xtfoo/2.0} OK $tserr
+testouterr_cmd sh {avail -t extra require:xtfoo/1.5} OK $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
