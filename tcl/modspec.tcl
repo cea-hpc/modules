@@ -1294,7 +1294,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec args} {
          set c [string index $arg $i]
          switch -- $c {
             @ - ~ {
-               lappend curarglist [string range $arg $previ [expr {$i - 1}]]
+               lappend curarglist [string range $arg $previ $i-1]
                set previ $i
             }
             + {
@@ -1305,8 +1305,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec args} {
                   switch -- [string index $arg $nexti] {
                      @ - + - ~ - / {}
                      default {
-                        lappend curarglist [string range $arg $previ [expr\
-                           {$i - 1}]]
+                        lappend curarglist [string range $arg $previ $i-1]
                         set previ $i
                      }
                   }
@@ -1315,14 +1314,13 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec args} {
             default {
                # check if a variant shortcut matches
                if {[info exists ::g_shortcutVariant($c)]} {
-                  lappend curarglist [string range $arg $previ [expr {$i -\
-                     1}]]
+                  lappend curarglist [string range $arg $previ $i-1]
                   set previ $i
                }
             }
          }
       }
-      lappend curarglist [string range $arg $previ [expr {$i - 1}]]
+      lappend curarglist [string range $arg $previ $i-1]
 
       # parse each specification element
       foreach curarg $curarglist {
@@ -1366,8 +1364,8 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec args} {
             *=* {
                # extract valued-variant spec
                set vrsepidx [string first = $curarg]
-               set vrname [string range $curarg 0 [expr {$vrsepidx - 1}]]
-               set vrvalue [string range $curarg [expr {$vrsepidx + 1}] end]
+               set vrname [string range $curarg 0 $vrsepidx-1]
+               set vrvalue [string range $curarg $vrsepidx+1 end]
 
                if {$vrname eq {}} {
                   knerror "No variant name defined in argument '$curarg'"
@@ -1399,8 +1397,8 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec args} {
                }
                # extract extra specifier spec
                set xtsepidx [string first : $curarg]
-               set xtelt [string range $curarg 0 [expr {$xtsepidx - 1}]]
-               set xtname [string range $curarg [expr {$xtsepidx + 1}] end]
+               set xtelt [string range $curarg 0 $xtsepidx-1]
+               set xtname [string range $curarg $xtsepidx+1 end]
 
                # check no other : character is found in argument or element
                # and name are not an empty string

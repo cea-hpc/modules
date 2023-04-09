@@ -1905,8 +1905,8 @@ proc x-resource {resource {value {}}} {
       }
 
       if { $sepapos > -1 } {
-         set value [string range $resource [expr {$sepapos + 1}] end]
-         set resource [string range $resource 0 [expr {$sepapos - 1}]]
+         set value [string range $resource $sepapos+1 end]
+         set resource [string range $resource 0 $sepapos-1]
          reportDebug "corrected ($resource, $value)"
       } else {
          # if not a file and no value provided x-resource cannot be
@@ -2190,14 +2190,14 @@ proc execShAndGetEnv {shell script args} {
                '$shell'"
          }
       } else {
-         set $varout [string trimright [string range $output $idx [expr\
-            {$sepidx - 1}]] \n]
+         set $varout [string trimright [string range $output $idx $sepidx-1]\
+            \n]
          set idx [expr {$sepidx + [string length $sep] + 1}]
       }
       # remove expected Tcl error message
       if {$sherr && $varout eq {scriptout} && [set erridx [string\
          last {child process exited abnormally} [set $varout]]] != -1} {
-         set $varout [string range [set $varout] 0 [expr {$erridx - 2}]]
+         set $varout [string range [set $varout] 0 $erridx-2]
       }
    }
    if {$sepidx != -1 && !$sherr} {
@@ -2309,7 +2309,7 @@ proc sh-to-mod {args} {
                # check from the end to get the largest chunk to prepend
                set idx [string last $varbef($name) $varaft($name)]
                # get delimiter from char found between new and existing value
-               set delim [string index $varaft($name) [expr {$idx - 1}]]
+               set delim [string index $varaft($name) $idx-1]
                if {$delim ne $pathsep} {
                   lappend modcmd -d $delim
                }
@@ -2317,7 +2317,7 @@ proc sh-to-mod {args} {
                # split value and remove duplicate entries
                set vallist [list]
                appendNoDupToList vallist {*}[split [string range\
-                  $varaft($name) 0 [expr {$idx - 2}]] $delim]
+                  $varaft($name) 0 $idx-2] $delim]
                # an empty element is added
                if {[llength $vallist] == 0} {
                   lappend vallist {}
@@ -2328,8 +2328,8 @@ proc sh-to-mod {args} {
             if {($idx + [string length $varbef($name)]) < [string length\
                $varaft($name)]} {
                set modcmd [list append-path]
-               set delim [string index $varaft($name) [expr {$idx + [string\
-                  length $varbef($name)]}]]
+               set delim [string index $varaft($name) $idx+[string length\
+                  $varbef($name)]]
                if {$delim ne $pathsep} {
                   lappend modcmd -d $delim
                }
@@ -2424,7 +2424,7 @@ proc source-sh-un {shell script args} {
 
    # find commands resulting from source-sh evaluation recorded in env
    if {[set idx [lsearch -exact $modsrcsh $shtomodargs]] != -1 } {
-      set modcontent [lindex $modsrcsh [expr {$idx + 1}]]
+      set modcontent [lindex $modsrcsh $idx+1]
    } else {
       set modcontent {}
    }
@@ -2448,7 +2448,7 @@ proc source-sh-di {shell script args} {
 
       # find commands resulting from source-sh evaluation recorded in env
       if {[set idx [lsearch -exact $modsrcsh $shtomodargs]] != -1 } {
-         set reccontent [lindex $modsrcsh [expr {$idx + 1}]]
+         set reccontent [lindex $modsrcsh $idx+1]
       } else {
          set reccontent {}
       }

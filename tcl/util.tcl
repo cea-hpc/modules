@@ -147,17 +147,16 @@ proc psplit {str sep} {
       set idx [string first $sep $str]
       while {$idx != -1} {
          # look ahead if found separator is escaped
-         if {[string index $str [expr {$idx-1}]] ne "\\"} {
+         if {[string index $str $idx-1] ne "\\"} {
             # unescape any separator character when adding to list
-            lappend res [charUnescaped [string range $str [expr {$previdx+1}]\
-               [expr {$idx-1}]] $sep]
+            lappend res [charUnescaped [string range $str $previdx+1 $idx-1]\
+               $sep]
             set previdx $idx
          }
-         set idx [string first $sep $str [expr {$idx+1}]]
+         set idx [string first $sep $str $idx+1]
       }
 
-      lappend res [charUnescaped [string range $str [expr {$previdx+1}] end]\
-         $sep]
+      lappend res [charUnescaped [string range $str $previdx+1 end] $sep]
    }
 
    return $res

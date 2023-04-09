@@ -216,8 +216,8 @@ proc reportMsgRecord {header {hidden 0}} {
                   # no split if no whitespace found to slice
                   if {[string length $line] > $line_max_idx && [set cut_idx\
                      [string last { } $line $line_max_idx]] != -1} {
-                     set lineadd [string range $line 0 [expr {$cut_idx-1}]]
-                     set line [string range $line [expr {$cut_idx+1}] end]
+                     set lineadd [string range $line 0 $cut_idx-1]
+                     set line [string range $line $cut_idx+1 end]
                   } else {
                      set lineadd $line
                   }
@@ -364,10 +364,10 @@ proc formatErrStackTrace {errmsg loc {cmdlist {}}} {
 
    # replace error location at end of stack
    set lastnl [string last \n $errmsg]
-   set lastline [string range $errmsg [expr {$lastnl + 1}] end]
+   set lastline [string range $errmsg $lastnl+1 end]
    if {[string match {    ("eval" body line*} $lastline]} {
-      set errmsg [string replace $errmsg $lastnl [expr {$lastnl + [string\
-         length "    (\"eval\" body line"]}] "\n    (file \"$loc\" line"]
+      set errmsg [string replace $errmsg $lastnl $lastnl+[string length\
+         "    (\"eval\" body line"] "\n    (file \"$loc\" line"]
    } elseif {![string match {    (file *} $lastline]} {
       # add error location at end of stack
       append errmsg "\n    (file \"$loc\")"
@@ -498,7 +498,7 @@ proc sgr {keylist str {himatchmap {}} {othkeylist {}}} {
          set stridx 0
          foreach {sgridx sgrcode} $fullsgridxlist {
             if {$sgridx != 0} {
-               append sgrstr [string range $str $stridx [expr {$sgridx-1}]]
+               append sgrstr [string range $str $stridx $sgridx-1]
             }
             append sgrstr "\033\[${sgrcode}m"
             set stridx $sgridx
