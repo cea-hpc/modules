@@ -1288,39 +1288,44 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec args} {
    foreach arg $args {
       # set each specification element as separate word but preserve space
       # character in each arg
-      set previ 0
       set curarglist {}
-      for {set i 1} {$i < [string length $arg]} {incr i} {
-         set c [string index $arg $i]
-         switch -- $c {
-            @ - ~ {
-               lappend curarglist [string range $arg $previ $i-1]
-               set previ $i
-            }
-            + {
-               # allow one or more '+' char at end of module name if not
-               # followed by non-special character (@, ~ or /)
-               set nexti [expr {$i + 1}]
-               if {$nexti < [string length $arg]} {
-                  switch -- [string index $arg $nexti] {
-                     @ - + - ~ - / {}
-                     default {
-                        lappend curarglist [string range $arg $previ $i-1]
-                        set previ $i
-                     }
-                  }
-               }
-            }
-            default {
-               # check if a variant shortcut matches
-               if {[info exists ::g_shortcutVariant($c)]} {
+      # skip argument split if extra specifier detected
+      if {[regexp {^[a-z-]+:} $arg]} {
+         lappend curarglist $arg
+      } else {
+         set previ 0
+         for {set i 1} {$i < [string length $arg]} {incr i} {
+            set c [string index $arg $i]
+            switch -- $c {
+               @ - ~ {
                   lappend curarglist [string range $arg $previ $i-1]
                   set previ $i
                }
+               + {
+                  # allow one or more '+' char at end of module name if not
+                  # followed by non-special character (@, ~ or /)
+                  set nexti [expr {$i + 1}]
+                  if {$nexti < [string length $arg]} {
+                     switch -- [string index $arg $nexti] {
+                        @ - + - ~ - / {}
+                        default {
+                           lappend curarglist [string range $arg $previ $i-1]
+                           set previ $i
+                        }
+                     }
+                  }
+               }
+               default {
+                  # check if a variant shortcut matches
+                  if {[info exists ::g_shortcutVariant($c)]} {
+                     lappend curarglist [string range $arg $previ $i-1]
+                     set previ $i
+                  }
+               }
             }
          }
+         lappend curarglist [string range $arg $previ $i-1]
       }
-      lappend curarglist [string range $arg $previ $i-1]
 
       # parse each specification element
       foreach curarg $curarglist {
