@@ -1366,6 +1366,30 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec args} {
          }
 
          switch -glob -- $curarg {
+            *:* {
+               # extra specification may not be accepted on current context
+               if {!$xtspec} {
+                  knerror "No extra specification allowed on this command"
+               }
+               # extract extra specifier spec
+               set xtsepidx [string first : $curarg]
+               set xtelt [string range $curarg 0 $xtsepidx-1]
+               set xtname [string range $curarg $xtsepidx+1 end]
+
+               # check no other : character is found in argument or element
+               # and name are not an empty string
+               if {[string length $xtelt] == 0 || [string length $xtname] ==\
+                  0 || [string last : $curarg] != $xtsepidx} {
+                  knerror "Invalid extra specification '$arg'"
+               }
+               if {$xtelt ni $xtelt_valid_list} {
+                  knerror "Invalid extra specifier '$xtelt'\nValid extra\
+                     specifiers are: $xtelt_valid_list"
+               }
+               # save extra specifier element and name value, same element can
+               # appear multiple time (means AND operator)
+               lappend xtlist [list $xtelt $xtname]
+            }
             *=* {
                # extract valued-variant spec
                set vrsepidx [string first = $curarg]
@@ -1394,30 +1418,6 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec args} {
                # save variant name and value
                set vrnamearr($vrname) $vridx
                lappend vrlist [list $vrname $vrvalue $vrisbool]
-            }
-            *:* {
-               # extra specification may not be accepted on current context
-               if {!$xtspec} {
-                  knerror "No extra specification allowed on this command"
-               }
-               # extract extra specifier spec
-               set xtsepidx [string first : $curarg]
-               set xtelt [string range $curarg 0 $xtsepidx-1]
-               set xtname [string range $curarg $xtsepidx+1 end]
-
-               # check no other : character is found in argument or element
-               # and name are not an empty string
-               if {[string length $xtelt] == 0 || [string length $xtname] ==\
-                  0 || [string last : $curarg] != $xtsepidx} {
-                  knerror "Invalid extra specification '$arg'"
-               }
-               if {$xtelt ni $xtelt_valid_list} {
-                  knerror "Invalid extra specifier '$xtelt'\nValid extra\
-                     specifiers are: $xtelt_valid_list"
-               }
-               # save extra specifier element and name value, same element can
-               # appear multiple time (means AND operator)
-               lappend xtlist [list $xtelt $xtname]
             }
             default {
                # save previous mod version spec and transformed arg if any
