@@ -134,7 +134,7 @@ proc prereq-sc {args} {
    lassign [parsePrereqCommandArgs prereq {*}$args] tag_list optional\
       opt_list args
 
-   foreach modspec [parseModuleSpecification 0 0 0 {*}$args] {
+   foreach modspec [parseModuleSpecification 0 0 0 0 {*}$args] {
       recordScanModuleElt [currentState modulename] $modspec prereq\
          prereq-any require
    }
@@ -144,7 +144,7 @@ proc prereq-all-sc {args} {
    lassign [parsePrereqCommandArgs prereq-all {*}$args] tag_list optional\
       opt_list args
 
-   foreach modspec [parseModuleSpecification 0 0 0 {*}$args] {
+   foreach modspec [parseModuleSpecification 0 0 0 0 {*}$args] {
       recordScanModuleElt [currentState modulename] $modspec prereq-all\
          depends-on require
    }
@@ -154,14 +154,14 @@ proc always-load-sc {args} {
    lassign [parsePrereqCommandArgs always-load {*}$args] tag_list optional\
       opt_list args
 
-   foreach modspec [parseModuleSpecification 0 0 0 {*}$args] {
+   foreach modspec [parseModuleSpecification 0 0 0 0 {*}$args] {
       recordScanModuleElt [currentState modulename] $modspec always-load\
          require
    }
 }
 
 proc conflict-sc {args} {
-   foreach modspec [parseModuleSpecification 0 0 0 {*}$args] {
+   foreach modspec [parseModuleSpecification 0 0 0 0 {*}$args] {
       recordScanModuleElt [currentState modulename] $modspec conflict incompat
    }
 }
@@ -174,7 +174,7 @@ proc module-sc {command args} {
       lassign [parseModuleCommandArgs 0 $command 0 {*}$args] show_oneperline\
          show_mtime show_filter search_filter search_match dump_state\
          addpath_pos not_req tag_list args
-      set modspeclist [parseModuleSpecification 0 0 0 {*}$args]
+      set modspeclist [parseModuleSpecification 0 0 0 0 {*}$args]
       if {$command eq {switch}} {
          # distinguish switched-off module spec from switched-on
          # ignore command without or with too much argument
@@ -296,13 +296,14 @@ proc getModMatchingExtraSpec {pxtlist} {
 
 # determine if current module search requires an extra match search
 proc isExtraMatchSearchRequired {mod} {
-   # an extra match search is required if:
+   # an extra match search is required if not currently inhibited and:
    # * variant should be reported in output
    # * mod specification contains variant during avail/paths/whatis
    # * mod specification contains extra specifier during avail/paths/whatis
-   return [expr {[isEltInReport variant 0] || (([llength\
-      [getVariantListFromVersSpec $mod]] + [llength [getExtraListFromVersSpec\
-      $mod]]) > 0 && [currentState commandname] in {avail paths whatis})}]
+   return [expr {![getState inhibit_ems 0] && ([isEltInReport variant 0] ||\
+      (([llength [getVariantListFromVersSpec $mod]] + [llength\
+      [getExtraListFromVersSpec $mod]]) > 0 && [currentState commandname] in\
+      {avail paths whatis}))}]
 }
 
 # perform extra match search on currently being built module search result

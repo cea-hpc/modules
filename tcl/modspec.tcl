@@ -1196,7 +1196,7 @@ proc defineParseModuleSpecificationProc {advverspec} {
          rename ::parseModuleSpecification\
             ::$::g_parseModuleSpecification_proc
       }
-      ##nagelfar syntax parseModuleSpecification x x x x*
+      ##nagelfar syntax parseModuleSpecification x x x x x*
       rename ::$procname ::parseModuleSpecification
       # set report traces if some debug mode enabled
       initProcReportTrace add parseModuleSpecification
@@ -1209,8 +1209,9 @@ proc defineParseModuleSpecificationProc {advverspec} {
 # mlspec: specification may vary whether it comes from the ml or another
 # command. nonamespec: sometimes specification may omit module name and
 # version and just provides variant properties. xtspec: is extra specifier
-# specification allowed
-proc parseModuleSpecificationProc {mlspec nonamespec xtspec args} {
+# specification allowed. getavails: query available modules to get those
+# matching module name and version
+proc parseModuleSpecificationProc {mlspec nonamespec xtspec getavails args} {
    # skip arg parse if proc was already call with same arg set by an upper
    # proc. check all args to ensure current arglist does not deviate from
    # what was previously parsed
@@ -1242,7 +1243,7 @@ proc parseModuleSpecificationProc {mlspec nonamespec xtspec args} {
          set modarg $modname
       }
       # record spec, especially needed if arg is enclosed
-      setModuleVersSpec $modarg $modname eq {} {} {} $arg {}
+      setModuleVersSpec $modarg $modname eq {} {} {} $arg {} $getavails
       # append to unload list if ml spec and - prefix used
       if {$mlunload} {
          lappend unarglist $modarg
@@ -1258,7 +1259,8 @@ proc parseModuleSpecificationProc {mlspec nonamespec xtspec args} {
    }
 
 }
-proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec args} {
+proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec\
+   getavails args} {
    foreach arg $args {
       if {![info exists ::g_moduleVersSpec($arg)]} {
          set need_parse 1
@@ -1379,7 +1381,8 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec args} {
                # check no other : character is found in argument or element
                # and name are not an empty string
                if {[string length $xtelt] == 0 || [string length $xtname] ==\
-                  0 || [string last : $curarg] != $xtsepidx} {
+                  0 || ([string last : $curarg] != $xtsepidx && $xtelt ni\
+                  $xtelt_modspec_list)} {
                   knerror "Invalid extra specification '$arg'"
                }
                if {$xtelt ni $xtelt_valid_list} {
@@ -1435,7 +1438,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec args} {
                   if {[info exists modname] && ($modname ne {} || $modspec\
                      eq {})} {
                      setModuleVersSpec $modarg $modname $cmpspec $versspec\
-                        $modspec $vrlist $rawarg $xtlist
+                        $modspec $vrlist $rawarg $xtlist $getavails
                      # rework args to have 1 str element for whole mod spec
                      # append to unload list if ml spec and - prefix used
                      if {$mlunload} {
@@ -1482,7 +1485,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec args} {
          set versspec {}
       }
       setModuleVersSpec $modarg $modname $cmpspec $versspec $modspec $vrlist\
-         $rawarg $xtlist
+         $rawarg $xtlist $getavails
       # rework args to have 1 string element for whole module spec
       # append to unload list if ml spec and - prefix used
       if {$mlunload || $nextmlunload} {
@@ -1502,7 +1505,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec args} {
 }
 
 proc setModuleVersSpec {modarg modname cmpspec versspec rawversspec\
-   variantlist rawarg extralist} {
+   variantlist rawarg extralist getavails} {
    # translate @loaded version into currently loaded mod matching modname
    if {$cmpspec eq {eq} && $versspec eq {loaded}} {
       if {[set lmmod [getLoadedMatchingName $modname]] ne {}} {
@@ -1544,14 +1547,30 @@ proc setModuleVersSpec {modarg modname cmpspec versspec rawversspec\
       set modnvspec $mod
    }
 
+   # record most of the spec now to be able to rely on this record to get
+   # matching available modules
+   set ::g_moduleVersSpec($modarg) [list $mod $modname $cmpspec $versspec\
+      $modnamere $modescglob $modroot $variantlist $modnvspec $rawarg\
+      $extralist]
+
+   # get all available module name and version matching module name and
+   # version spec (inhibit extra match search not to trigger an infinite loop)
+   if {$getavails} {
+      setState inhibit_ems 1
+      set availlist [getAllAvailModule $modarg]
+      setState inhibit_ems 0
+   } else {
+      set availlist {}
+   }
+   # finalize module version spec record
+   lappend ::g_moduleVersSpec($modarg) $availlist
+
    reportDebug "Set module '$mod' (escglob '$modescglob'),  module name\
       '$modname' (re '$modnamere'), module root '$modroot', version cmp\
       '$cmpspec', version(s) '$versspec', variant(s) '$variantlist' and\
       module name version spec '$modnvspec' for argument '$modarg' (raw\
-      '$rawarg') and extra specifier(s) '$extralist'"
-   set ::g_moduleVersSpec($modarg) [list $mod $modname $cmpspec $versspec\
-      $modnamere $modescglob $modroot $variantlist $modnvspec $rawarg\
-      $extralist]
+      '$rawarg'), extra specifier(s) '$extralist' and matching available\
+      module(s) '$availlist'"
 }
 
 proc getModuleVersSpec {modarg} {
@@ -1560,7 +1579,7 @@ proc getModuleVersSpec {modarg} {
    } else {
       return [list $modarg [file dirname $modarg] {} {} {} [string map {* \\*\
          ? \\?} $modarg] [lindex [file split $modarg] 0] {} $modarg $modarg\
-         {}]
+         {} {}]
    }
 }
 
@@ -1674,6 +1693,16 @@ proc getExtraListFromVersSpec {modarg} {
       set extralist {}
    }
    return $extralist
+}
+
+# get available modules matching module specification
+proc getAvailListFromVersSpec {modarg} {
+   if {[info exists ::g_moduleVersSpec($modarg)]} {
+      set availlist [lindex $::g_moduleVersSpec($modarg) 11]
+   } else {
+      set availlist {}
+   }
+   return $availlist
 }
 
 # is mod spec containing variant but no module name and version
