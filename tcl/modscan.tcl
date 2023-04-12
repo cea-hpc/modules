@@ -266,9 +266,7 @@ proc getModMatchingExtraSpec {pxtlist} {
             if {[dict exists $::g_scanModuleElt $elt]} {
                foreach modspec [dict get $::g_scanModuleElt $elt] {
                   # modEq proc has been initialized in getModules phase #2
-                  # LIMITATION: bare mod name search does not match fully
-                  # qualified requirement definition
-                  if {[modEq $modspec $name eqstart]} {
+                  if {[modEq $modspec $name eqstart 1 5 1]} {
                      # possible duplicate module entry in result list
                      lappend one_crit_res {*}[dict get $::g_scanModuleElt\
                         $elt $modspec]

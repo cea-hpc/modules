@@ -440,25 +440,30 @@ proc modVersCmpProcIcaseExtdfl {cmpspec versspec modvers test {psuf {}}} {
    return $ret
 }
 
-proc modVariantCmp {pvrlist modvrlist {missmeandfl 0}} {
+proc modVariantCmp {pvrlist modvrlist {missmean 0}} {
    set ret 1
-   if {$missmeandfl} {
+   # missing variant in mod spec means default value
+   if {$missmean == 1} {
       foreach {modvrname modvrval modvrisdfl} $modvrlist {
          set modvrarr($modvrname) $modvrval
          set modvrisdflarr($modvrname) $modvrisdfl
       }
    } else {
       array set modvrarr $modvrlist
+      # if missmean == 2 pattern is mod, thus missing variant on mod is ok
+      # it is used for extra specifier where pattern is definition inside
+      # modulefile and mod is extra specifier defined on command line
    }
    foreach pvr $pvrlist {
       set pvrarr([lindex $pvr 0]) [lindex $pvr 1]
    }
 
-   # no match if a specified variant is not found among module variants or if
-   # the value differs
+   # no match if a specified variant is not found among module variants (and
+   # if miss is not ok) or if the value differs
    foreach vrname [array names pvrarr] {
-      if {![info exists modvrarr($vrname)] || $pvrarr($vrname) ne\
-         $modvrarr($vrname)} {
+      if {(![info exists modvrarr($vrname)] && $missmean != 2) || ([info\
+         exists modvrarr($vrname)] && $pvrarr($vrname) ne\
+         $modvrarr($vrname))} {
          set ret 0
          break
       }
@@ -467,7 +472,7 @@ proc modVariantCmp {pvrlist modvrlist {missmeandfl 0}} {
    # if an unset variant on pattern means variant default value pattern and
    # mod are not equal if variant unset on pattern and non-default value is
    # set for variant on mod
-   if {$missmeandfl} {
+   if {$missmean == 1} {
       foreach vrname [array names modvrisdflarr] {
          if {!$modvrisdflarr($vrname) && ![info exists pvrarr($vrname)]} {
             set ret 0
@@ -631,13 +636,14 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp 0}\
    }
    # get alternative names if mod is loading(1) or loaded(2)
    set altlist [switch -- $ismodlo {
+      5 {getAvailListFromVersSpec $mod}
       4 {getAllModuleResolvedName $mod 0 {} 1}
       3 {getLoadedAltAndSimplifiedName $mod}
       2 {getLoadedAltname $mod}
       1 {getAllModuleResolvedName $mod}
       0 {list}}]
    # fetch variant definition from spec if not loaded/loading
-   if {$vrcmp && $ismodlo == 0} {
+   if {$vrcmp && $ismodlo in {0 5}} {
       set modvrlist [getVariantList $mod 0 0 1]
       set mod [getModuleNameAndVersFromVersSpec $mod]
    }
@@ -727,14 +733,17 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp 0}\
       }
    }
    # check if variant specified matches those of selected loaded/ing module
-   if {$ret && $vrcmp && $ismodlo != 3 && [llength $pvrlist] > 0} {
+   if {$ret && $vrcmp && $ismodlo ni {3 5} && [llength $pvrlist] > 0} {
       if {$modvrlist eq {0}} {
          set modvrlist [getVariantList $mod]
       }
       set ret [modVariantCmp $pvrlist $modvrlist]
-   # when comparing collection content, variant mis means variant default val
+   # variant miss means variant default val when comparing collection content
    } elseif {$ret && $vrcmp && $ismodlo == 3} {
       set ret [modVariantCmp $pvrlist [getVariantList $mod 3] 1]
+   # variant miss is ok when comparing an extra specifier passed as mod
+   } elseif {$ret && $vrcmp && $ismodlo == 5} {
+      set ret [modVariantCmp $pvrlist $modvrlist 2]
    }
    return $ret
 }
@@ -753,12 +762,13 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
       set endwslash 0
    }
    set altlist [switch -- $ismodlo {
+      5 {getAvailListFromVersSpec $mod}
       4 {getAllModuleResolvedName $mod 0 {} 1}
       3 {getLoadedAltAndSimplifiedName $mod}
       2 {getLoadedAltname $mod}
       1 {getAllModuleResolvedName $mod}
       0 {list}}]
-   if {$vrcmp && $ismodlo == 0} {
+   if {$vrcmp && $ismodlo in {0 5}} {
       set modvrlist [getVariantList $mod 0 0 1]
       set mod [getModuleNameAndVersFromVersSpec $mod]
    }
@@ -844,13 +854,15 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
          }
       }
    }
-   if {$ret && $vrcmp && $ismodlo != 3 && [llength $pvrlist] > 0} {
+   if {$ret && $vrcmp && $ismodlo ni {3 5} && [llength $pvrlist] > 0} {
       if {$modvrlist eq {0}} {
          set modvrlist [getVariantList $mod]
       }
       set ret [modVariantCmp $pvrlist $modvrlist]
    } elseif {$ret && $vrcmp && $ismodlo == 3} {
       set ret [modVariantCmp $pvrlist [getVariantList $mod 3] 1]
+   } elseif {$ret && $vrcmp && $ismodlo == 5} {
+      set ret [modVariantCmp $pvrlist $modvrlist 2]
    }
    return $ret
 }
@@ -869,12 +881,13 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
       set endwslash 0
    }
    set altlist [switch -- $ismodlo {
+      5 {getAvailListFromVersSpec $mod}
       4 {getAllModuleResolvedName $mod 0 {} 1}
       3 {getLoadedAltAndSimplifiedName $mod}
       2 {getLoadedAltname $mod}
       1 {getAllModuleResolvedName $mod}
       0 {list}}]
-   if {$vrcmp && $ismodlo == 0} {
+   if {$vrcmp && $ismodlo in {0 5}} {
       set modvrlist [getVariantList $mod 0 0 1]
       set mod [getModuleNameAndVersFromVersSpec $mod]
    }
@@ -976,13 +989,15 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
          }
       }
    }
-   if {$ret && $vrcmp && $ismodlo != 3 && [llength $pvrlist] > 0} {
+   if {$ret && $vrcmp && $ismodlo ni {3 5} && [llength $pvrlist] > 0} {
       if {$modvrlist eq {0}} {
          set modvrlist [getVariantList $mod]
       }
       set ret [modVariantCmp $pvrlist $modvrlist]
    } elseif {$ret && $vrcmp && $ismodlo == 3} {
       set ret [modVariantCmp $pvrlist [getVariantList $mod 3] 1]
+   } elseif {$ret && $vrcmp && $ismodlo == 5} {
+      set ret [modVariantCmp $pvrlist $modvrlist 2]
    }
    return $ret
 }
@@ -1001,12 +1016,13 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
       set endwslash 0
    }
    set altlist [switch -- $ismodlo {
+      5 {getAvailListFromVersSpec $mod}
       4 {getAllModuleResolvedName $mod 0 {} 1}
       3 {getLoadedAltAndSimplifiedName $mod}
       2 {getLoadedAltname $mod}
       1 {getAllModuleResolvedName $mod}
       0 {list}}]
-   if {$vrcmp && $ismodlo == 0} {
+   if {$vrcmp && $ismodlo in {0 5}} {
       set modvrlist [getVariantList $mod 0 0 1]
       set mod [getModuleNameAndVersFromVersSpec $mod]
    }
@@ -1109,13 +1125,15 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
          }
       }
    }
-   if {$ret && $vrcmp && $ismodlo != 3 && [llength $pvrlist] > 0} {
+   if {$ret && $vrcmp && $ismodlo ni {3 5} && [llength $pvrlist] > 0} {
       if {$modvrlist eq {0}} {
          set modvrlist [getVariantList $mod]
       }
       set ret [modVariantCmp $pvrlist $modvrlist]
    } elseif {$ret && $vrcmp && $ismodlo == 3} {
       set ret [modVariantCmp $pvrlist [getVariantList $mod 3] 1]
+   } elseif {$ret && $vrcmp && $ismodlo == 5} {
+      set ret [modVariantCmp $pvrlist $modvrlist 2]
    }
    return $ret
 }
@@ -1278,6 +1296,9 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec\
       prereq-all prereq-any pushenv remove-path require set-alias\
       set-function setenv switch switch-on switch-off try-load uncomplete\
       unload unset-alias unset-function unsetenv variant]
+   set xtelt_modspec_list [list always-load conflict depends-on incompat load\
+      load-any prereq prereq-all prereq-any require switch switch-on\
+      switch-off try-load unload]
 
    set mlunload 0
    set nextmlunload 0
@@ -1388,6 +1409,10 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec\
                if {$xtelt ni $xtelt_valid_list} {
                   knerror "Invalid extra specifier '$xtelt'\nValid extra\
                      specifiers are: $xtelt_valid_list"
+               }
+               # parse and resolve module spec set as extra specifier value
+               if {$xtelt in $xtelt_modspec_list} {
+                  lassign [parseModuleSpecification 0 0 0 1 {*}$xtname] xtname
                }
                # save extra specifier element and name value, same element can
                # appear multiple time (means AND operator)
