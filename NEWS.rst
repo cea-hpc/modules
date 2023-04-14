@@ -55,6 +55,7 @@ Modules 5.3.0 (not yet released)
   :command:`gitlog2changelog.py`. (fix issue #487)
 * Init: fix bash shell completion script to be able to complete full name of
   available modules. (fix issue #490)
+* Install: move licence name to SPDX format in RPM spec file.
 
 
 .. _5.2 release notes:
