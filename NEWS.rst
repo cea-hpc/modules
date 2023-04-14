@@ -53,6 +53,8 @@ Modules 5.3.0 (not yet released)
   issue #486)
 * Install: ensure git log format is not influenced by user's configuration in
   :command:`gitlog2changelog.py`. (fix issue #487)
+* Init: fix bash shell completion script to be able to complete full name of
+  available modules. (fix issue #490)
 
 
 .. _5.2 release notes:
