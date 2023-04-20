@@ -254,6 +254,11 @@ produces internal representation ``{setenv FOO} {variant bar} {setenv BAR}``.
 When *OR* operation will be supported, search query ``mod/1.0 setenv:FOO,BAR``
 will produce internal representation ``{setenv FOO BAR}``.
 
+Value specified may contain a space character if it is escaped on command line
+either by quotes (``"prereq:mod@1.0 foo=bar"``) or backslash
+(``prereq:mod@1.0\ foo=bar``). This is especially useful for complex module
+specification.
+
 Filtering extra specifier results
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -283,6 +288,46 @@ listed as value in every matched nested keys.
 When there are several extra specifiers in search query, result are the
 modules present in the value list of every matched keys (intersection of value
 list obtained for every extra specifier criterion).
+
+Specific filtering work is achieved for extra specifiers accepting a module
+specification. See next section.
+
+Filtering module specification
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Some extra specifiers accept a module specification as value. It corresponds
+to all extra specifiers relative to requirements and incompatibilities
+expressed by modulefiles (*prereq*, *conflict*, etc).
+
+Module specification passed as extra specifier value has to be compared to the
+module specification set in the modulefile definition for corresponding
+command.
+
+When parsing such extra specifier value, when evaluating command line
+arguments, module specification is parsed with a specific available module
+resolution: all matching available modules are recorded into module
+specification (``g_moduleVersSpec``). It enables to fetch:
+
+* every module name and version matching a version list or range specification
+* every generic or fully qualified names
+
+Match against modulefile definitions of such extra specifiers is performed in
+the same location than for other extra specifiers. It relies on a ``modEq``
+comparison that has been adapted to also compare alternative names fetched and
+stored into module specification structure. Relying on ``modEq`` procedure,
+comparison leverages *icase* and *extended_default* features.
+
+**LIMITATIONS**: Current module specification match does not support:
+
+* Comparison of module alias or symbolic names when used in either extra
+  specifier value or in modulefile definition
+* Version range or list specified in extra specifier value is converted into
+  a list of existing modulefiles, thus a version in such specification that
+  does not correspond to an existing module will not be matched
+
+Variant value comparison is enabled on ``modEq`` test. ``modVariantCmp``
+internal test has been adapted to let a missing variant definition be
+considered as a match.
 
 Query grammar
 -------------
