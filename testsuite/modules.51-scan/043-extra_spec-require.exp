@@ -300,6 +300,43 @@ testouterr_cmd sh {avail -t extra require:xtfoo@1.0:1.1} OK $tserr
 
 
 #
+# module load
+#
+
+setenv_var TESTSUITE_EXTRA load1
+
+testouterr_cmd sh {avail -t extra load:xtbar} OK $tserr
+testouterr_cmd sh {avail -t extra load:xtfoo/1.0\ foo=val2} OK $tserr
+testouterr_cmd sh {avail -t extra require:xtfoo@1.0:1.1} OK $tserr
+
+# load command abbreviated
+setenv_var TESTSUITE_EXTRA load2
+
+testouterr_cmd sh {avail -t extra load:xtfoo/1.0} OK $tserr
+
+# load command alias
+setenv_var TESTSUITE_EXTRA load3
+
+testouterr_cmd sh {avail -t extra load:xtbar/1.0\ bar=val1} OK $tserr
+
+# unknown option on load command
+setenv_var TESTSUITE_EXTRA load4
+
+testouterr_cmd sh {avail -t extra load:xtfoo/1.0} OK {}
+
+# known option on load command
+setenv_var TESTSUITE_EXTRA load5
+
+testouterr_cmd sh {avail -t extra load:xtfoo@1.0} OK $tserr
+
+# empty load command
+setenv_var TESTSUITE_EXTRA load6
+
+testouterr_cmd sh {avail -t extra load:xtfoo} OK {}
+testouterr_cmd sh {avail -t extra load:} ERR [err_extraspec load:]
+
+
+#
 #  Cleanup
 #
 
