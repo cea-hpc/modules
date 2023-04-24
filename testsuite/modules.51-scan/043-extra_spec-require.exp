@@ -389,6 +389,60 @@ testouterr_cmd sh {avail -t extra require:xtfoo@1.0:1.1} OK $tserr
 
 
 #
+# module switch
+#
+
+# empty switch command
+setenv_var TESTSUITE_EXTRA switch1
+
+testouterr_cmd sh {avail -t extra switch:xtfoo} OK {}
+
+# too much argument
+setenv_var TESTSUITE_EXTRA switch2
+
+testouterr_cmd sh {avail -t extra switch:xtfoo} OK {}
+
+# 2-argument form
+setenv_var TESTSUITE_EXTRA switch3
+
+testouterr_cmd sh {avail -t extra switch:xtfoo} OK $tserr
+testouterr_cmd sh {avail -t extra switch:xtbar} OK $tserr
+testouterr_cmd sh {avail -t extra switch:xtfoo@0.9: switch:xtbar\ bar=val1} OK $tserr
+testouterr_cmd sh {avail -t extra switch-off:xtfoo@0.9: switch-on:xtbar\ bar=val1} OK $tserr
+testouterr_cmd sh {avail -t extra switch-on:xtfoo@0.9:} OK {}
+testouterr_cmd sh {avail -t extra switch-off:xtbar} OK {}
+testouterr_cmd sh {avail -t extra require:xtbar} OK $tserr
+
+# command alias
+setenv_var TESTSUITE_EXTRA switch4
+
+testouterr_cmd sh {avail -t extra switch:xtfoo@0.9: switch:xtbar\ bar=val1} OK $tserr
+testouterr_cmd sh {avail -t extra switch-on:xtfoo@0.9:} OK {}
+testouterr_cmd sh {avail -t extra switch-off:xtbar} OK {}
+
+# 1-argument form
+setenv_var TESTSUITE_EXTRA switch5
+
+testouterr_cmd sh {avail -t extra switch:xtfoo/1.0} OK {}
+testouterr_cmd sh {avail -t extra switch-on:xtfoo@0.9:} OK {}
+testouterr_cmd sh {avail -t extra require:xtfoo/1.0} OK {}
+
+# known option on 1-argument form switch command
+setenv_var TESTSUITE_EXTRA switch6
+
+testouterr_cmd sh {avail -t extra switch:xtbar/1.0} OK $tserr
+testouterr_cmd sh {avail -t extra switch-on:xtbar@0.9:} OK $tserr
+
+# known option on 2-argument form switch command
+setenv_var TESTSUITE_EXTRA switch7
+
+testouterr_cmd sh {avail -t extra switch:xtfoo@0.9: switch:xtbar\ bar=val1} OK $tserr
+testouterr_cmd sh {avail -t extra switch-off:xtfoo@0.9: switch-on:xtbar\ bar=val1} OK $tserr
+testouterr_cmd sh {avail -t extra switch-on:xtfoo@0.9:} OK {}
+testouterr_cmd sh {avail -t extra switch-off:xtbar} OK {}
+
+
+#
 #  Cleanup
 #
 
