@@ -89,6 +89,51 @@ is considered valid after being generated. Expired cache file is ignored.
 Cache file of enabled modulepaths can be deleted all at once with
 :subcmd:`cacheclear` sub-command.
 
+Querying available module variants
+----------------------------------
+
+A new mechanism named :ref:`Extra match search` is introduced to evaluate
+modulefiles during a module search to find those matching an extra query on a
+variant value, a dependency or an environment variable definition.
+
+During this specific evaluation, modulefiles are interpreted in *scan* mode to
+collect the different Tcl modulefile commands they use. Special care should be
+given when writing modulefiles to ensure they cope with such evaluation mode.
+
+:ref:`Extra match search` mechanism is available on :subcmd:`avail`,
+:subcmd:`whatis` and :subcmd:`paths` sub-commands.
+
+With this new mechanism, it is possible to list all available variant defined
+in modulefiles with their associated values:
+
+.. parsed-literal::
+
+    :ps:`$` module config avail_output modulepath:alias:dirwsym:sym:tag:key:variant
+    :ps:`$` module config variant_shortcut toolchain=%
+    :ps:`$` module avail
+    --------------------- :sgrdi:`/path/to/modulefiles` ---------------------
+    bar/1.0{:sgrva:`%a`,\ :sgrva:`b`}  foo/1.0{:sgrvade:`%a`}      qux/1.0{:sgrva:`%a`,\ :sgrva:`b`}  
+    bar/2.0{:sgrvade:`%b`}    foo/2.0{:sgrva:`%a`,\ :sgrva:`b`,\ :sgrva:`c`}  qux/2.0{:sgrva:`%b`,\ :sgrva:`c`}  
+
+    Key:
+    :sgrdi:`modulepath`       {:sgrva:`%value`}={:sgrva:`toolchain=value`}  
+    :sgrde:`default-version`  {:sgrva:`variant=value`} 
+
+You can also search for modules defining a specific variant value:
+
+.. parsed-literal::
+
+    :ps:`$` module avail %a
+    --------------------- :sgrdi:`/path/to/modulefiles` ---------------------
+    bar/1.0{:sgrvahi:`%a`,\ :sgrva:`b`}  foo/1.0{:sgrvadehi:`%a`}  foo/2.0{:sgrvahi:`%a`,\ :sgrva:`b`,\ :sgrva:`c`}  qux/1.0{:sgrvahi:`%a`,\ :sgrva:`b`}  
+
+    Key:
+    :sgrdi:`modulepath`       {:sgrva:`%value`}={:sgrva:`toolchain=value`}  
+    :sgrde:`default-version`  {:sgrva:`variant=value`} 
+
+.. note:: As extra match search implies additional modulefile evaluations, it
+   is advised to build and use `Module cache`_ to improve search speed.
+
 
 v5.2
 ====

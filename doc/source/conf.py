@@ -283,7 +283,10 @@ rst_epilog += """.. role:: noparse
 .. role:: sgrs
 .. role:: sgrshi
 .. role:: sgrss
-.. role:: sgrkl"""
+.. role:: sgrkl
+.. role:: sgrvade
+.. role:: sgrvahi
+.. role:: sgrvadehi"""
 
 
 # -- Options for manual page output ---------------------------------------
