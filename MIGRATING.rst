@@ -134,6 +134,62 @@ You can also search for modules defining a specific variant value:
 .. note:: As extra match search implies additional modulefile evaluations, it
    is advised to build and use `Module cache`_ to improve search speed.
 
+Extra specifiers
+----------------
+
+Extra specifiers are introduced to query content of modulefiles. They can be
+specified with *element:name* syntax as part of module specification on module
+search commands (:subcmd:`avail`, :subcmd:`paths` and and :subcmd:`whatis`).
+
+Extra specifiers trigger :ref:`Extra match search` mechanism when found in
+module specification. Available modulefiles are evaluated in *scan* mode to
+collect the different Tcl modulefile commands they use.
+
+.. parsed-literal::
+
+    :ps:`$` module avail variant:toolchain
+    --------------------- :sgrdi:`/path/to/modulefiles` ---------------------
+    bar/1.0  bar/2.0  foo/1.0  foo/2.0  qux/1.0  qux/2.0  
+
+In the above example, all modulefiles defining a ``toolchain`` variant are
+returned.
+
+Most Tcl modulefile commands can be queried with extra specifiers:
+``variant``, ``setenv``, ``unsetenv``, ``append-path``, ``prepend-path``,
+``remove-path``, ``pushenv``, ``complete``, ``uncomplete``, ``set-alias``,
+``unset-alias``, ``set-function``, ``unset-function``, ``chdir``, ``family``,
+``prereq``, ``prereq-any``, ``prereq-all``, ``depends-on``, ``always-load``,
+``load``, ``load-any``, ``try-load``, ``switch``, ``switch-on``,
+``switch-off``, ``conflict`` and ``unload``. Commands that handle environment
+variables may be aliased ``envvar``. Commands that define a module requirement
+may be aliased ``require`` and those that define a module incompatibility may
+be aliased ``incompat``.
+
+When several extra specifiers are set in query, modules returned are those
+matching both conditions. In the following example, all modulefiles
+interacting with :envvar:`PATH` environment variable and requiring ``foo``
+module are returned.
+
+.. parsed-literal::
+
+    :ps:`$` module avail envvar:PATH require:foo
+    --------------------- :sgrdi:`/path/to/modulefiles` ---------------------
+    bar/1.0  bar/2.0  
+
+Extra specifiers related to module requirement or incompatibility may leverage
+the :ref:`Advanced module version specifiers` syntax. On following example,
+modulefiles returned are those defining a requirement on ``foo`` module with
+version higher or equal to ``1.2`` and variant ``toolchain=a`` selected.
+
+.. parsed-literal::
+
+    :ps:`$` module avail "require:foo@1.2: toolchain=a"
+    --------------------- :sgrdi:`/path/to/modulefiles` ---------------------
+    bar/1.0  
+
+.. note:: Module aliases or symbolic versions used either in modulefile
+   definitions or as extra specifier values are not resolved.
+
 
 v5.2
 ====
