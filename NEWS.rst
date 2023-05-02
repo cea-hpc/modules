@@ -89,6 +89,37 @@ Modules 5.3.0 (not yet released)
 * Highlight searched variant name and value (``hi`` SGR key) on either
   :subcmd:`list` and :subcmd:`avail` command output.
 * Doc: add :ref:`Extra match search` description in :ref:`module(1)` man page.
+* Introduce *extra specifiers* to query content of modulefiles. *Extra
+  specifiers* can be specified with *element:name* syntax as part of module
+  specification on module search commands (:subcmd:`avail`, :subcmd:`paths`
+  and :subcmd:`whatis`). For instance with the ``module avail
+  append-path:PATH`` command, all modulefiles defining the ``append-path``
+  command on ``PATH`` environment variable are returned.
+* Add ``variant`` extra specifier to query modulefile variant definitions.
+  (fix issue #408)
+* Add ``setenv``, ``unsetenv``, ``append-path``, ``prepend-path``,
+  ``remove-path`` and ``pushenv`` extra specifiers to query modulefile
+  environment variable definitions. The extra specifier alias ``envvar`` may
+  also be used to query any of these modulefile commands.
+* Add ``complete`` and ``uncomplete`` extra specifiers to query modulefile
+  shell completion definitions.
+* Add ``set-alias`` and ``unset-alias`` extra specifiers to query modulefile
+  shell alias definitions.
+* Add ``set-function`` and ``unset-function`` extra specifiers to query
+  modulefile shell function definitions.
+* Add ``chdir`` extra specifier to query modulefile current working directory
+  change definitions.
+* Add ``family`` extra specifier to query modulefile family definitions.
+* Add ``prereq``, ``prereq-any``, ``prereq-all``, ``depends-on``,
+  ``always-load``, ``load``, ``load-any``, ``try-load``, ``switch`` and
+  ``switch-on`` extra specifiers to query modulefile requirement definitions.
+  The extra specifier alias ``require`` may also be used to query any of these
+  modulefile commands.
+* Add ``conflict``, ``unload``, ``switch`` and ``switch-off`` extra specifiers
+  to query modulefile incompatibility definitions. The extra specifier alias
+  ``incompat`` may also be used to query any of these modulefile commands.
+* Requirement and incompatibility extra specifiers accept module specification
+  as value.
 
 
 .. _5.2 release notes:
