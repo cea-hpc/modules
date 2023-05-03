@@ -628,10 +628,11 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
- If *pattern* contains variant specification, the :ref:`extra match search`
- process is triggered to collect variant information. Modules are included in
- results only if they match *pattern* variant specification. *pattern* may be
- a bare variant specification without mention of a module name.
+ If *pattern* contains variant specification or :ref:`extra specifier`, the
+ :ref:`extra match search` process is triggered to collect command information
+ used in modulefiles. Modules are included in results only if they match
+ *pattern* variant specification and extra specifier. *pattern* may be a bare
+ variant specification or extra specifier without mention of a module name.
 
  .. only:: html
 
@@ -662,7 +663,8 @@ Module Sub-Commands
        configuration
 
     .. versionchanged:: 5.3
-       *pattern* may include variant specification to filter results
+       *pattern* may include variant specification or extra specifier to
+       filter results
 
 .. subcmd:: cachebuild [modulepath...]
 
@@ -1753,17 +1755,19 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
- If *pattern* contains variant specification, the :ref:`extra match search`
- process is triggered to collect variant information. Modules are included in
- results only if they match *pattern* variant specification. *pattern* may be
- a bare variant specification without mention of a module name.
+ If *pattern* contains variant specification or :ref:`extra specifier`, the
+ :ref:`extra match search` process is triggered to collect command information
+ used in modulefiles. Modules are included in results only if they match
+ *pattern* variant specification and extra specifier. *pattern* may be a bare
+ variant specification or extra specifier without mention of a module name.
 
  .. only:: html
 
     .. versionadded:: 4.0
 
     .. versionchanged:: 5.3
-       *pattern* may include variant specification to filter results
+       *pattern* may include variant specification or extra specifier to
+       filter results
 
 .. subcmd:: prepend-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
@@ -2355,10 +2359,11 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
- If *pattern* contains variant specification, the :ref:`extra match search`
- process is triggered to collect variant information. Modules are included in
- results only if they match *pattern* variant specification. *pattern* may be
- a bare variant specification without mention of a module name.
+ If *pattern* contains variant specification or :ref:`extra specifier`, the
+ :ref:`extra match search` process is triggered to collect command information
+ used in modulefiles. Modules are included in results only if they match
+ *pattern* variant specification and extra specifier. *pattern* may be a bare
+ variant specification or extra specifier without mention of a module name.
 
  .. only:: html
 
@@ -2369,7 +2374,8 @@ Module Sub-Commands
        Option :option:`--all`/:option:`-a` added
 
     .. versionchanged:: 5.3
-       *pattern* may include variant specification to filter results
+       *pattern* may include variant specification or extra specifier to
+       filter results
 
 
 Modulefiles
@@ -2495,6 +2501,67 @@ module name (e.g., *name+* or *name++*).
 
    .. versionchanged:: 4.8
       Support for module variant added
+
+.. _Extra specifier:
+
+Extra specifier
+"""""""""""""""
+
+After the module name, extra specifiers can be defined in module search
+context. Extra specifiers are an extra query to list available modulefiles
+based on their content definition. They rely on the :ref:`Extra match search`
+mechanism that collects content of available modulefiles.
+
+Extra specifier can be set with the ``element:name`` syntax where *element* is
+a Tcl modulefile command and *name* an item defined by this command.
+Depending on the kind of Tcl modulefile command, *name* can refer to an
+environment variable, a shell alias, a module specification, etc.
+
+Supported extra specifier *elements* are:
+
+* ``variant``, ``complete``, ``uncomplete``, ``set-alias``, ``unset-alias``,
+  ``set-function``, ``unset-function``, ``chdir``, ``family``
+* ``setenv``, ``unsetenv``, ``append-path``, ``prepend-path``, ``remove-path``
+  and ``pushenv``: these elements related to environment variable handling may
+  also be aliased ``envvar``
+* ``prereq``, ``prereq-any``, ``prereq-all``, ``depends-on``, ``always-load``,
+  ``load``, ``load-any``, ``try-load``, ``switch`` and ``switch-on``: these
+  elements related to module requirement definition accept a module
+  specification as value *name* and may be aliased ``require``
+* ``conflict``, ``unload``, ``switch`` and ``switch-off``: these elements
+  related to module incompatibility definition accept a module specification
+  as value *name* and may be aliased ``incompat``
+
+Each of the above supported *elements* corresponds to a Tcl modulefile
+command. ``load``, ``load-any``, ``try-load``, ``switch`` and ``unload`` match
+corresponding module sub-commands. ``prereq-any`` is an alias on ``prereq``
+and vice versa as both Tcl modulefile commands are the same. Following the
+same trend ``prereq-all`` is an alias on ``depends-on`` and vice versa.
+Regarding ``switch-off`` and ``switch-on`` elements they correspond
+respectively to the module to unload (if specified) and the module to load on
+a ``module switch`` command. ``switch`` is an alias that matches both
+``switch-off`` and ``switch-on`` elements.
+
+When several extra specifiers are set on a module search query, they act as an
+*AND* operation. Which means modules listed in result are those matching all
+extra specifiers defined.
+
+Module specification used as *name* value for some extra specifier *elements*
+may leverage :ref:`Advanced module version specifiers` syntax. However if a
+module version range or list is implied, it is currently resolved to existing
+modules. Thus it may not match modulefile definitions targeting modules that
+do not exist. In addition, module aliases and symbolic versions are not
+resolved to their target either if set in extra specifier query or in
+modulefile definition.
+
+Extra specifier can only be set in a module search context (:subcmd:`avail`,
+:subcmd:`whatis` and :subcmd:`paths` sub-commands). An error is raised if used
+on a module specification query in another context. An error is also raised
+if an unknown extra specifier *element* is defined in search query.
+
+.. only:: html
+
+   .. versionadded:: 5.3
 
 
 .. _Module tags:
@@ -2722,6 +2789,9 @@ Extra match search is triggered when:
 * Module variant is specified in search query: extra match search is triggered
   to collect variant information then match them against variant specified in
   query
+* :ref:`Extra specifier` is specified in search query: extra match search is
+  triggered to collect commands used in modulefiles then match them against
+  extra specifier query
 
 If search query does not contain an extra query and if variant information
 should not be reported, no extra match search is performed. If search query
