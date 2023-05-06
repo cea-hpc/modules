@@ -124,6 +124,12 @@ Modules 5.3.0 (not yet released)
 * Mark loaded modules as qualified for refresh evaluation when they send
   content to ``stdout`` or ``prestdout`` channels with :mfcmd:`puts`
   modulefile command. (fix issue #488)
+* Add the :mconfig:`ignore_user_rc` configuration option to skip evaluation of
+  user-specific module rc file. Option is disabled by default and when set, it
+  defines :envvar:`MODULES_IGNORE_USER_RC` environment variable.
+* Add :option:`--ignore-user-rc` command-line switch to enable
+  :mconfig:`ignore_user_rc` configuration option and ignore user-specific
+  module rc file for current execution.
 
 
 .. _5.2 release notes:
