@@ -313,6 +313,14 @@ switches are accepted:
 
     .. versionadded:: 5.3
 
+.. option:: --ignore-user-rc
+
+ Skip evaluation of user-specific module rc file (:file:`$HOME/.modulerc`).
+
+ .. only:: html
+
+    .. versionadded:: 5.3
+
 .. option:: --indepth
 
  On :subcmd:`avail` sub-command, include in search results the matching
@@ -973,6 +981,19 @@ Module Sub-Commands
   Default is ``0``. The :envvar:`MODULES_IGNORE_CACHE` environment variable
   is defined by :subcmd:`config` sub-command when changing this configuration
   option from its default value. The :option:`--ignore-cache` command line
+  switch changes the value of this configuration option.
+
+  .. only:: html
+
+     .. versionadded:: 5.3
+
+ .. mconfig:: ignore_user_rc
+
+  Skip evaluation of user-specific module rc file (:file:`$HOME/.modulerc`).
+
+  Default is ``0``. The :envvar:`MODULES_IGNORE_USER_RC` environment variable
+  is defined by :subcmd:`config` sub-command when changing this configuration
+  option from its default value. The :option:`--ignore-user-rc` command line
   switch changes the value of this configuration option.
 
   .. only:: html
@@ -4047,6 +4068,20 @@ ENVIRONMENT
  This environment variable value supersedes the default value set in the
  :mconfig:`ignore_cache` configuration option. It can be defined with the
  :subcmd:`config` sub-command. The :option:`--ignore-cache` command line
+ switch overrides this environment variable.
+
+ .. only:: html
+
+    .. versionadded:: 5.3
+
+.. envvar:: MODULES_IGNORE_USER_RC
+
+ Skip evaluation (if set to ``1``) or not (if set to ``0``) of user-specific
+ module rc file (:file:`$HOME/.modulerc`).
+
+ This environment variable value supersedes the default value set in the
+ :mconfig:`ignore_user_rc` configuration option. It can be defined with the
+ :subcmd:`config` sub-command. The :option:`--ignore-user-rc` command line
  switch overrides this environment variable.
 
  .. only:: html
