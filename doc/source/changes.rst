@@ -819,7 +819,7 @@ The following command line switches appeared on Modules 5.
 +------------+-----------------------------------------------------------------+
 | 5.2        | :option:`--timer`                                               |
 +------------+-----------------------------------------------------------------+
-| 5.3        | :option:`--ignore-cache`                                        |
+| 5.3        | :option:`--ignore-cache`, :option:`--ignore-user-rc`            |
 +------------+-----------------------------------------------------------------+
 
 Module Sub-Commands
@@ -912,6 +912,7 @@ The following environment variables appeared on Modules 5.
 | 5.3        | :envvar:`MODULES_IGNORE_CACHE`,                                 |
 |            | :envvar:`MODULES_CACHE_BUFFER_BYTES`,                           |
 |            | :envvar:`MODULES_CACHE_EXPIRY_SECS`                             |
+|            | :envvar:`MODULES_IGNORE_USER_RC`                                |
 +------------+-----------------------------------------------------------------+
 
 Modules Specific Tcl Commands
@@ -1035,7 +1036,7 @@ The following Modules configuration option has been introduced on Modules 5.
 |            | :mconfig:`reset_target_state`                                   |
 +------------+-----------------------------------------------------------------+
 | 5.3        | :mconfig:`ignore_cache`, :mconfig:`cache_buffer_bytes`,         |
-|            | :mconfig:`cache_expiry_secs`                                    |
+|            | :mconfig:`cache_expiry_secs`, :mconfig:`ignore_user_rc`         |
 +------------+-----------------------------------------------------------------+
 
 :mconfig:`avail_output`, :mconfig:`avail_terse_output`
