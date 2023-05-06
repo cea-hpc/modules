@@ -1596,8 +1596,11 @@ proc putsModfileCmd {itrp args} {
       knerror {wrong # args: should be "puts ?-nonewline? ?channelId? string"}
    # defer puts if it targets stdout (see renderSettings)
    } elseif {[info exists deferPuts]} {
+      # current module is qualified for refresh evaluation
+      lappendState -nodup refresh_qualified [currentState modulename]
       lappend ::g_stdoutPuts {*}$deferPuts
    } elseif {[info exists deferPrePuts]} {
+      lappendState -nodup refresh_qualified [currentState modulename]
       lappend ::g_prestdoutPuts {*}$deferPrePuts
    # if it targets stderr call report, which knows what channel to use
    } elseif {[info exists reportArgs]} {

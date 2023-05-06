@@ -639,9 +639,9 @@ Module Sub-Commands
 :subcmd:`refresh`
 
  Sub-command evaluates all loaded modulefiles and re-apply the non-persistent
- environment changes they define (i.e., shell aliases and functions). With
- this change the :subcmd:`refresh` sub-command is restored to the behavior it
- had on Modules version 3.2.
+ environment changes they define (i.e., shell aliases, shell functions and
+ command put on stdout channel). With this change the :subcmd:`refresh`
+ sub-command is restored to the behavior it had on Modules version 3.2.
 
 :subcmd:`restore`, :subcmd:`source`
 

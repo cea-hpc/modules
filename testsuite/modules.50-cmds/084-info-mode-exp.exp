@@ -44,17 +44,20 @@ set modulefilere2 "$modpathre/$module2"
 #  The _LMFILES_ and the LOADEDMODULES will be affected
 #
 
+lappend ans [list set __MODULES_LMREFRESH $module]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
 lappend ans [list load]
 
 lappend ansrm [list unset _LMFILES_]
 lappend ansrm [list unset LOADEDMODULES]
+lappend ansrm [list unset __MODULES_LMREFRESH]
 lappend ansrm [list unload]
 lappend ansrm [list remove]
 
 lappend anssw [list set _LMFILES_ $modulefile2]
 lappend anssw [list set LOADEDMODULES $module2]
+lappend anssw [list set __MODULES_LMREFRESH $module2]
 lappend anssw [list unload]
 lappend anssw [list remove]
 lappend anssw [list switch]
@@ -78,6 +81,7 @@ testouterr_cmd_re "sh" "display $module" [join $ansout "\n"] "$modlin\n$modulefi
 
 # Set up the environment for test that require the module to be loaded
 setenv_loaded_module $module $modulefile
+setenv_var __MODULES_LMREFRESH $module
 
 # test unloading
 # different behavior than C-version: on Tcl-version mode is set to 'unload'
@@ -93,13 +97,12 @@ test_cmd "sh" "unload $module" $ansrm
 testouterr_cmd "sh" "switch $module $module2" $anssw ""
 
 # test refresh
-setenv_var __MODULES_LMREFRESH $module
 set ansout [list refresh nonpersist [shell_ok sh 1]]
 testouterr_cmd sh {refresh} [join $ansout \n] {}
-unsetenv_var __MODULES_LMREFRESH
 
 # Clean up the just changed environment
 unsetenv_loaded_module
+unsetenv_var __MODULES_LMREFRESH
 
 # test help
 set ansout [list "help" [shell_ok sh 1]]

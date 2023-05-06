@@ -121,6 +121,9 @@ Modules 5.3.0 (not yet released)
 * Requirement and incompatibility extra specifiers accept module specification
   as value.
 * Doc: add :ref:`Extra specifier` description in :ref:`module(1)` man page.
+* Mark loaded modules as qualified for refresh evaluation when they send
+  content to ``stdout`` or ``prestdout`` channels with :mfcmd:`puts`
+  modulefile command. (fix issue #488)
 
 
 .. _5.2 release notes:

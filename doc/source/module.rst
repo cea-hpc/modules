@@ -1808,11 +1808,11 @@ Module Sub-Commands
  have already been set by the currently loaded modules.
 
  Loaded modules are evaluated in ``refresh`` mode following their load order.
- In this evaluation mode only the :mfcmd:`complete`, :mfcmd:`set-alias` and
- :mfcmd:`set-function` modulefile commands will produce environment changes.
- Other modulefile commands that produce environment changes (like
- :mfcmd:`setenv` or :mfcmd:`append-path`) are ignored during a ``refresh``
- evaluation as their changes should already be applied.
+ In this evaluation mode only the :mfcmd:`complete`, :mfcmd:`set-alias`,
+ :mfcmd:`set-function` and :mfcmd:`puts` modulefile commands will produce
+ environment changes. Other modulefile commands that produce environment
+ changes (like :mfcmd:`setenv` or :mfcmd:`append-path`) are ignored during a
+ ``refresh`` evaluation as their changes should already be applied.
 
  Only the loaded modules defining non-persistent environment changes are
  evaluated in ``refresh`` mode. Such loaded modules are listed in the

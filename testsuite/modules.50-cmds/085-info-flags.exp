@@ -43,16 +43,19 @@ set modulefilere2 "$modpathre/$module2"
 #  The _LMFILES_ and the LOADEDMODULES will be affected
 #
 
+lappend ans [list set __MODULES_LMREFRESH $module]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
 lappend ans [list 0]
 
 lappend ansrm [list unset _LMFILES_]
 lappend ansrm [list unset LOADEDMODULES]
+lappend ansrm [list unset __MODULES_LMREFRESH]
 lappend ansrm [list 0]
 
 lappend anssw [list set _LMFILES_ $modulefile2]
 lappend anssw [list set LOADEDMODULES $module2]
+lappend anssw [list set __MODULES_LMREFRESH $module2]
 lappend anssw [list 0]
 lappend anssw [list 0]
 
@@ -75,6 +78,7 @@ testouterr_cmd_re "sh" "display $module" [join $ansout "\n"] "$modlin\n$modulefi
 
 # Set up the environment for test that require the module to be loaded
 setenv_loaded_module $module $modulefile
+setenv_var __MODULES_LMREFRESH $module
 
 # test unloading
 test_cmd "sh" "unload $module" $ansrm
@@ -84,6 +88,7 @@ test_cmd "sh" "switch $module $module2" $anssw
 
 # Clean up the just changed environment
 unsetenv_loaded_module
+unsetenv_var __MODULES_LMREFRESH
 
 # test help
 testouterr_cmd_re "sh" "help $module" [join $ansout "\n"] "$modlin\n$lin_help\n\n0\n$modlin"
