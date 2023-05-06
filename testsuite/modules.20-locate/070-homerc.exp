@@ -143,6 +143,39 @@ testouterr_cmd_re sh {display bar/1.0} ERR $tserr
 
 
 #
+# Test ignoring user rc
+#
+
+# erroneous user rc file
+set home $env(TESTSUITEDIR)/home.3
+setenv_var HOME $home
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/bar/1.0]
+lappend ans [list set LOADEDMODULES bar/1.0]
+testouterr_cmd sh {load --ignore-user-rc bar/1.0} $ans {}
+testouterr_cmd sh {--ignore-user-rc load bar/1.0} $ans {}
+
+setenv_var MODULES_IGNORE_USER_RC 1
+
+testouterr_cmd sh {load bar/1.0} $ans {}
+testouterr_cmd sh {--ignore-user-rc load bar/1.0} $ans {}
+
+setenv_var MODULES_IGNORE_USER_RC 0
+
+testouterr_cmd sh {--ignore-user-rc load bar/1.0} $ans {}
+
+set tserr $err_magic'$home/.modulerc'\n$err_contact
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/bar/1.0]
+lappend ans [list set LOADEDMODULES bar/1.0]
+lappend ans [list ERR]
+testouterr_cmd sh {load bar/1.0} $ans $tserr
+
+unsetenv_var MODULES_IGNORE_USER_RC
+
+
+#
 #  Cleanup
 #
 
