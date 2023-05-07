@@ -1273,13 +1273,25 @@ proc reportModules {search_queries header hsgrkey hstyle show_mtime show_idx\
    # output is JSON format
    set json [isStateEqual report_format json]
 
+   # is some module variant specified in search query
+   set variant_spec_in_query 0
+   foreach modspec $search_queries {
+      if {[llength [getVariantListFromVersSpec $modspec]] > 0} {
+         set variant_spec_in_query 1
+         break
+      }
+   }
+
    # elements to include in output
    set report_sym [isEltInReport sym]
    set report_tag [isEltInReport tag]
    set report_alias [isEltInReport alias]
-   # enable variant report if configured or on list json output
-   set report_variant [isEltInReport variant [expr {[currentState\
-      commandname] eq {list} && $json}]]
+   # enable variant report if variantifspec configured and some variant is
+   # specified in query or variant configured for report or list sub-command
+   # json output
+   set report_variant [expr {($variant_spec_in_query && [isEltInReport\
+      variantifspec 0]) || [isEltInReport variant [expr {[currentState\
+      commandname] eq {list} && $json}]]}]
    set collect_variant_from [expr {[currentState commandname] eq {avail} ?\
       {2} : {0}}]
 
