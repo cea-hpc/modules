@@ -627,6 +627,8 @@ Reporting
 - Variants defined by modulefiles may be reported on ``avail`` sub-command
 
   - Not by default, if ``variant`` value is added to ``avail_output`` or ``avail_terse_output``
+  - Or if ``variantifspec`` value is added to ``avail_output`` or
+    ``avail_terse_output`` and a variant is specified in search query
   - It requires an :ref:`extra-match-search`
   - Which in turns requires more processing time as modulefiles are evaluated
   - Having cache file available helps to reduce the I/O load caused by such process

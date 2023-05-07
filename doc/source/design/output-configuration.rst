@@ -32,8 +32,8 @@ Specification
 
 - These configurations are set by default with the elements reported by default
 
-  - ``avail_output``: ``modulepath:alias:dirwsym:sym:tag:key``
-  - ``avail_terse_output``: ``modulepath:alias:dirwsym:sym:tag``
+  - ``avail_output``: ``modulepath:alias:dirwsym:sym:tag:variantifspec:key``
+  - ``avail_terse_output``: ``modulepath:alias:dirwsym:sym:tag:variantifspec``
   - ``list_output``: ``header:idx:variant:sym:tag:key``
   - ``list_terse_output``: ``header``
 
@@ -53,7 +53,8 @@ Specification
 
 - Accepted elements in value lists are:
 
-  - For ``avail`` options: modulepath, alias, dirwsym, sym, tag, key, variant
+  - For ``avail`` options: modulepath, alias, dirwsym, sym, tag, key, variant,
+    variantifspec
   - For ``list`` options: header, idx, variant, sym, tag, key
 
 - If the ``-o``/``--output`` options are wrongly specified
