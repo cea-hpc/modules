@@ -377,6 +377,9 @@ unsetenv_var MODULES_ADVANCED_VERSION_SPEC
 # avail
 #
 
+setenv_var MODULES_AVAIL_OUTPUT {modulepath:alias:dirwsym:sym:tag:variantifspec}
+setenv_var MODULES_AVAIL_TERSE_OUTPUT {modulepath:alias:dirwsym:sym:tag:variantifspec}
+
 # variant not reported
 testouterr_cmd_re sh {avail variant/1.0} OK "$modlin $mpre $modlin
 variant/1.0  "
@@ -386,7 +389,7 @@ setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 set tserr "$modlin $mpre $modlin\nvariant/1.0  "
 testouterr_cmd_re sh {avail variant/1.0 foo=val1 baz=2} OK {}
 setenv_var TESTSUITE_VARIANT 1
-set tserr "$modlin $mpre $modlin\nvariant/6.0  "
+set tserr "$modlin $mpre $modlin\nvariant/6.0{bar=1,2,3:foo=val1,val2,val3}  "
 testouterr_cmd_re sh {avail variant@6.0 foo=val1 baz=2} OK {}
 testouterr_cmd_re sh {avail variant@6.0 foo=val4 bar=1} OK {}
 testouterr_cmd_re sh {avail variant@6.0 foo=val4} OK {}
@@ -394,10 +397,15 @@ testouterr_cmd_re sh {avail variant@6.0 baz=3} OK {}
 testouterr_cmd_re sh {avail variant@6.0 foo=val1 bar=2} OK $tserr
 testouterr_cmd_re sh {avail variant@6.0 foo=val1 bar=1} OK $tserr
 testouterr_cmd_re sh {avail variant@6.0 foo=val1} OK $tserr
+setenv_var MODULES_AVAIL_OUTPUT {modulepath:alias:dirwsym:sym:tag}
+set tserr "$modlin $mpre $modlin\nvariant/6.0  "
 testouterr_cmd_re sh {avail variant@6.0 bar=2} OK $tserr
+setenv_var MODULES_AVAIL_OUTPUT {modulepath:alias:dirwsym:sym:tag:variantifspec}
 # no module name/version, but variant specified
 if {$install_availindepth eq {y}} {
-    set tserr "$mp:\nvariant/4.0\nvariant/5.0\nvariant/6.0"
+    set tserr "$mp:\nvariant/4.0{bar=1,2,3:foo=val1,val2,val3}
+variant/5.0{b?r =,v*l1,val2:bar=1,2,3:foo=val1,val2,val3,val 4}
+variant/6.0{bar=1,2,3:foo=val1,val2,val3}"
 } else {
     set tserr "$mp:\nvariant/"
 }
@@ -405,13 +413,18 @@ testouterr_cmd sh {avail -t foo=val3 bar=3} OK $tserr
 
 # shortcut variant specification
 setenv_var MODULES_VARIANT_SHORTCUT foo=%
-set tserr "$modlin $mpre $modlin\nvariant/6.0  "
+set tserr "$modlin $mpre $modlin\nvariant/6.0{bar=1,2,3:%val1,val2,val3}  "
 testouterr_cmd_re sh {avail variant@6.0 %val4} OK {}
 testouterr_cmd_re sh {avail variant@6.0 %val1 bar=2} OK $tserr
+setenv_var MODULES_AVAIL_OUTPUT {modulepath:alias:dirwsym:sym:tag}
+set tserr "$modlin $mpre $modlin\nvariant/6.0  "
 testouterr_cmd_re sh {avail variant@6.0 %val2} OK $tserr
+setenv_var MODULES_AVAIL_OUTPUT {modulepath:alias:dirwsym:sym:tag:variantifspec}
 # no module name/version, but variant specified
 if {$install_availindepth eq {y}} {
-    set tserr "$mp:\nvariant/4.0\nvariant/5.0\nvariant/6.0"
+    set tserr "$mp:\nvariant/4.0{bar=1,2,3:%val1,val2,val3}
+variant/5.0{b?r =,v*l1,val2:bar=1,2,3:%val1,val2,val3,val 4}
+variant/6.0{bar=1,2,3:%val1,val2,val3}"
 } else {
     set tserr "$mp:\nvariant/"
 }
@@ -421,25 +434,33 @@ unsetenv_var MODULES_VARIANT_SHORTCUT
 # boolean variant specification
 testouterr_cmd_re sh {avail variant@6.0 +foo -bar} OK {}
 setenv_var TESTSUITE_VARIANT bool1
-set tserr "$modlin $mpre $modlin\nvariant/6.0  "
+set tserr "$modlin $mpre $modlin\nvariant/6.0{bar=on,off:foo=on,off}  "
 testouterr_cmd_re sh {avail variant@6.0 +foo -bar} OK $tserr
 testouterr_cmd_re sh {avail variant@6.0 +foo} OK $tserr
+setenv_var MODULES_AVAIL_OUTPUT {modulepath:alias:dirwsym:sym:tag}
+set tserr "$modlin $mpre $modlin\nvariant/6.0  "
 testouterr_cmd_re sh {avail variant@6.0 ~bar} OK $tserr
+setenv_var MODULES_AVAIL_OUTPUT {modulepath:alias:dirwsym:sym:tag:variantifspec}
 # no module name/version, but variant specified
 if {$install_availindepth eq {n}} {
     set tserr "$modlin $mpre $modlin\nvariant/  "
+} else {
+    set tserr "$modlin $mpre $modlin\nvariant/6.0{bar=on,off:foo=on,off}  "
 }
 testouterr_cmd_re sh {avail ~bar} OK $tserr
 unsetenv_var TESTSUITE_VARIANT
 
 # free value variant
 setenv_var TESTSUITE_VARIANT free3
-set tserr "$modlin $mpre $modlin\nvariant/6.0  "
+set tserr "$modlin $mpre $modlin\nvariant/6.0{foo=\\*}  "
 testouterr_cmd_re sh {avail variant/6.0 foo=val1} OK $tserr
+setenv_var MODULES_AVAIL_OUTPUT {modulepath:alias:dirwsym:sym:tag}
+set tserr "$modlin $mpre $modlin\nvariant/6.0  "
 testouterr_cmd_re sh {avail variant/6.0 foo=no} OK $tserr
+setenv_var MODULES_AVAIL_OUTPUT {modulepath:alias:dirwsym:sym:tag:variantifspec}
 # no module name/version, but variant specified
 if {$install_availindepth eq {y}} {
-    set tserr "$mp:\nvariant/1.0\nvariant/6.0"
+    set tserr "$mp:\nvariant/1.0{foo=*}\nvariant/6.0{foo=*}"
 } else {
     set tserr "$mp:\nvariant/"
 }
@@ -456,13 +477,17 @@ testouterr_cmd_re sh {avail variant/6.0 var=val} OK $tserr
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 setenv_var MODULES_COLORS "hi=1"
 setenv_var TESTSUITE_VARIANT 1
-set tserr "$mpre:\n[sgr 1]variant/6.0[sgr 22]"
+set tserr "$mpre:\n[sgr 1]variant/6.0[sgr 22]{bar=1,2,3:[sgr 1]foo[sgr 22]=[sgr 1]val1[sgr 22],val2,val3}"
 testouterr_cmd_re sh {avail --color=always -t variant@6.0,8.0 foo=val1 baz=2} OK {}
 testouterr_cmd_re sh {avail --color=always -t variant@6.0,8.0 foo=val1} OK $tserr
-set tserr "$mpre:\n[sgr 1]variant/6[sgr 22].0\nvariant/7.0"
+set tserr "$mpre:\n[sgr 1]variant/6[sgr 22].0{bar=1,2,3:[sgr 1]foo[sgr 22]=[sgr 1]val1[sgr 22],val2,val3}
+variant/7.0{[sgr 1]foo[sgr 22]=[sgr 1]val1[sgr 22],val2,val3}"
 testouterr_cmd_re sh {avail --color=always -t variant@6:8 foo=val1 baz=2} OK {}
 testouterr_cmd_re sh {avail --color=always -t variant@6:8 foo=val1} OK $tserr
 unsetenv_var TESTSUITE_VARIANT
+
+setenv_var MODULES_AVAIL_OUTPUT {modulepath:alias:dirwsym:sym:tag:variantifspec:key}
+setenv_var MODULES_AVAIL_TERSE_OUTPUT {modulepath:alias:dirwsym:sym:tag:variantifspec}
 
 
 #
