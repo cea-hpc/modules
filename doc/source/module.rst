@@ -401,7 +401,8 @@ switches are accepted:
  does not matter.
 
  Accepted elements in *LIST* for :subcmd:`avail` sub-command are:
- *modulepath*, *alias*, *dirwsym*, *sym*, *tag*, *key* and *variant*.
+ *modulepath*, *alias*, *dirwsym*, *sym*, *tag*, *key*, *variant* and
+ *variantifspec*.
 
  Accepted elements in *LIST* for :subcmd:`list` sub-command are: *header*,
  *idx*, *variant*, *sym*, *tag* and *key*.
@@ -419,7 +420,8 @@ switches are accepted:
        Element *variant* added for :subcmd:`list` sub-command
 
     .. versionchanged:: 5.3
-       Element *variant* added for :subcmd:`avail` sub-command
+       Elements *variant* and *variantifspec* added for :subcmd:`avail`
+       sub-command
 
 .. option:: --paginate
 
@@ -3748,6 +3750,8 @@ ENVIRONMENT
  * ``tag``: tags associated with available modules.
  * ``variant``: variants and their possible values associated with available
    modules.
+ * ``variantifspec``: like ``variant`` but only if a variant has been
+   specified in search query.
 
  The order of the elements in the list does not matter. Module names are the
  only content reported when *LIST* is set to an empty value.
@@ -3766,7 +3770,7 @@ ENVIRONMENT
     .. versionadded:: 4.7
 
     .. versionchanged:: 5.3
-       Element ``variant`` added
+       Elements ``variant`` and ``variantifspec`` added
 
 .. envvar:: MODULES_AVAIL_TERSE_OUTPUT
 
@@ -3789,7 +3793,7 @@ ENVIRONMENT
     .. versionadded:: 4.7
 
     .. versionchanged:: 5.3
-       Element ``variant`` added
+       Elements ``variant`` and ``variantifspec`` added
 
 .. envvar:: MODULES_CACHE_BUFFER_BYTES
 

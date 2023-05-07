@@ -716,9 +716,10 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
  Specify the content to report on avail sub-command regular output in addition
  to the available module names. Elements accepted in LIST are: ``modulepath``,
- ``alias``, ``dirwsym``, ``sym``, ``tag``, ``key`` and ``variant`` (elements
- in LIST are  separated by ``:``). The order of the elements in LIST does not
- matter. (default=\ ``modulepath:alias:dirwsym:sym:tag:key``)
+ ``alias``, ``dirwsym``, ``sym``, ``tag``, ``key``, ``variant`` and
+ ``variantifspec`` (elements in LIST are  separated by ``:``). The order of
+ the elements in LIST does not matter.
+ (default=\ ``modulepath:alias:dirwsym:sym:tag:variantifspec:key``)
 
  This installation option defines the default value of the
  :mconfig:`avail_output` configuration option which could be changed after
@@ -731,14 +732,17 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
     .. versionchanged:: 5.3
        Element ``variant`` added
 
+    .. versionchanged:: 5.3
+       Element ``variantifspec`` added and set by default
+
 .. instopt:: --with-avail-terse-output=LIST
 
  Specify the content to report on avail sub-command terse output in addition
  addition to the available module names. Elements accepted in LIST are:
- ``modulepath``, ``alias``, ``dirwsym``, ``sym``, ``tag``, ``key`` and
- ``variant`` (elements in LIST are separated by ``:``). The order of the
- elements in LIST does not matter.
- (default=\ ``modulepath:alias:dirwsym:sym:tag``)
+ ``modulepath``, ``alias``, ``dirwsym``, ``sym``, ``tag``, ``key``,
+ ``variant`` and ``variantifspec`` (elements in LIST are separated by ``:``).
+ The order of the elements in LIST does not matter.
+ (default=\ ``modulepath:alias:dirwsym:sym:tag:variantifspec``)
 
  This installation option defines the default value of the
  :mconfig:`avail_terse_output` configuration option which could be changed
@@ -750,6 +754,9 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
     .. versionchanged:: 5.3
        Element ``variant`` added
+
+    .. versionchanged:: 5.3
+       Element ``variantifspec`` added and set by default
 
 .. instopt:: --with-bashcompletiondir=DIR
 
@@ -1256,12 +1263,12 @@ installation.
 |                                   |                                              | :envvar:`MODULES_AVAIL_INDEPTH`,             |              |           |
 |                                   |                                              | :option:`--indepth`, :option:`--no-indepth`  |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
-| :mconfig:`avail_output`           | ``modulepath:alias:dirwsym:sym:tag:key``     | :instopt:`--with-avail-output`,              |              |           |
-|                                   |                                              | :envvar:`MODULES_AVAIL_OUTPUT`,              |              |           |
+| :mconfig:`avail_output`           | modulepath:alias:dirwsym:sym:tag:\           | :instopt:`--with-avail-output`,              |              |           |
+|                                   | variantifspec:key                            | :envvar:`MODULES_AVAIL_OUTPUT`,              |              |           |
 |                                   |                                              | :option:`--output`                           |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
-| :mconfig:`avail_terse_output`     | ``modulepath:alias:dirwsym:sym:tag``         | :instopt:`--with-avail-terse-output`,        |              |           |
-|                                   |                                              | :envvar:`MODULES_AVAIL_TERSE_OUTPUT`,        |              |           |
+| :mconfig:`avail_terse_output`     | modulepath:alias:dirwsym:sym:tag:\           | :instopt:`--with-avail-terse-output`,        |              |           |
+|                                   | variantifspec                                | :envvar:`MODULES_AVAIL_TERSE_OUTPUT`,        |              |           |
 |                                   |                                              | :option:`--output`                           |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`cache_buffer_bytes`     | ``32768``                                    | :envvar:`MODULES_CACHE_BUFFER_BYTES`         |              |           |

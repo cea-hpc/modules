@@ -1043,3 +1043,7 @@ The following Modules configuration option has been introduced on Modules 5.
 
  Starting version 5.3, element ``variant`` is added to the list of accepted
  values.
+
+ Starting version 5.3, element ``variantifspec`` is added to the list of
+ accepted values. It is added to the default value list of both configuration
+ options.
