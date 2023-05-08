@@ -130,6 +130,12 @@ Modules 5.3.0 (not yet released)
 * Add :option:`--ignore-user-rc` command-line switch to enable
   :mconfig:`ignore_user_rc` configuration option and ignore user-specific
   module rc file for current execution.
+* Add the ``variantifspec`` element in the allowed value list of the
+  :mconfig:`avail_output` and :mconfig:`avail_terse_output` configuration
+  options. Set this new element in the default value list of both options.
+  When set and if a variant is specified in search query, variants and their
+  possible values are reported along the module they are associated to on
+  :subcmd:`avail` command output.
 
 
 .. _5.2 release notes:

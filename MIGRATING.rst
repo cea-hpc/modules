@@ -134,6 +134,36 @@ You can also search for modules defining a specific variant value:
 .. note:: As extra match search implies additional modulefile evaluations, it
    is advised to build and use `Module cache`_ to improve search speed.
 
+Two new elements, ``variant`` and ``variantifspec``, are added to the allowed
+value list of :mconfig:`avail_output` and :mconfig:`avail_terse_output`
+configuration options. The latter is set in the default value list of both
+options. When ``variant`` is set, variants and their possible values are
+reported along module they are associated to. When ``variantifspec`` is set,
+available variants are reported only if a variant is specified in search
+query.
+
+.. parsed-literal::
+
+    :ps:`$` module config --reset avail_output
+    :ps:`$` module config avail_output
+    Modules Release 5.3.0 (2023-XX-XX)
+
+    - :sgrhi:`Config. name` ---------.- :sgrhi:`Value (set by if default overridden)` ---------------
+    avail_output              modulepath:alias:dirwsym:sym:tag:variantifspec:key
+    :ps:`$` module avail foo
+    --------------------- :sgrdi:`/path/to/modulefiles` ---------------------
+    :sgrhi:`foo`/1.0  :sgrhi:`foo`/2.0  
+
+    Key:
+    :sgrdi:`modulepath`  
+    :ps:`$` module avail foo %a
+    --------------------- :sgrdi:`/path/to/modulefiles` ---------------------
+    :sgrhi:`foo`/1.0{:sgrvadehi:`%a`}  :sgrhi:`foo`/2.0{:sgrvahi:`%a`,\ :sgrva:`b`,\ :sgrva:`c`}  
+
+    Key:
+    :sgrdi:`modulepath`       {:sgrva:`%value`}={:sgrva:`toolchain=value`}  
+    :sgrde:`default-version`  {:sgrva:`variant=value`} 
+
 Extra specifiers
 ----------------
 
