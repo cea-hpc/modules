@@ -848,6 +848,11 @@ The following module sub-commands appeared on Modules 5.
  * the :option:`--starts-with` and :option:`--contains` options are supported
    on this sub-command to provide the regular search match capabilities.
 
+ Starting Modules 5.3:
+
+ * Search query with just a variant set (no module name and version) is
+   accepted.
+
 :subcmd:`refresh`
 
  Starting Modules 5.2, only the loaded modules listed in the
@@ -882,6 +887,17 @@ The following module sub-commands appeared on Modules 5.
 
  Starting Modules 5.2, this sub-command accepts modulefile specification as
  argument in addition to file path.
+
+:subcmd:`avail`, :subcmd:`paths`, :subcmd:`whatis`
+
+ Starting Modules 5.3:
+
+ * variant specified in search query is taken into account to return available
+   modules matching the variant specification.
+ * Search query with just a variant set (no module name and version) is
+   accepted.
+ * :ref:`Extra specifier` is accepted in search query to query content of
+   modulefiles.
 
 Environment
 """""""""""
