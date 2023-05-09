@@ -29,6 +29,8 @@ value then branch code in :file:`modulecmd.tcl` script to adapt
     - Superseding environment variable
     - Default value
     - Is configuration lockable to default value (0 or 1)
+    - Value kind (``i`` for integer, ``s`` for string, ``b`` for boolean,
+      ``l`` for colon-separated list, ``o`` for other)
     - Valid value list (empty list if no validation list)
     - Internal value representation (optional)
     - Specific procedure to call to initialize option value (optional)
