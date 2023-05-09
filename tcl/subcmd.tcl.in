@@ -2343,6 +2343,24 @@ proc cmdModuleConfig {dump_state args} {
       reportErrorAndExit "Configuration option '$name' does not exist"
    # set configuration
    } elseif {[info exists name] && ($nameunset || [info exists value])} {
+      # append or subtract value to existing configuration value if new value
+      # starts with '+' or '-' (for colon-separated list option only)
+      if {[info exists value] && $confkind($name) eq {l}} {
+         set curconfvallist [split [getConf $name] :]
+         switch -- [string index $value 0] {
+            + {
+               appendNoDupToList curconfvallist {*}[split [string range\
+                  $value 1 end] :]
+               set value [join $curconfvallist :]
+            }
+            - {
+               lassign [getDiffBetweenList $curconfvallist [split [string\
+                  range $value 1 end] :]] curconfvallist
+               set value [join $curconfvallist :]
+            }
+         }
+      }
+
       if {$confvar($name) eq {}} {
          reportErrorAndExit "Configuration option '$name' cannot be altered"
       } elseif {$conflockable($name) eq {1} && [isConfigLocked $name]} {
