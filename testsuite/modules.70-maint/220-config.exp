@@ -208,6 +208,19 @@ array set configlockable [list\
     implicit_default          1\
 ]
 
+array set configkind [list\
+    avail_output              l\
+    avail_terse_output        l\
+    colors                    l\
+    list_output               l\
+    list_terse_output         l\
+    protected_envvars         l\
+    shells_with_ksh_fpath     l\
+    tag_abbrev                l\
+    tag_color_name            l\
+    variant_shortcut          l\
+]
+
 set statelist [list always_read_full_file autoinit clock_seconds cmdline commandname domainname error_count extra_siteconfig_loaded false_rendered force hiding_threshold inhibit_errreport inhibit_interp init_error_report is_stderr_tty is_win kernelversion lm_info_cached machine modulefile nodename os osversion paginate path_separator report_format reportfd return_false shell shelltype siteconfig_loaded sub1_separator sub2_separator subcmd subcmd_args supported_shells tcl_ext_lib_loaded tcl_version term_columns usergroups username]
 
 if {[is_quick_mode]} {
@@ -512,6 +525,170 @@ set ans [list [list unset $configvar(auto_handling)]]
 testouterr_cmd_re sh "config --dump-state --reset auto_handling" $ans {}
 set ans [list [list set $configvar(auto_handling) 0]]
 testouterr_cmd_re sh "config --dump-state auto_handling 0" $ans {}
+
+
+#
+# config value append or subtract
+#
+
+if {![is_quick_mode]} {
+
+# basic test on all colon-separated list configuration option
+foreach param [array names configkind] {
+    if {$configkind($param) eq {l}} {
+        if {[info exists configvalidkind($param)] && $configvalidkind($param)\
+            eq {eltlist}} {
+            set val [lindex $configvalid($param) 1]
+        } else {
+            set val bar
+        }
+
+        # append test
+        set ans [list [list set $configvar($param) $configset($param):$val]]
+        testouterr_cmd sh "config $param +$val" $ans {}
+
+        # subtract test
+        set ans [list [list set $configvar($param) {}]]
+        testouterr_cmd sh "config $param -$configset($param)" $ans {}
+    }
+}
+
+
+# detailed tests on one representative config
+set param avail_output
+set envvar $configvar($param)
+
+# detailed append tests
+
+# no value currently defined
+unsetenv_var $envvar
+set ans [list [list set $envvar $configdfl($param):variant]]
+testouterr_cmd sh "config $param +variant" $ans {}
+
+# value already defined in default
+set ans [list [list set $envvar $configdfl($param)]]
+testouterr_cmd sh "config $param +$configset($param)" $ans {}
+
+# two-value add, one already defined in default
+set ans [list [list set $envvar $configdfl($param):variant]]
+testouterr_cmd sh "config $param +key:variant" $ans {}
+testouterr_cmd sh "config $param +variant:key" $ans {}
+testouterr_cmd sh "config $param +modulepath:variant:key" $ans {}
+
+# two value add, both already defined in default
+set ans [list [list set $envvar $configdfl($param)]]
+testouterr_cmd sh "config $param +modulepath:key" $ans {}
+
+# empty value defined
+setenv_var $envvar {}
+set ans [list [list set $envvar variant]]
+testouterr_cmd sh "config $param +variant" $ans {}
+
+# empty value defined, two value add
+set ans [list [list set $envvar variant:sym]]
+testouterr_cmd sh "config $param +variant:sym" $ans {}
+
+# value already defined
+setenv_var $envvar $configset($param)
+set ans [list [list set $envvar $configset($param)]]
+testouterr_cmd sh "config $param +$configset($param)" $ans {}
+
+# two-value add, none already defined
+set ans [list [list set $envvar $configset($param):key:alias]]
+testouterr_cmd sh "config $param +key:alias" $ans {}
+
+# unauthorized value
+set tserr "$error_msgs: Invalid element in value list for config. option '$param'\n  Allowed elements are: $configvalid($param) (separated by ':')"
+testouterr_cmd sh "config $param +foo" ERR $tserr
+
+# two-value add, 1 unauthorized
+testouterr_cmd sh "config $param +foo:variant" ERR $tserr
+
+# two-value add, both unauthorized
+testouterr_cmd sh "config $param +foo:bar" ERR $tserr
+
+# multiple value add, with one empty element in front
+testouterr_cmd sh "config $param +:variant:key" ERR $tserr
+
+# multiple value add, with one empty element in the middle
+testouterr_cmd sh "config $param +variant::key" ERR $tserr
+
+# multiple value add, with one empty element at the end
+testouterr_cmd sh "config $param +variant:key:" ERR $tserr
+
+
+# detailed subtract tests
+
+# no value currently defined
+unsetenv_var $envvar
+set ans [list [list set $envvar $configdfl($param)]]
+testouterr_cmd sh "config $param -variant" $ans {}
+
+# value already defined in default
+set ans [list [list set $envvar [join [lsearch -exact -all -inline -not\
+    [split $configdfl($param) :] $configset($param)] :]]]
+testouterr_cmd sh "config $param -$configset($param)" $ans {}
+
+# two-value del, one already defined in default
+set ans [list [list set $envvar [join [lsearch -exact -all -inline -not\
+    [split $configdfl($param) :] key] :]]]
+testouterr_cmd sh "config $param -key:variant" $ans {}
+testouterr_cmd sh "config $param -variant:key" $ans {}
+
+# two value del, both already defined in default
+set ans [list [list set $envvar [join [lsearch -regexp -all -inline -not\
+    [split $configdfl($param) :] {^(key|modulepath)$}] :]]]
+testouterr_cmd sh "config $param -modulepath:key" $ans {}
+
+# empty value defined
+setenv_var $envvar {}
+set ans [list [list set $envvar {}]]
+testouterr_cmd sh "config $param -variant" $ans {}
+
+# empty value defined, two value add
+set ans [list [list set $envvar {}]]
+testouterr_cmd sh "config $param -variant:sym" $ans {}
+
+# value already defined
+setenv_var $envvar $configset($param)
+set ans [list [list set $envvar {}]]
+testouterr_cmd sh "config $param -$configset($param)" $ans {}
+
+# two-value add, none already defined
+set ans [list [list set $envvar $configset($param)]]
+testouterr_cmd sh "config $param -key:alias" $ans {}
+
+# unauthorized value
+set ans [list [list set $envvar $configset($param)]]
+testouterr_cmd sh "config $param -foo" $ans {}
+
+# two-value add, 1 unauthorized
+testouterr_cmd sh "config $param -foo:variant" $ans {}
+
+# two-value add, both unauthorized
+testouterr_cmd sh "config $param -foo:bar" $ans {}
+
+# multiple value add, with one empty element in front
+testouterr_cmd sh "config $param -:variant:key" $ans {}
+
+# multiple value add, with one empty element in the middle
+testouterr_cmd sh "config $param -variant::key" $ans {}
+
+# multiple value add, with one empty element at the end
+testouterr_cmd sh "config $param -variant:key:" $ans {}
+
+
+# restore config test value
+setenv_var $envvar $configset($param)
+
+# append/subtract on non-list option (value taken literally)
+set param contact
+set ans [list [list set $configvar($param) +foo]]
+testouterr_cmd_re sh "config $param +foo" $ans {}
+set ans [list [list set $configvar($param) -foo]]
+testouterr_cmd_re sh "config $param -foo" $ans {}
+
+}
 
 
 #
