@@ -306,9 +306,11 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
          }
          append outputconf _output
 
-         # check option value is coherent with current sub-command
-         if {[isDiffBetweenList [split $asked_output :] [lindex\
-            $::g_config_defs($outputconf) 4]]} {
+         # check option value is coherent with current sub-command (remove
+         # append/subtract operator at the start if any)
+         if {[isDiffBetweenList [split [expr {[string index $asked_output 0]\
+            in {+ -} ? [string range $asked_output 1 end] : $asked_output}]\
+            :] [lindex $::g_config_defs($outputconf) 4]]} {
             if {!$ignerr} {
                knerror "Invalid element in value list for '$output_arg'\
                   option on $cmd sub-command\nAllowed elements are: [lindex\

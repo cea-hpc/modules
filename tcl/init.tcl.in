@@ -292,7 +292,27 @@ proc getConf {option {valifundef {}}} {
             # overridden value coming the command-line (already validated)
             ##nagelfar ignore Suspicious variable
             if {[info exists ::asked_$option]} {
-               set value [set ::asked_$option]
+               set askedval [set ::asked_$option]
+               # append or subtract value to existing configuration value if
+               # new value starts with '+' or '-' (for colon-separated list
+               # option only)
+               if {$valuekind eq {l} && [string index $askedval 0] in {+ -}} {
+                  set curvaluelist [split $value :]
+                  switch -- [string index $askedval 0] {
+                     + {
+                        ##nagelfar ignore Found constant
+                        appendNoDupToList curvaluelist {*}[split [string\
+                           range $askedval 1 end] :]
+                     }
+                     - {
+                        lassign [getDiffBetweenList $curvaluelist [split\
+                           [string range $askedval 1 end] :]] curvaluelist
+                     }
+                  }
+                  set value [join $curvaluelist :]
+               } else {
+                  set value $askedval
+               }
             }
 
             # convert value to its internal representation
