@@ -348,6 +348,44 @@ foo/0.prereq"
 
 
 #
+# -o/--output append/subtract tests
+#
+
+set mp $modpath.3
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+setenv_path_var MODULEPATH $mp
+unsetenv_var MODULES_AVAIL_OUTPUT
+unsetenv_var MODULES_AVAIL_TERSE_OUTPUT
+
+setenv_var TESTSUITE_VARIANT 1
+
+testouterr_cmd sh {avail -o +variant --terse variant/1.0} OK $mp:\nvariant/1.0{foo=val1}
+testouterr_cmd sh {avail --output=+variant --terse variant/1.0} OK $mp:\nvariant/1.0{foo=val1}
+testouterr_cmd sh {avail -o -modulepath --terse variant/1.0} OK variant/1.0
+testouterr_cmd sh {avail --output=-modulepath:sym:tag --terse foo/0.2} OK foo/0.2
+testouterr_cmd sh {avail --output=-modulepath:sym:tag foo/0.2} OK {foo/0.2  }
+
+testouterr_cmd sh {avail --output=-sym: foo/0.2} ERR $tserr_invalid_output_val
+testouterr_cmd sh {avail --output=+foo: foo/0.2} ERR $tserr_invalid_output_val
+testouterr_cmd sh {avail -o +:variant foo/0.2} ERR $tserr_invalid_o_val
+testouterr_cmd sh {avail -o -bar foo/0.2} ERR $tserr_invalid_o_val
+
+set tserr "$modlin $mpre $modlin
+foo/0.2\\(sym\\) <tag>  
+
+Key:
+\\(symbolic-version\\)  <module-tag>  "
+testouterr_cmd_re sh {avail -o +tag:sym foo/0.2} OK $tserr
+
+setenv_var MODULES_AVAIL_OUTPUT sym:tag
+setenv_var MODULES_AVAIL_TERSE_OUTPUT sym:tag
+
+testouterr_cmd sh {avail --output=+variant --terse variant/1.0} OK variant/1.0{foo=val1}
+testouterr_cmd sh {avail --output=+variant --terse foo/0.2} OK {foo/0.2(sym) <tag>}
+testouterr_cmd sh {avail -o -modulepath:sym:tag foo/0.2} OK {foo/0.2  }
+
+
+#
 #  Cleanup
 #
 
