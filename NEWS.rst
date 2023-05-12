@@ -136,6 +136,18 @@ Modules 5.3.0 (not yet released)
   When set and if a variant is specified in search query, variants and their
   possible values are reported along the module they are associated to on
   :subcmd:`avail` command output.
+* Accept value starting with ``+`` or ``-`` characters on
+  :option:`--output`/:option:`-o` command-line switches to indicate value
+  should respectively be appended to or subtracted from current configuration
+  option value.
+* Accept value starting with ``+`` or ``-`` characters on
+  :mconfig:`avail_output`, :mconfig:`avail_terse_output`,
+  :mconfig:`list_output`, :mconfig:`list_terse_output`, :mconfig:`colors`,
+  :mconfig:`protected_envvars`, :mconfig:`shells_with_ksh_fpath`,
+  :mconfig:`tag_abbrev`, :mconfig:`tag_color_name`,
+  :mconfig:`variant_shortcut` configuration options to indicate value
+  should respectively be appended to or subtracted from current configuration
+  option value.
 
 
 .. _5.2 release notes:

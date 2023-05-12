@@ -822,6 +822,12 @@ The following command line switches appeared on Modules 5.
 | 5.3        | :option:`--ignore-cache`, :option:`--ignore-user-rc`            |
 +------------+-----------------------------------------------------------------+
 
+:option:`--output`
+
+ Starting Modules 5.3, this command line switch accepts value prefixed by
+ ``+`` or ``-`` which means value should respectively be appended to or
+ subtracted from current configuration option value.
+
 Module Sub-Commands
 """""""""""""""""""
 
@@ -1063,3 +1069,15 @@ The following Modules configuration option has been introduced on Modules 5.
  Starting version 5.3, element ``variantifspec`` is added to the list of
  accepted values. It is added to the default value list of both configuration
  options.
+
+ Starting Modules 5.3, these configuration options accept value prefixed by
+ ``+`` or ``-`` which means value should respectively be appended to or
+ subtracted from current configuration option value.
+
+:mconfig:`list_output`, :mconfig:`list_terse_output`, :mconfig:`colors`,
+:mconfig:`protected_envvars`, :mconfig:`shells_with_ksh_fpath`,
+:mconfig:`tag_abbrev`, :mconfig:`tag_color_name`, :mconfig:`variant_shortcut`
+
+ Starting Modules 5.3, these configuration options accept value prefixed by
+ ``+`` or ``-`` which means value should respectively be appended to or
+ subtracted from current configuration option value.
