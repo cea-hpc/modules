@@ -410,6 +410,9 @@ switches are accepted:
  The order of the elements in *LIST* does not matter. Module names are the
  only content reported when *LIST* is set to an empty value.
 
+ *LIST* may be prefixed by ``+`` or ``-`` character to indicate respectively
+ to append it to or subtract it from current configuration option value.
+
  See also :envvar:`MODULES_AVAIL_OUTPUT` and :envvar:`MODULES_LIST_OUTPUT`.
 
  .. only:: html
@@ -422,6 +425,9 @@ switches are accepted:
     .. versionchanged:: 5.3
        Elements *variant* and *variantifspec* added for :subcmd:`avail`
        sub-command
+
+    .. versionchanged:: 5.3
+       Prefixes ``+`` and ``-`` added to append and subtract elements
 
 .. option:: --paginate
 
@@ -733,6 +739,10 @@ Module Sub-Commands
 
  If no value is currently set for an option *name*, the mention ``<undef>`` is
  reported.
+
+ For options whose value is a colon-separated list, *value* may be prefixed by
+ ``+`` or ``-`` character. It indicates respectively to append it to or
+ subtract it from current option value.
 
  When command-line switch ``--dump-state`` is passed, current
  :file:`modulecmd.tcl` state and Modules-related environment variables are
@@ -1424,6 +1434,10 @@ Module Sub-Commands
  .. only:: html
 
     .. versionadded:: 4.3
+
+    .. versionchanged:: 5.3
+       *Value* prefixes ``+`` and ``-`` added to append and subtract elements
+       to list-value options
 
 .. subcmd:: display modulefile...
 
