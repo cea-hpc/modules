@@ -220,6 +220,46 @@ version higher or equal to ``1.2`` and variant ``toolchain=a`` selected.
 .. note:: Module aliases or symbolic versions used either in modulefile
    definitions or as extra specifier values are not resolved.
 
+Append or subtract elements to current option value
+---------------------------------------------------
+
+For command-line switches and configuration options whose value is a
+colon-separated list, it is now possible to append or subtract elements to the
+current value. With a ``+`` prefix elements are appended and with a ``-``
+prefix elements are subtracted.
+
+This new feature applies to :option:`--output`/:option:`-o` command-line
+switches and :mconfig:`avail_output`, :mconfig:`avail_terse_output`,
+:mconfig:`list_output`, :mconfig:`list_terse_output`, :mconfig:`colors`,
+:mconfig:`protected_envvars`, :mconfig:`shells_with_ksh_fpath`,
+:mconfig:`tag_abbrev`, :mconfig:`tag_color_name`, :mconfig:`variant_shortcut`
+configuration options.
+
+For instance, to output available *foo* modules without modulepath and tag
+information:
+
+.. parsed-literal::
+
+    :ps:`$` module -o -modulepath:tag avail foo
+    :sgrhi:`foo`/1.0  :sgrhi:`foo`/2.0
+
+On following example, terse output mode of *list* sub-command is permanently
+updated to report variant information:
+
+.. parsed-literal::
+
+    :ps:`$` module config list_terse_output
+    Modules Release 5.3.0 (2023-XX-XX)
+
+    - :sgrhi:`Config. name` ---------.- :sgrhi:`Value (set by if default overridden)` ---------------
+    list_terse_output         header
+    :ps:`$` module config list_terse_output +variant
+    :ps:`$` module config list_terse_output
+    Modules Release 5.3.0 (2023-XX-XX)
+
+    - :sgrhi:`Config. name` ---------.- :sgrhi:`Value (set by if default overridden)` ---------------
+    list_terse_output         header:variant (env-var)
+
 
 v5.2
 ====
