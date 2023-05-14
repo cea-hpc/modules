@@ -436,11 +436,22 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
    # enable unload of sticky mod if stickiness is preserved on swapped-on mod
    # need to resolve swapped-off module here to get stickiness details
    lassign [getPathToModule $old {} 0 $unload_match] modfile oldmod oldmodvr
-   if {[set sticky_reload [isStickinessReloading $oldmodvr [list $new]]]} {
+   set sticky_reload [isStickinessReloading $oldmodvr [list $new]]
+   set supersticky_reload [isStickinessReloading $oldmodvr [list $new]\
+      super-sticky]
+   # do not set sticky or supersticky reload states if swap-on module cannot
+   # be found
+   if {$supersticky_reload || $sticky_reload} {
+      lassign [getPathToModule $new] newmodfile newmod newmodvr
+      if {$newmodfile eq {}} {
+         set sticky_reload 0
+         set supersticky_reload 0
+      }
+   }
+   if {$sticky_reload} {
       lappendState reloading_sticky $oldmod
    }
-   if {[set supersticky_reload [isStickinessReloading $oldmodvr [list $new]\
-      super-sticky]]} {
+   if {$supersticky_reload} {
       lappendState reloading_supersticky $oldmod
    }
    ##nagelfar implicitvarcmd {cmdModuleUnload swunload *} oldhidden olduasked\

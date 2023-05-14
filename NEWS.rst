@@ -311,6 +311,8 @@ Modules 5.2.0 (2022-11-08)
   page.
 * Doc: extend :ref:`Collections` section with examples in :ref:`module(1)` man
   page.
+* Fix :subcmd:`switch` sub-command not to unload *sticky* module when
+  switched-on module does not exist. (fix issue #492)
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 .. _ShellCheck: https://www.shellcheck.net/

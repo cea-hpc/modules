@@ -428,6 +428,136 @@ set tserr [msg_unload {sticky/1.0 <S>} $err_stickyunloadf]
 testouterr_cmd_re sh {purge -f} $ans $tserr
 
 
+# switch sticky module to a module that does not exist
+unsetenv_var TESTSUITE_STICKY_GENERIC
+unsetenv_var TESTSUITE_STICKY_DEP
+unsetenv_var __MODULES_LMPREREQ
+setenv_loaded_module [list sticky/1.0] [list $mp/sticky/1.0]
+setenv_var __MODULES_LMTAG sticky/1.0&sticky
+
+set tserr [msg_switch {sticky/1.0 <S>} sticky/99 $err_stickyunload]
+testouterr_cmd_re sh {switch sticky/99} ERR $tserr
+testouterr_cmd_re sh {switch sticky/1.0 sticky/99} ERR $tserr
+
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+lappend ans [list ERR]
+set tserr "[msg_unload {sticky/1.0 <S>} $err_stickyunloadf]
+
+[msg_switch {sticky/1.0 <S>} sticky/99 $err_path'sticky/99']"
+testouterr_cmd_re sh {switch -f sticky/99} $ans $tserr
+testouterr_cmd_re sh {switch -f sticky/1.0 sticky/99} $ans $tserr
+
+# switch sticky module to a module that does not exist (generic sticky)
+setenv_var TESTSUITE_STICKY_GENERIC 1
+
+set tserr [msg_switch {sticky/1.0 <S>} sticky/99 $err_path'sticky/99' $err_stickyunload]
+testouterr_cmd_re sh {switch sticky/99} ERR $tserr
+testouterr_cmd_re sh {switch sticky/1.0 sticky/99} ERR $tserr
+
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+lappend ans [list ERR]
+#FIXME: 'unable to locate modulefile' message is reported twice
+set tserr "[msg_unload {sticky/1.0 <S>} $err_stickyunloadf]
+
+[msg_switch {sticky/1.0 <S>} sticky/99 $err_path'sticky/99' $err_path'sticky/99']"
+testouterr_cmd_re sh {switch -f sticky/99} $ans $tserr
+testouterr_cmd_re sh {switch -f sticky/1.0 sticky/99} $ans $tserr
+
+# switch sticky module to a module that does not exist (generic sticky and dependencies)
+setenv_var TESTSUITE_STICKY_DEP 1
+setenv_loaded_module [list foo/2.0 sticky/1.0 bar/2.0] [list $mp/foo/2.0 $mp/sticky/1.0 $mp/bar/2.0]
+setenv_var __MODULES_LMTAG sticky/1.0&sticky
+setenv_var __MODULES_LMPREREQ sticky/1.0&foo|baz:bar/2.0&sticky/1.0
+
+set tserr [msg_switch {sticky/1.0 <S>} sticky/99 $err_path'sticky/99' $err_stickyunload]
+testouterr_cmd_re sh {switch --auto sticky/99} ERR $tserr
+
+set tserr "[msg_unload {sticky/1.0 <S>} [err_prerequn bar/2.0]]
+
+[msg_switch {sticky/1.0 <S>} sticky/99 $err_path'sticky/99' [err_swoff sticky/1.0]]"
+testouterr_cmd_re sh {switch --no-auto sticky/99} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ bar/2.0&sticky/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/2.0:$mp/bar/2.0]
+lappend ans [list set LOADEDMODULES foo/2.0:bar/2.0]
+lappend ans [list unset __MODULES_LMTAG]
+lappend ans [list ERR]
+#FIXME: 'unable to locate modulefile' message is reported twice
+set tserr "[msg_unload {sticky/1.0 <S>} $err_stickyunloadf]
+
+[msg_load bar/2.0 [err_reqmisf sticky/1.0]]
+
+[msg_top_switch {sticky/1.0 <S>} sticky/99 {} {} {} {} bar/2.0 $err_path'sticky/99' $err_path'sticky/99']"
+testouterr_cmd_re sh {switch --auto -f sticky/1.0 sticky/99} $ans $tserr
+
+#FIXME: 'unable to locate modulefile' message is reported twice
+set tserr "[msg_unload {sticky/1.0 <S>} [err_deplof bar/2.0] $err_stickyunloadf]
+
+[msg_switch {sticky/1.0 <S>} sticky/99 $err_path'sticky/99' $err_path'sticky/99']"
+testouterr_cmd_re sh {switch --no-auto -f sticky/99} $ans $tserr
+
+# switch sticky module within moulefile to a module that does not exist (generic sticky)
+unsetenv_var TESTSUITE_STICKY_DEP
+setenv_var TESTSUITE_STICKY_SWITCH_DEP 1
+setenv_loaded_module [list sticky/1.0] [list $mp/sticky/1.0]
+setenv_var __MODULES_LMTAG sticky/1.0&sticky
+unsetenv_var __MODULES_LMPREREQ
+
+#FIXME: 'unable to locate modulefile' message is reported twice
+set tserr "[msg_switch {sticky/1.0 <S>} sticky/99 $err_path'sticky/99' $err_path'sticky/99']
+
+[msg_load bar/2.0 $err_stickyunload [err_conun sticky/1.0]]"
+testouterr_cmd_re sh {load bar/2.0} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT bar/2.0&sticky/1.0]
+lappend ans [list set __MODULES_LMPREREQ bar/2.0&sticky/99]
+lappend ans [list set _LMFILES_ $mp/bar/2.0]
+lappend ans [list set LOADEDMODULES bar/2.0]
+lappend ans [list unset __MODULES_LMTAG]
+lappend ans [list ERR]
+#FIXME: 'unable to locate modulefile' message is reported 3 times
+set tserr "[msg_unload {sticky/1.0 <S>} $err_stickyunloadf]
+
+[msg_switch {sticky/1.0 <S>} sticky/99 $err_path'sticky/99' $err_path'sticky/99' $err_path'sticky/99']
+
+[msg_top_load bar/2.0 sticky/1.0 {} {} [err_reqlof sticky/99]]"
+testouterr_cmd_re sh {load -f bar/2.0} $ans $tserr
+
+setenv_var TESTSUITE_STICKY_SWITCH_DEP 2
+#FIXME: requirement (sticky/99) is missing, but bar/2.0 has been loaded
+#   requirement is not expressed thus not reported in messages
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/sticky/1.0:$mp/bar/2.0]
+lappend ans [list set LOADEDMODULES sticky/1.0:bar/2.0]
+lappend ans [list ERR]
+set tserr "[msg_switch {sticky/1.0 <S>} sticky/99 $err_path'sticky/99']
+
+[msg_load bar/2.0 $err_stickyunload]"
+testouterr_cmd_re sh {load bar/2.0} $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ bar/2.0&sticky/99]
+lappend ans [list set _LMFILES_ $mp/bar/2.0]
+lappend ans [list set LOADEDMODULES bar/2.0]
+lappend ans [list unset __MODULES_LMTAG]
+lappend ans [list ERR]
+#FIXME: 'unable to locate modulefile' message is reported twice
+set tserr "[msg_unload {sticky/1.0 <S>} $err_stickyunloadf]
+
+[msg_switch {sticky/1.0 <S>} sticky/99 $err_path'sticky/99' $err_path'sticky/99']
+
+[msg_top_load bar/2.0 sticky/1.0 {} {} [err_reqlof sticky/99]]"
+testouterr_cmd_re sh {load -f bar/2.0} $ans $tserr
+
+
 #
 #  Cleanup
 #
