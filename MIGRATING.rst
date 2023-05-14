@@ -8,8 +8,8 @@ Modules. It provides an overview of the new features and changed behaviors
 that will be encountered when upgrading.
 
 
-v5.3 (not yet released)
-=======================
+v5.3
+====
 
 Module cache
 ------------
@@ -146,7 +146,7 @@ query.
 
     :ps:`$` module config --reset avail_output
     :ps:`$` module config avail_output
-    Modules Release 5.3.0 (2023-XX-XX)
+    Modules Release 5.3.0 (2023-05-14)
 
     - :sgrhi:`Config. name` ---------.- :sgrhi:`Value (set by if default overridden)` ---------------
     avail_output              modulepath:alias:dirwsym:sym:tag:variantifspec:key
@@ -249,13 +249,13 @@ updated to report variant information:
 .. parsed-literal::
 
     :ps:`$` module config list_terse_output
-    Modules Release 5.3.0 (2023-XX-XX)
+    Modules Release 5.3.0 (2023-05-14)
 
     - :sgrhi:`Config. name` ---------.- :sgrhi:`Value (set by if default overridden)` ---------------
     list_terse_output         header
     :ps:`$` module config list_terse_output +variant
     :ps:`$` module config list_terse_output
-    Modules Release 5.3.0 (2023-XX-XX)
+    Modules Release 5.3.0 (2023-05-14)
 
     - :sgrhi:`Config. name` ---------.- :sgrhi:`Value (set by if default overridden)` ---------------
     list_terse_output         header:variant (env-var)

@@ -8,8 +8,8 @@ documents those changes that are of interest to users and admins.
 
 .. _5.3 release notes:
 
-Modules 5.3.0 (not yet released)
---------------------------------
+Modules 5.3.0 (2023-05-14)
+--------------------------
 
 * Add :ref:`module-cache` design notes.
 * Add :subcmd:`cachebuild` sub-command to create cache for modulepaths
@@ -148,6 +148,8 @@ Modules 5.3.0 (not yet released)
   :mconfig:`variant_shortcut` configuration options to indicate value
   should respectively be appended to or subtracted from current configuration
   option value.
+* Fix :subcmd:`switch` sub-command not to unload *sticky* module when
+  switched-on module does not exist. (fix issue #492)
 
 
 .. _5.2 release notes:
@@ -311,8 +313,6 @@ Modules 5.2.0 (2022-11-08)
   page.
 * Doc: extend :ref:`Collections` section with examples in :ref:`module(1)` man
   page.
-* Fix :subcmd:`switch` sub-command not to unload *sticky* module when
-  switched-on module does not exist. (fix issue #492)
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 .. _ShellCheck: https://www.shellcheck.net/
