@@ -914,6 +914,81 @@ proc cmdModuleSource {mode args} {
    }
 }
 
+# Intermediate procedure between module and cmdModuleLoad/prereq
+# Adapt options and arguments depending on context to call cmdModuleLoad or
+# one of the prereq procedures
+proc cmdModuleIntLoad {topcall command mode tag_list args} {
+   # ignore flag used in collection to track non-user asked state
+   set args [replaceFromList $args --notuasked]
+   # no error raised on empty argument list to cope with initadd command that
+   # may expect this behavior
+   if {[llength $args] == 0} {
+      return
+   }
+
+   set ret 0
+   # if top command is source, consider module load commands made within
+   # sourced file evaluation as top load command
+   if {[isTopEvaluation]} {
+      # is eval a regular attempt or a try (silence not found error)
+      set tryload [expr {$command in {try-load load-any}}]
+      set loadany [expr {$command eq {load-any}}]
+      set ret [cmdModuleLoad load 1 $tryload $loadany $tag_list {*}$args]
+   } elseif {$mode eq {load}} {
+      # auto load is inhibited if currently in DepRe context only register
+      # requirement
+      set subauto [expr {[currentModuleEvalContext] eq {depre} ? {0} : {1}}]
+      if {$command eq {try-load}} {
+         # attempt load of not already loaded modules
+         if {$subauto} {
+            foreach arg $args {
+               lassign [loadRequirementModuleList 1 0 $tag_list $arg] retlo
+               # update return value if an issue occurred unless force mode is
+               # enabled
+               if {$retlo != 0 && ![getState force]} {
+                  set ret $retlo
+               }
+            }
+         }
+         # record requirement as optional: no error if not loaded but reload
+         # will be triggered if loaded later on
+         prereqAllModfileCmd 1 0 --optional --tag [join $tag_list :] {*}$args
+      } elseif {$command eq {load-any}} {
+         # load and register requirement in a OR-operation
+         prereqAnyModfileCmd 1 $subauto --tag [join $tag_list :] {*}$args
+      } else {
+         # load and register requirement in a AND-operation
+         prereqAllModfileCmd 0 $subauto --tag [join $tag_list :] {*}$args
+      }
+   # mods unload is handled via UReqUn mechanism when auto enabled (unless if
+   # implicit_requirement has been inhibited) also unloads are triggered by
+   # ongoing reload, purge, restore, reset, stash or stashpop cmds
+   } elseif {(![getConf auto_handling] || [getState inhibit_req_record] eq\
+      [currentState evalid]) && [aboveCommandName] ni [list purge reload\
+      restore reset stash stashpop]} {
+      # on unload mode, unload mods in reverse order, if loaded prior this
+      # mod, if not user asked and not required by other loaded mods
+      set modlist [getLoadedModulePropertyList name]
+      set modidx [lsearch -exact $modlist [currentState modulename]]
+      if {$modidx != 0} {
+         set priormodlist [lrange $modlist 0 $modidx]
+         foreach arg [lreverse $args] {
+            if {[set unmod [getLoadedMatchingName $arg {} 0 $priormodlist]]\
+               ne {}} {
+               if {[cmdModuleUnload urequn match 1 0 1 1 $unmod]} {
+                  reportWarning "Unload of useless requirement\
+                     [getModuleDesignation loaded $unmod] failed" 1
+               }
+            }
+         }
+      }
+   }
+   # sub-module interpretation failed, raise error
+   if {$ret && !$topcall} {
+      knerror {} MODULES_ERR_SUBFAILED
+   }
+}
+
 proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
    reportDebug "loading $args (context=$context, uasked=$uasked,\
       tryload=$tryload, loadany=$loadany)"
