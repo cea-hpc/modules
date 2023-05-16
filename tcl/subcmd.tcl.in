@@ -1349,6 +1349,33 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
    return $ret
 }
 
+# Intermediate procedure between module and cmdModuleUnload
+# Adapt options and arguments depending on context to call cmdModuleUnload
+proc cmdModuleIntUnload {mode args} {
+   # if top command is source, consider module load commands made within
+   # sourced file evaluation as top load command
+   if {[isTopEvaluation]} {
+      set ret [cmdModuleUnload unload match 1 0 0 0 {*}$args]
+   } elseif {$mode eq {load}} {
+      # unload mods only on load mode, nothing done on unload mode as the
+      # registered conflict guarantees the target module cannot be loaded
+      # unless forced
+      # do not unload module required by others even in force mode
+      set ret [cmdModuleUnload conun match 0 0 0 1 {*}$args]
+
+      # register modulefiles to unload as individual conflicts
+      foreach arg $args {
+         # do not break on error yet, go through the whole modfile evaluation
+         # in case conflict is solved later on
+         catch {conflict $arg}
+      }
+      # sub-module interpretation failed, raise error
+      if {$ret} {
+         knerror {} MODULES_ERR_SUBFAILED
+      }
+   }
+}
+
 proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
    reportDebug "unloading $args (context=$context, match=$match, auto=$auto,\
       force=$force, onlyureq=$onlyureq, onlyndep=$onlyndep)"

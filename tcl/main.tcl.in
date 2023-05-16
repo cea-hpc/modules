@@ -465,6 +465,9 @@ proc module {command args} {
       load - try-load - load-any {
          set cmdprocsuffix IntLoad
       }
+      unload {
+         set cmdprocsuffix IntUnload
+      }
       initadd - initprepend - initswitch - initrm - initlist - initclear {
          set cmdprocsuffix Init
          lappend cmdopts [string range $command 4 end]
@@ -492,6 +495,9 @@ proc module {command args} {
    switch -- $command {
       load - try-load - load-any {
          lappend cmdopts $topcall $command $mode $tag_list
+      }
+      unload {
+         lappend cmdopts $mode
       }
       use {
          lappend cmdopts $mode $addpath_pos
@@ -521,30 +527,6 @@ proc module {command args} {
    }
 
    switch -- $command {
-      unload {
-         # if top command is source, consider module load commands made
-         # within sourced file evaluation as top load command
-         if {[isTopEvaluation]} {
-            set ret [cmdModuleUnload unload match 1 0 0 0 {*}$args]
-         } elseif {$mode eq {load}} {
-            # unload mods only on load mode, nothing done on unload mode as
-            # the registered conflict guarantees the target module cannot
-            # be loaded unless forced
-            # do not unload module required by others even in force mode
-            set ret [cmdModuleUnload conun match 0 0 0 1 {*}$args]
-
-            # register modulefiles to unload as individual conflicts
-            foreach arg $args {
-               # do not break on error yet, go through the whole modfile
-               # evaluation in case conflict is solved later on
-               catch {conflict $arg}
-            }
-            # sub-module interpretation failed, raise error
-            if {$ret} {
-               knerror {} MODULES_ERR_SUBFAILED
-            }
-         }
-      }
       switch {
          # pass 'user asked state' to switch procedure
          set uasked [isTopEvaluation]
