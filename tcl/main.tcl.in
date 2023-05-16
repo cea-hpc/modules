@@ -459,6 +459,57 @@ proc module {command args} {
       runModulerc
    }
 
+   # define procedure to launch and associated options
+   set cmdopts [list]
+   switch -- $command {
+      initadd - initprepend - initswitch - initrm - initlist - initclear {
+         set cmdprocsuffix Init
+         lappend cmdopts [string range $command 4 end]
+      }
+      sh-to-mod {
+         set cmdprocsuffix ShToMod
+      }
+      mod-to-sh {
+         set cmdprocsuffix ModToSh
+      }
+      prepend-path - append-path - remove-path - is-loaded - is-saved -\
+      is-used - is-avail {
+         set cmdprocsuffix Resurface
+         lappend cmdopts $command
+      }
+      info-loaded {
+         set cmdprocsuffix Resurface
+         lappend cmdopts module-info loaded
+      }
+      default {
+         set cmdprocsuffix [string toupper $command 0 0]
+      }
+   }
+   set cmdprocname cmdModule$cmdprocsuffix
+   switch -- $command {
+      use {
+         lappend cmdopts $mode $addpath_pos
+      }
+      unuse {
+         lappend cmdopts $mode
+      }
+      source {
+         lappend cmdopts load
+      }
+      avail {
+         lappend cmdopts $show_oneperline $show_mtime $show_filter\
+            $search_filter $search_match
+      }
+      list - savelist {
+         lappend cmdopts $show_oneperline $show_mtime $search_match
+      }
+      config {
+         lappend cmdopts $dump_state
+      }
+      stashlist {
+         lappend cmdopts $show_oneperline $show_mtime
+      }
+   }
 
    switch -- $command {
       load - try-load - load-any {
@@ -563,21 +614,6 @@ proc module {command args} {
             }
          }
       }
-      refresh {
-         cmdModuleRefresh
-      }
-      reload {
-         cmdModuleReload
-      }
-      use {
-         cmdModuleUse $mode $addpath_pos {*}$args
-      }
-      unuse {
-         cmdModuleUnuse $mode {*}$args
-      }
-      source {
-         cmdModuleSource load {*}$args
-      }
       switch {
          # pass 'user asked state' to switch procedure
          set uasked [isTopEvaluation]
@@ -635,25 +671,6 @@ proc module {command args} {
             }
          }
       }
-      display {
-         cmdModuleDisplay {*}$args
-      }
-      avail {
-         {*}cmdModuleAvail $show_oneperline $show_mtime $show_filter\
-            $search_filter $search_match {*}$args
-      }
-      aliases {
-         cmdModuleAliases
-      }
-      path {
-         cmdModulePath {*}$args
-      }
-      paths {
-         cmdModulePaths {*}$args
-      }
-      list {
-         cmdModuleList $show_oneperline $show_mtime $search_match {*}$args
-      }
       whatis {
          if {$args ne {}} {
             foreach arg $args {
@@ -666,106 +683,12 @@ proc module {command args} {
       search {
          cmdModuleApropos {*}$args
       }
-      purge {
-         cmdModulePurge
-      }
-      save {
-         cmdModuleSave {*}$args
-      }
-      restore {
-         cmdModuleRestore {*}$args
-      }
-      saverm {
-         cmdModuleSaverm {*}$args
-      }
-      saveshow {
-         cmdModuleSaveshow {*}$args
-      }
-      savelist {
-         cmdModuleSavelist $show_oneperline $show_mtime $search_match {*}$args
-      }
-      initadd {
-         cmdModuleInit add {*}$args
-      }
-      initprepend {
-         cmdModuleInit prepend {*}$args
-      }
-      initswitch {
-         cmdModuleInit switch {*}$args
-      }
-      initrm {
-         cmdModuleInit rm {*}$args
-      }
-      initlist {
-         cmdModuleInit list {*}$args
-      }
-      initclear {
-         cmdModuleInit clear {*}$args
-      }
-      autoinit {
-         cmdModuleAutoinit
-      }
       clear {
          # ensure empty string is correctly passed
          cmdModuleClear [lindex $args 0] [llength $args]
       }
-      config {
-         cmdModuleConfig $dump_state {*}$args
-      }
-      state {
-         cmdModuleState {*}$args
-      }
-      sh-to-mod {
-         cmdModuleShToMod {*}$args
-      }
-      edit {
-         cmdModuleEdit {*}$args
-      }
-      lint {
-         cmdModuleLint {*}$args
-      }
-      mod-to-sh {
-         cmdModuleModToSh {*}$args
-      }
-      reset {
-         cmdModuleReset
-      }
-      stash {
-         cmdModuleStash
-      }
-      stashpop {
-         cmdModuleStashpop {*}$args
-      }
-      stashrm {
-         cmdModuleStashrm {*}$args
-      }
-      stashshow {
-         cmdModuleStashshow {*}$args
-      }
-      stashclear {
-         cmdModuleStashclear
-      }
-      stashlist {
-         cmdModuleStashlist $show_oneperline $show_mtime
-      }
-      cachebuild {
-         cmdModuleCachebuild {*}$args
-      }
-      cacheclear {
-         cmdModuleCacheclear
-      }
-      help {
-         cmdModuleHelp {*}$args
-      }
-      test {
-         cmdModuleTest {*}$args
-      }
-      prepend-path - append-path - remove-path - is-loaded - is-saved -\
-      is-used - is-avail {
-         cmdModuleResurface $command {*}$args
-      }
-      info-loaded {
-         cmdModuleResurface module-info loaded {*}$args
+      default {
+         $cmdprocname {*}$cmdopts {*}$args
       }
    }
    lpopState commandname

@@ -312,10 +312,11 @@ proc formatErrStackTrace {errmsg loc {cmdlist {}}} {
    }
 
    # get list of modulecmd.tcl internal procedure to filter out from stack
+   # also add the way subcmds are launched through module proc ($cmdprocname)
    # skip this when no interp command list is provided
    if {[llength $cmdlist] > 0} {
-      lassign [getDiffBetweenList [list {*}[info commands] {*}[info procs]]\
-         $cmdlist] filtercmdlist keepcmdlist
+      lassign [getDiffBetweenList [list {*}[info commands] {*}[info procs]\
+         {$cmdprocname}] $cmdlist] filtercmdlist keepcmdlist
    } else {
       set filtercmdlist {}
    }
