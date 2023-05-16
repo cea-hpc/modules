@@ -402,6 +402,51 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    }
 }
 
+# Intermediate procedure between module and cmdModuleSwitch
+# Adapt options and arguments depending on context to call cmdModuleSwitch
+proc cmdModuleIntSwitch {mode tag_list args} {
+   # pass 'user asked state' to switch procedure
+   set uasked [isTopEvaluation]
+   # CAUTION: it is not recommended to use the `switch` sub-command in
+   # modulefiles as this command is intended for the command-line for a 2in1
+   # operation. Could be removed from the modfile scope in a future release.
+   # Use `module unload` and `module load` commands in modulefiles instead.
+   if {$uasked || $mode eq {load}} {
+      cmdModuleSwitch $uasked $tag_list {*}$args
+   } else {
+      # find what has been asked for unload and load
+      lassign $args swunmod swlomod
+      if {$swlomod eq {} && $swunmod ne {}} {
+         set swlomod $swunmod
+      }
+
+      # apply same mechanisms than for 'module load' and 'module unload' for
+      # an unload evaluation: nothing done for switched-off module and unload
+      # of switched-on module. If auto handling is enabled switched-on module
+      # is handled via UReqUn mechanism (unless if implicit_requirement has
+      # been inhibited). Also unloads are triggered by ongoing reload, purge,
+      # restore, reset, stash or stashpop cmds
+      if {(![getConf auto_handling] || [getState inhibit_req_record] eq\
+         [currentState evalid]) && $swlomod ne {} && [aboveCommandName] ni\
+         [list purge reload restore reset stash stashpop]} {
+         # unload mod if it was loaded prior this mod, not user asked and not
+         # required by another loaded module
+         set modlist [getLoadedModulePropertyList name]
+         set modidx [lsearch -exact $modlist [currentState modulename]]
+         if {$modidx != 0} {
+            set priormodlist [lrange $modlist 0 $modidx]
+            if {[set unmod [getLoadedMatchingName $swlomod {} 0\
+               $priormodlist]] ne {}} {
+               if {[cmdModuleUnload urequn match 1 0 1 1 $unmod]} {
+                  reportWarning "Unload of useless requirement\
+                     [getModuleDesignation loaded $unmod] failed" 1
+               }
+            }
+         }
+      }
+   }
+}
+
 proc cmdModuleSwitch {uasked tag_list old {new {}}} {
    # if a single name is provided it matches for the module to load and in
    # this case the module to unload is searched to find the closest match
