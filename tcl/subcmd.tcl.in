@@ -2214,9 +2214,9 @@ proc cmdModuleTest {args} {
    lpopState mode
 }
 
-proc cmdModuleClear {doit doitset} {
+proc cmdModuleClear {args} {
    # fetch confirmation if no arg passed and force mode disabled
-   if {!$doitset && ![getState force]} {
+   if {[llength $args] == 0 && ![getState force]} {
       # ask for it if stdin is attached to a terminal
       if {![catch {fconfigure stdin -mode}]} {
          report "Are you sure you want to clear all loaded modules!? \[n\] " 1
@@ -2225,6 +2225,8 @@ proc cmdModuleClear {doit doitset} {
       # fetch stdin content even if not attached to terminal in case some
       # content has been piped to this channel
       set doit [gets stdin]
+   } else {
+      set doit [lindex $args 0]
    }
 
    # should be confirmed or forced to proceed
