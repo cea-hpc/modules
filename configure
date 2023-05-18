@@ -20,7 +20,6 @@
 
 progpath=$0
 progdir=${progpath%/*}
-prog=${progpath##*/}
 
 # files to translate
 targetlist="${progdir}/Makefile.inc ${progdir}/site.exp"
@@ -43,7 +42,6 @@ zshcompletiondir tcllinter tcllinteropts nagelfardatadir nagelfaraddons"
 libarglist=()
 
 # flags to know if argument has been specified on command-line
-defmodulespath=1
 defpageropts=1
 
 # set argument default values
@@ -592,27 +590,31 @@ for arg in "$@"; do
    --modulefilesdir)
       nextargisval=modulefilesdir ;;
    --enable-set-manpath*|--disable-set-manpath)
+      # shellcheck disable=SC2034
       setmanpath=$(get_feature_value "$arg") ;;
    --enable-append-manpath*|--disable-append-manpath)
+      # shellcheck disable=SC2034
       appendmanpath=$(get_feature_value "$arg") ;;
    --enable-set-binpath*|--disable-set-binpath)
+      # shellcheck disable=SC2034
       setbinpath=$(get_feature_value "$arg") ;;
    --enable-append-binpath*|--disable-append-binpath)
+      # shellcheck disable=SC2034
       appendbinpath=$(get_feature_value "$arg") ;;
    --enable-dotmodulespath*|--disable-dotmodulespath|--enable-modulespath*|--disable-modulespath)
-      setmodulespath=$(get_feature_value "$arg")
-      defmodulespath=0 ;;
+      setmodulespath=$(get_feature_value "$arg") ;;
    --enable-doc-install*|--disable-doc-install)
-      docinstall=$(get_feature_value "$arg")
-      defdocinstall=0 ;;
+      # shellcheck disable=SC2034
+      docinstall=$(get_feature_value "$arg") ;;
    --enable-vim-addons*|--disable-vim-addons)
-      vimaddons=$(get_feature_value "$arg")
-      defvimplugin=0 ;;
+      # shellcheck disable=SC2034
+      vimaddons=$(get_feature_value "$arg") ;;
    --enable-nagelfar-addons*|--disable-nagelfar-addons)
+      # shellcheck disable=SC2034
       nagelfaraddons=$(get_feature_value "$arg") ;;
    --enable-example-modulefiles*|--disable-example-modulefiles)
-      examplemodulefiles=$(get_feature_value "$arg")
-      defexamplemodulefiles=0 ;;
+      # shellcheck disable=SC2034
+      examplemodulefiles=$(get_feature_value "$arg") ;;
    --enable-libtclenvmodules*|--disable-libtclenvmodules)
       libtclenvmodules=$(get_feature_value "$arg") ;;
    --enable-multilib-support*|--disable-multilib-support)
@@ -620,30 +622,43 @@ for arg in "$@"; do
    --enable-versioning*|--disable-versioning)
       versioning=$(get_feature_value "$arg") ;;
    --enable-silent-shell-debug-support*|--disable-silent-shell-debug-support)
+      # shellcheck disable=SC2034
       silentshdbgsupport=$(get_feature_value "$arg") ;;
    --enable-set-shell-startup*|--disable-set-shell-startup)
+      # shellcheck disable=SC2034
       setshellstartup=$(get_feature_value "$arg") ;;
    --enable-quarantine-support*|--disable-quarantine-support)
+      # shellcheck disable=SC2034
       quarantinesupport=$(get_feature_value "$arg") ;;
    --enable-auto-handling*|--disable-auto-handling)
+      # shellcheck disable=SC2034
       autohandling=$(get_feature_value "$arg") ;;
    --enable-implicit-requirement*|--disable-implicit-requirement)
+      # shellcheck disable=SC2034
       implicitrequirement=$(get_feature_value "$arg") ;;
    --enable-avail-indepth*|--disable-avail-indepth)
+      # shellcheck disable=SC2034
       availindepth=$(get_feature_value "$arg") ;;
    --enable-implicit-default*|--disable-implicit-default)
+      # shellcheck disable=SC2034
       implicitdefault=$(get_feature_value "$arg") ;;
    --enable-extended-default*|--disable-extended-default)
+      # shellcheck disable=SC2034
       extendeddefault=$(get_feature_value "$arg") ;;
    --enable-advanced-version-spec*|--disable-advanced-version-spec)
+      # shellcheck disable=SC2034
       advversspec=$(get_feature_value "$arg") ;;
    --enable-ml*|--disable-ml)
+      # shellcheck disable=SC2034
       ml=$(get_feature_value "$arg") ;;
    --enable-wa-277*|--disable-wa-277)
+      # shellcheck disable=SC2034
       wa277=$(get_feature_value "$arg") ;;
    --enable-windows-support*|--disable-windows-support)
+      # shellcheck disable=SC2034
       windowssupport=$(get_feature_value "$arg") ;;
    --enable-mcookie-version-check*|--disable-mcookie-version-check)
+      # shellcheck disable=SC2034
       mcookieversioncheck=$(get_feature_value "$arg") ;;
    --with-bin-search-path=*|--without-bin-search-path)
       binsearchpath=$(get_package_value "$arg") ;;
@@ -671,6 +686,7 @@ for arg in "$@"; do
             "Allowed values are:$allowedval"
       fi ;;
    --enable-color*|--disable-color)
+      # shellcheck disable=SC2034
       color=$(get_feature_value "$arg") ;;
    --enable-new-features*|--disable-new-features)
       val=$(get_feature_value "$arg") ;
@@ -786,16 +802,21 @@ for arg in "$@"; do
    --with-loadedmodules=*|--without-loadedmodules)
       loadedmodules=$(get_package_value "$arg") ;;
    --with-quarantine-vars=*|--without-quarantine-vars)
+      # shellcheck disable=SC2034
       quarantinevars=$(get_package_value "$arg") ;;
    --with-bashcompletiondir=*|--without-bashcompletiondir)
+      # shellcheck disable=SC2034
       bashcompletiondir=$(get_package_value "$arg" "") ;;
    --with-fishcompletiondir=*|--without-fishcompletiondir)
+      # shellcheck disable=SC2034
       fishcompletiondir=$(get_package_value "$arg" "") ;;
    --with-zshcompletiondir=*|--without-zshcompletiondir)
+      # shellcheck disable=SC2034
       zshcompletiondir=$(get_package_value "$arg" "") ;;
    --with-tcl-linter=*|--without-tcl-linter)
       tcllinter=$(get_package_value "$arg") ;;
    --with-tcl-linter-opts=*|--without-tcl-linter-opts)
+      # shellcheck disable=SC2034
       tcllinteropts=$(get_package_value "$arg") ;;
    --with-tcl=*|--without-tcl|--with-tclinclude=*|--without-tclinclude)
       libarglist+=("$arg") ;;
@@ -863,9 +884,11 @@ check_requirement sed
 check_requirement runtest "Install \`dejagnu' if you want to run the \
 testsuite"
 check_requirement manpath 'Will rely on MANPATH to get enabled man directories'
+# shellcheck disable=SC2034
 [ -z "$reqpath" ] && usemanpath=n
 
 # rmdir option may not be available, use || true in any case
+# shellcheck disable=SC2034
 if [ "$kernelname" = 'Linux' ]; then
     RMDIR_IGN_NON_EMPTY='rmdir --ignore-fail-on-non-empty'
 else
@@ -896,7 +919,9 @@ else
    # pass even if sphinx not there but no doc will be built
    check_requirement sphinx-build "Install \`sphinx-build' if you want to \
 build the documentation" '' 'sphinx-1.0-build'
+   # shellcheck disable=SC2034
    SPHINXBUILD=$reqpath
+   # shellcheck disable=SC2034
    [ -z "$reqpath" ] && builddoc=n
 fi
 
@@ -940,8 +965,10 @@ fi
 
 # get location of commands used 'fullpath' in init scripts
 check_requirement 'ps' '' "PATH=$binsearchpath"
+# shellcheck disable=SC2034
 PS=$reqpath
 check_requirement 'basename' '' "PATH=$binsearchpath"
+# shellcheck disable=SC2034
 BASENAME=$reqpath
 
 # get pager program location from standard PATHs or /usr/local/bin
@@ -1005,6 +1032,7 @@ else
    build="+${build_refs##* }-XX-g$build_hash"
 fi
 VERSION=$release$build
+# shellcheck disable=SC2034
 RELEASE=$release
 
 if [ -z "$VERSION" ]; then
@@ -1012,6 +1040,7 @@ if [ -z "$VERSION" ]; then
 fi
 
 # refer to binary exes and libs to build with the appropriate extension
+# shellcheck disable=SC2034
 case "$kernelname" in
    CYGWIN*) SHLIB_SUFFIX='.dll' ;;
    MINGW*|MSYS_NT*) SHLIB_SUFFIX='.dll' ;;
@@ -1044,6 +1073,7 @@ fi
 
 # define libdir64 and libdir32 based on libdir if multilib support enabled
 if [ "$multilibsupport" = 'y' ]; then
+   # shellcheck disable=SC2034
    case "$libdir" in
       *64*)
          libdir64=$libdir ;

@@ -42,6 +42,7 @@ case $TMP_STRATEGY in
 	GCCGNU=gnu
 	;;
    *)
+    # shellcheck disable=SC2034
 	GCCGNU=gcc
 	;;
 esac
@@ -57,6 +58,7 @@ case $TMP_MODVERSION in
 		AUTOFLAG=
 		;;
 	   *)
+        # shellcheck disable=SC2034
 		AUTOFLAG="--auto"
 		;;
 	esac
