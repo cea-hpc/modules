@@ -31,7 +31,7 @@ esac
 
 #Define do_cmd function
 do_cmd()
-{	cmd="$@"
+{	cmd="$*"
 	echo "[$TMP_PROMPT]$ $cmd"
 	$cmd
 }
