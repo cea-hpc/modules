@@ -82,7 +82,7 @@ fi
 # source module init file if first step of given mode
 if [ "$mode" = 'top' ] || [ "$mode" = 'sub' ] || [ "$mode" = 'subsub' ]; then
    if [ $autoinit -eq 0 ]; then
-      eval "$("$initfile" $shname autoinit)"
+      eval "$("$initfile" "$shname" autoinit)"
    else
       . "$initfile"
    fi
@@ -108,11 +108,13 @@ case "$mode" in
       unset IFS
       ;;
    sub|sublaunch)
-      $sh $shopts $progdir/install_test_${shkind} "$initfile" launch "$sh" "$cmdlist"
+      # shellcheck disable=SC2086
+      $sh $shopts "$progdir/install_test_${shkind}" "$initfile" launch "$sh" "$cmdlist"
       ret=$?
       ;;
    subsub)
-      $sh $shopts $progdir/install_test_${shkind} "$initfile" sublaunch "$sh" "$cmdlist"
+      # shellcheck disable=SC2086
+      $sh $shopts "$progdir/install_test_${shkind}" "$initfile" sublaunch "$sh" "$cmdlist"
       ret=$?
       ;;
    *)
