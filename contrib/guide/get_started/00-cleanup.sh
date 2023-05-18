@@ -3,7 +3,7 @@ set -v
 
 rm -rf /usr/local/Modules
 rm -rf /apps/userenv
-cd /root/modules
+cd /root/modules || exit 1
 make distclean
 rm -f /etc/profile.d/modules.sh
 mkdir -p /apps/userenv/modules/{applications,environment}
