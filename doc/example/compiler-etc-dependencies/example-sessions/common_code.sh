@@ -3,12 +3,12 @@
 # This should be sourced from the other scripts
 
 # Make sure TMP_MODVERSION and TMP_STRATEGY are set
-if [ "x$TMP_MODVERSION" = "x" ]; then
+if [ -z "$TMP_MODVERSION" ]; then
 	echo >&2 "ERROR: TMP_MODVERSION not set"
 	exit
 fi
 
-if [ "x$TMP_STRATEGY" = "x" ]; then
+if [ -z "$TMP_STRATEGY" ]; then
 	echo >&2 "ERROR: TMP_STRATEGY not set"
 	exit
 fi
