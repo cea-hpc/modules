@@ -6,6 +6,17 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+.. _5.X release notes:
+
+Modules 5.X.Y (not yet released)
+--------------------------------
+
+* Fix additional `ShellCheck`_ warning reports over sh and bash shell scripts.
+* Install: distribute ``ChangeLog`` as a zipped file to reduce installation
+  size. As a consequence, :command:`gzip` becomes a requirement when building
+  Modules from git repository.
+
+
 .. _5.3 release notes:
 
 Modules 5.3.0 (2023-05-14)
