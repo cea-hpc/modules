@@ -48,6 +48,7 @@ are required:
 * autopoint
 * python
 * sphinx >= 1.0
+* gzip
 
 Get Modules
 -----------
