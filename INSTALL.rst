@@ -46,6 +46,7 @@ are required:
 * autoconf
 * automake
 * autopoint
+* m4
 * python
 * sphinx >= 1.0
 * gzip
