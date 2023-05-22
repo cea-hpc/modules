@@ -593,7 +593,7 @@ proc getModuleTag {mod fpmod tag {cmp eqstart} {return_rule 0}} {
 proc isModuleTagged {mod tag {collected 0} {fpmod {}}} {
    # retrieve tag information from collected tags or raw info
    if {$collected} {
-      return [expr {$tag in [getTagList $mod]}]
+      return [expr {$tag in [getTagList $mod $fpmod]}]
    } else {
       return [expr {[llength [getModuleTag $mod $fpmod $tag]] != 0}]
    }
@@ -675,24 +675,30 @@ proc unsetModuleExtraTag {mod args} {
    }
 }
 
-proc getTagList {mod {sort 1}} {
-   if {[info exists ::g_tagHash($mod)]} {
-      if {$sort} {
-         set ret [lsort -dictionary $::g_tagHash($mod)]
-      } else {
-         set ret $::g_tagHash($mod)
-      }
-      reportDebug "'$mod' has tag list '$ret'"
-   } else {
-      set ret {}
+proc getTagList {mod {fpmod {}} {sort 1}} {
+   set tag_list {}
+   # get tags applied over module full path designation
+   if {$fpmod ne {} && [info exists ::g_moduleTagFullPath($fpmod)]} {
+      appendNoDupToList tag_list {*}$::g_moduleTagFullPath($fpmod)
    }
-   return $ret
+   # get collected tags applied on short designation
+   if {[info exists ::g_tagHash($mod)]} {
+      appendNoDupToList tag_list {*}$::g_tagHash($mod)
+   }
+   if {[llength $tag_list] > 0} {
+      if {$sort} {
+         set tag_list [lsort -dictionary $tag_list]
+      }
+      reportDebug "'$mod' has tag list '$tag_list'"
+   }
+   return $tag_list
 }
 
 # return tags applying to mod that can be exported
 proc getExportTagList {mod {serialized 0}} {
    # remove loaded/hidden tags from the list to register
-   lassign [getDiffBetweenList [getTagList $mod 0] [list loaded hidden]] ret
+   lassign [getDiffBetweenList [getTagList $mod $fpmod 0] [list loaded\
+      hidden]] ret
    if {$serialized && [llength $ret] > 0} {
       # extract mod name and version from full spec with variants
       set ret [join [list [getModuleNameAndVersFromVersSpec $mod] {*}$ret]\

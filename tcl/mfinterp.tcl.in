@@ -442,7 +442,7 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
          append newmodnamevr " $vr"
       }
       if {$modnamevr ne $newmodnamevr} {
-         set modnamevr_tag_list [getTagList $modnamevr]
+         set modnamevr_tag_list [getTagList $modnamevr $modfile]
          set modnamevr_extratag_list [getExtraTagList $modnamevr]
          lassign [parseModuleSpecification 0 0 0 0 {*}$newmodnamevr] modnamevr
          # $up_namevr is only enabled when $fetch_tags is also enabled
@@ -905,9 +905,10 @@ proc module-info {what {more {}}} {
          collectModuleTags $modnamevr
 
          if {$more ne {}} {
-            return [expr {$more in [getTagList $modnamevr]}]
+            return [expr {$more in [getTagList $modnamevr [currentState\
+               modulefile]]}]
          } else {
-            return [getTagList $modnamevr]
+            return [getTagList $modnamevr [currentState modulefile]]
          }
       }
       version {
