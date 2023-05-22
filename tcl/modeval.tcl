@@ -769,13 +769,13 @@ proc isStickinessReloading {mod reloading_modlist {tag sticky}} {
          $modname] $modname]
       getModules $dir $modname 0 [list rc_defs_included]
 
-      set tmodspec [getModuleTag $mod $tag equal 1]
+      set tmodspec [getModuleTag $mod {} $tag equal 1]
       # if tag specifically applies to fully qualified module, exact same
       # module should be found in reload list
       if {$tmodspec ne {}} {
          set tmodspec $mod
       } else {
-         set tmodspec [getModuleTag $mod $tag eqstart 1]
+         set tmodspec [getModuleTag $mod {} $tag eqstart 1]
       }
 
       # check if a loading mod satisfies sticky rules

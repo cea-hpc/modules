@@ -554,7 +554,19 @@ proc getGlobalRcFileList {} {
    return $readable_rclist
 }
 
-proc getModuleTag {mod tag {cmp eqstart} {return_rule 0}} {
+proc getModuleTag {mod fpmod tag {cmp eqstart} {return_rule 0}} {
+   # check if tag is set on full path module designation (no prop there)
+   if {$fpmod ne {} && [info exists ::g_moduleTagFullPath($fpmod)]} {
+      if {$tag in $::g_moduleTagFullPath($fpmod)} {
+         if {$return_rule} {
+            return $fpmod
+         } else {
+            set idx [lsearch -exact $::g_moduleTagFullPath($fpmod) $tag]
+            return [list $tag [lindex $::g_moduleTagFullPathSpec($fpmod)\
+               $idx]]
+         }
+      }
+   }
    set modroot [getModuleRootFromVersSpec $mod]
    # look if mod matches one of the module specs applying to mod root
    if {[info exists ::g_moduleTagRoot($modroot)]} {
@@ -583,7 +595,7 @@ proc isModuleTagged {mod tag {collected 0} {fpmod {}}} {
    if {$collected} {
       return [expr {$tag in [getTagList $mod]}]
    } else {
-      return [expr {[llength [getModuleTag $mod $tag]] != 0}]
+      return [expr {[llength [getModuleTag $mod $fpmod $tag]] != 0}]
    }
 }
 
@@ -599,7 +611,7 @@ proc getTaggedLoadedModuleList {tag} {
 
 proc getModuleTagProp {mod tag prop} {
    set ret {}
-   array set tags [getModuleTag $mod $tag]
+   array set tags [getModuleTag $mod {} $tag]
 
    if {[info exists tags($tag)]} {
       array set props $tags($tag)
