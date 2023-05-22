@@ -1096,29 +1096,46 @@ proc setModspecTag {modspec tag {props {}}} {
    reportDebug "Set tag '$tag' with properties '$props' on module\
       specification '$modspec'"
 
-   # record tag list for mod root to optimize search
-   set modroot [getModuleRootFromVersSpec $modspec]
-   if {![info exists ::g_moduleTagRoot($modroot)]} {
-      lappend ::g_moduleTagRoot($modroot) $tag
-      set idx 0
-      set new 1
-   } else {
-      set idx [lsearch -exact $::g_moduleTagRoot($modroot) $tag]
-      if {$idx == -1} {
-         set idx [llength $::g_moduleTagRoot($modroot)]
-         lappend ::g_moduleTagRoot($modroot) $tag
-         set new 1
+   if {[isModuleFullPath $modspec]} {
+      # use dedicated structure for full path module specifications
+      if {![info exists ::g_moduleTagFullPath($modspec)] || $tag ni\
+         $::g_moduleTagFullPath($modspec)} {
+            lappend ::g_moduleTagFullPath($modspec) $tag
+      } else {
+         set idx [lsearch -exact $::g_moduleTagFullPath($modspec) $tag]
       }
-   }
-
-   # then record mod spec and props at idx defined for tag. new spec are
-   # appended and firstly matching spec is returned with its props on search
-   if {[info exists new]} {
-      lappend ::g_moduleTagRootSpec($modroot) [list $modspec $props]
+      # record props associated to tag
+      if {[info exists idx]} {
+         lset ::g_moduleTagFullPathSpec($modspec) $idx $props
+      } else {
+         lappend ::g_moduleTagFullPathSpec($modspec) $props
+      }
    } else {
-      set tagrootlist [lindex $::g_moduleTagRootSpec($modroot) $idx]
-      lappend tagrootlist $modspec $props
-      lset ::g_moduleTagRootSpec($modroot) $idx $tagrootlist
+      # record tag list for mod root to optimize search
+      set modroot [getModuleRootFromVersSpec $modspec]
+      if {![info exists ::g_moduleTagRoot($modroot)]} {
+         lappend ::g_moduleTagRoot($modroot) $tag
+         set idx 0
+         set new 1
+      } else {
+         set idx [lsearch -exact $::g_moduleTagRoot($modroot) $tag]
+         if {$idx == -1} {
+            set idx [llength $::g_moduleTagRoot($modroot)]
+            lappend ::g_moduleTagRoot($modroot) $tag
+            set new 1
+         }
+      }
+
+      # then record mod spec and props at idx defined for tag. new spec are
+      # appended and firstly matching spec is returned with its props on
+      # search
+      if {[info exists new]} {
+         lappend ::g_moduleTagRootSpec($modroot) [list $modspec $props]
+      } else {
+         set tagrootlist [lindex $::g_moduleTagRootSpec($modroot) $idx]
+         lappend tagrootlist $modspec $props
+         lset ::g_moduleTagRootSpec($modroot) $idx $tagrootlist
+      }
    }
 }
 
