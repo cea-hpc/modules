@@ -214,14 +214,15 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
    }
 
    # inform that access to module will be soon denied
-   if {$mode ne {unload} && [isModuleTagged $modnamevr nearly-forbidden 1]} {
+   if {$mode ne {unload} && [isModuleTagged $modnamevr nearly-forbidden 1\
+      $modfile]} {
       reportWarning [getNearlyForbiddenMsg $modnamevr]
       set nearlyforbidwarn 1
    # fail unload attempt if module is sticky, unless if forced or reloading
    # also fail unload if mod is super-sticky even if forced, unless reloading
    } elseif {$mode eq {unload}} {
       # when loaded, tags applies to mod name and version (not with variant)
-      if {[isModuleTagged $modname super-sticky 1] && [currentState\
+      if {[isModuleTagged $modname super-sticky 1 $modfile] && [currentState\
          reloading_supersticky] ne $modname} {
          # restore changed states prior raising error
          lpopState debug_msg_prefix
@@ -231,7 +232,7 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
          lpopState modulenamevr
          lpopState modulefile
          knerror [getStickyUnloadMsg super-sticky]
-      } elseif {[isModuleTagged $modname sticky 1] && [currentState\
+      } elseif {[isModuleTagged $modname sticky 1 $modfile] && [currentState\
          reloading_sticky] ne $modname && [currentState unloading_sticky] ne\
          $modname} {
          if {[getState force]} {
@@ -455,11 +456,11 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
 
    # check if special tags now applies and require to raise an error
    if {$mode ne {unload}} {
-      if {[isModuleTagged $modnamevr forbidden 1]} {
+      if {[isModuleTagged $modnamevr forbidden 1 $modfile]} {
          set errorVal 1
          reportError [getForbiddenMsg $modnamevr]
       } elseif {![info exists nearlyforbidwarn] && [isModuleTagged $modnamevr\
-         nearly-forbidden 1]} {
+         nearly-forbidden 1 $modfile]} {
          reportWarning [getNearlyForbiddenMsg $modnamevr]
       }
    }

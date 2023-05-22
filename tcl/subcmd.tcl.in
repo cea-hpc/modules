@@ -228,7 +228,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
       foreach elt [array names mod_list] {
          switch -- [lindex $mod_list($elt) 0] {
             modulefile {
-               if {[isModuleTagged $elt forbidden]} {
+               if {[isModuleTagged $elt forbidden 0 $dir/$elt]} {
                   # register any error occurring on element matching search
                   if {[modEq $mod $elt]} {
                      set err_list($elt) [list accesserr [getForbiddenMsg\
@@ -242,7 +242,8 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
                }
             }
             virtual {
-               if {[isModuleTagged $elt forbidden]} {
+               if {[isModuleTagged $elt forbidden 0 [lindex $mod_list($elt)\
+                  2]]} {
                   # register any error occurring on element matching search
                   if {[modEq $mod $elt]} {
                      set err_list($elt) [list accesserr [getForbiddenMsg\
@@ -1279,7 +1280,7 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
          }
 
          # loading visibility depends on hidden-loaded tag
-         set hidden [isModuleTagged $modnamevr hidden-loaded 1]
+         set hidden [isModuleTagged $modnamevr hidden-loaded 1 $modfile]
 
          append-path LOADEDMODULES $modname
          # allow duplicate modfile entries for virtual modules

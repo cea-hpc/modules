@@ -333,7 +333,8 @@ proc filterExtraMatchSearch {modpath mod res_arrname versmod_arrname} {
       switch -- [lindex $found_list($elt) 0] {
          modulefile - virtual {
             # skip evaluation of fully forbidden modulefile
-            if {![isModuleTagged $elt forbidden 0]} {
+            if {![isModuleTagged $elt forbidden 0 [lindex $found_list($elt)\
+               2]]} {
                ##nagelfar ignore Suspicious variable name
                execute-modulefile [lindex $found_list($elt) 2] $elt $elt $elt\
                   0 0 $modpath
