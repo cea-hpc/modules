@@ -359,4 +359,22 @@ Updating tags on already loaded modules
   these tags if the module is loaded again: only the extra and state tags
   from this new load will be set.
 
+Tags set over full path module designation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Sometimes a tag should be applied on a specific modulefile whose name and
+version is available in several modulepaths. For that need, tag has to be set
+over full path module designation.
+
+Tags set over module full path designation cannot be mixed with tags set over
+regular module name and version as they only apply to the one modulefile in
+one modulepath and not to every module using the same short name and version
+designation.
+
+Forbidden tag set over module full path designation and its properties get
+precedence over same tag's properties set over short module name and version.
+
+It makes code more complex as full path designation has to be passed as
+argument along short name to get all tags applying to module.
+
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
