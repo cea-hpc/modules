@@ -1,0 +1,197 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.20-locate/%M%
+#   Revision:		%I%
+#   First Edition:	2023/05/24
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:    tag
+#   Sub-Command:    avail, load, whatis
+#
+#   Comment:	%C{
+#           Check module-forbid modulefile command over full path
+#           module designation
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.4
+set mpre $modpathre.4
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+# ensure we get nearly-forbidden notices
+setenv_var MODULES_NEARLY_FORBIDDEN_DAYS 4
+
+# ensure default tag abbreviation is defined
+setenv_var MODULES_TAG_ABBREV {auto-loaded=aL:loaded=L:hidden=H:hidden-loaded=H:forbidden=F:nearly-forbidden=nF}
+
+
+#
+# forbidden full path designation
+#
+
+setenv_var TESTSUITE_FPMOD_TAG forbid1
+
+set tserr "$mp:
+tag/1.0 <F>"
+testouterr_cmd sh {avail -t tag/1.0} OK $tserr
+
+# no scan of forbidden module
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+testouterr_cmd sh {avail tag/1.0 setenv:FOO} OK {}
+testouterr_cmd sh {avail tag/1.1 setenv:FOO} OK {}
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+
+set tserr [err_accessdenied tag/1.0]
+testouterr_cmd sh {load -v tag/1.0} ERR $tserr
+
+#
+# specific forbidden message
+#
+
+setenv_var TESTSUITE_FPMOD_TAG forbid2
+
+set tserr "$mp:
+tag/1.0 <F>"
+testouterr_cmd sh {avail -t tag/1.0} OK $tserr
+
+set tserr "$mp:
+tag/1.1 <F>"
+testouterr_cmd sh {avail -t tag/1.1} OK $tserr
+
+set tserr [err_accessdenied tag/1.0 my-forbid-msg]
+testouterr_cmd sh {load -v tag/1.0} ERR $tserr
+
+set tserr [err_accessdenied tag/1.1 my-forbid-msg]
+testouterr_cmd sh {load -v tag/1.1} ERR $tserr
+
+set tserr [err_accessdenied tag/1.0 my-forbid-msg]
+testouterr_cmd sh {whatis tag/1.0} ERR $tserr
+
+set tserr [err_accessdenied tag/1.1 my-forbid-msg]
+testouterr_cmd sh {whatis tag/1.1} ERR $tserr
+
+# tag applied several times with different properties
+# last definition overwrite properties
+setenv_var TESTSUITE_FPMOD_TAG forbid4
+set tserr [err_accessdenied tag/1.0 my-forbid-msg2]
+testouterr_cmd sh {load -v tag/1.0} ERR $tserr
+
+# tag applied several times with different properties on full path module and short name
+# tag applied over full path designation gets precedence
+setenv_var TESTSUITE_FPMOD_TAG forbid5
+set tserr [err_accessdenied tag/1.0 my-forbid-msg2]
+testouterr_cmd sh {load -v tag/1.0} ERR $tserr
+
+# tag applied several times with different properties on full path module and short name
+# tag applied over full path designation gets precedence
+setenv_var TESTSUITE_FPMOD_TAG forbid6
+set tserr [err_accessdenied tag/1.0 my-forbid-msg2]
+testouterr_cmd sh {load -v tag/1.0} ERR $tserr
+
+
+#
+# specific nearly forbidden message
+#
+
+setenv_var TESTSUITE_FPMOD_TAG forbid3
+
+set tserr "$mp:
+tag/1.0 <nF>"
+testouterr_cmd sh {avail -t tag/1.0} OK $tserr
+
+set tserr "$mp:
+tag/1.1 <nF>"
+testouterr_cmd sh {avail -t tag/1.1} OK $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+lappend ans [list set __MODULES_LMTAG tag/1.0&nearly-forbidden]
+set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
+set tserr [msg_load {tag/1.0 <nF>} [err_accessnearlydenied $tomorrow my-nearly-forbid-msg]]
+testouterr_cmd sh {load -v tag/1.0} $ans $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.1]
+lappend ans [list set __MODULES_LMTAG tag/1.1&nearly-forbidden]
+set tserr [msg_load {tag/1.1 <nF>} [err_accessnearlydenied $tomorrow my-nearly-forbid-msg]]
+testouterr_cmd sh {load -v tag/1.1} $ans $tserr
+
+# tag applied several times with different properties
+# last definition overwrite properties
+setenv_var TESTSUITE_FPMOD_TAG forbid7
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+lappend ans [list set __MODULES_LMTAG tag/1.0&nearly-forbidden]
+set aftertomorrow [clock format [expr {[clock seconds]+(86400*2)}] -format %Y-%m-%d]
+set tserr [msg_load {tag/1.0 <nF>} [err_accessnearlydenied $aftertomorrow my-nearly-forbid-msg2]]
+testouterr_cmd sh {load -v tag/1.0} $ans $tserr
+
+# tag applied several times with different properties on full path module and short name
+# tag applied over full path designation gets precedence
+setenv_var TESTSUITE_FPMOD_TAG forbid8
+set tserr [msg_load {tag/1.0 <nF>} [err_accessnearlydenied $tomorrow my-nearly-forbid-msg1]]
+testouterr_cmd sh {load -v tag/1.0} $ans $tserr
+
+# tag applied several times with different properties on full path module and short name
+# tag applied over full path designation gets precedence
+setenv_var TESTSUITE_FPMOD_TAG forbid9
+set tserr [msg_load {tag/1.0 <nF>} [err_accessnearlydenied $tomorrow my-nearly-forbid-msg1]]
+testouterr_cmd sh {load -v tag/1.0} $ans $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.1]
+lappend ans [list set __MODULES_LMTAG tag/1.1&nearly-forbidden]
+set tserr [msg_load {tag/1.1 <nF>} [err_accessnearlydenied $tomorrow my-nearly-forbid-msg1]]
+testouterr_cmd sh {load -v tag/1.1} $ans $tserr
+
+
+#
+# module-forbid command defined in modulefile
+#
+
+setenv_var TESTSUITE_FPMOD_TAG forbid10
+
+set tserr [msg_load tag/1.0 [err_accessdenied tag/1.0 local-forbid-msg1 {}]]
+testouterr_cmd sh {load -v tag/1.0} ERR $tserr
+
+set tserr [msg_load tag/1.1 [err_accessdenied tag/1.1 local-forbid-msg1 {}]]
+testouterr_cmd sh {load -v tag/1.1} ERR $tserr
+
+setenv_var TESTSUITE_FPMOD_TAG forbid11
+set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+lappend ans [list set __MODULES_LMTAG tag/1.0&nearly-forbidden]
+set tserr [msg_load {tag/1.0 <nF>} [err_accessnearlydenied $tomorrow local-forbid-msg1]]
+testouterr_cmd sh {load -v tag/1.0} $ans $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.1]
+lappend ans [list set __MODULES_LMTAG tag/1.1&nearly-forbidden]
+set tserr [msg_load {tag/1.1 <nF>} [err_accessnearlydenied $tomorrow local-forbid-msg1]]
+testouterr_cmd sh {load -v tag/1.1} $ans $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env

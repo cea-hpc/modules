@@ -1,1 +1,16 @@
 #%Module
+if {[info exists env(TESTSUITE_FPMOD_TAG)]} {
+    switch -- $env(TESTSUITE_FPMOD_TAG) {
+        forbid1 {
+            setenv FOO value
+        }
+        forbid10 {
+            module-forbid --message local-forbid-msg1 [file dirname $ModulesCurrentModulefile]/1.0
+        }
+        forbid11 {
+            set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
+            module-forbid --nearly-message local-forbid-msg1 --after $tomorrow\
+                [file dirname $ModulesCurrentModulefile]/1.0
+        }
+    }
+}
