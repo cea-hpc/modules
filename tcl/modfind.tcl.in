@@ -609,9 +609,9 @@ proc getTaggedLoadedModuleList {tag} {
    return $modlist
 }
 
-proc getModuleTagProp {mod tag prop} {
+proc getModuleTagProp {mod fpmod tag prop} {
    set ret {}
-   array set tags [getModuleTag $mod {} $tag]
+   array set tags [getModuleTag $mod $fpmod $tag]
 
    if {[info exists tags($tag)]} {
       array set props $tags($tag)
@@ -1196,7 +1196,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
       # update result if forbidden
       if {[isModuleTagged $modnamevr forbidden 0 [lindex $retlist 0]]} {
          set retlist [list {} [lindex $retlist 1] [lindex $retlist 2]\
-            accesserr [getForbiddenMsg $modnamevr]]
+            accesserr [getForbiddenMsg $modnamevr [lindex $retlist 0]]]
       }
    }
    if {[lindex $retlist 0] ne {}} {
@@ -2815,7 +2815,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
             # matches search query
             if {$hidlvl == 2 && $hidmatch && [isModuleTagged $elt forbidden 0\
                $dir/$elt]} {
-               set found_list($elt) [list accesserr [getForbiddenMsg $elt]]
+               set found_list($elt) [list accesserr [getForbiddenMsg $elt\
+                  $dir/$elt]]
                set err_list($elt) 1
             } else {
                unset found_list($elt)
