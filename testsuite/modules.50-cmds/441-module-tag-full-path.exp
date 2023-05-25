@@ -1,0 +1,403 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2023/05/24
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:    tag
+#   Sub-Command:    avail, load, unload
+#
+#   Comment:	%C{
+#           Check 'module-tag' modulefile command over full path
+#           module designation
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.4
+set mpre $modpathre.4
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+
+#
+# tag set over full path designation
+#
+
+setenv_var TESTSUITE_FPMOD_TAG thisloc1
+
+set tserr "$mp:
+tag/1.0 <foo>
+tag/2.0"
+testouterr_cmd sh {avail -t tag} OK $tserr
+set tserr "$mp:
+tag/1.0 <foo>"
+testouterr_cmd sh {avail -t tag/1.0} OK $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+lappend ans [list set __MODULES_LMTAG tag/1.0&foo]
+set tserr [msg_load {tag/1.0 <foo>}]
+testouterr_cmd sh {load -v tag/1.0} $ans $tserr
+
+setenv_loaded_module [list tag/1.0] [list $mp/tag/1.0]
+setenv_path_var __MODULES_LMTAG tag/1.0&foo
+set tserr [msg_unload {tag/1.0 <foo>}]
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+testouterr_cmd sh {unload -v tag/1.0} $ans $tserr
+unsetenv_path_var __MODULES_LMTAG
+unsetenv_loaded_module
+
+
+#
+# tag set over another full path designation
+#
+
+setenv_var TESTSUITE_FPMOD_TAG otherloc1
+
+set tserr "$mp:
+tag/1.0"
+testouterr_cmd sh {avail -t tag/1.0} OK $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+set tserr [msg_load {tag/1.0}]
+testouterr_cmd sh {load -v tag/1.0} $ans $tserr
+
+setenv_loaded_module [list tag/1.0] [list $mp/tag/1.0]
+set tserr [msg_unload {tag/1.0}]
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh {unload -v tag/1.0} $ans $tserr
+unsetenv_loaded_module
+
+
+#
+# several tags applied over full path designation
+#
+
+setenv_var TESTSUITE_FPMOD_TAG multi1
+
+set tserr "$mp:
+tag/1.0 <bar:foo>"
+testouterr_cmd sh {avail -t tag/1.0} OK $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+lappend ans [list set __MODULES_LMTAG tag/1.0&foo&bar]
+set tserr [msg_load {tag/1.0 <bar:foo>}]
+testouterr_cmd sh {load -v tag/1.0} $ans $tserr
+
+setenv_loaded_module [list tag/1.0] [list $mp/tag/1.0]
+setenv_path_var __MODULES_LMTAG tag/1.0&foo&bar
+set tserr [msg_unload {tag/1.0 <bar:foo>}]
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+testouterr_cmd sh {unload -v tag/1.0} $ans $tserr
+unsetenv_path_var __MODULES_LMTAG
+unsetenv_loaded_module
+
+
+#
+# same tag set several time over full path name
+#
+
+setenv_var TESTSUITE_FPMOD_TAG dup1
+
+set tserr "$mp:
+tag/1.0 <foo>"
+testouterr_cmd sh {avail -t tag/1.0} OK $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+lappend ans [list set __MODULES_LMTAG tag/1.0&foo]
+set tserr [msg_load {tag/1.0 <foo>}]
+testouterr_cmd sh {load -v tag/1.0} $ans $tserr
+
+setenv_loaded_module [list tag/1.0] [list $mp/tag/1.0]
+setenv_path_var __MODULES_LMTAG tag/1.0&foo
+set tserr [msg_unload {tag/1.0 <foo>}]
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+testouterr_cmd sh {unload -v tag/1.0} $ans $tserr
+unsetenv_path_var __MODULES_LMTAG
+unsetenv_loaded_module
+
+
+#
+# mix tags defined over short and full path name
+#
+
+setenv_var TESTSUITE_FPMOD_TAG mix1
+
+set tserr "$mp:
+tag/1.0 <bar:foo>"
+testouterr_cmd sh {avail -t tag/1.0} OK $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+lappend ans [list set __MODULES_LMTAG tag/1.0&foo&bar]
+set tserr [msg_load {tag/1.0 <bar:foo>}]
+testouterr_cmd sh {load -v tag/1.0} $ans $tserr
+
+setenv_loaded_module [list tag/1.0] [list $mp/tag/1.0]
+setenv_path_var __MODULES_LMTAG tag/1.0&foo&bar
+set tserr [msg_unload {tag/1.0 <bar:foo>}]
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+testouterr_cmd sh {unload -v tag/1.0} $ans $tserr
+unsetenv_path_var __MODULES_LMTAG
+unsetenv_loaded_module
+
+
+#
+# mix tags defined over short and full path name and duplicate definition
+#
+
+setenv_var TESTSUITE_FPMOD_TAG mix2dup2
+
+set tserr "$mp:
+tag/1.0 <bar:foo>"
+testouterr_cmd sh {avail -t tag/1.0} OK $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+lappend ans [list set __MODULES_LMTAG tag/1.0&foo&bar]
+set tserr [msg_load {tag/1.0 <bar:foo>}]
+testouterr_cmd sh {load -v tag/1.0} $ans $tserr
+
+setenv_loaded_module [list tag/1.0] [list $mp/tag/1.0]
+setenv_path_var __MODULES_LMTAG tag/1.0&foo&bar
+set tserr [msg_unload {tag/1.0 <bar:foo>}]
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+testouterr_cmd sh {unload -v tag/1.0} $ans $tserr
+unsetenv_path_var __MODULES_LMTAG
+unsetenv_loaded_module
+
+
+#
+# mix tags defined over short and full path name and duplicate definition
+# and tags added on the command line
+#
+
+setenv_var TESTSUITE_FPMOD_TAG mix2dup2
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+lappend ans [list set __MODULES_LMEXTRATAG tag/1.0&foo]
+lappend ans [list set __MODULES_LMTAG tag/1.0&foo&bar]
+set tserr [msg_load {tag/1.0 <bar:foo>}]
+testouterr_cmd sh {load -v --tag=foo tag/1.0} $ans $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+lappend ans [list set __MODULES_LMEXTRATAG tag/1.0&bar]
+lappend ans [list set __MODULES_LMTAG tag/1.0&foo&bar]
+set tserr [msg_load {tag/1.0 <bar:foo>}]
+testouterr_cmd sh {load -v --tag=bar tag/1.0} $ans $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+lappend ans [list set __MODULES_LMEXTRATAG tag/1.0&qux]
+lappend ans [list set __MODULES_LMTAG tag/1.0&foo&qux&bar]
+set tserr [msg_load {tag/1.0 <bar:foo:qux>}]
+testouterr_cmd sh {load -v --tag=qux tag/1.0} $ans $tserr
+
+setenv_loaded_module [list tag/1.0] [list $mp/tag/1.0]
+setenv_path_var __MODULES_LMTAG tag/1.0&foo&qux&bar
+setenv_path_var __MODULES_LMEXTRATAG tag/1.0&qux
+set tserr [msg_unload {tag/1.0 <bar:foo:qux>}]
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMEXTRATAG]
+lappend ans [list unset __MODULES_LMTAG]
+testouterr_cmd sh {unload -v tag/1.0} $ans $tserr
+unsetenv_path_var __MODULES_LMTAG
+unsetenv_path_var __MODULES_LMEXTRATAG
+unsetenv_loaded_module
+
+
+#
+# restricted tag name set over full path designation
+#
+
+setenv_var TESTSUITE_FPMOD_TAG restrictedtag1
+
+set tserr "$mp:
+tag/1.0"
+testouterr_cmd sh {avail -t tag/1.0} OK $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+lappend ans [list ERR]
+set errmsg {module-tag forbidden [file dirname $ModulesCurrentModulefile]/1.0}
+set custom "    invoked from within
+\"if \{\[info exists env(TESTSUITE_FPMOD_TAG)\]\} \{<EXM>"
+set linenum 2
+set tserr [escre "[msg_moderr {'forbidden' is a reserved tag name and cannot be set} $errmsg $mp/tag/.modulerc $linenum {  } {} {} $custom]
+[msg_load {tag/1.0}]"]
+testouterr_cmd_re sh {load -v tag/1.0} $ans $tserr
+
+
+#
+# full path tag set in global rc and same module in two different modulepaths
+#
+
+setenv_var TESTSUITE_FPMOD_TAG rc1
+
+setenv_var MODULERCFILE $env(TESTSUITEDIR)/etc/modulerc.fptag
+setenv_var MODULEPATH $modpath.3:$modpath.4
+
+set tserr "$modpath.3:
+tag/1.0
+
+$modpath.4:
+tag/1.0 <foorc>"
+testouterr_cmd sh {avail -t tag/1.0} OK $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $modpath.3/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+set tserr [msg_load {tag/1.0}]
+testouterr_cmd sh {load -v tag/1.0} $ans $tserr
+
+setenv_loaded_module [list tag/1.0] [list $modpath.3/tag/1.0]
+unsetenv_path_var __MODULES_LMTAG
+set tserr [msg_unload {tag/1.0}]
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd sh {unload -v tag/1.0} $ans $tserr
+unsetenv_loaded_module
+
+setenv_var MODULEPATH $modpath.4:$modpath.3
+
+set tserr "$modpath.4:
+tag/1.0 <foorc>
+
+$modpath.3:
+tag/1.0"
+testouterr_cmd sh {avail -t tag/1.0} OK $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+lappend ans [list set __MODULES_LMTAG tag/1.0&foorc]
+set tserr [msg_load {tag/1.0 <foorc>}]
+testouterr_cmd sh {load -v tag/1.0} $ans $tserr
+
+setenv_loaded_module [list tag/1.0] [list $mp/tag/1.0]
+setenv_path_var __MODULES_LMTAG tag/1.0&foorc
+set tserr [msg_unload {tag/1.0 <foorc>}]
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+testouterr_cmd sh {unload -v tag/1.0} $ans $tserr
+unsetenv_path_var __MODULES_LMTAG
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_FPMOD_TAG rc2
+
+set tserr "$modpath.4:
+tag/1.0 <barrc:foorc>
+
+$modpath.3:
+tag/1.0 <barrc>"
+testouterr_cmd sh {avail -t tag/1.0} OK $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+lappend ans [list set __MODULES_LMTAG tag/1.0&foorc&barrc]
+set tserr [msg_load {tag/1.0 <barrc:foorc>}]
+testouterr_cmd sh {load -v tag/1.0} $ans $tserr
+
+# short name tag is missed when module is loaded as full path name
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+}
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES $mp/tag/1.0]
+lappend ans [list set __MODULES_LMTAG $mp/tag/1.0&foorc]
+set tserr [msg_load "$mp/tag/1.0 <foorc>"]
+testouterr_cmd sh "load -v $mp/tag/1.0" $ans $tserr
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+}
+
+setenv_var TESTSUITE_FPMOD_TAG rc3
+
+set tserr "$modpath.4:
+tag/1.0 <bar:foorc>
+
+$modpath.3:
+tag/1.0 <bar>"
+testouterr_cmd sh {avail -t tag/1.0} OK $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+lappend ans [list set __MODULES_LMTAG tag/1.0&foorc&bar]
+set tserr [msg_load {tag/1.0 <bar:foorc>}]
+testouterr_cmd sh {load -v tag/1.0} $ans $tserr
+
+# short name tag is missed when module is loaded as full path name
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+}
+set ans [list]
+lappend ans [list set _LMFILES_ $modpath.3/tag/1.0]
+lappend ans [list set LOADEDMODULES $modpath.3/tag/1.0]
+set tserr [msg_load "$modpath.3/tag/1.0"]
+testouterr_cmd sh "load -v $modpath.3/tag/1.0" $ans $tserr
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+}
+setenv_var MODULERCFILE $ORIG_MODULERCFILE
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
