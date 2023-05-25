@@ -1,0 +1,257 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.20-locate/%M%
+#   Revision:		%I%
+#   First Edition:	2023/05/24
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:    tag
+#   Sub-Command:    avail, load, unload
+#
+#   Comment:	%C{
+#           Check module-hide modulefile command over full path
+#           module designation
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.4
+set mpre $modpathre.4
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+#
+# hide full path designation
+#
+
+# test regular and virtual module
+setenv_var TESTSUITE_FPMOD_TAG hide1
+
+testouterr_cmd sh {avail -t tag/1.0} OK {}
+testouterr_cmd sh {avail -t tag/1.1} OK {}
+testouterr_cmd sh "avail -t $mp/tag/1.0" OK {}
+
+set tserr $err_path'tag/1.0'
+testouterr_cmd sh {load -v tag/1.0} ERR $tserr
+set tserr $err_path'tag/1.1'
+testouterr_cmd sh {load -v tag/1.1} ERR $tserr
+
+# full path module is loaded as .modulerc file is not evaluated in this case
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+}
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES $mp/tag/1.0]
+set tserr [msg_load $mp/tag/1.0]
+testouterr_cmd sh "load -v $mp/tag/1.0" $ans $tserr
+if {$plus_in_modpath && $install_advversspec eq {y}} {
+    unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+}
+
+
+# hide virtual module name
+setenv_var TESTSUITE_FPMOD_TAG hide2
+
+set tserr "$mp:
+tag/1.1"
+testouterr_cmd sh {avail -t tag/1.1} OK $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.1]
+set tserr [msg_load {tag/1.1}]
+testouterr_cmd sh {load -v tag/1.1} $ans $tserr
+
+
+# hidden-loaded tag
+setenv_var TESTSUITE_FPMOD_TAG hide3
+
+set tserr "$mp:
+tag/1.0 <H>"
+testouterr_cmd sh {avail -t tag/1.0} OK $tserr
+set tserr "$mp:
+tag/1.1 <H>"
+testouterr_cmd sh {avail -t tag/1.1} OK $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+lappend ans [list set __MODULES_LMTAG tag/1.0&hidden-loaded]
+set tserr [msg_load {tag/1.0 <H>}]
+testouterr_cmd sh {load -v tag/1.0} $ans $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.1]
+lappend ans [list set __MODULES_LMTAG tag/1.1&hidden-loaded]
+set tserr [msg_load {tag/1.1 <H>}]
+testouterr_cmd sh {load -v tag/1.1} $ans $tserr
+
+setenv_loaded_module [list tag/1.0] [list $mp/tag/1.0]
+setenv_path_var __MODULES_LMTAG tag/1.0&hidden-loaded
+set tserr [msg_unload {tag/1.0 <H>}]
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+testouterr_cmd sh {unload -v tag/1.0} $ans $tserr
+
+setenv_loaded_module [list tag/1.1] [list $mp/tag/1.0]
+setenv_path_var __MODULES_LMTAG tag/1.1&hidden-loaded
+set tserr [msg_unload {tag/1.1 <H>}]
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+testouterr_cmd sh {unload -v tag/1.1} $ans $tserr
+unsetenv_path_var __MODULES_LMTAG
+unsetenv_loaded_module
+
+
+# module alias and symbolic version when full path designation of
+# target is hidden
+setenv_var TESTSUITE_FPMOD_TAG hide4
+
+testouterr_cmd sh {avail -t tag/1.1.sym} OK {}
+set tserr "$mp:
+tag/1.1.al(@)"
+testouterr_cmd sh {avail -t tag/1.1.al} OK $tserr
+testouterr_cmd sh {avail -t tag/1.0} OK {}
+
+set tserr $err_path'tag/1.0'
+testouterr_cmd sh {load -v tag/1.1.sym} ERR $tserr
+testouterr_cmd sh {load -v tag/1.1.al} ERR $tserr
+testouterr_cmd sh {load -v tag/1.0} ERR $tserr
+
+set tserr "$modlin Aliases $modlin
+tag/1.1.al -> tag/1.0
+
+$modlin Versions $modlin
+tag/1.1.sym -> tag/1.0"
+
+testouterr_cmd_re sh {aliases} OK $tserr
+
+set tserr $err_path'tag/1.0'
+testouterr_cmd sh {whatis tag/1.1.sym} ERR $tserr
+testouterr_cmd sh {whatis tag/1.1.al} ERR $tserr
+
+
+# module alias and symbolic version when they are hidden using
+# a full path designation
+setenv_var TESTSUITE_FPMOD_TAG hide5
+
+set tserr "$mp:
+tag/1.0(1.1.sym)"
+testouterr_cmd sh {avail -t tag/1.1.sym} OK $tserr
+set tserr "$mp:
+tag/1.1.al(@)"
+testouterr_cmd sh {avail -t tag/1.1.al} OK $tserr
+set tserr "$mp:
+tag/1.0(1.1.sym)"
+testouterr_cmd sh {avail -t tag/1.0} OK $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMALTNAME tag/1.0&tag/1.1.sym&al|tag/1.1.al]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+set tserr [msg_load {tag/1.0}]
+testouterr_cmd sh {load -v tag/1.1.sym} $ans $tserr
+testouterr_cmd sh {load -v tag/1.1.al} $ans $tserr
+testouterr_cmd sh {load -v tag/1.0} $ans $tserr
+
+set tserr "$modlin Aliases $modlin
+tag/1.1.al -> tag/1.0
+
+$modlin Versions $modlin
+tag/1.1.sym -> tag/1.0"
+
+testouterr_cmd_re sh {aliases} OK $tserr
+
+set tserr "$modlin $mpre $modlin
+\\s+tag/1.0: tag/1.0"
+testouterr_cmd_re sh {whatis tag/1.1.sym} OK $tserr
+testouterr_cmd_re sh {whatis tag/1.1.al} OK $tserr
+
+
+# sub-directory hidden and set default
+setenv_var TESTSUITE_FPMOD_TAG hide6
+
+setenv_var MODULES_AVAIL_INDEPTH 1
+set tserr "$mp:
+tag/1.2.sub/(default)
+tag/1.2.sub/1.0"
+testouterr_cmd sh {avail -t tag/default} OK $tserr
+unsetenv_var MODULES_AVAIL_INDEPTH
+
+# implicit_default tests (if config not locked)
+if {![is_config_locked implicit_default]} {
+    setenv_var MODULES_IMPLICIT_DEFAULT 1
+    setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+    set ans [list]
+    lappend ans [list set __MODULES_LMALTNAME tag/1.2.sub/1.0&tag/default&tag&as|tag/1.2.sub/default&as|tag/1.2.sub/latest]
+    lappend ans [list set _LMFILES_ $mp/tag/1.2.sub/1.0]
+    lappend ans [list set LOADEDMODULES tag/1.2.sub/1.0]
+    set tserr [msg_load {tag/1.2.sub/1.0}]
+    testouterr_cmd sh {load -v tag} $ans $tserr
+    unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+    unsetenv_var MODULES_IMPLICIT_DEFAULT
+}
+
+set tserr "$modlin $mpre $modlin
+\\s+tag/1.2.sub/1.0: tag/1.2.sub/1.0"
+testouterr_cmd_re sh {whatis tag/default} OK $tserr
+
+
+# overwriting hiding definitions
+setenv_var TESTSUITE_FPMOD_TAG hide7
+testouterr_cmd sh {avail -t tag/1.0} OK {}
+
+setenv_var TESTSUITE_FPMOD_TAG hide8
+testouterr_cmd sh {avail -t tag/1.0} OK {}
+
+setenv_var TESTSUITE_FPMOD_TAG hide9
+testouterr_cmd sh {avail -t tag/1.0} OK {}
+
+
+# overwriting hiding definitions with hidden-loaded option
+setenv_var TESTSUITE_FPMOD_TAG hide10
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+lappend ans [list set __MODULES_LMTAG tag/1.0&hidden-loaded]
+set tserr [msg_load {tag/1.0 <H>}]
+testouterr_cmd sh {load -v tag/1.0} $ans $tserr
+
+setenv_var TESTSUITE_FPMOD_TAG hide11
+testouterr_cmd sh {load -v tag/1.0} $ans $tserr
+
+setenv_var TESTSUITE_FPMOD_TAG hide12
+testouterr_cmd sh {load -v tag/1.0} $ans $tserr
+
+
+# hidden-loaded tag on full path module and dependency load message
+setenv_var TESTSUITE_FPMOD_TAG hide13
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ tfoo/1.0&tag/1.0]
+lappend ans [list set _LMFILES_ $mp/tag/1.0:$mp/tfoo/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0:tfoo/1.0]
+lappend ans [list set __MODULES_LMTAG tag/1.0&hidden-loaded&auto-loaded]
+set tserr [msg_load {tfoo/1.0}]
+testouterr_cmd sh {load -v tfoo/1.0} $ans $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
