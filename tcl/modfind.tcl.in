@@ -971,11 +971,22 @@ proc isModuleDotHidden {mod} {
    return 0
 }
 
-proc getModuleHidingLevel {mod} {
+proc getModuleHidingLevel {mod fpmod} {
+   # if full path module has been hidden, this hidden level is the base level
+   # value we will return
+   set baselvl [expr {$fpmod ne {} && [info exists\
+      ::g_moduleHideFullPath($fpmod)] ? $::g_moduleHideFullPath($fpmod) :\
+      {-1}}]
+
    set modroot [lindex [file split $mod] 0]
    # look if mod matches one of the hidden module specs applying to mod root
    if {[info exists ::g_moduleHideRoot($modroot)]} {
       for {set lvl 2} {$lvl > -1} {incr lvl -1} {
+         # no need to search anymore if we have reached same hiding level as
+         # one defined on full path module designation
+         if {$lvl == $baselvl} {
+            break
+         }
          foreach hmodspec [lindex $::g_moduleHideRoot($modroot) $lvl] {
             if {[modEq $hmodspec $mod eqstart 1 0 1 {}]} {
                return $lvl
@@ -983,7 +994,7 @@ proc getModuleHidingLevel {mod} {
          }
       }
    }
-   return -1
+   return $baselvl
 }
 
 proc setModspecHidingLevel {modspec lvl} {
@@ -993,16 +1004,20 @@ proc setModspecHidingLevel {modspec lvl} {
       reportDebug "Record hidden module specification '$modspec' (lvl=$lvl)"
       set ::g_moduleHide($modspec) $lvl
 
-      # record hidden mod spec for mod root to optimize search
-      set modroot [getModuleRootFromVersSpec $modspec]
-      if {![info exists ::g_moduleHideRoot($modroot)]} {
-         set ::g_moduleHideRoot($modroot) [list [list] [list] [list]]
+      if {[isModuleFullPath $modspec]} {
+         set ::g_moduleHideFullPath($modspec) $lvl
+      } else {
+         # record hidden mod spec for mod root to optimize search
+         set modroot [getModuleRootFromVersSpec $modspec]
+         if {![info exists ::g_moduleHideRoot($modroot)]} {
+            set ::g_moduleHideRoot($modroot) [list [list] [list] [list]]
+         }
+         # record in list corresponding to hidden level to search from
+         # strongest to weakest hidden level
+         set hiderootlvllist [lindex $::g_moduleHideRoot($modroot) $lvl]
+         lappend hiderootlvllist $modspec
+         lset ::g_moduleHideRoot($modroot) $lvl $hiderootlvllist
       }
-      # record in list corresponding to hidden level to search from strongest
-      # to weakest hidden level
-      set hiderootlvllist [lindex $::g_moduleHideRoot($modroot) $lvl]
-      lappend hiderootlvllist $modspec
-      lset ::g_moduleHideRoot($modroot) $lvl $hiderootlvllist
    }
 }
 
@@ -1010,8 +1025,9 @@ proc setModspecHidingLevel {modspec lvl} {
 # dot character. mod is considered hidden depending on their hiding level,
 # current search query and hiding threshold. when retdetails option is
 # enabled, mod hiding level and query match hind are also returned
-proc isModuleHidden {mod {modspec {}} {retdetails 0}} {
-   set defhidlvl [set hidlvl [getModuleHidingLevel $mod]]
+# also checks full path module designation if fpmod is set
+proc isModuleHidden {mod {modspec {}} {retdetails 0} {fpmod {}}} {
+   set defhidlvl [set hidlvl [getModuleHidingLevel $mod $fpmod]]
    if {$hidlvl >= [getState hiding_threshold]} {
       # soft hidden mods are considered matched if their root name matches
       # search query, other kind of hidden mods must fully matches query
@@ -1148,7 +1164,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
                         set mod $mod/[lindex $mod_list($mod) 1]
                         # restart search if default element is an hidden dir
                         if {![info exists mod_list($mod)] && [isModuleHidden\
-                           $mod $modspec]} {
+                           $mod $modspec 0 $dir/$mod]} {
                            # add specified variants to current resolution
                            if {[llength $vrlist] > 0} {
                               lassign [parseModuleSpecification 0 0 0 0 $mod\
@@ -2783,7 +2799,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
          unset found_list($elt)
          continue
       }
-      if {[lassign [isModuleHidden $elt $mod 1] hidlvl hidmatch hidbydef]} {
+      if {[lassign [isModuleHidden $elt $mod 1 [lindex $found_list($elt) 2]]\
+         hidlvl hidmatch hidbydef]} {
          # is there a symbol that matches query (bare module name query
          # matches default symbol on resolve context or if onlydefaults filter
          # is applied)
@@ -2982,6 +2999,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
                   # record target in dir struct if part of found elts or if
                   # hidden but should not be in error
                   set pardir [file dirname $tgt]
+                  # do not test if full path module is hidden as full path
+                  # designation cannot be computed (target not in found_list)
                   if {([info exists found_list($tgt)] || ($pardir ne {.} &&\
                      ![info exists found_list($pardir)] && [isModuleHidden\
                      $tgt $mod])) && ![info exists err_list($tgt)]} {
