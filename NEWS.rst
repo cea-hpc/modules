@@ -15,6 +15,8 @@ Modules 5.X.Y (not yet released)
 * Install: distribute ``ChangeLog`` as a zipped file to reduce installation
   size. As a consequence, :command:`gzip` becomes a requirement when building
   Modules from git repository.
+* Install: adapt RPM spec file to install module initialization script for
+  fish as configuration snippet for this shell.
 
 
 .. _5.3 release notes:
