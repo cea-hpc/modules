@@ -1,0 +1,219 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2023/05/29
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload, switch, restore
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Check sticky/super-sticky modules when tag is set over
+#           full path module designation
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+
+#
+# load
+#
+
+setenv_var TESTSUITE_FPMOD_TAG sticky1
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+lappend ans [list set __MODULES_LMTAG tag/1.0&sticky]
+set tserr [msg_load {tag/1.0 <S>}]
+testouterr_cmd sh {load -v tag/1.0} $ans $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.1]
+lappend ans [list set __MODULES_LMTAG tag/1.1&sticky]
+set tserr [msg_load {tag/1.1 <S>}]
+testouterr_cmd sh {load -v tag/1.1} $ans $tserr
+
+
+setenv_var TESTSUITE_FPMOD_TAG sticky2
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+lappend ans [list set __MODULES_LMTAG tag/1.0&super-sticky]
+set tserr [msg_load {tag/1.0 <sS>}]
+testouterr_cmd sh {load -v tag/1.0} $ans $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.1]
+lappend ans [list set __MODULES_LMTAG tag/1.1&super-sticky]
+set tserr [msg_load {tag/1.1 <sS>}]
+testouterr_cmd sh {load -v tag/1.1} $ans $tserr
+
+
+#
+# unload
+#
+
+setenv_var TESTSUITE_FPMOD_TAG sticky1
+
+setenv_loaded_module [list tag/1.0] [list $mp/tag/1.0]
+setenv_var __MODULES_LMTAG tag/1.0&sticky
+set tserr [msg_unload {tag/1.0 <S>} $err_stickyunload]
+testouterr_cmd sh {unload -v tag/1.0} ERR $tserr
+
+# tag not recorded in environment
+unsetenv_var __MODULES_LMTAG
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+set tserr [msg_unload {tag/1.0}]
+testouterr_cmd sh {unload -v tag/1.0} $ans $tserr
+
+
+setenv_var TESTSUITE_FPMOD_TAG sticky2
+
+setenv_loaded_module [list tag/1.0] [list $mp/tag/1.0]
+setenv_var __MODULES_LMTAG tag/1.0&super-sticky
+set tserr [msg_unload {tag/1.0 <sS>} $err_superstickyunload]
+testouterr_cmd sh {unload -v tag/1.0} ERR $tserr
+
+# tag not recorded in environment
+unsetenv_var __MODULES_LMTAG
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+set tserr [msg_unload {tag/1.0}]
+testouterr_cmd sh {unload -v tag/1.0} $ans $tserr
+
+
+#
+# switch
+#
+
+setenv_var TESTSUITE_FPMOD_TAG sticky1
+setenv_loaded_module [list tag/1.0] [list $mp/tag/1.0]
+setenv_var __MODULES_LMTAG tag/1.0&sticky
+set tserr [msg_switch {tag/1.0 <S>} tag/2.0 $err_stickyunload]
+testouterr_cmd sh {switch tag/1.0 tag/2.0} ERR $tserr
+
+
+setenv_var TESTSUITE_FPMOD_TAG sticky2
+setenv_loaded_module [list tag/1.0] [list $mp/tag/1.0]
+setenv_var __MODULES_LMTAG tag/1.0&super-sticky
+set tserr [msg_switch {tag/1.0 <sS>} tag/2.0 $err_superstickyunload]
+testouterr_cmd sh {switch tag/1.0 tag/2.0} ERR $tserr
+
+
+setenv_var TESTSUITE_FPMOD_TAG sticky3
+
+setenv_loaded_module [list tag/1.0] [list $mp/tag/1.0]
+setenv_var __MODULES_LMTAG tag/1.0&sticky
+set tserr [msg_switch {tag/1.0 <S>} foo/1.0 $err_stickyunload]
+testouterr_cmd sh {switch tag/1.0 foo/1.0} ERR $tserr
+
+set tserr [msg_switch {tag/1.0 <S>} foo/2.0 $err_stickyunload]
+testouterr_cmd sh {switch tag/1.0 foo/2.0} ERR $tserr
+
+setenv_loaded_module [list tag/1.1] [list $mp/tag/1.0]
+setenv_var __MODULES_LMTAG tag/1.1&sticky
+set tserr [msg_switch {tag/1.1 <S>} foo/1.0 $err_stickyunload]
+testouterr_cmd sh {switch tag/1.1 foo/1.0} ERR $tserr
+
+set tserr [msg_switch {tag/1.1 <S>} foo/2.0 $err_stickyunload]
+testouterr_cmd sh {switch tag/1.1 foo/2.0} ERR $tserr
+
+
+setenv_var TESTSUITE_FPMOD_TAG sticky4
+
+setenv_loaded_module [list tag/1.0] [list $mp/tag/1.0]
+setenv_var __MODULES_LMTAG tag/1.0&super-sticky
+set tserr [msg_switch {tag/1.0 <sS>} foo/1.0 $err_superstickyunload]
+testouterr_cmd sh {switch tag/1.0 foo/1.0} ERR $tserr
+
+set tserr [msg_switch {tag/1.0 <sS>} foo/2.0 $err_superstickyunload]
+testouterr_cmd sh {switch tag/1.0 foo/2.0} ERR $tserr
+
+setenv_loaded_module [list tag/1.1] [list $mp/tag/1.0]
+setenv_var __MODULES_LMTAG tag/1.1&super-sticky
+set tserr [msg_switch {tag/1.1 <sS>} foo/1.0 $err_superstickyunload]
+testouterr_cmd sh {switch tag/1.1 foo/1.0} ERR $tserr
+
+set tserr [msg_switch {tag/1.1 <sS>} foo/2.0 $err_superstickyunload]
+testouterr_cmd sh {switch tag/1.1 foo/2.0} ERR $tserr
+
+
+#
+# restore
+#
+
+setenv_var TESTSUITE_FPMOD_TAG sticky1
+setenv_loaded_module [list tag/1.0] [list $mp/tag/1.0]
+setenv_var __MODULES_LMTAG tag/1.0&sticky
+setenv_var __MODULES_LMINIT "module use $mp:module load tag/2.0"
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/2.0]
+lappend ans [list set LOADEDMODULES tag/2.0]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_unload {tag/1.0 <S>}]\n[msg_load tag/2.0]
+testouterr_cmd sh {restore __init__} $ans $tserr
+
+
+setenv_var TESTSUITE_FPMOD_TAG sticky2
+setenv_loaded_module [list tag/1.0] [list $mp/tag/1.0]
+setenv_var __MODULES_LMTAG tag/1.0&super-sticky
+setenv_var __MODULES_LMINIT "module use $mp:module load tag/2.0"
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0:$mp/tag/2.0]
+lappend ans [list set LOADEDMODULES tag/1.0:tag/2.0]
+lappend ans [list ERR]
+set tserr [msg_unload {tag/1.0 <sS>} $err_superstickyunload]\n\n[msg_load tag/2.0]
+
+testouterr_cmd sh {restore __init__} $ans $tserr
+
+setenv_var TESTSUITE_FPMOD_TAG sticky4
+setenv_loaded_module [list tag/1.0] [list $mp/tag/1.0]
+setenv_var __MODULES_LMTAG tag/1.0&super-sticky
+setenv_var __MODULES_LMINIT "module use $mp:module load --tag=super-sticky tag/2.0"
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0:$mp/tag/2.0]
+lappend ans [list set LOADEDMODULES tag/1.0:tag/2.0]
+lappend ans [list set __MODULES_LMEXTRATAG tag/2.0&super-sticky]
+lappend ans [list set __MODULES_LMTAG tag/1.0&super-sticky:tag/2.0&super-sticky]
+lappend ans [list ERR]
+set tserr [msg_unload {tag/1.0 <sS>} $err_superstickyunload]\n\n[msg_load {tag/2.0 <sS>}]
+testouterr_cmd sh {restore __init__} $ans $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0:$mp/tag/2.0]
+lappend ans [list set LOADEDMODULES tag/1.1:tag/2.0]
+lappend ans [list set __MODULES_LMEXTRATAG tag/2.0&super-sticky]
+lappend ans [list set __MODULES_LMTAG tag/1.1&super-sticky:tag/2.0&super-sticky]
+lappend ans [list ERR]
+setenv_loaded_module [list tag/1.1] [list $mp/tag/1.0]
+setenv_var __MODULES_LMTAG tag/1.1&super-sticky
+set tserr [msg_unload {tag/1.1 <sS>} $err_superstickyunload]\n\n[msg_load {tag/2.0 <sS>}]
+testouterr_cmd sh {restore __init__} $ans $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
