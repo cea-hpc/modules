@@ -1088,7 +1088,7 @@ Improving Modules initialization
 Modules initialization files are now installed by default in the *etc*
 directory designated by the :instopt:`--etcdir` installation option. The
 initialization configuration file is named :file:`initrc` in this directory,
-and the  modulepath-specific configuration file is named :file:`modulespath`.
+and the modulepath-specific configuration file is named :file:`modulespath`.
 When both files exist, now they are both evaluated instead of just the
 :file:`modulespath` file.
 
@@ -3718,12 +3718,11 @@ is greater than 1, path element is kept in variable and reference counter
 is decreased by 1.
 
 On Modules v4, **module-info mode** returns during an **unload** sub-command
-the ``unload`` value instead of ``remove`` on Modules v3.2.  However if
-*mode* is tested against ``remove`` value, true will be returned. During a
-**switch** sub-command on Modules v4, ``unload`` then ``load`` is returned
-instead of ``switch1`` then ``switch2`` then ``switch3`` on Modules
-v3.2. However if *mode* is tested against ``switch`` value, true will
-be returned.
+the ``unload`` value instead of ``remove`` on Modules v3.2. However if *mode*
+is tested against ``remove`` value, true will be returned. During a **switch**
+sub-command on Modules v4, ``unload`` then ``load`` is returned instead of
+``switch1`` then ``switch2`` then ``switch3`` on Modules v3.2. However if
+*mode* is tested against ``switch`` value, true will be returned.
 
 When using **set-alias**, Modules v3.2 defines a shell function when
 variables are in use in alias value on Bourne shell derivatives, Modules

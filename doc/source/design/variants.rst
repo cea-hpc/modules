@@ -88,7 +88,7 @@ Defining
 
   - should not be already defined as variant or variant alias
 
-    -  raise error otherwise
+    - raise error otherwise
 
   - variant alias could negate its target (when alias name is prefixed by ``-``)
 
@@ -843,7 +843,7 @@ Specific impact
 
 - Tags applying specifically on variants do not appear over ``avail`` result
 
-  - Even when variants are processed  on ``avail`` mode
+  - Even when variants are processed on ``avail`` mode
   - However if a module is loaded and tags apply to the variant selected, these tags will appear on the module designation within ``avail`` result
 
 - Forbidding a specific variant of a module will not exclude it from search results

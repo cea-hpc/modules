@@ -230,7 +230,7 @@ switches are accepted:
 .. option:: --debug, -D, -DD
 
  Debug mode. Causes :command:`module` to print debugging messages about its
- progress. Multiple :option:`-D` options increase the debug verbosity.  The
+ progress. Multiple :option:`-D` options increase the debug verbosity. The
  maximum is 2.
 
  .. only:: html
@@ -562,7 +562,7 @@ Module Sub-Commands
 .. subcmd:: aliases [-a]
 
  List all available symbolic version-names and aliases in the current
- :envvar:`MODULEPATH`.  All directories in the :envvar:`MODULEPATH` are
+ :envvar:`MODULEPATH`. All directories in the :envvar:`MODULEPATH` are
  recursively searched in the same manner than for the :subcmd:`avail`
  sub-command. Only the symbolic version-names and aliases found in the search
  are displayed.
@@ -2338,7 +2338,7 @@ Module Sub-Commands
  :envvar:`__MODULES_SHARE_MODULEPATH<__MODULES_SHARE_\<VAR\>>`, which denotes
  the number of times *directory* has been enabled, is checked and *directory*
  is removed only if its relative counter is equal to 1 or not defined.
- Otherwise *directory* is kept and reference counter is decreased by 1.  When
+ Otherwise *directory* is kept and reference counter is decreased by 1. When
  :subcmd:`module unuse<unuse>` is called from the command-line or within an
  initialization modulefile script *directory* is removed whatever the
  reference counter value set.
@@ -2359,7 +2359,7 @@ Module Sub-Commands
 .. subcmd:: use [-a|--append] directory...
 
  Prepend one or more *directories* to the :envvar:`MODULEPATH` environment
- variable.  The ``--append`` flag will append the *directory* to
+ variable. The ``--append`` flag will append the *directory* to
  :envvar:`MODULEPATH`.
 
  When *directory* is already defined in :envvar:`MODULEPATH`, it is not added
@@ -4017,7 +4017,7 @@ ENVIRONMENT
  If set to ``1``, a specified module version is matched against starting
  portion of existing module versions, where portion is a substring separated
  from the rest of the version string by a ``.`` character. For example
- specified modules ``mod/1`` and ``mod/1.2`` will match existing  modulefile
+ specified modules ``mod/1`` and ``mod/1.2`` will match existing modulefile
  ``mod/1.2.3``.
 
  In case multiple modulefiles match the specified module version and a single

@@ -274,9 +274,9 @@ Build and installation options
 ------------------------------
 
 Options available at the ``./configure`` installation step are described
-below.  These options enable to choose the installation paths and the
-features to enable or disable. You can also get a description of these
-options by typing ``./configure --help``.
+below. These options enable to choose the installation paths and the features
+to enable or disable. You can also get a description of these options by
+typing ``./configure --help``.
 
 Fine tuning of the installation directories (the default value for each option
 is displayed within brackets):
@@ -425,8 +425,8 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 
 .. instopt:: --enable-color
 
- Control if output should be colored by default or not.  A value of ``yes``
- equals to the ``auto`` color mode.  ``no`` equals to the ``never`` color
+ Control if output should be colored by default or not. A value of ``yes``
+ equals to the ``auto`` color mode. ``no`` equals to the ``never`` color
  mode. (default=yes)
 
  This installation option defines the default value of the
@@ -673,7 +673,7 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  Append Modules version to installation prefix and deploy a ``versions``
  modulepath shared between all versioning enabled Modules installation. A
  modulefile corresponding to Modules version is added to the shared modulepath
- and enables to switch from one Modules version to another.  (default=no)
+ and enables to switch from one Modules version to another. (default=no)
 
 .. instopt:: --enable-vim-addons
 
@@ -719,7 +719,7 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  Specify the content to report on avail sub-command regular output in addition
  to the available module names. Elements accepted in LIST are: ``modulepath``,
  ``alias``, ``dirwsym``, ``sym``, ``tag``, ``key``, ``variant`` and
- ``variantifspec`` (elements in LIST are  separated by ``:``). The order of
+ ``variantifspec`` (elements in LIST are separated by ``:``). The order of
  the elements in LIST does not matter.
  (default=\ ``modulepath:alias:dirwsym:sym:tag:variantifspec:key``)
 
@@ -784,7 +784,7 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  Default color set to apply if terminal background color is defined to
  ``dark``. SGRLIST follows the same syntax than used in ``LS_COLORS``. Each
  element in SGRLIST is an output item associated to a Select Graphic Rendition
- (SGR) code. Elements in SGRLIST are separated by ``:``.  Output items are
+ (SGR) code. Elements in SGRLIST are separated by ``:``. Output items are
  designated by keys.
 
  Items able to be colorized are: highlighted element (``hi``), debug
@@ -959,7 +959,7 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  Default modulefiles to load at Modules initialization time. Each modulefile
  in this list should be separated by ``:``. Defined value is registered in the
  :file:`initrc` configuration file or in the ``modulerc`` file if
- :instopt:`--with-initconf-in` is set to ``initdir``.  (default=)
+ :instopt:`--with-initconf-in` is set to ``initdir``. (default=)
 
  .. only:: html
 
@@ -982,8 +982,8 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
 .. instopt:: --with-modulepath=PATHLIST
 
- Default path list to setup as the default modulepaths.  Each path in this
- list should be separated by ``:``.  Defined value is registered in the
+ Default path list to setup as the default modulepaths. Each path in this list
+ should be separated by ``:``. Defined value is registered in the
  :file:`initrc` or :file:`modulespath` configuration file, depending on the
  :instopt:`--enable-modulespath` option. These files are respectively called
  ``modulerc`` and ``.modulespath`` if :instopt:`--with-initconf-in` is set to
@@ -1217,7 +1217,7 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
  Specify default message verbosity. accepted values are ``silent``,
  ``concise``, ``normal``, ``verbose``, ``verbose2``, ``trace``, ``debug`` and
- ``debug2``.  (default=\ ``normal``)
+ ``debug2``. (default=\ ``normal``)
 
  This installation option defines the default value of the
  :mconfig:`verbosity` configuration option which could be changed after

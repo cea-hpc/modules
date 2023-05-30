@@ -685,7 +685,7 @@ the *modulefile* is being loaded.
  **module-info symbols** modulefile
 
   Returns a list of all symbolic versions assigned to the passed
-  *modulefile*.  The parameter *modulefile* might either be a full qualified
+  *modulefile*. The parameter *modulefile* might either be a full qualified
   *modulefile* with name and version, another symbolic *modulefile* name
   or a *modulefile* alias.
 
@@ -708,7 +708,7 @@ the *modulefile* is being loaded.
  **module-info type**
 
   Returns either ``C`` or ``Tcl`` to indicate which :command:`module` command
-  is being  executed, either the C version or the Tcl-only version, to allow
+  is being executed, either the C version or the Tcl-only version, to allow
   the *modulefile* writer to handle any differences between the two.
 
  **module-info usergroups** [name]
@@ -744,7 +744,7 @@ the *modulefile* is being loaded.
  **module-info version** modulefile
 
   Returns the physical module name and version of the passed symbolic
-  version *modulefile*.  The parameter *modulefile* might either be a full
+  version *modulefile*. The parameter *modulefile* might either be a full
   qualified *modulefile* with name and version, another symbolic *modulefile*
   name or a *modulefile* alias.
 

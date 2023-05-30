@@ -1767,7 +1767,7 @@ Modules 4.4.0 (2019-11-17)
   ``implicit_default`` option is disabled and no explicit default is found
   among version specifier matches, an error is returned. This mechanism is
   enabled through a new configuration option named ``advanced_version_spec``
-  (which  defines ``MODULES_ADVANCED_VERSION_SPEC`` environment variable when
+  (which defines ``MODULES_ADVANCED_VERSION_SPEC`` environment variable when
   set). It may be enabled by default in ``modulecmd.tcl`` script with option
   ``--enable-advanced-version-spec`` passed to the ``./configure`` script.
 * Conflict defined with a generic module name or an advanced version specifier
@@ -2531,7 +2531,7 @@ Modules 4.1.2 (2018-03-31)
   commands requiring correlation of information from the ``LOADEDMODULES`` and
   the ``_LMFILES_`` environment variables. Error raised on ``load``,
   ``unload``, ``switch``, ``reload``, ``purge``, ``list``, ``save`` and
-  ``restore`` commands.  May affect ``info-loaded`` or ``is-loaded`` commands
+  ``restore`` commands. May affect ``info-loaded`` or ``is-loaded`` commands
   if module passed as argument to these command is specified as a full path
   modulefile.
 * Fix ``list`` command to process loaded modules information before performing
@@ -2896,8 +2896,8 @@ modules-tcl-1.923 (2017-07-20)
   behavior that requires at least an empty ``module load`` line in startup
   files. (fix SF bug#88)
 * Fix initadd to handle load line without trailing space. Was previously
-  expecting load directive to be written "module load "  to get a match.
-  With fix, ``module load`` line will also be matched.
+  expecting load directive to be written "module load " to get a match. With
+  fix, ``module load`` line will also be matched.
 * Like C-version catch raised error when break or continue are called from
   outside of a loop to handle them as when they are called from modulefile
   main body. (fix SF bug#87)
@@ -3093,8 +3093,8 @@ modules-tcl-1.677 (2017-01-04)
 * Add dummy ``module-log``, ``module-trace``, ``module-user`` and
   ``module-verbosity`` Modules-specific Tcl commands to enable support for
   modulefiles using them.
-* Fix ``system`` Modules-specific Tcl command  to behave like described on
-  the man page.
+* Fix ``system`` Modules-specific Tcl command to behave like described on the
+  man page.
 * Fix ``module list`` when module loaded with full path
 * Disable ``g_force`` property by default to avoid loading a modulefile
   already loaded. It also avoids path element reference counting to get

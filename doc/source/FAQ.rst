@@ -212,7 +212,7 @@ Once you have the changes in your version, then unpack the original sources from
 
 .. code-block:: sh
 
-     diff -u -r -P -N modules-3.X.Y modules-3.X.Y-myversion  > my.patch
+     diff -u -r -P -N modules-3.X.Y modules-3.X.Y-myversion > my.patch
 
 If you're starting from the git cloned repository:
 """"""""""""""""""""""""""""""""""""""""""""""""""

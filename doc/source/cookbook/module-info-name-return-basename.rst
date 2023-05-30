@@ -15,10 +15,10 @@ Implementation
 --------------
 
 Return file basename on :mfcmd:`module-info name<module-info>` for modules
-specified as full path modulefile is implemented  by the use of a
-site-specific configuration that supersedes the definition of the
-:mfcmd:`module-info name<module-info>` command to return modulefile basename
-instead of full pathname.
+specified as full path modulefile is implemented by the use of a site-specific
+configuration that supersedes the definition of the :mfcmd:`module-info
+name<module-info>` command to return modulefile basename instead of full
+pathname.
 
 .. literalinclude:: ../../example/module-info-name-return-basename/siteconfig.tcl
    :language: tcl
