@@ -496,11 +496,16 @@ the *modulefile* is being loaded.
  :ref:`Module tags` section in :ref:`module(1)`.
 
  The parameter *modulefile* may leverage a specific syntax to finely select
- module version (see `Advanced module version specifiers`_ section below).
+ module version (see `Advanced module version specifiers`_ section below). It
+ may also be a full path file name to precisely designate one module in a
+ specific modulepath.
 
  .. only:: html
 
     .. versionadded:: 4.6
+
+    .. versionchanged:: 5.4
+       Full path file name may be used to designate *modulefile*
 
 .. mfcmd:: module-hide [options] modulefile...
 
@@ -579,6 +584,8 @@ the *modulefile* is being loaded.
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
+ Moreover it may also be a full path file name to precisely designate one
+ module in a specific modulepath.
 
  .. only:: html
 
@@ -586,6 +593,9 @@ the *modulefile* is being loaded.
 
     .. versionchanged:: 4.7
        Option ``--hidden-loaded`` added.
+
+    .. versionchanged:: 5.4
+       Full path file name may be used to designate *modulefile*
 
 .. mfcmd:: module-info option [info-args]
 
@@ -773,6 +783,8 @@ the *modulefile* is being loaded.
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
+ Moreover it may also be a full path file name to precisely designate one
+ module in a specific modulepath.
 
  Tags inherited from other modulefile commands or module states cannot be set
  with :mfcmd:`module-tag`. Otherwise an error is returned. Those special tags
@@ -792,6 +804,9 @@ the *modulefile* is being loaded.
 
     .. versionchanged:: 5.1
        Tag ``keep-loaded`` added
+
+    .. versionchanged:: 5.4
+       Full path file name may be used to designate *modulefile*
 
 .. mfcmd:: module-version modulefile version-name...
 

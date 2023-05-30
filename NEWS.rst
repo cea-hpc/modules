@@ -6,6 +6,15 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+.. _5.4 release notes:
+
+Modules 5.4.0 (not yet released)
+--------------------------------
+
+* Allow to designate module by its full path file name on :mfcmd:`module-tag`,
+  :mfcmd:`module-hide` and :mfcmd:`module-forbid`. (fix issue #485)
+
+
 .. _5.3 release notes:
 
 Modules 5.3.1 (2023-06-27)

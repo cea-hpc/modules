@@ -1029,6 +1029,11 @@ The following modulefile Tcl commands appeared on Modules 5.
  Starting version 5.1, the ``--return-value`` option is added to return
  variant value or its fallback when modulefile is evaluated in *display* mode.
 
+:mfcmd:`module-tag`, :mfcmd:`module-hide`, :mfcmd:`module-forbid`
+
+ Starting version 5.4, module can be specified with its full path file name
+ to precisely target one modulefile.
+
 Modules Variables
 """""""""""""""""
 
