@@ -765,11 +765,13 @@ proc isStickinessReloading {mod reloading_modlist {tag sticky}} {
    set modname [getModuleNameAndVersFromVersSpec $mod]
    if {[isModuleTagged $modname $tag 1]} {
       # evaluate the module-tag commands that are related to mod
-      set dir [getModulepathFromModuleName [getModulefileFromLoadedModule\
-         $modname] $modname]
+      set modfile [getModulefileFromLoadedModule $modname]
+      set dir [getModulepathFromModuleName $modfile $modname]
       getModules $dir $modname 0 [list rc_defs_included]
 
-      set tmodspec [getModuleTag $mod {} $tag equal 1]
+      # tag set over full path module designation only applies to fully
+      # qualified module
+      set tmodspec [getModuleTag $mod $modfile $tag equal 1]
       # if tag specifically applies to fully qualified module, exact same
       # module should be found in reload list
       if {$tmodspec ne {}} {

@@ -377,4 +377,10 @@ precedence over same tag's properties set over short module name and version.
 It makes code more complex as full path designation has to be passed as
 argument along short name to get all tags applying to module.
 
+When checking tag definition for stickiness, if tag is set over full path
+module then it means stickiness applies to fully qualified module. Thus it
+cannot be swapped by another version of this module. Defining stickiness over
+full path module directory is not possible as full path designation should
+match a modulefile.
+
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
