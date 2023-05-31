@@ -6,9 +6,9 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
-.. _5.X release notes:
+.. _5.3 release notes:
 
-Modules 5.X.Y (not yet released)
+Modules 5.3.1 (not yet released)
 --------------------------------
 
 * Fix additional `ShellCheck`_ warning reports over sh and bash shell scripts.
@@ -17,9 +17,9 @@ Modules 5.X.Y (not yet released)
   Modules from git repository.
 * Install: adapt RPM spec file to install module initialization script for
   fish as configuration snippet for this shell.
+* Fix extra specifier search to evaluate module matching requirement query.
+  (fix issue #494)
 
-
-.. _5.3 release notes:
 
 Modules 5.3.0 (2023-05-14)
 --------------------------

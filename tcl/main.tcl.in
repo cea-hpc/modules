@@ -355,6 +355,12 @@ proc module {command args} {
       knerror "${msgprefix}Invalid command '$command'$tryhelpmsg"
    }
 
+   # define states needed by module spec parsing and sub-command processing
+   # define if modfile should always be fully read even for validity check
+   lappendState always_read_full_file [expr {$command ni [list path paths\
+      list avail aliases edit]}]
+   lappendState commandname $command
+
    # parse options, do that globally to ignore options not related to a given
    # module sub-command (exclude them from arg list)
    lassign [parseModuleCommandArgs $topcall $command 0 {*}$args]\
@@ -387,8 +393,8 @@ proc module {command args} {
       }
       # other commands can only be called from modulefile evaluated from
       # command acting as top-level context (source and autoinit)
-      if {([depthState modulename] > 1 || [currentState commandname] ni [list\
-         source autoinit]) && $command eq {config}} {
+      if {([depthState modulename] > 1 || [aboveCommandName] ni [list source\
+         autoinit]) && $command eq {config}} {
          knerror "${msgprefix}Command '$command' not supported$tryhelpmsg"
       }
       # no requirement should be recorded this module load/unload/switch cmd
@@ -446,11 +452,6 @@ proc module {command args} {
    if {[info exists argnberr]} {
       knerror "Unexpected number of args for '$command' command$tryhelpmsg"
    }
-
-   # define if modfile should always be fully read even for validity check
-   lappendState always_read_full_file [expr {$command ni [list path paths\
-      list avail aliases edit]}]
-   lappendState commandname $command
 
    if {$topcall} {
       # Find and execute any global rc file found
@@ -573,6 +574,10 @@ proc ml {args} {
    if {$cmdvalid} {
       module $command {*}$margs
    } else {
+      # define if modfile should always be fully read even for validity check
+      lappendState always_read_full_file 1
+      lappendState commandname ml
+
       # parse specified module and get list of mods to unload and mods to load
       defineParseModuleSpecificationProc [getConf advanced_version_spec]
       lassign [parseModuleSpecification 1 0 0 0 {*}$fargs] modunlist modlolist
@@ -584,10 +589,6 @@ proc ml {args} {
       lassign [parseModuleCommandArgs 1 $mlcmd 0 {*}$args] show_oneperline\
          show_mtime show_filter search_filter search_match dump_state\
          addpath_pos not_req tag_list fargs
-
-      # define if modfile should always be fully read even for validity check
-      lappendState always_read_full_file 1
-      lappendState commandname ml
 
       # Find and execute any global rc file found
       runModulerc
