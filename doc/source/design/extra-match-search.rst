@@ -459,6 +459,6 @@ Specific impact
 * With a ``contains`` search match every modulefiles in modulepath are
   evaluated in scan mode.
 
-  - FUTURE: there may have room for optimisation here
+  - FUTURE: there may have room for optimization here
 
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
