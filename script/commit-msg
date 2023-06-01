@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # COMMIT-MSG, hook script to verify commit message
-# Copyright (C) 2022 Xavier Delaruelle
+# Copyright (C) 2022-2023 Xavier Delaruelle
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -45,11 +45,11 @@ echo_hint() {
 }
 
 # check misspellings in commit message
-command -v aspell >/dev/null
+command -v hunspell >/dev/null
 if [ $? -eq 0 ]; then
-   ASPELL_OPTS=(-l en -x --home-dir=. --personal=.aspell.en.pws)
+   HUNSPELL_OPTS=(-d en_US -p .hunspell.en.dic)
    # use sed to extract commit message from full commit details
-   words=$(sed '/^# /Q' "$1" | aspell "${ASPELL_OPTS[@]}" list)
+   words=$(sed '/^# /Q' "$1" | hunspell "${HUNSPELL_OPTS[@]}" -l)
    # abort if misspelled words found
    if [ -n "$words" ]; then
       befmsg='# commit message was ---------------- >8 -------------'
@@ -60,7 +60,7 @@ if [ $? -eq 0 ]; then
       exit 1
    fi
 else
-   echo_warning "aspell command not found"
+   echo_warning "hunspell command not found"
 fi
 
 exit 0

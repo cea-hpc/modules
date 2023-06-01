@@ -21,6 +21,10 @@ Modules 5.3.1 (not yet released)
   (fix issue #494)
 * Fix extra specifier requirement search when module searched is also defining
   a requirement and is the sole module to define it. (fix issue #495)
+* Script: update :command:`pre-commit` and :command:`commit-msg` git hook
+  scripts to use `Hunspell`_ as spell checker instead of Aspell.
+
+.. _Hunspell: https://hunspell.github.io/
 
 
 Modules 5.3.0 (2023-05-14)

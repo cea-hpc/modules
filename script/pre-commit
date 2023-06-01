@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # PRE-COMMIT, hook script to verify what is about to be committed
-# Copyright (C) 2022 Xavier Delaruelle
+# Copyright (C) 2022-2023 Xavier Delaruelle
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -52,17 +52,17 @@ else
 fi
 
 # interactively check misspellings in doc files
-command -v aspell >/dev/null
+command -v hunspell >/dev/null
 if [ $? -eq 0 ]; then
    misspell=0
-   ASPELL_OPTS=(-l en -x --home-dir=. --personal=.aspell.en.pws)
+   HUNSPELL_OPTS=(-d en_US -p .hunspell.en.dic)
    for docfile in $(git diff --cached --name-only --diff-filter=d | grep -E\
       '(.rst|.md)$'); do
-      words=$(git diff --cached "$docfile" | grep '^[+][^+]' | aspell\
-         "${ASPELL_OPTS[@]}" list)
+      words=$(git diff --cached "$docfile" | grep '^[+][^+]' | hunspell\
+         "${HUNSPELL_OPTS[@]}" -l)
       if [ -n "$words" ]; then
          # interactively edit file to fix misspellings
-         aspell "${ASPELL_OPTS[@]}" check "$docfile" </dev/tty >/dev/tty;
+         hunspell "${HUNSPELL_OPTS[@]}" "$docfile" </dev/tty >/dev/tty;
          misspell=1
       fi
    done
@@ -72,7 +72,7 @@ if [ $? -eq 0 ]; then
       exit 1
    fi
 else
-   echo_warning "aspell command not found"
+   echo_warning "hunspell command not found"
 fi
 
 # fail if there are whitespace errors

@@ -223,7 +223,7 @@ Commit hooks
 A :command:`pre-commit` hook script is provided in the :file:`script`
 directory of the project to help you check that the contribution made is free
 of misspellings and trailing spaces. It requires the `codespell`_ utility that
-checks for typos in any kind of files and the `Aspell`_ utility that spell
+checks for typos in any kind of files and the `Hunspell`_ utility that spell
 checks documentation files. The :command:`pre-commit` could be enabled in your
 local repository with following command::
 
@@ -231,13 +231,13 @@ local repository with following command::
 
 A :command:`commit-msg` hook script is also provided in the :file:`script`
 directory of the project to help you check that your commit messages are free
-of misspellings. It requires the `Aspell`_ utility and could be enabled in
+of misspellings. It requires the `Hunspell`_ utility and could be enabled in
 your local repository with following command::
 
    ln -s ../../script/commit-msg .git/hooks/commit-msg
 
 .. _codespell: https://github.com/codespell-project/codespell
-.. _Aspell: http://aspell.net/
+.. _Hunspell: https://hunspell.github.io/
 
 Emacs settings for coding conventions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
