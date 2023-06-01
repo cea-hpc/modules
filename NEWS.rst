@@ -19,6 +19,8 @@ Modules 5.3.1 (not yet released)
   fish as configuration snippet for this shell.
 * Fix extra specifier search to evaluate module matching requirement query.
   (fix issue #494)
+* Fix extra specifier requirement search when module searched is also defining
+  a requirement and is the sole module to define it. (fix issue #495)
 
 
 Modules 5.3.0 (2023-05-14)

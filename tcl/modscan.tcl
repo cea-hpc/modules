@@ -264,7 +264,7 @@ proc getModMatchingExtraSpec {pxtlist} {
             prereq-any depends-on always-load load-any try-load switch\
             switch-on switch-off}} {
             if {[dict exists $::g_scanModuleElt $elt]} {
-               foreach modspec [dict get $::g_scanModuleElt $elt] {
+               foreach {modspec values} [dict get $::g_scanModuleElt $elt] {
                   # modEq proc has been initialized in getModules phase #2
                   if {[modEq $modspec $name eqstart 1 5 1]} {
                      # possible duplicate module entry in result list
