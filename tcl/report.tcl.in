@@ -1501,6 +1501,11 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx\
       }
    }
 
+   # increase index length when 100+ modules to report
+   if {$display_idx} {
+      set idx_len [expr {$elt_cnt > 99 ? {3} : {2}}]
+   }
+
    if {$json} {
       set displist [join $display_list ,\n]
    # display one element per line
@@ -1508,7 +1513,7 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx\
       if {$display_idx} {
          set idx $start_idx
          foreach elt $display_list {
-            append displist [format {%2d) %s } $idx $elt] \n
+            append displist [format "%${idx_len}d) %s " $idx $elt] \n
             incr idx
          }
       } else {
@@ -1516,12 +1521,8 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx\
       }
    # elsewhere display elements in columns
    } else {
-      if {$display_idx} {
-         # save room for numbers and spacing: 2 digits + ) + space
-         set elt_prefix_len 4
-      } else {
-         set elt_prefix_len 0
-      }
+      # save room for numbers and spacing: 2 or 3 digits + ) + space
+      set elt_prefix_len [expr {$display_idx ? $idx_len + 2 : {0}}]
       # save room for two spaces after element
       set elt_suffix_len 2
 
@@ -1623,7 +1624,8 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx\
             set index [expr {$col * $rows + $row}]
             if {$index < $elt_cnt} {
                if {$display_idx} {
-                  append displist [format "%2d) " [expr {$index +$start_idx}]]
+                  append displist [format "%${idx_len}d) " [expr {$index +\
+                     $start_idx}]]
                }
                # cannot use 'format' as strings may contain SGR codes
                append displist [lindex $display_list $index][string repeat\

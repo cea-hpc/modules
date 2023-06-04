@@ -23,6 +23,8 @@ Modules 5.3.1 (not yet released)
   a requirement and is the sole module to define it. (fix issue #495)
 * Script: update :command:`pre-commit` and :command:`commit-msg` git hook
   scripts to use `Hunspell`_ as spell checker instead of Aspell.
+* Fix unaligned :subcmd:`list` output when 100 or more modules are loaded.
+  (fix issue #496)
 
 .. _Hunspell: https://hunspell.github.io/
 
