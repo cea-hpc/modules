@@ -34,7 +34,7 @@ proc variant-sc {itrp args} {
       }
    }
 
-   recordScanModuleElt [currentState modulename] $name variant
+   recordScanModuleElt $name variant
 
    lappend ::g_scanModuleVariant([currentState modulename]) [list $name\
       $values $defdflvalue $dflvalue $isboolean]
@@ -47,7 +47,7 @@ proc variant-sc {itrp args} {
 proc setenv-sc {args} {
    lassign [parseSetenvCommandArgs load set {*}$args] bhv var val
 
-   recordScanModuleElt [currentState modulename] $var setenv envvar
+   recordScanModuleElt $var setenv envvar
 
    if {![info exists ::env($var)]} {
       set ::env($var) {}
@@ -59,7 +59,7 @@ proc edit-path-sc {cmd args} {
    lassign [parsePathCommandArgs $cmd load noop {*}$args] separator allow_dup\
       idx_val ign_refcount bhv var path_list
 
-   recordScanModuleElt [currentState modulename] $var $cmd envvar
+   recordScanModuleElt $var $cmd envvar
 
    if {![info exists ::env($var)]} {
       set ::env($var) {}
@@ -68,7 +68,7 @@ proc edit-path-sc {cmd args} {
 }
 
 proc pushenv-sc {var val} {
-   recordScanModuleElt [currentState modulename] $var pushenv envvar
+   recordScanModuleElt $var pushenv envvar
 
    if {![info exists ::env($var)]} {
       set ::env($var) {}
@@ -79,7 +79,7 @@ proc pushenv-sc {var val} {
 proc unsetenv-sc {args} {
    lassign [parseUnsetenvCommandArgs load noop {*}$args] bhv var val
 
-   recordScanModuleElt [currentState modulename] $var unsetenv envvar
+   recordScanModuleElt $var unsetenv envvar
 
    if {![info exists ::env($var)]} {
       set ::env($var) {}
@@ -92,7 +92,7 @@ proc complete-sc {shell name body} {
       knerror "Invalid command name '$name'"
    }
 
-   recordScanModuleElt [currentState modulename] $name complete
+   recordScanModuleElt $name complete
 }
 
 proc uncomplete-sc {name} {
@@ -100,34 +100,34 @@ proc uncomplete-sc {name} {
       knerror "Invalid command name '$name'"
    }
 
-   recordScanModuleElt [currentState modulename] $name uncomplete
+   recordScanModuleElt $name uncomplete
 }
 
 proc set-alias-sc {alias what} {
-   recordScanModuleElt [currentState modulename] $alias set-alias
+   recordScanModuleElt $alias set-alias
 }
 
 proc unset-alias-sc {alias} {
-   recordScanModuleElt [currentState modulename] $alias unset-alias
+   recordScanModuleElt $alias unset-alias
 }
 
 proc set-function-sc {function what} {
-   recordScanModuleElt [currentState modulename] $function set-function
+   recordScanModuleElt $function set-function
 }
 
 proc unset-function-sc {function} {
-   recordScanModuleElt [currentState modulename] $function unset-function
+   recordScanModuleElt $function unset-function
 }
 
 proc chdir-sc {dir} {
-   recordScanModuleElt [currentState modulename] $dir chdir
+   recordScanModuleElt $dir chdir
 }
 
 proc family-sc {name} {
    if {[string length $name] == 0 || ![regexp {^[A-Za-z0-9_]*$} $name]} {
       knerror "Invalid family name '$name'"
    }
-   recordScanModuleElt [currentState modulename] $name family
+   recordScanModuleElt $name family
 }
 
 proc prereq-sc {args} {
@@ -135,8 +135,7 @@ proc prereq-sc {args} {
       opt_list args
 
    foreach modspec [parseModuleSpecification 0 0 0 0 {*}$args] {
-      recordScanModuleElt [currentState modulename] $modspec prereq\
-         prereq-any require
+      recordScanModuleElt $modspec prereq prereq-any require
    }
 }
 
@@ -145,8 +144,7 @@ proc prereq-all-sc {args} {
       opt_list args
 
    foreach modspec [parseModuleSpecification 0 0 0 0 {*}$args] {
-      recordScanModuleElt [currentState modulename] $modspec prereq-all\
-         depends-on require
+      recordScanModuleElt $modspec prereq-all depends-on require
    }
 }
 
@@ -155,14 +153,13 @@ proc always-load-sc {args} {
       opt_list args
 
    foreach modspec [parseModuleSpecification 0 0 0 0 {*}$args] {
-      recordScanModuleElt [currentState modulename] $modspec always-load\
-         require
+      recordScanModuleElt $modspec always-load require
    }
 }
 
 proc conflict-sc {args} {
    foreach modspec [parseModuleSpecification 0 0 0 0 {*}$args] {
-      recordScanModuleElt [currentState modulename] $modspec conflict incompat
+      recordScanModuleElt $modspec conflict incompat
    }
 }
 
@@ -181,29 +178,26 @@ proc module-sc {command args} {
          switch -- [llength $modspeclist] {
             {1} {
                # no switched-off module with one-arg form
-               recordScanModuleElt [currentState modulename] $modspeclist\
-                  switch switch-on require
+               recordScanModuleElt $modspeclist switch switch-on require
             }
             {2} {
                lassign $modspeclist swoffarg swonarg
-               recordScanModuleElt [currentState modulename] $swoffarg switch\
-                  switch-off incompat
-               recordScanModuleElt [currentState modulename] $swonarg switch\
-                  switch-on require
+               recordScanModuleElt $swoffarg switch switch-off incompat
+               recordScanModuleElt $swonarg switch switch-on require
             }
          }
       } else {
          set xtalias [expr {$command eq {unload} ? {incompat} : {require}}]
          # record each module spec
          foreach modspec $modspeclist {
-            recordScanModuleElt [currentState modulename] $modspec $command\
-               $xtalias
+            recordScanModuleElt $modspec $command $xtalias
          }
       }
    }
 }
 
-proc recordScanModuleElt {mod name args} {
+proc recordScanModuleElt {name args} {
+   set mod [currentState modulename]
    if {![info exists ::g_scanModuleElt]} {
       set ::g_scanModuleElt [dict create]
    }
