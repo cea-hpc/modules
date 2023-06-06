@@ -204,6 +204,57 @@ unsetenv_loaded_module
 
 
 #
+# multiple modulepaths
+#
+
+setenv_var MODULES_AVAIL_TERSE_OUTPUT dir
+setenv_var MODULES_SEARCH_MATCH starts_with
+
+setenv_var TESTSUITE_EXTRA dup10
+
+setenv_path_var MODULEPATH $modpath.3:$mp
+set tserr "$mp:\nfoo/1.0"
+testouterr_cmd sh {avail -t setenv:XTFOODUP} OK $tserr
+testouterr_cmd sh {avail -t foo setenv:XTFOODUP} OK $tserr
+
+setenv_path_var MODULEPATH $mp:$modpath.3
+testouterr_cmd sh {avail -t setenv:XTFOODUP} OK $tserr
+testouterr_cmd sh {avail -t foo setenv:XTFOODUP} OK $tserr
+
+
+setenv_var TESTSUITE_EXTRA dup11
+
+setenv_path_var MODULEPATH $modpath.3:$mp
+set tserr "$modpath.3:\nfoo/1.0\n\n$mp:\nfoo/1.0"
+testouterr_cmd sh {avail -t setenv:XTFOODUP} OK $tserr
+testouterr_cmd sh {avail -t foo setenv:XTFOODUP} OK $tserr
+
+setenv_path_var MODULEPATH $mp:$modpath.3
+set tserr "$mp:\nfoo/1.0\n\n$modpath.3:\nfoo/1.0"
+testouterr_cmd sh {avail -t setenv:XTFOODUP} OK $tserr
+testouterr_cmd sh {avail -t foo setenv:XTFOODUP} OK $tserr
+
+
+setenv_var TESTSUITE_EXTRA dup12
+
+setenv_path_var MODULEPATH $modpath.3:$mp
+set tserr "$modpath.3:\nfoo/1.0\n\n$mp:\nxtfoo/1.0"
+testouterr_cmd sh {avail -t setenv:XTFOODUP} OK $tserr
+
+set tserr "$modpath.3:\nfoo/1.0"
+testouterr_cmd sh {avail -t foo setenv:XTFOODUP} OK $tserr
+
+setenv_path_var MODULEPATH $mp:$modpath.3
+set tserr "$mp:\nxtfoo/1.0\n\n$modpath.3:\nfoo/1.0"
+testouterr_cmd sh {avail -t setenv:XTFOODUP} OK $tserr
+
+set tserr "$modpath.3:\nfoo/1.0"
+testouterr_cmd sh {avail -t foo setenv:XTFOODUP} OK $tserr
+
+unsetenv_var MODULES_SEARCH_MATCH
+
+
+#
 #  Cleanup
 #
 
