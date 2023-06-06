@@ -59,11 +59,11 @@ def get_version_release_from_git():
     Returns project version and release as string from 'git' repository data.
     """
     DEVNULL = open(os.devnull, 'w')
-    pipe = Popen('git describe --tags --abbrev=0', stdout=PIPE, stderr=DEVNULL, shell=True)
+    pipe = Popen('git describe --tags --abbrev=0', stdout=PIPE, stderr=DEVNULL, shell=True, universal_newlines=True)
     git_current_tag = pipe.stdout.read()
-    pipe = Popen('git describe --tags', stdout=PIPE, stderr=DEVNULL, shell=True)
+    pipe = Popen('git describe --tags', stdout=PIPE, stderr=DEVNULL, shell=True, universal_newlines=True)
     git_current_desc = pipe.stdout.read()
-    pipe = Popen('git rev-parse --abbrev-ref HEAD', stdout=PIPE, stderr=DEVNULL, shell=True)
+    pipe = Popen('git rev-parse --abbrev-ref HEAD', stdout=PIPE, stderr=DEVNULL, shell=True, universal_newlines=True)
     git_current_branch = pipe.stdout.read()
 
     if git_current_desc:
