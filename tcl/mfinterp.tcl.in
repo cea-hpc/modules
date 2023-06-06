@@ -182,7 +182,7 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
 }
 
 proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
-   {fetch_tags 1}} {
+   {fetch_tags 1} {modpath {}}} {
    # link to modnamevr variable name from calling ctx if content update asked
    if {$up_namevr} {
       upvar $modnamevrvar modnamevr
@@ -194,6 +194,7 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
    lappendState modulename $modname
    lappendState modulenamevr $modnamevr
    lappendState specifiedname $modspec
+   lappendState modulepath $modpath
    set mode [currentState mode]
    lappendState debug_msg_prefix\
       "\[#[depthState modulename]:$mode:$modname\] "
@@ -224,6 +225,7 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
          reloading_supersticky] ne $modname} {
          # restore changed states prior raising error
          lpopState debug_msg_prefix
+         lpopState modulepath
          lpopState specifiedname
          lpopState modulename
          lpopState modulenamevr
@@ -237,6 +239,7 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
          } else {
             # restore changed states prior raising error
             lpopState debug_msg_prefix
+            lpopState modulepath
             lpopState specifiedname
             lpopState modulename
             lpopState modulenamevr
@@ -463,6 +466,7 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
 
    reportDebug "exiting $modfile"
    lpopState debug_msg_prefix
+   lpopState modulepath
    lpopState specifiedname
    lpopState modulename
    lpopState modulenamevr
