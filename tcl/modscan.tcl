@@ -198,18 +198,16 @@ proc module-sc {command args} {
 
 proc recordScanModuleElt {name args} {
    set mod [currentState modulename]
+   set modpath [currentState modulepath]
    if {![info exists ::g_scanModuleElt]} {
       set ::g_scanModuleElt [dict create]
    }
    foreach elt $args {
-      if {![dict exists $::g_scanModuleElt $elt]} {
-         dict set ::g_scanModuleElt $elt {}
-      }
-      if {![dict exists $::g_scanModuleElt $elt $name]} {
-         dict set ::g_scanModuleElt $elt $name [list $mod]
+      if {![dict exists $::g_scanModuleElt $modpath $elt $name]} {
+         dict set ::g_scanModuleElt $modpath $elt $name [list $mod]
       } else {
          ##nagelfar ignore Suspicious variable name
-         dict with ::g_scanModuleElt $elt {lappend $name $mod}
+         dict with ::g_scanModuleElt $modpath $elt {lappend $name $mod}
       }
       reportDebug "Module $mod defines $elt:$name"
    }
@@ -248,29 +246,32 @@ proc doesModVariantMatch {mod pvrlist} {
 }
 
 # collect list of modules matching all extra specifier criteria
-proc getModMatchingExtraSpec {pxtlist} {
+proc getModMatchingExtraSpec {modpath pxtlist} {
    set res [list]
-   if {[info exists ::g_scanModuleElt]} {
+   if {[info exists ::g_scanModuleElt] && [dict exists $::g_scanModuleElt\
+      $modpath]} {
       foreach pxt $pxtlist {
          lassign $pxt elt name
          set one_crit_res [list]
          if {$elt in {require incompat load unload prereq conflict prereq-all\
             prereq-any depends-on always-load load-any try-load switch\
             switch-on switch-off}} {
-            if {[dict exists $::g_scanModuleElt $elt]} {
-               foreach {modspec values} [dict get $::g_scanModuleElt $elt] {
+            if {[dict exists $::g_scanModuleElt $modpath $elt]} {
+               foreach {modspec values} [dict get $::g_scanModuleElt $modpath\
+                  $elt] {
                   # modEq proc has been initialized in getModules phase #2
                   if {[modEq $modspec $name eqstart 1 5 1]} {
                      # possible duplicate module entry in result list
                      lappend one_crit_res {*}[dict get $::g_scanModuleElt\
-                        $elt $modspec]
+                        $modpath $elt $modspec]
                   }
                }
             }
          } else {
             # get modules matching one simple extra specifier criterion
-            if {[dict exists $::g_scanModuleElt $elt $name]} {
-               set one_crit_res [dict get $::g_scanModuleElt $elt $name]
+            if {[dict exists $::g_scanModuleElt $modpath $elt $name]} {
+               set one_crit_res [dict get $::g_scanModuleElt $modpath\
+                  $elt $name]
             }
          }
          lappend all_crit_res $one_crit_res
@@ -299,7 +300,7 @@ proc isExtraMatchSearchRequired {mod} {
 }
 
 # perform extra match search on currently being built module search result
-proc filterExtraMatchSearch {mod res_arrname versmod_arrname} {
+proc filterExtraMatchSearch {modpath mod res_arrname versmod_arrname} {
    # link to variables/arrays from upper context
    upvar $res_arrname found_list
    upvar $versmod_arrname versmod_list
@@ -329,7 +330,7 @@ proc filterExtraMatchSearch {mod res_arrname versmod_arrname} {
             if {![isModuleTagged $elt forbidden 0]} {
                ##nagelfar ignore Suspicious variable name
                execute-modulefile [lindex $found_list($elt) 2] $elt $elt $elt\
-                  0 0
+                  0 0 $modpath
             }
          }
       }
@@ -358,7 +359,7 @@ proc filterExtraMatchSearch {mod res_arrname versmod_arrname} {
    # get list of modules matching extra specifiers to determine those to not
    # matching that need to be withdrawn from result
    if {$check_extra} {
-      set extra_keep_list [getModMatchingExtraSpec $spec_xt_list]
+      set extra_keep_list [getModMatchingExtraSpec $modpath $spec_xt_list]
       lassign [getDiffBetweenList $keep_list $extra_keep_list]\
          extra_unset_list
       set unset_list [list {*}$unset_list {*}$extra_unset_list]

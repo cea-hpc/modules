@@ -25,6 +25,8 @@ Modules 5.3.1 (not yet released)
   scripts to use `Hunspell`_ as spell checker instead of Aspell.
 * Fix unaligned :subcmd:`list` output when 100 or more modules are loaded.
   (fix issue #496)
+* Fix extra specifier search when an identical module name and version is
+  available in several modulepaths. (fix issue #497)
 
 .. _Hunspell: https://hunspell.github.io/
 
