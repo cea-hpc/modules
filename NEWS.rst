@@ -27,6 +27,8 @@ Modules 5.3.1 (not yet released)
   (fix issue #496)
 * Fix extra specifier search when an identical module name and version is
   available in several modulepaths. (fix issue #497)
+* Do not match module commands with :mfcmd:`--not-req<module>` option set on
+  ``require`` or ``incompat`` extra specifier queries. (fix issue #498)
 
 .. _Hunspell: https://hunspell.github.io/
 

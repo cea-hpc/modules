@@ -2577,7 +2577,8 @@ same trend ``prereq-all`` is an alias on ``depends-on`` and vice versa.
 Regarding ``switch-off`` and ``switch-on`` elements they correspond
 respectively to the module to unload (if specified) and the module to load on
 a ``module switch`` command. ``switch`` is an alias that matches both
-``switch-off`` and ``switch-on`` elements.
+``switch-off`` and ``switch-on`` elements. ``require`` and ``incompat``
+*elements* do not match module commands where ``--not-req`` option is set.
 
 When several extra specifiers are set on a module search query, they act as an
 *AND* operation. Which means modules listed in result are those matching all

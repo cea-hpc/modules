@@ -172,25 +172,36 @@ proc module-sc {command args} {
          show_mtime show_filter search_filter search_match dump_state\
          addpath_pos not_req tag_list args
       set modspeclist [parseModuleSpecification 0 0 0 0 {*}$args]
+
+      # no require/incompat extra specifier alias if --not-req option is set
+      if {$not_req} {
+         set xtaliasinc {}
+         set xtaliasreq {}
+      } else {
+         set xtaliasinc [list incompat]
+         set xtaliasreq [list require]
+      }
+
       if {$command eq {switch}} {
          # distinguish switched-off module spec from switched-on
          # ignore command without or with too much argument
          switch -- [llength $modspeclist] {
             {1} {
                # no switched-off module with one-arg form
-               recordScanModuleElt $modspeclist switch switch-on require
+               recordScanModuleElt $modspeclist switch switch-on\
+                  {*}$xtaliasreq
             }
             {2} {
                lassign $modspeclist swoffarg swonarg
-               recordScanModuleElt $swoffarg switch switch-off incompat
-               recordScanModuleElt $swonarg switch switch-on require
+               recordScanModuleElt $swoffarg switch switch-off {*}$xtaliasinc
+               recordScanModuleElt $swonarg switch switch-on {*}$xtaliasreq
             }
          }
       } else {
-         set xtalias [expr {$command eq {unload} ? {incompat} : {require}}]
+         set xtalias [expr {$command eq {unload} ? $xtaliasinc : $xtaliasreq}]
          # record each module spec
          foreach modspec $modspeclist {
-            recordScanModuleElt $modspec $command $xtalias
+            recordScanModuleElt $modspec $command {*}$xtalias
          }
       }
    }
