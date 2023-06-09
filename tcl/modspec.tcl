@@ -1294,7 +1294,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec\
    set xtelt_valid_list [list always-load append-path chdir complete conflict\
       depends-on envvar family incompat load load-any prepend-path prereq\
       prereq-all prereq-any pushenv remove-path require set-alias\
-      set-function setenv switch switch-on switch-off try-load uncomplete\
+      set-function setenv switch switch-on switch-off tag try-load uncomplete\
       unload unset-alias unset-function unsetenv variant]
    set xtelt_modspec_list [list always-load conflict depends-on incompat load\
       load-any prereq prereq-all prereq-any require switch switch-on\
@@ -1720,6 +1720,23 @@ proc getExtraListFromVersSpec {modarg} {
       set extralist {}
    }
    return $extralist
+}
+
+# translate module name version spec to return list of tag specifier and list
+# of other extra specifier
+proc getSplitExtraListFromVersSpec {modarg} {
+   set taglist {}
+   set otherlist {}
+   if {[info exists ::g_moduleVersSpec($modarg)]} {
+      foreach spec_xt [lindex $::g_moduleVersSpec($modarg) 10] {
+         if {[lindex $spec_xt 0] eq {tag}} {
+            lappend taglist $spec_xt
+         } else {
+            lappend otherlist $spec_xt
+         }
+      }
+   }
+   return [list $taglist $otherlist]
 }
 
 # get available modules matching module specification

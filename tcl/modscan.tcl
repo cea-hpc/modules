@@ -251,6 +251,20 @@ proc doesModVariantMatch {mod pvrlist} {
    return $ret
 }
 
+# test given tag specification matches tags defined over module
+proc doesModTagMatch {mod modfile ptaglist} {
+   set ret 1
+   foreach ptag $ptaglist {
+      lassign $ptag elt name
+      # no match on one tag means no match globally
+      if {![isModuleTagged $mod $name 1 $modfile]} {
+         set ret 0
+         break
+      }
+   }
+   return $ret
+}
+
 # collect list of modules matching all extra specifier criteria
 proc getModMatchingExtraSpec {modpath pxtlist} {
    set res [list]
@@ -314,11 +328,12 @@ proc filterExtraMatchSearch {modpath mod res_arrname versmod_arrname} {
    # get extra match query properties
    set spec_vr_list [getVariantListFromVersSpec $mod]
    set check_variant [expr {[llength $spec_vr_list] > 0}]
-   set spec_xt_list [getExtraListFromVersSpec $mod]
+   lassign [getSplitExtraListFromVersSpec $mod] spec_tag_list spec_xt_list
    set check_extra [expr {[llength $spec_xt_list] > 0}]
+   set check_tag [expr {[llength $spec_tag_list] > 0}]
    set scan_eval [expr {$check_variant || $check_extra || [isEltInReport\
       variant 0]}]
-   set filter_res [expr {$check_variant || $check_extra}]
+   set filter_res [expr {$check_variant || $check_extra || $check_tag}]
 
    if {$scan_eval} {
       # disable error reporting to avoid modulefile errors (not coping with
@@ -331,9 +346,17 @@ proc filterExtraMatchSearch {modpath mod res_arrname versmod_arrname} {
       lappendState mode scan
    }
 
+   if {$check_tag} {
+      # load tags from loaded mods prior collecting tags found during rc eval
+      cacheCurrentModules 0
+   }
+
    set unset_list {}
    set keep_list {}
    foreach elt [array names found_list] {
+      if {$check_tag} {
+         collectModuleTags $elt
+      }
       # skip scan evaluation if only checking tags
       if {$scan_eval} {
          switch -- [lindex $found_list($elt) 0] {
@@ -360,6 +383,9 @@ proc filterExtraMatchSearch {modpath mod res_arrname versmod_arrname} {
                if {$check_variant && ![doesModVariantMatch $elt\
                   $spec_vr_list]} {
                   lappend unset_list $elt
+               } elseif {$check_tag && ![doesModTagMatch $elt [lindex\
+                  $found_list($elt) 2] $spec_tag_list]} {
+                  lappend unset_list $elt
                } elseif {$check_extra} {
                   # know currently retained modules to later compute those
                   # to withdrawn
@@ -376,6 +402,11 @@ proc filterExtraMatchSearch {modpath mod res_arrname versmod_arrname} {
       if {!$alreadyinhibit} {
          setState inhibit_errreport 0
       }
+   }
+
+   if {$check_tag} {
+      # indicate tags have been collected for this modulepath
+      lappendState tags_collected_in $modpath
    }
 
    # get list of modules matching extra specifiers to determine those to not
