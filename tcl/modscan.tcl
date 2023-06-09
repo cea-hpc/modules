@@ -316,31 +316,39 @@ proc filterExtraMatchSearch {modpath mod res_arrname versmod_arrname} {
    set check_variant [expr {[llength $spec_vr_list] > 0}]
    set spec_xt_list [getExtraListFromVersSpec $mod]
    set check_extra [expr {[llength $spec_xt_list] > 0}]
+   set scan_eval [expr {$check_variant || $check_extra || [isEltInReport\
+      variant 0]}]
    set filter_res [expr {$check_variant || $check_extra}]
 
-   # disable error reporting to avoid modulefile errors (not coping with scan
-   # evaluation for instance) to pollute result
-   set alreadyinhibit [getState inhibit_errreport]
-   if {!$alreadyinhibit} {
-      inhibitErrorReport
+   if {$scan_eval} {
+      # disable error reporting to avoid modulefile errors (not coping with
+      # scan evaluation for instance) to pollute result
+      set alreadyinhibit [getState inhibit_errreport]
+      if {!$alreadyinhibit} {
+         inhibitErrorReport
+      }
+      # evaluate all modules found in scan mode to gather content information
+      lappendState mode scan
    }
 
    set unset_list {}
    set keep_list {}
-   # evaluate all modules found in scan mode to gather content information
-   lappendState mode scan
    foreach elt [array names found_list] {
-      switch -- [lindex $found_list($elt) 0] {
-         modulefile - virtual {
-            # skip evaluation of fully forbidden modulefile
-            if {![isModuleTagged $elt forbidden 0 [lindex $found_list($elt)\
-               2]]} {
-               ##nagelfar ignore Suspicious variable name
-               execute-modulefile [lindex $found_list($elt) 2] $elt $elt $elt\
-                  0 0 $modpath
+      # skip scan evaluation if only checking tags
+      if {$scan_eval} {
+         switch -- [lindex $found_list($elt) 0] {
+            modulefile - virtual {
+               # skip evaluation of fully forbidden modulefile
+               if {![isModuleTagged $elt forbidden 0 [lindex\
+                  $found_list($elt) 2]]} {
+                  ##nagelfar ignore Suspicious variable name
+                  execute-modulefile [lindex $found_list($elt) 2] $elt $elt\
+                     $elt 0 0 $modpath
+               }
             }
          }
       }
+
       # unset elements that do not match extra query
       if {$filter_res} {
          switch -- [lindex $found_list($elt) 0] {
@@ -361,7 +369,14 @@ proc filterExtraMatchSearch {modpath mod res_arrname versmod_arrname} {
          }
       }
    }
-   lpopState mode
+
+   if {$scan_eval} {
+      lpopState mode
+      # re-enable error report only is it was disabled from this procedure
+      if {!$alreadyinhibit} {
+         setState inhibit_errreport 0
+      }
+   }
 
    # get list of modules matching extra specifiers to determine those to not
    # matching that need to be withdrawn from result
@@ -384,11 +399,6 @@ proc filterExtraMatchSearch {modpath mod res_arrname versmod_arrname} {
             }
          }
       }
-   }
-
-   # re-enable error report only is it was disabled from this procedure
-   if {!$alreadyinhibit} {
-      setState inhibit_errreport 0
    }
 }
 
