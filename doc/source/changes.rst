@@ -907,6 +907,10 @@ The following module sub-commands appeared on Modules 5.
  * :ref:`Extra specifier` is accepted in search query to query content of
    modulefiles.
 
+ Starting Modules 5.4:
+
+ * ``tag`` :ref:`extra specifier` is introduced.
+
 Environment
 """""""""""
 

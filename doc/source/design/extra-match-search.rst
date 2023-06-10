@@ -219,6 +219,16 @@ specifiers and their associated modulefile command.
 |                    | incompat                                |
 +--------------------+-----------------------------------------+
 
++--------------------+-----------------------------------------+
+| Modulerc command   | Extra specifier(s)                      |
++====================+=========================================+
+| module-tag         | tag                                     |
++--------------------+-----------------------------------------+
+| module-hide        | tag                                     |
++--------------------+-----------------------------------------+
+| module-forbid      | tag                                     |
++--------------------+-----------------------------------------+
+
 Extra specifier are only valid on *return all matching modules* context. An
 error is returned when used in query on other contexts.
 
@@ -288,6 +298,10 @@ listed as value in every matched nested keys.
 When there are several extra specifiers in search query, result are the
 modules present in the value list of every matched keys (intersection of value
 list obtained for every extra specifier criterion).
+
+Module tags, queried with *tag* extra specifier, are not recorded in the
+same structure than other extra specifier. Regular tag mechanism and recording
+structure is used.
 
 Specific filtering work is achieved for extra specifiers accepting a module
 specification. See next section.
