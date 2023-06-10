@@ -255,9 +255,17 @@ proc doesModVariantMatch {mod pvrlist} {
 proc doesModTagMatch {mod modfile ptaglist} {
    set ret 1
    foreach ptag $ptaglist {
-      lassign $ptag elt name
-      # no match on one tag means no match globally
-      if {![isModuleTagged $mod $name 1 $modfile]} {
+      set namelist [lassign $ptag elt]
+      # check if at least one tag name from specifier value is applied on mod
+      set one_name_match 0
+      foreach name $namelist {
+         if {[isModuleTagged $mod $name 1 $modfile]} {
+            set one_name_match 1
+            break
+         }
+      }
+      # no tag name from specifier match mod mean no match on extra query
+      if {!$one_name_match} {
          set ret 0
          break
       }
@@ -271,27 +279,29 @@ proc getModMatchingExtraSpec {modpath pxtlist} {
    if {[info exists ::g_scanModuleElt] && [dict exists $::g_scanModuleElt\
       $modpath]} {
       foreach pxt $pxtlist {
-         lassign $pxt elt name
+         set namelist [lassign $pxt elt]
          set one_crit_res [list]
-         if {$elt in {require incompat load unload prereq conflict prereq-all\
-            prereq-any depends-on always-load load-any try-load switch\
-            switch-on switch-off}} {
-            if {[dict exists $::g_scanModuleElt $modpath $elt]} {
-               foreach {modspec values} [dict get $::g_scanModuleElt $modpath\
-                  $elt] {
-                  # modEq proc has been initialized in getModules phase #2
-                  if {[modEq $modspec $name eqstart 1 5 1]} {
-                     # possible duplicate module entry in result list
-                     lappend one_crit_res {*}[dict get $::g_scanModuleElt\
-                        $modpath $elt $modspec]
+         foreach name $namelist {
+            if {$elt in {require incompat load unload prereq conflict\
+               prereq-all prereq-any depends-on always-load load-any try-load\
+               switch switch-on switch-off}} {
+               if {[dict exists $::g_scanModuleElt $modpath $elt]} {
+                  foreach {modspec values} [dict get $::g_scanModuleElt\
+                     $modpath $elt] {
+                     # modEq proc has been initialized in getModules phase #2
+                     if {[modEq $modspec $name eqstart 1 5 1]} {
+                        # possible duplicate module entry in result list
+                        lappend one_crit_res {*}[dict get $::g_scanModuleElt\
+                           $modpath $elt $modspec]
+                     }
                   }
                }
-            }
-         } else {
-            # get modules matching one simple extra specifier criterion
-            if {[dict exists $::g_scanModuleElt $modpath $elt $name]} {
-               set one_crit_res [dict get $::g_scanModuleElt $modpath\
-                  $elt $name]
+            } else {
+               # get mods matching one value of one extra specifier criterion
+               if {[dict exists $::g_scanModuleElt $modpath $elt $name]} {
+                  lappend one_crit_res {*}[dict get $::g_scanModuleElt\
+                     $modpath $elt $name]
+               }
             }
          }
          lappend all_crit_res $one_crit_res

@@ -1397,26 +1397,34 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec\
                # extract extra specifier spec
                set xtsepidx [string first : $curarg]
                set xtelt [string range $curarg 0 $xtsepidx-1]
-               set xtname [string range $curarg $xtsepidx+1 end]
+               set xtnamelist [split [string range $curarg $xtsepidx+1 end] ,]
 
                # check no other : character is found in argument or element
                # and name are not an empty string
-               if {[string length $xtelt] == 0 || [string length $xtname] ==\
-                  0 || ([string last : $curarg] != $xtsepidx && $xtelt ni\
-                  $xtelt_modspec_list)} {
+               if {[string length $xtelt] == 0 || [llength $xtnamelist] == 0\
+                  || {} in $xtnamelist || ([string last : $curarg] !=\
+                  $xtsepidx && $xtelt ni $xtelt_modspec_list)} {
                   knerror "Invalid extra specification '$arg'"
                }
                if {$xtelt ni $xtelt_valid_list} {
                   knerror "Invalid extra specifier '$xtelt'\nValid extra\
                      specifiers are: $xtelt_valid_list"
                }
+               set spec_xt [list $xtelt]
                # parse and resolve module spec set as extra specifier value
                if {$xtelt in $xtelt_modspec_list} {
-                  lassign [parseModuleSpecification 0 0 0 1 {*}$xtname] xtname
+                  foreach xtname $xtnamelist {
+                     lassign [parseModuleSpecification 0 0 0 1 {*}$xtname]\
+                        xtname
+                     lappend spec_xt $xtname
+                  }
+               } else {
+                  lappend spec_xt {*}$xtnamelist
                }
-               # save extra specifier element and name value, same element can
-               # appear multiple time (means AND operator)
-               lappend xtlist [list $xtelt $xtname]
+               # save extra specifier element and name value, multiple values
+               # may be set (means OR operator), same element can appear
+               # multiple time (means AND operator)
+               lappend xtlist $spec_xt
             }
             *=* {
                # extract valued-variant spec
