@@ -2560,7 +2560,7 @@ environment variable, a shell alias, a module specification, etc.
 Supported extra specifier *elements* are:
 
 * ``variant``, ``complete``, ``uncomplete``, ``set-alias``, ``unset-alias``,
-  ``set-function``, ``unset-function``, ``chdir``, ``family``
+  ``set-function``, ``unset-function``, ``chdir``, ``family``, ``tag``
 * ``setenv``, ``unsetenv``, ``append-path``, ``prepend-path``, ``remove-path``
   and ``pushenv``: these elements related to environment variable handling may
   also be aliased ``envvar``
@@ -2603,6 +2603,9 @@ if an unknown extra specifier *element* is defined in search query.
 .. only:: html
 
    .. versionadded:: 5.3
+
+   .. versionchanged:: 5.4
+      Extra specifier ``tag`` added
 
 
 .. _Module tags:
@@ -2838,8 +2841,8 @@ Extra match search is triggered when:
   to collect variant information then match them against variant specified in
   query
 * :ref:`Extra specifier` is specified in search query: extra match search is
-  triggered to collect commands used in modulefiles then match them against
-  extra specifier query
+  triggered to collect commands used in modulefiles or modulercs then match
+  them against extra specifier query
 
 If search query does not contain an extra query and if variant information
 should not be reported, no extra match search is performed. If search query
@@ -2855,6 +2858,10 @@ evaluation mode.
 Modulefiles tagged *forbidden* are excluded from extra match search
 evaluation. Thus they are excluded from result when this mechanism is
 triggered.
+
+No *scan* modulefile evaluation is performed if search query is only composed
+of ``tag`` extra specifier. Module tags are defined in modulercs thus no
+modulefile evaluation is required to get tags applying to a modulefile.
 
 As extra match search implies additional modulefile evaluations, it is advised
 to build and use :ref:`Module cache` to improve search speed.

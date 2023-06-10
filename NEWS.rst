@@ -13,6 +13,8 @@ Modules 5.4.0 (not yet released)
 
 * Allow to designate module by its full path file name on :mfcmd:`module-tag`,
   :mfcmd:`module-hide` and :mfcmd:`module-forbid`. (fix issue #485)
+* Introduce ``tag`` extra specifier to search modules on :subcmd:`avail`,
+  :subcmd:`whatis` and :subcmd:`paths` sub-commands based on tags applied.
 
 
 .. _5.3 release notes:
