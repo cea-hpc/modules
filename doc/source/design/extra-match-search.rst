@@ -261,8 +261,8 @@ other element corresponds to the list of values provided to this argument.
 For example, search query ``mod/1.0 setenv:FOO variant:bar setenv:BAR``
 produces internal representation ``{setenv FOO} {variant bar} {setenv BAR}``.
 
-When *OR* operation will be supported, search query ``mod/1.0 setenv:FOO,BAR``
-will produce internal representation ``{setenv FOO BAR}``.
+Another example with multiple values, search query ``mod/1.0 setenv:FOO,BAR``
+produces internal representation ``{setenv FOO BAR}``.
 
 Value specified may contain a space character if it is escaped on command line
 either by quotes (``"prereq:mod@1.0 foo=bar"``) or backslash
@@ -399,15 +399,14 @@ characters are taken into account (they are treated literally).
 
 An error is raised when an empty extra specifier name or value is specified.
 
-FUTURE: expressing an *OR* operation
+Expressing an *OR* operation
 
 * for instance by mentioning multiple values separated by ``,`` character
 * ``module avail mod/1.0 foo=val1,val2 bar=val2``
 * means *foo* equals *val1* or *val2* and *bar* equals *val2*
 * such syntax is equivalent to version list specification
 * does not seem useful to allow ranges like for version
-* FIXME: allow such syntax on any context or only for *return all matching
-  modules* context?
+* Such syntax is only allowed for *return all matching  modules* context
 
 FUTURE: expressing a *NOT* operation
 
