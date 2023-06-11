@@ -77,6 +77,9 @@ setenv_path_var MODULEPATH $mp
 testouterr_cmd sh {avail -t scan/1.0 variant:foo:foo} ERR [err_extraspec variant:foo:foo]
 testouterr_cmd sh {avail -t scan/1.0 variant:} ERR [err_extraspec variant:]
 testouterr_cmd sh {avail -t scan/1.0 :foo} ERR [err_extraspec :foo]
+testouterr_cmd sh {avail -t scan/1.0 variant:,} ERR [err_extraspec variant:,]
+testouterr_cmd sh {avail -t scan/1.0 variant:,foo} ERR [err_extraspec variant:,foo]
+testouterr_cmd sh {avail -t scan/1.0 variant:foo,} ERR [err_extraspec variant:foo,]
 
 
 #
@@ -88,9 +91,10 @@ setenv_var TESTSUITE_EXTRA vr1
 set tserr extra/1.0
 testouterr_cmd sh {avail -t extra variant:xtfoo} OK $tserr
 testouterr_cmd sh {avail -t extra variant:xtunk} OK {}
-testouterr_cmd sh {avail -t extra variant:xtfoo,xtbar} OK {}
+testouterr_cmd sh {avail -t extra variant:xtfoo,xtbar} OK $tserr
 testouterr_cmd sh {avail -t extra variant:xtfoo variant:xtbar} OK $tserr
 testouterr_cmd sh {avail -t extra variant:xtfoo variant:xtfoo} OK $tserr
+testouterr_cmd sh {avail -t extra variant:xtfoo,xtqux variant:xtbar} OK $tserr
 
 set tserr "$modlin $mpre $modlin
 \\s+extra/1.0: extra/1.0"
@@ -115,20 +119,21 @@ setenv_var TESTSUITE_EXTRA vr2
 
 set tserr extra/1.0
 testouterr_cmd sh {avail -t variant:xtbar} OK $tserr
-testouterr_cmd sh {avail -t variant:xtfoo,xtbar} OK {}
+testouterr_cmd sh {avail -t variant:xtfoo,xtbar} OK $tserr
 testouterr_cmd sh {avail -t variant:xtfoo variant:xtbar} OK {}
 testouterr_cmd sh {avail -t variant:xtfoo variant:xtfoo} OK {}
+testouterr_cmd sh {avail -t variant:xtfoo,xtqux variant:xtbar} OK {}
 
 set tserr "$modlin $mpre $modlin
 \\s+extra/1.0: extra/1.0"
 testouterr_cmd_re sh {whatis extra variant:xtbar} OK $tserr
-testouterr_cmd sh {whatis extra variant:xtfoo,xtbar} ERR "$err_path'extra variant:xtfoo,xtbar'"
+testouterr_cmd_re sh {whatis extra variant:xtfoo,xtbar} OK $tserr
 testouterr_cmd_re sh {whatis extra variant:xtfoo variant:xtbar} ERR "$err_path'extra variant:xtfoo variant:xtbar'"
 
 set ans [list]
 lappend ans [list text $mp/extra/1.0]
 testouterr_cmd sh {paths extra variant:xtbar} $ans {}
-testouterr_cmd sh {paths extra variant:xtfoo,xtbar} OK {}
+testouterr_cmd sh {paths extra variant:xtfoo,xtbar} $ans {}
 testouterr_cmd sh {paths extra variant:xtfoo variant:xtbar} OK {}
 
 
@@ -138,7 +143,7 @@ setenv_var TESTSUITE_EXTRA vr1
 set tserr extra/1.0
 testouterr_cmd sh {avail -t variant:xtfoo} OK $tserr
 testouterr_cmd sh {avail -t variant:xtunk} OK {}
-testouterr_cmd sh {avail -t variant:xtfoo,xtbar} OK {}
+testouterr_cmd sh {avail -t variant:xtfoo,xtbar} OK $tserr
 testouterr_cmd sh {avail -t variant:xtfoo variant:xtbar} OK $tserr
 testouterr_cmd sh {avail -t variant:xtfoo variant:xtfoo} OK $tserr
 
