@@ -60,18 +60,27 @@ setenv_loaded_module [list extra/1.0] [list $mp/extra/1.0]
 
 set tserr {extra/1.0 <L:xtfoo>}
 testouterr_cmd sh {avail -t extra tag:xtfoo tag:loaded} OK $tserr
+testouterr_cmd sh {avail -t extra tag:xtfoo tag:L} OK $tserr
 testouterr_cmd sh {avail -t extra setenv:XTFOO tag:loaded} OK $tserr
+
+setenv_var MODULES_TAG_ABBREV loaded=L:forbidden=F:xtfoo:X
+
+set tserr {extra/1.0 <L:X>}
+testouterr_cmd sh {avail -t extra tag:X} OK $tserr
+testouterr_cmd sh {avail -t extra tag:X tag:L} OK $tserr
 
 setenv_var __MODULES_LMTAG extra/1.0&xtbar&xtfoo
 setenv_var __MODULES_LMEXTRATAG extra/1.0&xtbar
 
-set tserr {extra/1.0 <L:xtbar:xtfoo>}
+set tserr {extra/1.0 <L:X:xtbar>}
 testouterr_cmd sh {avail -t extra tag:xtfoo tag:loaded} OK $tserr
 testouterr_cmd sh {avail -t extra tag:xtfoo tag:xtbar} OK $tserr
+testouterr_cmd sh {avail -t extra tag:X,L} OK $tserr
 
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMTAG
 unsetenv_var __MODULES_LMEXTRATAG
+unsetenv_var MODULES_TAG_ABBREV
 
 
 setenv_var TESTSUITE_EXTRA tag3
