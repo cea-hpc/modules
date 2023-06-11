@@ -1,0 +1,95 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.51-scan/%M%
+#   Revision:		%I%
+#   First Edition:	2023/06/11
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		avail
+#   Modulefiles:    extra
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test tag extra specifier
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+# ensure advanced version specifiers are enabled
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure avail tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+setenv_var MODULES_AVAIL_TERSE_OUTPUT alias:dirwsym:sym:tag
+
+
+
+
+setenv_var TESTSUITE_EXTRA tag1
+
+set tserr {extra/1.0 <F:xtfoo>}
+testouterr_cmd sh {avail -t extra tag:xtfoo} OK $tserr
+testouterr_cmd sh {avail -t extra tag:xtfoo tag:forbidden} OK $tserr
+testouterr_cmd sh {avail -t extra tag:xtfoo setenv:XTFOO} OK {}
+testouterr_cmd sh {avail -t tag:xtfoo} OK $tserr
+
+
+setenv_var TESTSUITE_EXTRA tag2
+
+set tserr {extra/1.0 <xtfoo>}
+testouterr_cmd sh {avail -t extra tag:xtfoo setenv:XTFOO} OK $tserr
+testouterr_cmd sh {avail -t extra tag:xt} OK {}
+testouterr_cmd sh {avail -t extra tag:foo} OK {}
+
+setenv_loaded_module [list extra/1.0] [list $mp/extra/1.0]
+
+set tserr {extra/1.0 <L:xtfoo>}
+testouterr_cmd sh {avail -t extra tag:xtfoo tag:loaded} OK $tserr
+testouterr_cmd sh {avail -t extra setenv:XTFOO tag:loaded} OK $tserr
+
+setenv_var __MODULES_LMTAG extra/1.0&xtbar&xtfoo
+setenv_var __MODULES_LMEXTRATAG extra/1.0&xtbar
+
+set tserr {extra/1.0 <L:xtbar:xtfoo>}
+testouterr_cmd sh {avail -t extra tag:xtfoo tag:loaded} OK $tserr
+testouterr_cmd sh {avail -t extra tag:xtfoo tag:xtbar} OK $tserr
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMEXTRATAG
+
+
+setenv_var TESTSUITE_EXTRA tag3
+
+set tserr {extra/1.0 <H:xtfoo>}
+testouterr_cmd sh {avail -t extra tag:hidden} OK {}
+# need -a option to unveil hidden module
+testouterr_cmd sh {avail -a -t extra tag:hidden} OK $tserr
+
+
+setenv_var TESTSUITE_EXTRA tag4
+
+set tserr {extra/1.0 <xtfoo>}
+testouterr_cmd sh {avail -t extra tag:xtfoo} OK $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
