@@ -2552,10 +2552,10 @@ context. Extra specifiers are an extra query to list available modulefiles
 based on their content definition. They rely on the :ref:`Extra match search`
 mechanism that collects content of available modulefiles.
 
-Extra specifier can be set with the ``element:name`` syntax where *element* is
-a Tcl modulefile command and *name* an item defined by this command.
-Depending on the kind of Tcl modulefile command, *name* can refer to an
-environment variable, a shell alias, a module specification, etc.
+Extra specifier can be set with the ``element:name[,name,...]`` syntax where
+*element* is a Tcl modulefile command and *name* an item defined by this
+command. Depending on the kind of Tcl modulefile command, *name* can refer to
+an environment variable, a shell alias, a module specification, etc.
 
 Supported extra specifier *elements* are:
 
@@ -2583,9 +2583,14 @@ a ``module switch`` command. ``switch`` is an alias that matches both
 ``switch-off`` and ``switch-on`` elements. ``require`` and ``incompat``
 *elements* do not match module commands where ``--not-req`` option is set.
 
-When several extra specifiers are set on a module search query, they act as an
-*AND* operation. Which means modules listed in result are those matching all
-extra specifiers defined.
+When several *names* are set on one *element* criterion (e.g.,
+``env:PATH,LD_LIBRARY_PATH``), they act as an *OR* operation. Which means
+modules listed in result are those matching any of the *element* *names*
+defined.
+
+When several extra specifiers are set on a module search query (e.g.,
+``env:PATH env:LD_LIBRARY_PATH``), they act as an *AND* operation. Which means
+modules listed in result are those matching all extra specifiers defined.
 
 Module specification used as *name* value for some extra specifier *elements*
 may leverage :ref:`Advanced module version specifiers` syntax. However if a
@@ -2606,6 +2611,10 @@ if an unknown extra specifier *element* is defined in search query.
 
    .. versionchanged:: 5.4
       Extra specifier ``tag`` added
+
+   .. versionchanged:: 5.4
+      Multiple names may be set on one extra specifier criterion to select
+      modules matching any of these names
 
 
 .. _Module tags:
