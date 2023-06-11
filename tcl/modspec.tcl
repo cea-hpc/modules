@@ -1419,7 +1419,18 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec\
                      lappend spec_xt $xtname
                   }
                } else {
-                  lappend spec_xt {*}$xtnamelist
+                  # For tag extra specifier, resolve each name to get
+                  # corresponding tag name if tag abbreviation set as name
+                  if {$xtelt eq {tag}} {
+                     foreach xtname $xtnamelist {
+                        lappend spec_xt $xtname
+                        if {[set tag [getTagFromAbbrev $xtname]] ne {}} {
+                           lappend spec_xt $tag
+                        }
+                     }
+                  } else {
+                     lappend spec_xt {*}$xtnamelist
+                  }
                }
                # save extra specifier element and name value, multiple values
                # may be set (means OR operator), same element can appear

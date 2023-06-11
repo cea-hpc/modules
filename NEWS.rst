@@ -15,6 +15,7 @@ Modules 5.4.0 (not yet released)
   :mfcmd:`module-hide` and :mfcmd:`module-forbid`. (fix issue #485)
 * Introduce ``tag`` extra specifier to search modules on :subcmd:`avail`,
   :subcmd:`whatis` and :subcmd:`paths` sub-commands based on tags applied.
+  Tag abbreviation may also be used as extra specifier name.
 * Add ability to specify multiple names on one extra specifier criterion to
   select modules matching any of these names (e.g.,
   ``env:PATH,LD_LIBRARY_PATH``)
