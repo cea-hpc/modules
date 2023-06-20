@@ -232,20 +232,15 @@ proc doesModVariantMatch {mod pvrlist} {
          set availvrarr([lindex $availvr 0]) [lindex $availvr 1]
          set availvrisbool([lindex $availvr 0]) [lindex $availvr 4]
       }
-      foreach pvr $pvrlist {
-         set pvrarr([lindex $pvr 0]) [lindex $pvr 1]
-         set pvrisbool([lindex $pvr 0]) [lindex $pvr 2]
-      }
-
       # no match if a specified variant is not found among module variants or
       # if the value is not available
-      foreach vrname [array names pvrarr] {
+      foreach pvr $pvrlist {
+         lassign $pvr vrname pvrval pvrisbool
          # if variant is a boolean, specified value should be a boolean too
          # any value accepted for free-value variant
          if {![info exists availvrarr($vrname)] || ($availvrisbool($vrname)\
-            && !$pvrisbool($vrname)) || (!$availvrisbool($vrname) && [llength\
-            $availvrarr($vrname)] > 0 && $pvrarr($vrname) ni\
-            $availvrarr($vrname))} {
+            && !$pvrisbool) || (!$availvrisbool($vrname) && [llength\
+            $availvrarr($vrname)] > 0 && $pvrval ni $availvrarr($vrname))} {
             set ret 0
             break
          }

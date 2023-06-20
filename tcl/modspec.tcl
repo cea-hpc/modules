@@ -1431,8 +1431,10 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec\
                if {[string last = $curarg] != $vrsepidx} {
                   knerror "Invalid variant specification '$arg'"
                }
-               # replace previous value for variant if already set
-               if {[info exists vrnamearr($vrname)]} {
+               # replace previous value for variant if already set unless if
+               # extra specifier search enabled where all variant spec forms
+               # an AND operation
+               if {[info exists vrnamearr($vrname)] && !$xtspec} {
                   lreplace $vrlist $vrnamearr($vrname) $vrnamearr($vrname)
                } else {
                   incr vridx
