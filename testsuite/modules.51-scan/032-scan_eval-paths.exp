@@ -361,6 +361,19 @@ if {[info exists env(TESTSUITE_ENABLE_MODULECACHE)]} {
 
 
 #
+# same variant specified several times
+#
+
+setenv_var TESTSUITE_SCAN variant1
+
+set ans [list]
+lappend ans [list text $mp/scan/2.0]
+testouterr_cmd sh {paths scan foo=val1 foo=val2} $ans {}
+testouterr_cmd sh {paths scan foo=val1 foo=val4 foo=val2} OK {}
+testouterr_cmd sh {paths scan foo=val2 foo=val4} OK {}
+
+
+#
 #  Cleanup
 #
 

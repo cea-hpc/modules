@@ -393,8 +393,13 @@ set tserr "$modlin $mpre $modlin\nvariant/6.0{bar=1,2,3:foo=val1,val2,val3}  "
 testouterr_cmd_re sh {avail variant@6.0 foo=val1 baz=2} OK {}
 testouterr_cmd_re sh {avail variant@6.0 foo=val4 bar=1} OK {}
 testouterr_cmd_re sh {avail variant@6.0 foo=val4} OK {}
+testouterr_cmd_re sh {avail variant@6.0 foo=val4 foo=val1} OK {}
 testouterr_cmd_re sh {avail variant@6.0 baz=3} OK {}
+testouterr_cmd_re sh {avail variant@6.0 foo=val1 foo=val2} OK $tserr
 testouterr_cmd_re sh {avail variant@6.0 foo=val1 bar=2} OK $tserr
+testouterr_cmd_re sh {avail variant@6.0 foo=val1 bar=2 bar=1} OK $tserr
+testouterr_cmd_re sh {avail variant@6.0 foo=val1 bar=2 bar=4} OK {}
+testouterr_cmd_re sh {avail variant@6.0 foo=val1 bar=4 bar=1} OK {}
 testouterr_cmd_re sh {avail variant@6.0 foo=val1 bar=1} OK $tserr
 testouterr_cmd_re sh {avail variant@6.0 foo=val1} OK $tserr
 setenv_var MODULES_AVAIL_OUTPUT {modulepath:alias:dirwsym:sym:tag}

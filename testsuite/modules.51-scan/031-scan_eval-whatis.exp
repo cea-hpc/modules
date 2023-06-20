@@ -409,6 +409,20 @@ if {[info exists env(TESTSUITE_ENABLE_MODULECACHE)]} {
 
 
 #
+# same variant specified several times
+#
+
+setenv_var TESTSUITE_SCAN variant1
+
+set tserr "$modlin $mpre $modlin
+\\s+scan/2.0: scan/2.0
+\\s+scan/2.1: scan/2.1"
+testouterr_cmd_re sh {whatis scan foo=val1 foo=val2} OK $tserr
+testouterr_cmd_re sh {whatis scan foo=val1 foo=val4 foo=val2} ERR "$err_path'scan foo=val1 foo=val4 foo=val2'"
+testouterr_cmd_re sh {whatis scan foo=val2 foo=val4} ERR "$err_path'scan foo=val2 foo=val4'"
+
+
+#
 #  Cleanup
 #
 
