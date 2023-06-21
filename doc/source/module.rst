@@ -2776,6 +2776,13 @@ evaluation. Variants defined in modulefile are collected during this
 evaluation then compared to the variants specified in search query. If there
 is a match, module is included in search results otherwise it is withdrawn.
 
+When searching for available modules, if one variant is specified multiple
+times, matching modules are those providing all specified variant values. For
+instance ``bar=value1 bar=value2`` will return modules defining a ``bar``
+variant with ``value1`` and ``value2`` as available values. On a module
+selection context, only the last specified value is retained. Which means on
+previous example that ``bar`` variant is set to ``value2``.
+
 Module variants are reported along the module they are associated to on
 :subcmd:`list` sub-command results. They are also reported on :subcmd:`avail`
 sub-command if specified in search query or added to the element to report in

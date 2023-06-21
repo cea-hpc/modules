@@ -900,6 +900,8 @@ The following module sub-commands appeared on Modules 5.
 
  * variant specified in search query is taken into account to return available
    modules matching the variant specification.
+ * when one variant is specified multiple times in search query, returned
+   modules are those providing all the specified variant values.
  * Search query with just a variant set (no module name and version) is
    accepted.
  * :ref:`Extra specifier` is accepted in search query to query content of

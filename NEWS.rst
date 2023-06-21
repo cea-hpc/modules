@@ -29,6 +29,10 @@ Modules 5.3.1 (not yet released)
   available in several modulepaths. (fix issue #497)
 * Do not match module commands with :mfcmd:`--not-req<module>` option set on
   ``require`` or ``incompat`` extra specifier queries. (fix issue #498)
+* When one variant is specified multiple times on search context
+  (:subcmd:`avail`, :subcmd:`paths` or :subcmd:`whatis` sub-commands),
+  available modules returned are those providing all variant values set. (fix
+  issue #499)
 
 .. _Hunspell: https://hunspell.github.io/
 

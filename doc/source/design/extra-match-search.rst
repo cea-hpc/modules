@@ -338,12 +338,19 @@ module* context:
 * multiple variants mentioned act as an *AND* operation
 
   * ``module avail mod/1.0 foo=val1 bar=val2``
-  * means *foo* equals *val1* and *bar* equals *val2*
+  * means module defines *foo* variant with *val1* as an available value and
+    *bar* variant with *val2* as an available value
 
-* same variant mentioned multiple times: only the last mention is retained
+* same variant mentioned multiple times: all mentions retained and act as an
+  *AND* operation
 
   * ``module avail mod/1.0 foo=val1 foo=val2``
-  * means *foo* equals *val2*
+  * means module defines *foo* variant with *val1* and *val2* as available
+    values
+
+Behavior for a single variant specified multiple times is adapted on *return
+all matching modules* context to be the same as a single extra specifier set
+multiple times.
 
 In extra match search query, extra specifiers are expressed with *name:value*
 syntax. Using *:* as separator helps to distinguish from variant
