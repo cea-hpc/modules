@@ -455,7 +455,7 @@ proc modVariantCmp {pvrlist modvrlist {missmean 0}} {
       # modulefile and mod is extra specifier defined on command line
    }
    foreach pvr $pvrlist {
-      set pvrarr([lindex $pvr 0]) [lindex $pvr 1]
+      set pvrarr([lindex $pvr 0]) [lindex $pvr 2]
    }
 
    # no match if a specified variant is not found among module variants (and
@@ -1466,7 +1466,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec\
                }
                # save variant name and value
                set vrnamearr($vrname) $vridx
-               lappend vrlist [list $vrname $vrvalue $vrisbool]
+               lappend vrlist [list $vrname $vrisbool $vrvalue]
             }
             default {
                # save previous mod version spec and transformed arg if any

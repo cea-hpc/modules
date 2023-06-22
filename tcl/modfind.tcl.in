@@ -784,7 +784,11 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from 0}} {
       }
       1 {
          # module specification
-         set vrspeclist [getVariantListFromVersSpec $mod]
+         set vrspeclist {}
+         foreach vrspec [getVariantListFromVersSpec $mod] {
+            lassign $vrspec vrname vrvalisbool vrvalue
+            lappend vrspeclist [list $vrname $vrvalue $vrvalisbool]
+         }
       }
       2 {
          # variant definition collected during scan evaluation
@@ -890,7 +894,7 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from 0}} {
          4 {lappend ret $vrname $vrarr($vrname) $vrisbool($vrname)}
          3 {lappend ret $vrname [lindex $vrarr($vrname) 0] [lindex\
             $vrarr($vrname) 1]}
-         2 {lappend ret [list $vrname $vrarr($vrname) $vrisbool($vrname)]}
+         2 {lappend ret [list $vrname $vrisbool($vrname) $vrarr($vrname)]}
          1 - 5 - 6 {
             if {$vrisbool($vrname)} {
                if {$vrarr($vrname)} {
