@@ -629,6 +629,31 @@ testouterr_cmd sh {avail -t scan foo=val2 foo=val4} OK {}
 
 
 #
+# one variant several values
+#
+
+setenv_var TESTSUITE_SCAN variant1
+
+set tserr "scan/2.0{foo=val1,val2,val3}
+scan/2.1{foo=val1,val2,val3}"
+testouterr_cmd sh {avail -t scan foo=val1,val2} OK $tserr
+testouterr_cmd sh {avail -t scan foo=val9,val2} OK $tserr
+testouterr_cmd sh {avail -t scan foo=val1,val9} OK $tserr
+testouterr_cmd sh {avail -t scan foo=val7,val1,val9} OK $tserr
+testouterr_cmd sh {avail -t scan foo=val7,val1,val9,val2} OK $tserr
+testouterr_cmd sh {avail -t scan foo=val8,val9,val7} OK {}
+testouterr_cmd sh {avail -t scan foo=,val1} OK $tserr
+testouterr_cmd sh {avail -t scan foo=val1,} OK $tserr
+testouterr_cmd sh {avail -t scan foo=val1,,val2} OK $tserr
+testouterr_cmd sh {avail -t scan foo=val1,1} OK $tserr
+testouterr_cmd sh {avail -t scan foo=1,val1} OK $tserr
+testouterr_cmd sh {avail -t scan foo=1,val1,0} OK $tserr
+testouterr_cmd sh {avail -t scan foo=0,1,val1} OK $tserr
+testouterr_cmd sh {avail -t scan foo=1,0} OK {}
+testouterr_cmd sh {avail -t scan foo=,} OK {}
+
+
+#
 #  Cleanup
 #
 
