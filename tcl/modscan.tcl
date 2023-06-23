@@ -235,12 +235,22 @@ proc doesModVariantMatch {mod pvrlist} {
       # no match if a specified variant is not found among module variants or
       # if the value is not available
       foreach pvr $pvrlist {
-         lassign $pvr vrname pvrisbool pvrval
-         # if variant is a boolean, specified value should be a boolean too
-         # any value accepted for free-value variant
-         if {![info exists availvrarr($vrname)] || ($availvrisbool($vrname)\
-            && !$pvrisbool) || (!$availvrisbool($vrname) && [llength\
-            $availvrarr($vrname)] > 0 && $pvrval ni $availvrarr($vrname))} {
+         set pvrvallist [lassign $pvr vrname pvrisbool]
+         # check at least one variant value from specification matches defined
+         # available variant values
+         set one_vrval_match 0
+         foreach pvrval $pvrvallist {
+            # if variant is a boolean, specified value should be a boolean too
+            # any value accepted for free-value variant
+            if {[info exists availvrarr($vrname)] && (($pvrisbool &&\
+               $availvrisbool($vrname)) || (!$availvrisbool($vrname) &&\
+               ([llength $availvrarr($vrname)] == 0 || $pvrval in\
+               $availvrarr($vrname))))} {
+               set one_vrval_match 1
+               break
+            }
+         }
+         if {!$one_vrval_match} {
             set ret 0
             break
          }

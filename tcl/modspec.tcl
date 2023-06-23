@@ -1441,13 +1441,20 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec\
                # extract valued-variant spec
                set vrsepidx [string first = $curarg]
                set vrname [string range $curarg 0 $vrsepidx-1]
-               set vrvalue [string range $curarg $vrsepidx+1 end]
+               set vrvaluelist [split [string range $curarg $vrsepidx+1 end]\
+                  ,]
+               # value is one empty string
+               if {[llength $vrvaluelist] == 0} {
+                  lappend vrvaluelist {}
+               }
 
                if {$vrname eq {}} {
                   knerror "No variant name defined in argument '$curarg'"
                }
-               # check no other = character is found in argument
-               if {[string last = $curarg] != $vrsepidx} {
+               # check no other = character is found in argument and that only
+               # one value is set unless if extra specifier search is enabled
+               if {[string last = $curarg] != $vrsepidx || (!$xtspec &&\
+                  [llength $vrvaluelist] > 1)} {
                   knerror "Invalid variant specification '$arg'"
                }
                # replace previous value for variant if already set unless if
@@ -1459,14 +1466,23 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec\
                   incr vridx
                }
                # translate boolean vrvalue in canonical boolean
-               if {!$vrisbool && [string is boolean -strict $vrvalue] &&\
-                  ![string is integer -strict $vrvalue]} {
+               if {!$vrisbool} {
                   set vrisbool 1
-                  set vrvalue [string is true -strict $vrvalue]
+                  for {set i 0} {$i < [llength $vrvaluelist]} {incr i 1} {
+                     set vrvalue [lindex $vrvaluelist $i]
+                     if {[string is boolean -strict $vrvalue] && ![string is\
+                        integer -strict $vrvalue]} {
+                        lset vrvaluelist $i [string is true -strict $vrvalue]
+                     } else {
+                        # consider variant not a boolean as soon as one value
+                        # set is not a boolean
+                        set vrisbool 0
+                     }
+                  }
                }
                # save variant name and value
                set vrnamearr($vrname) $vridx
-               lappend vrlist [list $vrname $vrisbool $vrvalue]
+               lappend vrlist [list $vrname $vrisbool {*}$vrvaluelist]
             }
             default {
                # save previous mod version spec and transformed arg if any
