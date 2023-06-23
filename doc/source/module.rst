@@ -2798,6 +2798,11 @@ variant with ``value1`` and ``value2`` as available values. On a module
 selection context, only the last specified value is retained. Which means on
 previous example that ``bar`` variant is set to ``value2``.
 
+When searching for available modules, multiple values may be set on one
+variant criterion, which matches modules that provides any of these variant
+values. For instance ``bar=value1,value2`` will return modules defining a
+``bar`` variant with either ``value1`` or ``value2`` as available value.
+
 Module variants are reported along the module they are associated to on
 :subcmd:`list` sub-command results. They are also reported on :subcmd:`avail`
 sub-command if specified in search query or added to the element to report in
@@ -2825,6 +2830,10 @@ Variant shortcut and color rendering do not apply on JSON output.
    .. versionchanged:: 5.3
       Variants specified in :subcmd:`avail`, :subcmd:`whatis` or
       :subcmd:`paths` search query interpreted to filter results
+
+   .. versionchanged:: 5.4
+      Multiple values may be set on one variant search criterion to select
+      modules providing any of these variant values
 
 
 .. _Extra match search:

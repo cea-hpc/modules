@@ -416,7 +416,7 @@ Specifying
 
 - in case variant is specified multiple times
 
-  - lastly mentioned (read from left to right) value is retained (it overwrites previous values)
+  - on selection context, lastly mentioned (read from left to right) value is retained (it overwrites previous values)
 
     - a *merge all passed values in list* is not the methodology retained here
 
@@ -438,6 +438,16 @@ Specifying
     - so the full module specification has to be transmitted toward the modulefile to determine what is the value at the most right position
     - for instance *name=value1 aliasname=value2* with *aliasname* being an alias of *name*
     - specification can just be cleared from the obvious duplicates (same variant name defined multiple times on the line)
+
+  - on search context, all specifications form an *AND* operation
+
+    - *name=value1 name=value2* means find modules defining *value1* and *value2* as available values for *name* variant
+
+- on search context, several values may be set on one variant criterion
+
+  - like *name=value1,value2*
+  - which means find modules defining either *value1* or *value2* as available value for *name* variant
+  - an error is obtained if performed on selection context
 
 - when special characters like *?* or \* are used in variant name or value
 

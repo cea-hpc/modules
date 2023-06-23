@@ -19,6 +19,8 @@ Modules 5.4.0 (not yet released)
 * Add ability to specify multiple names on one extra specifier criterion to
   select modules matching any of these names (e.g.,
   ``env:PATH,LD_LIBRARY_PATH``)
+* Add ability to specify multiple values on one variant criterion to select
+  modules providing any of these variant values (e.g., ``foo=val1,val2``)
 
 
 .. _5.3 release notes:

@@ -912,6 +912,9 @@ The following module sub-commands appeared on Modules 5.
  * ``tag`` :ref:`extra specifier` is introduced.
  * set multiple values on extra specifier, each of them separated by comma
    character, to get modules matching any of these values (*OR* operator).
+ * set multiple values on variant specification, each of them separated by
+   comma character, to get modules providing any of these variant values (*OR*
+   operator).
 
 Environment
 """""""""""
