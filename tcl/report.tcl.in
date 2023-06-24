@@ -1237,19 +1237,19 @@ proc prepareMapToHightlightSubstr {args} {
 
 # Specific highlight translation map for variant name and value
 proc prepareMapToHightlightVariant {args} {
-   set vrname_maplist {}
-   set vrval_maplist {}
    if {[sgr hi {}] ne {}} {
       foreach modspec $args {
          foreach vrspec [getVariantListFromVersSpec $modspec] {
             lassign $vrspec vrname vrvalue vrisbool
-            set maplist [list $vrname [sgr hi $vrname]]
-            # also highlight shortcut if any
-            if {[info exists ::g_variantShortcut($vrname)]} {
-               lappend maplist $::g_variantShortcut($vrname) [sgr hi\
-                  $::g_variantShortcut($vrname)]
+            if {![info exists vrname_map($vrname)]} {
+               set maplist [list $vrname [sgr hi $vrname]]
+               # also highlight shortcut if any
+               if {[info exists ::g_variantShortcut($vrname)]} {
+                  lappend maplist $::g_variantShortcut($vrname) [sgr hi\
+                     $::g_variantShortcut($vrname)]
+               }
+               set vrname_map($vrname) $maplist
             }
-            lappend vrname_maplist $vrname $maplist
             # adapt variant value to highlight if boolean
             set maplist {}
             if {$vrisbool} {
@@ -1258,11 +1258,11 @@ proc prepareMapToHightlightVariant {args} {
                set vrvalue [expr {$vrvalue ? {on} : {off}}]
             }
             lappend maplist $vrvalue [sgr hi $vrvalue]
-            lappend vrval_maplist $vrname $maplist
+            lappend vrval_map($vrname) {*}$maplist
          }
       }
    }
-   return [list $vrname_maplist $vrval_maplist]
+   return [list [array get vrname_map] [array get vrval_map]]
 }
 
 # Format list of modules obtained from a getModules call in upper context
