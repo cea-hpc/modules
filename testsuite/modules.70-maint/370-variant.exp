@@ -491,6 +491,9 @@ testouterr_cmd_re sh {avail --color=always -t variant@6:8 foo=val1 baz=2} OK {}
 testouterr_cmd_re sh {avail --color=always -t variant@6:8 foo=val1} OK $tserr
 set tserr "$mpre:\n[sgr 1]variant/6[sgr 22].0{[sgr 1]bar[sgr 22]=1,[sgr 1]2[sgr 22],3:[sgr 1]foo[sgr 22]=[sgr 1]val1[sgr 22],val2,[sgr 1]val3[sgr 22]}"
 testouterr_cmd_re sh {avail --color=always -t variant@6:8 foo=val1 bar=2 foo=val3} OK $tserr
+testouterr_cmd_re sh {avail --color=always -t variant@6:8 foo=val1,val3 bar=2} OK $tserr
+testouterr_cmd_re sh {avail --color=always -t variant@6:8 foo=val1,val3 bar=2 foo=val3,val1,val1} OK $tserr
+testouterr_cmd_re sh {avail --color=always -t variant@6:8 foo=val1,val1 bar=2 foo=val3} OK $tserr
 set tserr "$mpre:\n[sgr 1]variant/6[sgr 22].0{[sgr 1]bar[sgr 22]=[sgr 1]1[sgr 22],[sgr 1]2[sgr 22],3:[sgr 1]foo[sgr 22]=[sgr 1]val1[sgr 22],[sgr 1]val2[sgr 22],val3}"
 testouterr_cmd_re sh {avail --color=always -t variant@6:8 foo=val1 bar=2 foo=val2 bar=1} OK $tserr
 set tserr "$mpre:\n[sgr 1]variant/6[sgr 22].0{bar=1,2,3:[sgr 1]foo[sgr 22]=[sgr 1]val1[sgr 22],[sgr 1]val2[sgr 22],[sgr 1]val3[sgr 22]}
@@ -501,9 +504,13 @@ set tserr "$mpre:\n[sgr 1]variant/6[sgr 22].0{[sgr 1]bar[sgr 22]=on,[sgr 1]off[s
 testouterr_cmd_re sh {avail --color=always -t variant@6:8 +foo foo=off -bar} OK $tserr
 set tserr "$mpre:\n[sgr 1]variant/6[sgr 22].0{bar=on,off:[sgr 1]foo[sgr 22]=[sgr 1]on[sgr 22],[sgr 1]off[sgr 22]}"
 testouterr_cmd_re sh {avail --color=always -t variant@6:8 +foo foo=off foo=on} OK $tserr
+testouterr_cmd_re sh {avail --color=always -t variant@6:8 foo=on,off} OK $tserr
 testouterr_cmd_re sh {avail --color=always -t variant@6:8 -foo +foo} OK $tserr
 testouterr_cmd_re sh {avail --color=always -t variant@6:8 foo=t foo=f} OK $tserr
 testouterr_cmd_re sh {avail --color=always -t variant@6:8 foo=false foo=true} OK $tserr
+testouterr_cmd_re sh {avail --color=always -t variant@6:8 foo=false,true} OK $tserr
+testouterr_cmd_re sh {avail --color=always -t variant@6:8 foo=val1,off,val2,on} OK {}
+testouterr_cmd_re sh {avail --color=always -t variant@6:8 foo=on,off,val2,val1} OK {}
 unsetenv_var TESTSUITE_VARIANT
 
 setenv_var MODULES_AVAIL_OUTPUT {modulepath:alias:dirwsym:sym:tag:variantifspec:key}

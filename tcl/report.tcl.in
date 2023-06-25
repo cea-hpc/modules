@@ -1240,7 +1240,7 @@ proc prepareMapToHightlightVariant {args} {
    if {[sgr hi {}] ne {}} {
       foreach modspec $args {
          foreach vrspec [getVariantListFromVersSpec $modspec] {
-            lassign $vrspec vrname vrisbool vrvalue
+            set vrvalues [lassign $vrspec vrname vrisbool]
             if {![info exists vrname_map($vrname)]} {
                set maplist [list $vrname [sgr hi $vrname]]
                # also highlight shortcut if any
@@ -1252,12 +1252,14 @@ proc prepareMapToHightlightVariant {args} {
             }
             # adapt variant value to highlight if boolean
             set maplist {}
-            if {$vrisbool} {
-               set vrshort [expr {$vrvalue ? {+} : {-}}]$vrname
-               lappend maplist $vrshort [sgr hi $vrshort]
-               set vrvalue [expr {$vrvalue ? {on} : {off}}]
+            foreach vrvalue $vrvalues {
+               if {$vrisbool} {
+                  set vrshort [expr {$vrvalue ? {+} : {-}}]$vrname
+                  lappend maplist $vrshort [sgr hi $vrshort]
+                  set vrvalue [expr {$vrvalue ? {on} : {off}}]
+               }
+               lappend maplist $vrvalue [sgr hi $vrvalue]
             }
-            lappend maplist $vrvalue [sgr hi $vrvalue]
             lappend vrval_map($vrname) {*}$maplist
          }
       }
