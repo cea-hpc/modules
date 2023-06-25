@@ -2894,7 +2894,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
    defineDoesModMatchAtDepthProc $indepth $querydepth $mtest
 
    # element to include in output
-   set report_dirwsym [isEltInReport dirwsym]
+   set report_indesym [isEltInReport indesym 0]
+   set report_dirwsym [expr {!$report_indesym && [isEltInReport dirwsym]}]
 
    array set mod_list {}
    array set fdir_list {}
@@ -2928,8 +2929,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
          }
 
          # version may matches query but not its target, so it should be in
-         # this case manually added to result (if it exists)
-         if {$elt_type eq {version}} {
+         # this case manually added to result (if it exists and unless if
+         # versions should be reported independently)
+         if {$elt_type eq {version} && !$report_indesym} {
             # resolve eventual icase target
             set versmod [getArrayKey found_list [lindex $mod_list($elt) 1]\
                $icase]

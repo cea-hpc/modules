@@ -1284,7 +1284,11 @@ proc reportModules {search_queries header hsgrkey hstyle show_mtime show_idx\
    }
 
    # elements to include in output
-   set report_sym [isEltInReport sym]
+   if {[set report_indesym [isEltInReport indesym 0]]} {
+      set report_sym 0
+   } else {
+      set report_sym [isEltInReport sym]
+   }
    set report_tag [isEltInReport tag]
    set report_alias [isEltInReport alias]
    # enable variant report if variantifspec configured and some variant is
@@ -1385,6 +1389,15 @@ proc reportModules {search_queries header hsgrkey hstyle show_mtime show_idx\
                lassign [formatListEltToDisplay $elt al {} $sym_list sy\
                   $report_sym $default_colored $tag_list $report_tag {} {} 0\
                   $himatchmap] disp dispsgr displen
+            }
+         }
+         version {
+            # report symbolic version independently from the module it is
+            # attached to. only done on regular or terse output when 'indesym'
+            # element is in relative output configuration option
+            if {$report_indesym} {
+               lassign [formatListEltToDisplay $elt sy {} {} {} 0 0 {} 0 {}\
+                  {} 0 $himatchmap] disp dispsgr displen
             }
          }
       }
@@ -1645,10 +1658,15 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx\
 # Report an output key to help understand what the SGR used on this output
 # correspond to
 proc displayKey {} {
+   # specific key entry for symbolic version if reported independently
+   set typesym [list {symbolic-version}]
+   if {![isEltInReport indesym 0]} {
+      lappend typesym [sgr se (]<SGR>[sgr se )] 18
+   }
+
    array set skipsgr [list hi 1 db 1 tr 1 se 1 er 1 wa 1 me 1 in 1 cm 1 va 1]
    array set typesgr [list mp modulepath di [list directory <SGR>/ 10] al\
-      module-alias sy [list {symbolic-version} [sgr se (]<SGR>[sgr se )] 18]\
-      de [list {default-version}]]
+      module-alias sy $typesym de [list {default-version}]]
 
    set display_list {}
    set len_list {}
