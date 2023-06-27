@@ -401,8 +401,8 @@ switches are accepted:
  does not matter.
 
  Accepted elements in *LIST* for :subcmd:`avail` sub-command are:
- *modulepath*, *alias*, *dirwsym*, *sym*, *tag*, *key*, *variant* and
- *variantifspec*.
+ *modulepath*, *alias*, *dirwsym*, *indesym*, *sym*, *tag*, *key*, *variant*
+ and *variantifspec*.
 
  Accepted elements in *LIST* for :subcmd:`list` sub-command are: *header*,
  *idx*, *variant*, *sym*, *tag* and *key*.
@@ -428,6 +428,9 @@ switches are accepted:
 
     .. versionchanged:: 5.3
        Prefixes ``+`` and ``-`` added to append and subtract elements
+
+    .. versionchanged:: 5.3.1
+       Element *indesym* added for :subcmd:`avail` sub-command
 
 .. option:: --paginate
 
@@ -3765,6 +3768,8 @@ ENVIRONMENT
 
  * ``alias``: module aliases.
  * ``dirwsym``: directories associated with symbolic versions.
+ * ``indesym``: symbolic versions reported independently from the module or
+   directory they are attached to.
  * ``key``: legend appended at the end of the output to explain it.
  * ``modulepath``: modulepath names set as header prior the list of available
    modules found in them.
@@ -3782,6 +3787,9 @@ ENVIRONMENT
  modules from global/user rc and all enabled modulepaths are reported as a
  single list.
 
+ When ``indesym`` element is set, ``dirwsym`` and ``sym`` elements are
+ disabled.
+
  This environment variable value supersedes the default value set in the
  :mconfig:`avail_output` configuration option. It can be defined with
  the :subcmd:`config` sub-command. The :option:`--output`/:option:`-o` command
@@ -3793,6 +3801,9 @@ ENVIRONMENT
 
     .. versionchanged:: 5.3
        Elements ``variant`` and ``variantifspec`` added
+
+    .. versionchanged:: 5.3.1
+       Element ``indesym`` added
 
 .. envvar:: MODULES_AVAIL_TERSE_OUTPUT
 

@@ -53,8 +53,8 @@ Specification
 
 - Accepted elements in value lists are:
 
-  - For ``avail`` options: modulepath, alias, dirwsym, sym, tag, key, variant,
-    variantifspec
+  - For ``avail`` options: modulepath, alias, dirwsym, indesym, sym, tag, key,
+    variant, variantifspec
   - For ``list`` options: header, idx, variant, sym, tag, key
 
 - If the ``-o``/``--output`` options are wrongly specified

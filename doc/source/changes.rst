@@ -1076,6 +1076,9 @@ The following Modules configuration option has been introduced on Modules 5.
  ``+`` or ``-`` which means value should respectively be appended to or
  subtracted from current configuration option value.
 
+ Starting version 5.3.1, element ``indesym`` is added to the list of accepted
+ values.
+
 :mconfig:`list_output`, :mconfig:`list_terse_output`, :mconfig:`colors`,
 :mconfig:`protected_envvars`, :mconfig:`shells_with_ksh_fpath`,
 :mconfig:`tag_abbrev`, :mconfig:`tag_color_name`, :mconfig:`variant_shortcut`

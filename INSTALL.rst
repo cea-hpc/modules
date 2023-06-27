@@ -718,8 +718,8 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
  Specify the content to report on avail sub-command regular output in addition
  to the available module names. Elements accepted in LIST are: ``modulepath``,
- ``alias``, ``dirwsym``, ``sym``, ``tag``, ``key``, ``variant`` and
- ``variantifspec`` (elements in LIST are separated by ``:``). The order of
+ ``alias``, ``dirwsym``, ``indesym``, ``sym``, ``tag``, ``key``, ``variant``
+ and ``variantifspec`` (elements in LIST are separated by ``:``). The order of
  the elements in LIST does not matter.
  (default=\ ``modulepath:alias:dirwsym:sym:tag:variantifspec:key``)
 
@@ -737,13 +737,16 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
     .. versionchanged:: 5.3
        Element ``variantifspec`` added and set by default
 
+    .. versionchanged:: 5.3.1
+       Element ``indesym`` added
+
 .. instopt:: --with-avail-terse-output=LIST
 
  Specify the content to report on avail sub-command terse output in addition
  addition to the available module names. Elements accepted in LIST are:
- ``modulepath``, ``alias``, ``dirwsym``, ``sym``, ``tag``, ``key``,
- ``variant`` and ``variantifspec`` (elements in LIST are separated by ``:``).
- The order of the elements in LIST does not matter.
+ ``modulepath``, ``alias``, ``dirwsym``, ``indesym``, ``sym``, ``tag``,
+ ``key``, ``variant`` and ``variantifspec`` (elements in LIST are separated by
+ ``:``). The order of the elements in LIST does not matter.
  (default=\ ``modulepath:alias:dirwsym:sym:tag:variantifspec``)
 
  This installation option defines the default value of the
@@ -759,6 +762,9 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
     .. versionchanged:: 5.3
        Element ``variantifspec`` added and set by default
+
+    .. versionchanged:: 5.3.1
+       Element ``indesym`` added
 
 .. instopt:: --with-bashcompletiondir=DIR
 

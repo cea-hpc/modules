@@ -33,6 +33,10 @@ Modules 5.3.1 (not yet released)
   (:subcmd:`avail`, :subcmd:`paths` or :subcmd:`whatis` sub-commands),
   available modules returned are those providing all variant values set. (fix
   issue #499)
+* Add the ``indesym`` element in the allowed value list of the
+  :mconfig:`avail_output` and :mconfig:`avail_terse_output` configuration
+  options. When set, symbolic versions are reported as independent elements
+  rather along the module or directory they are attached to.
 
 .. _Hunspell: https://hunspell.github.io/
 
