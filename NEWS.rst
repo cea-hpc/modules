@@ -8,8 +8,8 @@ documents those changes that are of interest to users and admins.
 
 .. _5.3 release notes:
 
-Modules 5.3.1 (not yet released)
---------------------------------
+Modules 5.3.1 (2023-06-27)
+--------------------------
 
 * Fix additional `ShellCheck`_ warning reports over sh and bash shell scripts.
 * Install: distribute ``ChangeLog`` as a zipped file to reduce installation
