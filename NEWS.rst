@@ -37,6 +37,8 @@ Modules 5.3.1 (not yet released)
   :mconfig:`avail_output` and :mconfig:`avail_terse_output` configuration
   options. When set, symbolic versions are reported as independent elements
   rather along the module or directory they are attached to.
+* Init: fix completion scripts to report module symbolic versions and aliases
+  among available modules. (fix issue #500)
 
 .. _Hunspell: https://hunspell.github.io/
 
