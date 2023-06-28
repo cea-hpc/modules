@@ -206,6 +206,24 @@ task:
 
 task:
   << : *CLONE_TEMPLATE
+  arm_container:
+    image: almalinux:9
+    cpu: 1
+    memory: 2G
+  reqinstall_script: |
+    dnf install -y dnf-plugins-core epel-release
+    dnf config-manager --set-enabled crb
+    dnf install -y tcsh zsh ksh fish tcl perl python3 gzip ruby cmake R-core make wget perl python3-sphinx git dejagnu man-db rpm-build bzip2 autoconf gcc tcl-devel procps-ng
+  configure_script:
+    - ./configure --with-bashcompletiondir=/usr/share/bash-completion/completions --with-fishcompletiondir=/usr/share/fish/vendor_completions.d --with-zshcompletiondir=/usr/share/zsh/site-functions
+  # also enable a display on this test case to validate x-resource behavior
+  << : *BUILD_INSTALL_TEST_TEMPLATE
+  rpm_script:
+    - make srpm rpm
+  << : *ARTIFACTS_TEMPLATE
+
+task:
+  << : *CLONE_TEMPLATE
   container:
     matrix:
       image: opensuse/leap:15.3
