@@ -39,6 +39,7 @@ proc cmdModuleList {show_oneperline show_mtime search_match args} {
    }
 
    set report_indesym [isEltInReport indesym 0]
+   set report_alias [isEltInReport alias 0]
 
    # build list of loaded modules and symbolics and aliases if reported
    set loadedmodlist [list]
@@ -64,6 +65,15 @@ proc cmdModuleList {show_oneperline show_mtime search_match args} {
          }
       }
       set ::g_symbolHash($mod) [lsort -dictionary $sym_list]
+
+      # fetch aliases from loaded environment information
+      if {$report_alias} {
+         foreach altname [getLoadedAltname $mod 0 alias] {
+            set mod_list($altname) [list alias $mod]
+            lappend loadedmodlist $altname
+         }
+      }
+
       lappend loadedmodlist $mod
    }
 
