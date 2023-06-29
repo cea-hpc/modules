@@ -21,6 +21,13 @@ Modules 5.4.0 (not yet released)
   ``env:PATH,LD_LIBRARY_PATH``)
 * Add ability to specify multiple values on one variant criterion to select
   modules providing any of these variant values (e.g., ``foo=val1,val2``)
+* Add the ``indesym`` element in the allowed value list of the
+  :mconfig:`list_output` and :mconfig:`list_terse_output` configuration
+  options. When set, symbolic versions are reported as independent elements
+  rather along the loaded module they are attached to.
+* Add the ``alias`` element in the allowed value list of the
+  :mconfig:`list_output` and :mconfig:`list_terse_output` configuration
+  options. When set, module aliases targeting loaded modules are reported.
 
 
 .. _5.3 release notes:
