@@ -38,16 +38,44 @@ proc cmdModuleList {show_oneperline show_mtime search_match args} {
       set loadedmsg {Currently Loaded Modulefiles}
    }
 
-   # filter-out hidden loaded modules unless all module should be seen
-   if {[getState hiding_threshold] > 1} {
-      set loadedmodlist [getLoadedModulePropertyList name]
-   } else {
-      set loadedmodlist [list]
-      foreach mod [getLoadedModulePropertyList name] {
-         if {![isModuleTagged $mod hidden-loaded 1]} {
-            lappend loadedmodlist $mod
+   set report_indesym [isEltInReport indesym 0]
+
+   # build list of loaded modules and symbolics and aliases if reported
+   set loadedmodlist [list]
+   foreach mod [getLoadedModulePropertyList name] {
+      set modfile [getModulefileFromLoadedModule $mod]
+      set mtime [expr {$show_mtime && [file exists $modfile] ?\
+         [getFileMtime $modfile] : {}}]
+      set mod_list($mod) [list modulefile $mtime $modfile]
+
+      # fetch symbols from loaded environment information
+      set modname [file dirname $mod]
+      set sym_list {}
+      foreach altname [getLoadedAltname $mod 0 sym] {
+         # skip non-symbol entry
+         if {$altname ne $modname} {
+            lappend sym_list [file tail $altname]
+            # fill loaded list structure with symbolic versions in case
+            # indesym report is activated
+            if {$report_indesym} {
+               set mod_list($altname) [list version $mod]
+               lappend loadedmodlist $altname
+            }
          }
       }
+      set ::g_symbolHash($mod) [lsort -dictionary $sym_list]
+      lappend loadedmodlist $mod
+   }
+
+   # filter-out hidden loaded modules unless all module should be seen
+   if {[getState hiding_threshold] <= 1} {
+      set newloadedmodlist [list]
+      foreach mod $loadedmodlist {
+         if {![isModuleTagged $mod hidden-loaded 1]} {
+            lappend newloadedmodlist $mod
+         }
+      }
+      set loadedmodlist $newloadedmodlist
    }
 
    # same header msg if no module loaded at all whether search is made or not
@@ -75,25 +103,6 @@ proc cmdModuleList {show_oneperline show_mtime search_match args} {
          report $noloadedmsg
       }
    } else {
-      # build mod_list array with loaded modules
-      foreach mod $loadedmodlist {
-         set modfile [getModulefileFromLoadedModule $mod]
-         set mtime [expr {$show_mtime && [file exists $modfile] ?\
-            [getFileMtime $modfile] : {}}]
-         set mod_list($mod) [list modulefile $mtime $modfile]
-
-         # fetch symbols from loaded environment information
-         set modname [file dirname $mod]
-         set sym_list {}
-         foreach altname [getLoadedAltname $mod 0 sym] {
-            # skip non-symbol entry
-            if {$altname ne $modname} {
-               lappend sym_list [file tail $altname]
-            }
-         }
-         set ::g_symbolHash($mod) [lsort -dictionary $sym_list]
-      }
-
       set one_per_line [expr {$show_mtime || $show_oneperline}]
       set show_idx [expr {!$show_mtime && [isEltInReport idx]}]
       set header [expr {!$json && [isEltInReport header] ? $loadedmsg :\
