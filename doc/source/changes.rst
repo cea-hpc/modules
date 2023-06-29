@@ -1099,8 +1099,8 @@ The following Modules configuration option has been introduced on Modules 5.
  ``+`` or ``-`` which means value should respectively be appended to or
  subtracted from current configuration option value.
 
- Starting version 5.4, element ``alias`` is added to the list of accepted
- values.
+ Starting version 5.4, elements ``alias`` and ``indesym`` are added to the
+ list of accepted values.
 
 :mconfig:`colors`, :mconfig:`protected_envvars`,
 :mconfig:`shells_with_ksh_fpath`, :mconfig:`tag_abbrev`,

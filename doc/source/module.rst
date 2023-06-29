@@ -405,7 +405,7 @@ switches are accepted:
  and *variantifspec*.
 
  Accepted elements in *LIST* for :subcmd:`list` sub-command are: *header*,
- *idx*, *variant*, *alias*, *sym*, *tag* and *key*.
+ *idx*, *variant*, *alias*, *indesym*, *sym*, *tag* and *key*.
 
  The order of the elements in *LIST* does not matter. Module names are the
  only content reported when *LIST* is set to an empty value.
@@ -433,7 +433,7 @@ switches are accepted:
        Element *indesym* added for :subcmd:`avail` sub-command
 
     .. versionchanged:: 5.4
-       Element *alias* added for :subcmd:`list` sub-command
+       Elements *alias* and *indesym* added for :subcmd:`list` sub-command
 
 .. option:: --paginate
 
@@ -4216,6 +4216,8 @@ ENVIRONMENT
  * ``header``: sentence to introduce the list of loaded modules or to state
    that no modules are loaded currently.
  * ``idx``: index position of each loaded module.
+ * ``indesym``: symbolic versions reported independently from the loaded
+   module they are attached to.
  * ``key``: legend appended at the end of the output to explain it.
  * ``variant``: variant values selected for loaded modules.
  * ``sym``: symbolic versions associated with loaded modules.
@@ -4237,7 +4239,7 @@ ENVIRONMENT
        Element ``variant`` added
 
     .. versionchanged:: 5.4
-       Element ``alias`` added
+       Elements ``alias`` and ``indesym`` added
 
 .. envvar:: MODULES_LIST_TERSE_OUTPUT
 
@@ -4263,7 +4265,7 @@ ENVIRONMENT
        Element ``variant`` added
 
     .. versionchanged:: 5.4
-       Element ``alias`` added
+       Elements ``alias`` and ``indesym`` added
 
 .. envvar:: MODULES_MCOOKIE_CHECK
 

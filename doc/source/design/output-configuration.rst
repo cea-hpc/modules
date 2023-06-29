@@ -55,7 +55,7 @@ Specification
 
   - For ``avail`` options: modulepath, alias, dirwsym, indesym, sym, tag, key,
     variant, variantifspec
-  - For ``list`` options: header, idx, variant, alias, sym, tag, key
+  - For ``list`` options: header, idx, variant, alias, indesym, sym, tag, key
 
 - If the ``-o``/``--output`` options are wrongly specified
 
