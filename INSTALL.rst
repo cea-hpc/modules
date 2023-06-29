@@ -926,9 +926,9 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
  Specify the content to report on list sub-command regular output in addition
  to the loaded module names. Elements accepted in LIST are: ``header``,
- ``idx``, ``variant``, ``sym``, ``tag`` and ``key`` (elements in LIST are
- separated by ``:``). The order of the elements in LIST does not matter.
- (default=\ ``header:idx:variant:sym:tag:key``)
+ ``idx``, ``variant``, ``alias``, ``sym``, ``tag`` and ``key`` (elements in
+ LIST are separated by ``:``). The order of the elements in LIST does not
+ matter. (default=\ ``header:idx:variant:sym:tag:key``)
 
  This installation option defines the default value of the
  :mconfig:`list_output` configuration option which could be changed after
@@ -941,13 +941,16 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
     .. versionchanged:: 4.8
        Element ``variant`` added and set by default
 
+    .. versionchanged:: 5.4
+       Element ``alias`` added
+
 .. instopt:: --with-list-terse-output=LIST
 
  Specify the content to report on list sub-command terse output in addition
  to the loaded module names. Elements accepted in LIST are: ``header``,
- ``idx``, ``variant``, ``sym``, ``tag`` and ``key`` (elements in LIST are
- separated by ``:``). The order of the elements in LIST does not matter.
- (default=\ ``header``)
+ ``idx``, ``variant``, ``alias``, ``sym``, ``tag`` and ``key`` (elements in
+ LIST are separated by ``:``). The order of the elements in LIST does not
+ matter. (default=\ ``header``)
 
  This installation option defines the default value of the
  :mconfig:`list_terse_output` configuration option which could be changed
@@ -959,6 +962,9 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
     .. versionchanged:: 4.8
        Element ``variant`` added
+
+    .. versionchanged:: 5.4
+       Element ``alias`` added
 
 .. instopt:: --with-loadedmodules=MODLIST
 

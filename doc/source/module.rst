@@ -405,7 +405,7 @@ switches are accepted:
  and *variantifspec*.
 
  Accepted elements in *LIST* for :subcmd:`list` sub-command are: *header*,
- *idx*, *variant*, *sym*, *tag* and *key*.
+ *idx*, *variant*, *alias*, *sym*, *tag* and *key*.
 
  The order of the elements in *LIST* does not matter. Module names are the
  only content reported when *LIST* is set to an empty value.
@@ -431,6 +431,9 @@ switches are accepted:
 
     .. versionchanged:: 5.3.1
        Element *indesym* added for :subcmd:`avail` sub-command
+
+    .. versionchanged:: 5.4
+       Element *alias* added for :subcmd:`list` sub-command
 
 .. option:: --paginate
 
@@ -4209,6 +4212,7 @@ ENVIRONMENT
 
  Accepted elements that can be set in value list are:
 
+ * ``alias``: module aliases targeting loaded modules.
  * ``header``: sentence to introduce the list of loaded modules or to state
    that no modules are loaded currently.
  * ``idx``: index position of each loaded module.
@@ -4232,6 +4236,9 @@ ENVIRONMENT
     .. versionchanged:: 4.8
        Element ``variant`` added
 
+    .. versionchanged:: 5.4
+       Element ``alias`` added
+
 .. envvar:: MODULES_LIST_TERSE_OUTPUT
 
  A colon separated list of the elements to report in addition to module names
@@ -4254,6 +4261,9 @@ ENVIRONMENT
 
     .. versionchanged:: 4.8
        Element ``variant`` added
+
+    .. versionchanged:: 5.4
+       Element ``alias`` added
 
 .. envvar:: MODULES_MCOOKIE_CHECK
 
