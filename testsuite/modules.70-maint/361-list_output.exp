@@ -243,6 +243,29 @@ unsetenv_var __MODULES_LMTAG
 
 
 #
+# alias test
+#
+
+setenv_var __MODULES_LMALTNAME foo/1.0&foo/bar&foo&al|alfoo
+testouterr_cmd sh {list --output=alias:idx} OK " 1) alfoo   2) foo/1.0  "
+testouterr_cmd sh {list --output=alias:idx:sym:key} OK " 1) alfoo(@)   2) foo/1.0(bar)  \n\nKey:\n(@)=module-alias  (symbolic-version)  "
+setenv_var MODULES_LIST_TERSE_OUTPUT idx:alias
+testouterr_cmd sh {list -t} OK " 1) alfoo \n 2) foo/1.0 "
+unsetenv_var MODULES_LIST_TERSE_OUTPUT
+
+
+#
+# indesym test
+#
+
+testouterr_cmd sh {list --output=indesym:idx} OK " 1) foo/bar   2) foo/1.0  "
+testouterr_cmd sh {list --output=alias:idx:indesym:sym:key} OK " 1) foo/bar   2) alfoo   3) foo/1.0  "
+setenv_var MODULES_LIST_TERSE_OUTPUT idx:alias:sym:indesym
+testouterr_cmd sh {list -t} OK " 1) foo/bar \n 2) alfoo \n 3) foo/1.0 "
+unsetenv_var MODULES_LIST_TERSE_OUTPUT
+
+
+#
 # -o/--output append/subtract tests
 #
 

@@ -208,6 +208,30 @@ unsetenv_loaded_module
 unsetenv_var MODULES_ADVANCED_VERSION_SPEC
 
 
+# alias & indesym
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+setenv_var __MODULES_LMALTNAME foo/1.0&foo/bar&foo&al|foo/qux
+testouterr_cmd sh {list -t -o alias:indesym foo} OK "foo/bar\nfoo/qux\nfoo/1.0"
+testouterr_cmd sh {list -t -o alias:indesym foo/1} OK foo/1.0
+testouterr_cmd sh {list -t -o alias:indesym foo/b} OK foo/bar
+testouterr_cmd sh {list -t -o alias:indesym foo/q} OK foo/qux
+
+testouterr_cmd sh {list -t -o tag foo/b} OK foo/1.0
+testouterr_cmd sh {list -t -o tag foo/q} OK foo/1.0
+
+# hidden-loaded tag does not apply to symbol or alias
+setenv_var __MODULES_LMTAG foo/1.0&hidden-loaded
+testouterr_cmd sh {list -t -o alias:indesym foo/1} OK {}
+testouterr_cmd sh {list -t -o alias:indesym foo/b} OK foo/bar
+testouterr_cmd sh {list -t -o alias:indesym foo/q} OK foo/qux
+testouterr_cmd sh {list -t -o alias:indesym foo} OK "foo/bar\nfoo/qux"
+
+
+unsetenv_path_var __MODULES_LMTAG
+unsetenv_path_var __MODULES_LMALTNAME
+unsetenv_loaded_module
+
+
 #
 #  Cleanup
 #

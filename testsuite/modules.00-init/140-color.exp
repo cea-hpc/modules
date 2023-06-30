@@ -542,6 +542,33 @@ setenv_path_var MODULEPATH $modpath
 
 
 #
+# alias/indesym rendering tests on list
+#
+
+setenv_var MODULES_COLORS {hi=1:db=2:tr=2:se=2:er=91:wa=93:me=95:in=94:mp=1;94:di=94:al=96:de=4:sy=95}
+setenv_loaded_module [list foo/1.0] [list $modpath.3/foo/1.0]
+setenv_var __MODULES_LMALTNAME foo/1.0&foo/bar&foo&al|alfoo
+
+#FIXME
+set tserr " 1\\) [sgr 96]alfoo[sgr 0]   2\\) foo/1.0[sgr 2]\\([sgr 22][sgr 95]bar[sgr 0][sgr 2]\\)[sgr 22]  
+
+Key:
+[sgr 2]\\([sgr 22][sgr 95]symbolic-version[sgr 0][sgr 2]\\)[sgr 22]  [sgr 96]module-alias[sgr 0]  "
+testouterr_cmd_re sh {list --color=always -o alias:idx:sym:key} OK $tserr
+set tserr " 1\\) [sgr 95]foo/bar[sgr 0] 
+ 2\\) [sgr 96]alfoo[sgr 0] 
+ 3\\) foo/1.0 
+
+Key:
+[sgr 95]symbolic-version[sgr 0]  [sgr 96]module-alias[sgr 0]  "
+testouterr_cmd_re sh {list --color=always -t -o alias:idx:indesym:sym:key} OK $tserr
+
+unsetenv_var __MODULES_LMALTNAME
+unsetenv_loaded_module
+unsetenv_var MODULES_COLORS
+
+
+#
 #  Clean up variables used in this test case
 #
 
