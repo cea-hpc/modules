@@ -94,12 +94,20 @@ proc cmdModuleList {show_oneperline show_mtime search_match args} {
 
    # filter loaded modules not matching any of the mod spec passed
    if {[llength $args] > 0} {
+      # include alt name comparison (alias/sym) when checking module name
+      # depends if alias and/or sym are reported independently
+      set modeq_altname_mode [switch -- $report_indesym$report_alias {
+         11 {expr {0}}
+         10 {expr {7}}
+         01 {expr {6}}
+         00 {expr {2}}
+      }]
       set matchlist [list]
       foreach mod $loadedmodlist {
          foreach pattern $args {
             # compare pattern against loaded module, its variant set and its
             # alternative names
-            if {[modEq $pattern $mod $mtest 1 2 1 0 *]} {
+            if {[modEq $pattern $mod $mtest 1 $modeq_altname_mode 1 0 *]} {
                lappend matchlist $mod
                break
             }
