@@ -181,6 +181,39 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
    }
 }
 
+# Fail unload attempt if module is sticky, unless if forced or reloading
+# Also fail unload if mod is super-sticky even if forced, unless reloading
+proc skipUnloadIfSticky {mode modname modfile} {
+   if {$mode ne {unload}} {
+      return
+   }
+
+   # when loaded, tags applies to mod name and version (not with variant)
+   set is_supersticky_not_reloading [expr {[isModuleTagged $modname\
+      super-sticky 1 $modfile] && [currentState reloading_supersticky] ne\
+      $modname}]
+   set is_sticky_not_reloading [expr {[isModuleTagged $modname sticky 1\
+      $modfile] && [currentState reloading_sticky] ne $modname &&\
+      [currentState unloading_sticky] ne $modname}]
+
+   if {!$is_supersticky_not_reloading && $is_sticky_not_reloading &&\
+      [getState force]} {
+      reportWarning [getStickyForcedUnloadMsg]
+   } elseif {$is_supersticky_not_reloading || $is_sticky_not_reloading} {
+      # restore changed states prior raising error
+      lpopState debug_msg_prefix
+      lpopState modulepath
+      lpopState specifiedname
+      lpopState modulename
+      lpopState modulenamevr
+      lpopState modulefile
+
+      set tagname [expr {$is_supersticky_not_reloading ? {super-sticky} :\
+         {sticky}}]
+      knerror [getStickyUnloadMsg $tagname]
+   }
+}
+
 proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
    {fetch_tags 1} {modpath {}}} {
    # link to modnamevr variable name from calling ctx if content update asked
@@ -218,37 +251,10 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
       $modfile]} {
       reportWarning [getNearlyForbiddenMsg $modnamevr $modfile]
       set nearlyforbidwarn 1
-   # fail unload attempt if module is sticky, unless if forced or reloading
-   # also fail unload if mod is super-sticky even if forced, unless reloading
-   } elseif {$mode eq {unload}} {
-      # when loaded, tags applies to mod name and version (not with variant)
-      if {[isModuleTagged $modname super-sticky 1 $modfile] && [currentState\
-         reloading_supersticky] ne $modname} {
-         # restore changed states prior raising error
-         lpopState debug_msg_prefix
-         lpopState modulepath
-         lpopState specifiedname
-         lpopState modulename
-         lpopState modulenamevr
-         lpopState modulefile
-         knerror [getStickyUnloadMsg super-sticky]
-      } elseif {[isModuleTagged $modname sticky 1 $modfile] && [currentState\
-         reloading_sticky] ne $modname && [currentState unloading_sticky] ne\
-         $modname} {
-         if {[getState force]} {
-            reportWarning [getStickyForcedUnloadMsg]
-         } else {
-            # restore changed states prior raising error
-            lpopState debug_msg_prefix
-            lpopState modulepath
-            lpopState specifiedname
-            lpopState modulename
-            lpopState modulenamevr
-            lpopState modulefile
-            knerror [getStickyUnloadMsg]
-         }
-      }
    }
+
+   # fail unload when sticky
+   skipUnloadIfSticky $mode $modname $modfile
 
    if {![info exists ::g_modfileUntrackVars]} {
       # list variable that should not be tracked for saving
