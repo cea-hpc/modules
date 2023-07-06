@@ -947,6 +947,8 @@ The following environment variables appeared on Modules 5.
 |            | :envvar:`MODULES_CACHE_EXPIRY_SECS`                             |
 |            | :envvar:`MODULES_IGNORE_USER_RC`                                |
 +------------+-----------------------------------------------------------------+
+| 5.4        | :envvar:`MODULES_STICKY_PURGE`,                                 |
++------------+-----------------------------------------------------------------+
 
 Modules Specific Tcl Commands
 """""""""""""""""""""""""""""

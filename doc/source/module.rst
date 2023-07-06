@@ -4576,6 +4576,20 @@ ENVIRONMENT
 
     .. versionadded:: 4.3
 
+.. envvar:: MODULES_STICKY_PURGE
+
+ When unloading a sticky or super-sticky module during a module
+ :subcmd:`purge`, raise an ``error`` or emit a ``warning`` message or be
+ ``silent``.
+
+ This environment variable value supersedes the default value set in the
+ :mconfig:`sticky_purge` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 5.4
+
 .. envvar:: MODULES_TAG_ABBREV
 
  Specifies the abbreviation strings used to report module tags (see `Module
