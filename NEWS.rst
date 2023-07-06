@@ -28,6 +28,12 @@ Modules 5.4.0 (not yet released)
 * Add the ``alias`` element in the allowed value list of the
   :mconfig:`list_output` and :mconfig:`list_terse_output` configuration
   options. When set, module aliases targeting loaded modules are reported.
+* Introduce :mconfig:`sticky_purge` configuration option to define behavior
+  when unloading sticky or super-sticky module during a :subcmd:`purge`
+  command. Raise an ``error`` (default) or emit a ``warning`` or be
+  ``silent``. When set, it defines the :envvar:`MODULES_STICKY_PURGE`
+  environment variable. Default value can be changed with
+  :instopt:`--with-sticky-purge` installation option. (fix issue #502)
 
 
 .. _5.3 release notes:
