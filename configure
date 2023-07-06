@@ -38,7 +38,8 @@ searchmatch modulepath loadedmodules quarantinevars wa277 advversspec ml \
 windowssupport nearlyforbiddendays implicitrequirement tagabbrev \
 tagcolorname mcookieversioncheck availoutput availterseoutput listoutput \
 listterseoutput editor variantshortcut bashcompletiondir fishcompletiondir \
-zshcompletiondir tcllinter tcllinteropts nagelfardatadir nagelfaraddons"
+zshcompletiondir tcllinter tcllinteropts nagelfardatadir nagelfaraddons \
+stickypurge"
 libarglist=()
 
 # flags to know if argument has been specified on command-line
@@ -116,6 +117,7 @@ windowssupport=n
 nearlyforbiddendays=14
 tagabbrev='auto-loaded=aL:loaded=L:hidden=H:hidden-loaded=H:forbidden=F:nearly-forbidden=nF:sticky=S:super-sticky=sS:keep-loaded=kL'
 tagcolorname=
+stickypurge=error
 mcookieversioncheck=y
 availoutput='modulepath:alias:dirwsym:sym:tag:variantifspec:key'
 availterseoutput='modulepath:alias:dirwsym:sym:tag:variantifspec'
@@ -368,6 +370,11 @@ Optional Packages:
                           the module they are attached to. Each element in
                           TAGLIST is a tag name or abbreviation (elements in
                           TAGLIST are separated by \`:') [$tagcolorname]
+  --with-sticky-purge=VALUE
+                          define the kind of error to render when unloading
+                          a sticky or super-sticky module during a purge.
+                          Raise an \`error' or report a \`warning' or be
+                          \`silent'. [$stickypurge]
   --with-avail-output=LIST
                           specify content to report on avail sub-command
                           regular output. elements accepted in LIST are:
@@ -747,6 +754,13 @@ for arg in "$@"; do
       tagabbrev=$(get_package_value "$arg") ;;
    --with-tag-color-name*|--without-tag-color-name)
       tagcolorname=$(get_package_value "$arg") ;;
+   --with-sticky-purge*|--without-sticky-purge)
+      stickypurge=$(get_package_value "$arg" "error") ;
+      allowedval=" error warning silent " ;
+      if [ "${allowedval// $stickypurge /}" = "$allowedval" ]; then
+         echo_error "Bad value for option \`--with-sticky-purge'"\
+            "Allowed values are:$allowedval"
+      fi ;;
    --with-avail-output*|--without-avail-output)
       availoutput=$(get_package_value "$arg" "$availoutput") ;
       allowedval=" modulepath alias dirwsym indesym sym tag key variant variantifspec " ;
