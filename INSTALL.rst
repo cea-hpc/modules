@@ -1102,6 +1102,20 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
     .. versionadded:: 4.3
 
+.. instopt:: --with-sticky-purge=VALUE
+
+ When unloading a sticky or super-sticky module during a module purge, raise
+ an ``error`` or emit a ``warning`` message or be ``silent``.
+ (default=\ ``error``)
+
+ This installation option defines the default value of the
+ :mconfig:`sticky_purge` configuration option which could be changed after
+ installation with the :subcmd:`config` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 5.4
+
 .. instopt:: --with-tag-abbrev=ABBRVLIST
 
  Define the abbreviation to use when reporting each module tag. Each element
@@ -1393,6 +1407,9 @@ installation.
 |                                   |                                              | :envvar:`MODULES_SILENT_SHELL_DEBUG`         |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`siteconfig`             | |file etcdir_siteconfig|                     | :instopt:`--prefix`, :instopt:`--etcdir`     |              | X         |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`sticky_purge`           | ``error``                                    | :instopt:`--with-sticky-purge`,              |              |           |
+|                                   |                                              | :envvar:`MODULES_STICKY_PURGE`               |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`tag_abbrev`             | auto-loaded=aL:loaded=L:hidden=H:\           | :instopt:`--with-tag-abbrev`,                |              |           |
 |                                   | hidden-loaded=H:forbidden=F:nearly-\         | :envvar:`MODULES_TAG_ABBREV`                 |              |           |
