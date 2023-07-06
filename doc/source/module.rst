@@ -1310,6 +1310,22 @@ Module Sub-Commands
   time with :instopt:`--prefix` or :instopt:`--etcdir` options. The value of
   this option cannot be altered.
 
+ .. mconfig:: sticky_purge
+
+  Error behavior when unloading sticky or super-sticky module during a module
+  :subcmd:`purge`.
+
+  Raise an ``error`` (default) or emit a ``warning`` or be ``silent``. It can
+  be changed at installation time with :instopt:`--with-sticky-purge` option.
+  The :envvar:`MODULES_STICKY_PURGE` environment variable is defined by
+  :subcmd:`config` sub-command when changing this configuration option from
+  its default value. See :envvar:`MODULES_STICKY_PURGE` description for
+  details.
+
+  .. only:: html
+
+     .. versionadded:: 5.4
+
  .. mconfig:: tag_abbrev
 
   Abbreviations to use to report module tags.
