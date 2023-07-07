@@ -1,0 +1,160 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2023/07/07
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		purge, unload
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Check sticky_purge configuration option
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+
+#
+# purge
+#
+
+# sticky module
+setenv_var TESTSUITE_FPMOD_TAG sticky1
+setenv_loaded_module [list tag/1.0 foo/1.0] [list $mp/tag/1.0 $mp/foo/1.0]
+setenv_var __MODULES_LMTAG tag/1.0&sticky
+
+setenv_var MODULES_STICKY_PURGE error
+set ans [list]
+lappend ans [list set LOADEDMODULES tag/1.0]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list ERR]
+set tserr [msg_unload {tag/1.0 <S>} $err_stickyunload]
+testouterr_cmd sh {purge} $ans $tserr
+
+setenv_var MODULES_STICKY_PURGE warning
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+set tserr [msg_unload {tag/1.0 <S>} $warn_stickyunload]
+testouterr_cmd sh {purge} $ans $tserr
+
+setenv_var MODULES_STICKY_PURGE silent
+testouterr_cmd sh {purge} $ans {}
+
+skip_if_quick_mode
+
+# forced purge
+setenv_var MODULES_STICKY_PURGE error
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_unload {tag/1.0 <S>} $err_stickyunloadf]
+testouterr_cmd sh {purge -f} $ans $tserr
+
+setenv_var MODULES_STICKY_PURGE warning
+testouterr_cmd sh {purge -f} $ans $tserr
+
+setenv_var MODULES_STICKY_PURGE silent
+testouterr_cmd sh {purge -f} $ans $tserr
+
+
+# super-sticky module
+setenv_var TESTSUITE_FPMOD_TAG sticky2
+setenv_loaded_module [list foo/1.0 tag/1.0] [list $mp/foo/1.0 $mp/tag/1.0]
+setenv_var __MODULES_LMTAG tag/1.0&super-sticky
+
+setenv_var MODULES_STICKY_PURGE error
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+lappend ans [list ERR]
+set tserr [msg_unload {tag/1.0 <sS>} $err_superstickyunload]
+testouterr_cmd sh {purge} $ans $tserr
+testouterr_cmd sh {purge -f} $ans $tserr
+
+setenv_var MODULES_STICKY_PURGE warning
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+set tserr [msg_unload {tag/1.0 <sS>} $warn_superstickyunload]
+testouterr_cmd sh {purge} $ans $tserr
+testouterr_cmd sh {purge -f} $ans $tserr
+
+setenv_var MODULES_STICKY_PURGE silent
+testouterr_cmd sh {purge} $ans {}
+testouterr_cmd sh {purge -f} $ans {}
+
+
+# module both sticky and super-sticky
+setenv_var TESTSUITE_FPMOD_TAG sticky2
+setenv_loaded_module [list foo/1.0 tag/1.0] [list $mp/foo/1.0 $mp/tag/1.0]
+setenv_var __MODULES_LMTAG tag/1.0&super-sticky&sticky
+
+setenv_var MODULES_STICKY_PURGE error
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+lappend ans [list ERR]
+set tserr [msg_unload {tag/1.0 <S:sS>} $err_superstickyunload]
+testouterr_cmd sh {purge} $ans $tserr
+testouterr_cmd sh {purge -f} $ans $tserr
+
+setenv_var MODULES_STICKY_PURGE warning
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/tag/1.0]
+lappend ans [list set LOADEDMODULES tag/1.0]
+set tserr [msg_unload {tag/1.0 <S:sS>} $warn_superstickyunload]
+testouterr_cmd sh {purge} $ans $tserr
+testouterr_cmd sh {purge -f} $ans $tserr
+
+setenv_var MODULES_STICKY_PURGE silent
+testouterr_cmd sh {purge} $ans {}
+testouterr_cmd sh {purge -f} $ans {}
+
+
+#
+# unload (configuration has no effect)
+#
+
+setenv_var TESTSUITE_FPMOD_TAG sticky1
+setenv_loaded_module [list tag/1.0 foo/1.0] [list $mp/tag/1.0 $mp/foo/1.0]
+setenv_var __MODULES_LMTAG tag/1.0&sticky
+
+setenv_var MODULES_STICKY_PURGE error
+set tserr [msg_unload {tag/1.0 <S>} $err_stickyunload]
+testouterr_cmd sh {unload tag/1.0} ERR $tserr
+setenv_var MODULES_STICKY_PURGE warning
+testouterr_cmd sh {unload tag/1.0} ERR $tserr
+setenv_var MODULES_STICKY_PURGE silent
+testouterr_cmd sh {unload tag/1.0} ERR $tserr
+
+
+setenv_var TESTSUITE_FPMOD_TAG sticky2
+setenv_var __MODULES_LMTAG tag/1.0&super-sticky
+
+setenv_var MODULES_STICKY_PURGE error
+set tserr [msg_unload {tag/1.0 <sS>} $err_superstickyunload]
+testouterr_cmd sh {unload tag/1.0} ERR $tserr
+setenv_var MODULES_STICKY_PURGE warning
+testouterr_cmd sh {unload tag/1.0} ERR $tserr
+setenv_var MODULES_STICKY_PURGE silent
+testouterr_cmd sh {unload tag/1.0} ERR $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
