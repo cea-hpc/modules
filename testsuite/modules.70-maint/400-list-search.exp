@@ -216,6 +216,34 @@ testouterr_cmd sh {list -t -o alias:indesym foo/1} OK foo/1.0
 testouterr_cmd sh {list -t -o alias:indesym foo/b} OK foo/bar
 testouterr_cmd sh {list -t -o alias:indesym foo/q} OK foo/qux
 
+# icase/extended_default mix
+setenv_var MODULES_ICASE search
+setenv_var MODULES_EXTENDED_DEFAULT 1
+testouterr_cmd sh {list -t -o indesym foo/b} OK foo/bar
+testouterr_cmd sh {list -t -o alias foo/b} OK foo/1.0
+testouterr_cmd sh {list -t -o indesym foo/q} OK foo/1.0
+testouterr_cmd sh {list -t -o alias foo/q} OK foo/qux
+
+setenv_var MODULES_ICASE never
+testouterr_cmd sh {list -t -o indesym foo/b} OK foo/bar
+testouterr_cmd sh {list -t -o alias foo/b} OK foo/1.0
+testouterr_cmd sh {list -t -o indesym foo/q} OK foo/1.0
+testouterr_cmd sh {list -t -o alias foo/q} OK foo/qux
+
+setenv_var MODULES_EXTENDED_DEFAULT 0
+setenv_var MODULES_ICASE search
+testouterr_cmd sh {list -t -o indesym foo/b} OK foo/bar
+testouterr_cmd sh {list -t -o alias foo/b} OK foo/1.0
+testouterr_cmd sh {list -t -o indesym foo/q} OK foo/1.0
+testouterr_cmd sh {list -t -o alias foo/q} OK foo/qux
+
+setenv_var MODULES_ICASE never
+testouterr_cmd sh {list -t -o indesym foo/b} OK foo/bar
+testouterr_cmd sh {list -t -o alias foo/b} OK foo/1.0
+testouterr_cmd sh {list -t -o indesym foo/q} OK foo/1.0
+testouterr_cmd sh {list -t -o alias foo/q} OK foo/qux
+unsetenv_var MODULES_ICASE
+
 testouterr_cmd sh {list -t -o tag foo/b} OK foo/1.0
 testouterr_cmd sh {list -t -o tag foo/q} OK foo/1.0
 
