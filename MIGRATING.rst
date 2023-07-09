@@ -8,8 +8,37 @@ Modules. It provides an overview of the new features and changed behaviors
 that will be encountered when upgrading.
 
 
+v5.4 (not yet released)
+=======================
+
+This new version is backward-compatible with previous version 5 release. It
+fixes bugs but also introduces new functionalities that are described in this
+section. See the :ref:`5.4 release notes<5.4 release notes>` for a complete
+list of the changes between Modules v5.3 and v5.4.
+
+Specific modulepath labels
+--------------------------
+
+:mfcmd:`modulepath-label` command is introduced to define a label to use to
+designate modulepath in module :subcmd:`avail` output. This new command should
+be used in global or modulepath-specific rc files.
+
+.. parsed-literal::
+    :ps:`$` cat /path/to/modulefiles/.modulerc
+    #%Module
+    modulepath-label . Tools
+    :ps:`$` module avail foo
+    ---------------------- :sgrdi:`Tools` ----------------------
+    foo/1.0  foo/2.0
+
+
 v5.3
 ====
+
+This new version is backward-compatible with previous version 5 release. It
+fixes bugs but also introduces new functionalities that are described in this
+section. See the :ref:`5.3 release notes<5.3 release notes>` for a complete
+list of the changes between Modules v5.2 and v5.3.
 
 Module cache
 ------------
@@ -1813,7 +1842,7 @@ the module names:
     :ps:`$` ml -o idx:sym
      1) :sgrde:`bar/1.0`   2) foo/2.0
 
-When the new configuration options command line switches are set to an
+When the new configuration options or command line switches are set to an
 empty value, the module names are the sole information reported:
 
 .. parsed-literal::
