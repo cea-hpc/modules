@@ -966,6 +966,8 @@ The following modulefile Tcl commands appeared on Modules 5.
 |            | :mfcmd:`module load-any<module>`, :mfcmd:`family`,              |
 |            | :mfcmd:`complete`, :mfcmd:`uncomplete`, :mfcmd:`pushenv`        |
 +------------+-----------------------------------------------------------------+
+| 5.4        | :mfcmd:`modulepath-label`                                       |
++------------+-----------------------------------------------------------------+
 
 :mfcmd:`system`, :mfcmd:`is-used`
 

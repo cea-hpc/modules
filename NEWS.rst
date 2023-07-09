@@ -34,6 +34,8 @@ Modules 5.4.0 (not yet released)
   ``silent``. When set, it defines the :envvar:`MODULES_STICKY_PURGE`
   environment variable. Default value can be changed with
   :instopt:`--with-sticky-purge` installation option. (fix issue #502)
+* Introduce :mfcmd:`modulepath-label` modulerc command, which defines label
+  used instead of modulepath directory path in :subcmd:`avail` output.
 
 
 .. _5.3 release notes:

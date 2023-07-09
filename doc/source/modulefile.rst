@@ -857,6 +857,19 @@ the *modulefile* is being loaded.
  than one word specified. Words are defined to be separated by whitespace
  characters (space, tab, cr).
 
+.. mfcmd:: modulepath-label directory label
+
+ Assigns *label* string to modulepath *directory*. This *label* is used on
+ :subcmd:`avail` output to refer to the modulepath.
+
+ The parameter *directory* corresponds to a fully or partially qualified
+ modulepath. If *directory* is ``.`` (dot) then the current directory of the
+ modulerc file defining this command is assumed.
+
+ .. only:: html
+
+    .. versionadded:: 5.4
+
 .. mfcmd:: prepend-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
  Append or prepend *value* to environment *variable*. The
@@ -1344,7 +1357,8 @@ for each interpretation context.
 | and standard Tcl commands | :mfcmd:`module-alias`, :mfcmd:`module-forbid`, |
 |                           | :mfcmd:`module-hide`, :mfcmd:`module-info`,    |
 |                           | :mfcmd:`module-tag`, :mfcmd:`module-version`,  |
-|                           | :mfcmd:`module-virtual`, :mfcmd:`system`,      |
+|                           | :mfcmd:`module-virtual`,                       |
+|                           | :mfcmd:`modulepath-label`, :mfcmd:`system`,    |
 |                           | :mfcmd:`uname`, :mfcmd:`versioncmp` and        |
 |                           | standard Tcl commands                          |
 +---------------------------+------------------------------------------------+
