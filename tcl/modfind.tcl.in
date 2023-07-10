@@ -536,12 +536,15 @@ proc getModulepathLabel {modpath} {
 proc getGlobalRcFileList {} {
    set rclist {}
 
-   if {[set rcfile [getConf rcfile]] ne {}} {
-      # if MODULERCFILE is a dir, look at a modulerc file in it
-      if {[file isdirectory $rcfile] && [file isfile $rcfile/modulerc]} {
-         lappend rclist $rcfile/modulerc
-      } elseif {[file isfile $rcfile]} {
-         lappend rclist $rcfile
+   set rcfilelist [split [getConf rcfile] :]
+   if {[llength $rcfilelist] > 0} {
+      foreach rcfile $rcfilelist {
+         # if rcfile is a dir, look at a modulerc file in it
+         if {[file isdirectory $rcfile] && [file isfile $rcfile/modulerc]} {
+            lappend rclist $rcfile/modulerc
+         } elseif {[file isfile $rcfile]} {
+            lappend rclist $rcfile
+         }
       }
    }
    if {[file isfile {@etcdir@/rc}]} {
