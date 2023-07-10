@@ -186,6 +186,22 @@ testouterr_cmd_re sh {display bar/1.0} ERR $tserr
 
 
 #
+# Test multiple files defined in MODULERCFILE
+#
+
+setenv_path_var MODULEPATH $modpath.4
+setenv_var MODULERCFILE $env(TESTSUITEDIR)/etc/modulerc.multi1:$env(TESTSUITEDIR)/etc/modulerc.multi2
+
+set tserr "foo/1.0 <mytag>
+foo/alias"
+testouterr_cmd_re sh {avail -t --starts-with --indepth -o alias:tag foo} OK $tserr
+testouterr_cmd_re sh {load foo/alias} ERR $err_path'foo/2.0'
+
+setenv_var MODULERCFILE $env(TESTSUITEDIR)/etc/modulerc.multi2:$env(TESTSUITEDIR)/etc/modulerc.multi1
+testouterr_cmd_re sh {load foo/alias} ERR $err_path'foo/3.0'
+
+
+#
 #  Cleanup
 #
 
