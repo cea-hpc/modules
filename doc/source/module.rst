@@ -141,9 +141,10 @@ user and *modulefile* specific setups. These files are interpreted as
 Upon invocation of :file:`modulecmd.tcl` module run-command files are sourced
 in the following order:
 
-1. Global RC file as specified by :envvar:`MODULERCFILE` variable or
-   |file etcdir_rc|. If :envvar:`MODULERCFILE` points to a directory, the
-   :file:`modulerc` file in this directory is used as global RC file.
+1. Global RC file(s) as specified by :envvar:`MODULERCFILE` variable or
+   |file etcdir_rc|. If a path element in :envvar:`MODULERCFILE` points to a
+   directory, the :file:`modulerc` file in this directory is used as a global
+   RC file.
 
 2. User specific module RC file :file:`$HOME/.modulerc`
 
@@ -1200,7 +1201,7 @@ Module Sub-Commands
 
  .. mconfig:: rcfile
 
-  Global run-command file location.
+  Location of global run-command file(s).
 
   This configuration option is unset by default. The :envvar:`MODULERCFILE`
   environment variable is defined by :subcmd:`config` sub-command when
@@ -3701,8 +3702,11 @@ ENVIRONMENT
 
 .. envvar:: MODULERCFILE
 
- The location of a global run-command file containing *modulefile* specific
+ The location of a global run-command file(s) containing *modulefile* specific
  setup. See `Modulecmd startup`_ section for detailed information.
+
+ Several global run-command files may be defined in this environment variable
+ by separating each of them by colon character.
 
  This environment variable value supersedes the default value set in the
  :mconfig:`rcfile` configuration option. It can be defined with the

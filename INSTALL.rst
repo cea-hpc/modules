@@ -253,7 +253,7 @@ achieve a specific setup, some additional steps may be required:
 6. Prior running the module sub-command specified as argument, the
    :file:`modulecmd.tcl` script evaluates the global run-command files. These
    files are either the :file:`rc` file in the directory designated by the
-   :instopt:`--etcdir` option, the file designated in the
+   :instopt:`--etcdir` option, the file(s) designated in the
    :envvar:`MODULERCFILE` environment variable or the user-specific RC file
    located in :file:`$HOME/.modulerc`. The RC files are modulefiles (limited
    to a subset of the :ref:`modulefile Tcl

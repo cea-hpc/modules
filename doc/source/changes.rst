@@ -1115,3 +1115,8 @@ The following Modules configuration option has been introduced on Modules 5.
  Starting Modules 5.3, these configuration options accept value prefixed by
  ``+`` or ``-`` which means value should respectively be appended to or
  subtracted from current configuration option value.
+
+:mconfig:`rcfile`
+
+ Starting Modules 5.4, this configuration option accepts more than one global
+ rc file location. A colon character separates each of these locations.
