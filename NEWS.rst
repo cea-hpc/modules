@@ -38,6 +38,11 @@ Modules 5.4.0 (not yet released)
   used instead of modulepath directory path in :subcmd:`avail` output.
 * More than one global rc file can now be specified in :envvar:`MODULERCFILE`
   or via :mconfig:`rcfile` configuration option.
+* Add the :mconfig:`unique_name_loaded` configuration option to allow, when
+  enabled, only one module loaded per module name. When set, it defines the
+  :envvar:`MODULES_UNIQUE_NAME_LOADED` environment variable. Default value
+  (disabled) can be changed with :instopt:`--enable-unique-name-loaded`
+  installation option.
 
 
 .. _5.3 release notes:
