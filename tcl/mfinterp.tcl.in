@@ -101,7 +101,7 @@ proc initModfileModeAliases {mode auto aliasesVN aliasesPassArgVN\
       # the evaluation mode
       set ::g_modfileEvalModes {load unload display help test whatis refresh\
          scan}
-      ##nagelfar ignore #41 Too long line
+      ##nagelfar ignore #42 Too long line
       array set g_modfilePerModeAliases {
 add-property   {nop            nop            nop            nop            nop            nop            nop          nop         }
 always-load    {always-load    nop            reportCmd      nop            nop            nop            nop          always-load-sc}
@@ -137,6 +137,7 @@ set-function   {set-function   set-function-un reportCmd     nop            nop 
 setenv         {setenv         setenv-un      setenv         setenv         setenv         setenv-wh      nop          setenv-sc   }
 source-sh      {source-sh      source-sh-un   source-sh-di   nop            nop            nop            source-sh    source-sh   }
 system         {system         system         reportCmd      nop            nop            nop            nop          nop         }
+unique-name-conflict {unique-name-conflict nop nop           nop            nop            nop            nop          nop         }
 uncomplete     {uncomplete     nop            reportCmd      nop            nop            nop            nop          uncomplete-sc}
 unset-alias    {unset-alias    nop            reportCmd      nop            nop            nop            nop          unset-alias-sc}
 unset-function {unset-function nop            reportCmd      nop            nop            nop            nop          unset-function-sc}
@@ -174,8 +175,9 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
          depends-on}} {
          set aliasesPassArg($alias) [list 0 $auto]
       # associate a trace command if per-mode alias command is not reportCmd
-      # in display mode (except for source-sh)
-      } elseif {$mode eq {display} && $alias ne {source-sh}} {
+      # in display mode (except for source-sh and unique-name-conflict)
+      } elseif {$mode eq {display} && $alias ni {source-sh\
+         unique-name-conflict}} {
          set traces($alias) reportCmdTrace
       }
    }
@@ -361,6 +363,10 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
       info script $::ModulesCurrentModulefile
       # eval then call for specific proc depending mode under same catch
       set sourceFailed [catch {
+         # raise conflict error if one name of currently loading module is
+         # shared by an already loaded module
+         unique-name-conflict
+
          eval $modcontent
 
          # raise error if a variant specified is not defined in modulefile
@@ -2895,6 +2901,24 @@ proc modulepath-label {modpath label} {
    set modpath [getAbsolutePath $modpath]
    set ::g_modulepathLabel($modpath) $label
    reportDebug "modpath=$modpath, label='$label'"
+}
+
+proc unique-name-conflict {} {
+   # skip if unique_name_loaded configuration is disabled
+   if {![getConf unique_name_loaded]} {
+      return
+   }
+
+   # get root name of all names (actual and alternatives) of currently
+   # evaluating module
+   set root_name_list [list]
+   set mod [currentState modulename]
+   foreach name [list $mod {*}[getAllModuleResolvedName $mod]] {
+      appendNoDupToList root_name_list [lindex [file split $name] 0]
+   }
+
+   # declare conflict over all these names
+   conflict {*}$root_name_list
 }
 
 # ;;; Local Variables: ***
