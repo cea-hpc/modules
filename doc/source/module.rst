@@ -4695,6 +4695,20 @@ ENVIRONMENT
 
     .. versionadded:: 4.7
 
+.. envvar:: MODULES_UNIQUE_NAME_LOADED
+
+ If set to ``1``, allows only one module loaded per module name. A conflict is
+ raised when loading a module whose name or alternative names are shared by an
+ already loaded module.
+
+ This environment variable value supersedes the default value set in the
+ :mconfig:`unique_name_loaded` configuration option. It can be defined with
+ the :subcmd:`config` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 5.4
+
 .. envvar:: MODULES_UNLOAD_MATCH_ORDER
 
  When a module unload request matches multiple loaded modules, unload firstly
