@@ -1405,6 +1405,21 @@ Module Sub-Commands
 
      .. versionadded:: 4.7
 
+ .. mconfig:: unique_name_loaded
+
+  Only one module loaded per module name.
+
+  Default value is ``0``. It can be changed at installation time with
+  :instopt:`--enable-unique-name-loaded` option. The
+  :envvar:`MODULES_UNIQUE_NAME_LOADED` environment variable is defined by
+  :subcmd:`config` sub-command when changing this configuration option from
+  its default value. See :envvar:`MODULES_UNIQUE_NAME_LOADED` description for
+  details.
+
+  .. only:: html
+
+     .. versionadded:: 5.4
+
  .. mconfig:: unload_match_order
 
   Unload firstly loaded or lastly loaded module matching request.

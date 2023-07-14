@@ -1081,7 +1081,7 @@ The following Modules configuration option has been introduced on Modules 5.
 | 5.3        | :mconfig:`ignore_cache`, :mconfig:`cache_buffer_bytes`,         |
 |            | :mconfig:`cache_expiry_secs`, :mconfig:`ignore_user_rc`         |
 +------------+-----------------------------------------------------------------+
-| 5.4        | :mconfig:`sticky_purge`                                         |
+| 5.4        | :mconfig:`sticky_purge`, :mconfig:`unique_name_loaded`          |
 +------------+-----------------------------------------------------------------+
 
 :mconfig:`avail_output`, :mconfig:`avail_terse_output`
