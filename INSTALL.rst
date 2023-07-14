@@ -675,6 +675,20 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  modulefile corresponding to Modules version is added to the shared modulepath
  and enables to switch from one Modules version to another. (default=no)
 
+.. instopt:: --enable-unique-name-loaded
+
+ Only allow one module loaded per module name. A conflict is raised when
+ loading a module whose name or alternative names are shared by an already
+ loaded module. (default=no)
+
+ This installation option defines the default value of the
+ :mconfig:`unique_name_loaded` configuration option which could be changed
+ after installation with the :subcmd:`config` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 5.4
+
 .. instopt:: --enable-vim-addons
 
  Install the Vim addon files in the Vim addons directory defined with the
@@ -1430,6 +1444,9 @@ installation.
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`term_width`             | ``0``                                        | :envvar:`MODULES_TERM_WIDTH`,                |              |           |
 |                                   |                                              | :option:`--width`                            |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`unique_name_loaded`     | ``0``                                        | :instopt:`--enable-unique-name-loaded`,      |              |           |
+|                                   |                                              | :envvar:`MODULES_UNIQUE_NAME_LOADED`         |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`unload_match_order`     | ``returnlast``                               | :instopt:`--with-unload-match-order`,        |              |           |
 |                                   |                                              | :envvar:`MODULES_UNLOAD_MATCH_ORDER`         |              |           |
