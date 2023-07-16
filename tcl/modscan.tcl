@@ -443,10 +443,20 @@ proc filterExtraMatchSearch {modpath mod res_arrname versmod_arrname} {
       unset found_list($elt)
       # also unset any symbolic version pointing to unset elt
       if {[info exists versmod_list($elt)]} {
-         foreach eltsym $versmod_list($elt) {
+         set eltsym_list $versmod_list($elt)
+         for {set i 0} {$i < [llength $eltsym_list]} {incr i} {
+            set eltsym [lindex $eltsym_list $i]
             # getModules phase #2 may have already withdrawn symbol
             if {[info exists found_list($eltsym)]} {
                unset found_list($eltsym)
+            }
+            # also unset symbolic version applying to dir name if removing
+            # default symbol
+            if {[file tail $eltsym] eq {default}} {
+               set eltdir [file dirname $eltsym]
+               if {[info exists versmod_list($eltdir)]} {
+                  lappend eltsym_list {*}$versmod_list($eltdir)
+               }
             }
          }
       }
