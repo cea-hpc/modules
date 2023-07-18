@@ -31,6 +31,38 @@ be used in global or modulepath-specific rc files.
     ---------------------- :sgrdi:`Tools` ----------------------
     foo/1.0  foo/2.0
 
+Unique module name loaded
+-------------------------
+
+The configuration option :mconfig:`unique_name_loaded` is introduced to allow
+only one module loaded per module name. It is similar to the *One name rule*
+feature introduced by the `Lmod`_ project.
+
+When enabled, :mconfig:`unique_name_loaded` produces a conflict definition
+at the start of modulefile evaluation for each actual and alternative module
+root name. For instance when loading a module named ``foo/sub/1.0`` with a
+``qux/1.0`` alias, it produces a conflict against ``foo`` and ``qux``.
+
+When loading a module that shares a name with an already loaded module, an
+error is raised due to the conflict definition. This error aborts the module
+load evaluation.
+
+.. parsed-literal::
+
+    :ps:`$` cat /path/to/modulefiles/bar/1.0
+    #%Module
+    :ps:`$` cat /path/to/modulefiles/bar/2.0
+    #%Module
+    :ps:`$` module config unique_name_loaded 1
+    :ps:`$` module load bar/1.0
+    :ps:`$` module load bar/2.0
+    Loading :sgrhi:`bar/2.0`
+      :sgrer:`ERROR`: Module cannot be loaded due to a conflict.
+        HINT: Might try "module unload bar" first.
+
+:mconfig:`unique_name_loaded` is disabled by default. It can be changed with
+module :subcmd:`config` sub-command or at installation time with
+:instopt:`--enable-unique-name-loaded` configure script option.
 
 v5.3
 ====
