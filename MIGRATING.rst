@@ -16,6 +16,35 @@ fixes bugs but also introduces new functionalities that are described in this
 section. See the :ref:`5.4 release notes<5.4 release notes>` for a complete
 list of the changes between Modules v5.3 and v5.4.
 
+Purging sticky modules
+----------------------
+
+The :mconfig:`sticky_purge` configuration option is added to define the
+behavior of :subcmd:`purge` sub-command when unloading a sticky or
+super-sticky module.
+
+By default an ``error`` is raised. :mconfig:`sticky_purge` can be changed to
+emit a ``warning`` message instead or to be ``silent``.
+
+.. parsed-literal::
+
+    $ module purge
+    Unloading :sgrshi:`foo/1.0`
+      :sgrer:`ERROR`: Unload of sticky module skipped
+    $ module config sticky_purge warning
+    $ module purge
+    Unloading :sgrshi:`foo/1.0`
+      :sgrwa:`WARNING`: Unload of sticky module skipped
+    $ module config sticky_purge silent
+    $ module purge
+    $ module list
+    Currently Loaded Modulefiles:
+     1) :sgrs:`foo/1.0`
+
+    Key:
+    :sgrs:`sticky`
+
+
 Specific modulepath labels
 --------------------------
 
@@ -24,6 +53,7 @@ designate modulepath in module :subcmd:`avail` output. This new command should
 be used in global or modulepath-specific rc files.
 
 .. parsed-literal::
+
     :ps:`$` cat /path/to/modulefiles/.modulerc
     #%Module
     modulepath-label . Tools
