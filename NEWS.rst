@@ -43,6 +43,7 @@ Modules 5.4.0 (not yet released)
   :envvar:`MODULES_UNIQUE_NAME_LOADED` environment variable. Default value
   (disabled) can be changed with :instopt:`--enable-unique-name-loaded`
   installation option.
+* Add :ref:`evaluation-errors` design notes.
 
 
 .. _5.3 release notes:
