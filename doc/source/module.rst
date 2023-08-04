@@ -1731,6 +1731,11 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+ When several *modulefiles* are passed, they are loaded sequentially in the
+ specified order. If one modulefile evaluation raises an error, load sequence
+ continues: loaded modules prior the evaluation error are kept loaded and
+ sequence is resumed with the load of remaining modulefile in list.
+
  The :option:`--tag` option accepts a list of module tags to apply to
  *modulefile* once loaded. If module is already loaded, tags from *taglist*
  are added to the list of tags already applied to this module.
