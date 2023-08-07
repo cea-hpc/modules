@@ -1410,6 +1410,15 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
       if {$errCode == 0} {
          set loadok 1
       }
+
+      # abort evaluation if error and behavior configured this way (abort
+      # means stop to evaluate modulefile and flush changes of previous ones)
+      # applies to top evaluation context for load and try-load sub-command
+      if {$ret && $context eq {load} && !$loadany && [getConf\
+         error_on_multi_load] eq {abort}} {
+         flushEnvSettings
+         break
+      }
    }
    lpopState mode
 

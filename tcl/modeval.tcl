@@ -620,6 +620,20 @@ proc restoreSettings {} {
       (#[getSavedSettingsStackDepth])"
 }
 
+# clear environment change related variables to undo modifications produced by
+# evaluated modulefile(s)
+proc flushEnvSettings {} {
+   foreach var {g_Aliases g_stateEnvVars g_stateAliases g_stateFunctions\
+      g_Functions g_stateCompletes g_Completes g_newXResources\
+      g_delXResources g_changeDir g_stdoutPuts g_prestdoutPuts\
+      g_return_text} {
+      ##nagelfar ignore #2 Suspicious variable name
+      if {[info exists ::$var]} {
+         unset ::$var
+      }
+   }
+}
+
 # load modules passed as args designated as requirement
 proc loadRequirementModuleList {tryload optional tag_list args} {
    set ret 0
