@@ -39,7 +39,7 @@ windowssupport nearlyforbiddendays implicitrequirement tagabbrev \
 tagcolorname mcookieversioncheck availoutput availterseoutput listoutput \
 listterseoutput editor variantshortcut bashcompletiondir fishcompletiondir \
 zshcompletiondir tcllinter tcllinteropts nagelfardatadir nagelfaraddons \
-stickypurge uniquenameloaded"
+stickypurge uniquenameloaded erroronmultiload"
 libarglist=()
 
 # flags to know if argument has been specified on command-line
@@ -119,6 +119,7 @@ nearlyforbiddendays=14
 tagabbrev='auto-loaded=aL:loaded=L:hidden=H:hidden-loaded=H:forbidden=F:nearly-forbidden=nF:sticky=S:super-sticky=sS:keep-loaded=kL'
 tagcolorname=
 stickypurge=error
+erroronmultiload='continue'
 mcookieversioncheck=y
 availoutput='modulepath:alias:dirwsym:sym:tag:variantifspec:key'
 availterseoutput='modulepath:alias:dirwsym:sym:tag:variantifspec'
@@ -378,6 +379,11 @@ Optional Packages:
                           a sticky or super-sticky module during a purge.
                           Raise an \`error' or report a \`warning' or be
                           \`silent'. [$stickypurge]
+  --with-error-on-multi-load=VALUE
+                          define error behavior when multiple modulefiles are
+                          set for load and one fails. \`continue' evaluation
+                          of remaining modulefiles or \`abort' and withdraw
+                          already loaded modulefiles. [$erroronmultiload]
   --with-avail-output=LIST
                           specify content to report on avail sub-command
                           regular output. elements accepted in LIST are:
@@ -765,6 +771,13 @@ for arg in "$@"; do
       allowedval=" error warning silent " ;
       if [ "${allowedval// $stickypurge /}" = "$allowedval" ]; then
          echo_error "Bad value for option \`--with-sticky-purge'"\
+            "Allowed values are:$allowedval"
+      fi ;;
+   --with-error-on-multi-load*|--without-error-on-multi-load)
+      erroronmultiload=$(get_package_value "$arg" "continue") ;
+      allowedval=" continue abort " ;
+      if [ "${allowedval// $erroronmultiload /}" = "$allowedval" ]; then
+         echo_error "Bad value for option \`--with-error-on-multi-load'"\
             "Allowed values are:$allowedval"
       fi ;;
    --with-avail-output*|--without-avail-output)
