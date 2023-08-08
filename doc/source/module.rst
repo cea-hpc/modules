@@ -952,6 +952,22 @@ Module Sub-Commands
 
      .. versionadded:: 4.8
 
+ .. mconfig:: error_on_multi_load
+
+  Error behavior when one modulefile fails to :subcmd:`load` among many.
+
+  ``continue`` (default) to evaluate remaining modulefiles or ``abort`` and
+  withdraw already loaded modulefiles. It can be changed at installation time
+  with :instopt:`--with-error-on-multi-load` option. The
+  :envvar:`MODULES_ERROR_ON_MULTI_LOAD` environment variable is defined by
+  :subcmd:`config` sub-command when changing this configuration option from
+  its default value. See :envvar:`MODULES_ERROR_ON_MULTI_LOAD` description for
+  details.
+
+  .. only:: html
+
+     .. versionadded:: 5.4
+
  .. mconfig:: extra_siteconfig
 
   Additional site-specific configuration script location. See
