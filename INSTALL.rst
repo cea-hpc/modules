@@ -864,6 +864,20 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
     .. versionadded:: 4.8
 
+.. instopt:: --with-error-on-multi-load=VALUE
+
+ When loading multiple modulefiles, if one fails ``continue`` evaluation of
+ remaining modulefiles or ``abort`` and withdraw already loaded modulefiles.
+ (default=\ ``continue``)
+
+ This installation option defines the default value of the
+ :mconfig:`error_on_multi_load` configuration option which could be changed
+ after installation with the :subcmd:`config` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 5.4
+
 .. instopt:: --with-fishcompletiondir=DIR
 
  Directory for Fish completion scripts. When this option is not set Fish
@@ -1339,6 +1353,9 @@ installation.
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`editor`                 | ``vi``                                       | :instopt:`--with-editor`,                    |              |           |
 |                                   |                                              | :envvar:`MODULES_EDITOR`                     |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`error_on_multi_load`    | ``continue``                                 | :instopt:`--with-error-on-multi-load`,       |              |           |
+|                                   |                                              | :envvar:`MODULES_ERROR_ON_MULTI_LOAD`        |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`extra_siteconfig`       | *Unset by default*                           | :envvar:`MODULES_SITECONFIG`                 |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
