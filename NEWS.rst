@@ -44,6 +44,13 @@ Modules 5.4.0 (not yet released)
   (disabled) can be changed with :instopt:`--enable-unique-name-loaded`
   installation option.
 * Add :ref:`evaluation-errors` design notes.
+* Add :mconfig:`error_on_multi_load` configuration option to define error
+  behavior when one modulefile load fails and multiple modulefiles have been
+  set for load. ``continue`` (default) evaluation of remaining modulefiles or
+  ``abort`` and withdraw already loaded modules. When set, it defines the
+  :envvar:`MODULES_ERROR_ON_MULTI_LOAD` environment variable. Default value
+  can be changed with :instopt:`--with-error-on-multi-load` installation
+  option.
 
 
 .. _5.3 release notes:
