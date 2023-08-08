@@ -4099,6 +4099,20 @@ ENVIRONMENT
 
     .. versionadded:: 4.8
 
+.. envvar:: MODULES_ERROR_ON_MULTI_LOAD
+
+ When loading multiple modulefiles, if one fails to load, ``continue`` to
+ evaluate remaining modulefiles in list or ``abort`` and withdraw already
+ loaded modulefiles from list.
+
+ This environment variable value supersedes the default value set in the
+ :mconfig:`error_on_multi_load` configuration option. It can be defined with
+ the :subcmd:`config` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 5.4
+
 .. envvar:: MODULES_EXTENDED_DEFAULT
 
  If set to ``1``, a specified module version is matched against starting
