@@ -140,19 +140,34 @@ Following behavior is observed:
 No effect on other error kinds as it is not useful to mark loaded a broken or
 nonexistent modulefile.
 
+``error_on_multi_load`` configuration option has no effect on ``--force``
+option.
+
 Multiple modulefiles passed as argument
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When multiple modulefiles are passed to the ``load`` sub-command for
 evaluation. If the evaluation of one modulefile raises an error, behavior for
-this error is applied and:
+this error is applied and if:
 
-* already evaluated modulefiles from the argument list are kept loaded
-* evaluation continues with next modulefile in argument list
+* :mconfig:`error_on_multi_load` configuration option equals ``continue``:
+
+  * already evaluated modulefiles from the argument list are kept loaded
+  * evaluation continues with next modulefile in argument list
+
+* :mconfig:`error_on_multi_load` equals ``abort``:
+
+  * already evaluated modulefiles from the argument list are withdrawn (they
+    will not appear loaded and their environment changes are flushed)
+  * evaluation stops
 
 The above description only applies to ``load`` sub-command executed from the
 top level context and not from a modulefile evaluation. Multiple arguments on
 a ``module load`` command in modulefile are evaluated independently as an
 *AND* requirement list.
+
+.. warning:: :command:`ml` command applies the ``error_on_multi_load``'s
+   ``abort`` behavior whatever the value of this configuration option. It may
+   be changed in the next major version to align ``ml`` command behavior.
 
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
