@@ -1,0 +1,74 @@
+#%Module
+if {[info exists env(TESTSUITE_ERROR_ON_MULTI_LOAD)]} {
+    switch -- $env(TESTSUITE_ERROR_ON_MULTI_LOAD) {
+        bad - load_last_bad - load_first_bad {
+            bad
+        }
+        break - load_first_break {
+            break
+        }
+        continue {
+            continue
+        }
+        error {
+            error msg
+        }
+        conflict {
+            conflict foo
+        }
+        reqmis {
+            prereq unk
+        }
+        depre_load_error {
+            prereq --optional foo
+            if {[module-info mode load]} {
+                error msg
+            }
+        }
+        depre_unload_error {
+            prereq --optional foo
+            if {[module-info mode unload]} {
+                error msg
+            }
+        }
+        depre_load_bad {
+            prereq --optional foo
+            if {[module-info mode load]} {
+                bad
+            }
+        }
+        depre_unload_bad {
+            prereq --optional foo
+            if {[module-info mode unload]} {
+                bad
+            }
+        }
+        depre_load_break {
+            prereq --optional foo
+            if {[module-info mode load]} {
+                break
+            }
+        }
+        depre_unload_break {
+            prereq --optional foo
+            if {[module-info mode unload]} {
+                break
+            }
+        }
+        depre_load_reqmis {
+            prereq --optional foo
+            if {[module-info mode load]} {
+                prereq unk
+            }
+        }
+        depre_load_conflict {
+            prereq --optional foo
+            if {[module-info mode load]} {
+                conflict all
+            }
+        }
+        depre_load_forbidden {
+            prereq --optional foo
+        }
+    }
+}
