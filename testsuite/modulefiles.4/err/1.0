@@ -1,10 +1,10 @@
 #%Module
 if {[info exists env(TESTSUITE_ERROR_ON_MULTI_LOAD)]} {
     switch -- $env(TESTSUITE_ERROR_ON_MULTI_LOAD) {
-        bad - load_last_bad - load_first_bad {
+        bad - load_last_bad - load_first_bad - load-any_first_bad {
             bad
         }
-        break - load_first_break {
+        break - load_first_break - load-any_first_break {
             break
         }
         continue {
@@ -65,6 +65,12 @@ if {[info exists env(TESTSUITE_ERROR_ON_MULTI_LOAD)]} {
             prereq --optional foo
             if {[module-info mode load]} {
                 conflict all
+            }
+        }
+        depre_load_conflict2 {
+            prereq --optional foo
+            if {[module-info mode load]} {
+                conflict foo
             }
         }
         depre_load_forbidden {

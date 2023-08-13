@@ -1,0 +1,414 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2023/08/12
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load-any
+#   Modulefiles:    error, foo, setenv
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test error_on_multi_load configuration option with
+#           load-any sub-command
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+setenv_var MODULES_AUTO_HANDLING 1
+
+set ans_load_any [list]
+lappend ans_load_any [list set _LMFILES_ $mp/foo/1.0]
+lappend ans_load_any [list set LOADEDMODULES foo/1.0]
+lappend ans_load_any [list ERR]
+
+set ans_load_any_no_err [list]
+lappend ans_load_any_no_err [list set _LMFILES_ $mp/foo/1.0]
+lappend ans_load_any_no_err [list set LOADEDMODULES foo/1.0]
+
+set ans_continue [list]
+lappend ans_continue [list set _LMFILES_ $mp/err/1.0]
+lappend ans_continue [list set LOADEDMODULES err/1.0]
+
+set ans_conflict [list]
+lappend ans_conflict [list set TS1 {}]
+lappend ans_conflict [list set TS2 {}]
+lappend ans_conflict [list set _LMFILES_ $mp/foo/1.0:$mp/setenv/1.0]
+lappend ans_conflict [list set LOADEDMODULES foo/1.0:setenv/1.0]
+lappend ans_conflict [list ERR]
+
+set ans_conflict_force [list]
+lappend ans_conflict_force [list set __MODULES_LMCONFLICT err/1.0&foo]
+lappend ans_conflict_force [list set _LMFILES_ $mp/foo/1.0:$mp/err/1.0]
+lappend ans_conflict_force [list set LOADEDMODULES foo/1.0:err/1.0]
+
+set ans_reqmis_force [list]
+lappend ans_reqmis_force [list set __MODULES_LMPREREQ err/1.0&unk]
+lappend ans_reqmis_force [list set _LMFILES_ $mp/err/1.0]
+lappend ans_reqmis_force [list set LOADEDMODULES err/1.0]
+lappend ans_reqmis_force [list ERR]
+
+set ans_already_loaded OK
+
+set ans_depre_error [list]
+lappend ans_depre_error [list set TS1 {}]
+lappend ans_depre_error [list set TS2 {}]
+lappend ans_depre_error [list set _LMFILES_ $mp/err/1.0:$mp/setenv/1.0]
+lappend ans_depre_error [list set LOADEDMODULES err/1.0:setenv/1.0]
+lappend ans_depre_error [list ERR]
+
+set ans_depre_error_force [list]
+lappend ans_depre_error_force [list set LOADEDMODULES foo/1.0]
+lappend ans_depre_error_force [list set _LMFILES_ $mp/foo/1.0]
+lappend ans_depre_error_force [list unset __MODULES_LMPREREQ]
+lappend ans_depre_error_force [list ERR]
+
+set ans_depre_unload_error_force [list]
+lappend ans_depre_unload_error_force [list set _LMFILES_ $mp/err/1.0:$mp/foo/1.0]
+lappend ans_depre_unload_error_force [list set LOADEDMODULES err/1.0:foo/1.0]
+lappend ans_depre_unload_error_force [list ERR]
+
+set ans_in_modfile [list]
+lappend ans_in_modfile [list set __MODULES_LMPREREQ lerr/1.0&err/1.0|foo/1.0]
+lappend ans_in_modfile [list set _LMFILES_ $mp/foo/1.0:$mp/lerr/1.0]
+lappend ans_in_modfile [list set LOADEDMODULES foo/1.0:lerr/1.0]
+lappend ans_in_modfile [list set __MODULES_LMTAG foo/1.0&auto-loaded]
+lappend ans_in_modfile [list ERR]
+
+
+
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom_error_trace "    invoked from within
+\"if \{\[info exists env(TESTSUITE_ERROR_ON_MULTI_LOAD)\]\} \{
+    switch -- \$env(TESTSUITE_ERROR_ON_MULTI_LOAD) \{
+        bad - load_last_bad - load_first_b...\""
+} else {
+    set custom_error_trace {}
+}
+
+
+#
+# continue behavior (multiple module to load-any)
+#
+
+setenv_var MODULES_ERROR_ON_MULTI_LOAD continue
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD bad
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 5}]
+set ts_bad [msg_load err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {load-any err/1.0 foo/1.0} $ans_load_any $ts_bad
+
+# --force has no effect
+testouterr_cmd bash {load-any --force err/1.0 foo/1.0} $ans_load_any $ts_bad
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD break
+
+set ts_break [msg_load err/1.0 $err_evalabort]
+testouterr_cmd bash {load-any err/1.0 foo/1.0} $ans_load_any $ts_break
+
+# --force has no effect
+testouterr_cmd bash {load-any --force err/1.0 foo/1.0} $ans_load_any $ts_break
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD continue
+
+testouterr_cmd bash {load-any err/1.0 foo/1.0} $ans_continue {}
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD error
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 14}]
+set ts_error_verbose [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_error_verbose [msg_load foo/1.0]
+testouterr_cmd bash {load-any -v err/1.0 foo/1.0} $ans_load_any $ts_error_verbose
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD conflict
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+
+set ts_conflict_declared_after [msg_load err/1.0 [err_conflict foo]]
+testouterr_cmd bash {load-any err/1.0 setenv/1.0} $ans_conflict $ts_conflict_declared_after
+
+# --force by-pass conflict error
+set ts_conflict_force_declared_after [msg_load err/1.0 [err_conlof foo]]
+testouterr_cmd bash {load-any --force err/1.0 setenv/1.0} $ans_conflict_force $ts_conflict_force_declared_after
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD reqmis
+
+set ts_reqmis [msg_load err/1.0 $err_path'unk' [err_reqlo unk]]
+testouterr_cmd bash {load-any err/1.0 foo/1.0} $ans_load_any $ts_reqmis
+
+# --force by-pass missing requirement error
+set ts_reqmis_force [msg_load err/1.0 $err_path'unk' [err_reqlof unk]]
+testouterr_cmd bash {load-any --force err/1.0 foo/1.0} $ans_reqmis_force $ts_reqmis_force
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_load_error
+
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 25}]
+set ts_depre_load_error [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_depre_load_error [msg_load foo/1.0 [err_depre err/1.0]]
+testouterr_cmd bash {load-any foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_load_error
+
+# --force by-pass dependent reload error
+set ts_depre_load_error_force [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_depre_load_error_force [msg_load foo/1.0 [err_depref err/1.0] {Unloading dependent: err/1.0}]
+testouterr_cmd bash {load-any --force foo/1.0 setenv/1.0} $ans_depre_error_force $ts_depre_load_error_force
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_unload_error
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 31}]
+set ts_depre_unload_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_depre_unload_error [msg_load foo/1.0 [err_depun err/1.0]]
+testouterr_cmd bash {load-any foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_unload_error
+
+# --force by-pass dependent reload error
+set ts_depre_unload_error_force [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_depre_unload_error_force [msg_load foo/1.0 [err_depunf err/1.0]]
+# FIXME: --force should be able to unload err/1.0
+testouterr_cmd bash {load-any --force foo/1.0 setenv/1.0} $ans_depre_unload_error_force $ts_depre_unload_error_force
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMPREREQ
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD forbidden
+
+set ts_forbidden {}
+testouterr_cmd bash {load-any err/1.0 foo/1.0} $ans_load_any_no_err $ts_forbidden
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD not_found
+
+set ts_not_found {}
+testouterr_cmd bash {load-any unk/1.0 foo/1.0} $ans_load_any_no_err $ts_not_found
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD already_loaded
+
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+testouterr_cmd bash {load-any err/1.0 foo/1.0} $ans_already_loaded {}
+unsetenv_loaded_module
+
+
+#
+# continue behavior (single module to load-any, no effect)
+#
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD bad
+
+testouterr_cmd bash {load-any err/1.0} ERR $ts_bad
+
+# --force has no effect
+testouterr_cmd bash {load-any --force err/1.0} ERR $ts_bad
+
+testouterr_cmd bash {load-any foo/1.0} $ans_load_any_no_err {}
+
+
+#
+# continue behavior ("module load-any" command in modulefile, no effect)
+#
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD load-any_first_bad
+
+set ts_in_modfile [msg_top_load lerr/1.0 {} foo/1.0 {}]
+testouterr_cmd bash {load lerr/1.0} $ans_in_modfile $ts_in_modfile
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD load-any_first_break
+
+testouterr_cmd bash {load lerr/1.0} $ans_in_modfile $ts_in_modfile
+
+
+#
+# abort behavior (multiple module to load-any)
+#
+
+setenv_var MODULES_ERROR_ON_MULTI_LOAD abort
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD bad
+
+testouterr_cmd bash {load-any err/1.0 foo/1.0} $ans_load_any $ts_bad
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD break
+
+testouterr_cmd bash {load-any err/1.0 foo/1.0} $ans_load_any $ts_break
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD continue
+
+testouterr_cmd bash {load-any err/1.0 foo/1.0} $ans_continue {}
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD error
+
+testouterr_cmd bash {load-any -v err/1.0 foo/1.0} $ans_load_any $ts_error_verbose
+
+# --force has no effect
+testouterr_cmd bash {load-any --force -v err/1.0 foo/1.0} $ans_load_any $ts_error_verbose
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD conflict
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+
+# conflict declared after load attempt of conflicting module
+testouterr_cmd bash {load-any err/1.0 setenv/1.0} $ans_conflict $ts_conflict_declared_after
+
+# --force by-pass conflict error
+testouterr_cmd bash {load-any --force err/1.0 setenv/1.0} $ans_conflict_force $ts_conflict_force_declared_after
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD reqmis
+
+testouterr_cmd bash {load-any err/1.0 foo/1.0} $ans_load_any $ts_reqmis
+
+# --force by-pass missing requirement error
+testouterr_cmd bash {load-any --force err/1.0 foo/1.0} $ans_reqmis_force $ts_reqmis_force
+
+
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_load_error
+
+testouterr_cmd bash {load-any foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_load_error
+
+# --force by-pass dependent reload error
+testouterr_cmd bash {load-any --force foo/1.0 setenv/1.0} $ans_depre_error_force $ts_depre_load_error_force
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_unload_error
+
+testouterr_cmd bash {load-any foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_unload_error
+
+# --force by-pass dependent reload error
+# FIXME: --force should be able to unload err/1.0
+testouterr_cmd bash {load-any --force foo/1.0 setenv/1.0} $ans_depre_unload_error_force $ts_depre_unload_error_force
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_load_bad
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 37}]
+set ts_depre_load_bad [msg_load err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_depre_load_bad [msg_load foo/1.0 [err_depre err/1.0]]
+testouterr_cmd bash {load-any foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_load_bad
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_unload_bad
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 43}]
+set ts_depre_unload_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_depre_unload_bad [msg_load foo/1.0 [err_depun err/1.0]]
+testouterr_cmd bash {load-any foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_unload_bad
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_load_break
+
+set ts_depre_load_break [msg_load err/1.0 $err_evalabort]\n\n
+append ts_depre_load_break [msg_load foo/1.0 [err_depre err/1.0]]
+testouterr_cmd bash {load-any foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_load_break
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_unload_break
+
+set ts_depre_unload_break [msg_unload err/1.0 $err_evalabort]\n\n
+append ts_depre_unload_break [msg_load foo/1.0 [err_depun err/1.0]]
+testouterr_cmd bash {load-any foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_unload_break
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_load_reqmis
+
+set ts_depre_load_reqmis [msg_load err/1.0 [err_prereq unk]]\n\n
+append ts_depre_load_reqmis [msg_load foo/1.0 [err_depre err/1.0]]
+testouterr_cmd bash {load-any foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_load_reqmis
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_load_conflict2
+
+set ts_depre_load_conflict [msg_load err/1.0 [err_conlo foo]]\n\n
+append ts_depre_load_conflict [msg_load foo/1.0 [err_depre err/1.0]]
+testouterr_cmd bash {load-any foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_load_conflict
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_load_forbidden
+
+set ts_depre_load_forbidden [msg_load foo/1.0 [err_accessdenied err/1.0] [err_depre err/1.0]]
+testouterr_cmd bash {load-any foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_load_forbidden
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMPREREQ
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD forbidden
+
+testouterr_cmd bash {load-any err/1.0 foo/1.0} $ans_load_any_no_err $ts_forbidden
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD not_found
+
+testouterr_cmd bash {load-any unk/1.0 foo/1.0} $ans_load_any_no_err $ts_not_found
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD already_loaded
+
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+testouterr_cmd bash {load-any err/1.0 foo/1.0} $ans_already_loaded {}
+unsetenv_loaded_module
+
+
+#
+# abort behavior (single module to load-any, no effect)
+#
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD bad
+
+testouterr_cmd bash {load-any err/1.0} ERR $ts_bad
+
+# --force has no effect
+testouterr_cmd bash {load-any --force err/1.0} ERR $ts_bad
+
+testouterr_cmd bash {load-any foo/1.0} $ans_load_any_no_err {}
+
+
+#
+# abort behavior ("module load-any" command in modulefile, no effect)
+#
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD load-any_first_bad
+
+testouterr_cmd bash {load lerr/1.0} $ans_in_modfile $ts_in_modfile
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD load-any_first_break
+
+testouterr_cmd bash {load lerr/1.0} $ans_in_modfile $ts_in_modfile
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
