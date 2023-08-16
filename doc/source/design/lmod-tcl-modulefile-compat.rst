@@ -243,14 +243,16 @@ Lmod Tcl modulefile compatibility
 - ``try-load`` modulefile command acts as an individual ``prereq`` for each
   modulefile specified.
 
-- Each modulefile specified are considered optional requirement, as no error
-  is raised if they cannot be loaded.
+- Each modulefile specified is considered optional requirement, as no error is
+  raised if they cannot be found.
 
+  - No message is reported in case of *not found* or *forbidden* errors
+  - Other kind of error are raised the usual way
   - An update is made on version 5.2 to record each modulefile specified on
     ``try-load`` as optional requirement even if their load attempt did not
     succeed.
   - With this change, if the optional requirement is loaded later on, the
-    module declaring the ``try-load`` command will be automatically reload
+    module declaring the ``try-load`` command will be automatically reloaded
     (if ``auto_handling`` is enabled) to take the new availability of its
     optional requirement into account.
 

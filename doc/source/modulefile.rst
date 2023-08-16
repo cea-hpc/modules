@@ -341,8 +341,9 @@ the *modulefile* is being loaded.
  definition of an implicit prereq or conflict requirement onto specified
  modules.
 
- On ``try-load`` sub-command, if specified *modulefile* is not found thus
- loaded, no implicit prereq requirement is defined over this module.
+ On ``try-load`` sub-command, *modulefiles* are considered optional prereq
+ requirement. However an error is raised if they cannot be loaded unless if
+ they are not found or forbidden.
 
  The ``load-any`` sub-command loads one *modulefile* from the specified list.
  An error is obtained if no *modulefile* from the list can be loaded. No
