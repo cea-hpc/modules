@@ -193,6 +193,18 @@ lappend ans_in_modfile_first_no_err [list set _LMFILES_ $mp/foo/1.0:$mp/lerr/1.0
 lappend ans_in_modfile_first_no_err [list set LOADEDMODULES foo/1.0:lerr/1.0]
 lappend ans_in_modfile_first_no_err [list set __MODULES_LMTAG foo/1.0&auto-loaded]
 
+set ans_in_modfile_not_found [list]
+lappend ans_in_modfile_not_found [list set __MODULES_LMPREREQ lerr/1.0&lerr/1.0|foo/1.0&lerr/1.0|unk/1.0]
+lappend ans_in_modfile_not_found [list set _LMFILES_ $mp/foo/1.0:$mp/lerr/1.0]
+lappend ans_in_modfile_not_found [list set LOADEDMODULES foo/1.0:lerr/1.0]
+lappend ans_in_modfile_not_found [list set __MODULES_LMTAG foo/1.0&auto-loaded]
+
+set ans_in_modfile_first_not_found [list]
+lappend ans_in_modfile_first_not_found [list set __MODULES_LMPREREQ lerr/1.0&lerr/1.0|unk/1.0&lerr/1.0|foo/1.0]
+lappend ans_in_modfile_first_not_found [list set _LMFILES_ $mp/foo/1.0:$mp/lerr/1.0]
+lappend ans_in_modfile_first_not_found [list set LOADEDMODULES foo/1.0:lerr/1.0]
+lappend ans_in_modfile_first_not_found [list set __MODULES_LMTAG foo/1.0&auto-loaded]
+
 if {[cmpversion $tclsh_version 8.6] == -1} {
     set custom_error_trace "    invoked from within
 \"if \{\[info exists env(TESTSUITE_ERROR_ON_MULTI_LOAD)\]\} \{
@@ -364,6 +376,17 @@ testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_no_err $ts_load_forbidden
 setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD try-load_first_forbidden
 
 testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_first_no_err $ts_load_forbidden
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD try-load_last_not_found
+
+set ts_load_not_found [msg_top_load lerr/1.0 {} foo/1.0 {}]
+testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_not_found $ts_load_not_found
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD try-load_first_not_found
+
+testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_first_not_found $ts_load_not_found
 
 
 #
@@ -547,6 +570,16 @@ testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_no_err $ts_load_forbidden
 setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD try-load_first_forbidden
 
 testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_first_no_err $ts_load_forbidden
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD try-load_last_not_found
+
+testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_not_found $ts_load_not_found
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD try-load_first_not_found
+
+testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_first_not_found $ts_load_not_found
 
 
 #

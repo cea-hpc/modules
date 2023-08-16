@@ -93,6 +93,12 @@ lappend ans_in_modfile_no_err [list set _LMFILES_ $mp/foo/1.0:$mp/lerr/1.0]
 lappend ans_in_modfile_no_err [list set LOADEDMODULES foo/1.0:lerr/1.0]
 lappend ans_in_modfile_no_err [list set __MODULES_LMTAG foo/1.0&auto-loaded]
 
+set ans_in_modfile_not_found [list]
+lappend ans_in_modfile_not_found [list set __MODULES_LMPREREQ lerr/1.0&unk/1.0|foo/1.0]
+lappend ans_in_modfile_not_found [list set _LMFILES_ $mp/foo/1.0:$mp/lerr/1.0]
+lappend ans_in_modfile_not_found [list set LOADEDMODULES foo/1.0:lerr/1.0]
+lappend ans_in_modfile_not_found [list set __MODULES_LMTAG foo/1.0&auto-loaded]
+
 
 if {[cmpversion $tclsh_version 8.6] == -1} {
     set custom_error_trace "    invoked from within
@@ -249,6 +255,11 @@ testouterr_cmd bash {load lerr/1.0} $ans_in_modfile $ts_in_modfile
 setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD load-any_first_forbidden
 
 testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_no_err $ts_in_modfile
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD load-any_first_not_found
+
+testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_not_found $ts_in_modfile
 
 
 #
@@ -420,6 +431,11 @@ testouterr_cmd bash {load lerr/1.0} $ans_in_modfile $ts_in_modfile
 setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD load-any_first_forbidden
 
 testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_no_err $ts_in_modfile
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD load-any_first_not_found
+
+testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_not_found $ts_in_modfile
 
 
 #
