@@ -237,7 +237,7 @@ testouterr_cmd sh {load tryload/2.0} $ans {}
 
 # break during evaluation
 setenv_var TESTSUITE_TRYLOAD break1
-set tserr [msg_load tryload/1.0 $err_evalabort]
+set tserr [msg_load tryload/1.0 $err_evalabort]\n\n[msg_load tryload/2.0 [err_reqlo tryload/1.0]]
 testouterr_cmd sh {load tryload/2.0} ERR $tserr
 testouterr_cmd sh {try-load tryload/2.0} ERR $tserr
 
@@ -245,12 +245,13 @@ testouterr_cmd sh {try-load tryload/2.0} ERR $tserr
 setenv_var TESTSUITE_TRYLOAD bad1
 set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {2} : {8}}]
 set tserr [escre [msg_load tryload/1.0 [msg_moderr {invalid command name "unk"} {unk<EXM>} $mp/tryload/1.0 $ln]]]
+append tserr \n\n[msg_load tryload/2.0 [err_reqlo tryload/1.0]]
 testouterr_cmd_re sh {load tryload/2.0} ERR $tserr
 testouterr_cmd_re sh {try-load tryload/2.0} ERR $tserr
 
 # load under try-load
 setenv_var TESTSUITE_TRYLOAD subload1
-set tserr [msg_load tryload/1.0 $err_path'unk/1.0' [err_reqmis unk/1.0]]\n\n[msg_load tryload/2.0 [err_reqlo unk/1.0]]
+set tserr [msg_load tryload/1.0 $err_path'unk/1.0' [err_reqmis unk/1.0]]\n\n[msg_load tryload/2.0 [err_reqlo unk/1.0] [err_reqlo tryload/1.0]]
 testouterr_cmd sh {load tryload/2.0} ERR $tserr
 testouterr_cmd sh {try-load tryload/2.0} ERR $tserr
 
@@ -310,7 +311,7 @@ set tserr [msg_top_load tryload/2.0 {} tryload/1.0 {}]
 testouterr_cmd_re sh {load tryload/2.0} $ans $tserr
 
 setenv_var TESTSUITE_TRYLOAD multi2
-set tserr [msg_load tryload/1.0 $err_evalabort]
+set tserr [msg_load tryload/1.0 $err_evalabort]\n\n[msg_load tryload/2.0 [err_reqlo tryload/1.0]]
 testouterr_cmd sh {load tryload/2.0} ERR $tserr
 
 setenv_var TESTSUITE_TRYLOAD multi3

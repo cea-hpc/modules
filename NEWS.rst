@@ -51,6 +51,8 @@ Modules 5.4.0 (not yet released)
   :envvar:`MODULES_ERROR_ON_MULTI_LOAD` environment variable. Default value
   can be changed with :instopt:`--with-error-on-multi-load` installation
   option.
+* Report issue on modulefile when it fails to load an erroneous requirement
+  through :mfcmd:`module try-load<module>` modulefile command.
 
 
 .. _5.3 release notes:
