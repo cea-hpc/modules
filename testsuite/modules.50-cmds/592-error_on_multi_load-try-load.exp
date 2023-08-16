@@ -181,10 +181,17 @@ set ans_single_foo [list]
 lappend ans_single_foo [list set _LMFILES_ $mp/foo/1.0]
 lappend ans_single_foo [list set LOADEDMODULES foo/1.0]
 
-set ans_load_last [list]
-lappend ans_load_last [list set _LMFILES_ $mp/foo/1.0:$mp/lerr/1.0]
-lappend ans_load_last [list set LOADEDMODULES foo/1.0:lerr/1.0]
-lappend ans_load_last [list set __MODULES_LMPREREQ lerr/1.0&foo/1.0|err/1.0]
+set ans_in_modfile_no_err [list]
+lappend ans_in_modfile_no_err [list set __MODULES_LMPREREQ lerr/1.0&lerr/1.0|foo/1.0&lerr/1.0|err/1.0]
+lappend ans_in_modfile_no_err [list set _LMFILES_ $mp/foo/1.0:$mp/lerr/1.0]
+lappend ans_in_modfile_no_err [list set LOADEDMODULES foo/1.0:lerr/1.0]
+lappend ans_in_modfile_no_err [list set __MODULES_LMTAG foo/1.0&auto-loaded]
+
+set ans_in_modfile_first_no_err [list]
+lappend ans_in_modfile_first_no_err [list set __MODULES_LMPREREQ lerr/1.0&lerr/1.0|err/1.0&lerr/1.0|foo/1.0]
+lappend ans_in_modfile_first_no_err [list set _LMFILES_ $mp/foo/1.0:$mp/lerr/1.0]
+lappend ans_in_modfile_first_no_err [list set LOADEDMODULES foo/1.0:lerr/1.0]
+lappend ans_in_modfile_first_no_err [list set __MODULES_LMTAG foo/1.0&auto-loaded]
 
 if {[cmpversion $tclsh_version 8.6] == -1} {
     set custom_error_trace "    invoked from within
@@ -346,6 +353,17 @@ setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD try-load_first_break
 set ts_load_break $ts_break\n\n
 append ts_load_break [msg_load lerr/1.0 [err_reqlo err/1.0]]
 testouterr_cmd bash {load lerr/1.0} ERR $ts_load_break
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD try-load_last_forbidden
+
+set ts_load_forbidden [msg_top_load lerr/1.0 {} foo/1.0 {}]
+testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_no_err $ts_load_forbidden
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD try-load_first_forbidden
+
+testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_first_no_err $ts_load_forbidden
 
 
 #
@@ -519,6 +537,16 @@ testouterr_cmd bash {load lerr/1.0} ERR $ts_load_bad
 setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD try-load_first_break
 
 testouterr_cmd bash {load lerr/1.0} ERR $ts_load_break
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD try-load_last_forbidden
+
+testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_no_err $ts_load_forbidden
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD try-load_first_forbidden
+
+testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_first_no_err $ts_load_forbidden
 
 
 #
