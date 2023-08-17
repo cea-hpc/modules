@@ -17,6 +17,8 @@ The following list describes the different kind of evaluation error:
 * *break*: use of ``break`` Tcl command in modulefile
 * *error*: use of ``error`` Tcl command in modulefile
 * *not found*: designated modulefile cannot be found
+* *hard hidden*: designated modulefile is hidden in ``--hard`` mode and cannot
+  be found
 * *not loaded*: when unloading a module, designated modulefile is not found
   loaded
 * *already loaded*: when loading a module, designated modulefile is already
@@ -40,7 +42,7 @@ The following list describes the different kind of evaluation error:
 .. note:: When a *dependent reload* issue occurs during the load or unload of
    a modulefile, the dependent module failing to reload has raised one of the
    following error kind: bad code, break, error, conflict, missing
-   requirement or forbidden.
+   requirement, forbidden or hard hidden.
 
 Behavior when error raises
 --------------------------
@@ -97,6 +99,8 @@ configuration options are set to a given value.
 |                     |            | is disabled                   |
 +---------------------+------------+-------------------------------+
 | forbidden           | load       |                               |
++---------------------+------------+-------------------------------+
+| hard hidden         | load       |                               |
 +---------------------+------------+-------------------------------+
 | already loaded      | load       |                               |
 +---------------------+------------+-------------------------------+
