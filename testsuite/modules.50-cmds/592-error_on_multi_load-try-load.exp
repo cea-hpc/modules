@@ -115,6 +115,8 @@ lappend ans_forbidden [list out all-out]
 
 set ans_not_found $ans_forbidden
 
+set ans_hard_hidden $ans_forbidden
+
 set ans_already_loaded [list]
 lappend ans_already_loaded [list out all-pre-out]
 lappend ans_already_loaded [list set TSPATH dir1]
@@ -323,6 +325,12 @@ set ts_not_found {}
 testouterr_cmd bash {try-load all/1.0 unk/1.0 foo/1.0} $ans_not_found $ts_not_found
 
 
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD hard_hidden
+
+set ts_hard_hidden {}
+testouterr_cmd bash {try-load all/1.0 err/1.0 foo/1.0} $ans_hard_hidden $ts_hard_hidden
+
+
 setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD already_loaded
 
 setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
@@ -387,6 +395,17 @@ testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_not_found $ts_load_not_found
 setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD try-load_first_not_found
 
 testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_first_not_found $ts_load_not_found
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD try-load_last_hard_hidden
+
+set ts_load_hard_hidden [msg_top_load lerr/1.0 {} foo/1.0 {}]
+testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_no_err $ts_load_hard_hidden
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD try-load_first_hard_hidden
+
+testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_first_no_err $ts_load_hard_hidden
 
 
 #
@@ -508,6 +527,12 @@ setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_load_forbidden
 set ts_depre_load_forbidden [msg_load foo/1.0 [err_accessdenied err/1.0] [err_depre err/1.0]]
 testouterr_cmd bash {try-load all/1.0 foo/1.0 setenv/1.0} ERR $ts_depre_load_forbidden
 
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_load_hard_hidden
+
+set ts_depre_load_hard_hidden [msg_load foo/1.0 $err_path'err/1.0' [err_depre err/1.0]]
+testouterr_cmd bash {try-load all/1.0 foo/1.0 setenv/1.0} ERR $ts_depre_load_hard_hidden
+
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMPREREQ
 
@@ -520,6 +545,11 @@ testouterr_cmd bash {try-load all/1.0 err/1.0 foo/1.0} $ans_forbidden $ts_forbid
 setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD not_found
 
 testouterr_cmd bash {try-load all/1.0 unk/1.0 foo/1.0} $ans_not_found $ts_not_found
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD hard_hidden
+
+testouterr_cmd bash {try-load all/1.0 err/1.0 foo/1.0} $ans_hard_hidden $ts_hard_hidden
 
 
 setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD already_loaded
@@ -580,6 +610,16 @@ testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_not_found $ts_load_not_found
 setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD try-load_first_not_found
 
 testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_first_not_found $ts_load_not_found
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD try-load_last_hard_hidden
+
+testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_no_err $ts_load_hard_hidden
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD try-load_first_hard_hidden
+
+testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_first_no_err $ts_load_hard_hidden
 
 
 #
