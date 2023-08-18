@@ -174,4 +174,60 @@ a ``module load`` command in modulefile are evaluated independently as an
    ``abort`` behavior whatever the value of this configuration option. It may
    be changed in the next major version to align ``ml`` command behavior.
 
+Load-any sub-command
+--------------------
+
+Specific error behavior for modulefile load evaluation by :subcmd:`load-any`
+sub-command.
+
+Following errors are ignored:
+
+* not found
+* forbidden
+* hard hidden
+
+However if no module is loaded after evaluating all ``load-any`` modulefile
+arguments:
+
+* an error message is reported
+* an error exit code is set
+
+For other kind of error, relative error message is reported and error exit
+code is set. Even if a module is loaded after evaluating all modulefile
+arguments.
+
+Force mode
+^^^^^^^^^^
+
+Same force behavior observed than for `Load sub-command`_.
+
+Multiple modulefiles passed as argument
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:subcmd:`load-any` stops evaluation process as soon as a modulefile argument
+is successfully loaded.
+
+:mconfig:`error_on_multi_load` configuration option has no effect on
+``load-any`` sub-command or modulefile command.
+
+When ``module load-any`` is evaluated as a modulefile command:
+
+* if one modulefile in the list is loaded
+
+  * no error message is reported whatever the error kind
+
+* if no modulefile in the list is loaded
+
+  * an error message is reported for errors other than *not found*,
+    *forbidden* and *hard hidden*
+  * modulefile declaring the ``module load-any`` command raises a *missing
+    requirement* error
+
+.. warning:: An error message may also be reported for *not found*,
+   *forbidden* and *hard hidden* error in the future when no modulefile in the
+   list is loaded.
+
+.. warning:: Error messages may be transformed into warnings and exit code may
+   be untouched in the future if one modulefile in the list is loaded.
+
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
