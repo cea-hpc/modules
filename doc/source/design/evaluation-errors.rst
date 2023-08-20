@@ -230,4 +230,33 @@ When ``module load-any`` is evaluated as a modulefile command:
 .. warning:: Error messages may be transformed into warnings and exit code may
    be untouched in the future if one modulefile in the list is loaded.
 
+Try-load sub-command
+--------------------
+
+Specific error behavior for modulefile load evaluation by :subcmd:`try-load`
+sub-command.
+
+Following errors are ignored:
+
+* not found
+* forbidden
+* hard hidden
+
+Even if no module is loaded after evaluating all ``try-load`` modulefile
+arguments.
+
+Force mode
+^^^^^^^^^^
+
+Same force behavior observed than for `Load sub-command`_.
+
+Multiple modulefiles passed as argument
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Same multiple modulefile arguments behavior is observed than for `Load
+sub-command`_.
+
+Except *not found*, *forbidden* and *hard hidden* errors are ignored even if
+:mconfig:`error_on_multi_load` configuration option equals ``abort``.
+
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
