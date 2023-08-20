@@ -105,9 +105,11 @@ the *modulefile* is being loaded.
  has been overloaded similar to the :mfcmd:`continue` and :mfcmd:`exit`
  commands to have the effect of causing the module not to be listed as loaded
  and not affect other modules being loaded concurrently. All non-environment
- commands within the module will be performed up to this point and processing
- will continue on to the next module on the command line. The :mfcmd:`break`
- command will only have this effect if not used within a Tcl loop though.
+ commands within the module will be performed up to this point. Processing
+ will continue on to the next module on the command line if
+ :mconfig:`error_on_multi_load` configuration option is set to ``continue``.
+ The :mfcmd:`break` command will only have this effect if not used within a
+ Tcl loop though.
 
  An example: Suppose that a full selection of *modulefiles* are needed for
  various different architectures, but some of the *modulefiles* are not
@@ -195,10 +197,11 @@ the *modulefile* is being loaded.
 
  This is not a modules specific command but another overloaded Tcl command
  and is similar to the :mfcmd:`break` or :mfcmd:`continue` commands. However,
- this command will cause the immediate cessation of this module and any
- additional ones on the command line. This module and the subsequent
- modules will not be listed as loaded. No environment commands will be
- performed in the current module.
+ this command will cause the immediate cessation of this module. Any
+ additional modules on the command line will not be evaluated even if the
+ :mconfig:`error_on_multi_load` configuration option is set to ``continue``.
+ This module and the subsequent modules will not be listed as loaded. No
+ environment commands will be performed in the current module.
 
 .. mfcmd:: family name
 
