@@ -954,7 +954,8 @@ Module Sub-Commands
 
  .. mconfig:: error_on_multi_load
 
-  Error behavior when one modulefile fails to :subcmd:`load` among many.
+  Error behavior when one modulefile fails to load among many. Applies to
+  :subcmd:`load` and :subcmd:`try-load` sub-commands.
 
   ``continue`` (default) to evaluate remaining modulefiles or ``abort`` and
   withdraw already loaded modulefiles. It can be changed at installation time
@@ -4120,6 +4121,8 @@ ENVIRONMENT
  When loading multiple modulefiles, if one fails to load, ``continue`` to
  evaluate remaining modulefiles in list or ``abort`` and withdraw already
  loaded modulefiles from list.
+
+ The behavior applies to :subcmd:`load` and :subcmd:`try-load` sub-commands.
 
  This environment variable value supersedes the default value set in the
  :mconfig:`error_on_multi_load` configuration option. It can be defined with
