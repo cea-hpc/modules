@@ -15,6 +15,7 @@ The following list describes the different kind of evaluation error:
 * *bad code*: modulefile has some code error (e.g., bad Tcl syntax, using
   undefined commands)
 * *break*: use of ``break`` Tcl command in modulefile
+* *exit*: use of ``exit`` Tcl command in modulefile
 * *error*: use of ``error`` Tcl command in modulefile
 * *not found*: designated modulefile cannot be found
 * *hard hidden*: designated modulefile is hidden in ``--hard`` mode and cannot
@@ -41,7 +42,7 @@ The following list describes the different kind of evaluation error:
 
 .. note:: When a *dependent reload* issue occurs during the load or unload of
    a modulefile, the dependent module failing to reload has raised one of the
-   following error kind: bad code, break, error, conflict, missing
+   following error kind: bad code, break, exit, error, conflict, missing
    requirement, forbidden or hard hidden.
 
 Behavior when error raises
@@ -157,7 +158,9 @@ this error is applied and if:
 * :mconfig:`error_on_multi_load` configuration option equals ``continue``:
 
   * already evaluated modulefiles from the argument list are kept loaded
-  * evaluation continues with next modulefile in argument list
+  * in case of an *exit* error, evaluation stops
+  * for other kind of error, evaluation continues with next modulefile in
+    argument list
 
 * :mconfig:`error_on_multi_load` equals ``abort``:
 
@@ -209,6 +212,8 @@ is successfully loaded.
 
 :mconfig:`error_on_multi_load` configuration option has no effect on
 ``load-any`` sub-command or modulefile command.
+
+*exit* error stops evaluation of remaining modulefiles in the argument list.
 
 When ``module load-any`` is evaluated as a modulefile command:
 
