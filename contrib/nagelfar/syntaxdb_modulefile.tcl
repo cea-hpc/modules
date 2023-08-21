@@ -1,6 +1,6 @@
 #
 # SYNTAXDB_MODULEFILE.tcl, Nagelfar syntax database to lint modulefiles
-# Copyright (C) 2022 Xavier Delaruelle
+# Copyright (C) 2022-2023 Xavier Delaruelle
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@ module-tag
 module-version
 module-virtual
 module-whatis
+modulepath-label
 prepend-path
 prereq
 prereq-all
@@ -160,6 +161,7 @@ set ::syntax(module-tag) {p* x p* x p* x* p*}
 set ::syntax(module-version) {x x x*}
 set ::syntax(module-virtual) 2
 set ::syntax(module-whatis) 1
+set ::syntax(modulepath-label) 2
 set ::syntax(prepend-path) {o* x x x*}
 set ::syntax(prereq) {o* x x*}
 set ::syntax(prereq-all) {o* x x*}
