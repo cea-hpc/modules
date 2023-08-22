@@ -135,6 +135,15 @@ testouterr_cmd bash {load-any err/1.0 foo/1.0} $ans_load_any $ts_break
 testouterr_cmd bash {load-any --force err/1.0 foo/1.0} $ans_load_any $ts_break
 
 
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD exit
+
+set ts_exit [msg_load err/1.0 $err_evalabort]
+testouterr_cmd bash {load-any err/1.0 foo/1.0} ERR $ts_exit
+
+# --force has no effect
+testouterr_cmd bash {load-any --force err/1.0 foo/1.0} ERR $ts_exit
+
+
 setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD continue
 
 testouterr_cmd bash {load-any err/1.0 foo/1.0} $ans_continue {}
@@ -142,7 +151,7 @@ testouterr_cmd bash {load-any err/1.0 foo/1.0} $ans_continue {}
 
 setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD error
 
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 14}]
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 17}]
 set ts_error_verbose [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
 append ts_error_verbose [msg_load foo/1.0]
 testouterr_cmd bash {load-any -v err/1.0 foo/1.0} $ans_load_any $ts_error_verbose
@@ -176,7 +185,7 @@ setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_load_error
 
 setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
 setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 25}]
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 28}]
 set ts_depre_load_error [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
 append ts_depre_load_error [msg_load foo/1.0 [err_depre err/1.0]]
 testouterr_cmd bash {load-any foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_load_error
@@ -189,7 +198,7 @@ testouterr_cmd bash {load-any --force foo/1.0 setenv/1.0} $ans_depre_error_force
 
 setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_unload_error
 
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 31}]
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 34}]
 set ts_depre_unload_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
 append ts_depre_unload_error [msg_load foo/1.0 [err_depun err/1.0]]
 testouterr_cmd bash {load-any foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_unload_error
@@ -258,6 +267,14 @@ setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD load-any_first_break
 testouterr_cmd bash {load lerr/1.0} $ans_in_modfile $ts_in_modfile
 
 
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD load-any_first_exit
+
+set ts_in_modfile_stop [msg_load err/1.0 $err_evalabort]\n\n
+append ts_in_modfile_stop [msg_load lerr/1.0 [err_reqlo err/1.0 foo/1.0]]
+# exit command inhibits all remaining modulefile evaluations in load mode
+testouterr_cmd bash {load lerr/1.0} ERR $ts_in_modfile_stop
+
+
 setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD load-any_first_forbidden
 
 testouterr_cmd bash {load lerr/1.0} $ans_in_modfile_no_err $ts_in_modfile
@@ -287,6 +304,11 @@ testouterr_cmd bash {load-any err/1.0 foo/1.0} $ans_load_any $ts_bad
 setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD break
 
 testouterr_cmd bash {load-any err/1.0 foo/1.0} $ans_load_any $ts_break
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD exit
+
+testouterr_cmd bash {load-any err/1.0 foo/1.0} ERR $ts_exit
 
 
 setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD continue
@@ -345,14 +367,14 @@ testouterr_cmd bash {load-any --force foo/1.0 setenv/1.0} $ans_depre_unload_erro
 
 setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_load_bad
 
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 37}]
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 40}]
 set ts_depre_load_bad [msg_load err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
 append ts_depre_load_bad [msg_load foo/1.0 [err_depre err/1.0]]
 testouterr_cmd bash {load-any foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_load_bad
 
 setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_unload_bad
 
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 43}]
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 46}]
 set ts_depre_unload_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
 append ts_depre_unload_bad [msg_load foo/1.0 [err_depun err/1.0]]
 testouterr_cmd bash {load-any foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_unload_bad
@@ -369,6 +391,21 @@ setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_unload_break
 set ts_depre_unload_break [msg_unload err/1.0 $err_evalabort]\n\n
 append ts_depre_unload_break [msg_load foo/1.0 [err_depun err/1.0]]
 testouterr_cmd bash {load-any foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_unload_break
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_load_exit
+
+set ts_depre_load_exit [msg_load err/1.0 $err_evalabort]\n\n
+append ts_depre_load_exit [msg_load foo/1.0 [err_depre err/1.0]]
+# exit command inhibits all remaining modulefile evaluations in load mode
+testouterr_cmd bash {load-any foo/1.0 setenv/1.0} ERR $ts_depre_load_exit
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_unload_exit
+
+set ts_depre_unload_exit [msg_unload err/1.0 $err_evalabort]\n\n
+append ts_depre_unload_exit [msg_load foo/1.0 [err_depun err/1.0]]
+# exit command is not superseded on unload mode
+testouterr_cmd bash {load-any foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_unload_exit
 
 
 setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_load_reqmis
@@ -448,6 +485,12 @@ testouterr_cmd bash {load lerr/1.0} $ans_in_modfile $ts_in_modfile
 setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD load-any_first_break
 
 testouterr_cmd bash {load lerr/1.0} $ans_in_modfile $ts_in_modfile
+
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD load-any_first_exit
+
+# exit command inhibits all remaining modulefile evaluations in load mode
+testouterr_cmd bash {load lerr/1.0} ERR $ts_in_modfile_stop
 
 
 setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD load-any_first_forbidden

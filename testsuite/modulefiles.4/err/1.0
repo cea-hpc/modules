@@ -7,6 +7,9 @@ if {[info exists env(TESTSUITE_ERROR_ON_MULTI_LOAD)]} {
         break - load_first_break - load-any_first_break - try-load_first_break {
             break
         }
+        exit - load_first_exit - load-any_first_exit - try-load_first_exit {
+            exit
+        }
         continue {
             continue
         }
@@ -53,6 +56,18 @@ if {[info exists env(TESTSUITE_ERROR_ON_MULTI_LOAD)]} {
             prereq --optional foo
             if {[module-info mode unload]} {
                 break
+            }
+        }
+        depre_load_exit {
+            prereq --optional foo
+            if {[module-info mode load]} {
+                exit
+            }
+        }
+        depre_unload_exit {
+            prereq --optional foo
+            if {[module-info mode unload]} {
+                exit
             }
         }
         depre_load_reqmis {
