@@ -868,6 +868,7 @@ distclean: clean
 	rm -rf OpenFOAM-dev
 	rm -f tcl/tags
 	rm -f tcl/GTAGS tcl/GRTAGS tcl/GPATH tcl/gtags.file
+	rm -f tcl/syntaxdb_modulecmd.tcl
 ifneq ($(wildcard lib/Makefile),)
 	$(MAKE) -C lib distclean
 endif
@@ -1030,6 +1031,30 @@ tcl/GTAGS: tcl/cache.tcl.in tcl/coll.tcl.in tcl/envmngt.tcl.in tcl/init.tcl.in \
 	tcl/modscan.tcl tcl/modspec.tcl tcl/report.tcl.in tcl/subcmd.tcl.in \
 	tcl/util.tcl tcl/gtags.file
 	gtags -C tcl --gtagsconf ../.globalrc
+
+tcl/syntaxdb.tcl: modulecmd.tcl $(NAGELFAR)
+	echo "set argv {sh -V};\
+		rename exit __exit;\
+		proc exit {args} {};\
+		source modulecmd.tcl;\
+		defineModStartNbProc 1;\
+		defineGetEqArrayKeyProc 1 1 1;\
+		defineDoesModMatchAtDepthProc 1 1 equal;\
+		defineModVersCmpProc 1 1;\
+		defineModEqStaticProc 1 1 mod;\
+		defineModEqProc 1 1;\
+		defineParseModuleSpecificationProc 1;\
+		set tcl_interactive 1;\
+		source $(NAGELFAR_RELEASE)/syntaxbuild.tcl;\
+		set ::syntax(appendNoDupToList) {n x*};\
+		set ::syntax(execute-modulefile) {x x n x x? x? x?};\
+		set ::syntax(filterExtraMatchSearch) {x x n n};\
+		set ::syntax(findModulesFromDirsAndFiles) {x x x x n n? n? n? n?};\
+		set ::syntax(getArrayKey) {n x x};\
+		set ::syntax(getDiffBetweenArray) {n n x? x?};\
+		set ::syntax(reloadModuleListLoadPhase) {n x x x x? x? x?};\
+		set ::syntax(reloadModuleListUnloadPhase) {n x? x? x?};\
+		buildFile $@;" | $(TCLSH)
 
 
 # quiet build targets unless verbose mode set
