@@ -76,9 +76,9 @@ variable "version" passed to it by the stub file. It also handles defining
 the help procedure and the whatis text, and the conflict with itself.
 
 Note that the "common" file does **NOT** start
-with the Modules magic "#%Module1.0"; this will keep "common" from showing
+with the Modules magic "#%Module"; this will keep "common" from showing
 up in "module avail fooA". The "1.0" and "2.0" files do need to start with
-the magic "#%Module1.0" tag so the module command will "see" them. Because
+the magic "#%Module" tag so the module command will "see" them. Because
 of this, the "module avail fooA" command will just show the 1.0 and 2.0
 versions as expected.
 
@@ -121,7 +121,7 @@ defaults the version (e.g. if the user types "module load fooB" without
 specifying the version of fooB.) The common file also handles defining
 the help procedure and whatis text. When the command "module avail fooB" is issued,
 the common file does not get listed (because it does not start with the magic
-"#%Module1.0" tag), nor does the .generic file get listed (because it starts
+"#%Module" tag), nor does the .generic file get listed (because it starts
 with a period (".")), but the two 1.0 and 2.0 symlinks do get listed, just
 as one wants.
 

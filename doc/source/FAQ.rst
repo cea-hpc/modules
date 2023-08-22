@@ -15,8 +15,8 @@ sh:
 
 .. code-block:: sh
 
-     module () 
-     { 
+     module ()
+     {
         eval "$(/some/path/modulecmd sh "$@")"
      }
 
@@ -69,7 +69,7 @@ csh: (overwrite existing file)
 How to use the module command from Makefile?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To make use of the ``module`` command from a Makefile, the shell initialization script should first be sourced within Makefile rule to define the ``module`` function in that context. Environment variable ``MODULESHOME`` may help to locate the shell initialization script in a generic way, like done in the following example: 
+To make use of the ``module`` command from a Makefile, the shell initialization script should first be sourced within Makefile rule to define the ``module`` function in that context. Environment variable ``MODULESHOME`` may help to locate the shell initialization script in a generic way, like done in the following example:
 
 .. code-block:: Makefile
 
@@ -130,15 +130,12 @@ import the environment changes performed by a shell script within a
 How do I specify the *default* modulefile for some modulefile directory?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Modules usually uses the the highest lexicographically sorted :ref:`modulefile(4)` under the directory, unless there is a ``.version`` file in that directory which has a format like the following where "native" is a modulefile (or a sub-directory) in that directory. It's also possible to set the default with a ``.modulerc`` file with a **module-version** command.
+Modules usually uses the the highest lexicographically sorted :ref:`modulefile(4)` under the directory, unless there is a ``.version`` file in that directory which has a format like the following where ``native`` is a modulefile (or a sub-directory) in that directory. It's also possible to set the default with a ``.modulerc`` file with a **module-version** command.
 
 .. code-block:: tcl
 
-     #%Module1.0#####################################################################
-     ##
-     ## version file for Perl
-     ##
-     set ModulesVersion	"native"
+     #%Module
+     set ModulesVersion native
 
 I don't want a *default* modulefile for the directory?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

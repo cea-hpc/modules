@@ -114,22 +114,22 @@ the *modulefile* is being loaded.
  An example: Suppose that a full selection of *modulefiles* are needed for
  various different architectures, but some of the *modulefiles* are not
  needed and the user should be alerted. Having the unnecessary *modulefile*
- be a link to the following notavail *modulefile* will perform the task
+ be a link to the following ``notavail`` *modulefile* will perform the task
  as required.
 
  .. code-block:: tcl
 
-      #%Module1.0
-      ## notavail modulefile
-      ##
-      proc ModulesHelp { } {
-          puts stderr "This module does nothing but alert the user"
+      #%Module
+
+      proc ModulesHelp {} {
+          puts stderr {This module does nothing but alert the user}
           puts stderr "that the [module-info name] module is not available"
       }
 
-      module-whatis "Notifies user that module is not available."
+      module-whatis {Notifies user that module is not available.}
+
       set curMod [module-info name]
-      if { [ module-info mode load ] } {
+      if {[module-info mode load]} {
           puts stderr "Note: '$curMod' is not available for [uname sysname]."
       }
       break
@@ -1487,21 +1487,15 @@ be loaded. Such a file would look like:
 
 .. code-block:: tcl
 
-     #%Module1.0
-     ##
-     ##  The desired version of X11
-     ##
-     set ModulesVersion "R4"
+     #%Module
+     set ModulesVersion R4
 
 The equivalent :file:`.modulerc` would look like:
 
 .. code-block:: tcl
 
-     #%Module1.0
-     ##
-     ##  The desired version of X11
-     ##
-     module-version "./R4" default
+     #%Module
+     module-version ./R4 default
 
 If the extended default mechanism is enabled (see
 :envvar:`MODULES_EXTENDED_DEFAULT` in :ref:`module(1)`) the module version
@@ -1963,4 +1957,3 @@ Tcl was developed by John Ousterhout at the University of California
 at Berkeley.
 
 TclX was developed by Karl Lehenbauer and Mark Diekhans.
-
