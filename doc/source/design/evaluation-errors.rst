@@ -79,6 +79,18 @@ These errors lead to a different behavior:
 * no message reported
 * no error exit code set
 
+Errors raised during modulefile evaluation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Following errors are raised during the Tcl evaluation of a modulefile:
+
+* bad code
+* break
+* exit
+* error
+* conflict (also raised outside modulefile evaluation)
+* missing requirement
+
 Evaluation mode or options specific behaviors
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
