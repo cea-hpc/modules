@@ -1,21 +1,19 @@
-#%Module1.0#####################################################################
-##
-## version modulefile
-##
-proc ModulesHelp { } {
-        global version
+#%Module
 
-        puts stderr "\tInitializes new version of the module command"
-        puts stderr "\n\tVersion $version\n"
+proc ModulesHelp {} {
+    puts stderr {    version - initializes new version of the module command.}
+    puts stderr "    Version $::version"
+    puts stderr {}
 }
 
-module-whatis "Initializes new version of the module command"
+module-whatis {initializes new version of the module command}
 
 # for Tcl script use only
 set version @VERSION@
+set shell [module-info shell]
 
-if [ expr [ module-info mode load ] || [ module-info mode display ] ] {
 # get rid of old version
+if {[module-info mode] in {load display}} {
     module unload null
     module unload modules
     setenv MODULE_VERSION @VERSION@
@@ -24,32 +22,31 @@ if [ expr [ module-info mode load ] || [ module-info mode display ] ] {
 # version stack
 prepend-path MODULE_VERSION_STACK @VERSION@
 
-if [ module-info mode remove ] {
+if {[module-info mode remove]} {
     # unload modules modulefile to get PATHs refreshed after previous module
     # command restoration
     module load modules
-    set prevversion [lindex [split $env(MODULE_VERSION_STACK) : ] 0 ]
+    set prevversion [lindex [split $env(MODULE_VERSION_STACK) :] 0]
     unsetenv MODULE_VERSION $prevversion
 
     # re-initialize previous module command version by sourcing its
     # initialization script, as module function definition is not compatible
     # between Modules 3 and Modules 4
-    set shell [module-info shell]
     switch -- $shell {
-        {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
+        sh - bash - ksh - zsh - csh - tcsh - fish {
             set versionre [regsub -all "\(\[.+?\]\)" $version {\\\1}]
             regsub $versionre "@initdir@/$shell" $prevversion previnitshell
             if {[file exists $previnitshell]} {
                 switch -- $shell {
-                    {sh} - {bash} - {ksh} - {zsh} {
-                        set sourcecmd "."
+                    sh - bash - ksh - zsh {
+                        set sourcecmd .
                     }
-                    {csh} - {tcsh} - {fish} {
-                        set sourcecmd "source"
+                    csh - tcsh - fish {
+                        set sourcecmd source
                     }
                 }
                 puts stdout "$sourcecmd $previnitshell"
-                puts stdout "module load modules"
+                puts stdout {module load modules}
             } else {
                 puts stderr "No initialization script for '$shell' on version '$prevversion'"
             }
@@ -63,9 +60,8 @@ if [ module-info mode remove ] {
     }
 }
 
-if [ expr [ module-info mode load ] || [ module-info mode display ] ] {
-    # bring in new version
+# bring in new version
+if {[module-info mode] in {load display}} {
     module load modules
-    puts stdout [exec @TCLSH@ {@libexecdir@/modulecmd.tcl} [module-info shell] autoinit]
+    puts stdout [exec @TCLSH@ {@libexecdir@/modulecmd.tcl} $shell autoinit]
 }
-

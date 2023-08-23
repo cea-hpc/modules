@@ -53,6 +53,8 @@ Modules 5.4.0 (not yet released)
   option.
 * Report issue on modulefile when it fails to load an erroneous requirement
   through :mfcmd:`module try-load<module>` modulefile command.
+* Doc/Install: modernize modulefile code example in documentation and
+  installed example modulefiles.
 
 
 .. _5.3 release notes:

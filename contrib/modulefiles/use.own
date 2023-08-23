@@ -1,38 +1,34 @@
-#%Module1.0#####################################################################
-##
-## use.own modulefile
-##
-proc ModulesHelp { } {
-    puts stderr "\tThis module file will add \$HOME/privatemodules to the"
-    puts stderr "\tlist of directories that the module command will search"
-    puts stderr "\tfor modules.  Place your own module files here."
-    puts stderr "\tThis module, when loaded, will create this directory"
-    puts stderr "\tif necessary."
+#%Module
+
+proc ModulesHelp {} {
+    puts stderr {    use.own - adds $HOME/privatemodules to the list of directories}
+    puts stderr {    that the module command will search for modules. Place your}
+    puts stderr {    own module files here. This module, when loaded, will create}
+    puts stderr {    this directory if necessary.}
+    puts stderr {}
 }
 
-module-whatis   "adds your own modulefiles directory to MODULEPATH"
+module-whatis {adds your own modulefiles directory to MODULEPATH}
 
-eval set  [ array get env HOME ]
-set ownmoddir   $HOME/privatemodules
+eval set [array get env HOME]
+set ownmoddir $HOME/privatemodules
 
 # create directory if necessary
 if {[module-info mode load]} {
-    if { ! [ file exists $ownmoddir ] } {
+    if {![file exists $ownmoddir]} {
         file mkdir $ownmoddir
         set null [open $ownmoddir/null w]
-        puts $null "#%Module########################################################################"
-        puts $null "##"
-        puts $null "## null modulefile"
-        puts $null "##"
-        puts $null "proc ModulesHelp { } {"
-        puts $null "    puts stderr \"\tThis module does absolutely nothing.\""
-        puts $null "    puts stderr \"\tIt's meant simply as a place holder in your\""
-        puts $null "    puts stderr \"\tdot file initialization.\""
+        puts $null {#%Module}
+        puts $null {}
+        puts $null "proc ModulesHelp {} {"
+        puts $null {    puts stderr {    null - does absolutely nothing. It is simply meant as a place}}
+        puts $null {    puts stderr {    holder in your dot file initialization.}}
+        puts $null {    puts stderr {}}
         puts $null "}"
-        puts $null ""
-        puts $null "module-whatis   \"does absolutely nothing\""
+        puts $null {}
+        puts $null {module-whatis {does absolutely nothing}}
+        close $null
     }
 }
 
 module use --append $ownmoddir
-
