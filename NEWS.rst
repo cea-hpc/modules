@@ -55,6 +55,7 @@ Modules 5.4.0 (not yet released)
   through :mfcmd:`module try-load<module>` modulefile command.
 * Doc/Install: modernize modulefile code example in documentation and
   installed example modulefiles.
+* Vim: correctly highlight modulefile commands containing a dash character.
 
 
 .. _5.3 release notes:

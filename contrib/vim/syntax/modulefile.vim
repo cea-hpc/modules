@@ -1,63 +1,39 @@
+" Vim syntax file
+" Language:     Tcl Modulefile
+" Maintainer:   Xavier Delaruelle <xavier.delaruelle@cea.fr>
+" Original:     Felix Neumärker <xdch47@posteo.de>
+" Reference:    https://modules.readthedocs.io/en/latest/modulefile.html
 
-" include tcl syntax
-set syntax=tcl
+" Quit when a syntax file was already loaded
+if exists("b:current_syntax")
+    finish
+endif
 
-"Clear tcl keywords to match to avoid priority of keyword
-" (e.g append vs append-path)
-syn clear tclCommand
+runtime syntax/tcl.vim
 
-" set again tclCommand with `syn match`
-" Basic Tcl commands: http://www.tcl-lang.org/man/tcl8.6/TclCmd/contents.htm
-syn match tclCommand		"\v<(after|append|array|bgerror|binary|cd|chan|clock|close|concat)>"
-syn match tclCommand		"\v<(dde|dict|encoding|eof|error|eval|exec|exit|expr|fblocked)>"
-syn match tclCommand		"\v<(fconfigure|fcopy|file|fileevent|flush|format|gets|glob)>"
-syn match tclCommand		"\v<(global|history|http|incr|info|interp|join|lappend|lassign)>"
-syn match tclCommand		"\v<(lindex|linsert|list|llength|lmap|load|lrange|lrepeat)>"
-syn match tclCommand		"\v<(lreplace|lreverse|lsearch|lset|lsort|memory|my|namespace)>"
-syn match tclCommand		"\v<(next|nextto|open|package|pid|puts|pwd|read|refchan|regexp)>"
-syn match tclCommand		"\v<(registry|regsub|rename|scan|seek|self|set|socket|source)>"
-syn match tclCommand		"\v<(split|string|subst|tell|time|trace|unknown|unload|unset)>"
-syn match tclCommand		"\v<(update|uplevel|upvar|variable|vwait)>"
+syn iskeyword @,48-57,_,192-255,-
 
-" The 'Tcl Standard Library' commands: http://www.tcl-lang.org/man/tcl8.6/TclCmd/library.htm
-syn match tclCommand		"\v<(auto_execok|auto_import|auto_load|auto_mkindex|auto_reset)>"
-syn match tclCommand		"\v<(auto_qualify|tcl_findLibrary|parray|tcl_endOfWord)>"
-syn match tclCommand		"\v<(tcl_startOfNextWord|tcl_startOfPreviousWord)>"
-syn match tclCommand		"\v<(tcl_wordBreakAfter|tcl_wordBreakBefore)>"
+" Modulefile commands
+syn keyword modCommand  always-load append-path chdir complete conflict depends-on family
+syn keyword modCommand  getenv getvariant is-avail is-loaded is-saved is-used module
+syn keyword modCommand  module-alias module-forbid module-hide module-info module-tag
+syn keyword modCommand  module-version module-virtual module-whatis modulepath-label
+syn keyword modCommand  prepend-path prereq prereq-all prereq-any pushenv remove-path
+syn keyword modCommand  reportError reportWarning require-fullname set-alias set-function
+syn keyword modCommand  setenv source-sh system uname uncomplete unset-alias unset-function
+syn keyword modCommand  unsetenv variant versioncmp x-resource
 
-" Modulefile commands: https://modules.readthedocs.io/en/stable/modulefile.html
-syn match modCommand "\v<(append|prepend|remove)-path>"
-syn match modCommand "\v<(prereq|prereq-all|prereq-any)>"
-syn match modCommand "\v<(module|conflict|chdir|prereq)>"
-syn match modCommand "\v<module-(alias|forbid|hide|info|log|tag|trace|user|verbosity|version|virtual|whatis)>"
-syn match modCommand "\v<(un)?set-(alias|function)>"
-syn match modCommand "\v<(un)?setenv>"
-syn match modCommand "\v<(un)?complete>"
-syn match modCommand "\v<get(env|variant)>"
-syn match modCommand "\v<source-sh>"
-syn match modCommand "\v<require-filename>"
-syn match modCommand "\v<depends-on>"
-syn match modCommand "\v<family>"
-syn match modCommand "\v<pushenv>"
-syn match modCommand "\v<always-load>"
-syn match modCommand "\v<(system|uname|x-resource)>"
-syn match modCommand "\v<variant>"
+" Modulefile procedures
+syn keyword modProc     ModulesHelp ModulesDisplay ModulesTest
 
-syn match modCommand "\v<is-(loaded|saved|used|avail)>"
+" Modulefile variables
+syn keyword modVar      ModulesVersion ModulesCurrentModulefile ModuleTool ModuleToolVersion
+syn keyword modVar      ModuleVariant
 
-hi def link modCommand tclSpecial
+hi def link modCommand  Special
+hi def link modProc     Special
+hi def link modVar      Special
 
-syn match  modProc "\v<ModulesHelp>"
-syn match  modProc "\v<ModulesDisplay>"
-syn match  modProc "\v<ModulesTest>"
+let b:current_syntax = "modulefile"
 
-hi def link modProc tclSpecial
-
-
-syn match modVar "\v<ModulesVersion>"
-syn match modVar "\v<ModulesCurrentModulefile>"
-syn match modVar "\v<ModuleTool>"
-syn match modVar "\v<ModuleToolVersion>"
-syn match modVar "\v<ModuleVariant>"
-hi def link modVar tclSpecial
-
+" vim:set tabstop=4 shiftwidth=4 expandtab textwidth=100:
