@@ -1422,9 +1422,11 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
 
       # abort evaluation if error and behavior configured this way (abort
       # means stop to evaluate modulefile and flush changes of previous ones)
-      # applies to top evaluation context for load and try-load sub-command
+      # applies to top evaluation context for load, try-load and mod-to-sh
+      # sub-commands
       if {$ret && $context eq {load} && !$loadany && [getConf\
-         error_on_multi_load] eq {abort}} {
+         error_on_multi_load] eq {abort} && [currentState commandname] ni\
+         {restore reload}} {
          flushEnvSettings
          break
       }
