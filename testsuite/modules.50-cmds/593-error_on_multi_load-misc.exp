@@ -1,0 +1,132 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2023/08/30
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		restore, reload, mod-to-sh, switch
+#   Modulefiles:    error, foo, all
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test error_on_multi_load configuration option with
+#           various sub-commands
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+set ans_continue [list]
+lappend ans_continue [list out all-pre-out]
+lappend ans_continue [list set TSPATH dir1]
+lappend ans_continue [list set LOADEDMODULES all/1.0:foo/1.0]
+lappend ans_continue [list set _LMFILES_ $mp/all/1.0:$mp/foo/1.0]
+lappend ans_continue [list set __MODULES_LMREFRESH all/1.0]
+lappend ans_continue [list set TS ok]
+lappend ans_continue [list alias alall value]
+lappend ans_continue [list funcall "() { value; }; export -f funcall;"]
+lappend ans_continue [list out {complete value compall;}]
+lappend ans_continue [list chdir /tmp]
+lappend ans_continue [list out all-out]
+lappend ans_continue [list ERR]
+
+set ans_switch [list]
+lappend ans_switch [list unset LOADEDMODULES]
+lappend ans_switch [list unset _LMFILES_]
+lappend ans_switch [list ERR]
+
+
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom_error_trace "    invoked from within
+\"if \{\[info exists env(TESTSUITE_ERROR_ON_MULTI_LOAD)\]\} \{
+    switch -- \$env(TESTSUITE_ERROR_ON_MULTI_LOAD) \{
+        bad - load_last_bad - load_first_b...\""
+} else {
+    set custom_error_trace {}
+}
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 96}]
+set ts_load_error [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+
+setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD load_error
+
+
+#
+# continue
+#
+
+setenv_var MODULES_ERROR_ON_MULTI_LOAD continue
+
+
+# restore command (no impact of error_on_multi_load option)
+set ts_error_verbose [msg_load all/1.0]\n\n$ts_load_error\n\n[msg_load foo/1.0]
+testouterr_cmd bash {restore testsuite/home/coll-error-on-load} $ans_continue $ts_error_verbose
+
+
+# mod-to-sh command (error_on_multi_load has an impact)
+set ts_mod_to_sh_continue "all-pre-out
+TSPATH=dir1; export TSPATH;
+TS=ok; export TS;
+alias alall=value;
+funcall () { value; };
+cd '/tmp';
+all-out"
+testouterr_cmd bash {mod-to-sh sh all/1.0 err/1.0 foo/1.0} ERR $ts_mod_to_sh_continue
+
+
+# reload command (rollback, whatever the error_on_multi_load state)
+setenv_loaded_module [list all/1.0 err/1.0 foo/1.0] [list $mp/err/1.0 $mp/err/1.0 $mp/foo/1.0]
+testouterr_cmd bash {reload} ERR $ts_load_error
+
+
+# switch command (no impact of error_on_multi_load option)
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+set ts_error_switch $ts_load_error\n\n[msg_switch foo/1.0 err/1.0 [err_swon err/1.0]]
+testouterr_cmd bash {switch foo/1.0 err/1.0} $ans_switch $ts_error_switch
+
+unsetenv_loaded_module
+
+
+#
+# abort
+#
+
+setenv_var MODULES_ERROR_ON_MULTI_LOAD abort
+
+# restore command (no impact of error_on_multi_load option)
+testouterr_cmd bash {restore testsuite/home/coll-error-on-load} $ans_continue $ts_error_verbose
+
+
+# mod-to-sh command (error_on_multi_load has an impact)
+testouterr_cmd bash {mod-to-sh sh all/1.0 err/1.0 foo/1.0} ERR {}
+
+
+# reload command (rollback, whatever the error_on_multi_load state)
+setenv_loaded_module [list all/1.0 err/1.0 foo/1.0] [list $mp/err/1.0 $mp/err/1.0 $mp/foo/1.0]
+testouterr_cmd bash {reload} ERR $ts_load_error
+
+
+# switch command (no impact of error_on_multi_load option)
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+set ts_error_switch $ts_load_error\n\n[msg_switch foo/1.0 err/1.0 [err_swon err/1.0]]
+testouterr_cmd bash {switch foo/1.0 err/1.0} $ans_switch $ts_error_switch
+
+unsetenv_loaded_module
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
