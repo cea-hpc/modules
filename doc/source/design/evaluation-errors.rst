@@ -276,4 +276,30 @@ sub-command`_.
 Except *not found*, *forbidden* and *hard hidden* errors are ignored even if
 :mconfig:`error_on_multi_load` configuration option equals ``abort``.
 
+Mod-to-sh sub-command
+---------------------
+
+Specific error behavior for modulefile load evaluation by :subcmd:`mod-to-sh`
+sub-command.
+
+Same behavior is observed than for `Load sub-command`_.
+
+Reload sub-command
+------------------
+
+Specific error behavior for modulefile load evaluation by :subcmd:`reload`
+sub-command.
+
+In case of any error (either during unload or load phase) evaluation stops and
+environment changes of already unloaded/loaded modules are flushed.
+
+Force mode has no effect on reload sub-command.
+
+:mconfig:`error_on_multi_load` configuration option has no effect on this
+sub-command.
+
+Prior running evaluations, dependencies of loaded modules are checked. If at
+least one dependency (requirement or conflict) is not satisfied, an error is
+raised.
+
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
