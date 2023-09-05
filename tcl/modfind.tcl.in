@@ -438,7 +438,7 @@ proc getEnvLoadedModulePropertyParsedList {prop {filter_empty 1}} {
       }
    }
    switch -- $prop {
-      conflict - prereq - init {
+      conflict - prereq - init - stickyrule {
          set unserialize_map {< :}
       }
       sourcesh {
@@ -742,6 +742,34 @@ proc getExtraTagList {mod {serialized 0}} {
       }
    } else {
       set ret {}
+   }
+   return $ret
+}
+
+# return rule definition of sticky/super-sticky tag on given module
+proc getStickyRuleList {mod {serialized 0} {fpmod {}}} {
+   set ret {}
+   foreach tag {sticky super-sticky} {
+      if {[isModuleTagged $mod $tag 1]} {
+         set tag_modspec [getModuleTag $mod $fpmod $tag eqstart 1]
+         # return no rule if tag has been set by user (empty tag_modspec) or
+         # spec equals module name or modulefile path name
+         if {[string length $tag_modspec] > 0 && $tag_modspec ni [list $mod\
+            $fpmod]} {
+            set tag_rule [list $tag $tag_modspec]
+            if {$serialized} {
+               lappend ret [join $tag_rule [getState sub2_separator]]
+            } else {
+               lappend ret $tag_rule
+            }
+         }
+      }
+   }
+   if {$serialized && [llength $ret] > 0} {
+      # extract mod name and version from full spec with variants
+      # translate range specifier ':' into '<' to distinguish from path sep
+      set ret [string map {: <} [join [list [getModuleNameAndVersFromVersSpec\
+         $mod] {*}$ret] [getState sub1_separator]]]
    }
    return $ret
 }
@@ -2234,6 +2262,16 @@ proc cacheCurrentModules {{exitonerr 1}} {
             set mod [lindex $modtag 0]
             if {[info exists modvrarr($mod)]} {
                setModuleExtraTag $modvrarr($mod) {*}[lrange $modtag 1 end]
+            }
+         }
+         foreach modstickyrule [getEnvLoadedModulePropertyParsedList\
+            stickyrule] {
+            set mod [lindex $modstickyrule 0]
+            foreach modtagspeclist [lrange $modstickyrule 1 end] {
+               lassign $modtagspeclist modtag modspec
+               # record tag definition on given module specification
+               setModspecTag [parseModuleSpecification 0 0 0 0 $modspec]\
+                  $modtag
             }
          }
 

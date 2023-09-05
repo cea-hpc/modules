@@ -1357,6 +1357,10 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
          if {[set modtag [getExtraTagList $modnamevr 1]] ne {}} {
             append-path __MODULES_LMEXTRATAG $modtag
          }
+         if {[set modstickyrule [getStickyRuleList $modnamevr 1 $modfile]] ne\
+            {}} {
+            append-path __MODULES_LMSTICKYRULE $modstickyrule
+         }
 
          # declare module qualified for refresh evaluation
          if {[isModuleRefreshQualified $modname]} {
@@ -1748,6 +1752,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             unsetModuleTag $modnamevr {*}$extratag_list
             unsetModuleExtraTag $modnamevr {*}$extratag_list
          }
+         unsetEnvLoadedModuleProperty $modname stickyrule
 
          if {[getConf auto_handling] && $auto} {
             # UReqUn modules unload now DepUn+main mods are unloaded
