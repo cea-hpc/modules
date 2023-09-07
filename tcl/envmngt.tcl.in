@@ -1389,7 +1389,7 @@ proc unload-path {cmd mode dflbhv args} {
    reportDebug "($args) cmd=$cmd, mode=$mode, dflbhv=$dflbhv"
 
    lassign [parsePathCommandArgs $cmd $mode $dflbhv {*}$args] separator\
-      allow_dup idx_val ign_refcount bhv var path_list
+      allow_dup idx_val ign_refcount glob_match bhv var path_list
 
    switch -- $bhv {
       noop {
@@ -1423,6 +1423,19 @@ proc unload-path {cmd mode dflbhv args} {
    # detect if empty env value means empty path entry
    if {[llength $dir_list] == 0 && [info exists countarr()]} {
       lappend dir_list {}
+   }
+
+   # match glob pattern against existing values
+   if {$glob_match} {
+      set new_path_list [list]
+      foreach glob_pattern $path_list {
+         set pattern_match_list [lsearch -glob -all -inline $dir_list\
+            $glob_pattern]
+         if {[llength $pattern_match_list] > 0} {
+            lappend new_path_list {*}$pattern_match_list
+         }
+      }
+      set path_list $new_path_list
    }
 
    # build list of index to remove from variable
@@ -1523,7 +1536,7 @@ proc add-path {cmd mode dflbhv args} {
       set bhv $dflbhv
    } else {
       lassign [parsePathCommandArgs $cmd $mode $dflbhv {*}$args] separator\
-         allow_dup idx_val ign_refcount bhv var path_list
+         allow_dup idx_val ign_refcount glob_match bhv var path_list
    }
 
    # clean any previously defined pushenv stack
@@ -1582,6 +1595,7 @@ proc parsePathCommandArgs {cmd mode dflbhv args} {
    set allow_dup 0
    set idx_val 0
    set ign_refcount 0
+   set glob_match 0
    set bhv $dflbhv
    foreach arg $args {
       # everything passed after variable name is considered a value
@@ -1639,6 +1653,14 @@ proc parsePathCommandArgs {cmd mode dflbhv args} {
                   reportWarning "--duplicates option has no effect on $cmd"
                } else {
                   set allow_dup 1
+               }
+            }
+            --glob {
+               # raise warning when option is not used by remove-path
+               if {$cmd eq {remove-path}} {
+                  set glob_match 1
+               } else {
+                  reportWarning "--glob option has no effect on $cmd"
                }
             }
             -d - -delim - --delim {
@@ -1699,6 +1721,13 @@ proc parsePathCommandArgs {cmd mode dflbhv args} {
       {--noop-on-unload})} {
       knerror "--index and $bhvopt options cannot be simultaneously set"
    }
+   if {$idx_val && $glob_match} {
+      knerror "--index and --glob options cannot be simultaneously set"
+   }
+   if {$glob_match && ([info exists bhvopt] && $bhvopt in\
+      {--append-on-unload --prepend-on-unload})} {
+      knerror "--glob and $bhvopt options cannot be simultaneously set"
+   }
 
    # set list of value to add
    set val_list [list]
@@ -1723,10 +1752,11 @@ proc parsePathCommandArgs {cmd mode dflbhv args} {
    }
 
    reportDebug "(delim=$delim, allow_dup=$allow_dup, idx_val=$idx_val,\
-      ign_refcount=$ign_refcount, bhv=$bhv, var=$var, val=$val_list,\
-      nbval=[llength $val_list])"
+      ign_refcount=$ign_refcount, glob_match=$glob_match, bhv=$bhv, var=$var,\
+      val=$val_list, nbval=[llength $val_list])"
 
-   return [list $delim $allow_dup $idx_val $ign_refcount $bhv $var $val_list]
+   return [list $delim $allow_dup $idx_val $ign_refcount $glob_match $bhv\
+      $var $val_list]
 }
 
 # get list of Modules-specific environment variable in glob form
