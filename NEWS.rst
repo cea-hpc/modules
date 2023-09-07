@@ -56,6 +56,11 @@ Modules 5.4.0 (not yet released)
 * Doc/Install: modernize modulefile code example in documentation and
   installed example modulefiles.
 * Vim: correctly highlight modulefile commands containing a dash character.
+* Update requirement load error report to place it only under the message
+  block of the module requiring this load. This change helps to better
+  understand the chronology of actions and from where an error occurs.
+* Do not report requirement load error when an an alternative requirement
+  module is found and loaded afterward. (fix issue #509)
 
 
 .. _5.3 release notes:
