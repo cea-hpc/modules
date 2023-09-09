@@ -830,6 +830,29 @@ testouterr_cmd_re sh {reload --force} ERR [join $tserr \n]
 
 
 #
+# Error message test of failed dependency load, which is solved by the load
+# of an alternative requirement (issue #509)
+#
+
+unsetenv_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMALTNAME
+unsetenv_var __MODULES_LMPREREQ
+setenv_loaded_module [list vmod1/1] [list $mp/vmod1/1]
+setenv_var __MODULES_LMCONFLICT vmod1/1&vmod1
+
+set ans [list]
+lappend ans [list set __MODULES_LMALTNAME vmod2/1&vmod2/default&vmod2]
+lappend ans [list set __MODULES_LMCONFLICT vmod1/1&vmod1:vmod2/1&vmod2:vmod3/1&vmod3]
+lappend ans [list set __MODULES_LMPREREQ vmod3/1&vmod2/2|vmod2]
+lappend ans [list set _LMFILES_ $mp/vmod1/1:$mp/vmod2/1:$mp/vmod3/1]
+lappend ans [list set LOADEDMODULES vmod1/1:vmod2/1:vmod3/1]
+lappend ans [list set __MODULES_LMTAG vmod2/1&auto-loaded]
+#FIXME: as requirement is satisfied in the end, there should not be an error
+lappend ans [list ERR]
+testouterr_cmd sh {load --auto vmod3/1} $ans $tserr
+
+
+#
 #  Cleanup
 #
 
