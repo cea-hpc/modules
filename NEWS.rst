@@ -61,6 +61,8 @@ Modules 5.4.0 (not yet released)
   understand the chronology of actions and from where an error occurs.
 * Do not report requirement load error when an an alternative requirement
   module is found and loaded afterward. (fix issue #509)
+* Do not render an error exit code on multi-module option requirement when
+  one module option fails to load but another does. (fix issue #510)
 
 
 .. _5.3 release notes:

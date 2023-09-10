@@ -21,7 +21,13 @@
 ##########################################################################
 
 proc raiseErrorCount {} {
-   setState error_count [expr {[getState error_count] + 1}]
+   # hold error count raise
+   if {[depthState reportholdid] > 0} {
+      lappend ::g_holdReport([currentState reportholdid]) [list\
+         raiseErrorCount]
+   } else {
+      setState error_count [expr {[getState error_count] + 1}]
+   }
 }
 
 proc renderFalse {} {
