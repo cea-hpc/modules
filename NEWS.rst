@@ -59,10 +59,13 @@ Modules 5.4.0 (not yet released)
 * Update requirement load error report to place it only under the message
   block of the module requiring this load. This change helps to better
   understand the chronology of actions and from where an error occurs.
-* Do not report requirement load error when an an alternative requirement
-  module is found and loaded afterward. (fix issue #509)
+* Do not report requirement load error when an alternative requirement module
+  is found and loaded afterward. (fix issue #509)
 * Do not render an error exit code on multi-module option requirement when
   one module option fails to load but another does. (fix issue #510)
+* Do not report *module not found* error when loading a requirement if an
+  alternative requirement module is found and loaded afterward. (fix issue
+  #511)
 
 
 .. _5.3 release notes:

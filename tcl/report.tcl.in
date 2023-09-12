@@ -285,8 +285,15 @@ proc __reportSeparateNextContent {} {
 
 # save message for block rendering
 proc recordMessage {message {recordtop 0}} {
-   lappend ::g_msgRecord([expr {$recordtop ? [topState msgrecordid] :\
-      [currentState msgrecordid]}]) $message
+   set recid [expr {$recordtop ? [topState msgrecordid] : [currentState\
+      msgrecordid]}]
+
+   if {$recid eq [currentState reportholdrecid]} {
+      lappend ::g_holdReport([currentState reportholdid]) [list\
+         recordMessage $message $recordtop]
+   } else {
+      lappend ::g_msgRecord($recid) $message
+   }
 }
 
 # check if some msg have been recorded for current evaluation

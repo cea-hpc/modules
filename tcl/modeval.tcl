@@ -656,7 +656,10 @@ proc loadRequirementModuleList {tryload optional tag_list args} {
       for {set i 0} {$i<$imax && $prereqloaded==0} {incr i 1} {
          set arg [lindex $args $i]
 
-         # hold output of each evaluation until they are all done to drop
+         # hold output from current evaluation to catch 'module not found'
+         # message that occurs outside of sub evaluation
+         lappendState reportholdrecid [currentState msgrecordid]
+         # hold output of each sub evaluation until they are all done to drop
          # those that failed if one succeed or if optional
          set curholdid load-$i-$arg
          lappendState reportholdid $curholdid
@@ -665,6 +668,7 @@ proc loadRequirementModuleList {tryload optional tag_list args} {
             # if an error is raised, release output and rethrow the error
             # (could be raised if no modulepath defined for instance)
             lpopState reportholdid
+            lpopState reportholdrecid
             lappend holdidlist $curholdid report
             releaseHeldReport {*}$holdidlist
             knerror $errorMsg
@@ -674,6 +678,7 @@ proc loadRequirementModuleList {tryload optional tag_list args} {
             set ret $retlo
          }
          lpopState reportholdid
+         lpopState reportholdrecid
 
          if {[is-loaded $arg]} {
             set prereqloaded 1
