@@ -581,11 +581,12 @@ Module Sub-Commands
     .. versionchanged:: 4.6
        Option :option:`--all`/:option:`-a` added
 
-.. subcmd:: append-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
+.. subcmd:: append-path [options] variable value...
 
  Append *value* to environment *variable*. The *variable* is a colon, or
  *delimiter*, separated list. See :mfcmd:`append-path` in the
- :ref:`modulefile(4)` man page for further explanation.
+ :ref:`modulefile(4)` man page for *options* description and further
+ explanation.
 
  When :subcmd:`append-path` is called as a module sub-command, the reference
  counter variable, which denotes the number of times *value* has been added to
@@ -1866,11 +1867,12 @@ Module Sub-Commands
        *pattern* may include variant specification or extra specifier to
        filter results
 
-.. subcmd:: prepend-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
+.. subcmd:: prepend-path [options] variable value...
 
  Prepend *value* to environment *variable*. The *variable* is a colon, or
  *delimiter*, separated list. See :mfcmd:`prepend-path` in the
- :ref:`modulefile(4)` man page for further explanation.
+ :ref:`modulefile(4)` man page for *options* description and further
+ explanation.
 
  When :subcmd:`prepend-path` is called as a module sub-command, the reference
  counter variable, which denotes the number of times *value* has been added to
@@ -1938,11 +1940,11 @@ Module Sub-Commands
 
     .. versionadded:: 4.0
 
-.. subcmd:: remove-path [-d C|--delim C|--delim=C] [--index] variable value...
+.. subcmd:: remove-path [options] variable value...
 
  Remove *value* from the colon, or *delimiter*, separated list in environment
  *variable*. See :mfcmd:`remove-path` in the :ref:`modulefile(4)` man page for
- further explanation.
+ *options* description and further explanation.
 
  When :subcmd:`remove-path` is called as a module sub-command, the reference
  counter variable, which denotes the number of times *value* has been added to
