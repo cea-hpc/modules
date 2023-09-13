@@ -66,6 +66,8 @@ Modules 5.4.0 (not yet released)
 * Do not report *module not found* error when loading a requirement if an
   alternative requirement module is found and loaded afterward. (fix issue
   #511)
+* Add ``--glob`` option to :mfcmd:`remove-path` modulefile command in order to
+  remove any values in variable matching a glob-style pattern.
 
 
 .. _5.3 release notes:

@@ -1039,6 +1039,7 @@ the *modulefile* is being loaded.
 
  * ``-d C|--delim C|--delim=C``
  * ``--index``
+ * ``--glob``
  * ``--remove-on-unload|--noop-on-unload|--append-on-unload|--prepend-on-unload``
 
  See :mfcmd:`prepend-path` or :mfcmd:`append-path` for further
@@ -1049,13 +1050,21 @@ the *modulefile* is being loaded.
  When ``--index`` option is set, *value* refers to an index in *variable*
  list. The string element pointed by this index is set for removal.
 
+ When ``--glob`` option is set, *value* refers to a glob-style pattern which
+ is matched against values in *variable* to find those to remove. ``*``
+ character in *value* matches any sequence of characters, including a null
+ string. ``?`` character in *value* matches any single character. See
+ :manpage:`string(n)` Tcl command for the full list of special characters.
+
  When *modulefile* is unloaded, no operation is performed by default or if the
  ``--noop-on-unload`` option is set. If the ``--remove-on-unload`` option is
  set, *value* is removed. If the ``--append-on-unload`` option is set, append
  back *value* removed at load time or specific *value* if any set. If the
  ``--prepend-on-unload`` option is set, prepend back *value* removed at load
  time or specific *value* if any set. These options cannot be set if
- ``--index`` option is also set.
+ ``--index`` option is also set. The ``--append-on-unload`` and
+ ``--prepend-on-unload`` options cannot be set if ``--glob`` option is also
+ set.
 
  Reference counter of *value* in *variable* denotes the number of times
  *value* has been added to *variable*. This information is stored in
@@ -1077,6 +1086,9 @@ the *modulefile* is being loaded.
     .. versionchanged:: 5.1
        Options ``--remove-on-unload``, ``--noop-on-unload``,
        ``--append-on-unload`` and ``--prepend-on-unload`` added
+
+    .. versionchanged:: 5.4
+       Option ``--glob`` added
 
 .. mfcmd:: reportError string
 
@@ -1947,7 +1959,8 @@ SEE ALSO
 
 :ref:`module(1)`, :ref:`ml(1)`, :manpage:`Tcl(n)`, :manpage:`TclX(n)`,
 :manpage:`id(1)`, :manpage:`xrdb(1)`, :manpage:`exec(n)`, :manpage:`uname(1)`,
-:manpage:`domainname(1)`, :manpage:`tclvars(n)`, :manpage:`lsort(n)`
+:manpage:`domainname(1)`, :manpage:`tclvars(n)`, :manpage:`lsort(n)`,
+:manpage:`string(n)`
 
 
 NOTES

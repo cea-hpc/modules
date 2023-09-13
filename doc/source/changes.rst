@@ -1020,6 +1020,9 @@ The following modulefile Tcl commands appeared on Modules 5.
  * the ``--noop-on-unload`` option is added to perform no operation when
    modulefile is unloaded.
 
+ Starting with version ``5.4``, the ``--glob`` option is added to remove value
+ matching a glob-style pattern.
+
 :mfcmd:`setenv`
 
  Starting with version ``5.1``, the ``--set-if-undef`` option is added to set

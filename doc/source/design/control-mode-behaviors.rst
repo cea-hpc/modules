@@ -152,6 +152,9 @@ Modulefile command options
   ``--prepend-on-unload`` options cannot be mixed with the ``--index`` option
   of ``remove-path`` sub-command.
 
+- The ``--append-on-unload``, ``--prepend-on-unload``  options cannot be
+  mixed with the ``--glob`` option of ``remove-path`` sub-command.
+
 - The ``--remove-on-unload``, ``--append-on-unload``, ``--prepend-on-unload``
   and ``--noop-on-unload`` options:
 
