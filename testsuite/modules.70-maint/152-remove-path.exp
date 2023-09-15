@@ -317,6 +317,34 @@ testouterr_cmd sh {remove-path --noop-on-unload FOO /tmp} ERR [err_invopt --noop
 
 
 #
+# glob match mode
+#
+
+setenv_var __MODULES_SHARE_FOO /dir1:2
+setenv_var FOO /tmp:/dir1:/dir2:/dir1
+
+set ans [list]
+lappend ans [list unset __MODULES_SHARE_FOO]
+lappend ans [list set FOO /tmp:/dir2]
+testouterr_cmd_re sh {remove-path --glob FOO /d*1} $ans {}
+
+set ans [list]
+lappend ans [list unset __MODULES_SHARE_FOO]
+lappend ans [list set FOO /tmp]
+testouterr_cmd_re sh {remove-path --glob FOO /d*} $ans {}
+
+set ans [list]
+lappend ans [list unset __MODULES_SHARE_FOO]
+lappend ans [list unset FOO]
+testouterr_cmd_re sh {remove-path --glob FOO *} $ans {}
+
+set ans [list]
+lappend ans [list set __MODULES_SHARE_FOO /dir1:2]
+lappend ans [list set FOO /tmp:/dir1:/dir2:/dir1]
+testouterr_cmd_re sh {remove-path --glob FOO /da*} $ans {}
+
+
+#
 #  Cleanup
 #
 
