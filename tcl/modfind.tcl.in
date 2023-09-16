@@ -506,7 +506,7 @@ proc getLoadedModulePropertyList {prop {filter_empty 1}} {
 # set_abs param applies an absolute path name conversion to path elements
 # if enabled
 proc getModulePathList {{behavior returnempty} {resolv_var 1} {set_abs 1}} {
-   if {![info exists ::env(MODULEPATH)] && $behavior eq {exiterronundef}} {
+   if {![isEnvVarDefined MODULEPATH] && $behavior eq {exiterronundef}} {
       reportErrorAndExit {No module path defined}
    }
 
@@ -551,7 +551,7 @@ proc getGlobalRcFileList {} {
       lappend rclist {@etcdir@/rc}
    }
    # ignore user rc if relative configuration is enabled
-   if {![getConf ignore_user_rc] && [info exists ::env(HOME)] && [file isfile\
+   if {![getConf ignore_user_rc] && [isEnvVarDefined HOME] && [file isfile\
       $::env(HOME)/.modulerc]} {
       lappend rclist $::env(HOME)/.modulerc
    }

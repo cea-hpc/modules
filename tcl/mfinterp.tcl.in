@@ -1348,7 +1348,7 @@ proc parseSetenvCommandArgs {mode dflbhv args} {
       knerror {wrong # args: should be "setenv ?--set-if-undef? var val"}
    }
 
-   if {[info exists setifundef] && [info exists ::env($var)]} {
+   if {[info exists setifundef] && [isEnvVarDefined $var]} {
       set bhv noop
    }
 
@@ -1397,7 +1397,7 @@ proc setenv-un {args} {
 proc setenv-wh {args} {
    lassign [parseSetenvCommandArgs load set {*}$args] bhv var val
 
-   if {![info exists ::env($var)]} {
+   if {![isEnvVarDefined $var]} {
       set ::env($var) {}
    }
    return {}
@@ -1538,7 +1538,7 @@ proc unsetenv-un {args} {
       noop {
          # otherwise just clear variable if it does not exist on unload mode
          # for later use during the modulefile evaluation
-         if {![info exists ::env($var)]} {
+         if {![isEnvVarDefined $var]} {
             reset-to-unset-env $var
          }
       }
@@ -1552,7 +1552,7 @@ proc unsetenv-un {args} {
 proc unsetenv-wh {args} {
    lassign [parseUnsetenvCommandArgs load noop {*}$args] bhv var val
 
-   if {![info exists ::env($var)]} {
+   if {![isEnvVarDefined $var]} {
       set ::env($var) {}
    }
    return {}
@@ -1707,7 +1707,7 @@ proc remove-path-un {args} {
 
    # clear variable if it does not exist on unload mode for later use
    # during the modulefile evaluation
-   if {![info exists ::env($var)]} {
+   if {![isEnvVarDefined $var]} {
       reset-to-unset-env $var
    }
 }
@@ -1720,7 +1720,7 @@ proc edit-path-wh {cmd args} {
    lassign [parsePathCommandArgs $cmd load noop {*}$args] separator allow_dup\
       idx_val ign_refcount glob_match bhv var path_list
 
-   if {![info exists ::env($var)]} {
+   if {![isEnvVarDefined $var]} {
       set ::env($var) {}
    }
 
@@ -2824,7 +2824,7 @@ proc uncomplete {name} {
 proc pushenv {var val} {
    # save initial value in pushenv value stack
    set pushvar [getPushenvVarName $var]
-   if {![info exists ::env($pushvar)] && [info exists ::env($var)]} {
+   if {![isEnvVarDefined $pushvar] && [isEnvVarDefined $var]} {
       prepend-path $pushvar &$::env($var)
    }
 
@@ -2848,7 +2848,7 @@ proc pushenv-un {var val} {
 
    # update value stack
    set pushvar [getPushenvVarName $var]
-   if {[info exists ::env($pushvar)]} {
+   if {[isEnvVarDefined $pushvar]} {
       set pushlist [split $::env($pushvar) :]
       # find value pushed by currently evaluated module and remove it
       set popidx [lsearch -exact $pushlist [currentState modulename]&$val]
@@ -2864,7 +2864,7 @@ proc pushenv-un {var val} {
 
          # restore top value if different from current one
          # env array is used instead of get-env to know if envvar is undefined
-         if {![info exists ::env($var)] || $::env($var) ne $popval} {
+         if {![isEnvVarDefined $var] || $::env($var) ne $popval} {
             set-env $var $popval
          }
 
@@ -2888,7 +2888,7 @@ proc pushenv-un {var val} {
 
 # optimized pushenv for whatis mode (same approach than setenv-wh)
 proc pushenv-wh {var val} {
-   if {![info exists ::env($var)]} {
+   if {![isEnvVarDefined $var]} {
       set ::env($var) {}
    }
    return {}

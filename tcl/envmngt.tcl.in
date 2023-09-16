@@ -1215,11 +1215,15 @@ ml <- function(...){
 
 proc get-env {var {valifunset {}}} {
    # return current value if exists and not cleared
-   if {[info exists ::env($var)] && ![info exists ::g_clearedEnvVars($var)]} {
+   if {[isEnvVarDefined $var] && ![info exists ::g_clearedEnvVars($var)]} {
       return $::env($var)
    } else {
       return $valifunset
    }
+}
+
+proc isEnvVarDefined {var_name} {
+   return [info exists ::env($var_name)]
 }
 
 proc isProtectedEnvVar {var} {
@@ -1277,7 +1281,7 @@ proc unset-env {var {internal 0} {val {}}} {
          reset-to-unset-env $var $val
       # internal variables (like ref counter var) are purely unset if they
       # exists
-      } elseif {[info exists ::env($var)]} {
+      } elseif {[isEnvVarDefined $var]} {
          interp-sync-env unset $var
          set intwasset 1
       }
@@ -1317,7 +1321,7 @@ proc getReferenceCountArray {var separator} {
    # get reference counter set in environment
    set sharevar [getModshareVarName $var]
    array set refcount {}
-   if {[info exists ::env($sharevar)]} {
+   if {[isEnvVarDefined $sharevar]} {
       set modsharelist [psplit $::env($sharevar) [getState path_separator]]
       # ignore environment ref count variable if malformed
       if {([llength $modsharelist] % 2) == 0} {
@@ -1329,7 +1333,7 @@ proc getReferenceCountArray {var separator} {
    }
 
    array set countarr {}
-   if {[info exists ::env($var)]} {
+   if {[isEnvVarDefined $var]} {
       # do not skip a bare empty path entry that can also be found in
       # reference counter array (sometimes var is cleared by setting it
       # empty not unsetting it, ignore var in this case)
@@ -1380,7 +1384,7 @@ proc setReferenceCountRecordValue {sharevar countlist} {
    if {[info exists reclist]} {
       set-env $sharevar [pjoin $reclist [getState path_separator]]
    # unset ref count var if found set whereas no counter should be recorded
-   } elseif {[info exists ::env($sharevar)]} {
+   } elseif {[isEnvVarDefined $sharevar]} {
       unset-env $sharevar 1
    }
 }

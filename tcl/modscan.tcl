@@ -49,7 +49,7 @@ proc setenv-sc {args} {
 
    recordScanModuleElt $var setenv envvar
 
-   if {![info exists ::env($var)]} {
+   if {![isEnvVarDefined $var]} {
       set ::env($var) {}
    }
    return {}
@@ -61,7 +61,7 @@ proc edit-path-sc {cmd args} {
 
    recordScanModuleElt $var $cmd envvar
 
-   if {![info exists ::env($var)]} {
+   if {![isEnvVarDefined $var]} {
       set ::env($var) {}
    }
    return {}
@@ -70,7 +70,7 @@ proc edit-path-sc {cmd args} {
 proc pushenv-sc {var val} {
    recordScanModuleElt $var pushenv envvar
 
-   if {![info exists ::env($var)]} {
+   if {![isEnvVarDefined $var]} {
       set ::env($var) {}
    }
    return {}
@@ -81,7 +81,7 @@ proc unsetenv-sc {args} {
 
    recordScanModuleElt $var unsetenv envvar
 
-   if {![info exists ::env($var)]} {
+   if {![isEnvVarDefined $var]} {
       set ::env($var) {}
    }
    return {}

@@ -2111,16 +2111,16 @@ proc cmdModuleAutoinit {} {
 
    # define current Modules version if versioning enabled
    ##nagelfar ignore #4 Strange command
-   @VERSIONING@if {![info exists ::env(MODULE_VERSION)]} {
+   @VERSIONING@if {![isEnvVarDefined MODULE_VERSION]} {
    @VERSIONING@   setenv MODULE_VERSION @MODULES_RELEASE@@MODULES_BUILD@
    @VERSIONING@   setenv MODULE_VERSION_STACK @MODULES_RELEASE@@MODULES_BUILD@
    @VERSIONING@}
 
    # initialize MODULEPATH and LOADEDMODULES if found unset
-   if {![info exists ::env(MODULEPATH)]} {
+   if {![isEnvVarDefined MODULEPATH]} {
       setenv MODULEPATH {}
    }
-   if {![info exists ::env(LOADEDMODULES)]} {
+   if {![isEnvVarDefined LOADEDMODULES]} {
       setenv LOADEDMODULES {}
    }
 
@@ -2204,11 +2204,11 @@ proc cmdModuleAutoinit {} {
       ##nagelfar ignore +2 Too long line
       ##nagelfar ignore Found constant
       @setmanpath@@usemanpath@catch {set manpath [exec -ignorestderr 2>/dev/null manpath]}
-      @setmanpath@@notusemanpath@if {[info exists ::env(MANPATH)]} {
+      @setmanpath@@notusemanpath@if {[isEnvVarDefined MANPATH]} {
       @setmanpath@@notusemanpath@   set manpath $::env(MANPATH)
       @setmanpath@@notusemanpath@}
       @setmanpath@if {{@mandir@} ni [split $manpath :]} {
-      @setmanpath@   if {![info exists ::env(MANPATH)]} {
+      @setmanpath@   if {![isEnvVarDefined MANPATH]} {
       @setmanpath@      append-path MANPATH {}
       @setmanpath@   # ensure no duplicate ':' is set
       @setmanpath@   } elseif {[get-env MANPATH] eq {:}} {

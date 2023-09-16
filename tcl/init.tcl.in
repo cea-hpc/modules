@@ -264,7 +264,7 @@ proc getConf {option {valifundef {}}} {
             set value [$initproc $envvar $value $validvallist $intvallist]
          } else {
             # overridden value coming from environment
-            if {$envvar ne {} && [info exists ::env($envvar)]} {
+            if {$envvar ne {} && [isEnvVarDefined $envvar]} {
                switch -- $validvallistkind {
                   eltlist {
                      # ignore non-valid values
@@ -524,7 +524,7 @@ proc __initStateClockSeconds {} {
 # Initialize Select Graphic Rendition table
 proc initConfColors {envvar value validvallist intvallist} {
    # overridden value coming from environment
-   if {[info exists ::env($envvar)]} {
+   if {[isEnvVarDefined $envvar]} {
       set colors_list $::env($envvar)
       if {[catch {
          # test overridden value could be set to a dummy array variable
@@ -580,21 +580,21 @@ proc initConfColors {envvar value validvallist intvallist} {
 proc initConfColor {envvar value validvallist intvallist} {
    # overridden value coming from environment via standard variable
    # https://no-color.org/ and https://bixense.com/clicolors/
-   if {[info exists ::env(NO_COLOR)]} {
+   if {[isEnvVarDefined NO_COLOR]} {
       set value never
-   } elseif {[info exists ::env(CLICOLOR)]} {
+   } elseif {[isEnvVarDefined CLICOLOR]} {
       if {$::env(CLICOLOR) eq {0}} {
          set value never
       } else {
          set value auto
       }
-   } elseif {[info exists ::env(CLICOLOR_FORCE)] && $::env(CLICOLOR_FORCE)\
+   } elseif {[isEnvVarDefined CLICOLOR_FORCE] && $::env(CLICOLOR_FORCE)\
       ne {0}} {
       set value always
    }
 
    # overridden value coming from environment via Modules-specific variable
-   if {$envvar ne {} && [info exists ::env($envvar)]} {
+   if {$envvar ne {} && [isEnvVarDefined $envvar]} {
       # ignore non-valid values
       if {[llength $validvallist] == 0 || $::env($envvar) in $validvallist} {
          set value $::env($envvar)
@@ -655,7 +655,7 @@ proc initConfTclExtLib {envvar value validvallist intvallist} {
 # Initialize module tag abbreviation table
 proc initConfTagAbbrev {envvar value validvallist intvallist} {
    # overridden value coming from environment
-   if {[info exists ::env($envvar)]} {
+   if {[isEnvVarDefined $envvar]} {
       if {[catch {
          # try to set the tag-abbreviation mapping table
          array set ::g_tagAbbrev [split $::env($envvar) {:=}]
@@ -705,7 +705,7 @@ proc initConfTagAbbrev {envvar value validvallist intvallist} {
 # Initialize module tag color name table
 proc initConfTagColorName {envvar value validvallist intvallist} {
    # overridden value coming from environment
-   if {[info exists ::env($envvar)]} {
+   if {[isEnvVarDefined $envvar]} {
       set value $::env($envvar)
    }
 
@@ -720,12 +720,12 @@ proc initConfTagColorName {envvar value validvallist intvallist} {
 # Initialize interactive editor command
 proc initConfEditor {envvar value validvallist intvallist} {
    # overridden value coming from environment via Modules-specific variable
-   if {$envvar ne {} && [info exists ::env($envvar)]} {
+   if {$envvar ne {} && [isEnvVarDefined $envvar]} {
       set value $::env($envvar)
    # overridden value coming from environment via standard variable
-   } elseif {[info exists ::env(VISUAL)]} {
+   } elseif {[isEnvVarDefined VISUAL]} {
       set value $::env(VISUAL)
-   } elseif {[info exists ::env(EDITOR)]} {
+   } elseif {[isEnvVarDefined EDITOR]} {
       set value $::env(EDITOR)
    }
    return $value
@@ -734,7 +734,7 @@ proc initConfEditor {envvar value validvallist intvallist} {
 # Initialize variant shortcut table
 proc initConfVariantShortcut {envvar value validvallist intvallist} {
    # overridden value coming from environment
-   if {[info exists ::env($envvar)]} {
+   if {[isEnvVarDefined $envvar]} {
       if {[catch {
          # try to set the variant-shortcut mapping table
          array set testarr [split $::env($envvar) {:=}]
