@@ -1397,9 +1397,7 @@ proc setenv-un {args} {
 proc setenv-wh {args} {
    lassign [parseSetenvCommandArgs load set {*}$args] bhv var val
 
-   if {![isEnvVarDefined $var]} {
-      set ::env($var) {}
-   }
+   setEnvVarIfUndefined $var {}
    return {}
 }
 
@@ -1552,9 +1550,7 @@ proc unsetenv-un {args} {
 proc unsetenv-wh {args} {
    lassign [parseUnsetenvCommandArgs load noop {*}$args] bhv var val
 
-   if {![isEnvVarDefined $var]} {
-      set ::env($var) {}
-   }
+   setEnvVarIfUndefined $var {}
    return {}
 }
 
@@ -1720,9 +1716,7 @@ proc edit-path-wh {cmd args} {
    lassign [parsePathCommandArgs $cmd load noop {*}$args] separator allow_dup\
       idx_val ign_refcount glob_match bhv var path_list
 
-   if {![isEnvVarDefined $var]} {
-      set ::env($var) {}
-   }
+   setEnvVarIfUndefined $var {}
 
    return {}
 }
@@ -2887,9 +2881,7 @@ proc pushenv-un {var val} {
 
 # optimized pushenv for whatis mode (same approach than setenv-wh)
 proc pushenv-wh {var val} {
-   if {![isEnvVarDefined $var]} {
-      set ::env($var) {}
-   }
+   setEnvVarIfUndefined $var {}
    return {}
 }
 
