@@ -1710,57 +1710,43 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          unsetLoadedModule $modname $modfile
 
          # unregister declared source-sh
-         if {[set modsrcsh [getLoadedSourceSh $modname 1]] ne {}} {
-            remove-path __MODULES_LMSOURCESH $modsrcsh
-         }
+         unsetEnvLoadedModuleProperty $modname sourcesh
          unsetLoadedSourceSh $modname
 
          # unregister declared conflict
-         if {[set modcon [getLoadedConflict $modname 1]] ne {}} {
-            remove-path __MODULES_LMCONFLICT $modcon
-         }
+         unsetEnvLoadedModuleProperty $modname conflict
          unsetLoadedConflict $modname
 
          # unset prereq declared for this module
-         if {[llength [set modpre [getLoadedPrereq $modname]]] > 0} {
-            remove-path __MODULES_LMPREREQ [getLoadedPrereq $modname 1]
-         }
+         unsetEnvLoadedModuleProperty $modname prereq
          unsetLoadedPrereq $modname
 
          # unset alternative names declared for this module
-         if {[llength [set modalt [getLoadedAltname $modname]]] >0} {
-            remove-path __MODULES_LMALTNAME [getLoadedAltname $modname 1]
-         }
+         unsetEnvLoadedModuleProperty $modname altname
          unsetLoadedAltname $modname
 
          # unset variant declared for this module
-         if {[llength [set modvrspec [getLoadedVariant $modname]]] > 0} {
-            remove-path __MODULES_LMVARIANT [getLoadedVariant $modname 1]
-         }
+         unsetEnvLoadedModuleProperty $modname variant
          unsetLoadedVariant $modname
 
          # unset tags declared for this module
-         if {[set modtag [getExportTagList $modname 1]] ne {}} {
-            remove-path __MODULES_LMTAG $modtag
-            # also remove the auto-loaded and keep-loaded tags from
-            # in-memory knowledge not to re-apply them if module is reloaded
-            # in other conditions
-            unsetModuleTag $modname auto-loaded keep-loaded
-            if {$modnamevr ne {} && $modname ne $modnamevr} {
-               unsetModuleTag $modnamevr auto-loaded keep-loaded
-            }
+         unsetEnvLoadedModuleProperty $modname tag
+         # also remove the auto-loaded and keep-loaded tags from
+         # in-memory knowledge not to re-apply them if module is reloaded
+         # in other conditions
+         unsetModuleTag $modname auto-loaded keep-loaded
+         if {$modnamevr ne {} && $modname ne $modnamevr} {
+            unsetModuleTag $modnamevr auto-loaded keep-loaded
          }
-         if {[set modtag [getExtraTagList $modname 1]] ne {}} {
-            remove-path __MODULES_LMEXTRATAG $modtag
-            # also remove extra tags from in-memory knowledge not re-apply
-            # them if module is reloaded in other conditions
-            set extratag_list [getExtraTagList $modname]
-            unsetModuleTag $modname {*}$extratag_list
-            unsetModuleExtraTag $modname {*}$extratag_list
-            if {$modnamevr ne {} && $modname ne $modnamevr} {
-               unsetModuleTag $modnamevr {*}$extratag_list
-               unsetModuleExtraTag $modnamevr {*}$extratag_list
-            }
+         unsetEnvLoadedModuleProperty $modname extratag
+         # also remove extra tags from in-memory knowledge not re-apply
+         # them if module is reloaded in other conditions
+         set extratag_list [getExtraTagList $modname]
+         unsetModuleTag $modname {*}$extratag_list
+         unsetModuleExtraTag $modname {*}$extratag_list
+         if {$modnamevr ne {} && $modname ne $modnamevr} {
+            unsetModuleTag $modnamevr {*}$extratag_list
+            unsetModuleExtraTag $modnamevr {*}$extratag_list
          }
 
          if {[getConf auto_handling] && $auto} {

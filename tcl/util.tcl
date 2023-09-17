@@ -28,6 +28,10 @@ proc charUnescaped {str {charlist " \\\\\t{}|<>!;#^\$&*?\"'`()"}} {
    return [regsub -all "\\\\\(\[$charlist\]\)" $str {\1}]
 }
 
+proc escapeGlobChars {str} {
+   return [charEscaped $str {*?[]\\}]
+}
+
 proc strTo {lang str {esc 1}} {
    switch -- $lang {
       tcl { set enco \{; set encc \}}

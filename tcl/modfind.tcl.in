@@ -1822,6 +1822,19 @@ proc getLoadedModuleWithVariantSaveTagArrayList {} {
    return [array get tag_arr]
 }
 
+proc unsetEnvLoadedModuleProperty {mod_name prop} {
+   set prop_env_var [getLoadedModulePropertyEnvVarName $prop]
+   set env_loaded_prop_list [getEnvLoadedModulePropertyList $prop]
+   set mod_pattern_in_env_loaded_prop [escapeGlobChars $mod_name]&*
+
+   set mod_env_loaded_prop [lsearch -glob -inline $env_loaded_prop_list\
+      $mod_pattern_in_env_loaded_prop]
+
+   if {[string length $mod_env_loaded_prop] > 0} {
+      remove-path $prop_env_var $mod_env_loaded_prop
+   }
+}
+
 # get current loaded state to record it as the virtual init collection
 proc getLoadedInit {} {
    set ret [formatCollectionContent [getModulePathList returnempty 0]\
