@@ -1214,8 +1214,7 @@ ml <- function(...){
 }
 
 proc get-env {var {valifunset {}}} {
-   # return current value if exists and not cleared
-   if {[isEnvVarDefined $var] && ![info exists ::g_clearedEnvVars($var)]} {
+   if {[isEnvVarDefined $var] && ![isEnvVarCleared $var]} {
       return $::env($var)
    } else {
       return $valifunset
@@ -1255,10 +1254,7 @@ proc set-env {var val} {
       } else {
          interp-sync-env set $var $val
 
-         # variable is not cleared anymore if set again
-         if {[info exists ::g_clearedEnvVars($var)]} {
-            unset ::g_clearedEnvVars($var)
-         }
+         unsetEnvVarAsCleared $var
 
          # propagate variable setup to shell environment on load and unload
          # mode
@@ -1276,8 +1272,22 @@ proc reset-to-unset-env {var {val {}}} {
    interp-sync-env set $var $val
    # set var as cleared if val is empty
    if {$val eq {}} {
-      set ::g_clearedEnvVars($var) 1
+      setEnvVarAsCleared $var
    }
+}
+
+proc setEnvVarAsCleared {var_name} {
+   set ::g_clearedEnvVars($var_name) 1
+}
+
+proc unsetEnvVarAsCleared {var_name} {
+   if {[isEnvVarCleared $var_name]} {
+      unset ::g_clearedEnvVars($var_name)
+   }
+}
+
+proc isEnvVarCleared {var_name} {
+   return [info exists ::g_clearedEnvVars($var_name)]
 }
 
 proc unset-env {var {internal 0} {val {}}} {
