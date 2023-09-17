@@ -167,7 +167,7 @@ proc sortModulePerLoadedAndDepOrder {modlist {nporeq 0} {loading 0}} {
    # sort per loaded order
    set sortlist {}
    if {[llength $modlist] > 0} {
-      foreach lmmod [getLoadedModulePropertyList name] {
+      foreach lmmod [getEnvLoadedModulePropertyParsedList name] {
          if {$lmmod in $modlist} {
             lappend sortlist $lmmod
          }
@@ -339,7 +339,7 @@ proc getDirectDependentList {mod {strong 0} {nporeq 0} {loading 0}\
 
    # take currently loading modules into account if asked
    if {$loading} {
-      set modlist [getLoadedModulePropertyList name]
+      set modlist [getEnvLoadedModulePropertyParsedList name]
       defineModEqProc [isIcase] [getConf extended_default] 1
       # reverse list to get closest match if returning lastly loaded module
       if {[getConf unload_match_order] eq {returnlast}} {

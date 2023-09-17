@@ -43,7 +43,7 @@ proc cmdModuleList {show_oneperline show_mtime search_match args} {
 
    # build list of loaded modules and symbolics and aliases if reported
    set loadedmodlist [list]
-   foreach mod [getLoadedModulePropertyList name] {
+   foreach mod [getEnvLoadedModulePropertyParsedList name] {
       set modfile [getModulefileFromLoadedModule $mod]
       set mtime [expr {$show_mtime && [file exists $modfile] ?\
          [getFileMtime $modfile] : {}}]
@@ -459,7 +459,7 @@ proc cmdModuleIntSwitch {mode tag_list args} {
          [list purge reload restore reset stash stashpop]} {
          # unload mod if it was loaded prior this mod, not user asked and not
          # required by another loaded module
-         set modlist [getLoadedModulePropertyList name]
+         set modlist [getEnvLoadedModulePropertyParsedList name]
          set modidx [lsearch -exact $modlist [currentState modulename]]
          if {$modidx != 0} {
             set priormodlist [lrange $modlist 0 $modidx]
@@ -713,7 +713,7 @@ proc cmdModuleRestore {args} {
    # the undo phase, so current situation is fetched again
    set curr_path_list [getModulePathList returnempty 0]
 
-   set curr_mod_list [getLoadedModulePropertyList name]
+   set curr_mod_list [getEnvLoadedModulePropertyParsedList name]
    set curr_nuasked_list [getTaggedLoadedModuleList auto-loaded]
 
    # update tags sets on the modules already loaded at correct position
@@ -797,8 +797,8 @@ proc cmdModuleSaveshow {args} {
 
    # read specific __init__ collection from __MODULES_LMINIT env var
    if {$collfile eq {__init__}} {
-      lassign [parseCollectionContent [getLoadedModulePropertyList init]]\
-         coll_path_list coll_mod_list coll_tag_arrser
+      lassign [parseCollectionContent [getEnvLoadedModulePropertyParsedList\
+         init]] coll_path_list coll_mod_list coll_tag_arrser
       set collfile {initial environment}
       set coll __init__
    } else {
@@ -1050,7 +1050,7 @@ proc cmdModuleIntLoad {topcall command mode tag_list args} {
       restore reset stash stashpop]} {
       # on unload mode, unload mods in reverse order, if loaded prior this
       # mod, if not user asked and not required by other loaded mods
-      set modlist [getLoadedModulePropertyList name]
+      set modlist [getEnvLoadedModulePropertyParsedList name]
       set modidx [lsearch -exact $modlist [currentState modulename]]
       if {$modidx != 0} {
          set priormodlist [lrange $modlist 0 $modidx]
@@ -1702,8 +1702,8 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          # get module position in loaded list to remove corresponding loaded
          # modulefile (entry at same position in _LMFILES_)
          # need the unfiltered loaded module list to get correct index
-         set lmidx [lsearch -exact [getLoadedModulePropertyList name 0]\
-            $modname]
+         set lmidx [lsearch -exact [getEnvLoadedModulePropertyParsedList name\
+            0] $modname]
          remove-path LOADEDMODULES $modname
          remove-path --index _LMFILES_ $lmidx
          # update cache arrays
@@ -1847,7 +1847,7 @@ proc cmdModulePurge {} {
    # remove dependent modules if force mode enabled
    set onlyndep [expr {![getState force]}]
    cmdModuleUnload unload match 0 1 0 $onlyndep {*}[lreverse\
-      [getLoadedModulePropertyList name]]
+      [getEnvLoadedModulePropertyParsedList name]]
 
    popMsgRecordId 0
 }
@@ -1855,7 +1855,7 @@ proc cmdModulePurge {} {
 proc cmdModuleReload {args} {
    # reload all loaded modules if no module list passed
    if {[llength $args] == 0} {
-      set lmlist [getLoadedModulePropertyList name]
+      set lmlist [getEnvLoadedModulePropertyParsedList name]
    } else {
       set lmlist $args
    }
@@ -2699,7 +2699,7 @@ proc cmdModuleRefresh {} {
    # load variants from loaded modules
    cacheCurrentModules
 
-   foreach lm [getLoadedModulePropertyList refresh] {
+   foreach lm [getEnvLoadedModulePropertyParsedList refresh] {
       # prepare info to execute modulefile
       set vrlist [getVariantList $lm 1]
       if {[llength $vrlist] > 0} {
@@ -3023,7 +3023,7 @@ proc cmdModuleStash {} {
       # a module is loaded and it is not super-sticky and not sticky or force
       # mode is enabled to allow sticky tag unload
       set diff_from_init 0
-      foreach mod [getLoadedModulePropertyList name] {
+      foreach mod [getEnvLoadedModulePropertyParsedList name] {
          if {![isModuleTagged $mod super-sticky 1] && (![isModuleTagged $mod\
             sticky 1] || [getState force])} {
             set diff_from_init 1

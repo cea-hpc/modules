@@ -419,7 +419,7 @@ proc getLoadedAltAndSimplifiedName {mod} {
 
 # return value list of a loaded module property by parsing corresponding
 # environment variable
-proc getLoadedModulePropertyList {prop {filter_empty 1}} {
+proc getEnvLoadedModulePropertyParsedList {prop {filter_empty 1}} {
    switch -- $prop {
       name {
          set subsplit 0
@@ -522,7 +522,7 @@ proc getModulePathList {{behavior returnempty} {resolv_var 1} {set_abs 1}} {
    }
 
    set modpath_list [list]
-   foreach modpath [getLoadedModulePropertyList modulepath] {
+   foreach modpath [getEnvLoadedModulePropertyParsedList modulepath] {
       if {$resolv_var} {
          set modpath [resolvStringWithEnv $modpath]
       }
@@ -624,7 +624,7 @@ proc isModuleTagged {mod tag {collected 0} {fpmod {}}} {
 
 proc getTaggedLoadedModuleList {tag} {
    set modlist [list]
-   foreach mod [getLoadedModulePropertyList name] {
+   foreach mod [getEnvLoadedModulePropertyParsedList name] {
       if {[isModuleTagged $mod $tag 1]} {
          lappend modlist $mod
       }
@@ -1397,7 +1397,7 @@ proc getLoadedWithClosestName {name} {
       defineModEqProc $icase [getConf extended_default]
       # compare name to each currently loaded module name
       ##nagelfar ignore Found constant
-      foreach mod [getLoadedModulePropertyList name] {
+      foreach mod [getEnvLoadedModulePropertyParsedList name] {
          # if module loaded as fullpath but test name not, try to get loaded
          # mod short name (with currently used modulepaths) to compare it
          if {[isModuleFullPath $mod] && [set modname\
@@ -1447,7 +1447,7 @@ proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}} {
       ##nagelfar ignore #3 Found constant
       set isModulefileLoaded isModulefileLoaded
       set getModuleFromLoadedModulefile getModuleFromLoadedModulefile
-      set getLoadedModuleList [list getLoadedModulePropertyList name]
+      set getLoadedModuleList [list getEnvLoadedModulePropertyParsedList name]
    }
 
    # fetch currently loaded/loading module name is no list provided
@@ -1794,7 +1794,7 @@ proc getLoadedVariant {mod {serialized 0}} {
 
 proc getLoadedModuleWithVariantList {} {
    set modvrlist [list]
-   foreach mod [getLoadedModulePropertyList name] {
+   foreach mod [getEnvLoadedModulePropertyParsedList name] {
       set modvr [list $mod]
       set vrlist [getVariantList $mod 5]
       if {[llength $vrlist] > 0} {
@@ -1807,7 +1807,7 @@ proc getLoadedModuleWithVariantList {} {
 
 proc getLoadedModuleWithVariantSaveTagArrayList {} {
    array set tag_arr {}
-   foreach mod [getLoadedModulePropertyList name] {
+   foreach mod [getEnvLoadedModulePropertyParsedList name] {
       set modvr [list $mod]
       set vrlist [getVariantList $mod 1]
       if {[llength $vrlist] > 0} {
@@ -1882,7 +1882,7 @@ proc unsetModuleConflictViolation {mod} {
 
 # build dependency chain between loaded modules based on registered prereqs
 proc setModuleDependency {mod} {
-   set modlist [getLoadedModulePropertyList name]
+   set modlist [getEnvLoadedModulePropertyParsedList name]
    defineModEqProc [isIcase] [getConf extended_default] 1
    # only look at modules loaded prior current one to find requirements,
    # modules loaded afterward are unmet dependencies as dependents have
@@ -2191,13 +2191,13 @@ proc cacheCurrentModules {{exitonerr 1}} {
       setState lm_info_cached 1
       # mark specific as well as generic modules as loaded
       set i 0
-      set modfilelist [getLoadedModulePropertyList file]
-      set modlist [getLoadedModulePropertyList name]
-      set refreshlist [getLoadedModulePropertyList refresh]
+      set modfilelist [getEnvLoadedModulePropertyParsedList file]
+      set modlist [getEnvLoadedModulePropertyParsedList name]
+      set refreshlist [getEnvLoadedModulePropertyParsedList refresh]
 
       if {[llength $modlist] == [llength $modfilelist]} {
          # cache declared variant of loaded modules
-         foreach modvrspec [getLoadedModulePropertyList variant] {
+         foreach modvrspec [getEnvLoadedModulePropertyParsedList variant] {
             setLoadedVariant {*}$modvrspec
             # prepare modvr designation of loaded mod needed in next steps
             set mod [lindex $modvrspec 0]
@@ -2207,7 +2207,7 @@ proc cacheCurrentModules {{exitonerr 1}} {
          }
 
          # cache declared tags of loaded modules
-         foreach modtag [getLoadedModulePropertyList tag] {
+         foreach modtag [getEnvLoadedModulePropertyParsedList tag] {
             setModuleTag {*}$modtag
             # also record tag over full mod and vr designation
             set mod [lindex $modtag 0]
@@ -2215,7 +2215,7 @@ proc cacheCurrentModules {{exitonerr 1}} {
                setModuleTag $modvrarr($mod) {*}[lrange $modtag 1 end]
             }
          }
-         foreach modtag [getLoadedModulePropertyList extratag] {
+         foreach modtag [getEnvLoadedModulePropertyParsedList extratag] {
             setModuleExtraTag {*}$modtag
             # also record tag over full mod and vr designation
             set mod [lindex $modtag 0]
@@ -2225,17 +2225,17 @@ proc cacheCurrentModules {{exitonerr 1}} {
          }
 
          # cache declared alternative names of loaded modules
-         foreach modalt [getLoadedModulePropertyList altname] {
+         foreach modalt [getEnvLoadedModulePropertyParsedList altname] {
             setLoadedAltname {*}$modalt
          }
 
          # cache declared source-sh of loaded modules
-         foreach modsrcsh [getLoadedModulePropertyList sourcesh] {
+         foreach modsrcsh [getEnvLoadedModulePropertyParsedList sourcesh] {
             setLoadedSourceSh {*}$modsrcsh
          }
 
          # cache declared conflict of loaded modules
-         foreach modcon [getLoadedModulePropertyList conflict] {
+         foreach modcon [getEnvLoadedModulePropertyParsedList conflict] {
             # parse module version specification to record translation
             foreach modconelt [lrange $modcon 1 end] {
                parseModuleSpecification 0 0 0 0 {*}$modconelt
@@ -2245,7 +2245,7 @@ proc cacheCurrentModules {{exitonerr 1}} {
 
          # cache declared prereq of loaded modules, prior to setLoadedModule
          # which triggers dependency chain build
-         foreach modpre [getLoadedModulePropertyList prereq] {
+         foreach modpre [getEnvLoadedModulePropertyParsedList prereq] {
             # parse module version specification to record translation
             foreach modpreeltlist [lrange $modpre 1 end] {
                foreach modpreelt $modpreeltlist {

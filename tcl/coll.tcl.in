@@ -65,7 +65,7 @@ proc getSimplifiedLoadedModuleList {} {
    set curr_mod_list {}
    array set curr_tag_arr {}
    set modpathlist [getModulePathList]
-   foreach mod [getLoadedModulePropertyList name] {
+   foreach mod [getEnvLoadedModulePropertyParsedList name] {
       set altandsimplist [getLoadedAltAndSimplifiedName $mod]
 
       set parentmod [file dirname $mod]
@@ -335,8 +335,8 @@ proc parseCollectionContent {fdata} {
 proc getDiffBetweenCurEnvAndColl {collfile colldesc} {
    # read specific __init__ collection from __MODULES_LMINIT env var
    if {$collfile eq {__init__}} {
-      lassign [parseCollectionContent [getLoadedModulePropertyList init]]\
-         coll_path_list coll_mod_list coll_tag_arrser
+      lassign [parseCollectionContent [getEnvLoadedModulePropertyParsedList\
+         init]] coll_path_list coll_mod_list coll_tag_arrser
    } else {
       lassign [readCollectionContent $collfile $colldesc] coll_path_list\
          coll_mod_list coll_tag_arrser
@@ -366,7 +366,7 @@ proc getDiffBetweenCurEnvAndColl {collfile colldesc} {
    # fetch what is currently loaded
    set curr_path_list [getModulePathList returnempty 0]
    # get current loaded module list
-   set curr_mod_list [getLoadedModulePropertyList name]
+   set curr_mod_list [getEnvLoadedModulePropertyParsedList name]
    set curr_nuasked_list [getTaggedLoadedModuleList auto-loaded]
    # get current save tags of loaded modules
    array set curr_tag_arr [getLoadedModuleWithVariantSaveTagArrayList]
