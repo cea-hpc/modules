@@ -449,7 +449,7 @@ proc getLoadedModulePropertyList {prop {filter_empty 1}} {
    }
 
    set res_list [list]
-   foreach elt [split [get-env $envvar] [getState path_separator]] {
+   foreach elt [getEnvLoadedModulePropertyList $prop] {
       if {$subsplit} {
          set sub1sep [getState sub1_separator]
          set sub2sep [getState sub2_separator]
@@ -492,6 +492,11 @@ proc getLoadedModulePropertyList {prop {filter_empty 1}} {
       }
    }
    return $res_list
+}
+
+proc getEnvLoadedModulePropertyList {prop} {
+   set env_var_name [getLoadedModulePropertyEnvVarName $prop]
+   return [split [get-env $env_var_name] [getState path_separator]]
 }
 
 proc getLoadedModulePropertyEnvVarName {prop} {
