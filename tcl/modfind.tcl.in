@@ -422,19 +422,15 @@ proc getLoadedAltAndSimplifiedName {mod} {
 proc getLoadedModulePropertyList {prop {filter_empty 1}} {
    switch -- $prop {
       name {
-         set envvar LOADEDMODULES
          set subsplit 0
       }
       file {
-         set envvar _LMFILES_
          set subsplit 0
       }
       modulepath {
-         set envvar MODULEPATH
          set subsplit 0
       }
       default {
-         set envvar __MODULES_LM[string toupper $prop]
          set subsplit [expr {$prop ni {init refresh}}]
          if {$prop in {altname conflict}} {
             set nosubsubsplit 1
@@ -496,6 +492,16 @@ proc getLoadedModulePropertyList {prop {filter_empty 1}} {
       }
    }
    return $res_list
+}
+
+proc getLoadedModulePropertyEnvVarName {prop} {
+   switch -- $prop {
+      name {set env_var_name LOADEDMODULES}
+      file {set env_var_name _LMFILES_}
+      modulepath {set env_var_name MODULEPATH}
+      default {set env_var_name __MODULES_LM[string toupper $prop]}
+   }
+   return $env_var_name
 }
 
 # return list of module paths by parsing MODULEPATH env variable
