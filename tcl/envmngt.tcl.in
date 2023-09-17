@@ -1236,16 +1236,11 @@ proc setEnvVarIfUndefined {var_name value} {
    }
 }
 
-proc isProtectedEnvVar {var} {
-   # return if var is protected by protected_envvars config
-   return [expr {$var in [split [getConf protected_envvars] :]}]
-}
-
 proc set-env {var val} {
    set mode [currentState mode]
    reportDebug "$var=$val"
 
-   if {![isProtectedEnvVar $var]} {
+   if {![isEnvVarProtected $var]} {
       # an empty string value means unsetting variable on Windows platform, so
       # call unset-env to ensure variable will not be seen defined yet raising
       # an error when trying to access it
@@ -1266,6 +1261,10 @@ proc set-env {var val} {
       reportWarning "Modification of protected environment variable $var\
          ignored"
    }
+}
+
+proc isEnvVarProtected {var_name} {
+   return [expr {$var_name in [split [getConf protected_envvars] :]}]
 }
 
 proc reset-to-unset-env {var {val {}}} {
@@ -1294,7 +1293,7 @@ proc unset-env {var {internal 0} {val {}}} {
    set mode [currentState mode]
    reportDebug "$var (internal=$internal, val=$val)"
 
-   if {![isProtectedEnvVar $var]} {
+   if {![isEnvVarProtected $var]} {
       # clear value instead of unset it not to break variable later reference
       # in modulefile. clear whether variable set or not to get a later usage
       # consistent behavior whatever env is setup
