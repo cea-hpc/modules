@@ -863,6 +863,7 @@ testouterr_cmd sh {load variant@8.0 foo=val1 bar=2} $ans {}
 
 set ans [list]
 lappend ans [list set __MODULES_LMVARIANT variant/8.0&foo|val1|0|0&bar|1|0|0]
+lappend ans [list set __MODULES_LMSTICKYRULE variant/8.0&super-sticky|variant\ foo=val1\ bar=1]
 lappend ans [list set _LMFILES_ $mp/variant/8.0]
 lappend ans [list set LOADEDMODULES variant/8.0]
 lappend ans [list set __MODULES_LMTAG variant/8.0&super-sticky]
@@ -878,6 +879,7 @@ testouterr_cmd sh {load variant@8.0 foo=val2 bar=1} $ans {}
 setenv_loaded_module [list variant/8.0] [list $mp/variant/8.0]
 setenv_var __MODULES_LMVARIANT variant/8.0&foo|val1|0|0&bar|1|0|0
 setenv_var __MODULES_LMTAG variant/8.0&super-sticky
+setenv_var __MODULES_LMSTICKYRULE variant/8.0&super-sticky|variant\ foo=val1\ bar=1
 set tserr [msg_unload "variant/8.0{bar=1:foo=val1} <sS>" $err_superstickyunload]
 testouterr_cmd sh {unload variant@8.0} ERR $tserr
 
@@ -885,6 +887,7 @@ testouterr_cmd sh {unload variant@8.0} ERR $tserr
 set tserr [msg_switch "variant/8.0{bar=1:foo=val1} <sS>" 'variant/.w\ s'{bar=1:foo=val1} $err_superstickyunload]
 set ans [list]
 lappend ans [list set __MODULES_LMVARIANT variant/.w\ s&foo|val1|0|0&bar|1|0|0]
+lappend ans [list set __MODULES_LMSTICKYRULE variant/.w\ s&super-sticky|variant\ foo=val1\ bar=1]
 lappend ans [list set _LMFILES_ $mp/variant/.w\ s]
 lappend ans [list set LOADEDMODULES variant/.w\ s]
 lappend ans [list set __MODULES_LMTAG variant/.w\ s&super-sticky]
@@ -894,6 +897,7 @@ set tserr [msg_switch "variant/8.0{bar=1:foo=val1} <sS>" 'variant/.w\ s'{foo=val
 testouterr_cmd sh {switch variant@.w\ s foo=val1} ERR $tserr
 set ans [list]
 lappend ans [list set __MODULES_LMVARIANT variant/8.0&foo|val1|0|0&bar|1|0|0]
+lappend ans [list set __MODULES_LMSTICKYRULE variant/8.0&super-sticky|variant\ foo=val1\ bar=1]
 lappend ans [list set _LMFILES_ $mp/variant/8.0]
 lappend ans [list set LOADEDMODULES variant/8.0]
 lappend ans [list set __MODULES_LMTAG variant/8.0&super-sticky]
@@ -906,6 +910,7 @@ testouterr_cmd sh {switch variant@8.0 foo=val2} ERR $tserr
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMVARIANT
 unsetenv_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMSTICKYRULE
 
 
 setenv_var TESTSUITE_VARIANT_TAG 26
@@ -972,28 +977,33 @@ setenv_var TESTSUITE_VARIANT_TAG 27
 setenv_loaded_module [list variant/8.0] [list $mp/variant/8.0]
 setenv_var __MODULES_LMVARIANT variant/8.0&foo|val1|0|0&bar|1|0|0
 setenv_var __MODULES_LMTAG variant/8.0&sticky
+setenv_var __MODULES_LMSTICKYRULE variant/8.0&sticky|variant
 
 # switch to a sticky variant
 set ans [list]
 lappend ans [list set __MODULES_LMVARIANT variant/8.0&foo|val2|0|0&bar|1|0|0]
+lappend ans [list set __MODULES_LMSTICKYRULE variant/8.0&sticky|variant]
 lappend ans [list set _LMFILES_ $mp/variant/8.0]
 lappend ans [list set LOADEDMODULES variant/8.0]
 lappend ans [list set __MODULES_LMTAG variant/8.0&sticky]
 testouterr_cmd sh {switch variant@8.0 foo=val2 bar=1} $ans {}
 set ans [list]
 lappend ans [list set __MODULES_LMVARIANT variant/8.0&foo|val1|0|0&bar|2|0|2]
+lappend ans [list set __MODULES_LMSTICKYRULE variant/8.0&sticky|variant]
 lappend ans [list set _LMFILES_ $mp/variant/8.0]
 lappend ans [list set LOADEDMODULES variant/8.0]
 lappend ans [list set __MODULES_LMTAG variant/8.0&sticky]
 testouterr_cmd sh {switch variant@8.0 foo=val1} $ans {}
 set ans [list]
 lappend ans [list set __MODULES_LMVARIANT variant/8.0&foo|val2|0|0&bar|2|0|2]
+lappend ans [list set __MODULES_LMSTICKYRULE variant/8.0&sticky|variant]
 lappend ans [list set _LMFILES_ $mp/variant/8.0]
 lappend ans [list set LOADEDMODULES variant/8.0]
 lappend ans [list set __MODULES_LMTAG variant/8.0&sticky]
 testouterr_cmd sh {switch variant@8.0 foo=val2} $ans {}
 set ans [list]
 lappend ans [list set __MODULES_LMVARIANT variant/.w\ s&foo|val2|0|0&bar|2|0|2]
+lappend ans [list set __MODULES_LMSTICKYRULE variant/.w\ s&sticky|variant]
 lappend ans [list set _LMFILES_ $mp/variant/.w\ s]
 lappend ans [list set LOADEDMODULES variant/.w\ s]
 lappend ans [list set __MODULES_LMTAG variant/.w\ s&sticky]
@@ -1002,12 +1012,14 @@ testouterr_cmd sh {switch variant@.w\ s foo=val2} $ans {}
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMVARIANT
 unsetenv_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMSTICKYRULE
 
 
 setenv_var TESTSUITE_VARIANT_TAG 28
 setenv_loaded_module [list variant/8.0] [list $mp/variant/8.0]
 setenv_var __MODULES_LMVARIANT variant/8.0&foo|val1|0|0&bar|2|0|2
 setenv_var __MODULES_LMTAG variant/8.0&super-sticky
+setenv_var __MODULES_LMSTICKYRULE variant/8.0&super-sticky|variant\ foo=val1\ bar=2
 
 # switch to a sticky variant
 # CORNER CASE: stickiness swap do not know that default value of variant bar matches sticky rule
@@ -1015,6 +1027,7 @@ set tserr [msg_switch "variant/8.0{bar=2:foo=val1} <sS>" 'variant/.w\ s'{foo=val
 testouterr_cmd sh {switch variant@.w\ s foo=val1} ERR $tserr
 set ans [list]
 lappend ans [list set __MODULES_LMVARIANT variant/.w\ s&foo|val1|0|0&bar|2|0|1]
+lappend ans [list set __MODULES_LMSTICKYRULE variant/.w\ s&super-sticky|variant\ foo=val1\ bar=2]
 lappend ans [list set _LMFILES_ $mp/variant/.w\ s]
 lappend ans [list set LOADEDMODULES variant/.w\ s]
 lappend ans [list set __MODULES_LMTAG variant/.w\ s&super-sticky]
@@ -1023,6 +1036,7 @@ testouterr_cmd sh {switch variant@.w\ s foo=val1 bar=2} $ans {}
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMVARIANT
 unsetenv_var __MODULES_LMTAG
+unsetenv_var __MODULES_LMSTICKYRULE
 
 
 #
