@@ -779,37 +779,49 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist extrataglist\
 
 # test if loaded module 'mod' is sticky and if stickiness definition applies
 # to one of the reloading module
-proc isStickinessReloading {mod reloading_modlist {tag sticky}} {
+proc isStickinessReloading {mod reloading_mod_list {tag sticky}} {
    set res 0
-   set modname [getModuleNameAndVersFromVersSpec $mod]
-   if {[isModuleTagged $modname $tag 1]} {
+   set mod_name_vers [getModuleNameAndVersFromVersSpec $mod]
+   if {[isModuleTagged $mod_name_vers $tag 1]} {
       # sticky rules (module-tag definitions) applying to loaded module have
       # been evaluated when charging loaded environment
+      set full_path_mod [getModulefileFromLoadedModule $mod_name_vers]
+      set tag_rule_list [getModuleTagRuleList $mod $full_path_mod $tag]
 
-      # tag set over full path module designation only applies to fully
-      # qualified module
-      set modfile [getModulefileFromLoadedModule $modname]
-      set tmodspec [getModuleTag $mod $modfile $tag equal 1]
-      # if tag specifically applies to fully qualified module, exact same
-      # module should be found in reload list
-      if {$tmodspec ne {}} {
-         set tmodspec $mod
+      # no rule found (in env), means sticky applies to exact same module
+      if {[llength $tag_rule_list] == 0} {
+         set mod_should_reload 1
       } else {
-         set tmodspec [getModuleTag $mod {} $tag eqstart 1]
-         if {$tmodspec eq {}} {
-            set tmodspec $mod
+         set mod_should_reload 0
+         # if tag specifically applies to fully qualified module or module
+         # name and version, exact same module should be found in reload list
+         foreach tag_rule $tag_rule_list {
+            if {[modEq $tag_rule $mod equal 1 0 1] || [modEq $tag_rule\
+               $full_path_mod equal 1 0 1]} {
+               set mod_should_reload 1
+               break
+            }
          }
       }
 
-      # check if a loading mod satisfies sticky rules
-      foreach modlo $reloading_modlist {
-         if {[modEq $tmodspec $modlo eqstart 1 0 1]} {
-            # found match
-            set res 1
-            break
+      if {$mod_should_reload} {
+         set res [expr {$mod in $reloading_mod_list}]
+      } else {
+         # check if a reloading module satisfies each sticky rules
+         foreach tag_rule $tag_rule_list {
+            set res 0
+            foreach reloading_mod $reloading_mod_list {
+               if {[modEq $tag_rule $reloading_mod eqstart 1 0 1]} {
+                  set res 1
+                  break
+               }
+            }
+            if {!$res} {
+               break
+            }
          }
       }
-      reportDebug "stickiness ($tag) applies to '$tmodspec', is\
+      reportDebug "stickiness ($tag), applying to $tag_rule_list, is\
          reloading=$res"
    }
 

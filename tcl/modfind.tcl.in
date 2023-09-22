@@ -577,40 +577,60 @@ proc getGlobalRcFileList {} {
    return $readable_rclist
 }
 
-proc getModuleTag {mod fpmod tag {cmp eqstart} {return_rule 0}} {
+proc getModuleTag {mod full_path_mod tag} {
    # check if tag is set on full path module designation (no prop there)
-   if {$fpmod ne {} && [info exists ::g_moduleTagFullPath($fpmod)]} {
-      if {$tag in $::g_moduleTagFullPath($fpmod)} {
-         if {$return_rule} {
-            return $fpmod
-         } else {
-            set idx [lsearch -exact $::g_moduleTagFullPath($fpmod) $tag]
-            return [list $tag [lindex $::g_moduleTagFullPathSpec($fpmod)\
-               $idx]]
-         }
-      }
+   lassign [getFullPathModuleTagSpec $full_path_mod $tag] tag_mod_spec\
+      tag_props
+   if {[string length $tag_mod_spec] > 0} {
+      return [list $tag $tag_props]
    }
-   set modroot [getModuleRootFromVersSpec $mod]
    # look if mod matches one of the module specs applying to mod root
-   if {[info exists ::g_moduleTagRoot($modroot)]} {
-      set idx [lsearch -exact $::g_moduleTagRoot($modroot) $tag]
-      if {$idx == -1} {
-         return {}
-      } else {
-         foreach {tmodspec tprops} [lindex $::g_moduleTagRootSpec($modroot)\
-            $idx] {
-            # first matching module spec wins with its properties
-            if {[modEq $tmodspec $mod $cmp 1 0 1]} {
-               if {$return_rule} {
-                  return $tmodspec
-               } else {
-                  return [list $tag $tprops]
-               }
-            }
-         }
+   foreach {tmodspec tag_props} [getModuleRootTagSpecList $mod $tag] {
+      # first matching module spec wins with its properties
+      if {[modEq $tmodspec $mod eqstart 1 0 1]} {
+         return [list $tag $tag_props]
       }
    }
    return {}
+}
+
+proc getModuleTagRuleList {mod full_path_mod tag} {
+   set rule_list {}
+   lassign [getFullPathModuleTagSpec $full_path_mod $tag] tag_mod_spec\
+      tag_props
+   if {[string length $tag_mod_spec] > 0} {
+      lappend rule_list $tag_mod_spec
+   }
+   foreach {tag_mod_spec tag_props} [getModuleRootTagSpecList $mod $tag] {
+      if {$tag_mod_spec ni $rule_list && [modEq $tag_mod_spec $mod eqstart 1\
+         0 1]} {
+         lappend rule_list $tag_mod_spec
+      }
+   }
+   return $rule_list
+}
+
+proc getModuleRootTagSpecList {mod tag} {
+   set tag_spec_list {}
+   set mod_root [getModuleRootFromVersSpec $mod]
+   if {[info exists ::g_moduleTagRoot($mod_root)]} {
+      set idx [lsearch -exact $::g_moduleTagRoot($mod_root) $tag]
+      set tag_spec_list [lindex $::g_moduleTagRootSpec($mod_root) $idx]
+   }
+   return $tag_spec_list
+}
+
+proc getFullPathModuleTagSpec {full_path_mod tag} {
+   set tag_spec {}
+   if {$full_path_mod ne {} && [info exists\
+      ::g_moduleTagFullPath($full_path_mod)]} {
+      set idx [lsearch -exact $::g_moduleTagFullPath($full_path_mod) $tag]
+      if {$idx != -1} {
+         set tag_spec [list $full_path_mod [lindex\
+            $::g_moduleTagFullPathSpec($full_path_mod) $idx]]
+      }
+   }
+   return $tag_spec
 }
 
 proc isModuleTagged {mod tag {collected 0} {fpmod {}}} {
@@ -751,16 +771,25 @@ proc getStickyRuleList {mod {serialized 0} {fpmod {}}} {
    set ret {}
    foreach tag {sticky super-sticky} {
       if {[isModuleTagged $mod $tag 1]} {
-         set tag_modspec [getModuleTag $mod $fpmod $tag eqstart 1]
-         # return no rule if tag has been set by user (empty tag_modspec) or
-         # spec equals module name or modulefile path name
-         if {[string length $tag_modspec] > 0 && $tag_modspec ni [list $mod\
-            $fpmod]} {
-            set tag_rule [list $tag $tag_modspec]
+         set export_sticky_rule 1
+         set tag_rule_list [getModuleTagRuleList $mod $fpmod $tag]
+
+         # skip rule export if one matches module name and version or full
+         # path designation
+         foreach tag_rule $tag_rule_list {
+            if {[modEq $tag_rule $mod equal 1 0 1] || [modEq $tag_rule $fpmod\
+               equal 1 0 1]} {
+               set export_sticky_rule 0
+               break
+            }
+         }
+
+         if {[llength $tag_rule_list] > 0 && $export_sticky_rule} {
+            set sticky_rule [list $tag {*}$tag_rule_list]
             if {$serialized} {
-               lappend ret [join $tag_rule [getState sub2_separator]]
+               lappend ret [join $sticky_rule [getState sub2_separator]]
             } else {
-               lappend ret $tag_rule
+               lappend ret $sticky_rule
             }
          }
       }
@@ -2268,10 +2297,13 @@ proc cacheCurrentModules {{exitonerr 1}} {
             stickyrule] {
             set mod [lindex $modstickyrule 0]
             foreach modtagspeclist [lrange $modstickyrule 1 end] {
-               lassign $modtagspeclist modtag modspec
-               # record tag definition on given module specification
-               setModspecTag [parseModuleSpecification 0 0 0 0 $modspec]\
-                  $modtag
+               set modspec_list [lassign $modtagspeclist modtag]
+               foreach modspec $modspec_list {
+                  lassign [parseModuleSpecification 0 0 0 0 {*}$modspec]\
+                     parsed_modspec
+                  # record tag definition on given module specification
+                  setModspecTag $parsed_modspec $modtag
+               }
             }
          }
 
