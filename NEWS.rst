@@ -68,6 +68,10 @@ Modules 5.4.0 (not yet released)
   #511)
 * Add ``--glob`` option to :mfcmd:`remove-path` modulefile command in order to
   remove any values in variable matching a glob-style pattern.
+* Record module specification on which loaded module stickiness applies in
+  :envvar:`__MODULES_LMSTICKYRULE` environment variable. It helps to determine
+  if stickiness is satisfied when changing loaded modules. Which was not
+  working correctly for virtual modules. (fix issue #506)
 
 
 .. _5.3 release notes:

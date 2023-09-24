@@ -950,6 +950,7 @@ The following environment variables appeared on Modules 5.
 | 5.4        | :envvar:`MODULES_STICKY_PURGE`,                                 |
 |            | :envvar:`MODULES_UNIQUE_NAME_LOADED`,                           |
 |            | :envvar:`MODULES_ERROR_ON_MULTI_LOAD`                           |
+|            | :envvar:`__MODULES_LMSTICKYRULE`                                |
 +------------+-----------------------------------------------------------------+
 
 Modules Specific Tcl Commands
@@ -1049,8 +1050,13 @@ The following modulefile Tcl commands appeared on Modules 5.
 
 :mfcmd:`module-tag`, :mfcmd:`module-hide`, :mfcmd:`module-forbid`
 
- Starting version 5.4, module can be specified with its full path file name
- to precisely target one modulefile.
+ Starting with version 5.4:
+
+ * module can be specified with its full path file name to precisely target
+   one modulefile.
+ * module specification on which stickiness applies is recorded in loaded
+   environment to determine if it is still satisfied when updating
+   environment.
 
 Modules Variables
 """""""""""""""""

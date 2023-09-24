@@ -3577,6 +3577,25 @@ ENVIRONMENT
        Variable renamed from ``MODULES_LMSOURCESH`` to
        ``__MODULES_LMSOURCESH``
 
+.. envvar:: __MODULES_LMSTICKYRULE
+
+ A colon separated list of the sticky or super-sticky tag definitions applying
+ to loaded *modulefiles*. Each element in this list starts by the name of the
+ loaded *modulefile* followed by the sticky tag name and the module
+ specifications on which the tag applies. These loaded modulefiles and sticky
+ tag definitions are separated by the ampersand character. Tag name and module
+ specifications on which it applies are separated by the pipe character.
+
+ When stickiness applies specifically to the loaded module name and version,
+ sticky rule is not recorded in ``__MODULES_LMSTICKYRULE``.
+
+ This environment variable is intended for :command:`module` command internal
+ use to get knowledge of the stickiness scope when sticky module is changed.
+
+ .. only:: html
+
+    .. versionadded:: 5.4
+
 .. envvar:: __MODULES_LMTAG
 
  A colon separated list of the tags corresponding to all loaded *modulefiles*
