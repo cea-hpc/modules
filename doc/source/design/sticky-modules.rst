@@ -91,6 +91,26 @@ Specification
   - Even when ``sticky_purge`` is set to ``silent``, a warning message is
     reported when unload of sticky module is forced during a purge.
 
+- Module specification on which stickiness is defined is recorded in
+  environment when loading a sticky or super-sticky module
+
+  - This is introduced on Modules 5.4
+  - With :envvar:`__MODULES_LMSTICKYRULE` environment variable
+  - This change is made to determine if a sticky module is reloading, based on
+    the sticky rule definition
+  - It was previously made with an evaluation of modulerc files toward the
+    currently loaded sticky module. But this methodology was not able to
+    handle virtual modules whose modulefile is defined outside of enabled
+    modulepaths
+  - If stickiness is defined over a specific module name and version, sticky
+    rule definition is not exported in user environment when loading module.
+    This way we know stickiness reloads if exact same module name and version
+    reloads
+  - If several generic sticky rules applies to the loading module, all of them
+    are recorded in user environment
+  - When stickiness is set with ``--tag`` option, it applies to the module
+    name and version, thus no rule need to be recorded in loaded environment
+
 
 Current limitations
 -------------------
