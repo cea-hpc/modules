@@ -3479,6 +3479,22 @@ ENVIRONMENT
        Variable renamed from ``MODULES_LMCONFLICT`` to
        ``__MODULES_LMCONFLICT``
 
+.. envvar:: __MODULES_LMEXTRATAG
+
+ A colon separated list of the tags corresponding to all loaded *modulefiles*
+ that have been set through the :option:`--tag` option. Each element in this
+ list starts by the name of the loaded *modulefile* followed by all explicitly
+ set tags applying to it. The loaded modulefile and its tags are separated by
+ the ampersand character.
+
+ This environment variable is intended for :command:`module` command internal
+ use to distinguish from all tags those that have been specifically set with
+ :option:`--tag` option.
+
+ .. only:: html
+
+    .. versionadded:: 5.1
+
 .. envvar:: __MODULES_LMINIT
 
  A colon separated list describing the modulepaths that have been enabled and
@@ -3560,22 +3576,6 @@ ENVIRONMENT
     .. versionchanged:: 5.0
        Variable renamed from ``MODULES_LMSOURCESH`` to
        ``__MODULES_LMSOURCESH``
-
-.. envvar:: __MODULES_LMEXTRATAG
-
- A colon separated list of the tags corresponding to all loaded *modulefiles*
- that have been set through the :option:`--tag` option. Each element in this
- list starts by the name of the loaded *modulefile* followed by all explicitly
- set tags applying to it. The loaded modulefile and its tags are separated by
- the ampersand character.
-
- This environment variable is intended for :command:`module` command internal
- use to distinguish from all tags those that have been specifically set with
- :option:`--tag` option.
-
- .. only:: html
-
-    .. versionadded:: 5.1
 
 .. envvar:: __MODULES_LMTAG
 
