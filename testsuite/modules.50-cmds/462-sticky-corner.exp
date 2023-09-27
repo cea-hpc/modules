@@ -419,6 +419,179 @@ testouterr_cmd_re sh {restore testsuite/home/coll-sticky-6} $ans $tserr
 
 
 #
+# is sticky reloading tests over loading module
+#
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMTAG
+
+setenv_var TESTSUITE_STICKY 1
+
+set ans [list]
+lappend ans [list set LOADEDMODULES sticky1/1.0:sticky2/1.0:sticky3/1.0]
+lappend ans [list set _LMFILES_ $mp/sticky1/1.0:$mp/sticky2/1.0:$mp/sticky3/1.0]
+lappend ans [list set __MODULES_LMPREREQ sticky2/1.0&sticky1/1.0|sticky1/2.0:sticky3/1.0&sticky2/1.0]
+lappend ans [list set __MODULES_LMTAG sticky1/1.0&sticky&auto-loaded:sticky2/1.0&auto-loaded]
+lappend ans [list ERR]
+set tserr [msg_top_load sticky3/1.0 {} {sticky1/1.0 sticky2/1.0} {} $err_stickyunload]
+testouterr_cmd_re sh {load --auto sticky3/1.0} $ans $tserr
+
+setenv_var TESTSUITE_STICKY 2
+testouterr_cmd_re sh {load --auto sticky3/1.0} $ans $tserr
+setenv_var TESTSUITE_STICKY 3
+testouterr_cmd_re sh {load --auto sticky3/1.0} $ans $tserr
+setenv_var TESTSUITE_STICKY 4
+testouterr_cmd_re sh {load --auto sticky3/1.0} $ans $tserr
+
+setenv_var TESTSUITE_STICKY 5
+testouterr_cmd_re sh {load --auto sticky3/1.0} $ans $tserr
+setenv_var TESTSUITE_STICKY 6
+testouterr_cmd_re sh {load --auto sticky3/1.0} $ans $tserr
+
+setenv_var TESTSUITE_STICKY 7
+set ans [list]
+lappend ans [list set LOADEDMODULES sticky1/1.0:sticky2/1.0:sticky3/1.0]
+lappend ans [list set _LMFILES_ $mp/sticky1/1.0:$mp/sticky2/1.0:$mp/sticky3/1.0]
+lappend ans [list set __MODULES_LMSTICKYRULE sticky1/1.0&sticky|sticky1]
+lappend ans [list set __MODULES_LMPREREQ sticky2/1.0&sticky1/1.0|sticky1/2.0:sticky3/1.0&sticky2/1.0]
+lappend ans [list set __MODULES_LMTAG sticky1/1.0&sticky&auto-loaded:sticky2/1.0&auto-loaded]
+lappend ans [list ERR]
+#FIXME module switch may resolve switched-on module prior testing stickiness is preserved
+testouterr_cmd_re sh {load --auto sticky3/1.0} $ans $tserr
+
+setenv_var TESTSUITE_STICKY 8
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ sticky2/1.0&sticky0]
+lappend ans [list set _LMFILES_ $mp/sticky0:$mp/sticky2/1.0]
+lappend ans [list set LOADEDMODULES sticky0:sticky2/1.0]
+lappend ans [list set __MODULES_LMTAG sticky0&sticky&auto-loaded]
+set tserr [msg_top_load sticky2/1.0 {} {sticky0} {}]
+testouterr_cmd_re sh {load --auto sticky2/1.0} $ans $tserr
+set tserr [msg_load sticky3/1.0 $err_stickyunload [err_conun sticky0]]
+testouterr_cmd_re sh {load --auto sticky3/1.0} ERR $tserr
+
+setenv_var TESTSUITE_STICKY 9
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ sticky2/1.0&sticky4/sub/1.0|sticky4/sub/2.0]
+lappend ans [list set _LMFILES_ $mp/sticky4/sub/1.0:$mp/sticky2/1.0]
+lappend ans [list set LOADEDMODULES sticky4/sub/1.0:sticky2/1.0]
+lappend ans [list set __MODULES_LMTAG sticky4/sub/1.0&sticky&auto-loaded]
+set tserr [msg_top_load sticky2/1.0 {} {sticky4/sub/1.0} {}]
+testouterr_cmd_re sh {load --auto sticky2/1.0} $ans $tserr
+
+set ans [list]
+lappend ans [list set LOADEDMODULES sticky4/sub/1.0:sticky2/1.0:sticky3/1.0]
+lappend ans [list set _LMFILES_ $mp/sticky4/sub/1.0:$mp/sticky2/1.0:$mp/sticky3/1.0]
+lappend ans [list set __MODULES_LMPREREQ sticky2/1.0&sticky4/sub/1.0|sticky4/sub/2.0:sticky3/1.0&sticky2/1.0]
+lappend ans [list set __MODULES_LMTAG sticky4/sub/1.0&sticky&auto-loaded:sticky2/1.0&auto-loaded]
+lappend ans [list ERR]
+set tserr [msg_top_load sticky3/1.0 {} {sticky4/sub/1.0 sticky2/1.0} {} $err_stickyunload]
+testouterr_cmd_re sh {load --auto sticky3/1.0} $ans $tserr
+
+setenv_var TESTSUITE_STICKY 10
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ sticky2/1.0&sticky4/sub/1.0|sticky4/sub/2.0]
+lappend ans [list set __MODULES_LMSTICKYRULE sticky4/sub/1.0&sticky|sticky4/sub]
+lappend ans [list set _LMFILES_ $mp/sticky4/sub/1.0:$mp/sticky2/1.0]
+lappend ans [list set LOADEDMODULES sticky4/sub/1.0:sticky2/1.0]
+lappend ans [list set __MODULES_LMTAG sticky4/sub/1.0&sticky&auto-loaded]
+set tserr [msg_top_load sticky2/1.0 {} {sticky4/sub/1.0} {}]
+testouterr_cmd_re sh {load --auto sticky2/1.0} $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ sticky2/1.0&sticky4/sub/1.0|sticky4/sub/2.0:sticky3/1.0&sticky2/1.0&sticky4/sub/2.0]
+lappend ans [list set __MODULES_LMSTICKYRULE sticky4/sub/2.0&sticky|sticky4/sub]
+lappend ans [list set _LMFILES_ $mp/sticky4/sub/2.0:$mp/sticky2/1.0:$mp/sticky3/1.0]
+lappend ans [list set LOADEDMODULES sticky4/sub/2.0:sticky2/1.0:sticky3/1.0]
+lappend ans [list set __MODULES_LMTAG sticky4/sub/2.0&sticky&auto-loaded:sticky2/1.0&auto-loaded]
+set tserr [msg_top_load sticky3/1.0 {sticky4/sub/1.0} {} {sticky2/1.0} {Loading requirement: sticky4/sub/1.0 sticky2/1.0 sticky4/sub/2.0}]
+testouterr_cmd_re sh {load --auto sticky3/1.0} $ans $tserr
+
+
+#
+# inconsistent environment
+#
+
+setenv_var TESTSUITE_STICKY 10
+
+# sticky rule set but not tag
+setenv_loaded_module [list sticky4/sub/1.0] [list $mp/sticky4/sub/1.0]
+setenv_var __MODULES_LMSTICKYRULE sticky4/sub/1.0&sticky|sticky4/sub
+unsetenv_var __MODULES_LMTAG
+set ans [list]
+lappend ans [list unset __MODULES_LMSTICKYRULE]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+testouterr_cmd_re sh {unload --auto sticky4} $ans {}
+
+# sticky rule inconsistent
+setenv_loaded_module [list sticky4/sub/1.0] [list $mp/sticky4/sub/1.0]
+setenv_var __MODULES_LMSTICKYRULE sticky4/sub/1.0&sticky
+setenv_var __MODULES_LMTAG sticky4/sub/1.0&sticky
+set tserr [msg_switch {sticky4/sub/1.0 <S>} sticky4/sub/2.0 $err_stickyunload]
+testouterr_cmd_re sh {switch sticky4/sub/2.0} ERR $tserr
+
+setenv_var __MODULES_LMSTICKYRULE sticky4/sub/1.0
+testouterr_cmd_re sh {switch sticky4/sub/2.0} ERR $tserr
+
+setenv_var __MODULES_LMSTICKYRULE sticky4/sub/1.0&foo
+testouterr_cmd_re sh {switch sticky4/sub/2.0} ERR $tserr
+
+setenv_var __MODULES_LMSTICKYRULE sticky4/sub/1.0&
+testouterr_cmd_re sh {switch sticky4/sub/2.0} ERR $tserr
+
+setenv_var __MODULES_LMSTICKYRULE sticky4/sub/1.0&foo|sticky4/sub
+testouterr_cmd_re sh {switch sticky4/sub/2.0} ERR $tserr
+
+setenv_var __MODULES_LMSTICKYRULE sticky4/sub/1.0&sticky|
+testouterr_cmd_re sh {switch sticky4/sub/2.0} ERR $tserr
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMSTICKYRULE
+unsetenv_var __MODULES_LMTAG
+
+
+#
+# several generic definition
+#
+
+setenv_var TESTSUITE_STICKY 11
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ sticky2/1.0&sticky4/sub/1.0|sticky4/sub/2.0]
+lappend ans [list set __MODULES_LMSTICKYRULE sticky4/sub/1.0&sticky|sticky4/sub|sticky4]
+lappend ans [list set _LMFILES_ $mp/sticky4/sub/1.0:$mp/sticky2/1.0]
+lappend ans [list set LOADEDMODULES sticky4/sub/1.0:sticky2/1.0]
+lappend ans [list set __MODULES_LMTAG sticky4/sub/1.0&sticky&auto-loaded]
+set tserr [msg_top_load sticky2/1.0 {} {sticky4/sub/1.0} {}]
+testouterr_cmd_re sh {load --auto sticky2/1.0} $ans $tserr
+
+setenv_loaded_module [list sticky4/sub/1.0] [list $mp/sticky4/sub/1.0]
+setenv_var __MODULES_LMSTICKYRULE sticky4/sub/1.0&sticky|sticky4/sub|sticky4
+setenv_var __MODULES_LMTAG sticky4/sub/1.0&sticky
+
+set tserr [msg_switch {sticky4/sub/1.0 <S>} sticky4/sub2/1.0 $err_stickyunload]
+testouterr_cmd_re sh {switch sticky4/sub2/1.0} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMSTICKYRULE sticky4/sub/2.0&sticky|sticky4/sub|sticky4]
+lappend ans [list set _LMFILES_ $mp/sticky4/sub/2.0]
+lappend ans [list set LOADEDMODULES sticky4/sub/2.0]
+lappend ans [list set __MODULES_LMTAG sticky4/sub/2.0&sticky]
+testouterr_cmd_re sh {switch sticky4/sub/2.0} $ans {}
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMSTICKYRULE
+unsetenv_var __MODULES_LMTAG
+
+
+#
 #  Cleanup
 #
 
