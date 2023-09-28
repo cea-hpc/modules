@@ -121,4 +121,14 @@ Current limitations
   - If specified swapped-on module is the generic module name, for instance *foo*
   - ``switch`` sub-command raises an error even if the sticky module is the default version (either implicit or explicitly set) for this module
 
+- When swapping a sticky module defined over a full path modulefile by another
+  in different modulepath but with same module name and version
+
+  - This switched-on module is currently considered as the sticky module
+    reloading
+
+- When swapping a sticky module by itself but specified as full path module
+  swap command is not able to detect same module is reloading
+
+
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
