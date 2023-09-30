@@ -1816,24 +1816,12 @@ proc unsetLoadedVariant {mod} {
    }
 }
 
-proc getLoadedVariant {mod {serialized 0}} {
-   set ret {}
-
-   set sub2sep [getState sub2_separator]
+proc getLoadedVariant {mod} {
    if {[info exists ::g_loadedModuleVariant($mod)]} {
-      if {$serialized} {
-         # get variant info as a string that can be registered in an env var
-         foreach vrspec $::g_loadedModuleVariant($mod) {
-            lappend modvrspec [join $vrspec $sub2sep]
-         }
-         # translate range specifier ':' into '<' to distinguish from path sep
-         set ret [string map {: <} [join [list $mod {*}$modvrspec]\
-            [getState sub1_separator]]]
-      } else {
-         set ret $::g_loadedModuleVariant($mod)
-      }
+      set ret $::g_loadedModuleVariant($mod)
+   } else {
+      set ret {}
    }
-
    return $ret
 }
 
