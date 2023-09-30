@@ -359,14 +359,18 @@ proc getAllModuleResolvedName {mod {flag_type 0} {modspec {}} {filter_default\
                $::g_moduleResolved($resmod) {} 0] 1]) && (!$filter_default ||\
                (![modEq $resmod $modpar] && ![modEq $resmod $moddfl]))} {
                # prefix automatically generated syms with type flag if asked
-               if {$flag_type && [info exists ::g_moduleAlias($resmod)]} {
-                  appendNoDupToList namelist al|$resmod
-               } elseif {$flag_type && [info exists\
-                  ::g_autoSymbol($resmod)]} {
-                  appendNoDupToList namelist as|$resmod
+               if {$flag_type} {
+                  set name_entry [list]
+                  if {[info exists ::g_moduleAlias($resmod)]} {
+                     lappend name_entry al
+                  } elseif {[info exists ::g_autoSymbol($resmod)]} {
+                     lappend name_entry as
+                  }
+                  lappend name_entry $resmod
                } else {
-                  appendNoDupToList namelist $resmod
+                  set name_entry $resmod
                }
+               appendNoDupToList namelist $name_entry
 
                unset modroot
                foreach reselt [split [file dirname $resmod] /] {
@@ -432,13 +436,13 @@ proc getEnvLoadedModulePropertyParsedList {prop {filter_empty 1}} {
       }
       default {
          set subsplit [expr {$prop ni {init refresh}}]
-         if {$prop in {altname conflict}} {
+         if {$prop in {conflict}} {
             set nosubsubsplit 1
          }
       }
    }
    switch -- $prop {
-      conflict - prereq - init - stickyrule {
+      altname - conflict - prereq - init - stickyrule {
          set unserialize_map {< :}
       }
       sourcesh {
@@ -1731,17 +1735,17 @@ proc getLoadedPrereq {mod} {
 
 proc setLoadedAltname {mod args} {
    foreach arg $args {
-      switch -- [string range $arg 0 2] {
-         al| {
-            appendNoDupToList ::g_loadedModuleAliasAltname($mod) [string\
-               range $arg 3 end]
+      switch -- [lindex $arg 0] {
+         al {
+            appendNoDupToList ::g_loadedModuleAliasAltname($mod) [lindex $arg\
+               1]
          }
-         as| {
-            appendNoDupToList ::g_loadedModuleAutoAltname($mod) [string range\
-               $arg 3 end]
+         as {
+            appendNoDupToList ::g_loadedModuleAutoAltname($mod) [lindex $arg\
+               1]
          }
          default {
-            appendNoDupToList ::g_loadedModuleAltname($mod) $arg
+            appendNoDupToList ::g_loadedModuleAltname($mod) [lindex $arg 0]
          }
       }
    }
@@ -1759,19 +1763,22 @@ proc unsetLoadedAltname {mod} {
    }
 }
 
-proc getLoadedAltname {mod {serialized 0} {typelist {sym alias autosym}}} {
+proc getLoadedAltname {mod {typelist {sym alias autosym}} {with_type 0}} {
    set ret {}
-
    if {[info exists ::g_loadedModuleAltname($mod)] && {sym} in $typelist} {
-      set ret $::g_loadedModuleAltname($mod)
+      if {$with_type} {
+         foreach altname $::g_loadedModuleAltname($mod) {
+            lappend ret [list $altname]
+         }
+      } else {
+         set ret $::g_loadedModuleAltname($mod)
+      }
    }
    if {[info exists ::g_loadedModuleAliasAltname($mod)] && {alias} in\
       $typelist} {
-      if {$serialized} {
-         # add a 'al|' prefix to each alias to distinguish them when
-         # serialized
+      if {$with_type} {
          foreach altname $::g_loadedModuleAliasAltname($mod) {
-            lappend ret al|$altname
+            lappend ret [list al $altname]
          }
       } else {
          lappend ret {*}$::g_loadedModuleAliasAltname($mod)
@@ -1779,22 +1786,14 @@ proc getLoadedAltname {mod {serialized 0} {typelist {sym alias autosym}}} {
    }
    if {[info exists ::g_loadedModuleAutoAltname($mod)] && {autosym} in\
       $typelist} {
-      if {$serialized} {
-         # add a 'as|' prefix to each auto sym to distinguish them when
-         # serialized
+      if {$with_type} {
          foreach altname $::g_loadedModuleAutoAltname($mod) {
-            lappend ret as|$altname
+            lappend ret [list as $altname]
          }
       } else {
          lappend ret {*}$::g_loadedModuleAutoAltname($mod)
       }
    }
-
-   if {$ret ne {} && $serialized} {
-      # get altname info as a string that can be registered in an env var
-      set ret [join [list $mod {*}$ret] [getState sub1_separator]]
-   }
-
    return $ret
 }
 

@@ -636,8 +636,8 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp 0}\
    }
    # get alternative names if mod is loading(1) or loaded(2)
    set altlist [switch -- $ismodlo {
-      7 {getLoadedAltname $mod 0 {alias}}
-      6 {getLoadedAltname $mod 0 {sym autosym}}
+      7 {getLoadedAltname $mod {alias}}
+      6 {getLoadedAltname $mod {sym autosym}}
       5 {getAvailListFromVersSpec $mod}
       4 {getAllModuleResolvedName $mod 0 {} 1}
       3 {getLoadedAltAndSimplifiedName $mod}
@@ -764,8 +764,8 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
       set endwslash 0
    }
    set altlist [switch -- $ismodlo {
-      7 {getLoadedAltname $mod 0 {alias}}
-      6 {getLoadedAltname $mod 0 {sym autosym}}
+      7 {getLoadedAltname $mod {alias}}
+      6 {getLoadedAltname $mod {sym autosym}}
       5 {getAvailListFromVersSpec $mod}
       4 {getAllModuleResolvedName $mod 0 {} 1}
       3 {getLoadedAltAndSimplifiedName $mod}
@@ -885,8 +885,8 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
       set endwslash 0
    }
    set altlist [switch -- $ismodlo {
-      7 {getLoadedAltname $mod 0 {alias}}
-      6 {getLoadedAltname $mod 0 {sym autosym}}
+      7 {getLoadedAltname $mod {alias}}
+      6 {getLoadedAltname $mod {sym autosym}}
       5 {getAvailListFromVersSpec $mod}
       4 {getAllModuleResolvedName $mod 0 {} 1}
       3 {getLoadedAltAndSimplifiedName $mod}
@@ -1022,8 +1022,8 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
       set endwslash 0
    }
    set altlist [switch -- $ismodlo {
-      7 {getLoadedAltname $mod 0 {alias}}
-      6 {getLoadedAltname $mod 0 {sym autosym}}
+      7 {getLoadedAltname $mod {alias}}
+      6 {getLoadedAltname $mod {sym autosym}}
       5 {getAvailListFromVersSpec $mod}
       4 {getAllModuleResolvedName $mod 0 {} 1}
       3 {getLoadedAltAndSimplifiedName $mod}

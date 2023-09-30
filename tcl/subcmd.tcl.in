@@ -52,7 +52,7 @@ proc cmdModuleList {show_oneperline show_mtime search_match args} {
       # fetch symbols from loaded environment information
       set modname [file dirname $mod]
       set sym_list {}
-      foreach altname [getLoadedAltname $mod 0 sym] {
+      foreach altname [getLoadedAltname $mod sym] {
          # skip non-symbol entry
          if {$altname ne $modname} {
             lappend sym_list [file tail $altname]
@@ -68,7 +68,7 @@ proc cmdModuleList {show_oneperline show_mtime search_match args} {
 
       # fetch aliases from loaded environment information
       if {$report_alias} {
-         foreach altname [getLoadedAltname $mod 0 alias] {
+         foreach altname [getLoadedAltname $mod alias] {
             set mod_list($altname) [list alias $mod]
             lappend loadedmodlist $altname
          }
@@ -1344,8 +1344,10 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
          }
 
          # declare the alternative names of this module
-         if {[set modalt [getLoadedAltname $modname 1]] ne {}} {
-            append-path __MODULES_LMALTNAME $modalt
+         if {[llength [set mod_alt_list [getLoadedAltname $modname {sym alias\
+            autosym} 1]]] > 0} {
+            append-path __MODULES_LMALTNAME [serialize2LvlModulePropertyValue\
+               $modname $mod_alt_list]
          }
 
          # declare the variant of this module
