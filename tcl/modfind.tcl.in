@@ -771,7 +771,7 @@ proc getExtraTagList {mod {serialized 0}} {
 }
 
 # return rule definition of sticky/super-sticky tag on given module
-proc getStickyRuleList {mod {serialized 0} {fpmod {}}} {
+proc getStickyRuleList {mod {fpmod {}}} {
    set ret {}
    foreach tag {sticky super-sticky} {
       if {[isModuleTagged $mod $tag 1]} {
@@ -789,20 +789,9 @@ proc getStickyRuleList {mod {serialized 0} {fpmod {}}} {
          }
 
          if {[llength $tag_rule_list] > 0 && $export_sticky_rule} {
-            set sticky_rule [list $tag {*}$tag_rule_list]
-            if {$serialized} {
-               lappend ret [join $sticky_rule [getState sub2_separator]]
-            } else {
-               lappend ret $sticky_rule
-            }
+            lappend ret [list $tag {*}$tag_rule_list]
          }
       }
-   }
-   if {$serialized && [llength $ret] > 0} {
-      # extract mod name and version from full spec with variants
-      # translate range specifier ':' into '<' to distinguish from path sep
-      set ret [string map {: <} [join [list [getModuleNameAndVersFromVersSpec\
-         $mod] {*}$ret] [getState sub1_separator]]]
    }
    return $ret
 }
