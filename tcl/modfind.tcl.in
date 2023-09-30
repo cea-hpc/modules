@@ -1650,20 +1650,12 @@ proc unsetLoadedConflict {mod} {
    }
 }
 
-proc getLoadedConflict {mod {serialized 0}} {
-   set ret {}
-
+proc getLoadedConflict {mod} {
    if {[info exists ::g_loadedModuleConflict($mod)]} {
-      if {$serialized} {
-         # get conflict info as a string that can be registered in an env var
-         # translate range specifier ':' into '<' to distinguish from path sep
-         set ret [string map {: <} [join [list $mod\
-            {*}$::g_loadedModuleConflict($mod)] [getState sub1_separator]]]
-      } else {
-         set ret $::g_loadedModuleConflict($mod)
-      }
+      set ret $::g_loadedModuleConflict($mod)
+   } else {
+      set ret {}
    }
-
    return $ret
 }
 
