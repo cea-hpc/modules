@@ -1728,24 +1728,12 @@ proc unsetLoadedPrereq {mod} {
    }
 }
 
-proc getLoadedPrereq {mod {serialized 0}} {
-   set ret {}
-
-   set sub2sep [getState sub2_separator]
+proc getLoadedPrereq {mod} {
    if {[info exists ::g_loadedModulePrereq($mod)]} {
-      if {$serialized} {
-         # get prereq info as a string that can be registered in an env var
-         foreach pre $::g_loadedModulePrereq($mod) {
-            lappend modpre [join $pre $sub2sep]
-         }
-         # translate range specifier ':' into '<' to distinguish from path sep
-         set ret [string map {: <} [join [list $mod {*}$modpre]\
-            [getState sub1_separator]]]
-      } else {
-         set ret $::g_loadedModulePrereq($mod)
-      }
+      set ret $::g_loadedModulePrereq($mod)
+   } else {
+      set ret {}
    }
-
    return $ret
 }
 
@@ -1890,6 +1878,27 @@ proc unsetEnvLoadedModuleProperty {mod_name prop} {
    if {[string length $mod_env_loaded_prop] > 0} {
       remove-path $prop_env_var $mod_env_loaded_prop
    }
+}
+
+proc serialize2LvlModulePropertyValue {mod structured_value_list} {
+   set sub2_sepa [getState sub2_separator]
+   set serialized_value_list [list]
+   foreach structured_value $structured_value_list {
+      lappend serialized_value_list [join $structured_value $sub2_sepa]
+   }
+   return [serializeModulePropertyValue $mod $serialized_value_list]
+}
+
+proc serializeModulePropertyValue {mod structured_value_list} {
+   if {[llength $structured_value_list] > 0} {
+      set serialized_value [join [list $mod {*}$structured_value_list]\
+         [getState sub1_separator]]
+      # translate ':' into '<' to distinguish it from path separator
+      set ret [string map {: <} $serialized_value]
+   } else {
+      set ret {}
+   }
+   return $ret
 }
 
 # get current loaded state to record it as the virtual init collection
