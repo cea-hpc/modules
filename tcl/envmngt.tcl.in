@@ -161,12 +161,12 @@ proc renderSettings {} {
       g_newXResources g_delXResources g_shcode_out
 
    # preliminaries if there is stuff to render
-   if {[getState autoinit] || [array size g_stateEnvVars] > 0 ||\
-      [array size g_stateAliases] > 0 || [array size g_newXResources] > 0 ||\
-      [array size g_stateFunctions] > 0 || [array size g_stateCompletes] > 0\
-      || [array size g_delXResources] > 0 || [info exists ::g_changeDir] ||\
-      [info exists ::g_stdoutPuts] || [info exists ::g_prestdoutPuts] ||\
-      [info exists ::g_return_text]} {
+   if {[getState autoinit] || [array size g_stateEnvVars] || [array size\
+      g_stateAliases] || [array size g_newXResources] || [array size\
+      g_stateFunctions] || [array size g_stateCompletes] || [array size\
+      g_delXResources] || [info exists ::g_changeDir] || [info exists\
+      ::g_stdoutPuts] || [info exists ::g_prestdoutPuts] || [info exists\
+      ::g_return_text]} {
       switch -- [getState shelltype] {
          python {
             lappend g_shcode_out {import os}
@@ -437,7 +437,7 @@ proc renderSettings {} {
    }
 
    # preliminaries for x-resources stuff
-   if {[array size g_newXResources] > 0 || [array size g_delXResources] > 0} {
+   if {[array size g_newXResources] || [array size g_delXResources]} {
       switch -- [getState shelltype] {
          python {
             lappend g_shcode_out {import subprocess}
@@ -449,7 +449,7 @@ proc renderSettings {} {
    }
 
    # new x resources
-   if {[array size g_newXResources] > 0} {
+   if {[array size g_newXResources]} {
       # xrdb executable has already be verified in x-resource
       set xrdb [getCommandPath xrdb]
       foreach var [array names g_newXResources] {
@@ -546,7 +546,7 @@ proc renderSettings {} {
       }
    }
 
-   if {[array size g_delXResources] > 0} {
+   if {[array size g_delXResources]} {
       ##nagelfar ignore Found constant
       set xrdb [getCommandPath xrdb]
       set xres_to_del {}
