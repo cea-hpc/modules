@@ -423,78 +423,33 @@ proc getLoadedAltAndSimplifiedName {mod} {
 
 # return value list of a loaded module property by parsing corresponding
 # environment variable
-proc getEnvLoadedModulePropertyParsedList {prop {filter_empty 1}} {
+proc getEnvLoadedModulePropertyParsedList {prop} {
    switch -- $prop {
-      name {
-         set subsplit 0
+      conflict - tag - extratag {
+         set unserialize_proc unserialize1LvlModulePropertyValueList
       }
-      file {
-         set subsplit 0
-      }
-      modulepath {
-         set subsplit 0
+      sourcesh - prereq - altname - variant - stickyrule {
+         set unserialize_proc unserialize2LvlModulePropertyValueList
       }
       default {
-         set subsplit [expr {$prop ni {init refresh}}]
-         if {$prop in {conflict}} {
-            set nosubsubsplit 1
-         }
+         set unserialize_proc unserialize0LvlModulePropertyValueList
       }
    }
    switch -- $prop {
-      altname - conflict - prereq - init - stickyrule {
-         set unserialize_map {< :}
-      }
       sourcesh {
-         set unserialize_submap [list <EnvModEscPS> [getState path_separator]\
+         set char_unmap_list [list <EnvModEscPS> [getState path_separator]\
             <EnvModEscS1> [getState sub1_separator]\
             <EnvModEscS2> [getState sub2_separator]]
       }
-   }
-
-   set res_list [list]
-   foreach elt [getEnvLoadedModulePropertyList $prop] {
-      if {$subsplit} {
-         set sub1sep [getState sub1_separator]
-         set sub2sep [getState sub2_separator]
-         # unserialize content of environment variable if map translation set
-         if {[info exists unserialize_map]} {
-            set elt [string map $unserialize_map $elt]
-         }
-         set subelt_list [split $elt $sub1sep]
-         # ignore empty element (1 is meaningless as first elt is loaded mod)
-         if {[llength $subelt_list] > 1 || !$filter_empty} {
-            set subres_list {}
-            foreach subelt $subelt_list {
-               # keep first arg as string and other args as lists (unless if
-               # subelt should not be split)
-               if {[llength $subres_list] && ![info exists nosubsubsplit]} {
-                  set subelt [split $subelt $sub2sep]
-                  # skip empty value element
-                  if {![llength $subelt] && $filter_empty} {
-                     continue
-                  }
-               }
-               if {[info exists unserialize_submap]} {
-                  set subelt [string map $unserialize_submap $subelt]
-               }
-               lappend subres_list $subelt
-            }
-
-            lappend res_list $subres_list
-         }
-      } else {
-         # ignore empty element
-         if {$elt ne {} || !$filter_empty} {
-            # unserialize content of env variable if map translation set
-            if {[info exists unserialize_map]} {
-               set elt [string map $unserialize_map $elt]
-            }
-            lappend res_list $elt
-         }
+      default {
+         set char_unmap_list {< :}
       }
    }
-   return $res_list
+
+   set serialized_value_list [getEnvLoadedModulePropertyList $prop]
+   set structured_value_list [$unserialize_proc $serialized_value_list\
+      $char_unmap_list]
+   return $structured_value_list
 }
 
 proc getEnvLoadedModulePropertyList {prop} {
@@ -1852,6 +1807,66 @@ proc serializeModulePropertyValue {mod structured_value_list {char_map_list\
       set ret {}
    }
    return $ret
+}
+
+proc unserialize2LvlModulePropertyValueList {serialized_value_list\
+   {char_unmap_list {< :}}} {
+   set lvl1_serialized_value_list [unserialize1LvlModulePropertyValueList\
+      $serialized_value_list {}]
+   set structured_value_list {}
+   set sub2_sepa [getState sub2_separator]
+   foreach lvl1_serialized_value $lvl1_serialized_value_list {
+      set lvl1_strutured_value {}
+      set first 1
+      foreach lvl2_serialized_value $lvl1_serialized_value {
+         # keep first element as string (module name)
+         if {$first} {
+            set lvl2_structured_value [string map $char_unmap_list\
+               $lvl2_serialized_value]
+            set first 0
+         } else {
+            set lvl2_structured_value {}
+            foreach value [split $lvl2_serialized_value $sub2_sepa] {
+               lappend lvl2_structured_value [string map $char_unmap_list\
+                  $value]
+            }
+         }
+         lappend lvl1_strutured_value $lvl2_structured_value
+      }
+      lappend structured_value_list $lvl1_strutured_value
+   }
+   return $structured_value_list
+}
+
+proc unserialize1LvlModulePropertyValueList {serialized_value_list\
+   {char_unmap_list {< :}}} {
+   set structured_value_list {}
+   set sub1_sepa [getState sub1_separator]
+   foreach serialized_value $serialized_value_list {
+      set structured_value {}
+      foreach value [split $serialized_value $sub1_sepa] {
+         if {[string length $value]} {
+            lappend structured_value [string map $char_unmap_list $value]
+         }
+      }
+      # ignore empty element (1 is meaningless as first elt is loaded mod)
+      if {[llength $structured_value] > 1} {
+         lappend structured_value_list $structured_value
+      }
+   }
+   return $structured_value_list
+}
+
+proc unserialize0LvlModulePropertyValueList {serialized_value_list\
+   {char_unmap_list {< :}}} {
+   set value_list {}
+   foreach serialized_value $serialized_value_list {
+      if {[string length $serialized_value]} {
+         lappend value_list [string map $char_unmap_list $serialized_value]
+      }
+   }
+   return $value_list
+
 }
 
 # get current loaded state to record it as the virtual init collection
