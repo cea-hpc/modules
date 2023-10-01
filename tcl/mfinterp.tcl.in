@@ -53,7 +53,7 @@ proc interp-sync-env {op var {val {}}} {
    }
 
    # apply operation to each sub-interpreters if not found autosynced
-   if {[llength [interp slaves]] > 0} {
+   if {[llength [interp slaves]]} {
       reportDebug "$op var='$envvar', val='$val' on interp(s) [interp slaves]"
 
       foreach itrp [interp slaves] {
@@ -379,7 +379,7 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
          }
          # report all unknown variants specified, raise error on last report
          # take caution with vrerrlist variable as we are in modfile eval ctx
-         if {[info exists vrerrlist] && [llength $vrerrlist] > 0} {
+         if {[info exists vrerrlist] && [llength $vrerrlist]} {
             for {set i 0} {$i < ([llength $vrerrlist] - 1)} {incr i} {
                reportError [lindex $vrerrlist $i]
             }
@@ -909,7 +909,7 @@ proc module-info {what {more {}}} {
          # on it, look at symbol registered on bare module name in case there
          # are symbols registered on it but no default symbol set yet to link
          # to them
-         if {[llength $sym_list] == 0 && $modversion eq {default}} {
+         if {![llength $sym_list] && $modversion eq {default}} {
             set sym_list [getVersAliasList $modname]
          }
          return [join $sym_list :]
@@ -919,7 +919,7 @@ proc module-info {what {more {}}} {
          # tags (in case tags apply to specific module variant)
          set modname [currentState modulename]
          set vrlist [getVariantList $modname 1]
-         if {[llength $vrlist] > 0} {
+         if {[llength $vrlist]} {
             lassign [parseModuleSpecification 0 0 0 0 $modname {*}$vrlist]\
                modnamevr
          } else {
@@ -1776,8 +1776,8 @@ proc is-loaded {args} {
       }
    }
    # is something loaded whatever it is?
-   return [expr {[llength $args] == 0 && [llength\
-      [getEnvLoadedModulePropertyParsedList name]] > 0}]
+   return [expr {![llength $args] && [llength\
+      [getEnvLoadedModulePropertyParsedList name]]}]
 }
 
 proc is-loading {args} {
@@ -1787,7 +1787,7 @@ proc is-loading {args} {
       }
    }
    # is something else loading whatever it is?
-   return [expr {[llength $args] == 0 && [llength [getLoadingModuleList]] >1}]
+   return [expr {![llength $args] && [llength [getLoadingModuleList]] > 1}]
 }
 
 proc conflict {args} {
@@ -1844,7 +1844,7 @@ proc parsePrereqCommandArgs {cmd args} {
             --tag=* {
                set tag_list [split [string range $arg 6 end] :]
                lappend opt_list $arg
-               if {[llength $tag_list] == 0} {
+               if {![llength $tag_list]} {
                   knerror "Missing value for '--tag' option"
                }
             }
@@ -1871,7 +1871,7 @@ proc parsePrereqCommandArgs {cmd args} {
          knerror "Tag '$tag' cannot be manually set"
       }
    }
-   if {[llength $prereq_list] == 0} {
+   if {![llength $prereq_list]} {
       knerror "wrong # args: should be \"$cmd ?--optional? ?--tag? ?taglist?\
          modulefile ?...?\""
    } elseif {[set mispopt [lsearch -inline -glob $prereq_list --*]] ne {}} {
@@ -1917,7 +1917,7 @@ proc prereqAnyModfileCmd {tryload auto args} {
             lappend loadedmod_list $loadedmod
          }
       }
-      set prereqloaded [expr {[llength $loadedmod_list] > 0}]
+      set prereqloaded [llength $loadedmod_list]
    }
 
    if {!$prereqloaded} {
@@ -1939,7 +1939,7 @@ proc x-resource {resource {value {}}} {
    # as the "x-resource {Ileaf.popup.saveUnder: True}" example provided
    # in manpage. so here is an attempt to extract real resource name and
    # value from resource argument
-   if {[string length $value] == 0 && ![file exists $resource]} {
+   if {![string length $value] && ![file exists $resource]} {
       # look first for a space character as delimiter, then for a colon
       set sepapos [string first { } $resource]
       if { $sepapos == -1 } {
@@ -2013,12 +2013,12 @@ proc system {args} {
 proc is-saved {args} {
    foreach coll $args {
       lassign [findCollections $coll exact] collfile colldesc
-      if {[string length $collfile] > 0} {
+      if {[string length $collfile]} {
          return 1
       }
    }
    # is something saved whatever it is?
-   return [expr {[llength $args] == 0 && [llength [findCollections]] > 0}]
+   return [expr {![llength $args] && [llength [findCollections]]}]
 }
 
 # test at least one of the directories passed as argument is set in MODULEPATH
@@ -2033,7 +2033,7 @@ proc is-used {args} {
       }
    }
    # is something used whatever it is?
-   return [expr {[llength $args] == 0 && [llength $modpathlist] > 0}]
+   return [expr {![llength $args] && [llength $modpathlist]}]
 }
 
 # test at least one of the modulefiles passed as argument exists
@@ -2361,7 +2361,7 @@ proc sh-to-mod {args} {
                appendNoDupToList vallist {*}[split [string range\
                   $varaft($name) 0 $idx-2] $delim]
                # an empty element is added
-               if {[llength $vallist] == 0} {
+               if {![llength $vallist]} {
                   lappend vallist {}
                }
                lappend modcontent [list {*}$modcmd {*}$vallist]
@@ -2380,7 +2380,7 @@ proc sh-to-mod {args} {
                appendNoDupToList vallist {*}[split [string range\
                   $varaft($name) [expr {$idx + [string length $varbef($name)]\
                   + 1}] end] $delim]
-               if {[llength $vallist] == 0} {
+               if {![llength $vallist]} {
                   lappend vallist {}
                }
                lappend modcontent [list {*}$modcmd {*}$vallist]
@@ -2589,7 +2589,7 @@ proc parseVariantCommandArgs {args} {
    }
    set values [lrange $args $i end]
    if {$isboolean} {
-      if {[llength $values] > 0} {
+      if {[llength $values]} {
          knerror "No value should be defined for boolean variant '$name'"
       } else {
          set values {1 0 yes no true false on off}
@@ -2655,8 +2655,8 @@ proc variant {itrp args} {
       } elseif {[currentState mode] eq {display}} {
          return
       } else {
-         set allowedmsg [expr {[llength $values] == 0 ? {} : "\nAllowed\
-            values are: $values"}]
+         set allowedmsg [expr {![llength $values] ? {} : "\nAllowed values\
+            are: $values"}]
          knerror "No value specified for variant '$name'$allowedmsg"\
             MODULES_ERR_GLOBAL
       }
@@ -2664,7 +2664,7 @@ proc variant {itrp args} {
 
    # check defined value
    if {($isboolean && ![string is boolean -strict $value]) || (!$isboolean &&\
-      [llength $values] > 0 && $value ni $values)} {
+      [llength $values] && $value ni $values)} {
       # invalid value error is not a modulefile error
       knerror "Invalid value '$value' for variant '$name'\nAllowed values\
          are: $values" MODULES_ERR_GLOBAL
@@ -2747,7 +2747,7 @@ proc always-load {args} {
 
 proc family {name} {
    # ensure name is valid to be part of the name of an environment variable
-   if {[string length $name] == 0 || ![regexp {^[A-Za-z0-9_]*$} $name]} {
+   if {![string length $name] || ![regexp {^[A-Za-z0-9_]*$} $name]} {
       knerror "Invalid family name '$name'"
    }
 
@@ -2769,7 +2769,7 @@ proc family {name} {
 
 proc family-un {name} {
    # ensure name is valid to be part of the name of an environment variable
-   if {[string length $name] == 0 || ![regexp {^[A-Za-z0-9_]*$} $name]} {
+   if {![string length $name] || ![regexp {^[A-Za-z0-9_]*$} $name]} {
       knerror "Invalid family name '$name'"
    }
 
@@ -2780,7 +2780,7 @@ proc family-un {name} {
 }
 
 proc complete {shell name body} {
-   if {[string length $name] == 0} {
+   if {![string length $name]} {
       knerror "Invalid command name '$name'"
    }
    # append definition retaining for which shell they are made
@@ -2798,7 +2798,7 @@ proc complete-un {shell name body} {
 }
 
 proc uncomplete {name} {
-   if {[string length $name] == 0} {
+   if {![string length $name]} {
       knerror "Invalid command name '$name'"
    }
    set ::g_Completes($name) {}
@@ -2841,7 +2841,7 @@ proc pushenv-un {var val} {
          remove-path --index $pushvar $popidx
       }
 
-      if {[llength $pushlist] > 0} {
+      if {[llength $pushlist]} {
          # fetch value on top of the stack
          set validx [expr {[string first & [lindex $pushlist 0]] + 1}]
          set popval [string range [lindex $pushlist 0] $validx end]

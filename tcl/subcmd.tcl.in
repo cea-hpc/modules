@@ -26,7 +26,7 @@ proc cmdModuleList {show_oneperline show_mtime search_match args} {
    # load tags from loaded modules
    cacheCurrentModules
 
-   if {[llength $args] > 0} {
+   if {[llength $args]} {
       defineModEqProc [isIcase] [getConf extended_default]
       # match passed name against any part of loaded module names
       set mtest [expr {{contains} in $search_match ? {matchin} : {match}}]
@@ -89,11 +89,11 @@ proc cmdModuleList {show_oneperline show_mtime search_match args} {
    }
 
    # same header msg if no module loaded at all whether search is made or not
-   set noloadedmsg [expr {[llength $loadedmodlist] == 0 ? {No Modulefiles\
+   set noloadedmsg [expr {![llength $loadedmodlist] ? {No Modulefiles\
       Currently Loaded.} : {No Matching Modulefiles Currently Loaded.}}]
 
    # filter loaded modules not matching any of the mod spec passed
-   if {[llength $args] > 0} {
+   if {[llength $args]} {
       # include alt name comparison (alias/sym) when checking module name
       # depends if alias and/or sym are reported independently
       set modeq_altname_mode [switch -- $report_indesym$report_alias {
@@ -116,7 +116,7 @@ proc cmdModuleList {show_oneperline show_mtime search_match args} {
       set loadedmodlist $matchlist
    }
 
-   if {[llength $loadedmodlist] == 0} {
+   if {![llength $loadedmodlist]} {
       if {!$json && [isEltInReport header]} {
          report $noloadedmsg
       }
@@ -216,7 +216,7 @@ proc cmdModulePath {mod} {
 }
 
 proc cmdModuleWhatis {args} {
-   if {[llength $args] == 0} {
+   if {![llength $args]} {
       lappend args {}
    }
    foreach mod $args {
@@ -572,7 +572,7 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
       }
 
       if {[getConf auto_handling] && [info exists deprelist] && [llength\
-         $deprelist] > 0} {
+         $deprelist]} {
          # cmdModuleUnload handles the DepUn, UReqUn mechanisms and the unload
          # phase of the DepRe mechanism. List of DepRe mods and their user
          # asked state is set from cmdModuleUnload procedure to be used here
@@ -622,13 +622,13 @@ proc cmdModuleSave {{coll default}} {
    }
    # generate collection content with header indicating oldest Modules version
    # compatible with collection syntax
-   set coll_header [expr {[llength $curr_tag_arrser] > 0 ? {#%Module5.1} :\
+   set coll_header [expr {[llength $curr_tag_arrser] ? {#%Module5.1} :\
       {}}]
 
    set save [formatCollectionContent [getModulePathList returnempty 0]\
       $curr_mod_list $curr_tag_arrser $coll_header]
 
-   if { [string length $save] == 0} {
+   if {![string length $save]} {
       reportErrorAndExit {Nothing to save in a collection}
    }
 
@@ -658,7 +658,7 @@ proc cmdModuleSave {{coll default}} {
 
 proc cmdModuleRestore {args} {
    # distinguish between zero and one argument provided
-   if {[llength $args] == 0} {
+   if {![llength $args]} {
       set arg_provided 0
       set coll default
    } else {
@@ -704,7 +704,7 @@ proc cmdModuleRestore {args} {
       }
    }
    # unuse paths
-   if {[llength $path_to_unuse] > 0} {
+   if {[llength $path_to_unuse]} {
       cmdModuleUnuse load {*}[lreverse $path_to_unuse]
    }
 
@@ -746,7 +746,7 @@ proc cmdModuleRestore {args} {
    unsetConf implicit_default
 
    # use paths
-   if {[llength $path_to_use] > 0} {
+   if {[llength $path_to_use]} {
       # always append path here to guaranty the order
       # computed above in the movement lists
       cmdModuleUse load append {*}$path_to_use
@@ -782,7 +782,7 @@ proc cmdModuleSaverm {{coll default}} {
 
 proc cmdModuleSaveshow {args} {
    # distinguish between zero and one argument provided
-   if {[llength $args] == 0} {
+   if {![llength $args]} {
       set arg_provided 0
       set coll default
    } else {
@@ -808,8 +808,8 @@ proc cmdModuleSaveshow {args} {
 
    # collection should at least define a path or a mod, but initial env may be
    # totally empty
-   if {$coll ne {__init__} && [llength $coll_path_list] == 0 && [llength\
-      $coll_mod_list] == 0} {
+   if {$coll ne {__init__} && ![llength $coll_path_list] && ![llength\
+      $coll_mod_list]} {
       reportErrorAndExit "$colldesc is not a valid collection"
    }
 
@@ -854,7 +854,7 @@ proc cmdModuleSavelist {show_oneperline show_mtime search_match args} {
       set icase [isIcase]
    }
 
-   if {[llength $args] > 0} {
+   if {[llength $args]} {
       defineModEqProc $icase 0
       # match passed name against any part of collection names
       set mtest [expr {{contains} in $search_match ? {matchin} : {match}}]
@@ -862,7 +862,7 @@ proc cmdModuleSavelist {show_oneperline show_mtime search_match args} {
 
    # prepare header message which depend if search is performed (no search
    # considered if listing stash collections)
-   if {[llength $args] > 0 && $typedesc ne {stash}} {
+   if {[llength $args] && $typedesc ne {stash}} {
       set collmsg "Matching $typedesc collection list$targetdesc:"
    } else {
       set collmsg "[string totitle $typedesc] collection list$targetdesc:"
@@ -886,7 +886,7 @@ proc cmdModuleSavelist {show_oneperline show_mtime search_match args} {
    }
 
    # filter collection not matching any of the passed specification
-   if {[llength $args] > 0} {
+   if {[llength $args]} {
       set matchlist [list]
       foreach coll [array names coll_arr] {
          set match 0
@@ -995,7 +995,7 @@ proc cmdModuleIntLoad {topcall command mode tag_list args} {
    set args [replaceFromList $args --notuasked]
    # no error raised on empty argument list to cope with initadd command that
    # may expect this behavior
-   if {[llength $args] == 0} {
+   if {![llength $args]} {
       return
    }
 
@@ -1204,7 +1204,7 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
             # loaded. First perform unload phase of the reload, prior mod load
             # to ensure these dependent modules are unloaded with the same
             # loaded prereq as when they were loaded
-            if {[llength $deprelist] > 0} {
+            if {[llength $deprelist]} {
                lassign [reloadModuleListUnloadPhase deprelist [getState\
                   force] {Unload of dependent _MOD_ failed} depun]\
                   depreisuasked deprevr depreextratag
@@ -1220,18 +1220,18 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
 
          # record additional tags passed through --tag option prior mod eval
          # to make them known within evaluation
-         if {[llength $tag_list] > 0} {
+         if {[llength $tag_list]} {
             # record tags set with --tag as extra tag excluding tags relative
             # to the way module is loaded (auto, keep)
             lassign [getDiffBetweenList $tag_list [list auto-loaded\
                keep-loaded]] extratag_list
             setModuleTag $modname {*}$tag_list
-            if {[llength $extratag_list] > 0} {
+            if {[llength $extratag_list]} {
                setModuleExtraTag $modname {*}$extratag_list
             }
             if {$modnamevr ne {} && $modname ne $modnamevr} {
                setModuleTag $modnamevr {*}$tag_list
-               if {[llength $extratag_list] > 0} {
+               if {[llength $extratag_list]} {
                   setModuleExtraTag $modnamevr {*}$extratag_list
                }
             }
@@ -1326,8 +1326,7 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
             in [getState refresh_qualified]}]
 
          # register declared source-sh in environment
-         if {[llength [set mod_srcsh_list [getLoadedSourceSh $modname]]] >\
-            0} {
+         if {[llength [set mod_srcsh_list [getLoadedSourceSh $modname]]]} {
             append-path __MODULES_LMSOURCESH\
                [serialize2LvlModulePropertyValue $modname $mod_srcsh_list\
                [list [getState path_separator] <EnvModEscPS> [getState\
@@ -1336,44 +1335,42 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
          }
 
          # register declared conflict in environment
-         if {[llength [set mod_conflict_list [getLoadedConflict $modname]]] >\
-            0} {
+         if {[llength [set mod_conflict_list [getLoadedConflict $modname]]]} {
             append-path __MODULES_LMCONFLICT [serializeModulePropertyValue\
                $modname $mod_conflict_list]
          }
 
          # declare the prereq of this module
-         if {[llength [set mod_prereq_list [getLoadedPrereq $modname]]] > 0} {
+         if {[llength [set mod_prereq_list [getLoadedPrereq $modname]]]} {
             append-path __MODULES_LMPREREQ [serialize2LvlModulePropertyValue\
                $modname $mod_prereq_list]
          }
 
          # declare the alternative names of this module
          if {[llength [set mod_alt_list [getLoadedAltname $modname {sym alias\
-            autosym} 1]]] > 0} {
+            autosym} 1]]]} {
             append-path __MODULES_LMALTNAME [serialize2LvlModulePropertyValue\
                $modname $mod_alt_list]
          }
 
          # declare the variant of this module
-         if {[llength [set mod_vr_spec_list [getLoadedVariant $modname]]] >\
-            0} {
+         if {[llength [set mod_vr_spec_list [getLoadedVariant $modname]]]} {
             append-path __MODULES_LMVARIANT [serialize2LvlModulePropertyValue\
                $modname $mod_vr_spec_list]
          }
 
          # declare the tags of this module
          if {[llength [set mod_tag_list [getExportTagList $modnamevr\
-            $modfile]]] > 0} {
+            $modfile]]]} {
             append-path __MODULES_LMTAG [serializeModulePropertyValue\
                $modname $mod_tag_list]
          }
-         if {[llength [set mod_tag_list [getExtraTagList $modnamevr]]] > 0} {
+         if {[llength [set mod_tag_list [getExtraTagList $modnamevr]]]} {
             append-path __MODULES_LMEXTRATAG [serializeModulePropertyValue\
                $modname $mod_tag_list]
          }
          if {[llength [set mod_stickyrule_list [getStickyRuleList $modnamevr\
-            $modfile]]] > 0} {
+            $modfile]]]} {
             append-path __MODULES_LMSTICKYRULE\
                [serialize2LvlModulePropertyValue $modname\
                   $mod_stickyrule_list]
@@ -1387,8 +1384,8 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
          # Load phase of dependent module reloading. These modules can adapt
          # now that mod is seen loaded. Except if switch action ongoing (DepRe
          # load phase will occur from switch)
-         if {[getConf auto_handling] && [llength $deprelist] > 0 && ![info\
-            exists swprocessing]} {
+         if {[getConf auto_handling] && [llength $deprelist] && ![info exists\
+            swprocessing]} {
             reloadModuleListLoadPhase deprelist $depreisuasked $deprevr\
                $depreextratag [getState force] {Reload of dependent _MOD_\
                failed} depre
@@ -1592,8 +1589,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          # error if unloading module violates a registered prereq
          # and auto handling mode is disabled
          set prereq_list [getDependentLoadedModuleList [list $modname]]
-         if {[llength $prereq_list] > 0 && (![getConf auto_handling] ||\
-            !$auto)} {
+         if {[llength $prereq_list] && (![getConf auto_handling] || !$auto)} {
             # force mode should not affect if we only look for mods w/o dep
             ##nagelfar ignore Found constant
             if {([getState force] || $force) && !$onlyndep} {
@@ -1672,7 +1668,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             # mod unloads to ensure these dependent mods are unloaded with the
             # same loaded prereq as when they were loaded. Avoid modules not
             # satisfying their constraint.
-            if {[llength $deprelist] > 0} {
+            if {[llength $deprelist]} {
                ##nagelfar ignore +2 Found constant
                lassign [reloadModuleListUnloadPhase deprelist [getState\
                   force] {Unload of dependent _MOD_ failed} depun]\
@@ -1680,7 +1676,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             }
 
             # DepUn modules unload prior main mod unload
-            if {[llength $depunlist] > 0} {
+            if {[llength $depunlist]} {
                foreach unmod [lreverse $depunlist] {
                   ##nagelfar ignore Found constant
                   if {[cmdModuleUnload depun match 0 0 0 0 $unmod]} {
@@ -1773,7 +1769,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
 
          if {[getConf auto_handling] && $auto} {
             # UReqUn modules unload now DepUn+main mods are unloaded
-            if {[llength $urequnlist] > 0} {
+            if {[llength $urequnlist]} {
                set urequnlist [lreverse $urequnlist]
                for {set i 0} {$i < [llength $urequnlist]} {incr i 1} {
                   set unmod [lindex $urequnlist $i]
@@ -1795,7 +1791,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             # DepRe modules load phase now DepUn+UReqUn+main mods are unloaded
             # except if a switch action is ongoing as this DepRe load phase
             # will occur after the new mod load
-            if {[llength $deprelist] > 0 && ![info exists swprocessing]} {
+            if {[llength $deprelist] && ![info exists swprocessing]} {
                ##nagelfar ignore +2 Found constant
                reloadModuleListLoadPhase deprelist $depreisuasked $deprevr\
                   $depreextratag [getState force] {Reload of dependent _MOD_\
@@ -1862,7 +1858,7 @@ proc cmdModulePurge {} {
 
 proc cmdModuleReload {args} {
    # reload all loaded modules if no module list passed
-   if {[llength $args] == 0} {
+   if {![llength $args]} {
       set lmlist [getEnvLoadedModulePropertyParsedList name]
    } else {
       set lmlist $args
@@ -1873,7 +1869,7 @@ proc cmdModuleReload {args} {
    pushMsgRecordId reload-[depthState modulename] 0
 
    # no reload of all loaded modules attempt if constraints are violated
-   if {[llength $args] == 0 && ![areModuleConstraintsSatisfied]} {
+   if {![llength $args] && ![areModuleConstraintsSatisfied]} {
       reportError {Cannot reload modules, some of their constraints are not\
          satistied}
    } else {
@@ -1926,7 +1922,7 @@ proc cmdModuleAliases {} {
 
 proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
    search_match args} {
-   if {[llength $args] == 0} {
+   if {![llength $args]} {
       lappend args *
    }
 
@@ -2145,7 +2141,7 @@ proc cmdModuleAutoinit {} {
                foreach path [split $patharg :] {
                   # resolve path directory in case wildcard character used
                   set globlist [glob -types d -nocomplain $path]
-                  if {[llength $globlist] == 0} {
+                  if {![llength $globlist]} {
                      lappend pathlist $path
                   } else {
                      lappend pathlist {*}$globlist
@@ -2313,7 +2309,7 @@ proc cmdModuleInit {args} {
                            set modules [replaceFromList $modules $oldmodule]
                         }
                         set modcount [llength $modules]
-                        lappend newinit [expr {$modcount > 0 ?\
+                        lappend newinit [expr {$modcount ?\
                            "$cmd$modules$comments" : [string trim $cmd]}]
                         if {$oldmodcount > $modcount} {
                            set notdone 0
@@ -2422,7 +2418,7 @@ proc cmdModuleTest {args} {
 
 proc cmdModuleClear {args} {
    # fetch confirmation if no arg passed and force mode disabled
-   if {[llength $args] == 0 && ![getState force]} {
+   if {![llength $args] && ![getState force]} {
       # ask for it if stdin is attached to a terminal
       if {![catch {fconfigure stdin -mode}]} {
          report "Are you sure you want to clear all loaded modules!? \[n\] " 1
@@ -2451,7 +2447,7 @@ proc cmdModuleClear {args} {
 }
 
 proc cmdModuleState {args} {
-   if {[llength $args] > 0} {
+   if {[llength $args]} {
       set name [lindex $args 0]
    }
 
@@ -2590,7 +2586,7 @@ proc cmdModuleConfig {dump_state args} {
          lappendState mode load
          unsetenv $confvar($name)
          lpopState mode
-      } elseif {[llength $confvalid($name)] > 0} {
+      } elseif {[llength $confvalid($name)]} {
          switch -- $confvalidkind($name) {
             eltlist {
                # check each element in value list
@@ -2676,7 +2672,7 @@ proc cmdModuleShToMod {args} {
    set modcontent [sh-to-mod {*}$args]
 
    # output resulting modulefile
-   if {[llength $modcontent] > 0} {
+   if {[llength $modcontent]} {
       report "#%Module"
       # format each command with tabs and colors if enabled
       foreach modcmd $modcontent {
@@ -2710,7 +2706,7 @@ proc cmdModuleRefresh {} {
    foreach lm [getEnvLoadedModulePropertyParsedList refresh] {
       # prepare info to execute modulefile
       set vrlist [getVariantList $lm 1]
-      if {[llength $vrlist] > 0} {
+      if {[llength $vrlist]} {
          lassign [parseModuleSpecification 0 0 0 0 $lm {*}$vrlist] lmvr
       } else {
          set lmvr $lm
@@ -2780,7 +2776,7 @@ proc cmdModuleHelp {args} {
       }
    }
    lpopState mode
-   if {[llength $args] == 0} {
+   if {![llength $args]} {
       reportUsage
    }
 }
@@ -2806,8 +2802,7 @@ proc cmdModuleTag {unset_extra uasked tag_list args} {
       lassign [getDiffBetweenList $tag_list [getTagList $modname]] diff_list
       lassign [getDiffBetweenList [getExtraTagList $modname] $tag_list] \
          unset_list
-      if {[llength $diff_list] > 0 || ($unset_extra && [llength $unset_list]\
-         > 0)} {
+      if {[llength $diff_list] || ($unset_extra && [llength $unset_list])} {
          # set a unique id to record messages related to this evaluation.
          set msgrecid tag-$modnamevr-[depthState modulename]
          pushMsgRecordId $msgrecid
@@ -2823,7 +2818,7 @@ proc cmdModuleTag {unset_extra uasked tag_list args} {
          lpopState mode
 
          # remove extra tags currently set not part of tag list if asked
-         if {$unset_extra && [llength $unset_list] > 0} {
+         if {$unset_extra && [llength $unset_list]} {
             unsetModuleTag $modname {*}$unset_list
             unsetModuleExtraTag $modname {*}$unset_list
             if {$modnamevr ne {} && $modname ne $modnamevr} {
@@ -2845,23 +2840,23 @@ proc cmdModuleTag {unset_extra uasked tag_list args} {
          lassign [getDiffBetweenList $diff_list [list auto-loaded\
             keep-loaded]] extradiff_list
          setModuleTag $modname {*}$diff_list
-         if {[llength $extradiff_list] > 0} {
+         if {[llength $extradiff_list]} {
             setModuleExtraTag $modname {*}$extradiff_list
          }
          if {$modnamevr ne {} && $modname ne $modnamevr} {
             setModuleTag $modnamevr {*}$diff_list
-            if {[llength $extradiff_list] > 0} {
+            if {[llength $extradiff_list]} {
                setModuleExtraTag $modnamevr {*}$extradiff_list
             }
          }
 
          # set the new tag set for module on LM env var
          lappendState mode load
-         if {[llength [set mod_tag_list [getExportTagList $modnamevr]]] > 0} {
+         if {[llength [set mod_tag_list [getExportTagList $modnamevr]]]} {
             append-path __MODULES_LMTAG [serializeModulePropertyValue\
                $modname $mod_tag_list]
          }
-         if {[llength [set mod_tag_list [getExtraTagList $modnamevr]]] > 0} {
+         if {[llength [set mod_tag_list [getExtraTagList $modnamevr]]]} {
             append-path __MODULES_LMEXTRATAG [serializeModulePropertyValue\
                $modname $mod_tag_list]
          }
@@ -2886,7 +2881,7 @@ proc cmdModuleTag {unset_extra uasked tag_list args} {
 
 proc cmdModuleLint {args} {
    # stop if no linter defined
-   if {[llength [getConf tcl_linter]] == 0} {
+   if {![llength [getConf tcl_linter]]} {
       knerror {No Tcl linter program configured}
    }
 
@@ -2913,7 +2908,7 @@ proc cmdModuleLint {args} {
 
    set modfilelist {}
    # fetch every available modulefiles if no argument provided
-   if {[llength $args] == 0} {
+   if {![llength $args]} {
       # add global RC files
       foreach rc $global_rclist {
          set tolint($rc) gmrc
@@ -3049,9 +3044,9 @@ proc cmdModuleStash {} {
          mod_to_unload mod_to_load path_to_unuse path_to_use is_tags_diff
       array set coll_tag_arr $coll_tag_arrser
 
-      set diff_from_init [expr {[llength $mod_to_unload] > 0 || [llength\
-         $mod_to_load] > 0 || [llength $path_to_unuse] > 0 || [llength\
-         $path_to_use] > 0 || $is_tags_diff}]
+      set diff_from_init [expr {[llength $mod_to_unload] || [llength\
+         $mod_to_load] || [llength $path_to_unuse] || [llength $path_to_use]\
+         || $is_tags_diff}]
    }
 
    if {!$diff_from_init} {
@@ -3113,7 +3108,7 @@ proc cmdModuleStashlist {show_oneperline show_mtime} {
 
 proc cmdModuleCachebuild {args} {
    # use enabled modulepaths when no arg is provided
-   if {[llength $args] > 0} {
+   if {[llength $args]} {
       set modpath_list $args
    } else {
       set modpath_list [getModulePathList exiterronundef]
@@ -3138,7 +3133,7 @@ proc cmdModuleCachebuild {args} {
             if {[catch {
                # get cache content for modulepath
                set cache [formatModuleCacheContent $modpath]
-               if {[string length $cache] == 0} {
+               if {![string length $cache]} {
                   reportWarning {Nothing to record in cache file}
                } else {
                   # record cache content in file

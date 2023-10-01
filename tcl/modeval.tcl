@@ -166,7 +166,7 @@ proc getUnloadingModuleList {} {
 proc sortModulePerLoadedAndDepOrder {modlist {nporeq 0} {loading 0}} {
    # sort per loaded order
    set sortlist {}
-   if {[llength $modlist] > 0} {
+   if {[llength $modlist]} {
       foreach lmmod [getEnvLoadedModulePropertyParsedList name] {
          if {$lmmod in $modlist} {
             lappend sortlist $lmmod
@@ -253,7 +253,7 @@ proc getUnmetDependentLoadedModuleList {modnamevr} {
                            # temporarily remove matching violation
                            set ::g_prereqViolation($depmod) [replaceFromList\
                               $::g_prereqViolation($depmod) $prereq]
-                           if {[llength $::g_prereqViolation($depmod)] == 0} {
+                           if {![llength $::g_prereqViolation($depmod)]} {
                               unset ::g_prereqViolation($depmod)
                            }
                            break
@@ -449,7 +449,7 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1} {nporeq 0}\
 proc isModuleUnloadable {mod {unmodlist {}}} {
    set ret 1
    # get currently unloading modules if no specific unmodlist set
-   if {[llength $unmodlist] == 0} {
+   if {![llength $unmodlist]} {
       set unmodlist [getUnloadingModuleList]
    }
 
@@ -649,7 +649,7 @@ proc loadRequirementModuleList {tryload optional tag_list args} {
       }
    }
 
-   if {[llength $loadedmod_list] == 0} {
+   if {![llength $loadedmod_list]} {
       set imax [llength $args]
       # if prereq list specified, try to load first then
       # try next if load of first module not successful
@@ -789,7 +789,7 @@ proc isStickinessReloading {mod reloading_mod_list {tag sticky}} {
       set tag_rule_list [getModuleTagRuleList $mod $full_path_mod $tag]
 
       # no rule found (in env), means sticky applies to exact same module
-      if {[llength $tag_rule_list] == 0} {
+      if {![llength $tag_rule_list]} {
          set mod_should_reload 1
       } else {
          set mod_should_reload 0

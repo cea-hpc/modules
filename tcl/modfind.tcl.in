@@ -27,7 +27,7 @@ proc resolvStringWithEnv {0str} {
    # fetch variable references in string
    set 0match_list [regexp -all -inline {\$[{]?([A-Za-z_][A-Za-z0-9_]*)[}]?}\
       ${0str}]
-   if {[llength ${0match_list}] > 0} {
+   if {[llength ${0match_list}]} {
       # put in local scope every environment variable referred in string
       for {set 0i 1} {${0i} < [llength ${0match_list}]} {incr 0i 2} {
          set 0varname [lindex ${0match_list} ${0i}]
@@ -401,7 +401,7 @@ proc getLoadedAltAndSimplifiedName {mod} {
       set namelist [getLoadedAltname $mod]
       # also look through modpaths for simplified mod name
       set modpathlist [getModulePathList]
-      if {[llength $modpathlist] > 0} {
+      if {[llength $modpathlist]} {
          set modfile [getModulefileFromLoadedModule $mod]
          set parentmod [file dirname $mod]
          # simplify to parent name as long as it resolves to current mod
@@ -468,11 +468,10 @@ proc getEnvLoadedModulePropertyParsedList {prop {filter_empty 1}} {
             foreach subelt $subelt_list {
                # keep first arg as string and other args as lists (unless if
                # subelt should not be split)
-               if {[llength $subres_list] > 0 && ![info exists\
-                  nosubsubsplit]} {
+               if {[llength $subres_list] && ![info exists nosubsubsplit]} {
                   set subelt [split $subelt $sub2sep]
                   # skip empty value element
-                  if {[llength $subelt] == 0 && $filter_empty} {
+                  if {![llength $subelt] && $filter_empty} {
                      continue
                   }
                }
@@ -552,7 +551,7 @@ proc getGlobalRcFileList {} {
    set rclist {}
 
    set rcfilelist [split [getConf rcfile] :]
-   if {[llength $rcfilelist] > 0} {
+   if {[llength $rcfilelist]} {
       foreach rcfile $rcfilelist {
          # if rcfile is a dir, look at a modulerc file in it
          if {[file isdirectory $rcfile] && [file isfile $rcfile/modulerc]} {
@@ -585,7 +584,7 @@ proc getModuleTag {mod full_path_mod tag} {
    # check if tag is set on full path module designation (no prop there)
    lassign [getFullPathModuleTagSpec $full_path_mod $tag] tag_mod_spec\
       tag_props
-   if {[string length $tag_mod_spec] > 0} {
+   if {[string length $tag_mod_spec]} {
       return [list $tag $tag_props]
    }
    # look if mod matches one of the module specs applying to mod root
@@ -602,7 +601,7 @@ proc getModuleTagRuleList {mod full_path_mod tag} {
    set rule_list {}
    lassign [getFullPathModuleTagSpec $full_path_mod $tag] tag_mod_spec\
       tag_props
-   if {[string length $tag_mod_spec] > 0} {
+   if {[string length $tag_mod_spec]} {
       lappend rule_list $tag_mod_spec
    }
    foreach {tag_mod_spec tag_props} [getModuleRootTagSpecList $mod $tag] {
@@ -642,7 +641,7 @@ proc isModuleTagged {mod tag {collected 0} {fpmod {}}} {
    if {$collected} {
       return [expr {$tag in [getTagList $mod $fpmod]}]
    } else {
-      return [expr {[llength [getModuleTag $mod $fpmod $tag]] != 0}]
+      return [llength [getModuleTag $mod $fpmod $tag]]
    }
 }
 
@@ -703,7 +702,7 @@ proc setModuleExtraTag {mod args} {
 proc unsetModuleTag {mod args} {
    if {[info exists ::g_tagHash($mod)]} {
       lassign [getDiffBetweenList $::g_tagHash($mod) $args] diff_list
-      if {[llength $diff_list] > 0} {
+      if {[llength $diff_list]} {
          set ::g_tagHash($mod) $diff_list
       } else {
          unset ::g_tagHash($mod)
@@ -714,7 +713,7 @@ proc unsetModuleTag {mod args} {
 proc unsetModuleExtraTag {mod args} {
    if {[info exists ::g_extraTagHash($mod)]} {
       lassign [getDiffBetweenList $::g_extraTagHash($mod) $args] diff_list
-      if {[llength $diff_list] > 0} {
+      if {[llength $diff_list]} {
          set ::g_extraTagHash($mod) $diff_list
       } else {
          unset ::g_extraTagHash($mod)
@@ -732,7 +731,7 @@ proc getTagList {mod {fpmod {}} {sort 1}} {
    if {[info exists ::g_tagHash($mod)]} {
       appendNoDupToList tag_list {*}$::g_tagHash($mod)
    }
-   if {[llength $tag_list] > 0} {
+   if {[llength $tag_list]} {
       if {$sort} {
          set tag_list [lsort -dictionary $tag_list]
       }
@@ -777,7 +776,7 @@ proc getStickyRuleList {mod {fpmod {}}} {
             }
          }
 
-         if {[llength $tag_rule_list] > 0 && $export_sticky_rule} {
+         if {[llength $tag_rule_list] && $export_sticky_rule} {
             lappend ret [list $tag {*}$tag_rule_list]
          }
       }
@@ -884,7 +883,7 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from 0}} {
          set vrvalisbool 0
          set vrvalisdfl 0
          # build value list to output for free-variant value
-         if {[llength $vrvalues] == 0} {
+         if {![llength $vrvalues]} {
             # if module is loaded, add loaded variant value
             if {[info exists lovrarr($vrname)]} {
                lappend vrvalues $lovrarr($vrname)
@@ -1223,7 +1222,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
                         set mod $newmod
                      } else {
                         # add specified variants to current resolution
-                        if {[llength $vrlist] > 0} {
+                        if {[llength $vrlist]} {
                            lassign [parseModuleSpecification 0 0 0 0 $newmod\
                               {*}$vrlist] newmod
                         }
@@ -1244,7 +1243,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
                         if {![info exists mod_list($mod)] && [isModuleHidden\
                            $mod $modspec 0 $dir/$mod]} {
                            # add specified variants to current resolution
-                           if {[llength $vrlist] > 0} {
+                           if {[llength $vrlist]} {
                               lassign [parseModuleSpecification 0 0 0 0 $mod\
                                  {*}$vrlist] mod
                            }
@@ -1281,7 +1280,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
          '$mod'"]
    } else {
       # build module name and variant with variant specified
-      if {[llength $vrlist] > 0} {
+      if {[llength $vrlist]} {
          lassign [parseModuleSpecification 0 0 0 0 [lindex $retlist 1]\
             {*}$vrlist] modnamevr
       } else {
@@ -1490,7 +1489,7 @@ proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}} {
    }
 
    # fetch currently loaded/loading module name is no list provided
-   if {[llength $lmlist] == 0} {
+   if {![llength $lmlist]} {
       set lmlist [{*}$getLoadedModuleList]
    }
 
@@ -1560,7 +1559,7 @@ proc setLoadedSourceSh {mod args} {
       # modulefile commands at all later index positions
       set shtomodargs [lindex $arg 0]
       set modcontent [lrange $arg 1 end]
-      if {[llength [getLoadedSourceShScriptContent $mod $shtomodargs]] == 0} {
+      if {![llength [getLoadedSourceShScriptContent $mod $shtomodargs]]} {
          # filter alias/function/complete definition not to record them
          set shtomod_entry [list $shtomodargs]
          foreach modcmdlist $modcontent {
@@ -1791,7 +1790,7 @@ proc getLoadedModuleWithVariantList {} {
    foreach mod [getEnvLoadedModulePropertyParsedList name] {
       set modvr [list $mod]
       set vrlist [getVariantList $mod 5]
-      if {[llength $vrlist] > 0} {
+      if {[llength $vrlist]} {
          lappend modvr {*}$vrlist
       }
       lappend modvrlist $modvr
@@ -1804,12 +1803,12 @@ proc getLoadedModuleWithVariantSaveTagArrayList {} {
    foreach mod [getEnvLoadedModulePropertyParsedList name] {
       set modvr [list $mod]
       set vrlist [getVariantList $mod 1]
-      if {[llength $vrlist] > 0} {
+      if {[llength $vrlist]} {
          lappend modvr {*}$vrlist
       }
       # create entry in array only if tags set
       set tag_list [getSaveTagList $mod]
-      if {[llength $tag_list] > 0} {
+      if {[llength $tag_list]} {
          set tag_arr($modvr) $tag_list
       }
    }
@@ -1825,7 +1824,7 @@ proc unsetEnvLoadedModuleProperty {mod_name prop} {
    set mod_env_loaded_prop [lsearch -glob -inline $env_loaded_prop_list\
       $mod_pattern_in_env_loaded_prop]
 
-   if {[string length $mod_env_loaded_prop] > 0} {
+   if {[string length $mod_env_loaded_prop]} {
       remove-path $prop_env_var $mod_env_loaded_prop
    }
 }
@@ -1845,7 +1844,7 @@ proc serialize2LvlModulePropertyValue {mod structured_value_list\
 
 proc serializeModulePropertyValue {mod structured_value_list {char_map_list\
    {: <}}} {
-   if {[llength $structured_value_list] > 0} {
+   if {[llength $structured_value_list]} {
       set serialized_value [join [list $mod {*}$structured_value_list]\
          [getState sub1_separator]]
       set ret [string map $char_map_list $serialized_value]
@@ -1902,7 +1901,7 @@ proc unsetModuleConflictViolation {mod} {
          set convio [replaceFromList\
             $::g_conflictViolation($lmmod) $mod]
          reportDebug "unset/update conflict violation state for '$lmmod'"
-         if {[llength $convio] == 0} {
+         if {![llength $convio]} {
             unset ::g_conflictViolation($lmmod)
          } else {
             set ::g_conflictViolation($lmmod) $convio
@@ -2099,7 +2098,7 @@ proc unsetModuleDependency {mod} {
             }
             set ::g_dependHash($lmmod) [replaceFromList\
                $::g_dependHash($lmmod) $hashdep]
-            if {[llength $::g_dependHash($lmmod)] == 0} {
+            if {![llength $::g_dependHash($lmmod)]} {
                unset ::g_dependHash($lmmod)
             }
          }
@@ -2122,7 +2121,7 @@ proc unsetModuleDependency {mod} {
             }
             set ::g_dependNPOHash($lmmod) [replaceFromList\
                $::g_dependNPOHash($lmmod) $hashdep]
-            if {[llength $::g_dependNPOHash($lmmod)] == 0} {
+            if {![llength $::g_dependNPOHash($lmmod)]} {
                unset ::g_dependNPOHash($lmmod)
             }
          }
@@ -2149,7 +2148,7 @@ proc unsetModuleDependency {mod} {
          if {[info exists ::g_unmetDepHash($ummod)]} {
             set ::g_unmetDepHash($ummod) [replaceFromList\
                $::g_unmetDepHash($ummod) $mod]
-            if {[llength $::g_unmetDepHash($ummod)] == 0} {
+            if {![llength $::g_unmetDepHash($ummod)]} {
                unset ::g_unmetDepHash($ummod)
             }
          }
@@ -2160,7 +2159,7 @@ proc unsetModuleDependency {mod} {
 
    # unset mod's 'is depended by' relations
    set hashdeplist [getDirectDependentList $mod]
-   if {[llength $hashdeplist] > 0} {
+   if {[llength $hashdeplist]} {
       reportDebug "refresh dependent of '$mod'"
       foreach lmmod $hashdeplist {
          # refresh actual dependencies of targeting mod
@@ -2478,7 +2477,7 @@ proc doesModuleHaveSym {mod} {
    # is there any non-hidden symbol for mod
    return [expr {[info exists ::g_symbolHash($mod)] && (![info exists\
       ::g_hiddenSymHash($mod)] || [llength [lindex [getDiffBetweenList\
-      $::g_symbolHash($mod) $::g_hiddenSymHash($mod)] 0]] > 0)}]
+      $::g_symbolHash($mod) $::g_hiddenSymHash($mod)] 0]])}]
 }
 
 # get list of elements located in a directory passed as argument. a flag is
@@ -3143,7 +3142,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {filter {}}} {
             set dfl {}
          }
          # remove empty dirs
-         if {[llength $fdir_list($elt)] == 0} {
+         if {![llength $fdir_list($elt)]} {
             unset mod_list($elt)
             unset fdir_list($elt)
             # remove unset dir reference in parent directory. parent dir

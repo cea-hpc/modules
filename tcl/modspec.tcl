@@ -661,7 +661,7 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp 0}\
       if {$test eq {eqstart}} {
          set ret [string equal -length [string length $pmod/] $pmod/ $mod/]
          # apply comparison to alternative names if any and no match for mod
-         if {!$ret && [llength $altlist] > 0} {
+         if {!$ret && [llength $altlist]} {
             foreach alt $altlist {
                if {[set ret [string equal -length [string length $pmod/]\
                   $pmod/ $alt/]]} {
@@ -680,7 +680,7 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp 0}\
          ##nagelfar ignore Non static subcommand
          set ret [string $test $pmod $mod]
          # apply comparison to alternative names if any and no match for mod
-         if {!$ret && [llength $altlist] > 0} {
+         if {!$ret && [llength $altlist]} {
             foreach alt $altlist {
                ##nagelfar ignore Non static subcommand
                if {[set ret [string $test $pmod $alt]]} {
@@ -719,7 +719,7 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp 0}\
          set ret 0
       }
       # apply comparison to alternative names if any and no match for mod
-      if {!$ret && [llength $altlist] > 0} {
+      if {!$ret && [llength $altlist]} {
          foreach alt $altlist {
             if {($pmodnamere ne {} && $test eq {match} && [regexp\
                (^$pmodnamere)/ $alt/ rematch pmodname]) || [string equal\
@@ -735,7 +735,7 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp 0}\
       }
    }
    # check if variant specified matches those of selected loaded/ing module
-   if {$ret && $vrcmp && $ismodlo ni {3 5} && [llength $pvrlist] > 0} {
+   if {$ret && $vrcmp && $ismodlo ni {3 5} && [llength $pvrlist]} {
       if {$modvrlist eq {0}} {
          set modvrlist [getVariantList $mod]
       }
@@ -787,7 +787,7 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
       if {$test eq {eqstart}} {
          set ret [string equal -nocase -length [string length $pmod/] $pmod/\
             $mod/]
-         if {!$ret && [llength $altlist] > 0} {
+         if {!$ret && [llength $altlist]} {
             foreach alt $altlist {
                if {[set ret [string equal -nocase -length [string length\
                   $pmod/] $pmod/ $alt/]]} {
@@ -805,7 +805,7 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
          }
          ##nagelfar ignore Non static subcommand
          set ret [string $test -nocase $pmod $mod]
-         if {!$ret && [llength $altlist] > 0} {
+         if {!$ret && [llength $altlist]} {
             foreach alt $altlist {
                ##nagelfar ignore Non static subcommand
                if {[set ret [string $test -nocase $pmod $alt]]} {
@@ -843,7 +843,7 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
       } else {
          set ret 0
       }
-      if {!$ret && [llength $altlist] > 0} {
+      if {!$ret && [llength $altlist]} {
          foreach alt $altlist {
             if {($pmodnamere ne {} && $test eq {match} && [regexp -nocase\
                (^$pmodnamere)/ $alt/ rematch pmodname]) || [string equal\
@@ -858,7 +858,7 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
          }
       }
    }
-   if {$ret && $vrcmp && $ismodlo ni {3 5} && [llength $pvrlist] > 0} {
+   if {$ret && $vrcmp && $ismodlo ni {3 5} && [llength $pvrlist]} {
       if {$modvrlist eq {0}} {
          set modvrlist [getVariantList $mod]
       }
@@ -907,7 +907,7 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
       }
       if {$test eq {eqstart}} {
          set ret [string equal -length [string length $pmod/] $pmod/ $mod/]
-         if {!$ret && [llength $altlist] > 0} {
+         if {!$ret && [llength $altlist]} {
             foreach alt $altlist {
                if {[set ret [string equal -length [string length $pmod/]\
                   $pmod/ $alt/]]} {
@@ -926,7 +926,7 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
          }
          ##nagelfar ignore Non static subcommand
          set ret [string $test $pmod $mod]
-         if {!$ret && [llength $altlist] > 0} {
+         if {!$ret && [llength $altlist]} {
             foreach alt $altlist {
                ##nagelfar ignore Non static subcommand
                if {[set ret [string $test $pmod $alt]]} {
@@ -943,7 +943,7 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
             set pmodextdfl $pmodescglob.*
          }
          set ret [string match $pmodextdfl $mod]
-         if {!$ret && [llength $altlist] > 0} {
+         if {!$ret && [llength $altlist]} {
             foreach alt $altlist {
                if {[set ret [string match $pmodextdfl $alt]]} {
                   break
@@ -980,7 +980,7 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
       } else {
          set ret 0
       }
-      if {!$ret && [llength $altlist] > 0} {
+      if {!$ret && [llength $altlist]} {
          foreach alt $altlist {
             if {($pmodnamere ne {} && $test eq {match} && [regexp\
                (^$pmodnamere)/ $alt/ rematch pmodname]) || [string equal\
@@ -995,7 +995,7 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0} {vrcmp\
          }
       }
    }
-   if {$ret && $vrcmp && $ismodlo ni {3 5} && [llength $pvrlist] > 0} {
+   if {$ret && $vrcmp && $ismodlo ni {3 5} && [llength $pvrlist]} {
       if {$modvrlist eq {0}} {
          set modvrlist [getVariantList $mod]
       }
@@ -1045,7 +1045,7 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
       if {$test eq {eqstart}} {
          set ret [string equal -nocase -length [string length $pmod/] $pmod/\
             $mod/]
-         if {!$ret && [llength $altlist] > 0} {
+         if {!$ret && [llength $altlist]} {
             foreach alt $altlist {
                if {[set ret [string equal -nocase -length [string length\
                   $pmod/] $pmod/ $alt/]]} {
@@ -1064,7 +1064,7 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
          }
          ##nagelfar ignore Non static subcommand
          set ret [string $test -nocase $pmod $mod]
-         if {!$ret && [llength $altlist] > 0} {
+         if {!$ret && [llength $altlist]} {
             foreach alt $altlist {
                ##nagelfar ignore Non static subcommand
                if {[set ret [string $test -nocase $pmod $alt]]} {
@@ -1081,7 +1081,7 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
             set pmodextdfl $pmodescglob.*
          }
          set ret [string match -nocase $pmodextdfl $mod]
-         if {!$ret && [llength $altlist] > 0} {
+         if {!$ret && [llength $altlist]} {
             foreach alt $altlist {
                if {[set ret [string match -nocase $pmodextdfl $alt]]} {
                   break
@@ -1118,7 +1118,7 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
       } else {
          set ret 0
       }
-      if {!$ret && [llength $altlist] > 0} {
+      if {!$ret && [llength $altlist]} {
          foreach alt $altlist {
             if {($pmodnamere ne {} && $test eq {match} && [regexp -nocase\
                (^$pmodnamere)/ $alt/ rematch pmodname]) || [string equal\
@@ -1133,7 +1133,7 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {ismodlo 0}\
          }
       }
    }
-   if {$ret && $vrcmp && $ismodlo ni {3 5} && [llength $pvrlist] > 0} {
+   if {$ret && $vrcmp && $ismodlo ni {3 5} && [llength $pvrlist]} {
       if {$modvrlist eq {0}} {
          set modvrlist [getVariantList $mod]
       }
@@ -1409,9 +1409,9 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec\
 
                # check no other : character is found in argument or element
                # and name are not an empty string
-               if {[string length $xtelt] == 0 || [llength $xtnamelist] == 0\
-                  || {} in $xtnamelist || ([string last : $curarg] !=\
-                  $xtsepidx && $xtelt ni $xtelt_modspec_list)} {
+               if {![string length $xtelt] || ![llength $xtnamelist] || {} in\
+                  $xtnamelist || ([string last : $curarg] != $xtsepidx &&\
+                  $xtelt ni $xtelt_modspec_list)} {
                   knerror "Invalid extra specification '$arg'"
                }
                if {$xtelt ni $xtelt_valid_list} {
@@ -1452,7 +1452,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec\
                set vrvaluelist [split [string range $curarg $vrsepidx+1 end]\
                   ,]
                # value is one empty string
-               if {[llength $vrvaluelist] == 0} {
+               if {![llength $vrvaluelist]} {
                   lappend vrvaluelist {}
                }
 
@@ -1795,7 +1795,7 @@ proc getAvailListFromVersSpec {modarg} {
 # is mod spec containing variant but no module name and version
 proc isSpecWildWithVariant {mod} {
    return [expr {[getModuleNameAndVersFromVersSpec $mod] eq {*} && [llength\
-      [getVariantListFromVersSpec $mod]] > 0}]
+      [getVariantListFromVersSpec $mod]]}]
 }
 
 # ;;; Local Variables: ***

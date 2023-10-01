@@ -80,7 +80,7 @@ proc unsetenv-sc {args} {
 }
 
 proc complete-sc {shell name body} {
-   if {[string length $name] == 0} {
+   if {![string length $name]} {
       knerror "Invalid command name '$name'"
    }
 
@@ -88,7 +88,7 @@ proc complete-sc {shell name body} {
 }
 
 proc uncomplete-sc {name} {
-   if {[string length $name] == 0} {
+   if {![string length $name]} {
       knerror "Invalid command name '$name'"
    }
 
@@ -116,7 +116,7 @@ proc chdir-sc {dir} {
 }
 
 proc family-sc {name} {
-   if {[string length $name] == 0 || ![regexp {^[A-Za-z0-9_]*$} $name]} {
+   if {![string length $name] || ![regexp {^[A-Za-z0-9_]*$} $name]} {
       knerror "Invalid family name '$name'"
    }
    recordScanModuleElt $name family
@@ -236,7 +236,7 @@ proc doesModVariantMatch {mod pvrlist} {
             # any value accepted for free-value variant
             if {[info exists availvrarr($vrname)] && (($pvrisbool &&\
                $availvrisbool($vrname)) || (!$availvrisbool($vrname) &&\
-               ([llength $availvrarr($vrname)] == 0 || $pvrval in\
+               (![llength $availvrarr($vrname)] || $pvrval in\
                $availvrarr($vrname))))} {
                set one_vrval_match 1
                break
@@ -309,7 +309,7 @@ proc getModMatchingExtraSpec {modpath pxtlist} {
          lappend all_crit_res $one_crit_res
          # no match on one criterion means no match globally, no need to test
          # further criteria
-         if {[llength $one_crit_res] == 0} {
+         if {![llength $one_crit_res]} {
             break
          }
       }
@@ -326,8 +326,8 @@ proc isExtraMatchSearchRequired {mod} {
    # * mod specification contains variant during avail/paths/whatis
    # * mod specification contains extra specifier during avail/paths/whatis
    return [expr {![getState inhibit_ems 0] && ([isEltInReport variant 0] ||\
-      (([llength [getVariantListFromVersSpec $mod]] + [llength\
-      [getExtraListFromVersSpec $mod]]) > 0 && [currentState commandname] in\
+      (([llength [getVariantListFromVersSpec $mod]] || [llength\
+      [getExtraListFromVersSpec $mod]]) && [currentState commandname] in\
       {avail paths whatis}))}]
 }
 
@@ -339,10 +339,10 @@ proc filterExtraMatchSearch {modpath mod res_arrname versmod_arrname} {
 
    # get extra match query properties
    set spec_vr_list [getVariantListFromVersSpec $mod]
-   set check_variant [expr {[llength $spec_vr_list] > 0}]
+   set check_variant [llength $spec_vr_list]
    lassign [getSplitExtraListFromVersSpec $mod] spec_tag_list spec_xt_list
-   set check_extra [expr {[llength $spec_xt_list] > 0}]
-   set check_tag [expr {[llength $spec_tag_list] > 0}]
+   set check_extra [llength $spec_xt_list]
+   set check_tag [llength $spec_tag_list]
    set scan_eval [expr {$check_variant || $check_extra || [isEltInReport\
       variant 0]}]
    set filter_res [expr {$check_variant || $check_extra || $check_tag}]

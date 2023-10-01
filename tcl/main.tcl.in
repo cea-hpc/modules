@@ -191,7 +191,7 @@ proc parseModuleCommandArgs {topcall cmd ignerr args} {
                      set nextargisvaltosplit tag_list
                   } else {
                      set tag_list [split [string range $arg 6 end] :]
-                     if {[llength $tag_list] == 0} {
+                     if {![llength $tag_list]} {
                         knerror "Missing value for '--tag' option"
                      }
                   }
@@ -407,18 +407,18 @@ proc module {command args} {
    switch -- $command {
       unload - source - display - initadd - initprepend - initrm - test -\
       is-avail - try-load - load-any {
-         if {[llength $args] == 0} {
+         if {![llength $args]} {
             set argnberr 1
          }
       }
       refresh - reload - aliases - purge - initlist - initclear - autoinit -\
          reset - stash - stashclear - stashlist - cacheclear {
-         if {[llength $args] != 0} {
+         if {[llength $args]} {
             set argnberr 1
          }
       }
       switch {
-         if {[llength $args] == 0 || [llength $args] > 2} {
+         if {![llength $args] || [llength $args] > 2} {
             set argnberr 1
          }
       }
@@ -560,7 +560,7 @@ proc ml {args} {
 
    if {$cmdempty} {
       # consider empty string supplied as first argument as module name
-      if {[llength $fargs] > 0} {
+      if {[llength $fargs]} {
          set cmdvalid 0
       }
       set margs $args
@@ -585,7 +585,7 @@ proc ml {args} {
       # main procedure has already raised error for badly written argument
       # like '-' or '--', but we need here to replay module-specific argument
       # parsing to raise error if some arg are not allowed on unload/load cmd
-      set mlcmd [expr {[llength $modunlist] > 0 ? {unload} : {load}}]
+      set mlcmd [expr {[llength $modunlist] ? {unload} : {load}}]
       lassign [parseModuleCommandArgs 1 $mlcmd 0 {*}$args] show_oneperline\
          show_mtime show_filter search_filter search_match dump_state\
          addpath_pos not_req tag_list fargs
@@ -597,11 +597,11 @@ proc ml {args} {
       pushSettings
 
       # first unload specified modules
-      if {[llength $modunlist] > 0} {
+      if {[llength $modunlist]} {
          set ret [cmdModuleUnload unload match 1 0 0 0 {*}$modunlist]
       }
       # then load other modules unless unload phase failed
-      if {!$ret && [llength $modlolist] > 0} {
+      if {!$ret && [llength $modlolist]} {
          set ret [cmdModuleLoad load 1 0 0 $tag_list {*}$modlolist]
       }
 
@@ -827,8 +827,7 @@ if {[catch {
             }
             -* {
                # verify current command accepts minus arg (-*)
-               if {![info exists accept_minus_arg] && [llength $otherargv]\
-                  > 0} {
+               if {![info exists accept_minus_arg] && [llength $otherargv]} {
                   set subcmdtest [lindex $otherargv 0]
                   if {$subcmdtest ne {ml}} {
                      lassign [parseModuleCommandName $subcmdtest {}]\
@@ -907,7 +906,7 @@ if {[catch {
                   quarantine"
                unset env($var)
             }
-         } elseif {[string length $var] > 0} {
+         } elseif {[string length $var]} {
             reportWarning "Bad variable name set in MODULES_RUN_QUARANTINE\
                ($var)"
          }

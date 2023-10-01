@@ -86,7 +86,7 @@ proc getSimplifiedLoadedModuleList {} {
       lappend curr_mod_list $simplemodvr
       # record tags applying to module in simplified version form
       set tag_list [getSaveTagList $mod]
-      if {[llength $tag_list] > 0} {
+      if {[llength $tag_list]} {
          set curr_tag_arr($simplemodvr) $tag_list
       }
    }
@@ -232,7 +232,7 @@ proc formatCollectionContent {path_list mod_list tag_arrser header {sgr 0}} {
    # then add modules
    foreach mod $mod_list {
       # save tags associated to module (like auto-loaded tag)
-      if {[info exists tag_arr($mod)] && [llength $tag_arr($mod)] > 0} {
+      if {[info exists tag_arr($mod)] && [llength $tag_arr($mod)]} {
          set opt "--tag=[join $tag_arr($mod) :] "
       } else {
          set opt {}
@@ -244,7 +244,7 @@ proc formatCollectionContent {path_list mod_list tag_arrser header {sgr 0}} {
    }
 
    # prepend header if defined and some content has been generated
-   if {[string length $header] != 0 && [string length $content] != 0} {
+   if {[string length $header] && [string length $content]} {
       set content "$header\n$content"
    }
 
@@ -353,8 +353,8 @@ proc getDiffBetweenCurEnvAndColl {collfile colldesc} {
 
    # collection should at least define a path or a mod, but initial env may be
    # totally empty
-   if {$collfile ne {__init__} && [llength $coll_path_list] == 0 && [llength\
-      $coll_mod_list] == 0} {
+   if {$collfile ne {__init__} && ![llength $coll_path_list] && ![llength\
+      $coll_mod_list]} {
       reportErrorAndExit "$colldesc is not a valid collection"
    }
 
@@ -383,12 +383,12 @@ proc getDiffBetweenCurEnvAndColl {collfile colldesc} {
 
    # indicate if loaded modules that matches modules in collection have
    # different tags set
-   if {[llength $mod_to_load] == 0} {
+   if {![llength $mod_to_load]} {
       # consider a not-set entry as an empty element when comparing collection
       # and current environment tags. compare tags as unordered lists
       lassign [getDiffBetweenArray curr_tag_arr coll_tag_arr 1 1] notincoll\
          diff notincurr
-      set is_tags_diff [expr {[llength $diff] > 0}]
+      set is_tags_diff [llength $diff]
    # if some module from collection are not yet loaded, consider there is a
    # difference
    } else {

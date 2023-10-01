@@ -322,7 +322,7 @@ proc getConf {option {valifundef {}}} {
             }
 
             # convert value to its internal representation
-            if {[llength $intvallist] > 0} {
+            if {[llength $intvallist]} {
                set value [lindex $intvallist [lsearch -exact $validvallist\
                   $value]]
             }
@@ -596,7 +596,7 @@ proc initConfColor {envvar value validvallist intvallist} {
    # overridden value coming from environment via Modules-specific variable
    if {$envvar ne {} && [isEnvVarDefined $envvar]} {
       # ignore non-valid values
-      if {[llength $validvallist] == 0 || $::env($envvar) in $validvallist} {
+      if {![llength $validvallist] || $::env($envvar) in $validvallist} {
          set value $::env($envvar)
       }
    }
@@ -607,7 +607,7 @@ proc initConfColor {envvar value validvallist intvallist} {
    }
 
    # convert value to its internal representation
-   if {[llength $intvallist] > 0} {
+   if {[llength $intvallist]} {
       set value [lindex $intvallist [lsearch -exact $validvallist $value]]
    }
 
@@ -777,7 +777,7 @@ proc initConfVariantShortcut {envvar value validvallist intvallist} {
    # update value after above filtering step
    set value {}
    foreach vr [array names ::g_variantShortcut] {
-      if {[string length $value] > 0} {
+      if {[string length $value]} {
          append value :
       }
       append value $vr=$::g_variantShortcut($vr)

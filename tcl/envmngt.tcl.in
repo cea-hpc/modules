@@ -928,7 +928,7 @@ end}
                "${_mlv}=$::env($_mlrv)" : "${_mlv}="}]
          }
       }
-      if {[llength $_mlre] > 0} {
+      if {[llength $_mlre]} {
          lappend _mlre "__MODULES_QUARANTINE_SET=1"
          set _mlre [linsert $_mlre 0 "env"]
       }
@@ -1445,7 +1445,7 @@ proc unload-path {cmd mode dflbhv args} {
    # save initial variable content to match index arguments
    set dir_list [split [get-env $var] $separator]
    # detect if empty env value means empty path entry
-   if {[llength $dir_list] == 0 && [info exists countarr()]} {
+   if {![llength $dir_list] && [info exists countarr()]} {
       lappend dir_list {}
    }
 
@@ -1455,7 +1455,7 @@ proc unload-path {cmd mode dflbhv args} {
       foreach glob_pattern $path_list {
          set pattern_match_list [lsearch -glob -all -inline $dir_list\
             $glob_pattern]
-         if {[llength $pattern_match_list] > 0} {
+         if {[llength $pattern_match_list]} {
             lappend new_path_list {*}$pattern_match_list
          }
       }
@@ -1522,7 +1522,7 @@ proc unload-path {cmd mode dflbhv args} {
    }
 
    # update variable if some element need to be removed
-   if {[llength $del_idx_list] > 0} {
+   if {[llength $del_idx_list]} {
       set del_idx_list [lsort -integer -unique $del_idx_list]
       set newpath [list]
       set nbelem [llength $dir_list]
@@ -1537,7 +1537,7 @@ proc unload-path {cmd mode dflbhv args} {
    }
 
    # set env variable and corresponding reference counter in any case
-   if {[llength $newpath] == 0} {
+   if {![llength $newpath]} {
       unset-env $var
    } else {
       set-env $var [join $newpath $separator]
