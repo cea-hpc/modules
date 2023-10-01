@@ -2462,14 +2462,9 @@ proc source-sh {shell script args} {
 # undo source-sh in unload mode
 proc source-sh-un {shell script args} {
    set shtomodargs [list $shell $script {*}$args]
-   set modsrcsh [getLoadedSourceSh [currentState modulename]]
-
    # find commands resulting from source-sh evaluation recorded in env
-   if {[set idx [lsearch -exact $modsrcsh $shtomodargs]] != -1 } {
-      set modcontent [lindex $modsrcsh $idx+1]
-   } else {
-      set modcontent {}
-   }
+   set modcontent [getLoadedSourceShScriptContent [currentState modulename]\
+      $shtomodargs]
 
    # get name of current module unload Tcl interp
    set itrp [getCurrentModfileInterpName]
@@ -2486,14 +2481,9 @@ proc source-sh-di {shell script args} {
 
    # if module loaded, get as much content from environment as possible
    if {[is-loaded [currentState modulename]]} {
-      set modsrcsh [getLoadedSourceSh [currentState modulename]]
-
       # find commands resulting from source-sh evaluation recorded in env
-      if {[set idx [lsearch -exact $modsrcsh $shtomodargs]] != -1 } {
-         set reccontent [lindex $modsrcsh $idx+1]
-      } else {
-         set reccontent {}
-      }
+      set reccontent [getLoadedSourceShScriptContent [currentState\
+         modulename] $shtomodargs]
 
       # need to evaluate script to get alias/function/complete definition
       execShAndGetEnv {*}$shtomodargs

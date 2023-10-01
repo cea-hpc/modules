@@ -1326,8 +1326,13 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
             in [getState refresh_qualified]}]
 
          # register declared source-sh in environment
-         if {[set modsrcsh [getLoadedSourceSh $modname 1]] ne {}} {
-            append-path __MODULES_LMSOURCESH $modsrcsh
+         if {[llength [set mod_srcsh_list [getLoadedSourceSh $modname]]] >\
+            0} {
+            append-path __MODULES_LMSOURCESH\
+               [serialize2LvlModulePropertyValue $modname $mod_srcsh_list\
+               [list [getState path_separator] <EnvModEscPS> [getState\
+               sub1_separator] <EnvModEscS1> [getState sub2_separator]\
+               <EnvModEscS2>]]
          }
 
          # register declared conflict in environment

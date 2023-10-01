@@ -1560,31 +1560,30 @@ proc setLoadedSourceSh {mod args} {
       # modulefile commands at all later index positions
       set shtomodargs [lindex $arg 0]
       set modcontent [lrange $arg 1 end]
-      if {![info exists ::g_loadedModuleSourceSh($mod)] || $shtomodargs ni\
-         $::g_loadedModuleSourceSh($mod)} {
+      if {[llength [getLoadedSourceShScriptContent $mod $shtomodargs]] == 0} {
          # filter alias/function/complete definition not to record them
-         set filtmodcont [list]
+         set shtomod_entry [list $shtomodargs]
          foreach modcmdlist $modcontent {
             set modcmd [lindex $modcmdlist 0]
             switch -- $modcmd {
                set-alias - set-function {
                   # set an empty body to make valid unset-* call
-                  lappend filtmodcont [list {*}[lrange $modcmdlist 0 1] {}]
+                  lappend shtomod_entry [list {*}[lrange $modcmdlist 0 1] {}]
                }
                complete {
                   set complist [lrange $modcmdlist 0 2]
                   # ensure only one order is recorded for each shell-name
                   if {![info exists filtcomp($complist)]} {
-                     lappend filtmodcont [list {*}$complist {}]
+                     lappend shtomod_entry [list {*}$complist {}]
                      set filtcomp($complist) 1
                   }
                }
                default {
-                  lappend filtmodcont $modcmdlist
+                  lappend shtomod_entry $modcmdlist
                }
             }
          }
-         lappend ::g_loadedModuleSourceSh($mod) $shtomodargs $filtmodcont
+         lappend ::g_loadedModuleSourceSh($mod) $shtomod_entry
       }
    }
 }
@@ -1595,31 +1594,24 @@ proc unsetLoadedSourceSh {mod} {
    }
 }
 
-proc getLoadedSourceSh {mod {serialized 0}} {
-   set ret {}
-
-   set pathsep [getState path_separator]
-   set sub1sep [getState sub1_separator]
-   set sub2sep [getState sub2_separator]
-   set sermap [list $pathsep <EnvModEscPS> $sub1sep <EnvModEscS1>\
-      $sub2sep <EnvModEscS2>]
-
+proc getLoadedSourceSh {mod} {
    if {[info exists ::g_loadedModuleSourceSh($mod)]} {
-      if {$serialized} {
-         foreach {shtomodargs modcontent} $::g_loadedModuleSourceSh($mod) {
-            # escape delimiter chars if used in content
-            set shtomodargsser [string map $sermap $shtomodargs]
-            set modcontentser [string map $sermap $modcontent]
-            lappend modsrcsh $shtomodargsser$sub2sep[join $modcontentser\
-               $sub2sep]
-         }
-         set ret [join [list $mod {*}$modsrcsh] $sub1sep]
-      } else {
-         set ret $::g_loadedModuleSourceSh($mod)
+      set ret $::g_loadedModuleSourceSh($mod)
+   } else {
+      set ret {}
+   }
+   return $ret
+}
+
+proc getLoadedSourceShScriptContent {mod script} {
+   set content {}
+   foreach shtomod_entry [getLoadedSourceSh $mod] {
+      if {$script eq [lindex $shtomod_entry 0]} {
+         set content [lrange $shtomod_entry 1 end]
+         break
       }
    }
-
-   return $ret
+   return $content
 }
 
 proc setLoadedConflict {mod args} {
@@ -1837,21 +1829,25 @@ proc unsetEnvLoadedModuleProperty {mod_name prop} {
    }
 }
 
-proc serialize2LvlModulePropertyValue {mod structured_value_list} {
+proc serialize2LvlModulePropertyValue {mod structured_value_list\
+   {char_map_list {: <}}} {
    set sub2_sepa [getState sub2_separator]
    set serialized_value_list [list]
    foreach structured_value $structured_value_list {
-      lappend serialized_value_list [join $structured_value $sub2_sepa]
+      set mapped_structured_value [string map $char_map_list\
+         $structured_value]
+      lappend serialized_value_list [join $mapped_structured_value $sub2_sepa]
    }
-   return [serializeModulePropertyValue $mod $serialized_value_list]
+   # no character translation as it already occurred here
+   return [serializeModulePropertyValue $mod $serialized_value_list {}]
 }
 
-proc serializeModulePropertyValue {mod structured_value_list} {
+proc serializeModulePropertyValue {mod structured_value_list {char_map_list\
+   {: <}}} {
    if {[llength $structured_value_list] > 0} {
       set serialized_value [join [list $mod {*}$structured_value_list]\
          [getState sub1_separator]]
-      # translate ':' into '<' to distinguish it from path separator
-      set ret [string map {: <} $serialized_value]
+      set ret [string map $char_map_list $serialized_value]
    } else {
       set ret {}
    }
