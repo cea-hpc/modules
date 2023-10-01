@@ -653,7 +653,7 @@ proc loadRequirementModuleList {tryload optional tag_list args} {
       set imax [llength $args]
       # if prereq list specified, try to load first then
       # try next if load of first module not successful
-      for {set i 0} {$i<$imax && $prereqloaded==0} {incr i 1} {
+      for {set i 0} {$i<$imax && !$prereqloaded} {incr i 1} {
          set arg [lindex $args $i]
 
          # hold output from current evaluation to catch 'module not found'

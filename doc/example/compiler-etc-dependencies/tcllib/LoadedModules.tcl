@@ -8,7 +8,7 @@
 proc GetLoadedModules { } {
    global env
    #Handle case if no modules loaded
-   if { [info exists env(LOADEDMODULES)] == 0 } {
+   if {![info exists env(LOADEDMODULES)]} {
       #No modules loaded, return empty list
       return [ list ]
    }

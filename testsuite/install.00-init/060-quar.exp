@@ -54,14 +54,14 @@ if {$::install_loadedmodules ne {}} {
 }
 
 set quar [join $install_quarlist " "]
-if { $verbose > 0 } {
+if {$verbose} {
    send_user "\tAlready configured MODULES_RUN_QUARANTINE = '$quar'\n"
 }
 lappend ans "MODULES_RUN_QUARANTINE=$quar"
 lappend ansr "MODULES_RUN_QUARANTINE=$quar"
 
 foreach vname $install_quarlist {
-   if { $verbose > 0 } {
+   if {$verbose} {
       send_user "\tSetup $vname = 'foo'\n"
    }
    set env($vname) "foo"
@@ -74,7 +74,7 @@ foreach vname $install_quarlist {
 }
 foreach vname [lsort $install_quarlist] {
    if {[info exists install_runenv($vname)]} {
-      if { $verbose > 0 } {
+      if {$verbose} {
          send_user "\tAlready configured MODULES_RUNENV_$vname = '$install_runenv($vname)'\n"
       }
       lappend ans "MODULES_RUNENV_$vname=$install_runenv($vname)"
@@ -97,7 +97,7 @@ set no_loadedmodules_inject 1
 foreach shell $shell_list {
    switch -- $shell {
       {csh} - {tcsh} {
-         if { $verbose > 0 } {
+         if {$verbose} {
             send_user "\tskip test for $shell, no quarantine support\n"
          }
       }
@@ -145,7 +145,7 @@ if {![catch {exec ldd $install_tclsh} ldd_out]} {
    regexp {(libtcl\S+so)} $ldd_out libtclname
    if {[info exists libtclname]} {
       set testlibfile "$env(TESTSUITEDIR)/$libtclname"
-      if {$verbose > 0} {
+      if {$verbose} {
          send_user "\tCreate fake library $testlibfile\n"
       }
       set fid [open $testlibfile "a+"]
@@ -168,7 +168,7 @@ foreach shell $othlang_list {
 
 # empty quarantine setup
 set quar ""
-if { $verbose > 0 } {
+if {$verbose} {
     send_user "\tSetup MODULES_RUN_QUARANTINE = '$quar'\n"
 }
 set env(MODULES_RUN_QUARANTINE) $quar
@@ -188,7 +188,7 @@ foreach shell $othlang_list {
 set quar "BAR F:OO  B\\AD 0BAD"
 set env1 "orig"
 set runenv1 "value"
-if { $verbose > 0 } {
+if {$verbose} {
     send_user "\tSetup MODULES_RUN_QUARANTINE = '$quar'\n"
     send_user "\tSetup BAR = '$env1'\n"
     send_user "\tSetup MODULES_RUNENV_BAR = '$runenv1'\n"
@@ -243,7 +243,7 @@ set quar "LD_LIBRARY_PATH FOO"
 set env1 $env(TESTSUITEDIR)
 set env2 "orig2 part2 spe\"ci\"al"
 set runenv2 "value2 valpart2 valspe\"ci\"al"
-if { $verbose > 0 } {
+if {$verbose} {
     send_user "\tSetup MODULES_RUN_QUARANTINE = '$quar'\n"
     send_user "\tSetup LD_LIBRARY_PATH = '$env1'\n"
     send_user "\tSetup FOO = '$env2'\n"
@@ -271,7 +271,7 @@ lappend ansr "FOO=$env2"
 lappend ansr "MODULES_RUNENV_FOO=$runenv2"
 
 if {$sip_enabled} {
-   if { $verbose > 0 } {
+   if {$verbose} {
       send_user "\tSkip LD_LIBRARY_PATH-related tests as SIP is enabled\n"
    }
 } else {
@@ -279,7 +279,7 @@ if {$sip_enabled} {
 foreach shell $shell_list {
    switch -- $shell {
       {csh} - {tcsh} {
-         if { $verbose > 0 } {
+         if {$verbose} {
             send_user "\tskip test for $shell, no quarantine support\n"
          }
       }
@@ -291,7 +291,7 @@ foreach shell $shell_list {
 foreach shell $othlang_list {
    switch -- $shell {
       {tcl} {
-         if { $verbose > 0 } {
+         if {$verbose} {
             send_user "\tspecific test for $shell\n"
          }
       }
@@ -309,13 +309,13 @@ foreach shell $othlang_list {
 
 # same test than above with a disturbing IFS value, for real shells only
 set ifs ":"
-if { $verbose > 0 } {
+if {$verbose} {
     send_user "\tSetup IFS = '$ifs'\n"
 }
 set env(IFS) $ifs
 
 if {$sip_enabled} {
-   if { $verbose > 0 } {
+   if {$verbose} {
       send_user "\tSkip LD_LIBRARY_PATH-related tests as SIP is enabled\n"
    }
 } else {
@@ -323,7 +323,7 @@ if {$sip_enabled} {
 foreach shell $shell_list {
    switch -- $shell {
       {csh} - {tcsh} {
-         if { $verbose > 0 } {
+         if {$verbose} {
             send_user "\tskip test for $shell, no quarantine support\n"
          }
       }
@@ -341,7 +341,7 @@ foreach shell $shell_list {
 # make a specific test for tcl, as its install_test script is not
 # shielded against bad LD_LIBRARY_PATH
 set quar "BAR FOO"
-if { $verbose > 0 } {
+if {$verbose} {
     send_user "\tSetup MODULES_RUN_QUARANTINE = '$quar'\n"
     send_user "\tSetup BAR = '$env1'\n"
     send_user "\tUnset LD_LIBRARY_PATH\n"
@@ -365,7 +365,7 @@ testall_cmd "tcl" "source,$modfile" "" [join $ans "\n"] 0
 set quar "LD_LIBRARY_PATH"
 set env1 ""
 set runenv1 $env(TESTSUITEDIR)
-if { $verbose > 0 } {
+if {$verbose} {
     send_user "\tSetup MODULES_RUN_QUARANTINE = '$quar'\n"
     send_user "\tSetup LD_LIBRARY_PATH = '$env1'\n"
     send_user "\tSetup MODULES_RUNENV_LD_LIBRARY_PATH = '$runenv1'\n"
@@ -382,7 +382,7 @@ if {[info exists testlibfile] && [file exists $testlibfile]\
    foreach shell $shell_list {
       switch -- $shell {
          {csh} - {tcsh} {
-            if { $verbose > 0 } {
+            if {$verbose} {
                send_user "\tskip test for $shell, no quarantine support\n"
             }
          }
@@ -399,7 +399,7 @@ if {[info exists testlibfile] && [file exists $testlibfile]\
    foreach shell $othlang_list {
       testall_cmd_re "$shell" "source,$modfile" "" $ans 1
    }
-} elseif {$verbose > 0} {
+} elseif {$verbose} {
    send_user "\tSkip test as fake library setup not understood by $install_tclsh\n"
 }
 
@@ -410,7 +410,7 @@ if {[info exists testlibfile] && [file exists $testlibfile]\
 
 # remove temp file used for test
 if {[info exists testlibfile] && [file exists $testlibfile]} {
-   if {$verbose > 0} {
+   if {$verbose} {
       send_user "\tDelete fake library $testlibfile\n"
    }
    file delete $testlibfile
@@ -420,11 +420,11 @@ if {[info exists testlibfile] && [file exists $testlibfile]} {
 
 reset_test_env
 
-} elseif {$verbose > 0} {
+} elseif {$verbose} {
    send_user "\tSkipping quarantine mechanism checks due to install path\n"
 }
 
-} elseif {$verbose > 0} {
+} elseif {$verbose} {
    send_user "\tSkipping quarantine mechanism checks\n"
 }
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

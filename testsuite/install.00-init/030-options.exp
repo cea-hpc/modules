@@ -58,7 +58,7 @@ foreach modp [split $install_modulepathre ":"] {
 #
 
 if {$install_setmanpath eq "y" && $install_builddoc ne "n"} {
-   if {$verbose > 0} {
+   if {$verbose} {
       send_user "\tChecking man pages availability\n"
    }
    unsetenv_var MANPATH
@@ -66,12 +66,12 @@ if {$install_setmanpath eq "y" && $install_builddoc ne "n"} {
       testall_cmd_re "$shell" "man -w modulefile" "$install_mandirre/man4/modulefile.*" {} 0
       testall_cmd_re "$shell" "man -w module" "$install_mandirre/man1/module.*" {} 0
    }
-} elseif {$verbose > 0} {
+} elseif {$verbose} {
    send_user "\tSkipping man pages availability checks\n"
 }
 
 if {$install_setbinpath eq "y"} {
-   if {$verbose > 0} {
+   if {$verbose} {
       send_user "\tChecking envml availability\n"
    }
    foreach shell $shell_list {
@@ -88,7 +88,7 @@ if {$install_setbinpath eq "y"} {
       }
    }
 
-   if {$verbose > 0} {
+   if {$verbose} {
       send_user "\tChecking modulecmd availability\n"
    }
    foreach shell $shell_list {
@@ -99,7 +99,7 @@ if {$install_setbinpath eq "y"} {
       }
    }
 
-   if {$verbose > 0} {
+   if {$verbose} {
       send_user "\tChecking other utilities availability\n"
    }
    foreach shell $shell_list {
@@ -123,14 +123,14 @@ if {$install_setbinpath eq "y"} {
          }
       }
    }
-} elseif {$verbose > 0} {
+} elseif {$verbose} {
    send_user "\tSkipping envml availability checks\n"
    send_user "\tSkipping modulecmd availability checks\n"
    send_user "\tSkipping other utilities availability checks\n"
 }
 
 if {$install_modulepath ne ""} {
-   if {$verbose > 0} {
+   if {$verbose} {
       send_user "\tChecking default modulepath setup\n"
    }
    foreach shell $shell_list {
@@ -139,12 +139,12 @@ if {$install_modulepath ne ""} {
    foreach shell $othlang_list {
       testall_cmd_re "$shell" "use" {} "$use_desc\n\\s+[join $modpath_listre {\n\\s+}]" 0
    }
-} elseif {$verbose > 0} {
+} elseif {$verbose} {
    send_user "\tSkipping default modulepath checks\n"
 }
 
 if {$install_examplemodulefiles eq "y" && $modfilesdir_in_modpath} {
-   if {$verbose > 0} {
+   if {$verbose} {
       send_user "\tChecking example modulefiles installation\n"
    }
    set env(MODULES_TAG_ABBREV) {loaded=L}
@@ -168,12 +168,12 @@ if {$install_examplemodulefiles eq "y" && $modfilesdir_in_modpath} {
       }
       unsetenv_var MODULES_ADVANCED_VERSION_SPEC
    }
-} elseif {$verbose > 0} {
+} elseif {$verbose} {
    send_user "\tSkipping example modulefiles installation checks\n"
 }
 
 if {$install_loadedmodules ne ""} {
-   if {$verbose > 0} {
+   if {$verbose} {
       send_user "\tChecking default loaded modules setup\n"
    }
    foreach shell $shell_list {
@@ -182,14 +182,14 @@ if {$install_loadedmodules ne ""} {
    foreach shell $othlang_list {
       testall_cmd_re "$shell" "list,-t" {} "$cur_loaded\n[join $lm_list {.*\n}]" 0
    }
-} elseif {$verbose > 0} {
+} elseif {$verbose} {
    send_user "\tSkipping default loaded modules checks\n"
 }
 
 # basic test for MODULES_SILENT_SHELL_DEBUG, checking module answer is still present
 # among the debugging output
 if {$install_silentshdbgsupport eq y} {
-if {$verbose > 0} {
+if {$verbose} {
    send_user "\tChecking MODULES_SILENT_SHELL_DEBUG\n"
    send_user "\tSetup MODULES_SILENT_SHELL_DEBUG = '1'\n"
 }
@@ -213,7 +213,7 @@ foreach shell $shell_sh_family {
 }
 unset no_loadedmodules_inject
 
-if {$verbose > 0} {
+if {$verbose} {
    send_user "\tSetup MODULES_SILENT_SHELL_DEBUG = '0'\n"
 }
 set env(MODULES_SILENT_SHELL_DEBUG) 0
@@ -237,12 +237,12 @@ foreach shell $shell_sh_family {
 unset no_loadedmodules_inject
 
 unset env(MODULES_SILENT_SHELL_DEBUG)
-} elseif {$verbose > 0} {
+} elseif {$verbose} {
    send_user "\tSkipping silent shell debug checks\n"
 }
 
 # test Windows-specific install
-if {$verbose > 0} {
+if {$verbose} {
    send_user "\tChecking Windows-specific files availability\n"
 }
 testall_cmd_re "sh" "test -e '$install_initdir/cmd.cmd'" "" "" [expr {$install_windowssupport ne {y}}]
@@ -252,8 +252,8 @@ testall_cmd_re "sh" "test -e '$install_bindir/envml.cmd'" "" "" [expr {$install_
 
 # test Nagelfar lint capabilities
 set nafelgar_script [glob -nocomplain nagelfar*/nagelfar.tcl]
-if {[string length $nafelgar_script] > 0} {
-   if {$verbose > 0} {
+if {[string length $nafelgar_script]} {
+   if {$verbose} {
       send_user "\tChecking Nagelfar linting\n"
    }
    set tserr "Linting $testsuite_modpath/prepend/1.6\n"
