@@ -425,17 +425,6 @@ proc getLoadedAltAndSimplifiedName {mod} {
 # environment variable
 proc getEnvLoadedModulePropertyParsedList {prop} {
    switch -- $prop {
-      conflict - tag - extratag {
-         set unserialize_proc unserialize1LvlModulePropertyValueList
-      }
-      sourcesh - prereq - altname - variant - stickyrule {
-         set unserialize_proc unserialize2LvlModulePropertyValueList
-      }
-      default {
-         set unserialize_proc unserialize0LvlModulePropertyValueList
-      }
-   }
-   switch -- $prop {
       sourcesh {
          set char_unmap_list [list <EnvModEscPS> [getState path_separator]\
             <EnvModEscS1> [getState sub1_separator]\
@@ -445,6 +434,8 @@ proc getEnvLoadedModulePropertyParsedList {prop} {
          set char_unmap_list {< :}
       }
    }
+   set unserialize_depth [getEnvLoadedModulePropertyStructDepth $prop]
+   set unserialize_proc serialize${unserialize_depth}ModulePropertyValue
 
    set serialized_value_list [getEnvLoadedModulePropertyList $prop]
    set structured_value_list [$unserialize_proc $serialized_value_list\
@@ -1786,14 +1777,6 @@ proc unsetEnvLoadedModuleProperty {mod_name prop} {
 
 proc setEnvLoadedModuleProperty {mod_name prop value_list} {
    switch -- $prop {
-      conflict - tag - extratag {
-         set serialize_proc serialize1LvlModulePropertyValue
-      }
-      sourcesh - prereq - altname - variant - stickyrule {
-         set serialize_proc serialize2LvlModulePropertyValue
-      }
-   }
-   switch -- $prop {
       sourcesh {
          set char_map_list [list [getState path_separator] <EnvModEscPS>\
             [getState sub1_separator] <EnvModEscS1> [getState sub2_separator]\
@@ -1803,12 +1786,31 @@ proc setEnvLoadedModuleProperty {mod_name prop value_list} {
          set char_map_list {: <}
       }
    }
+   set serialize_depth [getEnvLoadedModulePropertyStructDepth $prop]
+   set serialize_proc serialize${serialize_depth}ModulePropertyValue
    set prop_env_var [getLoadedModulePropertyEnvVarName $prop]
+
    if {[llength $value_list]} {
       set serialized_value_list [$serialize_proc $mod_name $value_list\
          $char_map_list]
       append-path $prop_env_var $serialized_value_list
    }
+}
+
+proc getEnvLoadedModulePropertyStructDepth {prop} {
+   set struct_depth {}
+   switch -- $prop {
+      file - init - modulepath - name - refresh {
+         set struct_depth 0Lvl
+      }
+      conflict - extratag - tag {
+         set struct_depth 1Lvl
+      }
+      altname - prereq - sourcesh - stickyrule - variant {
+         set struct_depth 2Lvl
+      }
+   }
+   return $struct_depth
 }
 
 proc serialize2LvlModulePropertyValue {mod structured_value_list\
