@@ -2798,9 +2798,7 @@ void EscapePerlString(const char* in,
 		     char* out) {
   
   for(;*in;in++) {
-    if (*in == '\\'||
-	*in == ';' ||
-	*in == '\'') {
+    if (*in == '\'') {
       *out++ = '\\';
     }
     *out++ = *in;
