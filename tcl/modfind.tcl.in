@@ -424,18 +424,9 @@ proc getLoadedAltAndSimplifiedName {mod} {
 # return value list of a loaded module property by parsing corresponding
 # environment variable
 proc getEnvLoadedModulePropertyParsedList {prop} {
-   switch -- $prop {
-      sourcesh {
-         set char_unmap_list [list <EnvModEscPS> [getState path_separator]\
-            <EnvModEscS1> [getState sub1_separator]\
-            <EnvModEscS2> [getState sub2_separator]]
-      }
-      default {
-         set char_unmap_list {< :}
-      }
-   }
    set unserialize_depth [getEnvLoadedModulePropertyStructDepth $prop]
-   set unserialize_proc serialize${unserialize_depth}ModulePropertyValue
+   set unserialize_proc unserialize${unserialize_depth}ModulePropertyValueList
+   set char_unmap_list [getEnvLoadedModulePropertyCharUnmapList $prop]
 
    set serialized_value_list [getEnvLoadedModulePropertyList $prop]
    set structured_value_list [$unserialize_proc $serialized_value_list\
@@ -1776,18 +1767,9 @@ proc unsetEnvLoadedModuleProperty {mod_name prop} {
 }
 
 proc setEnvLoadedModuleProperty {mod_name prop value_list} {
-   switch -- $prop {
-      sourcesh {
-         set char_map_list [list [getState path_separator] <EnvModEscPS>\
-            [getState sub1_separator] <EnvModEscS1> [getState sub2_separator]\
-            <EnvModEscS2>]
-      }
-      default {
-         set char_map_list {: <}
-      }
-   }
    set serialize_depth [getEnvLoadedModulePropertyStructDepth $prop]
    set serialize_proc serialize${serialize_depth}ModulePropertyValue
+   set char_map_list [getEnvLoadedModulePropertyCharMapList $prop]
    set prop_env_var [getLoadedModulePropertyEnvVarName $prop]
 
    if {[llength $value_list]} {
@@ -1813,8 +1795,29 @@ proc getEnvLoadedModulePropertyStructDepth {prop} {
    return $struct_depth
 }
 
+proc getEnvLoadedModulePropertyCharUnmapList {prop} {
+   set char_unmap_list {}
+   foreach {char mapped} [getEnvLoadedModulePropertyCharMapList $prop] {
+      lappend char_unmap_list $mapped $char
+   }
+   return $char_unmap_list
+}
+
+proc getEnvLoadedModulePropertyCharMapList {prop} {
+   return [switch -- $prop {
+      sourcesh {
+         list [getState path_separator] <EnvModEscPS>\
+            [getState sub1_separator] <EnvModEscS1>\
+            [getState sub2_separator] <EnvModEscS2>
+      }
+      default {
+         list : <
+      }
+   }]
+}
+
 proc serialize2LvlModulePropertyValue {mod structured_value_list\
-   {char_map_list {: <}}} {
+   char_map_list} {
    set sub2_sepa [getState sub2_separator]
    set serialized_value_list [list]
    foreach structured_value $structured_value_list {
@@ -1827,7 +1830,7 @@ proc serialize2LvlModulePropertyValue {mod structured_value_list\
 }
 
 proc serialize1LvlModulePropertyValue {mod structured_value_list\
-   {char_map_list {: <}}} {
+   char_map_list} {
    if {[llength $structured_value_list]} {
       set serialized_value [join [list $mod {*}$structured_value_list]\
          [getState sub1_separator]]
@@ -1839,7 +1842,7 @@ proc serialize1LvlModulePropertyValue {mod structured_value_list\
 }
 
 proc unserialize2LvlModulePropertyValueList {serialized_value_list\
-   {char_unmap_list {< :}}} {
+   char_unmap_list} {
    set lvl1_serialized_value_list [unserialize1LvlModulePropertyValueList\
       $serialized_value_list {}]
    set structured_value_list {}
@@ -1868,7 +1871,7 @@ proc unserialize2LvlModulePropertyValueList {serialized_value_list\
 }
 
 proc unserialize1LvlModulePropertyValueList {serialized_value_list\
-   {char_unmap_list {< :}}} {
+   char_unmap_list} {
    set structured_value_list {}
    set sub1_sepa [getState sub1_separator]
    foreach serialized_value $serialized_value_list {
@@ -1887,7 +1890,7 @@ proc unserialize1LvlModulePropertyValueList {serialized_value_list\
 }
 
 proc unserialize0LvlModulePropertyValueList {serialized_value_list\
-   {char_unmap_list {< :}}} {
+   char_unmap_list} {
    set value_list {}
    foreach serialized_value $serialized_value_list {
       if {[string length $serialized_value]} {
