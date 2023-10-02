@@ -1784,6 +1784,33 @@ proc unsetEnvLoadedModuleProperty {mod_name prop} {
    }
 }
 
+proc setEnvLoadedModuleProperty {mod_name prop value_list} {
+   switch -- $prop {
+      conflict - tag - extratag {
+         set serialize_proc serialize1LvlModulePropertyValue
+      }
+      sourcesh - prereq - altname - variant - stickyrule {
+         set serialize_proc serialize2LvlModulePropertyValue
+      }
+   }
+   switch -- $prop {
+      sourcesh {
+         set char_map_list [list [getState path_separator] <EnvModEscPS>\
+            [getState sub1_separator] <EnvModEscS1> [getState sub2_separator]\
+            <EnvModEscS2>]
+      }
+      default {
+         set char_map_list {: <}
+      }
+   }
+   set prop_env_var [getLoadedModulePropertyEnvVarName $prop]
+   if {[llength $value_list]} {
+      set serialized_value_list [$serialize_proc $mod_name $value_list\
+         $char_map_list]
+      append-path $prop_env_var $serialized_value_list
+   }
+}
+
 proc serialize2LvlModulePropertyValue {mod structured_value_list\
    {char_map_list {: <}}} {
    set sub2_sepa [getState sub2_separator]

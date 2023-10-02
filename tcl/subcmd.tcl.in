@@ -1326,55 +1326,32 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
             in [getState refresh_qualified]}]
 
          # register declared source-sh in environment
-         if {[llength [set mod_srcsh_list [getLoadedSourceSh $modname]]]} {
-            append-path __MODULES_LMSOURCESH\
-               [serialize2LvlModulePropertyValue $modname $mod_srcsh_list\
-               [list [getState path_separator] <EnvModEscPS> [getState\
-               sub1_separator] <EnvModEscS1> [getState sub2_separator]\
-               <EnvModEscS2>]]
-         }
+         setEnvLoadedModuleProperty $modname sourcesh [getLoadedSourceSh\
+            $modname]
 
          # register declared conflict in environment
-         if {[llength [set mod_conflict_list [getLoadedConflict $modname]]]} {
-            append-path __MODULES_LMCONFLICT\
-               [serialize1LvlModulePropertyValue $modname $mod_conflict_list]
-         }
+         setEnvLoadedModuleProperty $modname conflict [getLoadedConflict\
+            $modname]
 
          # declare the prereq of this module
-         if {[llength [set mod_prereq_list [getLoadedPrereq $modname]]]} {
-            append-path __MODULES_LMPREREQ [serialize2LvlModulePropertyValue\
-               $modname $mod_prereq_list]
-         }
+         setEnvLoadedModuleProperty $modname prereq [getLoadedPrereq\
+            $modname]
 
          # declare the alternative names of this module
-         if {[llength [set mod_alt_list [getLoadedAltname $modname {sym alias\
-            autosym} 1]]]} {
-            append-path __MODULES_LMALTNAME [serialize2LvlModulePropertyValue\
-               $modname $mod_alt_list]
-         }
+         setEnvLoadedModuleProperty $modname altname [getLoadedAltname\
+            $modname {sym alias autosym} 1]
 
          # declare the variant of this module
-         if {[llength [set mod_vr_spec_list [getLoadedVariant $modname]]]} {
-            append-path __MODULES_LMVARIANT [serialize2LvlModulePropertyValue\
-               $modname $mod_vr_spec_list]
-         }
+         setEnvLoadedModuleProperty $modname variant [getLoadedVariant\
+            $modname]
 
          # declare the tags of this module
-         if {[llength [set mod_tag_list [getExportTagList $modnamevr\
-            $modfile]]]} {
-            append-path __MODULES_LMTAG [serialize1LvlModulePropertyValue\
-               $modname $mod_tag_list]
-         }
-         if {[llength [set mod_tag_list [getExtraTagList $modnamevr]]]} {
-            append-path __MODULES_LMEXTRATAG\
-               [serialize1LvlModulePropertyValue $modname $mod_tag_list]
-         }
-         if {[llength [set mod_stickyrule_list [getStickyRuleList $modnamevr\
-            $modfile]]]} {
-            append-path __MODULES_LMSTICKYRULE\
-               [serialize2LvlModulePropertyValue $modname\
-                  $mod_stickyrule_list]
-         }
+         setEnvLoadedModuleProperty $modname tag [getExportTagList $modnamevr\
+            $modfile]
+         setEnvLoadedModuleProperty $modname extratag [getExtraTagList\
+            $modnamevr]
+         setEnvLoadedModuleProperty $modname stickyrule [getStickyRuleList\
+            $modnamevr $modfile]
 
          # declare module qualified for refresh evaluation
          if {[isModuleRefreshQualified $modname]} {
@@ -2852,14 +2829,9 @@ proc cmdModuleTag {unset_extra uasked tag_list args} {
 
          # set the new tag set for module on LM env var
          lappendState mode load
-         if {[llength [set mod_tag_list [getExportTagList $modnamevr]]]} {
-            append-path __MODULES_LMTAG [serialize1LvlModulePropertyValue\
-               $modname $mod_tag_list]
-         }
-         if {[llength [set mod_tag_list [getExtraTagList $modnamevr]]]} {
-            append-path __MODULES_LMEXTRATAG\
-               [serialize1LvlModulePropertyValue $modname $mod_tag_list]
-         }
+         setEnvLoadedModuleProperty $modname tag [getExportTagList $modnamevr]
+         setEnvLoadedModuleProperty $modname extratag [getExtraTagList\
+            $modnamevr]
          lpopState mode
 
          # update module designation now the additional tags are set
