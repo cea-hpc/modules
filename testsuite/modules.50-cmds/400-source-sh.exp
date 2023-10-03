@@ -1588,7 +1588,9 @@ lappend ans [list out {complete -c othercmd --short-option 'V' --description 'Co
 lappend ans [list out {complete -e -c mycmd;}]
 lappend ans [list out {complete -c mycmd --exclusive --short-option 'h' --description 'Command help';}]
 }
-testouterr_cmd fish {refresh} $ans {}
+if {!$is_modules_defined_fish} {
+    testouterr_cmd fish {refresh} $ans {}
+}
 
 if {[info exists fish_version_ge31] && $fish_version_ge31} {
 set tserr_disp72 "-------------------------------------------------------------------
@@ -1645,13 +1647,15 @@ setenv\t\tFOOWC va*ue
 module-whatis\tsource-sh/7.2
 -------------------------------------------------------------------"
 }
-# following tests are expected to fail with Tcl 9.0 (as of 9.0b1)
-# similar stack trace than one reported at:
-# https://core.tcl-lang.org/tcl/tktview/46dda6fc2904ee86cc45b3ddc14ce6fb6b4303e4
-if {[cmpversion $tclsh_version 9.0] >= 0} {
-    testouterr_cmd fish {display source-sh/7.2} OK $tserr_disp72 xfail
-} else {
-    testouterr_cmd fish {display source-sh/7.2} OK $tserr_disp72
+if {!$is_modules_defined_fish} {
+    # following tests are expected to fail with Tcl 9.0 (as of 9.0b1)
+    # similar stack trace than one reported at:
+    # https://core.tcl-lang.org/tcl/tktview/46dda6fc2904ee86cc45b3ddc14ce6fb6b4303e4
+    if {[cmpversion $tclsh_version 9.0] >= 0} {
+        testouterr_cmd fish {display source-sh/7.2} OK $tserr_disp72 xfail
+    } else {
+        testouterr_cmd fish {display source-sh/7.2} OK $tserr_disp72
+    }
 }
 
 unsetenv_loaded_module

@@ -800,6 +800,11 @@ if {$is_modules_defined} {
 } else {
     set extratserr {}
 }
+if {$is_modules_defined_fish} {
+    set extratserr_fish "\nunset-function\tml\nunset-function\tmodule\nunsetenv\tMODULESHOME"
+} else {
+    set extratserr_fish {}
+}
 
 set tserr "#%Module\n$tsvarappwpath$tscwd\n$tsvarprewpath\n$tsvar\n"
 if {$install_versioning eq {y}} {
@@ -816,8 +821,10 @@ foreach sh $shtomod_avail_shells {
         testouterr_shtomod $sh {} OK $tserrbash
     # skip this test for old fish version as a __fish_restore_status
     # function is defined in this case
-    } elseif {$sh ne {fish} || $fish_version_ge31} {
+    } elseif {$sh ne {fish}} {
         testouterr_shtomod $sh {} OK $tserr
+    } elseif {$sh eq {fish} && $fish_version_ge31} {
+        testouterr_shtomod $sh {} OK $tserr$extratserr_fish
     }
 }
 
