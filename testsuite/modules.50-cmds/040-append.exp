@@ -413,6 +413,22 @@ testouterr_cmd "sh" "unload $module" $ans {}
 
 
 #
+# --glob option
+#
+
+unsetenv_loaded_module
+unsetenv_path_var FOO
+setenv_var MODULEPATH $modpath.4
+
+set ans [list]
+lappend ans [list set FOO /tmp*]
+lappend ans [list set _LMFILES_ $modpath.4/append/1.0]
+lappend ans [list set LOADEDMODULES append/1.0]
+set tserr [msg_load append/1.0 "$warn_msgs: --glob option has no effect on append-path"]
+testouterr_cmd sh {load append/1.0} $ans $tserr
+
+
+#
 #  Cleanup
 #
 
