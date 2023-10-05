@@ -2384,6 +2384,12 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+ When several *modulefiles* are passed, they are unloaded sequentially in the
+ specified order. If one modulefile evaluation raises an error, unload
+ sequence continues: unloaded modules prior the evaluation error are kept
+ unloaded and sequence is resumed with the unload of remaining modulefile in
+ list.
+
  .. only:: html
 
     .. versionchanged:: 4.2
