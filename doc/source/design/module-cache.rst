@@ -252,6 +252,10 @@ file is used. They are primarily useful to skip I/O tests when walking through
 the content of a modulepath directory. As these I/O tests are done during the
 cache build process, the options are useless when using cache files.
 
+When cache file magic cookie defines a Modules version greater than the
+current one, the cache file is silently ignored. Raisin error is not useful as
+different version of Modules may be deployed in the same site environment.
+
 When cache file is not in sync
 ------------------------------
 

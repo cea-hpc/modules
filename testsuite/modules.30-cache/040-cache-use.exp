@@ -205,7 +205,21 @@ modulefile-content bar/1.0 1664035017 #%Module #%Module"
 close $fid
 testouterr_cmd sh {avail -a -t -o } OK $tserr_avail1
 testouterr_cmd sh {avail -a -t -o  foo} OK $tserr_avail2
-testouterr_cmd sh {load bar} $ans_load1b [cacheerr_minverreq $mp1cache 99]
+testouterr_cmd sh {load bar} $ans_load1 {}
+file delete $mp1cache
+
+# test with a module header with required version below current version
+set fid [open $mp1cache w]
+puts $fid "#%Module5.2
+modulefile-content bar/1.0 1664035017 #%Module #%Module"
+close $fid
+testouterr_cmd sh {avail -a -t -o } OK bar/1.0
+testouterr_cmd sh {avail -a -t -o  foo} OK {}
+set ans [list]
+lappend ans [list set __MODULES_LMALTNAME bar/1.0&as|bar/default&as|bar/latest]
+lappend ans [list set _LMFILES_ $mp1/bar/1.0]
+lappend ans [list set LOADEDMODULES bar/1.0]
+testouterr_cmd sh {load bar} $ans {}
 file delete $mp1cache
 
 # tests with a cache containing element that does not exists anymore in modulepath

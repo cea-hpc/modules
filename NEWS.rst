@@ -72,6 +72,8 @@ Modules 5.4.0 (not yet released)
   :envvar:`__MODULES_LMSTICKYRULE` environment variable. It helps to determine
   if stickiness is satisfied when changing loaded modules. Which was not
   working correctly for virtual modules. (fix issue #506)
+* Silently ignore cache file when it requires a greater Modules version. (fix
+  issue #515)
 
 
 .. _5.3 release notes:
