@@ -302,4 +302,54 @@ Prior running evaluations, dependencies of loaded modules are checked. If at
 least one dependency (requirement or conflict) is not satisfied, an error is
 raised.
 
+Unload sub-command
+------------------
+
+Specific error behavior for modulefile unload evaluation by :subcmd:`unload`
+sub-command.
+
+Force mode
+^^^^^^^^^^
+
+When :option:`--force` command-line switch is used, unload evaluation by-pass
+following errors:
+
+* bad code
+* break
+* exit
+* error
+* dependent reload
+* unloading dependent
+* sticky unload
+
+Following behavior is observed:
+
+* evaluation continues (error is by-passed)
+* warning message reported (instead of an error message)
+* no error exit code set
+
+When facing an erroneous modulefile, it seems useful to be able to get rid of
+it from user's loaded environment.
+
+Multiple modulefiles passed as argument
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When multiple modulefiles are passed to the ``unload`` sub-command for
+evaluation. If the evaluation of one modulefile raises an error, behavior for
+this error is applied and:
+
+* already evaluated modulefiles from the argument list are kept unloaded
+* for other kind of error, evaluation continues with next modulefile in
+  argument list
+
+The above description only applies to ``unload`` sub-command executed from the
+top level context and not from a modulefile evaluation. Multiple arguments on
+a ``module unload`` command in modulefile are evaluated independently as an
+*AND* conflict list.
+
+.. warning:: :command:`ml` command applies an abort behavior when facing an
+   error. Evaluation stops and already unloaded modulefiles are restored in
+   loaded environment. It may be changed in the next major version to align
+   on ``unload`` sub-command behavior.
+
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
