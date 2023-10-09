@@ -531,9 +531,8 @@ proc execute-modulerc {modfile modname modspec} {
          module-version module-alias module-alias module-virtual\
          module-virtual module-forbid module-forbid module-hide module-hide\
          module-tag module-tag module-info module-info modulepath-label\
-         modulepath-label reportInternalBug reportInternalBug\
-         setModulesVersion setModulesVersion readModuleContent\
-         readModuleContent formatErrStackTrace formatErrStackTrace]
+         modulepath-label setModulesVersion setModulesVersion\
+         readModuleContent readModuleContent]
 
       if {[getConf source_cache]} {
          set ::g_modrcAliases(source) sourceModfileCmd
@@ -613,18 +612,14 @@ proc execute-modulerc {modfile modname modspec} {
    interp eval $itrp {upvar 0 ::ModulesVersion ::ModuleVersion}
 
    ##nagelfar ignore +4 Suspicious # char
-   set errorVal [interp eval $itrp {
+   set eval_return_code [interp eval $itrp {
       set modcontent [readModuleContent $::ModulesCurrentModulefile]
       if {$modcontent eq {}} {
          # simply skip rc file, no exit on error here
-         return 1
+         return 2
       }
       info script $::ModulesCurrentModulefile
       if [catch {eval $modcontent} errorMsg] {
-         # format stack trace to report modulerc information only
-         reportInternalBug [formatErrStackTrace $::errorInfo\
-            $::ModulesCurrentModulefile [list {*}[info procs] {*}[info\
-            commands]]]
          return 1
       } else {
          # pass ModulesVersion value to main interp
@@ -634,6 +629,13 @@ proc execute-modulerc {modfile modname modspec} {
          return 0
       }
    }]
+
+   if {$eval_return_code == 1} {
+      # format stack trace to report modulerc information only
+      reportInternalBug [formatErrStackTrace [getInterpVar $itrp ::errorInfo]\
+         $modfile [concat [interp eval $itrp info procs] [interp eval $itrp\
+         info commands]]]
+   }
 
    # default version set via ModulesVersion variable in .version file
    # override previously defined default version for modname
