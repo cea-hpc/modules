@@ -450,10 +450,7 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
          set msg_to_report $errorMsg
          set eval_return_code 1
       } else {
-         # format stack trace to report modulefile information only
-         set msg_to_report [formatErrStackTrace [getInterpVar $itrp\
-            ::errorInfo] $modfile [concat [interp eval $itrp info procs]\
-            [interp eval $itrp info commands]]]
+         set msg_to_report [formatInterpErrStackTrace $itrp $modfile]
          set report_proc reportInternalBug
          set eval_return_code 1
       }
@@ -631,10 +628,7 @@ proc execute-modulerc {modfile modname modspec} {
    }]
 
    if {$eval_return_code == 1} {
-      # format stack trace to report modulerc information only
-      reportInternalBug [formatErrStackTrace [getInterpVar $itrp ::errorInfo]\
-         $modfile [concat [interp eval $itrp info procs] [interp eval $itrp\
-         info commands]]]
+      reportInternalBug [formatInterpErrStackTrace $itrp $modfile]
    }
 
    # default version set via ModulesVersion variable in .version file
@@ -668,6 +662,13 @@ proc getInterpVar {itrp var_name {val_if_unset {}}} {
    } else {
       return $val_if_unset
    }
+}
+
+# format error stack trace to report modulefile information only
+proc formatInterpErrStackTrace {itrp modfile} {
+   return [formatErrStackTrace [getInterpVar $itrp ::errorInfo] $modfile\
+      [concat [interp eval $itrp info procs] [interp eval $itrp info\
+      commands]]]
 }
 
 # Save list of the defined procedure and the global variables with their
