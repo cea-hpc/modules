@@ -417,7 +417,8 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
    }] sourceFailed errorMsg
 
    set eval_return_code 0
-   set report_proc reportError
+   set report_proc [expr {$mode eq {unload} && [getState force] ?\
+      {reportWarning} : {reportError}}]
    if {$sourceFailed} {
       # error obtained when reading modulefile, message has already been sent
       if {$sourceFailed == 2} {
@@ -435,7 +436,8 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
          # >= normal, no error count raise during scan evaluation
          if {$mode in {load unload refresh} && [isVerbosityLevel normal]} {
             set msg_to_report {Module evaluation aborted}
-         } elseif {$mode ne {scan}} {
+         } elseif {$mode ne {scan} && ($mode ne {unload} || ![getState\
+            force])} {
             set raise_error_count 1
          }
          set eval_return_code 1
@@ -447,9 +449,14 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
          set eval_return_code 1
       } else {
          set msg_to_report [formatInterpErrStackTrace $itrp $modfile]
-         set report_proc reportInternalBug
+         set report_proc [expr {$mode eq {unload} && [getState force] ?\
+            {reportInternalBugWarning} : {reportInternalBug}}]
          set eval_return_code 1
       }
+   }
+
+   if {$mode eq {unload} && [getState force]} {
+      set eval_return_code 0
    }
 
    if {[info exists msg_to_report]} {

@@ -103,11 +103,20 @@ proc __reportErrorAndExit {message} {
 }
 
 proc reportInternalBug {message {modfile {}} {title {Module ERROR}}} {
+   reportError [formatInternalBugMsg $message $modfile] 0 $title me
+}
+
+proc reportInternalBugWarning {message {modfile {}} {title {Module\
+   WARNING}}} {
+   reportError [formatInternalBugMsg $message $modfile] 0 $title wa 0
+}
+
+proc formatInternalBugMsg {message modfile} {
    if {$modfile ne {}} {
       append message "\nIn '$modfile'"
    }
    append message "\nPlease contact <[getConf contact]>"
-   reportError $message 0 $title me
+   return $message
 }
 
 proc reportInfo {message {title INFO}} {
