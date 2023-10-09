@@ -91,11 +91,9 @@ proc initModfileModeAliases {mode auto aliasesVN aliasesPassArgVN\
          getvariant getvariant is-loaded is-loaded is-saved is-saved is-used\
          is-used is-avail is-avail uname uname module-info module-info\
          modulepath-label modulepath-label exit exitModfileCmd reportCmdTrace\
-         reportCmdTrace reportInternalBug reportInternalBug reportWarning\
-         reportWarning reportError reportError raiseErrorCount\
-         raiseErrorCount report report isVerbosityLevel isVerbosityLevel\
-         isWin initStateIsWin puts putsModfileCmd readModuleContent\
-         readModuleContent formatErrStackTrace formatErrStackTrace]
+         reportCmdTrace reportWarning reportWarning reportError reportError\
+         raiseErrorCount raiseErrorCount report report isWin initStateIsWin\
+         puts putsModfileCmd readModuleContent readModuleContent]
 
       if {[getConf source_cache]} {
          lappend ::g_modfileBaseAliases source sourceModfileCmd
@@ -359,10 +357,10 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
       $modnamevr]}"
 
    ##nagelfar ignore +7 Suspicious # char
-   set errorVal [interp eval $itrp {
+   lassign [interp eval $itrp {
       set modcontent [readModuleContent $::ModulesCurrentModulefile 1]
       if {$modcontent eq {}} {
-         return 1
+         return [list 2 {}]
       }
       info script $::ModulesCurrentModulefile
       # eval then call for specific proc depending mode under same catch
@@ -419,47 +417,53 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
             }
          }
       } errorMsg]
-      if {$sourceFailed} {
-         # no error in case of "continue" command
-         # catch continue even if called outside of a loop
-         if {$errorMsg eq {invoked "continue" outside of a loop}\
-            || $sourceFailed == 4} {
-            unset errorMsg
-            return 0
-         # catch break even if called outside of a loop
-         # on Darwin, error is different: no errorCode & return code set to 3
-         } elseif {$errorMsg eq {invoked "break" outside of a loop}\
-            || ($errorMsg eq {} && (![info exists ::errorInfo]\
-            || $::errorInfo eq {})) || (![info exists ::errorCode] &&\
-            $sourceFailed == 3)} {
-            unset errorMsg
-            # report load/unload/refresh evaluation break if verbosity level
-            # >= normal, no error count raise during scan evaluation
-            set mode [module-info mode]
-            if {$mode in {load unload refresh} && [isVerbosityLevel normal]} {
-               reportError {Module evaluation aborted}
-            } elseif {$mode ne {scan}} {
-               raiseErrorCount
-            }
-            return 1
-         } elseif {$errorCode eq {MODULES_ERR_SUBFAILED}} {
-            # error counter and message already handled, just return error
-            return 1
-         } elseif {$errorCode eq {MODULES_ERR_GLOBAL}} {
-            reportError $errorMsg
-            return 1
-         } else {
-            # format stack trace to report modulefile information only
-            reportInternalBug [formatErrStackTrace $::errorInfo\
-               $::ModulesCurrentModulefile [list {*}[info procs] {*}[info\
-               commands]]]
-            return 1
+      return [list $sourceFailed $errorMsg]
+   }] sourceFailed errorMsg
+
+   set eval_return_code 0
+   set report_proc reportError
+   if {$sourceFailed} {
+      # error obtained when reading modulefile, message has already been sent
+      if {$sourceFailed == 2} {
+         set eval_return_code 1
+      # no error in case of "continue" command
+      # catch continue even if called outside of a loop
+      } elseif {$errorMsg eq {invoked "continue" outside of a loop} ||\
+         $sourceFailed == 4} {
+      # catch break even if called outside of a loop
+      # on Darwin, error is different: no errorCode & return code set to 3
+      } elseif {$errorMsg eq {invoked "break" outside of a loop} ||\
+         ($errorMsg eq {} && [getInterpVar $itrp ::errorInfo] eq {}) ||\
+         (![isInterpVarDefined $itrp ::errorCode] && $sourceFailed == 3)} {
+         # report load/unload/refresh evaluation break if verbosity level
+         # >= normal, no error count raise during scan evaluation
+         if {$mode in {load unload refresh} && [isVerbosityLevel normal]} {
+            set msg_to_report {Module evaluation aborted}
+         } elseif {$mode ne {scan}} {
+            set raise_error_count 1
          }
+         set eval_return_code 1
+      } elseif {[getInterpVar $itrp errorCode] eq {MODULES_ERR_SUBFAILED}} {
+         # error counter and message already handled, just return err code
+         set eval_return_code 1
+      } elseif {[getInterpVar $itrp errorCode] eq {MODULES_ERR_GLOBAL}} {
+         set msg_to_report $errorMsg
+         set eval_return_code 1
       } else {
-         unset errorMsg
-         return 0
+         # format stack trace to report modulefile information only
+         set msg_to_report [formatErrStackTrace [getInterpVar $itrp\
+            ::errorInfo] $modfile [concat [interp eval $itrp info procs]\
+            [interp eval $itrp info commands]]]
+         set report_proc reportInternalBug
+         set eval_return_code 1
       }
-   }]
+   }
+
+   if {[info exists msg_to_report]} {
+      $report_proc $msg_to_report
+   } elseif {[info exists raise_error_count]} {
+      raiseErrorCount
+   }
 
    # check if mod name version and variant has changed (default variant set)
    # update modnamevr if so and collect tags applying to new name
@@ -484,7 +488,7 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
    # check if special tags now applies and require to raise an error
    if {$mode ne {unload}} {
       if {[isModuleTagged $modnamevr forbidden 1 $modfile]} {
-         set errorVal 1
+         set eval_return_code 1
          reportError [getForbiddenMsg $modnamevr $modfile]
       } elseif {![info exists nearlyforbidwarn] && [isModuleTagged $modnamevr\
          nearly-forbidden 1 $modfile]} {
@@ -500,7 +504,7 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
    lpopState modulenamevr
    lpopState modulefile
 
-   return $errorVal
+   return $eval_return_code
 }
 
 # Smaller subset than main module load... This function runs modulerc and
@@ -650,6 +654,18 @@ proc execute-modulerc {modfile modname modspec} {
    lpopState modulefile
 
    return $::ModulesVersion
+}
+
+proc isInterpVarDefined {itrp var_name} {
+   return [interp eval $itrp info exists $var_name]
+}
+
+proc getInterpVar {itrp var_name {val_if_unset {}}} {
+   if {[isInterpVarDefined $itrp $var_name]} {
+      return [interp eval $itrp set $var_name]
+   } else {
+      return $val_if_unset
+   }
 }
 
 # Save list of the defined procedure and the global variables with their
