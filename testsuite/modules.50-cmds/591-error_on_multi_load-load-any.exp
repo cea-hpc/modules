@@ -76,9 +76,9 @@ lappend ans_depre_error_force [list unset __MODULES_LMPREREQ]
 lappend ans_depre_error_force [list ERR]
 
 set ans_depre_unload_error_force [list]
-lappend ans_depre_unload_error_force [list set _LMFILES_ $mp/err/1.0:$mp/foo/1.0]
-lappend ans_depre_unload_error_force [list set LOADEDMODULES err/1.0:foo/1.0]
-lappend ans_depre_unload_error_force [list ERR]
+lappend ans_depre_unload_error_force [list set __MODULES_LMPREREQ err/1.0&err/1.0|foo]
+lappend ans_depre_unload_error_force [list set _LMFILES_ $mp/foo/1.0:$mp/err/1.0]
+lappend ans_depre_unload_error_force [list set LOADEDMODULES foo/1.0:err/1.0]
 
 set ans_in_modfile [list]
 lappend ans_in_modfile [list set __MODULES_LMPREREQ lerr/1.0&err/1.0|foo/1.0]
@@ -203,9 +203,8 @@ append ts_depre_unload_error [msg_load foo/1.0 [err_depun err/1.0]]
 testouterr_cmd bash {load-any foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_unload_error
 
 # --force by-pass dependent reload error
-set ts_depre_unload_error_force [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
-append ts_depre_unload_error_force [msg_load foo/1.0 [err_depunf err/1.0]]
-# FIXME: --force should be able to unload err/1.0
+set ts_depre_unload_error_force [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_depre_unload_error_force [msg_top_load foo/1.0 {} {} err/1.0]
 testouterr_cmd bash {load-any --force foo/1.0 setenv/1.0} $ans_depre_unload_error_force $ts_depre_unload_error_force
 
 unsetenv_loaded_module
@@ -360,7 +359,6 @@ setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_unload_error
 testouterr_cmd bash {load-any foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_unload_error
 
 # --force by-pass dependent reload error
-# FIXME: --force should be able to unload err/1.0
 testouterr_cmd bash {load-any --force foo/1.0 setenv/1.0} $ans_depre_unload_error_force $ts_depre_unload_error_force
 
 

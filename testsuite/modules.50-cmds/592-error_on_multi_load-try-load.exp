@@ -182,16 +182,16 @@ lappend ans_depre_unload_error_force [list out all-pre-out]
 lappend ans_depre_unload_error_force [list set TS1 {}]
 lappend ans_depre_unload_error_force [list set TSPATH dir1]
 lappend ans_depre_unload_error_force [list set TS2 {}]
-lappend ans_depre_unload_error_force [list set LOADEDMODULES err/1.0:all/1.0:foo/1.0:setenv/1.0]
-lappend ans_depre_unload_error_force [list set _LMFILES_ $mp/err/1.0:$mp/all/1.0:$mp/foo/1.0:$mp/setenv/1.0]
+lappend ans_depre_unload_error_force [list set __MODULES_LMPREREQ err/1.0&err/1.0|foo]
 lappend ans_depre_unload_error_force [list set __MODULES_LMREFRESH all/1.0]
+lappend ans_depre_unload_error_force [list set _LMFILES_ $mp/all/1.0:$mp/foo/1.0:$mp/err/1.0:$mp/setenv/1.0]
+lappend ans_depre_unload_error_force [list set LOADEDMODULES all/1.0:foo/1.0:err/1.0:setenv/1.0]
 lappend ans_depre_unload_error_force [list set TS ok]
 lappend ans_depre_unload_error_force [list alias alall value]
 lappend ans_depre_unload_error_force [list funcall "() { value; }; export -f funcall;"]
 lappend ans_depre_unload_error_force [list out {complete value compall;}]
 lappend ans_depre_unload_error_force [list chdir /tmp]
 lappend ans_depre_unload_error_force [list out all-out]
-lappend ans_depre_unload_error_force [list ERR]
 
 set ans_single_foo [list]
 lappend ans_single_foo [list set _LMFILES_ $mp/foo/1.0]
@@ -327,9 +327,8 @@ append ts_depre_unload_error [msg_load foo/1.0 [err_depun err/1.0]]
 testouterr_cmd bash {try-load all/1.0 foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_unload_error
 
 # --force by-pass dependent reload error
-set ts_depre_unload_error_force [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
-append ts_depre_unload_error_force [msg_load foo/1.0 [err_depunf err/1.0]]
-# FIXME: --force should be able to unload err/1.0
+set ts_depre_unload_error_force [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_depre_unload_error_force [msg_top_load foo/1.0 {} {} err/1.0]
 testouterr_cmd bash {try-load --force all/1.0 foo/1.0 setenv/1.0} $ans_depre_unload_error_force $ts_depre_unload_error_force
 
 unsetenv_loaded_module
@@ -511,7 +510,6 @@ setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD depre_unload_error
 testouterr_cmd bash {try-load all/1.0 foo/1.0 setenv/1.0} ERR $ts_depre_unload_error
 
 # --force by-pass dependent reload error
-# FIXME: --force should be able to unload err/1.0
 testouterr_cmd bash {try-load --force all/1.0 foo/1.0 setenv/1.0} $ans_depre_unload_error_force $ts_depre_unload_error_force
 
 

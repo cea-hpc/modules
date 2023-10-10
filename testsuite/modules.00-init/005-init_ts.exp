@@ -92,6 +92,7 @@ set err_emptyfilename "$error_msgs: $msg_filenameempty"
 set err_unsatreload "$error_msgs: Cannot reload modules, some of their constraints are not satistied"
 set err_nodefault "$error_msgs: No default version defined for "
 set err_evalabort "$error_msgs: Module evaluation aborted"
+set warn_evalabort "$warn_msgs: Module evaluation aborted"
 set err_specmodname "$error_msgs: $msg_nomodnameinarg "
 set err_specvers "$error_msgs: $msg_invversspec "
 set err_rangevers "$error_msgs: Invalid version range "
@@ -440,11 +441,15 @@ proc msg_no_stash_coll {{target {}}} {
     return $msg
 }
 
-proc msg_moderr {msg cmdline modfile linenum {pad {}} {procname {}} {contact {}} {custom {}} {custom2 {while executing}}} {
+proc msg_modwarn {msg cmdline modfile linenum {pad {}} {procname {}} {contact {}} {custom {}} {custom2 {while executing}}} {
+    return [msg_moderr $msg $cmdline $modfile $linenum $pad $procname $contact $custom $custom2 {Module WARNING}]
+}
+
+proc msg_moderr {msg cmdline modfile linenum {pad {}} {procname {}} {contact {}} {custom {}} {custom2 {while executing}} {title {Module ERROR}}} {
 
     set linefile [expr {$procname ne {} || $linenum eq {} ? {} : " line $linenum"}]
     set errcontact [expr {$contact eq {} ? $::err_contactns : "Please contact <$contact>"}]
-    set res "$::moderr_msgs: $msg
+    set res "$title: $msg
 $pad    $custom2
 $pad\"$cmdline\""
     if {$procname ne {}} {

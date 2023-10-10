@@ -278,27 +278,22 @@ lappend ans [list set __MODULES_LMPREREQ raf&rae]
 lappend ans [list set __MODULES_LMTAG rae&auto-loaded:raf&hidden-loaded&auto-loaded]
 lappend ans [list ERR]
 testouterr_cmd_re sh {unload -v --auto rah} $ans [msg_unload {raf <aL:H>} $err_evalabort]\n\n[msg_unload rah [err_urequn raf]]
-testouterr_cmd_re sh {unload --force -v --auto rah} $ans [msg_unload {raf <aL:H>} $err_evalabort]\n\n[msg_unload rah [err_urequn raf]]
+
+
+set ans [list]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+testouterr_cmd_re sh {unload --force -v --auto rah} $ans [msg_unload {raf <aL:H>} $warn_evalabort]\n\n[msg_unload {rae <aL>}]\n\n[msg_top_unload rah {} {raf rae} {}]
 
 testouterr_cmd_re sh {unload -v --auto rae} ERR [msg_unload rah]\n\n[msg_unload {raf <aL:H>} $err_evalabort]\n\n[msg_unload {rae <aL>} [err_depun raf]]
-set ans [list]
-lappend ans [list set LOADEDMODULES raf]
-lappend ans [list set _LMFILES_ $mp/raf]
-lappend ans [list set __MODULES_LMPREREQ raf&rae]
-lappend ans [list set __MODULES_LMTAG raf&hidden-loaded&auto-loaded]
-lappend ans [list ERR]
-testouterr_cmd_re sh {unload --force -v --auto rae} $ans [msg_unload rah]\n\n[msg_unload {raf <aL:H>} $err_evalabort]\n\n[msg_top_unload {rae <aL>} {rah} {} {} [err_depunf raf]]
+testouterr_cmd_re sh {unload --force -v --auto rae} $ans [msg_unload rah]\n\n[msg_unload {raf <aL:H>} $warn_evalabort]\n\n[msg_top_unload {rae <aL>} {rah raf} {} {}]
 
 setenv_loaded_module [list rae raf rag rah] [list $mp/rae $mp/raf $mp/rag $mp/rah] [list rae rag]
 setenv_var __MODULES_LMTAG rae&auto-loaded:raf&hidden-loaded:rag&hidden-loaded&auto-loaded
 testouterr_cmd_re sh {unload -v --auto rae} ERR [msg_unload rah]\n\n[msg_unload {raf <H>} $err_evalabort]\n\n[msg_unload {rae <aL>} [err_depun raf]]
-set ans [list]
-lappend ans [list set LOADEDMODULES raf]
-lappend ans [list set _LMFILES_ $mp/raf]
-lappend ans [list set __MODULES_LMPREREQ raf&rae]
-lappend ans [list set __MODULES_LMTAG raf&hidden-loaded]
-lappend ans [list ERR]
-testouterr_cmd_re sh {unload --force -v --auto rae} $ans [msg_unload rah]\n\n[msg_unload {raf <H>} $err_evalabort]\n\n[msg_top_unload {rae <aL>} {rah} {} {} [err_depunf raf]]
+testouterr_cmd_re sh {unload --force -v --auto rae} $ans [msg_unload rah]\n\n[msg_unload {raf <H>} $warn_evalabort]\n\n[msg_top_unload {rae <aL>} {rah raf} {} {}]
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMPREREQ
 unsetenv_var TESTSUITE_HIDE_HIDDEN_LOADED_SET5
