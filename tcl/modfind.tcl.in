@@ -2394,7 +2394,7 @@ proc checkValidModule {modfile} {
    return [expr {[info exists ::g_modfileValid($modfile)]\
       ? $::g_modfileValid($modfile)\
       : [set ::g_modfileValid($modfile) [expr {[getConf mcookie_check] eq\
-         {always} ? [readModuleContent $modfile 1 1] : [list true {}]}]]}]
+         {always} ? [getModuleValidy $modfile] : [list true {}]}]]}]
 }
 
 # get file modification time, cache it at first query, use cache afterward
@@ -2434,68 +2434,52 @@ proc __readFile {filename {firstline 0} {must_have_cookie 0}} {
    return $fdata
 }
 
-proc readModuleContent {modfile {report_read_issue 0} {only_check_validity\
-   0}} {
-   set res {}
-
-   # read file
-   if {[catch {
-      if {[info exists ::g_modfileContent($modfile)]} {
-         lassign $::g_modfileContent($modfile) fh fdata
-      } else {
-         # only read beginning of file if just checking validity and not
-         # asked to always fully read files. when full file should be read
-         # cookie is checked if asked to avoid to fully read non modfile
-         set fdata [readFile $modfile [expr {$only_check_validity &&\
-            ![currentState always_read_full_file]}] 1]
-         # extract magic cookie (first word of modulefile)
-         set fh [string trimright [lindex [split [string range $fdata 0 32]]\
-            0] #]
-         # cache full file read to minimize file operations
-         if {!$only_check_validity || [currentState always_read_full_file]} {
-            set ::g_modfileContent($modfile) [list $fh $fdata]
-         }
-      }
-   } errMsg ]} {
-      if {$report_read_issue} {
-         set msg [parseAccessIssue $modfile]
-         if {$only_check_validity} {
-            set res [list accesserr $msg]
-         } else {
-            reportError $msg
-         }
-      }
+proc getModuleValidy {modfile} {
+   if {[catch {lassign [getModuleHeaderAndContent $modfile 1] header}]} {
+      set msg [parseAccessIssue $modfile]
+      set valid accesserr
    } else {
-      # check module validity
-      if {![string equal -length 8 $fh {#%Module}]} {
-         set msg {Magic cookie '#%Module' missing}
-         if {$only_check_validity} {
-            set res [list invalid $msg]
-         } else {
-            reportInternalBug $msg $modfile
-         }
-      # check if min version requirement is met
-      } elseif {[string length $fh] > 8 && [getConf mcookie_version_check] &&\
-         [versioncmp {@MODULES_RELEASE@} [string range $fh 8 end]] <0} {
-         set msg "Modulefile requires at least Modules version [string range\
-            $fh 8 end]"
-         if {$only_check_validity} {
-            set res [list invalid $msg]
-         } else {
-            reportInternalBug $msg $modfile
-         }
-      } else {
-         if {$only_check_validity} {
-            # set validity information as result
-            set res [list true {}]
-         } else {
-            # set file content as result
-            set res $fdata
-         }
+      lassign [getModuleHeaderValidity $header] valid msg
+   }
+   return [list $valid $msg]
+}
+
+proc getModuleHeaderAndContent {modfile {only_get_header 0}} {
+   if {[info exists ::g_modfileContent($modfile)]} {
+      set res $::g_modfileContent($modfile)
+   } else {
+      # only read beginning of file if just checking validity and not asked to
+      # always fully read files. when full file should be read cookie is
+      # checked if asked to avoid to fully read non modfile
+      set content [readFile $modfile [expr {$only_get_header &&\
+         ![currentState always_read_full_file]}] 1]
+      # extract magic cookie (first word of modulefile)
+      set header [string trimright [lindex [split [string range $content 0\
+         32]] 0] #]
+      set res [list $header $content]
+      # cache full file read to minimize file operations
+      if {!$only_get_header || [currentState always_read_full_file]} {
+         set ::g_modfileContent($modfile) $res
       }
    }
-
    return $res
+}
+
+proc getModuleHeaderValidity {header} {
+   if {![string equal -length 8 $header {#%Module}]} {
+      set msg {Magic cookie '#%Module' missing}
+      set valid invalid
+   # check if specified min version requirement is met
+   } elseif {[string length $header] > 8 && [getConf mcookie_version_check]\
+      && [versioncmp {@MODULES_RELEASE@} [string range $header 8 end]] <0} {
+      set msg "Modulefile requires at least Modules version [string range\
+         $header 8 end]"
+      set valid invalid
+   } else {
+      set msg {}
+      set valid true
+   }
+   return [list $valid $msg]
 }
 
 # If given module maps to default or other symbolic versions, a list of
