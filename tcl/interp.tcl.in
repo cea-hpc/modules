@@ -89,7 +89,7 @@ proc initModfileModeAliases {mode auto aliasesVN aliasesPassArgVN\
          modulepath-label modulepath-label exit exitModfileCmd reportCmdTrace\
          reportCmdTrace reportWarning reportWarning reportError reportError\
          raiseErrorCount raiseErrorCount report report isWin initStateIsWin\
-         puts putsModfileCmd]
+         puts putsModfileCmd getModuleContent getModuleContent]
 
       if {[getConf source_cache]} {
          lappend ::g_modfileBaseAliases source sourceModfileCmd
@@ -272,8 +272,7 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
 
    if {![info exists ::g_modfileUntrackVars]} {
       # list variable that should not be tracked for saving
-      array set ::g_modfileUntrackVars [list ModulesCurrentModulefile 1\
-         mod_content 1 env 1]
+      array set ::g_modfileUntrackVars [list ModulesCurrentModulefile 1 env 1]
 
       # commands that should be renamed before aliases setup
       array set ::g_modfileRenameCmds [list puts _puts]
@@ -347,18 +346,9 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
       g_modfileUntrackVars g_modfileProcs $aliasesVN $aliasesPassArgVN\
       $tracesVN g_modfileRenameCmds $dumpCommandsVN
 
-   set failed_eval [catch {
-      if {[catch {lassign [getModuleHeaderAndContent $modfile] mod_header\
-         mod_content}]} {
-         error [parseAccessIssue $modfile] {} MODULES_ERR_READ
-      }
-      lassign [getModuleHeaderValidity $mod_header] mod_valid valid_msg
-      if {$mod_valid ne {true}} {
-         error $valid_msg {} MODULES_ERR_VALIDITY
-      }
-      set vr_spec_list [getVariantListFromVersSpec $modnamevr]
-      evaluateModulefile $itrp $modfile $vr_spec_list $mod_content
-   } errorMsg]
+   set vr_spec_list [getVariantListFromVersSpec $modnamevr]
+   set failed_eval [catch {evaluateModulefile $itrp $modfile $vr_spec_list}\
+      errorMsg]
 
    set eval_return_code [renderModulefileEvalError $itrp $mode $modfile\
       $failed_eval $errorMsg]
@@ -405,22 +395,19 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
    return $eval_return_code
 }
 
-proc evaluateModulefile {itrp mod_file vr_spec_list mod_content} {
+proc evaluateModulefile {itrp mod_file vr_spec_list} {
    # reset modulefile-specific variable before each interpretation
    interp eval $itrp set ::ModulesCurrentModulefile "{$mod_file}"
    interp eval $itrp set vrspeclist "{$vr_spec_list}"
-   interp eval $itrp set mod_content "{$mod_content}"
 
    # eval then call for specific proc depending mode under same catch
    ##nagelfar ignore +3 Suspicious # char
    interp eval $itrp {
       info script $::ModulesCurrentModulefile
-      # raise conflict error if one name of currently loading module is
-      # shared by an already loaded module
+      # raise conflict error if one name of currently loading module is shared
+      # by an already loaded module
       unique-name-conflict
-
-      eval $mod_content
-
+      eval [getModuleContent $::ModulesCurrentModulefile]
       # raise error if a variant specified is not defined in modulefile
       set vrerrlist {}
       foreach vrspec $vrspeclist {
@@ -477,18 +464,10 @@ proc renderModulefileEvalError {itrp mode mod_file failed_eval error_msg} {
       {reportWarning} : {reportError}}]
 
    set eval_return_code 1
-   if {$failed_eval == 1 && [info exists ::errorCode] && $::errorCode eq\
-      {MODULES_ERR_READ}} {
-      set report_list [list $error_msg]
-   } elseif {$failed_eval == 1 && [info exists ::errorCode] && $::errorCode\
-      eq {MODULES_ERR_VALIDITY}} {
-      set report_list [list $error_msg $mod_file]
-      set report_proc [expr {$mode eq {unload} && [getState force] ?\
-         {reportInternalBugWarning} : {reportInternalBug}}]
    # no error in case of "continue" command
    # catch continue even if called outside of a loop
-   } elseif {$error_msg eq {invoked "continue" outside of a loop} ||\
-      $failed_eval == 4} {
+   if {$error_msg eq {invoked "continue" outside of a loop} || $failed_eval\
+      == 4} {
       set eval_return_code 0
    # catch break even if called outside of a loop
    # on Darwin, error is different: no errorCode & return code set to 3
@@ -502,14 +481,28 @@ proc renderModulefileEvalError {itrp mode mod_file failed_eval error_msg} {
       } elseif {$mode ne {scan} && ($mode ne {unload} || ![getState force])} {
          set raise_error_count 1
       }
-   } elseif {[getInterpVar $itrp errorCode] eq {MODULES_ERR_SUBFAILED}} {
-      # error counter and message already handled, just return err code
-   } elseif {[getInterpVar $itrp errorCode] eq {MODULES_ERR_GLOBAL}} {
-      set report_list [list $error_msg]
    } else {
-      set report_list [list [formatInterpErrStackTrace $itrp $mod_file]]
-      set report_proc [expr {$mode eq {unload} && [getState force] ?\
-         {reportInternalBugWarning} : {reportInternalBug}}]
+      switch -- [getInterpVar $itrp errorCode] {
+         MODULES_ERR_READ {
+            set report_list [list $error_msg]
+         }
+         MODULES_ERR_VALIDITY {
+            set report_list [list $error_msg $mod_file]
+            set report_proc [expr {$mode eq {unload} && [getState force] ?\
+               {reportInternalBugWarning} : {reportInternalBug}}]
+         }
+         MODULES_ERR_SUBFAILED {
+            # error counter and message already handled, just return err code
+         }
+         MODULES_ERR_GLOBAL {
+            set report_list [list $error_msg]
+         }
+         default {
+            set report_list [list [formatInterpErrStackTrace $itrp $mod_file]]
+            set report_proc [expr {$mode eq {unload} && [getState force] ?\
+               {reportInternalBugWarning} : {reportInternalBug}}]
+         }
+      }
    }
 
    if {$mode eq {unload} && [getState force]} {
@@ -537,7 +530,7 @@ proc execute-modulerc {modfile modname modspec} {
    if {![info exists ::g_modrcUntrackVars]} {
       # list variable that should not be tracked for saving
       array set ::g_modrcUntrackVars [list ModulesCurrentModulefile 1\
-         ModulesVersion 1 mod_content 1 env 1]
+         ModulesVersion 1 env 1]
 
       # commands that should be renamed before aliases setup
       array set ::g_modrcRenameCmds [list]
@@ -548,7 +541,8 @@ proc execute-modulerc {modfile modname modspec} {
          module-version module-alias module-alias module-virtual\
          module-virtual module-forbid module-forbid module-hide module-hide\
          module-tag module-tag module-info module-info modulepath-label\
-         modulepath-label setModulesVersion setModulesVersion]
+         modulepath-label setModulesVersion setModulesVersion\
+         getModuleContent getModuleContent]
 
       if {[getConf source_cache]} {
          set ::g_modrcAliases(source) sourceModfileCmd
@@ -622,17 +616,7 @@ proc execute-modulerc {modfile modname modspec} {
       g_modrcUntrackVars g_modrcProcs g_modrcAliases g_modrcAliasesPassArg\
       g_modrcAliasesTraces g_modrcRenameCmds g_modrcCommands
 
-   set failed_eval [catch {
-      # no exit on error if rc file cannot be read
-      if {![catch {lassign [getModuleHeaderAndContent $modfile] mod_header\
-         mod_content}]} {
-         lassign [getModuleHeaderValidity $mod_header] mod_valid valid_msg
-         if {$mod_valid ne {true}} {
-            error $valid_msg {} MODULES_ERR_VALIDITY
-         }
-         evaluateModulerc $itrp $modfile $mod_content
-      }
-   } errorMsg]
+   set failed_eval [catch {evaluateModulerc $itrp $modfile} errorMsg]
 
    renderModulercEvalError $itrp $modfile $failed_eval $errorMsg
 
@@ -657,19 +641,16 @@ proc execute-modulerc {modfile modname modspec} {
    return $::ModulesVersion
 }
 
-proc evaluateModulerc {itrp mod_file mod_content} {
+proc evaluateModulerc {itrp mod_file} {
    interp eval $itrp set ::ModulesCurrentModulefile "{$mod_file}"
    interp eval $itrp {set ::ModulesVersion {}}
    # create an alias ModuleVersion on ModulesVersion
    interp eval $itrp {upvar 0 ::ModulesVersion ::ModuleVersion}
-   interp eval $itrp set mod_content "{$mod_content}"
 
-   ##nagelfar ignore +6 Suspicious # char
+   ##nagelfar ignore +4 Suspicious # char
    interp eval $itrp {
       info script $::ModulesCurrentModulefile
-
-      eval $mod_content
-
+      eval [getModuleContent $::ModulesCurrentModulefile]
       # pass ModulesVersion value to main interp
       if {[info exists ::ModulesVersion]} {
          setModulesVersion $::ModulesVersion
@@ -681,10 +662,11 @@ proc renderModulercEvalError {itrp mod_file failed_eval error_msg} {
    if {!$failed_eval} {
       return 0
    }
-   if {[info exists ::errorCode] && $::errorCode eq {MODULES_ERR_VALIDITY}} {
-      reportInternalBug $error_msg $mod_file
-   } else {
-      reportInternalBug [formatInterpErrStackTrace $itrp $mod_file]
+   # no error if rc file cannot be read
+   switch -- [getInterpVar $itrp errorCode] {
+      MODULES_ERR_READ {}
+      MODULES_ERR_VALIDITY {reportInternalBug $error_msg $mod_file}
+      default {reportInternalBug [formatInterpErrStackTrace $itrp $mod_file]}
    }
    return 1
 }

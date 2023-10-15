@@ -2482,6 +2482,19 @@ proc getModuleHeaderValidity {header} {
    return [list $valid $msg]
 }
 
+proc getModuleContent {mod_file} {
+   if {[catch {lassign [getModuleHeaderAndContent $mod_file] mod_header\
+      mod_content}]} {
+      error [parseAccessIssue $mod_file] {} MODULES_ERR_READ
+   }
+   # raise error if module is not valid
+   lassign [getModuleHeaderValidity $mod_header] mod_valid valid_msg
+   if {$mod_valid ne {true}} {
+      error $valid_msg {} MODULES_ERR_VALIDITY
+   }
+   return $mod_content
+}
+
 # If given module maps to default or other symbolic versions, a list of
 # those versions is returned. This takes module/version as an argument.
 proc getVersAliasList {mod} {
