@@ -360,61 +360,8 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
       evaluateModulefile $itrp $modfile $vr_spec_list $mod_content
    } errorMsg]
 
-   set eval_return_code 0
-   set report_proc [expr {$mode eq {unload} && [getState force] ?\
-      {reportWarning} : {reportError}}]
-   if {$failed_eval} {
-      if {$failed_eval == 1 && [info exists ::errorCode] && $::errorCode eq\
-         {MODULES_ERR_READ}} {
-         set report_list [list $errorMsg]
-         set eval_return_code 1
-      } elseif {$failed_eval == 1 && [info exists ::errorCode] &&\
-         $::errorCode eq {MODULES_ERR_VALIDITY}} {
-         set report_list [list $errorMsg $modfile]
-         set report_proc [expr {$mode eq {unload} && [getState force] ?\
-            {reportInternalBugWarning} : {reportInternalBug}}]
-         set eval_return_code 1
-      # no error in case of "continue" command
-      # catch continue even if called outside of a loop
-      } elseif {$errorMsg eq {invoked "continue" outside of a loop} ||\
-         $failed_eval == 4} {
-      # catch break even if called outside of a loop
-      # on Darwin, error is different: no errorCode & return code set to 3
-      } elseif {$errorMsg eq {invoked "break" outside of a loop} ||\
-         ($errorMsg eq {} && [getInterpVar $itrp ::errorInfo] eq {}) ||\
-         (![isInterpVarDefined $itrp ::errorCode] && $failed_eval == 3)} {
-         # report load/unload/refresh evaluation break if verbosity level
-         # >= normal, no error count raise during scan evaluation
-         if {$mode in {load unload refresh} && [isVerbosityLevel normal]} {
-            set report_list [list {Module evaluation aborted}]
-         } elseif {$mode ne {scan} && ($mode ne {unload} || ![getState\
-            force])} {
-            set raise_error_count 1
-         }
-         set eval_return_code 1
-      } elseif {[getInterpVar $itrp errorCode] eq {MODULES_ERR_SUBFAILED}} {
-         # error counter and message already handled, just return err code
-         set eval_return_code 1
-      } elseif {[getInterpVar $itrp errorCode] eq {MODULES_ERR_GLOBAL}} {
-         set report_list [list $errorMsg]
-         set eval_return_code 1
-      } else {
-         set report_list [list [formatInterpErrStackTrace $itrp $modfile]]
-         set report_proc [expr {$mode eq {unload} && [getState force] ?\
-            {reportInternalBugWarning} : {reportInternalBug}}]
-         set eval_return_code 1
-      }
-   }
-
-   if {$mode eq {unload} && [getState force]} {
-      set eval_return_code 0
-   }
-
-   if {[info exists report_list]} {
-      $report_proc {*}$report_list
-   } elseif {[info exists raise_error_count]} {
-      raiseErrorCount
-   }
+   set eval_return_code [renderModulefileEvalError $itrp $mode $modfile\
+      $failed_eval $errorMsg]
 
    # check if mod name version and variant has changed (default variant set)
    # update modnamevr if so and collect tags applying to new name
@@ -520,6 +467,61 @@ proc evaluateModulefile {itrp mod_file vr_spec_list mod_content} {
          }
       }
    }
+}
+
+proc renderModulefileEvalError {itrp mode mod_file failed_eval error_msg} {
+   if {!$failed_eval} {
+      return 0
+   }
+   set report_proc [expr {$mode eq {unload} && [getState force] ?\
+      {reportWarning} : {reportError}}]
+
+   set eval_return_code 1
+   if {$failed_eval == 1 && [info exists ::errorCode] && $::errorCode eq\
+      {MODULES_ERR_READ}} {
+      set report_list [list $error_msg]
+   } elseif {$failed_eval == 1 && [info exists ::errorCode] && $::errorCode\
+      eq {MODULES_ERR_VALIDITY}} {
+      set report_list [list $error_msg $mod_file]
+      set report_proc [expr {$mode eq {unload} && [getState force] ?\
+         {reportInternalBugWarning} : {reportInternalBug}}]
+   # no error in case of "continue" command
+   # catch continue even if called outside of a loop
+   } elseif {$error_msg eq {invoked "continue" outside of a loop} ||\
+      $failed_eval == 4} {
+      set eval_return_code 0
+   # catch break even if called outside of a loop
+   # on Darwin, error is different: no errorCode & return code set to 3
+   } elseif {$error_msg eq {invoked "break" outside of a loop} || ($error_msg\
+      eq {} && [getInterpVar $itrp ::errorInfo] eq {}) ||\
+      (![isInterpVarDefined $itrp ::errorCode] && $failed_eval == 3)} {
+      # report load/unload/refresh evaluation break if verbosity level
+      # >= normal, no error count raise during scan evaluation
+      if {$mode in {load unload refresh} && [isVerbosityLevel normal]} {
+         set report_list [list {Module evaluation aborted}]
+      } elseif {$mode ne {scan} && ($mode ne {unload} || ![getState force])} {
+         set raise_error_count 1
+      }
+   } elseif {[getInterpVar $itrp errorCode] eq {MODULES_ERR_SUBFAILED}} {
+      # error counter and message already handled, just return err code
+   } elseif {[getInterpVar $itrp errorCode] eq {MODULES_ERR_GLOBAL}} {
+      set report_list [list $error_msg]
+   } else {
+      set report_list [list [formatInterpErrStackTrace $itrp $mod_file]]
+      set report_proc [expr {$mode eq {unload} && [getState force] ?\
+         {reportInternalBugWarning} : {reportInternalBug}}]
+   }
+
+   if {$mode eq {unload} && [getState force]} {
+      set eval_return_code 0
+   }
+
+   if {[info exists report_list]} {
+      $report_proc {*}$report_list
+   } elseif {[info exists raise_error_count]} {
+      raiseErrorCount
+   }
+   return $eval_return_code
 }
 
 # Smaller subset than main module load... This function runs modulerc and
@@ -632,14 +634,7 @@ proc execute-modulerc {modfile modname modspec} {
       }
    } errorMsg]
 
-   if {$failed_eval} {
-      if {[info exists ::errorCode] && $::errorCode eq\
-         {MODULES_ERR_VALIDITY}} {
-         reportInternalBug $errorMsg $modfile
-      } else {
-         reportInternalBug [formatInterpErrStackTrace $itrp $modfile]
-      }
-   }
+   renderModulercEvalError $itrp $modfile $failed_eval $errorMsg
 
    # default version set via ModulesVersion variable in .version file
    # override previously defined default version for modname
@@ -680,6 +675,18 @@ proc evaluateModulerc {itrp mod_file mod_content} {
          setModulesVersion $::ModulesVersion
       }
    }
+}
+
+proc renderModulercEvalError {itrp mod_file failed_eval error_msg} {
+   if {!$failed_eval} {
+      return 0
+   }
+   if {[info exists ::errorCode] && $::errorCode eq {MODULES_ERR_VALIDITY}} {
+      reportInternalBug $error_msg $mod_file
+   } else {
+      reportInternalBug [formatInterpErrStackTrace $itrp $mod_file]
+   }
+   return 1
 }
 
 proc isInterpVarDefined {itrp var_name} {
