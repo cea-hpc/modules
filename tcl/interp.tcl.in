@@ -357,75 +357,11 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
       if {$mod_valid ne {true}} {
          set failed_eval 10
          set errorMsg $valid_msg
+      } else {
+         set vr_spec_list [getVariantListFromVersSpec $modnamevr]
+         lassign [evaluateModulefile $itrp $modfile $vr_spec_list\
+            $mod_content] failed_eval errorMsg
       }
-   }
-
-   if {![info exists failed_eval]} {
-      # reset modulefile-specific variable before each interpretation
-      interp eval $itrp set ::ModulesCurrentModulefile "{$modfile}"
-      interp eval $itrp set vrspeclist "{[getVariantListFromVersSpec\
-         $modnamevr]}"
-      interp eval $itrp set mod_content "{$mod_content}"
-
-      ##nagelfar ignore +3 Suspicious # char
-      lassign [interp eval $itrp {
-         info script $::ModulesCurrentModulefile
-         # eval then call for specific proc depending mode under same catch
-         set failed_eval [catch {
-            # raise conflict error if one name of currently loading module is
-            # shared by an already loaded module
-            unique-name-conflict
-
-            eval $mod_content
-
-            # raise error if a variant specified is not defined in modulefile
-            set vrerrlist {}
-            foreach vrspec $vrspeclist {
-               set vrname [lindex $vrspec 0]
-               if {![info exists ::ModuleVariant($vrname)]} {
-                  lappend vrerrlist "Unknown variant '$vrname' specified"
-               }
-            }
-            # report all unknown variants specified, raise error on last report
-            # take caution with vrerrlist variable as we are in modfile eval ctx
-            if {[info exists vrerrlist] && [llength $vrerrlist]} {
-               for {set i 0} {$i < ([llength $vrerrlist] - 1)} {incr i} {
-                  reportError [lindex $vrerrlist $i]
-               }
-               error [lindex $vrerrlist $i] {} MODULES_ERR_GLOBAL
-            }
-
-            switch -- [module-info mode] {
-               help {
-                  if {[info procs ModulesHelp] eq {ModulesHelp}} {
-                     ModulesHelp
-                  } else {
-                     reportWarning "Unable to find ModulesHelp in\
-                        $::ModulesCurrentModulefile."
-                  }
-               }
-               display {
-                  if {[info procs ModulesDisplay] eq {ModulesDisplay}} {
-                     ModulesDisplay
-                  }
-               }
-               test {
-                  if {[info procs ModulesTest] eq {ModulesTest}} {
-                     if {[string is true -strict [ModulesTest]]} {
-                        report {Test result: PASS}
-                     } else {
-                        report {Test result: FAIL}
-                        raiseErrorCount
-                     }
-                  } else {
-                     reportWarning "Unable to find ModulesTest in\
-                        $::ModulesCurrentModulefile."
-                  }
-               }
-            }
-         } errorMsg]
-         return [list $failed_eval $errorMsg]
-      }] failed_eval errorMsg
    }
 
    set eval_return_code 0
@@ -524,6 +460,74 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
    lpopState modulefile
 
    return $eval_return_code
+}
+
+proc evaluateModulefile {itrp mod_file vr_spec_list mod_content} {
+   # reset modulefile-specific variable before each interpretation
+   interp eval $itrp set ::ModulesCurrentModulefile "{$mod_file}"
+   interp eval $itrp set vrspeclist "{$vr_spec_list}"
+   interp eval $itrp set mod_content "{$mod_content}"
+
+   ##nagelfar ignore +3 Suspicious # char
+   lassign [interp eval $itrp {
+      info script $::ModulesCurrentModulefile
+      # eval then call for specific proc depending mode under same catch
+      set failed_eval [catch {
+         # raise conflict error if one name of currently loading module is
+         # shared by an already loaded module
+         unique-name-conflict
+
+         eval $mod_content
+
+         # raise error if a variant specified is not defined in modulefile
+         set vrerrlist {}
+         foreach vrspec $vrspeclist {
+            set vrname [lindex $vrspec 0]
+            if {![info exists ::ModuleVariant($vrname)]} {
+               lappend vrerrlist "Unknown variant '$vrname' specified"
+            }
+         }
+         # report all unknown variants specified, raise error on last report
+         # take caution with vrerrlist variable as we are in mod_file eval ctx
+         if {[info exists vrerrlist] && [llength $vrerrlist]} {
+            for {set i 0} {$i < ([llength $vrerrlist] - 1)} {incr i} {
+               reportError [lindex $vrerrlist $i]
+            }
+            error [lindex $vrerrlist $i] {} MODULES_ERR_GLOBAL
+         }
+
+         switch -- [module-info mode] {
+            help {
+               if {[info procs ModulesHelp] eq {ModulesHelp}} {
+                  ModulesHelp
+               } else {
+                  reportWarning "Unable to find ModulesHelp in\
+                     $::ModulesCurrentModulefile."
+               }
+            }
+            display {
+               if {[info procs ModulesDisplay] eq {ModulesDisplay}} {
+                  ModulesDisplay
+               }
+            }
+            test {
+               if {[info procs ModulesTest] eq {ModulesTest}} {
+                  if {[string is true -strict [ModulesTest]]} {
+                     report {Test result: PASS}
+                  } else {
+                     report {Test result: FAIL}
+                     raiseErrorCount
+                  }
+               } else {
+                  reportWarning "Unable to find ModulesTest in\
+                     $::ModulesCurrentModulefile."
+               }
+            }
+         }
+      } errorMsg]
+      return [list $failed_eval $errorMsg]
+   }] failed_eval errorMsg
+   return [list $failed_eval $errorMsg]
 }
 
 # Smaller subset than main module load... This function runs modulerc and
@@ -634,30 +638,12 @@ proc execute-modulerc {modfile modname modspec} {
       if {$mod_valid ne {true}} {
          set failed_eval 10
          set errorMsg $valid_msg
+      } else {
+         lassign [evaluateModulerc $itrp $modfile $mod_content] failed_eval\
+            errorMsg
       }
    }
 
-   if {![info exists failed_eval]} {
-      interp eval $itrp set ::ModulesCurrentModulefile "{$modfile}"
-      interp eval $itrp {set ::ModulesVersion {}}
-      # create an alias ModuleVersion on ModulesVersion
-      interp eval $itrp {upvar 0 ::ModulesVersion ::ModuleVersion}
-      interp eval $itrp set mod_content "{$mod_content}"
-
-      ##nagelfar ignore +6 Suspicious # char
-      lassign [interp eval $itrp {
-         info script $::ModulesCurrentModulefile
-         if [catch {eval $mod_content} errorMsg] {
-            return [list 1 {}]
-         } else {
-            # pass ModulesVersion value to main interp
-            if {[info exists ::ModulesVersion]} {
-               setModulesVersion $::ModulesVersion
-            }
-         }
-         return [list 0 {}]
-      }] failed_eval errorMsg
-   }
 
    switch -- $failed_eval {
       1 {reportInternalBug [formatInterpErrStackTrace $itrp $modfile]}
@@ -683,6 +669,29 @@ proc execute-modulerc {modfile modname modspec} {
    lpopState modulefile
 
    return $::ModulesVersion
+}
+
+proc evaluateModulerc {itrp mod_file mod_content} {
+   interp eval $itrp set ::ModulesCurrentModulefile "{$mod_file}"
+   interp eval $itrp {set ::ModulesVersion {}}
+   # create an alias ModuleVersion on ModulesVersion
+   interp eval $itrp {upvar 0 ::ModulesVersion ::ModuleVersion}
+   interp eval $itrp set mod_content "{$mod_content}"
+
+   ##nagelfar ignore +6 Suspicious # char
+   lassign [interp eval $itrp {
+      info script $::ModulesCurrentModulefile
+      if [catch {eval $mod_content} errorMsg] {
+         return [list 1 {}]
+      } else {
+         # pass ModulesVersion value to main interp
+         if {[info exists ::ModulesVersion]} {
+            setModulesVersion $::ModulesVersion
+         }
+      }
+      return [list 0 {}]
+   }] failed_eval errorMsg
+   return [list $failed_eval $errorMsg]
 }
 
 proc isInterpVarDefined {itrp var_name} {
