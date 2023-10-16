@@ -233,26 +233,6 @@ testouterr_cmd_re "sh" "-V" "OK" $ans
 # restore environment
 unsetenv_var TESTSUITE_ENABLE_SITECONFIG_TRICKYLISTDISP
 
-# test readModuleContent procedure in no error message report if issue
-# could happen when reading .modulerc/.version file if this kind of file gets
-# locked/removed/... between the execution of findModules (that check
-# readability) and getModules (that actually read/execute)
-if {$verbose} {
-    send_user "\tSetup TESTSUITE_ENABLE_SITECONFIG_READMODNOREPORT = '1'\n"
-}
-set env(TESTSUITE_ENABLE_SITECONFIG_READMODNOREPORT) 1
-
-set ans [list]
-lappend ans $vers_reportre
-testouterr_cmd_re "sh" "-V" "OK" [join $ans "\n"]
-
-# restore environment
-if {$verbose} {
-    send_user "\tUnset TESTSUITE_ENABLE_SITECONFIG_READMODNOREPORT\n"
-}
-unset env(TESTSUITE_ENABLE_SITECONFIG_READMODNOREPORT)
-
-
 # test loaded module accessor procedures on non-loaded module
 # does not happened currently within modulecmd.tcl as there is always a
 # 'getLoadedModulePropertyList name' retrieval or a isModuleLoaded call prior
