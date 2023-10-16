@@ -239,6 +239,38 @@ testouterr_cmd_re "sh" "unload foo" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo
 
 
 #
+# loaded modulefile does not exist
+#
+
+setenv_loaded_module [list unk] [list $modpath/unk]
+
+set tserr [msg_unload unk $err_file'$modpath/unk']
+testouterr_cmd sh {unload unk} ERR $tserr
+
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+set tserr [msg_unload unk $warn_file'$modpath/unk']
+testouterr_cmd sh {unload --force unk} $ans $tserr
+
+
+#
+# loaded modulefile is not compatible with current version
+#
+
+setenv_loaded_module [list mcookie/1] [list $modpath/mcookie/1]
+
+set tserr [msg_unload mcookie/1 [moderr_minverreqns $modpath/mcookie/1 99]]
+testouterr_cmd sh {unload mcookie/1} ERR $tserr
+
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+set tserr [msg_unload mcookie/1 [modwarn_minverreqns $modpath/mcookie/1 99]]
+testouterr_cmd sh {unload --force mcookie/1} $ans $tserr
+
+
+#
 #  Cleanup
 #
 
