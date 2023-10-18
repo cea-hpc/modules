@@ -1,0 +1,202 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2023/10/17
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		unload, switch, reload
+#   Modulefiles:    unload, ufoo
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test forced unload situations
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+setenv_path_var MODULES_AUTO_HANDLING 1
+
+
+# optional broken dependency removed
+setenv_var TESTSUITE_UNLOAD_FORCE opt_dep1
+setenv_var __MODULES_LMPREREQ ufoo/1.0&ufoo/1.0|unload/1.0
+setenv_loaded_module [list unload/1.0 ufoo/1.0] [list $mp/unload/1.0 $mp/ufoo/1.0] [list unload/1.0]
+
+set tserr [msg_unload {unload/1.0 <aL>} $err_evalabort]
+testouterr_cmd sh {unload unload/1.0} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ ufoo/1.0&ufoo/1.0|unload/1.0]
+lappend ans [list set _LMFILES_ $mp/ufoo/1.0]
+lappend ans [list set LOADEDMODULES ufoo/1.0]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_top_unload {unload/1.0 <aL>} {} {} [list ufoo/1.0] $warn_evalabort]
+testouterr_cmd sh {unload --force unload/1.0} $ans $tserr
+
+
+# broken conflicting module removed
+setenv_var TESTSUITE_UNLOAD_FORCE conflict1
+unsetenv_var __MODULES_LMPREREQ
+setenv_var __MODULES_LMCONFLICT ufoo/1.0&unload/1.0
+setenv_loaded_module [list ufoo/1.0 unload/1.0] [list $mp/ufoo/1.0 $mp/unload/1.0]
+
+set tserr [msg_unload unload/1.0 $err_evalabort]
+testouterr_cmd sh {unload unload/1.0} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT ufoo/1.0&unload/1.0]
+lappend ans [list set _LMFILES_ $mp/ufoo/1.0]
+lappend ans [list set LOADEDMODULES ufoo/1.0]
+set tserr [msg_top_unload unload/1.0 {} {} [list ufoo/1.0] $warn_evalabort]
+testouterr_cmd sh {unload --force unload/1.0} $ans $tserr
+
+
+# loaded dependency's modulefile does not exist anymore (UReqUn)
+setenv_var TESTSUITE_UNLOAD_FORCE unk_dep1
+setenv_var __MODULES_LMPREREQ ufoo/1.0&unk
+setenv_loaded_module [list unk/1.0 ufoo/1.0] [list $mp/unk/1.0 $mp/ufoo/1.0] [list unk/1.0]
+unsetenv_var __MODULES_LMCONFLICT
+
+set ans [list]
+lappend ans [list set LOADEDMODULES unk/1.0]
+lappend ans [list set _LMFILES_ $mp/unk/1.0]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list ERR]
+set tserr [msg_unload {unk/1.0 <aL>} $err_file'$mp/unk/1.0']\n\n[msg_unload ufoo/1.0 [err_urequn unk/1.0]]
+testouterr_cmd sh {unload ufoo/1.0} $ans $tserr
+
+set ans [list]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_unload {unk/1.0 <aL>} $warn_file'$mp/unk/1.0']\n\n[msg_top_unload ufoo/1.0 {} {unk/1.0} {}]
+testouterr_cmd sh {unload --force ufoo/1.0} $ans $tserr
+
+set tserr [msg_unload {unk/1.0 <aL>} $err_file'$mp/unk/1.0']
+testouterr_cmd sh {unload unk/1.0} ERR $tserr
+
+set ans [list]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_top_unload {unk/1.0 <aL>} {ufoo/1.0} {} {} $warn_file'$mp/unk/1.0']
+testouterr_cmd sh {unload --force unk/1.0} $ans $tserr
+
+
+# loaded dependent's modulefile does not exist anymore (DepUn)
+setenv_var TESTSUITE_UNLOAD_FORCE unk_dep2
+setenv_var __MODULES_LMPREREQ unk/1.0&ufoo
+setenv_loaded_module [list ufoo/1.0 unk/1.0] [list $mp/ufoo/1.0 $mp/unk/1.0] [list ufoo/1.0]
+
+set ans [list]
+lappend ans [list set LOADEDMODULES unk/1.0]
+lappend ans [list set _LMFILES_ $mp/unk/1.0]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list ERR]
+set tserr [msg_unload {unk/1.0} $err_file'$mp/unk/1.0']\n\n[msg_unload {ufoo/1.0 <aL>} [err_depun unk/1.0]]
+testouterr_cmd sh {unload ufoo/1.0} ERR $tserr
+
+set ans [list]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_unload {unk/1.0} $warn_file'$mp/unk/1.0']\n\n[msg_top_unload {ufoo/1.0 <aL>} {unk/1.0} {} {}]
+testouterr_cmd sh {unload --force ufoo/1.0} $ans $tserr
+
+set tserr [msg_unload {unk/1.0} $err_file'$mp/unk/1.0']
+testouterr_cmd sh {unload unk/1.0} ERR $tserr
+
+set ans [list]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_top_unload {unk/1.0} {} {ufoo/1.0} {} $warn_file'$mp/unk/1.0']
+testouterr_cmd sh {unload --force unk/1.0} $ans $tserr
+
+
+# loaded dependent's modulefile does not exist anymore (DepRe)
+setenv_var TESTSUITE_UNLOAD_FORCE unk_dep2
+setenv_var __MODULES_LMPREREQ unk/1.0&ufoo
+setenv_loaded_module [list ufoo/1.0 unk/1.0] [list $mp/ufoo/1.0 $mp/unk/1.0] [list ufoo/1.0]
+
+set tserr [msg_unload {unk/1.0} $err_file'$mp/unk/1.0']\n\n[msg_switch {ufoo/1.0 <aL>} {ufoo/2.0} [err_depun unk/1.0]]
+testouterr_cmd sh {switch ufoo/1.0 ufoo/2.0} ERR $tserr
+
+set ans [list]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/ufoo/2.0]
+lappend ans [list set LOADEDMODULES ufoo/2.0]
+lappend ans [list unset __MODULES_LMTAG]
+lappend ans [list ERR]
+set tserr [msg_unload {unk/1.0} $warn_file'$mp/unk/1.0']\n\n[msg_switch {ufoo/1.0 <aL>} {ufoo/2.0} $err_path'unk/1.0' [err_depref unk/1.0] {Unloading dependent: unk/1.0}]
+testouterr_cmd sh {switch --force ufoo/1.0 ufoo/2.0} $ans $tserr
+
+
+# reload when conflicting situation loaded
+setenv_var TESTSUITE_UNLOAD_FORCE conflict1
+unsetenv_var __MODULES_LMPREREQ
+setenv_var __MODULES_LMCONFLICT ufoo/1.0&unload/1.0
+setenv_loaded_module [list ufoo/1.0 unload/1.0] [list $mp/ufoo/1.0 $mp/unload/1.0]
+
+set tserr $err_unsatreload
+testouterr_cmd sh {reload} ERR $tserr
+testouterr_cmd sh {reload --force} ERR $tserr
+
+
+# reload when optional dependency breaks during unload
+setenv_var TESTSUITE_UNLOAD_FORCE opt_dep1
+unsetenv_var __MODULES_LMCONFLICT
+setenv_var __MODULES_LMPREREQ ufoo/1.0&ufoo/1.0|unload/1.0
+setenv_loaded_module [list unload/1.0 ufoo/1.0] [list $mp/unload/1.0 $mp/ufoo/1.0] [list unload/1.0]
+
+set tserr [msg_unload {unload/1.0 <aL>} $err_evalabort]
+testouterr_cmd sh {reload} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ ufoo/1.0&ufoo/1.0|unload/1.0]
+lappend ans [list set _LMFILES_ $mp/unload/1.0:$mp/ufoo/1.0]
+lappend ans [list set LOADEDMODULES unload/1.0:ufoo/1.0]
+lappend ans [list set __MODULES_LMTAG unload/1.0&auto-loaded]
+set tserr [msg_unload {unload/1.0 <aL>} $warn_evalabort]
+testouterr_cmd sh {reload --force} $ans $tserr
+
+
+# switch optional dependency that breaks during unload
+setenv_var TESTSUITE_UNLOAD_FORCE opt_dep2
+unsetenv_var __MODULES_LMCONFLICT
+setenv_var __MODULES_LMPREREQ ufoo/1.0&ufoo/1.0|unload
+setenv_loaded_module [list unload/1.0 ufoo/1.0] [list $mp/unload/1.0 $mp/ufoo/1.0] [list unload/1.0]
+
+set tserr [msg_unload {unload/1.0 <aL>} $err_evalabort]\n\n[msg_switch {unload/1.0 <aL>} {unload/2.0} [err_swoff unload/1.0]]
+testouterr_cmd sh {switch unload/1.0 unload/2.0} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ ufoo/1.0&ufoo/1.0|unload]
+lappend ans [list set _LMFILES_ $mp/unload/2.0:$mp/ufoo/1.0]
+lappend ans [list set LOADEDMODULES unload/2.0:ufoo/1.0]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_unload {unload/1.0 <aL>} $warn_evalabort]\n\n[msg_top_switch {unload/1.0 <aL>} {unload/2.0} {} {} {} {} {ufoo/1.0}]
+testouterr_cmd sh {switch --force unload/1.0 unload/2.0} $ans $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
