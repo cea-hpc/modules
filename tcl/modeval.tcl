@@ -706,8 +706,7 @@ proc loadRequirementModuleList {tryload optional tag_list args} {
 }
 
 # unload phase of a list of modules reload process
-proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {}} {context\
-   unload}} {
+proc reloadModuleListUnloadPhase {lmname {errmsgtpl {}} {context unload}} {
    upvar $lmname lmlist
    # unload one by one to ensure same behavior whatever auto_handling state
    foreach mod [lreverse $lmlist] {
@@ -724,19 +723,13 @@ proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {}} {context\
       # (violation state) as modules are loaded again just after
       if {[cmdModuleUnload $context match 0 1 0 0 $mod]} {
          # avoid failing module on load phase
+         # if force state is enabled, cmdModuleUnload returns 0
          set lmlist [replaceFromList $lmlist $mod]
          set errMsg [string map [list _MOD_ [getModuleDesignation loaded\
             $mod]] $errmsgtpl]
-         if {$force} {
-            # errMsg will always be set as force mode could not be enabled
-            # for reload sub-cmd which provides an empty msg template
-            reportWarning $errMsg 1
-         # stop if one unload fails unless force mode enabled
-         } else {
-            lpopState reloading_sticky
-            lpopState reloading_supersticky
-            knerror $errMsg
-         }
+         lpopState reloading_sticky
+         lpopState reloading_supersticky
+         knerror $errMsg
       }
       lpopState reloading_sticky
       lpopState reloading_supersticky
