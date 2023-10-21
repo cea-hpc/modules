@@ -33,3 +33,13 @@ if {[info exists env(TESTSUITE_ERROR_ON_MULTI_LOAD)]} {
         }
     }
 }
+if {[info exists env(TESTSUITE_ERROR_ON_MULTI_UNLOAD)]} {
+    switch -- $env(TESTSUITE_ERROR_ON_MULTI_UNLOAD) {
+        unload_last_bad {
+            module unload foo/1.0 err/1.0
+        }
+        unload_first_bad - unload_first_break - unload_first_exit {
+            module unload err/1.0 foo/1.0
+        }
+    }
+}
