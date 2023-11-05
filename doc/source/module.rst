@@ -1521,6 +1521,10 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+ When several *modulefiles* are passed, they are evaluated sequentially in the
+ specified order. If one modulefile evaluation raises an error, display
+ sequence continues.
+
 .. subcmd:: edit modulefile
 
  Open *modulefile* for edition with text editor command designated by the
@@ -1542,6 +1546,10 @@ Module Sub-Commands
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
+
+ When several *modulefiles* are passed, they are evaluated sequentially in the
+ specified order. If one modulefile evaluation raises an error, help sequence
+ continues.
 
 .. subcmd:: info-loaded modulefile
 
@@ -1788,7 +1796,8 @@ Module Sub-Commands
  Load into the shell environment one of the *modulefile* specified. Try to
  load each *modulefile* specified in list from the left to the right until
  one got loaded or is found already loaded. Do not complain if *modulefile*
- cannot be found but if its evaluation fails an error is reported.
+ cannot be found. But if its evaluation fails, an error is reported and next
+ modulefile in list is evaluated.
 
  :subcmd:`load-any` command accepts the following options:
 
@@ -1843,6 +1852,12 @@ Module Sub-Commands
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
+
+ When several *modulefiles* are passed, they are evaluated sequentially in the
+ specified order. If one modulefile evaluation raises an error, mod-to-sh
+ sequence continues: environment change from modules evaluated prior the
+ error are preserved and sequence is resumed with the evaluation of remaining
+ modulefile in list.
 
  .. only:: html
 
@@ -1909,6 +1924,10 @@ Module Sub-Commands
  When the :option:`--force` option is set, also unload `sticky modules`_ and
  modulefiles that are depended by non-unloadable modules.
 
+ If one modulefile unload evaluation raises an error, purge sequence
+ continues: unloaded modules prior the evaluation error are kept unloaded and
+ sequence is resumed with the unload of remaining modulefiles.
+
  .. only:: html
 
     .. versionchanged:: 4.7
@@ -1932,6 +1951,10 @@ Module Sub-Commands
  evaluated in ``refresh`` mode. Such loaded modules are listed in the
  :envvar:`__MODULES_LMREFRESH` environment variable.
 
+ If one modulefile evaluation raises an error, refresh sequence continues:
+ environment changes from refreshed modules prior the evaluation error are
+ preserved and sequence is resumed with the refresh of remaining modulefiles.
+
  .. only:: html
 
     .. versionchanged:: 4.0
@@ -1950,6 +1973,10 @@ Module Sub-Commands
  No unload then load is performed and an error is returned if the loaded
  *modulefiles* have unsatisfied constraint corresponding to the
  :mfcmd:`prereq` and :mfcmd:`conflict` they declare.
+
+ If one modulefile load or unload evaluation raises an error, reload sequence
+ aborts: environment changes coming from already evaluated modulefiles are
+ withdrawn and remaining modulefile evaluations are skipped.
 
  .. only:: html
 
@@ -2019,6 +2046,11 @@ Module Sub-Commands
  *collection* by its bare name: loading this module when restoring the
  collection will fail if the configuration option :mconfig:`implicit_default`
  is disabled.
+
+ If one modulefile load or unload evaluation raises an error, restore sequence
+ continues: environment changes from modules unloaded or loaded prior the
+ evaluation error are preserved and sequence is resumed with the unload or
+ load of remaining modulefiles.
 
  .. only:: html
 
@@ -2201,6 +2233,12 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+ When several *modulefiles* are passed, they are evaluated sequentially in the
+ specified order. If one modulefile evaluation raises an error, source
+ sequence continues: environment changes from modules sourced prior the
+ evaluation error are preserved and sequence is resumed with the source of
+ remaining modulefile in list.
+
  .. only:: html
 
     .. versionadded:: 4.0
@@ -2330,6 +2368,12 @@ Module Sub-Commands
  *modulefile* once loaded. If module is already loaded, tags from *taglist*
  are added to the list of tags already applied to this module.
 
+ If unload evaluation of *modulefile1* raises an error, switch sequence
+ aborts: no environment change from *modulefile1* unload is applied and load
+ of *modulefile2* is skipped. If load evaluation of *modulefile2* raises an
+ error, switch sequence continues: environment changes from *modulefile1*
+ unload are applied but not those from failed *modulefile2* load.
+
  .. only:: html
 
     .. versionchanged:: 4.2
@@ -2347,6 +2391,10 @@ Module Sub-Commands
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
+
+ When several *modulefiles* are passed, they are evaluated sequentially in the
+ specified order. If one modulefile evaluation raises an error, test sequence
+ continues.
 
  .. only:: html
 
@@ -2383,6 +2431,11 @@ Module Sub-Commands
  The :option:`--tag` option accepts a list of module tags to apply to
  *modulefile* once loaded. If module is already loaded, tags from *taglist*
  are added to the list of tags already applied to this module.
+
+ When several *modulefiles* are passed, they are try-loaded sequentially in
+ the specified order. If one modulefile evaluation raises an error, try-load
+ sequence continues: loaded modules prior the evaluation error are kept loaded
+ and sequence is resumed with the load of remaining modulefile in list.
 
  .. only:: html
 
