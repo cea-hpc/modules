@@ -742,6 +742,21 @@ Optional Packages (the default for each option is displayed within
 parenthesis, to disable an option replace ``with`` by ``without`` for
 instance :instopt:`--without-modulepath<--with-modulepath>`):
 
+.. instopt:: --with-abort-on-error=LIST
+
+ When evaluating multiple modulefiles, if one fails abort evaluation sequence
+ and withdraw already evaluated modulefiles for listed module sub-commands.
+ Sub-commands accepted in LIST are: :subcmd:`load`, :subcmd:`mod-to-sh` and
+ :subcmd:`try-load` (elements in LIST are separated by ``:``). (default=)
+
+ This installation option defines the default value of the
+ :mconfig:`abort_on_error` configuration option which could be changed after
+ installation with the :subcmd:`config` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 5.4
+
 .. instopt:: --with-avail-output=LIST
 
  Specify the content to report on avail sub-command regular output in addition
@@ -877,20 +892,6 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  .. only:: html
 
     .. versionadded:: 4.8
-
-.. instopt:: --with-error-on-multi-load=VALUE
-
- When loading multiple modulefiles, if one fails ``continue`` evaluation of
- remaining modulefiles or ``abort`` and withdraw already loaded modulefiles.
- (default=\ ``continue``)
-
- This installation option defines the default value of the
- :mconfig:`error_on_multi_load` configuration option which could be changed
- after installation with the :subcmd:`config` sub-command.
-
- .. only:: html
-
-    .. versionadded:: 5.4
 
 .. instopt:: --with-fishcompletiondir=DIR
 
@@ -1322,6 +1323,9 @@ installation.
 |                                   |                                              | variable and command-line switch             | during init\ | altered   |
 |                                   |                                              |                                              | ialization   |           |
 +===================================+==============================================+==============================================+==============+===========+
+| :mconfig:`abort_on_error`         | *Empty by default*                           | :instopt:`--with-abort-on-error`,            |              |           |
+|                                   |                                              | :envvar:`MODULES_ABORT_ON_ERROR`             |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`advanced_version_spec`  | ``1``                                        | :instopt:`--enable-advanced-version-spec`,   |              |           |
 |                                   |                                              | :envvar:`MODULES_ADVANCED_VERSION_SPEC`      |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
@@ -1367,9 +1371,6 @@ installation.
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`editor`                 | ``vi``                                       | :instopt:`--with-editor`,                    |              |           |
 |                                   |                                              | :envvar:`MODULES_EDITOR`                     |              |           |
-+-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
-| :mconfig:`error_on_multi_load`    | ``continue``                                 | :instopt:`--with-error-on-multi-load`,       |              |           |
-|                                   |                                              | :envvar:`MODULES_ERROR_ON_MULTI_LOAD`        |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`extra_siteconfig`       | *Unset by default*                           | :envvar:`MODULES_SITECONFIG`                 |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+

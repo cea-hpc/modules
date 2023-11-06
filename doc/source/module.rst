@@ -758,6 +758,23 @@ Module Sub-Commands
 
  Existing option *names* are:
 
+ .. mconfig:: abort_on_error
+
+  List of module sub-commands that abort evaluation sequence when an error is
+  raised by an evaluated module. Evaluations already performed are withdrawn
+  and remaining modules to evaluate are skipped.
+
+  This configuration option can be changed at installation time with
+  :instopt:`--with-abort-on-error` option. The
+  :envvar:`MODULES_ABORT_ON_ERROR` environment variable is defined by
+  :subcmd:`config` sub-command when changing this configuration option from
+  its default value. See :envvar:`MODULES_ABORT_ON_ERROR` description for
+  details.
+
+  .. only:: html
+
+     .. versionadded:: 5.4
+
  .. mconfig:: advanced_version_spec
 
   Advanced module version specification to finely select modulefiles.
@@ -952,23 +969,6 @@ Module Sub-Commands
   .. only:: html
 
      .. versionadded:: 4.8
-
- .. mconfig:: error_on_multi_load
-
-  Error behavior when one modulefile fails to load among many. Applies to
-  :subcmd:`load`, :subcmd:`try-load` and :subcmd:`mod-to-sh` sub-commands.
-
-  ``continue`` (default) to evaluate remaining modulefiles or ``abort`` and
-  withdraw already loaded modulefiles. It can be changed at installation time
-  with :instopt:`--with-error-on-multi-load` option. The
-  :envvar:`MODULES_ERROR_ON_MULTI_LOAD` environment variable is defined by
-  :subcmd:`config` sub-command when changing this configuration option from
-  its default value. See :envvar:`MODULES_ERROR_ON_MULTI_LOAD` description for
-  details.
-
-  .. only:: html
-
-     .. versionadded:: 5.4
 
  .. mconfig:: extra_siteconfig
 
@@ -3844,6 +3844,31 @@ ENVIRONMENT
  :mconfig:`rcfile` configuration option. It can be defined with the
  :subcmd:`config` sub-command.
 
+.. envvar:: MODULES_ABORT_ON_ERROR
+
+ A colon separated list of the module sub-commands that abort their evaluation
+ sequence when an error is raised by an evaluated module. When error occurs,
+ evaluations already done are withdrawn and the remaining modules to evaluate
+ are skipped.
+
+ Accepted sub-commands that can be set in value list are:
+
+ * :subcmd:`load`
+ * :subcmd:`mod-to-sh`
+ * :subcmd:`try-load`
+
+ Module sub-commands not configured to follow the *abort on error* behavior,
+ apply the *continue on error* behavior. In this case if one modulefile
+ evaluation fails, sequence continues with remaining modulefiles.
+
+ This environment variable value supersedes the default value set in the
+ :mconfig:`abort_on_error` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 5.4
+
 .. envvar:: MODULES_ADVANCED_VERSION_SPEC
 
  If set to ``1``, enable advanced module version specifiers (see `Advanced
@@ -4210,23 +4235,6 @@ ENVIRONMENT
  .. only:: html
 
     .. versionadded:: 4.8
-
-.. envvar:: MODULES_ERROR_ON_MULTI_LOAD
-
- When loading multiple modulefiles, if one fails to load, ``continue`` to
- evaluate remaining modulefiles in list or ``abort`` and withdraw already
- loaded modulefiles from list.
-
- The behavior applies to :subcmd:`load`, :subcmd:`try-load` and
- :subcmd:`mod-to-sh` sub-commands.
-
- This environment variable value supersedes the default value set in the
- :mconfig:`error_on_multi_load` configuration option. It can be defined with
- the :subcmd:`config` sub-command.
-
- .. only:: html
-
-    .. versionadded:: 5.4
 
 .. envvar:: MODULES_EXTENDED_DEFAULT
 

@@ -949,7 +949,7 @@ The following environment variables appeared on Modules 5.
 +------------+-----------------------------------------------------------------+
 | 5.4        | :envvar:`MODULES_STICKY_PURGE`,                                 |
 |            | :envvar:`MODULES_UNIQUE_NAME_LOADED`,                           |
-|            | :envvar:`MODULES_ERROR_ON_MULTI_LOAD`,                          |
+|            | :envvar:`MODULES_ABORT_ON_ERROR`,                               |
 |            | :envvar:`__MODULES_LMSTICKYRULE`,                               |
 |            | :envvar:`MODULES_SOURCE_CACHE`                                  |
 +------------+-----------------------------------------------------------------+
@@ -1093,7 +1093,7 @@ The following Modules configuration option has been introduced on Modules 5.
 |            | :mconfig:`cache_expiry_secs`, :mconfig:`ignore_user_rc`         |
 +------------+-----------------------------------------------------------------+
 | 5.4        | :mconfig:`sticky_purge`, :mconfig:`unique_name_loaded`,         |
-|            | :mconfig:`error_on_multi_load`, :mconfig:`source_cache`         |
+|            | :mconfig:`abort_on_error`, :mconfig:`source_cache`              |
 +------------+-----------------------------------------------------------------+
 
 :mconfig:`avail_output`, :mconfig:`avail_terse_output`

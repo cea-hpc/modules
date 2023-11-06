@@ -157,8 +157,7 @@ Following behavior is observed:
 No effect on other error kinds as it is not useful to mark loaded a broken or
 nonexistent modulefile.
 
-``error_on_multi_load`` configuration option has no effect on ``--force``
-option.
+``abort_on_error`` configuration option has no effect on ``--force`` option.
 
 Multiple modulefiles passed as argument
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -167,14 +166,14 @@ When multiple modulefiles are passed to the ``load`` sub-command for
 evaluation. If the evaluation of one modulefile raises an error, behavior for
 this error is applied and if:
 
-* :mconfig:`error_on_multi_load` configuration option equals ``continue``:
+* :mconfig:`abort_on_error` configuration option does not contain ``load``:
 
   * already evaluated modulefiles from the argument list are kept loaded
   * in case of an *exit* error, evaluation stops
   * for other kind of error, evaluation continues with next modulefile in
     argument list
 
-* :mconfig:`error_on_multi_load` equals ``abort``:
+* :mconfig:`abort_on_error` configuration option contains ``load``:
 
   * already evaluated modulefiles from the argument list are withdrawn (they
     will not appear loaded and their environment changes are flushed)
@@ -185,9 +184,9 @@ top level context and not from a modulefile evaluation. Multiple arguments on
 a ``module load`` command in modulefile are evaluated independently as an
 *AND* requirement list.
 
-.. warning:: :command:`ml` command applies the ``error_on_multi_load``'s
-   ``abort`` behavior whatever the value of this configuration option. It may
-   be changed in the next major version to align ``ml`` command behavior.
+.. warning:: :command:`ml` command applies the ``abort_on_error`` behavior
+   whatever the value of this configuration option. It may be changed in the
+   next major version to align ``ml`` command behavior.
 
 Load-any sub-command
 --------------------
@@ -222,8 +221,8 @@ Multiple modulefiles passed as argument
 :subcmd:`load-any` stops evaluation process as soon as a modulefile argument
 is successfully loaded.
 
-:mconfig:`error_on_multi_load` configuration option has no effect on
-``load-any`` sub-command or modulefile command.
+``load-any`` is not a valid value element for :mconfig:`abort_on_error`
+configuration option.
 
 *exit* error stops evaluation of remaining modulefiles in the argument list.
 
@@ -274,7 +273,7 @@ Same multiple modulefile arguments behavior is observed than for `Load
 sub-command`_.
 
 Except *not found*, *forbidden* and *hard hidden* errors are ignored even if
-:mconfig:`error_on_multi_load` configuration option equals ``abort``.
+:mconfig:`abort_on_error` configuration option contains ``try-load``.
 
 Mod-to-sh sub-command
 ---------------------
@@ -295,8 +294,8 @@ environment changes of already unloaded/loaded modules are flushed.
 
 Force mode has no effect on reload sub-command.
 
-:mconfig:`error_on_multi_load` configuration option has no effect on this
-sub-command.
+``reload`` is not a valid element for :mconfig:`abort_on_error` configuration
+option.
 
 Prior running evaluations, dependencies of loaded modules are checked. If at
 least one dependency (requirement or conflict) is not satisfied, an error is

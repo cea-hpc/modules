@@ -106,10 +106,10 @@ the *modulefile* is being loaded.
  commands to have the effect of causing the module not to be listed as loaded
  and not affect other modules being loaded concurrently. All non-environment
  commands within the module will be performed up to this point. Processing
- will continue on to the next module on the command line if
- :mconfig:`error_on_multi_load` configuration option is set to ``continue``.
- The :mfcmd:`break` command will only have this effect if not used within a
- Tcl loop though.
+ will continue on to the next module on the command line unless if
+ :mconfig:`abort_on_error` configuration option is enabled for running module
+ sub-command. The :mfcmd:`break` command will only have this effect if not
+ used within a Tcl loop though.
 
  An example: Suppose that a full selection of *modulefiles* are needed for
  various different architectures, but some of the *modulefiles* are not
@@ -199,9 +199,9 @@ the *modulefile* is being loaded.
  and is similar to the :mfcmd:`break` or :mfcmd:`continue` commands. However,
  this command will cause the immediate cessation of this module. Any
  additional modules on the command line will not be evaluated even if the
- :mconfig:`error_on_multi_load` configuration option is set to ``continue``.
- This module and the subsequent modules will not be listed as loaded. No
- environment commands will be performed in the current module.
+ :mconfig:`abort_on_error` configuration option is disabled for running
+ module sub-command. This module and the subsequent modules will not be listed
+ as loaded. No environment commands will be performed in the current module.
 
 .. mfcmd:: family name
 
