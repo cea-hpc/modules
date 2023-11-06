@@ -416,7 +416,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@tagabbrev@|$(tagabbrev)|g' \
 	-e 's|@tagcolorname@|$(tagcolorname)|g' \
 	-e 's|@stickypurge@|$(stickypurge)|g' \
-	-e 's|@erroronmultiload@|$(erroronmultiload)|g' \
+	-e 's|@abortonerror@|$(abortonerror)|g' \
 	-e 's|@availoutput@|$(availoutput)|g' \
 	-e 's|@availterseoutput@|$(availterseoutput)|g' \
 	-e 's|@listoutput@|$(listoutput)|g' \
