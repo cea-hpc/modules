@@ -1776,6 +1776,9 @@ Module Sub-Commands
  specified order. If one modulefile evaluation raises an error, load sequence
  continues: loaded modules prior the evaluation error are kept loaded and
  sequence is resumed with the load of remaining modulefile in list.
+ Conversely, load sequence is aborted and already loaded modulefiles are
+ withdrawn if :subcmd:`load` sub-command is defined in
+ :mconfig:`abort_on_error` configuration option.
 
  The :option:`--tag` option accepts a list of module tags to apply to
  *modulefile* once loaded. If module is already loaded, tags from *taglist*
@@ -1857,7 +1860,9 @@ Module Sub-Commands
  specified order. If one modulefile evaluation raises an error, mod-to-sh
  sequence continues: environment change from modules evaluated prior the
  error are preserved and sequence is resumed with the evaluation of remaining
- modulefile in list.
+ modulefile in list. Conversely, mod-to-sh sequence is aborted and changes
+ from already evaluated modules are withdrawn if :subcmd:`mod-to-sh`
+ sub-command is defined in :mconfig:`abort_on_error` configuration option.
 
  .. only:: html
 
@@ -2436,6 +2441,9 @@ Module Sub-Commands
  the specified order. If one modulefile evaluation raises an error, try-load
  sequence continues: loaded modules prior the evaluation error are kept loaded
  and sequence is resumed with the load of remaining modulefile in list.
+ Conversely, try-load sequence is aborted and already loaded modulefiles are
+ withdrawn if :subcmd:`try-load` sub-command is defined in
+ :mconfig:`abort_on_error` configuration option.
 
  .. only:: html
 
