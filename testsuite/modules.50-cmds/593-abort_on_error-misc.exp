@@ -15,7 +15,7 @@
 #   Sub-Command:
 #
 #   Comment:	%C{
-#           Test error_on_multi_load configuration option with
+#           Test abort_on_error configuration option with
 #           various sub-commands
 #		}C%
 #
@@ -49,9 +49,9 @@ lappend ans_switch [list ERR]
 
 if {[cmpversion $tclsh_version 8.6] == -1} {
     set custom_error_trace "    invoked from within
-\"if \{\[info exists env(TESTSUITE_ERROR_ON_MULTI_LOAD)\]\} \{
-    switch -- \$env(TESTSUITE_ERROR_ON_MULTI_LOAD) \{
-        bad - load_last_bad - load_first_b...\""
+\"if \{\[info exists env(TESTSUITE_ABORT_ON_ERROR)\]\} \{
+    switch -- \$env(TESTSUITE_ABORT_ON_ERROR) \{
+        bad - load_last_bad - load_first_bad - load-...\""
 } else {
     set custom_error_trace {}
 }
@@ -59,22 +59,22 @@ if {[cmpversion $tclsh_version 8.6] == -1} {
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 96}]
 set ts_load_error [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
 
-setenv_var TESTSUITE_ERROR_ON_MULTI_LOAD load_error
+setenv_var TESTSUITE_ABORT_ON_ERROR load_error
 
 
 #
 # continue
 #
 
-setenv_var MODULES_ERROR_ON_MULTI_LOAD continue
+setenv_var MODULES_ABORT_ON_ERROR load
 
 
-# restore command (no impact of error_on_multi_load option)
+# restore command (no impact of abort_on_error option)
 set ts_error_verbose [msg_load all/1.0]\n\n$ts_load_error\n\n[msg_load foo/1.0]
 testouterr_cmd bash {restore testsuite/home/coll-error-on-load} $ans_continue $ts_error_verbose
 
 
-# mod-to-sh command (error_on_multi_load has an impact)
+# mod-to-sh command (abort_on_error has an impact)
 set ts_mod_to_sh_continue "all-pre-out
 TSPATH=dir1; export TSPATH;
 TS=ok; export TS;
@@ -85,12 +85,12 @@ all-out"
 testouterr_cmd bash {mod-to-sh sh all/1.0 err/1.0 foo/1.0} ERR $ts_mod_to_sh_continue
 
 
-# reload command (rollback, whatever the error_on_multi_load state)
+# reload command (rollback, whatever the abort_on_error state)
 setenv_loaded_module [list all/1.0 err/1.0 foo/1.0] [list $mp/err/1.0 $mp/err/1.0 $mp/foo/1.0]
 testouterr_cmd bash {reload} ERR $ts_load_error
 
 
-# switch command (no impact of error_on_multi_load option)
+# switch command (no impact of abort_on_error option)
 setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
 set ts_error_switch $ts_load_error\n\n[msg_switch foo/1.0 err/1.0 [err_swon err/1.0]]
 testouterr_cmd bash {switch foo/1.0 err/1.0} $ans_switch $ts_error_switch
@@ -102,22 +102,22 @@ unsetenv_loaded_module
 # abort
 #
 
-setenv_var MODULES_ERROR_ON_MULTI_LOAD abort
+setenv_var MODULES_ABORT_ON_ERROR load:mod-to-sh
 
-# restore command (no impact of error_on_multi_load option)
+# restore command (no impact of abort_on_error option)
 testouterr_cmd bash {restore testsuite/home/coll-error-on-load} $ans_continue $ts_error_verbose
 
 
-# mod-to-sh command (error_on_multi_load has an impact)
+# mod-to-sh command (abort_on_error has an impact)
 testouterr_cmd bash {mod-to-sh sh all/1.0 err/1.0 foo/1.0} ERR {}
 
 
-# reload command (rollback, whatever the error_on_multi_load state)
+# reload command (rollback, whatever the abort_on_error state)
 setenv_loaded_module [list all/1.0 err/1.0 foo/1.0] [list $mp/err/1.0 $mp/err/1.0 $mp/foo/1.0]
 testouterr_cmd bash {reload} ERR $ts_load_error
 
 
-# switch command (no impact of error_on_multi_load option)
+# switch command (no impact of abort_on_error option)
 setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
 set ts_error_switch $ts_load_error\n\n[msg_switch foo/1.0 err/1.0 [err_swon err/1.0]]
 testouterr_cmd bash {switch foo/1.0 err/1.0} $ans_switch $ts_error_switch

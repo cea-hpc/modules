@@ -1,13 +1,13 @@
 #%Module
-if {[info exists env(TESTSUITE_ERROR_ON_MULTI_LOAD)]} {
-    switch -- $env(TESTSUITE_ERROR_ON_MULTI_LOAD) {
-        bad - load_last_bad - load_first_bad - load-any_first_bad - try-load_last_bad - try-load_first_bad {
+if {[info exists env(TESTSUITE_ABORT_ON_ERROR)]} {
+    switch -- $env(TESTSUITE_ABORT_ON_ERROR) {
+        bad - load_last_bad - load_first_bad - load-any_first_bad - try-load_last_bad - try-load_first_bad - unload_last_bad - unload_first_bad {
             bad
         }
-        break - load_first_break - load-any_first_break - try-load_first_break {
+        break - load_first_break - load-any_first_break - try-load_first_break - unload_first_break {
             break
         }
-        exit - load_first_exit - load-any_first_exit - try-load_first_exit {
+        exit - load_first_exit - load-any_first_exit - try-load_first_exit - unload_first_exit {
             exit
         }
         continue {
@@ -96,73 +96,6 @@ if {[info exists env(TESTSUITE_ERROR_ON_MULTI_LOAD)]} {
                 error msg
             }
         }
-    }
-}
-if {[info exists env(TESTSUITE_ERROR_ON_MULTI_UNLOAD)]} {
-    switch -- $env(TESTSUITE_ERROR_ON_MULTI_UNLOAD) {
-        bad - unload_last_bad - unload_first_bad {
-            bad
-        }
-        break - unload_first_break  {
-            break
-        }
-        exit - unload_first_exit {
-            exit
-        }
-        continue {
-            continue
-        }
-        error {
-            error msg
-        }
-        depre_load_error {
-            prereq --optional foo
-            if {[module-info mode load]} {
-                error msg
-            }
-        }
-        depre_unload_error {
-            prereq --optional foo
-            if {[module-info mode unload]} {
-                error msg
-            }
-        }
-        depre_load_bad {
-            prereq --optional foo
-            if {[module-info mode load]} {
-                bad
-            }
-        }
-        depre_unload_bad {
-            prereq --optional foo
-            if {[module-info mode unload]} {
-                bad
-            }
-        }
-        depre_load_break {
-            prereq --optional foo
-            if {[module-info mode load]} {
-                break
-            }
-        }
-        depre_unload_break {
-            prereq --optional foo
-            if {[module-info mode unload]} {
-                break
-            }
-        }
-        depre_load_exit {
-            prereq --optional foo
-            if {[module-info mode load]} {
-                exit
-            }
-        }
-        depre_unload_exit {
-            prereq --optional foo
-            if {[module-info mode unload]} {
-                exit
-            }
-        }
         depun_error {
             prereq foo
             if {[module-info mode unload]} {
@@ -185,11 +118,6 @@ if {[info exists env(TESTSUITE_ERROR_ON_MULTI_UNLOAD)]} {
             prereq foo
             if {[module-info mode unload]} {
                 exit
-            }
-        }
-        load_error {
-            if {[module-info mode load]} {
-                error msg
             }
         }
     }

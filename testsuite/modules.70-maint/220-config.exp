@@ -31,7 +31,7 @@ unsetenv_var MODULES_MCOOKIE_VERSION_CHECK
 # cache buffer size may be set if cache files have been prebuilt
 unsetenv_var MODULES_CACHE_BUFFER_BYTES
 unsetenv_var MODULES_STICKY_PURGE
-unsetenv_var MODULES_ERROR_ON_MULTI_LOAD
+unsetenv_var MODULES_ABORT_ON_ERROR
 unsetenv_var MODULES_SOURCE_CACHE
 unsetenv_var MODULES_UNIQUE_NAME_LOADED
 unsetenv_var MODULES_AVAIL_OUTPUT
@@ -53,6 +53,7 @@ set valid_darkbgcolors [expr {([llength [split $install_darkbgcolors {:=}]] % 2)
 set valid_lightbgcolors [expr {([llength [split $install_lightbgcolors {:=}]] % 2) == 0 ? $install_lightbgcolors : {}}]
 
 array set configdfl [list\
+    abort_on_error            $install_abortonerror\
     advanced_version_spec     [expr {$install_advversspec eq {y}}]\
     auto_handling             [expr {$install_autohandling eq {y}}]\
     avail_indepth             [expr {$install_availindepth eq {y}}]\
@@ -68,7 +69,6 @@ array set configdfl [list\
     colors                    [expr {$install_termbg eq {dark} ? $valid_darkbgcolors : $valid_lightbgcolors}]\
     contact                   root@localhost\
     editor                    "$install_editor"\
-    error_on_multi_load       $install_erroronmultiload\
     extended_default          [expr {$install_extendeddefault eq {y}}]\
     extra_siteconfig          <undef>\
     home                      [regsub -all "\(\[.+?\]\)" $install_moduleshome {\\\1}]\
@@ -113,6 +113,7 @@ array set configdfl [list\
 ]
 
 array set configvar [list\
+    abort_on_error            MODULES_ABORT_ON_ERROR\
     advanced_version_spec     MODULES_ADVANCED_VERSION_SPEC\
     auto_handling             MODULES_AUTO_HANDLING\
     avail_indepth             MODULES_AVAIL_INDEPTH\
@@ -127,7 +128,6 @@ array set configvar [list\
     colors                    MODULES_COLORS\
     contact                   MODULECONTACT\
     editor                    MODULES_EDITOR\
-    error_on_multi_load       MODULES_ERROR_ON_MULTI_LOAD\
     extended_default          MODULES_EXTENDED_DEFAULT\
     extra_siteconfig          MODULES_SITECONFIG\
     home                      MODULESHOME\
@@ -168,6 +168,7 @@ array set configvar [list\
 ]
 
 array set configvalid [list\
+    abort_on_error            {load mod-to-sh try-load}\
     advanced_version_spec     {0 1}\
     auto_handling             {0 1}\
     avail_indepth             {0 1}\
@@ -178,7 +179,6 @@ array set configvalid [list\
     collection_pin_version    {0 1}\
     collection_pin_tag        {0 1}\
     color                     {never auto always}\
-    error_on_multi_load       {abort continue}\
     extended_default          {0 1}\
     icase                     {never search always}\
     ignore_cache              {0 1}\
@@ -208,6 +208,7 @@ array set configvalid [list\
 ]
 
 array set configvalidkind [list\
+    abort_on_error            eltlist\
     avail_output              eltlist\
     avail_terse_output        eltlist\
     cache_buffer_bytes        intbe\
@@ -225,6 +226,7 @@ array set configlockable [list\
 ]
 
 array set configkind [list\
+    abort_on_error            l\
     avail_output              l\
     avail_terse_output        l\
     colors                    l\
@@ -287,10 +289,11 @@ foreach param [array names configvalid] {
                 # invalid value test
                 set tserr [if_configlocked $param [err_conflocked $param] "$error_msgs: Invalid element in value list for config. option '$param'\n  Allowed elements are: $configvalid($param) (separated by ':')"]
                 testouterr_cmd sh "config $param foo" ERR $tserr
+                set range_end [expr {[llength $configvalid($param)] < 4 ? {end-1} : {end-2}}]
                 # badly separated value list
-                set val [join [lrange $configvalid($param) 0 end-2] ,]
+                set val [join [lrange $configvalid($param) 0 $range_end] ,]
                 testouterr_cmd sh "config $param $val" ERR $tserr
-                set val [join [lrange $configvalid($param) 0 end-2] {\ }]
+                set val [join [lrange $configvalid($param) 0 $range_end] {\ }]
                 testouterr_cmd sh "config $param $val" ERR $tserr
             }
             intbe {
