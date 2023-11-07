@@ -67,6 +67,8 @@ array set g_state_defs [list\
 ##nagelfar ignore #73 Too long line
 array set g_config_defs [list\
    contact {MODULECONTACT root@localhost 0 s}\
+   abort_on_error {MODULES_ABORT_ON_ERROR {@abortonerror@} 0 l {load\
+      mod-to-sh try-load} {} {} eltlist}\
    auto_handling {MODULES_AUTO_HANDLING @autohandling@ 0 b {0 1}}\
    avail_indepth {MODULES_AVAIL_INDEPTH @availindepth@ 0 b {0 1}}\
    avail_output {MODULES_AVAIL_OUTPUT {@availoutput@} 0 l {modulepath alias\
@@ -85,8 +87,6 @@ array set g_config_defs [list\
       initConfColor}\
    colors {MODULES_COLORS {} 0 l {} {} initConfColors}\
    csh_limit {{} 4000 0 i}\
-   error_on_multi_load {MODULES_ERROR_ON_MULTI_LOAD {@erroronmultiload@} 0 s\
-      {abort continue}}\
    extra_siteconfig {MODULES_SITECONFIG <undef> 1 s {}}\
    editor {MODULES_EDITOR {@editor@} 0 s {} {} initConfEditor}\
    home {MODULESHOME {@moduleshome@} 0 s}\
@@ -804,6 +804,14 @@ proc isIcase {} {
       lappend enabledValList search
    }
    return [expr {[getConf icase] in $enabledValList}]
+}
+
+proc commandAbortOnError {{command {}}} {
+   if {![string length $command]} {
+      set command [currentState commandname]
+   }
+   set abort_command_list [split [getConf abort_on_error] :]
+   return [expr {[isTopEvaluation] && $command in $abort_command_list}]
 }
 
 # ;;; Local Variables: ***
