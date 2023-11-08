@@ -1809,6 +1809,14 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       reportMsgRecord "Unloading [getModuleDesignation $msgrecid {} 2]" [expr\
          {$hidden && !$uasked && [depthState evalid] != 1}]
       popMsgRecordId
+
+      # abort evaluation if error and behavior configured this way (abort
+      # means stop to evaluate modulefile and flush changes of previous ones)
+      # applies to top evaluation context for supported sub-commands
+      if {$ret && $context eq {unload} && [commandAbortOnError]} {
+         flushEnvSettings
+         break
+      }
    }
    lpopState mode
 
