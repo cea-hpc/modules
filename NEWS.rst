@@ -83,6 +83,8 @@ Modules 5.4.0 (not yet released)
   by default. When set, it defines the :envvar:`MODULES_SOURCE_CACHE`
   environment variable. Default value can be changed with
   :instopt:`--enable-source-cache` installation option.
+* Add support for :mconfig:`abort_on_error` evaluation behavior on
+  :subcmd:`unload` sub-command.
 
 
 .. _5.3 release notes:

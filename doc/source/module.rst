@@ -2464,7 +2464,9 @@ Module Sub-Commands
  specified order. If one modulefile evaluation raises an error, unload
  sequence continues: unloaded modules prior the evaluation error are kept
  unloaded and sequence is resumed with the unload of remaining modulefile in
- list.
+ list. Conversely, unload sequence is aborted and already unloaded modulefiles
+ are restored if :subcmd:`unload` sub-command is defined in
+ :mconfig:`abort_on_error` configuration option.
 
  .. only:: html
 
@@ -3864,6 +3866,7 @@ ENVIRONMENT
  * :subcmd:`load`
  * :subcmd:`mod-to-sh`
  * :subcmd:`try-load`
+ * :subcmd:`unload`
 
  Module sub-commands not configured to follow the *abort on error* behavior,
  apply the *continue on error* behavior. In this case if one modulefile

@@ -746,8 +746,9 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
  When evaluating multiple modulefiles, if one fails abort evaluation sequence
  and withdraw already evaluated modulefiles for listed module sub-commands.
- Sub-commands accepted in LIST are: :subcmd:`load`, :subcmd:`mod-to-sh` and
- :subcmd:`try-load` (elements in LIST are separated by ``:``). (default=)
+ Sub-commands accepted in LIST are: :subcmd:`load`, :subcmd:`mod-to-sh`,
+ :subcmd:`try-load` and :subcmd:`unload` (elements in LIST are separated by
+ ``:``). (default=)
 
  This installation option defines the default value of the
  :mconfig:`abort_on_error` configuration option which could be changed after

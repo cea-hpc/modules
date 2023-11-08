@@ -335,11 +335,19 @@ Multiple modulefiles passed as argument
 
 When multiple modulefiles are passed to the ``unload`` sub-command for
 evaluation. If the evaluation of one modulefile raises an error, behavior for
-this error is applied and:
+this error is applied and if:
 
-* already evaluated modulefiles from the argument list are kept unloaded
-* for other kind of error, evaluation continues with next modulefile in
-  argument list
+* :mconfig:`abort_on_error` configuration option does not contain ``unload``:
+
+  * already evaluated modulefiles from the argument list are kept unloaded
+  * for other kind of error, evaluation continues with next modulefile in
+    argument list
+
+* :mconfig:`abort_on_error` configuration option contains ``load``:
+
+  * already evaluated modulefiles from the argument list are withdrawn (they
+    will appear loaded again and their environment changes are untouched)
+  * evaluation stops
 
 The above description only applies to ``unload`` sub-command executed from the
 top level context and not from a modulefile evaluation. Multiple arguments on
