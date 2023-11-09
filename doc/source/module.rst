@@ -1801,6 +1801,8 @@ Module Sub-Commands
     .. versionchanged:: 5.1
        Option :option:`--tag` added
 
+    .. versionchanged:: 5.4
+       Support for :mconfig:`abort_on_error` configuration option added
 
 .. subcmd:: load-any [options] modulefile...
 
@@ -1876,6 +1878,9 @@ Module Sub-Commands
  .. only:: html
 
     .. versionadded:: 5.2
+
+    .. versionchanged:: 5.4
+       Support for :mconfig:`abort_on_error` configuration option added
 
 .. subcmd:: path modulefile
 
@@ -2462,6 +2467,9 @@ Module Sub-Commands
     .. versionchanged:: 5.1
        Option :option:`--tag` added
 
+    .. versionchanged:: 5.4
+       Support for :mconfig:`abort_on_error` configuration option added
+
 .. subcmd:: unload [--auto|--no-auto] [-f] modulefile...
 
  Remove *modulefile* from the shell environment.
@@ -2484,6 +2492,9 @@ Module Sub-Commands
     .. versionchanged:: 4.2
        Options :option:`--auto`, :option:`--no-auto`,
        :option:`--force`/:option:`-f` added
+
+    .. versionchanged:: 5.4
+       Support for :mconfig:`abort_on_error` configuration option added
 
 .. subcmd:: unuse directory...
 
