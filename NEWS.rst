@@ -85,6 +85,8 @@ Modules 5.4.0 (not yet released)
   :instopt:`--enable-source-cache` installation option.
 * Add support for :mconfig:`abort_on_error` evaluation behavior on
   :subcmd:`unload` sub-command.
+* Disable :mconfig:`abort_on_error` when :option:`--force` option is used. In
+  this case, behavior is to continue when an error occurs.
 
 
 .. _5.3 release notes:

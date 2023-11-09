@@ -157,7 +157,8 @@ Following behavior is observed:
 No effect on other error kinds as it is not useful to mark loaded a broken or
 nonexistent modulefile.
 
-``abort_on_error`` configuration option has no effect on ``--force`` option.
+``abort_on_error`` configuration option is ignored when ``--force`` option is
+in use. Which means *continue on error* behavior is applied.
 
 Multiple modulefiles passed as argument
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -166,14 +167,16 @@ When multiple modulefiles are passed to the ``load`` sub-command for
 evaluation. If the evaluation of one modulefile raises an error, behavior for
 this error is applied and if:
 
-* :mconfig:`abort_on_error` configuration option does not contain ``load``:
+* :mconfig:`abort_on_error` configuration option does not contain ``load`` or
+  ``--force`` is set:
 
   * already evaluated modulefiles from the argument list are kept loaded
   * in case of an *exit* error, evaluation stops
   * for other kind of error, evaluation continues with next modulefile in
     argument list
 
-* :mconfig:`abort_on_error` configuration option contains ``load``:
+* :mconfig:`abort_on_error` configuration option contains ``load`` and
+  ``--force`` is not set:
 
   * already evaluated modulefiles from the argument list are withdrawn (they
     will not appear loaded and their environment changes are flushed)
@@ -330,6 +333,9 @@ Following behavior is observed:
 When facing an erroneous modulefile, it seems useful to be able to get rid of
 it from user's loaded environment.
 
+``abort_on_error`` configuration option is ignored when ``--force`` option is
+in use. Which means *continue on error* behavior is applied.
+
 Multiple modulefiles passed as argument
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -337,13 +343,15 @@ When multiple modulefiles are passed to the ``unload`` sub-command for
 evaluation. If the evaluation of one modulefile raises an error, behavior for
 this error is applied and if:
 
-* :mconfig:`abort_on_error` configuration option does not contain ``unload``:
+* :mconfig:`abort_on_error` configuration option does not contain ``unload``
+  or ``--force`` is set:
 
   * already evaluated modulefiles from the argument list are kept unloaded
   * for other kind of error, evaluation continues with next modulefile in
     argument list
 
-* :mconfig:`abort_on_error` configuration option contains ``load``:
+* :mconfig:`abort_on_error` configuration option contains ``load`` and
+  ``--force`` is not set:
 
   * already evaluated modulefiles from the argument list are withdrawn (they
     will appear loaded again and their environment changes are untouched)

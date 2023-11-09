@@ -264,6 +264,10 @@ switches are accepted:
  *modulefile* or that a *modulefile* will be unloaded even if it is required
  as a prereq by another *modulefile*.
 
+ On :subcmd:`load`, :subcmd:`mod-to-sh`, :subcmd:`try-load` and
+ :subcmd:`unload` sub-commands applies *continue on error* behavior when an
+ error occurs even if :mconfig:`abort_on_error` option is enabled.
+
  On :subcmd:`clear` sub-command, skip the confirmation dialog and proceed.
 
  On :subcmd:`purge` sub-command also unload `sticky modules`_ and modulefiles
@@ -289,6 +293,9 @@ switches are accepted:
 
     .. versionchanged:: 5.2
        Support for :subcmd:`mod-to-sh` sub-command added
+
+    .. versionchanged:: 5.4
+       Disables :mconfig:`abort_on_error` configuration option
 
 .. option:: --help, -h
 
@@ -1778,7 +1785,8 @@ Module Sub-Commands
  sequence is resumed with the load of remaining modulefile in list.
  Conversely, load sequence is aborted and already loaded modulefiles are
  withdrawn if :subcmd:`load` sub-command is defined in
- :mconfig:`abort_on_error` configuration option.
+ :mconfig:`abort_on_error` configuration option and :option:`--force` option
+ is not set.
 
  The :option:`--tag` option accepts a list of module tags to apply to
  *modulefile* once loaded. If module is already loaded, tags from *taglist*
@@ -1862,7 +1870,8 @@ Module Sub-Commands
  error are preserved and sequence is resumed with the evaluation of remaining
  modulefile in list. Conversely, mod-to-sh sequence is aborted and changes
  from already evaluated modules are withdrawn if :subcmd:`mod-to-sh`
- sub-command is defined in :mconfig:`abort_on_error` configuration option.
+ sub-command is defined in :mconfig:`abort_on_error` configuration option and
+ :option:`--force` option is not set.
 
  .. only:: html
 
@@ -2443,7 +2452,8 @@ Module Sub-Commands
  and sequence is resumed with the load of remaining modulefile in list.
  Conversely, try-load sequence is aborted and already loaded modulefiles are
  withdrawn if :subcmd:`try-load` sub-command is defined in
- :mconfig:`abort_on_error` configuration option.
+ :mconfig:`abort_on_error` configuration option and :option:`--force` option
+ is not set.
 
  .. only:: html
 
@@ -2466,7 +2476,8 @@ Module Sub-Commands
  unloaded and sequence is resumed with the unload of remaining modulefile in
  list. Conversely, unload sequence is aborted and already unloaded modulefiles
  are restored if :subcmd:`unload` sub-command is defined in
- :mconfig:`abort_on_error` configuration option.
+ :mconfig:`abort_on_error` configuration option and :option:`--force` option
+ is not set.
 
  .. only:: html
 
@@ -3870,7 +3881,8 @@ ENVIRONMENT
 
  Module sub-commands not configured to follow the *abort on error* behavior,
  apply the *continue on error* behavior. In this case if one modulefile
- evaluation fails, sequence continues with remaining modulefiles.
+ evaluation fails, sequence continues with remaining modulefiles. When
+ :option:`--force` option is used, *continue on error* behavior applies.
 
  This environment variable value supersedes the default value set in the
  :mconfig:`abort_on_error` configuration option. It can be defined with the

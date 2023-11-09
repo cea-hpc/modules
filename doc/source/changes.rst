@@ -828,6 +828,12 @@ The following command line switches appeared on Modules 5.
  ``+`` or ``-`` which means value should respectively be appended to or
  subtracted from current configuration option value.
 
+:option:`--force`
+
+ Starting Modules 5.4, this command line switch by-passes *abort on error*
+ behavior. Modulefile is unloaded anyway when an evaluation error occurs if
+ :option:`--force` option is used.
+
 Module Sub-Commands
 """""""""""""""""""
 
