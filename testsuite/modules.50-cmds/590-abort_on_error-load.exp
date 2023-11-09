@@ -459,8 +459,11 @@ set ts_error_verbose_abort [msg_load all/1.0]\n\n
 append ts_error_verbose_abort [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
 testouterr_cmd bash {load -v all/1.0 err/1.0 foo/1.0} ERR $ts_error_verbose_abort
 
-# --force has no effect
-testouterr_cmd bash {load --force -v all/1.0 err/1.0 foo/1.0} ERR $ts_error_verbose_abort
+# --force leads to continue behavior
+set ts_error_verbose_abort_force [msg_load all/1.0]\n\n
+append ts_error_verbose_abort_force [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_error_verbose_abort_force [msg_load foo/1.0]
+testouterr_cmd bash {load --force -v all/1.0 err/1.0 foo/1.0} $ans_continue $ts_error_verbose_abort_force
 
 
 setenv_var TESTSUITE_ABORT_ON_ERROR conflict
