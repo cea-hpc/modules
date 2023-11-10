@@ -264,7 +264,7 @@ switches are accepted:
  *modulefile* or that a *modulefile* will be unloaded even if it is required
  as a prereq by another *modulefile*.
 
- On :subcmd:`load`, :subcmd:`mod-to-sh`, :subcmd:`try-load` and
+ On :subcmd:`load`, :command:`ml`, :subcmd:`mod-to-sh`, :subcmd:`try-load` and
  :subcmd:`unload` sub-commands applies *continue on error* behavior when an
  error occurs even if :mconfig:`abort_on_error` option is enabled.
 
@@ -3886,6 +3886,7 @@ ENVIRONMENT
  Accepted sub-commands that can be set in value list are:
 
  * :subcmd:`load`
+ * :command:`ml`
  * :subcmd:`mod-to-sh`
  * :subcmd:`try-load`
  * :subcmd:`unload`

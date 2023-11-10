@@ -87,6 +87,10 @@ Modules 5.4.0 (not yet released)
   :subcmd:`unload` sub-command.
 * Disable :mconfig:`abort_on_error` when :option:`--force` option is used. In
   this case, behavior is to continue when an error occurs.
+* Add support for :mconfig:`abort_on_error` evaluation behavior on
+  :command:`ml` command. *Abort on error* behavior is on by default with
+  :command:`ml`. Removing it from :mconfig:`abort_on_error`'s value enables
+  the *continue on error* behavior.
 
 
 .. _5.3 release notes:

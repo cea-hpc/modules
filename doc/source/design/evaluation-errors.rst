@@ -187,9 +187,10 @@ top level context and not from a modulefile evaluation. Multiple arguments on
 a ``module load`` command in modulefile are evaluated independently as an
 *AND* requirement list.
 
-.. warning:: :command:`ml` command applies the ``abort_on_error`` behavior
-   whatever the value of this configuration option. It may be changed in the
-   next major version to align ``ml`` command behavior.
+.. warning:: :command:`ml` command applies the ``abort_on_error`` behavior by
+   default, whatever behavior is configured for ``load``. Default behavior for
+   ``load`` may be changed in next major version to align ``ml`` command
+   behavior.
 
 Load-any sub-command
 --------------------
@@ -365,6 +366,6 @@ a ``module unload`` command in modulefile are evaluated independently as an
 .. warning:: :command:`ml` command applies an abort behavior when facing an
    error. Evaluation stops and already unloaded modulefiles are restored in
    loaded environment. It may be changed in the next major version to align
-   on ``unload`` sub-command behavior.
+   unload phase of ``ml`` command on ``unload`` sub-command behavior.
 
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

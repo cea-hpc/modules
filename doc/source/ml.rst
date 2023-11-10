@@ -31,9 +31,14 @@ sign (``-``) are passed right after :command:`ml` command name.
 Multiple modulefiles to load and to unload can be specified on a single
 :command:`ml` command line. In this situation unloads are treated first in
 specified order, then loads are processed also in specified order (see
-`EXAMPLES`_ section below). If an error occurs among either modulefile loads
-or unloads, command line processing is stopped and every unloads and loads
-performed are rolled back.
+`EXAMPLES`_ section below).
+
+If an error occurs among either modulefile loads or unloads, command line
+processing is stopped and every unloads and loads performed are rolled back.
+Conversely, if :command:`ml` is removed from :mconfig:`abort_on_error`
+configuration option list or if :option:`--force` option is set, unload and
+load sequence continues: already achieved module evaluations are kept and
+unload then load sequence is resumed with the remaining modulefiles.
 
 :command:`ml` command line is parsed first to match every known command line
 switches or module sub-commands. So to load a modulefile via the :command:`ml`
