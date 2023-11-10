@@ -600,13 +600,13 @@ proc ml {args} {
       if {[llength $modunlist]} {
          set ret [cmdModuleUnload unload match 1 0 0 0 {*}$modunlist]
       }
-      # then load other modules unless unload phase failed
-      if {!$ret && [llength $modlolist]} {
+      # then load other modules unless unload phase failed and abort mode
+      if {(!$ret || ![commandAbortOnError]) && [llength $modlolist]} {
          set ret [cmdModuleLoad load 1 0 0 $tag_list {*}$modlolist]
       }
 
-      # rollback changes if any load or unload failed
-      if {$ret} {
+      # rollback changes if abort mode and any load or unload failed
+      if {$ret && [commandAbortOnError]} {
          restoreSettings
       }
       popSettings
