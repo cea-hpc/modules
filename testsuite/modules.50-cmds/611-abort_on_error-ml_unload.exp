@@ -120,6 +120,31 @@ lappend ans_modfile_last_force [list set __MODULES_LMCONFLICT lerr/1.0&foo/1.0&e
 lappend ans_modfile_last_force [list set _LMFILES_ $mp/lerr/1.0]
 lappend ans_modfile_last_force [list set LOADEDMODULES lerr/1.0]
 
+set ans_exit_forced [list]
+lappend ans_exit_forced [list out all-pre-out]
+lappend ans_exit_forced [list unset TSPATH]
+lappend ans_exit_forced [list unset __MODULES_LMPREREQ]
+lappend ans_exit_forced [list set _LMFILES_ $mp/setenv/1.0]
+lappend ans_exit_forced [list set LOADEDMODULES setenv/1.0]
+lappend ans_exit_forced [list unset TS]
+lappend ans_exit_forced [list unalias alall]
+lappend ans_exit_forced [list out {unset -f funcall;}]
+lappend ans_exit_forced [list out {complete -r compall;}]
+lappend ans_exit_forced [list out all-out]
+lappend ans_exit_forced [list ERR]
+
+set ans_supersticky_forced [list]
+lappend ans_supersticky_forced [list out all-pre-out]
+lappend ans_supersticky_forced [list unset TSPATH]
+lappend ans_supersticky_forced [list set LOADEDMODULES err/1.0]
+lappend ans_supersticky_forced [list set _LMFILES_ $mp/err/1.0]
+lappend ans_supersticky_forced [list unset TS]
+lappend ans_supersticky_forced [list unalias alall]
+lappend ans_supersticky_forced [list out {unset -f funcall;}]
+lappend ans_supersticky_forced [list out {complete -r compall;}]
+lappend ans_supersticky_forced [list out all-out]
+lappend ans_supersticky_forced [list ERR]
+
 
 if {[cmpversion $tclsh_version 8.6] == -1} {
     set custom_error_trace "    invoked from within
@@ -176,8 +201,7 @@ setenv_var TESTSUITE_ABORT_ON_ERROR error
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 17}]
 set ts_error_verbose [msg_unload all/1.0]\n\n
-append ts_error_verbose [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
-append ts_error_verbose [msg_unload foo/1.0]
+append ts_error_verbose [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
 testouterr_cmd bash {ml -v -all/1.0 -err/1.0 -foo/1.0} ERR $ts_error_verbose
 
 set ts_error_verbose_warn [msg_unload all/1.0]\n\n
@@ -272,7 +296,7 @@ testouterr_cmd bash {ml -all/1.0 -foo/1.0 -setenv/1.0} ERR $ts_depre_load_exit
 
 set ts_depre_load_exit_force [msg_load err/1.0 $err_evalabort]\n\n
 append ts_depre_load_exit_force [msg_unload foo/1.0 [err_depref err/1.0] {Unloading dependent: err/1.0}]
-testouterr_cmd bash {ml --force -all/1.0 -foo/1.0 -setenv/1.0} ERR $ts_depre_load_exit_force
+testouterr_cmd bash {ml --force -all/1.0 -foo/1.0 -setenv/1.0} $ans_exit_forced $ts_depre_load_exit_force
 
 
 setenv_var TESTSUITE_ABORT_ON_ERROR depre_unload_exit
@@ -355,7 +379,7 @@ setenv_var TESTSUITE_ABORT_ON_ERROR super-sticky
 set ts_supersticky [msg_unload {err/1.0 <sS>} $err_superstickyunload]
 testouterr_cmd bash {ml -all/1.0 -err/1.0 -foo/1.0} ERR $ts_supersticky
 
-testouterr_cmd bash {ml --force -all/1.0 -err/1.0 -foo/1.0} ERR $ts_supersticky
+testouterr_cmd bash {ml --force -all/1.0 -err/1.0 -foo/1.0} $ans_supersticky_forced $ts_supersticky
 
 
 setenv_var TESTSUITE_ABORT_ON_ERROR not_loaded

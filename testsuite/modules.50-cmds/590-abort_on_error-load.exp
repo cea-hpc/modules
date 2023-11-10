@@ -217,7 +217,7 @@ if {[cmpversion $tclsh_version 8.6] == -1} {
 # continue behavior (multiple module to load)
 #
 
-setenv_var MODULES_ABORT_ON_ERROR mod-to-sh:try-load
+setenv_var MODULES_ABORT_ON_ERROR ml:mod-to-sh:try-load
 
 setenv_var TESTSUITE_ABORT_ON_ERROR bad
 
@@ -261,7 +261,9 @@ append ts_error_verbose [msg_load foo/1.0]
 testouterr_cmd bash {load -v all/1.0 err/1.0 foo/1.0} $ans_continue $ts_error_verbose
 
 # ml command follows abort behavior
-testouterr_cmd bash {ml -v all/1.0 err/1.0 foo/1.0} ERR $ts_error_verbose
+set ts_error_verbose_ml [msg_load all/1.0]\n\n
+append ts_error_verbose_ml [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {ml -v all/1.0 err/1.0 foo/1.0} ERR $ts_error_verbose_ml
 
 
 setenv_var TESTSUITE_ABORT_ON_ERROR conflict
@@ -429,7 +431,7 @@ testouterr_cmd bash {load lerr/1.0} ERR $ts_load_hard_hidden
 # abort behavior (multiple module to load)
 #
 
-setenv_var MODULES_ABORT_ON_ERROR load
+setenv_var MODULES_ABORT_ON_ERROR load:ml
 
 setenv_var TESTSUITE_ABORT_ON_ERROR bad
 
