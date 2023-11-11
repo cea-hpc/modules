@@ -729,7 +729,10 @@ proc reloadModuleListUnloadPhase {lmname {errmsgtpl {}} {context unload}} {
             $mod]] $errmsgtpl]
          lpopState reloading_sticky
          lpopState reloading_supersticky
-         knerror $errMsg
+         # no process stop if ongoing reload command in continue behavior
+         if {![isStateEqual commandname reload] || [commandAbortOnError]} {
+            knerror $errMsg
+         }
       }
       lpopState reloading_sticky
       lpopState reloading_supersticky
@@ -757,10 +760,13 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist extrataglist\
          $modnamevr]} {
          set errMsg [string map [list _MOD_ [getModuleDesignation spec\
             $modnamevr]] $errmsgtpl]
-         if {$force} {
-            # errMsg will always be set as force mode could not be enabled
-            # for reload sub-cmd which provides an empty msg template
-            reportWarning $errMsg 1
+         # no process stop if forced or ongoing reload cmd in continue bhv
+         if {$force || ([isStateEqual commandname reload] &&\
+            ![commandAbortOnError])} {
+            # no msg for reload sub-cmd which provides an empty msg template
+            if {[string length $errMsg]} {
+               reportWarning $errMsg 1
+            }
          # stop if one load fails unless force mode enabled
          } else {
             knerror $errMsg
