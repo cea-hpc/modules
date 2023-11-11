@@ -922,6 +922,11 @@ The following module sub-commands appeared on Modules 5.
    comma character, to get modules providing any of these variant values (*OR*
    operator).
 
+:subcmd:`reload`
+
+ Starting Modules 5.4, support for :option:`--force` option is added on this
+ sub-command.
+
 Environment
 """""""""""
 

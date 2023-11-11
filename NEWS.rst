@@ -91,6 +91,10 @@ Modules 5.4.0 (not yet released)
   :command:`ml` command. *Abort on error* behavior is on by default with
   :command:`ml`. Removing it from :mconfig:`abort_on_error`'s value enables
   the *continue on error* behavior.
+* Add support for :mconfig:`abort_on_error` evaluation behavior on
+  :subcmd:`reload` command. *Abort on error* behavior is on by default with
+  :subcmd:`reload`. Removing it from :mconfig:`abort_on_error`'s value enables
+  the *continue on error* behavior.
 
 
 .. _5.3 release notes:

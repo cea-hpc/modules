@@ -264,9 +264,10 @@ switches are accepted:
  *modulefile* or that a *modulefile* will be unloaded even if it is required
  as a prereq by another *modulefile*.
 
- On :subcmd:`load`, :command:`ml`, :subcmd:`mod-to-sh`, :subcmd:`try-load` and
- :subcmd:`unload` sub-commands applies *continue on error* behavior when an
- error occurs even if :mconfig:`abort_on_error` option is enabled.
+ On :subcmd:`load`, :command:`ml`, :subcmd:`mod-to-sh`, :subcmd:`reload`,
+ :subcmd:`try-load` and :subcmd:`unload` sub-commands applies *continue on
+ error* behavior when an error occurs even if :mconfig:`abort_on_error` option
+ is enabled.
 
  On :subcmd:`clear` sub-command, skip the confirmation dialog and proceed.
 
@@ -1985,7 +1986,7 @@ Module Sub-Commands
     .. versionchanged:: 5.2
        Only evaluate modules listed in :envvar:`__MODULES_LMREFRESH`
 
-.. subcmd:: reload
+.. subcmd:: reload [-f]
 
  Unload then load all loaded *modulefiles*.
 
@@ -1995,11 +1996,21 @@ Module Sub-Commands
 
  If one modulefile load or unload evaluation raises an error, reload sequence
  aborts: environment changes coming from already evaluated modulefiles are
- withdrawn and remaining modulefile evaluations are skipped.
+ withdrawn and remaining modulefile evaluations are skipped. Conversely, if
+ :subcmd:`reload` is removed from :mconfig:`abort_on_error` configuration
+ option list or if :option:`--force` option is set, reload sequence continues:
+ already achieved module evaluations are kept and reload sequence is resumed
+ with the remaining modulefiles.
 
  .. only:: html
 
     .. versionadded:: 4.0
+
+    .. versionchanged:: 5.4
+       Support for :mconfig:`abort_on_error` configuration option added
+
+    .. versionchanged:: 5.4
+       Option :option:`--force`/:option:`-f` added
 
 .. subcmd:: remove-path [options] variable value...
 
@@ -3888,6 +3899,7 @@ ENVIRONMENT
  * :subcmd:`load`
  * :command:`ml`
  * :subcmd:`mod-to-sh`
+ * :subcmd:`reload`
  * :subcmd:`try-load`
  * :subcmd:`unload`
 

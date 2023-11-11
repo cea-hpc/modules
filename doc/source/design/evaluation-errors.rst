@@ -294,12 +294,10 @@ Specific error behavior for modulefile load evaluation by :subcmd:`reload`
 sub-command.
 
 In case of any error (either during unload or load phase) evaluation stops and
-environment changes of already unloaded/loaded modules are flushed.
-
-Force mode has no effect on reload sub-command.
-
-``reload`` is not a valid element for :mconfig:`abort_on_error` configuration
-option.
+environment changes of already unloaded/loaded modules are flushed. Unless if
+force mode is enabled or if reload is removed from :mconfig:`abort_on_error`
+configuration option (where it is enabled by default). In this case, a
+*continue on error* behavior is applied.
 
 Prior running evaluations, dependencies of loaded modules are checked. If at
 least one dependency (requirement or conflict) is not satisfied, an error is

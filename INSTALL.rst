@@ -747,8 +747,9 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  When evaluating multiple modulefiles, if one fails abort evaluation sequence
  and withdraw already evaluated modulefiles for listed module sub-commands.
  Sub-commands accepted in LIST are: :subcmd:`load`, :command:`ml`,
- :subcmd:`mod-to-sh`, :subcmd:`try-load` and :subcmd:`unload` (elements in
- LIST are separated by ``:``). (default=\ ``ml``)
+ :subcmd:`mod-to-sh`, :subcmd:`reload`, :subcmd:`try-load` and
+ :subcmd:`unload` (elements in LIST are separated by ``:``).
+ (default=\ ``ml:reload``)
 
  This installation option defines the default value of the
  :mconfig:`abort_on_error` configuration option which could be changed after
@@ -1324,7 +1325,7 @@ installation.
 |                                   |                                              | variable and command-line switch             | during init\ | altered   |
 |                                   |                                              |                                              | ialization   |           |
 +===================================+==============================================+==============================================+==============+===========+
-| :mconfig:`abort_on_error`         | ``ml``                                       | :instopt:`--with-abort-on-error`,            |              |           |
+| :mconfig:`abort_on_error`         | ``ml:reload``                                | :instopt:`--with-abort-on-error`,            |              |           |
 |                                   |                                              | :envvar:`MODULES_ABORT_ON_ERROR`             |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`advanced_version_spec`  | ``1``                                        | :instopt:`--enable-advanced-version-spec`,   |              |           |
