@@ -843,8 +843,14 @@ unsetenv_var __MODULES_LMCONFLICT
 
 set tserr [list {unload rce} {unload rcd} {unload rcc} \n[msg_unload {rcc <aL>} $err_evalabort]]
 testouterr_cmd_re sh {reload} ERR [join $tserr \n]
-set tserr [list {unload rce} {unload rcd} {unload rcc} \n[msg_unload {rcc <aL>} $warn_evalabort]\n {unload rcb} {unload rca} {load rca} {load rcb} {load rcc} {load rcd} \n[msg_load rcd $err_evalabort]]
-testouterr_cmd_re sh {reload --force} ERR [join $tserr \n]
+set tserr [list {unload rce} {unload rcd} {unload rcc} \n[msg_unload {rcc <aL>} $warn_evalabort]\n {unload rcb} {unload rca} {load rca} {load rcb} {load rcc} {load rcd} \n[msg_load rcd $err_evalabort]\n {load rce} \n[msg_load rce [err_reqmisf rcd]]]
+set ans [list]
+lappend ans [list set LOADEDMODULES rca:rcb:rcc:rce]
+lappend ans [list set _LMFILES_ $mp/rca:$mp/rcb:$mp/rcc:$mp/rce]
+lappend ans [list set __MODULES_LMPREREQ rcb&rca:rcc&rcb:rce&rcd]
+lappend ans [list set __MODULES_LMTAG rca&auto-loaded:rcb&auto-loaded:rcc&auto-loaded]
+lappend ans [list ERR]
+testouterr_cmd_re sh {reload --force} $ans [join $tserr \n]
 
 # crash of a module when loading (linked modules, middle one crashes)
 setenv_loaded_module [list rdc rdd rde] [list $mp/rdc $mp/rdd $mp/rde] [list rdc rdd]
@@ -853,7 +859,14 @@ unsetenv_var __MODULES_LMCONFLICT
 
 set tserr [list {unload rde} {unload rdd} {unload rdc} {load rdc} {load rdd} \n[msg_load rdd $err_evalabort]]
 testouterr_cmd_re sh {reload} ERR [join $tserr \n]
-testouterr_cmd_re sh {reload --force} ERR [join $tserr \n]
+set ans [list]
+lappend ans [list set LOADEDMODULES rdc:rde]
+lappend ans [list set _LMFILES_ $mp/rdc:$mp/rde]
+lappend ans [list set __MODULES_LMPREREQ rde&rdd]
+lappend ans [list set __MODULES_LMTAG rdc&auto-loaded]
+lappend ans [list ERR]
+set tserr [list {unload rde} {unload rdd} {unload rdc} {load rdc} {load rdd} \n[msg_load rdd $err_evalabort]\n {load rde} \n[msg_load rde [err_reqmisf rdd]]]
+testouterr_cmd_re sh {reload --force} $ans [join $tserr \n]
 
 
 #
