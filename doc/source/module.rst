@@ -264,10 +264,10 @@ switches are accepted:
  *modulefile* or that a *modulefile* will be unloaded even if it is required
  as a prereq by another *modulefile*.
 
- On :subcmd:`load`, :command:`ml`, :subcmd:`mod-to-sh`, :subcmd:`reload`,
- :subcmd:`try-load` and :subcmd:`unload` sub-commands applies *continue on
- error* behavior when an error occurs even if :mconfig:`abort_on_error` option
- is enabled.
+ On :subcmd:`load`, :command:`ml`, :subcmd:`mod-to-sh`, :subcmd:`purge`,
+ :subcmd:`reload`, :subcmd:`try-load` and :subcmd:`unload` sub-commands
+ applies *continue on error* behavior when an error occurs even if
+ :mconfig:`abort_on_error` option is enabled.
 
  On :subcmd:`clear` sub-command, skip the confirmation dialog and proceed.
 
@@ -1946,12 +1946,18 @@ Module Sub-Commands
 
  If one modulefile unload evaluation raises an error, purge sequence
  continues: unloaded modules prior the evaluation error are kept unloaded and
- sequence is resumed with the unload of remaining modulefiles.
+ sequence is resumed with the unload of remaining modulefiles. Conversely,
+ purge sequence is aborted and already unloaded modulefiles are restored if
+ :subcmd:`purge` sub-command is defined in :mconfig:`abort_on_error`
+ configuration option and :option:`--force` option is not set.
 
  .. only:: html
 
     .. versionchanged:: 4.7
        Option :option:`--force`/:option:`-f` added
+
+    .. versionchanged:: 5.4
+       Support for :mconfig:`abort_on_error` configuration option added
 
 .. subcmd:: refresh
 
@@ -3899,6 +3905,7 @@ ENVIRONMENT
  * :subcmd:`load`
  * :command:`ml`
  * :subcmd:`mod-to-sh`
+ * :subcmd:`purge`
  * :subcmd:`reload`
  * :subcmd:`try-load`
  * :subcmd:`unload`

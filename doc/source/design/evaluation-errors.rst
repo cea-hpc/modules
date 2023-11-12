@@ -303,6 +303,16 @@ Prior running evaluations, dependencies of loaded modules are checked. If at
 least one dependency (requirement or conflict) is not satisfied, an error is
 raised.
 
+Purge sub-command
+------------------
+
+Specific error behavior for modulefile load evaluation by :subcmd:`purge`
+sub-command.
+
+In case of error, *continue on error* behavior is applied. If purge is added
+in the value list of :mconfig:`abort_on_error` configuration option and if
+force mode is not set, *abort on error* behavior applies.
+
 Unload sub-command
 ------------------
 

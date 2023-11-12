@@ -95,6 +95,8 @@ Modules 5.4.0 (not yet released)
   :subcmd:`reload` command. *Abort on error* behavior is on by default with
   :subcmd:`reload`. Removing it from :mconfig:`abort_on_error`'s value enables
   the *continue on error* behavior.
+* Add support for :mconfig:`abort_on_error` evaluation behavior on
+  :subcmd:`purge` sub-command.
 
 
 .. _5.3 release notes:
