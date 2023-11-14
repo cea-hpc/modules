@@ -772,7 +772,7 @@ dist-tar: ChangeLog.gz contrib/rpm/environment-modules.spec pkgdoc
 		lib/configure lib/config.h.in $(DIST_AUTORECONF_EXTRA) ChangeLog.gz \
 		doc/build/MIGRATING.txt doc/build/changes.txt doc/build/INSTALL.txt \
 		doc/build/INSTALL-win.txt doc/build/NEWS.txt doc/build/CONTRIBUTING.txt \
-		doc/build/module.1.in doc/build/ml.1 doc/build/modulefile.4 \
+		doc/build/module.1.in doc/build/ml.1 doc/build/modulefile.5 \
 		contrib/rpm/environment-modules.spec
 
 dist-gzip: dist-tar

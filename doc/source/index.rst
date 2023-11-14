@@ -116,7 +116,7 @@ introduced by each version is available in the :ref:`MIGRATING` guide.
 new features between major versions.
 
 Reference manual page for the :ref:`module(1)` and :ref:`ml(1)` commands and
-for :ref:`modulefile(4)` script provide details on all supported options.
+for :ref:`modulefile(5)` script provide details on all supported options.
 
 A :ref:`cookbook` of recipes describes how to use the various features of
 Modules and how to extend the :command:`module` command to achieve specific

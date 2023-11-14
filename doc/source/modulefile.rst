@@ -1,4 +1,4 @@
-.. _modulefile(4):
+.. _modulefile(5):
 
 modulefile
 ==========
