@@ -121,16 +121,16 @@ I want the modulefile to source some rc script that came with some application
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 See the module :ref:`sh-to-mod_sub-command` sub-command to translate the
-environment changes done by a shell script into a :ref:`modulefile(4)`.
+environment changes done by a shell script into a :ref:`modulefile(5)`.
 
 You could also check the :ref:`source-sh_modulefile_command` to directly
 import the environment changes performed by a shell script within a
-:ref:`modulefile(4)`.
+:ref:`modulefile(5)`.
 
 How do I specify the *default* modulefile for some modulefile directory?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Modules usually uses the the highest lexicographically sorted :ref:`modulefile(4)` under the directory, unless there is a ``.version`` file in that directory which has a format like the following where ``native`` is a modulefile (or a sub-directory) in that directory. It's also possible to set the default with a ``.modulerc`` file with a **module-version** command.
+Modules usually uses the the highest lexicographically sorted :ref:`modulefile(5)` under the directory, unless there is a ``.version`` file in that directory which has a format like the following where ``native`` is a modulefile (or a sub-directory) in that directory. It's also possible to set the default with a ``.modulerc`` file with a **module-version** command.
 
 .. code-block:: tcl
 

@@ -296,7 +296,7 @@ rst_epilog += """.. role:: noparse
 man_pages = [
     ('module', 'module', u'command interface to the Modules package', [], 1),
     ('ml', 'ml', u'handy command interface to the Modules package', [], 1),
-    ('modulefile', 'modulefile', u'files containing Tcl code for the Modules package', [], 4)
+    ('modulefile', 'modulefile', u'files containing Tcl code for the Modules package', [], 5)
 ]
 
 

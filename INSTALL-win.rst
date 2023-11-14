@@ -80,5 +80,5 @@ a modulepath and contains few modulefile examples::
         module-git  module-info  null
 
 Documentation of the :ref:`module(1)` and :ref:`ml(1)` commands and
-:ref:`modulefile(4)` syntax can be found in the ``doc`` directory in
+:ref:`modulefile(5)` syntax can be found in the ``doc`` directory in
 installation directory.

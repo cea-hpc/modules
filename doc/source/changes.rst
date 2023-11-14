@@ -5,7 +5,7 @@ Changes between versions
 
 This document lists functionality differences between each major version of Modules. The goal of each following section is to reference the features of previous major version that are missing or behave differently on the next major version and the features that can only be found on this newer version. For instance the `Modules 4`_ section lists the changes compared to Modules 3.2.
 
-Regarding deprecated or newly introduced features, this document only lists their name or the command line argument related to them. Please refer to the :ref:`module(1)` and the :ref:`modulefile(4)` man pages of the previous or newer Modules version to learn the details about these removed or added features.
+Regarding deprecated or newly introduced features, this document only lists their name or the command line argument related to them. Please refer to the :ref:`module(1)` and the :ref:`modulefile(5)` man pages of the previous or newer Modules version to learn the details about these removed or added features.
 
 
 .. _Modules 4 changes:

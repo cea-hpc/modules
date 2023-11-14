@@ -136,7 +136,7 @@ configuration` for detailed information.
 
 Afterward, :file:`modulecmd.tcl` sources rc files which contain global,
 user and *modulefile* specific setups. These files are interpreted as
-*modulefiles*. See :ref:`modulefile(4)` for detailed information.
+*modulefiles*. See :ref:`modulefile(5)` for detailed information.
 
 Upon invocation of :file:`modulecmd.tcl` module run-command files are sourced
 in the following order:
@@ -247,7 +247,7 @@ switches are accepted:
  module name. Default version is the explicitly set default version or also
  the implicit default version if the configuration option
  :mconfig:`implicit_default` is enabled (see :ref:`Locating Modulefiles`
- section in the :ref:`modulefile(4)` man page for further details on implicit
+ section in the :ref:`modulefile(5)` man page for further details on implicit
  default version).
 
  .. only:: html
@@ -346,7 +346,7 @@ switches are accepted:
 
  On :subcmd:`avail` sub-command, display only the highest numerically sorted
  version of each module name (see :ref:`Locating Modulefiles` section in the
- :ref:`modulefile(4)` man page).
+ :ref:`modulefile(5)` man page).
 
  .. only:: html
 
@@ -585,7 +585,7 @@ Module Sub-Commands
 
  Append *value* to environment *variable*. The *variable* is a colon, or
  *delimiter*, separated list. See :mfcmd:`append-path` in the
- :ref:`modulefile(4)` man page for *options* description and further
+ :ref:`modulefile(5)` man page for *options* description and further
  explanation.
 
  When :subcmd:`append-path` is called as a module sub-command, the reference
@@ -1533,7 +1533,7 @@ Module Sub-Commands
  Returns the names of currently loaded modules matching passed *modulefile*.
  Returns an empty string if passed *modulefile* does not match any loaded
  modules. See :mfcmd:`module-info loaded<module-info>` in the
- :ref:`modulefile(4)` man page for further explanation.
+ :ref:`modulefile(5)` man page for further explanation.
 
  .. only:: html
 
@@ -1602,7 +1602,7 @@ Module Sub-Commands
 
  Returns a true value if any of the listed *modulefiles* exists in enabled
  :envvar:`MODULEPATH`. Returns a false value otherwise. See :mfcmd:`is-avail`
- in the :ref:`modulefile(4)` man page for further explanation.
+ in the :ref:`modulefile(5)` man page for further explanation.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
@@ -1616,7 +1616,7 @@ Module Sub-Commands
 
  Returns a true value if any of the listed *modulefiles* has been loaded or if
  any *modulefile* is loaded in case no argument is provided. Returns a false
- value otherwise. See :mfcmd:`is-loaded` in the :ref:`modulefile(4)` man page
+ value otherwise. See :mfcmd:`is-loaded` in the :ref:`modulefile(5)` man page
  for further explanation.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
@@ -1631,7 +1631,7 @@ Module Sub-Commands
 
  Returns a true value if any of the listed *collections* exists or if any
  *collection* exists in case no argument is provided. Returns a false value
- otherwise. See :mfcmd:`is-saved` in the :ref:`modulefile(4)` man page for
+ otherwise. See :mfcmd:`is-saved` in the :ref:`modulefile(5)` man page for
  further explanation.
 
  .. only:: html
@@ -1643,7 +1643,7 @@ Module Sub-Commands
  Returns a true value if any of the listed *directories* has been enabled in
  :envvar:`MODULEPATH` or if any *directory* is enabled in case no argument is
  provided. Returns a false value otherwise. See :mfcmd:`is-used` in the
- :ref:`modulefile(4)` man page for further explanation.
+ :ref:`modulefile(5)` man page for further explanation.
 
  .. only:: html
 
@@ -1871,7 +1871,7 @@ Module Sub-Commands
 
  Prepend *value* to environment *variable*. The *variable* is a colon, or
  *delimiter*, separated list. See :mfcmd:`prepend-path` in the
- :ref:`modulefile(4)` man page for *options* description and further
+ :ref:`modulefile(5)` man page for *options* description and further
  explanation.
 
  When :subcmd:`prepend-path` is called as a module sub-command, the reference
@@ -1943,7 +1943,7 @@ Module Sub-Commands
 .. subcmd:: remove-path [options] variable value...
 
  Remove *value* from the colon, or *delimiter*, separated list in environment
- *variable*. See :mfcmd:`remove-path` in the :ref:`modulefile(4)` man page for
+ *variable*. See :mfcmd:`remove-path` in the :ref:`modulefile(5)` man page for
  *options* description and further explanation.
 
  When :subcmd:`remove-path` is called as a module sub-command, the reference
@@ -4258,7 +4258,7 @@ ENVIRONMENT
 
  Defines (if set to ``1``) or not (if set to ``0``) an implicit default
  version for modules without a default version explicitly defined (see
- :ref:`Locating Modulefiles` section in the :ref:`modulefile(4)` man page).
+ :ref:`Locating Modulefiles` section in the :ref:`modulefile(5)` man page).
 
  Without either an explicit or implicit default version defined a module must
  be fully qualified (version should be specified in addition to its name) to
@@ -4913,7 +4913,7 @@ FILES
  to enable the default modulepaths, load the default modules and set
  :command:`module` command configuration.
 
- :file:`initrc` is a :ref:`modulefile(4)` so it is written as a Tcl script and
+ :file:`initrc` is a :ref:`modulefile(5)` so it is written as a Tcl script and
  defines modulepaths to enable with :mfcmd:`module use<module>`, modules to
  load with :mfcmd:`module load<module>` and configuration to apply with
  :subcmd:`module config<config>`. As any modulefile :file:`initrc` must begin
@@ -4980,5 +4980,5 @@ FILES
 SEE ALSO
 --------
 
-:ref:`ml(1)`, :ref:`modulefile(4)`
+:ref:`ml(1)`, :ref:`modulefile(5)`
 

@@ -334,7 +334,7 @@ Modules 5.2.0 (2022-11-08)
 * Add support for :option:`--all` option on :subcmd:`savelist` sub-command not
   to limit result to the collection matching currently defined
   :mconfig:`collection_target`.
-* Doc: add :ref:`Shell support` section in :ref:`modulefile(4)` man page to
+* Doc: add :ref:`Shell support` section in :ref:`modulefile(5)` man page to
   describe how shells support the different kind of environment changes that
   can be defined in modulefiles.
 * Record during :subcmd:`autoinit` sub-command the initial environment state
@@ -517,7 +517,7 @@ Modules 5.1.0 (2022-04-30)
 * Produce a clear error message when wrong number of argument is received by
   :mfcmd:`prereq` command.
 * Doc: describe :mfvar:`ModulesVersion` in *Modules Variables* section in
-  :ref:`modulefile(4)` man page.
+  :ref:`modulefile(5)` man page.
 * Set ``ModuleVersion`` as an alias over :mfvar:`ModulesVersion` modulefile
   variable for compatibility with Lmod Tcl modulefiles.
 * Doc: describe :mfcmd:`reportError` and :mfcmd:`reportWarning` modulefile
@@ -598,7 +598,7 @@ Modules 5.1.0 (2022-04-30)
   are free of misspellings (with `codespell`_ tool) and trailing spaces.
 * Doc: fix typos found in documentation with Aspell utility.
 * Doc: describe :ref:`Dependencies between modulefiles` in
-  :ref:`modulefile(4)` man page. (fix issues #431 and #433)
+  :ref:`modulefile(5)` man page. (fix issues #431 and #433)
 * Script: update :command:`pre-commit` git hook script to spell check
   documentation files with `Aspell`_ tool.
 * Script: add :command:`commit-msg` git hook script to spell check commit
@@ -627,7 +627,7 @@ Modules 5.1.0 (2022-04-30)
   modulefile is unloaded. Previous values are saved in a
   :envvar:`__MODULES_PUSHENV_\<VAR\>` environment variable.
 * Doc: add :ref:`Compatibility with Lmod Tcl modulefile` section in
-  :ref:`modulefile(4)` man page.
+  :ref:`modulefile(5)` man page.
 * Update definition of the ``module()`` python function and python
   initialization script to explicitly send output to ``sys.stderr`` to get the
   ability to catch this content.
@@ -658,9 +658,9 @@ Modules 5.1.0 (2022-04-30)
   in its header signature than the one currently in use.
 * Doc: describe :ref:`differences between run-command file and modulefile
   interpretation<Modulefile and run-command interp diff>` in
-  :ref:`modulefile(4)` man page.
+  :ref:`modulefile(5)` man page.
 * Doc: describe :mfcmd:`module` sub-commands available as modulefile Tcl
-  command for each interpretation context in :ref:`modulefile(4)` man page.
+  command for each interpretation context in :ref:`modulefile(5)` man page.
 * When loading a module with some extra tags defined through the
   :option:`--tag` option, if this module is already loaded the new tags are
   added to those already set.
@@ -1063,7 +1063,7 @@ Modules 4.7.1 (2021-04-06)
 * Revert "Install: have :file:`configure` script assume the ``.`` dot
   directory when invoked without the prepended ``./``" as consent was not
   obtained from author to re-license the contribution to GPLv2+.
-* Doc: fixes few typos in :ref:`module(1)` and :ref:`modulefile(4)`.
+* Doc: fixes few typos in :ref:`module(1)` and :ref:`modulefile(5)`.
 * Update the :subcmd:`sh-to-mod` mechanism to support version 3.2 of the fish
   shell. Fish 3.2 introduces the ``.`` builtin command that should be
   regexp-escaped when determining the shell functions or aliases defined by
@@ -1348,11 +1348,11 @@ Modules 4.6.1 (2020-11-14)
 * Doc: add *Use new features without breaking old module command* cookbook
   recipe
 * Doc: rework option description for :mfcmd:`module-hide` and
-  :mfcmd:`module-forbid` commands in :ref:`modulefile(4)` document.
+  :mfcmd:`module-forbid` commands in :ref:`modulefile(5)` document.
 * Doc: describe in :ref:`changes` document that shell special characters like
   backticks are escaped when used in values starting Modules 4.0. (fix issue
   #365)
-* Doc: make the ENVIRONMENT section from :ref:`modulefile(4)` man page point
+* Doc: make the ENVIRONMENT section from :ref:`modulefile(5)` man page point
   to the ENVIRONMENT section of :ref:`module(1)` man page.
 * Fix :subcmd:`clear` sub-command to unset the
   :envvar:`MODULES_LMSOURCESH<__MODULES_LMSOURCESH>` environment variable.
@@ -1560,7 +1560,7 @@ Modules 4.5.2 (2020-07-30)
   :file:`configure` script with the ``--option value`` syntax in addition to
   the ``--option=value`` syntax. (fix issue #348)
 * Doc: alphabetically sort sub-commands of :mfcmd:`module-info` modulefile Tcl
-  command in :ref:`modulefile(4)` document.
+  command in :ref:`modulefile(5)` document.
 * Script: clean previously built environment-modules RPMs in :command:`mrel`.
 * Clearly separate quarantine variable definition from tclsh binary on
   :file:`modulecmd.tcl` evaluated command call in ``_module_raw`` function for
@@ -1605,17 +1605,17 @@ Modules 4.5.0 (2020-04-07)
 --------------------------
 
 * Doc: fix typos and grammar mistakes on :ref:`module(1)`,
-  :ref:`modulefile(4)` and :ref:`changes` documents. (contribution from Colin
+  :ref:`modulefile(5)` and :ref:`changes` documents. (contribution from Colin
   Marquardt)
 * Doc: update cookbook recipes to highlight code of the Tcl scripts included.
   (contribution from Colin Marquardt)
-* Doc: improve markup of :ref:`module(1)`, :ref:`modulefile(4)` and
+* Doc: improve markup of :ref:`module(1)`, :ref:`modulefile(5)` and
   :ref:`changes` documents to enable references to module sub-commands,
   command line switches, environment variables and modulefile Tcl commands.
   (contribution from Colin Marquardt)
 * Doc: alphabetically sort module sub-commands, command-line switches,
   environment variables and modulefile Tcl commands in :ref:`module(1)` and
-  :ref:`modulefile(4)` documents.
+  :ref:`modulefile(5)` documents.
 * Introduce the ``ml`` command, a handy frontend to the ``module`` command.
   ``ml`` reduces the number of characters to type to trigger ``module``. With
   no argument ``ml`` is equivalent to ``module list``, ``ml mod`` corresponds
@@ -1753,7 +1753,7 @@ Modules 4.5.0 (2020-04-07)
 * Enable resolution of default module in module sub-directory when this
   default symbol targets a hidden directory (whose name starts with a dot
   character). (fix issue #331)
-* Doc: clarify hidden module location in :ref:`modulefile(4)` man page.
+* Doc: clarify hidden module location in :ref:`modulefile(5)` man page.
 * Install: define ``LD_PRELOAD`` as quarantine var along with
   ``LD_LIBRARY_PATH`` in RPM specfile.
 * When :mconfig:`implicit_default` and :mconfig:`advanced_version_spec`
@@ -2556,7 +2556,7 @@ Modules 4.2.0 (2018-10-18)
 Modules 4.1.4 (2018-08-20)
 --------------------------
 
-* Doc: fix typo on ``getenv`` command description in modulefile(4) man page
+* Doc: fix typo on ``getenv`` command description in modulefile(5) man page
   and clarify this command should be preferred over ``::env`` variable to
   query environment variable value in modulefile.
 * Init: fix ``bash`` and ``zsh`` completion scripts to enable Extended Regular
@@ -2592,7 +2592,7 @@ Modules 4.1.3 (2018-06-18)
 * Correct modulefile lookup when a modulefile directory is overwritten by a
   module alias definition but it contains an empty sub-directory. (fix
   issue#170)
-* Doc: describe ``getenv`` command in modulefile(4) man page.
+* Doc: describe ``getenv`` command in modulefile(5) man page.
 * Improve SH shell detection in profile.sh initialization script to use shell
   variable on ``bash`` or ``zsh`` to determine current shell name. (fix
   issue#173)
@@ -3165,7 +3165,7 @@ modules-tcl-1.704 (2017-01-20)
   if a modulefile is named ``default``.
 * Fix path variable counters when ``:`` character is used in elements of a
   path-like variable.
-* Update module(1) and modulefile(4) man pages to clear content specific to
+* Update module(1) and modulefile(5) man pages to clear content specific to
   the C version of Modules and add content specific to or adapt content that
   behave differently on this Tcl version.
 * Fix TCLSH variable issue in Python init script.
