@@ -63,8 +63,9 @@ if {$install_setmanpath eq "y" && $install_builddoc ne "n"} {
    }
    unsetenv_var MANPATH
    foreach shell $shell_list {
-      testall_cmd_re "$shell" "man -w modulefile" "$install_mandirre/man5/modulefile.*" {} 0
-      testall_cmd_re "$shell" "man -w module" "$install_mandirre/man1/module.*" {} 0
+      # ask for all man page locations to ensure finding ours rather others installed on the system
+      testall_cmd_re "$shell" "man -a -w modulefile" ".*$install_mandirre/man5/modulefile.*" {} 0
+      testall_cmd_re "$shell" "man -a -w module" ".*$install_mandirre/man1/module.*" {} 0
    }
 } elseif {$verbose} {
    send_user "\tSkipping man pages availability checks\n"
