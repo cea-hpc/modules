@@ -74,6 +74,8 @@ Modules 5.4.0 (not yet released)
   working correctly for virtual modules. (fix issue #506)
 * Silently ignore cache file when it requires a greater Modules version. (fix
   issue #515)
+* Doc: move :ref:`modulefile(5)` man page in section 5. (fix issue #518 with
+  contribution from Laurent Chardon)
 
 
 .. _5.3 release notes:
@@ -1327,8 +1329,6 @@ Modules 4.7.0 (2021-02-19)
   from Anaïs Gaertner)
 * Doc: add a *Get Modules* section in :ref:`INSTALL` document to provide
   download links for Modules' sources. (fix issue #387)
-* Doc: move :ref:`modulefile(5)` man page in section 5. (fix issue #518 with
-  contribution from Laurent Chardon)
 
 
 .. _4.6 release notes:
