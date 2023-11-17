@@ -134,6 +134,16 @@ the *modulefile* is being loaded.
       }
       break
 
+ Modulefile using :mfcmd:`break` command when unloading may be unloaded anyway
+ if :option:`--force` option is set. To forbid the unload of a modulefile, it
+ is recommended to tag it ``super-sticky`` with :mfcmd:`module-tag` command.
+
+ .. only:: html
+
+    .. versionchanged:: 5.4
+       Breaking modulefile is unloaded anyway when :option:`--force` option is
+       set
+
 .. mfcmd:: chdir directory
 
  Set the current working directory to *directory*.

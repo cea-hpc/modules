@@ -1070,6 +1070,12 @@ The following modulefile Tcl commands appeared on Modules 5.
    environment to determine if it is still satisfied when updating
    environment.
 
+:mfcmd:`break`
+
+ Starting with version 5.4, a modulefile using :mfcmd:`break` may be unloaded
+ anyway if forced. To forbid unload of a modulefile, it is now advised to tag
+ it ``super-sticky`` with :mfcmd:`module-tag` command.
+
 Modules Variables
 """""""""""""""""
 
