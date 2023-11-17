@@ -376,4 +376,8 @@ a ``module unload`` command in modulefile are evaluated independently as an
    loaded environment. It may be changed in the next major version to align
    unload phase of ``ml`` command on ``unload`` sub-command behavior.
 
+.. note:: *exit* error does not lead to an evaluation inhibit of remaining
+   modulefiles when evaluation is made in unload mode. Unless if an exit error
+   was previously raised in a load evaluation mode prior an unload phase.
+
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
