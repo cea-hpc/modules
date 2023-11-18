@@ -1,0 +1,736 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2023/11/19
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		reload
+#   Modulefiles:    err, foo, all, setenv
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test error when several modulefiles are evaluated with
+#           reload sub-command
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+setenv_var MODULES_AUTO_HANDLING 1
+
+set ans_unload_fail_forced [list]
+lappend ans_unload_fail_forced [list out all-pre-out]
+lappend ans_unload_fail_forced [list out all-pre-out]
+lappend ans_unload_fail_forced [list set TSPATH dir1]
+lappend ans_unload_fail_forced [list set __MODULES_LMREFRESH all/1.0]
+lappend ans_unload_fail_forced [list set _LMFILES_ $mp/foo/1.0:$mp/err/1.0:$mp/all/1.0]
+lappend ans_unload_fail_forced [list set LOADEDMODULES foo/1.0:err/1.0:all/1.0]
+lappend ans_unload_fail_forced [list set TS ok]
+lappend ans_unload_fail_forced [list alias alall value]
+lappend ans_unload_fail_forced [list out {funcall () { value; }; export -f funcall;}]
+lappend ans_unload_fail_forced [list out {complete value compall;}]
+lappend ans_unload_fail_forced [list chdir /tmp]
+lappend ans_unload_fail_forced [list out all-out]
+lappend ans_unload_fail_forced [list out all-out]
+
+set ans_unload_fail_depre_force [list]
+lappend ans_unload_fail_depre_force [list out all-pre-out]
+lappend ans_unload_fail_depre_force [list out all-pre-out]
+lappend ans_unload_fail_depre_force [list set TS1 {}]
+lappend ans_unload_fail_depre_force [list set TSPATH dir1]
+lappend ans_unload_fail_depre_force [list set TS2 {}]
+lappend ans_unload_fail_depre_force [list set __MODULES_LMREFRESH all/1.0]
+lappend ans_unload_fail_depre_force [list set __MODULES_LMPREREQ err/1.0&err/1.0|foo]
+lappend ans_unload_fail_depre_force [list set _LMFILES_ $mp/setenv/1.0:$mp/foo/1.0:$mp/err/1.0:$mp/all/1.0]
+lappend ans_unload_fail_depre_force [list set LOADEDMODULES setenv/1.0:foo/1.0:err/1.0:all/1.0]
+lappend ans_unload_fail_depre_force [list set TS ok]
+lappend ans_unload_fail_depre_force [list alias alall value]
+lappend ans_unload_fail_depre_force [list out {funcall () { value; }; export -f funcall;}]
+lappend ans_unload_fail_depre_force [list out {complete value compall;}]
+lappend ans_unload_fail_depre_force [list chdir /tmp]
+lappend ans_unload_fail_depre_force [list out all-out]
+lappend ans_unload_fail_depre_force [list out all-out]
+
+set ans_unload_fail_depun_force [list]
+lappend ans_unload_fail_depun_force [list out all-pre-out]
+lappend ans_unload_fail_depun_force [list out all-pre-out]
+lappend ans_unload_fail_depun_force [list set TS1 {}]
+lappend ans_unload_fail_depun_force [list set TSPATH dir1]
+lappend ans_unload_fail_depun_force [list set TS2 {}]
+lappend ans_unload_fail_depun_force [list set __MODULES_LMREFRESH all/1.0]
+lappend ans_unload_fail_depun_force [list set __MODULES_LMPREREQ err/1.0&foo]
+lappend ans_unload_fail_depun_force [list set _LMFILES_ $mp/setenv/1.0:$mp/foo/1.0:$mp/err/1.0:$mp/all/1.0]
+lappend ans_unload_fail_depun_force [list set LOADEDMODULES setenv/1.0:foo/1.0:err/1.0:all/1.0]
+lappend ans_unload_fail_depun_force [list set TS ok]
+lappend ans_unload_fail_depun_force [list alias alall value]
+lappend ans_unload_fail_depun_force [list out {funcall () { value; }; export -f funcall;}]
+lappend ans_unload_fail_depun_force [list out {complete value compall;}]
+lappend ans_unload_fail_depun_force [list chdir /tmp]
+lappend ans_unload_fail_depun_force [list out all-out]
+lappend ans_unload_fail_depun_force [list out all-out]
+
+set ans_sticky [list]
+lappend ans_sticky [list out all-pre-out]
+lappend ans_sticky [list out all-pre-out]
+lappend ans_sticky [list set TSPATH dir1]
+lappend ans_sticky [list set __MODULES_LMREFRESH all/1.0]
+lappend ans_sticky [list set _LMFILES_ $mp/foo/1.0:$mp/err/1.0:$mp/all/1.0]
+lappend ans_sticky [list set LOADEDMODULES foo/1.0:err/1.0:all/1.0]
+lappend ans_sticky [list set __MODULES_LMTAG err/1.0&sticky]
+lappend ans_sticky [list set TS ok]
+lappend ans_sticky [list alias alall value]
+lappend ans_sticky [list out {funcall () { value; }; export -f funcall;}]
+lappend ans_sticky [list out {complete value compall;}]
+lappend ans_sticky [list chdir /tmp]
+lappend ans_sticky [list out all-out]
+lappend ans_sticky [list out all-out]
+
+set ans_super_sticky [list]
+lappend ans_super_sticky [list out all-pre-out]
+lappend ans_super_sticky [list out all-pre-out]
+lappend ans_super_sticky [list set TSPATH dir1]
+lappend ans_super_sticky [list set __MODULES_LMREFRESH all/1.0]
+lappend ans_super_sticky [list set _LMFILES_ $mp/foo/1.0:$mp/err/1.0:$mp/all/1.0]
+lappend ans_super_sticky [list set LOADEDMODULES foo/1.0:err/1.0:all/1.0]
+lappend ans_super_sticky [list set __MODULES_LMTAG err/1.0&super-sticky]
+lappend ans_super_sticky [list set TS ok]
+lappend ans_super_sticky [list alias alall value]
+lappend ans_super_sticky [list out {funcall () { value; }; export -f funcall;}]
+lappend ans_super_sticky [list out {complete value compall;}]
+lappend ans_super_sticky [list chdir /tmp]
+lappend ans_super_sticky [list out all-out]
+lappend ans_super_sticky [list out all-out]
+
+set ans_load_fail_forced [list]
+lappend ans_load_fail_forced [list out all-pre-out]
+lappend ans_load_fail_forced [list out all-pre-out]
+lappend ans_load_fail_forced [list set TSPATH dir1]
+lappend ans_load_fail_forced [list set __MODULES_LMREFRESH all/1.0]
+lappend ans_load_fail_forced [list set LOADEDMODULES foo/1.0:all/1.0]
+lappend ans_load_fail_forced [list set _LMFILES_ $mp/foo/1.0:$mp/all/1.0]
+lappend ans_load_fail_forced [list set TS ok]
+lappend ans_load_fail_forced [list alias alall value]
+lappend ans_load_fail_forced [list out {funcall () { value; }; export -f funcall;}]
+lappend ans_load_fail_forced [list out {complete value compall;}]
+lappend ans_load_fail_forced [list chdir /tmp]
+lappend ans_load_fail_forced [list out all-out]
+lappend ans_load_fail_forced [list out all-out]
+lappend ans_load_fail_forced [list ERR]
+
+set ans_load_fail_exit_forced [list]
+lappend ans_load_fail_exit_forced [list out all-pre-out]
+lappend ans_load_fail_exit_forced [list unset TSPATH]
+lappend ans_load_fail_exit_forced [list set _LMFILES_ $mp/foo/1.0]
+lappend ans_load_fail_exit_forced [list set LOADEDMODULES foo/1.0]
+lappend ans_load_fail_exit_forced [list unset TS]
+lappend ans_load_fail_exit_forced [list unalias alall]
+lappend ans_load_fail_exit_forced [list out {unset -f funcall;}]
+lappend ans_load_fail_exit_forced [list out {complete -r compall;}]
+lappend ans_load_fail_exit_forced [list out all-out]
+lappend ans_load_fail_exit_forced [list ERR]
+
+set ans_both_fail_depre_force [list]
+lappend ans_both_fail_depre_force [list out all-pre-out]
+lappend ans_both_fail_depre_force [list out all-pre-out]
+lappend ans_both_fail_depre_force [list set TSPATH dir1]
+lappend ans_both_fail_depre_force [list set TS1 {}]
+lappend ans_both_fail_depre_force [list set TS2 {}]
+lappend ans_both_fail_depre_force [list set __MODULES_LMREFRESH all/1.0]
+lappend ans_both_fail_depre_force [list set LOADEDMODULES setenv/1.0:foo/1.0:all/1.0]
+lappend ans_both_fail_depre_force [list set _LMFILES_ $mp/setenv/1.0:$mp/foo/1.0:$mp/all/1.0]
+lappend ans_both_fail_depre_force [list unset __MODULES_LMPREREQ]
+lappend ans_both_fail_depre_force [list set TS ok]
+lappend ans_both_fail_depre_force [list alias alall value]
+lappend ans_both_fail_depre_force [list out {funcall () { value; }; export -f funcall;}]
+lappend ans_both_fail_depre_force [list out {complete value compall;}]
+lappend ans_both_fail_depre_force [list chdir /tmp]
+lappend ans_both_fail_depre_force [list out all-out]
+lappend ans_both_fail_depre_force [list out all-out]
+lappend ans_both_fail_depre_force [list ERR]
+
+set ans_both_fail_depre_exit_force [list]
+lappend ans_both_fail_depre_exit_force [list out all-pre-out]
+lappend ans_both_fail_depre_exit_force [list set TS1 {}]
+lappend ans_both_fail_depre_exit_force [list unset TSPATH]
+lappend ans_both_fail_depre_exit_force [list set TS2 {}]
+lappend ans_both_fail_depre_exit_force [list unset __MODULES_LMPREREQ]
+lappend ans_both_fail_depre_exit_force [list set _LMFILES_ $mp/setenv/1.0:$mp/foo/1.0]
+lappend ans_both_fail_depre_exit_force [list set LOADEDMODULES setenv/1.0:foo/1.0]
+lappend ans_both_fail_depre_exit_force [list unset TS]
+lappend ans_both_fail_depre_exit_force [list unalias alall]
+lappend ans_both_fail_depre_exit_force [list out {unset -f funcall;}]
+lappend ans_both_fail_depre_exit_force [list out {complete -r compall;}]
+lappend ans_both_fail_depre_exit_force [list out all-out]
+lappend ans_both_fail_depre_exit_force [list ERR]
+
+set ans_load_fail_tag_forced [list]
+lappend ans_load_fail_tag_forced [list out all-pre-out]
+lappend ans_load_fail_tag_forced [list out all-pre-out]
+lappend ans_load_fail_tag_forced [list set TSPATH dir1]
+lappend ans_load_fail_tag_forced [list set __MODULES_LMREFRESH all/1.0]
+lappend ans_load_fail_tag_forced [list set _LMFILES_ $mp/foo/1.0:$mp/all/1.0]
+lappend ans_load_fail_tag_forced [list set LOADEDMODULES foo/1.0:all/1.0]
+lappend ans_load_fail_tag_forced [list unset __MODULES_LMTAG]
+lappend ans_load_fail_tag_forced [list set TS ok]
+lappend ans_load_fail_tag_forced [list alias alall value]
+lappend ans_load_fail_tag_forced [list out {funcall () { value; }; export -f funcall;}]
+lappend ans_load_fail_tag_forced [list out {complete value compall;}]
+lappend ans_load_fail_tag_forced [list chdir /tmp]
+lappend ans_load_fail_tag_forced [list out all-out]
+lappend ans_load_fail_tag_forced [list out all-out]
+lappend ans_load_fail_tag_forced [list ERR]
+
+set ans_continue_unload_fail [list]
+lappend ans_continue_unload_fail [list out all-pre-out]
+lappend ans_continue_unload_fail [list out all-pre-out]
+lappend ans_continue_unload_fail [list set TSPATH dir1]
+lappend ans_continue_unload_fail [list set __MODULES_LMREFRESH all/1.0]
+lappend ans_continue_unload_fail [list set LOADEDMODULES err/1.0:foo/1.0:all/1.0]
+lappend ans_continue_unload_fail [list set _LMFILES_ $mp/err/1.0:$mp/foo/1.0:$mp/all/1.0]
+lappend ans_continue_unload_fail [list set TS ok]
+lappend ans_continue_unload_fail [list alias alall value]
+lappend ans_continue_unload_fail [list out {funcall () { value; }; export -f funcall;}]
+lappend ans_continue_unload_fail [list out {complete value compall;}]
+lappend ans_continue_unload_fail [list chdir /tmp]
+lappend ans_continue_unload_fail [list out all-out]
+lappend ans_continue_unload_fail [list out all-out]
+lappend ans_continue_unload_fail [list ERR]
+
+set ans_continue_unload_fail_depre [list]
+lappend ans_continue_unload_fail_depre [list out all-pre-out]
+lappend ans_continue_unload_fail_depre [list out all-pre-out]
+lappend ans_continue_unload_fail_depre [list set TS1 {}]
+lappend ans_continue_unload_fail_depre [list set TSPATH dir1]
+lappend ans_continue_unload_fail_depre [list set TS2 {}]
+lappend ans_continue_unload_fail_depre [list set __MODULES_LMREFRESH all/1.0]
+lappend ans_continue_unload_fail_depre [list set LOADEDMODULES err/1.0:setenv/1.0:foo/1.0:all/1.0]
+lappend ans_continue_unload_fail_depre [list set _LMFILES_ $mp/err/1.0:$mp/setenv/1.0:$mp/foo/1.0:$mp/all/1.0]
+lappend ans_continue_unload_fail_depre [list set TS ok]
+lappend ans_continue_unload_fail_depre [list alias alall value]
+lappend ans_continue_unload_fail_depre [list out {funcall () { value; }; export -f funcall;}]
+lappend ans_continue_unload_fail_depre [list out {complete value compall;}]
+lappend ans_continue_unload_fail_depre [list chdir /tmp]
+lappend ans_continue_unload_fail_depre [list out all-out]
+lappend ans_continue_unload_fail_depre [list out all-out]
+lappend ans_continue_unload_fail_depre [list ERR]
+
+set ans_continue_unload_fail_depun $ans_continue_unload_fail_depre
+
+
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom_error_trace "    invoked from within
+\"if \{\[info exists env(TESTSUITE_ABORT_ON_ERROR)\]\} \{
+    switch -- \$env(TESTSUITE_ABORT_ON_ERROR) \{
+        bad - load_last_bad - load_first_bad - load-...\""
+} else {
+    set custom_error_trace {}
+}
+
+
+#
+# failure on 1 unloading module, abort behavior
+#
+
+setenv_loaded_module [list foo/1.0 err/1.0 all/1.0] [list $mp/foo/1.0 $mp/err/1.0 $mp/all/1.0]
+
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_bad
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 145}]
+set ts_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload} ERR $ts_bad
+
+set ts_bad_warn [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload --force} $ans_unload_fail_forced $ts_bad_warn
+
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_break
+
+set ts_break [msg_unload err/1.0 $err_evalabort]
+testouterr_cmd bash {reload} ERR $ts_break
+
+set ts_break_warn [msg_unload err/1.0 $warn_evalabort]
+testouterr_cmd bash {reload --force} $ans_unload_fail_forced $ts_break_warn
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_exit
+
+set ts_exit [msg_unload err/1.0 $err_evalabort]
+testouterr_cmd bash {reload} ERR $ts_exit
+
+set ts_exit_warn [msg_unload err/1.0 $warn_evalabort]
+testouterr_cmd bash {reload --force} $ans_unload_fail_forced $ts_exit_warn
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR continue
+
+testouterr_cmd bash {reload} $ans_unload_fail_forced {}
+
+testouterr_cmd bash {reload --force} $ans_unload_fail_forced {}
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_error
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 140}]
+set ts_error_verbose [msg_unload all/1.0]\n\n
+append ts_error_verbose [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload -v} ERR $ts_error_verbose
+
+set ts_error_verbose_warn [msg_unload all/1.0]\n\n
+append ts_error_verbose_warn [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_error_verbose_warn [msg_unload foo/1.0]\n
+append ts_error_verbose_warn [msg_load foo/1.0]\n
+append ts_error_verbose_warn [msg_load err/1.0]\n
+append ts_error_verbose_warn [msg_load all/1.0]
+testouterr_cmd bash {reload --force -v} $ans_unload_fail_forced $ts_error_verbose_warn
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR depre_unload_error
+
+setenv_loaded_module [list setenv/1.0 foo/1.0 err/1.0 all/1.0] [list $mp/setenv/1.0 $mp/foo/1.0 $mp/err/1.0 $mp/all/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 34}]
+set ts_depre_load_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload} ERR $ts_depre_load_error
+
+set ts_depre_load_error_force [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload --force} $ans_unload_fail_depre_force $ts_depre_load_error_force
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR depun_bad
+
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0&foo
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 108}]
+set ts_depun_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload} ERR $ts_depun_bad
+
+set ts_depun_bad_force [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload --force} $ans_unload_fail_depun_force $ts_depun_bad_force
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMPREREQ
+
+
+setenv_loaded_module [list foo/1.0 err/1.0 all/1.0] [list $mp/foo/1.0 $mp/err/1.0 $mp/all/1.0]
+setenv_var __MODULES_LMTAG err/1.0&sticky
+setenv_var TESTSUITE_ABORT_ON_ERROR sticky
+
+testouterr_cmd bash {reload} $ans_sticky {}
+testouterr_cmd bash {reload --force} $ans_sticky {}
+
+
+setenv_var __MODULES_LMTAG err/1.0&super-sticky
+setenv_var TESTSUITE_ABORT_ON_ERROR super-sticky
+
+testouterr_cmd bash {reload} $ans_super_sticky {}
+testouterr_cmd bash {reload --force} $ans_super_sticky {}
+
+
+#
+# failure on 1 loading module, abort behavior
+#
+
+setenv_loaded_module [list foo/1.0 err/1.0 all/1.0] [list $mp/foo/1.0 $mp/err/1.0 $mp/all/1.0]
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_bad
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 125}]
+set ts_bad [msg_load err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload} ERR $ts_bad
+
+testouterr_cmd bash {reload --force} $ans_load_fail_forced $ts_bad
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_break
+
+set ts_break [msg_load err/1.0 $err_evalabort]
+testouterr_cmd bash {reload} ERR $ts_break
+
+testouterr_cmd bash {reload --force} $ans_load_fail_forced $ts_break
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_exit
+
+set ts_exit [msg_load err/1.0 $err_evalabort]
+testouterr_cmd bash {reload} ERR $ts_exit
+
+testouterr_cmd bash {reload --force} $ans_load_fail_exit_forced $ts_exit
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_error
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 96}]
+set ts_error_verbose [msg_unload all/1.0]\n[msg_unload err/1.0]\n[msg_unload foo/1.0]\n
+append ts_error_verbose [msg_load foo/1.0]\n\n
+append ts_error_verbose [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload -v} ERR $ts_error_verbose
+
+set ts_error_verbose_force $ts_error_verbose
+append ts_error_verbose_force \n\n[msg_load all/1.0]
+testouterr_cmd bash {reload --force -v} $ans_load_fail_forced $ts_error_verbose_force
+
+
+#
+# failure on 1 loading module and 1 unloading module, abort behavior
+#
+
+setenv_loaded_module [list foo/1.0 err/1.0 all/1.0] [list $mp/foo/1.0 $mp/err/1.0 $mp/all/1.0]
+
+setenv_var TESTSUITE_ABORT_ON_ERROR bad
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 5}]
+set ts_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload} ERR $ts_bad
+
+set ts_bad_warn [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_bad_warn [msg_load err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload --force} $ans_load_fail_forced $ts_bad_warn
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR break
+
+set ts_break [msg_unload err/1.0 $err_evalabort]
+testouterr_cmd bash {reload} ERR $ts_break
+
+set ts_break_warn [msg_unload err/1.0 $warn_evalabort]\n\n
+append ts_break_warn [msg_load err/1.0 $err_evalabort]
+testouterr_cmd bash {reload --force} $ans_load_fail_forced $ts_break_warn
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR exit
+
+set ts_exit [msg_unload err/1.0 $err_evalabort]
+testouterr_cmd bash {reload} ERR $ts_exit
+
+set ts_exit_warn [msg_unload err/1.0 $warn_evalabort]\n\n
+append ts_exit_warn [msg_load err/1.0 $err_evalabort]
+testouterr_cmd bash {reload --force} $ans_load_fail_exit_forced $ts_exit_warn
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR error
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 17}]
+set ts_error_verbose [msg_unload all/1.0]\n\n
+append ts_error_verbose [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload -v} ERR $ts_error_verbose
+
+set ts_error_verbose_warn [msg_unload all/1.0]\n\n
+append ts_error_verbose_warn [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_error_verbose_warn [msg_unload foo/1.0]\n
+append ts_error_verbose_warn [msg_load foo/1.0]\n\n
+append ts_error_verbose_warn [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_error_verbose_warn [msg_load all/1.0]
+testouterr_cmd bash {reload --force -v} $ans_load_fail_forced $ts_error_verbose_warn
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR depre_break
+
+setenv_loaded_module [list setenv/1.0 foo/1.0 err/1.0 all/1.0] [list $mp/setenv/1.0 $mp/foo/1.0 $mp/err/1.0 $mp/all/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+set ts_depre_unload_break [msg_unload err/1.0 $err_evalabort]
+testouterr_cmd bash {reload} ERR $ts_depre_unload_break
+
+set ts_depre_both_break_force [msg_unload err/1.0 $warn_evalabort]\n\n
+append ts_depre_both_break_force [msg_load err/1.0 $err_evalabort]
+testouterr_cmd bash {reload --force} $ans_both_fail_depre_force $ts_depre_both_break_force
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR depre_exit
+
+setenv_loaded_module [list setenv/1.0 foo/1.0 err/1.0 all/1.0] [list $mp/setenv/1.0 $mp/foo/1.0 $mp/err/1.0 $mp/all/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+set ts_depre_unload_exit [msg_unload err/1.0 $err_evalabort]
+testouterr_cmd bash {reload} ERR $ts_depre_unload_exit
+
+set ts_depre_both_exit_force [msg_unload err/1.0 $warn_evalabort]\n\n
+append ts_depre_both_exit_force [msg_load err/1.0 $err_evalabort]
+testouterr_cmd bash {reload --force} $ans_both_fail_depre_exit_force $ts_depre_both_exit_force
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMPREREQ
+
+
+setenv_loaded_module [list foo/1.0 err/1.0 all/1.0] [list $mp/foo/1.0 $mp/err/1.0 $mp/all/1.0]
+setenv_var __MODULES_LMTAG err/1.0&sticky
+setenv_var TESTSUITE_ABORT_ON_ERROR sticky_forbidden_same
+
+set ts_forbidden [err_accessdenied err/1.0]
+testouterr_cmd bash {reload} ERR $ts_forbidden
+
+testouterr_cmd bash {reload --force} $ans_load_fail_tag_forced $ts_forbidden
+
+
+setenv_var __MODULES_LMTAG err/1.0&super-sticky
+setenv_var TESTSUITE_ABORT_ON_ERROR super-sticky_forbidden_same
+
+set ts_forbidden [err_accessdenied err/1.0]
+testouterr_cmd bash {reload} ERR $ts_forbidden
+
+testouterr_cmd bash {reload --force} $ans_load_fail_tag_forced $ts_forbidden
+
+
+#
+# failure on 1 unloading module, continue mode
+#
+
+setenv_var MODULES_ABORT_ON_ERROR ml
+setenv_loaded_module [list foo/1.0 err/1.0 all/1.0] [list $mp/foo/1.0 $mp/err/1.0 $mp/all/1.0]
+
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_bad
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 145}]
+set ts_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload} $ans_continue_unload_fail $ts_bad
+
+set ts_bad_warn [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload --force} $ans_unload_fail_forced $ts_bad_warn
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_break
+
+set ts_break [msg_unload err/1.0 $err_evalabort]
+testouterr_cmd bash {reload} $ans_continue_unload_fail $ts_break
+
+set ts_break_warn [msg_unload err/1.0 $warn_evalabort]
+testouterr_cmd bash {reload --force} $ans_unload_fail_forced $ts_break_warn
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_exit
+
+set ts_exit [msg_unload err/1.0 $err_evalabort]
+testouterr_cmd bash {reload} $ans_continue_unload_fail $ts_exit
+
+set ts_exit_warn [msg_unload err/1.0 $warn_evalabort]
+testouterr_cmd bash {reload --force} $ans_unload_fail_forced $ts_exit_warn
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR continue
+
+testouterr_cmd bash {reload} $ans_unload_fail_forced {}
+
+testouterr_cmd bash {reload --force} $ans_unload_fail_forced {}
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_error
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 140}]
+set ts_error_verbose [msg_unload all/1.0]\n\n
+append ts_error_verbose [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_error_verbose [msg_unload foo/1.0]\n
+append ts_error_verbose [msg_load foo/1.0]\n
+append ts_error_verbose [msg_load all/1.0]
+testouterr_cmd bash {reload -v} $ans_continue_unload_fail $ts_error_verbose
+
+set ts_error_verbose_warn [msg_unload all/1.0]\n\n
+append ts_error_verbose_warn [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_error_verbose_warn [msg_unload foo/1.0]\n
+append ts_error_verbose_warn [msg_load foo/1.0]\n
+append ts_error_verbose_warn [msg_load err/1.0]\n
+append ts_error_verbose_warn [msg_load all/1.0]
+testouterr_cmd bash {reload --force -v} $ans_unload_fail_forced $ts_error_verbose_warn
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR depre_unload_break
+
+setenv_loaded_module [list setenv/1.0 foo/1.0 err/1.0 all/1.0] [list $mp/setenv/1.0 $mp/foo/1.0 $mp/err/1.0 $mp/all/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+set ts_depre_unload_break [msg_unload err/1.0 $err_evalabort]
+testouterr_cmd bash {reload} $ans_continue_unload_fail_depre $ts_depre_unload_break
+
+set ts_depre_unload_break_force [msg_unload err/1.0 $warn_evalabort]
+testouterr_cmd bash {reload --force} $ans_unload_fail_depre_force $ts_depre_unload_break_force
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR depun_exit
+
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0&foo
+
+set ts_depun_exit [msg_unload err/1.0 $err_evalabort]
+testouterr_cmd bash {reload} $ans_continue_unload_fail_depun $ts_depun_exit
+
+set ts_depun_exit_force [msg_unload err/1.0 $warn_evalabort]
+testouterr_cmd bash {reload --force} $ans_unload_fail_depun_force $ts_depun_exit_force
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMPREREQ
+
+
+setenv_loaded_module [list foo/1.0 err/1.0 all/1.0] [list $mp/foo/1.0 $mp/err/1.0 $mp/all/1.0]
+setenv_var __MODULES_LMTAG err/1.0&sticky
+setenv_var TESTSUITE_ABORT_ON_ERROR sticky
+
+testouterr_cmd bash {reload} $ans_sticky {}
+testouterr_cmd bash {reload --force} $ans_sticky {}
+
+
+setenv_var __MODULES_LMTAG err/1.0&super-sticky
+setenv_var TESTSUITE_ABORT_ON_ERROR super-sticky
+
+testouterr_cmd bash {reload} $ans_super_sticky {}
+testouterr_cmd bash {reload --force} $ans_super_sticky {}
+
+
+#
+# failure on 1 loading module, continue mode
+#
+
+setenv_loaded_module [list foo/1.0 err/1.0 all/1.0] [list $mp/foo/1.0 $mp/err/1.0 $mp/all/1.0]
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_bad
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 125}]
+set ts_bad [msg_load err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload} $ans_load_fail_forced $ts_bad
+
+testouterr_cmd bash {reload --force} $ans_load_fail_forced $ts_bad
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_break
+
+set ts_break [msg_load err/1.0 $err_evalabort]
+testouterr_cmd bash {reload} $ans_load_fail_forced $ts_break
+
+testouterr_cmd bash {reload --force} $ans_load_fail_forced $ts_break
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_exit
+
+set ts_exit [msg_load err/1.0 $err_evalabort]
+testouterr_cmd bash {reload} $ans_load_fail_exit_forced $ts_exit
+
+testouterr_cmd bash {reload --force} $ans_load_fail_exit_forced $ts_exit
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_error
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 96}]
+set ts_error_verbose [msg_unload all/1.0]\n
+append ts_error_verbose [msg_unload err/1.0]\n
+append ts_error_verbose [msg_unload foo/1.0]\n
+append ts_error_verbose [msg_load foo/1.0]\n\n
+append ts_error_verbose [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_error_verbose [msg_load all/1.0]
+testouterr_cmd bash {reload -v} $ans_load_fail_forced $ts_error_verbose
+
+testouterr_cmd bash {reload --force -v} $ans_load_fail_forced $ts_error_verbose
+
+
+#
+# failure on 1 loading module and 1 unloading module, continue mode
+#
+
+setenv_loaded_module [list foo/1.0 err/1.0 all/1.0] [list $mp/foo/1.0 $mp/err/1.0 $mp/all/1.0]
+
+setenv_var TESTSUITE_ABORT_ON_ERROR bad
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 5}]
+set ts_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload} $ans_continue_unload_fail $ts_bad
+
+set ts_bad_warn [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_bad_warn [msg_load err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload --force} $ans_load_fail_forced $ts_bad_warn
+
+setenv_var TESTSUITE_ABORT_ON_ERROR break
+
+set ts_break [msg_unload err/1.0 $err_evalabort]
+testouterr_cmd bash {reload} $ans_continue_unload_fail $ts_break
+
+set ts_break_warn [msg_unload err/1.0 $warn_evalabort]\n\n
+append ts_break_warn [msg_load err/1.0 $err_evalabort]
+testouterr_cmd bash {reload --force} $ans_load_fail_forced $ts_break_warn
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR exit
+
+set ts_exit [msg_unload err/1.0 $err_evalabort]
+testouterr_cmd bash {reload} $ans_continue_unload_fail $ts_exit
+
+set ts_exit_warn [msg_unload err/1.0 $warn_evalabort]\n\n
+append ts_exit_warn [msg_load err/1.0 $err_evalabort]
+testouterr_cmd bash {reload --force} $ans_load_fail_exit_forced $ts_exit_warn
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR error
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 17}]
+set ts_error_verbose [msg_unload all/1.0]\n\n
+append ts_error_verbose [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_error_verbose [msg_unload foo/1.0]\n
+append ts_error_verbose [msg_load foo/1.0]\n
+append ts_error_verbose [msg_load all/1.0]
+testouterr_cmd bash {reload -v} $ans_continue_unload_fail $ts_error_verbose
+
+set ts_error_verbose_warn [msg_unload all/1.0]\n\n
+append ts_error_verbose_warn [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_error_verbose_warn [msg_unload foo/1.0]\n
+append ts_error_verbose_warn [msg_load foo/1.0]\n\n
+append ts_error_verbose_warn [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_error_verbose_warn [msg_load all/1.0]
+testouterr_cmd bash {reload --force -v} $ans_load_fail_forced $ts_error_verbose_warn
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR depre_bad
+
+setenv_loaded_module [list setenv/1.0 foo/1.0 err/1.0 all/1.0] [list $mp/setenv/1.0 $mp/foo/1.0 $mp/err/1.0 $mp/all/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 160}]
+set ts_depre_unload_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload} $ans_continue_unload_fail_depre $ts_depre_unload_bad
+
+set ts_depre_both_bad_force [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_depre_both_bad_force [msg_load err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload --force} $ans_both_fail_depre_force $ts_depre_both_bad_force
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR depre_break
+
+setenv_loaded_module [list setenv/1.0 foo/1.0 err/1.0 all/1.0] [list $mp/setenv/1.0 $mp/foo/1.0 $mp/err/1.0 $mp/all/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+set ts_depre_unload_break [msg_unload err/1.0 $err_evalabort]
+testouterr_cmd bash {reload} $ans_continue_unload_fail_depre $ts_depre_unload_break
+
+set ts_depre_both_break_force [msg_unload err/1.0 $warn_evalabort]\n\n
+append ts_depre_both_break_force [msg_load err/1.0 $err_evalabort]
+testouterr_cmd bash {reload --force} $ans_both_fail_depre_force $ts_depre_both_break_force
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMPREREQ
+
+
+setenv_loaded_module [list foo/1.0 err/1.0 all/1.0] [list $mp/foo/1.0 $mp/err/1.0 $mp/all/1.0]
+setenv_var __MODULES_LMTAG err/1.0&sticky
+setenv_var TESTSUITE_ABORT_ON_ERROR sticky_forbidden_same
+
+testouterr_cmd bash {reload} $ans_load_fail_tag_forced $ts_forbidden
+testouterr_cmd bash {reload --force} $ans_load_fail_tag_forced $ts_forbidden
+
+
+setenv_var __MODULES_LMTAG err/1.0&super-sticky
+setenv_var TESTSUITE_ABORT_ON_ERROR super-sticky_forbidden_same
+
+testouterr_cmd bash {reload} $ans_load_fail_tag_forced $ts_forbidden
+testouterr_cmd bash {reload --force} $ans_load_fail_tag_forced $ts_forbidden
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
