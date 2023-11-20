@@ -1,0 +1,747 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2023/11/20
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload, switch, reload, purge, restore
+#                   ml, mod-to-sh
+#   Modulefiles:    err, foo, all, setenv
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test abort_on_error behavior on load and unload does not
+#           affect other sub-commands relying on them
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+setenv_var MODULES_AUTO_HANDLING 1
+
+
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom_error_trace "    invoked from within
+\"if \{\[info exists env(TESTSUITE_ABORT_ON_ERROR)\]\} \{
+    switch -- \$env(TESTSUITE_ABORT_ON_ERROR) \{
+        bad - load_last_bad - load_first_bad - load-...\""
+} else {
+    set custom_error_trace {}
+}
+
+
+#
+# load depre (load)
+#
+
+setenv_var TESTSUITE_ABORT_ON_ERROR depre_load_error
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+setenv_var MODULES_ABORT_ON_ERROR load:unload
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 28}]
+set ts_load_depre [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_load_depre [msg_load foo/1.0 [err_depre err/1.0]]
+testouterr_cmd bash {load foo/1.0} ERR $ts_load_depre
+
+set ans_load_depre_forced [list]
+lappend ans_load_depre_forced [list set LOADEDMODULES foo/1.0]
+lappend ans_load_depre_forced [list set _LMFILES_ $mp/foo/1.0]
+lappend ans_load_depre_forced [list unset __MODULES_LMPREREQ]
+lappend ans_load_depre_forced [list ERR]
+set ts_load_depre_forced [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_load_depre_forced [msg_top_load foo/1.0 {} {} {err/1.0 {}} [err_depref err/1.0]]
+testouterr_cmd bash {load --force foo/1.0} $ans_load_depre_forced $ts_load_depre_forced
+
+setenv_var MODULES_ABORT_ON_ERROR {}
+
+testouterr_cmd bash {load foo/1.0} ERR $ts_load_depre
+
+testouterr_cmd bash {load --force foo/1.0} $ans_load_depre_forced $ts_load_depre_forced
+
+
+#
+# unload depre (load)
+#
+
+setenv_var TESTSUITE_ABORT_ON_ERROR depre_load_error
+setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+setenv_var MODULES_ABORT_ON_ERROR load:unload
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 28}]
+set ts_unload_depre [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_unload_depre [msg_unload foo/1.0 [err_depre err/1.0]]
+testouterr_cmd bash {unload foo/1.0} ERR $ts_unload_depre
+
+set ans_load_depre_forced [list]
+lappend ans_load_depre_forced [list unset LOADEDMODULES]
+lappend ans_load_depre_forced [list unset _LMFILES_]
+lappend ans_load_depre_forced [list unset __MODULES_LMPREREQ]
+lappend ans_load_depre_forced [list ERR]
+set ts_unload_depre_forced [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_unload_depre_forced [msg_top_unload foo/1.0 {} {} {err/1.0 {}} [err_depref err/1.0]]
+testouterr_cmd bash {unload --force foo/1.0} $ans_load_depre_forced $ts_unload_depre_forced
+
+setenv_var MODULES_ABORT_ON_ERROR {}
+
+testouterr_cmd bash {unload foo/1.0} ERR $ts_unload_depre
+
+testouterr_cmd bash {unload --force foo/1.0} $ans_load_depre_forced $ts_unload_depre_forced
+
+
+#
+# load reqlo (load)
+#
+
+setenv_var TESTSUITE_ABORT_ON_ERROR reqlo_load_error
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMPREREQ
+
+setenv_var MODULES_ABORT_ON_ERROR load:unload
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 96}]
+set ts_load_reqlo [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_load_reqlo [msg_load lerr/1.0 [err_reqlo err/1.0]]
+testouterr_cmd bash {load lerr/1.0} ERR $ts_load_reqlo
+
+set ans_load_reqlo_forced [list]
+lappend ans_load_reqlo_forced [list set __MODULES_LMPREREQ lerr/1.0&err/1.0]
+lappend ans_load_reqlo_forced [list set _LMFILES_ $mp/lerr/1.0]
+lappend ans_load_reqlo_forced [list set LOADEDMODULES lerr/1.0]
+lappend ans_load_reqlo_forced [list ERR]
+set ts_unload_reqlo_forced [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_unload_reqlo_forced [msg_load lerr/1.0 [err_reqlof err/1.0]]
+testouterr_cmd bash {load --force lerr/1.0} $ans_load_reqlo_forced $ts_unload_reqlo_forced
+
+setenv_var MODULES_ABORT_ON_ERROR {}
+
+testouterr_cmd bash {load lerr/1.0} ERR $ts_load_reqlo
+
+testouterr_cmd bash {load --force lerr/1.0} $ans_load_reqlo_forced $ts_unload_reqlo_forced
+
+
+#
+# switch depre (load)
+#
+
+setenv_var TESTSUITE_ABORT_ON_ERROR depre_load_error
+setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+setenv_var MODULES_ABORT_ON_ERROR load:unload
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 28}]
+set ans_load_switch_depre_continue [list]
+lappend ans_load_switch_depre_continue [list set LOADEDMODULES foo/2.0]
+lappend ans_load_switch_depre_continue [list set _LMFILES_ $mp/foo/2.0]
+lappend ans_load_switch_depre_continue [list unset __MODULES_LMPREREQ]
+lappend ans_load_switch_depre_continue [list ERR]
+set ts_load_switch_depre [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_load_switch_depre [msg_top_switch foo/1.0 foo/2.0 err/1.0 {} {} {} {} [err_depref err/1.0]]
+testouterr_cmd bash {switch foo/1.0 foo/2.0} $ans_load_switch_depre_continue $ts_load_switch_depre
+
+set ans_load_switch_depre_forced [list]
+lappend ans_load_switch_depre_forced [list set LOADEDMODULES foo/2.0]
+lappend ans_load_switch_depre_forced [list set _LMFILES_ $mp/foo/2.0]
+lappend ans_load_switch_depre_forced [list unset __MODULES_LMPREREQ]
+lappend ans_load_switch_depre_forced [list ERR]
+set ts_load_switch_depre_forced [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_load_switch_depre_forced [msg_top_switch foo/1.0 foo/2.0 {} {} {} {} {err/1.0 {}} [err_depref err/1.0]]
+testouterr_cmd bash {switch --force foo/1.0 foo/2.0} $ans_load_switch_depre_forced $ts_load_switch_depre_forced
+
+setenv_var MODULES_ABORT_ON_ERROR {}
+
+testouterr_cmd bash {switch foo/1.0 foo/2.0} $ans_load_switch_depre_continue $ts_load_switch_depre
+
+testouterr_cmd bash {switch --force foo/1.0 foo/2.0} $ans_load_switch_depre_forced $ts_load_switch_depre_forced
+
+
+#
+# switch load (load)
+#
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_error
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+unsetenv_var __MODULES_LMPREREQ
+
+setenv_var MODULES_ABORT_ON_ERROR load:unload
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 96}]
+set ans_load_switch_continue [list]
+lappend ans_load_switch_continue [list unset LOADEDMODULES]
+lappend ans_load_switch_continue [list unset _LMFILES_]
+lappend ans_load_switch_continue [list ERR]
+set ts_load_switch [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_load_switch [msg_switch foo/1.0 err/1.0 [err_swon err/1.0]]
+testouterr_cmd bash {switch foo/1.0 err/1.0} $ans_load_switch_continue $ts_load_switch
+
+set ans_load_switch_forced [list]
+lappend ans_load_switch_forced [list unset LOADEDMODULES]
+lappend ans_load_switch_forced [list unset _LMFILES_]
+lappend ans_load_switch_forced [list ERR]
+set ts_load_switch_forced [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_load_switch_forced [msg_switch foo/1.0 err/1.0 [err_swon err/1.0]]
+testouterr_cmd bash {switch --force foo/1.0 err/1.0} $ans_load_switch_forced $ts_load_switch_forced
+
+setenv_var MODULES_ABORT_ON_ERROR {}
+
+testouterr_cmd bash {switch foo/1.0 err/1.0} $ans_load_switch_continue $ts_load_switch
+
+testouterr_cmd bash {switch --force foo/1.0 err/1.0} $ans_load_switch_forced $ts_load_switch_forced
+
+
+#
+# mod-to-sh (load)
+#
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_error
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMPREREQ
+
+setenv_var MODULES_ABORT_ON_ERROR load:unload
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 96}]
+set ans [list]
+lappend ans [list set TS1 {}]
+lappend ans [list set TS2 {}]
+set ts_load_modtosh_continue [shell_out sh $ans 0 0]
+testouterr_cmd bash {mod-to-sh sh err/1.0 setenv/1.0} ERR $ts_load_modtosh_continue
+
+testouterr_cmd bash {mod-to-sh sh --force err/1.0 setenv/1.0} ERR $ts_load_modtosh_continue
+
+setenv_var MODULES_ABORT_ON_ERROR {}
+
+testouterr_cmd bash {mod-to-sh sh err/1.0 setenv/1.0} ERR $ts_load_modtosh_continue
+
+testouterr_cmd bash {mod-to-sh sh --force err/1.0 setenv/1.0} ERR $ts_load_modtosh_continue
+
+setenv_var MODULES_ABORT_ON_ERROR mod-to-sh
+
+testouterr_cmd bash {mod-to-sh sh err/1.0 setenv/1.0} ERR {}
+
+testouterr_cmd bash {mod-to-sh sh --force err/1.0 setenv/1.0} ERR $ts_load_modtosh_continue
+
+
+#
+# restore (load)
+#
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_error
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMPREREQ
+
+setenv_var MODULES_ABORT_ON_ERROR load:unload
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 96}]
+set ans_load_restore_continue [list]
+lappend ans_load_restore_continue [list set _LMFILES_ $mp/foo/1.0]
+lappend ans_load_restore_continue [list set LOADEDMODULES foo/1.0]
+lappend ans_load_restore_continue [list ERR]
+set ts_load_restore [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_load_restore [msg_load foo/1.0]
+testouterr_cmd bash {restore testsuite/home/coll-error-on-load-2} $ans_load_restore_continue $ts_load_restore
+
+set ans_load_restore_forced [list]
+lappend ans_load_restore_forced [list set _LMFILES_ $mp/foo/1.0]
+lappend ans_load_restore_forced [list set LOADEDMODULES foo/1.0]
+lappend ans_load_restore_forced [list ERR]
+set ts_load_restore_forced [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_load_restore_forced [msg_load foo/1.0]
+testouterr_cmd bash {restore --force testsuite/home/coll-error-on-load-2} $ans_load_restore_forced $ts_load_restore_forced
+
+setenv_var MODULES_ABORT_ON_ERROR {}
+
+testouterr_cmd bash {restore testsuite/home/coll-error-on-load-2} $ans_load_restore_continue $ts_load_restore
+
+testouterr_cmd bash {restore --force testsuite/home/coll-error-on-load-2} $ans_load_restore_forced $ts_load_restore_forced
+
+
+#
+# reload (load)
+#
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_error
+setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
+unsetenv_var __MODULES_LMPREREQ
+
+setenv_var MODULES_ABORT_ON_ERROR load:unload
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 96}]
+set ans_load_reload_forced [list]
+lappend ans_load_reload_continue [list set LOADEDMODULES foo/1.0]
+lappend ans_load_reload_continue [list set _LMFILES_ $mp/foo/1.0]
+lappend ans_load_reload_continue [list ERR]
+set ts_load_reload [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload} $ans_load_reload_continue $ts_load_reload
+
+set ans_load_reload_forced [list]
+lappend ans_load_reload_forced [list set LOADEDMODULES foo/1.0]
+lappend ans_load_reload_forced [list set _LMFILES_ $mp/foo/1.0]
+lappend ans_load_reload_forced [list ERR]
+set ts_load_reload_forced [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload --force} $ans_load_reload_forced $ts_load_reload_forced
+
+setenv_var MODULES_ABORT_ON_ERROR {}
+
+testouterr_cmd bash {reload} $ans_load_reload_continue $ts_load_reload
+
+testouterr_cmd bash {reload --force} $ans_load_reload_forced $ts_load_reload_forced
+
+setenv_var MODULES_ABORT_ON_ERROR reload
+
+testouterr_cmd bash {reload} ERR $ts_load_reload
+
+testouterr_cmd bash {reload --force} $ans_load_reload_forced $ts_load_reload_forced
+
+
+#
+# ml (load)
+#
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_error
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+unsetenv_var __MODULES_LMPREREQ
+
+setenv_var MODULES_ABORT_ON_ERROR load:unload
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 96}]
+set ans_load_ml_forced [list]
+lappend ans_load_ml_continue [list unset LOADEDMODULES]
+lappend ans_load_ml_continue [list unset _LMFILES_]
+lappend ans_load_ml_continue [list ERR]
+set ts_load_ml [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {ml -foo/1.0 err/1.0} $ans_load_ml_continue $ts_load_ml
+
+set ans_load_ml_forced [list]
+lappend ans_load_ml_forced [list unset LOADEDMODULES]
+lappend ans_load_ml_forced [list unset _LMFILES_]
+lappend ans_load_ml_forced [list ERR]
+set ts_load_ml_forced [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {ml --force -foo/1.0 err/1.0} $ans_load_ml_forced $ts_load_ml_forced
+
+setenv_var MODULES_ABORT_ON_ERROR {}
+
+testouterr_cmd bash {ml -foo/1.0 err/1.0} $ans_load_ml_continue $ts_load_ml
+
+testouterr_cmd bash {ml --force -foo/1.0 err/1.0} $ans_load_ml_forced $ts_load_ml_forced
+
+setenv_var MODULES_ABORT_ON_ERROR ml
+
+testouterr_cmd bash {ml -foo/1.0 err/1.0} ERR $ts_load_ml
+
+testouterr_cmd bash {ml --force -foo/1.0 err/1.0} $ans_load_ml_forced $ts_load_ml_forced
+
+
+#
+# load depre (unload)
+#
+
+setenv_var TESTSUITE_ABORT_ON_ERROR depre_unload_error
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+setenv_var MODULES_ABORT_ON_ERROR load:unload
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 34}]
+set ts_unload_depre [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_unload_depre [msg_load foo/1.0 [err_depun err/1.0]]
+testouterr_cmd bash {load foo/1.0} ERR $ts_unload_depre
+
+set ans_unload_depre_forced [list]
+lappend ans_unload_depre_forced [list set __MODULES_LMPREREQ err/1.0&err/1.0|foo]
+lappend ans_unload_depre_forced [list set _LMFILES_ $mp/foo/1.0:$mp/err/1.0]
+lappend ans_unload_depre_forced [list set LOADEDMODULES foo/1.0:err/1.0]
+set ts_unload_depre_forced [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_unload_depre_forced [msg_top_load foo/1.0 {} {} err/1.0]
+testouterr_cmd bash {load --force foo/1.0} $ans_unload_depre_forced $ts_unload_depre_forced
+
+setenv_var MODULES_ABORT_ON_ERROR {}
+
+testouterr_cmd bash {load foo/1.0} ERR $ts_unload_depre
+
+testouterr_cmd bash {load --force foo/1.0} $ans_unload_depre_forced $ts_unload_depre_forced
+
+
+#
+# unload depre (unload)
+#
+
+setenv_var TESTSUITE_ABORT_ON_ERROR depre_unload_error
+setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+setenv_var MODULES_ABORT_ON_ERROR load:unload
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 34}]
+set ts_unload_depre [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_unload_depre [msg_unload foo/1.0 [err_depun err/1.0]]
+testouterr_cmd bash {unload foo/1.0} ERR $ts_unload_depre
+
+set ans_unload_depre_forced [list]
+lappend ans_unload_depre_forced [list set __MODULES_LMPREREQ err/1.0&err/1.0|foo]
+lappend ans_unload_depre_forced [list set _LMFILES_ $mp/err/1.0]
+lappend ans_unload_depre_forced [list set LOADEDMODULES err/1.0]
+set ts_unload_depre_forced [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_unload_depre_forced [msg_top_unload foo/1.0 {} {} err/1.0]
+testouterr_cmd bash {unload --force foo/1.0} $ans_unload_depre_forced $ts_unload_depre_forced
+
+setenv_var MODULES_ABORT_ON_ERROR {}
+
+testouterr_cmd bash {unload foo/1.0} ERR $ts_unload_depre
+
+testouterr_cmd bash {unload --force foo/1.0} $ans_unload_depre_forced $ts_unload_depre_forced
+
+
+#
+# unload urequn (unload)
+#
+
+setenv_var TESTSUITE_ABORT_ON_ERROR urequn_unload_error
+setenv_loaded_module [list err/1.0 lerr/1.0] [list $mp/err/1.0 $mp/lerr/1.0] [list err/1.0]
+setenv_var __MODULES_LMPREREQ lerr/1.0&err/1.0
+
+setenv_var MODULES_ABORT_ON_ERROR load:unload
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 140}]
+set ts_unload_urequn [msg_unload {err/1.0 <aL>} [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_unload_urequn [msg_unload lerr/1.0 [err_urequn err/1.0]]
+set ans_unload_urequn [list]
+lappend ans_unload_urequn [list set LOADEDMODULES err/1.0]
+lappend ans_unload_urequn [list set _LMFILES_ $mp/err/1.0]
+lappend ans_unload_urequn [list unset __MODULES_LMPREREQ]
+lappend ans_unload_urequn [list ERR]
+testouterr_cmd bash {unload lerr/1.0} $ans_unload_urequn $ts_unload_urequn
+
+set ans_unload_urequn_forced [list]
+lappend ans_unload_urequn_forced [list unset __MODULES_LMPREREQ]
+lappend ans_unload_urequn_forced [list unset _LMFILES_]
+lappend ans_unload_urequn_forced [list unset LOADEDMODULES]
+lappend ans_unload_urequn_forced [list unset __MODULES_LMTAG]
+set ts_unload_urequn_forced [msg_unload {err/1.0 <aL>} [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_unload_urequn_forced [msg_top_unload lerr/1.0 {} err/1.0 {}]
+testouterr_cmd bash {unload --force lerr/1.0} $ans_unload_urequn_forced $ts_unload_urequn_forced
+
+setenv_var MODULES_ABORT_ON_ERROR {}
+
+testouterr_cmd bash {unload lerr/1.0} $ans_unload_urequn $ts_unload_urequn
+
+testouterr_cmd bash {unload --force lerr/1.0} $ans_unload_urequn_forced $ts_unload_urequn_forced
+
+
+#
+# unload depun (unload)
+#
+
+setenv_var TESTSUITE_ABORT_ON_ERROR depun_error
+setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0&foo
+
+setenv_var MODULES_ABORT_ON_ERROR load:unload
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 102}]
+set ts_unload_depun [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_unload_depun [msg_unload foo/1.0 [err_depun err/1.0]]
+testouterr_cmd bash {unload foo/1.0} ERR $ts_unload_depun
+
+set ans_unload_depun_forced [list]
+lappend ans_unload_depun_forced [list unset __MODULES_LMPREREQ]
+lappend ans_unload_depun_forced [list unset _LMFILES_]
+lappend ans_unload_depun_forced [list unset LOADEDMODULES]
+set ts_unload_depun_forced [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_unload_depun_forced [msg_top_unload foo/1.0 {} {} {err/1.0 {}}]
+testouterr_cmd bash {unload --force foo/1.0} $ans_unload_depun_forced $ts_unload_depun_forced
+
+setenv_var MODULES_ABORT_ON_ERROR {}
+
+testouterr_cmd bash {unload foo/1.0} ERR $ts_unload_depun
+
+testouterr_cmd bash {unload --force foo/1.0} $ans_unload_depun_forced $ts_unload_depun_forced
+
+
+#
+# load urequn (unload)
+#
+
+setenv_var TESTSUITE_ABORT_ON_ERROR urequn_load_error
+setenv_loaded_module [list err/1.0 lerr/1.0] [list $mp/err/1.0 $mp/lerr/1.0] [list err/1.0]
+setenv_var __MODULES_LMPREREQ lerr/1.0&err/1.0
+
+setenv_var MODULES_ABORT_ON_ERROR load:unload
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 140}]
+set ts_load_urequn [msg_unload {err/1.0 <aL>} [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_load_urequn [msg_unload lerr/1.0 [err_urequn err/1.0]]
+set ans_load_urequn [list]
+lappend ans_load_urequn [list unset __MODULES_LMPREREQ]
+lappend ans_load_urequn [list set _LMFILES_ $mp/err/1.0]
+lappend ans_load_urequn [list set LOADEDMODULES err/1.0]
+lappend ans_load_urequn [list ERR]
+testouterr_cmd bash {unload --no-auto lerr/1.0} $ans_load_urequn $ts_load_urequn
+
+set ans_load_urequn_forced [list]
+lappend ans_load_urequn_forced [list unset __MODULES_LMPREREQ]
+lappend ans_load_urequn_forced [list unset _LMFILES_]
+lappend ans_load_urequn_forced [list unset LOADEDMODULES]
+lappend ans_load_urequn_forced [list unset __MODULES_LMTAG]
+set ts_load_urequn_forced [msg_unload {err/1.0 <aL>} [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_load_urequn_forced [msg_top_unload lerr/1.0 {} err/1.0 {}]
+testouterr_cmd bash {unload --no-auto --force lerr/1.0} $ans_load_urequn_forced $ts_load_urequn_forced
+
+setenv_var MODULES_ABORT_ON_ERROR {}
+
+testouterr_cmd bash {unload --no-auto lerr/1.0} $ans_load_urequn $ts_load_urequn
+
+testouterr_cmd bash {unload --no-auto --force lerr/1.0} $ans_load_urequn_forced $ts_load_urequn_forced
+
+
+#
+# load conun (unload)
+#
+
+setenv_var TESTSUITE_ABORT_ON_ERROR conun_load_error
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+unsetenv_var __MODULES_LMPREREQ
+
+setenv_var MODULES_ABORT_ON_ERROR load:unload
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 140}]
+set ts_load_conun [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+#FIXME: lerr/1.0 load issue should be reported (to know that it has conflict with err/1.0)
+testouterr_cmd bash {load lerr/1.0} ERR $ts_load_conun
+
+set ans_load_conun_forced [list]
+lappend ans_load_conun_forced [list set __MODULES_LMCONFLICT lerr/1.0&err/1.0]
+lappend ans_load_conun_forced [list set _LMFILES_ $mp/lerr/1.0]
+lappend ans_load_conun_forced [list set LOADEDMODULES lerr/1.0]
+set ts_load_conun_forced [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_load_conun_forced [msg_top_load lerr/1.0 err/1.0 {} {}]
+testouterr_cmd bash {load --force lerr/1.0} $ans_load_conun_forced $ts_load_conun_forced
+
+setenv_var MODULES_ABORT_ON_ERROR {}
+
+testouterr_cmd bash {load lerr/1.0} ERR $ts_load_conun
+
+testouterr_cmd bash {load --force lerr/1.0} $ans_load_conun_forced $ts_load_conun_forced
+
+
+#
+# switch depre (unload)
+#
+
+setenv_var TESTSUITE_ABORT_ON_ERROR depre_unload_error
+setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+setenv_var MODULES_ABORT_ON_ERROR load:unload
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 34}]
+set ts_unload_switch_depre [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_unload_switch_depre [msg_switch foo/1.0 foo/2.0 [err_depun err/1.0]]
+testouterr_cmd bash {switch foo/1.0 foo/2.0} ERR $ts_unload_switch_depre
+
+set ans_unload_switch_depre_forced [list]
+lappend ans_unload_switch_depre_forced [list set __MODULES_LMPREREQ err/1.0&err/1.0|foo]
+lappend ans_unload_switch_depre_forced [list set _LMFILES_ $mp/foo/2.0:$mp/err/1.0]
+lappend ans_unload_switch_depre_forced [list set LOADEDMODULES foo/2.0:err/1.0]
+set ts_unload_switch_depre_forced [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_unload_switch_depre_forced [msg_top_switch foo/1.0 foo/2.0 {} {} {} {} err/1.0]
+testouterr_cmd bash {switch --force foo/1.0 foo/2.0} $ans_unload_switch_depre_forced $ts_unload_switch_depre_forced
+
+setenv_var MODULES_ABORT_ON_ERROR {}
+
+testouterr_cmd bash {switch foo/1.0 foo/2.0} ERR $ts_unload_switch_depre
+
+testouterr_cmd bash {switch --force foo/1.0 foo/2.0} $ans_unload_switch_depre_forced $ts_unload_switch_depre_forced
+
+
+#
+# switch unload (unload)
+#
+
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_error
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+unsetenv_var __MODULES_LMPREREQ
+
+setenv_var MODULES_ABORT_ON_ERROR load:unload
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 140}]
+set ts_unload_switch [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_unload_switch [msg_switch err/1.0 foo/1.0 [err_swoff err/1.0]]
+testouterr_cmd bash {switch err/1.0 foo/1.0} ERR $ts_unload_switch
+
+set ans_unload_switch_forced [list]
+lappend ans_unload_switch_forced [list set _LMFILES_ $mp/foo/1.0]
+lappend ans_unload_switch_forced [list set LOADEDMODULES foo/1.0]
+set ts_unload_switch_forced [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {switch --force err/1.0 foo/1.0} $ans_unload_switch_forced $ts_unload_switch_forced
+
+setenv_var MODULES_ABORT_ON_ERROR {}
+
+testouterr_cmd bash {switch err/1.0 foo/1.0} ERR $ts_unload_switch
+
+testouterr_cmd bash {switch --force err/1.0 foo/1.0} $ans_unload_switch_forced $ts_unload_switch_forced
+
+
+#
+# purge (unload)
+#
+
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_error
+setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
+unsetenv_var __MODULES_LMPREREQ
+
+setenv_var MODULES_ABORT_ON_ERROR load:unload
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 140}]
+set ans_unload_purge_forced [list]
+lappend ans_unload_purge_continue [list set _LMFILES_ $mp/err/1.0]
+lappend ans_unload_purge_continue [list set LOADEDMODULES err/1.0]
+lappend ans_unload_purge_continue [list ERR]
+set ts_unload_purge [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {purge} $ans_unload_purge_continue $ts_unload_purge
+
+set ans_unload_purge_forced [list]
+lappend ans_unload_purge_forced [list unset _LMFILES_]
+lappend ans_unload_purge_forced [list unset LOADEDMODULES]
+set ts_unload_purge_forced [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {purge --force} $ans_unload_purge_forced $ts_unload_purge_forced
+
+setenv_var MODULES_ABORT_ON_ERROR {}
+
+testouterr_cmd bash {purge} $ans_unload_purge_continue $ts_unload_purge
+
+testouterr_cmd bash {purge --force} $ans_unload_purge_forced $ts_unload_purge_forced
+
+setenv_var MODULES_ABORT_ON_ERROR purge
+
+testouterr_cmd bash {purge} ERR $ts_unload_purge
+
+testouterr_cmd bash {purge --force} $ans_unload_purge_forced $ts_unload_purge_forced
+
+
+#
+# reload (unload)
+#
+
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_error
+setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
+unsetenv_var __MODULES_LMPREREQ
+
+setenv_var MODULES_ABORT_ON_ERROR load:unload
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 140}]
+set ans_unload_reload_forced [list]
+lappend ans_unload_reload_continue [list set _LMFILES_ $mp/err/1.0:$mp/foo/1.0]
+lappend ans_unload_reload_continue [list set LOADEDMODULES err/1.0:foo/1.0]
+lappend ans_unload_reload_continue [list ERR]
+set ts_unload_reload [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload} $ans_unload_reload_continue $ts_unload_reload
+
+set ans_unload_reload_forced [list]
+lappend ans_unload_reload_forced [list set _LMFILES_ $mp/foo/1.0:$mp/err/1.0]
+lappend ans_unload_reload_forced [list set LOADEDMODULES foo/1.0:err/1.0]
+set ts_unload_reload_forced [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {reload --force} $ans_unload_reload_forced $ts_unload_reload_forced
+
+setenv_var MODULES_ABORT_ON_ERROR {}
+
+testouterr_cmd bash {reload} $ans_unload_reload_continue $ts_unload_reload
+
+testouterr_cmd bash {reload --force} $ans_unload_reload_forced $ts_unload_reload_forced
+
+setenv_var MODULES_ABORT_ON_ERROR reload
+
+testouterr_cmd bash {reload} ERR $ts_unload_reload
+
+testouterr_cmd bash {reload --force} $ans_unload_reload_forced $ts_unload_reload_forced
+
+
+#
+# restore (unload)
+#
+
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_error
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+unsetenv_var __MODULES_LMPREREQ
+
+setenv_var MODULES_ABORT_ON_ERROR load:unload
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 140}]
+set ans_unload_restore_continue [list]
+lappend ans_unload_restore_continue [list set _LMFILES_ $mp/err/1.0:$mp/foo/1.0]
+lappend ans_unload_restore_continue [list set LOADEDMODULES err/1.0:foo/1.0]
+lappend ans_unload_restore_continue [list ERR]
+set ts_unload_restore [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_unload_restore [msg_load foo/1.0]
+testouterr_cmd bash {restore testsuite/home/coll-error-on-unload} $ans_unload_restore_continue $ts_unload_restore
+
+set ans_unload_restore_forced [list]
+lappend ans_unload_restore_forced [list set _LMFILES_ $mp/foo/1.0]
+lappend ans_unload_restore_forced [list set LOADEDMODULES foo/1.0]
+set ts_unload_restore_forced [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_unload_restore_forced [msg_load foo/1.0]
+testouterr_cmd bash {restore --force testsuite/home/coll-error-on-unload} $ans_unload_restore_forced $ts_unload_restore_forced
+
+setenv_var MODULES_ABORT_ON_ERROR {}
+
+testouterr_cmd bash {restore testsuite/home/coll-error-on-unload} $ans_unload_restore_continue $ts_unload_restore
+
+testouterr_cmd bash {restore --force testsuite/home/coll-error-on-unload} $ans_unload_restore_forced $ts_unload_restore_forced
+
+
+#
+# ml (unload)
+#
+
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_error
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+unsetenv_var __MODULES_LMPREREQ
+
+setenv_var MODULES_ABORT_ON_ERROR load:unload
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 140}]
+set ans_unload_ml_forced [list]
+lappend ans_unload_ml_continue [list set _LMFILES_ $mp/err/1.0:$mp/foo/1.0]
+lappend ans_unload_ml_continue [list set LOADEDMODULES err/1.0:foo/1.0]
+lappend ans_unload_ml_continue [list ERR]
+set ts_unload_ml [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {ml foo/1.0 -err/1.0} $ans_unload_ml_continue $ts_unload_ml
+
+set ans_unload_ml_forced [list]
+lappend ans_unload_ml_forced [list set _LMFILES_ $mp/foo/1.0]
+lappend ans_unload_ml_forced [list set LOADEDMODULES foo/1.0]
+set ts_unload_ml_forced [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {ml --force foo/1.0 -err/1.0} $ans_unload_ml_forced $ts_unload_ml_forced
+
+setenv_var MODULES_ABORT_ON_ERROR {}
+
+testouterr_cmd bash {ml foo/1.0 -err/1.0} $ans_unload_ml_continue $ts_unload_ml
+
+testouterr_cmd bash {ml --force foo/1.0 -err/1.0} $ans_unload_ml_forced $ts_unload_ml_forced
+
+setenv_var MODULES_ABORT_ON_ERROR ml
+
+testouterr_cmd bash {ml foo/1.0 -err/1.0} ERR $ts_unload_ml
+
+testouterr_cmd bash {ml --force foo/1.0 -err/1.0} $ans_unload_ml_forced $ts_unload_ml_forced
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
