@@ -510,6 +510,7 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
    # enable unload of sticky mod if stickiness is preserved on swapped-on mod
    # need to resolve swapped-off module here to get stickiness details
    lassign [getPathToModule $old {} 0 $unload_match] modfile oldmod oldmodvr
+   set swunmod_is_supersticky [isModuleTagged $oldmod super-sticky 1 $modfile]
    set sticky_reload [isStickinessReloading $oldmodvr [list $new]]
    set supersticky_reload [isStickinessReloading $oldmodvr [list $new]\
       super-sticky]
@@ -554,8 +555,11 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
       }
    }
 
-   # attempt load and depre reload only if unload succeed
-   if {!$ret} {
+   # attempt load and depre reload only if unload succeed (or if top switch
+   # evaluation has "continue on error" behavior enabled and switched-off
+   # module is not super-sticky)
+   if {!$ret || ([isTopEvaluation] && ![commandAbortOnError] &&\
+      ![commandAbortOnError switch_unload] && !$swunmod_is_supersticky)} {
       if {[info exists depreisuasked]} {
          set undepreisuasked $depreisuasked
          set undeprevr $deprevr
