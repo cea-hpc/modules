@@ -163,7 +163,7 @@ set ts_load_switch_depre_forced [msg_load err/1.0 [msg_moderr msg {error msg} $m
 append ts_load_switch_depre_forced [msg_top_switch foo/1.0 foo/2.0 {} {} {} {} {err/1.0 {}} [err_depref err/1.0]]
 testouterr_cmd bash {switch --force foo/1.0 foo/2.0} $ans_load_switch_depre_forced $ts_load_switch_depre_forced
 
-setenv_var MODULES_ABORT_ON_ERROR {}
+setenv_var MODULES_ABORT_ON_ERROR switch_unload
 
 testouterr_cmd bash {switch foo/1.0 foo/2.0} $ans_load_switch_depre_continue $ts_load_switch_depre
 
@@ -197,7 +197,7 @@ set ts_load_switch_forced [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/
 append ts_load_switch_forced [msg_switch foo/1.0 err/1.0 [err_swon err/1.0]]
 testouterr_cmd bash {switch --force foo/1.0 err/1.0} $ans_load_switch_forced $ts_load_switch_forced
 
-setenv_var MODULES_ABORT_ON_ERROR {}
+setenv_var MODULES_ABORT_ON_ERROR switch_unload
 
 testouterr_cmd bash {switch foo/1.0 err/1.0} $ans_load_switch_continue $ts_load_switch
 
@@ -551,7 +551,11 @@ setenv_var MODULES_ABORT_ON_ERROR load:unload
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 34}]
 set ts_unload_switch_depre [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
 append ts_unload_switch_depre [msg_switch foo/1.0 foo/2.0 [err_depun err/1.0]]
-testouterr_cmd bash {switch foo/1.0 foo/2.0} ERR $ts_unload_switch_depre
+set ans_unload_switch_depre [list]
+lappend ans_unload_switch_depre [list set _LMFILES_ $mp/foo/1.0:$mp/err/1.0:$mp/foo/2.0]
+lappend ans_unload_switch_depre [list set LOADEDMODULES foo/1.0:err/1.0:foo/2.0]
+lappend ans_unload_switch_depre [list ERR]
+testouterr_cmd bash {switch foo/1.0 foo/2.0} $ans_unload_switch_depre $ts_unload_switch_depre
 
 set ans_unload_switch_depre_forced [list]
 lappend ans_unload_switch_depre_forced [list set __MODULES_LMPREREQ err/1.0&err/1.0|foo]
@@ -561,7 +565,7 @@ set ts_unload_switch_depre_forced [msg_unload err/1.0 [msg_modwarn msg {error ms
 append ts_unload_switch_depre_forced [msg_top_switch foo/1.0 foo/2.0 {} {} {} {} err/1.0]
 testouterr_cmd bash {switch --force foo/1.0 foo/2.0} $ans_unload_switch_depre_forced $ts_unload_switch_depre_forced
 
-setenv_var MODULES_ABORT_ON_ERROR {}
+setenv_var MODULES_ABORT_ON_ERROR switch_unload
 
 testouterr_cmd bash {switch foo/1.0 foo/2.0} ERR $ts_unload_switch_depre
 
@@ -579,9 +583,13 @@ unsetenv_var __MODULES_LMPREREQ
 setenv_var MODULES_ABORT_ON_ERROR load:unload
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 140}]
+set ans_unload_switch [list]
+lappend ans_unload_switch [list set _LMFILES_ $mp/err/1.0:$mp/foo/1.0]
+lappend ans_unload_switch [list set LOADEDMODULES err/1.0:foo/1.0]
+lappend ans_unload_switch [list ERR]
 set ts_unload_switch [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
 append ts_unload_switch [msg_switch err/1.0 foo/1.0 [err_swoff err/1.0]]
-testouterr_cmd bash {switch err/1.0 foo/1.0} ERR $ts_unload_switch
+testouterr_cmd bash {switch err/1.0 foo/1.0} $ans_unload_switch $ts_unload_switch
 
 set ans_unload_switch_forced [list]
 lappend ans_unload_switch_forced [list set _LMFILES_ $mp/foo/1.0]
@@ -589,7 +597,7 @@ lappend ans_unload_switch_forced [list set LOADEDMODULES foo/1.0]
 set ts_unload_switch_forced [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
 testouterr_cmd bash {switch --force err/1.0 foo/1.0} $ans_unload_switch_forced $ts_unload_switch_forced
 
-setenv_var MODULES_ABORT_ON_ERROR {}
+setenv_var MODULES_ABORT_ON_ERROR switch_unload
 
 testouterr_cmd bash {switch err/1.0 foo/1.0} ERR $ts_unload_switch
 
