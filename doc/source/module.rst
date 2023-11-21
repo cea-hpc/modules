@@ -2406,9 +2406,13 @@ Module Sub-Commands
 
  If unload evaluation of *modulefile1* raises an error, switch sequence
  aborts: no environment change from *modulefile1* unload is applied and load
- of *modulefile2* is skipped. If load evaluation of *modulefile2* raises an
- error, switch sequence continues: environment changes from *modulefile1*
- unload are applied but not those from failed *modulefile2* load.
+ of *modulefile2* is skipped. Conversely, if ``switch_unload`` value is
+ removed from :mconfig:`abort_on_error` configuration option list or if
+ :option:`--force` option is set, switch sequence continues.
+
+ If load evaluation of *modulefile2* raises an error, switch sequence
+ continues: environment changes from *modulefile1* unload are applied but not
+ those from failed *modulefile2* load.
 
  .. only:: html
 
@@ -2418,6 +2422,9 @@ Module Sub-Commands
 
     .. versionchanged:: 5.1
        Option :option:`--tag` added
+
+    .. versionchanged:: 5.4
+       Support for :mconfig:`abort_on_error` configuration option added
 
 .. subcmd:: test modulefile...
 
@@ -3907,6 +3914,7 @@ ENVIRONMENT
  * :subcmd:`mod-to-sh`
  * :subcmd:`purge`
  * :subcmd:`reload`
+ * :subcmd:`switch_unload<switch>`
  * :subcmd:`try-load`
  * :subcmd:`unload`
 

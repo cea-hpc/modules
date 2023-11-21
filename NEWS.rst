@@ -101,6 +101,10 @@ Modules 5.4.0 (not yet released)
   the *continue on error* behavior.
 * Add support for :mconfig:`abort_on_error` evaluation behavior on
   :subcmd:`purge` sub-command.
+* Add support for :mconfig:`abort_on_error` evaluation behavior on unload
+  phase of :subcmd:`switch` command. *Abort on error* behavior is on by
+  default there. Removing ``switch_unload`` from :mconfig:`abort_on_error`'s
+  value enables the *continue on error* behavior.
 
 
 .. _5.3 release notes:
