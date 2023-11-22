@@ -586,8 +586,10 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
 .. instopt:: --enable-new-features
 
  Enable all new features that are disabled by default due to the substantial
- behavior changes they imply on Modules 5. This option does not enable other
- configuration option currently. (default=no)
+ behavior changes they imply on Modules 5. This option is equivalent to the
+ cumulative use of
+ :instopt:`--with-abort-on-error=load:ml:reload:switch<--with-abort-on-error>`.
+ (default=no)
 
  .. only:: html
 
@@ -600,6 +602,11 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
        :instopt:`--enable-extended-default` and
        :instopt:`--enable-advanced-version-spec` are set by default on Modules
        5.
+
+    .. versionchanged:: 5.4
+       Enables *abort on error* behavior on :subcmd:`load` and
+       :subcmd:`switch` sub-commands.
+
 
 .. instopt:: --enable-quarantine-support
 

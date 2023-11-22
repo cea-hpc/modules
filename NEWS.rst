@@ -111,6 +111,9 @@ Modules 5.4.0 (not yet released)
   :subcmd:`switch` command. *Abort on error* behavior is applied if ``switch``
   value is set in :mconfig:`abort_on_error` and either switch unload or switch
   load phase fails.
+* Install: installation option :instopt:`--enable-new-features` is updated to
+  enable *abort on error* behavior on :subcmd:`load` and :subcmd:`switch`
+  sub-commands.
 
 
 .. _5.3 release notes:
