@@ -10,8 +10,9 @@
 #   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
 #
 #   Description:	Testuite testsequence
-#   Command:		unload, switch, reload
-#   Modulefiles:    unload, ufoo
+#   Command:		unload, switch, reload, reset, restore, stash,
+#                   stashpop
+#   Modulefiles:    unload, ufoo, err, foo
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -193,6 +194,97 @@ lappend ans [list set LOADEDMODULES unload/2.0:ufoo/1.0]
 lappend ans [list unset __MODULES_LMTAG]
 set tserr [msg_unload {unload/1.0 <aL>} $warn_evalabort]\n\n[msg_top_switch {unload/1.0 <aL>} {unload/2.0} {} {} {} {} {ufoo/1.0}]
 testouterr_cmd sh {switch --force unload/1.0 unload/2.0} $ans $tserr
+
+
+unsetenv_var TESTSUITE_UNLOAD_FORCE
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_error
+unsetenv_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMPREREQ
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom_error_trace "    invoked from within
+\"if \{\[info exists env(TESTSUITE_ABORT_ON_ERROR)\]\} \{
+    switch -- \$env(TESTSUITE_ABORT_ON_ERROR) \{
+        bad - load_last_bad - load_first_bad - load-...\""
+} else {
+    set custom_error_trace {}
+}
+
+# forced unload on restore
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/err/1.0:$mp/foo/1.0]
+lappend ans [list set LOADEDMODULES err/1.0:foo/1.0]
+lappend ans [list ERR]
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 140}]
+set ts_unload_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_unload_error [msg_load foo/1.0]
+testouterr_cmd sh {restore testsuite/home/coll-error-on-unload} $ans $ts_unload_error
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/foo/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0]
+set ts_unload_error_forced [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_unload_error_forced [msg_load foo/1.0]
+testouterr_cmd sh {restore -f testsuite/home/coll-error-on-unload} $ans $ts_unload_error_forced
+
+
+# forced unload on reset
+
+set ans [list]
+lappend ans [list unset MODULEPATH]
+lappend ans [list ERR]
+set ts_unload_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd sh {reset} $ans $ts_unload_error
+
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset MODULEPATH]
+set ts_unload_error_forced [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd sh {reset -f} $ans $ts_unload_error_forced
+
+
+# forced unload on stash
+
+set ans [list]
+lappend ans [list unset MODULEPATH]
+lappend ans [list ERR]
+testouterr_cmd sh {stash} $ans $ts_unload_error
+delete_last_stash_coll
+
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset MODULEPATH]
+testouterr_cmd sh {stash -f} $ans $ts_unload_error_forced
+delete_last_stash_coll
+
+
+# forced unload on stashpop
+
+set stash_basic_content "module use --append $mp
+module load foo/1.0"
+create_stash_coll $stash_basic_content
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/err/1.0:$mp/foo/1.0]
+lappend ans [list set LOADEDMODULES err/1.0:foo/1.0]
+lappend ans [list ERR]
+set ts_unload_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_unload_error [msg_load foo/1.0]
+testouterr_cmd sh {stashpop} $ans $ts_unload_error
+
+create_stash_coll $stash_basic_content
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/foo/1.0]
+lappend ans [list set LOADEDMODULES foo/1.0]
+set ts_unload_error_forced [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_unload_error_forced [msg_load foo/1.0]
+testouterr_cmd sh {stashpop -f} $ans $ts_unload_error_forced
+
+set collhome $env(HOME)/.module
+file delete $collhome
 
 
 #
