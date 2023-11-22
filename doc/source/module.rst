@@ -265,9 +265,14 @@ switches are accepted:
  as a prereq by another *modulefile*.
 
  On :subcmd:`load`, :command:`ml`, :subcmd:`mod-to-sh`, :subcmd:`purge`,
- :subcmd:`reload`, :subcmd:`try-load` and :subcmd:`unload` sub-commands
- applies *continue on error* behavior when an error occurs even if
- :mconfig:`abort_on_error` option is enabled.
+ :subcmd:`reload`, :subcmd:`switch`, :subcmd:`try-load` and :subcmd:`unload`
+ sub-commands applies *continue on error* behavior when an error occurs even
+ if :mconfig:`abort_on_error` option is enabled.
+
+ On :command:`ml`, :subcmd:`purge`, :subcmd:`reload`, :subcmd:`reset`,
+ :subcmd:`restore`, :subcmd:`stash`, :subcmd:`stashpop`, :subcmd:`switch` and
+ :subcmd:`unload` sub-commands, unloads modulefile anyway even if an
+ evaluation error occurs.
 
  On :subcmd:`clear` sub-command, skip the confirmation dialog and proceed.
 
@@ -294,6 +299,9 @@ switches are accepted:
 
     .. versionchanged:: 5.2
        Support for :subcmd:`mod-to-sh` sub-command added
+
+    .. versionchanged:: 5.4
+       Unloads modulefile anyway even if an evaluation error occurs
 
     .. versionchanged:: 5.4
        Disables :mconfig:`abort_on_error` configuration option
@@ -1941,8 +1949,9 @@ Module Sub-Commands
 
  Unload all loaded *modulefiles*.
 
- When the :option:`--force` option is set, also unload `sticky modules`_ and
- modulefiles that are depended by non-unloadable modules.
+ When the :option:`--force` option is set, also unload `sticky modules`_,
+ modulefiles that are depended by non-unloadable modules and modulefiles
+ raising an evaluation error.
 
  If one modulefile unload evaluation raises an error, purge sequence
  continues: unloaded modules prior the evaluation error are kept unloaded and
@@ -2000,6 +2009,9 @@ Module Sub-Commands
  *modulefiles* have unsatisfied constraint corresponding to the
  :mfcmd:`prereq` and :mfcmd:`conflict` they declare.
 
+ When the :option:`--force` option is set, unload modulefiles anyway even if
+ an evaluation error occurs.
+
  If one modulefile load or unload evaluation raises an error, reload sequence
  aborts: environment changes coming from already evaluated modulefiles are
  withdrawn and remaining modulefile evaluations are skipped. Conversely, if
@@ -2036,13 +2048,16 @@ Module Sub-Commands
     .. versionchanged:: 5.0
        *value* is removed whatever its reference counter value
 
-.. subcmd:: reset
+.. subcmd:: reset [-f]
 
  Restore initial environment, which corresponds to the loaded state after
  :ref:`Modules initialization<Package Initialization>`.
 
  :subcmd:`reset` sub-command restores the environment definition found in
  :envvar:`__MODULES_LMINIT` environment variable.
+
+ When the :option:`--force` option is set, unload modulefiles anyway even if
+ an evaluation error occurs.
 
  :subcmd:`reset` behavior can be changed with :mconfig:`reset_target_state`.
  This configuration option is set by default to ``__init__``, which
@@ -2055,7 +2070,10 @@ Module Sub-Commands
 
     .. versionadded:: 5.2
 
-.. subcmd:: restore [collection]
+    .. versionchanged:: 5.4
+       Option :option:`--force`/:option:`-f` added
+
+.. subcmd:: restore [-f] [collection]
 
  Restore the environment state as defined in *collection*. If *collection*
  name is not specified, then it is assumed to be the *default* collection if
@@ -2088,6 +2106,9 @@ Module Sub-Commands
  evaluation error are preserved and sequence is resumed with the unload or
  load of remaining modulefiles.
 
+ When the :option:`--force` option is set, unload modulefiles anyway even if
+ an evaluation error occurs.
+
  .. only:: html
 
     .. versionadded:: 4.0
@@ -2095,6 +2116,9 @@ Module Sub-Commands
     .. versionchanged:: 5.2
        Restore initial environment when *collection* name is ``__init__`` or
        when no collection name is specified and no *default* collection exists
+
+    .. versionchanged:: 5.4
+       Option :option:`--force`/:option:`-f` added
 
 .. subcmd:: rm [--auto|--no-auto] [-f] modulefile...
 
@@ -2282,7 +2306,7 @@ Module Sub-Commands
     .. versionchanged:: 5.2
        Accept modulefile specification as argument
 
-.. subcmd:: stash
+.. subcmd:: stash [-f]
 
  :subcmd:`Save<save>` current environment in a stash collection then
  :subcmd:`reset` to initial environment.
@@ -2295,9 +2319,15 @@ Module Sub-Commands
  If :envvar:`MODULES_COLLECTION_TARGET` is set, a suffix equivalent to the
  value of this variable will be appended to the stash collection file name.
 
+ When the :option:`--force` option is set, unload modulefiles anyway even if
+ an evaluation error occurs.
+
  .. only:: html
 
     .. versionadded:: 5.2
+
+    .. versionchanged:: 5.4
+       Option :option:`--force`/:option:`-f` added
 
 .. subcmd:: stashclear
 
@@ -2319,7 +2349,7 @@ Module Sub-Commands
 
     .. versionadded:: 5.2
 
-.. subcmd:: stashpop [stash]
+.. subcmd:: stashpop [-f] [stash]
 
  :subcmd:`Restore<restore>` *stash* collection then delete corresponding
  collection file.
@@ -2333,9 +2363,15 @@ Module Sub-Commands
  value of this variable will be appended to the stash collection file name to
  restore.
 
+ When the :option:`--force` option is set, unload modulefiles anyway even if
+ an evaluation error occurs.
+
  .. only:: html
 
     .. versionadded:: 5.2
+
+    .. versionchanged:: 5.4
+       Option :option:`--force`/:option:`-f` added
 
 .. subcmd:: stashrm [stash]
 
@@ -2403,6 +2439,9 @@ Module Sub-Commands
  The :option:`--tag` option accepts a list of module tags to apply to
  *modulefile* once loaded. If module is already loaded, tags from *taglist*
  are added to the list of tags already applied to this module.
+
+ When the :option:`--force` option is set, unload modulefiles anyway even if
+ an evaluation error occurs.
 
  If unload evaluation of *modulefile1* raises an error, switch sequence
  aborts: no environment change from *modulefile1* unload is applied and load
@@ -2506,6 +2545,9 @@ Module Sub-Commands
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
+
+ When the :option:`--force` option is set, unload modulefiles anyway even if
+ an evaluation error occurs.
 
  When several *modulefiles* are passed, they are unloaded sequentially in the
  specified order. If one modulefile evaluation raises an error, unload

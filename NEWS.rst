@@ -86,9 +86,11 @@ Modules 5.4.0 (not yet released)
 * Add support for :mconfig:`abort_on_error` evaluation behavior on
   :subcmd:`unload` sub-command.
 * A modulefile is unloaded anyway even if an evaluation error occurs when
-  :option:`--force` option is used on :subcmd:`unload` sub-command. To forbid
-  the unload of a modulefile it is recommended to tag it ``super-sticky`` with
-  :mfcmd:`module-tag` command.
+  :option:`--force` option is used on :command:`ml`, :subcmd:`purge`,
+  :subcmd:`reload`, :subcmd:`reset`, :subcmd:`restore`, :subcmd:`stash`,
+  :subcmd:`stashpop`, :subcmd:`switch` and :subcmd:`unload` sub-commands. To
+  forbid the unload of a modulefile it is recommended to tag it
+  ``super-sticky`` with :mfcmd:`module-tag` command.
 * Disable :mconfig:`abort_on_error` when :option:`--force` option is used. In
   this case, behavior is to continue when an error occurs.
 * Add support for :mconfig:`abort_on_error` evaluation behavior on
