@@ -747,7 +747,7 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  When evaluating multiple modulefiles, if one fails abort evaluation sequence
  and withdraw already evaluated modulefiles for listed module sub-commands.
  Sub-commands accepted in LIST are: :subcmd:`load`, :command:`ml`,
- :subcmd:`mod-to-sh`, :subcmd:`purge`, :subcmd:`reload`,
+ :subcmd:`mod-to-sh`, :subcmd:`purge`, :subcmd:`reload`, :subcmd:`switch`,
  :subcmd:`switch_unload<switch>`, :subcmd:`try-load` and :subcmd:`unload`
  (elements in LIST are separated by ``:``).
  (default=\ ``ml:reload:switch_unload``)

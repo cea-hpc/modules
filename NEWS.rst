@@ -105,6 +105,10 @@ Modules 5.4.0 (not yet released)
   phase of :subcmd:`switch` command. *Abort on error* behavior is on by
   default there. Removing ``switch_unload`` from :mconfig:`abort_on_error`'s
   value enables the *continue on error* behavior.
+* Add support for :mconfig:`abort_on_error` evaluation behavior on
+  :subcmd:`switch` command. *Abort on error* behavior is applied if ``switch``
+  value is set in :mconfig:`abort_on_error` and either switch unload or switch
+  load phase fails.
 
 
 .. _5.3 release notes:
