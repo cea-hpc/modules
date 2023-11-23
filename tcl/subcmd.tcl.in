@@ -507,6 +507,8 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
       lappendState inhibit_req_record [currentState evalid]
    }
 
+   pushSettings
+
    # enable unload of sticky mod if stickiness is preserved on swapped-on mod
    # need to resolve swapped-off module here to get stickiness details
    lassign [getPathToModule $old {} 0 $unload_match] modfile oldmod oldmodvr
@@ -531,7 +533,7 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
    }
    ##nagelfar implicitvarcmd {cmdModuleUnload swunload *} oldhidden olduasked\
       oldmsgrecid deprelist depreisuasked deprevr depreextratag
-   set ret [cmdModuleUnload swunload $unload_match 1 0 0 0 $old]
+   set ret_unload [cmdModuleUnload swunload $unload_match 1 0 0 0 $old]
    if {$sticky_reload} {
       lpopState reloading_sticky
    }
@@ -558,7 +560,7 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
    # attempt load and depre reload only if unload succeed (or if top switch
    # evaluation has "continue on error" behavior enabled and switched-off
    # module is not super-sticky)
-   if {!$ret || ([isTopEvaluation] && ![commandAbortOnError] &&\
+   if {!$ret_unload || ([isTopEvaluation] && ![commandAbortOnError] &&\
       ![commandAbortOnError switch_unload] && !$swunmod_is_supersticky)} {
       if {[info exists depreisuasked]} {
          set undepreisuasked $depreisuasked
@@ -566,32 +568,40 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
          set undepreextratag $depreextratag
       }
       ##nagelfar implicitvarcmd {cmdModuleLoad swload *} newhidden newmsgrecid
-      cmdModuleLoad swload $uasked 0 0 $tag_list $new
+      set ret_load [cmdModuleLoad swload $uasked 0 0 $tag_list $new]
 
-      # merge depre info of unload and load phases
-      if {[info exists undepreisuasked]} {
-         set depreisuasked [list {*}$undepreisuasked {*}$depreisuasked]
-         set deprevr [list {*}$undeprevr {*}$deprevr]
-         set depreextratag [list {*}$undepreextratag {*}$depreextratag]
+      # rollback settings if load evaluation went wrong and abort behavior is
+      # enabled for this switch phase
+      if {$ret_load && [commandAbortOnError]} {
+         restoreSettings
+      } else {
+         # merge depre info of unload and load phases
+         if {[info exists undepreisuasked]} {
+            set depreisuasked [list {*}$undepreisuasked {*}$depreisuasked]
+            set deprevr [list {*}$undeprevr {*}$deprevr]
+            set depreextratag [list {*}$undepreextratag {*}$depreextratag]
+         }
+
+         if {[getConf auto_handling] && [info exists deprelist] && [llength\
+            $deprelist]} {
+            # cmdModuleUnload handles the DepUn, UReqUn mechanisms and the
+            # unload phase of the DepRe mechanism. List of DepRe mods and
+            # their asked state is set from cmdModuleUnload procedure to be
+            # used here for the load phase of the DepRe mechanism.
+            # Try DepRe load phase: load failure will not make switch fail
+            reloadModuleListLoadPhase deprelist $depreisuasked $deprevr\
+               $depreextratag 1 {Reload of dependent _MOD_ failed} depre
+         }
+
+         # report a summary of automated evaluations if no error
+         reportModuleEval
       }
-
-      if {[getConf auto_handling] && [info exists deprelist] && [llength\
-         $deprelist]} {
-         # cmdModuleUnload handles the DepUn, UReqUn mechanisms and the unload
-         # phase of the DepRe mechanism. List of DepRe mods and their user
-         # asked state is set from cmdModuleUnload procedure to be used here
-         # for the load phase of the DepRe mechanism.
-         # Try DepRe load phase: load failure will not lead to switch failure
-         reloadModuleListLoadPhase deprelist $depreisuasked $deprevr\
-            $depreextratag 1 {Reload of dependent _MOD_ failed} depre
-      }
-
-      # report a summary of automated evaluations if no error
-      reportModuleEval
    } else {
       # initialize dummy load phase msg rec id to query designation
       set newmsgrecid {}
    }
+
+   popSettings
 
    # report all recorded sumup messages for this evaluation unless both old
    # and new modules are set hidden, old was auto loaded and this switch is
@@ -605,7 +615,7 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
    }
 
    # register modulefile to load as prereq when called from modulefile
-   if {!$uasked && !$ret && $argnew ne {}} {
+   if {!$uasked && !$ret_unload && $argnew ne {}} {
       prereqAnyModfileCmd 0 0 $argnew
    }
 }
