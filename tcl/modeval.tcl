@@ -742,7 +742,7 @@ proc reloadModuleListUnloadPhase {lmname {errmsgtpl {}} {context unload}} {
 
 # load phase of a list of modules reload process
 proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist extrataglist\
-   {force 0} {errmsgtpl {}} {context load}} {
+   {errmsgtpl {}} {context load}} {
    upvar $lmname lmlist
    array set isuasked $isuaskedlist
    array set vr $vrlist
@@ -760,9 +760,12 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist extrataglist\
          $modnamevr]} {
          set errMsg [string map [list _MOD_ [getModuleDesignation spec\
             $modnamevr]] $errmsgtpl]
-         # no process stop if forced or ongoing reload cmd in continue bhv
-         if {$force || ([isStateEqual commandname reload] &&\
-            ![commandAbortOnError])} {
+         # no process stop if forced, or ongoing reload or switch cmd in
+         # continue behavior, or non-top switch cmd
+         if {[getState force] || (([isStateEqual commandname reload] ||\
+            [isStateEqual commandname switch]) && ![commandAbortOnError]) ||\
+            ([getCallingProcName] eq {cmdModuleSwitch} &&\
+            ![isTopEvaluation])} {
             # no msg for reload sub-cmd which provides an empty msg template
             if {[string length $errMsg]} {
                reportWarning $errMsg 1
