@@ -331,6 +331,8 @@ proc formatErrStackTrace {errmsg loc {cmdlist {}}} {
    # define commands to filter out from bottom of stack
    set filtercmdendlist [list {eval $modcontent} "source $loc" {uplevel 1\
       source $siteconfig} {eval $cachecontent}]
+   # define commands to filter out from middle of stack
+   set filtercmdmidlist [list {interp eval $itrp $::source_cache($filename)}]
 
    # filter out modulecmd internal references at beginning of stack
    set internals 1
@@ -367,6 +369,16 @@ proc formatErrStackTrace {errmsg loc {cmdlist {}}} {
          set errmsg [string replace $errmsg $beffootidx end]
       } else {
          set internals 0
+      }
+   }
+
+   # filter out modulecmd internal references in middle of stack
+   foreach filtercmdmid $filtercmdmidlist {
+      set filterstartidx [string first \"$filtercmdmid\" $errmsg]
+      if {$filterstartidx != -1} {
+         set filterendidx [expr {[string first $splitstr $errmsg\
+            $filterstartidx] + [string length $splitstr] - 1}]
+         set errmsg [string replace $errmsg $filterstartidx $filterendidx]
       }
    }
 

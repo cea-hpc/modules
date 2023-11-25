@@ -97,6 +97,10 @@ proc initModfileModeAliases {mode auto aliasesVN aliasesPassArgVN\
          isWin initStateIsWin puts putsModfileCmd readModuleContent\
          readModuleContent formatErrStackTrace formatErrStackTrace]
 
+      if {[getConf source_cache]} {
+         lappend ::g_modfileBaseAliases source sourceModfileCmd
+      }
+
       # list of alias commands whose target procedure is adapted according to
       # the evaluation mode
       set ::g_modfileEvalModes {load unload display help test whatis refresh\
@@ -149,7 +153,7 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
 
    # alias commands where interpreter ref should be passed as argument
    array set aliasesPassArg [list getvariant [list __itrp__] puts [list\
-      __itrp__] variant [list __itrp__]]
+      __itrp__] variant [list __itrp__] source [list __itrp__]]
 
    # initialize list with all commands not dependent of the evaluation mode
    array set aliases $::g_modfileBaseAliases
@@ -527,6 +531,10 @@ proc execute-modulerc {modfile modname modspec} {
          setModulesVersion setModulesVersion readModuleContent\
          readModuleContent formatErrStackTrace formatErrStackTrace]
 
+      if {[getConf source_cache]} {
+         set ::g_modrcAliases(source) sourceModfileCmd
+      }
+
       # add site-specific command aliases for modulerc interp
       if {[info exists ::modulerc_extra_cmds]} {
          if {[catch {array set ::g_modrcAliases $::modulerc_extra_cmds}\
@@ -537,7 +545,7 @@ proc execute-modulerc {modfile modname modspec} {
       }
 
       # alias commands where an argument should be passed
-      array set ::g_modrcAliasesPassArg [list]
+      array set ::g_modrcAliasesPassArg [list source [list __itrp__]]
 
       # trace commands that should be associated to aliases
       array set ::g_modrcAliasesTraces [list]
@@ -2897,6 +2905,16 @@ proc unique-name-conflict {} {
 
    # declare conflict over all these names
    conflict {*}$root_name_list
+}
+
+proc sourceModfileCmd {itrp filename} {
+   if {![info exists ::source_cache($filename)]} {
+      set ::source_cache($filename) [readFile $filename]
+   }
+
+   interp eval $itrp info script $filename
+   interp eval $itrp $::source_cache($filename)
+   interp eval $itrp info script [currentState modulefile]
 }
 
 # ;;; Local Variables: ***
