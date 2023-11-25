@@ -1092,7 +1092,7 @@ The following Modules configuration option has been introduced on Modules 5.
 |            | :mconfig:`cache_expiry_secs`, :mconfig:`ignore_user_rc`         |
 +------------+-----------------------------------------------------------------+
 | 5.4        | :mconfig:`sticky_purge`, :mconfig:`unique_name_loaded`,         |
-|            | :mconfig:`error_on_multi_load`                                  |
+|            | :mconfig:`error_on_multi_load`, :mconfig:`source_cache`         |
 +------------+-----------------------------------------------------------------+
 
 :mconfig:`avail_output`, :mconfig:`avail_terse_output`

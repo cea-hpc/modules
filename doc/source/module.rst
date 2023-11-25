@@ -1329,6 +1329,21 @@ Module Sub-Commands
   time with :instopt:`--prefix` or :instopt:`--etcdir` options. The value of
   this option cannot be altered.
 
+ .. mconfig:: source_cache
+
+  Cache content of files evaluated in modulefile through :manpage:`source(n)`
+  Tcl command.
+
+  Default value is ``0``. It can be changed at installation time with
+  :instopt:`--enable-source-cache` option. The :envvar:`MODULES_SOURCE_CACHE`
+  environment variable is defined by :subcmd:`config` sub-command when
+  changing this configuration option from its default value. See
+  :envvar:`MODULES_SOURCE_CACHE` description for details.
+
+  .. only:: html
+
+     .. versionadded:: 5.4
+
  .. mconfig:: sticky_purge
 
   Error behavior when unloading sticky or super-sticky module during a module
