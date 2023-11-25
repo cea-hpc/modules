@@ -335,6 +335,12 @@ else
   setuniquenameloaded := 0
 endif
 
+ifeq ($(sourcecache),y)
+  setsourcecache := 1
+else
+  setsourcecache := 0
+endif
+
 ifeq ($(ml),y)
   setml := 1
 else
@@ -402,6 +408,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@extendeddefault@|$(setextendeddefault)|g' \
 	-e 's|@advversspec@|$(setadvversspec)|g' \
 	-e 's|@uniquenameloaded@|$(setuniquenameloaded)|g' \
+	-e 's|@sourcecache@|$(setsourcecache)|g' \
 	-e 's|@searchmatch@|$(searchmatch)|g' \
 	-e 's|@wa277@|$(setwa277)|g' \
 	-e 's|@icase@|$(icase)|g' \
