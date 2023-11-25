@@ -76,6 +76,12 @@ Modules 5.4.0 (not yet released)
   issue #515)
 * Doc: move :ref:`modulefile(5)` man page in section 5. (fix issue #518 with
   contribution from Laurent Chardon)
+* Add :mconfig:`source_cache` configuration option to cache files evaluated in
+  modulefiles with ``source`` Tcl command. Files sourced multiple times are
+  only read once when option is enabled. :mconfig:`source_cache` is disabled
+  by default. When set, it defines the :envvar:`MODULES_SOURCE_CACHE`
+  environment variable. Default value can be changed with
+  :instopt:`--enable-source-cache` installation option.
 
 
 .. _5.3 release notes:
