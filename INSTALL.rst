@@ -668,6 +668,20 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
     .. versionchanged:: 5.0
        Configuration option default set to ``no``
 
+.. instopt:: --enable-source-cache
+
+ Cache content of files evaluated through :manpage:`source(n)` Tcl command in
+ modulefile. When same file is sourced multiple times, cached content is
+ reused rather reading file again.
+
+ This installation option defines the default value of the
+ :mconfig:`source_cache` configuration option which could be changed
+ after installation with the :subcmd:`config` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 5.4
+
 .. instopt:: --enable-versioning
 
  Append Modules version to installation prefix and deploy a ``versions``
@@ -1438,6 +1452,9 @@ installation.
 |                                   |                                              | :envvar:`MODULES_SILENT_SHELL_DEBUG`         |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`siteconfig`             | |file etcdir_siteconfig|                     | :instopt:`--prefix`, :instopt:`--etcdir`     |              | X         |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`source_cache`           | ``0``                                        | :instopt:`--enable-source-cache`,            |              |           |
+|                                   |                                              | :envvar:`MODULES_SOURCE_CACHE`               |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`sticky_purge`           | ``error``                                    | :instopt:`--with-sticky-purge`,              |              |           |
 |                                   |                                              | :envvar:`MODULES_STICKY_PURGE`               |              |           |
