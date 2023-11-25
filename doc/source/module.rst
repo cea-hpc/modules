@@ -4692,6 +4692,20 @@ ENVIRONMENT
 
     .. versionadded:: 4.3
 
+.. envvar:: MODULES_SOURCE_CACHE
+
+ If set to ``1``, cache content of files evaluated in modulefile through
+ :manpage:`source(n)` Tcl command. When same file is sourced multiple times,
+ cached content is reused rather reading file again.
+
+ This environment variable value supersedes the default value set in the
+ :mconfig:`source_cache` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 5.4
+
 .. envvar:: MODULES_STICKY_PURGE
 
  When unloading a sticky or super-sticky module during a module

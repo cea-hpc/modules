@@ -949,8 +949,9 @@ The following environment variables appeared on Modules 5.
 +------------+-----------------------------------------------------------------+
 | 5.4        | :envvar:`MODULES_STICKY_PURGE`,                                 |
 |            | :envvar:`MODULES_UNIQUE_NAME_LOADED`,                           |
-|            | :envvar:`MODULES_ERROR_ON_MULTI_LOAD`                           |
-|            | :envvar:`__MODULES_LMSTICKYRULE`                                |
+|            | :envvar:`MODULES_ERROR_ON_MULTI_LOAD`,                          |
+|            | :envvar:`__MODULES_LMSTICKYRULE`,                               |
+|            | :envvar:`MODULES_SOURCE_CACHE`                                  |
 +------------+-----------------------------------------------------------------+
 
 Modules Specific Tcl Commands
