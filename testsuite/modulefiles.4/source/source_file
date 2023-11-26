@@ -1,0 +1,44 @@
+if {[info exists env(TESTSUITE_SOURCE_CACHE)]} {
+    switch -- $env(TESTSUITE_SOURCE_CACHE) {
+        regular1 {
+            if {![info exists var_from]} {
+                proc proc_from {args} {
+                    return "foo[concat $args]"
+                }
+                set var_from foo
+                setenv CURRENT_MODULEFILE_FROM $ModulesCurrentModulefile
+                setenv INFO_SCRIPT_FROM [info script]
+                setenv PROC_FROM_VALUE_FROM [proc_from bar]
+                setenv PROC_PRE_VALUE_FROM [proc_pre bar]
+                setenv VAR_FROM_VALUE_FROM $var_from
+                setenv VAR_PRE_VALUE_FROM $var_pre
+                set var_pre foo
+                proc proc_pre {args} {
+                    return "foo[concat $args]"
+                }
+                info script foo
+            } else {
+                setenv CURRENT_MODULEFILE_FROM2 $ModulesCurrentModulefile
+                setenv INFO_SCRIPT_FROM [info script]
+                setenv PROC_FROM_VALUE_FROM2 [proc_from bar]
+                setenv PROC_PRE_VALUE_FROM2 [proc_pre bar]
+                setenv VAR_FROM_VALUE_FROM2 $var_from
+                setenv VAR_PRE_VALUE_FROM2 $var_pre
+            }
+        }
+        rc1 {
+            module-alias source/[proc_pre] source/1.0
+            proc proc_from {args} {
+                return "foo[concat $args]"
+            }
+            puts [info script]
+            info script foo
+        }
+        err1 - err_rc1 {
+            error msg
+        }
+        break1 {
+            break
+        }
+    }
+}

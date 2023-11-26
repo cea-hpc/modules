@@ -1,0 +1,35 @@
+#%Module
+if {[info exists env(TESTSUITE_SOURCE_CACHE)]} {
+    switch -- $env(TESTSUITE_SOURCE_CACHE) {
+        regular1 {
+            setenv CURRENT_MODULEFILE_PRE $ModulesCurrentModulefile
+            setenv INFO_SCRIPT_PRE [info script]
+            set var_pre bar
+            proc proc_pre {args} {
+                return "bar[concat $args]"
+            }
+            source [file dirname $ModulesCurrentModulefile]/source_file
+            setenv CURRENT_MODULEFILE_BET $ModulesCurrentModulefile
+            setenv INFO_SCRIPT_BET [info script]
+            setenv PROC_FROM_VALUE_BET [proc_from bar]
+            setenv PROC_PRE_VALUE_BET [proc_pre bar]
+            setenv VAR_FROM_VALUE_BET $var_from
+            setenv VAR_PRE_VALUE_BET $var_pre
+            source [file dirname $ModulesCurrentModulefile]/source_file
+            setenv CURRENT_MODULEFILE_POST $ModulesCurrentModulefile
+            setenv INFO_SCRIPT_POST [info script]
+            setenv PROC_FROM_VALUE_POST [proc_from bar]
+            setenv PROC_PRE_VALUE_POST [proc_pre bar]
+            setenv VAR_FROM_VALUE_POST $var_from
+            setenv VAR_PRE_VALUE_POST $var_pre
+        }
+        err1 - break1 {
+            source [file dirname $ModulesCurrentModulefile]/source_file
+            setenv VAR bar
+        }
+        unk1 {
+            source ../path/to/unk
+            setenv VAR bar
+        }
+    }
+}

@@ -1,0 +1,344 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2023/11/26
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload, display, help
+#   Modulefiles:    source
+#   Sub-Command:
+#
+#   Comment:	%C{
+#         Test source_cache configuration option
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure regular avail search match is set for these tests
+setenv_var MODULES_SEARCH_MATCH starts_with
+
+
+setenv_var TESTSUITE_SOURCE_CACHE regular1
+
+set ans_load [list]
+lappend ans_load [list set PROC_FROM_VALUE_POST foobar]
+lappend ans_load [list set PROC_FROM_VALUE_FROM2 foobar]
+lappend ans_load [list set _LMFILES_ $mp/source/1.0]
+lappend ans_load [list set LOADEDMODULES source/1.0]
+lappend ans_load [list set VAR_FROM_VALUE_BET foo]
+lappend ans_load [list set PROC_PRE_VALUE_FROM2 foobar]
+lappend ans_load [list set VAR_FROM_VALUE_FROM foo]
+lappend ans_load [list set VAR_FROM_VALUE_POST foo]
+lappend ans_load [list set CURRENT_MODULEFILE_FROM2 $mp/source/1.0]
+lappend ans_load [list set PROC_FROM_VALUE_BET foobar]
+lappend ans_load [list set VAR_PRE_VALUE_FROM bar]
+lappend ans_load [list set VAR_PRE_VALUE_POST foo]
+lappend ans_load [list set VAR_PRE_VALUE_FROM2 foo]
+lappend ans_load [list set PROC_PRE_VALUE_BET foobar]
+lappend ans_load [list set PROC_PRE_VALUE_FROM barbar]
+lappend ans_load [list set CURRENT_MODULEFILE_BET $mp/source/1.0]
+lappend ans_load [list set INFO_SCRIPT_BET $mp/source/1.0]
+lappend ans_load [list set PROC_PRE_VALUE_POST foobar]
+lappend ans_load [list set CURRENT_MODULEFILE_FROM $mp/source/1.0]
+lappend ans_load [list set INFO_SCRIPT_FROM $mp/source/source_file]
+lappend ans_load [list set INFO_SCRIPT_POST $mp/source/1.0]
+lappend ans_load [list set CURRENT_MODULEFILE_POST $mp/source/1.0]
+lappend ans_load [list set VAR_FROM_VALUE_FROM2 foo]
+lappend ans_load [list set VAR_PRE_VALUE_BET foo]
+lappend ans_load [list set CURRENT_MODULEFILE_PRE $mp/source/1.0]
+lappend ans_load [list set INFO_SCRIPT_PRE $mp/source/1.0]
+lappend ans_load [list set PROC_FROM_VALUE_FROM foobar]
+
+setenv_var MODULES_SOURCE_CACHE 0
+testouterr_cmd bash {load source/1.0} $ans_load {}
+setenv_var MODULES_SOURCE_CACHE 1
+testouterr_cmd bash {load source/1.0} $ans_load {}
+
+
+set ts_display "-------------------------------------------------------------------
+$mp/source/1.0:
+
+setenv\t\tCURRENT_MODULEFILE_PRE $mp/source/1.0
+setenv\t\tINFO_SCRIPT_PRE $mp/source/1.0
+setenv\t\tCURRENT_MODULEFILE_FROM $mp/source/1.0
+setenv\t\tINFO_SCRIPT_FROM $mp/source/source_file
+setenv\t\tPROC_FROM_VALUE_FROM foobar
+setenv\t\tPROC_PRE_VALUE_FROM barbar
+setenv\t\tVAR_FROM_VALUE_FROM foo
+setenv\t\tVAR_PRE_VALUE_FROM bar
+setenv\t\tCURRENT_MODULEFILE_BET $mp/source/1.0
+setenv\t\tINFO_SCRIPT_BET $mp/source/1.0
+setenv\t\tPROC_FROM_VALUE_BET foobar
+setenv\t\tPROC_PRE_VALUE_BET foobar
+setenv\t\tVAR_FROM_VALUE_BET foo
+setenv\t\tVAR_PRE_VALUE_BET foo
+setenv\t\tCURRENT_MODULEFILE_FROM2 $mp/source/1.0
+setenv\t\tINFO_SCRIPT_FROM $mp/source/source_file
+setenv\t\tPROC_FROM_VALUE_FROM2 foobar
+setenv\t\tPROC_PRE_VALUE_FROM2 foobar
+setenv\t\tVAR_FROM_VALUE_FROM2 foo
+setenv\t\tVAR_PRE_VALUE_FROM2 foo
+setenv\t\tCURRENT_MODULEFILE_POST $mp/source/1.0
+setenv\t\tINFO_SCRIPT_POST $mp/source/1.0
+setenv\t\tPROC_FROM_VALUE_POST foobar
+setenv\t\tPROC_PRE_VALUE_POST foobar
+setenv\t\tVAR_FROM_VALUE_POST foo
+setenv\t\tVAR_PRE_VALUE_POST foo
+-------------------------------------------------------------------"
+
+setenv_var MODULES_SOURCE_CACHE 0
+testouterr_cmd bash {display source/1.0} OK $ts_display
+setenv_var MODULES_SOURCE_CACHE 1
+testouterr_cmd bash {display source/1.0} OK $ts_display
+
+
+setenv_loaded_module [list source/1.0] [list $mp/source/1.0]
+set ans_unload [list]
+lappend ans_unload [list unset PROC_FROM_VALUE_POST]
+lappend ans_unload [list unset PROC_FROM_VALUE_FROM2]
+lappend ans_unload [list unset _LMFILES_]
+lappend ans_unload [list unset LOADEDMODULES]
+lappend ans_unload [list unset VAR_FROM_VALUE_BET]
+lappend ans_unload [list unset PROC_PRE_VALUE_FROM2]
+lappend ans_unload [list unset VAR_FROM_VALUE_FROM]
+lappend ans_unload [list unset VAR_FROM_VALUE_POST]
+lappend ans_unload [list unset CURRENT_MODULEFILE_FROM2]
+lappend ans_unload [list unset PROC_FROM_VALUE_BET]
+lappend ans_unload [list unset VAR_PRE_VALUE_FROM]
+lappend ans_unload [list unset VAR_PRE_VALUE_POST]
+lappend ans_unload [list unset VAR_PRE_VALUE_FROM2]
+lappend ans_unload [list unset PROC_PRE_VALUE_BET]
+lappend ans_unload [list unset PROC_PRE_VALUE_FROM]
+lappend ans_unload [list unset CURRENT_MODULEFILE_BET]
+lappend ans_unload [list unset INFO_SCRIPT_BET]
+lappend ans_unload [list unset PROC_PRE_VALUE_POST]
+lappend ans_unload [list unset CURRENT_MODULEFILE_FROM]
+lappend ans_unload [list unset INFO_SCRIPT_FROM]
+lappend ans_unload [list unset INFO_SCRIPT_POST]
+lappend ans_unload [list unset CURRENT_MODULEFILE_POST]
+lappend ans_unload [list unset VAR_FROM_VALUE_FROM2]
+lappend ans_unload [list unset VAR_PRE_VALUE_BET]
+lappend ans_unload [list unset CURRENT_MODULEFILE_PRE]
+lappend ans_unload [list unset INFO_SCRIPT_PRE]
+lappend ans_unload [list unset PROC_FROM_VALUE_FROM]
+
+setenv_var MODULES_SOURCE_CACHE 0
+testouterr_cmd bash {unload source/1.0} $ans_unload {}
+setenv_var MODULES_SOURCE_CACHE 1
+testouterr_cmd bash {unload source/1.0} $ans_unload {}
+
+unsetenv_loaded_module
+
+
+setenv_var TESTSUITE_SOURCE_CACHE rc1
+
+set ans_avail "$mp/source/.modulerc
+$mp/source/source_file
+$mp/source/.modulerc"
+set ts_avail "$mp:
+source/1.0
+source/2.0
+source/bar(@)
+source/foo(@)
+source/zz"
+
+setenv_var MODULES_SOURCE_CACHE 0
+testouterr_cmd bash {avail -t source} $ans_avail $ts_avail
+setenv_var MODULES_SOURCE_CACHE 1
+testouterr_cmd bash {avail -t source} $ans_avail $ts_avail
+
+
+set ans_load [list]
+lappend ans_load [list out $mp/source/.modulerc]
+lappend ans_load [list out $mp/source/source_file]
+lappend ans_load [list out $mp/source/.modulerc]
+lappend ans_load [list set __MODULES_LMALTNAME source/1.0&al|source/bar&al|source/foo]
+lappend ans_load [list set _LMFILES_ $mp/source/1.0]
+lappend ans_load [list set LOADEDMODULES source/1.0]
+
+setenv_var MODULES_SOURCE_CACHE 0
+testouterr_cmd bash {load source/1.0} $ans_load {}
+setenv_var MODULES_SOURCE_CACHE 1
+testouterr_cmd bash {load source/1.0} $ans_load {}
+
+
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom_error_trace "    invoked from within
+\"if \{\[info exists env(TESTSUITE_SOURCE_CACHE)\]\} \{
+    switch -- \$env(TESTSUITE_SOURCE_CACHE) \{
+        regular1 \{
+            setenv CURRENT_MODULEFILE...\""
+    set custom_error_trace_rc "    invoked from within
+\"if \{\[info exists env(TESTSUITE_SOURCE_CACHE)\]\} \{
+    switch -- \$env(TESTSUITE_SOURCE_CACHE) \{
+        rc1 \{
+            proc proc_pre \{args\} \{
+       ...\""
+} else {
+    set custom_error_trace {}
+    set custom_error_trace_rc {}
+}
+
+setenv_var TESTSUITE_SOURCE_CACHE unk1
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 31}]
+set ts_load [msg_load source/1.0 [msg_moderr {couldn't read file "../path/to/unk": no such file or directory} {source ../path/to/unk} $mp/source/1.0 $line_num {} {} {} $custom_error_trace]]
+
+setenv_var MODULES_SOURCE_CACHE 0
+testouterr_cmd bash {load source/1.0} ERR $ts_load
+setenv_var MODULES_SOURCE_CACHE 1
+set ts_load [msg_load source/1.0 [msg_moderr {couldn't open "../path/to/unk": no such file or directory} {source ../path/to/unk} $mp/source/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {load source/1.0} ERR $ts_load
+
+setenv_var TESTSUITE_SOURCE_CACHE err1
+
+if {[cmpversion $tclsh_version 8.6] > -1} {
+
+set custom_load "    (file \"$mp/source/source_file\" line 38)
+    invoked from within
+\"source \[file dirname \$ModulesCurrentModulefile\]/source_file\""
+set ts_load [msg_load source/1.0 [msg_moderr {msg} {error msg} $mp/source/1.0 27 {} {} {} $custom_load]]
+
+setenv_var MODULES_SOURCE_CACHE 0
+testouterr_cmd bash {load source/1.0} ERR $ts_load
+
+set custom_load "    invoked from within
+\"source \[file dirname \$ModulesCurrentModulefile\]/source_file\""
+set ts_load [msg_load source/1.0 [msg_moderr {msg} {error msg} $mp/source/1.0 27 {} {} {} $custom_load]]
+setenv_var MODULES_SOURCE_CACHE 1
+testouterr_cmd bash {load source/1.0} ERR $ts_load
+
+}
+
+setenv_var TESTSUITE_SOURCE_CACHE break1
+
+set ts_load [msg_load source/1.0 $err_evalabort]
+
+setenv_var MODULES_SOURCE_CACHE 0
+testouterr_cmd bash {load source/1.0} ERR $ts_load
+setenv_var MODULES_SOURCE_CACHE 1
+testouterr_cmd bash {load source/1.0} ERR $ts_load
+
+
+setenv_var TESTSUITE_SOURCE_CACHE unk_rc1
+
+set ts_avail "$mp:
+source/1.0
+source/2.0
+source/zz"
+
+setenv_var MODULES_SOURCE_CACHE 0
+testouterr_cmd bash {avail -t source} OK $ts_avail
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 18}]
+set ts_load [msg_moderr {couldn't read file "../path/to/unk": no such file or directory} {source ../path/to/unk} $mp/source/.modulerc $line_num {  } {} {} $custom_error_trace_rc]
+set ans_load [list]
+lappend ans_load [list set _LMFILES_ $mp/source/1.0]
+lappend ans_load [list set LOADEDMODULES source/1.0]
+lappend ans_load [list ERR]
+testouterr_cmd bash {load source/1.0} $ans_load $ts_load
+
+setenv_var MODULES_SOURCE_CACHE 1
+testouterr_cmd bash {avail -t source} OK $ts_avail
+
+set ts_load [msg_moderr {couldn't open "../path/to/unk": no such file or directory} {source ../path/to/unk} $mp/source/.modulerc $line_num {  } {} {} $custom_error_trace_rc]
+testouterr_cmd bash {load source/1.0} $ans_load $ts_load
+
+
+setenv_var TESTSUITE_SOURCE_CACHE err_rc1
+
+setenv_var MODULES_SOURCE_CACHE 0
+testouterr_cmd bash {avail -t source} OK $ts_avail
+
+if {[cmpversion $tclsh_version 8.6] > -1} {
+
+set custom_load "    (file \"$mp/source/source_file\" line 38)
+    invoked from within
+\"source \[file dirname \$ModulesCurrentModulefile\]/source_file\""
+set ts_load [msg_moderr {msg} {error msg} $mp/source/.modulerc 14 {  } {} {} $custom_load]
+testouterr_cmd bash {load source/1.0} $ans_load $ts_load
+}
+
+setenv_var MODULES_SOURCE_CACHE 1
+testouterr_cmd bash {avail -t source} OK $ts_avail
+
+if {[cmpversion $tclsh_version 8.6] > -1} {
+
+set custom_load "    invoked from within
+\"source \[file dirname \$ModulesCurrentModulefile\]/source_file\""
+set ts_load [msg_moderr {msg} {error msg} $mp/source/.modulerc 14 {  } {} {} $custom_load]
+testouterr_cmd bash {load source/1.0} $ans_load $ts_load
+
+}
+
+# cannot test access if cannot change file permission
+if {!$is_file_perms_editable} {
+    send_user "\tskipping access tests as file permissions cannot be changed\n"
+# cannot test access if superuser privileges are in use
+} elseif {$tcl_platform(user) eq "root"} {
+    send_user "\tskipping access tests as tests are run by superuser\n"
+# cannot test access if restricted file permissions have no effect
+} elseif {$is_locked_dir_file_readable && $is_locked_file_readable} {
+    send_user "\tskipping access tests as locked files or directories are still readable\n"
+} else {
+
+set hide_perms "ugo-rx"
+change_file_perms $mp/source/source_file $hide_perms
+
+setenv_var TESTSUITE_SOURCE_CACHE regular1
+
+setenv_var MODULES_SOURCE_CACHE 0
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 11}]
+set ts_load [msg_load source/1.0 [msg_moderr "couldn't read file \"$mp/source/source_file\": permission denied" {source [file dirname $ModulesCurrentModulefile]/source_file} $mp/source/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {load source/1.0} ERR $ts_load
+
+setenv_var MODULES_SOURCE_CACHE 1
+
+set ts_load [msg_load source/1.0 [msg_moderr "couldn't open \"$mp/source/source_file\": permission denied" {source [file dirname $ModulesCurrentModulefile]/source_file} $mp/source/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {load source/1.0} ERR $ts_load
+
+
+setenv_var TESTSUITE_SOURCE_CACHE rc1
+
+setenv_var MODULES_SOURCE_CACHE 0
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 9}]
+set ts_load [msg_moderr "couldn't read file \"$mp/source/source_file\": permission denied" {source [file dirname $ModulesCurrentModulefile]/source_file} $mp/source/.modulerc $line_num {  } {} {} $custom_error_trace_rc]
+set ans_load [list]
+lappend ans_load [list out $mp/source/.modulerc]
+lappend ans_load [list set _LMFILES_ $mp/source/1.0]
+lappend ans_load [list set LOADEDMODULES source/1.0]
+lappend ans_load [list ERR]
+testouterr_cmd bash {load source/1.0} $ans_load $ts_load
+
+setenv_var MODULES_SOURCE_CACHE 1
+
+set ts_load [msg_moderr "couldn't open \"$mp/source/source_file\": permission denied" {source [file dirname $ModulesCurrentModulefile]/source_file} $mp/source/.modulerc $line_num {  } {} {} $custom_error_trace_rc]
+testouterr_cmd bash {load source/1.0} $ans_load $ts_load
+
+restore_file_perms $mp/source/source_file
+
+}
+
+
+#
+#  Cleanup
+#
+
+reset_test_env

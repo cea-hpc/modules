@@ -1,0 +1,22 @@
+#%Module
+if {[info exists env(TESTSUITE_SOURCE_CACHE)]} {
+    switch -- $env(TESTSUITE_SOURCE_CACHE) {
+        rc1 {
+            proc proc_pre {args} {
+                return "bar[concat $args]"
+            }
+            puts [info script]
+            source [file dirname $ModulesCurrentModulefile]/source_file
+            module-alias source/[proc_from] source/1.0
+            puts [info script]
+        }
+        err_rc1 {
+            source [file dirname $ModulesCurrentModulefile]/source_file
+            module-alias source/bar source/1.0
+        }
+        unk_rc1 {
+            source ../path/to/unk
+            module-alias source/bar source/1.0
+        }
+    }
+}
