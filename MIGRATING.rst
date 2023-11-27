@@ -94,6 +94,59 @@ load evaluation.
 module :subcmd:`config` sub-command or at installation time with
 :instopt:`--enable-unique-name-loaded` configure script option.
 
+Cache sourced files
+-------------------
+
+You may have gathered common Tcl code files used by all your modulefiles in
+Tcl files that are sourced with :manpage:`source(n)` Tcl command. When loading
+multiple modulefiles at once, these sourced files may be read for every loaded
+modules, which may induce some I/O load.
+
+The configuration option :mconfig:`source_cache` is introduced to cache files
+evaluated through ``source`` Tcl command in order to only read them once
+during a :file:`modulecmd.tcl` execution. When this option is enabled, sourced
+file read also benefits from optimized I/O calls of Modules Tcl extension
+library.
+
+In the following example, 20 modules are loaded, each of them sources the same
+Tcl file:
+
+  .. parsed-literal::
+
+    :ps:`$` syscall_list=close,fcntl,ioctl,newfstatat,openat,read,readlink
+    :ps:`$` strace -f -e $syscall_list -c $MODULES_CMD bash load foo/20
+    % time     seconds  usecs/call     calls    errors syscall
+    ------ ----------- ----------- --------- --------- ----------------
+     31.48    0.000781           1       466           read
+     28.58    0.000709           5       131        16 openat
+     14.19    0.000352           2       142         3 newfstatat
+      9.71    0.000241           1       124           close
+      8.02    0.000199           0       212       211 readlink
+      4.55    0.000113           1        67        47 ioctl
+      3.47    0.000086           1        60           fcntl
+    ------ ----------- ----------- --------- --------- ----------------
+    100.00    0.002481           2      1202       277 total
+
+When sourced file is cached, it is only read once which saves a substantial
+amount of I/O operations:
+
+  .. parsed-literal::
+
+    :ps:`$` module config source_cache 1
+    :ps:`$` strace -f -e $syscall_list -c $MODULES_CMD bash load foo/20
+    % time     seconds  usecs/call     calls    errors syscall
+    ------ ----------- ----------- --------- --------- ----------------
+     34.41    0.000523           4       112        16 openat
+     27.37    0.000416           0       428           read
+     11.84    0.000180           1       122         3 newfstatat
+     11.51    0.000175           1       105           close
+      7.11    0.000108           2        47        27 ioctl
+      5.99    0.000091           0        92        91 readlink
+      1.78    0.000027           0        40           fcntl
+    ------ ----------- ----------- --------- --------- ----------------
+    100.00    0.001520           1       946       137 total
+
+
 v5.3
 ====
 
