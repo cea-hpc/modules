@@ -169,6 +169,14 @@ testouterr_cmd bash {switch foo/1.0 foo/2.0} $ans_load_switch_depre_continue $ts
 
 testouterr_cmd bash {switch --force foo/1.0 foo/2.0} $ans_load_switch_depre_forced $ts_load_switch_depre_forced
 
+setenv_var MODULES_ABORT_ON_ERROR switch
+
+set ts_load_switch_depre_abort [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_load_switch_depre_abort [msg_switch foo/1.0 foo/2.0 [err_depre err/1.0]]
+testouterr_cmd bash {switch foo/1.0 foo/2.0} ERR $ts_load_switch_depre_abort
+
+testouterr_cmd bash {switch --force foo/1.0 foo/2.0} $ans_load_switch_depre_forced $ts_load_switch_depre_forced
+
 
 #
 # switch load (load)
@@ -200,6 +208,12 @@ testouterr_cmd bash {switch --force foo/1.0 err/1.0} $ans_load_switch_forced $ts
 setenv_var MODULES_ABORT_ON_ERROR switch_unload
 
 testouterr_cmd bash {switch foo/1.0 err/1.0} $ans_load_switch_continue $ts_load_switch
+
+testouterr_cmd bash {switch --force foo/1.0 err/1.0} $ans_load_switch_forced $ts_load_switch_forced
+
+setenv_var MODULES_ABORT_ON_ERROR switch
+
+testouterr_cmd bash {switch foo/1.0 err/1.0} ERR $ts_load_switch
 
 testouterr_cmd bash {switch --force foo/1.0 err/1.0} $ans_load_switch_forced $ts_load_switch_forced
 
@@ -571,6 +585,12 @@ testouterr_cmd bash {switch foo/1.0 foo/2.0} ERR $ts_unload_switch_depre
 
 testouterr_cmd bash {switch --force foo/1.0 foo/2.0} $ans_unload_switch_depre_forced $ts_unload_switch_depre_forced
 
+setenv_var MODULES_ABORT_ON_ERROR switch
+
+testouterr_cmd bash {switch foo/1.0 foo/2.0} ERR $ts_unload_switch_depre
+
+testouterr_cmd bash {switch --force foo/1.0 foo/2.0} $ans_unload_switch_depre_forced $ts_unload_switch_depre_forced
+
 
 #
 # switch unload (unload)
@@ -598,6 +618,12 @@ set ts_unload_switch_forced [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp
 testouterr_cmd bash {switch --force err/1.0 foo/1.0} $ans_unload_switch_forced $ts_unload_switch_forced
 
 setenv_var MODULES_ABORT_ON_ERROR switch_unload
+
+testouterr_cmd bash {switch err/1.0 foo/1.0} ERR $ts_unload_switch
+
+testouterr_cmd bash {switch --force err/1.0 foo/1.0} $ans_unload_switch_forced $ts_unload_switch_forced
+
+setenv_var MODULES_ABORT_ON_ERROR switch
 
 testouterr_cmd bash {switch err/1.0 foo/1.0} ERR $ts_unload_switch
 
