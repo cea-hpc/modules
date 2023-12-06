@@ -115,6 +115,76 @@ set ans_load_already_loaded [list]
 lappend ans_load_already_loaded [list set _LMFILES_ $mp/setenv/1.0]
 lappend ans_load_already_loaded [list set LOADEDMODULES setenv/1.0]
 
+set ans_mfile_unload_bad [list]
+lappend ans_mfile_unload_bad [list set __MODULES_LMCONFLICT lerr/1.0&err/1.0]
+lappend ans_mfile_unload_bad [list set __MODULES_LMPREREQ lerr/1.0&foo/1.0]
+lappend ans_mfile_unload_bad [list set _LMFILES_ $mp/foo/1.0:$mp/lerr/1.0]
+lappend ans_mfile_unload_bad [list set LOADEDMODULES foo/1.0:lerr/1.0]
+lappend ans_mfile_unload_bad [list set __MODULES_LMTAG foo/1.0&auto-loaded]
+
+set ans_mfile_both_error [list]
+lappend ans_mfile_both_error [list set __MODULES_LMCONFLICT lerr/1.0&err/1.0]
+lappend ans_mfile_both_error [list set __MODULES_LMPREREQ lerr/1.0&err/1.1]
+lappend ans_mfile_both_error [list set LOADEDMODULES lerr/1.0]
+lappend ans_mfile_both_error [list set _LMFILES_ $mp/lerr/1.0]
+lappend ans_mfile_both_error [list ERR]
+
+set ans_mfile_depre_break [list]
+lappend ans_mfile_depre_break [list set TS1 {}]
+lappend ans_mfile_depre_break [list set __MODULES_LMCONFLICT lerr/1.0&foo/1.0]
+lappend ans_mfile_depre_break [list set TS2 {}]
+lappend ans_mfile_depre_break [list set LOADEDMODULES setenv/1.0:lerr/1.0]
+lappend ans_mfile_depre_break [list set _LMFILES_ $mp/setenv/1.0:$mp/lerr/1.0]
+lappend ans_mfile_depre_break [list set __MODULES_LMPREREQ lerr/1.0&setenv/1.0]
+lappend ans_mfile_depre_break [list set __MODULES_LMTAG setenv/1.0&auto-loaded]
+lappend ans_mfile_depre_break [list ERR]
+
+set ans_mfile_depun_break [list]
+lappend ans_mfile_depun_break [list set TS1 {}]
+lappend ans_mfile_depun_break [list set __MODULES_LMCONFLICT lerr/1.0&foo/1.0]
+lappend ans_mfile_depun_break [list set TS2 {}]
+lappend ans_mfile_depun_break [list set __MODULES_LMPREREQ err/1.0&foo:lerr/1.0&setenv/1.0]
+lappend ans_mfile_depun_break [list set _LMFILES_ $mp/setenv/1.0:$mp/err/1.0:$mp/lerr/1.0]
+lappend ans_mfile_depun_break [list set LOADEDMODULES setenv/1.0:err/1.0:lerr/1.0]
+lappend ans_mfile_depun_break [list set __MODULES_LMTAG setenv/1.0&auto-loaded]
+
+set ans_mfile_load_forbidden [list]
+lappend ans_mfile_load_forbidden [list set __MODULES_LMCONFLICT lerr/1.0&foo/1.0]
+lappend ans_mfile_load_forbidden [list set __MODULES_LMPREREQ lerr/1.0&err/1.0]
+lappend ans_mfile_load_forbidden [list set _LMFILES_ $mp/lerr/1.0]
+lappend ans_mfile_load_forbidden [list set LOADEDMODULES lerr/1.0]
+lappend ans_mfile_load_forbidden [list ERR]
+
+set ans_mfile_unload_sticky $ans_mfile_unload_bad
+
+set ans_mfile_unload_super_sticky [list]
+lappend ans_mfile_unload_super_sticky [list set __MODULES_LMCONFLICT lerr/1.0&err/1.0]
+lappend ans_mfile_unload_super_sticky [list set _LMFILES_ $mp/err/1.0:$mp/lerr/1.0]
+lappend ans_mfile_unload_super_sticky [list set LOADEDMODULES err/1.0:lerr/1.0]
+lappend ans_mfile_unload_super_sticky [list ERR]
+
+set ans_mfile_unload_not_loaded $ans_mfile_unload_bad
+
+set ans_mfile_load_already_loaded [list]
+lappend ans_mfile_load_already_loaded [list set __MODULES_LMCONFLICT lerr/1.0&err/1.0]
+lappend ans_mfile_load_already_loaded [list set __MODULES_LMPREREQ lerr/1.0&foo/1.0]
+lappend ans_mfile_load_already_loaded [list set _LMFILES_ $mp/foo/1.0:$mp/lerr/1.0]
+lappend ans_mfile_load_already_loaded [list set LOADEDMODULES foo/1.0:lerr/1.0]
+
+set ans_unload_mfile_error [list]
+lappend ans_unload_mfile_error [list unset __MODULES_LMCONFLICT]
+lappend ans_unload_mfile_error [list set LOADEDMODULES err/1.0]
+lappend ans_unload_mfile_error [list set _LMFILES_ $mp/err/1.0]
+lappend ans_unload_mfile_error [list unset __MODULES_LMPREREQ]
+lappend ans_unload_mfile_error [list ERR]
+
+set ans_unload_mfile_error_force [list]
+lappend ans_unload_mfile_error_force [list unset __MODULES_LMCONFLICT]
+lappend ans_unload_mfile_error_force [list unset __MODULES_LMPREREQ]
+lappend ans_unload_mfile_error_force [list unset _LMFILES_]
+lappend ans_unload_mfile_error_force [list unset LOADEDMODULES]
+lappend ans_unload_mfile_error_force [list unset __MODULES_LMTAG]
+
 
 if {[cmpversion $tclsh_version 8.6] == -1} {
     set custom_error_trace "    invoked from within
@@ -1465,6 +1535,357 @@ setenv_loaded_module [list foo/1.0 setenv/1.0] [list $mp/foo/1.0 $mp/setenv/1.0]
 
 # switch-on module already loaded
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} $ans_load_already_loaded {}
+
+
+#
+# module switch in modulefile, abort behavior for unload phase (no change on modulefile cmd)
+#
+
+setenv_var MODULES_ABORT_ON_ERROR ml:reload:switch_unload
+
+# bad code on unloading module
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_unload_bad
+
+# FIXME: switched-off message seems not appropriate when switch is run from modulefile
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 145}]
+set ts_unload_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+append ts_unload_bad \n\n[msg_load lerr/1.0 [err_swoff err/1.0] [err_conun err/1.0]]
+testouterr_cmd bash {load lerr/1.0} ERR $ts_unload_bad
+
+set ts_unload_bad_force [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+append ts_unload_bad_force \n\n[msg_top_load lerr/1.0 err/1.0 foo/1.0 {}]
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_unload_bad $ts_unload_bad_force
+
+
+# error on unloading and loading modules
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_both_error
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 17}]
+set ts_both_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+append ts_both_error \n\n[msg_load lerr/1.0 [err_swoff err/1.0] [err_conun err/1.0]]
+testouterr_cmd bash {load lerr/1.0} ERR $ts_both_error
+
+# FIXME: switched-on message seems not appropriate when switch is run from modulefile
+set ts_both_error_force [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+append ts_both_error_force \n\n[msg_load err/1.1 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+append ts_both_error_force \n\n[msg_top_load lerr/1.0 err/1.0 {} {} [err_swon err/1.1] [err_reqlof err/1.1]]
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_both_error $ts_both_error_force
+
+
+# dependent reload module breaks on unload and load
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_depre_break
+setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+set ts_depre_break [msg_unload err/1.0 $err_evalabort]
+append ts_depre_break \n\n[msg_load lerr/1.0 [err_depun err/1.0] [err_conun foo/1.0]]
+testouterr_cmd bash {load lerr/1.0} ERR $ts_depre_break
+
+set ts_depre_break_force [msg_unload err/1.0 $warn_evalabort]
+append ts_depre_break_force \n\n[msg_load err/1.0 $err_evalabort]
+append ts_depre_break_force \n\n[msg_top_load lerr/1.0 foo/1.0 setenv/1.0 {err/1.0 {}} [err_depref err/1.0]]
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_depre_break $ts_depre_break_force
+
+
+# dependent unload module breaks on unload
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_depun_break
+setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&foo
+
+set ts_depun_break [msg_unload err/1.0 $err_evalabort]
+append ts_depun_break \n\n[msg_load lerr/1.0 [err_depun err/1.0] [err_conun foo/1.0]]
+testouterr_cmd bash {load lerr/1.0} ERR $ts_depun_break
+
+set ts_depun_break_noauto [msg_unload foo/1.0 [err_prerequn err/1.0]]
+append ts_depun_break_noauto \n\n[msg_load lerr/1.0 [err_swoff foo/1.0] [err_conun foo/1.0]]
+testouterr_cmd bash {load --no-auto lerr/1.0} ERR $ts_depun_break_noauto
+
+set ts_depun_break_force [msg_unload err/1.0 $warn_evalabort]
+append ts_depun_break_force \n\n[msg_load err/1.0 [err_reqmisf foo]]
+append ts_depun_break_force \n\n[msg_top_load lerr/1.0 foo/1.0 setenv/1.0 err/1.0]
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_depun_break $ts_depun_break_force
+
+
+# loading module forbidden
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_forbidden
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+unsetenv_var __MODULES_LMPREREQ
+
+# FIXME: erroneous double access error report and switch message block report
+set ts_load_forbidden [msg_switch foo/1.0 err/1.0 [err_accessdenied err/1.0] [err_accessdenied err/1.0]]
+append ts_load_forbidden \n\n[msg_load lerr/1.0 [err_reqlo err/1.0]]
+testouterr_cmd bash {load lerr/1.0} ERR $ts_load_forbidden
+
+# FIXME: erroneous double access error report and switch message block report
+set ts_load_forbidden_force [msg_switch foo/1.0 err/1.0 [err_accessdenied err/1.0] [err_accessdenied err/1.0]]
+append ts_load_forbidden_force \n\n[msg_top_load lerr/1.0 foo/1.0 {} {} [err_reqlof err/1.0]]
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_load_forbidden $ts_load_forbidden_force
+
+
+# unloading module is sticky
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_sticky
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+setenv_var __MODULES_LMTAG err/1.0&sticky
+
+set ts_unload_sticky [msg_load lerr/1.0 $err_stickyunload [err_conun err/1.0]]
+testouterr_cmd bash {load lerr/1.0} ERR $ts_unload_sticky
+
+set ts_unload_sticky_force [msg_unload {err/1.0 <S>} $err_stickyunloadf]
+append ts_unload_sticky_force \n\n[msg_top_load lerr/1.0 err/1.0 foo/1.0 {}]
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_unload_sticky $ts_unload_sticky_force
+
+
+# unloading module is super-sticky
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_super-sticky
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+setenv_var __MODULES_LMTAG err/1.0&super-sticky
+
+set ts_unload_super_sticky [msg_load lerr/1.0 $err_superstickyunload [err_conun err/1.0]]
+testouterr_cmd bash {load lerr/1.0} ERR $ts_unload_super_sticky
+
+set ts_unload_super_sticky_force [msg_switch {err/1.0 <sS>} foo/1.0 [err_conlof err/1.0]]
+append ts_unload_super_sticky_force \n\n[msg_load lerr/1.0 $err_superstickyunload [err_conunf err/1.0]]
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_unload_super_sticky $ts_unload_super_sticky_force
+
+
+# unloading module not loaded
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_not_loaded
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMTAG
+
+set ts_unload_not_loaded [msg_top_load lerr/1.0 {} foo/1.0 {}]
+testouterr_cmd bash {load lerr/1.0} $ans_mfile_unload_not_loaded $ts_unload_not_loaded
+
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_unload_not_loaded $ts_unload_not_loaded
+
+
+# loading module already loaded
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_already_loaded
+setenv_loaded_module [list err/1.0 foo/1.0] [list $mp/err/1.0 $mp/foo/1.0]
+
+set ts_load_already_loaded [msg_top_load lerr/1.0 err/1.0 {} {}]
+testouterr_cmd bash {load lerr/1.0} $ans_mfile_load_already_loaded $ts_load_already_loaded
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_load_already_loaded $ts_load_already_loaded
+
+
+# error during unload of switch-on module when unloading modulefile that "module switch"
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_switch_error
+setenv_loaded_module [list err/1.0 lerr/1.0] [list $mp/err/1.0 $mp/lerr/1.0]
+setenv_var __MODULES_LMPREREQ lerr/1.0&err/1.0
+setenv_var __MODULES_LMCONFLICT lerr/1.0&foo/1.0
+setenv_var __MODULES_LMTAG err/1.0&auto-loaded
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 140}]
+set ts_unload_mfile_error [msg_unload {err/1.0 <aL>} [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+append ts_unload_mfile_error \n\n[msg_unload lerr/1.0 [err_urequn err/1.0]]
+testouterr_cmd bash {unload lerr/1.0} $ans_unload_mfile_error $ts_unload_mfile_error
+
+set ts_unload_mfile_error_force [msg_unload {err/1.0 <aL>} [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+append ts_unload_mfile_error_force \n\n[msg_top_unload lerr/1.0 {} err/1.0 {}]
+testouterr_cmd bash {unload --force lerr/1.0} $ans_unload_mfile_error_force $ts_unload_mfile_error_force
+
+unsetenv_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMTAG
+
+
+#
+# module switch in modulefile, abort behavior for both phases (no change on modulefile cmd)
+#
+
+setenv_var MODULES_ABORT_ON_ERROR ml:reload:switch
+
+# bad code on unloading module
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_unload_bad
+
+testouterr_cmd bash {load lerr/1.0} ERR $ts_unload_bad
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_unload_bad $ts_unload_bad_force
+
+
+# error on unloading and loading modules
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_both_error
+
+testouterr_cmd bash {load lerr/1.0} ERR $ts_both_error
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_both_error $ts_both_error_force
+
+
+# dependent reload module breaks on unload and load
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_depre_break
+setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+testouterr_cmd bash {load lerr/1.0} ERR $ts_depre_break
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_depre_break $ts_depre_break_force
+
+
+# dependent unload module breaks on unload
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_depun_break
+setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&foo
+
+testouterr_cmd bash {load lerr/1.0} ERR $ts_depun_break
+testouterr_cmd bash {load --no-auto lerr/1.0} ERR $ts_depun_break_noauto
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_depun_break $ts_depun_break_force
+
+
+# loading module forbidden
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_forbidden
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+unsetenv_var __MODULES_LMPREREQ
+
+testouterr_cmd bash {load lerr/1.0} ERR $ts_load_forbidden
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_load_forbidden $ts_load_forbidden_force
+
+
+# unloading module is sticky
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_sticky
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+setenv_var __MODULES_LMTAG err/1.0&sticky
+
+testouterr_cmd bash {load lerr/1.0} ERR $ts_unload_sticky
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_unload_sticky $ts_unload_sticky_force
+
+
+# unloading module is super-sticky
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_super-sticky
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+setenv_var __MODULES_LMTAG err/1.0&super-sticky
+
+testouterr_cmd bash {load lerr/1.0} ERR $ts_unload_super_sticky
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_unload_super_sticky $ts_unload_super_sticky_force
+
+
+# unloading module not loaded
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_not_loaded
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMTAG
+
+testouterr_cmd bash {load lerr/1.0} $ans_mfile_unload_not_loaded $ts_unload_not_loaded
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_unload_not_loaded $ts_unload_not_loaded
+
+
+# loading module already loaded
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_already_loaded
+setenv_loaded_module [list err/1.0 foo/1.0] [list $mp/err/1.0 $mp/foo/1.0]
+
+testouterr_cmd bash {load lerr/1.0} $ans_mfile_load_already_loaded $ts_load_already_loaded
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_load_already_loaded $ts_load_already_loaded
+
+
+# error during unload of switch-on module when unloading modulefile that "module switch"
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_switch_error
+setenv_loaded_module [list err/1.0 lerr/1.0] [list $mp/err/1.0 $mp/lerr/1.0]
+setenv_var __MODULES_LMPREREQ lerr/1.0&err/1.0
+setenv_var __MODULES_LMCONFLICT lerr/1.0&foo/1.0
+setenv_var __MODULES_LMTAG err/1.0&auto-loaded
+
+testouterr_cmd bash {unload lerr/1.0} $ans_unload_mfile_error $ts_unload_mfile_error
+testouterr_cmd bash {unload --force lerr/1.0} $ans_unload_mfile_error_force $ts_unload_mfile_error_force
+
+unsetenv_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMTAG
+
+
+#
+# module switch in modulefile, continue behavior (no change on modulefile cmd)
+#
+
+setenv_var MODULES_ABORT_ON_ERROR ml:reload
+
+# bad code on unloading module
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_unload_bad
+
+testouterr_cmd bash {load lerr/1.0} ERR $ts_unload_bad
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_unload_bad $ts_unload_bad_force
+
+
+# error on unloading and loading modules
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_both_error
+
+testouterr_cmd bash {load lerr/1.0} ERR $ts_both_error
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_both_error $ts_both_error_force
+
+
+# dependent reload module breaks on unload and load
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_depre_break
+setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+testouterr_cmd bash {load lerr/1.0} ERR $ts_depre_break
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_depre_break $ts_depre_break_force
+
+
+# dependent unload module breaks on unload
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_depun_break
+setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&foo
+
+testouterr_cmd bash {load lerr/1.0} ERR $ts_depun_break
+testouterr_cmd bash {load --no-auto lerr/1.0} ERR $ts_depun_break_noauto
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_depun_break $ts_depun_break_force
+
+
+# loading module forbidden
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_forbidden
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+unsetenv_var __MODULES_LMPREREQ
+
+testouterr_cmd bash {load lerr/1.0} ERR $ts_load_forbidden
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_load_forbidden $ts_load_forbidden_force
+
+
+# unloading module is sticky
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_sticky
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+setenv_var __MODULES_LMTAG err/1.0&sticky
+
+testouterr_cmd bash {load lerr/1.0} ERR $ts_unload_sticky
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_unload_sticky $ts_unload_sticky_force
+
+
+# unloading module is super-sticky
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_super-sticky
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+setenv_var __MODULES_LMTAG err/1.0&super-sticky
+
+testouterr_cmd bash {load lerr/1.0} ERR $ts_unload_super_sticky
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_unload_super_sticky $ts_unload_super_sticky_force
+
+
+# unloading module not loaded
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_not_loaded
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMTAG
+
+testouterr_cmd bash {load lerr/1.0} $ans_mfile_unload_not_loaded $ts_unload_not_loaded
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_unload_not_loaded $ts_unload_not_loaded
+
+
+# loading module already loaded
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_already_loaded
+setenv_loaded_module [list err/1.0 foo/1.0] [list $mp/err/1.0 $mp/foo/1.0]
+
+testouterr_cmd bash {load lerr/1.0} $ans_mfile_load_already_loaded $ts_load_already_loaded
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_load_already_loaded $ts_load_already_loaded
+
+
+# error during unload of switch-on module when unloading modulefile that "module switch"
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_switch_error
+setenv_loaded_module [list err/1.0 lerr/1.0] [list $mp/err/1.0 $mp/lerr/1.0]
+setenv_var __MODULES_LMPREREQ lerr/1.0&err/1.0
+setenv_var __MODULES_LMCONFLICT lerr/1.0&foo/1.0
+setenv_var __MODULES_LMTAG err/1.0&auto-loaded
+
+testouterr_cmd bash {unload lerr/1.0} $ans_unload_mfile_error $ts_unload_mfile_error
+testouterr_cmd bash {unload --force lerr/1.0} $ans_unload_mfile_error_force $ts_unload_mfile_error_force
+
+unsetenv_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMTAG
 
 
 #
