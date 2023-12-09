@@ -146,6 +146,81 @@ amount of I/O operations:
     ------ ----------- ----------- --------- --------- ----------------
     100.00    0.001520           1       946       137 total
 
+Abort on error
+--------------
+
+When an error occurs during the evaluation of a modulefile, several module
+sub-commands, like :subcmd:`load` or :subcmd:`unload`, continue their
+processing. It means these sub-commands do not stop if they have multiple
+modulefiles to evaluate. This is named the *continue on error* behavior.
+
+The :mconfig:`abort_on_error` configuration option is introduced to abort, for
+the sub-commands listed in its value, the evaluation of multiple modulefiles
+if one fails to evaluate.
+
+The *abort on error* behavior is applied by default on :command:`ml` command,
+:subcmd:`reload` sub-command and the unload phase of :subcmd:`switch`
+sub-command. This behavior may also be turned on for :subcmd:`load`,
+:subcmd:`mod-to-sh`, :subcmd:`purge`, :subcmd:`switch`, :subcmd:`try-load` and
+:subcmd:`unload` sub-commands. If a command is removed from
+:mconfig:`abort_on_error`'s value, it applies the *continue on error*
+behavior.
+
+In the following example, *abort on error* behavior is applied to
+:subcmd:`load` sub-command to stop evaluation instead of loading the remaining
+modulefile in the sequence if first modulefile fails to evaluate.
+
+  .. parsed-literal::
+
+    :ps:`$` module load foo bar
+    Loading :sgrhi:`foo/1`
+      :sgrer:`ERROR`: Module evaluation aborted
+    :ps:`$` module list
+    Currently Loaded Modulefiles:
+     1) bar/1
+    :ps:`$` module purge
+    :ps:`$` module config abort_on_error +load
+    :ps:`$` module load foo bar
+    Loading :sgrhi:`foo/1`
+      :sgrer:`ERROR`: Module evaluation aborted
+    :ps:`$` module list
+    No Modulefiles Currently Loaded.
+
+When enabled for :subcmd:`switch` sub-command, whole action aborts if
+switched-on modulefile fails to load. By default, :subcmd:`switch` only aborts
+if switched-off modulefile fails to unload.
+
+  .. parsed-literal::
+
+    :ps:`$` module load bar
+    :ps:`$` module switch bar foo
+    Loading :sgrhi:`foo/1`
+      :sgrer:`ERROR`: Module evaluation aborted
+
+    Switching from :sgrhi:`bar/1` to :sgrhi:`foo/1`
+      :sgrwa:`WARNING`: Load of switched-on foo/1 failed
+    :ps:`$` module list
+    No Modulefiles Currently Loaded.
+    :ps:`$` module load bar
+    :ps:`$` module config abort_on_error +switch
+    :ps:`$` module switch bar foo
+    Loading :sgrhi:`foo/1`
+      :sgrer:`ERROR`: Module evaluation aborted
+
+    Switching from :sgrhi:`bar/1` to :sgrhi:`foo/1`
+      :sgrwa:`WARNING`: Load of switched-on foo/1 failed
+    :ps:`$` module list
+    Currently Loaded Modulefiles:
+     1) bar/1
+
+:mconfig:`abort_on_error` configure option has no impact on :mfcmd:`module`
+commands defined in modulefiles. When :option:`--force` option is set,
+sub-commands apply the *continue on error* behavior.
+
+When :instopt:`--enable-new-features` installation option is set, the
+*abort on error* behavior is also enabled on :subcmd:`load` and
+:subcmd:`switch` sub-commands.
+
 
 v5.3
 ====
