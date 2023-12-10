@@ -120,6 +120,9 @@ Modules 5.4.0 (not yet released)
   to unset is not defined.
 * Adapt function unset shell code for *sh*-kind shells to avoid errors when
   function to unset is not defined.
+* No output of *unload of switched-off failed* and *load of switched-on
+  failed* error messages when :mfcmd:`module switch<module>` command is run
+  from a modulefile.
 
 
 .. _5.3 release notes:
