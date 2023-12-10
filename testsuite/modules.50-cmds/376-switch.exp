@@ -90,7 +90,7 @@ testouterr_cmd_re sh {load --no-auto swc} $ans [join $tserr \n]
 # conflict against switched-on module set
 setenv_loaded_module [list swd] [list $mp/swd]
 setenv_var __MODULES_LMCONFLICT swd&swb
-set tserr [list {load swc} {load swb} \n[msg_load swb [err_conflict swd]] \n[msg_load swc [err_swon swb] [err_reqlo swb]]]
+set tserr [list {load swc} {load swb} \n[msg_load swb [err_conflict swd]] \n[msg_load swc [err_reqlo swb]]]
 testouterr_cmd_re sh {load --auto swc} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto swc} ERR [join $tserr \n]
 
@@ -119,7 +119,7 @@ lappend ans [list set __MODULES_LMTAG swb&auto-loaded]
 lappend ans [list ERR]
 set tserr [list {load swc} {unload swe} {unload swa} {load swb} {load swe} \n[msg_load swe [err_reqmis swa]] \n[msg_top_load swc [list swa] swb [list [list swe] {}] [err_depref swe]]]
 testouterr_cmd_re sh {load --auto swc} $ans [join $tserr \n]
-set tserr [list {load swc} \n[msg_unload swa [err_prerequn swe]] \n[msg_load swc [err_swoff swa] [err_conun swa]]]
+set tserr [list {load swc} \n[msg_unload swa [err_prerequn swe]] \n[msg_load swc [err_conun swa]]]
 testouterr_cmd_re sh {load --no-auto swc} ERR [join $tserr \n]
 
 # force load
@@ -146,9 +146,9 @@ setenv_loaded_module [list swd swa swe] [list $mp/swd $mp/swa $mp/swe]
 setenv_var __MODULES_LMCONFLICT swd&swb
 setenv_var __MODULES_LMPREREQ swe&swa
 
-set tserr [list {load swc} {unload swe} {unload swa} {load swb} \n[msg_load swb [err_conflict swd]]\n {load swe} \n[msg_load swe [err_reqmis swa]] \n[msg_load swc [err_swon swb] [err_depref swe] [err_reqlo swb]]]
+set tserr [list {load swc} {unload swe} {unload swa} {load swb} \n[msg_load swb [err_conflict swd]]\n {load swe} \n[msg_load swe [err_reqmis swa]] \n[msg_load swc [err_depref swe] [err_reqlo swb]]]
 testouterr_cmd_re sh {load --auto swc} ERR [join $tserr \n]
-set tserr [list {load swc} \n[msg_unload swa [err_prerequn swe]] \n[msg_load swc [err_swoff swa] [err_conun swa]]]
+set tserr [list {load swc} \n[msg_unload swa [err_prerequn swe]] \n[msg_load swc [err_conun swa]]]
 testouterr_cmd_re sh {load --no-auto swc} ERR [join $tserr \n]
 
 # force load
@@ -469,7 +469,8 @@ lappend ans [list set _LMFILES_ $mp/swg/1:$mp/swh]
 lappend ans [list ERR]
 # there is an attempt to reload swg/2 as the load phase of switch targets swg default version only
 # not 'any existing mod version'
-set tserr [list {load swh} {unload swg/2} {load swg/2} \n[msg_load swg/2 [err_conlo swg]] \n[msg_top_load swh swg/2 {} {} [err_swon swg/2]]]
+# FIXME: missing 'Load of requirement swg/2 failed' error message
+set tserr [list {load swh} {unload swg/2} {load swg/2} \n[msg_load swg/2 [err_conlo swg]] \n[msg_top_load swh swg/2 {} {}]]
 testouterr_cmd_re sh {load --no-auto swh} $ans [join $tserr \n]
 
 
@@ -592,7 +593,7 @@ testouterr_cmd_re sh {switch --no-auto swh swc} $ans [join $tserr \n]
 # switched-off module breaks when unloaded
 setenv_loaded_module [list rq] [list $mp/rq]
 
-set tserr [list {load swi} {unload rq} \n[msg_unload rq $err_evalabort] \n[msg_load swi [err_swoff rq] [err_conun rq]]]
+set tserr [list {load swi} {unload rq} \n[msg_unload rq $err_evalabort] \n[msg_load swi [err_conun rq]]]
 testouterr_cmd_re sh {load --auto swi} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto swi} ERR [join $tserr \n]
 
@@ -600,7 +601,7 @@ testouterr_cmd_re sh {load --no-auto swi} ERR [join $tserr \n]
 # switched-on module breaks when loaded
 unsetenv_loaded_module
 
-set tserr [list {load swj} {load ra} \n[msg_load ra $err_evalabort] \n[msg_load swj [err_swon ra] [err_reqlo ra]]]
+set tserr [list {load swj} {load ra} \n[msg_load ra $err_evalabort] \n[msg_load swj [err_reqlo ra]]]
 testouterr_cmd_re sh {load --auto swj} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto swj} ERR [join $tserr \n]
 
@@ -630,7 +631,7 @@ testouterr_cmd_re sh {unload --no-auto swj} $ans [join $tserr \n]
 # switched-off module breaks when unloaded and switched-on module breaks when loaded
 setenv_loaded_module [list rq] [list $mp/rq]
 
-set tserr [list {load swk} {unload rq} \n[msg_unload rq $err_evalabort] \n[msg_load swk [err_swoff rq] [err_conun rq]]]
+set tserr [list {load swk} {unload rq} \n[msg_unload rq $err_evalabort] \n[msg_load swk [err_conun rq]]]
 testouterr_cmd_re sh {load --auto swk} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto swk} ERR [join $tserr \n]
 
@@ -638,7 +639,7 @@ testouterr_cmd_re sh {load --no-auto swk} ERR [join $tserr \n]
 # switched-off module produces a module error when unloaded
 setenv_loaded_module [list swn] [list $mp/swn]
 
-set tserr [escre [list {load swl} {unload swn} \n[msg_unload swn [msg_moderr "$msg_invcmdname \"bad\"" {bad} $mp/swn 3]] \n[msg_load swl [err_swoff swn] [err_conun swn]]]]
+set tserr [escre [list {load swl} {unload swn} \n[msg_unload swn [msg_moderr "$msg_invcmdname \"bad\"" {bad} $mp/swn 3]] \n[msg_load swl [err_conun swn]]]]
 testouterr_cmd_re sh {load --auto swl} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto swl} ERR [join $tserr \n]
 
@@ -646,7 +647,7 @@ testouterr_cmd_re sh {load --no-auto swl} ERR [join $tserr \n]
 # switched-on module produces a module error when loaded
 unsetenv_loaded_module
 
-set tserr [escre [list {load swm} {load swn} \n[msg_load swn [msg_moderr "$msg_invcmdname \"bad\"" {bad} $mp/swn 3]] \n[msg_load swm [err_swon swn] [err_reqlo swn]]]]
+set tserr [escre [list {load swm} {load swn} \n[msg_load swn [msg_moderr "$msg_invcmdname \"bad\"" {bad} $mp/swn 3]] \n[msg_load swm [err_reqlo swn]]]]
 testouterr_cmd_re sh {load --auto swm} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto swm} ERR [join $tserr \n]
 

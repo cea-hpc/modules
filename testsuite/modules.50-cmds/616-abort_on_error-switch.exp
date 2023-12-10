@@ -1547,10 +1547,9 @@ setenv_var MODULES_ABORT_ON_ERROR ml:reload:switch_unload
 setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
 setenv_var TESTSUITE_ABORT_ON_ERROR switch_unload_bad
 
-# FIXME: switched-off message seems not appropriate when switch is run from modulefile
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 145}]
 set ts_unload_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
-append ts_unload_bad \n\n[msg_load lerr/1.0 [err_swoff err/1.0] [err_conun err/1.0]]
+append ts_unload_bad \n\n[msg_load lerr/1.0 [err_conun err/1.0]]
 testouterr_cmd bash {load lerr/1.0} ERR $ts_unload_bad
 
 set ts_unload_bad_force [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
@@ -1563,13 +1562,12 @@ setenv_var TESTSUITE_ABORT_ON_ERROR switch_both_error
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 17}]
 set ts_both_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
-append ts_both_error \n\n[msg_load lerr/1.0 [err_swoff err/1.0] [err_conun err/1.0]]
+append ts_both_error \n\n[msg_load lerr/1.0 [err_conun err/1.0]]
 testouterr_cmd bash {load lerr/1.0} ERR $ts_both_error
 
-# FIXME: switched-on message seems not appropriate when switch is run from modulefile
 set ts_both_error_force [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
 append ts_both_error_force \n\n[msg_load err/1.1 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
-append ts_both_error_force \n\n[msg_top_load lerr/1.0 err/1.0 {} {} [err_swon err/1.1] [err_reqlof err/1.1]]
+append ts_both_error_force \n\n[msg_top_load lerr/1.0 err/1.0 {} {} [err_reqlof err/1.1]]
 testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_both_error $ts_both_error_force
 
 
@@ -1598,7 +1596,7 @@ append ts_depun_break \n\n[msg_load lerr/1.0 [err_depun err/1.0] [err_conun foo/
 testouterr_cmd bash {load lerr/1.0} ERR $ts_depun_break
 
 set ts_depun_break_noauto [msg_unload foo/1.0 [err_prerequn err/1.0]]
-append ts_depun_break_noauto \n\n[msg_load lerr/1.0 [err_swoff foo/1.0] [err_conun foo/1.0]]
+append ts_depun_break_noauto \n\n[msg_load lerr/1.0 [err_conun foo/1.0]]
 testouterr_cmd bash {load --no-auto lerr/1.0} ERR $ts_depun_break_noauto
 
 set ts_depun_break_force [msg_unload err/1.0 $warn_evalabort]
