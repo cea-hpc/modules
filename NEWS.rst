@@ -123,6 +123,8 @@ Modules 5.4.0 (not yet released)
 * No output of *unload of switched-off failed* and *load of switched-on
   failed* error messages when :mfcmd:`module switch<module>` command is run
   from a modulefile.
+* No *Switching* block message report when :mfcmd:`module switch<module>`
+  command is run from a modulefile.
 
 
 .. _5.3 release notes:

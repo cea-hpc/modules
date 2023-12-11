@@ -502,7 +502,9 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
    # record sumup messages from underlying unload/load actions under the same
    # switch message record id to report (evaluation messages still go under
    # their respective unload/load block
-   pushMsgRecordId switch-$old-$new-[depthState modulename]
+   if {$uasked} {
+      pushMsgRecordId switch-$old-$new-[depthState modulename]
+   }
    if {$inhibit_req_rec} {
       lappendState inhibit_req_record [currentState evalid]
    }
@@ -594,8 +596,10 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
                   $depreextratag {Reload of dependent _MOD_ failed} depre
             }
 
-            # report a summary of automated evaluations if no error
-            reportModuleEval
+            if {$uasked} {
+               # report a summary of automated evaluations if no error
+               reportModuleEval
+            }
          } errMsg]]} {
             reportError $errMsg
             restoreSettings
@@ -611,10 +615,12 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
    # report all recorded sumup messages for this evaluation unless both old
    # and new modules are set hidden, old was auto loaded and this switch is
    # done by a modfile
-   reportMsgRecord "Switching from [getModuleDesignation $oldmsgrecid {} 2]\
-      to [getModuleDesignation $newmsgrecid $new 2]" [expr {$oldhidden &&\
-      !$olduasked && $newhidden && !$uasked}]
-   popMsgRecordId
+   if {$uasked} {
+      reportMsgRecord "Switching from [getModuleDesignation $oldmsgrecid {}\
+         2] to [getModuleDesignation $newmsgrecid $new 2]" [expr {$oldhidden\
+         && !$olduasked && $newhidden && !$uasked}]
+      popMsgRecordId
+   }
    if {$inhibit_req_rec} {
       lpopState inhibit_req_record
    }
@@ -1107,7 +1113,7 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
       if {$context eq {swload}} {
          set swprocessing 1
          # context is ReqLo if switch is called from a modulefile
-         if {![isMsgRecordIdTop]} {
+         if {![isTopEvaluation]} {
             set context reqlo
          }
          upvar newhidden hidden
@@ -1490,7 +1496,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       if {$context eq {swunload}} {
          set swprocessing 1
          # context is ConUn if switch is called from a modulefile
-         if {![isMsgRecordIdTop]} {
+         if {![isTopEvaluation]} {
             set context conun
          }
          upvar oldhidden hidden
