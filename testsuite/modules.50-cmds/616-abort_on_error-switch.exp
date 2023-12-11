@@ -1611,13 +1611,11 @@ setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
 unsetenv_var __MODULES_LMPREREQ
 
 # FIXME: erroneous double access error report and switch message block report
-set ts_load_forbidden [msg_switch foo/1.0 err/1.0 [err_accessdenied err/1.0] [err_accessdenied err/1.0]]
-append ts_load_forbidden \n\n[msg_load lerr/1.0 [err_reqlo err/1.0]]
+set ts_load_forbidden [msg_load lerr/1.0 [err_accessdenied err/1.0] [err_accessdenied err/1.0] [err_reqlo err/1.0]]
 testouterr_cmd bash {load lerr/1.0} ERR $ts_load_forbidden
 
 # FIXME: erroneous double access error report and switch message block report
-set ts_load_forbidden_force [msg_switch foo/1.0 err/1.0 [err_accessdenied err/1.0] [err_accessdenied err/1.0]]
-append ts_load_forbidden_force \n\n[msg_top_load lerr/1.0 foo/1.0 {} {} [err_reqlof err/1.0]]
+set ts_load_forbidden_force [msg_top_load lerr/1.0 foo/1.0 {} {} [err_accessdenied err/1.0] [err_accessdenied err/1.0] [err_reqlof err/1.0]]
 testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_load_forbidden $ts_load_forbidden_force
 
 
@@ -1642,8 +1640,7 @@ setenv_var __MODULES_LMTAG err/1.0&super-sticky
 set ts_unload_super_sticky [msg_load lerr/1.0 $err_superstickyunload [err_conun err/1.0]]
 testouterr_cmd bash {load lerr/1.0} ERR $ts_unload_super_sticky
 
-set ts_unload_super_sticky_force [msg_switch {err/1.0 <sS>} foo/1.0 [err_conlof err/1.0]]
-append ts_unload_super_sticky_force \n\n[msg_load lerr/1.0 $err_superstickyunload [err_conunf err/1.0]]
+set ts_unload_super_sticky_force [msg_load lerr/1.0 $err_superstickyunload [err_conunf err/1.0]]
 testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_unload_super_sticky $ts_unload_super_sticky_force
 
 
