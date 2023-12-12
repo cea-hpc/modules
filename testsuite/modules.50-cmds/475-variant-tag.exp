@@ -652,13 +652,16 @@ set tserr [msg_unload "variant/8.0{bar=1:foo=val1} <S>" $err_stickyunloadf]
 testouterr_cmd sh {unload -f variant@8.0} $ans $tserr
 
 # switch to a sticky variant
-set tserr [msg_switch "variant/8.0{bar=1:foo=val1} <S>" variant/8.0{bar=2:foo=val1} $err_stickyunload]
+set tserr [msg_unload "variant/8.0{bar=1:foo=val1} <S>" $err_stickyunload]\n\n
+append tserr [msg_switch "variant/8.0{bar=1:foo=val1} <S>" variant/8.0{bar=2:foo=val1} [err_swoff variant/8.0{bar=1:foo=val1}]]
 testouterr_cmd sh {switch variant@8.0 foo=val1 bar=2} ERR $tserr
-set tserr [msg_switch "variant/8.0{bar=1:foo=val1} <S>" variant/8.0{foo=val1} $err_stickyunload]
+set tserr [msg_unload "variant/8.0{bar=1:foo=val1} <S>" $err_stickyunload]\n\n
+append tserr [msg_switch "variant/8.0{bar=1:foo=val1} <S>" variant/8.0{foo=val1} [err_swoff variant/8.0{bar=1:foo=val1}]]
 testouterr_cmd sh {switch variant@8.0 foo=val1} ERR $tserr
 
 # switch to a non-sticky variant
-set tserr [msg_switch "variant/8.0{bar=1:foo=val1} <S>" variant/8.0{foo=val2} $err_stickyunload]
+set tserr [msg_unload "variant/8.0{bar=1:foo=val1} <S>" $err_stickyunload]\n\n
+append tserr [msg_switch "variant/8.0{bar=1:foo=val1} <S>" variant/8.0{foo=val2} [err_swoff variant/8.0{bar=1:foo=val1}]]
 testouterr_cmd sh {switch variant@8.0 foo=val2} ERR $tserr
 
 # reload
@@ -736,13 +739,16 @@ set tserr [msg_unload "variant/8.0{bar=2:foo=val1} <S>" $err_stickyunload]
 testouterr_cmd sh {unload variant@8.0} ERR $tserr
 
 # switch to a sticky variant
-set tserr [msg_switch "variant/8.0{bar=2:foo=val1} <S>" variant/8.0{bar=3:foo=val1} $err_stickyunload]
+set tserr [msg_unload "variant/8.0{bar=2:foo=val1} <S>" $err_stickyunload]\n\n
+append tserr [msg_switch "variant/8.0{bar=2:foo=val1} <S>" variant/8.0{bar=3:foo=val1} [err_swoff variant/8.0{bar=2:foo=val1}]]
 testouterr_cmd sh {switch variant@8.0 foo=val1 bar=3} ERR $tserr
-set tserr [msg_switch "variant/8.0{bar=2:foo=val1} <S>" variant/8.0{foo=val1} $err_stickyunload]
+set tserr [msg_unload "variant/8.0{bar=2:foo=val1} <S>" $err_stickyunload]\n\n
+append tserr [msg_switch "variant/8.0{bar=2:foo=val1} <S>" variant/8.0{foo=val1} [err_swoff variant/8.0{bar=2:foo=val1}]]
 testouterr_cmd sh {switch variant@8.0 foo=val1} ERR $tserr
 
 # switch to a non-sticky variant
-set tserr [msg_switch "variant/8.0{bar=2:foo=val1} <S>" variant/8.0{foo=val2} $err_stickyunload]
+set tserr [msg_unload "variant/8.0{bar=2:foo=val1} <S>" $err_stickyunload]\n\n
+append tserr [msg_switch "variant/8.0{bar=2:foo=val1} <S>" variant/8.0{foo=val2} [err_swoff variant/8.0{bar=2:foo=val1}]]
 testouterr_cmd sh {switch variant@8.0 foo=val2} ERR $tserr
 
 # reload
@@ -798,9 +804,11 @@ set tserr [msg_unload "variant/8.0{bar=1:foo=val1} <S>" $err_stickyunload]
 testouterr_cmd sh {unload variant@8.0} ERR $tserr
 
 # switch to a non-sticky variant
-set tserr [msg_switch "variant/8.0{bar=1:foo=val1} <S>" variant/8.0{foo=val2} $err_stickyunload]
+set tserr [msg_unload "variant/8.0{bar=1:foo=val1} <S>" $err_stickyunload]\n\n
+append tserr [msg_switch "variant/8.0{bar=1:foo=val1} <S>" variant/8.0{foo=val2} [err_swoff variant/8.0{bar=1:foo=val1}]]
 testouterr_cmd sh {switch variant@8.0 foo=val2} ERR $tserr
-set tserr [msg_switch "variant/8.0{bar=1:foo=val1} <S>" variant/8.0{bar=1:foo=val2} $err_stickyunload]
+set tserr [msg_unload "variant/8.0{bar=1:foo=val1} <S>" $err_stickyunload]\n\n
+append tserr [msg_switch "variant/8.0{bar=1:foo=val1} <S>" variant/8.0{bar=1:foo=val2} [err_swoff variant/8.0{bar=1:foo=val1}]]
 testouterr_cmd sh {switch variant@8.0 foo=val2 bar=1} ERR $tserr
 
 unsetenv_loaded_module
@@ -884,7 +892,8 @@ set tserr [msg_unload "variant/8.0{bar=1:foo=val1} <sS>" $err_superstickyunload]
 testouterr_cmd sh {unload variant@8.0} ERR $tserr
 
 # switch to a sticky variant
-set tserr [msg_switch "variant/8.0{bar=1:foo=val1} <sS>" 'variant/.w\ s'{bar=1:foo=val1} $err_superstickyunload]
+set tserr [msg_unload "variant/8.0{bar=1:foo=val1} <sS>" $err_superstickyunload]\n\n
+append tserr [msg_switch "variant/8.0{bar=1:foo=val1} <sS>" 'variant/.w\ s'{bar=1:foo=val1} [err_swoff variant/8.0{bar=1:foo=val1}]]
 set ans [list]
 lappend ans [list set __MODULES_LMVARIANT variant/.w\ s&foo|val1|0|0&bar|1|0|0]
 lappend ans [list set __MODULES_LMSTICKYRULE variant/.w\ s&super-sticky|variant\ foo=val1\ bar=1]
@@ -893,7 +902,8 @@ lappend ans [list set LOADEDMODULES variant/.w\ s]
 lappend ans [list set __MODULES_LMTAG variant/.w\ s&super-sticky]
 testouterr_cmd sh {switch variant@.w\ s foo=val1 bar=1} $ans {}
 testouterr_cmd sh {switch variant@.w\ s bar=1 foo=val1} $ans {}
-set tserr [msg_switch "variant/8.0{bar=1:foo=val1} <sS>" 'variant/.w\ s'{foo=val1} $err_superstickyunload]
+set tserr [msg_unload "variant/8.0{bar=1:foo=val1} <sS>" $err_superstickyunload]\n\n
+append tserr [msg_switch "variant/8.0{bar=1:foo=val1} <sS>" 'variant/.w\ s'{foo=val1} [err_swoff variant/8.0{bar=1:foo=val1}]]
 testouterr_cmd sh {switch variant@.w\ s foo=val1} ERR $tserr
 set ans [list]
 lappend ans [list set __MODULES_LMVARIANT variant/8.0&foo|val1|0|0&bar|1|0|0]
@@ -904,7 +914,8 @@ lappend ans [list set __MODULES_LMTAG variant/8.0&super-sticky]
 testouterr_cmd sh {switch variant@8.0 foo=val1 bar=1} $ans {}
 
 # switch to a non-sticky variant
-set tserr [msg_switch "variant/8.0{bar=1:foo=val1} <sS>" variant/8.0{foo=val2} $err_superstickyunload]
+set tserr [msg_unload "variant/8.0{bar=1:foo=val1} <sS>" $err_superstickyunload]\n\n
+append tserr [msg_switch "variant/8.0{bar=1:foo=val1} <sS>" variant/8.0{foo=val2} [err_swoff variant/8.0{bar=1:foo=val1}]]
 testouterr_cmd sh {switch variant@8.0 foo=val2} ERR $tserr
 
 unsetenv_loaded_module
@@ -957,15 +968,19 @@ set tserr [msg_unload "variant/8.0{bar=1:foo=val1} <S>" $err_stickyunload]
 testouterr_cmd sh {unload variant@8.0} ERR $tserr
 
 # switch to a sticky variant
-set tserr [msg_switch "variant/8.0{bar=1:foo=val1} <S>" variant/8.0{bar=1:foo=val2} $err_stickyunload]
+set tserr [msg_unload "variant/8.0{bar=1:foo=val1} <S>" $err_stickyunload]\n\n
+append tserr [msg_switch "variant/8.0{bar=1:foo=val1} <S>" variant/8.0{bar=1:foo=val2} [err_swoff variant/8.0{bar=1:foo=val1}]]
 testouterr_cmd sh {switch variant@8.0 foo=val2 bar=1} ERR $tserr
-set tserr [msg_switch "variant/8.0{bar=1:foo=val1} <S>" variant/8.0{foo=val1} $err_stickyunload]
+set tserr [msg_unload "variant/8.0{bar=1:foo=val1} <S>" $err_stickyunload]\n\n
+append tserr [msg_switch "variant/8.0{bar=1:foo=val1} <S>" variant/8.0{foo=val1} [err_swoff variant/8.0{bar=1:foo=val1}]]
 testouterr_cmd sh {switch variant@8.0 foo=val1} ERR $tserr
-set tserr [msg_switch "variant/8.0{bar=1:foo=val1} <S>" variant/8.0{foo=val2} $err_stickyunload]
+set tserr [msg_unload "variant/8.0{bar=1:foo=val1} <S>" $err_stickyunload]\n\n
+append tserr [msg_switch "variant/8.0{bar=1:foo=val1} <S>" variant/8.0{foo=val2} [err_swoff variant/8.0{bar=1:foo=val1}]]
 testouterr_cmd sh {switch variant@8.0 foo=val2} ERR $tserr
 
 # switch to a non-sticky variant
-set tserr [msg_switch "variant/8.0{bar=1:foo=val1} <S>" 'variant/.w\ s'{foo=val2} $err_stickyunload]
+set tserr [msg_unload "variant/8.0{bar=1:foo=val1} <S>" $err_stickyunload]\n\n
+append tserr [msg_switch "variant/8.0{bar=1:foo=val1} <S>" 'variant/.w\ s'{foo=val2} [err_swoff variant/8.0{bar=1:foo=val1}]]
 testouterr_cmd sh {switch variant@.w\ s foo=val2} ERR $tserr
 
 unsetenv_loaded_module
@@ -1023,7 +1038,8 @@ setenv_var __MODULES_LMSTICKYRULE variant/8.0&super-sticky|variant\ foo=val1\ ba
 
 # switch to a sticky variant
 # CORNER CASE: stickiness swap do not know that default value of variant bar matches sticky rule
-set tserr [msg_switch "variant/8.0{bar=2:foo=val1} <sS>" 'variant/.w\ s'{foo=val1} $err_superstickyunload]
+set tserr [msg_unload "variant/8.0{bar=2:foo=val1} <sS>" $err_superstickyunload]\n\n
+append tserr [msg_switch "variant/8.0{bar=2:foo=val1} <sS>" 'variant/.w\ s'{foo=val1} [err_swoff variant/8.0{bar=2:foo=val1}]]
 testouterr_cmd sh {switch variant@.w\ s foo=val1} ERR $tserr
 set ans [list]
 lappend ans [list set __MODULES_LMVARIANT variant/.w\ s&foo|val1|0|0&bar|2|0|1]

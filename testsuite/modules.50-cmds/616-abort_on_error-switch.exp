@@ -259,7 +259,8 @@ setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 34}]
 set ts_depre_unload_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
-append ts_depre_unload_error [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depre_unload_error [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_unload_error [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depre_unload_error
 
 set ts_depre_unload_error_force [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
@@ -271,7 +272,8 @@ setenv_var TESTSUITE_ABORT_ON_ERROR depre_unload_bad
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 46}]
 set ts_depre_unload_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
-append ts_depre_unload_bad [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depre_unload_bad [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_unload_bad [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depre_unload_bad
 
 set ts_depre_unload_bad_force [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
@@ -282,7 +284,8 @@ testouterr_cmd bash {switch --force foo/1.0 setenv/1.0} $ans_unload_fail_depre_f
 setenv_var TESTSUITE_ABORT_ON_ERROR depre_unload_break
 
 set ts_depre_unload_break [msg_unload err/1.0 $err_evalabort]\n\n
-append ts_depre_unload_break [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depre_unload_break [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_unload_break [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depre_unload_break
 
 set ts_depre_unload_break_force [msg_unload err/1.0 $warn_evalabort]\n\n
@@ -293,7 +296,8 @@ testouterr_cmd bash {switch --force foo/1.0 setenv/1.0} $ans_unload_fail_depre_f
 setenv_var TESTSUITE_ABORT_ON_ERROR depre_unload_exit
 
 set ts_depre_unload_exit [msg_unload err/1.0 $err_evalabort]\n\n
-append ts_depre_unload_exit [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depre_unload_exit [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_unload_exit [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depre_unload_exit
 
 set ts_depre_unload_break_exit [msg_unload err/1.0 $warn_evalabort]\n\n
@@ -306,8 +310,9 @@ setenv_var TESTSUITE_ABORT_ON_ERROR depun_error
 setenv_var __MODULES_LMPREREQ err/1.0&foo
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 102}]
-set ts_depun_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
-append ts_depun_error [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+set ts_depun_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+append ts_depun_error \n\n[msg_unload foo/1.0 [err_depun err/1.0]]
+append ts_depun_error \n\n[msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depun_error
 
 set ts_depun_error_force [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
@@ -320,7 +325,8 @@ setenv_var TESTSUITE_ABORT_ON_ERROR depun_bad
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 108}]
 set ts_depun_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
-append ts_depun_bad \n\n[msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depun_bad \n\n[msg_unload foo/1.0 [err_depun err/1.0]]
+append ts_depun_bad \n\n[msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depun_bad
 
 set ts_depun_bad_force [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
@@ -332,7 +338,8 @@ testouterr_cmd bash {switch --force foo/1.0 setenv/1.0} $ans_unload_fail_depun_f
 setenv_var TESTSUITE_ABORT_ON_ERROR depun_break
 
 set ts_depun_break [msg_unload err/1.0 $err_evalabort]
-append ts_depun_break \n\n[msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depun_break \n\n[msg_unload foo/1.0 [err_depun err/1.0]]
+append ts_depun_break \n\n[msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depun_break
 
 set ts_depun_break_force [msg_unload err/1.0 $warn_evalabort]
@@ -344,7 +351,8 @@ testouterr_cmd bash {switch --force foo/1.0 setenv/1.0} $ans_unload_fail_depun_f
 setenv_var TESTSUITE_ABORT_ON_ERROR depun_exit
 
 set ts_depun_exit [msg_unload err/1.0 $err_evalabort]
-append ts_depun_exit \n\n[msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depun_exit \n\n[msg_unload foo/1.0 [err_depun err/1.0]]
+append ts_depun_exit \n\n[msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depun_exit
 
 set ts_depun_exit_force [msg_unload err/1.0 $warn_evalabort]
@@ -360,7 +368,8 @@ setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
 setenv_var __MODULES_LMTAG err/1.0&sticky
 setenv_var TESTSUITE_ABORT_ON_ERROR sticky
 
-set ts_sticky [msg_switch {err/1.0 <S>} foo/1.0 $err_stickyunload]
+set ts_sticky [msg_unload {err/1.0 <S>} $err_stickyunload]\n\n
+append ts_sticky [msg_switch {err/1.0 <S>} foo/1.0 [err_swoff err/1.0]]
 testouterr_cmd bash {switch err/1.0 foo/1.0} ERR $ts_sticky
 
 set ts_sticky_warn [msg_unload {err/1.0 <S>} $err_stickyunloadf]
@@ -370,7 +379,8 @@ testouterr_cmd bash {switch --force err/1.0 foo/1.0} $ans_sticky_force $ts_stick
 setenv_var __MODULES_LMTAG err/1.0&super-sticky
 setenv_var TESTSUITE_ABORT_ON_ERROR super-sticky
 
-set ts_super_sticky [msg_switch {err/1.0 <sS>} foo/1.0 $err_superstickyunload]
+set ts_super_sticky [msg_unload {err/1.0 <sS>} $err_superstickyunload]\n\n
+append ts_super_sticky [msg_switch {err/1.0 <sS>} foo/1.0 [err_swoff err/1.0]]
 testouterr_cmd bash {switch err/1.0 foo/1.0} ERR $ts_super_sticky
 testouterr_cmd bash {switch --force err/1.0 foo/1.0} ERR $ts_super_sticky
 
@@ -443,7 +453,8 @@ setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 34}]
 set ts_depre_unload_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
-append ts_depre_unload_error [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depre_unload_error [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_unload_error [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depre_unload_error
 
 set ts_depre_unload_error_force [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
@@ -455,7 +466,8 @@ setenv_var TESTSUITE_ABORT_ON_ERROR depre_unload_bad
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 46}]
 set ts_depre_unload_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
-append ts_depre_unload_bad [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depre_unload_bad [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_unload_bad [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depre_unload_bad
 
 set ts_depre_unload_bad_force [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
@@ -466,7 +478,8 @@ testouterr_cmd bash {switch --force foo/1.0 setenv/1.0} $ans_unload_fail_depre_f
 setenv_var TESTSUITE_ABORT_ON_ERROR depre_unload_break
 
 set ts_depre_unload_break [msg_unload err/1.0 $err_evalabort]\n\n
-append ts_depre_unload_break [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depre_unload_break [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_unload_break [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depre_unload_break
 
 set ts_depre_unload_break_force [msg_unload err/1.0 $warn_evalabort]\n\n
@@ -477,7 +490,8 @@ testouterr_cmd bash {switch --force foo/1.0 setenv/1.0} $ans_unload_fail_depre_f
 setenv_var TESTSUITE_ABORT_ON_ERROR depre_unload_exit
 
 set ts_depre_unload_exit [msg_unload err/1.0 $err_evalabort]\n\n
-append ts_depre_unload_exit [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depre_unload_exit [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_unload_exit [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depre_unload_exit
 
 set ts_depre_unload_break_exit [msg_unload err/1.0 $warn_evalabort]\n\n
@@ -490,8 +504,9 @@ setenv_var TESTSUITE_ABORT_ON_ERROR depun_error
 setenv_var __MODULES_LMPREREQ err/1.0&foo
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 102}]
-set ts_depun_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
-append ts_depun_error [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+set ts_depun_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+append ts_depun_error \n\n[msg_unload foo/1.0 [err_depun err/1.0]]
+append ts_depun_error \n\n[msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depun_error
 
 set ts_depun_error_force [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
@@ -504,7 +519,8 @@ setenv_var TESTSUITE_ABORT_ON_ERROR depun_bad
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 108}]
 set ts_depun_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
-append ts_depun_bad \n\n[msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depun_bad \n\n[msg_unload foo/1.0 [err_depun err/1.0]]
+append ts_depun_bad \n\n[msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depun_bad
 
 set ts_depun_bad_force [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
@@ -516,7 +532,8 @@ testouterr_cmd bash {switch --force foo/1.0 setenv/1.0} $ans_unload_fail_depun_f
 setenv_var TESTSUITE_ABORT_ON_ERROR depun_break
 
 set ts_depun_break [msg_unload err/1.0 $err_evalabort]
-append ts_depun_break \n\n[msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depun_break \n\n[msg_unload foo/1.0 [err_depun err/1.0]]
+append ts_depun_break \n\n[msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depun_break
 
 set ts_depun_break_force [msg_unload err/1.0 $warn_evalabort]
@@ -528,7 +545,8 @@ testouterr_cmd bash {switch --force foo/1.0 setenv/1.0} $ans_unload_fail_depun_f
 setenv_var TESTSUITE_ABORT_ON_ERROR depun_exit
 
 set ts_depun_exit [msg_unload err/1.0 $err_evalabort]
-append ts_depun_exit \n\n[msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depun_exit \n\n[msg_unload foo/1.0 [err_depun err/1.0]]
+append ts_depun_exit \n\n[msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depun_exit
 
 set ts_depun_exit_force [msg_unload err/1.0 $warn_evalabort]
@@ -544,7 +562,8 @@ setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
 setenv_var __MODULES_LMTAG err/1.0&sticky
 setenv_var TESTSUITE_ABORT_ON_ERROR sticky
 
-set ts_sticky [msg_switch {err/1.0 <S>} foo/1.0 $err_stickyunload]
+set ts_sticky [msg_unload {err/1.0 <S>} $err_stickyunload]\n\n
+append ts_sticky [msg_switch {err/1.0 <S>} foo/1.0 [err_swoff err/1.0]]
 testouterr_cmd bash {switch err/1.0 foo/1.0} ERR $ts_sticky
 
 set ts_sticky_warn [msg_unload {err/1.0 <S>} $err_stickyunloadf]
@@ -554,7 +573,8 @@ testouterr_cmd bash {switch --force err/1.0 foo/1.0} $ans_sticky_force $ts_stick
 setenv_var __MODULES_LMTAG err/1.0&super-sticky
 setenv_var TESTSUITE_ABORT_ON_ERROR super-sticky
 
-set ts_super_sticky [msg_switch {err/1.0 <sS>} foo/1.0 $err_superstickyunload]
+set ts_super_sticky [msg_unload {err/1.0 <sS>} $err_superstickyunload]\n\n
+append ts_super_sticky [msg_switch {err/1.0 <sS>} foo/1.0 [err_swoff err/1.0]]
 testouterr_cmd bash {switch err/1.0 foo/1.0} ERR $ts_super_sticky
 testouterr_cmd bash {switch --force err/1.0 foo/1.0} ERR $ts_super_sticky
 
@@ -628,7 +648,8 @@ setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 34}]
 set ts_depre_unload_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
-append ts_depre_unload_error [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depre_unload_error [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_unload_error [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} $ans_unload_fail_depre_continue $ts_depre_unload_error
 
 set ts_depre_unload_error_force [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
@@ -640,7 +661,8 @@ setenv_var TESTSUITE_ABORT_ON_ERROR depre_unload_bad
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 46}]
 set ts_depre_unload_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
-append ts_depre_unload_bad [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depre_unload_bad [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_unload_bad [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} $ans_unload_fail_depre_continue $ts_depre_unload_bad
 
 set ts_depre_unload_bad_force [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
@@ -651,7 +673,8 @@ testouterr_cmd bash {switch --force foo/1.0 setenv/1.0} $ans_unload_fail_depre_f
 setenv_var TESTSUITE_ABORT_ON_ERROR depre_unload_break
 
 set ts_depre_unload_break [msg_unload err/1.0 $err_evalabort]\n\n
-append ts_depre_unload_break [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depre_unload_break [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_unload_break [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} $ans_unload_fail_depre_continue $ts_depre_unload_break
 
 set ts_depre_unload_break_force [msg_unload err/1.0 $warn_evalabort]\n\n
@@ -662,7 +685,8 @@ testouterr_cmd bash {switch --force foo/1.0 setenv/1.0} $ans_unload_fail_depre_f
 setenv_var TESTSUITE_ABORT_ON_ERROR depre_unload_exit
 
 set ts_depre_unload_exit [msg_unload err/1.0 $err_evalabort]\n\n
-append ts_depre_unload_exit [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depre_unload_exit [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_unload_exit [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} $ans_unload_fail_depre_continue $ts_depre_unload_exit
 
 set ts_depre_unload_break_exit [msg_unload err/1.0 $warn_evalabort]\n\n
@@ -675,8 +699,9 @@ setenv_var TESTSUITE_ABORT_ON_ERROR depun_error
 setenv_var __MODULES_LMPREREQ err/1.0&foo
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 102}]
-set ts_depun_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
-append ts_depun_error [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+set ts_depun_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+append ts_depun_error \n\n[msg_unload foo/1.0 [err_depun err/1.0]]
+append ts_depun_error \n\n[msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} $ans_unload_fail_depun_continue $ts_depun_error
 
 set ts_depun_error_force [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
@@ -689,7 +714,8 @@ setenv_var TESTSUITE_ABORT_ON_ERROR depun_bad
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 108}]
 set ts_depun_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
-append ts_depun_bad \n\n[msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depun_bad \n\n[msg_unload foo/1.0 [err_depun err/1.0]]
+append ts_depun_bad \n\n[msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} $ans_unload_fail_depun_continue $ts_depun_bad
 
 set ts_depun_bad_force [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
@@ -701,7 +727,8 @@ testouterr_cmd bash {switch --force foo/1.0 setenv/1.0} $ans_unload_fail_depun_f
 setenv_var TESTSUITE_ABORT_ON_ERROR depun_break
 
 set ts_depun_break [msg_unload err/1.0 $err_evalabort]
-append ts_depun_break \n\n[msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depun_break \n\n[msg_unload foo/1.0 [err_depun err/1.0]]
+append ts_depun_break \n\n[msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} $ans_unload_fail_depun_continue $ts_depun_break
 
 set ts_depun_break_force [msg_unload err/1.0 $warn_evalabort]
@@ -713,7 +740,8 @@ testouterr_cmd bash {switch --force foo/1.0 setenv/1.0} $ans_unload_fail_depun_f
 setenv_var TESTSUITE_ABORT_ON_ERROR depun_exit
 
 set ts_depun_exit [msg_unload err/1.0 $err_evalabort]
-append ts_depun_exit \n\n[msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depun_exit \n\n[msg_unload foo/1.0 [err_depun err/1.0]]
+append ts_depun_exit \n\n[msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} $ans_unload_fail_depun_continue $ts_depun_exit
 
 set ts_depun_exit_force [msg_unload err/1.0 $warn_evalabort]
@@ -729,7 +757,8 @@ setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
 setenv_var __MODULES_LMTAG err/1.0&sticky
 setenv_var TESTSUITE_ABORT_ON_ERROR sticky
 
-set ts_sticky [msg_switch {err/1.0 <S>} foo/1.0 $err_stickyunload]
+set ts_sticky [msg_unload {err/1.0 <S>} $err_stickyunload]\n\n
+append ts_sticky [msg_switch {err/1.0 <S>} foo/1.0 [err_swoff err/1.0]]
 testouterr_cmd bash {switch err/1.0 foo/1.0} $ans_unload_fail_continue $ts_sticky
 
 set ts_sticky_warn [msg_unload {err/1.0 <S>} $err_stickyunloadf]
@@ -739,7 +768,8 @@ testouterr_cmd bash {switch --force err/1.0 foo/1.0} $ans_sticky_force $ts_stick
 setenv_var __MODULES_LMTAG err/1.0&super-sticky
 setenv_var TESTSUITE_ABORT_ON_ERROR super-sticky
 
-set ts_super_sticky [msg_switch {err/1.0 <sS>} foo/1.0 $err_superstickyunload]
+set ts_super_sticky [msg_unload {err/1.0 <sS>} $err_superstickyunload]\n\n
+append ts_super_sticky [msg_switch {err/1.0 <sS>} foo/1.0 [err_swoff err/1.0]]
 testouterr_cmd bash {switch err/1.0 foo/1.0} ERR $ts_super_sticky
 testouterr_cmd bash {switch --force err/1.0 foo/1.0} ERR $ts_super_sticky
 
@@ -1067,8 +1097,9 @@ setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
 setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 172}]
-set ts_depre_load_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
-append ts_depre_load_error \n\n[msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+set ts_depre_load_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_depre_load_error [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_load_error [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} $ans_unload_fail_depre_continue $ts_depre_load_error
 
 set ts_depre_load_error_force [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
@@ -1081,7 +1112,8 @@ setenv_var TESTSUITE_ABORT_ON_ERROR depre_bad
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 160}]
 set ts_depre_load_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
-append ts_depre_load_bad [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depre_load_bad [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_load_bad [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} $ans_unload_fail_depre_continue $ts_depre_load_bad
 
 set ts_depre_load_bad_force [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
@@ -1093,7 +1125,8 @@ testouterr_cmd bash {switch --force foo/1.0 setenv/1.0} $ans_load_fail_depre $ts
 setenv_var TESTSUITE_ABORT_ON_ERROR depre_break
 
 set ts_depre_load_break [msg_unload err/1.0 $err_evalabort]\n\n
-append ts_depre_load_break [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depre_load_break [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_load_break [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} $ans_unload_fail_depre_continue $ts_depre_load_break
 
 set ts_depre_load_break_force [msg_unload err/1.0 $warn_evalabort]\n\n
@@ -1105,7 +1138,8 @@ testouterr_cmd bash {switch --force foo/1.0 setenv/1.0} $ans_load_fail_depre $ts
 setenv_var TESTSUITE_ABORT_ON_ERROR depre_exit
 
 set ts_depre_load_exit [msg_unload err/1.0 $err_evalabort]\n\n
-append ts_depre_load_exit [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depre_load_exit [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_load_exit [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} $ans_unload_fail_depre_continue $ts_depre_load_exit
 
 set ts_depre_load_exit_force [msg_unload err/1.0 $warn_evalabort]\n\n
@@ -1121,7 +1155,8 @@ setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
 setenv_var __MODULES_LMTAG err/1.0&sticky
 setenv_var TESTSUITE_ABORT_ON_ERROR sticky_forbidden_diff
 
-set ts_sticky [msg_switch {err/1.0 <S>} err/1.1 $err_stickyunload [err_accessdenied err/1.1]]
+set ts_sticky [msg_unload {err/1.0 <S>} $err_stickyunload]\n\n
+append ts_sticky [msg_switch {err/1.0 <S>} err/1.1 [err_swoff err/1.0] [err_accessdenied err/1.1]]
 testouterr_cmd bash {switch err/1.0 err/1.1} ERR $ts_sticky
 
 set ts_sticky_warn [msg_unload {err/1.0 <S>} $err_stickyunloadf]\n\n
@@ -1132,7 +1167,8 @@ testouterr_cmd bash {switch --force err/1.0 err/1.1} $ans_sticky_forbidden_force
 setenv_var __MODULES_LMTAG err/1.0&super-sticky
 setenv_var TESTSUITE_ABORT_ON_ERROR super-sticky_forbidden_diff
 
-set ts_super_sticky [msg_switch {err/1.0 <sS>} err/1.1 $err_superstickyunload]
+set ts_super_sticky [msg_unload {err/1.0 <sS>} $err_superstickyunload]\n\n
+append ts_super_sticky [msg_switch {err/1.0 <sS>} err/1.1 [err_swoff err/1.0]]
 testouterr_cmd bash {switch err/1.0 err/1.1} ERR $ts_super_sticky
 testouterr_cmd bash {switch --force err/1.0 err/1.1} ERR $ts_super_sticky
 
@@ -1211,8 +1247,9 @@ setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
 setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 172}]
-set ts_depre_load_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
-append ts_depre_load_error \n\n[msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+set ts_depre_load_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_depre_load_error [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_load_error [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depre_load_error
 
 set ts_depre_load_error_force [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
@@ -1225,7 +1262,8 @@ setenv_var TESTSUITE_ABORT_ON_ERROR depre_bad
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 160}]
 set ts_depre_load_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
-append ts_depre_load_bad [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depre_load_bad [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_load_bad [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depre_load_bad
 
 set ts_depre_load_bad_force [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
@@ -1237,7 +1275,8 @@ testouterr_cmd bash {switch --force foo/1.0 setenv/1.0} $ans_load_fail_depre $ts
 setenv_var TESTSUITE_ABORT_ON_ERROR depre_break
 
 set ts_depre_load_break [msg_unload err/1.0 $err_evalabort]\n\n
-append ts_depre_load_break [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depre_load_break [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_load_break [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depre_load_break
 
 set ts_depre_load_break_force [msg_unload err/1.0 $warn_evalabort]\n\n
@@ -1249,7 +1288,8 @@ testouterr_cmd bash {switch --force foo/1.0 setenv/1.0} $ans_load_fail_depre $ts
 setenv_var TESTSUITE_ABORT_ON_ERROR depre_exit
 
 set ts_depre_load_exit [msg_unload err/1.0 $err_evalabort]\n\n
-append ts_depre_load_exit [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depre_load_exit [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_load_exit [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depre_load_exit
 
 set ts_depre_load_exit_force [msg_unload err/1.0 $warn_evalabort]\n\n
@@ -1265,7 +1305,8 @@ setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
 setenv_var __MODULES_LMTAG err/1.0&sticky
 setenv_var TESTSUITE_ABORT_ON_ERROR sticky_forbidden_diff
 
-set ts_sticky [msg_switch {err/1.0 <S>} err/1.1 $err_stickyunload]
+set ts_sticky [msg_unload {err/1.0 <S>} $err_stickyunload]
+append ts_sticky \n\n[msg_switch {err/1.0 <S>} err/1.1 [err_swoff err/1.0]]
 testouterr_cmd bash {switch err/1.0 err/1.1} ERR $ts_sticky
 
 set ts_sticky_warn [msg_unload {err/1.0 <S>} $err_stickyunloadf]\n\n
@@ -1276,7 +1317,8 @@ testouterr_cmd bash {switch --force err/1.0 err/1.1} $ans_sticky_forbidden_force
 setenv_var __MODULES_LMTAG err/1.0&super-sticky
 setenv_var TESTSUITE_ABORT_ON_ERROR super-sticky_forbidden_diff
 
-set ts_super_sticky [msg_switch {err/1.0 <sS>} err/1.1 $err_superstickyunload]
+set ts_super_sticky [msg_unload {err/1.0 <sS>} $err_superstickyunload]
+append ts_super_sticky \n\n[msg_switch {err/1.0 <sS>} err/1.1 [err_swoff err/1.0]]
 testouterr_cmd bash {switch err/1.0 err/1.1} ERR $ts_super_sticky
 testouterr_cmd bash {switch --force err/1.0 err/1.1} ERR $ts_super_sticky
 
@@ -1355,8 +1397,9 @@ setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
 setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 172}]
-set ts_depre_load_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
-append ts_depre_load_error \n\n[msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+set ts_depre_load_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_depre_load_error [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_load_error [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depre_load_error
 
 set ts_depre_load_error_force [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
@@ -1369,7 +1412,8 @@ setenv_var TESTSUITE_ABORT_ON_ERROR depre_bad
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 160}]
 set ts_depre_load_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
-append ts_depre_load_bad [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depre_load_bad [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_load_bad [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depre_load_bad
 
 set ts_depre_load_bad_force [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
@@ -1381,7 +1425,8 @@ testouterr_cmd bash {switch --force foo/1.0 setenv/1.0} $ans_load_fail_depre $ts
 setenv_var TESTSUITE_ABORT_ON_ERROR depre_break
 
 set ts_depre_load_break [msg_unload err/1.0 $err_evalabort]\n\n
-append ts_depre_load_break [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depre_load_break [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_load_break [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depre_load_break
 
 set ts_depre_load_break_force [msg_unload err/1.0 $warn_evalabort]\n\n
@@ -1393,7 +1438,8 @@ testouterr_cmd bash {switch --force foo/1.0 setenv/1.0} $ans_load_fail_depre $ts
 setenv_var TESTSUITE_ABORT_ON_ERROR depre_exit
 
 set ts_depre_load_exit [msg_unload err/1.0 $err_evalabort]\n\n
-append ts_depre_load_exit [msg_switch foo/1.0 setenv/1.0 [err_depun err/1.0]]
+append ts_depre_load_exit [msg_unload foo/1.0 [err_depun err/1.0]]\n\n
+append ts_depre_load_exit [msg_switch foo/1.0 setenv/1.0 [err_swoff foo/1.0]]
 testouterr_cmd bash {switch foo/1.0 setenv/1.0} ERR $ts_depre_load_exit
 
 set ts_depre_load_exit_force [msg_unload err/1.0 $warn_evalabort]\n\n
@@ -1409,7 +1455,8 @@ setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
 setenv_var __MODULES_LMTAG err/1.0&sticky
 setenv_var TESTSUITE_ABORT_ON_ERROR sticky_forbidden_diff
 
-set ts_sticky [msg_switch {err/1.0 <S>} err/1.1 $err_stickyunload]
+set ts_sticky [msg_unload {err/1.0 <S>} $err_stickyunload]
+append ts_sticky \n\n[msg_switch {err/1.0 <S>} err/1.1 [err_swoff err/1.0]]
 testouterr_cmd bash {switch err/1.0 err/1.1} ERR $ts_sticky
 
 set ts_sticky_warn [msg_unload {err/1.0 <S>} $err_stickyunloadf]\n\n
@@ -1420,7 +1467,8 @@ testouterr_cmd bash {switch --force err/1.0 err/1.1} $ans_sticky_forbidden_force
 setenv_var __MODULES_LMTAG err/1.0&super-sticky
 setenv_var TESTSUITE_ABORT_ON_ERROR super-sticky_forbidden_diff
 
-set ts_super_sticky [msg_switch {err/1.0 <sS>} err/1.1 $err_superstickyunload]
+set ts_super_sticky [msg_unload {err/1.0 <sS>} $err_superstickyunload]
+append ts_super_sticky \n\n[msg_switch {err/1.0 <sS>} err/1.1 [err_swoff err/1.0]]
 testouterr_cmd bash {switch err/1.0 err/1.1} ERR $ts_super_sticky
 testouterr_cmd bash {switch --force err/1.0 err/1.1} ERR $ts_super_sticky
 
@@ -1577,7 +1625,8 @@ setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
 setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
 
 set ts_depre_break [msg_unload err/1.0 $err_evalabort]
-append ts_depre_break \n\n[msg_load lerr/1.0 [err_depun err/1.0] [err_conun foo/1.0]]
+append ts_depre_break \n\n[msg_unload foo/1.0 [err_depun err/1.0]]
+append ts_depre_break \n\n[msg_load lerr/1.0 [err_conun foo/1.0]]
 testouterr_cmd bash {load lerr/1.0} ERR $ts_depre_break
 
 set ts_depre_break_force [msg_unload err/1.0 $warn_evalabort]
@@ -1592,7 +1641,8 @@ setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
 setenv_var __MODULES_LMPREREQ err/1.0&foo
 
 set ts_depun_break [msg_unload err/1.0 $err_evalabort]
-append ts_depun_break \n\n[msg_load lerr/1.0 [err_depun err/1.0] [err_conun foo/1.0]]
+append ts_depun_break \n\n[msg_unload foo/1.0 [err_depun err/1.0]]
+append ts_depun_break \n\n[msg_load lerr/1.0 [err_conun foo/1.0]]
 testouterr_cmd bash {load lerr/1.0} ERR $ts_depun_break
 
 set ts_depun_break_noauto [msg_unload foo/1.0 [err_prerequn err/1.0]]
@@ -1624,7 +1674,7 @@ setenv_var TESTSUITE_ABORT_ON_ERROR switch_sticky
 setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
 setenv_var __MODULES_LMTAG err/1.0&sticky
 
-set ts_unload_sticky [msg_load lerr/1.0 $err_stickyunload [err_conun err/1.0]]
+set ts_unload_sticky [msg_unload {err/1.0 <S>} $err_stickyunload]\n\n[msg_load lerr/1.0 [err_conun err/1.0]]
 testouterr_cmd bash {load lerr/1.0} ERR $ts_unload_sticky
 
 set ts_unload_sticky_force [msg_unload {err/1.0 <S>} $err_stickyunloadf]
@@ -1637,10 +1687,10 @@ setenv_var TESTSUITE_ABORT_ON_ERROR switch_super-sticky
 setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
 setenv_var __MODULES_LMTAG err/1.0&super-sticky
 
-set ts_unload_super_sticky [msg_load lerr/1.0 $err_superstickyunload [err_conun err/1.0]]
+set ts_unload_super_sticky [msg_unload {err/1.0 <sS>} $err_superstickyunload]\n\n[msg_load lerr/1.0 [err_conun err/1.0]]
 testouterr_cmd bash {load lerr/1.0} ERR $ts_unload_super_sticky
 
-set ts_unload_super_sticky_force [msg_load lerr/1.0 $err_superstickyunload [err_conunf err/1.0]]
+set ts_unload_super_sticky_force [msg_unload {err/1.0 <sS>} $err_superstickyunload]\n\n[msg_load lerr/1.0 [err_conunf err/1.0]]
 testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_unload_super_sticky $ts_unload_super_sticky_force
 
 
