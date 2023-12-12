@@ -1600,7 +1600,6 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                   reportWarning [getDepLoadedMsg $prereq_list]
                }
             } else {
-               set errlocalreport 1
                # exit treatment but no need to set return code to error if
                # called from a 'module unload' command in a modulefile in a
                # load evaluation mode, as set conflict will raise error at end
@@ -1804,15 +1803,13 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          # report a summary of automated evaluations if no error
          reportModuleEval
       } errMsg]] != 0 && $errCode != 4} {
-         # in case of error report module info even if set hidden
+         # report module error even if set hidden
          set hidden 0
          if {$errMsg ne {}} {
-            reportError $errMsg [expr {![info exists errlocalreport]}]
+            reportError $errMsg
          }
          # report switched-off module unload failure under switch info block
-         # unless the above reportError call already put a mesg to this block
-         if {$context eq {swunload} && ($errMsg eq {} || [info exists\
-            errlocalreport])} {
+         if {$context eq {swunload}} {
             reportError "Unload of switched-off [getModuleDesignation loaded\
                $modname] failed" 1
          }
@@ -1823,7 +1820,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             # remove from successfully evaluated module list
             registerModuleEval $context $msgrecid $modnamevr unload
          }
-         unset -nocomplain errlocalreport errharmless
+         unset -nocomplain errharmless
       }
       popSettings
 
