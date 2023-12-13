@@ -1192,7 +1192,6 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
                [getLoadedMatchingName $modnamevr] eq {}) || ([info exists\
                isloading] && $isloading && [getLoadedMatchingName $modnamevr\
                {} 1] eq {}))} {
-               set errlocalreport 1
                knerror [getModWithAltVrIsLoadedMsg $modname]
             } else {
                # apply missing tag to loaded module
@@ -1335,7 +1334,6 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
                # raise conun-specific msg to top level if attempted
                knerror [getErrConUnMsg $moddecconlist]
             } else {
-               set errlocalreport 1
                knerror $conmsg
             }
          }
@@ -1408,12 +1406,10 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
          # in case of error report module info even if set hidden
          set hidden 0
          if {$errMsg ne {}} {
-            reportError $errMsg [expr {![info exists errlocalreport]}]
+            reportError $errMsg
          }
          # report switched-on module load failure under switch info block
-         # unless the above reportError call already put a mesg to this block
-         if {$context eq {swload} && ($errMsg eq {} || [info exists\
-            errlocalreport])} {
+         if {$context eq {swload}} {
             # warn as this issue does not lead to a rollback of switch action
             reportWarning "Load of switched-on [getModuleDesignation\
                $msgrecid] failed" 1
@@ -1423,7 +1419,6 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
          restoreSettings
          # remove from successfully evaluated module list
          registerModuleEval $context $msgrecid $modnamevr load
-         unset -nocomplain errlocalreport
       }
       popSettings
 

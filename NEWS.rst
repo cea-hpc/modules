@@ -125,6 +125,9 @@ Modules 5.4.0 (not yet released)
   from a modulefile.
 * No *Switching* block message report when :mfcmd:`module switch<module>`
   command is run from a modulefile.
+* Report all error messages locally under *Loading* or *Unloading* block
+  message rather reporting some of them under the block message of the main
+  action.
 
 
 .. _5.3 release notes:
