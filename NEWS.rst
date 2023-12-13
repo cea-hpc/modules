@@ -128,6 +128,7 @@ Modules 5.4.0 (not yet released)
 * Report all error messages locally under *Loading* or *Unloading* block
   message rather reporting some of them under the block message of the main
   action.
+* Report switched-on load failure as error rather warning.
 
 
 .. _5.3 release notes:
