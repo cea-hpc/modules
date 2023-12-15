@@ -384,11 +384,11 @@ testouterr_cmd_re sh {switch -f sticky/1.0 sticky/99} ERR $tserr
 setenv_var TESTSUITE_STICKY_GENERIC 1
 setenv_var __MODULES_LMSTICKYRULE sticky/1.0&super-sticky|sticky
 
-set tserr [msg_unload {sticky/1.0 <sS>} $err_superstickyunload]\n\n[msg_switch {sticky/1.0 <sS>} sticky/99 $err_path'sticky/99' [err_swoff sticky/1.0]]
+set tserr [msg_unload {sticky/1.0 <sS>} $err_superstickyunload]\n\n[msg_switch {sticky/1.0 <sS>} sticky/99 [err_swoff sticky/1.0] $err_path'sticky/99']
 testouterr_cmd_re sh {switch sticky/99} ERR $tserr
 testouterr_cmd_re sh {switch sticky/1.0 sticky/99} ERR $tserr
 
-set tserr "[msg_unload {sticky/1.0 <sS>} $err_superstickyunload]\n\n[msg_switch {sticky/1.0 <sS>} sticky/99 $err_path'sticky/99' [err_swoff sticky/1.0]]"
+set tserr "[msg_unload {sticky/1.0 <sS>} $err_superstickyunload]\n\n[msg_switch {sticky/1.0 <sS>} sticky/99 [err_swoff sticky/1.0] $err_path'sticky/99']"
 testouterr_cmd_re sh {switch -f sticky/99} ERR $tserr
 testouterr_cmd_re sh {switch -f sticky/1.0 sticky/99} ERR $tserr
 
@@ -403,12 +403,12 @@ testouterr_cmd_re sh {switch --auto -f sticky/1.0 sticky/99} ERR $tserr
 
 set tserr "[msg_unload {sticky/1.0 <sS>} [err_prerequn bar/2.0]]
 
-[msg_switch {sticky/1.0 <sS>} sticky/99 $err_path'sticky/99' [err_swoff sticky/1.0]]"
+[msg_switch {sticky/1.0 <sS>} sticky/99 [err_swoff sticky/1.0] $err_path'sticky/99']"
 testouterr_cmd_re sh {switch --no-auto sticky/99} ERR $tserr
 
 set tserr "[msg_unload {sticky/1.0 <sS>} [err_deplof bar/2.0] $err_superstickyunload]
 
-[msg_switch {sticky/1.0 <sS>} sticky/99 $err_path'sticky/99' [err_swoff sticky/1.0]]"
+[msg_switch {sticky/1.0 <sS>} sticky/99 [err_swoff sticky/1.0] $err_path'sticky/99']"
 testouterr_cmd_re sh {switch --no-auto -f sticky/99} ERR $tserr
 
 # switch sticky module within modulefile to a module that does not exist (generic sticky)
@@ -419,8 +419,7 @@ setenv_var __MODULES_LMTAG sticky/1.0&super-sticky
 setenv_var __MODULES_LMSTICKYRULE sticky/1.0&super-sticky|sticky
 unsetenv_var __MODULES_LMPREREQ
 
-#FIXME: 'unable to locate modulefile' message is reported twice
-set tserr [msg_unload {sticky/1.0 <sS>} $err_superstickyunload]\n\n[msg_load bar/2.0 $err_path'sticky/99' $err_path'sticky/99' [err_conun sticky/1.0]]
+set tserr [msg_unload {sticky/1.0 <sS>} $err_superstickyunload]\n\n[msg_load bar/2.0 $err_path'sticky/99' [err_conun sticky/1.0]]
 testouterr_cmd_re sh {load bar/2.0} ERR $tserr
 
 #FIXME: requirement (sticky/99) is missing, but bar/2.0 has been loaded
@@ -430,8 +429,7 @@ lappend ans [list set __MODULES_LMCONFLICT bar/2.0&sticky/1.0]
 lappend ans [list set _LMFILES_ $mp/sticky/1.0:$mp/bar/2.0]
 lappend ans [list set LOADEDMODULES sticky/1.0:bar/2.0]
 lappend ans [list ERR]
-#FIXME: 'unable to locate modulefile' message is reported twice
-set tserr [msg_unload {sticky/1.0 <sS>} $err_superstickyunload]\n\n[msg_load bar/2.0 $err_path'sticky/99' $err_path'sticky/99' [err_conunf sticky/1.0]]
+set tserr [msg_unload {sticky/1.0 <sS>} $err_superstickyunload]\n\n[msg_load bar/2.0 $err_path'sticky/99' [err_conunf sticky/1.0]]
 testouterr_cmd_re sh {load -f bar/2.0} $ans $tserr
 
 setenv_var TESTSUITE_STICKY_SWITCH_DEP 2

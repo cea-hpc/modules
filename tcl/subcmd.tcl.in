@@ -518,14 +518,15 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
    set sticky_reload [isStickinessReloading $oldmodvr [list $new]]
    set supersticky_reload [isStickinessReloading $oldmodvr [list $new]\
       super-sticky]
+   set report_newmod_issue 0
+   lassign [getPathToModule $new {} 0] newmodfile newmod newmodvr
+
    # do not set sticky or supersticky reload states if swap-on module cannot
    # be found
-   if {$supersticky_reload || $sticky_reload} {
-      lassign [getPathToModule $new] newmodfile newmod newmodvr
-      if {$newmodfile eq {}} {
-         set sticky_reload 0
-         set supersticky_reload 0
-      }
+   if {($supersticky_reload || $sticky_reload) && $newmodfile eq {}} {
+      set report_newmod_issue 1
+      set sticky_reload 0
+      set supersticky_reload 0
    }
    if {$sticky_reload} {
       lappendState reloading_sticky $oldmod
@@ -546,17 +547,15 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
    # register modulefile to unload as conflict if an unload module is
    # mentioned on this module switch command set in a modulefile
    set orig_auto_handling [getConf auto_handling]
-   if {!$uasked && $argold ne {}} {
+   if {!$uasked && $argold ne {} && ($newmod eq {} || ![modEq $argold $newmod\
+      eqstart])} {
       # skip conflict declaration if old spec matches new as in this case
       # switch means *replace loaded version of mod by this specific version*
-      lassign [getPathToModule $new] newmodfile newmod newmodvr
-      if {$newmod eq {} || ![modEq $argold $newmod eqstart]} {
-         # temporarily disable auto handling just to record deps, not to try
-         # to load or unload them (already tried)
-         setConf auto_handling 0
-         catch {conflict $argold}
-         setConf auto_handling $orig_auto_handling
-      }
+      # temporarily disable auto handling just to record deps, not to try to
+      # load or unload them (already tried)
+      setConf auto_handling 0
+      catch {conflict $argold}
+      setConf auto_handling $orig_auto_handling
    }
 
    # attempt load and depre reload only if unload succeed (or if top switch
@@ -606,6 +605,10 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
          }
       }
    } else {
+      # re-run switched-on module search to report locating issue
+      if {$report_newmod_issue} {
+         getPathToModule $new
+      }
       # initialize dummy load phase msg rec id to query designation
       set newmsgrecid {}
    }

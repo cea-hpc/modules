@@ -129,6 +129,7 @@ Modules 5.4.0 (not yet released)
   message rather reporting some of them under the block message of the main
   action.
 * Report switched-on load failure as error rather warning.
+* Report switched-on module locating or access issues only once.
 
 
 .. _5.3 release notes:
