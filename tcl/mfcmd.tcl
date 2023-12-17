@@ -1008,10 +1008,7 @@ proc conflict {args} {
    # parse module version specification
    set args [parseModuleSpecification 0 0 0 0 {*}$args]
 
-   # register conflict list unless record inhibited for current iterp context
-   if {[currentState inhibit_req_record] != [currentState evalid]} {
-      setLoadedConflict $currentModule {*}$args
-   }
+   registerCurrentModuleConflict {*}$args
 
    foreach mod $args {
       # if the conflict module is loading and it does not correspond to
@@ -1026,6 +1023,13 @@ proc conflict {args} {
    }
 
    return {}
+}
+
+proc registerCurrentModuleConflict {args} {
+   # register conflict list unless record inhibited for current iterp context
+   if {[currentState inhibit_req_record] != [currentState evalid]} {
+      setLoadedConflict [currentState modulename] {*}$args
+   }
 }
 
 proc parsePrereqCommandArgs {cmd args} {

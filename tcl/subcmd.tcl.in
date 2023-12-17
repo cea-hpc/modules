@@ -546,16 +546,11 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
 
    # register modulefile to unload as conflict if an unload module is
    # mentioned on this module switch command set in a modulefile
-   set orig_auto_handling [getConf auto_handling]
+   # skip conflict declaration if old spec matches new as in this case switch
+   # means *replace loaded version of mod by this specific version*
    if {!$uasked && $argold ne {} && ($newmod eq {} || ![modEq $argold $newmod\
       eqstart])} {
-      # skip conflict declaration if old spec matches new as in this case
-      # switch means *replace loaded version of mod by this specific version*
-      # temporarily disable auto handling just to record deps, not to try to
-      # load or unload them (already tried)
-      setConf auto_handling 0
-      catch {conflict $argold}
-      setConf auto_handling $orig_auto_handling
+      registerCurrentModuleConflict $argold
    }
 
    # attempt load and depre reload only if unload succeed (or if top switch
@@ -1470,11 +1465,8 @@ proc cmdModuleIntUnload {mode args} {
       set ret [cmdModuleUnload conun match 0 0 0 1 {*}$args]
 
       # register modulefiles to unload as individual conflicts
-      foreach arg $args {
-         # do not break on error yet, go through the whole modfile evaluation
-         # in case conflict is solved later on
-         catch {conflict $arg}
-      }
+      registerCurrentModuleConflict {*}$args
+
       # sub-module interpretation failed, raise error
       if {$ret} {
          knerror {} MODULES_ERR_SUBFAILED
