@@ -1481,6 +1481,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
    set ret 0
    lappendState mode unload
    foreach mod $args {
+      set mod_unload_in_error 0
       # if a switch action is ongoing...
       if {$context eq {swunload}} {
          set swprocessing 1
@@ -1792,15 +1793,11 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          # report a summary of automated evaluations if no error
          reportModuleEval
       } errMsg]] != 0 && $errCode != 4} {
+         set mod_unload_in_error 1
          # report module error even if set hidden
          set hidden 0
          if {$errMsg ne {}} {
             reportError $errMsg
-         }
-         # report switched-off module unload failure under switch info block
-         if {$context eq {swunload}} {
-            reportError "Unload of switched-off [getModuleDesignation loaded\
-               $modname] failed" 1
          }
          # rollback settings if some evaluation went wrong
          if {![info exists errharmless]} {
@@ -1818,6 +1815,16 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       reportMsgRecord "Unloading [getModuleDesignation $msgrecid {} 2]" [expr\
          {$hidden && !$uasked && [depthState evalid] != 1}]
       popMsgRecordId
+
+      if {$mod_unload_in_error} {
+         # report unload issue on the message block of the above action
+         switch -- $context {
+            swunload {
+               reportError "Unload of switched-off [getModuleDesignation\
+                  loaded $modname] failed"
+            }
+         }
+      }
 
       # abort evaluation if error and behavior configured this way (abort
       # means stop to evaluate modulefile and flush changes of previous ones)
