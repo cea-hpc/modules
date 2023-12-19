@@ -1320,17 +1320,13 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
             if {$report_con && [info exists conmsg]} {
                reportWarning $conmsg
             }
-            # raise conun-specific msg to top level if attempted
-            if {$retisconun} {
-               reportWarning [getErrConUnMsg $moddecconlist] 1
-            }
          } elseif {$doescon} {
             if {$retisconun} {
                if {[info exists conmsg]} {
                   reportError $conmsg
                }
-               # raise conun-specific msg to top level if attempted
-               knerror [getErrConUnMsg $moddecconlist]
+               # conun-specific msg has already been reported
+               knerror {}
             } else {
                knerror $conmsg
             }
@@ -1822,6 +1818,10 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             swunload {
                reportError "Unload of switched-off [getModuleDesignation\
                   loaded $modname] failed"
+            }
+            conun {
+               reportErrorOrWarningIfForced [getErrConUnMsg\
+                  [getModuleDesignation loaded $modname]]
             }
          }
       }
