@@ -1286,44 +1286,9 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
             set con_msg {}
          }
 
-         # still proceed if force mode enabled
-         if {[getState force] && $doescon} {
-            defineModEqProc [isIcase] [getConf extended_default]
-            # report warning if not already done
-            set report_con 1
-            if {[info exists ::report_conflict($msgrecid)]} {
-               # check if conflict has not been already reported with an
-               # alternative name
-               foreach modcon $modconlist {
-                  foreach reportmod $::report_conflict($msgrecid) {
-                     if {[modEq $reportmod $modcon eqstart 1 2 1]} {
-                        set report_con 0
-                        break
-                     }
-                  }
-                  if {!$report_con} {
-                     break
-                  }
-               }
-               if {$report_con} {
-                  foreach moddeccon $moddecconlist {
-                     foreach reportmod $::report_conflict($msgrecid) {
-                        if {[modEq $reportmod $moddeccon eqstart]} {
-                           set report_con 0
-                           break
-                        }
-                     }
-                     if {!$report_con} {
-                        break
-                     }
-                  }
-               }
-            }
-            if {$report_con && $con_msg ne {}} {
-               reportWarning $con_msg
-            }
-         } elseif {$doescon} {
-            knerror $con_msg
+         if {$doescon && ![isConflictErrorAlreadyReported $msgrecid\
+            $modconlist $moddecconlist]} {
+            knerrorOrWarningIfForced $con_msg
          }
 
          # loading visibility depends on hidden-loaded tag

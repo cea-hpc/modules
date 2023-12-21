@@ -2077,6 +2077,39 @@ proc reportPresentConflictError {curmodnamevr mod isloading} {
    knerrorOrWarningIfForced $msg MODULES_ERR_GLOBAL
 }
 
+proc isConflictErrorAlreadyReported {msgrecid modconlist moddecconlist} {
+   set already_reported 0
+   if {[info exists ::report_conflict($msgrecid)]} {
+      defineModEqProc [isIcase] [getConf extended_default]
+      # check if conflict has not been already reported with an alt name
+      foreach modcon $modconlist {
+         foreach reportmod $::report_conflict($msgrecid) {
+            if {[modEq $reportmod $modcon eqstart 1 2 1]} {
+               set already_reported 1
+               break
+            }
+         }
+         if {$already_reported} {
+            break
+         }
+      }
+      if {!$already_reported} {
+         foreach moddeccon $moddecconlist {
+            foreach reportmod $::report_conflict($msgrecid) {
+               if {[modEq $reportmod $moddeccon eqstart]} {
+                  set already_reported 1
+                  break
+               }
+            }
+            if {$already_reported} {
+               break
+            }
+         }
+      }
+   }
+   return $already_reported
+}
+
 # ;;; Local Variables: ***
 # ;;; mode:tcl ***
 # ;;; End: ***
