@@ -1272,23 +1272,27 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
          # (module unload) conflicts through its evaluation
          lassign [doesModuleConflict $modname] doescon modconlist\
             moddecconlist
-         set is_con_mod_conun [isModuleEvaluated conun $modnamevr\
-            {*}$modconlist]
-         set is_con_mod_eval [isModuleEvaluated any $modnamevr {*}$modconlist]
-         if {!$is_con_mod_eval || ![isMsgRecordIdTop] || !$is_con_mod_conun} {
-            # more appropriate msg if an evaluation was attempted or is
-            # by-passed. error is reported using declared conflict name (as if
-            # it was raised raised from a conflict modulefile command)
-            set con_msg [expr {$is_con_mod_eval || [getState force] ?\
-               [getConIsLoadedMsg $moddecconlist [is-loading $modconlist]] :\
-               [getErrConflictMsg $moddecconlist]}]
-         } else {
-            set con_msg {}
-         }
+         if {$doescon} {
+            set is_con_mod_conun [isModuleEvaluated conun $modnamevr\
+               {*}$modconlist]
+            set is_con_mod_loading [is-loading $modconlist]
+            if {!$is_con_mod_conun || $is_con_mod_loading} {
+               set is_con_mod_eval [isModuleEvaluated any $modnamevr\
+                  {*}$modconlist]
+               # more appropriate msg if an evaluation was attempted or is
+               # by-passed. error is reported using declared conflict name (as
+               # if it was raised from a conflict modulefile command)
+               set con_msg [expr {$is_con_mod_eval || [getState force] ?\
+                  [getConIsLoadedMsg $moddecconlist $is_con_mod_loading] :\
+                  [getErrConflictMsg $moddecconlist]}]
+            } else {
+               set con_msg {}
+            }
 
-         if {$doescon && ![isConflictErrorAlreadyReported $msgrecid\
-            $modconlist $moddecconlist]} {
-            knerrorOrWarningIfForced $con_msg
+            if {![isConflictErrorAlreadyReported $msgrecid $modconlist\
+               $moddecconlist]} {
+               knerrorOrWarningIfForced $con_msg
+            }
          }
 
          # loading visibility depends on hidden-loaded tag
