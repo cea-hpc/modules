@@ -1272,16 +1272,18 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
          # (module unload) conflicts through its evaluation
          lassign [doesModuleConflict $modname] doescon modconlist\
             moddecconlist
-         set retisconun [isModuleEvaluated conun $modnamevr {*}$modconlist]
-         if {![set retiseval [isModuleEvaluated any $modnamevr\
-            {*}$modconlist]] || [currentState msgrecordid] ne [topState\
-            msgrecordid] || !$retisconun} {
+         set is_con_mod_conun [isModuleEvaluated conun $modnamevr\
+            {*}$modconlist]
+         set is_con_mod_eval [isModuleEvaluated any $modnamevr {*}$modconlist]
+         if {!$is_con_mod_eval || ![isMsgRecordIdTop] || !$is_con_mod_conun} {
             # more appropriate msg if an evaluation was attempted or is
             # by-passed. error is reported using declared conflict name (as if
             # it was raised raised from a conflict modulefile command)
-            set conmsg [expr {$retiseval || [getState force] ?\
+            set con_msg [expr {$is_con_mod_eval || [getState force] ?\
                [getConIsLoadedMsg $moddecconlist [is-loading $modconlist]] :\
                [getErrConflictMsg $moddecconlist]}]
+         } else {
+            set con_msg {}
          }
 
          # still proceed if force mode enabled
@@ -1317,19 +1319,11 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
                   }
                }
             }
-            if {$report_con && [info exists conmsg]} {
-               reportWarning $conmsg
+            if {$report_con && $con_msg ne {}} {
+               reportWarning $con_msg
             }
          } elseif {$doescon} {
-            if {$retisconun} {
-               if {[info exists conmsg]} {
-                  reportError $conmsg
-               }
-               # conun-specific msg has already been reported
-               knerror {}
-            } else {
-               knerror $conmsg
-            }
+            knerror $con_msg
          }
 
          # loading visibility depends on hidden-loaded tag
