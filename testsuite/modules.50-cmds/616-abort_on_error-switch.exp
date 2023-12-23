@@ -159,8 +159,10 @@ set ans_mfile_unload_sticky $ans_mfile_unload_bad
 
 set ans_mfile_unload_super_sticky [list]
 lappend ans_mfile_unload_super_sticky [list set __MODULES_LMCONFLICT lerr/1.0&err/1.0]
-lappend ans_mfile_unload_super_sticky [list set _LMFILES_ $mp/err/1.0:$mp/lerr/1.0]
-lappend ans_mfile_unload_super_sticky [list set LOADEDMODULES err/1.0:lerr/1.0]
+lappend ans_mfile_unload_super_sticky [list set __MODULES_LMPREREQ lerr/1.0&foo/1.0]
+lappend ans_mfile_unload_super_sticky [list set _LMFILES_ $mp/err/1.0:$mp/foo/1.0:$mp/lerr/1.0]
+lappend ans_mfile_unload_super_sticky [list set LOADEDMODULES err/1.0:foo/1.0:lerr/1.0]
+lappend ans_mfile_unload_super_sticky [list set __MODULES_LMTAG err/1.0&super-sticky:foo/1.0&auto-loaded]
 lappend ans_mfile_unload_super_sticky [list ERR]
 
 set ans_mfile_unload_not_loaded $ans_mfile_unload_bad
@@ -1688,7 +1690,7 @@ setenv_var __MODULES_LMTAG err/1.0&super-sticky
 set ts_unload_super_sticky [msg_unload {err/1.0 <sS>} $err_superstickyunload]\n\n[msg_load lerr/1.0 [err_conun err/1.0]]
 testouterr_cmd bash {load lerr/1.0} ERR $ts_unload_super_sticky
 
-set ts_unload_super_sticky_force [msg_unload {err/1.0 <sS>} $err_superstickyunload]\n\n[msg_load lerr/1.0 [err_conunf err/1.0]]
+set ts_unload_super_sticky_force [msg_unload {err/1.0 <sS>} $err_superstickyunload]\n\n[msg_top_load lerr/1.0 {} foo/1.0 {} [err_conunf err/1.0]]
 testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_unload_super_sticky $ts_unload_super_sticky_force
 
 
