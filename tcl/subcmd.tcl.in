@@ -555,9 +555,10 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
 
    # attempt load and depre reload only if unload succeed (or if top switch
    # evaluation has "continue on error" behavior enabled and switched-off
-   # module is not super-sticky)
+   # module is not super-sticky or if sub-evaluation is forced)
    if {!$ret_unload || ([isTopEvaluation] && ![commandAbortOnError] &&\
-      ![commandAbortOnError switch_unload] && !$swunmod_is_supersticky)} {
+      ![commandAbortOnError switch_unload] && !$swunmod_is_supersticky) ||
+      (![isTopEvaluation] && [getState force])} {
       if {[info exists depreisuasked]} {
          set undepreisuasked $depreisuasked
          set undeprevr $deprevr
@@ -1426,8 +1427,8 @@ proc cmdModuleIntUnload {mode args} {
       # register modulefiles to unload as individual conflicts
       registerCurrentModuleConflict {*}$args
 
-      # sub-module interpretation failed, raise error
-      if {$ret} {
+      # sub-module interpretation failed, raise error unless if forced
+      if {$ret && ![getState force]} {
          knerror {} MODULES_ERR_SUBFAILED
       }
    }
