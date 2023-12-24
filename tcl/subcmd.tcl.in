@@ -440,7 +440,10 @@ proc cmdModuleIntSwitch {mode tag_list args} {
    # operation. Could be removed from the modfile scope in a future release.
    # Use `module unload` and `module load` commands in modulefiles instead.
    if {$uasked || $mode eq {load}} {
-      cmdModuleSwitch $uasked $tag_list {*}$args
+      set ret [cmdModuleSwitch $uasked $tag_list {*}$args]
+      if {!$uasked && $ret && ![getState force]} {
+         knerror {} MODULES_ERR_SUBFAILED
+      }
    } else {
       # find what has been asked for unload and load
       lassign $args swunmod swlomod
@@ -628,6 +631,8 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
    if {!$uasked && [info exists ret_load] && $argnew ne {}} {
       prereqAnyModfileCmd 0 0 $argnew
    }
+
+   return [expr {$ret_unload || $ret_load}]
 }
 
 proc cmdModuleSave {{coll default}} {
