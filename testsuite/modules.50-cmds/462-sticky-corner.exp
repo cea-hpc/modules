@@ -432,38 +432,24 @@ unsetenv_loaded_module
 unsetenv_var __MODULES_LMTAG
 
 setenv_var TESTSUITE_STICKY 1
-
-set ans [list]
-lappend ans [list set LOADEDMODULES sticky1/1.0:sticky2/1.0:sticky3/1.0]
-lappend ans [list set _LMFILES_ $mp/sticky1/1.0:$mp/sticky2/1.0:$mp/sticky3/1.0]
-lappend ans [list set __MODULES_LMPREREQ sticky2/1.0&sticky1/1.0|sticky1/2.0:sticky3/1.0&sticky2/1.0]
-lappend ans [list set __MODULES_LMTAG sticky1/1.0&sticky&auto-loaded:sticky2/1.0&auto-loaded]
-lappend ans [list ERR]
-set tserr [msg_unload {sticky1/1.0 <aL:S>} $err_stickyunload]\n\n[msg_top_load sticky3/1.0 {} {sticky1/1.0 sticky2/1.0} {} [err_conun sticky1/1.0]]
-testouterr_cmd_re sh {load --auto sticky3/1.0} $ans $tserr
+set tserr [msg_unload {sticky1/1.0 <aL:S>} $err_stickyunload]\n\n[msg_load sticky3/1.0 [err_conun sticky1/1.0]]
+testouterr_cmd_re sh {load --auto sticky3/1.0} ERR $tserr
 
 setenv_var TESTSUITE_STICKY 2
-testouterr_cmd_re sh {load --auto sticky3/1.0} $ans $tserr
+testouterr_cmd_re sh {load --auto sticky3/1.0} ERR $tserr
 setenv_var TESTSUITE_STICKY 3
-testouterr_cmd_re sh {load --auto sticky3/1.0} $ans $tserr
+testouterr_cmd_re sh {load --auto sticky3/1.0} ERR $tserr
 setenv_var TESTSUITE_STICKY 4
-testouterr_cmd_re sh {load --auto sticky3/1.0} $ans $tserr
+testouterr_cmd_re sh {load --auto sticky3/1.0} ERR $tserr
 
 setenv_var TESTSUITE_STICKY 5
-testouterr_cmd_re sh {load --auto sticky3/1.0} $ans $tserr
+testouterr_cmd_re sh {load --auto sticky3/1.0} ERR $tserr
 setenv_var TESTSUITE_STICKY 6
-testouterr_cmd_re sh {load --auto sticky3/1.0} $ans $tserr
+testouterr_cmd_re sh {load --auto sticky3/1.0} ERR $tserr
 
 setenv_var TESTSUITE_STICKY 7
-set ans [list]
-lappend ans [list set LOADEDMODULES sticky1/1.0:sticky2/1.0:sticky3/1.0]
-lappend ans [list set _LMFILES_ $mp/sticky1/1.0:$mp/sticky2/1.0:$mp/sticky3/1.0]
-lappend ans [list set __MODULES_LMSTICKYRULE sticky1/1.0&sticky|sticky1]
-lappend ans [list set __MODULES_LMPREREQ sticky2/1.0&sticky1/1.0|sticky1/2.0:sticky3/1.0&sticky2/1.0]
-lappend ans [list set __MODULES_LMTAG sticky1/1.0&sticky&auto-loaded:sticky2/1.0&auto-loaded]
-lappend ans [list ERR]
 #FIXME module switch may resolve switched-on module prior testing stickiness is preserved
-testouterr_cmd_re sh {load --auto sticky3/1.0} $ans $tserr
+testouterr_cmd_re sh {load --auto sticky3/1.0} ERR $tserr
 
 setenv_var TESTSUITE_STICKY 8
 set ans [list]
@@ -491,8 +477,8 @@ lappend ans [list set _LMFILES_ $mp/sticky4/sub/1.0:$mp/sticky2/1.0:$mp/sticky3/
 lappend ans [list set __MODULES_LMPREREQ sticky2/1.0&sticky4/sub/1.0|sticky4/sub/2.0:sticky3/1.0&sticky2/1.0]
 lappend ans [list set __MODULES_LMTAG sticky4/sub/1.0&sticky&auto-loaded:sticky2/1.0&auto-loaded]
 lappend ans [list ERR]
-set tserr [msg_unload {sticky4/sub/1.0 <aL:S>} $err_stickyunload]\n\n[msg_top_load sticky3/1.0 {} {sticky4/sub/1.0 sticky2/1.0} {} [err_conun sticky4/sub/1.0]]
-testouterr_cmd_re sh {load --auto sticky3/1.0} $ans $tserr
+set tserr [msg_unload {sticky4/sub/1.0 <aL:S>} $err_stickyunload]\n\n[msg_load sticky3/1.0 [err_conun sticky4/sub/1.0]]
+testouterr_cmd_re sh {load --auto sticky3/1.0} ERR $tserr
 
 setenv_var TESTSUITE_STICKY 10
 set ans [list]
