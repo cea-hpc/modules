@@ -767,9 +767,7 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist extrataglist\
             ([getCallingProcName] eq {cmdModuleSwitch} &&\
             ![isTopEvaluation])} {
             # no msg for reload sub-cmd which provides an empty msg template
-            if {[string length $errMsg]} {
-               reportWarning $errMsg 1
-            }
+            reportWarning $errMsg 1
          # stop if one load fails unless force mode enabled
          } else {
             knerror $errMsg

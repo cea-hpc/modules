@@ -63,9 +63,9 @@ proc reportError {message {recordtop 0} {severity ERROR} {sgrkey er}\
 
 proc __reportError {message {recordtop 0} {severity ERROR} {sgrkey er}\
    {raisecnt 1}} {
-   # if report disabled, also disable error raise to get a coherent
-   # behavior (if no message printed, no error code change)
-   if {![getState inhibit_errreport]} {
+   # if report disabled, also disable error raise to get a coherent behavior
+   # (if no message printed, no error code change). also no report if no msg
+   if {![getState inhibit_errreport] && [string length $message]} {
       if {$raisecnt} {
          raiseErrorCount
       }
@@ -92,9 +92,7 @@ proc knerror {message {code MODULES_ERR_KNOWN}} {
 
 proc knerrorOrWarningIfForced {message {code MODULES_ERR_KNOWN}} {
    if {[getState force]} {
-      if {[string length $message]} {
-         reportWarning $message
-      }
+      reportWarning $message
    } else {
       knerror $message $code
    }
