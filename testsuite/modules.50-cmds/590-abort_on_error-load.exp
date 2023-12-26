@@ -203,6 +203,14 @@ lappend ans_load_last [list set _LMFILES_ $mp/foo/1.0:$mp/lerr/1.0]
 lappend ans_load_last [list set LOADEDMODULES foo/1.0:lerr/1.0]
 lappend ans_load_last [list set __MODULES_LMPREREQ lerr/1.0&foo/1.0|err/1.0]
 
+set ans_load_depre_break_force [list]
+lappend ans_load_depre_break_force [list set LOADEDMODULES foo/1.0:lerr/1.0]
+lappend ans_load_depre_break_force [list set _LMFILES_ $mp/foo/1.0:$mp/lerr/1.0]
+lappend ans_load_depre_break_force [list set __MODULES_LMPREREQ lerr/1.0&foo/1.0]
+lappend ans_load_depre_break_force [list set __MODULES_LMTAG foo/1.0&auto-loaded]
+lappend ans_load_depre_break_force [list ERR]
+
+
 if {[cmpversion $tclsh_version 8.6] == -1} {
     set custom_error_trace "    invoked from within
 \"if \{\[info exists env(TESTSUITE_ABORT_ON_ERROR)\]\} \{
@@ -425,6 +433,37 @@ testouterr_cmd bash {load lerr/1.0} ERR $ts_load_hard_hidden
 setenv_var TESTSUITE_ABORT_ON_ERROR load_first_hard_hidden
 
 testouterr_cmd bash {load lerr/1.0} ERR $ts_load_hard_hidden
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_depre_break
+
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+set ts_load_depre_break [msg_unload err/1.0 $err_evalabort]
+append ts_load_depre_break \n\n[msg_load foo/1.0 [err_depun err/1.0]]
+append ts_load_depre_break \n\n[msg_load lerr/1.0 [err_reqlo foo/1.0]]
+testouterr_cmd bash {load lerr/1.0} ERR $ts_load_depre_break
+
+set ts_load_depre_break_force [msg_unload err/1.0 $warn_evalabort]
+append ts_load_depre_break_force \n\n[msg_load err/1.0 $err_evalabort]
+append ts_load_depre_break_force \n\n[msg_top_load lerr/1.0 {} {foo/1.0} {{err/1.0} {}} [err_depref err/1.0]]
+testouterr_cmd bash {load --force lerr/1.0} $ans_load_depre_break_force $ts_load_depre_break_force
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_depre_load_break
+
+set ts_load_depre_load_break [msg_load err/1.0 $err_evalabort]
+append ts_load_depre_load_break \n\n[msg_load foo/1.0 [err_depre err/1.0]]
+append ts_load_depre_load_break \n\n[msg_load lerr/1.0 [err_reqlo foo/1.0]]
+testouterr_cmd bash {load lerr/1.0} ERR $ts_load_depre_load_break
+
+set ts_load_depre_load_break_force [msg_load err/1.0 $err_evalabort]
+append ts_load_depre_load_break_force \n\n[msg_top_load lerr/1.0 {} {foo/1.0} {{err/1.0} {}} [err_depref err/1.0]]
+testouterr_cmd bash {load --force lerr/1.0} $ans_load_depre_break_force $ts_load_depre_load_break_force
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMPREREQ
 
 
 #
@@ -666,6 +705,25 @@ testouterr_cmd bash {load lerr/1.0} ERR $ts_load_hard_hidden
 setenv_var TESTSUITE_ABORT_ON_ERROR load_first_hard_hidden
 
 testouterr_cmd bash {load lerr/1.0} ERR $ts_load_hard_hidden
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_depre_break
+
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+testouterr_cmd bash {load lerr/1.0} ERR $ts_load_depre_break
+testouterr_cmd bash {load --force lerr/1.0} $ans_load_depre_break_force $ts_load_depre_break_force
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_depre_load_break
+
+testouterr_cmd bash {load lerr/1.0} ERR $ts_load_depre_load_break
+testouterr_cmd bash {load --force lerr/1.0} $ans_load_depre_break_force $ts_load_depre_load_break_force
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMPREREQ
+
 
 
 #
