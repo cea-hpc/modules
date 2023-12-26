@@ -1105,12 +1105,12 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
       tryload=$tryload, loadany=$loadany)"
 
    set ret 0
-   set loadok 0
+   set one_mod_loaded 0
    lappendState mode load
    foreach mod $args {
       set mod_load_in_error 0
       # stop when first module in list is loaded if any mode enabled
-      if {$loadok && $loadany} {
+      if {$one_mod_loaded && $loadany} {
          break
       }
 
@@ -1213,7 +1213,7 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
                }
 
                # exit treatment but no need to restore settings
-               set loadok 1
+               set one_mod_loaded 1
                continue
             }
          }
@@ -1399,8 +1399,8 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
          }
       }
 
-      if {$errCode == 0} {
-         set loadok 1
+      if {!$mod_load_in_error} {
+         set one_mod_loaded 1
       }
 
       # abort evaluation if error and behavior configured this way (abort
@@ -1415,7 +1415,7 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
 
    # raise error if no module has been loaded or has produced an error during
    # its load attempt in case of top-level load-any sub-command
-   if {!$ret && !$loadok && $context eq {load} && $loadany} {
+   if {!$ret && !$one_mod_loaded && $context eq {load} && $loadany} {
       knerror "No module has been loaded"
    }
 
