@@ -1108,6 +1108,7 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
    set loadok 0
    lappendState mode load
    foreach mod $args {
+      set mod_load_in_error 0
       # stop when first module in list is loaded if any mode enabled
       if {$loadok && $loadany} {
          break
@@ -1366,15 +1367,11 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
          # report a summary of automated evaluations if no error
          reportModuleEval
       } errMsg]] != 0 && $errCode != 4} {
+         set mod_load_in_error 1
          # in case of error report module info even if set hidden
          set hidden 0
          if {$errMsg ne {}} {
             reportError $errMsg
-         }
-         # report switched-on module load failure under switch info block
-         if {$context eq {swload}} {
-            reportError "Load of switched-on [getModuleDesignation $msgrecid]\
-               failed" 1
          }
          # rollback settings if some evaluation went wrong
          set ret 1
@@ -1391,6 +1388,16 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
             [expr {$hidden && !$uasked}]
       }
       popMsgRecordId
+
+      if {$mod_load_in_error} {
+         # report load issue on the message block of the above action
+         switch -- $context {
+            swload {
+               reportError "Load of switched-on [getModuleDesignation\
+                  $msgrecid] failed"
+            }
+         }
+      }
 
       if {$errCode == 0} {
          set loadok 1
