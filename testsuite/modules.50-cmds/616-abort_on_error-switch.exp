@@ -1637,6 +1637,20 @@ append ts_depre_break_force \n\n[msg_top_load lerr/1.0 foo/1.0 setenv/1.0 {err/1
 testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_depre_break $ts_depre_break_force
 
 
+# dependent reload module breaks on load
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_depre_load_break
+setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+set ts_depre_load_break [msg_load err/1.0 $err_evalabort]
+append ts_depre_load_break \n\n[msg_top_load lerr/1.0 {foo/1.0} {setenv/1.0} {{err/1.0} {}} [err_depref err/1.0]]
+testouterr_cmd bash {load lerr/1.0} $ans_mfile_depre_break $ts_depre_load_break
+
+set ts_depre_load_break_force [msg_load err/1.0 $err_evalabort]
+append ts_depre_load_break_force \n\n[msg_top_load lerr/1.0 foo/1.0 setenv/1.0 {err/1.0 {}} [err_depref err/1.0]]
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_depre_break $ts_depre_load_break_force
+
+
 # dependent unload module breaks on unload
 setenv_var TESTSUITE_ABORT_ON_ERROR switch_depun_break
 setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
@@ -1775,6 +1789,15 @@ testouterr_cmd bash {load --no-auto lerr/1.0} ERR $ts_depun_break_noauto
 testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_depun_break $ts_depun_break_force
 
 
+# dependent reload module breaks on load
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_depre_load_break
+setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+testouterr_cmd bash {load lerr/1.0} $ans_mfile_depre_break $ts_depre_load_break
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_depre_break $ts_depre_load_break_force
+
+
 # loading module forbidden
 setenv_var TESTSUITE_ABORT_ON_ERROR switch_forbidden
 setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
@@ -1872,6 +1895,15 @@ setenv_var __MODULES_LMPREREQ err/1.0&foo
 testouterr_cmd bash {load lerr/1.0} ERR $ts_depun_break
 testouterr_cmd bash {load --no-auto lerr/1.0} ERR $ts_depun_break_noauto
 testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_depun_break $ts_depun_break_force
+
+
+# dependent reload module breaks on load
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_depre_load_break
+setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+testouterr_cmd bash {load lerr/1.0} $ans_mfile_depre_break $ts_depre_load_break
+testouterr_cmd bash {load --force lerr/1.0} $ans_mfile_depre_break $ts_depre_load_break_force
 
 
 # loading module forbidden
