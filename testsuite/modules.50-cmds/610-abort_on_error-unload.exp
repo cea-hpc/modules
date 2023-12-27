@@ -173,6 +173,24 @@ lappend ans_modfile_last_force [list set __MODULES_LMCONFLICT lerr/1.0&foo/1.0&e
 lappend ans_modfile_last_force [list set _LMFILES_ $mp/lerr/1.0]
 lappend ans_modfile_last_force [list set LOADEDMODULES lerr/1.0]
 
+set ans_modfile_opt_depre_break [list]
+lappend ans_modfile_opt_depre_break [list set __MODULES_LMCONFLICT lerr/1.0&foo/1.0]
+lappend ans_modfile_opt_depre_break [list set _LMFILES_ $mp/err/1.0:$mp/lerr/1.0]
+lappend ans_modfile_opt_depre_break [list set LOADEDMODULES err/1.0:lerr/1.0]
+
+set ans_modfile_conflict_depre_break [list]
+lappend ans_modfile_conflict_depre_break [list set __MODULES_LMCONFLICT err/1.0&foo:lerr/1.0&foo/1.0]
+lappend ans_modfile_conflict_depre_break [list set _LMFILES_ $mp/err/1.0:$mp/lerr/1.0]
+lappend ans_modfile_conflict_depre_break [list set LOADEDMODULES err/1.0:lerr/1.0]
+
+set ans_modfile_unload_conflict_depre_break_force [list]
+lappend ans_modfile_unload_conflict_depre_break_force [list unset __MODULES_LMCONFLICT]
+lappend ans_modfile_unload_conflict_depre_break_force [list unset LOADEDMODULES]
+lappend ans_modfile_unload_conflict_depre_break_force [list unset _LMFILES_]
+lappend ans_modfile_unload_conflict_depre_break_force [list unset __MODULES_LMPREREQ]
+lappend ans_modfile_unload_conflict_depre_break_force [list unset __MODULES_LMTAG]
+lappend ans_modfile_unload_conflict_depre_break_force [list ERR]
+
 
 if {[cmpversion $tclsh_version 8.6] == -1} {
     set custom_error_trace "    invoked from within
@@ -496,7 +514,6 @@ append ts_unload_exit_warn [msg_top_load lerr/1.0 {err/1.0 foo/1.0} {} {}]
 testouterr_cmd bash {load --force lerr/1.0} $ans_modfile_force $ts_unload_exit_warn
 
 
-
 #
 # multiple module to unload (abort behavior)
 #
@@ -807,6 +824,72 @@ testouterr_cmd bash {load lerr/1.0} ERR $ts_unload_exit
 set ts_unload_exit_warn $ts_exit_warn\n\n
 append ts_unload_exit_warn [msg_top_load lerr/1.0 {err/1.0 foo/1.0} {} {}]
 testouterr_cmd bash {load --force lerr/1.0} $ans_modfile_force $ts_unload_exit_warn
+
+
+#
+# dependent reload mechanism
+#
+
+# dependent reload module breaks on unload and load (optional requirement)
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_opt_depre_break
+
+setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+set ts_load_opt_depre_break [msg_top_load lerr/1.0 {foo/1.0} {} {}]
+#FIXME: optional dependency err/1.0 should be reloaded when foo/1.0 is unloaded
+testouterr_cmd bash {load lerr/1.0} $ans_modfile_opt_depre_break $ts_load_opt_depre_break
+testouterr_cmd bash {load --force lerr/1.0} $ans_modfile_opt_depre_break $ts_load_opt_depre_break
+
+
+# dependent reload module breaks on unload and load (conflict)
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_conflict_depre_break
+unsetenv_var __MODULES_LMPREREQ
+setenv_var __MODULES_LMCONFLICT err/1.0&foo
+
+set ts_load_conflict_depre_break [msg_top_load lerr/1.0 {foo/1.0} {} {}]
+#FIXME: freshly non-conflicting err/1.0 should be reloaded when conflicting foo/1.0 is unloaded
+testouterr_cmd bash {load lerr/1.0} $ans_modfile_conflict_depre_break $ts_load_conflict_depre_break
+testouterr_cmd bash {load --force lerr/1.0} $ans_modfile_conflict_depre_break $ts_load_conflict_depre_break
+
+
+# dependent reload module breaks on load (conflict)
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_conflict_depre_load_break
+
+testouterr_cmd bash {load lerr/1.0} $ans_modfile_conflict_depre_break $ts_load_conflict_depre_break
+testouterr_cmd bash {load --force lerr/1.0} $ans_modfile_conflict_depre_break $ts_load_conflict_depre_break
+
+
+# dependent reload module breaks on unload and load (conflict, unload of module that "module load")
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_load_conflict_depre_break
+setenv_loaded_module [list foo/1.0 err/1.0 lerr/1.0] [list $mp/foo/1.0 $mp/err/1.0 $mp/lerr/1.0] [list foo/1.0]
+setenv_var __MODULES_LMPREREQ lerr/1.0&foo/1.0
+setenv_var __MODULES_LMCONFLICT err/1.0&foo
+
+set ts_unload_load_conflict_depre_break [msg_unload err/1.0 $err_evalabort]
+append ts_unload_load_conflict_depre_break \n\n[msg_unload lerr/1.0 [err_depun err/1.0]]
+testouterr_cmd bash {unload lerr/1.0} ERR $ts_unload_load_conflict_depre_break
+
+set ts_load_unload_conflict_depre_break_force [msg_unload err/1.0 $warn_evalabort]
+append ts_load_unload_conflict_depre_break_force \n\n[msg_load err/1.0 $err_evalabort]
+append ts_load_unload_conflict_depre_break_force \n\n[msg_top_unload lerr/1.0 {} {foo/1.0} {{err/1.0} {}} [err_depref err/1.0]]
+testouterr_cmd bash {unload --force lerr/1.0} $ans_modfile_unload_conflict_depre_break_force $ts_load_unload_conflict_depre_break_force
+
+
+# dependent reload module breaks on load (unload of module that "module load")
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_load_conflict_depre_load_break
+
+set ts_unload_load_conflict_depre_load_break [msg_load err/1.0 $err_evalabort]
+append ts_unload_load_conflict_depre_load_break \n\n[msg_unload lerr/1.0 [err_depre err/1.0]]
+testouterr_cmd bash {unload lerr/1.0} ERR $ts_unload_load_conflict_depre_load_break
+
+set ts_load_unload_conflict_depre_load_break_force [msg_load err/1.0 $err_evalabort]
+append ts_load_unload_conflict_depre_load_break_force \n\n[msg_top_unload lerr/1.0 {} {foo/1.0} {{err/1.0} {}} [err_depref err/1.0]]
+testouterr_cmd bash {unload --force lerr/1.0} $ans_modfile_unload_conflict_depre_break_force $ts_load_unload_conflict_depre_load_break_force
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMCONFLICT
 
 
 #
