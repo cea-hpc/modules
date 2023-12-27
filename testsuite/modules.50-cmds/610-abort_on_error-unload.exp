@@ -191,6 +191,28 @@ lappend ans_modfile_unload_conflict_depre_break_force [list unset __MODULES_LMPR
 lappend ans_modfile_unload_conflict_depre_break_force [list unset __MODULES_LMTAG]
 lappend ans_modfile_unload_conflict_depre_break_force [list ERR]
 
+set ans_modfile_depun_sticky_force [list]
+lappend ans_modfile_depun_sticky_force [list unset __MODULES_LMPREREQ]
+lappend ans_modfile_depun_sticky_force [list unset _LMFILES_]
+lappend ans_modfile_depun_sticky_force [list unset LOADEDMODULES]
+lappend ans_modfile_depun_sticky_force [list unset __MODULES_LMTAG]
+
+set ans_modfile_depun_super_sticky_force [list]
+lappend ans_modfile_depun_super_sticky_force [list set _LMFILES_ $mp/err/1.0]
+lappend ans_modfile_depun_super_sticky_force [list set LOADEDMODULES err/1.0]
+lappend ans_modfile_depun_super_sticky_force [list set __MODULES_LMTAG err/1.0&super-sticky]
+lappend ans_modfile_depun_super_sticky_force [list ERR]
+
+set ans_modfile_depun_sticky_noauto_force [list]
+lappend ans_modfile_depun_sticky_noauto_force [list set _LMFILES_ $mp/err/1.0]
+lappend ans_modfile_depun_sticky_noauto_force [list set LOADEDMODULES err/1.0]
+lappend ans_modfile_depun_sticky_noauto_force [list set __MODULES_LMTAG err/1.0&sticky]
+
+set ans_modfile_depun_super_sticky_noauto_force [list]
+lappend ans_modfile_depun_super_sticky_noauto_force [list set _LMFILES_ $mp/err/1.0]
+lappend ans_modfile_depun_super_sticky_noauto_force [list set LOADEDMODULES err/1.0]
+lappend ans_modfile_depun_super_sticky_noauto_force [list set __MODULES_LMTAG err/1.0&super-sticky]
+
 
 if {[cmpversion $tclsh_version 8.6] == -1} {
     set custom_error_trace "    invoked from within
@@ -890,6 +912,61 @@ testouterr_cmd bash {unload --force lerr/1.0} $ans_modfile_unload_conflict_depre
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMPREREQ
 unsetenv_var __MODULES_LMCONFLICT
+
+
+#
+# dependent unload mechanism with sticky modules
+#
+
+setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&foo/1.0
+setenv_var __MODULES_LMTAG foo/1.0&auto-loaded:err/1.0&sticky
+
+# dependent module to unload is sticky, dependency declared with prereq
+setenv_var TESTSUITE_ABORT_ON_ERROR depun_sticky
+
+set ts_unload_depun_sticky [msg_unload {err/1.0 <S>} $err_stickyunload]
+append ts_unload_depun_sticky \n\n[msg_unload {foo/1.0 <aL>} [err_depun err/1.0]]
+testouterr_cmd bash {unload foo/1.0} ERR $ts_unload_depun_sticky
+
+set ts_unload_depun_sticky_force [msg_unload {err/1.0 <S>} $err_stickyunloadf]
+append ts_unload_depun_sticky_force \n\n[msg_top_unload {foo/1.0 <aL>} {err/1.0} {} {}]
+testouterr_cmd bash {unload --force foo/1.0} $ans_modfile_depun_sticky_force $ts_unload_depun_sticky_force
+
+# dependent module to unload is super-sticky, dependency declared with prereq
+setenv_var TESTSUITE_ABORT_ON_ERROR depun_super-sticky
+setenv_var __MODULES_LMTAG foo/1.0&auto-loaded:err/1.0&super-sticky
+
+set ts_unload_depun_super_sticky [msg_unload {err/1.0 <sS>} $err_superstickyunload]
+append ts_unload_depun_super_sticky \n\n[msg_unload {foo/1.0 <aL>} [err_depunf err/1.0]]
+testouterr_cmd bash {unload --force foo/1.0} $ans_modfile_depun_super_sticky_force $ts_unload_depun_super_sticky
+
+
+# dependent module to unload is sticky, dependency declared with module load
+setenv_var TESTSUITE_ABORT_ON_ERROR load_depun_sticky
+setenv_var __MODULES_LMTAG foo/1.0&auto-loaded:err/1.0&sticky
+
+testouterr_cmd bash {unload foo/1.0} ERR $ts_unload_depun_sticky
+
+set ts_unload_depun_sticky_noauto [msg_unload {foo/1.0 <aL>} [err_prerequn err/1.0]]
+testouterr_cmd bash {unload --no-auto foo/1.0} ERR $ts_unload_depun_sticky_noauto
+
+testouterr_cmd bash {unload --force foo/1.0} $ans_modfile_depun_sticky_force $ts_unload_depun_sticky_force
+
+set ts_unload_depun_sticky_noauto_force [msg_unload {foo/1.0 <aL>} [err_deplof err/1.0]]
+testouterr_cmd bash {unload --no-auto --force foo/1.0} $ans_modfile_depun_sticky_noauto_force $ts_unload_depun_sticky_noauto_force
+
+# dependent module to unload is super-sticky, dependency declared with module load
+setenv_var TESTSUITE_ABORT_ON_ERROR load_depun_super-sticky
+setenv_var __MODULES_LMTAG foo/1.0&auto-loaded:err/1.0&super-sticky
+
+testouterr_cmd bash {unload --force foo/1.0} $ans_modfile_depun_super_sticky_force $ts_unload_depun_super_sticky
+
+testouterr_cmd bash {unload --no-auto --force foo/1.0} $ans_modfile_depun_super_sticky_noauto_force $ts_unload_depun_sticky_noauto_force
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMTAG
 
 
 #
