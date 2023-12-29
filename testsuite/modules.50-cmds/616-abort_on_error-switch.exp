@@ -187,6 +187,58 @@ lappend ans_unload_mfile_error_force [list unset _LMFILES_]
 lappend ans_unload_mfile_error_force [list unset LOADEDMODULES]
 lappend ans_unload_mfile_error_force [list unset __MODULES_LMTAG]
 
+set ans_modfile_depun_sticky [list]
+lappend ans_modfile_depun_sticky [list set TS1 {}]
+lappend ans_modfile_depun_sticky [list set __MODULES_LMCONFLICT lerr/1.0&foo/1.0]
+lappend ans_modfile_depun_sticky [list set TS2 {}]
+lappend ans_modfile_depun_sticky [list set LOADEDMODULES setenv/1.0:lerr/1.0]
+lappend ans_modfile_depun_sticky [list set _LMFILES_ $mp/setenv/1.0:$mp/lerr/1.0]
+lappend ans_modfile_depun_sticky [list set __MODULES_LMPREREQ lerr/1.0&setenv/1.0]
+lappend ans_modfile_depun_sticky [list set __MODULES_LMTAG setenv/1.0&auto-loaded]
+lappend ans_modfile_depun_sticky [list ERR]
+
+set ans_modfile_depun_sticky_force [list]
+lappend ans_modfile_depun_sticky_force [list set TS1 {}]
+lappend ans_modfile_depun_sticky_force [list set __MODULES_LMCONFLICT lerr/1.0&foo/1.0]
+lappend ans_modfile_depun_sticky_force [list set TS2 {}]
+lappend ans_modfile_depun_sticky_force [list set __MODULES_LMPREREQ err/1.0&foo:lerr/1.0&setenv/1.0]
+lappend ans_modfile_depun_sticky_force [list set _LMFILES_ $mp/setenv/1.0:$mp/err/1.0:$mp/lerr/1.0]
+lappend ans_modfile_depun_sticky_force [list set LOADEDMODULES setenv/1.0:err/1.0:lerr/1.0]
+lappend ans_modfile_depun_sticky_force [list set __MODULES_LMTAG setenv/1.0&auto-loaded:err/1.0&sticky]
+
+set ans_modfile_depun_super_sticky_force [list]
+lappend ans_modfile_depun_super_sticky_force [list set TS1 {}]
+lappend ans_modfile_depun_super_sticky_force [list set __MODULES_LMCONFLICT lerr/1.0&foo/1.0]
+lappend ans_modfile_depun_super_sticky_force [list set TS2 {}]
+lappend ans_modfile_depun_super_sticky_force [list set __MODULES_LMPREREQ err/1.0&foo:lerr/1.0&setenv/1.0]
+lappend ans_modfile_depun_super_sticky_force [list set _LMFILES_ $mp/setenv/1.0:$mp/err/1.0:$mp/lerr/1.0]
+lappend ans_modfile_depun_super_sticky_force [list set LOADEDMODULES setenv/1.0:err/1.0:lerr/1.0]
+lappend ans_modfile_depun_super_sticky_force [list set __MODULES_LMTAG setenv/1.0&auto-loaded:err/1.0&super-sticky]
+
+set ans_modfile_depun_sticky_noauto_force [list]
+lappend ans_modfile_depun_sticky_noauto_force [list set TS1 {}]
+lappend ans_modfile_depun_sticky_noauto_force [list set __MODULES_LMCONFLICT lerr/1.0&foo/1.0]
+lappend ans_modfile_depun_sticky_noauto_force [list set TS2 {}]
+lappend ans_modfile_depun_sticky_noauto_force [list set __MODULES_LMPREREQ err/1.0&foo:lerr/1.0&setenv/1.0]
+lappend ans_modfile_depun_sticky_noauto_force [list set _LMFILES_ $mp/err/1.0:$mp/setenv/1.0:$mp/lerr/1.0]
+lappend ans_modfile_depun_sticky_noauto_force [list set LOADEDMODULES err/1.0:setenv/1.0:lerr/1.0]
+lappend ans_modfile_depun_sticky_noauto_force [list set __MODULES_LMTAG err/1.0&sticky:setenv/1.0&auto-loaded]
+
+set ans_modfile_depun_super_sticky_noauto_force [list]
+lappend ans_modfile_depun_super_sticky_noauto_force [list set TS1 {}]
+lappend ans_modfile_depun_super_sticky_noauto_force [list set __MODULES_LMCONFLICT lerr/1.0&foo/1.0]
+lappend ans_modfile_depun_super_sticky_noauto_force [list set TS2 {}]
+lappend ans_modfile_depun_super_sticky_noauto_force [list set __MODULES_LMPREREQ err/1.0&foo:lerr/1.0&setenv/1.0]
+lappend ans_modfile_depun_super_sticky_noauto_force [list set _LMFILES_ $mp/err/1.0:$mp/setenv/1.0:$mp/lerr/1.0]
+lappend ans_modfile_depun_super_sticky_noauto_force [list set LOADEDMODULES err/1.0:setenv/1.0:lerr/1.0]
+lappend ans_modfile_depun_super_sticky_noauto_force [list set __MODULES_LMTAG err/1.0&super-sticky:setenv/1.0&auto-loaded]
+
+set ans_modfile_unload_depun_sticky [list]
+lappend ans_modfile_unload_depun_sticky [list unset __MODULES_LMCONFLICT lerr/1.0&foo/1.0]
+lappend ans_modfile_unload_depun_sticky [list set __MODULES_LMPREREQ err/1.0&foo]
+lappend ans_modfile_unload_depun_sticky [list set _LMFILES_ $mp/foo/1.0:$mp/err/1.0]
+lappend ans_modfile_unload_depun_sticky [list set LOADEDMODULES foo/1.0:err/1.0]
+
 
 if {[cmpversion $tclsh_version 8.6] == -1} {
     set custom_error_trace "    invoked from within
@@ -1960,6 +2012,110 @@ setenv_var __MODULES_LMTAG err/1.0&auto-loaded
 testouterr_cmd bash {unload lerr/1.0} $ans_unload_mfile_error $ts_unload_mfile_error
 testouterr_cmd bash {unload --force lerr/1.0} $ans_unload_mfile_error_force $ts_unload_mfile_error_force
 
+unsetenv_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMTAG
+
+
+#
+# dependent unload mechanism with sticky modules when loading modulefile doing module switch
+#
+
+setenv_loaded_module [list foo/1.0 err/1.0] [list $mp/foo/1.0 $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&foo
+setenv_var __MODULES_LMTAG err/1.0&sticky
+
+# dependent module to unload is sticky, dependency declared with prereq
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_depun_sticky
+
+set ts_switch_depun_sticky [msg_load {err/1.0} [err_reqmis foo]]
+append ts_switch_depun_sticky \n\n[msg_top_load {lerr/1.0} {foo/1.0} {setenv/1.0} {{err/1.0} {}} [err_depref err/1.0]]
+testouterr_cmd bash {load lerr/1.0} $ans_modfile_depun_sticky $ts_switch_depun_sticky
+
+set ts_switch_depun_sticky_force [msg_load {err/1.0 <S>} [err_reqmisf foo]]
+append ts_switch_depun_sticky_force \n\n[msg_top_load {lerr/1.0} {foo/1.0} {setenv/1.0} {err/1.0}]
+testouterr_cmd bash {load --force lerr/1.0} $ans_modfile_depun_sticky_force $ts_switch_depun_sticky_force
+
+# dependent module to unload is super-sticky, dependency declared with prereq
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_depun_super-sticky
+setenv_var __MODULES_LMTAG err/1.0&super-sticky
+
+set ts_switch_depun_super_sticky_force [msg_load {err/1.0 <sS>} [err_reqmisf foo]]
+append ts_switch_depun_super_sticky_force \n\n[msg_top_load {lerr/1.0} {foo/1.0} {setenv/1.0} {err/1.0}]
+testouterr_cmd bash {load --force lerr/1.0} $ans_modfile_depun_super_sticky_force $ts_switch_depun_super_sticky_force
+
+
+# dependent module to unload is sticky, dependency declared with module load
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_load_depun_sticky
+setenv_var __MODULES_LMTAG err/1.0&sticky
+
+testouterr_cmd bash {load lerr/1.0} $ans_modfile_depun_sticky $ts_switch_depun_sticky
+
+set ts_switch_depun_sticky_noauto [msg_unload {foo/1.0} [err_prerequn err/1.0]]
+append ts_switch_depun_sticky_noauto \n\n[msg_load {lerr/1.0} [err_conun foo/1.0]]
+testouterr_cmd bash {load --no-auto lerr/1.0} ERR $ts_switch_depun_sticky_noauto
+
+testouterr_cmd bash {load --force lerr/1.0} $ans_modfile_depun_sticky_force $ts_switch_depun_sticky_force
+
+set ts_switch_depun_sticky_noauto_force [msg_unload {foo/1.0} [err_deplof err/1.0]]
+append ts_switch_depun_sticky_noauto_force \n\n[msg_top_load {lerr/1.0} {foo/1.0} {setenv/1.0} {}]
+testouterr_cmd bash {load --no-auto --force lerr/1.0} $ans_modfile_depun_sticky_noauto_force $ts_switch_depun_sticky_noauto_force
+
+
+# dependent module to unload is super-sticky, dependency declared with module load
+setenv_var TESTSUITE_ABORT_ON_ERROR switch_load_depun_super-sticky
+setenv_var __MODULES_LMTAG err/1.0&super-sticky
+
+testouterr_cmd bash {load --force lerr/1.0} $ans_modfile_depun_super_sticky_force $ts_switch_depun_super_sticky_force
+
+testouterr_cmd bash {load --no-auto --force lerr/1.0} $ans_modfile_depun_super_sticky_noauto_force $ts_switch_depun_sticky_noauto_force
+
+
+#
+# dependent unload mechanism with sticky modules when unloading modulefile doing module switch
+#
+
+setenv_loaded_module [list foo/1.0 lerr/1.0 err/1.0] [list $mp/foo/1.0 $mp/lerr/1.0 $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ lerr/1.0&foo/1.0:err/1.0&foo
+setenv_var __MODULES_LMCONFLICT lerr/1.0&setenv/1.0
+setenv_var __MODULES_LMTAG foo/1.0&auto-loaded:err/1.0&sticky
+
+# dependent module to unload is sticky, dependency declared with prereq
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_switch_depun_sticky
+
+testouterr_cmd bash {unload lerr/1.0} $ans_modfile_unload_depun_sticky {}
+
+testouterr_cmd bash {unload --force lerr/1.0} $ans_modfile_unload_depun_sticky {}
+
+# dependent module to unload is super-sticky, dependency declared with prereq
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_switch_depun_super-sticky
+setenv_var __MODULES_LMTAG foo/1.0&auto-loaded:err/1.0&super-sticky
+
+testouterr_cmd bash {unload --force lerr/1.0} $ans_modfile_unload_depun_sticky {}
+
+
+# dependent module to unload is sticky, dependency declared with module load
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_switch_load_depun_sticky
+setenv_var __MODULES_LMTAG foo/1.0&auto-loaded:err/1.0&sticky
+
+testouterr_cmd bash {unload lerr/1.0} $ans_modfile_unload_depun_sticky {}
+
+testouterr_cmd bash {unload --no-auto lerr/1.0} $ans_modfile_unload_depun_sticky {}
+
+testouterr_cmd bash {unload --force lerr/1.0} $ans_modfile_unload_depun_sticky {}
+
+testouterr_cmd bash {unload --no-auto --force lerr/1.0} $ans_modfile_unload_depun_sticky {}
+
+
+# dependent module to unload is super-sticky, dependency declared with module load
+setenv_var TESTSUITE_ABORT_ON_ERROR unload_switch_load_depun_super-sticky
+setenv_var __MODULES_LMTAG foo/1.0&auto-loaded:err/1.0&super-sticky
+
+testouterr_cmd bash {unload --force lerr/1.0} $ans_modfile_unload_depun_sticky {}
+
+testouterr_cmd bash {unload --no-auto --force lerr/1.0} $ans_modfile_unload_depun_sticky {}
+
+unsetenv_loaded_module
 unsetenv_var __MODULES_LMPREREQ
 unsetenv_var __MODULES_LMCONFLICT
 unsetenv_var __MODULES_LMTAG
