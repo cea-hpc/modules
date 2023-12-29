@@ -232,14 +232,10 @@ set ans_modfile_urequn_super_sticky_force $ans_modfile_urequn_sticky
 set ans_modfile_urequn_super_sticky_noauto_force $ans_modfile_urequn_sticky_noauto
 
 
-if {[cmpversion $tclsh_version 8.6] == -1} {
-    set custom_error_trace "    invoked from within
+set custom_error_trace "    invoked from within
 \"if \{\[info exists env(TESTSUITE_ABORT_ON_ERROR)\]\} \{
     switch -- \$env(TESTSUITE_ABORT_ON_ERROR) \{
         bad - load_last_bad - load_first_bad - load-...\""
-} else {
-    set custom_error_trace {}
-}
 
 
 #
@@ -250,11 +246,10 @@ setenv_loaded_module [list foo/1.0 err/1.0 all/1.0] [list $mp/foo/1.0 $mp/err/1.
 
 setenv_var TESTSUITE_ABORT_ON_ERROR bad
 
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 5}]
-set ts_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+set ts_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 2 {} {} {} $custom_error_trace]]
 testouterr_cmd bash {unload all/1.0 err/1.0 foo/1.0} $ans_continue $ts_bad
 
-set ts_bad_warn [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+set ts_bad_warn [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 2 {} {} {} $custom_error_trace]]
 testouterr_cmd bash {unload --force all/1.0 err/1.0 foo/1.0} $ans_forced $ts_bad_warn
 
 
@@ -285,14 +280,13 @@ testouterr_cmd bash {unload --force all/1.0 err/1.0 foo/1.0} $ans_forced {}
 
 setenv_var TESTSUITE_ABORT_ON_ERROR error
 
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 17}]
 set ts_error_verbose [msg_unload all/1.0]\n\n
-append ts_error_verbose [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_error_verbose [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_error_verbose [msg_unload foo/1.0]
 testouterr_cmd bash {unload -v all/1.0 err/1.0 foo/1.0} $ans_continue $ts_error_verbose
 
 set ts_error_verbose_warn [msg_unload all/1.0]\n\n
-append ts_error_verbose_warn [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_error_verbose_warn [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_error_verbose_warn [msg_unload foo/1.0]
 testouterr_cmd bash {unload --force -v all/1.0 err/1.0 foo/1.0} $ans_forced $ts_error_verbose_warn
 
@@ -301,24 +295,22 @@ setenv_var TESTSUITE_ABORT_ON_ERROR depre_load_error
 
 setenv_loaded_module [list setenv/1.0 foo/1.0 err/1.0 all/1.0] [list $mp/setenv/1.0 $mp/foo/1.0 $mp/err/1.0 $mp/all/1.0]
 setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 28}]
-set ts_depre_load_error [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depre_load_error [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depre_load_error [msg_unload foo/1.0 [err_depre err/1.0]]
 testouterr_cmd bash {unload all/1.0 foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_load_error
 
-set ts_depre_load_error_force [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depre_load_error_force [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depre_load_error_force [msg_unload foo/1.0 [err_depref err/1.0] {Unloading dependent: err/1.0}]
 testouterr_cmd bash {unload --force all/1.0 foo/1.0 setenv/1.0} $ans_depre_error_force $ts_depre_load_error_force
 
 
 setenv_var TESTSUITE_ABORT_ON_ERROR depre_unload_error
 
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 34}]
-set ts_depre_unload_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depre_unload_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depre_unload_error [msg_unload foo/1.0 [err_depun err/1.0]]
 testouterr_cmd bash {unload all/1.0 foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_unload_error
 
-set ts_depre_unload_error_force [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depre_unload_error_force [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depre_unload_error_force [msg_top_unload foo/1.0 {} {} err/1.0]
 testouterr_cmd bash {unload --force all/1.0 foo/1.0 setenv/1.0} $ans_depre_unload_error_force $ts_depre_unload_error_force
 
@@ -327,24 +319,22 @@ setenv_var TESTSUITE_ABORT_ON_ERROR depre_load_bad
 
 setenv_loaded_module [list setenv/1.0 foo/1.0 err/1.0 all/1.0] [list $mp/setenv/1.0 $mp/foo/1.0 $mp/err/1.0 $mp/all/1.0]
 setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 40}]
-set ts_depre_load_bad [msg_load err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depre_load_bad [msg_load err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depre_load_bad [msg_unload foo/1.0 [err_depre err/1.0]]
 testouterr_cmd bash {unload all/1.0 foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_load_bad
 
-set ts_depre_load_bad_force [msg_load err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depre_load_bad_force [msg_load err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depre_load_bad_force [msg_unload foo/1.0 [err_depref err/1.0] {Unloading dependent: err/1.0}]
 testouterr_cmd bash {unload --force all/1.0 foo/1.0 setenv/1.0} $ans_depre_error_force $ts_depre_load_bad_force
 
 
 setenv_var TESTSUITE_ABORT_ON_ERROR depre_unload_bad
 
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 46}]
-set ts_depre_unload_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depre_unload_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depre_unload_bad [msg_unload foo/1.0 [err_depun err/1.0]]
 testouterr_cmd bash {unload all/1.0 foo/1.0 setenv/1.0} $ans_depre_error $ts_depre_unload_bad
 
-set ts_depre_unload_bad_force [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depre_unload_bad_force [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depre_unload_bad_force [msg_top_unload foo/1.0 {} {} err/1.0]
 testouterr_cmd bash {unload --force all/1.0 foo/1.0 setenv/1.0} $ans_depre_unload_error_force $ts_depre_unload_bad_force
 
@@ -402,24 +392,22 @@ setenv_var TESTSUITE_ABORT_ON_ERROR depun_error
 setenv_loaded_module [list setenv/1.0 foo/1.0 err/1.0 all/1.0] [list $mp/setenv/1.0 $mp/foo/1.0 $mp/err/1.0 $mp/all/1.0]
 setenv_var __MODULES_LMPREREQ err/1.0&foo
 
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 102}]
-set ts_depun_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depun_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depun_error [msg_unload foo/1.0 [err_depun err/1.0]]
 testouterr_cmd bash {unload all/1.0 foo/1.0 setenv/1.0} $ans_depun_error $ts_depun_error
 
-set ts_depun_error_force [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depun_error_force [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depun_error_force [msg_top_unload foo/1.0 {err/1.0} {} {}]
 testouterr_cmd bash {unload --force all/1.0 foo/1.0 setenv/1.0} $ans_depun_error_force $ts_depun_error_force
 
 
 setenv_var TESTSUITE_ABORT_ON_ERROR depun_bad
 
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 108}]
-set ts_depun_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depun_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depun_bad [msg_unload foo/1.0 [err_depun err/1.0]]
 testouterr_cmd bash {unload all/1.0 foo/1.0 setenv/1.0} $ans_depun_error $ts_depun_bad
 
-set ts_depun_bad_force [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depun_bad_force [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depun_bad_force [msg_top_unload foo/1.0 {err/1.0} {} {}]
 testouterr_cmd bash {unload --force all/1.0 foo/1.0 setenv/1.0} $ans_depun_error_force $ts_depun_bad_force
 
@@ -489,10 +477,9 @@ testouterr_cmd bash {unload --force err/1.0} $ans_single_force $ts_bad_warn
 
 setenv_var TESTSUITE_ABORT_ON_ERROR error
 
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 17}]
-set ts_error_single [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+set ts_error_single [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 2 {} {} {} $custom_error_trace]]
 testouterr_cmd bash {unload err/1.0} ERR $ts_error_single
-set ts_error_single_warn [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+set ts_error_single_warn [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 2 {} {} {} $custom_error_trace]]
 testouterr_cmd bash {unload --force err/1.0} $ans_single_force $ts_error_single_warn
 
 setenv_var TESTSUITE_ABORT_ON_ERROR break
@@ -563,11 +550,10 @@ setenv_loaded_module [list foo/1.0 err/1.0 all/1.0] [list $mp/foo/1.0 $mp/err/1.
 
 setenv_var TESTSUITE_ABORT_ON_ERROR bad
 
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 5}]
-set ts_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+set ts_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 2 {} {} {} $custom_error_trace]]
 testouterr_cmd bash {unload all/1.0 err/1.0 foo/1.0} ERR $ts_bad
 
-set ts_bad_warn [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+set ts_bad_warn [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 2 {} {} {} $custom_error_trace]]
 testouterr_cmd bash {unload --force all/1.0 err/1.0 foo/1.0} $ans_forced $ts_bad_warn
 
 
@@ -598,13 +584,12 @@ testouterr_cmd bash {unload --force all/1.0 err/1.0 foo/1.0} $ans_forced {}
 
 setenv_var TESTSUITE_ABORT_ON_ERROR error
 
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 17}]
 set ts_error_verbose [msg_unload all/1.0]\n\n
-append ts_error_verbose [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+append ts_error_verbose [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 2 {} {} {} $custom_error_trace]]
 testouterr_cmd bash {unload -v all/1.0 err/1.0 foo/1.0} ERR $ts_error_verbose
 
 set ts_error_verbose_warn [msg_unload all/1.0]\n\n
-append ts_error_verbose_warn [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+append ts_error_verbose_warn [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_error_verbose_warn [msg_unload foo/1.0]
 testouterr_cmd bash {unload --force -v all/1.0 err/1.0 foo/1.0} $ans_forced $ts_error_verbose_warn
 
@@ -613,24 +598,22 @@ setenv_var TESTSUITE_ABORT_ON_ERROR depre_load_error
 
 setenv_loaded_module [list setenv/1.0 foo/1.0 err/1.0 all/1.0] [list $mp/setenv/1.0 $mp/foo/1.0 $mp/err/1.0 $mp/all/1.0]
 setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 28}]
-set ts_depre_load_error [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depre_load_error [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depre_load_error [msg_unload foo/1.0 [err_depre err/1.0]]
 testouterr_cmd bash {unload all/1.0 foo/1.0 setenv/1.0} ERR $ts_depre_load_error
 
-set ts_depre_load_error_force [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depre_load_error_force [msg_load err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depre_load_error_force [msg_unload foo/1.0 [err_depref err/1.0] {Unloading dependent: err/1.0}]
 testouterr_cmd bash {unload --force all/1.0 foo/1.0 setenv/1.0} $ans_depre_error_force $ts_depre_load_error_force
 
 
 setenv_var TESTSUITE_ABORT_ON_ERROR depre_unload_error
 
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 34}]
-set ts_depre_unload_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depre_unload_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depre_unload_error [msg_unload foo/1.0 [err_depun err/1.0]]
 testouterr_cmd bash {unload all/1.0 foo/1.0 setenv/1.0} ERR $ts_depre_unload_error
 
-set ts_depre_unload_error_force [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depre_unload_error_force [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depre_unload_error_force [msg_top_unload foo/1.0 {} {} err/1.0]
 testouterr_cmd bash {unload --force all/1.0 foo/1.0 setenv/1.0} $ans_depre_unload_error_force $ts_depre_unload_error_force
 
@@ -639,24 +622,22 @@ setenv_var TESTSUITE_ABORT_ON_ERROR depre_load_bad
 
 setenv_loaded_module [list setenv/1.0 foo/1.0 err/1.0 all/1.0] [list $mp/setenv/1.0 $mp/foo/1.0 $mp/err/1.0 $mp/all/1.0]
 setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 40}]
-set ts_depre_load_bad [msg_load err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depre_load_bad [msg_load err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depre_load_bad [msg_unload foo/1.0 [err_depre err/1.0]]
 testouterr_cmd bash {unload all/1.0 foo/1.0 setenv/1.0} ERR $ts_depre_load_bad
 
-set ts_depre_load_bad_force [msg_load err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depre_load_bad_force [msg_load err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depre_load_bad_force [msg_unload foo/1.0 [err_depref err/1.0] {Unloading dependent: err/1.0}]
 testouterr_cmd bash {unload --force all/1.0 foo/1.0 setenv/1.0} $ans_depre_error_force $ts_depre_load_bad_force
 
 
 setenv_var TESTSUITE_ABORT_ON_ERROR depre_unload_bad
 
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 46}]
-set ts_depre_unload_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depre_unload_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depre_unload_bad [msg_unload foo/1.0 [err_depun err/1.0]]
 testouterr_cmd bash {unload all/1.0 foo/1.0 setenv/1.0} ERR $ts_depre_unload_bad
 
-set ts_depre_unload_bad_force [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depre_unload_bad_force [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depre_unload_bad_force [msg_top_unload foo/1.0 {} {} err/1.0]
 testouterr_cmd bash {unload --force all/1.0 foo/1.0 setenv/1.0} $ans_depre_unload_error_force $ts_depre_unload_bad_force
 
@@ -714,24 +695,22 @@ setenv_var TESTSUITE_ABORT_ON_ERROR depun_error
 setenv_loaded_module [list setenv/1.0 foo/1.0 err/1.0 all/1.0] [list $mp/setenv/1.0 $mp/foo/1.0 $mp/err/1.0 $mp/all/1.0]
 setenv_var __MODULES_LMPREREQ err/1.0&foo
 
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 102}]
-set ts_depun_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depun_error [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depun_error [msg_unload foo/1.0 [err_depun err/1.0]]
 testouterr_cmd bash {unload all/1.0 foo/1.0 setenv/1.0} ERR $ts_depun_error
 
-set ts_depun_error_force [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depun_error_force [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depun_error_force [msg_top_unload foo/1.0 {err/1.0} {} {}]
 testouterr_cmd bash {unload --force all/1.0 foo/1.0 setenv/1.0} $ans_depun_error_force $ts_depun_error_force
 
 
 setenv_var TESTSUITE_ABORT_ON_ERROR depun_bad
 
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 108}]
-set ts_depun_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depun_bad [msg_unload err/1.0 [msg_moderr {invalid command name "bad"} bad $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depun_bad [msg_unload foo/1.0 [err_depun err/1.0]]
 testouterr_cmd bash {unload all/1.0 foo/1.0 setenv/1.0} ERR $ts_depun_bad
 
-set ts_depun_bad_force [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]\n\n
+set ts_depun_bad_force [msg_unload err/1.0 [msg_modwarn {invalid command name "bad"} bad $mp/err/1.0 2 {} {} {} $custom_error_trace]]\n\n
 append ts_depun_bad_force [msg_top_unload foo/1.0 {err/1.0} {} {}]
 testouterr_cmd bash {unload --force all/1.0 foo/1.0 setenv/1.0} $ans_depun_error_force $ts_depun_bad_force
 
@@ -801,10 +780,9 @@ testouterr_cmd bash {unload --force err/1.0} $ans_single_force $ts_bad_warn
 
 setenv_var TESTSUITE_ABORT_ON_ERROR error
 
-set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 17}]
-set ts_error_single [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+set ts_error_single [msg_unload err/1.0 [msg_moderr msg {error msg} $mp/err/1.0 2 {} {} {} $custom_error_trace]]
 testouterr_cmd bash {unload err/1.0} ERR $ts_error_single
-set ts_error_single_warn [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 $line_num {} {} {} $custom_error_trace]]
+set ts_error_single_warn [msg_unload err/1.0 [msg_modwarn msg {error msg} $mp/err/1.0 2 {} {} {} $custom_error_trace]]
 testouterr_cmd bash {unload --force err/1.0} $ans_single_force $ts_error_single_warn
 
 setenv_var TESTSUITE_ABORT_ON_ERROR break
