@@ -209,12 +209,25 @@ lappend ans_load_conflict_force [list set _LMFILES_ $mp/err/1.0:$mp/foo/1.0:$mp/
 lappend ans_load_conflict_force [list set LOADEDMODULES err/1.0:foo/1.0:lerr/1.0]
 lappend ans_load_conflict_force [list set __MODULES_LMTAG foo/1.0&auto-loaded]
 
+set ans_sub_load_conflict_force [list]
+lappend ans_sub_load_conflict_force [list set __MODULES_LMPREREQ lerr/1.0&foo/1.0:llerr/1.0&lerr/1.0]
+lappend ans_sub_load_conflict_force [list set _LMFILES_ $mp/err/1.0:$mp/foo/1.0:$mp/lerr/1.0:$mp/llerr/1.0]
+lappend ans_sub_load_conflict_force [list set LOADEDMODULES err/1.0:foo/1.0:lerr/1.0:llerr/1.0]
+lappend ans_sub_load_conflict_force [list set __MODULES_LMTAG foo/1.0&auto-loaded:lerr/1.0&auto-loaded]
+
 set ans_load_depre_break_force [list]
 lappend ans_load_depre_break_force [list set LOADEDMODULES foo/1.0:lerr/1.0]
 lappend ans_load_depre_break_force [list set _LMFILES_ $mp/foo/1.0:$mp/lerr/1.0]
 lappend ans_load_depre_break_force [list set __MODULES_LMPREREQ lerr/1.0&foo/1.0]
 lappend ans_load_depre_break_force [list set __MODULES_LMTAG foo/1.0&auto-loaded]
 lappend ans_load_depre_break_force [list ERR]
+
+set ans_sub_load_depre_break_force [list]
+lappend ans_sub_load_depre_break_force [list set LOADEDMODULES foo/1.0:lerr/1.0:llerr/1.0]
+lappend ans_sub_load_depre_break_force [list set _LMFILES_ $mp/foo/1.0:$mp/lerr/1.0:$mp/llerr/1.0]
+lappend ans_sub_load_depre_break_force [list set __MODULES_LMPREREQ lerr/1.0&foo/1.0:llerr/1.0&lerr/1.0]
+lappend ans_sub_load_depre_break_force [list set __MODULES_LMTAG foo/1.0&auto-loaded:lerr/1.0&auto-loaded]
+lappend ans_sub_load_depre_break_force [list ERR]
 
 
 set custom_error_trace "    invoked from within
@@ -748,6 +761,99 @@ testouterr_cmd bash {load --force lerr/1.0} $ans_load_depre_break_force $ts_load
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMPREREQ
 
+
+#
+# abort behavior ("module load" command in modulefile, no effect) (not top modulefile)
+#
+
+set ts_add_llerr_reqlo_err \n\n[msg_load llerr/1.0 [err_reqlo lerr/1.0]]
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_last_bad
+
+testouterr_cmd bash {load llerr/1.0} ERR $ts_load_bad$ts_add_llerr_reqlo_err
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_first_bad
+
+testouterr_cmd bash {load llerr/1.0} ERR $ts_load_bad$ts_add_llerr_reqlo_err
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_first_break
+
+testouterr_cmd bash {load llerr/1.0} ERR $ts_load_break$ts_add_llerr_reqlo_err
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_first_exit
+
+testouterr_cmd bash {load llerr/1.0} ERR $ts_load_exit$ts_add_llerr_reqlo_err
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_last_forbidden
+
+testouterr_cmd bash {load llerr/1.0} ERR $ts_load_forbidden$ts_add_llerr_reqlo_err
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_first_forbidden
+
+testouterr_cmd bash {load llerr/1.0} ERR $ts_load_forbidden$ts_add_llerr_reqlo_err
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_last_not_found
+
+testouterr_cmd bash {load llerr/1.0} ERR $ts_load_not_found$ts_add_llerr_reqlo_err
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_first_not_found
+
+testouterr_cmd bash {load llerr/1.0} ERR $ts_load_not_found$ts_add_llerr_reqlo_err
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_last_hard_hidden
+
+testouterr_cmd bash {load llerr/1.0} ERR $ts_load_hard_hidden$ts_add_llerr_reqlo_err
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_first_hard_hidden
+
+testouterr_cmd bash {load llerr/1.0} ERR $ts_load_hard_hidden$ts_add_llerr_reqlo_err
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_conflict
+
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+setenv_var __MODULES_LMCONFLICT err/1.0&foo
+
+testouterr_cmd bash {load llerr/1.0} ERR $ts_load_conflict$ts_add_llerr_reqlo_err
+
+set ts_load_conflict_force [msg_load {foo/1.0 <aL>} [err_conlof err/1.0]]
+append ts_load_conflict_force \n\n[msg_top_load llerr/1.0 {} {foo/1.0 lerr/1.0} {}]
+testouterr_cmd bash {load --force llerr/1.0} $ans_sub_load_conflict_force $ts_load_conflict_force
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMCONFLICT
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_depre_break
+
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
+
+testouterr_cmd bash {load llerr/1.0} ERR $ts_load_depre_break$ts_add_llerr_reqlo_err
+set ts_sub_load_depre_break_force [msg_unload err/1.0 $warn_evalabort]
+append ts_sub_load_depre_break_force \n\n[msg_load err/1.0 $err_evalabort]
+append ts_sub_load_depre_break_force \n\n[msg_top_load llerr/1.0 {} {foo/1.0 lerr/1.0} {{err/1.0} {}} [err_depref err/1.0]]
+testouterr_cmd bash {load --force llerr/1.0} $ans_sub_load_depre_break_force $ts_sub_load_depre_break_force
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_depre_load_break
+
+testouterr_cmd bash {load llerr/1.0} ERR $ts_load_depre_load_break$ts_add_llerr_reqlo_err
+set ts_sub_load_depre_load_break_force [msg_load err/1.0 $err_evalabort]
+append ts_sub_load_depre_load_break_force \n\n[msg_top_load llerr/1.0 {} {foo/1.0 lerr/1.0} {{err/1.0} {}} [err_depref err/1.0]]
+testouterr_cmd bash {load --force llerr/1.0} $ans_sub_load_depre_break_force $ts_sub_load_depre_load_break_force
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMPREREQ
 
 
 #
