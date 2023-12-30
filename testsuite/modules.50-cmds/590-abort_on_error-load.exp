@@ -203,6 +203,12 @@ lappend ans_load_last [list set _LMFILES_ $mp/foo/1.0:$mp/lerr/1.0]
 lappend ans_load_last [list set LOADEDMODULES foo/1.0:lerr/1.0]
 lappend ans_load_last [list set __MODULES_LMPREREQ lerr/1.0&foo/1.0|err/1.0]
 
+set ans_load_conflict_force [list]
+lappend ans_load_conflict_force [list set __MODULES_LMPREREQ lerr/1.0&foo/1.0]
+lappend ans_load_conflict_force [list set _LMFILES_ $mp/err/1.0:$mp/foo/1.0:$mp/lerr/1.0]
+lappend ans_load_conflict_force [list set LOADEDMODULES err/1.0:foo/1.0:lerr/1.0]
+lappend ans_load_conflict_force [list set __MODULES_LMTAG foo/1.0&auto-loaded]
+
 set ans_load_depre_break_force [list]
 lappend ans_load_depre_break_force [list set LOADEDMODULES foo/1.0:lerr/1.0]
 lappend ans_load_depre_break_force [list set _LMFILES_ $mp/foo/1.0:$mp/lerr/1.0]
@@ -425,6 +431,23 @@ testouterr_cmd bash {load lerr/1.0} ERR $ts_load_hard_hidden
 setenv_var TESTSUITE_ABORT_ON_ERROR load_first_hard_hidden
 
 testouterr_cmd bash {load lerr/1.0} ERR $ts_load_hard_hidden
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_conflict
+
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+setenv_var __MODULES_LMCONFLICT err/1.0&foo
+
+set ts_load_conflict [msg_load foo/1.0 [err_conflict err/1.0]]
+append ts_load_conflict \n\n[msg_load lerr/1.0 [err_reqlo foo/1.0]]
+testouterr_cmd bash {load lerr/1.0} ERR $ts_load_conflict
+
+set ts_load_conflict_force [msg_load {foo/1.0 <aL>} [err_conlof err/1.0]]
+append ts_load_conflict_force \n\n[msg_top_load lerr/1.0 {} {foo/1.0} {}]
+testouterr_cmd bash {load --force lerr/1.0} $ans_load_conflict_force $ts_load_conflict_force
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMCONFLICT
 
 
 setenv_var TESTSUITE_ABORT_ON_ERROR load_depre_break
@@ -694,6 +717,18 @@ testouterr_cmd bash {load lerr/1.0} ERR $ts_load_hard_hidden
 setenv_var TESTSUITE_ABORT_ON_ERROR load_first_hard_hidden
 
 testouterr_cmd bash {load lerr/1.0} ERR $ts_load_hard_hidden
+
+
+setenv_var TESTSUITE_ABORT_ON_ERROR load_conflict
+
+setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
+setenv_var __MODULES_LMCONFLICT err/1.0&foo
+
+testouterr_cmd bash {load lerr/1.0} ERR $ts_load_conflict
+testouterr_cmd bash {load --force lerr/1.0} $ans_load_conflict_force $ts_load_conflict_force
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMCONFLICT
 
 
 setenv_var TESTSUITE_ABORT_ON_ERROR load_depre_break
