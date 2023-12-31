@@ -2355,8 +2355,10 @@ setenv_var __MODULES_LMTAG err/1.0&auto-loaded&sticky
 
 testouterr_cmd bash {load lerr/1.0} $ans_modfile_urequn_sticky $ts_switch_urequn_sticky
 
-set ts_switch_urequn_sticky_noauto [msg_top_load {lerr/1.0} {foo/1.0} {setenv/1.0} {}]
-testouterr_cmd bash {load --no-auto lerr/1.0} $ans_modfile_urequn_sticky_noauto $ts_switch_urequn_sticky
+set ts_switch_urequn_sticky_noauto [msg_unload {err/1.0 <aL:S>} $err_stickyunload]
+append ts_switch_urequn_sticky_noauto \n\n[msg_unload {foo/1.0} [err_urequn err/1.0]]
+append ts_switch_urequn_sticky_noauto \n\n[msg_top_load {lerr/1.0} {foo/1.0} {setenv/1.0} {}]
+testouterr_cmd bash {load --no-auto lerr/1.0} $ans_modfile_urequn_sticky_noauto $ts_switch_urequn_sticky_noauto
 
 testouterr_cmd bash {load --force lerr/1.0} $ans_modfile_urequn_sticky_force $ts_switch_urequn_sticky_force
 
@@ -2369,7 +2371,10 @@ setenv_var __MODULES_LMTAG err/1.0&auto-loaded&super-sticky
 
 testouterr_cmd bash {load --force lerr/1.0} $ans_modfile_urequn_super_sticky_force $ts_switch_urequn_super_sticky_force
 
-testouterr_cmd bash {load --no-auto --force lerr/1.0} $ans_modfile_urequn_super_sticky_noauto $ts_switch_urequn_super_sticky_force
+set ts_switch_urequn_super_sticky_force_noauto [msg_unload {err/1.0 <aL:sS>} $err_superstickyunload]
+append ts_switch_urequn_super_sticky_force_noauto \n\n[msg_unload {foo/1.0} [err_urequn err/1.0]]
+append ts_switch_urequn_super_sticky_force_noauto \n\n[msg_top_load {lerr/1.0} {foo/1.0} {setenv/1.0} {}]
+testouterr_cmd bash {load --no-auto --force lerr/1.0} $ans_modfile_urequn_super_sticky_noauto $ts_switch_urequn_super_sticky_force_noauto
 
 
 #
@@ -2407,7 +2412,10 @@ setenv_var __MODULES_LMTAG err/1.0&auto-loaded&sticky:foo/1.0&auto-loaded
 
 testouterr_cmd bash {unload lerr/1.0} $ans_modfile_unload_urequn_sticky $ts_unload_switch_urequn_sticky
 
-testouterr_cmd bash {unload --no-auto lerr/1.0} $ans_modfile_unload_urequn_sticky_noauto $ts_unload_switch_urequn_sticky
+set ts_unload_switch_urequn_sticky_noauto [msg_unload {err/1.0 <aL:S>} $err_stickyunload]
+append ts_unload_switch_urequn_sticky_noauto \n\n[msg_unload {foo/1.0 <aL>} [err_urequn err/1.0]]
+append ts_unload_switch_urequn_sticky_noauto \n\n[msg_top_unload {lerr/1.0} {} {foo/1.0} {}]
+testouterr_cmd bash {unload --no-auto lerr/1.0} $ans_modfile_unload_urequn_sticky_noauto $ts_unload_switch_urequn_sticky_noauto
 
 testouterr_cmd bash {unload --force lerr/1.0} $ans_modfile_unload_urequn_sticky_force $ts_unload_switch_urequn_sticky_force
 
@@ -2420,7 +2428,10 @@ setenv_var __MODULES_LMTAG err/1.0&auto-loaded&super-sticky:foo/1.0&auto-loaded
 
 testouterr_cmd bash {unload --force lerr/1.0} $ans_modfile_unload_urequn_super_sticky $ts_unload_switch_urequn_super_sticky_force
 
-testouterr_cmd bash {unload --no-auto --force lerr/1.0} $ans_modfile_unload_urequn_super_sticky_noauto_force $ts_unload_switch_urequn_super_sticky_force
+set ts_unload_switch_urequn_super_sticky_force_noauto [msg_unload {err/1.0 <aL:sS>} $err_superstickyunload]
+append ts_unload_switch_urequn_super_sticky_force_noauto \n\n[msg_unload {foo/1.0 <aL>} [err_urequn err/1.0]]
+append ts_unload_switch_urequn_super_sticky_force_noauto \n\n[msg_top_unload {lerr/1.0} {} {foo/1.0} {}]
+testouterr_cmd bash {unload --no-auto --force lerr/1.0} $ans_modfile_unload_urequn_super_sticky_noauto_force $ts_unload_switch_urequn_super_sticky_force_noauto
 
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMPREREQ
@@ -2683,7 +2694,10 @@ set ts_sub_unload_switch_urequn_sticky [msg_unload {err/1.0 <aL:S>} $err_stickyu
 append ts_sub_unload_switch_urequn_sticky \n\n[msg_top_unload {llerr/1.0} {} {lerr/1.0 foo/1.0} {} [err_urequn err/1.0]]
 testouterr_cmd bash {unload llerr/1.0} $ans_modfile_unload_urequn_sticky $ts_sub_unload_switch_urequn_sticky
 
-testouterr_cmd bash {unload --no-auto llerr/1.0} $ans_modfile_unload_urequn_sticky_noauto $ts_sub_unload_switch_urequn_sticky
+set ts_sub_unload_switch_urequn_sticky_noauto [msg_unload {err/1.0 <aL:S>} $err_stickyunload]
+append ts_sub_unload_switch_urequn_sticky_noauto \n\n[msg_unload {foo/1.0 <aL>} [err_urequn err/1.0]]
+append ts_sub_unload_switch_urequn_sticky_noauto \n\n[msg_top_unload {llerr/1.0} {} {lerr/1.0 foo/1.0} {}]
+testouterr_cmd bash {unload --no-auto llerr/1.0} $ans_modfile_unload_urequn_sticky_noauto $ts_sub_unload_switch_urequn_sticky_noauto
 
 set ts_sub_unload_switch_urequn_sticky_force [msg_unload {err/1.0 <aL:S>} $err_stickyunloadf]
 append ts_sub_unload_switch_urequn_sticky_force \n\n[msg_top_unload {llerr/1.0} {} {lerr/1.0 foo/1.0 err/1.0} {}]
@@ -2700,7 +2714,10 @@ set ts_sub_unload_switch_urequn_super_sticky_force [msg_unload {err/1.0 <aL:sS>}
 append ts_sub_unload_switch_urequn_super_sticky_force \n\n[msg_top_unload {llerr/1.0} {} {lerr/1.0 foo/1.0} {} [err_urequn err/1.0]]
 testouterr_cmd bash {unload --force llerr/1.0} $ans_modfile_unload_urequn_super_sticky $ts_sub_unload_switch_urequn_super_sticky_force
 
-testouterr_cmd bash {unload --no-auto --force llerr/1.0} $ans_modfile_unload_urequn_super_sticky_noauto_force $ts_sub_unload_switch_urequn_super_sticky_force
+set ts_sub_unload_switch_urequn_super_sticky_force_noauto [msg_unload {err/1.0 <aL:sS>} $err_superstickyunload]
+append ts_sub_unload_switch_urequn_super_sticky_force_noauto \n\n[msg_unload {foo/1.0 <aL>} [err_urequn err/1.0]]
+append ts_sub_unload_switch_urequn_super_sticky_force_noauto \n\n[msg_top_unload {llerr/1.0} {} {lerr/1.0 foo/1.0} {}]
+testouterr_cmd bash {unload --no-auto --force llerr/1.0} $ans_modfile_unload_urequn_super_sticky_noauto_force $ts_sub_unload_switch_urequn_super_sticky_force_noauto
 
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMPREREQ

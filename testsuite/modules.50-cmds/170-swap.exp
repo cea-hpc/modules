@@ -72,12 +72,18 @@ set mod100errun [msg_moderr "append-path $msg_patheqsep" "append-path\tPATH\t\t:
 set mod101errun $mod101err
 set mod102errun "$err_file'$mod102p'"
 
-set msgtopsw_103 \n\n[msg_top_switch $mod103 $mod11 {} {} {} {} {} [err_urequn $mod100]]
-set msgtopsw_104 \n\n[msg_top_switch $mod104 $mod11 {} {} {} {} {} [err_urequn $mod101]]
-set msgtopsw_105 \n\n[msg_top_switch $mod105 $mod11 {} {} {} {} {} [err_urequn $mod102]]
-set msgtopsw_106 \n\n[msg_top_switch $mod106 $mod11 {} [list $mod103] {} {} {} [err_urequn $mod100]]
-set msgtopsw_107 \n\n[msg_top_switch $mod107 $mod11 {} [list $mod104] {} {} {} [err_urequn $mod101]]
-set msgtopsw_108 \n\n[msg_top_switch $mod108 $mod11 {} [list $mod105] {} {} {} [err_urequn $mod102]]
+set msgtopsw_103 \n\n[msg_unload $mod103 [err_urequn $mod100]]
+set msgtopsw_104 \n\n[msg_unload $mod104 [err_urequn $mod101]]
+set msgtopsw_105 \n\n[msg_unload $mod105 [err_urequn $mod102]]
+if {$install_autohandling eq {y}} {
+    set msgtopsw_106 \n\n[msg_unload $mod106 [err_urequn $mod100]]\n\n[msg_top_switch $mod106 $mod11 {} [list $mod103] {} {} {}]
+    set msgtopsw_107 \n\n[msg_unload $mod107 [err_urequn $mod101]]\n\n[msg_top_switch $mod107 $mod11 {} [list $mod104] {} {} {}]
+    set msgtopsw_108 \n\n[msg_unload $mod108 [err_urequn $mod102]]\n\n[msg_top_switch $mod108 $mod11 {} [list $mod105] {} {} {}]
+} else {
+    set msgtopsw_106 \n\n[msg_unload "$mod103 <aL>" [err_urequn $mod100]]\n\n[msg_top_switch $mod106 $mod11 {} [list $mod103] {} {} {}]
+    set msgtopsw_107 \n\n[msg_unload "$mod104 <aL>" [err_urequn $mod101]]\n\n[msg_top_switch $mod107 $mod11 {} [list $mod104] {} {} {}]
+    set msgtopsw_108 \n\n[msg_unload "$mod105 <aL>" [err_urequn $mod102]]\n\n[msg_top_switch $mod108 $mod11 {} [list $mod105] {} {} {}]
+}
 
 #
 # set up the environment
