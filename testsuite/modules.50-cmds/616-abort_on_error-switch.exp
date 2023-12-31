@@ -2573,7 +2573,10 @@ set ts_sub_unload_mfile_error [msg_unload {err/1.0 <aL>} [msg_moderr msg {error 
 append ts_sub_unload_mfile_error \n\n[msg_top_unload llerr/1.0 {} {lerr/1.0} {} [err_urequn err/1.0]]
 testouterr_cmd bash {unload llerr/1.0} $ans_unload_sub_mfile_error $ts_sub_unload_mfile_error
 
-testouterr_cmd bash {unload --no-auto llerr/1.0} $ans_unload_sub_mfile_error_noauto $ts_sub_unload_mfile_error
+set ts_sub_unload_mfile_error_noauto [msg_unload {err/1.0 <aL>} [msg_moderr msg {error msg} $mp/err/1.0 2 {} {} {} $custom_error_trace]]
+append ts_sub_unload_mfile_error_noauto \n\n[msg_unload {lerr/1.0 <aL>} [err_urequn err/1.0]]
+append ts_sub_unload_mfile_error_noauto \n\n[msg_top_unload llerr/1.0 {} {lerr/1.0} {}]
+testouterr_cmd bash {unload --no-auto llerr/1.0} $ans_unload_sub_mfile_error_noauto $ts_sub_unload_mfile_error_noauto
 
 set ts_sub_unload_mfile_error_force [msg_unload {err/1.0 <aL>} [msg_modwarn msg {error msg} $mp/err/1.0 2 {} {} {} $custom_error_trace]]
 append ts_sub_unload_mfile_error_force \n\n[msg_top_unload llerr/1.0 {} {lerr/1.0 err/1.0} {}]
