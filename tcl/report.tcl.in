@@ -51,17 +51,17 @@ proc __reportDebug {message {showcaller 1} {caller _undef_}} {
 # alternative procedure used when debug is disabled
 proc __reportDebugNop {message {showcaller 1} {caller _undef_}} {}
 
-proc reportWarning {message {recordtop 0}} {
-   reportError $message $recordtop WARNING wa 0
+proc reportWarning {message} {
+   reportError $message WARNING wa 0
 }
 
-proc reportError {message {recordtop 0} {severity ERROR} {sgrkey er}\
+proc reportError {message {severity ERROR} {sgrkey er}\
    {raisecnt 1}} {
-   lappend ::errreport_buffer [list reportError $message $recordtop $severity\
-      $sgrkey $raisecnt]
+   lappend ::errreport_buffer [list reportError $message $severity $sgrkey\
+      $raisecnt]
 }
 
-proc __reportError {message {recordtop 0} {severity ERROR} {sgrkey er}\
+proc __reportError {message {severity ERROR} {sgrkey er}\
    {raisecnt 1}} {
    # if report disabled, also disable error raise to get a coherent behavior
    # (if no message printed, no error code change). also no report if no msg
@@ -72,7 +72,7 @@ proc __reportError {message {recordtop 0} {severity ERROR} {sgrkey er}\
       set msgsgr "[sgr $sgrkey $severity]: $message"
       # record message to report it later on if a record id is found
       if {[currentState msgrecordid] ne {}} {
-         recordMessage $msgsgr $recordtop
+         recordMessage $msgsgr
       # skip message report if silent
       } elseif {[isVerbosityLevel concise]} {
          # save error messages to render them all together in JSON format
@@ -119,12 +119,12 @@ proc reportErrorOrWarningIfForced {message} {
 }
 
 proc reportInternalBug {message {modfile {}} {title {Module ERROR}}} {
-   reportError [formatInternalBugMsg $message $modfile] 0 $title me
+   reportError [formatInternalBugMsg $message $modfile] $title me
 }
 
 proc reportInternalBugWarning {message {modfile {}} {title {Module\
    WARNING}}} {
-   reportError [formatInternalBugMsg $message $modfile] 0 $title wa 0
+   reportError [formatInternalBugMsg $message $modfile] $title wa 0
 }
 
 proc formatInternalBugMsg {message modfile} {
@@ -141,14 +141,14 @@ proc formatMessageInModule {message modfile} {
 proc reportInfo {message {title INFO}} {
    if {[isVerbosityLevel normal]} {
       # use reportError for convenience but there is no error here
-      reportError $message 0 $title in 0
+      reportError $message $title in 0
    }
 }
 
 proc reportTrace {message {title TRACE}} {
    if {[isVerbosityLevel trace]} {
       # use reportError for convenience but there is no error here
-      reportError [sgr tr $message] 0 $title tr 0
+      reportError [sgr tr $message] $title tr 0
    }
 }
 
@@ -312,13 +312,12 @@ proc __reportSeparateNextContent {} {
 }
 
 # save message for block rendering
-proc recordMessage {message {recordtop 0}} {
-   set recid [expr {$recordtop ? [topState msgrecordid] : [currentState\
-      msgrecordid]}]
+proc recordMessage {message} {
+   set recid [currentState msgrecordid]
 
    if {$recid eq [currentState reportholdrecid]} {
       lappend ::g_holdReport([currentState reportholdid]) [list\
-         recordMessage $message $recordtop]
+         recordMessage $message]
    } else {
       lappend ::g_msgRecord($recid) $message
    }
@@ -1905,7 +1904,7 @@ proc displayLinterOutput {linter output} {
 
          # report messages
          foreach {linenum severity sgrkey raisecnt mesg} $report_list {
-            reportError $mesg 0 "[format %-7s $severity] line $linenum"\
+            reportError $mesg "[format %-7s $severity] line $linenum"\
                $sgrkey $raisecnt
          }
       }
