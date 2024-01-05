@@ -299,7 +299,7 @@ Specification
 - a module matching a ``module-forbid`` statement whose ``--after`` limit is close is considered *nearly forbidden*
 
   - ``nearly-forbidden`` tag applies to such module
-  - matched ``module-forbid`` statement should of course not be disabled for current user of group due to ``--not-user`` or ``--not-group`` option values
+  - matched ``module-forbid`` statement should of course not be disabled for current user or group due to ``--not-user`` or ``--not-group`` option values
   - the *near* range is defined by the :mconfig:`nearly_forbidden_days` configuration, which equals to ``14`` (14 days) by default
   - this configuration accepts an integer value which represents a number of days prior forbidding starts to be effective for module
   - ``nearly_forbidden_days`` configuration can be set at configure time with :instopt:`--with-nearly-forbidden-days` option or afterward with the ``config`` sub-command (which sets the :envvar:`MODULES_NEARLY_FORBIDDEN_DAYS` environment variable)
