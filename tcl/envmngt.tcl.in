@@ -20,13 +20,21 @@
 
 ##########################################################################
 
-proc raiseErrorCount {} {
-   # hold error count raise
+proc incrErrorCount {} {
+   updateErrorCount [expr {[getState error_count] + 1}]
+}
+
+proc decrErrorCount {} {
+   updateErrorCount [expr {[getState error_count] - 1}]
+}
+
+proc updateErrorCount {count} {
+   # hold update of error count
    if {[depthState reportholdid] > 0} {
       lappend ::g_holdReport([currentState reportholdid]) [list\
-         raiseErrorCount]
+         updateErrorCount $count]
    } else {
-      setState error_count [expr {[getState error_count] + 1}]
+      setState error_count $count
    }
 }
 

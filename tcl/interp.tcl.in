@@ -88,7 +88,7 @@ proc initModfileModeAliases {mode auto aliasesVN aliasesPassArgVN\
          is-used is-avail is-avail uname uname module-info module-info\
          modulepath-label modulepath-label exit exitModfileCmd reportCmdTrace\
          reportCmdTrace reportWarning reportWarning reportError reportError\
-         raiseErrorCount raiseErrorCount report report isWin initStateIsWin\
+         incrErrorCount incrErrorCount report report isWin initStateIsWin\
          puts putsModfileCmd getModuleContent getModuleContent]
 
       if {[getConf source_cache]} {
@@ -445,7 +445,7 @@ proc evaluateModulefile {itrp mod_file vr_spec_list} {
                   report {Test result: PASS}
                } else {
                   report {Test result: FAIL}
-                  raiseErrorCount
+                  incrErrorCount
                }
             } else {
                reportWarning "Unable to find ModulesTest in\
@@ -516,7 +516,7 @@ proc renderModulefileEvalError {itrp mode mod_file failed_eval error_msg} {
             {reportInternalBug} : {reportError}}]
          $report_proc $error_msg
       } elseif {[info exists raise_error_count]} {
-         raiseErrorCount
+         incrErrorCount
       }
    }
 
@@ -769,7 +769,7 @@ proc initInterpCommands {itrp fresh aliasesVN aliasesPassArgVN tracesVN\
             # exclude internal commands expoxed to modulerc/file interpreter
             # exclude cachefile commands
             if {$alias ni {report reportDebug reportError reportWarning\
-               reportCmdTrace raiseErrorCount reportInternalBug\
+               reportCmdTrace incrErrorCount reportInternalBug\
                formatErrStackTrace isVerbosityLevel modulefile-content\
                modulerc-content modulefile-invalid limited-access-file\
                limited-access-directory}} {

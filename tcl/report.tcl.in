@@ -55,19 +55,17 @@ proc reportWarning {message} {
    reportError $message WARNING wa 0
 }
 
-proc reportError {message {severity ERROR} {sgrkey er}\
-   {raisecnt 1}} {
+proc reportError {message {severity ERROR} {sgrkey er} {incr_count 1}} {
    lappend ::errreport_buffer [list reportError $message $severity $sgrkey\
-      $raisecnt]
+      $incr_count]
 }
 
-proc __reportError {message {severity ERROR} {sgrkey er}\
-   {raisecnt 1}} {
+proc __reportError {message {severity ERROR} {sgrkey er} {incr_count 1}} {
    # if report disabled, also disable error raise to get a coherent behavior
    # (if no message printed, no error code change). also no report if no msg
    if {![getState inhibit_errreport] && [string length $message]} {
-      if {$raisecnt} {
-         raiseErrorCount
+      if {$incr_count} {
+         incrErrorCount
       }
       set msgsgr "[sgr $sgrkey $severity]: $message"
       # record message to report it later on if a record id is found
@@ -105,7 +103,7 @@ proc reportErrorAndExit {message} {
 
 # regular procedure to use once error report is initialized
 proc __reportErrorAndExit {message} {
-   raiseErrorCount
+   incrErrorCount
    renderFalse
    error $message {} MODULES_ERR_RENDERED
 }
