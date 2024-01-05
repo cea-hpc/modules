@@ -468,10 +468,7 @@ proc cmdModuleIntSwitch {mode tag_list args} {
             set priormodlist [lrange $modlist 0 $modidx]
             if {[set unmod [getLoadedMatchingName $swlomod {} 0\
                $priormodlist]] ne {}} {
-               if {[cmdModuleUnload urequn match 1 0 1 1 $unmod]} {
-                  reportWarning "Unload of useless requirement\
-                     [getModuleDesignation loaded $unmod] failed"
-               }
+               cmdModuleUnload urequn match 1 0 1 1 $unmod
             }
          }
       }
@@ -1086,10 +1083,7 @@ proc cmdModuleIntLoad {topcall command mode tag_list args} {
          foreach arg [lreverse $args] {
             if {[set unmod [getLoadedMatchingName $arg {} 0 $priormodlist]]\
                ne {}} {
-               if {[cmdModuleUnload urequn match 1 0 1 1 $unmod]} {
-                  reportWarning "Unload of useless requirement\
-                     [getModuleDesignation loaded $unmod] failed"
-               }
+               cmdModuleUnload urequn match 1 0 1 1 $unmod
             }
          }
       }
@@ -1732,12 +1726,9 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                   set unmod [lindex $urequnlist $i]
                   ##nagelfar ignore Found constant
                   if {[cmdModuleUnload urequn match 0 0 0 0 $unmod]} {
-                     # just warn if UReqUn module cannot be unloaded, main
-                     # unload process continues, just the UReqUn modules that
-                     # are required by unmod (whose unload failed) are
+                     # main unload process continues, but the UReqUn modules
+                     # that are required by unmod (whose unload failed) are
                      # withdrawn from UReqUn module list
-                     reportWarning "Unload of useless requirement\
-                        [getModuleDesignation loaded $unmod] failed"
                      lassign [getDiffBetweenList $urequnlist\
                         [getRequiredLoadedModuleList [list $unmod]]]\
                         urequnlist
@@ -1795,6 +1786,12 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             conun {
                reportErrorOrWarningIfForced [getErrConUnMsg\
                   [getModuleDesignation loaded $modname]]
+            }
+            urequn {
+               # warn and do not count urequn unload error
+               reportWarning "Unload of useless requirement\
+                  [getModuleDesignation loaded $modname] failed"
+               decrErrorCount
             }
          }
       }
