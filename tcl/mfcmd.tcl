@@ -1011,14 +1011,25 @@ proc conflict {args} {
    registerCurrentModuleConflict {*}$args
 
    foreach mod $args {
-      # if the conflict module is loading and it does not correspond to
-      # currently evaluated module, we cannot proceed
-      set isloading [expr {![modEq $mod $currentModule eqstart 1 2 1] &&\
-         (!$isfullpath || ![modEq $mod $currentSModule eqstart 1 2 1]) &&\
-         [is-loading $mod]}]
-      # if the conflicting module is loaded, we cannot either
-      if {[is-loaded $mod] || $isloading} {
-         reportPresentConflictError $curmodnamevr $mod $isloading
+      set is_conflict_loading 0
+      set loaded_conflict_mod [getLoadedMatchingName $mod returnfirst]
+
+      if {![string length $loaded_conflict_mod]} {
+         set eq_current_mod [expr {[modEq $mod $currentModule eqstart 1 2 1]\
+            || ($isfullpath && [modEq $mod $currentSModule eqstart 1 2 1])}]
+         # currently evaluating module should not be mistaken for loading
+         # conflicting module
+         if {!$eq_current_mod} {
+            set loaded_conflict_mod [getLoadedMatchingName $mod returnfirst 1]
+            if {[string length $loaded_conflict_mod]} {
+               set is_conflict_loading 1
+            }
+         }
+      }
+
+      if {[string length $loaded_conflict_mod]} {
+         reportPresentConflictError $curmodnamevr $loaded_conflict_mod\
+            $is_conflict_loading
       }
    }
 
