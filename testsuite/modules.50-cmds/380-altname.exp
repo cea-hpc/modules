@@ -218,7 +218,7 @@ testouterr_cmd_re "sh" "load i2" $ans ""
 # load module whereas its alias-named conflict and its symbolic-version-named conflict are loaded
 setenv_loaded_module [list alt/dir/2 alt/1] [list $mp/alt/dir/2 $mp/alt/1]
 setenv_var __MODULES_LMALTNAME alt/dir/2&al|altfoo:alt/1&alt/sym&al|foo
-testouterr_cmd_re "sh" "load i2" ERR [msg_load i2 [err_conflict altfoo]]
+testouterr_cmd_re "sh" "load i2" ERR [msg_load i2 [err_conflict alt/dir/2]]
 
 # load module whose alternative name conflicts with an already loaded module
 setenv_loaded_module [list i2] [list $mp/i2]
@@ -274,11 +274,11 @@ unsetenv_var __MODULES_LMCONFLICT
 testouterr_cmd_re "sh" "load i3" ERR [msg_load alt/8 [err_conloi i3]]\n\n[msg_load i3 [err_reqlo alt/8]]
 
 # load module whose prereq conflicts with an alternatively named module currently loading
-testouterr_cmd_re "sh" "load i4" ERR [msg_load alt/8 [err_conloi alt/i4]]\n\n[msg_load i4 [err_reqlo alt/8]]
+testouterr_cmd_re "sh" "load i4" ERR [msg_load alt/8 [err_conloi i4]]\n\n[msg_load i4 [err_reqlo alt/8]]
 
 # use alternate name of alt/8 on prereq command
 testouterr_cmd_re "sh" "load i3b" ERR [msg_load alt/8 [err_conloi i3b]]\n\n[msg_load i3b [err_reqlo alt/v8]]
-testouterr_cmd_re "sh" "load i4b" ERR [msg_load alt/8 [err_conloi alt/i4b]]\n\n[msg_load i4b [err_reqlo alt/v8]]
+testouterr_cmd_re "sh" "load i4b" ERR [msg_load alt/8 [err_conloi i4b]]\n\n[msg_load i4b [err_reqlo alt/v8]]
 
 # reflexive conflict set on an alternative name
 set ans [list]
@@ -293,7 +293,7 @@ lappend ans [list set __MODULES_LMALTNAME i5/1&al|irefcon]
 lappend ans [list set LOADEDMODULES i5/1]
 lappend ans [list set _LMFILES_ $mp/i5/1]
 lappend ans [list ERR]
-testouterr_cmd_re "sh" "load i5/1 i5/2" $ans [msg_load i5/2 [err_conlo irefcon]]
+testouterr_cmd_re "sh" "load i5/1 i5/2" $ans [msg_load i5/2 [err_conlo i5/1]]
 
 
 # 'module load' set on an alternative name

@@ -459,13 +459,13 @@ lappend ans [list set __MODULES_LMTAG swg/2&auto-loaded]
 lappend ans [list ERR]
 # as swg/2 is seen as the module to unload for 'module switch swg', swg/1 goes to DepRe
 # but then as swg/2 is also seen as the module to load, swg/1 gets an error on DepRe loading phase
-set tserr [list {load swh} {unload swg/1} {unload swg/2} {load swg/2} {load swg/1} \n[msg_load swg/1 [err_conlo swg]] \n[msg_top_load swh swg/2 swg/2 [list [list swg/1] {}] [err_depref swg/1]]]
+set tserr [list {load swh} {unload swg/1} {unload swg/2} {load swg/2} {load swg/1} \n[msg_load swg/1 [err_conlo swg/2]] \n[msg_top_load swh swg/2 swg/2 [list [list swg/1] {}] [err_depref swg/1]]]
 testouterr_cmd_re sh {load --auto swh} $ans [join $tserr \n]
 # there is an attempt to reload swg/2 as the load phase of switch targets swg default version only
 # not 'any existing mod version'
 # FIXME: missing 'Load of requirement swg/2 failed' error message
 #   as swg/1 is found loaded by prereq command, no message is issued
-set tserr [list {load swh} {unload swg/2} {load swg/2} \n[msg_load swg/2 [err_conlo swg]]]
+set tserr [list {load swh} {unload swg/2} {load swg/2} \n[msg_load swg/2 [err_conflict swg/1]]]
 testouterr_cmd_re sh {load --no-auto swh} ERR [join $tserr \n]
 
 

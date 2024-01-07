@@ -86,24 +86,24 @@ testouterr_cmd_re sh "load --auto $mp/b" $ans {}
 setenv_loaded_module [list $mp/c:$mp/b] [list $mp/c:$mp/b]
 setenv_var __MODULES_LMCONFLICT $mp/c&c
 setenv_var __MODULES_LMPREREQ $mp/b&c
-testouterr_cmd sh "load a" ERR [msg_load a [err_conflict b]]
-testouterr_cmd sh "load --auto a" ERR [msg_load a [err_conflict b]]
-testouterr_cmd sh "load $mp/a" ERR [msg_load $mp/a [err_conflict b]]
-testouterr_cmd sh "load --auto $mp/a" ERR [msg_load $mp/a [err_conflict b]]
+testouterr_cmd sh "load a" ERR [msg_load a [err_conflict $mp/b]]
+testouterr_cmd sh "load --auto a" ERR [msg_load a [err_conflict $mp/b]]
+testouterr_cmd sh "load $mp/a" ERR [msg_load $mp/a [err_conflict $mp/b]]
+testouterr_cmd sh "load --auto $mp/a" ERR [msg_load $mp/a [err_conflict $mp/b]]
 
 # force conflict
 set ans [list]
 lappend ans [list set __MODULES_LMCONFLICT $mp/c&c:a&b]
 lappend ans [list set _LMFILES_ $mp/c:$mp/b:$mp/a]
 lappend ans [list set LOADEDMODULES $mp/c:$mp/b:a]
-testouterr_cmd_re sh "load --force a" $ans [msg_load a [err_conlof b]]
-testouterr_cmd_re sh "load --auto --force a" $ans [msg_load a [err_conlof b]]
+testouterr_cmd sh "load --force a" $ans [msg_load a [err_conlof $mp/b]]
+testouterr_cmd sh "load --auto --force a" $ans [msg_load a [err_conlof $mp/b]]
 set ans [list]
 lappend ans [list set __MODULES_LMCONFLICT $mp/c&c:$mp/a&b]
 lappend ans [list set _LMFILES_ $mp/c:$mp/b:$mp/a]
 lappend ans [list set LOADEDMODULES $mp/c:$mp/b:$mp/a]
-testouterr_cmd_re sh "load --force $mp/a" $ans [msg_load $mpre/a [err_conlof b]]
-testouterr_cmd_re sh "load --auto --force $mp/a" $ans [msg_load $mpre/a [err_conlof b]]
+testouterr_cmd sh "load --force $mp/a" $ans [msg_load $mp/a [err_conlof $mp/b]]
+testouterr_cmd sh "load --auto --force $mp/a" $ans [msg_load $mp/a [err_conlof $mp/b]]
 
 
 #

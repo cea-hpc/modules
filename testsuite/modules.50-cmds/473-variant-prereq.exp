@@ -67,7 +67,7 @@ setenv_var __MODULES_LMVARIANT vrreq2/2.0&foo|val1|0|0&bar|1|0|0:vrreq3/2.0&foo|
 setenv_var __MODULES_LMCONFLICT vrreq2/2.0&vrreq2:vrreq3/2.0&vrreq3
 unsetenv_var __MODULES_LMPREREQ
 setenv_var __MODULES_LMVARIANT vrreq2/2.0&foo|val1|0|0&bar|1|0|0:vrreq3/2.0&foo|val1|0|0&bar|1|0|0
-set tserr [msg_load vrreq2/1.0{bar=1:foo=val1} [err_conlo vrreq2]]\n\n[msg_load vrreq3/1.0{bar=1:foo=val1} [err_conlo vrreq3]]\n\n[msg_load vrreq1/1.0{foo=val1} [err_reqlo vrreq2/1.0{bar=1:foo=val1} vrreq3/1.0{bar=1:foo=val1}]]\n\n[msg_load variant/7.0{foo=val2} [err_reqlo vrreq1/1.0{foo=val1}]]
+set tserr [msg_load vrreq2/1.0{bar=1:foo=val1} [err_conflict vrreq2/2.0]]\n\n[msg_load vrreq3/1.0{bar=1:foo=val1} [err_conflict vrreq3/2.0]]\n\n[msg_load vrreq1/1.0{foo=val1} [err_reqlo vrreq2/1.0{bar=1:foo=val1} vrreq3/1.0{bar=1:foo=val1}]]\n\n[msg_load variant/7.0{foo=val2} [err_reqlo vrreq1/1.0{foo=val1}]]
 testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} ERR $tserr
 
 # useless requirement unload
@@ -308,7 +308,7 @@ setenv_var __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq3/1.0&foo|
 setenv_var __MODULES_LMCONFLICT vrreq2/2.0&vrreq2:vrreq3/2.0&vrreq3
 unsetenv_var __MODULES_LMPREREQ
 setenv_var __MODULES_LMVARIANT vrreq2/2.0&foo|val1|0|0&bar|1|0|0:vrreq3/2.0&foo|val1|0|0&bar|1|0|0
-set tserr [msg_load vrreq2/2.0{bar=1:foo=val1} [err_conlo vrreq2]]\n\n[msg_load vrreq3/2.0{bar=1:foo=val1} [err_conlo vrreq3]]\n\n[msg_load vrreq1/1.0{foo=val1} [err_reqlo vrreq2@1:2{bar=1:foo=val1} vrreq3{bar=1:foo=val1}]]\n\n[msg_load variant/7.0{foo=val2} [err_reqlo vrreq1@:1{foo=val1}]]
+set tserr [msg_load vrreq2/2.0{bar=1:foo=val1} [err_conflict vrreq2/1.0]]\n\n[msg_load vrreq3/2.0{bar=1:foo=val1} [err_conflict vrreq3/1.0]]\n\n[msg_load vrreq1/1.0{foo=val1} [err_reqlo vrreq2@1:2{bar=1:foo=val1} vrreq3{bar=1:foo=val1}]]\n\n[msg_load variant/7.0{foo=val2} [err_reqlo vrreq1@:1{foo=val1}]]
 testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} ERR $tserr
 
 # useless requirement unload
@@ -562,7 +562,7 @@ setenv_var __MODULES_LMCONFLICT vrreq2/2.0&vrreq2:vrreq3/2.0&vrreq3
 setenv_var __MODULES_LMALTNAME vrreq3/2.0&al|alvrreq3/2.0
 unsetenv_var __MODULES_LMPREREQ
 setenv_var __MODULES_LMVARIANT vrreq2/2.0&foo|val1|0|0&bar|1|0|0:vrreq3/2.0&foo|val1|0|0&bar|1|0|0
-set tserr [msg_load vrreq2/1.0{bar=1:foo=val1} [err_conflict vrreq2]]\n\n[msg_load vrreq3/1.0{bar=1:foo=val1} [err_conflict vrreq3]]\n\n[msg_load vrreq1/1.0{foo=val1} [err_reqlo alvrreq2{bar=1:foo=val1} alvrreq3/1.0{bar=1:foo=val1}]]\n\n[msg_load variant/7.0{foo=val2} [err_reqlo vrreq1{foo=val1}]]
+set tserr [msg_load vrreq2/1.0{bar=1:foo=val1} [err_conflict vrreq2/2.0]]\n\n[msg_load vrreq3/1.0{bar=1:foo=val1} [err_conflict vrreq3/2.0]]\n\n[msg_load vrreq1/1.0{foo=val1} [err_reqlo alvrreq2{bar=1:foo=val1} alvrreq3/1.0{bar=1:foo=val1}]]\n\n[msg_load variant/7.0{foo=val2} [err_reqlo vrreq1{foo=val1}]]
 testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} ERR $tserr
 
 # useless requirement unload
@@ -825,7 +825,7 @@ setenv_var __MODULES_LMCONFLICT vrreq2/2.0&vrreq2:vrreq3/2.0&vrreq3
 unsetenv_var __MODULES_LMPREREQ
 setenv_var __MODULES_LMVARIANT vrreq2/2.0&foo|val1|0|0&bar|1|0|0:vrreq3/2.0&foo|val1|0|0&bar|1|0|0
 setenv_var __MODULES_LMALTNAME vrreq3/2.0&as|vrreq3/default&as|vrreq3/latest
-set tserr [msg_load vrreq2/2.0{bar=1:foo=val1} [err_conlo vrreq2]]\n\n[msg_load vrreq1/1.0{foo=val1} [err_reqlo vrreq2@1:2{bar=1:foo=val1}]]\n\n[msg_load variant/7.0{foo=val2} [err_reqlo vrreq1@:1{foo=val1}]]
+set tserr [msg_load vrreq2/2.0{bar=1:foo=val1} [err_conflict vrreq2/1.0]]\n\n[msg_load vrreq1/1.0{foo=val1} [err_reqlo vrreq2@1:2{bar=1:foo=val1}]]\n\n[msg_load variant/7.0{foo=val2} [err_reqlo vrreq1@:1{foo=val1}]]
 testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} ERR $tserr
 
 # useless requirement unload

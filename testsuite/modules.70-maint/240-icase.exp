@@ -335,7 +335,7 @@ lappend ans [list set _LMFILES_ $mp/nocase/1:$mp/icase/prereq]
 lappend ans [list set LOADEDMODULES nocase/1:icase/prereq]
 testouterr_cmd_re sh {load --icase --auto icase/prereq} $ans {}
 
-testouterr_cmd_re sh {load --icase icase/conflict} ERR [msg_load icase/conflict [err_conflict NOCASE]]
+testouterr_cmd_re sh {load --icase icase/conflict} ERR [msg_load icase/conflict [err_conflict nocase/1]]
 
 set ans [list]
 lappend ans [list set __MODULES_LMPREREQ icase/load&noCASE/alIAS]
@@ -375,13 +375,13 @@ lappend ans [list set LOADEDMODULES icase/conflicts]
 testouterr_cmd_re sh {load --icase icase/conflicts} $ans {}
 
 setenv_loaded_module [list icase/isloaded] [list $mp/icase/isloaded]
-testouterr_cmd_re sh {load --icase icase/conflicts} ERR [msg_load icase/conflicts [err_conflict Icase]]
+testouterr_cmd_re sh {load --icase icase/conflicts} ERR [msg_load icase/conflicts [err_conflict icase/isloaded]]
 unsetenv_loaded_module
 
 # conflict over an alias name
 setenv_loaded_module [list nocase/1] [list $mp/nocase/1]
 setenv_var __MODULES_LMALTNAME nocase/1&nocase/vers&al|nocase3&al|nocase/alias
-testouterr_cmd_re sh {load --icase icase/conflicta} ERR [msg_load icase/conflicta [err_conflict NOcase3]]
+testouterr_cmd_re sh {load --icase icase/conflicta} ERR [msg_load icase/conflicta [err_conflict nocase/1]]
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMALTNAME
 
@@ -393,7 +393,7 @@ unsetenv_loaded_module
 unsetenv_var __MODULES_LMCONFLICT
 
 # loading prereq conflict with its dependent
-testouterr_cmd_re sh {load --icase --auto icase/prereqc} ERR [msg_load icase/conflictp [err_conloi ICase/PREreqC]]\n\n[msg_load icase/prereqc [err_reqlo icASE/conflictP]]
+testouterr_cmd_re sh {load --icase --auto icase/prereqc} ERR [msg_load icase/conflictp [err_conloi icase/prereqc]]\n\n[msg_load icase/prereqc [err_reqlo icASE/conflictP]]
 
 
 #
@@ -453,11 +453,11 @@ lappend ans [list set __MODULES_LMCONFLICT nocase7/conflictim1&ICase]
 lappend ans [list set _LMFILES_ $mp/icase/z:$mp/ICASE/1:$mp/iCaSe/1:$mp/nocase7/conflictim1]
 lappend ans [list set LOADEDMODULES icase/z:ICASE/1:iCaSe/1:nocase7/conflictim1]
 testouterr_cmd_re sh {load nocase7/conflictim1} $ans {}
-testouterr_cmd_re sh {load --icase nocase7/conflictim1} ERR [msg_load nocase7/conflictim1 [err_conflict ICase]]
+testouterr_cmd_re sh {load --icase nocase7/conflictim1} ERR [msg_load nocase7/conflictim1 [err_conflict icase/z]]
 
 # when checking conflict, multiple matches if icase enabled, one match if disabled
-testouterr_cmd_re sh {load nocase7/conflictim2} ERR [msg_load nocase7/conflictim2 [err_conflict iCaSe]]
-testouterr_cmd_re sh {load --icase nocase7/conflictim2} ERR [msg_load nocase7/conflictim2 [err_conflict iCaSe]]
+testouterr_cmd_re sh {load nocase7/conflictim2} ERR [msg_load nocase7/conflictim2 [err_conflict iCaSe/1]]
+testouterr_cmd_re sh {load --icase nocase7/conflictim2} ERR [msg_load nocase7/conflictim2 [err_conflict icase/z]]
 
 unsetenv_loaded_module
 
