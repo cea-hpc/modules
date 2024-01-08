@@ -1572,7 +1572,6 @@ proc getLoadedConflict {mod} {
 proc doesModuleConflict {mod} {
    set does 0
    set modconlist {}
-   set moddecconlist {}
    defineModEqProc [isIcase] [getConf extended_default] 1
    # get module short name if loaded by its full pathname
    if {[set isfullpath [isModuleFullPath $mod]]} {
@@ -1596,7 +1595,6 @@ proc doesModuleConflict {mod} {
                foreach lmmod $lmmodlist {
                   appendNoDupToList modconlist $lmmod
                }
-               appendNoDupToList moddecconlist $withmod
                set does 1
             }
          }
@@ -1607,7 +1605,6 @@ proc doesModuleConflict {mod} {
             if {[modEq $withmod $mod eqstart 1 2 1] || ($isfullpath &&\
                [modEq $withmod $smod eqstart 1 2 1])} {
                lappend modconlist $modcon
-               lappend moddecconlist $modcon
                set does 1
                break
             }
@@ -1615,9 +1612,8 @@ proc doesModuleConflict {mod} {
       }
    }
 
-   reportDebug "'$mod' conflicts with '$modconlist' (declared as\
-      '$moddecconlist')"
-   return [list $does $modconlist $moddecconlist]
+   reportDebug "'$mod' conflicts with '$modconlist'"
+   return [list $does $modconlist]
 }
 
 proc setLoadedPrereq {mod args} {
