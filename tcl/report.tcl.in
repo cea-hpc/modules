@@ -2061,16 +2061,19 @@ proc reportMissingPrereqError {curmodnamevr args} {
 }
 
 # create appropriate message and kind of report when a conflict is detected
-proc reportPresentConflictError {curmodnamevr con_mod is_loading} {
-   if {[isModuleEvaluated any $curmodnamevr $con_mod] || [getState force]} {
-      set msg [getConIsLoadedMsg [list [getModuleDesignation loaded\
-         $con_mod]] $is_loading]
+proc reportPresentConflictError {curmodnamevr con_mod_list is_loading} {
+   if {[isModuleEvaluated any $curmodnamevr {*}$con_mod_list] || [getState\
+      force]} {
+      foreach con_mod $con_mod_list {
+         lappend con_mod_desig_list [getModuleDesignation loaded $con_mod]
+      }
+      set msg [getConIsLoadedMsg $con_mod_desig_list $is_loading]
    } else {
-      set msg [getErrConflictMsg [list $con_mod]]
+      set msg [getErrConflictMsg $con_mod_list]
    }
 
    # indicate message has already been reported
-   lappend ::report_conflict([currentState evalid]) $con_mod
+   lappend ::report_conflict([currentState evalid]) {*}$con_mod_list
 
    knerrorOrWarningIfForced $msg MODULES_ERR_GLOBAL
 }

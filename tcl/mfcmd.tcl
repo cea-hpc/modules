@@ -1012,23 +1012,24 @@ proc conflict {args} {
 
    foreach mod $args {
       set is_conflict_loading 0
-      set loaded_conflict_mod [getLoadedMatchingName $mod returnfirst]
+      set loaded_conflict_mod_list [getLoadedMatchingName $mod returnall]
 
-      if {![string length $loaded_conflict_mod]} {
+      if {![llength $loaded_conflict_mod_list]} {
          set eq_current_mod [expr {[modEq $mod $currentModule eqstart 1 2 1]\
             || ($isfullpath && [modEq $mod $currentSModule eqstart 1 2 1])}]
          # currently evaluating module should not be mistaken for loading
          # conflicting module
          if {!$eq_current_mod} {
-            set loaded_conflict_mod [getLoadedMatchingName $mod returnfirst 1]
-            if {[string length $loaded_conflict_mod]} {
+            set loaded_conflict_mod_list [getLoadedMatchingName $mod\
+               returnall 1]
+            if {[llength $loaded_conflict_mod_list]} {
                set is_conflict_loading 1
             }
          }
       }
 
-      if {[string length $loaded_conflict_mod]} {
-         reportPresentConflictError $curmodnamevr $loaded_conflict_mod\
+      if {[llength $loaded_conflict_mod_list]} {
+         reportPresentConflictError $curmodnamevr $loaded_conflict_mod_list\
             $is_conflict_loading
       }
    }
