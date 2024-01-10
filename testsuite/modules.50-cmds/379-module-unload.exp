@@ -187,7 +187,7 @@ testouterr_cmd_re sh {load --no-auto und} $ans $tserr
 testouterr_cmd_re sh {load --auto und} $ans $tserr
 
 setenv_loaded_module [list ha/1 ha/2] [list $mp/ha/1 $mp/ha/2]
-set tserr "load unc\n\n[msg_load unc [err_conflict ha/1]]"
+set tserr "load unc\n\n[msg_load unc [err_conflict ha/1 ha/2]]"
 testouterr_cmd_re sh {load --no-auto unc} ERR $tserr
 testouterr_cmd_re sh {load --auto unc} ERR $tserr
 if {$install_unloadmatchorder eq {returnlast}} {
@@ -206,7 +206,7 @@ if {$install_unloadmatchorder eq {returnlast}} {
     # conflict is reported once even if declared twice as warning reported is detected when attempting to warn a second time
     # warning report detection is made as these messages could be silenced when shouted from "conflict" command, so the cmdModuleLoad
     # procedure must shout it if it was silenced
-    set tserr "load unc\nunload ha/2\n\n[msg_top_load unc ha/2 {} {} [err_conlof ha/1]]"
+    set tserr "load unc\nunload ha/2\n\n[msg_top_load unc ha/2 {} {} [err_conlof ha/1 ha/2]]"
 } else {
     set ans [list]
     lappend ans [list set __MODULES_LMCONFLICT unc&ha]
@@ -215,7 +215,7 @@ if {$install_unloadmatchorder eq {returnlast}} {
     # conflict is reported once even if declared twice as warning reported is detected when attempting to warn a second time
     # warning report detection is made as these messages could be silenced when shouted from "conflict" command, so the cmdModuleLoad
     # procedure must shout it if it was silenced
-    set tserr "load unc\nunload ha/1\n\n[msg_top_load unc ha/1 {} {} [err_conlof ha/1] [err_conlof ha/2]]"
+    set tserr "load unc\nunload ha/1\n\n[msg_top_load unc ha/1 {} {} [err_conlof ha/1 ha/2]]"
 }
 testouterr_cmd_re sh {load --force --auto unc} $ans $tserr
 
