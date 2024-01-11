@@ -955,14 +955,24 @@ proc getErrConUnMsg {conlist} {
    return "Unload of conflicting [join $condesiglist { and }] failed"
 }
 
-proc getConIsLoadedMsg {conlist {loading 0}} {
-   set is [expr {[llength $conlist] > 1 ? {are} : {is}}]
-   set loaded [expr {$loading ? {loading} : {loaded}}]
-   set condesiglist {}
-   foreach con $conlist {
-      lappend condesiglist [getModuleDesignation spec $con]
+proc getConIsLoadedMsg {con_mod_list {is_loading 0}} {
+   set is [expr {[llength $con_mod_list] > 1 ? {are} : {is}}]
+   set loading [expr {$is_loading ? {loading} : {loaded}}]
+   set con_desig_list {}
+   foreach con_mod $con_mod_list {
+      lappend con_desig_list [getModuleDesignation loaded $con_mod]
    }
-   return "Conflicting [join $condesiglist { and }] $is $loaded"
+   return "Conflicting [join $con_desig_list { and }] $is $loading"
+}
+
+proc getPresentConflictErrorMsg {curmodnamevr con_mod_list is_loading} {
+   if {[isModuleEvaluated any $curmodnamevr {*}$con_mod_list] || [getState\
+      force]} {
+      set msg [getConIsLoadedMsg $con_mod_list $is_loading]
+   } else {
+      set msg [getErrConflictMsg $con_mod_list]
+   }
+   return $msg
 }
 
 proc getForbiddenMsg {mod fpmod} {
@@ -2062,19 +2072,11 @@ proc reportMissingPrereqError {curmodnamevr args} {
 
 # create appropriate message and kind of report when a conflict is detected
 proc reportPresentConflictError {curmodnamevr con_mod_list is_loading} {
-   if {[isModuleEvaluated any $curmodnamevr {*}$con_mod_list] || [getState\
-      force]} {
-      foreach con_mod $con_mod_list {
-         lappend con_mod_desig_list [getModuleDesignation loaded $con_mod]
-      }
-      set msg [getConIsLoadedMsg $con_mod_desig_list $is_loading]
-   } else {
-      set msg [getErrConflictMsg $con_mod_list]
-   }
-
    # indicate message has already been reported
    lappend ::report_conflict([currentState evalid]) {*}$con_mod_list
 
+   set msg [getPresentConflictErrorMsg $curmodnamevr $con_mod_list\
+      $is_loading]
    knerrorOrWarningIfForced $msg MODULES_ERR_GLOBAL
 }
 
