@@ -353,6 +353,13 @@ proc execute-modulefile {modfile modname modnamevrvar modspec {up_namevr 1}\
    set eval_return_code [renderModulefileEvalError $itrp $mode $modfile\
       $failed_eval $errorMsg]
 
+   if {$mode eq {load} && ![isStateDefined rc_running]} {
+      if {[catch {checkModuleConflict $modname $modnamevr} errorMsg]} {
+         reportError $errorMsg
+         set eval_return_code 1
+      }
+   }
+
    # check if mod name version and variant has changed (default variant set)
    # update modnamevr if so and collect tags applying to new name
    if {$up_namevr} {
@@ -521,6 +528,28 @@ proc renderModulefileEvalError {itrp mode mod_file failed_eval error_msg} {
    }
 
    return $eval_return_code
+}
+
+# Raise an error if a conflict violation is detected. This is done after
+# modulefile eval to give it a chance to solve its conflicts during eval
+proc checkModuleConflict {mod_name mod_name_vr} {
+   lassign [doesModuleConflict $mod_name] does_con mod_con_list
+   if {$does_con} {
+      set is_con_mod_conun [isModuleEvaluated conun $mod_name_vr\
+         {*}$mod_con_list]
+      set is_con_mod_loading [is-loading {*}$mod_con_list]
+      if {!$is_con_mod_conun || $is_con_mod_loading} {
+         set con_msg [getPresentConflictErrorMsg $mod_name_vr $mod_con_list\
+            $is_con_mod_loading]
+      } else {
+         set con_msg {}
+      }
+
+      set msgrecid [currentState msgrecordid]
+      if {![isConflictErrorAlreadyReported $msgrecid $mod_con_list]} {
+         knerrorOrWarningIfForced $con_msg
+      }
+   }
 }
 
 # Smaller subset than main module load... This function runs modulerc and

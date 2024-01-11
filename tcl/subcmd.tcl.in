@@ -1268,26 +1268,6 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
          # load evaluation to report correct order with other evaluations)
          registerModuleEval $context $msgrecid
 
-         # raise an error if a conflict violation is detected
-         # do that after modfile evaluation to give it the chance to solve its
-         # (module unload) conflicts through its evaluation
-         lassign [doesModuleConflict $modname] doescon modconlist
-         if {$doescon} {
-            set is_con_mod_conun [isModuleEvaluated conun $modnamevr\
-               {*}$modconlist]
-            set is_con_mod_loading [is-loading {*}$modconlist]
-            if {!$is_con_mod_conun || $is_con_mod_loading} {
-               set con_msg [getPresentConflictErrorMsg $modnamevr\
-                  $modconlist $is_con_mod_loading]
-            } else {
-               set con_msg {}
-            }
-
-            if {![isConflictErrorAlreadyReported $msgrecid $modconlist]} {
-               knerrorOrWarningIfForced $con_msg
-            }
-         }
-
          # loading visibility depends on hidden-loaded tag
          set hidden [isModuleTagged $modnamevr hidden-loaded 1 $modfile]
 
