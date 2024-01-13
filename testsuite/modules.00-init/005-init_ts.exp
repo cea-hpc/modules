@@ -20,12 +20,288 @@
 #
 ##############################################################################
 
-if {$verbose} {
-    send_user "\tInitializing the testsuite ...\n"
+#
+# Check setup
+#
+
+send_user "\tInitializing the testsuite ...\n"
+
+# Modules release number
+set major_minor_rel [join [lrange [split $install_version .] 0 1] .]
+
+# test kind of sh-shell we have
+if {[file type /bin/sh] eq {link}} {
+   set sh_kind [file readlink /bin/sh]
+} else {
+   set sh_kind sh
 }
 
+# get current terminal width
+proc getTtyCols {} {
+    set nbcols {}
+
+    switch -- $::tcl_platform(os) {
+        {SunOS} {
+            catch {regexp {columns = (\d+);} [exec stty] match nbcols} errMsg
+        }
+        default {
+            catch {set nbcols [lindex [exec stty size] 1]} errMsg
+        }
+    }
+    return $nbcols
+}
+set nbcols [getTtyCols]
+if {$nbcols ne {} && $nbcols ne {0}} {
+    set term_cols $nbcols
+    set msg_disp_cols $nbcols
+    send_user "\tTerminal has $msg_disp_cols columns\n"
+} else {
+    send_user "\tFail to detect terminal column number.\n"
+    if {[catch {exec stty rows 60 cols 120} errMsg]} {
+        send_user "\tFail to set specific terminal size: $errMsg\n"
+        set msg_disp_cols 80
+        send_user "\tFallback to $msg_disp_cols columns\n"
+    } else {
+        set term_cols 120
+        set msg_disp_cols 120
+        send_user "\tSuccessfully set terminal to 120 columns.\n"
+    }
+}
+unset nbcols
+
+proc find_bin {name} {
+   set path {}
+
+   if {[info exists ::env(PATH)]} {
+      foreach dir [split $::env(PATH) ":"] {
+         if {[file executable "$dir/$name"]} {
+            set path "$dir/$name"
+            break
+         }
+      }
+   }
+
+   return $path
+}
+
+# check SIP is enabled or not on OS X
+if {$tcl_platform(os) eq "Darwin"} {
+    catch {
+        regexp {System Integrity Protection status: enabled.} [exec csrutil status] csrutil_enabled
+    } errMsg
+}
+if {[info exists csrutil_enabled]} {
+    set sip_enabled 1
+    unset csrutil_enabled
+} else {
+    set sip_enabled 0
+}
+
+# grab fish shell version to check if greater or equal to 3.1
+if {[set fishbin [lindex [auto_execok fish] 0]] ne {}} {
+   regexp {version (.+)$} [exec $fishbin --version] match fish_version
+   set fish_version_ge31 [expr {[lindex [lsort -dictionary [list $fish_version 3.1.0]] 0] eq {3.1.0}}]
+   set fish_version_ge32 [expr {[lindex [lsort -dictionary [list $fish_version 3.2.0]] 0] eq {3.2.0}}]
+}
+
+# find ksh flavor
+if {[set kshbin [lindex [auto_execok ksh] 0]] ne {}} {
+   set ksh_is_mksh [expr {[string first MIRBSD [exec $kshbin -c "echo \$KSH_VERSION"]] != -1}]
+}
+
+# is FPATH set during autoinit for zsh shell
+set install_setzshfpath [expr {$install_zshcompletiondir eq {} ? {y} : {n}}]
+if {$install_setzshfpath eq {y}} {
+    set install_zshcompletiondir $install_initdir/zsh-functions
+}
+
+# locate siteconfig file
+set siteconfig_file "$install_etcdir/siteconfig.tcl"
+set siteconfig_filere [regsub -all "\(\[.+?\]\)" $siteconfig_file {\\\1}]
+
+# determine if siteconfig forces stderr terminal attachment state
+proc siteconfig_isStderrTty {} {
+    interp create _siteconfig
+    interp eval _siteconfig set ::siteconfig_file "{$::siteconfig_file}"
+    set is_stderr_tty [interp eval _siteconfig {
+        set is_stderr_tty 0
+        if {[file readable $::siteconfig_file]} {
+            # evaluate siteconfig file to check initStateIsStderrTty procedure
+            catch {
+                source $::siteconfig_file
+                if {[info procs initStateIsStderrTty] eq "initStateIsStderrTty"} {
+                    set is_stderr_tty [initStateIsStderrTty]
+                }
+            } errorMsg
+        }
+        return $is_stderr_tty
+    }]
+    interp delete _siteconfig
+    return $is_stderr_tty
+}
+
+# determine if stdin is attached to a tty
+set is_stdin_tty [expr {![catch {fconfigure stdin -mode}]}]
+
+# locate Modules Tcl extension library used during testsuite
+if {$install_libtclenvmodules eq {y}} {
+    set tclextlib_file lib/libtclenvmodules$install_shlib_suffix
+    set closedirlib_file lib/libtestutil-closedir$install_shlib_suffix
+    set getpwuidlib_file lib/libtestutil-getpwuid$install_shlib_suffix
+    set getgroupslib_file lib/libtestutil-getgroups$install_shlib_suffix
+    set 0getgroupslib_file lib/libtestutil-0getgroups$install_shlib_suffix
+    set dupgetgroupslib_file lib/libtestutil-dupgetgroups$install_shlib_suffix
+    set getgrgidlib_file lib/libtestutil-getgrgid$install_shlib_suffix
+    set timelib_file lib/libtestutil-time$install_shlib_suffix
+    set mktimelib_file lib/libtestutil-mktime$install_shlib_suffix
+    set sysconflib_file lib/libtestutil-sysconf$install_shlib_suffix
+}
+
+# check file permission capabilities
+set test_perms_dir "$env(TESTSUITEDIR)/etc"
+set test_perms_file "$test_perms_dir/modulerc"
+set orig_perms [file attributes $test_perms_dir -permissions]
+file attributes $test_perms_dir -permissions "ugo-rx"
+set new_perms [file attributes $test_perms_dir -permissions]
+if {$new_perms eq $orig_perms} {
+    set is_file_perms_editable 0
+} else {
+    set is_file_perms_editable 1
+
+    # check if file is readable in a locked directory
+    if {[catch {
+        set fid [open $test_perms_file r]
+        close $fid
+    }]} {
+        set is_locked_dir_file_readable 0
+    } else {
+        set is_locked_dir_file_readable 1
+    }
+    file attributes $test_perms_dir -permissions $orig_perms
+
+    # check if file is still readable if locked
+    set orig_perms [file attributes $test_perms_file -permissions]
+    file attributes $test_perms_file -permissions "ugo-rx"
+    if {[catch {
+        set fid [open $test_perms_file r]
+        close $fid
+    }]} {
+        set is_locked_file_readable 0
+    } else {
+        set is_locked_file_readable 1
+    }
+    file attributes $test_perms_file -permissions $orig_perms
+}
+unset test_perms_dir
+unset test_perms_file
+unset orig_perms
+unset new_perms
+
+# check if module command is defined prior running tests
+set is_modules_defined [expr {![catch {exec $env(TESTSUITEDIR)/is_module_defined}]}]
+set is_modules_defined_fish [expr {![catch {exec $env(TESTSUITEDIR)/is_module_defined.fish}]}]
+
+# check if symbolic link registered in git repository have been effectively
+# created as symbolic link to determine if they are supported on filesystem
+set is_symlink_supported [file isdirectory $env(TESTSUITEDIR)/modulefiles/symlink]
+
+# check if underlying filesystem is case-insensitive
+set is_filesystem_icase [file exists $env(TESTSUITEDIR)/modulefiles.2/ICASE/prereq]
+
+# check x11 capabilities
+# check where to find the 'xrdb' binary on this system
+set xrdb_notfound_msg {Command 'xrdb' cannot be found}
+set xrdb [auto_execok xrdb]
+if {![string length $xrdb]} {
+    set is_xrdb_avail 0
+    set xrdb_issue_msg $xrdb_notfound_msg
+} elseif {[catch {exec $xrdb -query} errMsg]} {
+    set is_xrdb_avail 0
+    set xrdb_issue_msg $errMsg
+} else {
+    set is_xrdb_avail 1
+    set xrdb_issue_msg $xrdb_notfound_msg
+}
+send_user "\tX11 setup is [expr {$is_xrdb_avail ? {KO} : {OK}}]\n"
+
+# check if domainname binary is available on this system
+set domainname [auto_execok domainname]
+
+# display result of id command
+set idoutput [exec id]
+send_user "\tid output is '$idoutput'\n"
+
+# get current working directory
+set ORIG_CWD [pwd]
+
+# get current username and groups
+set username [exec id -u -n]
+set userid [exec id -u]
+send_user "\tCurrent username is '$username'\n"
+set group_name_fetch_failed 0
+if {[catch {
+    # correctly split groups in case some contain a space character (like on Cygwin/MSYS platforms)
+    set usergroups [lsort [split [string range [exec id -G -n -z] 0 end-1] \0]]
+} errMsg]} {
+    # fallback to a more generic groups retrieval (in case '-z' option not supported on id)
+    if {[catch {
+        set usergroups [lsort [exec id -G -n]]
+    } errMsg]} {
+        set group_name_fetch_failed 1
+        # fallback in case all group names could not be resolved by 'id' command
+        # it happens especially when running testsuite through mockbuild
+        foreach grpinfo [split [string range [lindex [split $idoutput] 2] 7 end] ,] {
+            if {[set idx [string first ( $grpinfo]] != -1} {
+                set grp [string range $grpinfo $idx+1 end-1]
+            } else {
+                set grp $grpinfo
+            }
+            lappend usergroups $grp
+        }
+        set usergroups [lsort $usergroups]
+    }
+}
+# filter specific volatile groups
+set usergroups [lsearch -all -inline -not -glob $usergroups com.apple.sharepoint.group.*]
+send_user "\tGroups of current user are '$usergroups'\n"
+set userfgroup [lindex $usergroups 0]
+
+# Dictionary-style string comparison
+# Use dictionary sort of lsort proc to compare two strings in the "string
+# compare" fashion (returning -1, 0 or 1). Tcl dictionary-style comparison
+# enables to compare software versions (ex: "1.10" is greater than "1.8")
+proc cmpversion {str1 str2} {
+   if {$str1 eq $str2} {
+      return 0
+   # put both strings in a list, then lsort it and get first element
+   } elseif {[lindex [lsort -dictionary [list $str1 $str2]] 0] eq $str1} {
+      return -1
+   } else {
+      return 1
+   }
+}
+
+# report current system information
+send_user "\tMachine hardware name is '$tcl_platform(machine)'\n"
+send_user "\tOS name is '$tcl_platform(os)'\n"
+send_user "\tOS version is '$tcl_platform(osVersion)'\n"
+send_user "\tPlatform name is '$tcl_platform(platform)'\n"
+
+# fetch tclsh version used to adapt tests producing different output depending on this version
+default_tclsh
+catch {set tclsh_version [exec $TCLSH << {puts [info tclversion]}]} errMsg
+if {[info exists tclsh_version]} {
+    send_user "\ttclsh version is $tclsh_version\n"
+} else {
+    set tclsh_version 8.6
+    send_user "\tFail to detect tclsh version. Fallback to $tclsh_version version\n$errMsg"
+}
+
+default_modulecmd
+
+
 #
-#  Regular expressions matching error and warning outputs
+# Regular expressions matching error and warning outputs
 #
 
 set messages "(\[^(\]+)\[(\]\[0-9\]+\[)\]"
@@ -111,6 +387,13 @@ set warn_nostash "$::warn_msgs: No specific environment to save"
 set warn_cache_nowritable "$::warn_msgs: Cannot remove cache file, directory is not writable"
 set warn_cache_build_nowritable "$::warn_msgs: Cannot build cache file, directory is not writable"
 set warn_cache_nothingtorec "$::warn_msgs: Nothing to record in cache file"
+
+set x11_warn_prefix "$error_msgs: X11 resources cannot be edited, issue spotted"
+set xrdb_warn "$x11_warn_prefix\n$error_msgs: $xrdb_notfound_msg"
+if {!$is_xrdb_avail} {
+    set x11_warn "$x11_warn_prefix\n$error_msgs: $xrdb_issue_msg"
+}
+set domainname_warn "$error_msgs: Command 'domainname' cannot be found"
 
 
 proc err_conflict {args} {
@@ -671,265 +954,13 @@ proc mix_depre_depun_list {deprelist depunlist} {
     return [list $deprelist $depunlist]
 }
 
-# Modules release number
-set major_minor_rel [join [lrange [split $install_version .] 0 1] .]
-
-# test kind of sh-shell we have
-if {[file type /bin/sh] eq {link}} {
-   set sh_kind [file readlink /bin/sh]
-} else {
-   set sh_kind sh
-}
-
 proc sgr {code} {
     return "\033\\\[${code}m"
 }
 
-# get current terminal width
-proc getTtyCols {} {
-    set nbcols {}
-
-    switch -- $::tcl_platform(os) {
-        {SunOS} {
-            catch {regexp {columns = (\d+);} [exec stty] match nbcols} errMsg
-        }
-        default {
-            catch {set nbcols [lindex [exec stty size] 1]} errMsg
-        }
-    }
-    return $nbcols
-}
-set nbcols [getTtyCols]
-if {$nbcols ne {} && $nbcols ne {0}} {
-    set term_cols $nbcols
-    set msg_disp_cols $nbcols
-    send_user "\tTerminal has $msg_disp_cols columns\n"
-} else {
-    send_user "\tFail to detect terminal column number.\n"
-    if {[catch {exec stty rows 60 cols 120} errMsg]} {
-        send_user "\tFail to set specific terminal size: $errMsg\n"
-        set msg_disp_cols 80
-        send_user "\tFallback to $msg_disp_cols columns\n"
-    } else {
-        set term_cols 120
-        set msg_disp_cols 120
-        send_user "\tSuccessfully set terminal to 120 columns.\n"
-    }
-}
-unset nbcols
-
-proc find_bin {name} {
-   set path {}
-
-   if {[info exists ::env(PATH)]} {
-      foreach dir [split $::env(PATH) ":"] {
-         if {[file executable "$dir/$name"]} {
-            set path "$dir/$name"
-            break
-         }
-      }
-   }
-
-   return $path
-}
-
-# check SIP is enabled or not on OS X
-if {$tcl_platform(os) eq "Darwin"} {
-    catch {
-        regexp {System Integrity Protection status: enabled.} [exec csrutil status] csrutil_enabled
-    } errMsg
-}
-if {[info exists csrutil_enabled]} {
-    set sip_enabled 1
-    unset csrutil_enabled
-} else {
-    set sip_enabled 0
-}
-
-# grab fish shell version to check if greater or equal to 3.1
-if {[set fishbin [lindex [auto_execok fish] 0]] ne {}} {
-   regexp {version (.+)$} [exec $fishbin --version] match fish_version
-   set fish_version_ge31 [expr {[lindex [lsort -dictionary [list $fish_version 3.1.0]] 0] eq {3.1.0}}]
-   set fish_version_ge32 [expr {[lindex [lsort -dictionary [list $fish_version 3.2.0]] 0] eq {3.2.0}}]
-}
-
-# find ksh flavor
-if {[set kshbin [lindex [auto_execok ksh] 0]] ne {}} {
-   set ksh_is_mksh [expr {[string first MIRBSD [exec $kshbin -c "echo \$KSH_VERSION"]] != -1}]
-}
-
-# is FPATH set during autoinit for zsh shell
-set install_setzshfpath [expr {$install_zshcompletiondir eq {} ? {y} : {n}}]
-if {$install_setzshfpath eq {y}} {
-    set install_zshcompletiondir $install_initdir/zsh-functions
-}
-
-# locate siteconfig file
-set siteconfig_file "$install_etcdir/siteconfig.tcl"
-set siteconfig_filere [regsub -all "\(\[.+?\]\)" $siteconfig_file {\\\1}]
-
-# determine if siteconfig forces stderr terminal attachment state
-proc siteconfig_isStderrTty {} {
-    interp create _siteconfig
-    interp eval _siteconfig set ::siteconfig_file "{$::siteconfig_file}"
-    set is_stderr_tty [interp eval _siteconfig {
-        set is_stderr_tty 0
-        if {[file readable $::siteconfig_file]} {
-            # evaluate siteconfig file to check initStateIsStderrTty procedure
-            catch {
-                source $::siteconfig_file
-                if {[info procs initStateIsStderrTty] eq "initStateIsStderrTty"} {
-                    set is_stderr_tty [initStateIsStderrTty]
-                }
-            } errorMsg
-        }
-        return $is_stderr_tty
-    }]
-    interp delete _siteconfig
-    return $is_stderr_tty
-}
-
-# determine if stdin is attached to a tty
-set is_stdin_tty [expr {![catch {fconfigure stdin -mode}]}]
-
-# locate Modules Tcl extension library used during testsuite
-if {$install_libtclenvmodules eq {y}} {
-    set tclextlib_file lib/libtclenvmodules$install_shlib_suffix
-    set closedirlib_file lib/libtestutil-closedir$install_shlib_suffix
-    set getpwuidlib_file lib/libtestutil-getpwuid$install_shlib_suffix
-    set getgroupslib_file lib/libtestutil-getgroups$install_shlib_suffix
-    set 0getgroupslib_file lib/libtestutil-0getgroups$install_shlib_suffix
-    set dupgetgroupslib_file lib/libtestutil-dupgetgroups$install_shlib_suffix
-    set getgrgidlib_file lib/libtestutil-getgrgid$install_shlib_suffix
-    set timelib_file lib/libtestutil-time$install_shlib_suffix
-    set mktimelib_file lib/libtestutil-mktime$install_shlib_suffix
-    set sysconflib_file lib/libtestutil-sysconf$install_shlib_suffix
-}
-
-# check file permission capabilities
-set test_perms_dir "$env(TESTSUITEDIR)/etc"
-set test_perms_file "$test_perms_dir/modulerc"
-set orig_perms [file attributes $test_perms_dir -permissions]
-file attributes $test_perms_dir -permissions "ugo-rx"
-set new_perms [file attributes $test_perms_dir -permissions]
-if {$new_perms eq $orig_perms} {
-    set is_file_perms_editable 0
-} else {
-    set is_file_perms_editable 1
-
-    # check if file is readable in a locked directory
-    if {[catch {
-        set fid [open $test_perms_file r]
-        close $fid
-    }]} {
-        set is_locked_dir_file_readable 0
-    } else {
-        set is_locked_dir_file_readable 1
-    }
-    file attributes $test_perms_dir -permissions $orig_perms
-
-    # check if file is still readable if locked
-    set orig_perms [file attributes $test_perms_file -permissions]
-    file attributes $test_perms_file -permissions "ugo-rx"
-    if {[catch {
-        set fid [open $test_perms_file r]
-        close $fid
-    }]} {
-        set is_locked_file_readable 0
-    } else {
-        set is_locked_file_readable 1
-    }
-    file attributes $test_perms_file -permissions $orig_perms
-}
-unset test_perms_dir
-unset test_perms_file
-unset orig_perms
-unset new_perms
-
-# check if module command is defined prior running tests
-set is_modules_defined [expr {![catch {exec $env(TESTSUITEDIR)/is_module_defined}]}]
-set is_modules_defined_fish [expr {![catch {exec $env(TESTSUITEDIR)/is_module_defined.fish}]}]
-
-# check if symbolic link registered in git repository have been effectively
-# created as symbolic link to determine if they are supported on filesystem
-set is_symlink_supported [file isdirectory $env(TESTSUITEDIR)/modulefiles/symlink]
-
-# check if underlying filesystem is case-insensitive
-set is_filesystem_icase [file exists $env(TESTSUITEDIR)/modulefiles.2/ICASE/prereq]
-
-# check x11 capabilities
-set x11_warn_prefix "$error_msgs: X11 resources cannot be edited, issue spotted"
-set xrdb_warn "$x11_warn_prefix\n$error_msgs: Command 'xrdb' cannot be found"
-#  check where to find the 'xrdb' binary on this system
-set xrdb [auto_execok xrdb]
-if {$xrdb eq ""} {
-    set x11_warn $xrdb_warn
-} elseif {[catch {exec $xrdb -query} errMsg]} {
-    set x11_warn "$x11_warn_prefix\n$error_msgs: $errMsg"
-}
-send_user "\tX11 setup is [expr {[info exists x11_warn] ? {KO} : {OK}}]\n"
-
-# check if domainname binary is available on this system
-set domainname [auto_execok domainname]
-set domainname_warn "$error_msgs: Command 'domainname' cannot be found"
-
-# display result of id command
-set idoutput [exec id]
-send_user "\tid output is '$idoutput'\n"
-
-# get current working directory
-set ORIG_CWD [pwd]
-
-# get current username and groups
-set username [exec id -u -n]
-set userid [exec id -u]
-send_user "\tCurrent username is '$username'\n"
-set group_name_fetch_failed 0
-if {[catch {
-    # correctly split groups in case some contain a space character (like on Cygwin/MSYS platforms)
-    set usergroups [lsort [split [string range [exec id -G -n -z] 0 end-1] \0]]
-} errMsg]} {
-    # fallback to a more generic groups retrieval (in case '-z' option not supported on id)
-    if {[catch {
-        set usergroups [lsort [exec id -G -n]]
-    } errMsg]} {
-        set group_name_fetch_failed 1
-        # fallback in case all group names could not be resolved by 'id' command
-        # it happens especially when running testsuite through mockbuild
-        foreach grpinfo [split [string range [lindex [split $idoutput] 2] 7 end] ,] {
-            if {[set idx [string first ( $grpinfo]] != -1} {
-                set grp [string range $grpinfo $idx+1 end-1]
-            } else {
-                set grp $grpinfo
-            }
-            lappend usergroups $grp
-        }
-        set usergroups [lsort $usergroups]
-    }
-}
-# filter specific volatile groups
-set usergroups [lsearch -all -inline -not -glob $usergroups com.apple.sharepoint.group.*]
-send_user "\tGroups of current user are '$usergroups'\n"
-set userfgroup [lindex $usergroups 0]
-
 # escape regexp chars in string
 proc escre {str} {
     return [string map {<EXM> (.*)+} [regsub -all {([.?*()+\[\]$])} $str {\\\1}]]
-}
-
-# Dictionary-style string comparison
-# Use dictionary sort of lsort proc to compare two strings in the "string
-# compare" fashion (returning -1, 0 or 1). Tcl dictionary-style comparison
-# enables to compare software versions (ex: "1.10" is greater than "1.8")
-proc cmpversion {str1 str2} {
-   if {$str1 eq $str2} {
-      return 0
-   # put both strings in a list, then lsort it and get first element
-   } elseif {[lindex [lsort -dictionary [list $str1 $str2]] 0] eq $str1} {
-      return -1
-   } else {
-      return 1
-   }
 }
 
 proc create_stash_coll {content} {
@@ -975,22 +1006,6 @@ proc create_dummy_modulefile {modfile} {
     set fid [open $modfile w]
     puts $fid {#%Module}
     close $fid
-}
-
-# report current system information
-send_user "\tMachine hardware name is '$tcl_platform(machine)'\n"
-send_user "\tOS name is '$tcl_platform(os)'\n"
-send_user "\tOS version is '$tcl_platform(osVersion)'\n"
-send_user "\tPlatform name is '$tcl_platform(platform)'\n"
-
-# fetch tclsh version used to adapt tests producing different output depending on this version
-default_tclsh
-catch {set tclsh_version [exec $TCLSH << {puts [info tclversion]}]} errMsg
-if {[info exists tclsh_version]} {
-    send_user "\ttclsh version is $tclsh_version\n"
-} else {
-    set tclsh_version 8.6
-    send_user "\tFail to detect tclsh version. Fallback to $tclsh_version version\n$errMsg"
 }
 
 # create test modulefiles on the fly as those files finishing by a space character cannot
@@ -1046,17 +1061,3 @@ proc end_ignore_modulecache_if_built {} {
         unsetenv_var MODULES_IGNORE_CACHE
     }
 }
-
-#
-#  Set up the config-file variable if possible
-#
-
-proc default-configfile {} {
-    global MODULECMD
-    global config_file
-
-    default_modulecmd
-    set config_file "[file dirname $MODULECMD]/config.h"
-}
-
-default-configfile
