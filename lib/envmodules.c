@@ -1,7 +1,7 @@
 /*************************************************************************
  *
  * ENVMODULES.C, Modules Tcl extension library
- * Copyright (C) 2018-2022 Xavier Delaruelle
+ * Copyright (C) 2018-2024 Xavier Delaruelle
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,7 +71,11 @@ Envmodules_GetFilesInDirectoryObjCmd(
 {
    int fetch_dotversion;
    const char *dir;
+#if TCL_MAJOR_VERSION < 9
    int dirlen;
+#else
+   Tcl_Size dirlen;
+#endif
    DIR *did;
    Tcl_Obj *ltmp, *lres;
    struct dirent *direntry;
@@ -186,7 +190,11 @@ Envmodules_ReadFileObjCmd(
    int firstline;
    int must_have_cookie;
    const char *filename;
+#if TCL_MAJOR_VERSION < 9
    int filenamelen;
+#else
+   Tcl_Size filenamelen;
+#endif
    int fid;
    int firstread;
    ssize_t len;
@@ -493,9 +501,14 @@ Envmodules_ParseDateTimeArgObjCmd(
    Tcl_Obj *const objv[])  /* Argument objects. */
 {
    const char *opt;
-   int optlen;
    const char *datetime;
+#if TCL_MAJOR_VERSION < 9
+   int optlen;
    int datetimelen;
+#else
+   Tcl_Size optlen;
+   Tcl_Size datetimelen;
+#endif
    char dt[17];
    int valid_dt = 0;
    struct tm tm;

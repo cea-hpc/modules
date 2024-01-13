@@ -114,6 +114,8 @@ Modules 5.4.0 (not yet released)
 * Install: installation option :instopt:`--enable-new-features` is updated to
   enable *abort on error* behavior on :subcmd:`load` and :subcmd:`switch`
   sub-commands.
+* Lib: slightly adapt code of Modules Tcl extension library to properly build
+  against Tcl 9.0.
 
 
 .. _5.3 release notes:
