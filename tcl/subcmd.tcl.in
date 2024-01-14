@@ -1795,20 +1795,16 @@ proc cmdModulePurge {} {
    popMsgRecordId 0
 }
 
-proc cmdModuleReload {args} {
-   # reload all loaded modules if no module list passed
-   if {![llength $args]} {
-      set lmlist [getEnvLoadedModulePropertyParsedList name]
-   } else {
-      set lmlist $args
-   }
+proc cmdModuleReload {} {
+   # reload all loaded modules
+   set lmlist [getEnvLoadedModulePropertyParsedList name]
    reportDebug "reloading $lmlist"
 
    # create an eval id to track successful/failed module evaluations
    pushMsgRecordId reload-[depthState modulename] 0
 
    # no reload of all loaded modules attempt if constraints are violated
-   if {![llength $args] && ![areModuleConstraintsSatisfied]} {
+   if {![areModuleConstraintsSatisfied]} {
       reportError {Cannot reload modules, some of their constraints are not\
          satistied}
    } else {
