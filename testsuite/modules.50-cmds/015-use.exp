@@ -243,6 +243,31 @@ testouterr_cmd sh "load $module2" $ans {}
 unsetenv_var TESTSUITE_REFCOUNT
 
 
+# bad option set on use and unuse module sub-commands
+setenv_var TESTSUITE_USE use_bad_opt
+setenv_var MODULEPATH $modpath.4
+
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom_error_trace "    invoked from within
+\"if \{\[info exists env(TESTSUITE_USE)\]\} \{
+    switch -- \$env(TESTSUITE_USE) \{
+        use_bad_opt \{
+            module use --bad \$env(TESTSUITEDIR)/modu...\""
+} else {
+    set custom_error_trace {}
+}
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 5}]
+set tserr [msg_load use/1.0 [msg_moderr {Invalid option '--bad'} {module use --bad $env(TESTSUITEDIR)/modulefiles} $modpath.4/use/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd sh {load use/1.0} ERR $tserr
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 8}]
+set tserr [msg_load use/1.0 [msg_moderr {Invalid option '--bad'} {module unuse --bad $env(TESTSUITEDIR)/modulefiles} $modpath.4/use/1.0 $line_num {} {} {} $custom_error_trace]]
+setenv_var TESTSUITE_USE unuse_bad_opt
+
+testouterr_cmd sh {load use/1.0} ERR $tserr
+
+
 #
 #  Cleanup
 #
