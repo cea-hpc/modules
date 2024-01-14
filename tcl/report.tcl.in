@@ -26,30 +26,27 @@
 
 # save message when report is not currently initialized as we do not
 # know yet if debug mode is enabled or not
-proc reportDebug {message {showcaller 1} {caller _undef_}} {
-   # get caller name
-   if {$caller eq {_undef_} && $showcaller} {
-      set caller [getCallingProcName]
-   }
-   lappend ::errreport_buffer [list reportDebug $message $showcaller $caller]
+proc reportDebug {message {caller _undef_}} {
+   set caller [getCallingProcName]
+   lappend ::errreport_buffer [list reportDebug $message $caller]
 }
 
 # regular procedure to use once error report is initialized
-proc __reportDebug {message {showcaller 1} {caller _undef_}} {
+proc __reportDebug {message {caller _undef_}} {
    # display active interp details if not the main one
    set prefix [currentState debug_msg_prefix]
-   if {$caller eq {_undef_} && $showcaller} {
+   if {$caller eq {_undef_}} {
       set caller [getCallingProcName]
    }
    # display caller name as prefix
-   if {$showcaller && $caller ne {}} {
+   if {$caller ne {}} {
       append prefix "$caller: "
    }
    report [sgr db "DEBUG $prefix$message"] 0 1
 }
 
 # alternative procedure used when debug is disabled
-proc __reportDebugNop {message {showcaller 1} {caller _undef_}} {}
+proc __reportDebugNop {message {caller _undef_}} {}
 
 proc reportWarning {message} {
    reportError $message WARNING wa 0
@@ -157,7 +154,7 @@ proc reportTimer {message timestr start_us stop_us} {
 
 # trace procedure execution start
 proc reportTraceExecEnter {cmdstring op} {
-   reportDebug $cmdstring 1 [getCallingProcName]
+   reportDebug $cmdstring [getCallingProcName]
 }
 
 # time procedure execution duration
