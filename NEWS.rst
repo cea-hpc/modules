@@ -116,6 +116,10 @@ Modules 5.4.0 (not yet released)
   sub-commands.
 * Lib: slightly adapt code of Modules Tcl extension library to properly build
   against Tcl 9.0.
+* Adapt alias unset shell code for *sh*-kind shells to avoid errors when alias
+  to unset is not defined.
+* Adapt function unset shell code for *sh*-kind shells to avoid errors when
+  function to unset is not defined.
 
 
 .. _5.3 release notes:
