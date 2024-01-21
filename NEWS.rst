@@ -125,11 +125,22 @@ Modules 5.4.0 (not yet released)
   from a modulefile.
 * No *Switching* block message report when :mfcmd:`module switch<module>`
   command is run from a modulefile.
-* Report all error messages locally under *Loading* or *Unloading* block
-  message rather reporting some of them under the block message of the main
-  action.
+* Report all error and warning messages locally under *Loading* or *Unloading*
+  block message rather reporting some of them under the block message of the
+  main action. These errors and warnings are thus reported where they occur.
 * Report switched-on load failure as error rather warning.
 * Report switched-on module locating or access issues only once.
+* Report conflict error message when it occurs rather than after modulefile
+  evaluation.
+* Update conflict error message to report all conflicting modules name and
+  version rather conflict module specification.
+* Fix conflict error check to avoid reporting both *unloading conflict failed*
+  and *conflict is loading* messages.
+* Raise an error and stop modulefile evaluation when :mfcmd:`module
+  switch<module>` command fails unless if :option:`--force` option is set.
+* When a *useless requirement unload* fails, do not increase error count as
+  this failure is reported as a warning and main unload process is not
+  affected.
 
 
 .. _5.3 release notes:
