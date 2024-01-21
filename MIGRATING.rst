@@ -221,6 +221,66 @@ When :instopt:`--enable-new-features` installation option is set, the
 *abort on error* behavior is also enabled on :subcmd:`load` and
 :subcmd:`switch` sub-commands.
 
+Improve error reporting
+-----------------------
+
+Module evaluation error reports have been tweaked to appear where these errors
+occur rather reporting them on the message block of the main action. Such
+change helps to better understand the module evaluation flow.
+
+  .. parsed-literal::
+
+    :ps:`$` module load baz
+    Loading :sgrhi:`baz/1`
+      :sgrin:`Loading requirement`: foo/1
+    :ps:`$` module switch foo bar
+    Unloading :sgrhi:`baz/1`
+      :sgrme:`Module ERROR`: invalid command name "bad_command"
+            while executing
+        "bad_command"
+            (file "/path/to/modulfiles/baz/1" line 4)
+        Please contact <root@localhost>
+
+    Unloading :sgrhi:`foo/1`
+      :sgrer:`ERROR`: Unload of dependent baz/1 failed
+
+    Switching from :sgrhi:`foo/1` to :sgrhi:`bar`
+      :sgrer:`ERROR`: Unload of switched-off foo/1 failed
+
+:subcmd:`switch` sub-command specific error messages are not reported when
+:mfcmd:`module switch<module>` command is run from a modulefile (like *unload
+of switched-off module failed*, *load of switched-on module failed* messages
+or *Switching* block message). On :subcmd:`switch` sub-command, load failure
+of switched-on module is now reported as an error.
+
+  .. parsed-literal::
+
+    :ps:`$` module load foo
+    :ps:`$` module switch foo qux
+    Loading :sgrhi:`qux/1`
+      :sgrme:`Module ERROR`: invalid command name "bad_command"
+            while executing
+        "bad_command"
+            (file "/path/to/modulfiles/qux/1" line 2)
+        Please contact <root@localhost>
+
+    Switching from :sgrhi:`foo/1` to :sgrhi:`qux/1`
+      :sgrer:`ERROR`: Load of switched-on qux/1 failed
+
+Conflict error messages now describe the loaded module name and version that
+conflicts rather the generic conflict module specification.
+
+  .. parsed-literal::
+
+    :ps:`$` cat /path/to/modulfiles/bar/1
+    #%Module
+    conflict foo
+    :ps:`$` module load foo
+    :ps:`$` module load bar
+    Loading :sgrhi:`bar/1`
+      :sgrer:`ERROR`: Module cannot be loaded due to a conflict.
+        HINT: Might try "module unload foo/1" first.
+
 
 v5.3
 ====
