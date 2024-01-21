@@ -273,7 +273,7 @@ change helps to better understand the module evaluation flow.
       :sgrme:`Module ERROR`: invalid command name "bad_command"
             while executing
         "bad_command"
-            (file "/path/to/modulfiles/baz/1" line 4)
+            (file "/path/to/modulefiles/baz/1" line 4)
         Please contact <root@localhost>
 
     Unloading :sgrhi:`foo/1`
@@ -296,7 +296,7 @@ of switched-on module is now reported as an error.
       :sgrme:`Module ERROR`: invalid command name "bad_command"
             while executing
         "bad_command"
-            (file "/path/to/modulfiles/qux/1" line 2)
+            (file "/path/to/modulefiles/qux/1" line 2)
         Please contact <root@localhost>
 
     Switching from :sgrhi:`foo/1` to :sgrhi:`qux/1`
@@ -307,7 +307,7 @@ conflicts rather the generic conflict module specification.
 
   .. parsed-literal::
 
-    :ps:`$` cat /path/to/modulfiles/bar/1
+    :ps:`$` cat /path/to/modulefiles/bar/1
     #%Module
     conflict foo
     :ps:`$` module load foo
