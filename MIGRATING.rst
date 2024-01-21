@@ -16,6 +16,41 @@ fixes bugs but also introduces new functionalities that are described in this
 section. See the :ref:`5.4 release notes<5.4 release notes>` for a complete
 list of the changes between Modules v5.3 and v5.4.
 
+Enhancing extra specifiers
+--------------------------
+
+Extra specifier ``tag`` is introduced to search modules based on tags applied.
+It applies to :subcmd:`avail`, :subcmd:`whatis` and :subcmd:`paths`
+sub-commands. Tag abbreviation may also be used as extra specifier name.
+
+.. parsed-literal::
+
+    :ps:`$` module avail tag:sticky
+    --------------------- :sgrdi:`/path/to/modulefiles` ---------------------
+    :sgrs:`bar/1`
+
+Multiple names can now be specified on one extra specifier criterion to select
+modules matching any of these names.
+
+.. parsed-literal::
+
+    :ps:`$` module avail tag:S,F
+    --------------------- :sgrdi:`/path/to/modulefiles` ---------------------
+    :sgrs:`bar/1`  :sgrf:`qux/1`
+
+Multiple values can now be specified on one variant criterion to select
+modules providing any of these variant values.
+
+.. parsed-literal::
+
+    :ps:`$` module config variant_shortcut toolchain=%
+    :ps:`$` module avail %a,c
+    --------------------- :sgrdi:`/path/to/modulefiles` ---------------------
+    baz/1{:sgrvahi:`%c`}  foo/1{:sgrvahi:`%a`,\ :sgrva:`b`,\ :sgrvahi:`c`}
+    :ps:`$` module avail %a,c %b
+    --------------------- :sgrdi:`/path/to/modulefiles` ---------------------
+    foo/1{:sgrvahi:`%a`,\ :sgrvahi:`b`,\ :sgrvahi:`c`}
+
 Purging sticky modules
 ----------------------
 
