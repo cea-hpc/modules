@@ -28,16 +28,16 @@ emit a ``warning`` message instead or to be ``silent``.
 
 .. parsed-literal::
 
-    $ module purge
+    :ps:`$` module purge
     Unloading :sgrshi:`foo/1.0`
       :sgrer:`ERROR`: Unload of sticky module skipped
-    $ module config sticky_purge warning
-    $ module purge
+    :ps:`$` module config sticky_purge warning
+    :ps:`$` module purge
     Unloading :sgrshi:`foo/1.0`
       :sgrwa:`WARNING`: Unload of sticky module skipped
-    $ module config sticky_purge silent
-    $ module purge
-    $ module list
+    :ps:`$` module config sticky_purge silent
+    :ps:`$` module purge
+    :ps:`$` module list
     Currently Loaded Modulefiles:
      1) :sgrs:`foo/1.0`
 
