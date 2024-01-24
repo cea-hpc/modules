@@ -920,7 +920,7 @@ proc remove-path-un {args} {
 proc edit-path-wh {cmd args} {
    # get variable name
    lassign [parsePathCommandArgs $cmd load noop {*}$args] separator allow_dup\
-      idx_val ign_refcount glob_match bhv var path_list
+      idx_val ign_refcount val_set_is_delim glob_match bhv var path_list
 
    setEnvVarIfUndefined $var {}
 

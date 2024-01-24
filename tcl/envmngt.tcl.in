@@ -1397,6 +1397,11 @@ proc getReferenceCountArray {var separator} {
    return $count_list
 }
 
+proc isReferenceCountPathDefined {var path separator} {
+   array set ref_count_arr [getReferenceCountArray $var $separator]
+   return [info exists ref_count_arr($path)]
+}
+
 # generate reference count value to export in user environment
 proc setReferenceCountRecordValue {sharevar countlist} {
    foreach {elt refcount} $countlist {
@@ -1422,7 +1427,8 @@ proc unload-path {cmd mode dflbhv args} {
    reportDebug "($args) cmd=$cmd, mode=$mode, dflbhv=$dflbhv"
 
    lassign [parsePathCommandArgs $cmd $mode $dflbhv {*}$args] separator\
-      allow_dup idx_val ign_refcount glob_match bhv var path_list
+      allow_dup idx_val ign_refcount val_set_is_delim glob_match bhv var\
+      path_list
 
    switch -- $bhv {
       noop {
@@ -1566,10 +1572,12 @@ proc add-path {cmd mode dflbhv args} {
       set path_list [lassign $args cmd separator var]
       set allow_dup 0
       set ign_refcount 0
+      set val_set_is_delim 0
       set bhv $dflbhv
    } else {
       lassign [parsePathCommandArgs $cmd $mode $dflbhv {*}$args] separator\
-         allow_dup idx_val ign_refcount glob_match bhv var path_list
+         allow_dup idx_val ign_refcount val_set_is_delim glob_match bhv var\
+         path_list
    }
 
    # clean any previously defined pushenv stack
@@ -1593,16 +1601,18 @@ proc add-path {cmd mode dflbhv args} {
          # counter array (sometimes var is cleared by setting it empty not
          # unsetting it)
          if {$val ne {} || [info exists countarr()]} {
-            set val [expr {$bhv eq {prepend} ? "$dir$separator$val" :\
-               "$val$separator$dir"}]
+            set sep [expr {$val eq $separator ? {} : $separator}]
+            set val [expr {$bhv eq {prepend} ? "$dir$sep$val" :\
+               "$val$sep$dir"}]
          } else {
             set val $dir
          }
       }
       if {[info exists countarr($dir)]} {
-         # do not increase counter if it is ignored (--ignore-refcount set)
-         # unless if duplicate mode is enabled (--duplicates set)
-         if {!$ign_refcount || $allow_dup} {
+         # do not increase counter if bare separator string is added or if
+         # reference count is ignored (--ignore-refcount set) unless if
+         # duplicate mode is enabled (--duplicates set)
+         if {!$val_set_is_delim && (!$ign_refcount || $allow_dup)} {
             incr countarr($dir)
          }
       } else {
@@ -1628,6 +1638,7 @@ proc parsePathCommandArgs {cmd mode dflbhv args} {
    set allow_dup 0
    set idx_val 0
    set ign_refcount 0
+   set val_set_is_delim 0
    set glob_match 0
    set bhv $dflbhv
    foreach arg $args {
@@ -1762,6 +1773,13 @@ proc parsePathCommandArgs {cmd mode dflbhv args} {
       knerror "--glob and $bhvopt options cannot be simultaneously set"
    }
 
+   set nb_path_eq_delim [llength [lsearch -all -exact $val_raw_list $delim]]
+   if {$nb_path_eq_delim && $cmd eq {remove-path}} {
+      knerror "$cmd cannot handle path equals to separator string"
+   } elseif {$nb_path_eq_delim > 1} {
+      knerror "$cmd cannot handle multiple paths equal to separator string"
+   }
+
    # set list of value to add
    set val_list [list]
    foreach val $val_raw_list {
@@ -1770,26 +1788,34 @@ proc parsePathCommandArgs {cmd mode dflbhv args} {
          knerror "$cmd should get valid number as index value"
       }
 
-      switch -- $val \
-         {} {
-            # add empty entry in list
+      if {![string length $val]} {
+         lappend val_list {}
+      } elseif {$val eq $delim} {
+         if {[llength $val_raw_list] > 1 || [get-env $var] ne {}} {
             lappend val_list {}
-         } \
-         $delim {
-            knerror "$cmd cannot handle path equals to separator string"
-         } \
-         default {
-            # split passed value with delimiter
-            lappend val_list {*}[split $val $delim]
+         # make separator string appear once in resulting value
+         } elseif {[isReferenceCountPathDefined $var {} $delim]} {
+            lappend val_list {}
+            set allow_dup 1
+         } else {
+            lappend val_list {} {}
+            set val_set_is_delim 1
+            set allow_dup 1
+            set ign_refcount 1
          }
+      } else {
+         # split passed value with delimiter
+         lappend val_list {*}[split $val $delim]
+      }
    }
 
    reportDebug "(delim=$delim, allow_dup=$allow_dup, idx_val=$idx_val,\
-      ign_refcount=$ign_refcount, glob_match=$glob_match, bhv=$bhv, var=$var,\
-      val=$val_list, nbval=[llength $val_list])"
+      ign_refcount=$ign_refcount, val_set_is_delim=$val_set_is_delim,\
+      glob_match=$glob_match, bhv=$bhv, var=$var, val=$val_list,\
+      nbval=[llength $val_list])"
 
-   return [list $delim $allow_dup $idx_val $ign_refcount $glob_match $bhv\
-      $var $val_list]
+   return [list $delim $allow_dup $idx_val $ign_refcount $val_set_is_delim\
+      $glob_match $bhv $var $val_list]
 }
 
 # get list of Modules-specific environment variable in glob form
