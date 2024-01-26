@@ -95,32 +95,7 @@ test_cmd_re "ALL" "unload $module" $ans
 # Try just the colon
 #
 
-set module "prepend/0.2"
-set modulefile "$modpath/$module"
-
-# different behavior than C-version: on Tcl-version removing a bare colon
-# to a path produces an error since this colon cannot be distinguished
-# from the colon used for path separator
-set ts_err [msg_moderr "prepend-path $msg_patheqsep" "prepend-path\tPATH\t\t:" $modulefile 25]
-
-set ts_path ":"
-set new_path "$ts_path:$old_path"
-
-#
-#  Set up the environment for reversal ...
-#
-
-# as adding bare colon leads to error, this module can never be loaded
-# but anyway here we test that the unloading part of "append-path" also
-# leads to error
-setenv_path_var PATH {} {} $old_path
-setenv_loaded_module $module $modulefile
-
-#
-#  The tests
-#
-
-testouterr_cmd "ALL" "unload $module" "ERR" [msg_unload $module $ts_err]
+# bare colon specific tests are handled in 50/631
 
 
 #
