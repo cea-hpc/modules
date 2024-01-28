@@ -1,0 +1,199 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2024/01/27
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload
+#   Modulefiles:    delim
+#   Sub-Command:
+#
+#   Comment:	%C{
+#         Test remove-path modulefile commands when path element
+#         is equivalent to path variable delimiter
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom_error_trace "    invoked from within
+\"if \{\[info exists env(TESTSUITE_DELIM)\]\} \{
+    switch -- \$env(TESTSUITE_DELIM) \{
+        append_delim \{
+            append-path TS :
+        \}
+        ...\""
+} else {
+    set custom_error_trace {}
+}
+
+
+setenv_var TESTSUITE_DELIM remove_delim
+
+unsetenv_var TS
+unsetenv_var __MODULES_SHARE_TS
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 59}]
+set tserr [msg_load delim/1.0 [msg_moderr "remove-path $msg_patheqsep" {remove-path TS :} $mp/delim/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd sh {load delim/1.0} ERR $tserr
+
+setenv_var TS str
+unsetenv_var __MODULES_SHARE_TS
+testouterr_cmd sh {load delim/1.0} ERR $tserr
+
+setenv_var TS :
+setenv_var __MODULES_SHARE_TS :1
+testouterr_cmd sh {load delim/1.0} ERR $tserr
+
+setenv_var TS :str
+setenv_var __MODULES_SHARE_TS :1
+testouterr_cmd sh {load delim/1.0} ERR $tserr
+
+
+setenv_var TESTSUITE_DELIM remove_other_delim
+
+unsetenv_var TS
+unsetenv_var __MODULES_SHARE_TS
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 62}]
+set tserr [msg_load delim/1.0 [msg_moderr "remove-path $msg_patheqsep" {remove-path -d { } TS { }} $mp/delim/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd sh {load delim/1.0} ERR $tserr
+
+setenv_var TS {}
+setenv_var __MODULES_SHARE_TS :1
+testouterr_cmd sh {load delim/1.0} ERR $tserr
+
+setenv_var TS { }
+setenv_var __MODULES_SHARE_TS :1
+testouterr_cmd sh {load delim/1.0} ERR $tserr
+
+setenv_var TS {str }
+setenv_var __MODULES_SHARE_TS :2
+testouterr_cmd sh {load delim/1.0} ERR $tserr
+
+
+setenv_var TESTSUITE_DELIM remove_multi1
+
+setenv_var TS str
+unsetenv_var __MODULES_SHARE_TS
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 65}]
+set tserr [msg_load delim/1.0 [msg_moderr "remove-path $msg_patheqsep" {remove-path TS : str} $mp/delim/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd sh {load delim/1.0} ERR $tserr
+
+
+setenv_var TESTSUITE_DELIM remove_multi2
+
+setenv_var TS str
+unsetenv_var __MODULES_SHARE_TS
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/delim/1.0]
+lappend ans [list set LOADEDMODULES delim/1.0]
+lappend ans [list unset TS]
+testouterr_cmd sh {load delim/1.0} $ans {}
+
+setenv_var TS {str:}
+setenv_var __MODULES_SHARE_TS :1
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/delim/1.0]
+lappend ans [list set LOADEDMODULES delim/1.0]
+lappend ans [list unset __MODULES_SHARE_TS]
+lappend ans [list unset TS]
+testouterr_cmd sh {load delim/1.0} $ans {}
+
+setenv_var TS {str:}
+setenv_var __MODULES_SHARE_TS :2
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/delim/1.0]
+lappend ans [list set LOADEDMODULES delim/1.0]
+lappend ans [list set __MODULES_SHARE_TS :1]
+lappend ans [list set TS {}]
+testouterr_cmd sh {load delim/1.0} $ans {}
+
+
+setenv_var TESTSUITE_DELIM remove_multi3
+
+unsetenv_var TS
+unsetenv_var __MODULES_SHARE_TS
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 71}]
+set tserr [msg_load delim/1.0 [msg_moderr "remove-path $msg_patheqsep" {remove-path TS : :} $mp/delim/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd sh {load delim/1.0} ERR $tserr
+
+setenv_var TS str
+unsetenv_var __MODULES_SHARE_TS
+testouterr_cmd sh {load delim/1.0} ERR $tserr
+
+
+setenv_var TESTSUITE_DELIM remove_bhv1
+
+setenv_var TS str
+unsetenv_var __MODULES_SHARE_TS
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/delim/1.0]
+lappend ans [list set LOADEDMODULES delim/1.0]
+lappend ans [list unset TS]
+testouterr_cmd sh {load delim/1.0} $ans {}
+
+
+setenv_var TESTSUITE_DELIM remove_bhv2
+
+setenv_var TS str
+unsetenv_var __MODULES_SHARE_TS
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/delim/1.0]
+lappend ans [list set LOADEDMODULES delim/1.0]
+lappend ans [list unset TS]
+testouterr_cmd sh {load delim/1.0} $ans {}
+
+
+#
+# unload tests
+#
+
+
+setenv_var TESTSUITE_DELIM remove_delim
+setenv_loaded_module [list delim/1.0] [list $mp/delim/1.0]
+
+setenv_var TS :
+setenv_var __MODULES_SHARE_TS :1
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 59}]
+set tserr [msg_unload delim/1.0 [msg_moderr "remove-path $msg_patheqsep" {remove-path TS :} $mp/delim/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd sh {unload delim/1.0} ERR $tserr
+
+
+setenv_var TESTSUITE_DELIM remove_bhv1
+
+unsetenv_var TS
+unsetenv_var __MODULES_SHARE_TS
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 74}]
+set tserr [msg_unload delim/1.0 [msg_moderr "remove-path $msg_patheqsep" {remove-path TS str --append-on-unload :} $mp/delim/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd sh {unload delim/1.0} ERR $tserr
+
+setenv_var TS str
+unsetenv_var __MODULES_SHARE_TS
+testouterr_cmd sh {unload delim/1.0} ERR $tserr
+
+
+setenv_var TESTSUITE_DELIM remove_bhv2
+
+unsetenv_var TS
+unsetenv_var __MODULES_SHARE_TS
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 77}]
+set tserr [msg_unload delim/1.0 [msg_moderr "remove-path $msg_patheqsep" {remove-path TS str --prepend-on-unload :} $mp/delim/1.0 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd sh {unload delim/1.0} ERR $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
