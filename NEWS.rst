@@ -141,6 +141,9 @@ Modules 5.4.0 (not yet released)
 * When a *useless requirement unload* fails, do not increase error count as
   this failure is reported as a warning and main unload process is not
   affected.
+* Path element equals to delimiter character is allowed on
+  :mfcmd:`append-path` and :mfcmd:`prepend-path` modulefile commands. (fix
+  issue #522)
 
 
 .. _5.3 release notes:

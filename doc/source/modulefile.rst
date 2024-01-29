@@ -916,6 +916,9 @@ the *modulefile* is being loaded.
     .. versionchanged:: 4.1
        Option ``--duplicates`` added
 
+    .. versionchanged:: 5.4
+       *value* equal to *delimiter* character allowed
+
 .. mfcmd:: prereq [--optional] [--tag taglist] modulefile...
 
  :mfcmd:`prereq` controls whether or not the *modulefile* will be loaded. The
@@ -1087,6 +1090,8 @@ the *modulefile* is being loaded.
 
  If *value* corresponds to the concatenation of multiple elements separated by
  colon, or *delimiter*, character, each element is treated separately.
+
+ An error is raised if *value* equals *delimiter* character.
 
  .. only:: html
 
