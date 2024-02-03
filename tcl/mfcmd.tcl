@@ -1332,6 +1332,21 @@ proc execShAndGetEnv {shell script args} {
          set alvalmap [list {'\''} ']
          lappend shellopts --noprofile --norc
       }
+      bash-eval {
+         ##nagelfar ignore +3 Found constant
+         set command "export -p; echo $sep; declare -f; echo $sep; alias;\
+            echo $sep; complete; echo $sep; pwd; echo $sep; eval \"\$([listTo\
+            shell $shdesc] 2>/dev/null)\"; echo $sep; export -p; echo $sep;\
+            declare -f; echo $sep; alias; echo $sep; complete; echo $sep; pwd"
+         set varre {declare -x (\S+?)="(.*?)"$}
+         set funcre {(\S+?) \(\)\s?\n{\s?\n(.+?)\n}$}
+         set aliasre {alias (\S+?)='(.*?)'$}
+         set compre {complete (.+?) (\S+?)$}
+         set comprevar [list match value name]
+         set varvalmap [list {\"} {"} \\\\ \\]
+         set alvalmap [list {'\''} ']
+         lappend shellopts --noprofile --norc
+      }
       ksh - ksh93 {
          ##nagelfar ignore +3 Found constant
          set command "typeset -x; echo $sep; typeset +f | while read f; do\
@@ -1428,7 +1443,8 @@ proc execShAndGetEnv {shell script args} {
       knerror "Script '$script' cannot be found"
    }
 
-   set shellpath [getCommandPath $shell]
+   set real_shell [expr {$shell eq {bash-eval} ? {bash} : $shell}]
+   set shellpath [getCommandPath $real_shell]
    if {$shellpath eq {}} {
       knerror "Shell '$shell' cannot be found"
    }
@@ -1641,13 +1657,14 @@ proc sh-to-mod {args} {
       lappend modcontent [list set-alias $name $aliasaft($name)]
    }
    # check complete change
+   set real_shell [expr {$shell eq {bash-eval} ? {bash} : $shell}]
    lassign [getDiffBetweenArray compbef compaft] notaft diff notbef
    foreach name $notaft {
       lappend modcontent [list uncomplete $name]
    }
    foreach name [list {*}$diff {*}$notbef] {
       foreach body $compaft($name) {
-         lappend modcontent [list complete $shell $name $body]
+         lappend modcontent [list complete $real_shell $name $body]
       }
    }
    # check current working directory change
