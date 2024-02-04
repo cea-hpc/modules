@@ -1,0 +1,256 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2024/02/04
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:    source-sh
+#   Sub-Command:    *
+#
+#   Comment:	%C{
+#           Check 'source-sh' modulefile command for 'bash-eval'
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.4
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+setenv_var TESTSUITE_SHTOMOD_PATHDUP 1
+setenv_var TESTSUITE_SHTOMOD_NOCOMP 1
+
+
+#
+# load and unload tests
+#
+
+setenv_var TESTSUITE_BASH_EVAL 1
+
+# basic load
+set ans [list]
+lappend ans [list set __MODULES_SHARE_FOOPATHDUPMIX ":1"]
+lappend ans [list set _LMFILES_ $mp/eval-source-sh/1]
+lappend ans [list set LOADEDMODULES eval-source-sh/1]
+lappend ans [list set FOOPATHDUP "/path/to/dir1:/path/to/dir2:/path/to/dir3:/path/to dir4"]
+lappend ans [list set __MODULES_LMSOURCESH eval-source-sh/1\&bash-eval\ testsuite/example/eval-sh-to-mod.sh\|chdir\ $modpath.2\|prepend-path\ FOOPATH\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHCB\ /path/to/dir1\ /path/to/d\\\{r2\ /path/to/dir3\|prepend-path\ FOOPATHDUP\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \{/path/to\ dir4\}\|prepend-path\ FOOPATHDUPEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHDUPMIX\ \{\}\ /path/to/dir1\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir1\}\ /path/to/dir3\|prepend-path\ FOOPATHDUPSP\ \{/path/to/dir1\ /path/to/dir1\ /path/to/dir2\ /path/to/dir1\ /path/to/dir3\ /path/to\}\ \{dir4\ /path/to/dir3\}\|prepend-path\ FOOPATHEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHWC\ /path/to/dir1\ /path/to/d\*r2\ /path/to/dir3\|set-alias\ alcb\ \{\}\|set-alias\ alem\ \{\}\|set-alias\ alfoo\ \{\}\|set-alias\ alsp\ \{\}\|set-function\ funccb\ \{\}\|set-function\ funcfoo\ \{\}\|set-function\ funcnl\ \{\}\|set-function\ funcsp\ \{\}\|set-function\ funcwc\ \{\}\|setenv\ FOO\ value\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOPATHDUPSPEM\ \{/path/to/dir1\ /path/to/dir1\ /path/to/dir2\ /path/to/dir1\ /path/to/dir3\ /path/to/dir3\ \}\|setenv\ FOOPATHSP\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\}\|setenv\ FOOPATHSPEM\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \}\|setenv\ FOOSP\ \{value\ \}\|setenv\ FOOWC\ va\*ue]
+lappend ans [list set FOOPATHEM :/path/to/dir1:/path/to/dir2:/path/to/dir3]
+lappend ans [list set FOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}]
+lappend ans [list set __MODULES_SHARE_FOOPATHDUPEM :1]
+lappend ans [list set FOOEM {}]
+lappend ans [list set FOOPATHCB /path/to/dir1:/path/to/d\{r2:/path/to/dir3]
+lappend ans [list set FOOSP {value }]
+lappend ans [list set FOOPATHDUPSPEM {/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to/dir3 }]
+lappend ans [list set FOOPATHDUPMIX ":/path/to/dir1:/path/to/dir1 /path/to/dir2 /path/to/dir1:/path/to/dir3"]
+lappend ans [list set FOOCB va\{ue]
+lappend ans [list set FOOPATH /path/to/dir1:/path/to/dir2:/path/to/dir3]
+lappend ans [list set __MODULES_SHARE_FOOPATHEM :1]
+lappend ans [list set FOOPATHWC /path/to/dir1:/path/to/d\*r2:/path/to/dir3]
+lappend ans [list set FOOPATHDUPEM :/path/to/dir1:/path/to/dir2:/path/to/dir3]
+lappend ans [list set FOO value]
+lappend ans [list set FOOPATHDUPSP "/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to:dir4 /path/to/dir3"]
+lappend ans [list set __MODULES_LMREFRESH eval-source-sh/1]
+lappend ans [list set FOOWC va\*ue]
+lappend ans [list set FOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }]
+lappend ans [list alias alsp {echo f\"o; echo b\\\"r; echo f\'o}]
+lappend ans [list alias alfoo {echo $(grep "report .Modules " ../../modulecmd.tcl | tr -d \\ 2>/dev/null | awk '{print $3}')}]
+lappend ans [list alias alcb echo\ f\{o]
+lappend ans [list alias alem {}]
+lappend ans [list funcfoo "() { echo foo; };"]
+lappend ans [list funccb "() { echo f\{o; };"]
+lappend ans [list funcwc "() { echo sou*sh; };"]
+lappend ans [list funcnl "() { echo foo;
+    echo bar; };"]
+lappend ans [list funcsp "() { echo f\\\"o;
+    echo b\\\\\\\"r;
+    echo f\\'o; };"]
+lappend ans [list chdir $modpath.2]
+
+testouterr_cmd sh {load eval-source-sh/1} $ans {}
+
+# basic unload
+setenv_loaded_module [list eval-source-sh/1] [list $mp/eval-source-sh/1]
+setenv_var __MODULES_LMREFRESH eval-source-sh/1
+setenv_var __MODULES_LMSOURCESH eval-source-sh/1\&bash-eval\ testsuite/example/eval-sh-to-mod.sh\|chdir\ $modpath.2\|prepend-path\ FOOPATH\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHCB\ /path/to/dir1\ /path/to/d\\\{r2\ /path/to/dir3\|prepend-path\ FOOPATHDUP\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \{/path/to\ dir4\}\|prepend-path\ FOOPATHDUPEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHDUPMIX\ \{\}\ /path/to/dir1\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir1\}\ /path/to/dir3\|prepend-path\ FOOPATHDUPSP\ \{/path/to/dir1\ /path/to/dir1\ /path/to/dir2\ /path/to/dir1\ /path/to/dir3\ /path/to\}\ \{dir4\ /path/to/dir3\}\|prepend-path\ FOOPATHEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHWC\ /path/to/dir1\ /path/to/d\*r2\ /path/to/dir3\|set-alias\ alcb\ \{\}\|set-alias\ alem\ \{\}\|set-alias\ alfoo\ \{\}\|set-alias\ alsp\ \{\}\|set-function\ funccb\ \{\}\|set-function\ funcfoo\ \{\}\|set-function\ funcnl\ \{\}\|set-function\ funcsp\ \{\}\|set-function\ funcwc\ \{\}\|setenv\ FOO\ value\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOPATHDUPSPEM\ \{/path/to/dir1\ /path/to/dir1\ /path/to/dir2\ /path/to/dir1\ /path/to/dir3\ /path/to/dir3\ \}\|setenv\ FOOPATHSP\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\}\|setenv\ FOOPATHSPEM\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \}\|setenv\ FOOSP\ \{value\ \}\|setenv\ FOOWC\ va\*ue
+setenv_path_var FOOPATHDUP "/path/to/dir1:/path/to/dir2:/path/to/dir3:/path/to dir4"
+setenv_path_var FOOPATHEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3
+setenv_path_var FOOPATHCB /path/to/dir1:/path/to/d\{r2:/path/to/dir3
+setenv_path_var FOOPATHWC /path/to/dir1:/path/to/d\*r2:/path/to/dir3
+setenv_path_var FOOPATHDUPMIX {} "/path/to/dir1:/path/to/dir1 /path/to/dir2 /path/to/dir1:/path/to/dir3"
+setenv_path_var FOOPATH /path/to/dir1:/path/to/dir2:/path/to/dir3
+setenv_path_var FOOPATHDUPEM {} /path/to/dir1:/path/to/dir2:/path/to/dir3
+setenv_path_var FOOPATHDUPSP "/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to:dir4 /path/to/dir3"
+setenv_var FOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}
+setenv_var FOOEM {}
+setenv_var FOOSP {value }
+setenv_var FOOPATHDUPSPEM {/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to/dir3 }
+setenv_var FOOCB va\{ue
+setenv_var FOOWC va\*ue
+setenv_var FOO value
+setenv_var FOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }
+
+set ans [list]
+lappend ans [list unset __MODULES_SHARE_FOOPATHDUPMIX]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset FOOPATHDUP]
+lappend ans [list unset __MODULES_LMSOURCESH]
+lappend ans [list unset FOOPATHEM]
+lappend ans [list unset FOOPATHSP]
+lappend ans [list unset __MODULES_SHARE_FOOPATHDUPEM]
+lappend ans [list unset FOOEM]
+lappend ans [list unset FOOPATHCB]
+lappend ans [list unset FOOSP]
+lappend ans [list unset FOOPATHDUPSPEM]
+lappend ans [list unset FOOPATHDUPMIX]
+lappend ans [list unset FOOCB]
+lappend ans [list unset FOOPATH]
+lappend ans [list unset __MODULES_SHARE_FOOPATHEM]
+lappend ans [list unset FOOPATHWC]
+lappend ans [list unset FOOPATHDUPEM]
+lappend ans [list unset FOO]
+lappend ans [list unset FOOPATHDUPSP]
+lappend ans [list unset __MODULES_LMREFRESH]
+lappend ans [list unset FOOWC]
+lappend ans [list unset FOOPATHSPEM]
+lappend ans [list unalias alsp]
+lappend ans [list unalias alfoo]
+lappend ans [list unalias alcb]
+lappend ans [list unalias alem]
+lappend ans [list "unset -f funcfoo 2>/dev/null || true;"]
+lappend ans [list "unset -f funccb 2>/dev/null || true;"]
+lappend ans [list "unset -f funcwc 2>/dev/null || true;"]
+lappend ans [list "unset -f funcnl 2>/dev/null || true;"]
+lappend ans [list "unset -f funcsp 2>/dev/null || true;"]
+testouterr_cmd sh {unload eval-source-sh/1} $ans {}
+
+skip_if_quick_mode
+
+
+#
+# test other modes
+#
+
+# test 'list' sub-command
+testouterr_cmd sh {list -t} OK $cur_loaded\neval-source-sh/1
+
+# test 'whatis' sub-command when some modules are loaded
+testouterr_cmd_re sh {whatis eval-source-sh} OK "$modlin $mpre $modlin
+\\s*eval-source-sh/1: eval-source-sh/1
+\\s*eval-source-sh/2: eval-source-sh/2"
+
+# test 'help' sub-command when some modules are loaded
+testouterr_cmd_re sh {help eval-source-sh/1} OK "$modlin
+Module Specific Help for $mpre/eval-source-sh/1:
+
+$warn_msgs: Unable to find ModulesHelp in $mpre/eval-source-sh/1.
+$modlin"
+
+# test 'test' sub-command when some modules are loaded
+testouterr_cmd_re sh {test eval-source-sh/1} OK "$modlin
+Module Specific Test for $mpre/eval-source-sh/1:
+
+$warn_msgs: Unable to find ModulesTest in $mpre/eval-source-sh/1.
+$modlin"
+
+# test 'display' sub-command when some modules are loaded
+set tserr_disp1 "-------------------------------------------------------------------
+$mp/eval-source-sh/1:
+
+chdir\t\t$modpath.2
+prepend-path\tFOOPATH /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path\tFOOPATHCB /path/to/dir1 /path/to/d\{r2 /path/to/dir3
+prepend-path\tFOOPATHDUP /path/to/dir1 /path/to/dir2 /path/to/dir3 {/path/to dir4}
+prepend-path\tFOOPATHDUPEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path\tFOOPATHDUPMIX {} /path/to/dir1 {/path/to/dir1 /path/to/dir2 /path/to/dir1} /path/to/dir3
+prepend-path\tFOOPATHDUPSP {/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to} {dir4 /path/to/dir3}
+prepend-path\tFOOPATHEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path\tFOOPATHWC /path/to/dir1 /path/to/d\*r2 /path/to/dir3
+set-alias\talcb {echo\ f\{o}
+set-alias\talem {}
+set-alias\talfoo {echo \$(grep \"report .Modules \" ../../modulecmd.tcl | tr -d \\\\ 2>/dev/null | awk '\{print \$3\}')}
+set-alias\talsp {echo f\\\"o; echo b\\\\\\\"r; echo f\\'o}
+set-function\tfunccb {
+    echo f\{o}
+set-function\tfuncfoo {
+    echo foo}
+set-function\tfuncnl {
+    echo foo;
+    echo bar}
+set-function\tfuncsp {
+    echo f\\\"o;
+    echo b\\\\\\\"r;
+    echo f\\'o}
+set-function\tfuncwc {
+    echo sou*sh}
+setenv\t\tFOO value
+setenv\t\tFOOCB va\{ue
+setenv\t\tFOOEM {}
+setenv\t\tFOOPATHDUPSPEM {/path/to/dir1 /path/to/dir1 /path/to/dir2 /path/to/dir1 /path/to/dir3 /path/to/dir3 }
+setenv\t\tFOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}
+setenv\t\tFOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }
+setenv\t\tFOOSP {value }
+setenv\t\tFOOWC va*ue
+module-whatis\teval-source-sh/1
+-------------------------------------------------------------------"
+testouterr_cmd sh {display eval-source-sh/1} OK $tserr_disp1
+
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMREFRESH
+unsetenv_var __MODULES_LMSOURCESH
+unsetenv_path_var FOOPATHDUP
+unsetenv_path_var FOOPATHEM
+unsetenv_path_var FOOPATHCB
+unsetenv_path_var FOOPATHWC
+unsetenv_path_var FOOPATHDUPMIX
+unsetenv_path_var FOOPATH
+unsetenv_path_var FOOPATHDUPEM
+unsetenv_path_var FOOPATHDUPSP
+unsetenv_var FOOPATHSP
+unsetenv_var FOOEM
+unsetenv_var FOOSP
+unsetenv_var FOOPATHDUPSPEM
+unsetenv_var FOOCB
+unsetenv_var FOOWC
+unsetenv_var FOO
+unsetenv_var FOOPATHSPEM
+unsetenv_var FOOMINI
+
+# test 'whatis' sub-command when no module loaded
+testouterr_cmd_re sh {whatis eval-source-sh} OK "$modlin $mpre $modlin
+\\s*eval-source-sh/1: eval-source-sh/1
+\\s*eval-source-sh/2: eval-source-sh/2"
+
+# test 'help' sub-command when no module loaded
+testouterr_cmd_re sh {help eval-source-sh/1} OK "$modlin
+Module Specific Help for $mpre/eval-source-sh/1:
+
+$warn_msgs: Unable to find ModulesHelp in $mpre/eval-source-sh/1.
+$modlin"
+
+# test 'test' sub-command when no module loaded
+testouterr_cmd_re sh {test eval-source-sh/1} OK "$modlin
+Module Specific Test for $mpre/eval-source-sh/1:
+
+$warn_msgs: Unable to find ModulesTest in $mpre/eval-source-sh/1.
+$modlin"
+
+# test 'display' sub-command when no module loaded
+testouterr_cmd sh {display eval-source-sh/1} OK $tserr_disp1
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
