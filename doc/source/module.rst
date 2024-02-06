@@ -2260,6 +2260,10 @@ Module Sub-Commands
  The following shells are supported: sh, dash, csh, tcsh, bash, ksh, ksh93,
  zsh and fish.
 
+ *Shell* could also be set to ``bash-eval``. In this mode, bash shell *script*
+ is not sourced but the output resulting from its execution is evaluated to
+ determine the environment changes it does.
+
  .. only:: html
 
     .. versionadded:: 4.6
@@ -2270,6 +2274,9 @@ Module Sub-Commands
     .. versionchanged:: 5.1
        Support for tracking shell completion changes on bash, tcsh and fish
        shells added
+
+    .. versionchanged:: 5.4
+       Support for ``bash-eval`` shell mode added
 
 .. subcmd:: show modulefile...
 

@@ -144,6 +144,10 @@ Modules 5.4.0 (not yet released)
 * Path element equals to delimiter character is allowed on
   :mfcmd:`append-path` and :mfcmd:`prepend-path` modulefile commands. (fix
   issue #522)
+* Add ``bash-eval`` shell mode to :mfcmd:`source-sh` modulefile command and
+  :subcmd:`sh-to-mod` sub-command. With this mode, the generated output of the
+  bash shell script is evaluated to get the environment changes instead of
+  sourcing this script. (fix issue #519)
 
 
 .. _5.3 release notes:

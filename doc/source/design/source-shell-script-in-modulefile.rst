@@ -211,6 +211,10 @@ Specification
   - A separator string ``%ModulesSubShToMod%`` is printed between each function definition not to get main and nested functions mixed up
   - Such sub-separator is only applied on fish shell
 
+- ``bash-eval`` shell is added in version 5.4
+
+  - Instead of sourcing a bash shell script, execution output of this script is evaluated
+
 - **FUTURE**: this feature may be extended to translate environment changes made by tools like Spack, Lmod or pkg-config. It may provide this way bridges between different realms.
 
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

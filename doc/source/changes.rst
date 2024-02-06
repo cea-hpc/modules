@@ -892,8 +892,10 @@ The following module sub-commands appeared on Modules 5.
 
 :subcmd:`sh-to-mod`
 
- Starting Modules 5.1, this sub-command also tracks shell completion changes
- for bash, tcsh and fish shells.
+ Starting Modules ``5.1``, this sub-command also tracks shell completion
+ changes for bash, tcsh and fish shells.
+
+ Shell mode ``bash-eval`` is introduced on Modules version ``5.4``.
 
 :subcmd:`source`
 
@@ -1043,8 +1045,10 @@ The following modulefile Tcl commands appeared on Modules 5.
 
 :mfcmd:`source-sh`
 
- Starting Modules 5.1, this modulefile command also tracks shell completion
- changes for bash, tcsh and fish shells.
+ Starting Modules ``5.1``, this modulefile command also tracks shell
+ completion changes for bash, tcsh and fish shells.
+
+ Shell mode ``bash-eval`` is introduced on Modules version ``5.4``.
 
 :mfcmd:`unsetenv`
 
