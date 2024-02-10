@@ -1679,10 +1679,64 @@ proc sh-to-mod {args} {
    return $modcontent
 }
 
-proc source-sh {shell script args} {
+proc parseSourceShArgs {args} {
+   set elt_ignored_list {}
+
+   set i 0
+   foreach arg $args {
+      incr i
+      if {[info exists nextargisval]} {
+         ##nagelfar vartype nextargisval varName
+         set $nextargisval $arg
+         unset nextargisval
+      } else {
+         switch -glob -- $arg {
+            --ignore {
+               set nextargisval ignore_opt_raw
+            }
+            -* {
+               knerror "Invalid option '$arg'"
+            }
+            default {
+               set shell $arg
+               # end option parsing: remaining elts are allowed values
+               break
+            }
+         }
+         set prevarg $arg
+      }
+   }
+
+   if {[info exists nextargisval]} {
+      knerror "Missing value for '$prevarg' option"
+   }
+
+   if {![info exists shell] || $i == [llength $args]} {
+      knerror "wrong # args: should be \"source-sh ?--ignore? ?eltlist? shell\
+         script ?arg ...?\""
+   }
+
+   set script_args [lassign [lrange $args $i end] script]
+
+   if {[info exists ignore_opt_raw]} {
+      set elt_ignored_list [split $ignore_opt_raw :]
+      set allowed_elt_ignored_list {envvar function alias chdir complete}
+      foreach elt_ignored $elt_ignored_list {
+         if {$elt_ignored ni $allowed_elt_ignored_list} {
+            knerror "Invalid ignored element '$elt_ignored'"
+         }
+      }
+   }
+
+   return [list $elt_ignored_list $shell $script $script_args]
+}
+
+proc source-sh {args} {
+   lassign [parseSourceShArgs {*}$args] elt_ignored_list shell script\
+      script_args
    # evaluate script and get the environment changes it performs translated
    # into modulefile commands
-   set shtomodargs [list $shell $script {*}$args]
+   set shtomodargs [list $shell $script {*}$script_args]
    set modcontent [sh-to-mod {*}$shtomodargs]
 
    # register resulting modulefile commands
@@ -1699,8 +1753,10 @@ proc source-sh {shell script args} {
 }
 
 # undo source-sh in unload mode
-proc source-sh-un {shell script args} {
-   set shtomodargs [list $shell $script {*}$args]
+proc source-sh-un {args} {
+   lassign [parseSourceShArgs {*}$args] elt_ignored_list shell script\
+      script_args
+   set shtomodargs [list $shell $script {*}$script_args]
    # find commands resulting from source-sh evaluation recorded in env
    set modcontent [getLoadedSourceShScriptContent [currentState modulename]\
       $shtomodargs]
@@ -1715,8 +1771,10 @@ proc source-sh-un {shell script args} {
 }
 
 # report underlying modulefile cmds in display mode
-proc source-sh-di {shell script args} {
-   set shtomodargs [list $shell $script {*}$args]
+proc source-sh-di {args} {
+   lassign [parseSourceShArgs {*}$args] elt_ignored_list shell script\
+      script_args
+   set shtomodargs [list $shell $script {*}$script_args]
 
    # if module loaded, get as much content from environment as possible
    if {[is-loaded [currentState modulename]]} {
