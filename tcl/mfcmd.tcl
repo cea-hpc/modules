@@ -1287,7 +1287,7 @@ proc is-avail {args} {
    return $ret
 }
 
-proc execShAndGetEnv {shell script args} {
+proc execShAndGetEnv {elt_ignored_list shell script args} {
    set sep {%ModulesShToMod%}
    set subsep {%ModulesSubShToMod%}
    set shdesc [list $script {*}$args]
@@ -1500,19 +1500,26 @@ proc execShAndGetEnv {shell script args} {
    upvar aliasbef aliasbef aliasaft aliasaft
    upvar compbef compbef compaft compaft
 
+   # clear current directory change if ignored
+   if {{chdir} in $elt_ignored_list} {
+      set cwdaftout $cwdbefout
+   }
+
    # extract environment variable information
-   ##nagelfar ignore Found constant
-   foreach {out arr} [list varbefout varbef varaftout varaft] {
-      ##nagelfar vartype out varName
-      foreach {match name value} [regexp -all -inline -lineanchor $varre [set\
-         $out]] {
-         # convert shell-specific escaping
-         ##nagelfar ignore Suspicious variable name
-         set ${arr}($name) [string map $varvalmap $value]
+   if {{envvar} ni $elt_ignored_list} {
+      ##nagelfar ignore Found constant
+      foreach {out arr} [list varbefout varbef varaftout varaft] {
+         ##nagelfar vartype out varName
+         foreach {match name value} [regexp -all -inline -lineanchor $varre\
+            [set $out]] {
+            # convert shell-specific escaping
+            ##nagelfar ignore Suspicious variable name
+            set ${arr}($name) [string map $varvalmap $value]
+         }
       }
    }
    # extract function information if function supported by shell
-   if {[info exists funcre]} {
+   if {{function} ni $elt_ignored_list && [info exists funcre]} {
       ##nagelfar ignore Found constant
       foreach {out arr} [list funcbefout funcbef funcaftout funcaft] {
          foreach {match name value} [regexp -all -inline -lineanchor $funcre\
@@ -1524,16 +1531,18 @@ proc execShAndGetEnv {shell script args} {
       }
    }
    # extract alias information
-   ##nagelfar ignore Found constant
-   foreach {out arr} [list aliasbefout aliasbef aliasaftout aliasaft] {
-      foreach {match name value} [regexp -all -inline -lineanchor $aliasre\
-         [set $out]] {
-         ##nagelfar ignore Suspicious variable name
-         set ${arr}($name) [string map $alvalmap $value]
+   if {{alias} ni $elt_ignored_list} {
+      ##nagelfar ignore Found constant
+      foreach {out arr} [list aliasbefout aliasbef aliasaftout aliasaft] {
+         foreach {match name value} [regexp -all -inline -lineanchor $aliasre\
+            [set $out]] {
+            ##nagelfar ignore Suspicious variable name
+            set ${arr}($name) [string map $alvalmap $value]
+         }
       }
    }
    # extract complete information if supported by shell
-   if {[info exists compre]} {
+   if {{complete} ni $elt_ignored_list && [info exists compre]} {
       ##nagelfar ignore Found constant
       foreach {out arr} [list compbefout compbef compaftout compaft] {
          ##nagelfar ignore Non constant variable list to foreach statement
@@ -1553,7 +1562,7 @@ proc execShAndGetEnv {shell script args} {
 
 # execute script with args through shell and convert environment changes into
 # corresponding modulefile commands
-proc sh-to-mod {args} {
+proc sh-to-mod {elt_ignored_list args} {
    set modcontent [list]
    set pathsep [getState path_separator]
    set shell [lindex $args 0]
@@ -1563,7 +1572,7 @@ proc sh-to-mod {args} {
    ##nagelfar implicitvarcmd {execShAndGetEnv *} ignvarlist cwdbefout\
       cwdaftout varbef varaft funcbef funcaft aliasbef aliasaft compbef\
       compaft
-   execShAndGetEnv {*}$args
+   execShAndGetEnv $elt_ignored_list {*}$args
 
    # check environment variable change
    lassign [getDiffBetweenArray varbef varaft] notaft diff notbef
@@ -1737,7 +1746,7 @@ proc source-sh {args} {
    # evaluate script and get the environment changes it performs translated
    # into modulefile commands
    set shtomodargs [list $shell $script {*}$script_args]
-   set modcontent [sh-to-mod {*}$shtomodargs]
+   set modcontent [sh-to-mod $elt_ignored_list {*}$shtomodargs]
 
    # register resulting modulefile commands
    setLoadedSourceSh [currentState modulename] [list $shtomodargs\
@@ -1783,7 +1792,7 @@ proc source-sh-di {args} {
          modulename] $shtomodargs]
 
       # need to evaluate script to get alias/function/complete definition
-      execShAndGetEnv {*}$shtomodargs
+      execShAndGetEnv $elt_ignored_list {*}$shtomodargs
 
       set modcontent {}
       foreach cmd $reccontent {
@@ -1826,7 +1835,7 @@ proc source-sh-di {args} {
       }
    # not loaded, so get full content from script evaluation
    } else {
-      set modcontent [sh-to-mod {*}$shtomodargs]
+      set modcontent [sh-to-mod $elt_ignored_list {*}$shtomodargs]
    }
 
    # get name of current module unload Tcl interp
