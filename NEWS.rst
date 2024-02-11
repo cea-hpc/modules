@@ -148,6 +148,9 @@ Modules 5.4.0 (not yet released)
   :subcmd:`sh-to-mod` sub-command. With this mode, the generated output of the
   bash shell script is evaluated to get the environment changes instead of
   sourcing this script. (fix issue #519)
+* Add ``--ignore`` option to :mfcmd:`source-sh` modulefile command to define
+  shell elements changed by shell script that should be ignored. (fix issue
+  #503)
 
 
 .. _5.3 release notes:

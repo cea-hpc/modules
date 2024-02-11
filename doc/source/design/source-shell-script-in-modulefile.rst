@@ -215,6 +215,18 @@ Specification
 
   - Instead of sourcing a bash shell script, execution output of this script is evaluated
 
+- ``--ignore`` option is added in version 5.4
+
+  - This option accepts a list of shell element separated by ``:`` character among:
+
+    - ``envvar``
+    - ``alias``
+    - ``function``
+    - ``chdir``
+    - ``complete``
+
+  - Shell elements changed by sourced script and listed on ``--ignore`` option are ignored (no modulefile command relative to these changes are produced)
+
 - **FUTURE**: this feature may be extended to translate environment changes made by tools like Spack, Lmod or pkg-config. It may provide this way bridges between different realms.
 
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

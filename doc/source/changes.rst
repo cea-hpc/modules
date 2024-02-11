@@ -1050,6 +1050,8 @@ The following modulefile Tcl commands appeared on Modules 5.
 
  Shell mode ``bash-eval`` is introduced on Modules version ``5.4``.
 
+ ``--ignore`` option is introduced on Modules version ``5.4``.
+
 :mfcmd:`unsetenv`
 
  Starting with version ``5.1``:

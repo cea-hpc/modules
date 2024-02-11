@@ -1177,7 +1177,7 @@ the *modulefile* is being loaded.
     .. versionchanged:: 5.1
        Option ``--set-if-undef`` added
 
-.. mfcmd:: source-sh shell script [arg...]
+.. mfcmd:: source-sh [--ignore eltlist] shell script [arg...]
 
  Evaluate with *shell* the designated *script* with defined *arguments* to
  find out the environment changes it does. Those changes obtained by comparing
@@ -1204,6 +1204,11 @@ the *modulefile* is being loaded.
  is not sourced but the output resulting from its execution is evaluated to
  determine the environment changes it does.
 
+ The ``--ignore`` option accepts a list of shell elements whose changes made
+ by *script* should be ignored. *eltlist* corresponds to the concatenation of
+ multiple shell element separated by colon character. Accepted shell elements
+ are: ``envvar``, ``alias``, ``function``, ``chdir`` and ``complete``.
+
  .. only:: html
 
     .. versionadded:: 4.6
@@ -1217,6 +1222,9 @@ the *modulefile* is being loaded.
 
     .. versionchanged:: 5.4
        Support for ``bash-eval`` shell mode added
+
+    .. versionchanged:: 5.4
+       Option ``--ignore`` added
 
 .. mfcmd:: system string
 
