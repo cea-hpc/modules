@@ -1,0 +1,503 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2024/02/10
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:    source-sh
+#   Sub-Command:    *
+#
+#   Comment:	%C{
+#           Check '--ignore' option of 'source-sh' modulefile command
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.4
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom_error_trace "    invoked from within
+\"if \{\[info exists env(TESTSUITE_SOURCE_SH)\]\} \{
+    switch -- \$env(TESTSUITE_SOURCE_SH) \{
+        ignore_bad1 \{
+            source-sh --ignore alias
+   ...\""
+} else {
+    set custom_error_trace {}
+}
+
+
+#
+# simple test
+#
+
+setenv_var TESTSUITE_SOURCE_SH ignore2
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/source-sh/1]
+lappend ans [list set LOADEDMODULES source-sh/1]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\ arg1\|chdir\ $modpath.2\|complete\ bash\ cmd\ \{\}\|complete\ bash\ mycmd\ \{\}\|complete\ bash\ othercmd\ \{\}\|prepend-path\ FOOPATH\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHCB\ /path/to/dir1\ /path/to/d\\\{r2\ /path/to/dir3\|prepend-path\ FOOPATHEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHWC\ /path/to/dir1\ /path/to/d\*r2\ /path/to/dir3\|setenv\ FOO\ value\|setenv\ FOOARG1\ arg1\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOPATHSP\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\}\|setenv\ FOOPATHSPEM\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \}\|setenv\ FOOSP\ \{value\ \}\|setenv\ FOOWC\ va\*ue]
+lappend ans [list set FOOPATHEM :/path/to/dir1:/path/to/dir2:/path/to/dir3]
+lappend ans [list set FOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}]
+lappend ans [list set FOOPATHCB /path/to/dir1:/path/to/d\{r2:/path/to/dir3]
+lappend ans [list set FOOEM {}]
+lappend ans [list set FOOARG1 {arg1}]
+lappend ans [list set FOOSP {value }]
+lappend ans [list set FOOPATH /path/to/dir1:/path/to/dir2:/path/to/dir3]
+lappend ans [list set FOOCB va\{ue]
+lappend ans [list set __MODULES_SHARE_FOOPATHEM :1]
+lappend ans [list set FOOPATHWC /path/to/dir1:/path/to/d\*r2:/path/to/dir3]
+lappend ans [list set FOO value]
+lappend ans [list set __MODULES_LMREFRESH source-sh/1]
+lappend ans [list set FOOWC va\*ue]
+lappend ans [list set FOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }]
+lappend ans [list out {complete -o default -F _cmd cmd;}]
+lappend ans [list out {complete -u othercmd;}]
+lappend ans [list out {complete -j -P '"%' -S '"' mycmd;}]
+lappend ans [list chdir $modpath.2]
+testouterr_cmd bash {load source-sh/1} $ans {}
+
+set tserr "$modlin $mpre $modlin
+\\s*source-sh/1: source-sh/1"
+testouterr_cmd_re bash {whatis source-sh/1} OK $tserr
+
+set tserr "-------------------------------------------------------------------
+$mp/source-sh/1:
+
+chdir\t\t$modpath.2
+complete\tbash cmd {-o default -F _cmd}
+complete\tbash mycmd {-j -P '\"%' -S '\"'}
+complete\tbash othercmd -u
+prepend-path\tFOOPATH /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path\tFOOPATHCB /path/to/dir1 /path/to/d\{r2 /path/to/dir3
+prepend-path\tFOOPATHEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path\tFOOPATHWC /path/to/dir1 /path/to/d\*r2 /path/to/dir3
+setenv\t\tFOO value
+setenv\t\tFOOARG1 arg1
+setenv\t\tFOOCB va\{ue
+setenv\t\tFOOEM {}
+setenv\t\tFOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}
+setenv\t\tFOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }
+setenv\t\tFOOSP {value }
+setenv\t\tFOOWC va*ue
+module-whatis\tsource-sh/1
+-------------------------------------------------------------------"
+testouterr_cmd bash {display source-sh/1} OK $tserr
+
+skip_if_quick_mode
+
+setenv_loaded_module [list source-sh/1] [list $mp/source-sh/1]
+setenv_var __MODULES_LMREFRESH source-sh/1
+setenv_var __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\ arg1\|chdir\ $modpath.2\|complete\ bash\ cmd\ \{\}\|complete\ bash\ mycmd\ \{\}\|complete\ bash\ othercmd\ \{\}\|prepend-path\ FOOPATH\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHCB\ /path/to/dir1\ /path/to/d\\\{r2\ /path/to/dir3\|prepend-path\ FOOPATHEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHWC\ /path/to/dir1\ /path/to/d\*r2\ /path/to/dir3\|setenv\ FOO\ value\|setenv\ FOOARG1\ arg1\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOPATHSP\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\}\|setenv\ FOOPATHSPEM\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \}\|setenv\ FOOSP\ \{value\ \}\|setenv\ FOOWC\ va\*ue
+setenv_path_var FOOPATHEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3
+setenv_path_var FOOPATHCB /path/to/dir1:/path/to/d\{r2:/path/to/dir3
+setenv_path_var FOOPATHWC /path/to/dir1:/path/to/d\*r2:/path/to/dir3
+setenv_path_var FOOPATH /path/to/dir1:/path/to/dir2:/path/to/dir3
+setenv_var FOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}
+setenv_var FOOEM {}
+setenv_var FOOARG1 {arg1}
+setenv_var FOOSP {value }
+setenv_var FOOCB va\{ue
+setenv_var FOOWC va\*ue
+setenv_var FOO value
+setenv_var FOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }
+
+testouterr_cmd bash {display source-sh/1} OK $tserr
+
+# unload (same content as set when loaded)
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMSOURCESH]
+lappend ans [list unset FOOPATHEM]
+lappend ans [list unset FOOPATHSP]
+lappend ans [list unset FOOPATHCB]
+lappend ans [list unset FOOEM]
+lappend ans [list unset FOOARG1]
+lappend ans [list unset FOOSP]
+lappend ans [list unset FOOPATH]
+lappend ans [list unset FOOCB]
+lappend ans [list unset __MODULES_SHARE_FOOPATHEM]
+lappend ans [list unset FOOPATHWC]
+lappend ans [list unset FOO]
+lappend ans [list unset __MODULES_LMREFRESH]
+lappend ans [list unset FOOWC]
+lappend ans [list unset FOOPATHSPEM]
+lappend ans [list out {complete -r cmd;}]
+lappend ans [list out {complete -r othercmd;}]
+lappend ans [list out {complete -r mycmd;}]
+testouterr_cmd bash {unload source-sh/1} $ans {}
+
+# unload (different content as set when loaded)
+setenv_var __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\ arg1\|chdir\ $modpath.2\|complete\ bash\ cmd\ \{\}\|complete\ bash\ mycmd\ \{\}\|complete\ bash\ othercmd\ \{\}\|prepend-path\ FOOPATH\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHCB\ /path/to/dir1\ /path/to/d\\\{r2\ /path/to/dir3\|prepend-path\ FOOPATHEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHWC\ /path/to/dir1\ /path/to/d\*r2\ /path/to/dir3\|set-alias\ alfoo\ \{\}\|setenv\ FOOARG1\ arg2\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOPATHSP\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\}\|setenv\ FOOPATHSPEM\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \}\|setenv\ FOOSP\ \{value\ \}\|setenv\ FOOWC\ va\*ue
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMSOURCESH]
+lappend ans [list unset FOOPATHEM]
+lappend ans [list unset FOOPATHSP]
+lappend ans [list unset FOOPATHCB]
+lappend ans [list unset FOOEM]
+lappend ans [list unset FOOARG1]
+lappend ans [list unset FOOSP]
+lappend ans [list unset FOOPATH]
+lappend ans [list unset FOOCB]
+lappend ans [list unset __MODULES_SHARE_FOOPATHEM]
+lappend ans [list unset FOOPATHWC]
+lappend ans [list unset __MODULES_LMREFRESH]
+lappend ans [list unset FOOPATHSPEM]
+lappend ans [list unset FOOWC]
+lappend ans [list unalias alfoo]
+lappend ans [list out {complete -r cmd;}]
+lappend ans [list out {complete -r othercmd;}]
+lappend ans [list out {complete -r mycmd;}]
+testouterr_cmd bash {unload source-sh/1} $ans {}
+
+# display (different content as set when loaded)
+set tserr "-------------------------------------------------------------------
+$mp/source-sh/1:
+
+chdir\t\t$modpath.2
+complete\tbash cmd {-o default -F _cmd}
+complete\tbash mycmd {-j -P '\"%' -S '\"'}
+complete\tbash othercmd -u
+prepend-path\tFOOPATH /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path\tFOOPATHCB /path/to/dir1 /path/to/d\{r2 /path/to/dir3
+prepend-path\tFOOPATHEM {} /path/to/dir1 /path/to/dir2 /path/to/dir3
+prepend-path\tFOOPATHWC /path/to/dir1 /path/to/d\*r2 /path/to/dir3
+set-alias\talfoo {}
+setenv\t\tFOOARG1 arg2
+setenv\t\tFOOCB va\{ue
+setenv\t\tFOOEM {}
+setenv\t\tFOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}
+setenv\t\tFOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }
+setenv\t\tFOOSP {value }
+setenv\t\tFOOWC va*ue
+module-whatis\tsource-sh/1
+-------------------------------------------------------------------"
+testouterr_cmd bash {display source-sh/1} OK $tserr
+
+set tserr "$modlin $mpre $modlin
+\\s*source-sh/1: source-sh/1"
+testouterr_cmd_re bash {whatis source-sh/1} OK $tserr
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMREFRESH
+unsetenv_var __MODULES_LMSOURCESH
+unsetenv_path_var FOOPATHEM
+unsetenv_path_var FOOPATHCB
+unsetenv_path_var FOOPATHWC
+unsetenv_path_var FOOPATH
+unsetenv_var FOOPATHSP
+unsetenv_var FOOEM
+unsetenv_var FOOARG1
+unsetenv_var FOOSP
+unsetenv_var FOOCB
+unsetenv_var FOOWC
+unsetenv_var FOO
+unsetenv_var FOOPATHSPEM
+
+
+#
+# issues
+#
+
+setenv_var TESTSUITE_SOURCE_SH ignore_bad1
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 5}]
+set tserr [msg_load source-sh/1 [msg_moderr {wrong # args: should be "source-sh ?--ignore? ?eltlist? shell script ?arg ...?"} {source-sh --ignore alias} $mp/source-sh/1 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {load source-sh/1} ERR $tserr
+
+setenv_var TESTSUITE_SOURCE_SH ignore_bad2
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 8}]
+set tserr [msg_load source-sh/1 [msg_moderr {Missing value for '--ignore' option} {source-sh --ignore} $mp/source-sh/1 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {load source-sh/1} ERR $tserr
+
+setenv_loaded_module [list source-sh/1] [list $mp/source-sh/1]
+set tserr [msg_unload source-sh/1 [msg_moderr {Missing value for '--ignore' option} {source-sh --ignore} $mp/source-sh/1 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {unload source-sh/1} ERR $tserr
+unsetenv_loaded_module
+
+set tserr "-------------------------------------------------------------------
+$mp/source-sh/1:
+
+[msg_moderr {Missing value for '--ignore' option} {source-sh --ignore} $mp/source-sh/1 $line_num {  } {} {} $custom_error_trace]
+-------------------------------------------------------------------"
+testouterr_cmd bash {display source-sh/1} ERR $tserr
+
+set tserr "$modlin $mpre $modlin
+\\s*source-sh/1: source-sh/1"
+testouterr_cmd_re bash {whatis source-sh/1} OK $tserr
+
+setenv_var TESTSUITE_SOURCE_SH ignore_bad3
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 11}]
+set tserr [msg_load source-sh/1 [msg_moderr {Invalid ignored element 'bash'} {source-sh --ignore bash testsuite/example/sh-to-mod.sh arg1} $mp/source-sh/1 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {load source-sh/1} ERR $tserr
+
+setenv_var TESTSUITE_SOURCE_SH ignore_bad4
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 14}]
+set tserr [msg_load source-sh/1 [msg_moderr {Invalid ignored element 'foo'} {source-sh --ignore {foo} bash testsuite/example/sh-to-mod.sh arg1} $mp/source-sh/1 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {load source-sh/1} ERR $tserr
+
+setenv_var TESTSUITE_SOURCE_SH ignore_bad5
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 17}]
+set tserr [msg_load source-sh/1 [msg_moderr {Invalid ignored element 'foo'} {source-sh --ignore alias:foo bash testsuite/example/sh-to-mod.sh arg1} $mp/source-sh/1 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {load source-sh/1} ERR $tserr
+
+setenv_var TESTSUITE_SOURCE_SH ignore_bad6
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 20}]
+set tserr [msg_load source-sh/1 [msg_moderr {Invalid ignored element 'foo'} {source-sh --ignore foo:bar bash testsuite/example/sh-to-mod.sh arg1} $mp/source-sh/1 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {load source-sh/1} ERR $tserr
+
+setenv_var TESTSUITE_SOURCE_SH ignore_bad7
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 23}]
+set tserr [msg_load source-sh/1 [msg_moderr {Invalid ignored element 'alias function'} {source-sh --ignore {alias function} bash testsuite/example/sh-to-mod.sh arg1} $mp/source-sh/1 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {load source-sh/1} ERR $tserr
+
+setenv_var TESTSUITE_SOURCE_SH ignore_bad8
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 26}]
+set tserr [msg_load source-sh/1 [msg_moderr {Invalid option '--foo'} {source-sh --foo bash testsuite/example/sh-to-mod.sh arg1} $mp/source-sh/1 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {load source-sh/1} ERR $tserr
+
+setenv_var TESTSUITE_SOURCE_SH ignore_bad9
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 29}]
+set tserr [msg_load source-sh/1 [msg_moderr {wrong # args: should be "source-sh ?--ignore? ?eltlist? shell script ?arg ...?"} {source-sh --ignore alias bash} $mp/source-sh/1 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {load source-sh/1} ERR $tserr
+
+setenv_var TESTSUITE_SOURCE_SH ignore_pos1
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 32}]
+set tserr [msg_load source-sh/1 [msg_moderr {Script '--ignore' cannot be found} {source-sh bash --ignore envvar:chdir testsuite/example/sh-to-mod.sh} $mp/source-sh/1 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd bash {load source-sh/1} ERR $tserr
+
+setenv_var TESTSUITE_SOURCE_SH ignore_pos2
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/source-sh/1]
+lappend ans [list set LOADEDMODULES source-sh/1]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\ --ignore\ complete\|chdir\ $modpath.2\|complete\ bash\ cmd\ \{\}\|complete\ bash\ mycmd\ \{\}\|complete\ bash\ othercmd\ \{\}\|prepend-path\ FOOPATH\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHCB\ /path/to/dir1\ /path/to/d\\\{r2\ /path/to/dir3\|prepend-path\ FOOPATHEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHWC\ /path/to/dir1\ /path/to/d\*r2\ /path/to/dir3\|set-alias\ alcb\ \{\}\|set-alias\ alem\ \{\}\|set-alias\ alfoo\ \{\}\|set-alias\ alsp\ \{\}\|set-function\ funccb\ \{\}\|set-function\ funcfoo\ \{\}\|set-function\ funcnl\ \{\}\|set-function\ funcsp\ \{\}\|set-function\ funcwc\ \{\}\|setenv\ FOO\ value\|setenv\ FOOARG1\ --ignore\|setenv\ FOOARG2\ complete\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOPATHSP\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\}\|setenv\ FOOPATHSPEM\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \}\|setenv\ FOOSP\ \{value\ \}\|setenv\ FOOWC\ va\*ue]
+lappend ans [list set FOOPATHEM :/path/to/dir1:/path/to/dir2:/path/to/dir3]
+lappend ans [list set FOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}]
+lappend ans [list set FOOPATHCB /path/to/dir1:/path/to/d\{r2:/path/to/dir3]
+lappend ans [list set FOOEM {}]
+lappend ans [list set FOOSP {value }]
+lappend ans [list set FOOARG1 {--ignore}]
+lappend ans [list set FOOARG2 {complete}]
+lappend ans [list set FOOPATH /path/to/dir1:/path/to/dir2:/path/to/dir3]
+lappend ans [list set FOOCB va\{ue]
+lappend ans [list set __MODULES_SHARE_FOOPATHEM :1]
+lappend ans [list set FOOPATHWC /path/to/dir1:/path/to/d\*r2:/path/to/dir3]
+lappend ans [list set FOO value]
+lappend ans [list set __MODULES_LMREFRESH source-sh/1]
+lappend ans [list set FOOWC va\*ue]
+lappend ans [list set FOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }]
+lappend ans [list alias alsp {echo f\"o; echo b\\\"r; echo f\'o}]
+lappend ans [list alias alfoo {echo $(grep "report .Modules " ../../modulecmd.tcl | tr -d \\ 2>/dev/null | awk '{print $3}')}]
+lappend ans [list alias alcb echo\ f\{o]
+lappend ans [list alias alem {}]
+lappend ans [list funcfoo "() { echo foo; }; export -f funcfoo;"]
+lappend ans [list funccb "() { echo f\{o; }; export -f funccb;"]
+lappend ans [list funcwc "() { echo sou*sh; }; export -f funcwc;"]
+lappend ans [list funcnl "() { echo foo;
+    echo bar; }; export -f funcnl;"]
+lappend ans [list funcsp "() { echo f\\\"o;
+    echo b\\\\\\\"r;
+    echo f\\'o; }; export -f funcsp;"]
+lappend ans [list out {complete -o default -F _cmd cmd;}]
+lappend ans [list out {complete -u othercmd;}]
+lappend ans [list out {complete -j -P '"%' -S '"' mycmd;}]
+lappend ans [list chdir $modpath.2]
+testouterr_cmd bash {load source-sh/1} $ans {}
+
+
+#
+# additional tests
+#
+
+setenv_var TESTSUITE_SOURCE_SH ignore_empty1
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/source-sh/1]
+lappend ans [list set LOADEDMODULES source-sh/1]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\ arg1\|chdir\ $modpath.2\|complete\ bash\ cmd\ \{\}\|complete\ bash\ mycmd\ \{\}\|complete\ bash\ othercmd\ \{\}\|prepend-path\ FOOPATH\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHCB\ /path/to/dir1\ /path/to/d\\\{r2\ /path/to/dir3\|prepend-path\ FOOPATHEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHWC\ /path/to/dir1\ /path/to/d\*r2\ /path/to/dir3\|set-alias\ alcb\ \{\}\|set-alias\ alem\ \{\}\|set-alias\ alfoo\ \{\}\|set-alias\ alsp\ \{\}\|set-function\ funccb\ \{\}\|set-function\ funcfoo\ \{\}\|set-function\ funcnl\ \{\}\|set-function\ funcsp\ \{\}\|set-function\ funcwc\ \{\}\|setenv\ FOO\ value\|setenv\ FOOARG1\ arg1\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOPATHSP\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\}\|setenv\ FOOPATHSPEM\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \}\|setenv\ FOOSP\ \{value\ \}\|setenv\ FOOWC\ va\*ue]
+lappend ans [list set FOOPATHEM :/path/to/dir1:/path/to/dir2:/path/to/dir3]
+lappend ans [list set FOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}]
+lappend ans [list set FOOPATHCB /path/to/dir1:/path/to/d\{r2:/path/to/dir3]
+lappend ans [list set FOOEM {}]
+lappend ans [list set FOOARG1 {arg1}]
+lappend ans [list set FOOSP {value }]
+lappend ans [list set FOOPATH /path/to/dir1:/path/to/dir2:/path/to/dir3]
+lappend ans [list set FOOCB va\{ue]
+lappend ans [list set __MODULES_SHARE_FOOPATHEM :1]
+lappend ans [list set FOOPATHWC /path/to/dir1:/path/to/d\*r2:/path/to/dir3]
+lappend ans [list set FOO value]
+lappend ans [list set __MODULES_LMREFRESH source-sh/1]
+lappend ans [list set FOOWC va\*ue]
+lappend ans [list set FOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }]
+lappend ans [list alias alsp {echo f\"o; echo b\\\"r; echo f\'o}]
+lappend ans [list alias alfoo {echo $(grep "report .Modules " ../../modulecmd.tcl | tr -d \\ 2>/dev/null | awk '{print $3}')}]
+lappend ans [list alias alcb echo\ f\{o]
+lappend ans [list alias alem {}]
+lappend ans [list funcfoo "() { echo foo; }; export -f funcfoo;"]
+lappend ans [list funccb "() { echo f\{o; }; export -f funccb;"]
+lappend ans [list funcwc "() { echo sou*sh; }; export -f funcwc;"]
+lappend ans [list funcnl "() { echo foo;
+    echo bar; }; export -f funcnl;"]
+lappend ans [list funcsp "() { echo f\\\"o;
+    echo b\\\\\\\"r;
+    echo f\\'o; }; export -f funcsp;"]
+lappend ans [list out {complete -o default -F _cmd cmd;}]
+lappend ans [list out {complete -u othercmd;}]
+lappend ans [list out {complete -j -P '"%' -S '"' mycmd;}]
+lappend ans [list chdir $modpath.2]
+testouterr_cmd bash {load source-sh/1} $ans {}
+
+
+setenv_var TESTSUITE_SOURCE_SH ignore1
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/source-sh/1]
+lappend ans [list set LOADEDMODULES source-sh/1]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|chdir\ $modpath.2\|complete\ bash\ cmd\ \{\}\|complete\ bash\ mycmd\ \{\}\|complete\ bash\ othercmd\ \{\}\|prepend-path\ FOOPATH\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHCB\ /path/to/dir1\ /path/to/d\\\{r2\ /path/to/dir3\|prepend-path\ FOOPATHEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHWC\ /path/to/dir1\ /path/to/d\*r2\ /path/to/dir3\|set-function\ funccb\ \{\}\|set-function\ funcfoo\ \{\}\|set-function\ funcnl\ \{\}\|set-function\ funcsp\ \{\}\|set-function\ funcwc\ \{\}\|setenv\ FOO\ value\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOPATHSP\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\}\|setenv\ FOOPATHSPEM\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \}\|setenv\ FOOSP\ \{value\ \}\|setenv\ FOOWC\ va\*ue]
+lappend ans [list set FOOPATHEM :/path/to/dir1:/path/to/dir2:/path/to/dir3]
+lappend ans [list set FOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}]
+lappend ans [list set FOOPATHCB /path/to/dir1:/path/to/d\{r2:/path/to/dir3]
+lappend ans [list set FOOEM {}]
+lappend ans [list set FOOSP {value }]
+lappend ans [list set FOOPATH /path/to/dir1:/path/to/dir2:/path/to/dir3]
+lappend ans [list set FOOCB va\{ue]
+lappend ans [list set __MODULES_SHARE_FOOPATHEM :1]
+lappend ans [list set FOOPATHWC /path/to/dir1:/path/to/d\*r2:/path/to/dir3]
+lappend ans [list set FOO value]
+lappend ans [list set __MODULES_LMREFRESH source-sh/1]
+lappend ans [list set FOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }]
+lappend ans [list set FOOWC va\*ue]
+lappend ans [list funcfoo "() { echo foo; }; export -f funcfoo;"]
+lappend ans [list funccb "() { echo f\{o; }; export -f funccb;"]
+lappend ans [list funcwc "() { echo sou*sh; }; export -f funcwc;"]
+lappend ans [list funcnl "() { echo foo;
+    echo bar; }; export -f funcnl;"]
+lappend ans [list funcsp "() { echo f\\\"o;
+    echo b\\\\\\\"r;
+    echo f\\'o; }; export -f funcsp;"]
+lappend ans [list out {complete -o default -F _cmd cmd;}]
+lappend ans [list out {complete -u othercmd;}]
+lappend ans [list out {complete -j -P '"%' -S '"' mycmd;}]
+lappend ans [list chdir $modpath.2]
+testouterr_cmd bash {load source-sh/1} $ans {}
+
+
+setenv_var TESTSUITE_SOURCE_SH ignore3
+
+set ans [list]
+lappend ans [list set __MODULES_LMREFRESH source-sh/1]
+lappend ans [list set _LMFILES_ $mp/source-sh/1]
+lappend ans [list set LOADEDMODULES source-sh/1]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|complete\ bash\ cmd\ \{\}\|complete\ bash\ mycmd\ \{\}\|complete\ bash\ othercmd\ \{\}\|set-alias\ alcb\ \{\}\|set-alias\ alem\ \{\}\|set-alias\ alfoo\ \{\}\|set-alias\ alsp\ \{\}\|set-function\ funccb\ \{\}\|set-function\ funcfoo\ \{\}\|set-function\ funcnl\ \{\}\|set-function\ funcsp\ \{\}\|set-function\ funcwc\ \{\}]
+lappend ans [list alias alsp {echo f\"o; echo b\\\"r; echo f\'o}]
+lappend ans [list alias alfoo {echo $(grep "report .Modules " ../../modulecmd.tcl | tr -d \\ 2>/dev/null | awk '{print $3}')}]
+lappend ans [list alias alcb echo\ f\{o]
+lappend ans [list alias alem {}]
+lappend ans [list funcfoo "() { echo foo; }; export -f funcfoo;"]
+lappend ans [list funccb "() { echo f\{o; }; export -f funccb;"]
+lappend ans [list funcwc "() { echo sou*sh; }; export -f funcwc;"]
+lappend ans [list funcnl "() { echo foo;
+    echo bar; }; export -f funcnl;"]
+lappend ans [list funcsp "() { echo f\\\"o;
+    echo b\\\\\\\"r;
+    echo f\\'o; }; export -f funcsp;"]
+lappend ans [list out {complete -o default -F _cmd cmd;}]
+lappend ans [list out {complete -u othercmd;}]
+lappend ans [list out {complete -j -P '"%' -S '"' mycmd;}]
+testouterr_cmd bash {load source-sh/1} $ans {}
+
+
+setenv_var TESTSUITE_SOURCE_SH ignore4
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/source-sh/1]
+lappend ans [list set LOADEDMODULES source-sh/1]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|chdir\ $modpath.2\|prepend-path\ FOOPATH\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHCB\ /path/to/dir1\ /path/to/d\\\{r2\ /path/to/dir3\|prepend-path\ FOOPATHEM\ \{\}\ /path/to/dir1\ /path/to/dir2\ /path/to/dir3\|prepend-path\ FOOPATHWC\ /path/to/dir1\ /path/to/d\*r2\ /path/to/dir3\|set-alias\ alcb\ \{\}\|set-alias\ alem\ \{\}\|set-alias\ alfoo\ \{\}\|set-alias\ alsp\ \{\}\|set-function\ funccb\ \{\}\|set-function\ funcfoo\ \{\}\|set-function\ funcnl\ \{\}\|set-function\ funcsp\ \{\}\|set-function\ funcwc\ \{\}\|setenv\ FOO\ value\|setenv\ FOOCB\ va\\\{ue\|setenv\ FOOEM\ \{\}\|setenv\ FOOPATHSP\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\}\|setenv\ FOOPATHSPEM\ \{/path/to/dir1\ /path/to/dir2\ /path/to/dir3\ \}\|setenv\ FOOSP\ \{value\ \}\|setenv\ FOOWC\ va\*ue]
+lappend ans [list set FOOPATHEM :/path/to/dir1:/path/to/dir2:/path/to/dir3]
+lappend ans [list set FOOPATHSP {/path/to/dir1 /path/to/dir2 /path/to/dir3}]
+lappend ans [list set FOOPATHCB /path/to/dir1:/path/to/d\{r2:/path/to/dir3]
+lappend ans [list set FOOEM {}]
+lappend ans [list set FOOSP {value }]
+lappend ans [list set FOOPATH /path/to/dir1:/path/to/dir2:/path/to/dir3]
+lappend ans [list set FOOCB va\{ue]
+lappend ans [list set __MODULES_SHARE_FOOPATHEM :1]
+lappend ans [list set FOOPATHWC /path/to/dir1:/path/to/d\*r2:/path/to/dir3]
+lappend ans [list set FOO value]
+lappend ans [list set __MODULES_LMREFRESH source-sh/1]
+lappend ans [list set FOOPATHSPEM {/path/to/dir1 /path/to/dir2 /path/to/dir3 }]
+lappend ans [list set FOOWC va\*ue]
+lappend ans [list alias alsp {echo f\"o; echo b\\\"r; echo f\'o}]
+lappend ans [list alias alfoo {echo $(grep "report .Modules " ../../modulecmd.tcl | tr -d \\ 2>/dev/null | awk '{print $3}')}]
+lappend ans [list alias alcb echo\ f\{o]
+lappend ans [list alias alem {}]
+lappend ans [list funcfoo "() { echo foo; }; export -f funcfoo;"]
+lappend ans [list funccb "() { echo f\{o; }; export -f funccb;"]
+lappend ans [list funcwc "() { echo sou*sh; }; export -f funcwc;"]
+lappend ans [list funcnl "() { echo foo;
+    echo bar; }; export -f funcnl;"]
+lappend ans [list funcsp "() { echo f\\\"o;
+    echo b\\\\\\\"r;
+    echo f\\'o; }; export -f funcsp;"]
+lappend ans [list chdir $modpath.2]
+testouterr_cmd bash {load source-sh/1} $ans {}
+
+
+setenv_var TESTSUITE_SOURCE_SH ignore5
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/source-sh/1]
+lappend ans [list set LOADEDMODULES source-sh/1]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|chdir\ $modpath.2]
+lappend ans [list chdir $modpath.2]
+testouterr_cmd bash {load source-sh/1} $ans {}
+
+
+setenv_var TESTSUITE_SOURCE_SH ignore6
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/source-sh/1]
+lappend ans [list set LOADEDMODULES source-sh/1]
+lappend ans [list set __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh]
+testouterr_cmd bash {load source-sh/1} $ans {}
+
+setenv_loaded_module [list source-sh/1] [list $mp/source-sh/1]
+setenv_var __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh
+set ans [list]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMSOURCESH]
+testouterr_cmd bash {unload source-sh/1} $ans {}
+
+unsetenv_var __MODULES_LMSOURCESH
+unsetenv_loaded_module
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
