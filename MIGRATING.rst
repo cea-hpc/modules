@@ -316,6 +316,73 @@ conflicts rather the generic conflict module specification.
       :sgrer:`ERROR`: Module cannot be loaded due to a conflict.
         HINT: Might try "module unload foo/1" first.
 
+New options for source-sh modulefile command
+--------------------------------------------
+
+Support for new *shell* mode named ``bash-eval`` is added to
+:mfcmd:`source-sh` modulefile command. With this new mode, the generated
+output of the bash shell script is evaluated to get the environment changes
+instead of sourcing this script.
+
+  .. parsed-literal::
+
+    :ps:`$` cat /path/to/modulefiles/foo/foo-output.sh
+    #!/bin/bash
+    cat <<EOF
+    export FOO=value;
+    alias foo_alias='echo foo_alias;'
+    foo_function() {
+        echo foo_function;
+    }
+    EOF
+    :ps:`$` cat /path/to/modulefiles/foo/1
+    #%Module
+    set foo_script [file dirname $ModulesCurrentModulefile]/foo-output.sh
+    :sgrhi:`source-sh bash-eval` $foo_script
+
+    :ps:`$` module show foo/1
+    -------------------------------------------------------------------
+    :sgrhi:`/path/to/modulefiles/foo/1`:
+
+    :sgrcm:`set-alias`       foo_alias {echo foo_alias;}
+    :sgrcm:`set-function`    foo_function {
+        echo foo_function}
+    :sgrcm:`setenv`          FOO value
+    -------------------------------------------------------------------
+    :ps:`$` module load foo/1
+    :ps:`$` foo_alias
+    foo_alias
+
+``bash-eval`` *shell* support is also available on :subcmd:`sh-to-mod`
+sub-command.
+
+A new option is added to :mfcmd:`source-sh` modulefile command: ``--ignore``.
+It filters shell elements changed by script, not to get these changes applied
+when loading modulefile. This option accepts a list, separated by colon
+character, of shell elements: ``envvar``, ``alias``, ``function``,
+``complete`` or ``chdir``.
+
+  .. parsed-literal::
+
+    :ps:`$` module purge
+    :ps:`$` cat /path/to/modulefiles/foo/2
+    #%Module
+    set foo_script [file dirname $ModulesCurrentModulefile]/foo-output.sh
+    :sgrhi:`source-sh --ignore alias:function bash-eval` $foo_script
+
+    :ps:`$` module show foo/2
+    -------------------------------------------------------------------
+    :sgrhi:`/path/to/modulefiles/foo/2`:
+
+    :sgrcm:`setenv`          FOO value
+    -------------------------------------------------------------------
+    :ps:`$` module load foo/2
+    :ps:`$` foo_alias
+    bash: foo_alias: command not found
+
+This ``--ignore`` option can be used with any *shell* supported by
+:mfcmd:`source-sh`.
+
 
 v5.3
 ====
