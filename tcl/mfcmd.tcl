@@ -277,11 +277,11 @@ proc parseApplicationCriteriaArgs {aftbef nearsec args} {
                   set nextargisdatetime [string trimleft $arg -]
                }
             }
-            --not-group - --not-user {
+            --not-group - --not-user - --group - --user {
                if {[getState is_win]} {
                   knerror "Option '$arg' not supported on Windows platform"
                } else {
-                  set nextargisval not[string range $arg 6 end]list
+                  set nextargisval [string map {- {}} $arg]list
                }
             }
             default {
@@ -296,6 +296,11 @@ proc parseApplicationCriteriaArgs {aftbef nearsec args} {
       knerror "Missing value for '$prevarg' option"
    }
 
+   set user [expr {[info exists userlist] && [getState username] in\
+      $userlist}]
+   set group [expr {[info exists grouplist] && [isIntBetweenList\
+      $grouplist [getState usergroups]]}]
+
    # does it apply to current user?
    set notuser [expr {[info exists notuserlist] && [getState username] in\
       $notuserlist}]
@@ -309,16 +314,21 @@ proc parseApplicationCriteriaArgs {aftbef nearsec args} {
       $after}]
 
 
+   set user_or_group_target_defined [expr {[info exists userlist] || [info\
+      exists grouplist]}]
+   set user_or_group_targeted [expr {$user || $group}]
    set user_or_group_excluded [expr {$notuser || $notgroup}]
    set time_frame_defined [expr {[info exists before] || [info exists after]}]
    set in_time_frame [expr {!$time_frame_defined || $isbefore || $isafter}]
    set in_near_time_frame [expr {[info exists after] && !$isafter &&\
       [getState clock_seconds] >= ($after - $nearsec)}]
 
-   set apply [expr {$in_time_frame && !$user_or_group_excluded}]
+   set apply [expr {$in_time_frame && ($user_or_group_targeted ||\
+      (!$user_or_group_target_defined && !$user_or_group_excluded))}]
 
    # is end limit near ?
-   set isnearly [expr {!$apply && !$user_or_group_excluded &&\
+   set isnearly [expr {!$apply && ($user_or_group_targeted ||\
+      (!$user_or_group_target_defined && !$user_or_group_excluded)) &&\
       $in_near_time_frame}]
    if {![info exists afterraw]} {
       set afterraw {}
