@@ -308,13 +308,18 @@ proc parseApplicationCriteriaArgs {aftbef nearsec args} {
    set isafter [expr {[info exists after] && [getState clock_seconds] >=\
       $after}]
 
-   # are criteria met
-   set apply [expr {!$notuser && !$notgroup && ($isbefore || $isafter ||\
-      (![info exists before] && ![info exists after]))}]
+
+   set user_or_group_excluded [expr {$notuser || $notgroup}]
+   set time_frame_defined [expr {[info exists before] || [info exists after]}]
+   set in_time_frame [expr {!$time_frame_defined || $isbefore || $isafter}]
+   set in_near_time_frame [expr {[info exists after] && !$isafter &&\
+      [getState clock_seconds] >= ($after - $nearsec)}]
+
+   set apply [expr {$in_time_frame && !$user_or_group_excluded}]
 
    # is end limit near ?
-   set isnearly [expr {!$apply && !$notuser && !$notgroup && [info exists\
-      after] && !$isafter && [getState clock_seconds] >= ($after - $nearsec)}]
+   set isnearly [expr {!$apply && !$user_or_group_excluded &&\
+      $in_near_time_frame}]
    if {![info exists afterraw]} {
       set afterraw {}
    }
