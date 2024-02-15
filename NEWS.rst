@@ -151,6 +151,8 @@ Modules 5.4.0 (not yet released)
 * Add ``--ignore`` option to :mfcmd:`source-sh` modulefile command to define
   shell elements changed by shell script that should be ignored. (fix issue
   #503)
+* Init: Improve Tcsh shell completion script to complete against existing
+  files when pattern starts with ``/``, ``.`` or ``~/``. (fix issue #523)
 
 
 .. _5.3 release notes:
