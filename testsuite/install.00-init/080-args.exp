@@ -141,8 +141,11 @@ foreach shell $othlang_list {
    testall_cmd_re "$shell" "append-path,-d, ,FOO,/path/to/dir2:source,$modfile" "" "$premsg$foo /path/to/dir2" 0
    # langs swallow \$ differently
    switch -- $shell {
-      {tcl} - {python} {
+      tcl {
          testall_cmd_re "$shell" "append-path,FOO,\\\$foo:source,$modfile" "" "$foo:\\\\\\\$foo" 0
+      }
+      python {
+         testall_cmd_re "$shell" "append-path,FOO,\\\$foo:source,$modfile" "" "(<string>:3: SyntaxWarning: invalid escape sequence '\\\\\\$'\\n)?$foo:\\\\\\\$foo" 0
       }
       default {
          testall_cmd_re "$shell" "append-path,FOO,\\\$foo:source,$modfile" "" "$foo:\\\$foo" 0
