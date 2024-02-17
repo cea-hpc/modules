@@ -225,6 +225,8 @@ Specification
   - ``--hard``: highest hiding level
   - ``--not-user``: specify a list of users unaffected by hide mechanism
   - ``--not-group``: specify a list of groups whose member are unaffected by hide mechanism
+  - ``--user``: specify a list of users specifically affected by hide mechanism
+  - ``--group``: specify a list of groups whose member are specifically affected by hide mechanism
   - ``--before``: enables hide mechanism until a given date
   - ``--after``: enables hide mechanism after a given date
 
@@ -232,6 +234,8 @@ Specification
 
   - ``--not-user``: specify a list of users unaffected by forbid mechanism
   - ``--not-group``: specify a list of groups whose member are unaffected by forbid mechanism
+  - ``--user``: specify a list of users specifically affected by forbid mechanism
+  - ``--group``: specify a list of groups whose member are specifically affected by forbid mechanism
   - ``--before``: enables forbid mechanism until a given date
   - ``--after``: enables forbid mechanism after a given date
   - ``--message``: supplements error message obtained when trying to evaluate a forbidden module with given text message
@@ -259,11 +263,15 @@ Specification
 
       - Unless on very specific cases, where a global rc file defines these hidden/forbidden commands for the full path modules
 
-- ``--not-user`` and ``--not-group`` specification is only supported on Unix platform
+- ``--user``, ``--group``, ``--not-user`` and ``--not-group`` specification is only supported on Unix platform
 
-  - These 2 options raise an error when used on Windows platform
+  - These options raise an error when used on Windows platform
   - In which case relative ``module-hide`` or ``module-forbid`` command is made ineffective as well as remaining content of the modulerc script hosting them
   - Error message is clearly seen when trying to load related modules and indicate where to find the erroneous command
+
+- ``--user`` and ``--group`` options prevail over ``--not-user`` and ``--not-group`` options
+
+  - When ``--user`` or ``--group`` is set, exclusion list from ``--not-user`` and ``--not-group`` are ignored
 
 - ``--before`` and ``--after`` are also supported by ``module-hide`` to phase-out modules prior to forbid their evaluation
 

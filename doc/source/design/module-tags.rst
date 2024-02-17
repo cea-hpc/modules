@@ -83,12 +83,18 @@ Defining
 
   - ``--not-user``: specify a list of users unaffected by specified tagging
   - ``--not-group``: specify a list of groups whose member are unaffected by specified tagging
+  - ``--user``: specify a list of users specifically affected by specified tagging
+  - ``--group``: specify a list of groups whose member are specifically affected by specified tagging
 
-- ``--not-user`` and ``--not-group`` specification is only supported on Unix platform
+- ``--user``, ``--group``, ``--not-user`` and ``--not-group`` specification is only supported on Unix platform
 
-  - These 2 options raise an error when used on Windows platform
+  - These options raise an error when used on Windows platform
   - In which case relative ``module-tag`` command is made ineffective as well as remaining content of the modulerc script hosting them
   - Error message is clearly seen when trying to load related modules and indicate where to find the erroneous command
+
+- ``--user`` and ``--group`` options prevail over ``--not-user`` and ``--not-group`` options
+
+  - When ``--user`` or ``--group`` is set, exclusion list from ``--not-user`` and ``--not-group`` are ignored
 
 - ``module-tag`` is intended to be used in modulerc files
 

@@ -153,6 +153,14 @@ Modules 5.4.0 (not yet released)
   #503)
 * Init: Improve Tcsh shell completion script to complete against existing
   files when pattern starts with ``/``, ``.`` or ``~/``. (fix issue #523)
+* Add ``--user`` option to :mfcmd:`module-forbid`, :mfcmd:`module-hide` and
+  :mfcmd:`module-tag` modulefile commands to forbid, hide or tag only if user
+  is listed in the value of this new option. (fix issue #520 with contribution
+  from Jérémy Déchard)
+* Add ``--group`` option to :mfcmd:`module-forbid`, :mfcmd:`module-hide` and
+  :mfcmd:`module-tag` modulefile commands to forbid, hide or tag only if one
+  user's group is listed in the value of this new option. (fix issue #520 with
+  contribution from Jérémy Déchard)
 
 
 .. _5.3 release notes:
