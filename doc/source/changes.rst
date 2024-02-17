@@ -1075,6 +1075,7 @@ The following modulefile Tcl commands appeared on Modules 5.
  * module specification on which stickiness applies is recorded in loaded
    environment to determine if it is still satisfied when updating
    environment.
+ * options ``--user`` and ``--group`` are added.
 
 :mfcmd:`break`
 

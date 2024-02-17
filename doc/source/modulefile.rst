@@ -470,6 +470,8 @@ the *modulefile* is being loaded.
  * ``--before datetime``
  * ``--not-user {user...}``
  * ``--not-group {group...}``
+ * ``--user {user...}``
+ * ``--group {group...}``
  * ``--message {text message}``
  * ``--nearly-message {text message}``
 
@@ -486,6 +488,14 @@ the *modulefile* is being loaded.
  set, forbidding is not applied if current user is member of one the group
  specified. When both options are set, forbidding is not applied if a match is
  found for ``--not-user`` or ``--not-group``.
+
+ If ``--user`` option is set, forbidding is applied only if the username of
+ the user currently running :file:`modulecmd.tcl` is part of the list of
+ username specified. Following the same approach, if ``--group`` option is
+ set, forbidding is applied only if current user is member of one the group
+ specified. When both options are set, forbidding is applied if a match is
+ found for ``--user`` or ``--group``. These two options prevail over
+ ``--not-user`` and ``--not-group`` options.
 
  Error message returned when trying to evaluate a forbidden module can be
  supplemented with the *text message* set through ``--message`` option.
@@ -521,6 +531,9 @@ the *modulefile* is being loaded.
     .. versionchanged:: 5.4
        Full path file name may be used to designate *modulefile*
 
+    .. versionchanged:: 5.4
+       Options ``--user`` and ``--group`` added
+
 .. mfcmd:: module-hide [options] modulefile...
 
  Hide *modulefile* to exclude it from available module search or module
@@ -535,6 +548,8 @@ the *modulefile* is being loaded.
  * ``--before datetime``
  * ``--not-user {user...}``
  * ``--not-group {group...}``
+ * ``--user {user...}``
+ * ``--group {group...}``
 
  When ``--soft`` option is set, *modulefile* is also set hidden, but hiding is
  disabled when search or selection query's root name matches module's root
@@ -568,6 +583,14 @@ the *modulefile* is being loaded.
  hiding is not applied if current user is member of one the group specified.
  When both options are set, hiding is not applied if a match is found for
  ``--not-user`` or ``--not-group``.
+
+ If ``--user`` option is set, hiding is applied only if the username of the
+ user currently running :file:`modulecmd.tcl` is part of the list of username
+ specified. Following the same approach, if ``--group`` option is set, hiding
+ is applied only if current user is member of one the group specified. When
+ both options are set, hiding is applied if a match is found for ``--user`` or
+ ``--group``. These two options prevail over ``--not-user`` and
+ ``--not-group`` options.
 
  If the :option:`--all` option is set on :subcmd:`avail`, :subcmd:`aliases`,
  :subcmd:`whatis` or :subcmd:`search` sub-commands, hiding is disabled thus
@@ -610,6 +633,9 @@ the *modulefile* is being loaded.
 
     .. versionchanged:: 5.4
        Full path file name may be used to designate *modulefile*
+
+    .. versionchanged:: 5.4
+       Options ``--user`` and ``--group`` added
 
 .. mfcmd:: module-info option [info-args]
 
@@ -786,6 +812,8 @@ the *modulefile* is being loaded.
 
  * ``--not-user {user...}``
  * ``--not-group {group...}``
+ * ``--user {user...}``
+ * ``--group {group...}``
 
  If ``--not-user`` option is set, the tag is not applied if the username of
  the user currently running :file:`modulecmd.tcl` is part of the list of
@@ -793,6 +821,14 @@ the *modulefile* is being loaded.
  set, the tag is not applied if current user is member of one the group
  specified. When both options are set, the tag is not applied if a match is
  found for ``--not-user`` or ``--not-group``.
+
+ If ``--user`` option is set, the tag is applied only if the username of the
+ user currently running :file:`modulecmd.tcl` is part of the list of username
+ specified. Following the same approach, if ``--group`` option is set, the tag
+ is applied only if current user is member of one the group specified. When
+ both options are set, the tag is applied if a match is found for ``--user``
+ or ``--group``. These two options prevail over ``--not-user`` and
+ ``--not-group`` options.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
@@ -821,6 +857,9 @@ the *modulefile* is being loaded.
 
     .. versionchanged:: 5.4
        Full path file name may be used to designate *modulefile*
+
+    .. versionchanged:: 5.4
+       Options ``--user`` and ``--group`` added
 
 .. mfcmd:: module-version modulefile version-name...
 
