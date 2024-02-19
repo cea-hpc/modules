@@ -368,6 +368,47 @@ setenv_var MODULERCFILE $ORIG_MODULERCFILE
 
 
 #
+# --user/--group options test
+#
+
+set tserr_wtag "$mp:\ntag/5.0 <foo>"
+set tserr_notag $mp:\ntag/5.0
+
+setenv_var TESTSUITE_TAG_USER_GROUP user2
+testouterr_cmd sh {avail -t tag/5.0} OK $tserr_wtag
+
+setenv_var TESTSUITE_TAG_USER_GROUP user3
+testouterr_cmd sh {avail -t tag/5.0} OK $tserr_notag
+
+setenv_var TESTSUITE_TAG_USER_GROUP user_notgroup3
+testouterr_cmd sh {avail -t tag/5.0} OK $tserr_wtag
+
+setenv_var TESTSUITE_TAG_USER_GROUP user_notgroup4
+testouterr_cmd sh {avail -t tag/5.0} OK $tserr_notag
+
+setenv_var TESTSUITE_TAG_USER_GROUP group2
+testouterr_cmd sh {avail -t tag/5.0} OK $tserr_wtag
+
+setenv_var TESTSUITE_TAG_USER_GROUP group3
+testouterr_cmd sh {avail -t tag/5.0} OK $tserr_notag
+
+setenv_var TESTSUITE_TAG_USER_GROUP group_notuser1
+testouterr_cmd sh {avail -t tag/5.0} OK $tserr_wtag
+
+setenv_var TESTSUITE_TAG_USER_GROUP group_notuser2
+testouterr_cmd sh {avail -t tag/5.0} OK $tserr_notag
+
+setenv_var TESTSUITE_TAG_USER_GROUP group_user1
+testouterr_cmd sh {avail -t tag/5.0} OK $tserr_wtag
+
+setenv_var TESTSUITE_TAG_USER_GROUP group_user2
+testouterr_cmd sh {avail -t tag/5.0} OK $tserr_wtag
+
+setenv_var TESTSUITE_TAG_USER_GROUP group_user_notuser_notgroup2
+testouterr_cmd sh {avail -t tag/5.0} OK $tserr_notag
+
+
+#
 #  Cleanup
 #
 
