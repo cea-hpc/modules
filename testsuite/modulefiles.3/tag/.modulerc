@@ -177,3 +177,42 @@ if {[info exists env(TESTSUITE_STASH)]} {
         }
     }
 }
+
+# --user/--group tests in 50/440
+if {[info exists env(TESTSUITE_TAG_USER_GROUP)]} {
+    switch -- $env(TESTSUITE_TAG_USER_GROUP) {
+        user2 {
+            module-tag --user [list unknown1 [module-info username] unknown2] foo tag
+        }
+        user3 {
+            module-tag --user [list unknown1 unknown2] foo tag
+        }
+        user_notgroup3 {
+            module-tag --user [module-info username] --not-group [module-info usergroups] foo tag
+        }
+        user_notgroup4 {
+            module-tag --user unknown1 --not-group unknown1 foo tag
+        }
+        group2 {
+            module-tag --group [concat [list unknown1 unknown2] [module-info usergroups]] foo tag
+        }
+        group3 {
+            module-tag --group [list unknown1 unknown2] foo tag
+        }
+        group_notuser1 {
+            module-tag --group [module-info usergroups] --not-user unknown1 foo tag
+        }
+        group_notuser2 {
+            module-tag --group unknown1 --not-user [module-info username] foo tag
+        }
+        group_user1 {
+            module-tag --group [module-info usergroups] --user unknown1 foo tag
+        }
+        group_user2 {
+            module-tag --group unknown1 --user [module-info username] foo tag
+        }
+        group_user_notuser_notgroup2 {
+            module-tag --group unknown1 --user unknown1 foo tag --not-user unknown1 --not-group unknown1 hide1
+        }
+    }
+}
