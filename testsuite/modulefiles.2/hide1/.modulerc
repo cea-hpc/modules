@@ -713,3 +713,74 @@ if {[info exists env(TESTSUITE_HIDE_USER_GROUP)]} {
         }
     }
 }
+
+# 20/117 --user and --group tests
+if {[info exists env(TESTSUITE_FORBID_USER_GROUP)]} {
+    switch -- $env(TESTSUITE_FORBID_USER_GROUP) {
+        user2 {
+            module-forbid --user [list unknown1 [module-info username] unknown2] hide1
+        }
+        user3 {
+            module-forbid --user [list unknown1 unknown2] hide1
+        }
+        user_time1 {
+            set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
+            module-forbid --user [module-info username] --after $tomorrow hide1
+        }
+        user_time2 {
+            set yesterday [clock format [expr {[clock seconds]-86400}] -format %Y-%m-%d]
+            module-forbid --user [module-info username] --after $yesterday hide1
+        }
+        user_time3 {
+            set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
+            module-forbid --user unknown1 --after $tomorrow hide1
+        }
+        user_time4 {
+            set yesterday [clock format [expr {[clock seconds]-86400}] -format %Y-%m-%d]
+            module-forbid --user unknown1 --after $yesterday hide1
+        }
+        user_notgroup3 {
+            module-forbid --user [module-info username] --not-group [module-info usergroups] hide1
+        }
+        user_notgroup4 {
+            module-forbid --user unknown1 --not-group unknown1 hide1
+        }
+        group2 {
+            module-forbid --group [concat [list unknown1 unknown2] [module-info usergroups]] hide1
+        }
+        group3 {
+            module-forbid --group [list unknown1 unknown2] hide1
+        }
+        group_time1 {
+            set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
+            module-forbid --group [module-info usergroups] --after $tomorrow hide1
+        }
+        group_time2 {
+            set yesterday [clock format [expr {[clock seconds]-86400}] -format %Y-%m-%d]
+            module-forbid --group [module-info usergroups] --after $yesterday hide1
+        }
+        group_time3 {
+            set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
+            module-forbid --group unknown1 --after $tomorrow hide1
+        }
+        group_time4 {
+            set yesterday [clock format [expr {[clock seconds]-86400}] -format %Y-%m-%d]
+            module-forbid --group unknown1 --after $yesterday hide1
+        }
+        group_notuser1 {
+            module-forbid --group [module-info usergroups] --not-user unknown1 hide1
+        }
+        group_notuser2 {
+            module-forbid --group unknown1 --not-user [module-info username] hide1
+        }
+        group_user1 {
+            module-forbid --group [module-info usergroups] --user unknown1 hide1
+        }
+        group_user2 {
+            module-forbid --group unknown1 --user [module-info username] hide1
+        }
+        group_user_notuser_notgroup2 {
+            module-forbid --group unknown1 --user unknown1 hide1 --not-user unknown1 --not-group unknown1 hide1
+        }
+    }
+}
