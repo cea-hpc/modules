@@ -175,7 +175,7 @@ set ::syntax(set-alias) 2
 set ::syntax(set-function) 2
 # setenv accepts option at any position
 set ::syntax(setenv) {o? x o? x o?}
-set ::syntax(source-sh) {x x x*}
+set ::syntax(source-sh) {o* x x x*}
 set ::syntax(system) {x x*}
 set ::syntax(uname) s
 set {::syntax(uname sysname)} 0
@@ -289,6 +289,8 @@ set ::option(remove-path) {-d --delim --glob --index --ignore-refcount\
 set {::option(remove-path -d)} 1
 set {::option(remove-path --delim)} 1
 set ::option(setenv) --set-if-undef
+set ::option(source-sh) --ignore
+set {::option(source-sh --ignore)} 1
 set ::option(unsetenv) {--noop-on-unload --unset-on-unload}
 set ::option(variant) {--boolean --default}
 set {::option(variant --default)} 1
