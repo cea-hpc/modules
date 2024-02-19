@@ -548,3 +548,168 @@ if {[info exists env(TESTSUITE_HIDE1_CASC_SET7)]} {
 if {[info exists env(TESTSUITE_HIDE1_CASC_SET8)]} {
     module-hide hide1
 }
+
+# 20/112 --user and --group tests
+if {[info exists env(TESTSUITE_HIDE_USER_GROUP)]} {
+    switch -- $env(TESTSUITE_HIDE_USER_GROUP) {
+        bad_user1 {
+            module-hide --user hide1
+        }
+        bad_user2 {
+            module-hide --user
+        }
+        user1 {
+            module-hide --user [module-info username] hide1
+        }
+        user2 {
+            module-hide --user [list unknown1 [module-info username] unknown2] hide1
+        }
+        user3 {
+            module-hide --user [list unknown1 unknown2] hide1
+        }
+        user4 {
+            module-hide --user {} hide1
+        }
+        user_time1 {
+            set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
+            module-hide --user [module-info username] --after $tomorrow hide1
+        }
+        user_time2 {
+            set yesterday [clock format [expr {[clock seconds]-86400}] -format %Y-%m-%d]
+            module-hide --user [module-info username] --after $yesterday hide1
+        }
+        user_multi1 {
+            set yesterday [clock format [expr {[clock seconds]-86400}] -format %Y-%m-%d]
+            module-hide --not-user [module-info username] hide1
+            module-hide --user [module-info username] --after $yesterday hide1
+        }
+        user_multi2 {
+            set yesterday [clock format [expr {[clock seconds]-86400}] -format %Y-%m-%d]
+            module-hide --user [module-info username] --after $yesterday hide1
+            module-hide --not-user [module-info username] hide1
+        }
+        user_notuser1 {
+            module-hide --user [module-info username] --not-user unknown1 hide1
+        }
+        user_notuser2 {
+            module-hide --user unknown1 --not-user [module-info username] hide1
+        }
+        user_notuser3 {
+            module-hide --user [module-info username] --not-user [module-info username] hide1
+        }
+        user_notuser4 {
+            module-hide --user unknown1 --not-user unknown1 hide1
+        }
+        user_notgroup1 {
+            module-hide --user [module-info username] --not-group unknown1 hide1
+        }
+        user_notgroup2 {
+            module-hide --user unknown1 --not-group [module-info usergroups] hide1
+        }
+        user_notgroup3 {
+            module-hide --user [module-info username] --not-group [module-info usergroups] hide1
+        }
+        user_notgroup4 {
+            module-hide --user unknown1 --not-group unknown1 hide1
+        }
+        user_notuser_notgroup1 {
+            module-hide --user [module-info username] --not-user [module-info username] --not-group unknown1 hide1
+        }
+        user_notuser_notgroup2 {
+            module-hide --user [module-info username] --not-user [module-info username] --not-group [module-info usergroups] hide1
+        }
+        user_notuser_notgroup3 {
+            module-hide --user unknown1 --not-user unknown1 --not-group unknown1 hide1
+        }
+        bad_group1 {
+            module-hide --group hide1
+        }
+        bad_group2 {
+            module-hide --group
+        }
+        group1 {
+            module-hide --group [module-info usergroups] hide1
+        }
+        group2 {
+            module-hide --group [concat [list unknown1 unknown2] [module-info usergroups]] hide1
+        }
+        group3 {
+            module-hide --group [list unknown1 unknown2] hide1
+        }
+        group4 {
+            module-hide --group {} hide1
+        }
+        group_time1 {
+            set tomorrow [clock format [expr {[clock seconds]+86400}] -format %Y-%m-%d]
+            module-hide --group [module-info usergroups] --after $tomorrow hide1
+        }
+        group_time2 {
+            set yesterday [clock format [expr {[clock seconds]-86400}] -format %Y-%m-%d]
+            module-hide --group [module-info usergroups] --after $yesterday hide1
+        }
+        group_multi1 {
+            set yesterday [clock format [expr {[clock seconds]-86400}] -format %Y-%m-%d]
+            module-hide --not-group [module-info usergroups] hide1
+            module-hide --group [module-info usergroups] --after $yesterday hide1
+        }
+        group_multi2 {
+            set yesterday [clock format [expr {[clock seconds]-86400}] -format %Y-%m-%d]
+            module-hide --group [module-info usergroups] --after $yesterday hide1
+            module-hide --not-group [module-info usergroups] hide1
+        }
+        group_notgroup1 {
+            module-hide --group [module-info usergroups] --not-group unknown1 hide1
+        }
+        group_notgroup2 {
+            module-hide --group unknown1 --not-group [module-info usergroups] hide1
+        }
+        group_notgroup3 {
+            module-hide --group [module-info usergroups] --not-group [module-info usergroups] hide1
+        }
+        group_notgroup4 {
+            module-hide --group unknown1 --not-group unknown1 hide1
+        }
+        group_notuser1 {
+            module-hide --group [module-info usergroups] --not-user unknown1 hide1
+        }
+        group_notuser2 {
+            module-hide --group unknown1 --not-user [module-info username] hide1
+        }
+        group_notuser3 {
+            module-hide --group [module-info usergroups] --not-user [module-info username] hide1
+        }
+        group_notuser4 {
+            module-hide --group unknown1 --not-user unknown1 hide1
+        }
+        group_notuser_notgroup1 {
+            module-hide --group [module-info usergroups] --not-user [module-info username] --not-group unknown1 hide1
+        }
+        group_notuser_notgroup2 {
+            module-hide --group [module-info usergroups] --not-user [module-info username] --not-group [module-info usergroups] hide1
+        }
+        group_notuser_notgroup3 {
+            module-hide --group unknown1 --not-user unknown1 --not-group unknown1 hide1
+        }
+        group_user1 {
+            module-hide --group [module-info usergroups] --user unknown1 hide1
+        }
+        group_user2 {
+            module-hide --group unknown1 --user [module-info username] hide1
+        }
+        group_user3 {
+            module-hide --group [module-info usergroups] --user [module-info username] hide1
+        }
+        group_user4 {
+            module-hide --group unknown1 --user unknown1 hide1
+        }
+        group_user_notuser_notgroup1 {
+            module-hide --group unknown1 --user unknown1 hide1 --not-user [module-info username] --not-group unknown1 hide1
+        }
+        group_user_notuser_notgroup2 {
+            module-hide --group unknown1 --user unknown1 hide1 --not-user unknown1 --not-group unknown1 hide1
+        }
+        group_user_notuser_notgroup3 {
+            module-hide --group unknown1 --user [module-info username] --not-user [module-info username] --not-group [module-info usergroups] hide1
+        }
+    }
+}
