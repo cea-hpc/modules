@@ -90,18 +90,26 @@ set ::subCmd(module-info) {alias command loaded mode name shell shelltype\
 set ::subCmd(uname) {sysname nodename domain release version machine}
 
 # option
-set ::option(module-forbid) {--not-user --not-group --after --before\
-   --message --nearly-message}
+set ::option(module-forbid) {--user --group --not-user --not-group --after\
+   --before --message --nearly-message}
+set {::option(module-forbid --user)} 1
+set {::option(module-forbid --group)} 1
 set {::option(module-forbid --not-user)} 1
 set {::option(module-forbid --not-group)} 1
 set {::option(module-forbid --after)} 1
 set {::option(module-forbid --before)} 1
-set ::option(module-hide) {--not-user --not-group --after --before --soft\
-   --hard --hidden-loaded}
+set ::option(module-hide) {--user --group --not-user --not-group --after\
+   --before --soft --hard --hidden-loaded}
+set {::option(module-hide --user)} 1
+set {::option(module-hide --group)} 1
 set {::option(module-hide --not-user)} 1
 set {::option(module-hide --not-group)} 1
 set {::option(module-hide --after)} 1
 set {::option(module-hide --before)} 1
-set ::option(module-tag) {--not-user --not-group}
+set ::option(module-tag) {--user --group --not-user --not-group}
+set {::option(module-tag --user)} 1
+set {::option(module-tag --group)} 1
+set {::option(module-tag --not-user)} 1
+set {::option(module-tag --not-group)} 1
 
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
