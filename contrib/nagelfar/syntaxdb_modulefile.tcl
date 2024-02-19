@@ -283,7 +283,7 @@ set ::option(prereq-all) {--optional --tag}
 set {::option(prereq-all --tag)} 1
 set ::option(prereq-any) {--optional --tag}
 set {::option(prereq-any --tag)} 1
-set ::option(remove-path) {-d --delim --index --ignore-refcount\
+set ::option(remove-path) {-d --delim --glob --index --ignore-refcount\
    --remove-on-unload --noop-on-unload --append-on-unload\
    --prepend-on-unload}
 set {::option(remove-path -d)} 1
