@@ -8,8 +8,8 @@ documents those changes that are of interest to users and admins.
 
 .. _5.4 release notes:
 
-Modules 5.4.0 (not yet released)
---------------------------------
+Modules 5.4.0 (2024-02-20)
+--------------------------
 
 * Allow to designate module by its full path file name on :mfcmd:`module-tag`,
   :mfcmd:`module-hide` and :mfcmd:`module-forbid`. (fix issue #485)
