@@ -24,6 +24,8 @@ ModuleTool
 ModuleToolVersion
 }
 lappend ::knownCommands {*}{
+hide-modulefile
+hide-version
 is-loaded
 is-used
 module-alias
@@ -40,6 +42,8 @@ versioncmp
 }
 
 # syntax
+set ::syntax(hide-modulefile) 1
+set ::syntax(hide-version) 1
 set ::syntax(is-loaded) x*
 set ::syntax(is-used) x*
 set ::syntax(module-alias) 2
