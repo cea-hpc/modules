@@ -283,6 +283,23 @@ the *modulefile* is being loaded.
     .. versionchanged:: 5.1
        Option ``--return-value`` added.
 
+
+.. mfcmd:: hide-modulefile modulefile
+
+ Alias of :mfcmd:`module-hide` command.
+
+ .. only:: html
+
+    .. versionadded:: 5.5
+
+.. mfcmd:: hide-version modulefile
+
+ Alias of :mfcmd:`module-hide` command.
+
+ .. only:: html
+
+    .. versionadded:: 5.5
+
 .. mfcmd:: is-avail modulefile...
 
  The :mfcmd:`is-avail` command returns a true value if any of the listed
@@ -1434,19 +1451,19 @@ interpretation since such files are intended to set parameters for modulefiles
 environment. The following table summarizes the different commands available
 for each interpretation context.
 
-+---------------------------+------------------------------------------------+
-| Commands available from   | Commands available from run-command (rc) file  |
-| modulefile interpretation | interpretation                                 |
-+===========================+================================================+
-| All the Modules specific  | :mfcmd:`is-loaded`, :mfcmd:`is-used`,          |
-| and standard Tcl commands | :mfcmd:`module-alias`, :mfcmd:`module-forbid`, |
-|                           | :mfcmd:`module-hide`, :mfcmd:`module-info`,    |
-|                           | :mfcmd:`module-tag`, :mfcmd:`module-version`,  |
-|                           | :mfcmd:`module-virtual`,                       |
-|                           | :mfcmd:`modulepath-label`, :mfcmd:`system`,    |
-|                           | :mfcmd:`uname`, :mfcmd:`versioncmp` and        |
-|                           | standard Tcl commands                          |
-+---------------------------+------------------------------------------------+
++---------------------------+-----------------------------------------------------+
+| Commands available from   | Commands available from run-command (rc) file       |
+| modulefile interpretation | interpretation                                      |
++===========================+=====================================================+
+| All the Modules specific  | :mfcmd:`hide-modulefile`, :mfcmd:`hide-version`,    |
+| and standard Tcl commands | :mfcmd:`is-loaded`, :mfcmd:`is-used`,               |
+|                           | :mfcmd:`module-alias`, :mfcmd:`module-forbid`,      |
+|                           | :mfcmd:`module-hide`, :mfcmd:`module-info`,         |
+|                           | :mfcmd:`module-tag`, :mfcmd:`module-version`,       |
+|                           | :mfcmd:`module-virtual`, :mfcmd:`modulepath-label`, |
+|                           | :mfcmd:`system`, :mfcmd:`uname`,                    |
+|                           | :mfcmd:`versioncmp` and standard Tcl commands       |
++---------------------------+-----------------------------------------------------+
 
 .. note:: Global and user run-command files are interpreted like modulefiles
    and benefit from all Modules specific Tcl commands. However it not advised
@@ -1896,10 +1913,10 @@ additional descriptive information about the *modulefile*.
 Compatibility with Lmod Tcl modulefile
 --------------------------------------
 
-The :file:`modulecmd.tcl` program supports Tcl modulefile written for Lmod,
-the alternative :command:`module` implementation developed in Lua. Such
-modulefiles can be evaluated by Modules without raising error. Differences
-between the two implementations are listed below.
+The :file:`modulecmd.tcl` program supports Tcl modulefile or modulerc written
+for Lmod, the alternative :command:`module` implementation developed in Lua.
+Such modulefiles can be evaluated by Modules without raising error.
+Differences between the two implementations are listed below.
 
 The ``add-property``, ``remove-property`` and ``extensions`` modulefile
 commands are evaluated as a *no-operation* command. No error is obtained if

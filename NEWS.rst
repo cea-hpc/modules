@@ -28,6 +28,8 @@ Modules 5.5.0 (not yet released)
   :instopt:`--enable-versioning` installation option is set. Use ``--not-req``
   option on :mfcmd:`module unload<module>` commands to avoid declaring a
   conflict toward these modules to unload. (fix issue #531)
+* Add :mfcmd:`hide-modulefile` and :mfcmd:`hide-version` modulerc commands to
+  support modulerc files written for Lmod.
 
 .. warning:: Existing *versions* modulefiles installed for Modules 4.7 and
    upward should be fixed by adding the ``--not-req`` option to the

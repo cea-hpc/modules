@@ -22,6 +22,8 @@ Lmod Tcl modulefile compatibility
   - ``pushenv``
   - ``require-fullname``
   - ``family``
+  - ``hide-version``
+  - ``hide-modulefile``
 
 
 ``add-property``/``remove-property``
@@ -348,5 +350,21 @@ Lmod Tcl modulefile compatibility
 
 - This command is intended for use only within modulefile evaluation context
   (not within modulerc)
+
+
+``hide-version``/``hide-modulefile``
+------------------------------------
+
+- Hide given module name and version or modulefile's full path name.
+
+- Accept one argument, a string that designates:
+
+  - a module name and version for :mfcmd:`hide-version`
+  - the full path name of a modulefile for :mfcmd:`hide-modulefile`
+
+- These two commands are implemented by simply calling :mfcmd:`module-hide`
+
+- These commands are intended for use only within modulerc evaluation context
+  (not within modulefile)
 
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
