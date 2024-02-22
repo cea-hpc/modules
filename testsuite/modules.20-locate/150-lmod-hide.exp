@@ -1,0 +1,167 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.20-locate/%M%
+#   Revision:		%I%
+#   First Edition:	2024/02/22
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:    tag
+#   Sub-Command:    avail
+#
+#   Comment:	%C{
+#           Check hide-modulefile and hide-version modulefile commands
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.4
+set mpre $modpathre.4
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure regular avail search match is set for these tests
+setenv_var MODULES_SEARCH_MATCH starts_with
+
+
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom "    invoked from within
+\"if \{\[info exists env(TESTSUITE_HIDE)\]\} \{
+    switch -- \$env(TESTSUITE_HIDE) \{
+        hide_modulefile_bad1 \{
+            hide-modulefile
+        \}
+   ...\""
+} else {
+    set custom {}
+}
+
+
+#
+# hide-modulefile
+#
+
+setenv_var TESTSUITE_HIDE hide_modulefile_bad1
+
+set tserr $mp:\nhide/1
+testouterr_cmd sh {avail -t hide/1} OK $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/hide/1]
+lappend ans [list set LOADEDMODULES hide/1]
+lappend ans [list ERR]
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 5}]
+set tserr [msg_moderr {wrong # args: should be "hide-modulefile modfile"} {hide-modulefile} $mp/hide/.modulerc $line_num {  } {} {} $custom {invoked from within}]
+testouterr_cmd sh {load hide/1} $ans $tserr
+
+
+setenv_var TESTSUITE_HIDE hide_modulefile_bad2
+
+set tserr $mp:\nhide/1
+testouterr_cmd sh {avail -t hide/1} OK $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/hide/1]
+lappend ans [list set LOADEDMODULES hide/1]
+lappend ans [list ERR]
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 8}]
+set tserr [msg_moderr {wrong # args: should be "hide-modulefile modfile"} {hide-modulefile path1 path2} $mp/hide/.modulerc $line_num {  } {} {} $custom {invoked from within}]
+testouterr_cmd sh {load hide/1} $ans $tserr
+
+
+setenv_var TESTSUITE_HIDE hide_modulefile1
+
+set tserr "$mp:\nhide/2"
+testouterr_cmd sh {avail -t hide} OK $tserr
+
+
+setenv_var TESTSUITE_HIDE hide_modulefile2
+
+set tserr "$mp:\nhide/2"
+testouterr_cmd sh {avail -t hide} OK $tserr
+
+
+setenv_var TESTSUITE_HIDE hide_modulefile3
+
+set tserr "$mp:\nhide/2"
+testouterr_cmd sh {avail -t hide} OK {}
+
+
+setenv_var TESTSUITE_HIDE hide_modulefile4
+
+set tserr "$mp:\nhide/1\nhide/2"
+testouterr_cmd sh {avail -t hide} OK $tserr
+
+
+#
+# hide-version
+#
+
+setenv_var TESTSUITE_HIDE hide_version_bad1
+
+set tserr $mp:\nhide/1
+testouterr_cmd sh {avail -t hide/1} OK $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/hide/1]
+lappend ans [list set LOADEDMODULES hide/1]
+lappend ans [list ERR]
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 23}]
+set tserr [msg_moderr {wrong # args: should be "hide-version modfile"} {hide-version} $mp/hide/.modulerc $line_num {  } {} {} $custom {invoked from within}]
+testouterr_cmd sh {load hide/1} $ans $tserr
+
+
+setenv_var TESTSUITE_HIDE hide_version_bad2
+
+set tserr $mp:\nhide/1
+testouterr_cmd sh {avail -t hide/1} OK $tserr
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/hide/1]
+lappend ans [list set LOADEDMODULES hide/1]
+lappend ans [list ERR]
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 26}]
+set tserr [msg_moderr {wrong # args: should be "hide-version modfile"} {hide-version path1 path2} $mp/hide/.modulerc $line_num {  } {} {} $custom {invoked from within}]
+testouterr_cmd sh {load hide/1} $ans $tserr
+
+
+setenv_var TESTSUITE_HIDE hide_version1
+
+set tserr "$mp:\nhide/2"
+testouterr_cmd sh {avail -t hide} OK $tserr
+
+
+setenv_var TESTSUITE_HIDE hide_version2
+
+set tserr "$mp:\nhide/2"
+testouterr_cmd sh {avail -t hide} OK $tserr
+
+
+setenv_var TESTSUITE_HIDE hide_version3
+
+set tserr "$mp:\nhide/2"
+testouterr_cmd sh {avail -t hide} OK {}
+
+
+setenv_var TESTSUITE_HIDE hide_version4
+
+set tserr "$mp:\nhide/1\nhide/2"
+testouterr_cmd sh {avail -t hide} OK $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
