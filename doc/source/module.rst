@@ -83,6 +83,15 @@ if enabled (see :envvar:`MODULES_ML` section). :command:`ml` is a handy
 frontend leveraging all :command:`module` command capabilities with less
 character typed. See :ref:`ml(1)` for detailed information.
 
+A :command:`mogui` alias or function may also be defined at initialization
+time if :command:`mogui-cmd` command is found in :envvar:`PATH`.
+:command:`mogui` is the Graphical User Interface for Modules. Environment
+changes performed in the GUI is applied onto the shell session that executed
+:command:`mogui`.
+
+.. versionchanged:: 5.5
+   Definition of :command:`mogui` alias or function added
+
 
 Examples of initialization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^

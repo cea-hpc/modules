@@ -929,6 +929,11 @@ The following module sub-commands appeared on Modules 5.
  Starting Modules 5.4, support for :option:`--force` option is added on this
  sub-command.
 
+:subcmd:`autoinit`
+
+ Starting Modules 5.5, definition of :command:`mogui` shell alias or function
+ is added on this sub-command.
+
 Environment
 """""""""""
 

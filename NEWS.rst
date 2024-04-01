@@ -30,6 +30,8 @@ Modules 5.5.0 (not yet released)
   conflict toward these modules to unload. (fix issue #531)
 * Add :mfcmd:`hide-modulefile` and :mfcmd:`hide-version` modulerc commands to
   support modulerc files written for Lmod.
+* Update :subcmd:`autoinit` sub-command to define :command:`mogui` shell
+  function or alias if `mogui-cmd` command is found in :envvar:`PATH`.
 
 .. warning:: Existing *versions* modulefiles installed for Modules 4.7 and
    upward should be fixed by adding the ``--not-req`` option to the
