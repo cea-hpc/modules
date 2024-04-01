@@ -729,7 +729,9 @@ proc renderAutoinit {} {
    # ensure script path is absolute
    set ::argv0 [getAbsolutePath $::argv0]
 
-   ##nagelfar ignore #462 Close brace not aligned with line
+   set is_mogui_avail [string length [getCommandPath mogui-cmd]]
+
+   ##nagelfar ignore #482 Close brace not aligned with line
    switch -- [getState shelltype] {
       csh {
          set pre_hi {set _histchars = $histchars; unset histchars;}
@@ -753,6 +755,10 @@ if ( ! \$?histchars && ! \$?prompt ) alias module '$eval_cmd' ;"
          if {[getConf ml]} {
             append fdef {
 alias ml 'module ml \!*' ;}
+         }
+         if {$is_mogui_avail} {
+            append fdef "\nalias mogui 'eval \"`mogui-cmd [getState shell]\
+               \\!*:q`\"' ;"
          }
       }
       sh {
@@ -872,6 +878,14 @@ ml() { module ml "$@"; };}
 export -f ml;}
             }
          }
+         if {$is_mogui_avail} {
+            append fdef "\nmogui() { eval \"\$(mogui-cmd [getState shell]\
+               \"\$@\")\"; };"
+            if {[getState shell] eq {bash}} {
+               append fdef {
+export -f mogui;}
+            }
+         }
       }
       fish {
          set fdef "function _module_raw\n"
@@ -918,6 +932,12 @@ end"
             append fdef {
 function ml
    module ml $argv
+end}
+         }
+         if {$is_mogui_avail} {
+            append fdef {
+function mogui
+   eval mogui-cmd fish (string escape -- $argv) | source -
 end}
          }
       }
