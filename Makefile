@@ -2,8 +2,9 @@
 	install-testsiteconfig-1 install-testmodulerc install-testinitrc-1 \
 	install-testinitrc install-testetcrc install-testmodspath \
 	install-testmodspath-empty install-testmodspath-wild \
-	uninstall-testconfig uninstall dist dist-tar dist-gzip dist-bzip2 \
-	dist-win srpm rpm clean distclean test-deps test testinstall testlint
+	install-testmoguicmd uninstall-testconfig uninstall dist dist-tar \
+	dist-gzip dist-bzip2 dist-win srpm rpm clean distclean test-deps test \
+	testinstall testlint
 
 # commands to install files
 INSTALL = install
@@ -643,11 +644,16 @@ install-testmodspath-wild: testsuite/example/modulespath-wild
 	$(MAKE) -C init install-testconfig DESTDIR='$(DESTDIR)'
 	$(INSTALL_DATA) $^ '$(DESTDIR)$(modulespath)'
 
+install-testmoguicmd:
+	$(INSTALL_DIR) '$(HOME)/.local/bin'
+	$(INSTALL_PROGRAM) script/envml '$(HOME)/.local/bin/mogui-cmd'
+
 uninstall-testconfig:
 	rm -f '$(DESTDIR)$(etcdir)/rc'
 	rm -f '$(DESTDIR)$(etcdir)/siteconfig.tcl'
 	rm -f '$(DESTDIR)$(initrc)'
 	rm -f '$(DESTDIR)$(modulespath)'
+	rm -f '$(HOME)/.local/bin/mogui-cmd'
 	$(MAKE) -C init uninstall-testconfig DESTDIR='$(DESTDIR)'
 
 # define space character as a variable to reference it in functions
