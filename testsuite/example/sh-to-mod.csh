@@ -97,6 +97,7 @@ if ( $?TESTSUITE_SHTOMOD_MODULE ) then
    module load setenv/1.0
    unalias ml
    unalias module
+   unalias mogui
    unsetenv MODULESHOME
 endif
 

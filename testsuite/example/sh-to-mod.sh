@@ -110,7 +110,7 @@ if [ "${TESTSUITE_SHTOMOD_MODULE:+x}" = 'x' ]; then
    eval $($TCLSH $MODULES_CMD sh autoinit)
    module config collection_target bar
    module load setenv/1.0
-   unset -f ml module _module_raw
+   unset -f ml module _module_raw mogui
    unset MODULESHOME
 fi
 

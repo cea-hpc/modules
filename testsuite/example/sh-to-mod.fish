@@ -124,7 +124,7 @@ if set -q TESTSUITE_SHTOMOD_MODULE
    eval $TCLSH $MODULES_CMD fish autoinit | source -
    module config collection_target bar
    module load setenv/1.0
-   functions -e ml module _module_raw
+   functions -e ml module _module_raw mogui
    set -e MODULESHOME
 end
 
