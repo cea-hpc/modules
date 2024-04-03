@@ -32,6 +32,11 @@ Modules 5.5.0 (not yet released)
   support modulerc files written for Lmod.
 * Update :subcmd:`autoinit` sub-command to define :command:`mogui` shell
   function or alias if `mogui-cmd` command is found in :envvar:`PATH`.
+* Add the :mconfig:`hide_auto_loaded` configuration option to tag
+  automatically loaded modules ``hidden-loaded``. These modules will not
+  appear on :subcmd:`list` sub-command output unless :option:`--all` option is
+  set. Option is disabled by default and when set, it defines the
+  :envvar:`MODULES_HIDE_AUTO_LOADED` environment variable.
 
 .. warning:: Existing *versions* modulefiles installed for Modules 4.7 and
    upward should be fixed by adding the ``--not-req`` option to the
