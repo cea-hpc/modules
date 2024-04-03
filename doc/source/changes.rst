@@ -1128,6 +1128,8 @@ The following Modules configuration option has been introduced on Modules 5.
 | 5.4        | :mconfig:`sticky_purge`, :mconfig:`unique_name_loaded`,         |
 |            | :mconfig:`abort_on_error`, :mconfig:`source_cache`              |
 +------------+-----------------------------------------------------------------+
+| 5.5        | :mconfig:`hide_auto_loaded`                                     |
++------------+-----------------------------------------------------------------+
 
 :mconfig:`avail_output`, :mconfig:`avail_terse_output`
 

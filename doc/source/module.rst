@@ -1006,6 +1006,18 @@ Module Sub-Commands
   :subcmd:`config` sub-command when changing this configuration option from
   its default value. See :envvar:`MODULES_SITECONFIG` description for details.
 
+ .. mconfig:: hide_auto_loaded
+
+  Tag automatically loaded modules ``hidden-loaded``
+
+  Default is ``0``. The :envvar:`MODULES_HIDE_AUTO_LOADED` environment
+  variable is defined by :subcmd:`config` sub-command when changing this
+  configuration option from its default value.
+
+  .. only:: html
+
+     .. versionadded:: 5.5
+
  .. mconfig:: home
 
   Location of Modules package main directory.
