@@ -1260,6 +1260,14 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
             }
          }
 
+         # hide auto loaded modules if hide_auto_loaded config is enabled
+         if {!$uasked && [getConf hide_auto_loaded]} {
+            setModuleTag $modname hidden-loaded
+            if {$modnamevr ne {} && $modname ne $modnamevr} {
+               setModuleTag $modnamevr hidden-loaded
+            }
+         }
+
          if {[execute-modulefile $modfile $modname modnamevr $mod]} {
             break
          }
