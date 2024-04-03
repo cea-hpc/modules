@@ -4401,6 +4401,20 @@ ENVIRONMENT
 
     .. versionadded:: 5.1
 
+.. envvar:: MODULES_HIDE_AUTO_LOADED
+
+ If set to ``1``, tag automatically loaded modules ``hidden-loaded``. These
+ modules will not appear on :subcmd:`list` sub-command unless :option:`--all`
+ option is set.
+
+ This environment variable value supersedes the default value set in the
+ :mconfig:`hide_auto_loaded` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 5.5
+
 .. envvar:: MODULES_ICASE
 
  When module specification are passed as argument to module sub-commands or

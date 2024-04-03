@@ -971,6 +971,8 @@ The following environment variables appeared on Modules 5.
 |            | :envvar:`__MODULES_LMSTICKYRULE`,                               |
 |            | :envvar:`MODULES_SOURCE_CACHE`                                  |
 +------------+-----------------------------------------------------------------+
+| 5.5        | :envvar:`MODULES_HIDE_AUTO_LOADED`                              |
++------------+-----------------------------------------------------------------+
 
 Modules Specific Tcl Commands
 """""""""""""""""""""""""""""
