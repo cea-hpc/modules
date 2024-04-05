@@ -1,0 +1,95 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2024/04/04
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:    bar, auto-load
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test hide_auto_loaded option
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.4
+setenv_path_var MODULEPATH $mp
+
+
+set ans_no_hide [list]
+lappend ans_no_hide [list set __MODULES_LMPREREQ auto-load/1&bar/1]
+lappend ans_no_hide [list set _LMFILES_ $mp/bar/1:$mp/auto-load/1]
+lappend ans_no_hide [list set LOADEDMODULES bar/1:auto-load/1]
+lappend ans_no_hide [list set __MODULES_LMTAG bar/1&auto-loaded]
+
+set ans_hide [list]
+lappend ans_hide [list set __MODULES_LMPREREQ auto-load/1&bar/1]
+lappend ans_hide [list set _LMFILES_ $mp/bar/1:$mp/auto-load/1]
+lappend ans_hide [list set LOADEDMODULES bar/1:auto-load/1]
+lappend ans_hide [list set __MODULES_LMTAG bar/1&hidden-loaded&auto-loaded]
+
+set tserr_no_hide [msg_top_load auto-load/1 {} bar/1 {}]
+
+set ans_no_hide_vr [list]
+lappend ans_no_hide_vr [list set __MODULES_LMVARIANT bar/1&bar|1|0|0]
+lappend ans_no_hide_vr [list set __MODULES_LMPREREQ auto-load/1&bar/1\ bar=1]
+lappend ans_no_hide_vr [list set _LMFILES_ $mp/bar/1:$mp/auto-load/1]
+lappend ans_no_hide_vr [list set LOADEDMODULES bar/1:auto-load/1]
+lappend ans_no_hide_vr [list set __MODULES_LMTAG bar/1&auto-loaded]
+
+set ans_hide_vr [list]
+lappend ans_hide_vr [list set __MODULES_LMVARIANT bar/1&bar|1|0|0]
+lappend ans_hide_vr [list set __MODULES_LMPREREQ auto-load/1&bar/1\ bar=1]
+lappend ans_hide_vr [list set _LMFILES_ $mp/bar/1:$mp/auto-load/1]
+lappend ans_hide_vr [list set LOADEDMODULES bar/1:auto-load/1]
+lappend ans_hide_vr [list set __MODULES_LMTAG bar/1&hidden-loaded&auto-loaded]
+
+set tserr_no_hide_vr [msg_top_load auto-load/1 {} bar/1{bar=1} {}]
+
+
+setenv_var TESTSUITE_HIDE_AUTO_LOADED load1
+
+setenv_var MODULES_HIDE_AUTO_LOADED 0
+testouterr_cmd bash {load auto-load/1} $ans_no_hide $tserr_no_hide
+setenv_var MODULES_HIDE_AUTO_LOADED 1
+testouterr_cmd bash {load auto-load/1} $ans_hide {}
+
+
+setenv_var TESTSUITE_HIDE_AUTO_LOADED prereq1
+
+setenv_var MODULES_HIDE_AUTO_LOADED 0
+testouterr_cmd bash {load --auto auto-load/1} $ans_no_hide $tserr_no_hide
+setenv_var MODULES_HIDE_AUTO_LOADED 1
+testouterr_cmd bash {load --auto auto-load/1} $ans_hide {}
+
+
+setenv_var TESTSUITE_HIDE_AUTO_LOADED switch1
+
+setenv_var MODULES_HIDE_AUTO_LOADED 0
+testouterr_cmd bash {load auto-load/1} $ans_no_hide $tserr_no_hide
+setenv_var MODULES_HIDE_AUTO_LOADED 1
+testouterr_cmd bash {load auto-load/1} $ans_hide {}
+
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_var TESTSUITE_HIDE_AUTO_LOADED load_vr1
+
+setenv_var MODULES_HIDE_AUTO_LOADED 0
+testouterr_cmd bash {load auto-load/1} $ans_no_hide_vr $tserr_no_hide_vr
+setenv_var MODULES_HIDE_AUTO_LOADED 1
+testouterr_cmd bash {load auto-load/1} $ans_hide_vr {}
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
