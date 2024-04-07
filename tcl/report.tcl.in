@@ -911,7 +911,7 @@ proc getErrConflictMsg {conlist} {
       $conlist]"
 }
 
-proc getErrPrereqMsg {prelist {load 1}} {
+proc getErrPrereqMsg {prelist {load 1} {is_path_specific 0}} {
    if {$load} {
       foreach pre $prelist {
          lappend predesiglist [getModuleDesignation spec $pre]
@@ -922,21 +922,34 @@ proc getErrPrereqMsg {prelist {load 1}} {
       ##nagelfar ignore Found constant
       lassign [list un a [getHintUnFirstMsg $prelist]] un mis hintmsg
    }
-   return "Module cannot be ${un}loaded due to $mis prereq.\n$hintmsg"
+   set path_specific_msg [expr {$is_path_specific ? [getSpecificPathMsg] :\
+      {}}]
+   return "Module cannot be ${un}loaded due to $mis\
+      prereq$path_specific_msg.\n$hintmsg"
 }
 
-proc getErrReqLoMsg {prelist} {
+proc getErrReqLoMsg {prelist {is_path_specific 0}} {
    foreach pre $prelist {
       lappend predesiglist [getModuleDesignation spec $pre]
    }
-   return "Load of requirement [join $predesiglist { or }] failed"
+   set path_specific_msg [expr {$is_path_specific ? [getSpecificPathMsg] :\
+      {}}]
+   return "Load of requirement [join $predesiglist { or }]$path_specific_msg\
+      failed"
 }
 
-proc getReqNotLoadedMsg {prelist} {
+proc getReqNotLoadedMsg {prelist {is_path_specific 0}} {
    foreach pre $prelist {
       lappend predesiglist [getModuleDesignation spec $pre]
    }
-   return "Requirement [join $predesiglist { or }] is not loaded"
+   set path_specific_msg [expr {$is_path_specific ? [getSpecificPathMsg] :\
+      {}}]
+   return "Requirement [join $predesiglist { or }]$path_specific_msg is not\
+      loaded"
+}
+
+proc getSpecificPathMsg {} {
+   return { (specific path)}
 }
 
 proc getDepLoadedMsg {prelist} {
@@ -2057,14 +2070,16 @@ Options:
 
 # create appropriate message and kind of report when a requirement is not
 # satisfied
-proc reportMissingPrereqError {curmodnamevr args} {
+proc reportMissingPrereqError {curmodnamevr modulepath_list args} {
+   set is_path_specific [llength $modulepath_list]
    if {[isModuleEvaluated reqlo $curmodnamevr {*}$args]} {
-      set msg [getErrReqLoMsg $args]
+      set msg [getErrReqLoMsg $args $is_path_specific]
    } else {
       set retiseval [isModuleEvaluated any $curmodnamevr {*}$args]
       # more appropriate msg if an evaluation was attempted or is by-passed
       set msg [expr {$retiseval || [getState force] ? [getReqNotLoadedMsg\
-         $args] : [getErrPrereqMsg $args]}]
+         $args $is_path_specific] : [getErrPrereqMsg $args 1\
+         $is_path_specific]}]
    }
 
    knerrorOrWarningIfForced $msg MODULES_ERR_GLOBAL

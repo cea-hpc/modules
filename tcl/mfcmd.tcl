@@ -1177,7 +1177,7 @@ proc prereqAnyModfileCmd {tryload auto args} {
    if {!$prereqloaded} {
       if {!$optional} {
          # error if requirement is not satisfied unless if optional
-         reportMissingPrereqError $curmodnamevr {*}$args
+         reportMissingPrereqError $curmodnamevr $modulepath_list {*}$args
       }
    } elseif {!$auto} {
       # apply missing tag to all loaded module found (already done when
