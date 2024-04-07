@@ -1158,9 +1158,22 @@ proc prereqAnyModfileCmd {tryload auto args} {
    }
 
    if {$auto} {
+      # convert modulepath list to keep entries not matching any enabled
+      # modulepaths and transform entries into all matching enabled modulepath
+      set converted_list {}
+      foreach modulepath $modulepath_list {
+         set matching_list [getMatchingModulepathList $modulepath]
+         if {[llength $matching_list]} {
+            appendNoDupToList converted_list {*}$matching_list
+         } else {
+            appendNoDupToList converted_list $modulepath
+         }
+      }
+      set modulepath_list $converted_list
+
       # try to load prereq as dependency resolving is enabled
       lassign [loadRequirementModuleList $tryload $optional $tag_list\
-         {*}$args] retlo prereqloaded
+         $modulepath_list {*}$args] retlo prereqloaded
    } else {
       set loadedmod_list {}
       foreach mod $args {

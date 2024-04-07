@@ -652,7 +652,8 @@ proc flushEnvSettings {} {
 }
 
 # load modules passed as args designated as requirement
-proc loadRequirementModuleList {tryload optional tag_list args} {
+proc loadRequirementModuleList {tryload optional tag_list modulepath_list\
+   args} {
    set ret 0
    set prereqloaded 0
 
@@ -660,8 +661,9 @@ proc loadRequirementModuleList {tryload optional tag_list args} {
    set loadedmod_list {}
    foreach mod $args {
       # get all loaded or loading mod in args list
-      if {[set loadedmod [getLoadedMatchingName $mod returnfirst]] ne {} ||\
-         [set loadedmod [getLoadedMatchingName $mod returnfirst 1]] ne {}} {
+      if {[set loadedmod [getLoadedMatchingName $mod returnfirst 0 {}\
+         $modulepath_list]] ne {} || [set loadedmod [getLoadedMatchingName\
+         $mod returnfirst 1 {} $modulepath_list]] ne {}} {
          lappend loadedmod_list $loadedmod
       }
    }
@@ -681,7 +683,7 @@ proc loadRequirementModuleList {tryload optional tag_list args} {
          set curholdid load-$i-$arg
          lappendState reportholdid $curholdid
          if {[catch {set retlo [cmdModuleLoad reqlo 0 $tryload 0 $tag_list\
-            $arg]} errorMsg]} {
+            $modulepath_list $arg]} errorMsg]} {
             # if an error is raised, release output and rethrow the error
             # (could be raised if no modulepath defined for instance)
             lpopState reportholdid
@@ -697,7 +699,8 @@ proc loadRequirementModuleList {tryload optional tag_list args} {
          lpopState reportholdid
          lpopState reportholdrecid
 
-         if {[is-loaded $arg]} {
+         if {[string length [getLoadedMatchingName $arg returnfirst 0 {}\
+            $modulepath_list]]} {
             set prereqloaded 1
             # set previous reports to be dropped as this one succeed
             if {[info exists holdidlist]} {
@@ -773,7 +776,7 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist extrataglist\
       # if an auto set default was excluded, module spec need parsing
       lassign [parseModuleSpecification 0 0 0 0 $mod {*}$vr($mod)] modnamevr
       # reload module with user asked property and extra tags preserved
-      if {[cmdModuleLoad $context $isuasked($mod) 0 0 $extratag($mod)\
+      if {[cmdModuleLoad $context $isuasked($mod) 0 0 $extratag($mod) {}\
          $modnamevr]} {
          set errMsg [string map [list _MOD_ [getModuleDesignation spec\
             $modnamevr]] $errmsgtpl]

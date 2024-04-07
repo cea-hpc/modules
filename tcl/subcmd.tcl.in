@@ -565,7 +565,7 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
          set undepreextratag $depreextratag
       }
       ##nagelfar implicitvarcmd {cmdModuleLoad swload *} newhidden newmsgrecid
-      set ret_load [cmdModuleLoad swload $uasked 0 0 $tag_list $new]
+      set ret_load [cmdModuleLoad swload $uasked 0 0 $tag_list {} $new]
 
       # rollback settings if load evaluation went wrong and abort behavior is
       # enabled for this switch phase
@@ -781,7 +781,7 @@ proc cmdModuleRestore {args} {
    # load modules one by one with user asked state preserved
    foreach mod $mod_to_load {
       cmdModuleLoad load [expr {$mod ni $coll_nuasked_list}] 0 0\
-         $coll_tag_arr($mod) $mod
+         $coll_tag_arr($mod) {} $mod
    }
 
    popMsgRecordId 0
@@ -1032,7 +1032,7 @@ proc cmdModuleIntLoad {topcall command mode tag_list args} {
       # is eval a regular attempt or a try (silence not found error)
       set tryload [expr {$command in {try-load load-any}}]
       set loadany [expr {$command eq {load-any}}]
-      set ret [cmdModuleLoad load 1 $tryload $loadany $tag_list {*}$args]
+      set ret [cmdModuleLoad load 1 $tryload $loadany $tag_list {} {*}$args]
    } elseif {$mode eq {load}} {
       # auto load is inhibited if currently in DepRe context only register
       # requirement
@@ -1041,7 +1041,7 @@ proc cmdModuleIntLoad {topcall command mode tag_list args} {
          # attempt load of not already loaded modules
          if {$subauto} {
             foreach arg $args {
-               lassign [loadRequirementModuleList 1 0 $tag_list $arg] retlo
+               lassign [loadRequirementModuleList 1 0 $tag_list {} $arg] retlo
                # update return value if an issue occurred unless force mode is
                # enabled
                if {$retlo != 0 && ![getState force]} {
@@ -1094,9 +1094,11 @@ proc cmdModuleIntLoad {topcall command mode tag_list args} {
    }
 }
 
-proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
+proc cmdModuleLoad {context uasked tryload loadany tag_list modulepath_list\
+   args} {
    reportDebug "loading $args (context=$context, uasked=$uasked,\
-      tryload=$tryload, loadany=$loadany)"
+      tryload=$tryload, loadany=$loadany, tag_list=$tag_list,\
+      modulepath_list=$modulepath_list)"
 
    set ret 0
    set one_mod_loaded 0
@@ -1123,7 +1125,8 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
       # error if module not found or forbidden
       set notfounderr [expr {!$tryload}]
 
-      lassign [getPathToModule $mod {} $notfounderr] modfile modname modnamevr
+      lassign [getPathToModule $mod $modulepath_list $notfounderr] modfile\
+         modname modnamevr
 
       # record evaluation attempt on specified module name
       registerModuleEvalAttempt $context $mod $modfile
@@ -1186,14 +1189,24 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
       if {[set errCode [catch {
          if {[set isloaded [isModuleLoaded $modname]] || [set isloading\
             [isModuleLoading $modname]]} {
-            reportDebug "$modname ($modfile) already loaded/loading"
+            if {$isloaded} {
+               set loaded_mod_file [getModulefileFromLoadedModule $modname]
+            } else {
+               set loaded_mod_file [getModulefileFromLoadingModule $modname]
+            }
+            # stop if same mod is loaded but from a modulepath not part of
+            # constrained list
+            if {[llength $modulepath_list] && ![isModulefileInModulepathList\
+               $loaded_mod_file $modulepath_list]} {
+               knerror [getModFromDiffPathIsLoadedMsg]
             # stop if same mod is loaded but with a different set of variants
-            if {$modname ne $modnamevr && (($isloaded &&
+            } elseif {$modname ne $modnamevr && (($isloaded &&
                [getLoadedMatchingName $modnamevr] eq {}) || ([info exists\
                isloading] && $isloading && [getLoadedMatchingName $modnamevr\
                {} 1] eq {}))} {
                knerror [getModWithAltVrIsLoadedMsg $modname]
             } else {
+               reportDebug "$modname ($modfile) already loaded/loading"
                # apply missing tag to loaded module
                set rettag [cmdModuleTag 0 $uasked $tag_list $modname]
 
@@ -2937,7 +2950,7 @@ proc cmdModuleModToSh {shell args} {
 
    # modulefile evaluation is done against mod-to-sh target shell which means
    # module-info will return mod-to-sh shell value
-   return [cmdModuleLoad load 1 0 0 {} {*}$args]
+   return [cmdModuleLoad load 1 0 0 {} {} {*}$args]
 
    # after evaluation, renderSettings will produce shell code for mod-to-sh
    # target shell. modtosh_real_shell state helps to know that shell code has
