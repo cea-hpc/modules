@@ -57,6 +57,18 @@ proc getModuleNameFromModulepath {modfile modpath} {
    return [string range $modfile [string length $modpath/] end]
 }
 
+# check if given modulefile is hosted in one the given modulepaths
+proc isModulefileInModulepathList {mod_file modulepath_list} {
+   set ret 0
+   foreach modulepath $modulepath_list {
+      if {[string first $modulepath/ $mod_file] == 0} {
+         set ret 1
+         break
+      }
+   }
+   return $ret
+}
+
 # extract module name from modulefile and currently enabled modulepaths
 proc findModuleNameFromModulefile {modfile} {
    set ret {}
@@ -1280,6 +1292,15 @@ proc isModulefileLoading {modfile} {
    return [expr {$modfile in [getLoadingModuleFileList]}]
 }
 
+proc getModulefileFromLoadingModule {mod} {
+   if {[isModuleLoading $mod]} {
+      set idx [lsearch -exact [getLoadingModuleList] $mod]
+      return [lindex [getLoadingModuleFileList] $idx]
+   } else {
+      return {}
+   }
+}
+
 proc getModuleFromLoadingModulefile {modfile {idx all}} {
    if {[isModulefileLoading $modfile]} {
       set loadingmodlist [getLoadingModuleList]
@@ -1405,7 +1426,8 @@ proc getLoadedWithClosestName {name} {
 # passed as argument. if no loaded module match, an empty string is returned.
 # loading: look at currently loading modules instead of loaded if loading == 1
 # lmlist: only take into account passed loaded module list not all loaded mods
-proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}} {
+proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}\
+   {modulepath_list {}}} {
    set ret {}
    set retmax 0
    # get default behavior from unload_match_order config
@@ -1418,11 +1440,13 @@ proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}} {
       set isModulefileLoaded isModulefileLoading
       set getModuleFromLoadedModulefile getModuleFromLoadingModulefile
       set getLoadedModuleList [list getLoadingModuleList]
+      set getModulefileFromLoadedModule getModulefileFromLoadingModule
    } else {
-      ##nagelfar ignore #3 Found constant
+      ##nagelfar ignore #4 Found constant
       set isModulefileLoaded isModulefileLoaded
       set getModuleFromLoadedModulefile getModuleFromLoadedModulefile
       set getLoadedModuleList [list getEnvLoadedModulePropertyParsedList name]
+      set getModulefileFromLoadedModule getModulefileFromLoadedModule
    }
 
    # fetch currently loaded/loading module name is no list provided
@@ -1465,6 +1489,14 @@ proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}} {
             set matchmod $modname
          } else {
             set matchmod $mod
+         }
+         # test module matches specified modulepaths
+         if {[llength $modulepath_list]} {
+            set matchmod_file [$getModulefileFromLoadedModule $mod]
+            if {![isModulefileInModulepathList $matchmod_file\
+               $modulepath_list]} {
+               continue
+            }
          }
          if {[modEq $name $matchmod eqstart 1 [expr {$loading ? 1 : 2}] 1]} {
             switch -- $behavior {

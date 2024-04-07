@@ -1165,9 +1165,9 @@ proc prereqAnyModfileCmd {tryload auto args} {
       set loadedmod_list {}
       foreach mod $args {
          # get all loaded or loading mod in args list
-         if {[set loadedmod [getLoadedMatchingName $mod returnfirst]] ne {}\
-            || [set loadedmod [getLoadedMatchingName $mod returnfirst 1]] ne\
-            {}} {
+         if {[set loadedmod [getLoadedMatchingName $mod returnfirst 0 {}\
+            $modulepath_list]] ne {} || [set loadedmod [getLoadedMatchingName\
+            $mod returnfirst 1 {} $modulepath_list]] ne {}} {
             lappend loadedmod_list $loadedmod
          }
       }
