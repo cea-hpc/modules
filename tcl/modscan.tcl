@@ -123,8 +123,8 @@ proc family-sc {name} {
 }
 
 proc prereq-sc {args} {
-   lassign [parsePrereqCommandArgs prereq {*}$args] tag_list optional\
-      opt_list args
+   lassign [parsePrereqCommandArgs prereq {*}$args] tag_list modulepath_list\
+      optional opt_list args
 
    foreach modspec [parseModuleSpecification 0 0 0 0 {*}$args] {
       recordScanModuleElt $modspec prereq prereq-any require
@@ -132,8 +132,8 @@ proc prereq-sc {args} {
 }
 
 proc prereq-all-sc {args} {
-   lassign [parsePrereqCommandArgs prereq-all {*}$args] tag_list optional\
-      opt_list args
+   lassign [parsePrereqCommandArgs prereq-all {*}$args] tag_list\
+      modulepath_list optional opt_list args
 
    foreach modspec [parseModuleSpecification 0 0 0 0 {*}$args] {
       recordScanModuleElt $modspec prereq-all depends-on require
@@ -141,8 +141,8 @@ proc prereq-all-sc {args} {
 }
 
 proc always-load-sc {args} {
-   lassign [parsePrereqCommandArgs always-load {*}$args] tag_list optional\
-      opt_list args
+   lassign [parsePrereqCommandArgs always-load {*}$args] tag_list\
+      modulepath_list optional opt_list args
 
    foreach modspec [parseModuleSpecification 0 0 0 0 {*}$args] {
       recordScanModuleElt $modspec always-load require

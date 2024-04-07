@@ -1065,6 +1065,7 @@ proc registerCurrentModuleConflict {args} {
 
 proc parsePrereqCommandArgs {cmd args} {
    set tag_list {}
+   set modulepath_list {}
    set optional 0
    set opt_list {}
    set prereq_list {}
@@ -1076,6 +1077,14 @@ proc parsePrereqCommandArgs {cmd args} {
          set tag_list [split $arg :]
          lappend opt_list $arg
          unset nextargistaglist
+      } elseif {[info exists nextargismodulepathlist]} {
+         set modulepath_list {}
+         # record list of absolute paths
+         foreach modulepath [split $arg :] {
+            lappend modulepath_list [getAbsolutePath $modulepath]
+         }
+         lappend opt_list $arg
+         unset nextargismodulepathlist
       } else {
          switch -glob -- $arg {
             --optional {
@@ -1091,6 +1100,10 @@ proc parsePrereqCommandArgs {cmd args} {
             }
             --tag {
                set nextargistaglist 1
+               lappend opt_list $arg
+            }
+            --modulepath {
+               set nextargismodulepathlist 1
                lappend opt_list $arg
             }
             -* {
@@ -1114,16 +1127,16 @@ proc parsePrereqCommandArgs {cmd args} {
    }
    if {![llength $prereq_list]} {
       knerror "wrong # args: should be \"$cmd ?--optional? ?--tag? ?taglist?\
-         modulefile ?...?\""
+         ?--modulepath? ?modulepathlist? modulefile ?...?\""
    } elseif {[set mispopt [lsearch -inline -glob $prereq_list --*]] ne {}} {
       knerror "Misplaced option '$mispopt'"
    }
-   return [list $tag_list $optional $opt_list $prereq_list]
+   return [list $tag_list $modulepath_list $optional $opt_list $prereq_list]
 }
 
 proc prereqAnyModfileCmd {tryload auto args} {
-   lassign [parsePrereqCommandArgs prereq {*}$args] tag_list optional\
-      opt_list args
+   lassign [parsePrereqCommandArgs prereq {*}$args] tag_list modulepath_list\
+      optional opt_list args
 
    set currentModule [currentState modulename]
    set curmodnamevr [currentState modulenamevr]
@@ -2047,8 +2060,8 @@ proc require-fullname {} {
 }
 
 proc prereqAllModfileCmd {tryload auto args} {
-   lassign [parsePrereqCommandArgs prereq-all {*}$args] tag_list optional\
-      opt_list args
+   lassign [parsePrereqCommandArgs prereq-all {*}$args] tag_list\
+      modulepath_list optional opt_list args
    # call prereq over each arg independently to emulate a prereq-all
    foreach arg $args {
       prereqAnyModfileCmd $tryload $auto {*}$opt_list $arg
@@ -2056,8 +2069,8 @@ proc prereqAllModfileCmd {tryload auto args} {
 }
 
 proc always-load {args} {
-   lassign [parsePrereqCommandArgs always-load {*}$args] tag_list optional\
-      opt_list args
+   lassign [parsePrereqCommandArgs always-load {*}$args] tag_list\
+      modulepath_list optional opt_list args
    # append keep-loaded tag to the list, second tag list in opt_list will take
    # over the initial list defined
    lappend tag_list keep-loaded
