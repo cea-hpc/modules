@@ -979,7 +979,7 @@ proc getConIsLoadedMsg {con_mod_list {is_loading 0}} {
 }
 
 proc getPresentConflictErrorMsg {curmodnamevr con_mod_list is_loading} {
-   if {[isModuleEvaluated any $curmodnamevr {*}$con_mod_list] || [getState\
+   if {[isModuleEvaluated any $curmodnamevr {} {*}$con_mod_list] || [getState\
       force]} {
       set msg [getConIsLoadedMsg $con_mod_list $is_loading]
    } else {
@@ -2072,10 +2072,11 @@ Options:
 # satisfied
 proc reportMissingPrereqError {curmodnamevr modulepath_list args} {
    set is_path_specific [llength $modulepath_list]
-   if {[isModuleEvaluated reqlo $curmodnamevr {*}$args]} {
+   if {[isModuleEvaluated reqlo $curmodnamevr $modulepath_list {*}$args]} {
       set msg [getErrReqLoMsg $args $is_path_specific]
    } else {
-      set retiseval [isModuleEvaluated any $curmodnamevr {*}$args]
+      set retiseval [isModuleEvaluated any $curmodnamevr $modulepath_list\
+         {*}$args]
       # more appropriate msg if an evaluation was attempted or is by-passed
       set msg [expr {$retiseval || [getState force] ? [getReqNotLoadedMsg\
          $args $is_path_specific] : [getErrPrereqMsg $args 1\

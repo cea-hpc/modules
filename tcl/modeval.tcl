@@ -83,11 +83,25 @@ proc unregisterModuleEvalAttempt {context mod mod_file} {
 }
 
 # is at least one module passed as argument evaluated in passed context
-proc isModuleEvaluated {context exclmod args} {
+proc isModuleEvaluated {context exclmod modulepath_list args} {
    set ret 0
    # look at all evaluated mod except excluded one (currently evaluated mod)
    foreach evalmod [lsearch -all -inline -not [array names\
       ::g_moduleEvalAttempt] $exclmod] {
+      # test evaluated module matches specified modulepaths
+      if {[llength $modulepath_list]} {
+         set eval_mod_file_match 0
+         foreach eval_mod_file $::g_moduleFileEvalAttempt($evalmod) {
+            if {[isModulefileInModulepathList $eval_mod_file\
+               $modulepath_list]} {
+               set eval_mod_file_match 1
+               break
+            }
+         }
+         if {!$eval_mod_file_match} {
+            continue
+         }
+      }
       set evalmatch 0
       # test arguments against all names of evaluated module (translate
       # eventual modspec in evalmod into module names, in case module
