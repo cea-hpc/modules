@@ -70,13 +70,16 @@ proc currentModuleEvalContext {} {
 }
 
 # record module evaluation attempt and corresponding context
-proc registerModuleEvalAttempt {context mod} {
+proc registerModuleEvalAttempt {context mod mod_file} {
    appendNoDupToList ::g_moduleEvalAttempt($mod) $context
+   appendNoDupToList ::g_moduleFileEvalAttempt($mod) $mod_file
 }
 
-proc unregisterModuleEvalAttempt {context mod} {
+proc unregisterModuleEvalAttempt {context mod mod_file} {
    set ::g_moduleEvalAttempt($mod) [replaceFromList\
       $::g_moduleEvalAttempt($mod) $context]
+   set ::g_moduleFileEvalAttempt($mod) [replaceFromList\
+      $::g_moduleFileEvalAttempt($mod) $mod_file]
 }
 
 # is at least one module passed as argument evaluated in passed context

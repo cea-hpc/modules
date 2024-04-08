@@ -1123,9 +1123,10 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
       # error if module not found or forbidden
       set notfounderr [expr {!$tryload}]
 
-      # record evaluation attempt on specified module name
-      registerModuleEvalAttempt $context $mod
       lassign [getPathToModule $mod {} $notfounderr] modfile modname modnamevr
+
+      # record evaluation attempt on specified module name
+      registerModuleEvalAttempt $context $mod $modfile
 
       # set a unique id to record messages related to this evaluation.
       set msgrecid load-$modnamevr-[depthState modulename]
@@ -1139,7 +1140,7 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
       if {[isModuleEvalFailed load $modnamevr]} {
          reportDebug "$modnamevr ($modfile) load was already tried and failed"
          # nullify this evaluation attempt to avoid duplicate issue report
-         unregisterModuleEvalAttempt $context $mod
+         unregisterModuleEvalAttempt $context $mod $modfile
          continue
       }
 
@@ -1161,8 +1162,8 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list args} {
       pushMsgRecordId $msgrecid
 
       # record evaluation attempt on actual module name
-      registerModuleEvalAttempt $context $modnamevr
-      registerModuleEvalAttempt $context $modfile
+      registerModuleEvalAttempt $context $modnamevr $modfile
+      registerModuleEvalAttempt $context $modfile $modfile
 
       # check if passed modname correspond to an already loaded modfile
       # and get its loaded name (in case it has been loaded as full path)
@@ -1441,13 +1442,14 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       set hidden 0
       set uasked 1
 
-      # record evaluation attempt on specified module name
-      registerModuleEvalAttempt $context $mod
       # resolve by also looking at matching loaded module and update mod
       # specification to fully match obtained loaded module
       # enable report_issue flag to report empty module name issue
       lassign [getPathToModule $mod {} 1 $match] modfile modname\
          modnamevr errkind
+
+      # record evaluation attempt on specified module name
+      registerModuleEvalAttempt $context $mod $modfile
 
       # set a unique id to record messages related to this evaluation.
       set msgrecid unload-$modnamevr-[depthState modulename]
@@ -1502,7 +1504,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          reportDebug "$modnamevr ($modfile) unload was already tried and\
             failed"
          # nullify this evaluation attempt to avoid duplicate issue report
-         unregisterModuleEvalAttempt $context $mod
+         unregisterModuleEvalAttempt $context $mod $modfile
          continue
       }
 
@@ -1510,8 +1512,8 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       pushMsgRecordId $msgrecid
 
       # record evaluation attempt on actual module name
-      registerModuleEvalAttempt $context $modnamevr
-      registerModuleEvalAttempt $context $modfile
+      registerModuleEvalAttempt $context $modnamevr $modfile
+      registerModuleEvalAttempt $context $modfile $modfile
 
       # record module title (name, variants and tags)
       registerModuleDesignation $msgrecid $modname [getVariantList $modname\
