@@ -1,0 +1,96 @@
+#%Module
+if {[info exists env(TESTSUITE_MODULEPATH_OPT)]} {
+    switch -- $env(TESTSUITE_MODULEPATH_OPT) {
+        err1 {
+            prereq --modulepath
+        }
+        err2 {
+            prereq --modulepath qux
+        }
+        err3 {
+            prereq-all --modulepath qux
+        }
+        err4 {
+            always-load --modulepath qux
+        }
+        empty1 {
+            prereq --modulepath {} qux/1
+        }
+        dir1 {
+            prereq --modulepath /path/to/unk qux/1
+        }
+        dir2 {
+            prereq --modulepath $env(TESTSUITEDIR)/modulefiles.3 qux/1
+        }
+        dir3 {
+            prereq --modulepath $env(TESTSUITEDIR)/modulefiles.2:$env(TESTSUITEDIR)/modulefiles.3 qux/1
+        }
+        dir4 {
+            prereq --modulepath $env(TESTSUITEDIR)/modulefiles.3:$env(TESTSUITEDIR)/modulefiles.4 qux/1
+        }
+        dir5 {
+            prereq --modulepath $env(TESTSUITEDIR)/modulefiles.4 qux/1
+        }
+        dir6 {
+            prereq --modulepath $env(TESTSUITEDIR)/modulefiles qux/1
+        }
+        dir7 {
+            prereq --modulepath $env(TESTSUITEDIR) qux/1
+        }
+        dir8 {
+            prereq --modulepath /modulefiles.4 qux/1
+        }
+        virt1 {
+            prereq --modulepath $env(TESTSUITEDIR)/modulefiles.3 qux@1:2
+        }
+        virt2 {
+            prereq --modulepath $env(TESTSUITEDIR)/modulefiles.4 qux@1:2
+        }
+        pre_reqlo_break1 {
+            catch {module load qux/1}
+            prereq --modulepath $env(TESTSUITEDIR)/modulefiles.3 qux/1
+        }
+        pre_reqlo_break2 {
+            catch {module load qux/1}
+            prereq --modulepath $env(TESTSUITEDIR)/modulefiles.4 qux/1
+        }
+        pre_conun_break1 {
+            catch {module unload qux/1}
+            prereq --modulepath $env(TESTSUITEDIR)/modulefiles.3 qux/1
+        }
+        pre_conun_break2 {
+            catch {module unload qux/1}
+            prereq --modulepath $env(TESTSUITEDIR)/modulefiles.4 qux/1
+        }
+        reqlo_multi1 {
+            prereq --modulepath $env(TESTSUITEDIR)/modulefiles.4:$env(TESTSUITEDIR)/modulefiles.3 unk/1 qux/1
+        }
+        full_path1 {
+            prereq --modulepath $env(TESTSUITEDIR)/modulefiles.3 $env(TESTSUITEDIR)/modulefiles.3/qux/1
+        }
+        full_path2 {
+            prereq --modulepath $env(TESTSUITEDIR)/modulefiles.3 $env(TESTSUITEDIR)/modulefiles.4/qux/1
+        }
+        rel_path1 {
+            prereq --modulepath $env(TESTSUITEDIR)/../testsuite/modulefiles.3 qux/1
+        }
+        rel_path2 {
+            prereq --modulepath .. qux/1
+        }
+        rel_path3 {
+            prereq --modulepath ../ qux/1
+        }
+        rel_path4 {
+            prereq --modulepath ../.:../../modulefiles.3 qux/1
+        }
+        partial_dir1 {
+            prereq --modulepath $env(TESTSUITEDIR)/modulefiles.4/q qux/1
+        }
+        partial_dir2 {
+            prereq --modulepath $env(TESTSUITEDIR)/modulefil qux/1
+        }
+        glob_dir1 {
+            prereq --modulepath $env(TESTSUITEDIR)/modulefiles.* qux/1
+        }
+    }
+}
