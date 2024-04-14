@@ -62,7 +62,7 @@ if {[info exists env(TESTSUITE_MODULEPATH_OPT)]} {
             catch {module unload qux/1}
             prereq --modulepath $env(TESTSUITEDIR)/modulefiles.4 qux/1
         }
-        reqlo_multi1 {
+        reqlo_multi1 - reqlo_multi_break1 {
             prereq --modulepath $env(TESTSUITEDIR)/modulefiles.4:$env(TESTSUITEDIR)/modulefiles.3 unk/1 qux/1
         }
         full_path1 {
@@ -91,6 +91,16 @@ if {[info exists env(TESTSUITE_MODULEPATH_OPT)]} {
         }
         glob_dir1 {
             prereq --modulepath $env(TESTSUITEDIR)/modulefiles.* qux/1
+        }
+        reqlo_break1 - cyclic_reqlo1 - cyclic_reqlo_break1 {
+            prereq --modulepath $env(TESTSUITEDIR)/modulefiles.4:$env(TESTSUITEDIR)/modulefiles.3 qux/1
+        }
+        cyclic_reqlo_break2 {
+            prereq --modulepath $env(TESTSUITEDIR)/modulefiles.4:$env(TESTSUITEDIR)/modulefiles.3 qux/1
+            break
+        }
+        cyclic_reqlo2 {
+            prereq --modulepath $env(TESTSUITEDIR)/modulefiles.3 qux/1
         }
     }
 }

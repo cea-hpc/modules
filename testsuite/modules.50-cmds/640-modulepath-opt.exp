@@ -157,6 +157,26 @@ testouterr_cmd sh {load --no-auto modulepath-opt/1} $ans {}
 
 
 #
+# loading requirement
+#
+
+unsetenv_loaded_module
+setenv_var TESTSUITE_MODULEPATH_OPT cyclic_reqlo1
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1:qux/1&modulepath-opt/1]
+lappend ans [list set _LMFILES_ $mp/modulepath-opt/1:$mp/qux/1]
+lappend ans [list set LOADEDMODULES modulepath-opt/1:qux/1]
+lappend ans [list set __MODULES_LMTAG modulepath-opt/1&auto-loaded]
+set tserr [msg_top_load qux/1 {} modulepath-opt/1 {}]
+testouterr_cmd sh {load --no-auto qux/1} $ans $tserr
+
+setenv_var TESTSUITE_MODULEPATH_OPT cyclic_reqlo2
+set tserr [msg_load modulepath-opt/1 [err_prereq_path qux/1]]\n\n[msg_load qux/1 [err_reqlo modulepath-opt/1]]
+testouterr_cmd sh {load --no-auto qux/1} ERR $tserr
+
+
+#
 # matching module found in specified path
 #
 
@@ -321,6 +341,124 @@ testouterr_cmd sh {load --no-auto modulepath-opt/1} ERR $tserr
 setenv_var TESTSUITE_MODULEPATH_OPT partial_dir2
 set tserr [msg_load modulepath-opt/1 [err_prereq_path qux/1]]
 testouterr_cmd sh {load --no-auto modulepath-opt/1} ERR $tserr
+
+
+#
+# auto load modulepath-constrained requirement
+#
+
+unsetenv_loaded_module
+
+setenv_var TESTSUITE_MODULEPATH_OPT dir1
+set tserr [msg_load modulepath-opt/1 $err_path'qux/1' [err_prereq_path qux/1]]
+testouterr_cmd sh {load --auto modulepath-opt/1} ERR $tserr
+
+setenv_var TESTSUITE_MODULEPATH_OPT dir2
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1]
+lappend ans [list set _LMFILES_ $modpath.3/qux/1:$mp/modulepath-opt/1]
+lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMTAG qux/1&auto-loaded]
+set tserr [msg_top_load modulepath-opt/1 {} qux/1 {}]
+testouterr_cmd sh {load --auto modulepath-opt/1} $ans $tserr
+
+setenv_path_var MODULEPATH $modpath.3:$mp
+testouterr_cmd sh {load --auto modulepath-opt/1} $ans $tserr
+
+setenv_path_var MODULEPATH $mp:$modpath.3
+testouterr_cmd sh {load --auto modulepath-opt/1} $ans $tserr
+setenv_path_var MODULEPATH $mp
+
+setenv_var TESTSUITE_MODULEPATH_OPT dir4
+testouterr_cmd sh {load --auto modulepath-opt/1} $ans $tserr
+
+setenv_var TESTSUITE_MODULEPATH_OPT dir6
+set tserr [msg_load modulepath-opt/1 $err_path'qux/1' [err_prereq_path qux/1]]
+testouterr_cmd sh {load --auto modulepath-opt/1} ERR $tserr
+
+setenv_var TESTSUITE_MODULEPATH_OPT dir7
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1]
+lappend ans [list set _LMFILES_ $mp/qux/1:$mp/modulepath-opt/1]
+lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMTAG qux/1&auto-loaded]
+set tserr [msg_top_load modulepath-opt/1 {} qux/1 {}]
+testouterr_cmd sh {load --auto modulepath-opt/1} $ans $tserr
+
+setenv_path_var MODULEPATH $modpath.3:$mp
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1]
+lappend ans [list set _LMFILES_ $modpath.3/qux/1:$mp/modulepath-opt/1]
+lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMTAG qux/1&auto-loaded]
+set tserr [msg_top_load modulepath-opt/1 {} qux/1 {}]
+testouterr_cmd sh {load --auto modulepath-opt/1} $ans $tserr
+setenv_path_var MODULEPATH $mp
+
+setenv_var TESTSUITE_MODULEPATH_OPT dir8
+set tserr [msg_load modulepath-opt/1 $err_path'qux/1' [err_prereq_path qux/1]]
+testouterr_cmd sh {load --auto modulepath-opt/1} ERR $tserr
+
+setenv_var TESTSUITE_MODULEPATH_OPT glob_dir1
+set tserr [msg_load modulepath-opt/1 $err_path'qux/1' [err_prereq_path qux/1]]
+testouterr_cmd sh {load --auto modulepath-opt/1} ERR $tserr
+
+setenv_var TESTSUITE_MODULEPATH_OPT reqlo_break1
+set tserr [msg_load qux/1 $err_evalabort]\n\n[msg_load modulepath-opt/1 [err_reqlo_path qux/1]]
+testouterr_cmd sh {load --auto modulepath-opt/1} ERR $tserr
+
+setenv_var TESTSUITE_MODULEPATH_OPT reqlo_multi1
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&unk/1|qux/1]
+lappend ans [list set _LMFILES_ $mp/qux/1:$mp/modulepath-opt/1]
+lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMTAG qux/1&auto-loaded]
+set tserr [msg_top_load modulepath-opt/1 {} qux/1 {}]
+testouterr_cmd sh {load --auto modulepath-opt/1} $ans $tserr
+
+setenv_var TESTSUITE_MODULEPATH_OPT reqlo_multi_break1
+set tserr [msg_load qux/1 $err_evalabort]\n\n[msg_load modulepath-opt/1 $err_path'unk/1' [err_reqlo_path unk/1 qux/1]]
+testouterr_cmd sh {load --auto modulepath-opt/1} ERR $tserr
+
+setenv_var TESTSUITE_MODULEPATH_OPT cyclic_reqlo1
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1:qux/1&modulepath-opt/1]
+lappend ans [list set _LMFILES_ $mp/modulepath-opt/1:$mp/qux/1]
+lappend ans [list set LOADEDMODULES modulepath-opt/1:qux/1]
+lappend ans [list set __MODULES_LMTAG modulepath-opt/1&auto-loaded]
+set tserr [msg_top_load qux/1 {} modulepath-opt/1 {}]
+testouterr_cmd sh {load --auto qux/1} $ans $tserr
+
+setenv_var TESTSUITE_MODULEPATH_OPT cyclic_reqlo_break1
+set tserr [msg_load qux/1 $err_evalabort]
+testouterr_cmd sh {load --auto qux/1} ERR $tserr
+
+setenv_var TESTSUITE_MODULEPATH_OPT cyclic_reqlo_break2
+set tserr [msg_load modulepath-opt/1 $err_evalabort]\n\n[msg_load qux/1 [err_reqlo modulepath-opt/1]]
+testouterr_cmd sh {load --auto qux/1} ERR $tserr
+
+
+#
+# auto load and already loaded/loading module
+#
+
+setenv_loaded_module [list qux/1] [list $mp/qux/1]
+
+setenv_var TESTSUITE_MODULEPATH_OPT dir5
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1]
+lappend ans [list set _LMFILES_ $mp/qux/1:$mp/modulepath-opt/1]
+lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+testouterr_cmd sh {load --auto modulepath-opt/1} $ans {}
+
+setenv_var TESTSUITE_MODULEPATH_OPT dir3
+set tserr [msg_load qux/1 $err_modfromdiffpathloaded]\n\n[msg_load modulepath-opt/1 [err_reqlo_path qux/1]]
+testouterr_cmd sh {load --auto modulepath-opt/1} ERR $tserr
+
+unsetenv_loaded_module
+setenv_var TESTSUITE_MODULEPATH_OPT cyclic_reqlo2
+set tserr [msg_load qux/1 $err_modfromdiffpathloaded]\n\n[msg_load modulepath-opt/1 [err_reqlo_path qux/1]]\n\n[msg_load qux/1 [err_reqlo modulepath-opt/1]]
+testouterr_cmd sh {load --auto qux/1} ERR $tserr
 
 
 #
