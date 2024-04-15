@@ -66,11 +66,17 @@ the Module commands return the empty string. Some commands behave differently
 when a *modulefile* is loaded or unloaded. The command descriptions assume
 the *modulefile* is being loaded.
 
-.. mfcmd:: always-load [--optional] [--tag taglist] modulefile...
+.. mfcmd:: always-load [options] modulefile...
 
  Load *modulefile* and apply the ``keep-loaded`` tag to it in order to avoid
  the automatic unload of this *modulefile* when modules dependent of it are
  unloaded.
+
+ :mfcmd:`always-load` command accepts the following options:
+
+ * ``--modulepath modulepathlist``
+ * ``--optional``
+ * ``--tag taglist``
 
  *modulefile* is declared as a requirement of currently loading module. This
  command acts as an alias of :mfcmd:`module load<module>` command. If more
@@ -88,12 +94,31 @@ the *modulefile* is being loaded.
  modulefile commands. If module is already loaded, tags from *taglist* are
  added to the list of tags already applied to this module.
 
+ The ``--modulepath`` option accepts a list of modulepath. *modulepathlist*
+ corresponds to the concatenation of multiple modulepaths separated by colon
+ character. When this option is set, required *modulefile* should be located
+ within one of the listed modulepaths. A path in this list may correspond to
+ the first path elements of an actual modulepath (e.g., ``/path/to`` will
+ match modulefiles located into the ``/path/to/modulefiles`` modulepath
+ directory).
+
+ If an attempt to load *modulefile* is performed and ``--modulepath`` option
+ is set, *modulefile* will be searched in the enabled modulepaths whose start
+ match one of the specified paths and in the specified paths not matching any
+ enabled modulepaths. For instance if this option is set to
+ ``/path/to:/another/path`` and ``/path/to/modulefiles`` is currently the sole
+ enabled modulepath, *modulefile* will be searched into
+ ``/path/to/modulefiles`` and ``/another/path`` directories.
+
  .. only:: html
 
     .. versionadded:: 5.1
 
     .. versionchanged:: 5.2
        Option ``--optional`` added
+
+    .. versionchanged:: 5.5
+       Option ``--modulepath`` added
 
 .. mfcmd:: append-path [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
@@ -192,7 +217,7 @@ the *modulefile* is being loaded.
  the command line. The :mfcmd:`continue` command will only have this effect if
  not used within a Tcl loop though.
 
-.. mfcmd:: depends-on [--optional] [--tag taglist] modulefile...
+.. mfcmd:: depends-on [options] modulefile...
 
  Alias of :mfcmd:`prereq-all` command.
 
@@ -202,6 +227,9 @@ the *modulefile* is being loaded.
 
     .. versionchanged:: 5.2
        Option ``--optional`` added
+
+    .. versionchanged:: 5.5
+       Option ``--modulepath`` added
 
 .. mfcmd:: exit [N]
 
@@ -975,7 +1003,7 @@ the *modulefile* is being loaded.
     .. versionchanged:: 5.4
        *value* equal to *delimiter* character allowed
 
-.. mfcmd:: prereq [--optional] [--tag taglist] modulefile...
+.. mfcmd:: prereq [options] modulefile...
 
  :mfcmd:`prereq` controls whether or not the *modulefile* will be loaded. The
  :mfcmd:`prereq` command lists *modulefiles* which must have been previously
@@ -995,6 +1023,12 @@ the *modulefile* is being loaded.
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+ :mfcmd:`prereq` command accepts the following options:
+
+ * ``--modulepath modulepathlist``
+ * ``--optional``
+ * ``--tag taglist``
+
  When the ``--optional`` option is set, the whole list of specified
  *modulefiles* is declared as an optional requirement list. Evaluation is not
  stopped if no *modulefile* from the list is loaded.
@@ -1010,6 +1044,22 @@ the *modulefile* is being loaded.
  already loaded, tags from *taglist* are added to the list of tags already
  applied to this module.
 
+ The ``--modulepath`` option accepts a list of modulepath. *modulepathlist*
+ corresponds to the concatenation of multiple modulepaths separated by colon
+ character. When this option is set, required *modulefile* should be located
+ within one of the listed modulepaths. A path in this list may correspond to
+ the first path elements of an actual modulepath (e.g., ``/path/to`` will
+ match modulefiles located into the ``/path/to/modulefiles`` modulepath
+ directory).
+
+ If an attempt to load *modulefile* is performed and ``--modulepath`` option
+ is set, *modulefile* will be searched in the enabled modulepaths whose start
+ match one of the specified paths and in the specified paths not matching any
+ enabled modulepaths. For instance if this option is set to
+ ``/path/to:/another/path`` and ``/path/to/modulefiles`` is currently the sole
+ enabled modulepath, *modulefile* will be searched into
+ ``/path/to/modulefiles`` and ``/another/path`` directories.
+
  .. only:: html
 
     .. versionchanged:: 4.2
@@ -1022,12 +1072,21 @@ the *modulefile* is being loaded.
     .. versionchanged:: 5.2
        Option ``--optional`` added
 
-.. mfcmd:: prereq-all [--optional] [--tag taglist] modulefile...
+    .. versionchanged:: 5.5
+       Option ``--modulepath`` added
+
+.. mfcmd:: prereq-all [options] modulefile...
 
  Declare *modulefile* as a requirement of currently loading module. This
  command acts as an alias of :mfcmd:`prereq` command. If more than one
  *modulefile* are specified, then this list acts as a Boolean AND operation,
  which means all specified *modulefiles* are required.
+
+ :mfcmd:`prereq-all` command accepts the following options:
+
+ * ``--modulepath modulepathlist``
+ * ``--optional``
+ * ``--tag taglist``
 
  When the ``--optional`` option is set, each specified *modulefile* is
  declared as an optional requirement. A *modulefile* that cannot be loaded,
@@ -1040,7 +1099,10 @@ the *modulefile* is being loaded.
     .. versionchanged:: 5.2
        Option ``--optional`` added
 
-.. mfcmd:: prereq-any [--optional] [--tag taglist] modulefile...
+    .. versionchanged:: 5.5
+       Option ``--modulepath`` added
+
+.. mfcmd:: prereq-any [options] modulefile...
 
  Alias of :mfcmd:`prereq` command.
 
@@ -1050,6 +1112,9 @@ the *modulefile* is being loaded.
 
     .. versionchanged:: 5.2
        Option ``--optional`` added
+
+    .. versionchanged:: 5.5
+       Option ``--modulepath`` added
 
 .. mfcmd:: pushenv variable value
 

@@ -1017,6 +1017,9 @@ The following modulefile Tcl commands appeared on Modules 5.
  Starting Modules 5.2, these modulefile commands accept the ``--optional``
  option.
 
+ Starting Modules 5.5, these modulefile commands accept the ``--modulepath``
+ option.
+
 :mfcmd:`module try-load/load-any<module>`
 
  Starting Modules 5.1, these modulefile commands accept the ``--not-req``
