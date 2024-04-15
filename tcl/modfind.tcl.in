@@ -1451,13 +1451,11 @@ proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}\
       set isModulefileLoaded isModulefileLoading
       set getModuleFromLoadedModulefile getModuleFromLoadingModulefile
       set getLoadedModuleList [list getLoadingModuleList]
-      set getModulefileFromLoadedModule getModulefileFromLoadingModule
    } else {
       ##nagelfar ignore #4 Found constant
       set isModulefileLoaded isModulefileLoaded
       set getModuleFromLoadedModulefile getModuleFromLoadedModulefile
       set getLoadedModuleList [list getEnvLoadedModulePropertyParsedList name]
-      set getModulefileFromLoadedModule getModulefileFromLoadedModule
    }
 
    # fetch currently loaded/loading module name is no list provided
@@ -1502,12 +1500,8 @@ proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}\
             set matchmod $mod
          }
          # test module matches specified modulepaths
-         if {[llength $modulepath_list]} {
-            set matchmod_file [$getModulefileFromLoadedModule $mod]
-            if {![isModulefileInModulepathList $matchmod_file\
-               $modulepath_list]} {
-               continue
-            }
+         if {![isLoadedMatchSpecificPath $mod $modulepath_list $loading]} {
+            continue
          }
          if {[modEq $name $matchmod eqstart 1 [expr {$loading ? 1 : 2}] 1]} {
             switch -- $behavior {
@@ -1530,6 +1524,22 @@ proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}\
    }
 
    reportDebug "'$ret' matches '$name'"
+   return $ret
+}
+
+# return if loaded (or loading) module is part of modulepath from specified
+# constrained list
+proc isLoadedMatchSpecificPath {mod modulepath_list loading} {
+   if {[llength $modulepath_list]} {
+      if {$loading} {
+         set mod_file [getModulefileFromLoadingModule $mod]
+      } else {
+         set mod_file [getModulefileFromLoadedModule $mod]
+      }
+      set ret [isModulefileInModulepathList $mod_file $modulepath_list]
+   } else {
+      set ret 1
+   }
    return $ret
 }
 

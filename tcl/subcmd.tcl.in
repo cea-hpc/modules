@@ -1189,15 +1189,10 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list modulepath_list\
       if {[set errCode [catch {
          if {[set isloaded [isModuleLoaded $modname]] || [set isloading\
             [isModuleLoading $modname]]} {
-            if {$isloaded} {
-               set loaded_mod_file [getModulefileFromLoadedModule $modname]
-            } else {
-               set loaded_mod_file [getModulefileFromLoadingModule $modname]
-            }
             # stop if same mod is loaded but from a modulepath not part of
             # constrained list
-            if {[llength $modulepath_list] && ![isModulefileInModulepathList\
-               $loaded_mod_file $modulepath_list]} {
+            if {![isLoadedMatchSpecificPath $modname $modulepath_list [expr\
+               {!$isloaded}]]} {
                knerror [getModFromDiffPathIsLoadedMsg]
             # stop if same mod is loaded but with a different set of variants
             } elseif {$modname ne $modnamevr && (($isloaded &&

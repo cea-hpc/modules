@@ -27,6 +27,17 @@ setenv_path_var MODULEPATH $mp
 
 skip_if_quick_mode
 
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom_error_trace "    invoked from within
+\"if \{\[info exists env(TESTSUITE_MODULEPATH_OPT)\]\} \{
+    switch -- \$env(TESTSUITE_MODULEPATH_OPT) \{
+        err1 \{
+            prereq --modulepath
+     ...\""
+} else {
+    set custom_error_trace {}
+}
+
 
 #
 # erroneous option definition
@@ -35,28 +46,28 @@ skip_if_quick_mode
 setenv_var TESTSUITE_MODULEPATH_OPT err1
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 5}]
-set tserr [msg_load modulepath-opt/1 [msg_moderr {wrong # args: should be "prereq ?--optional? ?--tag? ?taglist? ?--modulepath? ?modulepathlist? modulefile ?...?"} {prereq --modulepath} $mp/modulepath-opt/1 $line_num]]
+set tserr [msg_load modulepath-opt/1 [msg_moderr {wrong # args: should be "prereq ?--optional? ?--tag? ?taglist? ?--modulepath? ?modulepathlist? modulefile ?...?"} {prereq --modulepath} $mp/modulepath-opt/1 $line_num {} {} {} $custom_error_trace]]
 testouterr_cmd sh {load modulepath-opt/1} ERR $tserr
 
 
 setenv_var TESTSUITE_MODULEPATH_OPT err2
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 8}]
-set tserr [msg_load modulepath-opt/1 [msg_moderr {wrong # args: should be "prereq ?--optional? ?--tag? ?taglist? ?--modulepath? ?modulepathlist? modulefile ?...?"} {prereq --modulepath qux} $mp/modulepath-opt/1 $line_num]]
+set tserr [msg_load modulepath-opt/1 [msg_moderr {wrong # args: should be "prereq ?--optional? ?--tag? ?taglist? ?--modulepath? ?modulepathlist? modulefile ?...?"} {prereq --modulepath qux} $mp/modulepath-opt/1 $line_num {} {} {} $custom_error_trace]]
 testouterr_cmd sh {load modulepath-opt/1} ERR $tserr
 
 
 setenv_var TESTSUITE_MODULEPATH_OPT err3
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 11}]
-set tserr [msg_load modulepath-opt/1 [msg_moderr {wrong # args: should be "prereq-all ?--optional? ?--tag? ?taglist? ?--modulepath? ?modulepathlist? modulefile ?...?"} {prereq-all --modulepath qux} $mp/modulepath-opt/1 $line_num]]
+set tserr [msg_load modulepath-opt/1 [msg_moderr {wrong # args: should be "prereq-all ?--optional? ?--tag? ?taglist? ?--modulepath? ?modulepathlist? modulefile ?...?"} {prereq-all --modulepath qux} $mp/modulepath-opt/1 $line_num {} {} {} $custom_error_trace]]
 testouterr_cmd sh {load modulepath-opt/1} ERR $tserr
 
 
 setenv_var TESTSUITE_MODULEPATH_OPT err4
 
 set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 14}]
-set tserr [msg_load modulepath-opt/1 [msg_moderr {wrong # args: should be "always-load ?--optional? ?--tag? ?taglist? ?--modulepath? ?modulepathlist? modulefile ?...?"} {always-load --modulepath qux} $mp/modulepath-opt/1 $line_num]]
+set tserr [msg_load modulepath-opt/1 [msg_moderr {wrong # args: should be "always-load ?--optional? ?--tag? ?taglist? ?--modulepath? ?modulepathlist? modulefile ?...?"} {always-load --modulepath qux} $mp/modulepath-opt/1 $line_num {} {} {} $custom_error_trace]]
 testouterr_cmd sh {load modulepath-opt/1} ERR $tserr
 
 
