@@ -37,6 +37,11 @@ Modules 5.5.0 (not yet released)
   appear on :subcmd:`list` sub-command output unless :option:`--all` option is
   set. Option is disabled by default and when set, it defines the
   :envvar:`MODULES_HIDE_AUTO_LOADED` environment variable.
+* Introduce the ``--modulepath`` option to the :mfcmd:`always-load`,
+  :mfcmd:`depends-on`, :mfcmd:`prereq`, :mfcmd:`prereq-all` and
+  :mfcmd:`prereq-any` modulefile commands. When this option is set, required
+  module should be located in a path listed in the specified list or in an
+  enabled modulepath matching one path of the list.
 
 .. warning:: Existing *versions* modulefiles installed for Modules 4.7 and
    upward should be fixed by adding the ``--not-req`` option to the
