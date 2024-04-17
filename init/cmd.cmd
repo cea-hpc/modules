@@ -1,7 +1,7 @@
 @echo off
 
 :: define Modules-specific environment variables
-for %%i in ("%~dp0..") do set "MODULESHOME=%%~dpni"
+for %%i in ("%~dp0..") do set "MODULESHOME=%%~dpnxi"
 set "MODULES_CMD=%MODULESHOME%\libexec\modulecmd.tcl"
 
 :: ensure module.cmd batch file can be found in PATH
