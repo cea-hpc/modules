@@ -117,7 +117,8 @@ proc findCollections {{coll *} {search glob} {swap_by_init 0} {errnomatch 0}\
       set collfile $coll
    # elsewhere collection is a name
    } elseif {[isEnvVarDefined HOME]} {
-      set collfile $::env(HOME)/.module/$coll
+      set coll_dir [file join $::env(HOME) .module]
+      set coll_glob $coll
       # find saved collections (matching target suffix). a target is a domain
       # on which a collection is only valid. when a target is set, only the
       # collections made for that target will be available to list and
@@ -126,10 +127,11 @@ proc findCollections {{coll *} {search glob} {swap_by_init 0} {errnomatch 0}\
       set colltarget [getConf collection_target]
       if {$colltarget ne {} && ([getState hiding_threshold] < 2 ||\
          [currentState commandname] ne {savelist})} {
-         append collfile .$colltarget
+         append coll_glob .$colltarget
          # add knowledge of collection target on description
          append colldesc " (for target \"$colltarget\")"
       }
+      set collfile [file join $coll_dir $coll_glob]
    } else {
       reportErrorAndExit {HOME not defined}
    }
@@ -137,7 +139,8 @@ proc findCollections {{coll *} {search glob} {swap_by_init 0} {errnomatch 0}\
    switch -- $search {
       glob {
          # glob excludes by default files starting with "."
-         if {[catch {set clist [glob -nocomplain $collfile]} errMsg]} {
+         if {[catch {set clist [glob -nocomplain -directory $coll_dir\
+            $coll_glob]} errMsg]} {
             reportErrorAndExit "Cannot access collection directory.\n$errMsg"
          } else {
             set res {}

@@ -1,0 +1,56 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.20-locate/%M%
+#   Revision:		%I%
+#   First Edition:	2024/04/18
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:    foo
+#   Sub-Command:    avail, savelist, saveshow
+#
+#   Comment:	%C{
+#           Check no glob resolution of directory path occur
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+
+#
+# locate modulefiles
+#
+
+set mp "$env(TESTSUITEDIR)/mod*lefiles.4"
+setenv_path_var MODULEPATH $mp
+
+testouterr_cmd sh {avail -t foo/1.0} OK {}
+
+
+#
+# locate collections
+#
+
+setenv_var HOME [file join $ORIG_HOME hom*]
+set collfile [file join $ORIG_HOME hom* default]
+
+set tserr [err_coll_notfound $collfile]
+testouterr_cmd sh "saveshow $collfile" ERR $tserr
+
+set tserr [msg_no_named_coll]
+testouterr_cmd sh {savelist -t default} OK $tserr
+
+setenv_var HOME $ORIG_HOME
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
