@@ -163,6 +163,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@comp_aliases_opts@|$(comp_aliases_opts)|g' \
 	-e 's|@comp_isavail_opts@|$(comp_isavail_opts)|g' \
 	-e 's|@comp_lint_opts@|$(comp_lint_opts)|g' \
+	-e 's|@comp_modtosh_opts@|$(comp_modtosh_opts)|g' \
 	-e 's|@comp_path_opts@|$(comp_path_opts)|g' \
 	-e 's|@comp_rm_path_opts@|$(comp_rm_path_opts)|g' \
 	-e 's|@comp_config_opts@|$(comp_config_opts)|g' \
