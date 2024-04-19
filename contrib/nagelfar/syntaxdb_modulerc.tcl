@@ -1,6 +1,6 @@
 #
 # SYNTAXDB_MODULERC.tcl, Nagelfar syntax database to lint modulercs
-# Copyright (C) 2022-2023 Xavier Delaruelle
+# Copyright (C) 2022-2024 Xavier Delaruelle
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ hide-modulefile
 hide-version
 is-loaded
 is-used
+lsb-release
 module-alias
 module-forbid
 module-hide
@@ -46,6 +47,7 @@ set ::syntax(hide-modulefile) 1
 set ::syntax(hide-version) 1
 set ::syntax(is-loaded) x*
 set ::syntax(is-used) x*
+set ::syntax(lsb-release) s
 set ::syntax(module-alias) 2
 # module-forbid accepts option at any position
 set ::syntax(module-forbid) {p* x p* x* p*}
@@ -88,6 +90,7 @@ set ::return(versioncmp) int
 set {::return(module-info flags)} int
 
 # subCmd
+set ::subCmd(lsb-release) {id release codename}
 set ::subCmd(module-info) {alias command loaded mode name shell shelltype\
    specified symbols tags type usergroups username version user trace\
    tracepat flags}

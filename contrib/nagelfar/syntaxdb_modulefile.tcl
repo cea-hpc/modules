@@ -1,6 +1,6 @@
 #
 # SYNTAXDB_MODULEFILE.tcl, Nagelfar syntax database to lint modulefiles
-# Copyright (C) 2022-2023 Xavier Delaruelle
+# Copyright (C) 2022-2024 Xavier Delaruelle
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@ is-avail
 is-loaded
 is-saved
 is-used
+lsb-release
 module
 module-alias
 module-forbid
@@ -93,6 +94,10 @@ set ::syntax(is-avail) {x x*}
 set ::syntax(is-loaded) x*
 set ::syntax(is-saved) x*
 set ::syntax(is-used) x*
+set ::syntax(lsb-release) s
+set {::syntax(lsb-release id)} 0
+set {::syntax(lsb-release codename)} 0
+set {::syntax(lsb-release release)} 0
 # module accepts option at any position
 set ::syntax(module) {s x*}
 set {::syntax(module add)} {o* x* o*}
@@ -215,6 +220,7 @@ set ::return(versioncmp) int
 set {::return(module-info flags)} int
 
 # subCmd
+set ::subCmd(lsb-release) {id release codename}
 set ::subCmd(module) {add load add-any load-any swap switch try-add try-load\
    remove rm delete unload unuse use aliases available avail show display\
    initadd initload initclear initlist initprepend initunload initrm\
