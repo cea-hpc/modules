@@ -42,6 +42,9 @@ Modules 5.5.0 (not yet released)
   :mfcmd:`prereq-any` modulefile commands. When this option is set, required
   module should be located in a path listed in the specified list or in an
   enabled modulepath matching one path of the list.
+* Add :mfcmd:`lsb-release` modulefile command to get certain Linux Standard
+  Base (LSB) information. It accepts to following sub-commands: ``id``,
+  ``codename`` and ``release``.
 
 .. warning:: Existing *versions* modulefiles installed for Modules 4.7 and
    upward should be fixed by adding the ``--not-req`` option to the

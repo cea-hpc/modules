@@ -384,6 +384,22 @@ the *modulefile* is being loaded.
 
     .. versionadded:: 4.1
 
+.. mfcmd:: lsb-release field
+
+ Provide certain Linux Standard Base (LSB) information. :mfcmd:`lsb-release`
+ will invoke the :manpage:`lsb_release(1)` command to get each *field*
+ information.
+
+ *field* values are:
+
+ * ``id``: string id of distributor
+ * ``release``: release number of distribution
+ * ``codename``: codename according to distribution release
+
+ .. only:: html
+
+    .. versionadded:: 5.5
+
 .. mfcmd:: module [sub-command] [sub-command-options] [sub-command-args]
 
  This command permits a *modulefile* to :subcmd:`load` or :subcmd:`unload`
@@ -1522,12 +1538,13 @@ for each interpretation context.
 +===========================+=====================================================+
 | All the Modules specific  | :mfcmd:`hide-modulefile`, :mfcmd:`hide-version`,    |
 | and standard Tcl commands | :mfcmd:`is-loaded`, :mfcmd:`is-used`,               |
-|                           | :mfcmd:`module-alias`, :mfcmd:`module-forbid`,      |
-|                           | :mfcmd:`module-hide`, :mfcmd:`module-info`,         |
-|                           | :mfcmd:`module-tag`, :mfcmd:`module-version`,       |
-|                           | :mfcmd:`module-virtual`, :mfcmd:`modulepath-label`, |
-|                           | :mfcmd:`system`, :mfcmd:`uname`,                    |
-|                           | :mfcmd:`versioncmp` and standard Tcl commands       |
+|                           | :mfcmd:`lsb-release`, :mfcmd:`module-alias`,        |
+|                           | :mfcmd:`module-forbid`, :mfcmd:`module-hide`,       |
+|                           | :mfcmd:`module-info`, :mfcmd:`module-tag`,          |
+|                           | :mfcmd:`module-version`, :mfcmd:`module-virtual`,   |
+|                           | :mfcmd:`modulepath-label`, :mfcmd:`system`,         |
+|                           | :mfcmd:`uname`, :mfcmd:`versioncmp` and standard    |
+|                           | Tcl commands                                        |
 +---------------------------+-----------------------------------------------------+
 
 .. note:: Global and user run-command files are interpreted like modulefiles

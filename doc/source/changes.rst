@@ -992,7 +992,8 @@ The following modulefile Tcl commands appeared on Modules 5.
 +------------+-----------------------------------------------------------------+
 | 5.4        | :mfcmd:`modulepath-label`                                       |
 +------------+-----------------------------------------------------------------+
-| 5.5        | :mfcmd:`hide-modulefile`, :mfcmd:`hide-version`                 |
+| 5.5        | :mfcmd:`hide-modulefile`, :mfcmd:`hide-version`,                |
+|            | :mfcmd:`lsb-release`                                            |
 +------------+-----------------------------------------------------------------+
 
 :mfcmd:`system`, :mfcmd:`is-used`
