@@ -2260,6 +2260,15 @@ proc sourceModfileCmd {itrp filename} {
    interp eval $itrp info script [currentState modulefile]
 }
 
+proc lsb-release {what} {
+   return [switch -- $what {
+      id {getState lsb_id}
+      release {getState lsb_release}
+      codename {getState lsb_codename}
+      default {knerror "lsb-release $what not supported"}
+   }]
+}
+
 # ;;; Local Variables: ***
 # ;;; mode:tcl ***
 # ;;; End: ***
