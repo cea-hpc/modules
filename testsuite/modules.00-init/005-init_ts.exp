@@ -294,6 +294,22 @@ send_user "\tOS name is '$tcl_platform(os)'\n"
 send_user "\tOS version is '$tcl_platform(osVersion)'\n"
 send_user "\tPlatform name is '$tcl_platform(platform)'\n"
 
+# report LSB information
+set lsb_cmd [auto_execok lsb_release]
+if {![string length $lsb_cmd]} {
+    send_user "\tNo 'lsb_release' command available\n"
+    set lsb_id {}
+    set lsb_codename {}
+    set lsb_release {}
+} else {
+    set lsb_id [exec $lsb_cmd -s -i]
+    set lsb_codename [exec $lsb_cmd -s -c]
+    set lsb_release [exec $lsb_cmd -s -r]
+    send_user "\tLSB id is '$lsb_id'\n"
+    send_user "\tLSB release is '$lsb_release'\n"
+    send_user "\tLSB codename is '$lsb_codename'\n"
+}
+
 # fetch tclsh version used to adapt tests producing different output depending on this version
 default_tclsh
 catch {set tclsh_version [exec $TCLSH << {puts [info tclversion]}]} errMsg
@@ -403,6 +419,7 @@ if {!$is_xrdb_avail} {
     set x11_warn "$x11_warn_prefix\n$error_msgs: $xrdb_issue_msg"
 }
 set domainname_warn "$error_msgs: Command 'domainname' cannot be found"
+set lsb_cmd_err "$error_msgs: Command 'lsb_release' cannot be found"
 
 
 proc err_conflict {args} {

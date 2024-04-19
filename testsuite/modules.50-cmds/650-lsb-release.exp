@@ -1,0 +1,126 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2024/04/19
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, display, avail
+#   Modulefiles:    lsb-release
+#   Sub-Command:
+#
+#   Comment:	%C{
+#         Test lsb-release modulefile command
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom_error_trace "    invoked from within
+\"if \{\[info exists env(TESTSUITE_LSB)\]\} \{
+    switch -- \$env(TESTSUITE_LSB) \{
+        regular \{
+            setenv TS1 \[lsb-release id\]
+            sete...\""
+} else {
+    set custom_error_trace {}
+}
+
+
+setenv_var TESTSUITE_LSB regular
+
+if {$lsb_cmd ne {}} {
+    set ans [list]
+    lappend ans [list set TS1 $lsb_id]
+    lappend ans [list set TS2 $lsb_release]
+    lappend ans [list set _LMFILES_ $mp/lsb-release/1]
+    lappend ans [list set LOADEDMODULES lsb-release/1]
+    lappend ans [list set TS3 $lsb_codename]
+    testouterr_cmd sh {load lsb-release/1} $ans {}
+
+    skip_if_quick_mode
+
+    set tserr "-------------------------------------------------------------------
+$mp/lsb-release/1:
+
+setenv\t\tTS1 $lsb_id
+setenv\t\tTS2 $lsb_release
+setenv\t\tTS3 $lsb_codename
+-------------------------------------------------------------------"
+    testouterr_cmd sh {display lsb-release/1} OK $tserr
+} else {
+    set tserr [msg_load lsb-release/1 $lsb_cmd_err]
+    testouterr_cmd sh {load lsb-release/1} ERR $tserr
+
+    set tserr "-------------------------------------------------------------------
+$mp/lsb-release/1:
+
+$lsb_cmd_err
+-------------------------------------------------------------------"
+    testouterr_cmd sh {display lsb-release/1} ERR $tserr
+}
+
+setenv_var TESTSUITE_LSB unk
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 10}]
+set tserr [msg_load lsb-release/1 [msg_moderr {lsb-release unk not supported} {lsb-release unk} $mp/lsb-release/1 $line_num {} {} {} $custom_error_trace]]
+testouterr_cmd sh {load lsb-release/1} ERR $tserr
+
+
+setenv_var TESTSUITE_LSB empty
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 13}]
+set tserr [msg_load lsb-release/1 [msg_moderr {wrong # args: should be "lsb-release what"} {lsb-release} $mp/lsb-release/1 $line_num {} {} {} $custom_error_trace {invoked from within}]]
+testouterr_cmd sh {load lsb-release/1} ERR $tserr
+
+
+setenv_var TESTSUITE_LSB too_many
+
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 16}]
+set tserr [msg_load lsb-release/1 [msg_moderr {wrong # args: should be "lsb-release what"} {lsb-release id too many} $mp/lsb-release/1 $line_num {} {} {} $custom_error_trace {invoked from within}]]
+testouterr_cmd sh {load lsb-release/1} ERR $tserr
+
+
+setenv_var TESTSUITE_LSB rc
+
+if {$lsb_cmd ne {}} {
+    set tserr "$mp:\nlsb-release/$lsb_id"
+    testouterr_cmd sh "avail -t lsb-release/$lsb_id" OK $tserr
+
+    set tserr "$mp:\nlsb-release/$lsb_release"
+    testouterr_cmd sh "avail -t lsb-release/$lsb_release" OK $tserr
+
+    set tserr "$mp:\nlsb-release/$lsb_codename"
+    testouterr_cmd sh "avail -t lsb-release/$lsb_codename" OK $tserr
+}
+
+
+# set empty PATH not to find lsb_release
+setenv_var PATH {}
+
+setenv_var TESTSUITE_LSB regular
+set tserr [msg_load lsb-release/1 $lsb_cmd_err]
+testouterr_cmd sh {load lsb-release/1} ERR $tserr
+
+if {$lsb_cmd ne {}} {
+    setenv_var TESTSUITE_LSB rc
+    testouterr_cmd sh "avail -t lsb-release/$lsb_id" OK {}
+}
+
+setenv_var PATH $ORIG_PATH
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
