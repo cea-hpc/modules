@@ -1152,6 +1152,20 @@ Module Sub-Commands
   changed at installation time with :instopt:`--with-locked-configs` option.
   The value of this option cannot be altered.
 
+ .. mconfig:: logger
+
+  Command to log messages.
+
+  Default value is ``logger -t modules``. It can be changed at installation
+  time with :instopt:`--with-logger` and :instopt:`--with-logger-opts`
+  options. The :envvar:`MODULES_LOGGER` environment variable is defined by
+  :subcmd:`config` sub-command when changing this configuration option from
+  its default value. See :envvar:`MODULES_LOGGER` description for details.
+
+  .. only:: html
+
+     .. versionadded:: 5.5
+
  .. mconfig:: mcookie_check
 
   Defines if the Modules magic cookie (i.e., ``#%Module`` file signature)
