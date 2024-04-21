@@ -4610,6 +4610,23 @@ ENVIRONMENT
     .. versionchanged:: 5.4
        Elements ``alias`` and ``indesym`` added
 
+.. envvar:: MODULES_LOGGED_EVENTS
+
+ A colon separated list of the events to log. Accepted events that can be set
+ in value list are:
+
+ * ``all_eval``: log every modulefile evaluations
+ * ``req_eval``: log modulefile evaluations directly requested by user
+ * ``req_cmd``: log module commands directly requested by user
+
+ This environment variable value supersedes the default value set in the
+ :mconfig:`logged_events` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 5.5
+
 .. envvar:: MODULES_LOGGER
 
  Command to log informational messages. The value of this variable is composed
