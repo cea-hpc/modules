@@ -1045,6 +1045,21 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
     .. versionadded:: 4.3
 
+.. instopt:: --with-logged-events=EVENTLIST
+
+ Events to log. Accepted event names in EVENTLIST are ``all_eval``,
+ ``req_eval`` and ``req_cmd`` (each event name in this list should be
+ separated by ``:``). The order of the elements in EVENTLIST does not matter.
+ (default=)
+
+ This installation option defines the default value of the
+ :mconfig:`logged_events` configuration option which cannot not be changed
+ after installation.
+
+ .. only:: html
+
+    .. versionadded:: 5.5
+
 .. instopt:: --with-logger=BIN
 
  Name or full path of default logger program to use to log information (can be
@@ -1442,6 +1457,9 @@ installation.
 |                                   |                                              | :option:`--output`                           |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`locked_configs`         | *Empty by default*                           | :instopt:`--with-locked-configs`             |              | X         |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`logged_events`          | *Empty by default*                           | :instopt:`--with-logged-events`,             |              |           |
+|                                   |                                              | :envvar:`MODULES_LOGGED_EVENTS`              |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`logger`                 | ``logger -t modules``                        | :instopt:`--with-logger`,                    |              |           |
 |                                   |                                              | :instopt:`--with-logger-opts`,               |              |           |
