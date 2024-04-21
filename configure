@@ -39,7 +39,8 @@ windowssupport nearlyforbiddendays implicitrequirement tagabbrev \
 tagcolorname mcookieversioncheck availoutput availterseoutput listoutput \
 listterseoutput editor variantshortcut bashcompletiondir fishcompletiondir \
 zshcompletiondir tcllinter tcllinteropts nagelfardatadir nagelfaraddons \
-stickypurge uniquenameloaded abortonerror sourcecache logger loggeropts"
+stickypurge uniquenameloaded abortonerror sourcecache logger loggeropts \
+loggedevents"
 libarglist=()
 
 # flags to know if argument has been specified on command-line
@@ -88,6 +89,7 @@ SED_ERE='sed -E'
 VERSION=
 RELEASE=
 initconfin=etcdir
+loggedevents=
 logger='logger'
 loggeropts='-t modules'
 pager=less
@@ -325,6 +327,10 @@ Optional Packages:
   --with-logger-opts=OPTLIST
                           settings to apply to default logger program
                           [$loggeropts]
+  --with-logged-events=EVENTLIST
+                          events to log. accepted event names in EVENTLIST are
+                          \`all_eval', \`req_eval' and \`req_cmd' (each event
+                          name in EVENTLIST should be separated by \`:') [$loggedevents]
   --with-pager=BIN        name or full path of default pager program to use to
                           paginate informational message output (can be super-
                           seeded at run-time by environment variable) [$pager]
@@ -717,6 +723,18 @@ for arg in "$@"; do
    --with-logger-opts=*|--without-logger-opts)
       loggeropts=$(get_package_value "$arg")
       defloggeropts=0 ;;
+   --with-logged-events*|--without-logged-events)
+      loggedevents=$(get_package_value "$arg") ;
+      allowedval=" all_eval req_eval req_cmd " ;
+      ORIG_IFS=$IFS ;
+      IFS=: ;
+      for val in $loggedevents; do
+         if [ "${allowedval// $val /}" = "$allowedval" ]; then
+            echo_error "Bad value '$val' set in option \`--with-logged-events'"\
+               "Values allowed in list are:$allowedval"
+         fi ;
+      done ;
+      IFS=$ORIG_IFS ;;
    --with-pager=*|--without-pager)
       pager=$(get_package_value "$arg") ;;
    --with-pager-opts=*|--without-pager-opts)

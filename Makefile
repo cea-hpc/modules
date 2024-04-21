@@ -402,6 +402,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@TCLSHDIR@/tclsh|$(TCLSH)|g' \
 	-e 's|@TCLSH@|$(TCLSH)|g' \
 	-e 's|@PYTHON@|$(PYTHON)|g' \
+	-e 's|@loggedevents@|$(loggedevents)|g' \
 	-e 's|@loggercmd@|$(loggercmd)|g' \
 	-e 's|@pagercmd@|$(pagercmd)|g' \
 	-e 's|@verbosity@|$(verbosity)|g' \
