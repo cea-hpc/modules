@@ -4610,6 +4610,22 @@ ENVIRONMENT
     .. versionchanged:: 5.4
        Elements ``alias`` and ``indesym`` added
 
+.. envvar:: MODULES_LOGGER
+
+ Command to log informational messages. The value of this variable is composed
+ of a logger command name or path eventually followed by command-line options.
+
+ This environment variable value supersedes the default value set in the
+ :mconfig:`logger` configuration option. It can be defined with the
+ :subcmd:`config` sub-command.
+
+ If :envvar:`MODULES_LOGGER` variable is set to an empty string, logger
+ will not be launched.
+
+ .. only:: html
+
+    .. versionadded:: 5.5
+
 .. envvar:: MODULES_MCOOKIE_CHECK
 
  If set to ``eval``, the Modules magic cookie (i.e., ``#%Module``
