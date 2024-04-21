@@ -39,11 +39,12 @@ windowssupport nearlyforbiddendays implicitrequirement tagabbrev \
 tagcolorname mcookieversioncheck availoutput availterseoutput listoutput \
 listterseoutput editor variantshortcut bashcompletiondir fishcompletiondir \
 zshcompletiondir tcllinter tcllinteropts nagelfardatadir nagelfaraddons \
-stickypurge uniquenameloaded abortonerror sourcecache"
+stickypurge uniquenameloaded abortonerror sourcecache logger loggeropts"
 libarglist=()
 
 # flags to know if argument has been specified on command-line
 defpageropts=1
+defloggeropts=1
 
 # set argument default values
 prefix=/usr/local/Modules
@@ -87,6 +88,8 @@ SED_ERE='sed -E'
 VERSION=
 RELEASE=
 initconfin=etcdir
+logger='logger'
+loggeropts='-t modules'
 pager=less
 pageropts='-eFKRX'
 verbosity=normal
@@ -316,6 +319,12 @@ Optional Packages:
                           configuration files. Either \`initdir' or \`etcdir'
                           [etcdir]
   --with-tclsh=BIN        name or full path of Tcl interpreter shell [tclsh]
+  --with-logger=BIN       name or full path of default logger program to use
+                          to log some evaluation information (can be super-
+                          seeded at run-time by environment variable) [$logger]
+  --with-logger-opts=OPTLIST
+                          settings to apply to default logger program
+                          [$loggeropts]
   --with-pager=BIN        name or full path of default pager program to use to
                           paginate informational message output (can be super-
                           seeded at run-time by environment variable) [$pager]
@@ -703,6 +712,11 @@ for arg in "$@"; do
       fi ;;
    --with-tclsh=*|--without-tclsh)
       tclshbin=$(get_package_value "$arg") ;;
+   --with-logger=*|--without-logger)
+      logger=$(get_package_value "$arg") ;;
+   --with-logger-opts=*|--without-logger-opts)
+      loggeropts=$(get_package_value "$arg")
+      defloggeropts=0 ;;
    --with-pager=*|--without-pager)
       pager=$(get_package_value "$arg") ;;
    --with-pager-opts=*|--without-pager-opts)
@@ -1024,6 +1038,18 @@ PS=$reqpath
 check_requirement 'basename' '' "PATH=$binsearchpath"
 # shellcheck disable=SC2034
 BASENAME=$reqpath
+
+# get logger program location from standard PATHs or /usr/local/bin
+# or validate location passed as argument
+if [ -n "$logger" ]; then
+   check_requirement "$logger" '' "PATH=$binsearchpath"
+   logger=$reqpath
+fi
+# adapt logger program settings dependings of specified args
+if [ $defloggeropts -eq 1 ] && [ "${logger##*/}" != 'logger' ]; then
+    loggeropts=''
+    echo_warning "As chosen logger is not \`logger', default logger options are cleared"
+fi
 
 # get pager program location from standard PATHs or /usr/local/bin
 # or validate location passed as argument

@@ -287,6 +287,12 @@ else
   pagercmd := $(pager)
 endif
 
+ifneq ($(loggeropts),)
+  loggercmd := $(logger) $(loggeropts)
+else
+  loggercmd := $(logger)
+endif
+
 ifeq ($(color),y)
   setcolor := auto
 else
@@ -396,6 +402,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@TCLSHDIR@/tclsh|$(TCLSH)|g' \
 	-e 's|@TCLSH@|$(TCLSH)|g' \
 	-e 's|@PYTHON@|$(PYTHON)|g' \
+	-e 's|@loggercmd@|$(loggercmd)|g' \
 	-e 's|@pagercmd@|$(pagercmd)|g' \
 	-e 's|@verbosity@|$(verbosity)|g' \
 	-e 's|@color@|$(setcolor)|g' \
