@@ -1152,6 +1152,21 @@ Module Sub-Commands
   changed at installation time with :instopt:`--with-locked-configs` option.
   The value of this option cannot be altered.
 
+ .. mconfig:: logged_events
+
+  List of the events to log.
+
+  This configuration option is set to an empty value by default. It can be
+  changed at installation time with :instopt:`--with-logged-events` option.
+  The :envvar:`MODULES_LOGGED_EVENTS` environment variable is defined by
+  :subcmd:`config` sub-command when changing this configuration option from
+  its default value. See :envvar:`MODULES_LOGGED_EVENTS` description for
+  details.
+
+  .. only:: html
+
+     .. versionadded:: 5.5
+
  .. mconfig:: logger
 
   Command to log messages.
