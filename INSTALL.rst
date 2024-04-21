@@ -1045,6 +1045,31 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
     .. versionadded:: 4.3
 
+.. instopt:: --with-logger=BIN
+
+ Name or full path of default logger program to use to log information (can be
+ superseded at run-time by environment variable) (default=\ ``logger``)
+
+ This installation option and :instopt:`--with-logger-opts` define the default
+ value of the :mconfig:`logger` configuration option which could be changed
+ after installation with the :subcmd:`config` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 5.5
+
+.. instopt:: --with-logger-opts=OPTLIST
+
+ Settings to apply to default logger program (default=\ ``-t modules``)
+
+ This installation option and :instopt:`--with-logger` define the default
+ value of the :mconfig:`logger` configuration option which could be changed
+ after installation with the :subcmd:`config` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 5.5
+
 .. instopt:: --with-modulepath=PATHLIST
 
  Default path list to setup as the default modulepaths. Each path in this list
@@ -1417,6 +1442,10 @@ installation.
 |                                   |                                              | :option:`--output`                           |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`locked_configs`         | *Empty by default*                           | :instopt:`--with-locked-configs`             |              | X         |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`logger`                 | ``logger -t modules``                        | :instopt:`--with-logger`,                    |              |           |
+|                                   |                                              | :instopt:`--with-logger-opts`,               |              |           |
+|                                   |                                              | :envvar:`MODULES_LOGGER`                     |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`mcookie_check`          | ``always``                                   | :envvar:`MODULES_MCOOKIE_CHECK`              |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
