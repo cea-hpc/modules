@@ -14,6 +14,9 @@
 # superseding
 #lappendConf locked_configs implicit_default
 
+# uncomment the following line to forbid log config options superseding
+#lappendConf locked_configs logged_events logger
+
 # define specific variables in modulefile interpreter context
 #set modulefile_extra_vars {varname1 value1 varname2 value2}
 

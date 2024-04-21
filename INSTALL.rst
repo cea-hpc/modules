@@ -1034,8 +1034,8 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 
  Ignore environment variable superseding value for the listed configuration
  options. Accepted option names in CONFIGLIST are :mconfig:`extra_siteconfig`
- and :mconfig:`implicit_default` (each option name should be separated by
- whitespace character). (default=)
+ , :mconfig:`implicit_default`, :mconfig:`logged_events` and :mconfig:`logger`
+ (each option name should be separated by whitespace character). (default=)
 
  This installation option defines the default value of the
  :mconfig:`locked_configs` configuration option which cannot not be changed
@@ -1044,6 +1044,9 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
  .. only:: html
 
     .. versionadded:: 4.3
+
+    .. versionchanged:: 5.5
+       Configs ``logged_events`` and ``logger`` added
 
 .. instopt:: --with-logged-events=EVENTLIST
 

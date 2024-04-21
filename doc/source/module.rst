@@ -4636,7 +4636,9 @@ ENVIRONMENT
 
  This environment variable value supersedes the default value set in the
  :mconfig:`logged_events` configuration option. It can be defined with the
- :subcmd:`config` sub-command.
+ :subcmd:`config` sub-command. This environment variable is ignored if
+ :mconfig:`logged_events` has been declared locked in
+ :mconfig:`locked_configs` configuration option.
 
  .. only:: html
 
@@ -4649,7 +4651,9 @@ ENVIRONMENT
 
  This environment variable value supersedes the default value set in the
  :mconfig:`logger` configuration option. It can be defined with the
- :subcmd:`config` sub-command.
+ :subcmd:`config` sub-command. This environment variable is ignored if
+ :mconfig:`logger` has been declared locked in :mconfig:`locked_configs`
+ configuration option.
 
  If :envvar:`MODULES_LOGGER` variable is set to an empty string, logger
  will not be launched.
