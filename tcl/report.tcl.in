@@ -791,6 +791,25 @@ proc reportFlush {} {
    }
 }
 
+# send messages to log
+proc logFlush {} {
+   # logger pipe is started only if enabled and some msgs need to be logged
+   set logfd [getState logfd]
+
+   # logging only occurs from this procedure with is run during termination
+   if {[string length $logfd]} {
+      if {[catch {
+         foreach log_msg $::g_log_msg_list {
+            puts $logfd $log_msg
+         }
+         flush $logfd
+         close $logfd
+      } errMsg]} {
+         reportWarning {Issue occurred when logging information}
+      }
+   }
+}
+
 # check if element passed as argument (corresponding to a kind of information)
 # should be part of output content
 proc isEltInReport {elt {retifnotdef 1}} {

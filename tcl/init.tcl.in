@@ -22,7 +22,7 @@
 
 # Runtime state properties (default value, proc to call to initialize state
 # value?)
-##nagelfar ignore +34 Found constant
+##nagelfar ignore +36 Found constant
 array set g_state_defs [list\
    autoinit {0}\
    clock_seconds {<undef> initStateClockSeconds}\
@@ -39,6 +39,8 @@ array set g_state_defs [list\
    is_win {<undef> initStateIsWin}\
    kernelversion {<undef> {runCommand uname -v}}\
    lm_info_cached {0}\
+   logfd {{} initStateLogfd}\
+   logging {<undef> initStateLogging}\
    lsb_codename {<undef> {runCommand lsb_release -s -c}}\
    lsb_id {<undef> {runCommand lsb_release -s -i}}\
    lsb_release {<undef> {runCommand lsb_release -s -r}}\
@@ -467,6 +469,32 @@ proc initStateReportfd {} {
    }
 
    return $reportfd
+}
+
+# Determine if logging need to be started
+proc initStateLogging {} {
+   set logger_not_empty [string length [lindex [getConf logger] 0]]
+   set something_to_log [info exists ::g_log_msg_list]
+   return [expr {$logger_not_empty && $something_to_log}]
+}
+
+# start logger pipe process with defined configuration
+proc initStateLogfd {} {
+   # sets default fallback value
+   lassign $::g_state_defs(logfd) logfd
+
+   # start logger at first call and only if enabled
+   if {[getState logging]} {
+      if {[catch {
+         # drop output of logger command to avoid it pollutes main channels
+         set logfd [open "|[getConf logger] >/dev/null 2>/dev/null" w]
+         fconfigure $logfd -buffering none -blocking 1
+      } errMsg]} {
+         reportWarning $errMsg
+      }
+   }
+
+   return $logfd
 }
 
 # Provide columns number for output formatting
