@@ -832,6 +832,9 @@ proc putsModfileCmd {itrp args} {
             stderr {
                set reportArgs [list [lindex $args 1]]
             }
+            log {
+               set logPuts [lindex $args 1]
+            }
          }
       }
       3 {
@@ -845,6 +848,9 @@ proc putsModfileCmd {itrp args} {
                }
                stderr {
                   set reportArgs [list [lindex $args 2] 1]
+               }
+               log {
+                  set logPuts [lindex $args 2]
                }
             }
          } else {
@@ -860,6 +866,9 @@ proc putsModfileCmd {itrp args} {
    # not to confuse people with an error reported by an internal name (_puts)
    if {[info exists wrongNumArgs]} {
       knerror {wrong # args: should be "puts ?-nonewline? ?channelId? string"}
+   # send content to log system
+   } elseif {[info exists logPuts]} {
+      log $logPuts
    # defer puts if it targets stdout (see renderSettings)
    } elseif {[info exists deferPuts]} {
       # current module is qualified for refresh evaluation
