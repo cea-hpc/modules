@@ -724,7 +724,7 @@ proc initErrorReport {} {
             getState setState unsetState lappendState lpopState currentState\
             depthState isStateDefined isStateEqual sgr getConf setConf\
             unsetConf lappendConf getCallingProcName isEnvVarDefined\
-            envVarEquals]
+            envVarEquals log]
 
          foreach prc [info procs] {
             if {$prc ni $excl_prc_list} {
@@ -789,6 +789,24 @@ proc reportFlush {} {
       catch {flush [getState reportfd]}
       catch {close [getState reportfd]}
    }
+}
+
+proc logEvent {event args} {
+   set is_logged_event [expr {$event in [getConf logged_events] || ($event eq\
+      {req_eval} && {all_eval} in [getConf logged_events])}]
+   if {$is_logged_event} {
+      set log_info_list [list user [getState username] {*}$args]
+      set log_formatted_list {}
+      foreach {key val} $log_info_list {
+         lappend log_formatted_list "$key=\"$val\""
+      }
+      set log_message [join $log_formatted_list]
+      log $log_message
+   }
+}
+
+proc log {log_message} {
+   lappend ::g_log_msg_list $log_message
 }
 
 # send messages to log
