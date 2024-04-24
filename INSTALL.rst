@@ -1051,9 +1051,9 @@ instance :instopt:`--without-modulepath<--with-modulepath>`):
 .. instopt:: --with-logged-events=EVENTLIST
 
  Events to log. Accepted event names in EVENTLIST are ``all_eval``,
- ``req_eval`` and ``req_cmd`` (each event name in this list should be
- separated by ``:``). The order of the elements in EVENTLIST does not matter.
- (default=)
+ ``requested_eval`` and ``requested_cmd`` (each event name in this list should
+ be separated by ``:``). The order of the elements in EVENTLIST does not
+ matter. (default=)
 
  This installation option defines the default value of the
  :mconfig:`logged_events` configuration option which cannot not be changed

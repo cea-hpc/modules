@@ -4631,8 +4631,8 @@ ENVIRONMENT
  in value list are:
 
  * ``all_eval``: log every modulefile evaluations
- * ``req_eval``: log modulefile evaluations directly requested by user
- * ``req_cmd``: log module commands directly requested by user
+ * ``requested_eval``: log modulefile evaluations directly requested by user
+ * ``requested_cmd``: log module commands directly requested by user
 
  This environment variable value supersedes the default value set in the
  :mconfig:`logged_events` configuration option. It can be defined with the
