@@ -4630,7 +4630,7 @@ ENVIRONMENT
  A colon separated list of the events to log. Accepted events that can be set
  in value list are:
 
- * ``all_eval``: log every modulefile evaluations
+ * ``auto_eval``: log automatically triggered modulefile evaluations
  * ``requested_eval``: log modulefile evaluations directly requested by user
  * ``requested_cmd``: log module commands directly requested by user
 
