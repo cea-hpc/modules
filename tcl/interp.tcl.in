@@ -394,6 +394,14 @@ proc execute-modulefile {modfile modname modnamevrvar modspec requested\
       }
    }
 
+   # skip evaluation log for internal evaluation mode
+   if {$mode ni {refresh scan whatis}} {
+      set log_info_list [list {mode} $mode module $modnamevr specified\
+         $modspec modulefile $modfile {requested} $requested]
+      set log_event [expr {$requested ? {req_eval} : {all_eval}}]
+      logEvent $log_event {*}$log_info_list
+   }
+
    reportDebug "exiting $modfile"
    lpopState debug_msg_prefix
    lpopState modulepath
