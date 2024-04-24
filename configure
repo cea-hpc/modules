@@ -563,6 +563,26 @@ get_package_value() {
    fi
 }
 
+check_and_get_package_value_list() {
+   typeset value_raw="$2"
+   typeset option="$3"
+   typeset allowed_values="$4"
+   typeset val_if_unset="$5"
+
+   value=$(get_package_value "$value_raw" "$val_if_unset")
+   ORIG_IFS=$IFS
+   IFS=:
+   for val in $value; do
+      if [ "${allowed_values// $val /}" = "$allowed_values" ]; then
+         echo_error "Bad value '$val' set in option \`$option'"\
+            "Values allowed in list are:$allowed_values"
+      fi
+   done
+   IFS=$ORIG_IFS
+
+   typeset -g "$1"="$value"
+}
+
 # parse arguments
 for arg in "$@"; do
    # set argument value defined with "--arg val" form
@@ -726,17 +746,9 @@ for arg in "$@"; do
       loggeropts=$(get_package_value "$arg")
       defloggeropts=0 ;;
    --with-logged-events*|--without-logged-events)
-      loggedevents=$(get_package_value "$arg") ;
       allowedval=" auto_eval requested_eval requested_cmd " ;
-      ORIG_IFS=$IFS ;
-      IFS=: ;
-      for val in $loggedevents; do
-         if [ "${allowedval// $val /}" = "$allowedval" ]; then
-            echo_error "Bad value '$val' set in option \`--with-logged-events'"\
-               "Values allowed in list are:$allowedval"
-         fi ;
-      done ;
-      IFS=$ORIG_IFS ;;
+      check_and_get_package_value_list "loggedevents" "$arg"\
+         "--with-logged-events" "$allowedval" "$loggedevents" ;;
    --with-pager=*|--without-pager)
       pager=$(get_package_value "$arg") ;;
    --with-pager-opts=*|--without-pager-opts)
@@ -817,65 +829,25 @@ for arg in "$@"; do
             "Allowed values are:$allowedval"
       fi ;;
    --with-abort-on-error*|--without-abort-on-error)
-      abortonerror=$(get_package_value "$arg" "$abortonerror") ;
       allowedval=" load ml mod-to-sh purge reload switch switch_unload try-load unload " ;
-      ORIG_IFS=$IFS ;
-      IFS=: ;
-      for val in $abortonerror; do
-         if [ "${allowedval// $val /}" = "$allowedval" ]; then
-            echo_error "Bad value '$val' set in option \`--with-abort-on-error'"\
-               "Values allowed in list are:$allowedval"
-         fi ;
-      done ;
-      IFS=$ORIG_IFS ;;
+      check_and_get_package_value_list "abortonerror" "$arg"\
+         "--with-abort-on-error" "$allowedval" "$abortonerror" ;;
    --with-avail-output*|--without-avail-output)
-      availoutput=$(get_package_value "$arg" "$availoutput") ;
       allowedval=" modulepath alias dirwsym indesym sym tag key variant variantifspec " ;
-      ORIG_IFS=$IFS ;
-      IFS=: ;
-      for val in $availoutput; do
-         if [ "${allowedval// $val /}" = "$allowedval" ]; then
-            echo_error "Bad value '$val' set in option \`--with-avail-output'"\
-               "Values allowed in list are:$allowedval"
-         fi ;
-      done ;
-      IFS=$ORIG_IFS ;;
+      check_and_get_package_value_list "availoutput" "$arg"\
+         "--with-avail-output" "$allowedval" "$availoutput" ;;
    --with-avail-terse-output*|--without-avail-terse-output)
-      availterseoutput=$(get_package_value "$arg" "$availterseoutput") ;
       allowedval=" modulepath alias dirwsym indesym sym tag key variant variantifspec " ;
-      ORIG_IFS=$IFS ;
-      IFS=: ;
-      for val in $availterseoutput; do
-         if [ "${allowedval// $val /}" = "$allowedval" ]; then
-            echo_error "Bad value '$val' set in option \`--with-avail-terse-output'"\
-               "Values allowed in list are:$allowedval"
-         fi ;
-      done ;
-      IFS=$ORIG_IFS ;;
+      check_and_get_package_value_list "availterseoutput" "$arg"\
+         "--with-avail-terse-output" "$allowedval" "$availterseoutput" ;;
    --with-list-output*|--without-list-output)
-      listoutput=$(get_package_value "$arg" "$listoutput") ;
       allowedval=" header idx variant alias indesym sym tag key " ;
-      ORIG_IFS=$IFS ;
-      IFS=: ;
-      for val in $listoutput; do
-         if [ "${allowedval// $val /}" = "$allowedval" ]; then
-            echo_error "Bad value '$val' set in option \`--with-list-output'"\
-               "Values allowed in list are:$allowedval"
-         fi ;
-      done ;
-      IFS=$ORIG_IFS ;;
+      check_and_get_package_value_list listoutput "$arg"\
+         "--with-list-output" "$allowedval" "$listoutput" ;;
    --with-list-terse-output*|--without-list-terse-output)
-      listterseoutput=$(get_package_value "$arg" "$listterseoutput") ;
       allowedval=" header idx variant alias indesym sym tag key " ;
-      ORIG_IFS=$IFS ;
-      IFS=: ;
-      for val in $listterseoutput; do
-         if [ "${allowedval// $val /}" = "$allowedval" ]; then
-            echo_error "Bad value '$val' set in option \`--with-list-terse-output'"\
-               "Values allowed in list are:$allowedval"
-         fi ;
-      done ;
-      IFS=$ORIG_IFS ;;
+      check_and_get_package_value_list "listterseoutput" "$arg"\
+         "--with-list-terse-output" "$allowedval" "$listterseoutput" ;;
    --with-variant-shortcut=*|--without-variant-shortcut)
       variantshortcut=$(get_package_value "$arg") ;;
    --with-editor=*|--without-editor)
