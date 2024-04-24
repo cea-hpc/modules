@@ -149,7 +149,7 @@ proc cmdModuleDisplay {args} {
             set first_report 0
          }
          report [sgr hi $modfile]:\n
-         execute-modulefile $modfile $modname modnamevr $mod
+         execute-modulefile $modfile $modname modnamevr $mod 1
          displaySeparatorLine
       }
    }
@@ -392,7 +392,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
          foreach elt [lsort -dictionary [array names interp_list]] {
             set ::g_whatis {}
             ##nagelfar ignore Suspicious variable name
-            execute-modulefile $interp_list($elt) $elt $elt $elt 0
+            execute-modulefile $interp_list($elt) $elt $elt $elt 0 0
 
             # treat whatis as a multi-line text
             if {$search eq {} || [regexp -nocase $search $::g_whatis]} {
@@ -1007,7 +1007,7 @@ proc cmdModuleSource {mode args} {
       lappendState mode $mode
       # sourced file must also have a magic cookie set at their start
       ##nagelfar ignore Suspicious variable name
-      execute-modulefile $modfile $modname $modnamevr $mod 0 0
+      execute-modulefile $modfile $modname $modnamevr $mod 1 0 0
       ##nagelfar ignore Found constant
       lpopState mode
    }
@@ -1277,7 +1277,7 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list modulepath_list\
             }
          }
 
-         if {[execute-modulefile $modfile $modname modnamevr $mod]} {
+         if {[execute-modulefile $modfile $modname modnamevr $mod $uasked]} {
             break
          }
 
@@ -1639,18 +1639,19 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          # unload evaluation to report correct order with other evaluations)
          registerModuleEval $context $msgrecid
 
+         # module was asked by user if tagged loaded instead of auto-loaded
+         set uasked [isModuleTagged $modname loaded 1]
+
          # no need to update modnamevr and tags after evaluation as these
          # information were already complete in persistent environment
          ##nagelfar ignore Suspicious variable name
-         if {[execute-modulefile $modfile $modname $modnamevr $mod 0 0]} {
+         if {[execute-modulefile $modfile $modname $modnamevr $mod $uasked 0\
+            0]} {
             break
          }
 
          # unloading visibility depends on hidden-loaded tag
          set hidden [isModuleTagged $modname hidden-loaded 1]
-
-         # module was asked by user if tagged loaded instead of auto-loaded
-         set uasked [isModuleTagged $modname loaded 1]
 
          # unset module from list of loaded modules qualified for refresh eval
          if {[isModuleRefreshQualified $modname]} {
@@ -2362,7 +2363,7 @@ proc cmdModuleTest {args} {
             set first_report 0
          }
          report "Module Specific Test for [sgr hi $modfile]:\n"
-         execute-modulefile $modfile $modname modnamevr $mod
+         execute-modulefile $modfile $modname modnamevr $mod 1
          displaySeparatorLine
       }
    }
@@ -2686,7 +2687,7 @@ proc cmdModuleRefresh {} {
       # continue to evaluate the remaining loaded modules
       pushSettings
       if {[set errCode [catch {
-         if {[execute-modulefile $lmfile $lm lmvr $lm]} {
+         if {[execute-modulefile $lmfile $lm lmvr $lm 0]} {
             break
          }
 
@@ -2724,7 +2725,7 @@ proc cmdModuleHelp {args} {
             set first_report 0
          }
          report "Module Specific Help for [sgr hi $modfile]:\n"
-         execute-modulefile $modfile $modname modnamevr $arg
+         execute-modulefile $modfile $modname modnamevr $arg 1
          displaySeparatorLine
       }
    }

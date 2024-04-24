@@ -378,7 +378,7 @@ proc filterExtraMatchSearch {modpath mod res_arrname versmod_arrname} {
                   $found_list($elt) 2]]} {
                   ##nagelfar ignore Suspicious variable name
                   execute-modulefile [lindex $found_list($elt) 2] $elt $elt\
-                     $elt 0 0 $modpath
+                     $elt 0 0 0 $modpath
                }
             }
          }
