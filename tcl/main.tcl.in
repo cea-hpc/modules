@@ -367,7 +367,7 @@ proc module {command args} {
    # module sub-command (exclude them from arg list)
    lassign [parseModuleCommandArgs $topcall $command 0 {*}$args]\
       show_oneperline show_mtime show_filter search_filter search_match\
-      dump_state addpath_pos not_req tag_list args
+      dump_state addpath_pos not_req tag_list parsed_args
 
    # parse module version specification
    defineParseModuleSpecificationProc [getConf advanced_version_spec]
@@ -378,8 +378,8 @@ proc module {command args} {
       set allow_noname_spec [expr {$command in {avail list paths whatis}}]
       # some cmds allow extra specifier in query
       set allow_xt_spec [expr {$command in {avail paths whatis}}]
-      set args [parseModuleSpecification 0 $allow_noname_spec $allow_xt_spec\
-         0 {*}$args]
+      set parsed_args [parseModuleSpecification 0 $allow_noname_spec\
+         $allow_xt_spec 0 {*}$parsed_args]
    }
 
    if {!$topcall} {
@@ -409,44 +409,44 @@ proc module {command args} {
    switch -- $command {
       unload - source - display - initadd - initprepend - initrm - test -\
       is-avail - try-load - load-any {
-         if {![llength $args]} {
+         if {![llength $parsed_args]} {
             set argnberr 1
          }
       }
       refresh - reload - aliases - purge - initlist - initclear - autoinit -\
          reset - stash - stashclear - stashlist - cacheclear {
-         if {[llength $args]} {
+         if {[llength $parsed_args]} {
             set argnberr 1
          }
       }
       switch {
-         if {![llength $args] || [llength $args] > 2} {
+         if {![llength $parsed_args] || [llength $parsed_args] > 2} {
             set argnberr 1
          }
       }
       path - paths - info-loaded - edit {
-         if {[llength $args] != 1} {
+         if {[llength $parsed_args] != 1} {
             set argnberr 1
          }
       }
       search - save - restore - saverm - saveshow - clear - state - stashpop\
          - stashrm - stashshow {
-         if {[llength $args] > 1} {
+         if {[llength $parsed_args] > 1} {
             set argnberr 1
          }
       }
       initswitch {
-         if {[llength $args] != 2} {
+         if {[llength $parsed_args] != 2} {
             set argnberr 1
          }
       }
       prepend-path - append-path - remove-path - sh-to-mod - mod-to-sh {
-         if {[llength $args] < 2} {
+         if {[llength $parsed_args] < 2} {
             set argnberr 1
          }
       }
       config {
-         if {[llength $args] > 2} {
+         if {[llength $parsed_args] > 2} {
             set argnberr 1
          }
       }
@@ -456,6 +456,7 @@ proc module {command args} {
    }
 
    if {$topcall} {
+      logEvent req_cmd {command} $command arguments $args
       # Find and execute any global rc file found
       runModulerc
    }
@@ -533,7 +534,7 @@ proc module {command args} {
       }
    }
 
-   $cmdprocname {*}$cmdopts {*}$args
+   $cmdprocname {*}$cmdopts {*}$parsed_args
    lpopState commandname
    lpopState always_read_full_file
 
@@ -591,6 +592,8 @@ proc ml {args} {
       lassign [parseModuleCommandArgs 1 $mlcmd 0 {*}$args] show_oneperline\
          show_mtime show_filter search_filter search_match dump_state\
          addpath_pos not_req tag_list fargs
+
+      logEvent req_cmd {command} ml arguments $args
 
       # Find and execute any global rc file found
       runModulerc
