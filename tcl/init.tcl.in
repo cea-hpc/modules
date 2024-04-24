@@ -375,6 +375,11 @@ proc lappendConf {option args} {
    setConf $option $value
 }
 
+# Get configuration option value split as a list
+proc getConfList {option {valifundef {}}} {
+   return [split [getConf $option $valifundef] :]
+}
+
 # Source site config which can be used to define global procedures or
 # settings. We first look for the global siteconfig, then if an extra
 # siteconfig is defined and allowed, source that file if it exists
@@ -846,7 +851,7 @@ proc commandAbortOnError {{command {}}} {
    if {![string length $command]} {
       set command [currentState commandname]
    }
-   set abort_command_list [split [getConf abort_on_error] :]
+   set abort_command_list [getConfList abort_on_error]
    return [expr {[isTopEvaluation] && ![getState force] && $command in\
       $abort_command_list}]
 }

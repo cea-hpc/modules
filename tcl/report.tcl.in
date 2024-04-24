@@ -724,7 +724,7 @@ proc initErrorReport {} {
             getState setState unsetState lappendState lpopState currentState\
             depthState isStateDefined isStateEqual sgr getConf setConf\
             unsetConf lappendConf getCallingProcName isEnvVarDefined\
-            envVarEquals log]
+            envVarEquals log getConfList]
 
          foreach prc [info procs] {
             if {$prc ni $excl_prc_list} {
@@ -792,7 +792,7 @@ proc reportFlush {} {
 }
 
 proc logEvent {event args} {
-   if {$event in [split [getConf logged_events] :]} {
+   if {$event in [getConfList logged_events]} {
       set log_info_list [list user [getState username] {*}$args]
       set log_formatted_list {}
       foreach {key val} $log_info_list {
@@ -842,7 +842,7 @@ proc isEltInReport {elt {retifnotdef 1}} {
       # build value cache if it does not exist yet
       if {![array exists $arrname]} {
          array set $arrname {}
-         foreach confelt [split [getConf $conf] :] {
+         foreach confelt [getConfList $conf] {
             ##nagelfar ignore Suspicious variable name
             set ${arrname}($confelt) 1
          }

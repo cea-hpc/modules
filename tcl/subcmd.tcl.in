@@ -2130,7 +2130,7 @@ proc cmdModuleAutoinit {} {
    # append dir where to find module function for ksh (to get it defined in
    # interactive and non-interactive sub-shells). also applies for shells
    # listed in shells_with_ksh_fpath conf
-   if {[getState shell] in [list {*}[split [getConf shells_with_ksh_fpath] :]\
+   if {[getState shell] in [list {*}[getConfList shells_with_ksh_fpath] \
       ksh]} {
       append-path FPATH {@initdir@/ksh-functions}
    }
@@ -2516,7 +2516,7 @@ proc cmdModuleConfig {dump_state args} {
       # append or subtract value to existing configuration value if new value
       # starts with '+' or '-' (for colon-separated list option only)
       if {[info exists value] && $confkind($name) eq {l}} {
-         set curconfvallist [split [getConf $name] :]
+         set curconfvallist [getConfList $name]
          switch -- [string index $value 0] {
             + {
                appendNoDupToList curconfvallist {*}[split [string range\
