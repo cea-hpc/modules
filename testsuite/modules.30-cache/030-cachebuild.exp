@@ -170,8 +170,8 @@ create_dummy_modulefile $mp1modfile
 create_dummy_modulefile $mp2modfile
 change_file_perms $mp1 $noread_perms
 change_file_perms $mp2 $nosearch_perms
-set tserr [msg_create $mp1cache $warn_cache_nothingtorec]\n\n[msg_create $mp2cache "$error_msgs: couldn't open \"$mp2cache\": permission denied"]
-set tscache "couldn't open \"$mp2cache\": permission denied"
+set tserr [msg_create $mp1cache $warn_cache_nothingtorec]\n\n[msg_create $mp2cache [err_couldnotopen_permdenied $mp2cache]]
+set tscache [couldnotopen_permdenied $mp2cache]
 testouterrfile_cmd sh cachebuild ERR $tserr $mp2cache $tscache
 set tscache [couldnotopen_nofile $mp1cache]
 testouterrfile_cmd sh cachebuild ERR $tserr $mp1cache $tscache
@@ -194,8 +194,8 @@ create_dummy_cachefile $mp1
 create_dummy_cachefile $mp2
 change_file_perms $mp1cache $noread_perms
 change_file_perms $mp2cache $nowrite_perms
-set tserr [msg_create $mp1cache]\n\n[msg_create $mp2cache "$error_msgs: couldn't open \"$mp2cache\": permission denied"]
-set tscache "couldn't open \"$mp1cache\": permission denied"
+set tserr [msg_create $mp1cache]\n\n[msg_create $mp2cache [err_couldnotopen_permdenied $mp2cache]]
+set tscache [couldnotopen_permdenied $mp1cache]
 testouterrfile_cmd sh cachebuild ERR $tserr $mp1cache $tscache
 set tscache "#%Module$major_minor_rel"
 testouterrfile_cmd sh cachebuild ERR $tserr $mp2cache $tscache
@@ -212,11 +212,11 @@ create_dummy_cachefile $mp1
 create_dummy_cachefile $mp2
 change_file_perms $mp1cache $noread_perms
 change_file_perms $mp2cache $nowrite_perms
-set tserr [msg_create $mp1cache]\n\n[msg_create $mp2cache "$error_msgs: couldn't open \"$mp2cache\": permission denied"]
-set tscache "couldn't open \"$mp1cache\": permission denied"
+set tserr [msg_create $mp1cache]\n\n[msg_create $mp2cache [err_couldnotopen_permdenied $mp2cache]]
+set tscache [couldnotopen_permdenied $mp1cache]
 testouterrfile_cmd sh "cachebuild $mp1 $mp2" ERR $tserr $mp1cache $tscache
 set tscache "#%Module$major_minor_rel"
-set tserr [msg_create $mp2cache "$error_msgs: couldn't open \"$mp2cache\": permission denied"]\n\n[msg_create $mp1cache]
+set tserr [msg_create $mp2cache [err_couldnotopen_permdenied $mp2cache]]\n\n[msg_create $mp1cache]
 testouterrfile_cmd sh "cachebuild $mp2 $mp1" ERR $tserr $mp2cache $tscache
 file delete $mp1modfile
 file delete $mp2modfile
@@ -232,7 +232,7 @@ if {$is_stderr_tty} {
     create_dummy_modulefile $mp1modfile
     create_dummy_modulefile $mp2modfile
     change_file_perms $mp1 $nowrite_perms
-    set tserr [msg_create $mp1cache "$error_msgs: couldn't open \"$mp1cache\": permission denied"]\n\n[msg_create $mp2cache]
+    set tserr [msg_create $mp1cache [err_couldnotopen_permdenied $mp1cache]]\n\n[msg_create $mp2cache]
     set tscache "#%Module$major_minor_rel"
     append tscache \n[list modulefile-content bar [file mtime $mp2modfile] #%Module #%Module\n]
     testouterrfile_cmd sh cachebuild ERR $tserr $mp2cache $tscache
