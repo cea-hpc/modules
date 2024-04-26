@@ -130,7 +130,7 @@ set tserr [msg_create $mp1cache $warn_cache_build_nowritable]\n\n[msg_create $mp
 set tscache "#%Module$major_minor_rel"
 append tscache \n[list modulefile-content bar [file mtime $mp2modfile] #%Module #%Module\n]
 testouterrfile_cmd sh cachebuild OK $tserr $mp2cache $tscache
-set tscache "couldn't open \"$mp1cache\": no such file or directory"
+set tscache [couldnotopen_nofile $mp1cache]
 testouterrfile_cmd sh cachebuild OK $tserr $mp1cache $tscache
 restore_file_perms $mp1
 file delete $mp2modfile
@@ -143,7 +143,7 @@ set tserr [msg_create $mp1cache $warn_cache_build_nowritable]\n\n[msg_create $mp
 set tscache "#%Module$major_minor_rel"
 append tscache \n[list modulefile-content bar [file mtime $mp2modfile] #%Module #%Module\n]
 testouterrfile_cmd sh cachebuild OK $tserr $mp2cache $tscache
-set tscache "couldn't open \"$mp1cache\": no such file or directory"
+set tscache [couldnotopen_nofile $mp1cache]
 testouterrfile_cmd sh cachebuild OK $tserr $mp1cache $tscache
 restore_file_perms $mp1
 file delete $mp1modfile
@@ -156,9 +156,9 @@ create_dummy_modulefile $mp2modfile
 change_file_perms $mp1 $nowrite_perms
 change_file_perms $mp2 $nowrite_perms
 set tserr [msg_create $mp1cache $warn_cache_build_nowritable]\n\n[msg_create $mp2cache $warn_cache_build_nowritable]
-set tscache "couldn't open \"$mp2cache\": no such file or directory"
+set tscache [couldnotopen_nofile $mp2cache]
 testouterrfile_cmd sh cachebuild OK $tserr $mp2cache $tscache
-set tscache "couldn't open \"$mp1cache\": no such file or directory"
+set tscache [couldnotopen_nofile $mp1cache]
 testouterrfile_cmd sh cachebuild OK $tserr $mp1cache $tscache
 restore_file_perms $mp1
 restore_file_perms $mp2
@@ -173,7 +173,7 @@ change_file_perms $mp2 $nosearch_perms
 set tserr [msg_create $mp1cache $warn_cache_nothingtorec]\n\n[msg_create $mp2cache "$error_msgs: couldn't open \"$mp2cache\": permission denied"]
 set tscache "couldn't open \"$mp2cache\": permission denied"
 testouterrfile_cmd sh cachebuild ERR $tserr $mp2cache $tscache
-set tscache "couldn't open \"$mp1cache\": no such file or directory"
+set tscache [couldnotopen_nofile $mp1cache]
 testouterrfile_cmd sh cachebuild ERR $tserr $mp1cache $tscache
 restore_file_perms $mp1
 restore_file_perms $mp2
@@ -183,7 +183,7 @@ file delete $mp2modfile
 # modulepath writable, no module content in first path
 create_dummy_modulefile $mp2modfile
 set tserr [msg_create $mp1cache $warn_cache_nothingtorec]\n\n[msg_create $mp2cache]
-set tscache "couldn't open \"$mp1cache\": no such file or directory"
+set tscache [couldnotopen_nofile $mp1cache]
 testouterrfile_cmd sh cachebuild OK $tserr $mp1cache $tscache
 file delete $mp2modfile
 
@@ -236,7 +236,7 @@ if {$is_stderr_tty} {
     set tscache "#%Module$major_minor_rel"
     append tscache \n[list modulefile-content bar [file mtime $mp2modfile] #%Module #%Module\n]
     testouterrfile_cmd sh cachebuild ERR $tserr $mp2cache $tscache
-    set tscache "couldn't open \"$mp1cache\": no such file or directory"
+    set tscache [couldnotopen_nofile $mp1cache]
     testouterrfile_cmd sh cachebuild ERR $tserr $mp1cache $tscache
     restore_file_perms $mp1
     file delete $mp1modfile

@@ -42,13 +42,13 @@ testouterr_cmd sh {stashrm 1} ERR [err_stash_index 1]
 
 create_stash_coll $stash_basic_content
 set last_stash_file [get_last_stash_coll]
-set tsfileerr "couldn't open \"$last_stash_file\": no such file or directory"
+set tsfileerr [couldnotopen_nofile $last_stash_file]
 testouterrfile_cmd sh stashrm OK {} $last_stash_file $tsfileerr
 
 create_stash_coll $stash_basic_content
 set last_stash_file [get_last_stash_coll]
 set last_stash [file tail $last_stash_file]
-set tsfileerr "couldn't open \"$last_stash_file\": no such file or directory"
+set tsfileerr [couldnotopen_nofile $last_stash_file]
 testouterrfile_cmd sh stashrm OK {} $last_stash_file $tsfileerr
 
 skip_if_quick_mode
@@ -92,7 +92,7 @@ testouterr_cmd sh {stashrm \ 0\ } ERR [err_stash_index { 0 }]
 create_stash_coll $stash_basic_content
 set last_stash_file [get_last_stash_coll]
 set last_stash [file tail $last_stash_file]
-set tsfileerr "couldn't open \"$last_stash_file\": no such file or directory"
+set tsfileerr [couldnotopen_nofile $last_stash_file]
 testouterrfile_cmd sh {stashrm \ 0\ } OK {} $last_stash_file $tsfileerr
 
 # create regular collection file (not a stash one) but with similar name
@@ -131,13 +131,13 @@ set first_stash [file tail $first_stash_file]
 after 2
 create_stash_coll $stash_basic2_content
 
-set tsfileerr "couldn't open \"$first_stash_file\": no such file or directory"
+set tsfileerr [couldnotopen_nofile $first_stash_file]
 testouterrfile_cmd sh {stashrm 1} OK {} $first_stash_file $tsfileerr
 
 create_stash_coll $stash_basic_content
 set last_stash_file [get_last_stash_coll]
 set last_stash [file tail $last_stash_file]
-set tsfileerr "couldn't open \"$last_stash_file\": no such file or directory"
+set tsfileerr [couldnotopen_nofile $last_stash_file]
 testouterrfile_cmd sh {stashrm 0} OK {} $last_stash_file $tsfileerr
 
 delete_last_stash_coll
@@ -152,7 +152,7 @@ create_stash_coll $stash_basic_content
 
 set last_stash_file [get_last_stash_coll]
 set last_stash [file tail $last_stash_file]
-set tsfileerr "couldn't open \"$last_stash_file\": no such file or directory"
+set tsfileerr [couldnotopen_nofile $last_stash_file]
 testouterrfile_cmd sh stashrm OK {} $last_stash_file $tsfileerr
 
 create_stash_coll $stash_basic_content
@@ -161,7 +161,7 @@ set last_stash [file tail $last_stash_file]
 after 2
 create_stash_coll $stash_basic_content
 
-set tsfileerr "couldn't open \"$last_stash_file\": no such file or directory"
+set tsfileerr [couldnotopen_nofile $last_stash_file]
 testouterrfile_cmd sh {stashrm 1} OK {} $last_stash_file $tsfileerr
 
 # collection 0.foo remaining, changing collection target
@@ -192,7 +192,7 @@ create_stash_coll $stash_basic_content
 
 # test collection from correct target is popped
 setenv_var MODULES_COLLECTION_TARGET bar
-set tsfileerr "couldn't open \"$last_stash_file\": no such file or directory"
+set tsfileerr [couldnotopen_nofile $last_stash_file]
 testouterrfile_cmd sh stashrm OK {} $last_stash_file $tsfileerr
 
 create_stash_coll $stash_basic2_content
@@ -209,12 +209,12 @@ set last_stash_foreign_target_with_ext [file tail $last_stash_foreign_target_fil
 set last_stash_foreign_target [file rootname $last_stash_foreign_target_with_ext]
 
 setenv_var MODULES_COLLECTION_TARGET bar
-set tsfileerr "couldn't open \"$first_stash_current_target_file\": no such file or directory"
+set tsfileerr [couldnotopen_nofile $first_stash_current_target_file]
 testouterrfile_cmd sh {stashrm 1} OK {} $first_stash_current_target_file $tsfileerr
 
 # specifying valid stash collection name from current target
 testouterr_cmd sh "stashrm $last_stash_current_target_with_ext" ERR [err_coll_notfound $last_stash_current_target_with_ext bar]
-set tsfileerr "couldn't open \"$last_stash_current_target_file\": no such file or directory"
+set tsfileerr [couldnotopen_nofile $last_stash_current_target_file]
 testouterrfile_cmd sh "stashrm $last_stash_current_target" OK {} $last_stash_current_target_file $tsfileerr
 
 create_stash_coll $stash_basic2_content
@@ -278,7 +278,7 @@ if {!$is_file_perms_editable} {
     # cannot read collection file
     change_file_perms $collhome/$last_stash ugo-r
     testouterr_cmd sh stashrm ERR [err_stash_index 0]
-    set tsfileerr "couldn't open \"$last_stash_file\": no such file or directory"
+    set tsfileerr [couldnotopen_nofile $last_stash_file]
     testouterrfile_cmd sh "stashrm $last_stash" OK {} $last_stash_file $tsfileerr
 }
 
