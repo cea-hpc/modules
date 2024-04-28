@@ -1,0 +1,23 @@
+#!/bin/sh
+rm -f "$1"
+
+if [ "$TESTSUITE_LOGGER" = 'logger_cmd_out_msg' ]; then
+   echo "out msg"
+elif [ "$TESTSUITE_LOGGER" = 'logger_cmd_err_msg' ]; then
+   echo "err msg" >&2
+fi
+
+while read -r line; do
+   echo "$line" >>"$1"
+   if [ "$TESTSUITE_LOGGER" = 'logger_cmd_crash' ]; then
+      exit 1
+   elif [ "$TESTSUITE_LOGGER" = 'logger_cmd_silent_crash' ]; then
+      exit 0
+   fi
+done </dev/stdin
+
+if [ "$TESTSUITE_LOGGER" = 'logger_cmd_exit_code' ]; then
+   exit 1
+fi
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

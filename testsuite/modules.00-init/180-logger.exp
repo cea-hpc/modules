@@ -1,0 +1,421 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.00-init/%M%
+#   Revision:		%I%
+#   First Edition:	2024/04/25
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, display, avail
+#   Modulefiles:    bar, foo
+#   Sub-Command:
+#
+#   Comment:	%C{
+#         Test logger feature
+#		}C%
+#
+##############################################################################
+
+if {[is_config_locked logger] || [is_config_locked logged_events]} {
+    send_user "\tskipping logger tests as configuration option is locked\n"
+} elseif {$is_global_rc_file} {
+    send_user "\tskipping logger tests as global RC file is present\n"
+} else {
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+setenv_var MODULES_SEARCH_MATCH starts_with
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+setenv_var MODULES_AUTO_HANDLING 1
+
+set log_cmd $env(TESTSUITEDIR)/stdin_to_file
+set log_file $env(TESTSUITEDIR)/logfile
+
+proc log_file_content {struct_content_list} {
+    set formatted_content_list {}
+    foreach struct_line_list $struct_content_list {
+        set formatted_line_list [list "user=\"$::username\""]
+        foreach {key val} $struct_line_list {
+            lappend formatted_line_list "$key=\"$val\""
+        }
+        lappend formatted_content_list [join $formatted_line_list]
+    }
+    return [join $formatted_content_list \n]
+}
+
+setenv_var TESTSUITE_LOGGER load_dep_and_alias
+
+set ans [list]
+lappend ans [list set __MODULES_LMREFRESH bar/1]
+lappend ans [list set __MODULES_LMPREREQ bar/1&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded]
+lappend ans [list alias albar bar]
+
+set ans_unload [list]
+lappend ans_unload [list unset __MODULES_LMPREREQ]
+lappend ans_unload [list unset _LMFILES_]
+lappend ans_unload [list unset LOADEDMODULES]
+lappend ans_unload [list unset __MODULES_LMREFRESH]
+lappend ans_unload [list unset __MODULES_LMTAG]
+lappend ans_unload [list unalias albar]
+
+set ans_reload [list]
+lappend ans_reload [list set __MODULES_LMPREREQ bar/1&foo/1.0]
+lappend ans_reload [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1]
+lappend ans_reload [list set LOADEDMODULES foo/1.0:bar/1]
+lappend ans_reload [list set __MODULES_LMREFRESH bar/1]
+lappend ans_reload [list set __MODULES_LMTAG foo/1.0&auto-loaded]
+lappend ans_reload [list alias albar bar]
+
+
+#
+# basic log tests
+#
+
+unsetenv_var MODULERCFILE
+setenv_var MODULES_LOGGER "$log_cmd $log_file"
+
+setenv_var MODULES_LOGGED_EVENTS requested_cmd
+
+set tserr "$mp:\nbar/1"
+set anslog [list]
+lappend anslog [list command avail arguments {bar/1 -t}]
+set tslog [log_file_content $anslog]
+testouterrfile_cmd sh {avail -t bar/1} OK $tserr $log_file $tslog
+
+
+setenv_var MODULES_LOGGED_EVENTS requested_cmd:requested_eval
+
+set tserr [msg_top_load bar/1 {} foo/1.0 {}]
+set anslog [list]
+lappend anslog [list command load arguments bar/1]
+lappend anslog [list mode load module bar/1 specified bar/1 modulefile $mp/bar/1 requested 1]
+set tslog [log_file_content $anslog]
+testouterrfile_cmd sh {load bar/1} $ans $tserr $log_file $tslog
+
+
+setenv_var MODULES_LOGGED_EVENTS auto_eval
+set anslog [list]
+lappend anslog [list mode load module foo/1.0 specified foo/1.0 modulefile $mp/foo/1.0 requested 0]
+set tslog [log_file_content $anslog]
+testouterrfile_cmd sh {load bar/1} $ans $tserr $log_file $tslog
+
+
+setenv_var MODULES_LOGGED_EVENTS requested_cmd:requested_eval:auto_eval
+set anslog [list]
+lappend anslog [list command load arguments bar/1]
+lappend anslog [list mode load module foo/1.0 specified foo/1.0 modulefile $mp/foo/1.0 requested 0]
+lappend anslog [list mode load module bar/1 specified bar/1 modulefile $mp/bar/1 requested 1]
+set tslog [log_file_content $anslog]
+testouterrfile_cmd sh {load bar/1} $ans $tserr $log_file $tslog
+
+file delete $log_file
+skip_if_quick_mode
+
+
+#
+# command log tests
+#
+
+setenv_var MODULES_LOGGED_EVENTS requested_cmd
+
+set anslog [list]
+lappend anslog [list command ml arguments bar/1]
+set tslog [log_file_content $anslog]
+testouterrfile_cmd sh {ml bar/1} $ans $tserr $log_file $tslog
+
+setenv_var MODULES_LOGGED_EVENTS {}
+
+file delete $log_file
+set tslog [couldnotopen_nofile $log_file]
+testouterrfile_cmd sh {ml bar/1} $ans $tserr $log_file $tslog
+
+setenv_var MODULES_LOGGED_EVENTS requested_cmd
+
+set anslog [list]
+lappend anslog [list command load arguments bar/1]
+set tslog [log_file_content $anslog]
+testouterrfile_cmd sh {ml load bar/1} $ans $tserr $log_file $tslog
+
+set anslog [list]
+lappend anslog [list command ml arguments -bar/1]
+set tslog [log_file_content $anslog]
+testouterrfile_cmd sh {ml -bar/1} OK {} $log_file $tslog
+
+# junk value in option
+setenv_var MODULES_LOGGED_EVENTS unk:requested_cmd
+testouterrfile_cmd sh {ml -bar/1} OK {} $log_file $tslog
+
+setenv_var MODULES_LOGGED_EVENTS unk
+file delete $log_file
+set tslog [couldnotopen_nofile $log_file]
+testouterrfile_cmd sh {ml load bar/1} $ans $tserr $log_file $tslog
+
+setenv_var MODULES_LOGGED_EVENTS requested_cmd
+
+file delete $log_file
+set tserr [err_invopt --bar-arg]
+set tslog [couldnotopen_nofile $log_file]
+testouterrfile_cmd sh {ml --bar-arg bar/1} ERR $tserr $log_file $tslog
+
+testouterrfile_cmd sh {--bar-arg load bar/1} ERR $tserr $log_file $tslog
+
+set tserr [err_invcmd unk]
+testouterrfile_cmd sh {unk bar/1} ERR $tserr $log_file $tslog
+
+# basic options are not recorded
+file delete $log_file
+testoutfile_cmd sh {-V} OK $log_file $tslog
+testoutfile_cmd sh {--help} OK $log_file $tslog
+
+
+#
+# evaluation log tests
+#
+
+# top commands
+setenv_var MODULES_LOGGED_EVENTS requested_eval
+set anslog [list]
+lappend anslog [list mode display module bar/2 specified bar modulefile $mp/bar/2 requested 1]
+set tslog [log_file_content $anslog]
+testoutfile_cmd sh {display bar} OK $log_file $tslog
+
+set anslog [list]
+lappend anslog [list mode help module bar/2 specified bar modulefile $mp/bar/2 requested 1]
+set tslog [log_file_content $anslog]
+testoutfile_cmd sh {help bar} OK $log_file $tslog
+
+set anslog [list]
+lappend anslog [list mode test module bar/2 specified bar modulefile $mp/bar/2 requested 1]
+set tslog [log_file_content $anslog]
+testoutfile_cmd sh {test bar} OK $log_file $tslog
+
+set anslog [list]
+lappend anslog [list mode load module bar/2 specified bar modulefile $mp/bar/2 requested 1]
+set tslog [log_file_content $anslog]
+testoutfile_cmd sh {source bar} OK $log_file $tslog
+
+setenv_var MODULES_LOGGED_EVENTS auto_eval
+file delete $log_file
+set tslog [couldnotopen_nofile $log_file]
+testoutfile_cmd sh {display bar} OK $log_file $tslog
+testoutfile_cmd sh {help bar} OK $log_file $tslog
+testoutfile_cmd sh {test bar} OK $log_file $tslog
+testoutfile_cmd sh {source bar} OK $log_file $tslog
+
+
+setenv_var MODULES_LOGGED_EVENTS requested_eval:auto_eval
+
+setenv_loaded_module [list foo/1.0 bar/1] [list $mp/foo/1.0 $mp/bar/1] [list foo/1.0]
+setenv_var __MODULES_LMPREREQ bar/1&foo/1.0
+setenv_var __MODULES_LMREFRESH bar/1
+
+set anslog [list]
+lappend anslog [list mode unload module bar/1 specified bar modulefile $mp/bar/1 requested 1]
+lappend anslog [list mode unload module foo/1.0 specified foo/1.0 modulefile $mp/foo/1.0 requested 0]
+set tslog [log_file_content $anslog]
+testoutfile_cmd sh {unload bar} $ans_unload $log_file $tslog
+
+set anslog [list]
+lappend anslog [list mode unload module bar/1 specified bar/1 modulefile $mp/bar/1 requested 1]
+lappend anslog [list mode unload module foo/1.0 specified foo/1.0 modulefile $mp/foo/1.0 requested 0]
+lappend anslog [list mode load module foo/1.0 specified foo/1.0 modulefile $mp/foo/1.0 requested 0]
+lappend anslog [list mode load module bar/1 specified bar/1 modulefile $mp/bar/1 requested 1]
+set tslog [log_file_content $anslog]
+testoutfile_cmd sh {reload} $ans_reload $log_file $tslog
+
+setenv_var MODULES_LOGGED_EVENTS requested_eval
+set anslog [list]
+lappend anslog [list mode unload module bar/1 specified bar/1 modulefile $mp/bar/1 requested 1]
+lappend anslog [list mode load module bar/1 specified bar/1 modulefile $mp/bar/1 requested 1]
+set tslog [log_file_content $anslog]
+testoutfile_cmd sh {reload} $ans_reload $log_file $tslog
+
+set anslog [list]
+lappend anslog [list mode unload module bar/1 specified bar modulefile $mp/bar/1 requested 1]
+set tslog [log_file_content $anslog]
+testoutfile_cmd sh {unload bar} $ans_unload $log_file $tslog
+
+setenv_var MODULES_LOGGED_EVENTS auto_eval
+set anslog [list]
+lappend anslog [list mode unload module foo/1.0 specified foo/1.0 modulefile $mp/foo/1.0 requested 0]
+lappend anslog [list mode load module foo/1.0 specified foo/1.0 modulefile $mp/foo/1.0 requested 0]
+set tslog [log_file_content $anslog]
+testoutfile_cmd sh {reload} $ans_reload $log_file $tslog
+
+set anslog [list]
+lappend anslog [list mode unload module foo/1.0 specified foo/1.0 modulefile $mp/foo/1.0 requested 0]
+set tslog [log_file_content $anslog]
+testoutfile_cmd sh {unload bar} $ans_unload $log_file $tslog
+
+
+# internal evaluation are not recorded (whatis, scan, refresh)
+setenv_var MODULES_LOGGED_EVENTS requested_eval:auto_eval
+
+file delete $log_file
+set tslog [couldnotopen_nofile $log_file]
+testoutfile_cmd sh {whatis bar} OK $log_file $tslog
+
+set ans_search [list]
+lappend ans_search [list out all-pre-out]
+lappend ans_search [list out all-out]
+testoutfile_cmd sh {search bar} $ans_search $log_file $tslog
+
+testoutfile_cmd sh {avail bar tag:loaded} OK $log_file $tslog
+
+set ans_refresh [list]
+lappend ans_refresh [list alias albar bar]
+testoutfile_cmd sh {refresh} $ans_refresh $log_file $tslog
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMREFRESH
+unsetenv_var __MODULES_LMPREREQ
+
+
+# global modulerc evaluation (appears as requested evaluation)
+setenv_var MODULES_LOGGED_EVENTS requested_eval
+setenv_var MODULERCFILE $mp/bar/2
+
+set tserr [msg_top_load bar/1 {} foo/1.0 {}]
+set anslog [list]
+lappend anslog [list mode load module $mp/bar/2 specified $mp/bar/2 modulefile $mp/bar/2 requested 1]
+lappend anslog [list mode load module bar/1 specified bar/1 modulefile $mp/bar/1 requested 1]
+set tslog [log_file_content $anslog]
+testouterrfile_cmd sh {load bar/1} $ans $tserr $log_file $tslog
+
+unsetenv_var MODULERCFILE
+
+
+# broken evaluation
+setenv_var MODULES_LOGGED_EVENTS requested_eval:auto_eval
+
+setenv_var TESTSUITE_LOGGER load_dep_and_break
+file delete $log_file
+set anslog [list]
+lappend anslog [list mode load module foo/1.0 specified foo/1.0 modulefile $mp/foo/1.0 requested 0]
+lappend anslog [list mode load module bar/1 specified bar/1 modulefile $mp/bar/1 requested 1]
+set tslog [log_file_content $anslog]
+testoutfile_cmd sh {load bar/1} ERR $log_file $tslog
+
+setenv_var TESTSUITE_LOGGER load_dep_and_unk
+file delete $log_file
+testoutfile_cmd sh {load bar/1} ERR $log_file $tslog
+
+setenv_var TESTSUITE_LOGGER dep_break
+file delete $log_file
+testoutfile_cmd sh {load bar/1} ERR $log_file $tslog
+
+setenv_var TESTSUITE_LOGGER dep_unk
+file delete $log_file
+testoutfile_cmd sh {load bar/1} ERR $log_file $tslog
+
+
+#
+# broken configurations
+#
+
+setenv_var TESTSUITE_LOGGER load_dep_and_alias
+
+# no logger command defined
+setenv_var MODULES_LOGGED_EVENTS requested_cmd
+setenv_var MODULES_LOGGER {}
+
+file delete $log_file
+set tserr "$mp:\nbar/1"
+set tslog [couldnotopen_nofile $log_file]
+testouterrfile_cmd sh {avail -t bar/1} OK $tserr $log_file $tslog
+
+setenv_var MODULES_LOGGED_EVENTS requested_cmd:requested_eval
+
+set tserr [msg_top_load bar/1 {} foo/1.0 {}]
+testouterrfile_cmd sh {load bar/1} $ans $tserr $log_file $tslog
+
+
+# bad logger command defined
+setenv_var MODULES_LOGGER {/path/to/unk}
+
+file delete $log_file
+set tserr "$mp:\nbar/1\n\n[warn_couldnotexec_nofile /path/to/unk]"
+set tslog [couldnotopen_nofile $log_file]
+testouterrfile_cmd sh {avail -t bar/1} OK $tserr $log_file $tslog
+
+setenv_var MODULES_LOGGED_EVENTS requested_cmd:requested_eval
+
+set tserr [msg_top_load bar/1 {} foo/1.0 {}]\n\n[warn_couldnotexec_nofile /path/to/unk]
+testouterrfile_cmd sh {load bar/1} $ans $tserr $log_file $tslog
+
+
+#
+# logger command behaving strangely
+#
+
+setenv_var MODULES_LOGGER "$log_cmd $log_file"
+
+setenv_var MODULES_LOGGED_EVENTS requested_eval:auto_eval
+setenv_loaded_module [list foo/1.0 bar/1] [list $mp/foo/1.0 $mp/bar/1] [list foo/1.0]
+setenv_var __MODULES_LMPREREQ bar/1&foo/1.0
+setenv_var __MODULES_LMREFRESH bar/1
+
+# logger command sends output message
+setenv_var TESTSUITE_LOGGER logger_cmd_out_msg
+
+file delete $log_file
+set anslog [list]
+lappend anslog [list mode unload module bar/1 specified bar/1 modulefile $mp/bar/1 requested 1]
+lappend anslog [list mode unload module foo/1.0 specified foo/1.0 modulefile $mp/foo/1.0 requested 0]
+lappend anslog [list mode load module foo/1.0 specified foo/1.0 modulefile $mp/foo/1.0 requested 0]
+lappend anslog [list mode load module bar/1 specified bar/1 modulefile $mp/bar/1 requested 1]
+set tslog [log_file_content $anslog]
+testouterrfile_cmd sh {reload} $ans_reload {} $log_file $tslog
+
+# logger command sends error message
+setenv_var TESTSUITE_LOGGER logger_cmd_err_msg
+
+file delete $log_file
+testouterrfile_cmd sh {reload} $ans_reload {} $log_file $tslog
+
+# logger command exits with non-zero code
+setenv_var TESTSUITE_LOGGER logger_cmd_exit_code
+
+file delete $log_file
+set tserr $warn_issue_logging
+testouterrfile_cmd sh {reload} $ans_reload $tserr $log_file $tslog
+
+# logger command crashes after first log message sent
+setenv_var TESTSUITE_LOGGER logger_cmd_crash
+
+file delete $log_file
+set anslog [list]
+lappend anslog [list mode unload module bar/1 specified bar/1 modulefile $mp/bar/1 requested 1]
+set tslog [log_file_content $anslog]
+testouterrfile_cmd sh {reload} $ans_reload $tserr $log_file $tslog
+
+# logger command crashes without setting a non-zero exit code after first log message sent
+setenv_var TESTSUITE_LOGGER logger_cmd_silent_crash
+
+file delete $log_file
+testouterrfile_cmd sh {reload} $ans_reload {} $log_file $tslog
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMREFRESH
+unsetenv_var __MODULES_LMPREREQ
+
+
+#
+#  Cleanup
+#
+
+file delete $log_file
+rename log_file_content {}
+
+}
+
+reset_test_env

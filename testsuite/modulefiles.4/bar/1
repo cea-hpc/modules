@@ -6,3 +6,21 @@ if {[info exists env(TESTSUITE_HIDE_AUTO_LOADED)]} {
         }
     }
 }
+if {[info exists env(TESTSUITE_LOGGER)]} {
+    switch -- $env(TESTSUITE_LOGGER) {
+        load_dep_and_alias - dep_break - dep_unk - logger_cmd_out_msg - logger_cmd_err_msg -\
+        logger_cmd_exit_code - logger_cmd_crash - logger_cmd_silent_crash {
+            module-whatis [module-info name]
+            set-alias albar bar
+            module load foo/1.0
+        }
+        load_dep_and_break {
+            module load foo/1.0
+            break
+        }
+        load_dep_and_unk {
+            module load foo/1.0
+            unk
+        }
+    }
+}

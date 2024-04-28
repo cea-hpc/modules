@@ -215,6 +215,9 @@ set is_symlink_supported [file isdirectory $env(TESTSUITEDIR)/modulefiles/symlin
 # check if underlying filesystem is case-insensitive
 set is_filesystem_icase [file exists $env(TESTSUITEDIR)/modulefiles.2/ICASE/prereq]
 
+set is_global_rc_file [file isfile $install_etcdir/rc]
+send_user "\tGlobal RC file is [expr {$is_global_rc_file ? {present} : {absent}}]\n"
+
 # check x11 capabilities
 # check where to find the 'xrdb' binary on this system
 set xrdb_notfound_msg {Command 'xrdb' cannot be found}
@@ -412,6 +415,7 @@ set warn_nostash "$::warn_msgs: No specific environment to save"
 set warn_cache_nowritable "$::warn_msgs: Cannot remove cache file, directory is not writable"
 set warn_cache_build_nowritable "$::warn_msgs: Cannot build cache file, directory is not writable"
 set warn_cache_nothingtorec "$::warn_msgs: Nothing to record in cache file"
+set warn_issue_logging "$::warn_msgs: Issue occurred when logging information"
 
 set x11_warn_prefix "$error_msgs: X11 resources cannot be edited, issue spotted"
 set xrdb_warn "$x11_warn_prefix\n$error_msgs: $xrdb_notfound_msg"
@@ -607,6 +611,14 @@ proc couldnotopen_permdenied {file} {
 
 proc err_couldnotopen_permdenied {file} {
     return "$::error_msgs: [couldnotopen_permdenied $file]"
+}
+
+proc couldnotexec_nofile {file} {
+    return "couldn't execute \"$file\": no such file or directory"
+}
+
+proc warn_couldnotexec_nofile {file} {
+    return "$::warn_msgs: [couldnotexec_nofile $file]"
 }
 
 proc err_permdenied {modfile} {
