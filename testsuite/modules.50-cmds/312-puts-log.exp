@@ -1,0 +1,152 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:       modules.50-cmds/%M%
+#   Revision:       %I%
+#   First Edition:  2024/04/28
+#   Last Mod.:      %U%, %G%
+#
+#   Authors:        Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:    Testuite testsequence
+#   Command:        load
+#   Modulefiles:    puts
+#   Sub-Command:
+#
+#   Comment:    %C{
+#           Test puts modulefile command on log channel
+#       }C%
+#
+##############################################################################
+
+if {[is_config_locked logger] || [is_config_locked logged_events]} {
+    send_user "\tskipping logger tests as configuration option is locked\n"
+} else {
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+set log_cmd $env(TESTSUITEDIR)/stdin_to_file
+set log_file $env(TESTSUITEDIR)/logfile
+
+proc log_file_content {struct_content_list} {
+    set formatted_content_list {}
+    foreach struct_line_list $struct_content_list {
+        set formatted_line_list [list "user=\"$::username\""]
+        foreach {key val} $struct_line_list {
+            lappend formatted_line_list "$key=\"$val\""
+        }
+        lappend formatted_content_list [join $formatted_line_list]
+    }
+    return [join $formatted_content_list \n]
+}
+
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/puts/1]
+lappend ans [list set LOADEDMODULES puts/1]
+
+set ans_err [list]
+lappend ans_err [list set _LMFILES_ $mp/puts/1]
+lappend ans_err [list set LOADEDMODULES puts/1]
+lappend ans_err [list ERR]
+
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom_error_trace "    invoked from within
+\"if \{\[info exists env(TESTSUITE_PUTS)\]\} \{
+    switch -- \$env(TESTSUITE_PUTS) \{
+        log_rc1 \{
+            puts log \{some msg\}
+            puts log \{...\""
+} else {
+    set custom_error_trace {}
+}
+
+
+# basic log tests
+setenv_var MODULES_LOGGER "$log_cmd $log_file"
+setenv_var MODULES_LOGGED_EVENTS requested_cmd
+
+setenv_var TESTSUITE_PUTS log1
+
+set anslog [list]
+lappend anslog [list command load arguments puts/1]
+set tslog "[log_file_content $anslog]\nsome msg\nanother msg"
+testouterrfile_cmd sh {load puts/1} $ans {} $log_file $tslog
+
+file delete $log_file
+skip_if_quick_mode
+
+
+# no logged events configured
+setenv_var MODULES_LOGGED_EVENTS {}
+
+set tslog "some msg\nanother msg"
+testouterrfile_cmd sh {load puts/1} $ans {} $log_file $tslog
+
+
+# no logger command defined
+setenv_var MODULES_LOGGER {}
+
+file delete $log_file
+set tslog [couldnotopen_nofile $log_file]
+testouterrfile_cmd sh {load puts/1} $ans {} $log_file $tslog
+
+
+# broken logger command defined
+setenv_var MODULES_LOGGER "$log_cmd $log_file"
+setenv_var TESTSUITE_LOGGER logger_cmd_crash
+
+set tslog "some msg"
+set tserr $warn_issue_logging
+testouterrfile_cmd sh {load puts/1} $ans $tserr $log_file $tslog
+
+unsetenv_var TESTSUITE_LOGGER
+
+
+# ineffective -nonewline puts option
+setenv_var TESTSUITE_PUTS log_nonewline
+
+file delete $log_file
+set tslog "some msg"
+testouterrfile_cmd sh {load puts/1} $ans {} $log_file $tslog
+
+
+# error during modulefile evaluation
+setenv_var TESTSUITE_PUTS log_and_unk
+
+file delete $log_file
+set tslog "some msg"
+testoutfile_cmd sh {load puts/1} ERR $log_file $tslog
+
+
+# log during modulerc (no support)
+setenv_var TESTSUITE_PUTS log_rc1
+
+file delete $log_file
+set tslog [couldnotopen_nofile $log_file]
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 5}]
+set tserr [msg_moderr {can not find channel named "log"} {puts log {some msg}} $mp/puts/.modulerc $line_num {  } {} {} $custom_error_trace]
+testouterrfile_cmd sh {load puts/1} $ans_err $tserr $log_file $tslog
+
+
+# error during modulerc evaluation
+setenv_var TESTSUITE_PUTS log_rc_and_unk
+
+file delete $log_file
+set line_num [expr {[cmpversion $tclsh_version 8.6] == -1 ? 2 : 9}]
+set tserr [msg_moderr {can not find channel named "log"} {puts log {some msg}} $mp/puts/.modulerc $line_num {  } {} {} $custom_error_trace]
+testouterrfile_cmd sh {load puts/1} $ans_err $tserr $log_file $tslog
+
+
+#
+#  Cleanup
+#
+
+file delete $log_file
+rename log_file_content {}
+
+}
+
+reset_test_env
