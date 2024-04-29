@@ -1038,6 +1038,9 @@ The following modulefile Tcl commands appeared on Modules 5.
  rendered as command to evaluate in current shell session and prior any other
  environment changes.
 
+ Starting Modules 5.5, if content is sent to the ``log`` channel, it is sent
+ to the defined :mconfig:`logger` command.
+
 :mfcmd:`remove-path`
 
  Starting with version ``5.1``:

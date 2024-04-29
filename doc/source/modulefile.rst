@@ -1156,9 +1156,11 @@ the *modulefile* is being loaded.
 .. mfcmd:: puts [-nonewline] [channelId] string
 
  Writes the characters given by *string* to the channel given by *channelId*.
- This command is not a Modules-specific command, it is actually part of Tcl.
- See the :manpage:`puts(n)` Tcl man page for a complete description of this
- command.
+ This command is part of the regular set of Tcl commands but it is enhanced
+ with specific features in the modulefile evaluation context. See the
+ :manpage:`puts(n)` Tcl man page for the basic description of this command.
+ Specific features for modulefile evaluation context are described in the
+ remainder of this section.
 
  Content written to the ``stderr`` channel is rendered as output message
  produced by modulefile. Content written to the ``stdout`` channel is rendered
@@ -1170,6 +1172,9 @@ the *modulefile* is being loaded.
  evaluated in current shell environment. This content is spooled and rendered
  prior any other environment changes.
 
+ When *channelId* equals ``log``, content is sent to the log system through
+ the defined :mconfig:`logger` command.
+
  .. only:: html
 
     .. versionchanged:: 4.1
@@ -1179,6 +1184,9 @@ the *modulefile* is being loaded.
     .. versionchanged:: 5.1
        Channel ``prestdout`` added to render content prior any other
        environment changes
+
+    .. versionchanged:: 5.5
+       Channel ``log`` added to send information to log system
 
 .. mfcmd:: remove-path [options] variable value... [--append-on-unload|--prepend-on-unload value...]
 
