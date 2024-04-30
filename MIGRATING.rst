@@ -8,6 +8,75 @@ Modules. It provides an overview of the new features and changed behaviors
 that will be encountered when upgrading.
 
 
+v5.5
+====
+
+This new version is backward-compatible with previous version 5 release. It
+fixes bugs but also introduces new functionalities that are described in this
+section. See the :ref:`5.5 release notes<5.5 release notes>` for a complete
+list of the changes between Modules v5.4 and v5.5.
+
+Logging activity
+----------------
+
+The ability to log module command activity is now available out of the box. It
+could be enabled on previous versions by using a specific
+:file:`siteconfig.tcl` configuration script as described in the
+:ref:`log-module-command` cookbook recipe.
+
+Integrated logging feature relies on two configuration options:
+
+* :mconfig:`logger`, the command run to transmit messages to the log system
+* :mconfig:`logged_events`, list of module event to log
+
+:mconfig:`logger` option relies on the :command:`logger` command by default,
+which is usually available and already installed on most systems.
+
+The :mconfig:`logged_events` option is empty by default, so no content is sent
+to logs by default. It recognizes the following events:
+
+* ``requested_cmd``: record module commands typed by users
+* ``requested_eval``: record modulefile evaluations requested by users
+* ``auto_eval``: record modulefile evaluations automatically triggered
+
+.. parsed-literal::
+
+    :ps:`$` module config logged_events +requested_cmd:requested_eval
+    :ps:`$` ml av
+    --------------- :sgrdi:`/path/to/modulefiles` ---------------
+    bar/1.0  foo/1.0  qux/1.0
+    :ps:`$` module load bar
+    Loading :sgrhi:`bar/1.0`
+      :sgrin:`Loading requirement`: qux/1.0
+    :ps:`$` module purge
+
+In the above example the module command and modulefile evaluations directly
+requested by users are sent to the system log:
+
+.. parsed-literal::
+
+    :ps:`$` journalctl -q -t modules
+    Apr 29 07:47:42 hostname modules[3777797]: user="username" command="avail" arguments=""
+    Apr 29 07:48:10 hostname modules[3777876]: user="username" command="load" arguments="bar"
+    Apr 29 07:48:10 hostname modules[3777876]: user="username" mode="load" module="bar/1.0" specified="bar" modulefile="/path/to/modulefiles/bar/1.0" requested="1"
+    Apr 29 07:48:17 hostname modules[3777914]: user="username" command="purge" arguments=""
+    Apr 29 07:48:17 hostname modules[3777914]: user="username" mode="unload" module="bar/1.0" specified="bar/1.0" modulefile="/path/to/modulefiles/bar/1.0" requested="1"
+
+Some messages can also be sent during modulefile evaluation by using the
+``log`` channel of the :mfcmd:`puts` command:
+
+.. parsed-literal::
+
+    :ps:`$` cat /path/to/modulefiles/foo/1.0
+    #%Module
+    puts log {some message sent to log}
+    :ps:`$` ml foo/1.0
+    :ps:`$` journalctl -q -t modules
+    Apr 29 07:47:51 hostname modules[3777835]: user="username" command="ml" arguments="foo/1.0"
+    Apr 29 07:47:51 hostname modules[3777835]: some message sent to log
+    Apr 29 07:47:51 hostname modules[3777835]: user="username" mode="load" module="foo/1.0" specified="foo/1.0" modulefile="/path/to/modulefiles/foo/1.0" requested="1"
+
+
 v5.4
 ====
 
