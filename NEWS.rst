@@ -45,6 +45,31 @@ Modules 5.5.0 (not yet released)
 * Add :mfcmd:`lsb-release` modulefile command to get certain Linux Standard
   Base (LSB) information. It accepts to following sub-commands: ``id``,
   ``codename`` and ``release``.
+* Add information logging capabilities controlled by two new configuration
+  options: :mconfig:`logger` which defines the command to use to sent
+  information to the log system and :mconfig:`logged_events` which controls
+  the information sent to logs.
+* :mconfig:`logger` configuration option relies on the :command:`logger`
+  command by default. It can be changed at installation time with
+  :instopt:`--with-logger` and :instopt:`--with-logger-opts` options. When
+  :mconfig:`logger` is changed with :subcmd:`config` sub-command, it sets the
+  :envvar:`MODULES_LOGGER` environment variable. :mconfig:`logger` can be
+  declared as a locked configuration option in :mconfig:`locked_configs`.
+* :mconfig:`logged_events` configuration option is a list of event names
+  separated by colon character. It is empty by default, thus nothing is logged
+  by default. Allowed event names are ``requested_cmd`` (log module commands
+  directly executed by users), ``requested_eval`` (modulefile evaluations
+  directly asked by users) and ``auto_eval`` (modulefile evaluations
+  automatically triggered). Option value can be changed at installation time
+  with :instopt:`--with-logged-events` option. When :mconfig:`logged_events`
+  is changed with :subcmd:`config` sub-command, it sets the
+  :envvar:`MODULES_LOGGED_EVENTS` environment variable.
+  :mconfig:`logged_events` can be declared as a locked configuration option in
+  :mconfig:`locked_configs`.
+* Add ``log`` channel to the :mfcmd:`puts` modulefile command. String message
+  passed to :mfcmd:`puts log<puts>` is sent to the :mconfig:`logger` command.
+* Doc: update :ref:`log-module-command` cookbook recipe with integrated
+  logging feature.
 
 .. warning:: Existing *versions* modulefiles installed for Modules 4.7 and
    upward should be fixed by adding the ``--not-req`` option to the
