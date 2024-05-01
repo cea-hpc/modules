@@ -51,6 +51,23 @@ are required:
 * sphinx >= 1.0
 * gzip
 
+The following features of Modules rely on external tools. Default tool may be
+changed or their location on target system may be specified. Alternatively
+these features may also be disabled.
+
++----------------+-----------------------+-------------------------------+
+| Feature option | Default external tool | Installation options          |
++================+=======================+===============================+
+| pager          | ``less``              | :instopt:`--with-pager`,      |
+|                |                       | ``--without-pager``           |
++----------------+-----------------------+-------------------------------+
+| logger         | ``logger``            | :instopt:`--with-logger`,     |
+|                |                       | ``--without-logger``          |
++----------------+-----------------------+-------------------------------+
+| tcl_linter     | ``nagelfar.tcl``      | :instopt:`--with-tcl-linter`, |
+|                |                       | ``--without-linter``          |
++----------------+-----------------------+-------------------------------+
+
 Get Modules
 -----------
 
