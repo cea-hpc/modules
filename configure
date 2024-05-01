@@ -555,28 +555,30 @@ get_package_option() {
 
 # parse optional argument to find package is set or disabled
 get_package_value() {
-   typeset val="${1#*=}"
-   typeset valifunset="$2"
+   typeset val_raw="${1#*=}"
+   # use fallback value when no specific value given
+   typeset dfl_with_val="$2"
+   typeset dfl_without_val="$3"
 
-   # use fallback value 'valifunset' when no specific value given
-   if [ "${1//--with-/}" != "$1" ]; then
-      if [ "$val" = 'no' ] || [ "$val" = "$1" ]; then
-        echo "$valifunset"
-      else
-        echo "$val"
-      fi
+   if [ "${1/#--with-/}" = "$1" ] || [ "$val_raw" = 'no' ]; then
+      value="$dfl_without_val"
+   elif [ "$val_raw" = "$1" ]; then
+      value="$dfl_with_val"
    else
-      echo "$valifunset"
+      value="$val_raw"
    fi
+
+   echo "$value"
 }
 
 check_and_get_package_value() {
    typeset arg_raw="$2"
    typeset allowed_values="$3"
-   typeset val_if_unset="$4"
+   typeset dfl_with_val="$4"
+   typeset dfl_without_val="$5"
 
    option=$(get_package_option "$arg_raw")
-   value=$(get_package_value "$arg_raw" "$val_if_unset")
+   value=$(get_package_value "$arg_raw" "$dfl_with_val" "$dfl_without_val")
    if [ "${allowed_values// $value /}" = "$allowed_values" ]; then
       echo_error "Bad value for option \`$option'"\
          "Allowed values are:$allowed_values"
@@ -588,10 +590,11 @@ check_and_get_package_value() {
 check_and_get_package_value_list() {
    typeset arg_raw="$2"
    typeset allowed_values="$3"
-   typeset val_if_unset="$4"
+   typeset dfl_with_val="$4"
+   typeset dfl_without_val="$5"
 
    option=$(get_package_option "$arg_raw")
-   value=$(get_package_value "$arg_raw" "$val_if_unset")
+   value=$(get_package_value "$arg_raw" "$dfl_with_val" "$dfl_without_val")
    ORIG_IFS=$IFS
    IFS=:
    for val in $value; do
@@ -807,7 +810,7 @@ for arg in "$@"; do
       check_and_get_package_value "searchmatch" "$arg" "$allowedval" ;;
    --with-icase*|--without-icase)
       allowedval=" never search always " ;
-      check_and_get_package_value "icase" "$arg" "$allowedval" ;;
+      check_and_get_package_value "icase" "$arg" "$allowedval" "$icase" "never";;
    --with-nearly-forbidden-days*|--without-nearly-forbidden-days)
       nearlyforbiddendays=$(get_package_value "$arg") ;
       if [ -z "$nearlyforbiddendays" ] || ! [ "$nearlyforbiddendays" -eq "$nearlyforbiddendays" ] 2>/dev/null\
@@ -821,7 +824,7 @@ for arg in "$@"; do
       tagcolorname=$(get_package_value "$arg") ;;
    --with-sticky-purge*|--without-sticky-purge)
       allowedval=" error warning silent " ;
-      check_and_get_package_value "stickypurge" "$arg" "$allowedval" "error" ;;
+      check_and_get_package_value "stickypurge" "$arg" "$allowedval" "$stickypurge" ;;
    --with-abort-on-error*|--without-abort-on-error)
       allowedval=" load ml mod-to-sh purge reload switch switch_unload try-load unload " ;
       check_and_get_package_value_list "abortonerror" "$arg" "$allowedval"\
