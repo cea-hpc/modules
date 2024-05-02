@@ -556,14 +556,10 @@ get_package_option() {
 # parse optional argument to find package is set or disabled
 get_package_value() {
    typeset val_raw="${1#*=}"
-   # use fallback value when no specific value given
-   typeset dfl_with_val="$2"
-   typeset dfl_without_val="$3"
+   typeset dfl_without_val="$2"
 
    if [ "${1/#--with-/}" = "$1" ] || [ "$val_raw" = 'no' ]; then
       value="$dfl_without_val"
-   elif [ "$val_raw" = "$1" ]; then
-      value="$dfl_with_val"
    else
       value="$val_raw"
    fi
@@ -574,11 +570,10 @@ get_package_value() {
 check_and_get_package_value() {
    typeset arg_raw="$2"
    typeset allowed_values="$3"
-   typeset dfl_with_val="$4"
-   typeset dfl_without_val="$5"
+   typeset dfl_without_val="$4"
 
    option=$(get_package_option "$arg_raw")
-   value=$(get_package_value "$arg_raw" "$dfl_with_val" "$dfl_without_val")
+   value=$(get_package_value "$arg_raw" "$dfl_without_val")
    if [ "${allowed_values// $value /}" = "$allowed_values" ]; then
       echo_error "Bad value for option \`$option'"\
          "Allowed values are:$allowed_values"
@@ -590,11 +585,10 @@ check_and_get_package_value() {
 check_and_get_package_value_list() {
    typeset arg_raw="$2"
    typeset allowed_values="$3"
-   typeset dfl_with_val="$4"
-   typeset dfl_without_val="$5"
+   typeset dfl_without_val="$4"
 
    option=$(get_package_option "$arg_raw")
-   value=$(get_package_value "$arg_raw" "$dfl_with_val" "$dfl_without_val")
+   value=$(get_package_value "$arg_raw" "$dfl_without_val")
    ORIG_IFS=$IFS
    IFS=:
    for val in $value; do
@@ -762,18 +756,17 @@ for arg in "$@"; do
    --with-tclsh=*|--without-tclsh)
       tclshbin=$(get_package_value "$arg") ;;
    --with-logger=*|--without-logger)
-      logger=$(get_package_value "$arg") ;;
+      logger=$(get_package_value "$arg" "") ;;
    --with-logger-opts=*|--without-logger-opts)
-      loggeropts=$(get_package_value "$arg")
+      loggeropts=$(get_package_value "$arg" "")
       defloggeropts=0 ;;
    --with-logged-events=*|--without-logged-events)
       allowedval=" auto_eval requested_eval requested_cmd " ;
-      check_and_get_package_value_list "loggedevents" "$arg" "$allowedval"\
-         "$loggedevents" ;;
+      check_and_get_package_value_list "loggedevents" "$arg" "$allowedval" "" ;;
    --with-pager=*|--without-pager)
-      pager=$(get_package_value "$arg") ;;
+      pager=$(get_package_value "$arg" "") ;;
    --with-pager-opts=*|--without-pager-opts)
-      pageropts=$(get_package_value "$arg")
+      pageropts=$(get_package_value "$arg" "")
       defpageropts=0 ;;
    --with-verbosity=*|--without-verbosity)
       allowedval=" silent concise normal verbose trace debug debug2 " ;
@@ -787,14 +780,14 @@ for arg in "$@"; do
          abortonerror='load:ml:reload:switch' ;
       fi ;;
    --with-dark-background-colors=*|--without-dark-background-colors)
-      darkbgcolors=$(get_package_value "$arg") ;;
+      darkbgcolors=$(get_package_value "$arg" "") ;;
    --with-light-background-colors=*|--without-light-background-colors)
-      lightbgcolors=$(get_package_value "$arg") ;;
+      lightbgcolors=$(get_package_value "$arg" "") ;;
    --with-terminal-background=*|--without-terminal-background)
       allowedval=" dark light " ;
       check_and_get_package_value "termbg" "$arg" "$allowedval" ;;
    --with-locked-configs=*|--disable-locked-configs)
-      lockedconfigs=$(get_package_value "$arg") ;
+      lockedconfigs=$(get_package_value "$arg" "") ;
       allowedval=" extra_siteconfig implicit_default logged_events logger " ;
       for val in $lockedconfigs; do
          if [ "${allowedval// $val /}" = "$allowedval" ]; then
@@ -810,7 +803,7 @@ for arg in "$@"; do
       check_and_get_package_value "searchmatch" "$arg" "$allowedval" ;;
    --with-icase=*|--without-icase)
       allowedval=" never search always " ;
-      check_and_get_package_value "icase" "$arg" "$allowedval" "$icase" "never";;
+      check_and_get_package_value "icase" "$arg" "$allowedval" "never";;
    --with-nearly-forbidden-days=*|--without-nearly-forbidden-days)
       nearlyforbiddendays=$(get_package_value "$arg") ;
       if [ -z "$nearlyforbiddendays" ] || ! [ "$nearlyforbiddendays" -eq "$nearlyforbiddendays" ] 2>/dev/null\
@@ -819,43 +812,38 @@ for arg in "$@"; do
             "Value should be an integer comprised between 0 and 365"
       fi ;;
    --with-tag-abbrev=*|--without-tag-abbrev)
-      tagabbrev=$(get_package_value "$arg") ;;
+      tagabbrev=$(get_package_value "$arg" "") ;;
    --with-tag-color-name=*|--without-tag-color-name)
-      tagcolorname=$(get_package_value "$arg") ;;
+      tagcolorname=$(get_package_value "$arg" "") ;;
    --with-sticky-purge=*|--without-sticky-purge)
       allowedval=" error warning silent " ;
-      check_and_get_package_value "stickypurge" "$arg" "$allowedval" "$stickypurge" ;;
+      check_and_get_package_value "stickypurge" "$arg" "$allowedval" ;;
    --with-abort-on-error=*|--without-abort-on-error)
       allowedval=" load ml mod-to-sh purge reload switch switch_unload try-load unload " ;
-      check_and_get_package_value_list "abortonerror" "$arg" "$allowedval"\
-         "$abortonerror" ;;
+      check_and_get_package_value_list "abortonerror" "$arg" "$allowedval" "" ;;
    --with-avail-output=*|--without-avail-output)
       allowedval=" modulepath alias dirwsym indesym sym tag key variant variantifspec " ;
-      check_and_get_package_value_list "availoutput" "$arg" "$allowedval"\
-         "$availoutput" ;;
+      check_and_get_package_value_list "availoutput" "$arg" "$allowedval" "" ;;
    --with-avail-terse-output=*|--without-avail-terse-output)
       allowedval=" modulepath alias dirwsym indesym sym tag key variant variantifspec " ;
-      check_and_get_package_value_list "availterseoutput" "$arg"\
-         "$allowedval" "$availterseoutput" ;;
+      check_and_get_package_value_list "availterseoutput" "$arg" "$allowedval" "" ;;
    --with-list-output=*|--without-list-output)
       allowedval=" header idx variant alias indesym sym tag key " ;
-      check_and_get_package_value_list listoutput "$arg" "$allowedval"\
-         "$listoutput" ;;
+      check_and_get_package_value_list listoutput "$arg" "$allowedval" "" ;;
    --with-list-terse-output=*|--without-list-terse-output)
       allowedval=" header idx variant alias indesym sym tag key " ;
-      check_and_get_package_value_list "listterseoutput" "$arg" "$allowedval"\
-         "$listterseoutput" ;;
+      check_and_get_package_value_list "listterseoutput" "$arg" "$allowedval" "" ;;
    --with-variant-shortcut=*|--without-variant-shortcut)
-      variantshortcut=$(get_package_value "$arg") ;;
+      variantshortcut=$(get_package_value "$arg" "") ;;
    --with-editor=*|--without-editor)
       editor=$(get_package_value "$arg") ;;
    --with-modulepath=*|--without-modulepath)
-      modulepath=$(get_package_value "$arg") ;;
+      modulepath=$(get_package_value "$arg" "") ;;
    --with-loadedmodules=*|--without-loadedmodules)
-      loadedmodules=$(get_package_value "$arg") ;;
+      loadedmodules=$(get_package_value "$arg" "") ;;
    --with-quarantine-vars=*|--without-quarantine-vars)
       # shellcheck disable=SC2034
-      quarantinevars=$(get_package_value "$arg") ;;
+      quarantinevars=$(get_package_value "$arg" "") ;;
    --with-bashcompletiondir=*|--without-bashcompletiondir)
       # shellcheck disable=SC2034
       bashcompletiondir=$(get_package_value "$arg" "") ;;
@@ -866,10 +854,10 @@ for arg in "$@"; do
       # shellcheck disable=SC2034
       zshcompletiondir=$(get_package_value "$arg" "") ;;
    --with-tcl-linter=*|--without-tcl-linter)
-      tcllinter=$(get_package_value "$arg") ;;
+      tcllinter=$(get_package_value "$arg" "") ;;
    --with-tcl-linter-opts=*|--without-tcl-linter-opts)
       # shellcheck disable=SC2034
-      tcllinteropts=$(get_package_value "$arg") ;;
+      tcllinteropts=$(get_package_value "$arg" "") ;;
    --with-tcl=*|--without-tcl|--with-tclinclude=*|--without-tclinclude)
       libarglist+=("$arg") ;;
    --with-python=*|--without-python)
