@@ -449,6 +449,12 @@ Specifying
   - which means find modules defining either *value1* or *value2* as available value for *name* variant
   - an error is obtained if performed on selection context
 
+- on search context, variant criterion may be prefixed by ``not:`` string
+
+  - like *not:name=value1,value2*
+  - which means find modules not defining variant *name* or not providing *value1* and *value2* as available value
+  - an error is obtained if performed on selection context
+
 - when special characters like *?* or \* are used in variant name or value
 
   - they are treated literally, no wildcard meaning is applied

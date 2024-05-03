@@ -408,15 +408,19 @@ Expressing an *OR* operation
 * does not seem useful to allow ranges like for version
 * Such syntax is only allowed for *return all matching  modules* context
 
-FUTURE: expressing a *NOT* operation
+Expressing a *NOT* operation
 
-* adding a character like ``~`` or ``!`` prior value
-* ``module avail mod/1.0 foo=!val1 bar=val2``
-* means *foo* equals any value expect *val1* and *bar* equals *val2*
-* FIXME: allow such syntax on any context or only for *return all matching
-  modules* context?
-* NOTE: *NOT* operator is not specified currently on Spack's side. Some
-  discussions mention use of ``!``, which does not work for Tcsh shell
+* by adding a prefix string ``not:`` prior value
+* ``module avail mod/1.0 not:foo=val1 bar=val2``
+* means *bar* equals *val2* and either *foo* variant is not defined or it
+  equals any value expect *val1*
+* such syntax is only allowed for *return all matching modules* context
+* ``not:`` syntax is chosen over prefix character like ``!``, which is
+  interpreted as an event on shells like Tcsh or Bash, and ``~``, which is
+  resolved a HOME directory path if following string matches an existing user
+* NOTE: *NOT* operator is not specified currently on Spack's side.
+* FUTURE: If a *not* keyword appear on Spack later on, it may also be
+  supported here as an alias over the ``not:`` prefix.
 
 What triggers ``scan`` evaluation?
 ----------------------------------
