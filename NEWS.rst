@@ -70,6 +70,12 @@ Modules 5.5.0 (not yet released)
   passed to :mfcmd:`puts log<puts>` is sent to the :mconfig:`logger` command.
 * Doc: update :ref:`log-module-command` cookbook recipe with integrated
   logging feature.
+* Install: update :file:`configure` script to ignore all ``--with-*`` options
+  if no value is associated to them.
+* Install: update :file:`configure` script to set option to an empty string if
+  specified with ``--without-*`` argument. Exception is made for
+  :instopt:`--without-icase<--with-icase>` which sets option to the ``never``
+  value.
 
 .. warning:: Existing *versions* modulefiles installed for Modules 4.7 and
    upward should be fixed by adding the ``--not-req`` option to the
