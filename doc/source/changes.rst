@@ -924,6 +924,13 @@ The following module sub-commands appeared on Modules 5.
    comma character, to get modules providing any of these variant values (*OR*
    operator).
 
+ Starting Modules 5.5:
+
+ * ``not:`` prefix may be added to extra specifier criterion to select modules
+   not matching specified values.
+ * ``not:`` prefix may be added to variant specification to get modules not
+   providing variant or not matching specified variant values.
+
 :subcmd:`reload`
 
  Starting Modules 5.4, support for :option:`--force` option is added on this

@@ -2885,6 +2885,10 @@ When several extra specifiers are set on a module search query (e.g.,
 ``env:PATH env:LD_LIBRARY_PATH``), they act as an *AND* operation. Which means
 modules listed in result are those matching all extra specifiers defined.
 
+When an extra specifier is prefixed by ``not:`` (e.g., ``not:env:PATH``), it
+acts as a *NOT* operation. Which means modules listed in result are those not
+matching the extra specifier defined.
+
 Module specification used as *name* value for some extra specifier *elements*
 may leverage :ref:`Advanced module version specifiers` syntax. However if a
 module version range or list is implied, it is currently resolved to existing
@@ -2908,6 +2912,10 @@ if an unknown extra specifier *element* is defined in search query.
    .. versionchanged:: 5.4
       Multiple names may be set on one extra specifier criterion to select
       modules matching any of these names
+
+   .. versionchanged:: 5.5
+      ``not:`` prefix for extra specifier criterion added to select modules
+      not matching specified names
 
 
 .. _Module tags:
@@ -3092,9 +3100,14 @@ selection context, only the last specified value is retained. Which means on
 previous example that ``bar`` variant is set to ``value2``.
 
 When searching for available modules, multiple values may be set on one
-variant criterion, which matches modules that provides any of these variant
+variant criterion, which matches modules that provide any of these variant
 values. For instance ``bar=value1,value2`` will return modules defining a
 ``bar`` variant with either ``value1`` or ``value2`` as available value.
+
+When searching for available modules, ``not:`` prefix may be added on variant
+criterion, which matches modules that do not provide these variant values. For
+instance ``not:bar=value1`` will return modules not defining a ``bar`` variant
+or defining a ``bar`` variant but without ``value1`` among available values.
 
 Module variants are reported along the module they are associated to on
 :subcmd:`list` sub-command results. They are also reported on :subcmd:`avail`
@@ -3127,6 +3140,10 @@ Variant shortcut and color rendering do not apply on JSON output.
    .. versionchanged:: 5.4
       Multiple values may be set on one variant search criterion to select
       modules providing any of these variant values
+
+   .. versionchanged:: 5.5
+      ``not:`` prefix for variant search criterion added to select modules not
+      matching specified variant values
 
 
 .. _Extra match search:
