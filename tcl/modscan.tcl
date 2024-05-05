@@ -227,7 +227,7 @@ proc doesModVariantMatch {mod pvrlist} {
       # no match if a specified variant is not found among module variants or
       # if the value is not available
       foreach pvr $pvrlist {
-         set pvrvallist [lassign $pvr vrname pvrisbool]
+         set pvrvallist [lassign $pvr vrname pvrnot pvrisbool]
          # check at least one variant value from specification matches defined
          # available variant values
          set one_vrval_match 0
@@ -257,7 +257,7 @@ proc doesModVariantMatch {mod pvrlist} {
 proc doesModTagMatch {mod modfile ptaglist} {
    set ret 1
    foreach ptag $ptaglist {
-      set namelist [lassign $ptag elt]
+      set namelist [lassign $ptag elt pnot]
       # check if at least one tag name from specifier value is applied on mod
       set one_name_match 0
       foreach name $namelist {
@@ -281,7 +281,7 @@ proc getModMatchingExtraSpec {modpath pxtlist} {
    if {[info exists ::g_scanModuleElt] && [dict exists $::g_scanModuleElt\
       $modpath]} {
       foreach pxt $pxtlist {
-         set namelist [lassign $pxt elt]
+         set namelist [lassign $pxt elt pnot]
          set one_crit_res [list]
          foreach name $namelist {
             if {$elt in {require incompat load unload prereq conflict\

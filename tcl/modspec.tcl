@@ -455,7 +455,7 @@ proc modVariantCmp {pvrlist modvrlist {missmean 0}} {
       # modulefile and mod is extra specifier defined on command line
    }
    foreach pvr $pvrlist {
-      set pvrarr([lindex $pvr 0]) [lindex $pvr 2]
+      set pvrarr([lindex $pvr 0]) [lindex $pvr 3]
    }
 
    # no match if a specified variant is not found among module variants (and
@@ -1361,9 +1361,22 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec\
       # parse each specification element
       foreach curarg $curarglist {
          set vrisbool 0
+
+         set xtnot 0
+         if {[string equal -length 4 $curarg not:]} {
+            if {!$xtspec} {
+               knerror "No extra specification allowed on this command"
+            }
+            set xtnot 1
+            set curarg [string range $curarg 4 end]
+         }
+
          set c [string index $curarg 0]
          switch -- $c {
             @ {
+               if {$xtnot} {
+                  knerror "Invalid extra specification '$arg'"
+               }
                set modspec [string range $curarg 1 end]
                lassign [parseModuleVersionSpecifier $modspec] cmpspec versspec
                continue
@@ -1418,7 +1431,7 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec\
                   knerror "Invalid extra specifier '$xtelt'\nValid extra\
                      specifiers are: $xtelt_valid_list"
                }
-               set spec_xt [list $xtelt]
+               set spec_xt [list $xtelt $xtnot]
                # parse and resolve module spec set as extra specifier value
                if {$xtelt in $xtelt_modspec_list} {
                   foreach xtname $xtnamelist {
@@ -1490,9 +1503,12 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec\
                }
                # save variant name and value
                set vrnamearr($vrname) $vridx
-               lappend vrlist [list $vrname $vrisbool {*}$vrvaluelist]
+               lappend vrlist [list $vrname $xtnot $vrisbool {*}$vrvaluelist]
             }
             default {
+               if {$xtnot} {
+                  knerror "Invalid extra specification '$arg'"
+               }
                # save previous mod version spec and transformed arg if any
                if {[info exists modarglist]} {
                   set modarg [join $modarglist]

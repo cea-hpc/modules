@@ -1991,7 +1991,7 @@ proc variant {itrp args} {
 
    # search for variant specification (most right-positionned value wins)
    for {set i [expr {[llength $vrlist]-1}]} {$i >= 0} {incr i -1} {
-      lassign [lindex $vrlist $i] vrname vrisbool vrvalue
+      lassign [lindex $vrlist $i] vrname vrnot vrisbool vrvalue
       if {$vrname eq $name} {
          # translate value in boolean canonical form (0/1) if variant is bool
          if {$isboolean && [string is boolean -strict $vrvalue]} {
