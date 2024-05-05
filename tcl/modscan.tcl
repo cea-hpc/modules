@@ -224,31 +224,33 @@ proc doesModVariantMatch {mod pvrlist} {
          set availvrarr([lindex $availvr 0]) [lindex $availvr 1]
          set availvrisbool([lindex $availvr 0]) [lindex $availvr 4]
       }
-      # no match if a specified variant is not found among module variants or
-      # if the value is not available
-      foreach pvr $pvrlist {
-         set pvrvallist [lassign $pvr vrname pvrnot pvrisbool]
-         # check at least one variant value from specification matches defined
-         # available variant values
-         set one_vrval_match 0
-         foreach pvrval $pvrvallist {
-            # if variant is a boolean, specified value should be a boolean too
-            # any value accepted for free-value variant
-            if {[info exists availvrarr($vrname)] && (($pvrisbool &&\
-               $availvrisbool($vrname)) || (!$availvrisbool($vrname) &&\
-               (![llength $availvrarr($vrname)] || $pvrval in\
-               $availvrarr($vrname))))} {
-               set one_vrval_match 1
-               break
-            }
-         }
-         if {!$one_vrval_match} {
-            set ret 0
+   }
+   # no match if a specified variant is not found among module variants or
+   # if the value is not available
+   foreach pvr $pvrlist {
+      set pvrvallist [lassign $pvr vrname pvrnot pvrisbool]
+      # check at least one variant value from specification matches defined
+      # available variant values
+      set one_vrval_match 0
+      foreach pvrval $pvrvallist {
+         # if variant is a boolean, specified value should be a boolean too
+         # any value accepted for free-value variant
+         if {[info exists availvrarr($vrname)] && (($pvrisbool &&\
+            $availvrisbool($vrname)) || (!$availvrisbool($vrname) &&\
+            (![llength $availvrarr($vrname)] || $pvrval in\
+            $availvrarr($vrname))))} {
+            set one_vrval_match 1
             break
          }
       }
-   } else {
-      set ret 0
+      # toggle result if negation set for this pattern
+      if {$pvrnot} {
+         set one_vrval_match [expr {!$one_vrval_match}]
+      }
+      if {!$one_vrval_match} {
+         set ret 0
+         break
+      }
    }
    return $ret
 }
@@ -265,6 +267,10 @@ proc doesModTagMatch {mod modfile ptaglist} {
             set one_name_match 1
             break
          }
+      }
+      # toggle result if negation set for this pattern
+      if {$pnot} {
+         set one_name_match [expr {!$one_name_match}]
       }
       # no tag name from specifier match mod mean no match on extra query
       if {!$one_name_match} {
@@ -305,6 +311,13 @@ proc getModMatchingExtraSpec {modpath pxtlist} {
                      $modpath $elt $name]
                }
             }
+         }
+         # result is all other modules if negation set for this pattern
+         if {$pnot} {
+            set modpath_mod_list [dict get $::g_scanModuleElt $modpath all\
+               modulename]
+            lassign [getDiffBetweenList $modpath_mod_list $one_crit_res]\
+               one_crit_res
          }
          lappend all_crit_res $one_crit_res
          # no match on one criterion means no match globally, no need to test
