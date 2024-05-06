@@ -47,6 +47,8 @@ setenv_path_var MODULEPATH $mp1
 testouterr_cmd sh {avail -t} OK {}
 testouterr_cmd sh {avail -t variant:foo} OK {}
 testouterr_cmd sh {avail -t foo=val2 variant:foo} OK {}
+testouterr_cmd sh {avail -t not:variant:foo} OK {}
+testouterr_cmd sh {avail -t not:foo=val2 variant:foo} OK {}
 
 
 #
@@ -184,6 +186,7 @@ testouterr_cmd_re sh {avail --color=always -o variant -t extra variant:xtbar} OK
 # unknown specifier
 setenv_var TESTSUITE_EXTRA vr1
 testouterr_cmd sh {avail -t extra foo:name} ERR [err_extraspecifier foo]
+testouterr_cmd sh {avail -t extra not:foo:name} ERR [err_extraspecifier foo]
 
 
 # special character in specifier value
@@ -199,12 +202,15 @@ testouterr_cmd sh {avail -t extra variant:tfoo} OK {}
 
 set tserr [err_xtspec_notallowed]
 testouterr_cmd sh {load extra variant:xtfoo} ERR $tserr
+testouterr_cmd sh {load extra not:variant:xtfoo} ERR $tserr
 testouterr_cmd sh {display extra/1.0 setenv:XTFOO variant:xtfoo} ERR $tserr
+testouterr_cmd sh {display extra/1.0 not:setenv:XTFOO variant:xtfoo} ERR $tserr
 testouterr_cmd sh {ml extra variant:xtfoo} ERR $tserr
 
 setenv_loaded_module [list extra/1.0] [list $mp/extra/1.0]
 
 testouterr_cmd sh {ml -extra/1.0 variant:xtfoo} ERR $tserr
+testouterr_cmd sh {ml -extra/1.0 not:variant:xtfoo} ERR $tserr
 testouterr_cmd sh {list extra/1.0 variant:xtfoo} ERR $tserr
 
 unsetenv_loaded_module
@@ -214,7 +220,7 @@ unsetenv_loaded_module
 # multiple modulepaths
 #
 
-setenv_var MODULES_AVAIL_TERSE_OUTPUT dir
+setenv_var MODULES_AVAIL_TERSE_OUTPUT modulepath
 setenv_var MODULES_SEARCH_MATCH starts_with
 
 setenv_var TESTSUITE_EXTRA dup10
@@ -259,6 +265,113 @@ set tserr "$modpath.3:\nfoo/1.0"
 testouterr_cmd sh {avail -t foo setenv:XTFOODUP} OK $tserr
 
 unsetenv_var MODULES_SEARCH_MATCH
+
+
+#
+# negated queries
+#
+
+setenv_var MODULES_AVAIL_TERSE_OUTPUT modulepath:tag:variantifspec
+setenv_path_var MODULEPATH $mp
+setenv_var TESTSUITE_EXTRA setenv2
+
+set tserr "$mp:\nextra/2.0"
+testouterr_cmd sh {avail -t extra not:setenv:XTFOO} OK $tserr
+testouterr_cmd sh {avail -t extra not:setenv:XTFOO,XTBAR} OK $tserr
+testouterr_cmd sh {avail -t extra not:setenv:XTQUX,XTBAR} OK $tserr
+testouterr_cmd sh {avail -t extra not:setenv:XTFOO,XTQUX} OK $tserr
+set tserr "$mp:\nextra/1.0\nextra/2.0"
+testouterr_cmd sh {avail -t extra not:setenv:XTQUX} OK $tserr
+testouterr_cmd sh {avail -t extra not:setenv:XTQUX,XTBAZ} OK $tserr
+
+
+# bad syntax
+testouterr_cmd sh {avail -t extra not:tag} ERR [err_extraspec not:tag]
+testouterr_cmd sh {avail -t extra not:foo} ERR [err_extraspec not:foo]
+testouterr_cmd sh {avail -t extra not::setenv} ERR [err_extraspec not::setenv]
+testouterr_cmd sh {avail -t extra not:::setenv} ERR [err_extraspec not:::setenv]
+testouterr_cmd sh {avail -t extra not:setenv:} ERR [err_extraspec not:setenv:]
+testouterr_cmd sh {avail -t extra not:tag:} ERR [err_extraspec not:tag:]
+
+
+# forbidden module
+setenv_var TESTSUITE_EXTRA tag1
+set tserr "$mp:\nextra/2.0"
+testouterr_cmd sh {avail -t extra not:setenv:XTFOO} OK $tserr
+testouterr_cmd sh {avail -t extra not:setenv:XTQUX} OK $tserr
+
+
+# hidden module
+setenv_var TESTSUITE_EXTRA tag3
+set tserr "$mp:\nextra/2.0"
+testouterr_cmd sh {avail -t extra not:setenv:XTFOO} OK $tserr
+testouterr_cmd sh {avail -t extra not:setenv:XTQUX} OK $tserr
+testouterr_cmd sh {avail -t extra -a not:setenv:XTFOO} OK $tserr
+set tserr "$mp:\nextra/1.0 <H:xtfoo>\nextra/2.0"
+testouterr_cmd sh {avail -t extra -a not:setenv:XTQUX} OK $tserr
+
+
+# mixed AND/NOT queries
+setenv_var TESTSUITE_EXTRA tag2
+testouterr_cmd sh {avail -t extra not:setenv:XTFOO tag:xtfoo} OK {}
+testouterr_cmd sh {avail -t extra not:setenv:XTFOO,XTBAR tag:xtfoo} OK {}
+set tserr "$mp:\nextra/1.0 <xtfoo>"
+testouterr_cmd sh {avail -t extra not:setenv:XTBAR tag:xtfoo} OK $tserr
+testouterr_cmd sh {avail -t extra not:setenv:XTBAR,XTQUX tag:xtfoo,xtbar} OK $tserr
+set tserr "$mp:\nextra/2.0"
+testouterr_cmd sh {avail -t extra not:setenv:XTBAR not:tag:xtfoo} OK $tserr
+testouterr_cmd sh {avail -t extra not:setenv:XTBAR not:tag:xtfoo,xtbar} OK $tserr
+testouterr_cmd sh {avail -t extra not:setenv:XTFOO not:tag:xtfoo} OK $tserr
+set tserr "$mp:\nextra/1.0 <xtfoo>\nextra/2.0"
+testouterr_cmd sh {avail -t extra not:setenv:XTBAR not:tag:xtbar} OK $tserr
+
+
+# global search
+set mp1 $env(HOME)/mp1
+create_simple_module_scan_setup $mp1
+setenv_var MODULEPATH $mp1
+
+set tserr "$mp1:
+bar/2
+foo/2
+qux/1
+qux/2"
+testouterr_cmd sh {avail -t not:setenv:XTFOO} OK $tserr
+set tserr "$mp1:
+bar/2
+qux/1
+qux/2"
+testouterr_cmd sh {avail -t not:variant:bar not:setenv:XTFOO} OK $tserr
+set tserr "$mp1:
+bar/2"
+testouterr_cmd sh {avail -t setenv:XTBAR not:setenv:XTFOO} OK $tserr
+set tserr "$mp1:
+foo/2"
+testouterr_cmd sh {avail -t not:setenv:XTFOO variant:bar} OK $tserr
+set tserr "$mp1:
+bar/1
+bar/2
+foo/1
+foo/2
+qux/1
+qux/2"
+testouterr_cmd sh {avail -t not:tag:loaded} OK $tserr
+testouterr_cmd sh {avail -t not:tag:foo} OK $tserr
+set tserr "$mp1:
+bar/1
+bar/2
+qux/1
+qux/2"
+testouterr_cmd sh {avail -t not:tag:loaded not:variant:bar} OK $tserr
+set tserr "$mp1:
+bar/1
+bar/2
+foo/2{bar=on,off:foo=val3,val4}
+qux/1
+qux/2"
+testouterr_cmd sh {avail -t not:tag:loaded not:foo=val1} OK $tserr
+
+delete_module_scan_setup $mp1
 
 
 #
