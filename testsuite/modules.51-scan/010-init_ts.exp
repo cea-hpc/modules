@@ -20,3 +20,37 @@
 #
 ##############################################################################
 
+proc create_simple_module_scan_setup {mp} {
+    file mkdir $mp
+    set dir_list [list foo bar qux]
+    set header {#%Module}
+    set foo1_content "$header\nvariant foo val1 val2\nvariant --boolean bar\nsetenv XTFOO value1"
+    set foo2_content "$header\nvariant foo val3 val4\nvariant --boolean bar"
+    set bar1_content "$header\nsetenv XTFOO bar"
+    set bar2_content "$header\nsetenv XTBAR value"
+    set content "#%Module\nmodule-whatis \[module-info name\]"
+    set file_content_list [list foo/1 $foo1_content foo/2 $foo2_content\
+       bar/1 $bar1_content bar/2 $bar2_content\
+       qux/1 $header qux/2 $header]
+
+    foreach dir $dir_list {
+        file mkdir $mp/$dir
+    }
+    foreach {f content} $file_content_list {
+        set fid [open $mp/$f w]
+        puts -nonewline $fid $content
+        close $fid
+    }
+}
+
+proc delete_module_scan_setup {mp} {
+    set dir_list [list foo bar qux]
+    set file_list [list foo/1 foo/2 bar/1 bar/2 qux/1 qux/2]
+    foreach f $file_list {
+        file delete $mp/$f
+    }
+    foreach d [lsort -decreasing -unique $dir_list] {
+        file delete $mp/$d
+    }
+    file delete $mp
+}

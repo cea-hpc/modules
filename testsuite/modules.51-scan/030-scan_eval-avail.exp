@@ -654,6 +654,125 @@ testouterr_cmd sh {avail -t scan foo=,} OK {}
 
 
 #
+# negated queries
+#
+
+setenv_var TESTSUITE_SCAN variant3
+
+set tserr "scan/1.0{foo=val1,val2}
+scan/1.1{foo=val1,val2}
+scan/2.0{foo=val1,val2,val3}
+scan/2.1{foo=val1,val2,val3}"
+testouterr_cmd sh {avail -t scan not:foo=val1} OK {}
+testouterr_cmd sh {avail -t scan not:foo=val} OK $tserr
+testouterr_cmd sh {avail -t scan not:bar=val1} OK $tserr
+testouterr_cmd sh {avail -t scan not:foo=val7,val8} OK $tserr
+testouterr_cmd sh {avail -t scan not:bar=val1,val2} OK $tserr
+testouterr_cmd sh {avail -t scan not:foo=val1,val4} OK {}
+testouterr_cmd sh {avail -t scan not:foo=val4,val1} OK {}
+testouterr_cmd sh {avail -t scan not:foo=val1,val2} OK {}
+testouterr_cmd sh {avail -t scan not:foo=} OK $tserr
+
+
+# boolean tests
+testouterr_cmd sh {avail -t scan not:-foo} OK $tserr
+testouterr_cmd sh {avail -t scan not:+foo} OK $tserr
+
+setenv_var TESTSUITE_SCAN variant4
+set tserr "scan/2.0{foo=val1,val2,val3}
+scan/2.1{foo=val1,val2,val3}"
+testouterr_cmd sh {avail -t scan not:-foo} OK $tserr
+testouterr_cmd sh {avail -t scan not:~foo} OK $tserr
+testouterr_cmd sh {avail -t scan not:+foo} OK $tserr
+
+
+# free-value variant
+setenv_var TESTSUITE_SCAN variant5
+testouterr_cmd sh {avail -t scan not:foo=} OK $tserr
+testouterr_cmd sh {avail -t scan not:foo=val} OK $tserr
+testouterr_cmd sh {avail -t scan not:foo=val1} OK {}
+
+
+# bad syntax tests
+setenv_var TESTSUITE_SCAN variant3
+testouterr_cmd sh {avail -t scan not:@1.0} ERR [err_extraspec not:@1.0]
+testouterr_cmd sh {avail -t scan not:@1,2} ERR [err_extraspec not:@1,2]
+testouterr_cmd sh {avail -t scan not:@1:} ERR [err_extraspec not:@1:]
+testouterr_cmd sh {avail -t scan not:=value} ERR [err_novariantname =value]
+
+setenv_var TESTSUITE_SCAN variant4
+testouterr_cmd sh {avail -t scan not:-foo:} ERR [err_extraspecifier foo]
+testouterr_cmd sh {avail -t scan not:~foo:} ERR [err_extraspecifier foo]
+testouterr_cmd sh {avail -t scan not:+foo:} ERR [err_extraspecifier foo]
+
+
+# variant shortcut tests
+setenv_var TESTSUITE_SCAN special1
+setenv_var MODULES_VARIANT_SHORTCUT foo=%
+
+set tserr "scan/2.0{%val2,val3,val4}
+scan/2.1{%val2,val3,val4}"
+testouterr_cmd sh {avail -t scan not:%val1} OK $tserr
+testouterr_cmd sh {avail -t scan not:%val1,val8} OK $tserr
+testouterr_cmd sh {avail -t scan not:%val1,val4} OK {}
+
+set tserr "scan/1.0{%val1,val2,val3}
+scan/1.1{%val1,val2,val3}
+scan/2.0{%val2,val3,val4}
+scan/2.1{%val2,val3,val4}"
+testouterr_cmd sh {avail -t scan not:%} OK $tserr
+
+unsetenv_var MODULES_VARIANT_SHORTCUT
+
+
+# mixed AND/NOT queries
+setenv_var TESTSUITE_SCAN variant6
+
+testouterr_cmd sh {avail -t scan not:foo=val1 +bar} OK {}
+testouterr_cmd sh {avail -t scan not:foo=val1 not:-bar} OK {}
+testouterr_cmd sh {avail -t scan not:foo=val1,val4 not:-bar} OK {}
+
+set tserr "scan/1.0{bar=on,off:foo=val1,val2}
+scan/1.1{bar=on,off:foo=val1,val2}"
+testouterr_cmd sh {avail -t scan not:foo=val4 -bar} OK $tserr
+testouterr_cmd sh {avail -t scan not:foo=val4,val0 -bar} OK $tserr
+
+set tserr "scan/2.0{foo=val1,val2,val3}
+scan/2.1{foo=val1,val2,val3}"
+testouterr_cmd sh {avail -t scan not:foo=val4 not:+bar} OK $tserr
+
+set tserr "scan/1.0{bar=on,off:foo=val1,val2}
+scan/1.1{bar=on,off:foo=val1,val2}
+scan/2.0{foo=val1,val2,val3}
+scan/2.1{foo=val1,val2,val3}"
+testouterr_cmd sh {avail -t scan not:foo=val4 not:qux=val1} OK $tserr
+
+
+# global search
+set mp1 $env(HOME)/mp1
+create_simple_module_scan_setup $mp1
+setenv_var MODULEPATH $mp1
+
+set tserr "bar/1
+bar/2
+foo/1{bar=on,off:foo=val1,val2}
+qux/1
+qux/2"
+testouterr_cmd sh {avail -t not:foo=val4} OK $tserr
+testouterr_cmd sh {avail -t not:foo=val4 not:bar=foo} OK $tserr
+testouterr_cmd sh {avail -t not:foo=val4 not:bar=bar,foo} OK $tserr
+set tserr "bar/1
+bar/2
+qux/1
+qux/2"
+testouterr_cmd sh {avail -t not:foo=val4 not:+bar} OK $tserr
+testouterr_cmd sh {avail -t not:foo=val4,val2 not:+bar} OK $tserr
+testouterr_cmd sh {avail -t not:foo=val1,val2 not:+bar} OK $tserr
+
+delete_module_scan_setup $mp1
+
+
+#
 #  Cleanup
 #
 
