@@ -76,6 +76,9 @@ Modules 5.5.0 (not yet released)
   specified with ``--without-*`` argument. Exception is made for
   :instopt:`--without-icase<--with-icase>` which sets option to the ``never``
   value.
+* Introduce ``not:`` prefix for extra specifier and variant criteria on module
+  search context. This prefix allows to negate search criteria on :ref:`Extra
+  match search` mechanism.
 
 .. warning:: Existing *versions* modulefiles installed for Modules 4.7 and
    upward should be fixed by adding the ``--not-req`` option to the

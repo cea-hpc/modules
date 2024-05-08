@@ -76,6 +76,42 @@ Some messages can also be sent during modulefile evaluation by using the
     Apr 29 07:47:51 hostname modules[3777835]: some message sent to log
     Apr 29 07:47:51 hostname modules[3777835]: user="username" mode="load" module="foo/1.0" specified="foo/1.0" modulefile="/path/to/modulefiles/foo/1.0" requested="1"
 
+Negating extra match search criteria
+------------------------------------
+
+The ``not:`` prefix string is introduced for extra specifier and variant
+criteria. When this prefix is used, the search criteria where it is applied is
+negated.
+
+.. parsed-literal::
+
+    :ps:`$` module config avail_output +variant
+    :ps:`$` module config variant_shortcut toolchain=%
+    :ps:`$` module avail
+    --------------------- :sgrdi:`/path/to/modulefiles` ---------------------
+    bar/1.0{:sgrva:`%x86_64`}        foo/2.0{:sgrva:`%x86_64`,\ :sgrva:`arm64`}
+    bar/2.0{:sgrva:`%x86_64`,\ :sgrva:`arm64`}  qux/1.0{:sgrva:`%x86_64`}
+    foo/1.0{:sgrva:`%x86_64`}        qux/2.0{:sgrva:`%x86_64`,\ :sgrva:`arm64`}
+    :ps:`$` module avail not:envvar:FOO,BAR
+    --------------------- :sgrdi:`/path/to/modulefiles` ---------------------
+    qux/1.0{:sgrva:`%x86_64`}  qux/2.0{:sgrva:`%x86_64`,\ :sgrva:`arm64`}
+
+The above search query returns all modules not defining ``FOO`` and ``BAR``
+environment variables.
+
+.. parsed-literal::
+
+    :ps:`$` module avail not:envvar:BAR not:%arm64
+    --------------------- :sgrdi:`/path/to/modulefiles` ---------------------
+    foo/1.0{:sgrva:`%x86_64`}  qux/1.0{:sgrva:`%x86_64`}
+
+The above example returns all modules not defining ``BAR`` environment
+variable and not defining ``toolchain`` variant or defining this variant
+without ``arm64`` among the possible values.
+
+This prefix is recognized on module search context (i.e., :subcmd:`avail`,
+:subcmd:`whatis` and :subcmd:`paths` sub-commands).
+
 
 v5.4
 ====
