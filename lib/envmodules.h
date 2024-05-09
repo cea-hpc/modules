@@ -1,7 +1,7 @@
 /*************************************************************************
  *
  * ENVMODULES.H, Modules Tcl extension library
- * Copyright (C) 2018-2021 Xavier Delaruelle
+ * Copyright (C) 2018-2024 Xavier Delaruelle
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,6 @@
 
 #define READ_BUFFER_SIZE 4096
 #define FIRSTLINE_LENGTH 32
-#define DEFAULT_MAXGROUPS 32
 #define MODULES_MAGIC_COOKIE "#%Module"
 
 /* Prototypes of internal functions. */

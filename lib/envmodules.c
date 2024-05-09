@@ -348,7 +348,6 @@ Envmodules_InitStateUsergroupsObjCmd(
    int objc,               /* Number of arguments. */
    Tcl_Obj *const objv[])  /* Argument objects. */
 {
-   int maxgroups;
    GETGROUPS_T *groups;
    int ngroups = 0;
    int egid_in_groups = 0;
@@ -358,30 +357,15 @@ Envmodules_InitStateUsergroupsObjCmd(
    char gidstr[16];
    Tcl_Obj *lres;
 
-   /* Get actually configured number of groups */
-#if defined(HAVE_SYSCONF) && defined(_SC_NGROUPS_MAX)
-   errno = 0;
-   // just -1 means 'no limit' so errno must checked as well
-   if ((maxgroups = sysconf(_SC_NGROUPS_MAX)) == -1 && errno != 0) {
-      Tcl_SetErrno(errno);
-      Tcl_SetObjResult(interp,
-         Tcl_ObjPrintf("couldn't get NGROUPS_MAX variable: %s",
-         Tcl_PosixError(interp)));
-      return TCL_ERROR;
-   }
-#else
-#  if defined(NGROUPS_MAX)
-   maxgroups = NGROUPS_MAX;
-#  else
-   maxgroups = DEFAULT_MAXGROUPS;
-#  endif
+#if defined (HAVE_GETGROUPS)
+   ngroups = getgroups(0, (GETGROUPS_T *) NULL);
 #endif
 
    /* Fetch supplementary group list unless getgroups not supported */
-   groups = (GETGROUPS_T *) ckalloc(maxgroups * sizeof(GETGROUPS_T));
+   groups = (GETGROUPS_T *) ckalloc((ngroups + 1) * sizeof(GETGROUPS_T));
 
 #if defined (HAVE_GETGROUPS)
-   if ((ngroups = getgroups(maxgroups, groups)) == -1) {
+   if ((ngroups = getgroups(ngroups, groups)) == -1) {
       Tcl_SetErrno(errno);
       Tcl_SetObjResult(interp,
          Tcl_ObjPrintf("couldn't get supplementary groups: %s",

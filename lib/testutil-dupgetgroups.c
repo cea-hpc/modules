@@ -1,7 +1,7 @@
 /*************************************************************************
  *
  * TESTUTIL-DUPGETGROUPS.C, Superseded getgroups function for test purpose
- * Copyright (C) 2020-2021 Xavier Delaruelle
+ * Copyright (C) 2020-2024 Xavier Delaruelle
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,9 +27,11 @@ int getgroups(int size, gid_t list[])
    GETGROUPS_T egid;
 
    egid = getegid();
-   list[0] = egid;
-   list[1] = egid;
-   list[2] = egid;
+   if (list != NULL) {
+      list[0] = egid;
+      list[1] = egid;
+      list[2] = egid;
+   }
 
    return 3;
 }

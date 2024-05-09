@@ -25,7 +25,6 @@ AC_TYPE_SSIZE_T
 
 # Checks for library functions.
 AC_FUNC_GETGROUPS
-AC_CHECK_FUNC(sysconf, AC_DEFINE(HAVE_SYSCONF, 1, [Define to 1 if you have the sysconf function]))
 
 # TEA-specific setup
 TEA_SETUP_COMPILER
