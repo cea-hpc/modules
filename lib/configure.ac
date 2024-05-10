@@ -22,9 +22,10 @@ AC_CHECK_HEADERS([fcntl.h unistd.h errno.h limits.h sys/types.h pwd.h grp.h stdl
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SSIZE_T
+AC_TYPE_UID_T
 
 # Checks for library functions.
-AC_FUNC_GETGROUPS
+AC_CHECK_FUNCS_ONCE([getgrouplist])
 
 # TEA-specific setup
 TEA_SETUP_COMPILER

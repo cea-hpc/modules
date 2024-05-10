@@ -403,6 +403,7 @@ if {[info exists getpwuidlib_file] && [file exists $getpwuidlib_file]} {
     setenv_var LD_PRELOAD $getpwuidlib_file
     set ans [list]
     lappend ans "$error_msgs: couldn't find name for user id \"$userid\": .*"
+    lappend ans "$error_msgs: couldn't find name for user id \"$userid\": .*"
     lappend ans $vers_reportre
     testouterr_cmd_re sh -V OK [join $ans \n]
 
@@ -410,51 +411,6 @@ if {[info exists getpwuidlib_file] && [file exists $getpwuidlib_file]} {
     unsetenv_var LD_PRELOAD
 } elseif {$verbose} {
     send_user "\tSkip tcl ext lib erroneous procedure calls as getpwuid test lib is not available\n"
-}
-
-# test tcl ext lib procedures against a failed getgroups call
-if {[info exists getgroupslib_file] && [file exists $getgroupslib_file]} {
-    setenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBFAILEDGETGROUPS 1
-    setenv_var LD_PRELOAD $getgroupslib_file
-    set ans [list]
-    lappend ans "$error_msgs: couldn't get supplementary groups: .*"
-    lappend ans $vers_reportre
-    testouterr_cmd_re sh -V OK [join $ans \n]
-
-    unsetenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBFAILEDGETGROUPS
-    unsetenv_var LD_PRELOAD
-} elseif {$verbose} {
-    send_user "\tSkip tcl ext lib erroneous procedure calls as getgroups test lib is not available\n"
-}
-
-# test tcl ext lib procedures against a zero result getgroups call
-if {[info exists 0getgroupslib_file] && [file exists $0getgroupslib_file]} {
-    setenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIB0GETGROUPS 1
-    setenv_var LD_PRELOAD $0getgroupslib_file
-    set ans [list]
-    lappend ans [exec id -g -n]
-    lappend ans $vers_reportre
-    testouterr_cmd_re sh -V OK [join $ans \n]
-
-    unsetenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIB0GETGROUPS
-    unsetenv_var LD_PRELOAD
-} elseif {$verbose} {
-    send_user "\tSkip tcl ext lib erroneous procedure calls as 0getgroups test lib is not available\n"
-}
-
-# test tcl ext lib procedures against a duplicate entries in result getgroups call
-if {[info exists dupgetgroupslib_file] && [file exists $dupgetgroupslib_file]} {
-    setenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBDUPGETGROUPS 1
-    setenv_var LD_PRELOAD $dupgetgroupslib_file
-    set ans [list]
-    lappend ans [exec id -g -n]
-    lappend ans $vers_reportre
-    testouterr_cmd_re sh -V OK [join $ans \n]
-
-    unsetenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBDUPGETGROUPS
-    unsetenv_var LD_PRELOAD
-} elseif {$verbose} {
-    send_user "\tSkip tcl ext lib erroneous procedure calls as dupgetgroups test lib is not available\n"
 }
 
 # test tcl ext lib procedures against a failed getgrgid call

@@ -62,9 +62,6 @@ TEST_PREREQ += lib/libtclenvmodules$(SHLIB_SUFFIX)
 ifeq ($(COVERAGE),y)
 TEST_PREREQ += lib/libtestutil-closedir$(SHLIB_SUFFIX) \
 	lib/libtestutil-getpwuid$(SHLIB_SUFFIX) \
-	lib/libtestutil-getgroups$(SHLIB_SUFFIX) \
-	lib/libtestutil-0getgroups$(SHLIB_SUFFIX) \
-	lib/libtestutil-dupgetgroups$(SHLIB_SUFFIX) \
 	lib/libtestutil-getgrgid$(SHLIB_SUFFIX) \
 	lib/libtestutil-time$(SHLIB_SUFFIX) \
 	lib/libtestutil-mktime$(SHLIB_SUFFIX)
@@ -573,15 +570,6 @@ lib/libtestutil-closedir$(SHLIB_SUFFIX):
 lib/libtestutil-getpwuid$(SHLIB_SUFFIX):
 	$(MAKE) --no-print-directory -C lib $(@F)
 
-lib/libtestutil-getgroups$(SHLIB_SUFFIX):
-	$(MAKE) --no-print-directory -C lib $(@F)
-
-lib/libtestutil-0getgroups$(SHLIB_SUFFIX):
-	$(MAKE) --no-print-directory -C lib $(@F)
-
-lib/libtestutil-dupgetgroups$(SHLIB_SUFFIX):
-	$(MAKE) --no-print-directory -C lib $(@F)
-
 lib/libtestutil-getgrgid$(SHLIB_SUFFIX):
 	$(MAKE) --no-print-directory -C lib $(@F)
 
@@ -1078,9 +1066,7 @@ $(V).SILENT: initdir pkgdoc doc version.inc contrib/rpm/environment-modules.spec
 	tcl/util.tcl_i ChangeLog.gz README script/add.modules \
 	script/gitlog2changelog.py script/modulecmd \
 	lib/libtclenvmodules$(SHLIB_SUFFIX) lib/libtestutil-closedir$(SHLIB_SUFFIX) \
-	lib/libtestutil-getpwuid$(SHLIB_SUFFIX) lib/libtestutil-getgroups$(SHLIB_SUFFIX) \
-	lib/libtestutil-0getgroups$(SHLIB_SUFFIX) \
-	lib/libtestutil-dupgetgroups$(SHLIB_SUFFIX) lib/libtestutil-getgrgid$(SHLIB_SUFFIX) \
+	lib/libtestutil-getpwuid$(SHLIB_SUFFIX) lib/libtestutil-getgrgid$(SHLIB_SUFFIX) \
 	lib/libtestutil-time$(SHLIB_SUFFIX) lib/libtestutil-mktime$(SHLIB_SUFFIX) \
 	testsuite/example/.modulespath testsuite/example/modulespath-wild \
 	testsuite/example/modulerc testsuite/example/initrc-1 testsuite/example/initrc \
