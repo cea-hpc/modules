@@ -20,8 +20,6 @@
 
 #define _ISOC99_SOURCE
 #define _XOPEN_SOURCE
-#define _DEFAULT_SOURCE
-#define _BSD_SOURCE
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -38,6 +36,15 @@
 #include "config.h"
 #include "envmodules.h"
 
+
+/*	Utility function to compare 2 integers for qsort function. */
+int
+__Envmodules_IntCmp(
+   const void* i,
+   const void* j)
+{
+   return (i > j) - (i < j);
+}
 
 /*----------------------------------------------------------------------
  *
@@ -341,48 +348,59 @@ Envmodules_InitStateUsergroupsObjCmd(
    int objc,               /* Number of arguments. */
    Tcl_Obj *const objv[])  /* Argument objects. */
 {
-   gid_t *groups;
-   int ngroups;
-   int i;
+   GETGROUPS_T *groups;
+   int ngroups = 0;
+   int egid_in_groups = 0;
+   GETGROUPS_T egid;
+   int i, j;
    struct group *grp;
    char gidstr[16];
    Tcl_Obj *lres;
-#if defined (HAVE_GETGROUPLIST)
-   uid_t uid;
-   struct passwd *pwd;
-   char uidstr[16];
+
+#if defined (HAVE_GETGROUPS)
+   ngroups = getgroups(0, (GETGROUPS_T *) NULL);
 #endif
 
-#if defined (HAVE_GETGROUPLIST)
-   /* Fetch user passwd entry */
-   uid = getuid();
-   if ((pwd = getpwuid(uid)) == NULL) {
+   /* Fetch supplementary group list unless getgroups not supported */
+   groups = (GETGROUPS_T *) ckalloc((ngroups + 1) * sizeof(GETGROUPS_T));
+
+#if defined (HAVE_GETGROUPS)
+   if ((ngroups = getgroups(ngroups, groups)) == -1) {
       Tcl_SetErrno(errno);
-      sprintf(uidstr, "%d", uid);
       Tcl_SetObjResult(interp,
-         Tcl_ObjPrintf("couldn't find name for user id \"%s\": %s", uidstr,
+         Tcl_ObjPrintf("couldn't get supplementary groups: %s",
          Tcl_PosixError(interp)));
+      ckfree((char *) groups);
       return TCL_ERROR;
    }
-
-   /* Initial maximum group number guess to allocate groups array */
-   ngroups = 16;
-   groups = (gid_t *) ckalloc(ngroups * sizeof(gid_t));
-
-   /* If user belongs to more than initial group count, -1 is returned and
-    * ngroups is updated to the total number of groups */
-   if (getgrouplist(pwd->pw_name, pwd->pw_gid, groups, &ngroups) == -1) {
-      groups = (gid_t *) ckrealloc(groups, ngroups * sizeof(gid_t));
-      getgrouplist(pwd->pw_name, pwd->pw_gid, groups, &ngroups);
-   }
-   /* getgrouplist result does not contain duplicate entries and contains
-    * primary group */
-#else
-   /* Only add primary group if getgrouplist function is not available */
-   ngroups = 1;
-   groups = (gid_t *) ckalloc(sizeof(gid_t));
-   groups[0] = getegid();
 #endif
+
+   /* Sort then remove duplicates from getgroups result */
+   if (ngroups > 1) {
+      qsort(groups, ngroups, sizeof(GETGROUPS_T), __Envmodules_IntCmp);
+      j = 0;
+      for (i = 1; i < ngroups; i++) {
+         if (groups[i] != groups[j]) {
+            j++;
+            groups[j] = groups[i];
+         }
+      }
+      ngroups = j + 1;
+   }
+
+   /* Add primary group if not part of getgroups result (or if getgroups
+    * function is not available) */
+   egid = getegid();
+   for (i = 0; i < ngroups; i++) {
+      if (egid == groups[i]) {
+         egid_in_groups = 1;
+         break;
+      }
+   }
+   if (egid_in_groups == 0) {
+      groups[ngroups] = egid;
+      ngroups++;
+   }
 
    /* Add group name of primary gid and each supplementatry gid to result
     * list */
