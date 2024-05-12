@@ -36,6 +36,12 @@
 #include "config.h"
 #include "envmodules.h"
 
+/* A specific function named getgrouplist_2 should be used on Darwin systems
+ * to be able to fetch all user groups, especially if user is member of more
+ * then 16 groups */
+#if defined (__APPLE__)
+int32_t getgrouplist_2(const char *, gid_t, gid_t **);
+#endif
 
 /*	Utility function to compare 2 integers for qsort function. */
 int
@@ -357,6 +363,25 @@ Envmodules_InitStateUsergroupsObjCmd(
    char gidstr[16];
    Tcl_Obj *lres;
 
+#if defined (__APPLE__)
+   uid_t uid;
+   struct passwd *pwd;
+   char uidstr[16];
+
+   /* Fetch user passwd entry */
+   uid = getuid();
+   if ((pwd = getpwuid(uid)) == NULL) {
+      Tcl_SetErrno(errno);
+      sprintf (uidstr, "%d", uid);
+      Tcl_SetObjResult(interp,
+         Tcl_ObjPrintf("couldn't find name for user id \"%s\": %s", uidstr,
+         Tcl_PosixError(interp)));
+      return TCL_ERROR;
+   }
+
+   groups = NULL;
+   ngroups = getgrouplist_2(pwd->pw_name, pwd->pw_gid, &groups);
+#else
 #if defined (HAVE_GETGROUPS)
    ngroups = getgroups(0, (GETGROUPS_T *) NULL);
 #endif
@@ -373,6 +398,7 @@ Envmodules_InitStateUsergroupsObjCmd(
       ckfree((char *) groups);
       return TCL_ERROR;
    }
+#endif
 #endif
 
    /* Sort then remove duplicates from getgroups result */
@@ -413,7 +439,13 @@ Envmodules_InitStateUsergroupsObjCmd(
          Tcl_SetObjResult(interp,
             Tcl_ObjPrintf("couldn't find name for group id \"%s\": %s",
             gidstr, Tcl_PosixError(interp)));
+         /* groups has been allocated within getgrouplist_2 on Darwin so
+          * memory cannot be released with Tcl-specific free function */
+#if defined (__APPLE__)
+         free((char *) groups);
+#else
          ckfree((char *) groups);
+#endif
          return TCL_ERROR;
       }
       Tcl_ListObjAppendElement(interp, lres, Tcl_NewStringObj(grp->gr_name,
@@ -422,7 +454,11 @@ Envmodules_InitStateUsergroupsObjCmd(
 
    Tcl_SetObjResult(interp, lres);
    Tcl_DecrRefCount(lres);
+#if defined (__APPLE__)
+   free((char *) groups);
+#else
    ckfree((char *) groups);
+#endif
    return TCL_OK;
 }
 
