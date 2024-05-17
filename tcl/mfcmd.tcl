@@ -1901,6 +1901,11 @@ proc source-sh-di {args} {
    }
 }
 
+proc isVariantNameValid {name} {
+   return [expr {![string is digit -strict $name] && [regexp\
+      {^[A-Za-z0-9_][A-Za-z0-9_-]*$} $name]}]
+}
+
 # parse arguments set on a variant modulefile command
 proc parseVariantCommandArgs {args} {
    set dflvalue {}
@@ -1944,7 +1949,7 @@ proc parseVariantCommandArgs {args} {
    if {![info exists name]} {
       knerror {No variant name specified}
    }
-   if {![string match {[A-Za-z0-9_]} [string index $name 0]]} {
+   if {![isVariantNameValid $name]} {
       knerror "Invalid variant name '$name'"
    }
    set values [lrange $args $i end]

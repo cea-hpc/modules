@@ -1324,38 +1324,32 @@ proc parseModuleSpecificationProcAdvVersSpec {mlspec nonamespec xtspec\
       if {[regexp {^[a-z-]+:} $arg]} {
          lappend curarglist $arg
       } else {
+         set split_chars {@ ~ +}
+         lappend split_chars {*}[array names ::g_shortcutVariant]
+         set split_arg_list {}
          set previ 0
          for {set i 1} {$i < [string length $arg]} {incr i} {
-            set c [string index $arg $i]
-            switch -- $c {
-               @ - ~ {
-                  lappend curarglist [string range $arg $previ $i-1]
-                  set previ $i
-               }
-               + {
-                  # allow one or more '+' char at end of module name if not
-                  # followed by non-special character (@, ~ or /)
-                  set nexti [expr {$i + 1}]
-                  if {$nexti < [string length $arg]} {
-                     switch -- [string index $arg $nexti] {
-                        @ - + - ~ - / {}
-                        default {
-                           lappend curarglist [string range $arg $previ $i-1]
-                           set previ $i
-                        }
-                     }
-                  }
-               }
-               default {
-                  # check if a variant shortcut matches
-                  if {[info exists ::g_shortcutVariant($c)]} {
-                     lappend curarglist [string range $arg $previ $i-1]
-                     set previ $i
-                  }
-               }
+            if {[string index $arg $i] in $split_chars} {
+               lappend split_arg_list [string range $arg $previ $i-1]
+               set previ $i
             }
          }
-         lappend curarglist [string range $arg $previ $i-1]
+         lappend split_arg_list [string range $arg $previ $i-1]
+
+         # unsplit some arg parts: those starting with boolean variant prefix
+         # (+ or ~) but not followed by a valid variant name
+         set prev_arg [lindex $split_arg_list 0]
+         for {set i 1} {$i < [llength $split_arg_list]} {incr i} {
+            set split_arg [lindex $split_arg_list $i]
+            if {[string index $split_arg 0] ni {+ ~} || [isVariantNameValid\
+               [string range $split_arg 1 end]]} {
+               lappend curarglist $prev_arg
+               set prev_arg $split_arg
+            } else {
+               append prev_arg $split_arg
+            }
+         }
+         lappend curarglist $prev_arg
       }
 
       # parse each specification element
