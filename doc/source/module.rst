@@ -2785,6 +2785,13 @@ This version symbol should be specified using the ``@`` prefix notation (e.g.,
 ``foo@loaded``). An error is returned if no version of designated module is
 currently loaded.
 
+.. only:: html
+
+   .. versionadded:: 4.4
+
+   .. versionchanged:: 4.8
+      Use of version range is allowed in version list
+
 Variants
 """"""""
 
@@ -2827,13 +2834,7 @@ module name (e.g., *name+* or *name++*).
 
 .. only:: html
 
-   .. versionadded:: 4.4
-
-   .. versionchanged:: 4.8
-      Use of version range is allowed in version list
-
-   .. versionchanged:: 4.8
-      Support for module variant added
+   .. versionadded:: 4.8
 
 .. _Extra specifier:
 

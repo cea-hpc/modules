@@ -1832,6 +1832,13 @@ version already exists for these ``default`` or ``latest`` version names.
 Using the ``mod@latest`` (or ``mod/latest``) syntax ensures highest available
 version will be selected.
 
+.. only:: html
+
+   .. versionadded:: 4.4
+
+   .. versionchanged:: 4.8
+      Use of version range is allowed in version list
+
 Variants
 """"""""
 
@@ -1874,13 +1881,7 @@ module name (e.g., *name+* or *name++*).
 
 .. only:: html
 
-   .. versionadded:: 4.4
-
-   .. versionchanged:: 4.8
-      Use of version range is allowed in version list
-
-   .. versionchanged:: 4.8
-      Support for module variant added
+   .. versionadded:: 4.8
 
 .. _Dependencies between modulefiles:
 
