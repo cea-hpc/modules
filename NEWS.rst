@@ -79,6 +79,17 @@ Modules 5.5.0 (not yet released)
 * Introduce ``not:`` prefix for extra specifier and variant criteria on module
   search context. This prefix allows to negate search criteria on :ref:`Extra
   match search` mechanism.
+* Adopt stricter naming rule for variant names. Only characters within the
+  ``A-Za-z0-9_-`` range are allowed. Also, a variant name cannot start with
+  ``-`` (minus) character and the overall name cannot just be a number.
+* Allow ``+`` and ``~`` characters to be part of module name or version
+  specification as long as the string following them is not a valid variant
+  name (e.g., ``foo/1.2+8``). (fix issue #527)
+
+.. warning:: Variant names are now fully checked instead of just verifying
+   their first character. Only characters within the ``A-Za-z0-9_-`` range are
+   allowed. Variant name cannot start with ``-`` character and the overall
+   name cannot just be a number.
 
 .. warning:: Existing *versions* modulefiles installed for Modules 4.7 and
    upward should be fixed by adding the ``--not-req`` option to the

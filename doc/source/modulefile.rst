@@ -1479,6 +1479,11 @@ the *modulefile* is being loaded.
  values in its accepted value list, exception made for the ``0`` and ``1``
  integers. An error is raised otherwise.
 
+ Variant *name* should only be composed of characters part of the
+ ``A-Za-z0-9_-`` range. Also, a variant name cannot start with ``-`` (minus)
+ character and the overall name cannot just be a number. An error is raised
+ if specified *name* does not match these rules.
+
  A variant cannot be named ``version``. An error is raised otherwise.
 
  .. only:: html
@@ -1491,6 +1496,9 @@ the *modulefile* is being loaded.
 
     .. versionchanged:: 5.1
        Accepted value list is made optional
+
+    .. versionchanged:: 5.5
+       Stricter variant name naming rule adopted
 
 .. mfcmd:: versioncmp version1 version2
 
@@ -1873,15 +1881,26 @@ to variant name. With a shortcut defined, variant could be specified with the
 shortcut for variant ``foo``, the ``%value`` syntax is equivalent to the
 ``foo=value`` syntax.
 
+Variant *name* should only be composed of characters part of the
+``A-Za-z0-9_-`` range. Also, a variant name cannot start with ``-`` (minus)
+character and the overall name cannot just be a number.
+
 Specific characters used in variant specification syntax cannot be used as
-part of the name of a module. These specific characters are ``+``, ``~``,
-``=`` and all characters set as variant shortcut. Exception is made for ``+``
-character which could be set one or several consecutive times at the end of
-module name (e.g., *name+* or *name++*).
+part of the name or version of a module. These specific characters are ``+``,
+``~``, ``=`` and all characters set as variant shortcut. Exception is made for
+``+`` and ``~`` characters if string that follows after does not correspond to
+a valid variant name (e.g., *name+*, *name++*, *name/version+1*).
 
 .. only:: html
 
    .. versionadded:: 4.8
+
+   .. versionchanged:: 5.5
+      Stricter variant name naming rule adopted
+
+   .. versionchanged:: 5.5
+      ``+`` and ``~`` characters are allowed in module name or version if not
+      followed by a valid variant name
 
 .. _Dependencies between modulefiles:
 
