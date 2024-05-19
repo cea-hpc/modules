@@ -734,15 +734,23 @@ Modules Specific Tcl Commands
  list of accepted value defined. In this case, any value specified is
  accepted.
 
+ Starting version 5.5, a valid variant name is only composed of the
+ ``[A-Za-z0-9_-]``  characters. It cannot start with ``-`` character and the
+ name as a whole cannot correspond to a number.
+
 Locating Modulefiles
 """"""""""""""""""""
 
 As the :ref:`Advanced module version specifiers` mechanism is enabled by
-default on Modules 5, several characters are made special and cannot be used
+default on Modules 5.0, several characters are made special and cannot be used
 anymore in module name or version. These characters are ``@``, ``=``, ``~``,
 ``+`` and ``,``. Also a module name cannot start with ``-`` character. Module
 name is allowed to finish by one or more ``+`` character but ``+`` cannot be
 used at the start or inside a module name.
+
+Starting version 5.5, characters ``+`` and ``~`` may be part of module name or
+version as long as the string part next to these character is not a valid
+variant name.
 
 Environment
 """""""""""

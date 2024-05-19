@@ -27,8 +27,10 @@ Defining
 
 - ``name`` restrained to the accepted variable name
 
-  - which should correspond to a sequence of one or more characters that are a letter, digit or underscore
-  - if we want to match Spack here also: ``[A-Za-z0-9_][A-Za-z0-9_.-]*``
+  - which should correspond to a sequence of one or more characters that are a letter, digit, underscore and minus sign
+  - first character cannot be a minus sign
+  - name as a whole cannot correspond to a number
+  - if we want to match Spack here also: ``[A-Za-z0-9_][A-Za-z0-9_-]*``
   - raise error otherwise
 
 - a variant ``name`` that has already been defined as variant or variant alias for this modulefile evaluation overwrites previous definition
@@ -82,7 +84,7 @@ Defining
 
     - raise error otherwise
 
-  - defined alias names should be valid variant name (i.e.: ``[A-Za-z0-9_][A-Za-z0-9_.-]*``)
+  - defined alias names should be valid variant name (see spec above)
 
     - raise error otherwise
 
@@ -133,7 +135,7 @@ Evaluating
 - raise error if variant ``name``:
 
   - has been specified but passed value is incorrect
-  - is wrongly declared in modulefile
+  - is wrongly declared in modulefile (e.g., invalid name specified)
 
 - then variable ``$ModuleVariant(name)`` could be used to adapt modulefile evaluation
 
