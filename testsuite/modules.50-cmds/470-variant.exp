@@ -24,6 +24,18 @@ set mp $modpath.3
 set mpre $modpathre.3
 setenv_path_var MODULEPATH $mp
 
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom_error_trace "    invoked from within
+\"if \{\[info exists env(TESTSUITE_VARIANT)\]\} \{
+    switch -- \$env(TESTSUITE_VARIANT) \{
+        1 \{
+            variant foo val1
+        \}
+        2 \{
+   ...\""
+} else {
+    set custom_error_trace {}
+}
 
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 
@@ -117,8 +129,8 @@ testouterr_cmd sh {load variant/1.0 foo=val1,val2} ERR [err_varspec foo=val1,val
 
 setenv_var TESTSUITE_VARIANT 4
 set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {3} : {15}}]
-testouterr_cmd_re sh {load variant/1.0} ERR [escre [msg_load variant/1.0 [msg_moderr {Invalid variant name '%foo'} {variant %foo val1 val2 val3<EXM>} $mp/variant/1.0 $ln]]]
-testouterr_cmd_re sh {load variant/1.0 %foo=val1} ERR [escre [msg_load variant/1.0{%foo=val1} [msg_moderr {Invalid variant name '%foo'} {variant %foo val1 val2 val3<EXM>} $mp/variant/1.0 $ln]]]
+testouterr_cmd_re sh {load variant/1.0} ERR [escre [msg_load variant/1.0 [msg_moderr [invalid_variant_name %foo] {variant %foo val1 val2 val3<EXM>} $mp/variant/1.0 $ln]]]
+testouterr_cmd_re sh {load variant/1.0 %foo=val1} ERR [escre [msg_load variant/1.0{%foo=val1} [msg_moderr [invalid_variant_name %foo] {variant %foo val1 val2 val3<EXM>} $mp/variant/1.0 $ln]]]
 
 setenv_var TESTSUITE_VARIANT 5
 testouterr_cmd sh {load variant/1.0} ERR [msg_load variant/1.0 [err_novarval foo {val1}]]
@@ -149,7 +161,7 @@ testouterr_cmd_re sh {load variant/1.0 foo=0 bar=} $ans {}
 
 setenv_var TESTSUITE_VARIANT 7
 set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {3} : {28}}]
-testouterr_cmd_re sh {load variant/1.0} ERR [escre [msg_load variant/1.0 [msg_moderr {Invalid variant name ''} {variant {} 0 1 2<EXM>} $mp/variant/1.0 $ln]]]
+testouterr_cmd_re sh {load variant/1.0} ERR [escre [msg_load variant/1.0 [msg_moderr [invalid_variant_name {}] {variant {} 0 1 2<EXM>} $mp/variant/1.0 $ln]]]
 testouterr_cmd sh {load variant/1.0 =foo} ERR [err_novariantname =foo]
 testouterr_cmd sh {load =foo} ERR [err_novariantname =foo]
 
@@ -214,13 +226,9 @@ testouterr_cmd_re sh {load variant/1.0 var=val} $ans {}
 
 # special characters like ? or * are used in variant name or value
 setenv_var TESTSUITE_VARIANT 9
-set ans [list]
-lappend ans [list set __MODULES_LMVARIANT variant/1.0&v?r|v?l|0|0&v*r|v*l|0|0]
-lappend ans [list set TS1 {v*r=v*l:v?r=v?l}]
-lappend ans [list set _LMFILES_ $mp/variant/1.0]
-lappend ans [list set LOADEDMODULES variant/1.0]
-lappend ans [list set TS0 {v*r v?r}]
-testouterr_cmd sh {load variant/1.0 v?r=v?l v*r=v*l} $ans {}
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {3} : {34}}]
+set tserr [msg_load variant/1.0{v*r=v*l:v?r=v?l} [msg_moderr [invalid_variant_name v?r] {variant v?r v?l} $mp/variant/1.0 $ln {} {} {} $custom_error_trace]]
+testouterr_cmd sh {load variant/1.0 v?r=v?l v*r=v*l} ERR $tserr
 
 # ml test
 setenv_var TESTSUITE_VARIANT 1
@@ -234,13 +242,9 @@ testouterr_cmd sh {ml variant/1.0 foo=val1} $ans {}
 
 # space in variant name
 setenv_var TESTSUITE_VARIANT 10
-set ans [list]
-lappend ans [list set __MODULES_LMVARIANT {variant/1.0&foo bar|val1|0|0&foo |val1|0|0}]
-lappend ans [list set TS1 {foo =val1:foo bar=val1}]
-lappend ans [list set _LMFILES_ $mp/variant/1.0]
-lappend ans [list set LOADEDMODULES variant/1.0]
-lappend ans [list set TS0 {{foo } {foo bar}}]
-testouterr_cmd sh {load variant/1.0 foo\ bar=val1 foo\ =val1} $ans {}
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {3} : {38}}]
+set tserr [msg_load {variant/1.0{foo =val1:foo bar=val1}} [msg_moderr [invalid_variant_name {foo bar}] {variant {foo bar} val1} $mp/variant/1.0 $ln {} {} {} $custom_error_trace]]
+testouterr_cmd sh {load variant/1.0 foo\ bar=val1 foo\ =val1} ERR $tserr
 
 # erroneous variant specification
 testouterr_cmd sh {load foo=bar} ERR $err_specmodname'foo=bar'

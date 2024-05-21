@@ -33,12 +33,12 @@ setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 
 setenv_var TESTSUITE_VARIANT 1
 set ans [list]
-lappend ans [list set __MODULES_LMVARIANT {variant/5.0&foo|val 4|0|0&bar|2|0|2&b?r ||0|0}]
-lappend ans [list set TS1 {foo=val 4:bar=2:b?r =:f* o= ef*ult}]
+lappend ans [list set __MODULES_LMVARIANT {variant/5.0&foo|val 4|0|0&bar|2|0|2&1-bar||0|0}]
+lappend ans [list set TS1 {foo=val 4:bar=2:1-bar=:f* o= ef*ult}]
 lappend ans [list set _LMFILES_ $mp/variant/5.0]
 lappend ans [list set LOADEDMODULES variant/5.0]
-lappend ans [list set TS0 {foo=val 4:bar=2:b?r =:f* o=}]
-testouterr_cmd_re sh {load variant/5.0 foo=val\ 4 b?r\ =} $ans {}
+lappend ans [list set TS0 {foo=val 4:bar=2:1-bar=:f* o=}]
+testouterr_cmd_re sh {load variant/5.0 foo=val\ 4 1-bar=} $ans {}
 
 skip_if_quick_mode
 
@@ -61,9 +61,9 @@ setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 
 setenv_var TESTSUITE_VARIANT 1
 setenv_loaded_module [list variant/5.0] [list $mp/variant/5.0]
-setenv_var __MODULES_LMVARIANT {variant/5.0&foo|val 4|0|0&bar|2|0|2&b?r ||0|0}
-setenv_path_var TS0 {foo=val 4:bar=2:b?r =:f* o=}
-setenv_path_var TS1 {foo=val 4:bar=2:b?r =:f* o= ef*ult}
+setenv_var __MODULES_LMVARIANT {variant/5.0&foo|val 4|0|0&bar|2|0|2&1-bar||0|0}
+setenv_path_var TS0 {foo=val 4:bar=2:1-bar=:f* o=}
+setenv_path_var TS1 {foo=val 4:bar=2:1-bar=:f* o= ef*ult}
 
 set ans [list]
 lappend ans [list unset __MODULES_LMVARIANT]
@@ -72,7 +72,7 @@ lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
 lappend ans [list unset TS0]
 testouterr_cmd sh {unload variant/5.0} $ans {}
-testouterr_cmd sh {unload variant/5.0 b?r\ =} $ans {}
+testouterr_cmd sh {unload variant/5.0 1-bar=} $ans {}
 
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMVARIANT
@@ -90,24 +90,24 @@ $mpre/variant/5.0:
 
 variant\t\tfoo val1 val2 val3 {val 4}
 variant\t\t--default 2 bar 1 2 3
-variant\t\t{b\\?r } {} v\\*l1 val2
+variant\t\t1-bar {} v\\*l1 val2
 append-path\tTS0 foo={foo}
 append-path\tTS1 foo={foo}
 append-path\tTS0 bar={bar}
 append-path\tTS1 bar={bar}
-append-path\tTS0 {b\\?r ={b\\?r }}
-append-path\tTS1 {b\\?r ={b\\?r }}
+append-path\tTS0 1-bar=\\{1-bar\\}
+append-path\tTS1 1-bar=\\{1-bar\\}
 append-path\tTS0 {f\\* o={f\\* o}}
 append-path\tTS1 {f\\* o={f\\* o}}
 $modlin"
-testouterr_cmd_re sh {display variant/5.0 foo=val1 b?r\ =} OK $tserr
+testouterr_cmd_re sh {display variant/5.0 foo=val1 1-bar=} OK $tserr
 
 # display loaded module
 setenv_loaded_module [list variant/5.0] [list $mp/variant/5.0]
-setenv_var __MODULES_LMVARIANT {variant/5.0&foo|val1|0|0&bar|2|0|2&b?r ||0|0}
-setenv_path_var TS0 foo={foo} bar={bar} {b\\?r ={b\\?r }} {f\\* o={f\\* o}}
-setenv_path_var TS1 foo={foo} bar={bar} {b\\?r ={b\\?r }} {f\\* o={f\\* o}}
-testouterr_cmd_re sh {display variant/5.0 foo=val1 b?r\ =} OK $tserr
+setenv_var __MODULES_LMVARIANT {variant/5.0&foo|val1|0|0&bar|2|0|2&1-bar||0|0}
+setenv_path_var TS0 foo={foo} bar={bar} 1-bar=1-bar {f\\* o={f\\* o}}
+setenv_path_var TS1 foo={foo} bar={bar} 1-bar=1-bar {f\\* o={f\\* o}}
+testouterr_cmd_re sh {display variant/5.0 foo=val1 1-bar=} OK $tserr
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMVARIANT
 unsetenv_path_var TS0
@@ -121,17 +121,17 @@ set tserr "$modlin
 
 [sgr 92]variant[sgr 0]\t\tfoo val1 val2 val3 {val 4}
 [sgr 92]variant[sgr 0]\t\t--default 2 bar 1 2 3
-[sgr 92]variant[sgr 0]\t\t{b\\?r } {} v\\*l1 val2
+[sgr 92]variant[sgr 0]\t\t1-bar {} v\\*l1 val2
 [sgr 92]append-path[sgr 0]\tTS0 foo=[sgr 93]{foo}[sgr 0]
 [sgr 92]append-path[sgr 0]\tTS1 foo=[sgr 93]{foo}[sgr 0]
 [sgr 92]append-path[sgr 0]\tTS0 bar=[sgr 93]{bar}[sgr 0]
 [sgr 92]append-path[sgr 0]\tTS1 bar=[sgr 93]{bar}[sgr 0]
-[sgr 92]append-path[sgr 0]\tTS0 {b\\?r =[sgr 93]{b\\?r }[sgr 0]}
-[sgr 92]append-path[sgr 0]\tTS1 {b\\?r =[sgr 93]{b\\?r }[sgr 0]}
+[sgr 92]append-path[sgr 0]\tTS0 1-bar=[sgr 93]\\{1-bar\\}[sgr 0]
+[sgr 92]append-path[sgr 0]\tTS1 1-bar=[sgr 93]\\{1-bar\\}[sgr 0]
 [sgr 92]append-path[sgr 0]\tTS0 {f\\* o=[sgr 93]{f\\* o}[sgr 0]}
 [sgr 92]append-path[sgr 0]\tTS1 {f\\* o=[sgr 93]{f\\* o}[sgr 0]}
 $modlin"
-testouterr_cmd_re sh {display variant/5.0 foo=val1 b?r\ =} OK $tserr
+testouterr_cmd_re sh {display variant/5.0 foo=val1 1-bar=} OK $tserr
 
 setenv_var MODULES_COLOR never
 unsetenv_var MODULES_COLORS
@@ -144,11 +144,11 @@ unsetenv_var MODULES_COLORS
 set tserr "$modlin
 Module Specific Help for $mpre/variant/5.0:
 
-b\\?r =
+1-bar=
 bar=2
 foo=val1
 $modlin"
-testouterr_cmd_re sh {help variant/5.0 foo=val1 b?r\ =} OK $tserr
+testouterr_cmd_re sh {help variant/5.0 foo=val1 1-bar=} OK $tserr
 
 
 #
@@ -158,12 +158,12 @@ testouterr_cmd_re sh {help variant/5.0 foo=val1 b?r\ =} OK $tserr
 set tserr "$modlin
 Module Specific Test for $mpre/variant/5.0:
 
-b\\?r =
+1-bar=
 bar=2
 foo=val1
 Test result: PASS
 $modlin"
-testouterr_cmd_re sh {test variant/5.0 foo=val1 b?r\ =} OK $tserr
+testouterr_cmd_re sh {test variant/5.0 foo=val1 1-bar=} OK $tserr
 
 
 #

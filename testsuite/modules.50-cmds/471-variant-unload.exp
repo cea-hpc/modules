@@ -24,6 +24,17 @@ set mp $modpath.3
 set mpre $modpathre.3
 setenv_path_var MODULEPATH $mp
 
+if {[cmpversion $tclsh_version 8.6] == -1} {
+    set custom_error_trace "    invoked from within
+\"if \{\[info exists env(TESTSUITE_VARIANT)\]\} \{
+    switch -- \$env(TESTSUITE_VARIANT) \{
+        1 - 10 - 11 - 12 \{
+            variant foo val1 val2 val3
+...\""
+} else {
+    set custom_error_trace {}
+}
+
 
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 
@@ -101,10 +112,12 @@ setenv_path_var TS1 {b?r =v*l1} {f* o=v?l1 }
 setenv_path_var TS2 {b?r -f* o}
 
 # unload module specifying it fully or partially
-testouterr_cmd sh {unload variant} $ans {}
-testouterr_cmd sh {unload variant/4.0} $ans {}
-testouterr_cmd sh {unload variant/4.0 b?r\ =v*l1} $ans {}
-testouterr_cmd sh {unload variant/4.0 f*\ o=v?l1\  b?r\ =v*l1} $ans {}
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {2} : {14}}]
+set tserr [msg_unload {variant/4.0{b?r =v*l1:f* o=v?l1 }} [msg_moderr [invalid_variant_name {b?r }] {variant {b?r } {} v*l1 val2} $mp/variant/4.0 $ln {} {} {} $custom_error_trace]]
+testouterr_cmd sh {unload variant} ERR $tserr
+testouterr_cmd sh {unload variant/4.0} ERR $tserr
+testouterr_cmd sh {unload variant/4.0 b?r\ =v*l1} ERR $tserr
+testouterr_cmd sh {unload variant/4.0 f*\ o=v?l1\  b?r\ =v*l1} ERR $tserr
 
 # no unload if specification does not correspond
 testouterr_cmd sh {unload variant/4.0 b?r\ =val5} OK {}
