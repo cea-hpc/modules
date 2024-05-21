@@ -568,6 +568,221 @@ testouterr_cmd sh {load variant foo=val1} ERR "$err_path'variant/2.1/2 foo=val1'
 
 
 #
+# stricter naming rules
+#
+
+setenv_var TESTSUITE_VARIANT naming1
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {3} : {208}}]
+set tserr [msg_load variant/1.0 [msg_moderr [invalid_variant_name foo.bar] {variant --boolean foo.bar} $mp/variant/1.0 $ln {} {} {} $custom_error_trace]]
+testouterr_cmd sh {load variant/1.0} ERR $tserr
+
+setenv_var TESTSUITE_VARIANT naming2
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {3} : {211}}]
+set tserr [msg_load variant/1.0 [msg_moderr [invalid_variant_name foo:bar] {variant --boolean foo:bar} $mp/variant/1.0 $ln {} {} {} $custom_error_trace]]
+testouterr_cmd sh {load variant/1.0} ERR $tserr
+
+setenv_var TESTSUITE_VARIANT naming3
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {3} : {214}}]
+set tserr [msg_load variant/1.0 [msg_moderr [invalid_variant_name 8] {variant --boolean 8} $mp/variant/1.0 $ln {} {} {} $custom_error_trace]]
+testouterr_cmd sh {load variant/1.0} ERR $tserr
+
+setenv_var TESTSUITE_VARIANT naming4
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {3} : {217}}]
+set tserr [msg_load variant/1.0 [msg_moderr [invalid_variant_name 64] {variant --boolean 64} $mp/variant/1.0 $ln {} {} {} $custom_error_trace]]
+testouterr_cmd sh {load variant/1.0} ERR $tserr
+
+setenv_var TESTSUITE_VARIANT naming5
+set ln [expr {[cmpversion $tclsh_version 8.5] < 1 ? {3} : {220}}]
+set tserr [msg_load variant/1.0 [msg_moderr [invalid_variant_name 1.1] {variant --boolean 1.1} $mp/variant/1.0 $ln {} {} {} $custom_error_trace]]
+testouterr_cmd sh {load variant/1.0} ERR $tserr
+
+setenv_var TESTSUITE_VARIANT naming6
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/1.0&foo-bar|1|1|0]
+lappend ans [list set TS1 {foo-bar=1}]
+lappend ans [list set _LMFILES_ $mp/variant/1.0]
+lappend ans [list set LOADEDMODULES variant/1.0]
+lappend ans [list set TS0 {foo-bar}]
+set tserr [msg_load variant/1.0{+foo-bar}]
+testouterr_cmd sh {load variant/1.0 foo-bar=1} $ans {}
+testouterr_cmd sh {load -v variant/1.0 +foo-bar} $ans $tserr
+testouterr_cmd sh {load variant/1.0+foo-bar} $ans {}
+testouterr_cmd sh {load -v variant+foo-bar@1.0} $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/1.0&foo-bar|0|1|0]
+lappend ans [list set TS1 {foo-bar=0}]
+lappend ans [list set _LMFILES_ $mp/variant/1.0]
+lappend ans [list set LOADEDMODULES variant/1.0]
+lappend ans [list set TS0 {foo-bar}]
+set tserr [msg_load variant/1.0{-foo-bar}]
+testouterr_cmd sh {load -v variant/1.0 foo-bar=0} $ans $tserr
+testouterr_cmd sh {load variant/1.0 -foo-bar} $ans {}
+testouterr_cmd sh {load -v variant/1.0~foo-bar} $ans $tserr
+testouterr_cmd sh {load variant~foo-bar@1.0} $ans {}
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/2.1/2/1&foo-bar|0|1|0]
+if {$install_implicitdefault eq {y}} {
+    lappend ans [list set __MODULES_LMALTNAME variant/2.1/2/1&as|variant/2.1/default&as|variant/2.1/latest&as|variant/2.1/2/default&as|variant/2.1/2/latest]
+}
+lappend ans [list set _LMFILES_ $mp/variant/2.1/2/1]
+lappend ans [list set LOADEDMODULES variant/2.1/2/1]
+testouterr_cmd sh {load variant/2.1/2/1~foo-bar} $ans {}
+testouterr_cmd sh {load variant/2.1/2~foo-bar@1} $ans {}
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/2.1/2/1&foo-bar|1|1|0]
+if {$install_implicitdefault eq {y}} {
+    lappend ans [list set __MODULES_LMALTNAME variant/2.1/2/1&as|variant/2.1/default&as|variant/2.1/latest&as|variant/2.1/2/default&as|variant/2.1/2/latest]
+}
+lappend ans [list set _LMFILES_ $mp/variant/2.1/2/1]
+lappend ans [list set LOADEDMODULES variant/2.1/2/1]
+testouterr_cmd sh {load variant/2.1/2/1+foo-bar} $ans {}
+testouterr_cmd sh {load variant/2.1/2+foo-bar@1} $ans {}
+
+setenv_var TESTSUITE_VARIANT naming7
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/1.0&8bit|1|1|0]
+lappend ans [list set TS1 {8bit=1}]
+lappend ans [list set _LMFILES_ $mp/variant/1.0]
+lappend ans [list set LOADEDMODULES variant/1.0]
+lappend ans [list set TS0 {8bit}]
+set tserr [msg_load variant/1.0{+8bit}]
+testouterr_cmd sh {load -v variant/1.0 8bit=1} $ans $tserr
+testouterr_cmd sh {load variant/1.0 +8bit} $ans {}
+testouterr_cmd sh {load -v variant/1.0+8bit} $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/1.0&8bit|0|1|0]
+lappend ans [list set TS1 {8bit=0}]
+lappend ans [list set _LMFILES_ $mp/variant/1.0]
+lappend ans [list set LOADEDMODULES variant/1.0]
+lappend ans [list set TS0 {8bit}]
+set tserr [msg_load variant/1.0{-8bit}]
+testouterr_cmd sh {load variant/1.0 8bit=0} $ans {}
+testouterr_cmd sh {load -v variant/1.0 -8bit} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0~8bit} $ans $tserr
+
+setenv_var TESTSUITE_VARIANT naming8
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/1.0&64bit|1|1|0]
+lappend ans [list set TS1 {64bit=1}]
+lappend ans [list set _LMFILES_ $mp/variant/1.0]
+lappend ans [list set LOADEDMODULES variant/1.0]
+lappend ans [list set TS0 {64bit}]
+testouterr_cmd sh {load variant/1.0 64bit=1} $ans {}
+testouterr_cmd sh {load variant/1.0 +64bit} $ans {}
+testouterr_cmd sh {load variant/1.0+64bit} $ans {}
+
+setenv_var TESTSUITE_VARIANT naming9
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/1.0&a1|1|1|0]
+lappend ans [list set TS1 {a1=1}]
+lappend ans [list set _LMFILES_ $mp/variant/1.0]
+lappend ans [list set LOADEDMODULES variant/1.0]
+lappend ans [list set TS0 {a1}]
+testouterr_cmd sh {load variant/1.0 a1=1} $ans {}
+testouterr_cmd sh {load variant/1.0 +a1} $ans {}
+testouterr_cmd sh {load variant/1.0+a1} $ans {}
+testouterr_cmd sh {load variant+a1@1.0} $ans {}
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/1.0&a1|0|1|0]
+lappend ans [list set TS1 {a1=0}]
+lappend ans [list set _LMFILES_ $mp/variant/1.0]
+lappend ans [list set LOADEDMODULES variant/1.0]
+lappend ans [list set TS0 {a1}]
+testouterr_cmd sh {load variant/1.0 a1=0} $ans {}
+testouterr_cmd sh {load variant/1.0 -a1} $ans {}
+testouterr_cmd sh {load variant/1.0~a1} $ans {}
+testouterr_cmd sh {load variant~a1@1.0} $ans {}
+
+setenv_var TESTSUITE_VARIANT naming10
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/1.0&beta2|1|1|0]
+lappend ans [list set TS1 {beta2=1}]
+lappend ans [list set _LMFILES_ $mp/variant/1.0]
+lappend ans [list set LOADEDMODULES variant/1.0]
+lappend ans [list set TS0 {beta2}]
+testouterr_cmd sh {load variant/1.0 beta2=1} $ans {}
+testouterr_cmd sh {load variant/1.0 +beta2} $ans {}
+testouterr_cmd sh {load variant/1.0+beta2} $ans {}
+
+if {![is_config_locked implicit_default]} {
+
+setenv_var MODULES_EXTENDED_DEFAULT 1
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+setenv_var TESTSUITE_VARIANT naming11
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/1.0&b|1|1|0]
+lappend ans [list set TS1 {b=1}]
+lappend ans [list set _LMFILES_ $mp/variant/1.0]
+lappend ans [list set LOADEDMODULES variant/1.0]
+lappend ans [list set TS0 {b}]
+set tserr [msg_load variant/1.0{+b}]
+testouterr_cmd sh {load variant/1.0 b=1} $ans {}
+testouterr_cmd sh {load -v variant@1 +b} $ans $tserr
+testouterr_cmd sh {load variant@1.0+b} $ans {}
+testouterr_cmd sh {load -v variant+b@1} $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/1.0&b|0|1|0]
+lappend ans [list set TS1 {b=0}]
+lappend ans [list set _LMFILES_ $mp/variant/1.0]
+lappend ans [list set LOADEDMODULES variant/1.0]
+lappend ans [list set TS0 {b}]
+set tserr [msg_load variant/1.0{-b}]
+testouterr_cmd sh {load variant/1 b=0} $ans {}
+testouterr_cmd sh {load variant@1.0 -b} $ans {}
+testouterr_cmd sh {load -v variant@1~b} $ans $tserr
+testouterr_cmd sh {load -v variant~b@1.0} $ans $tserr
+
+unsetenv_var MODULES_EXTENDED_DEFAULT
+unsetenv_var MODULES_IMPLICIT_DEFAULT
+
+}
+
+setenv_var TESTSUITE_VARIANT naming12
+setenv_var MODULES_VARIANT_SHORTCUT foo-bar=%
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/1.0&foo-bar|val1|0|0]
+lappend ans [list set TS1 {foo-bar=val1}]
+lappend ans [list set _LMFILES_ $mp/variant/1.0]
+lappend ans [list set LOADEDMODULES variant/1.0]
+lappend ans [list set TS0 {foo-bar}]
+set tserr [msg_load variant/1.0{%val1}]
+testouterr_cmd sh {load -v variant/1.0 %val1} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0%val1} $ans $tserr
+testouterr_cmd sh {load -v variant%val1@1.0} $ans $tserr
+
+setenv_var TESTSUITE_VARIANT naming13
+setenv_var MODULES_VARIANT_SHORTCUT 64bit=%
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT variant/1.0&64bit|val1|0|0]
+lappend ans [list set TS1 {64bit=val1}]
+lappend ans [list set _LMFILES_ $mp/variant/1.0]
+lappend ans [list set LOADEDMODULES variant/1.0]
+lappend ans [list set TS0 {64bit}]
+set tserr [msg_load variant/1.0{%val1}]
+testouterr_cmd sh {load -v variant/1.0 %val1} $ans $tserr
+testouterr_cmd sh {load -v variant/1.0%val1} $ans $tserr
+testouterr_cmd sh {load -v variant%val1@1.0} $ans $tserr
+unsetenv_var MODULES_VARIANT_SHORTCUT
+
+# wrong variant name taken as part of module name and version name
+testouterr_cmd sh {load variant/1.0+1} ERR $err_path'variant/1.0+1'
+testouterr_cmd sh {load variant/1.0~1} ERR $err_path'variant/1.0~1'
+testouterr_cmd sh {load variant/1.0-1} ERR $err_path'variant/1.0-1'
+testouterr_cmd sh {load variant/1.0+val1/foo} ERR $err_path'variant/1.0+val1/foo'
+testouterr_cmd sh {load variant/1.0~val1/foo} ERR $err_path'variant/1.0~val1/foo'
+testouterr_cmd sh {load variant/1.0-val1/foo} ERR $err_path'variant/1.0-val1/foo'
+testouterr_cmd sh {load variant/1.0~} ERR $err_path'variant/1.0~'
+testouterr_cmd sh {load variant/1.0-} ERR $err_path'variant/1.0-'
+
+
+#
 #  Cleanup
 #
 
