@@ -2150,11 +2150,32 @@ proc reportFinalError {error_msg} {
       incrErrorCount
       renderFalse
    }
-   # report stack trace in addition to the error message if error is unknown
+
    if {$::errorCode ni [list MODULES_ERR_RENDERED MODULES_ERR_KNOWN]} {
-      set error_msg "$::errorInfo\n[sgr hi {Please report this issue at\
-         https://github.com/cea-hpc/modules/issues}]"
+      # add web link to report issue unless if an external error is detected
+      set external_error_list [list\
+         {Can't find a usable init.tcl in the following directories}\
+         {interpreter uses an incompatible stubs mechanism}\
+         {dlopen(}\
+         {invalid command name "tcl::mathfunc::max"}]
+      set add_report_link 1
+      foreach external_error $external_error_list {
+         if {[string equal -length [string length $external_error]\
+            $external_error $error_msg]} {
+            set add_report_link 0
+            break
+         }
+      }
+
+      # report stack trace in addition to the error msg if error is unknown
+      set error_msg $::errorInfo
+
+      if {$add_report_link} {
+         append error_msg \n[sgr hi {Please report this issue at\
+            https://github.com/cea-hpc/modules/issues}]
+      }
    }
+
    reportError $error_msg
 }
 

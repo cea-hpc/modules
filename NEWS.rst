@@ -85,6 +85,8 @@ Modules 5.5.0 (not yet released)
 * Allow ``+`` and ``~`` characters to be part of module name or version
   specification as long as the string following them is not a valid variant
   name (e.g., ``foo/1.2+8``). (fix issue #527)
+* In case of an issue external to Modules, do not mention at the end of the
+  error stack trace the web link to report this issue.
 
 .. warning:: Variant names are now fully checked instead of just verifying
    their first character. Only characters within the ``A-Za-z0-9_-`` range are
