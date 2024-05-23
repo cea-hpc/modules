@@ -611,4 +611,27 @@ if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_GETMODULEFROMLOADINGMODULEFILE)
     report [getModuleFromLoadingModulefile /path/to/foo/1.0 0]
 }
 
+# specific tests for reportFinalError procedure
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_EXTERNALERRORTCLCOMPAT)]} {
+    proc reportVersion {} {
+        error {interpreter uses an incompatible stubs mechanism}
+    }
+}
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_EXTERNALERRORLIBCOMPAT)]} {
+    proc reportVersion {} {
+        error {dlopen(/usr/local/Modules/lib/libtclenvmodules.dylib, 0x000A): tried: '/usr/local/Modules/lib/libtclenvmodules.dylib' (mach-o file, but is an incompatible architecture (have (x86_64), need (arm64e)))}
+    }
+}
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_EXTERNALERRORTCLINSTALL)]} {
+    proc reportVersion {} {
+        error {Can't find a usable init.tcl in the following directories:
+/root/lib/tcl8.6 /usr/lib/tcl8.6 /lib/tcl8.6 /usr/library /library /tcl8.6.14/library /tcl8.6.14/library
+
+This probably means that Tcl wasn't installed properly.}
+    }
+}
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_EXTERNALERRORTCLINIT)]} {
+    rename tcl::mathfunc::max {}
+}
+
 }

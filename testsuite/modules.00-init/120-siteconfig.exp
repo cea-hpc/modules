@@ -624,6 +624,69 @@ lappend ans $vers_reportre
 testouterr_cmd_re sh -V OK [join $ans \n]
 unsetenv_var TESTSUITE_ENABLE_SITECONFIG_GETMODULEFROMLOADINGMODULEFILE
 
+# reportFinalError coverage tests
+if {[info exists tclextlib_file]} {
+    setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTERNALERRORTCLCOMPAT 1
+    set ans [list]
+    lappend ans "$error_msgs: interpreter uses an incompatible stubs mechanism"
+    lappend ans {      while executing}
+    lappend ans {  "error {interpreter uses an incompatible stubs mechanism}"}
+    lappend ans {      (procedure "reportVersion" line 2)}
+    lappend ans {      invoked from within}
+    lappend ans {  "reportVersion"}
+    testouterr_cmd sh {-V} ERR [join $ans \n]
+    unsetenv_var TESTSUITE_ENABLE_SITECONFIG_EXTERNALERRORTCLCOMPAT
+
+    setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTERNALERRORLIBCOMPAT 1
+    set ans [list]
+    lappend ans "$error_msgs: dlopen(/usr/local/Modules/lib/libtclenvmodules.dylib, 0x000A): tried: '/usr/local/Modules/lib/libtclenvmodules.dylib' (mach-o file, but is an incompatible architecture (have (x86_64), need (arm64e)))"
+    lappend ans {      while executing}
+    lappend ans "  \"error \{dlopen(/usr/local/Modules/lib/libtclenvmodules.dylib, 0x000A): tried: '/usr/local/Modules/lib/libtclenvmodules.dylib' (mach-o file, but is an i...\""
+    lappend ans {      (procedure "reportVersion" line 2)}
+    lappend ans {      invoked from within}
+    lappend ans {  "reportVersion"}
+    testouterr_cmd sh {-V} ERR [join $ans \n]
+    unsetenv_var TESTSUITE_ENABLE_SITECONFIG_EXTERNALERRORLIBCOMPAT
+
+    setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTERNALERRORTCLINSTALL 1
+    set ans [list]
+    lappend ans "$error_msgs: Can't find a usable init.tcl in the following directories:
+  /root/lib/tcl8.6 /usr/lib/tcl8.6 /lib/tcl8.6 /usr/library /library /tcl8.6.14/library /tcl8.6.14/library
+  
+  This probably means that Tcl wasn't installed properly."
+    lappend ans {      while executing}
+    lappend ans "  \"error \{Can't find a usable init.tcl in the following directories:
+  /root/lib/tcl8.6 /usr/lib/tcl8.6 /lib/tcl8.6 /usr/library /library /tcl8.6.14/librar...\""
+    lappend ans {      (procedure "reportVersion" line 2)}
+    lappend ans {      invoked from within}
+    lappend ans {  "reportVersion"}
+    testouterr_cmd sh {-V} ERR [join $ans \n]
+    unsetenv_var TESTSUITE_ENABLE_SITECONFIG_EXTERNALERRORTCLINSTALL
+}
+setenv_var TESTSUITE_ENABLE_SITECONFIG_EXTERNALERRORTCLINIT 1
+set ans [list]
+lappend ans "$error_msgs: invalid command name \"tcl::mathfunc::max\""
+lappend ans {      while executing}
+lappend ans {  "tcl::mathfunc::max [expr {($tty_cols - $len - 2)/2}] 1"}
+lappend ans {      (procedure "displaySeparatorLine" line 10)}
+lappend ans {      invoked from within}
+lappend ans {  "displaySeparatorLine $header $sgrkey"}
+lappend ans {      (procedure "displayElementList" line 17)}
+lappend ans {      invoked from within}
+lappend ans {  "displayElementList $header $hsgrkey $hstyle $one_per_line $show_idx 1 $display_list $len_list $max_len"}
+lappend ans {      (procedure "reportModules" line 151)}
+lappend ans {      invoked from within}
+lappend ans {  "reportModules $search_queries $modpath_label mp $hstyle $show_mtime 0 $one_per_line $theader_cols hidden-loaded"}
+lappend ans {      (procedure "cmdModuleAvail" line 51)}
+lappend ans {      invoked from within}
+lappend ans {  "$cmdprocname {*}$cmdopts {*}$parsed_args"}
+lappend ans {      (procedure "module" line 186)}
+lappend ans {      invoked from within}
+lappend ans {  "{*}$execcmdlist"}
+testouterr_cmd sh {avail} ERR [join $ans \n]
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_EXTERNALERRORTCLINIT
+
+
 } elseif {$verbose} {
     send_user "\tSkip tests relying on an excepted siteconfig file installed\n"
 }
