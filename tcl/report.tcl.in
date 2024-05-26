@@ -122,6 +122,14 @@ proc reportInternalBugWarning {message {modfile {}} {title {Module\
    reportError [formatInternalBugMsg $message $modfile] $title wa 0
 }
 
+proc reportInternalBugOrWarningIfForced {message {modfile {}}} {
+   if {[getState force]} {
+      reportInternalBugWarning $message $modfile
+   } else {
+      reportInternalBug $message $modfile
+   }
+}
+
 proc formatInternalBugMsg {message modfile} {
    if {$modfile ne {}} {
       set message [formatMessageInModule $message $modfile]

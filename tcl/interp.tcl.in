@@ -509,19 +509,28 @@ proc renderModulefileEvalError {itrp mode mod_file failed_eval error_msg} {
       }
    }
 
-   set forced_unload [expr {$mode eq {unload} && [getState force]}]
-   if {$forced_unload} {
-      set eval_return_code 0
+   # split force mode management code as non-unload modes still have a
+   # specific behavior (message returned as error and error exit code set)
+   if {$mode eq {unload}} {
+      if {[getState force]} {
+         set eval_return_code 0
+      }
       if {[info exists error_msg]} {
-         set report_proc [expr {[info exists internal_bug] ?\
-            {reportInternalBugWarning} : {reportWarning}}]
-         $report_proc $error_msg
+         if {[info exists internal_bug]} {
+            reportInternalBugOrWarningIfForced $error_msg
+         } else {
+            reportErrorOrWarningIfForced $error_msg
+         }
+      } elseif {$eval_return_code && [info exists raise_error_count]} {
+         incrErrorCount
       }
    } else {
       if {[info exists error_msg]} {
-         set report_proc [expr {[info exists internal_bug] ?\
-            {reportInternalBug} : {reportError}}]
-         $report_proc $error_msg
+         if {[info exists internal_bug]} {
+            reportInternalBug $error_msg
+         } else {
+            reportError $error_msg
+         }
       } elseif {[info exists raise_error_count]} {
          incrErrorCount
       }
