@@ -269,8 +269,7 @@ testouterr_cmd_re sh {load --force --no-auto m5} $ans [join $tserr \n]
 # load test in case 'module unload' target is loaded, user asked, and required by another loaded module
 setenv_loaded_module [list m1 m2] [list $mp/m1 $mp/m2]
 setenv_var __MODULES_LMPREREQ m2&m1
-# evaluation is attempted prior conflict violation check
-set tserr [list [msg_unload m1 [err_prerequn m2]] "\nload m5" \n[msg_load m5 [err_conun m1]]]
+set tserr [list [msg_unload m1 [err_prerequn m2]] \n[msg_load m5 [err_conun m1]]]
 testouterr_cmd_re sh {load --auto m5} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto m5} ERR [join $tserr \n]
 # force mode will by-pass unload/conflict to guarantee m2&m1 prereq
@@ -286,7 +285,7 @@ testouterr_cmd_re sh {load --no-auto --force m5} $ans [join $tserr \n]
 # load test in case 'module unload' target is loaded, not user asked, and required by another loaded module
 setenv_loaded_module [list m1 m2] [list $mp/m1 $mp/m2] [list m1]
 # evaluation is attempted prior conflict violation check
-set tserr [list [msg_unload {m1 <aL>} [err_prerequn m2]] "\nload m5" \n[msg_load m5 [err_conun m1]]]
+set tserr [list [msg_unload {m1 <aL>} [err_prerequn m2]] \n[msg_load m5 [err_conun m1]]]
 testouterr_cmd_re sh {load --auto m5} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto m5} ERR [join $tserr \n]
 # force mode will by-pass unload/conflict to guarantee m2&m1 prereq

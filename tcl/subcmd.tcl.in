@@ -1545,13 +1545,6 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                   reportWarning [getDepLoadedMsg $prereq_list]
                }
             } else {
-               # exit treatment but no need to set return code to error if
-               # called from a 'module unload' command in a modulefile in a
-               # load evaluation mode, as set conflict will raise error at end
-               # of modulefile evaluation
-               if {$onlyndep} {
-                  set errharmless 1
-               }
                knerror [expr {[isModuleEvaluated any $modnamevr {}\
                   {*}$prereq_list] ? [getDepLoadedMsg $prereq_list] :\
                   [getErrPrereqMsg $prereq_list 0]}]
@@ -1751,13 +1744,10 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          set hidden 0
          reportError $errMsg
          # rollback settings if some evaluation went wrong
-         if {![info exists errharmless]} {
-            set ret 1
-            restoreSettings
-            # remove from successfully evaluated module list
-            registerModuleEval $context $msgrecid $modnamevr unload
-         }
-         unset -nocomplain errharmless
+         set ret 1
+         restoreSettings
+         # remove from successfully evaluated module list
+         registerModuleEval $context $msgrecid $modnamevr unload
       }
       popSettings
 

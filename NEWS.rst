@@ -87,6 +87,9 @@ Modules 5.5.0 (not yet released)
   name (e.g., ``foo/1.2+8``). (fix issue #527)
 * In case of an issue external to Modules, do not mention at the end of the
   error stack trace the web link to report this issue.
+* When a modulefile performs a :mfcmd:`module unload<module>` command that
+  fails due to dependent modules loaded, stop unload evaluation right after
+  this failed command unless :option:`--force` option is used.
 
 .. warning:: Variant names are now fully checked instead of just verifying
    their first character. Only characters within the ``A-Za-z0-9_-`` range are
