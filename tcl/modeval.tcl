@@ -26,6 +26,10 @@ proc registerModuleEval {context msgrecid {failedmod {}} {failedcontext {}}} {
    set evalid [topState evalid]
    set unset [expr {$failedmod eq {} ? 0 : 1}]
    set contextset 0
+   # unload dependent reload evaluations are mixed with dependent unload ones
+   if {$context eq {depre_un}} {
+      set context depun
+   }
 
    # add msgrecid to existing evaluation context list
    if {[info exists ::g_moduleEval($evalid)]} {
@@ -61,6 +65,10 @@ proc registerModuleEval {context msgrecid {failedmod {}} {failedcontext {}}} {
 # record that module evaluation is set hidden
 proc registerModuleEvalHidden {context msgrecid} {
    set evalid [topState evalid]
+   # unload dependent reload evaluations are mixed with dependent unload ones
+   if {$context eq {depre_un}} {
+      set context depun
+   }
    lappend ::g_moduleHiddenEval($evalid:$context) $msgrecid
 }
 
