@@ -749,7 +749,7 @@ proc reloadModuleListUnloadPhase {lmname {errmsgtpl {}} {context unload}} {
       set extratag($mod) [getExtraTagList $mod]
       # force unload even if requiring mods are not part of the unload list
       # (violation state) as modules are loaded again just after
-      if {[cmdModuleUnload $context match 0 1 0 0 $mod]} {
+      if {[cmdModuleUnload $context match 0 1 0 $mod]} {
          # avoid failing module on load phase
          # if force state is enabled, cmdModuleUnload returns 0
          set lmlist [replaceFromList $lmlist $mod]

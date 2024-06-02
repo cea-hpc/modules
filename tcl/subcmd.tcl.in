@@ -468,7 +468,7 @@ proc cmdModuleIntSwitch {mode tag_list args} {
             set priormodlist [lrange $modlist 0 $modidx]
             if {[set unmod [getLoadedMatchingName $swlomod {} 0\
                $priormodlist]] ne {}} {
-               cmdModuleUnload urequn match 1 0 1 1 $unmod
+               cmdModuleUnload urequn match 1 0 1 $unmod
             }
          }
       }
@@ -536,7 +536,7 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
    }
    ##nagelfar implicitvarcmd {cmdModuleUnload swunload *} oldhidden olduasked\
       oldmsgrecid deprelist depreisuasked deprevr depreextratag
-   set ret_unload [cmdModuleUnload swunload $unload_match 1 s 0 0 $old]
+   set ret_unload [cmdModuleUnload swunload $unload_match 1 s 0 $old]
    if {$sticky_reload} {
       lpopState reloading_sticky
    }
@@ -723,7 +723,7 @@ proc cmdModuleRestore {args} {
          super-sticky]]} {
          lappendState reloading_supersticky $mod
       }
-      cmdModuleUnload unload match 0 s 0 0 $mod
+      cmdModuleUnload unload match 0 s 0 $mod
       lpopState unloading_sticky
       if {$supersticky_reload} {
          lpopState reloading_supersticky
@@ -1083,7 +1083,7 @@ proc cmdModuleIntLoad {topcall command mode tag_list args} {
          foreach arg [lreverse $args] {
             if {[set unmod [getLoadedMatchingName $arg {} 0 $priormodlist]]\
                ne {}} {
-               cmdModuleUnload urequn match 1 0 1 1 $unmod
+               cmdModuleUnload urequn match 1 0 1 $unmod
             }
          }
       }
@@ -1409,13 +1409,13 @@ proc cmdModuleIntUnload {mode args} {
    # if top command is source, consider module load commands made within
    # sourced file evaluation as top load command
    if {[isTopEvaluation]} {
-      set ret [cmdModuleUnload unload match 1 s 0 0 {*}$args]
+      set ret [cmdModuleUnload unload match 1 s 0 {*}$args]
    } elseif {$mode eq {load}} {
       # unload mods only on load mode, nothing done on unload mode as the
       # registered conflict guarantees the target module cannot be loaded
       # unless forced
-      # do not unload module required by others even in force mode
-      set ret [cmdModuleUnload conun match 0 0 0 1 {*}$args]
+      # do not unload module required by others (force mode disabled)
+      set ret [cmdModuleUnload conun match 0 0 0 {*}$args]
 
       # register modulefiles to unload as individual conflicts
       registerCurrentModuleConflict {*}$args
@@ -1427,9 +1427,9 @@ proc cmdModuleIntUnload {mode args} {
    }
 }
 
-proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
+proc cmdModuleUnload {context match auto force onlyureq args} {
    reportDebug "unloading $args (context=$context, match=$match, auto=$auto,\
-      force=$force, onlyureq=$onlyureq, onlyndep=$onlyndep)"
+      force=$force, onlyureq=$onlyureq)"
 
    # inherit force mode from force state if asked through arg
    if {$force eq {s}} {
@@ -1539,7 +1539,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          set prereq_list [getDependentLoadedModuleList [list $modname]]
          if {[llength $prereq_list] && (![getConf auto_handling] || !$auto)} {
             # force mode should not affect if we only look for mods w/o dep
-            if {$force && !$onlyndep} {
+            if {$force} {
                # in case unload is called for a DepRe mechanism do not warn
                # about prereq violation enforced as it is due to the dependent
                # module which is already in a violation state
@@ -1615,7 +1615,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             if {[llength $depunlist]} {
                foreach unmod [lreverse $depunlist] {
                   ##nagelfar ignore Found constant
-                  if {[cmdModuleUnload depun match 0 s 0 0 $unmod]} {
+                  if {[cmdModuleUnload depun match 0 s 0 $unmod]} {
                      # stop if one unload fails unless force mode enabled
                      set errMsg "Unload of dependent [getModuleDesignation\
                         loaded $unmod] failed"
@@ -1710,7 +1710,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                for {set i 0} {$i < [llength $urequnlist]} {incr i 1} {
                   set unmod [lindex $urequnlist $i]
                   ##nagelfar ignore Found constant
-                  if {[cmdModuleUnload urequn match 0 0 0 0 $unmod]} {
+                  if {[cmdModuleUnload urequn match 0 0 0 $unmod]} {
                      # main unload process continues, but the UReqUn modules
                      # that are required by unmod (whose unload failed) are
                      # withdrawn from UReqUn module list
@@ -1798,8 +1798,7 @@ proc cmdModulePurge {} {
    # unload one by one to ensure same behavior whatever auto_handling state
    # force it to handle loaded modules in violation state
    # remove dependent modules if force mode enabled
-   set onlyndep [expr {![getState force]}]
-   cmdModuleUnload unload match 0 1 0 $onlyndep {*}[lreverse\
+   cmdModuleUnload unload match 0 s 0 {*}[lreverse\
       [getEnvLoadedModulePropertyParsedList name]]
 
    popMsgRecordId 0
