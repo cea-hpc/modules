@@ -90,6 +90,8 @@ Modules 5.5.0 (not yet released)
 * When a modulefile performs a :mfcmd:`module unload<module>` command that
   fails due to dependent modules loaded, stop unload evaluation right after
   this failed command unless :option:`--force` option is used.
+* Exclude sticky modules from the useless requirement unload mechanism as they
+  cannot be unloaded.
 
 .. warning:: Variant names are now fully checked instead of just verifying
    their first character. Only characters within the ``A-Za-z0-9_-`` range are

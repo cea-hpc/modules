@@ -468,8 +468,7 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1} {nporeq 0}\
    return $sortlist
 }
 
-# test if passed 'mod' could be automatically unloaded or not, which means it
-# has been loaded automatically and no loaded modules require it anymore.
+# may given module be automatically unloaded
 # unmodlist: pass a list of modules that are going to be unloaded
 proc isModuleUnloadable {mod {unmodlist {}}} {
    set ret 1
@@ -478,13 +477,14 @@ proc isModuleUnloadable {mod {unmodlist {}}} {
       set unmodlist [getUnloadingModuleList]
    }
 
-   # loaded tag means module was not auto-loaded. keep-loaded means module is
-   # not auto-unloadable even if auto-loaded
+   # module may be unloaded if it has been automatically loaded, it is not
+   # tagged keep-loaded and it is not sticky.
    if {[isModuleTagged $mod loaded 1] || [isModuleTagged $mod keep-loaded\
-      1]} {
+      1] || [isModuleSticky $mod]} {
       set ret 0
+   # there should no one requiring module or these dependent should be part of
+   # the unloaded/unloading list
    } else {
-      # mod is unloadable if all its dependent are unloaded or unloading
       foreach depmod [getDirectDependentList $mod] {
          if {$depmod ni $unmodlist} {
             set ret 0
@@ -514,9 +514,7 @@ proc getRequiredLoadedModuleList {modlist} {
    return $sortlist
 }
 
-# finds required modules that can be unloaded if passed modules are unloaded:
-# they have been loaded automatically and are not depended (mandatory or
-# optionally) by other module
+# finds required modules that can be unloaded if passed modules are unloaded
 proc getUnloadableLoadedModuleList {modlist} {
    # search over all list of unloaded modules, starting with passed module
    # list, then adding in turns unloadable requirements
@@ -533,8 +531,7 @@ proc getUnloadableLoadedModuleList {modlist} {
          }
       }
 
-      # get those required module that have been automatically loaded and are
-      # only required by modules currently being unloaded
+      # get those required module that may be unloaded
       foreach lmmod $deplist {
          if {[isModuleUnloadable $lmmod $fulllist]} {
             lappend fulllist $lmmod
@@ -854,6 +851,11 @@ proc isStickinessReloading {mod reloading_mod_list {tag sticky}} {
    }
 
    return $res
+}
+
+proc isModuleSticky {mod} {
+   return [expr {[isModuleTagged $mod super-sticky 1] || ([isModuleTagged\
+      $mod sticky 1] && ![getState force])}]
 }
 
 # ;;; Local Variables: ***
