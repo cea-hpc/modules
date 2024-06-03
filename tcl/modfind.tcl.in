@@ -655,8 +655,22 @@ proc setModuleTag {mod args} {
    appendNoDupToList ::g_tagHash($mod) {*}$args
 }
 
+proc setModuleAndVariantsTag {mod mod_with_vr args} {
+   setModuleTag $mod {*}$args
+   if {$mod_with_vr ne {} && $mod ne $mod_with_vr} {
+      setModuleTag $mod_with_vr {*}$args
+   }
+}
+
 proc setModuleExtraTag {mod args} {
    appendNoDupToList ::g_extraTagHash($mod) {*}$args
+}
+
+proc setModuleAndVariantsExtraTag {mod mod_with_vr args} {
+   setModuleExtraTag $mod {*}$args
+   if {$mod_with_vr ne {} && $mod ne $mod_with_vr} {
+      setModuleExtraTag $mod_with_vr {*}$args
+   }
 }
 
 proc unsetModuleTag {mod args} {
@@ -670,6 +684,13 @@ proc unsetModuleTag {mod args} {
    }
 }
 
+proc unsetModuleAndVariantsTag {mod mod_with_vr args} {
+   unsetModuleTag $mod {*}$args
+   if {$mod_with_vr ne {} && $mod ne $mod_with_vr} {
+      unsetModuleTag $mod_with_vr {*}$args
+   }
+}
+
 proc unsetModuleExtraTag {mod args} {
    if {[info exists ::g_extraTagHash($mod)]} {
       lassign [getDiffBetweenList $::g_extraTagHash($mod) $args] diff_list
@@ -678,6 +699,13 @@ proc unsetModuleExtraTag {mod args} {
       } else {
          unset ::g_extraTagHash($mod)
       }
+   }
+}
+
+proc unsetModuleAndVariantsExtraTag {mod mod_with_vr args} {
+   unsetModuleExtraTag $mod {*}$args
+   if {$mod_with_vr ne {} && $mod ne $mod_with_vr} {
+      unsetModuleExtraTag $mod_with_vr {*}$args
    }
 }
 
@@ -1340,11 +1368,7 @@ proc setLoadedModule {mod modfile uasked modvr refresh} {
 
    # record if mod has been asked by user and relative loaded/auto-loaded tag
    set loadedtag [expr {$uasked ? {loaded} : {auto-loaded}}]
-   setModuleTag $mod $loadedtag
-   # also record tag for module designation including variants if specified
-   if {$modvr ne {} && $mod ne $modvr} {
-      setModuleTag $modvr $loadedtag
-   }
+   setModuleAndVariantsTag $mod $modvr $loadedtag
 
    # is module qualified for refresh evaluation
    set ::g_loadedModulesRefresh($mod) $refresh
@@ -2331,20 +2355,22 @@ proc cacheCurrentModules {{exitonerr 1}} {
 
          # cache declared tags of loaded modules
          foreach modtag [getEnvLoadedModulePropertyParsedList tag] {
-            setModuleTag {*}$modtag
-            # also record tag over full mod and vr designation
-            set mod [lindex $modtag 0]
+            set tag_list [lassign $modtag mod]
             if {[info exists modvrarr($mod)]} {
-               setModuleTag $modvrarr($mod) {*}[lrange $modtag 1 end]
+               set mod_with_vr $modvrarr($mod)
+            } else {
+               set mod_with_vr {}
             }
+            setModuleAndVariantsTag $mod $mod_with_vr {*}$tag_list
          }
          foreach modtag [getEnvLoadedModulePropertyParsedList extratag] {
-            setModuleExtraTag {*}$modtag
-            # also record tag over full mod and vr designation
-            set mod [lindex $modtag 0]
+            set tag_list [lassign $modtag mod]
             if {[info exists modvrarr($mod)]} {
-               setModuleExtraTag $modvrarr($mod) {*}[lrange $modtag 1 end]
+               set mod_with_vr $modvrarr($mod)
+            } else {
+               set mod_with_vr {}
             }
+            setModuleAndVariantsExtraTag $mod $mod_with_vr {*}$tag_list
          }
          foreach modstickyrule [getEnvLoadedModulePropertyParsedList\
             stickyrule] {

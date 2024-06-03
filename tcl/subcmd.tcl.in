@@ -1257,24 +1257,16 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list modulepath_list\
             # to the way module is loaded (auto, keep)
             lassign [getDiffBetweenList $tag_list [list auto-loaded\
                keep-loaded]] extratag_list
-            setModuleTag $modname {*}$tag_list
+            setModuleAndVariantsTag $modname $modnamevr {*}$tag_list
             if {[llength $extratag_list]} {
-               setModuleExtraTag $modname {*}$extratag_list
-            }
-            if {$modnamevr ne {} && $modname ne $modnamevr} {
-               setModuleTag $modnamevr {*}$tag_list
-               if {[llength $extratag_list]} {
-                  setModuleExtraTag $modnamevr {*}$extratag_list
-               }
+               setModuleAndVariantsExtraTag $modname $modnamevr\
+                  {*}$extratag_list
             }
          }
 
          # hide auto loaded modules if hide_auto_loaded config is enabled
          if {!$uasked && [getConf hide_auto_loaded]} {
-            setModuleTag $modname hidden-loaded
-            if {$modnamevr ne {} && $modname ne $modnamevr} {
-               setModuleTag $modnamevr hidden-loaded
-            }
+            setModuleAndVariantsTag $modname $modnamevr hidden-loaded
          }
 
          if {[execute-modulefile $modfile $modname modnamevr $mod $uasked]} {
@@ -1687,20 +1679,13 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
          # also remove the auto-loaded and keep-loaded tags from
          # in-memory knowledge not to re-apply them if module is reloaded
          # in other conditions
-         unsetModuleTag $modname auto-loaded keep-loaded
-         if {$modnamevr ne {} && $modname ne $modnamevr} {
-            unsetModuleTag $modnamevr auto-loaded keep-loaded
-         }
+         unsetModuleAndVariantsTag $modname $modnamevr auto-loaded keep-loaded
          unsetEnvLoadedModuleProperty $modname extratag
          # also remove extra tags from in-memory knowledge not re-apply
          # them if module is reloaded in other conditions
          set extratag_list [getExtraTagList $modname]
-         unsetModuleTag $modname {*}$extratag_list
-         unsetModuleExtraTag $modname {*}$extratag_list
-         if {$modnamevr ne {} && $modname ne $modnamevr} {
-            unsetModuleTag $modnamevr {*}$extratag_list
-            unsetModuleExtraTag $modnamevr {*}$extratag_list
-         }
+         unsetModuleAndVariantsTag $modname $modnamevr {*}$extratag_list
+         unsetModuleAndVariantsExtraTag $modname $modnamevr {*}$extratag_list
          unsetEnvLoadedModuleProperty $modname stickyrule
 
          if {[getConf auto_handling] && $auto} {
@@ -2763,35 +2748,23 @@ proc cmdModuleTag {unset_extra uasked tag_list args} {
 
          # remove extra tags currently set not part of tag list if asked
          if {$unset_extra && [llength $unset_list]} {
-            unsetModuleTag $modname {*}$unset_list
-            unsetModuleExtraTag $modname {*}$unset_list
-            if {$modnamevr ne {} && $modname ne $modnamevr} {
-               unsetModuleTag $modnamevr {*}$unset_list
-               unsetModuleExtraTag $modnamevr {*}$unset_list
-            }
+            unsetModuleAndVariantsTag $modname $modnamevr {*}$unset_list
+            unsetModuleAndVariantsExtraTag $modname $modnamevr {*}$unset_list
          }
 
          # ensure auto-loaded tag is not preserved if not part of target tags
          if {$unset_extra && {auto-loaded} ni $tag_list} {
-            unsetModuleTag $modname auto-loaded
-            if {$modnamevr ne {} && $modname ne $modnamevr} {
-               unsetModuleTag $modnamevr auto-loaded
-            }
+            unsetModuleAndVariantsTag $modname $modnamevr auto-loaded
          }
 
          # record new tags as extra tag excluding tags relative to the way
          # module is loaded (auto, keep)
          lassign [getDiffBetweenList $diff_list [list auto-loaded\
             keep-loaded]] extradiff_list
-         setModuleTag $modname {*}$diff_list
+         setModuleAndVariantsTag $modname $modnamevr {*}$diff_list
          if {[llength $extradiff_list]} {
-            setModuleExtraTag $modname {*}$extradiff_list
-         }
-         if {$modnamevr ne {} && $modname ne $modnamevr} {
-            setModuleTag $modnamevr {*}$diff_list
-            if {[llength $extradiff_list]} {
-               setModuleExtraTag $modnamevr {*}$extradiff_list
-            }
+            setModuleAndVariantsExtraTag $modname $modnamevr\
+               {*}$extradiff_list
          }
 
          # set the new tag set for module on LM env var
