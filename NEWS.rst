@@ -92,6 +92,9 @@ Modules 5.5.0 (not yet released)
   this failed command unless :option:`--force` option is used.
 * Exclude sticky modules from the useless requirement unload mechanism as they
   cannot be unloaded.
+* Tag automatically loaded module ``auto-loaded`` prior evaluation to be able
+  to query this state during modulefile evaluation with :mfcmd:`module-info
+  tags<module-info>`.
 
 .. warning:: Variant names are now fully checked instead of just verifying
    their first character. Only characters within the ``A-Za-z0-9_-`` range are

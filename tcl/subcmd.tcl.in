@@ -1264,9 +1264,13 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list modulepath_list\
             }
          }
 
-         # hide auto loaded modules if hide_auto_loaded config is enabled
-         if {!$uasked && [getConf hide_auto_loaded]} {
-            setModuleAndVariantsTag $modname $modnamevr hidden-loaded
+         if {!$uasked} {
+            # set auto-loaded tag now to be able to query it during eval
+            setModuleAndVariantsTag $modname $modnamevr auto-loaded
+            # hide auto loaded modules if hide_auto_loaded config is enabled
+            if {[getConf hide_auto_loaded]} {
+               setModuleAndVariantsTag $modname $modnamevr hidden-loaded
+            }
          }
 
          if {[execute-modulefile $modfile $modname modnamevr $mod $uasked]} {
