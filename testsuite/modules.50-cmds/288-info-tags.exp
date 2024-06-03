@@ -109,6 +109,23 @@ testouterr_cmd_re sh {show info/tags} OK $tserr
 unsetenv_var TESTSUITE_INFO_TAGS_SET_MODULE_TAG
 
 
+# test tags in auto-loaded module
+setenv_path_var MODULEPATH $modpath.4:$mp
+set ans [list]
+lappend ans [list set TS5 0]
+lappend ans [list set TS1 auto-loaded]
+lappend ans [list set TS2 0]
+lappend ans [list set __MODULES_LMPREREQ info/auto-loaded&info/tags]
+lappend ans [list set _LMFILES_ $mp/info/tags:$modpath.4/info/auto-loaded]
+lappend ans [list set LOADEDMODULES info/tags:info/auto-loaded]
+lappend ans [list set TS3 0]
+lappend ans [list set __MODULES_LMTAG info/tags&auto-loaded]
+lappend ans [list set TS4 1]
+set tserr [msg_top_load info/auto-loaded {} info/tags {}]
+testouterr_cmd sh {load info/auto-loaded} $ans $tserr
+setenv_path_var MODULEPATH $mp
+
+
 # test with module loaded
 setenv_loaded_module [list info/tags] [list $mp/info/tags] [list info/tags]
 setenv_var __MODULES_LMTAG info/tags&nearly-forbidden&foo&auto-loaded
