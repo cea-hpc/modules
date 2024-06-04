@@ -441,6 +441,25 @@ lappend ans [list ERR]
 set tserr [msg_unload {sticky/1.0 <sS>} $err_superstickyunload]\n\n[msg_load bar/2.0 [err_conunf sticky/1.0] $err_path'sticky/99' [err_reqlof sticky/99]]
 testouterr_cmd_re sh {load -f bar/2.0} $ans $tserr
 
+unsetenv_var TESTSUITE_STICKY_SWITCH_DEP
+
+
+# test multiple unload tentative of a super-sticky module
+# should raise only one evaluation error (second evaluation is skipped as it
+# occurred in same context, same evaluation tree)
+setenv_var TESTSUITE_STICKY_UNLOAD_DEP 1
+setenv_loaded_module [list sticky/1.0] [list $mp/sticky/1.0]
+setenv_var __MODULES_LMTAG sticky/1.0&super-sticky
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT bar/2.0&sticky/1.0]
+lappend ans [list set _LMFILES_ $mp/sticky/1.0:$mp/bar/2.0]
+lappend ans [list set LOADEDMODULES sticky/1.0:bar/2.0]
+lappend ans [list ERR]
+# second unload tentative is skipped but a err_conlof message is produced
+set tserr [msg_unload {sticky/1.0 <sS>} $err_superstickyunload]\n\n[msg_load bar/2.0 [err_conunf sticky/1.0] [err_conlof sticky/1.0]]
+testouterr_cmd_re sh {load -f bar/2.0} $ans $tserr
+
 
 #
 #  Cleanup
