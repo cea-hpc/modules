@@ -363,21 +363,20 @@ setenv_loaded_module [list stickysub/dir1/1.0] [list $mp/stickysub/dir1/1.0]
 setenv_var __MODULES_LMTAG stickysub/dir1/1.0&sticky
 setenv_var __MODULES_LMALTNAME stickysub/dir1/1.0&stickysub/dir1/default&stickysub/dir1&stickysub/default&stickysub
 
-#FIXME: even if stickysub/dir1/1.0 is declared default, switch sub-command does not know it
-# it should reload stickysub/dir1/1.0 with no error in the 2 following cases
-set tserr [msg_unload {stickysub/dir1/1.0 <S>} $err_stickyunload]\n\n[msg_switch {stickysub/dir1/1.0 <S>} stickysub [err_swoff stickysub/dir1/1.0]]
-testouterr_cmd_re sh {switch stickysub} ERR $tserr
-set tserr [msg_unload {stickysub/dir1/1.0 <S>} $err_stickyunload]\n\n[msg_switch {stickysub/dir1/1.0 <S>} stickysub/dir1 [err_swoff stickysub/dir1/1.0]]
-testouterr_cmd_re sh {switch stickysub/dir1} ERR $tserr
+# stickysub/dir1/1.0 is declared default, and switch sub-command now correctly handles that
+# as switched-on module is resolved prior testing stickiness reloading
 set ans [list]
 lappend ans [list set __MODULES_LMALTNAME stickysub/dir1/1.0&stickysub/dir1/default&stickysub/dir1&stickysub/default&stickysub]
 lappend ans [list set _LMFILES_ $mp/stickysub/dir1/1.0]
 lappend ans [list set LOADEDMODULES stickysub/dir1/1.0]
 lappend ans [list set __MODULES_LMTAG stickysub/dir1/1.0&sticky]
+testouterr_cmd_re sh {switch stickysub} $ans {}
+testouterr_cmd_re sh {switch stickysub/dir1} $ans {}
 testouterr_cmd_re sh {switch stickysub/dir1/1.0} $ans {}
+
 set tserr [msg_unload {stickysub/dir1/1.0 <S>} $err_stickyunload]\n\n[msg_switch {stickysub/dir1/1.0 <S>} stickysub/dir1/2.0 [err_swoff stickysub/dir1/1.0]]
 testouterr_cmd_re sh {switch stickysub/dir1/2.0} ERR $tserr
-# stickysub/dir1/1.0 is correctly seen as default when restoring
+
 set ans [list]
 lappend ans [list set _LMFILES_ $mp/stickysub/dir1/1.0:$mp/foo/2.0]
 lappend ans [list set LOADEDMODULES stickysub/dir1/1.0:foo/2.0]
@@ -399,18 +398,16 @@ testouterr_cmd_re sh {load stickysub/dir2/4.0} $anslo {}
 setenv_loaded_module [list stickysub/dir2/4.0] [list $mp/stickysub/dir2/4.0]
 setenv_var __MODULES_LMTAG stickysub/dir2/4.0&sticky
 
-#FIXME: even if stickysub/dir2/4.0 is the implicit default, switch sub-command does not know it
-# it should reload stickysub/dir2/4.0 with no error in the 2 following cases
-set tserr [msg_unload {stickysub/dir2/4.0 <S>} $err_stickyunload]\n\n[msg_switch {stickysub/dir2/4.0 <S>} stickysub [err_swoff stickysub/dir2/4.0]]
-testouterr_cmd_re sh {switch stickysub} ERR $tserr
-set tserr [msg_unload {stickysub/dir2/4.0 <S>} $err_stickyunload]\n\n[msg_switch {stickysub/dir2/4.0 <S>} stickysub/dir2 [err_swoff stickysub/dir2/4.0]]
-testouterr_cmd_re sh {switch stickysub/dir2} ERR $tserr
+# stickysub/dir2/4.0 is the implicit default, switch sub-command now correctly handles that
+# as switched-on module is resolved prior testing stickiness reloading
 set ans [list]
 lappend ans [list set _LMFILES_ $mp/stickysub/dir2/4.0]
 lappend ans [list set LOADEDMODULES stickysub/dir2/4.0]
 lappend ans [list set __MODULES_LMTAG stickysub/dir2/4.0&sticky]
+testouterr_cmd_re sh {switch stickysub} $ans {}
+testouterr_cmd_re sh {switch stickysub/dir2} $ans {}
 testouterr_cmd_re sh {switch stickysub/dir2/4.0} $ans {}
-# stickysub/dir2/4.0 is correctly seen as default when restoring
+
 set ans [list]
 lappend ans [list set _LMFILES_ $mp/stickysub/dir2/4.0:$mp/foo/2.0]
 lappend ans [list set LOADEDMODULES stickysub/dir2/4.0:foo/2.0]
@@ -448,8 +445,16 @@ setenv_var TESTSUITE_STICKY 6
 testouterr_cmd_re sh {load --auto sticky3/1.0} ERR $tserr
 
 setenv_var TESTSUITE_STICKY 7
-#FIXME module switch may resolve switched-on module prior testing stickiness is preserved
-testouterr_cmd_re sh {load --auto sticky3/1.0} ERR $tserr
+# switched-on module is now resolved prior testing stickiness is preserved
+set ans [list]
+lappend ans [list set __MODULES_LMALTNAME sticky1/2.0&al|alsticky1]
+lappend ans [list set __MODULES_LMPREREQ sticky2/1.0&sticky1/1.0|sticky1/2.0:sticky3/1.0&sticky2/1.0&alsticky1]
+lappend ans [list set __MODULES_LMSTICKYRULE sticky1/2.0&sticky|sticky1]
+lappend ans [list set _LMFILES_ $mp/sticky1/2.0:$mp/sticky2/1.0:$mp/sticky3/1.0]
+lappend ans [list set LOADEDMODULES sticky1/2.0:sticky2/1.0:sticky3/1.0]
+lappend ans [list set __MODULES_LMTAG sticky1/2.0&sticky&auto-loaded:sticky2/1.0&auto-loaded]
+set tserr [msg_top_load sticky3/1.0 {sticky1/1.0} {} {sticky2/1.0} {Loading requirement: sticky1/1.0 sticky2/1.0 sticky1/2.0}]
+testouterr_cmd_re sh {load --auto sticky3/1.0} $ans $tserr
 
 setenv_var TESTSUITE_STICKY 8
 set ans [list]
@@ -501,6 +506,39 @@ testouterr_cmd_re sh {load --auto sticky3/1.0} $ans $tserr
 
 
 #
+# is sticky reloading tests over alias, symbols, variants
+#
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+setenv_loaded_module [list sticky1/1.0] [list $mp/sticky1/1.0]
+setenv_var __MODULES_LMTAG sticky1/1.0&sticky
+setenv_var __MODULES_LMSTICKYRULE sticky1/1.0&sticky|sticky1
+
+setenv_var TESTSUITE_STICKY 7
+set ans [list]
+lappend ans [list set __MODULES_LMALTNAME sticky1/2.0&al|alsticky1]
+lappend ans [list set __MODULES_LMSTICKYRULE sticky1/2.0&sticky|sticky1]
+lappend ans [list set _LMFILES_ $mp/sticky1/2.0]
+lappend ans [list set LOADEDMODULES sticky1/2.0]
+lappend ans [list set __MODULES_LMTAG sticky1/2.0&sticky]
+testouterr_cmd_re sh {switch sticky1 alsticky1} $ans {}
+
+setenv_var TESTSUITE_STICKY sym1
+set ans [list]
+lappend ans [list set __MODULES_LMALTNAME sticky1/2.0&sticky1/sym]
+lappend ans [list set __MODULES_LMSTICKYRULE sticky1/2.0&sticky|sticky1]
+lappend ans [list set _LMFILES_ $mp/sticky1/2.0]
+lappend ans [list set LOADEDMODULES sticky1/2.0]
+lappend ans [list set __MODULES_LMTAG sticky1/2.0&sticky]
+testouterr_cmd_re sh {switch sticky1 sticky1/sym} $ans {}
+
+
+#
 # inconsistent environment
 #
 
@@ -520,6 +558,17 @@ testouterr_cmd_re sh {unload --auto sticky4} $ans {}
 setenv_loaded_module [list sticky4/sub/1.0] [list $mp/sticky4/sub/1.0]
 setenv_var __MODULES_LMSTICKYRULE sticky4/sub/1.0&sticky
 setenv_var __MODULES_LMTAG sticky4/sub/1.0&sticky
+
+# rules found in modulerc file overtake here
+set ans [list]
+lappend ans [list set __MODULES_LMSTICKYRULE sticky4/sub/2.0&sticky|sticky4/sub]
+lappend ans [list set _LMFILES_ $mp/sticky4/sub/2.0]
+lappend ans [list set LOADEDMODULES sticky4/sub/2.0]
+lappend ans [list set __MODULES_LMTAG sticky4/sub/2.0&sticky]
+testouterr_cmd_re sh {switch sticky4/sub/2.0} $ans {}
+
+# inconsistent rules without modulerc rules that overtake
+unsetenv_var TESTSUITE_STICKY
 set tserr [msg_unload {sticky4/sub/1.0 <S>} $err_stickyunload]\n\n[msg_switch {sticky4/sub/1.0 <S>} sticky4/sub/2.0 [err_swoff sticky4/sub/1.0]]
 testouterr_cmd_re sh {switch sticky4/sub/2.0} ERR $tserr
 

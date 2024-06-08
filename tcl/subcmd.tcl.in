@@ -515,11 +515,11 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
    # need to resolve swapped-off module here to get stickiness details
    lassign [getPathToModule $old {} 0 $unload_match] modfile oldmod oldmodvr
    set swunmod_is_supersticky [isModuleTagged $oldmod super-sticky 1 $modfile]
-   set sticky_reload [isStickinessReloading $oldmodvr [list $new]]
-   set supersticky_reload [isStickinessReloading $oldmodvr [list $new]\
+   lassign [getPathToModule $new {} 0] newmodfile newmod newmodvr
+   set sticky_reload [isStickinessReloading $oldmodvr [list $newmodvr]]
+   set supersticky_reload [isStickinessReloading $oldmodvr [list $newmodvr]\
       super-sticky]
    set report_newmod_issue 0
-   lassign [getPathToModule $new {} 0] newmodfile newmod newmodvr
 
    # do not set sticky or supersticky reload states if swap-on module cannot
    # be found
