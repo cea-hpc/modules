@@ -137,6 +137,53 @@ if [ ! -e .noicdiff ]; then
    $make icdiff || touch .noicdiff
 fi
 
+rm -f $testserie.log
+
+if [ -t 1 ]; then
+   fail_count=0
+   xfail_count=0
+   pass_count=0
+   error_count=0
+   pass_sgr='1;32;7'
+   fail_sgr=0
+   error_sgr=0
+   tail --follow=name --retry --quiet $testserie.log \
+      | while read -r logline; do
+      print_update=0
+      case "$logline" in
+         PASS*) ((pass_count++)) ;;
+         FAIL*) ((fail_count++)) ;;
+         XFAIL*) ((xfail_count++)) ;;
+         ERROR:\ tcl\ error\ sourcing*) ((error_count++)) ;;
+         Running*)
+            case_raw=${logline/*${testserie}.}
+            case_suite=${case_raw:0:2}
+            number_raw=${case_raw#*/}
+            case_number=${number_raw:0:3}
+            print_update=1 ;;
+      esac
+      if [ $error_count -eq 1 ]; then
+         pass_sgr=0
+         fail_sgr=0
+         error_sgr='1;35;7'
+      elif [ $error_count -eq 0 ] && [ $fail_count -eq 1 ]; then
+         pass_sgr=0
+         fail_sgr='1;31;7'
+      fi
+      if [ $print_update -eq 1 ] ; then
+         progress_info="current=$case_suite/$case_number, "
+         progress_info+="\e[${pass_sgr}mpass=$pass_count\e[0m, "
+         progress_info+="\e[${fail_sgr}mfail=$fail_count\e[0m, "
+         progress_info+="xfail=$xfail_count, "
+         progress_info+="\e[${error_sgr}merror=$error_count\e[0m"
+         echo -e "\e[1A\e[Kprogress: $progress_info"
+      fi
+   done &
+
+   # ensure log analysis is stopped when script finishes or if aborted
+   trap 'kill $!' EXIT
+fi
+
 export RUNTESTFLAGS='-v -v >/dev/null 2>&1'
 $make $target
 ret=$?
