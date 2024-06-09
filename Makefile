@@ -993,7 +993,7 @@ miniconda3:
 
 # fetch OpenFOAM repository (for source-sh test purpose)
 OpenFOAM-dev:
-	git clone --depth 1 $(OPENFOAM_REPOURL)
+	git clone --branch 20240520 --depth 1 $(OPENFOAM_REPOURL)
 
 # install code coverage tool
 # download from alt. source if correct tarball not retrieved from primary location
