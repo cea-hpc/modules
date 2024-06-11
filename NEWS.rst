@@ -6,6 +6,36 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+.. _5.5 release notes:
+
+Modules 5.5.0 (not yet released)
+--------------------------------
+
+* Init: update ``cmd`` shell initialization script to correctly define
+  :envvar:`MODULESHOME` when installation pathname contains dot character.
+  (fix issue #525 with contribution from V-clone)
+* Init: add completion for :command:`ml` command on Tcsh shell. (fix issue
+  #416 with contribution from Laurent Besson)
+* Init: fix completion of :subcmd:`mod-to-sh`'s options on Bash and Tcsh
+  shells.
+* Fix modulepath file search when libtclenvmodules is disabled and modulepath
+  contains glob characters.
+* Lib: correct libtclenvmodules to retrieve all user groups on Darwin systems
+  when user is member of more than 16 groups.
+* Script: output testsuite run progress on :command:`mt` development utility.
+* Resolve switched-on module prior testing stickiness preservation.
+* Contrib: fix versions modulefiles generated when
+  :instopt:`--enable-versioning` installation option is set. Use ``--not-req``
+  option on :mfcmd:`module unload<module>` commands to avoid declaring a
+  conflict toward these modules to unload. (fix issue #531)
+
+.. warning:: Existing *versions* modulefiles installed for Modules 4.7 and
+   upward should be fixed by adding the ``--not-req`` option to the
+   :mfcmd:`module unload<module>` commands present in these modulefiles. This
+   command should fix these files ``sed -i "s|module unload|module unload
+   --not-req|" <version_modulefile>``.
+
+
 .. _5.4 release notes:
 
 Modules 5.4.0 (2024-02-20)
