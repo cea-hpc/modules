@@ -1530,22 +1530,40 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
 
       pushSettings
       if {[set errCode [catch {
-         # error if unloading module violates a registered prereq
-         # and auto handling mode is disabled
+         # stop unless forced or auto handling mode enabled if unloading
+         # module violates a registered prereq
          set prereq_list [getDependentLoadedModuleList [list $modname]]
-         if {[llength $prereq_list] && (![getConf auto_handling] || !$auto)} {
+         set prereq_loaded_list [getDependentLoadedModuleList [list $modname]\
+            1 1 0 0]
+         if {[llength $prereq_loaded_list] && (![getConf auto_handling] ||\
+            !$auto)} {
             # force mode should not affect if we only look for mods w/o dep
             if {$force} {
                # in case unload is called for a DepRe mechanism do not warn
                # about prereq violation enforced as it is due to the dependent
                # module which is already in a violation state
                if {$context ne {depre_un}} {
-                  reportWarning [getDepLoadedMsg $prereq_list]
+                  reportWarning [getDepLoadedMsg $prereq_loaded_list]
                }
             } else {
                knerror [expr {[isModuleEvaluated any $modnamevr {}\
-                  {*}$prereq_list] ? [getDepLoadedMsg $prereq_list] :\
-                  [getErrPrereqMsg $prereq_list 0]}]
+                  {*}$prereq_loaded_list] ? [getDepLoadedMsg\
+                  $prereq_loaded_list] : [getErrPrereqMsg $prereq_loaded_list\
+                  0]}]
+            }
+         }
+         # stop unless forced if loading module are part of dependent modules
+         # to unload (means module dependencies are inconsistent)
+         lassign [getDiffBetweenList $prereq_list $prereq_loaded_list]\
+            prereq_loading_list
+         if {[llength $prereq_loading_list]} {
+            set msg [getDepLoadingMsg $prereq_loading_list]
+            if {$force} {
+               if {$context ne {depre_un}} {
+                  reportWarning $msg
+               }
+            } else {
+               knerror $msg
             }
          }
 
