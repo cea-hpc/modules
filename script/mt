@@ -181,12 +181,16 @@ if [ -t 1 ]; then
    done &
 
    # ensure log analysis is stopped when script finishes or if aborted
-   trap 'kill $!' EXIT
+   trap 'kill $! 2>/dev/null' EXIT
 fi
 
 export RUNTESTFLAGS='-v -v >/dev/null 2>&1'
 $make $target
 ret=$?
+
+if [ -t 1 ]; then
+   kill $!
+fi
 
 # highlight failed tests
 retreview=0
