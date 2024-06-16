@@ -987,20 +987,20 @@ proc getSpecificPathMsg {} {
    return { (specific path)}
 }
 
-proc getDepLoadedMsg {prelist} {
-   set is [expr {[llength $prelist] > 1 ? {are} : {is}}]
-   foreach pre $prelist {
-      lappend predesiglist [getModuleDesignation loaded $pre]
+proc getKindModuleBeStateMsg {kind mod_list state} {
+   set is [expr {[llength $mod_list] > 1 ? {are} : {is}}]
+   foreach mod $mod_list {
+      lappend mod_desig_list [getModuleDesignation loaded $mod]
    }
-   return "Dependent [join $predesiglist { and }] $is loaded"
+   return "$kind [join $mod_desig_list { and }] $is $state"
 }
 
-proc getDepLoadingMsg {prelist} {
-   set is [expr {[llength $prelist] > 1 ? {are} : {is}}]
-   foreach pre $prelist {
-      lappend predesiglist [getModuleDesignation loaded $pre]
-   }
-   return "Dependent [join $predesiglist { and }] $is loading"
+proc getDepLoadedMsg {pre_mod_list} {
+   return [getKindModuleBeStateMsg Dependent $pre_mod_list loaded]
+}
+
+proc getDepLoadingMsg {pre_mod_list} {
+   return [getKindModuleBeStateMsg Dependent $pre_mod_list loading]
 }
 
 proc getErrConUnMsg {conlist} {
@@ -1011,20 +1011,19 @@ proc getErrConUnMsg {conlist} {
    return "Unload of conflicting [join $condesiglist { and }] failed"
 }
 
-proc getConIsLoadedMsg {con_mod_list {is_loading 0}} {
-   set is [expr {[llength $con_mod_list] > 1 ? {are} : {is}}]
-   set loading [expr {$is_loading ? {loading} : {loaded}}]
-   set con_desig_list {}
-   foreach con_mod $con_mod_list {
-      lappend con_desig_list [getModuleDesignation loaded $con_mod]
-   }
-   return "Conflicting [join $con_desig_list { and }] $is $loading"
+proc getConLoadedMsg {con_mod_list} {
+   return [getKindModuleBeStateMsg Conflicting $con_mod_list loaded]
+}
+
+proc getConLoadingMsg {con_mod_list} {
+   return [getKindModuleBeStateMsg Conflicting $con_mod_list loading]
 }
 
 proc getPresentConflictErrorMsg {curmodnamevr con_mod_list is_loading} {
    if {[isModuleEvaluated any $curmodnamevr {} {*}$con_mod_list] || [getState\
       force]} {
-      set msg [getConIsLoadedMsg $con_mod_list $is_loading]
+      set msg [expr {$is_loading ? [getConLoadingMsg $con_mod_list] :\
+         [getConLoadedMsg $con_mod_list]}]
    } else {
       set msg [getErrConflictMsg $con_mod_list]
    }
