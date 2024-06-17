@@ -305,6 +305,12 @@ else
   setautohandling := 0
 endif
 
+ifeq ($(conflictunload),y)
+  setconflictunload := 1
+else
+  setconflictunload := 0
+endif
+
 ifeq ($(implicitrequirement),y)
   setimplicitrequirement := 1
 else
@@ -432,6 +438,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@variantshortcut@|$(variantshortcut)|g' \
 	-e 's|@editor@|$(editor)|g' \
 	-e 's|@autohandling@|$(setautohandling)|g' \
+	-e 's|@conflictunload@|$(setconflictunload)|g' \
 	-e 's|@implicitrequirement@|$(setimplicitrequirement)|g' \
 	-e 's|@availindepth@|$(setavailindepth)|g' \
 	-e 's|@silentshdbgsupport@|$(setsilentshdbgsupport)|g' \
