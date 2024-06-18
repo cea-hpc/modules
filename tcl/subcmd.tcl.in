@@ -1410,8 +1410,15 @@ proc cmdModuleIntUnload {mode args} {
       # unload mods only on load mode, nothing done on unload mode as the
       # registered conflict guarantees the target module cannot be loaded
       # unless forced
-      # do not unload module required by others (force mode disabled)
-      set ret [cmdModuleUnload conun match 0 0 0 {*}$args]
+      # enable auto unload and allow force mode if both auto handling and
+      # conflict unload features are enabled
+      if {[getConf conflict_unload] && [getConf auto_handling]} {
+         set ret [cmdModuleUnload conun match 1 s 0 {*}$args]
+      # otherwise module required by others are not unloaded and force mode is
+      # disabled
+      } else {
+         set ret [cmdModuleUnload conun match 0 0 0 {*}$args]
+      }
 
       # register modulefiles to unload as individual conflicts
       registerCurrentModuleConflict {*}$args
