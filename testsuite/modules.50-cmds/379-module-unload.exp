@@ -47,6 +47,13 @@ if {$install_unloadmatchorder eq {returnlast}} {
     set tserr "load un/3\nunload un/1\n\n[msg_top_load un/3 {} {} {} [err_conflict un/2]]"
 }
 testouterr_cmd_re sh {load --no-auto un/3} ERR $tserr
+if {[is_conf_enabled conflictunload]} {
+    if {$install_unloadmatchorder eq {returnlast}} {
+        set tserr "load un/3\nunload un/1\nunload un/2\nload un/1\n\n[msg_top_load un/3 {} {} {} [err_conlo un/1]]"
+    } else {
+        set tserr "load un/3\nunload un/2\nunload un/1\nload un/2\n\n[msg_top_load un/3 {} {} {} [err_conlo un/2]]"
+    }
+}
 testouterr_cmd_re sh {load --auto un/3} ERR $tserr
 if {$install_unloadmatchorder eq {returnlast}} {
     set ans [list]

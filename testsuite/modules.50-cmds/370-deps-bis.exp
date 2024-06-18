@@ -71,7 +71,12 @@ testouterr_cmd_re "sh" "load mb" $ans [msg_top_load mb {} mc {}]
 
 testouterr_cmd "sh" "load md" "ERR" [msg_load mc [err_conloi md]]\n\n[msg_load md [err_reqlo mc]]
 
-testouterr_cmd "sh" "load me" "ERR" [msg_unload {mc <aL>} [err_deplo mb]]\n\n[msg_load mf [err_conun mc]]\n\n[msg_load me [err_reqlo mf]]
+if {$auto_handling && [is_conf_enabled conflictunload]} {
+    set tserr [msg_unload {mb <aL>} [err_deploi me]]\n\n[msg_unload {mc <aL>} [err_depun mb]]\n\n[msg_load mf [err_conun mc]]\n\n[msg_load me [err_reqlo mf]]
+} else {
+    set tserr [msg_unload {mc <aL>} [err_deplo mb]]\n\n[msg_load mf [err_conun mc]]\n\n[msg_load me [err_reqlo mf]]
+}
+testouterr_cmd "sh" "load me" "ERR" $tserr
 
 testouterr_cmd "sh" "load mg" "ERR" [msg_load mb [err_conlo ma]]\n\n[msg_load mg [err_reqlo mb]]
 

@@ -491,16 +491,30 @@ setenv_loaded_module [list vrreq2/1.0 vrreq1/1.0 variant/7.0] [list $mp/vrreq2/1
 setenv_var __MODULES_LMCONFLICT vrreq2/1.0&vrreq2:vrreq1/1.0&vrreq1@2.0
 setenv_var __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}
 setenv_var __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0
-set tserr [msg_unload {vrreq1/1.0{foo=val1} <aL>} [err_prerequn variant/7.0]]\n\n[msg_load vrreq1/2.0{foo=val1} [err_conun vrreq1/1.0{foo=val1}]]
-testouterr_cmd_re sh {load --auto vrreq1/2.0 foo=val1} ERR $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq1/2.0&foo|val1|0|0]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq1/2.0&vrreq1@1.0]
+    lappend ans [list unset __MODULES_LMPREREQ]
+    lappend ans [list set _LMFILES_ $mp/vrreq1/2.0]
+    lappend ans [list set LOADEDMODULES vrreq1/2.0]
+    lappend ans [list unset __MODULES_LMTAG]
+    set tserr [msg_load vrreq1/2.0{foo=val1} {Unloading dependent: variant/7.0{foo=val2}} {Unloading conflict: vrreq1/1.0{foo=val1}} {Unloading useless requirement: vrreq2/1.0{bar=1:foo=val1}}]
+} else {
+    set ans ERR
+    set tserr [msg_unload {vrreq1/1.0{foo=val1} <aL>} [err_prerequn variant/7.0]]\n\n[msg_load vrreq1/2.0{foo=val1} [err_conun vrreq1/1.0{foo=val1}]]
+}
+testouterr_cmd_re sh {load --auto vrreq1/2.0 foo=val1} $ans $tserr
 
-set ans [list]
-lappend ans [list set __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0:vrreq1/2.0&foo|val1|0|0]
-lappend ans [list set __MODULES_LMCONFLICT vrreq2/1.0&vrreq2:vrreq1/1.0&vrreq1@2.0:vrreq1/2.0&vrreq1@1.0]
-lappend ans [list set _LMFILES_ $mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0:$mp/vrreq1/2.0]
-lappend ans [list set LOADEDMODULES vrreq2/1.0:vrreq1/1.0:variant/7.0:vrreq1/2.0]
-lappend ans [list ERR]
-set tserr [msg_unload {vrreq1/1.0{foo=val1} <aL>} [err_prerequn variant/7.0]]\n\n[msg_load vrreq1/2.0{foo=val1} [err_conunf vrreq1/1.0{foo=val1}]]
+if {![is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0:vrreq1/2.0&foo|val1|0|0]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq2/1.0&vrreq2:vrreq1/1.0&vrreq1@2.0:vrreq1/2.0&vrreq1@1.0]
+    lappend ans [list set _LMFILES_ $mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0:$mp/vrreq1/2.0]
+    lappend ans [list set LOADEDMODULES vrreq2/1.0:vrreq1/1.0:variant/7.0:vrreq1/2.0]
+    lappend ans [list ERR]
+    set tserr [msg_unload {vrreq1/1.0{foo=val1} <aL>} [err_prerequn variant/7.0]]\n\n[msg_load vrreq1/2.0{foo=val1} [err_conunf vrreq1/1.0{foo=val1}]]
+}
 testouterr_cmd_re sh {load -f --auto vrreq1/2.0 foo=val1} $ans $tserr
 
 # load conflicting module (another version set)
