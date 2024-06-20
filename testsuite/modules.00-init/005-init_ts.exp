@@ -1009,6 +1009,27 @@ proc msg_top_load {mod unlist reqlolist deprelist args} {
     return [eval msg_load "{$mod}" $args]
 }
 
+proc msg_top_load_conun {mod depunlist unlist urequnlist reqlolist deprelist args} {
+    lassign [mix_depre_depun_list $deprelist $depunlist] deprelist depunlist
+
+    if {[llength $depunlist]} {
+        lappend args "Unloading dependent: [join $depunlist]"
+    }
+    if {[llength $unlist]} {
+        lappend args "Unloading conflict: [join $unlist]"
+    }
+    if {[llength $urequnlist]} {
+        lappend args "Unloading useless requirement: [join $urequnlist]"
+    }
+    if {[llength $reqlolist]} {
+        lappend args "Loading requirement: [join $reqlolist]"
+    }
+    if {[llength $deprelist]} {
+        lappend args "Reloading dependent: [join $deprelist]"
+    }
+    return [eval msg_load "{$mod}" $args]
+}
+
 proc msg_top_unload {mod depunlist urequnlist deprelist args} {
     lassign [mix_depre_depun_list $deprelist $depunlist] deprelist depunlist
     if {[llength $depunlist]} {
