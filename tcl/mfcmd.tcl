@@ -1033,6 +1033,9 @@ proc conflict {args} {
    }
    defineModEqProc [isIcase] [getConf extended_default]
 
+   set conflict_unload [expr {[getConf conflict_unload] && [getConf\
+      auto_handling]}]
+
    # parse module version specification
    set args [parseModuleSpecification 0 0 0 0 {*}$args]
 
@@ -1051,9 +1054,19 @@ proc conflict {args} {
             set loaded_conflict_mod_list [getLoadedMatchingName $mod\
                returnall 1]
             if {[llength $loaded_conflict_mod_list]} {
+               # no conflict unload attempt on loading module
                set is_conflict_loading 1
             }
          }
+      } elseif {$conflict_unload} {
+         set still_loaded_conflict_mod_list {}
+         # unload attempt in reverse load order
+         foreach loaded_conflict_mod [lreverse $loaded_conflict_mod_list] {
+            if {[cmdModuleUnload conun match 1 s 0 $loaded_conflict_mod]} {
+               lappend still_loaded_conflict_mod_list $loaded_conflict_mod
+            }
+         }
+         set loaded_conflict_mod_list $still_loaded_conflict_mod_list
       }
 
       if {[llength $loaded_conflict_mod_list]} {
