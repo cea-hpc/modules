@@ -41,28 +41,41 @@ set modulefile_tron "$modpath/$module_tron"
 set module_troff "trace/all_off"
 set modulefile_troff "$modpath/$module_troff"
 
-#
-#  Error messages
-#
-
-set err_tron [msg_load $module_tron "$warn_msgs: 'module-trace' command not implemented"]
-append err_tron \n\n[msg_load $module [err_conlo trace/all_on]]
-set err_troff [msg_load $module [err_conlo trace/all_off]]
+set warn_tron "$warn_msgs: 'module-trace' command not implemented"
 
 #
 #  The tests
 #
 
-lappend ans [list set LOADEDMODULES $module_tron]
-lappend ans [list set _LMFILES_ $modulefile_tron]
-lappend ans [list ERR]
-testouterr_cmd "ALL" "load $module_tron $module" $ans "$err_tron"
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT $module&trace]
+    lappend ans [list set testsuite yes]
+    lappend ans [list set _LMFILES_ $modulefile]
+    lappend ans [list set LOADEDMODULES $module]
+    set tserr [msg_load $module_tron $warn_tron]
+    append tserr \n\n[msg_unload $module_tron $warn_tron]
+    append tserr \n\n[msg_top_load $module $module_tron {} {}]
+} else {
+    set ans [list]
+    lappend ans [list set LOADEDMODULES $module_tron]
+    lappend ans [list set _LMFILES_ $modulefile_tron]
+    lappend ans [list ERR]
+    set tserr [msg_load $module_tron $warn_tron]
+    append tserr \n\n[msg_load $module [err_conlo trace/all_on]]
+}
+testouterr_cmd ALL "load $module_tron $module" $ans $tserr
 
-set ans [list]
-lappend ans [list set LOADEDMODULES $module_troff]
-lappend ans [list set _LMFILES_ $modulefile_troff]
-lappend ans [list ERR]
-testouterr_cmd "ALL" "load $module_troff $module" $ans "$err_troff"
+if {[is_conf_enabled autohandling conflictunload]} {
+    set tserr [msg_top_load $module $module_troff {} {}]
+} else {
+    set ans [list]
+    lappend ans [list set LOADEDMODULES $module_troff]
+    lappend ans [list set _LMFILES_ $modulefile_troff]
+    lappend ans [list ERR]
+    set tserr [msg_load $module [err_conlo trace/all_off]]
+}
+testouterr_cmd ALL "load $module_troff $module" $ans $tserr
 
 skip_if_quick_mode
 

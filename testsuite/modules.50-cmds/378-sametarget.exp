@@ -314,21 +314,44 @@ testouterr_cmd_re sh {unload hc hb} $ans $tserr
 
 setenv_loaded_module [list ha/2] [list $mp/ha/2]
 unsetenv_var __MODULES_LMPREREQ
-set tserr [msg_load hf [err_conflict ha/2]]
-testouterr_cmd_re sh {load hf} ERR $tserr
-set ans [list]
-lappend ans [list set __MODULES_LMCONFLICT hf&ha/1&ha]
-lappend ans [list set _LMFILES_ $mp/ha/2:$mp/hf]
-lappend ans [list set LOADEDMODULES ha/2:hf]
-set tserr "load hf\n\n[msg_load hf [err_conlof ha/2]]"
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT hf&ha/1&ha]
+    lappend ans [list set _LMFILES_ $mp/hf]
+    lappend ans [list set LOADEDMODULES hf]
+    set tserr "unload ha/2\nload hf\n\n[msg_top_load hf ha/2 {} {}]"
+} else {
+    set ans ERR
+    set tserr [msg_load hf [err_conflict ha/2]]
+}
+testouterr_cmd_re sh {load hf} $ans $tserr
+if {![is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT hf&ha/1&ha]
+    lappend ans [list set _LMFILES_ $mp/ha/2:$mp/hf]
+    lappend ans [list set LOADEDMODULES ha/2:hf]
+    set tserr "load hf\n\n[msg_load hf [err_conlof ha/2]]"
+}
 testouterr_cmd_re sh {load --force hf} $ans $tserr
-set tserr [msg_load hg [err_conflict ha/2]]
-testouterr_cmd_re sh {load hg} ERR $tserr
-set ans [list]
-lappend ans [list set __MODULES_LMCONFLICT hg&ha/1&ha/2&ha]
-lappend ans [list set _LMFILES_ $mp/ha/2:$mp/hg]
-lappend ans [list set LOADEDMODULES ha/2:hg]
-set tserr "load hg\n\n[msg_load hg [err_conlof ha/2] [err_conlof ha/2]]"
+
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT hg&ha/1&ha/2&ha]
+    lappend ans [list set _LMFILES_ $mp/hg]
+    lappend ans [list set LOADEDMODULES hg]
+    set tserr "unload ha/2\nload hg\n\n[msg_top_load hg ha/2 {} {}]"
+} else {
+    set ans ERR
+    set tserr [msg_load hg [err_conflict ha/2]]
+}
+testouterr_cmd_re sh {load hg} $ans $tserr
+if {![is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT hg&ha/1&ha/2&ha]
+    lappend ans [list set _LMFILES_ $mp/ha/2:$mp/hg]
+    lappend ans [list set LOADEDMODULES ha/2:hg]
+    set tserr "load hg\n\n[msg_load hg [err_conlof ha/2] [err_conlof ha/2]]"
+}
 testouterr_cmd_re sh {load --force hg} $ans $tserr
 
 setenv_loaded_module [list ha/2 hf] [list $mp/ha/2 $mp/hf]

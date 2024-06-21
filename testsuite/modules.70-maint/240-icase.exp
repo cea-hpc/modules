@@ -335,7 +335,18 @@ lappend ans [list set _LMFILES_ $mp/nocase/1:$mp/icase/prereq]
 lappend ans [list set LOADEDMODULES nocase/1:icase/prereq]
 testouterr_cmd_re sh {load --icase --auto icase/prereq} $ans {}
 
-testouterr_cmd_re sh {load --icase icase/conflict} ERR [msg_load icase/conflict [err_conflict nocase/1]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT icase/conflict&NOCASE]
+    lappend ans [list unset __MODULES_LMALTNAME]
+    lappend ans [list set _LMFILES_ $mp/icase/conflict]
+    lappend ans [list set LOADEDMODULES icase/conflict]
+    set tserr [msg_top_load icase/conflict nocase/1 {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load icase/conflict [err_conflict nocase/1]]
+}
+testouterr_cmd_re sh {load --icase icase/conflict} $ans $tserr
 
 set ans [list]
 lappend ans [list set __MODULES_LMPREREQ icase/load&noCASE/alIAS]
@@ -375,13 +386,35 @@ lappend ans [list set LOADEDMODULES icase/conflicts]
 testouterr_cmd_re sh {load --icase icase/conflicts} $ans {}
 
 setenv_loaded_module [list icase/isloaded] [list $mp/icase/isloaded]
-testouterr_cmd_re sh {load --icase icase/conflicts} ERR [msg_load icase/conflicts [err_conflict icase/isloaded]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT icase/conflicts&Icase]
+    lappend ans [list set _LMFILES_ $mp/icase/conflicts]
+    lappend ans [list set LOADEDMODULES icase/conflicts]
+    lappend ans [list unset ts]
+    set tserr [msg_top_load icase/conflicts icase/isloaded {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load icase/conflicts [err_conflict icase/isloaded]]
+}
+testouterr_cmd_re sh {load --icase icase/conflicts} $ans $tserr
 unsetenv_loaded_module
 
 # conflict over an alias name
 setenv_loaded_module [list nocase/1] [list $mp/nocase/1]
 setenv_var __MODULES_LMALTNAME nocase/1&nocase/vers&al|nocase3&al|nocase/alias
-testouterr_cmd_re sh {load --icase icase/conflicta} ERR [msg_load icase/conflicta [err_conflict nocase/1]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT icase/conflicta&NOcase3]
+    lappend ans [list unset __MODULES_LMALTNAME]
+    lappend ans [list set _LMFILES_ $mp/icase/conflicta]
+    lappend ans [list set LOADEDMODULES icase/conflicta]
+    set tserr [msg_top_load icase/conflicta nocase/1 {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load icase/conflicta [err_conflict nocase/1]]
+}
+testouterr_cmd_re sh {load --icase icase/conflicta} $ans $tserr
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMALTNAME
 
@@ -453,11 +486,41 @@ lappend ans [list set __MODULES_LMCONFLICT nocase7/conflictim1&ICase]
 lappend ans [list set _LMFILES_ $mp/icase/z:$mp/ICASE/1:$mp/iCaSe/1:$mp/nocase7/conflictim1]
 lappend ans [list set LOADEDMODULES icase/z:ICASE/1:iCaSe/1:nocase7/conflictim1]
 testouterr_cmd_re sh {load nocase7/conflictim1} $ans {}
-testouterr_cmd_re sh {load --icase nocase7/conflictim1} ERR [msg_load nocase7/conflictim1 [err_conflict icase/z ICASE/1 iCaSe/1]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT nocase7/conflictim1&ICase]
+    lappend ans [list set _LMFILES_ $mp/nocase7/conflictim1]
+    lappend ans [list set LOADEDMODULES nocase7/conflictim1]
+    set tserr [msg_top_load nocase7/conflictim1 {iCaSe/1 ICASE/1 icase/z} {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load nocase7/conflictim1 [err_conflict icase/z ICASE/1 iCaSe/1]]
+}
+testouterr_cmd_re sh {load --icase nocase7/conflictim1} $ans $tserr
 
 # when checking conflict, multiple matches if icase enabled, one match if disabled
-testouterr_cmd_re sh {load nocase7/conflictim2} ERR [msg_load nocase7/conflictim2 [err_conflict iCaSe/1]]
-testouterr_cmd_re sh {load --icase nocase7/conflictim2} ERR [msg_load nocase7/conflictim2 [err_conflict icase/z ICASE/1 iCaSe/1]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT nocase7/conflictim2&iCaSe]
+    lappend ans [list set _LMFILES_ $mp/icase/z:$mp/ICASE/1:$mp/nocase7/conflictim2]
+    lappend ans [list set LOADEDMODULES icase/z:ICASE/1:nocase7/conflictim2]
+    set tserr [msg_top_load nocase7/conflictim2 {iCaSe/1} {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load nocase7/conflictim2 [err_conflict iCaSe/1]]
+}
+testouterr_cmd_re sh {load nocase7/conflictim2} $ans $tserr
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT nocase7/conflictim2&iCaSe]
+    lappend ans [list set _LMFILES_ $mp/nocase7/conflictim2]
+    lappend ans [list set LOADEDMODULES nocase7/conflictim2]
+    set tserr [msg_top_load nocase7/conflictim2 {iCaSe/1 ICASE/1 icase/z} {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load nocase7/conflictim2 [err_conflict icase/z ICASE/1 iCaSe/1]]
+}
+testouterr_cmd_re sh {load --icase nocase7/conflictim2} $ans $tserr
 
 unsetenv_loaded_module
 

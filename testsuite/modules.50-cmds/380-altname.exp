@@ -218,7 +218,16 @@ testouterr_cmd_re "sh" "load i2" $ans ""
 # load module whereas its alias-named conflict and its symbolic-version-named conflict are loaded
 setenv_loaded_module [list alt/dir/2 alt/1] [list $mp/alt/dir/2 $mp/alt/1]
 setenv_var __MODULES_LMALTNAME alt/dir/2&al|altfoo:alt/1&alt/sym&al|foo
-testouterr_cmd_re "sh" "load i2" ERR [msg_load i2 [err_conflict alt/dir/2]]
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT i2&altfoo&alt/sym]
+    lappend ans [list unset __MODULES_LMALTNAME]
+    lappend ans [list set _LMFILES_ $mp/i2]
+    lappend ans [list set LOADEDMODULES i2]
+    testouterr_cmd_re sh {load i2} $ans [msg_top_load i2 {alt/dir/2 alt/1} {} {}]
+} else {
+    testouterr_cmd_re sh {load i2} ERR [msg_load i2 [err_conflict alt/dir/2]]
+}
 
 # load module whose alternative name conflicts with an already loaded module
 setenv_loaded_module [list i2] [list $mp/i2]
@@ -287,13 +296,23 @@ lappend ans [list set __MODULES_LMCONFLICT i5/1&irefcon]
 lappend ans [list set _LMFILES_ $mp/i5/1]
 lappend ans [list set LOADEDMODULES i5/1]
 testouterr_cmd_re "sh" "load i5/1" $ans ""
-set ans [list]
-lappend ans [list set __MODULES_LMCONFLICT i5/1&irefcon]
-lappend ans [list set __MODULES_LMALTNAME i5/1&al|irefcon]
-lappend ans [list set LOADEDMODULES i5/1]
-lappend ans [list set _LMFILES_ $mp/i5/1]
-lappend ans [list ERR]
-testouterr_cmd_re "sh" "load i5/1 i5/2" $ans [msg_load i5/2 [err_conlo i5/1]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMALTNAME i5/2&al|irefcon]
+    lappend ans [list set __MODULES_LMCONFLICT i5/2&irefcon]
+    lappend ans [list set _LMFILES_ $mp/i5/2]
+    lappend ans [list set LOADEDMODULES i5/2]
+    set tserr [msg_top_load i5/2 i5/1 {} {}]
+} else {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT i5/1&irefcon]
+    lappend ans [list set __MODULES_LMALTNAME i5/1&al|irefcon]
+    lappend ans [list set LOADEDMODULES i5/1]
+    lappend ans [list set _LMFILES_ $mp/i5/1]
+    lappend ans [list ERR]
+    set tserr [msg_load i5/2 [err_conlo i5/1]]
+}
+testouterr_cmd_re sh {load i5/1 i5/2} $ans $tserr
 
 
 # 'module load' set on an alternative name

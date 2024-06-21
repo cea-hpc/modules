@@ -1065,6 +1065,27 @@ proc msg_top_switch {old new depunlist urequnlist unlist reqlolist deprelist arg
     return [eval msg_switch "{$old}" "{$new}" $args]
 }
 
+proc msg_top_switch_conun {old new depunlist urequnlist unlist reqlolist deprelist args} {
+    lassign [mix_depre_depun_list $deprelist $depunlist] deprelist depunlist
+
+    if {[llength $depunlist]} {
+        lappend args "Unloading dependent: [join $depunlist]"
+    }
+    if {[llength $urequnlist]} {
+        lappend args "Unloading useless requirement: [join $urequnlist]"
+    }
+    if {[llength $unlist]} {
+        lappend args "Unloading conflict: [join $unlist]"
+    }
+    if {[llength $reqlolist]} {
+        lappend args "Loading requirement: [join $reqlolist]"
+    }
+    if {[llength $deprelist]} {
+        lappend args "Reloading dependent: [join $deprelist]"
+    }
+    return [eval msg_switch "{$old}" "{$new}" $args]
+}
+
 proc mix_depre_depun_list {deprelist depunlist} {
     # dependent reload unload phase appears with dependent unload (in actual unload order)
     # if some dependent fail to unload, 1 unload list and 1 reload list could be passed

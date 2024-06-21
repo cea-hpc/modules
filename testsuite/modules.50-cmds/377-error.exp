@@ -874,14 +874,25 @@ unsetenv_var __MODULES_LMPREREQ
 setenv_loaded_module [list vmod1/1] [list $mp/vmod1/1]
 setenv_var __MODULES_LMCONFLICT vmod1/1&vmod1
 
-set ans [list]
-lappend ans [list set __MODULES_LMALTNAME vmod2/1&vmod2/default&vmod2]
-lappend ans [list set __MODULES_LMCONFLICT vmod1/1&vmod1:vmod2/1&vmod2:vmod3/1&vmod3]
-lappend ans [list set __MODULES_LMPREREQ vmod3/1&vmod2/2|vmod2]
-lappend ans [list set _LMFILES_ $mp/vmod1/1:$mp/vmod2/1:$mp/vmod3/1]
-lappend ans [list set LOADEDMODULES vmod1/1:vmod2/1:vmod3/1]
-lappend ans [list set __MODULES_LMTAG vmod2/1&auto-loaded]
-set tserr [msg_top_load vmod3/1 {} vmod2/1 {}]
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMALTNAME vmod1/2&as|vmod1/default&as|vmod1/latest:vmod2/2&as|vmod2/latest]
+    lappend ans [list set __MODULES_LMCONFLICT vmod1/2&vmod1:vmod2/2&vmod2:vmod3/1&vmod3]
+    lappend ans [list set __MODULES_LMPREREQ vmod2/2\&vmod1/2:vmod3/1&vmod2/2|vmod2]
+    lappend ans [list set _LMFILES_ $mp/vmod1/2:$mp/vmod2/2:$mp/vmod3/1]
+    lappend ans [list set LOADEDMODULES vmod1/2:vmod2/2:vmod3/1]
+    lappend ans [list set __MODULES_LMTAG vmod1/2&auto-loaded:vmod2/2&auto-loaded]
+    set tserr [msg_top_load vmod3/1 vmod1/1 {vmod1/2 vmod2/2} {}]
+} else {
+    set ans [list]
+    lappend ans [list set __MODULES_LMALTNAME vmod2/1&vmod2/default&vmod2]
+    lappend ans [list set __MODULES_LMCONFLICT vmod1/1&vmod1:vmod2/1&vmod2:vmod3/1&vmod3]
+    lappend ans [list set __MODULES_LMPREREQ vmod3/1&vmod2/2|vmod2]
+    lappend ans [list set _LMFILES_ $mp/vmod1/1:$mp/vmod2/1:$mp/vmod3/1]
+    lappend ans [list set LOADEDMODULES vmod1/1:vmod2/1:vmod3/1]
+    lappend ans [list set __MODULES_LMTAG vmod2/1&auto-loaded]
+    set tserr [msg_top_load vmod3/1 {} vmod2/1 {}]
+}
 testouterr_cmd sh {load --auto vmod3/1} $ans $tserr
 
 

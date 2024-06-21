@@ -41,16 +41,32 @@ testouterr_cmd_re sh {load --no-auto fd} $ans {}
 
 setenv_loaded_module [list fa] [list $mp/fa]
 set tserr [msg_load fd [err_conflict fa]]
-testouterr_cmd_re sh {load --auto fd} ERR $tserr
 testouterr_cmd_re sh {load --no-auto fd} ERR $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT fd&fa]
+    lappend ans [list set _LMFILES_ $mp/fd]
+    lappend ans [list set LOADEDMODULES fd]
+    set tserr [msg_top_load fd fa {} {}]
+} else {
+    set ans ERR
+}
+testouterr_cmd_re sh {load --auto fd} $ans $tserr
 
 set ans [list]
 lappend ans [list set __MODULES_LMCONFLICT fd&fa]
 lappend ans [list set _LMFILES_ $mp/fa:$mp/fd]
 lappend ans [list set LOADEDMODULES fa:fd]
 set tserr [msg_load fd [err_conlof fa] [err_conlof fa]]
-testouterr_cmd_re sh {load --force --auto fd} $ans $tserr
 testouterr_cmd_re sh {load --force --no-auto fd} $ans $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT fd&fa]
+    lappend ans [list set _LMFILES_ $mp/fd]
+    lappend ans [list set LOADEDMODULES fd]
+    set tserr [msg_top_load fd fa {} {}]
+}
+testouterr_cmd_re sh {load --force --auto fd} $ans $tserr
 
 setenv_loaded_module [list fd] [list $mp/fd]
 setenv_var __MODULES_LMCONFLICT fd&fa
@@ -343,16 +359,28 @@ testouterr_cmd_re sh {load --no-auto fj} $ans {}
 
 setenv_loaded_module [list fa] [list $mp/fa]
 set tserr [msg_load fj [err_conflict fa]]
-testouterr_cmd_re sh {load --auto fj} ERR $tserr
 testouterr_cmd_re sh {load --no-auto fj} ERR $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT fj&fa]
+    lappend ans [list set _LMFILES_ $mp/fj]
+    lappend ans [list set LOADEDMODULES fj]
+    set tserr [msg_top_load fj fa {} {}]
+} else {
+    set ans ERR
+}
+testouterr_cmd_re sh {load --auto fj} $ans $tserr
 
 set ans [list]
 lappend ans [list set __MODULES_LMCONFLICT fj&fa]
 lappend ans [list set _LMFILES_ $mp/fj]
 lappend ans [list set LOADEDMODULES fj]
 set tserr [msg_top_load fj fa {} {} [err_conlof fa]]
-testouterr_cmd_re sh {load --force --auto fj} $ans $tserr
 testouterr_cmd_re sh {load --force --no-auto fj} $ans $tserr
+if {[is_conf_enabled conflictunload]} {
+    set tserr [msg_top_load fj fa {} {}]
+}
+testouterr_cmd_re sh {load --force --auto fj} $ans $tserr
 
 setenv_loaded_module [list fj] [list $mp/fj]
 setenv_var __MODULES_LMCONFLICT fj&fa
@@ -527,8 +555,18 @@ testouterr_cmd_re sh {load --no-auto fn} $ans {}
 setenv_loaded_module [list fa] [list $mp/fa]
 setenv_var __MODULES_LMALTNAME fa&al|alfa
 set tserr [msg_load fn [err_conflict fa]]
-testouterr_cmd_re sh {load --auto fn} ERR $tserr
 testouterr_cmd_re sh {load --no-auto fn} ERR $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT fn&alfa&fa]
+    lappend ans [list unset __MODULES_LMALTNAME]
+    lappend ans [list set _LMFILES_ $mp/fn]
+    lappend ans [list set LOADEDMODULES fn]
+    set tserr [msg_top_load fn fa {} {}]
+} else {
+    set ans ERR
+}
+testouterr_cmd_re sh {load --auto fn} $ans $tserr
 
 set ans [list]
 lappend ans [list set __MODULES_LMCONFLICT fn&alfa&fa]
@@ -536,8 +574,11 @@ lappend ans [list unset __MODULES_LMALTNAME]
 lappend ans [list set _LMFILES_ $mp/fn]
 lappend ans [list set LOADEDMODULES fn]
 set tserr [msg_top_load fn fa {} {} [err_conlof fa]]
-testouterr_cmd_re sh {load --force --auto fn} $ans $tserr
 testouterr_cmd_re sh {load --force --no-auto fn} $ans $tserr
+if {[is_conf_enabled conflictunload]} {
+    set tserr [msg_top_load fn fa {} {}]
+}
+testouterr_cmd_re sh {load --force --auto fn} $ans $tserr
 
 setenv_loaded_module [list fn] [list $mp/fn]
 unsetenv_var __MODULES_LMALTNAME

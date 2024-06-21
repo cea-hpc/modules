@@ -303,13 +303,33 @@ lappend ans [list set _LMFILES_ "$mp/space yc/3:$mp/spacenc/2:$mp/space yc/2"]
 lappend ans [list set LOADEDMODULES "space yc/3:spacenc/2:space yc/2"]
 lappend ans [list set __MODULES_LMTAG "space yc/3&auto-loaded:spacenc/2&auto-loaded"]
 testouterr_cmd_re sh {reload} $ans {}
-unsetenv_var __MODULES_LMPREREQ
 
 # test conflict
-testouterr_cmd_re sh {load --auto spacenc/3} ERR [msg_load spacenc/3 [err_conflict space\ yc/3]]
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT "spacenc/3&{space yc/3}"]
+    lappend ans [list unset __MODULES_LMPREREQ]
+    lappend ans [list set _LMFILES_ "$mp/spacenc/3"]
+    lappend ans [list set LOADEDMODULES "spacenc/3"]
+    lappend ans [list unset __MODULES_LMTAG]
+    set tserr [msg_top_load_conun spacenc/3 {{'space yc/2'} spacenc/2} {{'space yc/3'}} {} {} {}]
+    testouterr_cmd_re sh {load --auto spacenc/3} $ans $tserr
+} else {
+    testouterr_cmd_re sh {load --auto spacenc/3} ERR [msg_load spacenc/3 [err_conflict space\ yc/3]]
+}
 setenv_loaded_module [list "spacenc/3"] [list "$mp/spacenc/3"]
+unsetenv_var __MODULES_LMPREREQ
 setenv_var __MODULES_LMCONFLICT "spacenc/3&{space yc/3}"
-testouterr_cmd_re sh {load --auto space\ yc/3} ERR [msg_load "'space yc/3'" [err_conflict spacenc/3]]
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT "space yc/3&spacenc/3"]
+    lappend ans [list set _LMFILES_ "$mp/space yc/3"]
+    lappend ans [list set LOADEDMODULES "space yc/3"]
+    set tserr [msg_top_load_conun {'space yc/3'} {} {spacenc/3} {} {} {}]
+    testouterr_cmd_re sh {load --auto space\ yc/3} $ans $tserr
+} else {
+    testouterr_cmd_re sh {load --auto space\ yc/3} ERR [msg_load "'space yc/3'" [err_conflict spacenc/3]]
+}
 unsetenv_var __MODULES_LMCONFLICT
 
 # test OR-prereq

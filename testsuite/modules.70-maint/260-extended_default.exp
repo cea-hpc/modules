@@ -280,7 +280,17 @@ lappend ans [list set _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/prereqi]
 lappend ans [list set LOADEDMODULES extdfl2/3.1.7:extdfl6/prereqi]
 testouterr_cmd_re sh {load --icase --auto extdfl6/prereqi} $ans {}
 
-testouterr_cmd_re sh {load extdfl6/conflict} ERR [msg_load extdfl6/conflict [err_conflict extdfl2/3.1.7]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT extdfl6/conflict&extdfl2/3]
+    lappend ans [list set _LMFILES_ $mp/extdfl6/conflict]
+    lappend ans [list set LOADEDMODULES extdfl6/conflict]
+    set tserr [msg_top_load extdfl6/conflict extdfl2/3.1.7 {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load extdfl6/conflict [err_conflict extdfl2/3.1.7]]
+}
+testouterr_cmd_re sh {load extdfl6/conflict} $ans $tserr
 
 set ans [list]
 lappend ans [list set __MODULES_LMPREREQ extdfl6/load&extdfl2/3.1]
@@ -321,7 +331,17 @@ lappend ans [list set _LMFILES_ $mp/extdfl2/3.1.3:$mp/extdfl6/prereqi]
 lappend ans [list set LOADEDMODULES extdfl2/3.1.3:extdfl6/prereqi]
 testouterr_cmd_re sh {load --icase --auto extdfl6/prereqi} $ans {}
 
-testouterr_cmd_re sh {load extdfl6/conflict} ERR [msg_load extdfl6/conflict [err_conflict extdfl2/3.1.3]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT extdfl6/conflict&extdfl2/3]
+    lappend ans [list set _LMFILES_ $mp/extdfl6/conflict]
+    lappend ans [list set LOADEDMODULES extdfl6/conflict]
+    set tserr [msg_top_load extdfl6/conflict extdfl2/3.1.3 {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load extdfl6/conflict [err_conflict extdfl2/3.1.3]]
+}
+testouterr_cmd_re sh {load extdfl6/conflict} $ans $tserr
 
 set ans [list]
 lappend ans [list set __MODULES_LMPREREQ extdfl6/load&extdfl2/3.1]
@@ -362,7 +382,17 @@ lappend ans [list set _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl6/prereqi2]
 lappend ans [list set LOADEDMODULES extdfl/1.3.7:extdfl6/prereqi2]
 testouterr_cmd_re sh {load --icase --auto extdfl6/prereqi2} $ans {}
 
-testouterr_cmd_re sh {load extdfl6/conflict2} ERR [msg_load extdfl6/conflict2 [err_conflict extdfl/1.3.7]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT extdfl6/conflict2&extdfl/1]
+    lappend ans [list set _LMFILES_ $mp/extdfl6/conflict2]
+    lappend ans [list set LOADEDMODULES extdfl6/conflict2]
+    set tserr [msg_top_load extdfl6/conflict2 extdfl/1.3.7 {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load extdfl6/conflict2 [err_conflict extdfl/1.3.7]]
+}
+testouterr_cmd_re sh {load extdfl6/conflict2} $ans $tserr
 
 set ans [list]
 lappend ans [list set __MODULES_LMPREREQ extdfl6/load2&extdfl/1.3]
@@ -424,7 +454,18 @@ testouterr_cmd_re sh {load extdfl7/1.3} ERR [msg_load extdfl7/2.1 [err_conflict 
 setenv_loaded_module [list extdfl7/2.1] [list $mp/extdfl7/2.1]
 setenv_var __MODULES_LMCONFLICT extdfl7/2.1&extdfl7/2
 setenv_var __MODULES_LMALTNAME extdfl7/2.1&extdfl7/1.3
-testouterr_cmd_re sh {load extdfl7/1.1} ERR [msg_load extdfl7/1.1 [err_conflict extdfl7/2.1]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list unset __MODULES_LMALTNAME]
+    lappend ans [list set __MODULES_LMCONFLICT extdfl7/1.1&extdfl7/1]
+    lappend ans [list set _LMFILES_ $mp/extdfl7/1.1]
+    lappend ans [list set LOADEDMODULES extdfl7/1.1]
+    set tserr [msg_top_load extdfl7/1.1 extdfl7/2.1 {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load extdfl7/1.1 [err_conflict extdfl7/2.1]]
+}
+testouterr_cmd_re sh {load extdfl7/1.1} $ans $tserr
 
 # conflict over a symbolic version name
 setenv_loaded_module [list extdfl7/3.1] [list $mp/extdfl7/3.1]
@@ -435,7 +476,18 @@ testouterr_cmd_re sh {load extdfl7/3.0} ERR [msg_load extdfl7/2.10 [err_conflict
 setenv_loaded_module [list extdfl7/2.10] [list $mp/extdfl7/2.10]
 setenv_var __MODULES_LMCONFLICT extdfl7/2.10&extdfl7/2
 setenv_var __MODULES_LMALTNAME extdfl7/2.10&extdfl7/3.0
-testouterr_cmd_re sh {load extdfl7/3.1} ERR [msg_load extdfl7/3.1 [err_conflict extdfl7/2.10]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list unset __MODULES_LMALTNAME]
+    lappend ans [list set __MODULES_LMCONFLICT extdfl7/3.1&extdfl7/3]
+    lappend ans [list set _LMFILES_ $mp/extdfl7/3.1]
+    lappend ans [list set LOADEDMODULES extdfl7/3.1]
+    set tserr [msg_top_load extdfl7/3.1 extdfl7/2.10 {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load extdfl7/3.1 [err_conflict extdfl7/2.10]]
+}
+testouterr_cmd_re sh {load extdfl7/3.1} $ans $tserr
 
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMCONFLICT
@@ -476,7 +528,17 @@ if {![is_config_locked implicit_default]} {
     testouterr_cmd_re sh {load --auto extdfl6/prereq2} $ans [msg_top_load extdfl6/prereq2 {} extdfl/1.3.1 {}]
 
     setenv_loaded_module [list extdfl2/3.1.7] [list $mp/extdfl2/3.1.7]
-    testouterr_cmd_re sh {load extdfl6/conflict} ERR [msg_load extdfl6/conflict [err_conflict extdfl2/3.1.7]]
+    if {[is_conf_enabled autohandling conflictunload]} {
+        set ans [list]
+        lappend ans [list set __MODULES_LMCONFLICT extdfl6/conflict&extdfl2/3]
+        lappend ans [list set _LMFILES_ $mp/extdfl6/conflict]
+        lappend ans [list set LOADEDMODULES extdfl6/conflict]
+        set tserr [msg_top_load extdfl6/conflict extdfl2/3.1.7 {} {}]
+    } else {
+        set ans ERR
+        set tserr [msg_load extdfl6/conflict [err_conflict extdfl2/3.1.7]]
+    }
+    testouterr_cmd_re sh {load extdfl6/conflict} $ans $tserr
 
     setenv_var MODULES_IMPLICIT_DEFAULT 1
 }

@@ -39,15 +39,29 @@ setenv_loaded_module [list vrreq2/1.0 vrreq1/1.0 variant/7.0] [list $mp/vrreq2/1
 setenv_var __MODULES_LMCONFLICT vrreq2/1.0&vrreq2:vrreq1/1.0&vrreq1@2.0
 setenv_var __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}
 setenv_var __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0
-set tserr [msg_load vrreq1/2.0{foo=val1} [err_conflict vrreq1/1.0]]
-testouterr_cmd_re sh {load --auto vrreq1/2.0 foo=val1} ERR $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq1/2.0&foo|val1|0|0]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq1/2.0&vrreq1@1.0]
+    lappend ans [list unset __MODULES_LMPREREQ]
+    lappend ans [list set _LMFILES_ $mp/vrreq1/2.0]
+    lappend ans [list set LOADEDMODULES vrreq1/2.0]
+    lappend ans [list unset __MODULES_LMTAG]
+    set tserr [msg_top_load_conun vrreq1/2.0{foo=val1} variant/7.0{foo=val2} vrreq1/1.0{foo=val1} vrreq2/1.0{bar=1:foo=val1} {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load vrreq1/2.0{foo=val1} [err_conflict vrreq1/1.0]]
+}
+testouterr_cmd_re sh {load --auto vrreq1/2.0 foo=val1} $ans $tserr
 
-set ans [list]
-lappend ans [list set __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0:vrreq1/2.0&foo|val1|0|0]
-lappend ans [list set __MODULES_LMCONFLICT vrreq2/1.0&vrreq2:vrreq1/1.0&vrreq1@2.0:vrreq1/2.0&vrreq1@1.0]
-lappend ans [list set _LMFILES_ $mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0:$mp/vrreq1/2.0]
-lappend ans [list set LOADEDMODULES vrreq2/1.0:vrreq1/1.0:variant/7.0:vrreq1/2.0]
-set tserr [msg_load vrreq1/2.0{foo=val1} [err_conlof vrreq1/1.0{foo=val1}]]
+if {![is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0:vrreq1/2.0&foo|val1|0|0]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq2/1.0&vrreq2:vrreq1/1.0&vrreq1@2.0:vrreq1/2.0&vrreq1@1.0]
+    lappend ans [list set _LMFILES_ $mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0:$mp/vrreq1/2.0]
+    lappend ans [list set LOADEDMODULES vrreq2/1.0:vrreq1/1.0:variant/7.0:vrreq1/2.0]
+    set tserr [msg_load vrreq1/2.0{foo=val1} [err_conlof vrreq1/1.0{foo=val1}]]
+}
 testouterr_cmd_re sh {load -f --auto vrreq1/2.0 foo=val1} $ans $tserr
 
 # load conflicting module (another version set)
@@ -60,14 +74,25 @@ setenv_loaded_module [list vrreq2/2.0] [list $mp/vrreq2/2.0]
 setenv_var __MODULES_LMCONFLICT vrreq2/2.0&vrreq2
 unsetenv_var __MODULES_LMPREREQ
 setenv_var __MODULES_LMVARIANT vrreq2/2.0&foo|val1|0|0&bar|1|0|0
-set ans [list]
-lappend ans [list set __MODULES_LMVARIANT vrreq2/2.0&foo|val1|0|0&bar|1|0|0:vrreq3/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
-lappend ans [list set __MODULES_LMCONFLICT vrreq2/2.0&vrreq2:vrreq3/1.0&vrreq3:vrreq1/1.0&vrreq1@2.0]
-lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}]
-lappend ans [list set _LMFILES_ $mp/vrreq2/2.0:$mp/vrreq3/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
-lappend ans [list set LOADEDMODULES vrreq2/2.0:vrreq3/1.0:vrreq1/1.0:variant/7.0]
-lappend ans [list set __MODULES_LMTAG vrreq3/1.0&auto-loaded:vrreq1/1.0&auto-loaded]
-set tserr [msg_top_load variant/7.0{foo=val2} {} {vrreq3/1.0{bar=1:foo=val1} vrreq1/1.0{foo=val1}} {}]
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq2/1.0&vrreq2:vrreq1/1.0&vrreq1@2.0]
+    lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}]
+    lappend ans [list set _LMFILES_ $mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
+    lappend ans [list set LOADEDMODULES vrreq2/1.0:vrreq1/1.0:variant/7.0]
+    lappend ans [list set __MODULES_LMTAG vrreq2/1.0&auto-loaded:vrreq1/1.0&auto-loaded]
+    set tserr [msg_top_load variant/7.0{foo=val2} vrreq2/2.0{bar=1:foo=val1} {vrreq2/1.0{bar=1:foo=val1} vrreq1/1.0{foo=val1}} {}]
+} else {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq2/2.0&foo|val1|0|0&bar|1|0|0:vrreq3/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq2/2.0&vrreq2:vrreq3/1.0&vrreq3:vrreq1/1.0&vrreq1@2.0]
+    lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}]
+    lappend ans [list set _LMFILES_ $mp/vrreq2/2.0:$mp/vrreq3/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
+    lappend ans [list set LOADEDMODULES vrreq2/2.0:vrreq3/1.0:vrreq1/1.0:variant/7.0]
+    lappend ans [list set __MODULES_LMTAG vrreq3/1.0&auto-loaded:vrreq1/1.0&auto-loaded]
+    set tserr [msg_top_load variant/7.0{foo=val2} {} {vrreq3/1.0{bar=1:foo=val1} vrreq1/1.0{foo=val1}} {}]
+}
 testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} $ans $tserr
 
 # ReqLo tentative hitting a conflict (no alternative)
@@ -75,18 +100,32 @@ setenv_loaded_module [list vrreq1/2.0] [list $mp/vrreq1/2.0]
 setenv_var __MODULES_LMCONFLICT vrreq1/2.0&vrreq1@1.0
 unsetenv_var __MODULES_LMPREREQ
 setenv_var __MODULES_LMVARIANT vrreq1/2.0&foo|val1|0|0
-set tserr [msg_load vrreq1/1.0{foo=val1} [err_conflict vrreq1/2.0]]\n\n[msg_load variant/7.0{foo=val2} [err_reqlo vrreq1/1.0{foo=val1}]]
-testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} ERR $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq2/1.0&vrreq2:vrreq1/1.0&vrreq1@2.0]
+    lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}]
+    lappend ans [list set _LMFILES_ $mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
+    lappend ans [list set LOADEDMODULES vrreq2/1.0:vrreq1/1.0:variant/7.0]
+    lappend ans [list set __MODULES_LMTAG vrreq2/1.0&auto-loaded:vrreq1/1.0&auto-loaded]
+    set tserr [msg_top_load variant/7.0{foo=val2} vrreq1/2.0{foo=val1} {} {} {Loading requirement: vrreq2/1.0{bar=1:foo=val1} vrreq1/1.0{foo=val1}}]
+} else {
+    set ans ERR
+    set tserr [msg_load vrreq1/1.0{foo=val1} [err_conflict vrreq1/2.0]]\n\n[msg_load variant/7.0{foo=val2} [err_reqlo vrreq1/1.0{foo=val1}]]
+}
+testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} $ans $tserr
 
 # force ReqLo tentative hitting a conflict
-set ans [list]
-lappend ans [list set __MODULES_LMVARIANT vrreq1/2.0&foo|val1|0|0:vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
-lappend ans [list set __MODULES_LMCONFLICT vrreq1/2.0&vrreq1@1.0:vrreq2/1.0&vrreq2:vrreq1/1.0&vrreq1@2.0]
-lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}]
-lappend ans [list set _LMFILES_ $mp/vrreq1/2.0:$mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
-lappend ans [list set LOADEDMODULES vrreq1/2.0:vrreq2/1.0:vrreq1/1.0:variant/7.0]
-lappend ans [list set __MODULES_LMTAG vrreq2/1.0&auto-loaded:vrreq1/1.0&auto-loaded]
-set tserr [msg_load {vrreq1/1.0{foo=val1} <aL>} [err_conlof vrreq1/2.0{foo=val1}]]\n\n[msg_top_load variant/7.0{foo=val2} {} {vrreq2/1.0{bar=1:foo=val1} vrreq1/1.0{foo=val1}} {}]
+if {![is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq1/2.0&foo|val1|0|0:vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq1/2.0&vrreq1@1.0:vrreq2/1.0&vrreq2:vrreq1/1.0&vrreq1@2.0]
+    lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}]
+    lappend ans [list set _LMFILES_ $mp/vrreq1/2.0:$mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
+    lappend ans [list set LOADEDMODULES vrreq1/2.0:vrreq2/1.0:vrreq1/1.0:variant/7.0]
+    lappend ans [list set __MODULES_LMTAG vrreq2/1.0&auto-loaded:vrreq1/1.0&auto-loaded]
+    set tserr [msg_load {vrreq1/1.0{foo=val1} <aL>} [err_conlof vrreq1/2.0{foo=val1}]]\n\n[msg_top_load variant/7.0{foo=val2} {} {vrreq2/1.0{bar=1:foo=val1} vrreq1/1.0{foo=val1}} {}]
+}
 testouterr_cmd_re sh {load -f --auto variant/7.0 foo=val2} $ans $tserr
 
 # ReqLo tentative hitting another variant loaded
@@ -186,15 +225,29 @@ setenv_loaded_module [list vrreq2/1.0 vrreq1/1.0 variant/7.0] [list $mp/vrreq2/1
 setenv_var __MODULES_LMCONFLICT vrreq2/1.0&vrreq2:vrreq1/1.0&vrreq1@<2.0
 setenv_var __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}
 setenv_var __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0
-set tserr [msg_load vrreq1/2.0{foo=val1} [err_conflict vrreq1/1.0]]
-testouterr_cmd_re sh {load --auto vrreq1/2.0 foo=val1} ERR $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq1/2.0&foo|val1|0|0]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq1/2.0&vrreq1@1<]
+    lappend ans [list unset __MODULES_LMPREREQ]
+    lappend ans [list set _LMFILES_ $mp/vrreq1/2.0]
+    lappend ans [list set LOADEDMODULES vrreq1/2.0]
+    lappend ans [list unset __MODULES_LMTAG]
+    set tserr [msg_top_load_conun vrreq1/2.0{foo=val1} variant/7.0{foo=val2} vrreq1/1.0{foo=val1} vrreq2/1.0{bar=1:foo=val1} {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load vrreq1/2.0{foo=val1} [err_conflict vrreq1/1.0]]
+}
+testouterr_cmd_re sh {load --auto vrreq1/2.0 foo=val1} $ans $tserr
 
-set ans [list]
-lappend ans [list set __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0:vrreq1/2.0&foo|val1|0|0]
-lappend ans [list set __MODULES_LMCONFLICT vrreq2/1.0&vrreq2:vrreq1/1.0&vrreq1@<2.0:vrreq1/2.0&vrreq1@1<]
-lappend ans [list set _LMFILES_ $mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0:$mp/vrreq1/2.0]
-lappend ans [list set LOADEDMODULES vrreq2/1.0:vrreq1/1.0:variant/7.0:vrreq1/2.0]
-set tserr [msg_load vrreq1/2.0{foo=val1} [err_conlof vrreq1/1.0{foo=val1}]]
+if {![is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0:vrreq1/2.0&foo|val1|0|0]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq2/1.0&vrreq2:vrreq1/1.0&vrreq1@<2.0:vrreq1/2.0&vrreq1@1<]
+    lappend ans [list set _LMFILES_ $mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0:$mp/vrreq1/2.0]
+    lappend ans [list set LOADEDMODULES vrreq2/1.0:vrreq1/1.0:variant/7.0:vrreq1/2.0]
+    set tserr [msg_load vrreq1/2.0{foo=val1} [err_conlof vrreq1/1.0{foo=val1}]]
+}
 testouterr_cmd_re sh {load -f --auto vrreq1/2.0 foo=val1} $ans $tserr
 
 # load conflicting module (another version set)
@@ -207,14 +260,25 @@ setenv_loaded_module [list vrreq2/2.0] [list $mp/vrreq2/2.0]
 setenv_var __MODULES_LMCONFLICT vrreq2/2.0&vrreq2
 unsetenv_var __MODULES_LMPREREQ
 setenv_var __MODULES_LMVARIANT vrreq2/2.0&foo|val1|0|0&bar|1|0|0
-set ans [list]
-lappend ans [list set __MODULES_LMVARIANT vrreq2/2.0&foo|val1|0|0&bar|1|0|0:vrreq3/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
-lappend ans [list set __MODULES_LMCONFLICT vrreq2/2.0&vrreq2:vrreq3/1.0&vrreq3:vrreq1/1.0&vrreq1@<2.0]
-lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}]
-lappend ans [list set _LMFILES_ $mp/vrreq2/2.0:$mp/vrreq3/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
-lappend ans [list set LOADEDMODULES vrreq2/2.0:vrreq3/1.0:vrreq1/1.0:variant/7.0]
-lappend ans [list set __MODULES_LMTAG vrreq3/1.0&auto-loaded:vrreq1/1.0&auto-loaded]
-set tserr [msg_top_load variant/7.0{foo=val2} {} {vrreq3/1.0{bar=1:foo=val1} vrreq1/1.0{foo=val1}} {}]
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq2/1.0&vrreq2:vrreq1/1.0&vrreq1@<2.0]
+    lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}]
+    lappend ans [list set _LMFILES_ $mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
+    lappend ans [list set LOADEDMODULES vrreq2/1.0:vrreq1/1.0:variant/7.0]
+    lappend ans [list set __MODULES_LMTAG vrreq2/1.0&auto-loaded:vrreq1/1.0&auto-loaded]
+    set tserr [msg_top_load variant/7.0{foo=val2} vrreq2/2.0{bar=1:foo=val1} {vrreq2/1.0{bar=1:foo=val1} vrreq1/1.0{foo=val1}} {}]
+} else {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq2/2.0&foo|val1|0|0&bar|1|0|0:vrreq3/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq2/2.0&vrreq2:vrreq3/1.0&vrreq3:vrreq1/1.0&vrreq1@<2.0]
+    lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}]
+    lappend ans [list set _LMFILES_ $mp/vrreq2/2.0:$mp/vrreq3/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
+    lappend ans [list set LOADEDMODULES vrreq2/2.0:vrreq3/1.0:vrreq1/1.0:variant/7.0]
+    lappend ans [list set __MODULES_LMTAG vrreq3/1.0&auto-loaded:vrreq1/1.0&auto-loaded]
+    set tserr [msg_top_load variant/7.0{foo=val2} {} {vrreq3/1.0{bar=1:foo=val1} vrreq1/1.0{foo=val1}} {}]
+}
 testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} $ans $tserr
 
 # ReqLo tentative hitting a conflict (no alternative)
@@ -222,18 +286,32 @@ setenv_loaded_module [list vrreq1/2.0] [list $mp/vrreq1/2.0]
 setenv_var __MODULES_LMCONFLICT vrreq1/2.0&vrreq1@1<
 unsetenv_var __MODULES_LMPREREQ
 setenv_var __MODULES_LMVARIANT vrreq1/2.0&foo|val1|0|0
-set tserr [msg_load vrreq1/1.0{foo=val1} [err_conflict vrreq1/2.0]]\n\n[msg_load variant/7.0{foo=val2} [err_reqlo vrreq1/1.0{foo=val1}]]
-testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} ERR $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq2/1.0&vrreq2:vrreq1/1.0&vrreq1@<2.0]
+    lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}]
+    lappend ans [list set _LMFILES_ $mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
+    lappend ans [list set LOADEDMODULES vrreq2/1.0:vrreq1/1.0:variant/7.0]
+    lappend ans [list set __MODULES_LMTAG vrreq2/1.0&auto-loaded:vrreq1/1.0&auto-loaded]
+    set tserr [msg_top_load variant/7.0{foo=val2} vrreq1/2.0{foo=val1} {} {} {Loading requirement: vrreq2/1.0{bar=1:foo=val1} vrreq1/1.0{foo=val1}}]
+} else {
+    set ans ERR
+    set tserr [msg_load vrreq1/1.0{foo=val1} [err_conflict vrreq1/2.0]]\n\n[msg_load variant/7.0{foo=val2} [err_reqlo vrreq1/1.0{foo=val1}]]
+}
+testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} $ans $tserr
 
 # force ReqLo tentative hitting a conflict
-set ans [list]
-lappend ans [list set __MODULES_LMVARIANT vrreq1/2.0&foo|val1|0|0:vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
-lappend ans [list set __MODULES_LMCONFLICT vrreq1/2.0&vrreq1@1<:vrreq2/1.0&vrreq2:vrreq1/1.0&vrreq1@<2.0]
-lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}]
-lappend ans [list set _LMFILES_ $mp/vrreq1/2.0:$mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
-lappend ans [list set LOADEDMODULES vrreq1/2.0:vrreq2/1.0:vrreq1/1.0:variant/7.0]
-lappend ans [list set __MODULES_LMTAG vrreq2/1.0&auto-loaded:vrreq1/1.0&auto-loaded]
-set tserr [msg_load {vrreq1/1.0{foo=val1} <aL>} [err_conlof vrreq1/2.0{foo=val1}]]\n\n[msg_top_load variant/7.0{foo=val2} {} {vrreq2/1.0{bar=1:foo=val1} vrreq1/1.0{foo=val1}} {}]
+if {![is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq1/2.0&foo|val1|0|0:vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq1/2.0&vrreq1@1<:vrreq2/1.0&vrreq2:vrreq1/1.0&vrreq1@<2.0]
+    lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}]
+    lappend ans [list set _LMFILES_ $mp/vrreq1/2.0:$mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
+    lappend ans [list set LOADEDMODULES vrreq1/2.0:vrreq2/1.0:vrreq1/1.0:variant/7.0]
+    lappend ans [list set __MODULES_LMTAG vrreq2/1.0&auto-loaded:vrreq1/1.0&auto-loaded]
+    set tserr [msg_load {vrreq1/1.0{foo=val1} <aL>} [err_conlof vrreq1/2.0{foo=val1}]]\n\n[msg_top_load variant/7.0{foo=val2} {} {vrreq2/1.0{bar=1:foo=val1} vrreq1/1.0{foo=val1}} {}]
+}
 testouterr_cmd_re sh {load -f --auto variant/7.0 foo=val2} $ans $tserr
 
 # ReqLo tentative hitting another variant loaded
@@ -332,16 +410,31 @@ setenv_var __MODULES_LMCONFLICT vrreq2/1.0&vrreq2:vrreq1/1.0&alvrreq12
 setenv_var __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}
 setenv_var __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0
 setenv_var __MODULES_LMALTNAME vrreq1/1.0&vrreq1/sym
-set tserr [msg_load vrreq1/2.0{foo=val1} [err_conflict vrreq1/1.0]]
-testouterr_cmd_re sh {load --auto vrreq1/2.0 foo=val1} ERR $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq1/2.0&foo|val1|0|0]
+    lappend ans [list set __MODULES_LMALTNAME vrreq1/2.0&al|alvrreq12]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq1/2.0&vrreq1/sym]
+    lappend ans [list unset __MODULES_LMPREREQ]
+    lappend ans [list set _LMFILES_ $mp/vrreq1/2.0]
+    lappend ans [list set LOADEDMODULES vrreq1/2.0]
+    lappend ans [list unset __MODULES_LMTAG]
+    set tserr [msg_top_load_conun vrreq1/2.0{foo=val1} variant/7.0{foo=val2} vrreq1/1.0{foo=val1} vrreq2/1.0{bar=1:foo=val1} {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load vrreq1/2.0{foo=val1} [err_conflict vrreq1/1.0]]
+}
+testouterr_cmd_re sh {load --auto vrreq1/2.0 foo=val1} $ans $tserr
 
-set ans [list]
-lappend ans [list set __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0:vrreq1/2.0&foo|val1|0|0]
-lappend ans [list set __MODULES_LMALTNAME vrreq1/1.0&vrreq1/sym:vrreq1/2.0&al|alvrreq12]
-lappend ans [list set __MODULES_LMCONFLICT vrreq2/1.0&vrreq2:vrreq1/1.0&alvrreq12:vrreq1/2.0&vrreq1/sym]
-lappend ans [list set _LMFILES_ $mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0:$mp/vrreq1/2.0]
-lappend ans [list set LOADEDMODULES vrreq2/1.0:vrreq1/1.0:variant/7.0:vrreq1/2.0]
-set tserr [msg_load vrreq1/2.0{foo=val1} [err_conlof vrreq1/1.0{foo=val1}]]
+if {![is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0:vrreq1/2.0&foo|val1|0|0]
+    lappend ans [list set __MODULES_LMALTNAME vrreq1/1.0&vrreq1/sym:vrreq1/2.0&al|alvrreq12]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq2/1.0&vrreq2:vrreq1/1.0&alvrreq12:vrreq1/2.0&vrreq1/sym]
+    lappend ans [list set _LMFILES_ $mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0:$mp/vrreq1/2.0]
+    lappend ans [list set LOADEDMODULES vrreq2/1.0:vrreq1/1.0:variant/7.0:vrreq1/2.0]
+    set tserr [msg_load vrreq1/2.0{foo=val1} [err_conlof vrreq1/1.0{foo=val1}]]
+}
 testouterr_cmd_re sh {load -f --auto vrreq1/2.0 foo=val1} $ans $tserr
 
 # load conflicting module (another version set)
@@ -355,15 +448,27 @@ setenv_var __MODULES_LMCONFLICT vrreq2/2.0&vrreq2
 unsetenv_var __MODULES_LMPREREQ
 unsetenv_var __MODULES_LMALTNAME
 setenv_var __MODULES_LMVARIANT vrreq2/2.0&foo|val1|0|0&bar|1|0|0
-set ans [list]
-lappend ans [list set __MODULES_LMVARIANT vrreq2/2.0&foo|val1|0|0&bar|1|0|0:vrreq3/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
-lappend ans [list set __MODULES_LMALTNAME vrreq1/1.0&vrreq1/sym]
-lappend ans [list set __MODULES_LMCONFLICT vrreq2/2.0&vrreq2:vrreq3/1.0&vrreq3:vrreq1/1.0&alvrreq12]
-lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}]
-lappend ans [list set _LMFILES_ $mp/vrreq2/2.0:$mp/vrreq3/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
-lappend ans [list set LOADEDMODULES vrreq2/2.0:vrreq3/1.0:vrreq1/1.0:variant/7.0]
-lappend ans [list set __MODULES_LMTAG vrreq3/1.0&auto-loaded:vrreq1/1.0&auto-loaded]
-set tserr [msg_top_load variant/7.0{foo=val2} {} {vrreq3/1.0{bar=1:foo=val1} vrreq1/1.0{foo=val1}} {}]
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
+    lappend ans [list set __MODULES_LMALTNAME vrreq1/1.0&vrreq1/sym]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq2/1.0&vrreq2:vrreq1/1.0&alvrreq12]
+    lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}]
+    lappend ans [list set _LMFILES_ $mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
+    lappend ans [list set LOADEDMODULES vrreq2/1.0:vrreq1/1.0:variant/7.0]
+    lappend ans [list set __MODULES_LMTAG vrreq2/1.0&auto-loaded:vrreq1/1.0&auto-loaded]
+    set tserr [msg_top_load variant/7.0{foo=val2} vrreq2/2.0{bar=1:foo=val1} {vrreq2/1.0{bar=1:foo=val1} vrreq1/1.0{foo=val1}} {}]
+} else {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq2/2.0&foo|val1|0|0&bar|1|0|0:vrreq3/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
+    lappend ans [list set __MODULES_LMALTNAME vrreq1/1.0&vrreq1/sym]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq2/2.0&vrreq2:vrreq3/1.0&vrreq3:vrreq1/1.0&alvrreq12]
+    lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}]
+    lappend ans [list set _LMFILES_ $mp/vrreq2/2.0:$mp/vrreq3/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
+    lappend ans [list set LOADEDMODULES vrreq2/2.0:vrreq3/1.0:vrreq1/1.0:variant/7.0]
+    lappend ans [list set __MODULES_LMTAG vrreq3/1.0&auto-loaded:vrreq1/1.0&auto-loaded]
+    set tserr [msg_top_load variant/7.0{foo=val2} {} {vrreq3/1.0{bar=1:foo=val1} vrreq1/1.0{foo=val1}} {}]
+}
 testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} $ans $tserr
 
 # ReqLo tentative hitting a conflict (no alternative)
@@ -372,19 +477,34 @@ setenv_var __MODULES_LMCONFLICT vrreq1/2.0&vrreq1/sym
 unsetenv_var __MODULES_LMPREREQ
 setenv_var __MODULES_LMVARIANT vrreq1/2.0&foo|val1|0|0
 setenv_var __MODULES_LMALTNAME vrreq1/2.0&al|alvrreq12
-set tserr [msg_load vrreq1/1.0{foo=val1} [err_conflict vrreq1/2.0]]\n\n[msg_load variant/7.0{foo=val2} [err_reqlo vrreq1/1.0{foo=val1}]]
-testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} ERR $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
+    lappend ans [list set __MODULES_LMALTNAME vrreq1/1.0&vrreq1/sym]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq2/1.0&vrreq2:vrreq1/1.0&alvrreq12]
+    lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}]
+    lappend ans [list set _LMFILES_ $mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
+    lappend ans [list set LOADEDMODULES vrreq2/1.0:vrreq1/1.0:variant/7.0]
+    lappend ans [list set __MODULES_LMTAG vrreq2/1.0&auto-loaded:vrreq1/1.0&auto-loaded]
+    set tserr [msg_top_load variant/7.0{foo=val2} vrreq1/2.0{foo=val1} {vrreq2/1.0{bar=1:foo=val1} vrreq1/1.0{foo=val1}} {}]
+} else {
+    set ans  ERR
+    set tserr [msg_load vrreq1/1.0{foo=val1} [err_conflict vrreq1/2.0]]\n\n[msg_load variant/7.0{foo=val2} [err_reqlo vrreq1/1.0{foo=val1}]]
+}
+testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} $ans $tserr
 
 # force ReqLo tentative hitting a conflict
-set ans [list]
-lappend ans [list set __MODULES_LMVARIANT vrreq1/2.0&foo|val1|0|0:vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
-lappend ans [list set __MODULES_LMALTNAME vrreq1/2.0&al|alvrreq12:vrreq1/1.0&vrreq1/sym]
-lappend ans [list set __MODULES_LMCONFLICT vrreq1/2.0&vrreq1/sym:vrreq2/1.0&vrreq2:vrreq1/1.0&alvrreq12]
-lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}]
-lappend ans [list set _LMFILES_ $mp/vrreq1/2.0:$mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
-lappend ans [list set LOADEDMODULES vrreq1/2.0:vrreq2/1.0:vrreq1/1.0:variant/7.0]
-lappend ans [list set __MODULES_LMTAG vrreq2/1.0&auto-loaded:vrreq1/1.0&auto-loaded]
-set tserr [msg_load {vrreq1/1.0{foo=val1} <aL>} [err_conlof vrreq1/2.0{foo=val1}]]\n\n[msg_top_load variant/7.0{foo=val2} {} {vrreq2/1.0{bar=1:foo=val1} vrreq1/1.0{foo=val1}} {}]
+if {![is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq1/2.0&foo|val1|0|0:vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
+    lappend ans [list set __MODULES_LMALTNAME vrreq1/2.0&al|alvrreq12:vrreq1/1.0&vrreq1/sym]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq1/2.0&vrreq1/sym:vrreq2/1.0&vrreq2:vrreq1/1.0&alvrreq12]
+    lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}]
+    lappend ans [list set _LMFILES_ $mp/vrreq1/2.0:$mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
+    lappend ans [list set LOADEDMODULES vrreq1/2.0:vrreq2/1.0:vrreq1/1.0:variant/7.0]
+    lappend ans [list set __MODULES_LMTAG vrreq2/1.0&auto-loaded:vrreq1/1.0&auto-loaded]
+    set tserr [msg_load {vrreq1/1.0{foo=val1} <aL>} [err_conlof vrreq1/2.0{foo=val1}]]\n\n[msg_top_load variant/7.0{foo=val2} {} {vrreq2/1.0{bar=1:foo=val1} vrreq1/1.0{foo=val1}} {}]
+}
 testouterr_cmd_re sh {load -f --auto variant/7.0 foo=val2} $ans $tserr
 
 # ReqLo tentative hitting another variant loaded
@@ -527,14 +647,25 @@ setenv_loaded_module [list vrreq2/2.0] [list $mp/vrreq2/2.0]
 setenv_var __MODULES_LMCONFLICT vrreq2/2.0&vrreq2
 unsetenv_var __MODULES_LMPREREQ
 setenv_var __MODULES_LMVARIANT vrreq2/2.0&foo|val1|0|0&bar|1|0|0
-set ans [list]
-lappend ans [list set __MODULES_LMVARIANT vrreq2/2.0&foo|val1|0|0&bar|1|0|0:vrreq3/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
-lappend ans [list set __MODULES_LMCONFLICT vrreq2/2.0&vrreq2:vrreq3/1.0&vrreq3:vrreq1/1.0&vrreq1@2.0]
-lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}]
-lappend ans [list set _LMFILES_ $mp/vrreq2/2.0:$mp/vrreq3/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
-lappend ans [list set LOADEDMODULES vrreq2/2.0:vrreq3/1.0:vrreq1/1.0:variant/7.0]
-lappend ans [list set __MODULES_LMTAG vrreq3/1.0&auto-loaded:vrreq1/1.0&auto-loaded]
-set tserr [msg_top_load variant/7.0{foo=val2} {} {vrreq3/1.0{bar=1:foo=val1} vrreq1/1.0{foo=val1}} {}]
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq2/1.0&vrreq2:vrreq1/1.0&vrreq1@2.0]
+    lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}]
+    lappend ans [list set _LMFILES_ $mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
+    lappend ans [list set LOADEDMODULES vrreq2/1.0:vrreq1/1.0:variant/7.0]
+    lappend ans [list set __MODULES_LMTAG vrreq2/1.0&auto-loaded:vrreq1/1.0&auto-loaded]
+    set tserr [msg_top_load variant/7.0{foo=val2} vrreq2/2.0{bar=1:foo=val1} {vrreq2/1.0{bar=1:foo=val1} vrreq1/1.0{foo=val1}} {}]
+} else {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq2/2.0&foo|val1|0|0&bar|1|0|0:vrreq3/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq2/2.0&vrreq2:vrreq3/1.0&vrreq3:vrreq1/1.0&vrreq1@2.0]
+    lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}]
+    lappend ans [list set _LMFILES_ $mp/vrreq2/2.0:$mp/vrreq3/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
+    lappend ans [list set LOADEDMODULES vrreq2/2.0:vrreq3/1.0:vrreq1/1.0:variant/7.0]
+    lappend ans [list set __MODULES_LMTAG vrreq3/1.0&auto-loaded:vrreq1/1.0&auto-loaded]
+    set tserr [msg_top_load variant/7.0{foo=val2} {} {vrreq3/1.0{bar=1:foo=val1} vrreq1/1.0{foo=val1}} {}]
+}
 testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} $ans $tserr
 
 # ReqLo tentative hitting a conflict (no alternative)
@@ -651,8 +782,20 @@ setenv_var __MODULES_LMCONFLICT vrreq2/2.0&vrreq2:vrreq1/2.0&vrreq1
 setenv_var __MODULES_LMPREREQ {vrreq1/2.0&vrreq2@<2.0 bar=1|vrreq3@1.0< foo=val1:variant/7.0&vrreq1@1< foo=val1}
 setenv_var __MODULES_LMVARIANT vrreq2/2.0&foo|val2|0|1&bar|1|0|0:vrreq1/2.0&foo|val1|0|0:variant/7.0&foo|val2|0|0
 set tserr [msg_load vrreq2/1.0{bar=2} [err_conlo vrreq2/2.0{bar=1:foo=val2}]]\n\n[msg_switch vrreq2/2.0{bar=2} vrreq2/1.0{bar=2} [err_swon vrreq2/1.0{bar=2}]]
-testouterr_cmd_re sh {switch --auto vrreq2/2.0 bar=2 vrreq2/1.0 bar=2} ERR $tserr
 testouterr_cmd_re sh {switch --no-auto vrreq2/2.0 bar=2 vrreq2/1.0 bar=2} ERR $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|2&bar|2|0|0]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq2/1.0&vrreq2]
+    lappend ans [list unset __MODULES_LMPREREQ]
+    lappend ans [list set _LMFILES_ $mp/vrreq2/1.0]
+    lappend ans [list set LOADEDMODULES vrreq2/1.0]
+    lappend ans [list unset __MODULES_LMTAG]
+    set tserr [msg_top_switch vrreq2/2.0{bar=2} vrreq2/1.0{bar=2:foo=val1} {variant/7.0{foo=val2} vrreq1/2.0{foo=val1}} {} {vrreq2/2.0{bar=1:foo=val2}} {} {}]
+} else {
+    set ans ERR
+}
+testouterr_cmd_re sh {switch --auto vrreq2/2.0 bar=2 vrreq2/1.0 bar=2} $ans $tserr
 
 # replace a requirement by an alternative: wrong variant to unload (1-arg form)
 set ans [list]

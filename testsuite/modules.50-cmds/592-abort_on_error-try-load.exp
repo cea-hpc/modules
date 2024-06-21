@@ -70,6 +70,20 @@ lappend ans_all [list out {complete value compall;}]
 lappend ans_all [list chdir /tmp]
 lappend ans_all [list out all-out]
 
+set ans_conflict_unload [list]
+lappend ans_conflict_unload [list out all-pre-out]
+lappend ans_conflict_unload [list set TSPATH dir1]
+lappend ans_conflict_unload [list set __MODULES_LMCONFLICT err/1.0&foo]
+lappend ans_conflict_unload [list set __MODULES_LMREFRESH all/1.0]
+lappend ans_conflict_unload [list set _LMFILES_ $mp/all/1.0:$mp/err/1.0]
+lappend ans_conflict_unload [list set LOADEDMODULES all/1.0:err/1.0]
+lappend ans_conflict_unload [list set TS ok]
+lappend ans_conflict_unload [list alias alall value]
+lappend ans_conflict_unload [list funcall "() { value; }; export -f funcall;"]
+lappend ans_conflict_unload [list out {complete value compall;}]
+lappend ans_conflict_unload [list chdir /tmp]
+lappend ans_conflict_unload [list out all-out]
+
 set ans_conflict_force [list]
 lappend ans_conflict_force [list out all-pre-out]
 lappend ans_conflict_force [list set TSPATH dir1]
@@ -276,12 +290,18 @@ testouterr_cmd bash {try-load -v all/1.0 err/1.0 foo/1.0} $ans_continue $ts_erro
 setenv_var TESTSUITE_ABORT_ON_ERROR conflict
 
 # conflict declared after load attempt of conflicting module
-set ts_conflict_declared_after [msg_load err/1.0 [err_conlo foo/1.0]]
-testouterr_cmd bash {try-load all/1.0 foo/1.0 err/1.0} $ans_continue $ts_conflict_declared_after
+if {[is_conf_enabled conflictunload]} {
+    set ts_conflict_declared_after [msg_top_load err/1.0 foo/1.0 {} {}]
+    testouterr_cmd bash {try-load all/1.0 foo/1.0 err/1.0} $ans_conflict_unload $ts_conflict_declared_after
+    testouterr_cmd bash {try-load --force all/1.0 foo/1.0 err/1.0} $ans_conflict_unload $ts_conflict_declared_after
+} else {
+    set ts_conflict_declared_after [msg_load err/1.0 [err_conlo foo/1.0]]
+    testouterr_cmd bash {try-load all/1.0 foo/1.0 err/1.0} $ans_continue $ts_conflict_declared_after
 
-# --force by-pass conflict error
-set ts_conflict_force_declared_after [msg_load err/1.0 [err_conlof foo/1.0]]
-testouterr_cmd bash {try-load --force all/1.0 foo/1.0 err/1.0} $ans_conflict_force $ts_conflict_force_declared_after
+    # --force by-pass conflict error
+    set ts_conflict_force_declared_after [msg_load err/1.0 [err_conlof foo/1.0]]
+    testouterr_cmd bash {try-load --force all/1.0 foo/1.0 err/1.0} $ans_conflict_force $ts_conflict_force_declared_after
+}
 
 # conflict declared before load attempt of conflicting module
 set ts_conflict_declared_before [msg_load foo/1.0 [err_conlo err/1.0]]
@@ -471,10 +491,15 @@ testouterr_cmd bash {try-load --force -v all/1.0 err/1.0 foo/1.0} $ans_continue 
 setenv_var TESTSUITE_ABORT_ON_ERROR conflict
 
 # conflict declared after load attempt of conflicting module
-testouterr_cmd bash {try-load all/1.0 foo/1.0 err/1.0} ERR $ts_conflict_declared_after
+if {[is_conf_enabled conflictunload]} {
+    testouterr_cmd bash {try-load all/1.0 foo/1.0 err/1.0} $ans_conflict_unload $ts_conflict_declared_after
+    testouterr_cmd bash {try-load --force all/1.0 foo/1.0 err/1.0} $ans_conflict_unload $ts_conflict_declared_after
+} else {
+    testouterr_cmd bash {try-load all/1.0 foo/1.0 err/1.0} ERR $ts_conflict_declared_after
 
-# --force by-pass conflict error
-testouterr_cmd bash {try-load --force all/1.0 foo/1.0 err/1.0} $ans_conflict_force $ts_conflict_force_declared_after
+    # --force by-pass conflict error
+    testouterr_cmd bash {try-load --force all/1.0 foo/1.0 err/1.0} $ans_conflict_force $ts_conflict_force_declared_after
+}
 
 # conflict declared before load attempt of conflicting module
 testouterr_cmd bash {try-load all/1.0 err/1.0 foo/1.0} ERR $ts_conflict_declared_before

@@ -280,13 +280,24 @@ lappend ans [list set LOADEDMODULES "g2:g4"]
 testouterr_cmd_re "sh" "unload g1" $ans [msg_top_unload g1 {} {} g4]
 
 # load test that creates a conflict violation
-set ans [list]
-lappend ans [list set FOO "/path/to/g4-g1-g2-g3"]
-lappend ans [list set __MODULES_LMCONFLICT "g3&g2"]
-lappend ans [list set __MODULES_LMPREREQ "g4&g1|g2|g3"]
-lappend ans [list set _LMFILES_ "$mp/g1:$mp/g2:$mp/g3:$mp/g4"]
-lappend ans [list set LOADEDMODULES "g1:g2:g3:g4"]
-testouterr_cmd_re "sh" "load --force g3" $ans [msg_top_load g3 {} {} g4 [err_conlof g2]]
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set FOO "/path/to/g4-g1-g3"]
+    lappend ans [list set __MODULES_LMCONFLICT "g3&g2"]
+    lappend ans [list set __MODULES_LMPREREQ "g4&g1|g2|g3"]
+    lappend ans [list set _LMFILES_ "$mp/g1:$mp/g3:$mp/g4"]
+    lappend ans [list set LOADEDMODULES "g1:g3:g4"]
+    set tserr [msg_top_load g3 g2 {} g4]
+} else {
+    set ans [list]
+    lappend ans [list set FOO "/path/to/g4-g1-g2-g3"]
+    lappend ans [list set __MODULES_LMCONFLICT "g3&g2"]
+    lappend ans [list set __MODULES_LMPREREQ "g4&g1|g2|g3"]
+    lappend ans [list set _LMFILES_ "$mp/g1:$mp/g2:$mp/g3:$mp/g4"]
+    lappend ans [list set LOADEDMODULES "g1:g2:g3:g4"]
+    set tserr [msg_top_load g3 {} {} g4 [err_conlof g2]]
+}
+testouterr_cmd_re "sh" "load --force g3" $ans $tserr
 
 # set loaded situation where a conflict violation exists
 setenv_loaded_module [list g1 g2 g3 g4] [list "$mp/g1" "$mp/g2" "$mp/g3" "$mp/g4"]
@@ -707,7 +718,12 @@ testouterr_cmd_re sh {unload ia} $ans [join $tserr \n]
 
 # test module evaluation detection when conflict is expressed against bare module name
 testouterr_cmd sh {load con2/2.1} ERR [msg_load con1/1.1 [err_conloi con2/2.1]]\n\n[msg_load con2/2.1 [err_reqlo con1/1.1]]
-testouterr_cmd sh {load con2/2.2} ERR [msg_load con2/2.2 [err_conlo con1/1.1]]
+if {[is_conf_enabled conflictunload]} {
+    set tserr [msg_unload {con1/1.1 <aL>} [err_deploi con2/2.2]]\n\n[msg_load con2/2.2 [err_conun con1/1.1] [err_conlo con1/1.1]]
+} else {
+    set tserr [msg_load con2/2.2 [err_conlo con1/1.1]]
+}
+testouterr_cmd sh {load con2/2.2} ERR $tserr
 testouterr_cmd sh {load con2/2.3} ERR [msg_load con1/1.2 [err_conloi con2/2.3]]\n\n[msg_load con2/2.3 [err_reqlo con1/1.2]]
 
 

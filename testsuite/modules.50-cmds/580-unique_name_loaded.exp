@@ -40,29 +40,57 @@ setenv_var __MODULES_LMCONFLICT uniq/1.0&uniq
 
 testouterr_cmd sh {load uniq/1.0} OK {}
 
-set tserr [msg_load uniq/2.0 [err_conflict uniq/1.0]]
-testouterr_cmd sh {load uniq/2.0} ERR $tserr
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT uniq/2.0&uniq]
+    lappend ans [list set _LMFILES_ $mp/uniq/2.0]
+    lappend ans [list set LOADEDMODULES uniq/2.0]
+    set tserr [msg_top_load uniq/2.0 uniq/1.0 {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load uniq/2.0 [err_conflict uniq/1.0]]
+}
+testouterr_cmd sh {load uniq/2.0} $ans $tserr
 
 skip_if_quick_mode
 
-set ans [list]
-lappend ans [list set __MODULES_LMCONFLICT uniq/1.0&uniq:uniq/2.0&uniq]
-lappend ans [list set _LMFILES_ $mp/uniq/1.0:$mp/uniq/2.0]
-lappend ans [list set LOADEDMODULES uniq/1.0:uniq/2.0]
-set tserr [msg_load uniq/2.0 [err_conlof uniq/1.0]]
+if {![is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT uniq/1.0&uniq:uniq/2.0&uniq]
+    lappend ans [list set _LMFILES_ $mp/uniq/1.0:$mp/uniq/2.0]
+    lappend ans [list set LOADEDMODULES uniq/1.0:uniq/2.0]
+    set tserr [msg_load uniq/2.0 [err_conlof uniq/1.0]]
+}
 testouterr_cmd sh {load -f uniq/2.0} $ans $tserr
 
 setenv_loaded_module [list uniq/1.0 uniq/2.0] [list $mp/uniq/1.0 $mp/uniq/2.0]
 setenv_var __MODULES_LMCONFLICT uniq/1.0&uniq:uniq/2.0&uniq
 
-set tserr [msg_load uniq/3.0 [err_conflict uniq/1.0 uniq/2.0]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    #FIXME: should be able to unload all conflicting without error
+    set tserr [msg_load uniq/2.0 [err_conloi uniq/3.0]]
+    append tserr \n\n[msg_unload uniq/1.0 [err_depre uniq/2.0]]
+    append tserr \n\n[msg_load uniq/3.0 [err_conun uniq/1.0] [err_conlo uniq/1.0]]
+} else {
+    set tserr [msg_load uniq/3.0 [err_conflict uniq/1.0 uniq/2.0]]
+}
 testouterr_cmd sh {load uniq/3.0} ERR $tserr
 
-set ans [list]
-lappend ans [list set __MODULES_LMCONFLICT uniq/1.0&uniq:uniq/2.0&uniq:uniq/3.0&uniq]
-lappend ans [list set _LMFILES_ $mp/uniq/1.0:$mp/uniq/2.0:$mp/uniq/3.0]
-lappend ans [list set LOADEDMODULES uniq/1.0:uniq/2.0:uniq/3.0]
-set tserr [msg_load uniq/3.0 [err_conlof uniq/1.0 uniq/2.0]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT uniq/3.0&uniq]
+    lappend ans [list set _LMFILES_ $mp/uniq/3.0]
+    lappend ans [list set LOADEDMODULES uniq/3.0]
+    #FIXME: should not see uniq/2.0 as a dependent reload
+    set tserr [msg_load uniq/2.0 [err_conloif uniq/3.0]]
+    append tserr \n\n[msg_top_load uniq/3.0 {uniq/1.0 uniq/2.0} {} {uniq/2.0}]
+} else {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT uniq/1.0&uniq:uniq/2.0&uniq:uniq/3.0&uniq]
+    lappend ans [list set _LMFILES_ $mp/uniq/1.0:$mp/uniq/2.0:$mp/uniq/3.0]
+    lappend ans [list set LOADEDMODULES uniq/1.0:uniq/2.0:uniq/3.0]
+    set tserr [msg_load uniq/3.0 [err_conlof uniq/1.0 uniq/2.0]]
+}
 testouterr_cmd sh {load -f uniq/3.0} $ans $tserr
 
 
@@ -77,22 +105,40 @@ lappend ans [list set _LMFILES_ $mp/uniqsub/sub2/4.0]
 lappend ans [list set LOADEDMODULES uniqsub/sub2/4.0]
 testouterr_cmd sh {load uniqsub} $ans {}
 testouterr_cmd sh {load uniqsub/sub2} $ans {}
-unsetenv_var MODULES_ADVANCED_VERSION_SPEC
 
 setenv_loaded_module [list uniqsub/sub1/1.0] [list $mp/uniqsub/sub1/1.0]
 setenv_var __MODULES_LMCONFLICT uniqsub/sub1/1.0&uniqsub
 
-set tserr [msg_load uniqsub/sub2/4.0 [err_conflict uniqsub/sub1/1.0]]
-testouterr_cmd sh {load uniqsub} ERR $tserr
-set tserr [msg_load uniqsub/sub1/2.0 [err_conflict uniqsub/sub1/1.0]]
-testouterr_cmd sh {load uniqsub/sub1} ERR $tserr
-set tserr [msg_load uniqsub/sub1/2.0 [err_conflict uniqsub/sub1/1.0]]
-testouterr_cmd sh {load uniqsub/sub1/2.0} ERR $tserr
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT uniqsub/sub2/4.0&uniqsub]
+    lappend ans [list set _LMFILES_ $mp/uniqsub/sub2/4.0]
+    lappend ans [list set LOADEDMODULES uniqsub/sub2/4.0]
+    set tserr [msg_top_load uniqsub/sub2/4.0 uniqsub/sub1/1.0 {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load uniqsub/sub2/4.0 [err_conflict uniqsub/sub1/1.0]]
+}
+testouterr_cmd sh {load uniqsub} $ans $tserr
+
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT uniqsub/sub1/2.0&uniqsub]
+    lappend ans [list set _LMFILES_ $mp/uniqsub/sub1/2.0]
+    lappend ans [list set LOADEDMODULES uniqsub/sub1/2.0]
+    set tserr [msg_top_load uniqsub/sub1/2.0 uniqsub/sub1/1.0 {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load uniqsub/sub1/2.0 [err_conflict uniqsub/sub1/1.0]]
+}
+testouterr_cmd sh {load uniqsub/sub1} $ans $tserr
+testouterr_cmd sh {load uniqsub/sub1/2.0} $ans $tserr
 
 # loading module with alias
 setenv_var TESTSUITE_UNIQ_NAME alias1
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMCONFLICT
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
 
 set ans [list]
 lappend ans [list set __MODULES_LMALTNAME uniq/1.0&al|foo/alias]
@@ -103,15 +149,30 @@ testouterr_cmd sh {load uniq/1.0} $ans {}
 
 # loading module alias matches already loaded module
 setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
-set tserr [msg_load uniq/1.0 [err_conflict foo/1.0]]
-testouterr_cmd sh {load uniq/1.0} ERR $tserr
+if {[is_conf_enabled autohandling conflictunload]} {
+    set tserr [msg_top_load uniq/1.0 foo/1.0 {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load uniq/1.0 [err_conflict foo/1.0]]
+}
+testouterr_cmd sh {load uniq/1.0} $ans $tserr
 
 # loading module alias matches already loaded module alias
 setenv_var TESTSUITE_UNIQ_NAME alias2
 setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
 setenv_var __MODULES_LMALTNAME foo/1.0&bar/alias
-set tserr [msg_load uniq/1.0 [err_conflict foo/1.0]]
-testouterr_cmd sh {load uniq/1.0} ERR $tserr
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT uniq/1.0&uniq&bar]
+    lappend ans [list set __MODULES_LMALTNAME uniq/1.0&al|bar/alias]
+    lappend ans [list set _LMFILES_ $mp/uniq/1.0]
+    lappend ans [list set LOADEDMODULES uniq/1.0]
+    set tserr [msg_top_load uniq/1.0 foo/1.0 {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load uniq/1.0 [err_conflict foo/1.0]]
+}
+testouterr_cmd sh {load uniq/1.0} $ans $tserr
 
 
 # loading module with deep alias
@@ -129,45 +190,95 @@ testouterr_cmd sh {load uniq/1.0} $ans {}
 
 # loading module deep alias matches already loaded module
 setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
-set tserr [msg_load uniq/1.0 [err_conflict foo/1.0]]
-testouterr_cmd sh {load uniq/1.0} ERR $tserr
+if {[is_conf_enabled autohandling conflictunload]} {
+    set tserr [msg_top_load uniq/1.0 foo/1.0 {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load uniq/1.0 [err_conflict foo/1.0]]
+}
+testouterr_cmd sh {load uniq/1.0} $ans $tserr
 
 # loading module deep alias matches already loaded module alias
 setenv_var TESTSUITE_UNIQ_NAME alias4
 setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
 setenv_var __MODULES_LMALTNAME foo/1.0&bar/alias
-set tserr [msg_load uniq/1.0 [err_conflict foo/1.0]]
-testouterr_cmd sh {load uniq/1.0} ERR $tserr
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT uniq/1.0&uniq&bar]
+    lappend ans [list set __MODULES_LMALTNAME uniq/1.0&al|bar/sub/alias]
+    lappend ans [list set _LMFILES_ $mp/uniq/1.0]
+    lappend ans [list set LOADEDMODULES uniq/1.0]
+} else {
+    set ans ERR
+    set tserr [msg_load uniq/1.0 [err_conflict foo/1.0]]
+}
+testouterr_cmd sh {load uniq/1.0} $ans $tserr
 
 
 # alias loaded matches loading module
 unsetenv_var TESTSUITE_UNIQ_NAME
 setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
 setenv_var __MODULES_LMALTNAME foo/1.0&uniq/alias
-set tserr [msg_load uniq/1.0 [err_conflict foo/1.0]]
-testouterr_cmd sh {load uniq/1.0} ERR $tserr
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT uniq/1.0&uniq]
+    lappend ans [list unset __MODULES_LMALTNAME]
+    lappend ans [list set _LMFILES_ $mp/uniq/1.0]
+    lappend ans [list set LOADEDMODULES uniq/1.0]
+} else {
+    set ans ERR
+    set tserr [msg_load uniq/1.0 [err_conflict foo/1.0]]
+}
+testouterr_cmd sh {load uniq/1.0} $ans $tserr
 
 # alias loaded matches loading module alias
 setenv_var TESTSUITE_UNIQ_NAME alias2
 setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
 setenv_var __MODULES_LMALTNAME foo/1.0&bar/fooalias
-set tserr [msg_load uniq/1.0 [err_conflict foo/1.0]]
-testouterr_cmd sh {load uniq/1.0} ERR $tserr
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT uniq/1.0&uniq&bar]
+    lappend ans [list set __MODULES_LMALTNAME uniq/1.0&al|bar/alias]
+    lappend ans [list set _LMFILES_ $mp/uniq/1.0]
+    lappend ans [list set LOADEDMODULES uniq/1.0]
+} else {
+    set ans ERR
+    set tserr [msg_load uniq/1.0 [err_conflict foo/1.0]]
+}
+testouterr_cmd sh {load uniq/1.0} $ans $tserr
 
 
 # deep alias loaded matches loading module
 unsetenv_var TESTSUITE_UNIQ_NAME
 setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
 setenv_var __MODULES_LMALTNAME foo/1.0&uniq/sub/alias
-set tserr [msg_load uniq/1.0 [err_conflict foo/1.0]]
-testouterr_cmd sh {load uniq/1.0} ERR $tserr
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT uniq/1.0&uniq]
+    lappend ans [list unset __MODULES_LMALTNAME]
+    lappend ans [list set _LMFILES_ $mp/uniq/1.0]
+    lappend ans [list set LOADEDMODULES uniq/1.0]
+} else {
+    set ans ERR
+    set tserr [msg_load uniq/1.0 [err_conflict foo/1.0]]
+}
+testouterr_cmd sh {load uniq/1.0} $ans $tserr
 
 # deep alias loaded matches loading module deep alias
 setenv_var TESTSUITE_UNIQ_NAME alias4
 setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
 setenv_var __MODULES_LMALTNAME foo/1.0&bar/sub/fooalias
-set tserr [msg_load uniq/1.0 [err_conflict foo/1.0]]
-testouterr_cmd sh {load uniq/1.0} ERR $tserr
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT uniq/1.0&uniq&bar]
+    lappend ans [list set __MODULES_LMALTNAME uniq/1.0&al|bar/sub/alias]
+    lappend ans [list set _LMFILES_ $mp/uniq/1.0]
+    lappend ans [list set LOADEDMODULES uniq/1.0]
+} else {
+    set ans ERR
+    set tserr [msg_load uniq/1.0 [err_conflict foo/1.0]]
+}
+testouterr_cmd sh {load uniq/1.0} $ans $tserr
 
 
 # test module with similar but different name

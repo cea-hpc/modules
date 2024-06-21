@@ -83,9 +83,31 @@ setenv_loaded_module [list $mp/c:$mp/b] [list $mp/c:$mp/b]
 setenv_var __MODULES_LMCONFLICT $mp/c&c
 setenv_var __MODULES_LMPREREQ $mp/b&c
 testouterr_cmd sh "load a" ERR [msg_load a [err_conflict $mp/b]]
-testouterr_cmd sh "load --auto a" ERR [msg_load a [err_conflict $mp/b]]
 testouterr_cmd sh "load $mp/a" ERR [msg_load $mp/a [err_conflict $mp/b]]
-testouterr_cmd sh "load --auto $mp/a" ERR [msg_load $mp/a [err_conflict $mp/b]]
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT $mp/c&c:a&b]
+    lappend ans [list unset __MODULES_LMPREREQ]
+    lappend ans [list set _LMFILES_ $mp/c:$mp/a]
+    lappend ans [list set LOADEDMODULES $mp/c:a]
+    set tserr [msg_top_load a $mp/b {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load a [err_conflict $mp/b]]
+}
+testouterr_cmd sh "load --auto a" $ans $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT $mp/c&c:$mp/a&b]
+    lappend ans [list unset __MODULES_LMPREREQ]
+    lappend ans [list set _LMFILES_ $mp/c:$mp/a]
+    lappend ans [list set LOADEDMODULES $mp/c:$mp/a]
+    set tserr [msg_top_load $mp/a $mp/b {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load $mp/a [err_conflict $mp/b]]
+}
+testouterr_cmd sh "load --auto $mp/a" $ans $tserr
 
 # force conflict
 set ans [list]
@@ -93,13 +115,33 @@ lappend ans [list set __MODULES_LMCONFLICT $mp/c&c:a&b]
 lappend ans [list set _LMFILES_ $mp/c:$mp/b:$mp/a]
 lappend ans [list set LOADEDMODULES $mp/c:$mp/b:a]
 testouterr_cmd sh "load --force a" $ans [msg_load a [err_conlof $mp/b]]
-testouterr_cmd sh "load --auto --force a" $ans [msg_load a [err_conlof $mp/b]]
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT $mp/c&c:a&b]
+    lappend ans [list unset __MODULES_LMPREREQ]
+    lappend ans [list set _LMFILES_ $mp/c:$mp/a]
+    lappend ans [list set LOADEDMODULES $mp/c:a]
+    set tserr [msg_top_load a $mp/b {} {}]
+} else {
+    set tserr [msg_load a [err_conlof $mp/b]]
+}
+testouterr_cmd sh "load --auto --force a" $ans $tserr
 set ans [list]
 lappend ans [list set __MODULES_LMCONFLICT $mp/c&c:$mp/a&b]
 lappend ans [list set _LMFILES_ $mp/c:$mp/b:$mp/a]
 lappend ans [list set LOADEDMODULES $mp/c:$mp/b:$mp/a]
 testouterr_cmd sh "load --force $mp/a" $ans [msg_load $mp/a [err_conlof $mp/b]]
-testouterr_cmd sh "load --auto --force $mp/a" $ans [msg_load $mp/a [err_conlof $mp/b]]
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT $mp/c&c:$mp/a&b]
+    lappend ans [list unset __MODULES_LMPREREQ]
+    lappend ans [list set _LMFILES_ $mp/c:$mp/a]
+    lappend ans [list set LOADEDMODULES $mp/c:$mp/a]
+    set tserr [msg_top_load $mp/a $mp/b {} {}]
+} else {
+    set tserr [msg_load $mp/a [err_conlof $mp/b]]
+}
+testouterr_cmd sh "load --auto --force $mp/a" $ans $tserr
 
 
 #

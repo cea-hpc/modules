@@ -280,7 +280,12 @@ set c11mod1 m1
 set c11mod2 m2
 set c12modpath1 $modpath.deps
 set c12mod1 f4
-set c12mod2 f5
+if {[is_conf_enabled autohandling conflictunload]} {
+    set c12mod2 f6
+} else {
+    set c12mod2 f5
+}
+set c12mod3 f7
 set c15modpath1 "$modpath wspace"
 set c15modpath1re "$modpathre wspace"
 set c15mod1 {space yc/4}
@@ -546,8 +551,13 @@ set c11lm $c11mod1:$c11mod2
 set c11lmnua $c11mod1
 set c11lmtag $c11mod1&auto-loaded
 set c12modpath $c12modpath1
-set c12lmf $c12modpath1/$c12mod1:$c12modpath1/$c12mod2
-set c12lm $c12mod1:$c12mod2
+if {[is_conf_enabled autohandling conflictunload]} {
+    set c12lmf $c12modpath1/$c12mod1:$c12modpath1/$c12mod2:$c12modpath1/$c12mod3
+    set c12lm $c12mod1:$c12mod2:$c12mod3
+} else {
+    set c12lmf $c12modpath1/$c12mod1:$c12modpath1/$c12mod2
+    set c12lm $c12mod1:$c12mod2
+}
 set c13lm $cdlm
 set c13lmf $cdlmf
 set c13lmalt $cdmod1&loc_rc1/foo:$cdmod5&loc_dv2/default&loc_dv2

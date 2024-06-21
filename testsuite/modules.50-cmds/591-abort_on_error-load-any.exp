@@ -49,6 +49,11 @@ lappend ans_conflict [list set _LMFILES_ $mp/foo/1.0:$mp/setenv/1.0]
 lappend ans_conflict [list set LOADEDMODULES foo/1.0:setenv/1.0]
 lappend ans_conflict [list ERR]
 
+set ans_conflict_unload [list]
+lappend ans_conflict_unload [list set __MODULES_LMCONFLICT err/1.0&foo]
+lappend ans_conflict_unload [list set _LMFILES_ $mp/err/1.0]
+lappend ans_conflict_unload [list set LOADEDMODULES err/1.0]
+
 set ans_conflict_force [list]
 lappend ans_conflict_force [list set __MODULES_LMCONFLICT err/1.0&foo]
 lappend ans_conflict_force [list set _LMFILES_ $mp/foo/1.0:$mp/err/1.0]
@@ -154,12 +159,18 @@ setenv_var TESTSUITE_ABORT_ON_ERROR conflict
 
 setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
 
-set ts_conflict_declared_after [msg_load err/1.0 [err_conflict foo/1.0]]
-testouterr_cmd bash {load-any err/1.0 setenv/1.0} $ans_conflict $ts_conflict_declared_after
+if {[is_conf_enabled conflictunload]} {
+    set ts_conflict_declared_after [msg_top_load err/1.0 foo/1.0 {} {}]
+    testouterr_cmd bash {load-any err/1.0 setenv/1.0} $ans_conflict_unload $ts_conflict_declared_after
+    testouterr_cmd bash {load-any --force err/1.0 setenv/1.0} $ans_conflict_unload $ts_conflict_declared_after
+} else {
+    set ts_conflict_declared_after [msg_load err/1.0 [err_conflict foo/1.0]]
+    testouterr_cmd bash {load-any err/1.0 setenv/1.0} $ans_conflict $ts_conflict_declared_after
 
-# --force by-pass conflict error
-set ts_conflict_force_declared_after [msg_load err/1.0 [err_conlof foo/1.0]]
-testouterr_cmd bash {load-any --force err/1.0 setenv/1.0} $ans_conflict_force $ts_conflict_force_declared_after
+    # --force by-pass conflict error
+    set ts_conflict_force_declared_after [msg_load err/1.0 [err_conlof foo/1.0]]
+    testouterr_cmd bash {load-any --force err/1.0 setenv/1.0} $ans_conflict_force $ts_conflict_force_declared_after
+}
 
 unsetenv_loaded_module
 
@@ -319,10 +330,15 @@ setenv_var TESTSUITE_ABORT_ON_ERROR conflict
 setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
 
 # conflict declared after load attempt of conflicting module
-testouterr_cmd bash {load-any err/1.0 setenv/1.0} $ans_conflict $ts_conflict_declared_after
+if {[is_conf_enabled conflictunload]} {
+    testouterr_cmd bash {load-any err/1.0 setenv/1.0} $ans_conflict_unload $ts_conflict_declared_after
+    testouterr_cmd bash {load-any --force err/1.0 setenv/1.0} $ans_conflict_unload $ts_conflict_declared_after
+} else {
+    testouterr_cmd bash {load-any err/1.0 setenv/1.0} $ans_conflict $ts_conflict_declared_after
 
-# --force by-pass conflict error
-testouterr_cmd bash {load-any --force err/1.0 setenv/1.0} $ans_conflict_force $ts_conflict_force_declared_after
+    # --force by-pass conflict error
+    testouterr_cmd bash {load-any --force err/1.0 setenv/1.0} $ans_conflict_force $ts_conflict_force_declared_after
+}
 
 unsetenv_loaded_module
 
