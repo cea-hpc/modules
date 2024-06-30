@@ -631,8 +631,8 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
  Enable all new features that are disabled by default due to the substantial
  behavior changes they imply on Modules 5. This option is equivalent to the
  cumulative use of
- :instopt:`--with-abort-on-error=load:ml:reload:switch<--with-abort-on-error>`.
- (default=no)
+ :instopt:`--with-abort-on-error=load:ml:reload:switch<--with-abort-on-error>`
+ and :instopt:`--enable-conflict-unload`. (default=no)
 
  .. only:: html
 
@@ -649,6 +649,9 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
     .. versionchanged:: 5.4
        Enables *abort on error* behavior on :subcmd:`load` and
        :subcmd:`switch` sub-commands.
+
+    .. versionchanged:: 5.5
+       Enables automated *conflict unload* mechanism
 
 
 .. instopt:: --enable-quarantine-support
