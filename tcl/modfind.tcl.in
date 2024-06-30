@@ -1646,9 +1646,8 @@ proc getLoadedConflict {mod} {
    return $ret
 }
 
-proc doesModuleConflict {mod} {
-   set does 0
-   set modconlist {}
+proc getModuleLoadedConflict {mod} {
+   set mod_con_list {}
    defineModEqProc [isIcase] [getConf extended_default] 1
    # get module short name if loaded by its full pathname
    if {[set isfullpath [isModuleFullPath $mod]]} {
@@ -1656,41 +1655,37 @@ proc doesModuleConflict {mod} {
    }
 
    # check if any loaded module has declared a conflict
-   foreach modcon [array names ::g_loadedModuleConflict] {
+   foreach mod_con [array names ::g_loadedModuleConflict] {
       # look if some loaded or loading modules correspond to conflict defined
       # by mod
-      if {$modcon eq $mod || ($isfullpath && $modcon eq $smod)} {
-         foreach withmod $::g_loadedModuleConflict($modcon) {
+      if {$mod_con eq $mod || ($isfullpath && $mod_con eq $smod)} {
+         foreach withmod $::g_loadedModuleConflict($mod_con) {
             # skip own reflexive conflict (look at mod main and alternative
             # names) and those already known
             if {![modEq $withmod $mod eqstart 1 2 1] && (!$isfullpath ||\
-               ![modEq $withmod $smod eqstart 1 2 1]) && ([set lmmodlist\
+               ![modEq $withmod $smod eqstart 1 2 1]) && ([set lm_mod_list\
                [getLoadedMatchingName $withmod returnall]] ne {} || [set\
-               lmmodlist [getLoadedMatchingName $withmod returnall 1]] ne\
+               lm_mod_list [getLoadedMatchingName $withmod returnall 1]] ne\
                {})} {
                # multiple loaded module may match conflict declared name
-               foreach lmmod $lmmodlist {
-                  appendNoDupToList modconlist $lmmod
-               }
-               set does 1
+               appendNoDupToList mod_con_list {*}$lm_mod_list
             }
          }
       # other loaded module declared conflicts (skipping those already known)
-      } elseif {$modcon ni $modconlist} {
-         foreach withmod $::g_loadedModuleConflict($modcon) {
+      } elseif {$mod_con ni $mod_con_list} {
+         foreach withmod $::g_loadedModuleConflict($mod_con) {
             # check if mod or one of its alt name match conflict
             if {[modEq $withmod $mod eqstart 1 2 1] || ($isfullpath &&\
                [modEq $withmod $smod eqstart 1 2 1])} {
-               lappend modconlist $modcon
-               set does 1
+               lappend mod_con_list $mod_con
                break
             }
          }
       }
    }
 
-   reportDebug "'$mod' conflicts with '$modconlist'"
-   return [list $does $modconlist]
+   reportDebug "'$mod' conflicts with '$mod_con_list'"
+   return $mod_con_list
 }
 
 proc setLoadedPrereq {mod args} {
@@ -2123,8 +2118,8 @@ proc setModuleDependency {mod} {
    }
 
    # conflict not satisfied
-   lassign [doesModuleConflict $mod] doescon modconlist
-   if {$doescon} {
+   set modconlist [getModuleLoadedConflict $mod]
+   if {[llength $modconlist]} {
       setModuleConflictViolation $mod $modconlist
    }
 

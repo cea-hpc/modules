@@ -255,8 +255,8 @@ proc getUnmetDependentLoadedModuleList {modnamevr} {
    set vrlist [getVariantList $modnamevr 0 0 1]
 
    # skip dependent analysis if mod has a conflict with a loaded module
-   lassign [doesModuleConflict $mod] doescon modconlist
-   if {!$doescon} {
+   set modconlist [getModuleLoadedConflict $mod]
+   if {![llength $modconlist]} {
       foreach ummod [array names ::g_unmetDepHash] {
          if {[modEq $ummod $mod eqstart 1 2 1 $vrlist]} {
             foreach depmod $::g_unmetDepHash($ummod) {
@@ -428,8 +428,8 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1} {nporeq 0}\
       # with their own dependent modules as mod is being unloaded. Achieve so
       # by faking that conflict violation is gone
       foreach mod $modlist {
-         lassign [doesModuleConflict $mod] doescon modconlist
-         if {$doescon} {
+         set modconlist [getModuleLoadedConflict $mod]
+         if {[llength $modconlist]} {
             unsetModuleConflictViolation $mod
             set conunvioarr($mod) $modconlist
             appendNoDupToList fulllist {*}$modconlist
