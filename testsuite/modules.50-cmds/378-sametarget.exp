@@ -356,13 +356,24 @@ testouterr_cmd_re sh {load --force hg} $ans $tserr
 
 setenv_loaded_module [list ha/2 hf] [list $mp/ha/2 $mp/hf]
 setenv_var __MODULES_LMCONFLICT hf&ha/1&ha
-# evaluation is attempted prior conflict violation check
-set tserr "load ha/3\n\n[msg_load ha/3 [err_conflict hf]]"
-testouterr_cmd_re sh {load ha} ERR $tserr
-set ans [list]
-lappend ans [list set _LMFILES_ $mp/ha/2:$mp/hf:$mp/ha/3]
-lappend ans [list set LOADEDMODULES ha/2:hf:ha/3]
-set tserr "load ha/3\n\n[msg_load ha/3 [err_conlof hf]]"
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list unset __MODULES_LMCONFLICT]
+    lappend ans [list set _LMFILES_ $mp/ha/2:$mp/ha/3]
+    lappend ans [list set LOADEDMODULES ha/2:ha/3]
+    set tserr [join [list {unload ha/2} {unload hf} {load ha/2} {load ha/3} \n[msg_top_load ha/3 hf {} ha/2]] \n]
+} else {
+    set ans ERR
+    # evaluation is attempted prior conflict violation check
+    set tserr "load ha/3\n\n[msg_load ha/3 [err_conflict hf]]"
+}
+testouterr_cmd_re sh {load ha} $ans $tserr
+if {![is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set _LMFILES_ $mp/ha/2:$mp/hf:$mp/ha/3]
+    lappend ans [list set LOADEDMODULES ha/2:hf:ha/3]
+    set tserr "load ha/3\n\n[msg_load ha/3 [err_conlof hf]]"
+}
 testouterr_cmd_re sh {load --force ha} $ans $tserr
 set ans [list]
 lappend ans [list set __MODULES_LMCONFLICT hf&ha/1&ha]
@@ -379,13 +390,24 @@ testouterr_cmd_re sh {unload hf} $ans $tserr
 
 setenv_loaded_module [list ha/2 hg] [list $mp/ha/2 $mp/hg]
 setenv_var __MODULES_LMCONFLICT hg&ha/1&ha/2&ha
-# evaluation is attempted prior conflict violation check
-set tserr "load ha/3\n\n[msg_load ha/3 [err_conflict hg]]"
-testouterr_cmd_re sh {load ha} ERR $tserr
-set ans [list]
-lappend ans [list set _LMFILES_ $mp/ha/2:$mp/hg:$mp/ha/3]
-lappend ans [list set LOADEDMODULES ha/2:hg:ha/3]
-set tserr "load ha/3\n\n[msg_load ha/3 [err_conlof hg]]"
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list unset __MODULES_LMCONFLICT]
+    lappend ans [list set _LMFILES_ $mp/ha/2:$mp/ha/3]
+    lappend ans [list set LOADEDMODULES ha/2:ha/3]
+    set tserr [join [list {unload ha/2} {unload hg} {load ha/2} {load ha/3} \n[msg_top_load ha/3 hg {} ha/2]] \n]
+} else {
+    set ans ERR
+    # evaluation is attempted prior conflict violation check
+    set tserr "load ha/3\n\n[msg_load ha/3 [err_conflict hg]]"
+}
+testouterr_cmd_re sh {load ha} $ans $tserr
+if {![is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set _LMFILES_ $mp/ha/2:$mp/hg:$mp/ha/3]
+    lappend ans [list set LOADEDMODULES ha/2:hg:ha/3]
+    set tserr "load ha/3\n\n[msg_load ha/3 [err_conlof hg]]"
+}
 testouterr_cmd_re sh {load --force ha} $ans $tserr
 set ans [list]
 lappend ans [list set __MODULES_LMCONFLICT hg&ha/1&ha/2&ha]

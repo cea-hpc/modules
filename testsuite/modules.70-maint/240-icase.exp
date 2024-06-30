@@ -421,7 +421,20 @@ unsetenv_var __MODULES_LMALTNAME
 # loaded module conflict with loading prereq
 setenv_loaded_module [list icase/conflicta] [list $mp/icase/conflicta]
 setenv_var __MODULES_LMCONFLICT icase/conflicta&NOcase3
-testouterr_cmd_re sh {load --icase --auto icase/load} ERR [msg_load nocase/1 [err_conflict icase/conflicta]]\n\n[msg_load icase/load [err_reqlo noCASE/alIAS]]
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMALTNAME nocase/1&nocase/vers&al|nocase3&al|nocase/alias]
+    lappend ans [list unset __MODULES_LMCONFLICT]
+    lappend ans [list set __MODULES_LMPREREQ icase/load&noCASE/alIAS]
+    lappend ans [list set _LMFILES_ $mp/nocase/1:$mp/icase/load]
+    lappend ans [list set LOADEDMODULES nocase/1:icase/load]
+    lappend ans [list set __MODULES_LMTAG nocase/1&auto-loaded]
+    set tserr [msg_top_load icase/load icase/conflicta nocase/1 {}]
+} else {
+    set ans ERR
+    set tserr [msg_load nocase/1 [err_conflict icase/conflicta]]\n\n[msg_load icase/load [err_reqlo noCASE/alIAS]]
+}
+testouterr_cmd_re sh {load --icase --auto icase/load} $ans $tserr
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMCONFLICT
 

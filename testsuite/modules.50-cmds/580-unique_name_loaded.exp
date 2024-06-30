@@ -67,24 +67,20 @@ setenv_loaded_module [list uniq/1.0 uniq/2.0] [list $mp/uniq/1.0 $mp/uniq/2.0]
 setenv_var __MODULES_LMCONFLICT uniq/1.0&uniq:uniq/2.0&uniq
 
 if {[is_conf_enabled autohandling conflictunload]} {
-    #FIXME: should be able to unload all conflicting without error
-    set tserr [msg_load uniq/2.0 [err_conloi uniq/3.0]]
-    append tserr \n\n[msg_unload uniq/1.0 [err_depre uniq/2.0]]
-    append tserr \n\n[msg_load uniq/3.0 [err_conun uniq/1.0] [err_conlo uniq/1.0]]
-} else {
-    set tserr [msg_load uniq/3.0 [err_conflict uniq/1.0 uniq/2.0]]
-}
-testouterr_cmd sh {load uniq/3.0} ERR $tserr
-
-if {[is_conf_enabled autohandling conflictunload]} {
     set ans [list]
     lappend ans [list set __MODULES_LMCONFLICT uniq/3.0&uniq]
     lappend ans [list set _LMFILES_ $mp/uniq/3.0]
     lappend ans [list set LOADEDMODULES uniq/3.0]
-    #FIXME: should not see uniq/2.0 as a dependent reload
-    set tserr [msg_load uniq/2.0 [err_conloif uniq/3.0]]
-    append tserr \n\n[msg_top_load uniq/3.0 {uniq/1.0 uniq/2.0} {} {uniq/2.0}]
+    #FIXME: should not see uniq/2.0 as a dependent reload module
+    #   it is reloaded as DepRe when unloading first conflict mod (uniq/1.0)
+    set tserr [msg_top_load uniq/3.0 {uniq/1.0 uniq/2.0} {} uniq/2.0]
 } else {
+    set ans ERR
+    set tserr [msg_load uniq/3.0 [err_conflict uniq/1.0 uniq/2.0]]
+}
+testouterr_cmd sh {load uniq/3.0} $ans $tserr
+
+if {![is_conf_enabled autohandling conflictunload]} {
     set ans [list]
     lappend ans [list set __MODULES_LMCONFLICT uniq/1.0&uniq:uniq/2.0&uniq:uniq/3.0&uniq]
     lappend ans [list set _LMFILES_ $mp/uniq/1.0:$mp/uniq/2.0:$mp/uniq/3.0]

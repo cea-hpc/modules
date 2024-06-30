@@ -81,11 +81,21 @@ set tserr [list {unload rd} {load ra} \n[msg_load ra $err_evalabort]]
 testouterr_cmd_re sh {load ra rd} $ans [join $tserr \n]
 
 # conflict info (and conflict violation info) restored after evaluation crash
-set ans [list]
-lappend ans [list ERR]
-#FIXME: rd is seen evaluated whereas it was on ra top evaluation, not rf top evaluation
-set tserr [list {unload rd} {load ra} \n[msg_load ra $err_evalabort]\n {load rf} \n[msg_load rf [err_conlo rd]]]
-testouterr_cmd_re sh {load ra rf} $ans [join $tserr \n]
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list unset __MODULES_LMCONFLICT]
+    lappend ans [list unset __MODULES_LMPREREQ]
+    lappend ans [list set _LMFILES_ $mp/rf]
+    lappend ans [list set LOADEDMODULES rf]
+    lappend ans [list unset __MODULES_LMTAG]
+    lappend ans [list ERR]
+    set tserr [join [list {unload rd} {load ra} \n[msg_load ra $err_evalabort]\n {unload rd} {load rf} \n[msg_top_load rf rd {} {}]] \n]
+} else {
+    set ans ERR
+    # rd is seen evaluated whereas it was on ra top evaluation, not rf top evaluation
+    set tserr [join [list {unload rd} {load ra} \n[msg_load ra $err_evalabort]\n {load rf} \n[msg_load rf [err_conlo rd]]] \n]
+}
+testouterr_cmd_re sh {load ra rf} $ans $tserr
 
 # alternative name info restored after evaluation crash
 setenv_loaded_module [list rd] [list $mp/rd]

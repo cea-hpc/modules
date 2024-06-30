@@ -70,48 +70,74 @@ lappend ans_all [list out {complete value compall;}]
 lappend ans_all [list chdir /tmp]
 lappend ans_all [list out all-out]
 
-set ans_conflict_force [list]
-lappend ans_conflict_force [list out all-pre-out]
-lappend ans_conflict_force [list set TSPATH dir1]
-lappend ans_conflict_force [list set __MODULES_LMCONFLICT err/1.0&foo]
-lappend ans_conflict_force [list set __MODULES_LMREFRESH all/1.0]
-lappend ans_conflict_force [list set _LMFILES_ $mp/all/1.0:$mp/foo/1.0:$mp/err/1.0]
-lappend ans_conflict_force [list set LOADEDMODULES all/1.0:foo/1.0:err/1.0]
-lappend ans_conflict_force [list set TS ok]
-lappend ans_conflict_force [list alias alall value]
-lappend ans_conflict_force [list funcall "() { value; }; export -f funcall;"]
-lappend ans_conflict_force [list out {complete value compall;}]
-lappend ans_conflict_force [list chdir /tmp]
-lappend ans_conflict_force [list out all-out]
+if {[is_conf_enabled conflictunload]} {
+    set ans_conflict [list]
+    lappend ans_conflict [list out all-pre-out]
+    lappend ans_conflict [list set TSPATH dir1]
+    lappend ans_conflict [list set __MODULES_LMCONFLICT err/1.0&foo]
+    lappend ans_conflict [list set __MODULES_LMREFRESH all/1.0]
+    lappend ans_conflict [list set _LMFILES_ $mp/all/1.0:$mp/err/1.0]
+    lappend ans_conflict [list set LOADEDMODULES all/1.0:err/1.0]
+    lappend ans_conflict [list set TS ok]
+    lappend ans_conflict [list alias alall value]
+    lappend ans_conflict [list funcall "() { value; }; export -f funcall;"]
+    lappend ans_conflict [list out {complete value compall;}]
+    lappend ans_conflict [list chdir /tmp]
+    lappend ans_conflict [list out all-out]
 
-set ans_conflict [list]
-lappend ans_conflict [list out all-pre-out]
-lappend ans_conflict [list set TSPATH dir1]
-lappend ans_conflict [list set __MODULES_LMCONFLICT err/1.0&foo]
-lappend ans_conflict [list set LOADEDMODULES all/1.0:err/1.0]
-lappend ans_conflict [list set _LMFILES_ $mp/all/1.0:$mp/err/1.0]
-lappend ans_conflict [list set __MODULES_LMREFRESH all/1.0]
-lappend ans_conflict [list set TS ok]
-lappend ans_conflict [list alias alall value]
-lappend ans_conflict [list funcall "() { value; }; export -f funcall;"]
-lappend ans_conflict [list out {complete value compall;}]
-lappend ans_conflict [list chdir /tmp]
-lappend ans_conflict [list out all-out]
-lappend ans_conflict [list ERR]
+    set ans_conflict_force $ans_conflict
+    set ans_conflict_abort $ans_conflict
+    set ans_conflict_continue $ans_conflict
 
-set ans_conflict_unload [list]
-lappend ans_conflict_unload [list out all-pre-out]
-lappend ans_conflict_unload [list set TSPATH dir1]
-lappend ans_conflict_unload [list set __MODULES_LMCONFLICT err/1.0&foo]
-lappend ans_conflict_unload [list set __MODULES_LMREFRESH all/1.0]
-lappend ans_conflict_unload [list set _LMFILES_ $mp/all/1.0:$mp/err/1.0]
-lappend ans_conflict_unload [list set LOADEDMODULES all/1.0:err/1.0]
-lappend ans_conflict_unload [list set TS ok]
-lappend ans_conflict_unload [list alias alall value]
-lappend ans_conflict_unload [list funcall "() { value; }; export -f funcall;"]
-lappend ans_conflict_unload [list out {complete value compall;}]
-lappend ans_conflict_unload [list chdir /tmp]
-lappend ans_conflict_unload [list out all-out]
+    set ans_conflict_before [list]
+    lappend ans_conflict_before [list out all-pre-out]
+    lappend ans_conflict_before [list set TSPATH dir1]
+    lappend ans_conflict_before [list unset __MODULES_LMCONFLICT]
+    lappend ans_conflict_before [list set __MODULES_LMREFRESH all/1.0]
+    lappend ans_conflict_before [list set _LMFILES_ $mp/all/1.0:$mp/foo/1.0]
+    lappend ans_conflict_before [list set LOADEDMODULES all/1.0:foo/1.0]
+    lappend ans_conflict_before [list set TS ok]
+    lappend ans_conflict_before [list alias alall value]
+    lappend ans_conflict_before [list funcall "() { value; }; export -f funcall;"]
+    lappend ans_conflict_before [list out {complete value compall;}]
+    lappend ans_conflict_before [list chdir /tmp]
+    lappend ans_conflict_before [list out all-out]
+    set ans_conflict_before_abort $ans_conflict_before
+} else {
+    set ans_conflict_force [list]
+    lappend ans_conflict_force [list out all-pre-out]
+    lappend ans_conflict_force [list set TSPATH dir1]
+    lappend ans_conflict_force [list set __MODULES_LMCONFLICT err/1.0&foo]
+    lappend ans_conflict_force [list set __MODULES_LMREFRESH all/1.0]
+    lappend ans_conflict_force [list set _LMFILES_ $mp/all/1.0:$mp/foo/1.0:$mp/err/1.0]
+    lappend ans_conflict_force [list set LOADEDMODULES all/1.0:foo/1.0:err/1.0]
+    lappend ans_conflict_force [list set TS ok]
+    lappend ans_conflict_force [list alias alall value]
+    lappend ans_conflict_force [list funcall "() { value; }; export -f funcall;"]
+    lappend ans_conflict_force [list out {complete value compall;}]
+    lappend ans_conflict_force [list chdir /tmp]
+    lappend ans_conflict_force [list out all-out]
+
+    set ans_conflict [list]
+    lappend ans_conflict [list out all-pre-out]
+    lappend ans_conflict [list set TSPATH dir1]
+    lappend ans_conflict [list set __MODULES_LMCONFLICT err/1.0&foo]
+    lappend ans_conflict [list set LOADEDMODULES all/1.0:err/1.0]
+    lappend ans_conflict [list set _LMFILES_ $mp/all/1.0:$mp/err/1.0]
+    lappend ans_conflict [list set __MODULES_LMREFRESH all/1.0]
+    lappend ans_conflict [list set TS ok]
+    lappend ans_conflict [list alias alall value]
+    lappend ans_conflict [list funcall "() { value; }; export -f funcall;"]
+    lappend ans_conflict [list out {complete value compall;}]
+    lappend ans_conflict [list chdir /tmp]
+    lappend ans_conflict [list out all-out]
+    lappend ans_conflict [list ERR]
+
+    set ans_conflict_abort ERR
+    set ans_conflict_continue $ans_continue
+    set ans_conflict_before $ans_conflict
+    set ans_conflict_before_abort $ans_conflict_abort
+}
 
 set ans_reqmis_force [list]
 lappend ans_reqmis_force [list out all-pre-out]
@@ -217,17 +243,43 @@ lappend ans_load_last [list set _LMFILES_ $mp/foo/1.0:$mp/lerr/1.0]
 lappend ans_load_last [list set LOADEDMODULES foo/1.0:lerr/1.0]
 lappend ans_load_last [list set __MODULES_LMPREREQ lerr/1.0&foo/1.0|err/1.0]
 
-set ans_load_conflict_force [list]
-lappend ans_load_conflict_force [list set __MODULES_LMPREREQ lerr/1.0&foo/1.0]
-lappend ans_load_conflict_force [list set _LMFILES_ $mp/err/1.0:$mp/foo/1.0:$mp/lerr/1.0]
-lappend ans_load_conflict_force [list set LOADEDMODULES err/1.0:foo/1.0:lerr/1.0]
-lappend ans_load_conflict_force [list set __MODULES_LMTAG foo/1.0&auto-loaded]
+if {[is_conf_enabled conflictunload]} {
+    set ans_load_conflict [list]
+    lappend ans_load_conflict [list unset __MODULES_LMCONFLICT]
+    lappend ans_load_conflict [list set __MODULES_LMPREREQ lerr/1.0&foo/1.0]
+    lappend ans_load_conflict [list set _LMFILES_ $mp/foo/1.0:$mp/lerr/1.0]
+    lappend ans_load_conflict [list set LOADEDMODULES foo/1.0:lerr/1.0]
+    lappend ans_load_conflict [list set __MODULES_LMTAG foo/1.0&auto-loaded]
 
-set ans_sub_load_conflict_force [list]
-lappend ans_sub_load_conflict_force [list set __MODULES_LMPREREQ lerr/1.0&foo/1.0:llerr/1.0&lerr/1.0]
-lappend ans_sub_load_conflict_force [list set _LMFILES_ $mp/err/1.0:$mp/foo/1.0:$mp/lerr/1.0:$mp/llerr/1.0]
-lappend ans_sub_load_conflict_force [list set LOADEDMODULES err/1.0:foo/1.0:lerr/1.0:llerr/1.0]
-lappend ans_sub_load_conflict_force [list set __MODULES_LMTAG foo/1.0&auto-loaded:lerr/1.0&auto-loaded]
+    set ans_load_conflict_force $ans_load_conflict
+} else {
+    set ans_load_conflict ERR
+
+    set ans_load_conflict_force [list]
+    lappend ans_load_conflict_force [list set __MODULES_LMPREREQ lerr/1.0&foo/1.0]
+    lappend ans_load_conflict_force [list set _LMFILES_ $mp/err/1.0:$mp/foo/1.0:$mp/lerr/1.0]
+    lappend ans_load_conflict_force [list set LOADEDMODULES err/1.0:foo/1.0:lerr/1.0]
+    lappend ans_load_conflict_force [list set __MODULES_LMTAG foo/1.0&auto-loaded]
+}
+
+if {[is_conf_enabled conflictunload]} {
+    set ans_sub_load_conflict [list]
+    lappend ans_sub_load_conflict [list unset __MODULES_LMCONFLICT]
+    lappend ans_sub_load_conflict [list set __MODULES_LMPREREQ lerr/1.0&foo/1.0:llerr/1.0&lerr/1.0]
+    lappend ans_sub_load_conflict [list set _LMFILES_ $mp/foo/1.0:$mp/lerr/1.0:$mp/llerr/1.0]
+    lappend ans_sub_load_conflict [list set LOADEDMODULES foo/1.0:lerr/1.0:llerr/1.0]
+    lappend ans_sub_load_conflict [list set __MODULES_LMTAG foo/1.0&auto-loaded:lerr/1.0&auto-loaded]
+
+    set ans_sub_load_conflict_force $ans_sub_load_conflict
+} else {
+    set ans_sub_load_conflict ERR
+
+    set ans_sub_load_conflict_force [list]
+    lappend ans_sub_load_conflict_force [list set __MODULES_LMPREREQ lerr/1.0&foo/1.0:llerr/1.0&lerr/1.0]
+    lappend ans_sub_load_conflict_force [list set _LMFILES_ $mp/err/1.0:$mp/foo/1.0:$mp/lerr/1.0:$mp/llerr/1.0]
+    lappend ans_sub_load_conflict_force [list set LOADEDMODULES err/1.0:foo/1.0:lerr/1.0:llerr/1.0]
+    lappend ans_sub_load_conflict_force [list set __MODULES_LMTAG foo/1.0&auto-loaded:lerr/1.0&auto-loaded]
+}
 
 set ans_load_depre_break_force [list]
 lappend ans_load_depre_break_force [list set LOADEDMODULES foo/1.0:lerr/1.0]
@@ -306,23 +358,25 @@ setenv_var TESTSUITE_ABORT_ON_ERROR conflict
 # conflict declared after load attempt of conflicting module
 if {[is_conf_enabled conflictunload]} {
     set ts_conflict_declared_after [msg_top_load err/1.0 foo/1.0 {} {}]
-    testouterr_cmd bash {load all/1.0 foo/1.0 err/1.0} $ans_conflict_unload $ts_conflict_declared_after
-    testouterr_cmd bash {load --force all/1.0 foo/1.0 err/1.0} $ans_conflict_unload $ts_conflict_declared_after
+    set ts_conflict_force_declared_after $ts_conflict_declared_after
 } else {
     set ts_conflict_declared_after [msg_load err/1.0 [err_conlo foo/1.0]]
-    testouterr_cmd bash {load all/1.0 foo/1.0 err/1.0} $ans_continue $ts_conflict_declared_after
-
     # --force by-pass conflict error
     set ts_conflict_force_declared_after [msg_load err/1.0 [err_conlof foo/1.0]]
-    testouterr_cmd bash {load --force all/1.0 foo/1.0 err/1.0} $ans_conflict_force $ts_conflict_force_declared_after
 }
+testouterr_cmd bash {load all/1.0 foo/1.0 err/1.0} $ans_conflict_continue $ts_conflict_declared_after
+testouterr_cmd bash {load --force all/1.0 foo/1.0 err/1.0} $ans_conflict_force $ts_conflict_force_declared_after
 
 # conflict declared before load attempt of conflicting module
-set ts_conflict_declared_before [msg_load foo/1.0 [err_conlo err/1.0]]
-testouterr_cmd bash {load all/1.0 err/1.0 foo/1.0} $ans_conflict $ts_conflict_declared_before
+if {[is_conf_enabled conflictunload]} {
+    set ts_conflict_declared_before [msg_top_load foo/1.0 err/1.0 {} {}]
+} else {
+    set ts_conflict_declared_before [msg_load foo/1.0 [err_conlo err/1.0]]
+}
+testouterr_cmd bash {load all/1.0 err/1.0 foo/1.0} $ans_conflict_before $ts_conflict_declared_before
 
 # ml command follows abort behavior
-testouterr_cmd bash {ml all/1.0 err/1.0 foo/1.0} ERR $ts_conflict_declared_before
+testouterr_cmd bash {ml all/1.0 err/1.0 foo/1.0} $ans_conflict_before_abort $ts_conflict_declared_before
 
 
 setenv_var TESTSUITE_ABORT_ON_ERROR reqmis
@@ -471,12 +525,20 @@ setenv_var TESTSUITE_ABORT_ON_ERROR load_conflict
 setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
 setenv_var __MODULES_LMCONFLICT err/1.0&foo
 
-set ts_load_conflict [msg_load foo/1.0 [err_conflict err/1.0]]
-append ts_load_conflict \n\n[msg_load lerr/1.0 [err_reqlo foo/1.0]]
-testouterr_cmd bash {load lerr/1.0} ERR $ts_load_conflict
+if {[is_conf_enabled conflictunload]} {
+    set ts_load_conflict [msg_top_load lerr/1.0 err/1.0 {foo/1.0} {}]
+} else {
+    set ts_load_conflict [msg_load foo/1.0 [err_conflict err/1.0]]
+    append ts_load_conflict \n\n[msg_load lerr/1.0 [err_reqlo foo/1.0]]
+}
+testouterr_cmd bash {load lerr/1.0} $ans_load_conflict $ts_load_conflict
 
-set ts_load_conflict_force [msg_load {foo/1.0 <aL>} [err_conlof err/1.0]]
-append ts_load_conflict_force \n\n[msg_top_load lerr/1.0 {} {foo/1.0} {}]
+if {[is_conf_enabled conflictunload]} {
+    set ts_load_conflict_force $ts_load_conflict
+} else {
+    set ts_load_conflict_force [msg_load {foo/1.0 <aL>} [err_conlof err/1.0]]
+    append ts_load_conflict_force \n\n[msg_top_load lerr/1.0 {} {foo/1.0} {}]
+}
 testouterr_cmd bash {load --force lerr/1.0} $ans_load_conflict_force $ts_load_conflict_force
 
 unsetenv_loaded_module
@@ -559,18 +621,11 @@ testouterr_cmd bash {load --force -v all/1.0 err/1.0 foo/1.0} $ans_continue $ts_
 setenv_var TESTSUITE_ABORT_ON_ERROR conflict
 
 # conflict declared after load attempt of conflicting module
-if {[is_conf_enabled conflictunload]} {
-    testouterr_cmd bash {load all/1.0 foo/1.0 err/1.0} $ans_conflict_unload $ts_conflict_declared_after
-    testouterr_cmd bash {load --force all/1.0 foo/1.0 err/1.0} $ans_conflict_unload $ts_conflict_declared_after
-} else {
-    testouterr_cmd bash {load all/1.0 foo/1.0 err/1.0} ERR $ts_conflict_declared_after
-
-    # --force by-pass conflict error
-    testouterr_cmd bash {load --force all/1.0 foo/1.0 err/1.0} $ans_conflict_force $ts_conflict_force_declared_after
-}
+testouterr_cmd bash {load all/1.0 foo/1.0 err/1.0} $ans_conflict_abort $ts_conflict_declared_after
+testouterr_cmd bash {load --force all/1.0 foo/1.0 err/1.0} $ans_conflict_force $ts_conflict_force_declared_after
 
 # conflict declared before load attempt of conflicting module
-testouterr_cmd bash {load all/1.0 err/1.0 foo/1.0} ERR $ts_conflict_declared_before
+testouterr_cmd bash {load all/1.0 err/1.0 foo/1.0} $ans_conflict_before_abort $ts_conflict_declared_before
 
 
 setenv_var TESTSUITE_ABORT_ON_ERROR reqmis
@@ -764,7 +819,7 @@ setenv_var TESTSUITE_ABORT_ON_ERROR load_conflict
 setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
 setenv_var __MODULES_LMCONFLICT err/1.0&foo
 
-testouterr_cmd bash {load lerr/1.0} ERR $ts_load_conflict
+testouterr_cmd bash {load lerr/1.0} $ans_load_conflict $ts_load_conflict
 testouterr_cmd bash {load --force lerr/1.0} $ans_load_conflict_force $ts_load_conflict_force
 
 unsetenv_loaded_module
@@ -850,11 +905,20 @@ setenv_var TESTSUITE_ABORT_ON_ERROR load_conflict
 setenv_loaded_module [list err/1.0] [list $mp/err/1.0]
 setenv_var __MODULES_LMCONFLICT err/1.0&foo
 
-testouterr_cmd bash {load llerr/1.0} ERR $ts_load_conflict$ts_add_llerr_reqlo_err
+if {[is_conf_enabled conflictunload]} {
+    set ts_sub_load_conflict [msg_top_load llerr/1.0 err/1.0 {foo/1.0 lerr/1.0} {}]
+} else {
+    set ts_sub_load_conflict $ts_load_conflict$ts_add_llerr_reqlo_err
+}
+testouterr_cmd bash {load llerr/1.0} $ans_sub_load_conflict $ts_sub_load_conflict
 
-set ts_load_conflict_force [msg_load {foo/1.0 <aL>} [err_conlof err/1.0]]
-append ts_load_conflict_force \n\n[msg_top_load llerr/1.0 {} {foo/1.0 lerr/1.0} {}]
-testouterr_cmd bash {load --force llerr/1.0} $ans_sub_load_conflict_force $ts_load_conflict_force
+if {[is_conf_enabled conflictunload]} {
+    set ts_sub_load_conflict_force $ts_sub_load_conflict
+} else {
+    set ts_sub_load_conflict_force [msg_load {foo/1.0 <aL>} [err_conlof err/1.0]]
+    append ts_sub_load_conflict_force \n\n[msg_top_load llerr/1.0 {} {foo/1.0 lerr/1.0} {}]
+}
+testouterr_cmd bash {load --force llerr/1.0} $ans_sub_load_conflict_force $ts_sub_load_conflict_force
 
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMCONFLICT

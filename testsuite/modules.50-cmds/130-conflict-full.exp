@@ -202,6 +202,14 @@ lappend ans [list ERR]
 # evaluation is attempted prior conflict violation check
 set tserr [msg_load $module_tron $err_trace [err_conflict $module]]\n\n[msg_switch $module_troff $module_tron [err_swon $module_tron]]
 testouterr_cmd_re "sh" "switch --no-auto $module_troff $module_tron" $ans $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list unset __MODULES_LMCONFLICT]
+    lappend ans [list unset testsuite]
+    lappend ans [list set _LMFILES_ $modulefile_tron]
+    lappend ans [list set LOADEDMODULES $module_tron]
+    set tserr [msg_load $module_tron $err_trace]\n\n[msg_top_switch $module_troff $module_tron {} {} $module {} {}]
+}
 testouterr_cmd_re "sh" "switch --auto $module_troff $module_tron" $ans $tserr
 
 set ans [list]
@@ -210,6 +218,14 @@ lappend ans [list set LOADEDMODULES "$module:$module_tron"]
 # evaluation is attempted prior conflict violation check
 set tserr [msg_load $module_tron $err_trace [err_conlof $module]]
 testouterr_cmd_re "sh" "switch --no-auto --force $module_troff $module_tron" $ans $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list unset __MODULES_LMCONFLICT]
+    lappend ans [list unset testsuite]
+    lappend ans [list set _LMFILES_ "$modulefile_tron"]
+    lappend ans [list set LOADEDMODULES "$module_tron"]
+    set tserr [msg_load $module_tron $err_trace]\n\n[msg_top_switch $module_troff $module_tron {} {} $module {} {}]
+}
 testouterr_cmd_re "sh" "switch --auto --force $module_troff $module_tron" $ans $tserr
 
 # test situation where a conflict is declared during a switch and attempts to violate
@@ -269,7 +285,18 @@ testouterr_cmd_re sh "load $module" $ans {}
 setenv_loaded_module [list $module] [list $modulefile]
 setenv_var __MODULES_LMCONFLICT $badelt:$module&$module_tron
 # evaluation is attempted prior conflict violation check
-testouterr_cmd_re sh "load $module_tron" ERR [msg_load $module_tron $err_trace [err_conflict $module]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT $badelt]
+    lappend ans [list set _LMFILES_ $modulefile_tron]
+    lappend ans [list set LOADEDMODULES $module_tron]
+    lappend ans [list unset testsuite]
+    set tserr [msg_top_load $module_tron $module {} {} $err_trace]
+} else {
+    set ans ERR
+    set tserr [msg_load $module_tron $err_trace [err_conflict $module]]
+}
+testouterr_cmd_re sh "load $module_tron" $ans $tserr
 
 set ans [list]
 lappend ans [list set __MODULES_LMCONFLICT $badelt]

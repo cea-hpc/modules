@@ -162,15 +162,28 @@ testouterr_cmd_re sh {reload} ERR $err_unsatreload
 setenv_loaded_module [list gz] [list $mp/gz]
 unsetenv_var __MODULES_LMPREREQ
 setenv_var __MODULES_LMCONFLICT gz&gb
-# evaluation is attempted prior conflict violation check
-set tserr "load gc\nload gb\n\n[msg_load gb [err_conflict gz]]"
-testouterr_cmd_re sh {load gb} ERR $tserr
-set ans [list]
-lappend ans [list set __MODULES_LMPREREQ gc&gb:gb&gc]
-lappend ans [list set _LMFILES_ $mp/gz:$mp/gc:$mp/gb]
-lappend ans [list set LOADEDMODULES gz:gc:gb]
-lappend ans [list set __MODULES_LMTAG gc&auto-loaded]
-set tserr "load gc\nload gb\n\n[msg_top_load gb {} gc {} [err_conlof gz]]"
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list unset __MODULES_LMCONFLICT]
+    lappend ans [list set __MODULES_LMPREREQ gc&gb:gb&gc]
+    lappend ans [list set _LMFILES_ $mp/gc:$mp/gb]
+    lappend ans [list set LOADEDMODULES gc:gb]
+    lappend ans [list set __MODULES_LMTAG gc&auto-loaded]
+    set tserr "unload gz\nload gc\nload gb\n\n[msg_top_load gb gz gc {}]"
+} else {
+    set ans ERR
+    # evaluation is attempted prior conflict violation check
+    set tserr "load gc\nload gb\n\n[msg_load gb [err_conflict gz]]"
+}
+testouterr_cmd_re sh {load gb} $ans $tserr
+if {![is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMPREREQ gc&gb:gb&gc]
+    lappend ans [list set _LMFILES_ $mp/gz:$mp/gc:$mp/gb]
+    lappend ans [list set LOADEDMODULES gz:gc:gb]
+    lappend ans [list set __MODULES_LMTAG gc&auto-loaded]
+    set tserr "load gc\nload gb\n\n[msg_top_load gb {} gc {} [err_conlof gz]]"
+}
 testouterr_cmd_re sh {load --force gb} $ans $tserr
 
 setenv_loaded_module [list gz gc gb] [list $mp/gz $mp/gc $mp/gb] [list gc]
@@ -367,15 +380,28 @@ testouterr_cmd_re sh {reload} ERR $err_unsatreload
 setenv_loaded_module [list gx] [list $mp/gx]
 unsetenv_var __MODULES_LMPREREQ
 setenv_var __MODULES_LMCONFLICT gx&gd
-# evaluation is attempted prior conflict violation check
-set tserr "load gf\nload ge\nload gd\n\n[msg_load gd [err_conflict gx]]"
-testouterr_cmd_re sh {load gd} ERR $tserr
-set ans [list]
-lappend ans [list set __MODULES_LMPREREQ gf&gd:ge&gf:gd&ge]
-lappend ans [list set _LMFILES_ $mp/gx:$mp/gf:$mp/ge:$mp/gd]
-lappend ans [list set LOADEDMODULES gx:gf:ge:gd]
-lappend ans [list set __MODULES_LMTAG gf&auto-loaded:ge&auto-loaded]
-set tserr "load gf\nload ge\nload gd\n\n[msg_top_load gd {} [list gf ge] {} [err_conlof gx]]"
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list unset __MODULES_LMCONFLICT]
+    lappend ans [list set __MODULES_LMPREREQ gf&gd:ge&gf:gd&ge]
+    lappend ans [list set _LMFILES_ $mp/gf:$mp/ge:$mp/gd]
+    lappend ans [list set LOADEDMODULES gf:ge:gd]
+    lappend ans [list set __MODULES_LMTAG gf&auto-loaded:ge&auto-loaded]
+    set tserr "unload gx\nload gf\nload ge\nload gd\n\n[msg_top_load gd gx {gf ge} {}]"
+} else {
+    set ans ERR
+    # evaluation is attempted prior conflict violation check
+    set tserr "load gf\nload ge\nload gd\n\n[msg_load gd [err_conflict gx]]"
+}
+testouterr_cmd_re sh {load gd} $ans $tserr
+if {![is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMPREREQ gf&gd:ge&gf:gd&ge]
+    lappend ans [list set _LMFILES_ $mp/gx:$mp/gf:$mp/ge:$mp/gd]
+    lappend ans [list set LOADEDMODULES gx:gf:ge:gd]
+    lappend ans [list set __MODULES_LMTAG gf&auto-loaded:ge&auto-loaded]
+    set tserr "load gf\nload ge\nload gd\n\n[msg_top_load gd {} [list gf ge] {} [err_conlof gx]]"
+}
 testouterr_cmd_re sh {load --force gd} $ans $tserr
 
 setenv_loaded_module [list gx gf ge gd] [list $mp/gx $mp/gf $mp/ge $mp/gd] [list gf ge]

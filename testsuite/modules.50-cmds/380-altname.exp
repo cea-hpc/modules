@@ -233,8 +233,19 @@ if {[is_conf_enabled conflictunload]} {
 setenv_loaded_module [list i2] [list $mp/i2]
 unsetenv_var __MODULES_LMALTNAME
 setenv_var __MODULES_LMCONFLICT i2&altfoo&alt/sym
-testouterr_cmd_re "sh" "load altfoo" ERR [msg_load alt/dir/2 [err_conflict i2]]
-testouterr_cmd_re "sh" "load alt/dir/2" ERR [msg_load alt/dir/2 [err_conflict i2]]
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMALTNAME alt/dir/2&al|altfoo]
+    lappend ans [list unset __MODULES_LMCONFLICT]
+    lappend ans [list set _LMFILES_ $mp/alt/dir/2]
+    lappend ans [list set LOADEDMODULES alt/dir/2]
+    set tserr [msg_top_load alt/dir/2 i2 {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load alt/dir/2 [err_conflict i2]]
+}
+testouterr_cmd_re "sh" "load altfoo" $ans $tserr
+testouterr_cmd_re "sh" "load alt/dir/2" $ans $tserr
 
 # unload module whereas its alias-named conflict and its symbolic-version-named conflict are not loaded
 set ans [list]
@@ -349,7 +360,18 @@ testouterr_cmd_re sh {load i7} $ans [msg_top_load i7 alt/dir/2 {} {}]
 setenv_loaded_module [list i7] [list $mp/i7]
 unsetenv_var __MODULES_LMALTNAME
 setenv_var __MODULES_LMCONFLICT i7&altfoo
-testouterr_cmd_re sh {load alt/dir/2} ERR [msg_load alt/dir/2 [err_conflict i7]]
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMALTNAME alt/dir/2&al|altfoo]
+    lappend ans [list unset __MODULES_LMCONFLICT]
+    lappend ans [list set _LMFILES_ $mp/alt/dir/2]
+    lappend ans [list set LOADEDMODULES alt/dir/2]
+    set tserr [msg_top_load alt/dir/2 i7 {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load alt/dir/2 [err_conflict i7]]
+}
+testouterr_cmd_re sh {load alt/dir/2} $ans $tserr
 
 
 # test empty or bad element found in __MODULES_LMALTNAME control variable

@@ -41,7 +41,18 @@ lappend ans [list set LOADEDMODULES "a"]
 lappend ans [list set _LMFILES_ "$mp/a"]
 lappend ans [list ERR]
 if {$install_autohandling eq {y}} {
-    testouterr_cmd "sh" "load a b" $ans [msg_load b [err_conlo a]]
+    if {[is_conf_enabled conflictunload]} {
+        set ans [list]
+        lappend ans [list set __MODULES_LMCONFLICT "c&c"]
+        lappend ans [list set __MODULES_LMPREREQ "b&c"]
+        lappend ans [list set _LMFILES_ "$mp/c:$mp/b"]
+        lappend ans [list set LOADEDMODULES "c:b"]
+        lappend ans [list set __MODULES_LMTAG c&auto-loaded]
+        set tserr [msg_top_load b a c {}]
+    } else {
+        set tserr [msg_load b [err_conlo a]]
+    }
+    testouterr_cmd "sh" "load a b" $ans $tserr
 } else {
     # as load is attempted to see if conflict solves, returned error is also about missing prereq
     testouterr_cmd "sh" "load a b" $ans [msg_load b [err_prereq c] [err_conlo a]]

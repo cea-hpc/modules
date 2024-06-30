@@ -34,13 +34,23 @@ set mpre "$modpathre.deps"
 setenv_path_var MODULEPATH $mp
 
 # test situation where a conflicting module is loaded after a dependency chain
-set ans [list]
-lappend ans [list set __MODULES_LMCONFLICT "f6&f5"]
-lappend ans [list set __MODULES_LMPREREQ "f3&f1|f2:f6&f3|f4:f7&f6"]
-lappend ans [list set _LMFILES_ "$mp/f1:$mp/f3:$mp/f6:$mp/f7:$mp/f5"]
-lappend ans [list set LOADEDMODULES "f1:f3:f6:f7:f5"]
-lappend ans [list set __MODULES_LMTAG f1&auto-loaded:f3&auto-loaded:f6&auto-loaded]
-set tserr [list "load f1" "load f3" "load f6" "load f7" \n[msg_top_load f7 {} [list f1 f3 f6] {}] "\nload f5" \n[msg_load f5 [err_conlof f6]]]
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list unset __MODULES_LMCONFLICT]
+    lappend ans [list unset __MODULES_LMPREREQ]
+    lappend ans [list set _LMFILES_ "$mp/f5"]
+    lappend ans [list set LOADEDMODULES "f5"]
+    lappend ans [list unset __MODULES_LMTAG]
+    set tserr [list "load f1" "load f3" "load f6" "load f7" \n[msg_top_load f7 {} [list f1 f3 f6] {}] "\nunload f7" {unload f6} {unload f3} {unload f1} {load f5} \n[msg_top_load_conun f5 f7 f6 {f3 f1} {} {}]]
+} else {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT "f6&f5"]
+    lappend ans [list set __MODULES_LMPREREQ "f3&f1|f2:f6&f3|f4:f7&f6"]
+    lappend ans [list set _LMFILES_ "$mp/f1:$mp/f3:$mp/f6:$mp/f7:$mp/f5"]
+    lappend ans [list set LOADEDMODULES "f1:f3:f6:f7:f5"]
+    lappend ans [list set __MODULES_LMTAG f1&auto-loaded:f3&auto-loaded:f6&auto-loaded]
+    set tserr [list "load f1" "load f3" "load f6" "load f7" \n[msg_top_load f7 {} [list f1 f3 f6] {}] "\nload f5" \n[msg_load f5 [err_conlof f6]]]
+}
 testouterr_cmd_re "sh" "load --force f7 f5" $ans [join $tserr "\n"]
 
 skip_if_quick_mode
@@ -282,13 +292,23 @@ unsetenv_var __MODULES_LMCONFLICT
 unsetenv_loaded_module
 
 # test situation like previous one but with previous chain loaded then optional modules then conflicting module
-set ans [list]
-lappend ans [list set __MODULES_LMCONFLICT "f6&f5"]
-lappend ans [list set __MODULES_LMPREREQ "f3&f1|f2:f6&f3|f4:f7&f6"]
-lappend ans [list set _LMFILES_ "$mp/f1:$mp/f2:$mp/f3:$mp/f4:$mp/f6:$mp/f7:$mp/f5"]
-lappend ans [list set LOADEDMODULES "f1:f2:f3:f4:f6:f7:f5"]
-lappend ans [list set __MODULES_LMTAG f1&auto-loaded:f3&auto-loaded:f6&auto-loaded]
-set tserr [list "load f1" "load f3" "load f6" "load f7" \n[msg_top_load f7 {} [list f1 f3 f6] {}] "\nunload f7" "unload f6" "unload f3" "load f2" "load f3" "load f6" "load f7" \n[msg_top_load f2 {} {} [list f3 f6 f7]] "\nunload f7" "unload f6" "load f4" "load f6" "load f7" \n[msg_top_load f4 {} {} [list f6 f7]] "\nload f5" \n[msg_load f5 [err_conlof f6]]]
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list unset __MODULES_LMCONFLICT]
+    lappend ans [list unset __MODULES_LMPREREQ]
+    lappend ans [list set _LMFILES_ $mp/f2:$mp/f4:$mp/f5]
+    lappend ans [list set LOADEDMODULES f2:f4:f5]
+    lappend ans [list unset __MODULES_LMTAG]
+    set tserr [list "load f1" "load f3" "load f6" "load f7" \n[msg_top_load f7 {} [list f1 f3 f6] {}] "\nunload f7" {unload f6} {unload f3} {load f2} {load f3} {load f6} {load f7} \n[msg_top_load f2 {} {} {f3 f6 f7}] "\nunload f7" {unload f6} {load f4} {load f6} {load f7} \n[msg_top_load f4 {} {} {f6 f7}] "\nunload f7" {unload f6} {unload f3} {unload f1} {load f5} \n[msg_top_load_conun f5 f7 f6 {f3 f1} {} {}]]
+} else {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT "f6&f5"]
+    lappend ans [list set __MODULES_LMPREREQ "f3&f1|f2:f6&f3|f4:f7&f6"]
+    lappend ans [list set _LMFILES_ "$mp/f1:$mp/f2:$mp/f3:$mp/f4:$mp/f6:$mp/f7:$mp/f5"]
+    lappend ans [list set LOADEDMODULES "f1:f2:f3:f4:f6:f7:f5"]
+    lappend ans [list set __MODULES_LMTAG f1&auto-loaded:f3&auto-loaded:f6&auto-loaded]
+    set tserr [list "load f1" "load f3" "load f6" "load f7" \n[msg_top_load f7 {} [list f1 f3 f6] {}] "\nunload f7" "unload f6" "unload f3" "load f2" "load f3" "load f6" "load f7" \n[msg_top_load f2 {} {} [list f3 f6 f7]] "\nunload f7" "unload f6" "load f4" "load f6" "load f7" \n[msg_top_load f4 {} {} [list f6 f7]] "\nload f5" \n[msg_load f5 [err_conlof f6]]]
+}
 testouterr_cmd_re "sh" "load --force f7 f2 f4 f5" $ans [join $tserr "\n"]
 
 # define this situation as loaded
@@ -505,10 +525,20 @@ setenv_loaded_module [list f11 f13 f14 f16 f17] [list "$mp/f11" "$mp/f13" "$mp/f
 setenv_var __MODULES_LMPREREQ "f13&f11|f12:f16&f14|f15:f17&f13&f16"
 setenv_var __MODULES_LMCONFLICT "f14&f12"
 
-set ans [list]
-lappend ans [list set _LMFILES_ "$mp/f11:$mp/f13:$mp/f14:$mp/f16:$mp/f17:$mp/f12"]
-lappend ans [list set LOADEDMODULES "f11:f13:f14:f16:f17:f12"]
-set tserr [list "load f12" \n[msg_load f12 [err_conlof f14]]]
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list unset __MODULES_LMCONFLICT]
+    lappend ans [list unset __MODULES_LMPREREQ]
+    lappend ans [list set _LMFILES_ $mp/f12]
+    lappend ans [list set LOADEDMODULES f12]
+    lappend ans [list unset __MODULES_LMTAG]
+    set tserr [list {unload f17} {unload f16} {unload f14} {unload f13} {unload f11} {load f12} \n[msg_top_load_conun f12 {f17 f16} f14 {f13 f11} {} {}]]
+} else {
+    set ans [list]
+    lappend ans [list set _LMFILES_ "$mp/f11:$mp/f13:$mp/f14:$mp/f16:$mp/f17:$mp/f12"]
+    lappend ans [list set LOADEDMODULES "f11:f13:f14:f16:f17:f12"]
+    set tserr [list "load f12" \n[msg_load f12 [err_conlof f14]]]
+}
 testouterr_cmd_re "sh" "load --force f12" $ans [join $tserr "\n"]
 
 set ans [list]

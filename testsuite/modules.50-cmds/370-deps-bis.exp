@@ -38,7 +38,19 @@ setenv_path_var MODULEPATH $mp
 # load attempt triggering a registered conflict
 setenv_loaded_module ma "$mp/ma"
 setenv_var __MODULES_LMCONFLICT "ma&mb"
-testouterr_cmd "sh" "load mb" "ERR" [msg_load mb [err_conflict ma]]
+if {$auto_handling && [is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT "mc&mc"]
+    lappend ans [list set __MODULES_LMPREREQ "mb&mc"]
+    lappend ans [list set _LMFILES_ "$mp/mc:$mp/mb"]
+    lappend ans [list set LOADEDMODULES "mc:mb"]
+    lappend ans [list set __MODULES_LMTAG mc&auto-loaded]
+    set tserr [msg_top_load mb ma mc {}]
+} else {
+    set ans ERR
+    set tserr [msg_load mb [err_conflict ma]]
+}
+testouterr_cmd "sh" "load mb" $ans $tserr
 
 # unload attempt triggering a registered prereq
 setenv_loaded_module [list mc mb] [list "$mp/mc" "$mp/mb"] [list mc]
@@ -78,7 +90,12 @@ if {$auto_handling && [is_conf_enabled conflictunload]} {
 }
 testouterr_cmd "sh" "load me" "ERR" $tserr
 
-testouterr_cmd "sh" "load mg" "ERR" [msg_load mb [err_conlo ma]]\n\n[msg_load mg [err_reqlo mb]]
+if {$auto_handling && [is_conf_enabled conflictunload]} {
+    set tserr [msg_unload {ma <aL>} [err_deploi mg]]\n\n[msg_load mb [err_conun ma]]\n\n[msg_load mg [err_reqlo mb]]
+} else {
+    set tserr [msg_load mb [err_conlo ma]]\n\n[msg_load mg [err_reqlo mb]]
+}
+testouterr_cmd "sh" "load mg" "ERR" $tserr
 
 testouterr_cmd "sh" "load mh" "ERR" [msg_unload {mb <aL>} [err_deploi mh]]\n\n[msg_load ma [err_conun mb]]\n\n[msg_load mh [err_reqlo ma]]
 
@@ -86,9 +103,19 @@ testouterr_cmd "sh" "load mi" "ERR" [msg_unload {mb <aL>} [err_deploi mi]]\n\n[m
 
 testouterr_cmd "sh" "load mk" "ERR" [msg_unload {mc <aL>} [err_deploi mk]]\n\n[msg_load mk [err_conun mc]]
 
-testouterr_cmd "sh" "load ml" "ERR" [msg_load mc [err_conlo mf]]\n\n[msg_load mb [err_reqlo mc]]\n\n[msg_load ml [err_reqlo mb]]
+if {$auto_handling && [is_conf_enabled conflictunload]} {
+    set tserr [msg_unload {mf <aL>} [err_deploi ml]]\n\n[msg_load mc [err_conun mf]]\n\n[msg_load mb [err_reqlo mc]]\n\n[msg_load ml [err_reqlo mb]]
+} else {
+    set tserr [msg_load mc [err_conlo mf]]\n\n[msg_load mb [err_reqlo mc]]\n\n[msg_load ml [err_reqlo mb]]
+}
+testouterr_cmd "sh" "load ml" "ERR" $tserr
 
-testouterr_cmd "sh" "load mm" "ERR" [msg_load mb [err_conlo ma]]\n\n[msg_load mm [err_reqlo mb]]
+if {$auto_handling && [is_conf_enabled conflictunload]} {
+    set tserr [msg_unload {ma <aL>} [err_deploi mm]]\n\n[msg_load mb [err_conun ma]]\n\n[msg_load mm [err_reqlo mb]]
+} else {
+    set tserr [msg_load mb [err_conlo ma]]\n\n[msg_load mm [err_reqlo mb]]
+}
+testouterr_cmd "sh" "load mm" "ERR" $tserr
 
 testouterr_cmd "sh" "load mn" "ERR" [msg_load mo [err_conloi mn]]\n\n[msg_load mn [err_reqlo mo]]
 

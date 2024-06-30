@@ -513,10 +513,24 @@ testouterr_cmd sh {load advvers2@3.0} $ans {}
 # conflict loaded
 setenv_loaded_module [list advvers2/3.0] [list $mp/advvers2/3.0]
 setenv_var __MODULES_LMCONFLICT "advvers2/3.0&advvers @1.6"
-testouterr_cmd sh {load advvers@1.6} ERR [msg_load advvers/1.6 [err_conflict advvers2/3.0]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list unset __MODULES_LMCONFLICT]
+    lappend ans [list set _LMFILES_ $mp/advvers/1.6]
+    lappend ans [list set LOADEDMODULES advvers/1.6]
+    set tserr [msg_top_load advvers/1.6 advvers2/3.0 {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load advvers/1.6 [err_conflict advvers2/3.0]]
+}
+testouterr_cmd sh {load advvers@1.6} $ans $tserr
 unsetenv_var __MODULES_LMCONFLICT
 setenv_loaded_module [list advvers/1.6] [list $mp/advvers/1.6]
 if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT "advvers2/3.0&advvers @1.6"]
+    lappend ans [list set _LMFILES_ $mp/advvers2/3.0]
+    lappend ans [list set LOADEDMODULES advvers2/3.0]
     set tserr [msg_top_load advvers2/3.0 advvers/1.6 {} {}]
 } else {
     set ans ERR
@@ -577,9 +591,19 @@ if {[is_conf_enabled autohandling conflictunload]} {
     set tserr [msg_load advvers2/3.3 [err_conflict advvers/1.7]]
 }
 testouterr_cmd sh {load --auto advvers2 @3.3} $ans $tserr
-setenv_loaded_module [list advvers2/3.3] [list $mp/advvers/3.3]
+setenv_loaded_module [list advvers2/3.3] [list $mp/advvers2/3.3]
 setenv_var __MODULES_LMCONFLICT "advvers2/3.3&advvers@1.6&advvers @1.8&advvers @1.5 @1.7"
-testouterr_cmd sh {load --auto advvers@1.7} ERR [msg_load advvers/1.7 [err_conflict advvers2/3.3]]
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT {advvers/1.7&advvers2 @3.1}]
+    lappend ans [list set _LMFILES_ $mp/advvers/1.7]
+    lappend ans [list set LOADEDMODULES advvers/1.7]
+    set tserr [msg_top_load advvers/1.7 advvers2/3.3 {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load advvers/1.7 [err_conflict advvers2/3.3]]
+}
+testouterr_cmd sh {load --auto advvers@1.7} $ans $tserr
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMCONFLICT
 
@@ -621,13 +645,35 @@ testouterr_cmd_re sh {unload --auto advvers2@5.2} $ans [msg_top_unload advvers2/
 
 # prereq and conflict complex load situation
 setenv_loaded_module [list advvers2/5.1 advvers2/5.2 advvers2/5.3] [list $mp/advvers2/5.1 $mp/advvers2/5.2 $mp/advvers2/5.3] [list advvers2/5.1]
-set ans [list]
-lappend ans [list set _LMFILES_ $mp/advvers2/5.1:$mp/advvers2/5.2:$mp/advvers2/5.3:$mp/advvers2/5.0]
-lappend ans [list set LOADEDMODULES advvers2/5.1:advvers2/5.2:advvers2/5.3:advvers2/5.0]
-testouterr_cmd_re sh {load --force --auto advvers2@5.0} $ans [msg_load advvers2/5.0 [err_conlof advvers2/5.3]]
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list unset __MODULES_LMCONFLICT]
+    lappend ans [list set __MODULES_LMPREREQ {advvers2/5.1&advvers2@5.0:advvers2/5.2&advvers2 @5.1}]
+    lappend ans [list set _LMFILES_ $mp/advvers2/5.0:$mp/advvers2/5.1:$mp/advvers2/5.2]
+    lappend ans [list set LOADEDMODULES advvers2/5.0:advvers2/5.1:advvers2/5.2]
+    lappend ans [list set __MODULES_LMTAG advvers2/5.1&auto-loaded]
+    set tserr [msg_top_load advvers2/5.0 {} {} {advvers2/5.1 advvers2/5.2} {Unloading conflict: advvers2/5.3}]
+} else {
+    set ans [list]
+    lappend ans [list set _LMFILES_ $mp/advvers2/5.1:$mp/advvers2/5.2:$mp/advvers2/5.3:$mp/advvers2/5.0]
+    lappend ans [list set LOADEDMODULES advvers2/5.1:advvers2/5.2:advvers2/5.3:advvers2/5.0]
+    set tserr [msg_load advvers2/5.0 [err_conlof advvers2/5.3]]
+}
+testouterr_cmd_re sh {load --force --auto advvers2@5.0} $ans $tserr
 
 setenv_var __MODULES_LMCONFLICT "advvers2/5.3&advvers2 @5.0&advvers2@5.1:advvers2/5.2&advvers2 @5.0"
-testouterr_cmd_re sh {load --force --auto advvers2@5.0} $ans [msg_load advvers2/5.0 [err_conlof advvers2/5.2 advvers2/5.3]]
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list unset __MODULES_LMCONFLICT]
+    lappend ans [list unset __MODULES_LMPREREQ]
+    lappend ans [list set _LMFILES_ $mp/advvers2/5.0]
+    lappend ans [list set LOADEDMODULES advvers2/5.0]
+    lappend ans [list unset __MODULES_LMTAG]
+    set tserr [msg_top_load_conun advvers2/5.0 {} {advvers2/5.3 advvers2/5.2} {advvers2/5.1} {} {}]
+} else {
+    set tserr [msg_load advvers2/5.0 [err_conlof advvers2/5.2 advvers2/5.3]]
+}
+testouterr_cmd_re sh {load --force --auto advvers2@5.0} $ans $tserr
 
 # another set with more complex prereq definition
 setenv_loaded_module [list advvers2/6.0 advvers2/6.1 advvers2/6.2 advvers2/6.3 advvers2/6.5 advvers2/6.4 advvers2/6.7 advvers2/6.6] [list $mp/advvers2/6.0 $mp/advvers2/6.1 $mp/advvers2/6.2 $mp/advvers2/6.3 $mp/advvers2/6.5 $mp/advvers2/6.4 $mp/advvers2/6.7 $mp/advvers2/6.6] [list advvers2/6.0 advvers2/6.1 advvers2/6.5 advvers2/6.7]

@@ -35,6 +35,9 @@ lappend ans [list set _LMFILES_ $mp/un/2]
 lappend ans [list set LOADEDMODULES un/2]
 set tserr "load un/2\nunload un/1\n\n[msg_top_load un/2 un/1 {} {}]"
 testouterr_cmd_re sh {load --no-auto un/2} $ans $tserr
+if {[is_conf_enabled conflictunload]} {
+    set tserr "unload un/1\nload un/2\n\n[msg_top_load un/2 un/1 {} {}]"
+}
 testouterr_cmd_re sh {load --auto un/2} $ans $tserr
 
 skip_if_quick_mode
@@ -48,13 +51,23 @@ if {$install_unloadmatchorder eq {returnlast}} {
 }
 testouterr_cmd_re sh {load --no-auto un/3} ERR $tserr
 if {[is_conf_enabled conflictunload]} {
-    if {$install_unloadmatchorder eq {returnlast}} {
-        set tserr "load un/3\nunload un/1\nunload un/2\nload un/1\n\n[msg_top_load un/3 {} {} {} [err_conlo un/1]]"
-    } else {
-        set tserr "load un/3\nunload un/2\nunload un/1\nload un/2\n\n[msg_top_load un/3 {} {} {} [err_conlo un/2]]"
+    set ans [list]
+    if {[is_conf_enabled advversspec]} {
+        lappend ans [list set __MODULES_LMALTNAME un/3&as|un/default&as|un/latest]
     }
+    lappend ans [list set __MODULES_LMCONFLICT un/3&un]
+    lappend ans [list set _LMFILES_ $mp/un/3]
+    lappend ans [list set LOADEDMODULES un/3]
+    #FIXME: should not see un/2 or un/1 as a dependent reload module
+    if {$install_unloadmatchorder eq {returnlast}} {
+        set tserr "unload un/2\nunload un/1\nload un/2\nunload un/2\nload un/3\n\n[msg_top_load un/3 {un/1 un/2} {} {un/2}]"
+    } else {
+        set tserr "unload un/1\nunload un/2\nload un/1\nunload un/1\nload un/3\n\n[msg_top_load un/3 {un/2 un/1} {} {un/1}]"
+    }
+} else {
+    set ans ERR
 }
-testouterr_cmd_re sh {load --auto un/3} ERR $tserr
+testouterr_cmd_re sh {load --auto un/3} $ans $tserr
 if {$install_unloadmatchorder eq {returnlast}} {
     set ans [list]
     lappend ans [list set __MODULES_LMCONFLICT un/1&un]
