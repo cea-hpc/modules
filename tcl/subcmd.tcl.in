@@ -1427,7 +1427,17 @@ proc cmdModuleIntUnload {mode args} {
       # enable auto unload and allow force mode if both auto handling and
       # conflict unload features are enabled
       if {[getConf conflict_unload] && [getConf auto_handling]} {
-         set ret [cmdModuleUnload conun match 1 s 0 {*}$args]
+         set conun_mod_list {}
+         foreach conun_arg $args {
+            # unload attempt in reverse load order
+            appendNoDupToList conun_mod_list {*}[lreverse\
+               [getLoadedMatchingName $conun_arg returnall]]
+         }
+         if {[llength $conun_mod_list]} {
+            set ret [cmdModuleUnload conun match 1 s 0 {*}$conun_mod_list]
+         } else {
+            set ret 0
+         }
       # otherwise module required by others are not unloaded and force mode is
       # disabled
       } else {
