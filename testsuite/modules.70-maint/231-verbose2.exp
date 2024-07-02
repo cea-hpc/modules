@@ -81,7 +81,13 @@ set ans [list]
 lappend ans [list set __MODULES_LMCONFLICT impreq/unload&foo]
 lappend ans [list set _LMFILES_ $mp/impreq/unload]
 lappend ans [list set LOADEDMODULES impreq/unload]
-testouterr_cmd_re sh {load -vv --auto impreq/unload} $ans [msg_unload foo [info_notloaded foo]]\n\n[msg_load impreq/unload]
+if {[is_conf_enabled conflictunload]} {
+    # No unload attempt when conflict_unload is enabled as module is not loaded
+    set tserr [msg_load impreq/unload]
+} else {
+    set tserr [msg_unload foo [info_notloaded foo]]\n\n[msg_load impreq/unload]
+}
+testouterr_cmd_re sh {load -vv --auto impreq/unload} $ans $tserr
 
 # test module name and version specification is correctly reported
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1

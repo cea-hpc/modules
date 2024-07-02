@@ -108,7 +108,16 @@ if {$install_unloadmatchorder eq {returnlast}} {
     set tserr "load una\nunload ha/1\n\n[msg_top_load una {} {} {} [err_conflict ha/2]]"
 }
 testouterr_cmd_re sh {load --no-auto una} ERR $tserr
-testouterr_cmd_re sh {load --auto una} ERR $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT una&ha]
+    lappend ans [list set _LMFILES_ $mp/una]
+    lappend ans [list set LOADEDMODULES una]
+    set tserr "load una\nunload ha/2\nunload ha/1\n\n[msg_top_load una {ha/2 ha/1} {} {}]"
+} else {
+    set ans ERR
+}
+testouterr_cmd_re sh {load --auto una} $ans $tserr
 
 if {$install_unloadmatchorder eq {returnlast}} {
     set ans [list]
@@ -124,6 +133,13 @@ if {$install_unloadmatchorder eq {returnlast}} {
     set tserr "load una\nunload ha/1\n\n[msg_top_load una ha/1 {} {} [err_conlof ha/2]]"
 }
 testouterr_cmd_re sh {load --force --no-auto una} $ans $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT una&ha]
+    lappend ans [list set _LMFILES_ $mp/una]
+    lappend ans [list set LOADEDMODULES una]
+    set tserr "load una\nunload ha/2\nunload ha/1\n\n[msg_top_load una {ha/2 ha/1} {} {}]"
+}
 testouterr_cmd_re sh {load --force --auto una} $ans $tserr
 
 setenv_loaded_module [list ha/1 una] [list $mp/ha/1 $mp/una]
@@ -156,7 +172,18 @@ if {$install_unloadmatchorder eq {returnlast}} {
 } else {
     set tserr "load unb\nload una\nunload ha/1\n\n[msg_load una [err_conflict ha/2]]\n\n[msg_top_load unb {} {} {} [err_reqlo una]]"
 }
-testouterr_cmd_re sh {load --auto unb} ERR $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT una&ha]
+    lappend ans [list set __MODULES_LMPREREQ unb&una]
+    lappend ans [list set _LMFILES_ $mp/una:$mp/unb]
+    lappend ans [list set LOADEDMODULES una:unb]
+    lappend ans [list set __MODULES_LMTAG una&auto-loaded]
+    set tserr "load unb\nload una\nunload ha/2\nunload ha/1\n\n[msg_top_load unb {ha/2 ha/1} {una} {}]"
+} else {
+    set ans ERR
+}
+testouterr_cmd_re sh {load --auto unb} $ans $tserr
 
 if {$install_unloadmatchorder eq {returnlast}} {
     set ans [list]
@@ -174,6 +201,15 @@ if {$install_unloadmatchorder eq {returnlast}} {
     lappend ans [list set LOADEDMODULES ha/2:una:unb]
     lappend ans [list set __MODULES_LMTAG una&auto-loaded]
     set tserr "load unb\nload una\nunload ha/1\n\n[msg_load {una <aL>} [err_conlof ha/2]]\n\n[msg_top_load unb ha/1 una {}]"
+}
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT una&ha]
+    lappend ans [list set __MODULES_LMPREREQ unb&una]
+    lappend ans [list set _LMFILES_ $mp/una:$mp/unb]
+    lappend ans [list set LOADEDMODULES una:unb]
+    lappend ans [list set __MODULES_LMTAG una&auto-loaded]
+    set tserr "load unb\nload una\nunload ha/2\nunload ha/1\n\n[msg_top_load unb {ha/2 ha/1} {una} {}]"
 }
 testouterr_cmd_re sh {load --force --auto unb} $ans $tserr
 

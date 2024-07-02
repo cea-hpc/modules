@@ -50,7 +50,17 @@ foreach cmd [list purge reload aliases] {
 # on most module commands, empty arg leads to error
 # test both empty names {} and "" on same module command
 testouterr_cmd "sh" "load $module/load" "ERR" [msg_load $module/load $err_emptymodname [err_reqlo {}]]
-testouterr_cmd "sh" "load $module/unload" "ERR" [msg_load $module/unload $err_emptymodname $err_emptymodname]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMCONFLICT "$module/unload&"]
+    lappend ans [list set _LMFILES_ "$modulepath/$module/unload"]
+    lappend ans [list set LOADEDMODULES "$module/unload"]
+    set tserr {}
+} else {
+    set ans ERR
+    set tserr [msg_load $module/unload $err_emptymodname $err_emptymodname]
+}
+testouterr_cmd "sh" "load $module/unload" $ans $tserr
 
 testouterr_cmd "sh" "load $module/load-any" "ERR" [msg_load $module/load-any [err_reqlo {} {}]]
 
