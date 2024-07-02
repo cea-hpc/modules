@@ -170,34 +170,19 @@ task:
   << : *CLONE_TEMPLATE
   container:
     matrix:
-      image: centos:centos7
       image: rockylinux:8
     cpu: 1
     memory: 2G
   reqinstall_script: |
-    . /etc/os-release
-    # glob comparison as VERSION_ID equals 8.X on Rocky
-    if [[ $VERSION_ID == 8* ]]; then
-      sed -i 's|enabled=0|enabled=1|' /etc/yum.repos.d/Rocky-PowerTools.repo
-      # specific update of libarchive is required for CMake on EL8.3
-      yum update -y libarchive
-      # need to pre-install correct module implementation to avoid fetching
-      # another one from EPEL (as dependency for R-core) on recent RockyLinux 8
-      yum install -y environment-modules
-    fi
-    if [[ $VERSION_ID == 8* ]]; then
-      PYTHON_PKG='python36'
-      SPHINX_PKG='python3-sphinx'
-    else
-      PYTHON_PKG='python'
-      SPHINX_PKG='python-sphinx'
-    fi
+    sed -i 's|enabled=0|enabled=1|' /etc/yum.repos.d/Rocky-PowerTools.repo
+    # specific update of libarchive is required for CMake on EL8.3
+    yum update -y libarchive
+    # need to pre-install correct module implementation to avoid fetching
+    # another one from EPEL (as dependency for R-core) on recent RockyLinux 8
+    yum install -y environment-modules
     yum install -y epel-release
-    yum install -y tcsh zsh ksh tcl perl $PYTHON_PKG gzip ruby cmake R-core make wget perl $SPHINX_PKG git dejagnu man-db rpm-build bzip2 autoconf gcc tcl-devel
+    yum install -y tcsh zsh ksh tcl perl python36 gzip ruby cmake R-core make wget perl python3-sphinx git dejagnu man-db rpm-build bzip2 autoconf gcc tcl-devel
     yum install -y which xorg-x11-server-utils xorg-x11-server-Xvfb
-    if [[ $VERSION_ID != 8* ]]; then
-      wget -O /etc/yum.repos.d/shells_fish_release_2.repo http://download.opensuse.org/repositories/shells:fish:release:2/CentOS_${VERSION_ID}/shells:fish:release:2.repo
-    fi
     yum install -y fish
   configure_script:
     - ./configure --with-loadedmodules=null:dot --enable-quarantine-support --with-quarantine-vars='LD_LIBRARY_PATH LD_PRELOAD' --with-bashcompletiondir=/usr/share/bash-completion/completions --with-fishcompletiondir=/usr/share/fish/vendor_completions.d --with-zshcompletiondir=/usr/share/zsh/site-functions
