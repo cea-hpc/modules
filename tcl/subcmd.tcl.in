@@ -1187,19 +1187,25 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list modulepath_list\
 
       pushSettings
       if {[set errCode [catch {
-         if {[set isloaded [isModuleLoaded $modname]] || [set isloading\
-            [isModuleLoading $modname]]} {
+         if {[set isloaded [isModuleLoaded $modname]]} {
+            set isloading 0
+         } else {
+            set isloading [isModuleLoading $modname]
+         }
+         if {$isloaded || $isloading} {
             # stop if same mod is loaded but from a modulepath not part of
             # constrained list
             if {![isLoadedMatchSpecificPath $modname $modulepath_list [expr\
                {!$isloaded}]]} {
                knerror [getModFromDiffPathIsLoadedMsg]
             # stop if same mod is loaded but with a different set of variants
-            } elseif {$modname ne $modnamevr && (($isloaded &&
-               [getLoadedMatchingName $modnamevr] eq {}) || ([info exists\
-               isloading] && $isloading && [getLoadedMatchingName $modnamevr\
-               {} 1] eq {}))} {
-               knerror [getModWithAltVrIsLoadedMsg $modname]
+            } elseif {[isOtherVariantOfModuleLoaded $modnamevr] ||\
+               [isOtherVariantOfModuleLoading $modnamevr]} {
+               # no error if ConUn mechanism handles unload of this module
+               if {![getConf auto_handling] || ![getConf conflict_unload] ||\
+                  $isloading} {
+                  knerror [getModWithAltVrIsLoadedMsg $modname]
+               }
             } else {
                reportDebug "$modname ($modfile) already loaded/loading"
                # apply missing tag to loaded module

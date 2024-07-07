@@ -1027,6 +1027,22 @@ proc getVariantList {mod {report 0} {excl_dflval 0} {from 0}} {
    return $ret
 }
 
+proc isOtherVariantOfModuleLoading {mod} {
+   set mod_name [getModuleNameAndVersFromVersSpec $mod]
+   set mod_has_variant [expr {$mod ne $mod_name}]
+
+   return [expr {$mod_has_variant && [isModuleLoading $mod_name] && ![string\
+      length [getLoadedMatchingName $mod {} 1]]}]
+}
+
+proc isOtherVariantOfModuleLoaded {mod} {
+   set mod_name [getModuleNameAndVersFromVersSpec $mod]
+   set mod_has_variant [expr {$mod ne $mod_name}]
+
+   return [expr {$mod_has_variant && [isModuleLoaded $mod_name] && ![string\
+      length [getLoadedMatchingName $mod]]}]
+}
+
 proc isModuleDotHidden {mod} {
    foreach elt [split $mod /] {
       if {[string index $elt 0] eq {.}} {
@@ -1682,6 +1698,10 @@ proc getModuleLoadedConflict {mod} {
             }
          }
       }
+   }
+
+   if {[isOtherVariantOfModuleLoaded $mod]} {
+      lappend mod_con_list [getModuleNameAndVersFromVersSpec $mod]
    }
 
    reportDebug "'$mod' conflicts with '$mod_con_list'"
