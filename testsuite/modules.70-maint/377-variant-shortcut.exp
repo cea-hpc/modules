@@ -161,11 +161,33 @@ testouterr_cmd sh {load -v variant@1.0%val1^val2} OK {}
 testouterr_cmd sh {load -v variant@1.0 foo=val1^val2} OK {}
 
 # another variant already loaded
-set tserr [msg_load variant/1.0{^val1:%val1} [err_othervariantloaded {^val2:%val1}]]
-testouterr_cmd sh {load -v variant/1.0%val1^val1} ERR $tserr
-testouterr_cmd sh {load -v variant@1.0 foo=val1 ^val1} ERR $tserr
-set tserr [msg_load variant/1.0{^val1} [err_othervariantloaded {^val2:%val1}]]
-testouterr_cmd sh {load -v variant@1.0 ^val1} ERR $tserr
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT variant/1.0&foo|val1|0|1&bar|val1|0|0]
+    lappend ans [list set TS1 {bar=val1:foo=val1}]
+    lappend ans [list set _LMFILES_ $mp/variant/1.0]
+    lappend ans [list set LOADEDMODULES variant/1.0]
+    lappend ans [list set TS0 {bar foo}]
+    set tserr [msg_unload variant/1.0{^val2:%val1}]\n\n[msg_top_load variant/1.0{^val1:%val1} {variant/1.0{^val2:%val1}} {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load variant/1.0{^val1:%val1} [err_othervariantloaded {^val2:%val1}]]
+}
+testouterr_cmd sh {load -v variant/1.0%val1^val1} $ans $tserr
+testouterr_cmd sh {load -v variant@1.0 foo=val1 ^val1} $ans $tserr
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT variant/1.0&foo|val1|0|2&bar|val1|0|0]
+    lappend ans [list set TS1 {bar=val1:foo=val1}]
+    lappend ans [list set _LMFILES_ $mp/variant/1.0]
+    lappend ans [list set LOADEDMODULES variant/1.0]
+    lappend ans [list set TS0 {bar foo}]
+    set tserr [msg_unload variant/1.0{^val2:%val1}]\n\n[msg_top_load variant/1.0{^val1:%val1} {variant/1.0{^val2:%val1}} {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load variant/1.0{^val1} [err_othervariantloaded {^val2:%val1}]]
+}
+testouterr_cmd sh {load -v variant@1.0 ^val1} $ans $tserr
 set tserr [msg_load variant/1.0 [err_othervariantloaded {^val2:%val1}]]
 testouterr_cmd sh {load -v variant@1.0} ERR $tserr
 

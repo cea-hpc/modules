@@ -566,8 +566,22 @@ lappend ans [list set LOADEDMODULES variant/1.0:variant/7.0]
 testouterr_cmd_re sh {load --auto variant@7.0} $ans {}
 
 setenv_var __MODULES_LMVARIANT variant/1.0&foo|0|1|0&bar|1|1|0
-set tserr [msg_load variant/1.0{-bar:+foo} [err_othervariantloaded +bar:-foo]]\n\n[msg_load variant/7.0 [err_reqlo variant/1.0{-bar:+foo}]]
-testouterr_cmd sh {load --auto variant@7.0} ERR $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT variant/1.0&foo|1|1|0&bar|0|1|0]
+    lappend ans [list set TS1 {bar=0:foo=1}]
+    lappend ans [list set TS2 true]
+    lappend ans [list set __MODULES_LMPREREQ {variant/7.0&variant@1.0 +foo bar=false}]
+    lappend ans [list set _LMFILES_ $mp/variant/1.0:$mp/variant/7.0]
+    lappend ans [list set LOADEDMODULES variant/1.0:variant/7.0]
+    lappend ans [list set __MODULES_LMTAG variant/1.0&auto-loaded]
+    lappend ans [list set TS0 {bar foo}]
+    set tserr [msg_top_load variant/7.0 {variant/1.0{+bar:-foo}} {variant/1.0{-bar:+foo}} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load variant/1.0{-bar:+foo} [err_othervariantloaded +bar:-foo]]\n\n[msg_load variant/7.0 [err_reqlo variant/1.0{-bar:+foo}]]
+}
+testouterr_cmd sh {load --auto variant@7.0} $ans $tserr
 
 
 #

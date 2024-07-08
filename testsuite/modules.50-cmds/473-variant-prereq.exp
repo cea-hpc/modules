@@ -58,8 +58,20 @@ testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} $ans {}
 
 # other variant value loaded
 setenv_var __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val2|0|0
-set tserr [msg_load vrreq1/1.0{foo=val1} [err_othervariantloaded foo=val2]]\n\n[msg_load variant/7.0{foo=val2} [err_reqlo vrreq1/1.0{foo=val1}]]
-testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} ERR $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq2/1.0&vrreq2:vrreq1/1.0&vrreq1]
+    lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1.0 bar=1 foo=val1|vrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1@1.0 foo=val1}]
+    lappend ans [list set _LMFILES_ $mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
+    lappend ans [list set LOADEDMODULES vrreq2/1.0:vrreq1/1.0:variant/7.0]
+    lappend ans [list set __MODULES_LMTAG vrreq1/1.0&auto-loaded]
+    set tserr [msg_top_load variant/7.0{foo=val2} {vrreq1/1.0{foo=val2}} {vrreq1/1.0{foo=val1}} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load vrreq1/1.0{foo=val1} [err_othervariantloaded foo=val2]]\n\n[msg_load variant/7.0{foo=val2} [err_reqlo vrreq1/1.0{foo=val1}]]
+}
+testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} $ans $tserr
 
 # other version loaded
 setenv_loaded_module [list vrreq2/2.0 vrreq3/2.0] [list $mp/vrreq2/2.0 $mp/vrreq3/2.0]
@@ -310,8 +322,20 @@ testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} $ans {}
 
 # other variant value loaded
 setenv_var __MODULES_LMVARIANT vrreq2/2.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val2|0|0
-set tserr [msg_load vrreq1/1.0{foo=val1} [err_othervariantloaded foo=val2]]\n\n[msg_load variant/7.0{foo=val2} [err_reqlo vrreq1@:1{foo=val1}]]
-testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} ERR $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq2/2.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq2/2.0&vrreq2:vrreq1/1.0&vrreq1]
+    lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1<2 bar=1 foo=val1|vrreq3 bar=1 foo=val1:variant/7.0&vrreq1@<1 foo=val1}]
+    lappend ans [list set _LMFILES_ $mp/vrreq2/2.0:$mp/vrreq1/1.0:$mp/variant/7.0]
+    lappend ans [list set LOADEDMODULES vrreq2/2.0:vrreq1/1.0:variant/7.0]
+    lappend ans [list set __MODULES_LMTAG vrreq1/1.0&auto-loaded]
+    set tserr [msg_top_load variant/7.0{foo=val2} {vrreq1/1.0{foo=val2}} {vrreq1/1.0{foo=val1}} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load vrreq1/1.0{foo=val1} [err_othervariantloaded foo=val2]]\n\n[msg_load variant/7.0{foo=val2} [err_reqlo vrreq1@:1{foo=val1}]]
+}
+testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} $ans $tserr
 
 # other version loaded
 # not useful case given the TESTSUITE_VARIANT 4 setup
@@ -557,8 +581,21 @@ testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} $ans {}
 
 # other variant value loaded
 setenv_var __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val2|0|0
-set tserr [msg_load vrreq1/1.0{foo=val1} [err_othervariantloaded foo=val2]]\n\n[msg_load variant/7.0{foo=val2} [err_reqlo vrreq1{foo=val1}]]
-testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} ERR $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq2/1.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
+    lappend ans [list set __MODULES_LMALTNAME vrreq2/1.0&vrreq2/default&vrreq2&al|alvrreq2]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq2/1.0&vrreq2:vrreq1/1.0&vrreq1]
+    lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&alvrreq2 bar=1 foo=val1|alvrreq3@1.0 bar=1 foo=val1:variant/7.0&vrreq1 foo=val1}]
+    lappend ans [list set _LMFILES_ $mp/vrreq2/1.0:$mp/vrreq1/1.0:$mp/variant/7.0]
+    lappend ans [list set LOADEDMODULES vrreq2/1.0:vrreq1/1.0:variant/7.0]
+    lappend ans [list set __MODULES_LMTAG vrreq1/1.0&auto-loaded]
+    set tserr [msg_top_load variant/7.0{foo=val2} {vrreq1/1.0{foo=val2}} {vrreq1/1.0{foo=val1}} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load vrreq1/1.0{foo=val1} [err_othervariantloaded foo=val2]]\n\n[msg_load variant/7.0{foo=val2} [err_reqlo vrreq1{foo=val1}]]
+}
+testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} $ans $tserr
 
 # other version loaded
 setenv_loaded_module [list vrreq2/2.0 vrreq3/2.0] [list $mp/vrreq2/2.0 $mp/vrreq3/2.0]
@@ -832,8 +869,21 @@ testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} $ans {}
 
 # other variant value loaded
 setenv_var __MODULES_LMVARIANT vrreq2/2.0&foo|val1|0|0&bar|1|0|0:vrreq3/2.0&foo|val3|0|0&bar|0|0|0|0:vrreq1/1.0&foo|val2|0|0
-set tserr [msg_load vrreq1/1.0{foo=val1} [err_othervariantloaded foo=val2]]\n\n[msg_load variant/7.0{foo=val2} [err_reqlo vrreq1@:1{foo=val1}]]
-testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} ERR $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT vrreq2/2.0&foo|val1|0|0&bar|1|0|0:vrreq3/2.0&foo|val1|0|0&bar|1|0|0:vrreq1/1.0&foo|val1|0|0:variant/7.0&foo|val2|0|0]
+    lappend ans [list unset __MODULES_LMALTNAME]
+    lappend ans [list set __MODULES_LMCONFLICT vrreq2/2.0&vrreq2:vrreq3/2.0&vrreq3:vrreq1/1.0&vrreq1]
+    lappend ans [list set __MODULES_LMPREREQ {vrreq1/1.0&vrreq2@1<2 bar=1 foo=val1&vrreq3 bar=1 foo=val1:variant/7.0&vrreq1@<1 foo=val1}]
+    lappend ans [list set _LMFILES_ $mp/vrreq2/2.0:$mp/vrreq3/2.0:$mp/vrreq1/1.0:$mp/variant/7.0]
+    lappend ans [list set LOADEDMODULES vrreq2/2.0:vrreq3/2.0:vrreq1/1.0:variant/7.0]
+    lappend ans [list set __MODULES_LMTAG vrreq3/2.0&auto-loaded:vrreq1/1.0&auto-loaded]
+    set tserr [msg_top_load variant/7.0{foo=val2} {vrreq1/1.0{foo=val2} vrreq3/2.0{bar=0:foo=val3}} {vrreq3/2.0{bar=1:foo=val1} vrreq1/1.0{foo=val1}} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load vrreq1/1.0{foo=val1} [err_othervariantloaded foo=val2]]\n\n[msg_load variant/7.0{foo=val2} [err_reqlo vrreq1@:1{foo=val1}]]
+}
+testouterr_cmd_re sh {load --auto variant/7.0 foo=val2} $ans $tserr
 
 # other version loaded
 # not useful case given the TESTSUITE_VARIANT 10 setup
@@ -1379,7 +1429,11 @@ setenv_var __MODULES_LMVARIANT vrreq1/1.0&foo|val2|0|0&bar|2|0|0
 setenv_var MODULES_EXTENDED_DEFAULT 0
 # FIXME: no icase support currently on variant name and value
 setenv_var TESTSUITE_VARIANT 32
-set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/1.0{bAr=2:foo=VAL2}]]
+if {[is_conf_enabled conflictunload]} {
+    set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_invalvarval foo VAL2 {val1 val2 val3}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/1.0{bAr=2:foo=VAL2}]]
+} else {
+    set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/1.0{bAr=2:foo=VAL2}]]
+}
 testouterr_cmd sh {load --auto -i variant/7.0} ERR $tserr
 setenv_var TESTSUITE_VARIANT 33
 set tserr [msg_load variant/7.0 "$err_path'vrreq1/1 foo=VAL2 bAr=2'" [err_reqlo vrreq1/1{bAr=2:foo=VAL2}]]
@@ -1391,10 +1445,18 @@ testouterr_cmd sh {load --auto -i variant/7.0} ERR $tserr
 # icase on & extended_default on
 setenv_var MODULES_EXTENDED_DEFAULT 1
 setenv_var TESTSUITE_VARIANT 32
-set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/1.0{bAr=2:foo=VAL2}]]
+if {[is_conf_enabled conflictunload]} {
+    set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_invalvarval foo VAL2 {val1 val2 val3}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/1.0{bAr=2:foo=VAL2}]]
+} else {
+    set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/1.0{bAr=2:foo=VAL2}]]
+}
 testouterr_cmd sh {load --auto -i variant/7.0} ERR $tserr
 setenv_var TESTSUITE_VARIANT 33
-set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/1{bAr=2:foo=VAL2}]]
+if {[is_conf_enabled conflictunload]} {
+    set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_invalvarval foo VAL2 {val1 val2 val3}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/1{bAr=2:foo=VAL2}]]
+} else {
+    set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/1{bAr=2:foo=VAL2}]]
+}
 testouterr_cmd sh {load --auto -i variant/7.0} ERR $tserr
 setenv_var TESTSUITE_VARIANT 34
 set ans [list]
@@ -1405,10 +1467,18 @@ testouterr_cmd_re sh {load --auto -i variant/7.0} $ans {}
 
 # icase off & extended_default on
 setenv_var TESTSUITE_VARIANT 32
-set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/1.0{bAr=2:foo=VAL2}]]
+if {[is_conf_enabled conflictunload]} {
+    set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_invalvarval foo VAL2 {val1 val2 val3}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/1.0{bAr=2:foo=VAL2}]]
+} else {
+    set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/1.0{bAr=2:foo=VAL2}]]
+}
 testouterr_cmd sh {load --auto variant/7.0} ERR $tserr
 setenv_var TESTSUITE_VARIANT 33
-set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/1{bAr=2:foo=VAL2}]]
+if {[is_conf_enabled conflictunload]} {
+    set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_invalvarval foo VAL2 {val1 val2 val3}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/1{bAr=2:foo=VAL2}]]
+} else {
+    set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/1{bAr=2:foo=VAL2}]]
+}
 testouterr_cmd sh {load --auto variant/7.0} ERR $tserr
 setenv_var TESTSUITE_VARIANT 34
 testouterr_cmd_re sh {load --auto variant/7.0} $ans {}
@@ -1421,11 +1491,19 @@ setenv_var MODULES_EXTENDED_DEFAULT 0
 # FIXME: no icase support currently on variant name and value
 setenv_var TESTSUITE_VARIANT 35
 setenv_var __MODULES_LMALTNAME vrreq1/1.0&al|alvrreq11
-set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo alvrreq11{bAr=2:foo=VAL2}]]
+if {[is_conf_enabled conflictunload]} {
+    set tserr [msg_unload vrreq1/1.0{bar=2:foo=val2} [err_unkvar bar] [err_unkvar foo]]\n\n[msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_conun vrreq1/1.0{bar=2:foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo alvrreq11{bAr=2:foo=VAL2}]]
+} else {
+    set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo alvrreq11{bAr=2:foo=VAL2}]]
+}
 testouterr_cmd sh {load --auto -i variant/7.0} ERR $tserr
 setenv_var TESTSUITE_VARIANT 36
 setenv_var __MODULES_LMALTNAME vrreq1/1.0&vrreq1/sym
-set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/sym{bAr=2:foo=VAL2}]]
+if {[is_conf_enabled conflictunload]} {
+    set tserr [msg_unload vrreq1/1.0{bar=2:foo=val2} [err_unkvar bar] [err_unkvar foo]]\n\n[msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_conun vrreq1/1.0{bar=2:foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/sym{bAr=2:foo=VAL2}]]
+} else {
+    set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/sym{bAr=2:foo=VAL2}]]
+}
 testouterr_cmd sh {load --auto -i variant/7.0} ERR $tserr
 setenv_var TESTSUITE_VARIANT 37
 setenv_var __MODULES_LMALTNAME vrreq1/1.0&vrreq1/99.9&al|alvrreq11
@@ -1436,11 +1514,19 @@ testouterr_cmd sh {load --auto -i variant/7.0} ERR $tserr
 setenv_var MODULES_EXTENDED_DEFAULT 1
 setenv_var TESTSUITE_VARIANT 35
 setenv_var __MODULES_LMALTNAME vrreq1/1.0&al|alvrreq11
-set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo alvrreq11{bAr=2:foo=VAL2}]]
+if {[is_conf_enabled conflictunload]} {
+    set tserr [msg_unload vrreq1/1.0{bar=2:foo=val2} [err_unkvar bar] [err_unkvar foo]]\n\n[msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_conun vrreq1/1.0{bar=2:foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo alvrreq11{bAr=2:foo=VAL2}]]
+} else {
+    set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo alvrreq11{bAr=2:foo=VAL2}]]
+}
 testouterr_cmd sh {load --auto -i variant/7.0} ERR $tserr
 setenv_var TESTSUITE_VARIANT 36
 setenv_var __MODULES_LMALTNAME vrreq1/1.0&vrreq1/sym
-set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/sym{bAr=2:foo=VAL2}]]
+if {[is_conf_enabled conflictunload]} {
+    set tserr [msg_unload vrreq1/1.0{bar=2:foo=val2} [err_unkvar bar] [err_unkvar foo]]\n\n[msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_conun vrreq1/1.0{bar=2:foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/sym{bAr=2:foo=VAL2}]]
+} else {
+    set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/sym{bAr=2:foo=VAL2}]]
+}
 testouterr_cmd sh {load --auto -i variant/7.0} ERR $tserr
 setenv_var TESTSUITE_VARIANT 37
 setenv_var __MODULES_LMALTNAME vrreq1/1.0&vrreq1/99.9&al|alvrreq11
@@ -1453,11 +1539,19 @@ testouterr_cmd_re sh {load --auto -i variant/7.0} $ans {}
 # icase off & extended_default on
 setenv_var TESTSUITE_VARIANT 35
 setenv_var __MODULES_LMALTNAME vrreq1/1.0&al|alvrreq11
-set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo alvrreq11{bAr=2:foo=VAL2}]]
+if {[is_conf_enabled conflictunload]} {
+    set tserr [msg_unload vrreq1/1.0{bar=2:foo=val2} [err_unkvar bar] [err_unkvar foo]]\n\n[msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_conun vrreq1/1.0{bar=2:foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo alvrreq11{bAr=2:foo=VAL2}]]
+} else {
+    set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo alvrreq11{bAr=2:foo=VAL2}]]
+}
 testouterr_cmd sh {load --auto variant/7.0} ERR $tserr
 setenv_var TESTSUITE_VARIANT 36
 setenv_var __MODULES_LMALTNAME vrreq1/1.0&vrreq1/sym
-set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/sym{bAr=2:foo=VAL2}]]
+if {[is_conf_enabled conflictunload]} {
+    set tserr [msg_unload vrreq1/1.0{bar=2:foo=val2} [err_unkvar bar] [err_unkvar foo]]\n\n[msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_conun vrreq1/1.0{bar=2:foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/sym{bAr=2:foo=VAL2}]]
+} else {
+    set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1/sym{bAr=2:foo=VAL2}]]
+}
 testouterr_cmd sh {load --auto variant/7.0} ERR $tserr
 setenv_var TESTSUITE_VARIANT 37
 setenv_var __MODULES_LMALTNAME vrreq1/1.0&vrreq1/99.9&al|alvrreq11
@@ -1471,10 +1565,18 @@ setenv_var __MODULES_LMALTNAME vrreq1/1.0&al|vrreq1/3.2
 setenv_var MODULES_EXTENDED_DEFAULT 0
 # FIXME: no icase support currently on variant name and value
 setenv_var TESTSUITE_VARIANT 38
-set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1@3:4{bAr=2:foo=VAL2}]]
+if {[is_conf_enabled conflictunload]} {
+    set tserr [msg_unload vrreq1/1.0{bar=2:foo=val2} [err_unkvar bar] [err_unkvar foo]]\n\n[msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_conun vrreq1/1.0{bar=2:foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1@3:4{bAr=2:foo=VAL2}]]
+} else {
+    set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1@3:4{bAr=2:foo=VAL2}]]
+}
 testouterr_cmd sh {load --auto -i variant/7.0} ERR $tserr
 setenv_var TESTSUITE_VARIANT 39
-set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1@3:4{bAr=2:foo=VAL2}]]
+if {[is_conf_enabled conflictunload]} {
+    set tserr [msg_unload vrreq1/1.0{bar=2:foo=val2} [err_unkvar bar] [err_unkvar foo]]\n\n[msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_conun vrreq1/1.0{bar=2:foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1@3:4{bAr=2:foo=VAL2}]]
+} else {
+    set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1@3:4{bAr=2:foo=VAL2}]]
+}
 testouterr_cmd sh {load --auto -i variant/7.0} ERR $tserr
 setenv_var TESTSUITE_VARIANT 40
 set ans [list]
@@ -1492,10 +1594,18 @@ testouterr_cmd_re sh {load --auto -i variant/7.0} ERR $tserr
 # icase on & extended_default on
 setenv_var MODULES_EXTENDED_DEFAULT 1
 setenv_var TESTSUITE_VARIANT 38
-set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1@3:4{bAr=2:foo=VAL2}]]
+if {[is_conf_enabled conflictunload]} {
+    set tserr [msg_unload vrreq1/1.0{bar=2:foo=val2} [err_unkvar bar] [err_unkvar foo]]\n\n[msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_conun vrreq1/1.0{bar=2:foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1@3:4{bAr=2:foo=VAL2}]]
+} else {
+    set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1@3:4{bAr=2:foo=VAL2}]]
+}
 testouterr_cmd sh {load --auto -i variant/7.0} ERR $tserr
 setenv_var TESTSUITE_VARIANT 39
-set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1@3:4{bAr=2:foo=VAL2}]]
+if {[is_conf_enabled conflictunload]} {
+    set tserr [msg_unload vrreq1/1.0{bar=2:foo=val2} [err_unkvar bar] [err_unkvar foo]]\n\n[msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_conun vrreq1/1.0{bar=2:foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1@3:4{bAr=2:foo=VAL2}]]
+} else {
+    set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1@3:4{bAr=2:foo=VAL2}]]
+}
 testouterr_cmd sh {load --auto -i variant/7.0} ERR $tserr
 setenv_var TESTSUITE_VARIANT 40
 testouterr_cmd_re sh {load --auto -i variant/7.0} $ans {}
@@ -1508,10 +1618,18 @@ testouterr_cmd_re sh {load --auto -i variant/7.0} ERR $tserr
 
 # icase off & extended_default on
 setenv_var TESTSUITE_VARIANT 38
-set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1@3:4{bAr=2:foo=VAL2}]]
+if {[is_conf_enabled conflictunload]} {
+    set tserr [msg_unload vrreq1/1.0{bar=2:foo=val2} [err_unkvar bar] [err_unkvar foo]]\n\n[msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_conun vrreq1/1.0{bar=2:foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1@3:4{bAr=2:foo=VAL2}]]
+} else {
+    set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1@3:4{bAr=2:foo=VAL2}]]
+}
 testouterr_cmd sh {load --auto variant/7.0} ERR $tserr
 setenv_var TESTSUITE_VARIANT 39
-set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1@3:4{bAr=2:foo=VAL2}]]
+if {[is_conf_enabled conflictunload]} {
+    set tserr [msg_unload vrreq1/1.0{bar=2:foo=val2} [err_unkvar bar] [err_unkvar foo]]\n\n[msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_conun vrreq1/1.0{bar=2:foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1@3:4{bAr=2:foo=VAL2}]]
+} else {
+    set tserr [msg_load vrreq1/1.0{bAr=2:foo=VAL2} [err_othervariantloaded {bar=2 foo=val2}]]\n\n[msg_load variant/7.0 [err_reqlo vrreq1@3:4{bAr=2:foo=VAL2}]]
+}
 testouterr_cmd sh {load --auto variant/7.0} ERR $tserr
 setenv_var TESTSUITE_VARIANT 40
 testouterr_cmd_re sh {load --auto variant/7.0} $ans {}

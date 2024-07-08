@@ -184,11 +184,26 @@ lappend ans [list set LOADEDMODULES variant/1.0]
 lappend ans [list set _LMFILES_ $mp/variant/1.0]
 lappend ans [list set TS0 {foo}]
 lappend ans [list ERR]
-testouterr_cmd sh {load variant/1.0 foo=val1 variant/1.0 foo=val2} $ans [msg_load variant/1.0{foo=val2} [err_othervariantloaded {foo=val1}]]
-testouterr_cmd sh {load variant/1.0 foo=val1 variant/1.0 bar=val2} $ans [msg_load variant/1.0{bar=val2} [err_othervariantloaded {foo=val1}]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set tserr [msg_load variant/1.0{foo=val2} [err_invalvarval foo val2 {val1}]]
+} else {
+    set tserr [msg_load variant/1.0{foo=val2} [err_othervariantloaded {foo=val1}]]
+}
+testouterr_cmd sh {load variant/1.0 foo=val1 variant/1.0 foo=val2} $ans $tserr
+if {[is_conf_enabled autohandling conflictunload]} {
+    set tserr [msg_load variant/1.0{bar=val2} [err_novarval foo {val1}]]
+} else {
+    set tserr [msg_load variant/1.0{bar=val2} [err_othervariantloaded {foo=val1}]]
+}
+testouterr_cmd sh {load variant/1.0 foo=val1 variant/1.0 bar=val2} $ans $tserr
 
 setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
-testouterr_cmd sh {load variant/1.0 bar=val2} ERR [msg_load variant/1.0{bar=val2} [err_othervariantloaded {}]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set tserr [msg_unload variant/1.0 [err_novarval foo {val1}]]\n\n[msg_load variant/1.0{bar=val2} [err_conun variant/1.0]]
+} else {
+    set tserr [msg_load variant/1.0{bar=val2} [err_othervariantloaded {}]]
+}
+testouterr_cmd sh {load variant/1.0 bar=val2} ERR $tserr
 unsetenv_loaded_module
 
 # test @loaded version specifier
@@ -305,7 +320,17 @@ testouterr_cmd_re sh {load variant/1.0 foo=val1} $ans {}
 # force load whereas another variant of module is already loaded
 setenv_var __MODULES_LMVARIANT variant/3.0&bar|val1|0|0
 setenv_loaded_module [list variant/3.0] [list $mp/variant/3.0]
-testouterr_cmd sh {load -f variant/3.0 bar=val2} ERR [msg_load variant/3.0{bar=val2} [err_othervariantloaded bar=val1]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMVARIANT variant/3.0&bar|val2|0|0]
+    lappend ans [list set _LMFILES_ $mp/variant/3.0]
+    lappend ans [list set LOADEDMODULES variant/3.0]
+    set tserr [msg_top_load variant/3.0{bar=val2} variant/3.0{bar=val1} {} {}]
+} else {
+    set ans ERR
+    set tserr [msg_load variant/3.0{bar=val2} [err_othervariantloaded bar=val1]]
+}
+testouterr_cmd sh {load -f variant/3.0 bar=val2} $ans $tserr
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMVARIANT
 
@@ -519,25 +544,49 @@ setenv_var __MODULES_LMVARIANT variant/1.0&foo|val1|0|0&bar|val3|0|0
 setenv_var MODULES_EXTENDED_DEFAULT 0
 testouterr_cmd sh {load -i variant/1.0 foo=val1 bar=val3} OK {}
 # FIXME: no icase support currently on variant name and value
-set tserr [msg_load variant/1.0{bar=VaL3:FoO=val1} [err_othervariantloaded {bar=val3 foo=val1}]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set tserr [msg_load variant/1.0{bar=VaL3:FoO=val1} [err_novarval foo {val1 val2}]]
+} else {
+    set tserr [msg_load variant/1.0{bar=VaL3:FoO=val1} [err_othervariantloaded {bar=val3 foo=val1}]]
+}
 testouterr_cmd sh {load -i variant/1.0 FoO=val1 bar=VaL3} ERR $tserr
-set tserr [msg_load variant/1.0{bar=VaL3:foo=val1} [err_othervariantloaded {bar=val3 foo=val1}]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set tserr [msg_load variant/1.0{bar=VaL3:foo=val1} [err_invalvarval bar VaL3 {val3 val4}]]
+} else {
+    set tserr [msg_load variant/1.0{bar=VaL3:foo=val1} [err_othervariantloaded {bar=val3 foo=val1}]]
+}
 testouterr_cmd sh {load -i variant/1.0 foo=val1 bar=VaL3} ERR $tserr
 
 # icase on & extended_default on
 setenv_var MODULES_EXTENDED_DEFAULT 1
 testouterr_cmd sh {load -i variant/1 foo=val1 bar=val3} OK {}
 # FIXME: no icase support currently on variant name and value
-set tserr [msg_load variant/1.0{bar=VaL3:FoO=val1} [err_othervariantloaded {bar=val3 foo=val1}]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set tserr [msg_load variant/1.0{bar=VaL3:FoO=val1} [err_novarval foo {val1 val2}]]
+} else {
+    set tserr [msg_load variant/1.0{bar=VaL3:FoO=val1} [err_othervariantloaded {bar=val3 foo=val1}]]
+}
 testouterr_cmd sh {load -i variant/1 FoO=val1 bar=VaL3} ERR $tserr
-set tserr [msg_load variant/1.0{bar=VaL3:foo=val1} [err_othervariantloaded {bar=val3 foo=val1}]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set tserr [msg_load variant/1.0{bar=VaL3:foo=val1} [err_invalvarval bar VaL3 {val3 val4}]]
+} else {
+    set tserr [msg_load variant/1.0{bar=VaL3:foo=val1} [err_othervariantloaded {bar=val3 foo=val1}]]
+}
 testouterr_cmd sh {load -i variant/1 foo=val1 bar=VaL3} ERR $tserr
 
 # icase off & extended_default on
 testouterr_cmd sh {load variant/1 foo=val1 bar=val3} OK {}
-set tserr [msg_load variant/1.0{bar=VaL3:FoO=val1} [err_othervariantloaded {bar=val3 foo=val1}]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set tserr [msg_load variant/1.0{bar=VaL3:FoO=val1} [err_novarval foo {val1 val2}]]
+} else {
+    set tserr [msg_load variant/1.0{bar=VaL3:FoO=val1} [err_othervariantloaded {bar=val3 foo=val1}]]
+}
 testouterr_cmd sh {load variant/1 FoO=val1 bar=VaL3} ERR $tserr
-set tserr [msg_load variant/1.0{bar=VaL3:foo=val1} [err_othervariantloaded {bar=val3 foo=val1}]]
+if {[is_conf_enabled autohandling conflictunload]} {
+    set tserr [msg_load variant/1.0{bar=VaL3:foo=val1} [err_invalvarval bar VaL3 {val3 val4}]]
+} else {
+    set tserr [msg_load variant/1.0{bar=VaL3:foo=val1} [err_othervariantloaded {bar=val3 foo=val1}]]
+}
 testouterr_cmd sh {load variant/1 foo=val1 bar=VaL3} ERR $tserr
 
 unsetenv_loaded_module
