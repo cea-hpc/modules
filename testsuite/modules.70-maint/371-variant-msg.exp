@@ -51,9 +51,9 @@ testouterr_cmd sh {switch -v variant/1.0 foo=val2 bar=val3} $ans [msg_load varia
 setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
 setenv_var __MODULES_LMVARIANT variant/1.0&foo|val2|0|0&bar|val3|0|0
 
-testouterr_cmd sh {load -vv variant/1.0 foo=val2 bar=val3} OK [msg_load variant/1.0{bar=val3:foo=val2} [info_alreadyloaded {variant/1.0}]]
-
-testouterr_cmd sh {load -vv variant/1.0} ERR [msg_load variant/1.0 [err_othervariantloaded {bar=val3 foo=val2}]]
+set tserr [msg_load variant/1.0{bar=val3:foo=val2} [info_alreadyloaded {variant/1.0}]]
+testouterr_cmd sh {load -vv variant/1.0 foo=val2 bar=val3} OK $tserr
+testouterr_cmd sh {load -vv variant/1.0} OK $tserr
 
 testouterr_cmd sh {switch -v variant/1.0 foo=val2 bar=val3} $ans [msg_unload variant/1.0{bar=val3:foo=val2}]\n[msg_load variant/1.0{bar=val3:foo=val2}]\n[msg_switch variant/1.0{bar=val3:foo=val2} variant/1.0{bar=val3:foo=val2}]
 
@@ -98,8 +98,9 @@ setenv_var MODULES_COLORS "hi=1:se=2:va=93"
 set ORIG_msg_disp_cols $msg_disp_cols
 set msg_disp_cols 120
 
-testouterr_cmd_re sh {load -w 120 --color=always -vv variant/1.0} ERR [msg_load "[sgr 1]variant/1.0[sgr 22]" [err_othervariantloaded {bar=val3 foo=val2} 1]]
-testouterr_cmd_re sh {load -w 120 --color=always -vv variant/1.0 bar=val3 foo=val2} OK [msg_load "[sgr 1]variant/1.0[sgr 22][sgr 2]{[sgr 22][sgr 93]bar=[sgr 0][sgr 93]val3[sgr 0][sgr 2]:[sgr 22][sgr 93]foo=[sgr 0][sgr 93]val2[sgr 0][sgr 2]}[sgr 22]" [info_alreadyloaded {variant/1.0}]]
+set tserr [msg_load "[sgr 1]variant/1.0[sgr 22][sgr 2]{[sgr 22][sgr 93]bar=[sgr 0][sgr 93]val3[sgr 0][sgr 2]:[sgr 22][sgr 93]foo=[sgr 0][sgr 93]val2[sgr 0][sgr 2]}[sgr 22]" [info_alreadyloaded {variant/1.0}]]
+testouterr_cmd_re sh {load -w 120 --color=always -vv variant/1.0 bar=val3 foo=val2} OK $tserr
+testouterr_cmd_re sh {load -w 120 --color=always -vv variant/1.0} OK $tserr
 
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMVARIANT

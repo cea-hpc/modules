@@ -152,10 +152,8 @@ testouterr_cmd sh {load -v variant@1.0 ^val1 %val1 bar=val2} $ans $tserr
 # module already loaded
 setenv_loaded_module [list variant/1.0] [list $mp/variant/1.0]
 setenv_var __MODULES_LMVARIANT variant/1.0&foo|val1|0|1&bar|val2|0|1
-set tserr [msg_load variant/1.0{%val1} [err_othervariantloaded {^val2:%val1}]]
-#FIXME: should detect that omitted variant matches loaded variant with default value
-testouterr_cmd sh {load -v variant/1.0%val1} ERR $tserr
-testouterr_cmd sh {load -v variant/1.0 foo=val1} ERR $tserr
+testouterr_cmd sh {load -v variant/1.0%val1} OK {}
+testouterr_cmd sh {load -v variant/1.0 foo=val1} OK {}
 
 testouterr_cmd sh {load -v variant@1.0%val1^val2} OK {}
 testouterr_cmd sh {load -v variant@1.0 foo=val1^val2} OK {}
@@ -188,8 +186,7 @@ if {[is_conf_enabled autohandling conflictunload]} {
     set tserr [msg_load variant/1.0{^val1} [err_othervariantloaded {^val2:%val1}]]
 }
 testouterr_cmd sh {load -v variant@1.0 ^val1} $ans $tserr
-set tserr [msg_load variant/1.0 [err_othervariantloaded {^val2:%val1}]]
-testouterr_cmd sh {load -v variant@1.0} ERR $tserr
+testouterr_cmd sh {load -v variant@1.0} OK {}
 
 
 #
