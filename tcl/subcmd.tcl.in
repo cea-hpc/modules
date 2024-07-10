@@ -712,11 +712,7 @@ proc cmdModuleRestore {args} {
    # unload modules one by one (no dependency auto unload)
    foreach mod [lreverse $mod_to_unload] {
       # test stickiness over full module name version variant designation
-      if {[set vr [getVariantList $mod 1]] ne {}} {
-         lassign [parseModuleSpecification 0 0 0 0 $mod {*}$vr] modvr
-      } else {
-         set modvr $mod
-      }
+      set modvr [getAndParseLoadedModuleWithVariant $mod]
       # sticky modules can be unloaded when restoring collection
       lappendState unloading_sticky $mod
       if {[set supersticky_reload [isStickinessReloading $modvr $mod_to_load\
@@ -1173,12 +1169,7 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list modulepath_list\
       set loadedmodname [getLoadedMatchingName $modnamevr]
       if {$loadedmodname ne {}} {
          set modname $loadedmodname
-         if {[set vr [getVariantList $mod 1]] ne {}} {
-            lassign [parseModuleSpecification 0 0 0 0 $modname {*}$vr]\
-               modnamevr
-         } else {
-            set modnamevr $modname
-         }
+         set modnamevr [getAndParseLoadedModuleWithVariant $modname]
       }
 
       # record module title (with the variant specified on load call, and no
@@ -2696,12 +2687,7 @@ proc cmdModuleRefresh {} {
 
    foreach lm [getEnvLoadedModulePropertyParsedList refresh] {
       # prepare info to execute modulefile
-      set vrlist [getVariantList $lm 1]
-      if {[llength $vrlist]} {
-         lassign [parseModuleSpecification 0 0 0 0 $lm {*}$vrlist] lmvr
-      } else {
-         set lmvr $lm
-      }
+      set lmvr [getAndParseLoadedModuleWithVariant $lm]
       set lmfile [getModulefileFromLoadedModule $lm]
       set taglist [getExportTagList $lm]
 

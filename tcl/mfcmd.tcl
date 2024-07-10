@@ -124,13 +124,7 @@ proc module-info {what {more {}}} {
          # refresh mod name version and variant to correctly get all matching
          # tags (in case tags apply to specific module variant)
          set modname [currentState modulename]
-         set vrlist [getVariantList $modname 1]
-         if {[llength $vrlist]} {
-            lassign [parseModuleSpecification 0 0 0 0 $modname {*}$vrlist]\
-               modnamevr
-         } else {
-            set modnamevr $modname
-         }
+         set modnamevr [getAndParseLoadedModuleWithVariant $modname]
          collectModuleTags $modnamevr
 
          if {$more ne {}} {

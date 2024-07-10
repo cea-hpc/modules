@@ -1226,10 +1226,8 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
                         set mod $newmod
                      } else {
                         # add specified variants to current resolution
-                        if {[llength $vrlist]} {
-                           lassign [parseModuleSpecification 0 0 0 0 $newmod\
-                              {*}$vrlist] newmod
-                        }
+                        set newmod [getAndParseModuleWithVariant $newmod\
+                           $vrlist]
                         # restart search on new modulename, constrained to
                         # specified dir if set, if not found in current res
                         return [getPathToModule $newmod $indir $report_issue]
@@ -1247,10 +1245,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
                         if {![info exists mod_list($mod)] && [isModuleHidden\
                            $mod $modspec 0 $dir/$mod]} {
                            # add specified variants to current resolution
-                           if {[llength $vrlist]} {
-                              lassign [parseModuleSpecification 0 0 0 0 $mod\
-                                 {*}$vrlist] mod
-                           }
+                           set mod [getAndParseModuleWithVariant $mod $vrlist]
                            return [getPathToModule $mod $indir $report_issue]
                         }
                      }
@@ -1284,12 +1279,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
          '$mod'"]
    } else {
       # build module name and variant with variant specified
-      if {[llength $vrlist]} {
-         lassign [parseModuleSpecification 0 0 0 0 [lindex $retlist 1]\
-            {*}$vrlist] modnamevr
-      } else {
-         set modnamevr [lindex $retlist 1]
-      }
+      set modnamevr [getAndParseModuleWithVariant [lindex $retlist 1] $vrlist]
       # update result if forbidden
       if {[isModuleTagged $modnamevr forbidden 0 [lindex $retlist 0]]} {
          set retlist [list {} [lindex $retlist 1] [lindex $retlist 2]\
@@ -1838,6 +1828,20 @@ proc getLoadedModuleWithVariantSaveTagArrayList {} {
       }
    }
    return [array get tag_arr]
+}
+
+proc getAndParseLoadedModuleWithVariant {mod} {
+   set vr_list [getVariantList $mod 1]
+   return [getAndParseModuleWithVariant $mod $vr_list]
+}
+
+proc getAndParseModuleWithVariant {mod vr_list} {
+   if {[llength $vr_list]} {
+      lassign [parseModuleSpecification 0 0 0 0 $mod {*}$vr_list] mod_vr
+   } else {
+      set mod_vr $mod
+   }
+   return $mod_vr
 }
 
 proc unsetEnvLoadedModuleProperty {mod_name prop} {
