@@ -1037,6 +1037,7 @@ proc conflict {args} {
 
    foreach mod $args {
       set is_conflict_loading 0
+      set unload_attempt 0
       set loaded_conflict_mod_list [getLoadedMatchingName $mod returnall]
 
       if {![llength $loaded_conflict_mod_list]} {
@@ -1061,11 +1062,18 @@ proc conflict {args} {
             }
          }
          set loaded_conflict_mod_list $still_loaded_conflict_mod_list
+         set unload_attempt 1
       }
 
       if {[llength $loaded_conflict_mod_list]} {
-         reportPresentConflictError $curmodnamevr $loaded_conflict_mod_list\
-            $is_conflict_loading
+         # indicate message has already been reported
+         lappend ::report_conflict([currentState evalid])\
+            {*}$loaded_conflict_mod_list
+
+         # error msg has already been sent if a conflict unload was attempted
+         set msg [expr {$unload_attempt ? {} : [getPresentConflictErrorMsg\
+            $curmodnamevr $loaded_conflict_mod_list $is_conflict_loading]}]
+         knerrorOrWarningIfForced $msg MODULES_ERR_GLOBAL
       }
    }
 
