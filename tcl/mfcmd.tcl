@@ -1066,9 +1066,7 @@ proc conflict {args} {
       }
 
       if {[llength $loaded_conflict_mod_list]} {
-         # indicate message has already been reported
-         lappend ::report_conflict([currentState evalid])\
-            {*}$loaded_conflict_mod_list
+         setConflictErrorAsReported {*}$loaded_conflict_mod_list
 
          # error msg has already been sent if a conflict unload was attempted
          set msg [expr {$unload_attempt ? {} : [getPresentConflictErrorMsg\
