@@ -967,9 +967,14 @@ unsetenv_var __MODULES_LMPREREQ
 # conflict declared on an alias name whose target unload has been attempted but failed
 setenv_loaded_module [list advvers6/2.1] [list $mp/advvers6/2.1]
 setenv_var __MODULES_LMALTNAME advvers6/2.1&advvers7/9.2
-set ans ERR
-#FIXME: missing error unload message of advvers6/2.1
-set tserr [msg_load advvers7/9.0 [err_conlo advvers6/2.1]]
+if {[is_conf_enabled conflictunload]} {
+    #FIXME: should load module or produce message to indicate what happened
+    set ans OK
+    set tserr {}
+} else {
+    set ans ERR
+    set tserr [msg_load advvers7/9.0 [err_conlo advvers6/2.1]]
+}
 testouterr_cmd_re sh {load --auto advvers7@9.0} $ans $tserr
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMALTNAME
