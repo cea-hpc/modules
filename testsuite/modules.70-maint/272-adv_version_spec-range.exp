@@ -968,14 +968,11 @@ unsetenv_var __MODULES_LMPREREQ
 setenv_loaded_module [list advvers6/2.1] [list $mp/advvers6/2.1]
 setenv_var __MODULES_LMALTNAME advvers6/2.1&advvers7/9.2
 if {[is_conf_enabled conflictunload]} {
-    #FIXME: should load module or produce message to indicate what happened
-    set ans OK
-    set tserr {}
+    set tserr [msg_unload advvers6/2.1 $err_evalabort]\n\n[msg_load advvers7/9.0 [err_conun advvers6/2.1]]
 } else {
-    set ans ERR
     set tserr [msg_load advvers7/9.0 [err_conlo advvers6/2.1]]
 }
-testouterr_cmd_re sh {load --auto advvers7@9.0} $ans $tserr
+testouterr_cmd_re sh {load --auto advvers7@9.0} ERR $tserr
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMALTNAME
 
