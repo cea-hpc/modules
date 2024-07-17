@@ -763,6 +763,25 @@ proc releaseHeldReport {args} {
          }
          unset ::g_holdReportConflict($holdid)
       }
+      # also drop failed module evaluation to get their failure information
+      # if later retried
+      if {[info exists ::g_holdModuleFailedEval($holdid)]} {
+         if {$action eq {drop}} {
+            foreach {evalid failed_context failed_mod}\
+               $::g_holdModuleFailedEval($holdid) {
+               set failed_eval_list $::g_moduleFailedEval($evalid)
+               for {set i 0} {$i < [llength $failed_eval_list]} {incr i} {
+                  if {[lindex $failed_eval_list $i] eq $failed_context &&\
+                     [lindex $failed_eval_list $i+1] eq $failed_mod} {
+                     set failed_eval_list [lreplace $failed_eval_list $i $i+1]
+                     break
+                  }
+               }
+               set ::g_moduleFailedEval($evalid) $failed_eval_list
+            }
+         }
+         unset ::g_holdModuleFailedEval($holdid)
+      }
    }
 }
 

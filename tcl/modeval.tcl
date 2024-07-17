@@ -59,6 +59,10 @@ proc registerModuleEval {context msgrecid {failedmod {}} {failedcontext {}}} {
    # add mod to failed evaluation list
    if {$unset} {
       lappend ::g_moduleFailedEval($evalid) $failedcontext $failedmod
+      if {[depthState reportholdid]} {
+         lappend ::g_holdModuleFailedEval([currentState reportholdid])\
+            $evalid $failedcontext $failedmod
+      }
    }
 }
 
