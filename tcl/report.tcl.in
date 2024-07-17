@@ -753,6 +753,16 @@ proc releaseHeldReport {args} {
          }
          unset ::g_holdReport($holdid)
       }
+      # also drop reported tag of conflict error
+      if {[info exists ::g_holdReportConflict($holdid)]} {
+         if {$action eq {drop}} {
+            foreach {evalid drop_mod_list} $::g_holdReportConflict($holdid) {
+               lassign [getDiffBetweenList $::report_conflict($evalid)\
+                  $drop_mod_list] ::report_conflict($evalid)
+            }
+         }
+         unset ::g_holdReportConflict($holdid)
+      }
    }
 }
 
@@ -2134,6 +2144,11 @@ proc reportMissingPrereqError {curmodnamevr modulepath_list args} {
 
 proc setConflictErrorAsReported {args} {
    appendNoDupToList ::report_conflict([currentState evalid]) {*}$args
+   # save content added to remove it later if evaluation is withdrawn
+   if {[depthState reportholdid]} {
+      lappend ::g_holdReportConflict([currentState reportholdid]) \
+         [currentState evalid] $args
+   }
 }
 
 proc isConflictErrorAlreadyReported {msgrecid mod_con_list} {
