@@ -1631,10 +1631,14 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
             reportDebug "urequn mod list is '$urequnlist'"
 
             # DepRe: Dependent to Reload (modules optionally dependent or in
-            # conflict with modname, DepUn or UReqUn modules + modules
-            # dependent of a module part of this DepRe batch)
-            set deprelist [getDependentLoadedModuleList [list {*}$urequnlist\
-               {*}$depunlist $modname] 0 0 1 0 1 1]
+            # conflict with modname, DepUn modules + modules dependent of a
+            # module part of this DepRe batch)
+            set deprelist [getDependentLoadedModuleList [list {*}$depunlist\
+               $modname] 0 0 1 0 1 1]
+
+            # withdraw urequn mods from depre mod list
+            lassign [getDiffBetweenList $deprelist $urequnlist] deprelist
+
             reportDebug "depre mod list is '$deprelist'"
 
             # DepUn mods are merged into the DepRe list as an attempt to
@@ -1742,8 +1746,28 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
          unsetEnvLoadedModuleProperty $modname stickyrule
 
          if {[getConf auto_handling] && $auto} {
-            # UReqUn modules unload now DepUn+main mods are unloaded
+            # UReqUn mods unload is performed after unload of DepUn+main mods
             if {[llength $urequnlist]} {
+               # DepRe: Dependent to Reload (modules optionally dependent or
+               # in conflict with modname, DepUn or UReqUn modules + modules
+               # dependent of a module part of this DepRe batch)
+               set urequn_depre_list [getDependentLoadedModuleList\
+                  $urequnlist 0 0 1 0 1 1]
+               reportDebug "urequn depre mod list is '$urequn_depre_list'"
+
+               if {[llength $urequn_depre_list]} {
+                  lassign [reloadModuleListUnloadPhase urequn_depre_list\
+                     {Unload of dependent _MOD_ failed} depre_un]\
+                     urequn_depre_isuasked urequn_depre_vr\
+                     urequn_depre_extratag
+                  if {[llength $urequn_depre_list]} {
+                     set deprelist [concat $urequn_depre_list $deprelist]
+                     lappend depreisuasked {*}$urequn_depre_isuasked
+                     lappend deprevr {*}$urequn_depre_vr
+                     lappend depreextratag {*}$urequn_depre_extratag
+                  }
+               }
+
                set urequnlist [lreverse $urequnlist]
                for {set i 0} {$i < [llength $urequnlist]} {incr i 1} {
                   set unmod [lindex $urequnlist $i]
