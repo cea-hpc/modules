@@ -476,10 +476,6 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1} {nporeq 0}\
 # unmodlist: pass a list of modules that are going to be unloaded
 proc isModuleUnloadable {mod {unmodlist {}}} {
    set ret 1
-   # get currently unloading modules if no specific unmodlist set
-   if {![llength $unmodlist]} {
-      set unmodlist [getUnloadingModuleList]
-   }
 
    # module may be unloaded if it has been automatically loaded, it is not
    # tagged keep-loaded and it is not sticky.
