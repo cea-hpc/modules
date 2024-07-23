@@ -1618,6 +1618,8 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
             }
             reportDebug "depun mod list is '$depunlist'"
 
+            clearLoadedReqOfReloadingModuleList
+
             set unload_mod_list [list {*}$depunlist $modname]
 
             # do not check for UReqUn mods coming from DepUn modules as these
@@ -1630,8 +1632,7 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
 
             # UReqUn: Useless Requirement to Unload (autoloaded requirements
             # of modname or DepUn modules not required by any remaining mods)
-            set urequnlist [getUnloadableLoadedModuleList $urequnqry]
-            reportDebug "urequn mod list is '$urequnlist'"
+            set urequn_list [getUnloadableLoadedModuleList $urequnqry]
 
             # DepRe: Dependent to Reload (modules optionally dependent or in
             # conflict with modname, DepUn modules + modules dependent of a
@@ -1640,7 +1641,7 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
                1 0 1 1]
 
             # withdraw urequn mods from depre mod list
-            lassign [getDiffBetweenList $deprelist $urequnlist] deprelist
+            lassign [getDiffBetweenList $deprelist $urequn_list] deprelist
 
             reportDebug "depre mod list is '$deprelist'"
 
@@ -1650,7 +1651,12 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
                set deprelist [sortModulePerLoadedAndDepOrder [list\
                   {*}$depunlist {*}$deprelist] 1]
                set depunlist {}
+               set unload_mod_list [list $modname]
+               reportDebug "updated depun mod list (switch) is '$depunlist'"
+               reportDebug "updated depre mod list (switch) is '$deprelist'"
             }
+
+            saveLoadedReqOfReloadingModuleList $deprelist $unload_mod_list
 
             # Reload of all DepRe mods, as they may adapt from the mod unloads
             # happening here. First perform unload phase of the reload, prior
@@ -1749,41 +1755,10 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
          unsetEnvLoadedModuleProperty $modname stickyrule
 
          if {[getConf auto_handling] && $auto} {
-            # UReqUn mods unload is performed after unload of DepUn+main mods
-            if {[llength $urequnlist]} {
-               # DepRe: Dependent to Reload (modules optionally dependent or
-               # in conflict with modname, DepUn or UReqUn modules + modules
-               # dependent of a module part of this DepRe batch)
-               set urequn_depre_list [getDependentLoadedModuleList\
-                  $urequnlist 0 0 1 0 1 1]
-               reportDebug "urequn depre mod list is '$urequn_depre_list'"
-
-               if {[llength $urequn_depre_list]} {
-                  lassign [reloadModuleListUnloadPhase urequn_depre_list\
-                     {Unload of dependent _MOD_ failed} depre_un]\
-                     urequn_depre_isuasked urequn_depre_vr\
-                     urequn_depre_extratag
-                  if {[llength $urequn_depre_list]} {
-                     set deprelist [concat $urequn_depre_list $deprelist]
-                     lappend depreisuasked {*}$urequn_depre_isuasked
-                     lappend deprevr {*}$urequn_depre_vr
-                     lappend depreextratag {*}$urequn_depre_extratag
-                  }
-               }
-
-               set urequnlist [lreverse $urequnlist]
-               for {set i 0} {$i < [llength $urequnlist]} {incr i 1} {
-                  set unmod [lindex $urequnlist $i]
-                  ##nagelfar ignore Found constant
-                  if {[cmdModuleUnload urequn match 0 0 0 $unmod]} {
-                     # main unload process continues, but the UReqUn modules
-                     # that are required by unmod (whose unload failed) are
-                     # withdrawn from UReqUn module list
-                     lassign [getDiffBetweenList $urequnlist\
-                        [getRequiredLoadedModuleList [list $unmod]]]\
-                        urequnlist
-                  }
-               }
+            # UReqUn: Useless Requirement to Unload (autoloaded requirements
+            # not required by any remaining mods)
+            if {![info exists swprocessing]} {
+               unloadUReqUnModules
             }
 
             # DepRe modules load phase now DepUn+UReqUn+main mods are unloaded

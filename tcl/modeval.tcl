@@ -575,7 +575,8 @@ proc pushSettings {} {
       lappend ::g_SAVE_$var [array get ::$var]
    }
    # save non-array variable and indication if it was set
-   foreach var {g_changeDir g_stdoutPuts g_prestdoutPuts g_return_text} {
+   foreach var {g_changeDir g_stdoutPuts g_prestdoutPuts g_return_text\
+      g_savedLoReqOfReloadModList} {
       ##nagelfar ignore #4 Suspicious variable name
       if {[info exists ::$var]} {
          lappend ::g_SAVE_$var [list 1 [set ::$var]]
@@ -597,7 +598,8 @@ proc popSettings {} {
       g_loadedModuleAliasAltname g_moduleDepend g_dependHash\
       g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
-      g_unmetDepHash g_moduleEval g_moduleHiddenEval g_scanModuleVariant} {
+      g_unmetDepHash g_moduleEval g_moduleHiddenEval g_scanModuleVariant\
+      g_savedLoReqOfReloadModList} {
       ##nagelfar ignore Suspicious variable name
       set ::g_SAVE_$var [lrange [set ::g_SAVE_$var] 0 end-1]
    }
@@ -635,7 +637,8 @@ proc restoreSettings {} {
       }
    }
    # restore non-array variable if it was set
-   foreach var {g_changeDir g_stdoutPuts g_prestdoutPuts g_return_text} {
+   foreach var {g_changeDir g_stdoutPuts g_prestdoutPuts g_return_text\
+      g_savedLoReqOfReloadModList} {
       ##nagelfar ignore #6 Suspicious variable name
       if {[info exists ::$var]} {
          unset ::$var
@@ -863,6 +866,83 @@ proc isStickinessReloading {mod reloading_mod_list {tag sticky}} {
 proc isModuleSticky {mod} {
    return [expr {[isModuleTagged $mod super-sticky 1] || ([isModuleTagged\
       $mod sticky 1] && ![getState force])}]
+}
+
+proc saveLoadedReqOfReloadingModuleList {reload_mod_list unload_mod_list} {
+   # fetch requirements of reloading modules skipping unloading ones
+   set loaded_req_mod_list [getRequiredLoadedModuleList $reload_mod_list\
+      $unload_mod_list]
+   appendNoDupToList ::g_savedLoReqOfReloadModList {*}$loaded_req_mod_list
+}
+
+proc getLoadedReqOfReloadingModuleList {} {
+   if {[info exists ::g_savedLoReqOfReloadModList]} {
+      return $::g_savedLoReqOfReloadModList
+   } else {
+      return {}
+   }
+}
+
+proc clearLoadedReqOfReloadingModuleList {} {
+   unset -nocomplain ::g_savedLoReqOfReloadModList
+}
+
+proc getUReqUnModuleList {} {
+   set unloadable_mod_list {}
+   set reloading_req_mod_list [getLoadedReqOfReloadingModuleList]
+   # useless requirement unload modules are auto-loaded modules not required
+   # by reloading modules and unloadable
+   # treat lastly loaded module first to build unloadable module list
+   foreach auto_loaded_mod [lreverse [getTaggedLoadedModuleList auto-loaded]]\
+      {
+      if {$auto_loaded_mod ni $reloading_req_mod_list && [isModuleUnloadable\
+         $auto_loaded_mod $unloadable_mod_list]} {
+         lappend unloadable_mod_list $auto_loaded_mod
+      }
+   }
+   # return result in loaded order
+   return [lreverse $unloadable_mod_list]
+}
+
+proc unloadUReqUnModules {} {
+   set urequn_list [getUReqUnModuleList]
+   reportDebug "urequn mod list is '$urequn_list'"
+
+   if {[llength $urequn_list]} {
+      # DepRe: Dependent to Reload (modules optionally dependent or in
+      # conflict with modname, DepUn or UReqUn modules + modules dependent of
+      # a module part of this DepRe batch)
+      set urequn_depre_list [getDependentLoadedModuleList $urequn_list 0 0 1\
+         0 1 1]
+      if {[llength $urequn_depre_list]} {
+         # link to DepRe variables in calling procedure context
+         upvar deprelist deprelist
+         upvar depreisuasked depreisuasked
+         upvar deprevr deprevr
+         upvar depreextratag depreextratag
+
+         lassign [reloadModuleListUnloadPhase urequn_depre_list {Unload of\
+            dependent _MOD_ failed} depre_un] urequn_depre_isuasked\
+            urequn_depre_vr urequn_depre_extratag
+         set deprelist [concat $urequn_depre_list $deprelist]
+         lappend depreisuasked {*}$urequn_depre_isuasked
+         lappend deprevr {*}$urequn_depre_vr
+         lappend depreextratag {*}$urequn_depre_extratag
+      }
+
+      set urequn_list [lreverse $urequn_list]
+      for {set i 0} {$i < [llength $urequn_list]} {incr i 1} {
+         set unmod [lindex $urequn_list $i]
+         ##nagelfar ignore Found constant
+         if {[cmdModuleUnload urequn match 0 0 0 $unmod]} {
+            # main unload process continues, but the UReqUn modules that are
+            # required by unmod (whose unload failed) are withdrawn from
+            # UReqUn module list
+            lassign [getDiffBetweenList $urequn_list\
+               [getRequiredLoadedModuleList [list $unmod]]] urequn_list
+         }
+      }
+   }
 }
 
 # ;;; Local Variables: ***
