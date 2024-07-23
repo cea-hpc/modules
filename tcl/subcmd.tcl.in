@@ -1618,12 +1618,14 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
             }
             reportDebug "depun mod list is '$depunlist'"
 
+            set unload_mod_list [list {*}$depunlist $modname]
+
             # do not check for UReqUn mods coming from DepUn modules as these
             # DepUn modules are reloaded
             if {[info exists swprocessing]} {
                set urequnqry [list $modname]
             } else {
-               set urequnqry [list {*}$depunlist $modname]
+               set urequnqry $unload_mod_list
             }
 
             # UReqUn: Useless Requirement to Unload (autoloaded requirements
@@ -1634,8 +1636,8 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
             # DepRe: Dependent to Reload (modules optionally dependent or in
             # conflict with modname, DepUn modules + modules dependent of a
             # module part of this DepRe batch)
-            set deprelist [getDependentLoadedModuleList [list {*}$depunlist\
-               $modname] 0 0 1 0 1 1]
+            set deprelist [getDependentLoadedModuleList $unload_mod_list 0 0\
+               1 0 1 1]
 
             # withdraw urequn mods from depre mod list
             lassign [getDiffBetweenList $deprelist $urequnlist] deprelist
