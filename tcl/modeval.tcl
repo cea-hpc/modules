@@ -496,22 +496,29 @@ proc isModuleUnloadable {mod {unmodlist {}}} {
    return $ret
 }
 
-# gets the list of all loaded modules which are required by passed modlist
-# ordered by load position.
-proc getRequiredLoadedModuleList {modlist} {
+# gets the list of all loaded modules which are required by passed mod_list
+# ordered by load position. a list of modules to exclude may be provided
+# (usually to skip requirements that will be unloaded)
+proc getRequiredLoadedModuleList {mod_list {excluded_mod_list {}}} {
    # search over all list of loaded modules, starting with passed module
    # list, then adding in turns their requirements
-   set fulllist $modlist
-   for {set i 0} {$i < [llength $fulllist]} {incr i 1} {
+   set full_list $mod_list
+   for {set i 0} {$i < [llength $full_list]} {incr i 1} {
       # gets the list of loaded modules which are required by depmod
-      appendNoDupToList fulllist {*}$::g_moduleDepend([lindex $fulllist $i])
+      foreach req_mod_list $::g_moduleDepend([lindex $full_list $i]) {
+         foreach req_mod $req_mod_list {
+            if {$req_mod ni $excluded_mod_list} {
+               appendNoDupToList full_list $req_mod
+            }
+         }
+      }
    }
 
    # sort complete result list to match both loaded and dependency orders
-   set sortlist [sortModulePerLoadedAndDepOrder [lrange $fulllist [llength\
-      $modlist] end]]
-   reportDebug "got '$sortlist'"
-   return $sortlist
+   set sort_list [sortModulePerLoadedAndDepOrder [lrange $full_list [llength\
+      $mod_list] end]]
+   reportDebug "got '$sort_list'"
+   return $sort_list
 }
 
 # finds required modules that can be unloaded if passed modules are unloaded
