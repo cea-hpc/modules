@@ -1220,6 +1220,12 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list modulepath_list\
             }
          }
 
+         if {[isTopEvaluation] && ![info exists swprocessing]} {
+            clearLoadedReqOfReloadingModuleList
+         }
+
+         set unload_mod_list {}
+
          # register altname of modname prior any conflict check
          setLoadedAltname $modname {*}[getAllModuleResolvedName $modname 1\
             $mod]
@@ -1237,12 +1243,14 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list modulepath_list\
                      }
                   }
                }
+               lappend unload_mod_list {*}$conun_mod_list
             }
 
             # get loaded modules holding a requirement on modname and able to
             # be reloaded
             set deprelist [getUnmetDependentLoadedModuleList $modnamevr]
             reportDebug "depre mod list is '$deprelist'"
+            saveLoadedReqOfReloadingModuleList $deprelist $unload_mod_list
 
             # Reload all modules that have declared a prereq on mod as they
             # may take benefit from their prereq availability if it is newly
@@ -1335,6 +1343,12 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list modulepath_list\
          # declare module qualified for refresh evaluation
          if {[isModuleRefreshQualified $modname]} {
             append-path __MODULES_LMREFRESH $modname
+         }
+
+         # UReqUn: Useless Requirement to Unload (autoloaded requirements not
+         # required by any remaining mods)
+         if {[getConf auto_handling] && [isTopEvaluation]} {
+            unloadUReqUnModules
          }
 
          # Load phase of dependent module reloading. These modules can adapt
