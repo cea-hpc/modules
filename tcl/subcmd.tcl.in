@@ -1632,14 +1632,16 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
             }
             reportDebug "depun mod list is '$depunlist'"
 
-            clearLoadedReqOfReloadingModuleList
+            if {[isTopEvaluation]} {
+               clearLoadedReqOfReloadingModuleList
+            }
 
             set unload_mod_list [list {*}$depunlist $modname]
 
-            # do not check for UReqUn mods coming from DepUn modules as these
-            # DepUn modules are reloaded
-            if {[info exists swprocessing]} {
-               set urequnqry [list $modname]
+            # do not check for UReqUn mods if not top evaluation or if this
+            # top eval is a switch (in which case load phase handles urequn)
+            if {![isTopEvaluation] || [info exists swprocessing]} {
+               set urequnqry {}
             } else {
                set urequnqry $unload_mod_list
             }
@@ -1771,7 +1773,7 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
          if {[getConf auto_handling] && $auto} {
             # UReqUn: Useless Requirement to Unload (autoloaded requirements
             # not required by any remaining mods)
-            if {![info exists swprocessing]} {
+            if {[isTopEvaluation] && ![info exists swprocessing]} {
                unloadUReqUnModules
             }
 
