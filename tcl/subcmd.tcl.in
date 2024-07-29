@@ -572,6 +572,10 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
       if {$ret_load && [commandAbortOnError]} {
          restoreSettings
       } else {
+         if {[getConf auto_handling] && [isTopEvaluation]} {
+            unloadUReqUnModules
+         }
+
          # merge depre info of unload and load phases
          if {[info exists undepreisuasked]} {
             set depreisuasked [list {*}$undepreisuasked {*}$depreisuasked]
@@ -1347,7 +1351,8 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list modulepath_list\
 
          # UReqUn: Useless Requirement to Unload (autoloaded requirements not
          # required by any remaining mods)
-         if {[getConf auto_handling] && [isTopEvaluation]} {
+         if {[getConf auto_handling] && [isTopEvaluation] && ![info exists\
+            swprocessing]} {
             unloadUReqUnModules
          }
 
