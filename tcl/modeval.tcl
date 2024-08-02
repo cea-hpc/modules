@@ -570,13 +570,13 @@ proc pushSettings {} {
       g_loadedModuleAliasAltname g_moduleDepend g_dependHash\
       g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
-      g_unmetDepHash g_moduleEval g_moduleHiddenEval g_scanModuleVariant} {
+      g_unmetDepHash g_moduleEval g_moduleHiddenEval g_scanModuleVariant\
+      g_savedLoReqOfReloadMod} {
       ##nagelfar ignore Suspicious variable name
       lappend ::g_SAVE_$var [array get ::$var]
    }
    # save non-array variable and indication if it was set
-   foreach var {g_changeDir g_stdoutPuts g_prestdoutPuts g_return_text\
-      g_savedLoReqOfReloadModList} {
+   foreach var {g_changeDir g_stdoutPuts g_prestdoutPuts g_return_text} {
       ##nagelfar ignore #4 Suspicious variable name
       if {[info exists ::$var]} {
          lappend ::g_SAVE_$var [list 1 [set ::$var]]
@@ -599,7 +599,7 @@ proc popSettings {} {
       g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
       g_unmetDepHash g_moduleEval g_moduleHiddenEval g_scanModuleVariant\
-      g_savedLoReqOfReloadModList} {
+      g_savedLoReqOfReloadMod} {
       ##nagelfar ignore Suspicious variable name
       set ::g_SAVE_$var [lrange [set ::g_SAVE_$var] 0 end-1]
    }
@@ -615,7 +615,8 @@ proc restoreSettings {} {
       g_loadedModuleAliasAltname g_moduleDepend g_dependHash\
       g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
-      g_unmetDepHash g_moduleEval g_moduleHiddenEval g_scanModuleVariant} {
+      g_unmetDepHash g_moduleEval g_moduleHiddenEval g_scanModuleVariant\
+      g_savedLoReqOfReloadMod} {
       # clear current $var arrays
       ##nagelfar ignore #5 Suspicious variable name
       if {[info exists ::$var]} {
@@ -637,8 +638,7 @@ proc restoreSettings {} {
       }
    }
    # restore non-array variable if it was set
-   foreach var {g_changeDir g_stdoutPuts g_prestdoutPuts g_return_text\
-      g_savedLoReqOfReloadModList} {
+   foreach var {g_changeDir g_stdoutPuts g_prestdoutPuts g_return_text} {
       ##nagelfar ignore #6 Suspicious variable name
       if {[info exists ::$var]} {
          unset ::$var
@@ -870,21 +870,31 @@ proc isModuleSticky {mod} {
 
 proc saveLoadedReqOfReloadingModuleList {reload_mod_list unload_mod_list} {
    # fetch requirements of reloading modules skipping unloading ones
-   set loaded_req_mod_list [getRequiredLoadedModuleList $reload_mod_list\
-      $unload_mod_list]
-   appendNoDupToList ::g_savedLoReqOfReloadModList {*}$loaded_req_mod_list
-}
-
-proc getLoadedReqOfReloadingModuleList {} {
-   if {[info exists ::g_savedLoReqOfReloadModList]} {
-      return $::g_savedLoReqOfReloadModList
-   } else {
-      return {}
+   foreach reload_mod $reload_mod_list {
+      set ::g_savedLoReqOfReloadMod($reload_mod) [getRequiredLoadedModuleList\
+         [list $reload_mod] $unload_mod_list]
    }
 }
 
+proc getLoadedReqOfReloadingModuleList {} {
+   set reloading_req_mod_list {}
+   foreach reloading_mod [array names ::g_savedLoReqOfReloadMod] {
+      appendNoDupToList reloading_req_mod_list\
+         {*}$::g_savedLoReqOfReloadMod($reloading_mod)
+   }
+   return [sortModulePerLoadedAndDepOrder $reloading_req_mod_list]
+}
+
+proc unsetLoadedReqOfReloadingModule {mod} {
+   unset -nocomplain ::g_savedLoReqOfReloadMod($mod)
+}
+
 proc clearLoadedReqOfReloadingModuleList {} {
-   unset -nocomplain ::g_savedLoReqOfReloadModList
+   array unset ::g_savedLoReqOfReloadMod
+}
+
+proc isInReloadingModuleList {mod} {
+   return [info exists ::g_savedLoReqOfReloadMod($mod)]
 }
 
 proc getUReqUnModuleList {} {
@@ -898,6 +908,12 @@ proc getUReqUnModuleList {} {
       if {$auto_loaded_mod ni $reloading_req_mod_list && [isModuleUnloadable\
          $auto_loaded_mod $unloadable_mod_list]} {
          lappend unloadable_mod_list $auto_loaded_mod
+         # remove UReqUn module from DepRe list (to check their requirements
+         # that may also be part of UReqUn modules)
+         if {[isInReloadingModuleList $auto_loaded_mod]} {
+            unsetLoadedReqOfReloadingModule $auto_loaded_mod
+            set reloading_req_mod_list [getLoadedReqOfReloadingModuleList]
+         }
       }
    }
    # return result in loaded order
