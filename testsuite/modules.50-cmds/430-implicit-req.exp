@@ -349,21 +349,17 @@ testouterr_cmd_re sh {unload --no-auto impreq/loadsubm} $ans0 $tserr
 
 setenv_loaded_module [list foo/1.0 foo/0.prereq] [list $mp/foo/1.0 $mp/foo/0.prereq] [list foo/1.0]
 setenv_var __MODULES_LMPREREQ foo/0.prereq&foo/1.0
-# auto-loaded requirement of foo/0.prereq is not auto unloaded when foo/0.prereq is
-# unloaded by impreq/unload load unless conflict_unload is enabled
+set ans0 [list]
+lappend ans0 [list unset __MODULES_LMPREREQ]
+lappend ans0 [list set _LMFILES_ $mp/impreq/unload]
+lappend ans0 [list set LOADEDMODULES impreq/unload]
+lappend ans0 [list unset __MODULES_LMTAG]
+# auto-loaded requirement of foo/1.0 is seen as ConUn when conflict_unload is enabled
+# and seen as UReqUn otherwise
 if {[is_conf_enabled conflictunload]} {
-    set ans0 [list]
-    lappend ans0 [list unset __MODULES_LMPREREQ]
-    lappend ans0 [list set _LMFILES_ $mp/impreq/unload]
-    lappend ans0 [list set LOADEDMODULES impreq/unload]
-    lappend ans0 [list unset __MODULES_LMTAG]
-    set tserr [msg_top_load_conun impreq/unload {} {foo/0.prereq} {foo/1.0} {} {}]
+    set tserr [msg_top_load_conun impreq/unload {} {foo/0.prereq foo/1.0} {} {} {}]
 } else {
-    set ans0 [list]
-    lappend ans0 [list unset __MODULES_LMPREREQ]
-    lappend ans0 [list set _LMFILES_ $mp/foo/1.0:$mp/impreq/unload]
-    lappend ans0 [list set LOADEDMODULES foo/1.0:impreq/unload]
-    set tserr [msg_top_load impreq/unload foo/0.prereq {} {}]
+    set tserr [msg_top_load_conun impreq/unload {} foo/0.prereq foo/1.0 {} {}]
 }
 testouterr_cmd_re sh {load --auto impreq/unload} $ans0 $tserr
 unsetenv_loaded_module

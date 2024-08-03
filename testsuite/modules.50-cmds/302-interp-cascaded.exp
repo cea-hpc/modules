@@ -100,16 +100,30 @@ set env(testspreadsub) "yes"
 set env(testspread) "yes"
 
 # test switching
-set ans [list]
-lappend ans [list set testspreadcmdsub yes]
-lappend ans [list unset testspreadsub]
-lappend ans [list set __MODULES_LMPREREQ $mod2&$mod2c]
-lappend ans [list set _LMFILES_ "$modfile2c:$modfile2"]
-lappend ans [list set LOADEDMODULES "$mod2c:$mod2"]
-lappend ans [list set testspreadcmd yes]
-lappend ans [list set __MODULES_LMTAG $mod2c&auto-loaded]
-lappend ans [list unset testspread]
-testouterr_cmd_re "sh" "switch $mod1 $mod2" $ans $spreadresun[msg_top_switch $mod1 $mod2 {} $mod1c {} $mod2c {}]
+if {$install_autohandling eq {y}} {
+    set ans [list]
+    lappend ans [list unset testspreadsub]
+    lappend ans [list set testspreadcmdsub yes]
+    lappend ans [list set __MODULES_LMPREREQ $mod2&$mod2c]
+    lappend ans [list set _LMFILES_ "$modfile2c:$modfile2"]
+    lappend ans [list set LOADEDMODULES "$mod2c:$mod2"]
+    lappend ans [list set __MODULES_LMTAG $mod2c&auto-loaded]
+    lappend ans [list set testspreadcmd yes]
+    lappend ans [list unset testspread]
+    set tserr $spreadresun[msg_top_switch $mod1 $mod2 {} $mod1c {} $mod2c {}]
+} else {
+    set ans [list]
+    lappend ans [list set testspreadcmdsub yes]
+    lappend ans [list unset testspreadsub]
+    lappend ans [list set __MODULES_LMPREREQ $mod2&$mod2c]
+    lappend ans [list set _LMFILES_ "$modfile2c:$modfile2"]
+    lappend ans [list set LOADEDMODULES "$mod2c:$mod2"]
+    lappend ans [list set testspreadcmd yes]
+    lappend ans [list set __MODULES_LMTAG $mod2c&auto-loaded]
+    lappend ans [list unset testspread]
+    set tserr $spreadresun[msg_top_switch_noauto $mod1 $mod2 {} $mod1c {} $mod2c {}]
+}
+testouterr_cmd_re "sh" "switch $mod1 $mod2" $ans $tserr
 
 testouterr_cmd "sh" "list -t" "OK" "$cur_loaded\n$mod1c\n$mod1"
 # test unloading
@@ -247,18 +261,21 @@ set env(testspreadrc) "yes"
 set ans [list]
 lappend ans [list set testspreadrccmd yes]
 lappend ans [list unset testspreadrc]
-lappend ans [list set testspreadrccmdsub yes]
 if {$install_autohandling eq {y}} {
     lappend ans [list unset testspreadrcsub]
 }
+lappend ans [list set testspreadrccmdsub yes]
 lappend ans [list set __MODULES_LMPREREQ $mod2&$mod2c]
 lappend ans [list set _LMFILES_ "$modfile2c:$modfile2"]
 lappend ans [list set LOADEDMODULES "$mod2c:$mod2"]
 if {$install_autohandling eq {n}} {
     lappend ans [list unset testspreadrcsub]
+    set tserr $spreadresun[msg_top_switch_noauto $mod1 $mod2 {} $mod1c {} $mod2c {}]
+} else {
+    set tserr $spreadresun[msg_top_switch $mod1 $mod2 {} $mod1c {} $mod2c {}]
 }
 lappend ans [list set __MODULES_LMTAG $mod2c&auto-loaded]
-testouterr_cmd_re "sh" "switch $mod1 $mod2" $ans $spreadresun[msg_top_switch $mod1 $mod2 {} $mod1c {} $mod2c {}]
+testouterr_cmd_re "sh" "switch $mod1 $mod2" $ans $tserr
 
 testouterr_cmd "sh" "list -t" "OK" "$cur_loaded\n$mod1c\n$mod1"
 # test unloading
