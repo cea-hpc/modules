@@ -571,7 +571,7 @@ proc pushSettings {} {
       g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
       g_unmetDepHash g_moduleEval g_moduleHiddenEval g_scanModuleVariant\
-      g_savedLoReqOfReloadMod} {
+      g_savedLoReqOfReloadMod g_savedLoReqOfUnloadMod} {
       ##nagelfar ignore Suspicious variable name
       lappend ::g_SAVE_$var [array get ::$var]
    }
@@ -599,7 +599,7 @@ proc popSettings {} {
       g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
       g_unmetDepHash g_moduleEval g_moduleHiddenEval g_scanModuleVariant\
-      g_savedLoReqOfReloadMod} {
+      g_savedLoReqOfReloadMod g_savedLoReqOfUnloadMod} {
       ##nagelfar ignore Suspicious variable name
       set ::g_SAVE_$var [lrange [set ::g_SAVE_$var] 0 end-1]
    }
@@ -616,7 +616,7 @@ proc restoreSettings {} {
       g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
       g_unmetDepHash g_moduleEval g_moduleHiddenEval g_scanModuleVariant\
-      g_savedLoReqOfReloadMod} {
+      g_savedLoReqOfReloadMod g_savedLoReqOfUnloadMod} {
       # clear current $var arrays
       ##nagelfar ignore #5 Suspicious variable name
       if {[info exists ::$var]} {
@@ -868,6 +868,25 @@ proc isModuleSticky {mod} {
       $mod sticky 1] && ![getState force])}]
 }
 
+proc saveLoadedReqOfUnloadingModule {unload_mod} {
+   # fetch requirements of unloading module
+   set ::g_savedLoReqOfUnloadMod($unload_mod)\
+      [getRequiredLoadedModuleList [list $unload_mod]]
+}
+
+proc getLoadedReqOfUnloadingModuleList {} {
+   set unloading_req_mod_list {}
+   foreach unloading_mod [array names ::g_savedLoReqOfUnloadMod] {
+      appendNoDupToList unloading_req_mod_list\
+         {*}$::g_savedLoReqOfUnloadMod($unloading_mod)
+   }
+   return [sortModulePerLoadedAndDepOrder $unloading_req_mod_list]
+}
+
+proc clearLoadedReqOfUnloadingModuleList {} {
+   array unset ::g_savedLoReqOfUnloadMod
+}
+
 proc saveLoadedReqOfReloadingModuleList {reload_mod_list unload_mod_list} {
    # fetch requirements of reloading modules skipping unloading ones
    foreach reload_mod $reload_mod_list {
@@ -900,18 +919,16 @@ proc isInReloadingModuleList {mod} {
 proc getUReqUnModuleList {} {
    set unloadable_mod_list {}
    set reloading_req_mod_list [getLoadedReqOfReloadingModuleList]
-   # useless requirement unload modules are auto-loaded modules not required
-   # by reloading modules and unloadable
+   # useless requirement unload modules are unloadable req of unloaded mods
    # treat lastly loaded module first to build unloadable module list
-   foreach auto_loaded_mod [lreverse [getTaggedLoadedModuleList auto-loaded]]\
-      {
-      if {$auto_loaded_mod ni $reloading_req_mod_list && [isModuleUnloadable\
-         $auto_loaded_mod $unloadable_mod_list]} {
-         lappend unloadable_mod_list $auto_loaded_mod
+   foreach unloading_req_mod [lreverse [getLoadedReqOfUnloadingModuleList]] {
+      if {$unloading_req_mod ni $reloading_req_mod_list &&\
+         [isModuleUnloadable $unloading_req_mod $unloadable_mod_list]} {
+         lappend unloadable_mod_list $unloading_req_mod
          # remove UReqUn module from DepRe list (to check their requirements
          # that may also be part of UReqUn modules)
-         if {[isInReloadingModuleList $auto_loaded_mod]} {
-            unsetLoadedReqOfReloadingModule $auto_loaded_mod
+         if {[isInReloadingModuleList $unloading_req_mod]} {
+            unsetLoadedReqOfReloadingModule $unloading_req_mod
             set reloading_req_mod_list [getLoadedReqOfReloadingModuleList]
          }
       }
