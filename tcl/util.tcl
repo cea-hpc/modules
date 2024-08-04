@@ -223,6 +223,15 @@ proc replaceFromList {list1 item {item2 {}}} {
    return $list1
 }
 
+proc lprepend {lst_name args} {
+   upvar $lst_name lst
+   if {[info exists lst]} {
+      set lst [list {*}$args {*}$lst]
+   } else {
+      set lst $args
+   }
+}
+
 # test if 2 lists have at least one element in common
 proc isIntBetweenList {list1 list2} {
    foreach elt $list1 {

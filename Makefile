@@ -1077,6 +1077,7 @@ tcl/syntaxdb.tcl: modulecmd.tcl $(NAGELFAR)
 		set tcl_interactive 1;\
 		source $(NAGELFAR_RELEASE)/syntaxbuild.tcl;\
 		set ::syntax(appendNoDupToList) {n x*};\
+		set ::syntax(lprepend) {n x*};\
 		set ::syntax(execute-modulefile) {x x n x x x? x? x?};\
 		set ::syntax(filterExtraMatchSearch) {x x n n};\
 		set ::syntax(findModulesFromDirsAndFiles) {x x x x n n? n? n? n?};\

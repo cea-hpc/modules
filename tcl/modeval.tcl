@@ -957,7 +957,7 @@ proc unloadUReqUnModules {} {
          lassign [reloadModuleListUnloadPhase urequn_depre_list {Unload of\
             dependent _MOD_ failed} depre_un] urequn_depre_isuasked\
             urequn_depre_vr urequn_depre_extratag
-         set deprelist [concat $urequn_depre_list $deprelist]
+         lprepend deprelist {*}$urequn_depre_list
          lappend depreisuasked {*}$urequn_depre_isuasked
          lappend deprevr {*}$urequn_depre_vr
          lappend depreextratag {*}$urequn_depre_extratag

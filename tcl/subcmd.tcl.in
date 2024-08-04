@@ -578,9 +578,9 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
 
          # merge depre info of unload and load phases
          if {[info exists undepreisuasked]} {
-            set depreisuasked [list {*}$undepreisuasked {*}$depreisuasked]
-            set deprevr [list {*}$undeprevr {*}$deprevr]
-            set depreextratag [list {*}$undepreextratag {*}$depreextratag]
+            lprepend depreisuasked {*}$undepreisuasked
+            lprepend deprevr {*}$undeprevr
+            lprepend depreextratag {*}$undepreextratag
          }
 
          if {[set errCode [catch {
@@ -1268,7 +1268,7 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list modulepath_list\
                   depreextratag
                if {[info exists swprocessing]} {
                   if {[info exists swdeprelist]} {
-                     set swdeprelist [list {*}$deprelist {*}$swdeprelist]
+                     lprepend swdeprelist {*}$deprelist
                   } else {
                      set swdeprelist $deprelist
                   }

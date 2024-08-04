@@ -440,7 +440,7 @@ proc filterExtraMatchSearch {modpath mod res_arrname versmod_arrname} {
       set extra_keep_list [getModMatchingExtraSpec $modpath $spec_xt_list]
       lassign [getDiffBetweenList $keep_list $extra_keep_list]\
          extra_unset_list
-      set unset_list [list {*}$unset_list {*}$extra_unset_list]
+      lappend unset_list {*}$extra_unset_list
    }
 
    # unset marked elements
