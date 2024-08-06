@@ -1368,7 +1368,7 @@ proc execShAndGetEnv {elt_ignored_list shell script args} {
          set varre {export (\S+?)=["']?(.*?)["']?$}
          set funcre {(\S+?) \(\)\s?\n?{\s?\n(.+?)\n}$}
          set aliasre {(\S+?)='(.*?)'$}
-         set varvalmap [list {\"} {"} \\\\ \\]
+         set varvalmap [list {\"} \" \\\\ \\]
          set alvalmap [list {'\''} ' {'"'"'} ']
       }
       bash {
@@ -1382,7 +1382,7 @@ proc execShAndGetEnv {elt_ignored_list shell script args} {
          set aliasre {alias (\S+?)='(.*?)'$}
          set compre {complete (.+?) (\S+?)$}
          set comprevar [list match value name]
-         set varvalmap [list {\"} {"} \\\\ \\]
+         set varvalmap [list {\"} \" \\\\ \\]
          set alvalmap [list {'\''} ']
          lappend shellopts --noprofile --norc
       }
@@ -1397,7 +1397,7 @@ proc execShAndGetEnv {elt_ignored_list shell script args} {
          set aliasre {alias (\S+?)='(.*?)'$}
          set compre {complete (.+?) (\S+?)$}
          set comprevar [list match value name]
-         set varvalmap [list {\"} {"} \\\\ \\]
+         set varvalmap [list {\"} \" \\\\ \\]
          set alvalmap [list {'\''} ']
          lappend shellopts --noprofile --norc
       }
@@ -1413,7 +1413,7 @@ proc execShAndGetEnv {elt_ignored_list shell script args} {
          set funcre {(\S+?)\(\) {\n?(.+?)}[;\n]?$}
          set aliasre {(\S+?)=\$?'?(.*?)'?$}
          set varvalmap [list {\'} ']
-         set alvalmap [list {\"} {"} {\\'} ' {\'} ' {\\\\} {\\}]
+         set alvalmap [list {\"} \" {\\'} ' {\'} ' {\\\\} {\\}]
       }
       zsh {
          ##nagelfar ignore +2 Found constant
