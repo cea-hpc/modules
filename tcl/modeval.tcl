@@ -76,6 +76,71 @@ proc registerModuleEvalHidden {context msgrecid} {
    lappend ::g_moduleHiddenEval($evalid:$context) $msgrecid
 }
 
+proc changeContextOfModuleEval {mod old_context new_context} {
+   set evalid [topState evalid]
+   # find old and new context evaluations
+   for {set i 0} {$i < [llength $::g_moduleEval($evalid)]} {incr i 1} {
+      set context_eval_list [lindex $::g_moduleEval($evalid) $i]
+      if {[lindex $context_eval_list 0] eq $old_context} {
+         set old_context_idx $i
+         set old_context_eval_list $context_eval_list
+      } elseif {[lindex $context_eval_list 0] eq $new_context} {
+         set new_context_idx $i
+         set new_context_eval_list $context_eval_list
+      }
+      if {[info exists old_context_idx] && [info exists new_context_idx]} {
+         break
+      }
+   }
+
+   # module evaluation not found
+   if {![info exists old_context_idx]} {
+      return
+   }
+
+   # new context has no evaluation yet
+   if {![info exists new_context_idx]} {
+      set new_context_idx end+1
+      set new_context_eval_list [list $new_context]
+   }
+
+   # find evaluation id of module
+   foreach msgrecid [lrange $old_context_eval_list 1 end] {
+      if {$mod eq [getModuleFromEvalId $msgrecid]} {
+         set mod_evalid $msgrecid
+         break
+      }
+   }
+   if {![info exists mod_evalid]} {
+      return
+   }
+
+   # remove evaluation from old context
+   set old_context_eval_list [replaceFromList $old_context_eval_list\
+      $mod_evalid]
+   lset ::g_moduleEval($evalid) $old_context_idx $old_context_eval_list
+
+   # insert evaluation at start of new context
+   set new_context_eval_list [linsert $new_context_eval_list 1 $mod_evalid]
+   # on Tcl 8.5, lset command cannot append a list
+   if {$new_context_idx eq {end+1}} {
+      lappend ::g_moduleEval($evalid) $new_context_eval_list
+   } else {
+      lset ::g_moduleEval($evalid) $new_context_idx $new_context_eval_list
+   }
+
+   # change context of hidden evaluation
+   set old_hidden_evalid $evalid:$old_context
+   if {[info exists ::g_moduleHiddenEval($old_hidden_evalid)]} {
+      if {$mod_evalid in $::g_moduleHiddenEval($old_hidden_evalid)} {
+         set ::g_moduleHiddenEval($old_hidden_evalid) [replaceFromList\
+            $::g_moduleHiddenEval($old_hidden_evalid) $mod_evalid]
+         set new_hidden_evalid $evalid:$new_context
+         lappend ::g_moduleHiddenEval($new_hidden_evalid) $mod_evalid
+      }
+   }
+}
+
 # get context of currently evaluated module
 proc currentModuleEvalContext {} {
    return [lindex $::g_moduleEvalAttempt([currentState modulenamevr]) end]
@@ -521,38 +586,6 @@ proc getRequiredLoadedModuleList {mod_list {excluded_mod_list {}}} {
    return $sort_list
 }
 
-# finds required modules that can be unloaded if passed modules are unloaded
-proc getUnloadableLoadedModuleList {modlist} {
-   # search over all list of unloaded modules, starting with passed module
-   # list, then adding in turns unloadable requirements
-   set fulllist $modlist
-   for {set i 0} {$i < [llength $fulllist]} {incr i 1} {
-      set depmod [lindex $fulllist $i]
-      # gets the list of loaded modules which are required by depmod
-      set deplist {}
-      foreach lmmodlist $::g_moduleDepend($depmod) {
-         foreach lmmod $lmmodlist {
-            if {$lmmod ni $fulllist} {
-               lappend deplist $lmmod
-            }
-         }
-      }
-
-      # get those required module that may be unloaded
-      foreach lmmod $deplist {
-         if {[isModuleUnloadable $lmmod $fulllist]} {
-            lappend fulllist $lmmod
-         }
-      }
-   }
-
-   # sort complete result list to match both loaded and dependency orders
-   set sortlist [sortModulePerLoadedAndDepOrder [lrange $fulllist [llength\
-      $modlist] end]]
-   reportDebug "got '$sortlist'"
-   return $sortlist
-}
-
 # how many settings bundle are currently saved
 proc getSavedSettingsStackDepth {} {
    return [llength $::g_SAVE_g_loadedModules]
@@ -576,7 +609,8 @@ proc pushSettings {} {
       lappend ::g_SAVE_$var [array get ::$var]
    }
    # save non-array variable and indication if it was set
-   foreach var {g_changeDir g_stdoutPuts g_prestdoutPuts g_return_text} {
+   foreach var {g_changeDir g_stdoutPuts g_prestdoutPuts g_return_text\
+      g_uReqUnFromDepReList} {
       ##nagelfar ignore #4 Suspicious variable name
       if {[info exists ::$var]} {
          lappend ::g_SAVE_$var [list 1 [set ::$var]]
@@ -599,7 +633,7 @@ proc popSettings {} {
       g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
       g_unmetDepHash g_moduleEval g_moduleHiddenEval g_scanModuleVariant\
-      g_savedLoReqOfReloadMod g_savedLoReqOfUnloadMod} {
+      g_savedLoReqOfReloadMod g_savedLoReqOfUnloadMod g_uReqUnFromDepReList} {
       ##nagelfar ignore Suspicious variable name
       set ::g_SAVE_$var [lrange [set ::g_SAVE_$var] 0 end-1]
    }
@@ -638,7 +672,8 @@ proc restoreSettings {} {
       }
    }
    # restore non-array variable if it was set
-   foreach var {g_changeDir g_stdoutPuts g_prestdoutPuts g_return_text} {
+   foreach var {g_changeDir g_stdoutPuts g_prestdoutPuts g_return_text\
+      g_uReqUnFromDepReList} {
       ##nagelfar ignore #6 Suspicious variable name
       if {[info exists ::$var]} {
          unset ::$var
@@ -912,12 +947,46 @@ proc clearLoadedReqOfReloadingModuleList {} {
    array unset ::g_savedLoReqOfReloadMod
 }
 
-proc isInReloadingModuleList {mod} {
-   return [info exists ::g_savedLoReqOfReloadMod($mod)]
+proc identityUReqUnFromDepRe {depre_list unload_mod_list} {
+   foreach depre [lreverse $depre_list] {
+      if {[isModuleUnloadable $depre $unload_mod_list]} {
+         lappend unload_mod_list $depre
+         lappend ::g_uReqUnFromDepReList $depre
+      }
+   }
+}
+
+proc clearUReqUnFromDepReList {} {
+   unset -nocomplain ::g_uReqUnFromDepReList
+}
+
+proc getIdentifiedUReqUnFromDepRe {} {
+   if {[info exists ::g_uReqUnFromDepReList]} {
+      return $::g_uReqUnFromDepReList
+   } else {
+      return {}
+   }
+}
+
+proc removeUReqUnFromDepReAndConvertEval {depre_list} {
+   set urequn_from_depre_list [getIdentifiedUReqUnFromDepRe]
+   lassign [getDiffBetweenList $depre_list $urequn_from_depre_list] depre_list
+   foreach urequn_from_depre [lreverse $urequn_from_depre_list] {
+      changeContextOfModuleEval $urequn_from_depre depun urequn
+   }
+   return $depre_list
 }
 
 proc getUReqUnModuleList {} {
    set unloadable_mod_list {}
+
+   # add DepRe modules that are UReqUn modules and unset their requirements
+   # from reloading list (to check them for potential UReqUn modules)
+   foreach urequn_from_depre [getIdentifiedUReqUnFromDepRe] {
+      lappend unloadable_mod_list $urequn_from_depre
+      unsetLoadedReqOfReloadingModule $urequn_from_depre
+   }
+
    set reloading_req_mod_list [getLoadedReqOfReloadingModuleList]
    # useless requirement unload modules are unloadable req of unloaded mods
    # treat lastly loaded module first to build unloadable module list
@@ -925,12 +994,6 @@ proc getUReqUnModuleList {} {
       if {$unloading_req_mod ni $reloading_req_mod_list &&\
          [isModuleUnloadable $unloading_req_mod $unloadable_mod_list]} {
          lappend unloadable_mod_list $unloading_req_mod
-         # remove UReqUn module from DepRe list (to check their requirements
-         # that may also be part of UReqUn modules)
-         if {[isInReloadingModuleList $unloading_req_mod]} {
-            unsetLoadedReqOfReloadingModule $unloading_req_mod
-            set reloading_req_mod_list [getLoadedReqOfReloadingModuleList]
-         }
       }
    }
    # return result in loaded order

@@ -573,6 +573,9 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
          restoreSettings
       } else {
          if {[getConf auto_handling] && [isTopEvaluation]} {
+            if {[info exists deprelist]} {
+               set deprelist [removeUReqUnFromDepReAndConvertEval $deprelist]
+            }
             unloadUReqUnModules
          }
 
@@ -1227,6 +1230,7 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list modulepath_list\
          if {[isTopEvaluation] && ![info exists swprocessing]} {
             clearLoadedReqOfReloadingModuleList
             clearLoadedReqOfUnloadingModuleList
+            clearUReqUnFromDepReList
          }
 
          set unload_mod_list {}
@@ -1255,7 +1259,11 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list modulepath_list\
             # be reloaded
             set deprelist [getUnmetDependentLoadedModuleList $modnamevr]
             reportDebug "depre mod list is '$deprelist'"
-            saveLoadedReqOfReloadingModuleList $deprelist $unload_mod_list
+
+            if {[isTopEvaluation]} {
+               saveLoadedReqOfReloadingModuleList $deprelist $unload_mod_list
+               identityUReqUnFromDepRe $deprelist $unload_mod_list
+            }
 
             # Reload all modules that have declared a prereq on mod as they
             # may take benefit from their prereq availability if it is newly
@@ -1354,6 +1362,7 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list modulepath_list\
          # required by any remaining mods)
          if {[getConf auto_handling] && [isTopEvaluation] && ![info exists\
             swprocessing]} {
+            set deprelist [removeUReqUnFromDepReAndConvertEval $deprelist]
             unloadUReqUnModules
          }
 
@@ -1537,8 +1546,8 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
          # no error return if module is not loaded
          if {$errkind eq {notloaded}} {
             reportDebug "$modname is not loaded"
-            # report module is not loaded if verbose2 or higher level
-            if {[isVerbosityLevel verbose2]} {
+            # report module is not loaded if >=verbose2 and not auto context
+            if {[isVerbosityLevel verbose2] && $context ni {urequn}} {
                pushMsgRecordId $msgrecid
                reportInfo "Module '$modname' is not loaded"
                reportMsgRecord "Unloading [getModuleDesignation $msgrecid {}\
@@ -1641,32 +1650,16 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
             if {[isTopEvaluation]} {
                clearLoadedReqOfReloadingModuleList
                clearLoadedReqOfUnloadingModuleList
+               clearUReqUnFromDepReList
             }
 
             set unload_mod_list [list {*}$depunlist $modname]
-
-            # do not check for UReqUn mods if not top evaluation or if this
-            # top eval is a switch (in which case load phase handles urequn)
-            if {![isTopEvaluation] || [info exists swprocessing]} {
-               set urequnqry {}
-            } else {
-               set urequnqry $unload_mod_list
-            }
-
-            # UReqUn: Useless Requirement to Unload (autoloaded requirements
-            # of modname or DepUn modules not required by any remaining mods)
-            set urequn_list [getUnloadableLoadedModuleList $urequnqry]
 
             # DepRe: Dependent to Reload (modules optionally dependent or in
             # conflict with modname, DepUn modules + modules dependent of a
             # module part of this DepRe batch)
             set deprelist [getDependentLoadedModuleList $unload_mod_list 0 0\
                1 0 1 1]
-
-            # withdraw urequn mods from depre mod list
-            lassign [getDiffBetweenList $deprelist $urequn_list] deprelist
-
-            reportDebug "depre mod list is '$deprelist'"
 
             # DepUn mods are merged into the DepRe list as an attempt to
             # reload these DepUn mods is made once switched-to mod loaded
@@ -1679,7 +1672,10 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
                reportDebug "updated depre mod list (switch) is '$deprelist'"
             }
 
-            saveLoadedReqOfReloadingModuleList $deprelist $unload_mod_list
+            if {[isTopEvaluation]} {
+               saveLoadedReqOfReloadingModuleList $deprelist $unload_mod_list
+               identityUReqUnFromDepRe $deprelist $unload_mod_list
+            }
 
             # Reload of all DepRe mods, as they may adapt from the mod unloads
             # happening here. First perform unload phase of the reload, prior
@@ -1783,6 +1779,7 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
             # UReqUn: Useless Requirement to Unload (autoloaded requirements
             # not required by any remaining mods)
             if {[isTopEvaluation] && ![info exists swprocessing]} {
+               set deprelist [removeUReqUnFromDepReAndConvertEval $deprelist]
                unloadUReqUnModules
             }
 
