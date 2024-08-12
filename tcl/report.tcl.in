@@ -879,14 +879,12 @@ proc isEltInReport {elt {retifnotdef 1}} {
 
       # check if elt is marked to be included in output
       ##nagelfar ignore Suspicious variable name
-      set ret [info exists ${arrname}($elt)]
+      return [info exists ${arrname}($elt)]
    } else {
       # return $retifnotdef (ok by default) in case no config option
       # corresponds to the current module sub-command and output format
-      set ret $retifnotdef
+      return $retifnotdef
    }
-
-   return $ret
 }
 
 proc registerModuleDesignation {evalid mod vrlist taglist} {
@@ -896,8 +894,6 @@ proc registerModuleDesignation {evalid mod vrlist taglist} {
 proc getModuleFromEvalId {evalid} {
    if {[info exists ::g_moduleDesgination($evalid)]} {
       return [lindex $::g_moduleDesgination($evalid) 0]
-   } else {
-      return {}
    }
 }
 
@@ -1059,12 +1055,11 @@ proc getConLoadingMsg {con_mod_list} {
 proc getPresentConflictErrorMsg {curmodnamevr con_mod_list is_loading} {
    if {[isModuleEvaluated any $curmodnamevr {} {*}$con_mod_list] || [getState\
       force]} {
-      set msg [expr {$is_loading ? [getConLoadingMsg $con_mod_list] :\
+      return [expr {$is_loading ? [getConLoadingMsg $con_mod_list] :\
          [getConLoadedMsg $con_mod_list]}]
    } else {
-      set msg [getErrConflictMsg $con_mod_list]
+      return [getErrConflictMsg $con_mod_list]
    }
-   return $msg
 }
 
 proc getForbiddenMsg {mod fpmod} {

@@ -963,8 +963,6 @@ proc clearUReqUnFromDepReList {} {
 proc getIdentifiedUReqUnFromDepRe {} {
    if {[info exists ::g_uReqUnFromDepReList]} {
       return $::g_uReqUnFromDepReList
-   } else {
-      return {}
    }
 }
 

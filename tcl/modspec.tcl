@@ -1672,21 +1672,19 @@ proc unsetModuleVersSpec {modarg} {
 # get module name from module name and version spec if parsed
 proc getModuleNameFromVersSpec {modarg} {
    if {[info exists ::g_moduleVersSpec($modarg)]} {
-      lassign $::g_moduleVersSpec($modarg) mod modname
+      return [lindex $::g_moduleVersSpec($modarg) 1]
    } else {
-      set modname [file dirname $modarg]
+      return [file dirname $modarg]
    }
-   return $modname
 }
 
 # get module root name from module name and version spec if parsed
 proc getModuleRootFromVersSpec {modarg} {
    if {[info exists ::g_moduleVersSpec($modarg)]} {
-      set modroot [lindex $::g_moduleVersSpec($modarg) 6]
+      return [lindex $::g_moduleVersSpec($modarg) 6]
    } else {
-      set modroot [lindex [file split $modarg] 0]
+      return [lindex [file split $modarg] 0]
    }
-   return $modroot
 }
 
 # translate module name version spec to return all modules mentioned
@@ -1737,42 +1735,34 @@ proc getOneModuleFromVersSpec {modarg} {
 # translate module name version spec to return the list of variant mentioned
 proc getVariantListFromVersSpec {modarg} {
    if {[info exists ::g_moduleVersSpec($modarg)]} {
-      set variantlist [lindex $::g_moduleVersSpec($modarg) 7]
-   } else {
-      set variantlist {}
+      return [lindex $::g_moduleVersSpec($modarg) 7]
    }
-   return $variantlist
 }
 
 # get module name and version from version spec if parsed
 proc getModuleNameAndVersFromVersSpec {modarg} {
    if {[info exists ::g_moduleVersSpec($modarg)]} {
-      set modnvspec [lindex $::g_moduleVersSpec($modarg) 8]
+      return [lindex $::g_moduleVersSpec($modarg) 8]
    } else {
-      set modnvspec $modarg
+      return $modarg
    }
-   return $modnvspec
 }
 
 # get raw argument specified from parsed version spec
 proc getRawArgumentFromVersSpec {modarg} {
    if {[info exists ::g_moduleVersSpec($modarg)]} {
-      set rawarg [lindex $::g_moduleVersSpec($modarg) 9]
+      return [lindex $::g_moduleVersSpec($modarg) 9]
    } else {
-      set rawarg $modarg
+      return $modarg
    }
-   return $rawarg
 }
 
 # translate module name version spec to return the list of extra specifier
 # mentioned
 proc getExtraListFromVersSpec {modarg} {
    if {[info exists ::g_moduleVersSpec($modarg)]} {
-      set extralist [lindex $::g_moduleVersSpec($modarg) 10]
-   } else {
-      set extralist {}
+      return [lindex $::g_moduleVersSpec($modarg) 10]
    }
-   return $extralist
 }
 
 # translate module name version spec to return list of tag specifier and list
@@ -1795,11 +1785,8 @@ proc getSplitExtraListFromVersSpec {modarg} {
 # get available modules matching module specification
 proc getAvailListFromVersSpec {modarg} {
    if {[info exists ::g_moduleVersSpec($modarg)]} {
-      set availlist [lindex $::g_moduleVersSpec($modarg) 11]
-   } else {
-      set availlist {}
+      return [lindex $::g_moduleVersSpec($modarg) 11]
    }
-   return $availlist
 }
 
 # is mod spec containing variant but no module name and version

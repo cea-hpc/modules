@@ -499,11 +499,10 @@ proc getModulePathList {{behavior returnempty} {resolv_var 1} {set_abs 1}} {
 
 proc getModulepathLabel {modpath} {
    if {[info exists ::g_modulepathLabel($modpath)]} {
-      set label $::g_modulepathLabel($modpath)
+      return $::g_modulepathLabel($modpath)
    } else {
-      set label $modpath
+      return $modpath
    }
-   return $label
 }
 
 # return list of the configured and existing global RC files
@@ -616,17 +615,14 @@ proc getTaggedLoadedModuleList {tag} {
 }
 
 proc getModuleTagProp {mod fpmod tag prop} {
-   set ret {}
    array set tags [getModuleTag $mod $fpmod $tag]
 
    if {[info exists tags($tag)]} {
       array set props $tags($tag)
       if {[info exists props($prop)]} {
-         set ret $props($prop)
+         return $props($prop)
       }
    }
-
-   return $ret
 }
 
 # Gather all tags applying to a given module
@@ -739,11 +735,8 @@ proc getExportTagList {mod {fpmod {}}} {
 # return extra tags set on mod
 proc getExtraTagList {mod} {
    if {[info exists ::g_extraTagHash($mod)]} {
-      set ret $::g_extraTagHash($mod)
-   } else {
-      set ret {}
+      return $::g_extraTagHash($mod)
    }
-   return $ret
 }
 
 # return rule definition of sticky/super-sticky tag on given module
@@ -813,11 +806,8 @@ proc getTagFromAbbrev {abbrev} {
       getConf tag_abbrev
    }
    if {[info exists ::g_abbrevTag($abbrev)]} {
-      set tag $::g_abbrevTag($abbrev)
-   } else {
-      set tag {}
+      return $::g_abbrevTag($abbrev)
    }
-   return $tag
 }
 
 proc getVariantList {mod {report 0} {excl_dflval 0} {from 0}} {
@@ -1133,10 +1123,8 @@ proc isModuleHidden {mod {modspec {}} {retdetails 0} {fpmod {}}} {
    # is module hidden by definition (whatever hiding threshold or match)
    set hidbydef [expr {$defhidlvl > 0 || ([info exists isdot] && $isdot)}]
 
-   set ret [expr {$retdetails ? [list $hidlvl $hidmatch $hidbydef $ishid]\
+   return [expr {$retdetails ? [list $hidlvl $hidmatch $hidbydef $ishid]\
       : $ishid}]
-
-   return $ret
 }
 
 # check if module name is specified as a full pathname (not a name relative
@@ -1306,8 +1294,6 @@ proc isModuleLoaded {mod} {
 proc getModulefileFromLoadedModule {mod} {
    if {[isModuleLoaded $mod]} {
       return $::g_loadedModules($mod)
-   } else {
-      return {}
    }
 }
 
@@ -1324,8 +1310,6 @@ proc getModuleFromLoadedModulefile {modfile {idx all}} {
       } else {
          return [lindex $::g_loadedModuleFiles($modfile) $idx]
       }
-   } else {
-      return {}
    }
 }
 
@@ -1341,8 +1325,6 @@ proc getModulefileFromLoadingModule {mod} {
    if {[isModuleLoading $mod]} {
       set idx [lsearch -exact [getLoadingModuleList] $mod]
       return [lindex [getLoadingModuleFileList] $idx]
-   } else {
-      return {}
    }
 }
 
@@ -1358,8 +1340,6 @@ proc getModuleFromLoadingModulefile {modfile {idx all}} {
       } else {
          return [lindex $modlist $idx]
       }
-   } else {
-      return {}
    }
 }
 
@@ -1566,11 +1546,10 @@ proc isLoadedMatchSpecificPath {mod modulepath_list loading} {
       } else {
          set mod_file [getModulefileFromLoadedModule $mod]
       }
-      set ret [isModulefileInModulepathList $mod_file $modulepath_list]
+      return [isModulefileInModulepathList $mod_file $modulepath_list]
    } else {
-      set ret 1
+      return 1
    }
-   return $ret
 }
 
 proc setLoadedSourceSh {mod args} {
@@ -1615,11 +1594,8 @@ proc unsetLoadedSourceSh {mod} {
 
 proc getLoadedSourceSh {mod} {
    if {[info exists ::g_loadedModuleSourceSh($mod)]} {
-      set ret $::g_loadedModuleSourceSh($mod)
-   } else {
-      set ret {}
+      return $::g_loadedModuleSourceSh($mod)
    }
-   return $ret
 }
 
 proc getLoadedSourceShScriptContent {mod script} {
@@ -1645,11 +1621,8 @@ proc unsetLoadedConflict {mod} {
 
 proc getLoadedConflict {mod} {
    if {[info exists ::g_loadedModuleConflict($mod)]} {
-      set ret $::g_loadedModuleConflict($mod)
-   } else {
-      set ret {}
+      return $::g_loadedModuleConflict($mod)
    }
-   return $ret
 }
 
 proc getModuleLoadedConflict {mod} {
@@ -1710,11 +1683,8 @@ proc unsetLoadedPrereq {mod} {
 
 proc getLoadedPrereq {mod} {
    if {[info exists ::g_loadedModulePrereq($mod)]} {
-      set ret $::g_loadedModulePrereq($mod)
-   } else {
-      set ret {}
+      return $::g_loadedModulePrereq($mod)
    }
-   return $ret
 }
 
 proc setLoadedAltname {mod args} {
@@ -1793,11 +1763,8 @@ proc unsetLoadedVariant {mod} {
 
 proc getLoadedVariant {mod} {
    if {[info exists ::g_loadedModuleVariant($mod)]} {
-      set ret $::g_loadedModuleVariant($mod)
-   } else {
-      set ret {}
+      return $::g_loadedModuleVariant($mod)
    }
-   return $ret
 }
 
 proc getLoadedModuleWithVariantList {} {
@@ -1872,19 +1839,17 @@ proc setEnvLoadedModuleProperty {mod_name prop value_list} {
 }
 
 proc getEnvLoadedModulePropertyStructDepth {prop} {
-   set struct_depth {}
    switch -- $prop {
       file - init - modulepath - name - refresh {
-         set struct_depth 0Lvl
+         return 0Lvl
       }
       conflict - extratag - tag {
-         set struct_depth 1Lvl
+         return 1Lvl
       }
       altname - prereq - sourcesh - stickyrule - variant {
-         set struct_depth 2Lvl
+         return 2Lvl
       }
    }
-   return $struct_depth
 }
 
 proc getEnvLoadedModulePropertyCharUnmapList {prop} {
@@ -1925,8 +1890,7 @@ proc serialize1LvlModulePropertyValue {mod structured_value_list\
    char_map_list} {
    set serialized_value [join [list $mod {*}$structured_value_list] [getState\
       sub1_separator]]
-   set ret [string map $char_map_list $serialized_value]
-   return $ret
+   return [string map $char_map_list $serialized_value]
 }
 
 proc unserialize2LvlModulePropertyValueList {serialized_value_list\
@@ -2000,9 +1964,7 @@ proc getLoadedInit {} {
 
    # get init state as a string that can be registered in an env var translate
    # tag list separator ':' into '<' and line split '\n' into ':'
-   set ret [string map {: < \n :} $ret]
-
-   return $ret
+   return [string map {: < \n :} $ret]
 }
 
 # get all modules from all enabled modulepaths that matches a specification

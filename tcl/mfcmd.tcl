@@ -1288,14 +1288,12 @@ proc system {args} {
    }
 
    if {[catch {exec >&@stderr $shell $shellarg [join $args]}]} {
-       # non-zero exit status, get it:
-       set status [lindex $::errorCode 2]
+      # non-zero exit status, get it:
+      return [lindex $::errorCode 2]
    } else {
-       # exit status was 0
-       set status 0
+      # exit status was 0
+      return 0
    }
-
-   return $status
 }
 
 # test at least one of the collections passed as argument exists
