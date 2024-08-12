@@ -1634,18 +1634,8 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
 
             # DepUn: Dependent to Unload (modules actively requiring modname
             # or a module part of this DepUn batch)
-            set depunnpolist [getDependentLoadedModuleList [list $modname] 1\
-               0 1 0]
-            set depunlist [getDependentLoadedModuleList [list $modname] 1 0 0\
-               0]
-            # look at both regular dependencies or No Particular Order
-            # dependencies: use NPO result if situation can be healed with NPO
-            # dependencies, which will be part of DepRe list to restore the
-            # correct loading order for them
-            if {[llength $depunnpolist] <= [llength $depunlist]} {
-               set depunlist $depunnpolist
-            }
-            reportDebug "depun mod list is '$depunlist'"
+            set depun_list [getDepUnModuleList $modname]
+            reportDebug "depun mod list is '$depun_list'"
 
             if {[isTopEvaluation]} {
                clearLoadedReqOfReloadingModuleList
@@ -1653,7 +1643,7 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
                clearUReqUnFromDepReList
             }
 
-            set unload_mod_list [list {*}$depunlist $modname]
+            set unload_mod_list [list {*}$depun_list $modname]
 
             # DepRe: Dependent to Reload (modules optionally dependent or in
             # conflict with modname, DepUn modules + modules dependent of a
@@ -1665,10 +1655,10 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
             # reload these DepUn mods is made once switched-to mod loaded
             if {[info exists swprocessing]} {
                set deprelist [sortModulePerLoadedAndDepOrder [list\
-                  {*}$depunlist {*}$deprelist] 1]
-               set depunlist {}
+                  {*}$depun_list {*}$deprelist] 1]
+               set depun_list {}
                set unload_mod_list [list $modname]
-               reportDebug "updated depun mod list (switch) is '$depunlist'"
+               reportDebug "updated depun mod list (switch) is '$depun_list'"
                reportDebug "updated depre mod list (switch) is '$deprelist'"
             }
 
@@ -1689,21 +1679,7 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
             }
 
             # DepUn modules unload prior main mod unload
-            if {[llength $depunlist]} {
-               foreach unmod [lreverse $depunlist] {
-                  ##nagelfar ignore Found constant
-                  if {[cmdModuleUnload depun match 0 s 0 $unmod]} {
-                     # stop if one unload fails unless force mode enabled
-                     set errMsg "Unload of dependent [getModuleDesignation\
-                        loaded $unmod] failed"
-                     if {$force} {
-                        reportWarning $errMsg
-                     } else {
-                        knerror $errMsg
-                     }
-                  }
-               }
-            }
+            unloadDepUnModules $depun_list $force
          }
 
          # register this evaluation on the main one that triggered it (prior

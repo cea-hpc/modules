@@ -1041,6 +1041,33 @@ proc unloadUReqUnModules {} {
    }
 }
 
+proc getDepUnModuleList {mod} {
+   set depun_npo_list [getDependentLoadedModuleList [list $mod] 1 0 1 0]
+   set depun_list [getDependentLoadedModuleList [list $mod] 1 0 0 0]
+   # look at both regular dependencies or No Particular Order dependencies:
+   # use NPO result if situation can be healed with NPO dependencies, which
+   # will be part of DepRe list to restore the correct loading order for them
+   if {[llength $depun_npo_list] <= [llength $depun_list]} {
+      set depun_list $depun_npo_list
+   }
+   return $depun_list
+}
+
+proc unloadDepUnModules {depun_list force} {
+   foreach unmod [lreverse $depun_list] {
+      if {[cmdModuleUnload depun match 0 s 0 $unmod]} {
+         # stop if one unload fails unless force mode enabled
+         set errMsg "Unload of dependent [getModuleDesignation loaded $unmod]\
+            failed"
+         if {$force} {
+            reportWarning $errMsg
+         } else {
+            knerror $errMsg
+         }
+      }
+   }
+}
+
 # ;;; Local Variables: ***
 # ;;; mode:tcl ***
 # ;;; End: ***
