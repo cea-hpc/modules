@@ -1018,8 +1018,8 @@ proc unloadUReqUnModules {} {
          {Unload of dependent _MOD_ failed} depre_un]
       if {[llength $urequn_depre_list]} {
          # link to DepRe variables in calling procedure context
-         upvar deprelist deprelist
-         lprepend deprelist {*}$urequn_depre_list
+         upvar depre_list depre_list
+         lprepend depre_list {*}$urequn_depre_list
       }
 
       set urequn_list [lreverse $urequn_list]
