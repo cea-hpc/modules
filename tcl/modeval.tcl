@@ -789,10 +789,9 @@ proc getSavedPropsOfReloadingModule {mod} {
 }
 
 # unload phase of a list of modules reload process
-proc reloadModuleListUnloadPhase {lmname {errmsgtpl {}} {context unload}} {
-   upvar $lmname lmlist
+proc reloadModuleListUnloadPhase {mod_list {errmsgtpl {}} {context unload}} {
    # unload one by one to ensure same behavior whatever auto_handling state
-   foreach mod [lreverse $lmlist] {
+   foreach mod [lreverse $mod_list] {
       # record hint that mod will be reloaded (useful in case mod is sticky)
       lappendState reloading_sticky $mod
       lappendState reloading_supersticky $mod
@@ -802,7 +801,7 @@ proc reloadModuleListUnloadPhase {lmname {errmsgtpl {}} {context unload}} {
       if {[cmdModuleUnload $context match 0 1 0 $mod]} {
          # avoid failing module on load phase
          # if force state is enabled, cmdModuleUnload returns 0
-         set lmlist [replaceFromList $lmlist $mod]
+         set mod_list [replaceFromList $mod_list $mod]
          set errMsg [string map [list _MOD_ [getModuleDesignation loaded\
             $mod]] $errmsgtpl]
          lpopState reloading_sticky
@@ -815,17 +814,19 @@ proc reloadModuleListUnloadPhase {lmname {errmsgtpl {}} {context unload}} {
       lpopState reloading_sticky
       lpopState reloading_supersticky
    }
+   return $mod_list
 }
 
 # load phase of a list of modules reload process
-proc reloadModuleListLoadPhase {lmname {errmsgtpl {}} {context load}} {
-   upvar $lmname lmlist
-
+proc reloadModuleListLoadPhase {mod_list {errmsgtpl {}} {context load}} {
+   if {![llength $mod_list]} {
+      return
+   }
    # loads are made with auto handling mode disabled to avoid disturbances
    # from a missing prereq automatically reloaded, so these module loads may
    # fail as prereq may not be satisfied anymore
    setConf auto_handling 0
-   foreach mod $lmlist {
+   foreach mod $mod_list {
       lassign [getSavedPropsOfReloadingModule $mod] is_user_asked vr_list\
          extra_tag_list
       # if an auto set default was excluded, module spec need parsing
@@ -1013,12 +1014,11 @@ proc unloadUReqUnModules {} {
       # a module part of this DepRe batch)
       set urequn_depre_list [getDependentLoadedModuleList $urequn_list 0 0 1\
          0 1 1]
+      set urequn_depre_list [reloadModuleListUnloadPhase $urequn_depre_list\
+         {Unload of dependent _MOD_ failed} depre_un]
       if {[llength $urequn_depre_list]} {
          # link to DepRe variables in calling procedure context
          upvar deprelist deprelist
-
-         reloadModuleListUnloadPhase urequn_depre_list {Unload of dependent\
-            _MOD_ failed} depre_un
          lprepend deprelist {*}$urequn_depre_list
       }
 

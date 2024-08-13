@@ -1083,8 +1083,6 @@ tcl/syntaxdb.tcl: modulecmd.tcl $(NAGELFAR)
 		set ::syntax(findModulesFromDirsAndFiles) {x x x x n n? n? n? n?};\
 		set ::syntax(getArrayKey) {n x x};\
 		set ::syntax(getDiffBetweenArray) {n n x? x?};\
-		set ::syntax(reloadModuleListLoadPhase) {n x? x?};\
-		set ::syntax(reloadModuleListUnloadPhase) {n x? x?};\
 		buildFile $@;" | $(TCLSH)
 
 
