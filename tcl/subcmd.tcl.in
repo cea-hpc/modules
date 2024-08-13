@@ -535,7 +535,7 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
       lappendState reloading_supersticky $oldmod
    }
    ##nagelfar implicitvarcmd {cmdModuleUnload swunload *} oldhidden olduasked\
-      oldmsgrecid deprelist depreisuasked deprevr depreextratag
+      oldmsgrecid deprelist
    set ret_unload [cmdModuleUnload swunload $unload_match 1 s 0 $old]
    if {$sticky_reload} {
       lpopState reloading_sticky
@@ -559,11 +559,6 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
    if {!$ret_unload || ([isTopEvaluation] && ![commandAbortOnError] &&\
       ![commandAbortOnError switch_unload] && !$swunmod_is_supersticky) ||
       (![isTopEvaluation] && [getState force])} {
-      if {[info exists depreisuasked]} {
-         set undepreisuasked $depreisuasked
-         set undeprevr $deprevr
-         set undepreextratag $depreextratag
-      }
       ##nagelfar implicitvarcmd {cmdModuleLoad swload *} newhidden newmsgrecid
       set ret_load [cmdModuleLoad swload $uasked 0 0 $tag_list {} $new]
 
@@ -579,23 +574,16 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
             unloadUReqUnModules
          }
 
-         # merge depre info of unload and load phases
-         if {[info exists undepreisuasked]} {
-            lprepend depreisuasked {*}$undepreisuasked
-            lprepend deprevr {*}$undeprevr
-            lprepend depreextratag {*}$undepreextratag
-         }
-
          if {[set errCode [catch {
             if {[getConf auto_handling] && [info exists deprelist] &&\
                [llength $deprelist]} {
                # cmdModuleUnload handles the DepUn, UReqUn mechanisms and the
-               # unload phase of the DepRe mechanism. List of DepRe mods and
-               # their asked state is set from cmdModuleUnload procedure to be
-               # used here for the load phase of the DepRe mechanism.
+               # unload phase of the DepRe mechanism. List of DepRe mods is
+               # set from cmdModuleUnload procedure to be used here for the
+               # load phase of the DepRe mechanism.
                # Try DepRe load phase: load failure will not make switch fail
-               reloadModuleListLoadPhase deprelist $depreisuasked $deprevr\
-                  $depreextratag {Reload of dependent _MOD_ failed} depre
+               reloadModuleListLoadPhase deprelist {Reload of dependent _MOD_\
+                  failed} depre
             }
 
             if {$uasked} {
@@ -1156,9 +1144,6 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list modulepath_list\
          # let it handle the load phase of the DepRe mechanism along with the
          # DepRe modules set from switched off module.
          upvar deprelist swdeprelist
-         upvar depreisuasked depreisuasked
-         upvar deprevr deprevr
-         upvar depreextratag depreextratag
 
          # transmit loaded mod name for switch report summary
          uplevel 1 set new "{$modnamevr}"
@@ -1271,9 +1256,8 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list modulepath_list\
             # to ensure these dependent modules are unloaded with the same
             # loaded prereq as when they were loaded
             if {[llength $deprelist]} {
-               lassign [reloadModuleListUnloadPhase deprelist {Unload of\
-                  dependent _MOD_ failed} depre_un] depreisuasked deprevr\
-                  depreextratag
+               reloadModuleListUnloadPhase deprelist {Unload of dependent\
+                  _MOD_ failed} depre_un
                if {[info exists swprocessing]} {
                   if {[info exists swdeprelist]} {
                      lprepend swdeprelist {*}$deprelist
@@ -1371,8 +1355,8 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list modulepath_list\
          # load phase will occur from switch)
          if {[getConf auto_handling] && [llength $deprelist] && ![info exists\
             swprocessing]} {
-            reloadModuleListLoadPhase deprelist $depreisuasked $deprevr\
-               $depreextratag {Reload of dependent _MOD_ failed} depre
+            reloadModuleListLoadPhase deprelist {Reload of dependent _MOD_\
+               failed} depre
          }
 
          # record module title (name, variants and tags)
@@ -1530,13 +1514,10 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
 
       # if a switch action is ongoing...
       if {[info exists swprocessing]} {
-         # pass the DepRe mod list to the calling cmdModuleSwitch
-         # procedure to let it handle the load phase of the DepRe
-         # mechanism once the switched-to module will be loaded
+         # pass the DepRe mod list to the calling cmdModuleSwitch procedure to
+         # let it handle the load phase of the DepRe mechanism once the
+         # switched-to module will be loaded
          upvar deprelist deprelist
-         upvar depreisuasked depreisuasked
-         upvar deprevr deprevr
-         upvar depreextratag depreextratag
 
          # transmit unloaded mod name for switch report summary
          uplevel 1 set old "{$modnamevr}"
@@ -1673,9 +1654,8 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
             # same loaded prereq as when they were loaded. Avoid modules not
             # satisfying their constraint.
             if {[llength $deprelist]} {
-               lassign [reloadModuleListUnloadPhase deprelist {Unload of\
-                  dependent _MOD_ failed} depre_un] depreisuasked deprevr\
-                  depreextratag
+               reloadModuleListUnloadPhase deprelist {Unload of dependent\
+                  _MOD_ failed} depre_un
             }
 
             # DepUn modules unload prior main mod unload
@@ -1763,9 +1743,8 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
             # except if a switch action is ongoing as this DepRe load phase
             # will occur after the new mod load
             if {[llength $deprelist] && ![info exists swprocessing]} {
-               ##nagelfar ignore +2 Found constant
-               reloadModuleListLoadPhase deprelist $depreisuasked $deprevr\
-                  $depreextratag {Reload of dependent _MOD_ failed} depre
+               reloadModuleListLoadPhase deprelist {Reload of dependent _MOD_\
+                  failed} depre
             }
          }
 
@@ -1859,8 +1838,8 @@ proc cmdModuleReload {} {
       pushSettings
       if {[set errCode [catch {
          # run unload then load-again phases
-         lassign [reloadModuleListUnloadPhase lmlist] isuasked vr extratag
-         reloadModuleListLoadPhase lmlist $isuasked $vr $extratag
+         reloadModuleListUnloadPhase lmlist
+         reloadModuleListLoadPhase lmlist
       } errMsg]] == 1} {
          # rollback settings if some evaluation went wrong
          restoreSettings

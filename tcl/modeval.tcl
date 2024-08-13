@@ -775,6 +775,19 @@ proc loadRequirementModuleList {tryload optional tag_list modulepath_list\
    return [list $ret $prereqloaded]
 }
 
+# save reloading module properties before it vanishies with unload phase
+proc savePropsOfReloadingModule {mod} {
+   set is_user_asked [isModuleTagged $mod loaded 1]
+   set vr_list [getVariantList $mod 1 2]
+   set extra_tag_list [getExtraTagList $mod]
+   set ::g_savedPropsOfReloadMod($mod) [list $is_user_asked $vr_list\
+      $extra_tag_list]
+}
+
+proc getSavedPropsOfReloadingModule {mod} {
+   return $::g_savedPropsOfReloadMod($mod)
+}
+
 # unload phase of a list of modules reload process
 proc reloadModuleListUnloadPhase {lmname {errmsgtpl {}} {context unload}} {
    upvar $lmname lmlist
@@ -783,12 +796,7 @@ proc reloadModuleListUnloadPhase {lmname {errmsgtpl {}} {context unload}} {
       # record hint that mod will be reloaded (useful in case mod is sticky)
       lappendState reloading_sticky $mod
       lappendState reloading_supersticky $mod
-      # save user asked state before it vanishes
-      set isuasked($mod) [isModuleTagged $mod loaded 1]
-      # save variants set for modules
-      set vr($mod) [getVariantList $mod 1 2]
-      # save extra tags set
-      set extratag($mod) [getExtraTagList $mod]
+      savePropsOfReloadingModule $mod
       # force unload even if requiring mods are not part of the unload list
       # (violation state) as modules are loaded again just after
       if {[cmdModuleUnload $context match 0 1 0 $mod]} {
@@ -807,26 +815,23 @@ proc reloadModuleListUnloadPhase {lmname {errmsgtpl {}} {context unload}} {
       lpopState reloading_sticky
       lpopState reloading_supersticky
    }
-   return [list [array get isuasked] [array get vr] [array get extratag]]
 }
 
 # load phase of a list of modules reload process
-proc reloadModuleListLoadPhase {lmname isuaskedlist vrlist extrataglist\
-   {errmsgtpl {}} {context load}} {
+proc reloadModuleListLoadPhase {lmname {errmsgtpl {}} {context load}} {
    upvar $lmname lmlist
-   array set isuasked $isuaskedlist
-   array set vr $vrlist
-   array set extratag $extrataglist
 
    # loads are made with auto handling mode disabled to avoid disturbances
    # from a missing prereq automatically reloaded, so these module loads may
    # fail as prereq may not be satisfied anymore
    setConf auto_handling 0
    foreach mod $lmlist {
+      lassign [getSavedPropsOfReloadingModule $mod] is_user_asked vr_list\
+         extra_tag_list
       # if an auto set default was excluded, module spec need parsing
-      lassign [parseModuleSpecification 0 0 0 0 $mod {*}$vr($mod)] modnamevr
+      lassign [parseModuleSpecification 0 0 0 0 $mod {*}$vr_list] modnamevr
       # reload module with user asked property and extra tags preserved
-      if {[cmdModuleLoad $context $isuasked($mod) 0 0 $extratag($mod) {}\
+      if {[cmdModuleLoad $context $is_user_asked 0 0 $extra_tag_list {}\
          $modnamevr]} {
          set errMsg [string map [list _MOD_ [getModuleDesignation spec\
             $modnamevr]] $errmsgtpl]
@@ -1011,17 +1016,10 @@ proc unloadUReqUnModules {} {
       if {[llength $urequn_depre_list]} {
          # link to DepRe variables in calling procedure context
          upvar deprelist deprelist
-         upvar depreisuasked depreisuasked
-         upvar deprevr deprevr
-         upvar depreextratag depreextratag
 
-         lassign [reloadModuleListUnloadPhase urequn_depre_list {Unload of\
-            dependent _MOD_ failed} depre_un] urequn_depre_isuasked\
-            urequn_depre_vr urequn_depre_extratag
+         reloadModuleListUnloadPhase urequn_depre_list {Unload of dependent\
+            _MOD_ failed} depre_un
          lprepend deprelist {*}$urequn_depre_list
-         lappend depreisuasked {*}$urequn_depre_isuasked
-         lappend deprevr {*}$urequn_depre_vr
-         lappend depreextratag {*}$urequn_depre_extratag
       }
 
       set urequn_list [lreverse $urequn_list]
