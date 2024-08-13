@@ -509,6 +509,8 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
       lappendState inhibit_req_record [currentState evalid]
    }
 
+   set depre_list {}
+
    pushSettings
 
    # enable unload of sticky mod if stickiness is preserved on swapped-on mod
@@ -535,7 +537,7 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
       lappendState reloading_supersticky $oldmod
    }
    ##nagelfar implicitvarcmd {cmdModuleUnload swunload *} oldhidden olduasked\
-      oldmsgrecid depre_list
+      oldmsgrecid
    set ret_unload [cmdModuleUnload swunload $unload_match 1 s 0 $old]
    if {$sticky_reload} {
       lpopState reloading_sticky
@@ -568,15 +570,12 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
          restoreSettings
       } else {
          if {[getConf auto_handling] && [isTopEvaluation]} {
-            if {[info exists depre_list]} {
-               set depre_list [removeUReqUnFromDepReAndConvertEval\
-                  $depre_list]
-            }
+            set depre_list [removeUReqUnFromDepReAndConvertEval $depre_list]
             unloadUReqUnModules
          }
 
          if {[set errCode [catch {
-            if {[getConf auto_handling] && [info exists depre_list]} {
+            if {[getConf auto_handling]} {
                # cmdModuleUnload handles the DepUn, UReqUn mechanisms and the
                # unload phase of the DepRe mechanism. List of DepRe mods is
                # set from cmdModuleUnload procedure to be used here for the
@@ -1257,12 +1256,8 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list modulepath_list\
             # loaded prereq as when they were loaded
             set depre_list [reloadModuleListUnloadPhase $depre_list {Unload\
                of dependent _MOD_ failed} depre_un]
-            if {[llength $depre_list] && [info exists swprocessing]} {
-               if {[info exists sw_depre_list]} {
-                  lprepend sw_depre_list {*}$depre_list
-               } else {
-                  set sw_depre_list $depre_list
-               }
+            if {[info exists swprocessing]} {
+               lprepend sw_depre_list {*}$depre_list
             }
          }
 
