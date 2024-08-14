@@ -372,7 +372,7 @@ lappend ans [list unset __MODULES_LMPREREQ]
 lappend ans [list set _LMFILES_ $mp/swd]
 lappend ans [list set LOADEDMODULES swd]
 lappend ans [list unset __MODULES_LMTAG]
-set tserr [list {unload swd} {unload swc} {unload swb} {load swd} \n[msg_top_unload {swb <aL>} swc {} swd]]
+set tserr [list {unload swc} {unload swd} {unload swb} {load swd} \n[msg_top_unload {swb <aL>} {swc swd} {} {{} {swd}}]]
 testouterr_cmd_re sh {unload --auto swb} $ans [join $tserr \n]
 
 
@@ -579,7 +579,7 @@ lappend ans [list set LOADEDMODULES swg/2:swh]
 lappend ans [list set __MODULES_LMTAG swg/2&auto-loaded]
 # reload of the modulefile using 'module switch' disturb natural result: swg/1 swh
 # as reload of swh during DepRe triggers the unload of swg/1 then the load of swg/2
-set tserr [list {unload swh} {unload swg/1} {unload swg/2} {load swg/1} {load swh} {unload swg/1} {load swg/2} \n[msg_unload {swg/2 <aL>} {Unloading dependent: swh swg/1} {Reloading dependent: swg/1 swh} {Unloading conflict: swg/1} {Loading requirement: swg/2}]]
+set tserr [list {unload swg/1} {unload swh} {unload swg/2} {load swg/1} {load swh} {unload swg/1} {load swg/2} \n[msg_unload {swg/2 <aL>} {Unloading dependent: swg/1 swh} {Reloading dependent: swg/1 swh} {Unloading conflict: swg/1} {Loading requirement: swg/2}]]
 testouterr_cmd_re sh {unload --auto swg/2} $ans [join $tserr \n]
 set tserr [list [msg_unload {swg/2 <aL>} [err_prerequn swh]]]
 testouterr_cmd_re sh {unload --no-auto swg/2} ERR [join $tserr \n]
