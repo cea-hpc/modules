@@ -789,32 +789,39 @@ proc getSavedPropsOfReloadingModule {mod} {
 }
 
 # unload phase of a list of modules reload process
-proc reloadModuleListUnloadPhase {mod_list {errmsgtpl {}} {context unload}} {
+proc reloadModuleListUnloadPhase {mod_list {err_msg_tpl {}} {context\
+   unload}} {
    # unload one by one to ensure same behavior whatever auto_handling state
    foreach mod [lreverse $mod_list] {
-      # record hint that mod will be reloaded (useful in case mod is sticky)
-      lappendState reloading_sticky $mod
-      lappendState reloading_supersticky $mod
-      savePropsOfReloadingModule $mod
-      # force unload even if requiring mods are not part of the unload list
-      # (violation state) as modules are loaded again just after
-      if {[cmdModuleUnload $context match 0 1 0 $mod]} {
-         # avoid failing module on load phase
-         # if force state is enabled, cmdModuleUnload returns 0
+      if {[reloadModuleUnloadPhase $mod $err_msg_tpl $context]} {
          set mod_list [replaceFromList $mod_list $mod]
-         set errMsg [string map [list _MOD_ [getModuleDesignation loaded\
-            $mod]] $errmsgtpl]
-         lpopState reloading_sticky
-         lpopState reloading_supersticky
-         # no process stop if ongoing reload command in continue behavior
-         if {![isStateEqual commandname reload] || [commandAbortOnError]} {
-            knerror $errMsg
-         }
       }
-      lpopState reloading_sticky
-      lpopState reloading_supersticky
    }
    return $mod_list
+}
+
+proc reloadModuleUnloadPhase {mod {err_msg_tpl {}} {context unload}} {
+   # record hint that mod will be reloaded (useful in case mod is sticky)
+   lappendState reloading_sticky $mod
+   lappendState reloading_supersticky $mod
+   savePropsOfReloadingModule $mod
+   # force unload even if requiring mods are not part of the unload list
+   # (violation state) as modules are loaded again just after
+   if {[set ret [cmdModuleUnload $context match 0 1 0 $mod]]} {
+      # avoid failing module on load phase
+      # if force state is enabled, cmdModuleUnload returns 0
+      set err_msg [string map [list _MOD_ [getModuleDesignation loaded $mod]]\
+         $err_msg_tpl]
+      lpopState reloading_sticky
+      lpopState reloading_supersticky
+      # no process stop if ongoing reload command in continue behavior
+      if {![isStateEqual commandname reload] || [commandAbortOnError]} {
+         knerror $err_msg
+      }
+   }
+   lpopState reloading_sticky
+   lpopState reloading_supersticky
+   return $ret
 }
 
 # load phase of a list of modules reload process
@@ -1049,19 +1056,30 @@ proc getDepUnModuleList {mod} {
    return $depun_list
 }
 
-proc unloadDepUnModules {depun_list force} {
-   foreach unmod [lreverse $depun_list] {
-      if {[cmdModuleUnload depun match 0 s 0 $unmod]} {
-         # stop if one unload fails unless force mode enabled
-         set errMsg "Unload of dependent [getModuleDesignation loaded $unmod]\
-            failed"
-         if {$force} {
-            reportWarning $errMsg
-         } else {
-            knerror $errMsg
+proc unloadDepUnDepReModules {unload_mod_list reload_mod_list {force 0}} {
+   set err_msg_tpl {Unload of dependent _MOD_ failed}
+   set unload_mod_list [sortModulePerLoadedAndDepOrder [list\
+      {*}$unload_mod_list {*}$reload_mod_list]]
+
+   foreach unload_mod [lreverse $unload_mod_list] {
+      if {$unload_mod in $reload_mod_list} {
+         if {[reloadModuleUnloadPhase $unload_mod $err_msg_tpl depre_un]} {
+            set reload_mod_list [replaceFromList $reload_mod_list $unload_mod]
+         }
+      } else {
+         if {[cmdModuleUnload depun match 0 s 0 $unload_mod]} {
+            # stop if one unload fails unless force mode enabled
+            set err_msg [string map [list _MOD_ [getModuleDesignation loaded\
+               $unload_mod]] $err_msg_tpl]
+            if {$force} {
+               reportWarning $err_msg
+            } else {
+               knerror $err_msg
+            }
          }
       }
    }
+   return $reload_mod_list
 }
 
 # ;;; Local Variables: ***
