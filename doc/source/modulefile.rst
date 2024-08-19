@@ -285,12 +285,15 @@ the *modulefile* is being loaded.
 
     .. versionadded:: 4.0
 
+    .. versionchanged:: 4.2
+       Optional argument *value* added
+
     .. versionchanged:: 5.0
        An empty string is returned instead of ``_UNDEFINED_`` when *variable*
        is not defined and no *value* is set
 
     .. versionchanged:: 5.1
-       Option ``--return-value`` added.
+       Option ``--return-value`` added
 
 .. mfcmd:: getvariant [--return-value] variant [value]
 

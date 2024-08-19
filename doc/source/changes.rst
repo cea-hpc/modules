@@ -456,6 +456,10 @@ The following modulefile Tcl commands appeared on Modules 4.
 
  Starting with version ``4.2``, these Modules-specific Tcl commands support being called with a symbolic modulefile or a modulefile alias passed as argument.
 
+:mfcmd:`getenv`
+
+ Starting with version ``4.2``, an optional *value* argument is added on :mfcmd:`getenv` to define the value to return in case environment variable is not set.
+
 :mfcmd:`module`
 
  In case of ``module load`` command specifying multiple *modulefiles*, when mode is set to ``unload`` these *modulefiles* will be unloaded in the reverse order to ensure correct handling of prerequisites.
