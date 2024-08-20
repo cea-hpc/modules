@@ -208,6 +208,17 @@ the *modulefile* is being loaded.
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+ If the :mconfig:`conflict_unload` and :mconfig:`auto_handling` configuration
+ options are enabled, :mfcmd:`conflict` will attempt to unload all loaded
+ modules that match specification. (see :envvar:`MODULES_AUTO_HANDLING` in
+ :ref:`module(1)`).
+
+ .. only:: html
+
+    .. versionchanged:: 5.5
+       An attempt to unload module is made if :mconfig:`conflict_unload` and
+       :mconfig:`auto_handling` configuration options are enabled
+
 .. mfcmd:: continue
 
  This is not a modules specific command but another overloaded Tcl command
@@ -264,9 +275,18 @@ the *modulefile* is being loaded.
  *name* should be a non-empty string only containing characters that could be
  part of an environment variable name (i.e., *[a-zA-Z0-9_]*).
 
+ If the :mconfig:`conflict_unload` and :mconfig:`auto_handling` configuration
+ options are enabled, an attempt to unload loaded module that defines the same
+ family is made. (see :envvar:`MODULES_AUTO_HANDLING` in :ref:`module(1)`).
+
  .. only:: html
 
     .. versionadded:: 5.1
+
+    .. versionchanged:: 5.5
+       An attempt to unload module defining same family is made if
+       :mconfig:`conflict_unload` and :mconfig:`auto_handling` configuration
+       options are enabled
 
 .. mfcmd:: getenv [--return-value] variable [value]
 
@@ -1927,11 +1947,15 @@ modulefile when expressed with the :mfcmd:`prereq`, :mfcmd:`prereq-any`,
 commands or when :mconfig:`auto_handling` is enabled, pre-required modulefiles
 are automatically loaded.
 
-Conflict is expressed with :mfcmd:`conflict` or :mfcmd:`module unload<module>`
-modulefile commands. A conflicting loaded modulefile should be manually
-unloaded prior loading the modulefile that express such conflict when defined
-with :mfcmd:`conflict`. It is automatically unloaded when expressed with
-:mfcmd:`module unload<module>`.
+Conflict is expressed with :mfcmd:`conflict`, :mfcmd:`family` or
+:mfcmd:`module unload<module>` modulefile commands. When the
+:mconfig:`auto_handling` or :mconfig:`conflict_unload` configuration options
+are disabled, a conflicting loaded modulefile should be manually unloaded
+prior loading the modulefile that express such conflict when defined with
+:mfcmd:`conflict` or :mfcmd:`family`. It is automatically unloaded when
+expressed with :mfcmd:`module unload<module>` (unless dependent modulefiles
+are loaded) or if :mconfig:`auto_handling` and :mconfig:`conflict_unload`
+options are enabled.
 
 It is strongly advised to define dependencies prior environment changes in a
 modulefile. Dependency resolution should be done before any environment change
@@ -2065,6 +2089,11 @@ If the :mconfig:`auto_handling` configuration option is disabled, the
 requirements defined with the :mfcmd:`depends-on` command are not
 automatically loaded and an error is raised if none of these requirements are
 found loaded.
+
+If the :mconfig:`auto_handling` or :mconfig:`conflict_unload` configuration
+options are disabled, the conflicts defined with the :mfcmd:`family` command
+are not automatically unloaded and an error is raised when trying to load a
+module defining a family already defined by a loaded module.
 
 On :subcmd:`module load-any<load-any>` sub-command and modulefile command, a
 modulefile evaluation error is not reported and :subcmd:`module

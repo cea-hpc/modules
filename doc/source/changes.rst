@@ -1122,6 +1122,12 @@ The following modulefile Tcl commands appeared on Modules 5.
  anyway if forced. To forbid unload of a modulefile, it is now advised to tag
  it ``super-sticky`` with :mfcmd:`module-tag` command.
 
+:mfcmd:`conflict`, :mfcmd:`family`
+
+ Starting with version ``5.5``, if :mconfig:`conflict_unload` and
+ :mconfig:`auto_handling` configuration options are enabled, all matching
+ loaded modules are unloaded.
+
 Modules Variables
 """""""""""""""""
 
