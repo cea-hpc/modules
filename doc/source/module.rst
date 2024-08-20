@@ -4120,8 +4120,18 @@ ENVIRONMENT
  loading or unloading a *modulefile* to satisfy the constraints it declares.
  When loading a *modulefile*, following actions are triggered:
 
+ * Conflict Unload: unload of the *modulefiles* declared as a
+   :mfcmd:`conflict` of the loading *modulefile*.
+
  * Requirement Load: load of the *modulefiles* declared as a :mfcmd:`prereq`
    of the loading *modulefile*.
+
+ * Useless Requirement Unload: unload of the :mfcmd:`prereq` modulefiles that
+   have been automatically loaded for either an unloaded conflicting
+   modulefile or a modulefile part of this useless requirement unloading
+   batch. Modulefiles are added to this unloading batch only if they are not
+   required by any other loaded modulefiles and if they are not tagged
+   ``keep-loaded``.
 
  * Dependent Reload: reload of the modulefiles declaring a :mfcmd:`prereq`
    onto loaded *modulefile* or declaring a :mfcmd:`prereq` onto a *modulefile*
@@ -4158,6 +4168,9 @@ ENVIRONMENT
  are merged into the Dependent modulefiles to Reload that are reloaded after
  the load of the switched-to modulefile.
 
+ Conflict Unload mechanism is activated only if :mconfig:`conflict_unload`
+ configuration option is also enabled.
+
  This environment variable value supersedes the default value set on the
  :mconfig:`auto_handling` configuration option. It can be defined with the
  :subcmd:`config` sub-command. The :option:`--auto` and :option:`--no-auto`
@@ -4170,6 +4183,10 @@ ENVIRONMENT
     .. versionchanged:: 5.1
        Modules with keep-loaded tag set are excluded from Useless Requirement
        Unload mechanism
+
+    .. versionchanged:: 5.5
+       Conflict Unload and Useless Requirement Unload mechanisms added on
+       module load context.
 
 .. envvar:: MODULES_AVAIL_INDEPTH
 
@@ -4446,6 +4463,23 @@ ENVIRONMENT
 
     .. versionchanged:: 5.1
        Output item for keep-loaded module tag (``kL``) added
+
+.. envvar:: MODULES_CONFLICT_UNLOAD
+
+ If set to ``1``, enable automated unload of conflicting modules when loading
+ a module. If set to ``0``, disable this automated conflict unload mechanism.
+
+ Conflict Unload is a mechanism part of the :envvar:`automated module handling
+ mode<MODULES_AUTO_HANDLING>`. To activate this mechanism,
+ :mconfig:`auto_handling` configuration option should also be enabled.
+
+ This environment variable value supersedes the default value set in the
+ :mconfig:`conflict_unload` configuration option. It can be defined with
+ the :subcmd:`config` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 5.5
 
 .. envvar:: MODULES_EDITOR
 

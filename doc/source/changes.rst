@@ -993,7 +993,8 @@ The following environment variables appeared on Modules 5.
 |            | :envvar:`MODULES_SOURCE_CACHE`                                  |
 +------------+-----------------------------------------------------------------+
 | 5.5        | :envvar:`MODULES_HIDE_AUTO_LOADED`, :envvar:`MODULES_LOGGER`,   |
-|            | :envvar:`MODULES_LOGGED_EVENTS`                                 |
+|            | :envvar:`MODULES_LOGGED_EVENTS`,                                |
+|            | :envvar:`MODULES_CONFLICT_UNLOAD`                               |
 +------------+-----------------------------------------------------------------+
 
 Modules Specific Tcl Commands
