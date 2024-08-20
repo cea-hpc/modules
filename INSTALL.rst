@@ -483,6 +483,19 @@ instance :instopt:`--disable-set-manpath<--enable-set-manpath>`):
     .. versionchanged:: 5.0
        Configuration option default set to ``yes``
 
+.. instopt:: --enable-conflict-unload
+
+ Apply automated unload of conflicting modulefiles when loading a module.
+ (default=no)
+
+ This installation option defines the default value of the
+ :mconfig:`conflict_unload` configuration option which could be changed after
+ installation with the :subcmd:`config` sub-command.
+
+ .. only:: html
+
+    .. versionadded:: 5.5
+
 .. instopt:: --enable-doc-install
 
  Install the documentation files in the documentation directory defined with
@@ -1462,6 +1475,9 @@ installation.
 |                                   | me=95:in=94:mp=1;94:di=94:al=96:va=93:sy=95\ | :instopt:`--with-light-background-colors`,   |              |           |
 |                                   | :de=4:cm=92:aL=100:L=90;47:H=2:F=41:nF=43:\  | :envvar:`MODULES_COLORS`                     |              |           |
 |                                   | S=46:sS=44:kL=30;48;5;109                    |                                              |              |           |
++-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
+| :mconfig:`conflict_unload`        | ``0``                                        | :instopt:`--enable-conflict-unload`,         |              |           |
+|                                   |                                              | :envvar:`MODULES_CONFLICT_UNLOAD`            |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
 | :mconfig:`contact`                | ``root@localhost``                           | :envvar:`MODULECONTACT`                      |              |           |
 +-----------------------------------+----------------------------------------------+----------------------------------------------+--------------+-----------+
