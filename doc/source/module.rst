@@ -970,6 +970,24 @@ Module Sub-Commands
   changing this configuration option from its default value. See
   :envvar:`MODULES_COLORS` description for details.
 
+ .. mconfig:: conflict_unload
+
+  Automated unload of conflicting modules when loading a module. This
+  mechanism is part of the :envvar:`automated module handling
+  mode<MODULES_AUTO_HANDLING>` and also requires enablement of
+  :mconfig:`auto_handling` configuration option.
+
+  Default value is ``0``. It can be changed at installation time with
+  :instopt:`--enable-conflict-unload` option. The
+  :envvar:`MODULES_CONFLICT_UNLOAD` environment variable is defined by
+  :subcmd:`config` sub-command when changing this configuration option from
+  its default value. See :envvar:`MODULES_CONFLICT_UNLOAD` description for
+  details.
+
+  .. only:: html
+
+     .. versionadded:: 5.5
+
  .. mconfig:: contact
 
   Modulefile contact address.

@@ -1158,7 +1158,7 @@ The following Modules configuration option has been introduced on Modules 5.
 |            | :mconfig:`abort_on_error`, :mconfig:`source_cache`              |
 +------------+-----------------------------------------------------------------+
 | 5.5        | :mconfig:`hide_auto_loaded`, :mconfig:`logger`,                 |
-|            | :mconfig:`logged_events`                                        |
+|            | :mconfig:`logged_events`, :mconfig:`conflict_unload`            |
 +------------+-----------------------------------------------------------------+
 
 :mconfig:`avail_output`, :mconfig:`avail_terse_output`
