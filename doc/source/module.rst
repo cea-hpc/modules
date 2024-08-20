@@ -4131,7 +4131,7 @@ ENVIRONMENT
    modulefile or a modulefile part of this useless requirement unloading
    batch. Modulefiles are added to this unloading batch only if they are not
    required by any other loaded modulefiles and if they are not tagged
-   ``keep-loaded``.
+   ``keep-loaded``, ``sticky`` or ``super-sticky``.
 
  * Dependent Reload: reload of the modulefiles declaring a :mfcmd:`prereq`
    onto loaded *modulefile* or declaring a :mfcmd:`prereq` onto a *modulefile*
@@ -4151,7 +4151,7 @@ ENVIRONMENT
    unloaded dependent modulefile or a modulefile part of this useless
    requirement unloading batch. Modulefiles are added to this unloading batch
    only if they are not required by any other loaded modulefiles and if they
-   are not tagged ``keep-loaded``.
+   are not tagged ``keep-loaded``, ``sticky`` or ``super-sticky``.
 
  * Dependent Reload: reload of the modulefiles declaring a :mfcmd:`conflict`
    or an optional :mfcmd:`prereq` onto either the unloaded modulefile, an
@@ -4183,6 +4183,10 @@ ENVIRONMENT
     .. versionchanged:: 5.1
        Modules with keep-loaded tag set are excluded from Useless Requirement
        Unload mechanism
+
+    .. versionchanged:: 5.5
+       Modules with sticky or super-sticky tag set are excluded from Useless
+       Requirement Unload mechanism
 
     .. versionchanged:: 5.5
        Conflict Unload and Useless Requirement Unload mechanisms added on

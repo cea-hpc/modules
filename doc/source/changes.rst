@@ -1168,6 +1168,14 @@ The following Modules configuration option has been introduced on Modules 5.
 |            | :mconfig:`logged_events`, :mconfig:`conflict_unload`            |
 +------------+-----------------------------------------------------------------+
 
+:mconfig:`auto_handling`
+
+ Starting version 5.1, modules tagged ``keep-loaded`` are excluded from
+ Useless Requirement Unload mechanism.
+
+ Starting version 5.5, modules tagged ``sticky`` or ``super-sticky`` are
+ excluded from Useless Requirement Unload mechanism.
+
 :mconfig:`avail_output`, :mconfig:`avail_terse_output`
 
  Starting version 5.3, element ``variant`` is added to the list of accepted
