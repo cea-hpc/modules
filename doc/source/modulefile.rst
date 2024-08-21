@@ -447,6 +447,14 @@ the *modulefile* is being loaded.
  operation is performed if a *modulefile* from the list is found already
  loaded.
 
+ The ``unload`` sub-command unloads one matching *modulefile* for each module
+ specification provided as argument if :mconfig:`auto_handling` or
+ :mconfig:`conflict_unload` configuration options are disabled. When both
+ options are enabled, ``unload`` removes all loaded modules matching each
+ module specification. When both options are enabled, modules dependent of the
+ unloaded modules are also unloaded. Otherwise an error is raised if module to
+ unload has a dependent module loaded.
+
  The ``unuse`` sub-command accepts the ``--remove-on-unload``,
  ``--noop-on-unload``, ``--append-on-unload`` and ``--prepend-on-unload``
  options to control the behavior to apply when *modulefile* is unloaded. See
@@ -527,6 +535,11 @@ the *modulefile* is being loaded.
     .. versionchanged:: 5.1
        Option ``--not-req`` added for ``try-load`` and ``load-any``
        sub-commands
+
+    .. versionchanged:: 5.5
+       When :mconfig:`auto_handling` and :mconfig:`conflict_unload`
+       configuration options are enabled, ``unload`` sub-command removes all
+       matching modules loaded and modules that depend on them
 
 .. mfcmd:: module-alias name modulefile
 

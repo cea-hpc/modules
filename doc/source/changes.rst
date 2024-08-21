@@ -1049,6 +1049,12 @@ The following modulefile Tcl commands appeared on Modules 5.
  Starting Modules 5.1, these modulefile commands accept the ``--not-req``
  option.
 
+:mfcmd:`module unload<module>`
+
+ Starting version ``5.5`` all matching modules loaded and their dependent are
+ unloaded if both :mconfig:`auto_handling` and :mconfig:`conflict_unload`
+ configuration options are enabled.
+
 :mfcmd:`module unuse<module>`
 
  Starting version ``5.1`` options ``--*-on-unload`` added to the
