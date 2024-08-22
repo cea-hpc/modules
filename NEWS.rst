@@ -95,6 +95,8 @@ Modules 5.5.0 (not yet released)
 * Tag automatically loaded module ``auto-loaded`` prior evaluation to be able
   to query this state during modulefile evaluation with :mfcmd:`module-info
   tags<module-info>`.
+* Doc: describe in :ref:`module(1)` man page how to initialize Modules in a
+  Ruby script. (fix issue #535)
 
 .. warning:: Variant names are now fully checked instead of just verifying
    their first character. Only characters within the ``A-Za-z0-9_-`` range are

@@ -125,6 +125,13 @@ Python:
      exec(open("\ |initdir|\ /python.py").read(), globals())
      module("load", "modulefile", "modulefile", "...")
 
+Ruby:
+
+.. parsed-literal::
+
+     require '\ |initdir|\ /ruby.rb'
+     ENVModule.module('load', 'modulefile', 'modulefile', '...')
+
 Bourne Shell (sh) (and derivatives) with :subcmd:`autoinit` sub-command:
 
 .. parsed-literal::
