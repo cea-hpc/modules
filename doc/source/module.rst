@@ -4121,7 +4121,8 @@ ENVIRONMENT
  When loading a *modulefile*, following actions are triggered:
 
  * Conflict Unload: unload of the *modulefiles* declared as a
-   :mfcmd:`conflict` of the loading *modulefile*.
+   :mfcmd:`conflict` of the loading *modulefile* or if it is the same
+   *modulefile* than the one loading but with a different set of variant.
 
  * Requirement Load: load of the *modulefiles* declared as a :mfcmd:`prereq`
    of the loading *modulefile*.
