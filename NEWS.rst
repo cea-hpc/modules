@@ -106,19 +106,79 @@ Modules 5.5.0 (not yet released)
   (fix issue #540)
 * Disable pager when running :file:`modulecmd.tcl` script for script language
   (*python*, *perl*, *ruby*, *tcl*, *cmake*, *r* and *lisp*). (fix issue #542)
+* Update error and warning messages when attempting to unload a module
+  required by another. Distinguish if this module is a requirement of an
+  already loaded or a currently loading module.
+* Introduce :mconfig:`conflict_unload` configuration option that controls
+  whether or not conflicting modules and their dependent should be unloaded
+  when loading a module. All kind of conflicts are supported: conflicts
+  defined by already loaded modules, conflict declared by loading module
+  through :mfcmd:`conflict`, :mfcmd:`family` or :mfcmd:`module unload<module>`
+  commands. :mconfig:`conflict_unload` also handles the unload of a module
+  that is loaded again but with different variant values.
+  :mconfig:`conflict_unload` is disabled by default as it changes behaviors of
+  the :envvar:`automated module handling mode<MODULES_AUTO_HANDLING>`. But
+  everyone is encouraged to enable this new option to benefit from an highly
+  automated experience. This option can be changed at installation time with
+  :instopt:`--enable-conflict-unload`. When :mconfig:`conflict_unload` is
+  changed with :subcmd:`config` sub-command, it sets the
+  :envvar:`MODULES_CONFLICT_UNLOAD` environment variable. Both
+  :mconfig:`auto_handling` and :mconfig:`conflict_unload` options should be
+  enabled to activate *Conflict Unload* automated behavior. (fix issue #242)
+* When both :mconfig:`auto_handling` and :mconfig:`conflict_unload` options
+  are enabled, all loaded modules matching module specifications set on
+  :mfcmd:`conflict` or :mfcmd:`module unload<module>` commands are unloaded.
+  If both options are not enabled, only one matching loaded module per
+  specification argument of :mfcmd:`module unload<module>` is unloaded. (fix
+  issue #215)
+* When both :mconfig:`auto_handling` and :mconfig:`conflict_unload` options
+  are enabled, :option:`--force` option set on :subcmd:`load` sub-command is
+  taken into account during the *Conflict Unload* mechanism. For instance, it
+  continues this unload process even if one module unload fails.
 * Install: installation option :instopt:`--enable-new-features` is updated to
   include :instopt:`--enable-conflict-unload`.
+* Fix detection of already loaded module with variant set. If trying to load
+  same module with compatible variant set, a *module is already loaded*
+  message is now returned instead of *another variant is loaded*.
+* Correctly report module evaluation error in case during the same execution
+  this module was already evaluated and failed silently during a *Requirement
+  Load* mechanism.
+* Split processing of *Dependent Reload* (DepRe) modules to treat the *DepRe*
+  modules consequence of *Useless Requirement Unload* (UReqUn) modules
+  separately, right before unloading the *UReqUn* modules. As a result,
+  modules in conflict with *UReqUn* modules are unloaded right before *UReqUn*
+  process and reloaded with the other *DepRe* modules.
+* Handle *UReqUn* process in case of :subcmd:`switch` sub-command after the
+  switch load phase. Unload of these modules were previously occurring at the
+  end of the switch unload phase. Unload of *DepRe* modules consequence of
+  *UReqUn* modules is also moved after switch load phase.
+* Introduce the *Useless Requirement Unload* (UReqUn) process on
+  :subcmd:`load` sub-command. It eliminates auto loaded modules that were
+  requirements of *Conflict Unload* modules. In case of :subcmd:`switch`
+  sub-command, *UReqUn* modules coming from the switch load phase are handled
+  with *UReqUn* modules coming from switch unload phase.
+* Rework handling of *DepRe* modules that also are *UReqUn* modules to unload
+  them during the *DepRe* unload phase instead of during *UReqUn* process. As
+  a consequence these modules part of both *DepRe* and *UReqUn* lists are
+  unloaded prior main module action and prior unload of the other *UReqUn*
+  modules. The *DepRe* modules may be also qualified *UReqUn* even if they are
+  not a dependency of a module unloaded in the current processing.
+* Mix unload of *Dependent Unload* and *Dependent Reload* modules to ensure
+  they are processed in their reverse loading order. As a result, if a module
+  is part of *DepUn* process and some of its requirements are part of *DepRe*
+  process, requirements are unloaded after their dependent modules.
 
 .. warning:: Variant names are now fully checked instead of just verifying
    their first character. Only characters within the ``A-Za-z0-9_-`` range are
    allowed. Variant name cannot start with ``-`` character and the overall
    name cannot just be a number.
 
-.. warning:: Existing *versions* modulefiles installed for Modules 4.7 and
-   upward should be fixed by adding the ``--not-req`` option to the
-   :mfcmd:`module unload<module>` commands present in these modulefiles. This
-   command should fix these files ``sed -i "s|module unload|module unload
-   --not-req|" <version_modulefile>``.
+.. warning:: Existing *versions* modulefiles generated by
+   :instopt:`--enable-versioning` installation option and installed for
+   Modules 4.7 and upward should be manually fixed by adding the ``--not-req``
+   option to the :mfcmd:`module unload<module>` commands present in these
+   modulefiles. Following command should fix these files: ``sed -i "s|module
+   unload|module unload --not-req|" <version_modulefile>``.
 
 
 .. _5.4 release notes:
