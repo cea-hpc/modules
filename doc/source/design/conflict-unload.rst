@@ -32,9 +32,10 @@ satisfy this request).
 As a result, a module load triggering a Conflict Unload mechanism may as a
 consequence also trigger Dependent Reload, Dependent Unload and Useless
 Requirement Unload mechanisms. These last 2 mechanisms were not triggered by
-a top load action prior that (only on a top unload or switch actions). These
-mechanisms are triggered either by the top level module to load or the
-modules it requires.
+a top load action prior that (only on a top unload or switch actions). DepUn
+and DepRe mechanisms are triggered either by the top level module to load or
+the modules it requires. UReqUn mechanism is only triggered by the top level
+module to load.
 
 *FUTURE*: another approach would be to satisfy the load request without
 changing the environment asked up to now. So auto-loaded modules may be
@@ -56,7 +57,7 @@ After a ``module load B2``:
 * Loaded environment should be ``A2 > B2 > C1``
 * C1 should be unloaded by Dependent Reload mechanism
 * B1 should be unloaded by Conflict Unload mechanism
-* A1 should be unloaded by Useless Requirement Unload
+* A1 should be unloaded by Conflict Unload mechanism
 * A2 should be loaded by Requirement Load
 * B2 is then loaded
 * C1 is then reloaded again
@@ -65,14 +66,14 @@ After a ``module load C2``:
 
 * Loaded environment should be ``A2 > B2 > C2``
 * C1 should be unloaded by Conflict Unload mechanism
-* B1 and A1 should be unloaded by Useless Requirement Unload
+* B1 and A1 should be unloaded by Conflict Unload
 * A2 and B2 be loaded by Requirement Load
 * C2 is then loaded
 
 Conflict kinds
 --------------
 
-Conflict Unload mechanism should target the 3 different conflict situations:
+Conflict Unload mechanism targets the 3 different conflict situations:
 
 * Conflicts declared by loaded modules against loading modules
 * Conflicts declared by loading modules against loaded modules (through
@@ -86,33 +87,90 @@ Implementation
 
 Current implementation is to apply Conflict Unload mechanism either on loading
 top module or the modules it requires. Subsequent mechanisms produced by ConUn
-(UReqUn, DepRe and DepUn) are thus also produced on each loading module (top
-or requirements). Produces where they occur and not globally scheduled.
+(DepRe and DepUn) are thus also produced on each loading module (top or
+requirements). Produces where they occur and not globally scheduled. UReqUn is
+globally scheduled on top evaluation.
 
 Such implementation is less optimized than resolving every requirements and
 conflicts information to get expected loaded modules in a minimum number of
 evaluations.
 
-Here, a module spotted as UReqUn may be a ReqLo for the new module to load.
-Thus depending on the modulefile definition, the UReqUn module may be unloaded
-and then reloaded instead of staying still.
-
-When loading a module, prior evaluating it if a conflict is declared against
-it (or is already loaded with an alternative variant set) by one or more:
+When loading a module, prior evaluating it, if a conflict is declared against
+it (or this module is already loaded with an alternative variant set) by one
+or more:
 
 * loaded modules, unload this or these modules. This or these unloads may
-  trigger either DepRe, DepUn and UReqUn mechanisms.
+  trigger either DepRe and DepUn mechanisms.
 * loading modules, raise an error as requested environment cannot be satisfied
 
 When evaluating a loading modulefile (either asked module or its
 requirements) and this module defines a conflict:
 
 * if one or more loaded modules match this conflict, unload them (and trigger
-  DepRe, DepUn and UReqUn mechanisms if needed)
+  DepRe and DepUn mechanisms if needed)
 * if one or more loading modules match this conflict, raise an error as
   requested environment cannot be satisfied
 
 Unload of multiple conflicting modules is achieved in the reversed loaded
 order (last loaded is unloaded first).
+
+UReqUn modules is scheduled after main load action, thus only from the top
+context. At this point all auto-loaded requirements of ConUn modules can be
+found and set as UReqUn modules to unload.
+
+Adaptation of automated module handling mechanisms
+--------------------------------------------------
+
+Introduction of *Conflict Unload* mechanism requires to adapt some of the
+other automated module handling mechanisms. It is also a good opportunity to
+improve these mechanisms.
+
+Useless Requirement Unload
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Changes made to the UReqUn mechanism:
+
+* UReqUn module list is computed after main module action
+* UReqUn mechanism is only triggered on top level evaluation
+
+  * Avoid to trigger the unload of modules that may be ReqLo in the remaining
+    parts of the process
+  * As a consequence some modules are considered ConUn modules instead of
+    UReqUn modules
+
+
+* UReqUn is introduced on load evaluation (to unload useless requirements
+  coming from unload of ConUn modules)
+* For switch evaluation, UReqUn is moved from end of switch-unload phase to
+  end of overall switch action (before DepRe reload phase)
+
+  * As a consequence, some UReqUn modules may be considered ConUn modules of
+    switched-on module.
+  * It advocates for enabling ``conflict_unload`` option otherwise an error
+    would be obtained on such situation (which was not the case previously
+    as UReqUn process occurred at the end of switch unload phase)
+
+* DepRe modules that also are UReqUn modules are unloaded during DepRe unload
+  phase, rather extracted from DepRe to be processed during UReqUn. These
+  modules are reported as UReqUn modules to users (as they are not reloaded)
+* DepRe modules also identified as UReqUn modules, may not be a dependency of
+  an unloaded module (like the other UReqUn modules).
+
+Dependent Reload
+^^^^^^^^^^^^^^^^
+
+Changes made to the DepRe mechanism:
+
+* DepRe modules coming from UReqUn modules (i.e., modules in conflict with
+  UReqUn modules) are computed when computing UReqUn module list and their
+  DepRe unload phase is made right before UReqUn module unload, thus apart
+  from the other DepRe modules
+
+  * As a consequence these DepRe modules may not be reloaded in the same order
+    compared to the other DepRe modules
+
+* Unload phase of DepRe modules is mixed with unload of DepUn modules in order
+  to perform these unload in the reverse load order (to ensure a module is
+  unloaded before its requirements)
 
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
