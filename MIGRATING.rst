@@ -125,6 +125,58 @@ reserved keyword on this shell.
 The Windows-specific distribution zipball of Modules has been updated to also
 contain the required files to setup PowerShell support.
 
+Conflict unload
+---------------
+
+Automated module handling is enhanced with the addition of a new mechanism:
+*Conflict Unload*. When loading a module, this new mechanism automatically
+unloads conflicting modules and their dependent.
+
+.. parsed-literal::
+
+    :ps:`$` module load foo/1
+    Loading :sgrhi:`foo/1`:sgrse:`{`:sgrvahi:`-debug`:sgrse:`}`
+      :sgrin:`Loading requirement`: qux/1 bar/1
+    :ps:`$` module load foo/2
+    Loading :sgrhi:`foo/2`
+      :sgrer:`ERROR`: Module cannot be loaded due to a conflict.
+        HINT: Might try "module unload foo/1" first.
+    :ps:`$` module config conflict_unload 1
+    :ps:`$` module load foo/2
+    Loading :sgrhi:`foo/2`:sgrse:`{`:sgrvahi:`-debug`:sgrse:`}`
+      :sgrin:`Unloading conflict`: foo/1\ :sgrse:`{`:sgrva:`-debug`:sgrse:`}`
+
+As seen in the above example, *Conflict Unload* is controlled by the
+:mconfig:`conflict_unload` configuration option. It is disabled by default
+as it changes behaviors of the :envvar:`automated module handling
+mode<MODULES_AUTO_HANDLING>`. But everyone is encouraged to enable this new
+option to benefit from an highly automated experience. This option can be
+changed at installation time with :instopt:`--enable-conflict-unload`
+configure script option.
+
+*Conflict Unload* handles all kind of conflicts: conflicts defined by already
+loaded modules, conflict declared by loading module through :mfcmd:`conflict`,
+:mfcmd:`family` or :mfcmd:`module unload<module>` commands. It also supports
+the unload of a module that is loaded again but with different variant values.
+
+.. parsed-literal::
+
+    :ps:`$` module load foo/2 +debug
+    Loading :sgrhi:`foo/2`:sgrse:`{`:sgrvahi:`+debug`:sgrse:`}`
+      :sgrin:`Unloading conflict`: foo/2\ :sgrse:`{`:sgrva:`-debug`:sgrse:`}`
+
+Along with *Conflict Unload*, the *Useless Requirement Unload* mechanism is
+added to load evaluation. With it, auto loaded requirements of modules
+unloaded by *Conflict Unload* mechanism are automatically unloaded.
+
+.. parsed-literal::
+
+    :ps:`$` module load foo/3
+    Loading :sgrhi:`foo/3`:sgrse:`{`:sgrvahi:`-debug`:sgrse:`}`
+      :sgrin:`Unloading conflict`: foo/2\ :sgrse:`{`:sgrva:`+debug`:sgrse:`}` bar/1
+      :sgrin:`Loading requirement`: bar/2
+      :sgrin:`Unloading useless requirement`: qux/1
+
 
 v5.4
 ====
