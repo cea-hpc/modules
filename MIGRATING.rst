@@ -177,6 +177,46 @@ unloaded by *Conflict Unload* mechanism are automatically unloaded.
       :sgrin:`Loading requirement`: bar/2
       :sgrin:`Unloading useless requirement`: qux/1
 
+Improved automated module handling mechanisms
+---------------------------------------------
+
+Along with the introduction of *Conflict Unload* mechanism, some of the
+existing automated module handling mechanisms have been adapted and enhanced.
+
+*Useless Requirement Unload* (UReqUn) mechanism is moved during a
+:subcmd:`switch` sub-command from the end of the unload phase to the end of
+the load phase. Both *UReqUn* modules coming from unload and load phases are
+this way treated jointly. If *UReqUn* modules resulting from the switch unload
+phase are detected as conflict to the switched-on module, it is advised to
+enable the :mconfig:`conflict_unload` mechanism to automatically handle them.
+
+.. parsed-literal::
+
+    :ps:`$` module switch foo/3 foo/4
+    Loading :sgrhi:`foo/4`
+      :sgrer:`ERROR`: Module cannot be loaded due to a conflict.
+        HINT: Might try "module unload bar/2" first.
+
+    Switching from :sgrhi:`foo/3`:sgrse:`{`:sgrvahi:`-debug`:sgrse:`}` to :sgrhi:`foo/4`
+      :sgrer:`ERROR`: Load of switched-on foo/4 failed
+    :ps:`$` module config conflict_unload 1
+    :ps:`$` module switch foo/3 foo/4
+    Switching from :sgrhi:`foo/3`:sgrse:`{`:sgrvahi:`-debug`:sgrse:`}` to :sgrhi:`foo/4`
+      :sgrin:`Unloading conflict`: bar/2
+
+*Dependent Reload* (DepRe) modules that also are *UReqUn* modules are now
+unloaded during the *DepRe* unload phase instead of during the *UReqUn*
+process. As a consequence these modules are now unloaded prior main module
+action, as they are a dependent of this main module. This kind of *UReqUn*
+modules may not be a dependency of a module unloaded in the current
+processing.
+
+Modules from *Dependent Unload* (DepUn) and *Dependent Reload* (DepRe)
+mechanisms are now mixed together to proceed to their unload. They are this
+way unloaded in their reverse loading order. So if a module is part of the
+*DepUn* process and one of its requirement is part of the *DepRe* process, the
+requirement is now unloaded after its dependent.
+
 
 v5.4
 ====
