@@ -1,0 +1,798 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2024/08/27
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, display, avail
+#   Modulefiles:    conun
+#   Sub-Command:
+#
+#   Comment:	%C{
+#         Test conflict_unload mechanism
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+setenv_var MODULES_CONFLICT_UNLOAD 1
+setenv_var MODULES_AUTO_HANDLING 1
+
+#
+# multiple loaded modules targeted
+#
+
+setenv_loaded_module [list bar/1 bar/2 foo/1.0 foo/2.0] [list $mp/bar/1 $mp/bar/2 $mp/foo/1.0 $mp/foo/2.0]
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD multi_unload1
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&foo]
+lappend ans [list set _LMFILES_ $mp/bar/1:$mp/bar/2:$mp/conun/1]
+lappend ans [list set LOADEDMODULES bar/1:bar/2:conun/1]
+set tserr [msg_top_load_conun conun/1 {} {foo/2.0 foo/1.0} {} {} {} {}]
+testouterr_cmd bash {load conun/1} $ans $tserr
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD multi_conflict1
+testouterr_cmd bash {load conun/1} $ans $tserr
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD multi_unload2
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&foo&bar]
+lappend ans [list set _LMFILES_ $mp/conun/1]
+lappend ans [list set LOADEDMODULES conun/1]
+set tserr [msg_top_load_conun conun/1 {} {foo/2.0 foo/1.0 bar/2 bar/1} {} {} {} {}]
+testouterr_cmd bash {load conun/1} $ans $tserr
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD multi_conflict2
+testouterr_cmd bash {load conun/1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD multi_alias_conflict1
+setenv_loaded_module [list bar/1 bar/2 foo/1.0] [list $mp/bar/1 $mp/bar/2 $mp/foo/1.0]
+setenv_var __MODULES_LMALTNAME foo/1.0&al|alfoo
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&alfoo&bar]
+lappend ans [list unset __MODULES_LMALTNAME]
+lappend ans [list set _LMFILES_ $mp/conun/1]
+lappend ans [list set LOADEDMODULES conun/1]
+set tserr [msg_top_load_conun conun/1 {} {foo/1.0 bar/2 bar/1} {} {} {} {}]
+testouterr_cmd bash {load conun/1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD multi_alias_unload1
+testouterr_cmd bash {load conun/1} $ans $tserr
+
+unsetenv_var __MODULES_LMALTNAME
+
+
+#
+# family
+#
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+setenv_var MODULES_FAMILY_CONUN foo
+setenv_var __MODULES_LMALTNAME foo/1.0&al|conun
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD family1
+set ans [list]
+lappend ans [list set MODULES_FAMILY_CONUN conun]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&conun]
+lappend ans [list set __MODULES_LMALTNAME conun/1&al|conun]
+lappend ans [list set _LMFILES_ $mp/conun/1]
+lappend ans [list set LOADEDMODULES conun/1]
+lappend ans [list set LMOD_FAMILY_CONUN conun]
+set tserr [msg_top_load_conun conun/1 {} {foo/1.0} {} {} {} {}]
+testouterr_cmd bash {load conun/1} $ans $tserr
+
+setenv_loaded_module [list foo/2.0 conun/2] [list $mp/foo/2.0 $mp/conun/2]
+setenv_var MODULES_FAMILY_CONUN conun
+setenv_var MODULES_FAMILY_FOO foo
+setenv_var __MODULES_LMALTNAME foo/2.0&al|foo:conun/2&al|conun
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD family_dep1
+set ans [list]
+lappend ans [list set LMOD_FAMILY_FOO foo]
+lappend ans [list set MODULES_FAMILY_CONUN conun]
+lappend ans [list set __MODULES_LMCONFLICT foo/1.0&foo:conun/1&conun]
+lappend ans [list set MODULES_FAMILY_FOO foo]
+lappend ans [list set __MODULES_LMALTNAME foo/1.0&al|foo:conun/1&al|conun]
+lappend ans [list set __MODULES_LMPREREQ conun/1&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1]
+lappend ans [list set LOADEDMODULES foo/1.0:conun/1]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded]
+lappend ans [list set LMOD_FAMILY_CONUN conun]
+set tserr [msg_top_load_conun conun/1 {} {conun/2 foo/2.0} {} {foo/1.0} {} {}]
+testouterr_cmd bash {load conun/1} $ans $tserr
+
+unsetenv_var MODULES_FAMILY_CONUN
+unsetenv_var MODULES_FAMILY_FOO
+unsetenv_var __MODULES_LMALTNAME
+
+
+#
+# unique_name_loaded
+#
+
+setenv_loaded_module [list conun/2] [list $mp/conun/2]
+setenv_var MODULES_UNIQUE_NAME_LOADED 1
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD unique1
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&conun]
+lappend ans [list set _LMFILES_ $mp/conun/1]
+lappend ans [list set LOADEDMODULES conun/1]
+set tserr [msg_top_load_conun conun/1 {} {conun/2} {} {} {} {}]
+testouterr_cmd bash {load conun/1} $ans $tserr
+
+setenv_loaded_module [list foo/2.0 conun/2] [list $mp/foo/2.0 $mp/conun/2]
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD unique_dep1
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT foo/1.0&foo:conun/1&conun]
+lappend ans [list set __MODULES_LMPREREQ conun/1&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1]
+lappend ans [list set LOADEDMODULES foo/1.0:conun/1]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded]
+set tserr [msg_top_load_conun conun/1 {} {conun/2 foo/2.0} {} {foo/1.0} {} {}]
+testouterr_cmd bash {load conun/1} $ans $tserr
+
+setenv_var MODULES_UNIQUE_NAME_LOADED 0
+
+
+#
+# sticky modules + conflict command
+#
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD sticky_conflict1
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+setenv_var __MODULES_LMTAG foo/1.0&sticky
+
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]
+testouterr_cmd bash {load conun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&foo]
+lappend ans [list set _LMFILES_ $mp/conun/1]
+lappend ans [list set LOADEDMODULES conun/1]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunloadf]\n\n[msg_top_load_conun conun/1 {} {foo/1.0} {} {} {} {}]
+testouterr_cmd bash {load -f conun/1} $ans $tserr
+
+
+setenv_loaded_module [list foo/1.0 foo/2.0] [list $mp/foo/1.0 $mp/foo/2.0]
+setenv_var __MODULES_LMTAG foo/1.0&sticky
+
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]
+testouterr_cmd bash {load conun/1} ERR $tserr
+
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunloadf]\n\n[msg_top_load_conun conun/1 {} {foo/2.0 foo/1.0} {} {} {} {}]
+testouterr_cmd bash {load -f conun/1} $ans $tserr
+
+setenv_loaded_module [list foo/2.0 foo/1.0] [list $mp/foo/2.0 $mp/foo/1.0]
+setenv_var __MODULES_LMTAG foo/1.0&sticky
+
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]
+testouterr_cmd bash {load conun/1} ERR $tserr
+
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunloadf]\n\n[msg_top_load_conun conun/1 {} {foo/1.0 foo/2.0} {} {} {} {}]
+testouterr_cmd bash {load -f conun/1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD sticky_conflict2
+
+setenv_loaded_module [list foo/2.0 foo/1.0 bar/1 bar/2 ] [list $mp/foo/2.0 $mp/foo/1.0 $mp/bar/1 $mp/bar/2]
+setenv_var __MODULES_LMTAG foo/1.0&sticky:bar/1&sticky
+
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]
+testouterr_cmd bash {load conun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&foo&bar]
+lappend ans [list set _LMFILES_ $mp/conun/1]
+lappend ans [list set LOADEDMODULES conun/1]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunloadf]\n\n[msg_unload {bar/1 <S>} $err_stickyunloadf]\n\n[msg_top_load_conun conun/1 {} {foo/1.0 foo/2.0 bar/2 bar/1} {} {} {} {}]
+testouterr_cmd bash {load -f conun/1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD dep_sticky_conflict1
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+setenv_var __MODULES_LMTAG foo/1.0&sticky
+
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]\n\n[msg_load lconun/1 [err_reqlo conun/1]]
+testouterr_cmd bash {load lconun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&foo]
+lappend ans [list set __MODULES_LMPREREQ lconun/1&conun/1]
+lappend ans [list set _LMFILES_ $mp/conun/1:$mp/lconun/1]
+lappend ans [list set LOADEDMODULES conun/1:lconun/1]
+lappend ans [list set __MODULES_LMTAG conun/1&auto-loaded]
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunloadf]\n\n[msg_top_load_conun lconun/1 {} {foo/1.0} {} {conun/1} {} {}]
+testouterr_cmd bash {load -f lconun/1} $ans $tserr
+
+setenv_loaded_module [list foo/2.0 foo/1.0] [list $mp/foo/2.0 $mp/foo/1.0]
+setenv_var __MODULES_LMTAG foo/1.0&sticky
+
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]\n\n[msg_load lconun/1 [err_reqlo conun/1]]
+testouterr_cmd bash {load lconun/1} ERR $tserr
+
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunloadf]\n\n[msg_top_load_conun lconun/1 {} {foo/1.0 foo/2.0} {} {conun/1} {} {}]
+testouterr_cmd bash {load -f lconun/1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD dep_sticky_conflict2
+
+setenv_loaded_module [list foo/2.0 foo/1.0 bar/1 bar/2 ] [list $mp/foo/2.0 $mp/foo/1.0 $mp/bar/1 $mp/bar/2]
+setenv_var __MODULES_LMTAG foo/1.0&sticky:bar/1&sticky
+
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]\n\n[msg_load lconun/1 [err_reqlo conun/1]]
+testouterr_cmd bash {load lconun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&foo&bar]
+lappend ans [list set __MODULES_LMPREREQ lconun/1&conun/1]
+lappend ans [list set _LMFILES_ $mp/conun/1:$mp/lconun/1]
+lappend ans [list set LOADEDMODULES conun/1:lconun/1]
+lappend ans [list set __MODULES_LMTAG conun/1&auto-loaded]
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunloadf]\n\n[msg_unload {bar/1 <S>} $err_stickyunloadf]\n\n[msg_top_load_conun lconun/1 {} {foo/1.0 foo/2.0 bar/2 bar/1} {} {conun/1} {} {}]
+testouterr_cmd bash {load -f lconun/1} $ans $tserr
+
+
+#
+# sticky modules + module unload command
+#
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD sticky_unload1
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+setenv_var __MODULES_LMTAG foo/1.0&sticky
+
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]
+testouterr_cmd bash {load conun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&foo]
+lappend ans [list set _LMFILES_ $mp/conun/1]
+lappend ans [list set LOADEDMODULES conun/1]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunloadf]\n\n[msg_top_load_conun conun/1 {} {foo/1.0} {} {} {} {}]
+testouterr_cmd bash {load -f conun/1} $ans $tserr
+
+
+setenv_loaded_module [list foo/1.0 foo/2.0] [list $mp/foo/1.0 $mp/foo/2.0]
+setenv_var __MODULES_LMTAG foo/1.0&sticky
+
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]
+testouterr_cmd bash {load conun/1} ERR $tserr
+
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunloadf]\n\n[msg_top_load_conun conun/1 {} {foo/2.0 foo/1.0} {} {} {} {}]
+testouterr_cmd bash {load -f conun/1} $ans $tserr
+
+setenv_loaded_module [list foo/2.0 foo/1.0] [list $mp/foo/2.0 $mp/foo/1.0]
+setenv_var __MODULES_LMTAG foo/1.0&sticky
+
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]
+testouterr_cmd bash {load conun/1} ERR $tserr
+
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunloadf]\n\n[msg_top_load_conun conun/1 {} {foo/1.0 foo/2.0} {} {} {} {}]
+testouterr_cmd bash {load -f conun/1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD sticky_unload2
+
+setenv_loaded_module [list foo/2.0 foo/1.0 bar/1 bar/2 ] [list $mp/foo/2.0 $mp/foo/1.0 $mp/bar/1 $mp/bar/2]
+setenv_var __MODULES_LMTAG foo/1.0&sticky:bar/1&sticky
+
+#FIXME: should not produce error bar eval (linked to abort mode?)
+#   or should produce eval bar with conflict command
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunload]\n\n[msg_unload {bar/1 <S>} $err_stickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0] [err_conun bar/1]]
+testouterr_cmd bash {load conun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&foo&bar]
+lappend ans [list set _LMFILES_ $mp/conun/1]
+lappend ans [list set LOADEDMODULES conun/1]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunloadf]\n\n[msg_unload {bar/1 <S>} $err_stickyunloadf]\n\n[msg_top_load_conun conun/1 {} {foo/1.0 foo/2.0 bar/2 bar/1} {} {} {} {}]
+testouterr_cmd bash {load -f conun/1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD dep_sticky_unload1
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+setenv_var __MODULES_LMTAG foo/1.0&sticky
+
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]\n\n[msg_load lconun/1 [err_reqlo conun/1]]
+testouterr_cmd bash {load lconun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&foo]
+lappend ans [list set __MODULES_LMPREREQ lconun/1&conun/1]
+lappend ans [list set _LMFILES_ $mp/conun/1:$mp/lconun/1]
+lappend ans [list set LOADEDMODULES conun/1:lconun/1]
+lappend ans [list set __MODULES_LMTAG conun/1&auto-loaded]
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunloadf]\n\n[msg_top_load_conun lconun/1 {} {foo/1.0} {} {conun/1} {} {}]
+testouterr_cmd bash {load -f lconun/1} $ans $tserr
+
+setenv_loaded_module [list foo/2.0 foo/1.0] [list $mp/foo/2.0 $mp/foo/1.0]
+setenv_var __MODULES_LMTAG foo/1.0&sticky
+
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]\n\n[msg_load lconun/1 [err_reqlo conun/1]]
+testouterr_cmd bash {load lconun/1} ERR $tserr
+
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunloadf]\n\n[msg_top_load_conun lconun/1 {} {foo/1.0 foo/2.0} {} {conun/1} {} {}]
+testouterr_cmd bash {load -f lconun/1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD dep_sticky_unload2
+
+setenv_loaded_module [list foo/2.0 foo/1.0 bar/1 bar/2 ] [list $mp/foo/2.0 $mp/foo/1.0 $mp/bar/1 $mp/bar/2]
+setenv_var __MODULES_LMTAG foo/1.0&sticky:bar/1&sticky
+
+#FIXME: should not produce error bar eval (linked to abort mode?)
+#   or should produce eval bar with conflict command
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunload]\n\n[msg_unload {bar/1 <S>} $err_stickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0] [err_conun bar/1]]\n\n[msg_load lconun/1 [err_reqlo conun/1]]
+testouterr_cmd bash {load lconun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&foo&bar]
+lappend ans [list set __MODULES_LMPREREQ lconun/1&conun/1]
+lappend ans [list set _LMFILES_ $mp/conun/1:$mp/lconun/1]
+lappend ans [list set LOADEDMODULES conun/1:lconun/1]
+lappend ans [list set __MODULES_LMTAG conun/1&auto-loaded]
+set tserr [msg_unload {foo/1.0 <S>} $err_stickyunloadf]\n\n[msg_unload {bar/1 <S>} $err_stickyunloadf]\n\n[msg_top_load_conun lconun/1 {} {foo/1.0 foo/2.0 bar/2 bar/1} {} {conun/1} {} {}]
+testouterr_cmd bash {load -f lconun/1} $ans $tserr
+
+
+#
+# super-sticky modules + conflict command
+#
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD supersticky_conflict1
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+setenv_var __MODULES_LMTAG foo/1.0&super-sticky
+
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]
+testouterr_cmd bash {load conun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&foo]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1]
+lappend ans [list set LOADEDMODULES foo/1.0:conun/1]
+lappend ans [list ERR]
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_load conun/1 [err_conunf foo/1.0]]
+testouterr_cmd bash {load -f conun/1} $ans $tserr
+
+
+setenv_loaded_module [list foo/1.0 foo/2.0] [list $mp/foo/1.0 $mp/foo/2.0]
+setenv_var __MODULES_LMTAG foo/1.0&super-sticky
+
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]
+testouterr_cmd bash {load conun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&foo]
+lappend ans [list set LOADEDMODULES foo/1.0:conun/1]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1]
+lappend ans [list ERR]
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_top_load_conun conun/1 {} {foo/2.0} {} {} {} {} [err_conunf foo/1.0]]
+testouterr_cmd bash {load -f conun/1} $ans $tserr
+
+setenv_loaded_module [list foo/2.0 foo/1.0] [list $mp/foo/2.0 $mp/foo/1.0]
+setenv_var __MODULES_LMTAG foo/1.0&super-sticky
+
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]
+testouterr_cmd bash {load conun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&foo]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1]
+lappend ans [list set LOADEDMODULES foo/1.0:conun/1]
+lappend ans [list ERR]
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_top_load_conun conun/1 {} {foo/2.0} {} {} {} {} [err_conunf foo/1.0]]
+testouterr_cmd bash {load -f conun/1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD supersticky_conflict2
+
+setenv_loaded_module [list foo/2.0 foo/1.0 bar/1 bar/2] [list $mp/foo/2.0 $mp/foo/1.0 $mp/bar/1 $mp/bar/2]
+setenv_var __MODULES_LMTAG foo/1.0&super-sticky:bar/1&super-sticky
+
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]
+testouterr_cmd bash {load conun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&foo&bar]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1:conun/1]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1:$mp/conun/1]
+lappend ans [list ERR]
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_unload {bar/1 <sS>} $err_superstickyunload]\n\n[msg_top_load_conun conun/1 {} {foo/2.0 bar/2} {} {} {} {} [err_conunf foo/1.0] [err_conunf bar/1]]
+testouterr_cmd bash {load -f conun/1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD dep_supersticky_conflict1
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+setenv_var __MODULES_LMTAG foo/1.0&super-sticky
+
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]\n\n[msg_load lconun/1 [err_reqlo conun/1]]
+testouterr_cmd bash {load lconun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&foo]
+lappend ans [list set __MODULES_LMPREREQ lconun/1&conun/1]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1:$mp/lconun/1]
+lappend ans [list set LOADEDMODULES foo/1.0:conun/1:lconun/1]
+lappend ans [list set __MODULES_LMTAG foo/1.0&super-sticky:conun/1&auto-loaded]
+lappend ans [list ERR]
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_load {conun/1 <aL>} [err_conunf foo/1.0]]\n\n[msg_top_load_conun lconun/1 {} {} {} {conun/1} {} {}]
+testouterr_cmd bash {load -f lconun/1} $ans $tserr
+
+setenv_loaded_module [list foo/2.0 foo/1.0] [list $mp/foo/2.0 $mp/foo/1.0]
+setenv_var __MODULES_LMTAG foo/1.0&super-sticky
+
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]\n\n[msg_load lconun/1 [err_reqlo conun/1]]
+testouterr_cmd bash {load lconun/1} ERR $tserr
+
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_load {conun/1 <aL>} [err_conunf foo/1.0]]\n\n[msg_top_load_conun lconun/1 {} {foo/2.0} {} {conun/1} {} {}]
+testouterr_cmd bash {load -f lconun/1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD dep_supersticky_conflict2
+
+setenv_loaded_module [list foo/2.0 foo/1.0 bar/1 bar/2 ] [list $mp/foo/2.0 $mp/foo/1.0 $mp/bar/1 $mp/bar/2]
+setenv_var __MODULES_LMTAG foo/1.0&super-sticky:bar/1&super-sticky
+
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]\n\n[msg_load lconun/1 [err_reqlo conun/1]]
+testouterr_cmd bash {load lconun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&foo&bar]
+lappend ans [list set __MODULES_LMPREREQ lconun/1&conun/1]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1:conun/1:lconun/1]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1:$mp/conun/1:$mp/lconun/1]
+lappend ans [list set __MODULES_LMTAG foo/1.0&super-sticky:bar/1&super-sticky:conun/1&auto-loaded]
+lappend ans [list ERR]
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_unload {bar/1 <sS>} $err_superstickyunload]\n\n[msg_load {conun/1 <aL>} [err_conunf foo/1.0] [err_conunf bar/1]]\n\n[msg_top_load_conun lconun/1 {} {foo/2.0 bar/2} {} {conun/1} {} {}]
+testouterr_cmd bash {load -f lconun/1} $ans $tserr
+
+
+
+#
+# super-sticky modules + module unload command
+#
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD supersticky_unload1
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+setenv_var __MODULES_LMTAG foo/1.0&super-sticky
+
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]
+testouterr_cmd bash {load conun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&foo]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1]
+lappend ans [list set LOADEDMODULES foo/1.0:conun/1]
+lappend ans [list ERR]
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_load conun/1 [err_conunf foo/1.0]]
+testouterr_cmd bash {load -f conun/1} $ans $tserr
+
+
+setenv_loaded_module [list foo/1.0 foo/2.0] [list $mp/foo/1.0 $mp/foo/2.0]
+setenv_var __MODULES_LMTAG foo/1.0&super-sticky
+
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]
+testouterr_cmd bash {load conun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&foo]
+lappend ans [list set LOADEDMODULES foo/1.0:conun/1]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1]
+lappend ans [list ERR]
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_top_load_conun conun/1 {} {foo/2.0} {} {} {} {} [err_conunf foo/1.0]]
+testouterr_cmd bash {load -f conun/1} $ans $tserr
+
+setenv_loaded_module [list foo/2.0 foo/1.0] [list $mp/foo/2.0 $mp/foo/1.0]
+setenv_var __MODULES_LMTAG foo/1.0&super-sticky
+
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]
+testouterr_cmd bash {load conun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&foo]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1]
+lappend ans [list set LOADEDMODULES foo/1.0:conun/1]
+lappend ans [list ERR]
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_top_load_conun conun/1 {} {foo/2.0} {} {} {} {} [err_conunf foo/1.0]]
+testouterr_cmd bash {load -f conun/1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD supersticky_unload2
+
+setenv_loaded_module [list foo/2.0 foo/1.0 bar/1 bar/2] [list $mp/foo/2.0 $mp/foo/1.0 $mp/bar/1 $mp/bar/2]
+setenv_var __MODULES_LMTAG foo/1.0&super-sticky:bar/1&super-sticky
+
+#FIXME: should not produce error bar eval (linked to abort mode?)
+#   or should produce eval bar with conflict command
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_unload {bar/1 <sS>} $err_superstickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0] [err_conun bar/1]]
+testouterr_cmd bash {load conun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&foo&bar]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1:conun/1]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1:$mp/conun/1]
+lappend ans [list ERR]
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_unload {bar/1 <sS>} $err_superstickyunload]\n\n[msg_top_load_conun conun/1 {} {foo/2.0 bar/2} {} {} {} {} [err_conunf foo/1.0] [err_conunf bar/1]]
+testouterr_cmd bash {load -f conun/1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD dep_supersticky_unload1
+
+setenv_loaded_module [list foo/1.0] [list $mp/foo/1.0]
+setenv_var __MODULES_LMTAG foo/1.0&super-sticky
+
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]\n\n[msg_load lconun/1 [err_reqlo conun/1]]
+testouterr_cmd bash {load lconun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&foo]
+lappend ans [list set __MODULES_LMPREREQ lconun/1&conun/1]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1:$mp/lconun/1]
+lappend ans [list set LOADEDMODULES foo/1.0:conun/1:lconun/1]
+lappend ans [list set __MODULES_LMTAG foo/1.0&super-sticky:conun/1&auto-loaded]
+lappend ans [list ERR]
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_load {conun/1 <aL>} [err_conunf foo/1.0]]\n\n[msg_top_load_conun lconun/1 {} {} {} {conun/1} {} {}]
+testouterr_cmd bash {load -f lconun/1} $ans $tserr
+
+setenv_loaded_module [list foo/2.0 foo/1.0] [list $mp/foo/2.0 $mp/foo/1.0]
+setenv_var __MODULES_LMTAG foo/1.0&super-sticky
+
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0]]\n\n[msg_load lconun/1 [err_reqlo conun/1]]
+testouterr_cmd bash {load lconun/1} ERR $tserr
+
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_load {conun/1 <aL>} [err_conunf foo/1.0]]\n\n[msg_top_load_conun lconun/1 {} {foo/2.0} {} {conun/1} {} {}]
+testouterr_cmd bash {load -f lconun/1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD dep_supersticky_unload2
+
+setenv_loaded_module [list foo/2.0 foo/1.0 bar/1 bar/2 ] [list $mp/foo/2.0 $mp/foo/1.0 $mp/bar/1 $mp/bar/2]
+setenv_var __MODULES_LMTAG foo/1.0&super-sticky:bar/1&super-sticky
+
+#FIXME: should not produce error bar eval (linked to abort mode?)
+#   or should produce eval bar with conflict command
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_unload {bar/1 <sS>} $err_superstickyunload]\n\n[msg_load conun/1 [err_conun foo/1.0] [err_conun bar/1]]\n\n[msg_load lconun/1 [err_reqlo conun/1]]
+testouterr_cmd bash {load lconun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&foo&bar]
+lappend ans [list set __MODULES_LMPREREQ lconun/1&conun/1]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1:conun/1:lconun/1]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1:$mp/conun/1:$mp/lconun/1]
+lappend ans [list set __MODULES_LMTAG foo/1.0&super-sticky:bar/1&super-sticky:conun/1&auto-loaded]
+lappend ans [list ERR]
+set tserr [msg_unload {foo/1.0 <sS>} $err_superstickyunload]\n\n[msg_unload {bar/1 <sS>} $err_superstickyunload]\n\n[msg_load {conun/1 <aL>} [err_conunf foo/1.0] [err_conunf bar/1]]\n\n[msg_top_load_conun lconun/1 {} {foo/2.0 bar/2} {} {conun/1} {} {}]
+testouterr_cmd bash {load -f lconun/1} $ans $tserr
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMTAG
+
+
+
+#
+# variant is loading (values specified)
+#
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+setenv_var TESTSUITE_CONFLICT_UNLOAD variant_loading1
+
+#FIXME: should indicate other variant is loading, not loaded
+set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded foo=val1]]\n\n[msg_load foo/1.0 [err_reqlo conun/1{foo=val2}]]\n\n[msg_load conun/1{foo=val1} [err_reqlo foo/1.0]]
+testouterr_cmd bash {load conun/1 foo=val1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT conun/1&foo|val1|0|0]
+lappend ans [list set __MODULES_LMPREREQ foo/1.0&conun/1\ foo=val2:conun/1&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1]
+lappend ans [list set LOADEDMODULES foo/1.0:conun/1]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded]
+lappend ans [list ERR]
+#FIXME: should indicate other variant is loading, not loaded
+set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded foo=val1]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof conun/1{foo=val2}]]\n\n[msg_top_load conun/1{foo=val1} {} foo/1.0 {}]
+testouterr_cmd bash {load -f conun/1 foo=val1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD variant_loading2
+
+set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded {}]]\n\n[msg_load foo/1.0 [err_reqlo conun/1{foo=val2}]]\n\n[msg_load conun/1{foo=val1} [err_reqlo foo/1.0]]
+testouterr_cmd bash {load conun/1 foo=val1} ERR $tserr
+
+set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded {}]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof conun/1{foo=val2}]]\n\n[msg_top_load conun/1{foo=val1} {} foo/1.0 {}]
+testouterr_cmd bash {load -f conun/1 foo=val1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD dep_variant_loading1
+
+set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded foo=val1]]\n\n[msg_load foo/1.0 [err_reqlo conun/1{foo=val2}]]\n\n[msg_load conun/1{foo=val1} [err_reqlo foo/1.0]]\n\n[msg_load lconun/1 [err_reqlo conun/1{foo=val1}]]
+testouterr_cmd bash {load lconun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT conun/1&foo|val1|0|0]
+lappend ans [list set __MODULES_LMPREREQ foo/1.0&conun/1\ foo=val2:conun/1&foo/1.0:lconun/1&conun/1\ foo=val1]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1:$mp/lconun/1]
+lappend ans [list set LOADEDMODULES foo/1.0:conun/1:lconun/1]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded:conun/1&auto-loaded]
+lappend ans [list ERR]
+set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded foo=val1]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof conun/1{foo=val2}]]\n\n[msg_top_load lconun/1 {} {foo/1.0 conun/1{foo=val1}} {}]
+testouterr_cmd bash {load -f lconun/1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD dep_variant_loading2
+
+set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded {}]]\n\n[msg_load foo/1.0 [err_reqlo conun/1{foo=val2}]]\n\n[msg_load conun/1{foo=val1} [err_reqlo foo/1.0]]\n\n[msg_load lconun/1 [err_reqlo conun/1{foo=val1}]]
+testouterr_cmd bash {load lconun/1} ERR $tserr
+
+set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded {}]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof conun/1{foo=val2}]]\n\n[msg_top_load lconun/1 {} {foo/1.0 conun/1{foo=val1}} {}]
+testouterr_cmd bash {load -f lconun/1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD dep_variant_loading3
+
+set tserr [msg_load lconun/1{foo=val2} [err_othervariantloaded {foo=val1}]]\n\n[msg_load foo/1.0 [err_reqlo lconun/1{foo=val2}]]\n\n[msg_load conun/1 [err_reqlo foo/1.0]]\n\n[msg_load lconun/1{foo=val1} [err_reqlo conun/1]]
+testouterr_cmd bash {load lconun/1 foo=val1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT lconun/1&foo|val1|0|0]
+lappend ans [list set __MODULES_LMPREREQ foo/1.0&lconun/1\ foo=val2:conun/1&foo/1.0:lconun/1&conun/1]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1:$mp/lconun/1]
+lappend ans [list set LOADEDMODULES foo/1.0:conun/1:lconun/1]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded:conun/1&auto-loaded]
+lappend ans [list ERR]
+set tserr [msg_load lconun/1{foo=val2} [err_othervariantloaded {foo=val1}]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof lconun/1{foo=val2}]]\n\n[msg_top_load lconun/1{foo=val1} {} {foo/1.0 conun/1} {}]
+testouterr_cmd bash {load -f lconun/1 foo=val1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD dep_variant_loading4
+
+set tserr [msg_load lconun/1{foo=val2} [err_othervariantloaded {}]]\n\n[msg_load foo/1.0 [err_reqlo lconun/1{foo=val2}]]\n\n[msg_load conun/1 [err_reqlo foo/1.0]]\n\n[msg_load lconun/1{foo=val1} [err_reqlo conun/1]]
+testouterr_cmd bash {load lconun/1 foo=val1} ERR $tserr
+
+set tserr [msg_load lconun/1{foo=val2} [err_othervariantloaded {}]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof lconun/1{foo=val2}]]\n\n[msg_top_load lconun/1{foo=val1} {} {foo/1.0 conun/1} {}]
+testouterr_cmd bash {load -f lconun/1 foo=val1} $ans $tserr
+
+
+#
+# variant is loading (default values)
+#
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD default_variant_loading1
+
+#FIXME: should indicate other variant is loading, not loaded
+set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded foo=val1]]\n\n[msg_load foo/1.0 [err_reqlo conun/1{foo=val2}]]\n\n[msg_load conun/1 [err_reqlo foo/1.0]]
+testouterr_cmd bash {load conun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT conun/1&foo|val1|0|2]
+lappend ans [list set __MODULES_LMPREREQ foo/1.0&conun/1\ foo=val2:conun/1&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1]
+lappend ans [list set LOADEDMODULES foo/1.0:conun/1]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded]
+lappend ans [list ERR]
+#FIXME: should indicate other variant is loading, not loaded
+set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded foo=val1]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof conun/1{foo=val2}]]\n\n[msg_top_load conun/1{foo=val1} {} foo/1.0 {}]
+testouterr_cmd bash {load -f conun/1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD default_variant_loading2
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT conun/1&foo|val2|0|0]
+lappend ans [list set __MODULES_LMPREREQ foo/1.0&conun/1:conun/1&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1]
+lappend ans [list set LOADEDMODULES foo/1.0:conun/1]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded]
+set tserr [msg_top_load conun/1{foo=val2} {} foo/1.0 {}]
+testouterr_cmd bash {load conun/1 foo=val2} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD dep_default_variant_loading1
+
+set tserr [msg_load lconun/1{foo=val2} [err_othervariantloaded {foo=val1}]]\n\n[msg_load foo/1.0 [err_reqlo lconun/1{foo=val2}]]\n\n[msg_load conun/1 [err_reqlo foo/1.0]]\n\n[msg_load lconun/1 [err_reqlo conun/1]]
+testouterr_cmd bash {load lconun/1} ERR $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT lconun/1&foo|val1|0|2]
+lappend ans [list set __MODULES_LMPREREQ foo/1.0&lconun/1\ foo=val2:conun/1&foo/1.0:lconun/1&conun/1]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1:$mp/lconun/1]
+lappend ans [list set LOADEDMODULES foo/1.0:conun/1:lconun/1]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded:conun/1&auto-loaded]
+lappend ans [list ERR]
+set tserr [msg_load lconun/1{foo=val2} [err_othervariantloaded {foo=val1}]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof lconun/1{foo=val2}]]\n\n[msg_top_load lconun/1{foo=val1} {} {foo/1.0 conun/1} {}]
+testouterr_cmd bash {load -f lconun/1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD dep_default_variant_loading2
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT lconun/1&foo|val2|0|0]
+lappend ans [list set __MODULES_LMPREREQ foo/1.0&lconun/1:conun/1&foo/1.0:lconun/1&conun/1]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1:$mp/lconun/1]
+lappend ans [list set LOADEDMODULES foo/1.0:conun/1:lconun/1]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded:conun/1&auto-loaded]
+set tserr [msg_top_load lconun/1{foo=val2} {} {foo/1.0 conun/1} {}]
+testouterr_cmd bash {load lconun/1 foo=val2} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD dep_alias_variant_loading1
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT lconun/1&foo|val1|0|2]
+lappend ans [list set __MODULES_LMALTNAME lconun/1&al|allconun]
+lappend ans [list set __MODULES_LMPREREQ foo/1.0&allconun\ foo=val2:conun/1&foo/1.0:lconun/1&conun/1]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1:$mp/lconun/1]
+lappend ans [list set LOADEDMODULES foo/1.0:conun/1:lconun/1]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded:conun/1&auto-loaded]
+lappend ans [list ERR]
+set tserr [msg_load lconun/1{foo=val2} [err_othervariantloaded {foo=val1}]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof allconun{foo=val2}]]\n\n[msg_top_load lconun/1{foo=val1} {} {foo/1.0 conun/1} {}]
+testouterr_cmd bash {load -f lconun/1} $ans $tserr
+
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+
+
+#
+# UReqUn of ConUn module
+#
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD urequn_of_conun_is_direct_reqlo1
+
+setenv_loaded_module [list foo/1.0 bar/1] [list $mp/foo/1.0 $mp/bar/1] [list foo/1.0]
+setenv_var __MODULES_LMPREREQ bar/1&foo/1.0
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&bar]
+lappend ans [list set __MODULES_LMPREREQ conun/1&foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1]
+lappend ans [list set LOADEDMODULES foo/1.0:conun/1]
+set tserr [msg_top_load_conun conun/1 {} {bar/1} {} {} {}]
+testouterr_cmd bash {load conun/1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD urequn_of_conun_is_direct_reqlo2
+
+testouterr_cmd bash {load conun/1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD urequn_of_conun_is_indirect_reqlo1
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT lconun/1&bar]
+lappend ans [list set __MODULES_LMPREREQ conun/1&foo/1.0:lconun/1&conun/1]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1:$mp/lconun/1]
+lappend ans [list set LOADEDMODULES foo/1.0:conun/1:lconun/1]
+lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded:conun/1&auto-loaded]
+set tserr [msg_top_load_conun lconun/1 {} {bar/1} {} {conun/1} {}]
+testouterr_cmd bash {load lconun/1} $ans $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env

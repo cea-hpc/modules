@@ -1,0 +1,65 @@
+#%Module
+if {[info exists env(TESTSUITE_CONFLICT_UNLOAD)]} {
+    switch -- $env(TESTSUITE_CONFLICT_UNLOAD) {
+        multi_unload1 - sticky_unload1 - dep_sticky_unload1 -\
+        supersticky_unload1 - dep_supersticky_unload1 {
+            module unload foo
+        }
+        multi_unload2 - sticky_unload2 - dep_sticky_unload2 -\
+        supersticky_unload2 - dep_supersticky_unload2 {
+            module unload foo bar
+        }
+        multi_conflict1 - sticky_conflict1 - dep_sticky_conflict1 -\
+        supersticky_conflict1 - dep_supersticky_conflict1 {
+            conflict foo
+        }
+        multi_conflict2 - sticky_conflict2 - dep_sticky_conflict2 -\
+        supersticky_conflict2 - dep_supersticky_conflict2 {
+            conflict foo bar
+        }
+        multi_alias_conflict1 {
+            conflict alfoo bar
+        }
+        multi_alias_unload1 {
+            module unload alfoo bar
+        }
+        family1 {
+            family conun
+        }
+        family_dep1 {
+            family conun
+            module load foo/1.0
+        }
+        unique_dep1 {
+            module load foo/1.0
+        }
+        variant_loading1 - dep_variant_loading1 {
+            variant foo val1 val2 val3
+            module load foo/1.0
+        }
+        variant_loading2 - dep_variant_loading2 {
+            module load foo/1.0
+            variant foo val1 val2 val3
+        }
+        dep_variant_loading3 - dep_variant_loading4 -\
+        dep_default_variant_loading1 - dep_default_variant_loading2 -\
+        dep_alias_variant_loading1 {
+            module load foo/1.0
+        }
+        default_variant_loading1 - default_variant_loading2 {
+            variant --default val1 foo val1 val2 val3
+            module load foo/1.0
+        }
+        urequn_of_conun_is_direct_reqlo1 {
+            module load foo/1.0
+            conflict bar
+        }
+        urequn_of_conun_is_direct_reqlo2 {
+            conflict bar
+            module load foo/1.0
+        }
+        urequn_of_conun_is_indirect_reqlo1 {
+            module load foo/1.0
+        }
+    }
+}

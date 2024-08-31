@@ -28,3 +28,35 @@ if {[info exists env(TESTSUITE_LOGGER)]} {
         }
     }
 }
+if {[info exists env(TESTSUITE_CONFLICT_UNLOAD)]} {
+    switch -- $env(TESTSUITE_CONFLICT_UNLOAD) {
+        family1 {
+            family conun
+        }
+        family_dep1 {
+            family foo
+        }
+        variant_loading1 - variant_loading2 -\
+        dep_variant_loading1 - dep_variant_loading2 {
+            module load conun/1 foo=val2
+        }
+        dep_variant_loading3 - dep_variant_loading4 {
+            module load lconun/1 foo=val2
+        }
+        default_variant_loading1 {
+            module load conun/1 foo=val2
+        }
+        default_variant_loading2 {
+            module load conun/1
+        }
+        dep_default_variant_loading1 {
+            module load lconun/1 foo=val2
+        }
+        dep_default_variant_loading2 {
+            module load lconun/1
+        }
+        dep_alias_variant_loading1 {
+            module load allconun foo=val2
+        }
+    }
+}

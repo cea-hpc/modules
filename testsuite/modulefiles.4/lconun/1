@@ -1,0 +1,31 @@
+#%Module
+if {[info exists env(TESTSUITE_CONFLICT_UNLOAD)]} {
+    switch -- $env(TESTSUITE_CONFLICT_UNLOAD) {
+        dep_sticky_conflict1 - dep_sticky_conflict2 -\
+        dep_sticky_unload1 - dep_sticky_unload2 -\
+        dep_supersticky_conflict1 - dep_supersticky_conflict2 -\
+        dep_supersticky_unload1 - dep_supersticky_unload2 {
+            module load conun/1
+        }
+        dep_variant_loading1 - dep_variant_loading2 {
+            module load conun/1 foo=val1
+        }
+        dep_variant_loading3 {
+            variant foo val1 val2 val3
+            module load conun/1
+        }
+        dep_variant_loading4 {
+            module load conun/1
+            variant foo val1 val2 val3
+        }
+        dep_default_variant_loading1 - dep_default_variant_loading2 -\
+        dep_alias_variant_loading1 {
+            variant --default val1 foo val1 val2 val3
+            module load conun/1
+        }
+        urequn_of_conun_is_indirect_reqlo1 {
+            conflict bar
+            module load conun/1
+        }
+    }
+}
