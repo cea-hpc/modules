@@ -60,6 +60,16 @@ lappend ans_sh [list "unset -f testsuite4 2>/dev/null || true;"]
 lappend ans_sh [list "unset -f testsuite 2>/dev/null || true;"]
 lappend ans_sh [list "unset -f testsuite5 2>/dev/null || true;"]
 
+set ans_pwsh [list]
+lappend ans_pwsh [list unset _LMFILES_]
+lappend ans_pwsh [list unset LOADEDMODULES]
+lappend ans_pwsh [list unset __MODULES_LMREFRESH]
+lappend ans_pwsh [list "Remove-Item -Path function:testsuite2 -ErrorAction SilentlyContinue"]
+lappend ans_pwsh [list "Remove-Item -Path function:testsuite3 -ErrorAction SilentlyContinue"]
+lappend ans_pwsh [list "Remove-Item -Path function:testsuite4 -ErrorAction SilentlyContinue"]
+lappend ans_pwsh [list "Remove-Item -Path function:testsuite -ErrorAction SilentlyContinue"]
+lappend ans_pwsh [list "Remove-Item -Path function:testsuite5 -ErrorAction SilentlyContinue"]
+
 set ans_empty [list]
 lappend ans_empty [list unset _LMFILES_]
 lappend ans_empty [list unset LOADEDMODULES]
@@ -74,6 +84,8 @@ foreach sh $supported_shells {
         test_cmd "$sh" "unload $module" $ans_sh
     } elseif { $sh == "fish" } {
         test_cmd "$sh" "unload $module" $ans_fish
+    } elseif { $sh == "pwsh" } {
+        test_cmd "$sh" "unload $module" $ans_pwsh
     } else {
         test_cmd "$sh" "unload $module" $ans_empty
     }

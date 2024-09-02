@@ -138,6 +138,10 @@ foreach shell $supported_shells {
             lappend ans [list out {complete -c cmd some arg list for fish;}]
             lappend ans [list out {complete -c cmd other arg list for fish;}]
         }
+        pwsh {
+            lappend ans [list out {Register-ArgumentCompleter -CommandName cmd\
+                -ScriptBlock { some arg list for pwsh }}]
+        }
     }
     testouterr_cmd $shell "load $mod" $ans {}
 }
@@ -161,6 +165,9 @@ foreach shell $supported_shells {
         fish {
             lappend ans [list out {complete -e -c cmd;}]
         }
+        pwsh {
+            lappend ans [list out {Unregister-ArgumentCompleter -CommandName cmd}]
+        }
     }
     testouterr_cmd $shell "unload $mod" $ans {}
 }
@@ -181,6 +188,11 @@ foreach shell $supported_shells {
             lappend ans [list out {complete -e -c cmd;}]
             lappend ans [list out {complete -c cmd some arg list for fish;}]
             lappend ans [list out {complete -c cmd other arg list for fish;}]
+        }
+        pwsh {
+            set ans [list]
+            lappend ans [list out {Register-ArgumentCompleter -CommandName cmd\
+                -ScriptBlock { some arg list for pwsh }}]
         }
         default {
             set ans [list [list OK nop]]
@@ -210,6 +222,7 @@ complete\tfish cmd {some arg list for fish}
 complete\tfish cmd {other arg list for fish}
 complete\tzsh cmd {some arg list for zsh}
 complete\tunksh cmd {some arg list for unksh}
+complete\tpwsh cmd {some arg list for pwsh}
 $modlin"
 testouterr_cmd_re bash "display $mod" OK $tserr
 testouterr_cmd_re sh "display $mod" OK $tserr
@@ -252,6 +265,12 @@ foreach shell $supported_shells {
             lappend ans [list out {complete -e -c cmd;}]
             lappend ans [list out {complete -c cmd some arg list for shell;}]
             lappend ans [list out {complete -c cmd other arg list for shell;}]
+        }
+        pwsh {
+            lappend ans [list out {Register-ArgumentCompleter -CommandName cmd\
+                -ScriptBlock { some arg list for shell }}]
+            lappend ans [list out {Register-ArgumentCompleter -CommandName cmd\
+                -ScriptBlock { other arg list for shell }}]
         }
     }
     testouterr_cmd $shell "load $mod" $ans {}

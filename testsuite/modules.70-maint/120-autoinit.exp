@@ -561,6 +561,21 @@ set func_r "module <- function\\\(...\\\){
 }"
 }
 
+set func_pwsh "function global:envmodule {
+\\s*param\\\(
+\\s*\\\[Parameter\\\(
+\\s*Position=0,
+\\s*Mandatory=\\\$false,
+\\s*ValueFromRemainingArguments=\\\$true\\\)
+\\s*\\\] \\\[string\\\[\\\]\\\] \\\$Arguments
+\\s*\\\)
+\\s*\\\$cmd = \"$tclshlocre $modulecmd_pathre pwsh \\\$Arguments\"
+\\s*\\\$output = Invoke-Expression -Command \\\$cmd -ErrorAction Stop
+\\s*if \\\(\\\$output\\\) {
+\\s*\\\$output -join \"`n\" | Invoke-Expression
+\\s*}
+}"
+
 if {$install_ml eq {y} && !$modrc1_exinstalled} {
 append func_sh "
 \\s*ml\\\(\\\) { module ml \"\\\$\\\@\"; };"
