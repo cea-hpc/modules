@@ -23,6 +23,10 @@
 
 if {[module-info shelltype] == "fish" } then {
     set-function testsuite {eval (echo cd $argv[1])}
+} elseif {[module-info shelltype] == "pwsh" } then {
+    set-function testsuite {
+        Param([Parameter(Mandatory=$true, Position=0)] [string] $arg1); Invoke-Expression (echo cd $arg1)
+    }
 } else {
     set-function testsuite {eval $(echo cd $1)}
 }
@@ -39,6 +43,22 @@ set-function testsuite4 {echo $argv[1];}
 set-function testsuite5 {
     echo $argv[1]
     echo $argv[2]
+; }
+} elseif {[module-info shelltype] == "pwsh" } then {
+set-function testsuite2 {
+    Param([Parameter(Mandatory=$true, Position=0)] [string] $arg1); echo $arg1
+ }
+set-function testsuite3 {
+    Param([Parameter(Mandatory=$true, Position=0)] [string] $arg1); echo $arg1;
+}
+set-function testsuite4 {Param([Parameter(Mandatory=$true, Position=0)] [string] $arg1); echo $arg1;}
+set-function testsuite5 {
+    Param(
+        [Parameter(Mandatory=$true, Position=0)] [string] $arg1,
+        [Parameter(Mandatory=$true, Position=1)] [string] $arg2
+    )
+    echo $arg1
+    echo $arg2
 ; }
 } else {
 set-function testsuite2 {

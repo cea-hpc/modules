@@ -100,6 +100,9 @@ proc shell_err {test_shell {nb_err 1} {re_mode 0}} {
         {r} {
             set answer "mlstatus <- FALSE"
         }
+        {pwsh} {
+            set answer "Set-Variable -Name \"_mlstatus\" -Value ${esc}\$false -Scope Global"
+        }
         default {
             set answer ""
         }
@@ -142,6 +145,9 @@ proc shell_ok {test_shell {re_mode 0}} {
         }
         {r} {
             set answer "mlstatus <- TRUE"
+        }
+        {pwsh} {
+            set answer "Set-Variable -Name \"_mlstatus\" -Value ${esc}\$true -Scope Global"
         }
         default {
             set answer ""
@@ -201,6 +207,9 @@ proc shell_text {test_shell val {re_mode 0}} {
         }
         {r} {
             set answer "mlstatus <- '$val'"
+        }
+        {pwsh} {
+            set answer "Set-Variable -Name \"_mlstatus\" -Value '$val' -Scope Global"
         }
         default {
             set answer ""
@@ -295,6 +304,9 @@ proc shell_set {test_shell var val {re_mode 0} {escval 1}} {
         {r} {
             set answer "Sys.setenv${esc}('$var'='$val'${esc})"
         }
+        {pwsh} {
+            set answer "${esc}\$env:$var = '$val'"
+        }
         default {
             set answer ""
         }
@@ -345,6 +357,9 @@ proc shell_unset {test_shell var {re_mode 0}} {
         {r} {
             set answer "Sys.unsetenv${esc}('$var'${esc})"
         }
+        {pwsh} {
+            set answer "Remove-Item -Path env:$var -ErrorAction SilentlyContinue"
+        }
         default {
             set answer ""
         }
@@ -374,6 +389,9 @@ proc shell_alias {test_shell var val {re_mode 0} {escval 1}} {
         {cmd} {
             set answer "doskey $var=$val"
         }
+        {pwsh} {
+            set answer "function global:$var { $val }"
+        }
         default {
             set answer ""
         }
@@ -401,6 +419,9 @@ proc shell_unalias {test_shell var {re_mode 0}} {
         }
         {cmd} {
             set answer "doskey $var="
+        }
+        {pwsh} {
+            set answer "Remove-Item -Path function:$var -ErrorAction SilentlyContinue"
         }
         default {
             set answer ""
@@ -441,6 +462,9 @@ proc shell_chdir {test_shell val {re_mode 0}} {
         }
         {r} {
             set answer "setwd${esc}('$val'${esc})"
+        }
+        {pwsh} {
+            set answer "Set-Location '$val'"
         }
         default {
             set answer ""

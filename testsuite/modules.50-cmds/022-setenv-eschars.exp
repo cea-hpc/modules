@@ -47,6 +47,9 @@ lappend ans2 [list set pathelogical "abc :	{}|<>!#$^&'\"()@x%y\\z:sh*"]
 lappend ans2 [list set _LMFILES_ $modulefile]
 lappend ans2 [list set LOADEDMODULES $module]
 
+lappend ans_pwsh [list set pathelogical "abc :	{}|<>!#$^&\\'\"()@x%y\\z:sh*"]
+lappend ans_pwsh [list set _LMFILES_ $modulefile]
+lappend ans_pwsh [list set LOADEDMODULES $module]
 
 #
 #  The tests
@@ -55,6 +58,8 @@ lappend ans2 [list set LOADEDMODULES $module]
 foreach sh $supported_shells {
     if {[lsearch -exact $real_shells $sh] >= 0} {
         test_cmd "$sh" "load $module" $ans
+    } elseif {$sh == "pwsh"} {
+        test_cmd "$sh" "load $module" $ans_pwsh
     } else {
         test_cmd "$sh" "load $module" $ans2
     }

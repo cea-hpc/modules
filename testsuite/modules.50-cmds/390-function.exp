@@ -41,6 +41,14 @@ set function_fish {eval (echo cd $argv[1])}
 set function2_fish {echo $argv[1]}
 set function3_fish {echo $argv[1]
     echo $argv[2]}
+set function_pwsh {Param([Parameter(Mandatory=$true, Position=0)] [string] $arg1); Invoke-Expression (echo cd $arg1)}
+set function2_pwsh {Param([Parameter(Mandatory=$true, Position=0)] [string] $arg1); echo $arg1}
+set function3_pwsh {Param(
+        [Parameter(Mandatory=$true, Position=0)] [string] $arg1,
+        [Parameter(Mandatory=$true, Position=1)] [string] $arg2
+    )
+    echo $arg1
+    echo $arg2}
 
 #
 #  For the different shells ...
@@ -78,6 +86,15 @@ lappend ans_fish [list function "testsuite4;" "$function2_fish;" "end;"]
 lappend ans_fish [list function "testsuite;" "$function_fish;" "end;"]
 lappend ans_fish [list function "testsuite5;" "$function3_fish;" "end;"]
 
+lappend ans_pwsh [list set __MODULES_LMREFRESH $module]
+lappend ans_pwsh [list set _LMFILES_ $modulefile]
+lappend ans_pwsh [list set LOADEDMODULES $module]
+lappend ans_pwsh [list function global:testsuite2 "{" "$function2_pwsh" "}"]
+lappend ans_pwsh [list function global:testsuite3 "{" "$function2_pwsh" "}"]
+lappend ans_pwsh [list function global:testsuite4 "{" "$function2_pwsh" "}"]
+lappend ans_pwsh [list function global:testsuite "{" "$function_pwsh" "}"]
+lappend ans_pwsh [list function global:testsuite5 "{" "$function3_pwsh" "}"]
+
 lappend ans_unsh [list set _LMFILES_ $modulefile]
 lappend ans_unsh [list set LOADEDMODULES $module]
 lappend ans_unsh [list unset "-g" testsuite]
@@ -95,6 +112,8 @@ foreach sh $supported_shells {
         test_cmd "$sh" "load $module" $ans_bash
     } elseif { [lsearch {sh ksh zsh} $sh] >= 0 } {
         test_cmd "$sh" "load $module" $ans_sh
+    } elseif {$sh eq "pwsh"} {
+        test_cmd "$sh" "load $module" $ans_pwsh
     } else {
         test_cmd "$sh" "load $module" $ans_empty
     }
@@ -113,6 +132,7 @@ set modulefile "$modpath/$module"
 
 set function_sh {echo $(grep "report .Modules " modulecmd.tcl | tr -d \\ | awk '{print $3}'); echo $1}
 set function_fish {echo (grep "report .Modules " modulecmd.tcl | tr -d \\ | awk '{print $3}'); echo $argv[1]}
+set function_pwsh {echo (grep "report .Modules " modulecmd.tcl | tr -d \\ | awk '{print $3}'); echo $argv[1]}
 
 set ans_empty [list]
 lappend ans_empty [list set __MODULES_LMREFRESH $module]
@@ -137,7 +157,11 @@ lappend ans_fish [list set _LMFILES_ $modulefile]
 lappend ans_fish [list set LOADEDMODULES $module]
 lappend ans_fish [list function "testsuite;" "$function_fish;" "end;"]
 
-
+set ans_pwsh [list]
+lappend ans_pwsh [list set __MODULES_LMREFRESH $module]
+lappend ans_pwsh [list set _LMFILES_ $modulefile]
+lappend ans_pwsh [list set LOADEDMODULES $module]
+lappend ans_pwsh [list function global:testsuite "{" "$function_pwsh" "}"]
 
 foreach sh $supported_shells {
     switch -- $sh {
@@ -149,6 +173,9 @@ foreach sh $supported_shells {
         }
         {fish} {
             test_cmd $sh "load $module" $ans_fish
+        }
+        {pwsh} {
+            test_cmd $sh "load $module" $ans_pwsh
         }
     }
 }
