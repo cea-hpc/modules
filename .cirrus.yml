@@ -97,7 +97,7 @@ task:
     image: ghcr.io/cirruslabs/macos-runner:sonoma
   reqinstall_script:
     - brew update
-    - brew install md5sha1sum expect dejagnu grep fish r tcl-tk gzip
+    - brew install md5sha1sum expect dejagnu grep fish r tcl-tk gzip powershell
   configure_script:
     - ./configure --prefix=/tmp/modules --with-loadedmodules=null:dot --with-tcl=/opt/homebrew/lib
   << : *BUILD_INSTALL_TEST_TEMPLATE
@@ -130,11 +130,17 @@ task:
     yes | unminimize || true
     # install requirements
     apt-get update
-    apt-get -y install wget expect-dev dejagnu python3-sphinx gzip man-db bash tcsh ksh zsh fish tcl tcl8.6 perl python ruby cmake r-base-core
+    apt-get -y install curl wget expect-dev dejagnu python3-sphinx gzip man-db bash tcsh ksh zsh fish tcl tcl8.6 perl python ruby cmake r-base-core
     # libtclenvmodules build requirements
     apt-get -y install gcc autoconf tcl8.6-dev
     # requirements for source-sh extra tests
     apt-get -y install lsof
+    # install powershell
+    curl -LJO https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
+    dpkg -i packages-microsoft-prod.deb
+    rm packages-microsoft-prod.deb
+    apt-get update
+    apt-get install -y powershell
   configure_script:
     - ./configure --with-tclsh=tclsh8.6 --prefix /tmp/modules --with-tcl=/usr/lib/tcl8.6 --enable-append-manpath --enable-append-binpath --with-bin-search-path=/usr/bin:/bin --enable-silent-shell-debug-support --enable-windows-support --with-loadedmodules=null:dot --enable-quarantine-support --with-quarantine-vars=LD_LIBRARY_PATH --with-dark-background-colors='hi=1:se=2:er=91:wa=93:mp=1;94:di=94:al=96:sy=95' --enable-foo FOO=bar
   << : *BUILD_INSTALL_TEST_TEMPLATE
@@ -156,11 +162,17 @@ task:
     yes | unminimize || true
     # install requirements
     apt-get update
-    apt-get -y install wget expect-dev dejagnu python3-sphinx gzip man-db bash tcsh ksh zsh fish tcl tcl8.6 perl python3 ruby cmake r-base-core lsb-release
+    apt-get -y install curl expect-dev dejagnu python3-sphinx gzip man-db bash tcsh ksh zsh fish tcl tcl8.6 perl python3 ruby cmake r-base-core lsb-release
     # libtclenvmodules build requirements
     apt-get -y install gcc autoconf tcl8.6-dev
     # requirements for source-sh extra tests
     apt-get -y install lsof
+    # install powershell
+    curl -LJO https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb
+    dpkg -i packages-microsoft-prod.deb
+    rm packages-microsoft-prod.deb
+    apt-get update
+    apt-get install -y powershell
   configure_script:
     - ./configure --with-tclsh=tclsh8.6 --prefix='/tmp/mo ules' --with-tcl=/usr/lib/tcl8.6
   << : *BUILD_INSTALL_TEST_TEMPLATE
