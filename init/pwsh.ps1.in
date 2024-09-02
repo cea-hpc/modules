@@ -1,0 +1,26 @@
+if ($IsWindows) {
+   # define Modules-specific environment variables
+   $env:MODULESHOME = (Split-Path -Parent -Path (Split-Path -Parent -Path $MyInvocation.MyCommand.Definition)) | Resolve-Path
+   $env:MODULES_CMD = Join-Path -Path $env:MODULESHOME -ChildPath 'libexec/modulecmd.tcl'
+
+   # main module command (envmodule because module is already a pwsh keyword)
+   function global:envmodule {
+      param(
+         [Parameter(Position=0, Mandatory=$false, ValueFromRemainingArguments=$true)]
+         [string[]] $Arguments
+      )
+      $cmd = "tclsh $env:MODULES_CMD pwsh $Arguments"
+      $output = Invoke-Expression -Command $cmd -ErrorAction Stop
+
+      if ($output) {
+         $output -join "`n" | Invoke-Expression
+      }
+   }
+
+   # enable a default modulepath directory
+   Invoke-Expression "envmodule use '$env:MODULESHOME/modulefiles'"
+} else {
+   # define module command and surrounding initial environment (default value
+   # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init config files)
+   (& "@TCLSH@" "@libexecdir@/modulecmd.tcl" pwsh autoinit) -join "`n" | Invoke-Expression
+}

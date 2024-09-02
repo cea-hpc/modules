@@ -11,7 +11,7 @@ INSTALL_DATA = $(INSTALL) -m 644
 
 SH_LIKE  = sh ksh bash zsh profile.sh
 CSH_LIKE = csh tcsh tcsh_completion profile.csh
-OTHER    = perl.pm python.py ruby.rb lisp tcl fish cmake r.R
+OTHER    = perl.pm python.py ruby.rb lisp tcl fish cmake r.R pwsh.ps1
 
 # example modulefiles to install
 EXAMPLE_MODFILES_SRCDIR := ../contrib/modulefiles
@@ -208,9 +208,10 @@ $(EXAMPLE_MODFILES_SRCDIR)/modules: $(EXAMPLE_MODFILES_SRCDIR)/modules.in
 $(EXAMPLE_MODFILES_SRCDIR)/version: $(EXAMPLE_MODFILES_SRCDIR)/version.in
 	$(translate-in-script)
 
-dist-win:
+dist-win: pwsh.ps1
 	$(INSTALL_DIR) '$(DIST_WIN_PREFIX)/init'
 	$(INSTALL_DATA) cmd.cmd '$(DIST_WIN_PREFIX)/init/'
+	$(INSTALL_DATA) pwsh.ps1 '$(DIST_WIN_PREFIX)/init/'
 	$(INSTALL_DIR) '$(DIST_WIN_PREFIX)/modulefiles'
 	$(INSTALL_DATA) $(addprefix $(EXAMPLE_MODFILES_SRCDIR)/,$(EXAMPLE_WIN_MODFILES)) '$(DIST_WIN_PREFIX)/modulefiles/'
 
@@ -326,4 +327,4 @@ endif
 $(V).SILENT: sh ksh bash zsh csh tcsh fish perl.pm python.py ruby.rb lisp tcl \
 	cmake r.R bash_completion tcsh_completion zsh-functions/_module profile.sh \
 	profile.csh modulespath initrc $(EXAMPLE_MODFILES_SRCDIR)/modules \
-	$(EXAMPLE_MODFILES_SRCDIR)/version
+	$(EXAMPLE_MODFILES_SRCDIR)/version pwsh.ps1

@@ -81,6 +81,10 @@ proc renderFalse {} {
          r {
             lappend ::g_shcode_out {mlstatus <- FALSE}
          }
+         pwsh {
+            lappend ::g_shcode_out {Set-Variable -Name "_mlstatus" -Value\
+               "$false"}
+         }
       }
    }
 }
@@ -88,8 +92,9 @@ proc renderFalse {} {
 proc renderTrue {} {
    # render a true value most of the time through a variable assignment that
    # will be looked at in the shell module function calling modulecmd.tcl to
-   # return in turns a boolean status. Except for python and cmake, the
-   # value assigned to variable is also returned as the full rendering status
+   # return in turns a boolean status. Except for python, cmake, and pwsh,
+   # the value assigned to variable is also returned as the full rendering
+   # status
    switch -- [getState shelltype] {
       sh - csh - fish {
          # no need to set a variable on real shells as last statement
@@ -119,6 +124,10 @@ proc renderTrue {} {
       }
       r {
          lappend ::g_shcode_out {mlstatus <- TRUE}
+      }
+      pwsh {
+         lappend ::g_shcode_out {Set-Variable -Name "_mlstatus" -Value\
+            "$true"}
       }
    }
 }
@@ -160,6 +169,10 @@ proc renderText {text} {
       }
       r {
          lappend ::g_shcode_out "mlstatus <- '$text'"
+      }
+      pwsh {
+         lappend ::g_shcode_out "Set-Variable -Name \"_mlstatus\" -Value\
+            '$text'"
       }
    }
 }
@@ -283,6 +296,10 @@ proc renderSettings {} {
                   set val [charEscaped $::env($var) {\\'}]
                   lappend g_shcode_out "Sys.setenv('$var'='$val')"
                }
+               pwsh {
+                  set val [charEscaped $::env($var) \']
+                  lappend g_shcode_out "\$env:$var = '$val'"
+               }
             }
          }
          del {
@@ -321,6 +338,10 @@ proc renderSettings {} {
                r {
                   lappend g_shcode_out "Sys.unsetenv('$var')"
                }
+               pwsh {
+                  lappend g_shcode_out "Remove-Item -Path env:$var\
+                     -ErrorAction SilentlyContinue"
+               }
             }
          }
       }
@@ -353,6 +374,9 @@ proc renderSettings {} {
                cmd {
                   lappend g_shcode_out "doskey $var=$val"
                }
+               pwsh {
+                  lappend g_shcode_out "function global:$var { $val }"
+               }
             }
          }
          del {
@@ -368,6 +392,10 @@ proc renderSettings {} {
                }
                cmd {
                   lappend g_shcode_out "doskey $var="
+               }
+               pwsh {
+                  lappend g_shcode_out "Remove-Item -Path function:$var\
+                     -ErrorAction SilentlyContinue"
                }
             }
          }
@@ -389,6 +417,9 @@ proc renderSettings {} {
                fish {
                   lappend g_shcode_out "function $funcname; $val; end;"
                }
+               pwsh {
+                  lappend g_shcode_out "function global:$funcname { $val }"
+               }
             }
          }
          del {
@@ -399,6 +430,10 @@ proc renderSettings {} {
                }
                fish {
                   lappend g_shcode_out "functions -e $funcname;"
+               }
+               pwsh {
+                  lappend g_shcode_out "Remove-Item -Path function:$funcname\
+                     -ErrorAction SilentlyContinue"
                }
             }
          }
@@ -425,6 +460,10 @@ proc renderSettings {} {
                         }
                         lappend g_shcode_out "complete -c $compname $body;"
                      }
+                     pwsh {
+                        lappend g_shcode_out "Register-ArgumentCompleter\
+                           -CommandName $compname -ScriptBlock { $body }"
+                     }
                   }
                }
             }
@@ -439,6 +478,10 @@ proc renderSettings {} {
                }
                fish {
                   lappend g_shcode_out "complete -e -c $compname;"
+               }
+               pwsh {
+                  lappend g_shcode_out "Unregister-ArgumentCompleter\
+                     -CommandName $compname"
                }
             }
          }
@@ -660,6 +703,9 @@ proc renderSettings {} {
          }
          r {
             lappend g_shcode_out "setwd('$::g_changeDir')"
+         }
+         pwsh {
+            lappend g_shcode_out "Set-Location '$::g_changeDir'"
          }
       }
       # cannot change current directory of cmake "shell"
@@ -1235,6 +1281,29 @@ ml <- function(...){
    module('ml', ...)
 }}
          }
+      }
+      pwsh {
+         if {[getState is_win]} {
+            reportErrorAndExit {No autoinit mode available for 'pwsh' shell\
+               on Windows}
+         }
+
+         set fdef "function global:envmodule {"
+         append fdef {
+   param(
+      [Parameter(
+         Position=0,
+         Mandatory=$false,
+         ValueFromRemainingArguments=$true)
+      ] [string[]] $Arguments
+   )}
+         append fdef "\n   \$cmd = \"$tclshbin $::argv0 pwsh \$Arguments\""
+         append fdef {
+   $output = Invoke-Expression -Command $cmd -ErrorAction Stop
+   if ($output) {
+      $output -join "`n" | Invoke-Expression
+   }}
+         append fdef "\n}"
       }
    }
 
