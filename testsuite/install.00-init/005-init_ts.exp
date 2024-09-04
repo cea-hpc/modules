@@ -108,7 +108,7 @@ array set shell_init {}
 array set shell_path {}
 array set shell_opts {}
 array set shell_test {}
-foreach shell [list sh bash basheu ksh zsh csh tcsh fish tcl perl python ruby cmake r] {
+foreach shell [list sh bash basheu ksh zsh csh tcsh fish tcl perl python ruby cmake r pwsh] {
    if {$shell eq {basheu} && $bash_version_is52} {
       send_user "\t'basheu' shell tests ignored on Bash 5.2\n"
       continue
@@ -135,7 +135,7 @@ foreach shell [list sh bash basheu ksh zsh csh tcsh fish tcl perl python ruby cm
    }
    if {$shellbin ne ""} {
       switch -- $shell {
-         tcl - perl - python - ruby - cmake - r {
+         tcl - perl - python - ruby - cmake - r - pwsh {
             lappend othlang_list $shell
          }
          sh - bash - basheu - ksh - zsh {
@@ -161,6 +161,9 @@ foreach shell [list sh bash basheu ksh zsh csh tcsh fish tcl perl python ruby cm
          }
          r {
             set shell_init($shell) "$install_initdir/$shell.R"
+         }
+         pwsh {
+            set shell_init($shell) "$install_initdir/$shell.ps1"
          }
          default {
             set shell_init($shell) "$install_initdir/$shell"
