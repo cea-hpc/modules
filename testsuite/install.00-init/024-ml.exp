@@ -24,6 +24,7 @@ if {$install_ml ne {y}} {
     send_user "\tSkipping ml command tests, as it is disabled\n"
 } else {
 set bad_cmd "$error_msgs: Unable to locate a modulefile for 'foo'"
+set bad_cmd_re "(ml: )?$bad_cmd"
 
 #
 # The tests
@@ -60,7 +61,7 @@ if {[find_bin grep] ne "" && [find_bin tr] ne "" && [find_bin awk] ne ""} {
 
 foreach shell $othlang_list {
    testall_cmd_re "$shell" "ml:--version" {} "Modules Release \\S+ (\\S+)" 0
-   testall_cmd_re "$shell" "ml:foo" {} "$bad_cmd.*" 1
+   testall_cmd_re "$shell" "ml:foo" {} "$bad_cmd_re.*" 1
    testall_cmd "$shell" "ml:use,$contrib_modpath:purge:null:list,-t" "" "$cur_loaded\nnull" 0
    testall_cmd "$shell" "ml:use,$contrib_modpath:purge:null:-null:list,-t" "" "$no_loaded" 0
    switch -- $shell {

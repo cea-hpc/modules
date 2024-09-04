@@ -32,6 +32,16 @@ set err_locatemod6 "$error_msgs: Unable to locate a modulefile for '\"\"'"
 set err_locatemod7 "$error_msgs: Unable to locate a modulefile for ''''"
 set usage_msg "^Modules Release \\S+ (\\S+).*"
 
+set err_emptymod_re "(envmodule: )?$err_emptymod"
+set err_emptydir_re "(envmodule: )?$err_emptydir"
+set err_locatemod_re "(envmodule: )?$err_locatemod"
+set err_locatemod2_re "(envmodule: )?$err_locatemod2"
+set err_locatemod3_re "(envmodule: )?$err_locatemod3"
+set err_locatemod4_re "(envmodule: )?$err_locatemod4"
+set err_locatemod5_re "(envmodule: )?$err_locatemod5"
+set err_locatemod6_re "(envmodule: )?$err_locatemod6"
+set err_locatemod7_re "(envmodule: )?$err_locatemod7"
+
 #
 # The tests
 #
@@ -100,27 +110,27 @@ foreach shell $othlang_list {
       }
    }
 
-   testall_cmd_re "$shell" "use," "" $err_emptydir$postmsg 1
-   testall_cmd_re "$shell" "load," "" $err_emptymod$postmsg 1
+   testall_cmd_re "$shell" "use," "" $err_emptydir_re$postmsg 1
+   testall_cmd_re "$shell" "load," "" $err_emptymod_re$postmsg 1
    # langs swallow " differently
    switch -- $shell {
       {perl} - {ruby} - {r} {
-         testall_cmd_re "$shell" "load,\"\"" "" $err_emptymod$postmsg 1
+         testall_cmd_re "$shell" "load,\"\"" "" $err_emptymod_re$postmsg 1
       }
       default {
-         testall_cmd_re "$shell" "load,\"\"" "" $err_locatemod6$postmsg 1
+         testall_cmd_re "$shell" "load,\"\"" "" $err_locatemod6_re$postmsg 1
       }
    }
-   testall_cmd_re "$shell" "load,''" "" $err_locatemod7$postmsg 1
-   testall_cmd_re "$shell" "load,foo bar" "" $err_locatemod$postmsg 1
-   testall_cmd_re "$shell" "load,foo\\ bar" "" $err_locatemod2$postmsg 1
+   testall_cmd_re "$shell" "load,''" "" $err_locatemod7_re$postmsg 1
+   testall_cmd_re "$shell" "load,foo bar" "" $err_locatemod_re$postmsg 1
+   testall_cmd_re "$shell" "load,foo\\ bar" "" $err_locatemod2_re$postmsg 1
    # langs swallow \$ differently
    switch -- $shell {
-      {tcl} - {python} - {cmake} {
-         testall_cmd_re "$shell" "load,\\\$foo" "" $err_locatemod5$postmsg 1
+      {tcl} - {python} - {cmake} - {pwsh} {
+         testall_cmd_re "$shell" "load,\\\$foo" "" $err_locatemod5_re$postmsg 1
       }
       default {
-         testall_cmd_re "$shell" "load,\\\$foo" "" $err_locatemod4$postmsg 1
+         testall_cmd_re "$shell" "load,\\\$foo" "" $err_locatemod4_re$postmsg 1
       }
    }
    testall_cmd_re "$shell" "NOARG" "" $usage_msg 0
@@ -141,7 +151,7 @@ foreach shell $othlang_list {
    testall_cmd_re "$shell" "append-path,-d, ,FOO,/path/to/dir2:source,$modfile" "" "$premsg$foo /path/to/dir2" 0
    # langs swallow \$ differently
    switch -- $shell {
-      tcl {
+      tcl - pwsh {
          testall_cmd_re "$shell" "append-path,FOO,\\\$foo:source,$modfile" "" "$foo:\\\\\\\$foo" 0
       }
       python {
