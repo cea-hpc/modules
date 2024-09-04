@@ -83,7 +83,7 @@ proc renderFalse {} {
          }
          pwsh {
             lappend ::g_shcode_out {Set-Variable -Name "_mlstatus" -Value\
-               "$false"}
+               $false -Scope Global}
          }
       }
    }
@@ -127,7 +127,7 @@ proc renderTrue {} {
       }
       pwsh {
          lappend ::g_shcode_out {Set-Variable -Name "_mlstatus" -Value\
-            "$true"}
+            $true -Scope Global}
       }
    }
 }
@@ -172,7 +172,7 @@ proc renderText {text} {
       }
       pwsh {
          lappend ::g_shcode_out "Set-Variable -Name \"_mlstatus\" -Value\
-            '$text'"
+            '$text' -Scope Global"
       }
    }
 }
@@ -1288,22 +1288,82 @@ ml <- function(...){
                on Windows}
          }
 
-         set fdef "function global:envmodule {"
+         set fdef "function global:_envmodule_common {"
          append fdef {
-   param(
-      [Parameter(
-         Position=0,
-         Mandatory=$false,
-         ValueFromRemainingArguments=$true)
-      ] [string[]] $Arguments
-   )}
-         append fdef "\n   \$cmd = \"$tclshbin $::argv0 pwsh \$Arguments\""
+   param([Parameter(ValueFromRemainingArguments)] [string[]] $allargs)
+   $global:_mlstatus = $true
+   $cmd_is_query = "$allargs" -match '(is-loaded|is-avail|is-used|is-saved)'
+   $output = }
+
+         append fdef "& \"$tclshbin\" \"$::argv0\" pwsh \$allargs 2>&1"
          append fdef {
-   $output = Invoke-Expression -Command $cmd -ErrorAction Stop
-   if ($output) {
-      $output -join "`n" | Invoke-Expression
+   $outmsg = ($output | ? {$_.gettype().Name -ne "ErrorRecord"}) -join "`n"
+   $errmsg = ($output | ? {$_.gettype().Name -eq "ErrorRecord"}) -join "`n"
+   $errmsg = $errmsg.replace(
+      "System.Management.Automation.RemoteException", ""
+   )
+   if ($outmsg) {
+      Invoke-Expression $outmsg
+   }
+   if (($_mlstatus -eq $false) -and (!$cmd_is_query)) {
+      $global:LastExitCode = 1
+   } else {
+      $global:LastExitCode = 0
+   }
+   if ($errmsg) {
+      if ($_mlstatus -eq $false) {
+         $global:LastExitCode = 1
+      } else {
+         [Console]::Error.WriteLine($errmsg)
+         $errmsg = $null
+      }
+   }
+
+   if ((($_mlstatus -ne $true) -and ($_mlstatus -ne $false)) -or\
+       ($cmd_is_query)) {
+      return $errmsg,$_mlstatus
+   }
+   return $errmsg,$null}
+         append fdef "\n}\nfunction global:envmodule {"
+         append fdef {
+   param([Parameter(ValueFromRemainingArguments)] [string[]] $allargs)
+   $errmsg,$retmsg = & _envmodule_common $allargs
+   if ("$errmsg" -ne "") {
+      $PSCmdlet.ThrowTerminatingError(
+         [System.Management.Automation.ErrorRecord]::new(
+            ([System.Exception]"$errmsg"),
+            'error while running modulecmd.tcl via envmodule',
+            [System.Management.Automation.ErrorCategory]::FromStdErr,
+            $null
+      ))
+   }
+   if ("$retmsg" -ne "") {
+      return $retmsg
    }}
          append fdef "\n}"
+         if {[getConf ml]} {
+            append fdef "\nfunction global:ml {"
+            append fdef {
+   param([Parameter(ValueFromRemainingArguments)] [string[]] $allargs)
+   $mlargs = @('ml')
+   if ($allargs.Length) {
+      $mlargs += $allargs
+   }
+   $errmsg,$retmsg = _envmodule_common $mlargs
+   if ("$errmsg" -ne "") {
+      $PSCmdlet.ThrowTerminatingError(
+         [System.Management.Automation.ErrorRecord]::new(
+            ([System.Exception]"$errmsg"),
+            'error while running modulecmd.tcl via ml',
+            [System.Management.Automation.ErrorCategory]::FromStdErr,
+            $null
+      ))
+   }
+   if ("$retmsg" -ne "") {
+      return $retmsg
+   }}
+            append fdef "\n}"
+         }
       }
    }
 
