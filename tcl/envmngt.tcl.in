@@ -1309,16 +1309,33 @@ ml <- function(...){
       $global:LastExitCode = 1
    } else {
       $global:LastExitCode = 0
+   }}
+         append fdef "\n   \$mlredir = \[bool\][getState is_stderr_tty]"
+         append fdef {
+   if ($env:MODULES_REDIRECT_OUTPUT -ne $null) {
+      if ($env:MODULES_REDIRECT_OUTPUT -eq '0') {
+         $mlredir = $false
+      } elseif ($env:MODULES_REDIRECT_OUTPUT -eq '1') {
+         $mlredir = $true
+      }
+   }
+   if ("$allargs" -match '--no-redirect') {
+      $mlredir = $false
+   } elseif ("$allargs" -match '--redirect') {
+      $mlredir = $true
    }
    if ($errmsg) {
       if ($_mlstatus -eq $false) {
          $global:LastExitCode = 1
       } else {
-         [Console]::Error.WriteLine($errmsg)
+         if ($mlredir) {
+            [Console]::WriteLine("$errmsg")
+         } else {
+            [Console]::Error.WriteLine("$errmsg")
+         }
          $errmsg = $null
       }
    }
-
    if ((($_mlstatus -ne $true) -and ($_mlstatus -ne $false)) -or\
        ($cmd_is_query)) {
       return $errmsg,$_mlstatus

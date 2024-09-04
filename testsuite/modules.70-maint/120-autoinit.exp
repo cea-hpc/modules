@@ -561,20 +561,70 @@ set func_r "module <- function\\\(...\\\){
 }"
 }
 
-set func_pwsh "function global:envmodule {
-\\s*param\\\(
-\\s*\\\[Parameter\\\(
-\\s*Position=0,
-\\s*Mandatory=\\\$false,
-\\s*ValueFromRemainingArguments=\\\$true\\\)
-\\s*\\\] \\\[string\\\[\\\]\\\] \\\$Arguments
+set func_pwsh "function global:_envmodule_common {
+\\s*param\\\(\\\[Parameter\\\(ValueFromRemainingArguments\\\)\\\] \\\[string\\\[\\\]\\\] \\\$allargs\\\)
+\\s*\\\$global:_mlstatus = \\\$true
+\\s*\\\$cmd_is_query = \"\\\$allargs\" -match '\\\(is-loaded\\\|is-avail\\\|is-used\\\|is-saved\\\)'
+\\s*\\\$output = & \"$tclshlocre\" \"$modulecmd_pathre\" pwsh \\\$allargs 2>&1
+\\s*\\\$outmsg = \\\(\\\$output \\\| \\\? {\\\$_.gettype\\\(\\\).Name -ne \"ErrorRecord\"}\\\) -join \"`n\"
+\\s*\\\$errmsg = \\\(\\\$output \\\| \\\? {\\\$_.gettype\\\(\\\).Name -eq \"ErrorRecord\"}\\\) -join \"`n\"
+\\s*\\\$errmsg = \\\$errmsg.replace\\\(
+\\s*\"System.Management.Automation.RemoteException\", \"\"
 \\s*\\\)
-\\s*\\\$cmd = \"$tclshlocre $modulecmd_pathre pwsh \\\$Arguments\"
-\\s*\\\$output = Invoke-Expression -Command \\\$cmd -ErrorAction Stop
-\\s*if \\\(\\\$output\\\) {
-\\s*\\\$output -join \"`n\" | Invoke-Expression
+\\s*if \\\(\\\$outmsg\\\) {
+\\s*Invoke-Expression \\\$outmsg
 \\s*}
-}"
+\\s*if \\\(\\\(\\\$_mlstatus -eq \\\$false\\\) -and \\\(!\\\$cmd_is_query\\\)\\\) {
+\\s*\\\$global:LastExitCode = 1
+\\s*} else {
+\\s*\\\$global:LastExitCode = 0
+\\s*}
+\\s*\\\$mlredir = \\\[bool\\\]$is_stderr_tty
+\\s*if \\\(\\\$env:MODULES_REDIRECT_OUTPUT -ne \\\$null\\\) {
+\\s*if \\\(\\\$env:MODULES_REDIRECT_OUTPUT -eq '0'\\\) {
+\\s*\\\$mlredir = \\\$false
+\\s*} elseif \\\(\\\$env:MODULES_REDIRECT_OUTPUT -eq '1'\\\) {
+\\s*\\\$mlredir = \\\$true
+\\s*}
+\\s*}
+\\s*if \\\(\"\\\$allargs\" -match '--no-redirect'\\\) {
+\\s*\\\$mlredir = \\\$false
+\\s*} elseif \\\(\"\\\$allargs\" -match '--redirect'\\\) {
+\\s*\\\$mlredir = \\\$true
+\\s*}
+\\s*if \\\(\\\$errmsg\\\) {
+\\s*if \\\(\\\$_mlstatus -eq \\\$false\\\) {
+\\s*\\\$global:LastExitCode = 1
+\\s*} else {
+\\s*if \\\(\\\$mlredir\\\) {
+\\s*\\\[Console\\\]::WriteLine\\\(\"\\\$errmsg\"\\\)
+\\s*} else {
+\\s*\\\[Console\\\]::Error.WriteLine\\\(\"\\\$errmsg\"\\\)
+\\s*}
+\\s*\\\$errmsg = \\\$null
+\\s*}
+\\s*}
+\\s*if \\\(\\\(\\\(\\\$_mlstatus -ne \\\$true\\\) -and \\\(\\\$_mlstatus -ne \\\$false\\\)\\\) -or \\\(\\\$cmd_is_query\\\)\\\) {
+\\s*return \\\$errmsg,\\\$_mlstatus
+\\s*}
+\\s*return \\\$errmsg,\\\$null
+\\s*}
+\\s*function global:envmodule {
+\\s*param\\\(\\\[Parameter\\\(ValueFromRemainingArguments\\\)\\\] \\\[string\\\[\\\]\\\] \\\$allargs\\\)
+\\s*\\\$errmsg,\\\$retmsg = & _envmodule_common \\\$allargs
+\\s*if \\\(\"\\\$errmsg\" -ne \"\"\\\) {
+\\s*\\\$PSCmdlet.ThrowTerminatingError\\\(
+\\s*\\\[System.Management.Automation.ErrorRecord\\\]::new\\\(
+\\s*\\\(\\\[System.Exception\\\]\"\\\$errmsg\"\\\),
+\\s*'error while running modulecmd.tcl via envmodule',
+\\s*\\\[System.Management.Automation.ErrorCategory\\\]::FromStdErr,
+\\s*\\\$null
+\\s*\\\)\\\)
+\\s*}
+\\s*if \\\(\"\\\$retmsg\" -ne \"\"\\\) {
+\\s*return \\\$retmsg
+\\s*}
+\\s*}"
 
 if {$install_ml eq {y} && !$modrc1_exinstalled} {
 append func_sh "
@@ -621,6 +671,27 @@ append func_cmake "
 append func_r "
 \\s*ml <- function\\\(...\\\){
 \\s*module\\\('ml', ...\\\)
+\\s*}"
+append func_pwsh "
+\\s*function global:ml {
+\\s*param\\\(\\\[Parameter\\\(ValueFromRemainingArguments\\\)\\\] \\\[string\\\[\\\]\\\] \\\$allargs\\\)
+\\s*\\\$mlargs = @\\\('ml'\\\)
+\\s*if \\\(\\\$allargs.Length\\\) {
+\\s*\\\$mlargs \\\+= \\\$allargs
+\\s*}
+\\s*\\\$errmsg,\\\$retmsg = _envmodule_common \\\$mlargs
+\\s*if \\\(\"\\\$errmsg\" -ne \"\"\\\) {
+\\s*\\\$PSCmdlet.ThrowTerminatingError\\\(
+\\s*\\\[System.Management.Automation.ErrorRecord\\\]::new\\\(
+\\s*\\\(\\\[System.Exception\\\]\"\\\$errmsg\"\\\),
+\\s*'error while running modulecmd.tcl via ml',
+\\s*\\\[System.Management.Automation.ErrorCategory\\\]::FromStdErr,
+\\s*\\\$null
+\\s*\\\)\\\)
+\\s*}
+\\s*if \\\(\"\\\$retmsg\" -ne \"\"\\\) {
+\\s*return \\\$retmsg
+\\s*}
 \\s*}"
 }
 
