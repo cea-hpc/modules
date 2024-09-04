@@ -23,11 +23,28 @@ if ($IsWindows) {
       } else {
          $global:LastExitCode = 0
       }
+
+      $mlredir = $true
+      if ($env:MODULES_REDIRECT_OUTPUT -ne $null) {
+         if ($env:MODULES_REDIRECT_OUTPUT -eq '0') {
+            $mlredir = $false
+         }
+      }
+      if ("$allargs" -match '--no-redirect') {
+         $mlredir = $false
+      } elseif ("$allargs" -match '--redirect') {
+         $mlredir = $true
+      }
+
       if ($errmsg) {
          if ($_mlstatus -eq $false) {
             $global:LastExitCode = 1
          } else {
-            [Console]::Error.WriteLine($errmsg)
+            if ($mlredir) {
+               [Console]::WriteLine($errmsg)
+            } else {
+               [Console]::Error.WriteLine($errmsg)
+            }
             $errmsg = $null
          }
       }
