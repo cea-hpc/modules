@@ -3,17 +3,78 @@ if ($IsWindows) {
    $env:MODULESHOME = (Split-Path -Parent -Path (Split-Path -Parent -Path $MyInvocation.MyCommand.Definition)) | Resolve-Path
    $env:MODULES_CMD = Join-Path -Path $env:MODULESHOME -ChildPath 'libexec/modulecmd.tcl'
 
+   # common module command (handles call to modulecmd.tcl, execution of
+   # generated commands and exit codes)
+   function global:_envmodule_common {
+      param([Parameter(ValueFromRemainingArguments)] [string[]] $allargs)
+      $global:_mlstatus = $true
+      $cmd_is_query = "$allargs" -match '(is-loaded|is-avail|is-used|is-saved)'
+      $output = & tclsh "$env:MODULES_CMD" pwsh $allargs 2>&1
+      $outmsg = ($output | ? {$_.gettype().Name -ne "ErrorRecord"}) -join "`n"
+      $errmsg = ($output | ? {$_.gettype().Name -eq "ErrorRecord"}) -join "`n"
+      $errmsg = $errmsg.replace(
+         "System.Management.Automation.RemoteException", ""
+      )
+      if ($outmsg) {
+         Invoke-Expression $outmsg
+      }
+      if (($_mlstatus -eq $false) -and (!$cmd_is_query)) {
+         $global:LastExitCode = 1
+      } else {
+         $global:LastExitCode = 0
+      }
+      if ($errmsg) {
+         if ($_mlstatus -eq $false) {
+            $global:LastExitCode = 1
+         } else {
+            [Console]::Error.WriteLine($errmsg)
+            $errmsg = $null
+         }
+      }
+
+      if ((($_mlstatus -ne $true) -and ($_mlstatus -ne $false)) -or ($cmd_is_query)) {
+         return $errmsg,$_mlstatus
+      }
+      return $errmsg,$null
+   }
+
    # main module command (envmodule because module is already a pwsh keyword)
    function global:envmodule {
-      param(
-         [Parameter(Position=0, Mandatory=$false, ValueFromRemainingArguments=$true)]
-         [string[]] $Arguments
-      )
-      $cmd = "tclsh $env:MODULES_CMD pwsh $Arguments"
-      $output = Invoke-Expression -Command $cmd -ErrorAction Stop
+      param([Parameter(ValueFromRemainingArguments)] [string[]] $allargs)
+      $errmsg,$retmsg = & _envmodule_common $allargs
+      if ("$errmsg" -ne "") {
+         $PSCmdlet.ThrowTerminatingError(
+            [System.Management.Automation.ErrorRecord]::new(
+               ([System.Exception]"$errmsg"),
+               'error while running modulecmd.tcl via envmodule',
+               [System.Management.Automation.ErrorCategory]::FromStdErr,
+               $null
+         ))
+      }
+      if ("$retmsg" -ne "") {
+         return $retmsg
+      }
+   }
 
-      if ($output) {
-         $output -join "`n" | Invoke-Expression
+   # ml shortcut for module command
+   function global:ml {
+      param([Parameter(ValueFromRemainingArguments)] [string[]] $allargs)
+      $mlargs = @('ml')
+      if ($allargs.Length) {
+         $mlargs += $allargs
+      }
+      $errmsg,$retmsg = _envmodule_common $mlargs
+      if ("$errmsg" -ne "") {
+         $PSCmdlet.ThrowTerminatingError(
+            [System.Management.Automation.ErrorRecord]::new(
+               ([System.Exception]"$errmsg"),
+               'error while running modulecmd.tcl via ml',
+               [System.Management.Automation.ErrorCategory]::FromStdErr,
+               $null
+         ))
+      }
+      if ("$retmsg" -ne "") {
+         return $retmsg
       }
    }
 
