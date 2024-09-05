@@ -1292,9 +1292,30 @@ ml <- function(...){
          append fdef {
    param([Parameter(ValueFromRemainingArguments)] [string[]] $allargs)
    $global:_mlstatus = $true
-   $cmd_is_query = "$allargs" -match '(is-loaded|is-avail|is-used|is-saved)'
+   $cmd_is_query = "$allargs" -match '(is-loaded|is-avail|is-used|is-saved)'}
+         if {[getConf quarantine_support]} {
+            append fdef {
+   if ($env:MODULES_RUN_QUARANTINE) {
+      $_mlre = ''
+      foreach ($_mlv in $env:MODULES_RUN_QUARANTINE -split ' ') {
+         if ($_mlv -match '^[A-Za-z_][A-Za-z0-9_]*$') {
+            $_mlv_val = [System.Environment]::GetEnvironmentVariable($_mlv)
+            if ($_mlv_val) {
+               $_mlre += "`$env:__MODULES_QUAR_${_mlv}='$_mlv_val';"
+            }
+            $_mlrv = "MODULES_RUNENV_$_mlv"
+            $_mlrv_val = [System.Environment]::GetEnvironmentVariable($_mlrv)
+            $_mlre += "`$env:$_mlv='$_mlrv_val';"
+         }
+      }
+      if ($_mlre -ne '') {
+         $_mlre += "`$env:__MODULES_QUARANTINE_SET=1"
+         Invoke-Expression "$_mlre"
+      }
+   }}
+         }
+         append fdef {
    $output = }
-
          append fdef "& \"$tclshbin\" \"$::argv0\" pwsh \$allargs 2>&1"
          append fdef {
    $outmsg = ($output | ? {$_.gettype().Name -ne "ErrorRecord"}) -join "`n"

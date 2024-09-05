@@ -68,10 +68,19 @@ foreach shell $shell_list {
 }
 
 foreach shell $othlang_list {
-   testall_cmd_re "$shell" "--version" "" "Modules Release \\S+ (\\S+)" 0
+   switch -- $shell {
+      pwsh {
+         testall_cmd_re "$shell" "--version" "Modules Release \\S+ (\\S+)" "" 0
+         testall_cmd "$shell" "use,$contrib_modpath:purge:load,null:list,-t" "$cur_loaded\nnull" "" 0
+         testall_cmd "$shell" "use,$contrib_modpath:purge:load,null:unload,null:list,-t" "$no_loaded" "" 0
+      }
+      default {
+         testall_cmd_re "$shell" "--version" "" "Modules Release \\S+ (\\S+)" 0
+         testall_cmd "$shell" "use,$contrib_modpath:purge:load,null:list,-t" "" "$cur_loaded\nnull" 0
+         testall_cmd "$shell" "use,$contrib_modpath:purge:load,null:unload,null:list,-t" "" "$no_loaded" 0
+      }
+   }
    testall_cmd_re "$shell" "foo" "" "$bad_cmd_re\n$type_help.*" 1
-   testall_cmd "$shell" "use,$contrib_modpath:purge:load,null:list,-t" "" "$cur_loaded\nnull" 0
-   testall_cmd "$shell" "use,$contrib_modpath:purge:load,null:unload,null:list,-t" "" "$no_loaded" 0
    switch -- $shell {
       cmake - r {
          testall_cmd_re "$shell" "is-loaded,unk" "" ".*" 1
@@ -130,7 +139,14 @@ foreach shell $shell_list {
 }
 
 foreach shell $othlang_list {
-   testall_cmd_re "$shell" "--version" "" "Modules Release \\S+ (\\S+)" 0
+   switch -- $shell {
+      pwsh {
+         testall_cmd_re "$shell" "--version" "Modules Release \\S+ (\\S+)" "" 0
+      }
+      default {
+         testall_cmd_re "$shell" "--version" "" "Modules Release \\S+ (\\S+)" 0
+      }
+   }
 }
 
 
