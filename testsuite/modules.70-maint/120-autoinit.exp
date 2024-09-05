@@ -475,6 +475,88 @@ set func_r "module <- function\\\(...\\\){
 \\s*close\\\(hndl\\\)
 \\s*invisible\\\(mlstatus\\\)
 }"
+set func_pwsh "function global:_envmodule_common {
+\\s*param\\\(\\\[Parameter\\\(ValueFromRemainingArguments\\\)\\\] \\\[string\\\[\\\]\\\] \\\$allargs\\\)
+\\s*\\\$global:_mlstatus = \\\$true
+\\s*\\\$cmd_is_query = \"\\\$allargs\" -match '\\\(is-loaded\\\|is-avail\\\|is-used\\\|is-saved\\\)'
+\\s*if \\\(\\\$env:MODULES_RUN_QUARANTINE\\\) {
+\\s*\\\$_mlre = ''
+\\s*foreach \\\(\\\$_mlv in \\\$env:MODULES_RUN_QUARANTINE -split ' '\\\) {
+\\s*if \\\(\\\$_mlv -match '\\\^\\\[A-Za-z_\\\]\\\[A-Za-z0-9_\\\]\\\*\\\$'\\\) {
+\\s*\\\$_mlv_val = \\\[System.Environment\\\]::GetEnvironmentVariable\\\(\\\$_mlv\\\)
+\\s*if \\\(\\\$_mlv_val\\\) {
+\\s*\\\$_mlre \\\+= \"`\\\$env:__MODULES_QUAR_\\\${_mlv}='\\\$_mlv_val';\"
+\\s*}
+\\s*\\\$_mlrv = \"MODULES_RUNENV_\\\$_mlv\"
+\\s*\\\$_mlrv_val = \\\[System.Environment\\\]::GetEnvironmentVariable\\\(\\\$_mlrv\\\)
+\\s*\\\$_mlre \\\+= \"`\\\$env:\\\$_mlv='\\\$_mlrv_val';\"
+\\s*}
+\\s*}
+\\s*if \\\(\\\$_mlre -ne ''\\\) {
+\\s*\\\$_mlre \\\+= \"`\\\$env:__MODULES_QUARANTINE_SET=1\"
+\\s*Invoke-Expression \"\\\$_mlre\"
+\\s*}
+\\s*}
+\\s*\\\$output = & \"$tclshlocre\" \"$modulecmd_pathre\" pwsh \\\$allargs 2>&1
+\\s*\\\$outmsg = \\\(\\\$output \\\| \\\? {\\\$_.gettype\\\(\\\).Name -ne \"ErrorRecord\"}\\\) -join \"`n\"
+\\s*\\\$errmsg = \\\(\\\$output \\\| \\\? {\\\$_.gettype\\\(\\\).Name -eq \"ErrorRecord\"}\\\) -join \"`n\"
+\\s*\\\$errmsg = \\\$errmsg.replace\\\(
+\\s*\"System.Management.Automation.RemoteException\", \"\"
+\\s*\\\)
+\\s*if \\\(\\\$outmsg\\\) {
+\\s*Invoke-Expression \\\$outmsg
+\\s*}
+\\s*if \\\(\\\(\\\$_mlstatus -eq \\\$false\\\) -and \\\(!\\\$cmd_is_query\\\)\\\) {
+\\s*\\\$global:LastExitCode = 1
+\\s*} else {
+\\s*\\\$global:LastExitCode = 0
+\\s*}
+\\s*\\\$mlredir = \\\[bool\\\]$is_stderr_tty
+\\s*if \\\(\\\$env:MODULES_REDIRECT_OUTPUT -ne \\\$null\\\) {
+\\s*if \\\(\\\$env:MODULES_REDIRECT_OUTPUT -eq '0'\\\) {
+\\s*\\\$mlredir = \\\$false
+\\s*} elseif \\\(\\\$env:MODULES_REDIRECT_OUTPUT -eq '1'\\\) {
+\\s*\\\$mlredir = \\\$true
+\\s*}
+\\s*}
+\\s*if \\\(\"\\\$allargs\" -match '--no-redirect'\\\) {
+\\s*\\\$mlredir = \\\$false
+\\s*} elseif \\\(\"\\\$allargs\" -match '--redirect'\\\) {
+\\s*\\\$mlredir = \\\$true
+\\s*}
+\\s*if \\\(\\\$errmsg\\\) {
+\\s*if \\\(\\\$_mlstatus -eq \\\$false\\\) {
+\\s*\\\$global:LastExitCode = 1
+\\s*} else {
+\\s*if \\\(\\\$mlredir\\\) {
+\\s*\\\[Console\\\]::WriteLine\\\(\"\\\$errmsg\"\\\)
+\\s*} else {
+\\s*\\\[Console\\\]::Error.WriteLine\\\(\"\\\$errmsg\"\\\)
+\\s*}
+\\s*\\\$errmsg = \\\$null
+\\s*}
+\\s*}
+\\s*if \\\(\\\(\\\(\\\$_mlstatus -ne \\\$true\\\) -and \\\(\\\$_mlstatus -ne \\\$false\\\)\\\) -or \\\(\\\$cmd_is_query\\\)\\\) {
+\\s*return \\\$errmsg,\\\$_mlstatus
+\\s*}
+\\s*return \\\$errmsg,\\\$null
+\\s*}
+\\s*function global:envmodule {
+\\s*param\\\(\\\[Parameter\\\(ValueFromRemainingArguments\\\)\\\] \\\[string\\\[\\\]\\\] \\\$allargs\\\)
+\\s*\\\$errmsg,\\\$retmsg = & _envmodule_common \\\$allargs
+\\s*if \\\(\"\\\$errmsg\" -ne \"\"\\\) {
+\\s*\\\$PSCmdlet.ThrowTerminatingError\\\(
+\\s*\\\[System.Management.Automation.ErrorRecord\\\]::new\\\(
+\\s*\\\(\\\[System.Exception\\\]\"\\\$errmsg\"\\\),
+\\s*'error while running modulecmd.tcl via envmodule',
+\\s*\\\[System.Management.Automation.ErrorCategory\\\]::FromStdErr,
+\\s*\\\$null
+\\s*\\\)\\\)
+\\s*}
+\\s*if \\\(\"\\\$retmsg\" -ne \"\"\\\) {
+\\s*return \\\$retmsg
+\\s*}
+\\s*}"
 } else {
 set func_fish "function $func_name
 \\s*eval $tclshlocre \\\\'$modulecmd_pathre\\\\' fish \\\(string escape -- \\\$argv\\\) \\\| source -
@@ -559,8 +641,6 @@ set func_r "module <- function\\\(...\\\){
 \\s*close\\\(hndl\\\)
 \\s*invisible\\\(mlstatus\\\)
 }"
-}
-
 set func_pwsh "function global:_envmodule_common {
 \\s*param\\\(\\\[Parameter\\\(ValueFromRemainingArguments\\\)\\\] \\\[string\\\[\\\]\\\] \\\$allargs\\\)
 \\s*\\\$global:_mlstatus = \\\$true
@@ -625,6 +705,7 @@ set func_pwsh "function global:_envmodule_common {
 \\s*return \\\$retmsg
 \\s*}
 \\s*}"
+}
 
 if {$install_ml eq {y} && !$modrc1_exinstalled} {
 append func_sh "

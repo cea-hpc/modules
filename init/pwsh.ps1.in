@@ -1,3 +1,9 @@
+# define modules runtime quarantine configuration
+@setquarvars@$env:MODULES_RUN_QUARANTINE = '@RUN_QUARANTINE@'
+@setquarvars@@$env:RUNENV_VAR = 'RUNENV_VAL'@
+@notsetquarvars@#$env:MODULES_RUN_QUARANTINE = 'ENVVARNAME'
+@notsetquarvars@
+
 if ($IsWindows) {
    # define Modules-specific environment variables
    $env:MODULESHOME = (Split-Path -Parent -Path (Split-Path -Parent -Path $MyInvocation.MyCommand.Definition)) | Resolve-Path
@@ -9,6 +15,27 @@ if ($IsWindows) {
       param([Parameter(ValueFromRemainingArguments)] [string[]] $allargs)
       $global:_mlstatus = $true
       $cmd_is_query = "$allargs" -match '(is-loaded|is-avail|is-used|is-saved)'
+
+      # setup quarantine if defined
+      $_mlre = ''
+      if ($env:MODULES_RUN_QUARANTINE) {
+         foreach ($_mlv in $env:MODULES_RUN_QUARANTINE -split ' ') {
+            if ($_mlv -match '^[A-Za-z_][A-Za-z0-9_]*$') {
+               $_mlv_value = [System.Environment]::GetEnvironmentVariable($_mlv)
+               if ($_mlv_value) {
+                  $_mlre += "`$env:__MODULES_QUAR_${_mlv}='$_mlv_value';"
+               }
+               $_mlrv = "MODULES_RUNENV_$_mlv"
+               $_mlrv_value = [System.Environment]::GetEnvironmentVariable($_mlrv)
+               $_mlre += "`$env:$_mlv='$_mlrv_value';"
+            }
+         }
+         if ($_mlre -ne '') {
+            $_mlre += "`$env:__MODULES_QUARANTINE_SET=1"
+            Invoke-Expression "$_mlre"
+         }
+      }
+
       $output = & tclsh "$env:MODULES_CMD" pwsh $allargs 2>&1
       $outmsg = ($output | ? {$_.gettype().Name -ne "ErrorRecord"}) -join "`n"
       $errmsg = ($output | ? {$_.gettype().Name -eq "ErrorRecord"}) -join "`n"
@@ -25,7 +52,7 @@ if ($IsWindows) {
       }
 
       $mlredir = $true
-      if ($env:MODULES_REDIRECT_OUTPUT -ne $null) {
+      if ($null -ne $env:MODULES_REDIRECT_OUTPUT) {
          if ($env:MODULES_REDIRECT_OUTPUT -eq '0') {
             $mlredir = $false
          }
@@ -96,7 +123,7 @@ if ($IsWindows) {
    }
 
    # enable a default modulepath directory
-   Invoke-Expression "envmodule use '$env:MODULESHOME/modulefiles'"
+   & envmodule use "$env:MODULESHOME/modulefiles"
 } else {
    # define module command and surrounding initial environment (default value
    # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init config files)
