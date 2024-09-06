@@ -775,8 +775,8 @@ the *modulefile* is being loaded.
 
   If a *shellname* is given, returns ``1`` if :file:`modulecmd.tcl`'s current
   shell is *shellname*, returns ``0`` otherwise. *shellname* can be: ``sh``,
-  ``bash``, ``ksh``, ``zsh``, ``csh``, ``tcsh``, ``fish``, ``cmd``, ``tcl``,
-  ``perl``, ``python``, ``ruby``, ``lisp``, ``cmake``, ``r``.
+  ``bash``, ``ksh``, ``zsh``, ``csh``, ``tcsh``, ``fish``, ``cmd``, ``pwsh``,
+  ``tcl``, ``perl``, ``python``, ``ruby``, ``lisp``, ``cmake``, ``r``.
 
  **module-info shelltype** [shelltypename]
 
@@ -788,8 +788,8 @@ the *modulefile* is being loaded.
 
   If a *shelltypename* is given, returns ``1`` if :file:`modulecmd.tcl`'s
   current shell type is *shelltypename*, returns ``0`` otherwise.
-  *shelltypename* can be: ``sh``, ``csh``, ``fish``, ``cmd``, ``tcl``,
-  ``perl``, ``python``, ``ruby``, ``lisp``, ``cmake``, ``r``.
+  *shelltypename* can be: ``sh``, ``csh``, ``fish``, ``cmd``, ``pwsh``,
+  ``tcl``, ``perl``, ``python``, ``ruby``, ``lisp``, ``cmake``, ``r``.
 
  **module-info specified**
 
@@ -2085,8 +2085,8 @@ Shell support
 
 The :file:`modulecmd.tcl` program that evaluates *modulefiles* supports a
 variety of shells or languages: *sh* family shells (*sh*, *bash*, *ksh* and
-*zsh*), *csh* family shells (*csh* and *tcsh*), *fish*, *cmd*, *python*,
-*perl*, *ruby*, *tcl*, *cmake*, *r*, and *lisp*.
+*zsh*), *csh* family shells (*csh* and *tcsh*), *fish*, *cmd*, *pwsh*,
+*python*, *perl*, *ruby*, *tcl*, *cmake*, *r*, and *lisp*.
 
 Modulefiles produce environment changes when evaluated, like defining an
 environment variable. The :file:`modulecmd.tcl` program outputs the
@@ -2121,6 +2121,8 @@ changes that are supported by the shells supported by :file:`modulecmd.tcl`.
 | fish   | ⦁                     | ⦁                    | ⦁                       | ⦁                   | ⦁              | ⦁                   |
 +--------+-----------------------+----------------------+-------------------------+---------------------+----------------+---------------------+
 | cmd    | ⦁                     | ⦁                    |                         |                     | ⦁              |                     |
++--------+-----------------------+----------------------+-------------------------+---------------------+----------------+---------------------+
+| pwsh   | ⦁                     | ⦁                    | ⦁                       | ⦁                   | ⦁              |                     |
 +--------+-----------------------+----------------------+-------------------------+---------------------+----------------+---------------------+
 | python | ⦁                     |                      |                         |                     | ⦁              | ⦁                   |
 +--------+-----------------------+----------------------+-------------------------+---------------------+----------------+---------------------+

@@ -110,6 +110,13 @@ Bourne Shell (sh) (and derivatives):
      . \ |initdir|\ /sh
      module load modulefile modulefile ...
 
+PowerShell (pwsh):
+
+.. parsed-literal::
+
+     . \ |initdir|\ /pwsh.ps1
+     envmodule load modulefile modulefile ...
+
 Perl:
 
 .. parsed-literal::
