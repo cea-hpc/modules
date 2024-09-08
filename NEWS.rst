@@ -97,6 +97,8 @@ Modules 5.5.0 (not yet released)
   tags<module-info>`.
 * Doc: describe in :ref:`module(1)` man page how to initialize Modules in a
   Ruby script. (fix issue #535)
+* Add PowerShell Core (``pwsh``) shell support. (fix issue #326 with
+  contribution from Simon Lukas Märtens)
 
 .. warning:: Variant names are now fully checked instead of just verifying
    their first character. Only characters within the ``A-Za-z0-9_-`` range are
