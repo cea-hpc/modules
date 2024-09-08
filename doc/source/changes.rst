@@ -818,6 +818,8 @@ Package Initialization
 When initializing Modules, :subcmd:`refresh` the loaded modules in case some
 user environment is already configured.
 
+Starting version ``5.5``, support for Windows *pwsh* shell is introduced.
+
 Command line switches
 """""""""""""""""""""
 
