@@ -1295,28 +1295,45 @@ ml <- function(...){
    $cmd_is_query = "$allargs" -match '(is-loaded|is-avail|is-used|is-saved)'}
          if {[getConf quarantine_support]} {
             append fdef {
+   $_mlre_set = ''
+   $_mlre_reset = ''
    if ($env:MODULES_RUN_QUARANTINE) {
-      $_mlre = ''
       foreach ($_mlv in $env:MODULES_RUN_QUARANTINE -split ' ') {
          if ($_mlv -match '^[A-Za-z_][A-Za-z0-9_]*$') {
-            $_mlv_val = [System.Environment]::GetEnvironmentVariable($_mlv)
-            if ($_mlv_val) {
-               $_mlre += "`$env:__MODULES_QUAR_${_mlv}='$_mlv_val';"
+            $_mlv_value = [System.Environment]::GetEnvironmentVariable($_mlv)
+            if ($_mlv_value) {
+               $_mlre_set += "`$env:__MODULES_QUAR_${_mlv}='$_mlv_value';"
+               $_mlre_reset = "Remove-Item -Path env:__MODULES_QUAR_${_mlv};"\
+                  + $_mlre_reset
             }
             $_mlrv = "MODULES_RUNENV_$_mlv"
-            $_mlrv_val = [System.Environment]::GetEnvironmentVariable($_mlrv)
-            $_mlre += "`$env:$_mlv='$_mlrv_val';"
+            $_mlrv_value =\
+               [System.Environment]::GetEnvironmentVariable($_mlrv)
+            $_mlre_set += "`$env:$_mlv='$_mlrv_value';"
+            $_mlre_reset = "`$env:$_mlv=`"`$env:__MODULES_QUAR_${_mlv}`";"\
+               + $_mlre_reset
          }
       }
-      if ($_mlre -ne '') {
-         $_mlre += "`$env:__MODULES_QUARANTINE_SET=1"
-         Invoke-Expression "$_mlre"
+      if ($_mlre_set -ne '') {
+         $_mlre_set += "`$env:__MODULES_QUARANTINE_SET=1"
+         $_mlre_reset += "Remove-Item -Path env:__MODULES_QUARANTINE_SET"
       }
+   }
+   if ($_mlre_set -ne '') {
+      Invoke-Expression "$_mlre_set"
+      Remove-Variable "_mlre_set"
    }}
          }
          append fdef {
    $output = }
          append fdef "& \"$tclshbin\" \"$::argv0\" pwsh \$allargs 2>&1"
+         if {[getConf quarantine_support]} {
+            append fdef {
+   if ($_mlre_reset -ne '') {
+      Invoke-Expression "$_mlre_reset"
+      Remove-Variable "_mlre_reset"
+   }}
+         }
          append fdef {
    $outmsg = ($output | ? {$_.gettype().Name -ne "ErrorRecord"}) -join "`n"
    $errmsg = ($output | ? {$_.gettype().Name -eq "ErrorRecord"}) -join "`n"

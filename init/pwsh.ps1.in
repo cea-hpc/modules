@@ -17,26 +17,40 @@ if ($IsWindows) {
       $cmd_is_query = "$allargs" -match '(is-loaded|is-avail|is-used|is-saved)'
 
       # setup quarantine if defined
-      $_mlre = ''
+      $_mlre_set = ''
+      $_mlre_reset = ''
       if ($env:MODULES_RUN_QUARANTINE) {
          foreach ($_mlv in $env:MODULES_RUN_QUARANTINE -split ' ') {
             if ($_mlv -match '^[A-Za-z_][A-Za-z0-9_]*$') {
                $_mlv_value = [System.Environment]::GetEnvironmentVariable($_mlv)
                if ($_mlv_value) {
-                  $_mlre += "`$env:__MODULES_QUAR_${_mlv}='$_mlv_value';"
+                  $_mlre_set += "`$env:__MODULES_QUAR_${_mlv}='$_mlv_value';"
+                  $_mlre_reset = "Remove-Item -Path env:__MODULES_QUAR_${_mlv};" + $_mlre_reset
                }
                $_mlrv = "MODULES_RUNENV_$_mlv"
                $_mlrv_value = [System.Environment]::GetEnvironmentVariable($_mlrv)
-               $_mlre += "`$env:$_mlv='$_mlrv_value';"
+               $_mlre_set += "`$env:$_mlv='$_mlrv_value';"
+               $_mlre_reset = "`$env:$_mlv=`"`$env:__MODULES_QUAR_${_mlv}`";" + $_mlre_reset
             }
          }
-         if ($_mlre -ne '') {
-            $_mlre += "`$env:__MODULES_QUARANTINE_SET=1"
-            Invoke-Expression "$_mlre"
+         if ($_mlre_set -ne '') {
+            $_mlre_set += "`$env:__MODULES_QUARANTINE_SET=1"
+            $_mlre_reset += "Remove-Item -Path env:__MODULES_QUARANTINE_SET"
          }
       }
 
+      if ($_mlre_set -ne '') {
+         Invoke-Expression "$_mlre_set"
+         Remove-Variable "_mlre_set"
+      }
+
       $output = & tclsh "$env:MODULES_CMD" pwsh $allargs 2>&1
+
+      if ($_mlre_reset -ne '') {
+         Invoke-Expression "$_mlre_reset"
+         Remove-Variable "_mlre_reset"
+      }
+
       $outmsg = ($output | ? {$_.gettype().Name -ne "ErrorRecord"}) -join "`n"
       $errmsg = ($output | ? {$_.gettype().Name -eq "ErrorRecord"}) -join "`n"
       $errmsg = $errmsg.replace(
@@ -125,7 +139,41 @@ if ($IsWindows) {
    # enable a default modulepath directory
    & envmodule use "$env:MODULESHOME/modulefiles"
 } else {
+   $_mlre_set = ''
+   $_mlre_reset = ''
+
+   # setup quarantine if defined
+   if ($env:MODULES_RUN_QUARANTINE) {
+      foreach ($_mlv in $env:MODULES_RUN_QUARANTINE -split ' ') {
+         if ($_mlv -match '^[A-Za-z_][A-Za-z0-9_]*$') {
+            $_mlv_value = [System.Environment]::GetEnvironmentVariable($_mlv)
+            if ($_mlv_value) {
+               $_mlre_set += "`$env:__MODULES_QUAR_${_mlv}='$_mlv_value';"
+               $_mlre_reset = "Remove-Item -Path env:__MODULES_QUAR_${_mlv};" + $_mlre_reset
+            }
+            $_mlrv = "MODULES_RUNENV_$_mlv"
+            $_mlrv_value = [System.Environment]::GetEnvironmentVariable($_mlrv)
+            $_mlre_set += "`$env:$_mlv='$_mlrv_value';"
+            $_mlre_reset = "`$env:$_mlv=`"`$env:__MODULES_QUAR_${_mlv}`";" + $_mlre_reset
+         }
+      }
+      if ($_mlre_set -ne '') {
+         $_mlre_set += "`$env:__MODULES_QUARANTINE_SET=1"
+         $_mlre_reset += "Remove-Item -Path env:__MODULES_QUARANTINE_SET"
+      }
+   }
+
+   if ($_mlre_set -ne '') {
+      Invoke-Expression "$_mlre_set"
+      Remove-Variable "_mlre_set"
+   }
+
    # define module command and surrounding initial environment (default value
    # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init config files)
    (& "@TCLSH@" "@libexecdir@/modulecmd.tcl" pwsh autoinit) -join "`n" | Invoke-Expression
+
+   if ($_mlre_reset -ne '') {
+      Invoke-Expression "$_mlre_reset"
+      Remove-Variable "_mlre_reset"
+   }
 }
