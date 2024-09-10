@@ -479,25 +479,36 @@ set func_pwsh "function global:_envmodule_common {
 \\s*param\\\(\\\[Parameter\\\(ValueFromRemainingArguments\\\)\\\] \\\[string\\\[\\\]\\\] \\\$allargs\\\)
 \\s*\\\$global:_mlstatus = \\\$true
 \\s*\\\$cmd_is_query = \"\\\$allargs\" -match '\\\(is-loaded\\\|is-avail\\\|is-used\\\|is-saved\\\)'
+\\s*\\\$_mlre_set = ''
+\\s*\\\$_mlre_reset = ''
 \\s*if \\\(\\\$env:MODULES_RUN_QUARANTINE\\\) {
-\\s*\\\$_mlre = ''
 \\s*foreach \\\(\\\$_mlv in \\\$env:MODULES_RUN_QUARANTINE -split ' '\\\) {
 \\s*if \\\(\\\$_mlv -match '\\\^\\\[A-Za-z_\\\]\\\[A-Za-z0-9_\\\]\\\*\\\$'\\\) {
-\\s*\\\$_mlv_val = \\\[System.Environment\\\]::GetEnvironmentVariable\\\(\\\$_mlv\\\)
-\\s*if \\\(\\\$_mlv_val\\\) {
-\\s*\\\$_mlre \\\+= \"`\\\$env:__MODULES_QUAR_\\\${_mlv}='\\\$_mlv_val';\"
+\\s*\\\$_mlv_value = \\\[System.Environment\\\]::GetEnvironmentVariable\\\(\\\$_mlv\\\)
+\\s*if \\\(\\\$_mlv_value\\\) {
+\\s*\\\$_mlre_set \\\+= \"`\\\$env:__MODULES_QUAR_\\\${_mlv}='\\\$_mlv_value';\"
+\\s*\\\$_mlre_reset = \"Remove-Item -Path env:__MODULES_QUAR_\\\${_mlv};\" \\\+ \\\$_mlre_reset
 \\s*}
 \\s*\\\$_mlrv = \"MODULES_RUNENV_\\\$_mlv\"
-\\s*\\\$_mlrv_val = \\\[System.Environment\\\]::GetEnvironmentVariable\\\(\\\$_mlrv\\\)
-\\s*\\\$_mlre \\\+= \"`\\\$env:\\\$_mlv='\\\$_mlrv_val';\"
+\\s*\\\$_mlrv_value = \\\[System.Environment\\\]::GetEnvironmentVariable\\\(\\\$_mlrv\\\)
+\\s*\\\$_mlre_set \\\+= \"`\\\$env:\\\$_mlv='\\\$_mlrv_value';\"
+\\s*\\\$_mlre_reset = \"`\\\$env:\\\$_mlv=`\\\"`\\\$env:__MODULES_QUAR_\\\${_mlv}`\\\";\" \\\+ \\\$_mlre_reset
 \\s*}
 \\s*}
-\\s*if \\\(\\\$_mlre -ne ''\\\) {
-\\s*\\\$_mlre \\\+= \"`\\\$env:__MODULES_QUARANTINE_SET=1\"
-\\s*Invoke-Expression \"\\\$_mlre\"
+\\s*if \\\(\\\$_mlre_set -ne ''\\\) {
+\\s*\\\$_mlre_set \\\+= \"`\\\$env:__MODULES_QUARANTINE_SET=1\"
+\\s*\\\$_mlre_reset \\\+= \"Remove-Item -Path env:__MODULES_QUARANTINE_SET\"
 \\s*}
+\\s*}
+\\s*if \\\(\\\$_mlre_set -ne ''\\\) {
+\\s*Invoke-Expression \"\\\$_mlre_set\"
+\\s*Remove-Variable \"_mlre_set\"
 \\s*}
 \\s*\\\$output = & \"$tclshlocre\" \"$modulecmd_pathre\" pwsh \\\$allargs 2>&1
+\\s*if \\\(\\\$_mlre_reset -ne ''\\\) {
+\\s*Invoke-Expression \"\\\$_mlre_reset\"
+\\s*Remove-Variable \"_mlre_reset\"
+\\s*}
 \\s*\\\$outmsg = \\\(\\\$output \\\| \\\? {\\\$_.gettype\\\(\\\).Name -ne \"ErrorRecord\"}\\\) -join \"`n\"
 \\s*\\\$errmsg = \\\(\\\$output \\\| \\\? {\\\$_.gettype\\\(\\\).Name -eq \"ErrorRecord\"}\\\) -join \"`n\"
 \\s*\\\$errmsg = \\\$errmsg.replace\\\(
