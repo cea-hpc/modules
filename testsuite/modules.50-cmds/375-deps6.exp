@@ -775,6 +775,51 @@ lappend ans [list set LOADEDMODULES "f25:f26:f27:f28"]
 set tserr [list "unload f23" \n[msg_unload f23 [err_deplof f26]]]
 testouterr_cmd_re "sh" "unload --force --no-auto f23" $ans [join $tserr "\n"]
 
+
+# test unload with multiple DepRe modules going UReqUn
+setenv_loaded_module [list f25 f23 f26 f27 f27b f28] [list "$mp/f25" "$mp/f23" "$mp/f26" "$mp/f27" $mp/f27b "$mp/f28"] [list f25 f26 f27 f27b]
+setenv_var __MODULES_LMPREREQ "f26&f24|f23:f27&f25|f23:f27b&f25|f23:f28&f26&f27&f27b"
+setenv_var __MODULES_LMCONFLICT "f23&f29"
+
+set ans [list]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [list "unload f28" "unload f27b" "unload f27" "unload f26" "unload f23" "unload f25" \n[msg_top_unload f23 [list f28 f26] [list f27b f27 f25] {}]]
+testouterr_cmd_re "sh" "unload f23" $ans [join $tserr "\n"]
+
+# test unload with multiple DepRe modules going UReqUn (alternative load order)
+setenv_loaded_module [list f25 f23 f26 f27b f27 f28] [list "$mp/f25" "$mp/f23" "$mp/f26" "$mp/f27b" $mp/f27 "$mp/f28"] [list f25 f26 f27b f27]
+setenv_var __MODULES_LMPREREQ "f26&f24|f23:f27b&f25|f23:f27&f25|f23:f28&f26&f27&f27b"
+setenv_var __MODULES_LMCONFLICT "f23&f29"
+
+set ans [list]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [list "unload f28" "unload f27" "unload f27b" "unload f26" "unload f23" "unload f25" \n[msg_top_unload f23 [list f28 f26] [list f27 f27b f25] {}]]
+testouterr_cmd_re "sh" "unload f23" $ans [join $tserr "\n"]
+
+# test unload with multiple DepRe modules going UReqUn (one fails to unload)
+setenv TESTSUITE_DEPRE_GOING_UREQUN unload_break
+
+set tserr [list "unload f28" "unload f27" "unload f27b" \n[msg_unload {f27b <aL>} $err_evalabort] \n[msg_unload f23 [err_depun f27b]]]
+testouterr_cmd_re "sh" "unload f23" ERR [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list unset __MODULES_LMCONFLICT]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [list "unload f28" "unload f27" "unload f27b" \n[msg_unload {f27b <aL>} $warn_evalabort] "\nunload f26" "unload f23" "unload f25" \n[msg_top_unload f23 [list f28 f26] [list f27 f27b f25] {}]]
+testouterr_cmd_re "sh" "unload --force f23" $ans [join $tserr "\n"]
+
+
 setenv_loaded_module [list f24 f26 f25 f27 f28 f29] [list "$mp/f24" "$mp/f26" "$mp/f25" "$mp/f27" "$mp/f28" "$mp/f29"] [list f24 f26 f25 f27]
 setenv_var __MODULES_LMPREREQ "f26&f24|f23:f27&f25|f23:f28&f26&f27"
 unsetenv_var __MODULES_LMCONFLICT
