@@ -1,5 +1,17 @@
 @echo off
 
+:: installation path can be passed as argument
+if [%1]==[] (
+   set "installpath=%ProgramFiles%\Environment Modules"
+) else (
+   set "installpath=%~1"
+)
+
+:: initialize Modules if not already done
+if not defined MODULES_CMD (
+   call "%installpath%\init\cmd.cmd"
+)
+
 set FIND=%SYSTEMROOT%\system32\find
 
 :: check commands exist
@@ -60,4 +72,3 @@ if errorlevel 1 (
     echo "'ml' test failed"
     exit /b 1
 )
-
