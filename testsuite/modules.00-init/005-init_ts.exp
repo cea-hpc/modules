@@ -720,7 +720,7 @@ proc info_notloaded {mod} {
     return "$::info_msgs: Module '$mod' is not loaded"
 }
 
-proc err_othervariantloaded {vrlist {setsgr 0}} {
+proc err_othervariantloaded {vrlist {setsgr 0} {is_loading 0}} {
     if {$setsgr} {
         set vrdesiglist {}
         foreach vr $vrlist {
@@ -730,7 +730,8 @@ proc err_othervariantloaded {vrlist {setsgr 0}} {
     } else {
         set vrdesig "{[join $vrlist :]}"
     }
-    return "$::error_msgs: Variant $vrdesig is already loaded"
+    set state [expr {$is_loading ? {loading} : {loaded}}]
+    return "$::error_msgs: Variant $vrdesig is already $state"
 }
 
 proc err_extraspec {xtspec} {

@@ -603,8 +603,7 @@ unsetenv_var __MODULES_LMTAG
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 setenv_var TESTSUITE_CONFLICT_UNLOAD variant_loading1
 
-#FIXME: should indicate other variant is loading, not loaded
-set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded foo=val1]]\n\n[msg_load foo/1.0 [err_reqlo conun/1{foo=val2}]]\n\n[msg_load conun/1{foo=val1} [err_reqlo foo/1.0]]
+set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded foo=val1 0 1]]\n\n[msg_load foo/1.0 [err_reqlo conun/1{foo=val2}]]\n\n[msg_load conun/1{foo=val1} [err_reqlo foo/1.0]]
 testouterr_cmd bash {load conun/1 foo=val1} ERR $tserr
 
 set ans [list]
@@ -614,23 +613,22 @@ lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1]
 lappend ans [list set LOADEDMODULES foo/1.0:conun/1]
 lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded]
 lappend ans [list ERR]
-#FIXME: should indicate other variant is loading, not loaded
-set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded foo=val1]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof conun/1{foo=val2}]]\n\n[msg_top_load conun/1{foo=val1} {} foo/1.0 {}]
+set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded foo=val1 0 1]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof conun/1{foo=val2}]]\n\n[msg_top_load conun/1{foo=val1} {} foo/1.0 {}]
 testouterr_cmd bash {load -f conun/1 foo=val1} $ans $tserr
 
 
 setenv_var TESTSUITE_CONFLICT_UNLOAD variant_loading2
 
-set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded {}]]\n\n[msg_load foo/1.0 [err_reqlo conun/1{foo=val2}]]\n\n[msg_load conun/1{foo=val1} [err_reqlo foo/1.0]]
+set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded {} 0 1]]\n\n[msg_load foo/1.0 [err_reqlo conun/1{foo=val2}]]\n\n[msg_load conun/1{foo=val1} [err_reqlo foo/1.0]]
 testouterr_cmd bash {load conun/1 foo=val1} ERR $tserr
 
-set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded {}]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof conun/1{foo=val2}]]\n\n[msg_top_load conun/1{foo=val1} {} foo/1.0 {}]
+set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded {} 0 1]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof conun/1{foo=val2}]]\n\n[msg_top_load conun/1{foo=val1} {} foo/1.0 {}]
 testouterr_cmd bash {load -f conun/1 foo=val1} $ans $tserr
 
 
 setenv_var TESTSUITE_CONFLICT_UNLOAD dep_variant_loading1
 
-set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded foo=val1]]\n\n[msg_load foo/1.0 [err_reqlo conun/1{foo=val2}]]\n\n[msg_load conun/1{foo=val1} [err_reqlo foo/1.0]]\n\n[msg_load lconun/1 [err_reqlo conun/1{foo=val1}]]
+set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded foo=val1 0 1]]\n\n[msg_load foo/1.0 [err_reqlo conun/1{foo=val2}]]\n\n[msg_load conun/1{foo=val1} [err_reqlo foo/1.0]]\n\n[msg_load lconun/1 [err_reqlo conun/1{foo=val1}]]
 testouterr_cmd bash {load lconun/1} ERR $tserr
 
 set ans [list]
@@ -640,22 +638,22 @@ lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1:$mp/lconun/1]
 lappend ans [list set LOADEDMODULES foo/1.0:conun/1:lconun/1]
 lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded:conun/1&auto-loaded]
 lappend ans [list ERR]
-set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded foo=val1]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof conun/1{foo=val2}]]\n\n[msg_top_load lconun/1 {} {foo/1.0 conun/1{foo=val1}} {}]
+set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded foo=val1 0 1]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof conun/1{foo=val2}]]\n\n[msg_top_load lconun/1 {} {foo/1.0 conun/1{foo=val1}} {}]
 testouterr_cmd bash {load -f lconun/1} $ans $tserr
 
 
 setenv_var TESTSUITE_CONFLICT_UNLOAD dep_variant_loading2
 
-set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded {}]]\n\n[msg_load foo/1.0 [err_reqlo conun/1{foo=val2}]]\n\n[msg_load conun/1{foo=val1} [err_reqlo foo/1.0]]\n\n[msg_load lconun/1 [err_reqlo conun/1{foo=val1}]]
+set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded {} 0 1]]\n\n[msg_load foo/1.0 [err_reqlo conun/1{foo=val2}]]\n\n[msg_load conun/1{foo=val1} [err_reqlo foo/1.0]]\n\n[msg_load lconun/1 [err_reqlo conun/1{foo=val1}]]
 testouterr_cmd bash {load lconun/1} ERR $tserr
 
-set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded {}]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof conun/1{foo=val2}]]\n\n[msg_top_load lconun/1 {} {foo/1.0 conun/1{foo=val1}} {}]
+set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded {} 0 1]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof conun/1{foo=val2}]]\n\n[msg_top_load lconun/1 {} {foo/1.0 conun/1{foo=val1}} {}]
 testouterr_cmd bash {load -f lconun/1} $ans $tserr
 
 
 setenv_var TESTSUITE_CONFLICT_UNLOAD dep_variant_loading3
 
-set tserr [msg_load lconun/1{foo=val2} [err_othervariantloaded {foo=val1}]]\n\n[msg_load foo/1.0 [err_reqlo lconun/1{foo=val2}]]\n\n[msg_load conun/1 [err_reqlo foo/1.0]]\n\n[msg_load lconun/1{foo=val1} [err_reqlo conun/1]]
+set tserr [msg_load lconun/1{foo=val2} [err_othervariantloaded {foo=val1} 0 1]]\n\n[msg_load foo/1.0 [err_reqlo lconun/1{foo=val2}]]\n\n[msg_load conun/1 [err_reqlo foo/1.0]]\n\n[msg_load lconun/1{foo=val1} [err_reqlo conun/1]]
 testouterr_cmd bash {load lconun/1 foo=val1} ERR $tserr
 
 set ans [list]
@@ -665,16 +663,16 @@ lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1:$mp/lconun/1]
 lappend ans [list set LOADEDMODULES foo/1.0:conun/1:lconun/1]
 lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded:conun/1&auto-loaded]
 lappend ans [list ERR]
-set tserr [msg_load lconun/1{foo=val2} [err_othervariantloaded {foo=val1}]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof lconun/1{foo=val2}]]\n\n[msg_top_load lconun/1{foo=val1} {} {foo/1.0 conun/1} {}]
+set tserr [msg_load lconun/1{foo=val2} [err_othervariantloaded {foo=val1} 0 1]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof lconun/1{foo=val2}]]\n\n[msg_top_load lconun/1{foo=val1} {} {foo/1.0 conun/1} {}]
 testouterr_cmd bash {load -f lconun/1 foo=val1} $ans $tserr
 
 
 setenv_var TESTSUITE_CONFLICT_UNLOAD dep_variant_loading4
 
-set tserr [msg_load lconun/1{foo=val2} [err_othervariantloaded {}]]\n\n[msg_load foo/1.0 [err_reqlo lconun/1{foo=val2}]]\n\n[msg_load conun/1 [err_reqlo foo/1.0]]\n\n[msg_load lconun/1{foo=val1} [err_reqlo conun/1]]
+set tserr [msg_load lconun/1{foo=val2} [err_othervariantloaded {} 0 1]]\n\n[msg_load foo/1.0 [err_reqlo lconun/1{foo=val2}]]\n\n[msg_load conun/1 [err_reqlo foo/1.0]]\n\n[msg_load lconun/1{foo=val1} [err_reqlo conun/1]]
 testouterr_cmd bash {load lconun/1 foo=val1} ERR $tserr
 
-set tserr [msg_load lconun/1{foo=val2} [err_othervariantloaded {}]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof lconun/1{foo=val2}]]\n\n[msg_top_load lconun/1{foo=val1} {} {foo/1.0 conun/1} {}]
+set tserr [msg_load lconun/1{foo=val2} [err_othervariantloaded {} 0 1]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof lconun/1{foo=val2}]]\n\n[msg_top_load lconun/1{foo=val1} {} {foo/1.0 conun/1} {}]
 testouterr_cmd bash {load -f lconun/1 foo=val1} $ans $tserr
 
 
@@ -684,8 +682,7 @@ testouterr_cmd bash {load -f lconun/1 foo=val1} $ans $tserr
 
 setenv_var TESTSUITE_CONFLICT_UNLOAD default_variant_loading1
 
-#FIXME: should indicate other variant is loading, not loaded
-set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded foo=val1]]\n\n[msg_load foo/1.0 [err_reqlo conun/1{foo=val2}]]\n\n[msg_load conun/1 [err_reqlo foo/1.0]]
+set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded foo=val1 0 1]]\n\n[msg_load foo/1.0 [err_reqlo conun/1{foo=val2}]]\n\n[msg_load conun/1 [err_reqlo foo/1.0]]
 testouterr_cmd bash {load conun/1} ERR $tserr
 
 set ans [list]
@@ -695,8 +692,7 @@ lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1]
 lappend ans [list set LOADEDMODULES foo/1.0:conun/1]
 lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded]
 lappend ans [list ERR]
-#FIXME: should indicate other variant is loading, not loaded
-set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded foo=val1]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof conun/1{foo=val2}]]\n\n[msg_top_load conun/1{foo=val1} {} foo/1.0 {}]
+set tserr [msg_load conun/1{foo=val2} [err_othervariantloaded foo=val1 0 1]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof conun/1{foo=val2}]]\n\n[msg_top_load conun/1{foo=val1} {} foo/1.0 {}]
 testouterr_cmd bash {load -f conun/1} $ans $tserr
 
 
@@ -714,7 +710,7 @@ testouterr_cmd bash {load conun/1 foo=val2} $ans $tserr
 
 setenv_var TESTSUITE_CONFLICT_UNLOAD dep_default_variant_loading1
 
-set tserr [msg_load lconun/1{foo=val2} [err_othervariantloaded {foo=val1}]]\n\n[msg_load foo/1.0 [err_reqlo lconun/1{foo=val2}]]\n\n[msg_load conun/1 [err_reqlo foo/1.0]]\n\n[msg_load lconun/1 [err_reqlo conun/1]]
+set tserr [msg_load lconun/1{foo=val2} [err_othervariantloaded {foo=val1} 0 1]]\n\n[msg_load foo/1.0 [err_reqlo lconun/1{foo=val2}]]\n\n[msg_load conun/1 [err_reqlo foo/1.0]]\n\n[msg_load lconun/1 [err_reqlo conun/1]]
 testouterr_cmd bash {load lconun/1} ERR $tserr
 
 set ans [list]
@@ -724,7 +720,7 @@ lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1:$mp/lconun/1]
 lappend ans [list set LOADEDMODULES foo/1.0:conun/1:lconun/1]
 lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded:conun/1&auto-loaded]
 lappend ans [list ERR]
-set tserr [msg_load lconun/1{foo=val2} [err_othervariantloaded {foo=val1}]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof lconun/1{foo=val2}]]\n\n[msg_top_load lconun/1{foo=val1} {} {foo/1.0 conun/1} {}]
+set tserr [msg_load lconun/1{foo=val2} [err_othervariantloaded {foo=val1} 0 1]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof lconun/1{foo=val2}]]\n\n[msg_top_load lconun/1{foo=val1} {} {foo/1.0 conun/1} {}]
 testouterr_cmd bash {load -f lconun/1} $ans $tserr
 
 
@@ -750,7 +746,7 @@ lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/1:$mp/lconun/1]
 lappend ans [list set LOADEDMODULES foo/1.0:conun/1:lconun/1]
 lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded:conun/1&auto-loaded]
 lappend ans [list ERR]
-set tserr [msg_load lconun/1{foo=val2} [err_othervariantloaded {foo=val1}]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof allconun{foo=val2}]]\n\n[msg_top_load lconun/1{foo=val1} {} {foo/1.0 conun/1} {}]
+set tserr [msg_load lconun/1{foo=val2} [err_othervariantloaded {foo=val1} 0 1]]\n\n[msg_load {foo/1.0 <aL>} [err_reqlof allconun{foo=val2}]]\n\n[msg_top_load lconun/1{foo=val1} {} {foo/1.0 conun/1} {}]
 testouterr_cmd bash {load -f lconun/1} $ans $tserr
 
 unsetenv_var MODULES_ADVANCED_VERSION_SPEC
