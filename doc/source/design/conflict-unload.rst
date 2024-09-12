@@ -173,4 +173,21 @@ Changes made to the DepRe mechanism:
   to perform these unload in the reverse load order (to ensure a module is
   unloaded before its requirements)
 
+Notes
+-----
+
+* A DepUn module of a ConUn module, may be a ReqLo of loading module
+
+  * Depending on the order of declaration of the requirement and conflict, a
+    different kind of error is obtained.
+  * If requirement is defined prior conflict, ReqLo will seem satisfied when
+    executing the prereq or module load command, but an attempt to unload it
+    will occur afterward.
+
+* A DepRe module of a ConUn module, may also be a ReqLo of loading module
+
+  * DepRe and ReqLo do not interact here, as DepRe is managed locally by the
+    ConUn evaluation. DepRe is found loaded when it is also found to be a
+    ReqLo.
+
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
