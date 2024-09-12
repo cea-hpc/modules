@@ -878,6 +878,42 @@ testouterr_cmd bash {load -v conun/2} $ans $tserr
 
 
 #
+# Disabled implicit default
+#
+
+setenv MODULES_IMPLICIT_DEFAULT 0
+
+unsetenv_loaded_module
+unsetenv_var __MODULES_LMPREREQ
+unsetenv_var __MODULES_LMCONFLICT
+setenv_var TESTSUITE_CONFLICT_UNLOAD implicit_default_off1
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&conun]
+lappend ans [list set _LMFILES_ $mp/conun/1]
+lappend ans [list set LOADEDMODULES conun/1]
+testouterr_cmd bash {load conun/1} $ans {}
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD implicit_default_off2
+testouterr_cmd bash {load conun/1} $ans {}
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD implicit_default_off1
+setenv_loaded_module [list conun/1] [list $mp/conun/1]
+setenv_var __MODULES_LMCONFLICT conun/1&conun
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/2&conun]
+lappend ans [list set _LMFILES_ $mp/conun/2]
+lappend ans [list set LOADEDMODULES conun/2]
+set tserr [msg_top_load_conun conun/2 {} conun/1 {} {} {}]
+testouterr_cmd bash {load conun/2} $ans $tserr
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD implicit_default_off2
+testouterr_cmd bash {load conun/2} $ans $tserr
+
+
+#
 #  Cleanup
 #
 
