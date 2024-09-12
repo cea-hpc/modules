@@ -8,7 +8,7 @@ on:
   pull_request:
 
 jobs:
-  native:
+  native-cmd:
     runs-on: windows-2022
     env:
       TCL_INSTALLER: SetupTcl-8.6.13-x64_Bawt-2.3.1
@@ -54,6 +54,64 @@ jobs:
           if not "%TCLSH_DIR%" == "" path %MODULE_DIR%;%TCLSH_DIR%;%PATH%
           cd %DIST_WIN%
           TESTINSTALL.bat
+      - name: Uninstall Modules
+        shell: cmd
+        run: |
+          cd %DIST_WIN%
+          UNINSTALL.bat
+
+  native-pwsh:
+    runs-on: windows-2022
+    env:
+      TCL_INSTALLER: SetupTcl-8.6.13-x64_Bawt-2.3.1
+      TCL_DL_URL: http://www.bawt.tcl3d.org/download/Tcl-Pure
+      TCLSH_DIR: C:\Tcl\bin
+      PWSH_INSTALLER: PowerShell-7.4.5-win-x64.msi
+      PWSH_DL_URL: https://github.com/PowerShell/PowerShell/releases/download/v7.4.5
+      DIST_WIN: modules-*-win
+    steps:
+      - name: Configure Git autocrlf
+        shell: bash
+        run: git config --global core.autocrlf input
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          set-safe-directory: /cygdrive/d/a/modules/modules
+      - uses: cygwin/cygwin-install-action@master
+        with:
+          # precise all sphinxcontrib packages required as dependency spec
+          # of python39-sphinx package is regularly broken
+          packages: make sed git autoconf automake libtool tcl python39 python39-sphinx gzip zip python39-sphinxcontrib-applehelp python39-sphinxcontrib-devhelp python39-sphinxcontrib-htmlhelp python39-sphinxco  ntrib-jsmath python39-sphinxcontrib-qthelp python39-sphinxcontrib-serializinghtml python39-sphinxcontrib-websupport python39-alabaster python39-sqlalchemy
+      - name: Install Tcl under Windows
+        shell: cmd
+        run: |
+          curl -LfsS -o %TCL_INSTALLER%.exe %TCL_DL_URL%/%TCL_INSTALLER%.exe
+          %TCL_INSTALLER% /verysilent
+      - name: Install Powershell Core under Windows
+        shell: cmd
+        run: |
+          curl -LfsS -o %PWSH_INSTALLER% %PWSH_DL_URL%/%PWSH_INSTALLER%
+          msiexec.exe /package %PWSH_INSTALLER% /quiet ADD_PATH=1
+      - name: Configure Git safe.directory
+        run: |
+          bash -lc 'git config --global --add safe.directory $(cygpath -u "$GITHUB_WORKSPACE")'
+      - name: Build Modules dist
+        run: |
+          bash -lc 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure --disable-libtclenvmodules && make dist-win'
+      - name: Install Modules
+        shell: cmd
+        run: |
+          jar xvf %DIST_WIN%.zip
+          cd %DIST_WIN%
+          INSTALL_PWSH.bat
+      - name: Test Modules installation
+        shell: cmd
+        run: |
+          :: manually define module cmd dir as PATH updated by INSTALL.bat
+          :: is not inherited by test_script
+          if not "%TCLSH_DIR%" == "" path %TCLSH_DIR%;%PATH%
+          cd %DIST_WIN%
+          pwsh TESTINSTALL_PWSH.ps1
       - name: Uninstall Modules
         shell: cmd
         run: |
