@@ -54,20 +54,40 @@ Installation instructions
    ``bin`` directory in this installation location to the system-wide ``PATH``
    environment variable.
 
-.. note:: ``INSTALL.bat`` script may require to be run with administrator
-   rights to perform installation correctly.
+   If you use Powershell Core on Windows, please use the ``INSTALL_PWSH.bat``
+   instead. It won't add the ``bin`` directory to the system-wide ``PATH``
+   environment variable because the ``module`` command will interfere with
+   Powershell's ``module`` keyword.
 
-5. Once installed, verify that the ``module`` command is correctly found in
-   defined ``PATH`` by typing the following command from a Windows ``cmd``
+.. note:: ``INSTALL.bat`` and ``INSTALL_PWSH.bat`` scripts may require to be
+   run with administrator rights to perform installation correctly.
+
+5. Once installed, verify that the ``module`` command is correctly found. If
+   you used the ``INSTALL.bat`` script, the commands should be in the defined
+   ``PATH``. Verify by typing the following command from a Windows ``cmd``
    shell::
 
         > module -V
-        Modules Release 4.4.1 (2020-01-03)
+        Modules Release 5.5.0 (2024-XX-XX)
 
-Installation location can be adapted by running the ``INSTALL.bat`` script
-from a ``cmd`` console shell and passing desired installation target as
-argument. For instance to install Modules in ``C:\EnvironmentModules``
-directory::
+   If your used the ``INSTALL_PWSH.bat`` script, the environment has to be
+   initialized first. Verify by typing the following commands from a Windows
+   ``cmd`` shell::
+
+        > call "C:\Program Files\Environment Modules\init\cmd.cmd"
+        > module -V
+        Modules Release 5.5.0 (2024-XX-XX)
+
+   And the following commands from a Windows ``pwsh`` shell::
+
+        > . "C:\Program Files\Environment Modules\init\pwsh.ps1"
+        > envmodule --version
+        Modules Release 5.5.0 (2024-XX-XX)
+
+Installation location can be adapted by running the ``INSTALL.bat`` and
+``INSTALL_PWSH.bat`` scripts from a ``cmd`` console shell and passing desired
+installation target as argument. For instance to install Modules in
+``C:\EnvironmentModules`` directory::
 
         > INSTALL.bat C:\EnvironmentModules
 
