@@ -159,7 +159,17 @@ set tserr [msg_unload {h2 <aL>}]\n\n[msg_top_load_conun {h3 <H>} {} {} {h2} {} {
 testouterr_cmd_re sh {load -v --auto h3} $ans $tserr
 set tserr [msg_unload {h4 <aL:H>}]\n[msg_unload {h2 <aL>}]\n[msg_unload {h1 <aL:H>}]\n\n[msg_top_load_conun {h3 <H>} {} {} {h4 h2 h1} {} {}]
 testouterr_cmd_re sh {load -vv --auto h3} $ans $tserr
+
+# test multiple DepRe that become UReqUn, one hidden, not the other
+setenv_loaded_module [list h1 h2 h4 h5] [list $mp/h1 $mp/h2 $mp/h4 $mp/h4] [list h1 h2]
+setenv_var __MODULES_LMPREREQ h2&h1:h4&h1&h2|h3:h5&h1&h2|h3
+setenv_var __MODULES_LMTAG h1&hidden-loaded&auto-loaded:h2&auto-loaded:h4&hidden-loaded&auto-loaded:h5&auto-loaded
+set tserr [msg_unload {h5 <aL>}]\n[msg_unload {h4 <aL:H>}]\n[msg_unload {h2 <aL>}]\n[msg_unload {h1 <aL:H>}]\n\n[msg_top_load_conun {h3 <H>} {} {} {h5 h4 h2 h1} {} {}]
+testouterr_cmd_re sh {load -vv --auto h3} $ans $tserr
+
 # depun module is hidden and was not automatically loaded (should be reported)
+setenv_loaded_module [list h1 h2 h4] [list $mp/h1 $mp/h2 $mp/h4] [list h1 h2]
+setenv_var __MODULES_LMPREREQ h2&h1:h4&h1&h2|h3
 setenv_var __MODULES_LMTAG h1&hidden-loaded&auto-loaded:h2&auto-loaded:h4&hidden-loaded
 set ans [list]
 lappend ans [list set __MODULES_LMPREREQ h2&h1:h4&h1&h2|h3]
