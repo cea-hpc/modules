@@ -843,6 +843,15 @@ setenv_var TESTSUITE_CONFLICT_UNLOAD depre_of_conun_is_reqlo2
 testouterr_cmd bash {load -v conun/2} $ans $tserr
 
 
+setenv_var TESTSUITE_CONFLICT_UNLOAD depre_of_conun_is_reqlo_unload_break1
+
+set tserr [msg_unload bar/1 $err_evalabort]\n\n[msg_unload conun/1 [err_depun bar/1]]\n\n[msg_load conun/2 [err_conun conun/1]]
+testouterr_cmd bash {load -v conun/2} ERR $tserr
+
+set tserr [msg_unload bar/1 $warn_evalabort]\n\n[msg_load bar/1]\n[msg_unload conun/1]\n\n[msg_top_load_conun conun/2 {} conun/1 {} {} bar/1]
+testouterr_cmd bash {load -v -f conun/2} $ans $tserr
+
+
 #
 # DepRe of ConUn is conflict of ReqLo
 #

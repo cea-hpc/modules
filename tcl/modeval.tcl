@@ -1063,9 +1063,8 @@ proc unloadDepUnDepReModules {unload_mod_list reload_mod_list {force 0}} {
 
    foreach unload_mod [lreverse $unload_mod_list] {
       if {$unload_mod in $reload_mod_list} {
-         if {[reloadModuleUnloadPhase $unload_mod $err_msg_tpl depre_un]} {
-            set reload_mod_list [replaceFromList $reload_mod_list $unload_mod]
-         }
+         # an error is raised if an unload eval fails
+         reloadModuleUnloadPhase $unload_mod $err_msg_tpl depre_un
       } else {
          if {[cmdModuleUnload depun match 0 s 0 $unload_mod]} {
             # stop if one unload fails unless force mode enabled
@@ -1079,7 +1078,6 @@ proc unloadDepUnDepReModules {unload_mod_list reload_mod_list {force 0}} {
          }
       }
    }
-   return $reload_mod_list
 }
 
 # ;;; Local Variables: ***
