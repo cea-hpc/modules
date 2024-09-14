@@ -1436,10 +1436,13 @@ proc cmdModuleIntUnload {mode args} {
             appendNoDupToList conun_mod_list {*}[lreverse\
                [getLoadedMatchingName $conun_arg returnall]]
          }
-         if {[llength $conun_mod_list]} {
-            set ret [cmdModuleUnload conun match 1 s 0 {*}$conun_mod_list]
-         } else {
-            set ret 0
+         set ret 0
+         foreach conun_mod $conun_mod_list {
+            if {[cmdModuleUnload conun match 1 s 0 $conun_mod] && ![getState\
+               force]} {
+               set ret 1
+               break
+            }
          }
       # otherwise module required by others are not unloaded and force mode is
       # disabled
