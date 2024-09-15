@@ -91,6 +91,11 @@ installation target as argument. For instance to install Modules in
 
         > INSTALL.bat C:\EnvironmentModules
 
+
+For PowerShell, you may adapt profile script to make ``envmodule`` command
+initialized when ``pwsh`` shell starts. See the PowerShell documentation on
+how to `customize your shell environment <https://learn.microsoft.com/en-us/powershell/scripting/learn/shell/creating-profiles>`_.
+
 Modules installation is now operational and you can setup your modulefiles. By
 default, the ``modulefiles`` directory in installation directory is defined as
 a modulepath and contains few modulefile examples::
