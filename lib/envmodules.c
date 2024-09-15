@@ -591,8 +591,8 @@ DLLEXPORT int
 Envmodules_Init(
    Tcl_Interp* interp      /* Tcl interpreter */
 ) {
-    /* Require Tcl */
-   if (Tcl_InitStubs(interp, "8.5", 0) == NULL) {
+    /* Require at least Tcl 8.5 */
+   if (Tcl_InitStubs(interp, "8.5-", 0) == NULL) {
       return TCL_ERROR;
    }
 

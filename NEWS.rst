@@ -99,6 +99,7 @@ Modules 5.5.0 (not yet released)
   Ruby script. (fix issue #535)
 * Add PowerShell Core (``pwsh``) shell support. (fix issue #326 with
   contribution from Simon Lukas Märtens)
+* Lib: adapt Modules Tcl extension library to properly load on Tcl 9.
 
 .. warning:: Variant names are now fully checked instead of just verifying
    their first character. Only characters within the ``A-Za-z0-9_-`` range are
