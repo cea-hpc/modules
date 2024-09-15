@@ -112,6 +112,19 @@ without ``arm64`` among the possible values.
 This prefix is recognized on module search context (i.e., :subcmd:`avail`,
 :subcmd:`whatis` and :subcmd:`paths` sub-commands).
 
+PowerShell support
+------------------
+
+Support for PowerShell (``pwsh``) is added. This shell may be used with
+Modules on either Unix or Windows platforms. All main :ref:`kind of
+environment changes are supported<Shell support>`.
+
+A ``envmodule`` shell function is configured on PowerShell, as ``module`` is a
+reserved keyword on this shell.
+
+The Windows-specific distribution zipball of Modules has been updated to also
+contain the required files to setup PowerShell support.
+
 
 v5.4
 ====
