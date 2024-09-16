@@ -101,6 +101,9 @@ Modules 5.5.0 (not yet released)
   contribution from Simon Lukas Märtens)
 * Lib: adapt Modules Tcl extension library to properly load on Tcl 9.
 * Doc: describe how to upgrade Modules in :ref:`INSTALL`. (fix issue #544)
+* Set exit code returned by :file:`modulecmd.tcl` script to ``1`` when a
+  modulefile evaluation fails (modulefile does not exist, is buggy, etc).
+  (fix issue #540)
 
 .. warning:: Variant names are now fully checked instead of just verifying
    their first character. Only characters within the ``A-Za-z0-9_-`` range are

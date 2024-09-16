@@ -22,7 +22,7 @@
 
 # exit in a clean manner by flushing and closing interaction with external
 # components
-proc flushAndExit {code} {
+proc flushAndExit {} {
    # output all shell code generated on stdout
    renderFlush
    # send messages to log if any and enabled
@@ -30,7 +30,7 @@ proc flushAndExit {code} {
    # output last messages on the report file descriptor and close it
    reportFlush
 
-   exit $code
+   exit [expr {[getState error_count] > 0}]
 }
 
 # runs the global RC files if they exist
@@ -924,11 +924,11 @@ if {[catch {
       } else {
          reportUsage
       }
-      flushAndExit 0
+      flushAndExit
    }
    if {$show_version} {
       reportVersion
-      flushAndExit 0
+      flushAndExit
    }
 
    # eval needed to pass otherargv as list to module proc
@@ -941,10 +941,10 @@ if {[catch {
    reportFinalError $errMsg
    # init error report here in case the error raised before the regular init
    initErrorReport
-   flushAndExit 1
+   flushAndExit
 }
 
-flushAndExit 0
+flushAndExit
 
 # ;;; Local Variables: ***
 # ;;; mode:tcl ***

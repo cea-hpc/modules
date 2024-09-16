@@ -87,6 +87,9 @@ proc pager_test_case {modarg use asked cmd opts} {
     lappend ans "DEBUG setConf: logger set to '$::install_loggercmd'"
     lappend ans "DEBUG setState: logging set to '0'"
     lappend ans "DEBUG setState: logfd set to ''"
+    if {!$is_stderr_tty || !$use || [string index $cmd 0] eq "/" && ![file exists $cmd]} {
+        lappend ans "DEBUG setState: error_count set to '0'"
+    }
 
     testouterr_cmd_re "sh" "-V -D$modarg" "" [join $ans "\n"]
 }
