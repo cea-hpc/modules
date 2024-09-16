@@ -286,6 +286,31 @@ To learn more about siteconfig and run-command files, see the
 also look at the available :ref:`setup recipes<cookbook>` to get concrete
 deployment examples of these files.
 
+Upgrading
+---------
+
+In case you want to upgrade a pre-existing Modules installation, it is
+suggested to:
+
+1. Backup configuration files stored in *etcdir* (like :file:`siteconfig.tcl`
+   or :file:`initrc`);
+2. Remove previous Modules installation;
+3. Install new Modules version;
+4. Review specific configuration of previous installation and adapt
+   configuration files of new version.
+
+It is advised to look at the different documents describing changes and new
+features appearing between versions. By reading these documents you will be
+able to determine the specific configuration options to apply to satisfy your
+use cases.
+
+* :ref:`changes`
+* :ref:`NEWS`
+* :ref:`MIGRATING`
+
+In case you install Modules with the :instopt:`--enable-versioning` option
+set, you may be able to install a new version of Modules alongside existing
+ones (if they also have been installed with this option set).
 
 Build and installation options
 ------------------------------

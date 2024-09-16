@@ -100,6 +100,7 @@ Modules 5.5.0 (not yet released)
 * Add PowerShell Core (``pwsh``) shell support. (fix issue #326 with
   contribution from Simon Lukas Märtens)
 * Lib: adapt Modules Tcl extension library to properly load on Tcl 9.
+* Doc: describe how to upgrade Modules in :ref:`INSTALL`. (fix issue #544)
 
 .. warning:: Variant names are now fully checked instead of just verifying
    their first character. Only characters within the ``A-Za-z0-9_-`` range are
