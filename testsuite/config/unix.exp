@@ -112,10 +112,21 @@ proc modulecmd_exit {} {
 # Tcl>=8.6): use channel pipe instead of saving these outputs in file
 if {[lindex [lsort -dictionary [list 8.6 [info tclversion]]] 1] eq [info tclversion]} {
 
-proc readpipe {p1 p2 varname} {
+proc readpipe {p1 p2 varname {exit_varname {}}} {
     append ::$varname [read $p1]
     if {[eof $p1]} {
-        close $p1
+        fconfigure $p1 -blocking 1
+        try {
+            close $p1
+        } on ok {output} {
+            if {[string length $exit_varname]} {
+                set ::$exit_varname 0
+            }
+        } trap {CHILDSTATUS} {output options} {
+            if {[string length $exit_varname]} {
+                set ::$exit_varname [lindex [dict get $options -errorcode] end]
+            }
+        }
         if {$p2 ni [chan names]} {
             set ::endpipe ok
         }
@@ -145,7 +156,7 @@ proc modulecmd_xxx_ {command {input noinput}} {
 	default_modulecmd
 	default_tclsh
 
-    set cmdlist [list exec $TCLSH $MODULECMD $shell]
+    set cmdlist [list $TCLSH $MODULECMD $shell]
     # check if asked not to split passed command line
     if {[string first "NOCMDSPLIT" $command] == 0} {
         lappend cmdlist [string range $command 10 end]
@@ -164,25 +175,18 @@ proc modulecmd_xxx_ {command {input noinput}} {
 	}
 
     # create pipes
-    lassign [chan pipe] rdstdout wrstdout
     lassign [chan pipe] rdstderr wrstderr
 
+    # run command in separate thread
+    lappend cmdlist 2>@ $wrstderr
+    set rdstdout [open "|$cmdlist"]
+
     # fetch output asynchronously
-    fileevent $rdstdout readable [list readpipe $rdstdout $rdstderr comp_output]
+    fileevent $rdstdout readable [list readpipe $rdstdout $rdstderr comp_output comp_exit]
     fconfigure $rdstdout -blocking 0
     fileevent $rdstderr readable [list readpipe $rdstderr $rdstdout comp_error]
     fconfigure $rdstderr -blocking 0
 
-    # run command in separate thread
-    lappend cmdlist >@ $wrstdout 2>@ $wrstderr &
-    if [catch {
-        {*}$cmdlist
-    } ] {
-        set comp_exit [lindex $::errorCode 2]
-    } else {
-        set comp_exit 0
-    }
-    close $wrstdout
     close $wrstderr
 
     vwait endpipe
@@ -402,25 +406,18 @@ proc install_test_xxx_ {command} {
    }
 
    # create pipes
-   lassign [chan pipe] rdstdout wrstdout
    lassign [chan pipe] rdstderr wrstderr
 
+   # run command in separate thread
+   lappend cmd_to_exec 2>@ $wrstderr
+   set rdstdout [open "|$cmd_to_exec"]
+
    # fetch output asynchronously
-   fileevent $rdstdout readable [list readpipe $rdstdout $rdstderr comp_output]
+   fileevent $rdstdout readable [list readpipe $rdstdout $rdstderr comp_output comp_exit]
    fconfigure $rdstdout -blocking 0
    fileevent $rdstderr readable [list readpipe $rdstderr $rdstdout comp_error]
    fconfigure $rdstderr -blocking 0
 
-   # run command in separate thread
-   lappend cmd_to_exec >@ $wrstdout 2>@ $wrstderr
-   if [catch {
-       exec {*}$cmd_to_exec
-   } ] {
-       set comp_exit [lindex $errorCode 2]
-   } else {
-       set comp_exit 0
-   }
-   close $wrstdout
    close $wrstderr
 
    vwait endpipe
