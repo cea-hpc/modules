@@ -1079,12 +1079,18 @@ proc testerr_cmd_re {test_shell cmd answer {force_nl 0} {failcmd {fail}}} {
 #
 
 proc testall_cmd_re {test_shell cmd answer anserr exitval {force_nl 0} {failcmd {fail}}} {
-
-    _test_sub $test_shell "$cmd"
-    if { [_test_out_re $test_shell "$cmd" "$answer" $failcmd]
-    &&   [_test_err_re $test_shell "$cmd" "$anserr" $force_nl $failcmd]
-    &&   [_test_exit $test_shell "$cmd" "$exitval" $failcmd] } {
-        _test_ok $test_shell "$cmd"
+    if {$test_shell eq {ALL}} {
+        global supported_shells
+        foreach shell $supported_shells {
+            testall_cmd_re $shell $cmd $answer $anserr $exitval $force_nl $failcmd
+        }
+    } else {
+        _test_sub $test_shell "$cmd"
+        if { [_test_out_re $test_shell "$cmd" "$answer" $failcmd]
+        &&   [_test_err_re $test_shell "$cmd" "$anserr" $force_nl $failcmd]
+        &&   [_test_exit $test_shell "$cmd" "$exitval" $failcmd] } {
+            _test_ok $test_shell "$cmd"
+        }
     }
 }
 
@@ -1145,12 +1151,18 @@ proc testinouterr_cmd {test_shell cmd input answer anserr {failcmd {fail}}} {
 #
 
 proc testall_cmd {test_shell cmd answer anserr exitval {failcmd {fail}}} {
-
-    _test_sub $test_shell "$cmd"
-    if { [_test_out $test_shell "$cmd" "$answer" $failcmd]
-    &&   [_test_err $test_shell "$cmd" "$anserr" $failcmd]
-    &&   [_test_exit $test_shell "$cmd" "$exitval" $failcmd] } {
-        _test_ok $test_shell "$cmd"
+    if {$test_shell eq {ALL}} {
+        global supported_shells
+        foreach shell $supported_shells {
+            testall_cmd $shell $cmd $answer $anserr $exitval $failcmd
+        }
+    } else {
+        _test_sub $test_shell "$cmd"
+        if { [_test_out $test_shell "$cmd" "$answer" $failcmd]
+        &&   [_test_err $test_shell "$cmd" "$anserr" $failcmd]
+        &&   [_test_exit $test_shell "$cmd" "$exitval" $failcmd] } {
+            _test_ok $test_shell "$cmd"
+        }
     }
 }
 
