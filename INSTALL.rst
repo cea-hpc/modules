@@ -114,7 +114,8 @@ Some explanation, step by step:
 3. Type ``make`` to adapt scripts to the configuration, build Tcl extension
    library if enabled and build documentation if working from git repository.
 
-4. Optionally, type ``make test`` to run the test suite.
+4. Optionally, type ``make test QUICKTEST=1`` to run the lightweight version
+   of the non-regression test suite.
 
 5. Type ``make install`` to install modulecmd.tcl, initialization scripts and
    documentation.
