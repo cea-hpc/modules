@@ -779,9 +779,12 @@ proc loadRequirementModuleList {tryload optional tag_list modulepath_list\
 proc savePropsOfReloadingModule {mod} {
    set is_user_asked [isModuleTagged $mod loaded 1]
    set vr_list [getVariantList $mod 1 2]
+   set tag_list [getTagList $mod]
    set extra_tag_list [getExtraTagList $mod]
+   set conflict_list [getLoadedConflict $mod]
+   set prereq_list [getLoadedPrereq $mod]
    set ::g_savedPropsOfReloadMod($mod) [list $is_user_asked $vr_list\
-      $extra_tag_list]
+      $tag_list $extra_tag_list $conflict_list $prereq_list]
 }
 
 proc getSavedPropsOfReloadingModule {mod} {
@@ -835,7 +838,7 @@ proc reloadModuleListLoadPhase {mod_list {errmsgtpl {}} {context load}} {
    setConf auto_handling 0
    foreach mod $mod_list {
       lassign [getSavedPropsOfReloadingModule $mod] is_user_asked vr_list\
-         extra_tag_list
+         tag_list extra_tag_list conflict_list prereq_list
       # if an auto set default was excluded, module spec need parsing
       lassign [parseModuleSpecification 0 0 0 0 $mod {*}$vr_list] modnamevr
       # reload module with user asked property and extra tags preserved
