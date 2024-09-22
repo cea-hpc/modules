@@ -19,12 +19,6 @@
 #
 ##############################################################################
 
-if {$install_pager eq "" || [file tail $install_pager] eq "cat"} {
-    set pager_dfl_use 0
-} else {
-    set pager_dfl_use 1
-}
-
 # check if stderr terminal attachment state is forced
 set is_stderr_tty [siteconfig_isStderrTty]
 if {$verbose} {
@@ -33,7 +27,7 @@ if {$verbose} {
 
 
 # helper proc to generate pager test and expected debugging output
-proc pager_test_case {modarg use asked cmd opts} {
+proc pager_test_case {modarg use asked cmd opts {shell sh}} {
     global MODULECMD env install_pager install_pageropts siteconfig_filere warn_msgs is_stderr_tty install_termbg
 
     if {$modarg ne ""} {
@@ -45,9 +39,21 @@ proc pager_test_case {modarg use asked cmd opts} {
         append pager_cmd " $opts"
     }
 
+    switch -- $shell {
+        ksh - bash - zsh {
+            set shelltype  sh
+        }
+        tcsh {
+            set shelltype csh
+        }
+        default {
+            set shelltype $shell
+        }
+    }
+
     set ans [list]
 
-    lappend ans "DEBUG setState: cmdline set to '$MODULECMD sh -V -D${modarg}'"
+    lappend ans "DEBUG setState: cmdline set to '$MODULECMD $shell -V -D${modarg}'"
     if {$::install_libtclenvmodules ne {n}} {
         if {$::install_multilibsupport eq {y}} {
             lappend ans "DEBUG setState: machine set to '$::tcl_platform(machine)'"
@@ -57,7 +63,7 @@ proc pager_test_case {modarg use asked cmd opts} {
     lappend ans "DEBUG setConf: siteconfig set to '$siteconfig_filere'(\\nDEBUG sourceSiteConfig: Source site configuration \\($siteconfig_filere\\))?(\\nDEBUG setState: siteconfig_loaded set to '1')?"
     lappend ans "DEBUG setConf: locked_configs set to '$::install_lockedconfigs'"
     lappend ans "DEBUG setState: supported_shells set to 'sh bash ksh zsh csh tcsh fish cmd tcl perl python ruby lisp cmake r pwsh'"
-    lappend ans "DEBUG setState: shell set to 'sh'"
+    lappend ans "DEBUG setState: shell set to '$shell'"
     lappend ans "DEBUG setState: subcmd set to ''"
     lappend ans "DEBUG setState: subcmd_args set to ''"
     lappend ans "DEBUG setState: init_error_report set to '1'"
@@ -66,6 +72,9 @@ proc pager_test_case {modarg use asked cmd opts} {
     lappend ans "(DEBUG initConfColors: Ignore invalid default.*\\n)?DEBUG setConf: colors set to '.*'"
     lappend ans "DEBUG setConf: color set to '0'"
     lappend ans "DEBUG setConf: pager set to '$pager_cmd'"
+    if {[file tail $pager_cmd] ni {{} cat}} {
+        lappend ans "DEBUG setState: shelltype set to '$shelltype'"
+    }
     if {$use} {
         lappend ans "DEBUG setState: is_stderr_tty set to '$is_stderr_tty'"
     }
@@ -91,7 +100,7 @@ proc pager_test_case {modarg use asked cmd opts} {
         lappend ans "DEBUG setState: error_count set to '0'"
     }
 
-    testouterr_cmd_re "sh" "-V -D$modarg" "" [join $ans "\n"]
+    testouterr_cmd_re $shell "-V -D$modarg" "" [join $ans "\n"]
 }
 
 #
@@ -273,6 +282,20 @@ pager_test_case "" 1 "-" $cmd $opts
 pager_test_case "--paginate" 1 "1" $cmd $opts
 pager_test_case "--no-pager" 0 "0" $cmd $opts
 
+
+# test activation depending on selected shell
+set cmd "less"
+set opts "-e"
+setenv_var MODULES_PAGER "$cmd $opts"
+
+foreach shell $supported_shells {
+    set shell_paginate [expr {$shell in [list {*}$real_shells cmd pwsh]}]
+    pager_test_case "" $shell_paginate "-" $cmd $opts $shell
+    pager_test_case "--paginate" $shell_paginate "1" $cmd $opts $shell
+    pager_test_case "--no-pager" 0 "0" $cmd $opts $shell
+}
+
+
 # restore environment
 if {$verbose} {
     send_user "\tUnset LESS\n"
@@ -306,6 +329,7 @@ lappend anserr "DEBUG setState: subcmd_args set to '$module'"
 lappend anserr "DEBUG setState: init_error_report set to '1'"
 lappend anserr "(DEBUG .*)+"
 lappend anserr "DEBUG setConf: pager set to '$install_pagercmd'"
+lappend anserr "DEBUG setState: shelltype set to 'sh'"
 lappend anserr "DEBUG setState: is_stderr_tty set to '1'"
 lappend anserr "DEBUG setState: paginate set to '1'"
 lappend anserr "DEBUG setState: report_format set to 'regular'"

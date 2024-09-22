@@ -104,6 +104,8 @@ Modules 5.5.0 (not yet released)
 * Set exit code returned by :file:`modulecmd.tcl` script to ``1`` when a
   modulefile evaluation fails (modulefile does not exist, is buggy, etc).
   (fix issue #540)
+* Disable pager when running :file:`modulecmd.tcl` script for script language
+  (*python*, *perl*, *ruby*, *tcl*, *cmake*, *r* and *lisp*). (fix issue #542)
 
 .. warning:: Variant names are now fully checked instead of just verifying
    their first character. Only characters within the ``A-Za-z0-9_-`` range are

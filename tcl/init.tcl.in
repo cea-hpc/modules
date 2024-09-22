@@ -432,8 +432,10 @@ proc initStatePaginate {} {
    set pager [getConf pager]
    # empty or 'cat' pager command means no-pager
    set no_cmds [list {} cat]
-   # default pager enablement depends on pager command value
-   set paginate [expr {[file tail [lindex $pager 0]] ni $no_cmds}]
+   set only_shell_types [list sh csh fish cmd pwsh]
+   # default pager enablement depends on pager command value and current shell
+   set paginate [expr {[file tail [lindex $pager 0]] ni $no_cmds && [getState\
+      shelltype] in $only_shell_types}]
 
    # asked enablement could only nullify a previous asked disablement as it
    # requires a valid pager command configuration, which by default enables

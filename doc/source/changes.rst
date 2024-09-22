@@ -1198,3 +1198,8 @@ The following Modules configuration option has been introduced on Modules 5.
 
  Starting Modules 5.4, this configuration option accepts more than one global
  rc file location. A colon character separates each of these locations.
+
+:mconfig:`pager`
+
+ Starting Modules 5.5, pager is not launched if :file:`modulecmd.tcl` program
+ is run for scripting language.

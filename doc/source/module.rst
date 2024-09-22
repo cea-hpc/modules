@@ -4799,9 +4799,15 @@ ENVIRONMENT
  If :envvar:`MODULES_PAGER` variable is set to an empty string or to the value
  ``cat``, pager will not be launched.
 
+ Pager is never launched if :file:`modulecmd.tcl` program is run for scripting
+ language rather shells.
+
  .. only:: html
 
     .. versionadded:: 4.1
+
+    .. versionchanged:: 5.5
+       No pager when :file:`modulecmd.tcl` is run for scripting languages
 
 .. envvar:: MODULES_PROTECTED_ENVVARS
 
