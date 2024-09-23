@@ -841,6 +841,15 @@ proc reloadModuleListLoadPhase {mod_list {errmsgtpl {}} {context load}} {
          tag_list extra_tag_list conflict_list prereq_list
       # if an auto set default was excluded, module spec need parsing
       lassign [parseModuleSpecification 0 0 0 0 $mod {*}$vr_list] modnamevr
+
+      # do not try to reload DepRe module if requirements are not satisfied
+      # unless if sticky
+      if {$context eq {depre} && ![isModuleLoadable $mod $modnamevr\
+         $conflict_list $prereq_list] && ![isModuleStickyFromTagList\
+         {*}$tag_list {*}$extra_tag_list]} {
+         continue
+      }
+
       # reload module with user asked property and extra tags preserved
       if {[cmdModuleLoad $context $is_user_asked 0 0 $extra_tag_list {}\
          $modnamevr]} {
@@ -861,6 +870,39 @@ proc reloadModuleListLoadPhase {mod_list {errmsgtpl {}} {context load}} {
       }
    }
    setConf auto_handling 1
+}
+
+proc isModuleLoadable {mod mod_vr conflict_list prereq_list} {
+   setLoadedConflict $mod {*}$conflict_list
+   set is_conflicting [llength [getModuleLoadedConflict $mod]]
+   unsetLoadedConflict $mod
+
+   if {$is_conflicting} {
+      return 0
+   }
+
+   foreach prereq_arg $prereq_list {
+      set is_requirement_loaded 0
+      foreach req_mod $prereq_arg {
+         # is requirement loaded, loading or optional
+         if {[string length [getLoadedMatchingName $req_mod returnfirst 0]]\
+            || [string length [getLoadedMatchingName $req_mod returnfirst\
+            1]] || $req_mod eq $mod} {
+            set is_requirement_loaded 1
+            break
+         }
+      }
+      if {!$is_requirement_loaded} {
+         return 0
+      }
+   }
+
+   return 1
+}
+
+proc isModuleStickyFromTagList {args} {
+   return [expr {{super-sticky} in $args || ({sticky} in $args && ![getState\
+      force])}]
 }
 
 # test if loaded module 'mod' is sticky and if stickiness definition applies
