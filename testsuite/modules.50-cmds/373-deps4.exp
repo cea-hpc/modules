@@ -183,8 +183,14 @@ setenv_var __MODULES_LMCONFLICT "dg&db"
 
 # attempt to load broken/conflicting prereq alternative
 # dependent modules are unloaded prior "da" load but cannot be reloaded as "da" declares a conflict on them
-set tserr [list "unload dg" "unload df" "load da" "load df" \n[msg_load df [err_conlo da]] \n[msg_load da [err_depre df]]]
-testouterr_cmd_re "sh" "load da" ERR [join $tserr "\n"]
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT "da&df"]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/dd:$mp/da]
+lappend ans [list set LOADEDMODULES dd:da]
+lappend ans [list set __MODULES_LMTAG dd&auto-loaded]
+set tserr [list "unload dg" "unload df" "load da" \n[msg_top_load_conun da {dg df} {} {} {} {}]]
+testouterr_cmd_re "sh" "load da" $ans [join $tserr "\n"]
 if {[is_conf_enabled conflictunload]} {
     set ans [list]
     lappend ans [list unset __MODULES_LMCONFLICT]
@@ -214,10 +220,9 @@ lappend ans [list set __MODULES_LMCONFLICT "da&df"]
 lappend ans [list unset __MODULES_LMPREREQ]
 lappend ans [list set _LMFILES_ "$mp/da"]
 lappend ans [list set LOADEDMODULES "da"]
-lappend ans [list ERR]
 # dependent modules are unloaded prior "da" load but cannot be reloaded as "da" declares a conflict on them
-set tserr [list "unload dg" "unload df" "load da" "load df" \n[msg_load df [err_conlo da]] \n[msg_load da [err_depre df]]]
-testouterr_cmd_re "sh" "load da" ERR [join $tserr "\n"]
+set tserr [list "unload dg" "unload df" "load da" \n[msg_top_load_conun da {dg df} {} {} {} {}]]
+testouterr_cmd_re "sh" "load da" $ans [join $tserr "\n"]
 set tserr [list "load db" \n[msg_load db [err_conflict dg]]]
 if {[is_conf_enabled conflictunload]} {
     set ans [list]

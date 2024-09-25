@@ -505,18 +505,23 @@ testouterr_cmd_re sh {switch --no-auto sticky/99} ERR $tserr
 
 set ans [list]
 lappend ans [list unset __MODULES_LMSTICKYRULE]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/foo/2.0]
+lappend ans [list set LOADEDMODULES foo/2.0]
+lappend ans [list unset __MODULES_LMTAG]
+lappend ans [list ERR]
+set tserr "[msg_unload {sticky/1.0 <S>} $err_stickyunloadf]
+
+[msg_top_switch {sticky/1.0 <S>} sticky/99 {} {} {} {} {bar/2.0 {}} $err_path'sticky/99']"
+testouterr_cmd_re sh {switch --auto -f sticky/1.0 sticky/99} $ans $tserr
+
+set ans [list]
+lappend ans [list unset __MODULES_LMSTICKYRULE]
 lappend ans [list set __MODULES_LMPREREQ bar/2.0&sticky/1.0]
 lappend ans [list set _LMFILES_ $mp/foo/2.0:$mp/bar/2.0]
 lappend ans [list set LOADEDMODULES foo/2.0:bar/2.0]
 lappend ans [list unset __MODULES_LMTAG]
 lappend ans [list ERR]
-set tserr "[msg_unload {sticky/1.0 <S>} $err_stickyunloadf]
-
-[msg_load bar/2.0 [err_reqmisf sticky/1.0]]
-
-[msg_top_switch {sticky/1.0 <S>} sticky/99 {} {} {} {} bar/2.0 $err_path'sticky/99']"
-testouterr_cmd_re sh {switch --auto -f sticky/1.0 sticky/99} $ans $tserr
-
 set tserr "[msg_unload {sticky/1.0 <S>} [err_deplof bar/2.0] $err_stickyunloadf]
 
 [msg_switch {sticky/1.0 <S>} sticky/99 $err_path'sticky/99']"
