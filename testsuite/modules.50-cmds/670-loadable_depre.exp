@@ -1,0 +1,224 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2024/09/27
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:    depre
+#   Sub-Command:
+#
+#   Comment:	%C{
+#         Test "is loadable" mechanism of Dependent Reload
+#		}C%
+#
+##############################################################################
+
+skip_if_quick_mode
+
+set mp $modpath.4
+set mpre $modpathre.4
+setenv_path_var MODULEPATH $mp
+
+setenv_var MODULES_AUTO_HANDLING 1
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+
+#
+# conflict over a specific variant
+#
+
+setenv_loaded_module [list bar/1 depre/1] [list $mp/bar/1 $mp/depre/1] [list bar/1]
+setenv_var __MODULES_LMCONFLICT {bar/1&bar:depre/1&bar var=val2}
+setenv_var __MODULES_LMVARIANT bar/1&var|val1|0|2
+setenv_var __MODULES_LMPREREQ depre/1&bar/1
+
+setenv_var TESTSUITE_LOADABLE_DEPRE conflict_with_variant
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT {bar/1&var|val2|0|0}]
+lappend ans [list set __MODULES_LMCONFLICT bar/1&bar]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/bar/1]
+lappend ans [list set LOADEDMODULES bar/1]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_top_switch {bar/1{var=val1} <aL>} bar/1{var=val2} depre/1 {} {} {} {}]
+testouterr_cmd bash {switch bar/1 var=val2} $ans $tserr
+testouterr_cmd bash {switch -f bar/1 var=val2} $ans $tserr
+
+setenv_var MODULES_CONFLICT_UNLOAD 1
+set tserr [msg_top_load_conun bar/1{var=val2} depre/1 {bar/1{var=val1}} {} {} {}]
+testouterr_cmd bash {load bar/1 var=val2} $ans $tserr
+testouterr_cmd bash {load -f bar/1 var=val2} $ans $tserr
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT {bar/1&var|val3|0|0}]
+lappend ans [list set __MODULES_LMCONFLICT {bar/1&bar:depre/1&bar var=val2}]
+lappend ans [list set __MODULES_LMPREREQ depre/1&bar/1]
+lappend ans [list set _LMFILES_ $mp/bar/1:$mp/depre/1]
+lappend ans [list set LOADEDMODULES bar/1:depre/1]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_top_switch {bar/1{var=val1} <aL>} bar/1{var=val3} {} {} {} {} {depre/1}]
+testouterr_cmd bash {switch bar/1 var=val3} $ans $tserr
+testouterr_cmd bash {switch -f bar/1 var=val3} $ans $tserr
+
+#FIXME: conflict unload mechanism should reload depre/1
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT {bar/1&var|val3|0|0}]
+lappend ans [list set __MODULES_LMCONFLICT bar/1&bar]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/bar/1]
+lappend ans [list set LOADEDMODULES bar/1]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_top_load_conun bar/1{var=val3} depre/1 {bar/1{var=val1}} {} {} {}]
+testouterr_cmd bash {load bar/1 var=val3} $ans $tserr
+testouterr_cmd bash {load -f bar/1 var=val3} $ans $tserr
+
+
+#
+# prereq with variant, OR and AND logics
+#
+
+setenv_loaded_module [list bar/1 foo/1.0 depre/1] [list $mp/bar/1 $mp/foo/1.0 $mp/depre/1] [list bar/1]
+setenv_var __MODULES_LMCONFLICT bar/1&bar
+setenv_var __MODULES_LMVARIANT bar/1&var|val1|0|2
+setenv_var __MODULES_LMPREREQ {depre/1&bar/1 var=val1|bar/1 var=val2&foo/1.0}
+
+setenv_var TESTSUITE_LOADABLE_DEPRE prereq_with_variant_or_and
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT {bar/1&var|val2|0|0}]
+lappend ans [list set __MODULES_LMCONFLICT bar/1&bar]
+lappend ans [list set __MODULES_LMPREREQ {depre/1&bar/1 var=val1|bar/1 var=val2&foo/1.0}]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1:$mp/depre/1]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1:depre/1]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_top_switch {bar/1{var=val1} <aL>} bar/1{var=val2} {} {} {} {} {depre/1}]
+testouterr_cmd bash {switch bar/1 var=val2} $ans $tserr
+testouterr_cmd bash {switch -f bar/1 var=val2} $ans $tserr
+
+#FIXME: conflict unload mechanism should reload depre/1
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT {bar/1&var|val2|0|0}]
+lappend ans [list set __MODULES_LMCONFLICT bar/1&bar]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_top_load_conun bar/1{var=val2} depre/1 {bar/1{var=val1}} {} {} {}]
+testouterr_cmd bash {load bar/1 var=val2} $ans $tserr
+testouterr_cmd bash {load -f bar/1 var=val2} $ans $tserr
+
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT {bar/1&var|val3|0|0}]
+lappend ans [list set __MODULES_LMCONFLICT bar/1&bar]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_top_switch {bar/1{var=val1} <aL>} bar/1{var=val3} {} {} {} {} {depre/1 {}}]
+testouterr_cmd bash {switch bar/1 var=val3} $ans $tserr
+testouterr_cmd bash {switch -f bar/1 var=val3} $ans $tserr
+
+set tserr [msg_top_load_conun bar/1{var=val3} depre/1 {bar/1{var=val1}} {} {} {}]
+testouterr_cmd bash {load bar/1 var=val3} $ans $tserr
+testouterr_cmd bash {load -f bar/1 var=val3} $ans $tserr
+
+
+setenv_loaded_module [list bar/1 depre/1] [list $mp/bar/1 $mp/depre/1] [list bar/1]
+setenv_var __MODULES_LMCONFLICT bar/1&bar
+setenv_var __MODULES_LMVARIANT bar/1&var|val1|0|2
+setenv_var __MODULES_LMPREREQ {depre/1&bar/1 var=val1|bar/1 var=val2&foo/1.0}
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT {bar/1&var|val2|0|0}]
+lappend ans [list set __MODULES_LMCONFLICT bar/1&bar]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/bar/1]
+lappend ans [list set LOADEDMODULES bar/1]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_top_switch {bar/1{var=val1} <aL>} bar/1{var=val2} {} {} {} {} {depre/1 {}}]
+testouterr_cmd bash {switch bar/1 var=val2} $ans $tserr
+testouterr_cmd bash {switch -f bar/1 var=val2} $ans $tserr
+
+set tserr [msg_top_load_conun bar/1{var=val2} depre/1 {bar/1{var=val1}} {} {} {}]
+testouterr_cmd bash {load bar/1 var=val2} $ans $tserr
+testouterr_cmd bash {load -f bar/1 var=val2} $ans $tserr
+
+
+#
+# sticky defined as extra tag
+#
+
+setenv_var TESTSUITE_LOADABLE_DEPRE sticky_as_extra_tag
+
+# sticky extra tag
+setenv_loaded_module [list bar/1 foo/1.0 depre/1] [list $mp/bar/1 $mp/foo/1.0 $mp/depre/1]
+setenv_var __MODULES_LMCONFLICT bar/1&bar
+setenv_var __MODULES_LMVARIANT bar/1&var|val1|0|2
+setenv_var __MODULES_LMPREREQ {depre/1&bar/1 var=val1|bar/1 var=val2&foo/1.0}
+setenv_var __MODULES_LMTAG {depre/1&sticky}
+setenv_var __MODULES_LMEXTRATAG {depre/1&sticky}
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT {bar/1&var|val2|0|0}]
+lappend ans [list set __MODULES_LMCONFLICT bar/1&bar]
+lappend ans [list set __MODULES_LMPREREQ {depre/1&bar/1 var=val1|bar/1 var=val2&foo/1.0}]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1:$mp/depre/1]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1:depre/1]
+lappend ans [list set __MODULES_LMEXTRATAG depre/1&sticky]
+lappend ans [list set __MODULES_LMTAG depre/1&sticky]
+set tserr [msg_top_switch bar/1{var=val1} bar/1{var=val2} {} {} {} {} {depre/1}]
+testouterr_cmd bash {switch bar/1 var=val2} $ans $tserr
+testouterr_cmd bash {switch -f bar/1 var=val2} $ans $tserr
+
+#FIXME: conflict unload mechanism should reload depre/1
+set tserr [msg_unload {depre/1 <S>} $err_stickyunload]\n\n[msg_unload bar/1{var=val1} [err_depun depre/1]]\n\n[msg_load bar/1{var=val2} [err_conun bar/1{var=val1}]]
+testouterr_cmd bash {load bar/1 var=val2} ERR $tserr
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT {bar/1&var|val2|0|0}]
+lappend ans [list set __MODULES_LMCONFLICT bar/1&bar]
+lappend ans [list unset __MODULES_LMPREREQ]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1]
+lappend ans [list unset __MODULES_LMEXTRATAG]
+lappend ans [list unset __MODULES_LMTAG]
+set tserr [msg_unload {depre/1 <S>} $err_stickyunloadf]\n\n[msg_top_load_conun bar/1{var=val2} depre/1 {bar/1{var=val1}} {} {} {}]
+testouterr_cmd bash {load -f bar/1 var=val2} $ans $tserr
+
+
+# super-sticky extra tag
+setenv_var __MODULES_LMTAG {depre/1&super-sticky}
+setenv_var __MODULES_LMEXTRATAG {depre/1&super-sticky}
+
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT {bar/1&var|val2|0|0}]
+lappend ans [list set __MODULES_LMCONFLICT bar/1&bar]
+lappend ans [list set __MODULES_LMPREREQ {depre/1&bar/1 var=val1|bar/1 var=val2&foo/1.0}]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1:$mp/depre/1]
+lappend ans [list set LOADEDMODULES foo/1.0:bar/1:depre/1]
+lappend ans [list set __MODULES_LMEXTRATAG depre/1&super-sticky]
+lappend ans [list set __MODULES_LMTAG depre/1&super-sticky]
+set tserr [msg_top_switch bar/1{var=val1} bar/1{var=val2} {} {} {} {} {depre/1}]
+testouterr_cmd bash {switch bar/1 var=val2} $ans $tserr
+testouterr_cmd bash {switch -f bar/1 var=val2} $ans $tserr
+
+#FIXME: conflict unload mechanism should reload depre/1
+set tserr [msg_unload {depre/1 <sS>} $err_superstickyunload]\n\n[msg_unload bar/1{var=val1} [err_depun depre/1]]\n\n[msg_load bar/1{var=val2} [err_conun bar/1{var=val1}]]
+testouterr_cmd bash {load bar/1 var=val2} ERR $tserr
+set tserr [msg_unload {depre/1 <sS>} $err_superstickyunload]\n\n[msg_unload bar/1{var=val1} [err_depunf depre/1]]\n\n[msg_load bar/1{var=val2} [err_depun depre/1]]
+testouterr_cmd bash {load -f bar/1 var=val2} ERR $tserr
+
+
+#
+#  Cleanup
+#
+
+reset_test_env
