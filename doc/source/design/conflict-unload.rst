@@ -173,6 +173,14 @@ Changes made to the DepRe mechanism:
   to perform these unload in the reverse load order (to ensure a module is
   unloaded before its requirements)
 
+* Reload of DepRe module is attempted only it is loadable. Which means its
+  requirements are loaded and it does not conflict with current loaded
+  environment. If module is sticky (super-sticky or sticky and not forced)
+  attempt to load DepRe module is performed even if not loadable. If force
+  mode is enabled reload of non-loadable DepRe module is not attempted, unless
+  if tagged super-sticky. Not reloaded DepRe module is considered as a DepUn
+  module.
+
 Notes
 -----
 

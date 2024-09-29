@@ -1179,8 +1179,15 @@ The following Modules configuration option has been introduced on Modules 5.
  Starting version 5.1, modules tagged ``keep-loaded`` are excluded from
  Useless Requirement Unload mechanism.
 
- Starting version 5.5, modules tagged ``sticky`` or ``super-sticky`` are
- excluded from Useless Requirement Unload mechanism.
+ Starting version 5.5:
+
+ * Modules tagged ``sticky`` or ``super-sticky`` are excluded from Useless
+   Requirement Unload mechanism.
+ * No attempt to reload a Dependent Reload module is made if this module is
+   not loadable (requirement not loaded or conflict found with loaded
+   environment), even if force mode is enabled. Reload is attempted when
+   module is not loadable if it is sticky (tagged super-sticky or sticky and
+   force mode not enabled).
 
 :mconfig:`avail_output`, :mconfig:`avail_terse_output`
 
