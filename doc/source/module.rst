@@ -4169,6 +4169,13 @@ ENVIRONMENT
  are merged into the Dependent modulefiles to Reload that are reloaded after
  the load of the switched-to modulefile.
 
+ The reload phase of a Dependent Reload modulefile is skipped either if the
+ requirements of this modulefile are not loaded or if a conflict is spotted
+ with the loaded environment. Reload is attempted in any case if modulefile is
+ tagged ``super-sticky`` or ``sticky`` and force mode is disabled. Dependent
+ Reload module whose reload has been skipped are considered Dependent Unload
+ module.
+
  Conflict Unload mechanism is activated only if :mconfig:`conflict_unload`
  configuration option is also enabled.
 
@@ -4191,7 +4198,10 @@ ENVIRONMENT
 
     .. versionchanged:: 5.5
        Conflict Unload and Useless Requirement Unload mechanisms added on
-       module load context.
+       module load context
+
+    .. versionchanged:: 5.5
+       Reload of a Dependent Reload module is skipped if it is not loadable
 
 .. envvar:: MODULES_AVAIL_INDEPTH
 

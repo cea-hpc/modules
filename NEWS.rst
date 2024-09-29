@@ -167,6 +167,11 @@ Modules 5.5.0 (not yet released)
   they are processed in their reverse loading order. As a result, if a module
   is part of *DepUn* process and some of its requirements are part of *DepRe*
   process, requirements are unloaded after their dependent modules.
+* Skip reload of a *Dependent Reload* module if found not loadable (either its
+  requirements are not loaded or a conflict is spotted with loaded
+  environment). Reload is attempted only if module is tagged *super-sticky* or
+  *sticky* and force mode is disabled. Skipped module is considered *Dependent
+  Unload* module.
 
 .. warning:: Variant names are now fully checked instead of just verifying
    their first character. Only characters within the ``A-Za-z0-9_-`` range are
