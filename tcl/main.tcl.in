@@ -64,7 +64,8 @@ proc ongoingCommandName {commandName} {
 # triggered from modulecmd level or (3) during the evaluation of global rc
 # file. (2) and (3) are considered "extended" top evaluation contexts.
 proc isTopEvaluation {{extended 1}} {
-   return [expr {[depthState modulename] == 0 || ($extended && [depthState\
+   return [expr {([depthState modulename] == 0 && [currentState eval_context]\
+      in {{} load unload swload swunload}) || ($extended && [depthState\
       modulename] == 1 && ([aboveCommandName] in {source autoinit} ||\
       [isStateDefined rc_running]))}]
 }
