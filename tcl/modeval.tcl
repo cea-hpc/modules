@@ -775,7 +775,7 @@ proc loadRequirementModuleList {tryload optional tag_list modulepath_list\
    return [list $ret $prereqloaded]
 }
 
-# save reloading module properties before it vanishies with unload phase
+# save reloading module properties before they vanish with unload phase
 proc savePropsOfReloadingModule {mod} {
    set is_user_asked [isModuleTagged $mod loaded 1]
    set vr_list [getVariantList $mod 1 2]
@@ -1024,13 +1024,14 @@ proc getIdentifiedUReqUnFromDepRe {} {
    }
 }
 
-proc removeUReqUnFromDepReAndConvertEval {depre_list} {
+proc removeUReqUnFromDepReAndConvertEval {} {
+   set depre_list [getDepReList]
    set urequn_from_depre_list [getIdentifiedUReqUnFromDepRe]
    lassign [getDiffBetweenList $depre_list $urequn_from_depre_list] depre_list
+   setDepReList $depre_list
    foreach urequn_from_depre [lreverse $urequn_from_depre_list] {
       changeContextOfModuleEval $urequn_from_depre depun urequn
    }
-   return $depre_list
 }
 
 proc getUReqUnModuleList {} {
@@ -1068,11 +1069,7 @@ proc unloadUReqUnModules {} {
          0 1 1]
       set urequn_depre_list [reloadModuleListUnloadPhase $urequn_depre_list\
          {Unload of dependent _MOD_ failed} depre_un]
-      if {[llength $urequn_depre_list]} {
-         # link to DepRe variables in calling procedure context
-         upvar depre_list depre_list
-         lprepend depre_list {*}$urequn_depre_list
-      }
+      lprependDepReList $urequn_depre_list
 
       set urequn_list [lreverse $urequn_list]
       for {set i 0} {$i < [llength $urequn_list]} {incr i 1} {
@@ -1101,10 +1098,29 @@ proc getDepUnModuleList {mod} {
    return $depun_list
 }
 
+proc clearDepReList {} {
+   unset -nocomplain ::g_depReList
+}
+
+proc getDepReList {} {
+   if {[info exists ::g_depReList]} {
+      return $::g_depReList
+   }
+}
+
+proc setDepReList {mod_list} {
+   set ::g_depReList $mod_list
+}
+
+proc lprependDepReList {mod_list} {
+   lprepend ::g_depReList {*}$mod_list
+}
+
 proc unloadDepUnDepReModules {unload_mod_list reload_mod_list {force 0}} {
    set err_msg_tpl {Unload of dependent _MOD_ failed}
    set unload_mod_list [sortModulePerLoadedAndDepOrder [list\
       {*}$unload_mod_list {*}$reload_mod_list]]
+   lprependDepReList $reload_mod_list
 
    foreach unload_mod [lreverse $unload_mod_list] {
       if {$unload_mod in $reload_mod_list} {
@@ -1123,6 +1139,12 @@ proc unloadDepUnDepReModules {unload_mod_list reload_mod_list {force 0}} {
          }
       }
    }
+}
+
+proc reloadDepReModules {} {
+   set err_msg_tpl {Reload of dependent _MOD_ failed}
+   set depre_list [getDepReList]
+   reloadModuleListLoadPhase $depre_list $err_msg_tpl depre
 }
 
 # ;;; Local Variables: ***
