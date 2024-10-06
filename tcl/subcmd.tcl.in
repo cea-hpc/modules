@@ -567,28 +567,24 @@ proc cmdModuleSwitch {uasked tag_list old {new {}}} {
       if {$ret_load && [commandAbortOnError]} {
          restoreSettings
       } else {
+         set ret_auto 0
          if {[getConf auto_handling] && [isTopEvaluation]} {
             removeUReqUnFromDepReAndConvertEval
             unloadUReqUnModules
+
+            # DepRe load phase now other mechanisms are done
+            # Try DepRe load phase: load failure will not make switch fail
+            if {[set ret_auto [catch {
+               reloadDepReModules
+            } errMsg]]} {
+               reportError $errMsg
+               restoreSettings
+            }
          }
 
-         if {[set errCode [catch {
-            if {[getConf auto_handling]} {
-               # cmdModuleUnload handles the DepUn, UReqUn mechanisms and the
-               # unload phase of the DepRe mechanism. List of DepRe mods is
-               # set from cmdModuleUnload procedure to be used here for the
-               # load phase of the DepRe mechanism.
-               # Try DepRe load phase: load failure will not make switch fail
-               reloadDepReModules
-            }
-
-            if {$uasked} {
-               # report a summary of automated evaluations if no error
-               reportModuleEval
-            }
-         } errMsg]]} {
-            reportError $errMsg
-            restoreSettings
+         # report a summary of automated evaluations if no error
+         if {!$ret_auto && $uasked} {
+            reportModuleEval
          }
       }
    } else {
@@ -1325,18 +1321,15 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list modulepath_list\
             append-path __MODULES_LMREFRESH $modname
          }
 
-         # UReqUn: Useless Requirement to Unload (autoloaded requirements not
-         # required by any remaining mods)
          if {[getConf auto_handling] && [isTopEvaluation] && ![info exists\
             swprocessing]} {
+            # UReqUn: Useless Requirement to Unload (autoloaded requirements
+            # not required by any remaining mods)
             removeUReqUnFromDepReAndConvertEval
             unloadUReqUnModules
-         }
 
-         # Load phase of dependent module reloading. These modules can adapt
-         # now that mod is seen loaded. Except if switch action ongoing (DepRe
-         # load phase will occur from switch)
-         if {[getConf auto_handling] && ![info exists swprocessing]} {
+            # Load phase of dependent module reloading. These modules now can
+            # adapt since mod is seen loaded.
             reloadDepReModules
          }
 
@@ -1707,20 +1700,15 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
          unsetModuleAndVariantsExtraTag $modname $modnamevr {*}$extratag_list
          unsetEnvLoadedModuleProperty $modname stickyrule
 
-         if {[getConf auto_handling] && $auto} {
+         if {[getConf auto_handling] && $auto && [isTopEvaluation] &&\
+            ![info exists swprocessing]} {
             # UReqUn: Useless Requirement to Unload (autoloaded requirements
             # not required by any remaining mods)
-            if {[isTopEvaluation] && ![info exists swprocessing]} {
-               removeUReqUnFromDepReAndConvertEval
-               unloadUReqUnModules
-            }
+            removeUReqUnFromDepReAndConvertEval
+            unloadUReqUnModules
 
             # DepRe modules load phase now DepUn+UReqUn+main mods are unloaded
-            # except if a switch action is ongoing as this DepRe load phase
-            # will occur after the new mod load
-            if {![info exists swprocessing]} {
-               reloadDepReModules
-            }
+            reloadDepReModules
          }
 
          # consider evaluation hidden if hidden loaded module was auto loaded

@@ -856,11 +856,9 @@ proc reloadModuleListLoadPhase {mod_list {errmsgtpl {}} {context load}} {
          set errMsg [string map [list _MOD_ [getModuleDesignation spec\
             $modnamevr]] $errmsgtpl]
          # no process stop if forced, or ongoing reload or switch cmd in
-         # continue behavior, or non-top switch cmd
+         # continue behavior
          if {[getState force] || (([isStateEqual commandname reload] ||\
-            [isStateEqual commandname switch]) && ![commandAbortOnError]) ||\
-            ([getCallingProcName] eq {cmdModuleSwitch} &&\
-            ![isTopEvaluation])} {
+            [isStateEqual commandname switch]) && ![commandAbortOnError])} {
             # no msg for reload sub-cmd which provides an empty msg template
             reportWarning $errMsg
          # stop if one load fails unless force mode enabled
