@@ -834,9 +834,10 @@ lappend ans [list set __MODULES_LMCONFLICT bar/1&conun/1:conun/2&conun]
 lappend ans [list set __MODULES_LMPREREQ conun/2&bar/1]
 lappend ans [list set _LMFILES_ $mp/bar/1:$mp/conun/2]
 lappend ans [list set LOADEDMODULES bar/1:conun/2]
-# bar/1 seems reloaded before conun/1 unload, but this is not the case
-# only the conun/1 unloading message is produced after the bar/1 reload, conun/1 unload happens prior bar/1 reload
-set tserr [msg_unload bar/1]\n[msg_load bar/1]\n[msg_unload conun/1]\n\n[msg_top_load_conun conun/2 {} conun/1 {} {} bar/1]
+lappend ans [list set __MODULES_LMTAG bar/1&auto-loaded]
+# bar/1 is reload as ReqLo prior being reloaded as DepRe at the end of the evaluation
+#FIXME: bar/1 should be reloaded keeping its tag definition (no auto-loaded, extra tag kept)
+set tserr [msg_unload bar/1]\n[msg_unload conun/1]\n[msg_load {bar/1 <aL>}]\n\n[msg_top_load_conun conun/2 {} conun/1 {} {bar/1} {bar/1 {}}]
 testouterr_cmd bash {load -v conun/2} $ans $tserr
 
 setenv_var TESTSUITE_CONFLICT_UNLOAD depre_of_conun_is_reqlo2
@@ -848,7 +849,7 @@ setenv_var TESTSUITE_CONFLICT_UNLOAD depre_of_conun_is_reqlo_unload_break1
 set tserr [msg_unload bar/1 $err_evalabort]\n\n[msg_unload conun/1 [err_depun bar/1]]\n\n[msg_load conun/2 [err_conun conun/1]]
 testouterr_cmd bash {load -v conun/2} ERR $tserr
 
-set tserr [msg_unload bar/1 $warn_evalabort]\n\n[msg_load bar/1]\n[msg_unload conun/1]\n\n[msg_top_load_conun conun/2 {} conun/1 {} {} bar/1]
+set tserr [msg_unload bar/1 $warn_evalabort]\n\n[msg_unload conun/1]\n[msg_load {bar/1 <aL>}]\n\n[msg_top_load_conun conun/2 {} conun/1 {} {bar/1} {bar/1 {}}]
 testouterr_cmd bash {load -v -f conun/2} $ans $tserr
 
 
@@ -867,10 +868,7 @@ lappend ans [list set __MODULES_LMPREREQ conun/2&foo/1.0]
 lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/conun/2]
 lappend ans [list set LOADEDMODULES foo/1.0:conun/2]
 lappend ans [list set __MODULES_LMTAG foo/1.0&auto-loaded]
-# bar/1 is reloaded as a DepRe, since they are managed locally at each ConUn evaluation
-# this makes the summary a bit confusing as bar/1 is identified as both DepRe and ConUn
-# if DepRe are managed globally and reloaded after main module load, it may be seen as a ConUn and not reloaded
-set tserr "[msg_unload bar/1]\n[msg_load bar/1]\n[msg_unload conun/1]\n[msg_unload bar/1]\n[msg_load {foo/1.0 <aL>}]\n\n[msg_top_load_conun conun/2 {} {conun/1 bar/1} {} {} bar/1]\n  Loading requirement: foo/1.0"
+set tserr [msg_unload bar/1]\n[msg_unload conun/1]\n[msg_load {foo/1.0 <aL>}]\n\n[msg_top_load_conun conun/2 {} {conun/1} {} {foo/1.0} {bar/1 {}}]
 testouterr_cmd bash {load -v conun/2} $ans $tserr
 
 

@@ -220,9 +220,9 @@ lappend ans_sub_modfile_conflict_depre_break [list set __MODULES_LMTAG lerr/1.0&
 
 set ans_sub_modfile_conflict_depre_break_force_conun [list]
 lappend ans_sub_modfile_conflict_depre_break_force_conun [list set __MODULES_LMCONFLICT lerr/1.0&foo/1.0]
-lappend ans_sub_modfile_conflict_depre_break_force_conun [list set __MODULES_LMPREREQ llerr/1.0&lerr/1.0]
 lappend ans_sub_modfile_conflict_depre_break_force_conun [list set LOADEDMODULES lerr/1.0:llerr/1.0]
 lappend ans_sub_modfile_conflict_depre_break_force_conun [list set _LMFILES_ $mp/lerr/1.0:$mp/llerr/1.0]
+lappend ans_sub_modfile_conflict_depre_break_force_conun [list set __MODULES_LMPREREQ llerr/1.0&lerr/1.0]
 lappend ans_sub_modfile_conflict_depre_break_force_conun [list set __MODULES_LMTAG lerr/1.0&auto-loaded]
 lappend ans_sub_modfile_conflict_depre_break_force_conun [list ERR]
 
@@ -934,8 +934,7 @@ if {[is_conf_enabled conflictunload]} {
     testouterr_cmd bash {load lerr/1.0} ERR $ts_load_opt_depre_break
     set ts_load_opt_depre_break_force [msg_unload err/1.0 $warn_evalabort]
     append ts_load_opt_depre_break_force \n\n[msg_load err/1.0 $err_evalabort]
-    append ts_load_opt_depre_break_force \n\n[msg_unload foo/1.0 [err_depref err/1.0]]
-    append ts_load_opt_depre_break_force \n\n[msg_top_load lerr/1.0 foo/1.0 {} {err/1.0 {}}]
+    append ts_load_opt_depre_break_force \n\n[msg_top_load lerr/1.0 foo/1.0 {} {err/1.0 {}} [err_depref err/1.0]]
     testouterr_cmd bash {load --force lerr/1.0} $ans_modfile_opt_depre_break_force_conun $ts_load_opt_depre_break_force
 } else {
     #FIXME: optional dependency err/1.0 should be reloaded when foo/1.0 is unloaded
@@ -968,12 +967,10 @@ setenv_var TESTSUITE_ABORT_ON_ERROR unload_conflict_depre_load_break
 
 if {[is_conf_enabled conflictunload]} {
     set ts_load_conflict_depre_break [msg_load err/1.0 $err_evalabort]
-    append ts_load_conflict_depre_break \n\n[msg_unload foo/1.0 [err_depre err/1.0]]
-    append ts_load_conflict_depre_break \n\n[msg_load lerr/1.0 [err_conun foo/1.0]]
+    append ts_load_conflict_depre_break \n\n[msg_load lerr/1.0 [err_depre err/1.0]]
     testouterr_cmd bash {load lerr/1.0} ERR $ts_load_conflict_depre_break
     set ts_load_conflict_depre_break_force [msg_load err/1.0 $err_evalabort]
-    append ts_load_conflict_depre_break_force \n\n[msg_unload foo/1.0 [err_depref err/1.0]]
-    append ts_load_conflict_depre_break_force \n\n[msg_top_load lerr/1.0 foo/1.0 {} {err/1.0 {}}]
+    append ts_load_conflict_depre_break_force \n\n[msg_top_load lerr/1.0 foo/1.0 {} {err/1.0 {}} [err_depref err/1.0]]
     testouterr_cmd bash {load --force lerr/1.0} $ans_modfile_conflict_depre_break_force_conun $ts_load_conflict_depre_break_force
 } else {
     testouterr_cmd bash {load lerr/1.0} $ans_modfile_conflict_depre_break $ts_load_conflict_depre_break
@@ -1137,8 +1134,7 @@ if {[is_conf_enabled conflictunload]} {
     testouterr_cmd bash {load llerr/1.0} ERR $ts_load_opt_depre_break
     set ts_load_opt_depre_break_force [msg_unload err/1.0 $warn_evalabort]
     append ts_load_opt_depre_break_force \n\n[msg_load err/1.0 $err_evalabort]
-    append ts_load_opt_depre_break_force \n\n[msg_unload foo/1.0 [err_depref err/1.0]]
-    append ts_load_opt_depre_break_force \n\n[msg_top_load llerr/1.0 foo/1.0 lerr/1.0 {err/1.0 {}}]
+    append ts_load_opt_depre_break_force \n\n[msg_top_load llerr/1.0 foo/1.0 lerr/1.0 {err/1.0 {}} [err_depref err/1.0]]
     testouterr_cmd bash {load --force llerr/1.0} $ans_sub_modfile_opt_depre_break_force_conun $ts_load_opt_depre_break_force
 } else {
     #FIXME: optional dependency err/1.0 should be reloaded when foo/1.0 is unloaded
@@ -1171,13 +1167,10 @@ setenv_var TESTSUITE_ABORT_ON_ERROR unload_conflict_depre_load_break
 
 if {[is_conf_enabled conflictunload]} {
     set ts_load_conflict_depre_break [msg_load err/1.0 $err_evalabort]
-    append ts_load_conflict_depre_break \n\n[msg_unload foo/1.0 [err_depre err/1.0]]
-    append ts_load_conflict_depre_break \n\n[msg_load lerr/1.0 [err_conun foo/1.0]]
-    append ts_load_conflict_depre_break \n\n[msg_load llerr/1.0 [err_reqlo lerr/1.0]]
+    append ts_load_conflict_depre_break \n\n[msg_load llerr/1.0 [err_depre err/1.0]]
     testouterr_cmd bash {load llerr/1.0} ERR $ts_load_conflict_depre_break
     set ts_load_conflict_depre_break_force_conun [msg_load err/1.0 $err_evalabort]
-    append ts_load_conflict_depre_break_force_conun \n\n[msg_unload foo/1.0 [err_depref err/1.0]]
-    append ts_load_conflict_depre_break_force_conun \n\n[msg_top_load llerr/1.0 foo/1.0 lerr/1.0 {err/1.0 {}}]
+    append ts_load_conflict_depre_break_force_conun \n\n[msg_top_load llerr/1.0 foo/1.0 lerr/1.0 {err/1.0 {}} [err_depref err/1.0]]
     testouterr_cmd bash {load --force llerr/1.0} $ans_sub_modfile_conflict_depre_break_force_conun $ts_load_conflict_depre_break_force_conun
 } else {
     testouterr_cmd bash {load llerr/1.0} $ans_sub_modfile_conflict_depre_break $ts_load_conflict_depre_break

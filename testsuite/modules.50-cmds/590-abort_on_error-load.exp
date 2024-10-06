@@ -557,21 +557,18 @@ testouterr_cmd bash {load lerr/1.0} ERR $ts_load_depre_break
 
 set ts_load_depre_break_force [msg_unload err/1.0 $warn_evalabort]
 append ts_load_depre_break_force \n\n[msg_load err/1.0 $err_evalabort]
-append ts_load_depre_break_force \n\n[msg_load {foo/1.0 <aL>} [err_depref err/1.0]]
-append ts_load_depre_break_force \n\n[msg_top_load lerr/1.0 {} {foo/1.0} {{err/1.0} {}}]
+append ts_load_depre_break_force \n\n[msg_top_load lerr/1.0 {} {foo/1.0} {{err/1.0} {}} [err_depref err/1.0]]
 testouterr_cmd bash {load --force lerr/1.0} $ans_load_depre_break_force $ts_load_depre_break_force
 
 
 setenv_var TESTSUITE_ABORT_ON_ERROR load_depre_load_break
 
 set ts_load_depre_load_break [msg_load err/1.0 $err_evalabort]
-append ts_load_depre_load_break \n\n[msg_load foo/1.0 [err_depre err/1.0]]
-append ts_load_depre_load_break \n\n[msg_load lerr/1.0 [err_reqlo foo/1.0]]
+append ts_load_depre_load_break \n\n[msg_load lerr/1.0 [err_depre err/1.0]]
 testouterr_cmd bash {load lerr/1.0} ERR $ts_load_depre_load_break
 
 set ts_load_depre_load_break_force [msg_load err/1.0 $err_evalabort]
-append ts_load_depre_load_break_force \n\n[msg_load {foo/1.0 <aL>} [err_depref err/1.0]]
-append ts_load_depre_load_break_force \n\n[msg_top_load lerr/1.0 {} {foo/1.0} {{err/1.0} {}}]
+append ts_load_depre_load_break_force \n\n[msg_top_load lerr/1.0 {} {foo/1.0} {{err/1.0} {}} [err_depref err/1.0]]
 testouterr_cmd bash {load --force lerr/1.0} $ans_load_depre_break_force $ts_load_depre_load_break_force
 
 unsetenv_loaded_module
@@ -932,17 +929,17 @@ setenv_var __MODULES_LMPREREQ err/1.0&err/1.0|foo
 testouterr_cmd bash {load llerr/1.0} ERR $ts_load_depre_break$ts_add_llerr_reqlo_err
 set ts_sub_load_depre_break_force [msg_unload err/1.0 $warn_evalabort]
 append ts_sub_load_depre_break_force \n\n[msg_load err/1.0 $err_evalabort]
-append ts_sub_load_depre_break_force \n\n[msg_load {foo/1.0 <aL>} [err_depref err/1.0]]
-append ts_sub_load_depre_break_force \n\n[msg_top_load llerr/1.0 {} {foo/1.0 lerr/1.0} {{err/1.0} {}}]
+append ts_sub_load_depre_break_force \n\n[msg_top_load llerr/1.0 {} {foo/1.0 lerr/1.0} {{err/1.0} {}} [err_depref err/1.0]]
 testouterr_cmd bash {load --force llerr/1.0} $ans_sub_load_depre_break_force $ts_sub_load_depre_break_force
 
 
 setenv_var TESTSUITE_ABORT_ON_ERROR load_depre_load_break
 
-testouterr_cmd bash {load llerr/1.0} ERR $ts_load_depre_load_break$ts_add_llerr_reqlo_err
+set ts_sub_load_depre_load_break [msg_load err/1.0 $err_evalabort]
+append ts_sub_load_depre_load_break \n\n[msg_load llerr/1.0 [err_depre err/1.0]]
+testouterr_cmd bash {load llerr/1.0} ERR $ts_sub_load_depre_load_break
 set ts_sub_load_depre_load_break_force [msg_load err/1.0 $err_evalabort]
-append ts_sub_load_depre_load_break_force \n\n[msg_load {foo/1.0 <aL>} [err_depref err/1.0]]
-append ts_sub_load_depre_load_break_force \n\n[msg_top_load llerr/1.0 {} {foo/1.0 lerr/1.0} {{err/1.0} {}}]
+append ts_sub_load_depre_load_break_force \n\n[msg_top_load llerr/1.0 {} {foo/1.0 lerr/1.0} {{err/1.0} {}} [err_depref err/1.0]]
 testouterr_cmd bash {load --force llerr/1.0} $ans_sub_load_depre_break_force $ts_sub_load_depre_load_break_force
 
 unsetenv_loaded_module
