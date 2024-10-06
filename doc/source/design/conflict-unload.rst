@@ -181,6 +181,11 @@ Changes made to the DepRe mechanism:
   if tagged super-sticky. Not reloaded DepRe module is considered as a DepUn
   module.
 
+* All reloads of DepRe modules are now performed on top load, unload or switch
+  evaluation rather right after the load, unload or switch that triggers the
+  unload phase of the DepRe mechanism. As a consequence, all Dependent Reload
+  modules are reloaded after main module evaluation.
+
 Notes
 -----
 
@@ -194,8 +199,10 @@ Notes
 
 * A DepRe module of a ConUn module, may also be a ReqLo of loading module
 
-  * DepRe and ReqLo do not interact here, as DepRe is managed locally by the
-    ConUn evaluation. DepRe is found loaded when it is also found to be a
-    ReqLo.
+  * DepRe is unloaded locally by the ConUn evaluation but reloaded at the end
+    of the overall evaluation. It if is also a ReqLo, it will be reloaded when
+    the ReqLo is expressed, instead of being reloaded at the very end.
+  * When DepRe is reloaded as ReqLo, it currently looses its extra tags and
+    gets the auto-loaded tag applied.
 
 .. vim:set tabstop=2 shiftwidth=2 expandtab autoindent:

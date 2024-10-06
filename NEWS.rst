@@ -172,6 +172,9 @@ Modules 5.5.0 (not yet released)
   environment). Reload is attempted only if module is tagged *super-sticky* or
   *sticky* and force mode is disabled. Skipped module is considered *Dependent
   Unload* module.
+* Reload all Dependent Reload modules after the main load, unload or switch
+  module evaluation rather after the sub module evaluation that triggered the
+  Dependent Reload unload phase.
 
 .. warning:: Variant names are now fully checked instead of just verifying
    their first character. Only characters within the ``A-Za-z0-9_-`` range are

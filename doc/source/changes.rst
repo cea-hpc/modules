@@ -1188,6 +1188,9 @@ The following Modules configuration option has been introduced on Modules 5.
    environment), even if force mode is enabled. Reload is attempted when
    module is not loadable if it is sticky (tagged super-sticky or sticky and
    force mode not enabled).
+ * All reload of Dependent Reload modules are now performed on the top load,
+   unload or switch evaluation rather right after the load, unload or switch
+   that triggered the unload phase of the Dependent Reload mechanism.
 
 :mconfig:`avail_output`, :mconfig:`avail_terse_output`
 

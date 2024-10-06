@@ -4169,6 +4169,10 @@ ENVIRONMENT
  are merged into the Dependent modulefiles to Reload that are reloaded after
  the load of the switched-to modulefile.
 
+ The reload phase of all Dependent Reload modulefiles occurs after the
+ evaluation of the main *modulefile* (either load, unload or switch
+ evaluation).
+
  The reload phase of a Dependent Reload modulefile is skipped either if the
  requirements of this modulefile are not loaded or if a conflict is spotted
  with the loaded environment. Reload is attempted in any case if modulefile is
@@ -4202,6 +4206,9 @@ ENVIRONMENT
 
     .. versionchanged:: 5.5
        Reload of a Dependent Reload module is skipped if it is not loadable
+
+    .. versionchanged:: 5.5
+       Reload of all Dependent Reload modules occurs after the main evaluation
 
 .. envvar:: MODULES_AVAIL_INDEPTH
 
