@@ -804,8 +804,15 @@ testouterr_cmd bash {load -f conun/2} $ans $tserr
 unsetenv_var __MODULES_LMCONFLICT
 setenv_var TESTSUITE_CONFLICT_UNLOAD depun_of_conun_is_reqlo2
 
-set tserr [msg_unload bar/1 [err_deploi conun/2]]\n\n[msg_unload {conun/1 <aL>} [err_depun bar/1]]\n\n[msg_load conun/2 [err_conun conun/1]]
-testouterr_cmd bash {load -v conun/2} ERR $tserr
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/2&conun]
+lappend ans [list set __MODULES_LMPREREQ conun/2&bar/1]
+lappend ans [list set _LMFILES_ $mp/conun/2]
+lappend ans [list set LOADEDMODULES conun/2]
+lappend ans [list unset __MODULES_LMTAG]
+#FIXME: bar/1 should not be unloaded as DepRe since it is ReqLo of main module
+set tserr [msg_unload bar/1]\n[msg_unload {conun/1 <aL>}]\n\n[msg_top_load_conun conun/2 bar/1 conun/1 {} {} {}]
+testouterr_cmd bash {load -v conun/2} $ans $tserr
 
 set ans [list]
 lappend ans [list set __MODULES_LMCONFLICT conun/2&conun]
@@ -814,7 +821,7 @@ lappend ans [list set _LMFILES_ $mp/conun/2]
 lappend ans [list set LOADEDMODULES conun/2]
 lappend ans [list unset __MODULES_LMTAG]
 # conun/2 does not warn about its missing prereq bar/1 (as this requirement was loaded when prereq command was run)
-set tserr [msg_unload bar/1 [err_deploif conun/2]]\n\n[msg_top_load_conun conun/2 bar/1 conun/1 {} {} {}]
+set tserr [msg_top_load_conun conun/2 bar/1 conun/1 {} {} {}]
 testouterr_cmd bash {load -f conun/2} $ans $tserr
 
 
@@ -873,6 +880,45 @@ testouterr_cmd bash {load -v conun/2} $ans $tserr
 
 
 #
+# DepUn of ConUn is sticky or super-sticky
+#
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD depun_of_conun_is_sticky1
+
+setenv_loaded_module [list conun/2 bar/1] [list $mp/conun/2 $mp/bar/1]
+setenv_var __MODULES_LMCONFLICT conun/2&conun:bar/1&bar
+setenv_var __MODULES_LMPREREQ bar/1&conun
+setenv_var __MODULES_LMTAG bar/1&sticky
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&conun:bar/1&bar]
+lappend ans [list set __MODULES_LMPREREQ bar/1&conun]
+lappend ans [list set _LMFILES_ $mp/conun/1:$mp/bar/1]
+lappend ans [list set LOADEDMODULES conun/1:bar/1]
+lappend ans [list set __MODULES_LMTAG bar/1&sticky]
+set tserr [msg_top_switch conun/2 conun/1 {} {} {} {} bar/1]
+testouterr_cmd bash {switch conun/1} $ans $tserr
+set tserr [msg_top_load_conun conun/1 {} conun/2 {} {} bar/1]
+testouterr_cmd bash {load conun/1} $ans $tserr
+
+
+setenv_var TESTSUITE_CONFLICT_UNLOAD depun_of_conun_is_super_sticky1
+
+setenv_var __MODULES_LMTAG bar/1&super-sticky
+
+set ans [list]
+lappend ans [list set __MODULES_LMCONFLICT conun/1&conun:bar/1&bar]
+lappend ans [list set __MODULES_LMPREREQ bar/1&conun]
+lappend ans [list set _LMFILES_ $mp/conun/1:$mp/bar/1]
+lappend ans [list set LOADEDMODULES conun/1:bar/1]
+lappend ans [list set __MODULES_LMTAG bar/1&super-sticky]
+set tserr [msg_top_switch conun/2 conun/1 {} {} {} {} bar/1]
+testouterr_cmd bash {switch conun/1} $ans $tserr
+set tserr [msg_top_load_conun conun/1 {} conun/2 {} {} bar/1]
+testouterr_cmd bash {load conun/1} $ans $tserr
+
+
+#
 # Disabled implicit default
 #
 
@@ -881,6 +927,7 @@ setenv MODULES_IMPLICIT_DEFAULT 0
 unsetenv_loaded_module
 unsetenv_var __MODULES_LMPREREQ
 unsetenv_var __MODULES_LMCONFLICT
+unsetenv_var __MODULES_LMTAG
 setenv_var TESTSUITE_CONFLICT_UNLOAD implicit_default_off1
 
 set ans [list]

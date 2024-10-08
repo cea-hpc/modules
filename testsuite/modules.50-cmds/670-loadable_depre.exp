@@ -68,15 +68,7 @@ set tserr [msg_top_switch {bar/1{var=val1} <aL>} bar/1{var=val3} {} {} {} {} {de
 testouterr_cmd bash {switch bar/1 var=val3} $ans $tserr
 testouterr_cmd bash {switch -f bar/1 var=val3} $ans $tserr
 
-#FIXME: conflict unload mechanism should reload depre/1
-set ans [list]
-lappend ans [list set __MODULES_LMVARIANT {bar/1&var|val3|0|0}]
-lappend ans [list set __MODULES_LMCONFLICT bar/1&bar]
-lappend ans [list unset __MODULES_LMPREREQ]
-lappend ans [list set _LMFILES_ $mp/bar/1]
-lappend ans [list set LOADEDMODULES bar/1]
-lappend ans [list unset __MODULES_LMTAG]
-set tserr [msg_top_load_conun bar/1{var=val3} depre/1 {bar/1{var=val1}} {} {} {}]
+set tserr [msg_top_load_conun bar/1{var=val3} {} {bar/1{var=val1}} {} {} {depre/1}]
 testouterr_cmd bash {load bar/1 var=val3} $ans $tserr
 testouterr_cmd bash {load -f bar/1 var=val3} $ans $tserr
 
@@ -103,15 +95,7 @@ set tserr [msg_top_switch {bar/1{var=val1} <aL>} bar/1{var=val2} {} {} {} {} {de
 testouterr_cmd bash {switch bar/1 var=val2} $ans $tserr
 testouterr_cmd bash {switch -f bar/1 var=val2} $ans $tserr
 
-#FIXME: conflict unload mechanism should reload depre/1
-set ans [list]
-lappend ans [list set __MODULES_LMVARIANT {bar/1&var|val2|0|0}]
-lappend ans [list set __MODULES_LMCONFLICT bar/1&bar]
-lappend ans [list unset __MODULES_LMPREREQ]
-lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1]
-lappend ans [list set LOADEDMODULES foo/1.0:bar/1]
-lappend ans [list unset __MODULES_LMTAG]
-set tserr [msg_top_load_conun bar/1{var=val2} depre/1 {bar/1{var=val1}} {} {} {}]
+set tserr [msg_top_load_conun bar/1{var=val2} {} {bar/1{var=val1}} {} {} {depre/1}]
 testouterr_cmd bash {load bar/1 var=val2} $ans $tserr
 testouterr_cmd bash {load -f bar/1 var=val2} $ans $tserr
 
@@ -179,18 +163,8 @@ set tserr [msg_top_switch bar/1{var=val1} bar/1{var=val2} {} {} {} {} {depre/1}]
 testouterr_cmd bash {switch bar/1 var=val2} $ans $tserr
 testouterr_cmd bash {switch -f bar/1 var=val2} $ans $tserr
 
-#FIXME: conflict unload mechanism should reload depre/1
-set tserr [msg_unload {depre/1 <S>} $err_stickyunload]\n\n[msg_unload bar/1{var=val1} [err_depun depre/1]]\n\n[msg_load bar/1{var=val2} [err_conun bar/1{var=val1}]]
-testouterr_cmd bash {load bar/1 var=val2} ERR $tserr
-set ans [list]
-lappend ans [list set __MODULES_LMVARIANT {bar/1&var|val2|0|0}]
-lappend ans [list set __MODULES_LMCONFLICT bar/1&bar]
-lappend ans [list unset __MODULES_LMPREREQ]
-lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/bar/1]
-lappend ans [list set LOADEDMODULES foo/1.0:bar/1]
-lappend ans [list unset __MODULES_LMEXTRATAG]
-lappend ans [list unset __MODULES_LMTAG]
-set tserr [msg_unload {depre/1 <S>} $err_stickyunloadf]\n\n[msg_top_load_conun bar/1{var=val2} depre/1 {bar/1{var=val1}} {} {} {}]
+set tserr [msg_top_load_conun bar/1{var=val2} {} bar/1{var=val1} {} {} depre/1]
+testouterr_cmd bash {load bar/1 var=val2} $ans $tserr
 testouterr_cmd bash {load -f bar/1 var=val2} $ans $tserr
 
 
@@ -210,11 +184,9 @@ set tserr [msg_top_switch bar/1{var=val1} bar/1{var=val2} {} {} {} {} {depre/1}]
 testouterr_cmd bash {switch bar/1 var=val2} $ans $tserr
 testouterr_cmd bash {switch -f bar/1 var=val2} $ans $tserr
 
-#FIXME: conflict unload mechanism should reload depre/1
-set tserr [msg_unload {depre/1 <sS>} $err_superstickyunload]\n\n[msg_unload bar/1{var=val1} [err_depun depre/1]]\n\n[msg_load bar/1{var=val2} [err_conun bar/1{var=val1}]]
-testouterr_cmd bash {load bar/1 var=val2} ERR $tserr
-set tserr [msg_unload {depre/1 <sS>} $err_superstickyunload]\n\n[msg_unload bar/1{var=val1} [err_depunf depre/1]]\n\n[msg_load bar/1{var=val2} [err_depun depre/1]]
-testouterr_cmd bash {load -f bar/1 var=val2} ERR $tserr
+set tserr [msg_top_load_conun bar/1{var=val2} {} bar/1{var=val1} {} {} depre/1]
+testouterr_cmd bash {load bar/1 var=val2} $ans $tserr
+testouterr_cmd bash {load -f bar/1 var=val2} $ans $tserr
 
 
 #

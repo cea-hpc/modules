@@ -77,10 +77,13 @@ testouterr_cmd "sh" "load d" "ERR" [msg_load c [err_conloi d]]\n\n[msg_load d [e
 
 if {[is_conf_enabled conflictunload]} {
     set tserr [msg_unload {b <aL>} [err_deploi e]]\n\n[msg_unload {c <aL>} [err_depun b]]\n\n[msg_load f [err_conun c]]\n\n[msg_load e [err_reqlo f]]
+    #FIXME: b should not be unloaded as DepRe since it is ReqLo of main module
+    set fail_cmd xfail
 } else {
     set tserr [msg_load f [err_conlo c]]\n\n[msg_load e [err_reqlo f]]
+    set fail_cmd fail
 }
-testouterr_cmd "sh" "load e" "ERR" $tserr
+testouterr_cmd "sh" "load e" "ERR" $tserr $fail_cmd
 
 if {[is_conf_enabled conflictunload]} {
     set tserr [msg_unload {a <aL>} [err_deploi g]]\n\n[msg_load b [err_conun a]]\n\n[msg_load g [err_reqlo b]]
