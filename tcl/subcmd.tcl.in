@@ -1607,15 +1607,15 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
             set depre_list [getDependentLoadedModuleList $unload_mod_list 0 0\
                1 0 1 1]
 
-            # DepUn mods are merged into the DepRe list as an attempt to
-            # reload these DepUn mods is made once switched-to mod loaded
-            if {[info exists swprocessing]} {
+            # DepUn mods are merged into the DepRe list if this is a conflict
+            # unload or an ongoing switch
+            if {[info exists swprocessing] || $context eq {conun}} {
                set depre_list [sortModulePerLoadedAndDepOrder [list\
                   {*}$depun_list {*}$depre_list] 1]
                set depun_list {}
                set unload_mod_list [list $modname]
-               reportDebug "updated depun mod list (switch) is '$depun_list'"
-               reportDebug "updated depre mod list (switch) is '$depre_list'"
+               reportDebug "updated depun mod list is '$depun_list'"
+               reportDebug "updated depre mod list is '$depre_list'"
             }
 
             if {[isTopEvaluation]} {
