@@ -1191,6 +1191,8 @@ The following Modules configuration option has been introduced on Modules 5.
  * All reload of Dependent Reload modules are now performed on the top load,
    unload or switch evaluation rather right after the load, unload or switch
    that triggered the unload phase of the Dependent Reload mechanism.
+ * Dependent Unload modules of Conflict Unload modules are merged into the
+   Dependent Reload module list.
 
 :mconfig:`avail_output`, :mconfig:`avail_terse_output`
 

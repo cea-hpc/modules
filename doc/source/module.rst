@@ -4167,7 +4167,8 @@ ENVIRONMENT
  For the specific case of the :subcmd:`switch` sub-command, where a modulefile
  is unloaded to then load another modulefile. Dependent modulefiles to Unload
  are merged into the Dependent modulefiles to Reload that are reloaded after
- the load of the switched-to modulefile.
+ the load of the switched-to modulefile. Such process also applies to the
+ Dependent Unload modulefiles of Conflict Unload modules.
 
  The reload phase of all Dependent Reload modulefiles occurs after the
  evaluation of the main *modulefile* (either load, unload or switch

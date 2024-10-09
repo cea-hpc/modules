@@ -175,6 +175,9 @@ Modules 5.5.0 (not yet released)
 * Reload all Dependent Reload modules after the main load, unload or switch
   module evaluation rather after the sub module evaluation that triggered the
   Dependent Reload unload phase.
+* Dependent Unload modules of Conflict Unload modules are merged into the
+  Dependent Reload module list. An attempt to reload these dependent modules
+  is tried only if their requirements are satisfied by loaded environment.
 
 .. warning:: Variant names are now fully checked instead of just verifying
    their first character. Only characters within the ``A-Za-z0-9_-`` range are

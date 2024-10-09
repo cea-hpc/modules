@@ -114,6 +114,9 @@ requirements) and this module defines a conflict:
 Unload of multiple conflicting modules is achieved in the reversed loaded
 order (last loaded is unloaded first).
 
+DepUn modules of ConUn modules are transformed into DepRe modules. An attempt
+to reload them is performed at the end.
+
 UReqUn modules is scheduled after main load action, thus only from the top
 context. At this point all auto-loaded requirements of ConUn modules can be
 found and set as UReqUn modules to unload.
