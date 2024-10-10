@@ -41,7 +41,7 @@ if {[is_conf_enabled conflictunload]} {
     lappend ans [list set _LMFILES_ "$mp/f5"]
     lappend ans [list set LOADEDMODULES "f5"]
     lappend ans [list unset __MODULES_LMTAG]
-    set tserr [list "load f1" "load f3" "load f6" "load f7" \n[msg_top_load f7 {} [list f1 f3 f6] {}] "\nunload f7" {unload f6} {unload f3} {unload f1} {load f5} \n[msg_top_load_conun f5 f7 f6 {f3 f1} {} {}]]
+    set tserr [list "load f1" "load f3" "load f6" "load f7" \n[msg_top_load f7 {} [list f1 f3 f6] {}] "\nunload f7" {unload f6} {load f5} {unload f3} {unload f1} \n[msg_top_load_conun f5 f7 f6 {f3 f1} {} {}]]
 } else {
     set ans [list]
     lappend ans [list set __MODULES_LMCONFLICT "f6&f5"]
@@ -300,7 +300,7 @@ if {[is_conf_enabled conflictunload]} {
     lappend ans [list set _LMFILES_ $mp/f2:$mp/f4:$mp/f5]
     lappend ans [list set LOADEDMODULES f2:f4:f5]
     lappend ans [list unset __MODULES_LMTAG]
-    set tserr [list "load f1" "load f3" "load f6" "load f7" \n[msg_top_load f7 {} [list f1 f3 f6] {}] "\nunload f7" {unload f6} {unload f3} {load f2} {load f3} {load f6} {load f7} \n[msg_top_load f2 {} {} {f3 f6 f7}] "\nunload f7" {unload f6} {load f4} {load f6} {load f7} \n[msg_top_load f4 {} {} {f6 f7}] "\nunload f7" {unload f6} {unload f3} {unload f1} {load f5} \n[msg_top_load_conun f5 f7 f6 {f3 f1} {} {}]]
+    set tserr [list "load f1" "load f3" "load f6" "load f7" \n[msg_top_load f7 {} [list f1 f3 f6] {}] "\nunload f7" {unload f6} {unload f3} {load f2} {load f3} {load f6} {load f7} \n[msg_top_load f2 {} {} {f3 f6 f7}] "\nunload f7" {unload f6} {load f4} {load f6} {load f7} \n[msg_top_load f4 {} {} {f6 f7}] "\nunload f7" {unload f6} {load f5} {unload f3} {unload f1} \n[msg_top_load_conun f5 f7 f6 {f3 f1} {} {}]]
 } else {
     set ans [list]
     lappend ans [list set __MODULES_LMCONFLICT "f6&f5"]
@@ -533,7 +533,8 @@ if {[is_conf_enabled conflictunload]} {
     lappend ans [list set _LMFILES_ $mp/f12]
     lappend ans [list set LOADEDMODULES f12]
     lappend ans [list unset __MODULES_LMTAG]
-    set tserr [list {unload f17} {unload f16} {unload f14} {unload f13} {unload f11} {load f12} \n[msg_top_load_conun f12 {f17 f16} f14 {f13 f11} {} {}]]
+    # f13 is first seen as DepRe then transformed into UReqUn
+    set tserr [list {unload f17} {unload f16} {unload f14} {unload f13} {load f12} {unload f11} \n[msg_top_load_conun f12 {f17 f16} f14 {f13 f11} {} {}]]
 } else {
     set ans [list]
     lappend ans [list set _LMFILES_ "$mp/f11:$mp/f13:$mp/f14:$mp/f16:$mp/f17:$mp/f12"]
