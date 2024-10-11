@@ -217,6 +217,16 @@ way unloaded in their reverse loading order. So if a module is part of the
 *DepUn* process and one of its requirement is part of the *DepRe* process, the
 requirement is now unloaded after its dependent.
 
+Reload of *Dependent Reload* (DepRe) module is now skipped if this module is
+not found loadable in environment. Either because its requirements are not
+loaded or a conflict is spotted. Such module is considered *Dependent Unload*
+rather *Dependent Reload*. If *DepRe* module is sticky, reload is attempted
+anyway.
+
+Reload of all *Dependent Reload* (DepRe) modules now occurs after main module
+evaluation rather after each sub module evaluation that triggered the
+*Dependent Reload* unload phase.
+
 
 v5.4
 ====
