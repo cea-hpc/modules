@@ -1612,12 +1612,26 @@ if {$install_setmanpath eq {y}} {
     } else {
         set mandirenc $install_mandir
     }
-    if {$install_appendmanpath eq {y}} {
-        set updatedmanpath $default_manpath:$install_mandir
-        set lmsourceshpath "append-path MANPATH $mandirenc|"
-    } else {
-        set updatedmanpath $install_mandir:$default_manpath
-        set lmsourceshpath "prepend-path MANPATH $mandirenc|"
+    set updated_manpath_list [split $default_manpath :]
+    set is_default_manpath_updated 0
+    foreach install_manpath_elt [split $install_mandir :] {
+        if {$install_manpath_elt ni $updated_manpath_list} {
+            if {$install_appendmanpath eq {y}} {
+                lappend updated_manpath_list $install_manpath_elt
+            } else {
+                set updated_manpath_list [linsert $updated_manpath_list 0 $install_manpath_elt]
+            }
+            set is_default_manpath_updated 1
+        }
+    }
+    set updatedmanpath [join $updated_manpath_list :]
+
+    if {$is_default_manpath_updated} {
+        if {$install_appendmanpath eq {y}} {
+            set lmsourceshpath "append-path MANPATH $mandirenc|"
+        } else {
+            set lmsourceshpath "prepend-path MANPATH $mandirenc|"
+        }
     }
 }
 # setup PATH without Modules bin location
@@ -1647,13 +1661,13 @@ if {$install_versioning eq {y}} {
 lappend ans [list set MODULE_VERSION_STACK $install_version]
 }
 # MANPATH is set before PATH if the latter is appended and not the former
-if {$install_setmanpath eq {y} && $install_appendbinpath eq {y} && $install_appendmanpath eq {n}} {
+if {$install_setmanpath eq {y} && $install_appendbinpath eq {y} && $install_appendmanpath eq {n} && $is_default_manpath_updated} {
 lappend ans [list set MANPATH $updatedmanpath]
 }
 if {$install_setbinpath eq {y}} {
 lappend ans [list set PATH $updatedpath]
 }
-if {$install_setmanpath eq {y} && ($install_appendbinpath eq {n} || $install_appendmanpath eq {y})} {
+if {$install_setmanpath eq {y} && ($install_appendbinpath eq {n} || $install_appendmanpath eq {y}) && $is_default_manpath_updated} {
 lappend ans [list set MANPATH $updatedmanpath]
 }
 lappend ans [list set _LMFILES_ $mp/source-sh/1]
@@ -1703,7 +1717,7 @@ set extratserr {}
 set tserr "-------------------------------------------------------------------
 $mp/source-sh/1:\n\n"
 set tserr_path {}
-if {$install_setmanpath eq {y}} {
+if {$install_setmanpath eq {y} && $is_default_manpath_updated} {
     if {$install_appendmanpath eq {y}} {
         append tserr_path "append-path\tMANPATH $mandirenc\n"
     } else {
@@ -1754,13 +1768,13 @@ if {$install_versioning eq {y}} {
 lappend ans [list set MODULE_VERSION_STACK $install_version]
 }
 # MANPATH is set before PATH if the latter is appended and not the former
-if {$install_setmanpath eq {y} && $install_appendbinpath eq {y} && $install_appendmanpath eq {n}} {
+if {$install_setmanpath eq {y} && $install_appendbinpath eq {y} && $install_appendmanpath eq {n} && $is_default_manpath_updated} {
 lappend ans [list set MANPATH $updatedmanpath]
 }
 if {$install_setbinpath eq {y}} {
 lappend ans [list set PATH $updatedpath]
 }
-if {$install_setmanpath eq {y} && ($install_appendbinpath eq {n} || $install_appendmanpath eq {y})} {
+if {$install_setmanpath eq {y} && ($install_appendbinpath eq {n} || $install_appendmanpath eq {y}) && $is_default_manpath_updated} {
 lappend ans [list set MANPATH $updatedmanpath]
 }
 lappend ans [list set _LMFILES_ $mp/source-sh/1]
@@ -1792,13 +1806,13 @@ if {$install_versioning eq {y}} {
 lappend ans [list set MODULE_VERSION_STACK $install_version]
 }
 # MANPATH is set before PATH if the latter is appended and not the former
-if {$install_setmanpath eq {y} && $install_appendbinpath eq {y} && $install_appendmanpath eq {n}} {
+if {$install_setmanpath eq {y} && $install_appendbinpath eq {y} && $install_appendmanpath eq {n} && $is_default_manpath_updated} {
 lappend ans [list set MANPATH $updatedmanpath]
 }
 if {$install_setbinpath eq {y}} {
 lappend ans [list set PATH $updatedpath]
 }
-if {$install_setmanpath eq {y} && ($install_appendbinpath eq {n} || $install_appendmanpath eq {y})} {
+if {$install_setmanpath eq {y} && ($install_appendbinpath eq {n} || $install_appendmanpath eq {y}) && $is_default_manpath_updated} {
 lappend ans [list set MANPATH $updatedmanpath]
 }
 lappend ans [list set _LMFILES_ $modpath/setenv/1.0:$mp/source-sh/1]
@@ -1829,19 +1843,19 @@ setenv_var MODULES_COLLECTION_TARGET bar
 if {$install_setbinpath eq {y}} {
 setenv_var PATH $updatedpath
 }
-if {$install_setmanpath eq {y}} {
+if {$install_setmanpath eq {y} && $is_default_manpath_updated} {
 setenv_var MANPATH $updatedmanpath
 }
 setenv_var __MODULES_LMSOURCESH source-sh/1\&bash\ testsuite/example/sh-to-mod.sh\|${lmsourceshpath}setenv\ MODULES_COLLECTION_TARGET\ bar\|setenv\ testsuite\ yes
 set ans [list]
 # MANPATH is set before PATH if the latter is appended and not the former
-if {$install_setmanpath eq {y} && $install_appendbinpath eq {y} && $install_appendmanpath eq {n}} {
+if {$install_setmanpath eq {y} && $install_appendbinpath eq {y} && $install_appendmanpath eq {n} && $is_default_manpath_updated} {
 lappend ans [list set MANPATH $default_manpath]
 }
 if {$install_setbinpath eq {y}} {
 lappend ans [list set PATH $default_path]
 }
-if {$install_setmanpath eq {y} && ($install_appendbinpath eq {n} || $install_appendmanpath eq {y})} {
+if {$install_setmanpath eq {y} && ($install_appendbinpath eq {n} || $install_appendmanpath eq {y}) && $is_default_manpath_updated} {
 lappend ans [list set MANPATH $default_manpath]
 }
 lappend ans [list unset _LMFILES_]
