@@ -178,6 +178,11 @@ Modules 5.5.0 (not yet released)
 * Dependent Unload modules of Conflict Unload modules are merged into the
   Dependent Reload module list. An attempt to reload these dependent modules
   is tried only if their requirements are satisfied by loaded environment.
+* When a loading module requires a Dependent Unload module, the unload of this
+  module was forced when it was triggered by a Conflict Unload or a
+  switched-off module. The unload of such Dependent Unload module is not
+  forced anymore by default and an error is raised if a loading module
+  requiring the Dependent Unload module is detected.
 
 .. warning:: Variant names are now fully checked instead of just verifying
    their first character. Only characters within the ``A-Za-z0-9_-`` range are

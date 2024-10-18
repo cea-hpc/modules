@@ -227,6 +227,12 @@ Reload of all *Dependent Reload* (DepRe) modules now occurs after main module
 evaluation rather after each sub module evaluation that triggered the
 *Dependent Reload* unload phase.
 
+When a loading module requires a *Dependent Unload* (DepUn) module, the unload
+of this module was forced when it was triggered by a Conflict Unload or a
+switched-off module. The unload of such *DepUn* module is not forced anymore
+by default and an error is raised if a loading module requiring the *DepUn*
+module is detected.
+
 
 v5.4
 ====
