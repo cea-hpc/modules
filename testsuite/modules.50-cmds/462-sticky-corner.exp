@@ -429,7 +429,7 @@ unsetenv_loaded_module
 unsetenv_var __MODULES_LMTAG
 
 setenv_var TESTSUITE_STICKY 1
-set tserr [msg_unload {sticky1/1.0 <aL:S>} $err_stickyunload]\n\n[msg_load sticky3/1.0 [err_conun sticky1/1.0]]
+set tserr [msg_unload {sticky2/1.0 <aL>} [err_deploi sticky3/1.0]]\n\n[msg_unload {sticky1/1.0 <aL:S>} [err_depun sticky2/1.0]]\n\n[msg_load sticky3/1.0 [err_conun sticky1/1.0]]
 testouterr_cmd_re sh {load --auto sticky3/1.0} ERR $tserr
 
 setenv_var TESTSUITE_STICKY 2
@@ -446,19 +446,7 @@ testouterr_cmd_re sh {load --auto sticky3/1.0} ERR $tserr
 
 setenv_var TESTSUITE_STICKY 7
 # switched-on module is now resolved prior testing stickiness is preserved
-set ans [list]
-lappend ans [list set __MODULES_LMALTNAME sticky1/2.0&al|alsticky1]
-lappend ans [list set __MODULES_LMPREREQ sticky3/1.0&sticky2/1.0&alsticky1:sticky2/1.0&sticky1/1.0|sticky1/2.0]
-lappend ans [list set __MODULES_LMSTICKYRULE sticky1/2.0&sticky|sticky1]
-lappend ans [list set _LMFILES_ $mp/sticky1/2.0:$mp/sticky3/1.0:$mp/sticky2/1.0]
-lappend ans [list set LOADEDMODULES sticky1/2.0:sticky3/1.0:sticky2/1.0]
-lappend ans [list set __MODULES_LMTAG sticky1/2.0&auto-loaded&sticky:sticky2/1.0&auto-loaded]
-#FIXME: an error should be rendered as ReqLo sticky2/1.0 is DepUn of Conun sticky1/1.0 thus it goes DepRe
-#   through the internal "module switch" of main module (sticky3/1.0)
-#   Main module should also be seen as DepUn (as its ReqLo sticky2/1.0 is) and it should stop
-#   the whole evaluation as a loading module is detected as DepUn
-set tserr [msg_top_load sticky3/1.0 {sticky1/1.0} {} {sticky2/1.0} {Loading requirement: sticky1/1.0 sticky2/1.0 sticky1/2.0}]
-testouterr_cmd_re sh {load --auto sticky3/1.0} $ans $tserr
+testouterr_cmd_re sh {load --auto sticky3/1.0} ERR $tserr
 
 setenv_var TESTSUITE_STICKY 8
 set ans [list]
@@ -468,7 +456,7 @@ lappend ans [list set LOADEDMODULES sticky0:sticky2/1.0]
 lappend ans [list set __MODULES_LMTAG sticky0&auto-loaded&sticky]
 set tserr [msg_top_load sticky2/1.0 {} {sticky0} {}]
 testouterr_cmd_re sh {load --auto sticky2/1.0} $ans $tserr
-set tserr [msg_unload {sticky0 <aL:S>} $err_stickyunload]\n\n[msg_load sticky3/1.0 [err_conun sticky0]]
+set tserr [msg_unload {sticky2/1.0 <aL>} [err_deploi sticky3/1.0]]\n\n[msg_unload {sticky0 <aL:S>} [err_depun sticky2/1.0]]\n\n[msg_load sticky3/1.0 [err_conun sticky0]]
 testouterr_cmd_re sh {load --auto sticky3/1.0} ERR $tserr
 
 setenv_var TESTSUITE_STICKY 9
@@ -480,7 +468,7 @@ lappend ans [list set __MODULES_LMTAG sticky4/sub/1.0&auto-loaded&sticky]
 set tserr [msg_top_load sticky2/1.0 {} {sticky4/sub/1.0} {}]
 testouterr_cmd_re sh {load --auto sticky2/1.0} $ans $tserr
 
-set tserr [msg_unload {sticky4/sub/1.0 <aL:S>} $err_stickyunload]\n\n[msg_load sticky3/1.0 [err_conun sticky4/sub/1.0]]
+set tserr [msg_unload {sticky2/1.0 <aL>} [err_deploi sticky3/1.0]]\n\n[msg_unload {sticky4/sub/1.0 <aL:S>} [err_depun sticky2/1.0]]\n\n[msg_load sticky3/1.0 [err_conun sticky4/sub/1.0]]
 testouterr_cmd_re sh {load --auto sticky3/1.0} ERR $tserr
 
 setenv_var TESTSUITE_STICKY 10
@@ -493,18 +481,8 @@ lappend ans [list set __MODULES_LMTAG sticky4/sub/1.0&auto-loaded&sticky]
 set tserr [msg_top_load sticky2/1.0 {} {sticky4/sub/1.0} {}]
 testouterr_cmd_re sh {load --auto sticky2/1.0} $ans $tserr
 
-set ans [list]
-lappend ans [list set __MODULES_LMPREREQ sticky3/1.0&sticky2/1.0&sticky4/sub/2.0:sticky2/1.0&sticky4/sub/1.0|sticky4/sub/2.0]
-lappend ans [list set __MODULES_LMSTICKYRULE sticky4/sub/2.0&sticky|sticky4/sub]
-lappend ans [list set _LMFILES_ $mp/sticky4/sub/2.0:$mp/sticky3/1.0:$mp/sticky2/1.0]
-lappend ans [list set LOADEDMODULES sticky4/sub/2.0:sticky3/1.0:sticky2/1.0]
-lappend ans [list set __MODULES_LMTAG sticky4/sub/2.0&auto-loaded&sticky:sticky2/1.0&auto-loaded]
-#FIXME: an error should be rendered as ReqLo sticky2/1.0 is DepUn of Conun sticky4/sub/2.0 thus it goes DepRe
-#   through the internal "module switch" of main module (sticky3/1.0)
-#   Main module should also be seen as DepUn (as its ReqLo sticky2/1.0 is) and it should stop
-#   the whole evaluation as a loading module is detected as DepUn
-set tserr [msg_top_load sticky3/1.0 {sticky4/sub/1.0} {} {sticky2/1.0} {Loading requirement: sticky4/sub/1.0 sticky2/1.0 sticky4/sub/2.0}]
-testouterr_cmd_re sh {load --auto sticky3/1.0} $ans $tserr
+set tserr [msg_unload {sticky2/1.0 <aL>} [err_deploi sticky3/1.0]]\n\n[msg_unload {sticky4/sub/1.0 <aL:S>} [err_depun sticky2/1.0]]\n\n[msg_load sticky3/1.0 [err_conun sticky4/sub/1.0]]
+testouterr_cmd_re sh {load --auto sticky3/1.0} ERR $tserr
 
 
 #

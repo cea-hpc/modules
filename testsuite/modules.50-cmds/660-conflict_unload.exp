@@ -804,15 +804,8 @@ testouterr_cmd bash {load -f conun/2} $ans $tserr
 unsetenv_var __MODULES_LMCONFLICT
 setenv_var TESTSUITE_CONFLICT_UNLOAD depun_of_conun_is_reqlo2
 
-set ans [list]
-lappend ans [list set __MODULES_LMCONFLICT conun/2&conun]
-lappend ans [list set __MODULES_LMPREREQ conun/2&bar/1]
-lappend ans [list set _LMFILES_ $mp/conun/2]
-lappend ans [list set LOADEDMODULES conun/2]
-lappend ans [list unset __MODULES_LMTAG]
-#FIXME: bar/1 should not be unloaded as DepRe since it is ReqLo of main module
-set tserr [msg_unload bar/1]\n[msg_unload {conun/1 <aL>}]\n\n[msg_top_load_conun conun/2 bar/1 conun/1 {} {} {}]
-testouterr_cmd bash {load -v conun/2} $ans $tserr
+set tserr [msg_unload bar/1 [err_deploi conun/2]]\n\n[msg_unload {conun/1 <aL>} [err_depun bar/1]]\n\n[msg_load conun/2 [err_conun conun/1]]
+testouterr_cmd bash {load -v conun/2} ERR $tserr
 
 set ans [list]
 lappend ans [list set __MODULES_LMCONFLICT conun/2&conun]
@@ -820,8 +813,7 @@ lappend ans [list set __MODULES_LMPREREQ conun/2&bar/1]
 lappend ans [list set _LMFILES_ $mp/conun/2]
 lappend ans [list set LOADEDMODULES conun/2]
 lappend ans [list unset __MODULES_LMTAG]
-# conun/2 does not warn about its missing prereq bar/1 (as this requirement was loaded when prereq command was run)
-set tserr [msg_top_load_conun conun/2 bar/1 conun/1 {} {} {}]
+set tserr [msg_unload bar/1 [err_deploif conun/2]]\n\n[msg_top_load_conun conun/2 bar/1 conun/1 {} {} {}]
 testouterr_cmd bash {load -f conun/2} $ans $tserr
 
 
