@@ -1573,14 +1573,7 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
          lassign [getDiffBetweenList $prereq_list $prereq_loaded_list]\
             prereq_loading_list
          if {[llength $prereq_loading_list]} {
-            set msg [getDepLoadingMsg $prereq_loading_list]
-            if {$force} {
-               if {$context ne {depre_un}} {
-                  reportWarning $msg
-               }
-            } else {
-               knerror $msg
-            }
+            knerrorOrWarningIfForced [getDepLoadingMsg $prereq_loading_list]
          }
 
          if {[getConf auto_handling] && $auto} {
