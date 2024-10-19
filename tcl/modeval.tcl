@@ -1072,7 +1072,6 @@ proc unloadUReqUnModules {} {
       set urequn_list [lreverse $urequn_list]
       for {set i 0} {$i < [llength $urequn_list]} {incr i 1} {
          set unmod [lindex $urequn_list $i]
-         ##nagelfar ignore Found constant
          if {[cmdModuleUnload urequn match 0 0 0 $unmod]} {
             # main unload process continues, but the UReqUn modules that are
             # required by unmod (whose unload failed) are withdrawn from
