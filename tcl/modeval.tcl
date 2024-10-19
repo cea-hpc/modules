@@ -1114,7 +1114,7 @@ proc lprependDepReList {mod_list} {
    lprepend ::g_depReList {*}$mod_list
 }
 
-proc unloadDepUnDepReModules {unload_mod_list reload_mod_list {force 0}} {
+proc unloadDepUnDepReModules {unload_mod_list reload_mod_list} {
    set err_msg_tpl {Unload of dependent _MOD_ failed}
    set unload_mod_list [sortModulePerLoadedAndDepOrder [list\
       {*}$unload_mod_list {*}$reload_mod_list]]
@@ -1129,11 +1129,7 @@ proc unloadDepUnDepReModules {unload_mod_list reload_mod_list {force 0}} {
             # stop if one unload fails unless force mode enabled
             set err_msg [string map [list _MOD_ [getModuleDesignation loaded\
                $unload_mod]] $err_msg_tpl]
-            if {$force} {
-               reportWarning $err_msg
-            } else {
-               knerror $err_msg
-            }
+            knerrorOrWarningIfForced $err_msg
          }
       }
    }
