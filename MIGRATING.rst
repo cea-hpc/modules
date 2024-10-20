@@ -177,6 +177,22 @@ unloaded by *Conflict Unload* mechanism are automatically unloaded.
       :sgrin:`Loading requirement`: bar/2
       :sgrin:`Unloading useless requirement`: qux/1
 
+Dependent modules of *Conflict Unload* modules are considered *Dependent
+Reload* modules. They are unloaded prior unloading the *Conflict Unload*
+module that depend on them. Reload occurs after loading main module and only
+if the loaded environment satisfies the dependencies of the module to reload.
+
+.. parsed-literal::
+
+    :ps:`$` module load bar/3
+    Loading :sgrhi:`bar/3`
+      :sgrin:`Loading requirement`: qux/2
+    :ps:`$` module load qux/1
+    Loading :sgrhi:`qux/1`
+      :sgrin:`Unloading dependent`: bar/3
+      :sgrin:`Unloading conflict`: qux/2
+      :sgrin:`Reloading dependent`: bar/3
+
 Improved automated module handling mechanisms
 ---------------------------------------------
 
