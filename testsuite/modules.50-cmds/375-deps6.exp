@@ -66,20 +66,23 @@ lappend ans [list set LOADEDMODULES "f1:f3:f6:f7:f5:f4"]
 set tserr [list "load f4"]
 testouterr_cmd_re "sh" "load f4" $ans [join $tserr "\n"]
 
+#FIXME: should not try to reload f3 as its dependent (f6) cannot be reloaded
+set tserr [list [msg_unload {f3 <aL>} [err_prerequn f6]] \n[msg_load f2 [err_depun f3]]]
+testouterr_cmd_re "sh" "load f2" ERR [join $tserr "\n"]
 set ans [list]
 lappend ans [list set __MODULES_LMPREREQ "f6&f3|f4:f7&f6:f3&f1|f2"]
 lappend ans [list set _LMFILES_ "$mp/f1:$mp/f6:$mp/f7:$mp/f5:$mp/f2:$mp/f3"]
 lappend ans [list set LOADEDMODULES "f1:f6:f7:f5:f2:f3"]
 lappend ans [list set __MODULES_LMTAG f1&auto-loaded:f6&auto-loaded:f3&auto-loaded]
 set tserr [list "unload f3" "load f2" "load f3" \n[msg_top_load f2 {} {} f3]]
-testouterr_cmd_re "sh" "load f2" $ans [join $tserr "\n"]
+testouterr_cmd_re "sh" "load -f f2" $ans [join $tserr "\n"]
 
 set ans [list]
-lappend ans [list set __MODULES_LMPREREQ "f6&f3|f4:f7&f6:f3&f1|f2"]
-lappend ans [list set _LMFILES_ "$mp/f1:$mp/f6:$mp/f7:$mp/f5:$mp/f4:$mp/f2:$mp/f3"]
-lappend ans [list set LOADEDMODULES "f1:f6:f7:f5:f4:f2:f3"]
-lappend ans [list set __MODULES_LMTAG f1&auto-loaded:f6&auto-loaded:f3&auto-loaded]
-set tserr [list "load f4" "unload f3" "load f2" "load f3" \n[msg_top_load f2 {} {} f3]]
+lappend ans [list set LOADEDMODULES "f1:f3:f6:f7:f5:f4"]
+lappend ans [list set _LMFILES_ "$mp/f1:$mp/f3:$mp/f6:$mp/f7:$mp/f5:$mp/f4"]
+lappend ans [list ERR]
+#FIXME: should not try to reload f3 as its dependent (f6) cannot be reloaded
+set tserr [list "load f4" \n[msg_unload {f3 <aL>} [err_prerequn f6]] \n[msg_load f2 [err_depun f3]]]
 testouterr_cmd_re "sh" "load f4 f2" $ans [join $tserr "\n"]
 
 set ans [list]
@@ -195,20 +198,23 @@ lappend ans [list set LOADEDMODULES "f5:f1:f3:f6:f7:f4"]
 set tserr [list "load f4"]
 testouterr_cmd_re "sh" "load f4" $ans [join $tserr "\n"]
 
+#FIXME: should not try to reload f3 as its dependent (f6) cannot be reloaded
+set tserr [list [msg_unload {f3 <aL>} [err_prerequn f6]] \n[msg_load f2 [err_depun f3]]]
+testouterr_cmd_re "sh" "load f2" ERR [join $tserr "\n"]
 set ans [list]
 lappend ans [list set __MODULES_LMPREREQ "f6&f3|f4:f7&f6:f3&f1|f2"]
 lappend ans [list set _LMFILES_ "$mp/f5:$mp/f1:$mp/f6:$mp/f7:$mp/f2:$mp/f3"]
 lappend ans [list set LOADEDMODULES "f5:f1:f6:f7:f2:f3"]
 lappend ans [list set __MODULES_LMTAG f1&auto-loaded:f6&auto-loaded:f3&auto-loaded]
 set tserr [list "unload f3" "load f2" "load f3" \n[msg_top_load f2 {} {} f3]]
-testouterr_cmd_re "sh" "load f2" $ans [join $tserr "\n"]
+testouterr_cmd_re "sh" "load -f f2" $ans [join $tserr "\n"]
 
 set ans [list]
-lappend ans [list set __MODULES_LMPREREQ "f6&f3|f4:f7&f6:f3&f1|f2"]
-lappend ans [list set _LMFILES_ "$mp/f5:$mp/f1:$mp/f6:$mp/f7:$mp/f4:$mp/f2:$mp/f3"]
-lappend ans [list set LOADEDMODULES "f5:f1:f6:f7:f4:f2:f3"]
-lappend ans [list set __MODULES_LMTAG f1&auto-loaded:f6&auto-loaded:f3&auto-loaded]
-set tserr [list "load f4" "unload f3" "load f2" "load f3" \n[msg_top_load f2 {} {} f3]]
+lappend ans [list set LOADEDMODULES "f5:f1:f3:f6:f7:f4"]
+lappend ans [list set _LMFILES_ "$mp/f5:$mp/f1:$mp/f3:$mp/f6:$mp/f7:$mp/f4"]
+lappend ans [list ERR]
+#FIXME: should not try to reload f3 as its dependent (f6) cannot be reloaded
+set tserr [list "load f4" \n[msg_unload {f3 <aL>} [err_prerequn f6]] \n[msg_load f2 [err_depun f3]]]
 testouterr_cmd_re "sh" "load f4 f2" $ans [join $tserr "\n"]
 
 set ans [list]
@@ -357,12 +363,15 @@ setenv_loaded_module [list f3 f6 f7 f5] [list "$mp/f3" "$mp/f6" "$mp/f7" "$mp/f5
 setenv_var __MODULES_LMPREREQ "f3&f1|f2:f6&f3|f4:f7&f6"
 setenv_var __MODULES_LMCONFLICT "f6&f5"
 
+#FIXME: should not try to reload f3 as its dependent (f6) cannot be reloaded
+set tserr [list [msg_unload {f3} [err_prerequn f6]] \n[msg_load f1 [err_depun f3]]]
+testouterr_cmd_re "sh" "load f1" ERR [join $tserr "\n"]
 set ans [list]
 lappend ans [list set __MODULES_LMPREREQ "f6&f3|f4:f7&f6:f3&f1|f2"]
 lappend ans [list set _LMFILES_ "$mp/f6:$mp/f7:$mp/f5:$mp/f1:$mp/f3"]
 lappend ans [list set LOADEDMODULES "f6:f7:f5:f1:f3"]
 set tserr [list "unload f3" "load f1" "load f3" \n[msg_top_load f1 {} {} f3]]
-testouterr_cmd_re "sh" "load f1" $ans [join $tserr "\n"]
+testouterr_cmd_re "sh" "load -f f1" $ans [join $tserr "\n"]
 
 set ans [list]
 lappend ans [list unset __MODULES_LMCONFLICT]
@@ -663,12 +672,15 @@ setenv_loaded_module [list f22/1 f21 f18 f19 f22/2] [list "$mp/f22/1" "$mp/f21" 
 setenv_var __MODULES_LMPREREQ "f22/1&f18&f19:f22/2&f18&f19"
 setenv_var __MODULES_LMCONFLICT "f22/1&f22&f21:f21&f20:f18&f21:f19&f21:f22/2&f22&f21"
 
+#FIXME: should not try to reload f19 as its dependent (f22/2) cannot be reloaded due to conflict with f22/1
+set tserr [list [msg_unload {f19} [err_prerequn f22/2]] \n[msg_unload f21 [err_depun f19]]]
+testouterr_cmd_re "sh" "unload f21" ERR [join $tserr "\n"]
 set ans [list]
 lappend ans [list set __MODULES_LMCONFLICT "f22/1&f22&f21:f22/2&f22&f21:f18&f21:f19&f21"]
 lappend ans [list set _LMFILES_ "$mp/f22/1:$mp/f22/2:$mp/f18:$mp/f19"]
 lappend ans [list set LOADEDMODULES "f22/1:f22/2:f18:f19"]
 set tserr [list "unload f19" "unload f18" "unload f21" "load f18" "load f19" \n[msg_top_unload f21 {} {} [list f18 f19]]]
-testouterr_cmd_re "sh" "unload f21" $ans [join $tserr "\n"]
+testouterr_cmd_re "sh" "unload -f f21" $ans [join $tserr "\n"]
 
 set ans [list]
 lappend ans [list unset __MODULES_LMCONFLICT]
