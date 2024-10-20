@@ -233,6 +233,12 @@ switched-off module. The unload of such *DepUn* module is not forced anymore
 by default and an error is raised if a loading module requiring the *DepUn*
 module is detected.
 
+When unloading *Dependent Reload* modules, do not force by default this unload
+unless asked with :option:`--force` option. As a result an error is obtained
+when trying to reload Dependent Reload modules that conflict with other loaded
+modules. This error may be by-passed with :option:`--force` command-line
+option.
+
 
 v5.4
 ====
