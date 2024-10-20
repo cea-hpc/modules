@@ -808,9 +808,7 @@ proc reloadModuleUnloadPhase {mod {err_msg_tpl {}} {context unload}} {
    lappendState reloading_sticky $mod
    lappendState reloading_supersticky $mod
    savePropsOfReloadingModule $mod
-   # force unload even if requiring mods are not part of the unload list
-   # (violation state) as modules are loaded again just after
-   if {[set ret [cmdModuleUnload $context match 0 1 0 $mod]]} {
+   if {[set ret [cmdModuleUnload $context match 0 s 0 $mod]]} {
       # avoid failing module on load phase
       # if force state is enabled, cmdModuleUnload returns 0
       set err_msg [string map [list _MOD_ [getModuleDesignation loaded $mod]]\
