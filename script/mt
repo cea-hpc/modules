@@ -144,23 +144,38 @@ if [ -t 1 ]; then
    xfail_count=0
    pass_count=0
    error_count=0
+   current_fail_count=0
+   current_xfail_count=0
+   current_pass_count=0
+   current_error_count=0
+   current_case=''
    pass_sgr='1;32;7'
    fail_sgr=0
    error_sgr=0
    tail --follow=name --retry --quiet $testserie.log \
       | while read -r logline; do
-      print_update=0
+      case_changed=0
       case "$logline" in
-         PASS*) ((pass_count++)) ;;
-         FAIL*) ((fail_count++)) ;;
-         XFAIL*) ((xfail_count++)) ;;
-         ERROR:\ tcl\ error\ sourcing*) ((error_count++)) ;;
+         PASS*)
+            ((pass_count++))
+            ((current_pass_count++)) ;;
+         FAIL*)
+            ((fail_count++))
+            ((current_fail_count++)) ;;
+         XFAIL*)
+            ((xfail_count++))
+            ((current_xfail_count++)) ;;
+         ERROR:\ tcl\ error\ sourcing*)
+            ((error_count++))
+            ((current_error_count++)) ;;
          Running*)
             case_raw=${logline/*${testserie}.}
             case_suite=${case_raw:0:2}
             number_raw=${case_raw#*/}
             case_number=${number_raw:0:3}
-            print_update=1 ;;
+            previous_case=$current_case
+            current_case="$case_suite/$case_number"
+            case_changed=1 ;;
       esac
       if [ $error_count -eq 1 ]; then
          pass_sgr=0
@@ -170,8 +185,22 @@ if [ -t 1 ]; then
          pass_sgr=0
          fail_sgr='1;31;7'
       fi
-      if [ $print_update -eq 1 ] ; then
-         progress_info="current=$case_suite/$case_number, "
+      if [ $case_changed -eq 1 ] ; then
+         if [ $current_fail_count -ne 0 ] || [ $current_xfail_count -ne 0 ]\
+            || [ $current_error_count -ne 0 ]; then
+            issue_info="case=$previous_case, "
+            issue_info+="pass=$current_pass_count, "
+            issue_info+="fail=$current_fail_count, "
+            issue_info+="xfail=$current_xfail_count, "
+            issue_info+="error=$current_error_count"
+            echo -e "\e[1A\e[Kissue: $issue_info"
+            echo
+         fi
+         current_fail_count=0
+         current_xfail_count=0
+         current_pass_count=0
+         current_error_count=0
+         progress_info="current=$current_case, "
          progress_info+="\e[${pass_sgr}mpass=$pass_count\e[0m, "
          progress_info+="\e[${fail_sgr}mfail=$fail_count\e[0m, "
          progress_info+="xfail=$xfail_count, "
