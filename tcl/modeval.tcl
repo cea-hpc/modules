@@ -1138,6 +1138,38 @@ proc reloadDepReModules {} {
    reloadModuleListLoadPhase $depre_list $err_msg_tpl depre
 }
 
+# Fail unload attempt if module is sticky, unless if forced or reloading
+# Also fail unload if mod is super-sticky even if forced, unless reloading
+proc failOrSkipUnloadIfSticky {modname modfile} {
+   # when loaded, tags applies to mod name and version (not with variant)
+   set is_supersticky_not_reloading [expr {[isModuleTagged $modname\
+      super-sticky 1 $modfile] && [currentState reloading_supersticky] ne\
+      $modname}]
+   set is_sticky_not_reloading [expr {[isModuleTagged $modname sticky 1\
+      $modfile] && [currentState reloading_sticky] ne $modname &&\
+      [currentState unloading_sticky] ne $modname}]
+   set sticky_purge [expr {[getState commandname] eq {purge} ? [getConf\
+      sticky_purge] : {}}]
+
+   if {!$is_supersticky_not_reloading && $is_sticky_not_reloading &&\
+      [getState force]} {
+      reportWarning [getStickyForcedUnloadMsg]
+   } elseif {$is_supersticky_not_reloading || $is_sticky_not_reloading} {
+      set msg [getStickyUnloadMsg [expr {$is_supersticky_not_reloading ?\
+         {super-sticky} : {sticky}}]]
+      # no message if sticky_purge is set to silent
+      switch -- $sticky_purge {
+         error - {} {knerror $msg}
+         warning {reportWarning $msg}
+      }
+
+      # skip unload without raising error
+      return 1
+   }
+
+   return 0
+}
+
 # ;;; Local Variables: ***
 # ;;; mode:tcl ***
 # ;;; End: ***

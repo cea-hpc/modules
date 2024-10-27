@@ -188,6 +188,8 @@ Modules 5.5.0 (not yet released)
   when trying to reload Dependent Reload modules that conflict with other
   loaded modules. This error may be by-passed with :option:`--force`
   command-line option.
+* Move stickiness check when unloading a module prior processing any automated
+  module handling mechanism. (fix issue #536)
 
 .. warning:: Variant names are now fully checked instead of just verifying
    their first character. Only characters within the ``A-Za-z0-9_-`` range are

@@ -1546,6 +1546,10 @@ proc cmdModuleUnload {context match auto force onlyureq args} {
 
       pushSettings
       if {[set errCode [catch {
+         if {[failOrSkipUnloadIfSticky $modname $modfile]} {
+            continue
+         }
+
          # stop unless forced or auto handling mode enabled if unloading
          # module violates a registered prereq
          set prereq_list [getDependentLoadedModuleList [list $modname]]

@@ -184,50 +184,6 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
    }
 }
 
-# Fail unload attempt if module is sticky, unless if forced or reloading
-# Also fail unload if mod is super-sticky even if forced, unless reloading
-proc skipUnloadIfSticky {mode modname modfile} {
-   if {$mode ne {unload}} {
-      return 0
-   }
-
-   # when loaded, tags applies to mod name and version (not with variant)
-   set is_supersticky_not_reloading [expr {[isModuleTagged $modname\
-      super-sticky 1 $modfile] && [currentState reloading_supersticky] ne\
-      $modname}]
-   set is_sticky_not_reloading [expr {[isModuleTagged $modname sticky 1\
-      $modfile] && [currentState reloading_sticky] ne $modname &&\
-      [currentState unloading_sticky] ne $modname}]
-   set sticky_purge [expr {[getState commandname] eq {purge} ? [getConf\
-      sticky_purge] : {}}]
-
-   if {!$is_supersticky_not_reloading && $is_sticky_not_reloading &&\
-      [getState force]} {
-      reportWarning [getStickyForcedUnloadMsg]
-   } elseif {$is_supersticky_not_reloading || $is_sticky_not_reloading} {
-      # restore changed states prior raising error
-      lpopState debug_msg_prefix
-      lpopState modulepath
-      lpopState specifiedname
-      lpopState modulename
-      lpopState modulenamevr
-      lpopState modulefile
-
-      set msg [getStickyUnloadMsg [expr {$is_supersticky_not_reloading ?\
-         {super-sticky} : {sticky}}]]
-      # no message if sticky_purge is set to silent
-      switch -- $sticky_purge {
-         error - {} {knerror $msg}
-         warning {reportWarning $msg}
-      }
-
-      # skip unload without raised error
-      return 1
-   }
-
-   return 0
-}
-
 proc execute-modulefile {modfile modname modnamevrvar modspec requested\
    {up_namevr 1} {fetch_tags 1} {modpath {}}} {
    # link to modnamevr variable name from calling ctx if content update asked
@@ -265,12 +221,6 @@ proc execute-modulefile {modfile modname modnamevrvar modspec requested\
       $modfile]} {
       reportWarning [getNearlyForbiddenMsg $modnamevr $modfile]
       set nearlyforbidwarn 1
-   }
-
-   # fail unload when sticky
-   if {[skipUnloadIfSticky $mode $modname $modfile]} {
-      # skip end of unload upper level process when no error raised
-      return -code continue 0
    }
 
    if {![info exists ::g_modfileUntrackVars]} {
