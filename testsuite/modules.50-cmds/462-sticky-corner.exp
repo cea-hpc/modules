@@ -429,7 +429,7 @@ unsetenv_loaded_module
 unsetenv_var __MODULES_LMTAG
 
 setenv_var TESTSUITE_STICKY 1
-set tserr [msg_unload {sticky2/1.0 <aL>} [err_deploi sticky3/1.0]]\n\n[msg_unload {sticky1/1.0 <aL:S>} [err_depun sticky2/1.0]]\n\n[msg_load sticky3/1.0 [err_conun sticky1/1.0]]
+set tserr [msg_unload {sticky1/1.0 <aL:S>} $err_stickyunload]\n\n[msg_load sticky3/1.0 [err_conun sticky1/1.0]]
 testouterr_cmd_re sh {load --auto sticky3/1.0} ERR $tserr
 
 setenv_var TESTSUITE_STICKY 2
@@ -446,6 +446,7 @@ testouterr_cmd_re sh {load --auto sticky3/1.0} ERR $tserr
 
 setenv_var TESTSUITE_STICKY 7
 # switched-on module is now resolved prior testing stickiness is preserved
+set tserr [msg_unload {sticky2/1.0 <aL>} [err_deploi sticky3/1.0]]\n\n[msg_unload {sticky1/1.0 <aL:S>} [err_depun sticky2/1.0]]\n\n[msg_load sticky3/1.0 [err_conun sticky1/1.0]]
 testouterr_cmd_re sh {load --auto sticky3/1.0} ERR $tserr
 
 setenv_var TESTSUITE_STICKY 8
@@ -456,7 +457,7 @@ lappend ans [list set LOADEDMODULES sticky0:sticky2/1.0]
 lappend ans [list set __MODULES_LMTAG sticky0&auto-loaded&sticky]
 set tserr [msg_top_load sticky2/1.0 {} {sticky0} {}]
 testouterr_cmd_re sh {load --auto sticky2/1.0} $ans $tserr
-set tserr [msg_unload {sticky2/1.0 <aL>} [err_deploi sticky3/1.0]]\n\n[msg_unload {sticky0 <aL:S>} [err_depun sticky2/1.0]]\n\n[msg_load sticky3/1.0 [err_conun sticky0]]
+set tserr [msg_unload {sticky0 <aL:S>} $err_stickyunload]\n\n[msg_load sticky3/1.0 [err_conun sticky0]]
 testouterr_cmd_re sh {load --auto sticky3/1.0} ERR $tserr
 
 setenv_var TESTSUITE_STICKY 9
@@ -468,7 +469,7 @@ lappend ans [list set __MODULES_LMTAG sticky4/sub/1.0&auto-loaded&sticky]
 set tserr [msg_top_load sticky2/1.0 {} {sticky4/sub/1.0} {}]
 testouterr_cmd_re sh {load --auto sticky2/1.0} $ans $tserr
 
-set tserr [msg_unload {sticky2/1.0 <aL>} [err_deploi sticky3/1.0]]\n\n[msg_unload {sticky4/sub/1.0 <aL:S>} [err_depun sticky2/1.0]]\n\n[msg_load sticky3/1.0 [err_conun sticky4/sub/1.0]]
+set tserr [msg_unload {sticky4/sub/1.0 <aL:S>} $err_stickyunload]\n\n[msg_load sticky3/1.0 [err_conun sticky4/sub/1.0]]
 testouterr_cmd_re sh {load --auto sticky3/1.0} ERR $tserr
 
 setenv_var TESTSUITE_STICKY 10
