@@ -604,7 +604,8 @@ proc pushSettings {} {
       g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
       g_unmetDepHash g_moduleEval g_moduleHiddenEval g_scanModuleVariant\
-      g_savedLoReqOfReloadMod g_savedLoReqOfUnloadMod} {
+      g_savedLoReqOfReloadMod g_savedLoReqOfUnloadMod\
+      g_loadedModulePrereqPath} {
       ##nagelfar ignore Suspicious variable name
       lappend ::g_SAVE_$var [array get ::$var]
    }
@@ -633,7 +634,8 @@ proc popSettings {} {
       g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
       g_unmetDepHash g_moduleEval g_moduleHiddenEval g_scanModuleVariant\
-      g_savedLoReqOfReloadMod g_savedLoReqOfUnloadMod g_uReqUnFromDepReList} {
+      g_savedLoReqOfReloadMod g_savedLoReqOfUnloadMod g_uReqUnFromDepReList\
+      g_loadedModulePrereqPath} {
       ##nagelfar ignore Suspicious variable name
       set ::g_SAVE_$var [lrange [set ::g_SAVE_$var] 0 end-1]
    }
@@ -650,7 +652,8 @@ proc restoreSettings {} {
       g_moduleNPODepend g_dependNPOHash g_prereqViolation\
       g_prereqNPOViolation g_conflictViolation g_moduleUnmetDep\
       g_unmetDepHash g_moduleEval g_moduleHiddenEval g_scanModuleVariant\
-      g_savedLoReqOfReloadMod g_savedLoReqOfUnloadMod} {
+      g_savedLoReqOfReloadMod g_savedLoReqOfUnloadMod\
+      g_loadedModulePrereqPath} {
       # clear current $var arrays
       ##nagelfar ignore #5 Suspicious variable name
       if {[info exists ::$var]} {

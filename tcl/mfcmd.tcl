@@ -1177,6 +1177,10 @@ proc prereqAnyModfileCmd {tryload auto args} {
       }
       lappend record_list {*}$args
       setLoadedPrereq $currentModule $record_list
+
+      if {[llength $modulepath_list]} {
+         setLoadedPrereqPath $currentModule $record_list $modulepath_list
+      }
    }
 
    if {$auto} {

@@ -1687,6 +1687,29 @@ proc getLoadedPrereq {mod} {
    }
 }
 
+proc setLoadedPrereqPath {mod args} {
+   appendNoDupToList ::g_loadedModulePrereqPath($mod) {*}$args
+}
+
+proc unsetLoadedPrereqPath {mod} {
+   if {[info exists ::g_loadedModulePrereqPath($mod)]} {
+      unset ::g_loadedModulePrereqPath($mod)
+   }
+}
+
+proc getLoadedPrereqPath {mod {prereq {}}} {
+   if {[info exists ::g_loadedModulePrereqPath($mod)]} {
+      if {![string length $prereq]} {
+         return $::g_loadedModulePrereqPath($mod)
+      }
+      # return specific entry for given prereq
+      array set prereq_path_arr $::g_loadedModulePrereqPath($mod)
+      if {[info exists prereq_path_arr($prereq)]} {
+         return $prereq_path_arr($prereq)
+      }
+   }
+}
+
 proc setLoadedAltname {mod args} {
    foreach arg $args {
       switch -- [lindex $arg 0] {
@@ -1846,7 +1869,7 @@ proc getEnvLoadedModulePropertyStructDepth {prop} {
       conflict - extratag - tag {
          return 1Lvl
       }
-      altname - prereq - sourcesh - stickyrule - variant {
+      altname - prereq - prereqpath - sourcesh - stickyrule - variant {
          return 2Lvl
       }
    }
@@ -2398,6 +2421,10 @@ proc cacheCurrentModules {{exitonerr 1}} {
                }
             }
             setLoadedPrereq {*}$modpre
+         }
+         foreach modpre_path [getEnvLoadedModulePropertyParsedList\
+            prereqpath] {
+            setLoadedPrereqPath {*}$modpre_path
          }
 
          foreach mod $modlist {
