@@ -41,7 +41,8 @@ Modules 5.5.0 (not yet released)
   :mfcmd:`depends-on`, :mfcmd:`prereq`, :mfcmd:`prereq-all` and
   :mfcmd:`prereq-any` modulefile commands. When this option is set, required
   module should be located in a path listed in the specified list or in an
-  enabled modulepath matching one path of the list.
+  enabled modulepath matching one path of the list. This information is
+  recorded in loaded environment in :envvar:`__MODULES_LMPREREQPATH` variable.
 * Add :mfcmd:`lsb-release` modulefile command to get certain Linux Standard
   Base (LSB) information. It accepts to following sub-commands: ``id``,
   ``codename`` and ``release``.

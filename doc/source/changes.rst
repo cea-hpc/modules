@@ -994,7 +994,8 @@ The following environment variables appeared on Modules 5.
 +------------+-----------------------------------------------------------------+
 | 5.5        | :envvar:`MODULES_HIDE_AUTO_LOADED`, :envvar:`MODULES_LOGGER`,   |
 |            | :envvar:`MODULES_LOGGED_EVENTS`,                                |
-|            | :envvar:`MODULES_CONFLICT_UNLOAD`                               |
+|            | :envvar:`MODULES_CONFLICT_UNLOAD`,                              |
+|            | :envvar:`__MODULES_LMPREREQPATH`                                |
 +------------+-----------------------------------------------------------------+
 
 Modules Specific Tcl Commands

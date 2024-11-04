@@ -3835,6 +3835,26 @@ ENVIRONMENT
     .. versionchanged:: 5.0
        Variable renamed from ``MODULES_LMPREREQ`` to ``__MODULES_LMPREREQ``
 
+.. envvar:: __MODULES_LMPREREQPATH
+
+ A colon separated list of the :mfcmd:`prereq` statements set with a specific
+ ``--modulepath`` option defined by all loaded *modulefiles*. Each element in
+ this list starts by the name of the loaded *modulefile* declaring the
+ pre-requirement followed by the name of all modulefiles it declares a
+ :mfcmd:`prereq` with and their specific modulepath. These loaded modulefiles,
+ pre-required modulefile names and specific modulepaths set are separated by
+ the ampersand character. When a :mfcmd:`prereq` statement is composed of
+ multiple modulefiles or multiple specific modulepaths, these names are
+ separated by the pipe character.
+
+ This environment variable is intended for :command:`module` command internal
+ use to get knowledge of the pre-requirement declared by the loaded
+ *modulefiles* in order to keep environment consistent.
+
+ .. only:: html
+
+    .. versionadded:: 5.5
+
 .. envvar:: __MODULES_LMREFRESH
 
  A colon separated list of the loaded modules that are qualified for refresh
