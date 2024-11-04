@@ -73,6 +73,7 @@ unsetenv_var MODULES_ADVANCED_VERSION_SPEC
 setenv_var TESTSUITE_MODULEPATH_OPT loaded_after_from_other_dir
 setenv_loaded_module [list modulepath-opt/1] [list $mp/modulepath-opt/1]
 setenv_var __MODULES_LMPREREQ modulepath-opt/1&qux/1
+setenv_var __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$modpath.3
 
 #FIXME: modulepath-opt/1 should not get reloaded as mp4/qux/1 is not a requirement
 set tserr [msg_load modulepath-opt/1 [err_prereq_path qux/1]]\n\n[msg_load qux/1 [err_depre modulepath-opt/1]]
@@ -86,11 +87,13 @@ testouterr_cmd sh {load --auto qux/1} ERR $tserr
 setenv_var TESTSUITE_MODULEPATH_OPT loaded_after_from_correct_dir
 setenv_loaded_module [list modulepath-opt/1] [list $mp/modulepath-opt/1]
 setenv_var __MODULES_LMPREREQ modulepath-opt/1&qux/1
+setenv_var __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$mp
 
 set ans [list]
 lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1]
 lappend ans [list set _LMFILES_ $mp/qux/1:$mp/modulepath-opt/1]
 lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$mp]
 set tserr [msg_top_load qux/1 {} {} modulepath-opt/1]
 testouterr_cmd sh {load --auto qux/1} $ans $tserr
 
@@ -104,6 +107,7 @@ setenv_var TESTSUITE_MODULEPATH_OPT depre_trigger
 # dependency from bad modulepath is loaded
 setenv_loaded_module [list qux/1 modulepath-opt/1] [list $mp/qux/1 $mp/modulepath-opt/1]
 setenv_var __MODULES_LMPREREQ qux/1&qux/1|foo/1.0:modulepath-opt/1&qux/1
+setenv_var __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$modpath.3
 
 #FIXME: modulepath-opt/1 should not get reloaded as mp4/qux/1 is not a requirement
 set tserr [msg_load modulepath-opt/1 [err_prereq_path qux/1]]\n\n[msg_load foo/1.0 [err_depre modulepath-opt/1]]
@@ -119,6 +123,7 @@ set ans [list]
 lappend ans [list set __MODULES_LMPREREQ qux/1&qux/1|foo/1.0:modulepath-opt/1&qux/1]
 lappend ans [list set _LMFILES_ $modpath.3/foo/1.0:$modpath.3/qux/1:$mp/modulepath-opt/1]
 lappend ans [list set LOADEDMODULES foo/1.0:qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$modpath.3]
 set tserr [msg_top_load foo/1.0 {} {} {qux/1 modulepath-opt/1}]
 testouterr_cmd sh {load --auto foo/1.0} $ans $tserr
 setenv_var MODULEPATH $mp
@@ -127,6 +132,7 @@ setenv_var MODULEPATH $mp
 # dependency from expected modulepath is loaded
 setenv_loaded_module [list qux/1 modulepath-opt/1] [list $modpath.3/qux/1 $mp/modulepath-opt/1]
 setenv_var __MODULES_LMPREREQ qux/1&qux/1|foo/1.0:modulepath-opt/1&qux/1
+setenv_var __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$modpath.3
 
 # qux/1 is reloaded from mp4 as it is the enabled modulepath
 set tserr [msg_load modulepath-opt/1 [err_reqmis_path qux/1]]\n\n[msg_load foo/1.0 [err_depre modulepath-opt/1]]
@@ -142,6 +148,7 @@ set ans [list]
 lappend ans [list set __MODULES_LMPREREQ qux/1&qux/1|foo/1.0:modulepath-opt/1&qux/1]
 lappend ans [list set _LMFILES_ $modpath.3/foo/1.0:$modpath.3/qux/1:$mp/modulepath-opt/1]
 lappend ans [list set LOADEDMODULES foo/1.0:qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$modpath.3]
 set tserr [msg_top_load foo/1.0 {} {} {qux/1 modulepath-opt/1}]
 testouterr_cmd sh {load --auto foo/1.0} $ans $tserr
 setenv_var MODULEPATH $mp

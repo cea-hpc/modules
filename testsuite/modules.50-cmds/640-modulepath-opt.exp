@@ -164,6 +164,7 @@ set ans [list]
 lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&unk/1|qux/1]
 lappend ans [list set _LMFILES_ $mp/qux/1:$mp/modulepath-opt/1]
 lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&unk/1|qux/1&$mp|$modpath.3]
 testouterr_cmd sh {load --no-auto modulepath-opt/1} $ans {}
 
 
@@ -179,6 +180,7 @@ lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1:qux/1&modulepath
 lappend ans [list set _LMFILES_ $mp/modulepath-opt/1:$mp/qux/1]
 lappend ans [list set LOADEDMODULES modulepath-opt/1:qux/1]
 lappend ans [list set __MODULES_LMTAG modulepath-opt/1&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$mp|$modpath.3]
 set tserr [msg_top_load qux/1 {} modulepath-opt/1 {}]
 testouterr_cmd sh {load --no-auto qux/1} $ans $tserr
 
@@ -202,12 +204,27 @@ lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
 testouterr_cmd sh {load --no-auto modulepath-opt/1} $ans {}
 
 setenv_var TESTSUITE_MODULEPATH_OPT dir4
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1]
+lappend ans [list set _LMFILES_ $mp/qux/1:$mp/modulepath-opt/1]
+lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$modpath.3|$mp]
 testouterr_cmd sh {load --no-auto modulepath-opt/1} $ans {}
 
 setenv_var TESTSUITE_MODULEPATH_OPT dir5
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1]
+lappend ans [list set _LMFILES_ $mp/qux/1:$mp/modulepath-opt/1]
+lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$mp]
 testouterr_cmd sh {load --no-auto modulepath-opt/1} $ans {}
 
 setenv_var TESTSUITE_MODULEPATH_OPT dir7
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1]
+lappend ans [list set _LMFILES_ $mp/qux/1:$mp/modulepath-opt/1]
+lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$env(TESTSUITEDIR)]
 testouterr_cmd sh {load --no-auto modulepath-opt/1} $ans {}
 
 
@@ -223,6 +240,7 @@ set ans [list]
 lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux@1<2]
 lappend ans [list set _LMFILES_ $modpath.3/qux/1:$mp/modulepath-opt/1]
 lappend ans [list set LOADEDMODULES qux/2:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux@1<2&$modpath.3]
 testouterr_cmd sh {load --no-auto modulepath-opt/1} $ans {}
 
 setenv_var TESTSUITE_MODULEPATH_OPT virt2
@@ -244,6 +262,7 @@ set ans [list]
 lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&$modpath.3/qux/1]
 lappend ans [list set _LMFILES_ $modpath.3/qux/1:$mp/modulepath-opt/1]
 lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&$modpath.3/qux/1&$modpath.3]
 testouterr_cmd sh {load --no-auto modulepath-opt/1} $ans {}
 
 setenv_var TESTSUITE_MODULEPATH_OPT full_path2
@@ -258,6 +277,7 @@ set ans [list]
 lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&$modpath.3/qux/1]
 lappend ans [list set _LMFILES_ $modpath.3/qux/1:$mp/modulepath-opt/1]
 lappend ans [list set LOADEDMODULES $modpath.3/qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&$modpath.3/qux/1&$modpath.3]
 testouterr_cmd sh {load --no-auto modulepath-opt/1} $ans {}
 
 setenv_var TESTSUITE_MODULEPATH_OPT full_path2
@@ -276,6 +296,7 @@ set ans [list]
 lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&$mp/qux/1]
 lappend ans [list set _LMFILES_ $mp/qux/1:$mp/modulepath-opt/1]
 lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&$mp/qux/1&$modpath.3]
 testouterr_cmd sh {load --no-auto modulepath-opt/1} $ans {}
 
 
@@ -291,6 +312,7 @@ set ans [list]
 lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&$mp/qux/1]
 lappend ans [list set _LMFILES_ $mp/qux/1:$mp/modulepath-opt/1]
 lappend ans [list set LOADEDMODULES $mp/qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&$mp/qux/1&$modpath.3]
 testouterr_cmd sh {load --no-auto modulepath-opt/1} $ans {}
 
 
@@ -309,12 +331,18 @@ set ans [list]
 lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1]
 lappend ans [list set _LMFILES_ $mp/qux/1:$mp/modulepath-opt/1]
 lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$mp]
 testouterr_cmd sh {load --no-auto modulepath-opt/1} $ans {}
 
 setenv_var TESTSUITE_MODULEPATH_OPT rel_path3
 testouterr_cmd sh {load --no-auto modulepath-opt/1} $ans {}
 
 setenv_var TESTSUITE_MODULEPATH_OPT rel_path4
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1]
+lappend ans [list set _LMFILES_ $mp/qux/1:$mp/modulepath-opt/1]
+lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$mp|$modpath.3]
 testouterr_cmd sh {load --no-auto modulepath-opt/1} $ans {}
 
 
@@ -325,6 +353,7 @@ set ans [list]
 lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1]
 lappend ans [list set _LMFILES_ $modpath.3/qux/1:$mp/modulepath-opt/1]
 lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$modpath.3]
 testouterr_cmd sh {load --no-auto modulepath-opt/1} $ans {}
 
 setenv_var TESTSUITE_MODULEPATH_OPT rel_path2
@@ -336,6 +365,11 @@ set tserr [msg_load modulepath-opt/1 [err_prereq_path qux/1]]
 testouterr_cmd sh {load --no-auto modulepath-opt/1} ERR $tserr
 
 setenv_var TESTSUITE_MODULEPATH_OPT rel_path4
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1]
+lappend ans [list set _LMFILES_ $modpath.3/qux/1:$mp/modulepath-opt/1]
+lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$mp|$modpath.3]
 testouterr_cmd sh {load --no-auto modulepath-opt/1} $ans {}
 
 
@@ -369,6 +403,7 @@ set ans [list]
 lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1]
 lappend ans [list set _LMFILES_ $modpath.3/qux/1:$mp/modulepath-opt/1]
 lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$modpath.3]
 lappend ans [list set __MODULES_LMTAG qux/1&auto-loaded]
 set tserr [msg_top_load modulepath-opt/1 {} qux/1 {}]
 testouterr_cmd sh {load --auto modulepath-opt/1} $ans $tserr
@@ -381,6 +416,12 @@ testouterr_cmd sh {load --auto modulepath-opt/1} $ans $tserr
 setenv_path_var MODULEPATH $mp
 
 setenv_var TESTSUITE_MODULEPATH_OPT dir4
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1]
+lappend ans [list set _LMFILES_ $modpath.3/qux/1:$mp/modulepath-opt/1]
+lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$modpath.3|$mp]
+lappend ans [list set __MODULES_LMTAG qux/1&auto-loaded]
 testouterr_cmd sh {load --auto modulepath-opt/1} $ans $tserr
 
 setenv_var TESTSUITE_MODULEPATH_OPT dir6
@@ -392,6 +433,7 @@ set ans [list]
 lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1]
 lappend ans [list set _LMFILES_ $mp/qux/1:$mp/modulepath-opt/1]
 lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$env(TESTSUITEDIR)]
 lappend ans [list set __MODULES_LMTAG qux/1&auto-loaded]
 set tserr [msg_top_load modulepath-opt/1 {} qux/1 {}]
 testouterr_cmd sh {load --auto modulepath-opt/1} $ans $tserr
@@ -401,6 +443,7 @@ set ans [list]
 lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1]
 lappend ans [list set _LMFILES_ $modpath.3/qux/1:$mp/modulepath-opt/1]
 lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$env(TESTSUITEDIR)]
 lappend ans [list set __MODULES_LMTAG qux/1&auto-loaded]
 set tserr [msg_top_load modulepath-opt/1 {} qux/1 {}]
 testouterr_cmd sh {load --auto modulepath-opt/1} $ans $tserr
@@ -423,6 +466,7 @@ set ans [list]
 lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&unk/1|qux/1]
 lappend ans [list set _LMFILES_ $mp/qux/1:$mp/modulepath-opt/1]
 lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&unk/1|qux/1&$mp|$modpath.3]
 lappend ans [list set __MODULES_LMTAG qux/1&auto-loaded]
 set tserr [msg_top_load modulepath-opt/1 {} qux/1 {}]
 testouterr_cmd sh {load --auto modulepath-opt/1} $ans $tserr
@@ -437,6 +481,7 @@ lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1:qux/1&modulepath
 lappend ans [list set _LMFILES_ $mp/modulepath-opt/1:$mp/qux/1]
 lappend ans [list set LOADEDMODULES modulepath-opt/1:qux/1]
 lappend ans [list set __MODULES_LMTAG modulepath-opt/1&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$mp|$modpath.3]
 set tserr [msg_top_load qux/1 {} modulepath-opt/1 {}]
 testouterr_cmd sh {load --auto qux/1} $ans $tserr
 
@@ -460,6 +505,7 @@ set ans [list]
 lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1]
 lappend ans [list set _LMFILES_ $mp/qux/1:$mp/modulepath-opt/1]
 lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$mp]
 testouterr_cmd sh {load --auto modulepath-opt/1} $ans {}
 
 setenv_var TESTSUITE_MODULEPATH_OPT dir3
