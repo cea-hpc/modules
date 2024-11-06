@@ -3,6 +3,17 @@
 Environment Modules
 ===================
 
+.. image:: https://img.shields.io/github/stars/cea-hpc/modules
+    :target: https://github.com/cea-hpc/modules
+    :alt: GitHub Repository
+
+.. image:: https://img.shields.io/github/license/cea-hpc/modules
+    :alt: GitHub License
+
+.. image:: https://img.shields.io/twitter/url/https/twitter.com/EnvModules.svg?style=social&label=@EnvModules
+    :target: https://twitter.com/EnvModules
+    :alt: Twitter/X
+
 **Welcome to the Environment Modules documentation portal. The Environment
 Modules package provides for the dynamic modification of a user's environment
 via modulefiles.**
