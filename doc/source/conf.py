@@ -140,7 +140,16 @@ else:
 #
 # html_theme_options = {}
 if os_rtd:
-    html_theme_options = { 'logo_only' : True }
+    html_theme_options = {
+        'logo_only': True,
+    }
+    html_context = {
+        'conf_py_path': '/doc/source/',
+        'display_github': True,
+        'github_user': 'cea-hpc',
+        'github_repo': 'modules',
+        'github_version': 'main',
+    }
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
