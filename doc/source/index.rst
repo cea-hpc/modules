@@ -140,6 +140,17 @@ needs.
 If you have questions, comments or development suggestions for the Modules
 community, please read the :ref:`CONTRIBUTING` guide.
 
+Links
+-----
+
+* Web site: http://modules.sourceforge.net
+* Documentation: https://modules.readthedocs.io
+* Source repository: https://github.com/cea-hpc/modules
+* Issue tracking system: https://github.com/cea-hpc/modules/issues
+* Download releases: https://github.com/cea-hpc/modules/releases
+* Mailing-list: https://sourceforge.net/projects/modules/lists/modules-interest
+* X/Twitter: https://twitter.com/EnvModules
+
 License
 -------
 
