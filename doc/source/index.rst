@@ -7,8 +7,12 @@ Environment Modules
     :target: https://github.com/cea-hpc/modules
     :alt: GitHub Repository
 
-.. image:: https://img.shields.io/github/license/cea-hpc/modules
+.. image:: https://img.shields.io/github/license/cea-hpc/modules?color=lightsteelblue
     :alt: GitHub License
+
+.. image:: https://img.shields.io/github/v/release/cea-hpc/modules
+    :target: https://github.com/cea-hpc/modules/releases/latest
+    :alt: GitHub Release
 
 .. image:: https://img.shields.io/twitter/url/https/twitter.com/EnvModules.svg?style=social&label=@EnvModules
     :target: https://twitter.com/EnvModules
