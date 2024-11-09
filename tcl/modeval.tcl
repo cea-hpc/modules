@@ -316,7 +316,7 @@ proc sortModulePerLoadedAndDepOrder {modlist {nporeq 0} {loading 0}} {
 
 # return list of loaded modules having an unmet requirement on passed mod
 # and their recursive dependent
-proc getUnmetDependentLoadedModuleList {modnamevr} {
+proc getUnmetDependentLoadedModuleList {modnamevr mod_file} {
    set unmetdeplist {}
    set depmodlist {}
    defineModEqProc [isIcase] [getConf extended_default] 1
@@ -328,7 +328,12 @@ proc getUnmetDependentLoadedModuleList {modnamevr} {
    if {![llength $modconlist]} {
       foreach ummod [array names ::g_unmetDepHash] {
          if {[modEq $ummod $mod eqstart 1 2 1 $vrlist]} {
-            foreach depmod $::g_unmetDepHash($ummod) {
+            foreach {depmod prereq_path_list} $::g_unmetDepHash($ummod) {
+               if {![isModulefileMatchSpecificPath $mod_file\
+                  $prereq_path_list]} {
+                  continue
+               }
+
                lappend depmodlist $depmod
                # temporarily remove prereq violation of depmod if mod
                # load solves it (no other prereq is missing)
@@ -441,11 +446,13 @@ proc getDirectDependentList {mod {strong 0} {nporeq 0} {loading 0}\
       }
       foreach loadingmod [getLoadingModuleList] {
          foreach prereq [getLoadedPrereq $loadingmod] {
+            set prereq_path_list [getLoadedPrereqPath $loadingmod $prereq]
             set lmprelist {}
             set moddep 0
             foreach modpre $prereq {
                foreach lmmod $modlist {
-                  if {[modEq $modpre $lmmod eqstart 1 2 1]} {
+                  if {[isLoadedMatchSpecificPath $lmmod $prereq_path_list 0]\
+                     && [modEq $modpre $lmmod eqstart 1 2 1]} {
                      lappend lmprelist $lmmod
                      if {$lmmod eq $mod} {
                         set moddep 1
@@ -786,8 +793,9 @@ proc savePropsOfReloadingModule {mod} {
    set extra_tag_list [getExtraTagList $mod]
    set conflict_list [getLoadedConflict $mod]
    set prereq_list [getLoadedPrereq $mod]
+   set prereq_path_list [getLoadedPrereqPath $mod]
    set ::g_savedPropsOfReloadMod($mod) [list $is_user_asked $vr_list\
-      $tag_list $extra_tag_list $conflict_list $prereq_list]
+      $tag_list $extra_tag_list $conflict_list $prereq_list $prereq_path_list]
 }
 
 proc getSavedPropsOfReloadingModule {mod} {
@@ -839,15 +847,15 @@ proc reloadModuleListLoadPhase {mod_list {errmsgtpl {}} {context load}} {
    setConf auto_handling 0
    foreach mod $mod_list {
       lassign [getSavedPropsOfReloadingModule $mod] is_user_asked vr_list\
-         tag_list extra_tag_list conflict_list prereq_list
+         tag_list extra_tag_list conflict_list prereq_list prereq_path_list
       # if an auto set default was excluded, module spec need parsing
       lassign [parseModuleSpecification 0 0 0 0 $mod {*}$vr_list] modnamevr
 
       # do not try to reload DepRe module if requirements are not satisfied
       # unless if sticky
       if {$context eq {depre} && ![isModuleLoadable $mod $modnamevr\
-         $conflict_list $prereq_list] && ![isModuleStickyFromTagList\
-         {*}$tag_list {*}$extra_tag_list]} {
+         $conflict_list $prereq_list $prereq_path_list] &&\
+         ![isModuleStickyFromTagList {*}$tag_list {*}$extra_tag_list]} {
          continue
       }
 
@@ -871,7 +879,8 @@ proc reloadModuleListLoadPhase {mod_list {errmsgtpl {}} {context load}} {
    setConf auto_handling 1
 }
 
-proc isModuleLoadable {mod mod_vr conflict_list prereq_list} {
+proc isModuleLoadable {mod mod_vr conflict_list prereq_list\
+   prereq_path_list} {
    setLoadedConflict $mod {*}$conflict_list
    set is_conflicting [llength [getModuleLoadedConflict $mod]]
    unsetLoadedConflict $mod
@@ -880,13 +889,20 @@ proc isModuleLoadable {mod mod_vr conflict_list prereq_list} {
       return 0
    }
 
+   array set prereq_path_arr $prereq_path_list
    foreach prereq_arg $prereq_list {
+      if {[info exists prereq_path_arr($prereq_arg)]} {
+         set prereq_arg_path $prereq_path_arr($prereq_arg)
+      } else {
+         set prereq_arg_path {}
+      }
       set is_requirement_loaded 0
       foreach req_mod $prereq_arg {
          # is requirement loaded, loading or optional
-         if {[string length [getLoadedMatchingName $req_mod returnfirst 0]]\
-            || [string length [getLoadedMatchingName $req_mod returnfirst\
-            1]] || $req_mod eq $mod} {
+         if {[string length [getLoadedMatchingName $req_mod returnfirst 0 {}\
+            $prereq_arg_path]] || [string length [getLoadedMatchingName\
+            $req_mod returnfirst 1 {} $prereq_arg_path]] || $req_mod eq\
+            $mod} {
             set is_requirement_loaded 1
             break
          }
