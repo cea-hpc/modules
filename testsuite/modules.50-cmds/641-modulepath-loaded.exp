@@ -40,8 +40,14 @@ set tserr [msg_load qux/1 $err_modfromdiffpathloaded]\n\n[msg_load modulepath-op
 testouterr_cmd sh {load --auto modulepath-opt/1} ERR $tserr
 
 setenv_var MODULES_CONFLICT_UNLOAD 1
-#FIXME: mp.4/qux/1 should be unloaded and replaced by mp3/qux/1
-testouterr_cmd sh {load --auto modulepath-opt/1} ERR $tserr
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1]
+lappend ans [list set _LMFILES_ $modpath.3/qux/1:$mp/modulepath-opt/1]
+lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$modpath.3]
+lappend ans [list set __MODULES_LMTAG qux/1&auto-loaded]
+set tserr [msg_top_load_conun modulepath-opt/1 {} qux/1 {} qux/1 {}]
+testouterr_cmd sh {load --auto modulepath-opt/1} $ans $tserr
 
 
 #
@@ -59,8 +65,15 @@ set tserr [msg_load qux/1{foo=val1} $err_modfromdiffpathloaded]\n\n[msg_load mod
 testouterr_cmd sh {load --auto modulepath-opt/1} ERR $tserr
 
 setenv_var MODULES_CONFLICT_UNLOAD 1
-#FIXME: mp.4/qux/1{foo=val2} should be unloaded and replaced by mp3/qux/1{foo=val1}
-testouterr_cmd sh {load --auto modulepath-opt/1} ERR $tserr
+set ans [list]
+lappend ans [list set __MODULES_LMVARIANT qux/1&foo|val1|0|0]
+lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1\ foo=val1]
+lappend ans [list set _LMFILES_ $modpath.3/qux/1:$mp/modulepath-opt/1]
+lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1\ foo=val1&$modpath.3]
+lappend ans [list set __MODULES_LMTAG qux/1&auto-loaded]
+set tserr [msg_top_load_conun modulepath-opt/1 {} qux/1{foo=val2} {} qux/1{foo=val1} {}]
+testouterr_cmd sh {load --auto modulepath-opt/1} $ans $tserr
 
 unsetenv_var __MODULES_LMVARIANT
 unsetenv_var MODULES_ADVANCED_VERSION_SPEC
@@ -163,6 +176,55 @@ lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$modpath.3]
 set tserr [msg_top_load foo/1.0 {} {} {qux/1 modulepath-opt/1}]
 testouterr_cmd sh {load --auto foo/1.0} $ans $tserr
 setenv_var MODULEPATH $mp
+
+
+#
+# dependent reload trigger with requirement chain specific to modulepath or not
+#
+
+setenv_var TESTSUITE_MODULEPATH_OPT depre_trigger2_no_specific_path
+
+setenv_loaded_module [list qux/1 modulepath-opt/1] [list $mp/qux/1 $mp/modulepath-opt/1]
+setenv_var __MODULES_LMPREREQ modulepath-opt/1&qux/1
+unsetenv_var __MODULES_LMPREREQPATH
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ foo/1.0&qux/1:modulepath-opt/1&qux/1]
+lappend ans [list set _LMFILES_ $modpath.3/qux/1:$mp/foo/1.0:$mp/modulepath-opt/1]
+lappend ans [list set LOADEDMODULES qux/1:foo/1.0:modulepath-opt/1]
+lappend ans [list set __MODULES_LMPREREQPATH foo/1.0&qux/1&$modpath.3]
+lappend ans [list set __MODULES_LMTAG qux/1&auto-loaded]
+set tserr [msg_top_load_conun foo/1.0 {} qux/1 {} qux/1 {modulepath-opt/1}]
+testouterr_cmd sh {load --auto foo/1.0} $ans $tserr
+testouterr_cmd sh {load --force --auto foo/1.0} $ans $tserr
+
+
+setenv_var TESTSUITE_MODULEPATH_OPT depre_trigger2_with_specific_same_path
+
+setenv_loaded_module [list qux/1 modulepath-opt/1] [list $mp/qux/1 $mp/modulepath-opt/1]
+setenv_var __MODULES_LMPREREQ modulepath-opt/1&qux/1
+setenv_var __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$mp
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1:foo/1.0&qux/1]
+lappend ans [list set _LMFILES_ $mp/qux/1:$mp/modulepath-opt/1:$mp/foo/1.0]
+lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1:foo/1.0]
+lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$mp:foo/1.0&qux/1&$mp]
+testouterr_cmd sh {load --auto foo/1.0} $ans {}
+testouterr_cmd sh {load --force --auto foo/1.0} $ans {}
+
+
+setenv_var TESTSUITE_MODULEPATH_OPT depre_trigger2_with_specific_other_path
+
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ foo/1.0&qux/1]
+lappend ans [list set _LMFILES_ $modpath.3/qux/1:$mp/foo/1.0]
+lappend ans [list set LOADEDMODULES qux/1:foo/1.0]
+lappend ans [list set __MODULES_LMTAG qux/1&auto-loaded]
+lappend ans [list set __MODULES_LMPREREQPATH foo/1.0&qux/1&$modpath.3]
+set tserr [msg_top_load_conun foo/1.0 {} qux/1 {} qux/1 {modulepath-opt/1 {}}]
+testouterr_cmd sh {load --auto foo/1.0} $ans $tserr
+testouterr_cmd sh {load --force --auto foo/1.0} $ans $tserr
 
 
 #

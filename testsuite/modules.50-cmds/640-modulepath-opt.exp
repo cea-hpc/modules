@@ -509,8 +509,19 @@ lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$mp]
 testouterr_cmd sh {load --auto modulepath-opt/1} $ans {}
 
 setenv_var TESTSUITE_MODULEPATH_OPT dir3
-set tserr [msg_load qux/1 $err_modfromdiffpathloaded]\n\n[msg_load modulepath-opt/1 [err_reqlo_path qux/1]]
-testouterr_cmd sh {load --auto modulepath-opt/1} ERR $tserr
+if {[is_conf_enabled conflictunload]} {
+    set ans [list]
+    lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1]
+    lappend ans [list set _LMFILES_ $modpath.2/qux/1:$mp/modulepath-opt/1]
+    lappend ans [list set LOADEDMODULES qux/1:modulepath-opt/1]
+    lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$modpath.2|$modpath.3]
+    lappend ans [list set __MODULES_LMTAG qux/1&auto-loaded]
+    set tserr [msg_top_load_conun modulepath-opt/1 {} qux/1 {} qux/1 {}]
+} else {
+    set ans ERR
+    set tserr [msg_load qux/1 $err_modfromdiffpathloaded]\n\n[msg_load modulepath-opt/1 [err_reqlo_path qux/1]]
+}
+testouterr_cmd sh {load --auto modulepath-opt/1} $ans $tserr
 
 unsetenv_loaded_module
 setenv_var TESTSUITE_MODULEPATH_OPT cyclic_reqlo2
