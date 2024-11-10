@@ -1460,11 +1460,13 @@ proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}\
    if {$loading} {
       set isModulefileLoaded isModulefileLoading
       set getModuleFromLoadedModulefile getModuleFromLoadingModulefile
+      set isLoadedMatchSpecificPath isLoadingMatchSpecificPath
       set getLoadedModuleList [list getLoadingModuleList]
    } else {
       ##nagelfar ignore #4 Found constant
       set isModulefileLoaded isModulefileLoaded
       set getModuleFromLoadedModulefile getModuleFromLoadedModulefile
+      set isLoadedMatchSpecificPath isLoadedMatchSpecificPath
       set getLoadedModuleList [list getEnvLoadedModulePropertyParsedList name]
    }
 
@@ -1510,7 +1512,7 @@ proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}\
             set matchmod $mod
          }
          # test module matches specified modulepaths
-         if {![isLoadedMatchSpecificPath $mod $modulepath_list $loading]} {
+         if {![$isLoadedMatchSpecificPath $mod $modulepath_list]} {
             continue
          }
          if {[modEq $name $matchmod eqstart 1 [expr {$loading ? 1 : 2}] 1]} {
@@ -1537,14 +1539,14 @@ proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}\
    return $ret
 }
 
-# return if loaded (or loading) module is part of modulepath from specified
-# constrained list
-proc isLoadedMatchSpecificPath {mod modulepath_list loading} {
-   if {$loading} {
-      set mod_file [getModulefileFromLoadingModule $mod]
-   } else {
-      set mod_file [getModulefileFromLoadedModule $mod]
-   }
+# return if loaded mod is part of modulepath from specified constrained list
+proc isLoadedMatchSpecificPath {mod modulepath_list} {
+   set mod_file [getModulefileFromLoadedModule $mod]
+   return [isModulefileMatchSpecificPath $mod_file $modulepath_list]
+}
+
+proc isLoadingMatchSpecificPath {mod modulepath_list} {
+   set mod_file [getModulefileFromLoadingModule $mod]
    return [isModulefileMatchSpecificPath $mod_file $modulepath_list]
 }
 
@@ -1668,7 +1670,7 @@ proc getModuleLoadedConflict {mod {modulepath_list {}}} {
    }
 
    if {[isOtherVariantOfModuleLoaded $mod] || ([isModuleLoaded $mod] &&\
-      ![isLoadedMatchSpecificPath $mod $modulepath_list 0])} {
+      ![isLoadedMatchSpecificPath $mod $modulepath_list])} {
       lappend mod_con_list [getModuleNameAndVersFromVersSpec $mod]
    }
 
@@ -2062,7 +2064,7 @@ proc setModuleDependency {mod} {
       foreach modpre $prereq {
          set lmfound {}
          foreach lmmod $modlist {
-            if {[isLoadedMatchSpecificPath $lmmod $prereq_path_list 0] &&\
+            if {[isLoadedMatchSpecificPath $lmmod $prereq_path_list] &&\
                [modEq $modpre $lmmod eqstart 1 2 1]} {
                set lmfound $lmmod
                break
@@ -2082,7 +2084,7 @@ proc setModuleDependency {mod} {
 
          # look if requirement can be found in the No Particular Order list
          foreach lmmod $modnpolist {
-            if {[isLoadedMatchSpecificPath $lmmod $prereq_path_list 0] &&\
+            if {[isLoadedMatchSpecificPath $lmmod $prereq_path_list] &&\
                [modEq $modpre $lmmod eqstart 1 2 1]} {
                appendNoDupToList lmnpolist $lmmod
                break
@@ -2145,7 +2147,7 @@ proc setModuleDependency {mod} {
       if {[modEq $modpre $mod eqstart 1 2 1]} {
          reportDebug "refresh requirements targeting '$modpre'"
          foreach {lmmod prereq_path_list} $::g_unmetDepHash($modpre) {
-            if {![isLoadedMatchSpecificPath $mod $prereq_path_list 0]} {
+            if {![isLoadedMatchSpecificPath $mod $prereq_path_list]} {
                continue
             }
             if {$mod in [getDependentLoadedModuleList [list $lmmod] 0 0]} {

@@ -451,7 +451,7 @@ proc getDirectDependentList {mod {strong 0} {nporeq 0} {loading 0}\
             set moddep 0
             foreach modpre $prereq {
                foreach lmmod $modlist {
-                  if {[isLoadedMatchSpecificPath $lmmod $prereq_path_list 0]\
+                  if {[isLoadedMatchSpecificPath $lmmod $prereq_path_list]\
                      && [modEq $modpre $lmmod eqstart 1 2 1]} {
                      lappend lmprelist $lmmod
                      if {$lmmod eq $mod} {
