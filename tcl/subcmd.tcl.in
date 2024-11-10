@@ -1170,7 +1170,11 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list modulepath_list\
             # constrained list
             if {![isLoadedMatchSpecificPath $modname $modulepath_list [expr\
                {!$isloaded}]]} {
-               knerror [getModFromDiffPathIsLoadedMsg]
+               # no error if ConUn mechanism handles unload of this module
+               if {![getConf auto_handling] || ![getConf conflict_unload] ||\
+                  $isloading} {
+                  knerror [getModFromDiffPathIsLoadedMsg]
+               }
             # stop if same mod is loaded but with a different set of variants
             } elseif {[isOtherVariantOfModuleLoaded $modnamevr] ||\
                [isOtherVariantOfModuleLoading $modnamevr]} {
@@ -1216,7 +1220,8 @@ proc cmdModuleLoad {context uasked tryload loadany tag_list modulepath_list\
          if {[getConf auto_handling]} {
             if {[getConf conflict_unload]} {
                # get loaded conflicting modules and unload them (ConUn)
-               set conun_mod_list [getModuleLoadedConflict $modnamevr]
+               set conun_mod_list [getModuleLoadedConflict $modnamevr\
+                  $modulepath_list]
                reportDebug "conun mod list is '$conun_mod_list'"
                if {[llength $conun_mod_list]} {
                   foreach conun_mod [lreverse $conun_mod_list] {
