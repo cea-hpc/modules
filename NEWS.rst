@@ -116,14 +116,14 @@ Modules 5.5.0 (not yet released)
   defined by already loaded modules, conflict declared by loading module
   through :mfcmd:`conflict`, :mfcmd:`family` or :mfcmd:`module unload<module>`
   commands. :mconfig:`conflict_unload` also handles the unload of a module
-  that is loaded again but with different variant values.
-  :mconfig:`conflict_unload` is disabled by default as it changes behaviors of
-  the :envvar:`automated module handling mode<MODULES_AUTO_HANDLING>`. But
-  everyone is encouraged to enable this new option to benefit from an highly
-  automated experience. This option can be changed at installation time with
-  :instopt:`--enable-conflict-unload`. When :mconfig:`conflict_unload` is
-  changed with :subcmd:`config` sub-command, it sets the
-  :envvar:`MODULES_CONFLICT_UNLOAD` environment variable. Both
+  that is loaded again but with different variant values or from a different
+  modulepath. :mconfig:`conflict_unload` is disabled by default as it changes
+  behaviors of the :envvar:`automated module handling
+  mode<MODULES_AUTO_HANDLING>`. But everyone is encouraged to enable this new
+  option to benefit from an highly automated experience. This option can be
+  changed at installation time with :instopt:`--enable-conflict-unload`. When
+  :mconfig:`conflict_unload` is changed with :subcmd:`config` sub-command, it
+  sets the :envvar:`MODULES_CONFLICT_UNLOAD` environment variable. Both
   :mconfig:`auto_handling` and :mconfig:`conflict_unload` options should be
   enabled to activate *Conflict Unload* automated behavior. (fix issue #242)
 * When both :mconfig:`auto_handling` and :mconfig:`conflict_unload` options

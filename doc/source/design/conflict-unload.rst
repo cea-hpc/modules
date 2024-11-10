@@ -79,6 +79,8 @@ Conflict Unload mechanism targets the 3 different conflict situations:
 * Conflicts declared by loading modules against loaded modules (through
   ``conflict`` or ``module unload/switch`` modulefile commands)
 * Loading module is already loaded but with a different set of variants
+* Loading module is already loaded but from a different modulepath than those
+  asked by current load
 
 Loading modules here apply to asked module and the modules it requires.
 
@@ -96,8 +98,8 @@ conflicts information to get expected loaded modules in a minimum number of
 evaluations.
 
 When loading a module, prior evaluating it, if a conflict is declared against
-it (or this module is already loaded with an alternative variant set) by one
-or more:
+it (or this module is already loaded with an alternative variant set or from
+an alternative modulepath than the one asked) by one or more:
 
 * loaded modules, unload this or these modules. This or these unloads may
   trigger either DepRe and DepUn mechanisms.

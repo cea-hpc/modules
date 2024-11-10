@@ -1969,9 +1969,9 @@ prior loading the modulefile that express such conflict when defined with
 expressed with :mfcmd:`module unload<module>` (unless dependent modulefiles
 are loaded) or if :mconfig:`auto_handling` and :mconfig:`conflict_unload`
 options are enabled. An error is raised when trying to load a module that is
-already loaded but with a different variant set. If both options are enabled
-the loaded module is automatically unloaded to satisfy the new set of variant
-asked.
+already loaded but with a different variant set or coming from a different
+modulepath. If both options are enabled the loaded module is automatically
+unloaded to satisfy the new set of variant or modulepath asked.
 
 It is strongly advised to define dependencies prior environment changes in a
 modulefile. Dependency resolution should be done before any environment change
