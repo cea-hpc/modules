@@ -75,9 +75,10 @@ setenv_loaded_module [list modulepath-opt/1] [list $mp/modulepath-opt/1]
 setenv_var __MODULES_LMPREREQ modulepath-opt/1&qux/1
 setenv_var __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$modpath.3
 
-#FIXME: modulepath-opt/1 should not get reloaded as mp4/qux/1 is not a requirement
-set tserr [msg_load modulepath-opt/1 [err_prereq_path qux/1]]\n\n[msg_load qux/1 [err_depre modulepath-opt/1]]
-testouterr_cmd sh {load --auto qux/1} ERR $tserr
+set ans [list]
+lappend ans [list set _LMFILES_ $mp/modulepath-opt/1:$mp/qux/1]
+lappend ans [list set LOADEDMODULES modulepath-opt/1:qux/1]
+testouterr_cmd sh {load --auto qux/1} $ans {}
 
 
 #
@@ -109,22 +110,25 @@ setenv_loaded_module [list qux/1 modulepath-opt/1] [list $mp/qux/1 $mp/modulepat
 setenv_var __MODULES_LMPREREQ qux/1&qux/1|foo/1.0:modulepath-opt/1&qux/1
 setenv_var __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$modpath.3
 
-#FIXME: modulepath-opt/1 should not get reloaded as mp4/qux/1 is not a requirement
-set tserr [msg_load modulepath-opt/1 [err_prereq_path qux/1]]\n\n[msg_load foo/1.0 [err_depre modulepath-opt/1]]
-testouterr_cmd sh {load --auto foo/1.0} ERR $tserr
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1:qux/1&qux/1|foo/1.0]
+lappend ans [list set _LMFILES_ $mp/modulepath-opt/1:$mp/foo/1.0:$mp/qux/1]
+lappend ans [list set LOADEDMODULES modulepath-opt/1:foo/1.0:qux/1]
+set tserr [msg_top_load foo/1.0 {} {} qux/1]
+testouterr_cmd sh {load --auto foo/1.0} $ans $tserr
 
 setenv_var MODULEPATH $mp:$modpath.3
-#FIXME: modulepath-opt/1 should not get reloaded as mp4/qux/1 is not a requirement
-testouterr_cmd sh {load --auto foo/1.0} ERR $tserr
+testouterr_cmd sh {load --auto foo/1.0} $ans $tserr
 
-# qux/1 is reloaded from mp3 as it is the priority enabled modulepath
+# FIXME: qux/1 is reloaded from mp3 as it is the priority enabled modulepath
+#   it should be kept from its initial modulepath
+#   or modulepath-opt/1 should get reloaded as modpath.3/qux/1 is dependency
 setenv_var MODULEPATH $modpath.3:$mp
 set ans [list]
-lappend ans [list set __MODULES_LMPREREQ qux/1&qux/1|foo/1.0:modulepath-opt/1&qux/1]
-lappend ans [list set _LMFILES_ $modpath.3/foo/1.0:$modpath.3/qux/1:$mp/modulepath-opt/1]
-lappend ans [list set LOADEDMODULES foo/1.0:qux/1:modulepath-opt/1]
-lappend ans [list set __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$modpath.3]
-set tserr [msg_top_load foo/1.0 {} {} {qux/1 modulepath-opt/1}]
+lappend ans [list set __MODULES_LMPREREQ modulepath-opt/1&qux/1:qux/1&qux/1|foo/1.0]
+lappend ans [list set _LMFILES_ $mp/modulepath-opt/1:$modpath.3/foo/1.0:$modpath.3/qux/1]
+lappend ans [list set LOADEDMODULES modulepath-opt/1:foo/1.0:qux/1]
+set tserr [msg_top_load foo/1.0 {} {} {qux/1}]
 testouterr_cmd sh {load --auto foo/1.0} $ans $tserr
 setenv_var MODULEPATH $mp
 
@@ -134,13 +138,20 @@ setenv_loaded_module [list qux/1 modulepath-opt/1] [list $modpath.3/qux/1 $mp/mo
 setenv_var __MODULES_LMPREREQ qux/1&qux/1|foo/1.0:modulepath-opt/1&qux/1
 setenv_var __MODULES_LMPREREQPATH modulepath-opt/1&qux/1&$modpath.3
 
-# qux/1 is reloaded from mp4 as it is the enabled modulepath
-set tserr [msg_load modulepath-opt/1 [err_reqmis_path qux/1]]\n\n[msg_load foo/1.0 [err_depre modulepath-opt/1]]
-testouterr_cmd sh {load --auto foo/1.0} ERR $tserr
+# FIXME: qux/1 is reloaded from mp4 as it is the enabled modulepath
+#   it should be kept from its initial modulepath
+#   or modulepath-opt/1 should not get reloaded as mp4/qux/1 is not a dependency
+set ans [list]
+lappend ans [list set __MODULES_LMPREREQ qux/1&qux/1|foo/1.0]
+lappend ans [list set _LMFILES_ $mp/foo/1.0:$mp/qux/1]
+lappend ans [list set LOADEDMODULES foo/1.0:qux/1]
+lappend ans [list unset __MODULES_LMPREREQPATH]
+set tserr [msg_top_load foo/1.0 {} {} {{modulepath-opt/1 qux/1} {qux/1}}]
+testouterr_cmd sh {load --auto foo/1.0} $ans $tserr
 
 setenv_var MODULEPATH $mp:$modpath.3
 # qux/1 is reloaded from mp4 as it is the priority enabled modulepath
-testouterr_cmd sh {load --auto foo/1.0} ERR $tserr
+testouterr_cmd sh {load --auto foo/1.0} $ans $tserr
 
 # qux/1 is reloaded from mp3 as it is the priority enabled modulepath
 setenv_var MODULEPATH $modpath.3:$mp
