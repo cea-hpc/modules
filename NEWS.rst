@@ -8,8 +8,8 @@ documents those changes that are of interest to users and admins.
 
 .. _5.5 release notes:
 
-Modules 5.5.0 (not yet released)
---------------------------------
+Modules 5.5.0 (2024-11-11)
+--------------------------
 
 * Init: update ``cmd`` shell initialization script to correctly define
   :envvar:`MODULESHOME` when installation pathname contains dot character.

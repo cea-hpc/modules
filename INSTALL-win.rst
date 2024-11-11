@@ -68,7 +68,7 @@ Installation instructions
    shell::
 
         > module -V
-        Modules Release 5.5.0 (2024-XX-XX)
+        Modules Release 5.5.0 (2024-11-11)
 
    If your used the ``INSTALL_PWSH.bat`` script, the environment has to be
    initialized first. Verify by typing the following commands from a Windows
@@ -76,13 +76,13 @@ Installation instructions
 
         > call "C:\Program Files\Environment Modules\init\cmd.cmd"
         > module -V
-        Modules Release 5.5.0 (2024-XX-XX)
+        Modules Release 5.5.0 (2024-11-11)
 
    And the following commands from a Windows ``pwsh`` shell::
 
         > . "C:\Program Files\Environment Modules\init\pwsh.ps1"
         > envmodule --version
-        Modules Release 5.5.0 (2024-XX-XX)
+        Modules Release 5.5.0 (2024-11-11)
 
 Installation location can be adapted by running the ``INSTALL.bat`` and
 ``INSTALL_PWSH.bat`` scripts from a ``cmd`` console shell and passing desired

@@ -43,7 +43,7 @@ and valid tool:
 .. parsed-literal::
 
     :ps:`$` module config logger
-    Modules Release 5.5.0 (2024-XX-XX)
+    Modules Release 5.5.0 (2024-11-11)
 
     - Config. name ---------.- Value (set by if default overridden) ---------------
     logger                    /usr/bin/logger -t modules
