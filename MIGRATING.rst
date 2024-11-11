@@ -255,6 +255,87 @@ when trying to reload Dependent Reload modules that conflict with other loaded
 modules. This error may be by-passed with :option:`--force` command-line
 option.
 
+Specific modulepath for requirements
+------------------------------------
+
+A ``--modulepath`` option is introduced on the :mfcmd:`always-load`,
+:mfcmd:`depends-on`, :mfcmd:`prereq`, :mfcmd:`prereq-all` and
+:mfcmd:`prereq-any` modulefile commands. This option indicates that
+requirement should be specifically searched in the provided list of
+modulepaths. Such mechanism helps to ensure loaded requirements are those
+expected and they are not coming from an unexpected module tree.
+
+In the following example, ``foo`` module requires ``bar``. It expects the
+``bar`` module from the same modulepath than ``foo``. User's environment has
+enabled another modulepath that also provides a ``bar`` module. Use of
+``--modulepath`` option guides the requirement load mechanism to the expected
+module.
+
+.. parsed-literal::
+
+    :ps:`$` module avail
+    --------------------- :sgrdi:`/path/to/othermfiles` ---------------------
+    bar/1
+
+    --------------------- :sgrdi:`/path/to/modulefiles` ---------------------
+    bar/1  foo/1  foo/2
+    :ps:`$` module show foo/1
+    -------------------------------------------------------------------
+    :sgrhi:`/path/to/modulefiles/foo/1`:
+
+    :sgrcm:`prereq`          --modulepath .. bar/1
+    -------------------------------------------------------------------
+    :ps:`$` module load foo/1
+    Loading :sgrhi:`foo/1`
+      :sgrin:`Loading requirement`: bar/1
+    :ps:`$` echo $_LMFILES_
+    /path/to/modulefiles/bar/1:/path/to/modulefiles/foo/1
+
+Specific modulepath set may guide to a directory not necessarily enabled
+(i.e., not defined in :envvar:`MODULEPATH` environment variable):
+
+.. parsed-literal::
+
+    :ps:`$` module show foo/2
+    -------------------------------------------------------------------
+    :sgrhi:`/path/to/modulefiles/foo/2`:
+
+    :sgrcm:`prereq`          --modulepath /path/to/alternatefiles bar/2
+    -------------------------------------------------------------------
+    :ps:`$` module load foo/2
+    Loading :sgrhi:`foo/2`
+      :sgrin:`Loading requirement`: bar/2
+    :ps:`$` module list
+    Currently Loaded Modulefiles:
+     1) bar/2   2) foo/2
+    :ps:`$` echo $_LMFILES_
+    /path/to/alternatefiles/bar/2:/path/to/modulefiles/foo/2
+
+If a required module is already loaded from a modulepath that does not
+correspond to the requirement definition, an error is obtained. However if
+the *Conflict Unload* mechanism described above is enabled, the conflicting
+module will automatically be unloaded.
+
+.. parsed-literal::
+
+    :ps:`$` module purge
+    :ps:`$` module load bar/1
+    :ps:`$` echo $_LMFILES_
+    /path/to/othermfiles/mp2/bar/1
+    :ps:`$` module load foo/1
+    Loading :sgrhi:`bar/1`
+      :sgrer:`ERROR`: Module already loaded from a different modulepath
+
+    Loading :sgrhi:`foo/1`
+      :sgrer:`ERROR`: Load of requirement bar/1 (specific path) failed
+    :ps:`$` module config conflict_unload 1
+    :ps:`$` module load foo/1
+    Loading :sgrhi:`foo/1`
+      :sgrin:`Unloading conflict`: bar/1
+      :sgrin:`Loading requirement`: bar/1
+    :ps:`$` echo $_LMFILES_
+    /path/to/modulefiles/bar/1:/path/to/modulefiles/foo/1
+
 
 v5.4
 ====
