@@ -3,7 +3,8 @@
 Contributing
 ============
 
-Thank you for considering contributing to Modules!
+Thank you for considering contributing to Modules! Modules is an open source
+project. Questions, discussion, and contributions are welcome.
 
 Support questions
 -----------------

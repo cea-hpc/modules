@@ -131,31 +131,31 @@ ability to test this installation with:
 Links
 -----
 
-Web site:
+* Web site: http://modules.sourceforge.net
+* Online documentation: https://modules.readthedocs.io
+* GitHub source repository: https://github.com/cea-hpc/modules
+* GitHub Issue tracking system: https://github.com/cea-hpc/modules/issues
+* SourceForge project page: http://sourceforge.net/projects/modules/
 
-> http://modules.sourceforge.net
 
-Online documentation:
+Community
+---------
 
-> https://modules.readthedocs.io
+Modules is an open source project. Questions, discussion, and contributions
+are welcome. You can get in contact with the Modules community via the
+[modules-interest mailing list][6].
 
-GitHub source repository:
+The project is also present on several social media platforms:
 
-> https://github.com/cea-hpc/modules
-
-GitHub Issue tracking system:
-
-> https://github.com/cea-hpc/modules/issues
-
-SourceForge project page:
-
-> http://sourceforge.net/projects/modules/
+* X/Twitter: [@EnvModules][7]
+* Mastodon: [@EnvModules@mast.hpc.social][8]
+* Bluesky: [@EnvModules.bsky.social][9]
 
 
 Code of conduct
 ---------------
 
-Please note that Modules has a [Code of conduct][6]. By participating in the
+Please note that Modules has a [Code of conduct][10]. By participating in the
 Modules community, you agree to abide by its rules.
 
 
@@ -184,4 +184,8 @@ not be what it is without their contributions:
 [3]: https://modules.readthedocs.io/en/stable/MIGRATING.html
 [4]: https://modules.readthedocs.io/en/stable/NEWS.html
 [5]: https://modules.readthedocs.io/en/stable/changes.html
-[6]: CODE_OF_CONDUCT.md
+[6]: https://sourceforge.net/projects/modules/lists/modules-interest
+[7]: https://x.com/EnvModules
+[8]: https://mast.hpc.social/@EnvModules
+[9]: https://bsky.app/profile/envmodules.bsky.social
+[10]: CODE_OF_CONDUCT.md

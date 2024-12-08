@@ -148,8 +148,24 @@ Links
 * Source repository: https://github.com/cea-hpc/modules
 * Issue tracking system: https://github.com/cea-hpc/modules/issues
 * Download releases: https://github.com/cea-hpc/modules/releases
-* Mailing-list: https://sourceforge.net/projects/modules/lists/modules-interest
-* X/Twitter: https://twitter.com/EnvModules
+
+Community
+---------
+
+Modules is an open source project. Questions, discussion, and contributions
+are welcome. You can get in contact with the Modules community via the
+`modules-interest mailing list`_.
+
+The project is also present on several social media platforms:
+
+* X/Twitter: `@EnvModules`_
+* Mastodon: `@EnvModules@mast.hpc.social`_
+* Bluesky: `@EnvModules.bsky.social`_
+
+.. _modules-interest mailing list: https://sourceforge.net/projects/modules/lists/modules-interest
+.. _@EnvModules: https://x.com/EnvModules
+.. _@EnvModules@mast.hpc.social: https://mast.hpc.social/@EnvModules
+.. _@EnvModules.bsky.social: https://bsky.app/profile/envmodules.bsky.social
 
 License
 -------
