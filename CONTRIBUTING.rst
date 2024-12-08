@@ -35,6 +35,11 @@ Reporting issues
 
 .. _minimal, complete, and verifiable example: https://stackoverflow.com/help/mcve
 
+If you find a security vulnerability, please refer to our `security policy`_
+for guidelines on how to report such issues responsibly.
+
+.. _security policy: https://github.com/cea-hpc/modules/security
+
 .. _submitting-patches:
 
 Submitting patches
