@@ -162,22 +162,31 @@ Modules community, you agree to abide by its rules.
 Authors
 -------
 
-Current core developer and maintainer is:
+Modules current core developer and maintainer is Xavier Delaruelle,
+xavier.delaruelle@cea.fr
 
- * Xavier Delaruelle <xavier.delaruelle AT cea.fr>
+Many thanks go to the [contributors][11] of the Modules project.
 
-The following people have notably contributed to Modules and Modules would
-not be what it is without their contributions:
 
- * R.K. Owen
- * Kent Mein
- * Mark Lakata
- * Harlan Stenn
- * Leo Butler
- * Robert Minsk
- * Jens Hamisch
- * Peter W. Osel
- * John L. Furlani
+Acknowledgments
+---------------
+
+We would like to express our gratitude to [CEA][12] for the resources and
+funding provided to the project over the recent years.
+
+The following people have notably contributed to Modules and Modules would not
+be what it is without their contributions:
+
+* R.K. Owen
+* Kent Mein
+* Mark Lakata
+* Harlan Stenn
+* Leo Butler
+* Robert Minsk
+* Jens Hamisch
+* Peter W. Osel
+* John L. Furlan
+
 
 [1]: https://modules.readthedocs.io/en/stable/INSTALL.html
 [2]: https://modules.readthedocs.io/en/stable/INSTALL-win.html
@@ -189,3 +198,5 @@ not be what it is without their contributions:
 [8]: https://mast.hpc.social/@EnvModules
 [9]: https://bsky.app/profile/envmodules.bsky.social
 [10]: CODE_OF_CONDUCT.md
+[11]: https://github.com/cea-hpc/modules/graphs/contributors
+[12]: https://www.cea.fr/english
