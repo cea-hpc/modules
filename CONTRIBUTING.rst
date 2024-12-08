@@ -205,7 +205,7 @@ Coding conventions
 * Use 3 spaces to indent code (do not use tab character)
 * Adopt `Tcl minimal escaping style`_
 * Procedure names: ``lowerCameCase``
-* Variable names: ``nocaseatall``
+* Variable names: ``no_case_at_all``
 * Curly brace and square bracket placement::
 
    if {![isStateDefined already_report]} {
