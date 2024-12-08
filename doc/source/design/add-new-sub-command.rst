@@ -66,7 +66,7 @@ called within a modulefile context.
 
 Files that should be edited to add reference to the new sub-command:
 
-- :file:`contrib/nagelfar/syntaxdb_modulefile.tcl`
+- :file:`share/nagelfar/syntaxdb_modulefile.tcl`
 
   - add sub-command name in ``::subCmd(module)`` list
   - add sub-command argument description in ``::syntax`` array

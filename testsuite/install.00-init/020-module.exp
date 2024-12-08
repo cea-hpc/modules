@@ -34,12 +34,12 @@ if {$verbose} {
 foreach shell $shell_list {
    testall_cmd_re "$shell" "module --version" {} "Modules Release \\S+ (\\S+)" 0
    testall_cmd "$shell" "module foo" "" "$bad_cmd\n$type_help" 1
-   testall_cmd "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "" "$cur_loaded\nnull" 0
-   testall_cmd "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "" "$no_loaded" 0
+   testall_cmd "$shell" "module use $share_modpath\; module purge\; module load null\; module list -t" "" "$cur_loaded\nnull" 0
+   testall_cmd "$shell" "module use $share_modpath\; module purge\; module load null\; module unload null\; module list -t" "" "$no_loaded" 0
    testall_cmd "$shell" "module is-loaded unk" "" "" 1
-   testall_cmd "$shell" "module use $contrib_modpath\; module load null\; module is-loaded null" "" "" 0
+   testall_cmd "$shell" "module use $share_modpath\; module load null\; module is-loaded null" "" "" 0
    testall_cmd "$shell" "module info-loaded unk" "" "" 0
-   testall_cmd "$shell" "module use $contrib_modpath\; module load null\; module info-loaded null" "null" "" 0
+   testall_cmd "$shell" "module use $share_modpath\; module load null\; module info-loaded null" "null" "" 0
 }
 
 # ensure tools used in complex shell alias definition are available
@@ -59,8 +59,8 @@ if {[find_bin grep] ne "" && [find_bin tr] ne "" && [find_bin awk] ne ""} {
 foreach shell $othlang_list {
    testall_cmd_re "$shell" "--version" {} "Modules Release \\S+ (\\S+)" 0
    testall_cmd_re "$shell" "foo" {} "$bad_cmd_re\n$type_help.*" 1
-   testall_cmd "$shell" "use,$contrib_modpath:purge:load,null:list,-t" "" "$cur_loaded\nnull" 0
-   testall_cmd "$shell" "use,$contrib_modpath:purge:load,null:unload,null:list,-t" "" "$no_loaded" 0
+   testall_cmd "$shell" "use,$share_modpath:purge:load,null:list,-t" "" "$cur_loaded\nnull" 0
+   testall_cmd "$shell" "use,$share_modpath:purge:load,null:unload,null:list,-t" "" "$no_loaded" 0
    switch -- $shell {
       cmake - r {
          testall_cmd_re "$shell" "is-loaded,unk" "" ".*" 1
@@ -69,7 +69,7 @@ foreach shell $othlang_list {
          testall_cmd_re "$shell" "is-loaded,unk" "" "" 1
       }
    }
-   testall_cmd "$shell" "use,$contrib_modpath:load,null:is-loaded,null" "" "" 0
+   testall_cmd "$shell" "use,$share_modpath:load,null:is-loaded,null" "" "" 0
    switch -- $shell {
       r {
          testall_cmd "$shell" "info-loaded,unk" "\[1\] \"\"" {} 0
@@ -93,24 +93,24 @@ foreach shell $othlang_list {
          set anstxt "null"
       }
    }
-   testall_cmd "$shell" "use,$contrib_modpath:load,null:info-loaded,null" $anstxt "" 0
+   testall_cmd "$shell" "use,$share_modpath:load,null:info-loaded,null" $anstxt "" 0
 }
 
 
 # test unload of previously loaded modulefile
 if {$verbose} {
     send_user "\tSetup LOADEDMODULES = 'null'\n"
-    send_user "\tSetup _LMFILES_ = '$contrib_modpath/null'\n"
+    send_user "\tSetup _LMFILES_ = '$share_modpath/null'\n"
 }
 set env(LOADEDMODULES) "null"
-set env(_LMFILES_) "$contrib_modpath/null"
+set env(_LMFILES_) "$share_modpath/null"
 
 foreach shell $shell_list {
-   testall_cmd "$shell" "module use $contrib_modpath\; module unload null\; module list -t" "" "$no_loaded" 0
+   testall_cmd "$shell" "module use $share_modpath\; module unload null\; module list -t" "" "$no_loaded" 0
 }
 
 foreach shell $othlang_list {
-   testall_cmd "$shell" "use,$contrib_modpath:unload,null:list,-t" "" "$no_loaded" 0
+   testall_cmd "$shell" "use,$share_modpath:unload,null:list,-t" "" "$no_loaded" 0
 }
 
 # ensure advanced_version_spec is efficient on all shells

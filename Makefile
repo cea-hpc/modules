@@ -194,7 +194,7 @@ endif
 # determine RPM release
 # use last release if we currently sat on tag, append build number to it elsewhere
 MODULES_LAST_RPM_VERSREL := $(shell sed -n '/^%changelog/ {n;s/^\*.* - //p;q;}' \
-	contrib/rpm/environment-modules.spec.in)
+	share/rpm/environment-modules.spec.in)
 MODULES_LAST_RPM_RELEASE := $(lastword $(subst -, ,$(MODULES_LAST_RPM_VERSREL)))
 MODULES_RPM_RELEASE := $(MODULES_LAST_RPM_RELEASE)$(subst +,.,$(subst -,.,$(MODULES_BUILD)))
 
@@ -476,7 +476,7 @@ Makefile.inc: ;
 version.inc: version.inc.in $(GIT_REFRESH_PREREQ)
 	$(translate-in-script)
 
-contrib/rpm/environment-modules.spec: contrib/rpm/environment-modules.spec.in $(GIT_REFRESH_PREREQ)
+share/rpm/environment-modules.spec: share/rpm/environment-modules.spec.in $(GIT_REFRESH_PREREQ)
 	$(translate-in-script)
 
 tcl/cache.tcl: tcl/cache.tcl.in version.inc
@@ -524,7 +524,7 @@ tcl/subcmd.tcl_i: tcl/subcmd.tcl $(NAGELFAR)
 	$(ECHO_GEN)
 	rm -f $<_log
 	$(NAGELFAR) -instrument $<
-	sed -i -e 's|$(nagelfardatadir)|contrib/nagelfar|g' $@
+	sed -i -e 's|$(nagelfardatadir)|share/nagelfar|g' $@
 
 # join all tcl/*.tcl files to build modulecmd.tcl
 modulecmd.tcl: tcl/cache.tcl tcl/coll.tcl tcl/envmngt.tcl tcl/init.tcl \
@@ -705,17 +705,17 @@ ifeq ($(vimaddons),y)
 	$(INSTALL_DIR) '$(DESTDIR)$(vimdatadir)/ftdetect'
 	$(INSTALL_DIR) '$(DESTDIR)$(vimdatadir)/ftplugin'
 	$(INSTALL_DIR) '$(DESTDIR)$(vimdatadir)/syntax'
-	$(INSTALL_DATA) contrib/vim/ftdetect/modulefile.vim '$(DESTDIR)$(vimdatadir)/ftdetect'
-	$(INSTALL_DATA) contrib/vim/ftplugin/modulefile.vim '$(DESTDIR)$(vimdatadir)/ftplugin'
-	$(INSTALL_DATA) contrib/vim/syntax/modulefile.vim '$(DESTDIR)$(vimdatadir)/syntax'
+	$(INSTALL_DATA) share/vim/ftdetect/modulefile.vim '$(DESTDIR)$(vimdatadir)/ftdetect'
+	$(INSTALL_DATA) share/vim/ftplugin/modulefile.vim '$(DESTDIR)$(vimdatadir)/ftplugin'
+	$(INSTALL_DATA) share/vim/syntax/modulefile.vim '$(DESTDIR)$(vimdatadir)/syntax'
 endif
 ifeq ($(nagelfaraddons),y)
 	$(INSTALL_DIR) '$(DESTDIR)$(nagelfardatadir)'
-	$(INSTALL_DATA) contrib/nagelfar/plugin_modulefile.tcl  '$(DESTDIR)$(nagelfardatadir)/'
-	$(INSTALL_DATA) contrib/nagelfar/plugin_modulerc.tcl  '$(DESTDIR)$(nagelfardatadir)/'
-	$(INSTALL_DATA) contrib/nagelfar/plugin_globalrc.tcl  '$(DESTDIR)$(nagelfardatadir)/'
-	$(INSTALL_DATA) contrib/nagelfar/syntaxdb_modulefile.tcl  '$(DESTDIR)$(nagelfardatadir)/'
-	$(INSTALL_DATA) contrib/nagelfar/syntaxdb_modulerc.tcl  '$(DESTDIR)$(nagelfardatadir)/'
+	$(INSTALL_DATA) share/nagelfar/plugin_modulefile.tcl  '$(DESTDIR)$(nagelfardatadir)/'
+	$(INSTALL_DATA) share/nagelfar/plugin_modulerc.tcl  '$(DESTDIR)$(nagelfardatadir)/'
+	$(INSTALL_DATA) share/nagelfar/plugin_globalrc.tcl  '$(DESTDIR)$(nagelfardatadir)/'
+	$(INSTALL_DATA) share/nagelfar/syntaxdb_modulefile.tcl  '$(DESTDIR)$(nagelfardatadir)/'
+	$(INSTALL_DATA) share/nagelfar/syntaxdb_modulerc.tcl  '$(DESTDIR)$(nagelfardatadir)/'
 endif
 	$(MAKE) -C init install DESTDIR='$(DESTDIR)'
 ifneq ($(builddoc),n)
@@ -789,7 +789,7 @@ endif
 
 # include pre-generated documents not to require documentation build
 # tools when installing from dist tarball
-dist-tar: ChangeLog.gz contrib/rpm/environment-modules.spec pkgdoc
+dist-tar: ChangeLog.gz share/rpm/environment-modules.spec pkgdoc
 	$(ECHO_GEN2) $(DIST_PREFIX).tar
 	git archive --prefix=$(DIST_PREFIX)/ --worktree-attributes \
 		-o $(DIST_PREFIX).tar HEAD
@@ -798,7 +798,7 @@ dist-tar: ChangeLog.gz contrib/rpm/environment-modules.spec pkgdoc
 		doc/build/MIGRATING.txt doc/build/changes.txt doc/build/INSTALL.txt \
 		doc/build/INSTALL-win.txt doc/build/NEWS.txt doc/build/CONTRIBUTING.txt \
 		doc/build/module.1.in doc/build/ml.1 doc/build/modulefile.5 \
-		contrib/rpm/environment-modules.spec
+		share/rpm/environment-modules.spec
 
 dist-gzip: dist-tar
 	$(ECHO_GEN2) $(DIST_PREFIX).tar.gz
@@ -878,7 +878,7 @@ ifneq ($(builddoc),n)
 	$(MAKE) -C doc clean
 endif
 	rm -f version.inc
-	rm -f contrib/rpm/environment-modules.spec
+	rm -f share/rpm/environment-modules.spec
 ifneq ($(wildcard lib/Makefile),)
 	$(MAKE) -C lib clean
 endif
@@ -909,7 +909,7 @@ ifeq ($(multilibsupport),y)
 else
 	sed -e 's|$(libdir)|lib|' $< > $@
 endif
-	sed -i -e 's|$(nagelfardatadir)|contrib/nagelfar|g' $@
+	sed -i -e 's|$(nagelfardatadir)|share/nagelfar|g' $@
 
 tcl/%.tcl_i: tcl/%.tcl $(NAGELFAR)
 	$(ECHO_GEN)
@@ -1091,7 +1091,7 @@ ifeq ($(VERBOSE),1)
 V = 1
 endif
 # let verbose by default the install/clean/test and other specific non-build targets
-$(V).SILENT: initdir pkgdoc doc version.inc contrib/rpm/environment-modules.spec \
+$(V).SILENT: initdir pkgdoc doc version.inc share/rpm/environment-modules.spec \
 	modulecmd.tcl tcl/cache.tcl tcl/coll.tcl tcl/envmngt.tcl tcl/init.tcl \
 	tcl/interp.tcl tcl/main.tcl tcl/modfind.tcl tcl/report.tcl tcl/subcmd.tcl \
 	tcl/cache.tcl_i tcl/coll.tcl_i tcl/envmngt.tcl_i tcl/init.tcl_i tcl/interp.tcl_i \

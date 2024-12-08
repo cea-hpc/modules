@@ -14,7 +14,7 @@ CSH_LIKE = csh tcsh tcsh_completion profile.csh
 OTHER    = perl.pm python.py ruby.rb lisp tcl fish cmake r.R pwsh.ps1
 
 # example modulefiles to install
-EXAMPLE_MODFILES_SRCDIR := ../contrib/modulefiles
+EXAMPLE_MODFILES_SRCDIR := ../share/modulefiles
 EXAMPLE_MODFILES = dot module-git module-info modules null use.own
 EXAMPLE_WIN_MODFILES = module-git module-info null
 EXAMPLE_TESTCONFIG_MODFILES = null
