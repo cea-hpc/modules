@@ -6,6 +6,21 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+.. _5.6 release notes:
+
+Modules 5.6.0 (not yet released)
+--------------------------------
+
+* Rename :file:`contrib` directory as :file:`share` in sources to use clearer
+  name for architecture and configuration independent files.
+* Set a `Security policy`_ for the project.
+* Add red, white and black SVG logo files of Modules project.
+* Doc: improve Links, Community sections in documentation index and README
+* Doc: improve Authors and Acknowledgments sections in README
+
+.. _Security policy: https://github.com/cea-hpc/modules/blob/main/SECURITY.md
+
+
 .. _5.5 release notes:
 
 Modules 5.5.0 (2024-11-11)
