@@ -10,7 +10,8 @@ Lmod Tcl modulefile compatibility
   - Be as close as possible to the behavior of Lmod
 
 - As of Modules v5.0, the following Tcl modulefile command of Lmod are not
-  supported:
+  supported. This document is about how supporting these command in Modules
+  v5.1.
 
   - ``add-property``
   - ``remove-property``
@@ -24,6 +25,9 @@ Lmod Tcl modulefile compatibility
   - ``family``
   - ``hide-version``
   - ``hide-modulefile``
+
+- See :ref:`Compatibility with Lmod Tcl modulefile` section in
+  :ref:`modulefile(5)` man page for the current state of support.
 
 
 ``add-property``/``remove-property``
