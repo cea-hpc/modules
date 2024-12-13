@@ -38,7 +38,7 @@ Reporting issues
 If you find a security vulnerability, please refer to our `security policy`_
 for guidelines on how to report such issues responsibly.
 
-.. _security policy: https://github.com/cea-hpc/modules/security
+.. _security policy: https://github.com/envmodules/modules/security
 
 .. _submitting-patches:
 
@@ -108,8 +108,8 @@ execute :file:`testsuite/modules.50-cmds/470-variant.exp` testfile, run::
 Run :command:`script/mt` with ``--help`` option to get usage details and
 syntax to select several testfiles.
 
-.. _GitHub Actions: https://github.com/cea-hpc/modules/actions
-.. _Cirrus CI: https://cirrus-ci.com/github/cea-hpc/modules
+.. _GitHub Actions: https://github.com/envmodules/modules/actions
+.. _Cirrus CI: https://cirrus-ci.com/github/envmodules/modules
 
 .. _running-test-coverage:
 

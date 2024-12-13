@@ -113,7 +113,7 @@ target of online document should also point to the new release. It may be
 verified at:
 
 * http://modules.sf.net
-* http://cea-hpc.github.io/modules/
+* http://envmodules.github.io/modules/
 * https://modules.readthedocs.io/en/stable/NEWS.html
 
 Change *Default Download* on `SourceForge Files`_ page. Set the ``.tar.gz``
@@ -121,9 +121,9 @@ dist ball of the new release as the new default.
 
 .. _SourceForge Files: https://sourceforge.net/projects/modules/files/Modules/
 
-Close milestone on GitHub at https://github.com/cea-hpc/modules/milestones
+Close milestone on GitHub at https://github.com/envmodules/modules/milestones
 
-Create release on GitHub at https://github.com/cea-hpc/modules/releases/new:
+Create release on GitHub at https://github.com/envmodules/modules/releases/new:
 
 * Release title is bare version number ``X.Y.Z``
 * Attach ``.tar.gz``, ``.tar.bz2`` and ``-win.zip`` artifacts to the release

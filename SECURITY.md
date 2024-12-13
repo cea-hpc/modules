@@ -19,7 +19,7 @@ available as patch (`x.y.1`, `x.y.2`, etc.) releases.
 
 You can report a vulnerability using GitHub's private reporting feature:
 
-1. Go to [github.com/cea-hpc/modules/security](https://github.com/cea-hpc/modules/security).
+1. Go to [github.com/envmodules/modules/security](https://github.com/envmodules/modules/security).
 2. Click "Report a vulnerability" in the upper right corner of that page.
 3. Fill out the form and submit your draft security advisory.
 

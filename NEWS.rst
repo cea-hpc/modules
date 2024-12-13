@@ -18,8 +18,9 @@ Modules 5.6.0 (not yet released)
 * Doc: improve Links, Community sections in documentation index and README
 * Doc: improve Authors and Acknowledgments sections in README
 * Doc: add :ref:`create-new-release` guide
+* Update repository URL to https://github.com/envmodules/modules.
 
-.. _Security policy: https://github.com/cea-hpc/modules/blob/main/SECURITY.md
+.. _Security policy: https://github.com/envmodules/modules/blob/main/SECURITY.md
 
 
 .. _5.5 release notes:
@@ -977,7 +978,7 @@ Modules 5.1.0 (2022-04-30)
 * Mention tagging evaluation of a module, when tag list of an already loaded
   module is updated.
 
-.. _Code of conduct: https://github.com/cea-hpc/modules/blob/main/CODE_OF_CONDUCT.md
+.. _Code of conduct: https://github.com/envmodules/modules/blob/main/CODE_OF_CONDUCT.md
 .. _codespell: https://github.com/codespell-project/codespell
 .. _Aspell: http://aspell.net/
 

@@ -3076,7 +3076,7 @@ A stack trace is also returned when an unknown error occurs in
           ("eval" body line 1)
           invoked from within
       "eval $execcmdlist"
-      Please report this issue at :noparse:`https://github.com/cea-hpc/modules/issues`
+      Please report this issue at :noparse:`https://github.com/envmodules/modules/issues`
 
 Automatic default and latest symbolic versions
 ----------------------------------------------
@@ -4461,4 +4461,4 @@ please read the :ref:`changes` document.
 A significant number of issues reported for v3.2 have been closed on v4.
 List of these closed issues can be found at:
 
-https://github.com/cea-hpc/modules/milestone/1?closed=1
+https://github.com/envmodules/modules/milestone/1?closed=1

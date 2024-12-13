@@ -146,7 +146,7 @@ if os_rtd:
     html_context = {
         'conf_py_path': '/doc/source/',
         'display_github': True,
-        'github_user': 'cea-hpc',
+        'github_user': 'envmodules',
         'github_repo': 'modules',
         'github_version': 'main',
     }
@@ -263,7 +263,7 @@ rst_epilog += '.. |emph modulefilesdir| replace:: *%s*\n' % modulefilesdir
 rst_epilog += '.. |bold modulefilesdir| replace:: **%s**\n' % modulefilesdir
 rst_epilog += '.. |file modulefilesdir| replace:: :file:`%s`\n' % modulefilesdir
 rst_epilog += '.. |code version| replace:: ``%s``\n' % version
-rst_epilog += '.. |gh_tgz_dl_url| replace:: https://github.com/cea-hpc/modules/releases/download/v%s/modules-%s.tar.gz\n' % (version, version)
+rst_epilog += '.. |gh_tgz_dl_url| replace:: https://github.com/envmodules/modules/releases/download/v%s/modules-%s.tar.gz\n' % (version, version)
 
 # define roles used to color text in parsed-literal to render output like in terminal
 rst_epilog += """.. role:: noparse
@@ -352,7 +352,7 @@ def parse_opt_args_node(env, sig, signode):
 from docutils import nodes
 def ghcommit_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
     commit_id = str(text)
-    commit_url = 'https://github.com/cea-hpc/modules/commit/' + commit_id
+    commit_url = 'https://github.com/envmodules/modules/commit/' + commit_id
     title = nodes.reference('', commit_id, refuri=commit_url)
     return [title], []
 

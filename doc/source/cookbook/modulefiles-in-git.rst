@@ -80,20 +80,20 @@ Modules 4.1). Your modulerc should have::
     module use /\$MODULES_REPO
 
 (The extra slash required before \$MODULES_REPO is a `bug
-<https://github.com/cea-hpc/modules/issues/223>`_ to be fixed in
+<https://github.com/envmodules/modules/issues/223>`_ to be fixed in
 4.2.3.)
 
 Copy the ``localmodules`` file from the Modules source tree to your
 repo::
 
     cd /home/modules/modulefiles
-    curl --output localmodules https://raw.githubusercontent.com/cea-hpc/modules/main/doc/example/modulefiles-in-git/modulefiles/localmodules
+    curl --output localmodules https://raw.githubusercontent.com/envmodules/modules/main/doc/example/modulefiles-in-git/modulefiles/localmodules
 
 Edit paths in the top of ``localmodules``, if your installation
 differs from the assumptions, then::
 
     git add localmodules
-    git commit -m 'Add localmodules from github.com/cea-hpc/modules'
+    git commit -m 'Add localmodules from github.com/envmodules/modules'
 
 Usage example
 -------------

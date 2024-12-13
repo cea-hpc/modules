@@ -5321,7 +5321,7 @@ ENVIRONMENT
 .. envvar:: MODULES_WA_277
 
  If set to ``1`` prior to Modules package initialization, enables workaround
- for Tcsh history issue (see https://github.com/cea-hpc/modules/issues/277).
+ for Tcsh history issue (see https://github.com/envmodules/modules/issues/277).
  This issue leads to erroneous history entries under Tcsh shell. When
  workaround is enabled, an alternative *module* alias is defined which fixes
  the history mechanism issue. However the alternative definition of the

@@ -79,7 +79,7 @@ under the name of ``modules`` or ``environment-modules``.
 If you want to install Modules from sources, tarballs from all Modules'
 releases can be retrieved from one of the following link:
 
-* https://github.com/cea-hpc/modules/releases/
+* https://github.com/envmodules/modules/releases/
 * https://sourceforge.net/projects/modules/files/Modules/
 
 For instance to download then unpack the last release of Modules:

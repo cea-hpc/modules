@@ -1,9 +1,9 @@
-# <img src="https://raw.githubusercontent.com/cea-hpc/modules/main/doc/img/modules_red.svg" height="180" alt="Modules"/>
+# <img src="https://raw.githubusercontent.com/envmodules/modules/main/doc/img/modules_red.svg" height="180" alt="Modules"/>
 
-[![Linux Build Status](https://github.com/cea-hpc/modules/workflows/linux-tests/badge.svg)](https://github.com/cea-hpc/modules/actions?query=workflow:linux-tests)
-[![Windows Build Status](https://github.com/cea-hpc/modules/workflows/windows-tests/badge.svg)](https://github.com/cea-hpc/modules/actions?query=workflow:windows-tests)
-[![FreeBSD/OS X/Linux Build Status](https://api.cirrus-ci.com/github/cea-hpc/modules.svg)](https://cirrus-ci.com/github/cea-hpc/modules)
-[![Coverage Status](https://codecov.io/gh/cea-hpc/modules/branch/main/graph/badge.svg)](https://codecov.io/gh/cea-hpc/modules)
+[![Linux Build Status](https://github.com/envmodules/modules/workflows/linux-tests/badge.svg)](https://github.com/envmodules/modules/actions?query=workflow:linux-tests)
+[![Windows Build Status](https://github.com/envmodules/modules/workflows/windows-tests/badge.svg)](https://github.com/envmodules/modules/actions?query=workflow:windows-tests)
+[![FreeBSD/OS X/Linux Build Status](https://api.cirrus-ci.com/github/envmodules/modules.svg)](https://cirrus-ci.com/github/envmodules/modules)
+[![Coverage Status](https://codecov.io/gh/envmodules/modules/branch/main/graph/badge.svg)](https://codecov.io/gh/envmodules/modules)
 [![Documentation Status](https://readthedocs.org/projects/modules/badge/?version=latest)](https://modules.readthedocs.io/en/latest/?badge=latest)
 [![Packaging status](https://repology.org/badge/tiny-repos/environment-modules.svg)](https://repology.org/metapackage/environment-modules/versions)
 [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/EnvModules.svg?style=social&label=Follow)](https://twitter.com/EnvModules)
@@ -133,8 +133,8 @@ Links
 
 * Web site: http://modules.sourceforge.net
 * Online documentation: https://modules.readthedocs.io
-* GitHub source repository: https://github.com/cea-hpc/modules
-* GitHub Issue tracking system: https://github.com/cea-hpc/modules/issues
+* GitHub source repository: https://github.com/envmodules/modules
+* GitHub Issue tracking system: https://github.com/envmodules/modules/issues
 * SourceForge project page: http://sourceforge.net/projects/modules/
 
 
@@ -198,5 +198,5 @@ be what it is without their contributions:
 [8]: https://mast.hpc.social/@EnvModules
 [9]: https://bsky.app/profile/envmodules.bsky.social
 [10]: CODE_OF_CONDUCT.md
-[11]: https://github.com/cea-hpc/modules/graphs/contributors
+[11]: https://github.com/envmodules/modules/graphs/contributors
 [12]: https://www.cea.fr/english

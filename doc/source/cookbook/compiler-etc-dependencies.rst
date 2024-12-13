@@ -240,7 +240,7 @@ installed. To avoid requiring you to update lines in numerous
 files, we require you to set the environment variable
 ``MOD_GIT_ROOTDIR`` to location where the modules git working directory
 was cloned. E.g., if you issued the command
-``git clone https://github.com/cea-hpc/modules.git ~/modules.test``
+``git clone https://github.com/envmodules/modules.git ~/modules.test``
 you should set ``MOD_GIT_ROOTDIR`` to ``~/modules.test``. Please
 ensure it is exported (use ``setenv`` in csh and related shells,
 or ``export`` in Bourne derived shells like bash). This is just

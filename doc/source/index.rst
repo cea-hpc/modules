@@ -3,15 +3,15 @@
 Environment Modules
 ===================
 
-.. image:: https://img.shields.io/github/stars/cea-hpc/modules
-    :target: https://github.com/cea-hpc/modules
+.. image:: https://img.shields.io/github/stars/envmodules/modules
+    :target: https://github.com/envmodules/modules
     :alt: GitHub Repository
 
-.. image:: https://img.shields.io/github/license/cea-hpc/modules?color=lightsteelblue
+.. image:: https://img.shields.io/github/license/envmodules/modules?color=lightsteelblue
     :alt: GitHub License
 
-.. image:: https://img.shields.io/github/v/release/cea-hpc/modules
-    :target: https://github.com/cea-hpc/modules/releases/latest
+.. image:: https://img.shields.io/github/v/release/envmodules/modules
+    :target: https://github.com/envmodules/modules/releases/latest
     :alt: GitHub Release
 
 .. image:: https://img.shields.io/twitter/url/https/twitter.com/EnvModules.svg?style=social&label=@EnvModules
@@ -145,9 +145,9 @@ Links
 
 * Web site: http://modules.sourceforge.net
 * Documentation: https://modules.readthedocs.io
-* Source repository: https://github.com/cea-hpc/modules
-* Issue tracking system: https://github.com/cea-hpc/modules/issues
-* Download releases: https://github.com/cea-hpc/modules/releases
+* Source repository: https://github.com/envmodules/modules
+* Issue tracking system: https://github.com/envmodules/modules/issues
+* Download releases: https://github.com/envmodules/modules/releases
 
 Community
 ---------

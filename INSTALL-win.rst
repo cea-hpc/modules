@@ -46,7 +46,7 @@ Installation instructions
    from the source tarball by the ``-win`` suffix in their name.
 
 .. _SourceForge: https://sourceforge.net/projects/modules/files/Modules/
-.. _GitHub: https://github.com/cea-hpc/modules/releases
+.. _GitHub: https://github.com/envmodules/modules/releases
 
 4. Unpack downloaded zip file then enter deflated directory and execute the
    ``INSTALL.bat`` script file found in it. This script installs files by

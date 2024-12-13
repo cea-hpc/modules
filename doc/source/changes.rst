@@ -15,7 +15,7 @@ Modules 4
 
 This section provides the list of differences with Modules version 3.2. This version of Modules is also referred in this document as *compatibility version*. Modules 4 is based on what was previously called Modules-Tcl. Comparison takes as a basis version ``3.2.10`` of compatibility version against Modules version ``4.0``. Any change made past these versions will explicitly mention the release number starting from the difference appears or disappears.
 
-.. note:: The numerous bugs or limitations spotted on Modules ``3.2`` across the years have been fixed in Modules ``4.0``. The list of reported issues that have been solved are available on `the project code forge <https://github.com/cea-hpc/modules/milestone/1?closed=1>`_.
+.. note:: The numerous bugs or limitations spotted on Modules ``3.2`` across the years have been fixed in Modules ``4.0``. The list of reported issues that have been solved are available on `the project code forge <https://github.com/envmodules/modules/milestone/1?closed=1>`_.
 
 Removed or changed features
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
