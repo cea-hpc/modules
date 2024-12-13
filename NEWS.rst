@@ -17,6 +17,7 @@ Modules 5.6.0 (not yet released)
 * Add red, white and black SVG logo files of Modules project.
 * Doc: improve Links, Community sections in documentation index and README
 * Doc: improve Authors and Acknowledgments sections in README
+* Doc: add :ref:`create-new-release` guide
 
 .. _Security policy: https://github.com/cea-hpc/modules/blob/main/SECURITY.md
 
