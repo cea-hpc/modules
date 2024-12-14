@@ -950,19 +950,26 @@ if [ "$(echo foo | $SED_ERE 's|foo|bar|' 2>/dev/null)" != 'bar' ]; then
    SED_ERE='sed -r'
 fi
 
+export GIT_DIR="${progdir}/.git"
+export GIT_WORK_TREE="${progdir}"
+
+test -e "${GIT_DIR}"
+work_from_git_repo=$?
+
 # if we install from git repository, must have git to fetch current release number
-if [ -e '.git' ]; then
+if [ $work_from_git_repo -eq 0 ]; then
    check_requirement git
 fi
 
 # if pre-built docs are available (but not from a previous make run), no doc
 # build but install pre-built files
+builddocdir="${progdir}/doc/build"
 oldbuilddoc=$(sed -n '/^builddoc/{s/.*:= //p;q;}' Makefile.inc 2>/dev/null)
-if [ -e 'doc/build/changes.txt' ] && [ -e 'doc/build/MIGRATING.txt' ] \
-   && [ -e 'doc/build/INSTALL.txt' ] && [ -e 'doc/build/INSTALL-win.txt' ] \
-   && [ -e 'doc/build/NEWS.txt' ] && [ -e 'doc/build/CONTRIBUTING.txt' ] \
-   && [ -e 'doc/build/module.1.in' ] && [ -e 'doc/build/ml.1' ] \
-   && [ -e 'doc/build/modulefile.5' ] && [ "$oldbuilddoc" != 'y' ]; then
+if [ -e "${builddocdir}/changes.txt" ] && [ -e "${builddocdir}/MIGRATING.txt" ] \
+   && [ -e "${builddocdir}/INSTALL.txt" ] && [ -e "${builddocdir}/INSTALL-win.txt" ] \
+   && [ -e "${builddocdir}/NEWS.txt" ] && [ -e "${builddocdir}/CONTRIBUTING.txt" ] \
+   && [ -e "${builddocdir}/module.1.in" ] && [ -e "${builddocdir}/ml.1" ] \
+   && [ -e "${builddocdir}/modulefile.5" ] && [ "$oldbuilddoc" != 'y' ]; then
    builddoc=p
 # test sphinx availability otherwise
 else
@@ -986,7 +993,7 @@ fi
 TCLSH=$reqpath
 
 # python is mandatory if installing from git repository to build ChangeLog
-if [ -e '.git' ]; then
+if [ $work_from_git_repo -eq 0 ]; then
    missmsg=''
 elif [ -n "$pythonbin" ]; then
    missmsg="Specified Python command \`$pythonbin' cannot be found"
@@ -1014,7 +1021,7 @@ else
 fi
 
 # gzip is mandatory if installing from git repository to build ChangeLog.gz
-if [ -e '.git' ]; then
+if [ $work_from_git_repo -eq 0 ]; then
    check_requirement gzip
 fi
 
@@ -1074,7 +1081,7 @@ fi
 
 # refine build number if working from git repository
 # shellcheck disable=SC2016
-if [ -e '.git' ]; then
+if [ $work_from_git_repo -eq 0 ]; then
   gitcurtag=$(git describe --tags --abbrev=0)
   gitcurdesc=$(git describe --tags)
   gitcurbranch=$(git rev-parse --abbrev-ref HEAD)
@@ -1164,10 +1171,10 @@ fi
 
 # prepare extension library sources if not yet done whether libtclenvmodules
 # is enabled or not to create consistent dist in any cases.
-if [ ! -e 'lib/configure' ]; then
+if [ ! -e "${progdir}/lib/configure" ]; then
    check_requirement autoreconf
    echo "--- preparing extension library sources ----------"
-   pushd lib || exit 1
+   pushd "${progdir}/lib" || exit 1
    autoreconf -i || exit 1
    popd || exit 1
    echo "--------------------------------------------------"
@@ -1185,7 +1192,7 @@ done
 if [ "$libtclenvmodules" = 'y' ]; then
    echo "--- configuring extension library sources --------"
    echo "libarglist = ${libarglist[*]}"
-   pushd lib || exit 1
+   pushd "${progdir}/lib" || exit 1
    ./configure "${libarglist[@]}" || exit 1
    popd || exit 1
    echo "--------------------------------------------------"

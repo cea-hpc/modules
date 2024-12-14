@@ -19,6 +19,8 @@ Modules 5.6.0 (not yet released)
 * Doc: improve Authors and Acknowledgments sections in README
 * Doc: add :ref:`create-new-release` guide
 * Update repository URL to https://github.com/envmodules/modules.
+* Install: update :file:`configure` script to allow running it from a current
+  working directory different than where this file is stored. (fix issue #558)
 
 .. _Security policy: https://github.com/envmodules/modules/blob/main/SECURITY.md
 
