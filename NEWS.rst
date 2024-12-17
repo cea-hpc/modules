@@ -21,6 +21,8 @@ Modules 5.6.0 (not yet released)
 * Update repository URL to https://github.com/envmodules/modules.
 * Install: update :file:`configure` script to allow running it from a current
   working directory different than where this file is stored. (fix issue #558)
+* Doc: create *Developer HowTos* section on documentation website to group
+  development how-to guides.
 
 .. _Security policy: https://github.com/envmodules/modules/blob/main/SECURITY.md
 

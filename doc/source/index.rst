@@ -117,6 +117,7 @@ automatically configured to the correct architecture.
    :caption: Development
 
    CONTRIBUTING
+   devel
    design
 
 

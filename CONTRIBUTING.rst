@@ -71,11 +71,11 @@ Start coding
 .. _create a pull request: https://help.github.com/articles/creating-a-pull-request/
 .. _Tcl 8.5 commands reference: https://www.tcl-lang.org/man/tcl8.5/TclCmd/contents.htm
 
-Design notes
-~~~~~~~~~~~~
+Developer notes
+~~~~~~~~~~~~~~~
 
-See the :ref:`design` for recent feature specifications. You may also find
-there some development howtos:
+See the :ref:`design` for recent feature specifications. Some development
+howtos are also available:
 
 * :ref:`add-new-sub-command`
 * :ref:`add-new-config-option`
