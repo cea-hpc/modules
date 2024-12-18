@@ -24,6 +24,7 @@ Modules 5.6.0 (not yet released)
 * Doc: create *Developer HowTos* section on documentation website to group
   development how-to guides.
 * Doc: add :ref:`acknowledgments` page in the documentation.
+* Doc: describe :ref:`GOVERNANCE`.
 
 .. _Security policy: https://github.com/envmodules/modules/blob/main/SECURITY.md
 

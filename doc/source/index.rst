@@ -119,6 +119,7 @@ automatically configured to the correct architecture.
    CONTRIBUTING
    devel
    design
+   GOVERNANCE
    acknowledgments
 
 
