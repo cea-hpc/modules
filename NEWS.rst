@@ -23,6 +23,7 @@ Modules 5.6.0 (not yet released)
   working directory different than where this file is stored. (fix issue #558)
 * Doc: create *Developer HowTos* section on documentation website to group
   development how-to guides.
+* Doc: add :ref:`acknowledgments` page in the documentation.
 
 .. _Security policy: https://github.com/envmodules/modules/blob/main/SECURITY.md
 
